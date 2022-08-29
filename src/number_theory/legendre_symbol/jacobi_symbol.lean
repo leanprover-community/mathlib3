@@ -451,7 +451,7 @@ end
 
 /-- An induction principle that can be used for "multiplicative" induction to show
 properties of odd natural numbers. -/
-lemma mul_induction_odd {P : ℕ → Prop} (h1 : P 1) (hp : ∀ p : ℕ, p.prime → p ≠ 2 → P p)
+lemma nat.mul_induction_odd {P : ℕ → Prop} (h1 : P 1) (hp : ∀ p : ℕ, p.prime → p ≠ 2 → P p)
   (h : ∀ m n : ℕ, odd m → odd n → P m → P n → P (m * n)) (b : ℕ) (hb : odd b) : P b :=
 rec_on_mul (λ h, false.rec _ (even_iff_not_odd.mp even_zero h)) (λ _, h1)
            (λ p pp p2, hp p pp ((@prime.mod_two_eq_one_iff_ne_two _ ⟨pp⟩).mp (odd_iff.mp p2)))
@@ -478,7 +478,7 @@ begin
     haveI : ne_zero m := ⟨ne_zero_of_odd hmo⟩,
     haveI : ne_zero n := ⟨ne_zero_of_odd hno⟩,
     rw [nat.cast_mul, jacobi_sym_mul_right, hm, hn, map_mul], },
-  exact mul_induction_odd h1 hp' hmul b hb,
+  exact nat.mul_induction_odd h1 hp' hmul b hb,
 end
 
 /-- If `b` is odd, then the Jacobi symbol `(-1 / b)` is given by `χ₄ b`. -/

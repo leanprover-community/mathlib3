@@ -219,6 +219,12 @@ begin
   exact polynomial.splits_comp_of_splits _ (inclusion hE).to_ring_hom this,
 end
 
+variables {F K} {L : Type*} [field L] [algebra F L] [algebra K L] [is_scalar_tower F K L]
+
+@[simp] lemma restrict_scalars_normal {E : intermediate_field K L} :
+  normal F (E.restrict_scalars F) ↔ normal F E :=
+iff.rfl
+
 end intermediate_field
 
 variables {F} {K} {K₁ K₂ K₃:Type*} [field K₁] [field K₂] [field K₃]
@@ -412,16 +418,15 @@ begin
 end
 
 instance normal [h : normal F L] : normal F (normal_closure F K L) :=
-begin
-  change normal F ((normal_closure F K L).restrict_scalars F),
-  rw restrict_scalars_eq_supr_adjoin,
+let ϕ := algebra_map K L in begin
+  rw [←intermediate_field.restrict_scalars_normal, restrict_scalars_eq_supr_adjoin],
+  apply (congr_arg (λ E : intermediate_field F L, normal F E)
+    (restrict_scalars_eq_supr_adjoin F K L)).mpr,
   apply intermediate_field.normal_supr F L _,
   intro x,
   apply normal.of_is_splitting_field (minpoly F x),
-  apply adjoin_root_set_is_splitting_field,
-  rw minpoly.eq_of_algebra_map_eq (algebra_map K L).injective ((is_integral_algebra_map_iff
-    (algebra_map K L).injective).mp (h.is_integral (algebra_map K L x))) rfl,
-  apply h.splits,
+  exact adjoin_root_set_is_splitting_field ((minpoly.eq_of_algebra_map_eq ϕ.injective
+    ((is_integral_algebra_map_iff ϕ.injective).mp (h.is_integral (ϕ x))) rfl).symm ▸ h.splits _),
 end
 
 instance is_finite_dimensional [finite_dimensional F K] :

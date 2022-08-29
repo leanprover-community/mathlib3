@@ -165,6 +165,7 @@ symbol `jacobi_sym a b`. (Unfortunately, there is no subscript "J" in unicode.)
 open zmod nat
 
 /-- The Jacobi symbol of `a` and `b` -/
+-- Since we need the fact that the factors are prime, we use `list.pmap`.
 def jacobi_sym (a : ℤ) (b : ℕ) : ℤ :=
 (b.factors.pmap (λ p pp, @legendre_sym p ⟨pp⟩ a) (λ p pf, prime_of_mem_factors pf)).prod
 

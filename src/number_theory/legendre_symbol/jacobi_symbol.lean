@@ -195,14 +195,8 @@ namespace zmod
 /-- If an integer `a` and a prime `p` satisfy `gcd a p = 1`, then `a : zmod p` is nonzero. -/
 lemma ne_zero_of_gcd_eq_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p = 1) :
   (a : zmod p) ≠ 0 :=
-begin -- this should have a simpler proof!
-  intro hf,
-  rw int_coe_zmod_eq_zero_iff_dvd a p at hf,
-  have h' := int.dvd_gcd hf (dvd_refl p),
-  rw h at h',
-  norm_cast at h',
-  exact pp.not_dvd_one h',
-end
+λ hf, pp.not_dvd_one (int.coe_nat_dvd.mp $ trans_rel_left _
+       (int.dvd_gcd ((int_coe_zmod_eq_zero_iff_dvd a p).mp hf) (dvd_refl p)) (congr_arg coe h))
 
 /-- If an integer `a` and a prime `p` satisfy `gcd a p ≠ 1`, then `a : zmod p` is zero. -/
 lemma eq_zero_of_gcd_ne_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p ≠ 1) :

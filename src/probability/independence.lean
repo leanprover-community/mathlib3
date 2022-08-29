@@ -298,7 +298,7 @@ begin
   have h_univ : μ_inter set.univ = ν set.univ,
   by rw [measure.restrict_apply_univ, measure.smul_apply, smul_eq_mul, measure_univ, mul_one],
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t2 μ ⟨measure_lt_top μ t2⟩,
-  rw [mul_comm, ← @measure.restrict_apply α _ μ t2 t1 (h1 t1 ht1)],
+  rw [mul_comm, ← measure.restrict_apply (h1 t1 ht1)],
   refine ext_on_measurable_space_of_generate_finite m p1 (λ t ht, _) h1 hpm1 hp1 h_univ ht1,
   have ht1 : measurable_set[m] t,
   { refine h1 _ _,

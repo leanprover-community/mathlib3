@@ -536,14 +536,14 @@ lemma jacobi_sym_quadratic_reciprocity {a b : ℕ} (ha : odd a) (hb : odd b) :
   [a | b]ⱼ = (-1) ^ ((a / 2) * (b / 2)) * [b | a]ⱼ :=
 by rw [← qr_sign_neg_one_pow ha hb, qr_sign_symm ha hb, jacobi_sym_quadratic_reciprocity' ha hb]
 
-/-- The Law of Quadratic Reciprocity for the Jacobi symbol: if `a` and `b` are odd natural numbers
-and `a % 4 = 1`, then `(a / b) = (b / a)`. -/
+/-- The Law of Quadratic Reciprocity for the Jacobi symbol: if `a` and `b` are natural numbers
+with `a % 4 = 1` and `b` odd, then `(a / b) = (b / a)`. -/
 theorem jacobi_sym_quadratic_reciprocity_one_mod_four {a b : ℕ}  (ha : a % 4 = 1) (hb : odd b) :
   [a | b]ⱼ = [b | a]ⱼ :=
 by rw [jacobi_sym_quadratic_reciprocity (odd_iff.mpr (odd_of_mod_four_eq_one ha)) hb,
        pow_mul, neg_one_pow_div_two_of_one_mod_four ha, one_pow, one_mul]
 
-/-- The Law of Quadratic Reciprocityfor the Jacobi symbol: if `a` and `b` are odd natural numbers
+/-- The Law of Quadratic Reciprocityfor the Jacobi symbol: if `a` and `b` are natural numbers
 both congruent to `3` mod `4`, then `(a / b) = -(b / a)`. -/
 theorem jacobi_sym_quadratic_reciprocity_three_mod_four
   {a b : ℕ} (ha : a % 4 = 3) (hb : b % 4 = 3) :
@@ -559,7 +559,7 @@ begin
   cases eq_or_ne a 0 with ha₀ ha₀,
   { rw [ha₀, mul_zero, mod_zero], },
   have hb' : odd (b % (4 * a)) := odd_mod_of_odd hb (even.mul_right (by norm_num) _),
-  rcases two_pow_mul_odd ha₀ with ⟨e, a', ⟨ha₁, ha₂⟩⟩,
+  rcases two_pow_mul_odd ha₀ with ⟨e, a', ha₁, ha₂⟩,
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
   rw [nat.cast_mul, jacobi_sym_mul_left, jacobi_sym_mul_left,
       jacobi_sym_quadratic_reciprocity' ha₁ hb, jacobi_sym_quadratic_reciprocity' ha₁ hb',

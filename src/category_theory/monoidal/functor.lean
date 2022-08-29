@@ -220,6 +220,18 @@ nat_iso.of_components
 @[simp, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
 @[simp] lemma ε_hom_inv_id : F.ε ≫ F.ε_iso.inv = 𝟙 _ := F.ε_iso.hom_inv_id
 
+/-- Monoidal functors commute with left tensoring up to isomorphism -/
+@[simps] noncomputable def comm_tensor_left (X : C) :
+  F.to_functor ⋙ (tensor_left (F.to_functor.obj X)) ≅
+  tensor_left X ⋙ F.to_functor :=
+nat_iso.of_components (λ Y, F.μ_iso X Y) (λ Y Z f, by { convert F.μ_natural' (𝟙 _) f, simp })
+
+/-- Monoidal functors commute with right tensoring up to isomorphism -/
+@[simps] noncomputable def comm_tensor_right (X : C) :
+  F.to_functor ⋙ (tensor_right (F.to_functor.obj X)) ≅
+  tensor_right X ⋙ F.to_functor :=
+nat_iso.of_components (λ Y, F.μ_iso Y X) (λ Y Z f, by { convert F.μ_natural' f (𝟙 _), simp })
+
 end
 
 section

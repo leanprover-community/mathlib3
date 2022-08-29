@@ -54,7 +54,7 @@ open set filter topological_space bornology
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
 universes u v w
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {X : Type*}
 
 /-- Construct a uniform structure core from a distance function and metric space axioms.
 This is a technical construction that can be immediately used to construct a uniform structure
@@ -1373,9 +1373,8 @@ theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
 begin
   rcases metric.cauchy_seq_iff'.1 hu 1 zero_lt_one with ⟨N, hN⟩,
-  suffices : ∃ R > 0, ∀ n, dist (u n) (u N) < R,
-  { rcases this with ⟨R, R0, H⟩,
-    exact ⟨_, add_pos R0 R0, λ m n,
+  rsuffices ⟨R, R0, H⟩ : ∃ R > 0, ∀ n, dist (u n) (u N) < R,
+  { exact ⟨_, add_pos R0 R0, λ m n,
       lt_of_le_of_lt (dist_triangle_right _ _ _) (add_lt_add (H m) (H n))⟩ },
   let R := finset.sup (finset.range N) (λ n, nndist (u n) (u N)),
   refine ⟨↑R + 1, add_pos_of_nonneg_of_pos R.2 zero_lt_one, λ n, _⟩,
@@ -1599,7 +1598,7 @@ lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
 lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
-uniform_continuous_subtype_mk uniform_continuous_dist _
+uniform_continuous_dist.subtype_mk _
 
 lemma uniform_continuous.nndist [uniform_space β] {f g : β → α} (hf : uniform_continuous f)
   (hg : uniform_continuous g) :
@@ -2564,7 +2563,7 @@ begin
 end
 
 lemma subsingleton_sphere (x : γ) {r : ℝ} (hr : r ≤ 0) : (sphere x r).subsingleton :=
-(subsingleton_closed_ball x hr).mono sphere_subset_closed_ball
+(subsingleton_closed_ball x hr).anti sphere_subset_closed_ball
 
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
@@ -2718,8 +2717,6 @@ metric_space.induced coe subtype.coe_injective ‹_›
 
 @[to_additive] instance {α : Type*} [metric_space α] : metric_space (αᵐᵒᵖ) :=
 metric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
-
-local attribute [instance] filter.unique
 
 instance : metric_space empty :=
 { dist := λ _ _, 0,
@@ -2881,3 +2878,75 @@ instance metric_space_quot {α : Type u} [pseudo_metric_space α] :
     λxc yc zc, quotient.induction_on₃ xc yc zc (λx y z, pseudo_metric_space.dist_triangle _ _ _) }
 
 end eq_rel
+
+/-!
+### `additive`, `multiplicative`
+
+The distance on those type synonyms is inherited without change.
+-/
+
+open additive multiplicative
+
+section
+variables [has_dist X]
+
+instance : has_dist (additive X) := ‹has_dist X›
+instance : has_dist (multiplicative X) := ‹has_dist X›
+
+@[simp] lemma dist_of_mul (a b : X) : dist (of_mul a) (of_mul b) = dist a b := rfl
+@[simp] lemma dist_of_add (a b : X) : dist (of_add a) (of_add b) = dist a b := rfl
+@[simp] lemma dist_to_mul (a b : additive X) : dist (to_mul a) (to_mul b) = dist a b := rfl
+@[simp] lemma dist_to_add (a b : multiplicative X) : dist (to_add a) (to_add b) = dist a b := rfl
+
+end
+
+section
+variables [pseudo_metric_space X]
+
+instance : pseudo_metric_space (additive X) := ‹pseudo_metric_space X›
+instance : pseudo_metric_space (multiplicative X) := ‹pseudo_metric_space X›
+
+@[simp] lemma nndist_of_mul (a b : X) : nndist (of_mul a) (of_mul b) = nndist a b := rfl
+@[simp] lemma nndist_of_add (a b : X) : nndist (of_add a) (of_add b) = nndist a b := rfl
+@[simp] lemma nndist_to_mul (a b : additive X) : nndist (to_mul a) (to_mul b) = nndist a b := rfl
+@[simp] lemma nndist_to_add (a b : multiplicative X) : nndist (to_add a) (to_add b) = nndist a b :=
+rfl
+
+end
+
+instance [metric_space X] : metric_space (additive X) := ‹metric_space X›
+instance [metric_space X] : metric_space (multiplicative X) := ‹metric_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space (additive X) := ‹proper_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space (multiplicative X) :=
+‹proper_space X›
+
+/-!
+### Order dual
+
+The distance on this type synonym is inherited without change.
+-/
+
+open order_dual
+
+section
+variables [has_dist X]
+
+instance : has_dist Xᵒᵈ := ‹has_dist X›
+
+@[simp] lemma dist_to_dual (a b : X) : dist (to_dual a) (to_dual b) = dist a b := rfl
+@[simp] lemma dist_of_dual (a b : Xᵒᵈ) : dist (of_dual a) (of_dual b) = dist a b := rfl
+
+end
+
+section
+variables [pseudo_metric_space X]
+
+instance : pseudo_metric_space Xᵒᵈ := ‹pseudo_metric_space X›
+
+@[simp] lemma nndist_to_dual (a b : X) : nndist (to_dual a) (to_dual b) = nndist a b := rfl
+@[simp] lemma nndist_of_dual (a b : Xᵒᵈ) : nndist (of_dual a) (of_dual b) = nndist a b := rfl
+
+end
+
+instance [metric_space X] : metric_space Xᵒᵈ := ‹metric_space X›
+instance [pseudo_metric_space X] [proper_space X] : proper_space Xᵒᵈ := ‹proper_space X›

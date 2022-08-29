@@ -61,7 +61,7 @@ variables {M : Type*} [topological_space M] [charted_space H M]
 {M' : Type*} [topological_space M'] [charted_space H' M']
 {N : Type*} [topological_space N] [charted_space G N]
 {N' : Type*} [topological_space N'] [charted_space G' N']
-{n : with_top ℕ}
+{n : ℕ∞}
 
 section defs
 
@@ -70,7 +70,7 @@ variables (I I' M M' n)
 /--
 `n`-times continuously differentiable diffeomorphism between `M` and `M'` with respect to I and I'
 -/
-@[protect_proj, nolint has_inhabited_instance]
+@[protect_proj, nolint has_nonempty_instance]
 structure diffeomorph extends M ≃ M' :=
 (cont_mdiff_to_fun  : cont_mdiff I I' n to_equiv)
 (cont_mdiff_inv_fun : cont_mdiff I' I n to_equiv.symm)

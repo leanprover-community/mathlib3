@@ -760,7 +760,7 @@ end
 ... ≤ (∫⁻ a, (∥f a∥₊ : ℝ≥0∞) ^ q + (∥g a∥₊ : ℝ≥0∞) ^ q ∂μ) ^ (1 / q) :
 begin
   refine ennreal.rpow_le_rpow (lintegral_mono (λ a, _)) (by simp [hq_pos.le] : 0 ≤ 1 / q),
-  exact ennreal.rpow_add_le_add_rpow _ _ hq_pos hq1,
+  exact ennreal.rpow_add_le_add_rpow _ _ hq_pos.le hq1,
 end
 ... < ∞ :
 begin
@@ -1319,6 +1319,63 @@ hf.of_le_mul (ae_strongly_measurable.inner hf.1 ae_strongly_measurable_const)
   (eventually_of_forall (λ x, by { rw mul_comm, exact norm_inner_le_norm _ _, }))
 
 end inner_product
+
+section liminf
+
+variables [measurable_space E] [opens_measurable_space E] {R : ℝ≥0}
+
+lemma ae_bdd_liminf_at_top_rpow_of_snorm_bdd {p : ℝ≥0∞}
+  {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
+  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
+begin
+  by_cases hp0 : p.to_real = 0,
+  { simp only [hp0, ennreal.rpow_zero],
+    refine eventually_of_forall (λ x, _),
+    rw liminf_const (1 : ℝ≥0∞),
+    exacts [ennreal.one_lt_top, at_top_ne_bot] },
+  have hp : p ≠ 0 := λ h, by simpa [h] using hp0,
+  have hp' : p ≠ ∞ := λ h, by simpa [h] using hp0,
+  refine ae_lt_top
+    (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
+    (lt_of_le_of_lt (lintegral_liminf_le
+      (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal.pow_const p.to_real))
+      (lt_of_le_of_lt _ (ennreal.rpow_lt_top_of_nonneg
+        ennreal.to_real_nonneg ennreal.coe_ne_top : ↑R ^ p.to_real < ∞))).ne,
+  simp_rw snorm_eq_lintegral_rpow_nnnorm hp hp' at hbdd,
+  simp_rw [liminf_eq, eventually_at_top],
+  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans
+    ((ennreal.rpow_one_div_le_iff (ennreal.to_real_pos hp hp')).1 (hbdd _))),
+end
+
+lemma ae_bdd_liminf_at_top_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0)
+  {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
+  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞ :=
+begin
+  by_cases hp' : p = ∞,
+  { subst hp',
+    simp_rw snorm_exponent_top at hbdd,
+    have : ∀ n, ∀ᵐ x ∂μ, (∥f n x∥₊ : ℝ≥0∞) < R + 1 :=
+      λ n, ae_lt_of_ess_sup_lt (lt_of_le_of_lt (hbdd n) $
+        ennreal.lt_add_right ennreal.coe_ne_top one_ne_zero),
+    rw ← ae_all_iff at this,
+    filter_upwards [this] with x hx using lt_of_le_of_lt
+      (liminf_le_of_frequently_le' $ frequently_of_forall $ λ n, (hx n).le)
+      (ennreal.add_lt_top.2 ⟨ennreal.coe_lt_top, ennreal.one_lt_top⟩) },
+  filter_upwards [ae_bdd_liminf_at_top_rpow_of_snorm_bdd hfmeas hbdd] with x hx,
+  have hppos : 0 < p.to_real := ennreal.to_real_pos hp hp',
+  have : liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) =
+    liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) ^ p.to_real,
+  { change liminf at_top (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) =
+      ennreal.order_iso_rpow p.to_real hppos (liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞))),
+    refine (order_iso.liminf_apply (ennreal.order_iso_rpow p.to_real _) _ _ _ _).symm;
+    is_bounded_default },
+  rw this at hx,
+  rw [← ennreal.rpow_one (liminf at_top (λ n, ∥f n x∥₊)), ← mul_inv_cancel hppos.ne.symm,
+    ennreal.rpow_mul],
+  exact ennreal.rpow_lt_top_of_nonneg (inv_nonneg.2 hppos.le) hx.ne,
+end
+
+end liminf
 
 end ℒp
 
@@ -2327,10 +2384,9 @@ begin
   let B := λ n : ℕ, ((1:ℝ) / 2) ^ n,
   have hB_pos : ∀ n, 0 < B n, from λ n, pow_pos (div_pos zero_lt_one zero_lt_two) n,
   refine metric.complete_of_convergent_controlled_sequences B hB_pos (λ f hf, _),
-  suffices h_limit : ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
+  rsuffices ⟨f_lim, hf_lim_meas, h_tendsto⟩ : ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
     at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0),
-  { rcases h_limit with ⟨f_lim, hf_lim_meas, h_tendsto⟩,
-    exact ⟨hf_lim_meas.to_Lp f_lim, tendsto_Lp_of_tendsto_ℒp f_lim hf_lim_meas h_tendsto⟩, },
+  { exact ⟨hf_lim_meas.to_Lp f_lim, tendsto_Lp_of_tendsto_ℒp f_lim hf_lim_meas h_tendsto⟩, },
   have hB : summable B, from summable_geometric_two,
   cases hB with M hB,
   let B1 := λ n, ennreal.of_real (B n),

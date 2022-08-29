@@ -9,6 +9,7 @@ import order.filter.interval
 import topology.algebra.field
 import tactic.linarith
 import tactic.tfae
+import tactic.positivity
 
 /-!
 # Theory of topology on ordered spaces
@@ -89,8 +90,6 @@ This property is satisfied for the order topology on a linear order, but it can 
 generally, and suffices to derive many interesting properties relating order and topology. -/
 class order_closed_topology (α : Type*) [topological_space α] [preorder α] : Prop :=
 (is_closed_le' : is_closed {p:α×α | p.1 ≤ p.2})
-
-instance : Π [topological_space α], topological_space αᵒᵈ := id
 
 instance [topological_space α] [h : first_countable_topology α] : first_countable_topology αᵒᵈ := h
 
@@ -1795,8 +1794,7 @@ section continuous_mul
 lemma mul_tendsto_nhds_zero_right (x : α) :
   tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 x) $ 𝓝 0 :=
 begin
-  have hx : 0 < 2 * (1 + |x|) := (mul_pos (zero_lt_two) $
-    lt_of_lt_of_le zero_lt_one $ le_add_of_le_of_nonneg le_rfl (abs_nonneg x)),
+  have hx : 0 < 2 * (1 + |x|) := by positivity,
   rw ((nhds_basis_zero_abs_sub_lt α).prod $ nhds_basis_abs_sub_lt x).tendsto_iff
      (nhds_basis_zero_abs_sub_lt α),
   refine λ ε ε_pos, ⟨(ε/(2 * (1 + |x|)), 1), ⟨div_pos ε_pos hx, zero_lt_one⟩, _⟩,
@@ -1806,7 +1804,6 @@ begin
   refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left _ (abs_nonneg a)) ((lt_div_iff hx).1 h),
   calc |b| = |(b - x) + x| : by rw sub_add_cancel b x
     ... ≤ |b - x| + |x| : abs_add (b - x) x
-    ... ≤ 1 + |x| : add_le_add_right (le_of_lt h') (|x|)
     ... ≤ 2 * (1 + |x|) : by linarith,
 end
 
@@ -1833,7 +1830,7 @@ begin
     refine ⟨i / (|x₀|), div_pos hi (abs_pos.2 hx₀), λ x hx, hit _⟩,
     calc |x₀ * x - x₀| = |x₀ * (x - 1)| : congr_arg abs (by ring_nf)
       ... = |x₀| * |x - 1| : abs_mul x₀ (x - 1)
-      ... < |x₀| * (i / |x₀|) : mul_lt_mul' le_rfl hx (abs_nonneg (x - 1)) (abs_pos.2 hx₀)
+      ... < |x₀| * (i / |x₀|) : mul_lt_mul' le_rfl hx (by positivity) (abs_pos.2 hx₀)
       ... = |x₀| * i / |x₀| : by ring
       ... = i : mul_div_cancel_left i (λ h, hx₀ (abs_eq_zero.1 h)) },
   { obtain ⟨i, hi, hit⟩ := h,
@@ -1842,8 +1839,7 @@ begin
     calc |x / x₀ - 1| = |x / x₀ - x₀ / x₀| : (by rw div_self hx₀)
     ... = |(x - x₀) / x₀| : congr_arg abs (sub_div x x₀ x₀).symm
     ... = |x - x₀| / |x₀| : abs_div (x - x₀) x₀
-    ... < i * |x₀| / |x₀| : div_lt_div hx le_rfl
-      (mul_nonneg (le_of_lt hi) (abs_nonneg x₀)) (abs_pos.2 hx₀)
+    ... < i * |x₀| / |x₀| : div_lt_div_of_lt (abs_pos.2 hx₀) hx
     ... = i : by rw [← mul_div_assoc', div_self (ne_of_lt $ abs_pos.2 hx₀).symm, mul_one],
     specialize hit (x / x₀) this,
     rwa [mul_div_assoc', mul_div_cancel_left x hx₀] at hit }
@@ -1869,7 +1865,7 @@ begin
   refine ⟨lt_of_le_of_lt _ (mul_lt_mul'' ha hb hε' hε'),
     lt_of_lt_of_le (mul_lt_mul'' ha' hb' ha0 hb0) _⟩,
   { calc 1 - ε = 1 - ε / 2 - ε/2 : by ring_nf
-    ... ≤ 1 - ε/2 - ε/2 + (ε/2)*(ε/2) : le_add_of_nonneg_right (le_of_lt (mul_pos ε_pos' ε_pos'))
+    ... ≤ 1 - ε/2 - ε/2 + (ε/2)*(ε/2) : le_add_of_nonneg_right (by positivity)
     ... = (1 - ε/2) * (1 - ε/2) : by ring_nf
     ... ≤ (1 - ε/4) * (1 - ε/4) : mul_le_mul (by linarith) (by linarith) (by linarith) hε' },
   { calc (1 + ε/4) * (1 + ε/4) = 1 + ε/2 + (ε/4)*(ε/4) : by ring_nf
@@ -1976,7 +1972,7 @@ by simpa only [mul_comm] using hg.at_bot_mul_neg hC hf
 lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[>] (0:α)) at_top :=
 begin
   refine (at_top_basis' 1).tendsto_right_iff.2 (λ b hb, _),
-  have hb' : 0 < b := zero_lt_one.trans_le hb,
+  have hb' : 0 < b := by positivity,
   filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, inv_pos.2 hb'⟩]
     with x hx using (le_inv hx.1 hb').1 hx.2,
 end
@@ -2073,18 +2069,17 @@ instance linear_ordered_field.to_topological_division_ring : topological_divisio
     rw [continuous_at,
         (nhds_basis_Ioo_pos t).tendsto_iff $ nhds_basis_Ioo_pos_of_pos $ inv_pos.2 ht],
     rintros ε ⟨hε : ε > 0, hεt : ε ≤ t⁻¹⟩,
-    refine ⟨min (t ^ 2 * ε / 2) (t / 2),
-            lt_min (half_pos $ mul_pos (by nlinarith) hε) $ by linarith, λ x h, _⟩,
+    refine ⟨min (t ^ 2 * ε / 2) (t / 2), by positivity, λ x h, _⟩,
     have hx : t / 2 < x,
     { rw [set.mem_Ioo, sub_lt, lt_min_iff] at h,
       nlinarith },
     have hx' : 0 < x := (half_pos ht).trans hx,
-    have aux : 0 < 2 / t ^ 2 := div_pos zero_lt_two (sq_pos_of_pos ht),
+    have aux : 0 < 2 / t ^ 2 := by positivity,
     rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt, ←abs_sub_lt_iff] at h ⊢,
     rw [inv_sub_inv ht.ne' hx'.ne', abs_div, div_eq_mul_inv],
     suffices : |t * x|⁻¹ < 2 / t ^ 2,
     { rw [←abs_neg, neg_sub],
-      refine (mul_lt_mul'' h this (abs_nonneg _) $ inv_nonneg.mpr $ abs_nonneg _).trans_le _,
+      refine (mul_lt_mul'' h this (by positivity) (by positivity)).trans_le _,
       rw [mul_comm, mul_min_of_nonneg _ _ aux.le],
       apply min_le_of_left_le,
       rw [←mul_div, ←mul_assoc, div_mul_cancel _ (sq_pos_of_pos ht).ne',

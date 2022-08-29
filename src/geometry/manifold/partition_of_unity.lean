@@ -97,7 +97,7 @@ subordinate to `U`, see `smooth_bump_covering.exists_is_subordinate`.
 
 This covering can be used, e.g., to construct a partition of unity and to prove the weak
 Whitney embedding theorem. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure smooth_bump_covering (s : set M := univ) :=
 (c : ι → M)
 (to_fun : Π i, smooth_bump_function I (c i))
@@ -122,7 +122,7 @@ variables {ι I M}
 
 namespace smooth_partition_of_unity
 
-variables {s : set M} (f : smooth_partition_of_unity ι I M s) {n : with_top ℕ}
+variables {s : set M} (f : smooth_partition_of_unity ι I M s) {n : ℕ∞}
 
 instance {s : set M} : has_coe_to_fun (smooth_partition_of_unity ι I M s)
   (λ _, ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) :=
@@ -458,7 +458,7 @@ end
 
 end smooth_partition_of_unity
 
-variables [sigma_compact_space M] [t2_space M] {t : M → set F} {n : with_top ℕ}
+variables [sigma_compact_space M] [t2_space M] {t : M → set F} {n : ℕ∞}
 
 /-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F`
 be a family of convex sets. Suppose that for each point `x : M` there exists a neighborhood

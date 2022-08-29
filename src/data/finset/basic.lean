@@ -146,8 +146,9 @@ namespace finset
 theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t
 | ⟨s, _⟩ ⟨t, _⟩ rfl := rfl
 
-@[simp] theorem val_inj {s t : finset α} : s.1 = t.1 ↔ s = t :=
-⟨eq_of_veq, congr_arg _⟩
+theorem val_injective : injective (val : finset α → multiset α) := λ _ _, eq_of_veq
+
+@[simp] theorem val_inj {s t : finset α} : s.1 = t.1 ↔ s = t := val_injective.eq_iff
 
 @[simp] theorem dedup_eq_self [decidable_eq α] (s : finset α) : dedup s.1 = s.1 :=
 s.2.dedup
@@ -467,6 +468,12 @@ begin
   { rintros ⟨hne, h_uniq⟩, rw eq_singleton_iff_unique_mem, refine ⟨_, h_uniq⟩,
     rw ← h_uniq hne.some hne.some_spec, exact hne.some_spec }
 end
+
+lemma nonempty_iff_eq_singleton_default [unique α] {s : finset α} :
+  s.nonempty ↔ s = {default} :=
+by simp [eq_singleton_iff_nonempty_unique_mem]
+
+alias nonempty_iff_eq_singleton_default ↔ nonempty.eq_singleton_default _
 
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = {a}) ↔ ∃! a, a ∈ s :=
 by simp only [eq_singleton_iff_unique_mem, exists_unique]
@@ -1226,8 +1233,11 @@ lemma inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u := by { ext 
 
 lemma sdiff_inter_distrib_right (s t u : finset α) : s \ (t ∩ u) = (s \ t) ∪ (s \ u) := sdiff_inf
 
-@[simp] lemma sdiff_inter_self_left (s t : finset α) : s \ (s ∩ t) = s \ t := sdiff_inf_self_left
-@[simp] lemma sdiff_inter_self_right (s t : finset α) : s \ (t ∩ s) = s \ t := sdiff_inf_self_right
+@[simp] lemma sdiff_inter_self_left (s t : finset α) : s \ (s ∩ t) = s \ t :=
+sdiff_inf_self_left _ _
+
+@[simp] lemma sdiff_inter_self_right (s t : finset α) : s \ (t ∩ s) = s \ t :=
+sdiff_inf_self_right _ _
 
 @[simp] lemma sdiff_empty : s \ ∅ = s := sdiff_bot
 
@@ -1295,6 +1305,18 @@ by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 
 @[simp] lemma sdiff_singleton_not_mem_eq_self (s : finset α) {a : α} (ha : a ∉ s) : s \ {a} = s :=
 by simp only [sdiff_singleton_eq_erase, ha, erase_eq_of_not_mem, not_false_iff]
+
+lemma sdiff_sdiff_left' (s t u : finset α) :
+  (s \ t) \ u = (s \ t) ∩ (s \ u) := sdiff_sdiff_left'
+
+lemma sdiff_insert (s t : finset α) (x : α) :
+  s \ insert x t = (s \ t).erase x :=
+by simp_rw [← sdiff_singleton_eq_erase, insert_eq,
+            sdiff_sdiff_left', sdiff_union_distrib, inter_comm]
+
+lemma sdiff_insert_insert_of_mem_of_not_mem {s t : finset α} {x : α} (hxs : x ∈ s) (hxt : x ∉ t) :
+  insert x (s \ insert x t) = s \ t :=
+by rw [sdiff_insert, insert_erase (mem_sdiff.mpr ⟨hxs, hxt⟩)]
 
 lemma sdiff_erase {x : α} (hx : x ∈ s) : s \ s.erase x = {x} :=
 begin
@@ -1843,7 +1865,7 @@ by simpa [←to_finset_eq hl, ←to_finset_eq hl'] using h
 finset.eq_of_veq dedup_cons
 
 @[simp] lemma to_finset_singleton (a : α) : to_finset ({a} : multiset α) = {a} :=
-by rw [singleton_eq_cons, to_finset_cons, to_finset_zero, is_lawful_singleton.insert_emptyc_eq]
+by rw [←cons_zero, to_finset_cons, to_finset_zero, is_lawful_singleton.insert_emptyc_eq]
 
 @[simp] lemma to_finset_add (s t : multiset α) : to_finset (s + t) = to_finset s ∪ to_finset t :=
 finset.ext $ by simp

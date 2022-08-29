@@ -1680,7 +1680,7 @@ begin
     have : ∫⁻ x, f x ∂μ + (↑n)⁻¹ * μ {x : α | f x + n⁻¹ ≤ g x} ≤ ∫⁻ x, f x ∂μ,
       from (lintegral_add_mul_meas_add_le_le_lintegral hfg hg n⁻¹).trans hgf,
     rw [(ennreal.cancel_of_ne hf).add_le_iff_nonpos_right, nonpos_iff_eq_zero, mul_eq_zero] at this,
-    exact this.resolve_left (ennreal.inv_ne_zero.2 ennreal.coe_nat_ne_top) },
+    exact this.resolve_left (ennreal.inv_ne_zero.2 (ennreal.nat_ne_top _)) },
   refine hfg.mp ((ae_all_iff.2 this).mono (λ x hlt hle, hle.antisymm _)),
   suffices : tendsto (λ n : ℕ, f x + n⁻¹) at_top (𝓝 (f x)),
     from ge_of_tendsto' this (λ i, (hlt i).le),

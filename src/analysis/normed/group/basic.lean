@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.module.ulift
+import analysis.normed.group.seminorm
 import order.liminf_limsup
 import topology.algebra.uniform_group
 import topology.metric_space.algebra
@@ -384,6 +385,15 @@ ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 
 lemma ne_zero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
 ne_zero_of_mem_sphere one_ne_zero _
+
+variables (E)
+
+/-- The norm of a seminormed group as an additive group seminorm. -/
+def norm_add_group_seminorm : add_group_seminorm E := ⟨norm, norm_zero, norm_add_le, norm_neg⟩
+
+@[simp] lemma coe_norm_add_group_seminorm : ⇑(norm_add_group_seminorm E) = norm := rfl
+
+variables {E}
 
 namespace isometric
 -- TODO This material is superseded by similar constructions such as
@@ -913,20 +923,6 @@ squeeze_zero_norm' (eventually_of_forall h) h'
 lemma tendsto_norm_sub_self (x : E) : tendsto (λ g : E, ∥g - x∥) (𝓝 x) (𝓝 0) :=
 by simpa [dist_eq_norm] using tendsto_id.dist (tendsto_const_nhds : tendsto (λ g, (x:E)) (𝓝 x) _)
 
-lemma tendsto_norm {x : E} : tendsto (λg : E, ∥g∥) (𝓝 x) (𝓝 ∥x∥) :=
-by simpa using tendsto_id.dist (tendsto_const_nhds : tendsto (λ g, (0:E)) _ _)
-
-lemma tendsto_norm_zero : tendsto (λg : E, ∥g∥) (𝓝 0) (𝓝 0) :=
-by simpa using tendsto_norm_sub_self (0:E)
-
-@[continuity]
-lemma continuous_norm : continuous (λg:E, ∥g∥) :=
-by simpa using continuous_id.dist (continuous_const : continuous (λ g, (0:E)))
-
-@[continuity]
-lemma continuous_nnnorm : continuous (λ (a : E), ∥a∥₊) :=
-continuous_subtype_mk _ continuous_norm
-
 lemma lipschitz_with_one_norm : lipschitz_with 1 (norm : E → ℝ) :=
 by simpa only [dist_zero_left] using lipschitz_with.dist_right (0 : E)
 
@@ -937,7 +933,20 @@ lemma uniform_continuous_norm : uniform_continuous (norm : E → ℝ) :=
 lipschitz_with_one_norm.uniform_continuous
 
 lemma uniform_continuous_nnnorm : uniform_continuous (λ (a : E), ∥a∥₊) :=
-uniform_continuous_subtype_mk uniform_continuous_norm _
+uniform_continuous_norm.subtype_mk _
+
+@[continuity] lemma continuous_norm : continuous (λg:E, ∥g∥) :=
+uniform_continuous_norm.continuous
+
+@[continuity]
+lemma continuous_nnnorm : continuous (λ (a : E), ∥a∥₊) :=
+uniform_continuous_nnnorm.continuous
+
+lemma tendsto_norm {x : E} : tendsto (λg : E, ∥g∥) (𝓝 x) (𝓝 ∥x∥) :=
+continuous_norm.continuous_at
+
+lemma tendsto_norm_zero : tendsto (λg : E, ∥g∥) (𝓝 0) (𝓝 0) :=
+continuous_norm.tendsto' 0 0 norm_zero
 
 /-- A helper lemma used to prove that the (scalar or usual) product of a function that tends to zero
 and a bounded function tends to zero. This lemma is formulated for any binary operation
@@ -1072,6 +1081,16 @@ end
 end seminormed_add_comm_group
 
 section normed_add_comm_group
+
+/-- Construct a `normed_add_comm_group` from a `seminormed_add_comm_group` satisfying
+`∀ x, ∥x∥ = 0 → x = 0`. This avoids having to go back to the `(pseudo_)metric_space` level
+when declaring a `normed_add_comm_group` instance as a special case of a more general
+`seminormed_add_comm_group` instance. -/
+def normed_add_comm_group.of_separation [h₁ : seminormed_add_comm_group E]
+  (h₂ : ∀ x : E, ∥x∥ = 0 → x = 0) : normed_add_comm_group E :=
+{ to_metric_space :=
+  { eq_of_dist_eq_zero := λ x y hxy, by rw h₁.dist_eq at hxy; rw ← sub_eq_zero; exact h₂ _ hxy },
+  ..h₁ }
 
 /-- Construct a normed group from a translation invariant distance -/
 def normed_add_comm_group.of_add_dist [has_norm E] [add_comm_group E] [metric_space E]

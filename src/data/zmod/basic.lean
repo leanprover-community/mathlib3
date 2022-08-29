@@ -81,6 +81,25 @@ instance (n : ℕ) : char_p (zmod n) n :=
     rw [val_nat_cast, val_zero, nat.dvd_iff_mod_eq_zero],
   end }
 
+@[simp] lemma add_order_of_one (n : ℕ) : add_order_of (1 : zmod n) = n :=
+char_p.eq _ (char_p.add_order_of_one _) (zmod.char_p n)
+
+/--  This lemma works in the case in which `zmod n` is not infinite, i.e. `n ≠ 0`.  The version
+where `a ≠ 0` is `add_order_of_coe'`. -/
+@[simp] lemma add_order_of_coe (a : ℕ) {n : ℕ} (n0 : n ≠ 0) :
+  add_order_of (a : zmod n) = n / n.gcd a :=
+begin
+  cases a,
+  simp [nat.pos_of_ne_zero n0],
+  rw [← nat.smul_one_eq_coe, add_order_of_nsmul' _ a.succ_ne_zero, zmod.add_order_of_one],
+end
+
+/--  This lemma works in the case in which `a ≠ 0`.  The version where
+ `zmod n` is not infinite, i.e. `n ≠ 0`, is `add_order_of_coe`. -/
+@[simp] lemma add_order_of_coe' {a : ℕ} (n : ℕ) (a0 : a ≠ 0) :
+  add_order_of (a : zmod n) = n / n.gcd a :=
+by rw [← nat.smul_one_eq_coe, add_order_of_nsmul' _ a0, zmod.add_order_of_one]
+
 /-- We have that `ring_char (zmod n) = n`. -/
 lemma ring_char_zmod_n (n : ℕ) : ring_char (zmod n) = n :=
 by { rw ring_char.eq_iff, exact zmod.char_p n, }
@@ -138,7 +157,7 @@ nat_cast_right_inverse.surjective
 
 /-- So-named because the outer coercion is `int.cast` into `zmod`. For `int.cast` into an arbitrary
 ring, see `zmod.int_cast_cast`. -/
-lemma int_cast_zmod_cast (a : zmod n) : ((a : ℤ) : zmod n) = a :=
+@[norm_cast] lemma int_cast_zmod_cast (a : zmod n) : ((a : ℤ) : zmod n) = a :=
 begin
   cases n,
   { rw [int.cast_id a, int.cast_id a], },
@@ -266,8 +285,7 @@ lemma cast_nat_cast (h : m ∣ n) (k : ℕ) : ((k : zmod n) : R) = k :=
 map_nat_cast (cast_hom h R) k
 
 @[simp, norm_cast]
-lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k :=
-(cast_hom h R).map_int_cast k
+lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k := map_int_cast (cast_hom h R) k
 
 end char_dvd
 
@@ -305,7 +323,7 @@ begin
   rw injective_iff_map_eq_zero,
   intro x,
   obtain ⟨k, rfl⟩ := zmod.int_cast_surjective x,
-  rw [ring_hom.map_int_cast, char_p.int_cast_eq_zero_iff R n,
+  rw [map_int_cast, char_p.int_cast_eq_zero_iff R n,
     char_p.int_cast_eq_zero_iff (zmod n) n],
   exact id
 end
@@ -622,7 +640,7 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
     then begin
       rcases h.eq_of_mul_eq_zero hmn0 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩;
       simp [inv_fun, to_fun, function.left_inverse, function.right_inverse,
-        ring_hom.eq_int_cast, prod.ext_iff]
+        eq_int_cast, prod.ext_iff]
     end
     else
       begin
@@ -718,7 +736,7 @@ begin
   apply nat.mod_eq_of_lt,
   apply nat.sub_lt (fact.out (0 < n)),
   contrapose! h,
-  rwa [nat.le_zero_iff, val_eq_zero] at h,
+  rwa [le_zero_iff, val_eq_zero] at h,
 end
 
 /-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,

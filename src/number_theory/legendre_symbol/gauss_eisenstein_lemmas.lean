@@ -3,8 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import field_theory.finite.basic
-import data.zmod.basic
+import number_theory.legendre_symbol.quadratic_reciprocity
 
 /-!
 # Lemmas of Gauss and Eisenstein
@@ -153,6 +152,22 @@ lemma gauss_lemma_aux (p : ℕ) [hp : fact p.prime] [fact (p % 2 = 1)]
           exact nat.div_lt_self hp.1.pos dec_trivial)).1 $
   by simpa using gauss_lemma_aux₁ p hap
 
+/-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
+  than `p/2` such that `(a * x) % p > p / 2` -/
+lemma gauss_lemma {p : ℕ} [fact p.prime] {a : ℤ} (hp : p ≠ 2) (ha0 : (a : zmod p) ≠ 0) :
+  legendre_sym p a = (-1) ^ ((Ico 1 (p / 2).succ).filter
+    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
+begin
+  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
+    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
+    by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp },
+  cases legendre_sym_eq_one_or_neg_one p ha0;
+  cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
+    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
+  simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
+end
+
 private lemma eisenstein_lemma_aux₁ (p : ℕ) [fact p.prime] [hp2 : fact (p % 2 = 1)]
   {a : ℕ} (hap : (a : zmod p) ≠ 0) :
   ((∑ x in Ico 1 (p / 2).succ, a * x : ℕ) : zmod 2) =
@@ -206,9 +221,8 @@ calc a / b = (Ico 1 (a / b).succ).card : by simp
 /-- The given sum is the number of integer points in the triangle formed by the diagonal of the
   rectangle `(0, p/2) × (0, q/2)`  -/
 private lemma sum_Ico_eq_card_lt {p q : ℕ} :
-  ∑ a in Ico 1 (p / 2).succ, (a * q) / p =
-  (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
-  (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q)).card :=
+  ∑ a in Ico 1 (p / 2).succ, (a * q) / p = ((Ico 1 (p / 2).succ ×ˢ Ico 1 (q / 2).succ).filter $
+    λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q).card :=
 if hp0 : p = 0 then by simp [hp0, finset.ext_iff]
 else
   calc ∑ a in Ico 1 (p / 2).succ, (a * q) / p =
@@ -240,9 +254,9 @@ lemma sum_mul_div_add_sum_mul_div_eq_mul (p q : ℕ) [hp : fact p.prime]
   ∑ a in Ico 1 (q / 2).succ, (a * p) / q =
   (p / 2) * (q / 2) :=
 begin
-  have hswap : (((Ico 1 (q / 2).succ).product (Ico 1 (p / 2).succ)).filter
+  have hswap : ((Ico 1 (q / 2).succ ×ˢ Ico 1 (p / 2).succ).filter
     (λ x : ℕ × ℕ, x.2 * q ≤ x.1 * p)).card =
-  (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
+  ((Ico 1 (p / 2).succ ×ˢ Ico 1 (q / 2).succ).filter
     (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p)).card :=
   card_congr (λ x _, prod.swap x)
     (λ ⟨_, _⟩, by simp only [mem_filter, and_self, prod.swap_prod_mk, forall_true_iff, mem_product]
@@ -252,9 +266,9 @@ begin
     (λ ⟨x₁, x₂⟩ h, ⟨⟨x₂, x₁⟩, by revert h; simp only [mem_filter, eq_self_iff_true, and_self,
       exists_prop_of_true, prod.swap_prod_mk, forall_true_iff, mem_product] {contextual := tt}⟩),
   have hdisj : disjoint
-    (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
+    ((Ico 1 (p / 2).succ ×ˢ Ico 1 (q / 2).succ).filter
       (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q))
-    (((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
+    ((Ico 1 (p / 2).succ ×ˢ Ico 1 (q / 2).succ).filter
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p)),
   { apply disjoint_filter.2 (λ x hx hpq hqp, _),
     have hxp : x.1 < p, from lt_of_le_of_lt
@@ -265,16 +279,27 @@ begin
     apply_fun zmod.val at this,
     rw [val_cast_of_lt hxp, val_zero] at this,
     simpa only [this, nonpos_iff_eq_zero, mem_Ico, one_ne_zero, false_and, mem_product] using hx },
-  have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
+  have hunion : (Ico 1 (p / 2).succ ×ˢ Ico 1 (q / 2).succ).filter
       (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q) ∪
-    ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
+    (Ico 1 (p / 2).succ ×ˢ Ico 1 (q / 2).succ).filter
       (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p) =
-    ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)),
+    (Ico 1 (p / 2).succ ×ˢ Ico 1 (q / 2).succ),
   from finset.ext (λ x, by have := le_total (x.2 * p) (x.1 * q);
     simp only [mem_union, mem_filter, mem_Ico, mem_product]; tauto),
   rw [sum_Ico_eq_card_lt, sum_Ico_eq_card_lt, hswap, ← card_disjoint_union hdisj, hunion,
     card_product],
   simp only [card_Ico, tsub_zero, succ_sub_succ_eq_sub]
+end
+
+lemma eisenstein_lemma {p : ℕ} [fact p.prime] (hp : p ≠ 2) {a : ℕ} (ha1 : a % 2 = 1)
+  (ha0 : (a : zmod p) ≠ 0) :
+  legendre_sym p a = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
+begin
+  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  have ha0' : ((a : ℤ) : zmod p) ≠ 0 := by { norm_cast, exact ha0 },
+  rw [neg_one_pow_eq_pow_mod_two, gauss_lemma hp ha0', neg_one_pow_eq_pow_mod_two,
+      (by norm_cast : ((a : ℤ) : zmod p) = (a : zmod p)),
+      show _ = _, from legendre_symbol.eisenstein_lemma_aux p ha1 ha0]
 end
 
 end legendre_symbol

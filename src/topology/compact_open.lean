@@ -105,8 +105,7 @@ continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
 
 /-- Composition is a continuous map from `C(α, β) × C(β, γ)` to `C(α, γ)`, provided that `β` is
   locally compact. This is Prop. 9 of Chap. X, §3, №. 4 of Bourbaki's *Topologie Générale*. -/
-lemma continuous_comp' (α β γ : Type*) [topological_space α] [topological_space β]
-  [locally_compact_space β] [topological_space γ] :
+lemma continuous_comp' [locally_compact_space β] :
   continuous (λ x : C(α, β) × C(β, γ), x.2.comp x.1) :=
 continuous_generated_from begin
   rintros M ⟨K, hK, U, hU, rfl⟩,
@@ -121,12 +120,10 @@ continuous_generated_from begin
   exact mem_prod.mpr ⟨hKL, image_subset_iff.mpr hLU⟩,
 end
 
-lemma continuous.comp' {X α β γ : Type*} [topological_space X]
-  [topological_space α] [topological_space β]
-  [locally_compact_space β] [topological_space γ] {f : X → C(α, β)} {g : X → C(β, γ)}
-   (hf : continuous f) (hg : continuous g) :
+lemma continuous.comp' {X : Type*} [topological_space X] [locally_compact_space β]
+  {f : X → C(α, β)} {g : X → C(β, γ)} (hf : continuous f) (hg : continuous g) :
   continuous (λ x, (g x).comp (f x)) :=
-(continuous_comp' α β γ).comp (hf.prod_mk hg : continuous (λ x, (f x, g x)))
+continuous_comp'.comp (hf.prod_mk hg : continuous $ λ x, (f x, g x))
 
 end functorial
 

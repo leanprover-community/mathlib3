@@ -120,6 +120,9 @@ instance : complete_lattice (subspace K V) :=
 instance subspace_inhabited : inhabited (subspace K V) :=
 { default := ⊤ }
 
+instance : has_emptyc (subspace K V) :=
+{ emptyc := ⊥}
+
 /-- The span of the empty set is the bottom of the lattice of subspaces. -/
 @[simp] lemma span_empty : span (∅ : set (ℙ K V)) = ⊥ := gi.gc.l_bot
 
@@ -269,6 +272,280 @@ begin
     { ext i, fin_cases i; refl },
     { intros m n _, fin_cases m; fin_cases n; tidy } },
   { simp_rw [ulift.forall, function.comp_app], intro x, fin_cases x; assumption },
+end
+
+/-- A nonzero vector v in V belongs to a submodule M of V if and only the representative of the
+point associated to v in ℙ K V belongs to M. -/
+lemma mem_submodule_iff_rep_mem (v : V) (hv : v ≠ 0) (M : submodule K V) :
+  v ∈ M ↔ (projectivization.mk K v hv).rep ∈ M :=
+by { obtain ⟨a, ha⟩ := exists_smul_eq_mk_rep K v hv, rw ← ha, simp }
+
+/-- This function associates to a submodule M of V a set of points from ℙ K V, which consists
+of points associated to nonzero vectors contained in M. This set of points is infact a subspace of
+ℙ K V. -/
+inductive projective_linear_subspace_set (M : submodule K V) : set (ℙ K V)
+| mk (v : V) (hv : v ≠ 0) (h : v ∈ M) : projective_linear_subspace_set (projectivization.mk K v hv)
+
+/-- This function associates to a submodule M of the vector space V the subspace of ℙ K V which
+consists of the points whose associated submodule is contained in M -/
+def projective_linear_subspace (M : submodule K V) : subspace K V :=
+{ carrier := {v | v.submodule ≤ M},
+  mem_add' :=
+  begin
+    intros v w hv hw hvw hvM hwM,
+    rw [set.mem_set_of_eq, submodule_mk, submodule.span_singleton_le_iff_mem] at hvM hwM ⊢,
+    exact M.add_mem hvM hwM
+  end }
+
+/-- This function associates to a submodule M of the vector space V the subspace of ℙ K V consisting
+of the points whose representative's are contained in M. -/
+def projective_linear_subspace_2 (M : submodule K V) : subspace K V :=
+{ carrier := {v | v.rep ∈ M},
+  mem_add' :=
+  begin
+    intros v w hv hw hvw hvM hwM,
+    simp_rw [set.mem_set_of_eq, ← mem_submodule_iff_rep_mem] at hvM hwM M ⊢,
+    exact M.add_mem hvM hwM
+  end }
+
+/-- The subspaces of ℙ K V associated to a submodule of V by the above two functions are equal. -/
+lemma projective_linear_subspace_eq_projective_linear_subspace_2 (M : submodule K V) :
+  projective_linear_subspace M = projective_linear_subspace_2 M :=
+begin
+  ext,
+  unfold projective_linear_subspace,
+  unfold projective_linear_subspace_2,
+  simp_rw [set.mem_set_of_eq, projectivization.submodule_eq, submodule.span_singleton_le_iff_mem]
+end
+
+/-- The subspace of ℙ K V associated to a submodule M of V by the function
+projective_linear_subspace is equal to the subset of ℙ K V associated to M by the function
+projective_linear_subspace_set. -/
+lemma projective_linear_subspace_eq_projective_linear_subspace_set (M : submodule K V) :
+  projective_linear_subspace_set M = projective_linear_subspace M :=
+begin
+  ext, refine ⟨λ hx, _, λ hx, _⟩,
+  { induction hx with v hv hvM, rwa ← submodule.span_singleton_le_iff_mem at hvM },
+  { have : submodule.span K {x.rep} ≤ M, by
+      { convert hx, nth_rewrite 1 ← mk_rep x,
+        exact (projectivization.submodule_mk (x.rep) (rep_nonzero x)).symm },
+    rw submodule.span_singleton_le_iff_mem at this,
+    convert (projective_linear_subspace_set.mk x.rep (rep_nonzero x) (this)),
+    exact (mk_rep x).symm },
+end
+
+/-- This function associated to a subspace W of ℙ K V a submodule of the vector space V, which is
+equal to the supremum of the collection of submodules associated to the points of W. -/
+def to_submodule (W : subspace K V) : submodule K V :=
+  ⨆ (v : ℙ K V) (hv : v ∈ W), projectivization.submodule v
+
+/-- This function associated to a subspace W of ℙ K V a submodule of the vector space V, which is
+equal to the collection of nonzero vectors associated to a point of W, and the zero vector. -/
+def to_submodule₂ (W : subspace K V) : submodule K V :=
+{ carrier := {v | v = 0 ∨ ∃ (hv : v ≠ 0), projectivization.mk K v hv ∈ W},
+  add_mem' := begin
+    intros a b ha hb,
+    simp only [ne.def, set.mem_set_of_eq] at ha hb ⊢,
+    by_cases h : a + b = 0,
+    { exact or.inl h },
+    { refine or.inr ⟨h, _⟩,
+      cases ha; cases hb,
+      { rw [ha, hb, zero_add] at h, contradiction },
+      { cases hb with _ hb, convert hb, rw [ha, zero_add] },
+      { cases ha with _ ha, convert ha, rw [hb, add_zero] },
+      { cases ha, cases hb, exact mem_add W a b _ _ h ha_h hb_h } },
+  end,
+  zero_mem' := by { simp },
+  smul_mem' := begin
+    intros c x hx,
+    simp only [ne.def, smul_eq_zero, set.mem_set_of_eq] at hx ⊢,
+    rcases hx with ⟨_, ⟨_, _⟩⟩; by_cases hcz : c = 0,
+    { exact or.inl (or.inl hcz) },
+    { exact or.inl (or.inr hx) },
+    { exact or.inl (or.inl hcz) },
+    { right,
+      cases hx with h hx,
+      refine ⟨by { rw not_or_distrib, exact ⟨hcz, h⟩ }, _⟩,
+      convert hx using 1,
+      rw mk_eq_mk_iff',
+      exact ⟨c, refl _⟩ },
+  end }
+
+/-- The submodules of V associated to a subspace of ℙ K V by the functions to_submodule and
+to_submodule₂ are equal. -/
+lemma to_submodule_eq_to_submodule₂ (W : subspace K V) : to_submodule W = to_submodule₂ W :=
+begin
+  ext, refine ⟨λ hx, _, λ hx, _⟩,
+  { apply submodule.supr_induction _ hx,
+    { intros v u hu,
+      apply submodule.supr_induction _ hu,
+      { intros hv w hw,
+        suffices : v.submodule ≤ W.to_submodule₂, by { exact this hw },
+        rw [submodule_eq, submodule.span_singleton_le_iff_mem],
+        rw ← mk_rep v at hv,
+        exact or.inr ⟨rep_nonzero v, hv⟩ },
+      { simp },
+      { intros y z, exact submodule.add_mem _ } },
+    { simp },
+    { intros y z, exact submodule.add_mem _ } },
+  { cases hx,
+    { rw hx, simp },
+    { cases hx with hx hxW,
+      rw [← submodule.span_singleton_le_iff_mem, ← submodule_mk x hx],
+      convert @le_supr₂ _ _ (λ v, v ∈ W) _ _ (projectivization.mk K x hx) hxW,
+      refl } }
+end
+
+/-- The to_submodule function is an order-preserving bijection between the subspaces of the
+projective space ℙ K V and the submodules of the underlying vector space V, and its inverse is the
+projective_linear_subspace function. -/
+def equiv : subspace K V ≃o submodule K V :=
+{ to_fun := to_submodule,
+  inv_fun := projective_linear_subspace,
+  left_inv := begin
+    intros x,
+    rw [to_submodule_eq_to_submodule₂, projective_linear_subspace_eq_projective_linear_subspace_2],
+    ext,
+    simp only [mk_rep, exists_prop, set.mem_set_of_eq, mem_carrier_iff],
+    refine ⟨λ hx, _, λ hx, _⟩,
+    { cases hx, exfalso, exact rep_nonzero x_1 hx, cases hx with _ hx, rwa mk_rep x_1 at hx },
+    { exact or.inr ⟨rep_nonzero x_1, by { rwa mk_rep x_1 }⟩ },
+  end,
+  right_inv := begin
+    intros x,
+    rw [to_submodule_eq_to_submodule₂, projective_linear_subspace_eq_projective_linear_subspace_2],
+    ext v,
+    refine ⟨λ hv, _, λ hv, _⟩,
+    { cases hv, rw hv, exact submodule.zero_mem _, cases hv, rwa mem_submodule_iff_rep_mem },
+    { by_cases hvz : v = 0, left, exact hvz, right, use hvz, rwa mem_submodule_iff_rep_mem at hv },
+  end,
+  map_rel_iff' := begin
+    intros W S,
+    dsimp,
+    simp_rw to_submodule_eq_to_submodule₂,
+    unfold to_submodule₂,
+    simp only [ne.def, submodule.mk_le_mk, set.set_of_subset_set_of, forall_eq_or_imp,
+      eq_self_iff_true, not_true, is_empty.exists_iff, or_false, forall_exists_index, true_and],
+    split,
+    { intros h v hvW,
+      cases (or.resolve_left (h v.rep (rep_nonzero v) (by { rwa mk_rep v})) (rep_nonzero v)),
+      rwa mk_rep v at * },
+    { intros h v hv hvW, exact or.inr ⟨hv, h hvW⟩ },
+  end }
+
+/-- A point in a projective space is a subspace. -/
+instance : has_singleton (ℙ K V) (subspace K V) :=
+{ singleton := λ x,
+  { carrier := {x},
+    mem_add' :=
+    begin
+      rintros v w hv hw hvw (rfl : _ = x) (h : _ = _),
+      rw mk_eq_mk_iff' at h,
+      cases h with a ha,
+      rw [set.mem_singleton_iff, mk_eq_mk_iff'],
+      refine ⟨1+ a, _⟩,
+      rw [add_smul, ha, one_smul],
+    end }}
+
+/-- The submodule of V corresponding to the span of a set of points in a projective space ℙ K V is
+equal to the span of the points' representatives in V. -/
+lemma subspace_equivalence_of_span_eq_span_image_reps (S : set (ℙ K V)) :
+  equiv (span S) = submodule.span K (projectivization.rep '' S) :=
+begin
+  ext,
+  refine ⟨λ hx, _, λ hx, _⟩,
+  { apply submodule.supr_induction _ hx,
+    { intros v y hy,
+      apply ((submodule.mem_supr _).1) hy (submodule.span K (projectivization.rep '' S)),
+      clear hy,
+      intro hv,
+      induction hv with s hs _ _ _ _ _ _ _ hus hws,
+      { rw [← mk_rep s, submodule_mk, submodule.span_singleton_le_iff_mem],
+        exact submodule.subset_span ⟨s, ⟨hs, rfl⟩⟩ },
+      { rw [submodule_mk, submodule.span_singleton_le_iff_mem] at *,
+        exact submodule.add_mem _ hus hws } },
+    { exact submodule.zero_mem _ },
+    { intros y z hy hz, exact submodule.add_mem _ hy hz } },
+  { refine (submodule.span_le.2) _ hx,
+    rintros y ⟨v, ⟨hs, hv⟩⟩,
+    refine submodule.mem_supr_of_mem v (submodule.mem_supr_of_mem (subspace.subset_span S hs) _),
+    rw [← hv, ← mk_rep v, submodule_mk, mk_rep],
+    exact submodule.mem_span_singleton_self (v.rep) },
+end
+
+/-- The span of a single point in a projective space is equal to the singleton subspace consisting
+of the point. -/
+@[simp]
+lemma span_singleton (v : ℙ K V) : span ({v} : set (ℙ K V)) = {v} := span_coe {v}
+
+/-- A singleton subspace is less than or equal to another subspace if and only if the point
+determining the singleton subspace is contained in the other subspace. -/
+lemma singleton_le_iff (a : ℙ K V) (W : subspace K V) : {a} ≤ W ↔ a ∈ W :=
+  by { change ({a} : set (ℙ K V)) ⊆ W ↔ a ∈ W, rw [set.singleton_subset_iff, set_like.mem_coe] }
+
+@[simp]
+lemma subspace_equivalence_empty : equiv (∅ : subspace K V) = ⊥ := order_iso.map_bot equiv
+
+@[simp]
+lemma subspace_equivalence_top : equiv (⊤ : subspace K V) = ⊤ := order_iso.map_top equiv
+
+/-- The submodule of V associated to the singleton subspace {v} of ℙ K V is equal to the span of
+the representative of v in V. -/
+@[simp]
+lemma subspace_equivalence_singleton (v : ℙ K V) :
+  equiv ({v} : subspace K V) = submodule.span K {v.rep} :=
+  by { rw [← span_singleton v, subspace_equivalence_of_span_eq_span_image_reps], simp }
+
+/-- The submodule of V associated to the singleton subspace {v} of ℙ K V is equal to the submodule
+of V associated to the point v. -/
+lemma submodule_eq_to_submodule (v : ℙ K V) : v.submodule = to_submodule {v} :=
+by {rw submodule_eq v, convert (subspace_equivalence_singleton v).symm }
+
+/--The submodule of V associated to the span of {v, w} in ℙ K V
+is equal to the span of the set of representatives of v and w in V. -/
+@[simp]
+lemma subspace_equivalence_span_pair (u v : ℙ K V) :
+  equiv (span {u, v} : subspace K V) = (submodule.span K {u.rep, v.rep}) :=
+  by { rw [subspace_equivalence_of_span_eq_span_image_reps, set.image_pair] }
+
+@[simp]
+lemma subspace_equivalence_span_triple (u v w : ℙ K V) :
+  equiv (span {u, v, w} : subspace K V) = (submodule.span K {u.rep, v.rep, w.rep}) :=
+  by { rw [subspace_equivalence_of_span_eq_span_image_reps, set.image_insert_eq, set.image_pair] }
+
+/-- A point in ℙ K V belongs to a subspace S of ℙ K V if and only if the point's representative
+belongs to the submodule of V associated to S. -/
+lemma rep_mem_equiv_submodule_iff (v : ℙ K V) (S : subspace K V) : v.rep ∈ equiv S ↔ v ∈ S :=
+begin
+  rw [← singleton_le_iff, ← submodule.span_singleton_le_iff_mem, ← subspace_equivalence_singleton],
+  exact rel_iso.map_rel_iff equiv
+end
+
+/-- If three points u, v, w of the projective space ℙ K V are such that u is contiained in the span
+of v and w, and u is not equal to v, then w is contained in the span of v and u. -/
+lemma mem_span_exchange (u v w : ℙ K V) (hu : u ∈ span ({v, w} : set (ℙ K V))) (huv : u ≠ v) :
+  w ∈ span ({v, u} : set (ℙ K V)) :=
+begin
+  have h : u ∉ ({v} : subspace K V), by
+    { rw [← mem_carrier_iff], unfold carrier, rwa set.mem_singleton_iff },
+  simp_rw [← rep_mem_equiv_submodule_iff, subspace_equivalence_span_pair,
+    subspace_equivalence_singleton, set.pair_comm v.rep _] at *,
+  exact mem_span_insert_exchange hu h
+end
+
+/-- A family of points in a projective space ℙ K V is independent if and only if the family of
+singleton subspaces determined by the points is independent in the lattice of subspaces of ℙ K V. -/
+lemma independent_iff_lattice_independent_singleton {ι : Type*} (f : ι → ℙ K V) :
+  independent f ↔ complete_lattice.independent (λ i, ({f i} : subspace K V)) :=
+begin
+  rw [independent_iff_complete_lattice_independent,
+    ← complete_lattice.independent_map_order_iso_iff (@equiv K V _ _ _)],
+  suffices : (λ (i : ι), (f i).submodule) = (equiv ∘ λ (i : ι), {f i}), by { rw this },
+  ext,
+  rw [function.comp_app],
+  suffices : equiv {f x} = (f x).submodule, by { rw this },
+  unfold equiv,
+  rw [rel_iso.coe_fn_mk, equiv.coe_fn_mk], exact supr_singleton,
 end
 
 end subspace

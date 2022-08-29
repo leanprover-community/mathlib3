@@ -353,22 +353,16 @@ by rw [jacobi_sym_mod_left, h, ← jacobi_sym_mod_left]
 lemma jacobi_sym_eq_zero_if_not_coprime {a : ℤ} {b : ℕ} [hb : ne_zero b] (h : a.gcd b ≠ 1) :
   [a | b]ⱼ = 0 :=
 begin
-  let P : ℕ → Prop := λ b, b ≠ 0 → a.gcd b ≠ 1 → [a | b]ⱼ = 0,
-  have hp : ∀ p : ℕ, p.prime → P p,
-  { intros p pp _ hg,
-    haveI : fact p.prime := ⟨pp⟩,
-    rw [← legendre_sym.to_jacobi_sym, legendre_sym_eq_zero_iff],
+  refine rec_on_mul (λ hf _, false.rec _ (hf rfl)) (λ _ h₁, false.rec _ (h₁ a.gcd_one_right))
+                    (λ p pp _ hg, _) (λ m n hm hn hmn0 hg, _) b (ne_zero.ne b) h,
+  { rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_eq_zero_iff p ⟨pp⟩],
     exact eq_zero_of_gcd_ne_one pp hg, },
-  have hmul : ∀ m n : ℕ, P m → P n → P (m * n),
-  { intros m n hm hn hmn0 hg,
-    haveI hm0 : ne_zero m := ⟨left_ne_zero_of_mul hmn0⟩,
+  { haveI hm0 : ne_zero m := ⟨left_ne_zero_of_mul hmn0⟩,
     haveI hn0 : ne_zero n := ⟨right_ne_zero_of_mul hmn0⟩,
     rw [jacobi_sym_mul_right],
     cases int.gcd_ne_one_of_gcd_mul_ne_one hg with hgm hgn,
     { rw [hm hm0.1 hgm, zero_mul], },
     { rw [hn hn0.1 hgn, mul_zero], } },
-  exact rec_on_mul (λ hf _, false.rec _ (hf rfl)) (λ _ h₁, false.rec _ (h₁ a.gcd_one_right))
-                   hp hmul b (ne_zero.ne b) h,
 end
 
 /-- The Jacobi symbol `(a / b)` vanishes if and only if `b ≠ 0` and `a` and `b` are not coprime. -/

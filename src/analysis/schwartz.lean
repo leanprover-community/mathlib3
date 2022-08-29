@@ -48,49 +48,6 @@ noncomputable theory
 
 variables {R R' 𝕜 E F ι : Type*}
 
-section seminorm
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-
-private lemma nonneg.of_zero_le_neg {f : E → ℝ} (map_zero : f 0 = 0)
-  (add_le : ∀ x y, f (x + y) ≤ f x + f y) (neg : ∀ x, f (-x) = f x) (x : E) : 0 ≤ f x :=
-have h: 0 ≤ 2 * f x, from
-calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero]
-...    ≤ f x + f (-x)  : add_le _ _
-...    = 2 * f x : by rw [neg, two_mul],
-nonneg_of_mul_nonneg_right h zero_lt_two
-
-private lemma smul.of_smul_le {f : E → ℝ} (map_zero : f 0 = 0)
-  (add_le : ∀ x y, f (x + y) ≤ f x + f y) (neg : ∀ x, f (-x) = f x)
-  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) (r : 𝕜) (x : E) : f (r • x) = ∥r∥ * f x :=
-begin
-  refine le_antisymm (smul_le r x) _,
-  by_cases r = 0,
-  { simp [h, map_zero] },
-  rw ←mul_le_mul_left (inv_pos.mpr (norm_pos_iff.mpr h)),
-  rw inv_mul_cancel_left₀ (norm_ne_zero_iff.mpr h),
-  specialize smul_le r⁻¹ (r • x),
-  rw norm_inv at smul_le,
-  convert smul_le,
-  simp[h],
-end
-
-def seminorm.of_le (f : E → ℝ) (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
-  (neg : ∀ x, f (-x) = f x) (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
-{ to_fun := f,
-  map_zero' := map_zero,
-  nonneg' := nonneg.of_zero_le_neg map_zero add_le neg,
-  add_le' := add_le,
-  neg' := neg,
-  smul' := smul.of_smul_le map_zero add_le neg smul_le }
-
-@[simp] lemma seminorm.of_le_apply (f : E → ℝ) {map_zero : f 0 = 0}
-  {add_le : ∀ x y, f (x + y) ≤ f x + f y} {neg : ∀ x, f (-x) = f x}
-  {smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x} (x : E) :
-  seminorm.of_le f map_zero add_le neg smul_le x = f x := rfl
-
-end seminorm
-
 
 section iterated_fderiv
 

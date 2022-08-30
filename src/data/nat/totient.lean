@@ -89,13 +89,13 @@ open zmod
 
 /-- Note this takes an explicit `fintype ((zmod n)ˣ)` argument to avoid trouble with instance
 diamonds. -/
-@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [h : fact (0 < n)] [fintype ((zmod n)ˣ)] :
+@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [ne_zero n] [fintype ((zmod n)ˣ)] :
   fintype.card ((zmod n)ˣ) = φ n :=
 calc fintype.card ((zmod n)ˣ) = fintype.card {x : zmod n // x.val.coprime n} :
   fintype.card_congr zmod.units_equiv_coprime
 ... = φ n :
 begin
-  unfreezingI { obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := exists_eq_succ_of_ne_zero h.out.ne' },
+  unfreezingI { obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := exists_eq_succ_of_ne_zero ne_zero.out },
   simp only [totient, finset.card_eq_sum_ones, fintype.card_subtype, finset.sum_filter,
     ← fin.sum_univ_eq_sum_range, @nat.coprime_comm (m + 1)],
   refl
@@ -104,6 +104,7 @@ end
 lemma totient_even {n : ℕ} (hn : 2 < n) : even n.totient :=
 begin
   haveI : fact (1 < n) := ⟨one_lt_two.trans hn⟩,
+  haveI : ne_zero n := ne_zero.of_gt hn,
   suffices : 2 = order_of (-1 : (zmod n)ˣ),
   { rw [← zmod.card_units_eq_totient, even_iff_two_dvd, this], exact order_of_dvd_card_univ },
   rw [←order_of_units, units.coe_neg_one, order_of_neg_one, ring_char.eq (zmod n) n, if_neg hn.ne'],
@@ -115,9 +116,9 @@ if hmn0 : m * n = 0
     simp only [totient_zero, mul_zero, zero_mul, h]
   else
   begin
-    haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
-    haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
-    haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
+    haveI : ne_zero (m * n) := ⟨hmn0⟩,
+    haveI : ne_zero m := ⟨left_ne_zero_of_mul hmn0⟩,
+    haveI : ne_zero n := ⟨right_ne_zero_of_mul hmn0⟩,
     simp only [← zmod.card_units_eq_totient],
     rw [fintype.card_congr (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
@@ -226,7 +227,7 @@ end
 lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fintype ((zmod p)ˣ)] :
   fintype.card ((zmod p)ˣ) ≤ p - 1 :=
 begin
-  haveI : fact (0 < p) := ⟨zero_lt_one.trans hp⟩,
+  haveI : ne_zero p := ⟨(pos_of_gt hp).ne'⟩,
   rw zmod.card_units_eq_totient p,
   exact nat.le_pred_of_lt (nat.totient_lt p hp),
 end
@@ -234,14 +235,13 @@ end
 lemma prime_iff_card_units (p : ℕ) [fintype ((zmod p)ˣ)] :
   p.prime ↔ fintype.card ((zmod p)ˣ) = p - 1 :=
 begin
-  by_cases hp : p = 0,
+  casesI eq_zero_or_ne_zero p with hp hp,
   { substI hp,
     simp only [zmod, not_prime_zero, false_iff, zero_tsub],
     -- the substI created an non-defeq but subsingleton instance diamond; resolve it
     suffices : fintype.card ℤˣ ≠ 0, { convert this },
     simp },
-  haveI : fact (0 < p) := ⟨nat.pos_of_ne_zero hp⟩,
-  rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))],
+  rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime $ ne_zero.pos p],
 end
 
 @[simp] lemma totient_two : φ 2 = 1 :=

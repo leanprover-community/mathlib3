@@ -1604,7 +1604,7 @@ lemma continuous_iff_continuous_dist [topological_space β] {f : β → α} :
     (h.comp (continuous_id.prod_mk continuous_const)).tendsto' _ _ $ dist_self _⟩
 
 lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
-uniform_continuous_subtype_mk uniform_continuous_dist _
+uniform_continuous_dist.subtype_mk _
 
 lemma uniform_continuous.nndist [uniform_space β] {f g : β → α} (hf : uniform_continuous f)
   (hg : uniform_continuous g) :

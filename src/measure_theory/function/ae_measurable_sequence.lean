@@ -104,10 +104,9 @@ lemma measure_compl_ae_seq_set_eq_zero [countable ι] (hf : ∀ i, ae_measurable
   μ (ae_seq_set hf p)ᶜ = 0 :=
 begin
   rw [ae_seq_set, compl_compl, measure_to_measurable],
-  have hf_eq := λ i, (hf $ plift.down i).ae_eq_mk,
+  have hf_eq := λ i, (hf i).ae_eq_mk,
   simp_rw [filter.eventually_eq, ←ae_all_iff] at hf_eq,
-  convert filter.eventually.and hf_eq hp,
-  simp_rw plift.forall,
+  exact filter.eventually.and hf_eq hp,
 end
 
 lemma ae_seq_eq_mk_ae [countable ι] (hf : ∀ i, ae_measurable (f i) μ)

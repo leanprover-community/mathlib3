@@ -195,6 +195,26 @@ begin
   exacts [rfl, λ p hp, (list.mem_append.mp hp).elim prime_of_mem_factors prime_of_mem_factors],
 end
 
+private
+lemma help {x₁ x₂: ℤ} (hx₁ : x₁ = 0 ∨ x₁ = 1 ∨ x₁ = -1) (hx₂ : x₂ = 0 ∨ x₂ = 1 ∨ x₂ = -1) :
+  x₁ * x₂ = 0 ∨ x₁ * x₂ = 1 ∨ x₁ * x₂ = -1 :=
+by rcases hx₁ with (hx₁ | hx₁ | hx₁); rcases hx₂ with (hx₂ | hx₂ | hx₂); rw [hx₁, hx₂]; norm_num
+
+/-- The Jacobi symbol takes only the values `-1, `0` and `1`. -/
+lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
+begin
+  refine rec_on_mul _ _ (λ p pp, _) (λ b₁ b₂ h₁ h₂, _) b,
+  { rw jacobi_sym_zero_right, right, left, refl, },
+  { rw jacobi_sym_one_right, right, left, refl, },
+  { haveI : fact p.prime := ⟨pp⟩,
+    rw [← legendre_sym.to_jacobi_sym, legendre_sym],
+    exact quadratic_char_is_quadratic (zmod p) a, },
+  { by_cases hb₁: b₁ = 0, { rw [hb₁, zero_mul, jacobi_sym_zero_right], right, left, refl, },
+    by_cases hb₂: b₂ = 0, { rw [hb₂, mul_zero, jacobi_sym_zero_right], right, left, refl, },
+    rw [@jacobi_sym_mul_right _ _ _ ⟨hb₁⟩ ⟨hb₂⟩],
+    exact help h₁ h₂, }
+end
+
 /-- The Jacobi symbol `(1 / b)` has the value `1`. -/
 lemma jacobi_sym_one_left (b : ℕ) : [1 | b]ⱼ = 1 :=
 list.prod_eq_one (λ z hz, let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [← he, legendre_sym_one])

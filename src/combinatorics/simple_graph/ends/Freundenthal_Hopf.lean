@@ -249,8 +249,8 @@ begin
 
   -- Boring boilerplate
   haveI : fintype (ComplInfComp G).sections := finite.fintype finite_ends,
-  haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := sorry, -- @ComplInfComp_fintype V _ G _ Gpc,
-  have surj : inverse_system.is_surjective (ComplInfComp G) := sorry, -- ComplInfComp.surjective G,
+  haveI : Π (j : finset V), fintype ((ComplInfComp G).obj j) := ComplInfComp_fintype  G Glf Gpc,
+  have surj : inverse_system.is_surjective (ComplInfComp G) := ComplInfComp.surjective G Glf Gpc,
 
   -- By finitely many ends, and since the system is nice, there is some K such that each inf_comp_out_back to K is injective
   obtain ⟨K,top⟩ := inverse_system.sections_fintype_to_injective (ComplInfComp G) surj,
@@ -259,7 +259,7 @@ begin
 
   -- Because we have at least three ends and enough automorphisms, we can apply `good_autom_bwd_map_not_inj`
   -- giving us K ⊆ K' ⊆ L with the inf_comp_out_back from L to K' not injective.
-  rcases (good_autom_back_not_inj G Glf Gpc auts K (many_ends.trans ⟨_,inj'⟩)) with ⟨K',L,KK',K'L,bwd_K_not_inj⟩,
+  obtain ⟨K',L,KK',K'L,bwd_K_not_inj⟩ := (good_autom_back_not_inj G Glf Gpc auts K (many_ends.trans ⟨_,inj'⟩)),
   -- which is in contradiction with the fact that all inf_comp_out_back to K are injective
   apply bwd_K_not_inj,
   -- The following is just that if f ∘ g is injective, then so is g

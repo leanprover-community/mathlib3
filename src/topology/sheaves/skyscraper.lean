@@ -25,9 +25,9 @@ of `p₀`, i.e. if `x ⤳ p₀` then `𝓕ₓ ≅ A` and if `¬ x ⤳ p₀` then
 ## Main statements
 
 * `skyscraper_presheaf_stalk_of_specializes`: if `y ∈ closure {p₀}` then the stalk of
-  `skyscraper_presheaf p₀ S` at `y` is `S`.
+  `skyscraper_presheaf p₀ A` at `y` is `A`.
 * `skyscraper_presheaf_stalk_of_not_specializes`: if `y ∉ closure {p₀}` then the stalk of
-  `skyscraper_presheaf p₀ S` at `y` is `*` the terminal object.
+  `skyscraper_presheaf p₀ A` at `y` is `*` the terminal object.
 
 -/
 

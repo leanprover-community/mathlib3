@@ -284,8 +284,8 @@ begin
   refl,
 end
 
-/- This is the function analogous to the one on p. 475 of Serre's `Homologie singulière des espaces`
-  `fibrés`, defining a homotopy from the product path `e ∧ γ` to `γ`.-/
+/- This is the function analogous to the one on p. 475 of Serre's *Homologie singulière des espaces
+  fibrés*, defining a homotopy from the product path `e ∧ γ` to `γ`.-/
 def delayed_refl_right {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
 { to_fun := λ t, if  (t : ℝ) ≤ (1 + θ) / 2 then γ.extend (2 * t/(1 + θ))
                  else x,

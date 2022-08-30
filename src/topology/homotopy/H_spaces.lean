@@ -225,7 +225,7 @@ begin
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
 end
 
-/- This is the function defined on p. 475 of Serre's `Homologie singulière des espaces fibrés`
+/- This is the function defined on p. 475 of Serre's *Homologie singulière des espaces fibrés*
 defining a homotopy from a path `γ` to the product `γ ∧ e`.-/
 def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
 { to_fun := λ t, if  (t : ℝ) ≤ θ / 2 then x

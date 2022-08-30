@@ -90,16 +90,18 @@ lemma dvd_nat_abs_iff_of_nat_dvd {a : ℕ} {z : ℤ} : a ∣ z.nat_abs ↔ (a : 
 ⟨int.of_nat_dvd_of_dvd_nat_abs, int.dvd_nat_abs_of_of_nat_dvd⟩
 
 /-- If `gcd a (m * n) ≠ 1`, then `gcd a m ≠ 1` or `gcd a n ≠ 1`. -/
-lemma gcd_ne_one_iff_gcd_mul_ne_one {a : ℤ} {m n : ℕ} :
+lemma gcd_ne_one_iff_gcd_mul_right_ne_one {a : ℤ} {m n : ℕ} :
   a.gcd (m * n) ≠ 1 ↔ a.gcd m ≠ 1 ∨ a.gcd n ≠ 1 :=
 by simp only [gcd_eq_one_iff_coprime, ← not_and_distrib, not_iff_not, is_coprime.mul_right_iff]
 
 /-- If `gcd a (m * n) = 1`, then `gcd a m = 1`. -/
-lemma gcd_eq_one_of_gcd_mul_eq_one_left {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) : a.gcd m = 1 :=
+lemma gcd_eq_one_of_gcd_mul_right_eq_one_left {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) :
+  a.gcd m = 1 :=
 nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_right_right a m n) h
 
 /-- If `gcd a (m * n) = 1`, then `gcd a n = 1`. -/
-lemma gcd_eq_one_of_gcd_mul_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) : a.gcd n = 1 :=
+lemma gcd_eq_one_of_gcd_mul_right_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) :
+  a.gcd n = 1 :=
 nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_left_right a n m) h
 
 end int
@@ -261,9 +263,9 @@ begin
     { rw [hn0, mul_zero],
       exact or.inl (jacobi_sym_zero_right a), },
     rw [nat.cast_mul] at hmng,
-    have hng := hn (int.gcd_eq_one_of_gcd_mul_eq_one_right hmng),
+    have hng := hn (int.gcd_eq_one_of_gcd_mul_right_eq_one_right hmng),
     simp_rw [@jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩],
-    cases hm (int.gcd_eq_one_of_gcd_mul_eq_one_left hmng) with hl hr,
+    cases hm (int.gcd_eq_one_of_gcd_mul_right_eq_one_left hmng) with hl hr,
     { rwa [hl, one_mul], },
     { rw [hr, neg_mul, one_mul, neg_inj, neg_eq_iff_neg_eq],
       exact or.dcases_on hng or.inr (λ hr', or.inl hr'.symm), } },
@@ -307,7 +309,7 @@ begin
   { haveI hm0 : ne_zero m := ⟨left_ne_zero_of_mul hmn0⟩,
     haveI hn0 : ne_zero n := ⟨right_ne_zero_of_mul hmn0⟩,
     rw [jacobi_sym_mul_right],
-    cases int.gcd_ne_one_iff_gcd_mul_ne_one.mp hg with hgm hgn,
+    cases int.gcd_ne_one_iff_gcd_mul_right_ne_one.mp hg with hgm hgn,
     { rw [hm hm0.1 hgm, zero_mul], },
     { rw [hn hn0.1 hgn, mul_zero], } },
 end

@@ -308,17 +308,10 @@ by rw [jacobi_sym_pow_left, jacobi_sym_sq_one h]
 
 /-- The Jacobi symbol `(a / b)` depends only on `a` mod `b`. -/
 lemma jacobi_sym_mod_left (a : ℤ) (b : ℕ) : [a | b]ⱼ = [a % b | b]ⱼ :=
-begin
-  refine rec_on_mul (λ _, by simp_rw [jacobi_sym_zero_right])
-                    (λ _, by simp_rw [jacobi_sym_one_right]) (λ p pp a, _) (λ m n hm hn a, _) b a,
-  { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_mod p ⟨pp⟩ a], },
-  { by_cases hm0 : m = 0,
-    { simp_rw [hm0, zero_mul, jacobi_sym_zero_right], },
-    by_cases hn0 : n = 0,
-    { simp_rw [hn0, mul_zero, jacobi_sym_zero_right], },
-    simp_rw [nat.cast_mul, @jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩,
-             hm a, hn a, hm (a % (m * n)), hn (a % (m * n))],
-    rw [int.mod_mod_of_dvd a (dvd_mul_right ↑m ↑n), int.mod_mod_of_dvd a (dvd_mul_left ↑n ↑m)] },
+congr_arg list.prod $ list.pmap_congr _ begin
+  rintro p hp _ _,
+  conv_rhs { rw [legendre_sym_mod, int.mod_mod_of_dvd _
+    (int.coe_nat_dvd.2 $ dvd_of_mem_factors hp), ← legendre_sym_mod] },
 end
 
 /-- The Jacobi symbol `(a / b)` depends only on `a` mod `b`. -/

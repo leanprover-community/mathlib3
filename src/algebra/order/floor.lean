@@ -834,16 +834,21 @@ variables [linear_ordered_semiring α] [linear_ordered_semiring β] [floor_semir
   [floor_semiring β] [ring_hom_class F α β] {a : α} {b : β}
 include β
 
-lemma floor_congr (h : ∀ n : ℕ, (n : α) ≤ a ↔ (n : β) ≤ b) : ⌊a⌋₊ = ⌊b⌋₊ :=
+lemma floor_le_floor (h : ∀ n : ℕ, (n : α) ≤ a → (n : β) ≤ b) : ⌊a⌋₊ ≤ ⌊b⌋₊ :=
 begin
-  have h₀ : 0 ≤ a ↔ 0 ≤ b := by simpa only [cast_zero] using h 0,
-  obtain ha | ha := lt_or_le a 0,
-  { rw [floor_of_nonpos ha.le, floor_of_nonpos (le_of_not_le $ h₀.not.mp ha.not_le)] },
-  exact (le_floor $ (h _).1 $ floor_le ha).antisymm (le_floor $ (h _).2 $ floor_le $ h₀.1 ha),
+  obtain ha | ha := le_total a 0,
+  { rw floor_of_nonpos ha,
+    exact zero_le _ },
+  { exact le_floor (h _ $ floor_le ha) }
 end
 
+lemma ceil_le_ceil (h : ∀ n : ℕ, b ≤ n → a ≤ n) : ⌈a⌉₊ ≤ ⌈b⌉₊ := ceil_le.2 $ h _ $ le_ceil _
+
+lemma floor_congr (h : ∀ n : ℕ, (n : α) ≤ a ↔ (n : β) ≤ b) : ⌊a⌋₊ = ⌊b⌋₊ :=
+(floor_le_floor $ λ n, (h n).1).antisymm $ floor_le_floor $ λ n, (h n).2
+
 lemma ceil_congr (h : ∀ n : ℕ, a ≤ n ↔ b ≤ n) : ⌈a⌉₊ = ⌈b⌉₊ :=
-(ceil_le.2 $ (h _).2 $ le_ceil _).antisymm $ ceil_le.2 $ (h _).1 $ le_ceil _
+(ceil_le_ceil $ λ n, (h n).2).antisymm $ ceil_le_ceil $ λ n, (h n).1
 
 lemma map_floor (f : F) (hf : strict_mono f) (a : α) : ⌊f a⌋₊ = ⌊a⌋₊ :=
 floor_congr $ λ n, by rw [←map_nat_cast f, hf.le_iff_le]

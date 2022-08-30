@@ -5,7 +5,7 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.archimedean
 import algebra.order.hom.monoid
-import algebra.order.ring
+import algebra.order.smul
 import algebra.ring.equiv
 
 /-!
@@ -343,3 +343,66 @@ instance order_ring_iso.subsingleton_left [linear_ordered_field α] [archimedean
   [linear_ordered_field β] :
   subsingleton (α ≃+*o β) :=
 order_ring_iso.symm_bijective.injective.subsingleton
+
+namespace nat -- Need `linear_ordered_comm_semiring` again
+variables [linear_ordered_semiring α] [linear_ordered_semiring β] [floor_semiring α]
+  [floor_semiring β] [order_ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma floor_le_map_floor (f : F) (a : α) : ⌊a⌋₊ ≤ ⌊f a⌋₊ :=
+floor_le_floor $ λ n hn, by { rw ←map_nat_cast f, exact order_hom_class.mono f hn }
+
+lemma map_floor_le_floor_add_one (f : F) (a : α) : ⌊f a⌋₊ ≤ ⌊a⌋₊ + 1 :=
+floor_le_of_le begin
+  rw [←map_nat_cast f, nat.cast_add_one],
+  exact order_hom_class.mono _ (lt_floor_add_one a).le,
+end
+
+variables [has_exists_add_of_le α] [archimedean α]
+
+lemma map_floor' (f : F) (a : α) : ⌊f a⌋₊ = ⌊a⌋₊ :=
+begin
+  obtain ha | ha := le_total a 0,
+  { rw [floor_of_nonpos ha, floor_of_nonpos (map_nonpos f ha)] },
+  refine (floor_le_map_floor _ _).antisymm' _,
+  rw ←nat.lt_add_one_iff,
+  refine (map_floor_le_floor_add_one _ _).lt_of_ne (λ h, _),
+  obtain ⟨b, hb⟩ := exists_add_of_le (floor_le ha),
+  obtain ⟨n, hn⟩ := exists_nat_gt b,
+  have := (f : α →+*o β).monotone' (add_le_add_right (floor_le (nsmul_nonneg ha n)) 1),
+  change f _ ≤ f _ at this,
+
+  rw [map_add, map_one, map_nat_cast f] at this,
+  have := (smul_le_smul_of_nonneg _ _).trans_lt (lt_floor_add_one (n • a)),
+end
+
+lemma map_ceil' (f : F) (hf : strict_mono f) (a : α) : ⌈f a⌉₊ = ⌈a⌉₊ :=
+ceil_congr $ λ n, by rw [←map_nat_cast f, hf.le_iff_le]
+
+end nat
+
+namespace int
+variables [linear_ordered_ring α] [linear_ordered_ring β] [floor_ring α] [floor_ring β]
+  [ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma map_floor' (f : F) (hf : strict_mono f) (a : α) : ⌊f a⌋ = ⌊a⌋ :=
+floor_congr $ λ n, by rw [←map_int_cast f, hf.le_iff_le]
+
+lemma map_ceil' (f : F) (hf : strict_mono f) (a : α) : ⌈f a⌉ = ⌈a⌉ :=
+ceil_congr $ λ n, by rw [←map_int_cast f, hf.le_iff_le]
+
+lemma map_fract' (f : F) (hf : strict_mono f) (a : α) : fract (f a) = f (fract a) :=
+by simp_rw [fract, map_sub, map_int_cast, map_floor _ hf]
+
+end int
+
+namespace int
+variables [linear_ordered_field α] [linear_ordered_field β] [floor_ring α] [floor_ring β]
+  [ring_hom_class F α β] {a : α} {b : β}
+include β
+
+lemma map_round' (f : F) (hf : strict_mono f) (a : α) : round (f a) = round a :=
+by simp_rw [round_eq, ←map_floor _ hf, map_add, one_div, map_inv₀, map_bit0, map_one]
+
+end int

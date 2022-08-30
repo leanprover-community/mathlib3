@@ -355,7 +355,7 @@ lemma aux_mem_I' {t θ : I} (h : (t : ℝ) ≤ (1 + θ) / 2) : 0 ≤ ((2 : ℝ) 
     zero_lt_one] using t.2.1 }) (add_nonneg zero_le_one θ.2.1), ((div_le_one $
     add_pos_of_pos_of_nonneg (@one_pos ℝ _ _) θ.2.1).mpr $ (le_div_iff' two_pos).mp h)⟩
 
-/- This is the function `Q` defined on p. 475 of Serre's `Homologie singulière des espaces fibrés`
+/- This is the function `Q` defined on p. 475 of Serre's *Homologie singulière des espaces fibrés*
 that helps proving continuity of `delayed_refl_left`.-/
 def Q_left : I × I → I := λ p, dite ((p.1 : ℝ) ≤ p.2 / 2) (λ h, 0)
   (λ h, ⟨(2 * p.1 - p.2)/(2 - p.2), aux_mem_I $ not_le.mp h⟩)

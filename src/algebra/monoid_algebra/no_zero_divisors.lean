@@ -36,13 +36,11 @@ begin
   refine (finset.sum_eq_single a0 _ _).trans _,
   { exact λ b H hb, finset.sum_eq_zero (λ x H1, if_neg (h H H1 (or.inl hb))) },
   { exact λ af0, by simp [not_mem_support_iff.mp af0] },
-  { refine (finset.sum_eq_single b0 _ _).trans _,
-    intros b bg b0,dsimp,
-    by_cases af : a0 ∈ f.support,
-    { exact if_neg (h af bg (or.inr b0)) },
-    { rw [not_mem_support_iff.mp af, zero_mul, if_t_t] },
-    { exact λ bf0, by simp [not_mem_support_iff.mp bf0] },
-    { exact if_pos rfl } },
+  { refine (finset.sum_eq_single b0 (λ b bg b0, _) _).trans (if_pos rfl),
+    { by_cases af : a0 ∈ f.support,
+      { exact if_neg (h af bg (or.inr b0)) },
+      { simp only [not_mem_support_iff.mp af, zero_mul, if_t_t] } },
+    { exact λ bf0, by simp [not_mem_support_iff.mp bf0] } },
 end
 
 section left_or_right_orderability

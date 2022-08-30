@@ -269,7 +269,8 @@ end
 variables (E)
 
 /-- `continuous_monoid_hom _ f` is a functor. -/
-@[to_additive] def comp_left (f : continuous_monoid_hom A B) :
+@[to_additive "`continuous_monoid_hom _ f` is a functor."]
+def comp_left (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (continuous_monoid_hom B E) (continuous_monoid_hom A E) :=
 { to_fun := λ g, g.comp f,
   map_one' := rfl,
@@ -277,7 +278,8 @@ variables (E)
   continuous_to_fun := f.continuous_comp_left }
 
 /-- `continuous_monoid_hom f _` is a functor. -/
-@[to_additive] def comp_right {B : Type*} [comm_group B] [topological_space B]
+@[to_additive "`continuous_monoid_hom f _` is a functor."]
+def comp_right {B : Type*} [comm_group B] [topological_space B]
   [topological_group B] (f : continuous_monoid_hom B E) :
   continuous_monoid_hom (continuous_monoid_hom A B) (continuous_monoid_hom A E) :=
 { to_fun := λ g, f.comp g,
@@ -295,3 +297,5 @@ def pontryagin_dual (G : Type*) [monoid G] [topological_space G] := continuous_m
 noncomputable def continuous_monoid_hom.pontryagin_dual (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (pontryagin_dual B) (pontryagin_dual A) :=
 f.comp_left circle
+
+#lint

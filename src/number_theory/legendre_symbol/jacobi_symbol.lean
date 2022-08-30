@@ -236,11 +236,9 @@ lemma jacobi_sym_pow_right (a : ℤ) (b e : ℕ) : [a | b ^ e]ⱼ = [a | b]ⱼ ^
 begin
   induction e with e ih,
   { rw [pow_zero, pow_zero, jacobi_sym_one_right], },
-  { by_cases hb : b = 0,
+  { casesI eq_zero_or_ne_zero b with hb,
     { rw [hb, zero_pow (succ_pos e), jacobi_sym_zero_right, one_pow], },
-    { haveI : ne_zero b := ⟨hb⟩,
-      haveI : ne_zero (b ^ e) := ⟨pow_ne_zero e hb⟩,
-      rw [pow_succ, pow_succ, jacobi_sym_mul_right, ih], } }
+    { rw [pow_succ, pow_succ, jacobi_sym_mul_right, ih], } }
 end
 
 /-- The Jacobi symbol `(a / b)` takes the value `1` or `-1` if `a` and `b` are coprime. -/

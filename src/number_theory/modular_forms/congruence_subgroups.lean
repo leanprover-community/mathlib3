@@ -30,12 +30,10 @@ variable (N : ℕ)
 local notation `SLMOD(`N`)`  := @matrix.special_linear_group.map (fin 2) _ _ _ _ _ _
   (int.cast_ring_hom (zmod N))
 
-
 @[simp]
 lemma SL_reduction_mod_hom_val (N : ℕ) (γ : SL(2, ℤ)) : ∀ (i j : fin 2),
   ((SLMOD(N) γ) : (matrix (fin 2) (fin 2) (zmod N))) i j =
   (((↑ₘγ i j) : ℤ) : zmod N) := λ i j, rfl
-
 
 /--The full level `N` congruence subgroup of `SL(2,ℤ)` of matrices that reduce to the identity
 modulo `N`.-/

@@ -10,7 +10,7 @@ import data.rat.cast
 /-!
 # A tactic to shift `ℕ` goals to `ℚ`
 
-Note that this file is followed by `zify`.
+Note that this file is following from `zify`.
 
 Division in `ℕ` is not always working fine (e.g. (5 : ℕ) / 2 = 2), so it's easier to work in `ℚ`,
 where division and subtraction are well behaved. `qify` can be used to cast goals and hypotheses

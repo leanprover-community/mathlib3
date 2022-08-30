@@ -1420,6 +1420,22 @@ begin
       exact hneq.symm } },
 end
 
+lemma stopped_process_eq' (n : ℕ) :
+  stopped_process u τ n =
+  set.indicator {a | n + 1 ≤ τ a} (u n) +
+    ∑ i in finset.range (n + 1), set.indicator {a | τ a = i} (u i) :=
+begin
+  have : {a | n ≤ τ a}.indicator (u n) =
+    {a | n + 1 ≤ τ a}.indicator (u n) + {a | τ a = n}.indicator (u n),
+  { ext x,
+    rw [add_comm, pi.add_apply, ← set.indicator_union_of_not_mem_inter],
+    { simp_rw [@eq_comm _ _ n, @le_iff_eq_or_lt _ _ n, nat.succ_le_iff],
+      refl },
+    { rintro ⟨h₁, h₂⟩,
+      exact (nat.succ_le_iff.1 h₂).ne h₁.symm } },
+  rw [stopped_process_eq, this, finset.sum_range_succ_comm, ← add_assoc],
+end
+
 end add_comm_monoid
 
 section normed_add_comm_group

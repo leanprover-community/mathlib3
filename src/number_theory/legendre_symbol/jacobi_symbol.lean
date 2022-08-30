@@ -212,7 +212,16 @@ by rcases hx₁ with (hx₁ | hx₁ | hx₁); rcases hx₂ with (hx₂ | hx₂ |
 /-- The Jacobi symbol takes only the values `0`, `1` and `1`. -/
 lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
 begin
-  refine rec_on_mul _ _ (λ p pp, _) (λ b₁ b₂ h₁ h₂, _) b,
+  simp_rw [jacobi_sym],
+  let P : ℤ → Prop := λ x, x = 0 ∨ x = 1 ∨ x = -1,
+  refine @list.prod_prop _ _ _ P dec_trivial (λ a' ha', _) @help,
+  rcases list.mem_pmap.mp ha' with ⟨p, hp, hl⟩,
+  rw [← hl, legendre_sym],
+  haveI : fact p.prime := ⟨prime_of_mem_factors hp⟩,
+  exact quadratic_char_is_quadratic (zmod p) a,
+/-
+  sorry
+  {refine rec_on_mul _ _ (λ p pp, _) (λ b₁ b₂ h₁ h₂, _) b,
   { rw jacobi_sym_zero_right, right, left, refl, },
   { rw jacobi_sym_one_right, right, left, refl, },
   { haveI : fact p.prime := ⟨pp⟩,
@@ -221,7 +230,7 @@ begin
   { by_cases hb₁: b₁ = 0, { rw [hb₁, zero_mul, jacobi_sym_zero_right], right, left, refl, },
     by_cases hb₂: b₂ = 0, { rw [hb₂, mul_zero, jacobi_sym_zero_right], right, left, refl, },
     rw [@jacobi_sym_mul_right _ _ _ ⟨hb₁⟩ ⟨hb₂⟩],
-    exact help h₁ h₂, }
+    exact help h₁ h₂, } } -/
 end
 
 /-- The Jacobi symbol `(1 / b)` has the value `1`. -/

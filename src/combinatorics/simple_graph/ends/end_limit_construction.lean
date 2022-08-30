@@ -162,7 +162,7 @@ begin
   rintro i h, exact this i j h,
 end
 
-lemma Endsinfty_eventually_constant [Gpc : preconnected G]
+lemma Endsinfty_eventually_constant
   (K : finset V)
   (top : Π (L : finset V) (KL : L ≤ K), (ComplInfComp G).obj L ≃ (ComplInfComp G).obj K) :
   Endsinfty G ≃ (ComplInfComp G).obj K :=

@@ -282,6 +282,14 @@ def neighborhood_finite {V : Type*} (G : simple_graph V) [lc : locally_finite G]
 }
 
 
+--mathlib
+lemma iso.induce_restrict {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+  (s : set V) : (G.induce s) ≃g (G'.induce (φ '' s)) := sorry
+
+--mathlib
+lemma iso.connected {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') :
+  G.connected ↔ G'.connected := sorry
+
 
 end simple_graph
 

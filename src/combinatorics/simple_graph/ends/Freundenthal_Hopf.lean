@@ -139,13 +139,6 @@ end inf_comp_out
 
 
 
---mathlib
-lemma iso.induce_restrict {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
-  (s : set V) : (G.induce s) ≃g (G'.induce (φ '' s)) := sorry
-
---mathlib
-lemma iso.connected {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G') :
-  G.connected ↔ G'.connected := sorry
 
 
 namespace comp_out

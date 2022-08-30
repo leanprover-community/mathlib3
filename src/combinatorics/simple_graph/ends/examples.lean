@@ -74,58 +74,40 @@ section nat
 
 def gℕ : simple_graph ℕ := simple_graph.from_rel (λ n m, m = n.succ)
 
-instance gℕlf : locally_finite gℕ := sorry
+lemma gℕlf : locally_finite gℕ := sorry
 lemma gℕpc : gℕ.preconnected := sorry
+lemma gℕc : gℕ.connected := sorry
 
-lemma gt_subconnected (m : ℕ) : (gℕ.induce {n : ℕ | n > m}).connected := by {
+
+lemma gt_iso (m : ℕ) : gℕ ≃g (gℕ.induce {n : ℕ | n > m}) :=
+begin
+  use (λ n, ⟨n+m+1,sorry⟩),
+  use (λ ⟨n,nm⟩, n-m-1),
+  sorry, sorry,
+  rintro a b, simp,
   sorry,
-  /-let L := {n : ℕ | n > m},
-  rintros x xm y ym,
-  wlog h : x ≤ y using [x y, y x],
-  { exact le_total x y, },
-  { rcases le_iff_exists_add.mp h with ⟨z,rfl⟩,
-    induction z,
-    { use nil,simp, exact ym, },
-    { simp only [gt_iff_lt, mem_set_of_eq] at xm,
-      rcases z_ih (le_self_add) ( by { simp, exact lt_of_lt_of_le xm (by simp) } ) with ⟨w,wgood⟩,
-      let w' := w.append (cons ((from_rel_adj _ (x+z_n) (x+z_n).succ).mpr ⟨(x + z_n).succ_ne_self.symm,or.inl rfl⟩) nil),
-      use w',
-      rw walk.support_append,
-      rw list.to_finset_append,
-      simp,
-      rw set.insert_subset,
-      split,
-      { exact lt_of_lt_of_le xm h, },
-      { exact wgood },
-    }, -- todo
-  },
-  { rcases this ym xm with ⟨w,wgood⟩,
-    use w.reverse,
-    rw walk.support_reverse,
-    rw list.to_finset_reverse,
-    exact wgood,
-  },-/
-}
+end
+
+lemma gt_connected (m : ℕ) : (gℕ.induce {n : ℕ | n > m}).connected := (iso.connected (gt_iso m)).mp gℕc
 
 
 lemma ends_nat : (Ends gℕ) ≃ unit :=
 begin
 
-  suffices H : ∀ K : finset ℕ, ∃ D : set ℕ, disjoint D K ∧ subconnected gℕ D ∧ D.infinite ∧ (D ᶜ).finite,
+  suffices H : ∀ K : finset ℕ, ∃ D : set ℕ, disjoint (K : set ℕ) D ∧ (gℕ.induce D).connected ∧ D.infinite ∧ (D ᶜ).finite,
   {
     obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
     have : (ComplInfComp gℕ).obj ∅ ≃ unit, from
-    cofinite_inf_ro_component_equiv'' gℕ gℕpc ∅ _ dis conn inf cof,
-    transitivity, exact (Ends_equiv_Endsinfty gℕ gℕpc),
+    inf_comp_out.cofinite_to_equiv_unit gℕlf gℕpc ∅ _ dis conn inf cof,
+    transitivity, exact (Ends_equiv_Endsinfty gℕ),
     transitivity, rotate, exact this,
 
 
-    apply @Endsinfty_eventually_constant _ _ gℕ gℕpc _ ∅,
+    apply Endsinfty_eventually_constant gℕ gℕlf gℕpc ∅,
     rintro L LL,
     transitivity, rotate, exact this.symm,
     obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,
-    exact cofinite_inf_ro_component_equiv'' gℕ gℕpc L _ dis conn inf cof,
-  },
+    exact inf_comp_out.cofinite_to_equiv_unit gℕlf gℕpc L _ dis conn inf cof, },
 
 
   intro K,
@@ -145,9 +127,9 @@ begin
   have Lcof : (L ᶜ).finite, by {dsimp [compl,boolean_algebra.compl],simp, apply set.finite_le_nat},
   -- There is no set.infinite_gt_nat ??
   have Linf : L.infinite, by {apply set.infinite_of_finite_compl,exact Lcof, },
-  have Lconn := gt_subconnected m,
+  have Lconn := gt_connected m,
 
-  use [L,Ldis,Lconn,Linf,Lcof],
+  use [L,Ldis.symm,Lconn,Linf,Lcof],
 end
 
 end nat

@@ -724,6 +724,23 @@ lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.inf_
 
 lemma back_surjective {K L : finset V} (h : K ⊆ L) : function.surjective (@back V G K L h) := sorry
 
+lemma cofinite_to_equiv_unit (Glf : locally_finite G) (Gpc : G.preconnected) (K : set V)
+  (D : set V) (Ddis : disjoint K D) (Dconn : (G.induce D).connected)
+  (Dinf : D.infinite) (Dcof : (D ᶜ).finite ) :
+  (G.inf_comp_out K) ≃ unit :=
+begin
+  let C := comp_out.of_connected_disjoint D Dconn Ddis,
+  let Cinf := set.infinite.mono (comp_out.of_connected_disjoint_sub D Dconn Ddis) Dinf,
+  haveI : unique (G.inf_comp_out K), by
+  { use ⟨⟨C,comp_out.dis_of_inf C Cinf⟩,Cinf⟩,
+    rintro ⟨⟨C',C'dis⟩,C'inf⟩,
+    dsimp only [default],
+    rw [subtype.mk_eq_mk,subtype.mk_eq_mk],
+    apply comp_out.eq_of_not_disjoint,
+    sorry, /-some tiring set "algebra" -/},
+  apply equiv.equiv_punit,
+end
+
 end inf_comp_out
 
 end simple_graph

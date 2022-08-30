@@ -6,9 +6,9 @@ import topology.metric_space.basic
 import data.setoid.partition
 import combinatorics.simple_graph.prod
 import .mathlib
-import .reachable_outside
+import .comp_out
 import .end_limit_construction
-import .functoriality
+--import .functoriality
 
 open function
 open finset
@@ -27,16 +27,14 @@ local attribute [instance] prop_decidable
 namespace simple_graph
 
 
-
 namespace ends
 
-open ro_component
 open simple_graph
 
 variables  {V : Type u}
            (G : simple_graph V)
            (Gpc: G.preconnected)
-           [locally_finite G]
+           (Glf : locally_finite G)
 
 
 
@@ -44,11 +42,11 @@ section finite
 
 
 -- Locally_finite follows from finiteness
-lemma no_end_of_finite_graph [finite V]: (Ends G Gpc) ≃ empty :=
+lemma no_end_of_finite_graph [finite V] : (Ends G) ≃ empty :=
 begin
   have Vfin : (@set.univ V).finite := set.finite_univ,
   transitivity,
-  exact Ends_equiv_Endsinfty G Gpc,
+  exact Ends_equiv_Endsinfty G,
   apply @equiv.equiv_empty _ _,
   apply is_empty.mk,
   rintros ⟨f,f_comm⟩,
@@ -61,8 +59,13 @@ end finite
 
 section infinite
 
-lemma end_of_infinite_graph [infinite V] : (Ends G Gpc).nonempty :=
-  @inverse_system.nonempty_sections_of_fintype_inverse_system' _ _ _ (ComplComp G Gpc) _ (ComplComp_nonempty G Gpc)
+include G Gpc Glf
+lemma end_of_infinite_graph [infinite V] : (Ends G).nonempty :=
+begin
+  haveI := ComplComp_fintype G Glf Gpc,
+  haveI := ComplComp_nonempty G Glf Gpc,
+  exact inverse_system.nonempty_sections_of_fintype_inverse_system' (ComplComp G),
+end
 
 end infinite
 
@@ -74,8 +77,9 @@ def gℕ : simple_graph ℕ := simple_graph.from_rel (λ n m, m = n.succ)
 instance gℕlf : locally_finite gℕ := sorry
 lemma gℕpc : gℕ.preconnected := sorry
 
-lemma gt_subconnected (m : ℕ) : subconnected gℕ {n : ℕ | n > m} := by {
-  let L := {n : ℕ | n > m},
+lemma gt_subconnected (m : ℕ) : (gℕ.induce {n : ℕ | n > m}).connected := by {
+  sorry,
+  /-let L := {n : ℕ | n > m},
   rintros x xm y ym,
   wlog h : x ≤ y using [x y, y x],
   { exact le_total x y, },
@@ -100,17 +104,17 @@ lemma gt_subconnected (m : ℕ) : subconnected gℕ {n : ℕ | n > m} := by {
     rw walk.support_reverse,
     rw list.to_finset_reverse,
     exact wgood,
-  },
+  },-/
 }
 
 
-lemma ends_nat : (Ends gℕ gℕpc) ≃ unit :=
+lemma ends_nat : (Ends gℕ) ≃ unit :=
 begin
 
   suffices H : ∀ K : finset ℕ, ∃ D : set ℕ, disjoint D K ∧ subconnected gℕ D ∧ D.infinite ∧ (D ᶜ).finite,
   {
     obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
-    have : (ComplInfComp gℕ gℕpc).obj ∅ ≃ unit, from
+    have : (ComplInfComp gℕ).obj ∅ ≃ unit, from
     cofinite_inf_ro_component_equiv'' gℕ gℕpc ∅ _ dis conn inf cof,
     transitivity, exact (Ends_equiv_Endsinfty gℕ gℕpc),
     transitivity, rotate, exact this,
@@ -154,7 +158,7 @@ section product
 variables  {V' : Type v}
            (G' : simple_graph V')
            (Gpc': G'.preconnected)
-           [locally_finite G']
+           (Glf' : locally_finite G')
 
 
 
@@ -240,9 +244,7 @@ end
 
 instance : locally_finite (G □ G') := by sorry
 
-lemma ends_product
-  [infinite V] [infinite V'] :
-  Ends  (G □ G') (simple_graph.preconnected.box_prod Gpc Gpc') ≃ unit :=
+lemma ends_product [infinite V] [infinite V'] : Ends  (G □ G') ≃ unit :=
 begin
 
   let VV := V × V',
@@ -288,15 +290,16 @@ section quasi_isometry
 variables  {V' : Type v}
            (G' : simple_graph V')
            (Gpc': G'.preconnected)
-           [locally_finite G']
+           (Glf' : locally_finite G')
 
+/-
 lemma qi_invariance (φ : V → V') (ψ : V' → V) (m : ℕ)
   (φψ : ∀ (v : V), G.dist (ψ $ φ v) v ≤ m) (ψφ : ∀ (v : V'), G'.dist (φ $ ψ v) v ≤ m)
   (φl : coarse_Lipschitz G G' φ m) (ψl : coarse_Lipschitz G' G ψ m) :
   Endsinfty G Gpc ≃ Endsinfty G' Gpc' := sorry
 -- First step: ψ and φ are cofinite :
 -- Then everything should follow from `.functoriality.lean`
-
+-/
 
 
 end quasi_isometry

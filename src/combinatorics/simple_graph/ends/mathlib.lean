@@ -285,21 +285,7 @@ def neighborhood_finite {V : Type*} (G : simple_graph V) [lc : locally_finite G]
 
 end simple_graph
 
-lemma equiv_true_of (α : Type*) : (∃ a : α, ∀ b : α, b = a) →  (α ≃ true) := begin
-  rintros H,
-  let a := H.some,
-  let aa := H.some_spec,
-  use [(λ _, trivial),(λ _, a),(λ x, (aa x).symm),(λ _, rfl)],
-end
-lemma equiv_true_to (α : Type*) : (α ≃ true) →  (∃ a : α, ∀ b : α, a = b) := begin
-  rintro E,
-  use E.inv_fun trivial,
-  exact E.left_inv,
-end
-lemma equiv_true_of_singleton {α : Type*} (a : α) : subtype ({a} : set α) ≃ true := begin
-  apply equiv_true_of (subtype ({a} : set α)) _,
-  simp, use a, exact rfl,
-end
+
 
 namespace list
 

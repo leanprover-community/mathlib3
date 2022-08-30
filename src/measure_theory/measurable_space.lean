@@ -323,7 +323,7 @@ begin
   refine measurable_find_greatest' (λ k hk, _),
   simp only [nat.find_greatest_eq_iff, set_of_and, set_of_forall, ← compl_set_of],
   repeat { apply_rules [measurable_set.inter, measurable_set.const, measurable_set.Inter,
-    measurable_set.Inter, measurable_set.compl, hN]; try { intros } }
+    measurable_set.compl, hN]; try { intros } }
 end
 
 lemma measurable_find {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]

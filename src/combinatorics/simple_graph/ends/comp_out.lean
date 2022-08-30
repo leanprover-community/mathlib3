@@ -278,17 +278,22 @@ def of_connected_disjoint (S : set V)
   (conn : (G.induce S).connected) (dis : disjoint K S) : G.comp_out K :=
 begin
   rw connected_iff at conn,
-  exact of_vertex G K conn.right.some,
+  exact of_vertex G K conn.right.some.val,
 end
 
 lemma of_connected_disjoint_dis (S : set V)
   (conn : (G.induce S).connected) (dis : disjoint K S) : (of_connected_disjoint S conn dis).dis :=
 begin
+  rw connected_iff at conn,
   by_contra h,
   rw not_dis_iff_singleton_in at h,
   obtain ⟨k,kK,e⟩ := h,
   unfold of_connected_disjoint at e,
-  sorry
+  let sC := @of_vertex_mem V G K conn.right.some.val,
+  rw ←e at sC,
+  simp only [subtype.val_eq_coe, mem_singleton_iff] at sC,
+  rw ←sC at kK,
+  apply dis, exact ⟨kK,conn.right.some.prop⟩,
 end
 
 lemma of_connected_disjoint_sub (S : set V)

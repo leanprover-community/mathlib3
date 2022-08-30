@@ -254,21 +254,15 @@ end
 @[mono] lemma cast_mono : monotone (coe : ℚ → K) := cast_strict_mono.monotone
 
 /-- Coercion from `ℚ` as an order embedding. -/
-@[simps] def cast_order_embedding : ℚ ↪o K :=
-order_embedding.of_strict_mono coe cast_strict_mono
+@[simps] def cast_order_embedding : ℚ ↪o K := order_embedding.of_strict_mono coe cast_strict_mono
 
-@[simp, norm_cast] theorem cast_le {m n : ℚ} : (m : K) ≤ n ↔ m ≤ n :=
-cast_order_embedding.le_iff_le
+@[simp, norm_cast] theorem cast_le {m n : ℚ} : (m : K) ≤ n ↔ m ≤ n := cast_order_embedding.le_iff_le
+@[simp, norm_cast] theorem cast_lt {m n : ℚ} : (m : K) < n ↔ m < n := cast_strict_mono.lt_iff_lt
 
-@[simp, norm_cast] theorem cast_nonneg {n : ℚ} : 0 ≤ (n : K) ↔ 0 ≤ n :=
-by rw [← cast_zero, cast_le]
-
-@[simp, norm_cast] theorem cast_lt {m n : ℚ} : (m : K) < n ↔ m < n :=
-cast_strict_mono.lt_iff_lt
-
-@[simp] theorem cast_nonpos {n : ℚ} : (n : K) ≤ 0 ↔ n ≤ 0 := by rw [← cast_zero, cast_le]
-@[simp] theorem cast_pos {n : ℚ} : (0 : K) < n ↔ 0 < n := by rw [← cast_zero, cast_lt]
-@[simp] theorem cast_lt_zero {n : ℚ} : (n : K) < 0 ↔ n < 0 := by rw [← cast_zero, cast_lt]
+@[simp] theorem cast_nonneg {n : ℚ} : 0 ≤ (n : K) ↔ 0 ≤ n := by norm_cast
+@[simp] theorem cast_nonpos {n : ℚ} : (n : K) ≤ 0 ↔ n ≤ 0 := by norm_cast
+@[simp] theorem cast_pos {n : ℚ} : (0 : K) < n ↔ 0 < n := by norm_cast
+@[simp] theorem cast_lt_zero {n : ℚ} : (n : K) < 0 ↔ n < 0 := by norm_cast
 
 @[simp, norm_cast] theorem cast_min {a b : ℚ} : (↑(min a b) : K) = min a b :=
 (@cast_mono K _).map_min
@@ -276,8 +270,7 @@ cast_strict_mono.lt_iff_lt
 @[simp, norm_cast] theorem cast_max {a b : ℚ} : (↑(max a b) : K) = max a b :=
 (@cast_mono K _).map_max
 
-@[simp, norm_cast] theorem cast_abs {q : ℚ} : ((|q| : ℚ) : K) = |q| :=
-by simp [abs_eq_max_neg]
+@[simp, norm_cast] theorem cast_abs {q : ℚ} : ((|q| : ℚ) : K) = |q| := by simp [abs_eq_max_neg]
 
 open set
 
@@ -292,13 +285,9 @@ open set
 
 end linear_ordered_field
 
-@[simp, norm_cast] theorem cast_le {m n : ℚ} : (m : K) ≤ n ↔ m ≤ n := cast_order_embedding.le_iff_le
-@[simp, norm_cast] theorem cast_lt {m n : ℚ} : (m : K) < n ↔ m < n := cast_strict_mono.lt_iff_lt
-
-@[simp] theorem cast_nonneg {n : ℚ} : 0 ≤ (n : K) ↔ 0 ≤ n := by norm_cast
-@[simp] theorem cast_nonpos {n : ℚ} : (n : K) ≤ 0 ↔ n ≤ 0 := by norm_cast
-@[simp] theorem cast_pos {n : ℚ} : (0 : K) < n ↔ 0 < n := by norm_cast
-@[simp] theorem cast_lt_zero {n : ℚ} : (n : K) < 0 ↔ n < 0 := by norm_cast
+@[norm_cast] theorem cast_id (n : ℚ) : (↑n : ℚ) = n := by rw [cast_def, num_div_denom]
+@[simp] theorem cast_eq_id : (coe : ℚ → ℚ) = id := funext cast_id
+@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ := ring_hom.ext cast_id
 
 end rat
 

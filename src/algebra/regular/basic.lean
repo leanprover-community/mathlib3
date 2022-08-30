@@ -35,13 +35,13 @@ is injective. -/
 @[to_additive "An add-left-regular element is an element `c` such that addition on the left by `c`
 is injective. -/
 "]
-def is_left_regular (c : R) := function.injective ((*) c)
+def is_left_regular (c : R) := ((*) c).injective
 
 /-- A right-regular element is an element `c` such that multiplication on the right by `c`
 is injective. -/
 @[to_additive "An add-right-regular element is an element `c` such that addition on the right by `c`
 is injective."]
-def is_right_regular (c : R) := function.injective (* c)
+def is_right_regular (c : R) := (* c).injective
 
 /-- An add-regular element is an element `c` such that addition by `c` both on the left and
 on the right is injective. -/
@@ -56,6 +56,16 @@ structure is_regular (c : R) : Prop :=
 (right : is_right_regular c)
 
 attribute [to_additive] is_regular
+
+@[to_additive]
+lemma is_left_regular.inj {α} [has_mul α] {a : α} (hx : is_left_regular a) {b c : α} :
+  a * b = a * c ↔ b = c :=
+⟨λ h, hx h, congr_arg _⟩
+
+@[to_additive]
+lemma is_right_regular.inj {α} [has_mul α] {a : α} (hx : is_right_regular a) {b c : α} :
+  b * a = c * a ↔ b = c :=
+⟨λ h, hx h, congr_arg _⟩
 
 @[to_additive]
 protected lemma mul_le_cancellable.is_left_regular [partial_order R] {a : R}

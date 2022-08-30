@@ -41,7 +41,7 @@ open_locale big_operators ennreal nnreal topological_space
 
 noncomputable theory
 
-variables {R R' 𝕜 E F ι : Type*}
+variables {R R' 𝕜 E F : Type*}
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
 variables [normed_add_comm_group F] [normed_space ℝ F]
@@ -61,8 +61,6 @@ variables {E F}
 
 namespace schwartz
 
--- General nonsense for `fun_like` structures
-
 instance : has_coe 𝓢(E, F) (E → F) := ⟨to_fun⟩
 
 instance fun_like : fun_like 𝓢(E, F) E (λ _, F) :=
@@ -72,10 +70,12 @@ instance fun_like : fun_like 𝓢(E, F) E (λ _, F) :=
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun 𝓢(E, F) (λ _, E → F) := ⟨λ p, p.to_fun⟩
 
+/-- All derivatives of a Schwartz function are rapidly decaying. -/
 lemma decay (f : 𝓢(E, F)) (k n : ℕ) : ∃ (C : ℝ) (hC : 0 < C),
   ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ C :=
 f.decay' k n
 
+/-- Every Schwartz function is smooth. -/
 lemma smooth (f : 𝓢(E, F)) : cont_diff ℝ ⊤ f := f.smooth'
 
 @[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
@@ -90,7 +90,7 @@ lemma bounds_bdd_below (k n : ℕ) (f : 𝓢(E, F)) :
   bdd_below { c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c } :=
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
-lemma seminorm_add_le_aux (k n : ℕ) (f g : 𝓢(E, F)) (x : E) :
+lemma decay_add_le_aux (k n : ℕ) (f g : 𝓢(E, F)) (x : E) :
   ∥x∥^k * ∥iterated_fderiv ℝ n (f+g) x∥ ≤
   ∥x∥^k * ∥iterated_fderiv ℝ n f x∥
   + ∥x∥^k * ∥iterated_fderiv ℝ n g x∥ :=
@@ -107,7 +107,7 @@ variables [is_R_or_C 𝕜] [normed_space 𝕜 F]
 variables [semiring R] [module R 𝕜] [module R F] [smul_comm_class ℝ R F]
 variables [has_continuous_const_smul R F] [is_scalar_tower R 𝕜 F]
 
-lemma seminorm_smul_aux (k n : ℕ) (f : 𝓢(E, F)) (c : R) (x : E) :
+lemma decay_smul_aux (k n : ℕ) (f : 𝓢(E, F)) (c : R) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n (c • f) x∥ =
   ∥c • (1 : 𝕜)∥ * ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
 begin
@@ -121,7 +121,7 @@ begin
   { exact f.smooth.of_le (le_of_lt $ with_top.coe_lt_top _) },
 end
 
-lemma seminorm_neg_aux (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
+lemma decay_neg_aux (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n (-f) x∥ = ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
 begin
   nth_rewrite 3 ←norm_neg,
@@ -131,7 +131,7 @@ end
 
 variables [normed_space ℂ F]
 
-lemma seminorm_smul_aux' (k n : ℕ) (f : 𝓢(E, F)) (c : ℂ) (x : E) :
+lemma decay_smul_aux' (k n : ℕ) (f : 𝓢(E, F)) (c : ℂ) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n (c • f) x∥ =
   ∥c∥ * ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ :=
 begin
@@ -144,6 +144,8 @@ begin
 end
 
 end aux
+
+/-! ### Algebraic properties -/
 
 section smul
 
@@ -170,7 +172,7 @@ instance : has_smul R 𝓢(E, F) :=
     { refine eq.le _,
       nth_rewrite 1 mul_comm,
       rw ←mul_assoc,
-      refine seminorm_smul_aux k n f c x },
+      refine decay_smul_aux k n f c x },
     rw [mul_le_mul_left hC, le_add_iff_nonneg_right],
     exact zero_le_one,
   end}⟩
@@ -211,8 +213,7 @@ instance : has_neg 𝓢(E, F) :=
     rcases f.decay k n with ⟨C, hC, hf⟩,
     use [C, hC],
     intro x,
-    refine le_trans (eq.le _) (hf x),
-    exact seminorm_neg_aux k n f x,
+    exact (decay_neg_aux k n f x).le.trans (hf x),
   end⟩ ⟩
 
 end neg
@@ -226,10 +227,7 @@ instance : has_add 𝓢(E, F) :=
     rcases f.decay k n with ⟨Cf, hCf, hf⟩,
     rcases g.decay k n with ⟨Cg, hCg, hg⟩,
     refine ⟨Cf + Cg, by positivity, λ x, _⟩,
-    specialize hf x,
-    specialize hg x,
-    refine le_trans _ (add_le_add hf hg),
-    exact seminorm_add_le_aux k n f g x,
+    exact (decay_add_le_aux k n f g x).trans (add_le_add (hf x) (hg x)),
   end⟩ ⟩
 
 @[simp] lemma add_apply {f g : 𝓢(E, F)} {x : E} : (f + g) x = f x + g x := rfl
@@ -245,12 +243,11 @@ instance : has_sub 𝓢(E, F) :=
     rcases f.decay k n with ⟨Cf, hCf, hf⟩,
     rcases g.decay k n with ⟨Cg, hCg, hg⟩,
     refine ⟨Cf + Cg, by positivity, λ x, _⟩,
-    specialize hf x,
-    specialize hg x,
-    refine le_trans _ (add_le_add hf hg),
+    refine le_trans _ (add_le_add (hf x) (hg x)),
     rw sub_eq_add_neg,
-    rw ←seminorm_neg_aux k n g x,
-    convert seminorm_add_le_aux k n f (-g) x, -- for some reason exact fails with timeout
+    rw ←decay_neg_aux k n g x,
+    convert decay_add_le_aux k n f (-g) x,
+    -- exact fails with deterministic timeout
   end⟩ ⟩
 
 @[simp] lemma sub_apply {f g : 𝓢(E, F)} {x : E} : (f - g) x = f x - g x := rfl
@@ -293,6 +290,8 @@ end module
 
 section seminorms
 
+/-! ### Seminorms on Schwartz space-/
+
 /-- Helper definition for the seminorms of the Schwartz space. -/
 @[protected]
 def seminorm_aux (k n : ℕ) (f : 𝓢(E, F)) : ℝ :=
@@ -305,14 +304,13 @@ lemma le_seminorm_aux (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n ⇑f x∥ ≤ f.seminorm_aux k n :=
 le_cInf (bounds_nonempty k n f) (λ y ⟨_, h⟩, h x)
 
-
 section
 
 open tactic tactic.positivity
 
 /-- Extension for the `positivity` tactic: seminorms are nonnegative. -/
 @[positivity]
-meta def _root_.tactic.positivity_schwartz_seminorm : expr → tactic strictness
+meta def _root_.tactic.positivity_schwartz_seminorm_aux : expr → tactic strictness
 | `(schwartz.seminorm_aux %%a %%b %%c) := nonnegative <$> mk_app ``seminorm_aux_nonneg [a, b, c]
 | _ := failed
 
@@ -330,7 +328,7 @@ le_antisymm (seminorm_aux_le_bound k n _ rfl.le (λ _, by simp [pi.zero_def])) (
 
 lemma seminorm_aux_add_le (k n : ℕ) (f g : 𝓢(E, F)) :
   (f + g).seminorm_aux k n ≤ f.seminorm_aux k n + g.seminorm_aux k n :=
-(f + g).seminorm_aux_le_bound k n (by positivity) $ λ x, (seminorm_add_le_aux k n f g x).trans $
+(f + g).seminorm_aux_le_bound k n (by positivity) $ λ x, (decay_add_le_aux k n f g x).trans $
   add_le_add (f.le_seminorm_aux k n x) (g.le_seminorm_aux k n x)
 
 variables [normed_space ℂ F]
@@ -339,29 +337,29 @@ lemma seminorm_aux_smul_le (k n : ℕ) (r : ℂ) (f : 𝓢(E, F)) :
   (r • f).seminorm_aux k n ≤ ∥r∥ * f.seminorm_aux k n :=
 begin
   refine (r • f).seminorm_aux_le_bound k n (by positivity) (λ x, _),
-  refine (seminorm_smul_aux' k n f r x).le.trans _,
+  refine (decay_smul_aux' k n f r x).le.trans _,
   rw mul_assoc,
-  refine mul_le_mul_of_nonneg_left (f.le_seminorm_aux k n x) (norm_nonneg _),
+  exact mul_le_mul_of_nonneg_left (f.le_seminorm_aux k n x) (norm_nonneg _),
 end
 
 /-- The seminorms of the Schwartz space -/
 @[protected]
-def seminorm (k n : ℕ) : seminorm ℂ 𝓢(E, F) := seminorm.of_smul_le (schwartz.seminorm_aux k n)
-  (schwartz.seminorm_aux_zero k n)
-  (schwartz.seminorm_aux_add_le k n)
-  (schwartz.seminorm_aux_smul_le k n)
+def seminorm (k n : ℕ) : seminorm ℂ 𝓢(E, F) := seminorm.of_smul_le (seminorm_aux k n)
+  (seminorm_aux_zero k n) (seminorm_aux_add_le k n) (seminorm_aux_smul_le k n)
 
 /-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma seminorm_le_bound (k n : ℕ) (f : 𝓢(E, F)) {M : ℝ} (hMp: 0 ≤ M)
   (hM : ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ M) :
-  schwartz.seminorm k n f ≤ M := f.seminorm_aux_le_bound k n hMp hM
+  seminorm k n f ≤ M := f.seminorm_aux_le_bound k n hMp hM
 
 lemma le_seminorm (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
-  ∥x∥ ^ k * ∥iterated_fderiv ℝ n ⇑f x∥ ≤ schwartz.seminorm k n f := f.le_seminorm_aux k n x
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n ⇑f x∥ ≤ seminorm k n f := f.le_seminorm_aux k n x
 
 end seminorms
 
 section topology
+
+/-! ### The topology on the Schwartz space-/
 
 variables (E F)
 variables [normed_space ℂ F]
@@ -369,7 +367,7 @@ variables [normed_space ℂ F]
 
 /-- The family of Schwartz seminorms. -/
 def _root_.schwartz_seminorm_family : seminorm_family ℂ 𝓢(E, F) (ℕ × ℕ) :=
-λ n, schwartz.seminorm n.1 n.2
+λ n, seminorm n.1 n.2
 
 variables {E F}
 

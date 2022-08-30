@@ -200,7 +200,7 @@ lemma help {x₁ x₂: ℤ} (hx₁ : x₁ = 0 ∨ x₁ = 1 ∨ x₁ = -1) (hx₂
   x₁ * x₂ = 0 ∨ x₁ * x₂ = 1 ∨ x₁ * x₂ = -1 :=
 by rcases hx₁ with (hx₁ | hx₁ | hx₁); rcases hx₂ with (hx₂ | hx₂ | hx₂); rw [hx₁, hx₂]; norm_num
 
-/-- The Jacobi symbol takes only the values `-1, `0` and `1`. -/
+/-- The Jacobi symbol takes only the values `0`, `1` and `1`. -/
 lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
 begin
   refine rec_on_mul _ _ (λ p pp, _) (λ b₁ b₂ h₁ h₂, _) b,
@@ -223,6 +223,45 @@ list.prod_eq_one (λ z hz, let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [�
 lemma jacobi_sym_mul_left (a₁ a₂ : ℤ) (b : ℕ) : [a₁ * a₂ | b]ⱼ = [a₁ | b]ⱼ * [a₂ | b]ⱼ :=
 by { simp_rw [jacobi_sym, list.pmap_eq_map_attach, legendre_sym_mul], exact list.prod_map_mul }
 
+/-- The Jacobi symbol `(a / b)` vanishes iff `a` and `b` are not coprime (assuming `b ≠ 0`). -/
+lemma jacobi_sym_eq_zero_iff_not_coprime {a : ℤ} {b : ℕ} [ne_zero b] :
+  [a | b]ⱼ = 0 ↔ a.gcd b ≠ 1 :=
+list.prod_eq_zero_iff.trans begin
+  rw [list.mem_pmap, int.gcd_eq_nat_abs, ne, prime.not_coprime_iff_dvd],
+  simp_rw [legendre_sym_eq_zero_iff, int_coe_zmod_eq_zero_iff_dvd, mem_factors (ne_zero.ne b),
+    int.dvd_nat_abs_iff_of_nat_dvd, int.coe_nat_dvd, exists_prop, and_assoc, and_comm],
+end
+
+/-- The Jacobi symbol `(a / b)` is nonzero when `a` and `b` are coprime. -/
+lemma jacobi_sym_ne_zero {a : ℤ} {b : ℕ} (h : a.gcd b = 1) : [a | b]ⱼ ≠ 0 :=
+begin
+  casesI eq_zero_or_ne_zero b with hb,
+  rw [hb, jacobi_sym_zero_right],
+  { exact one_ne_zero },
+  { contrapose! h, exact jacobi_sym_eq_zero_iff_not_coprime.1 h },
+end
+
+/-- The Jacobi symbol `(a / b)` vanishes if and only if `b ≠ 0` and `a` and `b` are not coprime. -/
+lemma jacobi_sym_eq_zero_iff {a : ℤ} {b : ℕ} : [a | b]ⱼ = 0 ↔ b ≠ 0 ∧ a.gcd b ≠ 1 :=
+⟨λ h, begin
+  casesI eq_or_ne b 0 with hb hb,
+  { rw [hb, jacobi_sym_zero_right] at h, cases h },
+  exact ⟨hb, mt jacobi_sym_ne_zero $ not_not.2 h⟩,
+end, λ ⟨hb, h⟩, by { rw ← ne_zero_iff at hb, exactI jacobi_sym_eq_zero_iff_not_coprime.2 h }⟩
+
+/-- The Jacobi symbol `(0 / b)` vanishes when `b > 1`. -/
+lemma jacobi_sym_zero_left {b : ℕ} (hb : 1 < b) : [0 | b]ⱼ = 0 :=
+begin
+  refine (@jacobi_sym_eq_zero_iff_not_coprime 0 b ⟨ne_zero_of_lt hb⟩).mpr _,
+  rw [int.gcd_zero_left, int.nat_abs_of_nat],
+  exact (ne_of_lt hb).symm,
+end
+
+/-- The Jacobi symbol `(a / b)` takes the value `1` or `-1` if `a` and `b` are coprime. -/
+lemma jacobi_sym_eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) :
+  [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
+(jacobi_sym_trichotomy a b).resolve_left $ jacobi_sym_ne_zero h
+
 /-- We have that `(a^e / b) = (a / b)^e` for the Jacobi symbol. -/
 lemma jacobi_sym_pow_left (a : ℤ) (e b : ℕ) : [a ^ e | b]ⱼ = [a | b]ⱼ ^ e :=
 begin
@@ -241,36 +280,13 @@ begin
     { rw [pow_succ, pow_succ, jacobi_sym_mul_right, ih], } }
 end
 
-/-- The Jacobi symbol `(a / b)` takes the value `1` or `-1` if `a` and `b` are coprime. -/
-lemma jacobi_sym_eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) :
-  [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
-begin
-  refine rec_on_mul (λ _, or.inl $ jacobi_sym_zero_right a)
-          (λ _, or.inl $ jacobi_sym_one_right a) (λ p pp hpg, _) (λ m n hm hn hmng, _) b h,
-  { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩],
-    exact @legendre_sym_eq_one_or_neg_one p ⟨pp⟩ _ (ne_zero_of_gcd_eq_one pp hpg), },
-  { by_cases hm0 : m = 0,
-    { rw [hm0, zero_mul],
-      exact or.inl (jacobi_sym_zero_right a), },
-    by_cases hn0 : n = 0,
-    { rw [hn0, mul_zero],
-      exact or.inl (jacobi_sym_zero_right a), },
-    rw [nat.cast_mul] at hmng,
-    have hng := hn (int.gcd_eq_one_of_gcd_mul_right_eq_one_right hmng),
-    simp_rw [@jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩],
-    cases hm (int.gcd_eq_one_of_gcd_mul_right_eq_one_left hmng) with hl hr,
-    { rwa [hl, one_mul], },
-    { rw [hr, neg_mul, one_mul, neg_inj, neg_eq_iff_neg_eq],
-      exact or.dcases_on hng or.inr (λ hr', or.inl hr'.symm), } },
-end
-
 /-- The square of the Jacobi symbol `(a / b)` is `1` when `a` and `b` are coprime. -/
 lemma jacobi_sym_sq_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) : [a | b]ⱼ ^ 2 = 1 :=
 by cases jacobi_sym_eq_one_or_neg_one h with h₁ h₁; rw h₁; refl
 
 /-- The Jacobi symbol `(a^2 / b)` is `1` when `a` and `b` are coprime. -/
 lemma jacobi_sym_sq_one' {a : ℤ} {b : ℕ} (h : a.gcd b = 1) : [a ^ 2 | b]ⱼ = 1 :=
-by rw [pow_two, jacobi_sym_mul_left, ← pow_two, jacobi_sym_sq_one h]
+by rw [jacobi_sym_pow_left, jacobi_sym_sq_one h]
 
 /-- The Jacobi symbol `(a / b)` depends only on `a` mod `b`. -/
 lemma jacobi_sym_mod_left (a : ℤ) (b : ℕ) : [a | b]ⱼ = [a % b | b]ⱼ :=
@@ -290,41 +306,6 @@ end
 /-- The Jacobi symbol `(a / b)` depends only on `a` mod `b`. -/
 lemma jacobi_sym_mod_left' {a₁ a₂ : ℤ} {b : ℕ} (h : a₁ % b = a₂ % b) : [a₁ | b]ⱼ = [a₂ | b]ⱼ :=
 by rw [jacobi_sym_mod_left, h, ← jacobi_sym_mod_left]
-
-/-- The Jacobi symbol `(a / b)` vanishes when `a` and `b` are not coprime and `b ≠ 0`. -/
-lemma jacobi_sym_eq_zero_if_not_coprime {a : ℤ} {b : ℕ} [hb : ne_zero b] (h : a.gcd b ≠ 1) :
-  [a | b]ⱼ = 0 :=
-begin
-  refine rec_on_mul (λ hf _, false.rec _ (hf rfl)) (λ _ h₁, false.rec _ (h₁ a.gcd_one_right))
-                    (λ p pp _ hg, _) (λ m n hm hn hmn0 hg, _) b (ne_zero.ne b) h,
-  { rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_eq_zero_iff p ⟨pp⟩],
-    exact eq_zero_of_gcd_ne_one pp hg, },
-  { haveI hm0 : ne_zero m := ⟨left_ne_zero_of_mul hmn0⟩,
-    haveI hn0 : ne_zero n := ⟨right_ne_zero_of_mul hmn0⟩,
-    rw [jacobi_sym_mul_right],
-    cases int.gcd_ne_one_iff_gcd_mul_right_ne_one.mp hg with hgm hgn,
-    { rw [hm hm0.1 hgm, zero_mul], },
-    { rw [hn hn0.1 hgn, mul_zero], } },
-end
-
-/-- The Jacobi symbol `(a / b)` vanishes if and only if `b ≠ 0` and `a` and `b` are not coprime. -/
-lemma jacobi_sym_eq_zero_iff {a : ℤ} {b : ℕ} : [a | b]ⱼ = 0 ↔ b ≠ 0 ∧ a.gcd b ≠ 1 :=
-begin
-  refine ⟨λ h, ⟨λ hf, _, λ hf, _⟩, λ h, @jacobi_sym_eq_zero_if_not_coprime a b ⟨h.left⟩ h.right⟩,
-  { rw [hf, jacobi_sym_zero_right a] at h,
-    exact one_ne_zero h, },
-  { have h₁ := jacobi_sym_eq_one_or_neg_one hf,
-    rw [h] at h₁,
-    exact or.dcases_on h₁ zero_ne_one (int.zero_ne_neg_of_ne zero_ne_one), }
-end
-
-/-- The Jacobi symbol `(0 / b)` vanishes when `b > 1`. -/
-lemma jacobi_sym_zero_left {b : ℕ} (hb : 1 < b) : [0 | b]ⱼ = 0 :=
-begin
-  refine @jacobi_sym_eq_zero_if_not_coprime 0 b ⟨ne_zero_of_lt hb⟩ _,
-  rw [int.gcd_zero_left, int.nat_abs_of_nat],
-  exact (ne_of_lt hb).symm,
-end
 
 /-- If the Jacobi symbol `(a / b)` is `-1`, then `a` is not a square modulo `b`. -/
 lemma jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -1) : ¬ is_square (a : zmod b) :=

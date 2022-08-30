@@ -59,10 +59,6 @@ Once the dust has settled, these will be moved to the appropriate files.
 
 namespace nat
 
-/-- An odd natural number is non-zero. -/
--- This doesn't work inlined when `n` is a more complicated expression.
-lemma ne_zero_of_odd {n : ℕ} (h : odd n) : n ≠ 0 := ne_of_odd_add h
-
 /-- If `n` is odd and `a` is even, then `n % a` is odd. -/
 lemma odd_mod_of_odd {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
 begin
@@ -378,7 +374,7 @@ begin
   refine nat.mul_induction_odd (by simp_rw [jacobi_sym_one_right, nat.cast_one, map_one]) _ _ b hb,
   { exact λ p pp p2, by simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, hp p pp p2], },
   { exact λ m n hmo hno hm hn,
-    by rw [nat.cast_mul, @jacobi_sym_mul_right _ _ _ ⟨ne_zero_of_odd hmo⟩ ⟨ne_zero_of_odd hno⟩,
+    by rw [nat.cast_mul, @jacobi_sym_mul_right _ _ _ ⟨hmo.pos.ne'⟩ ⟨hno.pos.ne'⟩,
            hm, hn, map_mul], }
 end
 

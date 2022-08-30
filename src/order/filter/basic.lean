@@ -242,7 +242,7 @@ def principal (s : set α) : filter α :=
   sets_of_superset := λ x y hx, subset.trans hx,
   inter_sets       := λ x y, subset_inter }
 
-localized "notation `𝓟` := filter.principal" in filter
+localized "notation (name := filter.principal) `𝓟` := filter.principal" in filter
 
 instance : inhabited (filter α) :=
 ⟨𝓟 ∅⟩

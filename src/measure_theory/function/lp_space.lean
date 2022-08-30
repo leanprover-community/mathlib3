@@ -1405,8 +1405,10 @@ def Lp {α} (E : Type*) {m : measurable_space α} [normed_add_comm_group E]
   neg_mem' := λ f hf,
     by rwa [set.mem_set_of_eq, snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg] }
 
-localized "notation α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ" in measure_theory
-localized "notation α ` →₂[`:25 μ `] ` E := measure_theory.Lp E 2 μ" in measure_theory
+localized "notation (name := measure_theory.L1)
+  α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ" in measure_theory
+localized "notation (name := measure_theory.L2)
+  α ` →₂[`:25 μ `] ` E := measure_theory.Lp E 2 μ" in measure_theory
 
 namespace mem_ℒp
 

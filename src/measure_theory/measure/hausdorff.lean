@@ -553,7 +553,8 @@ end
 /-- Hausdorff measure on an (e)metric space. -/
 def hausdorff_measure (d : ℝ) : measure X := mk_metric (λ r, r ^ d)
 
-localized "notation `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in measure_theory
+localized "notation (name := hausdorff_measure)
+  `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in measure_theory
 
 lemma le_hausdorff_measure (d : ℝ) (μ : measure X) (ε : ℝ≥0∞) (h₀ : 0 < ε)
   (h : ∀ s : set X, diam s ≤ ε → μ s ≤ diam s ^ d) :

@@ -861,6 +861,11 @@ begin
   exact key
 end
 
+lemma dim_add_le_dim_add_dim (s t : submodule K V)
+  [finite_dimensional K s] [finite_dimensional K t] :
+  finrank K (s ⊔ t : submodule K V) ≤ finrank K s + finrank K t :=
+by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
+
 lemma eq_top_of_disjoint [finite_dimensional K V] (s t : submodule K V)
   (hdim : finrank K s + finrank K t = finrank K V)
   (hdisjoint : disjoint s t) : s ⊔ t = ⊤ :=

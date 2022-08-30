@@ -893,13 +893,13 @@ def submodule_of_smul_mem (W : submodule k V) (h : ∀ (g : G) (v : V), v ∈ W 
   submodule (monoid_algebra k G) V :=
 { carrier := W,
   zero_mem' := W.zero_mem',
-  add_mem' := W.add_mem',
+  add_mem' := λ _ _, W.add_mem',
   smul_mem' := begin
     intros f v hv,
     rw [←finsupp.sum_single f, finsupp.sum, finset.sum_smul],
     simp_rw [←smul_of, smul_assoc],
     exact submodule.sum_smul_mem W _ (λ g _, h g v hv)
-  end  }
+  end }
 
 end submodule
 

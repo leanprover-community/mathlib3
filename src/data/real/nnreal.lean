@@ -658,8 +658,7 @@ lemma half_le_self (a : ℝ≥0) : a / 2 ≤ a := half_le_self bot_le
 
 lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a := half_lt_self h.bot_lt
 
-lemma two_inv_lt_one : (2⁻¹:ℝ≥0) < 1 :=
-by simpa using half_lt_self zero_ne_one.symm
+lemma two_inv_lt_one : (2⁻¹:ℝ≥0) < 1 := two_inv_lt_one
 
 lemma div_lt_one_of_lt {a b : ℝ≥0} (h : a < b) : a / b < 1 :=
 begin

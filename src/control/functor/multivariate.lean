@@ -161,7 +161,7 @@ lemma liftp_last_pred_iff {β} (p : β → Prop) (x : F (α ::: β)) :
 begin
   dsimp only [liftp,liftp'],
   apply exists_iff_exists_of_mono F (f _ n α) (g _ n α),
-  { clear x _inst_2 _inst_1 F, ext i ⟨x,_⟩, cases i; refl },
+  { ext i ⟨x,_⟩, cases i; refl },
   { intros, rw [mvfunctor.map_map,(⊚)],
     congr'; ext i ⟨x,_⟩; cases i; refl }
 end
@@ -189,7 +189,7 @@ lemma liftr_last_rel_iff  (x y : F (α ::: β)) :
 begin
   dsimp only [liftr,liftr'],
   apply exists_iff_exists_of_mono F (f rr _ _) (g rr _ _),
-  { clear x y _inst_2 _inst_1 F, ext i ⟨x,_⟩ : 2, cases i; refl, },
+  { ext i ⟨x,_⟩ : 2, cases i; refl, },
   { intros, rw [mvfunctor.map_map,mvfunctor.map_map,(⊚),(⊚)],
     congr'; ext i ⟨x,_⟩; cases i; refl }
 end

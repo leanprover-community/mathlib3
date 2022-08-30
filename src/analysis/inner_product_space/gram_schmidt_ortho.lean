@@ -81,7 +81,7 @@ begin
   clear h₀ a b,
   intros a b h₀,
   revert a,
-  apply well_founded.induction (@is_well_order.wf ι (<) _) b,
+  apply well_founded.induction (@is_well_founded.wf ι (<) _) b,
   intros b ih a h₀,
   simp only [gram_schmidt_def 𝕜 f b, inner_sub_right, inner_sum,
     orthogonal_projection_singleton, inner_smul_right],

@@ -71,7 +71,7 @@ begin
     subalgebra.to_submodule_injective _⟩,
   rw [algebra.top_to_submodule, eq_top_iff, ← s.span_eq, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
-    (mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
+    (mem_roots $ mt (polynomial.map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),
   { exact minpoly.ne_zero (h.is_integral (s x)) },
   rw [is_root.def, eval_map, ← aeval_def, alg_hom.map_prod],
@@ -195,6 +195,31 @@ end
 instance (p : F[X]) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal_tower
+
+namespace intermediate_field
+
+/-- A compositum of normal extensions is normal -/
+instance normal_supr {ι : Type*} (t : ι → intermediate_field F K) [h : ∀ i, normal F (t i)] :
+  normal F (⨆ i, t i : intermediate_field F K) :=
+begin
+  refine ⟨is_algebraic_supr (λ i, (h i).1), λ x, _⟩,
+  obtain ⟨s, hx⟩ := exists_finset_of_mem_supr'' (λ i, (h i).1) x.2,
+  let E : intermediate_field F K := ⨆ i ∈ s, adjoin F ((minpoly F (i.2 : _)).root_set K),
+  have hF : normal F E,
+  { apply normal.of_is_splitting_field (∏ i in s, minpoly F i.2),
+    refine is_splitting_field_supr _ (λ i hi, adjoin_root_set_is_splitting_field _),
+    { exact finset.prod_ne_zero_iff.mpr (λ i hi, minpoly.ne_zero ((h i.1).is_integral i.2)) },
+    { exact polynomial.splits_comp_of_splits _ (algebra_map (t i.1) K) ((h i.1).splits i.2) } },
+  have hE : E ≤ ⨆ i, t i,
+  { refine supr_le (λ i, supr_le (λ hi, le_supr_of_le i.1 _)),
+    rw [adjoin_le_iff, ←image_root_set ((h i.1).splits i.2) (t i.1).val],
+    exact λ _ ⟨a, _, h⟩, h ▸ a.2 },
+  have := hF.splits ⟨x, hx⟩,
+  rw [minpoly_eq, subtype.coe_mk, ←minpoly_eq] at this,
+  exact polynomial.splits_comp_of_splits _ (inclusion hE).to_ring_hom this,
+end
+
+end intermediate_field
 
 variables {F} {K} {K₁ K₂ K₃:Type*} [field K₁] [field K₂] [field K₃]
  [algebra F K₁] [algebra F K₂] [algebra F K₃]

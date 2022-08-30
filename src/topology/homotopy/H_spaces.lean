@@ -214,7 +214,7 @@ begin
     have h_eq : (λ i : (path x x × path x x) × I, (i.snd : ℝ) ≤ 1 / 2) =
       set.univ ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
     { ext p,
-      change (p.2 : ℝ) ≤ 1 / 2 ↔ p ∈ (@set.univ (Ω(x) × Ω(x)) ×ˢ {s : I | (s : ℝ) ≤ 1 / 2}),
+      change (p.2 : ℝ) ≤ 1 / 2 ↔ p ∈ @set.univ (Ω(x) × Ω(x)) ×ˢ {s : I | (s : ℝ) ≤ 1 / 2},
       simp only [set.mem_prod, set.mem_univ, set.mem_set_of_eq, true_and] },
     erw h_eq at h,
     simp only [frontier_prod_eq, frontier_univ, closure_univ, set.empty_prod,

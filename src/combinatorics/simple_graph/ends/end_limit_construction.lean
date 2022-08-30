@@ -112,7 +112,7 @@ instance ComplInfComp_nonempty [infinite V] : Π (j : (finset V)), nonempty ((Co
 
   obtain ⟨C,Cinf⟩ := comp_out.exists_inf G K Gpc Glf,
   constructor,
-  use [C,comp_out.dis_of_inf C Cinf, Cinf],},
+  use [C,comp_out.dis_of_inf C Cinf, Cinf],}
 
 instance ComplInfComp_fintype [Gpc : preconnected G] : Π (j : (finset V)), fintype ((ComplInfComp G).obj j) := by
 { intro K, rw ComplInfComp.obj,

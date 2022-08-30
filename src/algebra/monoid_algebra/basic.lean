@@ -325,8 +325,8 @@ lemma mul_apply_antidiagonal [has_mul G] (f g : monoid_algebra k G) (x : G) (s :
 let F : G × G → k := λ p, by classical; exact if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
 calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
   mul_apply f g x
-... = ∑ p in f.support.product g.support, F p : finset.sum_product.symm
-... = ∑ p in (f.support.product g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
+... = ∑ p in f.support ×ˢ g.support, F p : finset.sum_product.symm
+... = ∑ p in (f.support ×ˢ g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
   (finset.sum_filter _ _).symm
 ... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
   sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
@@ -893,13 +893,13 @@ def submodule_of_smul_mem (W : submodule k V) (h : ∀ (g : G) (v : V), v ∈ W 
   submodule (monoid_algebra k G) V :=
 { carrier := W,
   zero_mem' := W.zero_mem',
-  add_mem' := W.add_mem',
+  add_mem' := λ _ _, W.add_mem',
   smul_mem' := begin
     intros f v hv,
     rw [←finsupp.sum_single f, finsupp.sum, finset.sum_smul],
     simp_rw [←smul_of, smul_assoc],
     exact submodule.sum_smul_mem W _ (λ g _, h g v hv)
-  end  }
+  end }
 
 end submodule
 

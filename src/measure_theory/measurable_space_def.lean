@@ -62,7 +62,8 @@ section
 /-- `measurable_set s` means that `s` is measurable (in the ambient measure space on `α`) -/
 def measurable_set [measurable_space α] : set α → Prop := ‹measurable_space α›.measurable_set'
 
-localized "notation `measurable_set[` m `]` := @measurable_set _ m" in measure_theory
+localized "notation (name := measurable_set_of)
+  `measurable_set[` m `]` := @measurable_set hole! m" in measure_theory
 
 @[simp] lemma measurable_set.empty [measurable_space α] : measurable_set (∅ : set α) :=
 ‹measurable_space α›.measurable_set_empty
@@ -438,6 +439,14 @@ theorem measurable_set_supr {ι} {m : ι → measurable_space α} {s : set α} :
     generate_measurable {s : set α | ∃ i, measurable_set[m i] s} s :=
 by simp only [supr, measurable_set_Sup, exists_range_iff]
 
+lemma measurable_space_supr_eq (m : ι → measurable_space α) :
+  (⨆ n, m n) = measurable_space.generate_from {s | ∃ n, measurable_set[m n] s} :=
+begin
+  ext s,
+  rw measurable_space.measurable_set_supr,
+  refl,
+end
+
 end complete_lattice
 
 end measurable_space
@@ -450,7 +459,8 @@ open measurable_space
 def measurable [measurable_space α] [measurable_space β] (f : α → β) : Prop :=
 ∀ ⦃t : set β⦄, measurable_set t → measurable_set (f ⁻¹' t)
 
-localized "notation `measurable[` m `]` := @measurable _ _ m _" in measure_theory
+localized "notation (name := measurable_of)
+  `measurable[` m `]` := @measurable hole! hole! m hole!" in measure_theory
 
 lemma measurable_id {ma : measurable_space α} : measurable (@id α) := λ t, id
 

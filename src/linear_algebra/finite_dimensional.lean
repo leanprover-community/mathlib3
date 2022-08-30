@@ -120,6 +120,9 @@ end
 noncomputable def fintype_of_fintype [fintype K] [finite_dimensional K V] : fintype V :=
 module.fintype_of_fintype (@finset_basis K V _ _ _ (iff_fg.2 infer_instance))
 
+lemma finite_of_finite [_root_.finite K] [finite_dimensional K V] : _root_.finite V :=
+by { casesI nonempty_fintype K, haveI := fintype_of_fintype K V, apply_instance }
+
 variables {K V}
 
 /-- If a vector space has a finite basis, then it is finite-dimensional. -/
@@ -857,6 +860,11 @@ begin
   norm_cast at key,
   exact key
 end
+
+lemma dim_add_le_dim_add_dim (s t : submodule K V)
+  [finite_dimensional K s] [finite_dimensional K t] :
+  finrank K (s ⊔ t : submodule K V) ≤ finrank K s + finrank K t :=
+by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
 lemma eq_top_of_disjoint [finite_dimensional K V] (s t : submodule K V)
   (hdim : finrank K s + finrank K t = finrank K V)

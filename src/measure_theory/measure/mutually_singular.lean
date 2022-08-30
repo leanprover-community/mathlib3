@@ -35,7 +35,8 @@ such that `μ s = 0` and `ν sᶜ = 0`. -/
 def mutually_singular {m0 : measurable_space α} (μ ν : measure α) : Prop :=
 ∃ (s : set α), measurable_set s ∧ μ s = 0 ∧ ν sᶜ = 0
 
-localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in measure_theory
+localized "infix (name := measure.mutually_singular)
+  ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in measure_theory
 
 namespace mutually_singular
 

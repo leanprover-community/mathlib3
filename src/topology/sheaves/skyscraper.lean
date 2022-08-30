@@ -211,8 +211,9 @@ let h1 := mem_nhds_of_not_specializes p₀ h in
     change _ = c.ι.app (op U.unop),
     simp only [← c.w (hom_of_le $ @inf_le_left _ _ h1.some U.unop).op,
       ← c.w (hom_of_le $ @inf_le_right _ _ h1.some U.unop).op, ← category.assoc],
-    congr' 1,
-    refine ((if_neg _).substr terminal_is_terminal).hom_ext _ _,
+    congr' 1, dsimp,
+    refine ((if_neg _ : ite _ _ _ = terminal C).symm.rec_on
+      (terminal_is_terminal : is_terminal (terminal C))).hom_ext _ _,
     exact λ h, h1.some_spec h.1,
   end,
   uniq' := λ c f H, begin

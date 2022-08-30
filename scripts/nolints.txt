@@ -692,7 +692,6 @@ apply_nolint mv_polynomial.is_prime.vanishing_ideal_zero_locus fintype_finite
 apply_nolint mv_polynomial.vanishing_ideal_zero_locus_eq_radical fintype_finite
 
 -- ring_theory/polynomial/basic.lean
-apply_nolint mv_polynomial.is_domain_fintype fintype_finite
 apply_nolint mv_polynomial.is_noetherian_ring fintype_finite
 apply_nolint mv_polynomial.map_mv_polynomial_eq_eval₂ fintype_finite
 
@@ -702,12 +701,6 @@ apply_nolint algebra.trace_trace_of_basis fintype_finite
 
 -- ring_theory/witt_vector/basic.lean
 apply_nolint witt_vector.comm_ring check_reducibility
-
--- set_theory/cardinal/ordinal.lean
-apply_nolint cardinal.extend_function_finite fintype_finite
-apply_nolint cardinal.mk_compl_eq_mk_compl_finite fintype_finite
-apply_nolint cardinal.mk_compl_eq_mk_compl_finite_lift fintype_finite
-apply_nolint cardinal.mk_compl_eq_mk_compl_finite_same fintype_finite
 
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame

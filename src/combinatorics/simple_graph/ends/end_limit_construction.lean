@@ -19,7 +19,7 @@ local attribute [instance] prop_decidable
 
 universes u v w
 variables {V : Type u} [decidable_eq V]
-variables (G : simple_graph V) (Glf : locally_finite G) (Gpc : G.preconnected)
+variables (G : simple_graph V) (Glf : locally_finite G) (Gpc : preconnected G)
 
 
 -- Defined backwards for simpler use of `mathlib_fintype_inverse_systems.lean`
@@ -114,7 +114,7 @@ instance ComplInfComp_nonempty [infinite V] : Π (j : (finset V)), nonempty ((Co
   constructor,
   use [C,comp_out.dis_of_inf C Cinf, Cinf],}
 
-instance ComplInfComp_fintype [Gpc : preconnected G] : Π (j : (finset V)), fintype ((ComplInfComp G).obj j) := by
+instance ComplInfComp_fintype : Π (j : (finset V)), fintype ((ComplInfComp G).obj j) := by
 { intro K, rw ComplInfComp.obj,
   haveI := @fintype.of_finite (G.comp_out K) (comp_out_finite G K Gpc Glf),
   have dis_fin := subtype.fintype (λ (C : G.comp_out K), C.dis),
@@ -146,14 +146,17 @@ begin
     rw ComplInfComp_eq_ComplComp_to_surjective at jempty,
     exact jempty.elim x, },
   { haveI : infinite V := infinite.of_not_finite hfin,
-    exact @inverse_system.to_surjective.is_surjective _ _ _ (ComplComp G) _ (ComplComp_nonempty G), },
+    haveI := ComplComp_fintype G Glf Gpc,
+    haveI := ComplComp_nonempty G Glf Gpc,
+    exact inverse_system.to_surjective.is_surjective (ComplComp G), },
 end
 
 lemma Endsinfty_surjective : Π (j : (finset V)), function.surjective (λ e : Endsinfty G, e.val j) :=
 begin
   rintro j,
   dsimp [Endsinfty],
-  have := ComplInfComp.surjective G,
+  have := ComplInfComp.surjective G Glf Gpc,
+  haveI := ComplInfComp_fintype G Glf Gpc,
   rw inverse_system.is_surjective_iff at this,
   apply inverse_system.sections_surjective,
   rintro i h, exact this i j h,
@@ -167,7 +170,10 @@ begin
 
   by_cases hfin : finite V, rotate,
   { haveI : infinite V := infinite.of_not_finite hfin,
-    haveI :  Π (j : (finset V)), nonempty ((ComplComp G).obj j), from ComplComp_nonempty G,
+    haveI := ComplComp_nonempty G Glf Gpc,
+    haveI := ComplComp_fintype G Glf Gpc,
+    haveI := ComplInfComp_fintype G Glf Gpc,
+
     apply equiv.of_bijective _ (inverse_system.sections_bijective (ComplInfComp G) K _),
     rintros ⟨L,KL⟩,
     have sur : function.surjective ((ComplInfComp G).map (hom_of_le KL)), by {
@@ -180,9 +186,9 @@ begin
     { exact (fintype.injective_iff_surjective_of_equiv (top L KL)).mpr sur },},
   { -- degenerate case: If V is finite, then everything is empty,
     haveI := hfin,
-    have :  Π (j : (finset V)), is_empty ((ComplInfComp G Gpc).obj j), from all_empty G Gpc,
+    have :  Π (j : (finset V)), is_empty ((ComplInfComp G).obj j), from all_empty G,
     apply equiv.of_bijective,
-    apply inverse_system.sections_bijective (ComplInfComp G Gpc),
+    apply inverse_system.sections_bijective (ComplInfComp G),
     rintro ⟨L,KL⟩,
     -- Have to show that a map A → B with both A and B empty is necessarily a bijection.
     unfold function.bijective, split,

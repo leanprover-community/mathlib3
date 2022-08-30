@@ -268,7 +268,7 @@ end
 
 variables (E)
 
-/-- `continuous_monoid_hom _ f` is a functor. -/
+/-- `continuous_add_monoid_hom _ f` is a functor. -/
 @[to_additive "`continuous_monoid_hom _ f` is a functor."]
 def comp_left (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (continuous_monoid_hom B E) (continuous_monoid_hom A E) :=
@@ -277,7 +277,7 @@ def comp_left (f : continuous_monoid_hom A B) :
   map_mul' := λ g h, rfl,
   continuous_to_fun := f.continuous_comp_left }
 
-/-- `continuous_monoid_hom f _` is a functor. -/
+/-- `continuous_add_monoid_hom f _` is a functor. -/
 @[to_additive "`continuous_monoid_hom f _` is a functor."]
 def comp_right {B : Type*} [comm_group B] [topological_space B]
   [topological_group B] (f : continuous_monoid_hom B E) :

@@ -5,11 +5,13 @@ Authors: Yaël Dillies
 -/
 import data.set.intervals.basic
 import data.set.lattice
+import data.set_like.basic
 
 /-!
 # Order intervals
 
-This file defines (nonempty) intervals in an order. This is a prototype for interval arithmetic.
+This file defines (nonempty) closed intervals in an order (see `set.Icc`). This is a prototype for
+interval arithmetic.
 
 ## Main declarations
 
@@ -17,82 +19,53 @@ This file defines (nonempty) intervals in an order. This is a prototype for inte
 * `interval`: Intervals. Either `∅` or a nonempty interval.
 -/
 
-namespace option
-variables {α β γ δ : Type*}
-
-lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
-  (option.map f₁ a).map g₁ = (option.map f₂ a).map g₂ :=
-by rw [map_map, h, ←map_map]
-
-end option
-
-namespace with_bot
-variables {α β γ δ : Type*} {a b : α}
-
-open function
-
-lemma coe_injective : injective (coe : α → with_bot α) := option.some_injective _
-@[norm_cast] lemma coe_inj : (a : with_bot α) = b ↔ a = b := option.some_inj
-
-lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
-  map g₁ (map f₁ a) = map g₂ (map f₂ a) :=
-option.map_comm h _
-
-end with_bot
-
-namespace set
-variables {α : Type*} {ι : Sort*} {κ : ι → Sort*} {s : set α} {f : Π i, κ i → set α}
-
-/-- This rather trivial consequence of `subset_Union₂` is convenient with `apply`, and has `i` and
-`j` explicit for this purpose. -/
-lemma subset_Union₂_of_subset (i : ι) (j : κ i) (h : s ⊆ f i j) : s ⊆ ⋃ i j, f i j :=
-@le_supr₂_of_le (set α) _ _ _ _ _ i j h
-
-/-- This rather trivial consequence of `Inter₂_subset` is convenient with `apply`, and has `i` and
-`j` explicit for this purpose. -/
-lemma Inter₂_subset_of_subset (i : ι) (j : κ i) (h : f i j ⊆ s) : (⋂ i j, f i j) ⊆ s :=
-@infi₂_le_of_le (set α) _ _ _ _ _ i j h
-
-end set
-
 open function order_dual set
 
 variables {α β γ : Type*} {ι : Sort*} {κ : ι → Sort*}
 
-/-- The nonempty intervals in an order. -/
+/-- The nonempty closed intervals in an order.
+
+We define intervals by the pair of endpoints `fst`, `snd`. To convert intervals to the set of
+elements between these endpoints, use the coercion `nonempty_interval α → set α`. -/
 @[ext] structure nonempty_interval (α : Type*) [has_le α] extends α × α :=
 (fst_le_snd : fst ≤ snd)
 
 namespace nonempty_interval
 section has_le
-variables [has_le α] {a b : nonempty_interval α}
+variables [has_le α] {s t : nonempty_interval α}
 
-/-- The injection from which we get the order. -/
+/-- The injection that induces the order on intervals. -/
 def to_dual_prod : nonempty_interval α → αᵒᵈ × α := to_prod
 
-@[simp] lemma to_dual_prod_apply (a : nonempty_interval α) :
-  a.to_dual_prod = (to_dual a.fst, a.snd) := prod.mk.eta.symm
+@[simp] lemma to_dual_prod_apply (s : nonempty_interval α) :
+  s.to_dual_prod = (to_dual s.fst, s.snd) := prod.mk.eta.symm
 
 lemma to_dual_prod_injective : injective (to_dual_prod : nonempty_interval α → αᵒᵈ × α) :=
-λ a b, (ext_iff _ _).2
+λ s t, (ext_iff _ _).2
 
-instance [is_empty α] : is_empty (nonempty_interval α) := ⟨λ a, is_empty_elim a.fst⟩
+instance [is_empty α] : is_empty (nonempty_interval α) := ⟨λ s, is_empty_elim s.fst⟩
 instance [subsingleton α] : subsingleton (nonempty_interval α) :=
 to_dual_prod_injective.subsingleton
 
-instance : has_le (nonempty_interval α) := ⟨λ a b, b.fst ≤ a.fst ∧ a.snd ≤ b.snd⟩
+instance : has_le (nonempty_interval α) := ⟨λ s t, t.fst ≤ s.fst ∧ s.snd ≤ t.snd⟩
 
-lemma le_def : a ≤ b ↔ b.fst ≤ a.fst ∧ a.snd ≤ b.snd := iff.rfl
+lemma le_def : s ≤ t ↔ t.fst ≤ s.fst ∧ s.snd ≤ t.snd := iff.rfl
+
+/-- `to_dual_prod` as an order embedding. -/
+@[simps] def to_dual_prod_hom : nonempty_interval α ↪o αᵒᵈ × α :=
+{ to_fun := to_dual_prod,
+  inj' := to_dual_prod_injective,
+  map_rel_iff' := λ _ _, iff.rfl }
 
 /-- Turn an interval into an interval in the dual order. -/
 def dual : nonempty_interval α ≃ nonempty_interval αᵒᵈ :=
-{ to_fun := λ a, ⟨a.to_prod.swap, a.fst_le_snd⟩,
-  inv_fun := λ a, ⟨a.to_prod.swap, a.fst_le_snd⟩,
-  left_inv := λ a, ext _ _ $ prod.swap_swap _,
-  right_inv := λ a, ext _ _ $ prod.swap_swap _ }
+{ to_fun := λ s, ⟨s.to_prod.swap, s.fst_le_snd⟩,
+  inv_fun := λ s, ⟨s.to_prod.swap, s.fst_le_snd⟩,
+  left_inv := λ s, ext _ _ $ prod.swap_swap _,
+  right_inv := λ s, ext _ _ $ prod.swap_swap _ }
 
-@[simp] lemma fst_dual (a : nonempty_interval α) : a.dual.fst = to_dual a.snd := rfl
-@[simp] lemma snd_dual (a : nonempty_interval α) : a.dual.snd = to_dual a.fst := rfl
+@[simp] lemma fst_dual (s : nonempty_interval α) : s.dual.fst = to_dual s.snd := rfl
+@[simp] lemma snd_dual (s : nonempty_interval α) : s.dual.snd = to_dual s.fst := rfl
 
 end has_le
 
@@ -105,7 +78,7 @@ instance : preorder (nonempty_interval α) := preorder.lift to_dual_prod
 @[simps] def pure (a : α) : nonempty_interval α := ⟨⟨a, a⟩, le_rfl⟩
 
 lemma pure_injective : injective (pure : α → nonempty_interval α) :=
-λ a b, congr_arg $ prod.fst ∘ to_prod
+λ s t, congr_arg $ prod.fst ∘ to_prod
 
 @[simp] lemma dual_pure (a : α) : (pure a).dual = pure (to_dual a) := rfl
 
@@ -135,20 +108,36 @@ instance : order_top (nonempty_interval α) :=
 end preorder
 
 section partial_order
-variables [partial_order α]
+variables [partial_order α] {s t : nonempty_interval α} {x : α × α} {a : α}
 
 instance : partial_order (nonempty_interval α) := partial_order.lift _ to_dual_prod_injective
 
 /-- Consider a nonempty interval `[a, b]` as the set `[a, b]`. -/
-@[simps] def to_set : nonempty_interval α ↪o set α :=
-order_embedding.of_map_le_iff (λ a, Icc a.fst a.snd) (λ a b, Icc_subset_Icc_iff a.fst_le_snd)
+def coe_hom : nonempty_interval α ↪o set α :=
+order_embedding.of_map_le_iff (λ s, Icc s.fst s.snd) (λ s t, Icc_subset_Icc_iff s.fst_le_snd)
 
-@[simp] lemma to_set_pure (a : α) : (pure a).to_set = {a} := Icc_self _
-@[simp] lemma to_set_top [bounded_order α] : (⊤ : nonempty_interval α).to_set = univ := Icc_bot_top
-@[simp] lemma to_set_dual (a : nonempty_interval α) : a.dual.to_set = of_dual ⁻¹' a.to_set :=
-dual_Icc
+instance : set_like (nonempty_interval α) α :=
+{ coe := λ s, Icc s.fst s.snd,
+  coe_injective' := coe_hom.injective }
 
-lemma to_set_nonempty (a : nonempty_interval α) : a.to_set.nonempty := nonempty_Icc.2 a.fst_le_snd
+@[simp] lemma mem_mk {hx : x.1 ≤ x.2} : a ∈ mk x hx ↔ x.1 ≤ a ∧ a ≤ x.2 := iff.rfl
+lemma mem_def : a ∈ s ↔ s.fst ≤ a ∧ a ≤ s.snd := iff.rfl
+
+@[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ s ≤ t := (@coe_hom α _).le_iff_le
+@[simp, norm_cast] lemma coe_ssubset_coe : (s : set α) ⊂ t ↔ s < t := (@coe_hom α _).lt_iff_lt
+
+@[simp] lemma coe_nonempty (s : nonempty_interval α) : (s : set α).nonempty :=
+nonempty_Icc.2 s.fst_le_snd
+
+@[simp] lemma coe_coe_hom : (coe_hom : nonempty_interval α → set α) = coe := rfl
+
+@[simp, norm_cast] lemma coe_pure (s : α) : (pure s : set α) = {s} := Icc_self _
+
+@[simp, norm_cast]
+lemma coe_top [bounded_order α] : ((⊤ : nonempty_interval α) : set α) = univ := Icc_bot_top
+
+@[simp, norm_cast]
+lemma coe_dual (s : nonempty_interval α) : (s.dual : set αᵒᵈ) = of_dual ⁻¹' s := dual_Icc
 
 end partial_order
 
@@ -156,36 +145,40 @@ section lattice
 variables [lattice α]
 
 instance : has_sup (nonempty_interval α) :=
-⟨λ a b, ⟨⟨a.fst ⊓ b.fst, a.snd ⊔ b.snd⟩, inf_le_left.trans $ a.fst_le_snd.trans le_sup_left⟩⟩
+⟨λ s t, ⟨⟨s.fst ⊓ t.fst, s.snd ⊔ t.snd⟩, inf_le_left.trans $ s.fst_le_snd.trans le_sup_left⟩⟩
 
 instance : semilattice_sup (nonempty_interval α) :=
 to_dual_prod_injective.semilattice_sup _ $ λ _ _, rfl
 
-@[simp] lemma fst_sup (a b : nonempty_interval α) : (a ⊔ b).fst = a.fst ⊓ b.fst := rfl
-@[simp] lemma snd_sup (a b : nonempty_interval α) : (a ⊔ b).snd = a.snd ⊔ b.snd := rfl
+@[simp] lemma fst_sup (s t : nonempty_interval α) : (s ⊔ t).fst = s.fst ⊓ t.fst := rfl
+@[simp] lemma snd_sup (s t : nonempty_interval α) : (s ⊔ t).snd = s.snd ⊔ t.snd := rfl
 
 end lattice
 end nonempty_interval
 
-/-- The intervals in an order. -/
+/-- The closed intervals in an order.
+
+We represent intervals either as `⊥` or a nonempty interval given by its endpoints `fst`, `snd`.
+To convert intervals to the set of elements between these endpoints, use the coercion
+`interval α → set α`. -/
 @[derive [inhabited, has_le, order_bot]]
 def interval (α : Type*) [has_le α] := with_bot (nonempty_interval α)
 
 namespace interval
 section has_le
-variables [has_le α] {a b : interval α}
+variables [has_le α] {s t : interval α}
 
 instance : has_coe_t (nonempty_interval α) (interval α) := with_bot.has_coe_t
 instance : can_lift (interval α) (nonempty_interval α) := with_bot.can_lift
 
 lemma coe_injective : injective (coe : nonempty_interval α → interval α) := with_bot.coe_injective
-@[simp, norm_cast] lemma coe_inj {a b : nonempty_interval α} : (a : interval α) = b ↔ a = b :=
+@[simp, norm_cast] lemma coe_inj {s t : nonempty_interval α} : (s : interval α) = t ↔ s = t :=
 with_bot.coe_inj
 
 @[protected] lemma «forall» {p : interval α → Prop} :
-  (∀ a, p a) ↔ p ⊥ ∧ ∀ a : nonempty_interval α, p a := option.forall
+  (∀ s, p s) ↔ p ⊥ ∧ ∀ s : nonempty_interval α, p s := option.forall
 @[protected] lemma «exists» {p : interval α → Prop} :
-  (∃ a, p a) ↔ p ⊥ ∨ ∃ a : nonempty_interval α, p a := option.exists
+  (∃ s, p s) ↔ p ⊥ ∨ ∃ s : nonempty_interval α, p s := option.exists
 
 instance [is_empty α] : unique (interval α) := option.unique
 
@@ -214,11 +207,11 @@ instance [nonempty α] : nontrivial (interval α) := option.nontrivial
 def map (f : α →o β) : interval α → interval β := with_bot.map (nonempty_interval.map f)
 
 @[simp] lemma map_pure (f : α →o β) (a : α) : (pure a).map f = pure (f a) := rfl
-@[simp] lemma map_map (g : β →o γ) (f : α →o β) (a : interval α) :
-  (a.map f).map g = a.map (g.comp f) := option.map_map _ _ _
+@[simp] lemma map_map (g : β →o γ) (f : α →o β) (s : interval α) :
+  (s.map f).map g = s.map (g.comp f) := option.map_map _ _ _
 
-@[simp] lemma dual_map (f : α →o β) (a : interval α) : (a.map f).dual = a.dual.map f.dual :=
-by { cases a, { refl }, { exact with_bot.map_comm rfl _ } }
+@[simp] lemma dual_map (f : α →o β) (s : interval α) : (s.map f).dual = s.dual.map f.dual :=
+by { cases s, { refl }, { exact with_bot.map_comm rfl _ } }
 
 variables [bounded_order α]
 
@@ -229,31 +222,34 @@ instance : bounded_order (interval α) := with_bot.bounded_order
 end preorder
 
 section partial_order
-variables [partial_order α] {a b : interval α}
+variables [partial_order α] {s t : interval α}
 
 instance : partial_order (interval α) := with_bot.partial_order
 
 /-- Consider a interval `[a, b]` as the set `[a, b]`. -/
-def to_set : interval α ↪o set α :=
-order_embedding.of_map_le_iff (λ a, match a with
+def coe_hom : interval α ↪o set α :=
+order_embedding.of_map_le_iff (λ s, match s with
     | ⊥ := ∅
-    | some a := a.to_set
-  end) (λ a b, match a, b with
-  | ⊥, b := iff_of_true bot_le bot_le
-  | some a, ⊥ := iff_of_false (λ h, a.to_set_nonempty.ne_empty $ le_bot_iff.1 h)
+    | some s := s
+  end) (λ s t, match s, t with
+  | ⊥, t := iff_of_true bot_le bot_le
+  | some s, ⊥ := iff_of_false (λ h, s.coe_nonempty.ne_empty $ le_bot_iff.1 h)
                    (with_bot.not_coe_le_bot _)
-  | some a, some b := (@nonempty_interval.to_set α _).le_iff_le.trans with_bot.some_le_some.symm
+  | some s, some t := (@nonempty_interval.coe_hom α _).le_iff_le.trans with_bot.some_le_some.symm
   end)
 
-@[simp] lemma to_set_pure (a : α) : (pure a).to_set = {a} := Icc_self _
-@[simp] lemma to_set_coe (a : nonempty_interval α) : (a  : interval α).to_set = a.to_set := rfl
-@[simp] lemma to_set_bot : (⊥  : interval α).to_set = ∅ := rfl
-@[simp] lemma to_set_top [bounded_order α] : (⊤ : interval α).to_set = univ := Icc_bot_top
-@[simp] lemma to_set_dual (a : interval α) : a.dual.to_set = of_dual ⁻¹' a.to_set :=
-by { cases a, { refl }, exact a.to_set_dual }
+instance : set_like (interval α) α :=
+{ coe := coe_hom,
+  coe_injective' := coe_hom.injective }
 
-lemma to_set_le_to_set : a.to_set ⊆ b.to_set ↔ a ≤ b := (@to_set α _).le_iff_le
-lemma to_set_mono : a ≤ b → a.to_set ⊆ b.to_set := to_set_le_to_set.2
+@[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ s ≤ t := (@coe_hom α _).le_iff_le
+@[simp, norm_cast] lemma coe_ssubset_coe : (s : set α) ⊂ t ↔ s < t := (@coe_hom α _).lt_iff_lt
+@[simp, norm_cast] lemma coe_pure (a : α) : (pure a : set α) = {a} := Icc_self _
+@[simp, norm_cast] lemma coe_coe (s : nonempty_interval α) : ((s : interval α) : set α) = s := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥  : interval α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_top [bounded_order α] : ((⊤ : interval α) : set α) = univ := Icc_bot_top
+@[simp, norm_cast] lemma coe_dual (s : interval α) : (s.dual : set αᵒᵈ) = of_dual ⁻¹' s :=
+by { cases s, { refl }, exact s.coe_dual }
 
 end partial_order
 
@@ -265,127 +261,150 @@ instance : semilattice_sup (interval α) := with_bot.semilattice_sup
 variables [@decidable_rel α (≤)]
 
 instance : lattice (interval α) :=
-{ inf := λ a b, match a, b with
-    | ⊥, b := ⊥
-    | a, ⊥ := ⊥
-    | some a, some b := if h : a.fst ≤ b.snd ∧ b.fst ≤ a.snd then some
-      ⟨⟨a.fst ⊔ b.fst, a.snd ⊓ b.snd⟩, sup_le (le_inf a.fst_le_snd h.1) $ le_inf h.2 b.fst_le_snd⟩
+{ inf := λ s t, match s, t with
+    | ⊥, t := ⊥
+    | s, ⊥ := ⊥
+    | some s, some t := if h : s.fst ≤ t.snd ∧ t.fst ≤ s.snd then some
+      ⟨⟨s.fst ⊔ t.fst, s.snd ⊓ t.snd⟩, sup_le (le_inf s.fst_le_snd h.1) $ le_inf h.2 t.fst_le_snd⟩
       else ⊥
   end,
-  inf_le_left := λ a b, match a, b with
+  inf_le_left := λ s t, match s, t with
     | ⊥, ⊥ := bot_le
-    | ⊥, some b := bot_le
-    | some a, ⊥ := bot_le
-    | some a, some b := begin
+    | ⊥, some t := bot_le
+    | some s, ⊥ := bot_le
+    | some s, some t := begin
       change dite _ _ _ ≤ _,
       split_ifs,
       { exact with_bot.some_le_some.2 ⟨le_sup_left, inf_le_left⟩ },
       { exact bot_le }
     end
   end,
-  inf_le_right := λ a b, match a, b with
+  inf_le_right := λ s t, match s, t with
     | ⊥, ⊥ := bot_le
-    | ⊥, some b := bot_le
-    | some a, ⊥ := bot_le
-    | some a, some b := begin
+    | ⊥, some t := bot_le
+    | some s, ⊥ := bot_le
+    | some s, some t := begin
       change dite _ _ _ ≤ _,
       split_ifs,
       { exact with_bot.some_le_some.2 ⟨le_sup_right, inf_le_right⟩ },
       { exact bot_le }
     end
   end,
-  le_inf := λ a b c, match a, b, c with
-    | ⊥, b, c := λ _ _, bot_le
-    | some a, b, c := λ hb hc, begin
-      lift b to nonempty_interval α using ne_bot_of_le_ne_bot with_bot.coe_ne_bot hb,
+  le_inf := λ s t c, match s, t, c with
+    | ⊥, t, c := λ _ _, bot_le
+    | some s, t, c := λ hb hc, begin
+      lift t to nonempty_interval α using ne_bot_of_le_ne_bot with_bot.coe_ne_bot hb,
       lift c to nonempty_interval α using ne_bot_of_le_ne_bot with_bot.coe_ne_bot hc,
       change _ ≤ dite _ _ _,
       simp only [with_bot.some_eq_coe, with_bot.coe_le_coe] at ⊢ hb hc,
       rw [dif_pos, with_bot.coe_le_coe],
       exact ⟨sup_le hb.1 hc.1, le_inf hb.2 hc.2⟩,
-      exact ⟨hb.1.trans $ a.fst_le_snd.trans hc.2, hc.1.trans $ a.fst_le_snd.trans hb.2⟩,
+      exact ⟨hb.1.trans $ s.fst_le_snd.trans hc.2, hc.1.trans $ s.fst_le_snd.trans hb.2⟩,
     end
   end,
   ..interval.semilattice_sup }
 
-@[simp] lemma to_set_inf (a b : interval α) : (a ⊓ b).to_set = a.to_set ∩ b.to_set :=
+@[simp, norm_cast] lemma coe_inf (s t : interval α) : (↑(s ⊓ t) : set α) = s ∩ t :=
 begin
-  cases a,
+  cases s,
   { rw [with_bot.none_eq_bot, bot_inf_eq],
     exact (empty_inter _).symm },
-  cases b,
+  cases t,
   { rw [with_bot.none_eq_bot, inf_bot_eq],
     exact (inter_empty _).symm },
-  refine (_ : to_set (dite _ _ _) = _).trans Icc_inter_Icc.symm,
+  refine (_ : coe (dite _ _ _) = _).trans Icc_inter_Icc.symm,
   split_ifs,
   { refl },
   { exact (Icc_eq_empty $ λ H,
       h ⟨le_sup_left.trans $ H.trans inf_le_right, le_sup_right.trans $ H.trans inf_le_left⟩).symm }
 end
 
-@[simp] lemma disjoint_to_set (a b : interval α) : disjoint a.to_set b.to_set ↔ disjoint a b :=
-by { rw [disjoint, disjoint, ←(@to_set α _).le_iff_le, to_set_inf], refl }
+@[simp, norm_cast]
+lemma disjoint_coe (s t : interval α) : disjoint (s : set α) t ↔ disjoint s t :=
+by { rw [disjoint, disjoint, le_eq_subset, ←coe_subset_coe, coe_inf], refl }
 
 end lattice
+end interval
 
+namespace nonempty_interval
+section preorder
+variables [preorder α]
+
+@[simp, norm_cast] lemma coe_pure_interval (s : α) : (pure s : interval α) = interval.pure s := rfl
+
+@[simp, norm_cast]
+lemma coe_top_interval [bounded_order α] : ((⊤ : nonempty_interval α) : interval α) = ⊤ := rfl
+
+end preorder
+
+@[simp, norm_cast]
+lemma mem_coe_interval [partial_order α] {s : nonempty_interval α} {x : α} :
+  x ∈ (s : interval α) ↔ x ∈ s := iff.rfl
+
+@[simp, norm_cast] lemma coe_sup_interval [lattice α] (s t : nonempty_interval α) :
+  (↑(s ⊔ t) : interval α) = s ⊔ t := rfl
+
+end nonempty_interval
+
+namespace interval
 section complete_lattice
 variables [complete_lattice α]
 
-noncomputable instance : complete_lattice (interval α) :=
-by classical; exact
-{ Sup := λ s, if h : s ⊆ {⊥} then ⊥ else some
-    ⟨⟨⨅ (a : nonempty_interval α) (h : ↑a ∈ s), a.fst,
-      ⨆ (a : nonempty_interval α) (h : ↑a ∈ s), a.snd⟩, begin
-        obtain ⟨a, hs, ha⟩ := not_subset.1 h,
-        lift a to nonempty_interval α using ha,
-        exact infi₂_le_of_le a hs (le_supr₂_of_le a hs a.fst_le_snd)
+noncomputable instance [@decidable_rel α (≤)] : complete_lattice (interval α) :=
+by classical; exact { Sup := λ S, if h : S ⊆ {⊥} then ⊥ else some
+    ⟨⟨⨅ (s : nonempty_interval α) (h : ↑s ∈ S), s.fst,
+      ⨆ (s : nonempty_interval α) (h : ↑s ∈ S), s.snd⟩, begin
+        obtain ⟨s, hs, ha⟩ := not_subset.1 h,
+        lift s to nonempty_interval α using ha,
+        exact infi₂_le_of_le s hs (le_supr₂_of_le s hs s.fst_le_snd)
       end⟩,
-  le_Sup := λ s a ha, begin
+  le_Sup := λ s s ha, begin
     split_ifs,
     { exact (h ha).le },
-    cases a,
+    cases s,
     { exact bot_le },
     { exact with_bot.some_le_some.2 ⟨infi₂_le _ ha, le_supr₂_of_le _ ha le_rfl⟩ }
   end,
-  Sup_le := λ s a ha, begin
+  Sup_le := λ s s ha, begin
     split_ifs,
     { exact bot_le },
     obtain ⟨b, hs, hb⟩ := not_subset.1 h,
-    lift a to nonempty_interval α using ne_bot_of_le_ne_bot hb (ha _ hs),
+    lift s to nonempty_interval α using ne_bot_of_le_ne_bot hb (ha _ hs),
     exact with_bot.coe_le_coe.2 ⟨le_infi₂ $ λ c hc, (with_bot.coe_le_coe.1 $ ha _ hc).1,
       supr₂_le $ λ c hc, (with_bot.coe_le_coe.1 $ ha _ hc).2⟩,
   end,
-  Inf := λ s, if h : ⊥ ∉ s ∧ ∀ ⦃a : nonempty_interval α⦄, ↑a ∈ s → ∀ ⦃b : nonempty_interval α⦄,
-    ↑b ∈ s → a.fst ≤ b.snd then some
-      ⟨⟨⨆ (a : nonempty_interval α) (h : ↑a ∈ s), a.fst,
-        ⨅ (a : nonempty_interval α) (h : ↑a ∈ s), a.snd⟩,
-          supr₂_le $ λ a ha, le_infi₂ $ h.2 ha⟩ else ⊥,
-  Inf_le := λ s a ha, begin
+  Inf := λ S, if h : ⊥ ∉ S ∧ ∀ ⦃s : nonempty_interval α⦄, ↑s ∈ S → ∀ ⦃t : nonempty_interval α⦄,
+    ↑t ∈ S → s.fst ≤ t.snd then some
+      ⟨⟨⨆ (s : nonempty_interval α) (h : ↑s ∈ S), s.fst,
+        ⨅ (s : nonempty_interval α) (h : ↑s ∈ S), s.snd⟩,
+          supr₂_le $ λ s hs, le_infi₂ $ h.2 hs⟩ else ⊥,
+  Inf_le := λ s s ha, begin
     split_ifs,
-    { lift a to nonempty_interval α using ne_of_mem_of_not_mem ha h.1,
-      exact with_bot.coe_le_coe.2 ⟨le_supr₂ a ha, infi₂_le a ha⟩ },
+    { lift s to nonempty_interval α using ne_of_mem_of_not_mem ha h.1,
+      exact with_bot.coe_le_coe.2 ⟨le_supr₂ s ha, infi₂_le s ha⟩ },
     { exact bot_le }
   end,
-  le_Inf := λ s a ha, begin
-    cases a,
+  le_Inf := λ S s ha, begin
+    cases s,
     { exact bot_le },
     split_ifs,
-    { exact with_bot.some_le_some.2 ⟨supr₂_le $ λ b hb, (with_bot.coe_le_coe.1 $ ha _ hb).1,
-        le_infi₂ $ λ b hb, (with_bot.coe_le_coe.1 $ ha _ hb).2⟩ },
+    { exact with_bot.some_le_some.2 ⟨supr₂_le $ λ t hb, (with_bot.coe_le_coe.1 $ ha _ hb).1,
+        le_infi₂ $ λ t hb, (with_bot.coe_le_coe.1 $ ha _ hb).2⟩ },
     rw [not_and_distrib, not_not] at h,
     cases h,
     { exact ha _ h },
-    cases h (λ b hb c hc, (with_bot.coe_le_coe.1 $ ha _ hb).1.trans $ a.fst_le_snd.trans
+    cases h (λ t hb c hc, (with_bot.coe_le_coe.1 $ ha _ hb).1.trans $ s.fst_le_snd.trans
       (with_bot.coe_le_coe.1 $ ha _ hc).2),
   end,
   ..interval.lattice, ..interval.bounded_order }
 
-@[simp] lemma to_set_Inf (s : set (interval α)) : (Inf s).to_set = ⋂ a ∈ s, to_set a :=
+@[simp, norm_cast] lemma coe_Inf (S : set (interval α)) : ↑(Inf S) = ⋂ s ∈ S, (s : set α) :=
 begin
-  change to_set (dite _ _ _) = _,
+  change coe (dite _ _ _) = _,
   split_ifs,
   { ext,
-    simp [with_bot.some_eq_coe, interval.forall, h.1, forall_and_distrib] },
+    simp [with_bot.some_eq_coe, interval.forall, h.1, ←forall_and_distrib,
+      ←nonempty_interval.mem_def] },
   simp_rw [not_and_distrib, not_not] at h,
   cases h,
   { refine (eq_empty_of_subset_empty _).symm,
@@ -393,30 +412,15 @@ begin
   { refine (not_nonempty_iff_eq_empty.1 _).symm,
     rintro ⟨x, hx⟩,
     rw mem_Inter₂ at hx,
-    exact h (λ a ha b hb, (hx _ ha).1.trans (hx _ hb).2) }
+    exact h (λ s ha t hb, (hx _ ha).1.trans (hx _ hb).2) }
 end
 
-@[simp] lemma to_set_infi (f : ι → interval α) : (⨅ i, f i).to_set = ⋂ i, (f i).to_set :=
+@[simp, norm_cast] lemma coe_infi (f : ι → interval α) : ↑(⨅ i, f i) = ⋂ i, (f i : set α) :=
 by simp [infi]
 
-@[simp] lemma to_set_infi₂ (f : Π i, κ i → interval α) :
-  (⨅ i j, f i j).to_set = ⋂ i j, (f i j).to_set :=
-by simp_rw [to_set_infi]
+@[simp, norm_cast] lemma coe_infi₂ (f : Π i, κ i → interval α) :
+  ↑(⨅ i j, f i j) = ⋂ i j, (f i j : set α) :=
+by simp_rw [coe_infi]
 
 end complete_lattice
 end interval
-
-namespace nonempty_interval
-section preorder
-variables [preorder α]
-
-@[simp, norm_cast] lemma coe_pure (a : α) : (pure a : interval α) = interval.pure a := rfl
-@[simp, norm_cast] lemma coe_top [bounded_order α] : ((⊤ : nonempty_interval α) : interval α) = ⊤ :=
-rfl
-
-end preorder
-
-@[simp, norm_cast] lemma coe_sup [lattice α] (a b : nonempty_interval α) :
-  (↑(a ⊔ b) : interval α) = a ⊔ b := rfl
-
-end nonempty_interval

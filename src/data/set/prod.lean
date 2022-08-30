@@ -367,8 +367,8 @@ variables {s}
 lemma off_diag_union (h : disjoint s t) :
   (s ∪ t).off_diag = s.off_diag ∪ t.off_diag ∪ s ×ˢ t ∪ t ×ˢ s :=
 begin
-  rw [off_diag_eq_sep_prod, union_prod, prod_union, prod_union, union_comm _ (t ×ˢ t),
-    union_assoc, union_left_comm (s ×ˢ t), ←union_assoc, sep_union, sep_union, ←off_diag_eq_sep_prod,
+  rw [off_diag_eq_sep_prod, union_prod, prod_union, prod_union, union_comm _ (t ×ˢ t), union_assoc,
+    union_left_comm (s ×ˢ t), ←union_assoc, sep_union, sep_union, ←off_diag_eq_sep_prod,
     ←off_diag_eq_sep_prod, sep_true_of_mem, ←union_assoc],
   simp only [mem_union, mem_prod, ne.def, prod.forall],
   rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩) rfl; exact h ⟨‹_›, ‹_›⟩,

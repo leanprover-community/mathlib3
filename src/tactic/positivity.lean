@@ -82,6 +82,11 @@ meta def norm_num.positivity (e : expr) : tactic strictness := do
     pure (nonnegative p')
   else failed
 
+/-- Second base case of the `positivity` tactic: Any element of a canonically ordered additive
+monoid is nonnegative. -/
+meta def positivity_canon : expr → tactic strictness
+| `(%%a) := nonnegative <$> mk_app ``zero_le [a]
+
 namespace positivity
 
 /-- Given two tactics whose result is `strictness`, report a `strictness`:
@@ -138,7 +143,8 @@ meta def attr : user_attribute (expr → tactic strictness) unit :=
         (λ _, failed),
       pure $ λ e, orelse'
         (t e) $ orelse' -- run all the extensions on `e`
-          (norm_num.positivity e) $ -- directly try `norm_num` on `e`
+          (norm_num.positivity e) $ orelse' -- directly try `norm_num` on `e`
+            (positivity_canon e) $ -- try showing nonnegativity from canonicity of the order
           -- loop over hypotheses and try to compare with `e`
           local_context >>= list.foldl (λ tac h, orelse' tac (compare_hyp e h)) failed  },
     dependencies := [] } }
@@ -360,12 +366,6 @@ meta def positivity_abs : expr → tactic strictness
     positive <$> mk_app ``abs_pos_of_pos [pa]) <|>
   nonnegative <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
 | _ := failed
-
-/-- Extension for the `positivity` tactic: Any element of a canonically ordered additive monoid is
-nonnegative. -/
-@[positivity]
-meta def positivity_canon : expr → tactic strictness
-| `(%%a) := nonnegative <$> mk_app ``zero_le [a]
 
 private alias nat.cast_pos ↔ _ nat_cast_pos
 

@@ -59,13 +59,21 @@ Once the dust has settled, these will be moved to the appropriate files.
 
 namespace nat
 
+/-- If `a` is even, then `n` is odd iff `n % a` is odd. -/
+lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd n ↔ odd (n % a) :=
+(even_sub' $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $ dvd_sub_mod n
+
+/-- If `a` is even, then `n` is even iff `n % a` is even. -/
+lemma even.mod_even_iff {n a : ℕ} (ha : even a) : even n ↔ even (n % a) :=
+(even_sub $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $ dvd_sub_mod n
+
 /-- If `n` is odd and `a` is even, then `n % a` is odd. -/
-lemma odd_mod_of_odd {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
-begin
-  have h := (@nat.odd_add (n % a) (a * (n / a))).mp,
-  rw [mod_add_div n a] at h,
-  exact (h hn).mpr (even.mul_right ha _),
-end
+lemma odd.mod_even {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
+(odd.mod_even_iff ha).mp hn
+
+/-- If `n` is even and `a` is even, then `n % a` is even. -/
+lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
+(even.mod_even_iff ha).mp hn
 
 /-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
 such that `a = 2^e * a'` and `a'` is odd. -/
@@ -489,7 +497,7 @@ lemma jacobi_sym_mod_right' (a : ℕ) {b : ℕ} (hb : odd b) : [a | b]ⱼ = [a |
 begin
   cases eq_or_ne a 0 with ha₀ ha₀,
   { rw [ha₀, mul_zero, mod_zero], },
-  have hb' : odd (b % (4 * a)) := odd_mod_of_odd hb (even.mul_right (by norm_num) _),
+  have hb' : odd (b % (4 * a)) := odd.mod_even hb (even.mul_right (by norm_num) _),
   rcases two_pow_mul_odd ha₀ with ⟨e, a', ha₁, ha₂⟩,
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
   rw [nat.cast_mul, jacobi_sym_mul_left, jacobi_sym_mul_left,
@@ -520,7 +528,7 @@ begin
   { -- `a = a.nat_abs`
     exact jacobi_sym_mod_right' a.nat_abs hb, },
   { -- `a = - a.nat_abs`
-    have hb' : odd (b % (4 * a.nat_abs)) := odd_mod_of_odd hb (even.mul_right (by norm_num) _),
+    have hb' : odd (b % (4 * a.nat_abs)) := odd.mod_even hb (even.mul_right (by norm_num) _),
     rw [jacobi_sym_neg _ hb, jacobi_sym_neg _ hb', jacobi_sym_mod_right' _ hb, χ₄_nat_mod_four,
         χ₄_nat_mod_four (b % (4 * _)), mod_mod_of_dvd b (dvd_mul_right 4 _)], }
 end

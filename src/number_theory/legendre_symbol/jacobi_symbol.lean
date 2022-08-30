@@ -134,8 +134,9 @@ lemma pmap_append {α β : Type*} {p : α → Prop} (f : Π (a : α), p a → β
                         l₂.pmap f (λ a ha, h a (mem_append_right l₁ ha)) :=
 begin
   induction l₁ with _ _ ih,
-  { simp only [pmap, nil_append], },
-  { simp only [pmap, cons_append, eq_self_iff_true, true_and, ih], }
+  { refl, },
+  { dsimp only [pmap, cons_append],
+    rw ih, }
 end
 
 end list

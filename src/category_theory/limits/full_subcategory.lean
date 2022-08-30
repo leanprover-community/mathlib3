@@ -24,35 +24,26 @@ namespace category_theory.limits
 
 /-- We say that a property is closed under limits of shape `J` if whenever all objects in a
     `J`-shaped diagram have the property, any limit of this diagram also has the property. -/
-class closed_under_limits_of_shape {C : Type u} [category.{v} C] (J : Type w) [category.{w'} J]
+def closed_under_limits_of_shape {C : Type u} [category.{v} C] (J : Type w) [category.{w'} J]
   (P : C → Prop) : Prop :=
-(closed : ∀ {F : J ⥤ C} {c : cone F} (hc : is_limit c), (∀ j, P (F.obj j)) → P c.X)
+∀ ⦃F : J ⥤ C⦄ ⦃c : cone F⦄ (hc : is_limit c), (∀ j, P (F.obj j)) → P c.X
 
 /-- We say that a property is closed under colimits of shape `J` if whenever all objects in a
     `J`-shaped diagram have the property, any colimit of this diagram also has the property. -/
-class closed_under_colimits_of_shape {C : Type u} [category.{v} C] (J : Type w) [category.{w'} J]
+def closed_under_colimits_of_shape {C : Type u} [category.{v} C] (J : Type w) [category.{w'} J]
   (P : C → Prop) : Prop :=
-(closed : ∀ {F : J ⥤ C} {c : cocone F} (hc : is_colimit c), (∀ j, P (F.obj j)) → P c.X)
+∀ ⦃F : J ⥤ C⦄ ⦃c : cocone F⦄ (hc : is_colimit c), (∀ j, P (F.obj j)) → P c.X
 
 section
 variables {C : Type u} [category.{v} C] {J : Type w} [category.{w'} J] {P : C → Prop}
 
-lemma prop_of_is_limit [closed_under_limits_of_shape J P] {F : J ⥤ C} {c : cone F}
-  (hc : is_limit c) : (∀ j, P (F.obj j)) → P c.X :=
-closed_under_limits_of_shape.closed hc
+lemma closed_under_limits_of_shape.limit (h : closed_under_limits_of_shape J P) {F : J ⥤ C}
+  [has_limit F] : (∀ j, P (F.obj j)) → P (limit F) :=
+h (limit.is_limit _)
 
-lemma prop_limit {C : Type u} [category.{v} C] {J : Type w} [category.{w'} J]
-  {P : C → Prop} [closed_under_limits_of_shape J P] {F : J ⥤ C} [has_limit F] :
-  (∀ j, P (F.obj j)) → P (limit F) :=
-prop_of_is_limit (limit.is_limit _)
-
-lemma prop_of_is_colimit [closed_under_colimits_of_shape J P] {F : J ⥤ C} {c : cocone F}
-  (hc : is_colimit c) : (∀ j, P (F.obj j)) → P c.X :=
-closed_under_colimits_of_shape.closed hc
-
-lemma prop_colimit [closed_under_colimits_of_shape J P] {F : J ⥤ C} [has_colimit F] :
-  (∀ j, P (F.obj j)) → P (colimit F) :=
-prop_of_is_colimit (colimit.is_colimit _)
+lemma closed_under_colimits_of_shape.colimit (h : closed_under_colimits_of_shape J P) {F : J ⥤ C}
+  [has_colimit F] : (∀ j, P (F.obj j)) → P (colimit F) :=
+h (colimit.is_colimit _)
 
 end
 
@@ -89,39 +80,48 @@ def creates_colimit_full_subcategory_inclusion (F : J ⥤ full_subcategory P)
   creates_colimit F (full_subcategory_inclusion P) :=
 creates_colimit_full_subcategory_inclusion' F (colimit.is_colimit _) h
 
-instance creates_limit_full_subcategory_inclusion_of_closed [closed_under_limits_of_shape J P]
+/-- If `P` is closed under limits of shape `J`, then the inclusion creates such limits. -/
+def creates_limit_full_subcategory_inclusion_of_closed (h : closed_under_limits_of_shape J P)
   (F : J ⥤ full_subcategory P) [has_limit (F ⋙ full_subcategory_inclusion P)] :
   creates_limit F (full_subcategory_inclusion P) :=
-creates_limit_full_subcategory_inclusion F (prop_limit (λ j, (F.obj j).property))
+creates_limit_full_subcategory_inclusion F (h.limit (λ j, (F.obj j).property))
 
-instance creates_limits_of_shape_full_subcategory_inclusion [closed_under_limits_of_shape J P]
+/-- If `P` is closed under limits of shape `J`, then the inclusion creates such limits. -/
+def creates_limits_of_shape_full_subcategory_inclusion (h : closed_under_limits_of_shape J P)
   [has_limits_of_shape J C] : creates_limits_of_shape J (full_subcategory_inclusion P) :=
-{ creates_limit := λ F, infer_instance }
+{ creates_limit := λ F, creates_limit_full_subcategory_inclusion_of_closed h F }
 
-instance has_limit_of_closed_under_limits [closed_under_limits_of_shape J P]
+lemma has_limit_of_closed_under_limits (h : closed_under_limits_of_shape J P)
   (F : J ⥤ full_subcategory P) [has_limit (F ⋙ full_subcategory_inclusion P)] : has_limit F :=
-has_limit_of_created F (full_subcategory_inclusion P)
+have creates_limit F (full_subcategory_inclusion P),
+  from creates_limit_full_subcategory_inclusion_of_closed h F,
+by exactI has_limit_of_created F (full_subcategory_inclusion P)
 
-instance has_limits_of_shape_of_closed_under_limits [closed_under_limits_of_shape J P]
+lemma has_limits_of_shape_of_closed_under_limits (h : closed_under_limits_of_shape J P)
   [has_limits_of_shape J C] : has_limits_of_shape J (full_subcategory P) :=
-{ has_limit := λ F, infer_instance }
+{ has_limit := λ F, has_limit_of_closed_under_limits h F }
 
-instance creates_colimit_full_subcategory_inclusion_of_closed [closed_under_colimits_of_shape J P]
+/-- If `P` is closed under colimits of shape `J`, then the inclusion creates such colimits. -/
+def creates_colimit_full_subcategory_inclusion_of_closed (h : closed_under_colimits_of_shape J P)
   (F : J ⥤ full_subcategory P) [has_colimit (F ⋙ full_subcategory_inclusion P)] :
   creates_colimit F (full_subcategory_inclusion P) :=
-creates_colimit_full_subcategory_inclusion F (prop_colimit (λ j, (F.obj j).property))
+creates_colimit_full_subcategory_inclusion F (h.colimit (λ j, (F.obj j).property))
 
-instance creates_colimits_of_shape_full_subcategory_inclusion [closed_under_colimits_of_shape J P]
-  [has_colimits_of_shape J C] : creates_colimits_of_shape J (full_subcategory_inclusion P) :=
-{ creates_colimit := λ F, infer_instance }
+/-- If `P` is closed under colimits of shape `J`, then the inclusion creates such colimits. -/
+def creates_colimits_of_shape_full_subcategory_inclusion
+  (h : closed_under_colimits_of_shape J P) [has_colimits_of_shape J C] :
+  creates_colimits_of_shape J (full_subcategory_inclusion P) :=
+{ creates_colimit := λ F, creates_colimit_full_subcategory_inclusion_of_closed h F }
 
-instance has_colimit_of_closed_under_colimits [closed_under_colimits_of_shape J P]
+lemma has_colimit_of_closed_under_colimits (h : closed_under_colimits_of_shape J P)
   (F : J ⥤ full_subcategory P) [has_colimit (F ⋙ full_subcategory_inclusion P)] : has_colimit F :=
-has_colimit_of_created F (full_subcategory_inclusion P)
+have creates_colimit F (full_subcategory_inclusion P),
+  from creates_colimit_full_subcategory_inclusion_of_closed h F,
+by exactI has_colimit_of_created F (full_subcategory_inclusion P)
 
-instance has_colimits_of_shape_of_closed_under_colimits [closed_under_colimits_of_shape J P]
+lemma has_colimits_of_shape_of_closed_under_colimits (h : closed_under_colimits_of_shape J P)
   [has_colimits_of_shape J C] : has_colimits_of_shape J (full_subcategory P) :=
-{ has_colimit := λ F, infer_instance }
+{ has_colimit := λ F, has_colimit_of_closed_under_colimits h F }
 
 end
 

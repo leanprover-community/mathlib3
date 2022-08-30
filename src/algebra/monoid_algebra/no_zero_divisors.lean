@@ -64,29 +64,28 @@ lemma no_zero_divisors.of_left_ordered [no_zero_divisors R]
   no_zero_divisors (add_monoid_algebra R A) :=
 ⟨λ f g fg, begin
   contrapose! fg,
-  rw [← support_nonempty_iff, ← support_nonempty_iff] at fg,
-  cases fg with f0 g0,
+  let gmin : A := g.support.min' (support_nonempty_iff.mpr fg.2),
   refine support_nonempty_iff.mp _,
-  obtain ⟨a, ha, H⟩ := right.exists_add_of_mem_support_single_mul (g.support.min' g0)
-    ((f * single (g.support.min' g0) 1 : add_monoid_algebra R A).support.min'
-      (by rw support_mul_single; simp [f0])) (finset.min'_mem _ _),
-  refine ⟨a + g.support.min' g0, mem_support_iff.mpr _⟩,
+  obtain ⟨a, ha, H⟩ := right.exists_add_of_mem_support_single_mul gmin
+    ((f * single gmin 1 : add_monoid_algebra R A).support.min'
+      (by rw support_mul_single; simp [support_nonempty_iff.mpr fg.1])) (finset.min'_mem _ _),
+  refine ⟨a + gmin, mem_support_iff.mpr _⟩,
   rw mul_apply_add_eq_mul_of_forall_ne _,
   { refine mul_ne_zero _ _,
     exacts [mem_support_iff.mp ha, mem_support_iff.mp (finset.min'_mem _ _)] },
   { rw H,
     rintro b c bf cg (hb | hc); refine ne_of_gt _,
-    { refine lt_of_lt_of_le (_ : _ < b + g.support.min' g0 ) _,
+    { refine lt_of_lt_of_le (_ : _ < b + gmin ) _,
       { apply finset.min'_lt_of_mem_erase_min',
         rw ← H,
         apply finset.mem_erase_of_ne_of_mem,
         { simpa only [ne.def, add_left_inj] },
         { rw support_mul_single _ _ (λ y, by rw mul_one : ∀ y : R, y * 1 = 0 ↔ _),
           simpa only [finset.mem_map, add_right_embedding_apply, add_left_inj, exists_prop,
-            exists_eq_right]} },
+            exists_eq_right] } },
       { haveI : covariant_class A A (+) (≤) := has_add.to_covariant_class_left A,
         exact add_le_add_left (finset.min'_le _ _ cg) _ } },
-    { refine lt_of_le_of_lt (_ : _ ≤ b + g.support.min' g0) _,
+    { refine lt_of_le_of_lt (_ : _ ≤ b + gmin) _,
       { apply finset.min'_le,
         rw support_mul_single _ _ (λ y, by rw mul_one : ∀ y : R, y * 1 = 0 ↔ _),
         simp only [bf, finset.mem_map, add_right_embedding_apply, add_left_inj, exists_prop,
@@ -102,26 +101,25 @@ lemma no_zero_divisors.of_right_ordered [no_zero_divisors R]
   no_zero_divisors (add_monoid_algebra R A) :=
 ⟨λ f g fg, begin
   contrapose! fg,
-  rw [← support_nonempty_iff, ← support_nonempty_iff] at fg,
-  cases fg with f0 g0,
+  let fmin : A := f.support.min' (support_nonempty_iff.mpr fg.1),
   refine support_nonempty_iff.mp _,
-  obtain ⟨a, ha, H⟩ := left.exists_add_of_mem_support_single_mul (f.support.min' f0)
-    ((single (f.support.min' f0) 1 * g : add_monoid_algebra R A).support.min'
-      (by rw support_single_mul; simp [g0])) (finset.min'_mem _ _),
-  refine ⟨f.support.min' f0 + a, mem_support_iff.mpr _⟩,
+  obtain ⟨a, ha, H⟩ := left.exists_add_of_mem_support_single_mul fmin
+    ((single fmin 1 * g : add_monoid_algebra R A).support.min'
+      (by rw support_single_mul; simp [support_nonempty_iff.mpr fg.2])) (finset.min'_mem _ _),
+  refine ⟨fmin + a, mem_support_iff.mpr _⟩,
   rw mul_apply_add_eq_mul_of_forall_ne _,
   { refine mul_ne_zero _ _,
     exacts [mem_support_iff.mp (finset.min'_mem _ _), mem_support_iff.mp ha] },
   { rw H,
     rintro b c bf cg (hb | hc); refine ne_of_gt _,
-    { refine lt_of_le_of_lt (_ : _ ≤ f.support.min' f0 + c) _,
+    { refine lt_of_le_of_lt (_ : _ ≤ fmin + c) _,
       { apply finset.min'_le,
         rw support_single_mul _ _ (λ y, by rw one_mul : ∀ y : R, 1 * y = 0 ↔ _),
         simp only [cg, finset.mem_map, add_left_embedding_apply, add_right_inj, exists_prop,
           exists_eq_right] },
       { refine add_lt_add_right _ _,
         exact finset.min'_lt_of_mem_erase_min' _ _ (finset.mem_erase.mpr ⟨hb, bf⟩) } },
-    { refine lt_of_lt_of_le (_ : _ < f.support.min' f0 + c) _,
+    { refine lt_of_lt_of_le (_ : _ < fmin + c) _,
       { apply finset.min'_lt_of_mem_erase_min',
         rw ← H,
         apply finset.mem_erase_of_ne_of_mem,

@@ -1632,7 +1632,7 @@ begin
              tsum_add ennreal.summable ennreal.summable],
 end
 
-/-- If `f` is a map with countable codomain, then `μ.map f` is the sum of Dirac measures -/
+/-- If `f` is a map with countable codomain, then `μ.map f` is a sum of Dirac measures. -/
 lemma map_eq_sum [countable β] [measurable_singleton_class β] (μ : measure α) (f : α → β)
   (hf : measurable f) :
   μ.map f = sum (λ b : β, μ (f ⁻¹' {b}) • dirac b) :=

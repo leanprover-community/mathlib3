@@ -546,7 +546,7 @@ begin
 end
 
 /-- The Haar measure is regular. -/
-@[to_additive "The Haar measure is regular."]
+@[to_additive "The additive Haar measure is regular."]
 instance regular_haar_measure {K₀ : positive_compacts G} :
   (haar_measure K₀).regular :=
 begin
@@ -557,15 +557,15 @@ begin
 end
 
 /-- The Haar measure is sigma-finite in a second countable group. -/
-@[to_additive "The Haar measure is sigma-finite in a second countable group."]
+@[to_additive "The additive Haar measure is sigma-finite in a second countable group."]
 instance sigma_finite_haar_measure [second_countable_topology G] {K₀ : positive_compacts G} :
   sigma_finite (haar_measure K₀) :=
 by { haveI : locally_compact_space G := K₀.locally_compact_space_of_group, apply_instance, }
 
 /-- The Haar measure is a Haar measure, i.e., it is invariant and gives finite mass to compact
 sets and positive mass to nonempty open sets. -/
-@[to_additive "The Haar measure is a Haar measure, i.e., it is invariant and gives finite mass to
-compact sets and positive mass to nonempty open sets."]
+@[to_additive "The additive Haar measure is an additive Haar measure, i.e., it is invariant and gives 
+finite mass to compact sets and positive mass to nonempty open sets."]
 instance is_haar_measure_haar_measure (K₀ : positive_compacts G) :
   is_haar_measure (haar_measure K₀) :=
 begin
@@ -588,9 +588,9 @@ variables [second_countable_topology G]
   is a scalar multiple of the Haar measure.
   This is slightly weaker than assuming that `μ` is a Haar measure (in particular we don't require
   `μ ≠ 0`). -/
-@[to_additive "The Haar measure is unique up to scaling. More precisely: every σ-finite left
-invariant measure is a scalar multiple of the Haar measure. This is slightly weaker than assuming
-that `μ` is a Haar measure (in particular we don't require `μ ≠ 0`)."]
+@[to_additive "The additive Haar measure is unique up to scaling. More precisely: every σ-finite 
+left invariant measure is a scalar multiple of the additive Haar measure. This is slightly weaker than 
+assuming that `μ` is an additive Haar measure (in particular we don't require `μ ≠ 0`)."]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   (K₀ : positive_compacts G) : μ = μ K₀ • haar_measure K₀ :=
 (measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
@@ -695,7 +695,7 @@ end
 end second_countable
 
 /-- Any Haar measure is invariant under inversion in a commutative group. -/
-@[to_additive "Any Haar measure is invariant under inversion in a commutative group."]
+@[to_additive "Any additive Haar measure is invariant under negation in a commutative group."]
 lemma map_haar_inv
   {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
   [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]

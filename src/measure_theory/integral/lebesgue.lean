@@ -1926,7 +1926,7 @@ end
 section
 open encodable
 
-/-- Monotone convergence for a suprema over a directed family and indexed by a countable type -/
+/-- Monotone convergence for a supremum over a directed family and indexed by a countable type -/
 theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
   (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=

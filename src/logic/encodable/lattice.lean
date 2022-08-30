@@ -7,7 +7,7 @@ import data.finset.basic
 import data.set.pairwise
 import logic.encodable.basic
 
-  /-!
+/-!
 # Lattice operations on encodable types
 
 Lemmas about lattice and set operations on encodable types

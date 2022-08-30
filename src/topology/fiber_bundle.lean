@@ -361,18 +361,30 @@ lemma map_proj_nhds (ex : x ∈ e.source) : map proj (𝓝 x) = 𝓝 (proj x) :=
 by rw [← e.coe_fst ex, ← map_congr (e.coe_fst_eventually_eq_proj ex), ← map_map, ← e.coe_coe,
   e.to_local_homeomorph.map_nhds_eq ex, map_fst_nhds]
 
+lemma preimage_subset_source {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s ⊆ e.source :=
+λ p hp, e.mem_source.mpr (hb hp)
+
+lemma image_preimage_eq_prod_univ {s : set B} (hb : s ⊆ e.base_set) :
+  e '' (proj ⁻¹' s) = s ×ˢ univ :=
+subset.antisymm (image_subset_iff.mpr (λ p hp,
+  ⟨(e.proj_to_fun p (e.preimage_subset_source hb hp)).symm ▸ hp, trivial⟩)) (λ p hp,
+  let hp' : p ∈ e.target := e.mem_target.mpr (hb hp.1) in
+  ⟨e.inv_fun p, mem_preimage.mpr ((e.proj_symm_apply hp').symm ▸ hp.1), e.apply_symm_apply hp'⟩)
+
+/-- The preimage of a subset of the base set is homeomorphic to the product with the fiber. -/
+def preimage_homeomorph {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s ≃ₜ s × F :=
+(e.to_local_homeomorph.homeomorph_of_image_subset_source (e.preimage_subset_source hb)
+  (e.image_preimage_eq_prod_univ hb)).trans
+  ((homeomorph.set.prod s univ).trans ((homeomorph.refl s).prod_congr (homeomorph.set.univ F)))
+
+/-- The source is homeomorphic to the product of the base set with the fiber. -/
+def source_homeomorph_base_set_prod : e.source ≃ₜ e.base_set × F :=
+(homeomorph.set_congr e.source_eq).trans (e.preimage_homeomorph subset_rfl)
+
 /-- Each fiber of a trivialization is homeomorphic to the specified fiber. -/
-@[simps] def preimage_singleton_homeomorph {b : B} (hb : b ∈ e.base_set) : proj ⁻¹' {b} ≃ₜ F :=
-{ to_fun := λ x, (e x).2,
-  inv_fun := λ x, ⟨e.to_local_homeomorph.symm ⟨b, x⟩, e.proj_symm_apply' hb⟩,
-  left_inv := by
-  { rintros ⟨x, rfl : proj x = b⟩;
-    exact subtype.ext (e.symm_apply_mk_proj (e.mem_source.mpr hb)) },
-  right_inv := λ x, congr_arg prod.snd (e.apply_symm_apply (e.mem_target.mpr (by exact hb))),
-  continuous_to_fun := continuous_on_iff_continuous_restrict.mp (continuous_snd.comp_continuous_on
-    (e.continuous_to_fun.mono (λ x (h : proj x = b), by rwa [e.source_eq, set.mem_preimage, h]))),
-  continuous_inv_fun := continuous_subtype_mk _ (e.continuous_inv_fun.comp_continuous
-    (continuous.prod.mk b) (λ x, e.mem_target.mpr hb)) }
+def preimage_singleton_homeomorph {b : B} (hb : b ∈ e.base_set) : proj ⁻¹' {b} ≃ₜ F :=
+(e.preimage_homeomorph (set.singleton_subset_iff.mpr hb)).trans (((homeomorph.homeomorph_of_unique
+  ({b} : set B) punit).prod_congr (homeomorph.refl F)).trans (homeomorph.punit_prod F))
 
 /-- In the domain of a bundle trivialization, the projection is continuous-/
 lemma continuous_at_proj (ex : x ∈ e.source) : continuous_at proj x :=

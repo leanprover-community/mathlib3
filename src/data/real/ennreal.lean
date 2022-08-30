@@ -67,6 +67,9 @@ context, or if we have `(f : α → ℝ≥0∞) (hf : ∀ x, f x ≠ ∞)`.
 * `∞`: a localized notation in `ℝ≥0∞` for `⊤ : ℝ≥0∞`.
 
 -/
+
+noncomputable theory
+
 open classical set
 
 open_locale classical big_operators nnreal

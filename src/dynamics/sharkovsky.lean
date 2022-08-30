@@ -4,7 +4,7 @@ import data.real.pointwise
 import dynamics.periodic_pts
 import topology.continuous_function.basic
 import topology.instances.real
-import data.nat.factorization
+import data.nat.factorization.basic
 import analysis.calculus.deriv
 import analysis.calculus.mean_value
 import order.upper_lower
@@ -115,7 +115,7 @@ lemma to_pair_unique {k l n : ℕ} (hn : n ≠ 0) (hl : odd l) (h : 2 ^ k * l = 
 un_pair_inj_on (odd_to_pair_snd_of_ne_zero hn) hl (by rw [un_pair_to_pair, un_pair, ←h])
 
 lemma to_pair_odd {n : ℕ} (hn : odd n) : to_pair n = (0, n) :=
-to_pair_unique (odd_gt_zero hn).ne' hn (by simp)
+to_pair_unique hn.pos.ne' hn (by simp)
 
 lemma to_pair_bit1 {k : ℕ} : to_pair (bit1 k) = (0, bit1 k) := to_pair_odd (odd_bit1 _)
 
@@ -511,7 +511,7 @@ begin
   { rw [finset.card_image_of_inj_on, finset.card_range],
     simp only [set.inj_on, finset.mem_coe, finset.mem_range],
     intros i hi j hj z,
-    refine iterate_injective_of_lt_minimal_period _ _ z;
+    refine eq_of_lt_minimal_period_of_iterate_eq _ _ z;
     rwa hx' },
   have hPI : ↑P ⊆ I,
   { simp only [set.subset_def, finset.coe_image, mem_image, finset.mem_coe, finset.mem_range,
@@ -775,7 +775,7 @@ begin
   { refine ⟨(P.card + 2 - k) / 2 - 1, _⟩,
     rw even_iff_two_dvd at this,
     rw [nat.sub_add_cancel, nat.mul_div_cancel' this, nat.add_sub_of_le hk₅.le],
-    rw [nat.le_div_iff_mul_le _ _ zero_lt_two],
+    rw [nat.le_div_iff_mul_le zero_lt_two],
     exact le_of_dvd (nat.sub_pos_of_lt hk₅) this },
   obtain ⟨i, hi⟩ := this,
   obtain ⟨p', ⟨hp'₁, hp'₂⟩, hp'₃⟩ := ih i,
@@ -933,7 +933,7 @@ begin
       linarith },
     have hk' : k ≠ 0, by linarith,
     have : k < n + 1,
-    { apply lt_of_mul_lt_mul_left',
+    { refine zero_lt.lt_of_mul_lt_mul_left' _ two_pos,
       rwa ←hk },
     obtain ⟨u', hu'₁, hu'₂⟩ := (ih (n + 1 - k) (nat.sub_pos_of_lt ‹_›).ne' (nat.sub_le _ _)).2,
     have : u' ∈ Icc (f^[2 * k] c) (f^[2 * k] d),
@@ -1137,7 +1137,7 @@ begin
   rw [hc', gcd_mul_right_left, nat.mul_div_cancel_left _ zero_lt_two] at hf2,
   obtain ⟨x, hx, hx'⟩ :=
     odd_of_ge_of_ge_three (hf.iterate hf' _) (hf'.iterate _) hm hm' hc hf2 hn hn',
-  obtain ⟨s, hs, hs', hs''⟩ := three_two two_ne_zero (odd_gt_zero hn).ne' hx',
+  obtain ⟨s, hs, hs', hs''⟩ := three_two two_ne_zero hn.pos.ne' hx',
   rw nat.dvd_prime prime_two at hs',
   rcases hs' with (rfl | rfl),
   { exact ⟨x, hx, by rw [hs, nat.div_one, mul_comm]⟩ },
@@ -1517,7 +1517,7 @@ end
 lemma tent_map_one_dyadic_zero {n k : ℕ} (hk : k ≤ 2 ^ n) :
   (tent_map 1)^[n + 1] (k / 2 ^ n) = 0 :=
 begin
-  rw [tent_map_one_iterate, div_mul_cancel, ←int.cast_coe_nat, int.fract_coe, tent_map_right_zero],
+  rw [tent_map_one_iterate, div_mul_cancel, int.fract_nat_cast, tent_map_right_zero],
   { exact zero_le_one },
   { exact pow_ne_zero _ two_ne_zero },
   split,
@@ -1595,7 +1595,7 @@ begin
   { rw [sub_eq_iff_eq_add] at h,
     rw [mul_neg, mul_one, neg_mul, mul_comm _ x, pow_succ', ←mul_assoc, h],
     ring_nf,
-    rw [←nat.cast_add_one, ←int.cast_coe_nat, int.fract_coe, tent_map_right_zero zero_le_one] },
+    rw [←nat.cast_add_one, int.fract_nat_cast, tent_map_right_zero zero_le_one] },
   have hi : int.floor (x * 2 ^ n) = i,
   { rw [int.floor_eq_iff, int.cast_coe_nat],
     split,
@@ -1692,7 +1692,7 @@ begin
   rw [tent_map_periodic_pt_in hk _ (Ico_subset_Icc_self h'), h],
 end
 
-def tent_map_periodic_pts_rat (n : ℕ) : finset ℚ :=
+noncomputable def tent_map_periodic_pts_rat (n : ℕ) : finset ℚ :=
 (finset.range (2 ^ n)).image (λ k, if even k then k / (2 ^ n - 1) else (k + 1) / (2 ^ n + 1))
 
 lemma mem_tent_map_periodic_pts_rat_iff {n : ℕ} {x : ℚ} :
@@ -2146,6 +2146,7 @@ begin
   intro h,
   rcases s.eq_empty_or_nonempty with rfl | hs,
   { exact or.inl rfl },
+  right,
   sorry
 end
 

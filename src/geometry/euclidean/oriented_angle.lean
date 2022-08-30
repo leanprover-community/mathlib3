@@ -1564,7 +1564,7 @@ either of those points equals `p₂`, this is 0. See `euclidean_geometry.angle` 
 corresponding unoriented angle definition. -/
 def oangle (p₁ p₂ p₃ : P) : real.angle := (o).oangle (p₁ -ᵥ p₂) (p₃ -ᵥ p₂)
 
-localized "notation `∡` := euclidean_geometry.oangle" in euclidean_geometry
+localized "notation (name := oangle) `∡` := euclidean_geometry.oangle" in euclidean_geometry
 
 /-- Oriented angles are continuous when neither end point equals the middle point. -/
 lemma continuous_at_oangle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :

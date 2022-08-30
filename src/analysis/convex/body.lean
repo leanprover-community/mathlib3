@@ -110,24 +110,9 @@ instance : module ℝ≥0 (convex_body V) :=
 { to_distrib_mul_action := convex_body.distrib_mul_action,
   add_smul := λ c d K,
   begin
-    ext,
+    ext1,
     simp only [coe_smul, coe_add],
-    split,
-    { rintro ⟨x, xK, rfl⟩,
-      exact ⟨c • x, d • x, ⟨x, xK, rfl⟩, ⟨x, xK, rfl⟩, by rw [add_smul]⟩ },
-    { rintro ⟨-, -, ⟨x₁, x₁K, rfl⟩, ⟨x₂, x₂K, rfl⟩, rfl⟩,
-      by_cases h : c + d = 0,
-      { rw [add_eq_zero_iff] at h,
-        simp only [h.1, h.2, zero_smul, zero_add],
-        exact ⟨x₁, x₁K, by rw [zero_smul]⟩ },
-      { rw [←ne.def, ←pos_iff_ne_zero,
-            ←nnreal.coe_lt_coe, nnreal.coe_add] at h,
-        refine ⟨((↑c : ℝ) / (c + d)) • x₁ + ((↑d : ℝ) / (c + d)) • x₂, _, _⟩,
-        { refine K.convex x₁K x₂K _ _ _,
-          any_goals { apply_rules [div_nonneg, add_nonneg, nnreal.coe_nonneg] },
-          rw [←add_div, div_self (ne_of_gt h)] },
-        { simp only [nnreal.smul_def, nonneg.coe_add, smul_add, smul_smul,
-          mul_div_cancel' _ (ne_of_gt h)] } } }
+    exact convex.add_smul K.convex (nnreal.coe_nonneg _) (nnreal.coe_nonneg _),
   end,
   zero_smul := λ K, by { ext1, exact set.zero_smul_set K.nonempty } }
 

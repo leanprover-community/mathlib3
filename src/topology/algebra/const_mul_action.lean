@@ -119,7 +119,6 @@ lemma is_compact.smul {α β: Type} [has_smul α β] [topological_space β]
   [has_continuous_const_smul α β] (a : α) {s : set β}
   (hs : is_compact s) : is_compact (a • s) := hs.image (continuous_id'.const_smul a)
 
--- or move it to another place?
 instance nnreal.has_continuous_const_smul
   {α : Type} [mul_action ℝ α] [topological_space α]
   [has_continuous_const_smul ℝ α] : has_continuous_const_smul nnreal α :=

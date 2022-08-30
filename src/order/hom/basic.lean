@@ -925,17 +925,17 @@ theorem order_iso.is_compl_iff {x y : α} :
   is_compl x y ↔ is_compl (f x) (f y) :=
 ⟨f.is_compl, λ h, f.symm_apply_apply x ▸ f.symm_apply_apply y ▸ f.symm.is_compl h⟩
 
-lemma order_iso.is_complemented
-  [is_complemented α] : is_complemented β :=
+lemma order_iso.complemented_lattice
+  [complemented_lattice α] : complemented_lattice β :=
 ⟨λ x, begin
   obtain ⟨y, hy⟩ := exists_is_compl (f.symm x),
   rw ← f.symm_apply_apply y at hy,
   refine ⟨f y, f.symm.is_compl_iff.2 hy⟩,
 end⟩
 
-theorem order_iso.is_complemented_iff :
-  is_complemented α ↔ is_complemented β :=
-⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
+theorem order_iso.complemented_lattice_iff :
+  complemented_lattice α ↔ complemented_lattice β :=
+⟨by { introI, exact f.complemented_lattice }, by { introI, exact f.symm.complemented_lattice }⟩
 
 end bounded_order
 end lattice_isos

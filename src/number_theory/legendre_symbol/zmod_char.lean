@@ -77,27 +77,19 @@ end
 
 /-- If `n % 4 = 1`, then `χ₄ n = 1`. -/
 lemma χ₄_nat_one_mod_four {n : ℕ} (hn : n % 4 = 1) : χ₄ n = 1 :=
-by rw [χ₄_nat_mod_four, hn, nat.cast_one, χ₄_apply, matrix.cons_val_one, matrix.head_cons]
+by { rw [χ₄_nat_mod_four, hn], refl }
 
 /-- If `n % 4 = 3`, then `χ₄ n = -1`. -/
 lemma χ₄_nat_three_mod_four {n : ℕ} (hn : n % 4 = 3) : χ₄ n = -1 :=
-begin
-  rw [χ₄_nat_mod_four, hn],
-  simp only [nat.cast_one, χ₄_apply, matrix.cons_val_one, matrix.head_cons, nat.cast_bit1,
-             matrix.cons_vec_bit1_eq_alt1, matrix.cons_append, matrix.cons_vec_alt1],
-end
+by { rw [χ₄_nat_mod_four, hn], refl }
 
 /-- If `n % 4 = 1`, then `χ₄ n = 1`. -/
 lemma χ₄_int_one_mod_four {n : ℤ} (hn : n % 4 = 1) : χ₄ n = 1 :=
-by rw [χ₄_int_mod_four, hn, int.cast_one, χ₄_apply, matrix.cons_val_one, matrix.head_cons]
+by { rw [χ₄_int_mod_four, hn], refl }
 
 /-- If `n % 4 = 3`, then `χ₄ n = -1`. -/
 lemma χ₄_int_three_mod_four {n : ℤ} (hn : n % 4 = 3) : χ₄ n = -1 :=
-begin
-  rw [χ₄_int_mod_four, hn],
-  simp only [int.cast_one, χ₄_apply, matrix.cons_val_one, matrix.head_cons, int.cast_bit1,
-             matrix.cons_vec_bit1_eq_alt1, matrix.cons_append, matrix.cons_vec_alt1],
-end
+by { rw [χ₄_int_mod_four, hn], refl }
 
 /-- If `n % 4 = 1`, then `(-1)^(n/2) = 1`. -/
 lemma _root_.neg_one_pow_div_two_of_one_mod_four {n : ℕ} (hn : n % 4 = 1) :

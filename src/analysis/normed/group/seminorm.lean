@@ -80,7 +80,8 @@ attribute [simp, to_additive] map_inv_eq_map
 @[priority 100] -- See note [lower instance priority]
 instance add_group_seminorm_class.to_zero_hom_class [add_group E] [add_group_seminorm_class F E] :
   zero_hom_class F E ℝ :=
-{ ..‹add_group_seminorm_class F E› }
+{ coe := coe_fn,
+  ..‹add_group_seminorm_class F E› }
 
 section group
 variables [group E] [group_seminorm_class F E] (f : F) (x y : E)

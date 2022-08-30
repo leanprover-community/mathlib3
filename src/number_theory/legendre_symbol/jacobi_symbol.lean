@@ -113,7 +113,6 @@ namespace zmod
 lemma eq_zero_iff_gcd_ne_one {a : ℤ} {p : ℕ} [pp : fact p.prime] : (a : zmod p) = 0 ↔ a.gcd p ≠ 1 :=
 by rw [ne, int.gcd_comm, int.gcd_eq_one_iff_coprime,
        (nat.prime_iff_prime_int.1 pp.1).coprime_iff_not_dvd, not_not, int_coe_zmod_eq_zero_iff_dvd]
---⟨λ h₁ h₂, ne_zero_of_gcd_eq_one pp.1 h₂ h₁, eq_zero_of_gcd_ne_one pp.1⟩
 
 /-- If an integer `a` and a prime `p` satisfy `gcd a p = 1`, then `a : zmod p` is nonzero. -/
 lemma ne_zero_of_gcd_eq_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p = 1) :
@@ -131,8 +130,8 @@ namespace list
 
 lemma pmap_append {α β : Type*} {p : α → Prop} (f : Π (a : α), p a → β) (l₁ l₂ : list α)
   (h : ∀ (a : α), a ∈ l₁ ++ l₂ → p a) :
-  (l₁ ++ l₂).pmap f h = l₁.pmap f (λ a ha, h a (mem_append_left l₂ ha))
-                         ++ l₂.pmap f (λ a ha, h a (mem_append_right l₁ ha)) :=
+  (l₁ ++ l₂).pmap f h = l₁.pmap f (λ a ha, h a (mem_append_left l₂ ha)) ++
+                        l₂.pmap f (λ a ha, h a (mem_append_right l₁ ha)) :=
 begin
   induction l₁ with _ _ ih,
   { simp only [pmap, nil_append], },

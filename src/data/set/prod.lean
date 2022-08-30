@@ -32,7 +32,7 @@ variables {α β γ δ : Type*} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a
 def prod (s : set α) (t : set β) : set (α × β) := {p | p.1 ∈ s ∧ p.2 ∈ t}
 
 /- This notation binds more strongly than (pre)images, unions and intersections. -/
-infixr ` ×ˢ `:82 := set.prod
+infixr (name := set.prod) ` ×ˢ `:82 := set.prod
 
 lemma prod_eq (s : set α) (t : set β) : s ×ˢ t = prod.fst ⁻¹' s ∩ prod.snd ⁻¹' t := rfl
 

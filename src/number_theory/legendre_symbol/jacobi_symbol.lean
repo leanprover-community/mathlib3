@@ -108,25 +108,22 @@ end int
 
 namespace zmod
 
+/-- If `p` is a prime and `a` is an integer, then `a : zmod p` is zero if and only if
+`gcd a p ≠ 1`. -/
+lemma eq_zero_iff_gcd_ne_one {a : ℤ} {p : ℕ} [pp : fact p.prime] : (a : zmod p) = 0 ↔ a.gcd p ≠ 1 :=
+by rw [ne, int.gcd_comm, int.gcd_eq_one_iff_coprime,
+       (nat.prime_iff_prime_int.1 pp.1).coprime_iff_not_dvd, not_not, int_coe_zmod_eq_zero_iff_dvd]
+--⟨λ h₁ h₂, ne_zero_of_gcd_eq_one pp.1 h₂ h₁, eq_zero_of_gcd_ne_one pp.1⟩
+
 /-- If an integer `a` and a prime `p` satisfy `gcd a p = 1`, then `a : zmod p` is nonzero. -/
 lemma ne_zero_of_gcd_eq_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p = 1) :
   (a : zmod p) ≠ 0 :=
-λ hf, pp.not_dvd_one (int.coe_nat_dvd.mp $ trans_rel_left _
-       (int.dvd_gcd ((int_coe_zmod_eq_zero_iff_dvd a p).mp hf) (dvd_refl p)) (congr_arg coe h))
+mt (@eq_zero_iff_gcd_ne_one a p ⟨pp⟩).mp (not_not.mpr h)
 
 /-- If an integer `a` and a prime `p` satisfy `gcd a p ≠ 1`, then `a : zmod p` is zero. -/
 lemma eq_zero_of_gcd_ne_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p ≠ 1) :
   (a : zmod p) = 0 :=
-begin
-  refine (int_coe_zmod_eq_zero_iff_dvd a p).mpr _,
-  have hl := int.gcd_dvd_left a p,
-  rwa ← (nat.prime.dvd_iff_eq pp h).mp (int.coe_nat_dvd.mp (int.gcd_dvd_right a p)) at hl,
-end
-
-/-- If `p` is a prime and `a` is an integer, then `a : zmod p` is zero if and only if
-`gcd a p ≠ 1`. -/
-lemma eq_zero_iff_gcd_ne_one {a : ℤ} {p : ℕ} [pp : fact p.prime] : (a : zmod p) = 0 ↔ a.gcd p ≠ 1 :=
-⟨λ h₁ h₂, ne_zero_of_gcd_eq_one pp.1 h₂ h₁, eq_zero_of_gcd_ne_one pp.1⟩
+(@eq_zero_iff_gcd_ne_one a p ⟨pp⟩).mpr h
 
 end zmod
 

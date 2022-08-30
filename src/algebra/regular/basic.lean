@@ -124,7 +124,7 @@ lemma is_right_regular.of_mul (ab : is_right_regular (b * a)) :
 begin
   refine λ x y xy, ab (_ : x * (b * a) = y * (b * a)),
   rw [← mul_assoc, ← mul_assoc],
-  exact congr_fun (congr_arg has_mul.mul xy) a,
+  exact congr_fun (congr_arg (*) xy) a,
 end
 
 /--  An element is right-regular if and only if multiplying it on the right with a right-regular
@@ -180,11 +180,7 @@ h.left.subsingleton
 
 /--  The element `0` is left-regular if and only if `R` is trivial. -/
 lemma is_left_regular_zero_iff_subsingleton : is_left_regular (0 : R) ↔ subsingleton R :=
-begin
-  refine ⟨λ h, h.subsingleton, _⟩,
-  intros H a b h,
-  exact @subsingleton.elim _ H a b
-end
+⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
 /--  In a non-trivial `mul_zero_class`, the `0` element is not left-regular. -/
 lemma not_is_left_regular_zero_iff : ¬ is_left_regular (0 : R) ↔ nontrivial R :=
@@ -196,11 +192,7 @@ end
 
 /--  The element `0` is right-regular if and only if `R` is trivial. -/
 lemma is_right_regular_zero_iff_subsingleton : is_right_regular (0 : R) ↔ subsingleton R :=
-begin
-  refine ⟨λ h, h.subsingleton, _⟩,
-  intros H a b h,
-  exact @subsingleton.elim _ H a b
-end
+⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
 /--  In a non-trivial `mul_zero_class`, the `0` element is not right-regular. -/
 lemma not_is_right_regular_zero_iff : ¬ is_right_regular (0 : R) ↔ nontrivial R :=

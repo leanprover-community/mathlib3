@@ -943,6 +943,24 @@ begin
   exact embedding_like.injective x,
 end
 
+theorem equiv_perm_is_multiply_pretransitive (n : ℕ) :
+  mul_action.is_multiply_pretransitive (equiv.perm α) α n :=
+begin
+  cases le_or_gt n (fintype.card α) with hn hn,
+  { apply is_multiply_pretransitive_of_higher (equiv.perm α) α _ hn,
+    apply le_of_eq, rw part_enat.card_eq_coe_fintype_card ,
+    apply equiv_perm_is_fully_pretransitive, },
+  -- hn : n > fintype.card α
+  suffices : is_empty (fin n ↪ α),
+  { rw is_multiply_pretransitive,
+    apply is_pretransitive.mk,
+    intro x,
+    exfalso, apply this.false, exact x, },
+  apply function.embedding.is_empty_of_card_lt,
+  simp only [fintype.card_fin],
+  exact hn,
+end
+
 /-- The action of the permutation group of α on α is preprimitive -/
 theorem equiv.perm.is_preprimitive :
   is_preprimitive (equiv.perm α) α :=

@@ -12,6 +12,8 @@ import group_theory.specific_groups.alternating
 -- import group_theory.perm.cycle.concrete
 
 import .for_mathlib.alternating
+import .index_normal
+
 -- import .for_mathlib.group_theory__subgroup__basic
 
 import .primitive
@@ -848,6 +850,54 @@ end
 
 /-- The action of alternating_group α on the n-element subsets of α is preprimitive
 provided 0 < n < #α and #α ≠ 2*n -/
+theorem nat.finset_is_preprimitive_of' (n : ℕ) (h_one_le : 1 ≤ n) (hn : n < fintype.card α)
+  (hα : fintype.card α ≠ 2 * n) : is_preprimitive (alternating_group α) (n.finset α) :=
+begin
+  have hα' : 3 ≤ fintype.card α := three_le h_one_le hn hα,
+  haveI : nontrivial α,
+  { rw ← fintype.one_lt_card_iff_nontrivial, exact lt_of_le_of_lt h_one_le hn },
+  have h : (fintype.card α - n) + n = fintype.card α, sorry,
+
+
+  cases nat.eq_or_lt_of_le hn with hn1 hn2,
+  { -- n.succ = fintype.card α
+    rw is_preprimitive_of_bijective_map_iff (function.surjective_id)
+      (nat.finset_compl_bijective α (alternating_group α) n h),
+    have hn1' : fintype.card α - n = 1,
+    { rw ← hn1, rw nat.succ_sub, simp only [tsub_self], apply le_of_eq, refl, },
+
+    let f : α →[alternating_group α] nat.finset α (fintype.card α - n) := {
+      to_fun := λ x, ⟨{x},
+    begin
+     change ({x} : finset α).card = fintype.card α - n,
+     rw finset.card_singleton x, rw hn1',
+    end⟩,
+      map_smul' := λ g x, rfl },
+    suffices hf : function.surjective f,
+    { apply is_preprimitive_of_surjective_map hf,
+      exact alternating_group.is_preprimitive hα', },
+    rintro ⟨s, hs⟩,
+    change s.card = fintype.card α - n at hs,
+    rw hn1' at hs,
+    rw finset.card_eq_one at hs,
+    obtain ⟨a, ha⟩ := hs,
+    use a,
+    simp only [ha, equivariant_map.coe_mk], },
+  { -- n.succ < fintype.card α
+    haveI ht : is_pretransitive (alternating_group α) (n.finset α),
+    { rw is_pretransitive_of_bijective_map_iff (function.surjective_id)
+        (nat.finset_compl_bijective α (alternating_group α) n h),
+      apply nat.finset_is_pretransitive_of_multiply_pretransitive,
+      apply is_multiply_pretransitive_of_higher,
+      sorry,
+      sorry,
+      sorry,
+      sorry, },
+
+    sorry, },
+--     apply nat.finset_is_pretransitive_of_multiply_pretransitive, },
+end
+
 theorem nat.finset_is_preprimitive_of (n : ℕ) (h_one_le : 1 ≤ n) (hn : n < fintype.card α)
   (hα : fintype.card α ≠ 2 * n) : is_preprimitive (alternating_group α) (n.finset α) :=
 begin
@@ -858,8 +908,7 @@ begin
   { -- n = 1 :
     let f : α →[alternating_group α] nat.finset α 1 := {
       to_fun := λ x, ⟨{x}, finset.card_singleton x⟩,
-      map_smul' := λ g x, rfl
-    },
+      map_smul' := λ g x, rfl },
     rw ← h_one,
     suffices hf : function.surjective f,
     { apply is_preprimitive_of_surjective_map hf,
@@ -873,11 +922,21 @@ begin
 
   -- h_one_lt : 1 < n
   haveI ht : is_pretransitive (alternating_group α) (n.finset α),
-  -- ne marche pas : apply nat.finset_is_pretransitive,
-  -- refaire ce lemme en utilisant la n-transitivité
-  sorry,
+  { -- apply nat.finset_is_pretransitive_of_multiply_pretransitive,
+    have : (fintype.card α - n) + n = fintype.card α,
+    { apply nat.sub_add_cancel , exact le_of_lt hn, },
+    rw is_pretransitive_of_bijective_map_iff (function.surjective_id)
+      (nat.finset_compl_bijective α (alternating_group α) n this),
+    apply nat.finset_is_pretransitive_of_multiply_pretransitive,
+    have h' : fintype.card α - n ≤ fintype.card α - 2,
+    { apply nat.sub_le_sub_left , exact h_one_lt, },
+
+    apply is_multiply_pretransitive_of_higher (alternating_group α) α _ h',
+    rw part_enat.card_eq_coe_fintype_card, simp only [part_enat.coe_le_coe, tsub_le_self],
+    exact alternating_group_is_fully_minus_two_pretransitive α, },
+
   haveI : nontrivial (n.finset α) :=
-    nat.finset_nontrivial (lt_trans (nat.lt_succ_self 0) h_one_lt) hn,
+    nat.finset_nontrivial α n (lt_trans (nat.lt_succ_self 0) h_one_lt) hn,
   obtain ⟨sn : n.finset α⟩ := nontrivial.to_nonempty,
   let s := sn.val,
   let hs : s.card = n := sn.prop,
@@ -904,9 +963,22 @@ end
 open_locale classical
 
 def Iw_t (s : finset α) : (equiv.perm s) →* (equiv.perm α) := equiv.perm.of_subtype
-def Iw_T(s : finset α) := (Iw_t s).range
 
-lemma IwT_is_conj (s : finset α) (g : equiv.perm α) :
+def Iw_T (s : finset α) :=
+  (subgroup.map (Iw_t s) (alternating_group s)).subgroup_of (alternating_group α)
+
+example {G : Type*} [group G] (N : subgroup G) (hN : N.normal) :
+  has_smul N (subgroup G) := {
+smul := λ n K,  subgroup.map (mul_aut.conj ↑n).to_monoid_hom K
+  }
+
+
+example {G : Type*} [group G] (N : subgroup G) (hN : N.normal) :
+  mul_action N (subgroup G) := {
+    one_smul := sorry,
+    mul_smul := sorry,
+  }
+lemma IwT_is_conj (s : finset α) (g : alternating_group α) :
   Iw_T (g • s) = mul_aut.conj g • (Iw_T s) :=
 begin
   unfold Iw_T,
@@ -915,8 +987,8 @@ begin
   let kg : ↥s ≃ ↥(g • s) := equiv.subtype_equiv g (
     begin
       intro a,
-      rw ← equiv.perm.smul_def,
-      rw finset.smul_mem_smul_finset_iff,
+      rw ← finset.smul_mem_smul_finset_iff g,
+      refl,
     end),
 
   have this1 :
@@ -972,18 +1044,29 @@ begin
     exact hx', },
 end
 
+example (G : Type*) [group G] (H K : subgroup G) (hH : H.is_commutative) :
+  (H.subgroup_of K).is_commutative :=
+begin
+  resetI,
+  apply subgroup.subgroup_of_is_commutative H,
+end
 
-def Iw2 : iwasawa_structure (equiv.perm α) (nat.finset α 2) :=
-{ T := λ s, Iw_T ↑s,
-  is_comm := λ s,
+
+def Iw3 : iwasawa_structure (alternating_group α) (nat.finset α 3) :=
+{ T := λ (s : nat.finset α 3), (Iw_T ↑s),
+  is_comm := λ ⟨s, hs⟩,
   begin
-    apply monoid_hom.range_is_commutative,
-    rw ← equiv.perm.is_commutative_iff,
-    apply le_of_eq,
-    simp only [coe_sort_coe_base, fintype.card_coe],
-    exact s.prop,
+    apply subgroup.subgroup_of_is_commutative _,
+    change (Iw_T s).is_commutative,
+    rw Iw_T,
+    haveI : (alternating_group ↥s).is_commutative := { is_comm :=
+    begin
+      apply alternating_group.is_commutative_of_order_three,
+      rw fintype.card_coe, exact hs,
+    end },
+    apply subgroup.map_is_commutative,
   end,
-  is_conj := λ g s, IwT_is_conj ↑s g,
+  is_conj := λ g ⟨s, hs⟩, IwT_is_conj s g,
   is_generator :=
   begin
     rw eq_top_iff,
@@ -1039,9 +1122,9 @@ end
 -- The main theorem, unfortunately weaker than expected
 /-- If α has at least 5 elements, then
 the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
-theorem equiv.perm.normal_subgroups {α : Type*} [decidable_eq α] [fintype α]
+theorem alternating_group.normal_subgroups {α : Type*} [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α)
-  {N : subgroup (equiv.perm α)} (hnN : N.normal) (ntN : nontrivial N) : alternating_group α  ≤ N :=
+  {N : subgroup (alternating_group α)} (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=
 begin
   rw ←  alternating_group.commutator_group_eq hα,
 

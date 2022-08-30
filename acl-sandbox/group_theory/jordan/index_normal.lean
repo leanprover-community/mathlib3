@@ -103,6 +103,17 @@ begin
   exact (is_cyclic.comm_group).mul_comm,
 end
 
+/-- The alternating group on a fintype of cardinal 3 is commutative -/
+lemma alternating_group.is_commutative_of_order_three {α : Type*} [fintype α] [decidable_eq α]
+  (hα : fintype.card α = 3) : is_commutative (alternating_group α) (*) :=
+begin
+  have h3 : fact (nat.prime 3), { rw fact_iff, norm_num, },
+  apply @is_commutative_of_prime_order _ _ _ 3 h3,
+  have h2 : 0 < 2, norm_num,
+  haveI hα' : nontrivial α, rw ← fintype.one_lt_card_iff_nontrivial, rw hα, norm_num,
+  rw [← nat.mul_right_inj h2, two_mul_card_alternating_group, fintype.card_perm, hα], norm_num,
+end
+
 lemma aux_dvd_lemma (r p : ℕ) (hp : p.prime) (h : r ∣ nat.factorial p )
   (hr : ∀ {l : ℕ} (hl : l.prime) (hl' : l ∣ r), p ≤ l) :
   r ∣ p :=

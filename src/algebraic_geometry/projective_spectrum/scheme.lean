@@ -40,7 +40,7 @@ open sets in `Proj`, more specifically:
     prime, the proof is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function
     is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
   - backward direction `from_Spec`:
-    for any `q : Spec A⁰_f`, we sent it to `{a | ∀ i, aᵢᵐ/fⁱ ∈ q}`; we need this to be a
+    for any `q : Spec A⁰_f`, we send it to `{a | ∀ i, aᵢᵐ/fⁱ ∈ q}`; we need this to be a
     homogeneous prime ideal that is relevant.
     * This is in fact an ideal, the proof can be found in
       `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal`;

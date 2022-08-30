@@ -269,11 +269,8 @@ end, λ ⟨hb, h⟩, by { rw ← ne_zero_iff at hb, exactI jacobi_sym_eq_zero_if
 
 /-- The Jacobi symbol `(0 / b)` vanishes when `b > 1`. -/
 lemma jacobi_sym_zero_left {b : ℕ} (hb : 1 < b) : [0 | b]ⱼ = 0 :=
-begin
-  refine (@jacobi_sym_eq_zero_iff_not_coprime 0 b ⟨ne_zero_of_lt hb⟩).mpr _,
-  rw [int.gcd_zero_left, int.nat_abs_of_nat],
-  exact (ne_of_lt hb).symm,
-end
+(@jacobi_sym_eq_zero_iff_not_coprime 0 b ⟨ne_zero_of_lt hb⟩).mpr $
+  by { rw [int.gcd_zero_left, int.nat_abs_of_nat], exact hb.ne' }
 
 /-- The Jacobi symbol `(a / b)` takes the value `1` or `-1` if `a` and `b` are coprime. -/
 lemma jacobi_sym_eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) :

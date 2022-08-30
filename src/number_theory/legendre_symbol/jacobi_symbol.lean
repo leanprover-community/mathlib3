@@ -307,7 +307,7 @@ begin
   { haveI hm0 : ne_zero m := ⟨left_ne_zero_of_mul hmn0⟩,
     haveI hn0 : ne_zero n := ⟨right_ne_zero_of_mul hmn0⟩,
     rw [jacobi_sym_mul_right],
-    cases int.gcd_ne_one_of_gcd_mul_ne_one hg with hgm hgn,
+    cases int.gcd_ne_one_iff_gcd_mul_ne_one.mp hg with hgm hgn,
     { rw [hm hm0.1 hgm, zero_mul], },
     { rw [hn hn0.1 hgn, mul_zero], } },
 end

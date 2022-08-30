@@ -373,10 +373,10 @@ section mul_add
 @[simps]
 def subgroup.to_add_subgroup : subgroup G ≃o add_subgroup (additive G) :=
 { to_fun := λ S,
-  { neg_mem' := S.inv_mem',
+  { neg_mem' := λ _, S.inv_mem',
     ..S.to_submonoid.to_add_submonoid },
   inv_fun := λ S,
-  { inv_mem' := S.neg_mem',
+  { inv_mem' := λ _, S.neg_mem',
     ..S.to_add_submonoid.to_submonoid' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
@@ -391,10 +391,10 @@ subgroup.to_add_subgroup.symm
 @[simps]
 def add_subgroup.to_subgroup : add_subgroup A ≃o subgroup (multiplicative A) :=
 { to_fun := λ S,
-  { inv_mem' := S.neg_mem',
+  { inv_mem' := λ _, S.neg_mem',
     ..S.to_add_submonoid.to_submonoid },
   inv_fun := λ S,
-  { neg_mem' := S.inv_mem',
+  { neg_mem' := λ _, S.inv_mem',
     ..S.to_submonoid.to_add_submonoid' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
@@ -418,8 +418,8 @@ Useful to fix definitional equalities"]
 protected def copy (K : subgroup G) (s : set G) (hs : s = K) : subgroup G :=
 { carrier := s,
   one_mem' := hs.symm ▸ K.one_mem',
-  mul_mem' := hs.symm ▸ K.mul_mem',
-  inv_mem' := hs.symm ▸ K.inv_mem' }
+  mul_mem' := λ _ _, hs.symm ▸ K.mul_mem',
+  inv_mem' := λ _, hs.symm ▸ K.inv_mem' }
 
 @[simp, to_additive] lemma coe_copy (K : subgroup G) (s : set G) (hs : s = ↑K) :
   (K.copy s hs : set G) = s := rfl
@@ -1828,6 +1828,25 @@ instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
 instance center.is_commutative : (center G).is_commutative :=
 ⟨⟨λ a b, subtype.ext (b.2 a)⟩⟩
 
+@[to_additive] instance map_is_commutative {G' : Type*} [group G'] (f : G →* G')
+  [H.is_commutative] : (H.map f).is_commutative :=
+⟨⟨begin
+  rintros ⟨-, a, ha, rfl⟩ ⟨-, b, hb, rfl⟩,
+  rw [subtype.ext_iff, coe_mul, coe_mul, subtype.coe_mk, subtype.coe_mk, ←map_mul, ←map_mul],
+  exact congr_arg f (subtype.ext_iff.mp (mul_comm ⟨a, ha⟩ ⟨b, hb⟩)),
+end⟩⟩
+
+@[to_additive] lemma comap_injective_is_commutative {G' : Type*} [group G'] {f : G' →* G}
+  (hf : function.injective f) [H.is_commutative] : (H.comap f).is_commutative :=
+⟨⟨λ a b, subtype.ext begin
+  have := mul_comm (⟨f a, a.2⟩ : H) (⟨f b, b.2⟩ : H),
+  rwa [subtype.ext_iff, coe_mul, coe_mul, coe_mk, coe_mk, ←map_mul, ←map_mul, hf.eq_iff] at this,
+end⟩⟩
+
+@[to_additive] instance subgroup_of_is_commutative [H.is_commutative] :
+  (H.subgroup_of K).is_commutative :=
+H.comap_injective_is_commutative subtype.coe_injective
+
 end subgroup
 
 namespace group
@@ -2675,6 +2694,10 @@ by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_co
 
 @[simp, to_additive zmultiples_eq_bot] lemma zpowers_eq_bot {g : G} : zpowers g = ⊥ ↔ g = 1 :=
 by rw [eq_bot_iff, zpowers_le, mem_bot]
+
+@[simp, to_additive zmultiples_zero_eq_bot] lemma zpowers_one_eq_bot :
+   subgroup.zpowers (1 : G) = ⊥ :=
+subgroup.zpowers_eq_bot.mpr rfl
 
 end subgroup
 

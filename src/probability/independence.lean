@@ -520,6 +520,10 @@ begin
   { rwa ← indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
 end
 
+lemma indep_fun.symm {mβ : measurable_space β} {f g : Ω → β} (hfg : indep_fun f g μ) :
+  indep_fun g f μ :=
+hfg.symm
+
 lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : Ω → β}
   (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
   indep_fun f' g' μ :=

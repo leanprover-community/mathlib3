@@ -89,8 +89,8 @@ variable [topological_space β]
 def strongly_measurable [measurable_space α] (f : α → β) : Prop :=
 ∃ fs : ℕ → α →ₛ β, ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x))
 
-localized "notation `strongly_measurable[` m `]` := @measure_theory.strongly_measurable _ _ _ m"
-in measure_theory
+localized "notation (name := strongly_measurable_of)
+  `strongly_measurable[` m `]` := @measure_theory.strongly_measurable _ _ _ m" in measure_theory
 
 /-- A function is `fin_strongly_measurable` with respect to a measure if it is the limit of simple
   functions with support with finite measure. -/
@@ -281,12 +281,10 @@ begin
     have h : tendsto (λ n, (f_approx n) x) at_top (𝓝 (f x)), from hf_meas.tendsto_approx x,
     obtain ⟨n₁, hn₁⟩ : ∃ n, ∀ m, n ≤ m → fs m x = f_approx m x,
     { obtain ⟨n, hn⟩ : ∃ n, ∀ m, n ≤ m → x ∈ S m ∩ t,
-      { suffices : ∃ n, ∀ m, n ≤ m → x ∈ S m,
-        { obtain ⟨n, hn⟩ := this,
-          exact ⟨n, λ m hnm, set.mem_inter (hn m hnm) hxt⟩, },
-        suffices : ∃ n, x ∈ S n,
-        { rcases this with ⟨n, hn⟩,
-          exact ⟨n, λ m hnm, monotone_spanning_sets (μ.restrict t) hnm hn⟩, },
+      { rsuffices ⟨n, hn⟩ : ∃ n, ∀ m, n ≤ m → x ∈ S m,
+        { exact ⟨n, λ m hnm, set.mem_inter (hn m hnm) hxt⟩, },
+        rsuffices ⟨n, hn⟩ : ∃ n, x ∈ S n,
+        { exact ⟨n, λ m hnm, monotone_spanning_sets (μ.restrict t) hnm hn⟩, },
         rw [← set.mem_Union, Union_spanning_sets (μ.restrict t)],
         trivial, },
       refine ⟨n, λ m hnm, _⟩,

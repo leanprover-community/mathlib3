@@ -45,8 +45,10 @@ structure box_additive_map (ι M : Type*) [add_comm_monoid M] (I : with_top (box
 (sum_partition_boxes' : ∀ J : box ι, ↑J ≤ I → ∀ π : prepartition J, π.is_partition →
   ∑ Ji in π.boxes, to_fun Ji = to_fun J)
 
-localized "notation ι ` →ᵇᵃ `:25 M := box_integral.box_additive_map ι M ⊤" in box_integral
-localized "notation ι ` →ᵇᵃ[`:25 I `] ` M := box_integral.box_additive_map ι M I" in box_integral
+localized "notation (name := box_integral.box_additive_map.top)
+  ι ` →ᵇᵃ `:25 M := box_integral.box_additive_map ι M ⊤" in box_integral
+localized "notation (name := box_integral.box_additive_map)
+  ι ` →ᵇᵃ[`:25 I `] ` M := box_integral.box_additive_map ι M I" in box_integral
 
 namespace box_additive_map
 

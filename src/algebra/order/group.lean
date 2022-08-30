@@ -64,18 +64,6 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
 
-@[to_additive] instance [h : has_inv α] : has_inv αᵒᵈ := h
-@[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
-@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
-@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_monoid]
-instance [h : division_monoid α] : division_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_comm_monoid]
-instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : group α] : group αᵒᵈ := h
-@[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
-instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
-instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
@@ -780,7 +768,13 @@ end preorder
 end comm_group
 
 section linear_order
-variables [group α] [linear_order α] [covariant_class α α (*) (≤)]
+variables [group α] [linear_order α]
+
+@[simp, to_additive cmp_sub_zero]
+lemma cmp_div_one' [covariant_class α α (swap (*)) (≤)] (a b : α) : cmp (a / b) 1 = cmp a b :=
+by rw [← cmp_mul_right' _ _ b, one_mul, div_mul_cancel']
+
+variables [covariant_class α α (*) (≤)]
 
 section variable_names
 variables {a b c : α}

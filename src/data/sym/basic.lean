@@ -71,6 +71,8 @@ The unique element in `sym α 0`.
 -/
 @[pattern] def nil : sym α 0 := ⟨0, multiset.card_zero⟩
 
+@[simp] lemma coe_nil : (coe (@sym.nil α)) = (0 : multiset α) := rfl
+
 /--
 Inserts an element into the term of `sym α n`, increasing the length by one.
 -/
@@ -160,7 +162,7 @@ This is `cons` but for the alternative `sym'` definition.
 def cons' {α : Type*} {n : ℕ} : α → sym' α n → sym' α (nat.succ n) :=
 λ a, quotient.map (vector.cons a) (λ ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ h, list.perm.cons _ h)
 
-notation a :: b := cons' a b
+notation (name := sym.cons') a :: b := cons' a b
 
 /--
 Multisets of cardinality n are equivalent to length-n vectors up to permutations.
@@ -311,6 +313,31 @@ multiset.mem_attach _ _
   (cons x s).attach = cons ⟨x, mem_cons_self _ _⟩ (s.attach.map (λ x, ⟨x, mem_cons_of_mem x.prop⟩))
   :=
 coe_injective $ multiset.attach_cons _ _
+
+/-- fill an elment `sym α (n - i)` with `i` copies of `a` to obtain an element of `sym α n` -/
+def fill (a : α) (m : Σ i : fin (n + 1), sym α (n - i)) : sym α n :=
+sym.mk (m.1.1 • {a} + m.2) begin
+  erw [multiset.card_add, m.2.2, multiset.card_nsmul, multiset.card_singleton, mul_one],
+  exact nat.add_sub_of_le (nat.lt_succ_iff.1 m.1.2),
+end
+
+/-- filter an element of `sym α n` of `a`, if it has `i` copies,
+  it yields an element of `sym α (n - i)` -/
+def filter_ne [decidable_eq α] (a : α) {n : ℕ} (m : sym α n) : Σ i : fin (n + 1), sym α (n - i) :=
+⟨⟨m.1.count a, (multiset.count_le_card _ _).trans_lt $ by rw [m.2, nat.lt_succ_iff]⟩,
+  sym.mk (m.1.filter ((≠) a)) $ eq_tsub_of_add_eq begin
+    conv_rhs { rw [← m.2, multiset.card_eq_countp_add_countp ((=) a), add_comm] },
+    rw multiset.countp_eq_card_filter, refl,
+  end⟩
+
+lemma sigma_ext (m₁ m₂ : Σ i : fin (n + 1), sym α (n - i))
+  (h : m₁.2.1 = m₂.2.1) : m₁ = m₂ :=
+sigma.subtype_ext (fin.ext $ begin
+  have h₁ := nat.sub_sub_self (nat.lt_succ_iff.1 m₁.1.2),
+  have h₂ := nat.sub_sub_self (nat.lt_succ_iff.1 m₂.1.2),
+  dsimp only [fin.val_eq_coe] at h₁ h₂,
+  rw [← h₁, ← h₂, ← m₁.2.2, ← m₂.2.2, h],
+end) h
 
 end sym
 

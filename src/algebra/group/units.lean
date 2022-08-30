@@ -221,6 +221,10 @@ by rw [←inv_mul_eq_one, inv_inv]
 @[to_additive] lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
 units.inv_eq_of_mul_eq_one_right $ by rw [h, u₂.mul_inv]
 
+@[simp, to_additive]
+lemma coe_inv {M : Type*} [division_monoid M] (u : units M) : ↑u⁻¹ = (u⁻¹ : M) :=
+eq.symm $ inv_eq_of_mul_eq_one_right u.mul_inv
+
 end units
 
 /-- For `a, b` in a `comm_monoid` such that `a * b = 1`, makes a unit out of `a`. -/
@@ -420,66 +424,71 @@ is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
   (hu : is_unit (x * y)) : is_unit y :=
 @is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
 
+namespace is_unit
+
 @[simp, to_additive]
-lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
+lemma mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
 ⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
   λ h, is_unit.mul h.1 h.2⟩
+
+section monoid
+
+variables [monoid M] {a b c : M}
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. When
 `α` is a `division_monoid`, use `is_unit.unit'` instead. -/
 @[to_additive "The element of the additive group of additive units, corresponding to an element of
 an additive monoid which is an additive unit. When `α` is a `subtraction_monoid`, use
 `is_add_unit.add_unit'` instead."]
-noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
+protected noncomputable def unit (h : is_unit a) : Mˣ :=
 (classical.some h).copy a (classical.some_spec h).symm _ rfl
 
 @[simp, to_additive]
-lemma is_unit.unit_of_coe_units [monoid M] {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
+lemma unit_of_coe_units {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
 units.ext $ rfl
 
-@[simp, to_additive]
-lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
-rfl
+@[simp, to_additive] lemma unit_spec (h : is_unit a) : ↑h.unit = a := rfl
 
 @[simp, to_additive]
-lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
-  ↑(h.unit)⁻¹ * a = 1 :=
-units.mul_inv _
+lemma coe_inv_mul (h : is_unit a) : ↑(h.unit)⁻¹ * a = 1 := units.mul_inv _
 
-@[simp, to_additive]
-lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
-  a * ↑(h.unit)⁻¹ = 1 :=
-begin
-  convert units.mul_inv _,
-  simp [h.unit_spec]
-end
+@[simp, to_additive] lemma mul_coe_inv (h : is_unit a) : a * ↑(h.unit)⁻¹ = 1 :=
+by convert h.unit.mul_inv
 
 /-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
-instance [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
+instance (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
 
-section monoid
-variables [monoid M] {a b c : M}
-
-@[to_additive] lemma is_unit.mul_left_inj (h : is_unit a) : b * a = c * a ↔ b = c :=
+@[to_additive] lemma mul_left_inj (h : is_unit a) : b * a = c * a ↔ b = c :=
 let ⟨u, hu⟩ := h in hu ▸ u.mul_left_inj
 
-@[to_additive] lemma is_unit.mul_right_inj (h : is_unit a) : a * b = a * c ↔ b = c :=
+@[to_additive] lemma mul_right_inj (h : is_unit a) : a * b = a * c ↔ b = c :=
 let ⟨u, hu⟩ := h in hu ▸ u.mul_right_inj
 
-@[to_additive] protected lemma is_unit.mul_left_cancel (h : is_unit a) : a * b = a * c → b = c :=
+@[to_additive] protected lemma mul_left_cancel (h : is_unit a) : a * b = a * c → b = c :=
 h.mul_right_inj.1
 
-@[to_additive] protected lemma is_unit.mul_right_cancel (h : is_unit b) : a * b = c * b → a = c :=
+@[to_additive] protected lemma mul_right_cancel (h : is_unit b) : a * b = c * b → a = c :=
 h.mul_left_inj.1
 
-@[to_additive] protected lemma is_unit.mul_right_injective (h : is_unit a) : injective ((*) a) :=
+@[to_additive] protected lemma mul_right_injective (h : is_unit a) : injective ((*) a) :=
 λ _ _, h.mul_left_cancel
 
-@[to_additive] protected lemma is_unit.mul_left_injective (h : is_unit b) : injective (* b) :=
+@[to_additive] protected lemma mul_left_injective (h : is_unit b) : injective (* b) :=
 λ _ _, h.mul_right_cancel
 
 end monoid
-end is_unit
+
+variables [division_monoid M] {a : M}
+
+@[simp, to_additive] protected lemma inv_mul_cancel : is_unit a → a⁻¹ * a = 1 :=
+by { rintro ⟨u, rfl⟩, rw [← units.coe_inv, units.inv_mul] }
+
+@[simp, to_additive] protected lemma mul_inv_cancel : is_unit a → a * a⁻¹ = 1 :=
+by { rintro ⟨u, rfl⟩, rw [← units.coe_inv, units.mul_inv] }
+
+end is_unit -- namespace
+
+end is_unit -- section
 
 section noncomputable_defs
 

@@ -92,7 +92,7 @@ begin
     simpa only [this, interior_Iic' H_ne, ← set.Iio_def, set.mem_set_of_eq, not_lt,
       ← subtype.coe_le_coe] using h,
     simpa only [set.mem_Ioi, ← subtype.coe_lt_coe, subtype.coe_mk, coe_one] using
-      lt_of_not_ge h_θ_1 },
+      lt_of_not_ge h_θ_1, },
   { exact le_of_lt (lt_of_lt_of_le (lt_of_not_ge h_θ_0) t.2.1) },
 end
 

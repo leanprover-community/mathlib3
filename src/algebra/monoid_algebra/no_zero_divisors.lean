@@ -29,27 +29,29 @@ section a_version_with_different_typeclass_assumptions
 
 section no_covariant
 
-section left_cancel
-variables [add_left_cancel_semigroup A] {f g : add_monoid_algebra R A}
-
 /--  The coefficient of a monomial in a product `f * g` that can be reached in at most one way
-as a product of monomials in the supports of `f` and `g` is a product.
-
-For right-cancel assumption use `right.mul_apply_add_eq_mul_of_forall_ne`. -/
-lemma left.mul_apply_add_eq_mul_of_forall_ne {a0 b0 : A}
-  (h : ∀ a b : A, a ∈ f.support → b ∈ g.support → (a ≠ a0 ∨ b ≠ b0) → a + b ≠ a0 + b0) :
+as a product of monomials in the supports of `f` and `g` is a product. -/
+lemma mul_apply_add_eq_mul_of_forall_ne [has_add A] {f g : add_monoid_algebra R A}
+  {a0 b0 : A}
+  (h : ∀ {a b : A}, a ∈ f.support → b ∈ g.support → (a ≠ a0 ∨ b ≠ b0) → a + b ≠ a0 + b0) :
   (f * g) (a0 + b0) = f a0 * g b0 :=
 begin
   classical,
   rw mul_apply,
   refine (finset.sum_eq_single a0 _ _).trans _,
-  { exact λ b H hb, finset.sum_eq_zero (λ x H1, if_neg (h b x H H1 (or.inl hb))) },
+  { exact λ b H hb, finset.sum_eq_zero (λ x H1, if_neg (h H H1 (or.inl hb))) },
   { exact λ af0, by simp [not_mem_support_iff.mp af0] },
   { refine (finset.sum_eq_single b0 _ _).trans _,
-    { exact λ _ _ _, if_neg (by simpa only [add_right_inj]) },
+    intros b bg b0,dsimp,
+    by_cases af : a0 ∈ f.support,
+    { exact if_neg (h af bg (or.inr b0)) },
+    { rw [not_mem_support_iff.mp af, zero_mul, if_t_t] },
     { exact λ bf0, by simp [not_mem_support_iff.mp bf0] },
     { exact if_pos rfl } },
 end
+
+section left_cancel
+variables [add_left_cancel_semigroup A] {f g : add_monoid_algebra R A}
 
 lemma left.exists_add_of_mem_support_single_mul (a x : A)
   (hx : x ∈ (single a 1 * g : add_monoid_algebra R A).support) :
@@ -63,25 +65,6 @@ end left_cancel
 
 section right_cancel
 variables [add_right_cancel_semigroup A] {f g : add_monoid_algebra R A}
-
-/--  The coefficient of a monomial in a product `f * g` that can be reached in at most one way
-as a product of monomials in the supports of `f` and `g` is a product.
-
-For left-cancel assumption use `left.mul_apply_add_eq_mul_of_forall_ne`. -/
-lemma right.mul_apply_add_eq_mul_of_forall_ne {a0 b0 : A}
-  (h : ∀ a b : A, a ∈ f.support → b ∈ g.support → (a ≠ a0 ∨ b ≠ b0) → a + b ≠ a0 + b0) :
-  (f * g) (a0 + b0) = f a0 * g b0 :=
-begin
-  classical,
-  rw [mul_apply, sum_comm],
-  refine (finset.sum_eq_single b0 _ _).trans _,
-  exact λ a H ha, finset.sum_eq_zero (λ x H1, if_neg (h x a H1 H (or.inr ha))),
-  { exact λ af0, by simp [not_mem_support_iff.mp af0] },
-  { refine (finset.sum_eq_single a0 _ _).trans _,
-    { exact λ _ _ _, if_neg (by simpa only [add_left_inj]) },
-    { exact λ bf0, by simp [not_mem_support_iff.mp bf0] },
-    { exact if_pos rfl } },
-end
 
 lemma right.exists_add_of_mem_support_single_mul (b x : A)
   (hx : x ∈ (f * single b 1 : add_monoid_algebra R A).support) :
@@ -110,7 +93,7 @@ lemma no_zero_divisors.of_left_ordered : no_zero_divisors (add_monoid_algebra R 
     ((f * single (g.support.min' g0) 1 : add_monoid_algebra R A).support.min'
       (by rw support_mul_single; simp [f0])) (finset.min'_mem _ _),
   refine ⟨a + g.support.min' g0, mem_support_iff.mpr _⟩,
-  rw right.mul_apply_add_eq_mul_of_forall_ne _,
+  rw mul_apply_add_eq_mul_of_forall_ne _,
   { refine mul_ne_zero _ _,
     exacts [mem_support_iff.mp ha, mem_support_iff.mp (finset.min'_mem _ _)] },
   { rw H,
@@ -152,7 +135,7 @@ lemma no_zero_divisors.of_right_ordered : no_zero_divisors (add_monoid_algebra R
     ((single (f.support.min' f0) 1 * g : add_monoid_algebra R A).support.min'
       (by rw support_single_mul; simp [g0])) (finset.min'_mem _ _),
   refine ⟨f.support.min' f0 + a, mem_support_iff.mpr _⟩,
-  rw left.mul_apply_add_eq_mul_of_forall_ne _,
+  rw mul_apply_add_eq_mul_of_forall_ne _,
   { refine mul_ne_zero _ _,
     exacts [mem_support_iff.mp (finset.min'_mem _ _), mem_support_iff.mp ha] },
   { rw H,

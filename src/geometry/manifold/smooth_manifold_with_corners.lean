@@ -14,7 +14,7 @@ half-space (to get manifolds with boundaries) for which the changes of coordinat
 We define a model with corners as a map `I : H → E` embedding nicely the topological space `H` in
 the vector space `E` (or more precisely as a structure containing all the relevant properties).
 Given such a model with corners `I` on `(E, H)`, we define the groupoid of local
-homeomorphisms of `H` which are smooth when read in `E` (for any regularity `n : with_top ℕ`).
+homeomorphisms of `H` which are smooth when read in `E` (for any regularity `n : ℕ∞`).
 With this groupoid at hand and the general machinery of charted spaces, we thus get the notion
 of `C^n` manifold with respect to any model with corners `I` on `(E, H)`. We also introduce a
 specific type class for `C^∞` manifolds as these are the most commonly used.
@@ -116,7 +116,7 @@ universes u v w u' v' w'
 open set filter function
 open_locale manifold filter topological_space
 
-localized "notation `∞` := (⊤ : with_top ℕ)" in manifold
+localized "notation `∞` := (⊤ : ℕ∞)" in manifold
 
 /-! ### Models with corners. -/
 
@@ -398,7 +398,7 @@ end boundaryless
 section cont_diff_groupoid
 /-! ### Smooth functions on models with corners -/
 
-variables {m n : with_top ℕ} {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {m n : ℕ∞} {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H]
 (I : model_with_corners 𝕜 E H)

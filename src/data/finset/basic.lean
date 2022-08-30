@@ -1233,8 +1233,11 @@ lemma inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u := by { ext 
 
 lemma sdiff_inter_distrib_right (s t u : finset α) : s \ (t ∩ u) = (s \ t) ∪ (s \ u) := sdiff_inf
 
-@[simp] lemma sdiff_inter_self_left (s t : finset α) : s \ (s ∩ t) = s \ t := sdiff_inf_self_left
-@[simp] lemma sdiff_inter_self_right (s t : finset α) : s \ (t ∩ s) = s \ t := sdiff_inf_self_right
+@[simp] lemma sdiff_inter_self_left (s t : finset α) : s \ (s ∩ t) = s \ t :=
+sdiff_inf_self_left _ _
+
+@[simp] lemma sdiff_inter_self_right (s t : finset α) : s \ (t ∩ s) = s \ t :=
+sdiff_inf_self_right _ _
 
 @[simp] lemma sdiff_empty : s \ ∅ = s := sdiff_bot
 
@@ -1862,7 +1865,7 @@ by simpa [←to_finset_eq hl, ←to_finset_eq hl'] using h
 finset.eq_of_veq dedup_cons
 
 @[simp] lemma to_finset_singleton (a : α) : to_finset ({a} : multiset α) = {a} :=
-by rw [singleton_eq_cons, to_finset_cons, to_finset_zero, is_lawful_singleton.insert_emptyc_eq]
+by rw [←cons_zero, to_finset_cons, to_finset_zero, is_lawful_singleton.insert_emptyc_eq]
 
 @[simp] lemma to_finset_add (s t : multiset α) : to_finset (s + t) = to_finset s ∪ to_finset t :=
 finset.ext $ by simp

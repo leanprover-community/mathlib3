@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.order.field_defs
+import algebra.order.with_zero
 
 /-!
 # Linear ordered (semi)fields
@@ -20,6 +21,8 @@ A linear ordered (semi)field is a (semi)field equipped with a linear order such 
 -/
 
 set_option old_structure_cmd true
+
+open order_dual
 
 variables {α β : Type*}
 
@@ -479,7 +482,11 @@ end
 
 lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monotone f)
   {c : α} (hc : 0 ≤ c) : monotone (λ x, (f x) / c) :=
-by simpa only [div_eq_mul_inv] using hf.mul_const (inv_nonneg.2 hc)
+begin
+  haveI := @linear_order.decidable_le α _,
+  simpa only [div_eq_mul_inv]
+    using (decidable.monotone_mul_right_of_nonneg (inv_nonneg.2 hc)).comp hf
+end
 
 lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : strict_mono f)
   {c : α} (hc : 0 < c) :
@@ -822,8 +829,8 @@ eq.symm $ antitone.map_max $ λ x y, div_le_div_of_nonpos_of_le hc
 lemma max_div_div_right_of_nonpos (hc : c ≤ 0) (a b : α) : max (a / c) (b / c) = (min a b) / c :=
 eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 
-lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := (abs_hom : α →*₀ α).map_inv a
-lemma abs_div (a b : α) : |a / b| = |a| / |b| := (abs_hom : α →*₀ α).map_div a b
+lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := map_inv₀ (abs_hom : α →*₀ α) a
+lemma abs_div (a b : α) : |a / b| = |a| / |b| := map_div₀ (abs_hom : α →*₀ α) a b
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
 
 lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
@@ -846,3 +853,10 @@ theorem nat.cast_le_pow_div_sub (H : 1 < a) (n : ℕ) : (n : α) ≤ a ^ n / (a 
   (sub_le_self _ zero_le_one)
 
 end
+
+section canonically_linear_ordered_semifield
+variables [canonically_linear_ordered_semifield α] [has_sub α] [has_ordered_sub α]
+
+lemma tsub_div (a b c : α) : (a - b) / c = a / c - b / c := by simp_rw [div_eq_mul_inv, tsub_mul]
+
+end canonically_linear_ordered_semifield

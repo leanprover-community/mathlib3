@@ -195,8 +195,7 @@ end
 lemma continuous_prod_second_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.2.extend
   (2 * x.2 - 1)) :=
 begin
-  let η := (λ p : Ω(x) × I, p.1.extend (2 * p.2 - 1)),
-  have H : continuous η,
+  have H : continuous (λ p : Ω(x) × I, p.1.extend (2 * p.2 - 1)),
   { let Cproj : C(ℝ, I) := ⟨set.proj_Icc 0 1 zero_le_one, continuous_proj_Icc⟩,
     have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp
       continuous_induced_dom,

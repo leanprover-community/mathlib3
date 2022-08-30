@@ -201,19 +201,7 @@ list.prod_eq_one (λ z hz, let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [�
 
 /-- The Jacobi symbol is multiplicative in its first argument. -/
 lemma jacobi_sym_mul_left (a₁ a₂ : ℤ) (b : ℕ) : [a₁ * a₂ | b]ⱼ = [a₁ | b]ⱼ * [a₂ | b]ⱼ :=
-begin
-  have h0 : [a₁ * a₂ | 0]ⱼ = [a₁ | 0]ⱼ * [a₂ | 0]ⱼ :=
-  by simp only [jacobi_sym, factors_zero, list.prod_nil, one_mul, list.pmap],
-  refine rec_on_mul h0 _ (λ p pp, _) (λ m n hm hn, _) b,
-  { simp only [jacobi_sym, factors_one, list.prod_nil, one_mul, list.pmap], },
-  { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_mul p ⟨pp⟩], },
-  { by_cases hmz : m = 0,
-    { rw [hmz, zero_mul], exact h0, },
-    by_cases hnz : n = 0,
-    { rw [hnz, mul_zero], exact h0, },
-    simp_rw [@jacobi_sym_mul_right _ _ _ ⟨hmz⟩ ⟨hnz⟩],
-    rw [hm, hn, mul_mul_mul_comm], },
-end
+by { simp_rw [jacobi_sym, list.pmap_eq_map_attach, legendre_sym_mul], exact list.prod_map_mul }
 
 /-- We have that `(a^e / b) = (a / b)^e` for the Jacobi symbol. -/
 lemma jacobi_sym_pow_left (a : ℤ) (e b : ℕ) : [a ^ e | b]ⱼ = [a | b]ⱼ ^ e :=

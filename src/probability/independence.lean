@@ -732,9 +732,10 @@ variables [complete_lattice α]
 
 lemma le_supr_lt (s : ι → α) (hnm : n < m) : s n ≤ ⨆ j < m, s j := le_supr₂ n hnm
 
-lemma supr_eq_supr_supr_lt [linear_order ι] [no_max_order ι] (s : ι → α) :
+lemma supr_eq_supr_supr_lt {ι} [linear_order ι] [no_top_order ι] (s : ι → α) :
   (⨆ n, s n) = ⨆ n, ⨆ i < n, s i :=
 begin
+  haveI : no_max_order ι := no_top_order.no_max_order ι,
   refine le_antisymm (supr_le (λ i, _)) (supr_le (λ i, supr₂_le_supr (λ n, n < i) (λ n, s n))),
   obtain ⟨n, hin⟩ : ∃ n, i < n := exists_gt i,
   exact (le_supr_lt s hin).trans (le_supr (λ i, (⨆ j < i, s j)) n),
@@ -968,25 +969,23 @@ lemma supr_lt_indep_tail (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (n : 
   indep (⨆ i < n, s i) (tail s) μ :=
 indep_of_indep_of_le_right (supr_lt_indep_supr_ge h_le h_indep n) (tail_le_supr_ge s n)
 
-lemma supr_indep_tail [no_max_order ι] [nonempty ι]
+lemma supr_indep_tail [no_top_order ι] [nonempty ι]
   (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (⨆ n, s n) (tail s) μ :=
 begin
-  --casesI top_order_or_no_top_order ι,
-  --{ sorry, },
   rw supr_eq_supr_supr_lt,
   refine indep_supr_of_monotone (supr_lt_indep_tail h_le h_indep)
     (λ n, supr₂_le (λ i hi, h_le i)) (tail_le h_le) _,
   exact λ n m hnm, bsupr_mono (λ i hi, hi.trans_le hnm),
 end
 
-lemma tail_indep_tail [no_max_order ι] [nonempty ι]
+lemma tail_indep_tail [no_top_order ι] [nonempty ι]
   (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (tail s) (tail s) μ :=
 indep_of_indep_of_le_left (supr_indep_tail h_le h_indep) (tail_le_supr s)
 
 /-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra has probability 0 or 1 -/
-theorem measure_zero_or_one_of_measurable_set_tail [no_max_order ι] [nonempty ι]
+theorem measure_zero_or_one_of_measurable_set_tail [no_top_order ι] [nonempty ι]
   (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   {t : set Ω} (h_t_tail : measurable_set[tail s] t) :
   μ t = 0 ∨ μ t = 1 :=

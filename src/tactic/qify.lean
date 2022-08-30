@@ -8,19 +8,19 @@ import tactic.norm_cast
 import data.rat.cast
 
 /-!
-# A tactic to shift `ℕ` goals to `ℚ`
+# A tactic to shift `ℕ` or `ℤ` goals to `ℚ`
 
 Note that this file is following from `zify`.
 
-Division in `ℕ` is not always working fine (e.g. (5 : ℕ) / 2 = 2), so it's easier to work in `ℚ`,
-where division and subtraction are well behaved. `qify` can be used to cast goals and hypotheses
-about natural numbers to rational numbers. It makes use of `push_cast`, part of the `norm_cast`
-family, to simplify these goals.
+Division in `ℕ` and `ℤ` is not always working fine (e.g. (5 : ℕ) / 2 = 2), so it's easier
+to work in `ℚ`, where division and subtraction are well behaved. `qify` can be used to cast goals
+and hypotheses about natural numbers or integers to rational numbers. It makes use of `push_cast`,
+part of the `norm_cast` family, to simplify these goals.
 
 ## Implementation notes
 
 `qify` is extensible, using the attribute `@[qify]` to label lemmas used for moving propositions
-from `ℕ` to `ℚ`.
+from `ℕ` or `ℤ` to `ℚ`.
 `qify` lemmas should have the form `∀ a₁ ... aₙ : ℕ, Pq (a₁ : ℚ) ... (aₙ : ℚ) ↔ Pn a₁ ... aₙ`.
 For example, `rat.coe_nat_le_coe_nat_iff : ∀ (m n : ℕ), ↑m ≤ ↑n ↔ m ≤ n` is a `qify` lemma.
 
@@ -37,7 +37,7 @@ namespace qify
 
 /--
 The `qify` attribute is used by the `qify` tactic. It applies to lemmas that shift propositions
-between `nat` and `rat`.
+from `nat` or `int` to `rat`.
 
 `qify` lemmas should have the form `∀ a₁ ... aₙ : ℕ, Pq (a₁ : ℚ) ... (aₙ : ℚ) ↔ Pn a₁ ... aₙ`.
 For example, `rat.coe_nat_le_coe_nat_iff : ∀ (m n : ℕ), ↑m ≤ ↑n ↔ m ≤ n` is a `qify` lemma.
@@ -53,7 +53,7 @@ meta def qify_attr : user_attribute simp_lemmas unit :=
 
 /--
 Given an expression `e`, `lift_to_q e` looks for subterms of `e` that are propositions "about"
-natural numbers and change them to propositions about rational numbers.
+natural numbers or integers and change them to propositions about rational numbers.
 
 Returns an expression `e'` and a proof that `e = e'`.
 
@@ -71,10 +71,15 @@ do sl ← qify_attr.get_cache,
 @[qify] lemma rat.coe_nat_eq_coe_nat_iff (a b : ℕ) : (a : ℚ) = b ↔ a = b := by simp
 @[qify] lemma rat.coe_nat_ne_coe_nat_iff (a b : ℕ) : (a : ℚ) ≠ b ↔ a ≠ b := by simp
 
+@[qify] lemma rat.coe_int_le_coe_int_iff (a b : ℤ) : (a : ℚ) ≤ b ↔ a ≤ b := by simp
+@[qify] lemma rat.coe_int_lt_coe_int_iff (a b : ℤ) : (a : ℚ) < b ↔ a < b := by simp
+@[qify] lemma rat.coe_int_eq_coe_int_iff (a b : ℤ) : (a : ℚ) = b ↔ a = b := by simp
+@[qify] lemma rat.coe_int_ne_coe_int_iff (a b : ℤ) : (a : ℚ) ≠ b ↔ a ≠ b := by simp
+
 end qify
 
 /--
-`qify extra_lems e` is used to shift propositions in `e` from `ℕ` to `ℚ`.
+`qify extra_lems e` is used to shift propositions in `e` from `ℕ` or `ℤ` to `ℚ`.
 This is often useful since `ℚ` has well-behaved division and subtraction.
 
 The list of extra lemmas is used in the `push_cast` step.
@@ -86,8 +91,8 @@ do (q1, p1) ← qify.lift_to_q q <|> fail "failed to find an applicable qify lem
    prod.mk q2 <$> mk_eq_trans p1 p2
 
 /--
-A variant of `tactic.qify` that takes `h`, a proof of a proposition about natural numbers,
-and returns a proof of the qified version of that propositon.
+A variant of `tactic.qify` that takes `h`, a proof of a proposition about natural numbers
+or integers, and returns a proof of the qified version of that propositon.
 -/
 meta def tactic.qify_proof (extra_lems : list simp_arg_type) (h : expr) : tactic expr :=
 do (_, pf) ← infer_type h >>= tactic.qify extra_lems,
@@ -98,11 +103,11 @@ section
 setup_tactic_parser
 
 /--
-The `qify` tactic is used to shift propositions from `ℕ` to `ℚ`.
+The `qify` tactic is used to shift propositions from `ℕ` or `ℤ` to `ℚ`.
 This is often useful since `ℚ` has well-behaved division and subtraction.
 
 ```lean
-example (a b c x y z : ℕ) (h : ¬ x*y*z < 0) : c < a + 3*b :=
+example (a b c : ℕ) (x y z : ℤ) (h : ¬ x*y*z < 0) : c < a + 3*b :=
 begin
   qify,
   qify at h,
@@ -114,7 +119,7 @@ end
 ```
 
 `qify` can be given extra lemmas to use in simplification. This is especially useful in the
-presence of nat subtraction and division: passing `≤` or `∣` arguments will allow `push_cast`
+presence of subtraction and division: passing `≤` or `∣` arguments will allow `push_cast`
 to do more work.
 ```
 example (a b c : ℕ) (h : a - b < c) (hab : b ≤ a) : false :=

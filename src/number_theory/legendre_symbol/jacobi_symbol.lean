@@ -279,11 +279,8 @@ lemma jacobi_sym_eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) :
 
 /-- We have that `(a^e / b) = (a / b)^e` for the Jacobi symbol. -/
 lemma jacobi_sym_pow_left (a : ℤ) (e b : ℕ) : [a ^ e | b]ⱼ = [a | b]ⱼ ^ e :=
-begin
-  induction e with e ih,
-  { rw [pow_zero, pow_zero, jacobi_sym_one_left], },
-  { rw [pow_succ, pow_succ, jacobi_sym_mul_left, ih], }
-end
+nat.rec_on e (by rw [pow_zero, pow_zero, jacobi_sym_one_left]) $
+  λ _ ih, by rw [pow_succ, pow_succ, jacobi_sym_mul_left, ih]
 
 /-- We have that `(a / b^e) = (a / b)^e` for the Jacobi symbol. -/
 lemma jacobi_sym_pow_right (a : ℤ) (b e : ℕ) : [a | b ^ e]ⱼ = [a | b]ⱼ ^ e :=

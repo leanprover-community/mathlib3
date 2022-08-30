@@ -75,18 +75,29 @@ end iff
 
 namespace is_integrally_closed
 
-variables {R : Type*} [comm_ring R] [is_domain R] [iic : is_integrally_closed R]
-variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
+variables {R : Type*} [comm_ring R] [id : is_domain R] [iic : is_integrally_closed R]
+variables {K : Type*} [field K] [algebra R K] [ifr : is_fraction_ring R K]
 
-instance : is_integral_closure R R K :=
-(is_integrally_closed_iff_is_integral_closure K).mp iic
+include iic ifr
 
-include iic
+instance : is_integral_closure R R K := (is_integrally_closed_iff_is_integral_closure K).mp iic
 
-lemma is_integral_iff {x : K} : is_integral R x ↔ ∃ y, algebra_map R K y = x :=
+lemma is_integral_iff {x : K} : is_integral R x ↔ ∃ y : R, algebra_map R K y = x :=
 is_integral_closure.is_integral_iff
 
-omit iic
+lemma exists_algebra_map_eq_of_is_integral_pow {x : K} {n : ℕ} (hn : 0 < n)
+  (hx : is_integral R $ x ^ n) : ∃ y : R, algebra_map R K y = x :=
+is_integral_iff.mp $ is_integral_of_pow hn hx
+
+omit iic ifr
+
+lemma exists_algebra_map_eq_of_pow_mem_subalgebra {K : Type*} [field K] [algebra R K]
+  {S : subalgebra R K} [is_integrally_closed S] [is_fraction_ring S K] {x : K} {n : ℕ} (hn : 0 < n)
+  (hx : x ^ n ∈ S) : ∃ y : S, algebra_map S K y = x :=
+exists_algebra_map_eq_of_is_integral_pow hn $ is_integral_iff.mpr ⟨⟨x ^ n, hx⟩, rfl⟩
+
+include id ifr
+
 variables {R} (K)
 lemma integral_closure_eq_bot_iff :
   integral_closure R K = ⊥ ↔ is_integrally_closed R :=
@@ -113,7 +124,7 @@ namespace integral_closure
 
 open is_integrally_closed
 
-variables {R : Type*} [comm_ring R] [is_domain R] [iic : is_integrally_closed R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
 

@@ -39,7 +39,7 @@ open filter
 /-- Class `has_continuous_smul M X` says that the scalar multiplication `(•) : M → X → X`
 is continuous in both arguments. We use the same class for all kinds of multiplicative actions,
 including (semi)modules and algebras. -/
-class has_continuous_smul (M X : Type*) [has_scalar M X]
+class has_continuous_smul (M X : Type*) [has_smul M X]
   [topological_space M] [topological_space X] : Prop :=
 (continuous_smul : continuous (λp : M × X, p.1 • p.2))
 
@@ -60,9 +60,9 @@ section main
 
 variables {M X Y α : Type*} [topological_space M] [topological_space X] [topological_space Y]
 
-section has_scalar
+section has_smul
 
-variables [has_scalar M X] [has_continuous_smul M X]
+variables [has_smul M X] [has_continuous_smul M X]
 
 @[priority 100, to_additive] instance has_continuous_smul.has_continuous_const_smul :
   has_continuous_const_smul M X :=
@@ -104,7 +104,7 @@ lemma continuous.smul (hf : continuous f) (hg : continuous g) :
 continuous_smul.comp (hf.prod_mk hg)
 
 /-- If a scalar is central, then its right action is continuous when its left action is. -/
-instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X] :
+instance has_continuous_smul.op [has_smul Mᵐᵒᵖ X] [is_central_scalar M X] :
   has_continuous_smul Mᵐᵒᵖ X :=
 ⟨ suffices continuous (λ p : M × X, mul_opposite.op p.fst • p.snd),
   from this.comp (mul_opposite.continuous_unop.prod_map continuous_id),
@@ -114,7 +114,7 @@ instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X
 ⟨mul_opposite.continuous_op.comp $ continuous_smul.comp $
   continuous_id.prod_map mul_opposite.continuous_unop⟩
 
-end has_scalar
+end has_smul
 
 section monoid
 
@@ -128,7 +128,7 @@ variables [monoid M] [mul_action M X] [has_continuous_smul M X]
 end monoid
 
 @[to_additive]
-instance [has_scalar M X] [has_scalar M Y] [has_continuous_smul M X]
+instance [has_smul M X] [has_smul M Y] [has_continuous_smul M X]
   [has_continuous_smul M Y] :
   has_continuous_smul M (X × Y) :=
 ⟨(continuous_fst.smul (continuous_fst.comp continuous_snd)).prod_mk
@@ -136,7 +136,7 @@ instance [has_scalar M X] [has_scalar M Y] [has_continuous_smul M X]
 
 @[to_additive]
 instance {ι : Type*} {γ : ι → Type*}
-  [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
+  [∀ i, topological_space (γ i)] [Π i, has_smul M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
   has_continuous_smul M (Π i, γ i) :=
 ⟨continuous_pi $ λ i,
   (continuous_fst.smul continuous_snd).comp $
@@ -146,7 +146,7 @@ end main
 
 section lattice_ops
 
-variables {ι : Sort*} {M X : Type*} [topological_space M] [has_scalar M X]
+variables {ι : Sort*} {M X : Type*} [topological_space M] [has_smul M X]
 
 @[to_additive] lemma has_continuous_smul_Inf {ts : set (topological_space X)}
   (h : Π t ∈ ts, @has_continuous_smul M X _ _ t) :
@@ -154,7 +154,7 @@ variables {ι : Sort*} {M X : Type*} [topological_space M] [has_scalar M X]
 { continuous_smul :=
   begin
     rw ← @Inf_singleton _ _ ‹topological_space M›,
-    exact continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
+    exact continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
       (@has_continuous_smul.continuous_smul _ _ _ _ t (h t ht)))
   end }
 

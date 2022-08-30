@@ -87,8 +87,8 @@ such that
 We can then glue the spaces `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subspaces of the glued space.
 -/
-@[nolint has_inhabited_instance]
-structure glue_data extends glue_data (PresheafedSpace C) :=
+@[nolint has_nonempty_instance]
+structure glue_data extends glue_data (PresheafedSpace.{v} C) :=
 (f_open : ∀ i j, is_open_immersion (f i j))
 
 attribute [instance] glue_data.f_open
@@ -195,7 +195,7 @@ begin
   have e := (D.snd_inv_app_t_app' i j k U).some_spec,
   reassoc! e,
   rw ← e,
-  simp,
+  simp [eq_to_hom_map],
 end
 
 variable [has_limits C]
@@ -467,7 +467,7 @@ end PresheafedSpace
 
 namespace SheafedSpace
 
-variables (C) [has_products C]
+variables (C) [has_products.{v} C]
 
 /--
 A family of gluing data consists of
@@ -488,8 +488,8 @@ such that
 We can then glue the spaces `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subspaces of the glued space.
 -/
-@[nolint has_inhabited_instance]
-structure glue_data extends glue_data (SheafedSpace C) :=
+@[nolint has_nonempty_instance]
+structure glue_data extends glue_data (SheafedSpace.{v} C) :=
 (f_open : ∀ i j, SheafedSpace.is_open_immersion (f i j))
 
 attribute [instance] glue_data.f_open
@@ -560,7 +560,7 @@ such that
 We can then glue the spaces `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subspaces of the glued space.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data extends glue_data LocallyRingedSpace :=
 (f_open : ∀ i j, LocallyRingedSpace.is_open_immersion (f i j))
 

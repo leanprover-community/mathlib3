@@ -11,9 +11,18 @@ import algebra.module.basic
 # Bundle
 Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
 should contain all possible results that do not involve any topology.
+
+We represent a bundle `E` over a base space `B` as a dependent type `E : B → Type*`.
+
 We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
 a topology which is not the disjoint union topology `sigma.topological_space`. In general, the
 constructions of fiber bundles we will make will be of this form.
+
+## Main Definitions
+
+* `bundle.total_space` the total space of a bundle.
+* `bundle.total_space.proj` the projection from the total space to the base space.
+* `bundle.total_space_mk` the constructor for the total space.
 
 ## References
 - https://en.wikipedia.org/wiki/Bundle_(mathematics)
@@ -24,26 +33,44 @@ namespace bundle
 variables {B : Type*} (E : B → Type*)
 
 /--
-`total_space E` is the total space of the bundle `Σ x, E x`. This type synonym is used to avoid
-conflicts with general sigma types.
+`bundle.total_space E` is the total space of the bundle `Σ x, E x`.
+This type synonym is used to avoid conflicts with general sigma types.
 -/
 def total_space := Σ x, E x
 
 instance [inhabited B] [inhabited (E default)] :
   inhabited (total_space E) := ⟨⟨default, default⟩⟩
 
-/-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
-@[simp, reducible] def proj : total_space E → B := sigma.fst
+variables {E}
 
-/-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
-@[simp, reducible] def total_space_mk (E : B → Type*) (b : B) (a : E b) :
+/-- `bundle.total_space.proj` is the canonical projection `bundle.total_space E → B` from the
+total space to the base space. -/
+@[simp, reducible] def total_space.proj : total_space E → B := sigma.fst
+
+/-- Constructor for the total space of a bundle. -/
+@[simp, reducible] def total_space_mk (b : B) (a : E b) :
   bundle.total_space E := ⟨b, a⟩
 
-instance {x : B} : has_coe_t (E x) (total_space E) := ⟨sigma.mk x⟩
+lemma total_space.proj_mk {x : B} {y : E x} : (total_space_mk x y).proj = x :=
+rfl
+
+lemma sigma_mk_eq_total_space_mk {x : B} {y : E x} : sigma.mk x y = total_space_mk x y :=
+rfl
+
+lemma total_space.mk_cast {x x' : B} (h : x = x') (b : E x) :
+  total_space_mk x' (cast (congr_arg E h) b) = total_space_mk x b :=
+by { subst h, refl }
+
+lemma total_space.eta (z : total_space E) :
+  total_space_mk z.proj z.2 = z :=
+sigma.eta z
+
+instance {x : B} : has_coe_t (E x) (total_space E) := ⟨total_space_mk x⟩
 
 @[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
+@[simp] lemma coe_snd {x : B} {y : E x} : (y : total_space E).snd = y := rfl
 
-lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
+lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = total_space_mk x v := rfl
 
 -- notation for the direct sum of two bundles over the same base
 notation E₁ `×ᵇ`:100 E₂ := λ x, E₁ x × E₂ x
@@ -54,7 +81,40 @@ def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
 instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default : F)⟩
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
-def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
+def trivial.proj_snd (B : Type*) (F : Type*) : total_space (bundle.trivial B F) → F := sigma.snd
+
+section pullback
+
+variable {B' : Type*}
+
+/-- The pullback of a bundle `E` over a base `B` under a map `f : B' → B`, denoted by `pullback f E`
+or `f *ᵖ E`,  is the bundle over `B'` whose fiber over `b'` is `E (f b')`. -/
+@[nolint has_nonempty_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
+
+notation f ` *ᵖ ` E := pullback f E
+
+/-- Natural embedding of the total space of `f *ᵖ E` into `B' × total_space E`. -/
+@[simp] def pullback_total_space_embedding (f : B' → B) :
+  total_space (f *ᵖ E) → B' × total_space E :=
+λ z, (z.proj, total_space_mk (f z.proj) z.2)
+
+/-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
+def pullback.lift (f : B' → B) : total_space (f *ᵖ E) → total_space E :=
+λ z, total_space_mk (f z.proj) z.2
+
+@[simp] lemma pullback.proj_lift (f : B' → B) (x : total_space (f *ᵖ E)) :
+  (pullback.lift f x).proj = f x.1 :=
+rfl
+
+@[simp] lemma pullback.lift_mk (f : B' → B) (x : B') (y : E (f x)) :
+  pullback.lift f (total_space_mk x y) = total_space_mk (f x) y :=
+rfl
+
+lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :
+  (pullback_total_space_embedding f x).2 = pullback.lift f x :=
+rfl
+
+end pullback
 
 section fiber_structures
 
@@ -71,7 +131,6 @@ variables (R : Type*) [semiring R] [∀ x, module R (E x)]
 end fiber_structures
 
 section trivial_instances
-local attribute [reducible] bundle.trivial
 
 variables {F : Type*} {R : Type*} [semiring R] (b : B)
 

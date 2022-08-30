@@ -260,3 +260,73 @@ lemma covby_insert {x : α} {s : set α} (hx : x ∉ s) : s ⋖ insert x s :=
 (wcovby_insert x s).covby_of_lt $ ssubset_insert hx
 
 end set
+
+namespace prod
+variables [partial_order α] [partial_order β] {a a₁ a₂ : α} {b b₁ b₂ : β} {x y : α × β}
+
+@[simp] lemma swap_wcovby_swap : x.swap ⩿ y.swap ↔ x ⩿ y :=
+apply_wcovby_apply_iff (order_iso.prod_comm : α × β ≃o β × α)
+
+@[simp] lemma swap_covby_swap : x.swap ⋖ y.swap ↔ x ⋖ y :=
+apply_covby_apply_iff (order_iso.prod_comm : α × β ≃o β × α)
+
+lemma fst_eq_or_snd_eq_of_wcovby : x ⩿ y → x.1 = y.1 ∨ x.2 = y.2 :=
+begin
+  refine λ h, of_not_not (λ hab, _),
+  push_neg at hab,
+  exact h.2 (mk_lt_mk.2 $ or.inl ⟨hab.1.lt_of_le h.1.1, le_rfl⟩)
+    (mk_lt_mk.2 $ or.inr ⟨le_rfl, hab.2.lt_of_le h.1.2⟩),
+end
+
+lemma _root_.wcovby.fst (h : x ⩿ y) : x.1 ⩿ y.1 :=
+⟨h.1.1, λ c h₁ h₂, h.2 (mk_lt_mk_iff_left.2 h₁) ⟨⟨h₂.le, h.1.2⟩, λ hc, h₂.not_le hc.1⟩⟩
+
+lemma _root_.wcovby.snd (h : x ⩿ y) : x.2 ⩿ y.2 :=
+⟨h.1.2, λ c h₁ h₂, h.2 (mk_lt_mk_iff_right.2 h₁) ⟨⟨h.1.1, h₂.le⟩, λ hc, h₂.not_le hc.2⟩⟩
+
+lemma mk_wcovby_mk_iff_left : (a₁, b) ⩿ (a₂, b) ↔ a₁ ⩿ a₂ :=
+begin
+  refine ⟨wcovby.fst, and.imp mk_le_mk_iff_left.2 $ λ h c h₁ h₂, _⟩,
+  have : c.2 = b:= h₂.le.2.antisymm h₁.le.2,
+  rw [←@prod.mk.eta _ _ c, this, mk_lt_mk_iff_left] at h₁ h₂,
+  exact h h₁ h₂,
+end
+
+lemma mk_wcovby_mk_iff_right : (a, b₁) ⩿ (a, b₂) ↔ b₁ ⩿ b₂ :=
+swap_wcovby_swap.trans mk_wcovby_mk_iff_left
+
+lemma mk_covby_mk_iff_left : (a₁, b) ⋖ (a₂, b) ↔ a₁ ⋖ a₂ :=
+by simp_rw [covby_iff_wcovby_and_lt, mk_wcovby_mk_iff_left, mk_lt_mk_iff_left]
+
+lemma mk_covby_mk_iff_right : (a, b₁) ⋖ (a, b₂) ↔ b₁ ⋖ b₂ :=
+by simp_rw [covby_iff_wcovby_and_lt, mk_wcovby_mk_iff_right, mk_lt_mk_iff_right]
+
+lemma mk_wcovby_mk_iff : (a₁, b₁) ⩿ (a₂, b₂) ↔ a₁ ⩿ a₂ ∧ b₁ = b₂ ∨ b₁ ⩿ b₂ ∧ a₁ = a₂ :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl | rfl : a₁ = a₂ ∨ b₁ = b₂ := fst_eq_or_snd_eq_of_wcovby h,
+    { exact or.inr ⟨mk_wcovby_mk_iff_right.1 h, rfl⟩ },
+    { exact or.inl ⟨mk_wcovby_mk_iff_left.1 h, rfl⟩ } },
+  { rintro (⟨h, rfl⟩ | ⟨h, rfl⟩),
+    { exact mk_wcovby_mk_iff_left.2 h },
+    { exact mk_wcovby_mk_iff_right.2 h } }
+end
+
+lemma mk_covby_mk_iff : (a₁, b₁) ⋖ (a₂, b₂) ↔ a₁ ⋖ a₂ ∧ b₁ = b₂ ∨ b₁ ⋖ b₂ ∧ a₁ = a₂ :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl | rfl : a₁ = a₂ ∨ b₁ = b₂ := fst_eq_or_snd_eq_of_wcovby h.wcovby,
+    { exact or.inr ⟨mk_covby_mk_iff_right.1 h, rfl⟩ },
+    { exact or.inl ⟨mk_covby_mk_iff_left.1 h, rfl⟩ } },
+  { rintro (⟨h, rfl⟩ | ⟨h, rfl⟩),
+    { exact mk_covby_mk_iff_left.2 h },
+    { exact mk_covby_mk_iff_right.2 h } }
+end
+
+lemma wcovby_iff : x ⩿ y ↔ x.1 ⩿ y.1 ∧ x.2 = y.2 ∨ x.2 ⩿ y.2 ∧ x.1 = y.1 :=
+by { cases x, cases y, exact mk_wcovby_mk_iff }
+
+lemma covby_iff : x ⋖ y ↔ x.1 ⋖ y.1 ∧ x.2 = y.2 ∨ x.2 ⋖ y.2 ∧ x.1 = y.1 :=
+by { cases x, cases y, exact mk_covby_mk_iff }
+
+end prod

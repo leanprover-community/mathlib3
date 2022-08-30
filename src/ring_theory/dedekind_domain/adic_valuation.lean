@@ -57,7 +57,7 @@ dedekind domain, dedekind ring, adic valuation
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical discrete_valuation
 
 open multiplicative is_dedekind_domain
 
@@ -70,7 +70,7 @@ namespace is_dedekind_domain.height_one_spectrum
 /-- The additive `v`-adic valuation of `r ∈ R` is the exponent of `v` in the factorization of the
 ideal `(r)`, if `r` is nonzero, or infinity, if `r = 0`. `int_valuation_def` is the corresponding
 multiplicative valuation. -/
-def int_valuation_def (r : R) : with_zero (multiplicative ℤ) :=
+def int_valuation_def (r : R) : ℤₘ₀ :=
 if r = 0 then 0 else multiplicative.of_add
   (-(associates.mk v.as_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ)
 
@@ -207,7 +207,7 @@ begin
 end
 
 /-- The `v`-adic valuation on `R`. -/
-def int_valuation : valuation R (with_zero (multiplicative ℤ)) :=
+def int_valuation : valuation R ℤₘ₀ :=
 { to_fun          := v.int_valuation_def,
   map_zero'       := int_valuation.map_zero' v,
   map_one'        := int_valuation.map_one' v,
@@ -243,7 +243,7 @@ end
 
 /-- The `v`-adic valuation of `x ∈ K` is the valuation of `r` divided by the valuation of `s`,
 where `r` and `s` are chosen so that `x = r/s`. -/
-def valuation (v : height_one_spectrum R) : valuation K (with_zero (multiplicative ℤ)) :=
+def valuation (v : height_one_spectrum R) : valuation K ℤₘ₀ :=
 v.int_valuation.extend_to_localization (λ r hr, set.mem_compl $ v.int_valuation_ne_zero' ⟨r, hr⟩) K
 
 lemma valuation_def (x : K) : v.valuation x = v.int_valuation.extend_to_localization
@@ -257,7 +257,7 @@ begin
   erw [valuation_def, (is_localization.to_localization_map (non_zero_divisors R) K).lift_mk',
     div_eq_mul_inv, mul_eq_mul_left_iff],
   left,
-  rw [units.coe_inv', inv_inj],
+  rw [units.coe_inv, inv_inj],
   refl,
 end
 
@@ -303,7 +303,7 @@ ring of integers, denoted `v.adic_completion_integers`. -/
 variable {K}
 
 /-- `K` as a valued field with the `v`-adic valuation. -/
-def adic_valued : valued K (with_zero (multiplicative ℤ)) := valued.mk' v.valuation
+def adic_valued : valued K ℤₘ₀ := valued.mk' v.valuation
 
 lemma adic_valued_apply {x : K} : (v.adic_valued.v : _) x = v.valuation x := rfl
 
@@ -313,11 +313,12 @@ variables (K)
 def adic_completion := @uniform_space.completion K v.adic_valued.to_uniform_space
 
 instance : field (v.adic_completion K) :=
-@field_completion K _ v.adic_valued.to_uniform_space _ _ v.adic_valued.to_uniform_add_group
+@uniform_space.completion.field K _ v.adic_valued.to_uniform_space _ _
+  v.adic_valued.to_uniform_add_group
 
 instance : inhabited (v.adic_completion K) := ⟨0⟩
 
-instance valued_adic_completion : valued (v.adic_completion K) (with_zero (multiplicative ℤ)) :=
+instance valued_adic_completion : valued (v.adic_completion K) ℤₘ₀ :=
 @valued.valued_completion _ _ _ _ v.adic_valued
 
 lemma valued_adic_completion_def {x : v.adic_completion K} :

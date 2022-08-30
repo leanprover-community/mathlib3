@@ -8,6 +8,7 @@ import linear_algebra.matrix.trace
 import linear_algebra.contraction
 import linear_algebra.tensor_product_basis
 import linear_algebra.free_module.strong_rank_condition
+import linear_algebra.projection
 
 /-!
 # Trace of a linear map
@@ -35,7 +36,7 @@ open finite_dimensional
 open_locale tensor_product
 
 section
-variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+variables (R : Type u) [comm_semiring R] {M : Type v} [add_comm_monoid M] [module R M]
 variables {ι : Type w} [decidable_eq ι] [fintype ι]
 variables {κ : Type*} [decidable_eq κ] [fintype κ]
 variables (b : basis ι R M) (c : basis κ R M)
@@ -166,6 +167,18 @@ begin
   simp,
 end
 
+/-- The trace of the identity endomorphism is the dimension of the free module -/
+@[simp] theorem trace_id : trace R M id = (finrank R M : R) :=
+by rw [←one_eq_id, trace_one]
+
+@[simp] theorem trace_transpose : trace R (module.dual R M) ∘ₗ module.dual.transpose = trace R M :=
+begin
+  let e := dual_tensor_hom_equiv R M M,
+  have h : function.surjective e.to_linear_map := e.surjective,
+  refine (cancel_right h).1 _,
+  ext f m, simp [e],
+end
+
 theorem trace_prod_map :
   trace R (M × N) ∘ₗ prod_map_linear R M N M N R =
   (coprod id id : R × R →ₗ[R] R) ∘ₗ prod_map (trace R M) (trace R N) :=
@@ -231,6 +244,10 @@ end
 
 variables {R M N}
 
+@[simp]
+theorem trace_transpose' (f : M →ₗ[R] M) : trace R _ (module.dual.transpose f) = trace R M f :=
+by { rw [←comp_apply, trace_transpose] }
+
 theorem trace_tensor_product' (f : M →ₗ[R] M) (g : N →ₗ[R] N) :
   trace R (M ⊗ N) (map f g) = trace R M f * trace R N g :=
 begin
@@ -250,6 +267,11 @@ end
 @[simp] theorem trace_conj' (f : M →ₗ[R] M) (e : M ≃ₗ[R] N) : trace R N (e.conj f) = trace R M f :=
 by rw [e.conj_apply, trace_comp_comm', ←comp_assoc, linear_equiv.comp_coe,
   linear_equiv.self_trans_symm, linear_equiv.refl_to_linear_map, id_comp]
+
+theorem is_proj.trace {p : submodule R M} {f : M →ₗ[R] M} (h : is_proj p f)
+  [module.free R p] [module.finite R p] [module.free R f.ker] [module.finite R f.ker] :
+  trace R M f = (finrank R p : R) :=
+by rw [h.eq_conj_prod_map, trace_conj', trace_prod_map', trace_id, map_zero, add_zero]
 
 end
 

@@ -23,7 +23,7 @@ variables (M : Type u) [monoid M]
 
 namespace category_theory
 
-@[to_additive discrete.add_monoidal]
+@[to_additive discrete.add_monoidal, simps tensor_obj_as tensor_unit_as]
 instance discrete.monoidal : monoidal_category (discrete M) :=
 { tensor_unit := discrete.mk 1,
   tensor_obj := λ X Y, discrete.mk (X.as * Y.as),

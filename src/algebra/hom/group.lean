@@ -356,6 +356,9 @@ attribute [to_additive_reorder 8, to_additive] map_zpow
 
 end mul_one
 
+@[to_additive] lemma group.is_unit [group G] (g : G) : is_unit g :=
+⟨⟨g, g⁻¹, mul_inv_self g, inv_mul_self g⟩, rfl⟩
+
 section mul_zero_one
 
 variables [mul_zero_one_class M] [mul_zero_one_class N]
@@ -672,8 +675,7 @@ protected lemma monoid_with_zero_hom.map_mul [mul_zero_one_class M] [mul_zero_on
 add_decl_doc add_monoid_hom.map_add
 
 namespace monoid_hom
-variables {mM : mul_one_class M} {mN : mul_one_class N} {mP : mul_one_class P}
-variables [group G] [comm_group H] [monoid_hom_class F M N]
+variables {mM : mul_one_class M} {mN : mul_one_class N} [monoid_hom_class F M N]
 
 include mM mN
 
@@ -696,13 +698,21 @@ let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
 end monoid_hom
 
+section division_comm_monoid
+variables [division_comm_monoid α]
+
 /-- Inversion on a commutative group, considered as a monoid homomorphism. -/
-@[to_additive "Inversion on a commutative additive group, considered as an additive
-monoid homomorphism."]
-def comm_group.inv_monoid_hom {G : Type*} [comm_group G] : G →* G :=
+@[to_additive "Negation on a commutative additive group, considered as an additive monoid
+homomorphism."]
+def inv_monoid_hom : α →* α :=
 { to_fun := has_inv.inv,
   map_one' := inv_one,
   map_mul' := mul_inv }
+
+@[simp] lemma coe_inv_monoid_hom : (inv_monoid_hom : α → α) = has_inv.inv := rfl
+@[simp] lemma inv_monoid_hom_apply (a : α) : inv_monoid_hom a = a⁻¹ := rfl
+
+end division_comm_monoid
 
 /-- The identity map from a type with 1 to itself. -/
 @[to_additive, simps]
@@ -912,7 +922,7 @@ instance : monoid (monoid.End M) :=
 
 instance : inhabited (monoid.End M) := ⟨1⟩
 
-instance : has_coe_to_fun (monoid.End M) (λ _, M → M) := ⟨monoid_hom.to_fun⟩
+instance : monoid_hom_class (monoid.End M) M M := monoid_hom.monoid_hom_class
 
 end End
 
@@ -939,7 +949,7 @@ instance : monoid (add_monoid.End A) :=
 
 instance : inhabited (add_monoid.End A) := ⟨1⟩
 
-instance : has_coe_to_fun (add_monoid.End A) (λ _, A → A) := ⟨add_monoid_hom.to_fun⟩
+instance : add_monoid_hom_class (add_monoid.End A) A A := add_monoid_hom.add_monoid_hom_class
 
 end End
 
@@ -1054,13 +1064,21 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
   g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
+/-- If two homomorphisms from a division monoid to a monoid are equal at a unit `x`, then they are
+equal at `x⁻¹`. -/
+@[to_additive "If two homomorphisms from a subtraction monoid to an additive monoid are equal at an
+additive unit `x`, then they are equal at `-x`."]
+lemma _root_.is_unit.eq_on_inv {G N} [division_monoid G] [monoid N] [monoid_hom_class F G N] {x : G}
+  (hx : is_unit x) (f g : F) (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
+left_inv_eq_right_inv (map_mul_eq_one f hx.inv_mul_cancel) $
+  h.symm ▸ map_mul_eq_one g $ hx.mul_inv_cancel
+
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
 then they are equal at `-x`." ]
-lemma eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] {f g : F} {x : G}
+lemma _root_.eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] (f g : F) {x : G}
   (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
-left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
-  h.symm ▸ map_mul_eq_one g $ mul_inv_self x
+(group.is_unit x).eq_on_inv f g h
 
 /-- Group homomorphisms preserve inverse. -/
 @[to_additive "Additive group homomorphisms preserve negation."]

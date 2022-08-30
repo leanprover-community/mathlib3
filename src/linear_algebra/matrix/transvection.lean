@@ -132,7 +132,7 @@ variables (R n)
 /-- A structure containing all the information from which one can build a nontrivial transvection.
 This structure is easier to manipulate than transvections as one has a direct access to all the
 relevant fields. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure transvection_struct :=
 (i j : n)
 (hij : i ≠ j)
@@ -269,7 +269,7 @@ begin
   cases t,
   ext a b,
   simp only [reindex_equiv, transvection, mul_boole, algebra.id.smul_eq_mul, to_matrix_mk,
-    minor_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
+    submatrix_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
   by_cases ha : e t_i = a; by_cases hb : e t_j = b; by_cases hab : a = b;
   simp [ha, hb, hab, ← e.apply_eq_iff_eq_symm_apply, std_basis_matrix]
 end
@@ -515,17 +515,15 @@ begin
   -- last column, we will first put this nonzero coefficient in last position, and then argue as
   -- above.
   push_neg at hM,
-  simp [not_and_distrib, is_two_block_diagonal, to_blocks₁₂, to_blocks₂₁] at H,
+  simp [not_and_distrib, is_two_block_diagonal, to_blocks₁₂, to_blocks₂₁, ←matrix.ext_iff] at H,
   have : ∃ (i : fin r), M (inl i) (inr star) ≠ 0 ∨ M (inr star) (inl i) ≠ 0,
   { cases H,
     { contrapose! H,
-      ext i j,
-      convert (H i).1,
-      simp only [eq_iff_true_of_subsingleton] },
+      rintros i ⟨⟩,
+      exact (H i).1 },
     { contrapose! H,
-      ext i j,
-      convert (H j).2,
-      simp only [eq_iff_true_of_subsingleton] } },
+      rintros ⟨⟩ j,
+      exact (H j).2, } },
   rcases this with ⟨i, h|h⟩,
   { let M' := transvection (inr unit.star) (inl i) 1 ⬝ M,
     have hM' : M' (inr star) (inr star) ≠ 0, by simpa [M', hM],
@@ -569,7 +567,7 @@ begin
     congr,
     { exact hM.1 },
     { exact hM.2 },
-    { ext i j,  rw [hc, to_blocks₂₂], congr } },
+    { ext ⟨⟩ ⟨⟩, rw [hc, to_blocks₂₂, of_apply], refl, } },
   rw this,
   simp [h₀],
 end
@@ -587,12 +585,12 @@ begin
   rcases H with ⟨L₀, L₀', D₀, h₀⟩,
   refine ⟨L₀.map (reindex_equiv e.symm), L₀'.map (reindex_equiv e.symm), D₀ ∘ e, _⟩,
   have : M = reindex_alg_equiv 𝕜 e.symm (reindex_alg_equiv 𝕜 e M),
-    by simp only [equiv.symm_symm, minor_minor, reindex_apply, minor_id_id, equiv.symm_comp_self,
-      reindex_alg_equiv_apply],
+    by simp only [equiv.symm_symm, submatrix_submatrix, reindex_apply, submatrix_id_id,
+      equiv.symm_comp_self, reindex_alg_equiv_apply],
   rw this,
   simp only [to_matrix_reindex_equiv_prod, list.map_map, reindex_alg_equiv_apply],
   simp only [← reindex_alg_equiv_apply, ← reindex_alg_equiv_mul, h₀],
-  simp only [equiv.symm_symm, reindex_apply, minor_diagonal_equiv, reindex_alg_equiv_apply],
+  simp only [equiv.symm_symm, reindex_apply, submatrix_diagonal_equiv, reindex_alg_equiv_apply],
 end
 
 /-- Any matrix can be reduced to diagonal form by elementary operations. Formulated here on `Type 0`

@@ -60,6 +60,8 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 alias dvd_trans ← has_dvd.dvd.trans
 
+instance : is_trans α (∣) := ⟨λ a b c, dvd_trans⟩
+
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
 
 theorem dvd_mul_of_dvd_left (h : a ∣ b) (c : α) : a ∣ b * c :=
@@ -89,13 +91,11 @@ section monoid
 
 variables [monoid α]
 
-@[refl, simp] theorem dvd_refl (a : α) : a ∣ a :=
-dvd.intro 1 (mul_one _)
+@[refl, simp] theorem dvd_refl (a : α) : a ∣ a := dvd.intro 1 (mul_one a)
+theorem dvd_rfl : ∀ {a : α}, a ∣ a := dvd_refl
+instance : is_refl α (∣) := ⟨dvd_refl⟩
 
-lemma dvd_rfl {a : α} : a ∣ a :=
-dvd_refl a
-
-theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
+theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul a)
 
 end monoid
 

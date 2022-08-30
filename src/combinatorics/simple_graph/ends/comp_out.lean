@@ -494,7 +494,7 @@ begin
 end
 
 lemma inf_of_in_all_ranges {K : finset V} (C : G.comp_out K)
-  (mem_ranges : ∀ {L : finset V} (h : ↑K ⊆ ↑L), ∃ (D : G.comp_out L), D.dis ∧  D.back h = C) : C.inf :=
+  (mem_ranges : ∀ {L : finset V} (h : K ⊆ L), ∃ (D : G.comp_out L), D.dis ∧  D.back h = C) : C.inf :=
 begin
   rintro Cfin,
   let L_ := (K : set V) ∪ C,
@@ -661,8 +661,8 @@ lemma back_of_inf  {K L : set V} (h : K ⊆ L) (C : G.dis_comp_out L) (Cinf : C.
 end back
 
 
-lemma inf_iff_in_all_ranges  {K : set V} (Kfin : K.finite)  (C : G.dis_comp_out K) :
-  C.val.inf ↔ ∀ (L : set V) (Lfin : L.finite) (h : K ⊆ L), C ∈ set.range (@back _ G _ _ h) :=
+lemma inf_iff_in_all_ranges  {K : finset V} (C : G.dis_comp_out K) :
+  C.val.inf ↔ ∀ (L : finset V) (h : K ⊆ L), C ∈ set.range (@back _ G _ _ h) :=
 begin
   sorry,
 end
@@ -676,11 +676,9 @@ instance inf_comp_out_dis_comp_out (G : simple_graph V) (K : set V) :
 -- Here can refine most of the constructions for `comp_out`
 namespace inf_comp_out
 
-
 variables {G} {K} {L : set V}
 
 lemma of_empty_is_subsingleton (Gpc : G.preconnected) : subsingleton (G.inf_comp_out ∅) := sorry
-
 
 def equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
  (K : set V) : G.inf_comp_out K ≃ G'.inf_comp_out (φ '' K) := sorry
@@ -710,7 +708,7 @@ lemma back_refl_apply  (C : G.inf_comp_out K) : C.back (subset_refl K) = C := so
 lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.inf_comp_out M) :
   (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) := sorry
 
-lemma back_surjective {K L : set V} (h : K ⊆ L) : function.surjective (@back V G K L h) := sorry
+lemma back_surjective {K L : finset V} (h : K ⊆ L) : function.surjective (@back V G K L h) := sorry
 
 end inf_comp_out
 

@@ -11,9 +11,10 @@ import category_theory.preadditive.injective
 /-!
 # Skyscraper (pre)sheaves
 
-A skyscraper (pre)sheaf is a (pre)sheaf supported at a single point: if `p₀ ∈ X` is a specified
-point, then the skyscraper (pre)sheaf `𝓕` with value `A` is defined by `U ↦ A` if `p₀ ∈ U` and
-`U ↦ *` if `p₀ ∉ A` where `*` is some terminal object.
+A skyscraper (pre)sheaf `𝓕 : (pre)sheaf C X` is a (pre)sheaf with value `A` at point `p₀` is
+supported only at open sets contain `p₀`, i.e. `𝓕(U) = A` if `p₀ ∈ U` and `𝓕(U) = *` if `p₀ ∉ U`
+where `*` is a terminal object of `C`. In terms of stalks, `𝓕` is supported at all specilizations
+of `p₀`, i.e. if `x ⤳ p₀` then `𝓕ₓ ≅ A` and if `¬ x ⤳ p₀` then `𝓕ₓ ≅ *`.
 
 ## Main definitions
 

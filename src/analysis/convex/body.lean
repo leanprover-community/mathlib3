@@ -88,7 +88,7 @@ instance : add_comm_monoid (convex_body V) :=
   .. convex_body.add_monoid }
 
 instance : has_smul ℝ≥0 (convex_body V) :=
-{ smul := λ c K, ⟨c • (K : set V), K.convex.smul _, K.is_compact.smul _, K.nonempty.smul_set⟩}
+{ smul := λ c K, ⟨c • (K : set V), K.convex.smul _, K.is_compact.smul _, K.nonempty.smul_set⟩ }
 
 @[simp]
 lemma coe_smul (c : ℝ≥0) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl

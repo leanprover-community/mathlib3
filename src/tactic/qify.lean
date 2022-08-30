@@ -12,10 +12,10 @@ import data.rat.cast
 
 Note that this file is followed by `zify`.
 
-Division in `ℕ` is not always working fine (e.g. (5 : ℕ) / 2 = 2), so that it's easier to work
-in `ℚ`, where division and subtraction is well behaved. `qify` can be used to cast goals and
-hypotheses about natural numbers to rational numbers. It makes use of `push_cast`, part of the
-`norm_cast` family, to simplify these goals.
+Division in `ℕ` is not always working fine (e.g. (5 : ℕ) / 2 = 2), so it's easier to work in `ℚ`,
+where division and subtraction are well behaved. `qify` can be used to cast goals and hypotheses
+about natural numbers to rational numbers. It makes use of `push_cast`, part of the `norm_cast`
+family, to simplify these goals.
 
 ## Implementation notes
 

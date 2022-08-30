@@ -56,7 +56,7 @@ The embedding from `R` is called `C`. -/
 structure polynomial (R : Type*) [semiring R] := of_finsupp ::
 (to_finsupp : add_monoid_algebra R ℕ)
 
-localized "notation R`[X]`:9000 := polynomial R" in polynomial
+localized "notation (name := polynomial) R`[X]`:9000 := polynomial R" in polynomial
 
 open add_monoid_algebra finsupp function
 open_locale big_operators polynomial

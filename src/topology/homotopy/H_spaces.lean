@@ -211,8 +211,8 @@ theorem Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.tran
 begin
   apply continuous.piecewise,
   { rintros ⟨_, t⟩ h,
-    have h_eq : (λ (i : (path x x × path x x) × I), (i.snd : ℝ) ≤ (1 / 2)) =
-      (set.univ) ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
+    have h_eq : (λ i : (path x x × path x x) × I, (i.snd : ℝ) ≤ 1 / 2) =
+      set.univ ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
     { ext p,
       change (p.2 : ℝ) ≤ 1 / 2 ↔ p ∈ (@set.univ (Ω(x) × Ω(x)) ×ˢ {s : I | (s : ℝ) ≤ 1 / 2}),
       simp only [set.mem_prod, set.mem_univ, set.mem_set_of_eq, true_and] },

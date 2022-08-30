@@ -365,7 +365,7 @@ def Q_left : I × I → I := λ p, dite ((p.1 : ℝ) ≤ p.2 / 2) (λ h, 0)
 def Q'_left : I × I → ℝ := λ p,
 ite ((p.1 : ℝ) ≤ p.2 / 2) 0 ((2 * p.1 - p.2)/(2 - p.2))
 
-lemma Q'_left_extends_Q_left : Q_left = (set.proj_Icc (0 : ℝ) _ zero_le_one) ∘ Q'_left :=
+lemma Q'_left_extends_Q_left : Q_left = set.proj_Icc (0 : ℝ) _ zero_le_one ∘ Q'_left :=
 begin
   ext,
   dsimp only [Q_left, Q'_left, zero_le_one],

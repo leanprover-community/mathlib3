@@ -78,17 +78,9 @@ lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
 /-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
 such that `a = 2^e * a'` and `a'` is odd. -/
 lemma two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ a = 2 ^ e * a' :=
-begin
-  refine rec_on_mul (λ hf, false.rec _ (hf rfl)) (λ _, ⟨0, 1, odd_one, by rw [pow_zero, mul_one]⟩)
-                    (λ p pp _, _) (λ m n hm hn hmn, _) a ha,
-  { cases pp.eq_two_or_odd' with hp₂ hp₂,
-    { exact ⟨1, 1, odd_one, by rw [hp₂, pow_one, mul_one]⟩, },
-    { exact ⟨0, p, hp₂, by rw [pow_zero, one_mul]⟩, } },
-  { rcases hm (left_ne_zero_of_mul hmn) with ⟨em, m', hmo, hmm⟩,
-    rcases hn (right_ne_zero_of_mul hmn) with ⟨en, n', hno, hnn⟩,
-    refine ⟨em + en, m' * n', odd_mul.mpr ⟨hmo, hno⟩, _⟩,
-    rw [hmm, hnn, pow_add, mul_mul_mul_comm], },
-end
+⟨a.factorization 2, ord_compl[2] a,
+ odd_iff.mpr $ two_dvd_ne_zero.mp $ not_dvd_ord_compl prime_two ha,
+ (ord_proj_mul_ord_compl_eq_self a 2).symm⟩
 
 end nat
 

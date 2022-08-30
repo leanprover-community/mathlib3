@@ -197,16 +197,7 @@ end
 
 /-- The Jacobi symbol `(1 / b)` has the value `1`. -/
 lemma jacobi_sym_one_left (b : ℕ) : [1 | b]ⱼ = 1 :=
-begin
-  refine rec_on_mul (jacobi_sym_zero_right 1) (jacobi_sym_one_right 1)
-                    (λ p pp, _) (λ m n hm hn, _) b,
-  { simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, @legendre_sym_one p ⟨pp⟩], },
-  { by_cases hm0 : m = 0,
-    { rw [hm0, zero_mul, jacobi_sym_zero_right], },
-    by_cases hn0 : n = 0,
-    { rw [hn0, mul_zero, jacobi_sym_zero_right], },
-    rw [@jacobi_sym_mul_right _ _ _ ⟨hm0⟩ ⟨hn0⟩, hm, hn, one_mul], },
-end
+list.prod_eq_one (λ z hz, let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [← he, legendre_sym_one])
 
 /-- The Jacobi symbol is multiplicative in its first argument. -/
 lemma jacobi_sym_mul_left (a₁ a₂ : ℤ) (b : ℕ) : [a₁ * a₂ | b]ⱼ = [a₁ | b]ⱼ * [a₂ | b]ⱼ :=

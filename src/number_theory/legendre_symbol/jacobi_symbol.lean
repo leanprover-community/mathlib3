@@ -204,17 +204,16 @@ begin
   exacts [rfl, λ p hp, (list.mem_append.mp hp).elim prime_of_mem_factors prime_of_mem_factors],
 end
 
-private
-lemma help {x₁ x₂: ℤ} (hx₁ : x₁ = 0 ∨ x₁ = 1 ∨ x₁ = -1) (hx₂ : x₂ = 0 ∨ x₂ = 1 ∨ x₂ = -1) :
-  x₁ * x₂ = 0 ∨ x₁ * x₂ = 1 ∨ x₁ * x₂ = -1 :=
-by rcases hx₁ with (hx₁ | hx₁ | hx₁); rcases hx₂ with (hx₂ | hx₂ | hx₂); rw [hx₁, hx₂]; norm_num
-
 /-- The Jacobi symbol takes only the values `0`, `1` and `1`. -/
 lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
 begin
   simp_rw [jacobi_sym],
   let P : ℤ → Prop := λ x, x = 0 ∨ x = 1 ∨ x = -1,
-  refine @list.prod_prop _ _ _ P dec_trivial (λ a' ha', _) @help,
+  have help : ∀ x₁ x₂ : ℤ, P x₁ → P x₂ → P (x₁ * x₂) :=
+  λ x₁ x₂ hx₁ hx₂,
+    by rcases hx₁ with (hx₁ | hx₁ | hx₁); rcases hx₂ with (hx₂ | hx₂ | hx₂);
+       simp_rw [P, hx₁, hx₂]; norm_num,
+  refine list.prod_prop (dec_trivial : P 1) (λ a' ha', _) help,
   rcases list.mem_pmap.mp ha' with ⟨p, hp, hl⟩,
   rw [← hl, legendre_sym],
   haveI : fact p.prime := ⟨prime_of_mem_factors hp⟩,

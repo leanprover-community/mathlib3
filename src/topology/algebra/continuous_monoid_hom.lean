@@ -297,5 +297,3 @@ def pontryagin_dual (G : Type*) [monoid G] [topological_space G] := continuous_m
 noncomputable def continuous_monoid_hom.pontryagin_dual (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (pontryagin_dual B) (pontryagin_dual A) :=
 f.comp_left circle
-
-#lint

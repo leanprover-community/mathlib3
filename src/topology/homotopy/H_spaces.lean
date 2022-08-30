@@ -80,7 +80,7 @@ lemma not_mem_interior {θ : ℝ} {t : I} : t ∉ interior {s : ↥I | (s : ℝ)
 begin
   -- For `θ = 1` the set `{s : ↥I | (s : ℝ) ≤ θ}` is the whole `I`, whose interior (in the induced
   -- topology) is `I` again, and `t ∉ interior I = I` is always false, whereas `1 ≤ t` is true for
-  -- `t = 1`. So we split the proof in the cases `1 ≤ θ ` and `θ < 1`.
+  -- `t = 1`. So we split the proof in the cases `1 ≤ θ` and `θ < 1`.
   by_cases h_θ_1 : 1 ≤ θ,
   { rw [univ_eq_le_one h_θ_1, interior_univ],
     tauto },

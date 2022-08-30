@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 
 import algebra.module.equiv
-import data.finsupp.basic
+import data.finsupp.defs
 import group_theory.free_abelian_group
 import group_theory.is_free_group
 import linear_algebra.dimension

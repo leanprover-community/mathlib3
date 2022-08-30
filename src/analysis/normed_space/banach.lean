@@ -428,7 +428,7 @@ theorem linear_map.continuous_of_seq_closed_graph
   (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
   continuous g :=
 begin
-  refine g.continuous_of_is_closed_graph (is_seq_closed_iff_is_closed.mp $ is_seq_closed_of_def _),
+  refine g.continuous_of_is_closed_graph (is_seq_closed.is_closed _),
   rintros φ ⟨x, y⟩ hφg hφ,
   refine hg (prod.fst ∘ φ) x y ((continuous_fst.tendsto _).comp hφ) _,
   have : g ∘ prod.fst ∘ φ = prod.snd ∘ φ,

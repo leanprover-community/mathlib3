@@ -446,9 +446,8 @@ lemma exists_subset_nhd_of_compact' {ι : Type*} [nonempty ι] {V : ι → set �
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 begin
   obtain ⟨W, hsubW, W_op, hWU⟩ := exists_open_set_nhds hU,
-  suffices : ∃ i, V i ⊆ W,
-  { rcases this with ⟨i, hi⟩,
-    refine ⟨i, set.subset.trans hi hWU⟩ },
+  rsuffices ⟨i, hi⟩ : ∃ i, V i ⊆ W,
+  { exact ⟨i, hi.trans hWU⟩ },
   by_contra' H,
   replace H : ∀ i, (V i ∩ Wᶜ).nonempty := λ i, set.inter_compl_nonempty_iff.mpr (H i),
   have : (⋂ i, V i ∩ Wᶜ).nonempty,
@@ -815,14 +814,13 @@ begin
   assume C (hC : is_closed C),
   rw is_closed_iff_cluster_pt at hC ⊢,
   assume y (y_closure : cluster_pt y $ 𝓟 (πY '' C)),
-  have : ne_bot (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
+  haveI : ne_bot (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
   { suffices : ne_bot (map πY (comap πY (𝓝 y) ⊓ 𝓟 C)),
       by simpa only [map_ne_bot_iff],
     convert y_closure,
     calc map πY (comap πY (𝓝 y) ⊓ 𝓟 C) =
        𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
       ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal },
-  resetI,
   obtain ⟨x, hx⟩ : ∃ x, cluster_pt x (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
     from cluster_point_of_compact _,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
@@ -1099,19 +1097,24 @@ lemma exists_compact_mem_nhds [locally_compact_space α] (x : α) :
 let ⟨K, hKc, hx, H⟩ := exists_compact_subset is_open_univ (mem_univ x)
 in ⟨K, hKc, mem_interior_iff_mem_nhds.1 hx⟩
 
+/-- In a locally compact space, for every containement `K ⊆ U` of a compact set `K` in an open
+  set `U`, there is a compact neighborhood `L` such that `K ⊆ L ⊆ U`: equivalently, there is a
+  compact `L` such that `K ⊆ interior L` and `L ⊆ U`. -/
+lemma exists_compact_between [hα : locally_compact_space α] {K U : set α} (hK : is_compact K)
+  (hU : is_open U) (h_KU : K ⊆ U) : ∃ L, is_compact L ∧ K ⊆ interior L ∧ L ⊆ U :=
+begin
+  choose V hVc hxV hKV using λ x : K, exists_compact_subset hU (h_KU x.2),
+  have : K ⊆ ⋃ x, interior (V x), from λ x hx, mem_Union.2 ⟨⟨x, hx⟩, hxV _⟩,
+  rcases hK.elim_finite_subcover _ (λ x, @is_open_interior α _ (V x)) this with ⟨t, ht⟩,
+  refine ⟨_, t.compact_bUnion (λ x _, hVc x), λ x hx, _, set.Union₂_subset (λ i _, hKV i)⟩,
+  rcases mem_Union₂.1 (ht hx) with ⟨y, hyt, hy⟩,
+  exact interior_mono (subset_bUnion_of_mem hyt) hy,
+end
+
 /-- In a locally compact space, every compact set is contained in the interior of a compact set. -/
 lemma exists_compact_superset [locally_compact_space α] {K : set α} (hK : is_compact K) :
   ∃ K', is_compact K' ∧ K ⊆ interior K' :=
-begin
-  choose U hUc hxU using λ x : K, exists_compact_mem_nhds (x : α),
-  have : K ⊆ ⋃ x, interior (U x),
-    from λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 (hxU _)⟩,
-  rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
-  { refine ⟨_, t.compact_bUnion (λ x _, hUc x), λ x hx, _⟩,
-    rcases mem_Union₂.1 (ht hx) with ⟨y, hyt, hy⟩,
-    exact interior_mono (subset_bUnion_of_mem hyt) hy },
-  { exact λ _, is_open_interior }
-end
+let ⟨L, hLc, hKL, _⟩ := exists_compact_between hK is_open_univ K.subset_univ in ⟨L, hLc, hKL⟩
 
 protected lemma closed_embedding.locally_compact_space [locally_compact_space β] {f : α → β}
   (hf : closed_embedding f) : locally_compact_space α :=

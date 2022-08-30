@@ -189,23 +189,23 @@ lemma at_top_basis_Ioi [nonempty α] [semilattice_sup α] [no_max_order α] :
 at_top_basis.to_has_basis (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩) $
   λ a ha, (exists_gt a).imp $ λ b hb, ⟨ha, Ici_subset_Ioi.2 hb⟩
 
-lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
+lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [countable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
 { countable := to_countable _,
   .. at_top_basis }
 
-lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [encodable α] :
+lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [countable α] :
   has_countable_basis (at_bot : filter α) (λ _, true) Iic :=
 { countable := to_countable _,
   .. at_bot_basis }
 
 @[priority 200]
-instance at_top.is_countably_generated [preorder α] [encodable α] :
+instance at_top.is_countably_generated [preorder α] [countable α] :
   (at_top : filter $ α).is_countably_generated :=
 is_countably_generated_seq _
 
 @[priority 200]
-instance at_bot.is_countably_generated [preorder α] [encodable α] :
+instance at_bot.is_countably_generated [preorder α] [countable α] :
   (at_bot : filter $ α).is_countably_generated :=
 is_countably_generated_seq _
 
@@ -1386,9 +1386,8 @@ lemma has_antitone_basis.subbasis_with_rel {f : filter α} {s : ℕ → set α}
   (hs : f.has_antitone_basis s) {r : ℕ → ℕ → Prop} (hr : ∀ m, ∀ᶠ n in at_top, r m n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ (∀ ⦃m n⦄, m < n → r (φ m) (φ n)) ∧ f.has_antitone_basis (s ∘ φ) :=
 begin
-  suffices : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ m n, m < n → r (φ m) (φ n),
-  { rcases this with ⟨φ, hφ, hrφ⟩,
-    exact ⟨φ, hφ, hrφ, hs.comp_strict_mono hφ⟩ },
+  rsuffices ⟨φ, hφ, hrφ⟩ : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ m n, m < n → r (φ m) (φ n),
+  { exact ⟨φ, hφ, hrφ, hs.comp_strict_mono hφ⟩ },
   have : ∀ t : set ℕ, t.finite → ∀ᶠ n in at_top, ∀ m ∈ t, m < n ∧ r m n,
     from λ t ht, (eventually_all_finite ht).2 (λ m hm, (eventually_gt_at_top m).and (hr _)),
   rcases seq_of_forall_finite_exists (λ t ht, (this t ht).exists) with ⟨φ, hφ⟩,

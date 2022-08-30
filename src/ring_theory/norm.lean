@@ -196,7 +196,7 @@ begin
   contrapose! hx,
   obtain ⟨s, ⟨b⟩⟩ := hx,
   refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
-  { exact (submodule.fg_iff_finite_dimensional _).mpr (of_finset_basis b) },
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (of_fintype_basis b) },
   { exact intermediate_field.subset_adjoin K _ (set.mem_singleton x) }
 end
 

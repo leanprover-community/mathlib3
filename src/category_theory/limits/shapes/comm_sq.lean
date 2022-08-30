@@ -213,6 +213,13 @@ lemma of_iso_pullback (h : comm_sq fst snd f g) [has_pullback f g] (i : P ≅ pu
 of_is_limit' h (limits.is_limit.of_iso_limit (limit.is_limit _)
   (@pullback_cone.ext _ _ _ _ _ _ _ (pullback_cone.mk _ _ _) _ i w₁.symm w₂.symm).symm)
 
+lemma of_horiz_is_iso [is_iso fst] [is_iso g] (sq : comm_sq fst snd f g) :
+  is_pullback fst snd f g := of_is_limit' sq
+begin
+  refine pullback_cone.is_limit.mk _ (λ s, s.fst ≫ inv fst) (by tidy) (λ s, _) (by tidy),
+  simp only [← cancel_mono g, category.assoc, ← sq.w, is_iso.inv_hom_id_assoc, s.condition],
+end
+
 end is_pullback
 
 namespace is_pushout
@@ -374,6 +381,9 @@ lemma unop {P X Y Z : Cᵒᵖ} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g 
 is_pushout.of_is_colimit (is_colimit.of_iso_colimit
   (limits.pullback_cone.is_limit_equiv_is_colimit_unop h.flip.cone h.flip.is_limit)
   h.to_comm_sq.flip.cone_unop)
+
+lemma of_vert_is_iso [is_iso snd] [is_iso f] (sq : comm_sq fst snd f g) :
+  is_pullback fst snd f g := is_pullback.flip (of_horiz_is_iso sq.flip)
 
 end is_pullback
 

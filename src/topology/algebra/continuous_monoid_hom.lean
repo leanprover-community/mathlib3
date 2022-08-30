@@ -242,8 +242,62 @@ let hi := is_inducing A E, hc := hi.continuous in
 { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (continuous.prod_map hc hc)),
   continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
 
+lemma mylem (W X Y Z : Type*) [topological_space W] [topological_space X] [topological_space Y]
+  [topological_space Z] (f : X → Y) (g : W → Z) (i : W → X) (j : Z → Y)
+  (hi : inducing i) (hj : inducing j) (h : f ∘ i = j ∘ g) (hg : continuous f) :
+  continuous g :=
+begin
+  rw [continuous_iff_le_induced, hj.induced, induced_compose, ←h, ←induced_compose],
+  rw continuous_iff_le_induced at hg,
+  rw hi.induced,
+  exact induced_mono hg,
+end
+
+lemma continuous_comp [locally_compact_space B] : continuous
+  (λ f : continuous_monoid_hom A B × continuous_monoid_hom B C, f.2.comp f.1) :=
+begin
+  exact mylem (continuous_monoid_hom A B × continuous_monoid_hom B C)
+    (continuous_map A B × continuous_map B C) (continuous_map A C) (continuous_monoid_hom A C)
+    (λ f, f.2.comp f.1) (λ f, f.2.comp f.1) (λ f, (f.1.to_continuous_map, f.2.to_continuous_map))
+    to_continuous_map ((is_inducing A B).prod_mk (is_inducing B C))
+    (is_inducing A C) rfl continuous_map.continuous_comp',
+end
+
+lemma continuous_comp_left (f : continuous_monoid_hom A B) : continuous
+  (λ g : continuous_monoid_hom B C, g.comp f) :=
+begin
+  exact mylem (continuous_monoid_hom B C) (continuous_map B C) (continuous_map A C)
+    (continuous_monoid_hom A C) (λ g, g.comp f) (λ g, g.comp f) to_continuous_map
+    to_continuous_map (is_inducing B C) (is_inducing A C) rfl
+    f.to_continuous_map.continuous_comp_left,
+end
+
+lemma continuous_comp_right (f : continuous_monoid_hom B C) : continuous
+  (λ g : continuous_monoid_hom A B, f.comp g) :=
+begin
+  exact mylem (continuous_monoid_hom A B) (continuous_map A B) (continuous_map A C)
+    (continuous_monoid_hom A C) (λ g, f.to_continuous_map.comp g) (λ g, f.comp g)
+    to_continuous_map to_continuous_map (is_inducing A B) (is_inducing A C) rfl
+    f.to_continuous_map.continuous_comp,
+end
+
+variables (E)
+
+/-- `continuous_monoid_hom(f, -)` is a functor. -/
+def comp_left (f : continuous_monoid_hom A B) :
+  continuous_monoid_hom (continuous_monoid_hom B E) (continuous_monoid_hom A E) :=
+{ to_fun := λ g, g.comp f,
+  map_one' := rfl,
+  map_mul' := λ g h, rfl,
+  continuous_to_fun := f.continuous_comp_left }
+
 end continuous_monoid_hom
 
 /-- The Pontryagin dual of `G` is the group of continuous homomorphism `G → circle`. -/
 @[derive [topological_space, t2_space, comm_group, topological_group, inhabited]]
 def pontryagin_dual (G : Type*) [monoid G] [topological_space G] := continuous_monoid_hom G circle
+
+/-- `pontryagin_dual` is a functor. -/
+noncomputable def continuous_monoid_hom.pontryagin_dual (f : continuous_monoid_hom A B) :
+  continuous_monoid_hom (pontryagin_dual B) (pontryagin_dual A) :=
+f.comp_left circle

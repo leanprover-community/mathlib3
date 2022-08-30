@@ -417,7 +417,7 @@ lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) :
   (derivative^[k] (X^n : R[X])) = (nat.desc_factorial n k : R) • X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_C_mul n k, smul_eq_C_mul]
 
-lemma derivative_X_add_pow (c:R) (m:ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=
+lemma derivative_X_add_pow (c : R) (m : ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=
 by rw [derivative_pow, derivative_add, derivative_X, derivative_C, add_zero, mul_one]
 
 lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) :

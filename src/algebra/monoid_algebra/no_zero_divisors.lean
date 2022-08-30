@@ -25,10 +25,6 @@ open finsupp
 
 variables {R A : Type*} [semiring R]
 
-section a_version_with_different_typeclass_assumptions
-
-section no_covariant
-
 /--  The coefficient of a monomial in a product `f * g` that can be reached in at most one way
 as a product of monomials in the supports of `f` and `g` is a product. -/
 lemma mul_apply_add_eq_mul_of_forall_ne [has_add A] {f g : add_monoid_algebra R A} {a0 b0 : A}
@@ -49,34 +45,25 @@ begin
     { exact if_pos rfl } },
 end
 
-section left_cancel
-variables [add_left_cancel_semigroup A] {g : add_monoid_algebra R A}
+section left_or_right_orderability
 
-lemma left.exists_add_of_mem_support_single_mul (a x : A)
+lemma left.exists_add_of_mem_support_single_mul [add_left_cancel_semigroup A]
+  {g : add_monoid_algebra R A} (a x : A)
   (hx : x ∈ (single a 1 * g : add_monoid_algebra R A).support) :
   ∃ b ∈ g.support, a + b = x :=
 by rwa [support_single_mul _ _ (λ y, by rw one_mul : ∀ y : R, 1 * y = 0 ↔ _), finset.mem_map] at hx
 
-end left_cancel
-
-section right_cancel
-variables [add_right_cancel_semigroup A] {f : add_monoid_algebra R A}
-
-lemma right.exists_add_of_mem_support_single_mul (b x : A)
+lemma right.exists_add_of_mem_support_single_mul [add_right_cancel_semigroup A]
+  {f : add_monoid_algebra R A} (b x : A)
   (hx : x ∈ (f * single b 1 : add_monoid_algebra R A).support) :
   ∃ a ∈ f.support, a + b = x :=
 by rwa [support_mul_single _ _ (λ y, by rw mul_one : ∀ y : R, y * 1 = 0 ↔ _), finset.mem_map] at hx
 
-end right_cancel
-end no_covariant
-
-section left_ordered
-variables [no_zero_divisors R] [add_right_cancel_semigroup A] [linear_order A]
-  [covariant_class A A (+) (<)] {f g : add_monoid_algebra R A} {a b : A}
-
 /--  If `R` is a semiring with no non-trivial zero-divisors and `A` is a left-ordered add right
 cancel semigroup, then `add_monoid_algebra R A` also contains no non-zero zero-divisors. -/
-lemma no_zero_divisors.of_left_ordered : no_zero_divisors (add_monoid_algebra R A) :=
+lemma no_zero_divisors.of_left_ordered [no_zero_divisors R]
+  [add_right_cancel_semigroup A] [linear_order A] [covariant_class A A (+) (<)] :
+  no_zero_divisors (add_monoid_algebra R A) :=
 ⟨λ f g fg, begin
   contrapose! fg,
   rw [← support_nonempty_iff, ← support_nonempty_iff] at fg,
@@ -110,15 +97,11 @@ lemma no_zero_divisors.of_left_ordered : no_zero_divisors (add_monoid_algebra R 
         exact finset.min'_lt_of_mem_erase_min' _ _ (finset.mem_erase.mpr ⟨hc, cg⟩) } } }
 end⟩
 
-end left_ordered
-
-section right_ordered
-variables [no_zero_divisors R] [add_left_cancel_semigroup A] [linear_order A]
-  [covariant_class A A (function.swap (+)) (<)] {f g : add_monoid_algebra R A} {a b : A}
-
 /--  If `R` is a semiring with no non-trivial zero-divisors and `A` is a right-ordered add left
 cancel semigroup, then `add_monoid_algebra R A` also contains no non-zero zero-divisors. -/
-lemma no_zero_divisors.of_right_ordered : no_zero_divisors (add_monoid_algebra R A) :=
+lemma no_zero_divisors.of_right_ordered [no_zero_divisors R]
+  [add_left_cancel_semigroup A] [linear_order A] [covariant_class A A (function.swap (+)) (<)] :
+  no_zero_divisors (add_monoid_algebra R A) :=
 ⟨λ f g fg, begin
   contrapose! fg,
   rw [← support_nonempty_iff, ← support_nonempty_iff] at fg,
@@ -152,8 +135,6 @@ lemma no_zero_divisors.of_right_ordered : no_zero_divisors (add_monoid_algebra R
         exact add_le_add_right (finset.min'_le _ _ bf) _ } } }
 end⟩
 
-end right_ordered
-
-end a_version_with_different_typeclass_assumptions
+end left_or_right_orderability
 
 end add_monoid_algebra

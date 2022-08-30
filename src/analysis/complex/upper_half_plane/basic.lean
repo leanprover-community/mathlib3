@@ -42,7 +42,7 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 @[derive [λ α, has_coe α ℂ]]
 def upper_half_plane := {point : ℂ // 0 < point.im}
 
-localized "notation `ℍ` := upper_half_plane" in upper_half_plane
+localized "notation (name := upper_half_plane) `ℍ` := upper_half_plane" in upper_half_plane
 
 namespace upper_half_plane
 

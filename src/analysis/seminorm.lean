@@ -48,16 +48,38 @@ structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_group
 
 attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
+section of
+
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` that is a module over a
 `semi_norm_ring 𝕜`. -/
-def seminorm.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  (f : E → ℝ) (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
+def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
+  (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
   map_zero' := by rw [←zero_smul 𝕜 (0 : E), smul, norm_zero, zero_mul],
   add_le'   := add_le,
   smul'     := smul,
   neg'      := λ x, by rw [←neg_one_smul 𝕜, smul, norm_neg, ← smul, one_smul] }
+
+/-- Alternative constructor for a `seminorm` over a normed field `𝕜` that only assumes `f 0 = 0`
+and an inequality for the scalar multiplication. -/
+def seminorm.of_smul_le [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
+  (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
+  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
+seminorm.of f add_le
+  (λ r x, begin
+    refine le_antisymm (smul_le r x) _,
+    by_cases r = 0,
+    { simp [h, map_zero] },
+    rw ←mul_le_mul_left (inv_pos.mpr (norm_pos_iff.mpr h)),
+    rw inv_mul_cancel_left₀ (norm_ne_zero_iff.mpr h),
+    specialize smul_le r⁻¹ (r • x),
+    rw norm_inv at smul_le,
+    convert smul_le,
+    simp [h],
+  end)
+
+end of
 
 namespace seminorm
 

@@ -51,7 +51,7 @@ local attribute [semireducible] simplex_category
 /-- Interpet a natural number as an object of the simplex category. -/
 def mk (n : ℕ) : simplex_category := n
 
-localized "notation `[`n`]` := simplex_category.mk n" in simplicial
+localized "notation (name := simplex_category.mk) `[`n`]` := simplex_category.mk n" in simplicial
 
 -- TODO: Make `len` irreducible.
 /-- The length of an object of `simplex_category`. -/

@@ -59,7 +59,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 * There is an instance `has_pow cardinal`, but this will only fire if Lean already knows that both
   the base and the exponent live in the same universe. As a workaround, you can add
   ```
-    local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
+    local infixr (name := cardinal.pow) ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
   ```
   to a file. This notation will work even if Lean doesn't know yet that the base and the exponent
   live in the same universe (but no exponents in other types can be used).
@@ -102,7 +102,7 @@ namespace cardinal
 /-- The cardinal number of a type -/
 def mk : Type u → cardinal := quotient.mk
 
-localized "notation `#` := cardinal.mk" in cardinal
+localized "notation (name := cardinal.mk) `#` := cardinal.mk" in cardinal
 
 instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
 ⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
@@ -336,8 +336,8 @@ induction_on₂ a b $ λ α β, mk_congr $ equiv.prod_comm α β
 instance : has_pow cardinal.{u} cardinal.{u} :=
 ⟨map₂ (λ α β, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁)⟩
 
-local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
-local infixr ` ^ℕ `:80 := @has_pow.pow cardinal ℕ monoid.has_pow
+local infixr (name := cardinal.pow) ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
+local infixr (name := cardinal.pow.nat) ` ^ℕ `:80 := @has_pow.pow cardinal ℕ monoid.has_pow
 
 theorem power_def (α β) : #α ^ #β = #(β → α) := rfl
 
@@ -821,7 +821,7 @@ lift_supr_le_lift_supr hf hf' h
 /-- `ℵ₀` is the smallest infinite cardinal. -/
 def aleph_0 : cardinal.{u} := lift (#ℕ)
 
-localized "notation `ℵ₀` := cardinal.aleph_0" in cardinal
+localized "notation (name := cardinal.aleph_0) `ℵ₀` := cardinal.aleph_0" in cardinal
 
 lemma mk_nat : #ℕ = ℵ₀ := (lift_id _).symm
 

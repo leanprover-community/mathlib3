@@ -67,7 +67,8 @@ variables {α β : Type*} [normed_add_comm_group β]
     `u x - v x = o(v x)` as x converges along `l`. -/
 def is_equivalent (l : filter α) (u v : α → β) := (u - v) =o[l] v
 
-localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent l u v" in asymptotics
+localized "notation (name := asymptotics.is_equivalent)
+  u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent l u v" in asymptotics
 
 variables {u v w : α → β} {l : filter α}
 

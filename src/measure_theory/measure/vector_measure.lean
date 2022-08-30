@@ -775,9 +775,9 @@ end
 
 end
 
-localized "notation v ` ≤[`:50 i:50 `] `:0 w:50 :=
-measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
-in measure_theory
+localized "notation (name := vector_measure.restrict) v ` ≤[`:50 i:50 `] `:0 w:50 :=
+  measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
+  in measure_theory
 
 section
 
@@ -1007,7 +1007,8 @@ def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
 ∀ ⦃s : set α⦄, w s = 0 → v s = 0
 
 
-localized "infix ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
+localized "infix (name := vector_measure.absolutely_continuous)
+  ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
   in measure_theory
 
 open_locale measure_theory
@@ -1099,7 +1100,8 @@ to use. This is equivalent to the definition which requires measurability. To pr
 def mutually_singular (v : vector_measure α M) (w : vector_measure α N) : Prop :=
 ∃ (s : set α), measurable_set s ∧ (∀ t ⊆ s, v t = 0) ∧ (∀ t ⊆ sᶜ, w t = 0)
 
-localized "infix ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
+localized "infix (name := vector_measure.mutually_singular)
+  ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
 
 namespace mutually_singular
 

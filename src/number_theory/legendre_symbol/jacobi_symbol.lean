@@ -86,6 +86,9 @@ end nat
 
 namespace int
 
+lemma dvd_nat_abs_iff_of_nat_dvd {a : ℕ} {z : ℤ} : a ∣ z.nat_abs ↔ (a : ℤ) ∣ z :=
+⟨int.of_nat_dvd_of_dvd_nat_abs, int.dvd_nat_abs_of_of_nat_dvd⟩
+
 /-- If `gcd a (m * n) ≠ 1`, then `gcd a m ≠ 1` or `gcd a n ≠ 1`. -/
 lemma gcd_ne_one_of_gcd_mul_ne_one {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) ≠ 1) :
   a.gcd m ≠ 1 ∨ a.gcd n ≠ 1 :=

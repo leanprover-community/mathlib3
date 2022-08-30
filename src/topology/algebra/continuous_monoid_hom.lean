@@ -191,17 +191,19 @@ def coprod (f : continuous_monoid_hom A E) (g : continuous_monoid_hom B E) :
   inv := λ f, (inv E).comp f,
   mul_left_inv := λ f, ext (λ x, mul_left_inv (f x)) }
 
-instance : topological_space (continuous_monoid_hom A B) :=
+@[to_additive] instance : topological_space (continuous_monoid_hom A B) :=
 topological_space.induced to_continuous_map continuous_map.compact_open
 
 variables (A B C D E)
 
+@[to_additive]
 lemma is_inducing : inducing (to_continuous_map : continuous_monoid_hom A B → C(A, B)) := ⟨rfl⟩
 
+@[to_additive]
 lemma is_embedding : embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
 ⟨is_inducing A B, to_continuous_map_injective⟩
 
-lemma is_closed_embedding [has_continuous_mul B] [t2_space B] :
+@[to_additive] lemma is_closed_embedding [has_continuous_mul B] [t2_space B] :
   closed_embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
 ⟨is_embedding A B, ⟨begin
   suffices : (set.range (to_continuous_map : continuous_monoid_hom A B → C(A, B))) =
@@ -234,31 +236,31 @@ end⟩⟩
 
 variables {A B C D E}
 
-instance [t2_space B] : t2_space (continuous_monoid_hom A B) :=
+@[to_additive] instance [t2_space B] : t2_space (continuous_monoid_hom A B) :=
 (is_embedding A B).t2_space
 
-instance : topological_group (continuous_monoid_hom A E) :=
+@[to_additive] instance : topological_group (continuous_monoid_hom A E) :=
 let hi := is_inducing A E, hc := hi.continuous in
 { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (continuous.prod_map hc hc)),
   continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
 
-lemma continuous_comp [locally_compact_space B] : continuous
-  (λ f : continuous_monoid_hom A B × continuous_monoid_hom B C, f.2.comp f.1) :=
+@[to_additive] lemma continuous_comp [locally_compact_space B] :
+  continuous (λ f : continuous_monoid_hom A B × continuous_monoid_hom B C, f.2.comp f.1) :=
 begin
   rw (is_inducing A C).continuous_iff,
   exact continuous_map.continuous_comp'.comp
     ((is_inducing A B).prod_mk (is_inducing B C)).continuous,
 end
 
-lemma continuous_comp_left (f : continuous_monoid_hom A B) : continuous
-  (λ g : continuous_monoid_hom B C, g.comp f) :=
+@[to_additive] lemma continuous_comp_left (f : continuous_monoid_hom A B) :
+  continuous (λ g : continuous_monoid_hom B C, g.comp f) :=
 begin
   rw (is_inducing A C).continuous_iff,
   exact f.to_continuous_map.continuous_comp_left.comp (is_inducing B C).continuous,
 end
 
-lemma continuous_comp_right (f : continuous_monoid_hom B C) : continuous
-  (λ g : continuous_monoid_hom A B, f.comp g) :=
+@[to_additive] lemma continuous_comp_right (f : continuous_monoid_hom B C) :
+  continuous (λ g : continuous_monoid_hom A B, f.comp g) :=
 begin
   rw (is_inducing A C).continuous_iff,
   exact f.to_continuous_map.continuous_comp.comp (is_inducing A B).continuous,
@@ -267,7 +269,7 @@ end
 variables (E)
 
 /-- `continuous_monoid_hom(f, -)` is a functor. -/
-def comp_left (f : continuous_monoid_hom A B) :
+@[to_additive] def comp_left (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (continuous_monoid_hom B E) (continuous_monoid_hom A E) :=
 { to_fun := λ g, g.comp f,
   map_one' := rfl,

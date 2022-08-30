@@ -281,7 +281,7 @@ begin
   let ν := (μ t1) • μ,
   have h_univ : μ_inter set.univ = ν set.univ,
   by rw [measure.restrict_apply_univ, measure.smul_apply, smul_eq_mul, measure_univ, mul_one],
-  haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t1 μ ⟨measure_lt_top μ t1⟩,
+  haveI : is_finite_measure μ_inter := @restrict.is_finite_measure Ω _ t1 μ ⟨measure_lt_top μ t1⟩,
   rw [set.inter_comm, ← measure.restrict_apply (h2 t2 ht2m)],
   refine ext_on_measurable_space_of_generate_finite m p2 (λ t ht, _) h2 hpm2 hp2 h_univ ht2m,
   have ht2 : measurable_set[m] t,
@@ -303,7 +303,7 @@ begin
   let ν := (μ t2) • μ,
   have h_univ : μ_inter set.univ = ν set.univ,
   by rw [measure.restrict_apply_univ, measure.smul_apply, smul_eq_mul, measure_univ, mul_one],
-  haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t2 μ ⟨measure_lt_top μ t2⟩,
+  haveI : is_finite_measure μ_inter := @restrict.is_finite_measure Ω _ t2 μ ⟨measure_lt_top μ t2⟩,
   rw [mul_comm, ← measure.restrict_apply (h1 t1 ht1)],
   refine ext_on_measurable_space_of_generate_finite m p1 (λ t ht, _) h1 hpm1 hp1 h_univ ht1,
   have ht1 : measurable_set[m] t,
@@ -774,9 +774,9 @@ by { split_ifs, exacts [hs h, ht h], }
 
 section zero_one_law
 
-variables {α ι : Type*} {m m0 : measurable_space α} {μ : measure α}
+variables {Ω ι : Type*} {m m0 : measurable_space Ω} {μ : measure Ω}
 
-lemma measure_eq_zero_or_one_or_top_of_indep_self (h_indep : indep m m μ) {t : set α}
+lemma measure_eq_zero_or_one_or_top_of_indep_self (h_indep : indep m m μ) {t : set Ω}
   (ht_m : measurable_set[m] t) :
   μ t = 0 ∨ μ t = 1 ∨ μ t = ⊤ :=
 begin
@@ -789,7 +789,7 @@ begin
   exact or.inr (or.inl h_indep.symm),
 end
 
-lemma measure_eq_zero_or_one_of_indep_self [is_finite_measure μ] (h_indep : indep m m μ) {t : set α}
+lemma measure_eq_zero_or_one_of_indep_self [is_finite_measure μ] (h_indep : indep m m μ) {t : set Ω}
   (ht_m : measurable_set[m] t) :
   μ t = 0 ∨ μ t = 1 :=
 begin
@@ -797,11 +797,11 @@ begin
   simpa [measure_ne_top μ] using h_0_1_top,
 end
 
-@[to_additive] lemma prod_ite_mem {ι} [comm_monoid α] (s t : finset ι) (f : ι → α) :
+@[to_additive] lemma prod_ite_mem {α ι} [comm_monoid α] (s t : finset ι) (f : ι → α) :
   ∏ i in s, ite (i ∈ t) (f i) 1 = ∏ i in (s ∩ t), f i :=
 by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
 
-lemma aux_t1_inter_t2 (s t : finset ι) (f1 f2 : ι → set α) :
+lemma aux_t1_inter_t2 {α} (s t : finset ι) (f1 f2 : ι → set α) :
   ((⋂ i ∈ s, f1 i) ∩ ⋂ i ∈ t, f2 i)
     = ⋂ i ∈ s ∪ t, (ite (i ∈ s) (f1 i) set.univ ∩ ite (i ∈ t) (f2 i) set.univ) :=
 begin
@@ -821,7 +821,7 @@ begin
       exact h.2, }, },
 end
 
-lemma indep_sets_pi_Union_Inter_of_disjoint [is_probability_measure μ] {s : ι → set (set α)}
+lemma indep_sets_pi_Union_Inter_of_disjoint [is_probability_measure μ] {s : ι → set (set Ω)}
   (h_indep : Indep_sets s μ) {S T : set (finset ι)} (hST : ∀ u v, u ∈ S → v ∈ T → disjoint u v) :
   indep_sets (pi_Union_Inter s S) (pi_Union_Inter s T) μ :=
 begin
@@ -864,11 +864,11 @@ begin
   rw [finset.prod_mul_distrib, h1, h2, ht1_eq, ← h_indep p1 ht1_m, ht2_eq, ← h_indep p2 ht2_m],
 end
 
-lemma generate_from_Union_measurable_set {ι : Type*} (s : ι → measurable_space α) :
+lemma generate_from_Union_measurable_set {ι : Type*} (s : ι → measurable_space Ω) :
   generate_from (⋃ n, {t | measurable_set[s n] t}) = ⨆ n, s n :=
-(@measurable_space.gi_generate_from α).l_supr_u s
+(@measurable_space.gi_generate_from Ω).l_supr_u s
 
-lemma generate_from_pi_Union_Inter_subsets (m : ι → measurable_space α) (S : set ι) :
+lemma generate_from_pi_Union_Inter_subsets (m : ι → measurable_space Ω) (S : set ι) :
   generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) {t : finset ι| ↑t ⊆ S})
     = ⨆ i ∈ S, m i :=
 begin
@@ -891,7 +891,7 @@ begin
     exact htS hit, },
 end
 
-lemma indep_supr_of_disjoint [is_probability_measure μ] {m : ι → measurable_space α}
+lemma indep_supr_of_disjoint [is_probability_measure μ] {m : ι → measurable_space Ω}
   (h_le : ∀ i, m i ≤ m0) (h_indep : Indep m μ) {S T : set ι} (hST : disjoint S T) :
   indep (⨆ i ∈ S, m i) (⨆ i ∈ T, m i) μ :=
 begin
@@ -904,11 +904,11 @@ begin
     exact λ i _, h_le i, },
   { rw supr₂_le_iff,
     exact λ i _, h_le i, },
-  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set α (m n)) _ _,
+  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,
     intros s t hs ht,
     simp only [finset.sup_eq_union, set.mem_set_of_eq, finset.coe_union, set.union_subset_iff],
     exact ⟨hs, ht⟩, },
-  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set α (m n)) _ _,
+  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,
     intros s t hs ht,
     simp only [finset.sup_eq_union, set.mem_set_of_eq, finset.coe_union, set.union_subset_iff],
     exact ⟨hs, ht⟩, },
@@ -918,7 +918,7 @@ begin
     exact λ i his j hjt, hST i (hs his) j (ht hjt), },
 end
 
-lemma is_pi_system_Union_of_monotone {ι} [linear_order ι] (p : ι → set (set α))
+lemma is_pi_system_Union_of_monotone {ι} [linear_order ι] (p : ι → set (set Ω))
   (hp_pi : ∀ n, is_pi_system (p n)) (hp_mono : monotone p) :
   is_pi_system (⋃ n, p n) :=
 begin
@@ -931,9 +931,7 @@ begin
   { exact ⟨n, hp_pi n t1 ht1 t2 (set.mem_of_mem_of_subset ht2 (hp_mono h_le)) h⟩, },
 end
 
-variables [is_probability_measure μ] [linear_order ι] {s : ι → measurable_space α}
-
-lemma indep_supr_of_monotone {α} {m : ι → measurable_space α}
+lemma indep_supr_of_monotone [linear_order ι] {α} {m : ι → measurable_space α}
   {m' m0 : measurable_space α} {μ : measure α} [is_probability_measure μ]
   (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :
   indep (⨆ i, m i) m' μ :=
@@ -959,6 +957,8 @@ begin
     _ h_gen' h_pi_system_indep,
   rw generate_from_Union_measurable_set,
 end
+
+variables [is_probability_measure μ] [linear_order ι] {s : ι → measurable_space Ω}
 
 lemma supr_lt_indep_supr_ge (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (N : ι) :
   indep (⨆ n < N, s n) (⨆ i ≥ N, s i) μ :=
@@ -997,7 +997,7 @@ indep_of_indep_of_le_left (supr_indep_tail h_le h_indep) (tail_le_supr s)
 /-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra has probability 0 or 1 -/
 theorem measure_zero_or_one_of_measurable_set_tail [no_max_order ι] [nonempty ι]
   (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
-  {t : set α} (h_t_tail : measurable_set[tail s] t) :
+  {t : set Ω} (h_t_tail : measurable_set[tail s] t) :
   μ t = 0 ∨ μ t = 1 :=
 measure_eq_zero_or_one_of_indep_self (tail_indep_tail h_le h_indep) h_t_tail
 

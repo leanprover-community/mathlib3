@@ -817,8 +817,10 @@ eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
-theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
-⟨xs, px⟩
+section sep
+variables {p : α → Prop} {x : α}
+
+theorem mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=⟨xs, px⟩
 
 @[simp] theorem sep_mem_eq {s t : set α} : {x ∈ s | x ∈ t} = s ∩ t := rfl
 
@@ -840,6 +842,16 @@ theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p
   (x) : x ∈ s → ¬ p x := not_and.1 (eq_empty_iff_forall_not_mem.1 H x : _)
 
 @[simp] lemma sep_univ {α} {p : α → Prop} : {a ∈ (univ : set α) | p a} = {a | p a} := univ_inter _
+
+@[simp] lemma sep_union : {x ∈ s ∪ t | p x} = {x ∈ s | p x} ∪ {x ∈ t | p x} :=
+ext $ λ _, or_and_distrib_right
+
+@[simp] lemma sep_inter : {x ∈ s ∩ t | p x} = {x ∈ s | p x} ∩ {x ∈ t | p x} :=
+ext $ λ _, and_and_distrib_right _ _ _
+
+variables {s p}
+
+lemma sep_true_of_mem (h : ∀ x ∈ s, p x) : {x ∈ s | p x} = s := ext $ λ _, and_iff_left_of_imp $ h _
 
 @[simp] lemma sep_true : {a ∈ s | true} = s :=
 by { ext, simp }
@@ -878,6 +890,8 @@ end
 
 lemma eq_empty_of_ssubset_singleton {s : set α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
 ssubset_singleton_iff.1 hs
+
+end sep
 
 /-! ### Disjointness -/
 

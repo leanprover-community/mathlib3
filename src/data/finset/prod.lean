@@ -160,6 +160,9 @@ by { simp only [diag, mem_filter, mem_product], split; intros h;
 by { simp only [off_diag, mem_filter, mem_product], split; intros h;
      simp only [h, ne.def, not_false_iff, and_self] }
 
+@[simp] lemma coe_off_diag : (s.off_diag : set (α × α)) = (s : set α).off_diag :=
+ext $ mem_off_diag _
+
 @[simp] lemma diag_card : (diag s).card = s.card :=
 begin
   suffices : diag s = s.image (λ a, (a, a)),
@@ -200,15 +203,7 @@ variables {s t}
 
 lemma off_diag_union (h : disjoint s t) :
   (s ∪ t).off_diag = s.off_diag ∪ t.off_diag ∪ s ×ˢ t ∪ t ×ˢ s :=
-begin
-  rw [off_diag, union_product, product_union, product_union, union_comm _ (t ×ˢ t),
-    union_assoc, union_left_comm (s ×ˢ t), ←union_assoc, filter_union, filter_union, ←off_diag,
-    ←off_diag, filter_true_of_mem, ←union_assoc],
-  simp only [mem_union, mem_product, ne.def, prod.forall],
-  rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩),
-  { exact h.forall_ne_finset hi hj },
-  { exact h.symm.forall_ne_finset hi hj },
-end
+coe_injective $ by { norm_cast, exact set.off_diag_union (disjoint_coe.2 h) }
 
 variables (a : α)
 

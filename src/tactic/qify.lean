@@ -74,8 +74,8 @@ do sl ← qify_attr.get_cache,
 end qify
 
 /--
-`qify extra_lems e` is used to shift propositions in `e` from `ℕ` to `ℤ`.
-This is often useful since `ℤ` has well-behaved subtraction.
+`qify extra_lems e` is used to shift propositions in `e` from `ℕ` to `ℚ`.
+This is often useful since `ℚ` has well-behaved division and subtraction.
 
 The list of extra lemmas is used in the `push_cast` step.
 

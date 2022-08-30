@@ -180,8 +180,7 @@ lemma continuous_to_Ω_if_continuous_uncurry {Y : Type u} [topological_space Y]
 lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
   x.1.1.extend (2 * x.2)) :=
 begin
-  let η := (λ p : Ω(x) × I, p.1.extend (2 * p.2)),
-  have H : continuous η,
+  have H : continuous (λ p : Ω(x) × I, p.1.extend (2 * p.2)),
   { let Cproj : C(ℝ, I) := ⟨set.proj_Icc _ _ zero_le_one, continuous_proj_Icc⟩,
     have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp
       continuous_induced_dom,

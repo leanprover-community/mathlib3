@@ -167,7 +167,7 @@ section mul_action
 variables [monoid S] [distrib_mul_action S W] [smul_comm_class R S W]
 variables [has_continuous_const_smul S W]
 
-instance : has_scalar S (P →A[R] W) :=
+instance : has_smul S (P →A[R] W) :=
 { smul := λ t f, { cont := f.continuous.const_smul t, .. (t • (f : P →ᵃ[R] W)) } }
 
 @[norm_cast, simp] lemma coe_smul (t : S) (f : P →A[R] W) : ⇑(t • f) = t • f := rfl

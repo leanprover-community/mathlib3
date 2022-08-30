@@ -170,7 +170,7 @@ This is an auxiliary data structure useful for constructing adjunctions.
 See `adjunction.mk_of_hom_equiv`.
 This structure won't typically be used anywhere else.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure core_hom_equiv (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
 (hom_equiv_naturality_left_symm' : Π {X' X Y} (f : X' ⟶ X) (g : X ⟶ G.obj Y),
@@ -201,7 +201,7 @@ This is an auxiliary data structure useful for constructing adjunctions.
 See `adjunction.mk_of_unit_counit`.
 This structure won't typically be used anywhere else.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : 𝟭 C ⟶ F.comp G)
 (counit : G.comp F ⟶ 𝟭 D)
@@ -326,7 +326,7 @@ def left_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_left_adjoint F
   adj := of_nat_iso_left r.adj h }
 
 section
-variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
+variables {E : Type u₃} [ℰ : category.{v₃} E] {H : D ⥤ E} {I : E ⥤ D}
 
 /--
 Composition of adjunctions.
@@ -344,13 +344,13 @@ def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 instance left_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] (F : C ⥤ D) (G : D ⥤ E)
   [Fl : is_left_adjoint F] [Gl : is_left_adjoint G] : is_left_adjoint (F ⋙ G) :=
 { right := Gl.right ⋙ Fl.right,
-  adj := comp _ _ Fl.adj Gl.adj }
+  adj := Fl.adj.comp Gl.adj }
 
 /-- If `F` and `G` are right adjoints then `F ⋙ G` is a right adjoint too. -/
 instance right_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] {F : C ⥤ D} {G : D ⥤ E}
   [Fr : is_right_adjoint F] [Gr : is_right_adjoint G] : is_right_adjoint (F ⋙ G) :=
 { left := Gr.left ⋙ Fr.left,
-  adj := comp _ _ Gr.adj Fr.adj }
+  adj := Gr.adj.comp Fr.adj }
 
 end
 

@@ -35,13 +35,13 @@ noncomputable theory
 def cokernel_cocone {X Y : SemiNormedGroup₁.{u}} (f : X ⟶ Y) : cofork f 0 :=
 cofork.of_π
   (@SemiNormedGroup₁.mk_hom
-    _ (SemiNormedGroup.of (Y ⧸ (normed_group_hom.range f.1)))
+    _ (SemiNormedGroup.of (Y ⧸ (normed_add_group_hom.range f.1)))
     f.1.range.normed_mk
-    (normed_group_hom.is_quotient_quotient _).norm_le)
+    (normed_add_group_hom.is_quotient_quotient _).norm_le)
   begin
     ext,
-    simp only [comp_apply, limits.zero_comp, normed_group_hom.zero_apply,
-      SemiNormedGroup₁.mk_hom_apply, SemiNormedGroup₁.zero_apply, ←normed_group_hom.mem_ker,
+    simp only [comp_apply, limits.zero_comp, normed_add_group_hom.zero_apply,
+      SemiNormedGroup₁.mk_hom_apply, SemiNormedGroup₁.zero_apply, ←normed_add_group_hom.mem_ker,
       f.1.range.ker_normed_mk, f.1.mem_range],
     use x,
     refl,
@@ -53,12 +53,12 @@ def cokernel_lift {X Y : SemiNormedGroup₁.{u}} (f : X ⟶ Y) (s : cokernel_cof
 begin
   fsplit,
   -- The lift itself:
-  { apply normed_group_hom.lift _ s.π.1,
+  { apply normed_add_group_hom.lift _ s.π.1,
     rintro _ ⟨b, rfl⟩,
     change (f ≫ s.π) b = 0,
     simp, },
   -- The lift has norm at most one:
-  exact normed_group_hom.lift_norm_noninc _ _ _ s.π.2,
+  exact normed_add_group_hom.lift_norm_noninc _ _ _ s.π.2,
 end
 
 instance : has_cokernels SemiNormedGroup₁.{u} :=
@@ -68,13 +68,13 @@ instance : has_cokernels SemiNormedGroup₁.{u} :=
       (cokernel_lift f)
       (λ s, begin
         ext,
-        apply normed_group_hom.lift_mk f.1.range,
+        apply normed_add_group_hom.lift_mk f.1.range,
         rintro _ ⟨b, rfl⟩,
         change (f ≫ s.π) b = 0,
         simp,
       end)
       (λ s m w, subtype.eq
-        (normed_group_hom.lift_unique f.1.range _ _ _ (congr_arg subtype.val w : _))), } }
+        (normed_add_group_hom.lift_unique f.1.range _ _ _ (congr_arg subtype.val w : _))), } }
 
 -- Sanity check
 example : has_cokernels SemiNormedGroup₁ := by apply_instance
@@ -87,13 +87,13 @@ section equalizers_and_kernels
 
 /-- The equalizer cone for a parallel pair of morphisms of seminormed groups. -/
 def fork {V W : SemiNormedGroup.{u}} (f g : V ⟶ W) : fork f g :=
-@fork.of_ι _ _ _ _ _ _ (of (f - g).ker) (normed_group_hom.incl (f - g).ker) $
+@fork.of_ι _ _ _ _ _ _ (of (f - g).ker) (normed_add_group_hom.incl (f - g).ker) $
 begin
   ext v,
   have : v.1 ∈ (f - g).ker := v.2,
-  simpa only [normed_group_hom.incl_apply, pi.zero_apply, coe_comp, normed_group_hom.coe_zero,
-    subtype.val_eq_coe, normed_group_hom.mem_ker,
-    normed_group_hom.coe_sub, pi.sub_apply, sub_eq_zero] using this
+  simpa only [normed_add_group_hom.incl_apply, pi.zero_apply, coe_comp,
+    normed_add_group_hom.coe_zero, subtype.val_eq_coe, normed_add_group_hom.mem_ker,
+    normed_add_group_hom.coe_sub, pi.sub_apply, sub_eq_zero] using this
 end
 
 instance has_limit_parallel_pair {V W : SemiNormedGroup.{u}} (f g : V ⟶ W) :
@@ -101,10 +101,10 @@ instance has_limit_parallel_pair {V W : SemiNormedGroup.{u}} (f g : V ⟶ W) :
 { exists_limit := nonempty.intro
   { cone := fork f g,
     is_limit := fork.is_limit.mk _
-      (λ c, normed_group_hom.ker.lift (fork.ι c) _ $
-      show normed_group_hom.comp_hom (f - g) c.ι = 0,
+      (λ c, normed_add_group_hom.ker.lift (fork.ι c) _ $
+      show normed_add_group_hom.comp_hom (f - g) c.ι = 0,
       by { rw [add_monoid_hom.map_sub, add_monoid_hom.sub_apply, sub_eq_zero], exact c.condition })
-      (λ c, normed_group_hom.ker.incl_comp_lift _ _ _)
+      (λ c, normed_add_group_hom.ker.incl_comp_lift _ _ _)
       (λ c g h, by { ext x, dsimp, rw ← h, refl }) } }
 
 instance : limits.has_equalizers.{u (u+1)} SemiNormedGroup :=
@@ -121,17 +121,17 @@ section cokernel
 /-- Auxiliary definition for `has_cokernels SemiNormedGroup`. -/
 def cokernel_cocone {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) : cofork f 0 :=
 @cofork.of_π _ _ _ _ _ _
-  (SemiNormedGroup.of (Y ⧸ (normed_group_hom.range f)))
+  (SemiNormedGroup.of (Y ⧸ (normed_add_group_hom.range f)))
   f.range.normed_mk
   begin
     ext,
-    simp only [comp_apply, limits.zero_comp, normed_group_hom.zero_apply,
-      ←normed_group_hom.mem_ker, f.range.ker_normed_mk, f.mem_range, exists_apply_eq_apply],
+    simp only [comp_apply, limits.zero_comp, normed_add_group_hom.zero_apply,
+      ←normed_add_group_hom.mem_ker, f.range.ker_normed_mk, f.mem_range, exists_apply_eq_apply],
   end
 
 /-- Auxiliary definition for `has_cokernels SemiNormedGroup`. -/
 def cokernel_lift {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) (s : cokernel_cofork f) :
-  (cokernel_cocone f).X ⟶ s.X := normed_group_hom.lift _ s.π
+  (cokernel_cocone f).X ⟶ s.X := normed_add_group_hom.lift _ s.π
 begin
   rintro _ ⟨b, rfl⟩,
   change (f ≫ s.π) b = 0,
@@ -144,12 +144,12 @@ def is_colimit_cokernel_cocone {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
 is_colimit_aux _ (cokernel_lift f)
 (λ s, begin
   ext,
-  apply normed_group_hom.lift_mk f.range,
+  apply normed_add_group_hom.lift_mk f.range,
   rintro _ ⟨b, rfl⟩,
   change (f ≫ s.π) b = 0,
   simp,
 end)
-(λ s m w, normed_group_hom.lift_unique f.range _ _ _ w)
+(λ s m w, normed_add_group_hom.lift_unique f.range _ _ _ w)
 
 instance : has_cokernels SemiNormedGroup.{u} :=
 { has_colimit := λ X Y f, has_colimit.mk
@@ -252,8 +252,8 @@ begin
 end
 
 lemma is_quotient_explicit_cokernel_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
-normed_group_hom.is_quotient (explicit_cokernel_π f) :=
-normed_group_hom.is_quotient_quotient _
+normed_add_group_hom.is_quotient (explicit_cokernel_π f) :=
+normed_add_group_hom.is_quotient_quotient _
 
 lemma norm_noninc_explicit_cokernel_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
   (explicit_cokernel_π f).norm_noninc :=
@@ -264,16 +264,16 @@ open_locale nnreal
 lemma explicit_cokernel_desc_norm_le_of_norm_le {X Y Z : SemiNormedGroup.{u}}
   {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) (c : ℝ≥0) (h : ∥ g ∥ ≤ c) :
   ∥ explicit_cokernel_desc w ∥ ≤ c :=
-normed_group_hom.lift_norm_le _ _ _ h
+normed_add_group_hom.lift_norm_le _ _ _ h
 
 lemma explicit_cokernel_desc_norm_noninc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
   {cond : f ≫ g = 0} (hg : g.norm_noninc) :
   (explicit_cokernel_desc cond).norm_noninc :=
 begin
-  refine normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 _,
+  refine normed_add_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 _,
   rw [← nnreal.coe_one],
   exact explicit_cokernel_desc_norm_le_of_norm_le cond 1
-    (normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.1 hg)
+    (normed_add_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.1 hg)
 end
 
 lemma explicit_cokernel_desc_comp_eq_zero {X Y Z W : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}

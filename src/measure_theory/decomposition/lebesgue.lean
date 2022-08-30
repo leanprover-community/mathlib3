@@ -442,7 +442,7 @@ begin
       { rw [← nnreal.coe_lt_coe, ← mul_lt_mul_right hb₁, nnreal.coe_mul, mul_assoc,
             ← nnreal.coe_inv, ← nnreal.coe_mul, _root_.mul_inv_cancel, ← nnreal.coe_mul,
             mul_one, nnreal.coe_inv],
-        { convert hn, simp },
+        { exact hn },
         { exact ne.symm (ne_of_lt hb) } },
       refine le_trans _ (le_of_lt h'),
       rw [← ennreal.coe_le_coe, ennreal.coe_mul],

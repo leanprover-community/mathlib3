@@ -770,7 +770,7 @@ lemma exists_rename_eq_of_vars_subset_range
   (p : mv_polynomial σ R) (f : τ → σ)
   (hfi : injective f) (hf : ↑p.vars ⊆ set.range f) :
   ∃ q : mv_polynomial τ R, rename f q = p :=
-⟨bind₁ (λ i : σ, option.elim (partial_inv f i) 0 X) p,
+⟨bind₁ (λ i : σ, option.elim 0 X $ partial_inv f i) p,
   begin
     show (rename f).to_ring_hom.comp _ p = ring_hom.id _ p,
     refine hom_congr_vars _ _ _,

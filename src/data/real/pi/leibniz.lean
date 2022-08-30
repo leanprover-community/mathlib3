@@ -49,7 +49,7 @@ begin
     { ext k,
       simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
-         @div_mul_cancel _ _ _ (2*(k:ℝ)+1)
+         @div_mul_cancel _ _ (2*(k:ℝ)+1) _
             (by { norm_cast, simp only [nat.succ_ne_zero, not_false_iff] }), rpow_neg_one k,
           sub_eq_add_neg] },
     { simp only [add_zero, add_right_neg] } },
@@ -68,7 +68,7 @@ begin
   -- We show that `U` is indeed in [0,1]
   have hU1 : (U:ℝ) ≤ 1,
   { by_cases hk : k = 0,
-    { simpa only [U, hk] using zero_rpow_le_one _ },
+    { simp [u, U, hk] },
     { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
         (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
           (neg_neg_iff_pos.mpr zero_lt_one) (by { norm_cast, exact nat.succ_pos' }))) } },
@@ -86,7 +86,7 @@ begin
         ring },
       { simp only [nat.add_succ_sub_one, add_zero, mul_one, id.def, nat.cast_bit0, nat.cast_add,
                   nat.cast_one, nat.cast_mul],
-        rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1) (by { norm_cast, linarith }),
+        rw [← mul_assoc, @div_mul_cancel _ _ (2*(i:ℝ)+1) _ (by { norm_cast, linarith }),
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
         ring_nf } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),

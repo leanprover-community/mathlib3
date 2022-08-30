@@ -26,8 +26,8 @@ This file contains results about bases in normed affine spaces.
 
 section barycentric
 
-variables {ι 𝕜 E P : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
-variables [normed_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
+variables {ι 𝕜 E P : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
+variables [normed_add_comm_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
 variables [metric_space P] [normed_add_torsor E P]
 variables (b : affine_basis ι 𝕜 P)
 
@@ -54,8 +54,8 @@ to this basis.
 
 TODO Restate this result for affine spaces (instead of vector spaces) once the definition of
 convexity is generalised to this setting. -/
-lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_group E] [normed_space ℝ E]
-  (b : affine_basis ι ℝ E) :
+lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_add_comm_group E]
+  [normed_space ℝ E] (b : affine_basis ι ℝ E) :
   interior (convex_hull ℝ (range b.points)) = { x | ∀ i, 0 < b.coord i x } :=
 begin
   casesI subsingleton_or_nontrivial ι,
@@ -72,12 +72,13 @@ begin
     have : convex_hull ℝ (range b.points) = ⋂ i, (b.coord i)⁻¹' Ici 0,
     { rw convex_hull_affine_basis_eq_nonneg_barycentric b, ext, simp, },
     ext,
-    simp only [this, interior_Inter_of_fintype, ← is_open_map.preimage_interior_eq_interior_preimage
+    simp only [this, interior_Inter, ← is_open_map.preimage_interior_eq_interior_preimage
       (is_open_map_barycentric_coord b _) (continuous_barycentric_coord b _),
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 
-variables {V P : Type*} [normed_group V] [normed_space ℝ V] [metric_space P] [normed_add_torsor V P]
+variables {V P : Type*} [normed_add_comm_group V] [normed_space ℝ V] [metric_space P]
+  [normed_add_torsor V P]
 include V
 
 open affine_map

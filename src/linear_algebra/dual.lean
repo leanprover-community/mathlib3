@@ -354,7 +354,7 @@ variables {R M ι : Type*}
 variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure dual_pair (e : ι → M) (ε : ι → (dual R M)) :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)
@@ -530,7 +530,7 @@ by { erw of_is_compl_left_apply _ w, refl }
 
 lemma dual_lift_of_mem {φ : module.dual K W} {w : V} (hw : w ∈ W) :
   W.dual_lift φ w = φ ⟨w, hw⟩ :=
-dual_lift_of_subtype ⟨w, hw⟩
+by convert dual_lift_of_subtype ⟨w, hw⟩
 
 @[simp] lemma dual_restrict_comp_dual_lift (W : subspace K V) :
   W.dual_restrict.comp W.dual_lift = 1 :=

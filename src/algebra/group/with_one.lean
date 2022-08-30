@@ -67,6 +67,17 @@ def rec_one_coe {C : with_one α → Sort*} (h₁ : C 1) (h₂ : Π (a : α), C 
   Π (n : with_one α), C n :=
 option.rec h₁ h₂
 
+/-- Deconstruct a `x : with_one α` to the underlying value in `α`, given a proof that `x ≠ 1`. -/
+@[to_additive unzero
+  "Deconstruct a `x : with_zero α` to the underlying value in `α`, given a proof that `x ≠ 0`."]
+def unone {x : with_one α} (hx : x ≠ 1) : α := with_bot.unbot x hx
+
+@[simp, to_additive unzero_coe]
+lemma unone_coe {x : α} (hx : (x : with_one α) ≠ 1) : unone hx = x := rfl
+
+@[simp, to_additive coe_unzero]
+lemma coe_unone {x : with_one α} (hx : x ≠ 1) : ↑(unone hx) = x := with_bot.coe_unbot x hx
+
 @[to_additive]
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
@@ -393,6 +404,17 @@ end group
 instance [comm_group α] : comm_group_with_zero (with_zero α) :=
 { .. with_zero.group_with_zero, .. with_zero.comm_monoid_with_zero }
 
+instance [add_monoid_with_one α] : add_monoid_with_one (with_zero α) :=
+{ nat_cast := λ n, if n = 0 then 0 else (n.cast : α),
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, begin
+    cases n,
+    show (((1 : ℕ) : α) : with_zero α) = 0 + 1, by rw [nat.cast_one, coe_one, zero_add],
+    show (((n + 2 : ℕ) : α) : with_zero α) = ((n + 1 : ℕ) : α) + 1,
+    by rw [nat.cast_succ, coe_add, coe_one],
+  end,
+  .. with_zero.add_monoid, ..with_zero.has_one }
+
 instance [semiring α] : semiring (with_zero α) :=
 { left_distrib := λ a b c, begin
     cases a with a, {refl},
@@ -405,9 +427,18 @@ instance [semiring α] : semiring (with_zero α) :=
     cases a with a; cases b with b; try {refl},
     exact congr_arg some (right_distrib _ _ _)
   end,
+  ..with_zero.add_monoid_with_one,
   ..with_zero.add_comm_monoid,
   ..with_zero.mul_zero_class,
   ..with_zero.monoid_with_zero }
+
+/-- Any group is isomorphic to the units of itself adjoined with `0`. -/
+def units_with_zero_equiv [group α] : (with_zero α)ˣ ≃* α :=
+{ to_fun    := λ a, unzero a.ne_zero,
+  inv_fun   := λ a, units.mk0 a coe_ne_zero,
+  left_inv  := λ _, units.ext $ by simpa only [coe_unzero],
+  right_inv := λ _, rfl,
+  map_mul'  := λ _ _, coe_inj.mp $ by simpa only [coe_unzero, coe_mul] }
 
 attribute [irreducible] with_zero
 

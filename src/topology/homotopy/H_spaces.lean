@@ -175,7 +175,7 @@ lemma continuous_to_Ω_if_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(
 @[simp, continuity]
 lemma continuous_to_Ω_if_continuous_uncurry {Y : Type u} [topological_space Y]
   {g : Y → Ω(x)} : continuous (λ p : Y × I, g p.1 p.2) → continuous g :=
-  λ h, continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
+λ h, continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
 
 lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
   x.1.1.extend (2 * x.2)) :=

@@ -70,4 +70,28 @@ begin
   simp [is_bounded_at_im_infty, asymptotics.is_O_iff, filter.eventually, at_im_infty_mem],
 end
 
+lemma zero_at_im_infty (f : ℍ → ℂ) :
+  is_zero_at_im_infty f ↔ ∀ ε : ℝ, 0 < ε → ∃ A : ℝ, ∀ z : ℍ, A ≤ im z → abs (f z) ≤ ε :=
+begin
+  rw [is_zero_at_im_infty, tendsto_iff_forall_eventually_mem],
+  split,
+  {  simp_rw [filter.eventually, at_im_infty_mem],
+    intros h ε hε,
+    simpa using (h (metric.closed_ball (0 : ℂ) ε) (metric.closed_ball_mem_nhds (0 : ℂ) hε))},
+  { simp_rw metric.mem_nhds_iff,
+    intros h s hs,
+    simp_rw [filter.eventually, at_im_infty_mem],
+    obtain ⟨ε, h1, h2⟩ := hs,
+    have h11 : 0 < (ε/2), by {linarith,},
+    have h3 := h (ε/2) h11,
+    obtain ⟨A, hA⟩ := h3,
+    use A,
+    intros z hz,
+    have hzs : f z ∈ s, by {apply h2,
+      simp only [mem_ball_zero_iff, norm_eq_abs],
+      apply lt_of_le_of_lt (hA z hz),
+      linarith,},
+    apply hzs,}
+end
+
 end upper_half_plane

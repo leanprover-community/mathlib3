@@ -68,7 +68,7 @@ begin
   exact even_add_self _
 end
 
-lemma is_unit_det_J [fact (ring_char R ≠ 2)] : is_unit (det (J l R)) :=
+lemma is_unit_det_J : is_unit (det (J l R)) :=
 is_unit_iff_exists_inv.mpr ⟨det (J l R), J_det_mul_J_det _ _⟩
 
 end J_matrix_lemmas
@@ -130,8 +130,6 @@ begin
   simp [h],
 end
 
-variables [fact (ring_char R ≠ 2)]
-
 lemma symplectic_det (hA : A ∈ symplectic_group l R) : is_unit $ det A :=
 begin
   rw is_unit_iff_exists_inv,
@@ -177,7 +175,7 @@ instance : has_inv (symplectic_group l R) :=
   mul_mem (mul_mem (neg_mem $ J_mem _ _) $ transpose_mem A.2) $ J_mem _ _⟩ }
 
 @[simp] lemma coe_inv (A : symplectic_group l R) :
-  - (J l R) ⬝ (A : matrix (l ⊕ l) (l ⊕ l) R)ᵀ ⬝ (J l R) = (↑(A⁻¹) : matrix _ _ _) := rfl
+  -(J l R ⬝ (↑A)ᵀ ⬝ J l R) = (↑(A⁻¹) : matrix _ _ _) := by {iterate {rw [← matrix.neg_mul]}, refl}
 
 lemma inv_left_mul_aux (hA : A ∈ symplectic_group l R) :
   -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A) = 1 :=
@@ -190,7 +188,7 @@ calc -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A)
 
 lemma coe_inv' (A : symplectic_group l R) : (↑(A⁻¹) : matrix (l ⊕ l) (l ⊕ l) R) = A⁻¹ :=
 begin
-  refine (coe_inv A).trans (inv_eq_left_inv _).symm,
+  refine (coe_inv A).symm.trans (inv_eq_left_inv _).symm,
   simp only [matrix.neg_mul, inv_left_mul_aux, set_like.coe_mem, ← coe_inv],
 end
 

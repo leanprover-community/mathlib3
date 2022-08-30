@@ -27,6 +27,7 @@ Module, polynomial
 
 
 variables {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
+variables {S : Type*} [semiring S] [module S M]
 open_locale polynomial
 
 
@@ -39,7 +40,9 @@ def module_with_End (E : End R M) := M
 namespace module_with_End
 variables {E : End R M}
 
-instance : module R (module_with_End E) := (infer_instance : module R M)
+instance : module S (module_with_End E) := (infer_instance : module S M)
+instance is_scalar_tower' [has_scalar S R] [is_scalar_tower S R M] :
+  is_scalar_tower S R (module_with_End E) := (infer_instance : is_scalar_tower S R M)
 /--The type conversion `M → module_with_End E`, as a `R`-linear isomorphism.-/
 def of_module (E : End R M) : M ≃ₗ[R] module_with_End E := linear_equiv.refl R M
 instance apply_module : module (End R M) (module_with_End E) :=
@@ -65,10 +68,16 @@ by rw [smul_def, aeval_X]
 lemma C_smul (a : R) (u : M) : (C a) • of_module E u = of_module E (a • u) :=
 by rw [smul_def, aeval_C, algebra_map_End_apply]
 
-instance is_scalar_tower : is_scalar_tower R R[X] (module_with_End E) :=
+lemma monomial_smul (n : ℕ) (a : R) (u : M) :
+  (monomial n a) • of_module E u = of_module E (a • (E ^ n) u) :=
+by rw [smul_def, aeval_monomial, linear_map.mul_apply, algebra_map_End_apply]
+
+instance is_scalar_tower [module S R] [is_scalar_tower S R R] [is_scalar_tower S R M] :
+  is_scalar_tower S R[X] (module_with_End E) :=
 ⟨λ a P u, begin
   induction u using module_with_End.rec,
-  rw [smul_def, alg_hom.map_smul, linear_map.smul_apply, (of_module E).map_smul, ← smul_def]
+  rw [smul_def, ← one_smul R P, ← smul_assoc, (aeval E).map_smul, linear_map.smul_apply,
+    (of_module E).map_smul, ← smul_def, smul_assoc, one_smul, one_smul]
 end⟩
 
 /--A `R[X]`-module is a `R`-module with an endomorphism (given by the action of `X`).-/

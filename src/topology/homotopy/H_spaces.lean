@@ -257,7 +257,7 @@ def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   end }
 
 
-lemma delayed_refl_left_at_0 (γ : Ω(x)) : (delayed_refl_left 0 γ) = γ :=
+lemma delayed_refl_left_at_0 (γ : Ω(x)) : delayed_refl_left 0 γ = γ :=
 begin
   ext t,
   dsimp [delayed_refl_left],

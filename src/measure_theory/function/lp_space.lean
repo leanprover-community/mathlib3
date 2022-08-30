@@ -1217,6 +1217,97 @@ begin
     hf.ennnorm,
 end
 
+lemma snorm_smul_le_snorm_top_mul_snorm (p : ℝ≥0∞)
+  {f : α → E} (hf : ae_strongly_measurable f μ) (φ : α → 𝕜) :
+  snorm (φ • f) p μ ≤ snorm φ ∞ μ * snorm f p μ :=
+begin
+  by_cases hp_top : p = ∞,
+  { simp_rw [hp_top, snorm_exponent_top, snorm_ess_sup, pi.smul_apply', nnnorm_smul,
+      ennreal.coe_mul],
+    exact ennreal.ess_sup_mul_le _ _, },
+  by_cases hp_zero : p = 0,
+  { simp only [hp_zero, snorm_exponent_zero, mul_zero, le_zero_iff], },
+  simp_rw [snorm_eq_lintegral_rpow_nnnorm hp_zero hp_top, snorm_exponent_top, snorm_ess_sup],
+  calc (∫⁻ x, ↑∥(φ • f) x∥₊ ^ p.to_real ∂μ) ^ (1 / p.to_real)
+      = (∫⁻ x, ↑∥φ x∥₊ ^ p.to_real * ↑∥f x∥₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
+    begin
+      congr,
+      ext1 x,
+      rw [pi.smul_apply', nnnorm_smul, ennreal.coe_mul,
+        ennreal.mul_rpow_of_nonneg _ _ (ennreal.to_real_nonneg)],
+    end
+  ... ≤ (∫⁻ x, (ess_sup (λ x, ↑∥φ x∥₊) μ) ^ p.to_real * ↑∥f x∥₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
+    begin
+      refine ennreal.rpow_le_rpow _ _,
+      swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
+      refine lintegral_mono_ae _,
+      filter_upwards [@ennreal.ae_le_ess_sup _ _ μ (λ x, ↑∥φ x∥₊)] with x hx,
+      refine ennreal.mul_le_mul _ le_rfl,
+      exact ennreal.rpow_le_rpow hx ennreal.to_real_nonneg,
+    end
+  ... = ess_sup (λ x, ↑∥φ x∥₊) μ * (∫⁻ x, ↑∥f x∥₊ ^ p.to_real ∂μ) ^ (1 / p.to_real) :
+    begin
+      rw lintegral_const_mul'',
+      swap, { exact hf.nnnorm.ae_measurable.coe_nnreal_ennreal.pow ae_measurable_const, },
+      rw ennreal.mul_rpow_of_nonneg,
+      swap, { rw one_div_nonneg, exact ennreal.to_real_nonneg, },
+      rw [← ennreal.rpow_mul, one_div, mul_inv_cancel, ennreal.rpow_one],
+      rw [ne.def, ennreal.to_real_eq_zero_iff, auto.not_or_eq],
+      exact ⟨hp_zero, hp_top⟩,
+    end
+end
+
+lemma snorm_smul_le_snorm_mul_snorm_top (p : ℝ≥0∞)
+  (f : α → E) {φ : α → 𝕜} (hφ : ae_strongly_measurable φ μ) :
+  snorm (φ • f) p μ ≤ snorm φ p μ * snorm f ∞ μ :=
+begin
+  rw ← snorm_norm,
+  simp_rw [pi.smul_apply', norm_smul],
+  have : (λ x, ∥φ x∥ * ∥f x∥) = (λ x, ∥f x∥) • (λ x, ∥φ x∥),
+  { rw [smul_eq_mul, mul_comm], refl, },
+  rw this,
+  have h := snorm_smul_le_snorm_top_mul_snorm p hφ.norm (λ x, ∥f x∥),
+  refine h.trans_eq _,
+  simp_rw snorm_norm,
+  rw mul_comm,
+end
+
+lemma snorm_smul_le_mul_snorm {p q r : ℝ≥0∞}
+  {f : α → E} (hf : ae_strongly_measurable f μ) {φ : α → 𝕜} (hφ : ae_strongly_measurable φ μ)
+  (hq_ne_zero : q ≠ 0) (hr_ne_zero : r ≠ 0) (hpqr : 1/p = 1/q + 1/r) :
+  snorm (φ • f) p μ ≤ snorm φ q μ * snorm f r μ :=
+begin
+  by_cases hp_zero : p = 0,
+  { simp [hp_zero], },
+  by_cases hq_top : q = ∞,
+  { have hpr : p = r,
+    { simpa only [hq_top, one_div, ennreal.div_top, zero_add, inv_inj] using hpqr, },
+    rw [← hpr, hq_top],
+    exact snorm_smul_le_snorm_top_mul_snorm p hf φ, },
+  by_cases hr_top : r = ∞,
+  { have hpq : p = q,
+    { simpa only [hr_top, one_div, ennreal.div_top, add_zero, inv_inj] using hpqr, },
+    rw [← hpq, hr_top],
+    exact snorm_smul_le_snorm_mul_snorm_top p f hφ, },
+  have hp_pos : 0 < p := lt_of_le_of_ne (zero_le _) (ne.symm hp_zero),
+  have hpq : p < q,
+  { suffices : 1 / q < 1 / p,
+    { rwa [one_div, one_div, ennreal.inv_lt_inv] at this, },
+    rw hpqr,
+    refine ennreal.lt_add_right _ _,
+    { simp only [hq_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
+    { simp only [hr_top, one_div, ne.def, ennreal.inv_eq_zero, not_false_iff], }, },
+  rw [snorm_eq_snorm' hp_pos.ne' (hpq.trans_le le_top).ne, snorm_eq_snorm' hq_ne_zero hq_top,
+    snorm_eq_snorm' hr_ne_zero hr_top],
+  refine snorm'_smul_le_mul_snorm' hf hφ _ _ _,
+  { exact ennreal.to_real_pos hp_pos.ne' (hpq.trans_le le_top).ne, },
+  { exact ennreal.to_real_strict_mono hq_top hpq, },
+  rw [← ennreal.one_to_real, ← ennreal.to_real_div, ← ennreal.to_real_div, ← ennreal.to_real_div,
+    hpqr, ennreal.to_real_add],
+  { simp only [hq_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
+  { simp only [hr_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
+end
+
 end normed_space
 
 section monotonicity

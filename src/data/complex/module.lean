@@ -230,7 +230,7 @@ def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
 
 /-- The matrix representation of `conj_ae`. -/
 @[simp] lemma to_matrix_conj_ae :
-  linear_map.to_matrix basis_one_I basis_one_I conj_ae.to_linear_map = ![![1, 0], ![0, -1]] :=
+  linear_map.to_matrix basis_one_I basis_one_I conj_ae.to_linear_map = !![1, 0; 0, -1] :=
 begin
   ext i j,
   simp [linear_map.to_matrix_apply],

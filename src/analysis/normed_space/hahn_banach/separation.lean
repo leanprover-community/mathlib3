@@ -38,11 +38,11 @@ variables {𝕜 E : Type*}
 /-- Given a set `s` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
 a continuous linear functional `f` separating `x₀` and `s`, in the sense that it sends `x₀` to 1 and
 all of `s` to values strictly below `1`. -/
-lemma separate_convex_open_set [semi_normed_group E] [normed_space ℝ E] {s : set E}
+lemma separate_convex_open_set [seminormed_add_comm_group E] [normed_space ℝ E] {s : set E}
   (hs₀ : (0 : E) ∈ s) (hs₁ : convex ℝ s) (hs₂ : is_open s) {x₀ : E} (hx₀ : x₀ ∉ s) :
   ∃ f : E →L[ℝ] ℝ, f x₀ = 1 ∧ ∀ x ∈ s, f x < 1 :=
 begin
-  let f : linear_pmap ℝ E ℝ :=
+  let f : E →ₗ.[ℝ] ℝ :=
     linear_pmap.mk_span_singleton x₀ 1 (ne_of_mem_of_not_mem hs₀ hx₀).symm,
   obtain ⟨r, hr, hrs⟩ := metric.mem_nhds_iff.1
     (filter.inter_mem (hs₂.mem_nhds hs₀) $ hs₂.neg.mem_nhds $ by rwa [mem_neg, neg_zero]),
@@ -73,7 +73,7 @@ begin
     apply_instance }
 end
 
-variables [normed_group E] [normed_space ℝ E] {s t : set E} {x y : E}
+variables [normed_add_comm_group E] [normed_space ℝ E] {s t : set E} {x y : E}
 
 /-- A version of the **Hahn-Banach theorem**: given disjoint convex sets `s`, `t` where `s` is open,
 there is a continuous linear functional which separates them. -/

@@ -5,7 +5,7 @@ Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
 import analysis.normed.group.pointwise
-import analysis.normed_space.finite_dimension
+import topology.algebra.module.finite_dimension
 import analysis.normed_space.ray
 import topology.path_connected
 import topology.algebra.affine
@@ -39,7 +39,7 @@ open_locale pointwise convex
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=
 convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
 
-alias real.convex_iff_is_preconnected ↔ convex.is_preconnected is_preconnected.convex
+alias real.convex_iff_is_preconnected ↔ _ is_preconnected.convex
 
 /-! ### Standard simplex -/
 
@@ -192,12 +192,12 @@ hs.add_smul_mem_interior' (subset_closure hx) hy ht
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 protected lemma convex.interior {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (interior s) :=
-convex_iff_open_segment_subset.mpr $ λ x y hx hy,
+convex_iff_open_segment_subset.mpr $ λ x hx y hy,
   hs.open_segment_closure_interior_subset_interior (interior_subset_closure hx) hy
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
 protected lemma convex.closure {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (closure s) :=
-λ x y hx hy a b ha hb hab,
+λ x hx y hy a b ha hb hab,
 let f : E → E → E := λ x' y', a • x' + b • y' in
 have hf : continuous (λ p : E × E, f p.1 p.2), from
   (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
@@ -265,6 +265,7 @@ lemma convex.subset_interior_image_homothety_of_one_lt {s : set E} (hs : convex 
   s ⊆ interior (homothety x t '' s) :=
 subset_closure.trans $ hs.closure_subset_interior_image_homothety_of_one_lt hx t ht
 
+/-- A nonempty convex set is path connected. -/
 protected lemma convex.is_path_connected {s : set E} (hconv : convex ℝ s) (hne : s.nonempty) :
   is_path_connected s :=
 begin
@@ -275,6 +276,16 @@ begin
   exact joined_in.of_line affine_map.line_map_continuous.continuous_on (line_map_apply_zero _ _)
     (line_map_apply_one _ _) H
 end
+
+/-- A nonempty convex set is connected. -/
+protected lemma convex.is_connected {s : set E} (h : convex ℝ s) (hne : s.nonempty) :
+  is_connected s :=
+(h.is_path_connected hne).is_connected
+
+/-- A convex set is preconnected. -/
+protected lemma convex.is_preconnected {s : set E} (h : convex ℝ s) : is_preconnected s :=
+s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ is_preconnected_empty)
+  (λ hne, (h.is_connected hne).is_preconnected)
 
 /--
 Every topological vector space over ℝ is path connected.
@@ -289,12 +300,12 @@ end has_continuous_smul
 /-! ### Normed vector space -/
 
 section normed_space
-variables [semi_normed_group E] [normed_space ℝ E] {s t : set E}
+variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
 
 /-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
 and `convex_on_univ_norm`. -/
 lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
-⟨hs, λ x y hx hy a b ha hb hab,
+⟨hs, λ x hx y hy a b ha hb hab,
   calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
     ... = a * ∥x∥ + b * ∥y∥
         : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩

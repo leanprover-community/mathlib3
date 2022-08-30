@@ -405,7 +405,7 @@ do ((), body) ← solve_aux type tac,
 /-- `eval_expr' α e` attempts to evaluate the expression `e` in the type `α`.
 This is a variant of `eval_expr` in core. Due to unexplained behavior in the VM, in rare
 situations the latter will fail but the former will succeed. -/
-meta def eval_expr' (α : Type*) [_inst_1 : reflected _ α] (e : expr) : tactic α :=
+meta def eval_expr' (α : Type*) [reflected _ α] (e : expr) : tactic α :=
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
@@ -1366,6 +1366,23 @@ end tactic
 
 namespace lean.parser
 open tactic interaction_monad
+
+/-- A version of `lean.parser.many` that requires at least `n` items -/
+meta def repeat_at_least {α : Type} (p : lean.parser α) : ℕ → lean.parser (list α)
+| 0 := many p
+| (n + 1) := list.cons <$> p <*> repeat_at_least n
+
+/-- A version of `lean.parser.sep_by` that allows trailing delimiters, but requires at least one
+item. Like `lean.parser.sep_by`, as a result of the `lean.parser` monad not being pure, this is only
+well-behaved if `p` and `s` are backtrackable; which in practice means they must not consume the
+input when they do not have a match. -/
+meta def sep_by_trailing {α : Type} (s : lean.parser unit) (p : lean.parser α) :
+  lean.parser (list α) :=
+do
+  fst ← p,
+  some () ← optional s | pure [fst],
+  some rest ← optional sep_by_trailing | pure [fst],
+  pure (fst :: rest)
 
 /-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
 current line. -/

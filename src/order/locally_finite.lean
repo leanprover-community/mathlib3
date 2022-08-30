@@ -446,10 +446,10 @@ fintype.of_finset (finset.Ioc a b) (λ x, by rw [finset.mem_Ioc, mem_Ioc])
 instance fintype_Ioo : fintype (Ioo a b) :=
 fintype.of_finset (finset.Ioo a b) (λ x, by rw [finset.mem_Ioo, mem_Ioo])
 
-lemma finite_Icc : (Icc a b).finite := set.finite_of_fintype _
-lemma finite_Ico : (Ico a b).finite := set.finite_of_fintype _
-lemma finite_Ioc : (Ioc a b).finite := set.finite_of_fintype _
-lemma finite_Ioo : (Ioo a b).finite := set.finite_of_fintype _
+lemma finite_Icc : (Icc a b).finite := (Icc a b).to_finite
+lemma finite_Ico : (Ico a b).finite := (Ico a b).to_finite
+lemma finite_Ioc : (Ioc a b).finite := (Ioc a b).to_finite
+lemma finite_Ioo : (Ioo a b).finite := (Ioo a b).to_finite
 
 end preorder
 
@@ -462,8 +462,8 @@ fintype.of_finset (finset.Ici a) (λ x, by rw [finset.mem_Ici, mem_Ici])
 instance fintype_Ioi : fintype (Ioi a) :=
 fintype.of_finset (finset.Ioi a) (λ x, by rw [finset.mem_Ioi, mem_Ioi])
 
-lemma finite_Ici : (Ici a).finite := set.finite_of_fintype _
-lemma finite_Ioi : (Ioi a).finite := set.finite_of_fintype _
+lemma finite_Ici : (Ici a).finite := (Ici a).to_finite
+lemma finite_Ioi : (Ioi a).finite := (Ioi a).to_finite
 
 end order_top
 
@@ -476,8 +476,8 @@ fintype.of_finset (finset.Iic b) (λ x, by rw [finset.mem_Iic, mem_Iic])
 instance fintype_Iio : fintype (Iio b) :=
 fintype.of_finset (finset.Iio b) (λ x, by rw [finset.mem_Iio, mem_Iio])
 
-lemma finite_Iic : (Iic b).finite := set.finite_of_fintype _
-lemma finite_Iio : (Iio b).finite := set.finite_of_fintype _
+lemma finite_Iic : (Iic b).finite := (Iic b).to_finite
+lemma finite_Iio : (Iio b).finite := (Iio b).to_finite
 
 end order_bot
 
@@ -660,20 +660,20 @@ instance [locally_finite_order α] [locally_finite_order β]
   [decidable_rel ((≤) : α × β → α × β → Prop)] :
   locally_finite_order (α × β) :=
 locally_finite_order.of_Icc' (α × β)
-  (λ a b, (Icc a.fst b.fst).product (Icc a.snd b.snd))
+  (λ a b, Icc a.fst b.fst ×ˢ Icc a.snd b.snd)
   (λ a b x, by { rw [mem_product, mem_Icc, mem_Icc, and_and_and_comm], refl })
 
 instance [locally_finite_order_top α] [locally_finite_order_top β]
   [decidable_rel ((≤) : α × β → α × β → Prop)] :
   locally_finite_order_top (α × β) :=
 locally_finite_order_top.of_Ici' (α × β)
-  (λ a, (Ici a.fst).product (Ici a.snd)) (λ a x, by { rw [mem_product, mem_Ici, mem_Ici], refl })
+  (λ a, Ici a.fst ×ˢ Ici a.snd) (λ a x, by { rw [mem_product, mem_Ici, mem_Ici], refl })
 
 instance [locally_finite_order_bot α] [locally_finite_order_bot β]
   [decidable_rel ((≤) : α × β → α × β → Prop)] :
   locally_finite_order_bot (α × β) :=
 locally_finite_order_bot.of_Iic' (α × β)
-  (λ a, (Iic a.fst).product (Iic a.snd)) (λ a x, by { rw [mem_product, mem_Iic, mem_Iic], refl })
+  (λ a, Iic a.fst ×ˢ Iic a.snd) (λ a x, by { rw [mem_product, mem_Iic, mem_Iic], refl })
 
 end preorder
 

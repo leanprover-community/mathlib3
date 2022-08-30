@@ -202,7 +202,7 @@ end
 
 @[to_additive] lemma monoid_hom.map_finprod_Prop {p : Prop} (f : M →* N) (g : p → M) :
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
-f.map_finprod_plift g (finite.of_fintype _)
+f.map_finprod_plift g (set.to_finite _)
 
 @[to_additive] lemma monoid_hom.map_finprod_of_preimage_one (f : M →* N)
   (hf : ∀ x, f x = 1 → x = 1) (g : α → M) :
@@ -310,7 +310,7 @@ by { classical, rw [finprod_def, dif_pos hf] }
 
 @[to_additive] lemma finprod_eq_prod_of_fintype [fintype α] (f : α → M) :
   ∏ᶠ i : α, f i = ∏ i, f i :=
-finprod_eq_prod_of_mul_support_to_finset_subset _ (finite.of_fintype _) $ finset.subset_univ _
+finprod_eq_prod_of_mul_support_to_finset_subset _ (set.to_finite _) $ finset.subset_univ _
 
 @[to_additive] lemma finprod_cond_eq_prod_of_cond_iff (f : α → M) {p : α → Prop} {t : finset α}
   (h : ∀ {x}, f x ≠ 1 → (p x ↔ x ∈ t)) :
@@ -776,10 +776,11 @@ finprod_mem_mul_diff' hst (ht.inter_of_left _)
 @[to_additive "Given a family of pairwise disjoint finite sets `t i` indexed by a finite type, the
 sum of `f a` over the union `⋃ i, t i` is equal to the sum over all indexes `i` of the sums of `f a`
 over `a ∈ t i`."]
-lemma finprod_mem_Union [fintype ι] {t : ι → set α} (h : pairwise (disjoint on t))
+lemma finprod_mem_Union [finite ι] {t : ι → set α} (h : pairwise (disjoint on t))
   (ht : ∀ i, (t i).finite) :
   ∏ᶠ a ∈ (⋃ i : ι, t i), f a = ∏ᶠ i, ∏ᶠ a ∈ t i, f a :=
 begin
+  casesI nonempty_fintype ι,
   lift t to ι → finset α using ht,
   classical,
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,

@@ -72,9 +72,6 @@ begin
               one_ne_zero, and_self] },
 end
 
-lemma odd_gt_zero (h : odd n) : 0 < n :=
-by { obtain ⟨k, rfl⟩ := h, exact succ_pos' }
-
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 even_iff_two_dvd.symm.not.trans not_even_iff
 
@@ -200,6 +197,18 @@ by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
 lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+
+lemma bit0_div_two : bit0 n / 2 = n :=
+by rw [←nat.bit0_eq_bit0, bit0_eq_two_mul, two_mul_div_two_of_even (even_bit0 n)]
+
+lemma bit1_div_two : bit1 n / 2 = n :=
+by rw [←nat.bit1_eq_bit1, bit1, bit0_eq_two_mul, nat.two_mul_div_two_add_one_of_odd (odd_bit1 n)]
+
+@[simp] lemma bit0_div_bit0 : bit0 n / bit0 m = n / m :=
+by rw [bit0_eq_two_mul m, ←nat.div_div_eq_div_mul, bit0_div_two]
+
+@[simp] lemma bit1_div_bit0 : bit1 n / bit0 m = n / m :=
+by rw [bit0_eq_two_mul, ←nat.div_div_eq_div_mul, bit1_div_two]
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 

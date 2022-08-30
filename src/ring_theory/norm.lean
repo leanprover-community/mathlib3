@@ -26,7 +26,7 @@ The current definition is as general as possible and the assumption that we have
 fields or that the extension is finite is added to the lemmas as needed.
 
 We only define the norm for left multiplication (`algebra.left_mul_matrix`,
-i.e. `algebra.lmul_left`).
+i.e. `linear_map.mul_left`).
 For now, the definitions assume `S` is commutative, so the choice doesn't
 matter anyway.
 
@@ -73,7 +73,7 @@ variables {R}
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma norm_eq_matrix_det [decidable_eq ι] (b : basis ι R S) (s : S) :
   norm R s = matrix.det (algebra.left_mul_matrix b s) :=
-by rw [norm_apply, ← linear_map.det_to_matrix b, to_matrix_lmul_eq]
+by { rwa [norm_apply, ← linear_map.det_to_matrix b, ← to_matrix_lmul_eq], refl }
 
 /-- If `x` is in the base field `K`, then the norm is `x ^ [L : K]`. -/
 lemma norm_algebra_map_of_basis (b : basis ι R S) (x : R) :
@@ -91,7 +91,8 @@ end
 (If `L` is not finite-dimensional over `K`, then `norm = 1 = x ^ 0 = x ^ (finrank L K)`.)
 -/
 @[simp]
-protected lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
+protected lemma norm_algebra_map {K L : Type*} [field K] [comm_ring L] [algebra K L] (x : K) :
+  norm K (algebra_map K L x) = x ^ finrank K L :=
 begin
   by_cases H : ∃ (s : finset L), nonempty (basis s K L),
   { rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
@@ -155,14 +156,14 @@ not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
 
 /-- See also `algebra.norm_eq_zero_iff'` if you already have rewritten with `algebra.norm_apply`. -/
 @[simp]
-lemma norm_eq_zero_iff [finite_dimensional K L] {x : L} :
-  algebra.norm K x = 0 ↔ x = 0 :=
+lemma norm_eq_zero_iff {K L : Type*} [field K] [comm_ring L] [algebra K L] [is_domain L]
+  [finite_dimensional K L] {x : L} : algebra.norm K x = 0 ↔ x = 0 :=
 algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
 
 /-- This is `algebra.norm_eq_zero_iff` composed with `algebra.norm_apply`. -/
 @[simp]
-lemma norm_eq_zero_iff' [finite_dimensional K L] {x : L} :
-  linear_map.det (algebra.lmul K L x) = 0 ↔ x = 0 :=
+lemma norm_eq_zero_iff' {K L : Type*} [field K] [comm_ring L] [algebra K L] [is_domain L]
+  [finite_dimensional K L] {x : L} : linear_map.det (linear_map.mul K L x) = 0 ↔ x = 0 :=
 algebra.norm_eq_zero_iff_of_basis (basis.of_vector_space K L)
 
 end eq_zero_iff
@@ -222,9 +223,8 @@ section eq_prod_embeddings
 
 open intermediate_field intermediate_field.adjoin_simple polynomial
 
-variables (E : Type*) [field E] [algebra K E]
-
-lemma norm_eq_prod_embeddings_gen
+lemma norm_eq_prod_embeddings_gen {K L : Type*} [field K] [comm_ring L] [algebra K L]
+  (E : Type*) [field E] [algebra K E]
   (pb : power_basis K L)
   (hE : (minpoly K pb.gen).splits (algebra_map K E)) (hfx : (minpoly K pb.gen).separable) :
   algebra_map K E (norm K pb.gen) =
@@ -245,9 +245,9 @@ lemma norm_eq_prod_roots [is_separable K L] [finite_dimensional K L]
 by rw [norm_eq_norm_adjoin K x, map_pow,
   intermediate_field.adjoin_simple.norm_gen_eq_prod_roots _ hF]
 
-variable (F)
+variables (F) (E : Type*) [field E] [algebra K E]
 
-lemma prod_embeddings_eq_finrank_pow [algebra L F] [is_scalar_tower K L F][is_alg_closed E]
+lemma prod_embeddings_eq_finrank_pow [algebra L F] [is_scalar_tower K L F] [is_alg_closed E]
   [is_separable K F] [finite_dimensional K F] (pb : power_basis K L) :
   ∏ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
   ((@@finset.univ (power_basis.alg_hom.fintype pb)).prod

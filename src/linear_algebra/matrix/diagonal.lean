@@ -58,7 +58,7 @@ begin
   simp only [comap_infi, ← this, proj_diagonal, ker_smul'],
   have : univ ⊆ {i : m | w i = 0} ∪ {i : m | w i = 0}ᶜ, { rw set.union_compl_self },
   exact (supr_range_std_basis_eq_infi_ker_proj K (λi:m, K)
-    disjoint_compl_right this (set.finite.of_fintype _)).symm
+    disjoint_compl_right this (set.to_finite _)).symm
 end
 
 lemma range_diagonal [decidable_eq m] (w : m → K) :
@@ -75,7 +75,7 @@ lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :
 begin
   have hu : univ ⊆ {i : m | w i = 0}ᶜ ∪ {i : m | w i = 0}, { rw set.compl_union_self },
   have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := disjoint_compl_left,
-  have B₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (set.finite.of_fintype _),
+  have B₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (set.to_finite _),
   have B₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simp; apply_instance) hd hu,
   rw [rank, range_diagonal, B₁, ←@dim_fun' K],
   apply linear_equiv.dim_eq,

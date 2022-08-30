@@ -306,6 +306,14 @@ lemma measurable_set_generate_from {s : set (set α)} {t : set α} (ht : t ∈ s
   @measurable_set _ (generate_from s) t :=
 generate_measurable.basic t ht
 
+@[elab_as_eliminator]
+lemma generate_from_induction (p : set α → Prop) (C : set (set α))
+  (hC : ∀ t ∈ C, p t) (h_empty : p ∅) (h_compl : ∀ t, p t → p tᶜ)
+  (h_Union : ∀ f : ℕ → set α, (∀ n, p (f n)) → p (⋃ i, f i))
+  {s : set α} (hs : measurable_set[generate_from C] s) :
+  p s :=
+by { induction hs, exacts [hC _ hs_H, h_empty, h_compl _ hs_ih, h_Union hs_f hs_ih], }
+
 lemma generate_from_le {s : set (set α)} {m : measurable_space α}
   (h : ∀ t ∈ s, measurable_set[m] t) : generate_from s ≤ m :=
 assume t (ht : generate_measurable s t), ht.rec_on h
@@ -429,6 +437,14 @@ theorem measurable_set_supr {ι} {m : ι → measurable_space α} {s : set α} :
   @measurable_set _ (supr m) s ↔
     generate_measurable {s : set α | ∃ i, measurable_set[m i] s} s :=
 by simp only [supr, measurable_set_Sup, exists_range_iff]
+
+lemma measurable_space_supr_eq (m : ι → measurable_space α) :
+  (⨆ n, m n) = measurable_space.generate_from {s | ∃ n, measurable_set[m n] s} :=
+begin
+  ext s,
+  rw measurable_space.measurable_set_supr,
+  refl,
+end
 
 end complete_lattice
 

@@ -114,9 +114,8 @@ instance {x y : X} : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 instance {x y : X} : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
   continuous_map.compact_open
 
-lemma continuous_eval {x y : X} : continuous (λ p : I × (path x y), p.2 p.1) :=
-  (continuous_eval'.comp (continuous.prod_map (continuous_induced_dom) (@continuous_id I _))).comp
-    continuous_swap
+lemma continuous_eval {x y : X} : continuous (λ p : I × path x y, p.2 p.1) :=
+(continuous_eval'.comp $ continuous_induced_dom.prod_map (@continuous_id I _)).comp continuous_swap
 
 end path
 

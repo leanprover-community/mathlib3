@@ -1436,10 +1436,19 @@ h.mono $ λ x, mt
   (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
 h.inter h'.compl
 
-lemma eventually_le.mul_le_mul [ordered_semiring β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+lemma eventually_le.mul_le_mul
+  [mul_zero_class β] [partial_order β] [pos_mul_mono β] [mul_pos_mono β]
+  {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
   (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) (hg₀ : 0 ≤ᶠ[l] g₁) (hf₀ : 0 ≤ᶠ[l] f₂) :
   f₁ * g₁ ≤ᶠ[l] f₂ * g₂ :=
 by filter_upwards [hf, hg, hg₀, hf₀] with x using mul_le_mul
+
+@[to_additive eventually_le.add_le_add']
+lemma eventually_le.mul_le_mul' [has_mul β] [preorder β]
+  [covariant_class β β (*) (≤)] [covariant_class β β (swap (*)) (≤)]
+  {l : filter α} {f₁ f₂ g₁ g₂ : α → β} (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) :
+  f₁ * g₁ ≤ᶠ[l] f₂ * g₂ :=
+by filter_upwards [hf, hg] with x hfx hgx using mul_le_mul' hfx hgx
 
 lemma eventually_le.mul_nonneg [ordered_semiring β] {l : filter α} {f g : α → β}
   (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) :
@@ -1469,10 +1478,6 @@ lemma eventually_le.le_sup_of_le_right [semilattice_sup β] {l : filter α} {f g
   (hg : h ≤ᶠ[l] g) :
   h ≤ᶠ[l] f ⊔ g :=
 by filter_upwards [hg] with x hgx using le_sup_of_le_right hgx
-
-lemma eventually_le.add_le_add {α β : Type*} [ordered_semiring β] {l : filter α}
-  {f₁ f₂ g₁ g₂ : α → β} (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) : f₁ + g₁ ≤ᶠ[l] f₂ + g₂ :=
-by filter_upwards [hf, hg] with x hfx hgx using add_le_add hfx hgx
 
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs

@@ -767,11 +767,6 @@ lemma tail_le_supr [h : nonempty ι] (s : ι → α) : tail s ≤ ⨆ i, s i :=
 
 end lattice
 
-lemma measurable_set.ite' {α} {m0 : measurable_space α} {s t : set α} {p : Prop}
-  (hs : p → measurable_set s) (ht : ¬ p → measurable_set t) :
-  measurable_set (ite p s t) :=
-by { split_ifs, exacts [hs h, ht h], }
-
 section zero_one_law
 
 variables {Ω ι : Type*} {m m0 : measurable_space Ω} {μ : measure Ω}
@@ -863,10 +858,6 @@ begin
     convert finset.union_inter_cancel_right.symm, },
   rw [finset.prod_mul_distrib, h1, h2, ht1_eq, ← h_indep p1 ht1_m, ht2_eq, ← h_indep p2 ht2_m],
 end
-
-lemma generate_from_Union_measurable_set {ι : Type*} (s : ι → measurable_space Ω) :
-  generate_from (⋃ n, {t | measurable_set[s n] t}) = ⨆ n, s n :=
-(@measurable_space.gi_generate_from Ω).l_supr_u s
 
 lemma generate_from_pi_Union_Inter_subsets (m : ι → measurable_space Ω) (S : set ι) :
   generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) {t : finset ι| ↑t ⊆ S})

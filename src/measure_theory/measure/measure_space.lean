@@ -1767,7 +1767,8 @@ end count
 def absolutely_continuous {m0 : measurable_space α} (μ ν : measure α) : Prop :=
 ∀ ⦃s : set α⦄, ν s = 0 → μ s = 0
 
-localized "infix ` ≪ `:50 := measure_theory.measure.absolutely_continuous" in measure_theory
+localized "infix (name := measure.absolutely_continuous)
+  ` ≪ `:50 := measure_theory.measure.absolutely_continuous" in measure_theory
 
 lemma absolutely_continuous_of_le (h : μ ≤ ν) : μ ≪ ν :=
 λ s hs, nonpos_iff_eq_zero.1 $ hs ▸ le_iff'.1 h s

@@ -3,17 +3,11 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction.basic
-import category_theory.adjunction.comma
 import category_theory.generator
-import category_theory.limits.constructions.weakly_initial
-import category_theory.limits.preserves.basic
-import category_theory.limits.creates
-import category_theory.limits.comma
 import category_theory.limits.cone_category
-import category_theory.punit
-import category_theory.subobject.comma
+import category_theory.limits.constructions.weakly_initial
 import category_theory.limits.functor_category
+import category_theory.subobject.comma
 
 /-!
 # Adjoint functor theorem
@@ -112,7 +106,6 @@ noncomputable def is_right_adjoint_of_preserves_limits_of_is_coseparating [has_l
 have ∀ A, has_initial (structured_arrow A G),
   from λ A, has_initial_of_is_coseparating (structured_arrow.is_coseparating_proj_preimage A G h𝒢),
 by exactI is_right_adjoint_of_structured_arrow_initials _
-
 
 /--
 The special adjoint functor theorem: if `F : C ⥤ D` preserves colimits and `C` is cocomplete,

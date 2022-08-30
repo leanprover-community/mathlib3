@@ -168,7 +168,7 @@ theorem ext {S T : submonoid M}
 protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 { carrier := s,
   one_mem' := hs.symm ▸ S.one_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem' }
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem' }
 
 variable {S : submonoid M}
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.convex.basic
-import analysis.inner_product_space.basic
+import analysis.inner_product_space.symmetric
 import analysis.normed_space.is_R_or_C
 
 /-!
@@ -946,6 +946,12 @@ begin
       (submodule.coe_mem (orthogonal_projection Kᗮ u))],
 end
 
+/-- The orthogonal projection is symmetric. -/
+lemma orthogonal_projection_is_symmetric [complete_space E]
+  [complete_space K] :
+  (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E).is_symmetric :=
+inner_orthogonal_projection_left_eq_right K
+
 open finite_dimensional
 
 /-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`
@@ -1013,7 +1019,7 @@ begin
   { -- Base case: `n = 0`, the fixed subspace is the whole space, so `φ = id`
     refine ⟨[], rfl.le, show φ = 1, from _⟩,
     have : (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker = ⊤,
-    { rwa [nat.le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
+    { rwa [le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
     symmetry,
     ext x,
     have := linear_map.congr_fun (linear_map.ker_eq_top.mp this) x,

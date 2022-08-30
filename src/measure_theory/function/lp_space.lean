@@ -1274,11 +1274,21 @@ end
 
 lemma snorm_smul_le_mul_snorm {p q r : ℝ≥0∞}
   {f : α → E} (hf : ae_strongly_measurable f μ) {φ : α → 𝕜} (hφ : ae_strongly_measurable φ μ)
-  (hq_ne_zero : q ≠ 0) (hr_ne_zero : r ≠ 0) (hpqr : 1/p = 1/q + 1/r) :
+  (hpqr : 1/p = 1/q + 1/r) :
   snorm (φ • f) p μ ≤ snorm φ q μ * snorm f r μ :=
 begin
   by_cases hp_zero : p = 0,
   { simp [hp_zero], },
+  have hq_ne_zero : q ≠ 0,
+  { intro hq_zero,
+    simp only [hq_zero, hp_zero, one_div, ennreal.inv_zero, ennreal.top_add,
+      ennreal.inv_eq_top] at hpqr,
+    exact hpqr, },
+  have hr_ne_zero : r ≠ 0,
+  { intro hr_zero,
+    simp only [hr_zero, hp_zero, one_div, ennreal.inv_zero, ennreal.add_top,
+      ennreal.inv_eq_top] at hpqr,
+    exact hpqr, },
   by_cases hq_top : q = ∞,
   { have hpr : p = r,
     { simpa only [hq_top, one_div, ennreal.div_top, zero_add, inv_inj] using hpqr, },

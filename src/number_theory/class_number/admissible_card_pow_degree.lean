@@ -199,10 +199,9 @@ begin
 
   obtain ⟨t', ht'⟩ := ih (fin.tail A),
   -- We got rid of `A 0`, so determine the index `j` of the partition we'll re-add it to.
-  suffices : ∃ j,
+  rsuffices ⟨j, hj⟩ : ∃ j,
     ∀ i, t' i = j ↔ (card_pow_degree (A 0 % b - A i.succ % b) : ℝ) < card_pow_degree b • ε,
-  { obtain ⟨j, hj⟩ := this,
-    refine ⟨fin.cons j t', λ i₀ i₁, _⟩,
+  { refine ⟨fin.cons j t', λ i₀ i₁, _⟩,
     refine fin.cases _ (λ i₀, _) i₀; refine fin.cases _ (λ i₁, _) i₁,
     { simpa using hbε },
     { rw [fin.cons_succ, fin.cons_zero, eq_comm, absolute_value.map_sub],

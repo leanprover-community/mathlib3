@@ -64,9 +64,8 @@ begin
   -- It now suffices to show that one of the labels is 'big' somewhere. In particular, if the
   -- first in the pair is more than `r` somewhere, then we have an increasing subsequence in our
   -- set, and if the second is more than `s` somewhere, then we have a decreasing subsequence.
-  suffices : ∃ i, r < (ab i).1 ∨ s < (ab i).2,
-  { obtain ⟨i, hi⟩ := this,
-    apply or.imp _ _ hi,
+  rsuffices ⟨i, hi⟩ : ∃ i, r < (ab i).1 ∨ s < (ab i).2,
+  { apply or.imp _ _ hi,
     work_on_goal 1 { have : (ab i).1 ∈ _ := max'_mem _ _ },
     work_on_goal 2 { have : (ab i).2 ∈ _ := max'_mem _ _ },
     all_goals

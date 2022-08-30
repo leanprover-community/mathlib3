@@ -607,6 +607,7 @@ arbitrary `fintype` instances, use `fintype.card_eq_zero_iff`. -/
 end fintype
 
 namespace set
+variables {s t : set α}
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
@@ -644,13 +645,11 @@ set.ext $ λ _, mem_to_finset
   s.to_finset = t.to_finset ↔ s = t :=
 ⟨λ h, by rw [←s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
-@[simp, mono] theorem to_finset_mono {s t : set α} [fintype s] [fintype t] :
-  s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
+@[simp, mono] lemma to_finset_subset [fintype s] [fintype t] : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simp [finset.subset_iff, set.subset_def]
 
-@[simp, mono] theorem to_finset_strict_mono {s t : set α} [fintype s] [fintype t] :
-  s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
-by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
+@[simp, mono] lemma to_finset_ssubset [fintype s] [fintype t] : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
+by simp only [finset.ssubset_def, to_finset_subset, ssubset_def]
 
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
@@ -969,9 +968,8 @@ begin
   rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
   { simp [finset.card_univ] },
   { intros x hx,
-    suffices : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
-    { obtain ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ := this,
-      simpa using hb },
+    rsuffices ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
+    { simpa using hb },
     simpa using hx }
 end
 

@@ -1443,7 +1443,7 @@ lemma eventually_le.mul_le_mul
   f₁ * g₁ ≤ᶠ[l] f₂ * g₂ :=
 by filter_upwards [hf, hg, hg₀, hf₀] with x using mul_le_mul
 
-@[to_additive eventually_le.add_le_add']
+@[to_additive eventually_le.add_le_add]
 lemma eventually_le.mul_le_mul' [has_mul β] [preorder β]
   [covariant_class β β (*) (≤)] [covariant_class β β (swap (*)) (≤)]
   {l : filter α} {f₁ f₂ g₁ g₂ : α → β} (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) :

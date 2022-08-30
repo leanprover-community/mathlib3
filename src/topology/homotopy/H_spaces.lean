@@ -200,7 +200,7 @@ begin
   { let Cproj : C(ℝ, I) := ⟨set.proj_Icc 0 1 zero_le_one, continuous_proj_Icc⟩,
     have h_left := ((continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj)).comp
       continuous_induced_dom,
-    have aux : continuous (λ x : ℝ, 2 * x -1 ),
+    have aux : continuous (λ x : ℝ, 2 * x - 1),
       from (continuous_const.mul continuous_id').sub continuous_const,
     have h_right := aux.comp continuous_induced_dom,
     exact (continuous_eval'.comp (continuous.prod_map h_left h_right)) },

@@ -277,6 +277,8 @@ def comp_left (f : continuous_monoid_hom A B) :
   map_mul' := λ g h, rfl,
   continuous_to_fun := f.continuous_comp_left }
 
+variables (A) {E}
+
 /-- `continuous_add_monoid_hom f _` is a functor. -/
 @[to_additive "`continuous_monoid_hom f _` is a functor."]
 def comp_right {B : Type*} [comm_group B] [topological_space B]

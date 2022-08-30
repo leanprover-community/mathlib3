@@ -90,21 +90,17 @@ lemma dvd_nat_abs_iff_of_nat_dvd {a : ℕ} {z : ℤ} : a ∣ z.nat_abs ↔ (a : 
 ⟨int.of_nat_dvd_of_dvd_nat_abs, int.dvd_nat_abs_of_of_nat_dvd⟩
 
 /-- If `gcd a (m * n) ≠ 1`, then `gcd a m ≠ 1` or `gcd a n ≠ 1`. -/
-lemma gcd_ne_one_of_gcd_mul_ne_one {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) ≠ 1) :
-  a.gcd m ≠ 1 ∨ a.gcd n ≠ 1 :=
-begin
-  by_contra' h₁,
-  exact h (gcd_eq_one_iff_coprime.mpr $
-    is_coprime.mul_right (gcd_eq_one_iff_coprime.mp h₁.left) $ gcd_eq_one_iff_coprime.mp h₁.right)
-end
+lemma gcd_ne_one_iff_gcd_mul_ne_one {a : ℤ} {m n : ℕ} :
+  a.gcd (m * n) ≠ 1 ↔ a.gcd m ≠ 1 ∨ a.gcd n ≠ 1 :=
+by simp only [gcd_eq_one_iff_coprime, ← not_and_distrib, not_iff_not, is_coprime.mul_right_iff]
 
 /-- If `gcd a (m * n) = 1`, then `gcd a m = 1`. -/
 lemma gcd_eq_one_of_gcd_mul_eq_one_left {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) : a.gcd m = 1 :=
-nat.dvd_one.mp $ trans_rel_left _ (int.gcd_dvd_gcd_mul_right_right a m n) h
+nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_right_right a m n) h
 
 /-- If `gcd a (m * n) = 1`, then `gcd a n = 1`. -/
 lemma gcd_eq_one_of_gcd_mul_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) : a.gcd n = 1 :=
-nat.dvd_one.mp $ trans_rel_left _ (int.gcd_dvd_gcd_mul_left_right a n m) h
+nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_left_right a n m) h
 
 end int
 

@@ -166,7 +166,7 @@ variables {K}  {L : set V} {KL : K ⊆ L}
 @[reducible]
 def inf (C : G.comp_out K) := (C : set V).infinite
 
-@[reducible]
+@[reducible,protected]
 def fin (C : G.comp_out K) := (C : set V).finite
 
 @[reducible]

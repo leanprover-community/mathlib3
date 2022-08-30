@@ -158,7 +158,7 @@ begin
   refl,
 end
 
-end comp_out
+
 
 /-
   This is the key part of Hopf-Freudenthal
@@ -172,7 +172,7 @@ lemma good_autom_back_not_inj
   (K : finset V)
   (inf_comp_H_large : fin 3 ↪ (G.inf_comp_out K)) :
   ∃ (K' L : finset V) (hK' : K ⊆ K') (hL : K' ⊆ L),
-    ¬ injective (inf_comp_out.back ‹↑K' ⊆ ↑L› : G.inf_comp_out L → G.inf_comp_out K') :=
+    ¬ injective (inf_comp_out.back hL : G.inf_comp_out L → G.inf_comp_out K') :=
 begin
   haveI Kn : K.nonempty,
   { rw nonempty_iff_ne_empty,
@@ -186,7 +186,7 @@ begin
   obtain ⟨KKp,Kpc⟩ := (finset.extend_to_connected G Gpc K Kn).prop,
 
   haveI Kpn := set.nonempty.mono KKp Kn,
-  obtain ⟨K',KK',Kc',inf⟩ := comp_out.extend_connected_with_fin_bundled G Kp,
+  obtain ⟨K',KK',Kc',inf⟩ := @comp_out.extend_connected_with_fin_bundled V G Gpc Glf Kp,
   rcases auts K' with ⟨φ,φgood⟩,
 
   let φK' := finset.image φ K',
@@ -227,6 +227,7 @@ begin
         ←equiv.to_fun_as_coe,
         e.right_inv (comp_out.of_connected_disjoint ↑K' Kc' _)],
     apply comp_out.of_connected_disjoint_dis, },
+
 
   apply inf_comp_out.nicely_arranged_bwd_map_not_inj G Gpc φK' K' (φK'n) (K'n) ⟨⟨F,Fdis⟩,Finf⟩ _ ⟨⟨E,Edis⟩,Einf⟩ Esub Fsub,
   have e := (inf_comp_out.equiv_of_iso φ K'),
@@ -270,5 +271,6 @@ begin
   exact eq',
 end
 
+end comp_out
 
 end simple_graph

@@ -314,21 +314,11 @@ by rw [jacobi_sym_mod_left, h, ← jacobi_sym_mod_left]
 
 /-- If the Jacobi symbol `(a / b)` is `-1`, then `a` is not a square modulo `b`. -/
 lemma jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -1) : ¬ is_square (a : zmod b) :=
-begin
-  haveI : fact (0 < b),
-  { refine ⟨nat.pos_of_ne_zero (λ hf, _)⟩,
-    have h₁ : [a | b]ⱼ ≠ 1 := by {rw h, dec_trivial},
-    rw [hf, jacobi_sym_zero_right] at h₁,
-    exact h₁ rfl, },
-  rintro ⟨x, hx⟩,
-  have hab : a % b = (x * x) % b,
-  { have h₁ : (a : zmod b) = (x.val * x.val : ℤ),
-    { simp only [hx, nat_cast_val, int.cast_mul, int_cast_cast, cast_id', id.def], },
-    have h₂ := (zmod.int_coe_eq_int_coe_iff' a (x.val * x.val) b).mp h₁,
-    rwa [zmod.nat_cast_val] at h₂, },
-  have hj := jacobi_sym_mod_left' hab,
-  rw [jacobi_sym_mul_left, h, ← pow_two] at hj,
-  exact (-1 : ℤ).lt_irrefl (hj.substr (sq_nonneg [x | b]ⱼ)),
+λ ⟨r, ha⟩, begin
+  rw [← r.coe_val_min_abs, ← int.cast_mul, int_coe_eq_int_coe_iff', ← sq] at ha,
+  apply (by norm_num : ¬ (0 : ℤ) ≤ -1),
+  rw [← h, jacobi_sym_mod_left, ha, ← jacobi_sym_mod_left, jacobi_sym_pow_left],
+  apply sq_nonneg,
 end
 
 /-!

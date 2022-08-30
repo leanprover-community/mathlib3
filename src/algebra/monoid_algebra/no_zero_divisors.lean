@@ -31,8 +31,7 @@ section no_covariant
 
 /--  The coefficient of a monomial in a product `f * g` that can be reached in at most one way
 as a product of monomials in the supports of `f` and `g` is a product. -/
-lemma mul_apply_add_eq_mul_of_forall_ne [has_add A] {f g : add_monoid_algebra R A}
-  {a0 b0 : A}
+lemma mul_apply_add_eq_mul_of_forall_ne [has_add A] {f g : add_monoid_algebra R A} {a0 b0 : A}
   (h : ∀ {a b : A}, a ∈ f.support → b ∈ g.support → (a ≠ a0 ∨ b ≠ b0) → a + b ≠ a0 + b0) :
   (f * g) (a0 + b0) = f a0 * g b0 :=
 begin
@@ -51,28 +50,22 @@ begin
 end
 
 section left_cancel
-variables [add_left_cancel_semigroup A] {f g : add_monoid_algebra R A}
+variables [add_left_cancel_semigroup A] {g : add_monoid_algebra R A}
 
 lemma left.exists_add_of_mem_support_single_mul (a x : A)
   (hx : x ∈ (single a 1 * g : add_monoid_algebra R A).support) :
-  ∃ b, b ∈ g.support ∧ a + b = x :=
-begin
-  rw support_single_mul _ _ (λ y, by rw one_mul : ∀ y : R, 1 * y = 0 ↔ _) at hx,
-  simpa only [finset.mem_map, exists_prop] using hx,
-end
+  ∃ b ∈ g.support, a + b = x :=
+by rwa [support_single_mul _ _ (λ y, by rw one_mul : ∀ y : R, 1 * y = 0 ↔ _), finset.mem_map] at hx
 
 end left_cancel
 
 section right_cancel
-variables [add_right_cancel_semigroup A] {f g : add_monoid_algebra R A}
+variables [add_right_cancel_semigroup A] {f : add_monoid_algebra R A}
 
 lemma right.exists_add_of_mem_support_single_mul (b x : A)
   (hx : x ∈ (f * single b 1 : add_monoid_algebra R A).support) :
-  ∃ a, a ∈ f.support ∧ a + b = x :=
-begin
-  rw support_mul_single _ _ (λ y, by rw mul_one : ∀ y : R, y * 1 = 0 ↔ _) at hx,
-  simpa only [finset.mem_map, exists_prop] using hx,
-end
+  ∃ a ∈ f.support, a + b = x :=
+by rwa [support_mul_single _ _ (λ y, by rw mul_one : ∀ y : R, y * 1 = 0 ↔ _), finset.mem_map] at hx
 
 end right_cancel
 end no_covariant

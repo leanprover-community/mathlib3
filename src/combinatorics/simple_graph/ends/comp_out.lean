@@ -172,6 +172,9 @@ def fin (C : G.comp_out K) := (C : set V).finite
 @[reducible]
 def dis (C : G.comp_out K) := disjoint K (C : set V)
 
+lemma of_empty_is_subsingleton (Gpc : G.preconnected) : ∀ C : (G.comp_out ∅),  (C : set V) = univ := sorry
+lemma of_empty_finite (Gpc : G.preconnected) : finite (G.comp_out ∅) := sorry
+
 
 @[simp] lemma nempty (C : G.comp_out K) : (C : set V).nonempty := by
 { refine C.ind _,
@@ -354,13 +357,19 @@ begin
   exact ⟨x,xC,yD⟩,
 end
 
-lemma comp_out_finite  (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glf : G.locally_finite)
-  (Kn : K.nonempty)  :
+lemma comp_out_finite  (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glf : G.locally_finite) :
   finite (G.comp_out K) :=
 begin
+    by_cases Kn : K.nonempty,
+  -- nonempty case
   haveI : finite (G.thicken K), by {rw set.finite_coe_iff, apply @thicken.finite _ _ Glf _, },
   apply finite.of_injective (to_thickening G K Gpc Glf Kn),
   apply to_thickening_inj,
+  -- empty case
+  rw finset.not_nonempty_iff_eq_empty at Kn,
+  rw Kn,
+  rw finset.coe_empty,
+  exact of_empty_finite Gpc,
 end
 
 end finiteness
@@ -445,8 +454,9 @@ begin
 end
 
 lemma exists_inf [infinite V] (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected)
-  (Glf : G.locally_finite) (Kn : K.nonempty) : ∃ C : G.comp_out K, C.inf :=
+  (Glf : G.locally_finite) : ∃ C : G.comp_out K, C.inf :=
 begin
+
   by_contra h, push_neg at h,
   have : set.univ = ⋃ (C : G.comp_out K), (C : set V), by {
     symmetry,
@@ -454,11 +464,12 @@ begin
     simp only [of_vertex, mem_range_self, set_like.mem_coe, mem_supp_iff, true_and],},
   have : (@set.univ V).finite, by {
     rw this,
-    haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kn,
+    haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf,
     apply set.finite_Union,
     simp_rw set.not_infinite at h,
     exact h,},
   apply set.infinite_univ this,
+
 end
 
 lemma back_of_inf {K L : set V} (h : K ⊆ L) (C : G.comp_out L) : C.inf → (C.back h).inf :=
@@ -631,6 +642,9 @@ variables {K}  {L : set V}
 
 -- Maybe todo: all the lemmas about disjointness and stuff, but maybe unneeded here.
 lemma dis (C : G.dis_comp_out K) : disjoint K C := C.prop
+
+lemma of_empty_is_subsingleton (Gpc : G.preconnected) : ∀ C : (G.dis_comp_out ∅), V = C := sorry
+
 
 section back
 

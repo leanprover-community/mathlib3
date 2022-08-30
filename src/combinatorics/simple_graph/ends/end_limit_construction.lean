@@ -18,8 +18,8 @@ noncomputable theory
 local attribute [instance] prop_decidable
 
 universes u v w
-variables {V : Type u} [decidable_eq V] (h : V ≃ ℕ)
-variables (G : simple_graph V) [locally_finite G]
+variables {V : Type u} [decidable_eq V]
+variables (G : simple_graph V) (Glf : locally_finite G) (Gpc : G.preconnected)
 
 
 -- Defined backwards for simpler use of `mathlib_fintype_inverse_systems.lean`
@@ -92,31 +92,49 @@ begin
   apply inverse_system.to_surjective.sections_equiv,
 end
 
-/-
+include Gpc Glf
 instance ComplComp_nonempty [infinite V] :  ∀ (j : (finset V)), nonempty ((ComplComp G).obj j) := by {
-  intro K, dsimp [ComplComp],
-  refine nonempty.map subtype.val _,
-  rotate, apply inf_graph_has_inf_conn_comp,}
+  intro K, dsimp only [ComplComp],
+  --refine nonempty.map subtype.val _,
+  --rotate,
+  obtain ⟨C,Cinf⟩ := comp_out.exists_inf G K Gpc Glf,
+  constructor,
+  use [C,comp_out.dis_of_inf C Cinf], }
 
-instance ComplComp_fintype [Gpc : preconnected G] : Π (j : (finset V)), fintype ((ComplComp G).obj j) := by
-{ intro, exact finite_components _ _ Gpc,}
+instance ComplComp_fintype : Π (j : (finset V)), fintype ((ComplComp G).obj j) := by
+{ intro,
+  dsimp only [ComplComp],
+  haveI := @fintype.of_finite (G.comp_out j) (comp_out_finite G j Gpc Glf),
+  apply subtype.fintype, }
 
-instance ComplInfComp_nonempty [infinite V] :
-  Π (j : (finset V)), nonempty ((ComplInfComp G).obj j) := by
-{ intro, apply inf_graph_has_inf_conn_comp,}
+instance ComplInfComp_nonempty [infinite V] : Π (j : (finset V)), nonempty ((ComplInfComp G).obj j) := by
+{ intro K, dsimp only [ComplComp],
+
+  obtain ⟨C,Cinf⟩ := comp_out.exists_inf G K Gpc Glf,
+  constructor,
+  use [C,comp_out.dis_of_inf C Cinf, Cinf],},
 
 instance ComplInfComp_fintype [Gpc : preconnected G] : Π (j : (finset V)), fintype ((ComplInfComp G).obj j) := by
-{ intro K, dsimp [ComplInfComp],
-  haveI := (finite_components _ K Gpc),
-  apply subtype.fintype,}
+{ intro K, rw ComplInfComp.obj,
+  haveI := @fintype.of_finite (G.comp_out K) (comp_out_finite G K Gpc Glf),
+  have dis_fin := subtype.fintype (λ (C : G.comp_out K), C.dis),
+  change fintype (G.dis_comp_out K) at dis_fin,
+  haveI := dis_fin,
+  apply subtype.fintype, }
 
 
-
+omit Glf Gpc
 lemma all_empty [finite V] : ∀ (K : finset V), is_empty ((ComplInfComp G).obj K) :=
 begin
-  sorry,
+  rintro K,
+  by_contra h, rw not_is_empty_iff at h,
+  obtain ⟨⟨C,Cdis⟩,Cinf⟩ := h,
+  simp at Cinf,
+  have : (@set.univ V).finite := (@set.univ V).to_finite,
+  exact set.infinite.mono (by {simp only [set.subset_univ],} : (C : set V) ⊆ set.univ) Cinf this,
 end
 
+include Glf Gpc
 lemma ComplInfComp.surjective : inverse_system.is_surjective (ComplInfComp G) :=
 begin
   dsimp [Endsinfty],
@@ -171,4 +189,3 @@ begin
     { rintro x, exact (this L).elim x,},
     { rintro y, exact (this K).elim y,},}
 end
--/

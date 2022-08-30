@@ -32,6 +32,10 @@ section no_covariant
 section left_cancel
 variables [add_left_cancel_semigroup A] {f g : add_monoid_algebra R A}
 
+/--  The coefficient of a monomial in a product `f * g` that can be reached in at most one way
+as a product of monomials in the supports of `f` and `g` is a product.
+
+For right-cancel assumption use `right.mul_apply_add_eq_mul_of_forall_ne`. -/
 lemma left.mul_apply_add_eq_mul_of_forall_ne {a0 b0 : A}
   (h : ∀ a b : A, a ∈ f.support → b ∈ g.support → (a ≠ a0 ∨ b ≠ b0) → a + b ≠ a0 + b0) :
   (f * g) (a0 + b0) = f a0 * g b0 :=
@@ -60,6 +64,10 @@ end left_cancel
 section right_cancel
 variables [add_right_cancel_semigroup A] {f g : add_monoid_algebra R A}
 
+/--  The coefficient of a monomial in a product `f * g` that can be reached in at most one way
+as a product of monomials in the supports of `f` and `g` is a product.
+
+For left-cancel assumption use `left.mul_apply_add_eq_mul_of_forall_ne`. -/
 lemma right.mul_apply_add_eq_mul_of_forall_ne {a0 b0 : A}
   (h : ∀ a b : A, a ∈ f.support → b ∈ g.support → (a ≠ a0 ∨ b ≠ b0) → a + b ≠ a0 + b0) :
   (f * g) (a0 + b0) = f a0 * g b0 :=

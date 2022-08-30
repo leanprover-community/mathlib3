@@ -1104,10 +1104,8 @@ begin
   norm_num,
 end
 
-open_locale classical
-
 /-- A primitive permutation that contains a 3-cycle contains the alternating group (Jordan) -/
-theorem jordan_three_cycle (hG : is_preprimitive G α)
+theorem jordan_three_cycle [decidable_eq α] (hG : is_preprimitive G α)
   {g : equiv.perm α} (h3g : equiv.perm.is_three_cycle g) (hg : g ∈ G) :
   alternating_group α ≤ G :=
 begin
@@ -1166,6 +1164,8 @@ begin
   rw equiv.perm.is_three_cycle.card_support h3g,
   norm_num
 end
+
+#check jordan_three_cycle
 
 /- -- TODO : prove
 theorem jordan_prime_cycle [decidable_eq α] (hG : is_preprimitive G α)

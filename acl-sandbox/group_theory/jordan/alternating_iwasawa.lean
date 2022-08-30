@@ -103,7 +103,7 @@ begin
   rw [nat.add_sub_assoc (le_of_lt h1'), add_le_add_iff_left,
     nat.le_sub_iff_right (le_of_lt h1')],
   exact h1' },
-  -- Here, we needed to add an instance to the following lemma
+  -- Here, we needed to add an instance in multiple_transitivity.lean to apply the following lemma
   exact mul_action.alternating_group_is_fully_minus_two_pretransitive α,
 end
 
@@ -147,37 +147,7 @@ begin
   exact stabilizer_ne_top' s hs hsc',
 end
 
-
-variable [fintype α]
 open_locale classical
-
-lemma has_three_cycle_of_lt_stabilizer (s : set α)
-  (G : subgroup (equiv.perm α))
-  (hG : stabilizer (equiv.perm α) s ⊓ alternating_group α < G) :
-  ∃ (g : equiv.perm α), g.is_three_cycle ∧ g ∈ G :=
-begin
-  sorry
-end
-
-lemma jordan_three_cycle' {G: subgroup (equiv.perm α)} (hG : is_preprimitive G α)
-  {g : equiv.perm α} (h3g : equiv.perm.is_three_cycle g) (hg : g ∈ G) :
-  alternating_group α ≤ G := sorry
-
-lemma is_maximal_stab'_temp (s : set α) (h0 : s.nonempty) (h1 : sᶜ.nonempty)
-  (hα : fintype.card s < fintype.card (sᶜ : set α))
-  (G : subgroup (equiv.perm α)) (hG : (stabilizer (equiv.perm α) s) ⊓ (alternating_group α) < G) :
-  is_preprimitive G α → alternating_group α ≤ G :=
-begin
-  intro hG',
-  -- intros s h0 h1 hα G hG,
-  -- G : subgroup (equiv.perm α))
-  -- hG : stabilizer (equiv.perm α) s ⊓ (alternating_group α) < G)
-  -- We need to prove that alternating_group α ≤ ⊤
-  -- G contains a three_cycle
-  obtain ⟨g, hg3, hg⟩ := has_three_cycle_of_lt_stabilizer s G hG,
-  -- By Jordan's theorem, it suffices to prove that G acts primitively
-  apply jordan_three_cycle' hG' hg3 hg,
-end
 
 example (s t : set α) (h : s ⊆ t) : fintype.card s ≤ fintype.card t :=
 begin
@@ -294,6 +264,69 @@ begin
   obtain ⟨g, hg, H⟩ := moves_in hα t a ha b hb,
   use g, apply hGt,  exact hg, exact H,
 end
+
+
+lemma has_three_cycle_of_stabilizer' (s : set α) (hs : 2 < fintype.card s) :
+ -- (G : subgroup (equiv.perm α)) :
+ --  (hG : stabilizer (equiv.perm α) s ⊓ alternating_group α < G) :
+  ∃ (g : equiv.perm α), g.is_three_cycle ∧ g ∈ stabilizer (equiv.perm α) s :=
+begin
+  rw fintype.two_lt_card_iff at hs,
+  obtain ⟨⟨a, ha⟩,⟨b,hb⟩, ⟨c, hc⟩, hab, hac, hbc⟩ := hs,
+  rw [ne.def, subtype.mk_eq_mk, ← ne.def] at hab hac hbc,
+  use (equiv.swap a b) * (equiv.swap a c),
+  split,
+  apply equiv.perm.is_three_cycle_swap_mul_swap_same hab hac hbc,
+  rw ← stabilizer_compl,
+  rw mem_stabilizer_of_finite_iff,
+  rintros _ ⟨x, hx, rfl⟩,
+  simp only [equiv.perm.smul_def, equiv.perm.coe_mul, function.comp_app],
+  rw set.mem_compl_iff at hx,
+  suffices h : ∀ (u ∈ s), x ≠ u,
+  { rw equiv.swap_apply_of_ne_of_ne (h a ha) (h c hc),
+    rw equiv.swap_apply_of_ne_of_ne (h a ha) (h b hb),
+    exact hx, },
+  { intros u hu h, apply hx, rw h, exact hu, },
+end
+
+lemma has_three_cycle_of_stabilizer [decidable_eq α] (s : set α) (hα : 4 < fintype.card α) :
+  ∃ (g : equiv.perm α), g.is_three_cycle ∧ g ∈ stabilizer (equiv.perm α) s :=
+begin
+  cases nat.lt_or_ge 2 (fintype.card s) with hs hs,
+  exact has_three_cycle_of_stabilizer' s hs,
+  obtain ⟨g, hg, hg'⟩ := has_three_cycle_of_stabilizer' sᶜ _,
+  { use g, rw stabilizer_compl at hg', exact ⟨hg, hg'⟩, },
+  { rw lt_iff_not_le at hα ⊢,
+    intro hs', apply hα,
+    rw ← fintype.card_add_compl s,
+    suffices : 2 + 2 ≤ 4,
+    { apply le_trans _ this,
+      apply nat.add_le_add, exact hs,
+      apply le_trans _ hs', apply le_of_eq,
+      simp only [fintype.card_of_finset, set.mem_compl_eq], },
+    norm_num, },
+end
+
+lemma is_maximal_stab'_temp (s : set α) (hα : 4 < fintype.card α)
+ -- (h0 : s.nonempty) (h1 : sᶜ.nonempty)
+ -- (hs : fintype.card s < fintype.card (sᶜ : set α))
+  (G : subgroup (equiv.perm α)) (hG : (stabilizer (equiv.perm α) s) ⊓ (alternating_group α) ≤ G) :
+  is_preprimitive G α → alternating_group α ≤ G :=
+begin
+  intro hG',
+  -- intros s h0 h1 hα G hG,
+  -- G : subgroup (equiv.perm α))
+  -- hG : stabilizer (equiv.perm α) s ⊓ (alternating_group α) < G)
+  -- We need to prove that alternating_group α ≤ ⊤
+  -- G contains a three_cycle
+  obtain ⟨g, hg3, hg⟩ := has_three_cycle_of_stabilizer s hα,
+  -- By Jordan's theorem, it suffices to prove that G acts primitively
+  apply jordan_three_cycle hG' hg3,
+  { apply hG,
+    simp only [subgroup.mem_inf, hg, true_and],
+    exact equiv.perm.is_three_cycle.mem_alternating_group hg3, },
+end
+
 
 lemma stabilizer.is_preprimitive (s : set α) (hs : (sᶜ : set α).nontrivial):
   is_preprimitive (stabilizer (alternating_group α) s) s :=
@@ -631,7 +664,7 @@ begin
   -- Conclusion of the proof : B = ⊤
   rw eq_top_iff,
   intros x _,
-  obtain ⟨b, hb⟩ := h1,
+  obtain ⟨b, hb⟩ := h1.nonempty,
   obtain ⟨⟨g, hg⟩, hgbx : g • b = x⟩ := exists_smul_eq G b x,
   suffices : g • B = B,
   { rw [← hgbx, ← this, set.smul_mem_smul_set_iff],
@@ -672,18 +705,24 @@ begin
   exact lt_of_le_of_lt ha hab,
 end
 
-theorem is_maximal_stab' (s : set α) (h0 : s.nonempty) (h1 : sᶜ.nonempty)
-  (hα : fintype.card s < fintype.card (sᶜ : set α)) :
+theorem is_maximal_stab' -- (hα : 4 < fintype.card α)
+  (s : set α) (h0' : s.nontrivial) (h1' : sᶜ.nontrivial)
+  (hs : fintype.card s < fintype.card (sᶜ : set α)) :
   subgroup.is_maximal (stabilizer (alternating_group α) s) :=
 begin
-  have h1' : sᶜ.nontrivial,
+  suffices hα : 4 < fintype.card α,
+-- h0 : s.nonempty, h1  : sᶜ.nonempty
+/-   have h1' : sᶜ.nontrivial,
   { rw [← set.nontrivial_coe, ← fintype.one_lt_card_iff_nontrivial],
-    apply lt_of_le_of_lt _ hα,
+    apply lt_of_le_of_lt _ hs,
     rw [nat.succ_le_iff, fintype.card_pos_iff, set.nonempty_coe_sort],
     exact h0, },
+ -/
+ --  cases em(s.nontrivial) with h0' h0',
+  -- We start with the case where s.nontrivial
   split, split,
   -- stabilizer (alternating_group α) s ≠ ⊤
-  exact stabilizer_ne_top' s h0 h1',
+  exact stabilizer_ne_top' s h0'.nonempty h1',
   -- ∀ (G : subgroup (alternating_group α)), stabilizer (alternating_group α) s < b) → b = ⊤
   { intros G' hG',
     suffices : alternating_group α ≤ G'.map (alternating_group α).subtype,
@@ -691,46 +730,140 @@ begin
       obtain ⟨g', hg', hgg'⟩ := this g.prop,
       simp only [subgroup.coe_subtype, set_like.coe_eq_coe] at hgg',
       rw ← hgg', exact hg', },
-    apply is_maximal_stab'_temp s h0 h1 hα,
-    rw [← subgroup.subgroup_of_map_subtype, ← (subgroup.map_strict_mono_of_injective _)],
+
+    apply is_maximal_stab'_temp s hα,
+
+    rw [← subgroup.subgroup_of_map_subtype, subgroup.map_subtype_le_map_subtype],
     rw mul_action.stabilizer_subgroup_of_eq at hG',
-    exact hG',
-    simp only [subgroup.coe_subtype, subtype.coe_injective], },
+    exact le_of_lt hG',
+
+    apply is_maximal_stab'_temp' s h0' h1' hs (le_of_lt hα),
+    rw lt_iff_le_not_le,
+    split,
+    { intro g,
+      simp only [subgroup.mem_inf],
+      rintro ⟨hg, hg'⟩,
+      refine and.intro _ hg',
+      simp only [subgroup.mem_map, subgroup.coe_subtype, exists_prop],
+      use ⟨g, hg'⟩,
+      split,
+      { apply le_of_lt hG',
+        simpa only [mem_stabilizer_iff] using hg, },
+      refl,  },
+    { intro h,
+      rw lt_iff_le_not_le at hG', apply hG'.right,
+      intros g' hg',
+      rw mem_stabilizer_iff,
+      change (g' : equiv.perm α) • s = s, rw ← mem_stabilizer_iff,
+      apply @inf_le_left (subgroup (equiv.perm α)) _ , apply h,
+      rw subgroup.mem_inf,
+      apply and.intro _ g'.prop,
+      simp only [subgroup.mem_map,
+        subgroup.coe_subtype, set_like.coe_eq_coe, exists_prop, exists_eq_right],
+      exact hg', }, },
+
+    -- hα : 4 < fintype.card α
+    have h0 : 2 ≤ fintype.card s,
+    rw [nat.succ_le_iff, fintype.one_lt_card_iff_nontrivial, set.nontrivial_coe],
+    exact h0',
+    change 2 + 2 < _,
+    rw ← fintype.card_add_compl s,
+    apply lt_of_le_of_lt,
+    exact nat.add_le_add_right h0 2,
+    apply nat.add_lt_add_left,
+    exact lt_of_le_of_lt h0 hs,
+/-   -- ¬s.nontrivial
+  simp only [set.not_nontrivial_iff] at h0',
+  suffices : ∃ (a : α), s = ({a} : set α),
+  obtain ⟨a, rfl⟩ := this,
+  have : stabilizer (alternating_group α) ({a} : set α) = stabilizer (alternating_group α) a,
+  { ext g, simp only [mem_stabilizer_iff, set.smul_set_singleton, set.singleton_eq_singleton_iff], },
+  rw this,
+  haveI : nontrivial α := set.nontrivial_of_nontrivial h1',
+  apply has_maximal_stabilizers_of_preprimitive,
+  apply alternating_group.is_preprimitive,
+  apply le_trans _ (le_of_lt hα), norm_num,
+  { obtain ⟨a, ha⟩ := h0,
+    use a, exact set.subsingleton.eq_singleton_of_mem h0' ha, }, -/
 end
 
-/-- stabilizer (equiv.perm α) s is a maximal subgroup of equiv.perm α,
+
+lemma three_le {c n : ℕ} (h : 1 ≤ n) (h' : n < c) (hh' : c ≠ 2 * n) : 3 ≤ c :=
+begin
+  cases nat.eq_or_lt_of_le h with h h,
+  { rw ← h at h' hh',
+    cases nat.eq_or_lt_of_le h' with h' h',
+    { exfalso, apply hh' h'.symm, },
+    exact h',  },
+  rw nat.succ_le_iff,
+  exact lt_of_le_of_lt h h',
+end
+
+/-- stabilizer (alternating_group α) s is a maximal subgroup of alternating_group α,
 provided s ≠ ⊥, s ≠ ⊤ and fintype.card α ≠ 2 * fintype.card ↥s) -/
-theorem equiv.perm.is_maximal_stab (s : set α) (h0 : s.nonempty) (h1 : sᶜ.nonempty)
-  (hα : fintype.card α ≠ 2 * fintype.card ↥s) : subgroup.is_maximal (stabilizer (equiv.perm α) s) :=
+theorem stabilizer.is_maximal (s : set α) (h0 : s.nonempty) (h1 : sᶜ.nonempty)
+  (hs : fintype.card α ≠ 2 * fintype.card ↥s) :
+  subgroup.is_maximal (stabilizer (alternating_group α) s) :=
 begin
-  cases nat.lt_trichotomy (fintype.card s) (fintype.card (sᶜ : set α)) with hs hs',
-  { exact equiv.perm.is_maximal_stab' s h0 h1 hs, },
-  cases hs' with hs hs,
-  { exfalso, apply hα,
-    rw [← fintype.card_add_compl s, ← hs, ← two_mul], },
-  { rw ← compl_compl s at h0,
+  have hα : 3 ≤ fintype.card α,
+  { rw [← set.nonempty_coe_sort, ← fintype.card_pos_iff, ← nat.succ_le_iff] at h0 h1,
+    refine three_le h0 _ hs,
+    rw [← tsub_pos_iff_lt,  ←  fintype.card_compl_set], exact h1, },
+  haveI : nontrivial α,
+  { rw ← fintype.one_lt_card_iff_nontrivial, apply lt_of_lt_of_le _ hα, norm_num, },
+
+  have h : ∀ (t : set α) (h0 : t.nonempty) (h0': t.subsingleton),
+    (stabilizer (alternating_group α) t).is_maximal,
+  { intros t ht ht',
+    suffices : ∃ (a : α), t = ({a} : set α),
+    obtain ⟨a, rfl⟩ := this,
+    have : stabilizer (alternating_group α) ({a} : set α) = stabilizer (alternating_group α) a,
+    { ext g, simp only [mem_stabilizer_iff, set.smul_set_singleton, set.singleton_eq_singleton_iff], },
+    rw this,
+    apply has_maximal_stabilizers_of_preprimitive,
+    apply alternating_group.is_preprimitive hα,
+    { obtain ⟨a, ha⟩ := ht,
+      use a, exact set.subsingleton.eq_singleton_of_mem ht' ha, }, },
+
+  cases em (s.nontrivial) with h0' h0',
+  cases em (sᶜ.nontrivial) with h1' h1',
+  -- h0' : s.nontrivial, h1' : sᶜ.nontrivial
+  cases nat.lt_trichotomy (fintype.card s) (fintype.card (sᶜ : set α)) with hs' hs',
+  { exact is_maximal_stab' s h0' h1' hs', },
+  cases hs' with hs' hs',
+  { exfalso, apply hs,
+    rw [← fintype.card_add_compl s, ← hs', ← two_mul], },
+  { rw ← compl_compl s at h0',
     rw ← stabilizer_compl,
-    apply equiv.perm.is_maximal_stab' sᶜ h1 h0,
+    apply is_maximal_stab' sᶜ h1' h0',
     simp_rw compl_compl s,
-    convert hs },
+    convert hs', },
+  -- h0' : s.nontrivial, h1' : ¬(s.nontrivial)
+  { simp only [set.not_nontrivial_iff] at h1',
+    rw ← stabilizer_compl, exact h sᶜ h1 h1', },
+  -- h0' : ¬(s.nontrivial),
+  { simp only [set.not_nontrivial_iff] at h0',
+    exact h s h0 h0', },
 end
 
-/-- The action of equiv.perm α on the n-element subsets of α is preprimitive
-provided 1 ≤ n < #α and #α ≠ 2*n -/
+/-- The action of alternating_group α on the n-element subsets of α is preprimitive
+provided 0 < n < #α and #α ≠ 2*n -/
 theorem nat.finset_is_preprimitive_of (n : ℕ) (h_one_le : 1 ≤ n) (hn : n < fintype.card α)
-  (hα : fintype.card α ≠ 2 * n) : is_preprimitive (equiv.perm α) (n.finset α) :=
+  (hα : fintype.card α ≠ 2 * n) : is_preprimitive (alternating_group α) (n.finset α) :=
 begin
-  classical,
+  have hα' : 3 ≤ fintype.card α := three_le h_one_le hn hα,
+  haveI : nontrivial α,
+  { rw ← fintype.one_lt_card_iff_nontrivial, exact lt_of_le_of_lt h_one_le hn },
   cases nat.eq_or_lt_of_le h_one_le with h_one h_one_lt,
   { -- n = 1 :
-    let f : α →[equiv.perm α] nat.finset α 1 := {
+    let f : α →[alternating_group α] nat.finset α 1 := {
       to_fun := λ x, ⟨{x}, finset.card_singleton x⟩,
       map_smul' := λ g x, rfl
     },
     rw ← h_one,
     suffices hf : function.surjective f,
     { apply is_preprimitive_of_surjective_map hf,
-      exact equiv.perm.is_preprimitive α, },
+      exact alternating_group.is_preprimitive hα', },
     rintro ⟨s, hs⟩,
     change s.card = 1 at hs,
     rw finset.card_eq_one at hs,
@@ -739,25 +872,25 @@ begin
     simp only [ha, equivariant_map.coe_mk], refl, },
 
   -- h_one_lt : 1 < n
-  haveI : nontrivial α,
-  { rw ← fintype.one_lt_card_iff_nontrivial,
-    exact lt_trans h_one_lt hn },
-  haveI ht : is_pretransitive (equiv.perm α) (n.finset α) := nat.finset_is_pretransitive,
+  haveI ht : is_pretransitive (alternating_group α) (n.finset α),
+  -- ne marche pas : apply nat.finset_is_pretransitive,
+  -- refaire ce lemme en utilisant la n-transitivité
+  sorry,
   haveI : nontrivial (n.finset α) :=
     nat.finset_nontrivial (lt_trans (nat.lt_succ_self 0) h_one_lt) hn,
   obtain ⟨sn : n.finset α⟩ := nontrivial.to_nonempty,
   let s := sn.val,
   let hs : s.card = n := sn.prop,
   -- have hs : (s : finset α).card = n := s.prop,
-  rw ← maximal_stabilizer_iff_preprimitive (equiv.perm α) sn,
-  have : stabilizer (equiv.perm α) sn = stabilizer (equiv.perm α) (s : set α),
+  rw ← maximal_stabilizer_iff_preprimitive (alternating_group α) sn,
+  have : stabilizer (alternating_group α) sn = stabilizer (alternating_group α) (s : set α),
   { ext g,
     simp only [mem_stabilizer_iff],
     rw ← subtype.coe_inj,
     change g • s = s ↔ _,
     rw [← finset.coe_smul_finset, ← finset.coe_inj], },
   rw this,
-  apply equiv.perm.is_maximal_stab (s : set α),
+  apply stabilizer.is_maximal (s : set α),
   { simp only [finset.coe_nonempty, ← finset.card_pos, hs],
     apply lt_trans one_pos h_one_lt, },
   { simp only [← finset.coe_compl, finset.coe_nonempty, ← finset.card_compl_lt_iff_nonempty,

@@ -45,7 +45,7 @@ a.e. disjoint and cover the whole space. -/
 space `α` with respect to a measure `α` if the sets `g • s`, `g : G`, are pairwise a.e. disjoint and
 cover the whole space. -/
 @[protect_proj, to_additive is_add_fundamental_domain]
-structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar G α]
+structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_smul G α]
   [measurable_space α] (s : set α) (μ : measure α . volume_tac) : Prop :=
 (null_measurable_set : null_measurable_set s μ)
 (ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
@@ -54,7 +54,7 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar
 namespace is_fundamental_domain
 
 variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
-  [normed_group E] {s t : set α} {μ : measure α}
+  [normed_add_comm_group E] {s t : set α} {μ : measure α}
 
 /-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
 is a fundamental domain for the action of `G` on `α`. -/

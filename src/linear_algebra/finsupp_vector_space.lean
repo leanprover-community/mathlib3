@@ -57,6 +57,12 @@ begin
       apply range_comp_subset_range } }
 end
 
+end ring
+
+section semiring
+variables {R : Type*} {M : Type*} {ι : Type*}
+variables [semiring R] [add_comm_monoid M] [module R M]
+
 open linear_map submodule
 
 /-- The basis on `ι →₀ M` with basis vectors `λ ⟨i, x⟩, single i (b i x)`. -/
@@ -116,7 +122,7 @@ basis.of_repr (linear_equiv.refl _ _)
   (finsupp.basis_single_one : ι → (ι →₀ R)) = λ i, finsupp.single i 1 :=
 funext $ λ i, basis.apply_eq_iff.mpr rfl
 
-end ring
+end semiring
 
 section dim
 variables {K : Type u} {V : Type v} {ι : Type v}
@@ -198,7 +204,7 @@ lemma cardinal_lt_aleph_0_of_finite_dimensional [fintype K] [finite_dimensional 
 begin
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
-  exact cardinal.power_lt_aleph_0 (cardinal.lt_aleph_0_of_fintype K)
+  exact cardinal.power_lt_aleph_0 (cardinal.lt_aleph_0_of_finite K)
     (is_noetherian.dim_lt_aleph_0 K V),
 end
 

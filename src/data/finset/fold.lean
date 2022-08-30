@@ -70,6 +70,10 @@ theorem fold_hom {op' : γ → γ → γ} [is_commutative γ op'] [is_associativ
   s.fold op' (m b) (λx, m (f x)) = m (s.fold op b f) :=
 by rw [fold, fold, ← fold_hom op hm, multiset.map_map]
 
+theorem fold_disj_union {s₁ s₂ : finset α} {b₁ b₂ : β} (h) :
+  (s₁.disj_union s₂ h).fold op (b₁ * b₂) f = s₁.fold op b₁ f * s₂.fold op b₂ f :=
+(congr_arg _ $ multiset.map_add _ _ _).trans (multiset.fold_add _ _ _ _ _)
+
 theorem fold_union_inter [decidable_eq α] {s₁ s₂ : finset α} {b₁ b₂ : β} :
   (s₁ ∪ s₂).fold op b₁ f * (s₁ ∩ s₂).fold op b₂ f = s₁.fold op b₂ f * s₂.fold op b₁ f :=
 by unfold fold; rw [← fold_add op, ← multiset.map_add, union_val,
@@ -225,6 +229,11 @@ end
 
 lemma lt_fold_max : c < s.fold max b f ↔ (c < b ∨ ∃ x∈s, c < f x) :=
 fold_op_rel_iff_or $ λ x y z, lt_max_iff
+
+lemma fold_max_add [has_add β] [covariant_class β β (function.swap (+)) (≤)]
+ (n : with_bot β) (s : finset α) :
+  s.fold max ⊥ (λ (x : α), ↑(f x) + n) = s.fold max ⊥ (coe ∘ f) + n :=
+by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
 
 end order
 

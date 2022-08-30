@@ -150,8 +150,8 @@ begin
 end
 
 section p_prime
--- in fact, `0 < p` would be sufficient
-variables [hp : fact p.prime]
+
+variables [hp : ne_zero p]
 include hp
 
 lemma witt_polynomial_vars [char_zero R] (n : ℕ) :
@@ -159,12 +159,12 @@ lemma witt_polynomial_vars [char_zero R] (n : ℕ) :
 begin
   have : ∀ i, (monomial (finsupp.single i (p ^ (n - i))) (p ^ i : R)).vars = {i},
   { intro i,
-    refine vars_monomial_single i (pow_ne_zero _ hp.1.ne_zero) _,
+    refine vars_monomial_single i (pow_ne_zero _ hp.1) _,
     rw [← nat.cast_pow, nat.cast_ne_zero],
-    exact pow_ne_zero i hp.1.ne_zero },
+    exact pow_ne_zero i hp.1 },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  { simp only [this, int.nat_cast_eq_coe_nat, bUnion_singleton_eq_self], },
-  { simp only [this, int.nat_cast_eq_coe_nat],
+  { simp only [this, bUnion_singleton_eq_self], },
+  { simp only [this],
     intros a b h,
     apply disjoint_singleton_left.mpr,
     rwa mem_singleton, },

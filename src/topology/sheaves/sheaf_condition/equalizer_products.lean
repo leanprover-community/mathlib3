@@ -18,7 +18,7 @@ in terms of an equalizer diagram where the two objects are
 
 -/
 
-universes v u
+universes v' v u
 
 noncomputable theory
 
@@ -30,8 +30,8 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] [has_products C]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
+variables {X : Top.{v'}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
 
@@ -85,7 +85,7 @@ end
 The equalizer diagram for the sheaf condition.
 -/
 @[reducible]
-def diagram : walking_parallel_pair.{v} ⥤ C :=
+def diagram : walking_parallel_pair ⥤ C :=
 parallel_pair (left_res F U) (right_res F U)
 
 /--
@@ -148,7 +148,7 @@ end
 
 section open_embedding
 
-variables {V : Top.{v}} {j : V ⟶ X} (oe : open_embedding j)
+variables {V : Top.{v'}} {j : V ⟶ X} (oe : open_embedding j)
 variables (𝒰 : ι → opens V)
 
 /--
@@ -232,16 +232,16 @@ begin
     exact
     F.map_iso (iso.op
     { hom := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
       inv := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
                      set.image_Union]) }), },
   { ext ⟨j⟩,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
     simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
       limit.lift_π, cones.postcompose_obj_π, functor.comp_map,
       fork_π_app_walking_parallel_pair_zero, pi_opens.iso_of_open_embedding,
-      nat_iso.of_components.inv_app, functor.map_iso_refl, functor.op_map, limit.lift_map,
+      nat_iso.of_components_inv_app, functor.map_iso_refl, functor.op_map, limit.lift_map,
       fan.mk_π_app, nat_trans.comp_app, quiver.hom.unop_op, category.assoc, lim_map_eq_lim_map],
     dsimp,
     rw [category.comp_id, ←F.map_comp],
@@ -251,6 +251,15 @@ end
 end open_embedding
 
 end sheaf_condition_equalizer_products
+
+/--
+The sheaf condition for a `F : presheaf C X` requires that the morphism
+`F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
+is the equalizer of the two morphisms
+`∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
+-/
+def is_sheaf_equalizer_products (F : presheaf.{v' v u} C X) : Prop :=
+∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (sheaf_condition_equalizer_products.fork F U))
 
 end presheaf
 

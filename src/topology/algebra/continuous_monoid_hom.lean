@@ -89,8 +89,9 @@ instance : continuous_monoid_hom_class (continuous_monoid_hom α β) α β :=
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
-@[to_additive] instance : has_coe_to_fun (continuous_monoid_hom A B) (λ _, A → B) :=
-fun_like.has_coe_to_fun
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
+instance : has_coe_to_fun (continuous_monoid_hom A B) (λ _, A → B) := fun_like.has_coe_to_fun
 
 @[to_additive] lemma ext {f g : continuous_monoid_hom A B} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext _ _ h
@@ -226,7 +227,7 @@ lemma is_closed_embedding [has_continuous_mul B] [t2_space B] :
     obtain ⟨UV, W, hUV, hW, hfUV, hfW, h⟩ := t2_separation hf2.symm,
     have hB := @continuous_mul B _ _ _,
     obtain ⟨U, V, hU, hV, hfU, hfV, h'⟩ := is_open_prod_iff.mp (hUV.preimage hB) (f x) (f y) hfUV,
-    refine ⟨x, y, U, V, W, hU, hV, hW, ((disjoint_iff.mpr h).mono_left _), ⟨hfU, hfV⟩, hfW⟩,
+    refine ⟨x, y, U, V, W, hU, hV, hW, h.mono_left _, ⟨hfU, hfV⟩, hfW⟩,
     rintros _ ⟨x, y, hx : (x, y).1 ∈ U, hy : (x, y).2 ∈ V, rfl⟩,
     exact h' ⟨hx, hy⟩ },
 end⟩⟩

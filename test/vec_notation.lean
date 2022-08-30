@@ -12,6 +12,10 @@ import data.fin.vec_notation
   tactic.is_def_eq `(x) `(![1, 2, 3])
 
 #eval do
+  let x := ![ulift.up.{3} 1, ulift.up.{3} 2],
+  tactic.is_def_eq (reflect x) `(![ulift.up.{3} 1, ulift.up.{3} 2])
+
+#eval do
   let x := ![![1, 2], ![3, 4]],
   tactic.is_def_eq `(x) `(![![1, 2], ![3, 4]])
 

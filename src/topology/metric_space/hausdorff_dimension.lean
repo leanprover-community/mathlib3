@@ -176,20 +176,20 @@ begin
   exact ennreal.zero_ne_top
 end
 
-@[simp] lemma dimH_bUnion {s : set ι} (hs : countable s) (t : ι → set X) :
+@[simp] lemma dimH_bUnion {s : set ι} (hs : s.countable) (t : ι → set X) :
   dimH (⋃ i ∈ s, t i) = ⨆ i ∈ s, dimH (t i) :=
 begin
   haveI := hs.to_encodable,
   rw [bUnion_eq_Union, dimH_Union, ← supr_subtype'']
 end
 
-@[simp] lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
+@[simp] lemma dimH_sUnion {S : set (set X)} (hS : S.countable) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
 by rw [sUnion_eq_bUnion, dimH_bUnion hS]
 
 @[simp] lemma dimH_union (s t : set X) : dimH (s ∪ t) = max (dimH s) (dimH t) :=
 by rw [union_eq_Union, dimH_Union, supr_bool_eq, cond, cond, ennreal.sup_eq_max]
 
-lemma dimH_countable {s : set X} (hs : countable s) : dimH s = 0 :=
+lemma dimH_countable {s : set X} (hs : s.countable) : dimH s = 0 :=
 bUnion_of_singleton s ▸ by simp only [dimH_bUnion hs, dimH_singleton, ennreal.supr_zero_eq_zero]
 
 alias dimH_countable ← set.countable.dimH_zero
@@ -402,8 +402,8 @@ end isometric
 
 namespace continuous_linear_equiv
 
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F]
 
 @[simp] lemma dimH_image (e : E ≃L[𝕜] F) (s : set E) : dimH (e '' s) = dimH s :=
 le_antisymm (e.lipschitz.dimH_image_le s) $
@@ -423,7 +423,8 @@ end continuous_linear_equiv
 
 namespace real
 
-variables {E : Type*} [fintype ι] [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type*} [fintype ι] [normed_add_comm_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E]
 
 theorem dimH_ball_pi (x : ι → ℝ) {r : ℝ} (hr : 0 < r) :
   dimH (metric.ball x r) = fintype.card ι :=
@@ -478,8 +479,8 @@ by rw [dimH_univ_eq_finrank ℝ, finite_dimensional.finrank_self, nat.cast_one]
 end real
 
 variables {E F : Type*}
-  [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-  [normed_group F] [normed_space ℝ F]
+  [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  [normed_add_comm_group F] [normed_space ℝ F]
 
 theorem dense_compl_of_dimH_lt_finrank {s : set E} (hs : dimH s < finrank ℝ E) : dense sᶜ :=
 begin

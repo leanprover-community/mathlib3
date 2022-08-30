@@ -51,37 +51,27 @@ end
 
 /-- If, for any `a : α`, `β a` is finite, then the cardinality of `W_type β`
   is at most the maximum of the cardinality of `α` and `ℵ₀`  -/
-lemma cardinal_mk_le_max_aleph_0_of_fintype [Π a, fintype (β a)] : #(W_type β) ≤ max (#α) ℵ₀ :=
+lemma cardinal_mk_le_max_aleph_0_of_finite [∀ a, finite (β a)] : #(W_type β) ≤ max (#α) ℵ₀ :=
 (is_empty_or_nonempty α).elim
   (begin
     introI h,
     rw [cardinal.mk_eq_zero (W_type β)],
     exact zero_le _
   end) $
-λ hn,
-let m := max (#α) ℵ₀ in
-cardinal_mk_le_of_le $
-calc cardinal.sum (λ a : α, m ^ #(β a))
-    ≤ #α * cardinal.sup.{u u}
-      (λ a : α, m ^ cardinal.mk (β a)) :
-  cardinal.sum_le_sup _
-... ≤ m * cardinal.sup.{u u}
-      (λ a : α, m ^ #(β a)) :
-  mul_le_mul' (le_max_left _ _) le_rfl
+λ hn, let m := max (#α) ℵ₀ in cardinal_mk_le_of_le $
+calc cardinal.sum (λ a, m ^ #(β a))
+    ≤ #α * ⨆ a, m ^ #(β a) : cardinal.sum_le_supr _
+... ≤ m * ⨆ a, m ^ #(β a) : mul_le_mul' (le_max_left _ _) le_rfl
 ... = m : mul_eq_left.{u} (le_max_right _ _)
-  (cardinal.sup_le (λ i, begin
-    cases lt_aleph_0.1 (lt_aleph_0_of_fintype (β i)) with n hn,
-    rw [hn],
-    exact power_nat_le (le_max_right _ _)
-  end))
-  (pos_iff_ne_zero.1 (order.succ_le_iff.1
+  (csupr_le' $ λ i, pow_le (le_max_right _ _) (lt_aleph_0_of_finite _)) $
+  pos_iff_ne_zero.1 $ order.succ_le_iff.1
     begin
-      rw [succ_zero],
+      rw succ_zero,
       obtain ⟨a⟩ : nonempty α, from hn,
-      refine le_trans _ (le_sup _ a),
-      rw [← @power_zero m],
+      refine le_trans _ (le_csupr (bdd_above_range.{u u} _) a),
+      rw ←power_zero,
       exact power_le_power_left (pos_iff_ne_zero.1
-        (lt_of_lt_of_le aleph_0_pos (le_max_right _ _))) (zero_le _)
-    end))
+        (aleph_0_pos.trans_le (le_max_right _ _))) (zero_le _)
+    end
 
 end W_type

@@ -22,7 +22,7 @@ by rw [of_fin,to_nat_of_nat,nat.mod_eq_of_lt]; apply i.is_lt
 
 /-- convert `bitvec` to `fin` -/
 def to_fin {n : ℕ} (i : bitvec n) : fin $ 2^n :=
-@fin.of_nat' _ ⟨pow_pos (by norm_num) _⟩ i.to_nat
+fin.of_nat' i.to_nat
 
 lemma add_lsb_eq_twice_add_one {x b} :
   add_lsb x b = 2 * x + cond b 1 0 :=

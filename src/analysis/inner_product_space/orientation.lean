@@ -3,7 +3,7 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import analysis.inner_product_space.projection
+import analysis.inner_product_space.pi_L2
 import linear_algebra.orientation
 
 /-!
@@ -37,7 +37,7 @@ protected def orientation.fin_orthonormal_basis {n : ℕ} (hn : 0 < n) (h : finr
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_std_orthonormal_basis h).adjust_to_orientation x
+  exact (fin_std_orthonormal_basis h).to_basis.adjust_to_orientation x
 end
 
 /-- `orientation.fin_orthonormal_basis` is orthonormal. -/
@@ -47,7 +47,9 @@ protected lemma orientation.fin_orthonormal_basis_orthonormal {n : ℕ} (hn : 0 
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_std_orthonormal_basis_orthonormal h).orthonormal_adjust_to_orientation _
+  exact (show orthonormal ℝ (fin_std_orthonormal_basis h).to_basis, -- Note sure how to format this
+    by simp only [orthonormal_basis.coe_to_basis, orthonormal_basis.orthonormal]
+    ).orthonormal_adjust_to_orientation _
 end
 
 /-- `orientation.fin_orthonormal_basis` gives a basis with the required orientation. -/

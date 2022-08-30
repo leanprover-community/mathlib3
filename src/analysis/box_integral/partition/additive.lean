@@ -83,7 +83,7 @@ instance : has_add (ι →ᵇᵃ[I₀] M) :=
 ⟨λ f g, ⟨f + g, λ I hI π hπ,
   by simp only [pi.add_apply, sum_add_distrib, sum_partition_boxes _ hI hπ]⟩⟩
 
-instance {R} [monoid R] [distrib_mul_action R M] : has_scalar R (ι →ᵇᵃ[I₀] M) :=
+instance {R} [monoid R] [distrib_mul_action R M] : has_smul R (ι →ᵇᵃ[I₀] M) :=
 ⟨λ r f, ⟨r • f, λ I hI π hπ,
   by simp only [pi.smul_apply, ←smul_sum, sum_partition_boxes _ hI hπ]⟩⟩
 
@@ -153,7 +153,7 @@ end
 
 section to_smul
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
 /-- If `f` is a box-additive map, then so is the map sending `I` to the scalar multiplication
 by `f I` as a continuous linear map from `E` to itself. -/

@@ -61,8 +61,12 @@ def len (n : simplex_category) : ℕ := n
 @[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
 @[simp] lemma mk_len (n : simplex_category) : [n.len] = n := rfl
 
+/-- A recursor for `simplex_category`. Use it as `induction Δ using simplex_category.rec`. -/
+protected def rec {F : Π (Δ : simplex_category), Sort*} (h : ∀ (n : ℕ), F [n]) :
+  Π X, F X := λ n, h n.len
+
 /-- Morphisms in the simplex_category. -/
-@[irreducible, nolint has_inhabited_instance]
+@[irreducible, nolint has_nonempty_instance]
 protected def hom (a b : simplex_category) := fin (a.len + 1) →o fin (b.len + 1)
 
 namespace hom
@@ -190,7 +194,7 @@ begin
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
   simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
-  dsimp, simp only [if_congr, subtype.mk_lt_mk, dif_ctx_congr],
+  dsimp,
   split_ifs,
   -- Most of the goals can now be handled by `linarith`,
   -- but we have to deal with two of them by hand.
@@ -212,7 +216,7 @@ begin
   { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa [fin.pred_above] with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
-  dsimp, simp only [if_congr, subtype.mk_lt_mk],
+  dsimp,
   split_ifs; { simp at *; linarith, },
 end
 
@@ -382,7 +386,7 @@ def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd simplex_category skeletal_
 
 /-- The truncated simplex category. -/
 @[derive small_category]
-def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
+def truncated (n : ℕ) := full_subcategory (λ a : simplex_category, a.len ≤ n)
 
 namespace truncated
 

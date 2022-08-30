@@ -18,7 +18,7 @@ open opposite
 open category_theory
 open category_theory.limits
 
-universes v u
+universes w v u
 
 namespace category_theory
 
@@ -87,7 +87,7 @@ instance coyoneda_preserves_limits (X : Cᵒᵖ) : preserves_limits (coyoneda.ob
         end } } } }
 
 /-- The yoneda embeddings jointly reflect limits. -/
-def yoneda_jointly_reflects_limits (J : Type v) [small_category J] (K : J ⥤ Cᵒᵖ) (c : cone K)
+def yoneda_jointly_reflects_limits (J : Type w) [small_category J] (K : J ⥤ Cᵒᵖ) (c : cone K)
   (t : Π (X : C), is_limit ((yoneda.obj X).map_cone c)) : is_limit c :=
 let s' : Π (s : cone K), cone (K ⋙ yoneda.obj s.X.unop) :=
   λ s, ⟨punit, λ j _, (s.π.app j).unop, λ j₁ j₂ α, funext $ λ _, quiver.hom.op_inj (s.w α).symm⟩
@@ -105,7 +105,7 @@ in
   end }
 
 /-- The coyoneda embeddings jointly reflect limits. -/
-def coyoneda_jointly_reflects_limits (J : Type v) [small_category J] (K : J ⥤ C) (c : cone K)
+def coyoneda_jointly_reflects_limits (J : Type w) [small_category J] (K : J ⥤ C) (c : cone K)
   (t : Π (X : Cᵒᵖ), is_limit ((coyoneda.obj X).map_cone c)) : is_limit c :=
 let s' : Π (s : cone K), cone (K ⋙ coyoneda.obj (op s.X)) :=
   λ s, ⟨punit, λ j _, s.π.app j, λ j₁ j₂ α, funext $ λ _, (s.w α).symm⟩

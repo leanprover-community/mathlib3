@@ -53,7 +53,7 @@ begin
       = u (n + (k * n + r)) : by { congr' 1, ring }
   ... ≤ u n + u (k * n + r) : h _ _
   ... ≤ u n + (k * u n + u r) : add_le_add_left IH _
-  ... = (k+1) * u n + u r : by ring
+  ... = (k+1 : ℕ) * u n + u r : by simp; ring
 end
 
 lemma eventually_div_lt_of_div_lt {L : ℝ} {n : ℕ} (hn : n ≠ 0) (hL : u n / n < L) :

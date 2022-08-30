@@ -62,10 +62,10 @@ begin
   ext,
   simp only [continuous_map.coe_comp, function.comp_app,
     continuous_map.attach_bound_apply_coe,
-    polynomial.to_continuous_map_on_to_fun,
+    polynomial.to_continuous_map_on_apply,
     polynomial.aeval_subalgebra_coe,
     polynomial.aeval_continuous_map_apply,
-    polynomial.to_continuous_map_to_fun],
+    polynomial.to_continuous_map_apply],
 end
 
 /--
@@ -384,7 +384,7 @@ open continuous_map
 of its purely real-valued elements also separates points. -/
 lemma subalgebra.separates_points.is_R_or_C_to_real {A : subalgebra 𝕜 C(X, 𝕜)}
   (hA : A.separates_points) (hA' : conj_invariant_subalgebra (A.restrict_scalars ℝ)) :
-  ((A.restrict_scalars ℝ).comap'
+  ((A.restrict_scalars ℝ).comap
     (of_real_am.comp_left_continuous ℝ continuous_of_real)).separates_points :=
 begin
   intros x₁ x₂ hx,

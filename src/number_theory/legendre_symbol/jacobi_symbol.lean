@@ -139,6 +139,15 @@ begin
     rw ih, }
 end
 
+lemma prod_prop {α : Type*} [monoid α] {l : list α} {P : α → Prop}
+  (h₁ : P 1) (h₂ : ∀ a ∈ l, P a) (h₃ : ∀ a b : α, P a → P b → P (a * b)) : P l.prod :=
+begin
+  induction l with hd tl ih,
+  { simp only [prod_nil, h₁], },
+  { simp only [prod_cons],
+    exact h₃ _ _ (h₂ _ (mem_cons_self _ _)) (ih (λ a ha, h₂ a $ mem_cons_of_mem _ ha)), }
+end
+
 end list
 
 section jacobi

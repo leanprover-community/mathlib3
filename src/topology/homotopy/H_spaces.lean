@@ -192,8 +192,8 @@ begin
   exact (H.comp $ continuous.prod_map continuous_swap continuous_id),
 end
 
-lemma continuous_prod_second_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.2.extend
-  (2 * x.2 - 1)) :=
+lemma continuous_prod_second_half (x : X) :
+  continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.2.extend (2 * x.2 - 1)) :=
 begin
   have H : continuous (λ p : Ω(x) × I, p.1.extend (2 * p.2 - 1)),
   { let Cproj : C(ℝ, I) := ⟨set.proj_Icc 0 1 zero_le_one, continuous_proj_Icc⟩,

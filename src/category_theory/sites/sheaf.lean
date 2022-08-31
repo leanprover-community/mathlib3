@@ -376,8 +376,6 @@ begin
   all_goals { intros, refl <|> { dsimp at *, ext, simpa [*], } },
 end
 
-example : true := trivial
-
 instance : preadditive (Sheaf J A) :=
 { hom_group := λ P Q, infer_instance,
   add_comp' := λ P Q R f f' g, by { ext, simp, },

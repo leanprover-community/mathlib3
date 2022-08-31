@@ -1909,9 +1909,9 @@ variables {𝕜} {m m0 : measurable_space α} {μ : measure α} {f g : α → F'
 
 /-- Conditional expectation of a function. It is defined as 0 if any one of the following conditions
 is true:
-- m is not a sub-σ-algebra of m0,
-- μ is not σ-finite with respect to m,
-- f is not integrable. -/
+- `m` is not a sub-σ-algebra of `m0`,
+- `μ` is not σ-finite with respect to `m`,
+- `f` is not integrable. -/
 @[irreducible]
 def condexp (m : measurable_space α) {m0 : measurable_space α} (μ : measure α) (f : α → F') :
   α → F' :=

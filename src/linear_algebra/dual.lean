@@ -171,19 +171,15 @@ end
 theorem to_dual_ker : b.to_dual.ker = ⊥ :=
 ker_eq_bot'.mpr b.to_dual_inj
 
-theorem to_dual_range [fin : fintype ι] : b.to_dual.range = ⊤ :=
+theorem to_dual_range [_root_.finite ι] : b.to_dual.range = ⊤ :=
 begin
-  rw eq_top_iff',
-  intro f,
+  casesI nonempty_fintype ι,
+  refine eq_top_iff'.2 (λ f, _),
   rw linear_map.mem_range,
-  let lin_comb : ι →₀ R := finsupp.on_finset fin.elems (λ i, f.to_fun (b i)) _,
-  { use finsupp.total ι M R b lin_comb,
-    apply b.ext,
-    { intros i,
-      rw [b.to_dual_eq_repr _ i, repr_total b],
-      { refl } } },
-  { intros a _,
-    apply fin.complete }
+  let lin_comb : ι →₀ R := finsupp.equiv_fun_on_fintype.2 (λ i, f.to_fun (b i)),
+  refine ⟨finsupp.total ι M R b lin_comb, b.ext $ λ i, _⟩,
+  rw [b.to_dual_eq_repr _ i, repr_total b],
+  refl,
 end
 
 end comm_semiring
@@ -263,10 +259,10 @@ begin
   exact (basis.forall_coord_eq_zero_iff _).mp (λ i, hm (b.coord i))
 end
 
-lemma eval_range {ι : Type*} [fintype ι] (b : basis ι R M) :
-  (eval R M).range = ⊤ :=
+lemma eval_range {ι : Type*} [_root_.finite ι] (b : basis ι R M) : (eval R M).range = ⊤ :=
 begin
   classical,
+  casesI nonempty_fintype ι,
   rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, map_top, to_dual_range _],
   apply_instance
 end
@@ -294,16 +290,17 @@ end
 end comm_ring
 
 /-- `simp` normal form version of `total_dual_basis` -/
-@[simp] lemma total_coord [comm_ring R] [add_comm_group M] [module R M] [fintype ι]
+@[simp] lemma total_coord [comm_ring R] [add_comm_group M] [module R M] [_root_.finite ι]
   (b : basis ι R M) (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.coord f (b i) = f i :=
 by { haveI := classical.dec_eq ι, rw [← coe_dual_basis, total_dual_basis] }
 
--- TODO(jmc): generalize to rings, once `module.rank` is generalized
-theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : basis ι K V) :
+lemma dual_dim_eq [comm_ring K] [add_comm_group V] [module K V] [_root_.finite ι]
+  (b : basis ι K V) :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
+  casesI nonempty_fintype ι,
   have := linear_equiv.lift_dim_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],

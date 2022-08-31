@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 import algebra.big_operators.basic
+import data.fintype.card
 import tactic.derive_fintype
 
 /-!
@@ -337,43 +338,40 @@ end int
 open finset nat
 open_locale big_operators
 
--- TODO: Inlining this yields an app-builder exception
-lemma exists_signed_sum_aux [decidable_eq α] {n : ℕ} (sgn : ℕ → sign_type) (b : α) {f : α → ℤ}
-  ⦃a : α⦄ (g : ℕ → α) (i : ℕ) :
-   (if (range (n - (f a).nat_abs)).piecewise g (λ _, a) i = b then
-       ((range (n - (f a).nat_abs)).piecewise sgn (λ _, sign (f a)) i : ℤ) else 0) =
-    (range (n - (f a).nat_abs)).piecewise (λ j, if g j = b then ↑(sgn j) else 0)
-        (λ j, if a = b then ↑(sign (f a)) else 0) i :=
-by { unfold piecewise, split_ifs; refl }
+private lemma exists_signed_sum_aux' [decidable_eq α] (s : finset α) (f : α → ℤ) :
+  ∃ (β : Type u_1) (t : finset β) (sgn : β → sign_type) (g : β → α), (∀ b, g b ∈ s) ∧
+    t.card = ∑ a in s, (f a).nat_abs ∧
+    ∀ a ∈ s, (∑ b in t, if g b = a then (sgn b : ℤ) else 0) = f a :=
+begin
+  refine ⟨Σ a : {x // x ∈ s}, ℕ, finset.univ.sigma (λ a, range (f a).nat_abs), λ a, sign (f a.1),
+    λ a, a.1, λ a, a.1.prop, _, _⟩,
+  { simp [@sum_attach _ _ _ _ (λ a, (f a).nat_abs)] },
+  { intros x hx,
+    simp [sum_sigma, hx, ← int.sign_eq_sign, int.sign_mul_nat_abs, mul_comm ((f _).nat_abs : ℤ),
+      @sum_attach _ _ _ _ (λ a, ∑ j in range (f a).nat_abs, if a = x then (f a).sign else 0)] }
+end
+
+/-- We can decompose a sum of absolute value `n` into a sum of `n` signs. -/
+lemma exists_signed_sum [decidable_eq α] (s : finset α) (f : α → ℤ) :
+  ∃ (β : Type u_1) (_ : fintype β) (sgn : β → sign_type) (g : β → α), by exactI (∀ b, g b ∈ s) ∧
+    fintype.card β = ∑ a in s, (f a).nat_abs ∧
+    ∀ a ∈ s, (∑ b, if g b = a then (sgn b : ℤ) else 0) = f a :=
+let ⟨β, t, sgn, g, hg, ht, hf⟩ := exists_signed_sum_aux' s f in
+  ⟨t, infer_instance, λ b, sgn b, λ b, g b, λ b, hg b, by simp [ht], λ a ha,
+    (@sum_attach _ _ t _ (λ b, ite (g b = a) (sgn b : ℤ) 0)).trans $ hf _ ha⟩
 
 /-- We can decompose a sum of absolute value less than `n` into a sum of at most `n` signs. -/
-lemma exists_signed_sum [decidable_eq α] [nonempty α] (s : finset α) (n : ℕ) (f : α → ℤ)
-  (hn : ∑ i in s, (f i).nat_abs ≤ n) :
-  ∃ (sgn : ℕ → sign_type) (g : ℕ → α), (∀ i, g i ∉ s → sgn i = 0) ∧
-    ∀ a ∈ s, (∑ i in range n, if g i = a then (sgn i : ℤ) else 0) = f a :=
+lemma exists_signed_sum' [nonempty α] [decidable_eq α] (s : finset α) (f : α → ℤ) (n : ℕ)
+  (h : ∑ i in s, (f i).nat_abs ≤ n) :
+  ∃ (β : Type u_1) (_ : fintype β) (sgn : β → sign_type) (g : β → α), by exactI
+    (∀ b, g b ∉ s → sgn b = 0) ∧ fintype.card β = n ∧
+    ∀ a ∈ s, (∑ i, if g i = a then (sgn i : ℤ) else 0) = f a :=
 begin
-  induction s using finset.cons_induction with a s ha ih generalizing n,
-  { exact ⟨0, classical.arbitrary _, λ _ _, rfl, λ _, false.elim⟩ },
-  rw sum_cons at hn,
-  obtain ⟨sgn, g, hg, hf⟩ := ih _ (le_tsub_of_add_le_left hn),
-  refine ⟨(range $ n - (f a).nat_abs).piecewise sgn (λ _, sign (f a)),
-    (range $ n - (f a).nat_abs).piecewise g (λ _, a), λ i hi, _, λ b hb, _⟩,
-  { by_cases i ∈ range (n - (f a).nat_abs),
-    { rw piecewise_eq_of_mem _ _ _ h at ⊢ hi,
-      exact hg _ (λ h, hi $ subset_cons _ h) },
-    { rw piecewise_eq_of_not_mem _ _ _ h at hi,
-      exact (hi $ mem_cons_self _ _).elim } },
-  transitivity ∑ i in range n, (range $ n - (f a).nat_abs).piecewise
-    (λ j, ite (g j = b) (sgn j : ℤ) 0) (λ j, ite (a = b) (sign $ f a) 0) i,
-  { exact sum_congr rfl (λ i _, exists_signed_sum_aux _ _ _ _) },
-  rw [sum_piecewise, (inter_eq_right_iff_subset _ _).2 (range_mono tsub_le_self)],
-  rw mem_cons at hb,
-  obtain rfl | hb := hb,
-  { rw [sum_eq_zero, zero_add, sum_const, if_pos rfl, card_sdiff (range_mono tsub_le_self),
-      card_range, card_range, tsub_tsub_cancel_of_le (le_of_add_le_left hn), nsmul_eq_mul, mul_comm,
-      ←int.sign_eq_sign, int.nat_cast_eq_coe_nat, (f b).sign_mul_nat_abs],
-    refine λ i hi, ite_eq_right_iff.2 _,
-    rintro rfl,
-    rw [hg _ ha, sign_type.coe_zero] },
-  { simp_rw [if_neg (ne_of_mem_of_not_mem hb ha).symm, hf _ hb, sum_const_zero, add_zero] }
+  obtain ⟨β, _, sgn, g, hg, hβ, hf⟩ := exists_signed_sum s f,
+  resetI,
+  refine ⟨β ⊕ fin (n - ∑ i in s, (f i).nat_abs), infer_instance, sum.elim sgn 0,
+    sum.elim g $ classical.arbitrary _, _, by simp [hβ, h], λ a ha, by simp [hf _ ha]⟩,
+  rintro (b | b) hb,
+  { cases hb (hg _) },
+  { refl }
 end

@@ -341,6 +341,9 @@ def off_diag (s : set α) : set (α × α) := {x | x.1 ∈ s ∧ x.2 ∈ s ∧ x
 
 @[simp] lemma mem_off_diag : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 := iff.rfl
 
+lemma off_diag_mono : monotone (off_diag : set α → set (α × α)) :=
+λ s t h x, and.imp (@h _) $ and.imp_left $ @h _
+
 @[simp] lemma off_diag_nonempty : s.off_diag.nonempty ↔ s.nontrivial :=
 by simp [off_diag, set.nonempty, set.nontrivial]
 
@@ -361,6 +364,9 @@ lemma off_diag_eq_sep_prod : s.off_diag = {x ∈ s ×ˢ s | x.1 ≠ x.2} := ext 
 
 @[simp] lemma prod_sdiff_diagonal : s ×ˢ s \ diagonal α = s.off_diag := ext $ λ _, and.assoc
 @[simp] lemma disjoint_diagonal_off_diag : disjoint (diagonal α) s.off_diag := λ x hx, hx.2.2.2 hx.1
+
+lemma off_diag_inter : (s ∩ t).off_diag = s.off_diag ∩ t.off_diag :=
+ext $ λ x, by { simp only [mem_off_diag, mem_inter_iff], tauto }
 
 variables {s}
 

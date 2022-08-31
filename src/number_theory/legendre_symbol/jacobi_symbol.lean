@@ -84,8 +84,8 @@ lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
 lemma odd.factors_ne_two {n p : ℕ} (hn : odd n) (hp : p ∈ n.factors) : p ≠ 2 :=
 by { rintro rfl, exact two_dvd_ne_zero.mpr (odd_iff.mp hn) (dvd_of_mem_factors hp) }
 
--- The following lemma should probably go to `data.nat.prime`,
--- perhaps directly after `le_of_mem_factors`.
+-- Where should this go? `data.nat.factorization.basic`, perhaps directly after `le_of_mem_factors`,
+-- would seem a good place, but `data.nat.parity` is not imported, which is needed for the proof.
 /-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
 such that `a = 2^e * a'` and `a'` is odd. -/
 lemma nat.two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ a = 2 ^ e * a' :=

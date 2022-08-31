@@ -62,20 +62,23 @@ section nat
 open nat
 
 /-- If `a` is even, then `n` is odd iff `n % a` is odd. -/
-lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd n ↔ odd (n % a) :=
-(even_sub' $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $ dvd_sub_mod n
+lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd (n % a) ↔ odd n :=
+((even_sub' $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
+   dvd_sub_mod n).symm
+
 
 /-- If `a` is even, then `n` is even iff `n % a` is even. -/
-lemma even.mod_even_iff {n a : ℕ} (ha : even a) : even n ↔ even (n % a) :=
-(even_sub $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $ dvd_sub_mod n
+lemma even.mod_even_iff {n a : ℕ} (ha : even a) : even (n % a) ↔ even n :=
+((even_sub $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
+   dvd_sub_mod n).symm
 
 /-- If `n` is odd and `a` is even, then `n % a` is odd. -/
 lemma odd.mod_even {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
-(odd.mod_even_iff ha).mp hn
+(odd.mod_even_iff ha).mpr hn
 
 /-- If `n` is even and `a` is even, then `n % a` is even. -/
 lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
-(even.mod_even_iff ha).mp hn
+(even.mod_even_iff ha).mpr hn
 
 /-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
 such that `a = 2^e * a'` and `a'` is odd. -/

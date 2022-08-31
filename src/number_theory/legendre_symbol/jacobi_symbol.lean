@@ -57,7 +57,9 @@ Jacobi symbol, quadratic reciprocity
 Once the dust has settled, these will be moved to the appropriate files.
 -/
 
-namespace nat
+section nat
+
+open nat
 
 /-- If `a` is even, then `n` is odd iff `n % a` is odd. -/
 lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd n ↔ odd (n % a) :=
@@ -77,7 +79,7 @@ lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
 
 /-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
 such that `a = 2^e * a'` and `a'` is odd. -/
-lemma two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ a = 2 ^ e * a' :=
+lemma nat.two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ a = 2 ^ e * a' :=
 ⟨a.factorization 2, ord_compl[2] a,
  odd_iff.mpr $ two_dvd_ne_zero.mp $ not_dvd_ord_compl prime_two ha,
  (ord_proj_mul_ord_compl_eq_self a 2).symm⟩
@@ -321,7 +323,7 @@ begin
   conv_rhs { rw [← prod_factors hb.pos.ne', cast_list_prod, χ.map_list_prod] },
   rw [jacobi_sym, list.map_map, ← list.pmap_eq_map nat.prime _ _ (λ _, prime_of_mem_factors)],
   congr' 1, apply list.pmap_congr,
-  exact λ p h pp _, hp p pp (nat.odd.factors_ne_two hb h),
+  exact λ p h pp _, hp p pp (hb.factors_ne_two h),
 end
 
 /-- If `b` is odd, then the Jacobi symbol `(-1 / b)` is given by `χ₄ b`. -/
@@ -435,7 +437,7 @@ lemma jacobi_sym_mod_right' (a : ℕ) {b : ℕ} (hb : odd b) : [a | b]ⱼ = [a |
 begin
   cases eq_or_ne a 0 with ha₀ ha₀,
   { rw [ha₀, mul_zero, mod_zero], },
-  have hb' : odd (b % (4 * a)) := odd.mod_even hb (even.mul_right (by norm_num) _),
+  have hb' : odd (b % (4 * a)) := hb.mod_even (even.mul_right (by norm_num) _),
   rcases two_pow_mul_odd ha₀ with ⟨e, a', ha₁, ha₂⟩,
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
   rw [nat.cast_mul, jacobi_sym_mul_left, jacobi_sym_mul_left,
@@ -466,7 +468,7 @@ begin
   { -- `a = a.nat_abs`
     exact jacobi_sym_mod_right' a.nat_abs hb, },
   { -- `a = - a.nat_abs`
-    have hb' : odd (b % (4 * a.nat_abs)) := odd.mod_even hb (even.mul_right (by norm_num) _),
+    have hb' : odd (b % (4 * a.nat_abs)) := hb.mod_even (even.mul_right (by norm_num) _),
     rw [jacobi_sym_neg _ hb, jacobi_sym_neg _ hb', jacobi_sym_mod_right' _ hb, χ₄_nat_mod_four,
         χ₄_nat_mod_four (b % (4 * _)), mod_mod_of_dvd b (dvd_mul_right 4 _)], }
 end

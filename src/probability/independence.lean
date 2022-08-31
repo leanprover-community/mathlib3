@@ -887,19 +887,6 @@ begin
     exact λ i his j hjt, hST i (hs his) j (ht hjt), },
 end
 
-lemma is_pi_system_Union_of_monotone {ι} [linear_order ι] (p : ι → set (set Ω))
-  (hp_pi : ∀ n, is_pi_system (p n)) (hp_mono : monotone p) :
-  is_pi_system (⋃ n, p n) :=
-begin
-  intros t1 ht1 t2 ht2 h,
-  rw set.mem_Union at ht1 ht2 ⊢,
-  cases ht1 with n ht1,
-  cases ht2 with m ht2,
-  cases le_total n m with h_le h_le,
-  { exact ⟨m, hp_pi m t1 (set.mem_of_mem_of_subset ht1 (hp_mono h_le)) t2 ht2 h⟩, },
-  { exact ⟨n, hp_pi n t1 ht1 t2 (set.mem_of_mem_of_subset ht2 (hp_mono h_le)) h⟩, },
-end
-
 lemma indep_supr_of_monotone [linear_order ι] {α} {m : ι → measurable_space α}
   {m' m0 : measurable_space α} {μ : measure α} [is_probability_measure μ]
   (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :

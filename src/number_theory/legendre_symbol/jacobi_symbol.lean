@@ -111,7 +111,7 @@ lemma gcd_eq_one_of_gcd_mul_right_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd 
 nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_left_right a n m) h
 
 /-- The set `{0, 1, -1}` as a submonoid of the integers -/
-def sign_monoid : submonoid ℤ :=
+def sign_submonoid : submonoid ℤ :=
 ⟨({0, 1, -1} : set ℤ),
    by rintro _ _ (rfl | rfl | (rfl : _ = _)) (rfl | rfl | (rfl : _ = _)); dec_trivial,
    or.inr (or.inl rfl)⟩
@@ -209,7 +209,7 @@ end
 
 /-- The Jacobi symbol takes only the values `0`, `1` and `1`. -/
 lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
-submonoid.list_prod_mem int.sign_monoid
+submonoid.list_prod_mem int.sign_submonoid
 begin
   intros _ ha',
   rcases list.mem_pmap.mp ha' with ⟨p, hp, rfl⟩,

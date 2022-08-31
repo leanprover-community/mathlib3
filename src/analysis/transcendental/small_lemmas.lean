@@ -1,6 +1,5 @@
 import data.polynomial
 import analysis.calculus.deriv
-import tactic
 
 theorem polynomial.aeval_nat_cast'
   {R A : Type*} [comm_semiring R] [nontrivially_normed_field A] [algebra R A]

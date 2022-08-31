@@ -88,7 +88,7 @@ instance [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α ⊕
 end⟩
 
 instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
-{ wf := sum.lex_wf is_well_order.wf is_well_order.wf }
+{ wf := sum.lex_wf is_well_founded.wf is_well_founded.wf }
 
 end lex
 

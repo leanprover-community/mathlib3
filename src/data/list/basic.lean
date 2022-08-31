@@ -17,9 +17,8 @@ variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 attribute [inline] list.head
 
--- TODO[gh-6025]: make this an instance once safe to do so
 /-- There is only one list of an empty type -/
-def unique_of_is_empty [is_empty α] : unique (list α) :=
+instance unique_of_is_empty [is_empty α] : unique (list α) :=
 { uniq := λ l, match l with
     | [] := rfl
     | (a :: l) := is_empty_elim a
@@ -510,6 +509,15 @@ by induction m; simp only [*, zero_add, succ_add, repeat]; split; refl
 
 theorem repeat_subset_singleton (a : α) (n) : repeat a n ⊆ [a] :=
 λ b h, mem_singleton.2 (eq_of_mem_repeat h)
+
+lemma subset_singleton_iff {a : α} : ∀ L : list α, L ⊆ [a] ↔ ∃ n, L = repeat a n
+| [] := ⟨λ h, ⟨0, by simp⟩, by simp⟩
+| (h :: L) := begin
+  refine ⟨λ h, _, λ ⟨k, hk⟩, by simp [hk, repeat_subset_singleton]⟩,
+  rw [cons_subset] at h,
+  obtain ⟨n, rfl⟩ := (subset_singleton_iff L).mp h.2,
+  exact ⟨n.succ, by simp [mem_singleton.mp h.1]⟩
+end
 
 @[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
 by induction l; [refl, simp only [*, map]]; split; refl
@@ -2451,8 +2459,8 @@ end foldl_eq_foldlr'
 
 section
 variables {op : α → α → α} [ha : is_associative α op] [hc : is_commutative α op]
-local notation a * b := op a b
-local notation l <*> a := foldl op a l
+local notation (name := op) a * b := op a b
+local notation (name := foldl) l <*> a := foldl op a l
 
 include ha
 
@@ -2666,9 +2674,13 @@ end
 by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
 theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
-  (l : list α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
+  (l : list α) {H₁ H₂} (h : ∀ (a ∈ l) h₁ h₂, f a h₁ = g a h₂) :
   pmap f l H₁ = pmap g l H₂ :=
-by induction l with _ _ ih; [refl, rw [pmap, pmap, h, ih]]
+begin
+  induction l with _ _ ih,
+  { refl, },
+  { rw [pmap, pmap, h _ (mem_cons_self _ _), ih (λ a ha, h a (mem_cons_of_mem _ ha))], },
+end
 
 theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (l H) : map g (pmap f l H) = pmap (λ a h, g (f a h)) l H :=
@@ -2680,7 +2692,7 @@ by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
 theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
   (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
-by rw [attach, map_pmap]; exact pmap_congr l (λ a h₁ h₂, rfl)
+by rw [attach, map_pmap]; exact pmap_congr l (λ _ _ _ _, rfl)
 
 theorem attach_map_val (l : list α) : l.attach.map subtype.val = l :=
 by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _).trans (map_id l)
@@ -2919,6 +2931,14 @@ end
 @[simp] theorem filter_map_some (l : list α) : filter_map some l = l :=
 by rw filter_map_eq_map; apply map_id
 
+theorem map_filter_map_some_eq_filter_map_is_some (f : α → option β) (l : list α) :
+  (l.filter_map f).map some = (l.map f).filter (λ b, b.is_some) :=
+begin
+  induction l with x xs ih,
+  { simp },
+  { cases h : f x; rw [list.filter_map_cons, h]; simp [h, ih] },
+end
+
 @[simp] theorem mem_filter_map (f : α → option β) (l : list α) {b : β} :
   b ∈ filter_map f l ↔ ∃ a, a ∈ l ∧ f a = some b :=
 begin
@@ -2946,6 +2966,17 @@ theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
   (H : ∀ x : α, (f x).map g = some x) (l : list α) :
   map g (filter_map f l) = l :=
 by simp only [map_filter_map, H, filter_map_some]
+
+theorem length_filter_le (p : α → Prop) [decidable_pred p] (l : list α) :
+  (l.filter p).length ≤ l.length :=
+list.length_le_of_sublist (list.filter_sublist _)
+
+theorem length_filter_map_le (f : α → option β) (l : list α) :
+  (list.filter_map f l).length ≤ l.length :=
+begin
+  rw [← list.length_map some, list.map_filter_map_some_eq_filter_map_is_some, ← list.length_map f],
+  apply list.length_filter_le,
+end
 
 theorem sublist.filter_map (f : α → option β) {l₁ l₂ : list α}
   (s : l₁ <+ l₂) : filter_map f l₁ <+ filter_map f l₂ :=

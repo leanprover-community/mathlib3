@@ -232,7 +232,7 @@ begin
   contrapose! hx,
   obtain ⟨s, ⟨b⟩⟩ := hx,
   refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
-  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_finset_basis b) },
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_fintype_basis b) },
   { exact subset_adjoin K _ (set.mem_singleton x) }
 end
 
@@ -491,7 +491,7 @@ lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans [fintype κ]
   (e : κ ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
-  transpose_minor, ← minor_mul_transpose_minor, ← equiv.coe_refl, equiv.refl_symm]
+  transpose_submatrix, ← submatrix_mul_transpose_submatrix, ← equiv.coe_refl, equiv.refl_symm]
 
 end field
 

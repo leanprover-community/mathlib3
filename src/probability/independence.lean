@@ -67,19 +67,21 @@ open_locale big_operators classical measure_theory
 
 namespace probability_theory
 
+variables {Ω ι : Type*}
+
 section definitions
 
 /-- A family of sets of sets `π : ι → set (set Ω)` is independent with respect to a measure `μ` if
 for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `.
 It will be used for families of pi_systems. -/
-def Indep_sets {Ω ι} [measurable_space Ω] (π : ι → set (set Ω)) (μ : measure Ω . volume_tac) :
+def Indep_sets [measurable_space Ω] (π : ι → set (set Ω)) (μ : measure Ω . volume_tac) :
   Prop :=
 ∀ (s : finset ι) {f : ι → set Ω} (H : ∀ i, i ∈ s → f i ∈ π i), μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i)
 
 /-- Two sets of sets `s₁, s₂` are independent with respect to a measure `μ` if for any sets
 `t₁ ∈ p₁, t₂ ∈ s₂`, then `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
-def indep_sets {Ω} [measurable_space Ω] (s1 s2 : set (set Ω)) (μ : measure Ω . volume_tac) : Prop :=
+def indep_sets [measurable_space Ω] (s1 s2 : set (set Ω)) (μ : measure Ω . volume_tac) : Prop :=
 ∀ t1 t2 : set Ω, t1 ∈ s1 → t2 ∈ s2 → μ (t1 ∩ t2) = μ t1 * μ t2
 
 /-- A family of measurable space structures (i.e. of σ-algebras) is independent with respect to a
@@ -87,39 +89,39 @@ measure `μ` (typically defined on a finer σ-algebra) if the family of sets of 
 define is independent. `m : ι → measurable_space Ω` is independent with respect to measure `μ` if
 for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
-def Indep {Ω ι} (m : ι → measurable_space Ω) [measurable_space Ω] (μ : measure Ω . volume_tac) :
+def Indep (m : ι → measurable_space Ω) [measurable_space Ω] (μ : measure Ω . volume_tac) :
   Prop :=
 Indep_sets (λ x, {s | measurable_set[m x] s}) μ
 
 /-- Two measurable space structures (or σ-algebras) `m₁, m₂` are independent with respect to a
 measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
 `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
-def indep {Ω} (m₁ m₂ : measurable_space Ω) [measurable_space Ω] (μ : measure Ω . volume_tac) :
+def indep (m₁ m₂ : measurable_space Ω) [measurable_space Ω] (μ : measure Ω . volume_tac) :
   Prop :=
 indep_sets {s | measurable_set[m₁] s} {s | measurable_set[m₂] s} μ
 
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
-def Indep_set {Ω ι} [measurable_space Ω] (s : ι → set Ω) (μ : measure Ω . volume_tac) : Prop :=
+def Indep_set [measurable_space Ω] (s : ι → set Ω) (μ : measure Ω . volume_tac) : Prop :=
 Indep (λ i, generate_from {s i}) μ
 
 /-- Two sets are independent if the two measurable space structures they generate are independent.
 For a set `s`, the generated measurable space structure has measurable sets `∅, s, sᶜ, univ`. -/
-def indep_set {Ω} [measurable_space Ω] (s t : set Ω) (μ : measure Ω . volume_tac) : Prop :=
+def indep_set [measurable_space Ω] (s t : set Ω) (μ : measure Ω . volume_tac) : Prop :=
 indep (generate_from {s}) (generate_from {t}) μ
 
 /-- A family of functions defined on the same space `Ω` and taking values in possibly different
 spaces, each with a measurable space structure, is independent if the family of measurable space
 structures they generate on `Ω` is independent. For a function `g` with codomain having measurable
 space structure `m`, the generated measurable space structure is `measurable_space.comap g m`. -/
-def Indep_fun {Ω ι} [measurable_space Ω] {β : ι → Type*} (m : Π (x : ι), measurable_space (β x))
+def Indep_fun [measurable_space Ω] {β : ι → Type*} (m : Π (x : ι), measurable_space (β x))
   (f : Π (x : ι), Ω → β x) (μ : measure Ω . volume_tac) : Prop :=
 Indep (λ x, measurable_space.comap (f x) (m x)) μ
 
 /-- Two functions are independent if the two measurable space structures they generate are
 independent. For a function `f` with codomain having measurable space structure `m`, the generated
 measurable space structure is `measurable_space.comap f m`. -/
-def indep_fun {Ω β γ} [measurable_space Ω] [mβ : measurable_space β] [mγ : measurable_space γ]
+def indep_fun {β γ} [measurable_space Ω] [mβ : measurable_space β] [mγ : measurable_space γ]
   (f : Ω → β) (g : Ω → γ) (μ : measure Ω . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
 
@@ -127,37 +129,53 @@ end definitions
 
 section indep
 
-lemma indep_sets.symm {Ω} {s₁ s₂ : set (set Ω)} [measurable_space Ω] {μ : measure Ω}
+lemma indep_sets.symm {s₁ s₂ : set (set Ω)} [measurable_space Ω] {μ : measure Ω}
   (h : indep_sets s₁ s₂ μ) :
   indep_sets s₂ s₁ μ :=
 by { intros t1 t2 ht1 ht2, rw [set.inter_comm, mul_comm], exact h t2 t1 ht2 ht1, }
 
-lemma indep.symm {Ω} {m₁ m₂ : measurable_space Ω} [measurable_space Ω] {μ : measure Ω}
+lemma indep.symm {m₁ m₂ : measurable_space Ω} [measurable_space Ω] {μ : measure Ω}
   (h : indep m₁ m₂ μ) :
   indep m₂ m₁ μ :=
 indep_sets.symm h
 
-lemma indep_sets_of_indep_sets_of_le_left {Ω} {s₁ s₂ s₃: set (set Ω)} [measurable_space Ω]
+lemma indep_bot_right (m' : measurable_space Ω) {m : measurable_space Ω}
+  {μ : measure Ω} [is_probability_measure μ] :
+  indep m' ⊥ μ :=
+begin
+  intros s t hs ht,
+  rw [set.mem_set_of_eq, measurable_space.measurable_set_bot_iff] at ht,
+  cases ht,
+  { rw [ht, set.inter_empty, measure_empty, mul_zero], },
+  { rw [ht, set.inter_univ, measure_univ, mul_one], },
+end
+
+lemma indep_bot_left (m' : measurable_space Ω) {m : measurable_space Ω}
+  {μ : measure Ω} [is_probability_measure μ] :
+  indep ⊥ m' μ :=
+(indep_bot_right m').symm
+
+lemma indep_sets_of_indep_sets_of_le_left {s₁ s₂ s₃: set (set Ω)} [measurable_space Ω]
   {μ : measure Ω} (h_indep : indep_sets s₁ s₂ μ) (h31 : s₃ ⊆ s₁) :
   indep_sets s₃ s₂ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 (set.mem_of_subset_of_mem h31 ht1) ht2
 
-lemma indep_sets_of_indep_sets_of_le_right {Ω} {s₁ s₂ s₃: set (set Ω)} [measurable_space Ω]
+lemma indep_sets_of_indep_sets_of_le_right {s₁ s₂ s₃: set (set Ω)} [measurable_space Ω]
   {μ : measure Ω} (h_indep : indep_sets s₁ s₂ μ) (h32 : s₃ ⊆ s₂) :
   indep_sets s₁ s₃ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 ht1 (set.mem_of_subset_of_mem h32 ht2)
 
-lemma indep_of_indep_of_le_left {Ω} {m₁ m₂ m₃: measurable_space Ω} [measurable_space Ω]
+lemma indep_of_indep_of_le_left {m₁ m₂ m₃: measurable_space Ω} [measurable_space Ω]
   {μ : measure Ω} (h_indep : indep m₁ m₂ μ) (h31 : m₃ ≤ m₁) :
   indep m₃ m₂ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 (h31 _ ht1) ht2
 
-lemma indep_of_indep_of_le_right {Ω} {m₁ m₂ m₃: measurable_space Ω} [measurable_space Ω]
+lemma indep_of_indep_of_le_right {m₁ m₂ m₃: measurable_space Ω} [measurable_space Ω]
   {μ : measure Ω} (h_indep : indep m₁ m₂ μ) (h32 : m₃ ≤ m₂) :
   indep m₁ m₃ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 ht1 (h32 _ ht2)
 
-lemma indep_sets.union {Ω} [measurable_space Ω] {s₁ s₂ s' : set (set Ω)} {μ : measure Ω}
+lemma indep_sets.union [measurable_space Ω] {s₁ s₂ s' : set (set Ω)} {μ : measure Ω}
   (h₁ : indep_sets s₁ s' μ) (h₂ : indep_sets s₂ s' μ) :
   indep_sets (s₁ ∪ s₂) s' μ :=
 begin
@@ -167,14 +185,14 @@ begin
   { exact h₂ t1 t2 ht1₂ ht2, },
 end
 
-@[simp] lemma indep_sets.union_iff {Ω} [measurable_space Ω] {s₁ s₂ s' : set (set Ω)}
+@[simp] lemma indep_sets.union_iff [measurable_space Ω] {s₁ s₂ s' : set (set Ω)}
   {μ : measure Ω} :
   indep_sets (s₁ ∪ s₂) s' μ ↔ indep_sets s₁ s' μ ∧ indep_sets s₂ s' μ :=
 ⟨λ h, ⟨indep_sets_of_indep_sets_of_le_left h (set.subset_union_left s₁ s₂),
     indep_sets_of_indep_sets_of_le_left h (set.subset_union_right s₁ s₂)⟩,
   λ h, indep_sets.union h.left h.right⟩
 
-lemma indep_sets.Union {Ω ι} [measurable_space Ω] {s : ι → set (set Ω)} {s' : set (set Ω)}
+lemma indep_sets.Union [measurable_space Ω] {s : ι → set (set Ω)} {s' : set (set Ω)}
   {μ : measure Ω} (hyp : ∀ n, indep_sets (s n) s' μ) :
   indep_sets (⋃ n, s n) s' μ :=
 begin
@@ -184,17 +202,17 @@ begin
   exact hyp n t1 t2 ht1 ht2,
 end
 
-lemma indep_sets.inter {Ω} [measurable_space Ω] {s₁ s' : set (set Ω)} (s₂ : set (set Ω))
+lemma indep_sets.inter [measurable_space Ω] {s₁ s' : set (set Ω)} (s₂ : set (set Ω))
   {μ : measure Ω} (h₁ : indep_sets s₁ s' μ) :
   indep_sets (s₁ ∩ s₂) s' μ :=
 λ t1 t2 ht1 ht2, h₁ t1 t2 ((set.mem_inter_iff _ _ _).mp ht1).left ht2
 
-lemma indep_sets.Inter {Ω ι} [measurable_space Ω] {s : ι → set (set Ω)} {s' : set (set Ω)}
+lemma indep_sets.Inter [measurable_space Ω] {s : ι → set (set Ω)} {s' : set (set Ω)}
   {μ : measure Ω} (h : ∃ n, indep_sets (s n) s' μ) :
   indep_sets (⋂ n, s n) s' μ :=
 by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 n) ht2 }
 
-lemma indep_sets_singleton_iff {Ω} [measurable_space Ω] {s t : set Ω} {μ : measure Ω} :
+lemma indep_sets_singleton_iff [measurable_space Ω] {s t : set Ω} {μ : measure Ω} :
   indep_sets {s} {t} μ ↔ μ (s ∩ t) = μ s * μ t :=
 ⟨λ h, h s t rfl rfl,
   λ h s1 t1 hs1 ht1, by rwa [set.mem_singleton_iff.mp hs1, set.mem_singleton_iff.mp ht1]⟩
@@ -204,7 +222,7 @@ end indep
 /-! ### Deducing `indep` from `Indep` -/
 section from_Indep_to_indep
 
-lemma Indep_sets.indep_sets {Ω ι} {s : ι → set (set Ω)} [measurable_space Ω] {μ : measure Ω}
+lemma Indep_sets.indep_sets {s : ι → set (set Ω)} [measurable_space Ω] {μ : measure Ω}
   (h_indep : Indep_sets s μ) {i j : ι} (hij : i ≠ j) :
   indep_sets (s i) (s j) μ :=
 begin
@@ -229,7 +247,7 @@ begin
   rw [←h_inter, ←h_prod, h_indep {i, j} hf_m],
 end
 
-lemma Indep.indep {Ω ι} {m : ι → measurable_space Ω} [measurable_space Ω] {μ : measure Ω}
+lemma Indep.indep {m : ι → measurable_space Ω} [measurable_space Ω] {μ : measure Ω}
   (h_indep : Indep m μ) {i j : ι} (hij : i ≠ j) :
   indep (m i) (m j) μ :=
 begin
@@ -237,7 +255,7 @@ begin
   exact Indep_sets.indep_sets h_indep hij,
 end
 
-lemma Indep_fun.indep_fun {Ω ι : Type*} {m₀ : measurable_space Ω} {μ : measure Ω} {β : ι → Type*}
+lemma Indep_fun.indep_fun {m₀ : measurable_space Ω} {μ : measure Ω} {β : ι → Type*}
   {m : Π x, measurable_space (β x)} {f : Π i, Ω → β i} (hf_Indep : Indep_fun m f μ)
   {i j : ι} (hij : i ≠ j) :
   indep_fun (f i) (f j) μ :=
@@ -254,14 +272,14 @@ Independence of measurable spaces is equivalent to independence of generating π
 section from_measurable_spaces_to_sets_of_sets
 /-! ### Independence of measurable space structures implies independence of generating π-systems -/
 
-lemma Indep.Indep_sets {Ω ι} [measurable_space Ω] {μ : measure Ω} {m : ι → measurable_space Ω}
+lemma Indep.Indep_sets [measurable_space Ω] {μ : measure Ω} {m : ι → measurable_space Ω}
   {s : ι → set (set Ω)} (hms : ∀ n, m n = generate_from (s n))
   (h_indep : Indep m μ) :
   Indep_sets s μ :=
 λ S f hfs, h_indep S $ λ x hxS,
   ((hms x).symm ▸ measurable_set_generate_from (hfs x hxS) : measurable_set[m x] (f x))
 
-lemma indep.indep_sets {Ω} [measurable_space Ω] {μ : measure Ω} {s1 s2 : set (set Ω)}
+lemma indep.indep_sets [measurable_space Ω] {μ : measure Ω} {s1 s2 : set (set Ω)}
   (h_indep : indep (generate_from s1) (generate_from s2) μ) :
   indep_sets s1 s2 μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 (measurable_set_generate_from ht1) (measurable_set_generate_from ht2)
@@ -271,7 +289,7 @@ end from_measurable_spaces_to_sets_of_sets
 section from_pi_systems_to_measurable_spaces
 /-! ### Independence of generating π-systems implies independence of measurable space structures -/
 
-private lemma indep_sets.indep_aux {Ω} {m2 : measurable_space Ω}
+private lemma indep_sets.indep_aux {m2 : measurable_space Ω}
   {m : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ] {p1 p2 : set (set Ω)}
   (h2 : m2 ≤ m) (hp2 : is_pi_system p2) (hpm2 : m2 = generate_from p2)
   (hyp : indep_sets p1 p2 μ) {t1 t2 : set Ω} (ht1 : t1 ∈ p1) (ht2m : measurable_set[m2] t2) :
@@ -292,7 +310,7 @@ begin
   exact hyp t1 t ht1 ht,
 end
 
-lemma indep_sets.indep {Ω} {m1 m2 : measurable_space Ω} {m : measurable_space Ω}
+lemma indep_sets.indep {m1 m2 : measurable_space Ω} {m : measurable_space Ω}
   {μ : measure Ω} [is_probability_measure μ] {p1 p2 : set (set Ω)} (h1 : m1 ≤ m) (h2 : m2 ≤ m)
   (hp1 : is_pi_system p1) (hp2 : is_pi_system p2) (hpm1 : m1 = generate_from p1)
   (hpm2 : m2 = generate_from p2) (hyp : indep_sets p1 p2 μ) :
@@ -314,7 +332,7 @@ begin
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end
 
-variables {Ω ι : Type*} {m0 : measurable_space Ω} {μ : measure Ω}
+variables {m0 : measurable_space Ω} {μ : measure Ω}
 
 lemma Indep_sets.pi_Union_Inter_singleton {π : ι → set (set Ω)} {a : ι} {S : finset ι}
   (hp_ind : Indep_sets π μ) (haS : a ∉ S) :
@@ -437,7 +455,7 @@ We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
 * `indep_set s t μ ↔ indep_sets {s} {t} μ`.
 -/
 
-variables {Ω : Type*} [measurable_space Ω] {s t : set Ω} (S T : set (set Ω))
+variables [measurable_space Ω] {s t : set Ω} (S T : set (set Ω))
 
 lemma indep_set_iff_indep_sets_singleton (hs_meas : measurable_set s) (ht_meas : measurable_set t)
   (μ : measure Ω . volume_tac) [is_probability_measure μ] :
@@ -466,7 +484,7 @@ section indep_fun
 
 -/
 
-variables {Ω β β' γ γ' : Type*} {mΩ : measurable_space Ω} {μ : measure Ω} {f : Ω → β} {g : Ω → β'}
+variables {β β' γ γ' : Type*} {mΩ : measurable_space Ω} {μ : measure Ω} {f : Ω → β} {g : Ω → β'}
 
 lemma indep_fun_iff_measure_inter_preimage_eq_mul
   {mβ : measurable_space β} {mβ' : measurable_space β'} :
@@ -520,6 +538,10 @@ begin
   { rwa ← indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
 end
 
+lemma indep_fun.symm {mβ : measurable_space β} {f g : Ω → β} (hfg : indep_fun f g μ) :
+  indep_fun g f μ :=
+hfg.symm
+
 lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : Ω → β}
   (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
   indep_fun f' g' μ :=
@@ -560,7 +582,7 @@ begin
   { rw [generate_from_pi.symm, comap_generate_from],
     { congr' with s,
       simp only [set.mem_image, set.mem_set_of_eq, exists_prop], },
-    { exact finset.fintype_coe_sort S, }, },
+    { apply_instance } },
   let πTβ := (set.pi (set.univ : set T) ''
     (set.pi (set.univ : set T) (λ i, {s : set (β i) | measurable_set[m i] s}))),
   let πT := {s : set Ω | ∃ t ∈ πTβ, (λ a (i : T), f i a) ⁻¹' t = s},
@@ -569,7 +591,7 @@ begin
   { rw [generate_from_pi.symm, comap_generate_from],
     { congr' with s,
       simp only [set.mem_image, set.mem_set_of_eq, exists_prop], },
-    { exact finset.fintype_coe_sort T, }, },
+    { apply_instance } },
 
   -- To prove independence, we prove independence of the generating π-systems.
   refine indep_sets.indep (measurable.comap_le (measurable_pi_iff.mpr (λ i, hf_meas i)))

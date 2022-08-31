@@ -97,9 +97,11 @@ if h : (mul_support (f ∘ plift.down)).finite then ∏ i in h.to_finset, f i.do
 
 end
 
-localized "notation `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r" in big_operators
+localized "notation (name := finsum)
+  `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r" in big_operators
 
-localized "notation `∏ᶠ` binders `, ` r:(scoped:67 f, finprod f) := r" in big_operators
+localized "notation (name := finprod)
+  `∏ᶠ` binders `, ` r:(scoped:67 f, finprod f) := r" in big_operators
 
 @[to_additive] lemma finprod_eq_prod_plift_of_mul_support_to_finset_subset
   {f : α → M} (hf : (mul_support (f ∘ plift.down)).finite) {s : finset (plift α)}

@@ -7,6 +7,7 @@ import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
 import algebra.star.module
 import analysis.normed_space.star.exponential
+import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras
 In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
@@ -114,3 +115,39 @@ theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] (a :
 a.property.coe_re_map_spectrum
 
 end complex_scalars
+
+namespace star_alg_hom
+
+variables {F A B : Type*}
+[normed_ring A] [normed_algebra ℂ A] [norm_one_class A]
+[complete_space A] [star_ring A] [cstar_ring A]
+[normed_ring B] [normed_algebra ℂ B] [norm_one_class B]
+[complete_space B] [star_ring B] [cstar_ring B]
+[hF : star_alg_hom_class F ℂ A B] (φ : F)
+include hF
+
+/-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
+lemma nnnorm_apply_le (a : A) : ∥(φ a : B)∥₊ ≤ ∥a∥₊ :=
+begin
+  suffices : ∀ s : A, is_self_adjoint s → ∥φ s∥₊ ≤ ∥s∥₊,
+  { exact nonneg_le_nonneg_of_sq_le_sq zero_le'
+      (by simpa only [nnnorm_star_mul_self, map_star, map_mul]
+      using this _ (is_self_adjoint.star_mul_self a)) },
+  { intros s hs,
+    simpa only [hs.spectral_radius_eq_nnnorm, (hs.star_hom_apply φ).spectral_radius_eq_nnnorm,
+      coe_le_coe] using (show spectral_radius ℂ (φ s) ≤ spectral_radius ℂ s,
+      from supr_le_supr_of_subset (alg_hom.spectrum_apply_subset φ s)) }
+end
+
+/-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
+lemma norm_apply_le (a : A) : ∥(φ a : B)∥ ≤ ∥a∥ := nnnorm_apply_le φ a
+
+/-- Star algebra homomorphisms between C⋆-algebras are continuous linear maps.
+See note [lower instance priority] -/
+@[priority 100]
+noncomputable instance : continuous_linear_map_class F ℂ A B :=
+{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ 1
+    (by simpa only [one_mul] using nnnorm_apply_le φ),
+  .. alg_hom_class.linear_map_class }
+
+end star_alg_hom

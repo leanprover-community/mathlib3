@@ -810,7 +810,9 @@ end add_valuation
 
 section valuation_notation
 
-localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
-localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+localized "notation (name := nat.multiplicative_zero)
+  `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation (name := int.multiplicative_zero)
+  `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
 
 end valuation_notation

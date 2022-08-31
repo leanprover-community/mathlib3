@@ -10,9 +10,9 @@ example : 2 ↓ 3 = 8 := rfl
 example : 2 ⊖ 3 = 8 := rfl
 example {n m : ℕ} (h : n < m) : n ≤ m := by { success_if_fail { simp [h] }, exact le_of_lt h }
 section
-localized "infix ` ⊹ `:59 := nat.add" in nat
-localized "infix ` ↓ `:59 := nat.mul" in nat
-localized "infix ` ⊖ `:59 := nat.mul" in nat.mul
+localized "infix (name := plus) ` ⊹ `:59 := nat.add" in nat
+localized "infix (name := down) ` ↓ `:59 := nat.mul" in nat
+localized "infix (name := minus) ` ⊖ `:59 := nat.mul" in nat.mul
 localized "attribute [simp] le_of_lt" in le
 example : 2 ⊹ 3 = 5 := rfl
 example : 2 ↓ 3 = 6 := rfl

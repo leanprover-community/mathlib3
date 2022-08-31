@@ -211,7 +211,7 @@ iff.rfl
 equalities. -/
 protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
 { carrier := s,
-  neg_mem' := hs.symm ▸ S.neg_mem',
+  neg_mem' := λ _, hs.symm ▸ S.neg_mem',
   ..S.to_subsemiring.copy s hs }
 
 @[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :

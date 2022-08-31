@@ -106,7 +106,7 @@ nhds_basis_ball.mem_of_mem hr
 
 end euclidean
 
-variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] {f g : F → E} {n : with_top ℕ}
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] {f g : F → E} {n : ℕ∞}
 
 lemma cont_diff.euclidean_dist (hf : cont_diff ℝ n f) (hg : cont_diff ℝ n g)
   (h : ∀ x, f x ≠ g x) :

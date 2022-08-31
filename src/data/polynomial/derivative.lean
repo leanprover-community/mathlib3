@@ -390,10 +390,10 @@ theorem derivative_pow (p : R[X]) (n : ℕ) :
 nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, zero_mul, zero_mul]) $ λ n,
 by rw [p.derivative_pow_succ n, n.succ_sub_one, n.cast_succ]
 
-theorem dvd_iterate_derivative_pow (f : R[X]) (n m : ℕ) (c : R) (hm : 0 < m) :
+theorem dvd_iterate_derivative_pow (f : R[X]) (n : ℕ) {m : ℕ} (c : R) (hm : m ≠ 0) :
   (n : R) ∣ eval c (derivative^[m] (f ^ n)) :=
 begin
-  obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm.ne',
+  obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
   rw [function.iterate_succ_apply, derivative_pow, mul_assoc, iterate_derivative_nat_cast_mul,
     eval_mul, eval_nat_cast],
   exact dvd_mul_right _ _,
@@ -417,7 +417,7 @@ lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) :
   (derivative^[k] (X^n : R[X])) = (nat.desc_factorial n k : R) • X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_C_mul n k, smul_eq_C_mul]
 
-lemma derivative_X_add_pow (c:R) (m:ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=
+lemma derivative_X_add_pow (c : R) (m : ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=
 by rw [derivative_pow, derivative_add, derivative_X, derivative_C, add_zero, mul_one]
 
 lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) :
@@ -493,6 +493,20 @@ linear_map.map_sub derivative f g
 @[simp] lemma iterate_derivative_sub {k : ℕ} {f g : R[X]} :
   derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
 by induction k with k ih generalizing f g; simp*
+
+@[simp] lemma derivative_int_cast {n : ℤ} : derivative (n : R[X]) = 0 :=
+begin
+  rw ← C_eq_int_cast n,
+  exact derivative_C,
+end
+
+lemma derivative_int_cast_mul {n : ℤ} {f : R[X]} :
+  (↑n * f).derivative = n * f.derivative :=
+by simp
+
+@[simp] lemma iterate_derivative_int_cast_mul {n : ℤ} {k : ℕ} {f : R[X]} :
+  derivative^[k] (↑n * f) = n * (derivative^[k] f) :=
+by induction k with k ih generalizing f; simp*
 
 end ring
 

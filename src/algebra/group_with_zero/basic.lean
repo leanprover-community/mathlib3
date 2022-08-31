@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {M₀ G₀ M₀' G₀' F : Type*}
+variables {α M₀ G₀ M₀' G₀' F F' : Type*}
 
 section
 
@@ -102,10 +102,17 @@ protected lemma function.injective.no_zero_divisors [has_mul M₀] [has_zero M�
   have f x * f y = 0, by rw [← mul, H, zero],
   (eq_zero_or_eq_zero_of_mul_eq_zero this).imp (λ H, hf $ by rwa zero)  (λ H, hf $ by rwa zero) }
 
-lemma eq_zero_of_mul_self_eq_zero [has_mul M₀] [has_zero M₀] [no_zero_divisors M₀]
-  {a : M₀} (h : a * a = 0) :
-  a = 0 :=
+section has_mul
+
+variables [has_mul M₀] [has_zero M₀] [no_zero_divisors M₀] {a b : M₀}
+
+lemma eq_zero_of_mul_self_eq_zero (h : a * a = 0) : a = 0 :=
 (eq_zero_or_eq_zero_of_mul_eq_zero h).elim id id
+
+@[field_simps] theorem mul_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
+mt eq_zero_or_eq_zero_of_mul_eq_zero $ not_or_distrib.mpr ⟨ha, hb⟩
+
+end has_mul
 
 section
 
@@ -125,10 +132,7 @@ by rw [eq_comm, mul_eq_zero]
 /-- If `α` has no zero divisors, then the product of two elements is nonzero iff both of them
 are nonzero. -/
 theorem mul_ne_zero_iff : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
-(not_congr mul_eq_zero).trans not_or_distrib
-
-@[field_simps] theorem mul_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 :=
-mul_ne_zero_iff.2 ⟨ha, hb⟩
+mul_eq_zero.not.trans not_or_distrib
 
 /-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is
 `b * a`. -/
@@ -138,12 +142,12 @@ mul_eq_zero.trans $ (or_comm _ _).trans mul_eq_zero.symm
 /-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` is nonzero iff so is
 `b * a`. -/
 theorem mul_ne_zero_comm : a * b ≠ 0 ↔ b * a ≠ 0 :=
-not_congr mul_eq_zero_comm
+mul_eq_zero_comm.not
 
 lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simp
 lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
-lemma mul_self_ne_zero : a * a ≠ 0 ↔ a ≠ 0 := not_congr mul_self_eq_zero
-lemma zero_ne_mul_self : 0 ≠ a * a ↔ a ≠ 0 := not_congr zero_eq_mul_self
+lemma mul_self_ne_zero : a * a ≠ 0 ↔ a ≠ 0 := mul_self_eq_zero.not
+lemma zero_ne_mul_self : 0 ≠ a * a ↔ a ≠ 0 := zero_eq_mul_self.not
 
 end
 
@@ -811,7 +815,7 @@ by { rw div_eq_mul_inv, exact mul_ne_zero ha (inv_ne_zero hb) }
 by simp [div_eq_mul_inv]
 
 lemma div_ne_zero_iff : a / b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
-(not_congr div_eq_zero_iff).trans not_or_distrib
+div_eq_zero_iff.not.trans not_or_distrib
 
 lemma ring.inverse_eq_inv (a : G₀) : ring.inverse a = a⁻¹ :=
 begin
@@ -970,10 +974,10 @@ by { rw div_eq_mul_inv, exact hac.mul_left hbc.inv_left₀ }
 
 end commute
 
-namespace monoid_with_zero_hom
-
-variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
-  [monoid_with_zero_hom_class F G₀ M₀] (f : F) {a : G₀}
+section monoid_with_zero
+variables [group_with_zero G₀] [monoid_with_zero M₀] [nontrivial M₀]
+  [monoid_with_zero M₀'] [monoid_with_zero_hom_class F G₀ M₀]
+  [monoid_with_zero_hom_class F' G₀ M₀'] (f : F) {a : G₀}
 include M₀
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
@@ -981,7 +985,17 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
-end monoid_with_zero_hom
+omit M₀
+include M₀'
+
+lemma eq_on_inv₀ (f g : F') (h : f a = g a) : f a⁻¹ = g a⁻¹ :=
+begin
+  rcases eq_or_ne a 0 with rfl|ha,
+  { rw [inv_zero, map_zero, map_zero] },
+  { exact (is_unit.mk0 a ha).eq_on_inv f g h }
+end
+
+end monoid_with_zero
 
 section group_with_zero
 
@@ -1047,3 +1061,31 @@ noncomputable def comm_group_with_zero_of_is_unit_or_eq_zero [hM : comm_monoid_w
 { .. (group_with_zero_of_is_unit_or_eq_zero h), .. hM }
 
 end noncomputable_defs
+
+/-! ### Order dual -/
+
+open order_dual
+
+instance [h : mul_zero_class α] : mul_zero_class αᵒᵈ := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class αᵒᵈ := h
+instance [has_mul α] [has_zero α] [h : no_zero_divisors α] : no_zero_divisors αᵒᵈ := h
+instance [h : semigroup_with_zero α] : semigroup_with_zero αᵒᵈ := h
+instance [h : monoid_with_zero α] : monoid_with_zero αᵒᵈ := h
+instance [h : cancel_monoid_with_zero α] : cancel_monoid_with_zero αᵒᵈ := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero αᵒᵈ := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero αᵒᵈ := h
+instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
+
+/-! ### Lexicographic order -/
+
+instance [h : mul_zero_class α] : mul_zero_class (lex α) := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class (lex α) := h
+instance [has_mul α] [has_zero α] [h : no_zero_divisors α] : no_zero_divisors (lex α) := h
+instance [h : semigroup_with_zero α] : semigroup_with_zero (lex α) := h
+instance [h : monoid_with_zero α] : monoid_with_zero (lex α) := h
+instance [h : cancel_monoid_with_zero α] : cancel_monoid_with_zero (lex α) := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero (lex α) := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero (lex α) := h
+instance [h : group_with_zero α] : group_with_zero (lex α) := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero (lex α) := h

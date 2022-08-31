@@ -75,9 +75,9 @@ lemma support_mul_single [right_cancel_semigroup G]
   (f * single x r).support = f.support.map (mul_right_embedding x) :=
 begin
   classical,
-  convert support_mul_single_eq_image f hr (is_right_regular_of_right_cancel_semigroup x),
   ext,
-  simp only [finset.mem_map, mul_right_embedding_apply, finset.mem_image],
+  simp only [support_mul_single_eq_image f hr (is_right_regular_of_right_cancel_semigroup x),
+    mem_image, mem_map, mul_right_embedding_apply],
 end
 
 lemma support_single_mul [left_cancel_semigroup G]
@@ -85,9 +85,9 @@ lemma support_single_mul [left_cancel_semigroup G]
   (single x r * f : monoid_algebra k G).support = f.support.map (mul_left_embedding x) :=
 begin
   classical,
-  convert support_single_mul_eq_image f hr (is_left_regular_of_left_cancel_semigroup x),
   ext,
-  simp only [finset.mem_map, mul_left_embedding_apply, finset.mem_image],
+  simp only [support_single_mul_eq_image f hr (is_left_regular_of_left_cancel_semigroup x),
+    mem_image, mem_map, mul_left_embedding_apply],
 end
 
 section span

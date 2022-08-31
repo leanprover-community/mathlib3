@@ -33,6 +33,17 @@ lemma exists_exists_unique {G} [has_mul G] {A B : finset G} {a0 b0 : G} (aA : a0
   ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g :=
 ⟨a0 * b0, (a0, b0), ⟨finset.mem_product.mpr ⟨aA, bB⟩, rfl, by simp⟩, by simpa⟩
 
+@[to_additive]
+lemma of_exists_exists_unique {G} [has_mul G] {A B : finset G}
+  (h : ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g) :
+  ∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0 :=
+begin
+  rcases h with ⟨g, ⟨a,b⟩, ⟨hab, rfl, lh⟩, J⟩,
+  cases finset.mem_product.mp hab with ha hb,
+  exact ⟨a, b, ha, hb, λ x y xA yB xy,
+    prod.mk.inj_iff.mp (J (x, y) ⟨finset.mem_product.mpr ⟨xA, yB⟩, xy, λ _ _, rfl⟩)⟩,
+end
+
 end unique_mul
 
 /--  Let `G` be a Type with addition.  `unique_sums G` asserts that any two non-empty

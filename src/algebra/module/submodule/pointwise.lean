@@ -136,6 +136,16 @@ instance pointwise_add_comm_monoid : add_comm_monoid (submodule R M) :=
 @[simp] lemma add_eq_sup (p q : submodule R M) : p + q = p ⊔ q := rfl
 @[simp] lemma zero_eq_bot : (0 : submodule R M) = ⊥ := rfl
 
+instance : canonically_ordered_add_monoid (submodule R M) :=
+{ zero := 0,
+  bot := ⊥,
+  add := (+),
+  add_le_add_left := λ a b, sup_le_sup_left,
+  exists_add_of_le := λ a b h, ⟨b, (sup_eq_right.2 h).symm⟩,
+  le_self_add := λ a b, le_sup_left,
+  ..submodule.pointwise_add_comm_monoid,
+  ..submodule.complete_lattice }
+
 section
 variables [monoid α] [distrib_mul_action α M] [smul_comm_class α R M]
 
@@ -143,11 +153,12 @@ variables [monoid α] [distrib_mul_action α M] [smul_comm_class α R M]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_distrib_mul_action : distrib_mul_action α (submodule R M) :=
-{ smul := λ a S, S.map (distrib_mul_action.to_linear_map _ _ a),
+{ smul := λ a S, S.map (distrib_mul_action.to_linear_map R M a : M →ₗ[R] M),
   one_smul := λ S,
-    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact one_smul α)).trans S.map_id,
+    (congr_arg (λ f : module.End R M, S.map f) (linear_map.ext $ by exact one_smul α)).trans
+      S.map_id,
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f : M →ₗ[R] M, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans
+    (congr_arg (λ f : module.End R M, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans
       (S.map_comp _ _),
   smul_zero := λ a, map_bot _,
   smul_add := λ a S₁ S₂, map_sup _ _ _ }
@@ -171,7 +182,7 @@ lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submodule R M) : m ∈ S →
 instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ M] [smul_comm_class αᵐᵒᵖ R M]
   [is_central_scalar α M] :
   is_central_scalar α (submodule R M) :=
-⟨λ a S, congr_arg (λ f, S.map f) $ linear_map.ext $ by exact op_smul_eq_smul _⟩
+⟨λ a S, congr_arg (λ f : module.End R M, S.map f) $ linear_map.ext $ by exact op_smul_eq_smul _⟩
 
 @[simp] lemma smul_le_self_of_tower {α : Type*}
   [semiring α] [module α R] [module α M] [smul_comm_class α R M] [is_scalar_tower α R M]

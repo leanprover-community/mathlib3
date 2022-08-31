@@ -41,6 +41,10 @@ lemma char_p_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring 
     rw ring_hom.map_zero,
   end }
 
+lemma char_p_of_injective_algebra_map' (R A : Type*) [field R] [semiring A] [algebra R A]
+  [nontrivial A] (p : ℕ) [char_p R p] : char_p A p :=
+char_p_of_injective_algebra_map (algebra_map R A).injective p
+
 /-- If the algebra map `R →+* A` is injective and `R` has characteristic zero then so does `A`. -/
 lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (h : function.injective (algebra_map R A)) [char_zero R] : char_zero A :=
@@ -60,6 +64,9 @@ variables (K L : Type*) [field K] [comm_semiring L] [nontrivial L] [algebra K L]
 
 lemma algebra.char_p_iff (p : ℕ) : char_p K p ↔ char_p L p :=
 (algebra_map K L).char_p_iff_char_p p
+
+lemma algebra.ring_char_eq : ring_char K = ring_char L :=
+by { rw [ring_char.eq_iff, algebra.char_p_iff K L], apply ring_char.char_p }
 
 end
 
@@ -89,7 +96,7 @@ char_p_of_injective_algebra_map (is_fraction_ring.injective R K) p
 
 /-- If `R` has characteristic `0`, then so does Frac(R). -/
 lemma char_zero_of_is_fraction_ring [char_zero R] : char_zero K :=
-@char_p.char_p_to_char_zero K _ _ (char_p_of_is_fraction_ring R 0)
+@char_p.char_p_to_char_zero K _ (char_p_of_is_fraction_ring R 0)
 
 variables [is_domain R]
 

@@ -20,17 +20,17 @@ and take a fixed point again.
 ## Main definitions
 
  * `cofix.mk`     - constructor
- * `cofix.dest    - destructor
+ * `cofix.dest`   - destructor
  * `cofix.corec`  - corecursor: useful for formulating infinite, productive computations
  * `cofix.bisim`  - bisimulation: proof technique to show the equality of possibly infinite values
                     of `cofix F α`
 
 ## Implementation notes
 
-For `F` a QPF`, we define `cofix F α` in terms of the M-type of the polynomial functor `P` of `F`.
+For `F` a QPF, we define `cofix F α` in terms of the M-type of the polynomial functor `P` of `F`.
 We define the relation `Mcongr` and take its quotient as the definition of `cofix F α`.
 
-`Mcongr` is taken as the weakest bisimulation on M-type.  See
+`Mcongr` is taken as the weakest bisimulation on M-type. See
 [avigad-carneiro-hudon2019] for more details.
 
 ## Reference

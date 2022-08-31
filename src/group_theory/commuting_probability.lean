@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 import group_theory.abelianization
 import group_theory.group_action.conj_act
+import group_theory.group_action.quotient
 import group_theory.index
 
 /-!

@@ -84,6 +84,15 @@ lemma Ioi_def (a : α) : {x | a < x} = Ioi a := rfl
 @[simp] lemma mem_Ici : x ∈ Ici a ↔ a ≤ x := iff.rfl
 @[simp] lemma mem_Ioi : x ∈ Ioi a ↔ a < x := iff.rfl
 
+instance decidable_mem_Ioo [decidable (a < x ∧ x < b)] : decidable (x ∈ Ioo a b) := by assumption
+instance decidable_mem_Ico [decidable (a ≤ x ∧ x < b)] : decidable (x ∈ Ico a b) := by assumption
+instance decidable_mem_Iio [decidable (x < b)] : decidable (x ∈ Iio b) := by assumption
+instance decidable_mem_Icc [decidable (a ≤ x ∧ x ≤ b)] : decidable (x ∈ Icc a b) := by assumption
+instance decidable_mem_Iic [decidable (x ≤ b)] : decidable (x ∈ Iic b) := by assumption
+instance decidable_mem_Ioc [decidable (a < x ∧ x ≤ b)] : decidable (x ∈ Ioc a b) := by assumption
+instance decidable_mem_Ici [decidable (a ≤ x)] : decidable (x ∈ Ici a) := by assumption
+instance decidable_mem_Ioi [decidable (a < x)] : decidable (x ∈ Ioi a) := by assumption
+
 @[simp] lemma left_mem_Ioo : a ∈ Ioo a b ↔ false := by simp [lt_irrefl]
 @[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := by simp [le_refl]
 @[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := by simp [le_refl]
@@ -154,6 +163,18 @@ nonempty.to_subtype nonempty_Ioi
 /-- In an order without minimal elements, the intervals `Iio` are nonempty. -/
 instance nonempty_Iio_subtype [no_min_order α] : nonempty (Iio a) :=
 nonempty.to_subtype nonempty_Iio
+
+instance [no_min_order α] : no_min_order (Iio a) :=
+⟨λ a, let ⟨b, hb⟩ := exists_lt (a : α) in ⟨⟨b, lt_trans hb a.2⟩, hb⟩⟩
+
+instance [no_min_order α] : no_min_order (Iic a) :=
+⟨λ a, let ⟨b, hb⟩ := exists_lt (a : α) in ⟨⟨b, hb.le.trans a.2⟩, hb⟩⟩
+
+instance [no_max_order α] : no_max_order (Ioi a) :=
+order_dual.no_max_order (Iio (to_dual a))
+
+instance [no_max_order α] : no_max_order (Ici a) :=
+order_dual.no_max_order (Iic (to_dual a))
 
 @[simp] lemma Icc_eq_empty (h : ¬a ≤ b) : Icc a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩, h (ha.trans hb)
@@ -277,6 +298,10 @@ lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := λ x hx, le_of_lt hx
 lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := λ x hx, le_of_lt hx
 
 lemma Ico_subset_Ici_self : Ico a b ⊆ Ici a := λ x, and.left
+
+lemma Ioi_ssubset_Ici_self  : Ioi a ⊂ Ici a := ⟨Ioi_subset_Ici_self, λ h, lt_irrefl a (h le_rfl)⟩
+
+lemma Iio_ssubset_Iic_self : Iio a ⊂ Iic a := @Ioi_ssubset_Ici_self αᵒᵈ _ _
 
 lemma Icc_subset_Icc_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Icc a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -680,11 +705,22 @@ by rw [←diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff, not_lt]
 
 /-! #### Two infinite intervals -/
 
-@[simp] lemma Iic_union_Ici : Iic a ∪ Ici a = univ := eq_univ_of_forall (λ x, le_total x a)
+lemma Iic_union_Ioi_of_le (h : a ≤ b) : Iic b ∪ Ioi a = univ :=
+eq_univ_of_forall $ λ x, (h.lt_or_le x).symm
 
-@[simp] lemma Iio_union_Ici : Iio a ∪ Ici a = univ := eq_univ_of_forall (λ x, lt_or_le x a)
+lemma Iio_union_Ici_of_le (h : a ≤ b) : Iio b ∪ Ici a = univ :=
+eq_univ_of_forall $ λ x, (h.le_or_lt x).symm
 
-@[simp] lemma Iic_union_Ioi : Iic a ∪ Ioi a = univ := eq_univ_of_forall (λ x, le_or_lt x a)
+lemma Iic_union_Ici_of_le (h : a ≤ b) : Iic b ∪ Ici a = univ :=
+eq_univ_of_forall $ λ x, (h.le_or_le x).symm
+
+lemma Iio_union_Ioi_of_lt (h : a < b) : Iio b ∪ Ioi a = univ :=
+eq_univ_of_forall $ λ x, (h.lt_or_lt x).symm
+
+@[simp] lemma Iic_union_Ici : Iic a ∪ Ici a = univ := Iic_union_Ici_of_le le_rfl
+@[simp] lemma Iio_union_Ici : Iio a ∪ Ici a = univ := Iio_union_Ici_of_le le_rfl
+@[simp] lemma Iic_union_Ioi : Iic a ∪ Ioi a = univ := Iic_union_Ioi_of_le le_rfl
+@[simp] lemma Iio_union_Ioi : Iio a ∪ Ioi a = {a}ᶜ := ext $ λ x, lt_or_lt_iff_ne
 
 /-! #### A finite and an infinite interval -/
 

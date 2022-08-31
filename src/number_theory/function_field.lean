@@ -122,7 +122,7 @@ begin
 end
 
 lemma not_is_field : ¬ is_field (ring_of_integers Fq F) :=
-by simpa [← (is_integral.is_field_iff_is_field (is_integral_closure.is_integral_algebra Fq[X] F)
+by simpa [← ((is_integral_closure.is_integral_algebra Fq[X] F).is_field_iff_is_field
   (algebra_map_injective Fq F))] using (polynomial.not_is_field Fq)
 
 variables [function_field Fq F]
@@ -132,6 +132,9 @@ integral_closure.is_fraction_ring_of_finite_extension (ratfunc Fq) F
 
 instance : is_integrally_closed (ring_of_integers Fq F) :=
 integral_closure.is_integrally_closed_of_finite_extension (ratfunc Fq)
+
+instance [is_separable (ratfunc Fq) F] : is_noetherian Fq[X] (ring_of_integers Fq F) :=
+is_integral_closure.is_noetherian _ (ratfunc Fq) F _
 
 instance [is_separable (ratfunc Fq) F] :
   is_dedekind_domain (ring_of_integers Fq F) :=
@@ -210,7 +213,7 @@ def infty_valuation  : valuation (ratfunc Fq) ℤₘ₀ :=
 @[simp] lemma infty_valuation.C {k : Fq} (hk : k ≠ 0) :
   infty_valuation_def Fq (ratfunc.C k) = (multiplicative.of_add (0 : ℤ)) :=
 begin
-  have hCk : ratfunc.C k ≠ 0 := (ring_hom.map_ne_zero _).mpr hk,
+  have hCk : ratfunc.C k ≠ 0 := (map_ne_zero _).mpr hk,
   rw [infty_valuation_def, if_neg hCk, ratfunc.int_degree_C],
 end
 
@@ -238,10 +241,7 @@ lemma infty_valued_Fqt.def {x : ratfunc Fq} :
 def Fqt_infty := @uniform_space.completion (ratfunc Fq) $ (infty_valued_Fqt Fq).to_uniform_space
 
 instance : field (Fqt_infty Fq) :=
-begin
-  letI := infty_valued_Fqt Fq,
-  exact field_completion,
-end
+by { letI := infty_valued_Fqt Fq, exact uniform_space.completion.field }
 
 instance : inhabited (Fqt_infty Fq) := ⟨(0 : Fqt_infty Fq)⟩
 

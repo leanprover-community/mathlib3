@@ -14,10 +14,11 @@ construction of the direct sum using the universal property and proves its uniqu
 (`direct_sum.to_module.unique`).
 
 The second part of the file covers the special case of direct sums of submodules of a fixed module
-`M`.  There is a canonical linear map from this direct sum to `M`, and the construction is
-of particular importance when this linear map is an equivalence; that is, when the submodules
-provide an internal decomposition of `M`.  The property is defined as
-`direct_sum.submodule_is_internal`, and its basic consequences are established.
+`M`.  There is a canonical linear map from this direct sum to `M` (`direct_sum.coe_linear_map`), and
+the construction is of particular importance when this linear map is an equivalence; that is, when
+the submodules provide an internal decomposition of `M`.  The property is defined more generally
+elsewhere as `direct_sum.is_internal`, but its basic consequences on `submodule`s are established
+in this file.
 
 -/
 
@@ -35,7 +36,7 @@ variables {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, module R (M i
 instance : module R (⨁ i, M i) := dfinsupp.module
 instance {S : Type*} [semiring S] [Π i, module S (M i)] [Π i, smul_comm_class R S (M i)] :
   smul_comm_class R S (⨁ i, M i) := dfinsupp.smul_comm_class
-instance {S : Type*} [semiring S] [has_scalar R S] [Π i, module S (M i)]
+instance {S : Type*} [semiring S] [has_smul R S] [Π i, module S (M i)]
   [Π i, is_scalar_tower R S (M i)] :
   is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
 instance [Π i, module Rᵐᵒᵖ (M i)] [Π i, is_central_scalar R (M i)] :
@@ -209,7 +210,7 @@ lequiv_congr_left R h f k = f (h.symm k) := equiv_congr_left_apply _ _ _
 end congr_left
 
 section sigma
-variables {α : ι → Type u} {δ : Π i, α i → Type w}
+variables {α : ι → Type*} {δ : Π i, α i → Type w}
 variables [Π i j, add_comm_monoid (δ i j)] [Π i j, module R (δ i j)]
 
 /--`curry` as a linear map.-/
@@ -258,60 +259,43 @@ variables {M : Type*} [add_comm_monoid M] [module R M]
 variables (A : ι → submodule R M)
 
 /-- The canonical embedding from `⨁ i, A i` to `M`  where `A` is a collection of `submodule R M`
-indexed by `ι`-/
-def submodule_coe : (⨁ i, A i) →ₗ[R] M := to_module R ι M (λ i, (A i).subtype)
+indexed by `ι`. This is `direct_sum.coe_add_monoid_hom` as a `linear_map`. -/
+def coe_linear_map : (⨁ i, A i) →ₗ[R] M := to_module R ι M (λ i, (A i).subtype)
 
-@[simp] lemma submodule_coe_of (i : ι) (x : A i) : submodule_coe A (of (λ i, A i) i x) = x :=
+@[simp] lemma coe_linear_map_of (i : ι) (x : A i) :
+  direct_sum.coe_linear_map A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
-
-lemma coe_of_submodule_apply (i j : ι) (x : A i) :
-  (direct_sum.of _ i x j : M) = if i = j then x else 0 :=
-begin
-  obtain rfl | h := decidable.eq_or_ne i j,
-  { rw [direct_sum.of_eq_same, if_pos rfl], },
-  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, submodule.coe_zero], },
-end
-
-/-- The `direct_sum` formed by a collection of `submodule`s of `M` is said to be internal if the
-canonical map `(⨁ i, A i) →ₗ[R] M` is bijective.
-
-For the alternate statement in terms of independence and spanning, see
-`direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top`. -/
-def submodule_is_internal : Prop := function.bijective (submodule_coe A)
-
-lemma submodule_is_internal.to_add_submonoid :
-  submodule_is_internal A ↔ add_submonoid_is_internal (λ i, (A i).to_add_submonoid) :=
-iff.rfl
 
 variables {A}
 
 /-- If a direct sum of submodules is internal then the submodules span the module. -/
-lemma submodule_is_internal.supr_eq_top (h : submodule_is_internal A) : supr A = ⊤ :=
+lemma is_internal.submodule_supr_eq_top (h : is_internal A) : supr A = ⊤ :=
 begin
   rw [submodule.supr_eq_range_dfinsupp_lsum, linear_map.range_eq_top],
   exact function.bijective.surjective h,
 end
 
 /-- If a direct sum of submodules is internal then the submodules are independent. -/
-lemma submodule_is_internal.independent (h : submodule_is_internal A) :
+lemma is_internal.submodule_independent (h : is_internal A) :
   complete_lattice.independent A :=
 complete_lattice.independent_of_dfinsupp_lsum_injective _ h.injective
 
 /-- Given an internal direct sum decomposition of a module `M`, and a basis for each of the
 components of the direct sum, the disjoint union of these bases is a basis for `M`. -/
-noncomputable def submodule_is_internal.collected_basis
-  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
+noncomputable def is_internal.collected_basis
+  (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
   basis (Σ i, α i) R M :=
-{ repr := (linear_equiv.of_bijective _ h.injective h.surjective).symm ≪≫ₗ
+{ repr :=
+    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h.injective h.surjective).symm ≪≫ₗ
       (dfinsupp.map_range.linear_equiv (λ i, (v i).repr)) ≪≫ₗ
       (sigma_finsupp_lequiv_dfinsupp R).symm }
 
-@[simp] lemma submodule_is_internal.collected_basis_coe
-  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
+@[simp] lemma is_internal.collected_basis_coe
+  (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
   ⇑(h.collected_basis v) = λ a : Σ i, (α i), ↑(v a.1 a.2) :=
 begin
   funext a,
-  simp only [submodule_is_internal.collected_basis, to_module, submodule_coe,
+  simp only [is_internal.collected_basis, to_module, coe_linear_map,
     add_equiv.to_fun_eq_coe, basis.coe_of_repr, basis.repr_symm_apply, dfinsupp.lsum_apply_apply,
     dfinsupp.map_range.linear_equiv_apply, dfinsupp.map_range.linear_equiv_symm,
     dfinsupp.map_range_single, finsupp.total_single, linear_equiv.of_bijective_apply,
@@ -321,17 +305,17 @@ begin
   convert dfinsupp.sum_add_hom_single (λ i, (A i).subtype.to_add_monoid_hom) a.1 (v a.1 a.2),
 end
 
-lemma submodule_is_internal.collected_basis_mem
-  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :
+lemma is_internal.collected_basis_mem
+  (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :
   h.collected_basis v a ∈ A a.1 :=
 by simp
 
-/-- When indexed by only two distinct elements, `direct_sum.submodule_is_internal` implies
+/-- When indexed by only two distinct elements, `direct_sum.is_internal` implies
 the two submodules are complementary. Over a `ring R`, this is true as an iff, as
-`direct_sum.submodule_is_internal_iff_is_compl`. --/
-lemma submodule_is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
-  (h : (set.univ : set ι) = {i, j}) (hi : submodule_is_internal A) : is_compl (A i) (A j) :=
-⟨hi.independent.pairwise_disjoint _ _ hij, eq.le $ hi.supr_eq_top.symm.trans $
+`direct_sum.is_internal_iff_is_compl`. --/
+lemma is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
+  (h : (set.univ : set ι) = {i, j}) (hi : is_internal A) : is_compl (A i) (A j) :=
+⟨hi.submodule_independent.pairwise_disjoint _ _ hij, eq.le $ hi.submodule_supr_eq_top.symm.trans $
   by rw [←Sup_pair, supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton]⟩
 
 end semiring
@@ -342,33 +326,29 @@ variables {ι : Type v} [dec_ι : decidable_eq ι]
 include dec_ι
 variables {M : Type*} [add_comm_group M] [module R M]
 
-lemma submodule_is_internal.to_add_subgroup (A : ι → submodule R M) :
-  submodule_is_internal A ↔ add_subgroup_is_internal (λ i, (A i).to_add_subgroup) :=
-iff.rfl
-
 /-- Note that this is not generally true for `[semiring R]`; see
 `complete_lattice.independent.dfinsupp_lsum_injective` for details. -/
-lemma submodule_is_internal_of_independent_of_supr_eq_top {A : ι → submodule R M}
-  (hi : complete_lattice.independent A) (hs : supr A = ⊤) : submodule_is_internal A :=
+lemma is_internal_submodule_of_independent_of_supr_eq_top {A : ι → submodule R M}
+  (hi : complete_lattice.independent A) (hs : supr A = ⊤) : is_internal A :=
 ⟨hi.dfinsupp_lsum_injective, linear_map.range_eq_top.1 $
   (submodule.supr_eq_range_dfinsupp_lsum _).symm.trans hs⟩
 
-/-- `iff` version of `direct_sum.submodule_is_internal_of_independent_of_supr_eq_top`,
-`direct_sum.submodule_is_internal.independent`, and `direct_sum.submodule_is_internal.supr_eq_top`.
+/-- `iff` version of `direct_sum.is_internal_submodule_of_independent_of_supr_eq_top`,
+`direct_sum.is_internal.independent`, and `direct_sum.is_internal.supr_eq_top`.
 -/
-lemma submodule_is_internal_iff_independent_and_supr_eq_top (A : ι → submodule R M) :
-    submodule_is_internal A ↔ complete_lattice.independent A ∧ supr A = ⊤ :=
-⟨λ i, ⟨i.independent, i.supr_eq_top⟩,
- and.rec submodule_is_internal_of_independent_of_supr_eq_top⟩
+lemma is_internal_submodule_iff_independent_and_supr_eq_top (A : ι → submodule R M) :
+    is_internal A ↔ complete_lattice.independent A ∧ supr A = ⊤ :=
+⟨λ i, ⟨i.submodule_independent, i.submodule_supr_eq_top⟩,
+ and.rec is_internal_submodule_of_independent_of_supr_eq_top⟩
 
 /-- If a collection of submodules has just two indices, `i` and `j`, then
-`direct_sum.submodule_is_internal` is equivalent to `is_compl`. -/
-lemma submodule_is_internal_iff_is_compl (A : ι → submodule R M) {i j : ι} (hij : i ≠ j)
+`direct_sum.is_internal` is equivalent to `is_compl`. -/
+lemma is_internal_submodule_iff_is_compl (A : ι → submodule R M) {i j : ι} (hij : i ≠ j)
   (h : (set.univ : set ι) = {i, j}) :
-  submodule_is_internal A ↔ is_compl (A i) (A j) :=
+  is_internal A ↔ is_compl (A i) (A j) :=
 begin
   have : ∀ k, k = i ∨ k = j := λ k, by simpa using set.ext_iff.mp h k,
-  rw [submodule_is_internal_iff_independent_and_supr_eq_top,
+  rw [is_internal_submodule_iff_independent_and_supr_eq_top,
     supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton, Sup_pair,
     complete_lattice.independent_pair hij this],
   exact ⟨λ ⟨hd, ht⟩, ⟨hd, ht.ge⟩, λ ⟨hd, ht⟩, ⟨hd, eq_top_iff.mpr ht⟩⟩,
@@ -376,13 +356,13 @@ end
 
 /-! Now copy the lemmas for subgroup and submonoids. -/
 
-lemma add_submonoid_is_internal.independent {M : Type*} [add_comm_monoid M]
-  {A : ι → add_submonoid M} (h : add_submonoid_is_internal A) :
+lemma is_internal.add_submonoid_independent {M : Type*} [add_comm_monoid M]
+  {A : ι → add_submonoid M} (h : is_internal A) :
   complete_lattice.independent A :=
 complete_lattice.independent_of_dfinsupp_sum_add_hom_injective _ h.injective
 
-lemma add_subgroup_is_internal.independent {M : Type*} [add_comm_group M]
-  {A : ι → add_subgroup M} (h : add_subgroup_is_internal A) :
+lemma is_internal.add_subgroup_independent {M : Type*} [add_comm_group M]
+  {A : ι → add_subgroup M} (h : is_internal A) :
   complete_lattice.independent A :=
 complete_lattice.independent_of_dfinsupp_sum_add_hom_injective' _ h.injective
 

@@ -7,8 +7,8 @@ import group_theory.group_action.defs
 
 /-! # Group actions on and by `Mˣ`
 
-This file provides the action of a unit on a type `α`, `has_scalar Mˣ α`, in the presence of
-`has_scalar M α`, with the obvious definition stated in `units.smul_def`. This definition preserves
+This file provides the action of a unit on a type `α`, `has_smul Mˣ α`, in the presence of
+`has_smul M α`, with the obvious definition stated in `units.smul_def`. This definition preserves
 `mul_action` and `distrib_mul_action` structures too.
 
 Additionally, a `mul_action G M` for some group `G` satisfying some additional properties admits a
@@ -25,14 +25,14 @@ namespace units
 /-! ### Action of the units of `M` on a type `α` -/
 
 @[to_additive]
-instance [monoid M] [has_scalar M α] : has_scalar Mˣ α :=
+instance [monoid M] [has_smul M α] : has_smul Mˣ α :=
 { smul := λ m a, (m : M) • a }
 
 @[to_additive]
-lemma smul_def [monoid M] [has_scalar M α] (m : Mˣ) (a : α) :
+lemma smul_def [monoid M] [has_smul M α] (m : Mˣ) (a : α) :
   m • a = (m : M) • a := rfl
 
-@[simp] lemma smul_is_unit [monoid M] [has_scalar M α] {m : M} (hm : is_unit m) (a : α) :
+@[simp] lemma smul_is_unit [monoid M] [has_smul M α] {m : M} (hm : is_unit m) (a : α) :
   hm.unit • a = m • a :=
 rfl
 
@@ -41,7 +41,7 @@ lemma _root_.is_unit.inv_smul [monoid α] {a : α} (h : is_unit a) :
 h.coe_inv_mul
 
 @[to_additive]
-instance [monoid M] [has_scalar M α] [has_faithful_scalar M α] : has_faithful_scalar Mˣ α :=
+instance [monoid M] [has_smul M α] [has_faithful_smul M α] : has_faithful_smul Mˣ α :=
 { eq_of_smul_eq_smul := λ u₁ u₂ h, units.ext $ eq_of_smul_eq_smul h, }
 
 @[to_additive]
@@ -57,15 +57,15 @@ instance [monoid M] [monoid α] [mul_distrib_mul_action M α] : mul_distrib_mul_
 { smul_mul := λ m, smul_mul' (m : M),
   smul_one := λ m, smul_one m, }
 
-instance smul_comm_class_left [monoid M] [has_scalar M α] [has_scalar N α]
+instance smul_comm_class_left [monoid M] [has_smul M α] [has_smul N α]
   [smul_comm_class M N α] : smul_comm_class Mˣ N α :=
 { smul_comm := λ m n, (smul_comm (m : M) n : _)}
 
-instance smul_comm_class_right [monoid N] [has_scalar M α] [has_scalar N α]
+instance smul_comm_class_right [monoid N] [has_smul M α] [has_smul N α]
   [smul_comm_class M N α] : smul_comm_class M Nˣ α :=
 { smul_comm := λ m n, (smul_comm m (n : N) : _)}
 
-instance [monoid M] [has_scalar M N] [has_scalar M α] [has_scalar N α] [is_scalar_tower M N α] :
+instance [monoid M] [has_smul M N] [has_smul M α] [has_smul N α] [is_scalar_tower M N α] :
   is_scalar_tower Mˣ N α :=
 { smul_assoc := λ m n, (smul_assoc (m : M) n : _)}
 
@@ -99,7 +99,7 @@ instance smul_comm_class' [group G] [group H] [monoid M]
 { smul_comm := λ g h m, units.ext $ smul_comm g h (m : M) }
 
 /-- Transfer `is_scalar_tower G H M` to `is_scalar_tower G H Mˣ` -/
-instance is_scalar_tower' [has_scalar G H] [group G] [group H] [monoid M]
+instance is_scalar_tower' [has_smul G H] [group G] [group H] [monoid M]
   [mul_action G M] [smul_comm_class G M M]
   [mul_action H M] [smul_comm_class H M M]
   [is_scalar_tower G M M] [is_scalar_tower H M M]
@@ -107,8 +107,8 @@ instance is_scalar_tower' [has_scalar G H] [group G] [group H] [monoid M]
 { smul_assoc := λ g h m, units.ext $ smul_assoc g h (m : M) }
 
 /-- Transfer `is_scalar_tower G M α` to `is_scalar_tower G Mˣ α` -/
-instance is_scalar_tower'_left [group G] [monoid M] [mul_action G M] [has_scalar M α]
-  [has_scalar G α] [smul_comm_class G M M] [is_scalar_tower G M M]
+instance is_scalar_tower'_left [group G] [monoid M] [mul_action G M] [has_smul M α]
+  [has_smul G α] [smul_comm_class G M M] [is_scalar_tower G M M]
   [is_scalar_tower G M α] :
   is_scalar_tower G Mˣ α :=
 { smul_assoc := λ g m, (smul_assoc g (m : M) : _)}

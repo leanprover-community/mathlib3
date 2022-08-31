@@ -39,8 +39,8 @@ integrable function
 open_locale measure_theory topological_space interval nnreal ennreal
 open measure_theory topological_space set filter asymptotics interval_integral
 
-variables {E F : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
-[complete_space E] [normed_group F]
+variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [second_countable_topology E]
+[complete_space E] [normed_add_comm_group F]
 
 /-- If `f` is eventually differentiable along a nontrivial filter `l : filter ℝ` that is generated
 by convex sets, the norm of `f` tends to infinity along `l`, and `f' = O(g)` along `l`, where `f'`
@@ -49,7 +49,7 @@ is the derivative of `f`, then `g` is not integrable on any interval `a..b` such
 lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter {f : ℝ → E} {g : ℝ → F}
   {a b : ℝ} (l : filter ℝ) [ne_bot l] [tendsto_Ixx_class Icc l l] (hl : [a, b] ∈ l)
   (hd : ∀ᶠ x in l, differentiable_at ℝ f x) (hf : tendsto (λ x, ∥f x∥) l at_top)
-  (hfg : is_O (deriv f) g l) :
+  (hfg : deriv f =O[l] g) :
   ¬interval_integrable g volume a b :=
 begin
   intro hgi,
@@ -99,7 +99,7 @@ lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_within_diff_s
   {f : ℝ → E} {g : ℝ → F} {a b c : ℝ} (hne : a ≠ b) (hc : c ∈ [a, b])
   (h_deriv : ∀ᶠ x in 𝓝[[a, b] \ {c}] c, differentiable_at ℝ f x)
   (h_infty : tendsto (λ x, ∥f x∥) (𝓝[[a, b] \ {c}] c) at_top)
-  (hg : is_O (deriv f) g (𝓝[[a, b] \ {c}] c)) :
+  (hg : deriv f =O[𝓝[[a, b] \ {c}] c] g) :
   ¬interval_integrable g volume a b :=
 begin
   obtain ⟨l, hl, hl', hle, hmem⟩ : ∃ l : filter ℝ, tendsto_Ixx_class Icc l l ∧ l.ne_bot ∧
@@ -124,7 +124,7 @@ of `f`, then `g` is not interval integrable on any nontrivial interval `a..b` su
 `c ∈ [a, b]`. -/
 lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured {f : ℝ → E} {g : ℝ → F}
   {a b c : ℝ} (h_deriv : ∀ᶠ x in 𝓝[≠] c, differentiable_at ℝ f x)
-  (h_infty : tendsto (λ x, ∥f x∥) (𝓝[≠] c) at_top) (hg : is_O (deriv f) g (𝓝[≠] c))
+  (h_infty : tendsto (λ x, ∥f x∥) (𝓝[≠] c) at_top) (hg : deriv f =O[𝓝[≠] c] g)
   (hne : a ≠ b) (hc : c ∈ [a, b]) :
   ¬interval_integrable g volume a b :=
 have 𝓝[[a, b] \ {c}] c ≤ 𝓝[≠] c, from nhds_within_mono _ (inter_subset_right _ _),
@@ -134,7 +134,7 @@ not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_within_diff_singlet
 /-- If `f` grows in the punctured neighborhood of `c : ℝ` at least as fast as `1 / (x - c)`,
 then it is not interval integrable on any nontrivial interval `a..b`, `c ∈ [a, b]`. -/
 lemma not_interval_integrable_of_sub_inv_is_O_punctured {f : ℝ → F} {a b c : ℝ}
-  (hf : is_O (λ x, (x - c)⁻¹) f (𝓝[≠] c)) (hne : a ≠ b) (hc : c ∈ [a, b]) :
+  (hf : (λ x, (x - c)⁻¹) =O[𝓝[≠] c] f) (hne : a ≠ b) (hc : c ∈ [a, b]) :
   ¬interval_integrable f volume a b :=
 begin
   have A : ∀ᶠ x in 𝓝[≠] c, has_deriv_at (λ x, real.log (x - c)) (x - c)⁻¹ x,

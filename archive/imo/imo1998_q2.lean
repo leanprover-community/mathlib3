@@ -190,18 +190,16 @@ end
 
 end
 
-local notation x `/` y := (x : ℚ) / y
-
 lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
-  (b - 1) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
+  (b - 1 : ℚ) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
 by rw div_le_div_iff; norm_cast; simp [ha, hb]
 
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
   (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :
-  (b - 1) / (2 * b) ≤ k / a :=
+  (b - 1 : ℚ) / (2 * b) ≤ k / a :=
 begin
-  rw clear_denominators ha (nat.odd_gt_zero hb),
+  rw clear_denominators ha hb.pos,
   obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
   have h := le_trans (A_card_lower_bound r hJ) (A_card_upper_bound r hk),
   rw [hC, hJ] at h,

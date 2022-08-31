@@ -9,7 +9,8 @@ import data.list.infix
 # Double universal quantification on a list
 
 This file provides an API for `list.forall₂` (definition in `data.list.defs`).
-`forall₂ r l₁ l₂` means that `∀ a ∈ l₁, ∀ b ∈ l₂, r a b`, where `l₁`, `l₂` are lists.
+`forall₂ R l₁ l₂` means that `l₁` and `l₂` have the same length, and whenever `a` is the nth element
+of `l₁`, and `b` is the nth element of `l₂`, then `R a b` is satisfied.
 -/
 
 open nat function
@@ -110,10 +111,28 @@ lemma _root_.relator.right_unique.forall₂ (hr : right_unique r) : right_unique
 lemma _root_.relator.bi_unique.forall₂ (hr : bi_unique r) : bi_unique (forall₂ r) :=
 ⟨hr.left.forall₂, hr.right.forall₂⟩
 
-theorem forall₂_length_eq {R : α → β → Prop} :
+theorem forall₂.length_eq {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → length l₁ = length l₂
 | _ _ forall₂.nil          := rfl
-| _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
+| _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂.length_eq h₂)
+
+theorem forall₂.nth_le :
+  ∀ {x : list α} {y : list β} (h : forall₂ r x y) ⦃i : ℕ⦄ (hx : i < x.length) (hy : i < y.length),
+      r (x.nth_le i hx) (y.nth_le i hy)
+| (a₁ :: l₁) (a₂ :: l₂) (forall₂.cons ha hl) 0        hx hy := ha
+| (a₁ :: l₁) (a₂ :: l₂) (forall₂.cons ha hl) (succ i) hx hy := hl.nth_le _ _
+
+lemma forall₂_of_length_eq_of_nth_le : ∀ {x : list α} {y : list β},
+  x.length = y.length → (∀ i h₁ h₂, r (x.nth_le i h₁) (y.nth_le i h₂)) → forall₂ r x y
+| []         []         hl h := forall₂.nil
+| (a₁ :: l₁) (a₂ :: l₂) hl h := forall₂.cons
+    (h 0 (nat.zero_lt_succ _) (nat.zero_lt_succ _))
+    (forall₂_of_length_eq_of_nth_le (succ.inj hl) (
+      λ i h₁ h₂, h i.succ (succ_lt_succ h₁) (succ_lt_succ h₂)))
+
+theorem forall₂_iff_nth_le {l₁ : list α} {l₂ : list β} :
+  forall₂ r l₁ l₂ ↔ l₁.length = l₂.length ∧ ∀ i h₁ h₂, r (l₁.nth_le i h₁) (l₂.nth_le i h₂) :=
+⟨λ h, ⟨h.length_eq, h.nth_le⟩, and.rec forall₂_of_length_eq_of_nth_le⟩
 
 theorem forall₂_zip {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b
@@ -122,7 +141,7 @@ theorem forall₂_zip {R : α → β → Prop} :
 
 theorem forall₂_iff_zip {R : α → β → Prop} {l₁ l₂} : forall₂ R l₁ l₂ ↔
   length l₁ = length l₂ ∧ ∀ {a b}, (a, b) ∈ zip l₁ l₂ → R a b :=
-⟨λ h, ⟨forall₂_length_eq h, @forall₂_zip _ _ _ _ _ h⟩,
+⟨λ h, ⟨h.length_eq, @forall₂_zip _ _ _ _ _ h⟩,
  λ h, begin
   cases h with h₁ h₂,
   induction l₁ with a l₁ IH generalizing l₂,

@@ -154,14 +154,14 @@ protected lemma ext_iff {f g : R ≃+* S} : f = g ↔ ∀ x, f x = g x := fun_li
 @[simp, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
 
 /-- The `ring_equiv` between two semirings with a unique element. -/
-def ring_equiv_of_unique_of_unique {M N}
+def ring_equiv_of_unique {M N}
   [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] : M ≃+* N :=
-{ ..add_equiv.add_equiv_of_unique_of_unique,
-  ..mul_equiv.mul_equiv_of_unique_of_unique}
+{ ..add_equiv.add_equiv_of_unique,
+  ..mul_equiv.mul_equiv_of_unique}
 
 instance {M N} [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] :
   unique (M ≃+* N) :=
-{ default := ring_equiv_of_unique_of_unique,
+{ default := ring_equiv_of_unique,
   uniq := λ _, ext $ λ x, subsingleton.elim _ _ }
 
 variable (R)
@@ -209,6 +209,10 @@ symm_bijective.injective $ ext $ λ x, rfl
 
 @[simp] lemma trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : R) :
   e₁.trans e₂ a = e₂ (e₁ a) := rfl
+
+@[simp]
+lemma symm_trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : S') :
+  (e₁.trans e₂).symm a = e₁.symm (e₂.symm a) := rfl
 
 protected lemma bijective (e : R ≃+* S) : function.bijective e := equiv_like.bijective e
 protected lemma injective (e : R ≃+* S) : function.injective e := equiv_like.injective e
@@ -554,17 +558,6 @@ protected lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring 
 map_sum g f s
 
 end big_operators
-
-section division_ring
-
-variables {K K' : Type*} [division_ring K] [division_ring K']
-  (g : K ≃+* K') (x y : K)
-
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_ring_hom.map_inv x
-
-lemma map_div : g (x / y) = g x / g y := g.to_ring_hom.map_div x y
-
-end division_ring
 
 section group_power
 

@@ -37,11 +37,11 @@ end
 
 /-- If a point of `Spec R[x]` is not contained in the vanishing set of `f`, then its image in
 `Spec R` is contained in the open set where at least one of the coefficients of `f` is non-zero.
-This lemma is a reformulation of `exists_coeff_not_mem_C_inverse`. -/
+This lemma is a reformulation of `exists_C_coeff_not_mem`. -/
 lemma comap_C_mem_image_of_Df {I : prime_spectrum R[X]}
   (H : I ∈ (zero_locus {f} : set (prime_spectrum R[X]))ᶜ ) :
   prime_spectrum.comap (polynomial.C : R →+* R[X]) I ∈ image_of_Df f :=
-exists_coeff_not_mem_C_inverse (mem_compl_zero_locus_iff_not_mem.mp H)
+exists_C_coeff_not_mem (mem_compl_zero_locus_iff_not_mem.mp H)
 
 /-- The open set `image_of_Df f` coincides with the image of `basic_open f` under the
 morphism `C⁺ : Spec R[x] → Spec R`. -/

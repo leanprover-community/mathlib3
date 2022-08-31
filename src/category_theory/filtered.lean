@@ -51,7 +51,8 @@ commute with finite limits.
 
 open function
 
-universes v v₁ u u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v v₁ u u₁ u₂
 
 namespace category_theory
 
@@ -104,6 +105,11 @@ instance is_filtered_of_directed_le_nonempty  (α : Type u) [preorder α] [is_di
 -- Sanity checks
 example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
 example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
+
+instance : is_filtered (discrete punit) :=
+{ cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_filtered
 
@@ -481,20 +487,25 @@ instance is_cofiltered_of_semilattice_inf_nonempty
 
 @[priority 100]
 instance is_cofiltered_or_empty_of_directed_ge (α : Type u) [preorder α]
-  [is_directed α (swap (≤))] :
+  [is_directed α (≥)] :
   is_cofiltered_or_empty α :=
 { cocone_objs := λ X Y, let ⟨Z, hX, hY⟩ := exists_le_le X Y in
     ⟨Z, hom_of_le hX, hom_of_le hY, trivial⟩,
   cocone_maps := λ X Y f g, ⟨X, 𝟙 _, by simp⟩ }
 
 @[priority 100]
-instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (swap (≤))]
+instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (≥)]
   [nonempty α] :
   is_cofiltered α := {}
 
 -- Sanity checks
 example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
 example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
+
+instance : is_cofiltered (discrete punit) :=
+{ cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_cofiltered
 
@@ -626,7 +637,7 @@ lemma inf_to_commutes
   inf_to O H mX ≫ f = inf_to O H mY :=
 (inf_exists O H).some_spec.some_spec mX mY mf
 
-variables {J : Type v} [small_category J] [fin_category J]
+variables {J : Type w} [small_category J] [fin_category J]
 
 /--
 If we have `is_cofiltered C`, then for any functor `F : J ⥤ C` with `fin_category J`,

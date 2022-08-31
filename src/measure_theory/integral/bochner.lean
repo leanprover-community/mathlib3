@@ -513,7 +513,7 @@ def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E := integral_clm' α E ℝ μ
 
 variables {α E μ 𝕜}
 
-local notation `Integral` := integral_clm α E μ
+local notation (name := simple_func.integral_clm) `Integral` := integral_clm α E μ
 
 open continuous_linear_map
 
@@ -585,7 +585,7 @@ end simple_func_integral
 end simple_func
 
 open simple_func
-local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
+local notation (name := simple_func.integral_clm) `Integral` := @integral_clm α E _ _ _ _ _ μ _
 
 
 variables [normed_space ℝ E] [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
@@ -639,8 +639,9 @@ map_sub integral_clm f g
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
 show (integral_clm' 𝕜) (c • f) = c • (integral_clm' 𝕜) f, from map_smul (integral_clm' 𝕜) c f
 
-local notation `Integral` := @integral_clm α E _ _ μ _ _
-local notation `sIntegral` := @simple_func.integral_clm α E _ _ μ _
+local notation (name := integral_clm) `Integral` := @integral_clm α E _ _ μ _ _
+local notation (name := simple_func.integral_clm') `sIntegral` :=
+  @simple_func.integral_clm α E _ _ μ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
 norm_set_to_L1_le (dominated_fin_meas_additive_weighted_smul μ) zero_le_one
@@ -863,7 +864,7 @@ tendsto_set_to_fun_filter_of_dominated_convergence (dominated_fin_meas_additive_
   bound hF_meas h_bound bound_integrable h_lim
 
 /-- Lebesgue dominated convergence theorem for series. -/
-lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
+lemma has_sum_integral_of_dominated_convergence {ι} [countable ι]
   {F : ι → α → E} {f : α → E} (bound : ι → α → ℝ)
   (hF_meas : ∀ n, ae_strongly_measurable (F n) μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound n a)

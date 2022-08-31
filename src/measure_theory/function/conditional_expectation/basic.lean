@@ -1919,7 +1919,8 @@ if hm : m ≤ m0
   else 0
 
 -- We define notation `μ[f|m]` for the conditional expectation of `f` with respect to `m`.
-localized "notation  μ `[` f `|` m `]` := measure_theory.condexp m μ f" in measure_theory
+localized "notation (name := measure_theory.condexp)
+  μ `[` f `|` m `]` := measure_theory.condexp m μ f" in measure_theory
 
 lemma condexp_of_not_le (hm_not : ¬ m ≤ m0) : μ[f|m] = 0 := by rw [condexp, dif_neg hm_not]
 
@@ -2083,6 +2084,18 @@ begin
     ((condexp_ae_eq_condexp_L1 hm _).symm.add (condexp_ae_eq_condexp_L1 hm _).symm),
 end
 
+lemma condexp_finset_sum {ι : Type*} {s : finset ι} {f : ι → α → F'}
+  (hf : ∀ i ∈ s, integrable (f i) μ) :
+  μ[∑ i in s, f i | m] =ᵐ[μ] ∑ i in s, μ[f i | m] :=
+begin
+  induction s using finset.induction_on with i s his heq hf,
+  { rw [finset.sum_empty, finset.sum_empty, condexp_zero] },
+  { rw [finset.sum_insert his, finset.sum_insert his],
+    exact (condexp_add (hf i $ finset.mem_insert_self i s) $ integrable_finset_sum' _
+      (λ j hmem, hf j $ finset.mem_insert_of_mem hmem)).trans
+      ((eventually_eq.refl _ _).add (heq $ λ j hmem, hf j $ finset.mem_insert_of_mem hmem)) }
+end
+
 lemma condexp_smul (c : 𝕜) (f : α → F') : μ[c • f | m] =ᵐ[μ] c • μ[f|m] :=
 begin
   by_cases hm : m ≤ m0,
@@ -2140,6 +2153,26 @@ begin
   haveI : sigma_finite (μ.trim hm) := hμm,
   exact (condexp_ae_eq_condexp_L1 hm _).trans_le
     ((condexp_L1_mono hf hg hfg).trans_eq (condexp_ae_eq_condexp_L1 hm _).symm),
+end
+
+lemma condexp_nonneg {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [ordered_smul ℝ E] {f : α → E} (hf : 0 ≤ᵐ[μ] f) :
+  0 ≤ᵐ[μ] μ[f | m] :=
+begin
+  by_cases hfint : integrable f μ,
+  { rw (condexp_zero.symm : (0 : α → E) = μ[0 | m]),
+    exact condexp_mono (integrable_zero _ _ _) hfint hf },
+  { exact eventually_eq.le (condexp_undef hfint).symm }
+end
+
+lemma condexp_nonpos {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [ordered_smul ℝ E] {f : α → E} (hf : f ≤ᵐ[μ] 0) :
+  μ[f | m] ≤ᵐ[μ] 0 :=
+begin
+  by_cases hfint : integrable f μ,
+  { rw (condexp_zero.symm : (0 : α → E) = μ[0 | m]),
+    exact condexp_mono hfint (integrable_zero _ _ _) hf },
+  { exact eventually_eq.le (condexp_undef hfint) }
 end
 
 /-- **Lebesgue dominated convergence theorem**: sufficient conditions under which almost

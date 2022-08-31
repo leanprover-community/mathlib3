@@ -38,8 +38,8 @@ variables (L : language.{u v}) (L' : language.{u' v'}) {M : Type w} [L.Structure
 
 /-- A language homomorphism maps the symbols of one language to symbols of another. -/
 structure Lhom :=
-(on_function : ∀{n}, L.functions n → L'.functions n)
-(on_relation : ∀{n}, L.relations n → L'.relations n)
+(on_function : ∀ ⦃n⦄, L.functions n → L'.functions n)
+(on_relation : ∀ ⦃n⦄, L.relations n → L'.relations n)
 
 infix ` →ᴸ `:10 := Lhom -- \^L
 
@@ -108,7 +108,7 @@ Lhom.funext (funext (λ n, nat.cases_on n (funext h0) (λ n, nat.cases_on n (fun
 @[simps] def comp (g : L' →ᴸ L'') (f : L →ᴸ L') : L →ᴸ L'' :=
 ⟨λ n F, g.1 (f.1 F), λ _ R, g.2 (f.2 R)⟩
 
-local infix ` ∘ `:60 := Lhom.comp
+local infix (name := Lhom.comp) ` ∘ `:60 := Lhom.comp
 
 @[simp] lemma id_comp (F : L →ᴸ L') : (Lhom.id L') ∘ F = F :=
 by {cases F, refl}
@@ -168,8 +168,8 @@ end sum_map
 
 /-- A language homomorphism is injective when all the maps between symbol types are. -/
 protected structure injective : Prop :=
-(on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
-(on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
+(on_function {n} : function.injective (λ f : L.functions n, on_function ϕ f))
+(on_relation {n} : function.injective (λ R : L.relations n, on_relation ϕ R))
 
 /-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
 all symbols on that structure. -/
@@ -334,7 +334,8 @@ variables (α : Type w')
 /-- Extends a language with a constant for each element of a parameter set in `M`. -/
 def with_constants : language.{(max u w') v} := L.sum (constants_on α)
 
-localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
+localized "notation (name := language.with_constants)
+  L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 
 @[simp] lemma card_with_constants :
   (L[[α]]).card = cardinal.lift.{w'} L.card + cardinal.lift.{max u v} (# α) :=

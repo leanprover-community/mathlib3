@@ -1602,47 +1602,6 @@ begin
     { rwa [cast_succ_pred_eq_pred_cast_succ , fin.pred_le_pred_iff] } }
 end
 
-/-- `succ_above` as an order isomorphism between `fin n` and `{x : fin (n + 1) // x ≠ p}`. -/
-def succ_above_equiv (p : fin (n + 1)) : fin n ≃o {x : fin (n + 1) // x ≠ p} :=
-{ to_fun := λ x, ⟨p.succ_above x, p.succ_above_ne x⟩,
-  inv_fun := if h : p = last n then λ x, cast_lt (x : fin (n + 1)) (lt_of_le_of_ne (le_last _)
-    begin
-      subst h,
-      exact coe_injective.ne_iff.2 x.property
-    end) else λ x, (p.cast_lt (lt_of_le_of_ne (le_last _) (coe_injective.ne_iff.2 h))).pred_above
-      (x : fin (n + 1)),
-  left_inv := λ x, begin
-      split_ifs,
-      { simp [h] },
-      { exact pred_above_succ_above _ _ }
-    end,
-  right_inv := λ x, begin
-      split_ifs,
-      { simp [h] },
-      { rw [subtype.ext_iff, subtype.coe_mk],
-        have h' : (p.cast_lt (lt_of_le_of_ne (le_last _) (coe_injective.ne_iff.2 h))).cast_succ =
-          p := cast_succ_cast_lt _ _,
-        rw [←h'] { occs := occurrences.pos [1] },
-        convert succ_above_pred_above _,
-        rw h',
-        exact x.property }
-    end,
-  map_rel_iff' := p.succ_above.map_rel_iff' }
-
-@[simp] lemma succ_above_equiv_apply (p : fin (n + 1)) (i : fin n) :
-  succ_above_equiv p i = ⟨p.succ_above i, p.succ_above_ne i⟩ :=
-rfl
-
-@[simp] lemma succ_above_equiv_symm_apply_last (x : {x : fin (n + 1) // x ≠ last n}) :
-  (succ_above_equiv (last n)).symm x =
-    cast_lt (x : fin (n + 1)) (lt_of_le_of_ne (le_last _) (coe_injective.ne_iff.2 x.property)) :=
-by simp [succ_above_equiv, order_iso.symm]
-
-@[simp] lemma succ_above_equiv_symm_apply_ne_last {p : fin (n + 1)} (h : p ≠ last n)
-  (x : {x : fin (n + 1) // x ≠ p}) : (succ_above_equiv p).symm x =
-    (p.cast_lt (lt_of_le_of_ne (le_last _) (coe_injective.ne_iff.2 h))).pred_above x :=
-by simp [succ_above_equiv, h, order_iso.symm]
-
 @[simp] theorem cast_pred_cast_succ (i : fin (n + 1)) :
   cast_pred i.cast_succ = i :=
 by simp [cast_pred, pred_above, le_last]

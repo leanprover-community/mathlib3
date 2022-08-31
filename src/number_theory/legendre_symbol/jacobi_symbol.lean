@@ -188,11 +188,11 @@ localized "notation `[` a ` | ` b `]ⱼ` := jacobi_sym a b" in number_theory_sym
 open_locale number_theory_symbols
 
 /-- The Jacobi symbol `(a / 0)` has the value `1`. -/
-lemma jacobi_sym_zero_right (a : ℤ) : [a | 0]ⱼ = 1 :=
+@[simp] lemma jacobi_sym_zero_right (a : ℤ) : [a | 0]ⱼ = 1 :=
 by simp only [jacobi_sym, factors_zero, list.prod_nil, list.pmap]
 
 /-- The Jacobi symbol `(a / 1)` has the value `1`. -/
-lemma jacobi_sym_one_right (a : ℤ) : [a | 1]ⱼ = 1 :=
+@[simp] lemma jacobi_sym_one_right (a : ℤ) : [a | 1]ⱼ = 1 :=
 by simp only [jacobi_sym, factors_one, list.prod_nil, list.pmap]
 
 /-- The Legendre symbol `(a / p)` with an integer `a` and a prime number `p`
@@ -221,7 +221,7 @@ begin
 end
 
 /-- The Jacobi symbol `(1 / b)` has the value `1`. -/
-lemma jacobi_sym_one_left (b : ℕ) : [1 | b]ⱼ = 1 :=
+@[simp] lemma jacobi_sym_one_left (b : ℕ) : [1 | b]ⱼ = 1 :=
 list.prod_eq_one (λ z hz, let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [← he, legendre_sym_one])
 
 /-- The Jacobi symbol is multiplicative in its first argument. -/

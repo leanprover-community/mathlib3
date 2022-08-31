@@ -41,7 +41,7 @@ finer, coarser, induced topology, coinduced topology
 
 -/
 
-open function set filter classical
+open function set filter
 open_locale classical topological_space filter
 
 universes u v w

@@ -58,13 +58,11 @@ structure is_regular (c : R) : Prop :=
 attribute [to_additive] is_regular
 
 @[to_additive]
-lemma is_left_regular.inj {α} [has_mul α] {a : α} (hx : is_left_regular a) {b c : α} :
-  a * b = a * c ↔ b = c :=
+lemma is_left_regular.inj {c : R} (hx : is_left_regular a) : a * b = a * c ↔ b = c :=
 ⟨λ h, hx h, congr_arg _⟩
 
 @[to_additive]
-lemma is_right_regular.inj {α} [has_mul α] {a : α} (hx : is_right_regular a) {b c : α} :
-  b * a = c * a ↔ b = c :=
+lemma is_right_regular.inj {c : R} (hx : is_right_regular a) : b * a = c * a ↔ b = c :=
 ⟨λ h, hx h, congr_arg _⟩
 
 @[to_additive]

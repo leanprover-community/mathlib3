@@ -2459,8 +2459,8 @@ end foldl_eq_foldlr'
 
 section
 variables {op : α → α → α} [ha : is_associative α op] [hc : is_commutative α op]
-local notation a * b := op a b
-local notation l <*> a := foldl op a l
+local notation (name := op) a * b := op a b
+local notation (name := foldl) l <*> a := foldl op a l
 
 include ha
 

@@ -24,11 +24,11 @@ by adding one further `0`.
 
 The final goal is to develop part of the API to prove, eventually, results about non-zero-divisors.
 -/
-variables {R : Type*} {a b : R}
+variables {R : Type*}
 
 section has_mul
 
-variable [has_mul R]
+variables [has_mul R]
 
 /-- A left-regular element is an element `c` such that multiplication on the left by `c`
 is injective. -/
@@ -82,7 +82,7 @@ end has_mul
 
 section semigroup
 
-variable [semigroup R]
+variables [semigroup R] {a b : R}
 
 /-- In a semigroup, the product of left-regular elements is left-regular. -/
 @[to_additive "In an additive semigroup, the sum of add-left-regular elements is add-left.regular."]
@@ -162,7 +162,7 @@ end semigroup
 
 section mul_zero_class
 
-variables [mul_zero_class R]
+variables [mul_zero_class R] {a b : R}
 
 /--  The element `0` is left-regular if and only if `R` is trivial. -/
 lemma is_left_regular.subsingleton (h : is_left_regular (0 : R)) : subsingleton R :=
@@ -255,7 +255,7 @@ end mul_one_class
 
 section comm_semigroup
 
-variable [comm_semigroup R]
+variables [comm_semigroup R] {a b : R}
 
 /--  A product is regular if and only if the factors are. -/
 @[to_additive "A sum is add-regular if and only if the summands are."]
@@ -269,17 +269,17 @@ end comm_semigroup
 
 section monoid
 
-variables [monoid R]
+variables [monoid R] {a b : R}
 
 /-- An element admitting a left inverse is left-regular. -/
 @[to_additive "An element admitting a left additive opposite is add-left-regular."]
 lemma is_left_regular_of_mul_eq_one (h : b * a = 1) : is_left_regular a :=
-@is_left_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.left })
+@is_left_regular.of_mul R _ _ _ (by { rw h, exact is_regular_one.left })
 
 /-- An element admitting a right inverse is right-regular. -/
 @[to_additive "An element admitting a right additive opposite is add-right-regular."]
 lemma is_right_regular_of_mul_eq_one (h : a * b = 1) : is_right_regular a :=
-@is_right_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.right })
+is_right_regular.of_mul (by { rw h, exact is_regular_one.right })
 
 /-- If `R` is a monoid, an element in `Rˣ` is regular. -/
 @[to_additive "If `R` is an additive monoid, an element in `add_units R` is add-regular."]
@@ -351,7 +351,7 @@ end cancel_monoid
 
 section cancel_monoid_with_zero
 
-variables  [cancel_monoid_with_zero R]
+variables [cancel_monoid_with_zero R] {a : R}
 
 /--  Non-zero elements of an integral domain are regular. -/
 lemma is_regular_of_ne_zero (a0 : a ≠ 0) : is_regular a :=

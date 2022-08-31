@@ -86,7 +86,7 @@ instance : add_monoid_with_one part_enat :=
 
 lemma some_eq_coe (n : ℕ) : some n = n := rfl
 
-@[simp] lemma coe_inj {x y : ℕ} : (x : part_enat) = y ↔ x = y := part.some_inj
+@[simp, norm_cast] lemma coe_inj {x y : ℕ} : (x : part_enat) = y ↔ x = y := part.some_inj
 
 @[simp] lemma dom_coe (x : ℕ) : (x : part_enat).dom := trivial
 

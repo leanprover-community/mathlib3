@@ -1317,6 +1317,12 @@ begin
   { simp only [hr_ne_zero, one_div, ne.def, ennreal.inv_eq_top, not_false_iff], },
 end
 
+lemma mem_ℒp.smul {p q r : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+  (hf : mem_ℒp f r μ) (hφ : mem_ℒp φ q μ) (hpqr : 1/p = 1/q + 1/r) :
+  mem_ℒp (φ • f) p μ :=
+⟨hφ.1.smul hf.1, (snorm_smul_le_mul_snorm hf.1 hφ.1 hpqr).trans_lt
+  (ennreal.mul_lt_top hφ.snorm_ne_top hf.snorm_ne_top)⟩
+
 end normed_space
 
 section monotonicity

@@ -104,6 +104,12 @@ lemma gcd_eq_one_of_gcd_mul_right_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd 
   a.gcd n = 1 :=
 nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_left_right a n m) h
 
+/-- The set `{0, 1, -1}` as a submonoid of the integers -/
+def sign_monoid : submonoid ℤ :=
+⟨({0, 1, -1} : set ℤ),
+   by rintro _ _ (rfl | rfl | (rfl : _ = _)) (rfl | rfl | (rfl : _ = _)); dec_trivial,
+   or.inr (or.inl rfl)⟩
+
 end int
 
 namespace zmod
@@ -206,30 +212,12 @@ end
 
 /-- The Jacobi symbol takes only the values `0`, `1` and `1`. -/
 lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
+submonoid.list_prod_mem int.sign_monoid
 begin
-  simp_rw [jacobi_sym],
-  let P : ℤ → Prop := λ x, x = 0 ∨ x = 1 ∨ x = -1,
-  have help : ∀ x₁ x₂ : ℤ, P x₁ → P x₂ → P (x₁ * x₂) :=
-  λ x₁ x₂ hx₁ hx₂,
-    by rcases hx₁ with (hx₁ | hx₁ | hx₁); rcases hx₂ with (hx₂ | hx₂ | hx₂);
-       simp_rw [P, hx₁, hx₂]; norm_num,
-  refine list.prod_prop (dec_trivial : P 1) (λ a' ha', _) help,
-  rcases list.mem_pmap.mp ha' with ⟨p, hp, hl⟩,
-  rw [← hl, legendre_sym],
+  intros _ ha',
+  rcases list.mem_pmap.mp ha' with ⟨p, hp, rfl⟩,
   haveI : fact p.prime := ⟨prime_of_mem_factors hp⟩,
   exact quadratic_char_is_quadratic (zmod p) a,
-/-
-  sorry
-  {refine rec_on_mul _ _ (λ p pp, _) (λ b₁ b₂ h₁ h₂, _) b,
-  { rw jacobi_sym_zero_right, right, left, refl, },
-  { rw jacobi_sym_one_right, right, left, refl, },
-  { haveI : fact p.prime := ⟨pp⟩,
-    rw [← legendre_sym.to_jacobi_sym, legendre_sym],
-    exact quadratic_char_is_quadratic (zmod p) a, },
-  { by_cases hb₁: b₁ = 0, { rw [hb₁, zero_mul, jacobi_sym_zero_right], right, left, refl, },
-    by_cases hb₂: b₂ = 0, { rw [hb₂, mul_zero, jacobi_sym_zero_right], right, left, refl, },
-    rw [@jacobi_sym_mul_right _ _ _ ⟨hb₁⟩ ⟨hb₂⟩],
-    exact help h₁ h₂, } } -/
 end
 
 /-- The Jacobi symbol `(1 / b)` has the value `1`. -/

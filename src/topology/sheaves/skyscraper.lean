@@ -168,7 +168,7 @@ The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y 
 The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}` is a
 colimit
 -/
-noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes [has_colimits C]
+noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes
   {y : X} (h : p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone_of_specializes p₀ S h) :=
 { desc := λ c, eq_to_hom (if_pos trivial).symm ≫ c.ι.app (op ⊤),
   fac' := λ c U, begin
@@ -204,7 +204,7 @@ The cocone at `*` for the stalk functor of `skyscraper_presheaf p₀ S` when `y 
 The cocone at `*` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}` is a
 colimit
 -/
-noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes [has_colimits C]
+noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes
   {y : X} (h : ¬p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone p₀ S y) :=
 let h1 := mem_nhds_of_not_specializes p₀ h in
 { desc := λ c, eq_to_hom (if_neg h1.some_spec).symm ≫ c.ι.app (op h1.some),

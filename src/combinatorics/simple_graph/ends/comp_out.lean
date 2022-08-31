@@ -372,6 +372,29 @@ begin
   exact of_empty_finite Gpc,
 end
 
+lemma fin_comp_out_finite (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glf : G.locally_finite) : finite ({C : G.comp_out K // C.fin}) := by {
+  refine finite.to_subtype _,
+  refine finite.subset _ _,
+  exact univ,
+  refine finite_univ_iff.mpr _,
+  exact comp_out_finite G K Gpc Glf,
+  obviously,}
+
+lemma fin_comp_out_finset (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glf : G.locally_finite) : finset (G.comp_out K) := (set.finite.to_finset (set.finite_coe_iff.mp (fin_comp_out_finite G K Gpc Glf)))
+
+lemma inf_comp_out_finite (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glf : G.locally_finite) : finite ({C : G.comp_out K // C.inf}) := by {
+  refine finite.to_subtype _,
+  refine finite.subset _ _,
+  exact univ,
+  refine finite_univ_iff.mpr _,
+  exact comp_out_finite G K Gpc Glf,
+  obviously,}
+
+lemma inf_comp_out_finset (G : simple_graph V) (K : finset V)  (Gpc : G.preconnected) (Glf : G.locally_finite) (Kn : K.nonempty) : finset (G.comp_out K) := (set.finite.to_finset (set.finite_coe_iff.mp (inf_comp_out_finite G K Gpc Glf)))
+
+
+
+
 end finiteness
 
 section back
@@ -576,26 +599,50 @@ end
 
 section extend
 
+#check set.Union
 #check @finset.bUnion
 
-variables (G) [Gpc : G.preconnected] [Glf : G.locally_finite]
-          (k : finset V) [kn : k.nonempty] (Kc : (G.induce (k : set V)).connected)
+variables (G) (Gpc : G.preconnected) (Glf : G.locally_finite)
+          (k : finset V) (kn : k.nonempty) (Kc : (G.induce (k : set V)).connected)
 
 -- Possible enhancement: Using the `simple_graph` namesppace to allow for nice syntax
-def extend_with_fin : finset V := k ∪ (@set.Union _ {C : G.comp_out K // C.fin} (λ ⟨C, Cfin⟩, (C : set V)))
+def extend_with_fin (G : simple_graph V) (Gpc : G.preconnected) (Glf : G.locally_finite) (k : finset V) (kn : k.nonempty) : finset V :=
+begin
+  let finite_pieces : set V := set.Union (λ c : {C : G.comp_out k // C.fin}, (c : set V)),
+  have : finite_pieces.finite := by {
+    haveI comps_fin : finite {C : G.comp_out k // C.fin} := fin_comp_out_finite G k Gpc Glf,
+    haveI fin_comps : ∀ (c : {C : G.comp_out k // C.fin}), finite (↑c : set V) := by {
+      rintro ⟨c, cfin⟩, dsimp [comp_out.fin] at *,
+      rw ← set.finite_coe_iff at cfin, exact cfin,},
+    rw ← set.finite_coe_iff,
+    apply @finite.set.finite_Union _ _ comps_fin coe fin_comps,
+  },
+  exact k ∪ ‹finite_pieces.finite›.to_finset,
+end
 
-
-
-lemma extend_with_fin.sub : k ⊆ extend_with_fin G k := sorry
-lemma extend_with_fin.connected :
-  (G.induce (extend_with_fin G K)).connected :=
+lemma extend_with_fin.sub : k ⊆ extend_with_fin G Gpc Glf k kn :=
 begin
   dsimp [extend_with_fin],
-  sorry,
+  exact subset_union_left k _,
+end
+
+lemma extend_with_fin.connected :
+  (G.induce ↑(extend_with_fin G Gpc Glf k kn)).connected :=
+begin
+  dsimp [extend_with_fin],
+  rw connected_iff,
+  split,
+  { sorry },
+  { apply set.nonempty_coe_sort.mpr,
+    fapply set.nonempty.mono,
+    exact k,
+    { intro, simp, intro, left, assumption, },
+    exact kn,
+  }
 end
 
 include Gpc Glf
-lemma extend_with_fin.finite : (extend_with_fin G K).finite :=
+lemma extend_with_fin.finite : (extend_with_fin G Gpc Glf k kn).finite :=
 begin
   apply set.finite.union Kf,
   haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kf Kn,
@@ -606,7 +653,7 @@ end
 
 
 lemma extend_with_fin.components_spec :
-  ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G K)), D.dis ∧ C = D) := sorry
+  ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G Gpc Glf k kn)), D.dis ∧ C = D) := sorry
 
 lemma extend_connected_with_fin_bundled  :
   {k' : finset V | k ⊆ k'

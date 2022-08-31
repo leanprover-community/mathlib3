@@ -92,7 +92,7 @@ begin
   simp_rw [finset.mul_sum, H],
   rw [finset.sum_comm],
   simp_rw [int.cast_sum, int.cast_mul, polynomial.aeval_nat_cast', algebra_map_int_eq,
-    ring_hom.eq_int_cast],
+    eq_int_cast],
 end
 
 theorem J_eq'' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :
@@ -147,7 +147,7 @@ begin
       { apply nat.sub_pos_of_lt hp },
       { exact nat.pos_of_ne_zero hi2 } },
     simp only [nat.cast_prod, int.cast_coe_nat, polynomial.eval_X, int.cast_prod, int.cast_add,
-      ring_hom.eq_int_cast, polynomial.iterate_derivative_X_pow_eq_smul, zero_mul,
+      eq_int_cast, polynomial.iterate_derivative_X_pow_eq_smul, zero_mul,
       polynomial.eval_pow, nsmul_eq_mul, eq_self_iff_true, int.cast_one, polynomial.eval_mul,
       polynomial.eval_nat_cast, finset.prod_congr, mul_zero, zsmul_eq_mul, zero_pow this], },
   { intro rid, exfalso, simp only [nat.succ_pos', not_true, finset.mem_range] at rid, exact rid },
@@ -198,7 +198,7 @@ begin
       zero_mul, smul_zero],
     exact dvd_zero _ },
   { rw [h, polynomial.iterate_derivative_X_pow_eq_C_mul],
-    simp only [nat.cast_prod, int.cast_coe_nat, int.cast_prod, mul_one, ring_hom.eq_int_cast,
+    simp only [nat.cast_prod, int.cast_coe_nat, int.cast_prod, mul_one, eq_int_cast,
       polynomial.eval_prod, nat.sub_self, nsmul_eq_mul, polynomial.eval_mul,
       polynomial.C_eq_nat_cast, polynomial.eval_nat_cast, finset.prod_congr, pow_zero],
     suffices : (p:ℤ) ∣ polynomial.eval 0
@@ -208,14 +208,13 @@ begin
       convert dvd_mul_right _ (c * (j.choose x)) using 1,
       rw [←nat.mul_factorial_pred hp.pos, int.coe_nat_mul, nat.desc_factorial_self],
       ring },
-    have : 0 < x,
-    { rw pos_iff_ne_zero,
-      rintro rfl,
+    have : x ≠ 0,
+    { rintro rfl,
       rw nat.sub_zero at h,
       rw h at j_ge_p,
       exact j_ge_p.not_lt (nat.sub_lt_of_pos_le _ _ one_pos hp.one_lt.le) },
     rw finset.prod_pow,
-    exact polynomial.dvd_iterate_derivative_pow _ _ _ _ this },
+    exact polynomial.dvd_iterate_derivative_pow _ _ _ this },
   { rw [polynomial.iterate_derivative_eq_zero ((polynomial.nat_degree_X_pow_le _).trans_lt h)],
     simp only [zero_mul, mul_zero, polynomial.eval_zero, dvd_zero, smul_zero] },
 end
@@ -229,7 +228,7 @@ begin
   { intros k p hp hk1 hk2,
     convert dvd_zero _,
     obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero (ne_of_gt hk1),
-    simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one,
+    simp only [int.cast_coe_nat, int.cast_add, eq_int_cast, int.cast_one,
       function.iterate_zero_apply, polynomial.eval_prod, finset.prod_eq_zero_iff],
     use k,
     split,
@@ -519,7 +518,7 @@ private lemma abs_J_ineq1'_coe (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
  ((∑ i in finset.range g.nat_degree.succ,
   (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ((@polynomial.eval ℤ _ (i:ℤ) (f_bar (f_p p g.nat_degree)):ℝ)))) :=
 begin
-  simp_rw [polynomial.aeval_nat_cast', algebra_map_int_eq, ring_hom.eq_int_cast],
+  simp_rw [polynomial.aeval_nat_cast', algebra_map_int_eq, eq_int_cast],
 end
 
 lemma sum_ineq_1 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :

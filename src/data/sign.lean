@@ -338,7 +338,7 @@ end int
 open finset nat
 open_locale big_operators
 
-private lemma exists_signed_sum_aux' [decidable_eq α] (s : finset α) (f : α → ℤ) :
+private lemma exists_signed_sum_aux [decidable_eq α] (s : finset α) (f : α → ℤ) :
   ∃ (β : Type u_1) (t : finset β) (sgn : β → sign_type) (g : β → α), (∀ b, g b ∈ s) ∧
     t.card = ∑ a in s, (f a).nat_abs ∧
     ∀ a ∈ s, (∑ b in t, if g b = a then (sgn b : ℤ) else 0) = f a :=
@@ -356,7 +356,7 @@ lemma exists_signed_sum [decidable_eq α] (s : finset α) (f : α → ℤ) :
   ∃ (β : Type u_1) (_ : fintype β) (sgn : β → sign_type) (g : β → α), by exactI (∀ b, g b ∈ s) ∧
     fintype.card β = ∑ a in s, (f a).nat_abs ∧
     ∀ a ∈ s, (∑ b, if g b = a then (sgn b : ℤ) else 0) = f a :=
-let ⟨β, t, sgn, g, hg, ht, hf⟩ := exists_signed_sum_aux' s f in
+let ⟨β, t, sgn, g, hg, ht, hf⟩ := exists_signed_sum_aux s f in
   ⟨t, infer_instance, λ b, sgn b, λ b, g b, λ b, hg b, by simp [ht], λ a ha,
     (@sum_attach _ _ t _ (λ b, ite (g b = a) (sgn b : ℤ) 0)).trans $ hf _ ha⟩
 

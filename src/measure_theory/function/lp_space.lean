@@ -2296,7 +2296,7 @@ begin
   exact (continuous_nnnorm.tendsto (f_lim x)).comp hx,
 end
 
-lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {ι} [nonempty ι] [encodable ι]
+lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {ι} [nonempty ι] [countable ι]
   [linear_order ι] {f : ι → α → F} {f_lim : α → F}
   (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
   snorm f_lim ∞ μ ≤ at_top.liminf (λ n, snorm (f n) ∞ μ) :=
@@ -2545,7 +2545,7 @@ begin
   by_cases hp_top : p = ∞,
   { simp_rw [hp_top] at *,
     have h_cau_ae : ∀ᵐ x ∂μ, ∀ N n m, N ≤ n → N ≤ m → (∥(f n - f m) x∥₊ : ℝ≥0∞) < B N,
-    { simp_rw [ae_all_iff, ae_imp_iff],
+    { simp_rw ae_all_iff,
       exact λ N n m hnN hmN, ae_lt_of_ess_sup_lt (h_cau N n m hnN hmN), },
     simp_rw [snorm_exponent_top, snorm_ess_sup] at h_cau,
     refine h_cau_ae.mono (λ x hx, cauchy_seq_tendsto_of_complete _),

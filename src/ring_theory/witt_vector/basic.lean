@@ -236,6 +236,7 @@ by letI : comm_ring (mv_polynomial R ℚ) := mv_polynomial.comm_ring; exact
   ghost_fun_nsmul ghost_fun_zsmul ghost_fun_pow ghost_fun_nat_cast ghost_fun_int_cast
 
 local attribute [instance]
+@[reducible]
 private def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
 (map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring _
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)

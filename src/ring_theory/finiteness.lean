@@ -112,7 +112,7 @@ instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
   exact hM.1.prod hN.1
 end⟩
 
-instance pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
+instance pi {ι : Type*} {M : ι → Type*} [_root_.finite ι] [Π i, add_comm_monoid (M i)]
   [Π i, module R (M i)] [h : ∀ i, finite R (M i)] : finite R (Π i, M i) :=
 ⟨begin
   rw ← submodule.pi_top,
@@ -180,8 +180,8 @@ lemma self : finite_type R R := ⟨⟨{1}, subsingleton.elim _ _⟩⟩
 protected lemma polynomial : finite_type R R[X] :=
 ⟨⟨{polynomial.X}, by { rw finset.coe_singleton, exact polynomial.adjoin_X }⟩⟩
 
-protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_polynomial ι R) :=
-⟨⟨finset.univ.image mv_polynomial.X,
+protected lemma mv_polynomial (ι : Type*) [finite ι] : finite_type R (mv_polynomial ι R) :=
+by casesI nonempty_fintype ι; exact ⟨⟨finset.univ.image mv_polynomial.X,
   by {rw [finset.coe_image, finset.coe_univ, set.image_univ], exact mv_polynomial.adjoin_range_X}⟩⟩
 
 lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB : finite_type R B] :
@@ -325,8 +325,9 @@ end
 variable (R)
 
 /-- The ring of polynomials in finitely many variables is finitely presented. -/
-protected lemma mv_polynomial (ι : Type u_2) [fintype ι] :
+protected lemma mv_polynomial (ι : Type u_2) [finite ι] :
   finite_presentation R (mv_polynomial ι R) :=
+by casesI nonempty_fintype ι; exact
 let eqv := (mv_polynomial.rename_equiv R $ fintype.equiv_fin ι).symm in
 ⟨fintype.card ι, eqv, eqv.surjective,
   ((ring_hom.injective_iff_ker_eq_bot _).1 eqv.injective).symm ▸ submodule.fg_bot⟩
@@ -395,13 +396,14 @@ end
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
-  [fintype ι] : finite_presentation R (mv_polynomial ι A) :=
+  [finite ι] : finite_presentation R (mv_polynomial ι A) :=
 begin
   rw iff_quotient_mv_polynomial' at hfp ⊢,
   classical,
   obtain ⟨ι', _, f, hf_surj, hf_ker⟩ := hfp,
   resetI,
   let g := (mv_polynomial.map_alg_hom f).comp (mv_polynomial.sum_alg_equiv R ι ι').to_alg_hom,
+  casesI nonempty_fintype (ι ⊕ ι'),
   refine ⟨ι ⊕ ι', by apply_instance, g,
     (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
     ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,

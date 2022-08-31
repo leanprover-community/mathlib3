@@ -108,7 +108,7 @@ instance : has_coe_to_fun (r →r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
 
 initialize_simps_projections rel_hom (to_fun → apply)
 
-protected theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel'
+protected theorem map_rel (f : r →r s) {a b} : r a b → s (f a) (f b) := f.map_rel'
 
 @[simp] theorem coe_fn_mk (f : α → β) (o) :
   (@rel_hom.mk _ _ r s f o : α → β) = f := rfl
@@ -215,7 +215,7 @@ theorem injective (f : r ↪r s) : injective f := f.inj'
 
 @[simp] theorem inj (f : r ↪r s) {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
-theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
+theorem map_rel_iff (f : r ↪r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
 @[simp] theorem coe_fn_mk (f : α ↪ β) (o) :
   (@rel_embedding.mk _ _ r s f o : α → β) = f := rfl
@@ -435,7 +435,7 @@ namespace rel_iso
 but often it is easier to write `f.to_rel_embedding` than to write explicitly `r` and `s`
 in the target type. -/
 def to_rel_embedding (f : r ≃r s) : r ↪r s :=
-⟨f.to_equiv.to_embedding, f.map_rel_iff'⟩
+⟨f.to_equiv.to_embedding, λ _ _, f.map_rel_iff'⟩
 
 theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
@@ -454,7 +454,7 @@ instance : rel_hom_class (r ≃r s) r s :=
 
 @[simp] lemma coe_coe_fn (f : r ≃r s) : ((f : r ↪r s) : α → β) = f := rfl
 
-theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
+theorem map_rel_iff (f : r ≃r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
 @[simp] theorem coe_fn_mk (f : α ≃ β) (o : ∀ ⦃a b⦄, s (f a) (f b) ↔ r a b) :
   (rel_iso.mk f o : α → β) = f := rfl
@@ -648,7 +648,7 @@ end subrel
 
 /-- Restrict the codomain of a relation embedding. -/
 def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p) : r ↪r subrel s p :=
-⟨f.to_embedding.cod_restrict p H, f.map_rel_iff'⟩
+⟨f.to_embedding.cod_restrict p H, λ _ _, f.map_rel_iff'⟩
 
 @[simp] theorem rel_embedding.cod_restrict_apply (p) (f : r ↪r s) (H a) :
   rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl

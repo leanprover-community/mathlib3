@@ -47,7 +47,7 @@ variable {n : ℕ}
 /-- arrow in the category of `typevec` -/
 def arrow (α β : typevec n) := Π i : fin2 n, α i → β i
 
-localized "infixl ` ⟹ `:40 := typevec.arrow" in mvfunctor
+localized "infixl (name := typevec.arrow) ` ⟹ `:40 := typevec.arrow" in mvfunctor
 
 instance arrow.inhabited (α β : typevec n) [Π i, inhabited (β i)] : inhabited (α ⟹ β) :=
 ⟨ λ _ _, default ⟩
@@ -59,7 +59,7 @@ def id {α : typevec n} : α ⟹ α := λ i x, x
 def comp {α β γ : typevec n} (g : β ⟹ γ) (f : α ⟹ β) : α ⟹ γ :=
 λ i x, g i (f i x)
 
-localized "infixr ` ⊚ `:80 := typevec.comp" in mvfunctor -- type as \oo
+localized "infixr (name := typevec.comp) ` ⊚ `:80 := typevec.comp" in mvfunctor -- type as \oo
 
 @[simp] theorem id_comp {α β : typevec n} (f : α ⟹ β) : id ⊚ f = f :=
 rfl
@@ -77,7 +77,7 @@ def append1 (α : typevec n) (β : Type*) : typevec (n+1)
 | (fin2.fs i) := α i
 | fin2.fz      := β
 
-infixl ` ::: `:67 := append1
+infixl (name := typevec.append1) ` ::: `:67 := append1
 
 /-- retain only a `n-length` prefix of the argument -/
 def drop (α : typevec.{u} (n+1)) : typevec n := λ i, α i.fs
@@ -120,7 +120,7 @@ and target types / typevecs -/
 def append_fun {α α' : typevec n} {β β' : Type*}
   (f : α ⟹ α') (g : β → β') : append1 α β ⟹ append1 α' β' := split_fun f g
 
-infixl ` ::: ` := append_fun
+infixl (name := typevec.append_fun) ` ::: ` := append_fun
 
 /-- split off the prefix of an arrow -/
 def drop_fun {α β : typevec (n+1)} (f : α ⟹ β) : drop α ⟹ drop β :=
@@ -334,7 +334,7 @@ def prod : Π {n} (α β : typevec.{u} n), typevec n
 | 0 α β := fin2.elim0
 | (n+1) α β := prod (drop α) (drop β) ::: (last α × last β)
 
-localized "infix ` ⊗ `:45 := typevec.prod" in mvfunctor
+localized "infix (name := typevec.prod) ` ⊗ `:45 := typevec.prod" in mvfunctor
 
 /-- `const x α` is an arrow that ignores its source and constructs a `typevec` that
 contains nothing but `x` -/
@@ -442,7 +442,7 @@ protected def prod.map : Π {n} {α α' β β' : typevec.{u} n}, (α ⟹ β) →
   @prod.map _ (drop α) (drop α') (drop β) (drop β') (drop_fun x) (drop_fun y) _ a
 | (succ n) α α' β β' x y fin2.fz a := (x _ a.1,y _ a.2)
 
-localized "infix ` ⊗' `:45 := typevec.prod.map" in mvfunctor
+localized "infix (name := typevec.prod.map) ` ⊗' `:45 := typevec.prod.map" in mvfunctor
 
 theorem fst_prod_mk {α α' β β' : typevec n} (f : α ⟹ β) (g : α' ⟹ β') :
   typevec.prod.fst ⊚ (f ⊗' g) = f ⊚ typevec.prod.fst :=

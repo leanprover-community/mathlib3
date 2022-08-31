@@ -333,6 +333,9 @@ nonempty.some $ let ⟨f, hf⟩ := exists_injective_nat α in ⟨of_inj f hf⟩
 
 end encodable
 
+lemma nonempty_encodable (α : Type*) [countable α] : nonempty (encodable α) :=
+⟨encodable.of_countable _⟩
+
 instance : countable ℕ+ := subtype.countable -- short-circuit instance search
 
 section ulower

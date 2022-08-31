@@ -49,7 +49,7 @@ of elements of the component filters. -/
 protected def prod (f : filter α) (g : filter β) : filter (α × β) :=
 f.comap prod.fst ⊓ g.comap prod.snd
 
-localized "infix ` ×ᶠ `:60 := filter.prod" in filter
+localized "infix (name := filter.prod) ` ×ᶠ `:60 := filter.prod" in filter
 
 lemma prod_mem_prod {s : set α} {t : set β} {f : filter α} {g : filter β}
   (hs : s ∈ f) (ht : t ∈ g) : s ×ˢ t ∈ f ×ᶠ g :=

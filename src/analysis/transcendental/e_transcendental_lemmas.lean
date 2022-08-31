@@ -22,11 +22,12 @@ Suppose $f$ is an integer polynomial with degree $n$ and $t\ge0$ then define
 We use integration by parts to prove
     \[I(f,t)=\exp(t)\left(\sum_{i=0}^n f^{(i)}(0)\right)-\sum_{i=0}^n f^{(i)}(t)\]
 
-The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are using this on transcendence of $e$.
+The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are
+using this on transcendence of $e$.
 -/
 def I (f : ℤ[X]) (t : ℝ) : ℝ :=
-    t.exp * (∑ i in finset.range f.nat_degree.succ, (aeval (0 : ℝ) (derivative^[i] f))) -
-    (∑ i in finset.range f.nat_degree.succ, (aeval t (derivative^[i] f)))
+  t.exp * (∑ i in finset.range f.nat_degree.succ, (aeval (0 : ℝ) (derivative^[i] f))) -
+  (∑ i in finset.range f.nat_degree.succ, (aeval t (derivative^[i] f)))
 
 /--
 I equivalent definition
@@ -39,18 +40,16 @@ $I(0,t)$ is 0.
 -/
 theorem II_0 (t : ℝ) : II 0 t = 0 :=
 begin
-    -- We are integrating $\exp(t-x)\times 0$
-    rw II,
-    simp only [mul_zero, aeval_zero, map_zero,
-        interval_integral.integral_const, smul_zero],
+  -- We are integrating $\exp(t-x)\times 0$
+  rw II,
+  simp only [mul_zero, aeval_zero, map_zero, interval_integral.integral_const, smul_zero],
 end
 
 lemma differentiable_aeval (f : ℤ[X]) :
     differentiable ℝ (λ (x : ℝ), (aeval x) (f)) :=
 begin
-      simp only [aeval_def, eval₂_eq_eval_map],
-      apply polynomial.differentiable,
-
+  simp only [aeval_def, eval₂_eq_eval_map],
+  apply polynomial.differentiable,
 end
 
 
@@ -59,7 +58,7 @@ By integration by part we have:
 \[I(f, t) = e^tf(0)-f(t)+I(f',t)\]
 -/
 lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) :
-    (II f t) = (real.exp t) * (aeval (0 : ℝ) f) - (aeval t f) + (II f.derivative t) :=
+  (II f t) = (real.exp t) * (aeval (0 : ℝ) f) - (aeval t f) + (II f.derivative t) :=
 begin
   simp only [II],
   have hd := real.differentiable_exp.comp (differentiable_id'.const_sub t),
@@ -96,18 +95,19 @@ lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (m : ℕ) :
   (∑ i in finset.range (m+1), aeval t (derivative^[i] f)) +
   (II (derivative^[m + 1] f) t) :=
 begin
-    induction m with m ih,
-    {   rw [II_integrate_by_part],
-        simp only [function.iterate_one, finset.sum_singleton, finset.range_one,
-            function.iterate_zero_apply] },
+  induction m with m ih,
+  { rw [II_integrate_by_part],
+    simp only [function.iterate_one, finset.sum_singleton, finset.range_one,
+        function.iterate_zero_apply] },
 
-    rw [ih, II_integrate_by_part, finset.sum_range_succ _ (m + 1),
-        finset.sum_range_succ _ (m + 1), ←function.iterate_succ_apply' derivative],
-    ring,
+  rw [ih, II_integrate_by_part, finset.sum_range_succ _ (m + 1),
+      finset.sum_range_succ _ (m + 1), ←function.iterate_succ_apply' derivative],
+  ring,
 end
 
 /-Theorem
-So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two definition of $I(f,t)$ agrees.
+So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two definition of $I(f,t)$
+agrees.
 -/
 theorem II_eq_I (f : ℤ[X]) (t : ℝ) : II f t = I f t :=
 begin
@@ -127,7 +127,8 @@ def f_bar (f : ℤ[X]) : ℤ[X] :=
   mem_support_to_fun := λ n, by rw [ne.def, abs_eq_zero, mem_support_iff]}⟩
 
 /-Theorem
-By our construction the $n$-th coefficient of $\bar{f}$ is the absolute value of $n$-th coefficient of $f$
+By our construction the $n$-th coefficient of $\bar{f}$ is the absolute value of $n$-th coefficient
+of $f$
 -/
 theorem bar_coeff (f : ℤ[X]) (n : ℕ) : (f_bar f).coeff n = abs (f.coeff n) := rfl
 
@@ -162,21 +163,23 @@ begin
   simpa only [abs_eq_zero, coeff_zero, bar_coeff] using h n,
 end
 
-theorem coeff_f_bar_mul (f g : ℤ[X]) (n : ℕ) : (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=
+theorem coeff_f_bar_mul (f g : ℤ[X]) (n : ℕ) :
+  (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=
 begin
-    rw bar_coeff (f*g) n, rw coeff_mul,
+  rw bar_coeff (f*g) n, rw coeff_mul,
 end
 
-theorem f_bar_eq (f : ℤ[X]) : f_bar f = ∑ i in finset.range f.nat_degree.succ, C (abs (f.coeff i)) * X^i :=
+theorem f_bar_eq (f : ℤ[X]) :
+  f_bar f = ∑ i in finset.range f.nat_degree.succ, C (abs (f.coeff i)) * X^i :=
 begin
-    ext, rw bar_coeff, rw finset_sum_coeff, simp_rw [coeff_C_mul_X_pow],
-    simp only [finset.mem_range, finset.sum_ite_eq], split_ifs, refl, simp only [not_lt] at h,
-    rw coeff_eq_zero_of_nat_degree_lt h, exact rfl,
+  ext, rw bar_coeff, rw finset_sum_coeff, simp_rw [coeff_C_mul_X_pow],
+  simp only [finset.mem_range, finset.sum_ite_eq], split_ifs, refl, simp only [not_lt] at h,
+  rw coeff_eq_zero_of_nat_degree_lt h, exact rfl,
 end
 
 lemma aeval_eq_sum_support {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
-    (x : A) (f : R[X]) :
-    aeval x f = ∑ i in f.support, (f.coeff i) • x ^ i:=
+  (x : A) (f : R[X]) :
+  aeval x f = ∑ i in f.support, (f.coeff i) • x ^ i:=
 begin
   simp_rw [aeval_def, eval₂_eq_sum, polynomial.sum, algebra.smul_def],
 end
@@ -214,7 +217,9 @@ begin
   rw [as_sum_range (f_bar (f*g)), eval_finset_sum, bar_same_deg,
     ←eval_mul, as_sum_range ((f_bar f)*(f_bar g))],
   have deg_eq : (f_bar f * f_bar g).nat_degree = f.nat_degree + g.nat_degree,
-  { rw nat_degree_mul, rw bar_same_deg, rw bar_same_deg, intro rid, exact h.1 (f_bar_eq_0 f rid), intro rid, exact h.2 (f_bar_eq_0 g rid) },
+  { rw nat_degree_mul, rw bar_same_deg, rw bar_same_deg,
+    { intro rid, exact h.1 (f_bar_eq_0 f rid) },
+    { intro rid, exact h.2 (f_bar_eq_0 g rid) } },
   rw deg_eq,
   replace deg_eq : (f * g).nat_degree = f.nat_degree + g.nat_degree,
   { rw nat_degree_mul h.1 h.2 },
@@ -301,7 +306,8 @@ begin
   { simp only [sub_zero, abs_zero, add_zero] }
 end
 
-lemma f_bar_X_sub_pow (n k : ℕ) (c:ℕ) : eval (k:ℤ) (f_bar ((X - C (c:ℤ))^n)) ≤ eval (k:ℤ) (X + C (c:ℤ))^n :=
+lemma f_bar_X_sub_pow (n k : ℕ) (c:ℕ) :
+  eval (k:ℤ) (f_bar ((X - C (c:ℤ))^n)) ≤ eval (k:ℤ) (X + C (c:ℤ))^n :=
 begin
   induction n with n hn,
   { simp only [pow_zero, f_bar_1, eval_one] },

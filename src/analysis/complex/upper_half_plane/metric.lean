@@ -325,19 +325,19 @@ end
 
 lemma isometry_vertical_line (a : ℝ) : isometry (λ y, mk ⟨a, exp y⟩ (exp_pos y) : ℝ → ℍ) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λ y₁ y₂, _),
+  refine isometry.of_dist_eq (λ y₁ y₂, _),
   rw [dist_of_re_eq],
   exacts [congr_arg2 _ (log_exp _) (log_exp _), rfl]
 end
 
 lemma isometry_shift (a : ℝ) : isometry (λ y : ℍ, mk (y + a) (by simp [y.im_pos])) :=
-isometry_emetric_iff_metric.2 $ λ y₁ y₂,
+isometry.of_dist_eq $ λ y₁ y₂,
   by simp only [dist_eq, coe_mk, dist_add_right, mk_im, add_im, coe_im, of_real_im, add_zero]
 
 lemma isometry_pos_mul (a : ℝ) (ha : 0 < a) :
   isometry (λ y : ℍ, mk (a * y) (by simp [ha, y.im_pos])) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λ y₁ y₂, _),
+  refine isometry.of_dist_eq (λ y₁ y₂, _),
   simp only [dist_eq], congr' 2,
   rw [coe_mk, coe_mk, mk_im, mk_im, of_real_mul_im, of_real_mul_im, mul_mul_mul_comm,
     ← real_smul, ← real_smul, dist_smul, real.norm_eq_abs, abs_of_pos ha, ← sq,

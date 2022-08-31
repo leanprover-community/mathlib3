@@ -61,11 +61,11 @@ section nat
 
 open nat
 
+-- The following five lemmas should probably go to `data.nat.parity`, perhaps at the end.
 /-- If `a` is even, then `n` is odd iff `n % a` is odd. -/
 lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd (n % a) ↔ odd n :=
 ((even_sub' $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
    dvd_sub_mod n).symm
-
 
 /-- If `a` is even, then `n` is even iff `n % a` is even. -/
 lemma even.mod_even_iff {n a : ℕ} (ha : even a) : even (n % a) ↔ even n :=
@@ -80,6 +80,12 @@ lemma odd.mod_even {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
 lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
 (even.mod_even_iff ha).mpr hn
 
+/-- `2` is not a prime factor of an odd natural number. -/
+lemma odd.factors_ne_two {n p : ℕ} (hn : odd n) (hp : p ∈ n.factors) : p ≠ 2 :=
+by { rintro rfl, exact two_dvd_ne_zero.mpr (odd_iff.mp hn) (dvd_of_mem_factors hp) }
+
+-- The following lemma should probably go to `data.nat.prime`,
+-- perhaps directly after `le_of_mem_factors`.
 /-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
 such that `a = 2^e * a'` and `a'` is odd. -/
 lemma nat.two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ a = 2 ^ e * a' :=
@@ -87,17 +93,12 @@ lemma nat.two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ 
  odd_iff.mpr $ two_dvd_ne_zero.mp $ not_dvd_ord_compl prime_two ha,
  (ord_proj_mul_ord_compl_eq_self a 2).symm⟩
 
-/-- `2` is not a prime factor of an odd natural number. -/
-lemma odd.factors_ne_two {n p : ℕ} (hn : odd n) (hp : p ∈ n.factors) : p ≠ 2 :=
-by { rintro rfl, exact two_dvd_ne_zero.mpr (odd_iff.mp hn) (dvd_of_mem_factors hp) }
-
 end nat
 
 namespace int
 
-lemma dvd_nat_abs_iff_of_nat_dvd {a : ℕ} {z : ℤ} : a ∣ z.nat_abs ↔ (a : ℤ) ∣ z :=
-⟨int.of_nat_dvd_of_dvd_nat_abs, int.dvd_nat_abs_of_of_nat_dvd⟩
-
+-- The following four lemmas should probably go to `ring_theory.int.basic`
+-- after `int.gcd_eq_one_iff_coprime`.
 /-- If `gcd a (m * n) ≠ 1`, then `gcd a m ≠ 1` or `gcd a n ≠ 1`. -/
 lemma gcd_ne_one_iff_gcd_mul_right_ne_one {a : ℤ} {m n : ℕ} :
   a.gcd (m * n) ≠ 1 ↔ a.gcd m ≠ 1 ∨ a.gcd n ≠ 1 :=
@@ -113,6 +114,7 @@ lemma gcd_eq_one_of_gcd_mul_right_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd 
   a.gcd n = 1 :=
 nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_left_right a n m) h
 
+-- Where should this go?
 /-- The set `{0, 1, -1}` as a submonoid of the integers -/
 def sign_submonoid : submonoid ℤ :=
 ⟨({0, 1, -1} : set ℤ),
@@ -123,6 +125,10 @@ end int
 
 namespace zmod
 
+-- Where should these three lemmas go?
+-- In `data.zmod.basic`, `int.gcd_eq_one_iff_coprime` is not visible,
+-- and in `ring_theory.int.basic`, `zmod.int_coe_mod_eq_zero_iff_dvd` is not visible.
+-- `data.zmod.quotient` is a file that imports both, but has a different topic...
 /-- If `p` is a prime and `a` is an integer, then `a : zmod p` is zero if and only if
 `gcd a p ≠ 1`. -/
 lemma eq_zero_iff_gcd_ne_one {a : ℤ} {p : ℕ} [pp : fact p.prime] : (a : zmod p) = 0 ↔ a.gcd p ≠ 1 :=
@@ -143,6 +149,7 @@ end zmod
 
 namespace list
 
+-- This should probably go to `data.list.basic` at the end of the `pmap` section
 lemma pmap_append {α β : Type*} {p : α → Prop} (f : Π (a : α), p a → β) (l₁ l₂ : list α)
   (h : ∀ (a : α), a ∈ l₁ ++ l₂ → p a) :
   (l₁ ++ l₂).pmap f h = l₁.pmap f (λ a ha, h a (mem_append_left l₂ ha)) ++
@@ -234,7 +241,7 @@ lemma jacobi_sym_eq_zero_iff_not_coprime {a : ℤ} {b : ℕ} [ne_zero b] :
 list.prod_eq_zero_iff.trans begin
   rw [list.mem_pmap, int.gcd_eq_nat_abs, ne, prime.not_coprime_iff_dvd],
   simp_rw [legendre_sym_eq_zero_iff, int_coe_zmod_eq_zero_iff_dvd, mem_factors (ne_zero.ne b),
-    int.dvd_nat_abs_iff_of_nat_dvd, int.coe_nat_dvd, exists_prop, and_assoc, and_comm],
+    ← int.coe_nat_dvd_left, int.coe_nat_dvd, exists_prop, and_assoc, and_comm],
 end
 
 /-- The Jacobi symbol `(a / b)` is nonzero when `a` and `b` are coprime. -/

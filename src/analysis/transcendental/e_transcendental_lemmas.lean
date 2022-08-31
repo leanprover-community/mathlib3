@@ -156,10 +156,10 @@ end
 /-Theorem
 for any $f\in\mathbb Z$, if $\bar{f}=0$ then $f=0$
 -/
-theorem f_bar_eq_0 (f : ℤ[X]) : f_bar f = 0 -> f = 0 :=
+theorem f_bar_eq_0 (f : ℤ[X]) (h : f_bar f = 0) : f = 0 :=
 begin
-    intro h, rw ext_iff at h, ext,
-    have hn := h n, simp only [coeff_zero] at hn, rw bar_coeff at hn, simp only [abs_eq_zero, coeff_zero] at hn ⊢, assumption,
+  rw ext_iff at h, ext,
+  simpa only [abs_eq_zero, coeff_zero, bar_coeff] using h n,
 end
 
 theorem coeff_f_bar_mul (f g : ℤ[X]) (n : ℕ) : (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=

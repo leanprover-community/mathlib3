@@ -3,6 +3,7 @@ Copyright (c) 2022 María Inés de Frutos-Fernández, Yaël Dillies. All rights 
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández, Yaël Dillies
 -/
+import algebra.order.hom.basic
 import data.real.nnreal
 
 /-!
@@ -55,9 +56,8 @@ attribute [nolint doc_blame] add_group_seminorm.to_zero_hom
 
 You should extend this class when you extend `add_group_seminorm`. -/
 class add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add_group α]
-  extends fun_like F α (λ _, ℝ) :=
+  extends subadditive_hom_class F α ℝ :=
 (map_zero (f : F) : f 0 = 0)
-(map_add_le_add (f : F) (a b : α) : f (a + b) ≤ f a + f b)
 (map_neg_eq_map (f : F) (a : α) : f (-a) = f a)
 
 /-- `group_seminorm_class F α` states that `F` is a type of seminorms on the group `α`.
@@ -65,13 +65,14 @@ class add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add_group �
 You should extend this class when you extend `group_seminorm`. -/
 @[to_additive]
 class group_seminorm_class (F : Type*) (α : out_param $ Type*) [group α]
-  extends fun_like F α (λ _,  ℝ) :=
+  extends mul_le_add_hom_class F α ℝ :=
 (map_one_eq_zero (f : F) : f 1 = 0)
-(map_mul_le_add (f : F) (a b : α) : f (a * b) ≤ f a + f b)
 (map_inv_eq_map (f : F) (a : α) : f a⁻¹ = f a)
 
-export add_group_seminorm_class (map_add_le_add map_neg_eq_map)
-export group_seminorm_class (map_one_eq_zero map_mul_le_add map_inv_eq_map)
+attribute [to_additive] group_seminorm_class.to_mul_le_add_hom_class
+
+export add_group_seminorm_class (map_neg_eq_map)
+export group_seminorm_class (map_one_eq_zero map_inv_eq_map)
 
 attribute [simp, to_additive map_zero] map_one_eq_zero
 attribute [simp] map_neg_eq_map
@@ -80,8 +81,7 @@ attribute [simp, to_additive] map_inv_eq_map
 @[priority 100] -- See note [lower instance priority]
 instance add_group_seminorm_class.to_zero_hom_class [add_group E] [add_group_seminorm_class F E] :
   zero_hom_class F E ℝ :=
-{ coe := coe_fn,
-  ..‹add_group_seminorm_class F E› }
+{ ..‹add_group_seminorm_class F E› }
 
 section group
 variables [group E] [group_seminorm_class F E] (f : F) (x y : E)
@@ -90,25 +90,19 @@ include E
 @[to_additive] lemma map_div_le_add : f (x / y) ≤ f x + f y :=
 by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 
-@[simp, to_additive] lemma map_nonneg_mul : 0 ≤ f x :=
-nonneg_of_mul_nonneg_right
-  (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' x], exact map_div_le_add _ _ _ }) two_pos
-
 @[to_additive] lemma map_div_rev : f (x / y) = f (y / x) := by rw [←inv_div, map_inv_eq_map]
 
-/-- The direct path from `1` to `x` is shorter than the path with `y` "inserted" in between. -/
-@[to_additive "The direct path from `0` to `x` is shorter than the path with `y` \"inserted\" in
-between."]
-lemma le_map_add_map_div' : f x ≤ f y + f (x / y) :=
-by simpa only [add_comm, div_mul_cancel'] using map_mul_le_add f (x / y) y
-
-/-- The direct path from `1` to `y` is shorter than the path with `x` "inserted" in between. -/
-@[to_additive "The direct path from `0` to `y` is shorter than the path with `x` \"inserted\" in
-between."]
-lemma le_map_add_map_div : f y ≤ f x + f (x / y) :=
-by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (y / x) x
+@[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
+by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
 
 end group
+
+@[to_additive, priority 100] -- See note [lower instance priority]
+instance group_seminorm_class.to_nonneg_hom_class [group E] [group_seminorm_class F E] :
+  nonneg_hom_class F E ℝ :=
+{ map_nonneg := λ f a, nonneg_of_mul_nonneg_right
+    (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' a], exact map_div_le_add _ _ _ }) two_pos,
+  ..‹group_seminorm_class F E› }
 
 namespace group_seminorm
 section group
@@ -213,13 +207,13 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
 
 @[to_additive] private lemma mul_bdd_below_range_add {p q : group_seminorm E} {x : E} :
   bdd_below (range $ λ y, p y + q (x / y)) :=
-⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg_mul p _) (map_nonneg_mul q _) }⟩
+⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg p _) (map_nonneg q _) }⟩
 
 @[to_additive] noncomputable instance : has_inf (group_seminorm E) :=
 ⟨λ p q,
   { to_fun := λ x, ⨅ y, p y + q (x / y),
     map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-        (λ x, add_nonneg (map_nonneg_mul p _) (map_nonneg_mul q _))
+        (λ x, add_nonneg (map_nonneg p _) (map_nonneg q _))
         (λ r hr, ⟨1, by rwa [div_one, map_one_eq_zero p, map_one_eq_zero q, add_zero]⟩),
     mul_le' := λ x y, le_cinfi_add_cinfi $ λ u v, begin
       refine cinfi_le_of_le mul_bdd_below_range_add (u * v) _,
@@ -237,7 +231,7 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
     by rw [div_self', map_one_eq_zero q, add_zero],
   inf_le_right := λ p q x, cinfi_le_of_le mul_bdd_below_range_add (1 : E) $
     by simp only [div_one, map_one_eq_zero p, zero_add],
-  le_inf := λ a b c hb hc x, le_cinfi $ λ u, (le_map_add_map_div' a _ _).trans $
+  le_inf := λ a b c hb hc x, le_cinfi $ λ u, (le_map_add_map_div a _ _).trans $
     add_le_add (hb _) (hc _),
   ..group_seminorm.semilattice_sup }
 

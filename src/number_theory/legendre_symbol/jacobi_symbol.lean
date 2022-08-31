@@ -308,6 +308,11 @@ lemma nonsquare_of_jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -
   apply sq_nonneg,
 end
 
+/-- If `p` is prime, then the Jacobi symbol `(a / p)` is `-1` iff `a` is not a square modulo `p`. -/
+lemma nonsquare_iff_jacobi_sym_eq_neg_one {a : ℤ} {p : ℕ} [fact p.prime] :
+  [a | p]ⱼ = -1 ↔ ¬ is_square (a : zmod p) :=
+by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym_eq_neg_one_iff p }
+
 /-!
 ### Values at `-1`, `2` and `-2`
 -/

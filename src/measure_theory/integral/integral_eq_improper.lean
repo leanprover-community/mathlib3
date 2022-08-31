@@ -303,9 +303,9 @@ lemma ae_cover.comp_tendsto {α ι ι' : Type*} [measurable_space α] {μ : meas
 { ae_eventually_mem := hφ.ae_eventually_mem.mono (λ x hx, hu.eventually hx),
   measurable := λ i, hφ.measurable (u i) }
 
-section ae_cover_Union_Inter_encodable
+section ae_cover_Union_Inter_countable
 
-variables {α ι : Type*} [encodable ι]
+variables {α ι : Type*} [countable ι]
   [measurable_space α] {μ : measure α}
 
 lemma ae_cover.bUnion_Iic_ae_cover [preorder ι] {φ : ι → set α} (hφ : ae_cover μ at_top φ) :
@@ -327,7 +327,7 @@ lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι �
     end,
   measurable := λ i, measurable_set.bInter (to_countable _) (λ n _, hφ.measurable n) }
 
-end ae_cover_Union_Inter_encodable
+end ae_cover_Union_Inter_countable
 
 section lintegral
 

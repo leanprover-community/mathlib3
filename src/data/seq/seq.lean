@@ -237,7 +237,7 @@ end
 section bisim
   variable (R : seq α → seq α → Prop)
 
-  local infix ` ~ `:50 := R
+  local infix (name := R) ` ~ `:50 := R
 
   def bisim_o : option (seq1 α) → option (seq1 α) → Prop
   | none          none            := true

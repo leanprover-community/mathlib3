@@ -124,7 +124,7 @@ variables {R φ}
 
 section ext
 
-variables [fintype ι] [decidable_eq ι] [add_comm_monoid M] [module R M]
+variables [finite ι] [decidable_eq ι] [add_comm_monoid M] [module R M]
   {f g : (Π i, φ i) →ₗ[R] M}
 
 lemma pi_ext (h : ∀ i x, f (pi.single i x) = g (pi.single i x)) :
@@ -236,9 +236,10 @@ by { ext x, simp }
 lemma infi_comap_proj : (⨅ i, comap (proj i : (Πi, φ i) →ₗ[R] φ i) (p i)) = pi set.univ p :=
 by { ext x, simp }
 
-lemma supr_map_single [decidable_eq ι] [fintype ι] :
+lemma supr_map_single [decidable_eq ι] [finite ι] :
   (⨆ i, map (linear_map.single i : φ i →ₗ[R] (Πi, φ i)) (p i)) = pi set.univ p :=
 begin
+  casesI nonempty_fintype ι,
   refine (supr_le $ λ i, _).antisymm _,
   { rintro _ ⟨x, hx : x ∈ p i, rfl⟩ j -,
     rcases em (j = i) with rfl|hj; simp * },

@@ -86,7 +86,7 @@ section basic
 lemma iff_adjoin_eq_top : is_cyclotomic_extension S A B ↔
  (∀ (a : ℕ+), a ∈ S → ∃ r : B, is_primitive_root r a) ∧
  (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 } = ⊤) :=
-⟨λ h, ⟨h.exists_prim_root, algebra.eq_top_iff.2 h.adjoin_roots⟩,
+⟨λ h, ⟨λ _, h.exists_prim_root, algebra.eq_top_iff.2 h.adjoin_roots⟩,
   λ h, ⟨h.1, algebra.eq_top_iff.1 h.2⟩⟩
 
 /-- A reformulation of `is_cyclotomic_extension` in the case `S` is a singleton. -/
@@ -504,8 +504,8 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
     subst a,
     haveI := ne_zero.of_no_zero_smul_divisors A K n,
     haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n,
-    obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_prim_root
-                      in h $ mem_singleton n,
+    obtain ⟨μ, hμ⟩ :=
+      (cyclotomic_field.is_cyclotomic_extension n K).exists_prim_root (mem_singleton n),
     refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
     { apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
       refine ⟨n, nat.mem_divisors_self _ n.ne_zero, _⟩,

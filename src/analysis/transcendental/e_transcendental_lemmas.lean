@@ -287,22 +287,26 @@ begin
   ext, simp only [bar_coeff, polynomial.coeff_X_pow, apply_ite abs, abs_zero, abs_one],
 end
 
+lemma f_bar_X_sub_C {c : ℤ} (hc : 0 ≤ c)  :
+  f_bar (polynomial.X - polynomial.C (c : ℤ)) = polynomial.X + polynomial.C (c : ℤ) :=
+begin
+  ext n',
+  rw [bar_coeff, polynomial.coeff_add, polynomial.coeff_sub, polynomial.coeff_C],
+  rw [polynomial.coeff_X],
+  split_ifs with h1 h0,
+  { simpa only [h0] using h1 },
+  { simp only [add_zero, sub_zero, abs_one] },
+  { simp only [zero_sub, abs_neg, zero_add, abs_of_nonneg hc] },
+  { simp only [sub_zero, abs_zero, add_zero] }
+end
+
 lemma f_bar_X_sub_pow (n k : ℕ) (c:ℕ) : polynomial.eval (k:ℤ) (f_bar ((polynomial.X - polynomial.C (c:ℤ))^n)) ≤ polynomial.eval (k:ℤ) (polynomial.X + polynomial.C (c:ℤ))^n :=
 begin
   induction n with n hn,
   { simp only [pow_zero, f_bar_1, polynomial.eval_one] },
   rw pow_succ,
   refine (eval_f_bar_mul _ _ _).trans _,
-  have id1 : f_bar (polynomial.X - polynomial.C ↑c) = polynomial.X + polynomial.C (c:ℤ),
-  { ext n',
-    rw [bar_coeff, polynomial.coeff_add, polynomial.coeff_sub, polynomial.coeff_C],
-    rw [polynomial.coeff_X],
-    split_ifs with h1 h0,
-    { simpa only [h0] using h1 },
-    { simp only [add_zero, sub_zero, abs_one] },
-    { simp only [zero_sub, abs_neg, zero_add, abs_of_nonneg (int.coe_nat_nonneg _)] },
-    { simp only [sub_zero, abs_zero, add_zero] } },
-  rw [id1, pow_succ],
+  rw [f_bar_X_sub_C (int.coe_nat_nonneg _), pow_succ],
   apply mul_le_mul_of_nonneg_left hn,
   simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_add],
   apply add_nonneg; apply int.coe_nat_nonneg,

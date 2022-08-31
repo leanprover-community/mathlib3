@@ -42,6 +42,9 @@ $$J_p(g):= \sum_{i=0}^d g_i I(f_{p,d},i)$$ where $d$ is the degree of $g$.
 def J (g : ℤ[X]) (p : ℕ) : ℝ :=
   ∑ i in finset.range g.nat_degree.succ, (g.coeff i : ℝ) * (II (f_p p g.nat_degree) i)
 
+/--
+Auxiliary definition used in proving an equality for `J` (`J_eq_final`)
+-/
 def H (g : ℤ[X]) (p j : ℕ) : ℤ :=
   ∑ i in finset.range g.nat_degree.succ, g.coeff i *
     (polynomial.derivative^[j] (f_p p g.nat_degree)).eval i
@@ -172,8 +175,7 @@ begin
         polynomial.eval_pow],
       simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_succ, polynomial.eval_sub,
         sub_self, zero_pow (nat.sub_pos_of_lt (gt_of_ge_of_gt hj hy)),
-        mul_zero, smul_zero, eq_self_iff_true] },
-  },
+        mul_zero, smul_zero, eq_self_iff_true] } },
 end
 
 theorem deriv_f_p_k_eq_zero_when_j_lt_p_sub_one (p : ℕ) (n j : ℕ) (hj : j < p - 1) (k : ℕ) (hk : k ∈ finset.range n.succ):
@@ -388,102 +390,49 @@ begin
   exact abs_II_le2 (f_p p g.nat_degree) (x:ℝ) x.cast_nonneg,
 end
 
-lemma f_p_bar_est (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) (j:ℕ) (hi : j ∈ finset.range g.nat_degree.succ) : @polynomial.eval ℤ _ (j:ℤ) (f_bar (f_p p g.nat_degree)) ≤ (2 * ↑(g.nat_degree.succ)) ^ (p + p * g.nat_degree) :=
+lemma f_p_bar_est (g : ℤ[X]) (p : ℕ) (j : ℕ) (hi : j < g.nat_degree.succ) :
+  polynomial.eval (j:ℤ) (f_bar (f_p p g.nat_degree)) ≤
+    (2 * g.nat_degree.succ : ℤ) ^ (p + p * g.nat_degree) :=
 begin
-  simp only [finset.mem_range] at hi,
-  rw f_p,
-  have ineq1 := eval_f_bar_mul (polynomial.X ^ (p - 1)) (∏ (i : ℕ) in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p) j,
-  rw f_bar_X_pow at ineq1,
-  have triv : (polynomial.eval (j:ℤ) (polynomial.X ^ (p - 1))) = (↑j)^(p-1) := by simp only [polynomial.eval_X, polynomial.eval_pow],
-  rw triv at ineq1,
-  replace triv : (j:ℤ)^(p-1) < (2*↑g.nat_degree.succ)^(p-1),
-  {
-    norm_cast, apply nat.pow_lt_pow_of_lt_left,
-    have ineq : 1 * g.nat_degree.succ ≤ 2 * g.nat_degree.succ,
-      apply mul_le_mul, exact one_le_two, exact le_refl _, exact bot_le, exact bot_le,
-    rw one_mul at ineq, exact gt_of_ge_of_gt ineq hi,
-    exact nat.prime.pred_pos hp,
-  },
-  have triv' : (2*g.nat_degree.succ:ℤ)^(p-1) ≤ (2*g.nat_degree.succ:ℤ)^p,
-  { norm_cast,
-    refine (@pow_le_pow ℕ _ (2*g.nat_degree.succ) (p-1) p) _ (nat.sub_le p 1),
-    exact inf_eq_left.mp rfl, },
-  replace triv : (j:ℤ)^(p-1) < (2*g.nat_degree.succ:ℤ)^p := gt_of_ge_of_gt triv' triv,
+  calc polynomial.eval (j:ℤ) (f_bar (f_p p g.nat_degree))
+      ≤ polynomial.eval ↑j (f_bar (polynomial.X ^ (p - 1))) *
+          polynomial.eval ↑j (f_bar
+            (∏ i in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p))
+          : eval_f_bar_mul _ _ _
+  ... ≤ (2 * g.nat_degree.succ : ℤ) ^ p *
+          polynomial.eval ↑j (f_bar
+            (∏ i in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p)) : _
+  ... ≤ (2 * g.nat_degree.succ : ℤ) ^ p *
+          ∏ i in finset.range g.nat_degree, (2 * g.nat_degree.succ : ℤ) ^ p: _
+  ... = (2 * g.nat_degree.succ : ℤ) ^ (p + p * g.nat_degree) : _,
 
-  have ineq2 : (j:ℤ) ^ (p - 1) * polynomial.eval ↑j (f_bar (∏ (i : ℕ) in finset.range g.nat_degree,(polynomial.X - polynomial.C (↑i + 1)) ^ p)) ≤
-              (2*g.nat_degree.succ:ℤ)^p * polynomial.eval ↑j
-        (f_bar (∏ (i : ℕ) in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p)),
-  { apply mul_le_mul,
-    {exact le_of_lt triv},
-    {apply le_refl},
-    {apply eval_f_bar_nonneg},
-    {norm_cast, exact bot_le} },
-  replace ineq1 := le_trans ineq1 ineq2,
+  { simp only [f_bar_X_pow, polynomial.eval_X, polynomial.eval_pow],
+    apply mul_le_mul_of_nonneg_right _ (eval_f_bar_nonneg _ _),
+    norm_cast,
+    calc j ^ (p - 1)
+        ≤ (2 * g.nat_degree.succ) ^ (p - 1)
+          : nat.pow_le_pow_of_le_left (hi.le.trans (nat.le_mul_of_pos_left two_pos)) _
+    ... ≤ (2 * g.nat_degree.succ) ^ p
+          : nat.pow_le_pow_of_le_right (mul_pos two_pos (nat.succ_pos _)) p.pred_le },
 
-  replace ineq2 :
-    polynomial.eval (j:ℤ) (f_bar (∏ (i : ℕ) in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p)) ≤
-    (∏ i in finset.range g.nat_degree, polynomial.eval (j:ℤ) (f_bar ((polynomial.X - polynomial.C (↑i+1))^p))) := eval_f_bar_prod _ _ _,
-
-  have ineq3 : (∏ i in finset.range g.nat_degree, polynomial.eval (j:ℤ) (f_bar ((polynomial.X - polynomial.C (↑i+1))^p))) ≤
-    (∏ i in finset.range g.nat_degree, polynomial.eval (j:ℤ) (f_bar ((polynomial.X - polynomial.C (↑i+1))))^p),
-  { apply finset.prod_le_prod,
-    { intros, exact eval_f_bar_nonneg _ _ },
-    { intros, exact eval_f_bar_pow _ _ _ } },
-
-  have ineq4 : (∏ i in finset.range g.nat_degree, polynomial.eval (j:ℤ) (f_bar ((polynomial.X - polynomial.C (↑i+1))))^p) ≤
-  (∏ i in finset.range g.nat_degree, (polynomial.eval (j:ℤ) (polynomial.X + polynomial.C (↑i+1)))^p),
-  {
+  { apply mul_le_mul_of_nonneg_left,
+    swap, exact_mod_cast bot_le,
+    apply (eval_f_bar_prod _ _ _).trans,
     apply finset.prod_le_prod,
-    { intros, exact pow_nonneg (eval_f_bar_nonneg _ j) p },
-    intros x hx,
-    have : (f_bar (polynomial.X - polynomial.C (x + 1:ℤ))) = polynomial.X + polynomial.C (x+1:ℤ),
-    {
-      ext, simp only [bar_coeff, polynomial.coeff_X, polynomial.coeff_C, polynomial.C_add, polynomial.coeff_add, polynomial.coeff_one, polynomial.C_1, polynomial.coeff_sub],
-      split_ifs,
-      {rw h_1 at h, linarith},
-      {exfalso, linarith},
-      {linarith},
-      {simp only [add_zero, sub_zero, abs_one]},
-      {rw zero_sub, rw abs_neg, simp only [zero_add], rw abs_of_nonneg, norm_cast, exact bot_le},
-      {rw zero_sub, rw abs_neg, rw zero_add, apply abs_of_nonneg, norm_cast, simp only [zero_le]},
-      {exfalso, exact h_1 (eq.symm h_2) },
-      {simp only [add_zero, sub_zero, abs_zero]},
-    },
-    rw this,
-  },
+    { intros, exact eval_f_bar_nonneg _ _ },
+    { intros x hx,
+      rw [finset.mem_range] at hx,
+      refine (eval_f_bar_pow _ _ _).trans _,
+      rw f_bar_X_sub_C,
+      swap, exact_mod_cast bot_le,
 
-  have eq1 : (∏ i in finset.range g.nat_degree, (polynomial.eval (j:ℤ) (polynomial.X + polynomial.C (↑i+1)))^p) =
-    (∏ i in finset.range g.nat_degree, (j+i+1:ℤ)^p),
-    apply finset.prod_congr, refl, intros, simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_add], apply congr_arg, refl,
-  rw eq1 at ineq4,
+      simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_add],
+      norm_cast,
+      apply nat.pow_le_pow_of_le_left,
+      rw two_mul,
+      exact add_le_add hi.le (nat.le_succ_of_le hx) } },
 
-  have ineq4' : (∏ i in finset.range g.nat_degree, (j+i+1:ℤ)^p) ≤ (∏ i in finset.range g.nat_degree, (2*g.nat_degree.succ:ℤ)^p),
-    apply finset.prod_le_prod, intros, norm_cast, exact bot_le, intros, norm_cast, apply nat.pow_le_pow_of_le_left, rw two_mul, simp only [finset.mem_range] at H,
-    rw add_assoc, apply add_le_add, exact le_of_lt hi, exact nat.le_succ_of_le H,
-
-  have eq2 : (∏ i in finset.range g.nat_degree, (2*g.nat_degree.succ:ℤ)^p) = (2*g.nat_degree.succ:ℤ)^(p*g.nat_degree),
-    rw finset.prod_const, simp only [int.coe_nat_succ, finset.card_range], rw pow_mul,
-
-  rw eq2 at ineq4',
-  replace ineq4 := le_trans ineq4 ineq4',
-
-  have ineq5 : (2 * ↑(g.nat_degree.succ)) ^ p *
-      (polynomial.eval ↑j
-        (f_bar (∏ (i : ℕ) in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p))) ≤
-      (2 * ↑(g.nat_degree.succ)) ^ p * ∏ (i : ℕ) in finset.range g.nat_degree,
-        polynomial.eval ↑j (f_bar ((polynomial.X - polynomial.C (↑i + 1)) ^ p)),
-    apply mul_le_mul, exact le_refl ((2 * ↑((polynomial.nat_degree g).succ)) ^ p), exact ineq2, exact eval_f_bar_nonneg (∏ (i : ℕ) in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p) j,
-    norm_cast, exact bot_le,
-
-  have ineq6 : (2 * ↑(g.nat_degree.succ)) ^ p * ∏ (i : ℕ) in finset.range g.nat_degree,
-        polynomial.eval ↑j (f_bar ((polynomial.X - polynomial.C (i + 1:ℤ)) ^ p)) ≤
-        (2 * ↑(g.nat_degree.succ)) ^ p * (2 * ↑(g.nat_degree.succ)) ^ (p * g.nat_degree),
-    apply mul_le_mul, exact le_refl ((2 * ↑((polynomial.nat_degree g).succ)) ^ p), exact le_trans ineq3 ineq4,
-    apply finset.prod_nonneg, intros x H, exact eval_f_bar_nonneg ((polynomial.X - polynomial.C (↑x + 1)) ^ p) j,
-    norm_cast, exact bot_le,
-
-  rw <-pow_add at ineq6,
-  exact le_trans ineq1 (le_trans ineq5 ineq6),
+  { rw [pow_add, pow_mul, ←finset.pow_eq_prod_const] },
 end
 
 /--
@@ -551,11 +500,7 @@ begin
         { norm_cast, apply mul_nonneg,
           { exact zero_le_max_abs_coeff_1 g },
           { norm_cast, exact bot_le } } },
-      { norm_cast,
-        have est := f_p_bar_est g p hp x, simp only [int.coe_nat_succ, finset.mem_range] at est,
-        replace est := est H,
-        simp only [int.coe_nat_zero, int.coe_nat_pow, int.coe_nat_succ, zero_add, int.coe_nat_mul],
-        exact est },
+      { exact_mod_cast f_p_bar_est g p x H },
       { norm_cast, exact eval_f_bar_nonneg (f_p p (polynomial.nat_degree g)) x },
       apply mul_nonneg,
       { apply mul_nonneg,

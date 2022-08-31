@@ -47,17 +47,13 @@ variables [module ℝ E] [smul_comm_class ℝ 𝕜 E]
 
 lemma balanced_convex_hull_of_balanced (hs : balanced 𝕜 s) : balanced 𝕜 (convex_hull ℝ s) :=
 begin
-  rw balanced_iff_smul_mem,
-  intros a ha x hx,
-  rw convex_hull_eq at hx ⊢,
-  simp only [exists_prop, exists_and_distrib_left, mem_set_of_eq] at hx ⊢,
-  rcases hx with ⟨ι, t, f, f', h, hsum, hpos, hx⟩,
-  use [ι, t, f, a • f'],
-  refine ⟨λ i hi, hs.smul_mem ha (h _ hi), hsum, hpos, _⟩,
-  rw ←hx,
-  simp_rw [finset.center_mass, finset.smul_sum],
-  refine finset.sum_congr rfl (λ y hy, _),
-  simp_rw [pi.smul_apply, ←mul_smul, smul_comm],
+  suffices : convex ℝ {x | ∀ a : 𝕜, ∥a∥ ≤ 1 → a • x ∈ convex_hull ℝ s},
+  { rw balanced_iff_smul_mem at hs ⊢,
+    refine λ a ha x hx, convex_hull_min _ this hx a ha,
+    exact λ y hy a ha, subset_convex_hull ℝ s (hs ha hy) },
+  intros x y hx hy u v hu hv huv a ha,
+  simp only [smul_add, ← smul_comm],
+  exact convex_convex_hull ℝ s (hx a ha) (hy a ha) hu hv huv
 end
 
 variables (𝕜 E)

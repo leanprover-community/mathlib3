@@ -247,7 +247,8 @@ instance : set_like (interval α) α :=
 @[simp, norm_cast] lemma coe_pure (a : α) : (pure a : set α) = {a} := Icc_self _
 @[simp, norm_cast] lemma coe_coe (s : nonempty_interval α) : ((s : interval α) : set α) = s := rfl
 @[simp, norm_cast] lemma coe_bot : ((⊥  : interval α) : set α) = ∅ := rfl
-@[simp, norm_cast] lemma coe_top [bounded_order α] : ((⊤ : interval α) : set α) = univ := Icc_bot_top
+@[simp, norm_cast] lemma coe_top [bounded_order α] : ((⊤ : interval α) : set α) = univ :=
+Icc_bot_top
 @[simp, norm_cast] lemma coe_dual (s : interval α) : (s.dual : set αᵒᵈ) = of_dual ⁻¹' s :=
 by { cases s, { refl }, exact s.coe_dual }
 

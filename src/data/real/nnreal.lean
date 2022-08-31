@@ -63,7 +63,7 @@ open_locale classical big_operators
   linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
   has_sub, has_ordered_sub, has_div, inhabited]]
 def nnreal := {r : ℝ // 0 ≤ r}
-localized "notation (name := nnreal) ` ℝ≥0 ` := nnreal" in nnreal
+localized "notation (name := nnreal) `ℝ≥0` := nnreal" in nnreal
 
 namespace nnreal
 

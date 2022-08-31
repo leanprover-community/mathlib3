@@ -31,7 +31,7 @@ open_locale big_operators
   densely_ordered, archimedean, inhabited]]
 def nnrat := {q : ℚ // 0 ≤ q}
 
-localized "notation ` ℚ≥0 ` := nnrat" in nnrat
+localized "notation `ℚ≥0` := nnrat" in nnrat
 
 namespace nnrat
 variables {α : Type*} {p q : ℚ≥0}

@@ -112,7 +112,7 @@ section
 
 variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M]
 variables (N : Type*) [add_comm_group N] [module R N]
-variables {ι : Type*} [fintype ι]
+variables {ι : Type*} [finite ι]
 
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/

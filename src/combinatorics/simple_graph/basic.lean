@@ -662,20 +662,20 @@ lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj
 by { ext e, simp [edge_set_delete_edges] }
 
 section delete_far
-variables (G) [linear_ordered_field 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]
-  {p : simple_graph V → Prop} {ε δ : 𝕜}
+variables (G) [ordered_ring 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]
+  {p : simple_graph V → Prop} {r r₁ r₂ : 𝕜}
 
-/-- A graph is `ε`-*delete-far* from a property `p` if we must delete at least `ε` edges from it to
+/-- A graph is `r`-*delete-far* from a property `p` if we must delete at least `r` edges from it to
 get a graph with the property `p`. -/
-def delete_far (p : simple_graph V → Prop) (ε : 𝕜) : Prop :=
-∀ ⦃s⦄, s ⊆ G.edge_finset → p (G.delete_edges s) → ε ≤ s.card
+def delete_far (p : simple_graph V → Prop) (r : 𝕜) : Prop :=
+∀ ⦃s⦄, s ⊆ G.edge_finset → p (G.delete_edges s) → r ≤ s.card
 
 open_locale classical
 
 variables {G}
 
 lemma delete_far_iff :
-  G.delete_far p ε ↔ ∀ ⦃H⦄, H ≤ G → p H → ε ≤ G.edge_finset.card - H.edge_finset.card :=
+  G.delete_far p r ↔ ∀ ⦃H⦄, H ≤ G → p H → r ≤ G.edge_finset.card - H.edge_finset.card :=
 begin
   refine ⟨λ h H hHG hH, _, λ h s hs hG, _⟩,
   { have := h (sdiff_subset G.edge_finset H.edge_finset),
@@ -688,8 +688,8 @@ end
 
 alias delete_far_iff ↔ delete_far.le_card_sub_card _
 
-lemma delete_far.mono (hε : G.delete_far p ε) (h : δ ≤ ε) : G.delete_far p δ :=
-λ s hs hG, h.trans $ hε hs hG
+lemma delete_far.mono (h : G.delete_far p r₂) (hr : r₁ ≤ r₂) : G.delete_far p r₁ :=
+λ s hs hG, hr.trans $ h hs hG
 
 end delete_far
 

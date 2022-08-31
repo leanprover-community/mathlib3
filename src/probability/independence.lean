@@ -860,29 +860,6 @@ begin
   rw [finset.prod_mul_distrib, h1, h2, ht1_eq, ← h_indep p1 ht1_m, ht2_eq, ← h_indep p2 ht2_m],
 end
 
-lemma generate_from_pi_Union_Inter_subsets (m : ι → measurable_space Ω) (S : set ι) :
-  generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) {t : finset ι| ↑t ⊆ S})
-    = ⨆ i ∈ S, m i :=
-begin
-  rw generate_from_pi_Union_Inter_measurable_space,
-  simp only [set.mem_set_of_eq, exists_prop, supr_exists],
-  congr' 1,
-  ext1 i,
-  by_cases hiS : i ∈ S,
-  { simp only [hiS, csupr_pos],
-    refine le_antisymm (supr₂_le (λ t ht, le_rfl)) _,
-    rw le_supr_iff,
-    intros m' hm',
-    specialize hm' {i},
-    simpa only [hiS, finset.coe_singleton, set.singleton_subset_iff, finset.mem_singleton,
-      eq_self_iff_true, and_self, csupr_pos] using hm', },
-  { simp only [hiS, supr_false, supr₂_eq_bot, and_imp],
-    intros t htS hit,
-    suffices hiS' : i ∈ S, from absurd hiS' hiS,
-    rw ← finset.mem_coe at hit,
-    exact htS hit, },
-end
-
 lemma indep_supr_of_disjoint [is_probability_measure μ] {m : ι → measurable_space Ω}
   (h_le : ∀ i, m i ≤ m0) (h_indep : Indep m μ) {S T : set ι} (hST : disjoint S T) :
   indep (⨆ i ∈ S, m i) (⨆ i ∈ T, m i) μ :=

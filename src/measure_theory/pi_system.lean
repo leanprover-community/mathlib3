@@ -435,6 +435,29 @@ begin
     exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m hpS hpi), },
 end
 
+lemma generate_from_pi_Union_Inter_subsets {α ι} (m : ι → measurable_space α) (S : set ι) :
+  generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) {t : finset ι | ↑t ⊆ S})
+    = ⨆ i ∈ S, m i :=
+begin
+  rw generate_from_pi_Union_Inter_measurable_space,
+  simp only [set.mem_set_of_eq, exists_prop, supr_exists],
+  congr' 1,
+  ext1 i,
+  by_cases hiS : i ∈ S,
+  { simp only [hiS, csupr_pos],
+    refine le_antisymm (supr₂_le (λ t ht, le_rfl)) _,
+    rw le_supr_iff,
+    intros m' hm',
+    specialize hm' {i},
+    simpa only [hiS, finset.coe_singleton, set.singleton_subset_iff, finset.mem_singleton,
+      eq_self_iff_true, and_self, csupr_pos] using hm', },
+  { simp only [hiS, supr_false, supr₂_eq_bot, and_imp],
+    intros t htS hit,
+    suffices hiS' : i ∈ S, from absurd hiS' hiS,
+    rw ← finset.mem_coe at hit,
+    exact htS hit, },
+end
+
 end Union_Inter
 
 namespace measurable_space

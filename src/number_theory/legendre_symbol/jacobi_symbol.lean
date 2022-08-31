@@ -307,7 +307,8 @@ lemma jacobi_sym_mod_left' {a₁ a₂ : ℤ} {b : ℕ} (h : a₁ % b = a₂ % b)
 by rw [jacobi_sym_mod_left, h, ← jacobi_sym_mod_left]
 
 /-- If the Jacobi symbol `(a / b)` is `-1`, then `a` is not a square modulo `b`. -/
-lemma nonsquare_of_jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -1) : ¬ is_square (a : zmod b) :=
+lemma nonsquare_of_jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -1) :
+  ¬ is_square (a : zmod b) :=
 λ ⟨r, ha⟩, begin
   rw [← r.coe_val_min_abs, ← int.cast_mul, int_coe_eq_int_coe_iff', ← sq] at ha,
   apply (by norm_num : ¬ (0 : ℤ) ≤ -1),

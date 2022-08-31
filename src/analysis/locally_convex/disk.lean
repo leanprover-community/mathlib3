@@ -5,23 +5,24 @@ Authors: Moritz Doll
 -/
 import analysis.locally_convex.balanced_core_hull
 import analysis.locally_convex.with_seminorms
-import analysis.convex.combination
 import analysis.convex.gauge
 
 /-!
 # Absolutely convex sets
 
 A set is called absolutely convex or disked if it is convex and balanced.
+The importance of absolutely convex sets comes from the fact that every locally convex
+topological vector space has a basis consisting of absolutely convex sets.
 
 ## Main definitions
 
-* `maximal_seminorm_family`: the seminorm family induced by all open absolutely convex neighborhoods
+* `gauge_seminorm_family`: the seminorm family induced by all open absolutely convex neighborhoods
 of zero.
 
 ## Main statements
 
-* `with_maximal_seminorm_family`: the topology of a locally convex space is induced by the family
-`maximal_seminorm_family`.
+* `with_gauge_seminorm_family`: the topology of a locally convex space is induced by the family
+`gauge_seminorm_family`.
 
 ## Todo
 
@@ -40,24 +41,10 @@ variables {𝕜 E F G ι : Type*}
 
 section nontrivially_normed_field
 
-variables {s : set E}
+variables (𝕜 E) {s : set E}
 
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [module ℝ E] [smul_comm_class ℝ 𝕜 E]
-
-lemma balanced_convex_hull_of_balanced (hs : balanced 𝕜 s) : balanced 𝕜 (convex_hull ℝ s) :=
-begin
-  suffices : convex ℝ {x | ∀ a : 𝕜, ∥a∥ ≤ 1 → a • x ∈ convex_hull ℝ s},
-  { rw balanced_iff_smul_mem at hs ⊢,
-    refine λ a ha x hx, convex_hull_min _ this hx a ha,
-    exact λ y hy a ha, subset_convex_hull ℝ s (hs ha hy) },
-  intros x y hx hy u v hu hv huv a ha,
-  simp only [smul_add, ← smul_comm],
-  exact convex_convex_hull ℝ s (hx a ha) (hy a ha) hu hv huv
-end
-
-variables (𝕜 E)
-
 variables [topological_space E] [locally_convex_space ℝ E] [has_continuous_smul 𝕜 E]
 
 lemma nhds_basis_abs_convex : (𝓝 (0 : E)).has_basis
@@ -136,15 +123,15 @@ variables (𝕜 E)
 
 /-- The family of seminorms defined by the gauges of absolute convex open sets. -/
 noncomputable
-def maximal_seminorm_family : seminorm_family 𝕜 E (abs_convex_open_sets 𝕜 E) :=
+def gauge_seminorm_family : seminorm_family 𝕜 E (abs_convex_open_sets 𝕜 E) :=
 λ s, gauge_seminorm s.coe_balanced s.coe_convex (absorbent_nhds_zero s.coe_nhds)
 
 variables {𝕜 E}
 
-lemma maximal_seminorm_family_ball (s : abs_convex_open_sets 𝕜 E) :
-  (maximal_seminorm_family 𝕜 E s).ball 0 1 = (s : set E) :=
+lemma gauge_seminorm_family_ball (s : abs_convex_open_sets 𝕜 E) :
+  (gauge_seminorm_family 𝕜 E s).ball 0 1 = (s : set E) :=
 begin
-  dunfold maximal_seminorm_family,
+  dunfold gauge_seminorm_family,
   rw seminorm.ball_zero_eq,
   simp_rw gauge_seminorm_to_fun,
   exact gauge_lt_one_eq_self_of_open s.coe_convex s.coe_zero_mem s.coe_is_open,
@@ -153,8 +140,8 @@ end
 variables [topological_add_group E] [has_continuous_smul 𝕜 E]
 variables [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E]
 
-/-- The topology of a locally convex space is induced by the maximal seminorm family. -/
-lemma with_maximal_seminorm_family : with_seminorms (maximal_seminorm_family 𝕜 E) :=
+/-- The topology of a locally convex space is induced by the gauge seminorm family. -/
+lemma with_gauge_seminorm_family : with_seminorms (gauge_seminorm_family 𝕜 E) :=
 begin
   refine seminorm_family.with_seminorms_of_has_basis _ _,
   refine filter.has_basis.to_has_basis (nhds_basis_abs_convex_open 𝕜 E) (λ s hs, _) (λ s hs, _),
@@ -162,7 +149,7 @@ begin
     rw seminorm_family.basis_sets_iff,
     refine ⟨{⟨s, hs⟩}, 1, one_pos, _⟩,
     simp only [finset.sup_singleton],
-    rw maximal_seminorm_family_ball,
+    rw gauge_seminorm_family_ball,
     simp only [subtype.coe_mk] },
   refine ⟨s, ⟨_, rfl.subset⟩⟩,
   rw seminorm_family.basis_sets_iff at hs,
@@ -180,6 +167,6 @@ begin
   rw hr',
   rw ←seminorm.smul_ball_zero (norm_pos_iff.mpr hr''),
   refine is_open.smul₀ _ hr'',
-  rw maximal_seminorm_family_ball,
+  rw gauge_seminorm_family_ball,
   exact abs_convex_open_sets.coe_is_open _,
 end

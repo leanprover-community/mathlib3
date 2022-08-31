@@ -116,9 +116,8 @@ begin
   { exact this.imp (λ h e, ⟨x, x0, hx, e⟩) },
   apply of_near,
 
-  suffices : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
-  { rcases this with ⟨δ, δ0, hδ⟩,
-    intros }
+  rsuffices ⟨δ, δ0, hδ⟩ : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
+  { intros }
 end -/
 
 /-- The square root of a real number. This returns 0 for negative inputs. -/

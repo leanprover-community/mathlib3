@@ -281,7 +281,7 @@ instance : has_le pgame := ⟨λ x y, (le_lf x y).1⟩
 If `0 ⧏ x`, then Left can win `x` as the first player. -/
 def lf (x y : pgame) : Prop := (le_lf x y).2
 
-localized "infix ` ⧏ `:50 := pgame.lf" in pgame
+localized "infix (name := pgame.lf) ` ⧏ `:50 := pgame.lf" in pgame
 
 /-- Definition of `x ≤ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
@@ -510,7 +510,7 @@ classical.some_spec $ (zero_le.1 h) j
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
-localized "infix ` ≈ ` := pgame.equiv" in pgame
+localized "infix (name := pgame.equiv) ` ≈ ` := pgame.equiv" in pgame
 
 instance : is_equiv _ (≈) :=
 { refl := λ x, ⟨le_rfl, le_rfl⟩,
@@ -608,7 +608,7 @@ end
 If `x ∥ 0`, then the first player can always win `x`. -/
 def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
 
-localized "infix ` ∥ `:50 := pgame.fuzzy" in pgame
+localized "infix (name := pgame.fuzzy) ` ∥ `:50 := pgame.fuzzy" in pgame
 
 @[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
 instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
@@ -708,7 +708,7 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
          (∀ j, relabelling (x.move_right j) (y.move_right (R j))) →
        relabelling x y
 
-localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
+localized "infix (name := pgame.relabelling) ` ≡r `:50 := pgame.relabelling" in pgame
 
 namespace relabelling
 variables {x y : pgame.{u}}

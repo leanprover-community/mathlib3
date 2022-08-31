@@ -103,7 +103,7 @@ def mk : ℤ → ℤ → ℚ
 | n (d : ℕ) := mk_nat n d
 | n -[1+ d] := mk_pnat (-n) d.succ_pnat
 
-localized "infix ` /. `:70 := rat.mk" in rat
+localized "infix (name := rat.mk) ` /. `:70 := rat.mk" in rat
 
 theorem mk_pnat_eq (n d h) : mk_pnat n ⟨d, h⟩ = n /. d :=
 by change n /. d with dite _ _ _; simp [ne_of_gt h]
@@ -906,6 +906,10 @@ by rw [pnat_denom, mk_pnat_eq, num_denom]
 
 lemma pnat_denom_eq_iff_denom_eq {x : ℚ} {n : ℕ+} : x.pnat_denom = n ↔ x.denom = ↑n :=
 subtype.ext_iff
+
+@[simp] lemma pnat_denom_one : (1 : ℚ).pnat_denom = 1 := rfl
+
+@[simp] lemma pnat_denom_zero : (0 : ℚ).pnat_denom = 1 := rfl
 
 end pnat_denom
 

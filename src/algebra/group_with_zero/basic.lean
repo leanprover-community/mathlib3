@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {M₀ G₀ M₀' G₀' F : Type*}
+variables {α M₀ G₀ M₀' G₀' F F' : Type*}
 
 section
 
@@ -974,10 +974,10 @@ by { rw div_eq_mul_inv, exact hac.mul_left hbc.inv_left₀ }
 
 end commute
 
-namespace monoid_with_zero_hom
-
-variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
-  [monoid_with_zero_hom_class F G₀ M₀] (f : F) {a : G₀}
+section monoid_with_zero
+variables [group_with_zero G₀] [monoid_with_zero M₀] [nontrivial M₀]
+  [monoid_with_zero M₀'] [monoid_with_zero_hom_class F G₀ M₀]
+  [monoid_with_zero_hom_class F' G₀ M₀'] (f : F) {a : G₀}
 include M₀
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
@@ -985,7 +985,17 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
 
-end monoid_with_zero_hom
+omit M₀
+include M₀'
+
+lemma eq_on_inv₀ (f g : F') (h : f a = g a) : f a⁻¹ = g a⁻¹ :=
+begin
+  rcases eq_or_ne a 0 with rfl|ha,
+  { rw [inv_zero, map_zero, map_zero] },
+  { exact (is_unit.mk0 a ha).eq_on_inv f g h }
+end
+
+end monoid_with_zero
 
 section group_with_zero
 
@@ -1051,3 +1061,31 @@ noncomputable def comm_group_with_zero_of_is_unit_or_eq_zero [hM : comm_monoid_w
 { .. (group_with_zero_of_is_unit_or_eq_zero h), .. hM }
 
 end noncomputable_defs
+
+/-! ### Order dual -/
+
+open order_dual
+
+instance [h : mul_zero_class α] : mul_zero_class αᵒᵈ := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class αᵒᵈ := h
+instance [has_mul α] [has_zero α] [h : no_zero_divisors α] : no_zero_divisors αᵒᵈ := h
+instance [h : semigroup_with_zero α] : semigroup_with_zero αᵒᵈ := h
+instance [h : monoid_with_zero α] : monoid_with_zero αᵒᵈ := h
+instance [h : cancel_monoid_with_zero α] : cancel_monoid_with_zero αᵒᵈ := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero αᵒᵈ := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero αᵒᵈ := h
+instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
+
+/-! ### Lexicographic order -/
+
+instance [h : mul_zero_class α] : mul_zero_class (lex α) := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class (lex α) := h
+instance [has_mul α] [has_zero α] [h : no_zero_divisors α] : no_zero_divisors (lex α) := h
+instance [h : semigroup_with_zero α] : semigroup_with_zero (lex α) := h
+instance [h : monoid_with_zero α] : monoid_with_zero (lex α) := h
+instance [h : cancel_monoid_with_zero α] : cancel_monoid_with_zero (lex α) := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero (lex α) := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero (lex α) := h
+instance [h : group_with_zero α] : group_with_zero (lex α) := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero (lex α) := h

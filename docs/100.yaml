@@ -127,7 +127,7 @@
   author : Anatole Dedecker, Yury Kudryashov
 35:
   title  : Taylor’s Theorem
-  decl   :
+  decls  :
     - taylor_mean_remainder_lagrange
     - taylor_mean_remainder_cauchy
   author : Moritz Doll

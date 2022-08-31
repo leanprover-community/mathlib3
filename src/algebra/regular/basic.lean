@@ -28,7 +28,7 @@ variables {R : Type*}
 
 section has_mul
 
-variables [has_mul R]
+variables [has_mul R] {a b : R}
 
 /-- A left-regular element is an element `c` such that multiplication on the left by `c`
 is injective. -/
@@ -274,7 +274,7 @@ variables [monoid R] {a b : R}
 /-- An element admitting a left inverse is left-regular. -/
 @[to_additive "An element admitting a left additive opposite is add-left-regular."]
 lemma is_left_regular_of_mul_eq_one (h : b * a = 1) : is_left_regular a :=
-@is_left_regular.of_mul R _ _ _ (by { rw h, exact is_regular_one.left })
+is_left_regular.of_mul (by { rw h, exact is_regular_one.left })
 
 /-- An element admitting a right inverse is right-regular. -/
 @[to_additive "An element admitting a right additive opposite is add-right-regular."]

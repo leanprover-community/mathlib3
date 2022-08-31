@@ -394,45 +394,29 @@ lemma f_p_bar_est (g : ℤ[X]) (p : ℕ) (j : ℕ) (hi : j < g.nat_degree.succ) 
   polynomial.eval (j:ℤ) (f_bar (f_p p g.nat_degree)) ≤
     (2 * g.nat_degree.succ : ℤ) ^ (p + p * g.nat_degree) :=
 begin
-  calc polynomial.eval (j:ℤ) (f_bar (f_p p g.nat_degree))
-      ≤ polynomial.eval ↑j (f_bar (polynomial.X ^ (p - 1))) *
-          polynomial.eval ↑j (f_bar
-            (∏ i in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p))
-          : eval_f_bar_mul _ _ _
-  ... ≤ (2 * g.nat_degree.succ : ℤ) ^ p *
-          polynomial.eval ↑j (f_bar
-            (∏ i in finset.range g.nat_degree, (polynomial.X - polynomial.C (↑i + 1)) ^ p)) : _
-  ... ≤ (2 * g.nat_degree.succ : ℤ) ^ p *
-          ∏ i in finset.range g.nat_degree, (2 * g.nat_degree.succ : ℤ) ^ p: _
-  ... = (2 * g.nat_degree.succ : ℤ) ^ (p + p * g.nat_degree) : _,
-
+  rw [pow_add, pow_mul, finset.pow_eq_prod_const _ g.nat_degree],
+  refine (eval_f_bar_mul _ _ _).trans (mul_le_mul _ _ _ _),
   { simp only [f_bar_X_pow, polynomial.eval_X, polynomial.eval_pow],
-    apply mul_le_mul_of_nonneg_right _ (eval_f_bar_nonneg _ _),
     norm_cast,
     calc j ^ (p - 1)
         ≤ (2 * g.nat_degree.succ) ^ (p - 1)
           : nat.pow_le_pow_of_le_left (hi.le.trans (nat.le_mul_of_pos_left two_pos)) _
     ... ≤ (2 * g.nat_degree.succ) ^ p
           : nat.pow_le_pow_of_le_right (mul_pos two_pos (nat.succ_pos _)) p.pred_le },
-
-  { apply mul_le_mul_of_nonneg_left,
+  { apply (eval_f_bar_prod _ _ _).trans,
+    refine finset.prod_le_prod (λ _ _, eval_f_bar_nonneg _ _) (λ x hx, _),
+    rw [finset.mem_range] at hx,
+    refine (eval_f_bar_pow _ _ _).trans _,
+    rw f_bar_X_sub_C,
     swap, exact_mod_cast bot_le,
-    apply (eval_f_bar_prod _ _ _).trans,
-    apply finset.prod_le_prod,
-    { intros, exact eval_f_bar_nonneg _ _ },
-    { intros x hx,
-      rw [finset.mem_range] at hx,
-      refine (eval_f_bar_pow _ _ _).trans _,
-      rw f_bar_X_sub_C,
-      swap, exact_mod_cast bot_le,
 
-      simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_add],
-      norm_cast,
-      apply nat.pow_le_pow_of_le_left,
-      rw two_mul,
-      exact add_le_add hi.le (nat.le_succ_of_le hx) } },
-
-  { rw [pow_add, pow_mul, ←finset.pow_eq_prod_const] },
+    simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_add],
+    norm_cast,
+    apply nat.pow_le_pow_of_le_left,
+    rw two_mul,
+    exact add_le_add hi.le (nat.le_succ_of_le hx) },
+  { exact (eval_f_bar_nonneg _ _) },
+  { exact_mod_cast bot_le }
 end
 
 /--

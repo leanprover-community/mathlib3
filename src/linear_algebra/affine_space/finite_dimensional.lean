@@ -266,7 +266,7 @@ begin
 end
 
 /-- The `vector_span` of adding a point to a finite-dimensional subspace is finite-dimensional. -/
-lemma finite_dimensional_vector_span_insert (s : affine_subspace k P)
+instance finite_dimensional_vector_span_insert (s : affine_subspace k P)
   [finite_dimensional k s.direction] (p : P) :
   finite_dimensional k (vector_span k (insert p (s : set P))) :=
 begin
@@ -282,7 +282,7 @@ end
 
 /-- The direction of the affine span of adding a point to a finite-dimensional subspace is
 finite-dimensional. -/
-lemma finite_dimensional_direction_affine_span_insert (s : affine_subspace k P)
+instance finite_dimensional_direction_affine_span_insert (s : affine_subspace k P)
   [finite_dimensional k s.direction] (p : P) :
   finite_dimensional k (affine_span k (insert p (s : set P))).direction :=
 (direction_affine_span k (insert p (s : set P))).symm ▸ finite_dimensional_vector_span_insert s p
@@ -291,7 +291,7 @@ variables (k)
 
 /-- The `vector_span` of adding a point to a set with a finite-dimensional `vector_span` is
 finite-dimensional. -/
-lemma finite_dimensional_vector_span_insert_set (s : set P)
+instance finite_dimensional_vector_span_insert_set (s : set P)
   [finite_dimensional k (vector_span k s)] (p : P) :
   finite_dimensional k (vector_span k (insert p s)) :=
 begin

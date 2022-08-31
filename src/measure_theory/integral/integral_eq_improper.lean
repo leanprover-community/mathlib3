@@ -522,6 +522,7 @@ begin
 end
 
 /-- If `f` is integrable on intervals `Ioc (a i) (b i)`,
+where `a i` tends to negative infinity and `b i` tends to infinity, and
 `∫ x in a i .. b i, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
 then `f` is integrable on the interval (-∞, ∞) -/
 lemma integrable_of_interval_integral_norm_tendsto
@@ -549,6 +550,7 @@ begin
 end
 
 /-- If `f` is integrable on intervals `Ioc (a i) b`,
+where `a i` tends to negative infinity, and
 `∫ x in a i .. b, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
 then `f` is integrable on the interval (-∞, b) -/
 lemma integrable_on_Iic_of_interval_integral_norm_tendsto (I b : ℝ)
@@ -576,6 +578,7 @@ begin
 end
 
 /-- If `f` is integrable on intervals `Ioc a (b i)`,
+where `b i` tends to infinity, and
 `∫ x in a .. b i, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
 then `f` is integrable on the interval (a, ∞) -/
 lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)

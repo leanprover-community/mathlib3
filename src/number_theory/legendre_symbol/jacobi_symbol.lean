@@ -429,30 +429,25 @@ end
 /-- The Jacobi symbol `(a / b)` depends only on `b` mod `4*a` (version for `a : ℕ`). -/
 lemma jacobi_sym_mod_right' (a : ℕ) {b : ℕ} (hb : odd b) : [a | b]ⱼ = [a | b % (4 * a)]ⱼ :=
 begin
-  cases eq_or_ne a 0 with ha₀ ha₀,
-  { rw [ha₀, mul_zero, mod_zero], },
+  rcases eq_or_ne a 0 with rfl | ha₀,
+  { rw [mul_zero, mod_zero], },
   have hb' : odd (b % (4 * a)) := hb.mod_even (even.mul_right (by norm_num) _),
   rcases two_pow_mul_odd ha₀ with ⟨e, a', ha₁, ha₂⟩,
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
   rw [nat.cast_mul, jacobi_sym_mul_left, jacobi_sym_mul_left,
       jacobi_sym_quadratic_reciprocity' ha₁ hb, jacobi_sym_quadratic_reciprocity' ha₁ hb',
       nat.cast_pow, jacobi_sym_pow_left, jacobi_sym_pow_left,
-      (by norm_cast : ((2 : ℕ) : ℤ) = 2), jacobi_sym_two hb, jacobi_sym_two hb'],
-  have H : qr_sign b a' * [b | a']ⱼ = qr_sign (b % (4 * a)) a' * [b % (4 * a) | a']ⱼ,
+      (show ((2 : ℕ) : ℤ) = 2, by refl), jacobi_sym_two hb, jacobi_sym_two hb'],
+  congr' 1, swap, congr' 1,
   { simp_rw [qr_sign],
-    have ha' : (a' : ℤ) ∣ 4 * a,
-    { rw [ha₂, nat.cast_mul, ← mul_assoc],
-      exact dvd_mul_left a' _, },
-    rw [χ₄_nat_mod_four, χ₄_nat_mod_four (b % (4 * a)), mod_mod_of_dvd b (dvd_mul_right 4 a),
-        jacobi_sym_mod_left b, jacobi_sym_mod_left (b % (4 * a)), int.mod_mod_of_dvd b ha'], },
-  cases eq_or_ne e 0 with he he,
-  { rwa [he, pow_zero, pow_zero, one_mul, one_mul], },
-  { have h2 : 8 ∣ 4 * a,
-    { rw [ha₂, ← nat.add_sub_of_le (nat.pos_of_ne_zero he), pow_add, pow_one,
-          ← mul_assoc, ← mul_assoc, (by norm_num : 4 * 2 = 8), mul_assoc],
-      exact dvd_mul_right 8 _, },
-    rw [H, χ₈_nat_mod_eight, χ₈_nat_mod_eight (b % (4 * a)), mod_mod_of_dvd b h2],
-    refl, }
+    rw [χ₄_nat_mod_four, χ₄_nat_mod_four (b % (4 * a)), mod_mod_of_dvd b (dvd_mul_right 4 a) ] },
+  { rw [jacobi_sym_mod_left ↑(b % _), jacobi_sym_mod_left b, int.coe_nat_mod,
+        int.mod_mod_of_dvd b],
+    simp only [ha₂, nat.cast_mul, ← mul_assoc],
+    exact dvd_mul_left a' _, },
+  cases e, { refl },
+  { rw [χ₈_nat_mod_eight, χ₈_nat_mod_eight (b % (4 * a)), mod_mod_of_dvd b],
+    use 2 ^ e * a', rw [ha₂, pow_succ], ring, }
 end
 
 /-- The Jacobi symbol `(a / b)` depends only on `b` mod `4*a`. -/

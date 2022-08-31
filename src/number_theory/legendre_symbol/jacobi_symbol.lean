@@ -82,6 +82,10 @@ lemma two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ a = 
  odd_iff.mpr $ two_dvd_ne_zero.mp $ not_dvd_ord_compl prime_two ha,
  (ord_proj_mul_ord_compl_eq_self a 2).symm⟩
 
+/-- `2` is not a prime factor of an odd natural number. -/
+lemma odd.factors_ne_two {n p : ℕ} (hn : odd n) (hp : p ∈ n.factors) : p ≠ 2 :=
+by { rintro rfl, exact two_dvd_ne_zero.mpr (odd_iff.mp hn) (dvd_of_mem_factors hp) }
+
 end nat
 
 namespace int
@@ -143,15 +147,6 @@ begin
   { refl, },
   { dsimp only [pmap, cons_append],
     rw ih, }
-end
-
-lemma prod_prop {α : Type*} [monoid α] {l : list α} {P : α → Prop}
-  (h₁ : P 1) (h₂ : ∀ a ∈ l, P a) (h₃ : ∀ a b : α, P a → P b → P (a * b)) : P l.prod :=
-begin
-  induction l with hd tl ih,
-  { simp only [prod_nil, h₁], },
-  { simp only [prod_cons],
-    exact h₃ _ _ (h₂ _ (mem_cons_self _ _)) (ih (λ a ha, h₂ a $ mem_cons_of_mem _ ha)), }
 end
 
 end list

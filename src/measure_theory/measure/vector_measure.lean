@@ -123,13 +123,14 @@ end
 
 variables [t2_space M] {v : vector_measure α M} {f : ℕ → set α}
 
-lemma has_sum_of_disjoint_Union [encodable β] {f : β → set α}
+lemma has_sum_of_disjoint_Union [countable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   has_sum (λ i, v (f i)) (v (⋃ i, f i)) :=
 begin
+  casesI nonempty_encodable β,
   set g := λ i : ℕ, ⋃ (b : β) (H : b ∈ encodable.decode₂ β i), f b with hg,
   have hg₁ : ∀ i, measurable_set (g i),
-  { exact λ _, measurable_set.Union (λ b, measurable_set.Union_Prop $ λ _, hf₁ b) },
+  { exact λ _, measurable_set.Union (λ b, measurable_set.Union $ λ _, hf₁ b) },
   have hg₂ : pairwise (disjoint on g),
   { exact encodable.Union_decode₂_disjoint_on hf₂ },
   have := v.of_disjoint_Union_nat hg₁ hg₂,
@@ -157,7 +158,7 @@ begin
       exact false.elim ((hx i) ((encodable.decode₂_is_partial_inv _ _).1 hi)) } }
 end
 
-lemma of_disjoint_Union [encodable β] {f : β → set α}
+lemma of_disjoint_Union [countable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   v (⋃ i, f i) = ∑' i, v (f i) :=
 (has_sum_of_disjoint_Union hf₁ hf₂).tsum_eq.symm
@@ -882,10 +883,11 @@ begin
   { exact λ n, ha₁.inter (measurable_set.disjointed hf₁ n) }
 end
 
-lemma restrict_le_restrict_encodable_Union [encodable β] {f : β → set α}
+lemma restrict_le_restrict_countable_Union [countable β] {f : β → set α}
   (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v ≤[f b] w) :
   v ≤[⋃ b, f b] w :=
 begin
+  casesI nonempty_encodable β,
   rw ← encodable.Union_decode₂,
   refine restrict_le_restrict_Union v w _ _,
   { intro n, measurability },
@@ -901,7 +903,7 @@ lemma restrict_le_restrict_union
   v ≤[i ∪ j] w :=
 begin
   rw union_eq_Union,
-  refine restrict_le_restrict_encodable_Union v w _ _,
+  refine restrict_le_restrict_countable_Union v w _ _,
   { measurability },
   { rintro (_ | _); simpa }
 end

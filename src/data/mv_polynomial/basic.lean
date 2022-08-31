@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 
 import ring_theory.adjoin.basic
 import data.finsupp.antidiagonal
-import algebra.monoid_algebra.basic
+import algebra.monoid_algebra.support
 import order.symm_diff
 
 /-!

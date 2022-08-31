@@ -564,7 +564,7 @@ begin
   { rw [generate_from_pi.symm, comap_generate_from],
     { congr' with s,
       simp only [set.mem_image, set.mem_set_of_eq, exists_prop], },
-    { exact finset.fintype_coe_sort S, }, },
+    { apply_instance } },
   let πTβ := (set.pi (set.univ : set T) ''
     (set.pi (set.univ : set T) (λ i, {s : set (β i) | measurable_set[m i] s}))),
   let πT := {s : set Ω | ∃ t ∈ πTβ, (λ a (i : T), f i a) ⁻¹' t = s},
@@ -573,7 +573,7 @@ begin
   { rw [generate_from_pi.symm, comap_generate_from],
     { congr' with s,
       simp only [set.mem_image, set.mem_set_of_eq, exists_prop], },
-    { exact finset.fintype_coe_sort T, }, },
+    { apply_instance } },
 
   -- To prove independence, we prove independence of the generating π-systems.
   refine indep_sets.indep (measurable.comap_le (measurable_pi_iff.mpr (λ i, hf_meas i)))

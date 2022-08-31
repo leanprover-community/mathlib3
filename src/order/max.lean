@@ -79,7 +79,7 @@ instance no_min_order.to_no_bot_order (α : Type*) [preorder α] [no_min_order �
 instance no_max_order.to_no_top_order (α : Type*) [preorder α] [no_max_order α] : no_top_order α :=
 ⟨λ a, (exists_gt a).imp $ λ _, not_le_of_lt⟩
 
-def no_bot_order.no_min_order (α : Type*) [linear_order α] [no_bot_order α] : no_min_order α :=
+lemma no_bot_order.no_min_order (α : Type*) [linear_order α] [no_bot_order α] : no_min_order α :=
 begin
   constructor,
   by_contra h,
@@ -89,7 +89,7 @@ begin
   exact ha (h_bot a),
 end
 
-def no_top_order.no_max_order (α : Type*) [linear_order α] [no_top_order α] : no_max_order α :=
+lemma no_top_order.no_max_order (α : Type*) [linear_order α] [no_top_order α] : no_max_order α :=
 begin
   constructor,
   by_contra h,

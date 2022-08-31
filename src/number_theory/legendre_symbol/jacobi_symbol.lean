@@ -380,33 +380,27 @@ by rw [qr_sign_neg_one_pow hm hn, qr_sign_neg_one_pow hn hm, mul_comm (m / 2)]
 /-- We can move `qr_sign m n` from one side of an equality to the other when `m` and `n` are odd. -/
 lemma qr_sign_eq_iff_eq {m n : ℕ} (hm : odd m) (hn : odd n) (x y : ℤ) :
   qr_sign m n * x = y ↔ x = qr_sign m n * y :=
-begin
-  refine ⟨λ h', have h : _, from h'.symm, _, λ h, _⟩;
-  rw [h, ← mul_assoc, ← pow_two, qr_sign_sq_eq_one hm hn, one_mul],
-end
+by refine ⟨λ h', let h := h'.symm in _, λ h, _⟩;
+   rw [h, ← mul_assoc, ← pow_two, qr_sign_sq_eq_one hm hn, one_mul]
 
 /-- The Law of Quadratic Reciprocity for the Jacobi symbol -/
 lemma jacobi_sym_quadratic_reciprocity' {a b : ℕ} (ha : odd a) (hb : odd b) :
   [a | b]ⱼ = qr_sign b a * [b | a]ⱼ :=
 begin
-  -- `jacobi_sym_value _ χ` with `χ : R →* ℤ` (`R` a commutative semiring) introduces
-  -- a cast `coe : ℕ → R` even when `R = ℕ`. The following is used to get rid of that later.
-  have coe_nat_nat : ∀ a : ℕ, (coe : ℕ → ℕ) a = a := λ a, rfl,
   -- define the right hand side for fixed `a` as a `ℕ →* ℤ`
-  let rhs : Π a : ℕ, ℕ →* ℤ := λ a,
+  let rhs : ℕ →  ℕ →* ℤ := λ a,
   { to_fun := λ x, qr_sign x a * [x | a]ⱼ,
-    map_one' := by rw [nat.cast_one, qr_sign, χ₄_nat_one_mod_four (by norm_num : 1 % 4 = 1),
-                       jacobi_sym_one_left, mul_one],
+    map_one' := by { convert ← mul_one _, symmetry, all_goals { apply jacobi_sym_one_left } },
     map_mul' := λ x y, by rw [qr_sign_mul_left, nat.cast_mul, jacobi_sym_mul_left,
                               mul_mul_mul_comm] },
   have rhs_apply : ∀ (a b : ℕ), rhs a b = qr_sign b a * [b | a]ⱼ := λ a b, rfl,
   refine jacobi_sym_value a (rhs a) (λ p pp hp, eq.symm _) hb,
   have hpo := pp.eq_two_or_odd'.resolve_left hp,
-  rw [@legendre_sym.to_jacobi_sym p ⟨pp⟩, rhs_apply, coe_nat_nat,
+  rw [@legendre_sym.to_jacobi_sym p ⟨pp⟩, rhs_apply, nat.cast_id,
       qr_sign_eq_iff_eq hpo ha, qr_sign_symm hpo ha],
   refine jacobi_sym_value p (rhs p) (λ q pq hq, _) ha,
   have hqo := pq.eq_two_or_odd'.resolve_left hq,
-  rw [rhs_apply, coe_nat_nat, ← @legendre_sym.to_jacobi_sym p ⟨pp⟩, qr_sign_symm hqo hpo,
+  rw [rhs_apply, nat.cast_id, ← @legendre_sym.to_jacobi_sym p ⟨pp⟩, qr_sign_symm hqo hpo,
       qr_sign_neg_one_pow hpo hqo, @quadratic_reciprocity' p q ⟨pp⟩ ⟨pq⟩ hp hq],
 end
 

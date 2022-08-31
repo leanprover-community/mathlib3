@@ -238,6 +238,42 @@ lemma soa_total : ∀ {n₁ n₂ : ℕ × ℕ}, soa n₁ n₂ ∨ soa n₂ n₁
 lemma soa_zero_left : ∀ {n₁ n₂ : ℕ × ℕ}, soa n₁ n₂ → n₂.2 = 0 → n₁.2 = 0
 | _ ⟨_, _⟩ soa.zero_le rfl := rfl
 
+lemma soa_has_min {s : set (ℕ × ℕ)} (hs : ∃ x ∈ s, prod.snd x ≠ 1) :
+  ∃ y ∈ s, ∀ x ∈ s, soa y x :=
+begin
+  by_cases ∃ x ∈ s, prod.snd x = 0,
+  { rcases h with ⟨⟨x, y⟩, hxy, rfl : y = 0⟩,
+    exact ⟨_, hxy, λ y hy, soa.zero_le⟩ },
+  push_neg at h,
+  let s' := {x ∈ s | prod.snd x ≠ 1},
+  have hs' : s'.nonempty,
+  { obtain ⟨x, hx, hx'⟩ := hs,
+    exact ⟨x, hx, hx'⟩ },
+  let k : ℕ := Inf (prod.fst '' s'),
+  let s'' := {x | (k, x) ∈ s'},
+  have hk : k ∈ _ := nat.Inf_mem (hs'.image _),
+  obtain ⟨⟨x, y⟩, hxy, hx : x = k⟩ := hk,
+  subst x,
+  have hs'' : s''.nonempty := ⟨y, hxy⟩,
+  let l : ℕ := Inf s'',
+  have hkl : (k, l) ∈ s ∧ l ≠ 1 := nat.Inf_mem hs'',
+  refine ⟨(k, l), hkl.1, _⟩,
+  rintro ⟨m, n⟩ hmn,
+  have hl₂ : 2 ≤ l,
+  { rw [←not_lt, nat.lt_succ_iff, le_iff_eq_or_lt, not_or_distrib, nat.lt_one_iff],
+    exact ⟨hkl.2, h _ hkl.1⟩ },
+  rcases eq_or_ne n 1 with rfl | hn,
+  { exact soa_of (or.inr (or.inr (or.inl ⟨hl₂, rfl⟩))) },
+  have : (m, n) ∈ s' := ⟨hmn, hn⟩,
+  have hkm : k ≤ m := nat.Inf_le ⟨_, this, rfl⟩,
+  rcases hkm.eq_or_lt with rfl | hkm,
+  { have hln : l ≤ n := nat.Inf_le this,
+    exact soa_of (or.inr (or.inr (or.inr (or.inl ⟨rfl, hl₂, hl₂.trans hln, hln⟩)))) },
+  refine soa_of (or.inr (or.inr (or.inr (or.inr ⟨hl₂, _, hkm⟩)))),
+  rw [←not_lt, nat.lt_succ_iff, le_iff_eq_or_lt, not_or_distrib, nat.lt_one_iff],
+  exact ⟨hn, h _ hmn⟩,
+end
+
 lemma soa_partial_antisymm {k l : ℕ} :
   soa (to_pair k) (to_pair l) → soa (to_pair l) (to_pair k) → k = l :=
 begin
@@ -366,35 +402,56 @@ by simp [odd_le_iff hn hn' hm', hm]
 lemma two_pow_le_two_pow_iff {k l : ℕ} : 2 ^ l ≼ 2 ^ k ↔ k ≤ l :=
 by { rw [of_nat_iff, to_pair_two_pow, to_pair_two_pow, soa_iff_powers]; refl }
 
+lemma not_two_pow_iff {n : ℕ} : (∀ l : ℕ, 2 ^ l ≠ n) ↔ (to_pair n).2 ≠ 1 :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn',
+  { simp only [to_pair_zero, ne.def, nat.zero_ne_one, not_false_iff, iff_true],
+    exact λ l, pow_ne_zero l two_ne_zero },
+  split,
+  { intros hl hn,
+    have : 2 ^ (to_pair n).1 * (to_pair n).2 = n := un_pair_to_pair _,
+    rw [hn, mul_one] at this,
+    exact hl _ this },
+  rintro hn l rfl,
+  rw to_pair_two_pow at hn,
+  exact hn rfl
+end
+
 lemma le_two_pow_of_not_two_pow {n k : ℕ} (hn : ∀ l : ℕ, 2 ^ l ≠ n) : n ≼ 2 ^ k :=
 begin
   rcases eq_or_ne n 0 with rfl | hn',
   { exact zero_le _ },
-  have : (to_pair n).2 ≠ 1,
-  { rintro h,
-    have : 2 ^ (to_pair n).1 * (to_pair n).2 = n := un_pair_to_pair _,
-    rw [h, mul_one] at this,
-    exact hn _ this },
+  rw not_two_pow_iff at hn,
   rw [of_nat_iff, to_pair_two_pow],
   refine soa_of (or.inr (or.inr (or.inl ⟨_, rfl⟩))),
-  exact (nat.le_succ _).trans (three_le_of_odd_of_ne_one (odd_to_pair_snd_of_ne_zero hn') this),
+  exact (nat.le_succ _).trans (three_le_of_odd_of_ne_one (odd_to_pair_snd_of_ne_zero hn') hn),
 end
 
 lemma le_two_mul_self_of_not_two_pow {n : ℕ} (hn : ∀ l : ℕ, 2 ^ l ≠ n) : n ≼ 2 * n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn',
   { exact zero_le _ },
-  have : (to_pair n).2 ≠ 1,
-  { rintro h,
-    have : 2 ^ (to_pair n).1 * (to_pair n).2 = n := un_pair_to_pair _,
-    rw [h, mul_one] at this,
-    exact hn _ this },
+  rw not_two_pow_iff at hn,
   rw [of_nat_iff],
   rw soa_iff,
   right, right, right, right,
   rw to_pair_two_mul hn',
   simp only [lt_add_iff_pos_right, lt_one_iff, eq_self_iff_true, and_true, and_self],
-  linarith only [three_le_of_odd_of_ne_one (odd_to_pair_snd_of_ne_zero hn') this],
+  linarith only [three_le_of_odd_of_ne_one (odd_to_pair_snd_of_ne_zero hn') hn],
+end
+
+-- If s contains a non-power-of-two, it has a minimum element
+lemma exists_min {s : set ℕ} (hs : ∃ x ∈ s, ∀ l : ℕ, 2 ^ l ≠ x):
+  ∃ x ∈ s, ∀ y ∈ s, x ≼ y :=
+begin
+  let s' := to_pair '' s,
+  have : ∃ x ∈ s', prod.snd x ≠ 1,
+  { obtain ⟨x, hx, hx'⟩ := hs,
+    refine ⟨_, ⟨_, hx, rfl⟩, _⟩,
+    rwa ←not_two_pow_iff },
+  obtain ⟨_, ⟨x, hx, rfl⟩, hx'⟩ := soa_has_min this,
+  refine ⟨x, hx, λ y hy, _⟩,
+  exact hx' _ ⟨_, hy, rfl⟩,
 end
 
 @[simp] lemma doubling_iff {n m : ℕ} : 2 * n ≼ 2 * m ↔ n ≼ m :=
@@ -421,6 +478,42 @@ end
 
 @[simp] lemma bit0_le_bit1_iff {n m : ℕ} : bit0 n ≼ bit1 m ↔ n = 0 ∨ m = 0 :=
 by rw [←not_iff_not, not_or_distrib, ←bit1_le_bit0_iff, not_le, lt_iff_le_and_ne]; simp [and_comm]
+
+-- an upper set of sharkovsky is empty, Ici, or powers of two
+lemma sharkovsky_upper_set_iff {s : set sharkovsky} :
+  is_upper_set s ↔
+    s = ∅ ∨ (∃ x, s = set.Ici x) ∨ s = set.range (λ n : ℕ, sharkovsky.of_nat (2 ^ n)) :=
+begin
+  symmetry,
+  split,
+  { rintro (rfl | ⟨x, rfl⟩ | rfl),
+    { exact is_upper_set_empty },
+    { exact is_upper_set_Ici _ },
+    simp only [is_upper_set, set.mem_range, forall_exists_index],
+    rintro _ y h x rfl,
+    induction y using sharkovsky.rec,
+    by_contra' hy',
+    exact hy' x (h.antisymm (sharkovsky.le_two_pow_of_not_two_pow hy')) },
+  intro h,
+  rcases s.eq_empty_or_nonempty with rfl | hs,
+  { exact or.inl rfl },
+  right,
+  rw or_iff_not_imp_left,
+  intro h',
+  push_neg at h',
+  have h'' : ∀ ⦃a b : ℕ⦄, a ≼ b → of_nat a ∈ s → of_nat b ∈ s := h,
+  rw sharkovsky.forall at h',
+  rw ←h.top_mem at hs,
+  have : s ⊆ set.range (λ n : ℕ, sharkovsky.of_nat (2 ^ n)),
+  { by_contra' t,
+    simp only [set.subset_def, set.mem_range, sharkovsky.forall, of_nat_inj, not_forall,
+      not_exists] at t,
+    obtain ⟨x, hx, hx'⟩ := sharkovsky.exists_min t,
+    exact h' x (set.subset.antisymm hx' (h.Ici_subset hx)) },
+
+end
+
+#exit
 
 end sharkovsky
 
@@ -2129,26 +2222,6 @@ begin
     exact ⟨_, hk'.minimal_period_pos hk, hx, rfl⟩ }
 end
 
--- an upper set of sharkovsky is empty, Ici, or powers of two
-lemma sharkovsky_upper_set_iff {s : set sharkovsky} :
-  is_upper_set s ↔ s = ∅ ∨ (∃ x, s = Ici x) ∨ s = range (λ n : ℕ, sharkovsky.of_nat (2 ^ n)) :=
-begin
-  symmetry,
-  split,
-  { rintro (rfl | ⟨x, rfl⟩ | rfl),
-    { exact is_upper_set_empty },
-    { exact is_upper_set_Ici _ },
-    simp only [is_upper_set, mem_range, forall_exists_index],
-    rintro _ y h x rfl,
-    induction y using sharkovsky.rec,
-    by_contra' hy',
-    exact hy' x (h.antisymm (sharkovsky.le_two_pow_of_not_two_pow hy')) },
-  intro h,
-  rcases s.eq_empty_or_nonempty with rfl | hs,
-  { exact or.inl rfl },
-  right,
-  sorry
-end
 
 -- def minimal_periods_on {α : Type*} (f : α → α) (s : set α) : set ℕ :=
 -- {n | 0 < n ∧ ∃ x ∈ s, minimal_period f x = n}

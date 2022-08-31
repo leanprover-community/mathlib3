@@ -2459,8 +2459,8 @@ end foldl_eq_foldlr'
 
 section
 variables {op : α → α → α} [ha : is_associative α op] [hc : is_commutative α op]
-local notation a * b := op a b
-local notation l <*> a := foldl op a l
+local notation (name := op) a * b := op a b
+local notation (name := foldl) l <*> a := foldl op a l
 
 include ha
 
@@ -2674,9 +2674,13 @@ end
 by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
 theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
-  (l : list α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
+  (l : list α) {H₁ H₂} (h : ∀ (a ∈ l) h₁ h₂, f a h₁ = g a h₂) :
   pmap f l H₁ = pmap g l H₂ :=
-by induction l with _ _ ih; [refl, rw [pmap, pmap, h, ih]]
+begin
+  induction l with _ _ ih,
+  { refl, },
+  { rw [pmap, pmap, h _ (mem_cons_self _ _), ih (λ a ha, h a (mem_cons_of_mem _ ha))], },
+end
 
 theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (l H) : map g (pmap f l H) = pmap (λ a h, g (f a h)) l H :=
@@ -2688,7 +2692,7 @@ by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
 theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
   (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
-by rw [attach, map_pmap]; exact pmap_congr l (λ a h₁ h₂, rfl)
+by rw [attach, map_pmap]; exact pmap_congr l (λ _ _ _ _, rfl)
 
 theorem attach_map_val (l : list α) : l.attach.map subtype.val = l :=
 by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _).trans (map_id l)

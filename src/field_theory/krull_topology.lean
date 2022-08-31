@@ -163,7 +163,7 @@ def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
   end⟩,
   inv' := λ U hU, ⟨U, hU, begin
     rcases hU with ⟨H, hH, rfl⟩,
-    exact H.inv_mem',
+    exact λ _, H.inv_mem',
   end⟩,
   conj' :=
   begin
@@ -176,13 +176,13 @@ def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
     change σ * g * σ⁻¹ ∈ E.fixing_subgroup,
     rw intermediate_field.mem_fixing_subgroup_iff,
     intros x hx,
-    change σ(g(σ⁻¹ x)) = x,
+    change σ (g (σ⁻¹ x)) = x,
     have h_in_F : σ⁻¹ x ∈ F := ⟨x, hx, by {dsimp, rw ← alg_equiv.inv_fun_eq_symm, refl }⟩,
-    have h_g_fix : g (σ⁻¹ x) = (σ⁻¹ x),
+    have h_g_fix : g (σ⁻¹ x) = σ⁻¹ x,
     { rw [subgroup.mem_carrier, intermediate_field.mem_fixing_subgroup_iff F g] at hg,
       exact hg (σ⁻¹ x) h_in_F },
     rw h_g_fix,
-    change σ(σ⁻¹ x) = x,
+    change σ (σ⁻¹ x) = x,
     exact alg_equiv.apply_symm_apply σ x,
   end }
 

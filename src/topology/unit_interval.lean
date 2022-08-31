@@ -27,7 +27,7 @@ open set int set.Icc
 /-- The unit interval `[0,1]` in ℝ. -/
 abbreviation unit_interval : set ℝ := set.Icc 0 1
 
-localized "notation `I` := unit_interval" in unit_interval
+localized "notation (name := unit_interval) `I` := unit_interval" in unit_interval
 
 namespace unit_interval
 
@@ -74,7 +74,7 @@ subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_
 /-- Unit interval central symmetry. -/
 def symm : I → I := λ t, ⟨1 - t, mem_iff_one_sub_mem.mp t.prop⟩
 
-localized "notation `σ` := unit_interval.symm" in unit_interval
+localized "notation (name := unit_interval.symm) `σ` := unit_interval.symm" in unit_interval
 
 @[simp] lemma symm_zero : σ 0 = 1 :=
 subtype.ext $ by simp [symm]

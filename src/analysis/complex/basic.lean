@@ -238,7 +238,7 @@ instance : has_continuous_star ℂ := ⟨conj_lie.continuous⟩
 
 /-- The only continuous ring homomorphisms from `ℂ` to `ℂ` are the identity and the complex
 conjugation. -/
-lemma ring_hom_eq_id_or_conj_of_continuous (f : ℂ →+* ℂ) (hf : continuous f) :
+lemma ring_hom_eq_id_or_conj_of_continuous {f : ℂ →+* ℂ} (hf : continuous f) :
   f = ring_hom.id ℂ ∨ f = conj :=
 begin
   refine (real_alg_hom_eq_id_or_conj $ alg_hom.mk' f $ λ x z, congr_fun _ x).imp (λ h, _) (λ h, _),

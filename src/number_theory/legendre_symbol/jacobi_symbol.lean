@@ -312,27 +312,16 @@ by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym_eq_neg_one_iff p }
 ### Values at `-1`, `2` and `-2`
 -/
 
-/-- An induction principle that can be used for "multiplicative" induction to show
-properties of odd natural numbers. -/
-lemma nat.mul_induction_odd {P : ℕ → Prop} (h1 : P 1) (hp : ∀ p : ℕ, p.prime → p ≠ 2 → P p)
-  (h : ∀ m n : ℕ, odd m → odd n → P m → P n → P (m * n)) (b : ℕ) (hb : odd b) : P b :=
-rec_on_mul (λ h, false.rec _ (even_iff_not_odd.mp even_zero h)) (λ _, h1)
-           (λ p pp p2, hp p pp ((@prime.mod_two_eq_one_iff_ne_two _ ⟨pp⟩).mp (odd_iff.mp p2)))
-           (λ m n hm hn hmn, let hmo := odd.of_mul_left hmn in let hno := odd.of_mul_right hmn in
-                             h m n hmo hno (hm hmo) (hn hno))
-           b hb
-
 /-- If `χ` is a multiplicative function such that `(a / p) = χ p` for all odd primes `p`,
 then the Jacobi symbol `(a / b)` equals `χ b` for all odd natural numbers `b`. -/
 lemma jacobi_sym_value (a : ℤ) {R : Type*} [comm_semiring R] (χ : R →* ℤ)
   (hp : ∀ (p : ℕ) (pp : p.prime) (h2 : p ≠ 2), @legendre_sym p ⟨pp⟩ a = χ p) {b : ℕ} (hb : odd b) :
   [a | b]ⱼ = χ b :=
 begin
-  refine nat.mul_induction_odd (by simp_rw [jacobi_sym_one_right, nat.cast_one, map_one]) _ _ b hb,
-  { exact λ p pp p2, by simp_rw [← @legendre_sym.to_jacobi_sym p ⟨pp⟩, hp p pp p2], },
-  { exact λ m n hmo hno hm hn,
-    by rw [nat.cast_mul, @jacobi_sym_mul_right _ _ _ ⟨hmo.pos.ne'⟩ ⟨hno.pos.ne'⟩,
-           hm, hn, map_mul], }
+  conv_rhs { rw [← prod_factors hb.pos.ne', cast_list_prod, χ.map_list_prod] },
+  rw [jacobi_sym, list.map_map, ← list.pmap_eq_map nat.prime _ _ (λ _, prime_of_mem_factors)],
+  congr' 1, apply list.pmap_congr,
+  exact λ p h pp _, hp p pp (nat.odd.factors_ne_two hb h),
 end
 
 /-- If `b` is odd, then the Jacobi symbol `(-1 / b)` is given by `χ₄ b`. -/

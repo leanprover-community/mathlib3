@@ -53,7 +53,7 @@ Theorem
 $$J_{p}(g) = \sum_{i=0}^d g_i\left(e^i\sum_{j=0}^{(n+1)p-1} f_{p,d}^{(j)}(0)-\sum_{j=0}^{(n+1)p-1}f_{p,d}^{(j)}(i)\right)$
 -/
 private lemma J_eq1 (g : ℤ[X]) (p : ℕ) :
-  (J g p) = ∑ i in finset.range g.nat_degree.succ, (g.coeff i:ℝ) * (I (f_p p g.nat_degree) i) :=
+  J g p = ∑ i in finset.range g.nat_degree.succ, (g.coeff i:ℝ) * (I (f_p p g.nat_degree) i) :=
 begin
   rw J, apply congr_arg, ext, rw II_eq_I,
 end
@@ -66,7 +66,7 @@ private lemma J_eq2' (g : ℤ[X]) (p : ℕ) (k : ℕ) :
   (g.coeff k:ℝ) * (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
     (aeval (k : ℝ) (derivative^[j] (f_p p g.nat_degree)))) :=
 begin
-  rw <-mul_sub, rw I,
+  rw ←mul_sub, rw I,
 end
 
 private lemma J_eq2 (g : ℤ[X]) (p : ℕ) :
@@ -78,10 +78,10 @@ private lemma J_eq2 (g : ℤ[X]) (p : ℕ) :
     (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
       (aeval (k : ℝ) (derivative^[j] (f_p p g.nat_degree)))))) :=
 begin
-  rw <-finset.sum_sub_distrib, apply congr_arg, ext i, rw J_eq2',
+  rw ←finset.sum_sub_distrib, apply congr_arg, ext i, rw J_eq2',
 end
 
-private lemma J_eq3 (g : ℤ[X]) (e_root_g : @aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :
+private lemma J_eq3 (g : ℤ[X]) (e_root_g : aeval e g = 0) (p : ℕ) :
   (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp *
     (∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ,
       (aeval (0 : ℝ) (derivative^[j] (f_p p g.nat_degree)))))) = 0 :=
@@ -96,8 +96,8 @@ begin
   { simp },
 end
 
-theorem J_eq' (g : ℤ[X]) (e_root_g : @aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :
-  (J g p) = - ∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, H g p j :=
+theorem J_eq' (g : ℤ[X]) (e_root_g : aeval e g = 0) (p : ℕ) :
+  J g p = - ∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, H g p j :=
 begin
   rw [J_eq1, J_eq2, J_eq3 _ e_root_g, zero_sub],
   simp_rw [finset.mul_sum, H],
@@ -105,7 +105,7 @@ begin
   simp_rw [int.cast_sum, int.cast_mul, aeval_nat_cast', algebra_map_int_eq, eq_int_cast],
 end
 
-theorem J_eq'' (g : ℤ[X]) (e_root_g : @aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) :
+theorem J_eq'' (g : ℤ[X]) (e_root_g : aeval e g = 0) (p : ℕ) :
   J g p = -↑(∑ j in finset.range (f_p p g.nat_degree).nat_degree.succ, H g p j) :=
 (J_eq' _ e_root_g _).trans $ congr_arg _ $ (int.cast_sum _ _).symm
 
@@ -163,8 +163,8 @@ begin
   { intro rid, exfalso, simp only [nat.succ_pos', not_true, finset.mem_range] at rid, exact rid },
 end
 
-lemma deriv_f_p_when_j_lt_p (p : ℕ) (n : ℕ) : ∀ x : ℕ, ∀ j : ℕ, j < p ->
-  0 < x -> x < n.succ -> eval (x:ℤ) (derivative^[j] (f_p p n)) = 0 :=
+lemma deriv_f_p_when_j_lt_p (p : ℕ) (n : ℕ) : ∀ x : ℕ, ∀ j : ℕ, j < p →
+  0 < x → x < n.succ → eval (x:ℤ) (derivative^[j] (f_p p n)) = 0 :=
 begin
   induction n with n IH,
   { intros x j hj hx1 hx2,
@@ -229,8 +229,8 @@ begin
     simp only [zero_mul, mul_zero, eval_zero, dvd_zero, smul_zero] },
 end
 
-private lemma p_fact_dvd_prod_part (n : ℕ) :  ∀ j : ℕ, ∀ k : ℕ, ∀ p : ℕ, p > 0 ->
-  k > 0 -> k < n.succ ->
+private lemma p_fact_dvd_prod_part (n : ℕ) :  ∀ j : ℕ, ∀ k : ℕ, ∀ p : ℕ, p > 0 →
+  k > 0 → k < n.succ →
   (p.factorial:ℤ) ∣ eval (k:ℤ) (derivative^[j] (∏ i in finset.range n, (X - C (↑i + 1)) ^ p)) :=
 begin
   intros j,
@@ -345,7 +345,7 @@ begin
     J_eq'' _ hroot],
 end
 
-theorem J_eq_final (g : ℤ[X]) (e_root_g : @aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p) :
+theorem J_eq_final (g : ℤ[X]) (e_root_g : aeval e g = 0) (p : ℕ) (hp : nat.prime p) :
   ∃ M : ℤ, (J g p) = ↑(
     (-(g.coeff 0 * (↑((p - 1).factorial) * (-1) ^ (g.nat_degree * p) *
         ↑(g.nat_degree.factorial) ^ p))) +
@@ -358,7 +358,7 @@ begin
     ←int.cast_neg, zero_add, ←neg_mul_eq_mul_neg, neg_add],
 end
 
-theorem abs_J_lower_bound (g : ℤ[X]) (e_root_g : @aeval ℤ ℝ _ _ _ e g = 0)
+theorem abs_J_lower_bound (g : ℤ[X]) (e_root_g : aeval e g = 0)
   (coeff_nonzero : (g.coeff 0) ≠ 0) (p : ℕ) (hp : nat.prime p)
   (hp2 : g.nat_degree < p  ∧ (g.coeff 0).nat_abs < p) :
   ((p-1).factorial:ℝ) ≤ (abs (J g p)) :=
@@ -464,30 +464,33 @@ private lemma abs_J_ineq1'_coe (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
   (∑ i in finset.range g.nat_degree.succ,
     (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * (aeval (i : ℝ) (f_bar (f_p p g.nat_degree)))) =
   ((∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ((@eval ℤ _ (i:ℤ) (f_bar (f_p p g.nat_degree)):ℝ)))) :=
+    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ↑(eval (i : ℤ) (f_bar (f_p p g.nat_degree))))) :=
 begin
   simp_rw [aeval_nat_cast', algebra_map_int_eq, eq_int_cast],
 end
 
 lemma sum_ineq_1 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
   ((∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ((@eval ℤ _ (i:ℤ) (f_bar (f_p p g.nat_degree)):ℝ)))) ≤
+    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ↑(eval (i : ℤ) (f_bar (f_p p g.nat_degree))))) ≤
   (g.nat_degree.succ:ℝ) *
       (↑(max_abs_coeff_1 g) * (↑(g.nat_degree) + 1) * ((g.nat_degree:ℝ) + 1).exp *
          (2 * (↑(g.nat_degree) + 1)) ^ (p + p * g.nat_degree)) :=
 begin
   have ineq1 :
   (∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ((@eval ℤ _ (i:ℤ) (f_bar (f_p p g.nat_degree)):ℝ))) ≤
-  (∑ i in finset.range g.nat_degree.succ, (max_abs_coeff_1 g:ℝ) * (g.nat_degree.succ : ℝ) * (g.nat_degree.succ:ℝ).exp * ((2 * ↑(g.nat_degree.succ)) ^ (p + p * g.nat_degree))),
+    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ↑(eval (i:ℤ) (f_bar (f_p p g.nat_degree)))) ≤
+  (∑ i in finset.range g.nat_degree.succ,
+    (max_abs_coeff_1 g:ℝ) * (g.nat_degree.succ : ℝ) * (g.nat_degree.succ:ℝ).exp *
+      ((2 * ↑(g.nat_degree.succ)) ^ (p + p * g.nat_degree))),
   { apply finset.sum_le_sum, intros x H, simp only [finset.mem_range] at H,
-    by_cases hx : (x ∈ g.support),
+    by_cases hx : x ∈ g.support,
     { apply mul_le_mul,
       { apply mul_le_mul,
         { norm_cast,
           apply mul_le_mul,
           { rw max_abs_coeff_1, apply finset.le_max', rw set_of_1_abs_coeff,
-            simp only [finset.mem_insert], right, rw set_of_abs_coeff, rw finset.mem_image,
+            apply finset.mem_insert_of_mem,
+            rw [set_of_abs_coeff, finset.mem_image],
             exact ⟨x, hx, rfl⟩ },
           { norm_cast, exact le_of_lt H },
           { norm_cast, exact bot_le },
@@ -506,7 +509,7 @@ begin
       { exact (real.exp_pos _).le } },
     have hx' : g.coeff x = 0,
     { rwa ←not_mem_support_iff },
-    rw hx', simp only [int.cast_zero, zero_mul, abs_zero, nat.cast_succ],
+    simp only [hx', int.cast_zero, zero_mul, abs_zero, nat.cast_succ],
     apply mul_nonneg,
     { apply mul_nonneg,
       { apply mul_nonneg,
@@ -525,8 +528,7 @@ lemma self_le_pow_nat (n m : ℕ) (hm : 1 ≤ m) : n ≤ n ^ m :=
 begin
   cases n,
   { simp only [zero_le] },
-  { conv_lhs {rw ←pow_one n.succ},
-    apply nat.pow_le_pow_of_le_right n.succ_pos hm },
+  { exact le_self_pow n.succ_pos hm },
 end
 
 lemma sum_ineq_2 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
@@ -537,39 +539,33 @@ lemma sum_ineq_2 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
   (↑(max_abs_coeff_1 g) ^ p * (↑(g.nat_degree) + 1) ^ p * ((g.nat_degree:ℝ) + 1).exp ^ p *
     (2 * (↑(g.nat_degree) + 1)) ^ (p + p * g.nat_degree)) :=
 begin
-  have hp' : p ≥ 1 := hp.one_lt.le,
+  have hp' := hp.one_lt.le,
   apply mul_le_mul,
-  { norm_cast, apply self_le_pow_nat, assumption },
-  { apply mul_le_mul,
+  { norm_cast, apply self_le_pow_nat _ _ hp' },
+  { apply mul_le_mul_of_nonneg_right,
     { apply mul_le_mul,
       { apply mul_le_mul,
         { norm_cast,
           have triv : max_abs_coeff_1 g = (max_abs_coeff_1 g) ^ 1,
           { simp only [pow_one] },
-          conv_lhs {rw triv}, apply pow_le_pow, exact max_abs_coeff_1_ge_1 g, assumption },
-        { norm_cast, apply self_le_pow_nat, assumption },
+          conv_lhs {rw triv}, apply pow_le_pow (max_abs_coeff_1_ge_1 g) hp' },
+        { norm_cast, apply self_le_pow_nat _ _ hp', },
         { norm_cast, exact bot_le },
-        { norm_cast, apply pow_nonneg, exact zero_le_max_abs_coeff_1 g } },
+        { norm_cast, apply pow_nonneg (zero_le_max_abs_coeff_1 g) _ } },
       { have triv : (g.nat_degree + 1:ℝ).exp = (g.nat_degree + 1:ℝ).exp ^ 1,
         { simp only [pow_one] },
-        conv_lhs {rw triv}, apply pow_le_pow _ hp', by_contra rid, simp only [not_le] at rid,
-        have ineq := (real.exp_lt_one_iff.1 rid), norm_cast at ineq, linarith },
-      { have ineq := real.exp_pos (↑(g.nat_degree) + 1), exact le_of_lt ineq },
+        conv_lhs {rw triv}, apply pow_le_pow (real.one_le_exp _) hp', exact_mod_cast bot_le },
+      { exact (real.exp_pos _).le },
       { apply mul_nonneg,
-        {norm_cast, apply pow_nonneg, exact zero_le_max_abs_coeff_1 g} ,
+        { norm_cast, apply pow_nonneg, exact zero_le_max_abs_coeff_1 g } ,
         { norm_cast, exact bot_le}} },
-    { exact le_refl ((2 * (↑(nat_degree g) + 1)) ^ (p + p * nat_degree g)) },
-    { norm_cast, exact bot_le },
-    { apply mul_nonneg,
-      { apply mul_nonneg, {norm_cast, apply pow_nonneg, exact zero_le_max_abs_coeff_1 g},
-        { norm_cast, exact bot_le } },
-      { apply pow_nonneg, have ineq := real.exp_pos (↑(g.nat_degree) + 1), exact le_of_lt ineq } } },
+    { norm_cast, exact bot_le } },
   { apply mul_nonneg,
     { apply mul_nonneg,
       { apply mul_nonneg,
         { norm_cast, exact zero_le_max_abs_coeff_1 g },
         { norm_cast, exact bot_le } },
-      { have ineq := real.exp_pos (↑(g.nat_degree) + 1), exact le_of_lt ineq } },
+      { exact (real.exp_pos _).le } },
     { norm_cast, exact bot_le } },
   { norm_cast, exact bot_le },
 end
@@ -616,7 +612,7 @@ begin
   simp only [←mul_pow],
 end
 
-lemma fact_grows_fast' (M : ℕ) : ∃ N : ℕ, ∀ n : ℕ, N < n -> M ^ (n+1) < (n.factorial) :=
+lemma fact_grows_fast' (M : ℕ) : ∃ N : ℕ, ∀ n : ℕ, N < n → M ^ (n+1) < (n.factorial) :=
 begin
   obtain rfl|h := M.eq_zero_or_pos,
   { use 1, intros n hn, rw [zero_pow n.succ_pos], exact nat.factorial_pos n },
@@ -636,15 +632,13 @@ begin
 end
 
 lemma fact_grows_fast (M : ℝ) (hM : 0 ≤ M) :
-  ∃ N : ℕ, ∀ n : ℕ, N < n -> M ^ (n + 1) < (n.factorial : ℝ) :=
+  ∃ N : ℕ, ∀ n : ℕ, N < n → M ^ (n + 1) < (n.factorial : ℝ) :=
 begin
   obtain ⟨M', hM'⟩ := exists_nat_gt M,
-  have triv := fact_grows_fast' M',
-  choose N hN using triv, use N, intros n hn,
-  replace hN := hN n hn,
-  have ineq : (M':ℝ) ^ (n + 1) > M ^ (n+1) := pow_lt_pow_of_lt_left hM' hM (nat.succ_pos n),
-  apply lt_trans ineq,
-  norm_cast, assumption,
+  obtain ⟨N, hN⟩ := fact_grows_fast' M',
+  refine ⟨N, λ n hn, _⟩,
+  apply (pow_lt_pow_of_lt_left hM' hM n.succ_pos).trans,
+  exact_mod_cast hN n hn,
 end
 
 
@@ -715,7 +709,7 @@ begin
 end
 
 theorem transform_eq (f : ℤ[X]) (hf : f ≠ 0) :
-  f = (make_const_term_nonzero f hf) * (X) ^ (min_degree_term f hf) :=
+  f = make_const_term_nonzero f hf * X ^ min_degree_term f hf :=
 begin
   ext,
   rw [coeff_mul_X_pow', coeff_after_change],
@@ -728,14 +722,11 @@ begin
 end
 
 theorem non_zero_root_same
-  (f : ℤ[X]) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r ≠ 0) (root_r : @aeval ℤ ℝ _ _ _ r f = 0) :
-  (@aeval ℤ ℝ _ _ _ r) (make_const_term_nonzero f hf) = 0 :=
+  (f : ℤ[X]) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r ≠ 0) (root_r : aeval r f = 0) :
+  aeval r (make_const_term_nonzero f hf) = 0 :=
 begin
-  have eq1 := transform_eq f hf, rw eq1 at root_r,
-  simp only [aeval_X, alg_hom.map_pow, alg_hom.map_mul, mul_eq_zero] at root_r,
-  cases root_r,
-  { exact root_r },
-  { replace root_r := pow_eq_zero root_r, exfalso, exact r_nonzero root_r },
+  rw [transform_eq f hf, map_mul, map_pow, aeval_X] at root_r,
+  exact eq_zero_of_ne_zero_of_mul_right_eq_zero (pow_ne_zero _ r_nonzero) root_r,
 end
 
 theorem e_transcendental : transcendental ℤ e :=
@@ -745,9 +736,9 @@ begin
   obtain ⟨g', g'_nonzero, e_root_g'⟩ := e_algebraic,
   generalize g_def : make_const_term_nonzero g' g'_nonzero = g,
   have coeff_zero_nonzero : (g.coeff 0) ≠ 0,
-  { rw <-g_def, apply coeff_zero_after_change },
-  have e_root_g : (@aeval ℤ ℝ _ _ _ e) g = 0,
-  { rw <-g_def,
+  { rw ←g_def, apply coeff_zero_after_change },
+  have e_root_g : aeval e g = 0,
+  { rw ←g_def,
     exact non_zero_root_same _ _ _  (1:ℝ).exp_ne_zero e_root_g' },
   obtain ⟨p, pp, Hp1, Hp2⟩ := coup_de_grace (M g) (M_nonneg g) (max g.nat_degree (abs (g.coeff 0))),
   apply lt_irrefl (M g ^ p),

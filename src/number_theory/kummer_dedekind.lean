@@ -43,20 +43,6 @@ open_locale classical
 variables {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R]
 
 variables {S : Type*} [comm_ring S] [algebra R S]
-@[simps]
-def alg_equiv.of_ring_equiv {R A B : Type*} [comm_semiring R] [semiring A] [semiring B]
-  [algebra R A] [algebra R B] (f : A ≃+* B) (hf : ∀ x, f (algebra_map R A x) = algebra_map R B x) :
-  A ≃ₐ[R] B :=
-{ to_fun := f,
-  inv_fun := f.symm,
-  commutes' := hf,
-  .. f }
-
-@[simp]
-lemma alg_equiv.to_ring_equiv_symm {R A B : Type*} [comm_semiring R] [semiring A] [semiring B]
-  [algebra R A] [algebra R B] (f : A ≃ₐ[R] B) :
-  (f : A ≃+* B).symm = f.symm :=
-rfl
 
 @[simp] lemma double_quot.quot_quot_equiv_quot_sup_quot_quot_algebra_map {R A : Type*}
   [comm_semiring R] [comm_ring A] [algebra R A]
@@ -99,7 +85,6 @@ begin
   simp only [map_C],
 end
 
- -- TODO: split me!
 @[simp] lemma adjoin_root.quot_equiv_quot_map_apply
   (f : polynomial R) (I : ideal R) (x : polynomial R) :
   adjoin_root.quot_equiv_quot_map f I (ideal.quotient.mk _ (adjoin_root.mk f x)) =
@@ -143,28 +128,10 @@ by rw [power_basis.quotient_equiv_quotient_minpoly_map, alg_equiv.trans_apply,
     adjoin_root.equiv'_symm_apply, power_basis.lift_aeval,
     adjoin_root.aeval_eq, adjoin_root.quot_equiv_quot_map_apply]
 
-/- @[simp] lemma power_basis.quotient_equiv_quotient_minpoly_map_symm_mk [is_domain R] [is_domain S]
-  (pb : power_basis R S) (I : ideal R) (x : polynomial R) :
-  (pb.quotient_equiv_quotient_minpoly_map I).symm
-      (ideal.quotient.mk _ (polynomial.map (ideal.quotient.mk _) x)) =
-    ideal.quotient.mk _ (aeval pb.gen x) :=
-begin
-  unfold power_basis.quotient_equiv_quotient_minpoly_map,
-  simp only [ideal.quotient_equiv_symm_apply, alg_equiv.of_ring_equiv_symm_apply,
-    alg_equiv.to_ring_equiv_eq_coe, alg_equiv.symm_trans_apply],
-  rw [adjoin_root.quot_equiv_quot_map_symm_apply, ideal.quotient_map_mk,
-      ring_equiv.coe_to_ring_hom, alg_equiv.to_ring_equiv_symm, alg_equiv.coe_ring_equiv,
-      alg_equiv.symm_symm, adjoin_root.equiv'_apply, adjoin_root.lift_hom_mk]
-end -/
-
 variable [decidable_eq (ideal S)]
-
-open_locale classical
-
 
 noncomputable instance {I: ideal R} [hI : is_maximal I] : field (R ⧸ I) :=
 ((ideal.quotient.maximal_ideal_iff_is_field_quotient I).mp hI).to_field
-
 
 noncomputable def factors_equiv [is_domain R] [is_dedekind_domain R] [is_domain S]
   [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I) :
@@ -185,7 +152,6 @@ begin
   exact (factors_equiv pb hI).le_iff_le,
 end
 
-
 lemma mem_normalized_factors_factors_equiv_of_mem_normalized_factors [is_domain R]
   [is_dedekind_domain R] [is_domain S] [is_dedekind_domain S] [algebra R S] (pb : power_basis R S)
   {I : ideal R} (hI : is_maximal I) (hI' : I.map (algebra_map R S) ≠ ⊥)
@@ -200,7 +166,6 @@ begin
     rw [subtype.coe_mk, subtype.coe_mk],
     apply find_me_a_name pb hI l l' hl hl' },
 end
-.
 
 lemma factors_equiv_symm_mem {R : Type*} {S : Type*} [comm_ring R] [is_domain R]
   [is_dedekind_domain R] [comm_ring S] [algebra R S] [decidable_eq (ideal S)] [is_domain R]
@@ -257,97 +222,7 @@ begin
   { by_contra ; exact hpb (span_singleton_eq_bot.mp h) }
 end
 
-open submodule.is_principal
-
-/-
-lemma mem_normalized_factors_eq_of_associated [unique_factorization_monoid R]
-  [normalization_monoid R] {a b c : R} (ha : a ∈ normalized_factors c)
-  (hb : b ∈ normalized_factors c) (h : associated a b) : a = b :=
-begin
-  rw [← normalize_normalized_factor a ha, ← normalize_normalized_factor b hb,
-    normalize_eq_normalize_iff],
-  apply associated.dvd_dvd h,
-end
--/
-
-/-
-lemma singleton_span_mem_normalized_factors_of_mem_normalized_factors [is_domain R]
-  [normalization_monoid R] [is_principal_ideal_ring R] {a b : R} (ha : a ∈ normalized_factors b) :
-  ideal.span ({a} : set R) ∈ normalized_factors (ideal.span ({b} : set R)) :=
-begin
-  by_cases hb : b = 0,
-  { rw [span_singleton_eq_bot.mpr hb, bot_eq_zero, normalized_factors_zero],
-    rw [hb, normalized_factors_zero] at ha,
-    simpa only [multiset.not_mem_zero]  },
-  { suffices : prime (ideal.span ({a} : set R)),
-    { obtain ⟨c, hc, hc'⟩ := exists_mem_normalized_factors_of_dvd _ this.irreducible
-        (dvd_iff_le.mpr (span_singleton_le_span_singleton.mpr (dvd_of_mem_normalized_factors ha))),
-      rwa associated_iff_eq.mp hc',
-      { by_contra,
-        exact hb (span_singleton_eq_bot.mp h) } },
-    rw prime_iff_is_prime,
-    exact (span_singleton_prime (prime_of_normalized_factor a ha).ne_zero).mpr
-      (prime_of_normalized_factor a ha),
-    by_contra,
-    exact (prime_of_normalized_factor a ha).ne_zero (span_singleton_eq_bot.mp h) },
-end
-
-@[simps]
-noncomputable def normalized_factors_equiv_span_normalized_factors [is_domain R]
-  [is_principal_ideal_ring R] [normalization_monoid R] (r : R) (hr : r ≠ 0) :
-  {d : R | d ∈ normalized_factors r} ≃
-  {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
-equiv.of_bijective
-  (λ d, ⟨ideal.span {↑d }, singleton_span_mem_normalized_factors_of_mem_normalized_factors d.prop ⟩)
-begin
-  split,
-  { rintros ⟨a, ha⟩ ⟨b, hb⟩ h,
-    rw [subtype.mk_eq_mk, ideal.span_singleton_eq_span_singleton, subtype.coe_mk,
-      subtype.coe_mk] at h,
-    exact subtype.mk_eq_mk.mpr (mem_normalized_factors_eq_of_associated ha hb h) },
-  { rintros ⟨i, hi⟩,
-    letI : i.is_principal := infer_instance,
-    letI : i.is_prime := is_prime_of_prime (prime_of_normalized_factor i hi),
-    obtain ⟨a, ha, ha'⟩ := exists_mem_normalized_factors_of_dvd hr
-      (prime_generator_of_is_prime i (prime_of_normalized_factor i hi).ne_zero).irreducible _,
-    { use ⟨a, ha⟩,
-      simp only [subtype.coe_mk, subtype.mk_eq_mk, ← span_singleton_eq_span_singleton.mpr ha',
-        ideal.span_singleton_generator] },
-    {exact (mem_iff_generator_dvd i).mp ((show ideal.span {r} ≤ i, from dvd_iff_le.mp
-      (dvd_of_mem_normalized_factors hi)) (mem_span_singleton.mpr (dvd_refl r))) } }
-end
--/
-
-open multiplicity
-
-/-
-lemma span_singleton_dvd_span_singleton_iff_dvd [comm_ring R] [is_domain R]
-  [is_principal_ideal_ring R] {a b : R} : (ideal.span {a}) ∣ (ideal.span ({b} : set R)) ↔ a ∣ b :=
-⟨λ h, mem_span_singleton.mp (dvd_iff_le.mp h (mem_span_singleton.mpr (dvd_refl b))),
-  λ h, dvd_iff_le.mpr (λ d hd, mem_span_singleton.mpr (dvd_trans h (mem_span_singleton.mp hd)))⟩
--/
-
-/-
-lemma multiplicity_eq_multiplicity_span [comm_ring R] [is_domain R]
-  [is_principal_ideal_ring R] {a b : R} :
-  multiplicity (ideal.span {a}) (ideal.span ({b} : set R)) = multiplicity a b :=
-begin
-  by_cases h : finite a b,
-    { rw ← enat.coe_get (finite_iff_dom.mp h),
-      refine (multiplicity.unique
-        (show (ideal.span {a})^(((multiplicity a b).get h)) ∣ (ideal.span {b}), from _) _).symm ;
-        rw [ideal.span_singleton_pow, span_singleton_dvd_span_singleton_iff_dvd],
-      exact pow_multiplicity_dvd h ,
-      { exact multiplicity.is_greatest ((enat.lt_coe_iff _ _).mpr (exists.intro
-          (finite_iff_dom.mp h) (nat.lt_succ_self _))) } },
-    { suffices : ¬ (finite (ideal.span {a}) (ideal.span {b})),
-      { rw [finite_iff_dom, enat.not_dom_iff_eq_top] at h this,
-        rw [h, this] },
-      refine not_finite_iff_forall.mpr (λ n, by {rw [ideal.span_singleton_pow,
-        span_singleton_dvd_span_singleton_iff_dvd], exact not_finite_iff_forall.mp h n }) }
-end
--/
-
+open submodule.is_principal multiplicity
 
 lemma multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity [comm_ring R] [is_domain R]
   [is_principal_ideal_ring R] [normalization_monoid R] {r d: R} (hr : r ≠ 0)
@@ -369,10 +244,6 @@ begin
   rw [hx.symm, equiv.symm_apply_apply, subtype.coe_mk,
     multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity hr ha, hx],
 end
-
-
-
-
 
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case,
   stating that the prime factors of `I*S` are in bijection with those of the minimal poly of
@@ -406,17 +277,6 @@ begin
   rw multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity,
   rw normalized_factors_equiv_multiplicity_eq_multiplicity,
 end
-
-@[simp] lemma multiset.attach_map_coe {α : Type*} (s : multiset α) :
-  multiset.map (coe : _ → α) s.attach = s :=
-s.attach_map_val
-
-@[simp] lemma multiset.attach_count_eq_count_coe {α : Type*} (s : multiset α) (x) :
-  s.attach.count x = s.count (x : α) :=
-calc s.attach.count x
-    = (s.attach.map (coe : _ → α)).count (x : α) :
-  (multiset.count_map_eq_count' _ _ subtype.coe_injective _).symm
-... = s.count (x : α) : congr_arg _ s.attach_map_coe
 
 theorem kummer_dedekind.find_me_a_name  [is_domain R] [is_dedekind_domain R] [is_domain S]
   [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I)

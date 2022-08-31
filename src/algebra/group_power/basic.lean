@@ -142,6 +142,12 @@ by rw [pow_bit0, (commute.refl a).mul_pow]
 theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
 by rw [bit1, pow_succ', pow_bit0']
 
+@[to_additive]
+lemma pow_mul_pow_eq_one {a b : M} : ∀ (n : ℕ) (h : a * b = 1), a ^ n * b ^ n = 1
+| 0 h := by rw [pow_zero, pow_zero, mul_one]
+| (n+1) h := by rw [pow_add, add_comm, pow_add, pow_one, pow_one, mul_assoc, ← mul_assoc a, h,
+  one_mul, pow_mul_pow_eq_one n h]
+
 lemma dvd_pow {x y : M} (hxy : x ∣ y) :
   ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
 | 0       hn := (hn rfl).elim

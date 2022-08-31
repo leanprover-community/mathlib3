@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.finset.lattice
+import data.real.basic
 
 /-!
 #  Unique products and related notions
@@ -17,6 +18,22 @@ let `a0 b0 : G` be two elements.  `unique_add A B a0 b0` asserts `a0 * b0` can b
 most one way as a sum of an element from `A` and an element from `B`."]
 def unique_mul {G} [has_mul G] (A B : finset G) (a0 b0 : G) : Prop :=
 ∀ ⦃a b⦄, a ∈ A → b ∈ B → a * b = a0 * b0 → a = a0 ∧ b = b0
+
+namespace unique_mul
+
+@[to_additive]
+lemma subsingleton {G} [has_mul G] (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :
+  subsingleton { ab : G × G // ab.1 ∈ A ∧ ab.2 ∈ B ∧ ab.1 * ab.2 = a0 * b0 } :=
+⟨λ ⟨⟨a, b⟩, ha, hb, ab⟩ ⟨⟨a', b'⟩, ha', hb', ab'⟩, subtype.ext $ prod.ext
+  ((h ha hb ab).1.trans (h ha' hb' ab').1.symm) $ (h ha hb ab).2.trans (h ha' hb' ab').2.symm⟩
+
+@[to_additive]
+lemma exists_exists_unique {G} [has_mul G] {A B : finset G} {a0 b0 : G} (aA : a0 ∈ A) (bB : b0 ∈ B)
+  (u : unique_mul A B a0 b0) :
+  ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g :=
+⟨a0 * b0, (a0, b0), ⟨finset.mem_product.mpr ⟨aA, bB⟩, rfl, by simp⟩, by simpa⟩
+
+end unique_mul
 
 /--  Let `G` be a Type with addition.  `unique_sums G` asserts that any two non-empty
 finite subsets of `A` have the `unique_add` property, with respect to some element of their
@@ -72,6 +89,8 @@ is "very monotone". -/
 example : unique_sums ℕ   := by apply_instance
 example : unique_sums ℕ+  := by apply_instance
 example : unique_sums ℤ   := by apply_instance
+example : unique_sums ℚ   := by apply_instance
+example : unique_sums ℝ   := by apply_instance
 example : unique_prods ℕ+ := by apply_instance
 
 /--  And also a Type that does not have `unique_prods`. -/

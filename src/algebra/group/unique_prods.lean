@@ -73,8 +73,12 @@ begin
   exact u (finset.mem_preimage.mp ha) (finset.mem_preimage.mp hb) ab,
 end
 
-/--  `unique_mul` is preserved under injective, multiplicative maps. -/
-@[to_additive "`unique_add` is preserved under injective, additive maps."]
+/--  `unique_mul` is preserved under multiplicative maps that are injective.
+
+See `unique_mul.mul_hom_map_iff` for a version with swapped bundling. -/
+@[to_additive "`unique_add` is preserved under additive maps that are injective.
+
+See `unique_add.add_hom_map_iff` for a version with swapped bundling."]
 lemma mul_hom_image_iff [decidable_eq H] (f : G →ₙ* H) (hf : function.injective f) :
   unique_mul (A.image f) (B.image f) (f a0) (f b0) ↔ unique_mul A B a0 b0 :=
 begin
@@ -89,6 +93,21 @@ begin
     rw [hf.eq_iff, hf.eq_iff],
     rw [← map_mul, ← map_mul, hf.eq_iff] at ab,
     exact h ha hb ab },
+end
+
+/--  `unique_mul` is preserved under embeddings that are multiplicative.
+
+See `unique_mul.mul_hom_image_iff` for a version with swapped bundling. -/
+@[to_additive "`unique_add` is preserved under embeddings that are additive.
+
+See `unique_add.add_hom_image_iff` for a version with swapped bundling."]
+lemma mul_hom_map_iff (f : G ↪ H) (mul : ∀ x y, f (x * y) = f x * f y) :
+  unique_mul (A.map f) (B.map f) (f a0) (f b0) ↔ unique_mul A B a0 b0 :=
+begin
+  classical,
+  convert mul_hom_image_iff ⟨f, mul⟩ f.2;
+  { ext,
+    simp only [finset.mem_map, mul_hom.coe_mk, finset.mem_image] },
 end
 
 end unique_mul

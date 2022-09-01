@@ -130,7 +130,7 @@ class H_space (X : Type u) [topological_space X]  :=
 (Hmul_e_e : Hmul (e, e) = e)
 (left_Hmul_e : continuous_map.homotopy_rel
   ⟨id, continuous_id'⟩
-  ⟨(λ a : X, Hmul (e, a)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
+  ⟨(λ x : X, Hmul (e, x)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
   {e})
 (right_Hmul_e : continuous_map.homotopy_rel
   ⟨(λ x : X, Hmul (x, e)), (continuous.comp cont'(continuous_id'.prod_mk continuous_const))⟩
@@ -138,7 +138,7 @@ class H_space (X : Type u) [topological_space X]  :=
   {e})
 
 
-notation ` ∨ `:65 := H_space.Hmul
+-- notation ` ∧ `:65 x y := H_space.Hmul (x, y)
 
 section topological_group_H_space
 
@@ -169,13 +169,13 @@ notation ` Ω(` x `)` := path x x
 variable {x : X}
 
 @[simp, continuity]
-lemma continuous_to_Ω_if_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x)} :
-  continuous (↑g : Y → C(I,X)) → continuous g := λ h, continuous_induced_rng.mpr h
+lemma continuous_to_Ω_if_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x)}
+  (h : continuous (↑g : Y → C(I,X))) : continuous g := continuous_induced_rng.mpr h
 
 @[simp, continuity]
 lemma continuous_to_Ω_if_continuous_uncurry {Y : Type u} [topological_space Y]
-  {g : Y → Ω(x)} : continuous (λ p : Y × I, g p.1 p.2) → continuous g :=
-λ h, continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
+  {g : Y → Ω(x)} (h : continuous (λ p : Y × I, g p.1 p.2)) : continuous g :=
+continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
 
 lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
   x.1.1.extend (2 * x.2)) :=
@@ -230,7 +230,7 @@ example : ((1 : I) : ℝ) = (1 : ℝ) := set.Icc.coe_one
 /- This is the function defined on p. 475 of Serre's *Homologie singulière des espaces fibrés*
 defining a homotopy from a path `γ` to the product `γ ∧ e`.-/
 def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
-{ to_fun := λ t, if  (t : ℝ) ≤ θ / 2 then x
+{ to_fun := λ t, if (t : ℝ) ≤ θ / 2 then x
                  else γ.extend ((2*t - θ)/(2 - θ)),
   continuous_to_fun :=
   begin
@@ -270,21 +270,11 @@ begin
   { exact extend_extends' _ _ },
 end
 
-lemma delayed_refl_left_at_1 (γ : Ω(x)) : (delayed_refl_left 1 γ) = (path.refl x).trans γ :=
-begin
-  ext t,
-  dsimp [delayed_refl_left],
-  norm_num,
-  refl,
-end
+lemma delayed_refl_left_at_1 (γ : Ω(x)) : delayed_refl_left 1 γ = (path.refl x).trans γ :=
+by {ext t, dsimp [delayed_refl_left], norm_num, refl}
 
 lemma delayed_refl_left_e (θ : I) : delayed_refl_left θ (refl x) = refl x :=
-begin
-  ext t,
-  dsimp [path.refl, delayed_refl_left],
-  split_ifs;
-  refl,
-end
+by {ext t, dsimp [path.refl, delayed_refl_left], split_ifs; refl}
 
 /- This is the function analogous to the one on p. 475 of Serre's *Homologie singulière des espaces
   fibrés*, defining a homotopy from the product path `e ∧ γ` to `γ`.-/
@@ -478,7 +468,7 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
     { intros _ h,
       simp only [set.mem_singleton_iff.mp h, continuous_map.coe_mk, refl_trans_refl, id.def,
         and_self],
-      exact delayed_refl_left_e x },
+      exact delayed_refl_left_e x, },
   end,
   right_Hmul_e :=
   begin

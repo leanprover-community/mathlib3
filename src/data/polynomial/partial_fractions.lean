@@ -317,6 +317,13 @@ begin
       rw H2, }, },
 end
 
+lemma coprime_of_prod_coprime {ι : Type*} {g : ι → R[X]}
+  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
+  (a : ι) (s : finset ι) (has : a ∉ s) : is_coprime (g a) (∏ (x : ι) in s, (g x)) :=
+begin
+  sorry
+end
+
 lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
   (s : finset ι) [nonempty s] :
@@ -339,14 +346,11 @@ begin
     { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero], }, },
   { intros a b hab Hind f,
     rw finset.prod_insert hab,
-    have hcoprimecalc : is_coprime (g a) (∏ (x : ι) in b, (g x)),
-    { unfold is_coprime,
-      sorry },
     have hdiv : ∃ q r₁ r₂ : R[X], r₁.degree < (g a).degree ∧
       r₂.degree < (∏ (x : ι) in b, (g x)).degree ∧ (f : K) / (↑(g a) * ↑(∏ (x : ι) in b, (g x))) =
       q + r₁ / ↑(g a) + r₂ / ↑(∏ (x : ι) in b, (g x)) :=
       div_eq_quo_add_rem_div_add_rem_div _ _ (hg a)
-        (finite_product_of_monics_is_monic _ (hg) b) (hcoprimecalc),
+        (finite_product_of_monics_is_monic _ (hg) b) (coprime_of_prod_coprime R hg hcop a b hab),
     rcases hdiv with ⟨ q', r1', r2', hd1, hd2, H2 ⟩,
     rw polynomial.coe_algebra_map_fin_prod _ K g at H2, -- why isn't norm_cast working?
     rw H2,

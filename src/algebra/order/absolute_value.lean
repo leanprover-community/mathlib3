@@ -50,8 +50,11 @@ instance fun_like : fun_like (absolute_value R S) R (λ _, S) :=
 directly. -/
 instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := fun_like.has_coe_to_fun
 
--- to fix: this is currently broken
-initialize_simps_projections absolute_value (-to_mul_hom)
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (f : absolute_value R S) : R → S := coe_fn f
+
+initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply, -to_mul_hom)
 
 instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
 { map_mul := λ f, f.map_mul',
@@ -155,8 +158,6 @@ variables {R S : Type*} [semiring R] [linear_ordered_ring S] (abv : absolute_val
   eq_zero' := λ _, abs_eq_zero,
   add_le' := abs_add,
   map_mul' := abs_mul }
-
-@[simp] protected theorem abs_apply (x : S) : absolute_value.abs x = |x| := rfl
 
 instance : inhabited (absolute_value S S) := ⟨absolute_value.abs⟩
 

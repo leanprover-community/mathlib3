@@ -556,8 +556,6 @@ end
   eq_zero' := λ _, abs_eq_zero,
   add_le' := abs_add }
 
-lemma abs_hom_apply (z : ℂ) : abs_hom z = abs z := rfl
-
 @[simp] lemma abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
   abs (s.prod f) = s.prod (λ i, abs (f i)) :=
 map_prod abs_hom _ _

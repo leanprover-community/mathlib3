@@ -344,7 +344,7 @@ Analysis:
     fundamental theorem of algebra: 'complex.is_alg_closed'
 
   Distribution theory:
-    Schwartz space: 'schwartz'
+    Schwartz space: 'schwartz_map'
 
 Probability Theory:
   Definitions in probability theory:

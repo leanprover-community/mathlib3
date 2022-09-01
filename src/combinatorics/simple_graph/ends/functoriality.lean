@@ -2,28 +2,19 @@ import data.set.finite
 import data.sym.sym2
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
-import topology.metric_space.basic
 import data.setoid.partition
 import category_theory.filtered
 import topology.category.Top.limits
 import data.finset.basic
 import category_theory.category.basic
 import category_theory.full_subcategory
-import data.set.finite
-import data.sym.sym2
-import combinatorics.simple_graph.basic
-import combinatorics.simple_graph.connectivity
-import topology.metric_space.basic
-import data.setoid.partition
-import set_theory.cardinal.basic
 import data.fintype.basic
 import data.opposite
 import combinatorics.simple_graph.metric
 
 
-
+import .comp_out
 import .mathlib
-import .conn_comp_outside
 import .end_limit_construction
 
 

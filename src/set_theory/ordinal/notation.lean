@@ -695,7 +695,7 @@ begin
 end
 
 section
-local infixr ^ := @pow ordinal.{0} ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal.{0} ordinal ordinal.has_pow
 
 theorem repr_opow_aux₂ {a0 a'} [N0 : NF a0] [Na' : NF a'] (m : ℕ)
   (d : ω ∣ repr a')
@@ -828,7 +828,7 @@ begin
   exact ⟨i, h'.trans_le (le_add_right _ _)⟩
 end
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 private theorem exists_lt_omega_opow' {α} {o b : ordinal}
   (hb : 1 < b) (ho : o.is_limit) {f : α → ordinal}
   (H : ∀ ⦃a⦄, a < o → ∃ i, a < f i) ⦃a⦄ (h : a < b ^ o) : ∃ i, a < b ^ f i :=
@@ -951,7 +951,7 @@ begin
 end
 
 section
-local infixr ^ := pow
+local infixr (name := pow) ^ := pow
 @[simp] theorem fast_growing_two : fast_growing 2 = (λ n, 2 ^ n * n) :=
 begin
   rw [@fast_growing_succ 2 1 rfl], funext i, rw [fast_growing_one],

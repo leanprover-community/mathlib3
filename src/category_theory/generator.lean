@@ -263,7 +263,8 @@ end
 /-- An ingredient of the proof of the Special Adjoint Functor Theorem: a complete well-powered
     category with a small coseparating set has an initial object.
 
-    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete. -/
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete,
+    see `has_colimits_of_has_limits_of_is_coseparating`. -/
 lemma has_initial_of_is_coseparating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_coseparating 𝒢) : has_initial C :=
 begin
@@ -287,7 +288,8 @@ end
 /-- An ingredient of the proof of the Special Adjoint Functor Theorem: a cocomplete well-copowered
     category with a small separating set has a terminal object.
 
-    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already complete. -/
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already complete, see
+    `has_limits_of_has_colimits_of_is_separating`. -/
 lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_separating 𝒢) : has_terminal C :=
 begin

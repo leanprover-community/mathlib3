@@ -190,12 +190,11 @@ end additive
   {a b a0 b0 : A} (ha : a0 ≤ a) (hb : b0 ≤ b) (ab : a * b = a0 * b0) :
   a = a0 ∧ b = b0 :=
 begin
-  haveI : covariant_class A A (function.swap (*)) (≤) := has_mul.to_covariant_class_right A,
-  contrapose! ab,
-  refine ((mul_le_mul' ha hb).lt_of_ne _).ne',
-  rcases eq_or_ne a a0 with rfl | ha0,
-  refine (_root_.mul_lt_mul_left' (hb.lt_of_ne (ab rfl).symm) _).ne,
-  exact (mul_lt_mul_of_lt_of_le (lt_of_le_of_ne ha ha0.symm) hb).ne,
+  haveI := has_mul.to_covariant_class_right A,
+  have ha' : ¬a0 * b0 < a * b → ¬a0 < a := mt (λ h, mul_lt_mul_of_lt_of_le h hb),
+  have hb' : ¬a0 * b0 < a * b → ¬b0 < b := mt (λ h, mul_lt_mul_of_le_of_lt ha h),
+  push_neg at ha' hb',
+  exact ⟨ha.antisymm' (ha' ab.le), hb.antisymm' (hb' ab.le)⟩,
 end
 
 /--  This instance asserts that if `A` has a multiplication, a linear order, and multiplication

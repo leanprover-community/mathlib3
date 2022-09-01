@@ -202,6 +202,9 @@ by apply_instance
 instance comm_monoid_with_zero [ordered_comm_semiring α] : comm_monoid_with_zero {x : α // 0 ≤ x} :=
 by apply_instance
 
+instance semiring [ordered_semiring α] : semiring {x : α // 0 ≤ x} := infer_instance
+instance comm_semiring [ordered_comm_semiring α] : comm_semiring {x : α // 0 ≤ x} := infer_instance
+
 instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x} :=
 ⟨ ⟨0, 1, λ h, zero_ne_one (congr_arg subtype.val h)⟩ ⟩
 

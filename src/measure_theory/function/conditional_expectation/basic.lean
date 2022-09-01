@@ -2080,6 +2080,33 @@ begin
   rw [hg_eq s hs hμs, set_integral_condexp hm hf hs],
 end
 
+lemma condexp_bot' [is_finite_measure μ] (f : α → F') :
+  μ[f|⊥] =ᵐ[μ] λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
+begin
+  by_cases hμ : μ = 0,
+  { simp only [hμ, ae_zero], },
+  by_cases hf : integrable f μ,
+  swap, { rw [integral_undef hf, smul_zero, condexp_undef hf], refl, },
+  refine (ae_eq_condexp_of_forall_set_integral_eq bot_le hf _ _ _).symm,
+  { intros s hs hμs,
+    rw integrable_on_const,
+    exact or.inr hμs, },
+  { intros s hs hμs,
+    rw measurable_space.measurable_set_bot_iff at hs,
+    cases hs,
+    { simp only [hs, measure.restrict_empty, integral_zero_measure], },
+    { have h_ne_zero : (μ set.univ).to_real ≠ 0,
+      { rw [ne.def, ennreal.to_real_eq_zero_iff, auto.not_or_eq, measure.measure_univ_eq_zero],
+        exact ⟨hμ, measure_ne_top μ _⟩, },
+      simp only [hs, measure.restrict_univ, integral_const, ← smul_assoc, smul_eq_mul,
+        mul_inv_cancel h_ne_zero, one_smul], }, },
+  { exact strongly_measurable.ae_strongly_measurable' strongly_measurable_const, },
+end
+
+lemma condexp_bot [is_probability_measure μ] (f : α → F') :
+  μ[f|⊥] =ᵐ[μ] λ _, ∫ x, f x ∂μ :=
+by { refine (condexp_bot' f).trans _, rw [measure_univ, ennreal.one_to_real, inv_one, one_smul], }
+
 lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :
   μ[f + g | m] =ᵐ[μ] μ[f|m] + μ[g|m] :=
 begin

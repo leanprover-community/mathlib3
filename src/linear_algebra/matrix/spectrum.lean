@@ -82,7 +82,7 @@ begin
 end
 
 /-- The determinant of a hermitian matrix is the product of its eigenvalues. -/
-lemma det_eq_prod_eigenvalues_of_is_hermitian : det A = ∏ i, hA.eigenvalues i :=
+lemma det_eq_prod_eigenvalues : det A = ∏ i, hA.eigenvalues i :=
 begin
   apply mul_left_cancel₀ (det_ne_zero_of_left_inverse (eigenvector_matrix_mul_inv hA)),
   rw [←det_mul, spectral_theorem, det_mul, mul_comm, det_diagonal]

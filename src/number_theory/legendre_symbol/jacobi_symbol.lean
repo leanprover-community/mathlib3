@@ -137,10 +137,8 @@ end
 
 /-- The Jacobi symbol takes only the values `0`, `1` and `1`. -/
 lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
-submonoid.list_prod_mem
-⟨({0, 1, -1} : set ℤ),
-   by rintro _ _ (rfl | rfl | (rfl : _ = _)) (rfl | rfl | (rfl : _ = _)); dec_trivial,
-   or.inr (or.inl rfl)⟩
+((@sign_type.cast_hom ℤ _ _).to_monoid_hom.mrange.copy {0, 1, -1} $
+  by {rw set.pair_comm, exact (sign_type.range_eq sign_type.cast_hom).symm}).list_prod_mem
 begin
   intros _ ha',
   rcases list.mem_pmap.mp ha' with ⟨p, hp, rfl⟩,

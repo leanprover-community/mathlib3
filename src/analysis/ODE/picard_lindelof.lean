@@ -468,5 +468,5 @@ theorem ODE_solution_exists.at_ball_of_cont_diff
     ∀ t ∈ metric.ball t₀ ε, has_deriv_at f (v (f t)) t :=
 begin
   obtain ⟨ε, hε, hpl⟩ := time_indep_cont_diff_is_picard_lindelof v hv t₀ x₀,
-  refine ⟨ε, hε, ODE_solution_exists.at_ball (λ t, v) t₀ ε hε x₀ hpl⟩
+  exact ⟨ε, hε, ODE_solution_exists.at_ball (λ t, v) t₀ ε hε x₀ hpl⟩
 end

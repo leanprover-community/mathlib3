@@ -48,9 +48,8 @@ begin
   refine subset_antisymm (support_single_mul_subset f) (λ y hy, _),
   obtain ⟨y, yf, rfl⟩ : ∃ (a : G), a ∈ f.support ∧ x * a = y,
   { simpa only [finset.mem_image, exists_prop] using hy },
-  have lx.inj : ∀ l m, (x * l = x * m ↔ l = m) := λ l m, ⟨λ h, lx h, λ h, congr_arg ((*) x) h⟩,
   simp only [mul_apply, mem_support_iff.mp yf, hr, mem_support_iff, sum_single_index,
-    finsupp.sum_ite_eq', ne.def, not_false_iff, if_true, zero_mul, if_t_t, sum_zero, lx.inj]
+    finsupp.sum_ite_eq', ne.def, not_false_iff, if_true, zero_mul, if_t_t, sum_zero, lx.eq_iff]
 end
 
 lemma support_mul_single_eq_image [decidable_eq G] [has_mul G]
@@ -60,9 +59,8 @@ begin
   refine subset_antisymm (support_mul_single_subset f) (λ y hy, _),
   obtain ⟨y, yf, rfl⟩ : ∃ (a : G), a ∈ f.support ∧ a * x = y,
   { simpa only [finset.mem_image, exists_prop] using hy },
-  have rx.inj : ∀ l m, (l * x = m * x ↔ l = m) := λ l m, ⟨λ h, rx h, λ h, congr_arg (* x) h⟩,
   simp only [mul_apply, mem_support_iff.mp yf, hr, mem_support_iff, sum_single_index,
-    finsupp.sum_ite_eq', ne.def, not_false_iff, if_true, mul_zero, if_t_t, sum_zero, rx.inj]
+    finsupp.sum_ite_eq', ne.def, not_false_iff, if_true, mul_zero, if_t_t, sum_zero, rx.eq_iff]
 end
 
 lemma support_mul [has_mul G] [decidable_eq G] (a b : monoid_algebra k G) :

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
 import number_theory.legendre_symbol.quadratic_reciprocity
+import data.zmod.coprime
 
 /-!
 # The Jacobi Symbol
@@ -57,29 +58,6 @@ Jacobi symbol, quadratic reciprocity
 Once the dust has settled, these will be moved to the appropriate files.
 -/
 
-namespace zmod
-
--- Where should these three lemmas go?
--- In `data.zmod.basic`, `int.gcd_eq_one_iff_coprime` is not visible,
--- and in `ring_theory.int.basic`, `zmod.int_coe_mod_eq_zero_iff_dvd` is not visible.
--- `data.zmod.quotient` is a file that imports both, but has a different topic...
-/-- If `p` is a prime and `a` is an integer, then `a : zmod p` is zero if and only if
-`gcd a p ≠ 1`. -/
-lemma eq_zero_iff_gcd_ne_one {a : ℤ} {p : ℕ} [pp : fact p.prime] : (a : zmod p) = 0 ↔ a.gcd p ≠ 1 :=
-by rw [ne, int.gcd_comm, int.gcd_eq_one_iff_coprime,
-       (nat.prime_iff_prime_int.1 pp.1).coprime_iff_not_dvd, not_not, int_coe_zmod_eq_zero_iff_dvd]
-
-/-- If an integer `a` and a prime `p` satisfy `gcd a p = 1`, then `a : zmod p` is nonzero. -/
-lemma ne_zero_of_gcd_eq_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p = 1) :
-  (a : zmod p) ≠ 0 :=
-mt (@eq_zero_iff_gcd_ne_one a p ⟨pp⟩).mp (not_not.mpr h)
-
-/-- If an integer `a` and a prime `p` satisfy `gcd a p ≠ 1`, then `a : zmod p` is zero. -/
-lemma eq_zero_of_gcd_ne_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p ≠ 1) :
-  (a : zmod p) = 0 :=
-(@eq_zero_iff_gcd_ne_one a p ⟨pp⟩).mpr h
-
-end zmod
 
 section jacobi
 

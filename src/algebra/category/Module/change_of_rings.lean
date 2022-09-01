@@ -177,31 +177,21 @@ local notation `Hom` M := (restrict_scalars f).obj ⟨S⟩ →ₗ[R] M
  Given an `R`-module M, consider the Hom(S, M) -- the `R`-linear maps between S (as an `R`-module by
  means of restriction of scalars) and M. `S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)`
  -/
- instance has_smul : has_smul S $ Hom M :=
- { smul := λ s g,
-   { to_fun := λ (s' : S), g (s' • s : S),
-     map_add' := λ (x y : S), by simp [add_smul, map_add],
-     map_smul' := λ r (t : S), by rw [ring_hom.id_apply, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩,
-       ←linear_map.map_smul, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_assoc] } }
+instance has_smul : has_smul S $ Hom M :=
+{ smul := λ s g,
+  { to_fun := λ (s' : S), g (s' • s : S),
+    map_add' := λ (x y : S), by simp [add_smul, map_add],
+    map_smul' := λ r (t : S), by rw [ring_hom.id_apply, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩,
+      ←linear_map.map_smul, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_assoc] } }
 
 @[simp] lemma smul_apply (s : S) (g : Hom M) (s' : S) :
   @has_smul.smul _ _ (coextend_scalars.has_smul f _) s g s' = g (s' • s : S) := rfl
 
-/--
-`S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)` such that `1 • g = g` and `(s * t) • g = s • t • g`
--/
 instance mul_action : mul_action S $ Hom M :=
 { one_smul := λ g, linear_map.ext $ λ (s : S), by simp,
   mul_smul := λ (s t : S) g, linear_map.ext $ λ (x : S), by simp [mul_assoc],
   ..coextend_scalars.has_smul f _ }
 
-/--
-`S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)` such that
-* 1 • g = g
-* (s * t) • g = s • t • g
-* s • (g + h) = s • g + s • h
-* s • 0 = 0
--/
 instance distrib_mul_action : distrib_mul_action S $ Hom M :=
 { smul_add := λ s g h, linear_map.ext $ λ (t : S), by simp,
   smul_zero := λ s, linear_map.ext $ λ (t : S), by simp,
@@ -247,5 +237,8 @@ def coextend_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
   map := λ _ _, coextend_scalars.map' f,
   map_id' := λ M, linear_map.ext $ λ h, linear_map.ext $ λ x, rfl,
   map_comp' := λ _ _ _ g h, linear_map.ext $ λ h, linear_map.ext $ λ x, rfl }
+
+@[simp] lemma coextend_scalars.smul_apply {R : Type u₁} {S : Type u₂}  {M} [ring R] [ring S]
+  (f : R →+* S) (r : R) (x : (coextend_scalars f).obj M) (y) : (r • x) y = x (r • y) := rfl
 
 end category_theory.Module

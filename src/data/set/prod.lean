@@ -353,7 +353,7 @@ by rw [←not_nonempty_iff_eq_empty, ←not_nontrivial_iff, off_diag_nonempty.no
 alias off_diag_nonempty ↔ _ nontrivial.off_diag_nonempty
 alias off_diag_nonempty ↔ _ subsingleton.off_diag_eq_empty
 
-variables (s)
+variables (s t)
 
 lemma off_diag_subset_prod : s.off_diag ⊆ s ×ˢ s := λ x hx, ⟨hx.1, hx.2.1⟩
 lemma off_diag_eq_sep_prod : s.off_diag = {x ∈ s ×ˢ s | x.1 ≠ x.2} := ext $ λ _, and.assoc.symm
@@ -368,7 +368,7 @@ lemma off_diag_eq_sep_prod : s.off_diag = {x ∈ s ×ˢ s | x.1 ≠ x.2} := ext 
 lemma off_diag_inter : (s ∩ t).off_diag = s.off_diag ∩ t.off_diag :=
 ext $ λ x, by { simp only [mem_off_diag, mem_inter_iff], tauto }
 
-variables {s}
+variables {s t}
 
 lemma off_diag_union (h : disjoint s t) :
   (s ∪ t).off_diag = s.off_diag ∪ t.off_diag ∪ s ×ˢ t ∪ t ×ˢ s :=

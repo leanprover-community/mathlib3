@@ -490,9 +490,8 @@ instance : is_domain ℚ :=
   .. (infer_instance : no_zero_divisors ℚ) }
 
 /- Extra instances to short-circuit type class resolution -/
--- TODO(Mario): this instance slows down data.real.basic
 instance : nontrivial ℚ         := by apply_instance
---instance : ring ℚ             := by apply_instance
+instance : ring ℚ               := by apply_instance
 instance : comm_semiring ℚ      := by apply_instance
 instance : semiring ℚ           := by apply_instance
 instance : add_comm_group ℚ     := by apply_instance

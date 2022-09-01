@@ -20,15 +20,16 @@ def unique_mul {G} [has_mul G] (A B : finset G) (a0 b0 : G) : Prop :=
 ∀ ⦃a b⦄, a ∈ A → b ∈ B → a * b = a0 * b0 → a = a0 ∧ b = b0
 
 namespace unique_mul
+variables {G : Type*} [has_mul G] {A B : finset G} {a0 b0 : G}
 
 @[to_additive]
-lemma subsingleton {G} [has_mul G] (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :
+lemma subsingleton (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :
   subsingleton { ab : G × G // ab.1 ∈ A ∧ ab.2 ∈ B ∧ ab.1 * ab.2 = a0 * b0 } :=
 ⟨λ ⟨⟨a, b⟩, ha, hb, ab⟩ ⟨⟨a', b'⟩, ha', hb', ab'⟩, subtype.ext $ prod.ext
   ((h ha hb ab).1.trans (h ha' hb' ab').1.symm) $ (h ha hb ab).2.trans (h ha' hb' ab').2.symm⟩
 
 @[to_additive]
-lemma exists_unique_iff {G} [has_mul G] {A B : finset G} {a0 b0 : G} (aA : a0 ∈ A) (bB : b0 ∈ B) :
+lemma exists_unique_iff (aA : a0 ∈ A) (bB : b0 ∈ B) :
   unique_mul A B a0 b0 ↔ ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = a0 * b0 :=
 ⟨λ _, ⟨(a0, b0), ⟨finset.mem_product.mpr ⟨aA, bB⟩, rfl, by simp⟩, by simpa⟩, λ h, begin
   rcases h with ⟨⟨a, b⟩, -, J⟩,
@@ -40,14 +41,12 @@ lemma exists_unique_iff {G} [has_mul G] {A B : finset G} {a0 b0 : G} (aA : a0 �
 end⟩
 
 @[to_additive]
-lemma exists_exists_unique {G} [has_mul G] {A B : finset G} {a0 b0 : G} (aA : a0 ∈ A) (bB : b0 ∈ B)
-  (u : unique_mul A B a0 b0) :
+lemma exists_exists_unique (aA : a0 ∈ A) (bB : b0 ∈ B) (u : unique_mul A B a0 b0) :
   ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g :=
 ⟨a0 * b0, (exists_unique_iff aA bB).mp u⟩
 
 @[to_additive]
-lemma of_exists_unique {G} [has_mul G] {A B : finset G} {g : G}
-  (h : ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g) :
+lemma of_exists_unique {g : G} (h : ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g) :
   ∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0 :=
 begin
   have h' := h,
@@ -57,8 +56,7 @@ begin
 end
 
 @[to_additive]
-lemma of_exists_exists_unique {G} [has_mul G] {A B : finset G}
-  (h : ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g) :
+lemma of_exists_exists_unique (h : ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g) :
   ∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0 :=
 of_exists_unique h.some_spec
 

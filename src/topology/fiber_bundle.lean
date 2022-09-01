@@ -407,9 +407,9 @@ def preimage_singleton_homeomorph {b : B} (hb : b ∈ e.base_set) : proj ⁻¹' 
   (p : proj ⁻¹' {b}) : e.preimage_singleton_homeomorph hb p = (e p).2 :=
 rfl
 
-@[simp] lemma preimage_singleton_homeomorph_symm_apply {b : B} (hb : b ∈ e.base_set)
-  (p : F) : (e.preimage_singleton_homeomorph hb).symm p =
-    ⟨e.symm (b, p), ((e.preimage_singleton_homeomorph hb).symm p).2⟩ :=
+@[simp] lemma preimage_singleton_homeomorph_symm_apply {b : B} (hb : b ∈ e.base_set) (p : F) :
+  (e.preimage_singleton_homeomorph hb).symm p =
+    ⟨e.symm (b, p), by rw [mem_preimage, e.proj_symm_apply' hb, mem_singleton_iff]⟩ :=
 rfl
 
 /-- In the domain of a bundle trivialization, the projection is continuous-/

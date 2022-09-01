@@ -169,6 +169,8 @@ end linear_ordered_comm_ring
 
 section linear_ordered_semifield
 
+section semiring
+
 variables {R S : Type*} [semiring R] [linear_ordered_semifield S] (abv : absolute_value R S)
 
 -- this is needed as there is no common ancestor of `linear_ordered_semifield` and an integral
@@ -179,6 +181,18 @@ instance monoid_with_zero_hom_class' [nontrivial R] :
 { map_one := λ f, f.map_one_of_is_regular $ (is_regular_of_ne_zero $ f.ne_zero one_ne_zero).left,
   ..absolute_value.mul_hom_class,
   ..absolute_value.zero_hom_class }
+
+end semiring
+
+section division_semiring
+
+variables {R S : Type*} [division_semiring R] [linear_ordered_semifield S]
+          (abv : absolute_value R S)
+
+protected theorem map_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ := map_inv₀ abv a
+protected theorem map_div (a b : R) : abv (a / b) = abv a / abv b := map_div₀ abv a b
+
+end division_semiring
 
 end linear_ordered_semifield
 

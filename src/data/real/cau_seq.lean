@@ -75,7 +75,7 @@ begin
   have a0 := lt_of_lt_of_le K0 ha,
   have b0 := lt_of_lt_of_le K0 hb,
   rw [inv_sub_inv (abv.pos_iff.mp a0) (abv.pos_iff.mp b0),
-      map_div₀ abv, map_mul abv, mul_comm, abv.map_sub,
+      abv.map_div, map_mul abv, mul_comm, abv.map_sub,
       ← mul_div_cancel ε (ne_of_gt KK)],
   exact div_lt_div h
     (mul_le_mul hb ha (le_of_lt K0) (abv.nonneg _))

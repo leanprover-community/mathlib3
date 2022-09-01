@@ -60,6 +60,8 @@ lemma of_exists_exists_unique (h : ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 
   ∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0 :=
 of_exists_unique h.some_spec
 
+/--  `unique_mul` is preserved under injective, multiplicative maps. -/
+@[to_additive "`unique_add` is preserved under injective, additive maps."]
 lemma of_mul_hom (f : G →ₙ* H) (hf : function.injective f)
   (aA : a0 ∈ A) (bB : b0 ∈ B) (u : unique_mul A B a0 b0) :
   unique_mul (A.image f) (B.image f) (f a0) (f b0) :=

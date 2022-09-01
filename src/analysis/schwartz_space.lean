@@ -20,16 +20,16 @@ This file defines the Schwartz space and the space of tempered distributions.
 
 ## Main definitions
 
-* `schwartz`: The Schwartz space
+* `schwartz_map`: The Schwartz space
 
 ## Main statements
 
-* `schwartz.uniform_add_group` and `schwartz.locally_convex`: The Schwartz space is a locally
-convex topological vector space.
+* `schwartz_map.uniform_add_group` and `schwartz_map.locally_convex`: The Schwartz space is a
+locally convex topological vector space.
 
 ## Notation
 
-* `𝓢(E, F)`: The Schwartz space `schwartz E F`
+* `𝓢(E, F)`: The Schwartz space `schwartz_map E F` localized in `schwartz_space`
 
 ## Tags
 

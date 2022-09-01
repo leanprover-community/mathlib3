@@ -1120,14 +1120,12 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
   dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
 ⟨λ h a b hab, h.exists_between hab, dense_of_exists_between⟩
 
-lemma order_topology.t2_space : t2_space α := by apply_instance
-
 @[priority 100] -- see Note [lower instance priority]
 instance order_topology.t3_space : t3_space α :=
 { regular := assume s a hs ha,
     have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
-      from by_cases
+      from classical.by_cases
         (assume h : ∃l, l < a,
           let ⟨l, hl, h⟩ := exists_Ioc_subset_of_mem_nhds hs' h in
           match dense_or_discrete l a with
@@ -1144,7 +1142,7 @@ instance order_topology.t3_space : t3_space α :=
           nhds_within_empty _⟩),
     let ⟨t₁, ht₁o, ht₁s, ht₁a⟩ := this in
     have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝[t] a = ⊥,
-      from by_cases
+      from classical.by_cases
         (assume h : ∃u, u > a,
           let ⟨u, hu, h⟩ := exists_Ico_subset_of_mem_nhds hs' h in
           match dense_or_discrete a u with
@@ -1164,8 +1162,7 @@ instance order_topology.t3_space : t3_space α :=
       assume x hx,
       have x ≠ a, from assume eq, ha $ eq ▸ hx,
       (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
-      by rw [nhds_within_union, ht₁a, ht₂a, bot_sup_eq]⟩,
-  ..order_topology.t2_space }
+      by rw [nhds_within_union, ht₁a, ht₂a, bot_sup_eq]⟩ }
 
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/

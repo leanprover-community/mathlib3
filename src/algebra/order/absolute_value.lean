@@ -46,6 +46,13 @@ instance fun_like : fun_like (absolute_value R S) R (λ _, S) :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' } }
 
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := fun_like.has_coe_to_fun
+
+-- to fix: this is currently broken
+initialize_simps_projections absolute_value (-to_mul_hom)
+
 instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
 { map_mul := λ f, f.map_mul',
   ..absolute_value.fun_like }
@@ -142,14 +149,12 @@ section linear_ordered_ring
 variables {R S : Type*} [semiring R] [linear_ordered_ring S] (abv : absolute_value R S)
 
 /-- `absolute_value.abs` is `abs` as a bundled `absolute_value`. -/
-protected def abs : absolute_value S S :=
+@[simps] protected def abs : absolute_value S S :=
 { to_fun := abs,
   nonneg' := abs_nonneg,
   eq_zero' := λ _, abs_eq_zero,
   add_le' := abs_add,
   map_mul' := abs_mul }
-
--- I'm not sure how to get `simps` working with this.#check
 
 @[simp] protected theorem abs_apply (x : S) : absolute_value.abs x = |x| := rfl
 

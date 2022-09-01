@@ -464,8 +464,6 @@ by simp only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm,
 /-- The complex absolute value function, defined as the square root of the norm squared. -/
 @[pp_nodot] noncomputable def abs (z : ℂ) : ℝ := (norm_sq z).sqrt
 
-local notation `abs'` := has_abs.abs
-
 @[simp, norm_cast] lemma abs_of_real (r : ℝ) : abs r = |r| :=
 by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 
@@ -514,23 +512,6 @@ by simp [abs]
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
 
-/-- `complex.abs` as a `monoid_with_zero_hom`. -/
-@[simps] noncomputable def abs_hom : ℂ →*₀ ℝ :=
-{ to_fun := abs,
-  map_zero' := abs_zero,
-  map_one' := abs_one,
-  map_mul' := abs_mul }
-
-@[simp] lemma abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
-  abs (s.prod f) = s.prod (λ i, abs (f i)) :=
-map_prod abs_hom _ _
-
-@[simp] lemma abs_pow (z : ℂ) (n : ℕ) : abs (z ^ n) = abs z ^ n :=
-map_pow abs_hom z n
-
-@[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
-map_zpow₀ abs_hom z n
-
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),
        abs_mul_abs_self, mul_self_abs];
@@ -567,25 +548,39 @@ begin
   simpa [-mul_re] using re_le_abs (z * conj w)
 end
 
-instance : is_absolute_value abs :=
-{ abv_nonneg  := abs_nonneg,
-  abv_eq_zero := λ _, abs_eq_zero,
-  abv_add     := abs_add,
-  abv_mul     := abs_mul }
-open is_absolute_value
+/-- `complex.abs` as an `absolute_value`. -/
+@[simps] noncomputable def abs_hom : absolute_value ℂ ℝ :=
+{ to_fun := abs,
+  nonneg' := abs_nonneg,
+  map_mul' := abs_mul,
+  eq_zero' := λ _, abs_eq_zero,
+  add_le' := abs_add }
+
+lemma abs_hom_apply (z : ℂ) : abs_hom z = abs z := rfl
+
+@[simp] lemma abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
+  abs (s.prod f) = s.prod (λ i, abs (f i)) :=
+map_prod abs_hom _ _
+
+@[simp] lemma abs_pow (z : ℂ) (n : ℕ) : abs (z ^ n) = abs z ^ n :=
+map_pow abs_hom z n
+
+@[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
+map_zpow₀ abs_hom z n
+
 
 @[simp] lemma abs_abs (z : ℂ) : |(abs z)| = abs z :=
 _root_.abs_of_nonneg (abs_nonneg _)
 
-@[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
-@[simp] lemma abs_neg : ∀ z, abs (-z) = abs z := abv_neg abs
-lemma abs_sub_comm : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
-lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
-@[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
-@[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs
+@[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abs_hom.pos_iff
+@[simp] lemma abs_neg : ∀ z, abs (-z) = abs z := abs_hom.map_neg
+lemma abs_sub_comm : ∀ z w, abs (z - w) = abs (w - z) := abs_hom.map_sub
+lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abs_hom.sub_le
+@[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abs_hom.map_inv
+@[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abs_hom.map_div
 
 lemma abs_abs_sub_le_abs_sub : ∀ z w, |abs z - abs w| ≤ abs (z - w) :=
-abs_abv_sub_le_abv_sub abs
+abs_hom.abs_abv_sub_le_abv_sub
 
 lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ |z.re| + |z.im| :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
@@ -691,32 +686,34 @@ end complex_order
 
 /-! ### Cauchy sequences -/
 
-theorem is_cau_seq_re (f : cau_seq ℂ abs) : is_cau_seq abs' (λ n, (f n).re) :=
+local notation `abs'` := absolute_value.abs
+
+theorem is_cau_seq_re (f : cau_seq ℂ abs_hom) : is_cau_seq abs' (λ n, (f n).re) :=
 λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
 lt_of_le_of_lt (by simpa using abs_re_le_abs (f j - f i)) (H _ ij)
 
-theorem is_cau_seq_im (f : cau_seq ℂ abs) : is_cau_seq abs' (λ n, (f n).im) :=
+theorem is_cau_seq_im (f : cau_seq ℂ abs_hom) : is_cau_seq abs' (λ n, (f n).im) :=
 λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
 lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
 
 /-- The real part of a complex Cauchy sequence, as a real Cauchy sequence. -/
-noncomputable def cau_seq_re (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
+noncomputable def cau_seq_re (f : cau_seq ℂ abs_hom) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_re f⟩
 
 /-- The imaginary part of a complex Cauchy sequence, as a real Cauchy sequence. -/
-noncomputable def cau_seq_im (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
+noncomputable def cau_seq_im (f : cau_seq ℂ abs_hom) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_im f⟩
 
-lemma is_cau_seq_abs {f : ℕ → ℂ} (hf : is_cau_seq abs f) :
-  is_cau_seq abs' (abs ∘ f) :=
+lemma is_cau_seq_abs {f : ℕ → ℂ} (hf : is_cau_seq abs_hom f) :
+  is_cau_seq abs' (abs_hom ∘ f) :=
 λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
 
 /-- The limit of a Cauchy sequence of complex numbers. -/
-noncomputable def lim_aux (f : cau_seq ℂ abs) : ℂ :=
+noncomputable def lim_aux (f : cau_seq ℂ abs_hom) : ℂ :=
 ⟨cau_seq.lim (cau_seq_re f), cau_seq.lim (cau_seq_im f)⟩
 
-theorem equiv_lim_aux (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim_aux f) :=
+theorem equiv_lim_aux (f : cau_seq ℂ abs_hom) : f ≈ cau_seq.const abs_hom (lim_aux f) :=
 λ ε ε0, (exists_forall_ge_and
   (cau_seq.equiv_lim ⟨_, is_cau_seq_re f⟩ _ (half_pos ε0))
   (cau_seq.equiv_lim ⟨_, is_cau_seq_im f⟩ _ (half_pos ε0))).imp $
@@ -728,41 +725,41 @@ theorem equiv_lim_aux (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim_aux f
   rwa add_halves at this,
 end
 
-instance : cau_seq.is_complete ℂ abs :=
+instance : cau_seq.is_complete ℂ abs_hom :=
 ⟨λ f, ⟨lim_aux f, equiv_lim_aux f⟩⟩
 
 open cau_seq
 
-lemma lim_eq_lim_im_add_lim_re (f : cau_seq ℂ abs) : lim f =
+lemma lim_eq_lim_im_add_lim_re (f : cau_seq ℂ abs_hom) : lim f =
   ↑(lim (cau_seq_re f)) + ↑(lim (cau_seq_im f)) * I :=
 lim_eq_of_equiv_const $
 calc f ≈ _ : equiv_lim_aux f
-... = cau_seq.const abs (↑(lim (cau_seq_re f)) + ↑(lim (cau_seq_im f)) * I) :
+... = cau_seq.const abs_hom (↑(lim (cau_seq_re f)) + ↑(lim (cau_seq_im f)) * I) :
   cau_seq.ext (λ _, complex.ext (by simp [lim_aux, cau_seq_re]) (by simp [lim_aux, cau_seq_im]))
 
-lemma lim_re (f : cau_seq ℂ abs) : lim (cau_seq_re f) = (lim f).re :=
+lemma lim_re (f : cau_seq ℂ abs_hom) : lim (cau_seq_re f) = (lim f).re :=
 by rw [lim_eq_lim_im_add_lim_re]; simp
 
-lemma lim_im (f : cau_seq ℂ abs) : lim (cau_seq_im f) = (lim f).im :=
+lemma lim_im (f : cau_seq ℂ abs_hom) : lim (cau_seq_im f) = (lim f).im :=
 by rw [lim_eq_lim_im_add_lim_re]; simp
 
-lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) :=
+lemma is_cau_seq_conj (f : cau_seq ℂ abs_hom) : is_cau_seq abs_hom (λ n, conj (f n)) :=
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
-⟨i, λ j hj, by rw [← ring_hom.map_sub, abs_conj]; exact hi j hj⟩
+⟨i, λ j hj, by rw [← ring_hom.map_sub, abs_hom_apply, abs_conj]; exact hi j hj⟩
 
 /-- The complex conjugate of a complex Cauchy sequence, as a complex Cauchy sequence. -/
-noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=
+noncomputable def cau_seq_conj (f : cau_seq ℂ abs_hom) : cau_seq ℂ abs_hom :=
 ⟨_, is_cau_seq_conj f⟩
 
-lemma lim_conj (f : cau_seq ℂ abs) : lim (cau_seq_conj f) = conj (lim f) :=
+lemma lim_conj (f : cau_seq ℂ abs_hom) : lim (cau_seq_conj f) = conj (lim f) :=
 complex.ext (by simp [cau_seq_conj, (lim_re _).symm, cau_seq_re])
   (by simp [cau_seq_conj, (lim_im _).symm, cau_seq_im, (lim_neg _).symm]; refl)
 
 /-- The absolute value of a complex Cauchy sequence, as a real Cauchy sequence. -/
-noncomputable def cau_seq_abs (f : cau_seq ℂ abs) : cau_seq ℝ abs' :=
+noncomputable def cau_seq_abs (f : cau_seq ℂ abs_hom) : cau_seq ℝ abs' :=
 ⟨_, is_cau_seq_abs f.2⟩
 
-lemma lim_abs (f : cau_seq ℂ abs) : lim (cau_seq_abs f) = abs (lim f) :=
+lemma lim_abs (f : cau_seq ℂ abs_hom) : lim (cau_seq_abs f) = abs (lim f) :=
 lim_eq_of_equiv_const (λ ε ε0,
 let ⟨i, hi⟩ := equiv_lim f ε ε0 in
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩)

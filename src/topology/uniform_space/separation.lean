@@ -93,7 +93,7 @@ regular_space.of_basis
 protected def separation_rel (α : Type u) [u : uniform_space α] :=
 ⋂₀ (𝓤 α).sets
 
-localized "notation `𝓢` := separation_rel" in uniformity
+localized "notation (name := separation_rel) `𝓢` := separation_rel" in uniformity
 
 lemma separated_equiv : equivalence (λx y, (x, y) ∈ 𝓢 α) :=
 ⟨assume x, assume s, refl_mem_uniformity,

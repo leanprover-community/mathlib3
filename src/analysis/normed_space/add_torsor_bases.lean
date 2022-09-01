@@ -54,7 +54,7 @@ to this basis.
 
 TODO Restate this result for affine spaces (instead of vector spaces) once the definition of
 convexity is generalised to this setting. -/
-lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_add_comm_group E]
+lemma interior_convex_hull_aff_basis {ι E : Type*} [finite ι] [normed_add_comm_group E]
   [normed_space ℝ E] (b : affine_basis ι ℝ E) :
   interior (convex_hull ℝ (range b.points)) = { x | ∀ i, 0 < b.coord i x } :=
 begin

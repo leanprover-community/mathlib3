@@ -471,9 +471,9 @@ lemma has_compl_iff {a} : d.has aᶜ ↔ d.has a :=
 lemma has_univ : d.has univ :=
 by simpa using d.has_compl d.has_empty
 
-theorem has_Union {β} [encodable β] {f : β → set α}
-  (hd : pairwise (disjoint on f)) (h : ∀ i, d.has (f i)) : d.has (⋃ i, f i) :=
-by { rw ← encodable.Union_decode₂, exact
+lemma has_Union {β} [countable β] {f : β → set α} (hd : pairwise (disjoint on f))
+  (h : ∀ i, d.has (f i)) : d.has (⋃ i, f i) :=
+by { casesI nonempty_encodable β, rw ← encodable.Union_decode₂, exact
   d.has_Union_nat (encodable.Union_decode₂_disjoint_on hd)
     (λ n, encodable.Union_decode₂_cases d.has_empty h) }
 

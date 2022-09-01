@@ -878,8 +878,6 @@ add_tactic_doc
   tags       := ["induction"],
   inherit_description_from := `tactic.interactive.rintro }
 
-setup_tactic_parser
-
 /-- Parses `patt? (: expr)? (:= expr)?`, the arguments for `obtain`.
  (This is almost the same as `rcases_patt_parse`,
 but it allows the pattern part to be empty.) -/

@@ -503,9 +503,10 @@ classical.dec_pred _
 `add_submonoid.multiples a`, sending `i` to `i • a`."]
 noncomputable def fin_equiv_powers [finite G] (x : G) :
   fin (order_of x) ≃ (submonoid.powers x : set G) :=
-equiv.of_bijective (λ n, ⟨x ^ ↑n, ⟨n, rfl⟩⟩) ⟨λ ⟨i, hi⟩ ⟨j, hj⟩ ij,
-  subtype.mk_eq_mk.2 (pow_injective_of_lt_order_of x hi hj (subtype.mk_eq_mk.1 ij)),
-  λ ⟨_, i, rfl⟩, ⟨⟨i % order_of x, mod_lt i (order_of_pos x)⟩, subtype.eq pow_eq_mod_order_of.symm⟩⟩
+equiv.of_bijective (λ n, ⟨x ^ ↑n, ⟨n, rfl⟩⟩)
+  ⟨λ ⟨i, hi⟩ ⟨j, hj⟩ ij, fin.ext (pow_injective_of_lt_order_of x hi hj (subtype.mk_eq_mk.1 ij)),
+   λ ⟨_, i, rfl⟩, ⟨⟨i % order_of x, mod_lt i (order_of_pos x)⟩,
+    subtype.eq pow_eq_mod_order_of.symm⟩⟩
 
 @[simp, to_additive fin_equiv_multiples_apply]
 lemma fin_equiv_powers_apply [finite G] {x : G} {n : fin (order_of x)} :

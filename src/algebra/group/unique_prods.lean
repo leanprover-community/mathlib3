@@ -62,18 +62,29 @@ of_exists_unique h.some_spec
 
 /--  `unique_mul` is preserved under injective, multiplicative maps. -/
 @[to_additive "`unique_add` is preserved under injective, additive maps."]
-lemma of_mul_hom (f : G →ₙ* H) (hf : function.injective f)
+lemma mul_hom_image (f : G →ₙ* H) (hf : function.injective f)
   (aA : a0 ∈ A) (bB : b0 ∈ B) (u : unique_mul A B a0 b0) :
   unique_mul (A.image f) (B.image f) (f a0) (f b0) :=
 begin
   intros a b aA bB ab,
-  obtain ⟨a, ha, rfl⟩ : ∃ (a' : G), a' ∈ A ∧ f a' = a,
-  { simpa only [finset.mem_image, exists_prop] using aA },
-  obtain ⟨b, hb, rfl⟩ : ∃ (b' : G), b' ∈ B ∧ f b' = b,
-  { simpa only [finset.mem_image, exists_prop] using bB },
+  obtain ⟨a, ha, rfl⟩ : ∃ a' ∈ A, f a' = a := finset.mem_image.mp aA,
+  obtain ⟨b, hb, rfl⟩ : ∃ b' ∈ B, f b' = b := finset.mem_image.mp bB,
   rw [hf.eq_iff, hf.eq_iff],
   rw [← map_mul, ← map_mul, hf.eq_iff] at ab,
   exact u ha hb ab,
+end
+
+/--  `unique_mul` is preserved by inverse images under injective, multiplicative maps. -/
+@[to_additive "`unique_add` is preserved by inverse images under injective, additive maps."]
+lemma mul_hom_preimage (f : G →ₙ* H) (hf : function.injective f) (a0 b0 : G) {A B : finset H}
+  (fa : f a0 ∈ A) (fb : f b0 ∈ B) (u : unique_mul A B (f a0) (f b0)) :
+  unique_mul (A.preimage f (set.inj_on_of_injective hf _))
+    (B.preimage f (set.inj_on_of_injective hf _)) a0 b0 :=
+begin
+  intros a b ha hb ab,
+  rw [← hf.eq_iff, ← hf.eq_iff],
+  rw [← hf.eq_iff, map_mul, map_mul] at ab,
+  exact u (finset.mem_preimage.mp ha) (finset.mem_preimage.mp hb) ab,
 end
 
 end unique_mul

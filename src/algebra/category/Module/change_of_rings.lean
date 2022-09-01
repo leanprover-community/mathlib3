@@ -14,10 +14,12 @@ import ring_theory.tensor_product
 * `category_theory.Module.restrict_scalars`: given rings `R, S` and a ring homomorphism `R ⟶ S`,
   then `restrict_scalars : Module S ⥤ Module R` is defined by `M ↦ M` where `M : S-module` is seen
   as `R-module` by `r • m := f r • m` and `S`-linear map `l : M ⟶ M'` is `R`-linear as well.
+
 * `category_theory.Module.extend_scalars`: given **commutative** rings `R, S` and ring homomorphism
   `f : R ⟶ S`, then `extend_scalars : Module R ⥤ Module S` is defined by `M ↦ S ⨂ M` where the
   module structure is defined by `s • (s' ⊗ m) := (s * s') ⊗ m` and `R`-linear map `l : M ⟶ M'`
   is sent to `S`-linear map `s ⊗ m ↦ s ⊗ l m : S ⨂ M ⟶ S ⨂ M'`.
+
 * `category_theory.Module.coextend_scalars`: given rings `R, S` and a ring homomorphism `R ⟶ S`m
   then `coextend_scalars : Module R ⥤ Module S` is defined by `M ↦ (S →ₗ[R] M)` where `S` is seen as
   `R-module` by restriction of scalars and `l ↦ l ∘ _`.

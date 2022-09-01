@@ -3,11 +3,58 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.finset.lattice
-import data.real.basic
-import data.zmod.basic
+import data.finset.preimage
+
 /-!
 #  Unique products and related notions
+
+A group `G` has *unique products* is for any two non-empty finite subsets `A, B ⊂ G`, there is an
+element `g ∈ A * B` that can be written uniquely as a product of an element of `A` and an element
+of `B`.  We call the formalization this property `unique_prods`.  Since the condition requires no
+property of the group operation, we define it for a Type simply satisfying `has_mul`.  We also
+introduce the analogous "additive" companion, `unique_sums` and link the two so that `to_additive`
+converts `unique_prods` into `unique_sums`.
+
+Here you can see several examples of Types that have `unique_sums/prods`
+(`apply_instance` uses `covariants.to_unique_prods` and `covariants.to_unique_sums`).
+```lean
+import data.real.basic
+
+example : unique_sums ℕ   := by apply_instance
+example : unique_sums ℕ+  := by apply_instance
+example : unique_sums ℤ   := by apply_instance
+example : unique_sums ℚ   := by apply_instance
+example : unique_sums ℝ   := by apply_instance
+example : unique_prods ℕ+ := by apply_instance
+```
+
+A Type that does not have `unique_prods`.
+```lean
+example : ¬ unique_prods ℕ :=
+begin
+  rintros ⟨h⟩,
+  refine not_not.mpr (h (finset.singleton_nonempty 0) (finset.insert_nonempty 0 {1})) _,
+  suffices : (∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 0) ∧ ∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 1,
+  { simpa [unique_mul] },
+  exact ⟨⟨1, by simp⟩, ⟨0, by simp⟩⟩,
+end
+```
+
+A Type that does not have `unique_sums`.
+```lean
+import data.zmod.basic
+
+example (n : ℕ) (n2 : 2 ≤ n): ¬ unique_sums (zmod n) :=
+begin
+  haveI : fintype (zmod n) := @zmod.fintype n ⟨(zero_lt_two.trans_le n2).ne'⟩,
+  haveI : nontrivial (zmod n) := char_p.nontrivial_of_char_ne_one (one_lt_two.trans_le n2).ne',
+  rintros ⟨h⟩,
+  refine not_not.mpr (h finset.univ_nonempty finset.univ_nonempty) _,
+  suffices : ∀ (x y : zmod n), ∃ (x' y' : zmod n), x' + y' = x + y ∧ (x' = x → ¬y' = y),
+  { simpa [unique_add] },
+  exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
+end
+```
 -/
 
 /--  Let `G` be a Type with multiplication, let `A B : finset G` be finite subsets and
@@ -164,33 +211,3 @@ instance covariants.to_unique_prods {A} [has_mul A] [linear_order A]
   [contravariant_class A A (*) (≤)] : unique_prods A :=
 { muls := λ A B hA hB, ⟨_, A.min'_mem ‹_›, _, B.min'_mem ‹_›, λ a b ha hb ab,
     eq_and_eq_of_le_of_le_of_mul_eq (finset.min'_le _ _ ‹_›) (finset.min'_le _ _ ‹_›) ‹_›⟩ }
-
-/--  Here you can see several examples of Types that have `unique_sums/prods`. -/
-example : unique_sums ℕ   := by apply_instance
-example : unique_sums ℕ+  := by apply_instance
-example : unique_sums ℤ   := by apply_instance
-example : unique_sums ℚ   := by apply_instance
-example : unique_sums ℝ   := by apply_instance
-example : unique_prods ℕ+ := by apply_instance
-
-/--  A Type that does not have `unique_prods`. -/
-example : ¬ unique_prods ℕ :=
-begin
-  rintros ⟨h⟩,
-  refine not_not.mpr (h (finset.singleton_nonempty 0) (finset.insert_nonempty 0 {1})) _,
-  suffices : (∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 0) ∧ ∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 1,
-  { simpa [unique_mul] },
-  exact ⟨⟨1, by simp⟩, ⟨0, by simp⟩⟩,
-end
-
-/--  A Type that does not have `unique_sums`. -/
-example (n : ℕ) (n2 : 2 ≤ n): ¬ unique_sums (zmod n) :=
-begin
-  haveI : fintype (zmod n) := @zmod.fintype n ⟨(zero_lt_two.trans_le n2).ne'⟩,
-  haveI : nontrivial (zmod n) := char_p.nontrivial_of_char_ne_one (one_lt_two.trans_le n2).ne',
-  rintros ⟨h⟩,
-  refine not_not.mpr (h finset.univ_nonempty finset.univ_nonempty) _,
-  suffices : ∀ (x y : zmod n), ∃ (x' y' : zmod n), x' + y' = x + y ∧ (x' = x → ¬y' = y),
-  { simpa [unique_add] },
-  exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
-end

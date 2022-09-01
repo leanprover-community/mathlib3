@@ -91,7 +91,7 @@ begin
     have H_ne : (set.Ioi θI).nonempty := ⟨1, _⟩,
     simpa only [this, interior_Iic' H_ne, ← set.Iio_def, set.mem_set_of_eq, not_lt,
       ← subtype.coe_le_coe] using h,
-    simpa only [set.mem_Ioi, ← subtype.coe_lt_coe, subtype.coe_mk, coe_one] using
+    simpa only [set.mem_Ioi, ← subtype.coe_lt_coe, subtype.coe_mk, set.Icc.coe_one] using
       lt_of_not_ge h_θ_1, },
   { exact le_of_lt (lt_of_lt_of_le (lt_of_not_ge h_θ_0) t.2.1) },
 end
@@ -111,8 +111,8 @@ variables {X : Type u} [topological_space X]
 
 instance {x y : X} : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 
-instance {x y : X} : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
-  continuous_map.compact_open
+instance {x y : X} : topological_space (path x y) :=
+  topological_space.induced (coe : _ → C(↥I, X)) continuous_map.compact_open
 
 lemma continuous_eval {x y : X} : continuous (λ p : I × path x y, p.2 p.1) :=
 (continuous_eval'.comp $ continuous_induced_dom.prod_map (@continuous_id I _)).comp continuous_swap
@@ -121,7 +121,7 @@ end path
 
 namespace H_space
 
-open path continuous_map
+open path continuous_map set.Icc
 
 class H_space (X : Type u) [topological_space X]  :=
 (Hmul : X × X → X)
@@ -225,6 +225,8 @@ begin
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
 end
 
+example : ((1 : I) : ℝ) = (1 : ℝ) := set.Icc.coe_one
+
 /- This is the function defined on p. 475 of Serre's *Homologie singulière des espaces fibrés*
 defining a homotopy from a path `γ` to the product `γ ∧ e`.-/
 def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
@@ -241,7 +243,7 @@ def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
   end,
   source' :=
   begin
-    simp only [coe_zero, path.source, mul_zero, zero_sub, ite_eq_left_iff, not_le],
+    simp only [coe_one, coe_zero, path.source, mul_zero, zero_sub, ite_eq_left_iff, not_le],
     intro h,
     contrapose! h,
     exact div_nonneg θ.2.1 zero_le_two,

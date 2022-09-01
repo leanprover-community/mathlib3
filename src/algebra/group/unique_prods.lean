@@ -88,9 +88,12 @@ begin
   { exact (lt_irrefl _ ((mul_lt_mul_of_lt_of_le h hb).trans_le ab.le)).elim }
 end
 
-/--  This instance is asserting that `A` has an operation and a linear order and the operation
-is "very monotone". -/
-@[to_additive ] instance covariants.to_unique_prods {A} [has_mul A] [linear_order A]
+/--  This instance asserts that if `A` has an multiplication and a linear order and multiplication
+is 'very monotone', then `A` also has `unique_prods`. -/
+@[priority 100,  -- see Note [lower instance priority]
+to_additive "This instance asserts that if `A` has an addition and a linear order and addition
+is 'very monotone', then `A` also has `unique_sums`."]
+instance covariants.to_unique_prods {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]
   [contravariant_class A A (*) (≤)] : unique_prods A :=
 { muls := λ A B hA hB, ⟨_, A.min'_mem ‹_›, _, B.min'_mem ‹_›, λ a b ha hb ab,

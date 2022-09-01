@@ -503,9 +503,6 @@ def to_units [group G] : G ≃* Gˣ :=
 @[simp, to_additive] lemma coe_to_units [group G] (g : G) :
   (to_units g : G) = g := rfl
 
-@[to_additive]
-protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
-
 namespace units
 
 variables [monoid M] [monoid N] [monoid P]

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.order.field_defs
+import algebra.order.with_zero
 
 /-!
 # Linear ordered (semi)fields
@@ -450,6 +451,8 @@ end
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
+lemma two_inv_lt_one : (2⁻¹ : α) < 1 := (one_div _).symm.trans_lt one_half_lt_one
+
 lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mul_two]
 
 lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]
@@ -852,3 +855,10 @@ theorem nat.cast_le_pow_div_sub (H : 1 < a) (n : ℕ) : (n : α) ≤ a ^ n / (a 
   (sub_le_self _ zero_le_one)
 
 end
+
+section canonically_linear_ordered_semifield
+variables [canonically_linear_ordered_semifield α] [has_sub α] [has_ordered_sub α]
+
+lemma tsub_div (a b c : α) : (a - b) / c = a / c - b / c := by simp_rw [div_eq_mul_inv, tsub_mul]
+
+end canonically_linear_ordered_semifield

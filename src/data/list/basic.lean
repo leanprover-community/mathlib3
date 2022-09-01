@@ -2749,6 +2749,18 @@ begin
     { simpa [hl] } }
 end
 
+-- This should probably go to `data.list.basic` at the end of the `pmap` section
+lemma pmap_append {p : ι → Prop} (f : Π (a : ι), p a → α) (l₁ l₂ : list ι)
+  (h : ∀ (a : ι), a ∈ l₁ ++ l₂ → p a) :
+  (l₁ ++ l₂).pmap f h = l₁.pmap f (λ a ha, h a (mem_append_left l₂ ha)) ++
+                        l₂.pmap f (λ a ha, h a (mem_append_right l₁ ha)) :=
+begin
+  induction l₁ with _ _ ih,
+  { refl, },
+  { dsimp only [pmap, cons_append],
+    rw ih, }
+end
+
 /-! ### find -/
 
 section find

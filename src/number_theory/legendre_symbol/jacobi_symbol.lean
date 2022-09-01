@@ -61,29 +61,6 @@ section nat
 
 open nat
 
--- The following five lemmas should probably go to `data.nat.parity`, perhaps at the end.
-/-- If `a` is even, then `n` is odd iff `n % a` is odd. -/
-lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd (n % a) ↔ odd n :=
-((even_sub' $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
-   dvd_sub_mod n).symm
-
-/-- If `a` is even, then `n` is even iff `n % a` is even. -/
-lemma even.mod_even_iff {n a : ℕ} (ha : even a) : even (n % a) ↔ even n :=
-((even_sub $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
-   dvd_sub_mod n).symm
-
-/-- If `n` is odd and `a` is even, then `n % a` is odd. -/
-lemma odd.mod_even {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
-(odd.mod_even_iff ha).mpr hn
-
-/-- If `n` is even and `a` is even, then `n % a` is even. -/
-lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
-(even.mod_even_iff ha).mpr hn
-
-/-- `2` is not a prime factor of an odd natural number. -/
-lemma odd.factors_ne_two {n p : ℕ} (hn : odd n) (hp : p ∈ n.factors) : p ≠ 2 :=
-by { rintro rfl, exact two_dvd_ne_zero.mpr (odd_iff.mp hn) (dvd_of_mem_factors hp) }
-
 -- Where should this go? `data.nat.factorization.basic`, perhaps directly after `le_of_mem_factors`,
 -- would seem a good place, but `data.nat.parity` is not imported, which is needed for the proof.
 /-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
@@ -94,27 +71,6 @@ lemma nat.two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ 
  (ord_proj_mul_ord_compl_eq_self a 2).symm⟩
 
 end nat
-
-namespace int
-
--- The following four lemmas should probably go to `ring_theory.int.basic`
--- after `int.gcd_eq_one_iff_coprime`.
-/-- If `gcd a (m * n) ≠ 1`, then `gcd a m ≠ 1` or `gcd a n ≠ 1`. -/
-lemma gcd_ne_one_iff_gcd_mul_right_ne_one {a : ℤ} {m n : ℕ} :
-  a.gcd (m * n) ≠ 1 ↔ a.gcd m ≠ 1 ∨ a.gcd n ≠ 1 :=
-by simp only [gcd_eq_one_iff_coprime, ← not_and_distrib, not_iff_not, is_coprime.mul_right_iff]
-
-/-- If `gcd a (m * n) = 1`, then `gcd a m = 1`. -/
-lemma gcd_eq_one_of_gcd_mul_right_eq_one_left {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) :
-  a.gcd m = 1 :=
-nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_right_right a m n) h
-
-/-- If `gcd a (m * n) = 1`, then `gcd a n = 1`. -/
-lemma gcd_eq_one_of_gcd_mul_right_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) :
-  a.gcd n = 1 :=
-nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_left_right a n m) h
-
-end int
 
 namespace zmod
 
@@ -139,22 +95,6 @@ lemma eq_zero_of_gcd_ne_one {a : ℤ} {p : ℕ} (pp : p.prime) (h : a.gcd p ≠ 
 (@eq_zero_iff_gcd_ne_one a p ⟨pp⟩).mpr h
 
 end zmod
-
-namespace list
-
--- This should probably go to `data.list.basic` at the end of the `pmap` section
-lemma pmap_append {α β : Type*} {p : α → Prop} (f : Π (a : α), p a → β) (l₁ l₂ : list α)
-  (h : ∀ (a : α), a ∈ l₁ ++ l₂ → p a) :
-  (l₁ ++ l₂).pmap f h = l₁.pmap f (λ a ha, h a (mem_append_left l₂ ha)) ++
-                        l₂.pmap f (λ a ha, h a (mem_append_right l₁ ha)) :=
-begin
-  induction l₁ with _ _ ih,
-  { refl, },
-  { dsimp only [pmap, cons_append],
-    rw ih, }
-end
-
-end list
 
 section jacobi
 

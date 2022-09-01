@@ -331,7 +331,7 @@ end
 
 /-- Predicate for the hypotheses of the Picard-Lindelöf theorem -/
 @[reducible] def is_picard_lindelof
-  [complete_space E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (x₀ : E) : Prop :=
+  {E : Type*} [normed_add_comm_group E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (x₀ : E) : Prop :=
 ∃ (L : nnreal) (R C : ℝ) (hR : 0 ≤ R),
 (∀ (t : ℝ), t ∈ set.Icc t_min t_max → lipschitz_on_with L (v t) (metric.closed_ball x₀ R)) ∧
 (∀ (x : E), x ∈ metric.closed_ball x₀ R → continuous_on (λ (t : ℝ), v t x) (set.Icc t_min t_max)) ∧
@@ -425,26 +425,21 @@ begin
   cases hbbd with C hC,
   set ε := if C = 0 then 1 else (r / 2 / C) with hε,
   use ε,
-  have hε' : ε > 0,
+  have hε' : 0 < ε,
   { rw hε,
     split_ifs,
     { exact zero_lt_one },
-    rw gt,
     rw lt_div_iff,
-    { rw lt_div_iff zero_lt_two,
-      rw zero_mul,
-      rw zero_mul,
+    { rw [lt_div_iff zero_lt_two, zero_mul, zero_mul],
       exact hr,
       apply_instance },
     { have : ∥v x₀∥ ≤ C,
       { apply hC,
         rw set.mem_image,
         use x₀,
-        rw metric.mem_closed_ball,
-        rw dist_self,
+        rw [metric.mem_closed_ball, dist_self],
         refine ⟨_, rfl⟩,
-        rw le_div_iff zero_lt_two,
-        rw zero_mul,
+        rw [le_div_iff zero_lt_two, zero_mul],
         exact le_of_lt hr,
         apply_instance },
       apply lt_of_le_of_ne _ (ne.symm h),
@@ -456,11 +451,9 @@ begin
     apply le_of_lt,
     exact hε' },
   -- show is_picard_lindelof
-  use L,
-  use r / 2,
-  use C,
-  refine ⟨_, _, _, _, _⟩,
-  { linarith },
+  refine ⟨L, r / 2, C, _, _, _, _, _⟩,
+  { apply le_of_lt,
+    exact half_pos hr },
   { intros t ht,
     exact hlip' },
   { intros x hx,
@@ -475,10 +468,7 @@ begin
     exact hx },
   { rw [add_tsub_cancel_left, sub_sub_cancel, max_self, hε],
     split_ifs,
-    { rw h,
-      rw zero_mul,
-      rw le_div_iff zero_lt_two,
-      rw zero_mul,
+    { rw [h, zero_mul, le_div_iff zero_lt_two, zero_mul],
       exact le_of_lt hr,
       apply_instance },
     rw mul_div_cancel' _ h }
@@ -487,7 +477,7 @@ end
 /-- A time-independent, continuously differentiable ODE admits a solution in some open interval. -/
 theorem ODE_solution_exists.at_ball_of_cont_diff
   [proper_space E] (v : E → E) (hv : cont_diff ℝ 1 v) (t₀ : ℝ) (x₀ : E) :
-  ∃ (ε : ℝ) (hε : ε > 0) (f : ℝ → E), f t₀ = x₀ ∧
+  ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
     ∀ t ∈ metric.ball t₀ ε, has_deriv_at f (v (f t)) t :=
 begin
   have h := time_indep_cont_diff_is_picard_lindelof v hv t₀ x₀,

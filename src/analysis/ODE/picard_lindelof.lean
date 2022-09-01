@@ -332,7 +332,7 @@ end
 /-- Predicate for the hypotheses of the Picard-Lindelöf theorem -/
 @[reducible] def is_picard_lindelof
   {E : Type*} [normed_add_comm_group E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (x₀ : E) : Prop :=
-∃ (L : nnreal) (R C : ℝ) (hR : 0 ≤ R),
+∃ (L : ℝ≥0) (R C : ℝ) (hR : 0 ≤ R),
 (∀ (t : ℝ), t ∈ set.Icc t_min t_max → lipschitz_on_with L (v t) (metric.closed_ball x₀ R)) ∧
 (∀ (x : E), x ∈ metric.closed_ball x₀ R → continuous_on (λ (t : ℝ), v t x) (set.Icc t_min t_max)) ∧
 (∀ (t : ℝ), t ∈ set.Icc t_min t_max → ∀ (x : E), x ∈ metric.closed_ball x₀ R → ∥v t x∥ ≤ C) ∧

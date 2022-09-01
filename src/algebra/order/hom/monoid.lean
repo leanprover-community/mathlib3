@@ -76,6 +76,7 @@ set_option old_structure_cmd true
 /-- `order_add_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_add_monoid_hom`. -/
+@[ancestor add_monoid_hom_class]
 class order_add_monoid_hom_class (F : Type*) (α β : out_param $ Type*) [preorder α] [preorder β]
   [add_zero_class α] [add_zero_class β]
   extends add_monoid_hom_class F α β :=
@@ -112,13 +113,11 @@ set_option old_structure_cmd true
 /-- `order_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_monoid_hom`. -/
-@[to_additive]
+@[ancestor monoid_hom_class, to_additive]
 class order_monoid_hom_class (F : Type*) (α β : out_param $ Type*)
   [preorder α] [preorder β] [mul_one_class α] [mul_one_class β]
   extends monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
-
-attribute [to_additive] order_monoid_hom_class.to_monoid_hom_class
 
 end
 

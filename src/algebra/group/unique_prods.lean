@@ -184,6 +184,15 @@ instance {M} [has_add M] [unique_sums M] : unique_prods (multiplicative M) :=
 
 end multiplicative
 
+namespace additive
+
+instance {M} [has_mul M] [unique_prods M] : unique_sums (additive M) :=
+{ adds := λ A B hA hB, let A' : finset M := A in have hA': A'.nonempty := hA, by
+    { obtain ⟨a0, hA0, b0, hB0, J⟩ := unique_prods.muls hA' hB,
+      exact ⟨of_mul a0, hA0, of_mul b0, hB0, λ a b aA bB H, J aA bB H⟩ } }
+
+end additive
+
 --  please, golf me and rename me!
 @[to_additive] lemma eq_and_eq_of_le_of_le_of_mul_eq {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]

@@ -454,6 +454,25 @@ begin
   exact hx' _ ⟨_, hy, rfl⟩,
 end
 
+lemma upper_set_two_pow {s : set ℕ} (hs : ∀ x y, x ≼ y → x ∈ s → y ∈ s) (hs' : ∃ n : ℕ, 2 ^ n ∉ s)
+  (hs'' : 1 ∈ s) :
+  ∃ n : ℕ, ∀ m, m ≤ n ↔ 2 ^ m ∈ s :=
+begin
+  let s' : set ℕ := {n : ℕ | 2 ^ n ∈ s},
+  have h₁s' : bdd_above s',
+  { obtain ⟨n, hn⟩ := hs',
+    refine ⟨n, λ m (hm : 2 ^ m ∈ s), _⟩,
+    by_contra',
+    refine hn (hs _ _ _ hm),
+    rw two_pow_le_two_pow_iff,
+    exact this.le },
+  have h₂s' : s'.nonempty := ⟨0, hs''⟩,
+  refine ⟨Sup s', λ m, ⟨λ hm, _, le_cSup h₁s'⟩⟩,
+  rw ←two_pow_le_two_pow_iff at hm,
+  refine hs _ _ hm _,
+  exact nat.Sup_mem h₂s' h₁s',
+end
+
 @[simp] lemma doubling_iff {n m : ℕ} : 2 * n ≼ 2 * m ↔ n ≼ m :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
@@ -510,7 +529,14 @@ begin
       not_exists] at t,
     obtain ⟨x, hx, hx'⟩ := sharkovsky.exists_min t,
     exact h' x (set.subset.antisymm hx' (h.Ici_subset hx)) },
-
+  refine set.subset.antisymm this _,
+  by_contra' t,
+  simp only [set.subset_def, not_forall, set.mem_range, exists_exists_eq_and, exists_prop] at t,
+  obtain ⟨n, hn⟩ := upper_set_two_pow h'' t hs,
+  -- apply h' (2 ^ n),
+  -- ext m,
+  -- induction m using sharkovsky.rec,
+  -- simp only [set.mem_Ici],
 end
 
 #exit

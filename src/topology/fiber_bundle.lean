@@ -377,14 +377,40 @@ def preimage_homeomorph {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s ≃�
   (e.image_preimage_eq_prod_univ hb)).trans
   ((homeomorph.set.prod s univ).trans ((homeomorph.refl s).prod_congr (homeomorph.set.univ F)))
 
+@[simp] lemma preimage_homeomorph_apply {s : set B} (hb : s ⊆ e.base_set) (p : proj ⁻¹' s) :
+  e.preimage_homeomorph hb p = (⟨proj p, p.2⟩, (e p).2) :=
+prod.ext (subtype.ext (e.proj_to_fun p (e.mem_source.mpr (hb p.2)))) rfl
+
+@[simp] lemma preimage_homeomorph_symm_apply {s : set B} (hb : s ⊆ e.base_set) (p : s × F) :
+  (e.preimage_homeomorph hb).symm p = ⟨e.symm (p.1, p.2), ((e.preimage_homeomorph hb).symm p).2⟩ :=
+rfl
+
 /-- The source is homeomorphic to the product of the base set with the fiber. -/
 def source_homeomorph_base_set_prod : e.source ≃ₜ e.base_set × F :=
 (homeomorph.set_congr e.source_eq).trans (e.preimage_homeomorph subset_rfl)
+
+@[simp] lemma source_homeomorph_base_set_prod_apply (p : e.source) :
+  e.source_homeomorph_base_set_prod p = (⟨proj p, e.mem_source.mp p.2⟩, (e p).2) :=
+e.preimage_homeomorph_apply subset_rfl ⟨p, e.mem_source.mp p.2⟩
+
+@[simp] lemma source_homeomorph_base_set_prod_symm_apply (p : e.base_set × F) :
+  e.source_homeomorph_base_set_prod.symm p =
+    ⟨e.symm (p.1, p.2), (e.source_homeomorph_base_set_prod.symm p).2⟩ :=
+rfl
 
 /-- Each fiber of a trivialization is homeomorphic to the specified fiber. -/
 def preimage_singleton_homeomorph {b : B} (hb : b ∈ e.base_set) : proj ⁻¹' {b} ≃ₜ F :=
 (e.preimage_homeomorph (set.singleton_subset_iff.mpr hb)).trans (((homeomorph.homeomorph_of_unique
   ({b} : set B) punit).prod_congr (homeomorph.refl F)).trans (homeomorph.punit_prod F))
+
+@[simp] lemma preimage_singleton_homeomorph_apply {b : B} (hb : b ∈ e.base_set)
+  (p : proj ⁻¹' {b}) : e.preimage_singleton_homeomorph hb p = (e p).2 :=
+rfl
+
+@[simp] lemma preimage_singleton_homeomorph_symm_apply {b : B} (hb : b ∈ e.base_set)
+  (p : F) : (e.preimage_singleton_homeomorph hb).symm p =
+    ⟨e.symm (b, p), ((e.preimage_singleton_homeomorph hb).symm p).2⟩ :=
+rfl
 
 /-- In the domain of a bundle trivialization, the projection is continuous-/
 lemma continuous_at_proj (ex : x ∈ e.source) : continuous_at proj x :=

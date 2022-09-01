@@ -145,6 +145,28 @@ end
 
 end aux
 
+section seminorm_aux
+
+/-- Helper definition for the seminorms of the Schwartz space. -/
+@[protected]
+def seminorm_aux (k n : ℕ) (f : 𝓢(E, F)) : ℝ :=
+Inf {c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c}
+
+lemma seminorm_aux_nonneg (k n : ℕ) (f : 𝓢(E, F)) : 0 ≤ f.seminorm_aux k n :=
+le_cInf (bounds_nonempty k n f) (λ _ ⟨hx, _⟩, hx)
+
+lemma le_seminorm_aux (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n ⇑f x∥ ≤ f.seminorm_aux k n :=
+le_cInf (bounds_nonempty k n f) (λ y ⟨_, h⟩, h x)
+
+/-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
+lemma seminorm_aux_le_bound (k n : ℕ) (f : 𝓢(E, F)) {M : ℝ} (hMp: 0 ≤ M)
+  (hM : ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ M) :
+  f.seminorm_aux k n ≤ M :=
+cInf_le (bounds_bdd_below k n f) ⟨hMp, hM⟩
+
+end seminorm_aux
+
 /-! ### Algebraic properties -/
 
 section smul
@@ -185,6 +207,15 @@ instance [has_smul R R'] [is_scalar_tower R R' F] : is_scalar_tower R R' 𝓢(E,
 instance [smul_comm_class R R' F] : smul_comm_class R R' 𝓢(E, F) :=
 ⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
 
+lemma seminorm_aux_smul_le (k n : ℕ) (r : ℂ) (f : 𝓢(E, F)) :
+  (r • f).seminorm_aux k n ≤ ∥r∥ * f.seminorm_aux k n :=
+begin
+  refine (r • f).seminorm_aux_le_bound k n (mul_nonneg (norm_nonneg _) (seminorm_aux_nonneg _ _ _))
+    (λ x, (decay_smul_aux' k n f r x).le.trans _),
+  rw mul_assoc,
+  exact mul_le_mul_of_nonneg_left (f.le_seminorm_aux k n x) (norm_nonneg _),
+end
+
 end smul
 
 section zero
@@ -201,6 +232,11 @@ lemma coe_zero : ↑(0 : 𝓢(E, F)) = (0 : E → F) := rfl
 @[simp] lemma coe_fn_zero : coe_fn (0 : 𝓢(E, F)) = (0 : E → F) := rfl
 
 @[simp] lemma zero_apply {x : E} : (0 : 𝓢(E, F)) x = 0 := rfl
+
+lemma seminorm_aux_zero (k n : ℕ) :
+  (0 : 𝓢(E, F)).seminorm_aux k n = 0 :=
+le_antisymm (seminorm_aux_le_bound k n _ rfl.le (λ _, by simp [pi.zero_def]))
+  (seminorm_aux_nonneg _ _ _)
 
 end zero
 
@@ -229,6 +265,13 @@ instance : has_add 𝓢(E, F) :=
   end⟩ ⟩
 
 @[simp] lemma add_apply {f g : 𝓢(E, F)} {x : E} : (f + g) x = f x + g x := rfl
+
+lemma seminorm_aux_add_le (k n : ℕ) (f g : 𝓢(E, F)) :
+  (f + g).seminorm_aux k n ≤ f.seminorm_aux k n + g.seminorm_aux k n :=
+(f + g).seminorm_aux_le_bound k n
+  (add_nonneg (seminorm_aux_nonneg _ _ _) (seminorm_aux_nonneg _ _ _)) $
+  λ x, (decay_add_le_aux k n f g x).trans $
+  add_le_add (f.le_seminorm_aux k n x) (g.le_seminorm_aux k n x)
 
 end add
 
@@ -290,55 +333,7 @@ section seminorms
 
 /-! ### Seminorms on Schwartz space-/
 
-/-- Helper definition for the seminorms of the Schwartz space. -/
-@[protected]
-def seminorm_aux (k n : ℕ) (f : 𝓢(E, F)) : ℝ :=
-Inf {c | 0 ≤ c ∧ ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ c}
-
-lemma seminorm_aux_nonneg (k n : ℕ) (f : 𝓢(E, F)) : 0 ≤ f.seminorm_aux k n :=
-le_cInf (bounds_nonempty k n f) (λ _ ⟨hx, _⟩, hx)
-
-lemma le_seminorm_aux (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
-  ∥x∥ ^ k * ∥iterated_fderiv ℝ n ⇑f x∥ ≤ f.seminorm_aux k n :=
-le_cInf (bounds_nonempty k n f) (λ y ⟨_, h⟩, h x)
-
-section
-
-open tactic tactic.positivity
-
-/-- Extension for the `positivity` tactic: seminorms are nonnegative. -/
-@[positivity]
-meta def _root_.tactic.positivity_schwartz_seminorm_aux : expr → tactic strictness
-| `(schwartz_map.seminorm_aux %%a %%b %%c) := nonnegative <$> mk_app ``seminorm_aux_nonneg [a, b, c]
-| _ := failed
-
-end
-
-/-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
-lemma seminorm_aux_le_bound (k n : ℕ) (f : 𝓢(E, F)) {M : ℝ} (hMp: 0 ≤ M)
-  (hM : ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ M) :
-  f.seminorm_aux k n ≤ M :=
-cInf_le (bounds_bdd_below k n f) ⟨hMp, hM⟩
-
-lemma seminorm_aux_zero (k n : ℕ) :
-  (0 : 𝓢(E, F)).seminorm_aux k n = 0 :=
-le_antisymm (seminorm_aux_le_bound k n _ rfl.le (λ _, by simp [pi.zero_def])) (by positivity)
-
-lemma seminorm_aux_add_le (k n : ℕ) (f g : 𝓢(E, F)) :
-  (f + g).seminorm_aux k n ≤ f.seminorm_aux k n + g.seminorm_aux k n :=
-(f + g).seminorm_aux_le_bound k n (by positivity) $ λ x, (decay_add_le_aux k n f g x).trans $
-  add_le_add (f.le_seminorm_aux k n x) (g.le_seminorm_aux k n x)
-
 variables [normed_space ℂ F]
-
-lemma seminorm_aux_smul_le (k n : ℕ) (r : ℂ) (f : 𝓢(E, F)) :
-  (r • f).seminorm_aux k n ≤ ∥r∥ * f.seminorm_aux k n :=
-begin
-  refine (r • f).seminorm_aux_le_bound k n (by positivity) (λ x, _),
-  refine (decay_smul_aux' k n f r x).le.trans _,
-  rw mul_assoc,
-  exact mul_le_mul_of_nonneg_left (f.le_seminorm_aux k n x) (norm_nonneg _),
-end
 
 /-- The seminorms of the Schwartz space -/
 @[protected]
@@ -361,7 +356,6 @@ section topology
 
 variables (E F)
 variables [normed_space ℂ F]
-
 
 /-- The family of Schwartz seminorms. -/
 def _root_.schwartz_seminorm_family : seminorm_family ℂ 𝓢(E, F) (ℕ × ℕ) :=

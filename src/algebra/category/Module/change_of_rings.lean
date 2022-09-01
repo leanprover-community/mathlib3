@@ -160,18 +160,10 @@ variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →
 
 end extend_scalars
 
-end category_theory.Module
-
-namespace change_of_rings
-
-universes u₁ u₂
-
 namespace extension_restriction_adj
 
 open_locale change_of_rings
 open tensor_product
-
-universes v
 
 variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
 
@@ -179,17 +171,15 @@ variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →
 Given `R`-module X and `S`-module Y and a map `(extension_of_scalars.functor f).obj X ⟶ Y`,
 there is a map `X ⟶ (restriction_of_scalars.functor f).obj Y`
 -/
-@[simps] def hom_equiv.to_restriction {X Y} (g : (extension_of_scalars.functor f).obj X ⟶ Y) :
-  X ⟶ (restriction_of_scalars.functor f).obj Y :=
-let m1 : module R S := module.comp_hom S f,
-    m2 : module R Y := module.comp_hom Y f in
-{ to_fun := λ x, g (x ⊗ₜ[R, f] 1),
-  map_add' := λ x x', by rw [tensor_product.add_tmul, map_add],
-  map_smul' := λ r x, begin
-    resetI,
-    rw [ring_hom.id_apply, smul_tmul, restriction_of_scalars.smul_def f ⟨S⟩],
-    change _ = f r • _,
-    rw [←linear_map.map_smul],
+@[simps] def hom_equiv.to_restrict_scalars {X Y} (g : (extend_scalars f).obj X ⟶ Y) :
+  X ⟶ (restrict_scalars f).obj Y :=
+{ to_fun := λ x, g $ (1 : S) ⊗ₜ[R, f] x,
+  map_add' := λ _ _, by rw [tmul_add, map_add],
+  map_smul' := λ r x,
+  begin
+    letI : module R S := module.comp_hom S f,
+    letI : module R Y := module.comp_hom Y f,
+    rw [ring_hom.id_apply, restrict_scalars.smul_def, ←linear_map.map_smul, tmul_smul],
     congr,
   end }
 
@@ -197,48 +187,33 @@ let m1 : module R S := module.comp_hom S f,
 Given `R`-module X and `S`-module Y and a map `X ⟶ (restriction_of_scalars.functor f).obj Y`,
 there is a map `(extension_of_scalars.functor f).obj X ⟶ Y`
 -/
-@[simps] def hom_equiv.to_extension {X Y} (g : X ⟶ (restriction_of_scalars.functor f).obj Y) :
-  (extension_of_scalars.functor f).obj X ⟶ Y :=
-{ to_fun := λ z,
-  let m1 := module.comp_hom S f,
-      m2 : module R Y := module.comp_hom Y f,
-      m3 : module S ((restriction_of_scalars.functor f).obj Y) := Y.is_module in
-  begin
-    resetI,
-    refine tensor_product.lift
-      { to_fun := λ x,
-          { to_fun := λ s, s • (g x : Y),
-            map_add' := _,
-            map_smul' := _, },
-        map_add' := _,
-        map_smul' := _ } z,
-    { intros, rw add_smul, },
-    { intros r s,
-      rw [ring_hom.id_apply],
-      calc  (r • s) • g x
-          = (f r * s) • g x : rfl
-      ... = f r • s • g x : by rw [mul_smul], },
-    { intros x y,
-      ext s,
-      simp only [linear_map.coe_mk, smul_add, linear_map.add_apply, map_add], },
-    { intros r x,
-      ext s,
-      simp only [linear_map.coe_mk, ring_hom.id_apply, linear_map.smul_apply,
-        linear_map.map_smul],
-      erw [← mul_smul, mul_comm, mul_smul],
-      refl, },
-  end,
-  map_add' := λ z1 z2, by simp only [map_add],
-  map_smul' := λ r z, begin
+@[simps] def hom_equiv.from_extend_scalars {X Y} (g : X ⟶ (restrict_scalars f).obj Y) :
+  (extend_scalars f).obj X ⟶ Y :=
+let m1 : module R S := module.comp_hom S f, m2 : module R Y := module.comp_hom Y f in
+begin
+  resetI,
+  refine ⟨λ z, tensor_product.lift ⟨λ s, ⟨_, _, _⟩, _, _⟩ z, _, _⟩,
+  { exact λ x, s • g x },
+  { intros, rw [map_add, smul_add], },
+  { intros, rw [ring_hom.id_apply, smul_comm, ←linear_map.map_smul], },
+  { intros, ext, simp only [linear_map.coe_mk, linear_map.add_apply], rw ←add_smul, },
+  { intros, ext,
+    simp only [linear_map.coe_mk, ring_hom.id_apply, linear_map.smul_apply,
+      restrict_scalars.smul_def, smul_eq_mul],
+    convert mul_smul _ _ _, },
+  { intros, rw [map_add], },
+  { intros r z,
     rw [ring_hom.id_apply],
     induction z using tensor_product.induction_on with x y x y ih1 ih2,
     { simp only [smul_zero, map_zero], },
-    { erw [extension_of_scalars.smul_pure_tensor],
+    { erw [extend_scalars.smul_tmul],
       simp [tensor_product.lift.tmul, mul_smul], },
     { simp only [smul_add, map_add],
       dsimp only at ih1 ih2,
-      rw [ih1, ih2], },
-  end }
+      rw [ih1, ih2], }, },
+end
+
+#exit
 
 /--
 Given `R`-module X and `S`-module Y, the linear maps `(extension_of_scalars.functor f).obj X ⟶ Y`
@@ -378,3 +353,5 @@ def adjunction : adjunction (extension_of_scalars.functor f) (restriction_of_sca
 end extension_restriction_adj
 
 end change_of_rings
+
+end category_theory.Module

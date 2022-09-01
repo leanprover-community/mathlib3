@@ -200,14 +200,12 @@ end additive
   {a b a0 b0 : A} (ha : a0 ≤ a) (hb : b0 ≤ b) (ab : a * b = a0 * b0) :
   a = a0 ∧ b = b0 :=
 begin
-  rcases trichotomous_of (<) a a0 with h | rfl | h,
-  { exact (lt_irrefl _ (h.trans_le ha)).elim },
-  { refine ⟨rfl, _⟩,
-    rcases trichotomous_of (<) b b0 with h | rfl | h,
-    { exact (lt_irrefl _ (h.trans_le hb)).elim },
-    { refl },
-    { exact le_antisymm (le_of_mul_le_mul_left' ab.le) ‹_› } },
-  { exact (lt_irrefl _ ((mul_lt_mul_of_lt_of_le h hb).trans_le ab.le)).elim }
+  haveI : covariant_class A A (function.swap (*)) (≤) := has_mul.to_covariant_class_right A,
+  contrapose! ab,
+  refine ((mul_le_mul' ha hb).lt_of_ne _).ne',
+  rcases eq_or_ne a a0 with rfl | ha0,
+  refine (_root_.mul_lt_mul_left' (hb.lt_of_ne (ab rfl).symm) _).ne,
+  exact (mul_lt_mul_of_lt_of_le (lt_of_le_of_ne ha ha0.symm) hb).ne,
 end
 
 /--  This instance asserts that if `A` has a multiplication, a linear order, and multiplication

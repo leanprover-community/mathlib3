@@ -301,6 +301,21 @@ begin
   convert h i,
 end
 
+lemma eq_of_locally_eq₂ {U₁ U₂ V : opens X}
+  (i₁ : U₁ ⟶ V) (i₂ : U₂ ⟶ V) (hcover : V ≤ U₁ ⊔ U₂)
+  (s t : F.1.obj (op V))
+  (h₁ : F.1.map i₁.op s = F.1.map i₁.op t)
+  (h₂ : F.1.map i₂.op s = F.1.map i₂.op t) : s = t :=
+begin
+  classical,
+  fapply F.eq_of_locally_eq' (λ t : ulift bool, if t.1 then U₁ else U₂),
+  { exact λ i, if h : i.1 then (eq_to_hom (if_pos h)) ≫ i₁ else (eq_to_hom (if_neg h)) ≫ i₂ },
+  { refine le_trans hcover _, rw sup_le_iff, split,
+    { convert le_supr (λ t : ulift bool, if t.1 then U₁ else U₂) (ulift.up true) },
+    { convert le_supr (λ t : ulift bool, if t.1 then U₁ else U₂) (ulift.up false) } },
+  { rintro ⟨_|_⟩; simp [h₁, h₂] }
+end
+
 end
 
 end sheaf

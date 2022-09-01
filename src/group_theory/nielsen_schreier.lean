@@ -56,7 +56,7 @@ open category_theory category_theory.action_category category_theory.single_obj 
 /-- `is_free_groupoid.generators G` is a type synonym for `G`. We think of this as
 the vertices of the generating quiver of `G` when `G` is free. We can't use `G` directly,
 since `G` already has a quiver instance from being a groupoid. -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def is_free_groupoid.generators (G) [groupoid G] := G
 
 /-- A groupoid `G` is free when we have the following data:
@@ -248,7 +248,7 @@ begin
   let F : G ⥤ single_obj X := single_obj.difference_functor f,
   change F.map p = ((category_theory.functor.const G).obj ()).map p,
   congr, ext,
-  rw [functor.const.obj_map, id_as_one, difference_functor_map, mul_inv_eq_one],
+  rw [functor.const_obj_map, id_as_one, difference_functor_map, mul_inv_eq_one],
   apply congr_arg free_group.of,
   apply (weakly_connected_component.eq _ _).mpr,
   exact ⟨hom.to_path (sum.inr e)⟩,

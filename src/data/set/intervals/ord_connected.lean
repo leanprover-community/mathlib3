@@ -18,6 +18,8 @@ In this file we prove that intersection of a family of `ord_connected` sets is `
 that all standard intervals are `ord_connected`.
 -/
 
+open_locale interval
+
 namespace set
 section preorder
 variables {α β : Type*} [preorder α] [preorder β] {s t : set α}
@@ -160,30 +162,33 @@ end preorder
 section linear_order
 variables {α : Type*} [linear_order α] {s : set α} {x : α}
 
-@[instance] lemma ord_connected_interval {a b : α} : ord_connected (interval a b) :=
-ord_connected_Icc
+@[instance] lemma ord_connected_interval {a b : α} : ord_connected [a, b] := ord_connected_Icc
+@[instance] lemma ord_connected_interval_oc {a b : α} : ord_connected (Ι a b) := ord_connected_Ioc
 
 lemma ord_connected.interval_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
-  interval x y ⊆ s :=
-by cases le_total x y; simp only [interval_of_le, interval_of_ge, *]; apply hs.out; assumption
+  [x, y] ⊆ s :=
+hs.out (min_rec' (∈ s) hx hy) (max_rec' (∈ s) hx hy)
+
+lemma ord_connected.interval_oc_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
+  Ι x y ⊆ s :=
+Ioc_subset_Icc_self.trans $ hs.interval_subset hx hy
 
 lemma ord_connected_iff_interval_subset :
-  ord_connected s ↔ ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), interval x y ⊆ s :=
-⟨λ h, h.interval_subset,
-  λ h, ord_connected_iff.2 $ λ x hx y hy hxy, by simpa only [interval_of_le hxy] using h hx hy⟩
+  ord_connected s ↔ ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), [x, y] ⊆ s :=
+⟨λ h, h.interval_subset, λ H, ⟨λ x hx y hy, Icc_subset_interval.trans $ H hx hy⟩⟩
 
 lemma ord_connected_iff_interval_subset_left (hx : x ∈ s) :
-  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → interval x y ⊆ s :=
+  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [x, y] ⊆ s :=
 begin
   refine ⟨λ hs, hs.interval_subset hx, λ hs, ord_connected_iff_interval_subset.2 $ λ y hy z hz, _⟩,
-  suffices h : interval y x ∪ interval x z ⊆ s,
+  suffices h : [y, x] ∪ [x, z] ⊆ s,
   { exact interval_subset_interval_union_interval.trans h },
   rw [interval_swap, union_subset_iff],
   exact ⟨hs hy, hs hz⟩,
 end
 
 lemma ord_connected_iff_interval_subset_right (hx : x ∈ s) :
-  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → interval y x ⊆ s :=
+  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [y, x] ⊆ s :=
 by simp_rw [ord_connected_iff_interval_subset_left hx, interval_swap]
 
 end linear_order

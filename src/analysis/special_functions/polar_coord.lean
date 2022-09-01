@@ -125,7 +125,7 @@ begin
 end
 
 theorem integral_comp_polar_coord_symm
-  {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E] (f : ℝ × ℝ → E) :
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E] (f : ℝ × ℝ → E) :
   ∫ p in polar_coord.target, p.1 • f (polar_coord.symm p) = ∫ p, f p :=
 begin
   set B : (ℝ × ℝ) → ((ℝ × ℝ) →L[ℝ] (ℝ × ℝ)) := λ p,

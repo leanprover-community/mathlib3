@@ -42,8 +42,8 @@ Maps such as the complex conjugate are considered to be conformal.
 
 noncomputable theory
 
-variables {X Y Z : Type*} [normed_group X] [normed_group Y] [normed_group Z]
-  [normed_space ℝ X] [normed_space ℝ Y] [normed_space ℝ Z]
+variables {X Y Z : Type*} [normed_add_comm_group X] [normed_add_comm_group Y]
+  [normed_add_comm_group Z] [normed_space ℝ X] [normed_space ℝ Y] [normed_space ℝ Z]
 
 section loc_conformality
 

@@ -53,7 +53,7 @@ universes u
 
 namespace measure_theory
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 section
 variables {n : ℕ}
@@ -296,7 +296,7 @@ end
 /-- An auxiliary lemma that is used to specialize the general divergence theorem to spaces that do
 not have the form `fin n → ℝ`. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv
-  {F : Type*} [normed_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [partial_order F] [measure_space F]
   [borel_space F] (eL : F ≃L[ℝ] ℝⁿ⁺¹) (he_ord : ∀ x y, eL x ≤ eL y ↔ x ≤ y)
   (he_vol : measure_preserving eL volume volume) (f : fin (n + 1) → F → E)
   (f' : fin (n + 1) → F → F →L[ℝ] E) (s : set F) (hs : s.countable)

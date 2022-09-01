@@ -116,7 +116,7 @@ end
 
 /-- See also `finset.product_bUnion`. -/
 lemma sup_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
+  (s ×ˢ t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
 begin
   refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ i' hi', le_sup $ mem_product.2 ⟨hi, hi'⟩)),
   refine sup_le _,
@@ -127,7 +127,7 @@ begin
 end
 
 lemma sup_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
+  (s ×ˢ t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
 by rw [sup_product_left, sup_comm]
 
 @[simp] lemma sup_erase_bot [decidable_eq α] (s : finset α) : (s.erase ⊥).sup id = s.sup id :=
@@ -322,11 +322,11 @@ lemma inf_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
 @sup_comm αᵒᵈ _ _ _ _ _ _ _
 
 lemma inf_product_left (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
+  (s ×ˢ t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
 @sup_product_left αᵒᵈ _ _ _ _ _ _ _
 
 lemma inf_product_right (s : finset β) (t : finset γ) (f : β × γ → α) :
-  (s.product t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
+  (s ×ˢ t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
 @sup_product_right αᵒᵈ _ _ _ _ _ _ _
 
 @[simp] lemma inf_erase_top [decidable_eq α] (s : finset α) : (s.erase ⊤).inf id = s.inf id :=
@@ -809,6 +809,8 @@ and `⊥` otherwise. It belongs to `with_bot α`. If you want to get an element 
 protected def max (s : finset α) : with_bot α :=
 sup s coe
 
+lemma max_eq_sup_coe {s : finset α} : s.max = s.sup coe := rfl
+
 theorem max_eq_sup_with_bot (s : finset α) :
   s.max = sup s coe := rfl
 
@@ -846,8 +848,14 @@ finset.induction_on s (λ _ H, by cases H)
 lemma coe_le_max_of_mem {a : α} {s : finset α} (as : a ∈ s) : ↑a ≤ s.max :=
 le_sup as
 
+lemma not_mem_of_max_lt_coe {a : α} {s : finset α} (h : s.max < a) : a ∉ s :=
+mt coe_le_max_of_mem h.not_le
+
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max = b) : a ≤ b :=
 with_bot.coe_le_coe.mp $ (coe_le_max_of_mem h₁).trans h₂.le
+
+theorem not_mem_of_max_lt {s : finset α} {a b : α} (h₁ : b < a) (h₂ : s.max = ↑b) : a ∉ s :=
+finset.not_mem_of_max_lt_coe $ h₂.trans_lt $ with_bot.coe_lt_coe.mpr h₁
 
 lemma max_mono {s t : finset α} (st : s ⊆ t) : s.max ≤ t.max :=
 sup_mono st
@@ -890,8 +898,14 @@ theorem mem_of_min {s : finset α} : ∀ {a : α}, s.min = a → a ∈ s := @mem
 lemma min_le_coe_of_mem {a : α} {s : finset α} (as : a ∈ s) : s.min ≤ a :=
 inf_le as
 
+lemma not_mem_of_coe_lt_min {a : α} {s : finset α} (h : ↑a < s.min) : a ∉ s :=
+mt min_le_coe_of_mem h.not_le
+
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : s.min = a) : a ≤ b :=
 with_top.coe_le_coe.mp $ h₂.ge.trans (min_le_coe_of_mem h₁)
+
+theorem not_mem_of_lt_min {s : finset α} {a b : α} (h₁ : a < b) (h₂ : s.min = ↑b) : a ∉ s :=
+finset.not_mem_of_coe_lt_min $ ( with_top.coe_lt_coe.mpr h₁).trans_eq h₂.symm
 
 lemma min_mono {s t : finset α} (st : s ⊆ t) : t.min ≤ s.min :=
 inf_mono st
@@ -1042,11 +1056,33 @@ end
   {f : α → β} (hf : monotone f) (s : finset α) (h : (s.image f).nonempty) :
   (s.image f).min' h = f (s.min' ((nonempty.image_iff f).mp h)) :=
 begin
-  refine le_antisymm (min'_le _ _ (mem_image.mpr ⟨_, min'_mem _ _, rfl⟩))
-    (le_min' _ _ _ (λ y hy, _)),
-  obtain ⟨x, hx, rfl⟩ := mem_image.mp hy,
-  exact hf (min'_le _ _ hx)
+  convert @max'_image αᵒᵈ βᵒᵈ _ _ (λ a : αᵒᵈ, to_dual (f (of_dual a))) (by simpa) _ _; convert h,
+  rw nonempty.image_iff,
 end
+
+lemma coe_max' {s : finset α} (hs : s.nonempty) : ↑(s.max' hs) = s.max := coe_sup' hs id
+
+lemma coe_min' {s : finset α} (hs : s.nonempty) : ↑(s.min' hs) = s.min := coe_inf' hs id
+
+lemma max'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
+  (s.erase x).max' s0 ≠ x :=
+ne_of_mem_erase (max'_mem _ s0)
+
+lemma min'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
+  (s.erase x).min' s0 ≠ x :=
+ne_of_mem_erase (min'_mem _ s0)
+
+lemma max_erase_ne_self {s : finset α} : (s.erase x).max ≠ x :=
+begin
+  by_cases s0 : (s.erase x).nonempty,
+  { refine ne_of_eq_of_ne (coe_max' s0).symm _,
+    exact with_bot.coe_eq_coe.not.mpr (max'_erase_ne_self _) },
+  { rw [not_nonempty_iff_eq_empty.mp s0, max_empty],
+    exact with_bot.bot_ne_coe }
+end
+
+lemma min_erase_ne_self {s : finset α} : (s.erase x).min ≠ x :=
+by convert @max_erase_ne_self αᵒᵈ _ _ _
 
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
 `s : finset α` provided that:

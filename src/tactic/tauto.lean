@@ -22,13 +22,14 @@ do hs ← local_context,
       do h ← get_local h.local_pp_name,
          e ← infer_type h,
          match e with
-         | `(¬ _ = _) := replace h.local_pp_name ``(mt iff.to_eq %%h)
-         | `(_ ≠ _)   := replace h.local_pp_name ``(mt iff.to_eq %%h)
-         | `(_ = _)   := replace h.local_pp_name ``(eq.to_iff %%h)
-         | `(¬ (_ ∧ _))  := replace h.local_pp_name ``(decidable.not_and_distrib'.mp %%h) <|>
-                            replace h.local_pp_name ``(decidable.not_and_distrib.mp %%h)
-         | `(¬ (_ ∨ _))  := replace h.local_pp_name ``(not_or_distrib.mp %%h)
-         | `(¬ ¬ _)      := replace h.local_pp_name ``(decidable.of_not_not %%h)
+         | `(¬ _ = _)   := replace h.local_pp_name ``(mt iff.to_eq %%h)
+         | `(_ ≠ _)     := replace h.local_pp_name ``(mt iff.to_eq %%h)
+         | `(_ = _)     := replace h.local_pp_name ``(eq.to_iff %%h)
+         | `(¬ (_ ∧ _)) := replace h.local_pp_name ``(decidable.not_and_distrib'.mp %%h) <|>
+                           replace h.local_pp_name ``(decidable.not_and_distrib.mp %%h)
+         | `(¬ (_ ∨ _)) := replace h.local_pp_name ``(not_or_distrib.mp %%h)
+         | `(¬ _ ≠ _)   := replace h.local_pp_name ``(decidable.of_not_not %%h)
+         | `(¬ ¬ _)     := replace h.local_pp_name ``(decidable.of_not_not %%h)
          | `(¬ (_ → (_ : Prop))) := replace h.local_pp_name ``(decidable.not_imp.mp %%h)
          | `(¬ (_ ↔ _)) := replace h.local_pp_name ``(decidable.not_iff.mp %%h)
          | `(_ ↔ _) := replace h.local_pp_name ``(decidable.iff_iff_and_or_not_and_not.mp %%h) <|>
@@ -237,7 +238,7 @@ meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
        repeat (first basic_tauto_tacs); cfg.closer, done
 
 namespace interactive
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 setup_tactic_parser
 
 /--

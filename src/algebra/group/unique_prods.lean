@@ -20,7 +20,7 @@ def unique_mul {G} [has_mul G] (A B : finset G) (a0 b0 : G) : Prop :=
 ∀ ⦃a b⦄, a ∈ A → b ∈ B → a * b = a0 * b0 → a = a0 ∧ b = b0
 
 namespace unique_mul
-variables {G H : Type*} [has_mul G] [decidable_eq H] [has_mul H] {A B : finset G} {a0 b0 : G}
+variables {G H : Type*} [has_mul G] [has_mul H] {A B : finset G} {a0 b0 : G}
 
 @[to_additive]
 lemma subsingleton (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :
@@ -60,24 +60,10 @@ lemma of_exists_exists_unique (h : ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 
   ∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0 :=
 of_exists_unique h.some_spec
 
-/--  `unique_mul` is preserved under injective, multiplicative maps. -/
-@[to_additive "`unique_add` is preserved under injective, additive maps."]
-lemma mul_hom_image (f : G →ₙ* H) (hf : function.injective f)
-  (aA : a0 ∈ A) (bB : b0 ∈ B) (u : unique_mul A B a0 b0) :
-  unique_mul (A.image f) (B.image f) (f a0) (f b0) :=
-begin
-  intros a b aA bB ab,
-  obtain ⟨a, ha, rfl⟩ : ∃ a' ∈ A, f a' = a := finset.mem_image.mp aA,
-  obtain ⟨b, hb, rfl⟩ : ∃ b' ∈ B, f b' = b := finset.mem_image.mp bB,
-  rw [hf.eq_iff, hf.eq_iff],
-  rw [← map_mul, ← map_mul, hf.eq_iff] at ab,
-  exact u ha hb ab,
-end
-
 /--  `unique_mul` is preserved by inverse images under injective, multiplicative maps. -/
 @[to_additive "`unique_add` is preserved by inverse images under injective, additive maps."]
 lemma mul_hom_preimage (f : G →ₙ* H) (hf : function.injective f) (a0 b0 : G) {A B : finset H}
-  (fa : f a0 ∈ A) (fb : f b0 ∈ B) (u : unique_mul A B (f a0) (f b0)) :
+  (u : unique_mul A B (f a0) (f b0)) :
   unique_mul (A.preimage f (set.inj_on_of_injective hf _))
     (B.preimage f (set.inj_on_of_injective hf _)) a0 b0 :=
 begin
@@ -85,6 +71,24 @@ begin
   rw [← hf.eq_iff, ← hf.eq_iff],
   rw [← hf.eq_iff, map_mul, map_mul] at ab,
   exact u (finset.mem_preimage.mp ha) (finset.mem_preimage.mp hb) ab,
+end
+
+/--  `unique_mul` is preserved under injective, multiplicative maps. -/
+@[to_additive "`unique_add` is preserved under injective, additive maps."]
+lemma mul_hom_image_iff [decidable_eq H] (f : G →ₙ* H) (hf : function.injective f) :
+  unique_mul (A.image f) (B.image f) (f a0) (f b0) ↔ unique_mul A B a0 b0 :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { intros a b ha hb ab,
+    rw [← hf.eq_iff, ← hf.eq_iff],
+    rw [← hf.eq_iff, map_mul, map_mul] at ab,
+    exact h (finset.mem_image.mpr ⟨_, ha, rfl⟩) (finset.mem_image.mpr ⟨_, hb, rfl⟩) ab},
+  { intros a b aA bB ab,
+    obtain ⟨a, ha, rfl⟩ : ∃ a' ∈ A, f a' = a := finset.mem_image.mp aA,
+    obtain ⟨b, hb, rfl⟩ : ∃ b' ∈ B, f b' = b := finset.mem_image.mp bB,
+    rw [hf.eq_iff, hf.eq_iff],
+    rw [← map_mul, ← map_mul, hf.eq_iff] at ab,
+    exact h ha hb ab },
 end
 
 end unique_mul

@@ -999,6 +999,8 @@ def colim_const_adj : (colim : (J ⥤ C) ⥤ C) ⊣ const J :=
   hom_equiv_unit' := λ _ _ _, nat_trans.ext _ _ $ funext $ λ _ , rfl,
   hom_equiv_counit' := λ _ _ _, colimit.hom_ext $ λ _, by simp }
 
+instance : is_left_adjoint (colim : (J ⥤ C) ⥤ C) := ⟨_, colim_const_adj⟩
+
 end colim_functor
 
 /--

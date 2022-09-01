@@ -39,10 +39,10 @@ structure is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Pro
 def is_subring.subring {S : set R} (hs : is_subring S) : subring R :=
 { carrier := S,
   one_mem' := hs.one_mem,
-  mul_mem' := hs.mul_mem,
+  mul_mem' := λ _ _, hs.mul_mem,
   zero_mem' := hs.zero_mem,
-  add_mem' := hs.add_mem,
-  neg_mem' := hs.neg_mem }
+  add_mem' := λ _ _, hs.add_mem,
+  neg_mem' := λ _, hs.neg_mem }
 
 namespace ring_hom
 

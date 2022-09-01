@@ -68,8 +68,8 @@ to_subsemiring_injective.eq_iff
 equalities. -/
 protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
 { carrier := s,
-  add_mem' := hs.symm ▸ S.add_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem',
+  add_mem' := λ _ _, hs.symm ▸ S.add_mem',
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem',
   algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
 
 @[simp] lemma coe_copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) :

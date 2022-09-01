@@ -2413,6 +2413,25 @@ begin
   convert property_of_mem_map_subtype s ha
 end
 
+/-! ### Fin -/
+
+/--
+Given a finset `s` of natural numbers and a bound `n`,
+`s.fin n` is the finset of all elements of `s` less than `n`.
+-/
+protected def fin (n : ℕ) (s : finset ℕ) : finset (fin n) :=
+(s.subtype _).map fin.equiv_subtype.symm.to_embedding
+
+@[simp] lemma mem_fin {n} {s : finset ℕ} :
+  ∀ a : fin n, a ∈ s.fin n ↔ (a : ℕ) ∈ s
+| ⟨a, ha⟩ := by simp [finset.fin]
+
+@[mono] lemma fin_mono {n} : monotone (finset.fin n) :=
+λ s t h x, by simpa using @h x
+
+@[simp] lemma fin_map {n} {s : finset ℕ} : (s.fin n).map fin.coe_embedding = s.filter (< n) :=
+by simp [finset.fin, finset.map_map]
+
 lemma subset_image_iff {s : set α} : ↑t ⊆ f '' s ↔ ∃ s' : finset α, ↑s' ⊆ s ∧ s'.image f = t :=
 begin
   split, swap,

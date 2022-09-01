@@ -378,8 +378,8 @@ is Borel-measurable. -/
 theorem measurable_set_of_differentiable_at_of_is_complete
   {K : set (E →L[𝕜] F)} (hK : is_complete K) :
   measurable_set {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter_Prop,
-         measurable_set.Inter, measurable_set.Union]
+by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter,
+         measurable_set.Union]
 
 variable [complete_space F]
 
@@ -728,8 +728,8 @@ set, is Borel-measurable. -/
 theorem measurable_set_of_differentiable_within_at_Ici_of_is_complete
   {K : set F} (hK : is_complete K) :
   measurable_set {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter_Prop,
-         measurable_set.Inter, measurable_set.Union]
+by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter,
+         measurable_set.Union]
 
 variable [complete_space F]
 

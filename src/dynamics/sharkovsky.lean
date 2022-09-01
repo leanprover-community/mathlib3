@@ -499,7 +499,7 @@ end
 by rw [←not_iff_not, not_or_distrib, ←bit1_le_bit0_iff, not_le, lt_iff_le_and_ne]; simp [and_comm]
 
 -- an upper set of sharkovsky is empty, Ici, or powers of two
-lemma sharkovsky_upper_set_iff {s : set sharkovsky} :
+lemma upper_set_iff {s : set sharkovsky} :
   is_upper_set s ↔
     s = ∅ ∨ (∃ x, s = set.Ici x) ∨ s = set.range (λ n : ℕ, sharkovsky.of_nat (2 ^ n)) :=
 begin
@@ -523,7 +523,7 @@ begin
   have h'' : ∀ ⦃a b : ℕ⦄, a ≼ b → of_nat a ∈ s → of_nat b ∈ s := h,
   rw sharkovsky.forall at h',
   rw ←h.top_mem at hs,
-  have : s ⊆ set.range (λ n : ℕ, sharkovsky.of_nat (2 ^ n)),
+  have : s ⊆ set.range (λ n : ℕ, of_nat (2 ^ n)),
   { by_contra' t,
     simp only [set.subset_def, set.mem_range, sharkovsky.forall, of_nat_inj, not_forall,
       not_exists] at t,
@@ -532,14 +532,18 @@ begin
   refine set.subset.antisymm this _,
   by_contra' t,
   simp only [set.subset_def, not_forall, set.mem_range, exists_exists_eq_and, exists_prop] at t,
-  obtain ⟨n, hn⟩ := upper_set_two_pow h'' t hs,
-  -- apply h' (2 ^ n),
-  -- ext m,
-  -- induction m using sharkovsky.rec,
-  -- simp only [set.mem_Ici],
+  obtain ⟨n, hn : ∀ (m : ℕ), m ≤ n ↔ of_nat (2 ^ m) ∈ s⟩ := upper_set_two_pow h'' t hs,
+  apply h' (2 ^ n),
+  ext m,
+  induction m using sharkovsky.rec,
+  split,
+  { intro hm,
+    obtain ⟨_, rfl : 2 ^ _ = m⟩ := this hm,
+    rwa [set.mem_Ici, two_pow_le_two_pow_iff, hn] },
+  intro h,
+  simp only [set.mem_Ici] at h,
+  exact h'' h ((hn _).1 le_rfl),
 end
-
-#exit
 
 end sharkovsky
 
@@ -2235,11 +2239,15 @@ end
 def minimal_periods_on {α : Type*} (f : α → α) (s : set α) : set ℕ :=
 {n | 0 < n ∧ ∃ x ∈ s, minimal_period f x = n}
 
-lemma minimal_periods_eq {α : Type*} (f : α → α) (s : set α) :
+lemma mem_minimal_periods_on {α : Type*} {f : α → α} {s : set α} (n : ℕ) :
+  n ∈ minimal_periods_on f s ↔ 0 < n ∧ ∃ x ∈ s, minimal_period f x = n :=
+iff.rfl
+
+lemma minimal_periods_eq {α : Type*} {f : α → α} {s : set α} :
   minimal_periods_on f s = minimal_period f '' (periodic_pts f ∩ s) :=
 begin
   ext n,
-  simp only [minimal_periods_on, mem_periodic_pts, exists_prop, mem_set_of_eq, mem_image,
+  simp only [mem_minimal_periods_on, mem_periodic_pts, exists_prop, mem_set_of_eq, mem_image,
     mem_inter_eq, gt_iff_lt, and_assoc, ←exists_and_distrib_right, ←exists_and_distrib_left],
   split,
   { rintro ⟨x, hn, hx, rfl⟩,
@@ -2251,6 +2259,41 @@ end
 
 -- def minimal_periods_on {α : Type*} (f : α → α) (s : set α) : set ℕ :=
 -- {n | 0 < n ∧ ∃ x ∈ s, minimal_period f x = n}
+
+theorem sharkovsky_compact_unit {s : set sharkovsky} (hs : ⊥ ∉ s) :
+  (∃ f : ℝ → ℝ, continuous_on f (Icc 0 1) ∧ maps_to f (Icc 0 1) (Icc 0 1)
+    ∧ s = sharkovsky.of_nat '' minimal_periods_on f (Icc 0 1)) ↔
+  is_upper_set s ∧ s.nonempty :=
+begin
+  split,
+  { rintro ⟨f, hf₁, hf₂, rfl⟩,
+    refine ⟨_, _⟩,
+    { rintro _ m h ⟨n, ⟨hn, x, hx, hx'⟩, rfl⟩,
+      induction m using sharkovsky.rec,
+      obtain ⟨y, hy, hy'⟩ := sharkovsky_forcing hf₁ hf₂ h hn.ne' ⟨x, hx, hx'⟩,
+      exact ⟨_, ⟨(sharkovsky.ne_zero_of_ge_ne_zero h hn.ne').bot_lt, y, hy, hy'⟩, rfl⟩ },
+    refine ⟨⊤, _⟩,
+    simp only [mem_minimal_periods_on, mem_image, lt_one_iff, eq_self_iff_true, true_and,
+      sharkovsky.of_nat_eq_top_iff, exists_eq_right, is_fixed_point_iff_minimal_period_eq_one],
+    refine exists_fixed_point_Icc zero_le_one hf₁ (or.inl ⟨_, _⟩),
+    { exact (hf₂ (left_mem_Icc.2 zero_le_one)).1 },
+    { exact (hf₂ (right_mem_Icc.2 zero_le_one)).2 } },
+  rintro ⟨hs₁, hs₂⟩,
+  rcases (sharkovsky.upper_set_iff.1 hs₁) with (rfl | ⟨n, rfl⟩ | rfl),
+  { simpa using hs₂ },
+  { refine ⟨tent_map (optimal_parameter n.to_nat), tent_map_continuous.continuous_on, _, _⟩,
+    { exact tent_map_maps_to' (optimal_parameter_mem _).1 (optimal_parameter_mem _).2 },
+    induction n using sharkovsky.rec,
+    ext m,
+    induction m using sharkovsky.rec,
+    simp only [mem_Ici, le_bot_iff, sharkovsky.of_nat_eq_bot_iff] at hs,
+    simp only [mem_Ici, sharkovsky.to_nat_of_nat, mem_image, sharkovsky.of_nat_inj,
+      exists_eq_right, mem_minimal_periods_on],
+
+
+
+  }
+end
 
 theorem sharkovsky_compact {s : set sharkovsky} (hs : sharkovsky.of_nat 0 ∉ s)
   {I : set ℝ} [I.ord_connected] (hI : is_compact I) :
@@ -2267,6 +2310,8 @@ theorem sharkovsky_non_compact {s : set sharkovsky} (hs : sharkovsky.of_nat 0 �
 begin
   sorry
 end
+
+#exit
 
 section computable
 

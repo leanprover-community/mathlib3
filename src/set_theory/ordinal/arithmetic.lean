@@ -158,11 +158,13 @@ type_ne_zero_of_nonempty _
 instance : nontrivial ordinal.{u} :=
 ⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
-instance : zero_le_one_class ordinal := ⟨bot_le⟩
+protected lemma zero_lt_one : (0 : ordinal) < 1 := ordinal.one_ne_zero.bot_lt
 
 instance unique_Iio_one : unique (Iio (1 : ordinal)) :=
-{ default := ⟨0, zero_lt_one⟩,
+{ default := ⟨0, ordinal.zero_lt_one⟩,
   uniq := λ a, subtype.ext $ lt_one_iff_zero.1 a.prop }
+
+instance : zero_le_one_class ordinal := ⟨bot_le⟩
 
 instance unique_out_one : unique (1 : ordinal).out.α :=
 { default := enum (<) 0 $ by simp [ordinal.zero_lt_one],

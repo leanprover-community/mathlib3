@@ -1272,6 +1272,7 @@ begin
   rw mul_comm,
 end
 
+/-- Hölder's inequality, as an inequality on the `ℒp` seminorm of a scalar product `φ • f`. -/
 lemma snorm_smul_le_mul_snorm {p q r : ℝ≥0∞}
   {f : α → E} (hf : ae_strongly_measurable f μ) {φ : α → 𝕜} (hφ : ae_strongly_measurable φ μ)
   (hpqr : 1/p = 1/q + 1/r) :

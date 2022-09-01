@@ -203,52 +203,51 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M] [decidable_eq ι]
 variables (b : basis ι R M)
 
+section finite
+variables [_root_.finite ι]
+
 /-- A vector space is linearly equivalent to its dual space. -/
 @[simps]
-def to_dual_equiv [fintype ι] : M ≃ₗ[R] (dual R M) :=
+def to_dual_equiv : M ≃ₗ[R] dual R M :=
 linear_equiv.of_bijective b.to_dual
   (ker_eq_bot.mp b.to_dual_ker) (range_eq_top.mp b.to_dual_range)
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
-def dual_basis [fintype ι] : basis ι R (dual R M) :=
-b.map b.to_dual_equiv
+def dual_basis : basis ι R (dual R M) := b.map b.to_dual_equiv
 
 -- We use `j = i` to match `basis.repr_self`
-lemma dual_basis_apply_self [fintype ι] (i j : ι) :
-  b.dual_basis i (b j) = if j = i then 1 else 0 :=
+lemma dual_basis_apply_self (i j : ι) : b.dual_basis i (b j) = if j = i then 1 else 0 :=
 by { convert b.to_dual_apply i j using 2, rw @eq_comm _ j i }
 
-lemma total_dual_basis [fintype ι] (f : ι →₀ R) (i : ι) :
+lemma total_dual_basis (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.dual_basis f (b i) = f i :=
 begin
+  casesI nonempty_fintype ι,
   rw [finsupp.total_apply, finsupp.sum_fintype, linear_map.sum_apply],
   { simp_rw [linear_map.smul_apply, smul_eq_mul, dual_basis_apply_self, mul_boole,
       finset.sum_ite_eq, if_pos (finset.mem_univ i)] },
   { intro, rw zero_smul },
 end
 
-lemma dual_basis_repr [fintype ι] (l : dual R M) (i : ι) :
-  b.dual_basis.repr l i = l (b i) :=
+lemma dual_basis_repr (l : dual R M) (i : ι) : b.dual_basis.repr l i = l (b i) :=
 by rw [← total_dual_basis b, basis.total_repr b.dual_basis l]
 
-lemma dual_basis_equiv_fun [fintype ι] (l : dual R M) (i : ι) :
-  b.dual_basis.equiv_fun l i = l (b i) :=
-by rw [basis.equiv_fun_apply, dual_basis_repr]
+lemma dual_basis_apply (i : ι) (m : M) : b.dual_basis i m = b.repr m i := b.to_dual_apply_right i m
 
-lemma dual_basis_apply [fintype ι] (i : ι) (m : M) : b.dual_basis i m = b.repr m i :=
-b.to_dual_apply_right i m
+@[simp] lemma coe_dual_basis : ⇑b.dual_basis = b.coord := by { ext i x, apply dual_basis_apply }
 
-@[simp] lemma coe_dual_basis [fintype ι] :
-  ⇑b.dual_basis = b.coord :=
-by { ext i x, apply dual_basis_apply }
-
-@[simp] lemma to_dual_to_dual [fintype ι] :
-  b.dual_basis.to_dual.comp b.to_dual = dual.eval R M :=
+@[simp] lemma to_dual_to_dual : b.dual_basis.to_dual.comp b.to_dual = dual.eval R M :=
 begin
   refine b.ext (λ i, b.dual_basis.ext (λ j, _)),
   rw [linear_map.comp_apply, to_dual_apply_left, coe_to_dual_self, ← coe_dual_basis,
       dual.eval_apply, basis.repr_self, finsupp.single_apply, dual_basis_apply_self]
 end
+
+end finite
+
+lemma dual_basis_equiv_fun [fintype ι] (l : dual R M) (i : ι) :
+  b.dual_basis.equiv_fun l i = l (b i) :=
+by rw [basis.equiv_fun_apply, dual_basis_repr]
 
 theorem eval_ker {ι : Type*} (b : basis ι R M) :
   (dual.eval R M).ker = ⊥ :=
@@ -268,11 +267,11 @@ begin
 end
 
 /-- A module with a basis is linearly equivalent to the dual of its dual space. -/
-def eval_equiv  {ι : Type*} [fintype ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
+def eval_equiv  {ι : Type*} [_root_.finite ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
 linear_equiv.of_bijective (eval R M)
   (ker_eq_bot.mp b.eval_ker) (range_eq_top.mp b.eval_range)
 
-@[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
+@[simp] lemma eval_equiv_to_linear_map {ι : Type*} [_root_.finite ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
 
 section

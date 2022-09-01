@@ -994,11 +994,11 @@ end continuity
   left_inv := λ a, subtype.ext (e.left_inv (hs a.2)),
   right_inv := λ b, let ⟨a, ha1, ha2⟩ := (congr_arg ((∈) ↑b) ht).mpr b.2 in
     subtype.ext (e.right_inv (ha2 ▸ e.map_source (hs ha1))),
-  continuous_to_fun := continuous_subtype_mk _ (continuous_on_iff_continuous_restrict.mp
-    (e.continuous_on.mono hs)),
-  continuous_inv_fun := continuous_subtype_mk _ (continuous_on_iff_continuous_restrict.mp
+  continuous_to_fun := (continuous_on_iff_continuous_restrict.mp
+    (e.continuous_on.mono hs)).subtype_mk _,
+  continuous_inv_fun := (continuous_on_iff_continuous_restrict.mp
     (e.continuous_on_symm.mono (λ b hb, let ⟨a, ha1, ha2⟩ := show b ∈ e '' s, from ht.symm ▸ hb in
-      ha2 ▸ e.map_source (hs ha1)))) }
+      ha2 ▸ e.map_source (hs ha1)))).subtype_mk _ }
 
 /-- A local homeomrphism defines a homeomorphism between its source and target. -/
 def to_homeomorph_source_target : e.source ≃ₜ e.target :=

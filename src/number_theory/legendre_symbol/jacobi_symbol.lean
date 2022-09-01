@@ -57,21 +57,6 @@ Jacobi symbol, quadratic reciprocity
 Once the dust has settled, these will be moved to the appropriate files.
 -/
 
-section nat
-
-open nat
-
--- Where should this go? `data.nat.factorization.basic`, perhaps directly after `le_of_mem_factors`,
--- would seem a good place, but `data.nat.parity` is not imported, which is needed for the proof.
-/-- If `a` is a nonzero natural number, then there are natural numbers `e` and `a'`
-such that `a = 2^e * a'` and `a'` is odd. -/
-lemma nat.two_pow_mul_odd {a : ℕ} (ha : a ≠ 0) : ∃ e a' : ℕ, odd a' ∧ a = 2 ^ e * a' :=
-⟨a.factorization 2, ord_compl[2] a,
- odd_iff.mpr $ two_dvd_ne_zero.mp $ not_dvd_ord_compl prime_two ha,
- (ord_proj_mul_ord_compl_eq_self a 2).symm⟩
-
-end nat
-
 namespace zmod
 
 -- Where should these three lemmas go?
@@ -379,7 +364,8 @@ begin
   rcases eq_or_ne a 0 with rfl | ha₀,
   { rw [mul_zero, mod_zero], },
   have hb' : odd (b % (4 * a)) := hb.mod_even (even.mul_right (by norm_num) _),
-  rcases two_pow_mul_odd ha₀ with ⟨e, a', ha₁, ha₂⟩,
+  rcases prime_power_and_complement ha₀ 2 with ⟨e, a', ha₁', ha₂⟩,
+  have ha₁ := odd_iff.mpr (two_dvd_ne_zero.mp ha₁'),
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
   rw [nat.cast_mul, jacobi_sym_mul_left, jacobi_sym_mul_left,
       jacobi_sym_quadratic_reciprocity' ha₁ hb, jacobi_sym_quadratic_reciprocity' ha₁ hb',

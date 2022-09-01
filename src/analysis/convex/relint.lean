@@ -184,16 +184,39 @@ end
 lemma affine_subspace.coe_sort_coe (E : affine_subspace ℝ V) :
 (E : Type) = (E : set V) := rfl
 
-def affine_span_homeomorph_vector_span {A : set V} {x : V} (hxA : x ∈ A) :
-affine_span ℝ (-x +ᵥ A) ≃ₜ vector_span ℝ A :=
+def subtype.inclusion {α : Type} [topological_space α] {p q : α → Prop} (h : ∀ a, p a → q a) :
+subtype p → subtype q := subtype.map id h
+
+lemma subtype.continuous_inclusion {α : Type} [topological_space α] {p q : α → Prop} (h : ∀ a, p a → q a) :
+continuous (subtype.inclusion h) :=
 begin
-  refine ⟨_, _, _⟩,
-  { rw [←set_like.coe_sort_coe, ←affine_span_eq_vector_span hxA],
-    exact equiv.refl _ },
-  admit { simp only [auto_param_eq],
-    rw [←affine_subspace.coe_sort_coe], },
-  admit,
+  simp only [continuous_def, is_open_induced_iff, subtype.inclusion, subtype.map, id.def],
+  rintro - ⟨U, hU, rfl⟩,
+  refine ⟨U, hU, _⟩,
+  ext,
+  simp only [set.mem_preimage, subtype.coe_mk],
 end
+
+def subtype.equiv_inclusion {α : Type} [topological_space α] {p q : α → Prop} (h : ∀ {a}, p a ↔ q a) :
+subtype p ≃ subtype q :=
+begin
+  refine ⟨subtype.inclusion (λ _, h.mp), subtype.inclusion (λ _, h.mpr), _, _⟩;
+    simp only [subtype.inclusion, subtype.map, id.def,
+      function.left_inverse_iff_comp, function.right_inverse_iff_comp,
+      function.funext_iff, subtype.coe_mk,
+      subtype.ext_iff, eq_self_iff_true, implies_true_iff],
+end
+
+def subtype.homeomorph_inclusion {α : Type} [topological_space α] {p q : α → Prop} (h : ∀ a, p a ↔ q a) :
+subtype p ≃ₜ subtype q :=
+begin
+  refine ⟨subtype.equiv_inclusion h, _, _⟩ ;
+    simp only [auto_param_eq, subtype.equiv_inclusion] ;
+    apply subtype.continuous_inclusion,
+end
+
+/- lemma mk_mem_iff {α : Type} {p : α → Prop} (s : set {x : α // }) {a : α} (pa : p a) :
+⟨a, pa⟩ ∈  -/
 
 lemma nonempty_relint_of_nonempty_of_convex [finite_dimensional ℝ V] {A : set V}
 (Ane : A.nonempty) (Acv : convex ℝ A) :
@@ -220,7 +243,25 @@ begin
       apply vsub_mem_vector_span ; assumption } },
   rw [relint_def, set.nonempty_image_iff],
   refine ⟨⟨y, _⟩, _⟩,
-  { admit },
-  rw [mem_interior] at hy₂ ⊢, -- want vector_span ℝ A = affine_span ℝ (-x +ᵥ A)
-  admit, -- obtain ⟨t, ht, topen, yt⟩ := hy,
+  { rw [←set_like.mem_coe, ←affine_span_eq_vector_span hx] at hy₁, exact hy₁ },
+  have : ∀ v : V, v ∈ vector_span ℝ A ↔ v ∈ affine_span ℝ (-x +ᵥ A),
+  {
+    intros v,
+    simp only [←set_like.mem_coe, ←affine_subspace.mem_coe],
+    rw [affine_span_eq_vector_span hx],
+  },
+  let bla: vector_span ℝ A ≃ₜ affine_span ℝ (-x +ᵥ A) := subtype.homeomorph_inclusion this,
+  have int_eq := bla.image_interior A',
+  have := set.mem_image_of_mem bla hy₂,
+  rw [int_eq] at this,
+  simp only [bla, subtype.homeomorph_inclusion, subtype.equiv_inclusion, subtype.inclusion,
+  homeomorph.homeomorph_mk_coe, subtype.map, id.def, submodule.coe_mk, equiv.coe_fn_mk] at this,
+  convert this using 2,
+  ext y,
+  simp only [A', set.mem_preimage, set.mem_image],
+  split,
+  { exact λ hy, ⟨bla.to_equiv.inv_fun y, hy, by { ext, refl }⟩ },
+  { rintro ⟨z, hz₁, hz₂⟩,
+    rw [←hz₂],
+    exact hz₁, },
 end

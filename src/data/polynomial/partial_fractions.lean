@@ -158,6 +158,7 @@ begin
         ← polynomial.coe_algebra_map_mul _ _ (a j) (∏ (i : ι) in s, a i)], },
 end
 
+
 @[norm_cast] lemma coe_algebra_map_fin_sum {ι : Type*} {s : finset ι} (a : ι → R[X]) :
   ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, ((a i):K) :=
 begin
@@ -299,6 +300,23 @@ begin
     rw [finset.sum_insert has, finset.sum_insert has, ← H, ← mul_add], },
 end
 
+lemma sum_eq_of_terms_eq {ι : Type*} {s : finset ι} {g h : ι → K} :
+  (∀ i : ι, i ∈ s → g i = h i) → ∑ (i : ι) in s, g i = ∑ (i : ι) in s, h i :=
+begin
+  classical,
+  apply s.induction_on,
+  { intro hi,
+    rw [finset.sum_empty, finset.sum_empty], },
+  { intros j s' his H H2,
+    rw [finset.sum_insert his, finset.sum_insert his, H],
+    swap,
+    { intros k hk,
+      specialize H2 k (finset.mem_insert_of_mem hk),
+      exact H2, },
+    { specialize H2 j (finset.mem_insert_self j s'),
+      rw H2, }, },
+end
+
 lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
   (s : finset ι) [nonempty s] :
@@ -360,12 +378,22 @@ begin
             rw ← hi at hab,
             contradiction, },
         exact hc2 i hia, },
-
-      sorry, },
+      conv_lhs
+      { rw [← add_assoc], },
+      push_cast,
+      conv_rhs
+      { rw [← add_assoc, add_assoc (↑q') (↑Q) (↑r1' / ↑(g a)),
+            add_comm (↑Q) (↑r1' / ↑(g a)), ← add_assoc (↑q') (↑r1' / ↑(g a)) (↑Q)],},
+      simp only [add_right_inj],
+      apply sum_eq_of_terms_eq K,
+      intros i hi,
+      specialize hc3 i hi,
+      finish, },
   },
 end
 
 -- uniqueness
+/-
 lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (q : R[X]) (r : ι → R[X]) (hr : ∀ i, (r i).degree < (g i).degree)
   (hf : (f : K) / ∏ i, g i = q + ∑ i, (r i) / (g i)) :
@@ -374,37 +402,6 @@ lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g 
 begin
   sorry
 end
+-/
 
 end n_denominators
-
-
-/-
-lemma div_eq_quo_add_sum_rem_div' (f : R[X]) {ι : Type*} {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (s : finset ι) [nonempty s] :
-  ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
-  (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
-begin
-  classical,
-  apply s.induction_on,
-  { refine ⟨f, (λ (i : ι), (0 : R[X])), _⟩,
-    split,
-    { intro i,
-      rw [degree_zero, bot_lt_iff_ne_bot],
-      intro hdg,
-      specialize hg i,
-      rw degree_eq_bot at hdg, rw hdg at hg,
-      have h0nmonic : ¬ (0:R[X]).monic := not_monic_zero,
-      contradiction, },
-    { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero], }, },
-  { intros a b hab H,
-    rcases H with ⟨q, r, Hdeg, Hind⟩,
-    have hcalc : (f : K) / ((g a) * ((∏ (j : ι) in b, ↑(g j)))) =
-      (1 / (g a)) * ((f : K) / ((∏ (j : ι) in b, ↑(g j)))),
-    { field_simp, },
-    rw [finset.prod_insert hab, hcalc, Hind, mul_add, mul_finite_sum],
-    field_simp,
-
-    sorry, },
-end
--/

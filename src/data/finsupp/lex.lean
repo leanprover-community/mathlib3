@@ -20,10 +20,20 @@ namespace finsupp
 section N_has_zero
 variables [has_zero N]
 
-/-- The lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
-  and `N` is ordered by `s`. -/
+/-- `finsupp.lex r s` is the lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
+and `N` is ordered by `s`.
+
+The type synonym `_root_.lex (α →₀ N)` has an order given by `finsupp.lex (<) (<)`.
+-/
 protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
 pi.lex r (λ _, s) x y
+
+lemma _root_.pi.lex_eq_finsupp_lex {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
+  pi.lex r (λ _, s) (a : α → N) (b : α → N) = finsupp.lex r s a b :=
+rfl
+
+lemma lex_def {r : α → α → Prop} {s : N → N → Prop} {a b : α →₀ N} :
+  finsupp.lex r s a b ↔ ∃ j, (∀ d, r d j → a d = b d) ∧ s (a j) (b j) := iff.rfl
 
 instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) :=
 ⟨λ f g, finsupp.lex (<) (<) (of_lex f) (of_lex g)⟩
@@ -63,13 +73,13 @@ lex.rec $ λ f, lex.rec $ λ g,
       end, hwit⟩)
   end
 
-instance lex.decidable_le : @decidable_rel (lex (α →₀ N)) (≤) :=
+@[irreducible] instance lex.decidable_le : @decidable_rel (lex (α →₀ N)) (≤) :=
 lt_trichotomy_rec
   (λ f g h, is_true $ or.inr h)
   (λ f g h, is_true $ or.inl $ congr_arg _ h)
   (λ f g h, is_false $ λ h', (lt_irrefl _ (h.trans_le h')).elim)
 
-instance lex.decidable_lt : @decidable_rel (lex (α →₀ N)) (<) :=
+@[irreducible] instance lex.decidable_lt : @decidable_rel (lex (α →₀ N)) (<) :=
 lt_trichotomy_rec
   (λ f g h, is_true h)
   (λ f g h, is_false h.not_lt)
@@ -95,11 +105,19 @@ lex.le_of_forall_le h
 lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
 λ _ _, lex.le_of_forall_le
 
+lemma lt_of_forall_lt_of_lt (a b : lex (α →₀ N)) (i : α) :
+  (∀ j < i, of_lex a j = of_lex b j) → of_lex a i < of_lex b i → a < b :=
+λ h1 h2, ⟨i, h1, h2⟩
+
 end N_has_zero
 
 section covariants
 variables [linear_order α] [add_monoid N] [linear_order N]
 
+/-!  We are about to sneak in a hypothesis that might appear to be too strong.
+We assume `covariant_class` with *strict* inequality `<` also when proving the one with the
+*weak* inequality `≤`.  This is actually necessary: addition on `lex (α →₀ N)` may fail to be
+monotone, when it is "just" monotone on `N`. -/
 section left
 variables [covariant_class N N (+) (<)]
 

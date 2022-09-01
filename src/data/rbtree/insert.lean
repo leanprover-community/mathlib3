@@ -188,7 +188,7 @@ parameters {α : Type u} (lt : α → α → Prop)
 
 local attribute [simp] mem balance1_node balance2_node
 
-local infix `∈` := mem lt
+local infix (name := mem) `∈` := mem lt
 
 lemma mem_balance1_node_of_mem_left {x s} (v) (t : rbnode α) : x ∈ s → x ∈ balance1_node s v t :=
 begin

@@ -473,18 +473,9 @@ end
 lemma zero_le_max_abs_coeff_1 (g : ℤ[X]) : 0 ≤ max_abs_coeff_1 g :=
 zero_le_one.trans $ max_abs_coeff_1_ge_1 g
 
-private lemma abs_J_ineq1'_coe (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
-  (∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * (aeval (i : ℝ) (f_bar (f_p p g.nat_degree)))) =
-  ((∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ↑(eval (i : ℤ) (f_bar (f_p p g.nat_degree))))) :=
-begin
-  simp_rw [aeval_nat_cast', algebra_map_int_eq, eq_int_cast],
-end
-
 lemma sum_ineq_1 (g : ℤ[X]) (p : ℕ) :
   ((∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ↑(eval (i : ℤ) (f_bar (f_p p g.nat_degree))))) ≤
+    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * aeval (i : ℝ) (f_bar (f_p p g.nat_degree)))) ≤
   (g.nat_degree.succ:ℝ) *
       (↑(max_abs_coeff_1 g) * (↑(g.nat_degree) + 1) * ((g.nat_degree:ℝ) + 1).exp *
          (2 * (↑(g.nat_degree) + 1)) ^ (p + p * g.nat_degree)) :=
@@ -493,6 +484,7 @@ begin
     ((max_abs_coeff_1 g:ℝ) * (g.nat_degree.succ : ℝ) * (g.nat_degree.succ:ℝ).exp *
       ((2 * ↑(g.nat_degree.succ)) ^ (p + p * g.nat_degree))) (λ x H, _)).trans_eq _,
   { simp only [finset.mem_range] at H,
+    rw [aeval_nat_cast', eq_int_cast],
     by_cases hx : x ∈ g.support,
     { apply mul_le_mul,
       { apply mul_le_mul,
@@ -609,15 +601,12 @@ end
 
 theorem abs_J_upper_bound (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) : abs (J g p) ≤ (M g)^p :=
 begin
-  refine (abs_J_ineq1' g p).trans _,
-  rw abs_J_ineq1'_coe g p hp,
-  refine (sum_ineq_1 g p).trans _,
   rw M,
-  have ineq4 := sum_ineq_2 g p hp,
-  apply ineq4.trans_eq,
-  have : p + p * g.nat_degree = (1 + g.nat_degree) * p, ring,
-  rw [this, pow_mul],
-  simp only [←mul_pow],
+  refine (abs_J_ineq1' g p).trans _,
+  refine (sum_ineq_1 g p).trans _,
+  refine (sum_ineq_2 g p hp).trans_eq _,
+  simp only [mul_pow],
+  simp_rw [←pow_mul', mul_add, mul_one],
 end
 
 lemma fact_grows_fast' (M : ℕ) : ∃ N : ℕ, ∀ n : ℕ, N < n → M ^ (n+1) < (n.factorial) :=

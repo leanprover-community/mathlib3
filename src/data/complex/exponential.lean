@@ -15,19 +15,18 @@ hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
 
-local notation `abs'` := has_abs.abs
-open is_absolute_value
+local notation `abs'` := absolute_value.abs
 open_locale classical big_operators nat complex_conjugate
 
 section
-open real is_absolute_value finset
+open real finset
 
 section
 variables {α : Type*} {β : Type*} [ring β]
-  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] [archimedean α] {abv : absolute_value β α}
 
 lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, |f n| ≤ a)
-  (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs f :=
+  (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs' f :=
 λ ε ε0,
 let ⟨k, hk⟩ := archimedean.arch a ε0 in
 have h : ∃ l, ∀ n ≥ m, a - l • ε < f n :=
@@ -50,7 +49,7 @@ begin
   existsi i,
   assume j hj,
   have hfij : f j ≤ f i := (nat.rel_of_forall_rel_succ_of_le_of_le (≥) hnm hi.1 hj).le,
-  rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
+  rw [absolute_value.abs_apply, abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
   calc f i ≤ a - (nat.pred l) • ε : hi.2
     ... = a - l • ε + ε :
       by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_nsmul',
@@ -59,11 +58,11 @@ begin
 end
 
 lemma is_cau_of_mono_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, |f n| ≤ a)
-  (hnm : ∀ n ≥ m, f n ≤ f n.succ) : is_cau_seq abs f :=
+  (hnm : ∀ n ≥ m, f n ≤ f n.succ) : is_cau_seq abs' f :=
 begin
-  refine @eq.rec_on (ℕ → α) _ (is_cau_seq abs) _ _
+  refine @eq.rec_on (ℕ → α) _ (is_cau_seq abs') _ _
     (-⟨_, @is_cau_of_decreasing_bounded _ _ _ (λ n, -f n) a m (by simpa) (by simpa)⟩ :
-      cau_seq α abs).2,
+      cau_seq α abs').2,
   ext,
   exact neg_neg _
 end
@@ -71,12 +70,11 @@ end
 end
 
 section no_archimedean
-variables {α : Type*} {β : Type*} [ring β]
-  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+variables {α : Type*} {β : Type*} [ring β] [linear_ordered_field α] {abv : absolute_value β α}
 
 lemma is_cau_series_of_abv_le_cau {f : ℕ → β} {g : ℕ → α} (n : ℕ) :
   (∀ m, n ≤ m → abv (f m) ≤ g m) →
-  is_cau_seq abs (λ n, ∑ i in range n, g i) →
+  is_cau_seq abs' (λ n, ∑ i in range n, g i) →
   is_cau_seq abv (λ n, ∑ i in range n, f i) :=
 begin
   assume hm hg ε ε0,
@@ -88,7 +86,8 @@ begin
   have sub_le := abs_sub_le (∑ k in range j, g k) (∑ k in range i, g k)
     (∑ k in range (max n i), g k),
   have := add_lt_add hi₁ hi₂,
-  rw [abs_sub_comm (∑ k in range (max n i), g k), add_halves ε] at this,
+  rw [absolute_value.map_sub _ (∑ k in range (max n i), g k), add_halves ε] at this,
+  swap, { apply_instance },
   refine lt_of_le_of_lt (le_trans (le_trans _ (le_abs_self _)) sub_le) this,
   generalize hk : j - max n i = k,
   clear this hi₂ hi₁ hi ε0 ε hg sub_le,
@@ -96,14 +95,14 @@ begin
   rw hk,
   clear hk ji j,
   induction k with k' hi,
-  { simp [abv_zero abv] },
+  { simp },
   { simp only [nat.succ_add, sum_range_succ_comm, sub_eq_add_neg, add_assoc],
-    refine le_trans (abv_add _ _ _) _,
+    refine le_trans (absolute_value.add_le _ _ _) _,
     simp only [sub_eq_add_neg] at hi,
     exact add_le_add (hm _ (le_add_of_nonneg_of_le (nat.zero_le _) (le_max_left _ _))) hi },
 end
 
-lemma is_cau_series_of_abv_cau {f : ℕ → β} : is_cau_seq abs (λ m, ∑ n in range m, abv (f n))
+lemma is_cau_series_of_abv_cau {f : ℕ → β} : is_cau_seq abs' (λ m, ∑ n in range m, abv (f n))
   → is_cau_seq abv (λ m, ∑ n in range m, f n) :=
 is_cau_series_of_abv_le_cau 0 (λ n h, le_rfl)
 
@@ -112,37 +111,37 @@ end no_archimedean
 section
 variables {α : Type*} [linear_ordered_field α] [archimedean α]
 
-lemma is_cau_geo_series {β : Type*} [ring β] [nontrivial β] {abv : β → α} [is_absolute_value abv]
+lemma is_cau_geo_series {β : Type*} [ring β] [nontrivial β] {abv : absolute_value β α}
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, ∑ m in range n, x ^ m) :=
 have hx1' : abv x ≠ 1 := λ h, by simpa [h, lt_irrefl] using hx1,
 is_cau_series_of_abv_cau
 begin
-  simp only [abv_pow abv, geom_sum_eq hx1'],
+  simp only [map_pow abv, geom_sum_eq hx1'],
   conv in (_ / _) { rw [← neg_div_neg_eq, neg_sub, neg_sub] },
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
     rw abs_of_nonneg,
     refine div_le_div_of_le (le_of_lt $ sub_pos.2 hx1)
-      (sub_le_self _ (abv_pow abv x n ▸ abv_nonneg _ _)),
+      (sub_le_self _ (map_pow abv x n ▸ abv.nonneg _)),
     refine div_nonneg (sub_nonneg.2 _) (sub_nonneg.2 $ le_of_lt hx1),
     clear hn,
     induction n with n ih,
     { simp },
     { rw [pow_succ, ← one_mul (1 : α)],
-      refine mul_le_mul (le_of_lt hx1) ih (abv_pow abv x n ▸ abv_nonneg _ _) (by norm_num) } },
+      refine mul_le_mul (le_of_lt hx1) ih (map_pow abv x n ▸ abv.nonneg _) (by norm_num) } },
   { assume n hn,
     refine div_le_div_of_le (le_of_lt $ sub_pos.2 hx1) (sub_le_sub_left _ _),
     rw [← one_mul (_ ^ n), pow_succ],
-    exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
+    exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv.nonneg _) _) }
 end
 
 lemma is_cau_geo_series_const (a : α) {x : α} (hx1 : |x| < 1) :
-  is_cau_seq abs (λ m, ∑ n in range m, a * x ^ n) :=
-have is_cau_seq abs (λ m, a * ∑ n in range m, x ^ n) :=
-  (cau_seq.const abs a * ⟨_, is_cau_geo_series x hx1⟩).2,
+  is_cau_seq abs' (λ m, ∑ n in range m, a * x ^ n) :=
+have is_cau_seq abs' (λ m, a * ∑ n in range m, x ^ n) :=
+  (cau_seq.const abs' a * ⟨_, is_cau_geo_series x hx1⟩).2,
 by simpa only [mul_sum]
 
-variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
+variables {β : Type*} [ring β] {abv : absolute_value β α}
 
 lemma series_ratio_test {f : ℕ → β} (n : ℕ) (r : α)
   (hr0 : 0 ≤ r) (hr1 : r < 1) (h : ∀ m, n ≤ m → abv (f m.succ) ≤ r * abv (f m)) :
@@ -198,25 +197,12 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
 end
 
 section no_archimedean
-variables {α : Type*} {β : Type*} [linear_ordered_field α] {abv : β → α}
 
 section
-variables [semiring β] [is_absolute_value abv]
-
-lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
-  abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
-by haveI := classical.dec_eq γ; exact
-finset.induction_on s (by simp [abv_zero abv])
-  (λ a s has ih, by rw [sum_insert has, sum_insert has];
-    exact le_trans (abv_add abv _ _) (add_le_add_left ih _))
-
-end
-
-section
-variables [ring β] [is_absolute_value abv]
+variables {α : Type*} {β : Type*} [linear_ordered_field α] [ring β] {abv : absolute_value β α}
 
 lemma cauchy_product {a b : ℕ → β}
-  (ha : is_cau_seq abs (λ m, ∑ n in range m, abv (a n)))
+  (ha : is_cau_seq abs' (λ m, ∑ n in range m, abv (a n)))
   (hb : is_cau_seq abv (λ m, ∑ n in range m, b n)) (ε : α) (ε0 : 0 < ε) :
   ∃ i : ℕ, ∀ j ≥ i, abv ((∑ k in range j, a k) * (∑ k in range j, b k) -
   ∑ n in range j, ∑ m in range (n + 1), a m * b (n - m)) < ε :=
@@ -228,7 +214,7 @@ have hPε0 : 0 < ε / (2 * P),
 let ⟨N, hN⟩ := cau_seq.cauchy₂ ⟨_, hb⟩ hPε0 in
 have hQε0 : 0 < ε / (4 * Q),
   from div_pos ε0 (mul_pos (show (0 : α) < 4, by norm_num)
-    (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))),
+    (lt_of_le_of_lt (abv.nonneg _) (hQ 0))),
 let ⟨M, hM⟩ := cau_seq.cauchy₂ ⟨_, ha⟩ hQε0 in
 ⟨2 * (max N M + 1), λ K hK,
 have h₁ : ∑ m in range K, ∑ k in range (m + 1), a k * b (m - k) =
@@ -260,21 +246,21 @@ have hsumlesum : ∑ i in range (max N M + 1), abv (a i) *
       (le_tsub_of_add_le_left (le_trans
         (by rw two_mul; exact add_le_add (le_of_lt (mem_range.1 hmJ))
           (le_trans (le_max_left _ _) (le_of_lt (lt_add_one _)))) hK)) K
-      (le_of_lt hKN))) (abv_nonneg abv _)),
+      (le_of_lt hKN))) (abv.nonneg _)),
 have hsumltP : ∑ n in range (max N M + 1), abv (a n) < P :=
   calc ∑ n in range (max N M + 1), abv (a n)
       = |∑ n in range (max N M + 1), abv (a n)| :
-  eq.symm (abs_of_nonneg (sum_nonneg (λ x h, abv_nonneg abv (a x))))
+  eq.symm (abs_of_nonneg (sum_nonneg (λ x h, abv.nonneg (a x))))
   ... < P : hP (max N M + 1),
 begin
-  rw [h₁, h₂, h₃, sum_mul, ← sub_sub, sub_right_comm, sub_self, zero_sub, abv_neg abv],
-  refine lt_of_le_of_lt (abv_sum_le_sum_abv _ _) _,
+  rw [h₁, h₂, h₃, sum_mul, ← sub_sub, sub_right_comm, sub_self, zero_sub, abv.map_neg],
+  refine lt_of_le_of_lt (abv.sum_le _ _) _,
   suffices : ∑ i in range (max N M + 1),
     abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k) +
     (∑ i in range K, abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k) -
     ∑ i in range (max N M + 1), abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k)) <
     ε / (2 * P) * P + ε / (4 * Q) * (2 * Q),
-  { rw hε at this, simpa [abv_mul abv] },
+  { simpa [hε] },
   refine add_lt_add (lt_of_le_of_lt hsumlesum
     (by rw [← sum_mul, mul_comm]; exact (mul_lt_mul_left hPε0).mpr hsumltP)) _,
   rw sum_range_sub_sum_range (le_of_lt hNMK),
@@ -282,17 +268,17 @@ begin
       abv (a i) * abv (∑ k in range (K - i), b k - ∑ k in range K, b k)
       ≤ ∑ i in (range K).filter (λ k, max N M + 1 ≤ k), abv (a i) * (2 * Q) :
     sum_le_sum (λ n hn, begin
-      refine mul_le_mul_of_nonneg_left _ (abv_nonneg _ _),
+      refine mul_le_mul_of_nonneg_left _ (abv.nonneg _),
       rw sub_eq_add_neg,
-      refine le_trans (abv_add _ _ _) _,
-      rw [two_mul, abv_neg abv],
+      refine le_trans (abv.add_le _ _) _,
+      rw [two_mul, abv.map_neg],
       exact add_le_add (le_of_lt (hQ _)) (le_of_lt (hQ _)),
     end)
     ... < ε / (4 * Q) * (2 * Q) :
       by rw [← sum_mul, ← sum_range_sub_sum_range (le_of_lt hNMK)];
       refine (mul_lt_mul_right $ by rw two_mul;
-        exact add_pos (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))
-          (lt_of_le_of_lt (abv_nonneg _ _) (hQ 0))).2
+        exact add_pos (lt_of_le_of_lt (abv.nonneg _) (hQ 0))
+          (lt_of_le_of_lt (abv.nonneg _) (hQ 0))).2
         (lt_of_le_of_lt (le_abs_self _)
           (hM _ (le_trans (nat.le_succ_of_le (le_max_right _ _)) (le_of_lt hNMK)) _
             (nat.le_succ_of_le (le_max_right _ _))))
@@ -310,30 +296,30 @@ open cau_seq
 
 namespace complex
 
-lemma is_cau_abs_exp (z : ℂ) : is_cau_seq has_abs.abs
+lemma is_cau_abs_exp (z : ℂ) : is_cau_seq absolute_value.abs
   (λ n, ∑ m in range n, abs (z ^ m / m!)) :=
 let ⟨n, hn⟩ := exists_nat_gt (abs z) in
 have hn0 : (0 : ℝ) < n, from lt_of_le_of_lt (abs_nonneg _) hn,
 series_ratio_test n (complex.abs z / n) (div_nonneg (complex.abs_nonneg _) (le_of_lt hn0))
   (by rwa [div_lt_iff hn0, one_mul])
   (λ m hm,
-    by rw [abs_abs, abs_abs, nat.factorial_succ, pow_succ,
-      mul_comm m.succ, nat.cast_mul, ← div_div, mul_div_assoc,
-      mul_div_right_comm, abs_mul, abs_div, abs_cast_nat];
+    by { rw [absolute_value.abs_apply, absolute_value.abs_apply, abs_abs, abs_abs,
+      nat.factorial_succ, pow_succ, mul_comm m.succ, nat.cast_mul, ← div_div, mul_div_assoc,
+      mul_div_right_comm, abs_mul, abs_div, abs_cast_nat],
     exact mul_le_mul_of_nonneg_right
       (div_le_div_of_le_left (abs_nonneg _) hn0
-        (nat.cast_le.2 (le_trans hm (nat.le_succ _)))) (abs_nonneg _))
+        (nat.cast_le.2 (le_trans hm (nat.le_succ _)))) (abs_nonneg _)})
 
 noncomputable theory
 
 lemma is_cau_exp (z : ℂ) :
-  is_cau_seq abs (λ n, ∑ m in range n, z ^ m / m!) :=
+  is_cau_seq abs_hom (λ n, ∑ m in range n, z ^ m / m!) :=
 is_cau_series_of_abv_cau (is_cau_abs_exp z)
 
 /-- The Cauchy sequence consisting of partial sums of the Taylor series of
 the complex exponential function -/
 @[pp_nodot] def exp' (z : ℂ) :
-  cau_seq ℂ complex.abs :=
+  cau_seq ℂ complex.abs_hom :=
 ⟨λ n, ∑ m in range n, z ^ m / m!, is_cau_exp z⟩
 
 /-- The complex exponential function, defined via its Taylor series -/
@@ -406,9 +392,9 @@ lim_eq_of_equiv_const $
 end⟩
 
 lemma exp_add : exp (x + y) = exp x * exp y :=
-show lim (⟨_, is_cau_exp (x + y)⟩ : cau_seq ℂ abs) =
-  lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp x⟩)
-  * lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp y⟩),
+show lim (⟨_, is_cau_exp (x + y)⟩ : cau_seq ℂ abs_hom) =
+  lim (show cau_seq ℂ abs_hom, from ⟨_, is_cau_exp x⟩)
+  * lim (show cau_seq ℂ abs_hom, from ⟨_, is_cau_exp y⟩),
 from
 have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
     ∑ i in range j, ∑ k in range (i + 1), x ^ k / k! * (y ^ (i - k) / (i - k)!),
@@ -1157,12 +1143,10 @@ by rw ← of_real_inj; simp [cosh_three_mul]
 lemma sinh_three_mul : sinh (3 * x) = 4 * sinh x ^ 3 + 3 * sinh x :=
 by rw ← of_real_inj; simp [sinh_three_mul]
 
-open is_absolute_value
-
 /-- This is an intermediate result that is later replaced by `real.add_one_le_exp`; use that lemma
 instead. -/
 lemma add_one_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
-calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ has_abs.abs) :
+calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs') :
   le_lim (cau_seq.le_of_exists ⟨2,
     λ j hj, show x + (1 : ℝ) ≤ (∑ m in range j, (x ^ m / m! : ℂ)).re,
       from have h₁ : (((λ m : ℕ, (x ^ m / m! : ℂ)) ∘ nat.succ) 0).re = x, by simp,
@@ -1292,19 +1276,19 @@ begin
       rw [mem_filter, mem_range] at hm,
       rw [← mul_div_assoc, ← pow_add, add_tsub_cancel_of_le hm.2]
     end
-  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
+  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abs_hom.sum_le _ _
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (1 / m!) :
     begin
       refine sum_le_sum (λ m hm, _),
-      rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
+      rw [abs_mul, abs_pow, abs_div, abs_cast_nat],
       refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
       { exact nat.cast_pos.2 (nat.factorial_pos _), },
-      { rw abv_pow abs,
+      { rw abs_pow,
         exact (pow_le_one _ (abs_nonneg _) hx), },
       { exact pow_nonneg (abs_nonneg _) _ },
     end
   ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m! : ℝ)) :
-    by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
+    by simp [abs_mul, abs_pow, abs_div, mul_sum.symm]
   ... ≤ abs x ^ n * (n.succ * (n! * n)⁻¹) :
     mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
 end
@@ -1320,9 +1304,9 @@ begin
   have hj : j = n + k := (add_tsub_cancel_of_le hj).symm,
   rw [hj, sum_range_add_sub_sum_range],
   calc abs (∑ (i : ℕ) in range k, x ^ (n + i) / ((n + i)! : ℂ))
-      ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abv_sum_le_sum_abv _ _
+      ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abs_hom.sum_le _ _
   ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n + i)! :
-        by simp only [complex.abs_cast_nat, complex.abs_div, abv_pow abs]
+        by simp only [complex.abs_cast_nat, complex.abs_div, abs_pow]
   ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n! * n.succ ^ i) : _
   ... = ∑ (i : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^i / n.succ ^ i) : _
   ... ≤ abs x ^ n / (↑n!) * 2 : _,

@@ -52,13 +52,6 @@ We define the notation `[a | b]ⱼ` for `legendre_sym a b`, localized to `number
 Jacobi symbol, quadratic reciprocity
 -/
 
-/-!
-### Some helpful lemmas
-
-Once the dust has settled, these will be moved to the appropriate files.
--/
-
-
 section jacobi
 
 /-!

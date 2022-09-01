@@ -988,6 +988,9 @@ def colim_coyoneda : colim.op ⋙ coyoneda ⋙ (whiskering_right _ _ _).obj ulif
 nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso (unop F)) (by tidy))
   (by tidy)
 
+/--
+The colimit functor and constant functor are adjoint to each other
+-/
 def colim_const_adj : (colim : (J ⥤ C) ⥤ C) ⊣ const J :=
 { hom_equiv := λ f c,
   { to_fun := λ g, { app := λ _, colimit.ι _ _ ≫ g, naturality' := by tidy },

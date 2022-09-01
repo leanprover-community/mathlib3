@@ -1122,47 +1122,13 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_topology.t3_space : t3_space α :=
-{ regular := assume s a hs ha,
-    have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
-    have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
-      from classical.by_cases
-        (assume h : ∃l, l < a,
-          let ⟨l, hl, h⟩ := exists_Ioc_subset_of_mem_nhds hs' h in
-          match dense_or_discrete l a with
-          | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
-              assume c hcs hca, show c < b,
-                from lt_of_not_ge $ assume hbc, h ⟨lt_of_lt_of_le hb₁ hbc, le_of_lt hca⟩ hcs,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_lt' _).mem_nhds hb₂) $
-                assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
-          | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_lt' _).mem_nhds hl) $
-                assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
-          end)
-        (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
-          nhds_within_empty _⟩),
-    let ⟨t₁, ht₁o, ht₁s, ht₁a⟩ := this in
-    have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝[t] a = ⊥,
-      from classical.by_cases
-        (assume h : ∃u, u > a,
-          let ⟨u, hu, h⟩ := exists_Ico_subset_of_mem_nhds hs' h in
-          match dense_or_discrete a u with
-          | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
-              assume c hcs hca, show c > b,
-                from lt_of_not_ge $ assume hbc, h ⟨le_of_lt hca, lt_of_le_of_lt hbc hb₂⟩ hcs,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_gt' _).mem_nhds hb₁) $
-                assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
-          | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_gt' _).mem_nhds hu) $
-                assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
-          end)
-        (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
-          nhds_within_empty _⟩),
-    let ⟨t₂, ht₂o, ht₂s, ht₂a⟩ := this in
-    ⟨t₁ ∪ t₂, is_open.union ht₁o ht₂o,
-      assume x hx,
-      have x ≠ a, from assume eq, ha $ eq ▸ hx,
-      (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
-      by rw [nhds_within_union, ht₁a, ht₂a, bot_sup_eq]⟩ }
+begin
+  refine ⟨λ s a hs ha, _⟩,
+  have : sᶜ ∈ 𝓝 a, from hs.is_open_compl.mem_nhds ha,
+  rcases exists_Icc_mem_subset_of_mem_nhds this with ⟨b, c, -, hmem, hsub⟩,
+  refine ⟨(Icc b c)ᶜ, is_closed_Icc.is_open_compl, subset_compl_comm.2 hsub, _⟩,
+  rwa [nhds_within, inf_principal_eq_bot, compl_compl]
+end
 
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/

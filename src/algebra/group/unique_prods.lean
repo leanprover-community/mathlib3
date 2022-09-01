@@ -88,24 +88,14 @@ lemma exists_unique_iff (aA : a0 ∈ A) (bB : b0 ∈ B) :
 end⟩
 
 @[to_additive]
-lemma exists_exists_unique (aA : a0 ∈ A) (bB : b0 ∈ B) (u : unique_mul A B a0 b0) :
+lemma exists_iff_exists_exists_unique : (∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0) ↔
   ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g :=
-⟨a0 * b0, (exists_unique_iff aA bB).mp u⟩
-
-@[to_additive]
-lemma of_exists_unique {g : G} (h : ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g) :
-  ∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0 :=
-begin
-  have h' := h,
-  rcases h' with ⟨⟨a,b⟩, ⟨hab, rfl, -⟩, -⟩,
-  cases finset.mem_product.mp hab with ha hb,
-  exact ⟨a, b, ha, hb, (exists_unique_iff ha hb).mpr h⟩,
-end
-
-@[to_additive]
-lemma of_exists_exists_unique (h : ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g) :
-  ∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0 :=
-of_exists_unique h.some_spec
+⟨λ ⟨a0, b0, hA, hB, h⟩, ⟨_, (exists_unique_iff hA hB).mp h⟩, λ ⟨g, h⟩, begin
+    have h' := h,
+    rcases h' with ⟨⟨a,b⟩, ⟨hab, rfl, -⟩, -⟩,
+    cases finset.mem_product.mp hab with ha hb,
+    exact ⟨a, b, ha, hb, (exists_unique_iff ha hb).mpr h⟩,
+  end⟩
 
 /--  `unique_mul` is preserved by inverse images under injective, multiplicative maps. -/
 @[to_additive "`unique_add` is preserved by inverse images under injective, additive maps."]

@@ -1,7 +1,17 @@
+/-
+Copyright (c) 2020 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import ring_theory.algebraic
 import topology.algebra.polynomial
 import analysis.calculus.mean_value
 import number_theory.liouville.liouville_constant
+
+/-!
+TODO
+-/
 
 noncomputable theory
 
@@ -17,5 +27,6 @@ begin
   norm_num,
 end
 
--- Then our general theory about Liouville number in particular applies to α giving us α transcendental number
+-- Then our general theory about Liouville number in particular applies to α giving us α
+-- transcendental number
 theorem transcendental_α : transcendental ℤ α := liouville_α.transcendental

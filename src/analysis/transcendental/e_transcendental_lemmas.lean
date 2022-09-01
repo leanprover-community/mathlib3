@@ -1,8 +1,18 @@
+/-
+Copyright (c) 2020 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import measure_theory.integral.interval_integral
 import measure_theory.measure.haar_lebesgue
 import analysis.special_functions.exp
 import analysis.transcendental.small_lemmas
 import data.polynomial.derivative
+
+/-!
+TODO
+-/
 
 noncomputable theory
 open_locale big_operators

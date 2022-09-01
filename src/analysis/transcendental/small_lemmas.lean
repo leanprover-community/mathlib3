@@ -1,5 +1,15 @@
+/-
+Copyright (c) 2020 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import data.polynomial
 import analysis.calculus.deriv
+
+/-!
+TODO
+-/
 
 theorem polynomial.aeval_nat_cast'
   {R A : Type*} [comm_semiring R] [nontrivially_normed_field A] [algebra R A]

@@ -1,8 +1,18 @@
+/-
+Copyright (c) 2020 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import ring_theory.algebraic
 import analysis.transcendental.e_transcendental_lemmas
 import analysis.transcendental.basic
 import data.polynomial.derivative
 import data.real.irrational
+
+/-!
+TODO
+-/
 
 noncomputable theory
 open e_transcendental_lemmas polynomial
@@ -50,7 +60,10 @@ def H (g : ℤ[X]) (p j : ℕ) : ℤ :=
     (derivative^[j] (f_p p g.nat_degree)).eval i
 /--
 Theorem
-$$J_{p}(g) = \sum_{i=0}^d g_i\left(e^i\sum_{j=0}^{(n+1)p-1} f_{p,d}^{(j)}(0)-\sum_{j=0}^{(n+1)p-1}f_{p,d}^{(j)}(i)\right)$
+$$J_{p}(g) =
+  \sum_{i=0}^d g_i\left(
+    e^i\sum_{j=0}^{(n+1)p-1} f_{p,d}^{(j)}(0)-\sum_{j=0}^{(n+1)p-1}f_{p,d}^{(j)}(i)
+  \right)$
 -/
 private lemma J_eq1 (g : ℤ[X]) (p : ℕ) :
   J g p = ∑ i in finset.range g.nat_degree.succ, (g.coeff i:ℝ) * (I (f_p p g.nat_degree) i) :=
@@ -694,8 +707,7 @@ def make_const_term_nonzero (f : ℤ[X]) (hf : f ≠ 0) : ℤ[X] :=
 
     { intro hn,
       exact ⟨n + min_degree_term f hf, hn, nat.add_sub_cancel _ _⟩ },
-  end,
-}⟩
+  end }⟩
 
 theorem coeff_after_change (f : ℤ[X]) (hf : f ≠ 0) (n : ℕ) :
   (make_const_term_nonzero f hf).coeff n = (f.coeff (n+(min_degree_term f hf))) :=
@@ -756,4 +768,5 @@ transcendental.irrational $ (transcendental_iff_transcendental_over_ℚ x).mp tr
 
 theorem e_irrational : irrational e := transcendental_irrational e_transcendental
 
-theorem e_pow_n_irrational (n : ℕ) (hn : 1 ≤ n) : irrational (e ^ n) := transcendental_irrational (e_pow_transcendental n hn)
+theorem e_pow_n_irrational (n : ℕ) (hn : 1 ≤ n) : irrational (e ^ n) :=
+transcendental_irrational (e_pow_transcendental n hn)

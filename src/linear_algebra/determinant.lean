@@ -238,7 +238,7 @@ linear_map.det.map_one
 begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
   { haveI : finite_dimensional 𝕜 M,
-    { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
+    { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_fintype_basis hs },
     simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
               fintype.card_fin, det_smul] },
   { classical,
@@ -295,7 +295,7 @@ lemma finite_dimensional_of_det_ne_one {𝕜 : Type*} [field 𝕜] [module 𝕜 
   (f : M →ₗ[𝕜] M) (hf : f.det ≠ 1) : finite_dimensional 𝕜 M :=
 begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
-  { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
+  { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_fintype_basis hs },
   { classical,
     simp [linear_map.coe_det, H] at hf,
     exact hf.elim }

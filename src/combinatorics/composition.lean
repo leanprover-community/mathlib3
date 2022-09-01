@@ -719,7 +719,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
     erw [set.mem_set_of_eq],
     simp only [this, false_or, add_right_inj, add_eq_zero_iff, one_ne_zero, false_and, fin.coe_mk],
     split,
-    { rintros ⟨j, js, hj⟩, convert js, exact (fin.ext_iff _ _).2 hj },
+    { rintros ⟨j, js, hj⟩, convert js, exact fin.ext_iff.2 hj },
     { assume h, exact ⟨i, h, rfl⟩ }
   end }
 

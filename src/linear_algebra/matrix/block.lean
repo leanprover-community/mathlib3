@@ -83,7 +83,7 @@ begin
   rw [to_square_block_def', to_square_block_def],
   apply equiv_block_det,
   intro x,
-  apply (fin.ext_iff _ _).symm
+  apply fin.ext_iff.symm
 end
 
 /-- Let `b` map rows and columns of a square matrix `M` to `n` blocks. Then

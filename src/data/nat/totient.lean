@@ -27,7 +27,7 @@ namespace nat
 coprime with `n`. -/
 def totient (n : ℕ) : ℕ := ((range n).filter n.coprime).card
 
-localized "notation `φ` := nat.totient" in nat
+localized "notation (name := nat.totient) `φ` := nat.totient" in nat
 
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
 

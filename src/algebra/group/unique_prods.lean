@@ -20,7 +20,7 @@ def unique_mul {G} [has_mul G] (A B : finset G) (a0 b0 : G) : Prop :=
 ∀ ⦃a b⦄, a ∈ A → b ∈ B → a * b = a0 * b0 → a = a0 ∧ b = b0
 
 namespace unique_mul
-variables {G : Type*} [has_mul G] {A B : finset G} {a0 b0 : G}
+variables {G H : Type*} [has_mul G] [decidable_eq H] [has_mul H] {A B : finset G} {a0 b0 : G}
 
 @[to_additive]
 lemma subsingleton (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :
@@ -59,6 +59,20 @@ end
 lemma of_exists_exists_unique (h : ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g) :
   ∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0 :=
 of_exists_unique h.some_spec
+
+lemma of_mul_hom (f : G →ₙ* H) (hf : function.injective f)
+  (aA : a0 ∈ A) (bB : b0 ∈ B) (u : unique_mul A B a0 b0) :
+  unique_mul (A.image f) (B.image f) (f a0) (f b0) :=
+begin
+  intros a b aA bB ab,
+  obtain ⟨a, ha, rfl⟩ : ∃ (a' : G), a' ∈ A ∧ f a' = a,
+  { simpa only [finset.mem_image, exists_prop] using aA },
+  obtain ⟨b, hb, rfl⟩ : ∃ (b' : G), b' ∈ B ∧ f b' = b,
+  { simpa only [finset.mem_image, exists_prop] using bB },
+  rw [hf.eq_iff, hf.eq_iff],
+  rw [← map_mul, ← map_mul, hf.eq_iff] at ab,
+  exact u ha hb ab,
+end
 
 end unique_mul
 

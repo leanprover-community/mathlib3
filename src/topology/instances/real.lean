@@ -29,7 +29,7 @@ instance : noncompact_space ℝ := int.closed_embedding_coe_real.noncompact_spac
 
 theorem real.uniform_continuous_add : uniform_continuous (λp : ℝ × ℝ, p.1 + p.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
+let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma absolute_value.abs ε0 in
 ⟨δ, δ0, λ a b h, let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ h₁ h₂⟩
 
 
@@ -80,7 +80,7 @@ by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ |x|) :
   uniform_continuous (λp:s, p.1⁻¹) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_inv_continuous_lemma abs ε0 r0 in
+let ⟨(δ : ℝ), δ0, Hδ⟩ := rat_inv_continuous_lemma (@absolute_value.abs ℝ _) ε0 r0 in
 ⟨δ, δ0, λ a b h, Hδ (H _ a.2) (H _ b.2) h⟩
 
 lemma real.uniform_continuous_abs : uniform_continuous (abs : ℝ → ℝ) :=
@@ -109,7 +109,7 @@ lemma real.uniform_continuous_mul (s : set (ℝ × ℝ))
   {r₁ r₂ : ℝ} (H : ∀ x ∈ s, |(x : ℝ × ℝ).1| < r₁ ∧ |x.2| < r₂) :
   uniform_continuous (λp:s, p.1.1 * p.1.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 in
+let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma absolute_value.abs ε0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
@@ -131,7 +131,7 @@ instance : complete_space ℝ :=
 begin
   apply complete_of_cauchy_seq_tendsto,
   intros u hu,
-  let c : cau_seq ℝ abs := ⟨u, metric.cauchy_seq_iff'.1 hu⟩,
+  let c : cau_seq ℝ absolute_value.abs := ⟨u, metric.cauchy_seq_iff'.1 hu⟩,
   refine ⟨c.lim, λ s h, _⟩,
   rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
   have := c.equiv_lim ε ε0,

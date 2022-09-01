@@ -68,9 +68,9 @@ instance : set_like (sylow p G) G :=
   coe_injective' := λ P Q h, ext (set_like.coe_injective h) }
 
 instance : subgroup_class (sylow p G) G :=
-{ mul_mem := λ s, s.mul_mem',
+{ mul_mem := λ s _ _, s.mul_mem',
   one_mem := λ s, s.one_mem',
-  inv_mem := λ s, s.inv_mem' }
+  inv_mem := λ s _, s.inv_mem' }
 
 variables (P : sylow p G)
 

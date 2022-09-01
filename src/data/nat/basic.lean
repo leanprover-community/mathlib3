@@ -633,7 +633,7 @@ def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}
 
 theorem le_rec_on_self {C : ℕ → Sort u} {n} {h : n ≤ n} {next} (x : C n) :
   (le_rec_on h next x : C n) = x :=
-by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self, dif_pos rfl]
+by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self]
 
 theorem le_rec_on_succ {C : ℕ → Sort u} {n m} (h1 : n ≤ m) {h2 : n ≤ m+1} {next} (x : C n) :
   (le_rec_on h2 @next x : C (m+1)) = next (le_rec_on h1 @next x : C m) :=

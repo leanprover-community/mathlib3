@@ -328,3 +328,171 @@ begin
   exact picard_lindelof.exists_solution
     ⟨v, t_min, t_max, t₀, x₀, C, R, L, Hlip, Hcont, Hnorm, Hmul_le⟩
 end
+
+/-- Predicate for the hypotheses of the Picard-Lindelöf theorem -/
+@[reducible] def is_picard_lindelof
+  [complete_space E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (x₀ : E) : Prop :=
+∃ (L : nnreal) (R C : ℝ) (hR : 0 ≤ R),
+(∀ (t : ℝ), t ∈ set.Icc t_min t_max → lipschitz_on_with L (v t) (metric.closed_ball x₀ R)) ∧
+(∀ (x : E), x ∈ metric.closed_ball x₀ R → continuous_on (λ (t : ℝ), v t x) (set.Icc t_min t_max)) ∧
+(∀ (t : ℝ), t ∈ set.Icc t_min t_max → ∀ (x : E), x ∈ metric.closed_ball x₀ R → ∥v t x∥ ≤ C) ∧
+(C * linear_order.max (t_max - t₀) (t₀ - t_min) ≤ R)
+
+/-- Picard-Lindelöf theorem where the hypothesis is a predicate -/
+lemma ODE_solution_exists
+  [complete_space E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (ht₀ : t₀ ∈ set.Icc t_min t_max) (x₀ : E)
+  (hpl : is_picard_lindelof v t_min t₀ t_max x₀) :
+  ∃ (f : ℝ → E), f t₀ = x₀ ∧ ∀ (t : ℝ), t ∈ set.Icc t_min t_max →
+    has_deriv_within_at f (v t (f t)) (set.Icc t_min t_max) t :=
+begin
+ rcases hpl with ⟨L, R, C, hR, h1, h2, h3, h4⟩,
+ apply exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous ht₀ x₀ hR h1 h2 h3 h4
+end
+
+/-- Solution exists on a subset of a closed interval. -/
+lemma ODE_solution_exists.within_at_set
+  [complete_space E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (ht₀ : t₀ ∈ set.Icc t_min t_max) (x₀ : E)
+  {s : set ℝ} (hs : s ⊆ set.Icc t_min t_max)
+  (hpl : is_picard_lindelof v t_min t₀ t_max x₀) :
+  ∃ (f : ℝ → E), f t₀ = x₀ ∧ ∀ (t : ℝ), t ∈ s → has_deriv_within_at f (v t (f t)) s t :=
+begin
+  have h := ODE_solution_exists v t_min t₀ t_max ht₀ x₀ hpl,
+  rcases h with ⟨f, h2, h3⟩,
+  use f,
+  use h2,
+  intros t ht,
+  apply has_deriv_within_at.mono _ hs,
+  apply h3,
+  exact set.mem_of_subset_of_mem hs ht
+end
+
+/-- Solution exists on an open subset of some closed interval. -/
+lemma ODE_solution_exists.at_open_set
+  [complete_space E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (ht₀ : t₀ ∈ set.Icc t_min t_max) (x₀ : E)
+  {s : set ℝ} (hs₁ : s ⊆ set.Icc t_min t_max) (hs₂ : is_open s)
+  (hpl : is_picard_lindelof v t_min t₀ t_max x₀) :
+  ∃ (f : ℝ → E), f t₀ = x₀ ∧ ∀ (t : ℝ), t ∈ s → has_deriv_at f (v t (f t)) t :=
+begin
+  have H := ODE_solution_exists.within_at_set v t_min t₀ t_max ht₀ x₀ hs₁ hpl,
+  rcases H with ⟨f, h1, h2⟩,
+  use f,
+  use h1,
+  intros t ht,
+  apply has_deriv_within_at.has_deriv_at (h2 t ht),
+  rw is_open.mem_nhds_iff hs₂,
+  exact ht
+end
+
+/-- Solution exists on an open interval. -/
+lemma ODE_solution_exists.at_ball
+  [complete_space E] (v : ℝ → E → E) (t₀ ε : ℝ) (hε : 0 < ε) (x₀ : E)
+  (hpl : is_picard_lindelof v (t₀ - ε) t₀ (t₀ + ε) x₀) :
+  ∃ (f : ℝ → E), f t₀ = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball t₀ ε → has_deriv_at f (v t (f t)) t :=
+begin
+  apply ODE_solution_exists.at_open_set v (t₀ - ε) t₀ (t₀ + ε),
+  { rw ←real.closed_ball_eq_Icc,
+    apply metric.mem_closed_ball_self,
+    apply le_of_lt,
+    exact hε },
+  { rw real.ball_eq_Ioo,
+    exact set.Ioo_subset_Icc_self },
+  { exact metric.is_open_ball },
+  exact hpl
+end
+
+/-- A time-independent, continuously differentiable ODE satisfies the hypotheses of the
+  Picard-Lindelöf theorem. -/
+lemma time_indep_cont_diff_is_picard_lindelof
+  [proper_space E] (v : E → E) (hv : cont_diff ℝ 1 v) (t₀ : ℝ) (x₀ : E) :
+  ∃ (ε : ℝ) (hε : 0 < ε), is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ :=
+begin
+  have : cont_diff_at ℝ 1 v x₀ := cont_diff.cont_diff_at hv,
+  have hlip := cont_diff_at.exists_lipschitz_on_with this,
+  rcases hlip with ⟨L, s, hs, hlip⟩,
+  rw metric.mem_nhds_iff at hs,
+  rcases hs with ⟨r, hr, hball⟩,
+  have hclosed : metric.closed_ball x₀ (r / 2) ⊆ metric.ball x₀ r,
+  { apply metric.closed_ball_subset_ball,
+    apply half_lt_self,
+    exact hr },
+  have hlip' := lipschitz_on_with.mono hlip (subset_trans hclosed hball),
+  have hbbd : bdd_above ((λ x, ∥v x∥)'' (metric.closed_ball x₀ (r / 2))),
+  { apply is_compact.bdd_above_image,
+    { apply is_compact_closed_ball }, -- uses proper_space E
+    apply continuous_on.norm,
+    apply cont_diff_on.continuous_on (cont_diff.cont_diff_on hv) },
+  rw bdd_above_def at hbbd,
+  cases hbbd with C hC,
+  set ε := if C = 0 then 1 else (r / 2 / C) with hε,
+  use ε,
+  have hε' : ε > 0,
+  { rw hε,
+    split_ifs,
+    { exact zero_lt_one },
+    rw gt,
+    rw lt_div_iff,
+    { rw lt_div_iff zero_lt_two,
+      rw zero_mul,
+      rw zero_mul,
+      exact hr,
+      apply_instance },
+    { have : ∥v x₀∥ ≤ C,
+      { apply hC,
+        rw set.mem_image,
+        use x₀,
+        rw metric.mem_closed_ball,
+        rw dist_self,
+        refine ⟨_, rfl⟩,
+        rw le_div_iff zero_lt_two,
+        rw zero_mul,
+        exact le_of_lt hr,
+        apply_instance },
+      apply lt_of_le_of_ne _ (ne.symm h),
+      exact le_trans (norm_nonneg (v x₀)) this } },
+  use hε',
+  have ht₀ : t₀ ∈ set.Icc (t₀ - ε) (t₀ + ε),
+  { rw ←real.closed_ball_eq_Icc,
+    apply metric.mem_closed_ball_self,
+    apply le_of_lt,
+    exact hε' },
+  -- show is_picard_lindelof
+  use L,
+  use r / 2,
+  use C,
+  refine ⟨_, _, _, _, _⟩,
+  { linarith },
+  { intros t ht,
+    exact hlip' },
+  { intros x hx,
+    exact continuous_on_const },
+  { intros t ht x hx,
+    apply hC,
+    rw set.mem_image,
+    use x,
+    rw metric.mem_closed_ball,
+    refine ⟨_, rfl⟩,
+    rw ←metric.mem_closed_ball,
+    exact hx },
+  { rw [add_tsub_cancel_left, sub_sub_cancel, max_self, hε],
+    split_ifs,
+    { rw h,
+      rw zero_mul,
+      rw le_div_iff zero_lt_two,
+      rw zero_mul,
+      exact le_of_lt hr,
+      apply_instance },
+    rw mul_div_cancel' _ h }
+end
+
+/-- A time-independent, continuously differentiable ODE admits a solution in some open interval. -/
+theorem ODE_solution_exists.at_ball_of_cont_diff
+  [proper_space E] (v : E → E) (hv : cont_diff ℝ 1 v) (t₀ : ℝ) (x₀ : E) :
+  ∃ (ε : ℝ) (hε : ε > 0) (f : ℝ → E), f t₀ = x₀ ∧
+    ∀ t ∈ metric.ball t₀ ε, has_deriv_at f (v (f t)) t :=
+begin
+  have h := time_indep_cont_diff_is_picard_lindelof v hv t₀ x₀,
+  rcases h with ⟨ε, hε, hpl⟩,
+  use ε,
+  use hε,
+  apply ODE_solution_exists.at_ball (λ t, v) t₀ ε hε x₀ hpl
+end

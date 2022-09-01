@@ -276,17 +276,23 @@ begin
   apply reachable_coe, exact h,
 end
 
-lemma connected_in_conn_comp {G : simple_graph V} {K : set V} (S : set (G.compl K).verts) (Sconn : ((G.compl K).coe.induce S).connected) : conn_comp_outside G K :=
+def connected_in_conn_comp {G : simple_graph V} {K : set V} {S : set (G.compl K).verts} (Sconn : ((G.compl K).coe.induce S).connected) : conn_comp_outside G K :=
 begin
   let C := conn_graph_conn_comp Sconn,
   refine connected_component.lift _ _ C,
   { rintro ⟨v, vS⟩, exact component_of v,},
-  {
-    rintros ⟨v, vS⟩ ⟨w, wS⟩ p hpath,
+  { rintros ⟨v, vS⟩ ⟨w, wS⟩ p hpath,
     dsimp, simp,
     apply nonempty.intro,
-    exact simple_graph.walk.map (simple_graph.hom.comap _ _) p,
-  }
+    exact simple_graph.walk.map (simple_graph.hom.comap _ _) p,}
+end
+
+lemma connected_in_conn_comp.unique {G : simple_graph V} {K : set V} {S : set (G.compl K).verts} (Sconn : ((G.compl K).coe.induce S).connected) : ∀ C : conn_comp_outside G K, C = connected_in_conn_comp Sconn :=
+begin
+  apply connected_component.ind,
+  intro v,
+  dsimp [connected_in_conn_comp],
+
 end
 
 
@@ -470,7 +476,7 @@ section finite_components
 
         apply connected_component.ind,
         rintro ⟨v', _⟩, dsimp [component_of],
-        simp, apply reachable_empty_compl, apply Gpc,},
+        simp, apply reachable_empty_compl.mp, apply Gpc,},
 
       { refine ⟨∅, _⟩, dsimp [conn_comp_outside],
         apply connected_component.ind, rintro ⟨v, _⟩,

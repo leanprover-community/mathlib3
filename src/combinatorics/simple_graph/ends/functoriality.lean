@@ -23,8 +23,7 @@ import combinatorics.simple_graph.metric
 
 
 import .mathlib
-import .reachable_outside
-import .bwd_map
+import .conn_comp_outside
 import .end_limit_construction
 
 
@@ -58,10 +57,6 @@ end inverse_system
 
 
 open simple_graph
-open simple_graph.ro_component
-open simple_graph.bwd_map
-
-open simple_graph.bwd_map.bwd_map_inf
 
 variables  {V : Type u}
            (G : simple_graph V)
@@ -134,7 +129,7 @@ lemma cofinite.image_infinite {f : V → V'} (cof : cofinite f) {S : set V} (Sin
 
 
 def good_finset (f : V → V') (K : finset V') (L : finset V) :=
-  Π D : inf_ro_components' G L, {C : inf_ro_components' G' K | f '' D.val ⊆ C.val}
+  Π D : inf_conn_comp_outside G L, {C : inf_conn_comp_outside G' K | f '' D.val ⊆ C.val}
 
 
 lemma good_finset.eq {f : V → V'} {K : finset V'} {L : finset V}
@@ -142,7 +137,7 @@ lemma good_finset.eq {f : V → V'} {K : finset V'} {L : finset V}
 begin
   apply funext,
   rintro D,
-  apply subtype.ext, apply subtype.ext, apply subtype.ext,
+  apply subtype.ext, apply subtype.ext,
   apply ro_component.eq_of_common_subset G' K (HL D).val.val.val (HL' D).val.val.val
     (HL D).val.val.prop (HL' D).val.val.prop (f '' D.val.val) (HL D).prop (HL' D).prop,
   exact set.nonempty.image f (set.infinite.nonempty D.prop),

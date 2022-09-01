@@ -319,16 +319,36 @@ end
 
 lemma coprime_of_prod_coprime {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (j : ι) (s : finset ι) (hjs : j ∉ s) : is_coprime (g j) (∏ (i : ι) in s, (g i)) :=
+  (s : finset ι) (j : ι) (hjs : j ∉ s) : is_coprime (g j) (∏ (i : ι) in s, (g i)) :=
 begin
   classical,
   unfold is_coprime,
+  revert j hjs,
   apply s.induction_on,
-  { refine ⟨ 0, 1, _ ⟩,
+  { intros j hj,
+    refine ⟨ 0, 1, _ ⟩,
     simp only [zero_mul, finset.prod_empty, mul_one, zero_add], },
-  { intros j' s hj's H,
+  { intros k t hkt H j hj,
+    rw finset.prod_insert hkt,
+    specialize H k hkt,
+    unfold pairwise is_coprime at hcop,
+    have hne : j ≠ k,
+    { intro he,
+      rw he at hj,
+      simp only [finset.mem_insert, eq_self_iff_true, true_or, not_true] at hj,
+      exact hj, },
     rcases H with ⟨a0, b0, h0⟩,
-    rw finset.prod_insert hj's,
+    rcases (hcop j k hne) with ⟨a1, b1, h1⟩,
+    have hcalc : (a1 * g j + b1 * g k) * (a0 * g k + b0 * ∏ (i : ι) in t, g i) = 1,
+    { rw [h1, h0, one_mul], },
+    -- a := a0 * a1 * g j + a1 * b0 * ∏ (x : ι) in t, g x + b1 * a0 * g k
+    -- b := b1 * b0
+    -- refine ⟨a0 * a1 * g j + a1 * b0 * ∏ (x : ι) in t, g x + b1 * a0 * g k ,
+    --         b1 * b0,
+    --         _ ⟩,
+    -- rw ← hcalc,
+    -- ring_nf,
+    -- simp,
     sorry },
 end
 
@@ -358,7 +378,7 @@ begin
       r₂.degree < (∏ (x : ι) in b, (g x)).degree ∧ (f : K) / (↑(g a) * ↑(∏ (x : ι) in b, (g x))) =
       q + r₁ / ↑(g a) + r₂ / ↑(∏ (x : ι) in b, (g x)) :=
       div_eq_quo_add_rem_div_add_rem_div _ _ (hg a)
-        (finite_product_of_monics_is_monic _ (hg) b) (coprime_of_prod_coprime R hg hcop a b hab),
+        (finite_product_of_monics_is_monic _ (hg) b) (coprime_of_prod_coprime R hg hcop b a hab),
     rcases hdiv with ⟨ q', r1', r2', hd1, hd2, H2 ⟩,
     rw polynomial.coe_algebra_map_fin_prod _ K g at H2, -- why isn't norm_cast working?
     rw H2,

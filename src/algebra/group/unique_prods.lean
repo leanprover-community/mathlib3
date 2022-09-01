@@ -76,7 +76,7 @@ lemma subsingleton (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :
   ((h ha hb ab).1.trans (h ha' hb' ab').1.symm) $ (h ha hb ab).2.trans (h ha' hb' ab').2.symm⟩
 
 @[to_additive]
-lemma exists_unique_iff (aA : a0 ∈ A) (bB : b0 ∈ B) :
+lemma iff_exists_unique (aA : a0 ∈ A) (bB : b0 ∈ B) :
   unique_mul A B a0 b0 ↔ ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = a0 * b0 :=
 ⟨λ _, ⟨(a0, b0), ⟨finset.mem_product.mpr ⟨aA, bB⟩, rfl, by simp⟩, by simpa⟩, λ h, begin
   rcases h with ⟨⟨a, b⟩, -, J⟩,
@@ -90,11 +90,11 @@ end⟩
 @[to_additive]
 lemma exists_iff_exists_exists_unique : (∃ a0 b0 : G, a0 ∈ A ∧ b0 ∈ B ∧ unique_mul A B a0 b0) ↔
   ∃ g : G, ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = g :=
-⟨λ ⟨a0, b0, hA, hB, h⟩, ⟨_, (exists_unique_iff hA hB).mp h⟩, λ ⟨g, h⟩, begin
+⟨λ ⟨a0, b0, hA, hB, h⟩, ⟨_, (iff_exists_unique hA hB).mp h⟩, λ ⟨g, h⟩, begin
     have h' := h,
     rcases h' with ⟨⟨a,b⟩, ⟨hab, rfl, -⟩, -⟩,
     cases finset.mem_product.mp hab with ha hb,
-    exact ⟨a, b, ha, hb, (exists_unique_iff ha hb).mpr h⟩,
+    exact ⟨a, b, ha, hb, (iff_exists_unique ha hb).mpr h⟩,
   end⟩
 
 /--  `unique_mul` is preserved by inverse images under injective, multiplicative maps. -/

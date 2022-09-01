@@ -482,20 +482,17 @@ begin
   simp_rw [aeval_nat_cast', algebra_map_int_eq, eq_int_cast],
 end
 
-lemma sum_ineq_1 (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
+lemma sum_ineq_1 (g : ℤ[X]) (p : ℕ) :
   ((∑ i in finset.range g.nat_degree.succ,
     (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ↑(eval (i : ℤ) (f_bar (f_p p g.nat_degree))))) ≤
   (g.nat_degree.succ:ℝ) *
       (↑(max_abs_coeff_1 g) * (↑(g.nat_degree) + 1) * ((g.nat_degree:ℝ) + 1).exp *
          (2 * (↑(g.nat_degree) + 1)) ^ (p + p * g.nat_degree)) :=
 begin
-  have ineq1 :
-  (∑ i in finset.range g.nat_degree.succ,
-    (abs (g.coeff i:ℝ)) * (i : ℝ) * (i:ℝ).exp * ↑(eval (i:ℤ) (f_bar (f_p p g.nat_degree)))) ≤
-  (∑ i in finset.range g.nat_degree.succ,
-    (max_abs_coeff_1 g:ℝ) * (g.nat_degree.succ : ℝ) * (g.nat_degree.succ:ℝ).exp *
-      ((2 * ↑(g.nat_degree.succ)) ^ (p + p * g.nat_degree))),
-  { apply finset.sum_le_sum, intros x H, simp only [finset.mem_range] at H,
+  refine (finset.sum_le_card_nsmul (finset.range g.nat_degree.succ) _
+    ((max_abs_coeff_1 g:ℝ) * (g.nat_degree.succ : ℝ) * (g.nat_degree.succ:ℝ).exp *
+      ((2 * ↑(g.nat_degree.succ)) ^ (p + p * g.nat_degree))) (λ x H, _)).trans_eq _,
+  { simp only [finset.mem_range] at H,
     by_cases hx : x ∈ g.support,
     { apply mul_le_mul,
       { apply mul_le_mul,
@@ -532,9 +529,7 @@ begin
     { apply pow_nonneg,
       refine mul_nonneg zero_le_two _,
       norm_cast, exact bot_le } },
-  rw finset.sum_const at ineq1, conv_rhs at ineq1 {simp only [nat.cast_succ, finset.card_range],},
-  rw nsmul_eq_mul at ineq1,
-  exact ineq1,
+  { rw [nsmul_eq_mul, finset.card_range, ←nat.cast_succ] },
 end
 
 lemma self_le_pow_nat (n m : ℕ) (hm : 1 ≤ m) : n ≤ n ^ m :=
@@ -616,7 +611,7 @@ theorem abs_J_upper_bound (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) : abs (J g p
 begin
   refine (abs_J_ineq1' g p).trans _,
   rw abs_J_ineq1'_coe g p hp,
-  refine (sum_ineq_1 g p hp).trans _,
+  refine (sum_ineq_1 g p).trans _,
   rw M,
   have ineq4 := sum_ineq_2 g p hp,
   apply ineq4.trans_eq,

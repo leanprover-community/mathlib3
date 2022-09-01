@@ -181,6 +181,13 @@ begin
   simp only [direction_affine_span, vector_span_def, vadd_vsub_vadd_cancel_left'],
 end
 
+lemma affine_span_eq_vector_span' {A : set V} (hzm : (0 : V) ∈ A) :
+(affine_span ℝ A : set V) = vector_span ℝ A :=
+begin
+  convert affine_span_eq_vector_span hzm,
+  simp only [neg_zero, zero_vadd],
+end
+
 lemma affine_subspace.coe_sort_coe (E : affine_subspace ℝ V) :
 (E : Type) = (E : set V) := rfl
 
@@ -215,8 +222,35 @@ begin
     apply subtype.continuous_inclusion,
 end
 
-/- lemma mk_mem_iff {α : Type} {p : α → Prop} (s : set {x : α // }) {a : α} (pa : p a) :
-⟨a, pa⟩ ∈  -/
+lemma relint_vector_span {A : set V} (hzm : (0 : V) ∈ A) :
+relint A = (coe : vector_span ℝ A → V) '' interior ((coe : vector_span ℝ A → V) ⁻¹' A) :=
+begin
+  have : ∀ v : V, v ∈ vector_span ℝ A ↔ v ∈ affine_span ℝ A,
+  {
+    intros v,
+    simp only [←set_like.mem_coe, ←affine_subspace.mem_coe],
+    rw [affine_span_eq_vector_span' hzm],
+  },
+  let φ : vector_span ℝ A ≃ₜ affine_span ℝ A := subtype.homeomorph_inclusion this,
+  rw [relint_def],
+  ext y,
+  simp only [set.mem_image],
+  split,
+  { rintro ⟨y, hy, rfl⟩,
+    refine ⟨φ.symm y, _, rfl⟩,
+    have := set.mem_image_of_mem φ.symm hy,
+    rw [φ.symm.image_interior] at this,
+    convert this using 2,
+    rw [←φ.symm.preimage_symm, ←set.preimage_comp],
+    refl },
+  { rintro ⟨y, hy, rfl⟩,
+    refine ⟨φ y, _, rfl⟩,
+    have := set.mem_image_of_mem φ hy,
+    rw [φ.image_interior] at this,
+    convert this using 2,
+    rw [←φ.preimage_symm, ←set.preimage_comp],
+    refl },
+end
 
 lemma nonempty_relint_of_nonempty_of_convex [finite_dimensional ℝ V] {A : set V}
 (Ane : A.nonempty) (Acv : convex ℝ A) :
@@ -225,43 +259,18 @@ begin
   obtain ⟨x, hx⟩ := Ane,
   rw [←vadd_neg_vadd x A, relint_vadd],
   apply set.nonempty.vadd_set,
-  let A' := (vector_span ℝ A).subtype ⁻¹' ((-x) +ᵥ A),
-  have Acv' : convex ℝ A' := (Acv.vadd _).linear_preimage _,
-  obtain ⟨⟨y, hy₁⟩, hy₂⟩ : (interior A').nonempty,
-  { rw [Acv'.interior_nonempty_iff_affine_span_eq_top,
-        affine_subspace.affine_span_eq_top_iff_vector_span_eq_top_of_nonempty], swap,
-    { refine ⟨0, _⟩,
-      simp only [submodule.coe_subtype, set.mem_preimage, submodule.coe_zero],
-      refine ⟨x, hx, _⟩,
-      simp only [vadd_eq_add, add_left_neg] },
-    { simp only [A', vector_span],
-      refine eq.trans _ submodule.span_span_coe_preimage,
-      rw [←submodule.subtype_preimage_vsub, vadd_vsub_vadd_cancel_left' (-x) A A],
-      { refl },
-      rintro - ⟨a, ha, rfl⟩,
-      simp only [vadd_eq_add, set_like.mem_coe, ←sub_eq_neg_add],
-      apply vsub_mem_vector_span ; assumption } },
-  rw [relint_def, set.nonempty_image_iff],
-  refine ⟨⟨y, _⟩, _⟩,
-  { rw [←set_like.mem_coe, ←affine_span_eq_vector_span hx] at hy₁, exact hy₁ },
-  have : ∀ v : V, v ∈ vector_span ℝ A ↔ v ∈ affine_span ℝ (-x +ᵥ A),
-  {
-    intros v,
-    simp only [←set_like.mem_coe, ←affine_subspace.mem_coe],
-    rw [affine_span_eq_vector_span hx],
-  },
-  let bla: vector_span ℝ A ≃ₜ affine_span ℝ (-x +ᵥ A) := subtype.homeomorph_inclusion this,
-  have int_eq := bla.image_interior A',
-  have := set.mem_image_of_mem bla hy₂,
-  rw [int_eq] at this,
-  simp only [bla, subtype.homeomorph_inclusion, subtype.equiv_inclusion, subtype.inclusion,
-  homeomorph.homeomorph_mk_coe, subtype.map, id.def, submodule.coe_mk, equiv.coe_fn_mk] at this,
-  convert this using 2,
-  ext y,
-  simp only [A', set.mem_preimage, set.mem_image],
-  split,
-  { exact λ hy, ⟨bla.to_equiv.inv_fun y, hy, by { ext, refl }⟩ },
-  { rintro ⟨z, hz₁, hz₂⟩,
-    rw [←hz₂],
-    exact hz₁, },
+  have hzm : (0 : V) ∈ -x +ᵥ A :=⟨x, hx, add_left_neg x⟩,
+  rw [relint_vector_span hzm, set.nonempty_image_iff],
+  rw [convex.interior_nonempty_iff_affine_span_eq_top,
+    affine_subspace.affine_span_eq_top_iff_vector_span_eq_top_of_nonempty],
+  { simp only [vector_span_def, ←submodule.coe_subtype],
+    refine eq.trans _ submodule.span_span_coe_preimage,
+    rw [←submodule.subtype_preimage_vsub],
+    { refl },
+    { refine subset_trans _ submodule.subset_span,
+      intros y hy,
+      exact ⟨y, 0, hy, hzm, sub_zero y⟩, } },
+  { exact ⟨0, hzm⟩ },
+  { rw [←submodule.coe_subtype],
+    exact (Acv.vadd _).linear_preimage _ },
 end

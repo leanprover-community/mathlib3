@@ -133,6 +133,7 @@ variables [is_alg_closed k] [finite σ]
 lemma is_maximal_iff_eq_vanishing_ideal_singleton (I : ideal (mv_polynomial σ k)) :
   I.is_maximal ↔ ∃ (x : σ → k), I = vanishing_ideal {x} :=
 begin
+  casesI nonempty_fintype σ,
   refine ⟨λ hI, _, λ h, let ⟨x, hx⟩ := h in
     hx.symm ▸ (mv_polynomial.vanishing_ideal_singleton_is_maximal)⟩,
   letI : I.is_maximal := hI,

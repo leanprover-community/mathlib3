@@ -348,7 +348,8 @@ begin
   rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
 end
 
-theorem exists_sub_mem [finite ι] {f : ι → ideal R} (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) (g : ι → R) :
+theorem exists_sub_mem [finite ι] {f : ι → ideal R} (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤)
+  (g : ι → R) :
   ∃ r : R, ∀ i, r - g i ∈ f i :=
 begin
   casesI nonempty_fintype ι,

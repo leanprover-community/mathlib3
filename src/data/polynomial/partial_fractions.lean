@@ -319,9 +319,17 @@ end
 
 lemma coprime_of_prod_coprime {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (a : ι) (s : finset ι) (has : a ∉ s) : is_coprime (g a) (∏ (x : ι) in s, (g x)) :=
+  (j : ι) (s : finset ι) (hjs : j ∉ s) : is_coprime (g j) (∏ (i : ι) in s, (g i)) :=
 begin
-  sorry
+  classical,
+  unfold is_coprime,
+  apply s.induction_on,
+  { refine ⟨ 0, 1, _ ⟩,
+    simp only [zero_mul, finset.prod_empty, mul_one, zero_add], },
+  { intros j' s hj's H,
+    rcases H with ⟨a0, b0, h0⟩,
+    rw finset.prod_insert hj's,
+    sorry },
 end
 
 lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}

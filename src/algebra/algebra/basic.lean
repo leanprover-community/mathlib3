@@ -932,11 +932,6 @@ lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
   e (f.sum g) = f.sum (λ i b, e (g i b)) :=
 e.map_sum _ _
 
-@[simp]
-lemma alg_equiv.to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₂) :
-  (f : A ≃+* B).symm = f.symm :=
-rfl
-
 /-- Interpret an algebra equivalence as an algebra homomorphism.
 
 This definition is included for symmetry with the other `to_*_hom` projections.
@@ -1004,6 +999,11 @@ symm_bijective.injective $ ext $ λ x, rfl
 
 @[simp]
 theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
+
+@[simp]
+lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) :
+  (f : A₁ ≃+* A₁).symm = f.symm :=
+rfl
 
 /-- Algebra equivalences are transitive. -/
 @[trans]
@@ -1176,8 +1176,8 @@ section of_ring_equiv
 
 /-- Promotes a linear ring_equiv to an alg_equiv -/
 @[simps]
-def alg_equiv.of_ring_equiv {f : A₁ ≃+* A₂}
-  (hf : ∀ x, f (algebra_map R A₁ x) = algebra_map R A₂ x) : A ≃ₐ[R] B :=
+def of_ring_equiv (f : A₁ ≃+* A₂)
+  (hf : ∀ x, f (algebra_map R A₁ x) = algebra_map R A₂ x) : A₁ ≃ₐ[R] A₂ :=
 { to_fun := f,
   inv_fun := f.symm,
   commutes' := hf,

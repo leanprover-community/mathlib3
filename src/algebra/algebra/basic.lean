@@ -907,6 +907,7 @@ rfl
 @[simp] lemma to_ring_equiv_eq_coe : e.to_ring_equiv = e := rfl
 
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
+
 lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 
 lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
@@ -930,6 +931,11 @@ e.to_add_equiv.map_sum f s
 lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A₁) :
   e (f.sum g) = f.sum (λ i b, e (g i b)) :=
 e.map_sum _ _
+
+@[simp]
+lemma alg_equiv.to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₂) :
+  (f : A ≃+* B).symm = f.symm :=
+rfl
 
 /-- Interpret an algebra equivalence as an algebra homomorphism.
 
@@ -1168,7 +1174,6 @@ end of_linear_equiv
 
 section of_ring_equiv
 
-#where
 /-- Promotes a linear ring_equiv to an alg_equiv -/
 @[simps]
 def alg_equiv.of_ring_equiv {f : A₁ ≃+* A₂}
@@ -1177,12 +1182,6 @@ def alg_equiv.of_ring_equiv {f : A₁ ≃+* A₂}
   inv_fun := f.symm,
   commutes' := hf,
   .. f }
-
-@[simp]
-lemma alg_equiv.to_ring_equiv_symm {R A B : Type*} [comm_semiring R] [semiring A] [semiring B]
-  [algebra R A] [algebra R B] (f : A ≃ₐ[R] B) :
-  (f : A ≃+* B).symm = f.symm :=
-rfl
 
 end of_ring_equiv
 

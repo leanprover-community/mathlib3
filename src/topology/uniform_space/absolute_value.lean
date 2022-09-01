@@ -14,12 +14,6 @@ a linear ordered field `𝕜`. Of course in the case `R` is `ℚ`, `ℝ` or `ℂ
 `𝕜 = ℝ`, we get the same thing as the metric space construction, and the general construction
 follows exactly the same path.
 
-## Implementation details
-
-Note that we import `data.real.cau_seq` because this is where absolute values are defined, but
-the current file does not depend on real numbers. TODO: extract absolute values from that
-`data.real` folder.
-
 ## References
 
 * [N. Bourbaki, *Topologie générale*][bourbaki1966]
@@ -32,24 +26,24 @@ absolute value, uniform spaces
 open set function filter uniform_space
 open_locale filter
 
-namespace is_absolute_value
+namespace absolute_value
 variables {𝕜 : Type*} [linear_ordered_field 𝕜]
-variables {R : Type*} [comm_ring R] (abv : R → 𝕜) [is_absolute_value abv]
+variables {R : Type*} [comm_ring R] (abv : absolute_value R 𝕜)
 
 /-- The uniformity coming from an absolute value. -/
 def uniform_space_core : uniform_space.core R :=
 { uniformity := (⨅ ε>0, 𝓟 {p:R×R | abv (p.2 - p.1) < ε}),
   refl := le_infi $ assume ε, le_infi $ assume ε_pos, principal_mono.2
-    (λ ⟨x, y⟩ h, by simpa [show x = y, from h, abv_zero abv]),
+    (λ ⟨x, y⟩ h, by simpa [show x = y, from h, map_zero abv]),
   symm := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
     tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ λ ⟨x, y⟩ h,
       have h : abv (y - x) < ε, by simpa [-sub_eq_add_neg] using h,
-      by rwa abv_sub abv at h,
+      by rwa abv.map_sub at h,
   comp := le_infi $ assume ε, le_infi $ assume h, lift'_le
     (mem_infi_of_mem (ε / 2) $ mem_infi_of_mem (div_pos h zero_lt_two) (subset.refl _)) $
     have ∀ (a b c : R), abv (c-a) < ε / 2 → abv (b-c) < ε / 2 → abv (b-a) < ε,
       from assume a b c hac hcb,
-       calc abv (b - a) ≤ _ : abv_sub_le abv b c a
+       calc abv (b - a) ≤ _ : abv.sub_le b c a
         ... = abv (c - a) + abv (b - c) : add_comm _ _
         ... < ε / 2 + ε / 2 : add_lt_add hac hcb
         ... = ε : by rw [div_add_div_same, add_self_div_two],
@@ -72,4 +66,4 @@ begin
     exact ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
 end
 
-end is_absolute_value
+end absolute_value

@@ -17,7 +17,7 @@ open cau_seq
 
 section
 parameters {α : Type*} [linear_ordered_field α]
-parameters {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
+parameters {β : Type*} [comm_ring β] {abv : absolute_value β α}
 
 /-- The Cauchy completion of a commutative ring with absolute value. -/
 def Cauchy := @quotient (cau_seq _ abv) cau_seq.equiv
@@ -133,8 +133,8 @@ open_locale classical
 section
 
 parameters {α : Type*} [linear_ordered_field α]
-parameters {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
-local notation `Cauchy` := @Cauchy _ _ _ _ abv _
+parameters {β : Type*} [field β] {abv : absolute_value β α}
+local notation `Cauchy` := @Cauchy _ _ _ _ abv
 
 instance : has_rat_cast Cauchy := ⟨λ q, of_rat q⟩
 
@@ -159,7 +159,7 @@ end⟩
 @[simp] theorem inv_zero : (0 : Cauchy)⁻¹ = 0 :=
 congr_arg mk $ by rw dif_pos; [refl, exact zero_lim_zero]
 
-@[simp] theorem inv_mk {f} (hf) : (@mk α _ β _ abv _ f)⁻¹ = mk (inv f hf) :=
+@[simp] theorem inv_mk {f} (hf) : (@mk α _ β _ abv f)⁻¹ = mk (inv f hf) :=
 congr_arg mk $ by rw dif_neg
 
 lemma cau_seq_zero_ne_one : ¬ (0 : cau_seq _ abv) ≈ 1 := λ h,
@@ -210,7 +210,7 @@ variables {α : Type*} [linear_ordered_field α]
 namespace cau_seq
 section
 
-variables (β : Type*) [ring β] (abv : β → α) [is_absolute_value abv]
+variables (β : Type*) [ring β] (abv : absolute_value β α)
 
 /-- A class stating that a ring with an absolute value is complete, i.e. every Cauchy
 sequence has a limit. -/
@@ -220,7 +220,7 @@ end
 
 section
 
-variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
+variables {β : Type*} [ring β] {abv : absolute_value β α}
 variable [is_complete β abv]
 
 lemma complete : ∀ s : cau_seq β abv, ∃ b : β, s ≈ const abv b :=
@@ -278,7 +278,7 @@ assume h,
 end
 
 section
-variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv] [is_complete β abv]
+variables {β : Type*} [field β] {abv : absolute_value β α} [is_complete β abv]
 
 lemma lim_inv {f : cau_seq β abv} (hf : ¬ lim_zero f) : lim (inv f hf) = (lim f)⁻¹ :=
 have hl : lim f ≠ 0 := by rwa ← lim_eq_zero_iff at hf,
@@ -299,22 +299,24 @@ lim_eq_of_equiv_const $ show lim_zero (inv f hf - const abv (lim f)⁻¹),
 end
 
 section
-variables [is_complete α abs]
+variables [is_complete α absolute_value.abs]
 
-lemma lim_le {f : cau_seq α abs} {x : α}
-  (h : f ≤ cau_seq.const abs x) : lim f ≤ x :=
+local notation `abs'` := absolute_value.abs
+
+lemma lim_le {f : cau_seq α abs'} {x : α}
+  (h : f ≤ const abs' x) : lim f ≤ x :=
 cau_seq.const_le.1 $ cau_seq.le_of_eq_of_le (setoid.symm (equiv_lim f)) h
 
-lemma le_lim {f : cau_seq α abs} {x : α}
-  (h : cau_seq.const abs x ≤ f) : x ≤ lim f :=
+lemma le_lim {f : cau_seq α abs'} {x : α}
+  (h : const abs' x ≤ f) : x ≤ lim f :=
 cau_seq.const_le.1 $ cau_seq.le_of_le_of_eq h (equiv_lim f)
 
-lemma lt_lim {f : cau_seq α abs} {x : α}
-  (h : cau_seq.const abs x < f) : x < lim f :=
+lemma lt_lim {f : cau_seq α abs'} {x : α}
+  (h : const abs' x < f) : x < lim f :=
 cau_seq.const_lt.1 $ cau_seq.lt_of_lt_of_eq h (equiv_lim f)
 
-lemma lim_lt {f : cau_seq α abs} {x : α}
-  (h : f < cau_seq.const abs x) : lim f < x :=
+lemma lim_lt {f : cau_seq α abs'} {x : α}
+  (h : f < const abs' x) : lim f < x :=
 cau_seq.const_lt.1 $ cau_seq.lt_of_eq_of_lt (setoid.symm (equiv_lim f)) h
 
 end

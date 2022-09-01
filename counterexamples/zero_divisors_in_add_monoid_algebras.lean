@@ -99,16 +99,9 @@ begin
     { simp only [single_zero_one, commute.one_right] } },
 end
 
-lemma char_p_eq_add_order_of_one (R) [semiring R] : char_p R (add_order_of (1 : R)) :=
-⟨λ n, by rw [← nat.smul_one_eq_coe, add_order_of_dvd_iff_nsmul_eq_zero]⟩
-
-lemma zmod.add_order_of_one (n : ℕ) : add_order_of (1 : zmod n) = n :=
-char_p.eq _ (char_p_eq_add_order_of_one _) (zmod.char_p n)
-
 example {R} [ring R] [nontrivial R] (n : ℕ) (n0 : 2 ≤ n) :
   ∃ f g : add_monoid_algebra R (zmod n), f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
 zero_divisors_of_torsion (1 : zmod n) (n0.trans_eq (zmod.add_order_of_one _).symm)
-
 
 /--  `F` is the type with two elements `zero` and `one`.  We define the "obvious" linear order and
 absorbing addition on it to generate our counterexample. -/

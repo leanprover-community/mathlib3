@@ -120,7 +120,7 @@ lemma cofinite.image_infinite {f : V → V'} (cof : cofinite f) {S : set V} (Sin
 
 
 def good_finset (f : V → V') (K : finset V') (L : finset V) :=
-  Π D : inf_conn_comp_outside G L, {C : inf_conn_comp_outside G' K | f '' D.val ⊆ C.val}
+  Π D : inf_comp_out G L, {C : inf_comp_out G' K | f '' (D : set V) ⊆ C}
 
 
 lemma good_finset.eq {f : V → V'} {K : finset V'} {L : finset V}
@@ -128,8 +128,10 @@ lemma good_finset.eq {f : V → V'} {K : finset V'} {L : finset V}
 begin
   apply funext,
   rintro D,
-  apply subtype.ext, apply subtype.ext,
-  apply ro_component.eq_of_common_subset G' K (HL D).val.val.val (HL' D).val.val.val
+  ext,
+  apply comp_out.eq_of_not_disjoint,
+  rw set.not_disjoint_iff,
+  apply comp_out.eq_of_common_subset G' K (HL D).val.val.val (HL' D).val.val.val
     (HL D).val.val.prop (HL' D).val.val.prop (f '' D.val.val) (HL D).prop (HL' D).prop,
   exact set.nonempty.image f (set.infinite.nonempty D.prop),
 end

@@ -508,16 +508,6 @@ noncomputable def _root_.complex.abs : absolute_value ℂ ℝ :=
 
 end abs_theory
 
-section
-
-variables {R S : Type*} [semiring R] [ordered_semiring S] (abv : absolute_value R S)
-
-@[simp] lemma _root_.absolute_value.coe_mk (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
-
-protected theorem _root_.absolute_value.ne_zero_iff {x : R} : abv x ≠ 0 ↔ x ≠ 0 := abv.eq_zero.not
-
-end
-
 @[simp, norm_cast] lemma abs_of_real (r : ℝ) : abs r = |r| :=
 by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 

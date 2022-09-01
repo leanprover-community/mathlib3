@@ -44,6 +44,8 @@ instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
   coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
   map_mul := λ f, f.map_mul' }
 
+@[simp] lemma coe_mk (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
+
 instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_mul_hom : ⇑abv.to_mul_hom = abv := rfl
@@ -52,6 +54,8 @@ protected theorem nonneg (x : R) : 0 ≤ abv x := abv.nonneg' x
 @[simp] protected theorem eq_zero {x : R} : abv x = 0 ↔ x = 0 := abv.eq_zero' x
 protected theorem add_le (x y : R) : abv (x + y) ≤ abv x + abv y := abv.add_le' x y
 @[simp] protected theorem map_mul (x y : R) : abv (x * y) = abv x * abv y := abv.map_mul' x y
+
+protected theorem ne_zero_iff {x : R} : abv x ≠ 0 ↔ x ≠ 0 := abv.eq_zero.not
 
 protected theorem pos {x : R} (hx : x ≠ 0) : 0 < abv x :=
 lt_of_le_of_ne (abv.nonneg x) (ne.symm $ mt abv.eq_zero.mp hx)

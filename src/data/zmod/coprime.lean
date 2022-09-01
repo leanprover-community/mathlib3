@@ -6,6 +6,13 @@ Authors: Michael Stoll
 import data.zmod.basic
 import ring_theory.int.basic
 
+/-!
+# Coprimality and vanishing
+
+We show that for prime `p`, the image of an integer `a` in `zmod p` vanishes if and only if
+`a` and `p` are not coprime.
+-/
+
 namespace zmod
 
 /-- If `p` is a prime and `a` is an integer, then `a : zmod p` is zero if and only if

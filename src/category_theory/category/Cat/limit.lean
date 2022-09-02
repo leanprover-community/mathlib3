@@ -112,7 +112,9 @@ def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit_cone_X F 
       conv at this { congr, skip, dsimp, simp, },
       erw [functor.congr_hom this f],
       dsimp, simp, },
-  end, }
+  end,
+  map_id' := λ X, by simp,
+  map_comp' := λ X Y Z f g, by simp }
 
 @[simp]
 lemma limit_π_hom_diagram_eq_to_hom {F : J ⥤ Cat.{v v}}

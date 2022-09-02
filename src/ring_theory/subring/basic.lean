@@ -149,10 +149,8 @@ def subtype (s : S) : s →+* R :=
  .. add_subgroup_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
-map_nat_cast (subtype s) n
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
-(subtype s : s →+* R).map_int_cast n
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n := map_nat_cast (subtype s) n
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n := map_int_cast (subtype s) n
 
 end subring_class
 
@@ -213,7 +211,7 @@ iff.rfl
 equalities. -/
 protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
 { carrier := s,
-  neg_mem' := hs.symm ▸ S.neg_mem',
+  neg_mem' := λ _, hs.symm ▸ S.neg_mem',
   ..S.to_subsemiring.copy s hs }
 
 @[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :
@@ -415,10 +413,8 @@ def subtype (s : subring R) : s →+* R :=
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
-map_nat_cast s.subtype
-@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
-s.subtype.map_int_cast n
+@[simp, norm_cast] lemma coe_nat_cast : ∀ n : ℕ, ((n : s) : R) = n := map_nat_cast s.subtype
+@[simp, norm_cast] lemma coe_int_cast : ∀ n : ℤ, ((n : s) : R) = n := map_int_cast s.subtype
 
 /-! ## Partial order -/
 
@@ -1040,14 +1036,13 @@ begin
   { rw [list.map_cons, list.sum_cons],
     exact ha this (ih HL.2) },
   replace HL := HL.1, clear ih tl,
-  suffices : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
+  rsuffices ⟨L, HL', HP | HP⟩ : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
     (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
-  { rcases this with ⟨L, HL', HP | HP⟩,
-    { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
-      rw list.forall_mem_cons at HL',
-      rw list.prod_cons,
-      exact hs _ HL'.1 _ (ih HL'.2) },
-    rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
+  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
+    rw list.forall_mem_cons at HL',
+    rw list.prod_cons,
+    exact hs _ HL'.1 _ (ih HL'.2) },
+  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
     rw [list.prod_cons, neg_mul_eq_mul_neg],
     rw list.forall_mem_cons at HL',
     exact hs _ HL'.1 _ (ih HL'.2) },

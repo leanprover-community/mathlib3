@@ -11,7 +11,7 @@ import tactic.linarith
 
 ## Summary
 
-We define the natural- and integer-valued floor and ceil functions on linearly ordered rings.
+We define the natural- and integer-valued floor and ceil functions on ordered rings.
 
 ## Main Definitions
 
@@ -23,7 +23,8 @@ We define the natural- and integer-valued floor and ceil functions on linearly o
 * `int.floor a`: Greatest integer `z` such that `z ≤ a`.
 * `int.ceil a`: Least integer `z` such that `a ≤ z`.
 * `int.fract a`: Fractional part of `a`, defined as `a - floor a`.
-* `round a`: Nearest integer to `a`. It rounds halves towards infinity.
+* `round a`: Nearest integer to `a`. Defined only on linearly ordered rings.
+             It rounds halves towards infinity.
 
 ## Notations
 
@@ -34,11 +35,6 @@ We define the natural- and integer-valued floor and ceil functions on linearly o
 
 The index `₊` in the notations for `nat.floor` and `nat.ceil` is used in analogy to the notation
 for `nnnorm`.
-
-## TODO
-
-`linear_ordered_ring`/`linear_ordered_semiring` can be relaxed to `order_ring`/`order_semiring` in
-many lemmas.
 
 ## Tags
 

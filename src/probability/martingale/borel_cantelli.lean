@@ -303,11 +303,6 @@ begin
     exact (sub_lt_sub_left this _).le.trans ((le_abs_self _).trans (hbddx _)) }
 end
 
--- the `pos_part` name is consistent with `integral_eq_integral_pos_part_sub_integral_neg_part`
--- though it might be confusing with `pos`
-lemma abs_eq_pos_part_add_neg_part (x : ℝ) : (x.to_nnreal + (-x).to_nnreal : ℝ) = |x| :=
-by simp
-
 lemma snorm_one_le_of_le {r : ℝ≥0} {f : α → ℝ}
   (hfint : integrable f μ) (hfint' : 0 ≤ μ[f]) (hf : ∀ᵐ x ∂μ, f x ≤ r) :
   snorm f 1 μ ≤ 2 * μ set.univ * r :=
@@ -345,7 +340,7 @@ begin
     ennreal.of_real_le_iff_le_to_real (ennreal.mul_ne_top
       (ennreal.mul_ne_top ennreal.two_ne_top $ @measure_ne_top _ _ _ hμ _) ennreal.coe_ne_top)],
   simp_rw [ennreal.one_to_real, inv_one, real.rpow_one, real.norm_eq_abs,
-    ← abs_eq_pos_part_add_neg_part],
+    ← max_zero_add_max_neg_zero_eq_abs_self, ← real.coe_to_nnreal'],
   rw integral_add hfint.real_to_nnreal,
   { simp only [real.coe_to_nnreal', ennreal.to_real_mul, ennreal.to_real_bit0,
     ennreal.one_to_real, ennreal.coe_to_real] at hfint' ⊢,
@@ -451,38 +446,6 @@ begin
       have := hc.add_const (f 0 x),
       simpa only [sub_add_cancel] } }
 end
-
--- do we not have this?
-lemma bdd_below_range_of_tendsto_at_top_at_top
-  {α : Type*} [linear_order α] {x : ℕ → α}
-  (hx : tendsto x at_top at_top) : bdd_below (set.range x) :=
-begin
-  classical,
-  by_cases hα : nonempty α,
-  swap,
-  { rw not_nonempty_iff at hα,
-    exact false.elim (@is_empty.false α hα (x 0)) },
-  specialize hx (Ici_mem_at_top hα.some),
-  rw [mem_map, mem_at_top_sets] at hx,
-  obtain ⟨N, hN⟩ := hx,
-  let s : finset α := {hα.some} ∪ finset.image x (finset.range N),
-  have hs : hα.some ∈ s := by simp [s],
-  refine ⟨finset.min' s ⟨hα.some, hs⟩, _⟩,
-  rintros _ ⟨d, rfl⟩,
-  cases lt_or_le d N,
-  { refine finset.min'_le s (x d) _,
-    simp only [finset.mem_union, finset.mem_singleton, finset.mem_image,
-      finset.mem_range, exists_prop],
-    exact or.inr ⟨d, h, rfl⟩, },
-  { specialize hN d h,
-    simp only [set.mem_preimage, set.mem_Ici] at hN,
-    exact le_trans (finset.min'_le s hα.some hs) hN }
-end
-
-lemma bdd_above_range_of_tendsto_at_top_at_bot
-  {α : Type*} [linear_order α] {x : ℕ → α}
-  (hx : tendsto x at_top at_bot) : bdd_above (set.range x) :=
-@bdd_below_range_of_tendsto_at_top_at_top αᵒᵈ _ _ hx
 
 lemma martingale.bdd_above_range_iff_bdd_below_range [is_finite_measure μ]
   (hf : martingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :

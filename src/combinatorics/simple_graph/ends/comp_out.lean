@@ -72,6 +72,14 @@ begin
   { simp [connected_component.supp], use v, }
 end
 
+--mathlib
+lemma connected_component.of_preconnected (Gpc : G.preconnected) (C : G.connected_component)
+: (C : set V) = univ :=
+begin
+  sorry
+end
+
+
 -- mathlib
 def connected_component.equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'}
   (φ : G ≃g G') : G.connected_component ≃ G'.connected_component :=
@@ -172,8 +180,32 @@ def fin (C : G.comp_out K) := (C : set V).finite
 @[reducible]
 def dis (C : G.comp_out K) := disjoint K (C : set V)
 
-lemma of_empty_is_subsingleton (Gpc : G.preconnected) : ∀ C : (G.comp_out ∅),  (C : set V) = univ := sorry
-lemma of_empty_finite (Gpc : G.preconnected) : finite (G.comp_out ∅) := sorry
+lemma comp_out.empty : (G.comp_out ∅) = G.connected_component :=
+by {unfold comp_out,rw out.empty,}
+
+lemma of_empty_is_singleton (Gpc : G.preconnected) : ∀ C : (G.comp_out ∅),  (C : set V) = univ :=
+begin
+  rintro C,
+  let C' := C,
+  rw comp_out.empty at C',
+  have : (C' : set V) = (C : set V), by sorry, -- dependent typing issues…
+  rw ←this,
+  convert connected_component.of_preconnected G Gpc C',
+end
+
+lemma of_empty_finite (Gpc : G.preconnected) : finite (G.comp_out ∅) :=
+begin
+  haveI : subsingleton (G.comp_out ∅), by {
+    constructor,
+    rintro C D,
+    rw connected_component.eq_of_eq_supp, -- why doesn't the `ext` tactic take care of that ?
+    transitivity,
+    apply of_empty_is_singleton Gpc,
+    symmetry,
+    apply of_empty_is_singleton Gpc, },
+  haveI : fintype (G.comp_out ∅), by {apply fintype.of_subsingleton'},
+  apply finite.of_fintype,
+end
 
 
 @[simp] lemma nempty (C : G.comp_out K) : (C : set V).nonempty := by
@@ -690,7 +722,11 @@ variables {K}  {L : set V}
 -- Maybe todo: all the lemmas about disjointness and stuff, but maybe unneeded here.
 lemma dis (C : G.dis_comp_out K) : disjoint K C := C.prop
 
-lemma of_empty_is_subsingleton (Gpc : G.preconnected) : ∀ C : (G.dis_comp_out ∅), V = C := sorry
+lemma of_empty_is_singleton (Gpc : G.preconnected) : ∀ C : (G.dis_comp_out ∅), (C : set V) = univ :=
+begin
+  rintro C,
+  apply comp_out.of_empty_is_singleton Gpc,
+end
 
 
 section back
@@ -739,7 +775,17 @@ namespace inf_comp_out
 
 variables {G} {K} {L : set V}
 
-lemma of_empty_is_subsingleton (Gpc : G.preconnected) : subsingleton (G.inf_comp_out ∅) := sorry
+lemma of_empty_is_subsingleton (Gpc : G.preconnected) : subsingleton (G.inf_comp_out ∅) :=
+begin
+  constructor,
+  rintro C D,
+  ext,
+  rw connected_component.eq_of_eq_supp,
+  transitivity set.univ,
+  apply comp_out.of_empty_is_singleton Gpc,
+  symmetry,
+  apply comp_out.of_empty_is_singleton Gpc,
+end
 
 def equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
  (K : set V) : G.inf_comp_out K ≃ G'.inf_comp_out (φ '' K) := sorry

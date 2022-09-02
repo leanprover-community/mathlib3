@@ -37,19 +37,33 @@ multiplicative group actions).
 
 -/
 
+
+/-- An `add_pseudo_torsor G P` gives a structure to the type `P`,
+acted on by an `add_group G` with a transitive and free action given
+by the `+ᵥ` operation and a corresponding subtraction given by the
+`-ᵥ` operation. In the case of a vector space, it is empty or an affine
+space. -/
+class add_pseudo_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
+  extends add_action G P, has_vsub G P :=
+(vsub_vadd' : ∀ (p1 p2 : P), (p1 -ᵥ p2 : G) +ᵥ p2 = p1)
+(vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g)
+
 /-- An `add_torsor G P` gives a structure to the nonempty type `P`,
 acted on by an `add_group G` with a transitive and free action given
 by the `+ᵥ` operation and a corresponding subtraction given by the
 `-ᵥ` operation. In the case of a vector space, it is an affine
 space. -/
 class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
-  extends add_action G P, has_vsub G P :=
+  extends add_pseudo_torsor G P :=
 [nonempty : nonempty P]
-(vsub_vadd' : ∀ (p1 p2 : P), (p1 -ᵥ p2 : G) +ᵥ p2 = p1)
-(vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g)
+
+/-- Nonempty pseudo-torsors are torsors. -/
+@[reducible]
+def nonempty_pseudo_torsor {G P : Type*} [add_group G] [add_pseudo_torsor G P] [nonempty P] :
+add_torsor G P := ⟨⟩
 
 attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
-attribute [nolint dangerous_instance] add_torsor.to_has_vsub
+attribute [nolint dangerous_instance] add_pseudo_torsor.to_has_vsub
 
 /-- An `add_group G` is a torsor for itself. -/
 @[nolint instance_priority]
@@ -66,18 +80,18 @@ rfl
 
 section general
 
-variables {G : Type*} {P : Type*} [add_group G] [T : add_torsor G P]
+variables {G : Type*} {P : Type*} [add_group G] [T : add_pseudo_torsor G P]
 include T
 
 /-- Adding the result of subtracting from another point produces that
 point. -/
 @[simp] lemma vsub_vadd (p1 p2 : P) : p1 -ᵥ p2 +ᵥ p2 = p1 :=
-add_torsor.vsub_vadd' p1 p2
+add_pseudo_torsor.vsub_vadd' p1 p2
 
 /-- Adding a group element then subtracting the original point
 produces that group element. -/
 @[simp] lemma vadd_vsub (g : G) (p : P) : g +ᵥ p -ᵥ p = g :=
-add_torsor.vadd_vsub' g p
+add_pseudo_torsor.vadd_vsub' g p
 
 /-- If the same point added to two group elements produces equal
 results, those group elements are equal. -/
@@ -204,7 +218,7 @@ end general
 
 section comm
 
-variables {G : Type*} {P : Type*} [add_comm_group G] [add_torsor G P]
+variables {G : Type*} {P : Type*} [add_comm_group G] [add_pseudo_torsor G P]
 
 include G
 
@@ -236,16 +250,18 @@ end comm
 namespace prod
 
 variables {G : Type*} {P : Type*} {G' : Type*} {P' : Type*} [add_group G] [add_group G']
-  [add_torsor G P] [add_torsor G' P']
+  [add_pseudo_torsor G P] [add_pseudo_torsor G' P']
 
-instance : add_torsor (G × G') (P × P') :=
+instance : add_pseudo_torsor (G × G') (P × P') :=
 { vadd := λ v p, (v.1 +ᵥ p.1, v.2 +ᵥ p.2),
   zero_vadd := λ p, by simp,
   add_vadd := by simp [add_vadd],
   vsub := λ p₁ p₂, (p₁.1 -ᵥ p₂.1, p₁.2 -ᵥ p₂.2),
-  nonempty := prod.nonempty,
   vsub_vadd' := λ p₁ p₂, show (p₁.1 -ᵥ p₂.1 +ᵥ p₂.1, _) = p₁, by simp,
   vadd_vsub' := λ v p, show (v.1 +ᵥ p.1 -ᵥ p.1, v.2 +ᵥ p.2 -ᵥ p.2)  =v, by simp }
+
+instance [add_torsor G P] [add_torsor G' P'] : add_torsor (G × G') (P × P') :=
+{ nonempty := prod.nonempty }
 
 @[simp] lemma fst_vadd (v : G × G') (p : P × P') : (v +ᵥ p).1 = v.1 +ᵥ p.1 := rfl
 @[simp] lemma snd_vadd (v : G × G') (p : P × P') : (v +ᵥ p).2 = v.2 +ᵥ p.2 := rfl
@@ -267,20 +283,22 @@ variables {I : Type u} {fg : I → Type v} [∀ i, add_group (fg i)] {fp : I →
 open add_action add_torsor
 
 /-- A product of `add_torsor`s is an `add_torsor`. -/
-instance [T : ∀ i, add_torsor (fg i) (fp i)] : add_torsor (Π i, fg i) (Π i, fp i) :=
+instance [T : ∀ i, add_pseudo_torsor (fg i) (fp i)] : add_pseudo_torsor (Π i, fg i) (Π i, fp i) :=
 { vadd := λ g p, λ i, g i +ᵥ p i,
   zero_vadd := λ p, funext $ λ i, zero_vadd (fg i) (p i),
   add_vadd := λ g₁ g₂ p, funext $ λ i, add_vadd (g₁ i) (g₂ i) (p i),
   vsub := λ p₁ p₂, λ i, p₁ i -ᵥ p₂ i,
-  nonempty := ⟨λ i, classical.choice (T i).nonempty⟩,
   vsub_vadd' := λ p₁ p₂, funext $ λ i, vsub_vadd (p₁ i) (p₂ i),
   vadd_vsub' := λ g p, funext $ λ i, vadd_vsub (g i) (p i) }
+
+instance [T : ∀ i, add_torsor (fg i) (fp i)] : add_torsor (Π i, fg i) (Π i, fp i) :=
+{ nonempty := ⟨λ i, classical.choice (T i).nonempty⟩ }
 
 end pi
 
 namespace equiv
 
-variables {G : Type*} {P : Type*} [add_group G] [add_torsor G P]
+variables {G : Type*} {P : Type*} [add_group G] [add_pseudo_torsor G P]
 
 include G
 
@@ -360,7 +378,7 @@ by rw [point_reflection_apply, eq_comm, eq_vadd_iff_vsub_eq, ← neg_vsub_eq_vsu
 omit G
 
 lemma injective_point_reflection_left_of_injective_bit0 {G P : Type*} [add_comm_group G]
-  [add_torsor G P] (h : injective (bit0 : G → G)) (y : P) :
+  [add_pseudo_torsor G P] (h : injective (bit0 : G → G)) (y : P) :
   injective (λ x : P, point_reflection x y) :=
 λ x₁ x₂ (hy : point_reflection x₁ y = point_reflection x₂ y),
   by rwa [point_reflection_apply, point_reflection_apply, vadd_eq_vadd_iff_sub_eq_vsub,

@@ -382,6 +382,7 @@ lemma coarse_close.Endsinfty.eq' {f g : V → V'}
 
 def coarse_Lipschitz (f : V → V') (K : ℕ) := ∀ (x y : V) (a : G.adj x y), (G'.dist (f x) (f y)) ≤ K
 
+--mathlib
 private def thicken_ (G : simple_graph V) (K : finset V) (m : ℕ) : finset V :=
 begin
   let K'set := {v : V | ∃ k ∈ K, G.dist v k ≤ m},
@@ -389,7 +390,7 @@ begin
   exact this.to_finset,
 end
 
-
+--mathlib
 private lemma thicken_.sub (G : simple_graph V) (K : finset V) (m : ℕ) :
   K ⊆ thicken_ G K m :=
 begin
@@ -401,6 +402,7 @@ begin
   apply zero_le,
 end
 
+--mathlib
 private lemma thicken_.eq (G : simple_graph V) (K : finset V) (m : ℕ) :
   (thicken_ G K m : set V) = {v : V | ∃ k ∈ K, G.dist v k ≤ m} := sorry
 
@@ -482,12 +484,13 @@ def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
   rintro d' ⟨e',⟨heD',hed'⟩⟩,
   rcases dfD with ⟨e,⟨heD,hed⟩⟩,
   obtain ⟨w'⟩ := comp_out.connected D.val.val  ⟨e,heD⟩ ⟨e',heD'⟩,
-  have w : G.walk e e', by sorry,
-  have wD : (w.support.to_finset : set V) ⊆ D, by sorry,
+  let w : G.walk e e' := w'.from_induced,
+  have wD : (w.support.to_finset : set V) ⊆ D.val.val := w'.from_induced_contained,
 
   by_contradiction,
   have efC : e ∈ set.preimage f C, by {simp only [set.mem_preimage],rw hed,exact dC},
   have efC' : e' ∉ set.preimage f C, by {simp only [set.mem_preimage],rw hed', exact h},
+  clear_value w, -- `obtain` (below) asked me to do that, presumably because `w` is a `let` and not a `have`
   obtain ⟨x,y,_,a,_,rfl,xC,yC⟩ := w.split_along_set (set.preimage f C) efC efC',
   suffices : y ∈ set.preimage f C, { exact yC this, },
   apply well_separated G' Gpc' K m C (f x) _ (f y) _ (fcl x y a),

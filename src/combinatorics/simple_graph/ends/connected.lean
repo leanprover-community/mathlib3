@@ -245,6 +245,12 @@ begin
   exact hp,
 end
 
+def walk.from_induced {S : set V}
+  {u v : S} (p : (G.induce S).walk u v) : G.walk u v := sorry
+
+def walk.from_induced_contained [decidable_eq V] {S : set V}
+  {u v : S} (p : (G.induce S).walk u v) : (p.from_induced.support.to_finset : set V) ⊆ S := sorry
+
 lemma connected.walk_support [decidable_eq V] {u v : V} (p : G.walk u v) :
   (G.induce (p.support.to_finset : set V)).connected :=
 begin

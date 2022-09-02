@@ -93,7 +93,11 @@ theorem is_preconnected_of_forall {s : set α} (x : α)
 begin
   rintros u v hu hv hs ⟨z, zs, zu⟩ ⟨y, ys, yv⟩,
   have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
-  wlog xu : x ∈ u := hs xs using [u v y z, v u z y],
+  wlog xu : x ∈ u,
+  { cases hs xs with hx hx; [skip, rw inter_comm u v];
+    [ apply xu x H _ _ _ _ _ z zs _ y ys _ xs _,
+      apply xu x H _ _ _ _ _ y ys _ z zs _ xs _],
+    assumption', rwa union_comm },
   rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
   have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
   exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)

@@ -204,7 +204,11 @@ theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is
 begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
-  wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
+  wlog h : x ∈ U ∧ y ∉ U,
+  { have hU' := hU, cases hU' with H H,
+    { exact h hmin x hx y hy hxy U hUo hU H },
+    { exact h hmin y hy x hx (ne.symm hxy) U hUo hU.symm H, } },
+  cases h with hxU hyU,
   have : s \ U = s := hmin (s \ U) (diff_subset _ _) ⟨y, hy, hyU⟩ (hs.sdiff hUo),
   exact (this.symm.subset hx).2 hxU
 end
@@ -231,7 +235,11 @@ theorem minimal_nonempty_open_subsingleton [t0_space α] {s : set α} (hs : is_o
 begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
-  wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
+  wlog h : x ∈ U ∧ y ∉ U,
+  { have hU' := hU, cases hU' with H H,
+    { exact h hs hmin x hx y hy hxy U hUo hU H },
+    { exact h hs hmin y hy x hx (ne.symm hxy) U hUo hU.symm H, } },
+  cases h with hxU hyU,
   have : s ∩ U = s := hmin (s ∩ U) (inter_subset_left _ _) ⟨x, hx, hxU⟩ (hs.inter hUo),
   exact hyU (this.symm.subset hy).2
 end

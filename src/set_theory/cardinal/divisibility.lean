@@ -69,6 +69,8 @@ begin
   cases eq_or_ne (b * c) 0 with hz hz,
   { rcases mul_eq_zero.mp hz with rfl | rfl; simp },
   wlog h : c ≤ b,
+  { cases le_total c b; [skip, rw or_comm]; apply_assumption, assumption',
+    all_goals { rwa mul_comm } },
   left,
   have habc := le_of_dvd hz hbc,
   rwa [mul_eq_max' $ ha.trans $ habc, max_def, if_pos h] at hbc
@@ -113,8 +115,10 @@ begin
   { intro h,
     rw [h, zero_dvd_iff, mul_eq_zero] at hbc,
     cases hbc; contradiction },
-  wlog hℵ₀ : ℵ₀ ≤ b := hℵ₀ using [b c],
-  exact or.inl (dvd_of_le_of_aleph_0_le hn ((nat_lt_aleph_0 n).le.trans hℵ₀) hℵ₀),
+  wlog hℵ₀b : ℵ₀ ≤ b,
+  { have H := hℵ₀, cases H, { exact hℵ₀b h b c hbc h' hb hc hℵ₀ hn H, },
+    { refine (hℵ₀b h c b _ _ hc hb hℵ₀.symm hn H).symm; rwa mul_comm }, },
+  exact or.inl (dvd_of_le_of_aleph_0_le hn ((nat_lt_aleph_0 n).le.trans hℵ₀b) hℵ₀b),
 end
 
 lemma is_prime_iff {a : cardinal} : prime a ↔ ℵ₀ ≤ a ∨ ∃ p : ℕ, a = p ∧ p.prime :=

@@ -53,6 +53,8 @@ lemma pow_le_max_of_min_le (hx : 1 ≤ x) {a b c : ℤ} (h : min a b ≤ c) :
   x ^ (-c) ≤ max (x ^ (-a)) (x ^ (-b)) :=
 begin
   wlog hle : a ≤ b,
+  { cases le_total a b with H H, { apply_assumption; assumption },
+    { rw min_comm at h, rw max_comm, exact hle hx h H } },
   have hnle : -b ≤ -a, from neg_le_neg hle,
   have hfle : x ^ (-b) ≤ x ^ (-a), from zpow_le_of_le hx hnle,
   have : x ^ (-c) ≤ x ^ (-a),

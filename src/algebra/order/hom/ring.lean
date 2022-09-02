@@ -320,9 +320,10 @@ instance order_ring_hom.subsingleton [linear_ordered_field α] [linear_ordered_f
   subsingleton (α →+*o β) :=
 ⟨λ f g, begin
   ext x,
-  by_contra' h,
-  wlog h : f x < g x using [f g, g f],
-  { exact ne.lt_or_lt h },
+  by_contra' h',
+  wlog h : f x < g x,
+  { rcases lt_trichotomy (f x) (g x) with (H|H|H),
+    { apply h, assumption' }, { contradiction }, { apply h g f x (ne.symm h') H, } },
   obtain ⟨q, hf, hg⟩ := exists_rat_btwn h,
   rw ←map_rat_cast f at hf,
   rw ←map_rat_cast g at hg,

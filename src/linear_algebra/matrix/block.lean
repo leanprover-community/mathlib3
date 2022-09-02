@@ -127,42 +127,25 @@ end
 
 end linear_order
 
-lemma upper_two_block_triangular' (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
-  block_triangular (from_blocks A B 0 D) (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) :=
+lemma upper_two_block_triangular [preorder α]
+  (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) {a b : α} (hab : a < b) :
+  block_triangular (from_blocks A B 0 D) (sum.elim (λ i, a) (λ j, b)) :=
 begin
   intros k1 k2 hk12,
-  have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, (0 : fin 2)) (λ j, 1) k = 0 → ∃ i, k = sum.inl i,
+  have hor : ∀ (k : m ⊕ n), sum.elim (λ i, a) (λ j, b) k = a ∨ sum.elim (λ i, a) (λ j, b) k = b,
   { simp },
-  have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, (0 : fin 2)) (λ j, 1) k = 1 → ∃ j, k = sum.inr j,
-  { simp },
-  set mk1 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k1 with hmk1,
-  set mk2 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k2 with hmk2,
-  fin_cases mk1 using h; fin_cases mk2 using h_1; rw [h, h_1] at hk12,
-  { exact absurd hk12 (nat.not_lt_zero 0) },
-  { exact absurd hk12 (by norm_num) },
-  { rw hmk1 at h,
-    obtain ⟨i, hi⟩ := h1 k1 h,
-    rw hmk2 at h_1,
-    obtain ⟨j, hj⟩ := h0 k2 h_1,
+  have hne : a ≠ b, from λ h, lt_irrefl _ (lt_of_lt_of_eq hab h.symm),
+  have ha : ∀ (k : m ⊕ n), sum.elim (λ i, a) (λ j, b) k = a → ∃ i, k = sum.inl i,
+  { simp [hne.symm] },
+  have hb : ∀ (k : m ⊕ n), sum.elim (λ i, a) (λ j, b) k = b → ∃ j, k = sum.inr j,
+  { simp [hne] },
+  cases (hor k1) with hk1 hk1; cases (hor k2) with hk2 hk2; rw [hk1, hk2] at hk12,
+  { exact false.elim (lt_irrefl a hk12), },
+  { exact false.elim (lt_irrefl _ (lt_trans hab hk12)) },
+  { obtain ⟨i, hi⟩ := hb k1 hk1,
+    obtain ⟨j, hj⟩ := ha k2 hk2,
     rw [hi, hj], simp },
-  { exact absurd hk12 (irrefl 1) }
-end
-
-lemma upper_two_block_triangular (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
-  block_triangular (from_blocks A B 0 D) (sum.elim (λ i, 0) (λ j, 1)) :=
-begin
-  intros k1 k2 hk12,
-  have h01 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 ∨ sum.elim (λ i, 0) (λ j, 1) k = 1,
-  { simp },
-  have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 → ∃ i, k = sum.inl i, { simp },
-  have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 1 → ∃ j, k = sum.inr j, { simp },
-  cases (h01 k1) with hk1 hk1; cases (h01 k2) with hk2 hk2; rw [hk1, hk2] at hk12,
-  { exact absurd hk12 (nat.not_lt_zero 0) },
-  { exact absurd hk12 (nat.not_lt_zero 1) },
-  { obtain ⟨i, hi⟩ := h1 k1 hk1,
-    obtain ⟨j, hj⟩ := h0 k2 hk2,
-    rw [hi, hj], simp },
-  { exact absurd hk12 (irrefl 1) }
+  { exact absurd hk12 (irrefl b) }
 end
 
 /-! ### Determinant -/

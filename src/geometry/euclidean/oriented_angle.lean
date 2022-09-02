@@ -869,7 +869,7 @@ begin
   by_cases hx : x = 0, { simp [hx] },
   by_cases hy : y = 0, { simp [hy] },
   rw [oangle, real.angle.cos_coe, complex.cos_arg], swap, { simp [hx, hy] },
-  simp_rw [complex.abs_div, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map, complex.div_re,
+  simp_rw [map_div₀, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map, complex.div_re,
            ←complex.sq_abs, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map,
            complex.isometry_of_orthonormal_symm_apply, complex.add_re, complex.add_im,
            is_R_or_C.I, complex.mul_I_re, complex.mul_I_im, complex.of_real_re,

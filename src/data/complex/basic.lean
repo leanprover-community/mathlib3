@@ -499,6 +499,7 @@ begin
   exact re_le_abs (z * conj w)
 end
 
+/-- The complex absolute value function, defined as the square root of the norm squared. -/
 noncomputable def _root_.complex.abs : absolute_value ℂ ℝ :=
 { to_fun := λ x, abs x,
   map_mul' := abs_mul,

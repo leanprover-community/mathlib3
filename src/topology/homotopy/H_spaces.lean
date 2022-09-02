@@ -189,7 +189,6 @@ begin
   exacts [continuous_prod_first_half x, continuous_prod_second_half x],
 end
 
-example : ((1 : I) : ℝ) = (1 : ℝ) := set.Icc.coe_one
 
 /- This is the function defined on p. 475 of Serre's *Homologie singulière des espaces fibrés*
 defining a homotopy from a path `γ` to the product `γ ∧ e`.-/
@@ -269,6 +268,9 @@ def delayed_refl_right {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
     rw (h.antisymm θ.2.2).symm,
     norm_num,
   end }
+
+-- def delayed_refl_left' {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
+--  λ t, 1 - ((delayed_refl_right (1 - θ) γ).symm t,
 
 lemma delayed_refl_right_at_0 (γ : Ω(x)) : (delayed_refl_right 0 γ) = γ.trans (path.refl x) :=
 begin

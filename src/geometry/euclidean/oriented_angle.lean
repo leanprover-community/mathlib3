@@ -1012,6 +1012,162 @@ begin
     simpa using ha }
 end
 
+/-- Negating the first vector passed to `oangle` negates the sign of the angle. -/
+@[simp] lemma oangle_sign_neg_left (x y : V) :
+  (hb.oangle (-x) y).sign = -((hb.oangle x y).sign) :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0, { simp [hy] },
+  rw [hb.oangle_neg_left hx hy, real.angle.sign_add_pi]
+end
+
+/-- Negating the second vector passed to `oangle` negates the sign of the angle. -/
+@[simp] lemma oangle_sign_neg_right (x y : V) :
+  (hb.oangle x (-y)).sign = -((hb.oangle x y).sign) :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0, { simp [hy] },
+  rw [hb.oangle_neg_right hx hy, real.angle.sign_add_pi]
+end
+
+/-- Multiplying the first vector passed to `oangle` by a real multiplies the sign of the angle by
+the sign of the real. -/
+@[simp] lemma oangle_sign_smul_left (x y : V) (r : ℝ) :
+  (hb.oangle (r • x) y).sign = sign r * (hb.oangle x y).sign :=
+begin
+  rcases lt_trichotomy r 0 with h|h|h;
+    simp [h]
+end
+
+/-- Multiplying the second vector passed to `oangle` by a real multiplies the sign of the angle by
+the sign of the real. -/
+@[simp] lemma oangle_sign_smul_right (x y : V) (r : ℝ) :
+  (hb.oangle x (r • y)).sign = sign r * (hb.oangle x y).sign :=
+begin
+  rcases lt_trichotomy r 0 with h|h|h;
+    simp [h]
+end
+
+/-- Auxiliary lemma for the proof of `oangle_sign_smul_add_right`; not intended to be used
+outside of that proof. -/
+lemma oangle_smul_add_right_eq_zero_or_eq_pi_iff {x y : V} (r : ℝ) :
+  (hb.oangle x (r • x + y) = 0 ∨ hb.oangle x (r • x + y) = π) ↔
+    (hb.oangle x y = 0 ∨ hb.oangle x y = π) :=
+begin
+  simp_rw [oangle_eq_zero_or_eq_pi_iff_not_linear_independent,
+           fintype.not_linear_independent_iff, fin.sum_univ_two, fin.exists_fin_two],
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with ⟨m, h, hm⟩,
+    change m 0 • x + m 1 • (r • x + y) = 0 at h,
+    refine ⟨![m 0 + m 1 * r, m 1], _⟩,
+    change (m 0 + m 1 * r) • x + m 1 • y = 0 ∧ (m 0 + m 1 * r ≠ 0 ∨ m 1 ≠ 0),
+    rw [smul_add, smul_smul, ←add_assoc, ←add_smul] at h,
+    refine ⟨h, not_and_distrib.1 (λ h0, _)⟩,
+    obtain ⟨h0, h1⟩ := h0,
+    rw h1 at h0 hm,
+    rw [zero_mul, add_zero] at h0,
+    simpa [h0] using hm },
+  { rcases h with ⟨m, h, hm⟩,
+    change m 0 • x + m 1 • y = 0 at h,
+    refine ⟨![m 0 - m 1 * r, m 1], _⟩,
+    change (m 0 - m 1 * r) • x + m 1 • (r • x + y) = 0 ∧ (m 0 - m 1 * r ≠ 0 ∨ m 1 ≠ 0),
+    rw [sub_smul, smul_add, smul_smul, ←add_assoc, sub_add_cancel],
+    refine ⟨h, not_and_distrib.1 (λ h0, _)⟩,
+    obtain ⟨h0, h1⟩ := h0,
+    rw h1 at h0 hm,
+    rw [zero_mul, sub_zero] at h0,
+    simpa [h0] using hm }
+end
+
+/-- Adding a multiple of the first vector passed to `oangle` to the second vector does not change
+the sign of the angle. -/
+@[simp] lemma oangle_sign_smul_add_right (x y : V) (r : ℝ) :
+  (hb.oangle x (r • x + y)).sign = (hb.oangle x y).sign :=
+begin
+  by_cases h : hb.oangle x y = 0 ∨ hb.oangle x y = π,
+  { rwa [real.angle.sign_eq_zero_iff.2 h, real.angle.sign_eq_zero_iff,
+         oangle_smul_add_right_eq_zero_or_eq_pi_iff] },
+  have h' : ∀ r' : ℝ, hb.oangle x (r' • x + y) ≠ 0 ∧ hb.oangle x (r' • x + y) ≠ π,
+  { intro r',
+    rwa [←hb.oangle_smul_add_right_eq_zero_or_eq_pi_iff r', not_or_distrib] at h },
+  let s : set (V × V) := (λ r' : ℝ, (x, r' • x + y)) '' set.univ,
+  have hc : is_connected s := is_connected_univ.image _ ((continuous_const.prod_mk
+    ((continuous_id.smul continuous_const).add continuous_const)).continuous_on),
+  have hf : continuous_on (λ z : V × V, hb.oangle z.1 z.2) s,
+  { refine continuous_at.continuous_on (λ z hz, hb.continuous_at_oangle _ _),
+    all_goals { simp_rw [s, set.mem_image] at hz,
+                obtain ⟨r', -, rfl⟩ := hz,
+                simp only [prod.fst, prod.snd],
+                intro hz },
+    { simpa [hz] using (h' 0).1 },
+    { simpa [hz] using (h' r').1 } },
+  have hs : ∀ z : V × V, z ∈ s → hb.oangle z.1 z.2 ≠ 0 ∧ hb.oangle z.1 z.2 ≠ π,
+  { intros z hz,
+    simp_rw [s, set.mem_image] at hz,
+    obtain ⟨r', -, rfl⟩ := hz,
+    exact h' r' },
+  have hx : (x, y) ∈ s,
+  { convert set.mem_image_of_mem (λ r' : ℝ, (x, r' • x + y)) (set.mem_univ 0),
+    simp },
+  have hy : (x, r • x + y) ∈ s := set.mem_image_of_mem _ (set.mem_univ _),
+  convert real.angle.sign_eq_of_continuous_on hc hf hs hx hy
+end
+
+/-- Adding a multiple of the second vector passed to `oangle` to the first vector does not change
+the sign of the angle. -/
+@[simp] lemma oangle_sign_add_smul_left (x y : V) (r : ℝ) :
+  (hb.oangle (x + r • y) y).sign = (hb.oangle x y).sign :=
+by simp_rw [hb.oangle_rev y, real.angle.sign_neg, add_comm x, oangle_sign_smul_add_right]
+
+/-- Subtracting a multiple of the first vector passed to `oangle` from the second vector does
+not change the sign of the angle. -/
+@[simp] lemma oangle_sign_sub_smul_right (x y : V) (r : ℝ) :
+  (hb.oangle x (y - r • x)).sign = (hb.oangle x y).sign :=
+by rw [sub_eq_add_neg, ←neg_smul, add_comm, oangle_sign_smul_add_right]
+
+/-- Subtracting a multiple of the second vector passed to `oangle` from the first vector does
+not change the sign of the angle. -/
+@[simp] lemma oangle_sign_sub_smul_left (x y : V) (r : ℝ) :
+  (hb.oangle (x - r • y) y).sign = (hb.oangle x y).sign :=
+by rw [sub_eq_add_neg, ←neg_smul, oangle_sign_add_smul_left]
+
+/-- The sign of the angle between a vector, and a linear combination of that vector with a second
+vector, is the sign of the factor by which the second vector is multiplied in that combination
+multiplied by the sign of the angle between the two vectors. -/
+@[simp] lemma oangle_sign_smul_add_smul_right (x y : V) (r₁ r₂ : ℝ) :
+  (hb.oangle x (r₁ • x + r₂ • y)).sign = sign r₂ * (hb.oangle x y).sign :=
+begin
+  rw ←hb.oangle_sign_smul_add_right x (r₁ • x + r₂ • y) (-r₁),
+  simp
+end
+
+/-- The sign of the angle between a linear combination of two vectors and the second vector is
+the sign of the factor by which the first vector is multiplied in that combination multiplied by
+the sign of the angle between the two vectors. -/
+@[simp] lemma oangle_sign_smul_add_smul_left (x y : V) (r₁ r₂ : ℝ) :
+  (hb.oangle (r₁ • x + r₂ • y) y).sign = sign r₁ * (hb.oangle x y).sign :=
+by simp_rw [hb.oangle_rev y, real.angle.sign_neg, add_comm (r₁ • x),
+            oangle_sign_smul_add_smul_right, mul_neg]
+
+/-- The sign of the angle between two linear combinations of two vectors is the sign of the
+determinant of the factors in those combinations multiplied by the sign of the angle between the
+two vectors. -/
+lemma oangle_sign_smul_add_smul_smul_add_smul (x y : V) (r₁ r₂ r₃ r₄ : ℝ) :
+  (hb.oangle (r₁ • x + r₂ • y) (r₃ • x + r₄ • y)).sign =
+    sign (r₁ * r₄ - r₂ * r₃) * (hb.oangle x y).sign :=
+begin
+  by_cases hr₁ : r₁ = 0,
+  { rw [hr₁, zero_smul, zero_mul, zero_add, zero_sub, left.sign_neg, oangle_sign_smul_left,
+        add_comm, oangle_sign_smul_add_smul_right, oangle_rev, real.angle.sign_neg, sign_mul,
+        mul_neg, mul_neg, neg_mul, mul_assoc] },
+  { rw [←hb.oangle_sign_smul_add_right (r₁ • x + r₂ • y) (r₃ • x + r₄ • y) (-r₃ / r₁),
+        smul_add, smul_smul, smul_smul, div_mul_cancel _ hr₁, neg_smul, ←add_assoc,
+        add_comm (-(r₃ • x)), ←sub_eq_add_neg, sub_add_cancel, ←add_smul,
+        oangle_sign_smul_right, oangle_sign_smul_add_smul_left, ←mul_assoc, ←sign_mul,
+        add_mul, mul_assoc, mul_comm r₂ r₁, ←mul_assoc, div_mul_cancel _ hr₁, add_comm,
+        neg_mul, ←sub_eq_add_neg, mul_comm r₄, mul_comm r₃] }
+end
+
 end orthonormal
 
 namespace orientation
@@ -1539,5 +1695,73 @@ lemma oangle_eq_zero_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
 lemma oangle_eq_pi_iff_angle_eq_pi {x y : V} :
   o.oangle x y = π ↔ inner_product_geometry.angle x y = π :=
 (ob).oangle_eq_pi_iff_angle_eq_pi
+
+/-- Negating the first vector passed to `oangle` negates the sign of the angle. -/
+@[simp] lemma oangle_sign_neg_left (x y : V) :
+  (o.oangle (-x) y).sign = -((o.oangle x y).sign) :=
+(ob).oangle_sign_neg_left x y
+
+/-- Negating the second vector passed to `oangle` negates the sign of the angle. -/
+@[simp] lemma oangle_sign_neg_right (x y : V) :
+  (o.oangle x (-y)).sign = -((o.oangle x y).sign) :=
+(ob).oangle_sign_neg_right x y
+
+/-- Multiplying the first vector passed to `oangle` by a real multiplies the sign of the angle by
+the sign of the real. -/
+@[simp] lemma oangle_sign_smul_left (x y : V) (r : ℝ) :
+  (o.oangle (r • x) y).sign = sign r * (o.oangle x y).sign :=
+(ob).oangle_sign_smul_left x y r
+
+/-- Multiplying the second vector passed to `oangle` by a real multiplies the sign of the angle by
+the sign of the real. -/
+@[simp] lemma oangle_sign_smul_right (x y : V) (r : ℝ) :
+  (o.oangle x (r • y)).sign = sign r * (o.oangle x y).sign :=
+(ob).oangle_sign_smul_right x y r
+
+/-- Adding a multiple of the first vector passed to `oangle` to the second vector does not change
+the sign of the angle. -/
+@[simp] lemma oangle_sign_smul_add_right (x y : V) (r : ℝ) :
+  (o.oangle x (r • x + y)).sign = (o.oangle x y).sign :=
+(ob).oangle_sign_smul_add_right x y r
+
+/-- Adding a multiple of the second vector passed to `oangle` to the first vector does not change
+the sign of the angle. -/
+@[simp] lemma oangle_sign_add_smul_left (x y : V) (r : ℝ) :
+  (o.oangle (x + r • y) y).sign = (o.oangle x y).sign :=
+(ob).oangle_sign_add_smul_left x y r
+
+/-- Subtracting a multiple of the first vector passed to `oangle` from the second vector does
+not change the sign of the angle. -/
+@[simp] lemma oangle_sign_sub_smul_right (x y : V) (r : ℝ) :
+  (o.oangle x (y - r • x)).sign = (o.oangle x y).sign :=
+(ob).oangle_sign_sub_smul_right x y r
+
+/-- Subtracting a multiple of the second vector passed to `oangle` from the first vector does
+not change the sign of the angle. -/
+@[simp] lemma oangle_sign_sub_smul_left (x y : V) (r : ℝ) :
+  (o.oangle (x - r • y) y).sign = (o.oangle x y).sign :=
+(ob).oangle_sign_sub_smul_left x y r
+
+/-- The sign of the angle between a vector, and a linear combination of that vector with a second
+vector, is the sign of the factor by which the second vector is multiplied in that combination
+multiplied by the sign of the angle between the two vectors. -/
+@[simp] lemma oangle_sign_smul_add_smul_right (x y : V) (r₁ r₂ : ℝ) :
+  (o.oangle x (r₁ • x + r₂ • y)).sign = sign r₂ * (o.oangle x y).sign :=
+(ob).oangle_sign_smul_add_smul_right x y r₁ r₂
+
+/-- The sign of the angle between a linear combination of two vectors and the second vector is
+the sign of the factor by which the first vector is multiplied in that combination multiplied by
+the sign of the angle between the two vectors. -/
+@[simp] lemma oangle_sign_smul_add_smul_left (x y : V) (r₁ r₂ : ℝ) :
+  (o.oangle (r₁ • x + r₂ • y) y).sign = sign r₁ * (o.oangle x y).sign :=
+(ob).oangle_sign_smul_add_smul_left x y r₁ r₂
+
+/-- The sign of the angle between two linear combinations of two vectors is the sign of the
+determinant of the factors in those combinations multiplied by the sign of the angle between the
+two vectors. -/
+lemma oangle_sign_smul_add_smul_smul_add_smul (x y : V) (r₁ r₂ r₃ r₄ : ℝ) :
+  (o.oangle (r₁ • x + r₂ • y) (r₃ • x + r₄ • y)).sign =
+    sign (r₁ * r₄ - r₂ * r₃) * (o.oangle x y).sign :=
+(ob).oangle_sign_smul_add_smul_smul_add_smul x y r₁ r₂ r₃ r₄
 
 end orientation

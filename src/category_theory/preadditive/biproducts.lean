@@ -270,7 +270,7 @@ end
 variables [preadditive.{v} C]
 
 lemma biproduct.column_nonzero_of_iso'
-  {σ τ : Type} [fintype τ]
+  {σ τ : Type} [finite τ]
   {S : σ → C} [has_biproduct S] {T : τ → C} [has_biproduct T]
   (s : σ) (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   (∀ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t = 0) → 𝟙 (S s) = 0 :=

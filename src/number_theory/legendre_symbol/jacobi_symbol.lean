@@ -93,7 +93,7 @@ by simp only [jacobi_sym, factors_zero, list.prod_nil, list.pmap]
 @[simp] lemma jacobi_sym_one_right (a : ℤ) : [a | 1]ⱼ = 1 :=
 by simp only [jacobi_sym, factors_one, list.prod_nil, list.pmap]
 
-/-- The Legendre symbol `[a | p]ⱼ` with an integer `a` and a prime number `p`
+/-- The Legendre symbol `legendre_sym p a` with an integer `a` and a prime number `p`
 is the same as the Jacobi symbol `[a | p]ⱼ`. -/
 lemma legendre_sym.to_jacobi_sym {p : ℕ} [fp : fact p.prime] {a : ℤ} :
   legendre_sym p a = [a | p]ⱼ :=
@@ -217,7 +217,7 @@ by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym_eq_neg_one_iff p }
 ### Values at `-1`, `2` and `-2`
 -/
 
-/-- If `χ` is a multiplicative function such that `[a | p) = χ p` for all odd primes `p`,
+/-- If `χ` is a multiplicative function such that `[a | p]ⱼ = χ p` for all odd primes `p`,
 then `[a | b]ⱼ` equals `χ b` for all odd natural numbers `b`. -/
 lemma jacobi_sym_value (a : ℤ) {R : Type*} [comm_semiring R] (χ : R →* ℤ)
   (hp : ∀ (p : ℕ) (pp : p.prime) (h2 : p ≠ 2), @legendre_sym p ⟨pp⟩ a = χ p) {b : ℕ} (hb : odd b) :
@@ -313,14 +313,14 @@ lemma jacobi_sym_quadratic_reciprocity {a b : ℕ} (ha : odd a) (hb : odd b) :
 by rw [← qr_sign_neg_one_pow ha hb, qr_sign_symm ha hb, jacobi_sym_quadratic_reciprocity' ha hb]
 
 /-- The Law of Quadratic Reciprocity for the Jacobi symbol: if `a` and `b` are natural numbers
-with `a % 4 = 1` and `b` odd, then `[a | b) = (b | a]ⱼ`. -/
+with `a % 4 = 1` and `b` odd, then `[a | b]ⱼ = [b | a]ⱼ`. -/
 theorem jacobi_sym_quadratic_reciprocity_one_mod_four {a b : ℕ} (ha : a % 4 = 1) (hb : odd b) :
   [a | b]ⱼ = [b | a]ⱼ :=
 by rw [jacobi_sym_quadratic_reciprocity (odd_iff.mpr (odd_of_mod_four_eq_one ha)) hb,
        pow_mul, neg_one_pow_div_two_of_one_mod_four ha, one_pow, one_mul]
 
 /-- The Law of Quadratic Reciprocityfor the Jacobi symbol: if `a` and `b` are natural numbers
-both congruent to `3` mod `4`, then `[a | b) = -(b | a]ⱼ`. -/
+both congruent to `3` mod `4`, then `[a | b]ⱼ = -[b | a]ⱼ`. -/
 theorem jacobi_sym_quadratic_reciprocity_three_mod_four
   {a b : ℕ} (ha : a % 4 = 3) (hb : b % 4 = 3) :
   [a | b]ⱼ = - [b | a]ⱼ :=

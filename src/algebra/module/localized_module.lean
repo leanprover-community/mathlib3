@@ -389,13 +389,14 @@ instance localized_module_is_localized_module :
 
 section
 
+variable [is_localized_module S f]
+
 /--
 If `(M', f : M ⟶ M')` satisfies universal property of localized module, there is a canonical map
 `localized_module S M ⟶ M'`.
 -/
 @[simps]
-noncomputable def from_localized_module [is_localized_module S f] :
-  localized_module S M →ₗ[R] M' :=
+noncomputable def from_localized_module : localized_module S M →ₗ[R] M' :=
 { to_fun := λ p, p.lift_on (λ x, (is_localized_module.map_units f x.2).unit⁻¹ (f x.1))
   begin
     rintros ⟨a, b⟩ ⟨a', b'⟩ ⟨c, eq1⟩,
@@ -433,9 +434,8 @@ noncomputable def from_localized_module [is_localized_module S f] :
     congr,
   end }
 
-lemma from_localized_module.inj [is_localized_module S f] :
-  function.injective $ from_localized_module S f := λ x y eq1,
-begin
+lemma from_localized_module.inj : function.injective $ from_localized_module S f :=
+λ x y eq1, begin
   induction x using localized_module.induction_on with a b,
   induction y using localized_module.induction_on with a' b',
   simp only [from_localized_module, linear_map.coe_mk, localized_module.lift_on_mk] at eq1,
@@ -446,9 +446,8 @@ begin
   refl,
 end
 
-lemma from_localized_module.surj [is_localized_module S f] :
-  function.surjective $ from_localized_module S f := λ x,
-begin
+lemma from_localized_module.surj : function.surjective $ from_localized_module S f :=
+λ x, begin
   rcases is_localized_module.surj S f x with ⟨⟨m, s⟩, eq1⟩,
   refine ⟨localized_module.mk m s, _⟩,
   rw [from_localized_module, linear_map.coe_mk, localized_module.lift_on_mk,
@@ -456,16 +455,14 @@ begin
   refl,
 end
 
-lemma from_localized_module.bij [is_localized_module S f] :
-  function.bijective $ from_localized_module S f :=
+lemma from_localized_module.bij : function.bijective $ from_localized_module S f :=
 ⟨from_localized_module.inj _ _, from_localized_module.surj _ _⟩
 
 /--
 If `(M', f : M ⟶ M')` satisfies universal property of localized module, then `M'` is isomorphic to
 `localized_module S M` as an `R`-module.
 -/
-@[simps] noncomputable def iso [is_localized_module S f] :
-  localized_module S M ≃ₗ[R] M' :=
+@[simps] noncomputable def iso : localized_module S M ≃ₗ[R] M' :=
 { ..from_localized_module S f,
   ..equiv.of_bijective (from_localized_module S f) $ from_localized_module.bij _ _}
 
@@ -473,7 +470,7 @@ lemma iso_apply_mk [is_localized_module S f] (m : M) (s : S) :
   iso S f (localized_module.mk m s) = (is_localized_module.map_units f s).unit⁻¹ (f m) :=
 rfl
 
-private lemma iso_symm_apply_aux [is_localized_module S f] (m : M') :
+private lemma iso_symm_apply_aux (m : M') :
   (iso S f).symm m = localized_module.mk (is_localized_module.surj S f m).some.1
     (is_localized_module.surj S f m).some.2 :=
 begin
@@ -484,23 +481,20 @@ begin
   erw [localized_module.lift_on_mk, module.End_algebra_map_is_unit_inv_apply_eq_iff', h2.some_spec],
 end
 
-lemma iso_symm_apply' [is_localized_module S f] (m : M') (a : M) (b : S) (eq1 : b • m = f a) :
+lemma iso_symm_apply' (m : M') (a : M) (b : S) (eq1 : b • m = f a) :
   (iso S f).symm m = localized_module.mk a b :=
 (iso_symm_apply_aux S f m).trans $ localized_module.mk_eq.mpr $
 begin
   generalize_proofs h1,
-  erw [←is_localized_module.eq_iff_exists S f, f.map_smul, f.map_smul, ←h1.some_spec],
-  dsimp,
-  erw [←mul_smul, mul_comm, mul_smul, eq1],
-  refl,
+  erw [←is_localized_module.eq_iff_exists S f, f.map_smul, f.map_smul, ←h1.some_spec, ←mul_smul,
+    mul_comm, mul_smul, eq1],
 end
 
 /--
 If `(M', f)` and `(M'', g)` both satisfy universal property of localized module, then `M', M''`
 are isomorphic as `R`-module
 -/
-noncomputable def unique_up_to_iso [is_localized_module S f] [is_localized_module S g] :
-  M' ≃ₗ[R] M'' :=
+noncomputable def unique_up_to_iso [is_localized_module S g] : M' ≃ₗ[R] M'' :=
 (iso S f).symm.trans (iso S g)
 
 end

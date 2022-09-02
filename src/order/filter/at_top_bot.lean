@@ -851,6 +851,8 @@ lemma tendsto_mul_const_at_bot_of_neg (hr : r < 0) :
   tendsto (λ x, f x * r) l at_bot ↔ tendsto f l at_top :=
 by simpa only [mul_comm] using tendsto_const_mul_at_bot_of_neg hr
 
+/-- The function `λ x, r * f x` tends to infinity along a nontrivial filter if and only if `r > 0`
+and `f` tends to infinity or `r < 0` and `f` tends to negative infinity. -/
 lemma tendsto_const_mul_at_top_iff [ne_bot l] :
   tendsto (λ x, r * f x) l at_top ↔ 0 < r ∧ tendsto f l at_top ∨ r < 0 ∧ tendsto f l at_bot :=
 begin
@@ -860,17 +862,71 @@ begin
   { simp [hr, hr.not_lt, tendsto_const_mul_at_top_of_pos] }
 end
 
+/-- The function `λ x, f x * r` tends to infinity along a nontrivial filter if and only if `r > 0`
+and `f` tends to infinity or `r < 0` and `f` tends to negative infinity. -/
 lemma tendsto_mul_const_at_top_iff [ne_bot l] :
   tendsto (λ x, f x * r) l at_top ↔ 0 < r ∧ tendsto f l at_top ∨ r < 0 ∧ tendsto f l at_bot :=
 by simp only [mul_comm _ r, tendsto_const_mul_at_top_iff]
 
+/-- The function `λ x, r * f x` tends to negative infinity along a nontrivial filter if and only if
+`r > 0` and `f` tends to negative infinity or `r < 0` and `f` tends to infinity. -/
 lemma tendsto_const_mul_at_bot_iff [ne_bot l] :
   tendsto (λ x, r * f x) l at_bot ↔ 0 < r ∧ tendsto f l at_bot ∨ r < 0 ∧ tendsto f l at_top :=
 by simp only [← tendsto_neg_at_top_iff, ← mul_neg, tendsto_const_mul_at_top_iff, neg_neg]
 
+/-- The function `λ x, f x * r` tends to negative infinity along a nontrivial filter if and only if
+`r > 0` and `f` tends to negative infinity or `r < 0` and `f` tends to infinity. -/
 lemma tendsto_mul_const_at_bot_iff [ne_bot l] :
   tendsto (λ x, f x * r) l at_bot ↔ 0 < r ∧ tendsto f l at_bot ∨ r < 0 ∧ tendsto f l at_top :=
 by simp only [mul_comm _ r, tendsto_const_mul_at_bot_iff]
+
+/-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, r * f x` tends to infinity
+if and only if `0 < r. `-/
+lemma tendsto_const_mul_at_top_iff_pos [ne_bot l] (h : tendsto f l at_top) :
+  tendsto (λ x, r * f x) l at_top ↔ 0 < r :=
+by simp [tendsto_const_mul_at_top_iff, h, h.not_tendsto disjoint_at_top_at_bot]
+
+/-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to infinity
+if and only if `0 < r. `-/
+lemma tendsto_mul_const_at_top_iff_pos [ne_bot l] (h : tendsto f l at_top) :
+  tendsto (λ x, f x * r) l at_top ↔ 0 < r :=
+by simp only [mul_comm _ r, tendsto_const_mul_at_top_iff_pos h]
+
+/-- If `f` tends to negative infinity along a nontrivial filter `l`, then `λ x, r * f x` tends to
+infinity if and only if `r < 0. `-/
+lemma tendsto_const_mul_at_top_iff_neg [ne_bot l] (h : tendsto f l at_bot) :
+  tendsto (λ x, r * f x) l at_top ↔ r < 0 :=
+by simp [tendsto_const_mul_at_top_iff, h, h.not_tendsto disjoint_at_bot_at_top]
+
+/-- If `f` tends to negative infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to
+infinity if and only if `r < 0. `-/
+lemma tendsto_mul_const_at_top_iff_neg [ne_bot l] (h : tendsto f l at_bot) :
+  tendsto (λ x, f x * r) l at_top ↔ r < 0 :=
+by simp only [mul_comm _ r, tendsto_const_mul_at_top_iff_neg h]
+
+/-- If `f` tends to negative infinity along a nontrivial filter `l`, then `λ x, r * f x` tends to
+negative infinity if and only if `0 < r. `-/
+lemma tendsto_const_mul_at_bot_iff_pos [ne_bot l] (h : tendsto f l at_bot) :
+  tendsto (λ x, r * f x) l at_bot ↔ 0 < r :=
+by simp [tendsto_const_mul_at_bot_iff, h, h.not_tendsto disjoint_at_bot_at_top]
+
+/-- If `f` tends to negative infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to
+negative infinity if and only if `0 < r. `-/
+lemma tendsto_mul_const_at_bot_iff_pos [ne_bot l] (h : tendsto f l at_bot) :
+  tendsto (λ x, f x * r) l at_bot ↔ 0 < r :=
+by simp only [mul_comm _ r, tendsto_const_mul_at_bot_iff_pos h]
+
+/-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, r * f x` tends to negative
+infinity if and only if `r < 0. `-/
+lemma tendsto_const_mul_at_bot_iff_neg [ne_bot l] (h : tendsto f l at_top) :
+  tendsto (λ x, r * f x) l at_bot ↔ r < 0 :=
+by simp [tendsto_const_mul_at_bot_iff, h, h.not_tendsto disjoint_at_top_at_bot]
+
+/-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to negative
+infinity if and only if `r < 0. `-/
+lemma tendsto_mul_const_at_bot_iff_neg [ne_bot l] (h : tendsto f l at_top) :
+  tendsto (λ x, f x * r) l at_bot ↔ r < 0 :=
+by simp only [mul_comm _ r, tendsto_const_mul_at_bot_iff_neg h]
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the left) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
@@ -933,54 +989,6 @@ a negative constant (on the right) tends to positive infinity. -/
 lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x * r) l at_top :=
 (tendsto_mul_const_at_top_of_neg hr).2 hf
-
-/-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, r * f x` tends to infinity
-if and only if `0 < r. `-/
-lemma tendsto_const_mul_at_top_iff_pos [ne_bot l] (h : tendsto f l at_top) :
-  tendsto (λ x, r * f x) l at_top ↔ 0 < r :=
-by simp [tendsto_const_mul_at_top_iff, h, h.not_tendsto disjoint_at_top_at_bot]
-
-/-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to infinity
-if and only if `0 < r. `-/
-lemma tendsto_mul_const_at_top_iff_pos [ne_bot l] (h : tendsto f l at_top) :
-  tendsto (λ x, f x * r) l at_top ↔ 0 < r :=
-by simp only [mul_comm _ r, tendsto_const_mul_at_top_iff_pos h]
-
-/-- If `f` tends to negative infinity along a nontrivial filter `l`, then `λ x, r * f x` tends to
-infinity if and only if `r < 0. `-/
-lemma tendsto_const_mul_at_top_iff_neg [ne_bot l] (h : tendsto f l at_bot) :
-  tendsto (λ x, r * f x) l at_top ↔ r < 0 :=
-by simp [tendsto_const_mul_at_top_iff, h, h.not_tendsto disjoint_at_bot_at_top]
-
-/-- If `f` tends to negative infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to
-infinity if and only if `r < 0. `-/
-lemma tendsto_mul_const_at_top_iff_neg [ne_bot l] (h : tendsto f l at_bot) :
-  tendsto (λ x, f x * r) l at_top ↔ r < 0 :=
-by simp only [mul_comm _ r, tendsto_const_mul_at_top_iff_neg h]
-
-/-- If `f` tends to negative infinity along a nontrivial filter `l`, then `λ x, r * f x` tends to
-negative infinity if and only if `0 < r. `-/
-lemma tendsto_const_mul_at_bot_iff_pos [ne_bot l] (h : tendsto f l at_bot) :
-  tendsto (λ x, r * f x) l at_bot ↔ 0 < r :=
-by simp [tendsto_const_mul_at_bot_iff, h, h.not_tendsto disjoint_at_bot_at_top]
-
-/-- If `f` tends to negative infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to
-negative infinity if and only if `0 < r. `-/
-lemma tendsto_mul_const_at_bot_iff_pos [ne_bot l] (h : tendsto f l at_bot) :
-  tendsto (λ x, f x * r) l at_bot ↔ 0 < r :=
-by simp only [mul_comm _ r, tendsto_const_mul_at_bot_iff_pos h]
-
-/-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, r * f x` tends to negative
-infinity if and only if `r < 0. `-/
-lemma tendsto_const_mul_at_bot_iff_neg [ne_bot l] (h : tendsto f l at_top) :
-  tendsto (λ x, r * f x) l at_bot ↔ r < 0 :=
-by simp [tendsto_const_mul_at_bot_iff, h, h.not_tendsto disjoint_at_top_at_bot]
-
-/-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to negative
-infinity if and only if `r < 0. `-/
-lemma tendsto_mul_const_at_bot_iff_neg [ne_bot l] (h : tendsto f l at_top) :
-  tendsto (λ x, f x * r) l at_bot ↔ r < 0 :=
-by simp only [mul_comm _ r, tendsto_const_mul_at_bot_iff_neg h]
 
 lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : n ≠ 0) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=

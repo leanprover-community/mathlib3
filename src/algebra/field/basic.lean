@@ -80,7 +80,7 @@ class division_semiring (α : Type*) extends semiring α, group_with_zero α
 An instance of `division_ring K` includes maps `of_rat : ℚ → K` and `qsmul : ℚ → K → K`.
 If the division ring has positive characteristic p, we define `of_rat (1 / p) = 1 / 0 = 0`
 for consistency with our division by zero convention.
-The fields `of_rat` and `qsmul are needed to implement the
+The fields `of_rat` and `qsmul` are needed to implement the
 `algebra_rat [division_ring K] : algebra ℚ K` instance, since we need to control the specific
 definitions for some special cases of `K` (in particular `K = ℚ` itself).
 See also Note [forgetful inheritance].

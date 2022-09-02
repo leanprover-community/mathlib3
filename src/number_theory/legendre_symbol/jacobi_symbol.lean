@@ -38,7 +38,7 @@ We prove the main properties of the Jacobi symbol, including the following.
 
 * Quadratic reciprocity (`jacobi_sym_quadratic_reciprocity`,
   `jacobi_sym_quadratic_reciprocity_one_mod_four`,
-  `jacobi_sym_quadratic_reciprocity_threee_mod_four`)
+  `jacobi_sym_quadratic_reciprocity_three_mod_four`)
 
 * The supplementary laws for `a = -1`, `a = 2`, `a = -2` (`jacobi_sym_neg_one`, `jacobi_sym_two`,
   `jacobi_sym_neg_two`)

@@ -123,7 +123,6 @@ begin
 end
 
 variables [normed_field 𝕜] [module ℝ 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
--- variables [has_continuous_const_smul R F] [is_scalar_tower R 𝕜 F]
 
 lemma decay_smul_aux (k n : ℕ) (f : 𝓢(E, F)) (c : 𝕜) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n (c • f) x∥ =
@@ -337,8 +336,10 @@ lemma _root_.schwartz_with_seminorms : with_seminorms (schwartz_seminorm_family 
 variables {𝕜 E F}
 
 instance : has_continuous_smul 𝕜 𝓢(E, F) :=
-sorry
--- (schwartz_seminorm_family 𝕜 E F).module_filter_basis.has_continuous_smul
+begin
+  rw seminorm_family.with_seminorms_eq (schwartz_with_seminorms 𝕜 E F),
+  exact (schwartz_seminorm_family 𝕜 E F).module_filter_basis.has_continuous_smul,
+end
 
 instance : topological_add_group 𝓢(E, F) :=
 (schwartz_seminorm_family ℝ E F).module_filter_basis.to_add_group_filter_basis

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.convex.exposed
-import analysis.normed_space.hahn_banach.separation
+import analysis.norm.module.hahn_banach.separation
 
 /-!
 # The Krein-Milman theorem

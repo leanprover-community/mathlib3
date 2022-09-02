@@ -5,8 +5,8 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.complex.cauchy_integral
 import analysis.convex.integral
-import analysis.normed_space.completion
-import analysis.normed_space.extr
+import analysis.norm.module.completion
+import analysis.norm.module.extr
 import topology.algebra.order.extr_closure
 
 /-!

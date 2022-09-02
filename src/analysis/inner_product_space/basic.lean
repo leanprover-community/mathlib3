@@ -6,8 +6,8 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.convex.uniform
-import analysis.normed_space.bounded_linear_maps
-import analysis.normed_space.banach
+import analysis.norm.module.banach
+import analysis.norm.module.bounded_linear_maps
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 

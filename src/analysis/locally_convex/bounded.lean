@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import analysis.locally_convex.basic
-import analysis.seminorm
+import analysis.norm.module.seminorm
 import topology.bornology.basic
 import topology.algebra.uniform_group
 import analysis.locally_convex.balanced_core_hull

@@ -3,7 +3,7 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.normed_space.basic
+import analysis.norm.module.basic
 import topology.metric_space.pi_nat
 import topology.metric_space.isometry
 import topology.metric_space.gluing

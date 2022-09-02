@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 import analysis.inner_product_space.projection
-import analysis.normed_space.dual
-import analysis.normed_space.star.basic
+import analysis.norm.module.dual
+import analysis.norm.star.basic
 
 /-!
 # The Fréchet-Riesz representation theorem

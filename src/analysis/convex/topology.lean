@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
-import analysis.normed.group.pointwise
-import topology.algebra.module.finite_dimension
-import analysis.normed_space.ray
-import topology.path_connected
+import analysis.norm.group.pointwise
+import analysis.norm.module.ray
 import topology.algebra.affine
+import topology.algebra.module.finite_dimension
+import topology.path_connected
 
 /-!
 # Topological and metric properties of convex sets

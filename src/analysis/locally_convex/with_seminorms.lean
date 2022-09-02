@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll, Anatole Dedecker
 -/
 
-import analysis.seminorm
 import analysis.locally_convex.bounded
+import analysis.norm.module.seminorm
 
 /-!
 # Topology induced by a family of seminorms

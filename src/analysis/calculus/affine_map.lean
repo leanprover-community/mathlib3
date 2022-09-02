@@ -3,8 +3,8 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import analysis.normed_space.continuous_affine_map
 import analysis.calculus.cont_diff
+import analysis.norm.module.continuous_affine_map
 
 /-!
 # Smooth affine maps

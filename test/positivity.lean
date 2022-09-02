@@ -1,5 +1,5 @@
 import algebra.order.smul
-import analysis.normed.group.basic
+import analysis.norm.group.basic
 import data.real.sqrt
 import tactic.positivity
 

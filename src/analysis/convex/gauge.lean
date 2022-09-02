@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.basic
-import analysis.normed_space.pointwise
-import analysis.seminorm
+import analysis.norm.module.pointwise
+import analysis.norm.module.seminorm
 import data.complex.is_R_or_C
 import tactic.congrm
 

@@ -3,8 +3,7 @@ Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri, Sebastien Gouezel, Heather Macbeth, Patrick Massot, Floris van Doorn
 -/
-
-import analysis.normed_space.bounded_linear_maps
+import analysis.norm.module.bounded_linear_maps
 import topology.fiber_bundle
 
 /-!

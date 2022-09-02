@@ -5,8 +5,8 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.asymptotics.asymptotic_equivalent
 import analysis.calculus.tangent_cone
-import analysis.normed_space.bounded_linear_maps
-import analysis.normed_space.units
+import analysis.norm.module.bounded_linear_maps
+import analysis.norm.module.units
 
 /-!
 # The Fréchet derivative

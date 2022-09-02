@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
 import analysis.complex.isometry
-import analysis.normed_space.conformal_linear_map
+import analysis.norm.module.conformal_linear_map
 
 /-!
 # Conformal maps between complex vector spaces

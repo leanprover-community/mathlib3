@@ -3,7 +3,7 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.normed_space.exponential
+import analysis.norm.module.exponential
 import analysis.calculus.fderiv_analytic
 import data.complex.exponential
 import topology.metric_space.cau_seq_filter

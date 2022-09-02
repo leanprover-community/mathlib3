@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.split
-import analysis.normed_space.operator_norm
+import analysis.norm.module.operator_norm
 import data.set.intervals.proj_Icc
 
 /-!

@@ -3,10 +3,10 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
+import analysis.norm.module.finite_dimension
+import analysis.norm.star.basic
 import data.real.sqrt
 import field_theory.tower
-import analysis.normed_space.finite_dimension
-import analysis.normed_space.star.basic
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ

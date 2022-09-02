@@ -5,9 +5,9 @@ Authors: Yaël Dillies, Yury Kudryashov
 -/
 import analysis.convex.strict
 import analysis.convex.topology
-import analysis.normed_space.ordered
-import analysis.normed_space.pointwise
-import analysis.normed_space.affine_isometry
+import analysis.norm.add_torsor.affine_isometry
+import analysis.norm.module.pointwise
+import analysis.norm.order.basic
 
 /-!
 # Strictly convex spaces

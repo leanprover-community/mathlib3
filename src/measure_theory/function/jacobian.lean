@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import measure_theory.covering.besicovitch_vector_space
 import measure_theory.measure.haar_lebesgue
-import analysis.normed_space.pointwise
+import analysis.norm.module.pointwise
 import measure_theory.covering.differentiation
 import measure_theory.constructions.polish
 

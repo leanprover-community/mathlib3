@@ -3,10 +3,10 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.integral.interval_integral
-import analysis.normed_space.pointwise
-import analysis.special_functions.non_integrable
 import analysis.analytic.basic
+import analysis.norm.module.pointwise
+import analysis.special_functions.non_integrable
+import measure_theory.integral.interval_integral
 
 /-!
 # Integral over a circle in `ℂ`

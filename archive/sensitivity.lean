@@ -5,12 +5,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, Patrick Massot
 -/
 
-import tactic.fin_cases
-import tactic.apply_fun
-import linear_algebra.finite_dimensional
-import linear_algebra.dual
-import analysis.normed_space.basic
+import analysis.norm.module.basic
 import data.real.sqrt
+import linear_algebra.dual
+import linear_algebra.finite_dimensional
+import tactic.apply_fun
+import tactic.fin_cases
 
 /-!
 # Huang's sensitivity theorem

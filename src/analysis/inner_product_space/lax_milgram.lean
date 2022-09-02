@@ -5,8 +5,8 @@ Authors: Daniel Roca González
 -/
 import analysis.inner_product_space.projection
 import analysis.inner_product_space.dual
-import analysis.normed_space.banach
-import analysis.normed_space.operator_norm
+import analysis.norm.module.banach
+import analysis.norm.module.operator_norm
 import topology.metric_space.antilipschitz
 
 /-!

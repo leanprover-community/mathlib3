@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wrenna Robson
 -/
 
-import analysis.normed.group.basic
+import analysis.norm.group.basic
 
 /-!
 # Hamming spaces

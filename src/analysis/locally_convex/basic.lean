@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.basic
-import analysis.normed_space.lattice_ordered_group
-import analysis.normed_space.ordered
+import analysis.norm.order.basic
 
 /-!
 # Local convexity

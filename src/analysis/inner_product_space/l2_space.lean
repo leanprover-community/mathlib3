@@ -3,9 +3,9 @@ Copyright (c) 2022 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.inner_product_space.projection
-import analysis.normed_space.lp_space
 import analysis.inner_product_space.pi_L2
+import analysis.inner_product_space.projection
+import analysis.norm.module.lp_space
 
 /-!
 # Hilbert sum of a family of inner product spaces

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri, Heather Macbeth
 -/
 
+import analysis.norm.module.units
 import geometry.manifold.smooth_manifold_with_corners
-import analysis.normed_space.units
 
 /-!
 # Units of a normed algebra

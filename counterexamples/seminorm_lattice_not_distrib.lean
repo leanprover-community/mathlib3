@@ -3,7 +3,8 @@ Copyright (c) 2022 Pierre-Alexandre Bazin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Pierre-Alexandre Bazin
 -/
-import analysis.seminorm
+import analysis.norm.module.seminorm
+
 /-!
 # The lattice of seminorms is not distributive
 

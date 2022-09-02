@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
-import analysis.normed_space.dual
+import analysis.norm.module.dual
 import measure_theory.function.strongly_measurable_lp
 import measure_theory.integral.set_integral
 

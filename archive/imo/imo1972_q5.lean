@@ -3,9 +3,8 @@ Copyright (c) 2020 Ruben Van de Velde, Stanislas Polu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ruben Van de Velde, Stanislas Polu
 -/
-
+import analysis.norm.module.basic
 import data.real.basic
-import analysis.normed_space.basic
 
 /-!
 # IMO 1972 Q5

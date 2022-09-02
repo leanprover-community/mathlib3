@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.convex.topology
-import analysis.normed_space.add_torsor_bases
+import analysis.norm.add_torsor_bases
 import measure_theory.measure.haar_lebesgue
 
 /-!

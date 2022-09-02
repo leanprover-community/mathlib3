@@ -3,11 +3,11 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Sébastien Gouëzel
 -/
-import measure_theory.measure.lebesgue
-import measure_theory.measure.haar
+import analysis.norm.module.pointwise
 import linear_algebra.finite_dimensional
-import analysis.normed_space.pointwise
 import measure_theory.group.pointwise
+import measure_theory.measure.haar
+import measure_theory.measure.lebesgue
 
 /-!
 # Relationship between the Haar and Lebesgue measures

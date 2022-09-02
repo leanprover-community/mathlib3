@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import analysis.complex.basic
-import analysis.normed_space.finite_dimension
+import analysis.norm.module.finite_dimension
 import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice

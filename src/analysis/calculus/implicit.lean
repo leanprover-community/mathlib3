@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.inverse
-import analysis.normed_space.complemented
+import analysis.norm.module.complemented
 
 /-!
 # Implicit function theorem

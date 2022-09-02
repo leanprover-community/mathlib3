@@ -3,9 +3,8 @@ Copyright © 2022 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Floris van Doorn
 -/
-
+import analysis.norm.module.operator_norm
 import topology.vector_bundle.basic
-import analysis.normed_space.operator_norm
 
 /-!
 # The topological vector bundle of continuous (semi)linear maps

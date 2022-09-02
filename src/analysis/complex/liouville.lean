@@ -3,9 +3,9 @@ Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.complex.cauchy_integral
 import analysis.calculus.fderiv_analytic
-import analysis.normed_space.completion
+import analysis.complex.cauchy_integral
+import analysis.norm.module.completion
 
 /-!
 # Liouville's theorem

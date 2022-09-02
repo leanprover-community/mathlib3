@@ -216,7 +216,7 @@ variables [decidable_eq l] [decidable_eq m]
 section has_zero
 variables [has_zero α]
 
-lemma to_block_diagonal_eq [decidable_eq m] (d : m → α) (p : m → Prop) :
+lemma to_block_diagonal_eq (d : m → α) (p : m → Prop) :
   matrix.to_block (diagonal d) p p = diagonal (λ i : subtype p, d ↑i) :=
 begin
   ext i j,
@@ -225,7 +225,7 @@ begin
   { simp [has_one.one, h, λ h', h $ subtype.ext h'], }
 end
 
-lemma to_block_diagonal_ne [decidable_eq m] (d : m → α) (p : m → Prop) :
+lemma to_block_diagonal_ne (d : m → α) (p : m → Prop) :
   matrix.to_block (diagonal d) (λ i, ¬ p i) p = 0 :=
 begin
   ext ⟨i, hi⟩ ⟨j, hj⟩,

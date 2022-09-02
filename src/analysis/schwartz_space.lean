@@ -349,9 +349,13 @@ def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × �
 instance : topological_space 𝓢(E, F) :=
 (schwartz_seminorm_family ℝ E F).module_filter_basis.topology'
 
-variables (𝕜 E F)
-
-lemma _root_.schwartz_with_seminorms : with_seminorms (schwartz_seminorm_family 𝕜 E F) := sorry
+lemma _root_.schwartz_with_seminorms : with_seminorms (schwartz_seminorm_family 𝕜 E F) :=
+begin
+  have A : with_seminorms (schwartz_seminorm_family ℝ E F) := ⟨rfl⟩,
+  rw seminorm_family.with_seminorms_iff_nhds_eq_infi at ⊢ A,
+  rw A,
+  refl
+end
 
 variables {𝕜 E F}
 

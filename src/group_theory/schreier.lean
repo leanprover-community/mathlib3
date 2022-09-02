@@ -145,43 +145,7 @@ end
 
 open_locale big_operators
 
--- merging
-lemma order_eq_card_zpowers' {G : Type*} [group G] (g : G) : order_of g = nat.card (zpowers g) :=
-begin
-  have := nat.card_congr (mul_action.orbit_zpowers_equiv g (1 : G)),
-  rwa [nat.card_zmod, orbit_subgroup_one_eq_self, eq_comm] at this,
-end
-
-universes u v
-
--- PRed
-@[simp] lemma nat.card_pi {α : Type u} {β : α → Type v} [fintype α] :
-  nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
-begin
-  classical,
-  by_cases h1 : ∃ a, is_empty (β a),
-  { haveI := is_empty_pi.mpr h1,
-    obtain ⟨a, h⟩ := h1,
-    rw [nat.card_of_is_empty, finset.prod_eq_zero (finset.mem_univ a)],
-    exactI nat.card_of_is_empty },
-  simp only [not_exists, not_is_empty_iff] at h1,
-  by_cases h2 : ∀ a, finite (β a),
-  { haveI := h2,
-    haveI := λ a, fintype.of_finite (β a),
-    simp only [nat.card_eq_fintype_card, fintype.card_pi] },
-  simp only [not_forall, not_finite_iff_infinite] at h2,
-  obtain ⟨a₀, h2⟩ := h2,
-  rw [finset.prod_eq_zero (finset.mem_univ a₀)],
-  { suffices : infinite (Π a, β a),
-    { exactI nat.card_eq_zero_of_infinite },
-    let f : (Π a, β a) → β a₀ := λ p, p a₀,
-    have hf : function.surjective f :=
-    λ b,  ⟨λ a, if h : a = a₀ then by rwa h else (h1 a).some, dif_pos rfl⟩,
-    exactI infinite.of_surjective f hf },
-  { exactI nat.card_eq_zero_of_infinite },
-end
-
-lemma key_lemma0 (G : Type*) [comm_group G] [group.fg G]
+lemma card_dvd_exponent_pow_rank (G : Type*) [comm_group G] [group.fg G]
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
   nat.card G ∣ monoid.exponent G ^ group.rank G :=
 begin
@@ -199,8 +163,8 @@ begin
     simp only [f, monoid_hom.coe_mk],
     refine (finset.prod_eq_single_of_mem (⟨g₀, hg₀⟩ : S) (finset.mem_univ ⟨g₀, hg₀⟩)
       (λ g _ hg, _)).trans (congr_arg coe (if_pos rfl)),
-    have := mt subtype.ext hg,
-    exact congr_arg coe (if_neg this) },
+    rw [ne, subtype.ext_iff, subtype.coe_mk] at hg,
+    rw [if_neg hg, coe_one] },
   replace hf := nat_card_dvd_of_surjective f hf,
   rw nat.card_pi at hf,
   refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
@@ -208,10 +172,10 @@ begin
   exact monoid.order_dvd_exponent (g : G),
 end
 
-lemma key_lemma17 {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
+lemma card_dvd_exponent_pow_rank' {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
   nat.card G ∣ n ^ group.rank G :=
-(key_lemma0 G).trans
+(card_dvd_exponent_pow_rank G).trans
     (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
 
 @[to_additive]

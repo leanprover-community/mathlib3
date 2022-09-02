@@ -447,6 +447,28 @@ begin
       simpa only [sub_add_cancel] } }
 end
 
+/-!
+### Lévy's generalization of the Borel-Cantelli lemma
+
+Lévy's generalization of the Borel-Cantelli lemma states that: given a natural number indexed
+filtration $(\mathcal{F}_n)$, and a sequence of sets $(s_n)$ such that for all
+$n$, $s_n \in \mathcal{F}_n$, $limsup_n s_n$ is almost everywhere equal to the set for which
+$\sum_n \mathbb{P}[s_n \mid \mathcal{F}_n] = \infty$.
+
+The proof strategy follows by constructing a martingale satisfying the one sided martingale bound.
+In particular, we define
+$$
+  f_n := \sum_{k < n} \mathbf{1}_{s_{n + 1}} - \mathbb{P}[s_{n + 1} \mid \mathcal{F}_n].
+$$
+Then, as a martingale is both a sub and a super-martingale, the set for which it is unbounded from
+above must agree with the set for which it is unbounded from below almost everywhere. Thus, it
+can only converge to $\pm \infty$ with probability 0. Thus, by considering
+$$
+  \limsup_n s_n = \{\sum_n \mathbf{1}_{s_n} = \infty\}
+$$
+almost everywhere, the result follows.
+-/
+
 lemma martingale.bdd_above_range_iff_bdd_below_range [is_finite_measure μ]
   (hf : martingale f ℱ μ) (hbdd : ∀ᵐ x ∂μ, ∀ i, |f (i + 1) x - f i x| ≤ R) :
   ∀ᵐ x ∂μ, bdd_above (set.range (λ n, f n x)) ↔ bdd_below (set.range (λ n, f n x)) :=
@@ -491,28 +513,6 @@ begin
   filter_upwards [hf.bdd_above_range_iff_bdd_below_range hbdd] with x hx htop using
     unbounded_of_tendsto_at_bot htop (hx.1 $ bdd_above_range_of_tendsto_at_top_at_bot htop),
 end
-
-/-!
-### Lévy's generalization of the Borel-Cantelli lemma
-
-Lévy's generalization of the Borel-Cantelli lemma states that: given a natural number indexed
-filtration $(\mathcal{F}_n)$, and a sequence of sets $(s_n)$ such that for all
-$n$, $s_n \in \mathcal{F}_n$, $limsup_n s_n$ is almost everywhere equal to the set for which
-$\sum_n \mathbb{P}[s_n \mid \mathcal{F}_n] = \infty$.
-
-The proof strategy follows by constructing a martingale satisfying the one sided martingale bound.
-In particular, we define
-$$
-  f_n := \sum_{k < n} \mathbf{1}_{s_{n + 1}} - \mathbb{P}[s_{n + 1} \mid \mathcal{F}_n].
-$$
-Then, as a martingale is both a sub and a super-martingale, the set for which it is unbounded from
-above must agree with the set for which it is unbounded from below almost everywhere. Thus, it
-can only converge to $\pm \infty$ with probability 0. Thus, by considering
-$$
-  \limsup_n s_n = \{\sum_n \mathbf{1}_{s_n} = \infty\}
-$$
-almost everywhere, the result follows.
--/
 
 namespace borel_cantelli
 

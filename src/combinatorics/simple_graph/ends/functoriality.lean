@@ -260,12 +260,12 @@ begin
   let uH' := good_finset.up G G' H' LL',
 
   simp only,
-  calc    (H (s L)).val
-        = (H (inf_comp_out.back LL (s L''))).val   : congr_arg (λ x, (H x).val) (sec (hom_of_le LL)).symm
-  ...   = (uH (s L'')).val                         : by {symmetry, apply good_finset.agree_up,}
-  ...   = (uH' (s L'')).val                        : by {rw good_finset.eq G G' uH uH',}
-  ...   = (H' (inf_comp_out.back LL' (s L''))).val : by {apply good_finset.agree_up}
-  ...   = (H' (s L')).val                          : congr_arg (λ x, (H' x).val) (sec (hom_of_le LL')),
+  calc (H (s L)).val
+     = (H (inf_comp_out.back LL (s L''))).val   : congr_arg (λ x, (H x).val) (sec (hom_of_le LL)).symm
+  ...= (uH (s L'')).val                         : by {symmetry, apply good_finset.agree_up,}
+  ...= (uH' (s L'')).val                        : by {rw good_finset.eq G G' uH uH',}
+  ...= (H' (inf_comp_out.back LL' (s L''))).val : by {apply good_finset.agree_up}
+  ...= (H' (s L')).val                          : congr_arg (λ x, (H' x).val) (sec (hom_of_le LL')),
 
 
 end

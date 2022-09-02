@@ -3,6 +3,7 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
+import data.zmod.quotient
 import group_theory.order_of_element
 import algebra.gcd_monoid.finset
 import algebra.punit_instances
@@ -313,3 +314,45 @@ end
 end cancel_comm_monoid
 
 end monoid
+
+section comm_group
+
+open subgroup
+open_locale big_operators
+
+variables (G) [comm_group G] [group.fg G]
+
+lemma card_dvd_exponent_pow_rank
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
+  nat.card G ∣ monoid.exponent G ^ group.rank G :=
+begin
+  classical,
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
+  let f : (Π g : S, zpowers (g : G)) →* G :=
+  { to_fun := λ a, ∏ g : S, a g,
+    map_one' := finset.prod_const_one,
+    map_mul' := λ a b, finset.prod_mul_distrib },
+  have hf : function.surjective f,
+  { rw [←monoid_hom.range_top_iff_surjective, eq_top_iff, ←hS2, closure_le],
+    intros g₀ hg₀,
+    refine ⟨λ g, if ↑g = g₀ then ⟨g, mem_zpowers g⟩ else 1, _⟩,
+    simp only [f, monoid_hom.coe_mk],
+    refine (finset.prod_eq_single_of_mem (⟨g₀, hg₀⟩ : S) (finset.mem_univ ⟨g₀, hg₀⟩)
+      (λ g _ hg, _)).trans (congr_arg coe (if_pos rfl)),
+    rw [ne, subtype.ext_iff, subtype.coe_mk] at hg,
+    rw [if_neg hg, coe_one] },
+  replace hf := nat_card_dvd_of_surjective f hf,
+  rw nat.card_pi at hf,
+  refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
+  rw ← order_eq_card_zpowers',
+  exact monoid.order_dvd_exponent (g : G),
+end
+
+lemma card_dvd_exponent_pow_rank' {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
+  nat.card G ∣ n ^ group.rank G :=
+(card_dvd_exponent_pow_rank G).trans
+    (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
+
+end comm_group

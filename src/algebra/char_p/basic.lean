@@ -427,8 +427,8 @@ match p, hc with
 | (m+2), hc := or.inl (@char_is_prime_of_two_le R _ _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p R p] : fact p.prime :=
-⟨(char_p.char_is_prime_or_zero R _).resolve_right (pos_iff_ne_zero.1 h.1)⟩
+lemma char_is_prime_of_pos (p : ℕ) [ne_zero p] [char_p R p] : fact p.prime :=
+⟨(char_p.char_is_prime_or_zero R _).resolve_right $ ne_zero.ne p⟩
 
 end nontrivial
 
@@ -591,3 +591,15 @@ begin
 end
 
 end
+
+namespace ne_zero
+
+variables (R) [add_monoid_with_one R] {r : R} {n p : ℕ} {a : ℕ+}
+
+lemma of_not_dvd [char_p R p] (h : ¬ p ∣ n) : ne_zero (n : R) :=
+⟨(char_p.cast_eq_zero_iff R p n).not.mpr h⟩
+
+lemma not_char_dvd  (p : ℕ) [char_p R p] (k : ℕ) [h : ne_zero (k : R)] : ¬ p ∣ k :=
+by rwa [←char_p.cast_eq_zero_iff R p k, ←ne.def, ←ne_zero_iff]
+
+end ne_zero

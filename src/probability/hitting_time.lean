@@ -104,7 +104,6 @@ begin
   { exact hitting_of_lt h }
 end
 
-
 lemma le_hitting {m : ι} (hnm : n ≤ m) (ω : Ω) : n ≤ hitting u s n m ω :=
 begin
   simp only [hitting],
@@ -139,16 +138,6 @@ begin
   have h_mem := Inf_mem h_nonempty,
   rw [set.mem_inter_iff] at h_mem,
   exact h_mem.2,
-end
-
-lemma hitting_mem_set_of_hitting_lt [is_well_order ι (<)] {m : ι}
-  (hl : hitting u s n m ω < m) :
-  u (hitting u s n m ω) ω ∈ s :=
-begin
-  by_cases h : ∃ j ∈ set.Icc n m, u j ω ∈ s,
-  { exact hitting_mem_set h },
-  { simp_rw [hitting, if_neg h] at hl,
-    exact false.elim (hl.ne rfl) }
 end
 
 lemma hitting_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u i ω ∈ s) :
@@ -236,7 +225,7 @@ end inequalities
 
 /-- A discrete hitting time is a stopping time. -/
 lemma hitting_is_stopping_time
-  [conditionally_complete_linear_order ι] [is_well_order ι (<)] [encodable ι]
+  [conditionally_complete_linear_order ι] [is_well_order ι (<)] [countable ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   {f : filtration ι m} {u : ι → Ω → β} {s : set β} {n n' : ι}
   (hu : adapted f u) (hs : measurable_set s) :
@@ -251,7 +240,7 @@ begin
       rw [set.mem_set_of_eq, hitting_le_iff_of_lt _ hi],
       simp only [set.mem_Icc, exists_prop, set.mem_Union, set.mem_preimage], },
     rw h_set_eq_Union,
-    exact measurable_set.Union (λ j, measurable_set.Union_Prop $
+    exact measurable_set.Union (λ j, measurable_set.Union $
       λ hj, f.mono hj.2 _ ((hu j).measurable hs)) }
 end
 
@@ -269,7 +258,7 @@ end
 /-- The hitting time of a discrete process with the starting time indexed by a stopping time
 is a stopping time. -/
 lemma is_stopping_time_hitting_is_stopping_time
-  [conditionally_complete_linear_order ι] [is_well_order ι (<)] [encodable ι]
+  [conditionally_complete_linear_order ι] [is_well_order ι (<)] [countable ι]
   [topological_space ι] [order_topology ι] [first_countable_topology ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   {f : filtration ι m} {u : ι → Ω → β} {τ : Ω → ι} (hτ : is_stopping_time f τ)
@@ -289,7 +278,7 @@ begin
     rintro m hm rfl,
     exact lt_of_lt_of_le hm (le_hitting (hτbdd _) _) },
   rw [h₁, h₂, set.union_empty],
-  exact measurable_set.Union (λ i, measurable_set.Union_Prop
+  exact measurable_set.Union (λ i, measurable_set.Union
     (λ hi, (f.mono hi _ (hτ.measurable_set_eq i)).inter (hitting_is_stopping_time hf hs n))),
 end
 

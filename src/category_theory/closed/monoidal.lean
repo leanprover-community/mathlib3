@@ -107,7 +107,7 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (ihom A).map ((𝟙 A) ⊗ f) :=
 (coev A).naturality f
 
-notation A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
+notation (name := ihom) A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
 
 @[simp, reassoc] lemma ev_coev :
   ((𝟙 A) ⊗ ((coev A).app B)) ≫ (ev A).app (A ⊗ B) = 𝟙 (A ⊗ B) :=

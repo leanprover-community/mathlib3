@@ -212,7 +212,8 @@ relabel (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n
 
 end term
 
-localized "prefix `&`:max := first_order.language.term.var ∘ sum.inr" in first_order
+localized "prefix (name := language.term.var) `&`:max :=
+  first_order.language.term.var ∘ sum.inr" in first_order
 
 namespace Lhom
 
@@ -845,15 +846,21 @@ rfl
 
 end Lequiv
 
-localized "infix ` =' `:88 := first_order.language.term.bd_equal" in first_order
+localized "infix (name := term.bd_equal)
+  ` =' `:88 := first_order.language.term.bd_equal" in first_order
   -- input \~- or \simeq
-localized "infixr ` ⟹ `:62 := first_order.language.bounded_formula.imp" in first_order
+localized "infixr (name := bounded_formula.imp)
+  ` ⟹ `:62 := first_order.language.bounded_formula.imp" in first_order
   -- input \==>
-localized "prefix `∀'`:110 := first_order.language.bounded_formula.all" in first_order
-localized "prefix `∼`:max := first_order.language.bounded_formula.not" in first_order
+localized "prefix (name := bounded_formula.all)
+  `∀'`:110 := first_order.language.bounded_formula.all" in first_order
+localized "prefix (name := bounded_formula.not)
+  `∼`:max := first_order.language.bounded_formula.not" in first_order
   -- input \~, the ASCII character ~ has too low precedence
-localized "infix ` ⇔ `:61 := first_order.language.bounded_formula.iff" in first_order -- input \<=>
-localized "prefix `∃'`:110 := first_order.language.bounded_formula.ex" in first_order -- input \ex
+localized "infix (name := bounded_formula.iff)
+  ` ⇔ `:61 := first_order.language.bounded_formula.iff" in first_order -- input \<=>
+localized "prefix (name := bounded_formula.ex)
+  `∃'`:110 := first_order.language.bounded_formula.ex" in first_order -- input \ex
 
 namespace formula
 

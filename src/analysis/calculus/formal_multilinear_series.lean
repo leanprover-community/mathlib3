@@ -282,7 +282,7 @@ begin
   simp only [fslope, coeff, continuous_multilinear_map.curry_left_apply, this],
 end
 
-@[simp] lemma coef_iterate_fslope (k n : ℕ) :
+@[simp] lemma coeff_iterate_fslope (k n : ℕ) :
   (fslope^[k] p).coeff n = p.coeff (n + k) :=
 by induction k with k ih generalizing p; refl <|> simpa [ih]
 

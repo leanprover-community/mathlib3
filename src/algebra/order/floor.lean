@@ -67,6 +67,7 @@ instance : floor_semiring ℕ :=
   gc_floor := λ n a ha, by { rw nat.cast_id, refl },
   gc_ceil := λ n a, by { rw nat.cast_id, refl } }
 
+@[priority 100] -- see Note [lower instance priority]
 instance ordered_semiring.nontrivial [ordered_semiring α] [floor_semiring α] : nontrivial α :=
 begin
   casesI subsingleton_or_nontrivial α with _ h,

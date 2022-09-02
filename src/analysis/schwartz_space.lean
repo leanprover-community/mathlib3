@@ -5,22 +5,31 @@ Authors: Moritz Doll
 -/
 
 import analysis.calculus.cont_diff
-import analysis.normed_space.basic
+import analysis.complex.basic
 import analysis.locally_convex.with_seminorms
-import analysis.normed_space.multilinear
 import topology.algebra.uniform_filter_basis
-import analysis.inner_product_space.basic
 import tactic.positivity
-import algebra.order.pointwise
 
 /-!
 # Schwartz space
 
-This file defines the Schwartz space and the space of tempered distributions.
+This file defines the Schwartz space and the space of tempered distributions. Usually,
+the Schwartz space is defined as the set of smooth functions $f : ℝ^n → ℂ$ such that there exists
+$C_{αβ} > 0$ with $$|x^α ∂^β f(x)| < C_{αβ}$$ for all $x ∈ ℝ^n$ and for all multiindices $α, β$.
+In mathlib, we use a slightly different approach and define define the Schwartz space as all
+smooth functions `f : E → F`, where `E` and `F` are real normed vector spaces such that for all
+natural numbers `k` and `n` we have uniform bounds `∥x∥^k * ∥iterated_fderiv ℝ n f x∥ < C`.
+This approach completely avoids using partial derivatives as well as polynomials.
+We construct the topology on the Schwartz space by a family of seminorms, which are the best
+constants in the above estimates, which is by abstract theory from
+`seminorm_family.module_filter_basis` and `seminorm_family.to_locally_convex_space` turns the
+Schwartz space into a locally convex topological vector space.
 
 ## Main definitions
 
-* `schwartz_map`: The Schwartz space
+* `schwartz_map`: The Schwartz space is the space of smooth functions such that all derivatives
+decay faster than any power of `∥x∥`.
+* `schwartz_map.seminorm`: The family of seminorms as described above
 
 ## Main statements
 
@@ -36,9 +45,6 @@ locally convex topological vector space.
 Schwartz space, tempered distributions
 -/
 
-open filter
-open_locale big_operators ennreal nnreal topological_space
-
 noncomputable theory
 
 variables {R R' 𝕜 E F : Type*}
@@ -49,7 +55,7 @@ variables [normed_add_comm_group F] [normed_space ℝ F]
 variables (E F)
 
 /-- A function is a Schwartz function if it is smooth and all derivatives decay faster than
-  any power of ∥x∥. -/
+  any power of `∥x∥`. -/
 structure schwartz_map :=
   (to_fun : E → F)
   (smooth' : cont_diff ℝ ⊤ to_fun)
@@ -335,7 +341,8 @@ section seminorms
 
 variables [normed_space ℂ F]
 
-/-- The seminorms of the Schwartz space -/
+/-- The seminorms of the Schwartz space given by the best constants in the definition of
+`𝓢(E, F)`. -/
 @[protected]
 def seminorm (k n : ℕ) : seminorm ℂ 𝓢(E, F) := seminorm.of_smul_le (seminorm_aux k n)
   (seminorm_aux_zero k n) (seminorm_aux_add_le k n) (seminorm_aux_smul_le k n)

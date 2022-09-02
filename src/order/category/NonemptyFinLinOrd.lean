@@ -82,10 +82,24 @@ equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
+lemma mono_iff_injective {A B : NonemptyFinLinOrd.{u}} (f : A ⟶ B) :
+  mono f ↔ function.injective f :=
+begin
+  refine ⟨_, concrete_category.mono_of_injective f⟩,
+  introI,
+  intros a₁ a₂ h,
+  let X : NonemptyFinLinOrd.{u} := ⟨ulift (fin 1)⟩,
+  let g₁ : X ⟶ A := ⟨λ x, a₁, λ x₁ x₂ h, by refl⟩,
+  let g₂ : X ⟶ A := ⟨λ x, a₂, λ x₁ x₂ h, by refl⟩,
+  change g₁ (ulift.up (0 : fin 1)) = g₂ (ulift.up (0 : fin 1)),
+  have eq : g₁ ≫ f = g₂ ≫ f := by { ext x, exact h, },
+  rw cancel_mono at eq,
+  rw eq,
+end
+
 lemma epi_iff_surjective {A B : NonemptyFinLinOrd.{u}} (f : A ⟶ B) :
   epi f ↔ function.surjective f :=
 begin
-/- This proof is similar to that of `simplex_category.epi_iff_surjective`. -/
   split,
   { introI,
     by_contra' hf',

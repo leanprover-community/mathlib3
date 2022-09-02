@@ -322,6 +322,10 @@ def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd.{v} :=
   map_id' := λ a, by { ext, simp, },
   map_comp' := λ a b c f g, by { ext, simp, }, }
 
+lemma skeletal_functor.coe_map
+  {Δ₁ Δ₂ : simplex_category} (f : Δ₁ ⟶ Δ₂) :
+  coe_fn (skeletal_functor.{v}.map f) = ulift.up ∘ f.to_order_hom ∘ ulift.down := rfl
+
 lemma skeletal : skeletal simplex_category :=
 λ X Y ⟨I⟩,
 begin
@@ -419,14 +423,11 @@ section epi_mono
 theorem mono_iff_injective {n m : simplex_category} {f : n ⟶ m} :
   mono f ↔ function.injective f.to_order_hom :=
 begin
-  split,
-  { introsI m x y h,
-    have H : const n x ≫ f = const n y ≫ f,
-    { dsimp, rw h },
-    change (n.const x).to_order_hom 0 = (n.const y).to_order_hom 0,
-    rw cancel_mono f at H,
-    rw H },
-  { exact concrete_category.mono_of_injective f }
+  rw ← functor.mono_map_iff_mono skeletal_equivalence.functor.{0},
+  dsimp only [skeletal_equivalence, functor.as_equivalence_functor],
+  rw [NonemptyFinLinOrd.mono_iff_injective, skeletal_functor.coe_map,
+    function.injective.of_comp_iff ulift.up_injective,
+    function.injective.of_comp_iff' _ ulift.down_bijective],
 end
 
 /-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
@@ -434,39 +435,11 @@ end
 lemma epi_iff_surjective {n m : simplex_category} {f: n ⟶ m} :
   epi f ↔ function.surjective f.to_order_hom :=
 begin
-  split,
-  { introsI hyp_f_epi x,
-    by_contra' h_ab,
-    -- The proof is by contradiction: assume f is not surjective,
-    -- then introduce two non-equal auxiliary functions equalizing f, and get a contradiction.
-    -- First we define the two auxiliary functions.
-    set chi_1 : m ⟶ [1] := hom.mk ⟨λ u, if u ≤ x then 0 else 1, begin
-      intros a b h,
-      dsimp only [],
-      split_ifs with h1 h2 h3,
-      any_goals { exact le_rfl },
-      { exact bot_le },
-      { exact false.elim (h1 (le_trans h h3)) }
-    end ⟩,
-    set chi_2 : m ⟶ [1] := hom.mk ⟨λ u, if u < x then 0 else 1, begin
-      intros a b h,
-      dsimp only [],
-      split_ifs with h1 h2 h3,
-      any_goals { exact le_rfl },
-      { exact bot_le },
-      { exact false.elim (h1 (lt_of_le_of_lt h h3)) }
-    end ⟩,
-    -- The two auxiliary functions equalize f
-    have f_comp_chi_i : f ≫ chi_1 = f ≫ chi_2,
-    { dsimp,
-      ext,
-      simp [le_iff_lt_or_eq, h_ab x_1] },
-    -- We now just have to show the two auxiliary functions are not equal.
-    rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
-    apply_fun (λ e, e.to_order_hom x) at eq_chi_i,
-    suffices : (0 : fin 2) = 1, by exact bot_ne_top this,
-    simpa using eq_chi_i },
-  { exact concrete_category.epi_of_surjective f }
+  rw ← functor.epi_map_iff_epi skeletal_equivalence.functor.{0},
+  dsimp only [skeletal_equivalence, functor.as_equivalence_functor],
+  rw [NonemptyFinLinOrd.epi_iff_surjective, skeletal_functor.coe_map,
+    function.surjective.of_comp_iff' ulift.up_bijective,
+    function.surjective.of_comp_iff _ ulift.down_surjective],
 end
 
 /-- A monomorphism in `simplex_category` must increase lengths-/

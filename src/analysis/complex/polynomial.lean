@@ -15,7 +15,7 @@ This file proves that every nonconstant complex polynomial has a root.
 As a consequence, the complex numbers are algebraically closed.
 -/
 
-open complex polynomial metric filter is_absolute_value set
+open complex polynomial metric filter set
 open_locale classical
 
 namespace complex
@@ -75,13 +75,12 @@ have hef0 : abs (eval z₀ g) * (eval z₀ f).abs ≠ 0,
 have hz'z₀ : abs (z' - z₀) = δ,
   by simp [z', mul_assoc, mul_left_comm _ (_ ^ n), mul_comm _ (_ ^ n),
     mul_comm (eval z₀ f).abs, _root_.mul_div_cancel _ hef0, of_real_mul,
-    neg_mul, neg_div, is_absolute_value.abv_pow complex.abs,
+    neg_mul, neg_div, map_pow,
     complex.abs_of_nonneg hδ0.le, real.pow_nat_rpow_nat_inv hδ0.le hn0],
 have hF₃ : (f.eval z' - F.eval z').abs < (g.eval z₀).abs * δ ^ n,
   from calc (f.eval z' - F.eval z').abs
       = (g.eval z' - g.eval z₀).abs * (z' - z₀).abs ^ n :
-        by rw [← eq_sub_iff_add_eq.1 hg, ← is_absolute_value.abv_pow complex.abs,
-            ← complex.abs_mul, sub_mul];
+        by rw [← eq_sub_iff_add_eq.1 hg, ←map_pow abs, ←map_mul, sub_mul];
           simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel,
                 sub_eq_add_neg, add_assoc]
   ... = (g.eval z' - g.eval z₀).abs * δ ^ n : by rw hz'z₀

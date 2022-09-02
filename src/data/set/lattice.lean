@@ -205,6 +205,11 @@ supr_congr_Prop pq f
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Inter f₁ = Inter f₂ :=
 infi_congr_Prop pq f
 
+lemma Union_plift_up (f : plift ι → set α) : (⋃ i, f (plift.up i)) = ⋃ i, f i := supr_plift_up _
+lemma Union_plift_down (f : ι → set α) : (⋃ i, f (plift.down i)) = ⋃ i, f i := supr_plift_down _
+lemma Inter_plift_up (f : plift ι → set α) : (⋂ i, f (plift.up i)) = ⋂ i, f i := infi_plift_up _
+lemma Inter_plift_down (f : ι → set α) : (⋂ i, f (plift.down i)) = ⋂ i, f i := infi_plift_down _
+
 lemma Union_eq_if {p : Prop} [decidable p] (s : set α) :
   (⋃ h : p, s) = if p then s else ∅ :=
 supr_eq_if _
@@ -1089,6 +1094,50 @@ lemma image_Inter₂_subset (s : Π i, κ i → set α) (f : α → β) :
 lemma image_sInter_subset (S : set (set α)) (f : α → β) :
   f '' (⋂₀ S) ⊆ ⋂ s ∈ S, f '' s :=
 by { rw sInter_eq_bInter, apply image_Inter₂_subset }
+
+/-! ### `restrict_preimage` -/
+section
+
+open function
+
+variables (s : set β) {f : α → β} {U : ι → set β} (hU : Union U = univ)
+
+lemma restrict_preimage_injective (hf : injective f) : injective (s.restrict_preimage f) :=
+λ x y e, subtype.mk.inj_arrow e (λ e, subtype.coe_injective (hf e))
+
+lemma restrict_preimage_surjective (hf : surjective f) : surjective (s.restrict_preimage f) :=
+λ x, ⟨⟨_, (show f (hf x).some ∈ s, from (hf x).some_spec.symm ▸ x.2)⟩, subtype.ext (hf x).some_spec⟩
+
+lemma restrict_preimage_bijective (hf : bijective f) : bijective (s.restrict_preimage f) :=
+⟨s.restrict_preimage_injective hf.1, s.restrict_preimage_surjective hf.2⟩
+
+alias set.restrict_preimage_injective  ← _root_.function.injective.restrict_preimage
+alias set.restrict_preimage_surjective ← _root_.function.surjective.restrict_preimage
+alias set.restrict_preimage_bijective  ← _root_.function.bijective.restrict_preimage
+
+include hU
+
+lemma injective_iff_injective_of_Union_eq_univ :
+  injective f ↔ ∀ i, injective ((U i).restrict_preimage f) :=
+begin
+  refine ⟨λ H i, (U i).restrict_preimage_injective H, λ H x y e, _⟩,
+  obtain ⟨i, hi⟩ := set.mem_Union.mp (show f x ∈ set.Union U, by { rw hU, triv }),
+  injection @H i ⟨x, hi⟩ ⟨y, show f y ∈ U i, from e ▸ hi⟩ (subtype.ext e)
+end
+
+lemma surjective_iff_surjective_of_Union_eq_univ :
+  surjective f ↔ ∀ i, surjective ((U i).restrict_preimage f) :=
+begin
+  refine ⟨λ H i, (U i).restrict_preimage_surjective H, λ H x, _⟩,
+  obtain ⟨i, hi⟩ := set.mem_Union.mp (show x ∈ set.Union U, by { rw hU, triv }),
+  exact ⟨_, congr_arg subtype.val (H i ⟨x, hi⟩).some_spec⟩
+end
+
+lemma bijective_iff_bijective_of_Union_eq_univ :
+  bijective f ↔ ∀ i, bijective ((U i).restrict_preimage f) :=
+by simp_rw [bijective, forall_and_distrib, injective_iff_injective_of_Union_eq_univ hU,
+  surjective_iff_surjective_of_Union_eq_univ hU]
+end
 
 /-! ### `inj_on` -/
 

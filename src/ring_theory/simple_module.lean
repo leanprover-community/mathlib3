@@ -34,7 +34,7 @@ abbreviation is_simple_module := (is_simple_order (submodule R M))
 
 /-- A module is semisimple when every submodule has a complement, or equivalently, the module
   is a direct sum of simple modules. -/
-abbreviation is_semisimple_module := (is_complemented (submodule R M))
+abbreviation is_semisimple_module := (complemented_lattice (submodule R M))
 
 -- Making this an instance causes the linter to complain of "dangerous instances"
 theorem is_simple_module.nontrivial [is_simple_module R M] : nontrivial M :=
@@ -67,7 +67,7 @@ end is_simple_module
 theorem is_semisimple_of_Sup_simples_eq_top
   (h : Sup {m : submodule R M | is_simple_module R m} = ⊤) :
   is_semisimple_module R M :=
-is_complemented_of_Sup_atoms_eq_top (by simp_rw [← h, is_simple_module_iff_is_atom])
+complemented_lattice_of_Sup_atoms_eq_top (by simp_rw [← h, is_simple_module_iff_is_atom])
 
 namespace is_semisimple_module
 
@@ -82,7 +82,7 @@ end
 instance is_semisimple_submodule {m : submodule R M} : is_semisimple_module R m :=
 begin
   have f : submodule R m ≃o set.Iic m := submodule.map_subtype.rel_iso m,
-  exact f.is_complemented_iff.2 is_modular_lattice.is_complemented_Iic,
+  exact f.complemented_lattice_iff.2 is_modular_lattice.complemented_lattice_Iic,
 end
 
 end is_semisimple_module

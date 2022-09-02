@@ -104,9 +104,9 @@ lemma is_hermitian_conj_transpose_iff (A : matrix n n α) :
   (A + B).is_hermitian :=
 (conj_transpose_add _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 
-@[simp] lemma is_hermitian.minor {A : matrix n n α} (h : A.is_hermitian) (f : m → n) :
-  (A.minor f f).is_hermitian :=
-(conj_transpose_minor _ _ _).trans (h.symm ▸ rfl)
+@[simp] lemma is_hermitian.submatrix {A : matrix n n α} (h : A.is_hermitian) (f : m → n) :
+  (A.submatrix f f).is_hermitian :=
+(conj_transpose_submatrix _ _ _).trans (h.symm ▸ rfl)
 
 @[simp] lemma is_hermitian_minor_equiv {A : matrix n n α} (e : m ≃ n) :
   (A.minor e e).is_hermitian ↔ A.is_hermitian :=
@@ -188,11 +188,11 @@ section is_R_or_C
 variables [is_R_or_C α] [is_R_or_C β]
 
 /-- A matrix is hermitian iff the corresponding linear map is self adjoint. -/
-lemma is_hermitian_iff_is_self_adjoint [fintype n] [decidable_eq n] {A : matrix n n α} :
-  is_hermitian A ↔ inner_product_space.is_self_adjoint
+lemma is_hermitian_iff_is_symmetric [fintype n] [decidable_eq n] {A : matrix n n α} :
+  is_hermitian A ↔ linear_map.is_symmetric
     ((pi_Lp.linear_equiv 2 α (λ _ : n, α)).symm.conj A.to_lin' : module.End α (pi_Lp 2 _)) :=
 begin
-  rw [inner_product_space.is_self_adjoint, (pi_Lp.equiv 2 (λ _ : n, α)).symm.surjective.forall₂],
+  rw [linear_map.is_symmetric, (pi_Lp.equiv 2 (λ _ : n, α)).symm.surjective.forall₂],
   simp only [linear_equiv.conj_apply, linear_map.comp_apply, linear_equiv.coe_coe,
     pi_Lp.linear_equiv_apply, pi_Lp.linear_equiv_symm_apply, linear_equiv.symm_symm],
   simp_rw [euclidean_space.inner_eq_star_dot_product, equiv.apply_symm_apply, to_lin'_apply,

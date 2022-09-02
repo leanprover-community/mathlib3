@@ -460,11 +460,11 @@ has_pushouts_of_has_binary_coproducts_of_has_coequalizers C
 
 @[priority 100]
 instance has_finite_limits : has_finite_limits C :=
-limits.finite_limits_from_equalizers_and_finite_products
+limits.has_finite_limits_of_has_equalizers_and_finite_products
 
 @[priority 100]
 instance has_finite_colimits : has_finite_colimits C :=
-limits.finite_colimits_from_coequalizers_and_finite_coproducts
+limits.has_finite_colimits_of_has_coequalizers_and_finite_coproducts
 
 end
 

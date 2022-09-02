@@ -88,7 +88,7 @@ begin
   refine cont_diff_on.smul _
     (orthogonal_projection ((ℝ ∙ v)ᗮ)).cont_diff.cont_diff_on,
   refine cont_diff_const.cont_diff_on.div _ _,
-  { exact (cont_diff_const.sub (innerSL v).cont_diff).cont_diff_on },
+  { exact (cont_diff_const.sub (innerSL v : E →L[ℝ] ℝ).cont_diff).cont_diff_on },
   { intros x h h',
     exact h (sub_eq_zero.mp h').symm }
 end
@@ -381,7 +381,7 @@ variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold
 /-- If a `cont_mdiff` function `f : M → E`, where `M` is some manifold, takes values in the
 sphere, then it restricts to a `cont_mdiff` function from `M` to the sphere. -/
 lemma cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)]
-  {m : with_top ℕ} {f : M → E} (hf : cont_mdiff I 𝓘(ℝ, E) m f)
+  {m : ℕ∞} {f : M → E} (hf : cont_mdiff I 𝓘(ℝ, E) m f)
   (hf' : ∀ x, f x ∈ sphere (0:E) 1) :
   cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
 begin

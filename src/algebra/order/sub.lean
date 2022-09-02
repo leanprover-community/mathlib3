@@ -131,6 +131,9 @@ tsub_le_iff_left.mpr $ le_add_tsub.trans $ add_le_add_right h _
 lemma tsub_le_tsub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
 (tsub_le_tsub_right hab _).trans $ tsub_le_tsub_left hcd _
 
+lemma antitone_const_tsub : antitone (λ x, c - x) :=
+λ x y hxy, tsub_le_tsub rfl.le hxy
+
 /-- See `add_tsub_assoc_of_le` for the equality. -/
 lemma add_tsub_le_assoc : a + b - c ≤ a + (b - c) :=
 by { rw [tsub_le_iff_left, add_left_comm], exact add_le_add_left le_add_tsub a }
@@ -669,6 +672,17 @@ contravariant.add_le_cancellable.tsub_le_tsub_iff_left contravariant.add_le_canc
 lemma tsub_right_inj (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :=
 contravariant.add_le_cancellable.tsub_right_inj contravariant.add_le_cancellable
   contravariant.add_le_cancellable hba hca
+
+variables (α)
+
+/-- A `canonically_ordered_add_monoid` with ordered subtraction and order-reflecting addition is
+cancellative. This is not an instance at it would form a typeclass loop.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def canonically_ordered_add_monoid.to_add_cancel_comm_monoid : add_cancel_comm_monoid α :=
+{ add_left_cancel := λ a b c h, by simpa only [add_tsub_cancel_left] using congr_arg (λ x, x - a) h,
+  ..(by apply_instance : add_comm_monoid α) }
 
 end contra
 

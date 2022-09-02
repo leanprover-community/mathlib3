@@ -108,9 +108,9 @@ lemma is_hermitian_conj_transpose_iff (A : matrix n n α) :
   (A.submatrix f f).is_hermitian :=
 (conj_transpose_submatrix _ _ _).trans (h.symm ▸ rfl)
 
-@[simp] lemma is_hermitian_minor_equiv {A : matrix n n α} (e : m ≃ n) :
-  (A.minor e e).is_hermitian ↔ A.is_hermitian :=
-⟨λ h, by simpa using h.minor e.symm, λ h, h.minor _⟩
+@[simp] lemma is_hermitian_submatrix_equiv {A : matrix n n α} (e : m ≃ n) :
+  (A.submatrix e e).is_hermitian ↔ A.is_hermitian :=
+⟨λ h, by simpa using h.submatrix e.symm, λ h, h.submatrix _⟩
 
 /-- The real diagonal matrix `diagonal v` is hermitian. -/
 @[simp] lemma is_hermitian_diagonal [decidable_eq n] (v : n → ℝ) :

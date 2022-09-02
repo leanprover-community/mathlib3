@@ -86,8 +86,8 @@ lemma is_hermitian.from_blocks₂₂ [fintype n] [decidable_eq n]
   (hD : D.is_hermitian) :
   (from_blocks A B Bᴴ D).is_hermitian ↔ (A - B ⬝ D⁻¹ ⬝ Bᴴ).is_hermitian :=
 begin
-  rw [←is_hermitian_minor_equiv (equiv.sum_comm n m), equiv.sum_comm_apply,
-    from_blocks_minor_sum_swap_sum_swap],
+  rw [←is_hermitian_submatrix_equiv (equiv.sum_comm n m), equiv.sum_comm_apply,
+    from_blocks_submatrix_sum_swap_sum_swap],
   convert is_hermitian.from_blocks₁₁ _ _ hD; simp
 end
 
@@ -117,8 +117,8 @@ lemma pos_semidef.from_blocks₂₂ [fintype m] [fintype n] [decidable_eq n]
   (hD : D.pos_def) [invertible D] :
   (from_blocks A B Bᴴ D).pos_semidef ↔ (A - B ⬝ D⁻¹ ⬝ Bᴴ).pos_semidef :=
 begin
-  rw [←pos_semidef_minor_equiv (equiv.sum_comm n m), equiv.sum_comm_apply,
-    from_blocks_minor_sum_swap_sum_swap],
+  rw [←pos_semidef_submatrix_equiv (equiv.sum_comm n m), equiv.sum_comm_apply,
+    from_blocks_submatrix_sum_swap_sum_swap],
   convert pos_semidef.from_blocks₁₁ _ _ hD; apply_instance <|> simp
 end
 

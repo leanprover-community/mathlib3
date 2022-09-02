@@ -43,27 +43,27 @@ begin
   { exact le_of_lt (hM.2 x hx) }
 end
 
-lemma pos_semidef.minor {M : matrix n n 𝕜} (hM : M.pos_semidef) (e : m ≃ n):
-  (M.minor e e).pos_semidef :=
+lemma pos_semidef.submatrix {M : matrix n n 𝕜} (hM : M.pos_semidef) (e : m ≃ n):
+  (M.submatrix e e).pos_semidef :=
 begin
-  refine ⟨hM.1.minor e, λ x, _⟩,
-  have : (M.minor ⇑e ⇑e).mul_vec x = M.mul_vec (λ (i : n), x (e.symm i)) ∘ e,
+  refine ⟨hM.1.submatrix e, λ x, _⟩,
+  have : (M.submatrix ⇑e ⇑e).mul_vec x = M.mul_vec (λ (i : n), x (e.symm i)) ∘ e,
   { ext i,
     dsimp only [(∘), mul_vec, dot_product],
     rw finset.sum_bij' (λ i _, e i) _ _ (λ i _, e.symm i);
     simp only [eq_self_iff_true, implies_true_iff, equiv.symm_apply_apply, finset.mem_univ,
-      minor_apply, equiv.apply_symm_apply] },
+      submatrix_apply, equiv.apply_symm_apply] },
   rw this,
   convert hM.2 (λ i, x (e.symm i)) using 3,
   unfold dot_product,
   rw [finset.sum_bij' (λ i _, e i) _ _ (λ i _, e.symm i)];
   simp only [eq_self_iff_true, implies_true_iff, equiv.symm_apply_apply, finset.mem_univ,
-    minor_apply, equiv.apply_symm_apply, pi.star_apply],
+    submatrix_apply, equiv.apply_symm_apply, pi.star_apply],
 end
 
-@[simp] lemma pos_semidef_minor_equiv {M : matrix n n 𝕜} (e : m ≃ n) :
-  (M.minor e e).pos_semidef ↔ M.pos_semidef :=
-⟨λ h, by simpa using h.minor e.symm, λ h, h.minor _⟩
+@[simp] lemma pos_semidef_submatrix_equiv {M : matrix n n 𝕜} (e : m ≃ n) :
+  (M.submatrix e e).pos_semidef ↔ M.pos_semidef :=
+⟨λ h, by simpa using h.submatrix e.symm, λ h, h.submatrix _⟩
 
 lemma pos_def.transpose {M : matrix n n 𝕜} (hM : M.pos_def) : Mᵀ.pos_def :=
 begin

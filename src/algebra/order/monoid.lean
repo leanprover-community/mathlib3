@@ -95,6 +95,25 @@ export has_exists_mul_of_le (exists_mul_of_le)
 
 export has_exists_add_of_le (exists_add_of_le)
 
+section has_exists_mul_of_le
+variables [linear_order α] [densely_ordered α] [monoid α] [has_exists_mul_of_le α]
+  [covariant_class α α (*) (<)] [contravariant_class α α (*) (<)] {a b : α}
+
+@[to_additive]
+lemma le_of_forall_one_lt_le_mul (h : ∀ ε : α, 1 < ε → a ≤ b * ε) : a ≤ b :=
+le_of_forall_le_of_dense $ λ x hxb, by { obtain ⟨ε, rfl⟩ := exists_mul_of_le hxb.le,
+  exact h _ ((lt_mul_iff_one_lt_right' b).1 hxb) }
+
+@[to_additive]
+lemma le_of_forall_one_lt_lt_mul' (h : ∀ ε : α, 1 < ε → a < b * ε) : a ≤ b :=
+le_of_forall_one_lt_le_mul $ λ ε hε, (h _ hε).le
+
+@[to_additive]
+lemma le_iff_forall_one_lt_lt_mul' : a ≤ b ↔ ∀ ε, 1 < ε → a < b * ε :=
+⟨λ h ε, lt_mul_of_le_of_one_lt h, le_of_forall_one_lt_lt_mul'⟩
+
+end has_exists_mul_of_le
+
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]
 class linear_ordered_add_comm_monoid (α : Type*)
@@ -482,6 +501,10 @@ end canonically_ordered_monoid
 
 lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
 lt_of_le_of_lt (zero_le _) h
+
+@[priority 100] instance canonically_ordered_add_monoid.zero_le_one_class {M : Type*}
+  [canonically_ordered_add_monoid M] [has_one M] : zero_le_one_class M :=
+⟨zero_le 1⟩
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/

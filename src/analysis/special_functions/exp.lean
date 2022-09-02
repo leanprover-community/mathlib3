@@ -229,7 +229,7 @@ end
 /-- `real.exp` as an order isomorphism between `ℝ` and `(0, +∞)`. -/
 def exp_order_iso : ℝ ≃o Ioi (0 : ℝ) :=
 strict_mono.order_iso_of_surjective _ (exp_strict_mono.cod_restrict exp_pos) $
-  (continuous_subtype_mk _ continuous_exp).surjective
+  (continuous_exp.subtype_mk _).surjective
     (by simp only [tendsto_Ioi_at_top, subtype.coe_mk, tendsto_exp_at_top])
     (by simp [tendsto_exp_at_bot_nhds_within])
 

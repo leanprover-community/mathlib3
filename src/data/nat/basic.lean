@@ -138,19 +138,6 @@ attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.bit0_ne_one nat.one_ne_bit0
   nat.bit0_ne_bit1 nat.bit1_ne_bit0
 
-/-!
-Inject some simple facts into the type class system.
-This `fact` should not be confused with the factorial function `nat.fact`!
--/
-section facts
-
-instance succ_pos'' (n : ℕ) : fact (0 < n.succ) := ⟨n.succ_pos⟩
-
-instance pos_of_one_lt (n : ℕ) [h : fact (1 < n)] : fact (0 < n) :=
-⟨lt_trans zero_lt_one h.1⟩
-
-end facts
-
 variables {m n k : ℕ}
 namespace nat
 
@@ -646,7 +633,7 @@ def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}
 
 theorem le_rec_on_self {C : ℕ → Sort u} {n} {h : n ≤ n} {next} (x : C n) :
   (le_rec_on h next x : C n) = x :=
-by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self, dif_pos rfl]
+by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self]
 
 theorem le_rec_on_succ {C : ℕ → Sort u} {n m} (h1 : n ≤ m) {h2 : n ≤ m+1} {next} (x : C n) :
   (le_rec_on h2 @next x : C (m+1)) = next (le_rec_on h1 @next x : C m) :=
@@ -869,7 +856,7 @@ attribute [simp] nat.div_self
 protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=
 (nat.eq_zero_or_pos k).elim
   (λ k0, by rw [k0, nat.div_zero]; apply zero_le)
-  (λ k0, (_root_.mul_le_mul_left k0).1 $
+  (λ k0, (mul_le_mul_left k0).1 $
     calc k * (m / k)
         ≤ m % k + k * (m / k) : nat.le_add_left _ _
     ... = m                   : mod_add_div _ _

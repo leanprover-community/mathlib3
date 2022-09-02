@@ -57,8 +57,8 @@ section jacobi
 /-!
 ### Definition of the Jacobi symbol
 
-We define the Jacobi symbol `(a / b)` for integers `a` and natural numbers `b` as the
-product of the Legendre symbols `(a / p)`, where `p` runs through the prime divisors
+We define the Jacobi symbol $\Bigl\frac{a}{b}\Bigr$ for integers `a` and natural numbers `b` as the
+product of the Legendre symbols $\Bigl\frac{a}{p}\Bigr$, where `p` runs through the prime divisors
 (with multiplicity) of `b`, as provided by `b.factors`. This agrees with the Jacobi symbol
 when `b` is odd and gives less meaningful values when it is not (e.g., the symbol is `1`
 when `b = 0`). This is called `jacobi_sym a b`.
@@ -83,16 +83,16 @@ localized "notation `[` a ` | ` b `]ⱼ` := jacobi_sym a b" in number_theory_sym
 
 open_locale number_theory_symbols
 
-/-- The Jacobi symbol `(a / 0)` has the value `1`. -/
+/-- The symbol `[a | 0]ⱼ` has the value `1`. -/
 @[simp] lemma jacobi_sym_zero_right (a : ℤ) : [a | 0]ⱼ = 1 :=
 by simp only [jacobi_sym, factors_zero, list.prod_nil, list.pmap]
 
-/-- The Jacobi symbol `(a / 1)` has the value `1`. -/
+/-- The symbol `[a | 1]ⱼ` has the value `1`. -/
 @[simp] lemma jacobi_sym_one_right (a : ℤ) : [a | 1]ⱼ = 1 :=
 by simp only [jacobi_sym, factors_one, list.prod_nil, list.pmap]
 
-/-- The Legendre symbol `(a / p)` with an integer `a` and a prime number `p`
-is the same as the Jaocbi symbol `(a / p)`. -/
+/-- The Legendre symbol `[a | p]ⱼ` with an integer `a` and a prime number `p`
+is the same as the Jaocbi symbol `[a | p]ⱼ`. -/
 lemma legendre_sym.to_jacobi_sym {p : ℕ} [fp : fact p.prime] {a : ℤ} :
   legendre_sym p a = [a | p]ⱼ :=
 by simp only [jacobi_sym, factors_prime fp.1, list.prod_cons, list.prod_nil, mul_one, list.pmap]
@@ -117,7 +117,7 @@ begin
   exact quadratic_char_is_quadratic (zmod p) a,
 end
 
-/-- The Jacobi symbol `(1 / b)` has the value `1`. -/
+/-- The symbol `[1 | b]ⱼ` has the value `1`. -/
 @[simp] lemma jacobi_sym_one_left (b : ℕ) : [1 | b]ⱼ = 1 :=
 list.prod_eq_one (λ z hz, let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [← he, legendre_sym_one])
 
@@ -125,7 +125,7 @@ list.prod_eq_one (λ z hz, let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [�
 lemma jacobi_sym_mul_left (a₁ a₂ : ℤ) (b : ℕ) : [a₁ * a₂ | b]ⱼ = [a₁ | b]ⱼ * [a₂ | b]ⱼ :=
 by { simp_rw [jacobi_sym, list.pmap_eq_map_attach, legendre_sym_mul], exact list.prod_map_mul }
 
-/-- The Jacobi symbol `(a / b)` vanishes iff `a` and `b` are not coprime (assuming `b ≠ 0`). -/
+/-- The symbol `[a | b]ⱼ` vanishes iff `a` and `b` are not coprime (assuming `b ≠ 0`). -/
 lemma jacobi_sym_eq_zero_iff_not_coprime {a : ℤ} {b : ℕ} [ne_zero b] :
   [a | b]ⱼ = 0 ↔ a.gcd b ≠ 1 :=
 list.prod_eq_zero_iff.trans begin
@@ -134,7 +134,7 @@ list.prod_eq_zero_iff.trans begin
     ← int.coe_nat_dvd_left, int.coe_nat_dvd, exists_prop, and_assoc, and_comm],
 end
 
-/-- The Jacobi symbol `(a / b)` is nonzero when `a` and `b` are coprime. -/
+/-- The symbol `[a | b]ⱼ` is nonzero when `a` and `b` are coprime. -/
 lemma jacobi_sym_ne_zero {a : ℤ} {b : ℕ} (h : a.gcd b = 1) : [a | b]ⱼ ≠ 0 :=
 begin
   casesI eq_zero_or_ne_zero b with hb,
@@ -143,7 +143,7 @@ begin
   { contrapose! h, exact jacobi_sym_eq_zero_iff_not_coprime.1 h },
 end
 
-/-- The Jacobi symbol `(a / b)` vanishes if and only if `b ≠ 0` and `a` and `b` are not coprime. -/
+/-- The symbol `[a | b]ⱼ` vanishes if and only if `b ≠ 0` and `a` and `b` are not coprime. -/
 lemma jacobi_sym_eq_zero_iff {a : ℤ} {b : ℕ} : [a | b]ⱼ = 0 ↔ b ≠ 0 ∧ a.gcd b ≠ 1 :=
 ⟨λ h, begin
   casesI eq_or_ne b 0 with hb hb,
@@ -151,22 +151,22 @@ lemma jacobi_sym_eq_zero_iff {a : ℤ} {b : ℕ} : [a | b]ⱼ = 0 ↔ b ≠ 0 �
   exact ⟨hb, mt jacobi_sym_ne_zero $ not_not.2 h⟩,
 end, λ ⟨hb, h⟩, by { rw ← ne_zero_iff at hb, exactI jacobi_sym_eq_zero_iff_not_coprime.2 h }⟩
 
-/-- The Jacobi symbol `(0 / b)` vanishes when `b > 1`. -/
+/-- The symbol `[0 | b]ⱼ` vanishes when `b > 1`. -/
 lemma jacobi_sym_zero_left {b : ℕ} (hb : 1 < b) : [0 | b]ⱼ = 0 :=
 (@jacobi_sym_eq_zero_iff_not_coprime 0 b ⟨ne_zero_of_lt hb⟩).mpr $
   by { rw [int.gcd_zero_left, int.nat_abs_of_nat], exact hb.ne' }
 
-/-- The Jacobi symbol `(a / b)` takes the value `1` or `-1` if `a` and `b` are coprime. -/
+/-- The symbol `[a | b]ⱼ` takes the value `1` or `-1` if `a` and `b` are coprime. -/
 lemma jacobi_sym_eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) :
   [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
 (jacobi_sym_trichotomy a b).resolve_left $ jacobi_sym_ne_zero h
 
-/-- We have that `(a^e / b) = (a / b)^e` for the Jacobi symbol. -/
+/-- We have that `[a^e | b]ⱼ = [a | b]ⱼ^e`. -/
 lemma jacobi_sym_pow_left (a : ℤ) (e b : ℕ) : [a ^ e | b]ⱼ = [a | b]ⱼ ^ e :=
 nat.rec_on e (by rw [pow_zero, pow_zero, jacobi_sym_one_left]) $
   λ _ ih, by rw [pow_succ, pow_succ, jacobi_sym_mul_left, ih]
 
-/-- We have that `(a / b^e) = (a / b)^e` for the Jacobi symbol. -/
+/-- We have that `[a | b^e]ⱼ = [a | b]ⱼ^e`. -/
 lemma jacobi_sym_pow_right (a : ℤ) (b e : ℕ) : [a | b ^ e]ⱼ = [a | b]ⱼ ^ e :=
 begin
   induction e with e ih,
@@ -176,15 +176,15 @@ begin
     { rw [pow_succ, pow_succ, jacobi_sym_mul_right, ih], } }
 end
 
-/-- The square of the Jacobi symbol `(a / b)` is `1` when `a` and `b` are coprime. -/
+/-- The square of `[a | b]ⱼ` is `1` when `a` and `b` are coprime. -/
 lemma jacobi_sym_sq_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) : [a | b]ⱼ ^ 2 = 1 :=
 by cases jacobi_sym_eq_one_or_neg_one h with h₁ h₁; rw h₁; refl
 
-/-- The Jacobi symbol `(a^2 / b)` is `1` when `a` and `b` are coprime. -/
+/-- The symbol `[a^2 | b]ⱼ` is `1` when `a` and `b` are coprime. -/
 lemma jacobi_sym_sq_one' {a : ℤ} {b : ℕ} (h : a.gcd b = 1) : [a ^ 2 | b]ⱼ = 1 :=
 by rw [jacobi_sym_pow_left, jacobi_sym_sq_one h]
 
-/-- The Jacobi symbol `(a / b)` depends only on `a` mod `b`. -/
+/-- The symbol `[a | b]ⱼ` depends only on `a` mod `b`. -/
 lemma jacobi_sym_mod_left (a : ℤ) (b : ℕ) : [a | b]ⱼ = [a % b | b]ⱼ :=
 congr_arg list.prod $ list.pmap_congr _ begin
   rintro p hp _ _,
@@ -192,11 +192,11 @@ congr_arg list.prod $ list.pmap_congr _ begin
     (int.coe_nat_dvd.2 $ dvd_of_mem_factors hp), ← legendre_sym_mod] },
 end
 
-/-- The Jacobi symbol `(a / b)` depends only on `a` mod `b`. -/
+/-- The symbol `[a | b]ⱼ` depends only on `a` mod `b`. -/
 lemma jacobi_sym_mod_left' {a₁ a₂ : ℤ} {b : ℕ} (h : a₁ % b = a₂ % b) : [a₁ | b]ⱼ = [a₂ | b]ⱼ :=
 by rw [jacobi_sym_mod_left, h, ← jacobi_sym_mod_left]
 
-/-- If the Jacobi symbol `(a / b)` is `-1`, then `a` is not a square modulo `b`. -/
+/-- If `[a | b]ⱼ` is `-1`, then `a` is not a square modulo `b`. -/
 lemma nonsquare_of_jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -1) :
   ¬ is_square (a : zmod b) :=
 λ ⟨r, ha⟩, begin
@@ -206,7 +206,7 @@ lemma nonsquare_of_jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : [a | b]ⱼ = -
   apply sq_nonneg,
 end
 
-/-- If `p` is prime, then the Jacobi symbol `(a / p)` is `-1` iff `a` is not a square modulo `p`. -/
+/-- If `p` is prime, then `[a | p]ⱼ` is `-1` iff `a` is not a square modulo `p`. -/
 lemma nonsquare_iff_jacobi_sym_eq_neg_one {a : ℤ} {p : ℕ} [fact p.prime] :
   [a | p]ⱼ = -1 ↔ ¬ is_square (a : zmod p) :=
 by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym_eq_neg_one_iff p }
@@ -215,8 +215,8 @@ by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym_eq_neg_one_iff p }
 ### Values at `-1`, `2` and `-2`
 -/
 
-/-- If `χ` is a multiplicative function such that `(a / p) = χ p` for all odd primes `p`,
-then the Jacobi symbol `(a / b)` equals `χ b` for all odd natural numbers `b`. -/
+/-- If `χ` is a multiplicative function such that `[a | p) = χ p` for all odd primes `p`,
+then `[a | b]ⱼ` equals `χ b` for all odd natural numbers `b`. -/
 lemma jacobi_sym_value (a : ℤ) {R : Type*} [comm_semiring R] (χ : R →* ℤ)
   (hp : ∀ (p : ℕ) (pp : p.prime) (h2 : p ≠ 2), @legendre_sym p ⟨pp⟩ a = χ p) {b : ℕ} (hb : odd b) :
   [a | b]ⱼ = χ b :=
@@ -227,19 +227,19 @@ begin
   exact λ p h pp _, hp p pp (hb.factors_ne_two h),
 end
 
-/-- If `b` is odd, then the Jacobi symbol `(-1 / b)` is given by `χ₄ b`. -/
+/-- If `b` is odd, then `[-1 | b]ⱼ` is given by `χ₄ b`. -/
 lemma jacobi_sym_neg_one {b : ℕ} (hb : odd b) : [-1 | b]ⱼ = χ₄ b :=
 jacobi_sym_value (-1) χ₄ (λ p pp h2, @legendre_sym_neg_one p ⟨pp⟩ h2) hb
 
-/-- If `b` is odd, then `(-a / b) = χ₄ b * (a / b)`. -/
+/-- If `b` is odd, then `[-a | b]ⱼ = χ₄ b * [a | b]ⱼ`. -/
 lemma jacobi_sym_neg (a : ℤ) {b : ℕ} (hb : odd b) : [-a | b]ⱼ = χ₄ b * [a | b]ⱼ :=
 by rw [neg_eq_neg_one_mul, jacobi_sym_mul_left, jacobi_sym_neg_one hb]
 
-/-- If `b` is odd, then the Jacobi symbol `(2 / b)` is given by `χ₈ b`. -/
+/-- If `b` is odd, then `[2 | b]ⱼ` is given by `χ₈ b`. -/
 lemma jacobi_sym_two {b : ℕ} (hb : odd b) : [2 | b]ⱼ = χ₈ b :=
 jacobi_sym_value 2 χ₈ (λ p pp h2, @legendre_sym_two p ⟨pp⟩ h2) hb
 
-/-- If `b` is odd, then the Jacobi symbol `(-2 / b)` is given by `χ₈' b`. -/
+/-- If `b` is odd, then `[-2 | b]ⱼ` is given by `χ₈' b`. -/
 lemma jacobi_sym_neg_two {b : ℕ} (hb : odd b) : [-2 | b]ⱼ = χ₈' b :=
 jacobi_sym_value (-2) χ₈' (λ p pp h2, @legendre_sym_neg_two p ⟨pp⟩ h2) hb
 
@@ -311,14 +311,14 @@ lemma jacobi_sym_quadratic_reciprocity {a b : ℕ} (ha : odd a) (hb : odd b) :
 by rw [← qr_sign_neg_one_pow ha hb, qr_sign_symm ha hb, jacobi_sym_quadratic_reciprocity' ha hb]
 
 /-- The Law of Quadratic Reciprocity for the Jacobi symbol: if `a` and `b` are natural numbers
-with `a % 4 = 1` and `b` odd, then `(a / b) = (b / a)`. -/
+with `a % 4 = 1` and `b` odd, then `[a | b) = (b | a]ⱼ`. -/
 theorem jacobi_sym_quadratic_reciprocity_one_mod_four {a b : ℕ} (ha : a % 4 = 1) (hb : odd b) :
   [a | b]ⱼ = [b | a]ⱼ :=
 by rw [jacobi_sym_quadratic_reciprocity (odd_iff.mpr (odd_of_mod_four_eq_one ha)) hb,
        pow_mul, neg_one_pow_div_two_of_one_mod_four ha, one_pow, one_mul]
 
 /-- The Law of Quadratic Reciprocityfor the Jacobi symbol: if `a` and `b` are natural numbers
-both congruent to `3` mod `4`, then `(a / b) = -(b / a)`. -/
+both congruent to `3` mod `4`, then `[a | b) = -(b | a]ⱼ`. -/
 theorem jacobi_sym_quadratic_reciprocity_three_mod_four
   {a b : ℕ} (ha : a % 4 = 3) (hb : b % 4 = 3) :
   [a | b]ⱼ = - [b | a]ⱼ :=
@@ -327,7 +327,7 @@ let nop := @neg_one_pow_div_two_of_three_mod_four in begin
   rwa [odd_iff, odd_of_mod_four_eq_three],
 end
 
-/-- The Jacobi symbol `(a / b)` depends only on `b` mod `4*a` (version for `a : ℕ`). -/
+/-- The Jacobi symbol `[a | b]ⱼ` depends only on `b` mod `4*a` (version for `a : ℕ`). -/
 lemma jacobi_sym_mod_right' (a : ℕ) {b : ℕ} (hb : odd b) : [a | b]ⱼ = [a | b % (4 * a)]ⱼ :=
 begin
   rcases eq_or_ne a 0 with rfl | ha₀,
@@ -352,7 +352,7 @@ begin
     use 2 ^ e * a', rw [ha₂, pow_succ], ring, }
 end
 
-/-- The Jacobi symbol `(a / b)` depends only on `b` mod `4*a`. -/
+/-- The Jacobi symbol `[a | b]ⱼ` depends only on `b` mod `4*a`. -/
 lemma jacobi_sym_mod_right (a : ℤ) {b : ℕ} (hb : odd b) : [a | b]ⱼ = [a | b % (4 * a.nat_abs)]ⱼ :=
 begin
   cases int.nat_abs_eq a with ha ha; nth_rewrite 1 [ha]; nth_rewrite 0 [ha],

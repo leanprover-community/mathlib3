@@ -7,7 +7,7 @@ import topology.is_locally_homeomorph
 import topology.fiber_bundle
 
 /-!
-# Local homeomorphisms
+# Covering Maps
 
 This file defines covering maps.
 
@@ -17,29 +17,9 @@ This file defines covering maps.
   fibers such that each point of `X` has an evenly covered neighborhood.
 -/
 
-lemma inducing.discrete_topology {α β : Type*} [topological_space α] [topological_space β]
-  [discrete_topology β] {f : α → β} (h1 : inducing f) (h2 : function.injective f) :
-  discrete_topology α :=
-⟨by rw [h1.induced, discrete_topology.eq_bot β, induced_bot h2]⟩
-
 variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X)
 
 open topological_fiber_bundle
-
-/-- Each fiber of a trivialization is homeomorphic to the specified fiber. -/
-def topological_fiber_bundle.trivialization.preimage_singleton_homeomorph {B F Z : Type*}
-  [topological_space B] [topological_space F] [topological_space Z] {f : Z → B}
-  (ϕ : trivialization F f) {b : B} (hb : b ∈ ϕ.base_set) : f ⁻¹' {b} ≃ₜ F :=
-{ to_fun := λ x, (ϕ x).2,
-  inv_fun := λ x, ⟨ϕ.to_local_homeomorph.symm ⟨b, x⟩, ϕ.proj_symm_apply' hb⟩,
-  left_inv := by
-  { rintros ⟨x, rfl : f x = b⟩;
-    exact subtype.ext (ϕ.symm_apply_mk_proj (ϕ.mem_source.mpr hb)) },
-  right_inv := λ x, congr_arg prod.snd (ϕ.apply_symm_apply (ϕ.mem_target.mpr (by exact hb))),
-  continuous_to_fun := continuous_on_iff_continuous_restrict.mp (continuous_snd.comp_continuous_on
-    (ϕ.continuous_to_fun.mono (λ x (hx : f x = b), by rwa [ϕ.source_eq, set.mem_preimage, hx]))),
-  continuous_inv_fun := continuous_subtype_mk _
-      (ϕ.continuous_inv_fun.comp_continuous (continuous.prod.mk b) (λ x, ϕ.mem_target.mpr hb)) }
 
 /-- A point `x : X` is evenly covered by `f : E → X` if `x` has an evenly covered neighborhood. -/
 def is_evenly_covered (x : X) (I : Type*) [topological_space I] :=
@@ -67,16 +47,13 @@ let e := classical.some h.2, h := classical.some_spec h.2, he := e.mk_proj_snd' 
 
 lemma continuous_at {x : E} {I : Type*} [topological_space I]
   (h : is_evenly_covered f (f x) I) : continuous_at f x :=
-h.to_trivialization.continuous_at_proj
-  (h.to_trivialization.mem_source.mpr (mem_to_trivialization_base_set h))
+let e := h.to_trivialization in
+  e.continuous_at_proj (e.mem_source.mpr (mem_to_trivialization_base_set h))
 
 lemma to_is_evenly_covered_preimage {x : X} {I : Type*} [topological_space I]
   (h : is_evenly_covered f x I) : is_evenly_covered f x (f ⁻¹' {x}) :=
-begin
-  let ε := (classical.some h.2).preimage_singleton_homeomorph (classical.some_spec h.2),
-  haveI := h.1,
-  exact ⟨ε.inducing.discrete_topology ε.injective, _, h.mem_to_trivialization_base_set⟩,
-end
+let ⟨h1, h2⟩ := h in by exactI ⟨((classical.some h2).preimage_singleton_homeomorph
+  (classical.some_spec h2)).embedding.discrete_topology, _, h.mem_to_trivialization_base_set⟩
 
 end is_evenly_covered
 
@@ -107,11 +84,11 @@ begin
     inv_fun := λ p, ⟨p, x, rfl⟩,
     source := e.base_set ×ˢ ({⟨x, rfl⟩} : set (f ⁻¹' {f x})),
     target := e.base_set,
-    open_source := e.open_base_set.prod (singletons_open_iff_discrete.mpr (hf (f x)).1 ⟨x, rfl⟩),
+    open_source := e.open_base_set.prod (singletons_open_iff_discrete.2 (hf (f x)).1 ⟨x, rfl⟩),
     open_target := e.open_base_set,
     map_source' := λ p, and.left,
     map_target' := λ p hp, ⟨hp, rfl⟩,
-    left_inv' := λ p hp, by exact prod.ext rfl hp.2.symm,
+    left_inv' := λ p hp, prod.ext rfl hp.2.symm,
     right_inv' := λ p hp, rfl,
     continuous_to_fun := continuous_fst.continuous_on,
     continuous_inv_fun := (continuous_id'.prod_mk continuous_const).continuous_on },
@@ -128,7 +105,7 @@ hf.is_open_map.to_quotient_map hf.continuous hf'
 
 end is_covering_map
 
-lemma is_topological_fiber_bundle.to_covering_map {B F Z : Type*} [topological_space B]
+lemma is_topological_fiber_bundle.is_covering_map {B F Z : Type*} [topological_space B]
   [topological_space F] [topological_space Z] [discrete_topology F] {f : Z → B}
   (hf : is_topological_fiber_bundle F f) : is_covering_map f :=
 is_covering_map.mk f (λ x, F) (λ x, classical.some (hf x)) (λ x, classical.some_spec (hf x))

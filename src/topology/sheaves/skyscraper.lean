@@ -82,6 +82,8 @@ lemma skyscraper_presheaf_obj_of_not_mem {U : opens X} (h : p₀ ∉ U) :
 
 end
 
+end
+
 section
 
 -- In this section, we calculate the stalks for skyscraper presheaves.

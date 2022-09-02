@@ -721,10 +721,11 @@ def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
     map := λ X Y f,
     { hom := f.unop.hom.unop,
       w' := λ j, by { apply quiver.hom.op_inj, dsimp, simp, }, } },
-  unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
+  unit_iso := nat_iso.of_components (λ c,
+    cocones.ext (iso.refl _) (by { dsimp, simp })) (by { intros, ext, simp }),
   counit_iso := nat_iso.of_components (λ c,
     by { induction c using opposite.rec,
-         dsimp, apply iso.op, exact cones.ext (iso.refl _) (by tidy), })
+         dsimp, apply iso.op, exact cones.ext (iso.refl _) (by { dsimp, simp }), })
     (λ X Y f, quiver.hom.unop_inj (cone_morphism.ext _ _ (by { dsimp, simp }))),
   functor_unit_iso_comp' := λ c, begin apply quiver.hom.unop_inj, ext, dsimp, simp, end }
 

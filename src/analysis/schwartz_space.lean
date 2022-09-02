@@ -122,7 +122,7 @@ begin
   exact iterated_fderiv_neg_apply,
 end
 
-variables [normed_field 𝕜] [module ℝ 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
 lemma decay_smul_aux (k n : ℕ) (f : 𝓢(E, F)) (c : 𝕜) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n (c • f) x∥ =
@@ -157,8 +157,8 @@ end seminorm_aux
 
 section smul
 
-variables [normed_field 𝕜] [module ℝ 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
-  [normed_field 𝕜'] [module ℝ 𝕜'] [normed_space 𝕜' F] [smul_comm_class ℝ 𝕜' F]
+variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+  [normed_field 𝕜'] [normed_space 𝕜' F] [smul_comm_class ℝ 𝕜' F]
 
 instance : has_smul 𝕜 𝓢(E, F) :=
 ⟨λ c f, { to_fun := c • f,
@@ -303,7 +303,7 @@ end add_comm_group
 
 section module
 
-variables [normed_field 𝕜] [module ℝ 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
 instance : module 𝕜 𝓢(E, F) :=
 coe_hom_injective.module 𝕜 (coe_hom E F) (λ _ _, rfl)
@@ -314,7 +314,7 @@ section seminorms
 
 /-! ### Seminorms on Schwartz space-/
 
-variables [normed_field 𝕜] [module ℝ 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 variable (𝕜)
 
 /-- The seminorms of the Schwartz space given by the best constants in the definition of
@@ -339,7 +339,7 @@ section topology
 
 /-! ### The topology on the Schwartz space-/
 
-variables [normed_field 𝕜] [module ℝ 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+variables [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 variables (𝕜 E F)
 
 /-- The family of Schwartz seminorms. -/

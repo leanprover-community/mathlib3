@@ -32,7 +32,9 @@ We prove the main properties of the Jacobi symbol, including the following.
 * The symbol vanishes if and only if `b ≠ 0` and the arguments are not coprime
   (`jacobi_sym_eq_zero_iff`)
 
-* If the symbol has the value `-1`, then `a : zmod b` is not a square (`jacobi_sym_eq_neg_one`)
+* If the symbol has the value `-1`, then `a : zmod b` is not a square
+  (`nonsquare_of_jacobi_sym_eq_neg_one`); the converse holds when `p` is a prime
+  (`nonsquare_iff_jacobi_sym_eq_neg_one`).
 
 * Quadratic reciprocity (`jacobi_sym_quadratic_reciprocity`,
   `jacobi_sym_quadratic_reciprocity_one_mod_four`,

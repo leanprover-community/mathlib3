@@ -10,6 +10,24 @@ import probability.conditional_expectation
 
 # Generalized Borel-Cantelli lemma
 
+This file proves Lévy's generalized Borel-Cantelli lemma which is a generalization of the
+Borel-Cantelli lemmas. With this generalization, one can easily deduce the Borel-Cantelli lemmas
+by choosing appropriate filtrations. This file also contains the one sided martingale bound which
+is required to prove the generalized Borel-Cantelli.
+
+## Main results
+
+- `measure_theory.submartingale.bdd_above_iff_exists_tendsto`: the one sided martingale bound: given
+  a submartingale `f` with uniformly bounded differences, the set for which `f` converges is almost
+  everywhere equal to the set for which it is bounded.
+- `measure_theory.ae_mem_limsup_at_top_iff_bdd_above_range`: Lévy's generalized Borel-Cantelli:
+  given a filtration `ℱ` and a sequence of sets `s` such that `s n ∈ ℱ n` for all `n`,
+  `limsup at_top s` is almost everywhere equal to the set for which `∑ ℙ[s (n + 1)∣ℱ n] = ∞`.
+
+## TODO
+
+Prove the missing second Borel-Cantelli lemma using this generalized version.
+
 -/
 
 open filter
@@ -20,9 +38,8 @@ namespace measure_theory
 variables {α : Type*} {m0 : measurable_space α} {μ : measure α}
   {ℱ : filtration ℕ m0} {f : ℕ → α → ℝ}
 
-/-
-for a (sub)martingale `f` with bounded difference,
-`∀ᵐ x ∂μ, f n x converges ↔ (f n x) is bounded in n`
+/-!
+### One sided martingale bound
 -/
 
 /-- `least_ge f r n` is the stopping time corresponding to the first time `f ≥ r`. -/
@@ -33,19 +50,11 @@ lemma adapted.is_stopping_time_least_ge (r : ℝ) (n : ℕ) (hf : adapted ℱ f)
   is_stopping_time ℱ (least_ge f r n) :=
 hitting_is_stopping_time hf measurable_set_Ici
 
-lemma stopped_value_least_ge_eq (i : ℕ) (r : ℝ) :
-  stopped_value f (least_ge f r i) = stopped_process f (least_ge f r i) i :=
-begin
-  ext x,
-  exact congr_arg2 _ (min_eq_right (hitting_le x : least_ge f r i x ≤ i)).symm rfl
-end
-
 lemma least_ge_le {i : ℕ} {r : ℝ} (x : α) : least_ge f r i x ≤ i :=
 hitting_le x
 
-lemma nat.eq_zero_or_eq_one_of_le {a : ℕ} (h : a ≤ 1) : a = 0 ∨ a = 1 :=
-by { rw ← nat.lt_one_iff, exact lt_or_eq_of_le h }
-
+-- This lemma is used to prove `submartingale.stopped_value_least_ge` which can be generalized once
+-- we have the optional sampling theorem
 lemma submartingale.stopped_value_least_ge_zero [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (r : ℝ) :
   stopped_value f (least_ge f r 0) ≤ᵐ[μ] μ[stopped_value f (least_ge f r 1)|ℱ 0] :=
@@ -70,7 +79,9 @@ begin
             + {x : α | least_ge f r 1 x = 1}.indicator (f 0) :
   begin
     ext x,
-    obtain heq | heq := nat.eq_zero_or_eq_one_of_le (@least_ge_le _ f 1 r x),
+    obtain heq | heq : least_ge f r 1 x = 0 ∨ least_ge f r 1 x = 1,
+    { rw ← nat.lt_one_iff,
+      exact lt_or_eq_of_le (@least_ge_le _ f 1 r x) },
     { rw [pi.add_apply, set.indicator_of_mem, set.indicator_of_not_mem, add_zero];
       simp [heq] },
     { rw [pi.add_apply, set.indicator_of_not_mem, set.indicator_of_mem, zero_add];
@@ -169,6 +180,7 @@ begin
     exact n.lt_succ_self },
 end
 
+-- TODO: generalize this once we have the optional sampling theorem
 lemma submartingale.stopped_value_least_ge [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (r : ℝ) :
   submartingale (λ i, stopped_value f (least_ge f r i)) ℱ μ :=
@@ -293,7 +305,7 @@ end
 
 -- the `pos_part` name is consistent with `integral_eq_integral_pos_part_sub_integral_neg_part`
 -- though it might be confusing with `pos`
-lemma abs_eq_pos_part_add_neg_part (x : ℝ) : |x| = x.to_nnreal + (-x).to_nnreal :=
+lemma abs_eq_pos_part_add_neg_part (x : ℝ) : (x.to_nnreal + (-x).to_nnreal : ℝ) = |x| :=
 by simp
 
 lemma snorm_one_le_of_le {r : ℝ≥0} {f : α → ℝ}
@@ -333,7 +345,7 @@ begin
     ennreal.of_real_le_iff_le_to_real (ennreal.mul_ne_top
       (ennreal.mul_ne_top ennreal.two_ne_top $ @measure_ne_top _ _ _ hμ _) ennreal.coe_ne_top)],
   simp_rw [ennreal.one_to_real, inv_one, real.rpow_one, real.norm_eq_abs,
-    abs_eq_pos_part_add_neg_part],
+    ← abs_eq_pos_part_add_neg_part],
   rw integral_add hfint.real_to_nnreal,
   { simp only [real.coe_to_nnreal', ennreal.to_real_mul, ennreal.to_real_bit0,
     ennreal.one_to_real, ennreal.coe_to_real] at hfint' ⊢,
@@ -517,18 +529,33 @@ begin
     unbounded_of_tendsto_at_bot htop (hx.1 $ bdd_above_range_of_tendsto_at_top_at_bot htop),
 end
 
-namespace borel_cantelli
-
 /-!
-
 ### Lévy's generalization of the Borel-Cantelli lemma
 
-Lévy's generalization of Borel-Cantelli states: given a filtration `ℱ` and a sequence of sets
-`s` such that `s n ∈ ℱ n`, we have
-`limsup s = {∑ μ[s (n + 1) | ℱ n] = ∞}`
+Lévy's generalization of the Borel-Cantelli lemma states that: given a natural number indexed
+filtration $(\mathcal{F}_n)$, and a sequence of sets $(s_n)$ such that for all
+$n$, $s_n \in \mathcal{F}_n$, $limsup_n s_n$ is almost everywhere equal to the set for which
+$\sum_n \mathbb{P}[s_n \mid \mathcal{F}_n] = \infty$.
 
+The proof strategy follows by constructing a martingale satisfying the one sided martingale bound.
+In particular, we define
+$$
+  f_n := \sum_{k < n} \mathbf{1}_{s_{n + 1}} - \mathbb{P}[s_{n + 1} \mid \mathcal{F}_n].
+$$
+Then, as a martingale is both a sub and a super-martingale, the set for which it is unbounded from
+above must agree with the set for which it is unbounded from below almost everywhere. Thus, it
+can only converge to $\pm \infty$ with probability 0. Thus, by considering
+$$
+  \limsup_n s_n = \{\sum_n \mathbf{1}_{s_n} = \infty\}
+$$
+almost everywhere, the result follows.
 -/
 
+namespace borel_cantelli
+
+/-- Auxiliary definition required to prove Lévy's generalization of the Borel-Cantelli lemmas.
+The sum of the differences of the indicator functions with their conditional expectation forms a
+martingale satisfying the conditions of the one sided martingale bound. -/
 noncomputable
 def mgale (ℱ : filtration ℕ m0) (μ : measure α) (s : ℕ → set α) (n : ℕ) : α → ℝ :=
 ∑ k in finset.range n, ((s (k + 1)).indicator 1 - μ[(s (k + 1)).indicator 1 | ℱ k])
@@ -563,7 +590,7 @@ lemma martingale_mgale
 begin
   refine martingale_nat (adapted_mgale hs) (integrable_mgale hs)
     (λ n, eventually_eq.symm $ (condexp_finset_sum _).trans $
-    (@finset.sum_eventually_eq _ _ _ _ _ _ _
+    (@eventually_eq_sum _ _ _ _ _ _ _
     (λ k, (μ[(s (k + 1)).indicator 1|ℱ n] - μ[(s (k + 1)).indicator 1|ℱ k])) _).trans _),
   { intros k hk,
     exact ((integrable_indicator_iff (ℱ.le (k + 1) _ (hs $ k + 1))).2
@@ -577,7 +604,7 @@ begin
       (strongly_measurable.mono strongly_measurable_condexp (ℱ.mono hk)) integrable_condexp),
     apply_instance },
   simp_rw [finset.sum_range_succ, sub_self, add_zero, mgale],
-  refine finset.sum_eventually_eq (λ i hi, eventually_eq.sub _ $ ae_eq_refl _),
+  refine eventually_eq_sum (λ i hi, eventually_eq.sub _ $ ae_eq_refl _),
   rw [finset.mem_range, ← nat.succ_le_iff] at hi,
   rw condexp_of_strongly_measurable (ℱ.le _)
     (strongly_measurable_one.indicator (ℱ.mono hi _ $ hs _)),
@@ -716,8 +743,7 @@ begin
   have h₂ := (martingale_mgale μ hs).ae_not_tendsto_at_top_at_bot (mgale_diff_le' hs),
   have h₃ : ∀ᵐ x ∂μ, ∀ k, (0 : ℝ) ≤ μ[(s (k + 1)).indicator 1|ℱ k] x,
   { rw ae_all_iff,
-    exact λ n, condexp_nonneg (eventually_of_forall $ set.indicator_nonneg $ λ _ _, zero_le_one)
-      ((integrable_const 1).indicator (ℱ.le _ _ $ hs _)) },
+    exact λ n, condexp_nonneg (eventually_of_forall $ set.indicator_nonneg $ λ _ _, zero_le_one) },
   filter_upwards [h₁, h₂, h₃] with x hx₁ hx₂ hx₃,
   split; rintro ⟨b, hbdd⟩; by_contra hcon,
   { have ht : tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator 1|ℱ k] x) at_top at_top,
@@ -746,8 +772,8 @@ end
 /-- **Lévy's generalization of the Borel-Cantelli lemma**: given a sequence of sets `s` and a
 filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.limsup s` is almost
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/
-theorem ae_mem_limsup_at_top_iff_bdd_above_range
-  (μ : measure α) [is_finite_measure μ] {s : ℕ → set α} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
+theorem ae_mem_limsup_at_top_iff_bdd_above_range [is_finite_measure μ]
+  {s : ℕ → set α} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ∀ᵐ x ∂μ, x ∈ at_top.limsup s ↔
   ¬ bdd_above (set.range $
     (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : α → ℝ) | ℱ k] x)) :=

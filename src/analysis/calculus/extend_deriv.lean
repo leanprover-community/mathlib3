@@ -131,7 +131,7 @@ begin
   have : has_deriv_within_at f e (Icc a b) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
     exact has_fderiv_at_boundary_of_tendsto_fderiv t_diff t_conv t_open t_cont t_diff' },
-  exact this.nhds_within (mem_nhds_within_Ici_iff_exists_Icc_subset.2 ⟨b, ab, subset.refl _⟩)
+  exact this.nhds_within (Icc_mem_nhds_within_Ici $ left_mem_Ico.2 ab)
 end
 
 /-- If a function is differentiable on the left of a point `a : ℝ`, continuous at `a`, and
@@ -170,7 +170,7 @@ begin
   have : has_deriv_within_at f e (Icc b a) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
     exact has_fderiv_at_boundary_of_tendsto_fderiv t_diff t_conv t_open t_cont t_diff' },
-  exact this.nhds_within (mem_nhds_within_Iic_iff_exists_Icc_subset.2 ⟨b, ba, subset.refl _⟩)
+  exact this.nhds_within (Icc_mem_nhds_within_Iic $ right_mem_Ioc.2 ba)
 end
 
 /-- If a real function `f` has a derivative `g` everywhere but at a point, and `f` and `g` are

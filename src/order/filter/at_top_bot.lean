@@ -189,23 +189,23 @@ lemma at_top_basis_Ioi [nonempty α] [semilattice_sup α] [no_max_order α] :
 at_top_basis.to_has_basis (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩) $
   λ a ha, (exists_gt a).imp $ λ b hb, ⟨ha, Ici_subset_Ioi.2 hb⟩
 
-lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
+lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [countable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
 { countable := to_countable _,
   .. at_top_basis }
 
-lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [encodable α] :
+lemma at_bot_countable_basis [nonempty α] [semilattice_inf α] [countable α] :
   has_countable_basis (at_bot : filter α) (λ _, true) Iic :=
 { countable := to_countable _,
   .. at_bot_basis }
 
 @[priority 200]
-instance at_top.is_countably_generated [preorder α] [encodable α] :
+instance at_top.is_countably_generated [preorder α] [countable α] :
   (at_top : filter $ α).is_countably_generated :=
 is_countably_generated_seq _
 
 @[priority 200]
-instance at_bot.is_countably_generated [preorder α] [encodable α] :
+instance at_bot.is_countably_generated [preorder α] [countable α] :
   (at_bot : filter $ α).is_countably_generated :=
 is_countably_generated_seq _
 
@@ -788,9 +788,9 @@ lemma nonneg_of_eventually_pow_nonneg [linear_ordered_ring α] {a : α}
   (h : ∀ᶠ n in at_top, 0 ≤ a ^ (n : ℕ)) : 0 ≤ a :=
 let ⟨n, hn⟩ := (tendsto_bit1_at_top.eventually h).exists in pow_bit1_nonneg_iff.1 hn
 
-section linear_ordered_field
+section linear_ordered_semifield
 
-variables [linear_ordered_field α] {l : filter β} {f : β → α} {r : α}
+variables [linear_ordered_semifield α] {l : filter β} {f : β → α} {r c : α} {n : ℕ}
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the left) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
@@ -811,6 +811,25 @@ constant also tends to infinity. -/
 lemma tendsto.at_top_div_const (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x / r) l at_top :=
 by simpa only [div_eq_mul_inv] using hf.at_top_mul_const (inv_pos.2 hr)
+
+lemma tendsto_const_mul_pow_at_top (hn : n ≠ 0) (hc : 0 < c) :
+  tendsto (λ x, c * x^n) at_top at_top :=
+tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
+
+lemma tendsto_const_mul_pow_at_top_iff  :
+  tendsto (λ x, c * x^n) at_top at_top ↔ n ≠ 0 ∧ 0 < c :=
+begin
+  refine ⟨λ h, ⟨_, _⟩, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
+  { rintro rfl,
+    simpa only [pow_zero, not_tendsto_const_at_top] using h },
+  { rcases ((h.eventually_gt_at_top 0).and (eventually_ge_at_top 0)).exists with ⟨k, hck, hk⟩,
+    exact pos_of_mul_pos_left hck (pow_nonneg hk _) },
+end
+
+end linear_ordered_semifield
+
+section linear_ordered_field
+variables [linear_ordered_field α] {l : filter β} {f : β → α} {r : α}
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a negative
 constant (on the left) tends to negative infinity. -/
@@ -856,20 +875,6 @@ a negative constant (on the right) tends to positive infinity. -/
 lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x * r) l at_top :=
 by simpa only [mul_comm] using hf.neg_const_mul_at_bot hr
-
-lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
-  (hn : n ≠ 0) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
-tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
-
-lemma tendsto_const_mul_pow_at_top_iff {c : α} {n : ℕ} :
-  tendsto (λ x, c * x^n) at_top at_top ↔ n ≠ 0 ∧ 0 < c :=
-begin
-  refine ⟨λ h, ⟨_, _⟩, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
-  { rintro rfl,
-    simpa only [pow_zero, not_tendsto_const_at_top] using h },
-  { rcases ((h.eventually_gt_at_top 0).and (eventually_ge_at_top 0)).exists with ⟨k, hck, hk⟩,
-    exact pos_of_mul_pos_left hck (pow_nonneg hk _) },
-end
 
 lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : n ≠ 0) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=

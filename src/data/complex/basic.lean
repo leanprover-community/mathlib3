@@ -508,8 +508,8 @@ noncomputable def _root_.complex.abs : absolute_value ℂ ℝ :=
 
 end abs_theory
 
-lemma complex.abs_def : (abs : ℂ → ℝ) = λ z, (norm_sq z).sqrt := rfl
-lemma complex.abs_apply {z : ℂ} : abs z = (norm_sq z).sqrt := rfl
+lemma abs_def : (abs : ℂ → ℝ) = λ z, (norm_sq z).sqrt := rfl
+lemma abs_apply {z : ℂ} : abs z = (norm_sq z).sqrt := rfl
 
 @[simp, norm_cast] lemma abs_of_real (r : ℝ) : abs r = |r| :=
 by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]

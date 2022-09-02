@@ -69,7 +69,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
   begin
     rintros ⟨x, y⟩ hxy,
     have A : sqrt (x ^ 2 + y ^ 2) = complex.abs (x + y * complex.I),
-      by simp only [complex.abs, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
+      by simp only [complex.abs_def, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
         complex.add_re, complex.of_real_re, complex.mul_re, complex.I_re, mul_zero,
         complex.of_real_im, complex.I_im, sub_self, add_zero, complex.add_im,
         complex.mul_im, mul_one, zero_add],

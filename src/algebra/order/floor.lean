@@ -66,10 +66,9 @@ instance : floor_semiring ℕ :=
 @[priority 100] -- see Note [lower instance priority]
 instance ordered_semiring.nontrivial [ordered_semiring α] [floor_semiring α] : nontrivial α :=
 begin
-  casesI subsingleton_or_nontrivial α with _ h,
-  { refine false.elim (nat.not_succ_le_self (floor_semiring.floor (0 : α)) _),
-    exact (floor_semiring.gc_floor le_rfl).2 (subsingleton.le _ _) },
-  { exact h }
+  refine (subsingleton_or_nontrivial α).resolve_left (λ h, _),
+  refine nat.not_succ_le_self (floor_semiring.floor (0 : α)) _,
+  exact (floor_semiring.gc_floor le_rfl).mpr (by exactI subsingleton.le _ _)
 end
 
 namespace nat
@@ -410,11 +409,9 @@ def floor_ring.of_ceil (α) [ordered_ring α] (ceil : α → ℤ)
 @[priority 100] -- see Note [lower instance priority]
 instance ordered_ring.nontrivial [ordered_ring α] [floor_ring α] : nontrivial α :=
 begin
-  casesI subsingleton_or_nontrivial α with _ h,
-  { refine false.elim ((int.zero_lt_one).not_le _),
-    rw ← add_le_iff_nonpos_right (floor_ring.floor (0 : α)),
-    exact ((floor_ring.gc_coe_floor).le_u (subsingleton.le _ _)) },
-  { exact h }
+  refine (subsingleton_or_nontrivial α).resolve_left (λ h, (int.zero_lt_one).not_le _),
+  rw ← add_le_iff_nonpos_right (floor_ring.floor (0 : α)),
+  exactI (floor_ring.gc_coe_floor).le_u (by exactI subsingleton.le _ _)
 end
 
 namespace int

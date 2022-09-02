@@ -41,7 +41,8 @@ variables {a : ℕ → E}
 lemma has_sum_at_zero (a : ℕ → E) : has_sum (λ n, (0:𝕜) ^ n • a n) (a 0) :=
 by convert has_sum_single 0 (λ b h, _); simp [nat.pos_of_ne_zero h] <|> simp
 
-lemma factor (hs : has_sum (λ m, z ^ m • a m) s) (ha : ∀ k < n, a k = 0) :
+lemma exists_has_sum_smul_of_apply_eq_zero (hs : has_sum (λ m, z ^ m • a m) s)
+  (ha : ∀ k < n, a k = 0) :
   ∃ t : E, z ^ n • t = s ∧ has_sum (λ m, z ^ m • a (m + n)) t :=
 begin
   refine classical.by_cases (λ hn : n = 0, by { subst n; simpa }) (λ hn, _),
@@ -99,9 +100,9 @@ begin
   filter_upwards [hq, has_fpower_series_at_iff'.mp hp] with x hx1 hx2,
   have : ∀ k < p.order, p.coeff k = 0,
     from λ k hk, by simpa [coeff_eq_zero] using apply_eq_zero_of_lt_order hk,
-  obtain ⟨s, hs1, hs2⟩ := has_sum.factor hx2 this,
+  obtain ⟨s, hs1, hs2⟩ := has_sum.exists_has_sum_smul_of_apply_eq_zero hx2 this,
   convert hs1.symm,
-  simp only [coef_iterate_fslope] at hx1,
+  simp only [coeff_iterate_fslope] at hx1,
   exact hx1.unique hs2
 end
 

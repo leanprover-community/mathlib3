@@ -468,8 +468,24 @@ def non_standard_norm_lp : has_norm (lp E p) :=
 
 local attribute [instance] non_standard_norm_lp
 
-lemma norm_eq_standard_norm (x : lp E p) :
-  ∥ x ∥ = (@has_norm.norm _ lp.has_norm x) ^ p.to_real := sorry
+-- example (a b c : ℝ) (h2 : b ≠ 0) (h1 : c ≠ 0) : (a ^ b) ^ c = a ^ (b ^ c) :=
+-- begin
+--   library_search
+-- end
+
+-- `FAE` I believe that the statement is false if `p = 0` or `p = ∞`
+lemma norm_eq_standard_norm (x : lp E p) (h_nz : p ≠ 0) (h_fin : p ≠ ⊤) :
+  ∥ x ∥ = (@has_norm.norm _ lp.has_norm x) ^ p.to_real :=
+begin
+  rcases or.assoc.mpr p.trichotomy with _ | h_pos,
+  { tauto },
+  { dsimp only [lp.has_norm, non_standard_norm_lp],
+    split_ifs,
+    { tauto },
+    { rw [← real.rpow_mul, div_mul_cancel, real.rpow_one],
+      { simp only [*, ennreal.to_real_eq_zero_iff, ne.def, or_self, not_false_iff] },
+      { exact (tsum_nonneg $ λ _, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) }}},
+end
 
 def non_standard_normed_group_lp : normed_add_comm_group (lp E p) :=
 normed_add_comm_group.of_core _

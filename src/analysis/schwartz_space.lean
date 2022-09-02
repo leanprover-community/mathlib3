@@ -36,6 +36,10 @@ decay faster than any power of `∥x∥`.
 * `schwartz_map.uniform_add_group` and `schwartz_map.locally_convex`: The Schwartz space is a
 locally convex topological vector space.
 
+## Implementation details
+
+The implementation of the seminorms is taken almost literally from `continuous_linear_map.op_norm`.
+
 ## Notation
 
 * `𝓢(E, F)`: The Schwartz space `schwartz_map E F` localized in `schwartz_space`
@@ -347,13 +351,15 @@ variables [normed_space ℂ F]
 def seminorm (k n : ℕ) : seminorm ℂ 𝓢(E, F) := seminorm.of_smul_le (seminorm_aux k n)
   (seminorm_aux_zero k n) (seminorm_aux_add_le k n) (seminorm_aux_smul_le k n)
 
-/-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
+/-- If one controls the seminorm for every `x`, then one controls the seminorm. -/
 lemma seminorm_le_bound (k n : ℕ) (f : 𝓢(E, F)) {M : ℝ} (hMp: 0 ≤ M)
-  (hM : ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ M) :
-  seminorm k n f ≤ M := f.seminorm_aux_le_bound k n hMp hM
+  (hM : ∀ x, ∥x∥^k * ∥iterated_fderiv ℝ n f x∥ ≤ M) : seminorm k n f ≤ M :=
+f.seminorm_aux_le_bound k n hMp hM
 
+/-- The seminorm controls the Schwartz estimate for any fixed `x`. -/
 lemma le_seminorm (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
-  ∥x∥ ^ k * ∥iterated_fderiv ℝ n ⇑f x∥ ≤ seminorm k n f := f.le_seminorm_aux k n x
+  ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ ≤ seminorm k n f :=
+f.le_seminorm_aux k n x
 
 end seminorms
 

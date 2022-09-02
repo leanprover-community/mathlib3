@@ -20,9 +20,9 @@ matrices built out of blocks.
    if the rows and columns are ordered according to some order `b : o → α`
 
 ## Main results
-  * `det_of_block_triangular`: the determinant of a block triangular matrix
+  * `matrix.det_of_block_triangular`: the determinant of a block triangular matrix
     is equal to the product of the determinants of all the blocks
-  * `det_of_upper_triangular` and `det_of_lower_triangular`: the determinant of
+  * `matrix.det_of_upper_triangular` and `matrix.det_of_lower_triangular`: the determinant of
     a triangular matrix is the product of the entries along the diagonal
 
 ## Tags
@@ -48,17 +48,17 @@ variables [has_lt α]
 `block_triangular M n b` says the matrix is block triangular. -/
 def block_triangular (M : matrix m m R) (b : m → α) : Prop := ∀ ⦃i j⦄, b j < b i → M i j = 0
 
-@[simp] protected lemma block_triangular.minor {f : n → m} (h : M.block_triangular b) :
-  (M.minor f f).block_triangular (b ∘ f) :=
+@[simp] protected lemma block_triangular.submatrix {f : n → m} (h : M.block_triangular b) :
+  (M.submatrix f f).block_triangular (b ∘ f) :=
 λ i j hij, h hij
 
 lemma block_triangular_reindex_iff {b : n → α} {e : m ≃ n} :
   (reindex e e M).block_triangular b ↔ M.block_triangular (b ∘ e) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  { convert h.minor,
-    simp only [reindex_apply, minor_minor, minor_id_id, equiv.symm_comp_self] },
-  { convert h.minor,
+  { convert h.submatrix,
+    simp only [reindex_apply, submatrix_submatrix, submatrix_id_id, equiv.symm_comp_self] },
+  { convert h.submatrix,
     simp only [comp.assoc b e e.symm, equiv.self_comp_symm, comp.right_id] }
 end
 
@@ -192,7 +192,7 @@ begin
   simp only [matrix.reindex_apply, to_block_apply, equiv.symm_symm,
     equiv.sum_compl_apply_inr, equiv.sum_compl_apply_inl,
     from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂,
-    matrix.minor_apply],
+    matrix.submatrix_apply],
 end
 
 lemma two_block_triangular_det (M : matrix m m R) (p : m → Prop) [decidable_pred p]
@@ -264,6 +264,17 @@ begin
   have : is_empty {i // b i = a} := ⟨λ i, ha $ mem_image.2 ⟨i, mem_univ _, i.2⟩⟩,
   exactI det_is_empty,
 end
+
+lemma det_of_upper_triangular [linear_order m] (h : M.block_triangular id) :
+  M.det = ∏ i : m, M i i :=
+begin
+  haveI : decidable_eq R := classical.dec_eq _,
+  simp_rw [h.det, image_id, det_to_square_block_id],
+end
+
+lemma det_of_lower_triangular [linear_order m] (M : matrix m m R) (h : M.block_triangular to_dual) :
+  M.det = ∏ i : m, M i i :=
+by { rw ←det_transpose, exact det_of_upper_triangular h.transpose }
 
 /-! ### Invertible -/
 

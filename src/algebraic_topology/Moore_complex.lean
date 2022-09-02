@@ -131,8 +131,8 @@ chain_complex.of_hom _ _ _ _ _ _
   end)
   (λ n, begin
     cases n; dsimp,
-    { ext, simp, erw f.naturality, refl, },
-    { ext, simp, erw f.naturality, refl, },
+    { ext, simp, },
+    { ext, simp, },
   end)
 
 end normalized_Moore_complex

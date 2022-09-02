@@ -240,7 +240,4 @@ def coextend_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
   map_id' := λ M, linear_map.ext $ λ h, linear_map.ext $ λ x, rfl,
   map_comp' := λ _ _ _ g h, linear_map.ext $ λ h, linear_map.ext $ λ x, rfl }
 
-@[simp] lemma coextend_scalars.smul_apply {R : Type u₁} {S : Type u₂}  {M} [ring R] [ring S]
-  (f : R →+* S) (r : R) (x : (coextend_scalars f).obj M) (y) : (r • x) y = x (r • y) := rfl
-
 end category_theory.Module

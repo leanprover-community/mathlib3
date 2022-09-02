@@ -145,6 +145,7 @@ end
 
 open_locale big_operators
 
+-- PRed
 lemma card_dvd_exponent_pow_rank (G : Type*) [comm_group G] [group.fg G]
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
   nat.card G ∣ monoid.exponent G ^ group.rank G :=
@@ -172,12 +173,14 @@ begin
   exact monoid.order_dvd_exponent (g : G),
 end
 
+-- PRed
 lemma card_dvd_exponent_pow_rank' {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
   nat.card G ∣ n ^ group.rank G :=
 (card_dvd_exponent_pow_rank G).trans
     (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
 
+-- waiting on rank refactor
 @[to_additive]
 lemma closure_preimage_eq_top {G : Type*} [group G] (s : set G) :
   closure ((closure s).subtype ⁻¹' s) = ⊤ :=
@@ -189,6 +192,7 @@ begin
   exact subset_closure,
 end
 
+-- waiting on rank refactor
 @[to_additive]
 instance closure_finset_fg {G : Type*} [group G] (s : finset G) : group.fg (closure (s : set G)) :=
 begin
@@ -197,6 +201,7 @@ begin
   exact closure_preimage_eq_top s,
 end
 
+-- waiting on rank refactor
 @[to_additive]
 instance closure_finite_fg {G : Type*} [group G] (s : set G) [finite s] : group.fg (closure s) :=
 begin
@@ -204,6 +209,7 @@ begin
   exact s.coe_to_finset ▸ subgroup.closure_finset_fg s.to_finset,
 end
 
+-- waiting on rank refactor
 @[to_additive] lemma rank_closure_finset_le_card {G : Type*} [group G] (s : finset G)
   [decidable_pred (λ n, ∃ (S : finset (closure (s : set G))),
     S.card = n ∧ subgroup.closure (S : set (closure (s : set G))) = ⊤)] :
@@ -220,6 +226,7 @@ begin
   { apply subtype.coe_injective.inj_on },
 end
 
+-- waiting on rank refactor
 lemma rank_closure_finite_le_nat_card {G : Type*} [group G] (s : set G) [finite s]
   [decidable_pred (λ n, ∃ (S : finset (closure s)), S.card = n ∧ closure (S : set (closure s)) = ⊤)] :
   group.rank (closure s) ≤ nat.card s :=
@@ -237,6 +244,7 @@ begin
   { apply subtype.coe_injective.inj_on },
 end
 
+-- waiting on rank refactor
 instance (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.fg (commutator G) :=
 begin
@@ -245,7 +253,10 @@ begin
   apply subgroup.closure_finite_fg,
 end
 
-lemma rank_commutator_le_card (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
+variables (G)
+
+-- waiting on rank refactor
+lemma rank_commutator_le_card [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
   [decidable_pred (λ n, ∃ (S : finset (commutator G)), S.card = n ∧ closure (S : set (commutator G)) = ⊤)] :
   group.rank (commutator G) ≤ nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 begin
@@ -263,14 +274,51 @@ begin
   { simp only [hG, zero_mul, zero_add, pow_one, dvd_zero] },
   let H := (center G).subgroup_of (commutator G),
   rw [←H.card_mul_index, pow_succ'],
-  have h0 := relindex_dvd_index_of_normal (center G) (commutator G),
-  have h2 := ne_zero_of_dvd_ne_zero hG h0,
-  refine mul_dvd_mul (dvd_trans _ (pow_dvd_pow (center G).index ((rank_le_index_mul_rank h2).trans
-    (nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h0) (rank_commutator_le_card G))))) h0,
-  apply key_lemma17 (λ g, _),
-  have key := subtype.ext_iff.mp (abelianization.commutator_subset_ker
+  have h := relindex_dvd_index_of_normal (center G) (commutator G),
+  refine mul_dvd_mul (dvd_trans _
+    (pow_dvd_pow (center G).index ((rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h)).trans
+    (nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h) (rank_commutator_le_card G))))) h,
+  apply card_dvd_exponent_pow_rank' (λ g, _),
+  have := subtype.ext_iff.mp (abelianization.commutator_subset_ker
     (monoid_hom.transfer_center_pow' hG) g.1.2),
-  exact subtype.ext (subtype.ext key),
+  exact subtype.ext (subtype.ext this),
+end
+
+lemma key_lemma1 [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
+  (center G).index ≤ (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) ^ group.rank G :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw ← hS1,
+  have key : center G = ⨅ (g : {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}), centralizer (zpowers g),
+  -- or just use `mul_action.stabilizer` to simplify the application of orbit-stabilizer
+  { sorry },
+  sorry,
+end
+
+def myfun (n : ℕ) := (n ^ (2 * n)) ^ (n ^ (2 * n) * n + 1)
+
+lemma key_lemma [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+  nat.card (commutator G) ≤ myfun (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) :=
+begin
+  classical,
+  let n := nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
+  let S : set G := sorry,
+  have hS : nat.card S = 2 * n := sorry,
+  haveI : finite S := sorry,
+  let H := closure S,
+  have hn : n = nat.card {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} := sorry,
+  haveI : finite ({g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g}) := sorry,
+  have hH : nat.card (commutator H) = nat.card (commutator G) := sorry,
+  have hH' : group.rank H = 2 * n := sorry,
+  have key := key_lemma1 H,
+  have key' := card_commutator_dvd_index_center_pow H,
+  rw [hH', ←hn] at key,
+  rw ← hn at key',
+  rw ← hH,
+  refine (nat.le_of_dvd sorry key').trans _,
+  refine (nat.pow_le_pow_of_le_left key _).trans (nat.pow_le_pow_of_le_right sorry
+    (add_le_add_right (mul_le_mul_right' key _) 1)),
 end
 
 -- bounded commutators and bounded index of center implies bounded commutator subgroup (DONE!)

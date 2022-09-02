@@ -103,7 +103,7 @@ attribute [simp] smul_one smul_mul' smul_zero smul_add
 /-- Note that `smul_inv'` refers to the group case, and `smul_inv` has an additional inverse
 on `x`. -/
 @[simp] lemma smul_inv'' [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
-(mul_semiring_action.to_ring_hom M F x).map_inv _
+map_inv₀ (mul_semiring_action.to_ring_hom M F x) _
 
 end simp_lemmas
 

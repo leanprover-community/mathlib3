@@ -129,6 +129,10 @@ lemma inducing.is_closed_iff' {f : α → β} (hf : inducing f) {s : set α} :
   is_closed s ↔ ∀ x, f x ∈ closure (f '' s) → x ∈ s :=
 by rw [hf.induced, is_closed_induced_iff']
 
+lemma inducing.is_closed_preimage {f : α → β} (h : inducing f) (s : set β) (hs : is_closed s) :
+  is_closed (f ⁻¹' s) :=
+(inducing.is_closed_iff h).mpr ⟨s, hs, rfl⟩
+
 lemma inducing.is_open_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_open s ↔ ∃ t, is_open t ∧ f ⁻¹' t = s :=
 by rw [hf.induced, is_open_induced_iff]
@@ -429,6 +433,7 @@ section open_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 /-- An open embedding is an embedding with open image. -/
+@[mk_iff]
 structure open_embedding (f : α → β) extends _root_.embedding f : Prop :=
 (open_range : is_open $ range f)
 
@@ -510,6 +515,7 @@ section closed_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 /-- A closed embedding is an embedding with closed image. -/
+@[mk_iff]
 structure closed_embedding (f : α → β) extends _root_.embedding f : Prop :=
 (closed_range : is_closed $ range f)
 

@@ -199,7 +199,7 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
-/-- All elements of `fin n`, from `0` to `n-1`. -/
+/-- All elements of `fin n`, from `0` to `n-1`. The corresponding finset is `finset.univ`. -/
 def fin_range (n : ℕ) : list (fin n) :=
 (range n).pmap fin.mk (λ _, list.mem_range.1)
 
@@ -219,14 +219,14 @@ by rw [← length_eq_zero, length_fin_range]
 
 @[simp] lemma map_coe_fin_range (n : ℕ) : (fin_range n).map coe = list.range n :=
 begin
-  simp_rw [fin_range, map_pmap, fin.mk, subtype.coe_mk, pmap_eq_map],
+  simp_rw [fin_range, map_pmap, fin.coe_mk, pmap_eq_map],
   exact list.map_id _
 end
 
 lemma fin_range_succ_eq_map (n : ℕ) :
   fin_range n.succ = 0 :: (fin_range n).map fin.succ :=
 begin
-  apply map_injective_iff.mpr subtype.coe_injective,
+  apply map_injective_iff.mpr fin.coe_injective,
   rw [map_cons, map_coe_fin_range, range_succ_eq_map, fin.coe_zero, ←map_coe_fin_range, map_map,
     map_map, function.comp, function.comp],
   congr' 2 with x,
@@ -280,7 +280,12 @@ option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
 
 @[simp] lemma nth_le_fin_range {n : ℕ} {i : ℕ} (h) :
   (fin_range n).nth_le i h = ⟨i, length_fin_range n ▸ h⟩ :=
-by simp only [fin_range, nth_le_range, nth_le_pmap, fin.mk_eq_subtype_mk]
+by simp only [fin_range, nth_le_range, nth_le_pmap]
+
+@[simp] lemma map_nth_le (l : list α) :
+  (fin_range l.length).map (λ n, l.nth_le n n.2) = l :=
+ext_le (by rw [length_map, length_fin_range]) $ λ n _ h,
+by { rw ← nth_le_map_rev, congr, { rw nth_le_fin_range, refl }, { rw length_fin_range, exact h } }
 
 theorem of_fn_eq_pmap {α n} {f : fin n → α} :
   of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=

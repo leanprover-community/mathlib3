@@ -488,6 +488,22 @@ def lim_yoneda : lim ⋙ yoneda ⋙ (whiskering_right _ _ _).obj ulift_functor.{
 nat_iso.of_components (λ F, nat_iso.of_components (λ W, limit.hom_iso F (unop W)) (by tidy))
   (by tidy)
 
+/--The constant functor and limit functor are adjoint to each other-/
+def const_lim_adj : (const J : C ⥤ (J ⥤ C)) ⊣ lim :=
+{ hom_equiv := λ c g,
+  { to_fun := λ f, limit.lift _ ⟨c, f⟩,
+    inv_fun := λ f, { app := λ j, f ≫ limit.π _ _ , naturality' := by tidy },
+    left_inv := λ _, nat_trans.ext _ _ $ funext $ λ j, limit.lift_π _ _,
+    right_inv := λ α, limit.hom_ext $ λ j, limit.lift_π _ _ },
+  unit := { app := λ c, limit.lift _ ⟨_, 𝟙 _⟩, naturality' := λ _ _ _, by tidy },
+  counit :=
+  { app := λ g, { app := limit.π _, naturality' := by tidy },
+    naturality' := λ _ _ _, by tidy },
+  hom_equiv_unit' := λ c g f, limit.hom_ext $ λ j, by simp,
+  hom_equiv_counit' := λ c g f, nat_trans.ext _ _ $ funext $ λ j, rfl }
+
+instance : is_right_adjoint (lim : (J ⥤ C) ⥤ C) := ⟨_, const_lim_adj⟩
+
 end lim_functor
 
 /--
@@ -971,6 +987,22 @@ def colim_coyoneda : colim.op ⋙ coyoneda ⋙ (whiskering_right _ _ _).obj ulif
   category_theory.cocones J C :=
 nat_iso.of_components (λ F, nat_iso.of_components (colimit.hom_iso (unop F)) (by tidy))
   (by tidy)
+
+/--
+The colimit functor and constant functor are adjoint to each other
+-/
+def colim_const_adj : (colim : (J ⥤ C) ⥤ C) ⊣ const J :=
+{ hom_equiv := λ f c,
+  { to_fun := λ g, { app := λ _, colimit.ι _ _ ≫ g, naturality' := by tidy },
+    inv_fun := λ g, colimit.desc _ ⟨_, g⟩,
+    left_inv := λ _, colimit.hom_ext $ λ j, colimit.ι_desc _ _,
+    right_inv := λ _, nat_trans.ext _ _ $ funext $ λ j, colimit.ι_desc _ _ },
+  unit := { app := λ g, { app := colimit.ι _, naturality' := by tidy }, naturality' := by tidy },
+  counit := { app := λ c, colimit.desc _ ⟨_, 𝟙 _⟩, naturality' := by tidy },
+  hom_equiv_unit' := λ _ _ _, nat_trans.ext _ _ $ funext $ λ _ , rfl,
+  hom_equiv_counit' := λ _ _ _, colimit.hom_ext $ λ _, by simp }
+
+instance : is_left_adjoint (colim : (J ⥤ C) ⥤ C) := ⟨_, colim_const_adj⟩
 
 end colim_functor
 

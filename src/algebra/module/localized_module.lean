@@ -466,7 +466,7 @@ If `(M', f : M ⟶ M')` satisfies universal property of localized module, then `
 { ..from_localized_module S f,
   ..equiv.of_bijective (from_localized_module S f) $ from_localized_module.bij _ _}
 
-lemma iso_apply_mk [is_localized_module S f] (m : M) (s : S) :
+lemma iso_apply_mk (m : M) (s : S) :
   iso S f (localized_module.mk m s) = (is_localized_module.map_units f s).unit⁻¹ (f m) :=
 rfl
 

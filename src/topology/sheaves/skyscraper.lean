@@ -81,57 +81,6 @@ lemma skyscraper_presheaf_obj_of_not_mem {U : opens X} (h : p₀ ∉ U) :
 
 end
 
-/--
-A skyscraper sheaf is a sheaf supported at a single point: if `p₀ ∈ X` is a specified
-point, then the skyscraper sheaf `𝓕` with value `A` is defined by `U ↦ A` if `p₀ ∈ U` and
-`U ↦ *` if `p₀ ∉ A` where `*` is some terminal object.
--/
-def skyscraper_sheaf : sheaf C X :=
-⟨_, (skyscraper_presheaf p₀ S).is_sheaf_iff_is_sheaf_opens_le_cover.mpr $ λ ι U, nonempty.intro
- { lift := λ c, if h : p₀ ∈ (presheaf.sheaf_condition.opens_le_cover_cocone U).X
-    then c.π.app (op ⟨_, ⟨(opens.mem_supr.mp h).some, le_refl _⟩⟩) ≫ eq_to_hom
-      begin
-       dsimp, rw [if_pos h, if_pos (opens.mem_supr.mp h).some_spec],
-      end
-    else ((if_neg h).symm.rec terminal_is_terminal).from _,
-   fac' := λ c j,
-   begin
-    dsimp, split_ifs with h0, swap,
-    { exact ((if_neg h0).symm.rec terminal_is_terminal).hom_ext _ _, },
-    by_cases h1 : p₀ ∈ (presheaf.sheaf_condition.opens_le_cover_cocone U).X;
-    split_ifs, swap,
-    { rw [eq_comp_eq_to_hom], exact ((if_neg h1).symm.rec terminal_is_terminal).hom_ext _ _, },
-    rw [category.assoc, eq_to_hom_trans],
-    transitivity c.π.app (op ⟨U (opens.mem_supr.mp h1).some ⊓ j.unop.obj, ⟨_, inf_le_left⟩⟩) ≫
-      eq_to_hom _,
-    rotate, { dsimp, rw [if_pos h0, if_pos], exact ⟨(opens.mem_supr.mp h1).some_spec, h0⟩ },
-    { have := @nat_trans.naturality _ _ _ _ _ _ c.π j
-        (op ⟨U (opens.mem_supr.mp h1).some ⊓ j.unop.obj, ⟨_, inf_le_left⟩⟩)
-        (quiver.hom.op (hom_of_le _) : op j.unop ⟶ _), swap, exact inf_le_right,
-      dsimp at this, simp only [category.id_comp] at this,
-      have h : p₀ ∈ U _ ⊓ j.unop.obj := ⟨(opens.mem_supr.mp h1).some_spec, h0⟩,
-      split_ifs at this with h', swap, { exact false.elim (h' h), },
-      rw [this, category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id] },
-    { have := @nat_trans.naturality _ _ _ _ _ _ c.π
-        (op ⟨_, ⟨(opens.mem_supr.mp h1).some, le_refl _⟩⟩)
-        (op ⟨U (opens.mem_supr.mp h1).some ⊓ j.unop.obj, ⟨_, inf_le_left⟩⟩)
-        (quiver.hom.op (hom_of_le inf_le_left)),
-      dsimp at this, simp only [category.id_comp] at this,
-      have h : p₀ ∈ U _ ⊓ j.unop.obj := ⟨(opens.mem_supr.mp h1).some_spec, h0⟩,
-      split_ifs at this with h', swap, { exact false.elim (h' h), },
-      rw [this, category.assoc, eq_to_hom_trans], },
-   end,
-   uniq' := λ s f h0,
-   begin
-    dsimp at *, split_ifs with h1, swap,
-    { exact ((if_neg h1).symm.rec terminal_is_terminal).hom_ext _ _ },
-    specialize h0 (op ⟨_, ⟨(opens.mem_supr.mp h1).some, le_refl _⟩⟩),
-    split_ifs at h0 with h2, swap, { exact false.elim (h2 (opens.mem_supr.mp h1).some_spec) },
-    rw [←h0, category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id],
-   end }⟩
-
-end
-
 section
 
 -- In this section, we calculate the stalks for skyscraper presheaves.

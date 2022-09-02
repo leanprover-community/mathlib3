@@ -371,7 +371,7 @@ begin
     interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le
   ... < ∫ θ in 0..2 * π, R * C :
     begin
-      simp only [norm_smul, deriv_circle_map, norm_eq_abs, complex.abs_mul, abs_I, mul_one,
+      simp only [norm_smul, deriv_circle_map, norm_eq_abs, map_mul, abs_I, mul_one,
         abs_circle_map_zero, abs_of_pos hR],
       refine interval_integral.integral_lt_integral_of_continuous_on_of_le_of_exists_lt
         real.two_pi_pos _ continuous_on_const (λ θ hθ, _) ⟨θ₀, Ioc_subset_Icc_self hmem, _⟩,
@@ -513,9 +513,9 @@ lemma has_sum_two_pi_I_cauchy_power_series_integral {f : ℂ → E} {c : ℂ} {R
   has_sum (λ n : ℕ, ∮ z in C(c, R), (w / (z - c)) ^ n • (z - c)⁻¹ • f z)
     (∮ z in C(c, R), (z - (c + w))⁻¹ • f z) :=
 begin
-  have hR : 0 < R := (abs_nonneg w).trans_lt hw,
+  have hR : 0 < R := (complex.abs.nonneg w).trans_lt hw,
   have hwR : abs w / R ∈ Ico (0 : ℝ) 1,
-    from ⟨div_nonneg (abs_nonneg w) hR.le, (div_lt_one hR).2 hw⟩,
+    from ⟨div_nonneg (complex.abs.nonneg w) hR.le, (div_lt_one hR).2 hw⟩,
   refine interval_integral.has_sum_integral_of_dominated_convergence
     (λ n θ, ∥f (circle_map c R θ)∥ * (abs w / R) ^ n) (λ n, _) (λ n, _) _ _ _,
   { simp only [deriv_circle_map],

@@ -438,6 +438,16 @@ begin
   simp only [mem_coe, list.mem_to_finset, end_mem_support],
 end
 
+--mathlib
+lemma disjoint.preimage' {α β : Type*} {f : α → β} (s : set α) (t : set β) :
+  disjoint s (set.preimage f t) → disjoint (f '' s) t :=
+begin
+  simp only [set.disjoint_iff],
+  rintro dis, rintro y ⟨⟨x,⟨a,rfl⟩⟩,b⟩,
+  apply dis ⟨a,b⟩,
+end
+
+
 
 include Gpc'
 def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
@@ -450,20 +460,17 @@ def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
   let L := cof.preimage K',
 
   rintro D,
-  have disDK' : disjoint (K' : set V') (f '' D.val), by
-  { sorry,
-    /-rw set.disjoint_iff,
-    rintro x ⟨⟨y,⟨yD,rfl⟩⟩,xK⟩,
-    have : y ∈ L, by {rw ←set.mem_preimage at xK, rw ←cofinite.preimage.coe cof at xK, exact xK},
-    apply not_in_of_in_comp G L D.val.val D.val.prop y yD this,-/
-  },
+  have disDK' : disjoint (f '' D.val) (K' : set V'), by
+  { apply disjoint.preimage',
+    rw ←cofinite.preimage.coe cof,
+    apply (comp_out.dis_of_inf D.val.val D.prop).symm, },
 
-  have disDK : disjoint (f '' D.val) K := set.disjoint_of_subset_right (thicken_.sub G' K m) disDK'.symm,
+  have disDK : disjoint (f '' D.val) K := set.disjoint_of_subset_right (thicken_.sub G' K m) disDK',
   have  fDinf: (f '' D.val.val : set V').infinite := cofinite.image_infinite cof D.prop,
   let d := fDinf.nonempty.some,
   have dfD := fDinf.nonempty.some_spec,
   have dnK : d ∉ K := λ dK, (disDK.ne_of_mem dfD dK) (refl d),
-  have dnK'' : d ∉ K' := λ dK', (disDK'.symm.ne_of_mem dfD dK') (refl d),
+  have dnK'' : d ∉ K' := λ dK', (disDK'.ne_of_mem dfD dK') (refl d),
 
   let C := comp_out.of_vertex G' K d,
   have dC : d ∈ C := comp_out.of_vertex_mem d,
@@ -488,7 +495,7 @@ def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
   have xD : x ∈ (D : set V), by
   { apply wD,
     simp only [mem_coe, list.mem_to_finset, mem_support_append_iff, end_mem_support, true_or],},
-  have fxnK' : f x ∉ K' := λ fxK', (disDK'.symm.ne_of_mem (mem_image_of_mem f xD) fxK') (refl (f x)),
+  have fxnK' : f x ∉ K' := λ fxK', (disDK'.ne_of_mem (mem_image_of_mem f xD) fxK') (refl (f x)),
   exact fxnK',
 }⟩
 

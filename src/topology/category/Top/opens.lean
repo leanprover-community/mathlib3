@@ -294,4 +294,12 @@ begin
   iterate 2 {apply inclusion_top_functor.obj_eq},
 end
 
+lemma functor_obj_map_obj {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) (U : opens Y) :
+  hf.functor.obj ((opens.map f).obj U) = hf.functor.obj ⊤ ⊓ U :=
+begin
+  ext, split,
+  { rintros ⟨x, hx, rfl⟩, exact ⟨⟨x, trivial, rfl⟩, hx⟩ },
+  { rintros ⟨⟨x, -, rfl⟩, hx⟩, exact ⟨x, hx, rfl⟩ }
+end
+
 end topological_space.opens

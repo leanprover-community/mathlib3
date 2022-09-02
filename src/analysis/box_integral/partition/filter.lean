@@ -349,7 +349,7 @@ begin
   rcases hπ.4 hD with ⟨π₁, hπ₁U, hc⟩,
   set π₂ := π.filter (λ J, ¬p J),
   have : disjoint π₁.Union π₂.Union,
-    by simpa [π₂, hπ₁U] using (disjoint_diff.mono_left sdiff_le).symm,
+    by simpa [π₂, hπ₁U] using disjoint_sdiff_self_left.mono_right sdiff_le,
   refine ⟨π₁.disj_union π₂.to_prepartition this, _, _⟩,
   { suffices : ↑I \ π.Union ∪ π.Union \ (π.filter p).Union = ↑I \ (π.filter p).Union, by simpa *,
     have : (π.filter p).Union ⊆ π.Union, from bUnion_subset_bUnion_left (finset.filter_subset _ _),

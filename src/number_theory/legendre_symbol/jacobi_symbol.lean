@@ -22,7 +22,7 @@ this implies in particular that `jacobi_sym a 0 = 1` for all `a`.
 
 ## Main statements
 
-We prove the main properties of the Legendre symbol, including the following.
+We prove the main properties of the Jacobi symbol, including the following.
 
 * Multiplicativity in both arguments (`jacobi_sym_mul_left`, `jacobi_sym_mul_right`)
 
@@ -46,7 +46,7 @@ We prove the main properties of the Legendre symbol, including the following.
 
 ## Notations
 
-We define the notation `[a | b]ⱼ` for `legendre_sym a b`, localized to `number_theory_symbols`.
+We define the notation `[a | b]ⱼ` for `jacobi_sym a b`, localized to `number_theory_symbols`.
 
 ## Tags
 Jacobi symbol, quadratic reciprocity
@@ -58,7 +58,7 @@ section jacobi
 ### Definition of the Jacobi symbol
 
 We define the Jacobi symbol `(a / b)` for integers `a` and natural numbers `b` as the
-product of the legendre symbols `(a / p)`, where `p` runs through the prime divisors
+product of the Legendre symbols `(a / p)`, where `p` runs through the prime divisors
 (with multiplicity) of `b`, as provided by `b.factors`. This agrees with the Jacobi symbol
 when `b` is odd and gives less meaningful values when it is not (e.g., the symbol is `1`
 when `b = 0`). This is called `jacobi_sym a b`.

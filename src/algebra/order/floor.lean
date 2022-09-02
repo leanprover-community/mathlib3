@@ -78,7 +78,7 @@ end
 namespace nat
 
 section ordered_semiring
-variables [ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
+variables [ordered_semiring α] [floor_semiring α] {a b : α} {n : ℕ}
 
 /-- `⌊a⌋₊` is the greatest natural `n` such that `n ≤ a`. If `a` is negative, then `⌊a⌋₊ = 0`. -/
 def floor : α → ℕ := floor_semiring.floor
@@ -92,14 +92,68 @@ def ceil : α → ℕ := floor_semiring.ceil
 notation `⌊` a `⌋₊` := nat.floor a
 notation `⌈` a `⌉₊` := nat.ceil a
 
+/-! #### Floor -/
+
+lemma le_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a := floor_semiring.gc_floor ha
+
+lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast_nonneg.trans h).2 h
+
+lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
+
+lemma floor_mono' (ha : 0 ≤ a) (hab : a ≤ b) : ⌊a⌋₊ ≤ ⌊b⌋₊ := le_floor ((floor_le ha).trans hab)
+
+@[simp] lemma floor_coe (n : ℕ) : ⌊(n : α)⌋₊ = n :=
+eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff n.cast_nonneg], exact nat.cast_le }
+
+@[simp] lemma floor_zero : ⌊(0 : α)⌋₊ = 0 := by rw [← nat.cast_zero, floor_coe]
+
+@[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
+
+lemma floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
+ha.lt_or_eq.elim floor_semiring.floor_of_neg $ by { rintro rfl, exact floor_zero }
+
+/-! #### Ceil -/
+
+lemma gc_ceil_coe : galois_connection (ceil : α → ℕ) coe := floor_semiring.gc_ceil
+
+@[simp] lemma ceil_le : ⌈a⌉₊ ≤ n ↔ a ≤ n := gc_ceil_coe _ _
+
+lemma le_ceil (a : α) : a ≤ ⌈a⌉₊ := ceil_le.1 le_rfl
+
+lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
+
+@[simp] lemma ceil_coe (n : ℕ) : ⌈(n : α)⌉₊ = n :=
+eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
+
+@[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := by rw [← nat.cast_zero, ceil_coe]
+
+@[simp] lemma ceil_one : ⌈(1 : α)⌉₊ = 1 := by rw [←nat.cast_one, ceil_coe]
+
+@[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := by rw [← le_zero_iff, ceil_le, nat.cast_zero]
+
+lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.cast_le.2 h)
+
+@[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
+ext $ λ x, ceil_eq_zero
+
+/-! #### Intervals -/
+
+@[simp] lemma preimage_Icc {a b : α} (hb : 0 ≤ b) :
+  ((coe : ℕ → α) ⁻¹' (set.Icc a b)) = set.Icc ⌈a⌉₊ ⌊b⌋₊ :=
+by { ext, simp [ceil_le, hb, le_floor_iff] }
+
+@[simp] lemma preimage_Ici {a : α} : ((coe : ℕ → α) ⁻¹' (set.Ici a)) = set.Ici ⌈a⌉₊ :=
+by { ext, simp [ceil_le] }
+
+@[simp] lemma preimage_Iic {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Iic a)) = set.Iic ⌊a⌋₊ :=
+by { ext, simp [le_floor_iff, ha] }
+
 end ordered_semiring
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
-lemma le_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a := floor_semiring.gc_floor ha
-
-lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast_nonneg.trans h).2 h
+/-! #### Floor -/
 
 lemma floor_lt (ha : 0 ≤ a) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff ha
 
@@ -110,27 +164,15 @@ lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_le $ λ h', (le_f
 
 lemma lt_one_of_floor_lt_one (h : ⌊a⌋₊ < 1) : a < 1 := by exact_mod_cast lt_of_floor_lt h
 
-lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
-
 lemma lt_succ_floor (a : α) : a < ⌊a⌋₊.succ := lt_of_floor_lt $ nat.lt_succ_self _
 
 lemma lt_floor_add_one (a : α) : a < ⌊a⌋₊ + 1 := by simpa using lt_succ_floor a
-
-@[simp] lemma floor_coe (n : ℕ) : ⌊(n : α)⌋₊ = n :=
-eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff, nat.cast_le], exact n.cast_nonneg }
-
-@[simp] lemma floor_zero : ⌊(0 : α)⌋₊ = 0 := by rw [← nat.cast_zero, floor_coe]
-
-@[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
-
-lemma floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
-ha.lt_or_eq.elim floor_semiring.floor_of_neg $ by { rintro rfl, exact floor_zero }
 
 lemma floor_mono : monotone (floor : α → ℕ) := λ a b h, begin
   obtain ha | ha := le_total a 0,
   { rw floor_of_nonpos ha,
     exact nat.zero_le _ },
-  { exact le_floor ((floor_le ha).trans h) }
+  { exact floor_mono' ha h }
 end
 
 lemma le_floor_iff' (hn : n ≠ 0) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a :=
@@ -178,38 +220,19 @@ lemma floor_eq_on_Ico (n : ℕ) : ∀ a ∈ (set.Ico n (n+1) : set α), ⌊a⌋�
 lemma floor_eq_on_Ico' (n : ℕ) : ∀ a ∈ (set.Ico n (n+1) : set α), (⌊a⌋₊ : α) = n :=
 λ x hx, by exact_mod_cast floor_eq_on_Ico n x hx
 
-@[simp] lemma preimage_floor_zero : (floor : α → ℕ) ⁻¹' {0} = Iio 1 :=
-ext $ λ a, floor_eq_zero
-
 lemma preimage_floor_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (floor : α → ℕ) ⁻¹' {n} = Ico n (n + 1) :=
 ext $ λ a, floor_eq_iff' hn
 
+@[simp] lemma preimage_floor_zero : (floor : α → ℕ) ⁻¹' {0} = Iio 1 :=
+ext $ λ a, floor_eq_zero
+
 /-! #### Ceil -/
 
-lemma gc_ceil_coe : galois_connection (ceil : α → ℕ) coe := floor_semiring.gc_ceil
-
-@[simp] lemma ceil_le : ⌈a⌉₊ ≤ n ↔ a ≤ n := gc_ceil_coe _ _
-
 lemma lt_ceil : n < ⌈a⌉₊ ↔ (n : α) < a := lt_iff_lt_of_le_iff_le ceil_le
-
-lemma le_ceil (a : α) : a ≤ ⌈a⌉₊ := ceil_le.1 le_rfl
-
-lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
-
-@[simp] lemma ceil_coe (n : ℕ) : ⌈(n : α)⌉₊ = n :=
-eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
-
-@[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := by rw [← nat.cast_zero, ceil_coe]
-
-@[simp] lemma ceil_one : ⌈(1 : α)⌉₊ = 1 := by rw [←nat.cast_one, ceil_coe]
-
-@[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := by rw [← le_zero_iff, ceil_le, nat.cast_zero]
 
 @[simp] lemma ceil_pos : 0 < ⌈a⌉₊ ↔ 0 < a := by rw [lt_ceil, cast_zero]
 
 lemma lt_of_ceil_lt (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
-
-lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.cast_le.2 h)
 
 lemma floor_le_ceil (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
 begin
@@ -231,9 +254,6 @@ by rw [← ceil_le, ← not_le, ← ceil_le, not_le,
   tsub_lt_iff_right (nat.add_one_le_iff.2 (pos_iff_ne_zero.2 hn)), nat.lt_add_one_iff,
   le_antisymm_iff, and.comm]
 
-@[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
-ext $ λ x, ceil_eq_zero
-
 lemma preimage_ceil_of_ne_zero (hn : n ≠ 0) : (nat.ceil : α → ℕ) ⁻¹' {n} = Ioc ↑(n - 1) n :=
 ext $ λ x, ceil_eq_iff hn
 
@@ -250,21 +270,11 @@ by { ext, simp [ceil_le, lt_ceil] }
   ((coe : ℕ → α) ⁻¹' (set.Ioc a b)) = set.Ioc ⌊a⌋₊ ⌊b⌋₊ :=
 by { ext, simp [floor_lt, le_floor_iff, hb, ha] }
 
-@[simp] lemma preimage_Icc {a b : α} (hb : 0 ≤ b) :
-  ((coe : ℕ → α) ⁻¹' (set.Icc a b)) = set.Icc ⌈a⌉₊ ⌊b⌋₊ :=
-by { ext, simp [ceil_le, hb, le_floor_iff] }
-
 @[simp] lemma preimage_Ioi {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Ioi a)) = set.Ioi ⌊a⌋₊ :=
 by { ext, simp [floor_lt, ha] }
 
-@[simp] lemma preimage_Ici {a : α} : ((coe : ℕ → α) ⁻¹' (set.Ici a)) = set.Ici ⌈a⌉₊ :=
-by { ext, simp [ceil_le] }
-
 @[simp] lemma preimage_Iio {a : α} : ((coe : ℕ → α) ⁻¹' (set.Iio a)) = set.Iio ⌈a⌉₊ :=
 by { ext, simp [lt_ceil] }
-
-@[simp] lemma preimage_Iic {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Iic a)) = set.Iic ⌊a⌋₊ :=
-by { ext, simp [le_floor_iff, ha] }
 
 lemma floor_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌊a + n⌋₊ = ⌊a⌋₊ + n :=
 eq_of_forall_le_iff $ λ b, begin

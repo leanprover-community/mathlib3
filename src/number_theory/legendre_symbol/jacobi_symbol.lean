@@ -335,7 +335,7 @@ begin
   rcases eq_or_ne a 0 with rfl | ha₀,
   { rw [mul_zero, mod_zero], },
   have hb' : odd (b % (4 * a)) := hb.mod_even (even.mul_right (by norm_num) _),
-  rcases prime_power_and_complement ha₀ 2 with ⟨e, a', ha₁', ha₂⟩,
+  rcases exists_prime_pow_and_compl ha₀ 2 with ⟨e, a', ha₁', ha₂⟩,
   have ha₁ := odd_iff.mpr (two_dvd_ne_zero.mp ha₁'),
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
   rw [nat.cast_mul, jacobi_sym_mul_left, jacobi_sym_mul_left,

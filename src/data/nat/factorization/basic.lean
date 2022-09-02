@@ -483,7 +483,7 @@ end
 
 /-- If `n` is a nonzero natural number and `p` is a prime, then there are natural numbers `e`
 and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
-lemma prime_power_and_complement {n : ℕ} (hn : n ≠ 0) (p : ℕ) [fact p.prime] :
+lemma exists_prime_pow_and_compl {n : ℕ} (hn : n ≠ 0) (p : ℕ) [fact p.prime] :
   ∃ e n' : ℕ, ¬ p ∣ n' ∧ n = p ^ e * n' :=
 ⟨n.factorization p, ord_compl[p] n, not_dvd_ord_compl (fact.out p.prime) hn,
  (ord_proj_mul_ord_compl_eq_self n p).symm⟩

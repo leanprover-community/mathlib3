@@ -68,7 +68,9 @@ instance (F : J ⥤ Cat.{v v}) : category (limit (F ⋙ Cat.objects)) :=
       rw [←congr_fun (limit.w (hom_diagram X Y) h) f, ←congr_fun (limit.w (hom_diagram Y Z) h) g],
       dsimp,
       simp,
-    end), }
+    end),
+  id_comp' := λ _ _ _, by { ext, simp only [category.id_comp, types.limit.π_mk'] },
+  comp_id' := λ _ _ _, by { ext, simp only [types.limit.π_mk', category.comp_id] }}
 
 /-- Auxiliary definition: the limit category. -/
 @[simps]

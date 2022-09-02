@@ -131,59 +131,52 @@ begin
   ext,
   apply comp_out.eq_of_not_disjoint,
   rw set.not_disjoint_iff,
-  apply comp_out.eq_of_common_subset G' K (HL D).val.val.val (HL' D).val.val.val
-    (HL D).val.val.prop (HL' D).val.val.prop (f '' D.val.val) (HL D).prop (HL' D).prop,
-  exact set.nonempty.image f (set.infinite.nonempty D.prop),
+  obtain ⟨d,dD⟩ := set.nonempty.image f (set.infinite.nonempty D.prop),
+  use [d,(HL D).prop dD,(HL' D).prop dD],
 end
 
 lemma good_finset.agree_up {f : V → V'} {K : finset V'}
   {L L' : finset V} {LL' : L ⊆ L'}
   (HL : good_finset G G' f K L)   (HL' : good_finset G G' f K L') :
-  ∀ D : inf_ro_components' G L', (HL' D).val = (HL (bwd_map_inf G Gpc LL' D)).val :=
+  ∀ D : G.inf_comp_out L', (HL' D).val = (HL (D.back LL')).val :=
 begin
   rintro D,
-  apply subtype.ext, apply subtype.ext,
-  --↑↑((HL' D).val) = ↑↑((HL (bwd_map_inf G Gpc LL' D)).val)
-  apply ro_component.eq_of_common_subset G' K (HL' D).val.val.val (HL (bwd_map_inf G Gpc LL' D)).val.val.val
-    (HL' D).val.val.prop (HL (bwd_map_inf G Gpc LL' D)).val.val.prop (f '' D.val.val),
-  { exact (HL' D).prop,},
-  { refine subset.trans _ (HL (bwd_map_inf G Gpc LL' D)).prop,
-    apply set.image_subset,
-    apply bwd_map_inf.sub,},
-  { exact set.nonempty.image f (set.infinite.nonempty D.prop) },
+  ext,
+  apply comp_out.eq_of_not_disjoint, rw set.not_disjoint_iff,
+  obtain ⟨d,dD⟩ := set.nonempty.image f (set.infinite.nonempty D.prop),
+  use [d,(HL' D).prop dD],
+  apply (HL (D.back LL')).prop,
+  apply set.image_subset f,
+  apply comp_out.back_sub, exact dD,
 end
 
 lemma good_finset.agree_down {f : V → V'} {K K': finset V'} {KK' : K ⊆ K'}
   {L : finset V}   (HK : good_finset G G' f K L) (HK' : good_finset G G' f K' L) :
-   ∀ D : inf_ro_components' G L, (HK D).val = bwd_map_inf G' Gpc' KK' (HK' D).val :=
-  begin
-    rintro D,
-    apply subtype.ext, apply subtype.ext,
-
-    apply ro_component.eq_of_common_subset G' K
-      (HK D).val.val.val
-      (bwd_map_inf G' Gpc' KK' (HK' D).val).val.val
-      (HK D).val.val.prop
-      (bwd_map_inf G' Gpc' KK' (HK' D).val).val.prop
-      (f '' D.val.val),
-      { exact (HK D).prop, },
-      { refine subset.trans _ (bwd_map_inf.sub G' Gpc' KK' (HK' D).val), exact (HK' D).prop},
-      { exact set.nonempty.image f (set.infinite.nonempty D.prop) },
-  end
+   ∀ D : G.inf_comp_out L, (HK D).val = (HK' D).val.back KK' :=
+begin
+  rintro D,
+  ext,
+  apply comp_out.eq_of_not_disjoint, rw set.not_disjoint_iff,
+  obtain ⟨d,dD⟩ := set.nonempty.image f (set.infinite.nonempty D.prop),
+  use [d,(HK D).prop dD],
+  apply comp_out.back_sub,
+  apply (HK' D).prop,
+  exact dD,
+end
 
 
 lemma good_finset.up {f : V → V'} {K : finset V'}
   {L L' : finset V}   (HL : good_finset G G' f K L) (LL' : L ⊆ L') : good_finset G G' f K L' :=
-λ D, ⟨(HL (bwd_map_inf G Gpc LL' D)).val,  sorry⟩
+λ D, ⟨(HL (D.back LL')).val,  sorry⟩
 -- a component for L' is containd in one for L and thus the image is also contained and thus in blah
 
 lemma good_finset.down {f : V → V'} {K K': finset V'}
   {L : finset V}   (HL : good_finset G G' f K' L) (KK' : K ⊆ K') : good_finset G G' f K L :=
-λ D, ⟨(bwd_map_inf G' Gpc' KK' (HL D).val), sorry⟩
+λ D, ⟨(HL D).val.back KK', sorry⟩
 
 
 def good_finset.id (K : finset V) : good_finset G G (@id V) K K :=
-λ D, ⟨D,by { rw (set.image_id ↑(D.val)), exact set.subset.refl ↑(D.val), }⟩
+λ D, ⟨D,by { rw set.image_id ↑D, exact set.subset.refl ↑(D.val), }⟩
 
 
 def good_finset.comp (f : V → V') (f' : V' → V'')
@@ -217,8 +210,8 @@ def coarse.comp {f : V → V'} {f' : V' → V''} (fc : coarse G G' f) (fc' : coa
   , good_finset.comp G  G' G'' f f' K (fc' K).1 (fc' K).2 (fc (fc' K).1).1 (fc (fc' K).1).2
   ⟩
 
-def coarse.Endsinfty [locally_finite G] [locally_finite G'] {f : V → V'} (fc : coarse G G' f) :
-  Endsinfty G Gpc → Endsinfty G' Gpc' :=
+def coarse.Endsinfty {f : V → V'} (fc : coarse G G' f) :
+  Endsinfty G → Endsinfty G' :=
 begin
   rintro ⟨s,sec⟩,
   fsplit,
@@ -233,12 +226,12 @@ begin
     have LL : L ⊆ L'' := subset_union_left L L',
     have LL' : L' ⊆ L'' := subset_union_right L L',
 
-    let dG := bwd_map_inf G Gpc LL,
-    let dG' := bwd_map_inf G Gpc LL',
-    let d := bwd_map_inf G' Gpc' KsubK',
+    let dG := (λ C : G.inf_comp_out L'', C.back LL),
+    let dG' := (λ C : G.inf_comp_out L'', C.back LL'),
+    let d := (λ C : G'.inf_comp_out K, C.back KsubK'),
 
-    let uH := good_finset.up G Gpc G' H LL,
-    let uH' := good_finset.up G Gpc G' H' LL',
+    let uH := good_finset.up G G' H LL,
+    let uH' := good_finset.up G G' H' LL',
 
     dsimp [ComplInfComp] at sec ⊢,
     symmetry,
@@ -251,9 +244,8 @@ begin
   },
 end
 
-def coarse.Endsinfty.ext [locally_finite G] [locally_finite G'] {f : V → V'}
-  (c c' : coarse G G' f) :
-  coarse.Endsinfty G Gpc G' Gpc' c = coarse.Endsinfty G Gpc G' Gpc' c' :=
+def coarse.Endsinfty.ext {f : V → V'} (c c' : coarse G G' f) :
+  coarse.Endsinfty G G' c = coarse.Endsinfty G G' c' :=
 begin
   apply funext, rintro ⟨s,sec⟩,
   dsimp only [coarse.Endsinfty],
@@ -264,30 +256,31 @@ begin
   let L'' := L ∪ L',
   have LL : L ⊆ L'' := subset_union_left L L',
   have LL' : L' ⊆ L'' := subset_union_right L L',
-  let uH := good_finset.up G Gpc G' H LL,
-  let uH' := good_finset.up G Gpc G' H' LL',
+  let uH := good_finset.up G G' H LL,
+  let uH' := good_finset.up G G' H' LL',
 
   simp only,
   calc    (H (s L)).val
-        = (H (bwd_map_inf G Gpc LL (s L''))).val   : congr_arg (λ x, (H x).val) (sec (hom_of_le LL)).symm
+        = (H (inf_comp_out.back LL (s L''))).val   : congr_arg (λ x, (H x).val) (sec (hom_of_le LL)).symm
   ...   = (uH (s L'')).val                         : by {symmetry, apply good_finset.agree_up,}
   ...   = (uH' (s L'')).val                        : by {rw good_finset.eq G G' uH uH',}
-  ...   = (H' (bwd_map_inf G Gpc LL' (s L''))).val : by {apply good_finset.agree_up}
+  ...   = (H' (inf_comp_out.back LL' (s L''))).val : by {apply good_finset.agree_up}
   ...   = (H' (s L')).val                          : congr_arg (λ x, (H' x).val) (sec (hom_of_le LL')),
 
 
 end
 
-def coarse.Endsinfty_comp [locally_finite G] [locally_finite G'] [locally_finite G'']
-  {f : V → V'} {f' : V' → V''} (fc : coarse G G' f ) (fc' : coarse G' G'' f') :
-  coarse.Endsinfty G Gpc G'' Gpc'' (coarse.comp G G' G'' fc fc') = (coarse.Endsinfty G' Gpc' G'' Gpc'' fc') ∘ (coarse.Endsinfty G Gpc G' Gpc' fc) :=
+def coarse.Endsinfty_comp {f : V → V'} {f' : V' → V''}
+  (fc : coarse G G' f ) (fc' : coarse G' G'' f') :
+  coarse.Endsinfty G G'' (coarse.comp G G' G'' fc fc')
+  = (coarse.Endsinfty G' G'' fc') ∘ (coarse.Endsinfty G G' fc) :=
 begin
   apply funext,
   rintro ⟨s,sec⟩,
   refl,
 end
 
-def coarse.Endsinfty_id [locally_finite G] : coarse.Endsinfty G Gpc G Gpc (coarse.id G) = id :=
+def coarse.Endsinfty_id [locally_finite G] : coarse.Endsinfty G G (coarse.id G) = id :=
 begin
   apply funext,
   rintro ⟨s,sec⟩,
@@ -295,7 +288,7 @@ begin
 end
 
 def good_common_finset (f g : V → V') (K : finset V') (L : finset V) :=
-  Π D : inf_ro_components' G L, {C : inf_ro_components' G' K | f '' D.val ∪ g '' D.val ⊆ C.val}
+  Π D : G.inf_comp_out L, {C : G'.inf_comp_out K | f '' D.val ∪ g '' D.val ⊆ C.val}
 
 def good_common_finset.left {f g : V → V'} {K : finset V'} {L : finset V} :
   (good_common_finset G G' f g K L) → good_finset G G' f K L :=
@@ -333,13 +326,11 @@ end
 def good_common_finset.up {f g : V → V'} {K : finset V'}  {L L' : finset V} (LL' : L ⊆ L') :
   (good_common_finset G G' f g K L) → good_common_finset G G' f g K L'  :=
 λ c D,
-  ⟨ (c (bwd_map_inf G Gpc LL' D)).1
+  ⟨ (c (D.back LL')).1
   , by
-    { refine subset.trans _ (c (bwd_map_inf G Gpc LL' D)).2,
-      apply set.union_subset_union; apply image_subset; apply bwd_map_inf.sub, }
+    { refine subset.trans _ (c (D.back LL')).2,
+      apply set.union_subset_union; apply image_subset; apply comp_out.back_sub, }
   ⟩
-
--- Probably we also need versions of the `agree_up` `agree_down` and `up` `down` constructions for `good_finset`.
 
 
 def coarse_close (f g : V → V') :=
@@ -366,76 +357,85 @@ def coarse_close.trans (f g h : V → V') :
 λ iccfg iccgh K,
   ⟨ (iccfg K).1 ∪ (iccgh K).1
   , good_common_finset.trans G G'
-      (good_common_finset.up G Gpc G' (subset_union_left (iccfg K).1 (iccgh K).1) (iccfg K).2)
-      (good_common_finset.up G Gpc G' (subset_union_right (iccfg K).1 (iccgh K).1) (iccgh K).2)
+      (good_common_finset.up G G' (subset_union_left (iccfg K).1 (iccgh K).1) (iccfg K).2)
+      (good_common_finset.up G G' (subset_union_right (iccfg K).1 (iccgh K).1) (iccgh K).2)
   ⟩
 
 
-lemma coarse_close.Endsinfty.eq [locally_finite G] [locally_finite G']
+lemma coarse_close.Endsinfty.eq
   {f g : V → V'} (icc : coarse_close G G' f g) :
-  coarse.Endsinfty G Gpc G' Gpc' (coarse_close.left G G' icc) = coarse.Endsinfty G Gpc G' Gpc' (coarse_close.right G G' icc) :=
+  coarse.Endsinfty G G' (coarse_close.left G G' icc)
+  = coarse.Endsinfty G G' (coarse_close.right G G' icc) :=
 begin
   apply funext, rintro ⟨s,sec⟩,
   refl,
 end
 
-lemma coarse_close.Endsinfty.eq' [locally_finite G] [locally_finite G']
-  {f g : V → V'}
+lemma coarse_close.Endsinfty.eq' {f g : V → V'}
   (icc : coarse_close G G' f g) (fc : coarse G G' f) (gc : coarse G G' g) :
-  fc.Endsinfty G Gpc G' Gpc' = gc.Endsinfty G Gpc G' Gpc' :=
-  (coarse.Endsinfty.ext G Gpc G' Gpc' fc (icc.left G G')).trans
-  ( (coarse_close.Endsinfty.eq G Gpc G' Gpc' icc).trans
-      (coarse.Endsinfty.ext G Gpc G' Gpc' gc (icc.right G G')).symm)
+  fc.Endsinfty G G' = gc.Endsinfty G G' :=
+  (coarse.Endsinfty.ext G G' fc (icc.left G G')).trans
+  ( (coarse_close.Endsinfty.eq G G' icc).trans
+      (coarse.Endsinfty.ext G G' gc (icc.right G G')).symm)
 
 
 
 def coarse_Lipschitz (f : V → V') (K : ℕ) := ∀ (x y : V) (a : G.adj x y), (G'.dist (f x) (f y)) ≤ K
 
-
-
-private def thicken (G : simple_graph V) (K : finset V) (m : ℕ) : finset V :=
+private def thicken_ (G : simple_graph V) (K : finset V) (m : ℕ) : finset V :=
 begin
   let K'set := {v : V | ∃ k ∈ K, G.dist v k ≤ m},
   have : K'set.finite := sorry, -- locally finite TODO: WIP approach in `.mathlib.lean`
   exact this.to_finset,
 end
 
-private lemma thicken.sub (G : simple_graph V) (K : finset V) (m : ℕ) :
-  K ⊆ thicken G K m :=
+
+private lemma thicken_.sub (G : simple_graph V) (K : finset V) (m : ℕ) :
+  K ⊆ thicken_ G K m :=
 begin
   rintro k kK,
-  dsimp [thicken],
+  dsimp [thicken_],
   simp only [finite.mem_to_finset, mem_set_of_eq, exists_prop],
   use k, split, exact kK,
   rw (dist_self : G.dist k k = 0),
   apply zero_le,
 end
 
-private lemma thicken.eq (G : simple_graph V) (K : finset V) (m : ℕ) :
-  (thicken G K m : set V) = {v : V | ∃ k ∈ K, G.dist v k ≤ m} := sorry
+private lemma thicken_.eq (G : simple_graph V) (K : finset V) (m : ℕ) :
+  (thicken_ G K m : set V) = {v : V | ∃ k ∈ K, G.dist v k ≤ m} := sorry
 
 private lemma well_separated (G : simple_graph V) (Gpc : G.preconnected) (K : finset V) (m : ℕ)
-  (C : ro_components G K)
-  (c : V) (cC : c ∈ C.val) (c' : V) :
-  c ∉ (thicken G K m) → G.dist c c' ≤ m → c' ∈ C.val :=
+  (C : G.comp_out K)
+  (c : V) (cC : c ∈ C) (c' : V) :
+  c ∉ (thicken_ G K m) → G.dist c c' ≤ m → c' ∈ C :=
 begin
   rintro cnK,
   obtain ⟨w,wm⟩ := reachable.exists_walk_of_dist (Gpc c c'), rw ←wm,
   rintro hwm,
-  have wdisK : disjoint w.support.to_finset K, by {
+  have wdisK : disjoint (w.support.to_finset : set V) K, by {
+    rw finset.disjoint_coe,
     by_contradiction h, rw finset.not_disjoint_iff at h,
     obtain ⟨x,xw,xK⟩ := h,
     rw [list.mem_to_finset,walk.mem_support_iff_exists_append] at xw,
     obtain ⟨cx,_,rfl⟩ := xw,
     apply cnK,
-    dsimp only [thicken],
+    dsimp only [thicken_],
     simp only [finite.mem_to_finset, mem_set_of_eq, exists_prop],
     use [x,xK],
     apply (dist_le cx).trans,
     refine le_trans _ hwm,
-    simp only [length_append, le_add_iff_nonneg_right, zero_le'],
-  },
-  apply mem_of_mem_of_ro G K C.val C.prop c c' cC ⟨w,wdisK.symm⟩,
+    simp only [length_append, le_add_iff_nonneg_right, zero_le'],},
+
+  let Cw := comp_out.of_connected_disjoint (w.support.to_finset : set V) (connected.walk_support w) wdisK.symm,
+  have : C = Cw, by
+  { apply comp_out.eq_of_not_disjoint,
+    rw set.not_disjoint_iff,
+    use [c,cC],
+    apply comp_out.of_connected_disjoint_sub,
+    simp only [mem_coe, list.mem_to_finset, start_mem_support],},
+  rw this,
+  apply comp_out.of_connected_disjoint_sub,
+  simp only [mem_coe, list.mem_to_finset, end_mem_support],
 end
 
 
@@ -443,25 +443,27 @@ include Gpc'
 def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
   (fcl : coarse_Lipschitz G G' f m) (cof : cofinite f) : coarse G G' f :=
 λ K,
-⟨ cof.preimage $ thicken G' K m
+⟨ cof.preimage $ thicken_ G' K m
 , by {
 
-  let K' := thicken G' K m,
+  let K' := thicken_ G' K m,
   let L := cof.preimage K',
 
   rintro D,
-  have disDK' : disjoint (f '' D.val) K', by
-  { rw set.disjoint_iff,
+  have disDK' : disjoint (K' : set V') (f '' D.val), by
+  { sorry,
+    /-rw set.disjoint_iff,
     rintro x ⟨⟨y,⟨yD,rfl⟩⟩,xK⟩,
     have : y ∈ L, by {rw ←set.mem_preimage at xK, rw ←cofinite.preimage.coe cof at xK, exact xK},
-    apply not_in_of_in_comp G L D.val.val D.val.prop y yD this,},
+    apply not_in_of_in_comp G L D.val.val D.val.prop y yD this,-/
+  },
 
-  have disDK : disjoint (f '' D.val) K := set.disjoint_of_subset_right (thicken.sub G' K m) disDK',
+  have disDK : disjoint (f '' D.val) K := set.disjoint_of_subset_right (thicken_.sub G' K m) disDK'.symm,
   have  fDinf: (f '' D.val.val : set V').infinite := cofinite.image_infinite cof D.prop,
   let d := fDinf.nonempty.some,
   have dfD := fDinf.nonempty.some_spec,
   have dnK : d ∉ K := λ dK, (disDK.ne_of_mem dfD dK) (refl d),
-  have dnK'' : d ∉ K' := λ dK', (disDK'.ne_of_mem dfD dK') (refl d),
+  have dnK'' : d ∉ K' := λ dK', (disDK'.symm.ne_of_mem dfD dK') (refl d),
 
   let C := ro_component.of G' K d,
   have Ccomp := ro_component.of_in_components G' K d dnK,
@@ -494,7 +496,7 @@ def coarse_close.of_close_of_coarse_Lipschitz_of_cofinite (f g : V → V')
 begin
   rintro K,
 
-  let K' := thicken G' K m,
+  let K' := thicken_ G' K m,
 
   let Lf := (coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' f m clf cof K).1,
   let Hf := (coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' f m clf cof K).2,
@@ -505,8 +507,8 @@ begin
   obtain ⟨Lg,Hg⟩ := coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' g m clg cog K,
 
   use Lf ∪ Lg,
-  let Hf' := good_finset.up G Gpc G' Hf (finset.subset_union_left Lf Lg),
-  let Hg' := good_finset.up G Gpc G' Hg (finset.subset_union_right Lf Lg),
+  let Hf' := good_finset.up G G' Hf (finset.subset_union_left Lf Lg),
+  let Hg' := good_finset.up G G' Hg (finset.subset_union_right Lf Lg),
 
   rintro D,
   suffices hh : (Hf' D).val = (Hg' D).val,
@@ -527,8 +529,8 @@ begin
   have dD := D.prop.nonempty.some_spec,
   let c := f d,
   let c' := g d,
-  have cC : c ∈ (Hf' D).val.val.val, by {refine mem_of_mem_of_subset _ (Hf' D).prop, exact ⟨d,dD,refl c⟩,},
-  have cC' : c' ∈ (Hg' D).val.val.val, by {refine mem_of_mem_of_subset _ (Hg' D).prop, exact ⟨d,dD,refl c'⟩,},
+  have cC : c ∈ ((Hf' D) : set V') := (Hf' D).prop ⟨d,dD,refl c⟩,
+  have cC' : c' ∈ ((Hg' D) : set V') := (Hg' D).prop ⟨d,dD,refl c'⟩,
   have cnK : c ∉ K', by
   { rintro cK',
     have : d ∈ Lf ∪ Lg, by

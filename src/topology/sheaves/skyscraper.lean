@@ -29,6 +29,7 @@ of `p₀`, i.e. if `x ⤳ p₀` then `𝓕ₓ ≅ A` and if `¬ x ⤳ p₀` then
 * `skyscraper_presheaf_stalk_of_not_specializes`: if `y ∉ closure {p₀}` then the stalk of
   `skyscraper_presheaf p₀ A` at `y` is `*` the terminal object.
 
+TODO: generalize universe level when calculating stalks, after generalizing universe level of stalk.
 -/
 
 noncomputable theory

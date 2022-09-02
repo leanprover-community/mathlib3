@@ -140,6 +140,16 @@ begin
   exact h_mem.2,
 end
 
+lemma hitting_mem_set_of_hitting_lt [is_well_order ι (<)] {m : ι}
+  (hl : hitting u s n m ω < m) :
+  u (hitting u s n m ω) ω ∈ s :=
+begin
+  by_cases h : ∃ j ∈ set.Icc n m, u j ω ∈ s,
+  { exact hitting_mem_set h },
+  { simp_rw [hitting, if_neg h] at hl,
+    exact false.elim (hl.ne rfl) }
+end
+
 lemma hitting_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u i ω ∈ s) :
   hitting u s n m ω ≤ i :=
 begin

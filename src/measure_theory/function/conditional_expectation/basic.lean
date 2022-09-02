@@ -2080,9 +2080,18 @@ begin
   rw [hg_eq s hs hμs, set_integral_condexp hm hf hs],
 end
 
-lemma condexp_bot' [is_finite_measure μ] (f : α → F') :
+lemma condexp_bot' (f : α → F') :
   μ[f|⊥] =ᵐ[μ] λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
 begin
+  by_cases hμ_finite : is_finite_measure μ,
+  swap,
+  { have h : ¬ sigma_finite (μ.trim bot_le),
+    { rwa sigma_finite_trim_bot_iff, },
+    rw not_is_finite_measure_iff at hμ_finite,
+    rw [condexp_of_not_sigma_finite bot_le h],
+    simp only [hμ_finite, ennreal.top_to_real, inv_zero, zero_smul],
+    refl, },
+  haveI : is_finite_measure μ := hμ_finite,
   by_cases hμ : μ = 0,
   { simp only [hμ, ae_zero], },
   by_cases hf : integrable f μ,

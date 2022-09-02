@@ -54,30 +54,27 @@ begin
   simp only [inv_apply_self]
 end
 
-lemma perm_inv_maps_to_of_maps_to (f : perm α) {s : set α} [fintype s]
-  (h : set.maps_to f s s) : set.maps_to (f⁻¹ : _) s s :=
-λ x hx, set.mem_to_finset.mp $
+lemma perm_inv_maps_to_of_maps_to (f : perm α) {s : set α} [finite s] (h : set.maps_to f s s) :
+  set.maps_to (f⁻¹ : _) s s :=
+by casesI nonempty_fintype s; exact λ x hx, set.mem_to_finset.mp $
   perm_inv_on_of_perm_on_finset
    (λ a ha, set.mem_to_finset.mpr (h (set.mem_to_finset.mp ha)))
    (set.mem_to_finset.mpr hx)
 
-@[simp] lemma perm_inv_maps_to_iff_maps_to {f : perm α} {s : set α} [fintype s] :
+@[simp] lemma perm_inv_maps_to_iff_maps_to {f : perm α} {s : set α} [finite s] :
   set.maps_to (f⁻¹ : _) s s ↔ set.maps_to f s s :=
 ⟨perm_inv_maps_to_of_maps_to f⁻¹, perm_inv_maps_to_of_maps_to f⟩
 
-lemma perm_inv_on_of_perm_on_fintype {f : perm α} {p : α → Prop} [fintype {x // p x}]
+lemma perm_inv_on_of_perm_on_finite {f : perm α} {p : α → Prop} [finite {x // p x}]
   (h : ∀ x, p x → p (f x)) {x : α} (hx : p x) : p (f⁻¹ x) :=
-begin
-  letI : fintype ↥(show set α, from p) := ‹fintype {x // p x}›,
-  exact perm_inv_maps_to_of_maps_to f h hx
-end
+perm_inv_maps_to_of_maps_to f h hx
 
 /-- If the permutation `f` maps `{x // p x}` into itself, then this returns the permutation
   on `{x // p x}` induced by `f`. Note that the `h` hypothesis is weaker than for
   `equiv.perm.subtype_perm`. -/
 abbreviation subtype_perm_of_fintype (f : perm α) {p : α → Prop} [fintype {x // p x}]
   (h : ∀ x, p x → p (f x)) : perm {x // p x} :=
-f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype h h₂⟩)
+f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_finite h h₂⟩)
 
 @[simp] lemma subtype_perm_of_fintype_apply (f : perm α) {p : α → Prop} [fintype {x // p x}]
   (h : ∀ x, p x → p (f x)) (x : {x // p x}) : subtype_perm_of_fintype f h x = ⟨f x, h x x.2⟩ := rfl
@@ -86,11 +83,12 @@ f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_per
   (h : ∀ x, p x → p ((1 : perm α) x)) : @subtype_perm_of_fintype α 1 p _ h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
-lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n]
-  (σ : equiv.perm (m ⊕ n)) :
+lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [finite m] [finite n] (σ : perm (m ⊕ n)) :
   set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔
   set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
 begin
+  casesI nonempty_fintype m,
+  casesI nonempty_fintype n,
   split; id
   { intros h,
     classical,
@@ -109,10 +107,12 @@ begin
     exact absurd hy sum.inr_ne_inl},
 end
 
-lemma mem_sum_congr_hom_range_of_perm_maps_to_inl {m n : Type*} [fintype m] [fintype n]
+lemma mem_sum_congr_hom_range_of_perm_maps_to_inl {m n : Type*} [finite m] [finite n]
   {σ : perm (m ⊕ n)} (h : set.maps_to σ (set.range sum.inl) (set.range sum.inl)) :
   σ ∈ (sum_congr_hom m n).range :=
 begin
+  casesI nonempty_fintype m,
+  casesI nonempty_fintype n,
   classical,
   have h1 : ∀ (x : m ⊕ n), (∃ (a : m), sum.inl a = x) → (∃ (a : m), sum.inl a = σ x),
   { rintros x ⟨a, ha⟩, apply h, rw ← ha, exact ⟨a, rfl⟩ },
@@ -212,9 +212,10 @@ quotient.rec_on_subsingleton (@univ α _).1
 
 /-- An induction principle for permutations. If `P` holds for the identity permutation, and
 is preserved under composition with a non-trivial swap, then `P` holds for all permutations. -/
-@[elab_as_eliminator] lemma swap_induction_on [fintype α] {P : perm α → Prop} (f : perm α) :
+@[elab_as_eliminator] lemma swap_induction_on [finite α] {P : perm α → Prop} (f : perm α) :
   P 1 → (∀ f x y, x ≠ y → P f → P (swap x y * f)) → P f :=
 begin
+  casesI nonempty_fintype α,
   cases (trunc_swap_factors f).out with l hl,
   induction l with g l ih generalizing f,
   { simp only [hl.left.symm, list.prod_nil, forall_true_iff] {contextual := tt} },
@@ -225,8 +226,9 @@ begin
       (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
-lemma closure_is_swap [fintype α] : subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
+lemma closure_is_swap [finite α] : subgroup.closure {σ : perm α | is_swap σ} = ⊤ :=
 begin
+  casesI nonempty_fintype α,
   refine eq_top_iff.mpr (λ x hx, _),
   obtain ⟨h1, h2⟩ := subtype.mem (trunc_swap_factors x).out,
   rw ← h1,
@@ -237,7 +239,7 @@ end
 
 An induction principle for permutations. If `P` holds for the identity permutation, and
 is preserved under composition with a non-trivial swap, then `P` holds for all permutations. -/
-@[elab_as_eliminator] lemma swap_induction_on' [fintype α] {P : perm α → Prop} (f : perm α) :
+@[elab_as_eliminator] lemma swap_induction_on' [finite α] {P : perm α → Prop} (f : perm α) :
   P 1 → (∀ f x y, x ≠ y → P f → P (f * swap x y)) → P f :=
 λ h1 IH, inv_inv f ▸ swap_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
 
@@ -636,7 +638,7 @@ sign_bij (λ (ab : α × β) _, ab.snd)
 lemma sign_prod_congr_right (σ : α → perm β) :
   sign (prod_congr_right σ) = ∏ k, (σ k).sign :=
 begin
-  obtain ⟨l, hl, mem_l⟩ := fintype.exists_univ_list α,
+  obtain ⟨l, hl, mem_l⟩ := finite.exists_univ_list α,
   have l_to_finset : l.to_finset = finset.univ,
   { apply eq_top_iff.mpr,
     intros b _,

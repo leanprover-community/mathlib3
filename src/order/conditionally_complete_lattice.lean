@@ -556,17 +556,6 @@ by haveI := unique_prop hp; exact supr_unique
 @[simp] lemma cinfi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
 @csupr_pos αᵒᵈ _ _ _ hp
 
-lemma csupr_set {s : set β} {f : β → α} : (⨆ x : s, f x) = Sup (f '' s) :=
-begin
-  rw supr,
-  congr,
-  ext,
-  rw [mem_image, mem_range, set_coe.exists],
-  simp_rw [subtype.coe_mk, exists_prop],
-end
-
-lemma cinfi_set {s : set β} {f : β → α} : (⨅ x : s, f x) = Inf (f '' s) := @csupr_set αᵒᵈ _ _ _ _
-
 /--Introduction rule to prove that `b` is the supremum of `f`: it suffices to check that `b`
 is larger than `f i` for all `i`, and that this is not the case of any `w<b`.
 See `supr_eq_of_forall_le_of_forall_lt_exists_gt` for a version in complete lattices. -/
@@ -687,7 +676,8 @@ lemma exists_lt_of_cinfi_lt [nonempty ι] {f : ι → α} (h : infi f < a) : ∃
 open function
 variables [is_well_order α (<)]
 
-lemma Inf_eq_argmin_on (hs : s.nonempty) : Inf s = argmin_on id (@is_well_order.wf α (<) _) s hs :=
+lemma Inf_eq_argmin_on (hs : s.nonempty) :
+  Inf s = argmin_on id (@is_well_founded.wf α (<) _) s hs :=
 is_least.cInf_eq ⟨argmin_on_mem _ _ _ _, λ a ha, argmin_on_le id _ _ ha⟩
 
 lemma is_least_Inf (hs : s.nonempty) : is_least s (Inf s) :=
@@ -930,7 +920,7 @@ eq.symm $ is_lub.csupr_set_eq (gc.is_lub_l_image $ is_lub_cSup hne hbdd) hne
 
 lemma l_cSup' (gc : galois_connection l u) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
   l (Sup s) = Sup (l '' s) :=
-by rw [gc.l_cSup hne hbdd, csupr_set]
+by rw [gc.l_cSup hne hbdd, Sup_image']
 
 lemma l_csupr (gc : galois_connection l u) {f : ι → α}
   (hf : bdd_above (range f)) :
@@ -1181,19 +1171,17 @@ noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
 lemma with_top.supr_coe_eq_top {ι : Sort*} {α : Type*} [conditionally_complete_linear_order_bot α]
   (f : ι → α) : (⨆ x, (f x : with_top α)) = ⊤ ↔ ¬ bdd_above (set.range f) :=
 begin
-  refine ⟨_, λ hf, _⟩,
-  { rw [supr_eq_top, not_bdd_above_iff],
-    intros hf r,
-    rcases hf r (with_top.coe_lt_top r) with ⟨i, hi⟩,
+  rw [supr_eq_top, not_bdd_above_iff],
+  refine ⟨λ hf r, _, λ hf a ha, _⟩,
+  { rcases hf r (with_top.coe_lt_top r) with ⟨i, hi⟩,
     exact ⟨f i, ⟨i, rfl⟩, with_top.coe_lt_coe.mp hi⟩ },
-  { refine (supr_eq_top _).mpr (λ a ha, _),
-    rcases not_bdd_above_iff.mp hf (a.untop ha.ne) with ⟨-, ⟨i, rfl⟩, hi⟩,
+  { rcases hf (a.untop ha.ne) with ⟨-, ⟨i, rfl⟩, hi⟩,
     exact ⟨i, by simpa only [with_top.coe_untop _ ha.ne] using with_top.coe_lt_coe.mpr hi⟩ },
 end
 
 lemma with_top.supr_coe_lt_top {ι : Sort*} {α : Type*} [conditionally_complete_linear_order_bot α]
   (f : ι → α) : (⨆ x, (f x : with_top α)) < ⊤ ↔ bdd_above (set.range f) :=
-by simpa only [not_not, lt_top_iff_ne_top] using not_iff_not.mpr (with_top.supr_coe_eq_top f)
+lt_top_iff_ne_top.trans $ (with_top.supr_coe_eq_top f).not.trans not_not
 
 end with_top_bot
 

@@ -98,10 +98,10 @@ lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
 by { rw ←map_nat_cast _, exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_int [nontrivial R] (n : ℤ) : is_algebraic R (n : A) :=
-by { rw ←ring_hom.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+by { rw ←_root_.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
-lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
-  [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
+lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [algebra R A] (n : ℚ) :
+  is_algebraic R (n : A) :=
 by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_of_mem_root_set {R : Type u} {A : Type v} [field R] [field A] [algebra R A]
@@ -229,7 +229,7 @@ begin
   obtain ⟨p, hp, he⟩ := ha b,
   let f' : p.root_set L → p.root_set L :=
     set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
-  have : function.surjective f' := fintype.injective_iff_surjective.1
+  have : function.surjective f' := finite.injective_iff_surjective.1
     (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
   obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
   exact ⟨a, subtype.ext_iff.1 ha⟩,

@@ -177,9 +177,8 @@ end cast
 lemma range_eq {α} (f : sign_type → α) : set.range f = {f zero, f neg, f pos} :=
 begin
   classical,
-  simp only [← finset.coe_singleton, ← finset.image_singleton,
+  simpa only [← finset.coe_singleton, ← finset.image_singleton,
     ← fintype.coe_image_univ, finset.coe_image, ← set.image_insert_eq],
-  refl,
 end
 
 end sign_type

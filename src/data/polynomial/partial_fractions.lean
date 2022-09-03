@@ -141,25 +141,29 @@ it can be used to make our lives a lot easier.
 @[norm_cast] lemma coe_algebra_map_add (a b : R[X]) : ((a + b : R[X]) : K) = a + b :=
 map_add (algebra_map R[X] K) a b
 
+@[simp, norm_cast] lemma coe_algebra_map_zero : ((0 : R[X]) : K) = 0 := map_zero (algebra_map R[X] K)
+
+@[norm_cast] lemma coe_algebra_map_neg (x : R[X]) : ((-x : R[X]) : K) = -x := map_neg (algebra_map R[X] K) x
+
 @[norm_cast] lemma coe_algebra_map_mul (a b : R[X]) : ((a * b : R[X]) : K) = a * b :=
 map_mul (algebra_map R[X] K) a b
 
+@[simp, norm_cast] lemma coe_algebra_map_one : ((1 : R[X]) : K) = 1 := map_one (algebra_map R[X] K)
+
 open_locale big_operators
 
-@[norm_cast] lemma coe_algebra_map_fin_prod {ι : Type*} {s : finset ι} (a : ι → R[X]) :
+@[norm_cast] lemma coe_algebra_map_prod {ι : Type*} {s : finset ι} (a : ι → R[X]) :
   ↑(( ∏ (i : ι) in s, a i)) = ∏ (i : ι) in s, ((a i):K) :=
 begin
   classical,
   apply s.induction_on,
-  { unfold_coes,
-    simp only [finset.prod_empty, ring_hom.to_fun_eq_coe, map_one], },
+  { simp, },
   { intros j s hjs H,
     rw [finset.prod_insert hjs, finset.prod_insert hjs, ← H,
         ← polynomial.coe_algebra_map_mul _ _ (a j) (∏ (i : ι) in s, a i)], },
 end
 
-
-@[norm_cast] lemma coe_algebra_map_fin_sum {ι : Type*} {s : finset ι} (a : ι → R[X]) :
+@[norm_cast] lemma coe_algebra_map_sum {ι : Type*} {s : finset ι} (a : ι → R[X]) :
   ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, ((a i):K) :=
 begin
   classical,
@@ -171,6 +175,8 @@ begin
         ← polynomial.coe_algebra_map_add _ _ (a j) (∑ (i : ι) in s, a i)], },
 end
 
+attribute [to_additive] coe_algebra_map_prod
+
 @[norm_cast] lemma coe_algebra_map_inj_iff (a b : R[X]) : (a : K) = b ↔ a = b :=
 ⟨λ h, is_fraction_ring.injective R[X] K h, by rintro rfl; refl⟩
 
@@ -179,9 +185,6 @@ begin
   rw (show (0 : K) = (0 : R[X]), from (map_zero (algebra_map R[X] K)).symm),
   norm_cast,
 end
-
-@[norm_cast] lemma coe_algebra_map_zero : ((0 : R[X]) : K) = 0 :=
-map_zero (algebra_map R[X] K)
 
 @[norm_cast] lemma coe_algebra_map_pow (a : R[X]) (n : ℕ) : ((a ^ n : R[X]) : K) = a ^ n :=
 map_pow (algebra_map R[X] K) _ _
@@ -281,28 +284,10 @@ section n_denominators
 -- need notation for finite products
 open_locale big_operators
 
-lemma finite_product_of_monics_is_monic {ι : Type*} {g : ι → R[X]}
-  (hg : ∀ (i : ι), (g i).monic) (s : finset ι) : (∏ i in s, g i).monic :=
-begin
-  have h0 := monic_prod_of_monic s g _,
-  { exact h0 },
-  { intros i hi,
-    exact hg i, },
-end
-
-lemma mul_finite_sum {ι : Type*} {s : finset ι} {g : ι → K} {h : K} :
-  h * (∑ i in s, g i) = ∑ i in s, (h * g i) :=
-begin
-  classical,
-  apply s.induction_on,
-  { simp only [finset.sum_empty, mul_zero], },
-  { intros a s has H,
-    rw [finset.sum_insert has, finset.sum_insert has, ← H, ← mul_add], },
-end
-
 lemma sum_eq_of_terms_eq {ι : Type*} {s : finset ι} {g h : ι → K} :
   (∀ i : ι, i ∈ s → g i = h i) → ∑ (i : ι) in s, g i = ∑ (i : ι) in s, h i :=
 begin
+--  exact finset.sum_congr rfl,
   classical,
   apply s.induction_on,
   { intro hi,
@@ -379,12 +364,14 @@ begin
       r₂.degree < (∏ (x : ι) in b, (g x)).degree ∧ (f : K) / (↑(g a) * ↑(∏ (x : ι) in b, (g x))) =
       q + r₁ / ↑(g a) + r₂ / ↑(∏ (x : ι) in b, (g x)) :=
       div_eq_quo_add_rem_div_add_rem_div _ _ (hg a)
-        (finite_product_of_monics_is_monic _ (hg) b) (coprime_of_prod_coprime R hg hcop b a hab),
+        (monic_prod_of_monic _ _ (λ i hi, hg i)) (coprime_of_prod_coprime R hg hcop b a hab),
     rcases hdiv with ⟨ q', r1', r2', hd1, hd2, H2 ⟩,
-    rw polynomial.coe_algebra_map_fin_prod _ K g at H2, -- why isn't norm_cast working?
+    norm_cast,
+    norm_cast at H2,
     rw H2,
     specialize Hind r2',
     rcases Hind with ⟨Q, R', Hdeg', H3⟩,
+    norm_cast at H3,
     rw H3,
     let myR : ι → R[X] := λ i, if i = a then r1' else R' i,
     refine ⟨q' + Q, myR , _ ⟩,

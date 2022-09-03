@@ -58,24 +58,10 @@ instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
 
-@[priority 100, to_additive]
-instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
-  [ordered_comm_group α] :
-  has_exists_mul_of_le α :=
-⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance group.has_exists_mul_of_le (α : Type u) [group α] [has_le α] : has_exists_mul_of_le α :=
+⟨λ a b hab, ⟨a⁻¹ * b, (mul_inv_cancel_left _ _).symm⟩⟩
 
-@[to_additive] instance [h : has_inv α] : has_inv αᵒᵈ := h
-@[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
-@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
-@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_monoid]
-instance [h : division_monoid α] : division_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_comm_monoid]
-instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : group α] : group αᵒᵈ := h
-@[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
-instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
-instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
@@ -87,13 +73,13 @@ section typeclasses_left_le
 variables [has_le α] [covariant_class α α (*) (≤)] {a b c d : α}
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_nonpos_iff]
+@[simp, to_additive left.neg_nonpos_iff "Uses `left` co(ntra)variant."]
 lemma left.inv_le_one_iff :
   a⁻¹ ≤ 1 ↔ 1 ≤ a :=
 by { rw [← mul_le_mul_iff_left a], simp }
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.nonneg_neg_iff]
+@[simp, to_additive left.nonneg_neg_iff "Uses `left` co(ntra)variant."]
 lemma left.one_le_inv_iff :
   1 ≤ a⁻¹ ↔ a ≤ 1 :=
 by { rw [← mul_le_mul_iff_left a], simp }
@@ -128,13 +114,13 @@ section typeclasses_left_lt
 variables [has_lt α] [covariant_class α α (*) (<)] {a b c : α}
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_pos_iff]
+@[simp, to_additive left.neg_pos_iff "Uses `left` co(ntra)variant."]
 lemma left.one_lt_inv_iff :
   1 < a⁻¹ ↔ a < 1 :=
 by rw [← mul_lt_mul_iff_left a, mul_inv_self, mul_one]
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_neg_iff]
+@[simp, to_additive left.neg_neg_iff "Uses `left` co(ntra)variant."]
 lemma left.inv_lt_one_iff :
   a⁻¹ < 1 ↔ 1 < a :=
 by rw [← mul_lt_mul_iff_left a, mul_inv_self, mul_one]
@@ -169,13 +155,13 @@ section typeclasses_right_le
 variables [has_le α] [covariant_class α α (swap (*)) (≤)] {a b c : α}
 
 /--  Uses `right` co(ntra)variant. -/
-@[simp, to_additive right.neg_nonpos_iff]
+@[simp, to_additive right.neg_nonpos_iff "Uses `right` co(ntra)variant."]
 lemma right.inv_le_one_iff :
   a⁻¹ ≤ 1 ↔ 1 ≤ a :=
 by { rw [← mul_le_mul_iff_right a], simp }
 
 /--  Uses `right` co(ntra)variant. -/
-@[simp, to_additive right.nonneg_neg_iff]
+@[simp, to_additive right.nonneg_neg_iff "Uses `right` co(ntra)variant."]
 lemma right.one_le_inv_iff :
   1 ≤ a⁻¹ ↔ a ≤ 1 :=
 by { rw [← mul_le_mul_iff_right a], simp }
@@ -780,7 +766,13 @@ end preorder
 end comm_group
 
 section linear_order
-variables [group α] [linear_order α] [covariant_class α α (*) (≤)]
+variables [group α] [linear_order α]
+
+@[simp, to_additive cmp_sub_zero]
+lemma cmp_div_one' [covariant_class α α (swap (*)) (≤)] (a b : α) : cmp (a / b) 1 = cmp a b :=
+by rw [← cmp_mul_right' _ _ b, one_mul, div_mul_cancel']
+
+variables [covariant_class α α (*) (≤)]
 
 section variable_names
 variables {a b c : α}
@@ -825,14 +817,8 @@ section densely_ordered
 variables [densely_ordered α] {a b c : α}
 
 @[to_additive]
-lemma le_of_forall_one_lt_le_mul (h : ∀ ε : α, 1 < ε → a ≤ b * ε) : a ≤ b :=
-le_of_forall_le_of_dense $ λ c hc,
-calc a ≤ b * (b⁻¹ * c) : h _ (lt_inv_mul_iff_lt.mpr hc)
-   ... = c             : mul_inv_cancel_left b c
-
-@[to_additive]
 lemma le_of_forall_lt_one_mul_le (h : ∀ ε < 1, a * ε ≤ b) : a ≤ b :=
-@le_of_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _ h
+@le_of_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _ _ _ h
 
 @[to_additive]
 lemma le_of_forall_one_lt_div_le (h : ∀ ε : α, 1 < ε → a / ε ≤ b) : a ≤ b :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Blyth
 -/
 
-import linear_algebra.projective_space.basic
+import linear_algebra.projective_space.independence
 
 /-!
 # Subspaces of Projective Space
@@ -76,16 +76,6 @@ def span (S : set (ℙ K V)) : subspace K V :=
 /-- The span of a set of points contains the set of points. -/
 lemma subset_span (S : set (ℙ K V)) : S ⊆ span S := λ x hx, span_carrier.of _ hx
 
-/-- The span of a subspace is the subspace. -/
-@[simp] lemma span_coe (W : subspace K V) : span ↑W = W :=
-begin
-  ext, refine ⟨λ hx, _, λ hx, _⟩,
-  { induction hx with a ha u w hu hw huw _ _ hum hwm,
-      { exact ha },
-      { exact mem_add W u w hu hw huw hum hwm } },
-  { exact subset_span W hx },
-end
-
 /-- The span of a set of points is a Galois insertion between sets of points of a projective space
 and subspaces of the projective space. -/
 def gi : galois_insertion (span : set (ℙ K V) → subspace K V) coe :=
@@ -98,6 +88,9 @@ def gi : galois_insertion (span : set (ℙ K V) → subspace K V) coe :=
   end⟩,
   le_l_u := λ S, subset_span _,
   choice_eq := λ _ _, rfl }
+
+/-- The span of a subspace is the subspace. -/
+@[simp] lemma span_coe (W : subspace K V) : span ↑W = W := galois_insertion.l_u_eq gi W
 
 /-- The infimum of two subspaces exists. -/
 instance has_inf : has_inf (subspace K V) :=
@@ -126,6 +119,71 @@ instance : complete_lattice (subspace K V) :=
 
 instance subspace_inhabited : inhabited (subspace K V) :=
 { default := ⊤ }
+
+/-- The span of the empty set is the bottom of the lattice of subspaces. -/
+@[simp] lemma span_empty : span (∅ : set (ℙ K V)) = ⊥ := gi.gc.l_bot
+
+/-- The span of the entire projective space is the top of the lattice of subspaces. -/
+@[simp] lemma span_univ : span (set.univ : set (ℙ K V)) = ⊤ :=
+by { rw [eq_top_iff, set_like.le_def], intros x hx, exact subset_span _ (set.mem_univ x) }
+
+/-- The span of a set of points is contained in a subspace if and only if the set of points is
+contained in the subspace. -/
+lemma span_le_subspace_iff {S : set (ℙ K V)} {W : subspace K V} : span S ≤ W ↔ S ⊆ W :=
+gi.gc S W
+
+/-- If a set of points is a subset of another set of points, then its span will be contained in the
+span of that set. -/
+@[mono] lemma monotone_span : monotone (span : set (ℙ K V) → subspace K V) := gi.gc.monotone_l
+
+lemma subset_span_trans {S T U : set (ℙ K V)} (hST : S ⊆ span T) (hTU : T ⊆ span U) :
+  S ⊆ span U :=
+gi.gc.le_u_l_trans hST hTU
+
+/-- The supremum of two subspaces is equal to the span of their union. -/
+lemma span_union (S T : set (ℙ K V)) : span (S ∪ T) = span S ⊔ span T := (@gi K V _ _ _).gc.l_sup
+
+/-- The supremum of a collection of subspaces is equal to the span of the union of the
+collection. -/
+lemma span_Union {ι} (s : ι → set (ℙ K V)) : span (⋃ i, s i) = ⨆ i, span (s i) :=
+(@gi K V _ _ _).gc.l_supr
+
+/-- The supremum of a subspace and the span of a set of points is equal to the span of the union of
+the subspace and the set of points. -/
+lemma sup_span {S : set (ℙ K V)} {W : subspace K V} : W ⊔ span S = span (W ∪ S) :=
+by rw [span_union, span_coe]
+
+lemma span_sup {S : set (ℙ K V)} {W : subspace K V}: span S ⊔ W = span (S ∪ W) :=
+by rw [span_union, span_coe]
+
+/-- A point in a projective space is contained in the span of a set of points if and only if the
+point is contained in all subspaces of the projective space which contain the set of points. -/
+lemma mem_span {S : set (ℙ K V)} (u : ℙ K V) : u ∈ span S ↔ ∀ (W : subspace K V), S ⊆ W → u ∈ W :=
+by { simp_rw ← span_le_subspace_iff, exact ⟨λ hu W hW, hW hu, λ W, W (span S) (le_refl _)⟩ }
+
+/-- The span of a set of points in a projective space is equal to the infimum of the collection of
+subspaces which contain the set. -/
+lemma span_eq_Inf {S : set (ℙ K V)} : span S = Inf {W | S ⊆ W} :=
+begin
+  ext,
+  simp_rw [mem_carrier_iff, mem_span x],
+  refine ⟨λ hx, _, λ hx W hW, _⟩,
+  { rintros W ⟨T, ⟨hT, rfl⟩⟩, exact (hx T hT) },
+  { exact (@Inf_le _ _ {W : subspace K V | S ⊆ ↑W} W hW) x hx },
+end
+
+/-- If a set of points in projective space is contained in a subspace, and that subspace is
+contained in the span of the set of points, then the span of the set of points is equal to
+the subspace. -/
+lemma span_eq_of_le {S : set (ℙ K V)} {W : subspace K V} (hS : S ⊆ W) (hW : W ≤ span S) :
+  span S = W :=
+le_antisymm (span_le_subspace_iff.mpr hS) hW
+
+/-- The spans of two sets of points in a projective space are equal if and only if each set of
+points is contained in the span of the other set. -/
+lemma span_eq_span_iff {S T : set (ℙ K V)} : span S = span T ↔ S ⊆ span T ∧ T ⊆ span S :=
+⟨λ h, ⟨h ▸ subset_span S, h.symm ▸ subset_span T⟩,
+  λ h, le_antisymm (span_le_subspace_iff.2 h.1) (span_le_subspace_iff.2 h.2)⟩
 
 end subspace
 

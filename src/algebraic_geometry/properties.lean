@@ -31,16 +31,11 @@ variable (X : Scheme)
 
 instance : t0_space X.carrier :=
 begin
-  rw t0_space_iff_inseparable,
-  intros x y h,
+  refine t0_space.of_open_cover (λ x, _),
   obtain ⟨U, R, ⟨e⟩⟩ := X.local_affine x,
-  have hy : y ∈ U.obj := (h.mem_open_iff U.1.2).1 U.2,
-  erw ← subtype_inseparable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h,
   let e' : U.1 ≃ₜ prime_spectrum R :=
     homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _).map_iso e),
-  have := t0_space_of_injective_of_continuous e'.injective e'.continuous,
-  rw t0_space_iff_inseparable at this,
-  by simpa only [subtype.mk_eq_mk] using this ⟨x, U.2⟩ ⟨y, hy⟩ h
+  exact ⟨U.1.1, U.2, U.1.2, e'.embedding.t0_space⟩
 end
 
 instance : quasi_sober X.carrier :=

@@ -237,6 +237,14 @@ begin
   fin_cases i; fin_cases j; simp
 end
 
+/-- The identity and the complex conjugation are the only two `ℝ`-algebra homomorphisms of `ℂ`. -/
+lemma real_alg_hom_eq_id_or_conj (f : ℂ →ₐ[ℝ] ℂ) : f = alg_hom.id ℝ ℂ ∨ f = conj_ae :=
+begin
+  refine (eq_or_eq_neg_of_sq_eq_sq (f I) I $ by rw [← map_pow, I_sq, map_neg, map_one]).imp _ _;
+    refine λ h, alg_hom_ext _,
+  exacts [h, conj_I.symm ▸ h],
+end
+
 section lift
 
 variables {A : Type*} [ring A] [algebra ℝ A]

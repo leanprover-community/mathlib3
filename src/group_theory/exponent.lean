@@ -324,7 +324,6 @@ variables (G) [comm_group G] [group.fg G]
 
 lemma card_dvd_exponent_pow_rank : nat.card G ∣ monoid.exponent G ^ group.rank G :=
 begin
-  classical,
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
   let f : (Π g : S, zpowers (g : G)) →* G :=

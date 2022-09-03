@@ -787,11 +787,40 @@ begin
   apply comp_out.of_empty_is_singleton Gpc,
 end
 
+-- probably follows from clever uses of `bij_on` and restriction to subtypes, but let's bruteforce
 def equiv_of_iso {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
- (K : set V) : G.inf_comp_out K ≃ G'.inf_comp_out (φ '' K) := sorry
+ (K : set V) : G.inf_comp_out K ≃ G'.inf_comp_out (φ '' K) :=
+begin
+  fsplit,
+  { rintro ⟨⟨C,Cdis⟩,Cinf⟩,
+    use comp_out.equiv_of_iso φ K C,
+    apply (comp_out.equiv_of_iso.dis φ K C).mp Cdis,
+    apply (comp_out.equiv_of_iso.inf φ K C).mp Cinf,},
+  { rintro ⟨⟨D,Ddis⟩,Dinf⟩,
+    use (comp_out.equiv_of_iso φ K).symm D,
+    let := (comp_out.equiv_of_iso.dis φ K (((comp_out.equiv_of_iso φ K).symm) D)),
+    dsimp only [comp_out.dis] at this, rw this,
+    rw equiv.apply_symm_apply (comp_out.equiv_of_iso φ K) D,
+    exact Ddis,
+    let := (comp_out.equiv_of_iso.inf φ K (((comp_out.equiv_of_iso φ K).symm) D)),
+    dsimp only [comp_out.inf] at this ⊢, simp only [subtype.coe_mk], rw this,
+    rw equiv.apply_symm_apply (comp_out.equiv_of_iso φ K) D,
+    exact Dinf,}, -- very very ugly story
+  { dsimp only [left_inverse],rintro ⟨⟨C,Cdis⟩,Cinf⟩, simp only [equiv.symm_apply_apply],  },
+  { dsimp only [function.right_inverse, left_inverse],
+    rintro ⟨⟨C,Cdis⟩,Cinf⟩, simp only [equiv.apply_symm_apply],  }
 
-lemma equiv_of_iso.image{V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
- (K : set V) (C : G.inf_comp_out K) : (φ '' C) = (equiv_of_iso φ K C) := sorry
+
+end
+
+lemma equiv_of_iso.image {V V' : Type*} {G : simple_graph V} {G' : simple_graph V'} (φ : G ≃g G')
+ (K : set V) (C : G.inf_comp_out K) : (φ '' C) = (equiv_of_iso φ K C) :=
+begin
+  rcases C with ⟨⟨C,Cdis⟩,Cinf⟩,
+  simp only [coe_coe, subtype.coe_mk],
+  dsimp only [equiv_of_iso],
+  exact comp_out.equiv_of_iso.image φ K C,
+end
 
 def back {K L : set V} (h : K ⊆ L) : G.inf_comp_out L →  G.inf_comp_out K :=
   set.maps_to.restrict (dis_comp_out.back h) {C : G.dis_comp_out L | C.val.inf} {C : G.dis_comp_out K | C.val.inf}

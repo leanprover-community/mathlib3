@@ -1265,6 +1265,19 @@ section t3
 class t3_space (α : Type u) [topological_space α] extends t0_space α : Prop :=
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
+lemma t3_space.of_lift'_closure [t0_space α] (h : ∀ x : α, (𝓝 x).lift' closure = 𝓝 x) :
+  t3_space α :=
+begin
+  refine ⟨λ s a hs ha, _⟩,
+  have : sᶜ ∈ (𝓝 a).lift' closure,
+  { rw [h], exact hs.is_open_compl.mem_nhds ha },
+  rcases (𝓝 a).basis_sets.lift'_closure.mem_iff.mp this with ⟨U, haU, hU⟩,
+  refine ⟨(closure U)ᶜ, is_closed_closure.is_open_compl, subset_compl_comm.mp hU, not_not.mp _⟩,
+  rw [← ne, ← ne_bot_iff, ← mem_closure_iff_nhds_within_ne_bot, closure_compl, mem_compl_iff,
+    not_not, mem_interior_iff_mem_nhds],
+  exact mem_of_superset haU subset_closure
+end
+
 @[priority 100] -- see Note [lower instance priority]
 instance t3_space.t1_space [t3_space α] : t1_space α :=
 begin

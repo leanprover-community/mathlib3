@@ -879,7 +879,7 @@ begin
            star_ring_end_apply, star_trivial],
   rw [finset.sum_insert (dec_trivial : (0 : fin 2) ∉ ({1} : finset (fin 2))),
       finset.sum_singleton],
-  field_simp [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy],
+  field_simp only [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy, ne.def, not_false_iff],
   ring
 end
 

@@ -1123,7 +1123,7 @@ monoid_hom.to_hom_units
   end }
 
 -- We are not using @[simps] in aut_to_pow to avoid a timeout.
-@[simp] lemma coe_aut_to_pow_apply (f : S ≃ₐ[R] S) : (aut_to_pow R hμ f : zmod n) =
+lemma coe_aut_to_pow_apply (f : S ≃ₐ[R] S) : (aut_to_pow R hμ f : zmod n) =
   ((map_root_of_unity_eq_pow_self f hμ.to_roots_of_unity).some : zmod n) := rfl
 
 @[simp] lemma aut_to_pow_spec (f : S ≃ₐ[R] S) :

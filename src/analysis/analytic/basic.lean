@@ -424,7 +424,7 @@ mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
 
 lemma has_fpower_series_on_ball.eventually_has_sum (hf : has_fpower_series_on_ball f p x r) :
   ∀ᶠ y in 𝓝 0, has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)) :=
-by filter_upwards [emetric.ball_mem_nhds (0 : E) hf.r_pos] using hf.has_sum
+by filter_upwards [emetric.ball_mem_nhds (0 : E) hf.r_pos] using λ _, hf.has_sum
 
 lemma has_fpower_series_at.eventually_has_sum (hf : has_fpower_series_at f p x) :
   ∀ᶠ y in 𝓝 0, has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)) :=

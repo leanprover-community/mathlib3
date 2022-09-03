@@ -829,11 +829,21 @@ begin
   exact (mul_nonpos_of_nonpos_of_nonneg hr hx).not_lt hrx
 end
 
+/-- Multiplication by `r` on the left tends to infinity at infinity if and only if `0 < r`. -/
+@[simp] lemma tendsto_const_mul_at_top_at_top_iff :
+  tendsto ((*) r) at_top at_top ↔ 0 < r :=
+tendsto_const_mul_at_top_iff_pos tendsto_id
+
 /-- If `f` tends to infinity along a nontrivial filter `l`, then `λ x, f x * r` tends to infinity
 if and only if `0 < r. `-/
 lemma tendsto_mul_const_at_top_iff_pos [ne_bot l] (h : tendsto f l at_top) :
   tendsto (λ x, f x * r) l at_top ↔ 0 < r :=
 by simp only [mul_comm _ r, tendsto_const_mul_at_top_iff_pos h]
+
+/-- Multiplication by `r` on the right tends to infinity at infinity if and only if `0 < r`. -/
+@[simp] lemma tendsto_mul_const_at_top_at_top_iff :
+  tendsto (λ x, x * r) at_top at_top ↔ 0 < r :=
+tendsto_mul_const_at_top_iff_pos tendsto_id
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the left) also tends to infinity. For a version working in `ℕ` or `ℤ`, use

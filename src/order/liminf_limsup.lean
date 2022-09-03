@@ -249,6 +249,174 @@ lemma is_bounded_under_le_abs [linear_ordered_add_comm_group α] {f : filter β}
   f.is_bounded_under (≤) (λ a, |u a|) ↔ f.is_bounded_under (≤) u ∧ f.is_bounded_under (≥) u :=
 is_bounded_under_le_sup.trans $ and_congr iff.rfl is_bounded_under_le_neg
 
+lemma _root_.monotone.comp_is_bounded_under_le [preorder β] [preorder γ] {f : β → γ} {u : α → β}
+  {l : filter α} (hf : monotone f) (hu : l.is_bounded_under (≤) u) :
+  l.is_bounded_under (≤) (f ∘ u) :=
+let ⟨C, hC⟩ := hu in ⟨f C, (eventually_map.1 hC).mono $ λ a ha, hf ha⟩
+
+lemma _root_.monotone.comp_is_bounded_under_ge [preorder β] [preorder γ] {f : β → γ} {u : α → β}
+  {l : filter α} (hf : monotone f) (hu : l.is_bounded_under (≥) u) :
+  l.is_bounded_under (≥) (f ∘ u) :=
+hf.dual.comp_is_bounded_under_le hu
+
+lemma _root_.antitone.comp_is_bounded_under_le [preorder β] [preorder γ] {f : β → γ} {u : α → β}
+  {l : filter α} (hf : antitone f) (hu : l.is_bounded_under (≤) u) :
+  l.is_bounded_under (≥) (f ∘ u) :=
+hf.dual_right.comp_is_bounded_under_le hu
+
+lemma _root_.antitone.comp_is_bounded_under_ge [preorder β] [preorder γ] {f : β → γ} {u : α → β}
+  {l : filter α} (hf : antitone f) (hu : l.is_bounded_under (≥) u) :
+  l.is_bounded_under (≤) (f ∘ u) :=
+hf.dual_right.comp_is_bounded_under_ge hu
+
+lemma is_bounded_under.nonneg_mul_le [ordered_semiring α] {l : filter β} {u : β → α} {r : α}
+  (h : l.is_bounded_under (≤) u) (hr : 0 ≤ r) :
+  l.is_bounded_under (≤) (λ a, r * u a) :=
+(monotone_mul_left_of_nonneg hr).comp_is_bounded_under_le h
+
+lemma is_bounded_under.le_mul_nonneg [ordered_semiring α] {l : filter β} {u : β → α} {r : α}
+  (h : l.is_bounded_under (≤) u) (hr : 0 ≤ r) :
+  l.is_bounded_under (≤) (λ a, u a * r) :=
+(monotone_mul_right_of_nonneg hr).comp_is_bounded_under_le h
+
+lemma is_bounded_under.nonneg_mul_ge [ordered_semiring α] {l : filter β} {u : β → α} {r : α}
+  (h : l.is_bounded_under (≥) u) (hr : 0 ≤ r) :
+  l.is_bounded_under (≥) (λ a, r * u a) :=
+(monotone_mul_left_of_nonneg hr).comp_is_bounded_under_ge h
+
+lemma is_bounded_under.ge_mul_nonneg [ordered_semiring α] {l : filter β} {u : β → α} {r : α}
+  (h : l.is_bounded_under (≥) u) (hr : 0 ≤ r) :
+  l.is_bounded_under (≥) (λ a, u a * r) :=
+(monotone_mul_right_of_nonneg hr).comp_is_bounded_under_ge h
+
+lemma is_bounded_under.nonpos_mul_le [ordered_ring α] {l : filter β} {u : β → α} {r : α}
+  (h : l.is_bounded_under (≤) u) (hr : r ≤ 0) :
+  l.is_bounded_under (≥) (λ a, r * u a) :=
+(antitone_mul_left hr).comp_is_bounded_under_le h
+
+lemma is_bounded_under.le_mul_nonpos [ordered_ring α] {l : filter β} {u : β → α} {r : α}
+  (h : l.is_bounded_under (≤) u) (hr : r ≤ 0) :
+  l.is_bounded_under (≥) (λ a, u a * r) :=
+(antitone_mul_right hr).comp_is_bounded_under_le h
+
+lemma is_bounded_under.nonpos_mul_ge [ordered_ring α] {l : filter β} {u : β → α} {r : α}
+  (h : l.is_bounded_under (≥) u) (hr : r ≤ 0) :
+  l.is_bounded_under (≤) (λ a, r * u a) :=
+(antitone_mul_left hr).comp_is_bounded_under_ge h
+
+lemma is_bounded_under.ge_mul_nonpos [ordered_ring α] {l : filter β} {u : β → α} {r : α}
+  (h : l.is_bounded_under (≥) u) (hr : r ≤ 0) :
+  l.is_bounded_under (≤) (λ a, u a * r) :=
+(antitone_mul_right hr).comp_is_bounded_under_ge h
+
+lemma is_bounded_under_le_const_mul_iff_of_pos [linear_ordered_semifield α] {l : filter β}
+  {u : β → α} {r : α} (hr : 0 < r) :
+  l.is_bounded_under (≤) (λ a, r * u a) ↔ l.is_bounded_under (≤) u :=
+⟨λ h, by simpa only [inv_mul_cancel_left₀ hr.ne'] using h.nonneg_mul_le (inv_nonneg.2 hr.le),
+  λ h, h.nonneg_mul_le hr.le⟩
+
+lemma is_bounded_under_ge_const_mul_iff_of_pos [linear_ordered_semifield α] {l : filter β}
+  {u : β → α} {r : α} (hr : 0 < r) :
+  l.is_bounded_under (≥) (λ a, r * u a) ↔ l.is_bounded_under (≥) u :=
+⟨λ h, by simpa only [inv_mul_cancel_left₀ hr.ne'] using h.nonneg_mul_ge (inv_nonneg.2 hr.le),
+  λ h, h.nonneg_mul_ge hr.le⟩
+
+lemma is_bounded_under_le_const_mul_iff_of_neg [linear_ordered_field α] {l : filter β}
+  {u : β → α} {r : α} (hr : r < 0) :
+  l.is_bounded_under (≤) (λ a, r * u a) ↔ l.is_bounded_under (≥) u :=
+⟨λ h, by simpa only [inv_mul_cancel_left₀ hr.ne] using h.nonpos_mul_le (inv_nonpos.2 hr.le),
+  λ h, h.nonpos_mul_ge hr.le⟩
+
+lemma is_bounded_under_ge_const_mul_iff_of_neg [linear_ordered_field α] {l : filter β}
+  {u : β → α} {r : α} (hr : r < 0) :
+  l.is_bounded_under (≥) (λ a, r * u a) ↔ l.is_bounded_under (≤) u :=
+⟨λ h, by simpa only [inv_mul_cancel_left₀ hr.ne] using h.nonpos_mul_ge (inv_nonpos.2 hr.le),
+  λ h, h.nonpos_mul_le hr.le⟩
+
+lemma is_bounded_under_le_const_mul_iff_nonpos [linear_ordered_field α] {l : filter β} [ne_bot l]
+  {u : β → α} (h₁ : l.is_bounded_under (≥) u) (h₂ : ¬l.is_bounded_under (≤) u) {r : α} :
+  l.is_bounded_under (≤) (λ a, r * u a) ↔ r ≤ 0 :=
+⟨λ hru, not_lt.mp $ λ hr, h₂ $ (is_bounded_under_le_const_mul_iff_of_pos hr).mp hru,
+  is_bounded_under.nonpos_mul_ge h₁⟩
+
+lemma is_bounded_under_le_mul_const_iff_nonpos [linear_ordered_field α] {l : filter β} [ne_bot l]
+  {u : β → α} (h₁ : l.is_bounded_under (≥) u) (h₂ : ¬l.is_bounded_under (≤) u) {r : α} :
+  l.is_bounded_under (≤) (λ a, u a * r) ↔ r ≤ 0 :=
+by simp only [mul_comm _ r, is_bounded_under_le_const_mul_iff_nonpos h₁ h₂]
+
+lemma is_bounded_under_le_const_mul_iff_nonneg [linear_ordered_field α] {l : filter β} [ne_bot l]
+  {u : β → α} (h₁ : l.is_bounded_under (≤) u) (h₂ : ¬l.is_bounded_under (≥) u) {r : α} :
+  l.is_bounded_under (≤) (λ a, r * u a) ↔ 0 ≤ r :=
+⟨λ hru, not_lt.mp $ λ hr, h₂ $ (is_bounded_under_le_const_mul_iff_of_neg hr).mp hru,
+  is_bounded_under.nonneg_mul_le h₁⟩
+
+lemma is_bounded_under_le_mul_const_iff_nonneg [linear_ordered_field α] {l : filter β} [ne_bot l]
+  {u : β → α} (h₁ : l.is_bounded_under (≤) u) (h₂ : ¬l.is_bounded_under (≥) u) {r : α} :
+  l.is_bounded_under (≤) (λ a, u a * r) ↔ 0 ≤ r :=
+by simp only [mul_comm _ r, is_bounded_under_le_const_mul_iff_nonneg h₁ h₂]
+
+lemma is_bounded_under_ge_const_mul_iff_nonpos [linear_ordered_field α] {l : filter β} [ne_bot l]
+  {u : β → α} (h₁ : l.is_bounded_under (≤) u) (h₂ : ¬l.is_bounded_under (≥) u) {r : α} :
+  l.is_bounded_under (≥) (λ a, r * u a) ↔ r ≤ 0 :=
+⟨λ hru, not_lt.mp $ λ hr, h₂ $ (is_bounded_under_ge_const_mul_iff_of_pos hr).mp hru,
+  is_bounded_under.nonpos_mul_le h₁⟩
+
+lemma is_bounded_under_ge_mul_const_iff_nonpos [linear_ordered_field α] {l : filter β} [ne_bot l]
+  {u : β → α} (h₁ : l.is_bounded_under (≤) u) (h₂ : ¬l.is_bounded_under (≥) u) {r : α} :
+  l.is_bounded_under (≥) (λ a, u a * r) ↔ r ≤ 0 :=
+by simp only [mul_comm _ r, is_bounded_under_ge_const_mul_iff_nonpos h₁ h₂]
+
+lemma is_bounded_under_ge_const_mul_iff_nonneg [linear_ordered_field α] {l : filter β} [ne_bot l]
+  {u : β → α} (h₁ : l.is_bounded_under (≥) u) (h₂ : ¬l.is_bounded_under (≤) u) {r : α} :
+  l.is_bounded_under (≥) (λ a, r * u a) ↔ 0 ≤ r :=
+⟨λ hru, not_lt.mp $ λ hr, h₂ $ (is_bounded_under_ge_const_mul_iff_of_neg hr).mp hru,
+  is_bounded_under.nonneg_mul_ge h₁⟩
+
+lemma is_bounded_under_ge_mul_const_iff_nonneg [linear_ordered_field α] {l : filter β} [ne_bot l]
+  {u : β → α} (h₁ : l.is_bounded_under (≥) u) (h₂ : ¬l.is_bounded_under (≤) u) {r : α} :
+  l.is_bounded_under (≥) (λ a, u a * r) ↔ 0 ≤ r :=
+by simp only [mul_comm _ r, is_bounded_under_ge_const_mul_iff_nonneg h₁ h₂]
+
+@[simp] lemma is_bounded_under_ge_mul_left_at_top [linear_ordered_field α] {r : α} :
+  (at_top : filter α).is_bounded_under (≥) ((*) r) ↔ 0 ≤ r :=
+is_bounded_under_ge_const_mul_iff_nonneg ⟨0, eventually_ge_at_top 0⟩ $
+  not_is_bounded_under_of_tendsto_at_top tendsto_id
+
+@[simp] lemma is_bounded_under_ge_mul_right_at_top [linear_ordered_field α] {r : α} :
+  (at_top : filter α).is_bounded_under (≥) (λ x, x * r) ↔ 0 ≤ r :=
+is_bounded_under_ge_mul_const_iff_nonneg ⟨0, eventually_ge_at_top 0⟩ $
+  not_is_bounded_under_of_tendsto_at_top tendsto_id
+
+@[simp] lemma is_bounded_under_le_mul_left_at_top [linear_ordered_field α] {r : α} :
+  (at_top : filter α).is_bounded_under (≤) ((*) r) ↔ r ≤ 0 :=
+is_bounded_under_le_const_mul_iff_nonpos ⟨0, eventually_ge_at_top 0⟩ $
+  not_is_bounded_under_of_tendsto_at_top tendsto_id
+
+@[simp] lemma is_bounded_under_le_mul_right_at_top [linear_ordered_field α] {r : α} :
+  (at_top : filter α).is_bounded_under (≤) (λ x, x * r) ↔ r ≤ 0 :=
+is_bounded_under_le_mul_const_iff_nonpos ⟨0, eventually_ge_at_top 0⟩ $
+  not_is_bounded_under_of_tendsto_at_top tendsto_id
+
+@[simp] lemma is_bounded_under_ge_mul_left_at_bot [linear_ordered_field α] {r : α} :
+  (at_bot : filter α).is_bounded_under (≥) ((*) r) ↔ r ≤ 0 :=
+is_bounded_under_ge_const_mul_iff_nonpos ⟨0, eventually_le_at_bot 0⟩ $
+  not_is_bounded_under_of_tendsto_at_bot tendsto_id
+
+@[simp] lemma is_bounded_under_ge_mul_right_at_bot [linear_ordered_field α] {r : α} :
+  (at_bot : filter α).is_bounded_under (≥) (λ x, x * r) ↔ r ≤ 0 :=
+is_bounded_under_ge_mul_const_iff_nonpos ⟨0, eventually_le_at_bot 0⟩ $
+  not_is_bounded_under_of_tendsto_at_bot tendsto_id
+
+@[simp] lemma is_bounded_under_le_mul_left_at_bot [linear_ordered_field α] {r : α} :
+  (at_bot : filter α).is_bounded_under (≤) ((*) r) ↔ 0 ≤ r :=
+is_bounded_under_le_const_mul_iff_nonneg ⟨0, eventually_le_at_bot 0⟩ $
+  not_is_bounded_under_of_tendsto_at_bot tendsto_id
+
+@[simp] lemma is_bounded_under_le_mul_right_at_bot [linear_ordered_field α] {r : α} :
+  (at_bot : filter α).is_bounded_under (≤) (λ x, x * r) ↔ 0 ≤ r :=
+is_bounded_under_le_mul_const_iff_nonneg ⟨0, eventually_le_at_bot 0⟩ $
+  not_is_bounded_under_of_tendsto_at_bot tendsto_id
+
 /-- Filters are automatically bounded or cobounded in complete lattices. To use the same statements
 in complete and conditionally complete lattices but let automation fill automatically the
 boundedness proofs in complete lattices, we use the tactic `is_bounded_default` in the statements,
@@ -258,7 +426,6 @@ tactic.applyc ``is_cobounded_le_of_bot <|>
 tactic.applyc ``is_cobounded_ge_of_top <|>
 tactic.applyc ``is_bounded_le_of_top <|>
 tactic.applyc ``is_bounded_ge_of_bot
-
 
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α]

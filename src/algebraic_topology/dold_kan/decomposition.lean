@@ -22,7 +22,7 @@ that it is a complement to the normalized Moore complex.)
 Then, we introduce an ad hoc structure `morph_components X n Z` which
 can be used in order to define morphisms `X _[n+1] ⟶ Z` using the
 decomposition provided by `decomposition_Q`. This shall play a critical
-rool in the proof that the functor
+role in the proof that the functor
 `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ))`
 reflects isomorphisms.
 

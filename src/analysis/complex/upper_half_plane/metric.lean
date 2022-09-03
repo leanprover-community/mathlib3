@@ -10,8 +10,15 @@ import geometry.euclidean.inversion
 /-!
 # Metric on the upper half-plane
 
-In this file we define a `metric_space` structure on the `upper_half_plane`. The distance is given
-by `dist z w = 2 * arsinh (dist (z : ℂ) w / (2 * real.sqrt (z.im * w.im)))`.
+In this file we define a `metric_space` structure on the `upper_half_plane`. We use hyperbolic
+(Poincaré) distance given by
+`dist z w = 2 * arsinh (dist (z : ℂ) w / (2 * real.sqrt (z.im * w.im)))` instead of the induced
+Euclidean distance because the hyperbolic distance is invariant under holomorphic automorphisms of
+the upper half-plane. However, we ensure that the projection to `topological_space` is
+definitionally equal to the induced topological space structure.
+
+We also prove that a metric ball/closed ball/sphere in Poincaré metric is a Euclidean ball/closed
+ball/sphere with another center and radius.
 
 -/
 
@@ -323,26 +330,23 @@ begin
   apply is_compact_closed_ball
 end
 
-lemma isometry_vertical_line (a : ℝ) : isometry (λ y, mk ⟨a, exp y⟩ (exp_pos y) : ℝ → ℍ) :=
+lemma isometry_vertical_line (a : ℝ) : isometry (λ y, mk ⟨a, exp y⟩ (exp_pos y)) :=
 begin
   refine isometry.of_dist_eq (λ y₁ y₂, _),
   rw [dist_of_re_eq],
   exacts [congr_arg2 _ (log_exp _) (log_exp _), rfl]
 end
 
-lemma isometry_shift (a : ℝ) : isometry (λ y : ℍ, mk (y + a) (by simp [y.im_pos])) :=
-isometry.of_dist_eq $ λ y₁ y₂,
-  by simp only [dist_eq, coe_mk, dist_add_right, mk_im, add_im, coe_im, of_real_im, add_zero]
+lemma isometry_real_vadd (a : ℝ) : isometry ((+ᵥ) a : ℍ → ℍ) :=
+isometry.of_dist_eq $ λ y₁ y₂, by simp only [dist_eq, coe_vadd, vadd_im, dist_add_left]
 
-lemma isometry_pos_mul (a : ℝ) (ha : 0 < a) :
-  isometry (λ y : ℍ, mk (a * y) (by simp [ha, y.im_pos])) :=
+lemma isometry_pos_mul (a : {x : ℝ // 0 < x}) : isometry ((•) a : ℍ → ℍ) :=
 begin
   refine isometry.of_dist_eq (λ y₁ y₂, _),
-  simp only [dist_eq], congr' 2,
-  rw [coe_mk, coe_mk, mk_im, mk_im, of_real_mul_im, of_real_mul_im, mul_mul_mul_comm,
-    ← real_smul, ← real_smul, dist_smul, real.norm_eq_abs, abs_of_pos ha, ← sq,
-    sqrt_mul (sq_nonneg _), sqrt_sq ha.le, mul_left_comm, ← div_mul_div_comm, div_self ha.ne',
-    one_mul, coe_im, coe_im]
+  simp only [dist_eq, coe_pos_real_smul, pos_real_im], congr' 2,
+  rw [dist_smul, mul_mul_mul_comm, real.sqrt_mul (mul_self_nonneg _), real.sqrt_mul_self_eq_abs,
+    real.norm_eq_abs, mul_left_comm],
+  exact mul_div_mul_left _ _ (mt _root_.abs_eq_zero.1 a.2.ne')
 end
 
 end upper_half_plane

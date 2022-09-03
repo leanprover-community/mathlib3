@@ -317,13 +317,6 @@ begin
       rw H2, }, },
 end
 
-lemma triple_coprimes {f g h : R[X]} (hfg : is_coprime f g) (hgh : is_coprime g h)
-  (hfh : is_coprime f h): is_coprime (f*g) h := --is_coprime.mul_right hfg hfh
-begin
-  exact is_coprime.mul_left hfh hgh,
-  --library_search,
-end
-
 lemma coprime_of_prod_coprime {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
   (s : finset ι) (j : ι) (hjs : j ∉ s) : is_coprime (g j) (∏ (i : ι) in s, (g i)) :=

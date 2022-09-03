@@ -9,6 +9,7 @@ import data.finset
 import group_theory.quotient_group
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
+import set_theory.cardinal.finite
 
 /-!
 # Finitely generated monoids and groups
@@ -294,6 +295,49 @@ noncomputable def group.rank [h : group.fg G] :=
 @nat.find_le _ _ (classical.dec_pred _) (group.fg_iff'.mp h) ⟨S, rfl, hS⟩
 
 end group
+
+namespace subgroup
+
+@[to_additive] lemma rank_congr {H K : subgroup G} [group.fg H] [group.fg K] (h : H = K) :
+  group.rank H = group.rank K :=
+by unfreezingI { subst h }
+
+@[to_additive] instance closure_finset_fg (s : finset G) : group.fg (closure (s : set G)) :=
+begin
+  refine ⟨⟨s.preimage coe (subtype.coe_injective.inj_on _), _⟩⟩,
+  rw finset.coe_preimage,
+  exact closure_preimage_eq_top s,
+end
+
+@[to_additive] instance closure_finite_fg (s : set G) [finite s] : group.fg (closure s) :=
+begin
+  haveI := fintype.of_finite s,
+  exact s.coe_to_finset ▸ subgroup.closure_finset_fg s.to_finset,
+end
+
+@[to_additive] lemma rank_closure_finset_le_card (s : finset G) :
+  group.rank (closure (s : set G)) ≤ s.card :=
+begin
+  classical,
+  let t : finset (closure (s : set G)) := s.preimage coe (subtype.coe_injective.inj_on _),
+  have ht : closure (t : set (closure (s : set G))) = ⊤,
+  { rw finset.coe_preimage,
+    exact closure_preimage_eq_top s },
+  apply (group.rank_le (closure (s : set G)) ht).trans,
+  rw [←finset.card_image_of_inj_on, finset.image_preimage],
+  { apply finset.card_filter_le },
+  { apply subtype.coe_injective.inj_on },
+end
+
+@[to_additive] lemma rank_closure_finite_le_nat_card (s : set G) [finite s] :
+  group.rank (closure s) ≤ nat.card s :=
+begin
+  haveI := fintype.of_finite s,
+  rw [nat.card_eq_fintype_card, ←s.to_finset_card, ←rank_congr (congr_arg _ s.coe_to_finset)],
+  exact rank_closure_finset_le_card s.to_finset,
+end
+
+end subgroup
 
 section quotient_group
 

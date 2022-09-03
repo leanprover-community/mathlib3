@@ -60,6 +60,8 @@ class rkhs (H : Type*) [inner_product_space 𝕜 H] extends fun_like H X (λ _, 
 (smul_apply' : ∀ {c : 𝕜} {f : H} {x : X}, (c • f) x = c • f x)
 (continuous_eval' : ∀ (x : X), continuous (λ (f : H), f x))
 
+attribute [nolint dangerous_instance] rkhs.to_fun_like
+
 namespace rkhs
 
 variables {𝕜 X V}
@@ -172,7 +174,6 @@ begin
   ext f,
   simp [eval'_def],
 end
-
 
 lemma scalar_kernel_def (x y : X) :
   scalar_kernel 𝕜 X H₁ x y = (to_dual 𝕜 𝕜).symm (kernel 𝕜 𝕜 H₁ x y) := rfl

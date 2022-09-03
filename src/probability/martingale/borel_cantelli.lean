@@ -607,15 +607,18 @@ begin
   exact mgale_diff_le hs,
 end
 
-lemma limsup_eq_unbounded_sum_indicator (s : ℕ → set Ω) :
-  at_top.limsup s = {ω | ¬ bdd_above
-    (set.range $ (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℕ) ω))} :=
+lemma limsup_eq_tendsto_sum_indicator_at_top (s : ℕ → set Ω) :
+  limsup at_top s =
+    {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℕ) ω) at_top at_top} :=
 begin
   ext ω,
   simp only [limsup_eq_infi_supr_of_nat, ge_iff_le, set.supr_eq_Union,
       set.infi_eq_Inter, set.mem_Inter, set.mem_Union, exists_prop],
   split,
-  { rintro hω ⟨i, h⟩,
+  { intro hω,
+    refine tendsto_at_top_at_top_of_monotone' (λ n m hnm, finset.sum_mono_set_of_nonneg
+      (λ i, set.indicator_nonneg (λ _ _, zero_le_one) _) (finset.range_mono hnm)) _,
+    rintro ⟨i, h⟩,
     simp only [mem_upper_bounds, set.mem_range, forall_exists_index, forall_apply_eq_imp_iff'] at h,
     induction i with k hk,
     { obtain ⟨j, hj₁, hj₂⟩ := hω 1,
@@ -642,10 +645,10 @@ begin
         set.indicator_of_mem hj₂],
       exact zero_lt_one } },
   { rintro hω i,
-    rw [set.mem_set_of_eq, not_bdd_above_iff] at hω,
+    rw [set.mem_set_of_eq, tendsto_at_top_at_top] at hω,
     by_contra hcon,
     push_neg at hcon,
-    obtain ⟨-, ⟨j, rfl⟩, hpos⟩ := hω i,
+    obtain ⟨j, h⟩ := hω (i + 1),
     have : ∑ k in finset.range j, (s (k + 1)).indicator 1 ω ≤ i,
     { have hle : ∀ j ≤ i, ∑ k in finset.range j, (s (k + 1)).indicator 1 ω ≤ i,
       { refine λ j hij, (finset.sum_le_card_nsmul _ _ _ _ : _ ≤ (finset.range j).card • 1).trans _,
@@ -659,48 +662,33 @@ begin
           exact hle _ le_rfl },
         rw finset.sum_eq_zero (λ m hm, _),
         exact set.indicator_of_not_mem (hcon _ $ (finset.mem_Ico.1 hm).1.trans m.le_succ) _ } },
-    exact not_le.2 hpos this }
+    exact not_le.2 (lt_of_lt_of_le i.lt_succ_self $ h _ le_rfl) this }
 end
 
-lemma limsup_eq_unbounded_sum_indicator' (s : ℕ → set Ω) :
-  at_top.limsup s = {ω | ¬ bdd_above
-    (set.range $ (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω))} :=
+lemma limsup_eq_tendsto_sum_indicator_at_top' (s : ℕ → set Ω) :
+  limsup at_top s =
+    {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω) at_top at_top} :=
 begin
-  rw limsup_eq_unbounded_sum_indicator s,
+  rw limsup_eq_tendsto_sum_indicator_at_top s,
   ext ω,
-  simp only [set.mem_set_of_eq, not_iff_not],
-  split; rintro ⟨b, hbdd⟩,
-  { refine ⟨b, _⟩,
-    rw mem_upper_bounds at hbdd ⊢,
-    rintro - ⟨j, rfl⟩,
-    specialize hbdd _ ⟨j, rfl⟩,
-    rw [← (@nat.cast_le ℝ _), nat.cast_sum] at hbdd,
-    refine le_trans (finset.sum_congr rfl $ λ i hij, _).le hbdd,
-    by_cases ω ∈ s (i + 1),
-    { simp only [set.indicator_of_mem h, pi.one_apply, nat.cast_one] },
-    { simp only [set.indicator_of_not_mem h, nat.cast_zero] } },
-  { obtain ⟨B, hB⟩ := exists_nat_ge b,
-    refine ⟨B, _⟩,
-    rw mem_upper_bounds at hbdd ⊢,
-    rintro - ⟨j, rfl⟩,
-    specialize hbdd _ ⟨j, rfl⟩,
-    rw [← (@nat.cast_le ℝ _), nat.cast_sum],
-    refine le_trans (finset.sum_congr rfl $ λ i hij, _).le (hbdd.trans hB),
-    by_cases ω ∈ s (i + 1),
-    { simp only [set.indicator_of_mem h, pi.one_apply, nat.cast_one] },
-    { simp only [set.indicator_of_not_mem h, nat.cast_zero] } }
+  simp only [set.mem_set_of_eq],
+  rw (_ : (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω) =
+    (λ n, ↑(∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℕ) ω))),
+  { exact tendsto_coe_nat_at_top_iff.symm },
+  { ext n,
+    simp only [set.indicator, pi.one_apply, finset.sum_boole, nat.cast_id] }
 end
 
 end borel_cantelli
 
 open borel_cantelli
 
-lemma bdd_above_range_sum_indicator_iff
+lemma tendsto_sum_indicator_at_top_iff
   (μ : measure Ω) [is_finite_measure μ] {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ∀ᵐ ω ∂μ,
-    bdd_above (set.range $ (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω)) ↔
-    bdd_above (set.range $
-      (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)) :=
+    tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω) at_top at_top ↔
+    tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
+      at_top at_top :=
 begin
   have h₁ := (martingale_mgale μ hs).ae_not_tendsto_at_top_at_top (mgale_diff_le' hs),
   have h₂ := (martingale_mgale μ hs).ae_not_tendsto_at_top_at_bot (mgale_diff_le' hs),
@@ -708,41 +696,32 @@ begin
   { rw ae_all_iff,
     exact λ n, condexp_nonneg (eventually_of_forall $ set.indicator_nonneg $ λ _ _, zero_le_one) },
   filter_upwards [h₁, h₂, h₃] with ω hω₁ hω₂ hω₃,
-  split; rintro ⟨b, hbdd⟩; by_contra hcon,
-  { have ht : tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator 1|ℱ k] ω) at_top at_top,
-    { simp only [not_bdd_above_iff, set.mem_range, exists_prop, exists_exists_eq_and] at hcon,
-      have : ∀ R : ℝ, ∃ n,
-        R ≤ ∑ k in finset.range n, μ[(s (k + 1)).indicator 1|ℱ k] ω :=
-        λ R, let ⟨n, hn⟩ := hcon R in ⟨n, hn.le⟩,
-      refine (monotone_nat_of_le_succ (λ n, _)).tendsto_at_top_at_top this,
-      rw finset.sum_range_succ,
-      exact le_add_of_nonneg_right (hω₃ _) },
+  split; intro ht,
+  { refine tendsto_at_top_at_top_of_monotone'
+      (λ n m hnm, finset.sum_mono_set_of_nonneg hω₃ $ finset.range_mono hnm) _,
+    rintro ⟨b, hbdd⟩,
     rw ← tendsto_neg_at_bot_iff at ht,
-    simp_rw [mgale, finset.sum_apply, pi.sub_apply, finset.sum_sub_distrib, sub_eq_add_neg] at hω₂,
-    exact hω₂ (tendsto_at_bot_add_left_of_ge _ b (λ n, hbdd ⟨n, rfl⟩) ht) },
-  { have ht : tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator 1 ω) at_top at_top,
-    { simp only [not_bdd_above_iff, set.mem_range, exists_prop, exists_exists_eq_and] at hcon,
-      have : ∀ R : ℝ, ∃ n,
-        R ≤ ∑ k in finset.range n, (s (k + 1)).indicator 1 ω :=
-        λ R, let ⟨n, hn⟩ := hcon R in ⟨n, hn.le⟩,
-      refine (monotone_nat_of_le_succ (λ n, _)).tendsto_at_top_at_top this,
-      rw finset.sum_range_succ,
-      exact le_add_of_nonneg_right (set.indicator_nonneg (λ _ _, zero_le_one) _) },
     simp_rw [mgale, finset.sum_apply, pi.sub_apply, finset.sum_sub_distrib, sub_eq_add_neg] at hω₁,
-    exact hω₁ (tendsto_at_top_add_right_of_le _ (-b) ht $ λ n, neg_le_neg (hbdd ⟨n, rfl⟩)) },
+    exact hω₁ (tendsto_at_top_add_right_of_le _ (-b)
+      ((tendsto_neg_at_bot_iff at_top).1 ht) $ λ n, neg_le_neg (hbdd ⟨n, rfl⟩)) },
+  { refine tendsto_at_top_at_top_of_monotone'
+      (λ n m hnm, finset.sum_mono_set_of_nonneg (λ i, set.indicator_nonneg (λ _ _, zero_le_one) _) $
+      finset.range_mono hnm) _,
+    rintro ⟨b, hbdd⟩,
+    simp_rw [mgale, finset.sum_apply, pi.sub_apply, finset.sum_sub_distrib, sub_eq_add_neg] at hω₂,
+    exact hω₂ (tendsto_at_bot_add_left_of_ge _ b (λ n, hbdd ⟨n, rfl⟩) $
+      (tendsto_neg_at_bot_iff at_top).2 ht) },
 end
 
 /-- **Lévy's generalization of the Borel-Cantelli lemma**: given a sequence of sets `s` and a
 filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.limsup s` is almost
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/
-theorem ae_mem_limsup_at_top_iff_bdd_above_range [is_finite_measure μ]
+theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
   {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
-  ∀ᵐ ω ∂μ, ω ∈ at_top.limsup s ↔
-  ¬ bdd_above (set.range $
-    (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)) :=
-begin
-  rw borel_cantelli.limsup_eq_unbounded_sum_indicator' s,
-  filter_upwards [bdd_above_range_sum_indicator_iff μ hs] with ω hω using not_iff_not.2 hω,
-end
+  ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
+    tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
+      at_top at_top :=
+(borel_cantelli.limsup_eq_tendsto_sum_indicator_at_top' s).symm ▸
+  tendsto_sum_indicator_at_top_iff μ hs
 
 end measure_theory

@@ -283,10 +283,12 @@ lemma inv_to_block_of_block_triangular [linear_order α]
 inv_eq_left_inv (to_block_inverse_mul_to_block_eq_one_of_block_triangular hM k)
 
 /-- An upper-left subblock of an invertible block-triangular matrix is invertible. -/
-noncomputable def invertible_to_block_of_block_triangular
+def invertible_to_block_of_block_triangular
   [linear_order α] [invertible M] (hM : block_triangular M b) (k : α) :
   invertible (M.to_block (λ i, b i < k) (λ i, b i < k)) :=
-invertible_of_left_inverse _ _ (to_block_inverse_mul_to_block_eq_one_of_block_triangular hM k)
+invertible_of_left_inverse _ ((⅟M).to_block (λ i, b i < k) (λ i, b i < k))
+  (by simpa only [inv_of_eq_nonsing_inv]
+    using to_block_inverse_mul_to_block_eq_one_of_block_triangular hM k)
 
 /-- A lower-left subblock of the inverse of a block-triangular matrix is zero. This is a first step
 towards `block_triangular_inv_of_block_triangular` below. -/

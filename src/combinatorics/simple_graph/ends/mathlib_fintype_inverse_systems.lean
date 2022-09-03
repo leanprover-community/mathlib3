@@ -21,12 +21,12 @@ universes u v w
 open classical
 open category_theory
 
--- fis = fintype_inverse_system
 noncomputable theory
 local attribute [instance] prop_decidable
 
 
 -- necessary lemma
+--mathlib
 lemma bInter_of_directed_nonempty {α : Type*} [fintype α] [nonempty α] (S : set (set α))
   (allsnempty : ∀ s ∈ S, set.nonempty s) (dir : directed_on (⊇) S) : set.nonempty (S.sInter) :=
 begin
@@ -69,31 +69,33 @@ namespace inverse_system
 
 variables {J : Type u} [preorder J] [is_directed J ge] (F : J ⥤ Type v)
 
-@[instance]
-lemma Jpreo : preorder Jᵒᵖ := {
+
+@[instance] def Joppreo : preorder Jᵒᵖ := {
   le := λ jop jop', jop'.unop ≤ jop.unop,
   lt := λ jop jop', jop'.unop < jop.unop,
   le_refl := λ jop, preorder.le_refl jop.unop,
   le_trans := λ j₁ j₂ j₃, λ h₁₂ h₂₃, preorder.le_trans _ _ _ h₂₃ h₁₂,
-  lt_iff_le_not_le := λ j₁ j₂, preorder.lt_iff_le_not_le j₂.unop j₁.unop
-  }
+  lt_iff_le_not_le := λ j₁ j₂, preorder.lt_iff_le_not_le j₂.unop j₁.unop}
 
-@[instance]
-lemma Jopdir  : is_directed Jᵒᵖ has_le.le :=
-  {directed := λ jop jop',
-    let ⟨c, hj, hj'⟩ := @is_directed.directed _ _ _ jop.unop jop'.unop in
-      ⟨opposite.op c, hj, hj'⟩}
 
-#check inverse_system.Jopdir
+@[instance] def Jopdir  : is_directed Jᵒᵖ (≤) :=
+{ directed := λ jop jop', by
+  { obtain ⟨c,cj,cj'⟩ := directed_of (ge) jop.unop jop'.unop,
+    use opposite.op c, rw ←opposite.unop_op c at cj cj',
+    exact ⟨cj,cj'⟩,}}
+
 
 
 theorem nonempty_sections_of_fintype_inverse_system'
-(F : J ⥤ Type v) [fin : Π (j : J), fintype (F.obj j)] [nempty : ∀ (j : J), nonempty (F.obj j)] : F.sections.nonempty :=
+ [fin : Π (j : J), fintype (F.obj j)] [nempty : ∀ (j : J), nonempty (F.obj j)] : F.sections.nonempty :=
 begin
+
   let F' : (Jᵒᵖ)ᵒᵖ ⥤ Type v := (category_theory.op_op J).comp F,
+
   haveI fin' : Π j : (Jᵒᵖ)ᵒᵖ, fintype (F'.obj j) := λ jopop, by {apply fin,},
   haveI nempty' : ∀ j : (Jᵒᵖ)ᵒᵖ, nonempty (F'.obj j) := λ jopop, by {apply nempty,},
-  have F'sections_nempty : F'.sections.nonempty := @nonempty_sections_of_fintype_inverse_system (Jᵒᵖ) Jpreo Jopdir F' fin' nempty',
+  have F'sections_nempty : F'.sections.nonempty :=
+    @nonempty_sections_of_fintype_inverse_system.{u v} Jᵒᵖ Joppreo Jopdir F' fin' nempty',
   obtain ⟨s,sec⟩ := F'sections_nempty,
   fapply Exists.intro,
   exact λ j, s (opposite.op $ opposite.op j),
@@ -151,7 +153,8 @@ instance to_surjective.nonempty [Π (j : J), fintype (F.obj j)] [nempties : Π (
 begin
   rintro j,
   unfold to_surjective,
-  simp only [nonempty_subtype],
+  dsimp only [functor.subfunctor],
+  rw nonempty_subtype,
   refine bInter_of_directed_nonempty _ _ _,
   { rintro s ⟨⟨i,ij⟩,rfl⟩,
     simp only [set.mem_set_of_eq] at ij,
@@ -570,7 +573,9 @@ begin
     obtain ⟨a,k,ki,kj,e⟩ := sections_at_point_bwd_aux F j (s j) (sections_at_point_fwd F j (s j) ⟨⟨s, λ _ _, sec⟩,rfl⟩) i,
     rw ←sec (hom_of_le ki),
     dsimp only [sections_at_point_fwd] at e,
-    rw ←e,
+    simp,
+    rw e,
+    simp only [eq_mpr_eq_cast, set_coe_cast],
    },
   { dsimp only [function.right_inverse,function.left_inverse],
     rintro ss,
@@ -582,10 +587,18 @@ begin
     --obtain ⟨a,k,ki,kj,e⟩ := sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i,
     let a := (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).val,
     obtain ⟨k,ki,kj,e⟩ := (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).prop,
-    --rcases e with rfl,
-    dsimp only [sections_at_point_fwd,sections_at_point_bwd/-,sections_at_point_bwd_aux-/],
+
+    dsimp only [sections_at_point_fwd,sections_at_point_bwd],
     dsimp only [id],
     rw ←subtype.val_eq_coe at e,
+
+    -- ??????
+
+
+    simp only [subtype.val_eq_coe, eq_mpr_eq_cast],
+    dsimp only [sections_at_point_fwd,sections_at_point_bwd,sections_at_point_bwd_aux] at e,
+
+
     -- not sure how to proceed…
     -- serious work to be done here…
     sorry, },

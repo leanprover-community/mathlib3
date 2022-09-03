@@ -284,12 +284,6 @@ section n_denominators
 -- need notation for finite products
 open_locale big_operators
 
--- lemma sum_eq_of_terms_eq {ι : Type*} {s : finset ι} {g h : ι → K} :
---   (∀ i : ι, i ∈ s → g i = h i) → ∑ (i : ι) in s, g i = ∑ (i : ι) in s, h i :=
--- begin
---   exact finset.sum_congr rfl,
--- end
-
 lemma coprime_of_prod_coprime {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
   (s : finset ι) (j : ι) (hjs : j ∉ s) : is_coprime (g j) (∏ (i : ι) in s, (g i)) :=

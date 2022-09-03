@@ -113,8 +113,9 @@ end
 def affine_subspace.inclusion {R V P : Type} [ring R] [add_comm_group V] [module R V]
   [add_torsor V P] (E : affine_subspace R P) : E → P := coe
 
-def blabb {R V P : Type} [ring R] [add_comm_group V] [module R V]
-  [add_torsor V P] (E : affine_subspace R P) [nonempty E] : add_torsor E.direction E := E.to_add_torsor
+lemma affine_subspace.inclusion_def {R V P : Type} [ring R] [add_comm_group V] [module R V]
+  [add_torsor V P] (E : affine_subspace R P) :
+E.inclusion = coe := rfl
 
 def affine_subspace.inclusion_aff {R V P : Type} [ring R] [add_comm_group V] [module R V]
   [add_torsor V P] (E : affine_subspace R P) [nonempty E] : E →ᵃ[R] P :=
@@ -140,6 +141,224 @@ begin
   refine ⟨E.inclusion_aff, by tauto⟩,
 end
 
+instance affine_subspace.nonempty_map {R V₁ P₁ V₂ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁] [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂] {E : affine_subspace R P₁} [Ene : nonempty E]
+  {φ : P₁ →ᵃ[R] P₂} : nonempty (E.map φ) :=
+begin
+  obtain ⟨x, hx⟩ := id Ene,
+  refine ⟨⟨φ x, affine_subspace.mem_map.mpr ⟨x, hx, rfl⟩⟩⟩,
+end
+
+instance nonempty_affine_span {R V P : Type}
+  [ring R] [add_comm_group V] [module R V] [add_torsor V P] {A : set V} [nonempty A] :
+nonempty (affine_span R A) :=
+begin
+  simp only [coe_sort_coe_base, coe_affine_span, set.nonempty_coe_sort, span_points_nonempty],
+  exact set.nonempty_of_nonempty_subtype,
+end
+
+-- MOVETO algebra.module.linear_map
+
+def linear_map.restrict' {R V₁ V₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁] [module R V₂]
+  (φ : V₁ →ₗ[R] V₂) {E : submodule R V₁} {F : submodule R V₂}
+  (hEF : E.map φ ≤ F) : E →ₗ[R] F :=
+begin
+  refine ⟨_, _, _⟩,
+  { exact λ x, ⟨φ x, hEF $ submodule.mem_map.mpr ⟨x, x.property, rfl⟩⟩ },
+  all_goals { intros x y,
+    simp only [subtype.ext_iff, subtype.coe_mk, submodule.coe_add, submodule.coe_smul],
+    apply_rules [φ.map_add, φ.map_smul] },
+end
+
+def linear_map.restrict'.coe_apply {R V₁ V₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁] [module R V₂]
+  (φ : V₁ →ₗ[R] V₂) {E : submodule R V₁} {F : submodule R V₂}
+  (hEF : E.map φ ≤ F) (x : E) :
+↑(φ.restrict' hEF x) = φ x := rfl
+
+-- MOVETO linear_algebra.affine_space.affine_map
+
+def affine_map.restrict {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  (φ : P₁ →ᵃ[R] P₂) {E : affine_subspace R P₁} {F : affine_subspace R P₂}
+  [nonempty E] [nonempty F]
+  (hEF : E.map φ ≤ F) : E →ᵃ[R] F :=
+begin
+  refine ⟨_, _, _⟩,
+  { exact λ x, ⟨φ x, hEF $ affine_subspace.mem_map.mpr ⟨x, x.property, rfl⟩⟩ },
+  { refine φ.linear.restrict' _,
+    rw [←affine_subspace.map_direction],
+    exact affine_subspace.direction_le hEF },
+  { intros p v,
+    simp only [subtype.ext_iff, subtype.coe_mk, affine_subspace.coe_vadd],
+    apply affine_map.map_vadd },
+end
+
+lemma affine_map.restrict.coe_apply {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  (φ : P₁ →ᵃ[R] P₂) {E : affine_subspace R P₁} {F : affine_subspace R P₂}
+  [nonempty E] [nonempty F]
+  (hEF : E.map φ ≤ F) (x : E) :
+↑(φ.restrict hEF x) = φ x := rfl
+
+lemma affine_map.restrict.linear {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  (φ : P₁ →ᵃ[R] P₂) {E : affine_subspace R P₁} {F : affine_subspace R P₂}
+  [nonempty E] [nonempty F]
+  (hEF : E.map φ ≤ F) :
+(φ.restrict hEF).linear = φ.linear.restrict'
+  (by { rw [←affine_subspace.map_direction], exact affine_subspace.direction_le hEF }) := rfl
+
+lemma affine_map.restrict.injective {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  {φ : P₁ →ᵃ[R] P₂}
+  (hφ : function.injective φ) {E : affine_subspace R P₁} {F : affine_subspace R P₂}
+  [nonempty E] [nonempty F]
+  (hEF : E.map φ ≤ F) :
+function.injective (affine_map.restrict φ hEF) :=
+begin
+  intros x y h,
+  simp only [subtype.ext_iff, subtype.coe_mk, affine_map.restrict.coe_apply] at h ⊢,
+  exact hφ h,
+end
+
+lemma affine_map.restrict.surjective {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂] [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  (φ : P₁ →ᵃ[R] P₂) {E : affine_subspace R P₁} [nonempty E] :
+function.surjective (affine_map.restrict φ (le_refl (E.map φ))) :=
+begin
+  rintro ⟨x, hx : x ∈ E.map φ⟩,
+  rw [affine_subspace.mem_map] at hx,
+  obtain ⟨y, hy, rfl⟩ := hx,
+  exact ⟨⟨y, hy⟩, rfl⟩,
+end
+
+lemma affine_map.bijective_iff_linear_bijective {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂] [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  (φ : P₁ →ᵃ[R] P₂) :
+function.bijective φ ↔ function.bijective φ.linear :=
+begin
+  simp only [function.bijective,
+    φ.injective_iff_linear_injective, φ.surjective_iff_linear_surjective],
+end
+
+-- MOVETO linear_algebra.affine_space.affine_equiv
+noncomputable def affine_equiv.of_bijective {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  {φ : P₁ →ᵃ[R] P₂}
+  (hφ : function.bijective φ) : P₁ ≃ᵃ[R] P₂ :=
+begin
+  refine ⟨equiv.of_bijective _ hφ, _, _⟩,
+  { refine linear_equiv.of_bijective φ.linear _ _ ;
+      obtain ⟨_, _⟩ := hφ ;
+      simp only [φ.injective_iff_linear_injective, φ.surjective_iff_linear_surjective] ;
+      assumption },
+  simp only [equiv.of_bijective_apply, linear_equiv.of_bijective_apply, affine_map.map_vadd,
+    eq_self_iff_true, forall_const],
+end
+
+lemma affine_equiv.of_bijective_apply {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  {φ : P₁ →ᵃ[R] P₂}
+  (hφ : function.bijective φ) (x : P₁) :
+affine_equiv.of_bijective hφ x = φ x := rfl
+
+/- lemma affine_equiv.of_bijective.apply_symm_apply {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  {φ : P₁ →ᵃ[R] P₂}
+  (hφ : function.bijective φ) (x : P₂) :
+φ ((affine_equiv.of_bijective hφ).symm x) = x :=
+begin
+end -/
+
+lemma affine_equiv.of_bijective.symm_eq {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  {φ : P₁ →ᵃ[R] P₂}
+  (hφ : function.bijective φ) :
+(affine_equiv.of_bijective hφ).symm.to_equiv = (equiv.of_bijective _ hφ).symm := rfl
+
+lemma affine_equiv.of_bijective_linear {R V₁ V₂ P₁ P₂ : Type}
+  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
+  [module R V₂]
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  {φ : P₁ →ᵃ[R] P₂}
+  (hφ : function.bijective φ) :
+(affine_equiv.of_bijective hφ).linear = linear_equiv.of_bijective φ.linear
+  (φ.injective_iff_linear_injective.mpr hφ.1)
+  (φ.surjective_iff_linear_surjective.mpr hφ.2) := rfl
+
+-- MOVETO analysis.normed_space.affine_isometry
+
+lemma affine_isometry.injective' {𝕜 V₁ V₂ P₁ P₂ : Type}
+  [normed_field 𝕜] [/- this -/normed_add_comm_group V₁] [seminormed_add_comm_group V₂]
+  [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [pseudo_metric_space P₁] [pseudo_metric_space P₂]
+  [h : normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂] (f : P₁ →ᵃⁱ[𝕜] P₂) :
+function.injective f :=
+begin
+  let : metric_space P₁ :=
+    { to_pseudo_metric_space := infer_instance,
+      eq_of_dist_eq_zero := λ x y, by simp only [dist_eq_norm_vsub V₁ x y, norm_eq_zero,
+        vsub_eq_zero_iff_eq, imp_self] },
+  convert @affine_isometry.injective 𝕜 V₁ V₂ P₁ P₂ _ _ _ _ _ this _ (by convert h) _ f,
+end
+
+
+noncomputable def affine_isometry.cod_restrict_to_equiv {𝕜 V₁ V₂ P₁ P₂ : Type}
+  [normed_field 𝕜] [normed_add_comm_group V₁] [seminormed_add_comm_group V₂] [normed_space 𝕜 V₁]
+  [normed_space 𝕜 V₂] [pseudo_metric_space P₁] [pseudo_metric_space P₂]
+  [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
+  (E : affine_subspace 𝕜 P₁) [nonempty E]
+  (φ : P₁ →ᵃⁱ[𝕜] P₂) : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=
+begin
+  let f := φ.to_affine_map.restrict (le_refl (E.map φ.to_affine_map)),
+  have fi : function.injective f := affine_map.restrict.injective φ.injective' _,
+  have fs : function.surjective f := affine_map.restrict.surjective _,
+  have fb : function.bijective f := ⟨fi, fs⟩,
+  refine ⟨affine_equiv.of_bijective fb, _⟩,
+  { simp only [affine_equiv.of_bijective_linear, linear_equiv.of_bijective_apply],
+    simp only [f, affine_map.restrict.linear],
+    simp only [←submodule.norm_coe, linear_map.restrict'.coe_apply],
+    simp only [affine_isometry.linear_eq_linear_isometry, linear_isometry.coe_to_linear_map,
+      linear_isometry.norm_map, eq_self_iff_true, forall_const] },
+end
+
+lemma affine_isometry.cod_restrict_to_equiv.apply_symm_apply {𝕜 V₁ V₂ P₁ P₂ : Type}
+  [normed_field 𝕜] [normed_add_comm_group V₁] [seminormed_add_comm_group V₂] [normed_space 𝕜 V₁]
+  [normed_space 𝕜 V₂] [pseudo_metric_space P₁] [pseudo_metric_space P₂]
+  [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
+  {E : affine_subspace 𝕜 P₁} [nonempty E]
+  {φ : P₁ →ᵃⁱ[𝕜] P₂} (x : E.map φ.to_affine_map) :
+φ ((φ.cod_restrict_to_equiv E).symm x) = x :=
+begin
+  simp only [affine_isometry.cod_restrict_to_equiv,
+    ←affine_isometry_equiv.coe_to_affine_equiv, ←affine_isometry_equiv.to_affine_equiv_symm],
+  simp only [←affine_equiv.coe_to_equiv, affine_equiv.of_bijective.symm_eq],
+  have := equiv.of_bijective_apply_symm_apply (φ.to_affine_map.restrict _) _ x,
+  replace this := congr_arg (coe : E.map φ.to_affine_map → P₂) this,
+  simp only [affine_map.restrict.coe_apply] at this,
+  exact this,
+end
+
 -- BEGIN intrinsic_interior.lean
 
 section experiment
@@ -159,26 +378,37 @@ lemma intrinsic_interior'_def (R : Type) {V P : Type} [ring R] [seminormed_add_c
 intrinsic_interior' R A =
 (affine_span R A).inclusion '' interior ((affine_span R A).inclusion ⁻¹' A) := rfl
 
+@[simp]
+lemma intrinsic_interior'_empty (R : Type) {V P : Type} [ring R] [seminormed_add_comm_group V] [module R V]
+  [pseudo_metric_space P] [normed_add_torsor V P] :
+intrinsic_interior' R (∅ : set P) = ∅ :=
+begin
+  simp only [intrinsic_interior', set.preimage_empty, interior_empty, set.image_empty],
+end
+
 lemma isometry_range_intrinsic_interior {𝕜 V V₂ P P₂: Type}
-  [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₂] [normed_space 𝕜 V]
+  [normed_field 𝕜] [normed_add_comm_group V] [seminormed_add_comm_group V₂] [normed_space 𝕜 V]
   [normed_space 𝕜 V₂] [pseudo_metric_space P] [pseudo_metric_space P₂] [normed_add_torsor V P]
   [normed_add_torsor V₂ P₂]
   (φ : P →ᵃⁱ[𝕜] P₂) (A : set P) :
 φ '' intrinsic_interior' 𝕜 A = intrinsic_interior' 𝕜 (φ '' A) :=
 begin
-  -- TODO: by_cases
-  haveI : nonempty (affine_span 𝕜 A) := sorry,
-  haveI : nonempty ((affine_span 𝕜 A).map φ.to_affine_map) := sorry,
+  rcases A.eq_empty_or_nonempty with rfl | hc,
+  { simp only [intrinsic_interior'_empty, set.image_empty] },
+  haveI : nonempty A := hc.to_subtype,
+  let f := φ.cod_restrict_to_equiv (affine_span 𝕜 A),
+  let f' := f.to_homeomorph,
+  have : φ.to_affine_map ∘ (affine_span 𝕜 A).inclusion ∘ f'.symm =
+    ((affine_span 𝕜 A).map φ.to_affine_map).inclusion,
+  { funext x,
+    exact affine_isometry.cod_restrict_to_equiv.apply_symm_apply _ },
   simp only [intrinsic_interior'_def, ←φ.coe_to_affine_map],
   rw [intrinsic_interior'_def],
-  rw [←affine_subspace.map_span φ.to_affine_map A],
-  let f : (affine_span 𝕜 A) →ᵃⁱ[𝕜] (affine_span 𝕜 A).map φ.to_affine_map := sorry,
-  have : φ.to_affine_map ∘ (affine_span 𝕜 A).inclusion = ((affine_span 𝕜 A).map φ.to_affine_map).inclusion ∘ f := sorry,
-  rw [←set.image_comp, this, set.image_comp],
-  have : f '' interior ((affine_span 𝕜 A).inclusion ⁻¹' A) = interior (f '' ((affine_span 𝕜 A).inclusion ⁻¹' A)) := sorry,
-  rw [this],
-  congr' 2,
-  admit,
+  rw [←affine_subspace.map_span φ.to_affine_map A, ←this,
+    ←function.comp.assoc, set.image_comp _ f'.symm,
+    set.image_comp _ (affine_span 𝕜 A).inclusion, f'.symm.image_interior, f'.image_symm,
+    ←set.preimage_comp, function.comp.assoc, f'.symm_comp_self, affine_isometry.coe_to_affine_map,
+    function.comp.right_id, @set.preimage_comp _ P, φ.injective'.preimage_image],
 end
 
 end experiment

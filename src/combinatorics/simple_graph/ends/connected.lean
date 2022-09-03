@@ -245,11 +245,23 @@ begin
   exact hp,
 end
 
-def walk.from_induced {S : set V}
-  {u v : S} (p : (G.induce S).walk u v) : G.walk u v := sorry
+def walk.from_induced {S : set V} : Π {u v : S} (p : (G.induce S).walk u v), G.walk u v
+| _ _ (walk.nil' _) := walk.nil
+| _ _ (walk.cons' u v w a q) := walk.cons a (walk.from_induced q)
 
-def walk.from_induced_contained [decidable_eq V] {S : set V}
-  {u v : S} (p : (G.induce S).walk u v) : (p.from_induced.support.to_finset : set V) ⊆ S := sorry
+
+
+def walk.from_induced_contained [decidable_eq V] {S : set V} :
+Π {u v : S} (p : (G.induce S).walk u v), (p.from_induced.support.to_finset : set V) ⊆ S
+| _ _ (walk.nil' _) := by
+{ dsimp [walk.from_induced],
+  simp only [list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, finset.coe_singleton,
+             set.singleton_subset_iff,subtype.coe_prop], }
+| _ _ (walk.cons' u v w a q) := by
+{ dsimp [walk.from_induced],
+  simp only [list.to_finset_cons, finset.coe_insert],
+  rw set.insert_subset, simp, apply walk.from_induced_contained, }
+
 
 lemma connected.walk_support [decidable_eq V] {u v : V} (p : G.walk u v) :
   (G.induce (p.support.to_finset : set V)).connected :=

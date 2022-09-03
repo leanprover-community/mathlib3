@@ -553,43 +553,8 @@ apply_nolint is_cyclotomic_extension.number_field fintype_finite
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 
--- ring_theory/finiteness.lean
-apply_nolint algebra.finite_presentation.mv_polynomial fintype_finite
-apply_nolint algebra.finite_presentation.mv_polynomial_of_finite_presentation fintype_finite
-apply_nolint algebra.finite_type.mv_polynomial fintype_finite
-apply_nolint module.finite.pi fintype_finite
-
--- ring_theory/ideal/quotient.lean
-apply_nolint ideal.exists_sub_mem fintype_finite
-apply_nolint ideal.map_pi fintype_finite
-apply_nolint ideal.quotient_inf_to_pi_quotient_bijective fintype_finite
-
--- ring_theory/jacobson.lean
-apply_nolint ideal.mv_polynomial.comp_C_integral_of_surjective_of_jacobson fintype_finite
-apply_nolint ideal.mv_polynomial.mv_polynomial.ideal.is_jacobson fintype_finite
-
--- ring_theory/localization/integer.lean
-apply_nolint is_localization.exist_integer_multiples_of_fintype fintype_finite
-
--- ring_theory/norm.lean
-apply_nolint algebra.norm_eq_zero_iff_of_basis fintype_finite
-apply_nolint algebra.norm_ne_zero_iff_of_basis fintype_finite
-
--- ring_theory/nullstellensatz.lean
-apply_nolint mv_polynomial.is_maximal_iff_eq_vanishing_ideal_singleton fintype_finite
-apply_nolint mv_polynomial.is_prime.vanishing_ideal_zero_locus fintype_finite
-apply_nolint mv_polynomial.vanishing_ideal_zero_locus_eq_radical fintype_finite
-
--- ring_theory/polynomial/basic.lean
-apply_nolint mv_polynomial.is_noetherian_ring fintype_finite
-apply_nolint mv_polynomial.map_mv_polynomial_eq_eval₂ fintype_finite
-
 -- ring_theory/trace.lean
 apply_nolint algebra.trace_comp_trace_of_basis fintype_finite
-apply_nolint algebra.trace_trace_of_basis fintype_finite
-
--- ring_theory/witt_vector/basic.lean
-apply_nolint witt_vector.comm_ring check_reducibility
 
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame

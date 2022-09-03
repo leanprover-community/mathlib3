@@ -293,6 +293,28 @@ noncomputable def group.rank [h : group.fg G] :=
   {S : finset G} (hS : subgroup.closure (S : set G) = ⊤) : group.rank G ≤ S.card :=
 @nat.find_le _ _ (classical.dec_pred _) (group.fg_iff'.mp h) ⟨S, rfl, hS⟩
 
+variables {G} {G' : Type*} [group G']
+
+@[to_additive] lemma group.rank_le_of_surjective [group.fg G] [group.fg G'] (f : G →* G')
+  (hf : function.surjective f) : group.rank G' ≤ group.rank G :=
+begin
+  classical,
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  transitivity (S.image f).card,
+  { apply group.rank_le,
+    rw [finset.coe_image, ←monoid_hom.map_closure, hS2, subgroup.map_top_of_surjective f hf] },
+  { exact finset.card_image_le.trans_eq hS1 },
+end
+
+@[to_additive] lemma group.rank_range_le [group.fg G] {f : G →* G'} :
+  group.rank f.range ≤ group.rank G :=
+group.rank_le_of_surjective f.range_restrict f.range_restrict_surjective
+
+@[to_additive] lemma group.rank_congr [group.fg G] [group.fg G'] (f : G ≃* G') :
+  group.rank G = group.rank G' :=
+le_antisymm (group.rank_le_of_surjective f.symm f.symm.surjective)
+  (group.rank_le_of_surjective f f.surjective)
+
 end group
 
 section quotient_group

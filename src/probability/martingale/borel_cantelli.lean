@@ -20,7 +20,7 @@ is required to prove the generalized Borel-Cantelli.
 - `measure_theory.submartingale.bdd_above_iff_exists_tendsto`: the one sided martingale bound: given
   a submartingale `f` with uniformly bounded differences, the set for which `f` converges is almost
   everywhere equal to the set for which it is bounded.
-- `measure_theory.ae_mem_limsup_at_top_iff_bdd_above_range`: Lévy's generalized Borel-Cantelli:
+- `measure_theory.ae_mem_limsup_at_top_iff`: Lévy's generalized Borel-Cantelli:
   given a filtration `ℱ` and a sequence of sets `s` such that `s n ∈ ℱ n` for all `n`,
   `limsup at_top s` is almost everywhere equal to the set for which `∑ ℙ[s (n + 1)∣ℱ n] = ∞`.
 

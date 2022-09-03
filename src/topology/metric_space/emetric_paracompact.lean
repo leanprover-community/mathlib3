@@ -133,8 +133,11 @@ begin
     -- For each `m ≤ n + k` there is at most one `j` such that `D m j ∩ B` is nonempty.
     have Hle : ∀ m ≤ n + k, set.subsingleton {j | (D m j ∩ B).nonempty},
     { rintros m hm j₁ ⟨y, hyD, hyB⟩ j₂ ⟨z, hzD, hzB⟩,
-      by_contra h,
-      wlog h : j₁ < j₂ := ne.lt_or_lt h using [j₁ j₂ y z, j₂ j₁ z y],
+      by_contra' h' : j₁ ≠ j₂,
+      wlog h : j₁ < j₂,
+      { cases h'.lt_or_lt with H H,
+        { refine h wf _ _ _ _ _ _ _ x n i hn _ k _ _ m hm y _ _ z _ _ h' H, assumption' },
+        { refine h wf _ _ _ _ _ _ _ x n i hn _ k _ _ m hm z _ _ y _ _ h'.symm H, assumption' } },
       rcases memD.1 hyD with ⟨y', rfl, hsuby, -, hdisty⟩,
       rcases memD.1 hzD with ⟨z', rfl, -, -, hdistz⟩,
       suffices : edist z' y' < 3 * 2⁻¹ ^ m, from nmem_of_lt_ind h (hsuby this),

@@ -69,7 +69,10 @@ lemma constant_descent_vieta_jumping (x y : ℕ) {claim : Prop} {H : ℕ → ℕ
 begin
   -- First of all, we may assume that x ≤ y.
   -- We justify this using H_symm.
-  wlog hxy : x ≤ y, swap, { rw H_symm at h₀, solve_by_elim },
+  wlog hxy : x ≤ y,
+  { cases le_total x y with H H,
+    { exact hxy x y h₀ B C base @H_quad @H_symm @H_zero @H_diag @H_desc @H_base H },
+    { rw H_symm at h₀, apply hxy y x h₀ B C base _ _ _ _ _ _ H, assumption' } },
   -- In fact, we can easily deal with the case x = y.
   by_cases x_eq_y : x = y, {subst x_eq_y, exact H_diag h₀},
   -- Hence we may assume that x < y.

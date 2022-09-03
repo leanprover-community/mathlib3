@@ -102,9 +102,9 @@ lemma count_strict_mono {m n : ℕ} (hm : p m) (hmn : m < n) : count p m < count
 
 lemma count_injective {m n : ℕ} (hm : p m) (hn : p n) (heq : count p m = count p n) : m = n :=
 begin
-  by_contra,
+  by_contra' h : m ≠ n,
   wlog hmn : m < n,
-  { exact ne.lt_or_lt h },
+  { cases h.lt_or_lt with H H, { exact hmn hm hn heq h H }, { exact hmn hn hm heq.symm h.symm H } },
   { simpa [heq] using count_strict_mono hm hmn }
 end
 

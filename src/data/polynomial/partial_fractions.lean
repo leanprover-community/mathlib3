@@ -284,23 +284,11 @@ section n_denominators
 -- need notation for finite products
 open_locale big_operators
 
-lemma sum_eq_of_terms_eq {ι : Type*} {s : finset ι} {g h : ι → K} :
-  (∀ i : ι, i ∈ s → g i = h i) → ∑ (i : ι) in s, g i = ∑ (i : ι) in s, h i :=
-begin
---  exact finset.sum_congr rfl,
-  classical,
-  apply s.induction_on,
-  { intro hi,
-    rw [finset.sum_empty, finset.sum_empty], },
-  { intros j s' his H H2,
-    rw [finset.sum_insert his, finset.sum_insert his, H],
-    swap,
-    { intros k hk,
-      specialize H2 k (finset.mem_insert_of_mem hk),
-      exact H2, },
-    { specialize H2 j (finset.mem_insert_self j s'),
-      rw H2, }, },
-end
+-- lemma sum_eq_of_terms_eq {ι : Type*} {s : finset ι} {g h : ι → K} :
+--   (∀ i : ι, i ∈ s → g i = h i) → ∑ (i : ι) in s, g i = ∑ (i : ι) in s, h i :=
+-- begin
+--   exact finset.sum_congr rfl,
+-- end
 
 lemma coprime_of_prod_coprime {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
@@ -405,7 +393,7 @@ begin
       { rw [← add_assoc, add_assoc (↑q') (↑Q) (↑r1' / ↑(g a)),
             add_comm (↑Q) (↑r1' / ↑(g a)), ← add_assoc (↑q') (↑r1' / ↑(g a)) (↑Q)],},
       simp only [add_right_inj],
-      apply sum_eq_of_terms_eq K,
+      apply finset.sum_congr rfl,
       intros i hi,
       specialize hc3 i hi,
       finish, },

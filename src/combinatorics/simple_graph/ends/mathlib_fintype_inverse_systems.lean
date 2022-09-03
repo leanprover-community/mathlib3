@@ -498,6 +498,17 @@ end
 
 private def sections_at_point_fwd  (j : J) (x : F.obj j) :
   {s : F.sections | s.val j = x} → (above_point F j x).sections :=
+λ ⟨⟨s,sec⟩,sjx⟩,
+  eq.rec_on /- the @ version:  (F.obj j) (s j) (λ x', (above_point F j x').sections) x -/
+    sjx
+    (⟨(λ ii, ⟨s ii.val, sec $ hom_of_le ii.prop⟩),
+      ( by
+        { rintro ii kk ik,
+          simp only [←subtype.coe_inj, set.maps_to.coe_restrict_apply, subtype.coe_mk],
+          apply sec,})⟩ : (above_point F j (s j)).sections)
+
+private def sections_at_point_fwd'  (j : J) (x : F.obj j) :
+  {s : F.sections | s.val j = x} → (above_point F j x).sections :=
 begin
   rintro ⟨⟨s,sec⟩,sjx⟩,
   rw set.mem_set_of_eq at sjx,
@@ -522,6 +533,34 @@ begin
 end
 
 private def sections_at_point_bwd  (j : J) (x : F.obj j) :
+  (above_point F j x).sections → {s : F.sections | s.val j = x} :=
+λ ss,
+⟨ ⟨ (λ i,  (sections_at_point_bwd_aux F j x ss i).val)
+  , by
+    { rintro i k ik',
+      obtain ⟨m,mi,mj,meq⟩ := (sections_at_point_bwd_aux F j x ss i).prop,
+      obtain ⟨n,nk,nj,neq⟩ := (sections_at_point_bwd_aux F j x ss k).prop,
+      let l := (directed_of (≥) m n).some,
+      obtain ⟨lm,ln⟩ := (directed_of (≥) m n).some_spec,
+      obtain ⟨s,sec⟩ := ss,
+      simp only [subtype.val_eq_coe,meq,neq],
+      rw ←(@sec  ⟨l, lm.le.trans mj⟩ ⟨m, mj⟩ (hom_of_le $ lm)),
+      rw ←(@sec  ⟨l, ln.le.trans nj⟩ ⟨n, nj⟩ (hom_of_le $ ln)),
+      dsimp [above_point],
+      simp only [←functor_to_types.map_comp_apply],
+      reflexivity,} ⟩
+, by
+  { simp only [subtype.val_eq_coe, set.mem_set_of_eq, subtype.coe_mk],
+    obtain ⟨y,k,jk,jk',rfl⟩ := sections_at_point_bwd_aux F j x ss j,
+    simp only [subtype.val_eq_coe, subtype.coe_mk],
+    dsimp [above_point,functor.sections] at ss,
+    obtain ⟨s,sec⟩ := ss,
+    simp only [subtype.coe_mk],
+    obtain ⟨y,yh⟩ := s ⟨k,jk⟩,
+    exact yh,}⟩
+
+
+private def sections_at_point_bwd'  (j : J) (x : F.obj j) :
   (above_point F j x).sections → {s : F.sections | s.val j = x} :=
 begin
   rintro ss,
@@ -556,16 +595,10 @@ end
 def sections_at_point (j : J) (x : F.obj j) :
   {s : F.sections | s.val j = x} ≃ (above_point F j x).sections :=
 begin
-
-  split, rotate 2,
-  exact sections_at_point_fwd F j x,
-  exact sections_at_point_bwd F j x,
-  { dsimp only [function.left_inverse],
-    dsimp only [sections_at_point_fwd,sections_at_point_bwd],
+  refine_struct ⟨sections_at_point_fwd F j x, sections_at_point_bwd F j x,_,_⟩,
+  { dsimp only [function.left_inverse,sections_at_point_fwd,sections_at_point_bwd],
     rintro ⟨⟨s,sec⟩,sjx⟩,
-    simp only [set.mem_set_of_eq] at sjx,
-    rcases sjx with rfl,
-    dsimp only [id],
+    simp only [set.mem_set_of_eq] at sjx, rcases sjx with rfl,
     apply subtype.mk_eq_mk.mpr,
     apply subtype.mk_eq_mk.mpr,
     apply funext,
@@ -573,30 +606,26 @@ begin
     obtain ⟨a,k,ki,kj,e⟩ := sections_at_point_bwd_aux F j (s j) (sections_at_point_fwd F j (s j) ⟨⟨s, λ _ _, sec⟩,rfl⟩) i,
     rw ←sec (hom_of_le ki),
     dsimp only [sections_at_point_fwd] at e,
-    simp,
-    rw e,
-    simp only [eq_mpr_eq_cast, set_coe_cast],
+    simp only [e],
    },
   { dsimp only [function.right_inverse,function.left_inverse],
     rintro ss,
     dsimp only [sections_at_point_fwd,sections_at_point_bwd],
     rcases ss with ⟨s,sec⟩,
+    have := (sections_at_point_bwd F j x ⟨s, @sec⟩).prop,
     apply subtype.coe_eq_of_eq_mk,
     apply funext,
     rintro ⟨i,ij⟩,
-    --obtain ⟨a,k,ki,kj,e⟩ := sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i,
-    let a := (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).val,
-    obtain ⟨k,ki,kj,e⟩ := (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).prop,
+    let aa := sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i,
+
 
     dsimp only [sections_at_point_fwd,sections_at_point_bwd],
     dsimp only [id],
-    rw ←subtype.val_eq_coe at e,
+
+    simp,
 
     -- ??????
 
-
-    simp only [subtype.val_eq_coe, eq_mpr_eq_cast],
-    dsimp only [sections_at_point_fwd,sections_at_point_bwd,sections_at_point_bwd_aux] at e,
 
 
     -- not sure how to proceed…

@@ -95,13 +95,11 @@ lemma ends_nat : (Ends gℕ) ≃ unit :=
 begin
 
   suffices H : ∀ K : finset ℕ, ∃ D : set ℕ, disjoint (K : set ℕ) D ∧ (gℕ.induce D).connected ∧ D.infinite ∧ (D ᶜ).finite,
-  {
-    obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
+  { obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
     have : (ComplInfComp gℕ).obj ∅ ≃ unit, from
     inf_comp_out.cofinite_to_equiv_unit gℕlf gℕpc ∅ _ dis conn inf cof,
     transitivity, exact (Ends_equiv_Endsinfty gℕ),
     transitivity, rotate, exact this,
-
 
     apply Endsinfty_eventually_constant gℕ gℕlf gℕpc ∅,
     rintro L LL,
@@ -144,11 +142,12 @@ variables  {V' : Type v}
 
 
 
-private lemma finprod_compl_subconnected
+private lemma finprod_compl_connected
   [infinite V] [infinite V']
   (K : finset V) (K' : finset V') :
-  subconnected (G □ G') ((finset.product K K' : set (V × V') )ᶜ) :=
+  ((G □ G').induce (finset.product K K' : set (V × V') )ᶜ).connected :=
 begin
+  /-
   let VV := V × V',
   let GG := G □ G',
   let L := finset.product K K',
@@ -222,32 +221,34 @@ begin
   have vD' := set.subset.trans (list.to_finset_tail v.support) vD,
   have wD' := set.subset.trans (list.to_finset_tail w.support) wD,
   exact set.union_subset (set.union_subset uD vD') wD',
+  -/
+  sorry
 end
 
-instance : locally_finite (G □ G') := by sorry
+instance GGlf : locally_finite (G □ G') := by sorry
 
+include Gpc Gpc'
 lemma ends_product [infinite V] [infinite V'] : Ends  (G □ G') ≃ unit :=
 begin
 
   let VV := V × V',
   let GG := G □ G',
   let GGpc := simple_graph.preconnected.box_prod Gpc Gpc',
+  let GGlf : locally_finite (G □ G') := sorry,
 
-  suffices H : ∀ K : finset VV, ∃ D : set VV, disjoint D K ∧ subconnected GG D ∧ D.infinite ∧ (D ᶜ).finite,
-  {
-    obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
-    have : (ComplInfComp GG GGpc).obj ∅ ≃ unit, from
-    cofinite_inf_ro_component_equiv'' GG GGpc ∅ _ dis conn inf cof,
-    transitivity, exact (Ends_equiv_Endsinfty GG GGpc),
+  suffices H : ∀ K : finset VV, ∃ D : set VV, disjoint (K : set VV) D ∧ (GG.induce D).connected ∧ D.infinite ∧ (D ᶜ).finite,
+  { obtain ⟨dis,conn,inf,cof⟩ := (H ∅).some_spec,
+    have : (ComplInfComp GG).obj ∅ ≃ unit, from
+    inf_comp_out.cofinite_to_equiv_unit GGlf GGpc ∅ _ dis conn inf cof,
+    transitivity, exact (Ends_equiv_Endsinfty GG),
     transitivity, rotate, exact this,
 
-
-    apply @Endsinfty_eventually_constant _ _ GG GGpc _ ∅,
+    apply Endsinfty_eventually_constant GG GGlf GGpc ∅,
     rintro L LL,
     transitivity, rotate, exact this.symm,
     obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,
-    exact cofinite_inf_ro_component_equiv'' GG GGpc L _ dis conn inf cof,
-  },
+    exact inf_comp_out.cofinite_to_equiv_unit GGlf GGpc L _ dis conn inf cof, },
+
 
   rintros K,
   let L := finset.product (finset.image prod.fst K) (finset.image prod.snd K),
@@ -258,10 +259,10 @@ begin
     rw this, exact L.finite_to_set,},
   have Ddis : disjoint D K, from disjoint_compl_left_iff.mpr (‹K⊆L›),
   have Dinf : D.infinite, by {apply set.infinite_of_finite_compl,exact Dcof, },
-  have Dconn : subconnected GG D,
-    from finprod_compl_subconnected G G' _ _,
+  have Dconn : (GG.induce D).connected,
+    from finprod_compl_connected G G' _ _,
 
-  use [D,Ddis,Dconn,Dinf,Dcof],
+  use [D,Ddis.symm,Dconn,Dinf,Dcof],
 end
 
 end product

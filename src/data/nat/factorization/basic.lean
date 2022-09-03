@@ -481,12 +481,15 @@ begin
   { simp [hqp, (factorization_le_iff_dvd hd0 hn0).2 hdn q] },
 end
 
-/-- If `n` is a nonzero natural number and `p` is a prime, then there are natural numbers `e`
-and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
-lemma exists_prime_pow_and_compl {n : ℕ} (hn : n ≠ 0) (p : ℕ) [fact p.prime] :
+-- /-- If `n` is a nonzero natural number and `p ≠ 1`, then there are natural numbers `e`
+-- and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
+lemma exists_prime_pow_and_compl {n : ℕ} (hn : n ≠ 0) (p : ℕ) (hp : p ≠ 1) :
   ∃ e n' : ℕ, ¬ p ∣ n' ∧ n = p ^ e * n' :=
-⟨n.factorization p, ord_compl[p] n, not_dvd_ord_compl (fact.out p.prime) hn,
- (ord_proj_mul_ord_compl_eq_self n p).symm⟩
+begin
+  obtain ⟨a', h₁, h₂⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd
+                           (multiplicity.finite_nat_iff.mpr ⟨hp, nat.pos_of_ne_zero hn⟩),
+  refine ⟨_, a', h₂, h₁⟩,
+end
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=

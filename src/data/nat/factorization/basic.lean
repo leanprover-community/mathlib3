@@ -481,8 +481,8 @@ begin
   { simp [hqp, (factorization_le_iff_dvd hd0 hn0).2 hdn q] },
 end
 
--- /-- If `n` is a nonzero natural number and `p ≠ 1`, then there are natural numbers `e`
--- and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
+/-- If `n` is a nonzero natural number and `p ≠ 1`, then there are natural numbers `e`
+and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
 lemma exists_prime_pow_and_compl {n : ℕ} (hn : n ≠ 0) (p : ℕ) (hp : p ≠ 1) :
   ∃ e n' : ℕ, ¬ p ∣ n' ∧ n = p ^ e * n' :=
 begin

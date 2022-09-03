@@ -1270,6 +1270,9 @@ end separation
 
 section regular_space
 
+/-- A topological space is called a *regular space* if for any closed set `s` and `a ∉ s`, there
+exist disjoint open sets `U ⊇ s` and `V ∋ a`. We formulate this condition in terms of `disjoint`ness
+of filters `𝓝ˢ s` and `𝓝 a`. -/
 @[mk_iff] class regular_space (X : Type u) [topological_space X] : Prop :=
 (regular : ∀ {s : set X} {a}, is_closed s → a ∉ s → disjoint (𝓝ˢ s) (𝓝 a))
 

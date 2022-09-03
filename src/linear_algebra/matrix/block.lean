@@ -268,7 +268,7 @@ begin
   let p := (λ i, b i < k),
   have h_sum : M⁻¹.to_block p p ⬝ M.to_block p p +
       M⁻¹.to_block p (λ i, ¬ p i) ⬝ M.to_block (λ i, ¬ p i) p = 1,
-    by rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_eq],
+    by rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_self],
   have h_zero : M.to_block (λ i, ¬ p i) p = 0,
   { ext i j,
     simpa using hM (lt_of_lt_of_le j.2 (le_of_not_lt i.2)) },
@@ -303,7 +303,8 @@ begin
   let q := (λ i, ¬ b i < k),
   have h_sum : M⁻¹.to_block q p ⬝ M.to_block p p +
       M⁻¹.to_block q q ⬝ M.to_block q p = 0,
-    by rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_ne],
+  { rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_disjoint],
+    rintros i ⟨hq, hp⟩, exact hq hp },
   have h_zero : M.to_block q p = 0,
   { ext i j,
     simpa using hM (lt_of_lt_of_le j.2 (le_of_not_lt i.2)) },

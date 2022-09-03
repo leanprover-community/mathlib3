@@ -216,7 +216,7 @@ variables [decidable_eq l] [decidable_eq m]
 section has_zero
 variables [has_zero α]
 
-lemma to_block_diagonal_eq (d : m → α) (p : m → Prop) :
+lemma to_block_diagonal_self (d : m → α) (p : m → Prop) :
   matrix.to_block (diagonal d) p p = diagonal (λ i : subtype p, d ↑i) :=
 begin
   ext i j,
@@ -225,11 +225,12 @@ begin
   { simp [has_one.one, h, λ h', h $ subtype.ext h'], }
 end
 
-lemma to_block_diagonal_ne (d : m → α) (p : m → Prop) :
-  matrix.to_block (diagonal d) (λ i, ¬ p i) p = 0 :=
+lemma to_block_diagonal_disjoint (d : m → α) {p q : m → Prop} (hpq : disjoint p q) :
+  matrix.to_block (diagonal d) p q = 0 :=
 begin
   ext ⟨i, hi⟩ ⟨j, hj⟩,
-  have : i ≠ j, from λ h, hi (h.symm ▸ hj),
+  have := hpq i,
+  have : i ≠ j, from λ heq, hpq i ⟨hi, heq.symm ▸ hj⟩,
   simp [diagonal_apply_ne d this]
 end
 
@@ -248,11 +249,12 @@ variables [has_zero α] [has_one α]
   from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
 by { ext i j, rcases i; rcases j; simp [one_apply] }
 
-lemma to_block_one_eq (p : m → Prop) : matrix.to_block (1 : matrix m m α) p p = 1 :=
-to_block_diagonal_eq _ p
+lemma to_block_one_self (p : m → Prop) : matrix.to_block (1 : matrix m m α) p p = 1 :=
+to_block_diagonal_self _ p
 
-lemma to_block_one_ne (p : m → Prop) : matrix.to_block (1 : matrix m m α) (λ i, ¬ p i) p = 0 :=
-to_block_diagonal_ne _ p
+lemma to_block_one_disjoint {p q : m → Prop} (hpq : disjoint p q) :
+  matrix.to_block (1 : matrix m m α) p q = 0 :=
+to_block_diagonal_disjoint _ hpq
 
 end has_zero_has_one
 

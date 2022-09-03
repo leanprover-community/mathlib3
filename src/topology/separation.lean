@@ -720,11 +720,11 @@ eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_
 is the discrete topology on `X`. -/
 lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
   {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
-begin
-  constructor,
-  rw discrete_topology.eq_bot Y,
-  exact induced_bot hf
-end
+by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
+
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
 
 /-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
 by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/

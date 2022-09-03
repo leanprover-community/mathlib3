@@ -40,14 +40,6 @@ namespace linear_ordered_comm_group_with_zero
 variables {α Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀] {γ γ₁ γ₂ : Γ₀} {l : filter α}
   {f : α → Γ₀}
 
-/-- The neighbourhoods around `γ ∈ Γ₀`, used in the definition of the topology on `Γ₀`.
-These neighbourhoods are defined as follows:
-A set `s` is a neighbourhood of `0` if there is an invertible `γ₀ ∈ Γ₀` such that
-`{γ | γ < γ₀} ⊆ s`. If γ ≠ 0, then every set that contains γ is a neighbourhood of γ. -/
-def nhds_fun : Γ₀ → filter Γ₀ := update pure 0 $ ⨅ γ ≠ 0, 𝓟 (Iio γ)
-
-variable {Γ₀}
-
 /-- The topology on a linearly ordered commutative group with a zero element adjoined.
 A subset U is open if 0 ∉ U or if there is an invertible element γ₀ such that {γ | γ < γ₀} ⊆ U. -/
 protected def topological_space : topological_space Γ₀ :=
@@ -132,6 +124,9 @@ end
 lemma is_closed_iff {s : set Γ₀} : is_closed s ↔ (0 : Γ₀) ∈ s ∨ ∃ γ ≠ 0, s ⊆ Ici γ :=
 by simp only [← is_open_compl_iff, is_open_iff, mem_compl_iff, not_not, ← compl_Ici,
   compl_subset_compl]
+
+lemma is_open_Iio {a : Γ₀} : is_open (Iio a) :=
+is_open_iff.mpr $ imp_iff_not_or.mp $ λ ha, ⟨a, ne_of_gt ha, subset.rfl⟩
 
 /-!
 ### Instances

@@ -229,7 +229,6 @@ lemma to_block_diagonal_disjoint (d : m → α) {p q : m → Prop} (hpq : disjoi
   matrix.to_block (diagonal d) p q = 0 :=
 begin
   ext ⟨i, hi⟩ ⟨j, hj⟩,
-  have := hpq i,
   have : i ≠ j, from λ heq, hpq i ⟨hi, heq.symm ▸ hj⟩,
   simp [diagonal_apply_ne d this]
 end

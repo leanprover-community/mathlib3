@@ -74,12 +74,12 @@ protected lemma block_triangular.neg (hM : block_triangular M b) :
   block_triangular (- M) b :=
 λ i j h, show - M i j = 0, by rw [hM h, neg_zero]
 
-lemma block_triangular_add {M N : matrix m m R}
+lemma block_triangular.add {M N : matrix m m R}
     (hM : block_triangular M b) (hN : block_triangular N b) :
   block_triangular (M + N) b :=
 λ i j h, show M i j + N i j = 0, by rw [hM h, hN h, zero_add]
 
-lemma block_triangular_sub {M N : matrix m m R}
+lemma block_triangular.sub {M N : matrix m m R}
     (hM : block_triangular M b) (hN : block_triangular N b) :
   block_triangular (M - N) b :=
 λ i j h, show M i j - N i j = 0, by rw [hM h, hN h, zero_sub_zero]
@@ -113,7 +113,7 @@ end preorder
 section linear_order
 variables [linear_order α]
 
-lemma lower_triangular_mul [fintype m]
+lemma block_triangular.mul [fintype m]
   {M N : matrix m m R} (hM : block_triangular M b) (hN : block_triangular N b):
   block_triangular (M * N) b :=
 begin

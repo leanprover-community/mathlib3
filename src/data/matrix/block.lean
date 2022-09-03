@@ -693,12 +693,12 @@ variables [comm_ring R]
 
 lemma to_block_mul_eq_mul {m n k : Type*} [fintype n] (p : m → Prop) (q : k → Prop)
   (A : matrix m n R) (B : matrix n k R) :
-  (A ⬝ B).to_block p q = A.to_block p (λ _, true) ⬝ B.to_block (λ _, true) q :=
+  (A ⬝ B).to_block p q = A.to_block p ⊤ ⬝ B.to_block ⊤ q :=
 begin
   ext i k,
   simp only [to_block_apply, mul_apply],
   rw finset.sum_subtype,
-  simp,
+  simp [has_top.top, complete_lattice.top, bounded_order.top],
 end
 
 lemma to_block_mul_eq_add

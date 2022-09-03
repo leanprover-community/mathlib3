@@ -238,7 +238,7 @@ begin
   { rintros ⟨Kn, eqinv, cq, hfg, hp, jep⟩,
     obtain ⟨M, hM, rfl⟩ := exists_cg_is_age_of Kn eqinv cq hfg hp jep,
     haveI := ((Structure.cg_iff_countable).1 hM).some,
-    refine ⟨M, countable_encodable _, rfl⟩, }
+    refine ⟨M, to_countable _, rfl⟩, }
 end
 
 variables {K} (L) (M)

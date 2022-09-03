@@ -90,7 +90,7 @@ end
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
 variables [measurable_space γ]
 variables {μ : measure α} {ν : measure β} {τ : measure γ}
-variables [normed_group E]
+variables [normed_add_comm_group E]
 
 /-! ### Measurability
 
@@ -566,14 +566,14 @@ end
 lemma dirac_prod_dirac {x : α} {y : β} : (dirac x).prod (dirac y) = dirac (x, y) :=
 by rw [prod_dirac, map_dirac measurable_prod_mk_right]
 
-lemma prod_sum {ι : Type*} [fintype ι] (ν : ι → measure β) [∀ i, sigma_finite (ν i)] :
+lemma prod_sum {ι : Type*} [finite ι] (ν : ι → measure β) [∀ i, sigma_finite (ν i)] :
   μ.prod (sum ν) = sum (λ i, μ.prod (ν i)) :=
 begin
   refine prod_eq (λ s t hs ht, _),
   simp_rw [sum_apply _ (hs.prod ht), sum_apply _ ht, prod_prod, ennreal.tsum_mul_left]
 end
 
-lemma sum_prod {ι : Type*} [fintype ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
+lemma sum_prod {ι : Type*} [finite ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
   (sum μ).prod ν = sum (λ i, (μ i).prod ν) :=
 begin
   refine prod_eq (λ s t hs ht, _),
@@ -930,7 +930,7 @@ begin
   rw [← integral_map measurable_swap.ae_measurable hf, prod_swap]
 end
 
-variables {E' : Type*} [normed_group E'] [complete_space E'] [normed_space ℝ E']
+variables {E' : Type*} [normed_add_comm_group E'] [complete_space E'] [normed_space ℝ E']
 
 /-! Some rules about the sum/difference of double integrals. They follow from `integral_add`, but
   we separate them out as separate lemmas, because they involve quite some steps. -/

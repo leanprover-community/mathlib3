@@ -107,11 +107,16 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
   (α_ f (𝟙 b) g).hom ≫ f ◁ (λ_ g).hom = (ρ_ f).hom ▷ g . obviously)
 
 -- The precedence of the whiskerings is higher than that of the composition `≫`.
-localized "infixr ` ◁ `:81 := bicategory.whisker_left" in bicategory
-localized "infixl ` ▷ `:81 := bicategory.whisker_right" in bicategory
-localized "notation `α_` := bicategory.associator" in bicategory
-localized "notation `λ_` := bicategory.left_unitor" in bicategory
-localized "notation `ρ_` := bicategory.right_unitor" in bicategory
+localized "infixr (name := bicategory.whisker_left) ` ◁ `:81 := bicategory.whisker_left"
+  in bicategory
+localized "infixl (name := bicategory.whisker_right) ` ▷ `:81 := bicategory.whisker_right"
+  in bicategory
+localized "notation (name := bicategory.associator) `α_` := bicategory.associator"
+  in bicategory
+localized "notation (name := bicategory.left_unitor) `λ_` := bicategory.left_unitor"
+  in bicategory
+localized "notation (name := bicategory.right_unitor) `ρ_` := bicategory.right_unitor"
+  in bicategory
 
 namespace bicategory
 

@@ -166,6 +166,24 @@ by rw [relindex, subgroup_of_self, index_top]
 lemma card_mul_index : nat.card H * H.index = nat.card G :=
 by { rw [←relindex_bot_left, ←index_bot], exact relindex_mul_index bot_le }
 
+@[to_additive] lemma nat_card_dvd_of_injective {G H : Type*} [group G] [group H] (f : G →* H)
+  (hf : function.injective f) : nat.card G ∣ nat.card H :=
+begin
+  rw nat.card_congr (monoid_hom.of_injective hf).to_equiv,
+  exact dvd.intro f.range.index f.range.card_mul_index,
+end
+
+@[to_additive] lemma nat_card_dvd_of_surjective {G H : Type*} [group G] [group H] (f : G →* H)
+  (hf : function.surjective f) : nat.card H ∣ nat.card G :=
+begin
+  rw ← nat.card_congr (quotient_group.quotient_ker_equiv_of_surjective f hf).to_equiv,
+  exact dvd.intro_left (nat.card f.ker) f.ker.card_mul_index,
+end
+
+@[to_additive] lemma card_dvd_of_surjective {G H : Type*} [group G] [group H] [fintype G]
+  [fintype H] (f : G →* H) (hf : function.surjective f) : fintype.card H ∣ fintype.card G :=
+by simp only [←nat.card_eq_fintype_card, nat_card_dvd_of_surjective f hf]
+
 @[to_additive] lemma index_map {G' : Type*} [group G'] (f : G →* G') :
   (H.map f).index = (H ⊔ f.ker).index * f.range.index :=
 by rw [←comap_map_eq, index_comap, relindex_mul_index (H.map_le_range f)]
@@ -259,8 +277,8 @@ by simp_rw [←relindex_top_right, relindex_inf_le]
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
 
-@[to_additive] lemma index_ne_zero_of_fintype [hH : fintype (G ⧸ H)] : H.index ≠ 0 :=
-by { rw index_eq_card, exact fintype.card_ne_zero }
+@[to_additive] lemma index_ne_zero_of_finite [hH : finite (G ⧸ H)] : H.index ≠ 0 :=
+by { casesI nonempty_fintype (G ⧸ H), rw index_eq_card, exact fintype.card_ne_zero }
 
 /-- Finite index implies finite quotient. -/
 @[to_additive "Finite index implies finite quotient."]
@@ -268,7 +286,7 @@ noncomputable def fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸
 (cardinal.lt_aleph_0_iff_fintype.mp (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hH))).some
 
 @[to_additive one_lt_index_of_ne_top]
-lemma one_lt_index_of_ne_top [fintype (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
-nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩
+lemma one_lt_index_of_ne_top [finite (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
+nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_finite, mt index_eq_one.mp hH⟩
 
 end subgroup

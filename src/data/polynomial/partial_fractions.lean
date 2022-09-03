@@ -317,39 +317,47 @@ begin
       rw H2, }, },
 end
 
+lemma triple_coprimes {f g h : R[X]} (hfg : is_coprime f g) (hgh : is_coprime g h)
+  (hfh : is_coprime f h): is_coprime (f*g) h := --is_coprime.mul_right hfg hfh
+begin
+  exact is_coprime.mul_left hfh hgh,
+  --library_search,
+end
+
 lemma coprime_of_prod_coprime {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
   (s : finset ι) (j : ι) (hjs : j ∉ s) : is_coprime (g j) (∏ (i : ι) in s, (g i)) :=
 begin
   classical,
-  unfold is_coprime,
   revert j hjs,
   apply s.induction_on,
-  { intros j hj,
+  { unfold is_coprime,
+    intros j hj,
     refine ⟨ 0, 1, _ ⟩,
     simp only [zero_mul, finset.prod_empty, mul_one, zero_add], },
   { intros k t hkt H j hj,
     rw finset.prod_insert hkt,
+    have hj' : j ∉ t,
+    { intro hc,
+      simp_rw finset.mem_insert at hj,
+      cases not_or_distrib.mp hj with hL hR,
+      contradiction, },
+    have Hcalc : is_coprime (∏ (i : ι) in t, g i) (g j),
+    { unfold is_coprime,
+      specialize H j hj',
+      rcases H with ⟨ a' , b' , H' ⟩,
+      refine ⟨b', a', _ ⟩,
+      rw add_comm,
+      exact H'},
     specialize H k hkt,
-    unfold pairwise is_coprime at hcop,
-    have hne : j ≠ k,
+     have hne : j ≠ k,
     { intro he,
       rw he at hj,
       simp only [finset.mem_insert, eq_self_iff_true, true_or, not_true] at hj,
       exact hj, },
-    rcases H with ⟨a0, b0, h0⟩,
-    rcases (hcop j k hne) with ⟨a1, b1, h1⟩,
-    have hcalc : (a1 * g j + b1 * g k) * (a0 * g k + b0 * ∏ (i : ι) in t, g i) = 1,
-    { rw [h1, h0, one_mul], },
-    -- a := a0 * a1 * g j + a1 * b0 * ∏ (x : ι) in t, g x + b1 * a0 * g k
-    -- b := b1 * b0
-    -- refine ⟨a0 * a1 * g j + a1 * b0 * ∏ (x : ι) in t, g x + b1 * a0 * g k ,
-    --         b1 * b0,
-    --         _ ⟩,
-    -- rw ← hcalc,
-    -- ring_nf,
-    -- simp,
-    sorry },
+    have H1 := hcop j k hne,
+    rw is_coprime_comm at Hcalc,
+    exact is_coprime.mul_right H1 Hcalc,},
 end
 
 lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}

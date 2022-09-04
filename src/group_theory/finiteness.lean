@@ -282,19 +282,16 @@ variables (G)
 
 /-- The minimum number of generators of a group. -/
 @[to_additive "The minimum number of generators of an additive group"]
-def group.rank [h : group.fg G]
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :=
-nat.find (group.fg_iff'.mp h)
+noncomputable def group.rank [h : group.fg G] :=
+@nat.find _ (classical.dec_pred _) (group.fg_iff'.mp h)
 
-@[to_additive] lemma group.rank_spec [h : group.fg G]
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :
+@[to_additive] lemma group.rank_spec [h : group.fg G] :
   ∃ S : finset G, S.card = group.rank G ∧ subgroup.closure (S : set G) = ⊤ :=
-nat.find_spec (group.fg_iff'.mp h)
+@nat.find_spec _ (classical.dec_pred _) (group.fg_iff'.mp h)
 
-@[to_additive] lemma group.rank_le [group.fg G]
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
+@[to_additive] lemma group.rank_le [h : group.fg G]
   {S : finset G} (hS : subgroup.closure (S : set G) = ⊤) : group.rank G ≤ S.card :=
-nat.find_le ⟨S, rfl, hS⟩
+@nat.find_le _ _ (classical.dec_pred _) (group.fg_iff'.mp h) ⟨S, rfl, hS⟩
 
 end group
 

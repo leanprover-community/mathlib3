@@ -9,6 +9,7 @@ import tactic.field_simp
 import tactic
 import data.zmod.basic
 import logic.function.basic
+import algebra_map_coe
 /-
 
 # Partial fractions
@@ -122,67 +123,11 @@ section nice_trick
 /-
 
 Internally, `R[X]` is not a subset of `K`, for foundational reasons.
-We set it up so that if `f : R[X]` then writing `(f : K)` will enable us to
-think of `f` as an element of `K`. Lean will denote this "invisible map"
-from R[X] to K with an `↑`.
+We set it up so that if `f : R[X]` then writing `(↑f : K)` will enable us to
+think of `f` as an element of `K`. Think of `↑` as the "invisible map"
+from R[X] to K.
 
 -/
-
--- The instance and its API should probably be an independent PR
-namespace algebra
-
-instance has_lift (R A : Type*) [comm_semiring R] [semiring A] [algebra R A] :
-  has_lift R A := ⟨λ r, algebra_map R A r⟩
-
-@[simp, norm_cast] lemma lift_map_zero : (↑(0 : R[X]) : K) = 0 := map_zero (algebra_map R[X] K)
-@[simp, norm_cast] lemma lift_map_one : (↑(1 : R[X]) : K) = 1 := map_one (algebra_map R[X] K)
-@[norm_cast] lemma lift_map_add (a b : R[X]) : (↑(a + b : R[X]) : K) = ↑a + ↑b :=
-map_add (algebra_map R[X] K) a b
-@[norm_cast] lemma lift_map_neg (x : R[X]) : (↑(-x : R[X]) : K) = -↑x :=
-map_neg (algebra_map R[X] K) x
-@[norm_cast] lemma lift_map_mul (a b : R[X]) : (↑(a * b : R[X]) : K) = ↑a * ↑b :=
-map_mul (algebra_map R[X] K) a b
-
-open_locale big_operators
-
-@[norm_cast] lemma lift_map_prod {ι : Type*} {s : finset ι} (a : ι → R[X]) :
-  (↑( ∏ (i : ι) in s, a i : R[X]) : K) = ∏ (i : ι) in s, (↑(a i) : K) :=
-begin
-  classical,
-  apply s.induction_on,
-  { simp, },
-  { intros j s hjs H,
-    rw [finset.prod_insert hjs, finset.prod_insert hjs, ← H,
-        ← algebra.lift_map_mul R K (a j) (∏ (i : ι) in s, a i)], },
-end
-
-@[norm_cast] lemma lift_map_sum {ι : Type*} {s : finset ι} (a : ι → R[X]) :
-  ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, (↑(a i) : K) :=
-begin
-  classical,
-  apply s.induction_on,
-  { unfold_coes,
-    simp only [finset.sum_empty, ring_hom.to_fun_eq_coe, map_zero], },
-  { intros j s hjs H,
-    rw [finset.sum_insert hjs, finset.sum_insert hjs, ← H,
-        ← algebra.lift_map_add R K (a j) (∑ (i : ι) in s, a i)], },
-end
-
-attribute [to_additive] lift_map_prod
-
-@[norm_cast] lemma lift_map_inj_iff (a b : R[X]) : (↑a : K) = ↑b ↔ a = b :=
-⟨λ h, is_fraction_ring.injective R[X] K h, by rintro rfl; refl⟩
-
-@[norm_cast] lemma lift_map_eq_zero_iff (a : R[X]) : (↑a : K) = 0 ↔ a = 0 :=
-begin
-  rw (show (0 : K) = ↑(0 : R[X]), from (map_zero (algebra_map R[X] K)).symm),
-  norm_cast,
-end
-
-@[norm_cast] lemma lift_map_pow (a : R[X]) (n : ℕ) : (↑(a ^ n : R[X]) : K) = ↑a ^ n :=
-map_pow (algebra_map R[X] K) _ _
-
-end algebra
 
 -- if `↑f = ↑g ^ 2` then `f = g ^ 2`
 example (f g : R[X]) (h : (↑f : K) = ↑g^2) : f = g^2 :=

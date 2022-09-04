@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jesse Reimann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jesse Reimann, Kalle Kytölä.
+Authors: Jesse Reimann, Kalle Kytölä
 -/
 import topology.continuous_function.bounded
 

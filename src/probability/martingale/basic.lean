@@ -626,7 +626,7 @@ begin
       refine add_le_add (smul_le_stopped_value_hitting hsub _)
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
         (integrable.integrable_on (@integrable_stopped_value Ω ℕ _ _ _ _ _ _ _ _ _
-          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le))
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable _ hitting_le))
         (measurable_set_lt (finset.measurable_range_sup''
           (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) _)),
       intros ω hω,

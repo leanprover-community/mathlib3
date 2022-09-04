@@ -122,11 +122,12 @@ begin
   rcases exists_nonempty_inter_of_measure_univ_lt_sum_measure μ (λ m hm, A m) this
     with ⟨i, hi, j, hj, hij, x, hxi, hxj⟩,
   -- without `tactic.skip` Lean closes the extra goal but it takes a long time; not sure why
-  wlog hlt : i < j := hij.lt_or_lt using [i j, j i] tactic.skip,
-  { simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
-    refine ⟨f^[i] x, hxi, j - i, ⟨tsub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
-    rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le] },
-  { exact λ hi hj hij hxi hxj, this hj hi hij.symm hxj hxi }
+  doneif hlt : i < j generalizing i j, swap,
+  { cases hij.lt_or_lt with H H,
+    { refine hlt i j hi hj hij hxi hxj H }, { refine hlt j i hj hi hij.symm hxj hxi H }, },
+  simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
+  refine ⟨f^[i] x, hxi, j - i, ⟨tsub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
+  rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le]
 end
 
 /-- A self-map preserving a finite measure is conservative: if `μ s ≠ 0`, then at least one point

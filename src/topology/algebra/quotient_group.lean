@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 
-import topology.metric_space.metrizable_uniformity
+import topology.algebra.uniform_group
 
 /-!
 # Quotient group of a metrizable topological group is complete
@@ -110,13 +110,14 @@ begin
     λ n, (hy n).2⟩,
 end
 
-/-- The quotient `G ⧸ N` of a complete uniform first countable topological group `G` by a normal
-subgroup is itself complete. -/
-@[to_additive "The quotient `G ⧸ N` of a complete uniform first countable topological additive group
+/-- The quotient `G ⧸ N` of a complete first countable topological group `G` by a normal subgroup
+is itself complete. -/
+@[to_additive "The quotient `G ⧸ N` of a complete first countable topological additive group
 `G` by a normal additive subgroup is itself complete. Consequently, quotients of Banach spaces by
 subspaces are complete."]
-instance quotient_group.complete_space (G : Type u) [group G] [uniform_space G] [uniform_group G]
-  [first_countable_topology G] [complete_space G] (N : subgroup G) [N.normal] :
+instance quotient_group.complete_space (G : Type u) [group G] [topological_space G]
+  [topological_group G] [first_countable_topology G] (N : subgroup G) [N.normal]
+  [@complete_space G (topological_group.to_uniform_space G)] :
   @complete_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) :=
 begin
   /- Since `G ⧸ N` is a topological group it is a uniform space, and since `G` is first countable
@@ -125,6 +126,7 @@ begin
   this descends to an antitone neighborhood basis `v` for `𝓝 (1 : G ⧸ N)`. Since `𝓤 (G ⧸ N)` is
   countably generated, it suffices to show any Cauchy sequence `x` converges. -/
   letI : uniform_space (G ⧸ N) := topological_group.to_uniform_space (G ⧸ N),
+  letI : uniform_space G := topological_group.to_uniform_space G,
   haveI : (𝓤 (G ⧸ N)).is_countably_generated := comap.is_countably_generated _ _,
   obtain ⟨u, hu, u_mul⟩ := topological_group.exists_antitone_basis_nhds_one G,
   obtain ⟨hv, v_anti⟩ := @has_antitone_basis.map _ _ _ _ _ _ (coe : G → G ⧸ N) hu,
@@ -134,9 +136,9 @@ begin
   of `x a` such that the quotient of the lifts lies in `u n`. -/
   have key₀ : ∀ i j : ℕ, ∃ M : ℕ,
     j < M ∧ ∀ a b : ℕ, M ≤ a → M ≤ b → ∀ g : G, x b = g → ∃ g' : G, g / g' ∈ u i ∧ x a = g',
-  { have h𝓤 : (uniformity (G ⧸ N)).has_basis (λ _, true) (λ i, {x | x.snd / x.fst ∈ coe '' u i}),
+  { have h𝓤GN : (𝓤 (G ⧸ N)).has_basis (λ _, true) (λ i, {x | x.snd / x.fst ∈ coe '' u i}),
     { simpa [uniformity_eq_comap_nhds_one'] using hv.comap _ },
-    simp only [h𝓤.cauchy_seq_iff, ge_iff_le, mem_set_of_eq, forall_true_left, mem_image] at hx,
+    simp only [h𝓤GN.cauchy_seq_iff, ge_iff_le, mem_set_of_eq, forall_true_left, mem_image] at hx,
     intros i j,
     rcases hx i with ⟨M, hM⟩,
     refine ⟨max j M + 1, (le_max_left _ _).trans_lt (lt_add_one _), λ a b ha hb g hg, _⟩,
@@ -165,8 +167,9 @@ begin
   /- The sequence `x'` is Cauchy. This is where we exploit the condition on `u`. The key idea
   is to show by decreasing induction that `x' m / x' n ∈ u m` if `m ≤ n`. -/
   have x'_cauchy : cauchy_seq (λ n, (x' n).fst),
-  { simp only [hu.to_has_basis.uniformity_of_nhds_one.cauchy_seq_iff', ge_iff_le, mem_set_of_eq,
-      forall_true_left],
+  { have h𝓤G : (𝓤 G).has_basis (λ _, true) (λ i, {x | x.snd / x.fst ∈ u i}),
+    { simpa [uniformity_eq_comap_nhds_one'] using hu.to_has_basis.comap _ },
+    simp only [h𝓤G.cauchy_seq_iff', ge_iff_le, mem_set_of_eq, forall_true_left],
     exact λ m, ⟨m, λ n hmn, nat.decreasing_induction'
       (λ k hkn hkm hk, u_mul k ⟨_, _, hx' k, hk, div_mul_div_cancel' _ _ _⟩)
       hmn (by simpa only [div_self'] using mem_of_mem_nhds (hu.mem _))⟩ },

@@ -24,40 +24,6 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011] or chapter 1 of
 
 open_locale pointwise
 
-
--- MOVETO topology.constructions, after subtype.topological_space?
-
-/- def subtype.inclusion {α : Type} {p q : α → Prop} (h : ∀ a, p a → q a) :
-subtype p → subtype q := subtype.map id h
-
-lemma subtype.continuous_inclusion {α : Type} [topological_space α] {p q : α → Prop} (h : ∀ a, p a → q a) :
-continuous (subtype.inclusion h) :=
-begin
-  simp only [continuous_def, is_open_induced_iff, subtype.inclusion, subtype.map, id.def],
-  rintro - ⟨U, hU, rfl⟩,
-  refine ⟨U, hU, _⟩,
-  ext,
-  simp only [set.mem_preimage, subtype.coe_mk],
-end
-
-def subtype.equiv_inclusion {α : Type} {p q : α → Prop} (h : ∀ {a}, p a ↔ q a) :
-subtype p ≃ subtype q :=
-begin
-  refine ⟨subtype.inclusion (λ _, h.mp), subtype.inclusion (λ _, h.mpr), _, _⟩;
-    simp only [subtype.inclusion, subtype.map, id.def,
-      function.left_inverse_iff_comp, function.right_inverse_iff_comp,
-      function.funext_iff, subtype.coe_mk,
-      subtype.ext_iff, eq_self_iff_true, implies_true_iff],
-end
-
-def subtype.homeomorph_inclusion {α : Type} [topological_space α] {p q : α → Prop} (h : ∀ a, p a ↔ q a) :
-subtype p ≃ₜ subtype q :=
-begin
-  refine ⟨subtype.equiv_inclusion h, _, _⟩ ;
-    simp only [auto_param_eq, subtype.equiv_inclusion] ;
-    apply subtype.continuous_inclusion,
-end -/
-
 -- MOVETO data.set.pointwise
 
 lemma set.vadd_vsub_vadd_cancel_left {V : Type} [add_comm_group V]
@@ -119,8 +85,8 @@ instance affine_subspace.to_normed_add_torsor {R V P : Type*} [ring R]
   ..affine_subspace.to_add_torsor s }
 
 /-- The inclusion of an affine subspace of a normed affine space as an affine isometry. -/
-def affine_subspace.inclusion_affine_isometry {𝕜 V P : Type} [normed_field 𝕜] [seminormed_add_comm_group V]
-  [normed_space 𝕜 V] [pseudo_metric_space P] [normed_add_torsor V P]
+def affine_subspace.inclusion_affine_isometry {𝕜 V P : Type} [normed_field 𝕜]
+  [seminormed_add_comm_group V] [normed_space 𝕜 V] [pseudo_metric_space P] [normed_add_torsor V P]
   (E : affine_subspace 𝕜 P) [nonempty E] : E →ᵃⁱ[𝕜] P :=
 begin
   refine ⟨E.inclusion_affine, by tauto⟩,
@@ -645,3 +611,5 @@ begin
   { exact convex.affine_preimage ((affine_span ℝ A).inclusion_affine.comp
     (affine_isometry_equiv.const_vsub ℝ p').symm.to_affine_equiv.to_affine_map) Acv },
 end
+
+#lint

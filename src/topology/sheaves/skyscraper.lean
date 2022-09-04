@@ -11,10 +11,10 @@ import category_theory.preadditive.injective
 /-!
 # Skyscraper (pre)sheaves
 
-A skyscraper (pre)sheaf `𝓕 : (pre)sheaf C X` is a (pre)sheaf with value `A` at point `p₀` is
+A skyscraper (pre)sheaf `𝓕 : (pre)sheaf C X` is the (pre)sheaf with value `A` at point `p₀` that is
 supported only at open sets contain `p₀`, i.e. `𝓕(U) = A` if `p₀ ∈ U` and `𝓕(U) = *` if `p₀ ∉ U`
-where `*` is a terminal object of `C`. In terms of stalks, `𝓕` is supported at all specilizations
-of `p₀`, i.e. if `x ⤳ p₀` then `𝓕ₓ ≅ A` and if `¬ x ⤳ p₀` then `𝓕ₓ ≅ *`.
+where `*` is a terminal object of `C`. In terms of stalks, `𝓕` is supported at all specializations
+of `p₀`, i.e. if `p₀ ⤳ x` then `𝓕ₓ ≅ A` and if `¬ p₀ ⤳ x` then `𝓕ₓ ≅ *`.
 
 ## Main definitions
 
@@ -164,9 +164,8 @@ let h1 := mem_nhds_of_not_specializes p₀ h in
     change _ = c.ι.app (op U.unop),
     simp only [← c.w (hom_of_le $ @inf_le_left _ _ h1.some U.unop).op,
       ← c.w (hom_of_le $ @inf_le_right _ _ h1.some U.unop).op, ← category.assoc],
-    congr' 1, dsimp,
-    refine ((if_neg _ : ite _ _ _ = terminal C).symm.rec_on
-      (terminal_is_terminal : is_terminal (terminal C))).hom_ext _ _,
+    congr' 1,
+    refine ((if_neg _).symm.rec terminal_is_terminal).hom_ext _ _,
     exact λ h, h1.some_spec h.1,
   end,
   uniq' := λ c f H, begin

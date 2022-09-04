@@ -7,7 +7,7 @@ Authors: Rémy Degenne
 import probability.martingale.basic
 
 /-!
-# Optional stopping theorem
+# Optional sampling theorem
 
 If `τ` is a bounded stopping time and `σ` is another stopping
 time, then the stopped value of a martingale `f` with respect to `min τ σ` is almost everywhere
@@ -15,7 +15,7 @@ equal to `μ[stopped_value f τ | hσ.measurable_space]`.
 
 ## Main results
 
-* `stopped_value_min_ae_eq_condexp` : the optional stopping theorem.
+* `stopped_value_min_ae_eq_condexp` : the optional sampling theorem.
 
 -/
 

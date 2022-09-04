@@ -103,7 +103,7 @@ linear_isometry_equiv.of_surjective
 
 localized "postfix (name := adjoint) `†`:1000 := continuous_linear_map.adjoint" in inner_product
 
-@[simp] lemma adjoint_apply (A : E →L[𝕜] F) (x : F) :
+lemma adjoint_apply (A : E →L[𝕜] F) (x : F) :
   A† x = ((to_dual 𝕜 E).symm : (normed_space.dual 𝕜 E) → E) ((to_sesq_form A) x) := rfl
 
 /-- The fundamental property of the adjoint. -/

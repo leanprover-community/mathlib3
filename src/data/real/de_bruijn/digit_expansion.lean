@@ -70,6 +70,8 @@ variables {Z} {b : ℕ} (f g : formal_series Z b) (i : Z)
 
 @[simp] lemma to_fun_apply : f.to_fun i = f i := rfl
 
+@[simp] lemma mk_apply (f : Z → fin (b + 1)) (hf) : (⟨f, hf⟩ : formal_series Z b) i = f i := rfl
+
 end formal_series
 
 end s01
@@ -776,6 +778,26 @@ end s05
 
 section s06
 
+omit hb
+
+@[elab_as_eliminator] lemma succ.rec' {Z : Type*} [linear_order Z] [succ_order Z]
+  [is_succ_archimedean Z] {P : Z → Prop} {m : Z} (h0 : P m)
+  (h1 : ∀ n, m ≤ n → (∀ k, m ≤ k → k ≤ n → P k) → P (succ n)) ⦃n : Z⦄ (hmn : m ≤ n) : P n :=
+begin
+  refine succ.rec h0 _ hmn,
+  intros n hn hnp,
+  refine h1 n hn _,
+  refine succ.rec _ _ hn,
+  { intros k hmk hkm,
+    rwa le_antisymm hkm hmk },
+  { intros n hmn IH k hmk hkn,
+    rcases hkn.eq_or_lt with rfl|hkn',
+    { exact h1 _ hmn IH },
+    { exact IH _ hmk (le_of_lt_succ hkn') } }
+end
+
+include hb
+
 namespace formal_series
 
 protected def positive (f : Σ) : Prop := f ≠ 0 ∧ ∃ x, ∀ y < x, f y = 0
@@ -784,6 +806,28 @@ protected def negative (f : Σ) : Prop := f ≠ 0 ∧ ∃ x, ∀ y < x, f y = b
 
 lemma not_positive_zero : ¬ formal_series.positive (0 : Σ) := λ H, H.left rfl
 lemma not_negative_zero : ¬ formal_series.negative (0 : Σ) := λ H, H.left rfl
+
+lemma positive.exists_least_pos {f : Σ} (hf : f.positive) : ∃ x, 0 < f x ∧ ∀ y < x, f y = 0 :=
+begin
+  obtain ⟨x, hx⟩ : ∃ x, ∀ y ≤ x, f y = 0,
+  { obtain ⟨hne, x, hx⟩ := hf,
+    exact ⟨pred x, λ y hy, hx _ (hy.trans_lt (pred_lt _))⟩ },
+  obtain ⟨hne, -⟩ := id hf,
+  contrapose! hne,
+  ext z : 1,
+  rw zero_apply,
+  cases le_total z x with h h,
+  { rw [hx _ h] },
+  refine succ.rec' _ _ h,
+  { rw [hx _ le_rfl] },
+  intros w hw IH,
+  cases (fin.zero_le (f (succ w))).eq_or_lt with H H,
+  { exact H.symm },
+  { obtain ⟨y, hy, hne⟩ := hne _ H,
+    refine absurd (IH _ _ (le_of_lt_succ hy)) hne,
+    refine or.resolve_right (le_total _ _) (λ H, hne _),
+    rw [(hx _ H)] }
+end
 
 lemma positive.not_negative {f : Σ} (h : f.positive) : ¬ f.negative :=
 λ H, begin
@@ -899,26 +943,6 @@ begin
     { simp },
     { simp } }
 end
-
-omit hb
-
-@[elab_as_eliminator] lemma succ.rec' {Z : Type*} [linear_order Z] [succ_order Z]
-  [is_succ_archimedean Z] {P : Z → Prop} {m : Z} (h0 : P m)
-  (h1 : ∀ n, m ≤ n → (∀ k, m ≤ k → k ≤ n → P k) → P (succ n)) ⦃n : Z⦄ (hmn : m ≤ n) : P n :=
-begin
-  refine succ.rec h0 _ hmn,
-  intros n hn hnp,
-  refine h1 n hn _,
-  refine succ.rec _ _ hn,
-  { intros k hmk hkm,
-    rwa le_antisymm hkm hmk },
-  { intros n hmn IH k hmk hkn,
-    rcases hkn.eq_or_lt with rfl|hkn',
-    { exact h1 _ hmn IH },
-    { exact IH _ hmk (le_of_lt_succ hkn') } }
-end
-
-include hb
 
 -- (iii)
 lemma positive.sub_positive {f g : Σ} (hf : f.positive) (hg : g.positive) (hne : f ≠ g) :
@@ -1118,6 +1142,9 @@ instance : has_lt (formal_series.real Z b) :=
 
 variables {Z} {b}
 
+protected lemma formal_series.real.apply_eq_coe_apply (f : formal_series.real Z b) (z : Z) :
+  f z = (f : Σ) z := rfl
+
 protected lemma formal_series.real.lt_def {f g : formal_series.real Z b} :
   f < g ↔ (g - f : Σ).positive := iff.rfl
 
@@ -1203,3 +1230,117 @@ begin
 end
 
 end s07
+
+section s08
+
+omit hb
+def add_subgroup.sub_copy {A : Type*} [add_comm_group A] (s : set A)
+  (hn : s.nonempty)
+  (hs : ∀ {f g : A}, f ∈ s → g ∈ s → f - g ∈ s) : add_subgroup A :=
+{ carrier := s,
+  add_mem' := λ f g hf hg, begin
+    rw ←sub_neg_eq_add,
+    refine hs hf _,
+    rw [←zero_sub, ←sub_self f],
+    exact hs (hs hf hf) hg
+  end,
+  zero_mem' := exists.elim hn $ λ x hx, sub_self x ▸ hs hx hx,
+  neg_mem' := λ f hf, by { rw [←zero_sub, ←sub_self f], exact hs (hs hf hf) hf  } }
+
+include hb
+variables (b) (Z)
+
+def formal_series.hensel : add_subgroup (formal_series Z b) :=
+add_subgroup.sub_copy {f : Σ | ∃ x, ∀ z > x, f z = 0}
+  ⟨0, by simp⟩
+  begin
+    simp only [gt_iff_lt, set.mem_set_of_eq, forall_exists_index],
+    intros f g x hfx y hgy,
+    use (max x y),
+    intros z hz,
+    simp only [max_lt_iff] at hz,
+    rw [formal_series.sub_def, hfx _ hz.left, hgy _ hz.right],
+    simp only [difcar_eq_zero_iff, sub_self, neg_zero, zero_sub, neg_eq_zero, gt_iff_lt],
+    intros w hw,
+    simp [hfx _ (hz.left.trans hw), hgy _ (hz.right.trans hw)]
+  end
+
+def formal_series.hensel_int [has_zero Z] : add_subgroup (formal_series Z b) :=
+add_subgroup.sub_copy {f : Σ | ∀ z > 0, f z = 0}
+  ⟨0, by simp⟩
+  begin
+    intros f g hf hg z hz,
+    simp only [formal_series.sub_def, hf _ hz, hg _ hz, difcar_eq_zero_iff, sub_self, neg_zero,
+               zero_sub, neg_eq_zero, gt_iff_lt],
+    intros w hw,
+    simp [hf _ (hw.trans' hz), hg _ (hw.trans' hz)]
+  end
+
+def formal_series.real_hensel : add_subgroup (formal_series Z b) :=
+formal_series.real Z b ⊓ formal_series.hensel Z b
+
+def formal_series.real.hensel : add_subgroup (formal_series.real Z b) :=
+(formal_series.real_hensel Z b).comap (add_subgroup.subtype _)
+
+def formal_series.Z_star [has_zero Z] : add_subgroup (formal_series Z b) :=
+formal_series.real Z b ⊓ formal_series.hensel_int Z b
+
+variables {Z} {b}
+
+-- 8.2
+lemma formal_series.real.dense {f g : formal_series.real Z b} (hfg : f > g) :
+  ∃ h ∈ formal_series.real.hensel Z b, f > h ∧ h > g :=
+begin
+  set k := f - g with hk,
+  have kpos : formal_series.positive (k : Σ),
+  { rwa [formal_series.real.positive_iff, hk, sub_pos] },
+  obtain ⟨x, xpos, hx⟩ := kpos.exists_least_pos,
+  let p' : Σ := ⟨λ y, if y ≤ x then 0 else if y = succ x then 1 else f y, _⟩,
+  swap,
+  { rintro ⟨z, hz⟩,
+    obtain ⟨w, hwz, hw⟩ := formal_series.exists_bounded (f : Σ) z,
+    cases le_or_lt w x,
+    { specialize hz _ hwz,
+      rw [if_pos h, ←fin.coe_last b, fin.coe_coe_eq_self] at hz,
+      casesI b,
+      { exact absurd hb.out (lt_irrefl _) },
+      { exact (fin.last_pos : 0 < fin.last b.succ).ne hz } },
+    { obtain ⟨w', hww', hw'⟩ := formal_series.exists_bounded (f : Σ) (succ w),
+      specialize hz w' ((lt_trans hwz (lt_succ _)).trans hww'),
+      rw [if_neg ((succ_strict_mono h).trans hww').ne',
+          if_neg (not_le_of_lt (h.trans ((lt_succ _).trans hww')))] at hz,
+      exact hw'.ne hz } },
+  have px0 : ∀ y ≤ x, p' y = 0,
+  { intros y hy,
+    exact if_pos hy },
+  have ppos : p'.positive,
+  { refine ⟨λ H, _, x, _⟩,
+    { replace H : p' (succ x) = 0,
+      { rw [H, zero_apply] },
+      simpa [p', ne_of_gt hb.out] using H },
+    { intros y hy,
+      exact px0 _ hy.le } },
+  let p : formal_series.real Z b := ⟨p', or.inl ppos⟩,
+  refine ⟨f - p, ⟨(f - p).prop, succ x, _⟩, _, _⟩,
+  { intros z hz,
+    simp only [formal_series.sub_def, add_subgroup.coe_subtype, add_subgroup.coe_sub,
+                subtype.coe_mk, formal_series.mk_apply, ne_of_gt hz,
+                not_le_of_lt ((lt_trans (lt_succ x)) hz), formal_series.real.apply_eq_coe_apply,
+                difcar_eq_zero_iff, if_false, sub_self, zero_sub, neg_eq_zero, gt_iff_lt],
+    intros w hzw,
+    simp [not_le_of_lt ((lt_trans (lt_succ x) (lt_trans hz hzw))), ne_of_gt (lt_trans hz hzw)] },
+  { rw [gt_iff_lt, sub_lt, sub_self, ←formal_series.real.positive_iff],
+    exact ppos },
+  suffices : k > p,
+  { rwa [gt_iff_lt, ←add_lt_add_iff_left (g - p), hk, sub_add_sub_cancel',
+         sub_add_cancel] at this },
+  rw [gt_iff_lt, formal_series.real.lt_def],
+  refine ((kpos.sub_positive ppos (λ H, xpos.ne _)).resolve_right _).left,
+  { rw [H, px0 _ le_rfl] },
+  { push_neg,
+    refine λ H, ⟨x, _, λ y hy, _⟩,
+    { rwa [px0 _ le_rfl] },
+    { rw [hx _ hy, px0 _ hy.le] } }
+end
+
+end s08

@@ -110,7 +110,7 @@ Extension of scalars is a functor where an `R`-module `M` is sent to `S ⊗ M` a
 `l : M1 ⟶ M2` is sent to `s ⊗ m ↦ s ⊗ l m`
 -/
 def map' {M1 M2 : Module.{v} R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
-@linear_map.base_change R S M1 M2 _ _ ((algebra_map S _).comp f).to_algebra _ _ _ _ l
+by apply (@linear_map.base_change R S M1 M2 _ _ ((algebra_map S _).comp f).to_algebra _ _ _ _ l)
 
 lemma map'_id {M : Module.{v} R} : map' f (𝟙 M) = 𝟙 _ :=
 linear_map.ext $ λ (x : obj' f M),

@@ -75,31 +75,27 @@ instance quotient_group.complete_space (G : Type u) [group G] [uniform_space G] 
 begin
   /- Since `G ⧸ N` is a topological group it is a uniform space, and since `G` is first countable
   the uniformities of both `G` and `G ⧸ N` are countably generated. Moreover, we may choose a
-  sequential antitone neighborhood basis `u` for `𝓝 (1 : G)` so that `(u n)⁻¹ = u n` and also
-  `(u (n + 1)) ^ 2 ⊆ u n`, and this descends to an antitone neighborhood basis `v` for
-  `𝓝 (1 : G ⧸ N)`. -/
+  sequential antitone neighborhood basis `u` for `𝓝 (1 : G)` so that `(u (n + 1)) ^ 2 ⊆ u n`, and
+  this descends to an antitone neighborhood basis `v` for `𝓝 (1 : G ⧸ N)`. Since `𝓤 (G ⧸ N)` is
+  countably generated, it suffices to show any Cauchy sequence `x` converges. -/
   letI : uniform_space (G ⧸ N) := topological_group.to_uniform_space (G ⧸ N),
   haveI : (𝓤 (G ⧸ N)).is_countably_generated := comap.is_countably_generated _ _,
   obtain ⟨U, hU, U_mul⟩ := topological_group.exists_antitone_basis_nhds_one G,
   obtain ⟨hV, V_anti⟩ := @has_antitone_basis.map _ _ _ _ _ _ (coe : G → G ⧸ N) hU,
   rw [←quotient_group.nhds_eq N 1, quotient_group.coe_one] at hV,
-  /- Since `G ⧸ N` is metrizable it suffices to show any Cauchy sequence `x` converges; note that
-  `x` has quotients of successive terms converging to `1`. -/
   refine uniform_space.complete_of_cauchy_seq_tendsto (λ x hx, _),
-  have x_div_tendsto : tendsto _ _ (𝓝 (1 : G ⧸ N)) := map_le_iff_le_comap.mpr hx.2,
-  simp only [prod_map_map_eq, hV.tendsto_right_iff, eventually_map, forall_true_left,
-    (at_top_basis.prod at_top_basis).eventually_iff, mem_image, Ici_prod_Ici, mem_Ici, prod.forall,
-    true_and, prod.exists, prod.mk_le_mk, and_imp] at x_div_tendsto,
   /- Given `n : ℕ`, for sufficiently large `a b : ℕ`, given any lift of `x b`, we can find a lift
   of `x a` such that the quotient of the lifts lies in `u n`. -/
   have key₀ : ∀ i j : ℕ, ∃ M : ℕ,
     j < M ∧ ∀ a b : ℕ, M ≤ a → M ≤ b → ∀ g : G, x b = g → ∃ g' : G, g / g' ∈ U i ∧ x a = g',
-  { intros i j,
-    rcases x_div_tendsto i with ⟨M₁, M₂, hM⟩,
-    refine ⟨max j (max M₁ M₂) + 1, (le_max_left _ _).trans_lt (lt_add_one _), λ a b ha hb g hg, _⟩,
-    obtain ⟨y, y_mem, hy⟩ := hM a b
-      (((le_max_left _ _).trans $ (le_max_right j _).trans (lt_add_one _).le).trans ha)
-      (((le_max_right _ _).trans $ (le_max_right j _).trans (lt_add_one _).le).trans hb),
+  { have h𝓤 : (uniformity (G ⧸ N)).has_basis (λ _, true) (λ i, {x | x.snd / x.fst ∈ coe '' U i}),
+    { simpa [uniformity_eq_comap_nhds_one'] using hV.comap _ },
+    simp only [h𝓤.cauchy_seq_iff, ge_iff_le, mem_set_of_eq, forall_true_left, mem_image] at hx,
+    intros i j,
+    rcases hx i with ⟨M, hM⟩,
+    refine ⟨max j M + 1, (le_max_left _ _).trans_lt (lt_add_one _), λ a b ha hb g hg, _⟩,
+    obtain ⟨y, y_mem, hy⟩ := hM a (((le_max_right j _).trans (lt_add_one _).le).trans ha) b
+      (((le_max_right j _).trans (lt_add_one _).le).trans hb),
     refine ⟨y⁻¹ * g,
       by simpa only [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_cancel_left] using y_mem, _⟩,
     rw [quotient_group.coe_mul, quotient_group.coe_inv, hy, hg, inv_div, div_mul_cancel'], },

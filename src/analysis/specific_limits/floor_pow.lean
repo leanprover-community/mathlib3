@@ -55,7 +55,7 @@ begin
         by simp only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff] with field_simps
       ... ≤ ε * c n :
         begin
-          apply mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
+          refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
           simp only [mul_one, real.norm_eq_abs, abs_one] at hn,
           exact le_trans (le_abs_self _) hn,
         end },
@@ -120,7 +120,7 @@ begin
         by simp only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff, neg_sub] with field_simps
       ... ≤ ε * c n :
         begin
-          apply mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
+          refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
           simp only [mul_one, real.norm_eq_abs, abs_one] at hn,
           exact le_trans (neg_le_abs_self _) hn,
         end },
@@ -256,7 +256,7 @@ begin
   { rw [← div_eq_mul_inv, ← div_eq_mul_inv, div_le_div_iff _ (sub_pos.2 hc)], swap,
     { exact sub_pos.2 (pow_lt_one (inv_nonneg.2 cpos.le) (inv_lt_one hc) two_ne_zero) },
     have : c ^ 3 = c^2 * c, by ring_exp,
-    simp only [mul_sub, this, mul_one, inv_pow₀, sub_le_sub_iff_left],
+    simp only [mul_sub, this, mul_one, inv_pow, sub_le_sub_iff_left],
     rw [mul_assoc, mul_comm c, ← mul_assoc, mul_inv_cancel (sq_pos_of_pos cpos).ne', one_mul],
     simpa using pow_le_pow hc.le one_le_two },
   calc
@@ -291,7 +291,7 @@ begin
       apply real.rpow_le_rpow_of_exponent_ge A,
       { exact pow_le_one _ (inv_nonneg.2 (zero_le_one.trans hc.le)) (inv_le_one hc.le) },
       { exact (nat.sub_one_lt_floor _).le } },
-    { simpa only [inv_pow₀, sub_pos] using inv_lt_one (one_lt_pow hc two_ne_zero) }
+    { simpa only [inv_pow, sub_pos] using inv_lt_one (one_lt_pow hc two_ne_zero) }
   end
   ... = (c^2 * (1 - c⁻¹ ^ 2) ⁻¹) / j ^ 2 :
   begin

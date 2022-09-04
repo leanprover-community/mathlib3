@@ -26,8 +26,8 @@ zero which is an ideal. Hence it's either zero (and the field is separated) or t
 which implies one is sent to zero and the completion ring is trivial.
 
 The main definition is `completable_top_field` which packages the assumptions as a Prop-valued
-type class and the main results are the instances `field_completion` and
-`topological_division_ring_completion`.
+type class and the main results are the instances `uniform_space.completion.field` and
+`uniform_space.completion.topological_division_ring`.
 -/
 
 
@@ -41,10 +41,6 @@ variables (K : Type*) [field K]  [uniform_space K]
 
 local notation `hat` := completion
 
-@[priority 100]
-instance [separated_space K] : nontrivial (hat K) :=
-⟨⟨0, 1, λ h, zero_ne_one $ (uniform_embedding_coe K).inj h⟩⟩
-
 /--
 A topological field is completable if it is separated and the image under
 the mapping x ↦ x⁻¹ of every Cauchy filter (with respect to the additive uniform structure)
@@ -55,6 +51,13 @@ a field.
 class completable_top_field extends separated_space K : Prop :=
 (nice : ∀ F : filter K, cauchy F → 𝓝 0 ⊓ F = ⊥ → cauchy (map (λ x, x⁻¹) F))
 
+namespace uniform_space
+namespace completion
+
+@[priority 100]
+instance [separated_space K] : nontrivial (hat K) :=
+⟨⟨0, 1, λ h, zero_ne_one $ (uniform_embedding_coe K).inj h⟩⟩
+
 variables {K}
 
 /-- extension of inversion to the completion of a field. -/
@@ -63,7 +66,7 @@ def hat_inv : hat K → hat K := dense_inducing_coe.extend (λ x : K, (coe x⁻�
 lemma continuous_hat_inv [completable_top_field K] {x : hat K} (h : x ≠ 0) :
   continuous_at hat_inv x :=
 begin
-  haveI : regular_space (hat K) := completion.regular_space K,
+  haveI : t3_space (hat K) := completion.t3_space K,
   refine dense_inducing_coe.continuous_at_extend _,
   apply mem_of_superset (compl_singleton_mem_nhds h),
   intros y y_ne,
@@ -79,7 +82,7 @@ begin
   { have eq_bot : 𝓝 (0 : hat K) ⊓ 𝓝 y = ⊥,
     { by_contradiction h,
       exact y_ne (eq_of_nhds_ne_bot $ ne_bot_iff.mpr h).symm },
-    erw [dense_inducing_coe.nhds_eq_comap (0 : K), ← comap_inf,  eq_bot],
+    erw [dense_inducing_coe.nhds_eq_comap (0 : K), ← filter.comap_inf, eq_bot],
     exact comap_bot },
 end
 
@@ -87,7 +90,7 @@ end
 The value of `hat_inv` at zero is not really specified, although it's probably zero.
 Here we explicitly enforce the `inv_zero` axiom.
 -/
-instance completion.has_inv : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else hat_inv x⟩
+instance : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else hat_inv x⟩
 
 variables [topological_division_ring K]
 
@@ -146,7 +149,7 @@ begin
   rwa [closure_singleton, mem_singleton_iff] at fxclo
 end
 
-instance field_completion : field (hat K) :=
+instance : field (hat K) :=
 { exists_pair_ne := ⟨0, 1, λ h, zero_ne_one ((uniform_embedding_coe K).inj h)⟩,
   mul_inv_cancel := λ x x_ne, by { dsimp [has_inv.inv],
                                    simp [if_neg x_ne, mul_hat_inv_cancel x_ne], },
@@ -154,7 +157,7 @@ instance field_completion : field (hat K) :=
   ..completion.has_inv,
   ..(by apply_instance : comm_ring (hat K)) }
 
-instance topological_division_ring_completion : topological_division_ring (hat K) :=
+instance : topological_division_ring (hat K) :=
 { continuous_at_inv₀ := begin
     intros x x_ne,
     have : {y | hat_inv y = y⁻¹ } ∈ 𝓝 x,
@@ -167,3 +170,6 @@ instance topological_division_ring_completion : topological_division_ring (hat K
     exact continuous_at.congr (continuous_hat_inv x_ne) this
   end,
   ..completion.top_ring_compl }
+
+end completion
+end uniform_space

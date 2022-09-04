@@ -5,6 +5,7 @@ Authors: Bolton Bailey, Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle S
 -/
 import analysis.special_functions.log.basic
 import analysis.special_functions.pow
+import data.int.log
 
 /-!
 # Real logarithm base `b`
@@ -14,7 +15,7 @@ define this as the division of the natural logarithms of the argument and the ba
 a globally defined function with `logb b 0 = 0`, `logb b (-x) = logb b x` `logb 0 x = 0` and
 `logb (-b) x = logb b x`.
 
-We prove some basic properties of this function and it's relation to `rpow`.
+We prove some basic properties of this function and its relation to `rpow`.
 
 ## Tags
 
@@ -290,6 +291,32 @@ begin
 end
 
 end b_pos_and_b_lt_one
+
+lemma floor_logb_nat_cast {b : ℕ} {r : ℝ} (hb : 1 < b) (hr : 0 ≤ r) : ⌊logb b r⌋ = int.log b r :=
+begin
+  obtain rfl | hr := hr.eq_or_lt,
+  { rw [logb_zero, int.log_zero_right, int.floor_zero] },
+  have hb1' : 1 < (b : ℝ) := nat.one_lt_cast.mpr hb,
+  apply le_antisymm,
+  { rw [←int.zpow_le_iff_le_log hb hr, ←rpow_int_cast b],
+    refine le_of_le_of_eq _ (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr),
+    exact rpow_le_rpow_of_exponent_le hb1'.le (int.floor_le _) },
+  { rw [int.le_floor, le_logb_iff_rpow_le hb1' hr, rpow_int_cast],
+    exact int.zpow_log_le_self hb hr }
+end
+
+lemma ceil_logb_nat_cast {b : ℕ} {r : ℝ} (hb : 1 < b) (hr : 0 ≤ r) : ⌈logb b r⌉ = int.clog b r :=
+begin
+  obtain rfl | hr := hr.eq_or_lt,
+  { rw [logb_zero, int.clog_zero_right, int.ceil_zero] },
+  have hb1' : 1 < (b : ℝ) := nat.one_lt_cast.mpr hb,
+  apply le_antisymm,
+  { rw [int.ceil_le, logb_le_iff_le_rpow hb1' hr, rpow_int_cast],
+    refine int.self_le_zpow_clog hb r },
+  { rw [←int.le_zpow_iff_clog_le hb hr, ←rpow_int_cast b],
+    refine (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr).symm.trans_le _,
+    exact rpow_le_rpow_of_exponent_le hb1'.le (int.le_ceil _) },
+end
 
 @[simp] lemma logb_eq_zero :
   logb b x = 0 ↔ b = 0 ∨ b = 1 ∨ b = -1 ∨ x = 0 ∨ x = 1 ∨ x = -1 :=

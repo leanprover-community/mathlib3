@@ -196,7 +196,7 @@ lemma compact_conv_nhd_subset_compact_open (hK : is_compact K) {U : set β} (hU 
 begin
   obtain ⟨V, hV₁, hV₂, hV₃⟩ := lebesgue_number_of_compact_open (hK.image f.continuous) hU hf,
   refine ⟨V, hV₁, hV₂, _⟩,
-  rintros g hg - ⟨x, hx, rfl⟩,
+  rintros g hg _ ⟨x, hx, rfl⟩,
   exact hV₃ (f x) ⟨x, hx, rfl⟩ (hg x hx),
 end
 

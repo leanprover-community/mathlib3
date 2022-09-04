@@ -45,7 +45,7 @@ def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.
 /-- `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
   As a special case, `divisors_antidiagonal 0 = ∅`. -/
 def divisors_antidiagonal : finset (ℕ × ℕ) :=
-((finset.Ico 1 (n + 1)).product (finset.Ico 1 (n + 1))).filter (λ x, x.fst * x.snd = n)
+(Ico 1 (n + 1) ×ˢ Ico 1 (n + 1)).filter (λ x, x.fst * x.snd = n)
 
 variable {n}
 
@@ -266,7 +266,7 @@ lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :
   proper_divisors p = {1} :=
 by rw [← erase_insert (proper_divisors.not_self_mem),
     ← divisors_eq_proper_divisors_insert_self_of_pos pp.pos,
-    pp.divisors, insert_singleton_comm, erase_insert (λ con, pp.ne_one (mem_singleton.1 con))]
+    pp.divisors, pair_comm, erase_insert (λ con, pp.ne_one (mem_singleton.1 con))]
 
 lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
   divisors (p ^ k) = (finset.range (k + 1)).map ⟨pow p, pow_right_injective pp.two_le⟩ :=

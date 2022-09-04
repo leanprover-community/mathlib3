@@ -30,7 +30,8 @@ def non_zero_divisors (R : Type*) [monoid_with_zero R] : submonoid R :=
     have z * x₁ * x₂ = 0, by rwa mul_assoc,
     hx₁ z $ hx₂ (z * x₁) this }
 
-localized "notation R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
+localized "notation (name := non_zero_divisors)
+  R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
 
 variables {M M' M₁ R R' F : Type*} [monoid_with_zero M] [monoid_with_zero M']
   [comm_monoid_with_zero M₁] [ring R] [comm_ring R']
@@ -132,7 +133,7 @@ le_non_zero_divisors_of_no_zero_divisors (λ h, absurd (h.rec_on (λ _ hn, pow_e
 
 lemma map_le_non_zero_divisors_of_injective [no_zero_divisors M']
   [monoid_with_zero_hom_class F M M'] (f : F) (hf : function.injective f) {S : submonoid M}
-  (hS : S ≤ M⁰) : S.map ↑f ≤ M'⁰ :=
+  (hS : S ≤ M⁰) : S.map f ≤ M'⁰ :=
 begin
   casesI subsingleton_or_nontrivial M,
   { simp [subsingleton.elim S ⊥] },

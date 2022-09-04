@@ -62,7 +62,7 @@ begin
     refine λ n, ⟨r.num * 2, r.denom * 2, _, _⟩,
     { have := int.coe_nat_le.2 r.pos, rw int.coe_nat_one at this, linarith },
     { convert mem_ball_self _ using 2,
-      { norm_cast, field_simp },
+      { push_cast, norm_cast, norm_num },
       { refine one_div_pos.2 (pow_pos (int.cast_pos.2 _) _),
         exact mul_pos (int.coe_nat_pos.2 r.pos) zero_lt_two } } }
 end

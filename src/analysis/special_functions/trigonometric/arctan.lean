@@ -106,6 +106,9 @@ tan_order_iso.apply_symm_apply x
 lemma arctan_mem_Ioo (x : ℝ) : arctan x ∈ Ioo (-(π / 2)) (π / 2) :=
 subtype.coe_prop _
 
+@[simp] lemma range_arctan : range arctan = Ioo (-(π / 2)) (π / 2) :=
+((equiv_like.surjective _).range_comp _).trans subtype.range_coe
+
 lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan (tan x) = x :=
 subtype.ext_iff.1 $ tan_order_iso.symm_apply_apply ⟨x, hx₁, hx₂⟩
 

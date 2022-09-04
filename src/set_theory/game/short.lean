@@ -20,6 +20,8 @@ prove anything using these instances.
 -/
 universes u
 
+open_locale pgame
+
 namespace pgame
 
 /-- A short game is a game with a finite set of moves at every turn. -/
@@ -99,10 +101,10 @@ begin
   unfreezingI { rcases hs with ⟨_, _, _, _, sL, sR, hl, hr⟩ },
   rw [birthday, max_lt_iff],
   split, all_goals
-  { rw ←cardinal.ord_omega,
-    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_omega
-      (cardinal.lt_omega_of_fintype _) (λ i, _),
-    rw cardinal.ord_omega,
+  { rw ←cardinal.ord_aleph_0,
+    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_aleph_0
+      (cardinal.lt_aleph_0_of_finite _) (λ i, _),
+    rw cardinal.ord_aleph_0,
     apply short_birthday _ },
   { exact move_left_short' xL xR i },
   { exact move_right_short' xL xR i }
@@ -148,7 +150,7 @@ begin
   haveI := fintype.of_equiv _ R,
   exact short.mk'
     (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
-    (λ j, short_of_relabelling (rR j) infer_instance)
+    (λ j, by simpa using short_of_relabelling (rR (R.symm j)) infer_instance)
 end
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)
@@ -178,10 +180,11 @@ by { dsimp [bit1], apply_instance }
 
 /--
 Auxiliary construction of decidability instances.
-We build `decidable (x ≤ y)` and `decidable (x < y)` in a simultaneous induction.
+We build `decidable (x ≤ y)` and `decidable (x ⧏ y)` in a simultaneous induction.
 Instances for the two projections separately are provided below.
 -/
-def le_lt_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤ y) × decidable (x < y)
+def le_lf_decidable : Π (x y : pgame.{u}) [short x] [short y],
+  decidable (x ≤ y) × decidable (x ⧏ y)
 | (mk xl xr xL xR) (mk yl yr yL yR) shortx shorty :=
 begin
   resetI,
@@ -190,26 +193,29 @@ begin
     apply @and.decidable _ _ _ _,
     { apply @fintype.decidable_forall_fintype xl _ _ (by apply_instance),
       intro i,
-      apply (@le_lt_decidable _ _ _ _).2; apply_instance, },
+      apply (@le_lf_decidable _ _ _ _).2; apply_instance, },
     { apply @fintype.decidable_forall_fintype yr _ _ (by apply_instance),
       intro i,
-      apply (@le_lt_decidable _ _ _ _).2; apply_instance, }, },
-  { refine @decidable_of_iff' _ _ mk_lt_mk (id _),
+      apply (@le_lf_decidable _ _ _ _).2; apply_instance, }, },
+  { refine @decidable_of_iff' _ _ mk_lf_mk (id _),
     apply @or.decidable _ _ _ _,
     { apply @fintype.decidable_exists_fintype yl _ _ (by apply_instance),
       intro i,
-      apply (@le_lt_decidable _ _ _ _).1; apply_instance, },
+      apply (@le_lf_decidable _ _ _ _).1; apply_instance, },
     { apply @fintype.decidable_exists_fintype xr _ _ (by apply_instance),
       intro i,
-      apply (@le_lt_decidable _ _ _ _).1; apply_instance, }, },
+      apply (@le_lf_decidable _ _ _ _).1; apply_instance, }, },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance le_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≤ y) :=
-(le_lt_decidable x y).1
+(le_lf_decidable x y).1
+
+instance lf_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ⧏ y) :=
+(le_lf_decidable x y).2
 
 instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=
-(le_lt_decidable x y).2
+and.decidable 
 
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable

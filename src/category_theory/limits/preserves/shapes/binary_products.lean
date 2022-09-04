@@ -18,12 +18,12 @@ the product of `X` and `Y`.
 
 noncomputable theory
 
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 
 namespace category_theory.limits
@@ -37,7 +37,7 @@ essentially lets us commute `binary_fan.mk` with `functor.map_cone`.
 -/
 def is_limit_map_cone_binary_fan_equiv :
   is_limit (G.map_cone (binary_fan.mk f g)) ≃ is_limit (binary_fan.mk (G.map f) (G.map g)) :=
-(is_limit.postcompose_hom_equiv (diagram_iso_pair.{v} _) _).symm.trans
+(is_limit.postcompose_hom_equiv (diagram_iso_pair _) _).symm.trans
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by { rintro (_ | _), tidy })))
 
 /-- The property of preserving products expressed in terms of binary fans. -/
@@ -112,7 +112,7 @@ This essentially lets us commute `binary_cofan.mk` with `functor.map_cocone`.
 def is_colimit_map_cocone_binary_cofan_equiv :
   is_colimit (G.map_cocone (binary_cofan.mk f g)) ≃
     is_colimit (binary_cofan.mk (G.map f) (G.map g)) :=
-(is_colimit.precompose_hom_equiv (diagram_iso_pair.{v} _).symm _).symm.trans
+(is_colimit.precompose_hom_equiv (diagram_iso_pair _).symm _).symm.trans
   (is_colimit.equiv_iso_colimit (cocones.ext (iso.refl _) (by { rintro (_ | _), tidy, })))
 
 /-- The property of preserving coproducts expressed in terms of binary cofans. -/

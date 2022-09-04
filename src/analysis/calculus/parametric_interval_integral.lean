@@ -17,9 +17,9 @@ open topological_space measure_theory filter metric
 open_locale topological_space filter interval
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {μ : measure ℝ}
-          {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space 𝕜 E]
+          {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_space 𝕜 E]
           [complete_space E]
-          {H : Type*} [normed_group H] [normed_space 𝕜 H]
+          {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H]
           {a b ε : ℝ} {bound : ℝ → ℝ}
 
 namespace interval_integral

@@ -69,7 +69,7 @@ begin
   apply le_antisymm,
   { refine ⟨⟨λ a, mv_polynomial.monomial (finsupp.single a 1) (1 : ulift.{u} ℚ), λ x y h, _⟩⟩,
     simpa [mv_polynomial.monomial_eq_monomial_iff, finsupp.single_eq_single_iff] using h },
-  { simpa using @mv_polynomial.cardinal_mk_le_max α (ulift.{u} ℚ) _ }
+  { simp }
 end
 
 /-- There is a field structure on type if and only if its cardinality is a prime power. -/

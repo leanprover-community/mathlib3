@@ -53,7 +53,7 @@ by { ext, simp, }
 def transpose (M : dmatrix m n α) : dmatrix n m (λ j i, α i j)
 | x y := M y x
 
-localized "postfix `ᵀ`:1500 := dmatrix.transpose" in dmatrix
+localized "postfix (name := dmatrix.transpose) `ᵀ`:1500 := dmatrix.transpose" in dmatrix
 
 /-- `dmatrix.col u` is the column matrix whose entries are given by `u`. -/
 def col {α : m → Type v} (w : Π i, α i) : dmatrix m unit (λ i j, α i)
@@ -104,12 +104,10 @@ lemma map_sub [∀ i j, add_group (α i j)] {β : m → n → Type w} [∀ i j, 
   (M - N).map (λ i j, @f i j) = M.map (λ i j, @f i j) - N.map (λ i j, @f i j) :=
 by { ext, simp }
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_empty_left [is_empty m] : subsingleton (dmatrix m n α) :=
+instance subsingleton_of_empty_left [is_empty m] : subsingleton (dmatrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim i }⟩
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_empty_right [is_empty n] : subsingleton (dmatrix m n α) :=
+instance subsingleton_of_empty_right [is_empty n] : subsingleton (dmatrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
 end dmatrix

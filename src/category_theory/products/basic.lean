@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.eq_to_hom
+import category_theory.functor.const
 
 /-!
 # Cartesian products of categories
@@ -62,6 +63,10 @@ end
 
 section
 variables {C D}
+
+/-- The isomorphism between `(X.1, X.2)` and `X`. -/
+@[simps]
+def prod.eta_iso (X : C × D) : (X.1, X.2) ≅ X := { hom := (𝟙 _, 𝟙 _), inv := (𝟙 _, 𝟙 _) }
 
 /-- Construct an isomorphism in `C × D` out of two isomorphisms in `C` and `D`. -/
 @[simps]
@@ -168,6 +173,13 @@ as a functor `C × (C ⥤ D) ⥤ D`.
         category.assoc, nat_trans.naturality],
   end }
 
+variables {C}
+
+/-- The constant functor followed by the evalutation functor is just the identity. -/
+@[simps] def functor.const_comp_evaluation_obj (X : C) :
+  functor.const C ⋙ (evaluation C D).obj X ≅ 𝟭 D :=
+nat_iso.of_components (λ Y, iso.refl _) (λ Y Z f, by simp)
+
 end
 
 variables {A : Type u₁} [category.{v₁} A]
@@ -188,6 +200,16 @@ namespace functor
 @[simps] def prod' (F : A ⥤ B) (G : A ⥤ C) : A ⥤ (B × C) :=
 { obj := λ a, (F.obj a, G.obj a),
   map := λ x y f, (F.map f, G.map f), }
+
+/-- The product `F.prod' G` followed by projection on the first component is isomorphic to `F` -/
+@[simps]
+def prod'_comp_fst (F : A ⥤ B) (G : A ⥤ C) : (F.prod' G) ⋙ (category_theory.prod.fst B C) ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by simp)
+
+/-- The product `F.prod' G` followed by projection on the second component is isomorphic to `G` -/
+@[simps]
+def prod'_comp_snd (F : A ⥤ B) (G : A ⥤ C) : (F.prod' G) ⋙ (category_theory.prod.snd B C) ≅ G :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by simp)
 
 section
 variable (C)
@@ -226,5 +248,43 @@ end nat_trans
 def flip_comp_evaluation (F : A ⥤ B ⥤ C) (a) :
   F.flip ⋙ (evaluation _ _).obj a ≅ F.obj a :=
 nat_iso.of_components (λ b, eq_to_iso rfl) $ by tidy
+
+variables (A B C)
+
+/-- The forward direction for `functor_prod_functor_equiv` -/
+@[simps] def prod_functor_to_functor_prod : (A ⥤ B) × (A ⥤ C) ⥤ A ⥤ B × C :=
+{ obj := λ F, F.1.prod' F.2,
+  map := λ F G f, { app := λ X, (f.1.app X, f.2.app X) } }
+
+/-- The backward direction for `functor_prod_functor_equiv` -/
+@[simps] def functor_prod_to_prod_functor : (A ⥤ B × C) ⥤ (A ⥤ B) × (A ⥤ C) :=
+{ obj := λ F, ⟨F ⋙ (category_theory.prod.fst B C), F ⋙ (category_theory.prod.snd B C)⟩,
+  map := λ F G α,
+  ⟨{ app := λ X, (α.app X).1,
+     naturality' := λ X Y f,
+     by simp only [functor.comp_map, prod.fst_map, ←prod_comp_fst, α.naturality] },
+   { app := λ X, (α.app X).2,
+     naturality' := λ X Y f,
+     by simp only [functor.comp_map, prod.snd_map, ←prod_comp_snd, α.naturality] }⟩ }
+
+/-- The unit isomorphism for `functor_prod_functor_equiv` -/
+@[simps] def functor_prod_functor_equiv_unit_iso :
+  𝟭 _ ≅ prod_functor_to_functor_prod A B C ⋙ functor_prod_to_prod_functor A B C :=
+nat_iso.of_components
+  (λ F, (((functor.prod'_comp_fst _ _).prod (functor.prod'_comp_snd _ _)).trans
+  (prod.eta_iso F)).symm) (λ F G α, by {tidy})
+
+/-- The counit isomorphism for `functor_prod_functor_equiv` -/
+@[simps] def functor_prod_functor_equiv_counit_iso :
+  functor_prod_to_prod_functor A B C ⋙ prod_functor_to_functor_prod A B C ≅ 𝟭 _ :=
+nat_iso.of_components
+  (λ F, nat_iso.of_components (λ X, prod.eta_iso (F.obj X)) (by tidy)) (by tidy)
+
+/-- The equivalence of categories between `(A ⥤ B) × (A ⥤ C)` and `A ⥤ (B × C)` -/
+@[simps] def functor_prod_functor_equiv : ((A ⥤ B) × (A ⥤ C)) ≌ (A ⥤ (B × C)) :=
+{ functor := prod_functor_to_functor_prod A B C,
+  inverse := functor_prod_to_prod_functor A B C,
+  unit_iso := functor_prod_functor_equiv_unit_iso A B C,
+  counit_iso := functor_prod_functor_equiv_counit_iso A B C }
 
 end category_theory

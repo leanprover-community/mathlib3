@@ -195,9 +195,10 @@ begin
   exact ⟨U, hU, rfl.subset⟩
 end
 
-/-- If a group is endowed with a topological structure coming from
-a group filter basis then it's a topological group. -/
-@[to_additive, priority 100]
+/-- If a group is endowed with a topological structure coming from a group filter basis then it's a
+topological group. -/
+@[to_additive "If a group is endowed with a topological structure coming from a group filter basis
+then it's a topological group.", priority 100] -- See note [lower instance priority]
 instance is_topological_group (B : group_filter_basis G) :
   @topological_group G B.topology _ :=
 begin

@@ -122,7 +122,7 @@ def equivalence_left_to_right (X : simplicial_object.augmented C) (F : arrow C)
       (λ i, X.left.map (simplex_category.const x.unop i).op ≫ G.left)
       (λ i, by { dsimp, erw [category.assoc, arrow.w,
         augmented.to_arrow_obj_hom, nat_trans.naturality_assoc,
-        functor.const.obj_map, category.id_comp] } ),
+        functor.const_obj_map, category.id_comp] } ),
     naturality' := begin
       intros x y f,
       ext,
@@ -131,7 +131,7 @@ def equivalence_left_to_right (X : simplicial_object.augmented C) (F : arrow C)
         rw [← category.assoc, ← X.left.map_comp],
         refl },
       { dsimp,
-        simp only [functor.const.obj_map, nat_trans.naturality_assoc,
+        simp only [functor.const_obj_map, nat_trans.naturality_assoc,
           wide_pullback.lift_base, category.assoc],
         erw category.id_comp }
     end },
@@ -296,7 +296,7 @@ def equivalence_right_to_left (F : arrow C) (X : cosimplicial_object.augmented C
         rw [category.assoc, ←X.right.map_comp],
         refl },
       { dsimp,
-        simp only [functor.const.obj_map, ←nat_trans.naturality,
+        simp only [functor.const_obj_map, ←nat_trans.naturality,
           wide_pushout.head_desc_assoc, wide_pushout.head_desc, category.assoc],
         erw category.id_comp }
     end },

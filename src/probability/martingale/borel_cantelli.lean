@@ -42,6 +42,8 @@ variables {Ω : Type*} {m0 : measurable_space Ω} {μ : measure Ω}
 ### One sided martingale bound
 -/
 
+-- TODO: `least_ge` should be defined taking values in `with_top ℕ` once the `stopped_process`
+-- refactor is complete
 /-- `least_ge f r n` is the stopping time corresponding to the first time `f ≥ r`. -/
 noncomputable
 def least_ge (f : ℕ → Ω → ℝ) (r : ℝ) (n : ℕ) := hitting f (set.Ici r) 0 n
@@ -52,64 +54,6 @@ hitting_is_stopping_time hf measurable_set_Ici
 
 lemma least_ge_le {i : ℕ} {r : ℝ} (ω : Ω) : least_ge f r i ω ≤ i :=
 hitting_le ω
-
--- This lemma is used to prove `submartingale.stopped_value_least_ge` which can be generalized once
--- we have the optional sampling theorem
-lemma submartingale.stopped_value_least_ge_zero [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) (r : ℝ) :
-  stopped_value f (least_ge f r 0) ≤ᵐ[μ] μ[stopped_value f (least_ge f r 1)|ℱ 0] :=
-begin
-  have hlge0 : least_ge f r 0 = 0,
-  { ext ω,
-    simp only [least_ge, hitting, set.Icc_self],
-    split_ifs with hω,
-    { by_cases hmem : 0 ∈ {i | f i ω ∈ set.Ici r},
-      { rw [set.inter_eq_left_iff_subset.2 (set.singleton_subset_iff.2 hmem),
-          cInf_singleton, pi.zero_apply] },
-      { rw [set.singleton_inter_eq_empty.2 hmem, nat.Inf_empty, pi.zero_apply] } },
-    { refl } },
-  simp_rw [hlge0, stopped_value_eq least_ge_le, finset.sum_range_succ,
-    finset.range_zero, finset.sum_empty, zero_add, stopped_value, pi.zero_apply],
-  refine eventually_le.trans _ (condexp_add
-    ((hf.integrable 0).indicator $ ℱ.le _ _ $
-      (hf.adapted.is_stopping_time_least_ge r 1).measurable_set_eq 0)
-    ((hf.integrable 1).indicator $ ℱ.le _ _ $
-      (hf.adapted.is_stopping_time_least_ge r 1).measurable_set_eq 1)).symm.le,
-  calc f 0 = {ω : Ω | least_ge f r 1 ω = 0}.indicator (f 0)
-            + {ω : Ω | least_ge f r 1 ω = 1}.indicator (f 0) :
-  begin
-    ext ω,
-    obtain heq | heq : least_ge f r 1 ω = 0 ∨ least_ge f r 1 ω = 1,
-    { rw ← nat.lt_one_iff,
-      exact lt_or_eq_of_le (@least_ge_le _ f 1 r ω) },
-    { rw [pi.add_apply, set.indicator_of_mem, set.indicator_of_not_mem, add_zero];
-      simp [heq] },
-    { rw [pi.add_apply, set.indicator_of_not_mem, set.indicator_of_mem, zero_add];
-      simp [heq] }
-  end
-        ... ≤ᵐ[μ] {ω : Ω | least_ge f r 1 ω = 0}.indicator (f 0)
-            + {ω : Ω | least_ge f r 1 ω = 1}.indicator (μ[f 1|ℱ 0]) :
-  begin
-    refine eventually_le.add_le_add (eventually_le.refl _ _) (_ : _ ≤ᵐ[μ] _),
-    filter_upwards [hf.2.1 0 1 zero_le_one] with ω hω using set.indicator_le_indicator hω,
-  end
-        ... =ᵐ[μ] μ[{ω : Ω | least_ge f r 1 ω = 0}.indicator (f 0)|ℱ 0]
-            + μ[{ω : Ω | least_ge f r 1 ω = 1}.indicator (f 1)|ℱ 0] :
-  begin
-    refine eventually_eq.add _ _,
-    { rw (condexp_of_strongly_measurable (ℱ.le 0) _ ((hf.integrable _).indicator $
-        ℱ.le _ _ ((hf.adapted.is_stopping_time_least_ge _ _).measurable_set_eq _))),
-      exact strongly_measurable.indicator (hf.adapted 0)
-        ((hf.adapted.is_stopping_time_least_ge _ _).measurable_set_eq _) },
-    { rw (_ : {ω | least_ge f r 1 ω = 1} = {ω : Ω | least_ge f r 1 ω = 0}ᶜ),
-      { exact (condexp_indicator (hf.integrable 1)
-          ((hf.adapted.is_stopping_time_least_ge _ _).measurable_set_eq _).compl).symm },
-      { ext ω,
-        rw [set.mem_set_of_eq, set.mem_compl_eq, set.mem_set_of_eq, ← ne.def,
-          ← nat.one_le_iff_ne_zero],
-        exact ⟨λ h, h.symm ▸ le_rfl, λ h, le_antisymm (least_ge_le ω) h⟩ } }
-  end
-end
 
 lemma least_ge_eq_lt_iff {n : ℕ} {r : ℝ} {k : ℕ} (hk : k < n) :
   least_ge f r n ω = k ↔ least_ge f r (n + 1) ω = k :=
@@ -176,108 +120,63 @@ begin
     exact n.lt_succ_self },
 end
 
--- TODO: generalize this once we have the optional sampling theorem
+-- The following four lemmas shows `least_ge` behaves like a stopped process. Ideally we should
+-- define `least_ge` as a stopping time and take its stopped process. However, we can't do that
+-- with our current definition since a stopping time takes only finite indicies. An upcomming
+-- refactor should hopefully make it possible to have stopping times taking infinity as a value
+lemma least_ge_mono {n m : ℕ} (hnm : n ≤ m) (r : ℝ) (ω : Ω) :
+  least_ge f r n ω ≤ least_ge f r m ω :=
+hitting_mono hnm
+
+lemma least_ge_eq_min (π : Ω → ℕ) (r : ℝ) (ω : Ω)
+  {n : ℕ} (hπn : ∀ ω, π ω ≤ n) :
+  least_ge f r (π ω) ω = min (π ω) (least_ge f r n ω) :=
+begin
+  classical,
+  refine le_antisymm (le_min (least_ge_le _) (least_ge_mono (hπn ω) r ω)) _,
+  by_cases hle : π ω ≤ least_ge f r n ω,
+  { rw [min_eq_left hle, least_ge],
+    by_cases h : ∃ j ∈ set.Icc 0 (π ω), f j ω ∈ set.Ici r,
+    { refine hle.trans (eq.le _),
+      rw [least_ge, ← hitting_eq_hitting_of_exists (hπn ω) h] },
+    { simp only [hitting, if_neg h] } },
+  { rw [min_eq_right (not_le.1 hle).le, least_ge, least_ge,
+      ← hitting_eq_hitting_of_exists (hπn ω) _],
+    rw [not_le, least_ge, hitting_lt_iff _ (hπn ω)] at hle,
+    exact let ⟨j, hj₁, hj₂⟩ := hle in ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩ }
+end
+
+lemma least_ge_apply_eq_stopped_value (f : ℕ → Ω → ℝ) (π : Ω → ℕ) (r : ℝ) (ω : Ω)
+  {n : ℕ} (hπn : ∀ ω, π ω ≤ n) :
+  f (least_ge f r (π ω) ω) ω = stopped_value f (λ ω, min (π ω) (least_ge f r n ω)) ω :=
+by { rw least_ge_eq_min _ _ _ hπn, simp_rw [stopped_value], }
+
+lemma stopped_value_stopped_value_least_ge (f : ℕ → Ω → ℝ) (π : Ω → ℕ) (r : ℝ)
+  {n : ℕ} (hπn : ∀ ω, π ω ≤ n) :
+  stopped_value (λ i, stopped_value f (least_ge f r i)) π
+    = (λ ω, stopped_value f (λ ω, min (π ω) (least_ge f r n ω)) ω) :=
+begin
+  ext1 ω,
+  exact least_ge_apply_eq_stopped_value f π r ω hπn,
+end
+
 lemma submartingale.stopped_value_least_ge [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (r : ℝ) :
   submartingale (λ i, stopped_value f (least_ge f r i)) ℱ μ :=
 begin
-  classical,
-  refine submartingale_nat (λ N, strongly_measurable_stopped_value_of_le
-      hf.adapted.prog_measurable_of_nat
-      (hf.adapted.is_stopping_time_least_ge _ _) (λ ω, hitting_le _))
-    (λ i, integrable_stopped_value (hf.adapted.is_stopping_time_least_ge _ _)
-      hf.integrable (λ ω, hitting_le _)) (λ i, _),
-  by_cases hi : i = 0,
-  { rw [hi, zero_add],
-    exact hf.stopped_value_least_ge_zero r },
-  rw [stopped_value_eq least_ge_le, finset.sum_range_succ],
-  swap, { apply_instance },
-  simp_rw [least_ge, hitting_eq_end_iff, imp_iff_not_or, set.set_of_or],
-  rw set.indicator_union_of_disjoint,
-  { have heq₁ : {ω | Inf (set.Icc 0 i ∩ {i : ℕ | f i ω ∈ set.Ici r}) = i} =
-      {ω | least_ge f r (i + 1) ω = i},
-    { ext ω,
-      rw [set.mem_set_of, set.mem_set_of, least_ge_succ_eq_iff],
-      refine ⟨λ h, _, _⟩,
-      { rw [least_ge, hitting, ite_eq_right_iff],
-        refine ⟨λ _, h, _⟩,
-        have : i ∈ set.Icc 0 i ∩ {i : ℕ | f i ω ∈ set.Ici r},
-        { conv_lhs { rw ← h },
-          exact nat.Inf_mem
-            (set.ne_empty_iff_nonempty.1 (λ hemp, hi $ h ▸ hemp.symm ▸ nat.Inf_empty)) },
-        exact this.2 },
-      { rintro ⟨h₁, h₂⟩,
-        exact hitting_eq_end_iff.1 h₁ ⟨i, ⟨zero_le _, le_rfl⟩, h₂⟩ } },
-    have heq₂ : {ω | ¬∃ j ∈ set.Icc 0 i, f j ω ∈ set.Ici r} =
-      {ω | least_ge f r (i + 1) ω = i + 1},
-    { ext ω,
-      rw [set.mem_set_of, set.mem_set_of, least_ge_succ_eq_iff'],
-      refine ⟨λ h, ⟨if_neg h, not_le.1 $ λ hneq, h ⟨i, ⟨zero_le _, le_rfl⟩, hneq⟩⟩, _⟩,
-      rintro ⟨h₁, h₂⟩ h,
-      rw [least_ge, hitting_eq_end_iff] at h₁,
-      rw ← h₁ h at h₂,
-      refine not_lt.2 _ h₂,
-      exact (set.inter_subset_right _ _ (nat.Inf_mem $
-        set.ne_empty_iff_nonempty.1 (λ hemp, hi $ h₁ h ▸ hemp.symm ▸ nat.Inf_empty)) :
-        Inf (set.Icc 0 i ∩ {i | f i ω ∈ set.Ici r}) ∈
-          {i | f i ω ∈ set.Ici r}) },
-    have heq₃ : ∑ j in finset.range i, {ω | least_ge f r i ω = j}.indicator (f j) =
-      ∑ j in finset.range i, {ω | least_ge f r (i + 1) ω = j}.indicator (f j),
-    { refine finset.sum_congr rfl (λ j hj, _),
-      simp_rw [least_ge_eq_lt_iff (finset.mem_range.1 hj)] },
-    calc ∑ j in finset.range i, {ω | hitting f (set.Ici r) 0 i ω = j}.indicator (f j)
-      + (λ ω, {ω | ¬∃ j ∈ set.Icc 0 i, f j ω ∈ set.Ici r}.indicator (f i) ω
-      + {ω | Inf (set.Icc 0 i ∩ {i : ℕ | f i ω ∈ set.Ici r}) = i}.indicator (f i) ω)
-      = ∑ j in finset.range (i + 1), {ω | least_ge f r (i + 1) ω = j}.indicator (f j)
-      + {ω | least_ge f r (i + 1) ω = i + 1}.indicator (f i) :
-    begin
-      rw [heq₁, heq₂, ← least_ge, heq₃, finset.sum_range_succ],
-      ext ω,
-      simp only [pi.add_apply, finset.sum_apply],
-      ring,
-    end
-       ... = {ω | least_ge f r (i + 1) ω = i + 1}.indicator (f i)
-           + μ[∑ j in finset.range (i + 1), {ω | least_ge f r (i + 1) ω = j}.indicator (f j)|ℱ i] :
-    begin
-      rw add_comm,
-      refine congr_arg2 _ rfl (condexp_of_strongly_measurable (ℱ.le _) _ _).symm,
-      refine finset.strongly_measurable_sum' _ (λ j hj, _),
-      { exact ((hf.adapted j).mono (ℱ.mono (nat.lt_succ_iff.1 $ finset.mem_range.1 hj))).indicator
-          (ℱ.mono (nat.lt_succ_iff.1 $ finset.mem_range.1 hj) _
-          ((hf.adapted.is_stopping_time_least_ge r (i + 1)).measurable_set_eq j)) },
-      { exact integrable_finset_sum' _ (λ j hj, (hf.integrable _).indicator $
-          ℱ.le j _ ((hf.adapted.is_stopping_time_least_ge r (i + 1)).measurable_set_eq j)) },
-    end
-       ... ≤ᵐ[μ] μ[{ω | least_ge f r (i + 1) ω = i + 1}.indicator (f (i + 1))|ℱ i]
-           + μ[∑ j in finset.range (i + 1), {ω | least_ge f r (i + 1) ω = j}.indicator (f j)|ℱ i] :
-    begin
-      change _ ≤ᵐ[μ] _,
-      refine eventually_le.add_le_add _ (eventually_le.refl _ _),
-      refine eventually_le.trans _ (condexp_indicator (hf.integrable (i + 1)) _).symm.le,
-      { filter_upwards [hf.2.1 i (i + 1) i.le_succ] with ω hω using set.indicator_le_indicator hω },
-      { rw (_ : {ω | least_ge f r (i + 1) ω = i + 1} = {ω : Ω | least_ge f r (i + 1) ω ≤ i}ᶜ),
-        { exact ((hf.adapted.is_stopping_time_least_ge r (i + 1)) i).compl },
-        { ext ω,
-          simp only [set.mem_set_of_eq, set.mem_compl_eq, not_le],
-          exact ⟨λ h, h.symm ▸ i.lt_succ_self, λ h,
-            nat.eq_of_le_of_lt_succ (nat.succ_le_iff.2 h) (nat.lt_succ_iff.2 (least_ge_le ω))⟩ } }
-    end
-       ... =ᵐ[μ] μ[stopped_value f (least_ge f r (i + 1))|ℱ i] :
-    begin
-      refine (condexp_add ((hf.integrable _).indicator $ ℱ.le _ _
-        ((hf.adapted.is_stopping_time_least_ge r (i + 1)).measurable_set_eq _))
-        (integrable_finset_sum' _ (λ j hj, _))).symm.trans _,
-      { exact (hf.integrable _).indicator (ℱ.le j _
-          ((hf.adapted.is_stopping_time_least_ge r (i + 1)).measurable_set_eq j)) },
-      { refine condexp_congr_ae (eventually_of_forall $ λ ω, _),
-        rw [stopped_value_eq least_ge_le, add_comm],
-        swap, { apply_instance },
-        conv_rhs { rw [finset.sum_range_succ] } }
-    end },
-  { rintro ω ⟨hω₁, hω₂⟩,
-    rw [set.mem_set_of, (_ : set.Icc 0 i ∩ {i | f i ω ∈ set.Ici r} = ∅), nat.Inf_empty] at hω₂,
-    { exact false.elim (hi hω₂.symm) },
-    { exact set.eq_empty_of_forall_not_mem (λ j ⟨hj₁, hj₂⟩, hω₁ ⟨j, hj₁, hj₂⟩) } },
+  rw submartingale_iff_expected_stopped_value_mono,
+  { intros σ π hσ hπ hσ_le_π hπ_bdd,
+    obtain ⟨n, hπ_le_n⟩ := hπ_bdd,
+    simp_rw stopped_value_stopped_value_least_ge f σ r (λ i, (hσ_le_π i).trans (hπ_le_n i)),
+    simp_rw stopped_value_stopped_value_least_ge f π r hπ_le_n,
+    refine hf.expected_stopped_value_mono _ _ _ (λ ω, (min_le_left _ _).trans (hπ_le_n ω)),
+    { exact hσ.min (hf.adapted.is_stopping_time_least_ge _ _), },
+    { exact hπ.min (hf.adapted.is_stopping_time_least_ge _ _), },
+    { exact λ ω, min_le_min (hσ_le_π ω) le_rfl, }, },
+  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_nat
+      (hf.adapted.is_stopping_time_least_ge _ _) least_ge_le, },
+  { exact λ i, integrable_stopped_value ((hf.adapted.is_stopping_time_least_ge _ _))
+      (hf.integrable) least_ge_le, },
 end
 
 variables {r : ℝ} {R : ℝ≥0}

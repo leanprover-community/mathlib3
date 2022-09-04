@@ -496,7 +496,7 @@ namespace is_stopping_time
 
 variables [partial_order ι] {τ : Ω → ι} {f : filtration ι m}
 
-protected lemma measurable_set_eq_of_countable
+protected lemma measurable_set_eq_of_countable_range
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[f i] {ω | τ ω = i} :=
 begin
@@ -521,38 +521,39 @@ begin
     exact @measurable_set.empty _ (f i), },
 end
 
-protected lemma measurable_set_eq_of_encodable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_eq_of_countable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | τ ω = i} :=
-hτ.measurable_set_eq_of_countable (set.to_countable _) i
+hτ.measurable_set_eq_of_countable_range (set.to_countable _) i
 
-protected lemma measurable_set_lt_of_countable
+protected lemma measurable_set_lt_of_countable_range
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[f i] {ω | τ ω < i} :=
 begin
   have : {ω | τ ω < i} = {ω | τ ω ≤ i} \ {ω | τ ω = i},
   { ext1 ω, simp [lt_iff_le_and_ne], },
   rw this,
-  exact (hτ.measurable_set_le i).diff (hτ.measurable_set_eq_of_countable h_countable i),
+  exact (hτ.measurable_set_le i).diff (hτ.measurable_set_eq_of_countable_range h_countable i),
 end
 
-protected lemma measurable_set_lt_of_encodable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_lt_of_countable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | τ ω < i} :=
-hτ.measurable_set_lt_of_countable (set.to_countable _) i
+hτ.measurable_set_lt_of_countable_range (set.to_countable _) i
 
-protected lemma measurable_set_ge_of_countable {ι} [linear_order ι] {τ : Ω → ι} {f : filtration ι m}
+protected lemma measurable_set_ge_of_countable_range {ι} [linear_order ι] {τ : Ω → ι}
+  {f : filtration ι m}
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[f i] {ω | i ≤ τ ω} :=
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω < i}ᶜ,
   { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
   rw this,
-  exact (hτ.measurable_set_lt_of_countable h_countable i).compl,
+  exact (hτ.measurable_set_lt_of_countable_range h_countable i).compl,
 end
 
-protected lemma measurable_set_ge_of_encodable {ι} [linear_order ι] {τ : Ω → ι} {f : filtration ι m}
+protected lemma measurable_set_ge_of_countable {ι} [linear_order ι] {τ : Ω → ι} {f : filtration ι m}
   [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | i ≤ τ ω} :=
-hτ.measurable_set_ge_of_countable (set.to_countable _) i
+hτ.measurable_set_ge_of_countable_range (set.to_countable _) i
 
 end is_stopping_time
 
@@ -780,7 +781,7 @@ begin
     exact le_trans (hle _) hle' },
 end
 
-lemma measurable_space_le_of_encodable [countable ι] (hτ : is_stopping_time f τ) :
+lemma measurable_space_le_of_countable [countable ι] (hτ : is_stopping_time f τ) :
   hτ.measurable_space ≤ m :=
 begin
   intros s hs,
@@ -872,6 +873,10 @@ lemma measurable_space_le_of_le_const (hτ : is_stopping_time f τ) {i : ι} (h�
   hτ.measurable_space ≤ f i :=
 (measurable_space_mono hτ _ hτ_le).trans (measurable_space_const _ _).le
 
+lemma measurable_space_le_of_le (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+  hτ.measurable_space ≤ m :=
+(hτ.measurable_space_le_of_le_const hτ_le).trans (f.le n)
+
 lemma le_measurable_space_of_const_le (hτ : is_stopping_time f τ) {i : ι} (hτ_le : ∀ ω, i ≤ τ ω) :
   f i ≤ hτ.measurable_space :=
 (measurable_space_const _ _).symm.le.trans (measurable_space_mono _ hτ hτ_le)
@@ -885,6 +890,17 @@ instance sigma_finite_stopping_time {ι} [semilattice_sup ι] [order_bot ι]
   sigma_finite (μ.trim hτ.measurable_space_le) :=
 begin
   refine sigma_finite_trim_mono hτ.measurable_space_le _,
+  { exact f ⊥, },
+  { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
+  { apply_instance, },
+end
+
+instance sigma_finite_stopping_time_of_le {ι} [semilattice_sup ι] [order_bot ι]
+  {μ : measure Ω} {f : filtration ι m} {τ : Ω → ι}
+  [sigma_finite_filtration μ f] (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+  sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le)) :=
+begin
+  refine sigma_finite_trim_mono (hτ.measurable_space_le_of_le hτ_le) _,
   { exact f ⊥, },
   { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
   { apply_instance, },
@@ -948,19 +964,19 @@ end
 
 section countable
 
-protected lemma measurable_set_eq_of_countable'
+protected lemma measurable_set_eq_of_countable_range'
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω = i} :=
 begin
   rw [← set.univ_inter {ω | τ ω = i}, measurable_set_inter_eq_iff, set.univ_inter],
-  exact hτ.measurable_set_eq_of_countable h_countable i,
+  exact hτ.measurable_set_eq_of_countable_range h_countable i,
 end
 
-protected lemma measurable_set_eq_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_eq_of_countable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω = i} :=
-hτ.measurable_set_eq_of_countable' (set.to_countable _) i
+hτ.measurable_set_eq_of_countable_range' (set.to_countable _) i
 
-protected lemma measurable_set_ge_of_countable'
+protected lemma measurable_set_ge_of_countable_range'
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | i ≤ τ ω} :=
 begin
@@ -969,14 +985,14 @@ begin
     simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
     rw [@eq_comm _ i, or_comm], },
   rw this,
-  exact (hτ.measurable_set_eq_of_countable' h_countable i).union (hτ.measurable_set_gt' i),
+  exact (hτ.measurable_set_eq_of_countable_range' h_countable i).union (hτ.measurable_set_gt' i),
 end
 
-protected lemma measurable_set_ge_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_ge_of_countable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | i ≤ τ ω} :=
-hτ.measurable_set_ge_of_countable' (set.to_countable _) i
+hτ.measurable_set_ge_of_countable_range' (set.to_countable _) i
 
-protected lemma measurable_set_lt_of_countable'
+protected lemma measurable_set_lt_of_countable_range'
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω < i} :=
 begin
@@ -984,14 +1000,14 @@ begin
   { ext1 ω,
     simp only [lt_iff_le_and_ne, set.mem_set_of_eq, set.mem_diff], },
   rw this,
-  exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq_of_countable' h_countable i),
+  exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq_of_countable_range' h_countable i),
 end
 
-protected lemma measurable_set_lt_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_lt_of_countable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω < i} :=
-hτ.measurable_set_lt_of_countable' (set.to_countable _) i
+hτ.measurable_set_lt_of_countable_range' (set.to_countable _) i
 
-protected lemma measurable_space_le_of_countable (hτ : is_stopping_time f τ)
+protected lemma measurable_space_le_of_countable_range (hτ : is_stopping_time f τ)
   (h_countable : (set.range τ).countable) :
   hτ.measurable_space ≤ m :=
 begin
@@ -1099,6 +1115,17 @@ begin
     exact measurable_set_inter_le _ _ _ h, },
   { rw measurable_set_min_iff at h,
     exact h.1, },
+end
+
+lemma measurable_set_inter_le_const_iff (hτ : is_stopping_time f τ) (s : set Ω) (i : ι) :
+  measurable_set[hτ.measurable_space] (s ∩ {x | τ x ≤ i})
+    ↔ measurable_set[(hτ.min_const i).measurable_space] (s ∩ {x | τ x ≤ i}) :=
+begin
+  rw [is_stopping_time.measurable_set_min_iff hτ (is_stopping_time_const _ i),
+    is_stopping_time.measurable_space_const, is_stopping_time.measurable_set],
+  refine ⟨λ h, ⟨h, _⟩, λ h j, h.1 j⟩,
+  specialize h i,
+  rwa [set.inter_assoc, set.inter_self] at h,
 end
 
 lemma measurable_set_le_stopping_time [topological_space ι]
@@ -1312,6 +1339,65 @@ end prog_measurable
 
 end linear_order
 
+section stopped_value_of_mem_finset
+
+variables {μ : measure Ω} {τ σ : Ω → ι} {E : Type*} {p : ℝ≥0∞} {u : ι → Ω → E}
+
+lemma stopped_value_eq_of_mem_finset [add_comm_monoid E] {s : finset ι} (hbdd : ∀ x, τ x ∈ s) :
+  stopped_value u τ = ∑ i in s, set.indicator {x | τ x = i} (u i) :=
+begin
+  ext y,
+  rw [stopped_value, finset.sum_apply, finset.sum_indicator_eq_sum_filter],
+  suffices : finset.filter (λ i, y ∈ {x : Ω | τ x = i}) s = ({τ y} : finset ι),
+    by rw [this, finset.sum_singleton],
+  ext1 x,
+  simp only [set.mem_set_of_eq, finset.mem_filter, finset.mem_singleton],
+  split; intro h,
+  { exact h.2.symm, },
+  { refine ⟨_, h.symm⟩, rw h, exact hbdd y, },
+end
+
+lemma stopped_value_eq' [preorder ι] [locally_finite_order_bot ι] [add_comm_monoid E]
+  {N : ι} (hbdd : ∀ x, τ x ≤ N) :
+  stopped_value u τ = ∑ i in finset.Iic N, set.indicator {x | τ x = i} (u i) :=
+stopped_value_eq_of_mem_finset (λ ω, finset.mem_Iic.mpr (hbdd ω))
+
+variables [partial_order ι] {ℱ : filtration ι m} [normed_add_comm_group E]
+
+lemma mem_ℒp_stopped_value_of_mem_finset (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ)
+  {s : finset ι} (hbdd : ∀ x, τ x ∈ s)  :
+  mem_ℒp (stopped_value u τ) p μ :=
+begin
+  rw stopped_value_eq_of_mem_finset hbdd,
+  swap, apply_instance,
+  refine mem_ℒp_finset_sum' _ (λ i hi, mem_ℒp.indicator _ (hu i)),
+  refine ℱ.le i {a : Ω | τ a = i} (hτ.measurable_set_eq_of_countable_range _ i),
+  refine ((finset.finite_to_set s).subset (λ x hx, _)).countable,
+  obtain ⟨y, rfl⟩ := hx,
+  exact hbdd y,
+end
+
+lemma mem_ℒp_stopped_value [locally_finite_order_bot ι]
+  (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ) {N : ι} (hbdd : ∀ x, τ x ≤ N) :
+  mem_ℒp (stopped_value u τ) p μ :=
+mem_ℒp_stopped_value_of_mem_finset hτ hu (λ ω, finset.mem_Iic.mpr (hbdd ω))
+
+lemma integrable_stopped_value_of_mem_finset (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, integrable (u n) μ) {s : finset ι} (hbdd : ∀ x, τ x ∈ s) :
+  integrable (stopped_value u τ) μ :=
+begin
+  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
+  exact mem_ℒp_stopped_value_of_mem_finset hτ hu hbdd,
+end
+
+lemma integrable_stopped_value [locally_finite_order_bot ι]
+  (hτ : is_stopping_time ℱ τ) (hu : ∀ n, integrable (u n) μ) {N : ι} (hbdd : ∀ x, τ x ≤ N) :
+  integrable (stopped_value u τ) μ :=
+integrable_stopped_value_of_mem_finset hτ hu (λ ω, finset.mem_Iic.mpr (hbdd ω))
+
+end stopped_value_of_mem_finset
+
+
 section nat
 /-! ### Filtrations indexed by `ℕ` -/
 
@@ -1386,16 +1472,7 @@ hu.prog_measurable_of_nat.strongly_measurable_stopped_process hτ n
 lemma stopped_value_eq {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
   stopped_value u τ =
   λ x, (∑ i in finset.range (N + 1), set.indicator {ω | τ ω = i} (u i)) x :=
-begin
-  ext y,
-  rw [stopped_value, finset.sum_apply, finset.sum_eq_single (τ y)],
-  { rw set.indicator_of_mem,
-    exact rfl },
-  { exact λ i hi hneq, set.indicator_of_not_mem hneq.symm _ },
-  { intro hy,
-    rw set.indicator_of_not_mem,
-    exact λ _, hy (finset.mem_range.2 $ lt_of_le_of_lt (hbdd _) (nat.lt_succ_self _)) }
-end
+stopped_value_eq_of_mem_finset (λ ω, finset.mem_range_succ_iff.mpr (hbdd ω))
 
 lemma stopped_process_eq (n : ℕ) :
   stopped_process u τ n =
@@ -1458,23 +1535,6 @@ lemma integrable_stopped_process (hτ : is_stopping_time f τ)
   (hu : ∀ n, integrable (u n) μ) (n : ℕ) :
   integrable (stopped_process u τ n) μ :=
 by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_process hτ hu n, }
-
-lemma mem_ℒp_stopped_value (hτ : is_stopping_time f τ)
-  (hu : ∀ n, mem_ℒp (u n) p μ) {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
-  mem_ℒp (stopped_value u τ) p μ :=
-begin
-  rw stopped_value_eq hbdd,
-  suffices : mem_ℒp (λ x, ∑ (i : ℕ) in finset.range (N + 1),
-    {a : Ω | τ a = i}.indicator (u i) x) p μ,
-  { convert this, ext1 ω, simp only [finset.sum_apply] },
-  refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
-  exact f.le i {a : Ω | τ a = i} (hτ.measurable_set_eq i)
-end
-
-lemma integrable_stopped_value (hτ : is_stopping_time f τ)
-  (hu : ∀ n, integrable (u n) μ) {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
-  integrable (stopped_value u τ) μ :=
-by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_value hτ hu hbdd, }
 
 end normed_add_comm_group
 

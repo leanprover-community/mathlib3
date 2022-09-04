@@ -102,50 +102,16 @@ begin
   rwa [set.inter_assoc, set.inter_self] at h,
 end
 
-section normed_group
-
-variables [normed_add_comm_group E] {p : ℝ≥0∞} {u : ι → α → E}
-
-lemma stopped_value_eq' {s : finset ι} (hbdd : ∀ x, τ x ∈ s) :
-  stopped_value u τ = ∑ i in s, set.indicator {x | τ x = i} (u i) :=
-begin
-  ext y,
-  rw [stopped_value, finset.sum_apply, finset.sum_indicator_eq_sum_filter],
-  suffices : finset.filter (λ i, y ∈ {x : α | τ x = i}) s = ({τ y} : finset ι),
-    by rw [this, finset.sum_singleton],
-  ext1 x,
-  simp only [set.mem_set_of_eq, finset.mem_filter, finset.mem_singleton],
-  split; intro h,
-  { exact h.2.symm, },
-  { refine ⟨_, h.symm⟩, rw h, exact hbdd y, },
-end
-
-lemma mem_ℒp_stopped_value' (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ)
-  {s : finset ι} (hbdd : ∀ x, τ x ∈ s)  :
-  mem_ℒp (stopped_value u τ) p μ :=
-begin
-  rw stopped_value_eq' hbdd,
-  swap, apply_instance,
-  refine mem_ℒp_finset_sum' _ (λ i hi, mem_ℒp.indicator _ (hu i)),
-  refine ℱ.le i {a : α | τ a = i} (hτ.measurable_set_eq_of_countable_range _ i),
-  refine ((finset.finite_to_set s).subset (λ x hx, _)).countable,
-  obtain ⟨y, rfl⟩ := hx,
-  exact hbdd y,
-end
-
-lemma integrable_stopped_value' (hτ : is_stopping_time ℱ τ)
-  (hu : ∀ n, integrable (u n) μ) {s : finset ι} (hbdd : ∀ x, τ x ∈ s) :
-  integrable (stopped_value u τ) μ :=
-by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_value' hτ hu hbdd, }
-
-end normed_group
-
 section condexp
 variables [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
-lemma condexp_stopping_time_restrict_eq_of_countable_range [sigma_finite_filtration μ ℱ] {f : α → E}
+section single_function
+
+variables {f : α → E}
+
+lemma condexp_stopping_time_restrict_eq_of_countable_range [sigma_finite_filtration μ ℱ]
   (hτ : is_stopping_time ℱ τ) (h_countable : (set.range τ).countable)
-  [sigma_finite (μ.trim (hτ.measurable_space_le_of_countable_range h_countable))] {i : ι} :
+  [sigma_finite (μ.trim (hτ.measurable_space_le_of_countable_range h_countable))] (i : ι) :
   μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
 begin
   refine condexp_ae_eq_restrict_of_measurable_space_eq_on
@@ -155,15 +121,29 @@ begin
 end
 
 lemma condexp_stopping_time_restrict_eq_of_countable [countable ι] [sigma_finite_filtration μ ℱ]
-  {f : α → E} (hτ : is_stopping_time ℱ τ)
-  [sigma_finite (μ.trim hτ.measurable_space_le_of_countable)] {i : ι} :
+  (hτ : is_stopping_time ℱ τ)
+  [sigma_finite (μ.trim hτ.measurable_space_le_of_countable)] (i : ι) :
   μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
-condexp_stopping_time_restrict_eq_of_countable_range hτ (set.to_countable _)
+condexp_stopping_time_restrict_eq_of_countable_range hτ (set.to_countable _) i
 
-lemma condexp_stopping_time_restrict_eq [(filter.at_top : filter ι).is_countably_generated]
-  [topological_space ι] [order_topology ι] [first_countable_topology ι]
-  [sigma_finite_filtration μ ℱ] {f : α → E}
-  (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)] {i : ι} :
+variables [(filter.at_top : filter ι).is_countably_generated]
+
+lemma condexp_min_stopping_time_restrict_le_const
+  (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)]
+  [∀ i, sigma_finite (μ.trim (hτ.min_const i).measurable_space_le)] (i : ι) :
+  μ[f | (hτ.min_const i).measurable_space]
+    =ᵐ[μ.restrict {x | τ x ≤ i}] μ[f | hτ.measurable_space] :=
+begin
+  refine (condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
+    (hτ.min_const i).measurable_space_le (hτ.measurable_set_le' i) (λ t, _)).symm,
+  rw [set.inter_comm _ t, measurable_set_inter_le_const_iff],
+end
+
+variables [topological_space ι] [order_topology ι]
+
+lemma condexp_stopping_time_restrict_eq
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+  (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)] (i : ι) :
   μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
 begin
   refine condexp_ae_eq_restrict_of_measurable_space_eq_on
@@ -171,9 +151,8 @@ begin
   rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
 end
 
-lemma condexp_min_stopping_time_restrict_le [(filter.at_top : filter ι).is_countably_generated]
-  [topological_space ι] [measurable_space ι]
-  [order_topology ι] [second_countable_topology ι] [borel_space ι] {f : α → E}
+lemma condexp_min_stopping_time_restrict_le [measurable_space ι]
+  [second_countable_topology ι] [borel_space ι]
   (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   [sigma_finite (μ.trim hτ.measurable_space_le)]
   [sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
@@ -184,21 +163,15 @@ begin
   rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_le_iff],
 end
 
-lemma condexp_min_stopping_time_restrict_le_const
-  [(filter.at_top : filter ι).is_countably_generated] {f : α → E}
-  (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)]
-  [∀ i, sigma_finite (μ.trim (hτ.min_const i).measurable_space_le)] {i : ι} :
-  μ[f | (hτ.min_const i).measurable_space]
-    =ᵐ[μ.restrict {x | τ x ≤ i}] μ[f | hτ.measurable_space] :=
-begin
-  refine (condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
-    (hτ.min_const i).measurable_space_le (hτ.measurable_set_le' i) (λ t, _)).symm,
-  rw [set.inter_comm _ t, measurable_set_inter_le_const_iff],
-end
+end single_function
+
+section martingale
+
+variables {f : ι → α → E} [topological_space ι] [order_topology ι] {i n : ι}
 
 lemma condexp_stopping_time_restrict_eq_const [(filter.at_top : filter ι).is_countably_generated]
-  [topological_space ι] [order_topology ι] [first_countable_topology ι]
-  [sigma_finite_filtration μ ℱ] {f : ι → α → E} (h : martingale f ℱ μ)
+  [first_countable_topology ι]
+  [sigma_finite_filtration μ ℱ] (h : martingale f ℱ μ)
   (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)]
   {i n : ι} (hin : i ≤ n) :
   μ[f n | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] f i :=
@@ -210,10 +183,9 @@ begin
 end
 
 lemma condexp_stopping_time_restrict_eq_const_of_le_const
-  [topological_space ι] [order_topology ι] [first_countable_topology ι]
-  [sigma_finite_filtration μ ℱ] {f : ι → α → E} (h : martingale f ℱ μ)
-  (hτ : is_stopping_time ℱ τ) {i n : ι} (hτ_le : ∀ x, τ x ≤ n)
-  [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
+  [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] (i : ι) :
   μ[f n | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] f i :=
 begin
   by_cases hin : i ≤ n,
@@ -228,23 +200,23 @@ begin
     exact hin (hτ_le x), },
 end
 
-lemma stopped_value_ae_eq_restrict_eq [topological_space ι] [order_topology ι]
-  [first_countable_topology ι] [sigma_finite_filtration μ ℱ] {f : ι → α → E}
-  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {i n : ι} (hτ_le : ∀ x, τ x ≤ n)
-  [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le hτ_le)))] :
+lemma stopped_value_ae_eq_restrict_eq
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
+  [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le hτ_le)))] (i : ι) :
   stopped_value f τ =ᵐ[μ.restrict {x | τ x = i}] μ[f n | hτ.measurable_space] :=
 begin
   refine filter.eventually_eq.trans _
-    (condexp_stopping_time_restrict_eq_const_of_le_const h hτ hτ_le).symm,
+    (condexp_stopping_time_restrict_eq_const_of_le_const h hτ hτ_le i).symm,
   rw [filter.eventually_eq, ae_restrict_iff' (ℱ.le _ _ (hτ.measurable_set_eq i))],
   refine filter.eventually_of_forall (λ x hx, _),
   rw set.mem_set_of_eq at hx,
   simp_rw [stopped_value, hx],
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le_const_of_countable_range [topological_space ι]
-  [order_topology ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
-  {f : ι → α → E} (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {n : ι}
+lemma martingale.stopped_value_ae_eq_condexp_of_le_const_of_countable_range
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ)
   (hτ_le : ∀ x, τ x ≤ n) (h_countable_range : (set.range τ).countable)
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   stopped_value f τ =ᵐ[μ] μ[f n | hτ.measurable_space] :=
@@ -255,14 +227,12 @@ begin
       set.mem_Union, set.mem_set_of_eq, exists_apply_eq_apply'], },
   nth_rewrite 0 ← @measure.restrict_univ α _ μ,
   rw [this, ae_restrict_Union_countable_iff _ h_countable_range],
-  exact λ i hi, stopped_value_ae_eq_restrict_eq h _ hτ_le,
+  exact λ i hi, stopped_value_ae_eq_restrict_eq h _ hτ_le i,
 end
 
 lemma martingale.stopped_value_ae_eq_condexp_of_le_const' [order_bot ι]
-  [locally_finite_order ι] [topological_space ι]
-  [order_topology ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
-  {f : ι → α → E} (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {n : ι}
-  (hτ_le : ∀ x, τ x ≤ n)
+  [locally_finite_order ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   stopped_value f τ =ᵐ[μ] μ[f n | hτ.measurable_space] :=
 begin
@@ -273,19 +243,17 @@ begin
   exact hτ_le y,
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le_const [countable ι] [topological_space ι]
-  [order_topology ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
-  {f : ι → α → E} (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {n : ι}
-  (hτ_le : ∀ x, τ x ≤ n)
+lemma martingale.stopped_value_ae_eq_condexp_of_le_const [countable ι]
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   stopped_value f τ =ᵐ[μ] μ[f n | hτ.measurable_space] :=
 h.stopped_value_ae_eq_condexp_of_le_const_of_countable_range hτ hτ_le (set.to_countable _)
 
 lemma martingale.stopped_value_ae_eq_condexp_of_le_of_countable_range
-  [(filter.at_top : filter ι).is_countably_generated] [topological_space ι]
-  [order_topology ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ] {f : ι → α → E}
-  (h : martingale f ℱ μ)
-  (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) {n : ι}
+  [(filter.at_top : filter ι).is_countably_generated]
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n)
   (hτ_countable_range : (set.range τ).countable)
   (hσ_countable_range : (set.range σ).countable)
@@ -305,10 +273,8 @@ end
 
 lemma martingale.stopped_value_ae_eq_condexp_of_le'
   [(filter.at_top : filter ι).is_countably_generated] [order_bot ι] [locally_finite_order ι]
-  [topological_space ι] [order_topology ι] [first_countable_topology ι]
-  [sigma_finite_filtration μ ℱ] {f : ι → α → E} (h : martingale f ℱ μ)
-  (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) {n : ι}
-  (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n)
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ] (h : martingale f ℱ μ)
+  (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim hτ.measurable_space_le)] [sigma_finite (μ.trim hσ.measurable_space_le)] :
   stopped_value f σ =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
 begin
@@ -321,22 +287,21 @@ begin
     exact (hσ_le_τ y).trans (hτ_le y), },
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le [countable ι] [topological_space ι]
-  [order_topology ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ] {f : ι → α → E}
-  (h : martingale f ℱ μ)
-  (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) {n : ι}
+lemma martingale.stopped_value_ae_eq_condexp_of_le [countable ι]
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim hτ.measurable_space_le)] [sigma_finite (μ.trim hσ.measurable_space_le)] :
   stopped_value f σ =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
 h.stopped_value_ae_eq_condexp_of_le_of_countable_range hτ hσ hσ_le_τ hτ_le
   (set.to_countable _) (set.to_countable _)
 
-lemma aux' [countable ι] [order_bot ι] [locally_finite_order ι] [topological_space ι]
-  [order_topology ι] [measurable_space ι] [borel_space ι] [second_countable_topology ι]
-  {f : ι → α → E} [measurable_space E] [borel_space E] [second_countable_topology E]
+lemma aux' [countable ι] [order_bot ι] [locally_finite_order ι]
+  [measurable_space ι] [borel_space ι] [second_countable_topology ι]
+  [measurable_space E] [borel_space E] [second_countable_topology E]
   (h : martingale f ℱ μ) (hf_prog : prog_measurable ℱ f)
   (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
-  [sigma_finite (μ.trim hσ.measurable_space_le)] {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+  [sigma_finite (μ.trim hσ.measurable_space_le)] (hτ_le : ∀ x, τ x ≤ n) :
   μ[stopped_value f τ|hσ.measurable_space] =ᵐ[μ.restrict {x : α | τ x ≤ σ x}] stopped_value f τ :=
 begin
   have hτ_mem_finset : ∀ x, τ x ∈ (set.finite_Iic n).to_finset,
@@ -366,6 +331,8 @@ begin
     exact hτ.measurable_space_le _ (hτ.measurable_set_le_stopping_time hσ), },
 end
 
+end martingale
+
 end condexp
 
 end not_nat
@@ -375,7 +342,7 @@ section nat
 variables {𝒢 : filtration ℕ m} {τ σ : α → ℕ}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
-/-- **Optional Sampling** -/
+/-- **Optional Sampling** theorem. -/
 lemma martingale.stopped_value_min_ae_eq_condexp
   [measurable_space E] [borel_space E] [second_countable_topology E]
   [sigma_finite_filtration μ 𝒢] {f : ℕ → α → E} (h : martingale f 𝒢 μ)

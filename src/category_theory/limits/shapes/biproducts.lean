@@ -665,10 +665,12 @@ end finite_biproducts
 
 variables {J : Type w} {C : Type u} [category.{v} C] [has_zero_morphisms C]
 
-instance biproduct.ι_mono (f : J → C) [has_biproduct f] (b : J) : split_mono (biproduct.ι f b) :=
+instance biproduct.ι_mono (f : J → C) [has_biproduct f] (b : J) :
+  is_split_mono (biproduct.ι f b) := is_split_mono.mk'
 { retraction := biproduct.desc $ pi.single b _ }
 
-instance biproduct.π_epi (f : J → C) [has_biproduct f] (b : J) : split_epi (biproduct.π f b) :=
+instance biproduct.π_epi (f : J → C) [has_biproduct f] (b : J) :
+  is_split_epi (biproduct.π f b) := is_split_epi.mk'
 { section_ := biproduct.lift $ pi.single b _ }
 
 /-- Auxiliary lemma for `biproduct.unique_up_to_iso`. -/
@@ -802,13 +804,17 @@ rfl
 lemma binary_cofan_inr_to_cocone (c : binary_bicone P Q) : binary_cofan.inr c.to_cocone = c.inr :=
 rfl
 
-instance (c : binary_bicone P Q) : split_mono c.inl := { retraction := c.fst, id' := c.inl_fst }
+instance (c : binary_bicone P Q) : is_split_mono c.inl :=
+is_split_mono.mk' { retraction := c.fst, id' := c.inl_fst }
 
-instance (c : binary_bicone P Q) : split_mono c.inr := { retraction := c.snd, id' := c.inr_snd }
+instance (c : binary_bicone P Q) : is_split_mono c.inr :=
+is_split_mono.mk'  { retraction := c.snd, id' := c.inr_snd }
 
-instance (c : binary_bicone P Q) : split_epi c.fst := { section_ := c.inl, id' := c.inl_fst }
+instance (c : binary_bicone P Q) : is_split_epi c.fst :=
+is_split_epi.mk' { section_ := c.inl, id' := c.inl_fst }
 
-instance (c : binary_bicone P Q) : split_epi c.snd := { section_ := c.inr, id' := c.inr_snd }
+instance (c : binary_bicone P Q) : is_split_epi c.snd :=
+is_split_epi.mk' { section_ := c.inr, id' := c.inr_snd }
 
 /-- Convert a `binary_bicone` into a `bicone` over a pair. -/
 @[simps]
@@ -1146,20 +1152,20 @@ begin
 end
 
 instance biprod.inl_mono {X Y : C} [has_binary_biproduct X Y] :
-  split_mono (biprod.inl : X ⟶ X ⊞ Y) :=
-{ retraction := biprod.fst }
+  is_split_mono (biprod.inl : X ⟶ X ⊞ Y) :=
+is_split_mono.mk' { retraction := biprod.fst }
 
 instance biprod.inr_mono {X Y : C} [has_binary_biproduct X Y] :
-  split_mono (biprod.inr : Y ⟶ X ⊞ Y) :=
-{ retraction := biprod.snd }
+  is_split_mono (biprod.inr : Y ⟶ X ⊞ Y) :=
+is_split_mono.mk' { retraction := biprod.snd }
 
 instance biprod.fst_epi {X Y : C} [has_binary_biproduct X Y] :
-  split_epi (biprod.fst : X ⊞ Y ⟶ X) :=
-{ section_ := biprod.inl }
+  is_split_epi (biprod.fst : X ⊞ Y ⟶ X) :=
+is_split_epi.mk' { section_ := biprod.inl }
 
 instance biprod.snd_epi {X Y : C} [has_binary_biproduct X Y] :
-  split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
-{ section_ := biprod.inr }
+  is_split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
+is_split_epi.mk' { section_ := biprod.inr }
 
 @[simp,reassoc]
 lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
@@ -1819,7 +1825,7 @@ the cokernel map as its `snd`.
 We will show in `is_bilimit_binary_bicone_of_split_mono_of_cokernel` that this binary bicone is in
 fact already a biproduct. -/
 @[simps]
-def binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono f]
+def binary_bicone_of_is_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [is_split_mono f]
   {c : cokernel_cofork f} (i : is_colimit c) : binary_bicone X c.X :=
 { X := Y,
   fst := retraction f,
@@ -1841,8 +1847,8 @@ def binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono 
     dsimp only [cokernel_cofork_of_cofork_of_π],
     letI := epi_of_is_colimit_cofork i,
     apply zero_of_epi_comp c.π,
-    simp only [sub_comp, comp_sub, category.comp_id, category.assoc, split_mono.id, sub_self,
-      cofork.is_colimit.π_desc_assoc, cokernel_cofork.π_of_π, split_mono.id_assoc],
+    simp only [sub_comp, comp_sub, category.comp_id, category.assoc, is_split_mono.id, sub_self,
+      cofork.is_colimit.π_desc_assoc, cokernel_cofork.π_of_π, is_split_mono.id_assoc],
     apply sub_eq_zero_of_eq,
     apply category.id_comp
   end,
@@ -1850,17 +1856,17 @@ def binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono 
 
 /-- The bicone constructed in `binary_bicone_of_split_mono_of_cokernel` is a bilimit.
 This is a version of the splitting lemma that holds in all preadditive categories. -/
-def is_bilimit_binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono f]
+def is_bilimit_binary_bicone_of_is_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [is_split_mono f]
   {c : cokernel_cofork f} (i : is_colimit c) :
-  (binary_bicone_of_split_mono_of_cokernel i).is_bilimit :=
+  (binary_bicone_of_is_split_mono_of_cokernel i).is_bilimit :=
 is_binary_bilimit_of_total _
 begin
-  simp only [binary_bicone_of_split_mono_of_cokernel_fst,
-    binary_bicone_of_split_mono_of_cokernel_inr, binary_bicone_of_split_mono_of_cokernel_snd,
+  simp only [binary_bicone_of_is_split_mono_of_cokernel_fst,
+    binary_bicone_of_is_split_mono_of_cokernel_inr, binary_bicone_of_is_split_mono_of_cokernel_snd,
     split_epi_of_idempotent_of_is_colimit_cofork_section_],
-  dsimp only [binary_bicone_of_split_mono_of_cokernel_X],
+  dsimp only [binary_bicone_of_is_split_mono_of_cokernel_X],
   rw [is_colimit_cofork_of_cokernel_cofork_desc, is_cokernel_epi_comp_desc],
-  simp only [binary_bicone_of_split_mono_of_cokernel_inl, cofork.is_colimit.π_desc,
+  simp only [binary_bicone_of_is_split_mono_of_cokernel_inl, cofork.is_colimit.π_desc,
     cokernel_cofork_of_cofork_π, cofork.π_of_π, add_sub_cancel'_right]
 end
 
@@ -1923,10 +1929,10 @@ is_binary_bilimit_of_is_colimit _ $ binary_cofan.is_colimit.mk _
 /--
 Every split epi `f` with a kernel induces a binary bicone with `f` as its `snd` and
 the kernel map as its `inl`.
-We will show in `binary_bicone_of_split_mono_of_cokernel` that this binary bicone is in fact
+We will show in `binary_bicone_of_is_split_mono_of_cokernel` that this binary bicone is in fact
 already a biproduct. -/
 @[simps]
-def binary_bicone_of_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [split_epi f]
+def binary_bicone_of_is_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [is_split_epi f]
   {c : kernel_fork f} (i : is_limit c) : binary_bicone c.X Y :=
 { X := X,
   fst :=
@@ -1949,15 +1955,15 @@ def binary_bicone_of_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [split_epi f]
     letI := mono_of_is_limit_fork i,
     apply zero_of_comp_mono c.ι,
     simp only [comp_sub, category.comp_id, category.assoc, sub_self, fork.is_limit.lift_ι,
-      fork.ι_of_ι, split_epi.id_assoc]
+      fork.ι_of_ι, is_split_epi.id_assoc]
   end,
   inr_snd' := by simp }
 
-/-- The bicone constructed in `binary_bicone_of_split_epi_of_kernel` is a bilimit.
+/-- The bicone constructed in `binary_bicone_of_is_split_epi_of_kernel` is a bilimit.
 This is a version of the splitting lemma that holds in all preadditive categories. -/
-def is_bilimit_binary_bicone_of_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [split_epi f]
+def is_bilimit_binary_bicone_of_is_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [is_split_epi f]
   {c : kernel_fork f} (i : is_limit c) :
-  (binary_bicone_of_split_epi_of_kernel i).is_bilimit :=
+  (binary_bicone_of_is_split_epi_of_kernel i).is_bilimit :=
 binary_bicone.is_bilimit_of_kernel_inl _ $ i.of_iso_limit $ fork.ext (iso.refl _) (by simp)
 
 end

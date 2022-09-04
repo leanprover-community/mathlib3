@@ -39,6 +39,8 @@ namespace modeq
 
 protected theorem rfl : a ≡ a [MOD n] := modeq.refl _
 
+instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
+
 @[symm] protected theorem symm : a ≡ b [MOD n] → b ≡ a [MOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans

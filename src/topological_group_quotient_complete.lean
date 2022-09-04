@@ -6,11 +6,11 @@ open_locale topological_space uniformity pointwise
 universes u v
 
 /- The map of a countably generated filter is countably generated -/
-lemma filter.map.is_countably_generated {α β : Type*} (l : filter α) [H : l.is_countably_generated]
+lemma filter.map.is_countably_generated {α β : Type*} (l : filter α) [l.is_countably_generated]
   (f : α → β) : (map f l).is_countably_generated :=
 begin
-  unfreezingI {rw is_countably_generated_iff_exists_antitone_basis at *; rcases H with ⟨u, hu⟩},
-  exact ⟨_, hu.map⟩,
+  rcases l.exists_antitone_basis with ⟨u, hu⟩,
+  exact has_countable_basis.is_countably_generated ⟨hu.map.to_has_basis, set.to_countable _⟩,
 end
 
 /- Neighborhoods in the quotient are precisely the map of neighborhoods in prequotient. -/
@@ -53,7 +53,7 @@ begin
     exact ⟨k ⊔ j, true.intro, union_subset ((hu.antitone le_sup_left).trans hk)
       ((hu'.antitone le_sup_right).trans hj)⟩, },
   { rintro ⟨i, -, hi⟩,
-    exact (𝓝 (1 : G)).sets_of_superset (hu.to_has_basis.mem_of_mem true.intro : u i ∈ 𝓝 1)
+    exact (𝓝 (1 : G)).sets_of_superset (hu.mem i)
       ((subset_union_left _ _).trans hi), },
   { exact λ n m hnm, union_subset_union (hu.antitone hnm) (hu'.antitone hnm)},
 end
@@ -66,8 +66,7 @@ lemma topological_group.exists_antitone_basis_nhds_one (G : Type u) [topological
   [topological_group G] [first_countable_topology G] : ∃ (u : ℕ → set G),
   (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) ∧ (∀ n, (u n)⁻¹ = u n) :=
 begin
-  rcases is_countably_generated_iff_exists_antitone_basis.mp
-    (first_countable_topology.nhds_generated_countable (1 : G)) with ⟨v, hv⟩,
+  rcases (𝓝 (1 : G)).exists_antitone_basis with ⟨v, hv⟩,
   set u := λ n, v n ∪ (v n)⁻¹,
   obtain ⟨(hu : (𝓝 (1 : G)).has_basis (λ _, true) u), (u_anti : antitone u)⟩ := hv.nhds_one_inv,
   have := ((hu.prod_nhds hu).tendsto_iff hu).mp
@@ -105,8 +104,8 @@ begin
   `𝓝 (1 : G ⧸ N)`. -/
   letI : uniform_space (G ⧸ N) := topological_group.to_uniform_space (G ⧸ N),
   haveI : (𝓤 (G ⧸ N)).is_countably_generated := comap.is_countably_generated _ _,
-  obtain ⟨U, ⟨hU, U_anti⟩, U_mul, U_inv⟩ := topological_group.exists_antitone_basis_nhds_one G,
-  obtain ⟨hV, V_anti⟩ := @has_antitone_basis.map _ _ _ _ _ _ (coe : G → G ⧸ N) ⟨hU, U_anti⟩,
+  obtain ⟨U, hU, U_mul, U_inv⟩ := topological_group.exists_antitone_basis_nhds_one G,
+  obtain ⟨hV, V_anti⟩ := @has_antitone_basis.map _ _ _ _ _ _ (coe : G → G ⧸ N) hU,
   rw [←quotient_group.nhds_eq N 1, quotient_group.coe_one] at hV,
   /- Since `G ⧸ N` is metrizable it suffices to show any Cauchy sequence `x` converges; note that
   `x` has quotients of successive terms converging to `1`. -/
@@ -150,18 +149,19 @@ begin
   have x'_cauchy : cauchy_seq (λ n, (x' n).fst),
   { refine ⟨by simpa only [map_ne_bot_iff] using at_top_ne_bot, _⟩,
     simp only [uniformity_eq_comap_nhds_one, ←tendsto_iff_comap, prod_map_map_eq, prod.mk_le_mk,
-      hU.tendsto_right_iff, eventually_map, forall_true_left, mem_Ici, prod.forall, prod.exists,
-      (at_top_basis.prod at_top_basis).eventually_iff, mem_image, Ici_prod_Ici, true_and, and_imp],
+      hU.to_has_basis.tendsto_right_iff, eventually_map, forall_true_left, mem_Ici, prod.forall,
+      prod.exists, (at_top_basis.prod at_top_basis).eventually_iff, mem_image, Ici_prod_Ici,
+      true_and, and_imp],
     have key₁ : ∀ m n, m ≤ n → (x' m).fst / (x' n).fst ∈ U m,
       from λ m n hmn, nat.decreasing_induction'
         (λ k hkn hkm hk, U_mul k ⟨_, _, hx' k, hk, div_mul_div_cancel' _ _ _⟩)
-        hmn (by simpa only [div_self'] using mem_of_mem_nhds (hU.mem_of_mem true.intro)),
+        hmn (by simpa only [div_self'] using mem_of_mem_nhds (hU.mem _)),
     refine λ n, ⟨n, n, λ j k hj hk, _⟩,
     rcases le_total j k with (hjk | hjk),
-    { refine U_anti hj _,
+    { refine hU.antitone hj _,
       rw ←U_inv j,
       simpa only [set.mem_inv, inv_div] using key₁ _ _ hjk, },
-    { exact U_anti hk (key₁ _ _ hjk) } },
+    { exact hU.antitone hk (key₁ _ _ hjk) } },
   /- Since `G` is complete, `x'` converges to some `x₀`, and so the image of this sequence under
   the quotient map converges to `↑x₀`. The image of `x'` is a convergent subsequence of `x`, and
   since `x` is Cauchy, this implies it converges. -/

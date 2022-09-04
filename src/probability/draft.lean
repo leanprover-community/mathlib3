@@ -23,21 +23,6 @@ section not_nat
 
 variables [linear_order ι] {ℱ : filtration ι m} {τ σ : α → ι}
 
-lemma _root_.measure_theory.is_stopping_time.measurable_space_le_of_le {ι} [semilattice_sup ι]
-  {f : filtration ι m} {τ : α → ι} (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
-  hτ.measurable_space ≤ m :=
-(hτ.measurable_space_le_of_le_const hτ_le).trans (f.le n)
-
-instance sigma_finite_stopping_time_of_le [order_bot ι]
-  [sigma_finite_filtration μ ℱ] (hτ : is_stopping_time ℱ τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
-  sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le)) :=
-begin
-  refine sigma_finite_trim_mono (hτ.measurable_space_le_of_le hτ_le) _,
-  { exact ℱ ⊥, },
-  { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
-  { apply_instance, },
-end
-
 lemma measurable_set_inter_le_const_iff (hτ : is_stopping_time ℱ τ) (s : set α) (i : ι) :
   measurable_set[hτ.measurable_space] (s ∩ {x | τ x ≤ i})
     ↔ measurable_set[(hτ.min_const i).measurable_space] (s ∩ {x | τ x ≤ i}) :=

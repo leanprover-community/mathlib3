@@ -873,6 +873,10 @@ lemma measurable_space_le_of_le_const (hτ : is_stopping_time f τ) {i : ι} (h�
   hτ.measurable_space ≤ f i :=
 (measurable_space_mono hτ _ hτ_le).trans (measurable_space_const _ _).le
 
+lemma measurable_space_le_of_le (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+  hτ.measurable_space ≤ m :=
+(hτ.measurable_space_le_of_le_const hτ_le).trans (f.le n)
+
 lemma le_measurable_space_of_const_le (hτ : is_stopping_time f τ) {i : ι} (hτ_le : ∀ ω, i ≤ τ ω) :
   f i ≤ hτ.measurable_space :=
 (measurable_space_const _ _).symm.le.trans (measurable_space_mono _ hτ hτ_le)
@@ -886,6 +890,17 @@ instance sigma_finite_stopping_time {ι} [semilattice_sup ι] [order_bot ι]
   sigma_finite (μ.trim hτ.measurable_space_le) :=
 begin
   refine sigma_finite_trim_mono hτ.measurable_space_le _,
+  { exact f ⊥, },
+  { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
+  { apply_instance, },
+end
+
+instance sigma_finite_stopping_time_of_le {ι} [semilattice_sup ι] [order_bot ι]
+  {μ : measure Ω} {f : filtration ι m} {τ : Ω → ι}
+  [sigma_finite_filtration μ f] (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+  sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le)) :=
+begin
+  refine sigma_finite_trim_mono (hτ.measurable_space_le_of_le hτ_le) _,
   { exact f ⊥, },
   { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
   { apply_instance, },

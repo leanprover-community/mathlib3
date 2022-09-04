@@ -36,39 +36,15 @@ instance quotient_group.uniformity_is_countably_generated {G : Type u} [group G]
   (@uniformity (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N))).is_countably_generated :=
 comap.is_countably_generated _ _
 
-/- If `u : ι → set G` is an antitone neighborhood basis for `1 : G`, so is `λ i, u i ∪ (u i)⁻¹`. -/
-@[to_additive]
-lemma filter.has_antitone_basis.nhds_one_inv {G : Type*} [topological_space G] [group G]
-  [topological_group G] {ι : Sort*} [semilattice_sup ι] {u : ι → set G}
-  (hu : (𝓝 1).has_antitone_basis u) : (𝓝 1).has_antitone_basis (λ n, u n ∪ (u n)⁻¹) :=
-begin
-  have hu' := @filter.has_antitone_basis.map _ _ _ _ _ _ (λ g, g⁻¹) hu,
-  have map_inv_nhds_one : map (λ g, g⁻¹) (𝓝 (1 : G)) = 𝓝 1,
-  { simpa only [inv_one] using le_antisymm (continuous_inv.tendsto (1 : G))
-    ((is_open_map.of_inverse continuous_inv inv_inv inv_inv).nhds_le (1 : G)) },
-  simp only [map_inv_nhds_one, image_inv] at hu',
-  refine ⟨⟨λ t, ⟨λ ht, _, _⟩⟩, _⟩,
-  { rcases hu.to_has_basis.mem_iff.mp ht with ⟨k, ⟨⟩, hk⟩,
-    rcases hu'.to_has_basis.mem_iff.mp ht with ⟨j, ⟨⟩, hj⟩,
-    exact ⟨k ⊔ j, true.intro, union_subset ((hu.antitone le_sup_left).trans hk)
-      ((hu'.antitone le_sup_right).trans hj)⟩, },
-  { rintro ⟨i, -, hi⟩,
-    exact (𝓝 (1 : G)).sets_of_superset (hu.mem i)
-      ((subset_union_left _ _).trans hi), },
-  { exact λ n m hnm, union_subset_union (hu.antitone hnm) (hu'.antitone hnm)},
-end
-
 /- Any first countable topological group has an antitone neighborhood basis `u : ℕ → set G` for
-which `(u n)⁻¹ = u n` and `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is
-a key tool for `quotient_group.complete_space` -/
+which `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is a key tool for
+`quotient_group.complete_space` -/
 @[to_additive]
 lemma topological_group.exists_antitone_basis_nhds_one (G : Type u) [topological_space G] [group G]
   [topological_group G] [first_countable_topology G] : ∃ (u : ℕ → set G),
-  (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) ∧ (∀ n, (u n)⁻¹ = u n) :=
+  (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) :=
 begin
-  rcases (𝓝 (1 : G)).exists_antitone_basis with ⟨v, hv⟩,
-  set u := λ n, v n ∪ (v n)⁻¹,
-  obtain ⟨(hu : (𝓝 (1 : G)).has_basis (λ _, true) u), (u_anti : antitone u)⟩ := hv.nhds_one_inv,
+  rcases (𝓝 (1 : G)).exists_antitone_basis with ⟨u, hu, u_anti⟩,
   have := ((hu.prod_nhds hu).tendsto_iff hu).mp
     (by simpa only [mul_one] using continuous_mul.tendsto ((1, 1) : G × G)),
   simp only [and_self, mem_prod, and_imp, prod.forall, exists_true_left, prod.exists,
@@ -86,7 +62,7 @@ begin
     from λ n, some_spec (exists_mul $ y n),
   have y_mono : strict_mono y := strict_mono_nat_of_lt_succ (λ n, (hy n).1),
   exact ⟨u ∘ y, (has_antitone_basis.comp_mono ⟨hu, u_anti⟩) y_mono.monotone y_mono.tendsto_at_top,
-    λ n, (hy n).2, λ n, by simp only [union_comm, union_inv, inv_inv]⟩,
+    λ n, (hy n).2⟩,
 end
 
 /- The quotient `G ⧸ N` of a complete uniform topological group `G` which is also first countable
@@ -104,7 +80,7 @@ begin
   `𝓝 (1 : G ⧸ N)`. -/
   letI : uniform_space (G ⧸ N) := topological_group.to_uniform_space (G ⧸ N),
   haveI : (𝓤 (G ⧸ N)).is_countably_generated := comap.is_countably_generated _ _,
-  obtain ⟨U, hU, U_mul, U_inv⟩ := topological_group.exists_antitone_basis_nhds_one G,
+  obtain ⟨U, hU, U_mul⟩ := topological_group.exists_antitone_basis_nhds_one G,
   obtain ⟨hV, V_anti⟩ := @has_antitone_basis.map _ _ _ _ _ _ (coe : G → G ⧸ N) hU,
   rw [←quotient_group.nhds_eq N 1, quotient_group.coe_one] at hV,
   /- Since `G ⧸ N` is metrizable it suffices to show any Cauchy sequence `x` converges; note that

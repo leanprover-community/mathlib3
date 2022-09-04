@@ -1242,6 +1242,19 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
 @[simp] lemma mem_map {f : P₁ →ᵃ[k] P₂} {x : P₂} {s : affine_subspace k P₁} :
   x ∈ s.map f ↔ ∃ y ∈ s, f y = x := mem_image_iff_bex
 
+lemma mem_map_of_mem {x : P₁} {s : affine_subspace k P₁} (h : x ∈ s) : f x ∈ s.map f :=
+set.mem_image_of_mem _ h
+
+lemma mem_map_iff_mem_of_injective {f : P₁ →ᵃ[k] P₂} {x : P₁} {s : affine_subspace k P₁}
+  (hf : function.injective f) : f x ∈ s.map f ↔ x ∈ s :=
+begin
+  refine ⟨λ h, _, λ h, mem_map_of_mem f h⟩,
+  rw mem_map at h,
+  rcases h with ⟨y, hy, h⟩,
+  rw hf.eq_iff at h,
+  rwa ←h
+end
+
 @[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
 coe_injective $ image_empty f
 

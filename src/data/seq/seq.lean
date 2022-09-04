@@ -61,7 +61,7 @@ subtype.eq $ funext h
 
 lemma cons_injective2 : function.injective2 (cons : α → seq α → seq α) :=
 λ x y s t h, ⟨by rw [←option.some_inj, ←nth_cons_zero, h, nth_cons_zero],
-  seq.ext _ _ $ λ n, by simp_rw [←nth_cons_succ x s n, h, nth_cons_succ]⟩
+  seq.ext $ λ n, by simp_rw [←nth_cons_succ x s n, h, nth_cons_succ]⟩
 
 lemma cons_left_injective (s : seq α) : function.injective (λ x, cons x s) :=
 cons_injective2.left _
@@ -181,6 +181,8 @@ by rw [head_eq_destruct, destruct_cons]; refl
 @[simp] theorem tail_cons (a : α) (s) : tail (cons a s) = s :=
 by cases s with f al; apply subtype.eq; dsimp [tail, cons]; rw [stream.tail_cons]
 
+@[simp] theorem nth_tail (s : seq α) (n) : nth (tail s) n = nth s (n + 1) := rfl
+
 def cases_on {C : seq α → Sort v} (s : seq α)
   (h1 : C nil) (h2 : ∀ x s, C (cons x s)) : C s := begin
   induction H : destruct s with v v,
@@ -299,6 +301,20 @@ begin
   intros s1 s2 h, rcases h with ⟨s, h1, h2⟩,
   rw [h1, h2], apply H
 end
+
+/-- Embed a list as a sequence -/
+def of_list (l : list α) : seq α :=
+⟨list.nth l, λ n h, begin
+  rw list.nth_eq_none_iff at h ⊢,
+  exact h.trans (nat.le_succ n)
+end⟩
+
+instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
+
+@[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
+@[simp] theorem of_list_nth (l : list α) (n : ℕ) : (of_list l).nth n = l.nth n := rfl
+@[simp] theorem of_list_cons (a : α) (l : list α) : of_list (a :: l) = cons a (of_list l) :=
+by ext1 (_|n); refl
 
 /-- Embed an infinite stream as a sequence -/
 def of_stream (s : stream α) : seq α :=

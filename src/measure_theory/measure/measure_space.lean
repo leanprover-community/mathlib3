@@ -1983,26 +1983,6 @@ le_antisymm (ae_sum_eq (λ i, μ.restrict (s i)) ▸ ae_mono restrict_Union_le) 
   (μ.restrict (s ∪ t)).ae = (μ.restrict s).ae ⊔ (μ.restrict t).ae :=
 by simp [union_eq_Union, supr_bool_eq]
 
-lemma ae_restrict_Union_finset_eq (s : ι → set α) (t : finset ι) :
-  (μ.restrict (⋃ i ∈ t, s i)).ae = ⨆ i ∈ t, (μ.restrict (s i)).ae :=
-begin
-  have : (⋃ i ∈ t, s i) = ⋃ i : t, s i,
-  { ext1 x, simp only [set.mem_Union, exists_prop],
-    split,
-    { rintros ⟨i, hit, hixs⟩,
-      exact ⟨⟨i, hit⟩, hixs⟩, },
-    { rintros ⟨i, hixs⟩,
-      refine ⟨i, i.prop, hixs⟩, }, },
-  rw this,
-  haveI : encodable t := fintype.to_encodable ↥t,
-  rw ae_restrict_Union_eq,
-  ext1 u,
-  simp only [filter.mem_supr],
-  split; intros h i,
-  { exact λ hit, h ⟨i, hit⟩, },
-  { exact h i i.prop, },
-end
-
 lemma ae_restrict_Union_countable_eq (s : ι → set α) {t : set ι} (ht : t.countable) :
   (μ.restrict (⋃ i ∈ t, s i)).ae = ⨆ i ∈ t, (μ.restrict (s i)).ae :=
 begin
@@ -2021,6 +2001,14 @@ begin
   split; intros h i,
   { exact λ hit, h ⟨i, hit⟩, },
   { exact h i i.prop, },
+end
+
+lemma ae_restrict_Union_finset_eq (s : ι → set α) (t : finset ι) :
+  (μ.restrict (⋃ i ∈ t, s i)).ae = ⨆ i ∈ t, (μ.restrict (s i)).ae :=
+begin
+  have : (⋃ i ∈ t, s i) = (⋃ i ∈ (t : set ι), s i) := rfl,
+  rw [this, ae_restrict_Union_countable_eq _ (⟨fintype.to_encodable ↥t⟩ : set.countable ↑t)],
+  congr,
 end
 
 lemma ae_eq_restrict_Union_iff [countable ι] (s : ι → set α) (f g : α → β) :

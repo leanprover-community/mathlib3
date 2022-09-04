@@ -13,26 +13,26 @@ begin
   exact has_countable_basis.is_countably_generated ⟨hu.map.to_has_basis, set.to_countable _⟩,
 end
 
+variables (G : Type u) [group G] [topological_space G] [topological_group G]
+
 /- Neighborhoods in the quotient are precisely the map of neighborhoods in prequotient. -/
 @[to_additive]
-lemma quotient_group.nhds_eq {G : Type u} [group G] [topological_space G] [topological_group G]
+lemma quotient_group.nhds_eq
   (N : subgroup G) (x : G) : 𝓝 (x : G ⧸ N) = map coe (𝓝 x) :=
 le_antisymm ((quotient_group.is_open_map_coe N).nhds_le x) continuous_quot_mk.continuous_at
+
+variables [first_countable_topology G] (N : subgroup G) [subgroup.normal N]
 
 /- In a first countable topological group `G` with normal subgroup `N`, `1 : G ⧸ N` has a
 countable neighborhood basis. -/
 @[to_additive]
-instance quotient_group.nhds_one_is_countably_generated {G : Type u} [group G] [topological_space G]
-  [first_countable_topology G] [topological_group G] (N : subgroup G) [N.normal] :
-  (𝓝 (1 : G ⧸ N)).is_countably_generated :=
-(quotient_group.nhds_eq N 1).symm ▸ filter.map.is_countably_generated _ _
+instance quotient_group.nhds_one_is_countably_generated : (𝓝 (1 : G ⧸ N)).is_countably_generated :=
+(quotient_group.nhds_eq G N 1).symm ▸ filter.map.is_countably_generated _ _
 
 /- In a first countable topological group `G` with normal subgroup `N`, `𝓤 (G ⧸ N)` is countably
 generated. -/
 @[to_additive]
-instance quotient_group.uniformity_is_countably_generated {G : Type u} [group G]
-  [topological_space G] [first_countable_topology G] [topological_group G] (N : subgroup G)
-  [N.normal] :
+instance quotient_group.uniformity_is_countably_generated :
   (@uniformity (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N))).is_countably_generated :=
 comap.is_countably_generated _ _
 
@@ -40,9 +40,8 @@ comap.is_countably_generated _ _
 which `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is a key tool for
 `quotient_group.complete_space` -/
 @[to_additive]
-lemma topological_group.exists_antitone_basis_nhds_one (G : Type u) [topological_space G] [group G]
-  [topological_group G] [first_countable_topology G] : ∃ (u : ℕ → set G),
-  (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) :=
+lemma topological_group.exists_antitone_basis_nhds_one :
+  ∃ (u : ℕ → set G), (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) :=
 begin
   rcases (𝓝 (1 : G)).exists_antitone_basis with ⟨u, hu, u_anti⟩,
   have := ((hu.prod_nhds hu).tendsto_iff hu).mp
@@ -82,7 +81,7 @@ begin
   haveI : (𝓤 (G ⧸ N)).is_countably_generated := comap.is_countably_generated _ _,
   obtain ⟨u, hu, u_mul⟩ := topological_group.exists_antitone_basis_nhds_one G,
   obtain ⟨hv, v_anti⟩ := @has_antitone_basis.map _ _ _ _ _ _ (coe : G → G ⧸ N) hu,
-  rw [←quotient_group.nhds_eq N 1, quotient_group.coe_one] at hv,
+  rw [←quotient_group.nhds_eq G N 1, quotient_group.coe_one] at hv,
   refine uniform_space.complete_of_cauchy_seq_tendsto (λ x hx, _),
   /- Given `n : ℕ`, for sufficiently large `a b : ℕ`, given any lift of `x b`, we can find a lift
   of `x a` such that the quotient of the lifts lies in `u n`. -/

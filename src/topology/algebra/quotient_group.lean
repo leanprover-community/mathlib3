@@ -1,4 +1,45 @@
+/-
+Copyright (c) 2022 Jireh Loreaux. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jireh Loreaux
+-/
+
 import topology.metric_space.metrizable_uniformity
+
+/-!
+# Quotient group of a metrizable topological group is complete
+
+A standard fact in analysis is that the quotient of a Banach space by a closed subspace is a
+Banach space. In this file, we provide a proof of the completeness portion of this theorem; the
+linear and norm structure appears elsewhere in mathlib.
+
+The proof that appears most frequently in textbooks proceeds as follows: suppose `X` is a Banach
+space and `S` is a closed subspace, and let `x : ℕ → X ⧸ S` be a sequence such that the series
+`∑ ∥x n∥ < ∞`. For each `n : ℕ` lift `x n` to some `x' n : X` so that `∥x' n∥ ≤ ∥x n∥ + 2 ^ (-n)`.
+Then `∑ ∥x' n∥ ≤ (∑ ∥x n∥) + 1 < ∞` is an absolutely convergent series, and since `X` is complete,
+the series `∑ (x' n)` converges. Then the series `∑ (x n)` converges in `X ⧸ S`. Therefore, every
+absolutely convergent series in `X ⧸ S` converges, and hence `X ⧸ S` is a Banach space.
+
+Because of its appeal to the equivalent condition for completeness in normed spaces in terms of
+absolutely convergent series, the proof outlined above is not suitable for the more general setting
+of topological groups, or more precisely, `uniform_group`s. It turns out that it is *not* always
+the case that the quotient of a complete uniform group by a subgroup (even a closed subgroup) is
+complete. However, when the prequotient is first countable, which in this context is equivalent
+to metrizability, then the quotient is complete (see `quotient_group.complete_space`).
+
+## Main statements
+
+* `quotient_group.complete_space`
+* `quotient_add_group.complete_space`
+
+## References
+
+* [N. Bourbaki, *General Topology*][bourbaki1966b]
+
+## Tags
+
+quotient group, complete space
+-/
 
 open topological_space filter set classical
 open_locale topological_space uniformity pointwise

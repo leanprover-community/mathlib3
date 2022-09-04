@@ -1528,8 +1528,10 @@ lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λ
 begin
   cases a; cases b; simp only [none_eq_top, some_eq_coe],
   { simp [← coe_mul] },
-  { by_cases hb : b = 0; simp [hb] },
-  { by_cases ha : a = 0; simp [ha] },
+  { suffices : ⊤ * (b : with_top α) = ⊤ ↔ b ≠ 0, by simpa,
+    by_cases hb : b = 0; simp [hb] },
+  { suffices : (a : with_top α) * ⊤ = ⊤ ↔ a ≠ 0, by simpa,
+    by_cases ha : a = 0; simp [ha] },
   { simp [← coe_mul] }
 end
 
@@ -1557,12 +1559,12 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
   one := 1,
   zero := 0,
   one_mul := λ a, match a with
-  | ⊤       := mul_top (mt coe_eq_coe.1 one_ne_zero)
-  | (a : α) := by rw [← coe_one, ← coe_mul, one_mul]
+  | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
+  | (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
   end,
   mul_one := λ a, match a with
-  | ⊤       := top_mul (mt coe_eq_coe.1 one_ne_zero)
-  | (a : α) := by rw [← coe_one, ← coe_mul, mul_one]
+  | none     := show ⊤ * ((1:α) : with_top α) = ⊤, by simp [-with_top.coe_one]
+  | (some a) := show ↑a * ((1:α) : with_top α) = a, by simp [coe_mul.symm, -with_top.coe_one]
   end,
   .. with_top.mul_zero_class }
 
@@ -1594,13 +1596,16 @@ instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (w
 { mul := (*),
   zero := 0,
   mul_assoc := λ a b c, begin
-    rcases eq_or_ne a 0 with rfl|ha, { simp only [zero_mul] },
-    rcases eq_or_ne b 0 with rfl|hb, { simp only [zero_mul, mul_zero] },
-    rcases eq_or_ne c 0 with rfl|hc, { simp only [mul_zero] },
-    induction a using with_top.rec_top_coe, { simp [hb, hc] },
-    induction b using with_top.rec_top_coe, { simp [ha, hc] },
-    induction c using with_top.rec_top_coe, { simp [ha, hb] },
-    simp only [← coe_mul, mul_assoc]
+    cases a,
+    { by_cases hb : b = 0; by_cases hc : c = 0;
+        simp [*, none_eq_top] },
+    cases b,
+    { by_cases ha : a = 0; by_cases hc : c = 0;
+        simp [*, none_eq_top, some_eq_coe] },
+    cases c,
+    { by_cases ha : a = 0; by_cases hb : b = 0;
+        simp [*, none_eq_top, some_eq_coe] },
+    simp [some_eq_coe, coe_mul.symm, mul_assoc]
   end,
   .. with_top.mul_zero_class }
 
@@ -1611,17 +1616,22 @@ instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
   comm_monoid_with_zero (with_top α) :=
 { mul := (*),
   zero := 0,
-  mul_comm := λ a b,
-    by simp only [or_comm, mul_def, option.bind_comm a b, mul_comm],
+  mul_comm := λ a b, begin
+    by_cases ha : a = 0, { simp [ha] },
+    by_cases hb : b = 0, { simp [hb] },
+    simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
+  end,
   .. with_top.monoid_with_zero }
 
 variables [canonically_ordered_comm_semiring α]
 
 private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
 begin
-  induction c using with_top.rec_top_coe,
-  { by_cases ha : a = 0; simp [ha] },
-  { by_cases hc : c = 0, { simp [hc] },
+  cases c,
+  { show (a + b) * ⊤ = a * ⊤ + b * ⊤,
+    by_cases ha : a = 0; simp [ha] },
+  { show (a + b) * c = a * c + b * c,
+    by_cases hc : c = 0, { simp [hc] },
     simp [mul_coe hc], cases a; cases b,
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end

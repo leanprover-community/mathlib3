@@ -182,4 +182,11 @@ noncomputable def skyscraper_presheaf_stalk_of_not_specializes [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ terminal C :=
 colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_not_specializes _ S h⟩
 
+/--
+If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y` is a terminal object
+-/
+def skyscraper_presheaf_stalk_of_not_specializes_is_terminal
+  [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ S).stalk y) :=
+is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_specializes _ _ h).symm
+
 end

@@ -282,128 +282,70 @@ end two_denominators
 section n_denominators
 
 -- need notation for finite products
-open_locale big_operators
-
-lemma coprime_of_prod_coprime {ι : Type*} {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (s : finset ι) (j : ι) (hjs : j ∉ s) : is_coprime (g j) (∏ (i : ι) in s, (g i)) :=
-begin
-  classical,
-  revert j hjs,
-  apply s.induction_on,
-  { unfold is_coprime,
-    intros j hj,
-    refine ⟨ 0, 1, _ ⟩,
-    simp only [zero_mul, finset.prod_empty, mul_one, zero_add], },
-  { intros k t hkt H j hj,
-    rw finset.prod_insert hkt,
-    have hj' : j ∉ t,
-    { intro hc,
-      simp_rw finset.mem_insert at hj,
-      cases not_or_distrib.mp hj with hL hR,
-      contradiction, },
-    have Hcalc : is_coprime (∏ (i : ι) in t, g i) (g j),
-    { unfold is_coprime,
-      specialize H j hj',
-      rcases H with ⟨ a' , b' , H' ⟩,
-      refine ⟨b', a', _ ⟩,
-      rw add_comm,
-      exact H'},
-    specialize H k hkt,
-     have hne : j ≠ k,
-    { intro he,
-      rw he at hj,
-      simp only [finset.mem_insert, eq_self_iff_true, true_or, not_true] at hj,
-      exact hj, },
-    have H1 := hcop j k hne,
-    rw is_coprime_comm at Hcalc,
-    exact is_coprime.mul_right H1 Hcalc,},
-end
+open_locale big_operators classical
 
 lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (s : finset ι) [nonempty s] :
+  (s : finset ι) :
   ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
   (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
 begin
-  classical,
-  revert f,
-  apply s.induction_on,
-  { intro f,
-    refine ⟨f, (λ (i : ι), (0 : R[X])), _⟩,
-    split,
-    { intro i,
-      rw [degree_zero, bot_lt_iff_ne_bot],
-      intro hdg,
-      specialize hg i,
-      rw degree_eq_bot at hdg, rw hdg at hg,
-      have h0nmonic : ¬ (0:R[X]).monic := not_monic_zero,
-      contradiction, },
-    { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero], }, },
-  { intros a b hab Hind f,
-    rw finset.prod_insert hab,
-    have hdiv : ∃ q r₁ r₂ : R[X], r₁.degree < (g a).degree ∧
-      r₂.degree < (∏ (x : ι) in b, (g x)).degree ∧ (f : K) / (↑(g a) * ↑(∏ (x : ι) in b, (g x))) =
-      q + r₁ / ↑(g a) + r₂ / ↑(∏ (x : ι) in b, (g x)) :=
-      div_eq_quo_add_rem_div_add_rem_div _ _ (hg a)
-        (monic_prod_of_monic _ _ (λ i hi, hg i)) (coprime_of_prod_coprime R hg hcop b a hab),
-    rcases hdiv with ⟨ q', r1', r2', hd1, hd2, H2 ⟩,
-    norm_cast,
-    norm_cast at H2,
-    rw H2,
-    specialize Hind r2',
-    rcases Hind with ⟨Q, R', Hdeg', H3⟩,
-    norm_cast at H3,
-    rw H3,
-    let myR : ι → R[X] := λ i, if i = a then r1' else R' i,
-    refine ⟨q' + Q, myR , _ ⟩,
-    have hc1 : myR a = r1',
-      simp only [ite_eq_left_iff, eq_self_iff_true, not_true, is_empty.forall_iff],
-    have hc2 : ∀i : ι, i ≠ a → myR i = R' i,
-      { intros i hi,
-        rw ite_eq_right_iff,
-        intro ha,
-        exfalso,
-        contradiction, },
-    split,
-    { intro i,
-      cases (eq_or_ne i a) with heq hne,
-      { rw [heq, hc1],
-        exact hd1, },
-      { rw hc2 i hne,
-        exact Hdeg' i, }, },
-    { rw [finset.sum_insert hab, hc1],
-      have hc3 : ∀ i : ι, i ∈ b → myR i = R' i,
-      { intros i hib,
-        have hia : i ≠ a,
-          { intro hi,
-            rw ← hi at hab,
-            contradiction, },
-        exact hc2 i hia, },
-      conv_lhs
-      { rw [← add_assoc], },
-      push_cast,
-      conv_rhs
-      { rw [← add_assoc, add_assoc (↑q') (↑Q) (↑r1' / ↑(g a)),
-            add_comm (↑Q) (↑r1' / ↑(g a)), ← add_assoc (↑q') (↑r1' / ↑(g a)) (↑Q)],},
-      simp only [add_right_inj],
-      apply finset.sum_congr rfl,
-      intros i hi,
-      specialize hc3 i hi,
-      finish, },
-  },
+  induction s using finset.induction_on with a b hab Hind f generalizing f,
+  { refine ⟨f, (λ (i : ι), (0 : R[X])), λ i, _, by simp⟩,
+    rw [degree_zero, bot_lt_iff_ne_bot],
+    intro hdg,
+    specialize hg i,
+    rw degree_eq_bot at hdg,
+    rw hdg at hg,
+    exact not_monic_zero hg, },
+  { obtain ⟨q₀, r₁, r₂, hdeg₁, hdeg₂, (hf : (f : K) / _ = _)⟩ :=
+      div_eq_quo_add_rem_div_add_rem_div R K
+      (_ : monic (g a))
+      (_ : monic ∏ (i : ι) in b, (g i))
+      _,
+    { obtain ⟨q, r, hrheg, IH⟩ := Hind r₂,
+      refine ⟨q₀ + q, λ i, if i = a then r₁ else r i, _, _⟩,
+      { intro i,
+        split_ifs with h1,
+        { cases h1,
+          exact hdeg₁, },
+        { apply hrheg, }, },
+      norm_cast at ⊢ hf IH,
+      rw [finset.prod_insert hab, hf, IH, finset.sum_insert hab, if_pos rfl],
+      -- use `transitivity` tactic to break this into a `ring` and a `congr`
+      transitivity ((q₀ + q : R[X]) : K) + (r₁ / (g a) + ∑ (i : ι) in b, (r i) / (g i)),
+      { push_cast, ring, },
+      congr' 2,
+      refine finset.sum_congr rfl (λ x hxb, _),
+      have hxa : ¬(x = a),
+      { rintro rfl,
+        exact hab hxb, },
+      rw if_neg hxa, },
+    { exact hg a, },
+    { exact monic_prod_of_monic _ _ (λ i hi, hg i), },
+    { refine is_coprime.prod_right (λ i hi, hcop _ _ _),
+      rintro rfl, -- this is a hidden `rw`, so I need to leave term mode
+      exact hab hi, }, },
 end
 
 -- uniqueness
-/-
+-- this is currently stated over a fintype.
+-- unfortunately we should probable do the finset version and also
+-- only assume our hypotheses for elements of the finset
 lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (q : R[X]) (r : ι → R[X]) (hr : ∀ i, (r i).degree < (g i).degree)
+  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
+  (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
   (hf : (f : K) / ∏ i, g i = q + ∑ i, (r i) / (g i)) :
-    q = (div_eq_quo_add_sum_rem_div R K f hg).some ∧
-    r = (div_eq_quo_add_sum_rem_div R K f hg).some_spec.some :=
+    q = (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some ∧
+    r = (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some_spec.some :=
 begin
-  sorry
+  let q₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some,
+  let r₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some_spec.some,
+  obtain ⟨hdeg₀, hf₀⟩ : (∀ (i : ι), (r₀ i).degree < ((λ (i : ι), g i) i).degree) ∧
+    ↑f / ∏ (i : ι), ↑((λ (i : ι), g i) i) = ↑q₀ + ∑ (i : ι), ↑(r₀ i) / ↑((λ (i : ι), g i) i) :=
+    (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some_spec.some_spec,
+  change q = q₀ ∧ r = r₀,
+  sorry,
 end
--/
 
 end n_denominators

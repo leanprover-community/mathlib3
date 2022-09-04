@@ -230,8 +230,8 @@ begin
   exact λ i hi, stopped_value_ae_eq_restrict_eq h _ hτ_le i,
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le_const' [order_bot ι]
-  [locally_finite_order ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
+lemma martingale.stopped_value_ae_eq_condexp_of_le_const'[locally_finite_order_bot ι]
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   stopped_value f τ =ᵐ[μ] μ[f n | hτ.measurable_space] :=
@@ -272,7 +272,7 @@ begin
 end
 
 lemma martingale.stopped_value_ae_eq_condexp_of_le'
-  [(filter.at_top : filter ι).is_countably_generated] [order_bot ι] [locally_finite_order ι]
+  [(filter.at_top : filter ι).is_countably_generated] [locally_finite_order_bot ι]
   [first_countable_topology ι] [sigma_finite_filtration μ ℱ] (h : martingale f ℱ μ)
   (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim hτ.measurable_space_le)] [sigma_finite (μ.trim hσ.measurable_space_le)] :
@@ -296,7 +296,7 @@ lemma martingale.stopped_value_ae_eq_condexp_of_le [countable ι]
 h.stopped_value_ae_eq_condexp_of_le_of_countable_range hτ hσ hσ_le_τ hτ_le
   (set.to_countable _) (set.to_countable _)
 
-lemma aux' [countable ι] [order_bot ι] [locally_finite_order ι]
+lemma aux' [countable ι] [locally_finite_order_bot ι]
   [measurable_space ι] [borel_space ι] [second_countable_topology ι]
   [measurable_space E] [borel_space E] [second_countable_topology E]
   (h : martingale f ℱ μ) (hf_prog : prog_measurable ℱ f)
@@ -312,7 +312,7 @@ begin
     (hτ.measurable_space_le _ (hτ.measurable_set_le_stopping_time hσ)),
   swap, apply_instance,
   refine (condexp_indicator _ _).symm.trans _,
-  { exact integrable_stopped_value' hτ h.integrable hτ_mem_finset, },
+  { exact integrable_stopped_value hτ h.integrable hτ_le, },
   { exact hτ.measurable_set_stopping_time_le hσ, },
   refine condexp_of_ae_strongly_measurable' hσ.measurable_space_le _ _,
   { refine strongly_measurable.ae_strongly_measurable' _,
@@ -327,7 +327,7 @@ begin
       exact measurable_stopped_value hf_prog hτ, },
     { intros x hx,
       simp only [hx, set.indicator_of_not_mem, not_false_iff], }, },
-  { refine (integrable_stopped_value' hτ h.integrable hτ_mem_finset).indicator _,
+  { refine (integrable_stopped_value hτ h.integrable hτ_le).indicator _,
     exact hτ.measurable_space_le _ (hτ.measurable_set_le_stopping_time hσ), },
 end
 

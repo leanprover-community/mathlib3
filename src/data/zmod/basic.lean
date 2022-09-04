@@ -177,10 +177,11 @@ int_cast_zmod_cast
 lemma int_cast_surjective : function.surjective (coe : ℤ → zmod n) :=
 int_cast_right_inverse.surjective
 
+example : comm_ring (zmod n) := infer_instance
+def foo (R : Type) [comm_ring R] (a : zmod n) : R := ↑a
+
 @[norm_cast]
-lemma cast_id : ∀ n (i : zmod n), ↑i = i
-| 0     i := int.cast_id i
-| (n+1) i := nat_cast_zmod_val i
+lemma cast_id : ∀ n (i : zmod n), (↑i : zmod n) = i := λ _ _, rfl
 
 @[simp]
 lemma cast_id' : (coe : zmod n → zmod n) = id := funext (cast_id n)
@@ -406,7 +407,9 @@ begin
   have hle : (0 : ℤ) ≤ ↑(a : zmod n).val := int.coe_nat_nonneg _,
   have hlt : ↑(a : zmod n).val < (n : ℤ) := int.coe_nat_lt.mpr (zmod.val_lt a),
   refine (int.mod_eq_of_lt hle hlt).symm.trans _,
-  rw [←zmod.int_coe_eq_int_coe_iff', int.cast_coe_nat, zmod.nat_cast_val, zmod.cast_id],
+  rw [←zmod.int_coe_eq_int_coe_iff'],
+  norm_cast,
+  simp,
 end
 
 lemma coe_int_cast {n : ℕ} (a : ℤ) : ↑(a : zmod n) = a % n :=
@@ -465,7 +468,7 @@ begin
     rw [val_int_cast, int.mod_add_div] },
   { rintro ⟨k, rfl⟩,
     rw [int.cast_add, int.cast_mul, int.cast_coe_nat, int.cast_coe_nat, nat_cast_val,
-      zmod.nat_cast_self, zero_mul, add_zero, cast_id] }
+      zmod.nat_cast_self, zero_mul, add_zero], }
 end
 
 @[push_cast, simp]

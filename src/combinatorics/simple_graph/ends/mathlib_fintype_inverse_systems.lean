@@ -476,13 +476,12 @@ end
 private def sections_at_point_fwd  (j : J) (x : F.obj j) :
   {s : F.sections | s.val j = x} → (above_point F j x).sections :=
 λ ⟨⟨s,sec⟩,sjx⟩,
-  eq.rec_on /- the @ version:  (F.obj j) (s j) (λ x', (above_point F j x').sections) x -/
-    sjx
-    (⟨(λ ii, ⟨s ii.val, sec $ hom_of_le ii.prop⟩),
-      ( by
-        { rintro ii kk ik,
-          simp only [←subtype.coe_inj, set.maps_to.coe_restrict_apply, subtype.coe_mk],
-          apply sec,})⟩ : (above_point F j (s j)).sections)
+  ⟨(λ ii, ⟨s ii.val, eq.rec_on sjx $ sec $ hom_of_le ii.prop⟩),
+    ( by
+      { subst_vars,
+        rintro ii kk ik,
+        simp only [←subtype.coe_inj, set.maps_to.coe_restrict_apply, subtype.coe_mk],
+        apply sec,})⟩
 
 private def sections_at_point_fwd'  (j : J) (x : F.obj j) :
   {s : F.sections | s.val j = x} → (above_point F j x).sections :=
@@ -586,28 +585,24 @@ begin
     simp only [e],
    },
   { dsimp only [function.right_inverse,function.left_inverse],
-    rintro ss,
+    rintro ⟨s,sec⟩,
     dsimp only [sections_at_point_fwd,sections_at_point_bwd],
-    rcases ss with ⟨s,sec⟩,
-    have := (sections_at_point_bwd F j x ⟨s, @sec⟩).prop,
-    apply subtype.coe_eq_of_eq_mk,
-    apply funext,
-    rintro ⟨i,ij⟩,
-    let aa := sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i,
-
-
-    dsimp only [sections_at_point_fwd,sections_at_point_bwd],
-    dsimp only [id],
-
     simp,
+    have := (sections_at_point_bwd F j x ⟨s, @sec⟩).prop,
+    apply funext,
+    intro i,
+    let a:= (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).val,
+    obtain ⟨k,ki,kj,e⟩ := (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).prop,
+    rw ←sec (hom_of_le (by { dsimp, exact ki, } : (⟨k,kj⟩ : {i | i ≤ j}) ≤ i)),
+    simp [subtype.val_eq_coe] at e ⊢,
 
-    -- ??????
-
-
-
-    -- not sure how to proceed…
-    -- serious work to be done here…
-    sorry, },
+    dsimp only [above_point],
+    rcases s ⟨k,kj⟩ with ⟨y,y'⟩,-- magic going on here
+    rw  ←subtype.coe_inj,
+    simp only [set.maps_to.coe_restrict_apply],
+    simp,
+    rintro e, exact e,
+ },
 end
 
 

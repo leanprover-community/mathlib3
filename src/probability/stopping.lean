@@ -521,11 +521,11 @@ begin
     exact @measurable_set.empty _ (f i), },
 end
 
-protected lemma measurable_set_eq_of_encodable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_eq_of_countable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | τ ω = i} :=
 hτ.measurable_set_eq_of_countable (set.to_countable _) i
 
-protected lemma measurable_set_lt_of_countable
+protected lemma measurable_set_lt_of_countable_range
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[f i] {ω | τ ω < i} :=
 begin
@@ -535,11 +535,12 @@ begin
   exact (hτ.measurable_set_le i).diff (hτ.measurable_set_eq_of_countable h_countable i),
 end
 
-protected lemma measurable_set_lt_of_encodable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_lt_of_countable [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | τ ω < i} :=
 hτ.measurable_set_lt_of_countable (set.to_countable _) i
 
-protected lemma measurable_set_ge_of_countable {ι} [linear_order ι] {τ : Ω → ι} {f : filtration ι m}
+protected lemma measurable_set_ge_of_countable_range {ι} [linear_order ι] {τ : Ω → ι}
+  {f : filtration ι m}
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[f i] {ω | i ≤ τ ω} :=
 begin
@@ -549,7 +550,7 @@ begin
   exact (hτ.measurable_set_lt_of_countable h_countable i).compl,
 end
 
-protected lemma measurable_set_ge_of_encodable {ι} [linear_order ι] {τ : Ω → ι} {f : filtration ι m}
+protected lemma measurable_set_ge_of_countable {ι} [linear_order ι] {τ : Ω → ι} {f : filtration ι m}
   [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {ω | i ≤ τ ω} :=
 hτ.measurable_set_ge_of_countable (set.to_countable _) i
@@ -780,7 +781,7 @@ begin
     exact le_trans (hle _) hle' },
 end
 
-lemma measurable_space_le_of_encodable [countable ι] (hτ : is_stopping_time f τ) :
+lemma measurable_space_le_of_countable [countable ι] (hτ : is_stopping_time f τ) :
   hτ.measurable_space ≤ m :=
 begin
   intros s hs,
@@ -956,11 +957,11 @@ begin
   exact hτ.measurable_set_eq_of_countable h_countable i,
 end
 
-protected lemma measurable_set_eq_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_eq_of_countable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω = i} :=
 hτ.measurable_set_eq_of_countable' (set.to_countable _) i
 
-protected lemma measurable_set_ge_of_countable'
+protected lemma measurable_set_ge_of_countable_range'
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | i ≤ τ ω} :=
 begin
@@ -972,11 +973,11 @@ begin
   exact (hτ.measurable_set_eq_of_countable' h_countable i).union (hτ.measurable_set_gt' i),
 end
 
-protected lemma measurable_set_ge_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_ge_of_countable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | i ≤ τ ω} :=
 hτ.measurable_set_ge_of_countable' (set.to_countable _) i
 
-protected lemma measurable_set_lt_of_countable'
+protected lemma measurable_set_lt_of_countable_range'
   (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω < i} :=
 begin
@@ -987,11 +988,11 @@ begin
   exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq_of_countable' h_countable i),
 end
 
-protected lemma measurable_set_lt_of_encodable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
+protected lemma measurable_set_lt_of_countable' [countable ι] (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[hτ.measurable_space] {ω | τ ω < i} :=
 hτ.measurable_set_lt_of_countable' (set.to_countable _) i
 
-protected lemma measurable_space_le_of_countable (hτ : is_stopping_time f τ)
+protected lemma measurable_space_le_of_countable_range (hτ : is_stopping_time f τ)
   (h_countable : (set.range τ).countable) :
   hτ.measurable_space ≤ m :=
 begin

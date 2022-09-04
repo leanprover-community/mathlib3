@@ -80,6 +80,9 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: try to find olean cache
+        run: ./scripts/fetch_olean_cache.sh
+
       - name: leanpkg build
         id: build
         run: |

@@ -211,7 +211,7 @@ begin
   { convert h_sf_min; { ext1 x, rw min_comm, }, },
   refine (h.stopped_value_ae_eq_condexp_of_le hτ (hσ.min hτ) (λ x, min_le_right _ _) hτ_le).trans _,
   refine ae_of_ae_restrict_of_ae_restrict_compl {x | σ x ≤ τ x} _ _,
-  { exact condexp_min_stopping_time_restrict_le hσ hτ, },
+  { exact condexp_min_stopping_time_ae_eq_restrict_le hσ hτ, },
   { suffices : μ[stopped_value f τ|(hσ.min hτ).measurable_space]
       =ᵐ[μ.restrict {x | τ x ≤ σ x}] μ[stopped_value f τ|hσ.measurable_space],
     { rw ae_restrict_iff' (hσ.measurable_space_le _ (hσ.measurable_set_le_stopping_time hτ).compl),
@@ -220,7 +220,8 @@ begin
       filter_upwards [this] with x hx hx_mem,
       simp only [set.mem_compl_eq, set.mem_set_of_eq, not_le] at hx_mem,
       exact hx hx_mem.le, },
-    refine filter.eventually_eq.trans _ ((condexp_min_stopping_time_restrict_le hτ hσ).trans _),
+    refine filter.eventually_eq.trans _
+      ((condexp_min_stopping_time_ae_eq_restrict_le hτ hσ).trans _),
     { exact stopped_value f τ, },
     { rw h_min_comm, },
     { have h1 : μ[stopped_value f τ|hτ.measurable_space] = stopped_value f τ,

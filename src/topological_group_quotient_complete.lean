@@ -144,24 +144,14 @@ begin
           (some_spec $ (hφ k).2 _ _ (hφ (k + 1)).1.le le_rfl hk.fst hk.snd).2⟩),
   have hx' : ∀ n : ℕ, (x' n).fst / (x' (n + 1)).fst ∈ U (n + 1) :=
     λ n, (some_spec $ (hφ n).2 _ _ (hφ (n + 1)).1.le le_rfl (x' n).fst (x' n).snd).1,
-  /- The sequence `x'` is Cauchy. This is where we exploit the conditions on `u`. The key idea
+  /- The sequence `x'` is Cauchy. This is where we exploit the condition on `u`. The key idea
   is to show by decreasing induction that `x' m / x' n ∈ u m` if `m ≤ n`. -/
   have x'_cauchy : cauchy_seq (λ n, (x' n).fst),
-  { refine ⟨by simpa only [map_ne_bot_iff] using at_top_ne_bot, _⟩,
-    simp only [uniformity_eq_comap_nhds_one, ←tendsto_iff_comap, prod_map_map_eq, prod.mk_le_mk,
-      hU.to_has_basis.tendsto_right_iff, eventually_map, forall_true_left, mem_Ici, prod.forall,
-      prod.exists, (at_top_basis.prod at_top_basis).eventually_iff, mem_image, Ici_prod_Ici,
-      true_and, and_imp],
-    have key₁ : ∀ m n, m ≤ n → (x' m).fst / (x' n).fst ∈ U m,
-      from λ m n hmn, nat.decreasing_induction'
-        (λ k hkn hkm hk, U_mul k ⟨_, _, hx' k, hk, div_mul_div_cancel' _ _ _⟩)
-        hmn (by simpa only [div_self'] using mem_of_mem_nhds (hU.mem _)),
-    refine λ n, ⟨n, n, λ j k hj hk, _⟩,
-    rcases le_total j k with (hjk | hjk),
-    { refine hU.antitone hj _,
-      rw ←U_inv j,
-      simpa only [set.mem_inv, inv_div] using key₁ _ _ hjk, },
-    { exact hU.antitone hk (key₁ _ _ hjk) } },
+  { simp only [hU.to_has_basis.uniformity_of_nhds_one.cauchy_seq_iff', ge_iff_le, mem_set_of_eq,
+      forall_true_left],
+    exact λ m, ⟨m, λ n hmn, nat.decreasing_induction'
+      (λ k hkn hkm hk, U_mul k ⟨_, _, hx' k, hk, div_mul_div_cancel' _ _ _⟩)
+      hmn (by simpa only [div_self'] using mem_of_mem_nhds (hU.mem _))⟩ },
   /- Since `G` is complete, `x'` converges to some `x₀`, and so the image of this sequence under
   the quotient map converges to `↑x₀`. The image of `x'` is a convergent subsequence of `x`, and
   since `x` is Cauchy, this implies it converges. -/

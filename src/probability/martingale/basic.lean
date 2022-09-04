@@ -595,7 +595,7 @@ lemma maximal_ineq [is_finite_measure μ]
     f n ω ∂μ) :=
 begin
   suffices : ε • μ {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)} +
-    ennreal.of_real (∫ ω in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)) < ε},
+    ennreal.of_real (∫ ω in {ω | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)) < ε},
       f n ω ∂μ) ≤ ennreal.of_real (μ[f n]),
   { have hadd : ennreal.of_real (∫ ω, f n ω ∂μ) =
       ennreal.of_real (∫ ω in

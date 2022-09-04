@@ -1,8 +1,8 @@
 import topology.metric_space.metrizable_uniformity
 import analysis.normed.group.quotient
 
-open topological_space filter set
-open_locale topological_space uniformity
+open topological_space filter set classical
+open_locale topological_space uniformity pointwise
 
 universe u
 
@@ -25,9 +25,9 @@ instance quotient_group.nhds_one_is_countably_generated {G : Type*} [group G] [t
 (quotient_group.nhds_eq N 1).symm ▸ filter.map.is_countably_generated _ _
 
 @[to_additive]
-instance quotient_group.uniformity_is_countably_generated {G : Type*} [group G] [topological_space G]
-  [first_countable_topology G] [topological_group G] (N : subgroup G) [N.normal]
-  [is_closed (N : set G)] :
+instance quotient_group.uniformity_is_countably_generated {G : Type*} [group G]
+  [topological_space G] [first_countable_topology G] [topological_group G] (N : subgroup G)
+  [N.normal] [is_closed (N : set G)] :
   (@uniformity (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N))).is_countably_generated :=
 comap.is_countably_generated _ _
 
@@ -37,50 +37,40 @@ instance quotient_group.metrizable {G : Type*} [group G] [topological_space G]
   [is_closed (N : set G)] : metrizable_space (G ⧸ N) :=
 @uniform_space.metrizable_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) _ _
 
-open_locale pointwise
-
-
-open classical
-
 @[to_additive]
 lemma filter.has_antitone_basis.nhds_one_inv {G : Type*} [topological_space G] [group G]
   [topological_group G] {ι : Sort*} [semilattice_sup ι] {u : ι → set G}
   (hu : (𝓝 1).has_antitone_basis u) : (𝓝 1).has_antitone_basis (λ n, u n ∪ (u n)⁻¹) :=
 begin
-  have := @filter.has_antitone_basis.map _ _ _ _ _ _ (λ g, g⁻¹) hu,
-  have inv_open : is_open_map (λ g : G, g⁻¹),
-    from is_open_map.of_inverse continuous_inv inv_inv inv_inv,
-  have map_inv_nhds_one : map (λ g, g⁻¹) (𝓝 (1 : G)) = 𝓝 1, from le_antisymm
-    (by simpa only [inv_one] using continuous_inv.tendsto (1 : G))
-    (by simpa only [inv_one] using inv_open.nhds_le (1 : G)),
-  simp only [map_inv_nhds_one, image_inv] at this,
-  refine ⟨⟨λ t, ⟨_, _⟩⟩, _⟩,
-  { intros ht,
-    rcases hu.to_has_basis.mem_iff.mp ht with ⟨k, ⟨⟩, hk⟩,
-    rcases this.to_has_basis.mem_iff.mp ht with ⟨j, ⟨⟩, hj⟩,
+  have hu' := @filter.has_antitone_basis.map _ _ _ _ _ _ (λ g, g⁻¹) hu,
+  have map_inv_nhds_one : map (λ g, g⁻¹) (𝓝 (1 : G)) = 𝓝 1,
+  { simpa only [inv_one] using le_antisymm (continuous_inv.tendsto (1 : G))
+    ((is_open_map.of_inverse continuous_inv inv_inv inv_inv).nhds_le (1 : G)) },
+  simp only [map_inv_nhds_one, image_inv] at hu',
+  refine ⟨⟨λ t, ⟨λ ht, _, _⟩⟩, _⟩,
+  { rcases hu.to_has_basis.mem_iff.mp ht with ⟨k, ⟨⟩, hk⟩,
+    rcases hu'.to_has_basis.mem_iff.mp ht with ⟨j, ⟨⟩, hj⟩,
     exact ⟨k ⊔ j, true.intro, union_subset ((hu.antitone le_sup_left).trans hk)
-      ((this.antitone le_sup_right).trans hj)⟩, },
+      ((hu'.antitone le_sup_right).trans hj)⟩, },
   { rintro ⟨i, -, hi⟩,
-    refine (𝓝 (1 : G)).sets_of_superset (hu.to_has_basis.mem_of_mem true.intro : u i ∈ 𝓝 1)
+    exact (𝓝 (1 : G)).sets_of_superset (hu.to_has_basis.mem_of_mem true.intro : u i ∈ 𝓝 1)
       ((subset_union_left _ _).trans hi), },
-  { exact λ n m hnm, union_subset_union (hu.antitone hnm) (this.antitone hnm)},
-  --{ intros n, simp only [union_comm, union_inv, inv_inv]}
+  { exact λ n m hnm, union_subset_union (hu.antitone hnm) (hu'.antitone hnm)},
 end
 
 @[to_additive]
 lemma topological_group.exists_antitone_basis_nhds_one (G : Type u) [topological_space G] [group G]
-  [topological_group G] [h1 : (𝓝 (1 : G)).is_countably_generated] : ∃ (x : ℕ → set G),
-  (𝓝 1).has_antitone_basis x ∧ (∀ n, x (n + 1) * x (n + 1) ⊆ x n) ∧ (∀ n, (x n)⁻¹ = x n) :=
+  [topological_group G] [h1 : (𝓝 (1 : G)).is_countably_generated] : ∃ (u : ℕ → set G),
+  (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) ∧ (∀ n, (u n)⁻¹ = u n) :=
 begin
   rcases is_countably_generated_iff_exists_antitone_basis.mp h1 with ⟨v, hv⟩,
   set u := λ n, v n ∪ (v n)⁻¹,
   obtain ⟨(hu : (𝓝 (1 : G)).has_basis (λ _, true) u), (u_anti : antitone u)⟩ := hv.nhds_one_inv,
-  have := continuous_mul.tendsto ((1, 1) : G × G),
-  simp at this,
-  rw (hu.prod_nhds hu).tendsto_iff hu at this,
+  have := ((hu.prod_nhds hu).tendsto_iff hu).mp
+    (by simpa only [mul_one] using continuous_mul.tendsto ((1, 1) : G × G)),
   simp only [and_self, mem_prod, and_imp, prod.forall, exists_true_left, prod.exists,
     forall_true_left] at this,
-  have key : ∀ n : ℕ, ∃ m, n < m ∧ u m * u m ⊆ u n,
+  have exists_mul : ∀ n : ℕ, ∃ m, n < m ∧ u m * u m ⊆ u n,
   { intros n,
     rcases this n with ⟨j, k, h⟩,
     refine ⟨max n (max j k) + 1, (le_max_left _ _).trans_lt (lt_add_one _), _⟩,
@@ -88,11 +78,11 @@ begin
     refine (set.mul_subset_mul (u_anti _) (u_anti _)).trans h',
     exact (((le_max_left j k).trans $ le_max_right n (max j k)).trans $ (lt_add_one _).le),
     exact (((le_max_right j k).trans $ le_max_right n (max j k)).trans $ (lt_add_one _).le) },
-  set y : ℕ → ℕ := λ (n : ℕ), nat.rec_on n 0 (λ k yk, (classical.some (key yk))),
+  set y : ℕ → ℕ := λ (n : ℕ), nat.rec_on n 0 (λ k yk, (classical.some (exists_mul yk))),
   have hy : ∀ n : ℕ, y n < y (n + 1) ∧ u (y (n + 1)) * u (y (n + 1)) ⊆ u (y n),
-    from λ n, classical.some_spec (key $ y n),
+    from λ n, classical.some_spec (exists_mul $ y n),
   have y_mono : strict_mono y := strict_mono_nat_of_lt_succ (λ n, (hy n).1),
-  refine ⟨u ∘ y, (has_antitone_basis.comp_mono ⟨hu, u_anti⟩) y_mono.monotone y_mono.tendsto_at_top,
+  exact ⟨u ∘ y, (has_antitone_basis.comp_mono ⟨hu, u_anti⟩) y_mono.monotone y_mono.tendsto_at_top,
     λ n, (hy n).2, λ n, by simp only [union_comm, union_inv, inv_inv]⟩,
 end
 

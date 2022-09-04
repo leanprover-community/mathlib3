@@ -2011,16 +2011,16 @@ begin
   congr,
 end
 
-lemma ae_eq_restrict_Union_iff [countable ι] (s : ι → set α) (f g : α → β) :
+lemma ae_eq_restrict_Union_iff [countable ι] (s : ι → set α) (f g : α → δ) :
   f =ᵐ[μ.restrict (⋃ i, s i)] g ↔ ∀ i, f =ᵐ[μ.restrict (s i)] g :=
 by simp_rw [filter.eventually_eq, filter.eventually, ae_restrict_Union_eq, filter.mem_supr]
 
-lemma ae_eq_restrict_Union_finset_iff (s : ι → set α) (t : finset ι) (f g : α → β) :
+lemma ae_eq_restrict_Union_finset_iff (s : ι → set α) (t : finset ι) (f g : α → δ) :
   f =ᵐ[μ.restrict (⋃ i ∈ t, s i)] g ↔ ∀ i ∈ t, f =ᵐ[μ.restrict (s i)] g :=
 by simp_rw [filter.eventually_eq, filter.eventually, ae_restrict_Union_finset_eq, filter.mem_supr]
 
 lemma ae_eq_restrict_Union_countable_iff (s : ι → set α) {t : set ι} (ht : t.countable)
-  (f g : α → β) :
+  (f g : α → δ) :
   f =ᵐ[μ.restrict (⋃ i ∈ t, s i)] g ↔ ∀ i ∈ t, f =ᵐ[μ.restrict (s i)] g :=
 by simp_rw [filter.eventually_eq, filter.eventually, ae_restrict_Union_countable_eq s ht,
   filter.mem_supr]

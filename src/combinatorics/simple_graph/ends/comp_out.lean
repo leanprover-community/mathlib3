@@ -761,7 +761,16 @@ end back
 lemma inf_iff_in_all_ranges  {K : finset V} (C : G.dis_comp_out K) :
   C.val.inf ↔ ∀ (L : finset V) (h : K ⊆ L), C ∈ set.range (@back _ G _ _ h) :=
 begin
-  sorry,
+  rcases C with ⟨C,Cdis⟩,
+  simp only [set.mem_range, back_iff, subtype.val_eq_coe],
+  split,
+  { rintro Cinf L h,
+    obtain ⟨D,Ddis,rfl⟩ := comp_out.in_all_ranges_of_inf C Cinf h,
+    use [D,Ddis],refl,},
+  { rintro h',
+    apply comp_out.inf_of_in_all_ranges,
+    rintro L h,
+    obtain ⟨⟨D,Ddis⟩,rfl⟩ := h' L h, use [D,Ddis], refl,}
 end
 
 end dis_comp_out

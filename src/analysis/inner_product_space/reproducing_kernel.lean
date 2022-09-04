@@ -172,7 +172,7 @@ lemma eval'_eq_eval_adjoint (x : X) : eval' 𝕜 X H₁ x = (eval 𝕜 𝕜 H₁
 begin
   apply (to_dual 𝕜 H₁).injective,
   ext f,
-  simp [eval'_def],
+  simp [continuous_linear_map.adjoint_apply, eval'_def],
 end
 
 lemma scalar_kernel_def (x y : X) :

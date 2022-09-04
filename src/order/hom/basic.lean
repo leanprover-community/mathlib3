@@ -805,7 +805,7 @@ lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β] (f : 
   f x ⊔ f y ≤ f (x ⊔ y) :=
 f.monotone.le_map_sup x y
 
-lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o β) (x y : α) :
+@[simp] lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o β) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
 begin
   refine (f.to_order_embedding.map_inf_le x y).antisymm _,
@@ -813,7 +813,7 @@ begin
   simpa using f.symm.to_order_embedding.map_inf_le (f x) (f y),
 end
 
-lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :
+@[simp] lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
 

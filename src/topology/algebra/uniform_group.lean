@@ -757,10 +757,10 @@ universe u
 open topological_space classical
 
 /-- The quotient `G ⧸ N` of a complete first countable topological group `G` by a normal subgroup
-is itself complete. -/
+is itself complete. [N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b] -/
 @[to_additive "The quotient `G ⧸ N` of a complete first countable topological additive group
 `G` by a normal additive subgroup is itself complete. Consequently, quotients of Banach spaces by
-subspaces are complete."]
+subspaces are complete. [N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b]"]
 instance quotient_group.complete_space' (G : Type u) [group G] [topological_space G]
   [topological_group G] [first_countable_topology G] (N : subgroup G) [N.normal]
   [@complete_space G (topological_group.to_uniform_space G)] :
@@ -831,11 +831,13 @@ end
 
 /-- The quotient `G ⧸ N` of a complete first countable uniform group `G` by a normal subgroup
 is itself complete. In constrast to `quotient_group.complete_space'`, in this version `G` is
-already equipped with a uniform structure. -/
+already equipped with a uniform structure.
+[N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b] -/
 @[to_additive "The quotient `G ⧸ N` of a complete first countable uniform additive group
 `G` by a normal additive subgroup is itself complete. Consequently, quotients of Banach spaces by
 subspaces are complete. In constrast to `quotient_add_group.complete_space'`, in this version
-`G` is already equipped with a uniform structure."]
+`G` is already equipped with a uniform structure.
+[N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b]"]
 instance quotient_group.complete_space (G : Type u) [group G] [us : uniform_space G]
   [uniform_group G] [first_countable_topology G] (N : subgroup G) [N.normal]
   [hG : complete_space G] : @complete_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) :=

@@ -48,7 +48,7 @@ range of `f`. -/
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
 (init : ∀ a b, s b (to_rel_embedding a) → ∃ a', to_rel_embedding a' = b)
 
-localized "infix ` ≼i `:25 := initial_seg" in initial_seg
+localized "infix (name := initial_seg) ` ≼i `:25 := initial_seg" in initial_seg
 
 namespace initial_seg
 
@@ -118,7 +118,7 @@ initial_seg.eq (f.trans g) (initial_seg.refl _)
 is a well-order then `α` and `β` are order-isomorphic. -/
 def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃r s :=
 by haveI := f.to_rel_embedding.is_well_order; exact
-⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, f.map_rel_iff'⟩
+⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, λ _ _, f.map_rel_iff'⟩
 
 @[simp] theorem antisymm_to_fun [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g : α → β) = f := rfl
@@ -174,7 +174,7 @@ structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β 
 (top : β)
 (down' : ∀ b, s b top ↔ ∃ a, to_rel_embedding a = b)
 
-localized "infix ` ≺i `:25 := principal_seg" in initial_seg
+localized "infix (name := principal_seg) ` ≺i `:25 := principal_seg" in initial_seg
 
 namespace principal_seg
 

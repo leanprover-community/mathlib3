@@ -120,7 +120,7 @@ noncomputable def nadd : ordinal → ordinal → ordinal
   (blsub.{u u} b $ λ b' h, nadd a b')
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-localized "infix ` ♯ `:65 := ordinal.nadd" in natural_ops
+localized "infix (name := ordinal.nadd) ` ♯ `:65 := ordinal.nadd" in natural_ops
 
 theorem nadd_def (a b : ordinal) : a ♯ b = max
   (blsub.{u u} a $ λ a' h, a' ♯ b)

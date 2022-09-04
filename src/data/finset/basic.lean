@@ -446,9 +446,8 @@ singleton_injective.eq_iff
 @[simp, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
 by { ext, simp }
 
-@[simp, norm_cast] lemma coe_eq_singleton {α : Type*} {s : finset α} {a : α} :
-  (s : set α) = {a} ↔ s = {a} :=
-by rw [←finset.coe_singleton, finset.coe_inj]
+@[simp, norm_cast] lemma coe_eq_singleton {s : finset α} {a : α} : (s : set α) = {a} ↔ s = {a} :=
+by rw [←coe_singleton, coe_inj]
 
 lemma eq_singleton_iff_unique_mem {s : finset α} {a : α} :
   s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
@@ -611,8 +610,7 @@ lemma mem_of_mem_insert_of_ne (h : b ∈ insert a s) : b ≠ a → b ∈ s := (m
 lemma eq_of_not_mem_of_mem_insert (ha : b ∈ insert a s) (hb : b ∉ s) : b = a :=
 (mem_insert.1 ha).resolve_right hb
 
-@[simp] theorem cons_eq_insert {α} [decidable_eq α] (a s h) : @cons α a s h = insert a s :=
-ext $ λ a, by simp
+@[simp] theorem cons_eq_insert (a s h) : @cons α a s h = insert a s := ext $ λ a, by simp
 
 @[simp, norm_cast] lemma coe_insert (a : α) (s : finset α) :
   ↑(insert a s) = (insert a s : set α) :=
@@ -636,8 +634,13 @@ insert_eq_of_mem $ mem_singleton_self _
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, by simp only [mem_insert, or.left_comm]
 
-theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
-insert.comm a b ∅
+@[simp, norm_cast] lemma coe_pair {a b : α} :
+  (({a, b} : finset α) : set α) = {a, b} := by { ext, simp }
+
+@[simp, norm_cast] lemma coe_eq_pair {s : finset α} {a b : α} :
+  (s : set α) = {a, b} ↔ s = {a, b} := by rw [←coe_pair, coe_inj]
+
+theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} := insert.comm a b ∅
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
@@ -1247,14 +1250,13 @@ sdiff_le_sdiff ‹s ≤ t› ‹v ≤ u›
 @[simp, norm_cast] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (s₁ \ s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
-@[simp] theorem union_sdiff_self_eq_union : s ∪ (t \ s) = s ∪ t := sup_sdiff_self_right
-
-@[simp] theorem sdiff_union_self_eq_union : (s \ t) ∪ t = s ∪ t := sup_sdiff_self_left
+@[simp] lemma union_sdiff_self_eq_union : s ∪ t \ s = s ∪ t := sup_sdiff_self_right _ _
+@[simp] lemma sdiff_union_self_eq_union : s \ t ∪ t = s ∪ t := sup_sdiff_self_left _ _
 
 lemma union_sdiff_left (s t : finset α) : (s ∪ t) \ s = t \ s := sup_sdiff_left_self
 lemma union_sdiff_right (s t : finset α) : (s ∪ t) \ t = s \ t := sup_sdiff_right_self
 
-lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := sup_sdiff_symm
+lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := by simp [union_comm]
 
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s := sup_sdiff_inf _ _
 
@@ -2412,6 +2414,25 @@ begin
   rw mem_coe at ha,
   convert property_of_mem_map_subtype s ha
 end
+
+/-! ### Fin -/
+
+/--
+Given a finset `s` of natural numbers and a bound `n`,
+`s.fin n` is the finset of all elements of `s` less than `n`.
+-/
+protected def fin (n : ℕ) (s : finset ℕ) : finset (fin n) :=
+(s.subtype _).map fin.equiv_subtype.symm.to_embedding
+
+@[simp] lemma mem_fin {n} {s : finset ℕ} :
+  ∀ a : fin n, a ∈ s.fin n ↔ (a : ℕ) ∈ s
+| ⟨a, ha⟩ := by simp [finset.fin]
+
+@[mono] lemma fin_mono {n} : monotone (finset.fin n) :=
+λ s t h x, by simpa using @h x
+
+@[simp] lemma fin_map {n} {s : finset ℕ} : (s.fin n).map fin.coe_embedding = s.filter (< n) :=
+by simp [finset.fin, finset.map_map]
 
 lemma subset_image_iff {s : set α} : ↑t ⊆ f '' s ↔ ∃ s' : finset α, ↑s' ⊆ s ∧ s'.image f = t :=
 begin

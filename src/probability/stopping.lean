@@ -1315,8 +1315,7 @@ end linear_order
 
 section stopped_value_of_mem_finset
 
-variables {μ : measure Ω} {τ σ : Ω → ι} {E : Type*} {p : ℝ≥0∞}
-  {u : ι → Ω → E}
+variables {μ : measure Ω} {τ σ : Ω → ι} {E : Type*} {p : ℝ≥0∞} {u : ι → Ω → E}
 
 lemma stopped_value_eq_of_mem_finset [add_comm_monoid E] {s : finset ι} (hbdd : ∀ x, τ x ∈ s) :
   stopped_value u τ = ∑ i in s, set.indicator {x | τ x = i} (u i) :=
@@ -1337,7 +1336,7 @@ lemma stopped_value_eq' [preorder ι] [locally_finite_order_bot ι] [add_comm_mo
   stopped_value u τ = ∑ i in finset.Iic N, set.indicator {x | τ x = i} (u i) :=
 stopped_value_eq_of_mem_finset (λ ω, finset.mem_Iic.mpr (hbdd ω))
 
-variables [linear_order ι] {ℱ : filtration ι m} [normed_add_comm_group E]
+variables [preorder ι] {ℱ : filtration ι m} [normed_add_comm_group E]
 
 lemma mem_ℒp_stopped_value_of_mem_finset (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ)
   {s : finset ι} (hbdd : ∀ x, τ x ∈ s)  :

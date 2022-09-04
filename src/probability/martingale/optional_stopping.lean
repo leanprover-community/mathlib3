@@ -15,8 +15,6 @@ open topological_space
 
 namespace measure_theory
 
-section stopping
-
 variables {α ι E : Type*} {m : measurable_space α} {μ : measure α}
 
 section not_nat
@@ -234,7 +232,5 @@ begin
 end
 
 end nat
-
-end stopping
 
 end measure_theory

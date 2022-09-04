@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.special_functions.pow
+import analysis.asymptotics.specific_asymptotics
 
 /-!
 # Growth estimates on `x ^ y` for complex `x`, `y`
@@ -41,22 +42,9 @@ namespace is_exp_cmp_filter
 
 variables {l : filter ℂ}
 
-lemma tendsto_abs_re (hl : is_exp_cmp_filter l) : tendsto (λ z : ℂ, |z.re|) l at_top :=
-tendsto_abs_at_top_at_top.comp hl.tendsto_re
-
-lemma tendsto_abs (hl : is_exp_cmp_filter l) : tendsto abs l at_top :=
-tendsto_at_top_mono abs_re_le_abs hl.tendsto_abs_re
-
-lemma is_o_log_re_re (hl : is_exp_cmp_filter l) : (λ z, real.log z.re) =o[l] re :=
-real.is_o_log_id_at_top.comp_tendsto hl.tendsto_re
-
-#check is_O.rpow
-lemma is_o_im_pow_re (hl : is_exp_cmp_filter l) (n : ℕ) :
-  (λ z : ℂ, z.im ^ n) =o[l] (λ z, real.exp z.re) :=
-calc (λ z : ℂ, z.im ^ n) =O[l] (λ z, real.exp (2⁻¹ * z.re)) :
-  by simpa using (hl.2 (2 * n)).rpow _ _
-... =o[l] (λ z, real.exp z.re) :
-  _
+/-!
+### Alternative constructors
+-/
 
 lemma of_is_O_im_re_rpow (hre : tendsto re l at_top) (r : ℝ) (hr : im =O[l] (λ z, z.re ^ r)) :
   is_exp_cmp_filter l :=
@@ -76,39 +64,59 @@ lemma of_bounded_under_abs_im (hre : tendsto re l at_top)
 of_is_O_im_re_pow hre 0 $
   by simpa only [pow_zero] using @is_bounded_under.is_O_const ℂ ℝ ℝ _ _ _ l him 1 one_ne_zero
 
-lemma is_o_log_abs_re (hl : is_exp_cmp_filter l) : (λ z, real.log (abs z)) =o[l] re :=
-begin
-  have h2 : 0 < real.sqrt 2, by simp,
-  calc (λ z, real.log (abs z)) =O[l] (λ z, real.log (real.sqrt 2) + real.log (max z.re (|z.im|))) :
-    is_O.of_bound 1 $ (hl.tendsto_re.eventually_ge_at_top 1).mono $ λ z hz,
-      begin
-        have hz' : 1 ≤ abs z, from hz.trans (re_le_abs z),
-        have hz₀ : 0 < abs z, from one_pos.trans_le hz',
-        have hm₀ : 0 < max z.re (|z.im|), from lt_max_iff.2 (or.inl $ one_pos.trans_le hz),
-        rw [one_mul, real.norm_eq_abs, _root_.abs_of_nonneg (real.log_nonneg hz')],
-        refine le_trans _ (le_abs_self _),
-        rw [← real.log_mul, real.log_le_log,
-          ← _root_.abs_of_nonneg (le_trans zero_le_one hz)],
-        exacts [abs_le_sqrt_two_mul_max z, one_pos.trans_le hz', (mul_pos h2 hm₀), h2.ne', hm₀.ne']
-      end
-  ... =o[l] re : is_o.add (is_o_const_left.2 $ or.inr $ hl.tendsto_abs_re) _,
-  refine is_o_iff.2 (λ ε ε₀, _),
-  rcases exists_nat_ge ε⁻¹ with ⟨n, hn⟩,
-  have hn₀ : 0 < n, from nat.cast_pos.1 ((inv_pos.2 ε₀).trans_le hn),
-  filter_upwards [hl.is_o_log_re_re.bound ε₀, hl.im_pow_le_re n,
-    hl.tendsto_re.eventually_gt_at_top 1] with z hre him h₁,
-  cases le_total (|z.im|) z.re with hle hle,
-  { rwa [max_eq_left hle] },
-  have H : 1 < |z.im|, from h₁.trans_le hle,
-  rw [max_eq_right hle, real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.log_pos H),
-    real.log_le_iff_le_exp (one_pos.trans H)],
-  refine le_of_pow_le_pow _ (real.exp_pos _).le hn₀ _,
-  simp only [← real.exp_nat_mul, ← mul_assoc],
-  refine him.trans (real.exp_le_exp.2 $ (le_abs_self _).trans _),
-  refine le_mul_of_one_le_left (_root_.abs_nonneg _) _,
-  rwa [← div_le_iff ε₀, one_div]
-end
+/-!
+### Preliminary lemmas
+-/
 
+lemma tendsto_abs_re (hl : is_exp_cmp_filter l) : tendsto (λ z : ℂ, |z.re|) l at_top :=
+tendsto_abs_at_top_at_top.comp hl.tendsto_re
+
+lemma tendsto_abs (hl : is_exp_cmp_filter l) : tendsto abs l at_top :=
+tendsto_at_top_mono abs_re_le_abs hl.tendsto_abs_re
+
+lemma is_o_log_re_re (hl : is_exp_cmp_filter l) : (λ z, real.log z.re) =o[l] re :=
+real.is_o_log_id_at_top.comp_tendsto hl.tendsto_re
+
+lemma is_o_im_pow_exp_re (hl : is_exp_cmp_filter l) (n : ℕ) :
+  (λ z : ℂ, z.im ^ n) =o[l] (λ z, real.exp z.re) :=
+flip is_o.of_pow two_ne_zero $
+  calc (λ z : ℂ, (z.im ^ n) ^ 2) = (λ z, z.im ^ (2 * n)) : by simp only [pow_mul']
+  ... =O[l] (λ z, real.exp z.re) : hl.is_O_im_pow_re _
+  ... =     (λ z, (real.exp z.re) ^ 1) : by simp only [pow_one]
+  ... =o[l] (λ z, (real.exp z.re) ^ 2) : (is_o_pow_pow_at_top_of_lt one_lt_two).comp_tendsto $
+    real.tendsto_exp_at_top.comp hl.tendsto_re
+
+lemma abs_im_pow_eventually_le_exp_re (hl : is_exp_cmp_filter l) (n : ℕ) :
+  (λ z : ℂ, |z.im| ^ n) ≤ᶠ[l] (λ z, real.exp z.re) :=
+by simpa using (hl.is_o_im_pow_exp_re n).bound zero_lt_one
+
+lemma is_o_log_abs_re (hl : is_exp_cmp_filter l) : (λ z, real.log (abs z)) =o[l] re :=
+calc (λ z, real.log (abs z)) =O[l] (λ z, real.log (real.sqrt 2) + real.log (max z.re (|z.im|))) :
+  is_O.of_bound 1 $ (hl.tendsto_re.eventually_ge_at_top 1).mono $ λ z hz,
+    begin
+      have h2 : 0 < real.sqrt 2, by simp,
+      have hz' : 1 ≤ abs z, from hz.trans (re_le_abs z),
+      have hz₀ : 0 < abs z, from one_pos.trans_le hz',
+      have hm₀ : 0 < max z.re (|z.im|), from lt_max_iff.2 (or.inl $ one_pos.trans_le hz),
+      rw [one_mul, real.norm_eq_abs, _root_.abs_of_nonneg (real.log_nonneg hz')],
+      refine le_trans _ (le_abs_self _),
+      rw [← real.log_mul, real.log_le_log, ← _root_.abs_of_nonneg (le_trans zero_le_one hz)],
+      exacts [abs_le_sqrt_two_mul_max z, one_pos.trans_le hz', (mul_pos h2 hm₀), h2.ne', hm₀.ne']
+    end
+... =o[l] re : is_o.add (is_o_const_left.2 $ or.inr $ hl.tendsto_abs_re) $ is_o_iff_nat_mul_le.2 $
+  λ n, begin
+    filter_upwards [is_o_iff_nat_mul_le.1 hl.is_o_log_re_re n, hl.abs_im_pow_eventually_le_exp_re n,
+      hl.tendsto_re.eventually_gt_at_top 1] with z hre him h₁,
+    cases le_total (|z.im|) z.re with hle hle,
+    { rwa [max_eq_left hle] },
+    { have H : 1 < |z.im|, from h₁.trans_le hle,
+      rwa [max_eq_right hle, real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.log_pos H),
+        ← real.log_pow, real.log_le_iff_le_exp (pow_pos (one_pos.trans H) _),
+        abs_of_pos (one_pos.trans h₁)] }
+  end
+
+/-- If `l : filter ℂ` is an "exponent comparison filter", then for any complex `a` and any negative
+real `b`, the function `z ^ a * complex.exp (b * z)` tends to zero along `l`. -/
 lemma tendsto_cpow_const_mul_exp_const_mul_nhds_zero (hl : is_exp_cmp_filter l) (a : ℂ) {b : ℝ}
   (hb : b < 0) : tendsto (λ z, z ^ a * exp (b * z)) l (𝓝 0) :=
 begin
@@ -139,7 +147,14 @@ begin
   rw [mul_div_mul_comm, ← exp_sub, ← sub_mul, ← of_real_sub, cpow_sub _ _ hz]
 end
 
+lemma is_o_pow_const_mul_exp {b₁ b₂ : ℝ} (hl : is_exp_cmp_filter l) (hb : b₁ < b₂) (m n : ℕ) :
+  (λ z, z ^ m * exp (b₁ * z)) =o[l] (λ z, z ^ n * exp (b₂ * z)) :=
+by simpa only [cpow_nat_cast] using hl.is_o_cpow_const_mul_exp hb m n
+
+lemma is_o_zpow_const_mul_exp {b₁ b₂ : ℝ} (hl : is_exp_cmp_filter l) (hb : b₁ < b₂) (m n : ℤ) :
+  (λ z, z ^ m * exp (b₁ * z)) =o[l] (λ z, z ^ n * exp (b₂ * z)) :=
+by simpa only [cpow_int_cast] using hl.is_o_cpow_const_mul_exp hb m n
+
 end is_exp_cmp_filter
 
 end complex
-

@@ -109,7 +109,7 @@ by simpa using cpow_neg x 1
 by { rw ← cpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 
 @[simp, norm_cast] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
-| (n : ℕ) := by simp; refl
+| (n : ℕ) := by simp
 | -[1+ n] := by rw zpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]

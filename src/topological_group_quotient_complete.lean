@@ -5,7 +5,7 @@ open_locale topological_space uniformity pointwise
 
 universes u v
 
-/- The map of a countably generated filter is countably generated -/
+/-- The map of a countably generated filter is countably generated -/
 lemma filter.map.is_countably_generated {α β : Type*} (l : filter α) [l.is_countably_generated]
   (f : α → β) : (map f l).is_countably_generated :=
 begin
@@ -15,31 +15,36 @@ end
 
 variables (G : Type u) [group G] [topological_space G] [topological_group G]
 
-/- Neighborhoods in the quotient are precisely the map of neighborhoods in prequotient. -/
-@[to_additive]
+/-- Neighborhoods in the quotient are precisely the map of neighborhoods in the prequotient. -/
+@[to_additive "Neighborhoods in the quotient are precisely the map of neighborhoods in
+the prequotient."]
 lemma quotient_group.nhds_eq
   (N : subgroup G) (x : G) : 𝓝 (x : G ⧸ N) = map coe (𝓝 x) :=
 le_antisymm ((quotient_group.is_open_map_coe N).nhds_le x) continuous_quot_mk.continuous_at
 
 variables [first_countable_topology G] (N : subgroup G) [subgroup.normal N]
 
-/- In a first countable topological group `G` with normal subgroup `N`, `1 : G ⧸ N` has a
+/-- In a first countable topological group `G` with normal subgroup `N`, `1 : G ⧸ N` has a
 countable neighborhood basis. -/
-@[to_additive]
+@[to_additive "In a first countable topological additive group `G` with normal additive subgroup
+`N`, `0 : G ⧸ N` has a countable neighborhood basis."]
 instance quotient_group.nhds_one_is_countably_generated : (𝓝 (1 : G ⧸ N)).is_countably_generated :=
 (quotient_group.nhds_eq G N 1).symm ▸ filter.map.is_countably_generated _ _
 
-/- In a first countable topological group `G` with normal subgroup `N`, `𝓤 (G ⧸ N)` is countably
+/-- In a first countable topological group `G` with normal subgroup `N`, `𝓤 (G ⧸ N)` is countably
 generated. -/
-@[to_additive]
+@[to_additive "In a first countable topological additive group `G` with normal additive subgroup
+`N`, `𝓤 (G ⧸ N)` is countably generated."]
 instance quotient_group.uniformity_is_countably_generated :
   (@uniformity (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N))).is_countably_generated :=
 comap.is_countably_generated _ _
 
-/- Any first countable topological group has an antitone neighborhood basis `u : ℕ → set G` for
+/-- Any first countable topological group has an antitone neighborhood basis `u : ℕ → set G` for
 which `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is a key tool for
 `quotient_group.complete_space` -/
-@[to_additive]
+@[to_additive "Any first countable topological additive group has an antitone neighborhood basis
+`u : ℕ → set G` for which `u (n + 1) + u (n + 1) ⊆ u n`. The existence of such a neighborhood basis
+is a key tool for `quotient_add_group.complete_space`"]
 lemma topological_group.exists_antitone_basis_nhds_one :
   ∃ (u : ℕ → set G), (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) :=
 begin
@@ -64,10 +69,11 @@ begin
     λ n, (hy n).2⟩,
 end
 
-/- The quotient `G ⧸ N` of a complete uniform topological group `G` which is also first countable
-by a normal subgroup is itself complete. Consequently, quotients of Banach spaces by subspaces
-are complete. -/
-@[to_additive]
+/-- The quotient `G ⧸ N` of a complete uniform first countable topological group `G` by a normal
+subgroup is itself complete. -/
+@[to_additive "The quotient `G ⧸ N` of a complete uniform first countable topological additive group
+`G` by a normal additive subgroup is itself complete. Consequently, quotients of Banach spaces by
+subspaces are complete."]
 instance quotient_group.complete_space (G : Type u) [group G] [uniform_space G] [uniform_group G]
   [first_countable_topology G] [complete_space G] (N : subgroup G) [N.normal] :
   @complete_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) :=

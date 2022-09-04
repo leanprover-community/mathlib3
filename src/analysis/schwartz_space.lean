@@ -13,9 +13,9 @@ import tactic.positivity
 /-!
 # Schwartz space
 
-This file defines the Schwartz space and the space of tempered distributions. Usually,
-the Schwartz space is defined as the set of smooth functions $f : ℝ^n → ℂ$ such that there exists
-$C_{αβ} > 0$ with $$|x^α ∂^β f(x)| < C_{αβ}$$ for all $x ∈ ℝ^n$ and for all multiindices $α, β$.
+This file defines the Schwartz space. Usually, the Schwartz space is defined as the set of smooth
+functions $f : ℝ^n → ℂ$ such that there exists $C_{αβ} > 0$ with $$|x^α ∂^β f(x)| < C_{αβ}$$ for
+all $x ∈ ℝ^n$ and for all multiindices $α, β$.
 In mathlib, we use a slightly different approach and define define the Schwartz space as all
 smooth functions `f : E → F`, where `E` and `F` are real normed vector spaces such that for all
 natural numbers `k` and `n` we have uniform bounds `∥x∥^k * ∥iterated_fderiv ℝ n f x∥ < C`.

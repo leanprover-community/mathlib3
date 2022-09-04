@@ -1223,7 +1223,7 @@ section linear_order
 /-! ## Stopped value and stopped process -/
 
 /-- Given a map `u : ι → Ω → E`, its stopped value with respect to the stopping
-time `τ` is the map `x ↦ u (τ ω) x`. -/
+time `τ` is the map `x ↦ u (τ ω) ω`. -/
 def stopped_value (u : ι → Ω → β) (τ : Ω → ι) : Ω → β :=
 λ ω, u (τ ω) ω
 
@@ -1232,8 +1232,8 @@ rfl
 
 variable [linear_order ι]
 
-/-- Given a map `u : ι → Ω → E`, the stopped process with respect to `τ` is `u i x` if
-`i ≤ τ ω`, and `u (τ ω) x` otherwise.
+/-- Given a map `u : ι → Ω → E`, the stopped process with respect to `τ` is `u i ω` if
+`i ≤ τ ω`, and `u (τ ω) ω` otherwise.
 
 Intuitively, the stopped process stops evolving once the stopping time has occured. -/
 def stopped_process (u : ι → Ω → β) (τ : Ω → ι) : ι → Ω → β :=

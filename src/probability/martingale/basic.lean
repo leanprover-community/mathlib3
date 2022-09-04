@@ -554,7 +554,7 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
  submartingale_of_expected_stopped_value_mono hadp hint⟩
 
 lemma submartingale.stopped_process [is_finite_measure μ]
-  {f : ℕ → Ω → ℝ} (h : submartingale f 𝒢 μ) (hτ : is_stopping_time 𝒢 τ) :
+  {f : ℕ → Ω → ℝ} (h : submartingale f 𝒢 μ) {τ : Ω → ℕ} (hτ : is_stopping_time 𝒢 τ) :
   submartingale (stopped_process f τ) 𝒢 μ :=
 begin
   rw submartingale_iff_expected_stopped_value_mono,

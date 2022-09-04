@@ -24,71 +24,9 @@ section not_nat
 variables [linear_order ι] {ℱ : filtration ι m} {τ σ : α → ι}
 
 section condexp
+
 variables [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
-
-section single_function
-
-variables {f : α → E}
-
-lemma condexp_stopping_time_restrict_eq_of_countable_range [sigma_finite_filtration μ ℱ]
-  (hτ : is_stopping_time ℱ τ) (h_countable : (set.range τ).countable)
-  [sigma_finite (μ.trim (hτ.measurable_space_le_of_countable_range h_countable))] (i : ι) :
-  μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
-begin
-  refine condexp_ae_eq_restrict_of_measurable_space_eq_on
-    (hτ.measurable_space_le_of_countable_range h_countable) (ℱ.le i)
-    (hτ.measurable_set_eq_of_countable_range' h_countable i) (λ t, _),
-  rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
-end
-
-lemma condexp_stopping_time_restrict_eq_of_countable [countable ι] [sigma_finite_filtration μ ℱ]
-  (hτ : is_stopping_time ℱ τ)
-  [sigma_finite (μ.trim hτ.measurable_space_le_of_countable)] (i : ι) :
-  μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
-condexp_stopping_time_restrict_eq_of_countable_range hτ (set.to_countable _) i
-
-variables [(filter.at_top : filter ι).is_countably_generated]
-
-lemma condexp_min_stopping_time_restrict_le_const
-  (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)]
-  [∀ i, sigma_finite (μ.trim (hτ.min_const i).measurable_space_le)] (i : ι) :
-  μ[f | (hτ.min_const i).measurable_space]
-    =ᵐ[μ.restrict {x | τ x ≤ i}] μ[f | hτ.measurable_space] :=
-begin
-  refine (condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
-    (hτ.min_const i).measurable_space_le (hτ.measurable_set_le' i) (λ t, _)).symm,
-  rw [set.inter_comm _ t, hτ.measurable_set_inter_le_const_iff],
-end
-
-variables [topological_space ι] [order_topology ι]
-
-lemma condexp_stopping_time_restrict_eq
-  [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
-  (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)] (i : ι) :
-  μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
-begin
-  refine condexp_ae_eq_restrict_of_measurable_space_eq_on
-    hτ.measurable_space_le (ℱ.le i) (hτ.measurable_set_eq' i) (λ t, _),
-  rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
-end
-
-lemma condexp_min_stopping_time_restrict_le [measurable_space ι]
-  [second_countable_topology ι] [borel_space ι]
-  (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
-  [sigma_finite (μ.trim hτ.measurable_space_le)]
-  [sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
-  μ[f | (hτ.min hσ).measurable_space] =ᵐ[μ.restrict {x | τ x ≤ σ x}] μ[f | hτ.measurable_space] :=
-begin
-  refine (condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
-    (hτ.min hσ).measurable_space_le (hτ.measurable_set_le_stopping_time hσ) (λ t, _)).symm,
-  rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_le_iff],
-end
-
-end single_function
-
-section martingale
-
-variables {f : ι → α → E} [topological_space ι] [order_topology ι] {i n : ι}
+  {f : ι → α → E} [topological_space ι] [order_topology ι] {i n : ι}
 
 section first_countable_topology
 
@@ -248,8 +186,6 @@ begin
   { refine (integrable_stopped_value hτ h.integrable hτ_le).indicator _,
     exact hτ.measurable_space_le _ (hτ.measurable_set_le_stopping_time hσ), },
 end
-
-end martingale
 
 end condexp
 

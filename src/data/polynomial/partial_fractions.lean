@@ -128,43 +128,36 @@ from R[X] to K with an `↑`.
 
 -/
 
-namespace polynomial
+-- The instance and its API should probably be an independent PR
+namespace algebra
 
-noncomputable instance : has_coe R[X] K := ⟨algebra_map R[X] K⟩
+instance has_lift (R A : Type*) [comm_semiring R] [semiring A] [algebra R A] :
+  has_lift R A := ⟨λ r, algebra_map R A r⟩
 
-/-
-
-If we train the `norm_cast` tactic on the basic properties of this coercion, then
-it can be used to make our lives a lot easier.
-
--/
-@[norm_cast] lemma coe_algebra_map_add (a b : R[X]) : ((a + b : R[X]) : K) = a + b :=
+@[simp, norm_cast] lemma lift_map_zero : (↑(0 : R[X]) : K) = 0 := map_zero (algebra_map R[X] K)
+@[simp, norm_cast] lemma lift_map_one : (↑(1 : R[X]) : K) = 1 := map_one (algebra_map R[X] K)
+@[norm_cast] lemma lift_map_add (a b : R[X]) : (↑(a + b : R[X]) : K) = ↑a + ↑b :=
 map_add (algebra_map R[X] K) a b
-
-@[simp, norm_cast] lemma coe_algebra_map_zero : ((0 : R[X]) : K) = 0 := map_zero (algebra_map R[X] K)
-
-@[norm_cast] lemma coe_algebra_map_neg (x : R[X]) : ((-x : R[X]) : K) = -x := map_neg (algebra_map R[X] K) x
-
-@[norm_cast] lemma coe_algebra_map_mul (a b : R[X]) : ((a * b : R[X]) : K) = a * b :=
+@[norm_cast] lemma lift_map_neg (x : R[X]) : (↑(-x : R[X]) : K) = -↑x :=
+map_neg (algebra_map R[X] K) x
+@[norm_cast] lemma lift_map_mul (a b : R[X]) : (↑(a * b : R[X]) : K) = ↑a * ↑b :=
 map_mul (algebra_map R[X] K) a b
-
-@[simp, norm_cast] lemma coe_algebra_map_one : ((1 : R[X]) : K) = 1 := map_one (algebra_map R[X] K)
 
 open_locale big_operators
 
-@[norm_cast] lemma coe_algebra_map_prod {ι : Type*} {s : finset ι} (a : ι → R[X]) :
-  ↑(( ∏ (i : ι) in s, a i)) = ∏ (i : ι) in s, ((a i):K) :=
+@[norm_cast] lemma lift_map_prod {ι : Type*} {s : finset ι} (a : ι → R[X]) :
+  (↑( ∏ (i : ι) in s, a i : R[X]) : K) = ∏ (i : ι) in s, (↑(a i) : K) :=
 begin
   classical,
   apply s.induction_on,
   { simp, },
   { intros j s hjs H,
     rw [finset.prod_insert hjs, finset.prod_insert hjs, ← H,
-        ← polynomial.coe_algebra_map_mul _ _ (a j) (∏ (i : ι) in s, a i)], },
+        ← algebra.lift_map_mul R K (a j) (∏ (i : ι) in s, a i)], },
 end
 
-@[norm_cast] lemma coe_algebra_map_sum {ι : Type*} {s : finset ι} (a : ι → R[X]) :
-  ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, ((a i):K) :=
+@[norm_cast] lemma lift_map_sum {ι : Type*} {s : finset ι} (a : ι → R[X]) :
+  ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, (↑(a i) : K) :=
 begin
   classical,
   apply s.induction_on,
@@ -172,40 +165,33 @@ begin
     simp only [finset.sum_empty, ring_hom.to_fun_eq_coe, map_zero], },
   { intros j s hjs H,
     rw [finset.sum_insert hjs, finset.sum_insert hjs, ← H,
-        ← polynomial.coe_algebra_map_add _ _ (a j) (∑ (i : ι) in s, a i)], },
+        ← algebra.lift_map_add R K (a j) (∑ (i : ι) in s, a i)], },
 end
 
-attribute [to_additive] coe_algebra_map_prod
+attribute [to_additive] lift_map_prod
 
-@[norm_cast] lemma coe_algebra_map_inj_iff (a b : R[X]) : (a : K) = b ↔ a = b :=
+@[norm_cast] lemma lift_map_inj_iff (a b : R[X]) : (↑a : K) = ↑b ↔ a = b :=
 ⟨λ h, is_fraction_ring.injective R[X] K h, by rintro rfl; refl⟩
 
-@[norm_cast] lemma coe_algebra_map_eq_zero_iff (a : R[X]) : (a : K) = 0 ↔ a = 0 :=
+@[norm_cast] lemma lift_map_eq_zero_iff (a : R[X]) : (↑a : K) = 0 ↔ a = 0 :=
 begin
-  rw (show (0 : K) = (0 : R[X]), from (map_zero (algebra_map R[X] K)).symm),
+  rw (show (0 : K) = ↑(0 : R[X]), from (map_zero (algebra_map R[X] K)).symm),
   norm_cast,
 end
 
-@[norm_cast] lemma coe_algebra_map_pow (a : R[X]) (n : ℕ) : ((a ^ n : R[X]) : K) = a ^ n :=
+@[norm_cast] lemma lift_map_pow (a : R[X]) (n : ℕ) : (↑(a ^ n : R[X]) : K) = ↑a ^ n :=
 map_pow (algebra_map R[X] K) _ _
 
-end polynomial
-
-/-
-
-That's all the training I can think of right now (although I'm open to the idea
-that there are more lemmas we'll need). Here are examples of `cast` tactics.
-
--/
+end algebra
 
 -- if `↑f = ↑g ^ 2` then `f = g ^ 2`
-example (f g : R[X]) (h : (f : K) = g^2) : f = g^2 :=
+example (f g : R[X]) (h : (↑f : K) = ↑g^2) : f = g^2 :=
 begin
   exact_mod_cast h,
 end
 
 -- ↑f + ↑g = ↑(f + g)
-example (f g : R[X]) : (f : K) + g = (f + g : R[X]) :=
+example (f g : R[X]) : (↑f : K) + ↑g = ↑(f + g : R[X]) :=
 begin
   norm_cast,
 end
@@ -230,7 +216,7 @@ variables (f : R[X]) {g : R[X]}
 
 -- If `g` is monic then `f/g` can be written as `q+r/g` with deg(r) < deg(g)
 lemma div_eq_quo_add_rem_div (hg : g.monic) : ∃ q r : R[X], r.degree < g.degree ∧
-  (f : K) / g = q + r / g :=
+  (↑f : K) / ↑g = ↑q + ↑r / ↑g :=
 begin
   -- let `q` be "polynomial division `f / g`" and let `r` be the remainder
   refine ⟨f /ₘ g, f %ₘ g, _, _⟩, -- same as `use, use, split`
@@ -241,7 +227,7 @@ begin
   -- Our goal is in `K` right now so to clear denominators we need (g : K) ≠ 0
   -- Note that `monic.ne_zero hg` is a proof that (g : R[X]) ≠ 0, so a `cast` tactic can
   -- finish the job.
-  { have hg' : (g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
+  { have hg' : (↑g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
      -- Now use the "clear denominators" tactic.
     field_simp [hg'],
     -- Now use `norm_cast` to get out of `K` and back into `R[X]`
@@ -261,14 +247,14 @@ section two_denominators
 lemma div_eq_quo_add_rem_div_add_rem_div {f g₁ g₂ : R[X]} --(f : R[X])
   (hg₁ : g₁.monic) (hg₂ : g₂.monic) (hcoprime : is_coprime g₁ g₂ ) :
   ∃ q r₁ r₂ : R[X], r₁.degree < g₁.degree ∧ r₂.degree < g₂.degree ∧
-  (f : K) / (g₁ * g₂) = q + r₁ / g₁ + r₂ / g₂ :=
+  (↑f : K) / (↑g₁ * ↑g₂) = ↑q + ↑r₁ / ↑g₁ + ↑r₂ / ↑g₂ :=
 begin
   rcases hcoprime with ⟨ c, d, hcd ⟩,
   refine ⟨ (f*d) /ₘ g₁ + (f*c) /ₘ g₂ , (f*d) %ₘ g₁ , (f*c) %ₘ g₂ ,
     (degree_mod_by_monic_lt _ hg₁) , (degree_mod_by_monic_lt _ hg₂) , _⟩,
-  have hg₁' : (g₁ : K) ≠ 0,
+  have hg₁' : (↑g₁ : K) ≠ 0,
   { norm_cast, exact hg₁.ne_zero_of_ne zero_ne_one, },
-  have hg₂' : (g₂ : K) ≠ 0,
+  have hg₂' : (↑g₂ : K) ≠ 0,
   { norm_cast, exact hg₂.ne_zero_of_ne zero_ne_one, },
   have hfc := mod_by_monic_add_div (f * c) hg₂,
   have hfd := mod_by_monic_add_div (f * d) hg₁,
@@ -288,7 +274,7 @@ lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
   (s : finset ι) :
   ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
-  (f : K) / ∏ i in s, g i = q + ∑ i in s, (r i) / (g i) :=
+  (↑f : K) / ∏ i in s, ↑(g i) = ↑q + ∑ i in s, ↑(r i) / ↑(g i) :=
 begin
   induction s using finset.induction_on with a b hab Hind f generalizing f,
   { refine ⟨f, (λ (i : ι), (0 : R[X])), λ i, _, by simp⟩,
@@ -298,7 +284,7 @@ begin
     rw degree_eq_bot at hdg,
     rw hdg at hg,
     exact not_monic_zero hg, },
-  { obtain ⟨q₀, r₁, r₂, hdeg₁, hdeg₂, (hf : (f : K) / _ = _)⟩ :=
+  { obtain ⟨q₀, r₁, r₂, hdeg₁, hdeg₂, (hf : (↑f : K) / _ = _)⟩ :=
       div_eq_quo_add_rem_div_add_rem_div R K
       (_ : monic (g a))
       (_ : monic ∏ (i : ι) in b, (g i))
@@ -313,7 +299,7 @@ begin
       norm_cast at ⊢ hf IH,
       rw [finset.prod_insert hab, hf, IH, finset.sum_insert hab, if_pos rfl],
       -- use `transitivity` tactic to break this into a `ring` and a `congr`
-      transitivity ((q₀ + q : R[X]) : K) + (r₁ / (g a) + ∑ (i : ι) in b, (r i) / (g i)),
+      transitivity (↑(q₀ + q : R[X]) : K) + (↑r₁ / ↑(g a) + ∑ (i : ι) in b, ↑(r i) / ↑(g i)),
       { push_cast, ring, },
       congr' 2,
       refine finset.sum_congr rfl (λ x hxb, _),
@@ -335,7 +321,7 @@ end
 lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g : ι → R[X]}
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
   (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
-  (hf : (f : K) / ∏ i, g i = q + ∑ i, (r i) / (g i)) :
+  (hf : (↑f : K) / ∏ i, ↑(g i) = ↑q + ∑ i, ↑(r i) / ↑(g i)) :
     q = (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some ∧
     r = (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some_spec.some :=
 begin

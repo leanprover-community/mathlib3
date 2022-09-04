@@ -32,7 +32,7 @@ generated. -/
 @[to_additive]
 instance quotient_group.uniformity_is_countably_generated {G : Type u} [group G]
   [topological_space G] [first_countable_topology G] [topological_group G] (N : subgroup G)
-  [N.normal] [is_closed (N : set G)] :
+  [N.normal] :
   (@uniformity (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N))).is_countably_generated :=
 comap.is_countably_generated _ _
 
@@ -91,12 +91,12 @@ begin
 end
 
 /- The quotient `G ⧸ N` of a complete uniform topological group `G` which is also first countable
-by a closed normal subgroup is itself complete. Consequently, quotients of Banach spaces by closed
-subspaces are complete. -/
+by a normal subgroup is itself complete. Consequently, quotients of Banach spaces by subspaces
+are complete. -/
 @[to_additive]
 instance quotient_group.complete_space (G : Type u) [group G] [uniform_space G] [uniform_group G]
-  [first_countable_topology G] [complete_space G] (N : subgroup G) [N.normal]
-  [is_closed (N : set G)] : @complete_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) :=
+  [first_countable_topology G] [complete_space G] (N : subgroup G) [N.normal] :
+  @complete_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) :=
 begin
   /- Since `G ⧸ N` is a topological group it is a uniform space, and since `G` is first countable
   the uniformities of both `G` and `G ⧸ N` are countably generated. Moreover, we may choose a

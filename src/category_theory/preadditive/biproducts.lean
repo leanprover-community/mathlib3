@@ -275,6 +275,7 @@ lemma biproduct.column_nonzero_of_iso'
   (s : σ) (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   (∀ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t = 0) → 𝟙 (S s) = 0 :=
 begin
+  casesI nonempty_fintype τ,
   intro z,
   set x := biproduct.ι S s ≫ f ≫ inv f ≫ biproduct.π S s,
   have h₁ : x = 𝟙 (S s), by simp [x],

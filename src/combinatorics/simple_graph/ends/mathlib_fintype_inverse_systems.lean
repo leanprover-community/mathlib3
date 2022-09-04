@@ -584,23 +584,19 @@ begin
     dsimp only [sections_at_point_fwd] at e,
     simp only [e],
    },
-  { dsimp only [function.right_inverse,function.left_inverse],
+  { dsimp only [function.right_inverse,function.left_inverse,
+                sections_at_point_fwd,sections_at_point_bwd],
     rintro ⟨s,sec⟩,
-    dsimp only [sections_at_point_fwd,sections_at_point_bwd],
-    simp,
-    have := (sections_at_point_bwd F j x ⟨s, @sec⟩).prop,
+    simp only [subtype.val_eq_coe, subtype.mk_eq_mk],
     apply funext,
     intro i,
-    let a:= (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).val,
     obtain ⟨k,ki,kj,e⟩ := (sections_at_point_bwd_aux F j x (⟨s, @sec⟩ : (above_point F j x).sections) i).prop,
-    rw ←sec (hom_of_le (by { dsimp, exact ki, } : (⟨k,kj⟩ : {i | i ≤ j}) ≤ i)),
-    simp [subtype.val_eq_coe] at e ⊢,
-
+    rw ←sec (hom_of_le (by { exact ki} : (⟨k,kj⟩ : {i | i ≤ j}) ≤ i)),
+    simp only [subtype.val_eq_coe] at e ⊢,
+    -- ideally we'd do `rw e` here, but lean doesn't want that
     dsimp only [above_point],
-    rcases s ⟨k,kj⟩ with ⟨y,y'⟩,-- magic going on here
-    rw  ←subtype.coe_inj,
-    simp only [set.maps_to.coe_restrict_apply],
-    simp,
+    rcases s ⟨k,kj⟩ with ⟨y,y'⟩,-- magic going on here: deconstructing `s ⟨k,kj⟩` reverts `e`, which is actually nice for us
+    simp only [←subtype.coe_inj,set.maps_to.coe_restrict_apply],
     rintro e, exact e,
  },
 end

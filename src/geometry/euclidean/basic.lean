@@ -783,6 +783,8 @@ lemma orthogonal_projection_fn_vsub_mem_direction_orthogonal {s : affine_subspac
 direction_mk' p s.directionᗮ ▸
   vsub_mem_direction (orthogonal_projection_fn_mem_orthogonal p) (self_mem_mk' _ _)
 
+local attribute [instance] affine_subspace.to_add_torsor
+
 /-- The orthogonal projection of a point onto a nonempty affine
 subspace, whose direction is complete. The corresponding linear map
 (mapping a vector to the difference between the projections of two

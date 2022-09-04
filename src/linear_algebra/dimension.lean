@@ -988,18 +988,20 @@ begin
 end
 
 section fintype
-variable [fintype η]
 variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)]
 
 open linear_map
 
-lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
+lemma dim_pi [finite η] : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
 begin
+  casesI nonempty_fintype η,
   let b := assume i, basis.of_vector_space K (φ i),
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
   rw [← cardinal.lift_inj, ← this.mk_eq_dim],
   simp [← (b _).mk_range_eq_dim]
 end
+
+variable [fintype η]
 
 lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=

@@ -80,16 +80,16 @@ begin
   countably generated, it suffices to show any Cauchy sequence `x` converges. -/
   letI : uniform_space (G ⧸ N) := topological_group.to_uniform_space (G ⧸ N),
   haveI : (𝓤 (G ⧸ N)).is_countably_generated := comap.is_countably_generated _ _,
-  obtain ⟨U, hU, U_mul⟩ := topological_group.exists_antitone_basis_nhds_one G,
-  obtain ⟨hV, V_anti⟩ := @has_antitone_basis.map _ _ _ _ _ _ (coe : G → G ⧸ N) hU,
-  rw [←quotient_group.nhds_eq N 1, quotient_group.coe_one] at hV,
+  obtain ⟨u, hu, u_mul⟩ := topological_group.exists_antitone_basis_nhds_one G,
+  obtain ⟨hv, v_anti⟩ := @has_antitone_basis.map _ _ _ _ _ _ (coe : G → G ⧸ N) hu,
+  rw [←quotient_group.nhds_eq N 1, quotient_group.coe_one] at hv,
   refine uniform_space.complete_of_cauchy_seq_tendsto (λ x hx, _),
   /- Given `n : ℕ`, for sufficiently large `a b : ℕ`, given any lift of `x b`, we can find a lift
   of `x a` such that the quotient of the lifts lies in `u n`. -/
   have key₀ : ∀ i j : ℕ, ∃ M : ℕ,
-    j < M ∧ ∀ a b : ℕ, M ≤ a → M ≤ b → ∀ g : G, x b = g → ∃ g' : G, g / g' ∈ U i ∧ x a = g',
-  { have h𝓤 : (uniformity (G ⧸ N)).has_basis (λ _, true) (λ i, {x | x.snd / x.fst ∈ coe '' U i}),
-    { simpa [uniformity_eq_comap_nhds_one'] using hV.comap _ },
+    j < M ∧ ∀ a b : ℕ, M ≤ a → M ≤ b → ∀ g : G, x b = g → ∃ g' : G, g / g' ∈ u i ∧ x a = g',
+  { have h𝓤 : (uniformity (G ⧸ N)).has_basis (λ _, true) (λ i, {x | x.snd / x.fst ∈ coe '' u i}),
+    { simpa [uniformity_eq_comap_nhds_one'] using hv.comap _ },
     simp only [h𝓤.cauchy_seq_iff, ge_iff_le, mem_set_of_eq, forall_true_left, mem_image] at hx,
     intros i j,
     rcases hx i with ⟨M, hM⟩,
@@ -103,7 +103,7 @@ begin
   `φ (n + 1)`, then we may find lifts whose quotients lie within `u n`. -/
   set φ : ℕ → ℕ := λ n, nat.rec_on n (some $ key₀ 0 0) (λ k yk, some $ key₀ (k + 1) yk),
   have hφ : ∀ n : ℕ, φ n < φ (n + 1) ∧ ∀ a b : ℕ, φ (n + 1) ≤ a → φ (n + 1) ≤ b →
-    (∀ g : G, x b = g → ∃ g' : G, g / g' ∈ U (n + 1) ∧ x a = g'),
+    (∀ g : G, x b = g → ∃ g' : G, g / g' ∈ u (n + 1) ∧ x a = g'),
     from λ n, some_spec (key₀ (n + 1) (φ n)),
   /- Inductively construct a sequence `x' n : G` of lifts of `x (φ (n + 1))` such that quotients of
   successive terms lie in `x' n / x' (n + 1) ∈ u (n + 1)`. We actually need the proofs that each
@@ -114,16 +114,16 @@ begin
        (some_spec (quotient_group.mk_surjective (x (φ 1)))).symm⟩
       (λ k hk, ⟨some $ (hφ k).2 _ _ (hφ (k + 1)).1.le le_rfl hk.fst hk.snd,
           (some_spec $ (hφ k).2 _ _ (hφ (k + 1)).1.le le_rfl hk.fst hk.snd).2⟩),
-  have hx' : ∀ n : ℕ, (x' n).fst / (x' (n + 1)).fst ∈ U (n + 1) :=
+  have hx' : ∀ n : ℕ, (x' n).fst / (x' (n + 1)).fst ∈ u (n + 1) :=
     λ n, (some_spec $ (hφ n).2 _ _ (hφ (n + 1)).1.le le_rfl (x' n).fst (x' n).snd).1,
   /- The sequence `x'` is Cauchy. This is where we exploit the condition on `u`. The key idea
   is to show by decreasing induction that `x' m / x' n ∈ u m` if `m ≤ n`. -/
   have x'_cauchy : cauchy_seq (λ n, (x' n).fst),
-  { simp only [hU.to_has_basis.uniformity_of_nhds_one.cauchy_seq_iff', ge_iff_le, mem_set_of_eq,
+  { simp only [hu.to_has_basis.uniformity_of_nhds_one.cauchy_seq_iff', ge_iff_le, mem_set_of_eq,
       forall_true_left],
     exact λ m, ⟨m, λ n hmn, nat.decreasing_induction'
-      (λ k hkn hkm hk, U_mul k ⟨_, _, hx' k, hk, div_mul_div_cancel' _ _ _⟩)
-      hmn (by simpa only [div_self'] using mem_of_mem_nhds (hU.mem _))⟩ },
+      (λ k hkn hkm hk, u_mul k ⟨_, _, hx' k, hk, div_mul_div_cancel' _ _ _⟩)
+      hmn (by simpa only [div_self'] using mem_of_mem_nhds (hu.mem _))⟩ },
   /- Since `G` is complete, `x'` converges to some `x₀`, and so the image of this sequence under
   the quotient map converges to `↑x₀`. The image of `x'` is a convergent subsequence of `x`, and
   since `x` is Cauchy, this implies it converges. -/

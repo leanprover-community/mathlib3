@@ -1117,6 +1117,17 @@ begin
     exact h.1, },
 end
 
+lemma measurable_set_inter_le_const_iff (hτ : is_stopping_time f τ) (s : set Ω) (i : ι) :
+  measurable_set[hτ.measurable_space] (s ∩ {x | τ x ≤ i})
+    ↔ measurable_set[(hτ.min_const i).measurable_space] (s ∩ {x | τ x ≤ i}) :=
+begin
+  rw [is_stopping_time.measurable_set_min_iff hτ (is_stopping_time_const _ i),
+    is_stopping_time.measurable_space_const, is_stopping_time.measurable_set],
+  refine ⟨λ h, ⟨h, _⟩, λ h j, h.1 j⟩,
+  specialize h i,
+  rwa [set.inter_assoc, set.inter_self] at h,
+end
+
 lemma measurable_set_le_stopping_time [topological_space ι]
   [second_countable_topology ι] [order_topology ι] [measurable_space ι] [borel_space ι]
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :

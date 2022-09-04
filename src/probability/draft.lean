@@ -23,17 +23,6 @@ section not_nat
 
 variables [linear_order ι] {ℱ : filtration ι m} {τ σ : α → ι}
 
-lemma measurable_set_inter_le_const_iff (hτ : is_stopping_time ℱ τ) (s : set α) (i : ι) :
-  measurable_set[hτ.measurable_space] (s ∩ {x | τ x ≤ i})
-    ↔ measurable_set[(hτ.min_const i).measurable_space] (s ∩ {x | τ x ≤ i}) :=
-begin
-  rw [is_stopping_time.measurable_set_min_iff hτ (is_stopping_time_const _ i),
-    is_stopping_time.measurable_space_const, is_stopping_time.measurable_set],
-  refine ⟨λ h, ⟨h, _⟩, λ h j, h.1 j⟩,
-  specialize h i,
-  rwa [set.inter_assoc, set.inter_self] at h,
-end
-
 section condexp
 variables [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 

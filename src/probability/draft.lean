@@ -127,7 +127,7 @@ begin
   rw stopped_value_eq' hbdd,
   swap, apply_instance,
   refine mem_ℒp_finset_sum' _ (λ i hi, mem_ℒp.indicator _ (hu i)),
-  refine ℱ.le i {a : α | τ a = i} (hτ.measurable_set_eq_of_countable _ i),
+  refine ℱ.le i {a : α | τ a = i} (hτ.measurable_set_eq_of_countable_range _ i),
   refine ((finset.finite_to_set s).subset (λ x hx, _)).countable,
   obtain ⟨y, rfl⟩ := hx,
   exact hbdd y,
@@ -145,18 +145,18 @@ variables [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 lemma condexp_stopping_time_restrict_eq_of_countable_range [sigma_finite_filtration μ ℱ] {f : α → E}
   (hτ : is_stopping_time ℱ τ) (h_countable : (set.range τ).countable)
-  [sigma_finite (μ.trim (hτ.measurable_space_le_of_countable h_countable))] {i : ι} :
+  [sigma_finite (μ.trim (hτ.measurable_space_le_of_countable_range h_countable))] {i : ι} :
   μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
 begin
   refine condexp_ae_eq_restrict_of_measurable_space_eq_on
-    (hτ.measurable_space_le_of_countable h_countable) (ℱ.le i)
-    (hτ.measurable_set_eq_of_countable' h_countable i) (λ t, _),
+    (hτ.measurable_space_le_of_countable_range h_countable) (ℱ.le i)
+    (hτ.measurable_set_eq_of_countable_range' h_countable i) (λ t, _),
   rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
 end
 
 lemma condexp_stopping_time_restrict_eq_of_countable [countable ι] [sigma_finite_filtration μ ℱ]
   {f : α → E} (hτ : is_stopping_time ℱ τ)
-  [sigma_finite (μ.trim hτ.measurable_space_le_of_encodable)] {i : ι} :
+  [sigma_finite (μ.trim hτ.measurable_space_le_of_countable)] {i : ι} :
   μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
 condexp_stopping_time_restrict_eq_of_countable_range hτ (set.to_countable _)
 

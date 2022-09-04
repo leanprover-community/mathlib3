@@ -566,7 +566,7 @@ def lift_ring_hom :
     f (graded_monoid.ghas_one.one) = 1 ∧
     ∀ {i j} (ai : A i) (aj : A j), f (graded_monoid.ghas_mul.mul ai aj) = f ai * f aj} ≃
     ((⨁ i, A i) →+* R) :=
-{ to_fun := λ f, to_semiring f.1 f.2.1 f.2.2,
+{ to_fun := λ f, to_semiring (λ _, f.1) f.2.1 (λ _ _, f.2.2),
   inv_fun := λ F,
     ⟨λ i, (F : (⨁ i, A i) →+ R).comp (of _ i), begin
       simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
@@ -578,7 +578,7 @@ def lift_ring_hom :
     end⟩,
   left_inv := λ f, begin
     ext xi xv,
-    exact to_add_monoid_of f.1 xi xv,
+    exact to_add_monoid_of (λ _, f.1) xi xv,
   end,
   right_inv := λ F, begin
     apply ring_hom.coe_add_monoid_hom_injective,

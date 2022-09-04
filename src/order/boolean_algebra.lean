@@ -559,7 +559,8 @@ lemma himp_eq : x ⇨ y = y ⊔ xᶜ := boolean_algebra.himp_eq x y
 @[simp] lemma top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
 
 @[priority 100]
-instance boolean_algebra.to_is_complemented : is_complemented α := ⟨λ x, ⟨xᶜ, is_compl_compl⟩⟩
+instance boolean_algebra.to_complemented_lattice : complemented_lattice α :=
+⟨λ x, ⟨xᶜ, is_compl_compl⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance boolean_algebra.to_generalized_boolean_algebra : generalized_boolean_algebra α :=

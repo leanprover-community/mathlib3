@@ -5,6 +5,7 @@ Authors: Jireh Loreaux
 -/
 
 import topology.algebra.uniform_group
+import analysis.normed.group.quotient
 
 /-!
 # Quotient group of a metrizable topological group is complete
@@ -115,7 +116,7 @@ is itself complete. -/
 @[to_additive "The quotient `G ⧸ N` of a complete first countable topological additive group
 `G` by a normal additive subgroup is itself complete. Consequently, quotients of Banach spaces by
 subspaces are complete."]
-instance quotient_group.complete_space (G : Type u) [group G] [topological_space G]
+instance quotient_group.complete_space' (G : Type u) [group G] [topological_space G]
   [topological_group G] [first_countable_topology G] (N : subgroup G) [N.normal]
   [@complete_space G (topological_group.to_uniform_space G)] :
   @complete_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) :=
@@ -182,3 +183,15 @@ begin
   convert ((continuous_coinduced_rng : continuous (coe : G → G ⧸ N)).tendsto x₀).comp hx₀,
   exact funext (λ n, (x' n).snd),
 end
+
+/-- The quotient `G ⧸ N` of a complete first countable uniform group `G` by a normal subgroup
+is itself complete. In constrast to `quotient_group.complete_space'`, in this version `G` is
+already equipped with a uniform structure. -/
+@[to_additive "The quotient `G ⧸ N` of a complete first countable uniform additive group
+`G` by a normal additive subgroup is itself complete. Consequently, quotients of Banach spaces by
+subspaces are complete. In constrast to `quotient_add_group.complete_space'`, in this version
+`G` is already equipped with a uniform structure."]
+instance quotient_group.complete_space (G : Type u) [group G] [us : uniform_space G]
+  [uniform_group G] [first_countable_topology G] (N : subgroup G) [N.normal]
+  [hG : complete_space G] : @complete_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) :=
+by { unfreezingI { rw ←@uniform_group.to_uniform_space_eq _ us _ _ at hG }, apply_instance }

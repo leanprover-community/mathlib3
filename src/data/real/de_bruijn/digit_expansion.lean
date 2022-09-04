@@ -1377,3 +1377,67 @@ begin
 end
 
 end s08
+
+section s10
+
+def formal_series.cutoff (z : Z) (f : Σ) : Σ :=
+⟨λ x, if z < x then 0 else f x, begin
+  rintro ⟨y, hy⟩,
+  obtain ⟨w, hwy, hw⟩ := f.exists_bounded y,
+  specialize hy w hwy,
+  simp_rw [←fin.coe_last b, fin.coe_coe_eq_self] at hy hw,
+  split_ifs at hy,
+  { casesI b,
+    { exact absurd rfl (ne_of_lt hb.out) },
+    { exact (fin.last_pos : 0 < fin.last b.succ).ne hy } },
+  { exact hw.ne hy }
+end⟩
+
+lemma formal_series.cutoff_apply_le (f : Σ) (z x : Z) (h : x ≤ z) :
+  f.cutoff z x = f x :=
+if_neg (not_lt_of_le h)
+
+lemma formal_series.cutoff_apply_lt (f : Σ) (z x : Z) (h : z < x) :
+  f.cutoff z x = 0 :=
+if_pos h
+
+def formal_series.real.cutoff (z : Z) (f : formal_series.real Z b) : formal_series.real Z b :=
+⟨formal_series.cutoff z (f : Σ), begin
+  rcases f with ⟨f, hf|hf|rfl⟩; rw [subtype.coe_mk],
+  { obtain ⟨x, xpos, hx⟩ := hf.exists_least_pos,
+    cases lt_or_le z x,
+    { refine or.inr (or.inr _),
+      ext y : 1,
+      cases lt_or_le z y with hy hy,
+      { rw [formal_series.cutoff_apply_lt _ _ _ hy, zero_apply] },
+      { rw [formal_series.cutoff_apply_le _ _ _ hy],
+        exact hx _ (h.trans_le' hy) } },
+    { refine or.inl ⟨λ H, xpos.ne _, x, λ y hy, _⟩,
+      { rw [←formal_series.cutoff_apply_le _ _ _ h, H, zero_apply] },
+      { rw [formal_series.cutoff_apply_le _ _ _ (hy.le.trans h), hx _ hy] } } },
+  { obtain ⟨hne, x, hx⟩ := hf,
+    refine or.inr (or.inl ⟨λ H, _, min x z, λ y hy, _⟩),
+    { replace H : f.cutoff z (min z (pred x)) = 0,
+      { rw [H, zero_apply] },
+      casesI b,
+      { exact absurd rfl (ne_of_lt hb.out) },
+      { refine (fin.last_pos : 0 < fin.last b.succ).ne _,
+        rw [←fin.coe_coe_eq_self (fin.last _), fin.coe_last, ←hx (min z (pred x)), ←H,
+            formal_series.cutoff_apply_le];
+        simp } },
+    { rw [lt_min_iff] at hy,
+      rw [formal_series.cutoff_apply_le _ _ _ hy.right.le, hx _ hy.left] } },
+  { refine or.inr (or.inr _),
+    ext x : 1,
+    cases lt_or_le z x;
+    simp [formal_series.cutoff_apply_le, formal_series.cutoff_apply_lt, h] }
+end⟩
+
+lemma formal_series.real.exists_is_least_image_cutoff (S : set (formal_series.real Z b))
+  (hn : S.nonempty) (h : bdd_below S) (z : Z) :
+  ∃ x, is_least (formal_series.real.cutoff z '' S) x :=
+begin
+  sorry
+end
+
+end s10

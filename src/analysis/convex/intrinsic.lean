@@ -33,40 +33,13 @@ begin
   ext, split,
   { rintro ⟨-, -, ⟨a, ha, rfl⟩, ⟨b, hb, rfl⟩, rfl⟩,
     rw [vadd_vsub_vadd_cancel_left x],
-    exact ⟨a, b, ha, hb, rfl⟩, },
+    exact ⟨a, b, ha, hb, rfl⟩ },
   { rintro ⟨a, b, ha, hb, rfl⟩,
     rw [←vadd_vsub_vadd_cancel_left x],
     exact ⟨_, _, ⟨a, ha, rfl⟩, ⟨b, hb, rfl⟩, rfl⟩ },
 end
 
 -- MOVETO linear_algebra.affine_space.affine_subspace
-
-/- lemma affine_subspace.neg_vadd_mem_iff {V R : Type} [ring R]
-  [add_comm_group V] [module R V]
-  (E : affine_subspace R V) (x y : V) :
-(-x) +ᵥ y ∈ E ↔ y ∈ x +ᵥ E :=
-begin
-  split,
-  {
-    intro h,
-    refine ⟨-x +ᵥ y, h, _⟩,
-    simp only [vadd_eq_add, affine_equiv.coe_coe, affine_equiv.const_vadd_apply,
-      add_neg_cancel_left],
-  },
-  {
-    rintro ⟨z, hz, rfl⟩,
-    simpa only [affine_equiv.coe_coe, affine_equiv.const_vadd_apply, vadd_eq_add,
-      neg_add_cancel_left] using hz,
-  },
-end -/
-
-/- @[reducible]
-def affine_subspace.inclusion {R V P : Type} [ring R] [add_comm_group V] [module R V]
-  [add_torsor V P] (E : affine_subspace R P) : E → P := coe
-
-lemma affine_subspace.inclusion_def {R V P : Type} [ring R] [add_comm_group V] [module R V]
-  [add_torsor V P] (E : affine_subspace R P) :
-E.inclusion = coe := rfl -/
 
 /-- The inclusion of an affine subspace as an affine map. -/
 def affine_subspace.inclusion_affine {R V P : Type} [ring R] [add_comm_group V] [module R V]
@@ -101,14 +74,6 @@ begin
   refine ⟨⟨φ x, affine_subspace.mem_map.mpr ⟨x, hx, rfl⟩⟩⟩,
 end
 
-/- instance nonempty_affine_span {R V P : Type}
-  [ring R] [add_comm_group V] [module R V] [add_torsor V P] {A : set V} [nonempty A] :
-nonempty (affine_span R A) :=
-begin
-  simp only [coe_sort_coe_base, coe_affine_span, set.nonempty_coe_sort, span_points_nonempty],
-  exact set.nonempty_of_nonempty_subtype,
-end -/
-
 -- MOVETO algebra.module.linear_map
 
 /-- Restrict domain and codomain of a linear map to the given submodules. -/
@@ -120,8 +85,8 @@ begin
   refine ⟨_, _, _⟩,
   { exact λ x, ⟨φ x, hEF $ submodule.mem_map.mpr ⟨x, x.property, rfl⟩⟩ },
   all_goals { intros x y,
-    simp only [subtype.ext_iff, subtype.coe_mk, submodule.coe_add, submodule.coe_smul],
-    apply_rules [φ.map_add, φ.map_smul] },
+              simp only [subtype.ext_iff, subtype.coe_mk, submodule.coe_add, submodule.coe_smul],
+              apply_rules [φ.map_add, φ.map_smul] },
 end
 
 lemma linear_map.restrict'.coe_apply {R V₁ V₂ : Type}
@@ -316,19 +281,6 @@ begin
 end
 
 -- MOVETO analysis.normed_space.affine_isometry
-
-lemma affine_isometry.injective' {𝕜 V₁ V₂ P₁ P₂ : Type}
-  [normed_field 𝕜] [/- this -/normed_add_comm_group V₁] [seminormed_add_comm_group V₂]
-  [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [pseudo_metric_space P₁] [pseudo_metric_space P₂]
-  [h : normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂] (f : P₁ →ᵃⁱ[𝕜] P₂) :
-function.injective f :=
-begin
-  let : metric_space P₁ :=
-    { to_pseudo_metric_space := infer_instance,
-      eq_of_dist_eq_zero := λ x y, by simp only [dist_eq_norm_vsub V₁ x y, norm_eq_zero,
-        vsub_eq_zero_iff_eq, imp_self] },
-  convert @affine_isometry.injective 𝕜 V₁ V₂ P₁ P₂ _ _ _ _ _ this _ (by convert h) _ f,
-end
 
 /-- Restriction of an affine isometry to an affine isomorphism, given a submodule of the domain. -/
 noncomputable def affine_isometry.restrict_to_equiv {𝕜 V₁ V₂ P₁ P₂ : Type}
@@ -611,5 +563,3 @@ begin
   { exact convex.affine_preimage ((affine_span ℝ A).inclusion_affine.comp
     (affine_isometry_equiv.const_vsub ℝ p').symm.to_affine_equiv.to_affine_map) Acv },
 end
-
-#lint

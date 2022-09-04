@@ -4,14 +4,7 @@ import data.finset.basic
 import category_theory.category.basic
 import category_theory.full_subcategory
 import data.set.finite
-import data.sym.sym2
-import combinatorics.simple_graph.basic
-import combinatorics.simple_graph.connectivity
-import topology.metric_space.basic
-import data.setoid.partition
-import set_theory.cardinal.basic
 import data.fintype.basic
-import data.opposite
 
 import .mathlib
 import .subfunctors
@@ -676,3 +669,5 @@ end
 
 
 end inverse_system
+
+#lint

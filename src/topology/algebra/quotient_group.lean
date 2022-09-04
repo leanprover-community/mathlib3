@@ -73,14 +73,6 @@ countable neighborhood basis. -/
 instance quotient_group.nhds_one_is_countably_generated : (𝓝 (1 : G ⧸ N)).is_countably_generated :=
 (quotient_group.nhds_eq G N 1).symm ▸ filter.map.is_countably_generated _ _
 
-/-- In a first countable topological group `G` with normal subgroup `N`, `𝓤 (G ⧸ N)` is countably
-generated. -/
-@[to_additive "In a first countable topological additive group `G` with normal additive subgroup
-`N`, `𝓤 (G ⧸ N)` is countably generated."]
-instance quotient_group.uniformity_is_countably_generated :
-  (@uniformity (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N))).is_countably_generated :=
-comap.is_countably_generated _ _
-
 /-- Any first countable topological group has an antitone neighborhood basis `u : ℕ → set G` for
 which `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is a key tool for
 `quotient_group.complete_space` -/

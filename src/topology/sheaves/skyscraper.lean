@@ -98,10 +98,6 @@ universes u v
 
 variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{u} C] (S : C) [has_terminal C]
 
-private lemma mem_nhds_of_not_specializes {y : X} (h : ¬p₀ ⤳ y) :
-  ∃ (U : open_nhds y), p₀ ∉ U.1 :=
-by { contrapose! h, exact specializes_iff_forall_open.2 (λ s o h₁, h ⟨⟨s, o⟩, h₁⟩) }
-
 variable [Π (U : opens X), decidable (p₀ ∈ U)]
 /--
 The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}`
@@ -158,7 +154,8 @@ colimit
 -/
 noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes
   {y : X} (h : ¬p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone p₀ S y) :=
-let h1 := mem_nhds_of_not_specializes p₀ h in
+let h0 := not_specializes_iff_exists_open.mp h, h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
+  ⟨⟨⟨h0.some, h0.some_spec.1⟩, h0.some_spec.2.1⟩, h0.some_spec.2.2⟩ in
 { desc := λ c, eq_to_hom (if_neg h1.some_spec).symm ≫ c.ι.app (op h1.some),
   fac' := λ c U, begin
     change _ = c.ι.app (op U.unop),

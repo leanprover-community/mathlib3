@@ -1343,4 +1343,37 @@ begin
     { rw [hx _ hy, px0 _ hy.le] } }
 end
 
+-- 8.3
+lemma formal_series.real.exists_lt_Z_star [has_zero Z] (f : formal_series.real Z b) :
+  ∃ (h : formal_series.Z_star Z b), (⟨_, h.prop.left⟩ : formal_series.real Z b) > f :=
+begin
+  let q' : Σ := ⟨λ x, if x ≤ 0 then b else f x, _⟩,
+  swap,
+  { rintro ⟨z, hz⟩,
+    obtain ⟨x, hx, hx'⟩ := formal_series.exists_bounded (f : Σ) (max (succ z) (succ 0)),
+    refine hx'.ne _,
+    rw [←hz x (lt_trans _ hx), if_neg (not_le_of_lt (lt_trans _ hx)),
+        formal_series.real.apply_eq_coe_apply];
+    simp },
+  have qneg : q'.negative,
+  { refine ⟨λ H, _, 0, λ y hy, _⟩,
+    { replace H : q' 0 = 0,
+      { rw [H, zero_apply] },
+      simp_rw [q', ←fin.coe_last b, fin.coe_coe_eq_self, formal_series.mk_apply,
+               if_pos le_rfl] at H,
+      casesI b,
+      { exact absurd hb.out (lt_irrefl _) },
+      { exact (fin.last_pos : 0 < fin.last b.succ).ne' H } },
+    { simp [q', hy.not_lt] } },
+  let q : formal_series.real Z b := ⟨q', or.inr (or.inl qneg)⟩,
+  refine ⟨⟨f - q, (f - q).prop, λ z zpos, _⟩, _⟩,
+  { simp only [formal_series.sub_def, not_le_of_lt zpos, formal_series.real.apply_eq_coe_apply,
+               difcar_eq_zero_iff, subtype.coe_mk, formal_series.mk_apply, if_false, sub_self,
+               zero_sub, neg_eq_zero, gt_iff_lt],
+    intros x hx,
+    simp [(hx.trans' zpos).not_le] },
+  { change f < f - q,
+    rwa [lt_sub, sub_self, ←formal_series.real.negative_iff] }
+end
+
 end s08

@@ -818,7 +818,6 @@ lemma equiv_of_iso.image {V V' : Type*} {G : simple_graph V} {G' : simple_graph 
 begin
   rcases C with ⟨⟨C,Cdis⟩,Cinf⟩,
   simp only [coe_coe, subtype.coe_mk],
-  dsimp only [equiv_of_iso],
   exact comp_out.equiv_of_iso.image φ K C,
 end
 
@@ -828,23 +827,42 @@ def back {K L : set V} (h : K ⊆ L) : G.inf_comp_out L →  G.inf_comp_out K :=
 
 @[simp]
 lemma back_iff {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L) (D : G.inf_comp_out K) :
-  C.back h = D ↔ (C.val.back h) = D.val := sorry
+  C.back h = D ↔ (C.val.back h) = D.val :=
+begin
+  rcases C with ⟨⟨C,Cdis⟩,Cinf⟩,
+  rcases D with ⟨⟨D,Ddis⟩,Dinf⟩,
+  dsimp only [back],
+  rw [←subtype.coe_inj,set.maps_to.coe_restrict_apply],
+  simp only [subtype.coe_mk],
+end
 
 lemma eq_back_iff_sub {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L) (D : G.inf_comp_out K) :
-  C.back h = D ↔ (C : set V) ⊆ D := sorry
+  C.back h = D ↔ (C : set V) ⊆ D :=
+begin
+  simp only [back_iff, subtype.val_eq_coe, dis_comp_out.back_iff, comp_out.eq_back_iff_sub, coe_coe],
+end
 
 
 lemma back_sub {K L : set V} (h : K ⊆ L) (C : G.inf_comp_out L)  :
-  (C : set V) ⊆ C.back h := sorry
+  (C : set V) ⊆ C.back h :=
+begin
+  rw ←eq_back_iff_sub,
+end
 
 @[simp]
-lemma back_refl_apply  (C : G.inf_comp_out K) : C.back (subset_refl K) = C := sorry
+lemma back_refl_apply  (C : G.inf_comp_out K) : C.back (subset_refl K) = C :=
+begin
+  simp only [back_iff, dis_comp_out.back_refl_apply],
+end
 
 @[simp]
 lemma back_trans_apply {K L M : set V} (kl : K ⊆ L) (lm : L ⊆ M) (C : G.inf_comp_out M) :
-  (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) := sorry
+  (C.back ‹L ⊆ M›).back ‹K ⊆ L› = C.back (‹K ⊆ L›.trans  ‹L ⊆ M›) :=
+begin
+  rw back_iff,
+  apply dis_comp_out.back_trans_apply,
+end
 
-lemma back_surjective {K L : finset V} (h : K ⊆ L) : function.surjective (@back V G K L h) := sorry
 
 lemma cofinite_to_equiv_unit (Glf : locally_finite G) (Gpc : G.preconnected) (K : set V)
   (D : set V) (Ddis : disjoint K D) (Dconn : (G.induce D).connected)

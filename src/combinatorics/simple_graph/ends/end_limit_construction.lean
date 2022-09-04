@@ -151,6 +151,16 @@ begin
     exact inverse_system.to_surjective.is_surjective (ComplComp G), },
 end
 
+lemma inf_comp_out.back_surjective {K L : finset V} (h : K ⊆ L) :
+  function.surjective (@inf_comp_out.back V G K L h) :=
+begin
+  have := ComplInfComp.surjective G Glf Gpc,
+  rw inverse_system.is_surjective_iff at this,
+  specialize this L K h,
+  rw ComplInfComp.map G ((hom_of_le h) : L ⟶ K) at this,
+  exact this,
+end
+
 lemma Endsinfty_surjective : Π (j : (finset V)), function.surjective (λ e : Endsinfty G, e.val j) :=
 begin
   rintro j,
@@ -161,6 +171,10 @@ begin
   apply inverse_system.sections_surjective,
   rintro i h, exact this i j h,
 end
+
+
+
+
 
 lemma Endsinfty_eventually_constant
   (K : finset V)

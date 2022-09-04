@@ -57,7 +57,7 @@ lemma condexp_min_stopping_time_restrict_le_const
 begin
   refine (condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
     (hτ.min_const i).measurable_space_le (hτ.measurable_set_le' i) (λ t, _)).symm,
-  rw [set.inter_comm _ t, measurable_set_inter_le_const_iff],
+  rw [set.inter_comm _ t, hτ.measurable_set_inter_le_const_iff],
 end
 
 variables [topological_space ι] [order_topology ι]

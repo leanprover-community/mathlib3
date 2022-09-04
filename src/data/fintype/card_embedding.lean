@@ -13,8 +13,8 @@ import logic.equiv.embedding
 This file establishes the cardinality of `α ↪ β` in full generality.
 -/
 
-local notation `|` x `|` := finset.card x
-local notation `‖` x `‖` := fintype.card x
+local notation (name := finset.card) `|` x `|` := finset.card x
+local notation (name := fintype.card) `‖` x `‖` := fintype.card x
 
 open function
 open_locale nat big_operators

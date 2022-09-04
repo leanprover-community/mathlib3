@@ -23,7 +23,7 @@ and a measurable set `ae_seq_set hf p`, such that
 open measure_theory
 open_locale classical
 
-variables {α β γ ι : Type*} [measurable_space α] [measurable_space β]
+variables {ι : Sort*} {α β γ : Type*} [measurable_space α] [measurable_space β]
   {f : ι → α → β} {μ : measure α} {p : α → (ι → β) → Prop}
 
 /-- If we have the additional hypothesis `∀ᵐ x ∂μ, p x (λ n, f n x)`, this is a measurable set
@@ -99,7 +99,7 @@ lemma measurable (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) �
 measurable.ite ae_seq_set_measurable_set (hf i).measurable_mk $ measurable_const' $
   λ x y, rfl
 
-lemma measure_compl_ae_seq_set_eq_zero [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
+lemma measure_compl_ae_seq_set_eq_zero [countable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   μ (ae_seq_set hf p)ᶜ = 0 :=
 begin
@@ -109,7 +109,7 @@ begin
   exact filter.eventually.and hf_eq hp,
 end
 
-lemma ae_seq_eq_mk_ae [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
+lemma ae_seq_eq_mk_ae [countable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   ∀ᵐ (a : α) ∂μ, ∀ (i : ι), ae_seq hf p i a = (hf i).mk (f i) a :=
 begin
@@ -119,7 +119,7 @@ begin
     (le_of_eq (measure_compl_ae_seq_set_eq_zero hf hp))) (zero_le _),
 end
 
-lemma ae_seq_eq_fun_ae [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
+lemma ae_seq_eq_fun_ae [countable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   ∀ᵐ (a : α) ∂μ, ∀ (i : ι), ae_seq hf p i a = f i a :=
 begin
@@ -128,12 +128,12 @@ begin
   exact measure_mono_null h_ss (measure_compl_ae_seq_set_eq_zero hf hp),
 end
 
-lemma ae_seq_n_eq_fun_n_ae [encodable ι] (hf : ∀ i, ae_measurable (f i) μ)
+lemma ae_seq_n_eq_fun_n_ae [countable ι] (hf : ∀ i, ae_measurable (f i) μ)
   (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) (n : ι) :
   ae_seq hf p n =ᵐ[μ] f n:=
 ae_all_iff.mp (ae_seq_eq_fun_ae hf hp) n
 
-lemma supr [complete_lattice β] [encodable ι]
+lemma supr [complete_lattice β] [countable ι]
   (hf : ∀ i, ae_measurable (f i) μ) (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
   (⨆ n, ae_seq hf p n) =ᵐ[μ] ⨆ n, f n :=
 begin

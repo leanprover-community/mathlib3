@@ -531,19 +531,19 @@ lemma sum.is_connected_iff [topological_space β] {s : set (α ⊕ β)} :
     (∃ t, is_connected t ∧ s = sum.inl '' t) ∨ ∃ t, is_connected t ∧ s = sum.inr '' t :=
 begin
   refine ⟨λ hs, _, _⟩,
-  { let u : set (α ⊕ β):= range sum.inl,
+  { let u : set (α ⊕ β) := range sum.inl,
     let v : set (α ⊕ β) := range sum.inr,
     have hu : is_open u, exact is_open_range_inl,
     obtain ⟨x | x, hx⟩ := hs.nonempty,
-    { have h := is_preconnected.subset_left_of_subset_union
+    { have h : s ⊆ range sum.inl := is_preconnected.subset_left_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
+        (by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
       refine or.inl ⟨sum.inl ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inl_injective open_embedding_inl.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } },
-    { have h := is_preconnected.subset_right_of_subset_union
+    { have h : s ⊆ range sum.inr := is_preconnected.subset_right_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
+        (by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
       refine or.inr ⟨sum.inr ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inr_injective open_embedding_inr.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } } },

@@ -720,11 +720,11 @@ eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_
 is the discrete topology on `X`. -/
 lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
   {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
-begin
-  constructor,
-  rw discrete_topology.eq_bot Y,
-  exact induced_bot hf
-end
+by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
+
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
 
 /-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
 by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
@@ -1228,6 +1228,20 @@ begin
     compact_closure_of_subset_compact hK' interior_subset⟩,
 end
 
+/--
+In a locally compact T₂ space, given a compact set `K` inside an open set `U`, we can find a
+open set `V` between these sets with compact closure: `K ⊆ V` and the closure of `V` is inside `U`.
+-/
+lemma exists_open_between_and_is_compact_closure [locally_compact_space α] [t2_space α]
+  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
+  ∃ V, is_open V ∧ K ⊆ V ∧ closure V ⊆ U ∧ is_compact (closure V) :=
+begin
+  rcases exists_compact_between hK hU hKU with ⟨V, hV, hKV, hVU⟩,
+  exact ⟨interior V, is_open_interior, hKV,
+    (closure_minimal interior_subset hV.is_closed).trans hVU,
+    compact_closure_of_subset_compact hV interior_subset⟩,
+end
+
 lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
   is_preirreducible S ↔ S.subsingleton :=
 begin
@@ -1347,42 +1361,6 @@ begin
   use [U₁, mem_of_superset V₁_in h₁, V₁, V₁_in,
        U₂, mem_of_superset V₂_in h₂, V₂, V₂_in],
   tauto
-end
-
-/--
-In a locally compact T₃ space, given a compact set `K` inside an open set `U`, we can find a
-compact set `K'` between these sets: `K` is inside the interior of `K'` and `K' ⊆ U`.
--/
-lemma exists_compact_between [locally_compact_space α] [t3_space α]
-  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
-  ∃ K', is_compact K' ∧ K ⊆ interior K' ∧ K' ⊆ U :=
-begin
-  choose C hxC hCU hC using λ x : K, nhds_is_closed (hU.mem_nhds $ hKU x.2),
-  choose L hL hxL using λ x : K, exists_compact_mem_nhds (x : α),
-  have : K ⊆ ⋃ x, interior (L x) ∩ interior (C x), from
-  λ x hx, mem_Union.mpr ⟨⟨x, hx⟩,
-    ⟨mem_interior_iff_mem_nhds.mpr (hxL _), mem_interior_iff_mem_nhds.mpr (hxC _)⟩⟩,
-  rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
-  { refine ⟨⋃ x ∈ t, L x ∩ C x, t.compact_bUnion (λ x _, (hL x).inter_right (hC x)), λ x hx, _, _⟩,
-    { obtain ⟨y, hyt, hy : x ∈ interior (L y) ∩ interior (C y)⟩ := mem_Union₂.mp (ht hx),
-      rw [← interior_inter] at hy,
-      refine interior_mono (subset_bUnion_of_mem hyt) hy },
-    { simp_rw [Union_subset_iff], rintro x -, exact (inter_subset_right _ _).trans (hCU _) } },
-  { exact λ _, is_open_interior.inter is_open_interior }
-end
-
-/--
-In a locally compact regular space, given a compact set `K` inside an open set `U`, we can find a
-open set `V` between these sets with compact closure: `K ⊆ V` and the closure of `V` is inside `U`.
--/
-lemma exists_open_between_and_is_compact_closure [locally_compact_space α] [t3_space α]
-  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
-  ∃ V, is_open V ∧ K ⊆ V ∧ closure V ⊆ U ∧ is_compact (closure V) :=
-begin
-  rcases exists_compact_between hK hU hKU with ⟨V, hV, hKV, hVU⟩,
-  refine ⟨interior V, is_open_interior, hKV,
-    (closure_minimal interior_subset hV.is_closed).trans hVU,
-    compact_closure_of_subset_compact hV interior_subset⟩,
 end
 
 end t3

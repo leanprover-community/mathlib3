@@ -25,36 +25,20 @@ instance quotient_group.nhds_one_is_countably_generated {G : Type*} [group G] [t
 (quotient_group.nhds_eq N 1).symm ▸ filter.map.is_countably_generated _ _
 
 @[to_additive]
-lemma quotient_group.uniformity_is_countably_generated {G : Type*} [group G] [topological_space G]
+instance quotient_group.uniformity_is_countably_generated {G : Type*} [group G] [topological_space G]
   [first_countable_topology G] [topological_group G] (N : subgroup G) [N.normal]
   [is_closed (N : set G)] :
   (@uniformity (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N))).is_countably_generated :=
 comap.is_countably_generated _ _
 
-/-
 @[to_additive]
 instance quotient_group.metrizable {G : Type*} [group G] [topological_space G]
   [first_countable_topology G] [topological_group G] {N : subgroup G} [N.normal]
   [is_closed (N : set G)] : metrizable_space (G ⧸ N) :=
 @uniform_space.metrizable_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) _ _
--/
 
 open_locale pointwise
 
-@[to_additive]
-def filter.has_basis.mul {α : Type*} [has_mul α] {ι ι' : Sort*} {f g : filter α} {p : ι → Prop}
-  {p' : ι' → Prop} {s : ι → set α} {s' : ι' → set α} (hf : f.has_basis p s)
-  (hg : g.has_basis p' s') : (f * g).has_basis (λ i : ι × ι', p i.1 ∧ p' i.2)
-  (λ i : ι × ι', s i.1 * s' i.2) :=
-{ mem_iff' :=
-  begin
-    refine λ t, ⟨λ ht, _, _⟩,
-    { rcases filter.mem_mul.mp ht with ⟨tf, tg, htf, htg, htfg⟩,
-      obtain ⟨⟨i, hi₁, hi₂⟩, ⟨i', hi'₁, hi'₂⟩⟩ := ⟨hf.mem_iff.mp htf, hg.mem_iff.mp htg⟩,
-      exact ⟨(i, i'), ⟨hi₁, hi'₁⟩, (set.mul_subset_mul hi₂ hi'₂).trans htfg⟩ },
-    { rintro ⟨⟨i, i'⟩, ⟨hi, hi'⟩, h⟩,
-      exact filter.mem_mul.mpr ⟨s i, s' i', hf.mem_of_mem hi, hg.mem_of_mem hi', h⟩, }
-  end }
 
 open classical
 

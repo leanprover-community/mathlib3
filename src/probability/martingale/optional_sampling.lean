@@ -8,12 +8,23 @@ import probability.martingale.basic
 
 /-!
 # Optional stopping theorem
+
+If `τ` is a bounded stopping time and `σ` is another stopping
+time, then the stopped value of a martingale `f` with respect to `min τ σ` is almost everywhere
+equal to `μ[stopped_value f τ | hσ.measurable_space]`.
+
+## Main results
+
+* `stopped_value_min_ae_eq_condexp` : the optional stopping theorem.
+
 -/
 
 open_locale measure_theory big_operators ennreal
 open topological_space
 
 namespace measure_theory
+
+namespace martingale
 
 variables {Ω ι E : Type*} {m : measurable_space Ω} {μ : measure Ω}
   [linear_order ι] {ℱ : filtration ι m} {τ σ : Ω → ι}
@@ -66,7 +77,7 @@ begin
   simp_rw [stopped_value, hx],
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le_const_of_countable_range
+lemma stopped_value_ae_eq_condexp_of_le_const_of_countable_range
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ)
   (hτ_le : ∀ x, τ x ≤ n) (h_countable_range : (set.range τ).countable)
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
@@ -81,7 +92,7 @@ begin
   exact λ i hi, stopped_value_ae_eq_restrict_eq h _ hτ_le i,
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le_const' [locally_finite_order_bot ι]
+lemma stopped_value_ae_eq_condexp_of_le_const' [locally_finite_order_bot ι]
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   stopped_value f τ =ᵐ[μ] μ[f n | hτ.measurable_space] :=
@@ -93,13 +104,13 @@ begin
   exact hτ_le y,
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le_const [countable ι]
+lemma stopped_value_ae_eq_condexp_of_le_const [countable ι]
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   stopped_value f τ =ᵐ[μ] μ[f n | hτ.measurable_space] :=
 h.stopped_value_ae_eq_condexp_of_le_const_of_countable_range hτ hτ_le (set.to_countable _)
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le_of_countable_range
+lemma stopped_value_ae_eq_condexp_of_le_of_countable_range
   [(filter.at_top : filter ι).is_countably_generated]
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n)
@@ -120,7 +131,7 @@ begin
   { exact hσ.measurable_space_mono hτ hσ_le_τ, },
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le'
+lemma stopped_value_ae_eq_condexp_of_le'
   [(filter.at_top : filter ι).is_countably_generated] [locally_finite_order_bot ι]
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) (hσ_le_τ : σ ≤ τ)
   (hτ_le : ∀ x, τ x ≤ n) [sigma_finite (μ.trim hσ.measurable_space_le)] :
@@ -137,7 +148,7 @@ begin
     exact (hσ_le_τ y).trans (hτ_le y), },
 end
 
-lemma martingale.stopped_value_ae_eq_condexp_of_le [countable ι]
+lemma stopped_value_ae_eq_condexp_of_le [countable ι]
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   (hσ_le_τ : σ ≤ τ) (hτ_le : ∀ x, τ x ≤ n) [sigma_finite (μ.trim hσ.measurable_space_le)] :
   stopped_value f σ =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
@@ -186,7 +197,7 @@ end
 /-- **Optional Sampling** theorem. If `τ` is a bounded stopping time and `σ` is another stopping
 time, then the stopped value of a martingale `f` with respect to `min τ σ` is almost everywhere
 equal to `μ[stopped_value f τ | hσ.measurable_space]`. -/
-lemma martingale.stopped_value_min_ae_eq_condexp [countable ι] [locally_finite_order_bot ι]
+lemma stopped_value_min_ae_eq_condexp [countable ι] [locally_finite_order_bot ι]
   [measurable_space ι] [borel_space ι] [second_countable_topology ι]
   [measurable_space E] [borel_space E] [second_countable_topology E]
   [sigma_finite_filtration μ ℱ] (h : martingale f ℱ μ) (h_prog : prog_measurable ℱ f)
@@ -236,7 +247,7 @@ variables
 /-- **Optional Sampling** theorem for martingales indexed by `ℕ`. If `τ` is a bounded stopping time
 and `σ` is another stopping time, then the stopped value of a martingale `f` with respect to
 `min τ σ` is almost everywhere equal to `μ[stopped_value f τ | hσ.measurable_space]`. -/
-lemma martingale.stopped_value_min_ae_eq_condexp_nat {E}
+lemma stopped_value_min_ae_eq_condexp_nat {E}
   {𝒢 : filtration ℕ m} [sigma_finite_filtration μ 𝒢] {τ σ : Ω → ℕ}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   [measurable_space E] [borel_space E] [second_countable_topology E]
@@ -245,5 +256,7 @@ lemma martingale.stopped_value_min_ae_eq_condexp_nat {E}
   [h_sf_min : sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
   stopped_value f (λ x, min (σ x) (τ x)) =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
 h.stopped_value_min_ae_eq_condexp h.adapted.prog_measurable_of_nat hτ hσ hτ_le
+
+end martingale
 
 end measure_theory

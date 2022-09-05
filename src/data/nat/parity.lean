@@ -215,11 +215,9 @@ by rw [bit0_eq_two_mul n, bit0_eq_two_mul m, bit0_eq_two_mul (n % m), nat.mul_mo
 
 @[simp] lemma bit1_mod_bit0 : bit1 n % bit0 m = bit1 (n % m) :=
 begin
-  have h₁ := congr_arg (λ x, 2 * x + 1) (nat.div_add_mod n m),
-  dsimp only at h₁,
-  rw [mul_add, ← mul_assoc, add_assoc, ← bit0_eq_two_mul m, ← bit0_eq_two_mul n,
-      ← bit0_eq_two_mul (n % m), ← succ_eq_add_one, ← nat.bit1_eq_succ_bit0,
-      ← succ_eq_add_one, ← nat.bit1_eq_succ_bit0] at h₁,
+  have h₁ := congr_arg bit1 (nat.div_add_mod n m),
+  -- `∀ m n : ℕ, bit0 m * n = bit0 (m * n)` seems to be missing...
+  rw [bit1_add, bit0_eq_two_mul, ← mul_assoc, ← bit0_eq_two_mul] at h₁,
   have h₂ := nat.div_add_mod (bit1 n) (bit0 m),
   rw [bit1_div_bit0] at h₂,
   exact add_left_cancel (h₂.trans h₁.symm),

@@ -12,6 +12,12 @@ variables {V V' : Type*} (G : simple_graph V)
 
 namespace simple_graph
 
+protected def adj.reachable {G : simple_graph V} {u v : V} (h : G.adj u v) :
+  G.reachable u v := ⟨walk.cons h walk.nil⟩
+
+protected def walk.reachable {G : simple_graph V} {u v : V} (p : G.walk u v) :
+  G.reachable u v := ⟨p⟩
+
 /-- The one-vertex subgraph. -/
 @[simps]
 protected def singleton_subgraph (v : V) : G.subgraph :=
@@ -127,6 +133,203 @@ variables {G}
 
 @[simp] lemma verts_sup {H H' : G.subgraph} : (H ⊔ H').verts = H.verts ∪ H'.verts := rfl
 @[simp] lemma verts_inf {H H' : G.subgraph} : (H ⊓ H').verts = H.verts ∩ H'.verts := rfl
+
+protected def Sup (Hs : set G.subgraph) : G.subgraph :=
+{ verts := ⋃₀ (subgraph.verts '' Hs),
+  adj := Sup (subgraph.adj '' Hs),
+  adj_sub := λ v w, begin
+    rintro ⟨p, H, h⟩,
+    simp [h] at H,
+    obtain ⟨H, a⟩ := H,
+    exact H.adj_sub a.2,
+  end,
+  edge_vert := λ v w, begin
+    rintro ⟨p, H, h⟩,
+    simp [h] at H,
+    obtain ⟨H, hH, ha⟩ := H,
+    refine ⟨_, ⟨H, hH, rfl⟩, _⟩,
+    exact H.edge_vert ha,
+  end,
+  symm := λ v w, begin
+    rintro ⟨p, H, h⟩,
+    simp [h] at H,
+    obtain ⟨H, hH, ha⟩ := H,
+    simp [Sup_apply],
+    refine ⟨H, hH, ha.symm⟩
+  end }
+.
+
+lemma sup_induce_le_induce_union (H : G.subgraph) (s s' : set V) :
+  H.induce s ⊔ H.induce s' ≤ H.induce (s ∪ s') :=
+begin
+  simp,
+  split; mono; simp,
+end
+
+end subgraph
+
+section connected
+/-! ### Connected components as subgraphs -/
+
+/-- The set of maximal connected subgraphs. -/
+def connected_subgraphs : set G.subgraph :=
+{((⊤ : G.subgraph).induce (G.connected_component_mk ⁻¹' {c})) | (c : G.connected_component)}
+
+lemma connected_subgraphs.mem_verts_of_adj {G : simple_graph V} {H} (hH : H ∈ G.connected_subgraphs)
+  {v w : V} (hv : v ∈ H.verts) (hvw : G.adj v w) : w ∈ H.verts :=
+begin
+  obtain ⟨c, rfl⟩ := hH,
+  simp only [subgraph.induce_verts, set.mem_preimage, set.mem_singleton_iff] at hv ⊢,
+  rw [← hv, connected_component.eq],
+  exact hvw.symm.reachable,
+end
+
+lemma connected_subgraphs_nonempty_verts {H} (hH : H ∈ G.connected_subgraphs) :
+  H.verts.nonempty :=
+begin
+  obtain ⟨c, h⟩ := hH,
+  induction hc : c using simple_graph.connected_component.ind,
+  have : v ∈ H.verts,
+  { rw ← h,
+    simpa only using hc.symm},
+  exact ⟨v, this⟩,
+end
+
+lemma connected_subgraphs_ne_bot {H} (hH : H ∈ G.connected_subgraphs) :
+  H ≠ ⊥ :=
+begin
+  have := connected_subgraphs_nonempty_verts G hH,
+  intro h,
+  rw subgraph.ext_iff at h,
+  simp at h,
+  simp [h.1] at this,
+  assumption,
+end
+
+lemma connected_subgraphs_connected {H} (h : H ∈ G.connected_subgraphs) : H.connected :=
+begin
+  obtain ⟨v, hv⟩ := connected_subgraphs_nonempty_verts G h,
+  obtain ⟨c, h⟩ := h,
+  haveI : nonempty H.verts := ⟨⟨v, hv⟩⟩,
+  split,
+  rintro ⟨v, hv⟩ ⟨w, hw⟩,
+  rw ← h at hv hw,
+  simp at hv hw,
+  rw ← hw at hv,
+  rw connected_component.eq at hv,
+  refine hv.elim (λ p, _),
+  clear _inst hv,
+  constructor,
+  induction p,
+  refl,
+  refine walk.cons _ (p_ih _ _ _),
+  apply connected_subgraphs.mem_verts_of_adj ⟨c, h⟩ hv p_h,
+  simp [← h, p_h, ← hw, p_p.reachable, (walk.cons p_h p_p).reachable],
+  exact hw,
+end
+
+lemma connect_subgraphs_maximal_aux {H H'} (hH : H ∈ G.connected_subgraphs)
+  (hHH' : H ≤ H') (hc : H'.connected) : H'.verts ⊆ H.verts :=
+begin
+  intros v hv,
+  obtain ⟨w, hw⟩ := connected_subgraphs_nonempty_verts G hH,
+  have hw' := hHH'.1 hw,
+  have := hc ⟨v, hv⟩ ⟨w, hw'⟩,
+  obtain ⟨c, h⟩ := hH,
+  rw ← h,
+  simp,
+  rw ← h at hw,
+  simp at hw,
+  rw ← hw,
+  simp,
+  refine this.elim (λ p, _),
+  have := p.map H'.hom,
+  simp at this,
+  exact ⟨this⟩,
+end
+
+lemma connect_subgraphs_maximal {H H'} (hH : H ∈ G.connected_subgraphs)
+  (hHH' : H ≤ H') (hc : H'.connected) : H' = H :=
+begin
+  have key := connect_subgraphs_maximal_aux G hH hHH' hc,
+  refine le_antisymm _ hHH',
+  split,
+  { exact key },
+  { intros v w hvw,
+    obtain ⟨c, rfl⟩ := hH,
+    simp [H'.adj_sub hvw],
+    have := key (H'.edge_vert hvw),
+    simp at this, simp [this],
+    have := key (H'.edge_vert hvw.symm),
+    simp at this, simp [this], },
+end
+
+lemma connected_subgraphs.le_of_mem_verts {H H'}
+  (hH : H ∈ G.connected_subgraphs) (hH' : H' ∈ G.connected_subgraphs)
+  {v : V} (h : v ∈ H.verts) (h' : v ∈ H'.verts) : H ≤ H' :=
+begin
+  obtain ⟨c, rfl⟩ := hH,
+  obtain ⟨c', rfl⟩ := hH',
+  simp only [subgraph.induce_verts, set.mem_preimage, set.mem_singleton_iff] at h h',
+  subst_vars,
+end
+
+lemma connected_subgraphs.eq_of_mem_verts {H H'}
+  (hH : H ∈ G.connected_subgraphs) (hH' : H' ∈ G.connected_subgraphs)
+  {v : V} (h : v ∈ H.verts) (h' : v ∈ H'.verts) : H = H' :=
+by apply le_antisymm; apply connected_subgraphs.le_of_mem_verts; assumption
+
+lemma subgraph.eq_bot_iff (H : G.subgraph) :
+  H = ⊥ ↔ H.verts = ∅ :=
+begin
+  split,
+  { rintro rfl,
+    simp, },
+  { intro h,
+    ext,
+    { simp [h] },
+    { simp,
+      intro h',
+      have := H.edge_vert h',
+      rw h at this,
+      simpa, } }
+end
+
+lemma connected_subgraphs_disjoint {H H'}
+  (hH : H ∈ G.connected_subgraphs) (hH' : H' ∈ G.connected_subgraphs)
+  (h : H ≠ H') : disjoint H H' :=
+begin
+  rw [disjoint_iff, subgraph.eq_bot_iff],
+  contrapose! h,
+  rw [set.ne_empty_iff_nonempty] at h,
+  obtain ⟨v, h, h'⟩ := h,
+  apply connected_subgraphs.eq_of_mem_verts _ hH hH' h h',
+end
+
+lemma Sup_connected_subgraphs :
+  subgraph.Sup G.connected_subgraphs = ⊤ :=
+begin
+  ext,
+  { simp only [subgraph.Sup, set.sUnion_image, set.mem_Union, exists_prop,
+      subgraph.top_verts, set.mem_univ, iff_true],
+    use (⊤ : G.subgraph).induce (G.connected_component_mk ⁻¹' {G.connected_component_mk x}),
+    simp only [connected_subgraphs, set.mem_set_of_eq, exists_apply_eq_apply,
+      subgraph.induce_verts, set.mem_preimage, set.mem_singleton, and_self], },
+  { simp only [subgraph.Sup, Sup_apply, supr_apply, supr_Prop_eq, set_coe.exists, set.mem_image,
+      subtype.coe_mk, exists_prop, exists_exists_and_eq_and, subgraph.top_adj_iff],
+    split,
+    { rintro ⟨H, hH, ha⟩,
+      exact H.adj_sub ha },
+    { intro h,
+      use (⊤ : G.subgraph).induce (G.connected_component_mk ⁻¹' {G.connected_component_mk x}),
+      simp [connected_subgraphs, h, h.symm.reachable], } }
+end
+
+end connected
+
+
+namespace subgraph
+variables {G}
 
 lemma map_sup {G : simple_graph V} {G' : simple_graph V'} (f : G →g G')
   {H H' : G.subgraph} :

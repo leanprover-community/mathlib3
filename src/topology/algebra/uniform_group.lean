@@ -205,6 +205,13 @@ end
   𝓤 α = comap (λx:α×α, x.1 / x.2) (𝓝 (1:α)) :=
 by { rw [← comap_swap_uniformity, uniformity_eq_comap_nhds_one, comap_comap, (∘)], refl }
 
+variables {α}
+
+@[to_additive] theorem uniform_group.uniformity_countably_generated
+  [(𝓝 (1 : α)).is_countably_generated] :
+  (𝓤 α).is_countably_generated :=
+by { rw uniformity_eq_comap_nhds_one, exact filter.comap.is_countably_generated _ _ }
+
 open mul_opposite
 
 @[to_additive]
@@ -323,7 +330,19 @@ uniform_continuous_inv.comp_cauchy_seq h
   by simp [← preimage_smul_inv, preimage]
 
 section uniform_convergence
-variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → α} {s : set β}
+variables {ι : Type*} {l : filter ι} {l' : filter β} {f f' : ι → β → α} {g g' : β → α} {s : set β}
+
+@[to_additive] lemma tendsto_uniformly_on_filter.mul (hf : tendsto_uniformly_on_filter f g l l')
+  (hf' : tendsto_uniformly_on_filter f' g' l l') :
+  tendsto_uniformly_on_filter (f * f') (g * g') l l' :=
+λ u hu, ((uniform_continuous_mul.comp_tendsto_uniformly_on_filter
+  (hf.prod hf')) u hu).diag_of_prod_left
+
+@[to_additive] lemma tendsto_uniformly_on_filter.div (hf : tendsto_uniformly_on_filter f g l l')
+  (hf' : tendsto_uniformly_on_filter f' g' l l') :
+  tendsto_uniformly_on_filter (f / f') (g / g') l l' :=
+λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly_on_filter
+  (hf.prod hf')) u hu).diag_of_prod_left
 
 @[to_additive] lemma tendsto_uniformly_on.mul (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f * f') (g * g') l s :=
@@ -332,6 +351,14 @@ variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → 
 @[to_additive] lemma tendsto_uniformly_on.div (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f / f') (g / g') l s :=
 λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma tendsto_uniformly.mul (hf : tendsto_uniformly f g l)
+  (hf' : tendsto_uniformly f' g' l) : tendsto_uniformly (f * f') (g * g') l :=
+λ u hu, ((uniform_continuous_mul.comp_tendsto_uniformly (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma tendsto_uniformly.div (hf : tendsto_uniformly f g l)
+  (hf' : tendsto_uniformly f' g' l) : tendsto_uniformly (f / f') (g / g') l :=
+λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly (hf.prod hf')) u hu).diag_of_prod
 
 @[to_additive] lemma uniform_cauchy_seq_on.mul (hf : uniform_cauchy_seq_on f l s)
   (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f * f') l s :=
@@ -421,6 +448,21 @@ local attribute [instance] topological_group.to_uniform_space
 end⟩
 
 variables {G}
+
+@[to_additive] instance subgroup.is_closed_of_discrete [t2_space G]
+  {H : subgroup G} [discrete_topology H] : is_closed (H : set G) :=
+begin
+  obtain ⟨V, V_in, VH⟩ : ∃ (V : set G) (hV : V ∈ 𝓝 (1 : G)), V ∩ (H : set G) = {1},
+    from nhds_inter_eq_singleton_of_mem_discrete H.one_mem,
+  haveI : separated_space G := separated_iff_t2.mpr ‹_›,
+  have : (λ p : G × G, p.2 / p.1) ⁻¹' V ∈ 𝓤 G, from preimage_mem_comap V_in,
+  apply is_closed_of_spaced_out this,
+  intros h h_in h' h'_in,
+  contrapose!,
+  rintro (hyp : h' / h ∈ V),
+  have : h'/h ∈ ({1} : set G) := VH ▸ set.mem_inter hyp (H.div_mem h'_in h_in),
+  exact (eq_of_div_eq_one this).symm
+end
 
 @[to_additive] lemma topological_group.tendsto_uniformly_iff
   {ι α : Type*} (F : ι → α → G) (f : α → G) (p : filter ι) :

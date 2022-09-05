@@ -139,10 +139,6 @@ section normed_space
 
 variables {V : Type} [normed_add_comm_group V] [normed_space ℝ V]
 
-lemma is_closed {V : Type} [normed_add_comm_group V] [normed_space ℝ V] (K : convex_body V) :
-  is_closed (K : set V) :=
-K.is_compact.is_closed
-
 lemma dist_eq_to_real_Hausdorff_edist (K L : convex_body V) :
   dist K L = (emetric.Hausdorff_edist (K : set V) L).to_real := rfl
 

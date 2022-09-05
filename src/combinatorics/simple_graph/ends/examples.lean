@@ -283,11 +283,28 @@ variables  {V' : Type v}
            (Glf' : locally_finite G')
 
 
+include Gpc Glf
+lemma simple_graph.finite_balls (v : V) (m : ℕ) : set.finite {u | G.dist v u ≤ m} :=
+begin
+  have : G.connected, by {rw connected_iff, use Gpc, use ⟨v⟩,},
+  induction m,
+  { simp only [le_zero_iff, connected.dist_eq_zero_iff this],
+    simp only [set_of_eq_eq_singleton', finite_singleton],},
+  { have : {u : V | G.dist v u ≤ m_n.succ} = ⋃ w ∈ {u : V | G.dist v u ≤ m_n}, G.neighbor_set w, by
+    { sorry, },
+    rw this,
+    apply set.finite.bUnion,
+    apply m_ih,
+    rintro w hw,
+    exact (neighbor_set G w).to_finite,
+  }
+end
+
 lemma cofinite_of_coarse_Lipschitz_inv (φ : V → V') (ψ : V' → V) (m : ℕ) (mge : m ≥ 1)
   (φψ : ∀ (v : V), G.dist (ψ $ φ v) v ≤ m)
   (φl : coarse_Lipschitz G G' φ m) (ψl : coarse_Lipschitz G' G ψ m) : cofinite φ :=
 begin
-  have : ∀ v : V, {u | G.dist v u ≤ m}.finite, by sorry, -- by Glf
+  have : ∀ v : V, {u | G.dist v u ≤ m}.finite := λ v, simple_graph.finite_balls G Gpc Glf v m,
   rintro x,
   dsimp only [set.preimage],
   simp only [mem_singleton_iff],

@@ -198,21 +198,20 @@ end
 For any $x\in(0,t)$
 $|f(x)|\le \bar{f}(t)$
 -/
-lemma f_bar_ineq (f : ℤ[X]) (t : ℝ) (x) (hx : x ∈ set.Icc 0 t) :
+lemma f_bar_ineq (f : ℤ[X]) (t x : ℝ) (hx1 : 0 ≤ x) (hx2 : x ≤ t) :
   abs (aeval x f) ≤ aeval t (f_bar f) :=
 begin
-  rw set.mem_Icc at hx,
   calc |aeval x f| = |∑ i in f.support, (f.coeff i : ℝ) * x ^ i| : _
   ... ≤ ∑ i in f.support, |(f.coeff i : ℝ) * x ^ i| : finset.abs_sum_le_sum_abs _ _
   ... = ∑ i in f.support, |(f.coeff i : ℝ)| * x ^ i : finset.sum_congr rfl (λ i hi, _)
   ... ≤ ∑ i in (f_bar f).support, abs (f.coeff i : ℝ) * t ^ i : _
   ... = _ : _,
   { rw [aeval_eq_sum_support x f], simp only [zsmul_eq_mul] },
-  { have := pow_nonneg hx.1 i,
+  { have := pow_nonneg hx1 i,
     rw [abs_mul, abs_of_nonneg this], },
   { rw bar_supp,
     refine finset.sum_le_sum (λ n hn, mul_le_mul_of_nonneg_left _ (abs_nonneg _)),
-    exact pow_le_pow_of_le_left hx.1 hx.2 _ },
+    exact pow_le_pow_of_le_left hx1 hx2 _ },
   { rw [aeval_eq_sum_support],
     simp only [e_transcendental_lemmas.bar_coeff, finset.sum_congr, zsmul_eq_mul, int.cast_abs] }
 end
@@ -290,11 +289,10 @@ begin
   refine (interval_integral.norm_integral_le_of_norm_le_const _).trans_eq _,
   { exact real.exp t * aeval t (f_bar f) },
   { intros x hx,
-    rw set.interval_oc_of_le ht at hx,
-    replace hx := set.Ioc_subset_Icc_self hx,
+    rw [set.interval_oc_of_le ht, set.mem_Ioc] at hx,
     rw [real.norm_eq_abs, abs_mul, real.abs_exp],
-    refine mul_le_mul _ (f_bar_ineq f t x hx) (abs_nonneg _) (real.exp_pos t).le,
-    rw [real.exp_le_exp, sub_le, sub_self], exact hx.1 },
+    refine mul_le_mul _ (f_bar_ineq f t x hx.1.le hx.2) (abs_nonneg _) (real.exp_pos t).le,
+    rw [real.exp_le_exp, sub_le, sub_self], exact hx.1.le },
   { rw [sub_zero, abs_of_nonneg ht, mul_comm, mul_assoc] },
 end
 

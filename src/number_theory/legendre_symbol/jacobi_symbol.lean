@@ -329,6 +329,12 @@ theorem jacobi_sym_quadratic_reciprocity_one_mod_four {a b : ℕ} (ha : a % 4 = 
 by rw [jacobi_sym_quadratic_reciprocity (odd_iff.mpr (odd_of_mod_four_eq_one ha)) hb,
        pow_mul, neg_one_pow_div_two_of_one_mod_four ha, one_pow, one_mul]
 
+/-- The Law of Quadratic Reciprocity for the Jacobi symbol: if `a` and `b` are natural numbers
+with `a` odd and `b % 4 = 1`, then `[a | b]ⱼ = [b | a]ⱼ`. -/
+theorem jacobi_sym_quadratic_reciprocity_one_mod_four' {a b : ℕ} (ha : odd a) (hb : b % 4 = 1) :
+  [a | b]ⱼ = [b | a]ⱼ :=
+(jacobi_sym_quadratic_reciprocity_one_mod_four hb ha).symm
+
 /-- The Law of Quadratic Reciprocityfor the Jacobi symbol: if `a` and `b` are natural numbers
 both congruent to `3` mod `4`, then `[a | b]ⱼ = -[b | a]ⱼ`. -/
 theorem jacobi_sym_quadratic_reciprocity_three_mod_four

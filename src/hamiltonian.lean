@@ -695,7 +695,7 @@ lemma adj.spanning_coe {H : G.subgraph} {u v : V} (h : H.adj u v) :
 protected def is_cycle (H : G.subgraph) : Prop :=
 ∃ u (c : G.walk u u), c.is_cycle ∧ H = c.to_subgraph
 
-lemma degree_of_is_cycle (H : G.subgraph) (Hc : H.is_cycle)
+lemma is_cycle.degree_eq {H : G.subgraph} (Hc : H.is_cycle)
   {v : V} [fintype (H.neighbor_set v)] (hv : v ∈ H.verts) :
   H.degree v = 2 :=
 begin
@@ -704,6 +704,14 @@ begin
   apply walk.degree_to_subgraph_of_is_cycle,
   assumption,
   simpa using hv,
+end
+
+lemma is_cycle_iff (H : G.subgraph) [fintype H.verts] [decidable_rel H.adj]:
+  H.is_cycle ↔ ∀ v, v ∈ H.verts → H.degree v = 2 :=
+begin
+  refine ⟨λ h v hv, h.degree_eq hv, _⟩,
+  intro h,
+  sorry -- need to construct cycle
 end
 
 namespace is_perfect_matching

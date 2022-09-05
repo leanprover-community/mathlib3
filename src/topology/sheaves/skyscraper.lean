@@ -43,7 +43,7 @@ open opposite
 
 universes u v w
 
-variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{w} C] (S : C)
+variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{w} C] (A : C)
 variables [has_terminal C] [Π (U : opens X), decidable (p₀ ∈ U)]
 
 /--
@@ -52,7 +52,7 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
 `U ↦ *` if `p₀ ∉ A` where `*` is some terminal object.
 -/
 @[simps] def skyscraper_presheaf : presheaf C X :=
-{ obj := λ U, if p₀ ∈ unop U then S else terminal C,
+{ obj := λ U, if p₀ ∈ unop U then A else terminal C,
   map := λ U V i, if h : p₀ ∈ unop V
     then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
     else ((if_neg h).symm.rec terminal_is_terminal).from _,
@@ -72,20 +72,6 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
 
 section
 
-variables {p₀}
-
-lemma skyscraper_presheaf_obj_of_mem {U : opens X} (h : p₀ ∈ U) :
-  (skyscraper_presheaf p₀ S).obj (op U) = S := if_pos h
-
-lemma skyscraper_presheaf_obj_of_not_mem {U : opens X} (h : p₀ ∉ U) :
-  (skyscraper_presheaf p₀ S).obj (op U) = terminal C := if_neg h
-
-end
-
-end
-
-section
-
 -- In this section, we calculate the stalks for skyscraper presheaves.
 -- We need to restrict universe level.
 
@@ -96,15 +82,15 @@ open opposite
 
 universes u v
 
-variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{u} C] (S : C) [has_terminal C]
+variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{u} C] (A : C) [has_terminal C]
 
 variable [Π (U : opens X), decidable (p₀ ∈ U)]
 /--
-The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}`
+The cocone at `A` for the stalk functor of `skyscraper_presheaf p₀ A` when `y ∈ closure {p₀}`
 -/
 @[simps] def skyscraper_presheaf_cocone_of_specializes {y : X} (h : p₀ ⤳ y) :
-  cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S) :=
-{ X := S,
+  cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ A) :=
+{ X := A,
   ι := { app := λ U, eq_to_hom $ if_pos $ h.mem_open U.unop.1.2 U.unop.2,
     naturality' := λ U V inc, begin
       change dite _ _ _ ≫ _ = _, rw dif_pos,
@@ -113,11 +99,11 @@ The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y 
     end } }
 
 /--
-The cocone at `S` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∈ closure {p₀}` is a
+The cocone at `A` for the stalk functor of `skyscraper_presheaf p₀ A` when `y ∈ closure {p₀}` is a
 colimit
 -/
 noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes
-  {y : X} (h : p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone_of_specializes p₀ S h) :=
+  {y : X} (h : p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone_of_specializes p₀ A h) :=
 { desc := λ c, eq_to_hom (if_pos trivial).symm ≫ c.ι.app (op ⊤),
   fac' := λ c U, begin
     rw ← c.w (hom_of_le $ (le_top : unop U ≤ _)).op,
@@ -131,29 +117,29 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes
     eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp] }
 
 /--
-If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y` is `S`.
+If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is `A`.
 -/
 @[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_specializes [has_colimits C]
-  {y : X} (h : p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ S :=
-colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_specializes p₀ S h⟩
+  {y : X} (h : p₀ ⤳ y) : (skyscraper_presheaf p₀ A).stalk y ≅ A :=
+colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_specializes p₀ A h⟩
 
 /--
-The cocone at `*` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}`
+The cocone at `*` for the stalk functor of `skyscraper_presheaf p₀ A` when `y ∉ closure {p₀}`
 -/
 @[simps] def skyscraper_presheaf_cocone (y : X) :
-  cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ S) :=
+  cocone ((open_nhds.inclusion y).op ⋙ skyscraper_presheaf p₀ A) :=
 { X := terminal C,
   ι :=
   { app := λ U, terminal.from _,
     naturality' := λ U V inc, terminal_is_terminal.hom_ext _ _ } }
 
 /--
-The cocone at `*` for the stalk functor of `skyscraper_presheaf p₀ S` when `y ∉ closure {p₀}` is a
+The cocone at `*` for the stalk functor of `skyscraper_presheaf p₀ A` when `y ∉ closure {p₀}` is a
 colimit
 -/
 noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes
-  {y : X} (h : ¬p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone p₀ S y) :=
+  {y : X} (h : ¬p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone p₀ A y) :=
 let h0 := not_specializes_iff_exists_open.mp h, h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
   ⟨⟨⟨h0.some, h0.some_spec.1⟩, h0.some_spec.2.1⟩, h0.some_spec.2.2⟩ in
 { desc := λ c, eq_to_hom (if_neg h1.some_spec).symm ≫ c.ι.app (op h1.some),
@@ -171,18 +157,18 @@ let h0 := not_specializes_iff_exists_open.mp h, h1 : ∃ (U : open_nhds y), p₀
   end }
 
 /--
-If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y` is `*`
+If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is `*`
 -/
 @[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_not_specializes [has_colimits C]
-  {y : X} (h : ¬p₀ ⤳ y) : (skyscraper_presheaf p₀ S).stalk y ≅ terminal C :=
-colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_not_specializes _ S h⟩
+  {y : X} (h : ¬p₀ ⤳ y) : (skyscraper_presheaf p₀ A).stalk y ≅ terminal C :=
+colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_not_specializes _ A h⟩
 
 /--
-If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ S` at `y` is a terminal object
+If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is a terminal object
 -/
 def skyscraper_presheaf_stalk_of_not_specializes_is_terminal
-  [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ S).stalk y) :=
+  [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ A).stalk y) :=
 is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_specializes _ _ h).symm
 
 end

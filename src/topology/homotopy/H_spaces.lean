@@ -60,9 +60,8 @@ begin
   { exact le_of_lt (lt_of_lt_of_le (lt_of_not_ge h_θ_0) t.2.1) },
 end
 
-lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ) → (t : ℝ)
-  = θ := λ ⟨h_left, h_right⟩, by {simp only [eq_of_ge_of_not_gt (not_mem_interior
-    h_right) (not_lt_of_le $ mem_closure_iff.mp h_left)]}
+lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ) → (t : ℝ) = θ :=
+λ ⟨hl, hr⟩, by simp only [le_antisymm (not_mem_interior hr) (mem_closure_iff.mp hl)]
 
 end unit_interval
 

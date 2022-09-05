@@ -8,7 +8,7 @@ import data.finset.preimage
 /-!
 #  Unique products and related notions
 
-A group `G` has *unique products* is for any two non-empty finite subsets `A, B ⊂ G`, there is an
+A group `G` has *unique products* if for any two non-empty finite subsets `A, B ⊂ G`, there is an
 element `g ∈ A * B` that can be written uniquely as a product of an element of `A` and an element
 of `B`.  We call the formalization this property `unique_prods`.  Since the condition requires no
 property of the group operation, we define it for a Type simply satisfying `has_mul`.  We also
@@ -68,6 +68,10 @@ def unique_mul {G} [has_mul G] (A B : finset G) (a0 b0 : G) : Prop :=
 
 namespace unique_mul
 variables {G H : Type*} [has_mul G] [has_mul H] {A B : finset G} {a0 b0 : G}
+
+lemma mt {G} [has_mul G] {A B : finset G} {a0 b0 : G} (h : unique_mul A B a0 b0) :
+  ∀ ⦃a b⦄, a ∈ A → b ∈ B → a ≠ a0 ∨ b ≠ b0 → a * b ≠ a0 * b0 :=
+λ _ _ ha hb k, by { contrapose! k, exact h ha hb k }
 
 @[to_additive]
 lemma subsingleton (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :

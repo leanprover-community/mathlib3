@@ -23,6 +23,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] [decidable_eq 𝕜] {n : Type*} [finty
 variables {A : matrix n n 𝕜}
 
 open_locale matrix
+open_locale big_operators
 
 namespace is_hermitian
 
@@ -78,6 +79,13 @@ begin
       orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
       pi.basis_fun_apply, eigenvalues₀, linear_map.coe_std_basis,
       euclidean_space.single, pi_Lp.equiv_symm_apply'] }
+end
+
+/-- The determinant of a hermitian matrix is the product of its eigenvalues. -/
+lemma det_eq_prod_eigenvalues : det A = ∏ i, hA.eigenvalues i :=
+begin
+  apply mul_left_cancel₀ (det_ne_zero_of_left_inverse (eigenvector_matrix_mul_inv hA)),
+  rw [←det_mul, spectral_theorem, det_mul, mul_comm, det_diagonal]
 end
 
 end is_hermitian

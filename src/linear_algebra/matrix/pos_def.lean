@@ -66,7 +66,8 @@ begin
   rw hM.is_hermitian.det_eq_prod_eigenvalues,
   apply finset.prod_pos,
   intros i _,
-  have := has_eigenvalue_eigenvalues i,
+  rw hM.is_hermitian.eigenvalues_eq,
+  apply hM.2,
 end
 
 end pos_def

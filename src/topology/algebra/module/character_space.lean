@@ -84,6 +84,23 @@ def to_non_unital_alg_hom (φ : character_space 𝕜 A) : A →ₙₐ[𝕜] 𝕜
 @[simp]
 lemma coe_to_non_unital_alg_hom (φ : character_space 𝕜 A) : ⇑(to_non_unital_alg_hom φ) = φ := rfl
 
+variables (𝕜 A)
+
+lemma union_zero :
+  character_space 𝕜 A ∪ {0} = {φ : weak_dual 𝕜 A | ∀ (x y : A), φ (x * y) = (φ x) * (φ y)} :=
+le_antisymm
+  (by { rintros φ (hφ | h₀), { exact hφ.2 }, { exact λ x y, by simp [set.eq_of_mem_singleton h₀] }})
+  (λ φ hφ, or.elim (em $ φ = 0) (λ h₀, or.inr h₀) (λ h₀, or.inl ⟨h₀, hφ⟩))
+
+/-- The `character_space 𝕜 A` along with `0` is always a closed set in `weak_dual 𝕜 A`. -/
+lemma union_zero_is_closed [t2_space 𝕜] [has_continuous_mul 𝕜] :
+  is_closed (character_space 𝕜 A ∪ {0}) :=
+begin
+  simp only [union_zero, set.set_of_forall],
+  exact is_closed_Inter (λ x, is_closed_Inter $ λ y, is_closed_eq (eval_continuous _) $
+    (eval_continuous _).mul (eval_continuous _))
+end
+
 end non_unital_non_assoc_semiring
 
 section unital
@@ -125,17 +142,14 @@ begin
   simpa using h.1,
 end
 
+/-- under suitable mild assumptions on `𝕜`, the character space is a closed set in
+`weak_dual 𝕜 A`. -/
 lemma is_closed [nontrivial 𝕜] [t2_space 𝕜] [has_continuous_mul 𝕜] :
   is_closed (character_space 𝕜 A) :=
 begin
-  rw [eq_set_map_one_map_mul],
+  rw [eq_set_map_one_map_mul, set.set_of_and],
   refine is_closed.inter (is_closed_eq (eval_continuous _) continuous_const) _,
-  change is_closed {φ : weak_dual 𝕜 A | ∀ x y : A, φ (x * y) = φ x * φ y},
-  rw [set.set_of_forall],
-  refine is_closed_Inter (λ a, _),
-  rw [set.set_of_forall],
-  exact is_closed_Inter (λ _, is_closed_eq (eval_continuous _)
-    ((eval_continuous _).mul (eval_continuous _)))
+  simpa only [(union_zero 𝕜 A).symm] using union_zero_is_closed _ _,
 end
 
 end unital
@@ -146,7 +160,7 @@ variables [comm_ring 𝕜] [no_zero_divisors 𝕜] [topological_space 𝕜] [has
   [has_continuous_const_smul 𝕜 𝕜] [topological_space A] [ring A] [algebra 𝕜 A]
 
 lemma apply_mem_spectrum [nontrivial 𝕜] (φ : character_space 𝕜 A) (a : A) : φ a ∈ spectrum 𝕜 a :=
-(to_alg_hom φ).apply_mem_spectrum a
+alg_hom.apply_mem_spectrum φ a
 
 end ring
 

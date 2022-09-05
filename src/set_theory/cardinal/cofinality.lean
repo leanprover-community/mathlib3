@@ -445,8 +445,8 @@ variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}}
 protected theorem cof_eq (hf : is_fundamental_sequence a o f) : a.cof.ord = o :=
 hf.1.antisymm' $ by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) }
 
-protected theorem strict_mono (hf : is_fundamental_sequence a o f) :
-  ∀ {i j} (hi) (hj), i < j → f i hi < f j hj :=
+protected theorem strict_mono (hf : is_fundamental_sequence a o f) {i j} :
+  ∀ hi hj, i < j → f i hi < f j hj :=
 hf.2.1
 
 theorem blsub_eq (hf : is_fundamental_sequence a o f) : blsub.{u u} o f = a :=
@@ -710,7 +710,7 @@ end ordinal
 namespace cardinal
 open ordinal
 
-local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
+local infixr (name := cardinal.pow) ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 
 /-- A cardinal is a limit if it is not zero or a successor
   cardinal. Note that `ℵ₀` is a limit cardinal by this definition. -/

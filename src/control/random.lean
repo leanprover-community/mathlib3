@@ -5,11 +5,11 @@ Authors: Simon Hudon
 -/
 
 import control.monad.basic
+import control.uliftable
+import data.bitvec.basic
 import data.int.basic
 import data.stream.defs
-import control.uliftable
 import tactic.norm_num
-import data.bitvec.basic
 
 
 /-!
@@ -224,7 +224,7 @@ variables {g : Type} [random_gen g]
 open nat
 
 namespace fin
-variables {n : ℕ} [fact (0 < n)]
+variables {n : ℕ} [ne_zero n]
 
 /-- generate a `fin` randomly -/
 protected def random : rand_g g (fin n) :=
@@ -252,7 +252,7 @@ instance int_bounded_random : bounded_random ℤ :=
          (int.coe_nat_le_coe_nat_of_le h₁)
          (le_of_eq $ int.of_nat_nat_abs_eq_of_nonneg (int.sub_nonneg_of_le hxy)) ⟩ }
 
-instance fin_random (n : ℕ) [fact (0 < n)] : random (fin n) :=
+instance fin_random (n : ℕ) [ne_zero n] : random (fin n) :=
 { random := λ g inst, @fin.random g inst _ _ }
 
 instance fin_bounded_random (n : ℕ) : bounded_random (fin n) :=
@@ -283,8 +283,6 @@ instance : bounded_random bool :=
 { random_r := λ g _inst x y p,
   subtype.map bool.of_nat (bool_of_nat_mem_Icc_of_mem_Icc_to_nat x y) <$>
     @bounded_random.random_r ℕ _ _ g _inst x.to_nat y.to_nat (bool.to_nat_le_to_nat p) }
-
-open_locale fin_fact
 
 /-- generate a random bit vector of length `n` -/
 def bitvec.random (n : ℕ) : rand_g g (bitvec n) :=

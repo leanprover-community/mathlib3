@@ -130,16 +130,19 @@ variables (σ R) [comm_semiring R] [comm_semiring S] [fintype σ] [fintype τ]
 def esymm (n : ℕ) : mv_polynomial σ R :=
 ∑ t in powerset_len n univ, ∏ i in t, X i
 
+lemma aeval_esymm_eq_multiset.esymm [algebra R S] (f : σ → S) (n : ℕ) :
+  aeval f (esymm σ R n) = (finset.univ.val.map f).esymm n :=
+begin
+  simp_rw [esymm, map_sum, map_prod, aeval_X, multiset.esymm, finset.sum_eq_multiset_sum],
+  conv_lhs { congr, congr, funext, rw finset.prod_eq_multiset_prod },
+  rw [multiset.powerset_len_map, ← map_val_val_powerset_len, multiset.map_map, multiset.map_map],
+end
+
 /-- The `n`th elementary symmetric `mv_polynomial σ R` is obtained by evaluating the
 `n`th elementary symmetric at the `multiset` of the monomials -/
 lemma esymm_eq_multiset.esymm (n : ℕ) :
-  esymm σ R n =
-  multiset.esymm (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val) n :=
-begin
-  rw [esymm, multiset.esymm, finset.sum_eq_multiset_sum],
-  conv_lhs { congr, congr, funext, rw finset.prod_eq_multiset_prod },
-  rw [multiset.powerset_len_map, ←map_val_val_powerset_len, multiset.map_map, multiset.map_map],
-end
+  esymm σ R n = (finset.univ.val.map X).esymm n :=
+(aeval_X_left_apply _).symm.trans (aeval_esymm_eq_multiset.esymm σ R X n)
 
 /-- We can define `esymm σ R n` by summing over a subtype instead of over `powerset_len`. -/
 lemma esymm_eq_sum_subtype (n : ℕ) : esymm σ R n =

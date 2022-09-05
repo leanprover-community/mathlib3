@@ -275,7 +275,8 @@ begin
   simp [ennreal.coe_to_nnreal (measure_ne_top μ _), ennreal.coe_to_nnreal],
 end
 
-lemma submartingale.exists_tendsto_of_abs_bdd_above [is_finite_measure μ]
+/-- This lemma is superceded by `submartingale.bdd_above_iff_exists_tendsto`. -/
+lemma submartingale.exists_tendsto_of_abs_bdd_above_aux [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hf0 : f 0 = 0)
   (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
   ∀ᵐ ω ∂μ, bdd_above (set.range $ λ n, f n ω) → ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
@@ -305,7 +306,7 @@ lemma submartingale.bdd_above_iff_exists_tendsto_aux [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hf0 : f 0 = 0)
   (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
   ∀ᵐ ω ∂μ, bdd_above (set.range $ λ n, f n ω) ↔ ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
-by filter_upwards [hf.exists_tendsto_of_abs_bdd_above hf0 hbdd] with ω hω using
+by filter_upwards [hf.exists_tendsto_of_abs_bdd_above_aux hf0 hbdd] with ω hω using
   ⟨hω, λ ⟨c, hc⟩, hc.bdd_above_range⟩
 
 /-- One sided martingale bound: If `f` is a submartingale which has uniformly bounded difference,

@@ -19,7 +19,7 @@ nontrivial zero divisors, that is, it is a domain.
 
 We formalize in this file the well-known result that if `R` is a field and `A` is a left-ordered
 group, then `R[A]` contains no non-zero zero-divisors.  Some of these assumptions can be trivially
-weakened: below we mention what assumptions are sufficient for the proofs in this file
+weakened: below we mention what assumptions are sufficient for the proofs in this file.
 
 ##  Main results
 
@@ -35,8 +35,8 @@ The conditions on `A` imposed in `no_zero_divisors.of_left_ordered` are sometime
 The conditions on `A` imposed in `no_zero_divisors.of_right_ordered` are sometimes referred to as
 `right-ordered`.
 
-These conditions are sufficient, but are not necessary.  As mentioned above,
-*Kaplansky's Conjecture* asserts that `A` being torsion-free may be enough.
+These conditions are sufficient, but not necessary.  As mentioned above, *Kaplansky's Conjecture*
+asserts that `A` being torsion-free may be enough.
 -/
 
 namespace add_monoid_algebra

@@ -97,7 +97,7 @@ class H_space (X : Type u) [topological_space X]  :=
   ⟨(λ x : X, Hmul (e, x)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
   {e})
 (right_Hmul_e : continuous_map.homotopy_rel
-  ⟨(λ x : X, Hmul (x, e)), (continuous.comp cont'(continuous_id'.prod_mk continuous_const))⟩
+  ⟨(λ x : X, Hmul (x, e)), (continuous.comp cont' (continuous_id'.prod_mk continuous_const))⟩
   ⟨id, continuous_id'⟩
   {e})
 

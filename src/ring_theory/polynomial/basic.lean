@@ -127,7 +127,7 @@ def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n 
     intro f, ext i,
     simp only [finset_sum_coeff, submodule.coe_mk],
     rw [finset.sum_eq_single i, coeff_monomial, if_pos rfl],
-    { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← subtype.ext_iff] },
+    { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← fin.ext_iff] },
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
 
@@ -696,7 +696,7 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, zero_mem_class.coe_zero,
     subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
@@ -987,78 +987,64 @@ theorem is_noetherian_ring_fin [is_noetherian_ring R] :
 
 /-- The multivariate polynomial ring in finitely many variables over a noetherian ring
 is itself a noetherian ring. -/
-instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
+instance is_noetherian_ring [finite σ] [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial σ R) :=
+by casesI nonempty_fintype σ; exact
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
   (rename_equiv R (fintype.equiv_fin σ).symm).to_ring_equiv is_noetherian_ring_fin
-
-lemma is_domain_fin_zero (R : Type u) [comm_ring R] [is_domain R] :
-  is_domain (mv_polynomial (fin 0) R) :=
-ring_equiv.is_domain R
-  ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans
-    (mv_polynomial.is_empty_ring_equiv R pempty))
 
 /-- Auxiliary lemma:
 Multivariate polynomials over an integral domain
 with variables indexed by `fin n` form an integral domain.
 This fact is proven inductively,
 and then used to prove the general case without any finiteness hypotheses.
-See `mv_polynomial.is_domain` for the general case. -/
-lemma is_domain_fin (R : Type u) [comm_ring R] [is_domain R] :
-  ∀ (n : ℕ), is_domain (mv_polynomial (fin n) R)
-| 0 := is_domain_fin_zero R
-| (n+1) :=
-  begin
-    haveI := is_domain_fin n,
-    exact ring_equiv.is_domain
-      (polynomial (mv_polynomial (fin n) R))
-      (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv
+See `mv_polynomial.no_zero_divisors` for the general case. -/
+lemma no_zero_divisors_fin (R : Type u) [comm_semiring R] [no_zero_divisors R] :
+  ∀ (n : ℕ), no_zero_divisors (mv_polynomial (fin n) R)
+| 0 := (mv_polynomial.is_empty_alg_equiv R _).injective.no_zero_divisors _ (map_zero _) (map_mul _)
+| (n+1) := begin
+    haveI := no_zero_divisors_fin n,
+    exact (mv_polynomial.fin_succ_equiv R n).injective.no_zero_divisors _ (map_zero _) (map_mul _)
   end
 
 /-- Auxiliary definition:
 Multivariate polynomials in finitely many variables over an integral domain form an integral domain.
-This fact is proven by transport of structure from the `mv_polynomial.is_domain_fin`,
+This fact is proven by transport of structure from the `mv_polynomial.no_zero_divisors_fin`,
 and then used to prove the general case without finiteness hypotheses.
-See `mv_polynomial.is_domain` for the general case. -/
-lemma is_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
-  [is_domain R] : is_domain (mv_polynomial σ R) :=
-@ring_equiv.is_domain _ (mv_polynomial (fin $ fintype.card σ) R) _ _
-  (mv_polynomial.is_domain_fin _ _)
-  (rename_equiv R (fintype.equiv_fin σ)).to_ring_equiv
-
-protected theorem eq_zero_or_eq_zero_of_mul_eq_zero
-  {R : Type u} [comm_ring R] [is_domain R] {σ : Type v}
-  (p q : mv_polynomial σ R) (h : p * q = 0) : p = 0 ∨ q = 0 :=
+See `mv_polynomial.no_zero_divisors` for the general case. -/
+lemma no_zero_divisors_of_finite (R : Type u) (σ : Type v) [comm_semiring R] [finite σ]
+  [no_zero_divisors R] : no_zero_divisors (mv_polynomial σ R) :=
 begin
+  casesI nonempty_fintype σ,
+  haveI := no_zero_divisors_fin R (fintype.card σ),
+  exact (rename_equiv R (fintype.equiv_fin σ)).injective.no_zero_divisors _ (map_zero _) (map_mul _)
+end
+
+instance {R : Type u} [comm_semiring R] [no_zero_divisors R] {σ : Type v} :
+  no_zero_divisors (mv_polynomial σ R) :=
+⟨λ p q h, begin
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
   have :
     rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) p *
     rename (subtype.map id (finset.subset_union_right s t) : {x // x ∈ t} → {x // x ∈ s ∪ t}) q = 0,
   { apply rename_injective _ subtype.val_injective, simpa using h },
-  letI := mv_polynomial.is_domain_fintype R {x // x ∈ (s ∪ t)},
+  letI := mv_polynomial.no_zero_divisors_of_finite R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
   cases this; [left, right],
   all_goals { simpa using congr_arg (rename subtype.val) this }
-end
+end⟩
 
 /-- The multivariate polynomial ring over an integral domain is an integral domain. -/
-instance {R : Type u} {σ : Type v} [comm_ring R] [is_domain R] :
-  is_domain (mv_polynomial σ R) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
-  exists_pair_ne := ⟨0, 1, λ H,
-  begin
-    have : eval₂ (ring_hom.id _) (λ s, (0:R)) (0 : mv_polynomial σ R) =
-      eval₂ (ring_hom.id _) (λ s, (0:R)) (1 : mv_polynomial σ R),
-    { congr, exact H },
-    simpa,
-  end⟩,
-  .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
+instance {R : Type u} {σ : Type v} [comm_ring R] [is_domain R] : is_domain (mv_polynomial σ R) :=
+{ .. mv_polynomial.no_zero_divisors,
+  .. add_monoid_algebra.nontrivial }
 
-lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [fintype σ]
+lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [finite σ]
   (ϕ : mv_polynomial σ R →+* S) (p : mv_polynomial σ R) :
   ϕ p = mv_polynomial.eval₂ (ϕ.comp mv_polynomial.C) (λ s, ϕ (mv_polynomial.X s)) p :=
 begin
+  casesI nonempty_fintype σ,
   refine trans (congr_arg ϕ (mv_polynomial.as_sum p)) _,
   rw [mv_polynomial.eval₂_eq', ϕ.map_sum],
   congr,

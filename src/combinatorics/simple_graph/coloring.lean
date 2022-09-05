@@ -213,7 +213,7 @@ begin
   split,
   { rintro hc,
     have C : G.coloring (fin n) := hc.to_coloring (by simp),
-    let f := embedding.complete_graph (fin.coe_embedding n).to_embedding,
+    let f := embedding.complete_graph fin.coe_embedding,
     use f.to_hom.comp C,
     intro v,
     cases C with color valid,
@@ -222,7 +222,7 @@ begin
     refine ⟨coloring.mk _ _⟩,
     { exact λ v, ⟨C v, Cf v⟩, },
     { rintro v w hvw,
-      simp only [subtype.mk_eq_mk, ne.def],
+      simp only [fin.mk_eq_mk, ne.def],
       exact C.valid hvw, } }
 end
 
@@ -365,7 +365,7 @@ end
 begin
   apply chromatic_number_eq_card_of_forall_surj (self_coloring _),
   intro C,
-  rw ←fintype.injective_iff_surjective,
+  rw ←finite.injective_iff_surjective,
   intros v w,
   contrapose,
   intro h,

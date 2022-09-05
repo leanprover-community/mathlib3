@@ -47,7 +47,7 @@ noncomputable def eigenvector_basis : orthonormal_basis n 𝕜 (euclidean_space 
 noncomputable def eigenvector_matrix : matrix n n 𝕜 :=
 (pi.basis_fun 𝕜 n).to_matrix (eigenvector_basis hA).to_basis
 
-/-- A matrix whose rows are an orthonormal basis of eigenvectors of a hermitian matrix. -/
+/-- The inverse of `eigenvector_matrix` -/
 noncomputable def eigenvector_matrix_inv : matrix n n 𝕜 :=
 (eigenvector_basis hA).to_basis.to_matrix (pi.basis_fun 𝕜 n)
 

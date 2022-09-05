@@ -104,8 +104,7 @@ lemma is_open_iff {s : set ℝₗ} : is_open s ↔ ∀ x ∈ s, ∃ y > x, Ico x
 is_open_iff_mem_nhds.trans $ forall₂_congr $ λ x hx, (nhds_basis_Ico x).mem_iff
 
 lemma is_closed_iff {s : set ℝₗ} : is_closed s ↔ ∀ x ∉ s, ∃ y > x, disjoint (Ico x y) s :=
-by simp only [← is_open_compl_iff, is_open_iff, mem_compl_iff, subset_compl_iff_disjoint,
-  disjoint_iff_inter_eq_empty]
+by simp only [← is_open_compl_iff, is_open_iff, mem_compl_iff, subset_compl_iff_disjoint_right]
 
 lemma exists_Ico_disjoint_closed {a : ℝₗ} {s : set ℝₗ} (hs : is_closed s) (ha : a ∉ s) :
   ∃ b > a, disjoint (Ico a b) s :=
@@ -290,6 +289,6 @@ begin
 end
 
 lemma not_second_countable_topology : ¬second_countable_topology ℝₗ :=
-by { introI, exact not_metrizable_space (metrizable_space_of_regular_second_countable _) }
+by { introI, exact not_metrizable_space (metrizable_space_of_t3_second_countable _) }
 
 end sorgenfrey_line

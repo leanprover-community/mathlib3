@@ -143,10 +143,15 @@ theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
 by rw [bit1, pow_succ', pow_bit0']
 
 @[to_additive]
-lemma pow_mul_pow_eq_one {a b : M} : ∀ (n : ℕ) (h : a * b = 1), a ^ n * b ^ n = 1
-| 0 h := by rw [pow_zero, pow_zero, mul_one]
-| (n+1) h := by rw [pow_add, add_comm, pow_add, pow_one, pow_one, mul_assoc, ← mul_assoc a, h,
-  one_mul, pow_mul_pow_eq_one n h]
+lemma pow_mul_pow_eq_one {a b : M} (n : ℕ) (h : a * b = 1) :
+  a ^ n * b ^ n = 1 :=
+begin
+  induction n with n hn,
+  { simp },
+  { calc a ^ n.succ * b ^ n.succ = a ^ n * a * (b * b ^ n) : by rw [pow_succ', pow_succ]
+    ... = a ^ n * (a * b) * b ^ n : by simp only [mul_assoc]
+    ... = 1 : by simp [h, hn] }
+end
 
 lemma dvd_pow {x y : M} (hxy : x ∣ y) :
   ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n

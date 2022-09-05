@@ -134,8 +134,7 @@ by simp only [same_ray, map_zero, ← hf.eq_iff, map_smul]
 
 /-- The images of two vectors under a linear equivalence are on the same ray if and only if the
 original vectors are on the same ray. -/
-@[simp] lemma _root_.same_ray_map_iff {F : Type*} [linear_equiv_class F R M N] (e : F) :
-  same_ray R (e x) (e y) ↔ same_ray R x y :=
+@[simp] lemma _root_.same_ray_map_iff (e : M ≃ₗ[R] N) : same_ray R (e x) (e y) ↔ same_ray R x y :=
 function.injective.same_ray_map_iff (equiv_like.injective e)
 
 /-- If two vectors are on the same ray then both scaled by the same action are also on the same

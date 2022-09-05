@@ -163,6 +163,10 @@ alias zero_lt_two ← two_pos
 alias zero_lt_three ← three_pos
 alias zero_lt_four ← four_pos
 
+@[priority 100] -- see Note [lower instance priority]
+instance ordered_semiring.to_no_max_order : no_max_order α :=
+⟨assume a, ⟨a + 1, lt_add_of_pos_right _ one_pos⟩⟩
+
 end nontrivial
 
 -- See Note [decidable namespace]
@@ -725,11 +729,6 @@ le_of_not_gt (λ ha, absurd h (mul_neg_of_pos_of_neg ha hb).not_le)
 
 lemma nonpos_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : a < 0) : b ≤ 0 :=
 le_of_not_gt (λ hb, absurd h (mul_neg_of_neg_of_pos ha hb).not_le)
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_no_max_order {α : Type*} [linear_ordered_semiring α] :
-  no_max_order α :=
-⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
 
 /-- Pullback a `linear_ordered_semiring` under an injective map.
 See note [reducible non-instances]. -/

@@ -131,6 +131,9 @@ begin
 namespace subgraph
 variables {G}
 
+lemma adj.coe {H : G.subgraph} {u v : V} (h : H.adj u v) :
+  H.coe.adj ⟨u, H.edge_vert h⟩ ⟨v, H.edge_vert h.symm⟩ := h
+
 @[simp] lemma verts_sup {H H' : G.subgraph} : (H ⊔ H').verts = H.verts ∪ H'.verts := rfl
 @[simp] lemma verts_inf {H H' : G.subgraph} : (H ⊓ H').verts = H.verts ∩ H'.verts := rfl
 
@@ -164,6 +167,159 @@ lemma sup_induce_le_induce_union (H : G.subgraph) (s s' : set V) :
 begin
   simp,
   split; mono; simp,
+end
+
+lemma induce_le_of_subset {H : G.subgraph} {s : set V} (hs : s ⊆ H.verts) :
+  H.induce s ≤ H :=
+calc H.induce s ≤ H.induce H.verts : induce_mono_right hs
+            ... = H : by simp
+
+lemma eq_bot_iff (H : G.subgraph) :
+  H = ⊥ ↔ H.verts = ∅ :=
+begin
+  split,
+  { rintro rfl,
+    simp, },
+  { intro h,
+    ext,
+    { simp [h] },
+    { simp,
+      intro h',
+      simpa [h] using H.edge_vert h', } }
+end
+
+/-- The connected components of a subgraph as a set of subgraphs. -/
+def components (H : G.subgraph) : set G.subgraph :=
+{(H.induce (coe '' (H.coe.connected_component_mk ⁻¹' {c}))) | (c : H.coe.connected_component)}
+
+lemma components_le {H C : G.subgraph} (hC : C ∈ H.components) : C ≤ H :=
+begin
+  obtain ⟨c, rfl⟩ := hC,
+  apply induce_le_of_subset,
+  simp only [set.image_subset_iff, subtype.coe_preimage_self, set.subset_univ],
+end
+
+lemma components_nonempty_verts {H C : G.subgraph} (hC : C ∈ H.components) :
+  C.verts.nonempty :=
+begin
+  obtain ⟨c, rfl⟩ := hC,
+  induction c using simple_graph.connected_component.ind with v,
+  use v,
+  simp,
+end
+
+lemma components_ne_bot {H C : G.subgraph} (hC : C ∈ H.components) :
+  C ≠ ⊥ :=
+begin
+  intro h,
+  rw [eq_bot_iff, ← set.not_nonempty_iff_eq_empty] at h,
+  exact absurd (components_nonempty_verts hC) h,
+end
+
+lemma components.mem_verts_of_adj {H C : G.subgraph} (hC : C ∈ H.components)
+  {v w : V} (hv : v ∈ C.verts) (hvw : H.adj v w) : w ∈ C.verts :=
+begin
+  obtain ⟨c, rfl⟩ := hC,
+  simp only [induce_verts, set.mem_image, set.mem_preimage, set.mem_singleton_iff, set_coe.exists,
+    subtype.coe_mk, exists_and_distrib_right, exists_eq_right] at hv ⊢,
+  obtain ⟨hv, rfl⟩ := hv,
+  existsi H.edge_vert hvw.symm,
+  simp only [connected_component.eq],
+  exact hvw.symm.coe.reachable,
+end
+
+lemma components.lift_adj {H C : G.subgraph} (hC : C ∈ H.components)
+  {u v : V} (hu : u ∈ C.verts) (hv : v ∈ C.verts)
+  (ha : H.adj u v) : C.adj u v :=
+begin
+  obtain ⟨c, rfl⟩ := hC,
+  simp only [induce_verts, set.mem_image, set.mem_preimage, set.mem_singleton_iff, set_coe.exists,
+    subtype.coe_mk, exists_and_distrib_right, exists_eq_right] at hu hv,
+  obtain ⟨hv, rfl⟩ := hv,
+  obtain ⟨hu, h⟩ := hu,
+  rw [connected_component.eq] at h,
+  simp [ha, h, hu, hv],
+end
+
+def components.lift_walk {H C : G.subgraph} (hC : C ∈ H.components) :
+  Π {u v : V} (hu : u ∈ C.verts) (hv : v ∈ C.verts)
+  (p : H.coe.walk ⟨u, (components_le hC).1 hu⟩ ⟨v, (components_le hC).1 hv⟩),
+  C.coe.walk ⟨u, hu⟩ ⟨v, hv⟩
+| _ _ hu _ walk.nil := walk.nil
+| u v hu hv (walk.cons' _ w _ ha p) :=
+  have hw : w.1 ∈ C.verts := components.mem_verts_of_adj hC hu ha,
+  walk.cons' _ ⟨w, hw⟩ _ (components.lift_adj hC hu hw ha)
+    (components.lift_walk _ _ (p.copy (by simp) rfl))
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ x, walk.length x.2.2.2.2)⟩]}
+
+lemma components.lift_reachable {H C : G.subgraph} (hC : C ∈ H.components)
+  {u v : V} (hu : u ∈ C.verts) (hv : v ∈ C.verts)
+  (hr : H.coe.reachable ⟨u, (components_le hC).1 hu⟩ ⟨v, (components_le hC).1 hv⟩) :
+  C.coe.reachable ⟨u, hu⟩ ⟨v, hv⟩ :=
+begin
+  refine hr.elim (λ p, _),
+  exact ⟨components.lift_walk hC hu hv p⟩,
+end
+
+lemma components_connected {H C : G.subgraph} (hC : C ∈ H.components) : C.connected :=
+begin
+  have hn := components_ne_bot hC,
+  rw [ne.def, eq_bot_iff, ← ne.def, set.ne_empty_iff_nonempty] at hn,
+  obtain ⟨v, hv⟩ := hn,
+  haveI hn : nonempty C.verts := ⟨⟨v, hv⟩⟩,
+  split,
+  clear hn,
+  rintros ⟨a, ha⟩ ⟨b, hb⟩,
+  apply components.lift_reachable hC ha hb,
+  obtain ⟨c, rfl⟩ := hC,
+  simp only [induce_verts, set.mem_image, set.mem_preimage, set.mem_singleton_iff, set_coe.exists,
+    subtype.coe_mk, exists_and_distrib_right, exists_eq_right] at ha hb,
+  obtain ⟨hb, rfl⟩ := hb,
+  obtain ⟨ha, h⟩ := ha,
+  rw [connected_component.eq] at h,
+  exact h,
+end
+
+lemma components_maximal_aux {H C C' : G.subgraph} (hC : C ∈ H.components)
+  (hC' : C' ≤ H)
+  (hCC' : C ≤ C') (hc : C'.connected) : C'.verts ⊆ C.verts :=
+begin
+  intros v hv,
+  obtain ⟨w, hw⟩ := components_nonempty_verts hC,
+  have hw' := hCC'.1 hw,
+  have := hc ⟨v, hv⟩ ⟨w, hw'⟩,
+  have hCH := components_le hC,
+  obtain ⟨c, h⟩ := hC,
+  rw ← h,
+  simp only [hC'.1 hv, induce_verts, set.mem_image, set.mem_preimage, set.mem_singleton_iff,
+    set_coe.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right, exists_true_left],
+  rw ← h at hw,
+  simp only [induce_verts, set.mem_image, set.mem_preimage, set.mem_singleton_iff, set_coe.exists,
+    subtype.coe_mk, exists_and_distrib_right, exists_eq_right] at hw,
+  obtain ⟨hw₀, hw''⟩ := hw,
+  rw ← hw'',
+  rw connected_component.eq,
+  refine this.elim (λ p, _),
+  have := p.map (inclusion hC'),
+  simp only [inclusion, subtype.coe_mk, rel_hom.coe_fn_mk] at this,
+  exact ⟨this⟩,
+end
+
+lemma components_maximal {H C C' : G.subgraph} (hC : C ∈ H.components)
+  (hC' : C' ≤ H)
+  (hCC' : C ≤ C') (hc : C'.connected) : C' = C :=
+begin
+  have key := components_maximal_aux hC hC' hCC' hc,
+  refine le_antisymm _ hCC',
+  split,
+  { exact key },
+  { intros v w hvw,
+    obtain ⟨c, rfl⟩ := hC,
+    simp [H.edge_vert (hC'.2 hvw), H.edge_vert (hC'.2 hvw.symm), hC'.2 hvw],
+    have := key (C'.edge_vert hvw),
+    simp at this, obtain ⟨h, this⟩ := this, simp [this],
+    have := key (C'.edge_vert hvw.symm),
+    simp at this, obtain ⟨h, this⟩ := this, simp [this], },
 end
 
 end subgraph
@@ -279,21 +435,7 @@ lemma connected_subgraphs.eq_of_mem_verts {H H'}
   {v : V} (h : v ∈ H.verts) (h' : v ∈ H'.verts) : H = H' :=
 by apply le_antisymm; apply connected_subgraphs.le_of_mem_verts; assumption
 
-lemma subgraph.eq_bot_iff (H : G.subgraph) :
-  H = ⊥ ↔ H.verts = ∅ :=
-begin
-  split,
-  { rintro rfl,
-    simp, },
-  { intro h,
-    ext,
-    { simp [h] },
-    { simp,
-      intro h',
-      have := H.edge_vert h',
-      rw h at this,
-      simpa, } }
-end
+
 
 lemma connected_subgraphs_disjoint {H H'}
   (hH : H ∈ G.connected_subgraphs) (hH' : H' ∈ G.connected_subgraphs)
@@ -688,7 +830,7 @@ end walk
 namespace subgraph
 variables {G}
 
-lemma adj.spanning_coe {H : G.subgraph} {u v : V} (h : H.adj u v) :
+lemma adj.adj_sub {H : G.subgraph} {u v : V} (h : H.adj u v) :
   G.adj u v := H.adj_sub h
 
 /-- A subgraph is a cycle if there exists a cyclic walk representing it. -/
@@ -706,7 +848,7 @@ begin
   simpa using hv,
 end
 
-lemma is_cycle_iff (H : G.subgraph) [fintype H.verts] [decidable_rel H.adj]:
+lemma is_cycle_iff (H : G.subgraph) [fintype H.verts] [decidable_rel H.adj] (hc : H.connected) :
   H.is_cycle ↔ ∀ v, v ∈ H.verts → H.degree v = 2 :=
 begin
   refine ⟨λ h v hv, h.degree_eq hv, _⟩,

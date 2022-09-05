@@ -147,12 +147,8 @@ lemma is_clopen_Ico (a b : ℝₗ) : is_clopen (Ico a b) :=
 (is_clopen_Ici a).inter (is_clopen_Iio b)
 
 instance : totally_disconnected_space ℝₗ :=
-begin
-  refine ⟨λ s hs' hs x hx y hy, _⟩, clear hs',
-  by_contra' hne : x ≠ y,
-  wlog hlt : x < y := hne.lt_or_lt using [x y, y x],
-  exact hlt.not_le (hs.subset_clopen (is_clopen_Ici y) ⟨y, hy, le_rfl⟩ hx)
-end
+⟨λ s hs' hs x hx y hy, le_antisymm (hs.subset_clopen (is_clopen_Ici x) ⟨x, hx, le_rfl⟩ hy)
+  (hs.subset_clopen (is_clopen_Ici y) ⟨y, hy, le_rfl⟩ hx)⟩
 
 instance : first_countable_topology ℝₗ := ⟨λ x, (nhds_basis_Ico_rat x).is_countably_generated⟩
 

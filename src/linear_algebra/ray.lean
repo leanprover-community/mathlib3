@@ -130,14 +130,7 @@ h.imp (λ hx, by rw [hx, map_zero]) $ or.imp (λ hy, by rw [hy, map_zero]) $
 original vectors are on the same ray. -/
 lemma _root_.function.injective.same_ray_map_iff {f : M →ₗ[R] N}
   (hf : function.injective f) : same_ray R (f x) (f y) ↔ same_ray R x y :=
-begin
-  refine ⟨λ h, _, λ h, h.map f⟩,
-  rcases h with h | h | ⟨r₁, r₂, hr₁, hr₂, h⟩,
-  { exact or.inl ((f.map_eq_zero_iff hf).1 h) },
-  { exact or.inr (or.inl ((f.map_eq_zero_iff hf).1 h)) },
-  { simp_rw [←map_smul, hf.eq_iff] at h,
-    exact or.inr (or.inr ⟨r₁, r₂, hr₁, hr₂, h⟩) }
-end
+by simp only [same_ray, map_zero, ← hf.eq_iff, map_smul]
 
 /-- The images of two vectors under a linear equivalence are on the same ray if and only if the
 original vectors are on the same ray. -/

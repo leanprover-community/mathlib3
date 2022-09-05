@@ -323,7 +323,7 @@ section indicator
 
 open_locale big_operators
 
-lemma limsup_eq_tendsto_sum_indicator_at_top (s : ℕ → set α) :
+lemma limsup_eq_tendsto_sum_indicator_nat_at_top (s : ℕ → set α) :
   limsup at_top s =
     {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → ℕ) ω) at_top at_top} :=
 begin
@@ -381,12 +381,12 @@ begin
     exact not_le.2 (lt_of_lt_of_le i.lt_succ_self $ h _ le_rfl) this }
 end
 
-lemma limsup_eq_tendsto_sum_indicator_at_top'
+lemma limsup_eq_tendsto_sum_indicator_at_top
   (R : Type*) [ordered_semiring R] [nontrivial R] [archimedean R] (s : ℕ → set α) :
   limsup at_top s =
     {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → R) ω) at_top at_top} :=
 begin
-  rw limsup_eq_tendsto_sum_indicator_at_top s,
+  rw limsup_eq_tendsto_sum_indicator_nat_at_top s,
   ext ω,
   simp only [set.mem_set_of_eq],
   rw (_ : (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → R) ω) =

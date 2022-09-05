@@ -486,7 +486,6 @@ theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
   ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
       at_top at_top :=
-(borel_cantelli.limsup_eq_tendsto_sum_indicator_at_top' ℝ s).symm ▸
-  tendsto_sum_indicator_at_top_iff μ hs
+(limsup_eq_tendsto_sum_indicator_at_top ℝ s).symm ▸ tendsto_sum_indicator_at_top_iff μ hs
 
 end measure_theory

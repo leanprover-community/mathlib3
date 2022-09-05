@@ -296,7 +296,7 @@ lemma qr_sign_eq_iff_eq {m n : ℕ} (hm : odd m) (hn : odd n) (x y : ℤ) :
 by refine ⟨λ h', let h := h'.symm in _, λ h, _⟩;
    rw [h, ← mul_assoc, ← pow_two, qr_sign_sq_eq_one hm hn, one_mul]
 
-/-- The Law of Quadratic Reciprocity for the Jacobi symbol -/
+/-- The Law of Quadratic Reciprocity for the Jacobi symbol, version with `qr_sign` -/
 lemma jacobi_sym_quadratic_reciprocity' {a b : ℕ} (ha : odd a) (hb : odd b) :
   [a | b]ⱼ = qr_sign b a * [b | a]ⱼ :=
 begin

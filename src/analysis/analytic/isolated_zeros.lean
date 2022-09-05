@@ -45,7 +45,7 @@ lemma exists_has_sum_smul_of_apply_eq_zero (hs : has_sum (λ m, z ^ m • a m) s
   (ha : ∀ k < n, a k = 0) :
   ∃ t : E, z ^ n • t = s ∧ has_sum (λ m, z ^ m • a (m + n)) t :=
 begin
-  obtain rfl|hn := n.eq_zero_or_pos,
+  obtain rfl | hn := n.eq_zero_or_pos,
   { simpa },
   by_cases h : z = 0,
   { have : s = 0 := hs.unique (by simpa [ha 0 hn, h] using has_sum_at_zero a),

@@ -256,7 +256,6 @@ begin
   rw [hω₁, this, ← hω₂],
   split; rintro ⟨c, hc⟩; refine ⟨-c, λ ω hω, _⟩,
   { rw mem_upper_bounds at hc,
-    rw set.mem_range at hω,
     refine neg_le.2 (hc _ _),
     simpa only [pi.neg_apply, set.mem_range, neg_inj] },
   { rw mem_lower_bounds at hc,
@@ -268,18 +267,14 @@ end
 lemma martingale.ae_not_tendsto_at_top_at_top [is_finite_measure μ]
   (hf : martingale f ℱ μ) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
   ∀ᵐ ω ∂μ, ¬ tendsto (λ n, f n ω) at_top at_top :=
-begin
-  filter_upwards [hf.bdd_above_range_iff_bdd_below_range hbdd] with ω hω htop using
-    unbounded_of_tendsto_at_top htop (hω.2 $ bdd_below_range_of_tendsto_at_top_at_top htop),
-end
+by filter_upwards [hf.bdd_above_range_iff_bdd_below_range hbdd] with ω hω htop using
+    unbounded_of_tendsto_at_top htop (hω.2 $ bdd_below_range_of_tendsto_at_top_at_top htop)
 
 lemma martingale.ae_not_tendsto_at_top_at_bot [is_finite_measure μ]
   (hf : martingale f ℱ μ) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
   ∀ᵐ ω ∂μ, ¬ tendsto (λ n, f n ω) at_top at_bot :=
-begin
-  filter_upwards [hf.bdd_above_range_iff_bdd_below_range hbdd] with ω hω htop using
-    unbounded_of_tendsto_at_bot htop (hω.1 $ bdd_above_range_of_tendsto_at_top_at_bot htop),
-end
+by filter_upwards [hf.bdd_above_range_iff_bdd_below_range hbdd] with ω hω htop using
+    unbounded_of_tendsto_at_bot htop (hω.1 $ bdd_above_range_of_tendsto_at_top_at_bot htop)
 
 namespace borel_cantelli
 
@@ -295,10 +290,7 @@ variables {s : ℕ → set Ω}
 lemma mgale_succ (n : ℕ) :
   mgale ℱ μ s (n + 1) =
     mgale ℱ μ s n + ((s (n + 1)).indicator 1 - μ[(s (n + 1)).indicator 1 | ℱ n]) :=
-begin
-  rw [mgale, finset.sum_range_succ],
-  refl,
-end
+by rw [mgale, mgale, finset.sum_range_succ]
 
 lemma adapted_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   adapted ℱ (mgale ℱ μ s) :=
@@ -338,7 +330,7 @@ begin
   rw [finset.mem_range, ← nat.succ_le_iff] at hi,
   rw condexp_of_strongly_measurable (ℱ.le _)
     (strongly_measurable_one.indicator (ℱ.mono hi _ $ hs _)),
-  { exact (integrable_indicator_iff (ℱ.le _ _ (hs $ _))).2 (integrable_const 1).integrable_on },
+  { exact (integrable_indicator_iff (ℱ.le _ _ (hs _))).2 (integrable_const 1).integrable_on },
   { apply_instance },
 end
 

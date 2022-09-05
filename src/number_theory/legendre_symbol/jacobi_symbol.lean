@@ -144,8 +144,8 @@ end
 lemma jacobi_sym_ne_zero {a : ℤ} {b : ℕ} (h : a.gcd b = 1) : [a | b]ⱼ ≠ 0 :=
 begin
   casesI eq_zero_or_ne_zero b with hb,
-  rw [hb, jacobi_sym_zero_right],
-  { exact one_ne_zero },
+  { rw [hb, jacobi_sym_zero_right],
+    exact one_ne_zero },
   { contrapose! h, exact jacobi_sym_eq_zero_iff_not_coprime.1 h },
 end
 

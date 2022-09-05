@@ -13,7 +13,7 @@ We define the Jacobi symbol and prove its main properties.
 
 ## Main definitions
 
-We define the Jacobi symbol, `jacobi_sym a b` for integers `a` and natural numbers `b`
+We define the Jacobi symbol, `jacobi_sym a b`, for integers `a` and natural numbers `b`
 as the product over the prime factors `p` of `b` of the Legendre symbols `zmod.legendre_sym p a`.
 This agrees with the mathematical definition when `b` is odd.
 
@@ -33,8 +33,9 @@ We prove the main properties of the Jacobi symbol, including the following.
   (`jacobi_sym_eq_zero_iff`)
 
 * If the symbol has the value `-1`, then `a : zmod b` is not a square
-  (`nonsquare_of_jacobi_sym_eq_neg_one`); the converse holds when `p` is a prime
-  (`nonsquare_iff_jacobi_sym_eq_neg_one`).
+  (`nonsquare_of_jacobi_sym_eq_neg_one`); the converse holds when `b = p` is a prime
+  (`nonsquare_iff_jacobi_sym_eq_neg_one`); in particular, in this case `a` is a
+  square mod `p` when the symbol has the value `1` (`is_square_of_jacobi_sym_eq_one`).
 
 * Quadratic reciprocity (`jacobi_sym_quadratic_reciprocity`,
   `jacobi_sym_quadratic_reciprocity_one_mod_four`,
@@ -87,8 +88,6 @@ localized "notation `[` a ` | ` b `]ⱼ` := jacobi_sym a b" in number_theory_sym
 /-!
 ### Properties of the Jacobi symbol
 -/
-
--- open_locale number_theory_symbols -- unnecessary
 
 /-- The symbol `[a | 0]ⱼ` has the value `1`. -/
 @[simp] lemma jacobi_sym_zero_right (a : ℤ) : [a | 0]ⱼ = 1 :=

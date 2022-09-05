@@ -34,3 +34,21 @@ theorem polynomial.aeval_deriv
 begin
   simp_rw [polynomial.aeval_def, polynomial.eval₂_deriv],
 end
+
+open_locale big_operators
+open_locale polynomial
+open polynomial
+
+lemma differentiable_aeval (f : ℤ[X]) :
+  differentiable ℝ (λ (x : ℝ), (aeval x) (f)) :=
+begin
+  simp only [aeval_def, eval₂_eq_eval_map],
+  apply polynomial.differentiable,
+end
+
+lemma aeval_eq_sum_support {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
+  (x : A) (f : R[X]) :
+  aeval x f = ∑ i in f.support, (f.coeff i) • x ^ i:=
+begin
+  simp_rw [aeval_def, eval₂_eq_sum, polynomial.sum, algebra.smul_def],
+end

@@ -22,110 +22,6 @@ open polynomial
 
 namespace e_transcendental_lemmas
 
-/--
-# about I
--/
-
-/-Definition
-Suppose $f$ is an integer polynomial with degree $n$ and $t\ge0$ then define
-    \[I(f,t):=\int_0^t \exp(t-x)f(z)\mathrm{d}x\]
-We use integration by parts to prove
-    \[I(f,t)=\exp(t)\left(\sum_{i=0}^n f^{(i)}(0)\right)-\sum_{i=0}^n f^{(i)}(t)\]
-
-The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are
-using this on transcendence of $e$.
--/
-def I (f : ℤ[X]) (t : ℝ) : ℝ :=
-  t.exp * (∑ i in finset.range f.nat_degree.succ, (aeval (0 : ℝ) (derivative^[i] f))) -
-  (∑ i in finset.range f.nat_degree.succ, (aeval t (derivative^[i] f)))
-
-/--
-I equivalent definition
-\[I(f,t):=\int_0^t \exp(t-x)f(z)\mathrm{d}x\]
--/
-def II (f : ℤ[X]) (t : ℝ) : ℝ := ∫ x in 0..t, real.exp(t - x) * (aeval x f)
-
-/-Theorem
-$I(0,t)$ is 0.
--/
-theorem II_0 (t : ℝ) : II 0 t = 0 :=
-begin
-  -- We are integrating $\exp(t-x)\times 0$
-  rw II,
-  simp only [mul_zero, aeval_zero, map_zero, interval_integral.integral_const, smul_zero],
-end
-
-lemma differentiable_aeval (f : ℤ[X]) :
-    differentiable ℝ (λ (x : ℝ), (aeval x) (f)) :=
-begin
-  simp only [aeval_def, eval₂_eq_eval_map],
-  apply polynomial.differentiable,
-end
-
-
-/-Theorem
-By integration by part we have:
-\[I(f, t) = e^tf(0)-f(t)+I(f',t)\]
--/
-lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) :
-  (II f t) = (real.exp t) * (aeval (0 : ℝ) f) - (aeval t f) + (II f.derivative t) :=
-begin
-  simp only [II],
-  have hd := real.differentiable_exp.comp (differentiable_id'.const_sub t),
-  convert @interval_integral.integral_mul_deriv_eq_deriv_mul
-    0 t (λ x : ℝ, aeval x f) (λ (x : ℝ), -(t - x).exp)
-    (λ x : ℝ, aeval x f.derivative) (λ (x : ℝ), (t - x).exp) _ _ _ _ using 1,
-  { apply interval_integral.integral_congr,
-    intros x hx,
-    dsimp only, rw mul_comm },
-  { simp only [sub_eq_add_neg],
-    apply congr_arg2,
-    { rw [add_neg_self, neg_zero, add_zero, real.exp_zero], ring },
-    { simp_rw [←interval_integral.integral_neg, neg_mul_eq_neg_mul, neg_neg] } },
-  { intros x hx,
-    dsimp only,
-    rw [←aeval_deriv, has_deriv_at_deriv_iff],
-    apply differentiable_aeval },
-  { intros x hx,
-    convert ((has_deriv_at_id' x).const_sub t).exp.neg,
-    rw [mul_neg, neg_neg, mul_one] },
-  { exact (differentiable_aeval f.derivative).continuous.continuous_on.interval_integrable },
-  { exact hd.continuous.continuous_on.interval_integrable },
-end
-
-/-Theorem
-Combine the theorem above with induction we get for all $m\in\mathbb N$
-\[
-I(f,t)=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
-\]
--/
-lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (m : ℕ) :
-  II f t =
-  t.exp * (∑ i in finset.range (m+1), (aeval (0 : ℝ) (derivative^[i] f))) -
-  (∑ i in finset.range (m+1), aeval t (derivative^[i] f)) +
-  (II (derivative^[m + 1] f) t) :=
-begin
-  induction m with m ih,
-  { rw [II_integrate_by_part],
-    simp only [function.iterate_one, finset.sum_singleton, finset.range_one,
-        function.iterate_zero_apply] },
-
-  rw [ih, II_integrate_by_part, finset.sum_range_succ _ (m + 1),
-      finset.sum_range_succ _ (m + 1), ←function.iterate_succ_apply' derivative],
-  ring,
-end
-
-/-Theorem
-So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two definition of $I(f,t)$
-agrees.
--/
-theorem II_eq_I (f : ℤ[X]) (t : ℝ) : II f t = I f t :=
-begin
-  have II_integrate_by_part_m := II_integrate_by_part_m f t f.nat_degree,
-  rwa [iterate_derivative_eq_zero (nat.lt_succ_self _), II_0, add_zero] at
-    II_integrate_by_part_m,
-end
-
 /-- # $\bar{f}$
 - Say $f(T)=a_0+a_1T+a_2T^2+\cdots+a_nT^n$. Then $\bar{f}=|a_0|+|a_1|T+|a_2|T^2+\cdots+|a_n|T^n$
 - We proved some theorems about $\bar{f}$
@@ -161,7 +57,7 @@ $\bar{0}=0$
 -/
 theorem f_bar_0 : f_bar 0 = 0 :=
 begin
-    ext, rw bar_coeff, simp only [abs_zero, coeff_zero],
+  ext, rw bar_coeff, simp only [abs_zero, coeff_zero],
 end
 
 /-Theorem
@@ -185,13 +81,6 @@ begin
   ext, rw bar_coeff, rw finset_sum_coeff, simp_rw [coeff_C_mul_X_pow],
   simp only [finset.mem_range, finset.sum_ite_eq], split_ifs, refl, simp only [not_lt] at h,
   rw coeff_eq_zero_of_nat_degree_lt h, exact rfl,
-end
-
-lemma aeval_eq_sum_support {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
-  (x : A) (f : R[X]) :
-  aeval x f = ∑ i in f.support, (f.coeff i) • x ^ i:=
-begin
-  simp_rw [aeval_def, eval₂_eq_sum, polynomial.sum, algebra.smul_def],
 end
 
 /-Theorem
@@ -278,6 +167,132 @@ begin
   convert eval_f_bar_prod (λ i, f) _ (finset.range n); rw [finset.pow_eq_prod_const],
 end
 
+lemma f_bar_X_pow {n : ℕ} : f_bar (X ^ n) = X^n :=
+begin
+  ext, simp only [bar_coeff, coeff_X_pow, apply_ite abs, abs_zero, abs_one],
+end
+
+lemma f_bar_X_sub_C {c : ℤ} (hc : 0 ≤ c) : f_bar (X - C (c : ℤ)) = X + C (c : ℤ) :=
+begin
+  ext n',
+  rw [bar_coeff, coeff_add, coeff_sub, coeff_C],
+  rw [coeff_X],
+  split_ifs with h1 h0,
+  { simpa only [h0] using h1 },
+  { simp only [add_zero, sub_zero, abs_one] },
+  { simp only [zero_sub, abs_neg, zero_add, abs_of_nonneg hc] },
+  { simp only [sub_zero, abs_zero, add_zero] }
+end
+
+lemma f_bar_X_sub_pow (n k : ℕ) (c : ℕ) :
+  eval (k:ℤ) (f_bar ((X - C (c:ℤ))^n)) ≤ eval (k:ℤ) (X + C (c:ℤ))^n :=
+begin
+  induction n with n hn,
+  { simp only [pow_zero, f_bar_1, eval_one] },
+  rw pow_succ,
+  refine (eval_f_bar_mul _ _ _).trans _,
+  rw [f_bar_X_sub_C (int.coe_nat_nonneg _), pow_succ],
+  apply mul_le_mul_of_nonneg_left hn,
+  simp only [eval_X, eval_C, eval_add],
+  apply add_nonneg; apply int.coe_nat_nonneg,
+end
+
+/--
+# about I
+-/
+
+/-Definition
+Suppose $f$ is an integer polynomial with degree $n$ and $t\ge0$ then define
+    \[I(f,t):=\int_0^t \exp(t-x)f(z)\mathrm{d}x\]
+We use integration by parts to prove
+    \[I(f,t)=\exp(t)\left(\sum_{i=0}^n f^{(i)}(0)\right)-\sum_{i=0}^n f^{(i)}(t)\]
+
+The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are
+using this on transcendence of $e$.
+-/
+def I (f : ℤ[X]) (t : ℝ) : ℝ :=
+  t.exp * (∑ i in finset.range f.nat_degree.succ, (aeval (0 : ℝ) (derivative^[i] f))) -
+  (∑ i in finset.range f.nat_degree.succ, (aeval t (derivative^[i] f)))
+
+/--
+I equivalent definition
+\[I(f,t):=\int_0^t \exp(t-x)f(z)\mathrm{d}x\]
+-/
+def II (f : ℤ[X]) (t : ℝ) : ℝ := ∫ x in 0..t, real.exp(t - x) * (aeval x f)
+
+/-Theorem
+$I(0,t)$ is 0.
+-/
+theorem II_0 (t : ℝ) : II 0 t = 0 :=
+begin
+  -- We are integrating $\exp(t-x)\times 0$
+  rw II,
+  simp only [mul_zero, aeval_zero, map_zero, interval_integral.integral_const, smul_zero],
+end
+
+/-Theorem
+By integration by part we have:
+\[I(f, t) = e^tf(0)-f(t)+I(f',t)\]
+-/
+lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) :
+  (II f t) = (real.exp t) * (aeval (0 : ℝ) f) - (aeval t f) + (II f.derivative t) :=
+begin
+  simp only [II],
+  have hd := real.differentiable_exp.comp (differentiable_id'.const_sub t),
+  convert @interval_integral.integral_mul_deriv_eq_deriv_mul
+    0 t (λ x : ℝ, aeval x f) (λ (x : ℝ), -(t - x).exp)
+    (λ x : ℝ, aeval x f.derivative) (λ (x : ℝ), (t - x).exp) _ _ _ _ using 1,
+  { apply interval_integral.integral_congr,
+    intros x hx,
+    dsimp only, rw mul_comm },
+  { simp only [sub_eq_add_neg],
+    apply congr_arg2,
+    { rw [add_neg_self, neg_zero, add_zero, real.exp_zero], ring },
+    { simp_rw [←interval_integral.integral_neg, neg_mul_eq_neg_mul, neg_neg] } },
+  { intros x hx,
+    dsimp only,
+    rw [←aeval_deriv, has_deriv_at_deriv_iff],
+    apply differentiable_aeval },
+  { intros x hx,
+    convert ((has_deriv_at_id' x).const_sub t).exp.neg,
+    rw [mul_neg, neg_neg, mul_one] },
+  { exact (differentiable_aeval f.derivative).continuous.continuous_on.interval_integrable },
+  { exact hd.continuous.continuous_on.interval_integrable },
+end
+
+/-Theorem
+Combine the theorem above with induction we get for all $m\in\mathbb N$
+\[
+I(f,t)=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
+\]
+-/
+lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (m : ℕ) :
+  II f t =
+  t.exp * (∑ i in finset.range (m+1), (aeval (0 : ℝ) (derivative^[i] f))) -
+  (∑ i in finset.range (m+1), aeval t (derivative^[i] f)) +
+  (II (derivative^[m + 1] f) t) :=
+begin
+  induction m with m ih,
+  { rw [II_integrate_by_part],
+    simp only [function.iterate_one, finset.sum_singleton, finset.range_one,
+        function.iterate_zero_apply] },
+
+  rw [ih, II_integrate_by_part, finset.sum_range_succ _ (m + 1),
+      finset.sum_range_succ _ (m + 1), ←function.iterate_succ_apply' derivative],
+  ring,
+end
+
+/-Theorem
+So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two definition of $I(f,t)$
+agrees.
+-/
+theorem II_eq_I (f : ℤ[X]) (t : ℝ) : II f t = I f t :=
+begin
+  have II_integrate_by_part_m := II_integrate_by_part_m f t f.nat_degree,
+  rwa [iterate_derivative_eq_zero (nat.lt_succ_self _), II_0, add_zero] at
+    II_integrate_by_part_m,
+end
+
 /-Theorem
 $$|I(f,t)|\le te^t\bar{f}(t)$$
 -/
@@ -293,37 +308,6 @@ begin
     refine mul_le_mul _ (f_bar_ineq f t x hx.1.le hx.2) (abs_nonneg _) (real.exp_pos t).le,
     rw [real.exp_le_exp, sub_le, sub_self], exact hx.1.le },
   { rw [sub_zero, abs_of_nonneg ht, mul_comm, mul_assoc] },
-end
-
-lemma f_bar_X_pow {n : ℕ} : f_bar (X ^ n) = X^n :=
-begin
-  ext, simp only [bar_coeff, coeff_X_pow, apply_ite abs, abs_zero, abs_one],
-end
-
-lemma f_bar_X_sub_C {c : ℤ} (hc : 0 ≤ c)  :
-  f_bar (X - C (c : ℤ)) = X + C (c : ℤ) :=
-begin
-  ext n',
-  rw [bar_coeff, coeff_add, coeff_sub, coeff_C],
-  rw [coeff_X],
-  split_ifs with h1 h0,
-  { simpa only [h0] using h1 },
-  { simp only [add_zero, sub_zero, abs_one] },
-  { simp only [zero_sub, abs_neg, zero_add, abs_of_nonneg hc] },
-  { simp only [sub_zero, abs_zero, add_zero] }
-end
-
-lemma f_bar_X_sub_pow (n k : ℕ) (c:ℕ) :
-  eval (k:ℤ) (f_bar ((X - C (c:ℤ))^n)) ≤ eval (k:ℤ) (X + C (c:ℤ))^n :=
-begin
-  induction n with n hn,
-  { simp only [pow_zero, f_bar_1, eval_one] },
-  rw pow_succ,
-  refine (eval_f_bar_mul _ _ _).trans _,
-  rw [f_bar_X_sub_C (int.coe_nat_nonneg _), pow_succ],
-  apply mul_le_mul_of_nonneg_left hn,
-  simp only [eval_X, eval_C, eval_add],
-  apply add_nonneg; apply int.coe_nat_nonneg,
 end
 
 end e_transcendental_lemmas

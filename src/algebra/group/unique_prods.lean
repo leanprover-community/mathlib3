@@ -28,6 +28,7 @@ example : unique_sums ℝ   := by apply_instance
 example : unique_prods ℕ+ := by apply_instance
 ```
 
+TODO: add this counterexample to the file in #16236, once it gets merged.
 A Type that does not have `unique_prods`.
 ```lean
 example : ¬ unique_prods ℕ :=
@@ -40,6 +41,7 @@ begin
 end
 ```
 
+TODO: add this counterexample to the file in #16236, once it gets merged.
 A Type that does not have `unique_sums`.
 ```lean
 import data.zmod.basic

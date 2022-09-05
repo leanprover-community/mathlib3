@@ -917,7 +917,10 @@ section restrict
 
 variables [add_comm_monoid M₁] [module R M₁]
 
-/-- Restrict domain and codomain of a linear map. -/
+/--
+Alternative version of `restrict` to restrict domain and codomain
+of a linear map.
+-/
 @[simps] def restrict' (f : M →ₗ[R] M₁)
   {p : submodule R M} {q : submodule R M₁} (hf : p.map f ≤ q) :
   p →ₗ[R] q :=

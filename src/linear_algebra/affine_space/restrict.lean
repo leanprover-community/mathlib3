@@ -60,21 +60,21 @@ lemma affine_map.restrict.coe_apply
   (φ : P₁ →ᵃ[k] P₂) {E : affine_subspace k P₁} {F : affine_subspace k P₂}
   [nonempty E] [nonempty F]
   (hEF : E.map φ ≤ F) (x : E) :
-↑(φ.restrict hEF x) = φ x := rfl
+  ↑(φ.restrict hEF x) = φ x := rfl
 
 lemma affine_map.restrict.linear
   (φ : P₁ →ᵃ[k] P₂) {E : affine_subspace k P₁} {F : affine_subspace k P₂}
   [nonempty E] [nonempty F]
   (hEF : E.map φ ≤ F) :
-(φ.restrict hEF).linear = φ.linear.restrict'
-  (by { rw [←affine_subspace.map_direction], exact affine_subspace.direction_le hEF }) := rfl
+  (φ.restrict hEF).linear = φ.linear.restrict'
+    (by { rw [←affine_subspace.map_direction], exact affine_subspace.direction_le hEF }) := rfl
 
 lemma affine_map.restrict.injective
   {φ : P₁ →ᵃ[k] P₂}
   (hφ : function.injective φ) {E : affine_subspace k P₁} {F : affine_subspace k P₂}
   [nonempty E] [nonempty F]
   (hEF : E.map φ ≤ F) :
-function.injective (affine_map.restrict φ hEF) :=
+  function.injective (affine_map.restrict φ hEF) :=
 begin
   intros x y h,
   simp only [subtype.ext_iff, subtype.coe_mk, affine_map.restrict.coe_apply] at h ⊢,
@@ -83,7 +83,7 @@ end
 
 lemma affine_map.restrict.surjective
   (φ : P₁ →ᵃ[k] P₂) {E : affine_subspace k P₁} [nonempty E] :
-function.surjective (affine_map.restrict φ (le_refl (E.map φ))) :=
+  function.surjective (affine_map.restrict φ (le_refl (E.map φ))) :=
 begin
   rintro ⟨x, hx : x ∈ E.map φ⟩,
   rw [affine_subspace.mem_map] at hx,

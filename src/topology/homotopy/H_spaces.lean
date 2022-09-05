@@ -106,7 +106,7 @@ class H_space (X : Type u) [topological_space X]  :=
 
 section topological_group_H_space
 
-instance topological_group_H_space (G : Type u) [topological_space G] [group G]
+instance topological_group (G : Type u) [topological_space G] [group G]
   [topological_group G] : H_space G :=
 { Hmul := function.uncurry has_mul.mul,
   e := 1,

@@ -1,4 +1,5 @@
 import data.real.ennreal
+import data.nat.enat
 
 /-!
 -/
@@ -8,35 +9,42 @@ noncomputable theory
 
 namespace enat
 
-def to_ennreal : enat ↪o ℝ≥0∞ :=
-enat.with_top_order_iso.to_order_embedding.trans $
-  nat.cast_order_embedding.with_top
+variables {m n : ℕ∞}
 
-@[simp] lemma to_ennreal_top : to_ennreal ⊤ = ⊤ :=
-by simp [to_ennreal]
+instance has_coe_ennreal : has_coe_t ℕ∞ ℝ≥0∞ := ⟨with_top.map coe⟩
 
-@[simp] lemma to_ennreal_coe (n : ℕ) : to_ennreal (n : enat) = n :=
-by simp [to_ennreal, with_top_order_iso]
+@[simp] lemma map_coe_nnreal : @eq (ℕ∞ → ℝ≥0∞) (with_top.map (coe : ℕ → ℝ≥0)) coe := rfl
 
-def to_ennreal_add_monoid_hom : enat →+ ℝ≥0∞ :=
-(nat.cast_add_monoid_hom ℝ≥0).with_top.comp with_top_add_equiv.to_add_monoid_hom
+@[simps { fully_applied := ff }] def to_ennreal_order_embedding : ℕ∞ ↪o ℝ≥0∞ :=
+nat.cast_order_embedding.with_top_map
 
-@[simp] lemma coe_to_ennreal_add_monoid_hom :
-  ⇑to_ennreal_add_monoid_hom = to_ennreal := rfl
+@[simps { fully_applied := ff }] def to_ennreal_ring_hom : ℕ∞ →+* ℝ≥0∞ :=
+(nat.cast_ring_hom ℝ≥0).with_top_map nat.cast_injective
 
-@[simp] lemma to_ennreal_zero : to_ennreal 0 = 0 :=
-map_zero to_ennreal_add_monoid_hom
+@[simp, norm_cast] lemma coe_ennreal_top : ((⊤ : ℕ∞) : ℝ≥0∞) = ⊤ := rfl
+@[simp, norm_cast] lemma coe_ennreal_coe (n : ℕ) : ((n : ℕ∞) : ℝ≥0∞) = n := rfl
 
-@[simp] lemma to_ennreal_add (m n : enat) : to_ennreal (m + n) = to_ennreal m + to_ennreal n :=
-map_add to_ennreal_add_monoid_hom m n
+@[simp, norm_cast] lemma coe_ennreal_le : (m : ℝ≥0∞) ≤ n ↔ m ≤ n :=
+to_ennreal_order_embedding.le_iff_le
 
-@[simp] lemma to_ennreal_one : to_ennreal 1 = 1 :=
-by simpa only [nat.cast_one] using to_ennreal_coe 1
+@[simp, norm_cast] lemma coe_ennreal_lt : (m : ℝ≥0∞) < n ↔ m < n :=
+to_ennreal_order_embedding.lt_iff_lt
 
-@[simp] lemma to_ennreal_bit0 (n : enat) : to_ennreal (bit0 n) = bit0 (to_ennreal n) :=
-to_ennreal_add n n
+@[mono] lemma coe_ennreal_mono : monotone (coe : ℕ∞ → ℝ≥0∞) := to_ennreal_order_embedding.monotone
 
-@[simp] lemma to_ennreal_bit1 (n : enat) : to_ennreal (bit1 n) = bit1 (to_ennreal n) :=
-by simp only [bit1, to_ennreal_add, to_ennreal_bit0, to_ennreal_one]
+@[mono] lemma coe_ennreal_strict_mono : strict_mono (coe : ℕ∞ → ℝ≥0∞) :=
+to_ennreal_order_embedding.strict_mono
+
+@[simp, norm_cast] lemma coe_ennreal_zero : ((0 : ℕ∞) : ℝ≥0∞) = 0 := map_zero to_ennreal_ring_hom
+
+@[simp] lemma coe_ennreal_add (m n : ℕ∞) : ↑(m + n) = (m + n : ℝ≥0∞) :=
+map_add to_ennreal_ring_hom m n
+
+@[simp] lemma coe_ennreal_one : ((1 : ℕ∞) : ℝ≥0∞) = 1 := map_one to_ennreal_ring_hom
+
+@[simp] lemma coe_ennreal_bit0 (n : ℕ∞) : ↑(bit0 n) = bit0 (n : ℝ≥0∞) := coe_ennreal_add n n
+
+@[simp] lemma coe_ennreal_bit1 (n : ℕ∞) : ↑(bit1 n) = bit1 (n : ℝ≥0∞) :=
+map_bit1 to_ennreal_ring_hom n
 
 end enat

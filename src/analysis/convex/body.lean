@@ -119,18 +119,16 @@ instance : module ℝ≥0 (convex_body V) :=
   end,
   zero_smul := λ K, by { ext1, exact set.zero_smul_set K.nonempty } }
 
-noncomputable instance : has_dist (convex_body V) :=
-{ dist := λ K L, metric.Hausdorff_dist (K : set V) L }
 
 lemma Hausdorff_edist_ne_top {K L : convex_body V} :
-emetric.Hausdorff_edist (K : set V) L ≠ ⊤ := by
-  apply_rules [metric.Hausdorff_edist_ne_top_of_nonempty_of_bounded, nonempty, bounded]
+  emetric.Hausdorff_edist (K : set V) L ≠ ⊤ :=
+by apply_rules [metric.Hausdorff_edist_ne_top_of_nonempty_of_bounded, nonempty, bounded]
 
 /--
 Convex bodies in a fixed seminormed space $V$ form a pseudo-metric space.
 -/
 noncomputable instance : pseudo_metric_space (convex_body V) :=
-{ to_has_dist := convex_body.has_dist,
+{ to_has_dist := ⟨λ K L, metric.Hausdorff_dist (K : set V) L⟩,
   dist_self := λ _, metric.Hausdorff_dist_self_zero,
   dist_comm := λ _ _, metric.Hausdorff_dist_comm,
   dist_triangle := λ K L M, metric.Hausdorff_dist_triangle Hausdorff_edist_ne_top }
@@ -142,14 +140,14 @@ section normed_space
 variables {V : Type} [normed_add_comm_group V] [normed_space ℝ V]
 
 lemma is_closed {V : Type} [normed_add_comm_group V] [normed_space ℝ V] (K : convex_body V) :
-is_closed (K : set V) :=
+  is_closed (K : set V) :=
 K.is_compact.is_closed
 
 lemma dist_eq_to_real_Hausdorff_edist (K L : convex_body V) :
-dist K L = (emetric.Hausdorff_edist (K : set V) L).to_real := rfl
+  dist K L = (emetric.Hausdorff_edist (K : set V) L).to_real := rfl
 
 lemma of_real_dist_eq_Hausdorff_edist (K L : convex_body V) :
-ennreal.of_real (dist K L) = emetric.Hausdorff_edist (K : set V) L :=
+  ennreal.of_real (dist K L) = emetric.Hausdorff_edist (K : set V) L :=
 ennreal.of_real_to_real Hausdorff_edist_ne_top
 
 /--
@@ -160,11 +158,8 @@ noncomputable instance : metric_space (convex_body V) :=
   eq_of_dist_eq_zero := λ K L hd,
   begin
     ext1,
-    rw [←emetric.Hausdorff_edist_zero_iff_eq_of_closed],
-    any_goals {apply is_closed},
-    rw [dist_eq_to_real_Hausdorff_edist] at hd,
-    replace hd := congr_arg ennreal.of_real hd,
-    simpa only [ennreal.of_real_zero, ennreal.of_real_to_real Hausdorff_edist_ne_top] using hd,
+    exact (K.is_compact.is_closed.Hausdorff_dist_zero_iff_eq
+      L.is_compact.is_closed Hausdorff_edist_ne_top).mp hd,
   end }
 
 end normed_space

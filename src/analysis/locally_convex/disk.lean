@@ -140,25 +140,27 @@ variables (𝕜 E)
 
 /-- The family of seminorms defined by the gauges of absolute convex open sets. -/
 noncomputable
-def maximal_seminorm_family : seminorm_family 𝕜 E (abs_convex_open_sets 𝕜 E) :=
+def gauge_seminorm_family : seminorm_family 𝕜 E (abs_convex_open_sets 𝕜 E) :=
 λ s, gauge_seminorm s.coe_balanced s.coe_convex (absorbent_nhds_zero s.coe_nhds)
 
 variables {𝕜 E}
 
-lemma maximal_seminorm_family_ball (s : abs_convex_open_sets 𝕜 E) :
-  (maximal_seminorm_family 𝕜 E s).ball 0 1 = (s : set E) :=
+lemma gauge_seminorm_family_ball (s : abs_convex_open_sets 𝕜 E) :
+  (gauge_seminorm_family 𝕜 E s).ball 0 1 = (s : set E) :=
 begin
-  dunfold maximal_seminorm_family,
+  dunfold gauge_seminorm_family,
   rw seminorm.ball_zero_eq,
   simp_rw gauge_seminorm_to_fun,
   exact gauge_lt_one_eq_self_of_open s.coe_convex s.coe_zero_mem s.coe_is_open,
 end
 
+section
+
 variables [topological_add_group E] [has_continuous_smul 𝕜 E]
 variables [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E]
 
 /-- The topology of a locally convex space is induced by the maximal seminorm family. -/
-lemma with_maximal_seminorm_family : with_seminorms (maximal_seminorm_family 𝕜 E) :=
+lemma with_gauge_seminorm_family : with_seminorms (gauge_seminorm_family 𝕜 E) :=
 begin
   refine seminorm_family.with_seminorms_of_has_basis _ _,
   refine filter.has_basis.to_has_basis (nhds_basis_abs_convex_open 𝕜 E) (λ s hs, _) (λ s hs, _),
@@ -166,7 +168,7 @@ begin
     rw seminorm_family.basis_sets_iff,
     refine ⟨{⟨s, hs⟩}, 1, one_pos, _⟩,
     simp only [finset.sup_singleton],
-    rw maximal_seminorm_family_ball,
+    rw gauge_seminorm_family_ball,
     simp only [subtype.coe_mk] },
   refine ⟨s, ⟨_, rfl.subset⟩⟩,
   rw seminorm_family.basis_sets_iff at hs,
@@ -184,6 +186,70 @@ begin
   rw hr',
   rw ←seminorm.smul_ball_zero (norm_pos_iff.mpr hr''),
   refine is_open.smul₀ _ hr'',
-  rw maximal_seminorm_family_ball,
+  rw gauge_seminorm_family_ball,
   exact abs_convex_open_sets.coe_is_open _,
+end
+
+end
+
+lemma seminorm.continuous_at_zero {p : seminorm ℝ E} (hp : is_open $ p.ball 0 1) :
+  continuous_at p 0 :=
+begin
+  refine metric.nhds_basis_ball.tendsto_right_iff.mpr _,
+  intros ε hε,
+  rw p.map_zero,
+  suffices : p.ball 0 ε ∈ (𝓝 0 : filter E),
+  { rwa seminorm.ball_zero_eq_preimage_ball at this },
+  have := hp.smul₀ hε.ne.symm,
+  rw [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
+      real.norm_of_nonneg hε.le, mul_one] at this,
+  exact this.mem_nhds (show (0 : E) ∈ p.ball 0 ε, by simp [hε]),
+end
+
+lemma seminorm.norm_sub_le (p : seminorm 𝕜 E) {x y : E} : ∥p x - p y∥ ≤ p (x - y) :=
+begin
+  rw [real.norm_eq_abs, abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
+  exact ⟨p.le_insert' _ _, p.le_insert _ _⟩
+end
+
+lemma seminorm.uniform_continuous_of_continuous_at_zero {E' : Type*} [add_comm_group E']
+  [module ℝ E'] {p : seminorm ℝ E'} [uniform_space E'] [uniform_add_group E']
+  [has_continuous_smul ℝ E'] (hp : is_open $ p.ball 0 1) :
+  uniform_continuous p :=
+begin
+  have hp := seminorm.continuous_at_zero hp,
+  rw [continuous_at, p.map_zero] at hp,
+  have := uniformity_eq_comap_nhds_zero_swapped E',
+  rw [uniform_continuous, uniformity_eq_comap_nhds_zero_swapped,
+      metric.uniformity_eq_comap_nhds_zero, filter.tendsto_comap_iff],
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (hp.comp filter.tendsto_comap) (λ xy, dist_nonneg) (λ xy, p.norm_sub_le)
+end
+
+variables (𝕜 E)
+
+def cont_seminorms : Type* := subtype (continuous ∘ coe_fn : seminorm 𝕜 E → Prop)
+
+instance cont_seminorms.has_coe : has_coe (cont_seminorms 𝕜 E) (seminorm 𝕜 E) := ⟨subtype.val⟩
+
+instance : nonempty (cont_seminorms 𝕜 E) := ⟨⟨0, by exact continuous_zero⟩⟩
+
+def maximal_seminorm_family : seminorm_family 𝕜 E (cont_seminorms 𝕜 E) := coe
+
+variables {𝕜 E}
+
+lemma with_maximal_seminorm_family [topological_add_group E] [has_continuous_smul 𝕜 E]
+  [locally_convex_space ℝ E] :
+  with_seminorms (maximal_seminorm_family 𝕜 E) :=
+begin
+  rw seminorm_family.with_seminorms_iff_nhds_eq_infi,
+  refine le_antisymm (le_infi $ λ i, filter.map_le_iff_le_comap.mp $ i.1.map_zero ▸ i.2.tendsto 0)
+    ((nhds_basis_abs_convex_open 𝕜 E).ge_iff.mpr $ λ t ht,
+    filter.mem_infi_of_mem
+      ⟨gauge_seminorm ht.2.2.1 ht.2.2.2 (absorbent_nhds_zero $ ht.2.1.mem_nhds ht.1), sorry⟩ $
+    filter.mem_comap.mpr ⟨metric.ball 0 1, metric.ball_mem_nhds _ zero_lt_one, _⟩),
+  change gauge_seminorm _ _ _ ⁻¹' metric.ball 0 1 ⊆ t,
+  rw [← seminorm.ball_zero_eq_preimage_ball, seminorm.ball_zero_eq],
+  simp_rw gauge_seminorm_to_fun,
+  exact subset_of_eq (gauge_lt_one_eq_self_of_open ht.2.2.2 ht.1 ht.2.1)
 end

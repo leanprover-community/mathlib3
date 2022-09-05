@@ -670,4 +670,3 @@ end
 
 end inverse_system
 
-#lint

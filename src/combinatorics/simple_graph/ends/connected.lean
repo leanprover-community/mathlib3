@@ -287,8 +287,60 @@ begin
   exact walk.to_induced (p.support.to_finset) q this,
 end
 
-def finset.extend_to_connected (G : simple_graph V) (Gpc : G.preconnected) (K : finset V) (Kn : K.nonempty) :
-  {K' : finset V | K ⊆ K' ∧ (G.induce (K' : set V)).connected } := sorry
+lemma connected.patches (G : simple_graph V) (H : G.subgraph) (u : H.verts)
+  (patches : ∀ v : H.verts, ∃ (H' : G.subgraph) (sub : H' ≤ H) (u' : ↑u ∈ H'.verts)  (v' : ↑v ∈ H'.verts),
+             H'.coe.reachable ⟨u,u'⟩ ⟨v,v'⟩ ) : H.coe.connected :=
+begin
+  rw connected_iff, split,
+  { rintro v w, transitivity u,
+    { obtain ⟨Hv, HvH, u', v',⟨rv⟩⟩ := patches v,
+      constructor,
+      convert rv.reverse.map (subgraph.inclusion HvH);
+      rw [←subtype.coe_inj,simple_graph.subgraph.inclusion_apply_coe]; refl,},
+    { obtain ⟨Hv, HvH, u', v',⟨rv⟩⟩ := patches w,
+      constructor,
+      convert rv.map (subgraph.inclusion HvH);
+      rw [←subtype.coe_inj,simple_graph.subgraph.inclusion_apply_coe]; refl,}, },
+  { use [u.val,u.prop], }
+end
+
+--mathlib
+lemma top_induce (s : set V) : G.induce s = ((⊤ : G.subgraph).induce s).coe :=
+begin
+  ext, simp,
+end
+
+noncomputable def finset.extend_to_connected [decidable_eq V]
+  (G : simple_graph V) (Gpc : G.preconnected) (K : finset V) (Kn : K.nonempty) :
+  {K' : finset V | K ⊆ K' ∧ (G.induce (K' : set V)).connected } :=
+begin
+  let k₀ := Kn.some,
+  let walks_supp := finset.bUnion K (λ v, (Gpc k₀ v).some.support.to_finset),
+  use walks_supp,
+  have hk₀ : k₀ ∈ walks_supp, by
+  { simp only [finset.mem_bUnion, list.mem_to_finset, walk.start_mem_support, exists_prop, and_true],
+    use [k₀,Kn.some_spec], },
+  split,
+  { rintro k kK,
+    simp only [finset.mem_bUnion, list.mem_to_finset, exists_prop],
+    use [k,kK],
+    simp only [walk.end_mem_support], },
+  { rw top_induce,
+    apply connected.patches, rotate, exact ⟨k₀,hk₀⟩,
+    rintro ⟨v,hv⟩,
+    simp only [finset.coe_bUnion, finset.mem_coe, subgraph.induce_verts, set.mem_Union,
+               list.mem_to_finset, exists_prop] at hv,
+    obtain ⟨k,kK,vk⟩ := hv,
+    let patch := ((⊤ : G.subgraph).induce ((Gpc k₀ k).some.support.to_finset)),
+    use patch, split,
+    { apply subgraph.induce_mono_right, rw finset.coe_subset, exact finset.subset_bUnion_of_mem _ kK,},
+    { simp only [subtype.coe_mk, subgraph.induce_verts, finset.mem_coe, list.mem_to_finset,
+                 walk.start_mem_support, exists_true_left],
+      use vk,
+      rw ←top_induce,
+      apply connected.walk_support _ _ _, }
+  }
+end
 
 
 

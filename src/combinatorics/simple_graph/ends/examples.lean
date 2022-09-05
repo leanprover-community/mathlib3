@@ -74,7 +74,14 @@ section nat
 
 def gℕ : simple_graph ℕ := simple_graph.from_rel (λ n m, m = n.succ)
 
-lemma gℕlf : locally_finite gℕ := sorry
+lemma gℕadjz : ∀n, gℕ.adj 0 n ↔ n = 1 := sorry
+lemma gℕadjs : ∀m n, gℕ.adj m n ↔ (n = m+1 ∨ n = m-1) := sorry
+
+lemma gℕlf : locally_finite gℕ := by
+{ dsimp [locally_finite,neighbor_set,adj],
+  rintro n, induction n,
+  { fconstructor, exact {⟨1,by {}⟩} },
+  { sorry,} }
 lemma gℕpc : gℕ.preconnected := sorry
 lemma gℕc : gℕ.connected := sorry
 

@@ -70,6 +70,8 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
     { rw [dif_neg hW], apply ((if_neg hW).symm.rec terminal_is_terminal).hom_ext }
   end }
 
+end
+
 section
 
 -- In this section, we calculate the stalks for skyscraper presheaves.
@@ -140,8 +142,8 @@ colimit
 -/
 noncomputable def skyscraper_presheaf_cocone_is_colimit_of_not_specializes
   {y : X} (h : ¬p₀ ⤳ y) : is_colimit (skyscraper_presheaf_cocone p₀ A y) :=
-let h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
-  let ⟨U, ho, h₀, hy⟩ := not_specializes_iff_exists_open.mp h in ⟨⟨⟨U, ho⟩, h₀⟩, hy⟩ in
+let h0 := not_specializes_iff_exists_open.mp h, h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
+  ⟨⟨⟨h0.some, h0.some_spec.1⟩, h0.some_spec.2.1⟩, h0.some_spec.2.2⟩ in
 { desc := λ c, eq_to_hom (if_neg h1.some_spec).symm ≫ c.ι.app (op h1.some),
   fac' := λ c U, begin
     change _ = c.ι.app (op U.unop),

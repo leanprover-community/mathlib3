@@ -444,78 +444,6 @@ begin
   exact mgale_diff_le hs ,
 end
 
-lemma limsup_eq_tendsto_sum_indicator_at_top (s : ℕ → set Ω) :
-  limsup at_top s =
-    {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℕ) ω) at_top at_top} :=
-begin
-  ext ω,
-  simp only [limsup_eq_infi_supr_of_nat, ge_iff_le, set.supr_eq_Union,
-      set.infi_eq_Inter, set.mem_Inter, set.mem_Union, exists_prop],
-  split,
-  { intro hω,
-    refine tendsto_at_top_at_top_of_monotone' (λ n m hnm, finset.sum_mono_set_of_nonneg
-      (λ i, set.indicator_nonneg (λ _ _, zero_le_one) _) (finset.range_mono hnm)) _,
-    rintro ⟨i, h⟩,
-    simp only [mem_upper_bounds, set.mem_range, forall_exists_index, forall_apply_eq_imp_iff'] at h,
-    induction i with k hk,
-    { obtain ⟨j, hj₁, hj₂⟩ := hω 1,
-      refine not_lt.2 (h $ j + 1) (lt_of_le_of_lt
-        (finset.sum_const_zero.symm : 0 = ∑ k in finset.range (j + 1), 0).le _),
-      refine finset.sum_lt_sum (λ m _, set.indicator_nonneg (λ _ _, zero_le_one) _)
-        ⟨j - 1, finset.mem_range.2 (lt_of_le_of_lt (nat.sub_le _ _) j.lt_succ_self), _⟩,
-      rw [nat.sub_add_cancel hj₁, set.indicator_of_mem hj₂],
-      exact zero_lt_one },
-    { rw imp_false at hk,
-      push_neg at hk,
-      obtain ⟨i, hi⟩ := hk,
-      obtain ⟨j, hj₁, hj₂⟩ := hω (i + 1),
-      replace hi : ∑ k in finset.range i, (s (k + 1)).indicator 1 ω = k + 1 := le_antisymm (h i) hi,
-      refine not_lt.2 (h $ j + 1) _,
-      rw [← finset.sum_range_add_sum_Ico _ (i.le_succ.trans (hj₁.trans j.le_succ)), hi],
-      refine lt_add_of_pos_right _ _,
-      rw (finset.sum_const_zero.symm : 0 = ∑ k in finset.Ico i (j + 1), 0),
-      refine finset.sum_lt_sum (λ m _, set.indicator_nonneg (λ _ _, zero_le_one) _)
-        ⟨j - 1, finset.mem_Ico.2
-        ⟨(nat.le_sub_iff_right (le_trans ((le_add_iff_nonneg_left _).2 zero_le') hj₁)).2 hj₁,
-          lt_of_le_of_lt (nat.sub_le _ _) j.lt_succ_self⟩, _⟩,
-      rw [nat.sub_add_cancel (le_trans ((le_add_iff_nonneg_left _).2 zero_le') hj₁),
-        set.indicator_of_mem hj₂],
-      exact zero_lt_one } },
-  { rintro hω i,
-    rw [set.mem_set_of_eq, tendsto_at_top_at_top] at hω,
-    by_contra hcon,
-    push_neg at hcon,
-    obtain ⟨j, h⟩ := hω (i + 1),
-    have : ∑ k in finset.range j, (s (k + 1)).indicator 1 ω ≤ i,
-    { have hle : ∀ j ≤ i, ∑ k in finset.range j, (s (k + 1)).indicator 1 ω ≤ i,
-      { refine λ j hij, (finset.sum_le_card_nsmul _ _ _ _ : _ ≤ (finset.range j).card • 1).trans _,
-        { exact λ m hm, set.indicator_apply_le' (λ _, le_rfl) (λ _, zero_le_one) },
-        { simpa only [finset.card_range, algebra.id.smul_eq_mul, mul_one] } },
-      by_cases hij : j < i,
-      { exact hle _ hij.le },
-      { rw ← finset.sum_range_add_sum_Ico _ (not_lt.1 hij),
-        suffices : ∑ k in finset.Ico i j, (s (k + 1)).indicator 1 ω = 0,
-        { rw [this, add_zero],
-          exact hle _ le_rfl },
-        rw finset.sum_eq_zero (λ m hm, _),
-        exact set.indicator_of_not_mem (hcon _ $ (finset.mem_Ico.1 hm).1.trans m.le_succ) _ } },
-    exact not_le.2 (lt_of_lt_of_le i.lt_succ_self $ h _ le_rfl) this }
-end
-
-lemma limsup_eq_tendsto_sum_indicator_at_top' (s : ℕ → set Ω) :
-  limsup at_top s =
-    {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω) at_top at_top} :=
-begin
-  rw limsup_eq_tendsto_sum_indicator_at_top s,
-  ext ω,
-  simp only [set.mem_set_of_eq],
-  rw (_ : (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω) =
-    (λ n, ↑(∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℕ) ω))),
-  { exact tendsto_coe_nat_at_top_iff.symm },
-  { ext n,
-    simp only [set.indicator, pi.one_apply, finset.sum_boole, nat.cast_id] }
-end
-
 end borel_cantelli
 
 open borel_cantelli
@@ -558,7 +486,7 @@ theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
   ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
       at_top at_top :=
-(borel_cantelli.limsup_eq_tendsto_sum_indicator_at_top' s).symm ▸
+(borel_cantelli.limsup_eq_tendsto_sum_indicator_at_top' ℝ s).symm ▸
   tendsto_sum_indicator_at_top_iff μ hs
 
 end measure_theory

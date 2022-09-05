@@ -146,19 +146,11 @@ begin
     exact let ⟨j, hj₁, hj₂⟩ := hle in ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩ }
 end
 
-lemma least_ge_apply_eq_stopped_value (f : ℕ → Ω → ℝ) (π : Ω → ℕ) (r : ℝ) (ω : Ω)
-  {n : ℕ} (hπn : ∀ ω, π ω ≤ n) :
-  f (least_ge f r (π ω) ω) ω = stopped_value f (λ ω, min (π ω) (least_ge f r n ω)) ω :=
-by { rw least_ge_eq_min _ _ _ hπn, simp_rw [stopped_value], }
-
 lemma stopped_value_stopped_value_least_ge (f : ℕ → Ω → ℝ) (π : Ω → ℕ) (r : ℝ)
   {n : ℕ} (hπn : ∀ ω, π ω ≤ n) :
   stopped_value (λ i, stopped_value f (least_ge f r i)) π
-    = (λ ω, stopped_value f (λ ω, min (π ω) (least_ge f r n ω)) ω) :=
-begin
-  ext1 ω,
-  exact least_ge_apply_eq_stopped_value f π r ω hπn,
-end
+    = stopped_value (stopped_process f (least_ge f r n)) π :=
+by { ext1 ω, simp_rw [stopped_process, stopped_value], rw least_ge_eq_min _ _ _ hπn, }
 
 lemma submartingale.stopped_value_least_ge [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (r : ℝ) :

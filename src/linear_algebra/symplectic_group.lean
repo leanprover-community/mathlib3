@@ -108,8 +108,7 @@ variables (l) (R)
 
 lemma J_mem : (J l R) ∈ symplectic_group l R :=
 begin
-  rw mem_iff,
-  rw [J, from_blocks_multiply, from_blocks_transpose, from_blocks_multiply],
+  rw [mem_iff, J, from_blocks_multiply, from_blocks_transpose, from_blocks_multiply],
   simp,
 end
 
@@ -174,7 +173,7 @@ instance : has_inv (symplectic_group l R) :=
 { inv := λ A, ⟨- (J l R) ⬝ (A : matrix (l ⊕ l) (l ⊕ l) R)ᵀ ⬝ (J l R),
   mul_mem (mul_mem (neg_mem $ J_mem _ _) $ transpose_mem A.2) $ J_mem _ _⟩ }
 
-@[simp] lemma coe_inv (A : symplectic_group l R) :
+lemma coe_inv (A : symplectic_group l R) :
   (↑(A⁻¹) : matrix _ _ _) = - J l R ⬝ (↑A)ᵀ ⬝ J l R := rfl
 
 lemma inv_left_mul_aux (hA : A ∈ symplectic_group l R) :
@@ -189,7 +188,7 @@ calc -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A)
 lemma coe_inv' (A : symplectic_group l R) : (↑(A⁻¹) : matrix (l ⊕ l) (l ⊕ l) R) = A⁻¹ :=
 begin
   refine (coe_inv A).trans (inv_eq_left_inv _).symm,
-  simp only [matrix.neg_mul, inv_left_mul_aux, set_like.coe_mem, coe_inv],
+  simp [inv_left_mul_aux, coe_inv],
 end
 
 lemma inv_eq_symplectic_inv (A : matrix (l ⊕ l) (l ⊕ l) R) (hA : A ∈ symplectic_group l R) :
@@ -201,8 +200,7 @@ instance : group (symplectic_group l R) :=
   begin
     apply subtype.ext,
     simp only [submonoid.coe_one, submonoid.coe_mul, matrix.neg_mul, coe_inv],
-    change -(J l R ⬝ (↑A)ᵀ ⬝ J l R) ⬝ ↑A = 1,
-    rw matrix.neg_mul,
+    rw [matrix.mul_eq_mul, matrix.neg_mul],
     exact inv_left_mul_aux A.2,
   end,
   .. symplectic_group.has_inv,

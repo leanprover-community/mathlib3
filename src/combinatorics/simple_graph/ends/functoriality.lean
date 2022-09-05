@@ -270,22 +270,24 @@ begin
 
 end
 
+def coarse.Endsinfty_comp_apply {f : V → V'} {f' : V' → V''}
+  (fc : coarse G G' f ) (fc' : coarse G' G'' f') (e : Endsinfty G) :
+  coarse.Endsinfty G G'' (coarse.comp G G' G'' fc fc') e
+  = (coarse.Endsinfty G' G'' fc') ( (coarse.Endsinfty G G' fc) e) :=
+by { rcases e with ⟨s,sec⟩, refl, }
+
 def coarse.Endsinfty_comp {f : V → V'} {f' : V' → V''}
   (fc : coarse G G' f ) (fc' : coarse G' G'' f') :
   coarse.Endsinfty G G'' (coarse.comp G G' G'' fc fc')
   = (coarse.Endsinfty G' G'' fc') ∘ (coarse.Endsinfty G G' fc) :=
-begin
-  apply funext,
-  rintro ⟨s,sec⟩,
-  refl,
-end
+by { funext, apply coarse.Endsinfty_comp_apply, }
+
+def coarse.Endsinfty_id_apply [locally_finite G] (e : Endsinfty G) :
+  coarse.Endsinfty G G (coarse.id G) e = e :=
+by { rcases e with ⟨s,sec⟩, refl, }
 
 def coarse.Endsinfty_id [locally_finite G] : coarse.Endsinfty G G (coarse.id G) = id :=
-begin
-  apply funext,
-  rintro ⟨s,sec⟩,
-  refl,
-end
+by { funext, apply coarse.Endsinfty_id_apply, }
 
 def good_common_finset (f g : V → V') (K : finset V') (L : finset V) :=
   Π D : G.inf_comp_out L, {C : G'.inf_comp_out K | f '' D.val ∪ g '' D.val ⊆ C.val}
@@ -381,6 +383,11 @@ lemma coarse_close.Endsinfty.eq' {f g : V → V'}
 
 
 def coarse_Lipschitz (f : V → V') (K : ℕ) := ∀ (x y : V) (a : G.adj x y), (G'.dist (f x) (f y)) ≤ K
+lemma coarse_Lipschitz.id (K : ℕ) (Kge : K ≥ 1) : coarse_Lipschitz G G id K := sorry
+lemma coarse_Lipschitz.comp (K L : ℕ) (f : V → V') (g : V' → V'') :
+  coarse_Lipschitz G G' f K → coarse_Lipschitz G' G'' g L → coarse_Lipschitz G G'' (g ∘ f) (K*L) := sorry
+lemma coarse_Lipschitz.mono (f : V → V') (K L : ℕ) (h : K ≤ L) :
+  coarse_Lipschitz G G' f K → coarse_Lipschitz G G' f L := sorry
 
 --mathlib
 private def thicken_ (G : simple_graph V) (K : finset V) (m : ℕ) : finset V :=

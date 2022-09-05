@@ -8,7 +8,7 @@ import combinatorics.simple_graph.prod
 import .mathlib
 import .comp_out
 import .end_limit_construction
---import .functoriality
+import .functoriality
 
 open function
 open finset
@@ -282,14 +282,51 @@ variables  {V' : Type v}
            (Gpc': G'.preconnected)
            (Glf' : locally_finite G')
 
-/-
-lemma qi_invariance (φ : V → V') (ψ : V' → V) (m : ℕ)
+
+lemma cofinite_of_coarse_Lipschitz_inv (φ : V → V') (ψ : V' → V) (m : ℕ) (mge : m ≥ 1)
+  (φψ : ∀ (v : V), G.dist (ψ $ φ v) v ≤ m)
+  (φl : coarse_Lipschitz G G' φ m) (ψl : coarse_Lipschitz G' G ψ m) : cofinite φ := sorry
+
+
+include Gpc Gpc' Glf Glf'
+lemma qi_invariance (φ : V → V') (ψ : V' → V) (m : ℕ) (mge : m ≥ 1)
   (φψ : ∀ (v : V), G.dist (ψ $ φ v) v ≤ m) (ψφ : ∀ (v : V'), G'.dist (φ $ ψ v) v ≤ m)
   (φl : coarse_Lipschitz G G' φ m) (ψl : coarse_Lipschitz G' G ψ m) :
-  Endsinfty G Gpc ≃ Endsinfty G' Gpc' := sorry
--- First step: ψ and φ are cofinite :
--- Then everything should follow from `.functoriality.lean`
--/
+  Endsinfty G ≃ Endsinfty G' :=
+begin
+  haveI : locally_finite G := Glf,
+  have mmm : m ≤ m*m, by {exact nat.le_mul_self m,},
+  have φcof : cofinite φ := sorry,
+  have ψcof : cofinite ψ := sorry,
+  have φc := coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' φ m φl φcof,
+  have ψc := coarse.of_coarse_Lipschitz_of_cofinite G' G Gpc ψ m ψl ψcof,
+  have φψcl : coarse_close G' G' (φ ∘ ψ) id, by
+  { apply coarse_close.of_close_of_coarse_Lipschitz_of_cofinite G' Gpc' G' Gpc' (φ∘ψ) id (m*m),
+    { apply coarse_Lipschitz.comp, exact ψl, exact φl, },
+    { apply coarse_Lipschitz.id G' (m*m) (mge.le.trans mmm), },
+    { apply cofinite.comp ψcof φcof,},
+    { apply cofinite.id, },
+    { rintro v, apply (ψφ v).trans mmm,}, },
+  have ψφcl : coarse_close G G (ψ ∘ φ) id := by
+  { apply coarse_close.of_close_of_coarse_Lipschitz_of_cofinite G Gpc G Gpc (ψ∘φ) id (m*m),
+    { apply coarse_Lipschitz.comp, exact φl, exact ψl, },
+    { apply coarse_Lipschitz.id G (m*m) (mge.le.trans mmm), },
+    { apply cofinite.comp φcof ψcof,},
+    { apply cofinite.id, },
+    { rintro v, apply (φψ v).trans mmm,}, },
+  fsplit,
+  exact coarse.Endsinfty G G' φc,
+  exact coarse.Endsinfty G' G ψc,
+  { rintro e,
+    rw [←coarse.Endsinfty_comp_apply,
+        coarse_close.Endsinfty.eq' G G ψφcl (coarse.comp G G' G φc ψc) (coarse.id G),
+        coarse.Endsinfty_id_apply],},
+  { rintro e,
+    rw [←coarse.Endsinfty_comp_apply,
+        coarse_close.Endsinfty.eq' G' G' φψcl (coarse.comp G' G G' ψc φc) (coarse.id G'),
+        coarse.Endsinfty_id_apply],},
+end
+
 
 
 end quasi_isometry

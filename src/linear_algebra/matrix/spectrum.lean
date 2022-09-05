@@ -29,10 +29,6 @@ namespace is_hermitian
 
 variables (hA : A.is_hermitian)
 
-#check module.End.has_eigenvalue
-#check linear_map.is_symmetric.has_eigenvalue_eigenvalues
-#check linear_map.is_symmetric.has_eigenvector_eigenvector_basis
-
 /-- The eigenvalues of a hermitian matrix, indexed by `fin (fintype.card n)` where `n` is the index
 type of the matrix. -/
 noncomputable def eigenvalues₀ : fin (fintype.card n) → ℝ :=

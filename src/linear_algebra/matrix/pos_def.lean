@@ -67,7 +67,11 @@ begin
   apply finset.prod_pos,
   intros i _,
   rw hM.is_hermitian.eigenvalues_eq,
-  apply hM.2,
+  apply hM.2 _ (λ h, _),
+  have h_det : (hM.is_hermitian.eigenvector_matrix)ᵀ.det = 0,
+    from matrix.det_eq_zero_of_row_eq_zero i (λ j, congr_fun h j),
+  simpa only [h_det, not_is_unit_zero] using
+    is_unit_det_of_invertible hM.is_hermitian.eigenvector_matrixᵀ,
 end
 
 end pos_def

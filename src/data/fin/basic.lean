@@ -1547,7 +1547,7 @@ begin
   simp [cast_pred, pred_above, this]
 end
 
-lemma coe_cast_pred {n : ℕ} (a : fin (n+2)) (hx : a < fin.last _) :
+lemma coe_cast_pred {n : ℕ} (a : fin (n + 2)) (hx : a < fin.last _) :
   (a.cast_pred : ℕ) = a :=
 begin
   rcases a with ⟨a, ha⟩,

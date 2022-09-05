@@ -23,12 +23,19 @@ of the ring of integers.
 
 ## Main definitions
 
- * `conductor`
- * `prime_ideal.above` is a multiset of prime ideals over a given prime ideal
+ * `factors_equiv'` : The bijection in the Kummer-Dedekind theorem
 
 ## Main results
 
- * `map_prime_ideal_eq_prod_above`
+ * `normalized_factors_ideal_map_eq_normalized_factors_min_poly_mk_map` : The Kummer-Dedekind
+    theorem
+ * `ideal.irreducible_map_of_irreducible_minpoly` : `I.map (algebra_map R S)` is irreducible if
+    `(map I^.quotient.mk (minpoly R pb.gen))` is irreducible, where `pb` is a power basis of `S`
+    over `R`
+
+## TODO
+ * Define the conductor ideal and prove the Kummer-Dedekind theorem in full generality
+ * Prove the converse of `ideal.irreducible_map_of_irreducible_minpoly`
 
 ## Tags
 
@@ -48,7 +55,7 @@ variables {S : Type*} [comm_ring S] [algebra R S]
 lemma temporary (f : polynomial R) (r : R) :
   adjoin_root.of f r = adjoin_root.mk f (polynomial.C r) := rfl
 
-open alg_equiv.alg_equiv
+open alg_equiv
 
 /-- Let `f` be a polynomial over `R` and `I` an ideal of `R`,
 then `(R[x]/(f)) / (I)` is isomorphic to `(R/I)[x] / (f mod p)` -/
@@ -119,6 +126,8 @@ variable [decidable_eq (ideal S)]
 
 noncomputable instance {I: ideal R} [hI : is_maximal I] : field (R ⧸ I) :=
 ((ideal.quotient.maximal_ideal_iff_is_field_quotient I).mp hI).to_field
+
+namespace kummer_dedekind
 
 variables [is_domain R] [is_dedekind_domain R] [is_domain S] [is_dedekind_domain S] [algebra R S]
 variables  (pb : power_basis R S) {I : ideal R}
@@ -234,28 +243,19 @@ noncomputable def factors_equiv' (hI : is_maximal I)
 (normalized_factors_equiv pb hI hI' hpb).trans
   (normalized_factors_equiv_span_normalized_factors hpb).symm
 
-theorem ideal.irreducible_map_of_irreducible_minpoly (hI : is_maximal I)
-  (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0)
-  (hf : irreducible (map I^.quotient.mk (minpoly R pb.gen))) :
-  irreducible (I.map (algebra_map R S)) :=
-sorry
-
-/-- The second hald of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the
+/-- The second half of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the
     bijection `factors_equiv'` defined in the first half preserves multiplicities. -/
 theorem multiplicity_factors_equiv'_eq_multiplicity (hI : is_maximal I)
   (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0)
   {J : ideal S}  (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
   multiplicity J (I.map (algebra_map R S)) = multiplicity ↑(factors_equiv' pb hI hI' hpb ⟨J, hJ⟩)
     (map I^.quotient.mk (minpoly R pb.gen)) :=
-begin
-  simp only [factors_equiv',
-    multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity, equiv.coe_trans,
-    function.comp_app],
-  rw multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity,
-  rw normalized_factors_equiv_multiplicity_eq_multiplicity,
-end
+by rw [factors_equiv', equiv.coe_trans, function.comp_app,
+       multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity,
+       normalized_factors_equiv_multiplicity_eq_multiplicity ]
 
-theorem kummer_dedekind.normalized_factors_ideal_map_eq_normalized_factors_min_poly_mk_map
+/-- The **Kummer-Dedekind Theorem** -/
+theorem normalized_factors_ideal_map_eq_normalized_factors_min_poly_mk_map
   (hI : is_maximal I) (hI' : I.map (algebra_map R S) ≠ ⊥)
   (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) :
   normalized_factors (I.map (algebra_map R S)) =
@@ -293,3 +293,27 @@ begin
   { exact irreducible_of_normalized_factor _ hJ },
   { assumption },
 end
+
+theorem ideal.irreducible_map_of_irreducible_minpoly (hI : is_maximal I)
+  (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0)
+  (hf : irreducible (map I^.quotient.mk (minpoly R pb.gen))) :
+  irreducible (I.map (algebra_map R S)) :=
+begin
+  have mem_norm_factors: normalize (map I^.quotient.mk (minpoly R pb.gen)) ∈ normalized_factors
+    (map I^.quotient.mk (minpoly R pb.gen)) := by simp [normalized_factors_irreducible hf],
+  suffices : ∃ x, normalized_factors (I.map (algebra_map R S)) = {x},
+  { obtain ⟨x, hx⟩ := this,
+    have h := normalized_factors_prod hI',
+    rw [associated_iff_eq, hx, multiset.prod_singleton] at h,
+    rw ← h,
+    exact irreducible_of_normalized_factor x
+      (show x ∈ normalized_factors (I.map (algebra_map R S)), by simp [hx]) },
+  rw normalized_factors_ideal_map_eq_normalized_factors_min_poly_mk_map pb hI hI' hpb,
+  use ((factors_equiv' pb hI hI' hpb).symm
+    ⟨normalize (map I^.quotient.mk (minpoly R pb.gen)), mem_norm_factors⟩ : ideal S),
+  rw multiset.map_eq_singleton,
+  use ⟨normalize (map I^.quotient.mk (minpoly R pb.gen)), mem_norm_factors⟩,
+  refine ⟨by {rw normalized_factors_irreducible hf, refl}, rfl⟩,
+end
+
+end kummer_dedekind

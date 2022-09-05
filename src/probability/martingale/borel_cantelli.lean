@@ -308,7 +308,7 @@ lemma submartingale.bdd_above_iff_exists_tendsto_aux [is_finite_measure μ]
 by filter_upwards [hf.exists_tendsto_of_abs_bdd_above hf0 hbdd] with ω hω using
   ⟨hω, λ ⟨c, hc⟩, hc.bdd_above_range⟩
 
-/-- One sided martingale bound: If `f` is a submartingale which has uniformly bounded difference,
+/-- One sided martingale bound: If `f` is a submartingale which has uniformly bounded differences,
 then for almost every `ω`, `f n ω` is bounded above (in `n`) if and only if it converges. -/
 lemma submartingale.bdd_above_iff_exists_tendsto [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :

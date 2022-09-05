@@ -8,16 +8,35 @@ import algebra.monoid_algebra.support
 /-!
 # Variations on non-zero divisors in `add_monoid_algebra`s
 
-This file proves that the `add_monoid_algebra R A` has no zero-divisors under the following
-assumptions:
-* * the semiring `R` itself has no zero-divisors;
-* * the grading type `A` is a linearly ordered, add right cancel semigroup with strictly monotone
-    left addition.
+This file studies the interaction between typeclass assumptions on two Types `R` and `A` and
+whether `add_monoid_algebra R A` has non-zero zero-divisors.  For some background on related
+questions, see [Kaplansky's Conjectures](https://en.wikipedia.org/wiki/Kaplansky%27s_conjectures),
+especially the *zero divisor conjecture*.
 
-These conditions on `A` are sometimes referred to as `left-ordered`.  We also prove the symmetric
-`right-ordered` result.
+_Conjecture._
+Let `K` be a field, and `G` a torsion-free group. The group ring `K[G]` does not contain
+nontrivial zero divisors, that is, it is a domain.
 
-The eventual goal is to weaken the assumptions on `A`.
+We formalize in this file the well-known result that if `R` is a field and `A` is a left-ordered
+group, then `R[A]` contains no non-zero zero-divisors.  Some of these assumptions can be trivially
+weakened: below we mention what assumptions are sufficient for the proofs in this file
+
+##  Main results
+
+* `no_zero_divisors.of_left_ordered` shows that if `R` is a semiring with no non-zero
+  zero-divisors, `A` is a linearly ordered, add right cancel semigroup with strictly monotone
+  left addition, then `add_monoid_algebra R A` has no non-zero zero-divisors.
+* `no_zero_divisors.of_right_ordered` shows that if `R` is a semiring with no non-zero
+  zero-divisors, `A` is a linearly ordered, add left cancel semigroup with strictly monotone
+  right addition, then `add_monoid_algebra R A` has no non-zero zero-divisors.
+
+The conditions on `A` imposed in `no_zero_divisors.of_left_ordered` are sometimes referred to as
+`left-ordered`.
+The conditions on `A` imposed in `no_zero_divisors.of_right_ordered` are sometimes referred to as
+`right-ordered`.
+
+These conditions are sufficient, but are not necessary.  As mentioned above,
+*Kaplansky's Conjecture* asserts that `A` being torsion-free may be enough.
 -/
 
 namespace add_monoid_algebra

@@ -353,10 +353,7 @@ begin
       (integrable_const 1).integrable_on) (integrable_const 1)
       (eventually_of_forall $ λ ω, set.indicator_le_self' (λ _ _, zero_le_one) ω) },
   have h₂ : (0 : Ω → ℝ) ≤ᵐ[μ] μ[(s (n + 1)).indicator 1|ℱ n],
-  { rw ← @condexp_zero Ω ℝ _ _ _ (ℱ n) _ μ,
-    exact condexp_mono (integrable_zero _ _ _)
-      ((integrable_indicator_iff (ℱ.le _ _ (hs $ _))).2 (integrable_const 1).integrable_on)
-      (eventually_of_forall $ λ ω, set.indicator_nonneg (λ _ _, zero_le_one) _) },
+    from condexp_nonneg (eventually_of_forall $ λ ω, set.indicator_nonneg (λ _ _, zero_le_one) _),
   filter_upwards [h₁, h₂] with ω hω₁ hω₂,
   rw [abs_le, neg_le, pi.sub_apply, neg_sub, tsub_le_iff_right, tsub_le_iff_right,
     add_comm (1 : ℝ), add_comm (1 : ℝ)],

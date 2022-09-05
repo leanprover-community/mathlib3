@@ -15,7 +15,7 @@ We define the natural- and integer-valued floor and ceil functions on linearly o
 
 ## Main Definitions
 
-* `floor_semiring`: An ordered semiring with natural-valued floor and ceil.
+* `floor_semiring`: A linearly ordered semiring with natural-valued floor and ceil.
 * `nat.floor a`: Greatest natural `n` such that `n ≤ a`. Equal to `0` if `a < 0`.
 * `nat.ceil a`: Least natural `n` such that `a ≤ n`.
 
@@ -35,10 +35,14 @@ We define the natural- and integer-valued floor and ceil functions on linearly o
 The index `₊` in the notations for `nat.floor` and `nat.ceil` is used in analogy to the notation
 for `nnnorm`.
 
-## TODO
+## Notes
 
-`linear_ordered_ring`/`linear_ordered_semiring` can be relaxed to `order_ring`/`order_semiring` in
-many lemmas.
+`linear_ordered_ring`/`linear_ordered_semiring` could be relaxed to `order_ring`/`order_semiring` in
+many lemmas, but this seems very unmathematical. `α` being a floor ring implies it being
+archimedean, in the sense that for all `a : α`, we have some `m n : ℤ` such that `m ≤ a` and
+`a ≤ n`. This rules out almost all non-linear rings. What's left looks like the semiring in
+the `canonically_ordered_comm_semiring_two_mul` counterexample, and does not seem to be of
+mathematical interest.
 
 ## Tags
 
@@ -50,10 +54,9 @@ variables {F α β : Type*}
 
 /-! ### Floor semiring -/
 
-/-- A `floor_semiring` is an ordered semiring over `α` with a function
-`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`.
-Note that many lemmas require a `linear_order`. Please see the above `TODO`. -/
-class floor_semiring (α) [ordered_semiring α] :=
+/-- A `floor_semiring` is a linear ordered semiring over `α` with a function
+`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`. -/
+class floor_semiring (α) [linear_ordered_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
 (floor_of_neg {a : α} (ha : a < 0) : floor a = 0)
@@ -68,9 +71,8 @@ instance : floor_semiring ℕ :=
   gc_ceil := λ n a, by { rw nat.cast_id, refl } }
 
 namespace nat
-
-section ordered_semiring
-variables [ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
+section linear_ordered_semiring
+variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
 /-- `⌊a⌋₊` is the greatest natural `n` such that `n ≤ a`. If `a` is negative, then `⌊a⌋₊ = 0`. -/
 def floor : α → ℕ := floor_semiring.floor
@@ -83,11 +85,6 @@ def ceil : α → ℕ := floor_semiring.ceil
 
 notation `⌊` a `⌋₊` := nat.floor a
 notation `⌈` a `⌉₊` := nat.ceil a
-
-end ordered_semiring
-
-section linear_ordered_semiring
-variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
 lemma le_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a := floor_semiring.gc_floor ha
 

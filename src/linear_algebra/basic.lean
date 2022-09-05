@@ -628,12 +628,6 @@ lemma range_map_nonempty (N : submodule R M) :
   (set.range (λ ϕ, submodule.map ϕ N : (M →ₛₗ[σ₁₂] M₂) → submodule R₂ M₂)).nonempty :=
 ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
 
-/-- Restrict domain and codomain of a linear map. -/
-@[simps] def restrict' [add_comm_monoid M₁] [module R M₁] (f : M →ₗ[R] M₁)
-  {p : submodule R M} {q : submodule R M₁} (hf : p.map f ≤ q) :
-  p →ₗ[R] q :=
-f.restrict (λ x hx, hf ⟨x, hx, rfl⟩)
-
 end
 
 variables {F : Type*} [sc : semilinear_map_class F σ₁₂ M M₂]
@@ -918,6 +912,18 @@ variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
 include R
 open submodule
+
+section restrict
+
+variables [add_comm_monoid M₁] [module R M₁]
+
+/-- Restrict domain and codomain of a linear map. -/
+@[simps] def restrict' (f : M →ₗ[R] M₁)
+  {p : submodule R M} {q : submodule R M₁} (hf : p.map f ≤ q) :
+  p →ₗ[R] q :=
+f.restrict (λ x hx, hf ⟨x, hx, rfl⟩)
+
+end restrict
 
 section finsupp
 variables {γ : Type*} [has_zero γ]

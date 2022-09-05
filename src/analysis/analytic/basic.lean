@@ -407,11 +407,46 @@ lemma has_fpower_series_on_ball.mono
   has_fpower_series_on_ball f p x r' :=
 ⟨le_trans hr hf.1, r'_pos, λ y hy, hf.has_sum (emetric.ball_subset_ball hr hy)⟩
 
+lemma has_fpower_series_at.congr (hf : has_fpower_series_at f p x) (hg : f =ᶠ[𝓝 x] g) :
+  has_fpower_series_at g p x :=
+begin
+  rcases hf with ⟨r₁, h₁⟩,
+  rcases emetric.mem_nhds_iff.mp hg with ⟨r₂, h₂pos, h₂⟩,
+  exact ⟨min r₁ r₂, (h₁.mono (lt_min h₁.r_pos h₂pos) inf_le_left).congr
+    (λ y hy, h₂ (emetric.ball_subset_ball inf_le_right hy))⟩
+end
+
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
   ∀ᶠ r : ℝ≥0∞ in 𝓝[>] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
 mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
+
+lemma has_fpower_series_on_ball.eventually_has_sum (hf : has_fpower_series_on_ball f p x r) :
+  ∀ᶠ y in 𝓝 0, has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)) :=
+by filter_upwards [emetric.ball_mem_nhds (0 : E) hf.r_pos] using λ _, hf.has_sum
+
+lemma has_fpower_series_at.eventually_has_sum (hf : has_fpower_series_at f p x) :
+  ∀ᶠ y in 𝓝 0, has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)) :=
+let ⟨r, hr⟩ := hf in hr.eventually_has_sum
+
+lemma has_fpower_series_on_ball.eventually_has_sum_sub (hf : has_fpower_series_on_ball f p x r) :
+  ∀ᶠ y in 𝓝 x, has_sum (λn:ℕ, p n (λ(i : fin n), y - x)) (f y) :=
+by filter_upwards [emetric.ball_mem_nhds x hf.r_pos] with y using hf.has_sum_sub
+
+lemma has_fpower_series_at.eventually_has_sum_sub (hf : has_fpower_series_at f p x) :
+  ∀ᶠ y in 𝓝 x, has_sum (λn:ℕ, p n (λ(i : fin n), y - x)) (f y) :=
+let ⟨r, hr⟩ := hf in hr.eventually_has_sum_sub
+
+lemma has_fpower_series_on_ball.eventually_eq_zero
+  (hf : has_fpower_series_on_ball f (0 : formal_multilinear_series 𝕜 E F) x r) :
+  ∀ᶠ z in 𝓝 x, f z = 0 :=
+by filter_upwards [hf.eventually_has_sum_sub] with z hz using hz.unique has_sum_zero
+
+lemma has_fpower_series_at.eventually_eq_zero
+  (hf : has_fpower_series_at f (0 : formal_multilinear_series 𝕜 E F) x) :
+  ∀ᶠ z in 𝓝 x, f z = 0 :=
+let ⟨r, hr⟩ := hf in hr.eventually_eq_zero
 
 lemma has_fpower_series_on_ball.add
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
@@ -840,6 +875,17 @@ theorem has_fpower_series_at.eq_formal_multilinear_series
   p₁ = p₂ :=
 sub_eq_zero.mp (has_fpower_series_at.eq_zero (by simpa only [sub_self] using h₁.sub h₂))
 
+lemma has_fpower_series_at.eq_formal_multilinear_series_of_eventually
+  {p q : formal_multilinear_series 𝕜 𝕜 E} {f g : 𝕜 → E} {x : 𝕜} (hp : has_fpower_series_at f p x)
+  (hq : has_fpower_series_at g q x) (heq : ∀ᶠ z in 𝓝 x, f z = g z) :
+  p = q :=
+(hp.congr heq).eq_formal_multilinear_series hq
+
+/-- A one-dimensional formal multilinear series representing a locally zero function is zero. -/
+lemma has_fpower_series_at.eq_zero_of_eventually {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E}
+  {x : 𝕜} (hp : has_fpower_series_at f p x) (hf : f =ᶠ[𝓝 x] 0) : p = 0 :=
+(hp.congr hf).eq_zero
+
 /-- If a function `f : 𝕜 → E` has two power series representations at `x`, then the given radii in
 which convergence is guaranteed may be interchanged. This can be useful when the formal multilinear
 series in one representation has a particularly nice form, but the other has a larger radius. -/
@@ -1177,6 +1223,49 @@ begin
   rw is_open_iff_mem_nhds,
   rintro x ⟨p, r, hr⟩,
   exact mem_of_superset (emetric.ball_mem_nhds _ hr.r_pos) (λ y hy, hr.analytic_at_of_mem hy)
+end
+
+end
+
+section
+
+open formal_multilinear_series
+
+variables {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {z₀ : 𝕜}
+
+/-- A function `f : 𝕜 → E` has `p` as power series expansion at a point `z₀` iff it is the sum of
+`p` in a neighborhood of `z₀`. This makes some proofs easier by hiding the fact that
+`has_fpower_series_at` depends on `p.radius`. -/
+lemma has_fpower_series_at_iff : has_fpower_series_at f p z₀ ↔
+  ∀ᶠ z in 𝓝 0, has_sum (λ n, z ^ n • p.coeff n) (f (z₀ + z)) :=
+begin
+  refine ⟨λ ⟨r, r_le, r_pos, h⟩, eventually_of_mem (emetric.ball_mem_nhds 0 r_pos)
+    (λ _, by simpa using h), _⟩,
+  simp only [metric.eventually_nhds_iff],
+  rintro ⟨r, r_pos, h⟩,
+  refine ⟨p.radius ⊓ r.to_nnreal, by simp, _, _⟩,
+  { simp only [r_pos.lt, lt_inf_iff, ennreal.coe_pos, real.to_nnreal_pos, and_true],
+    obtain ⟨z, z_pos, le_z⟩ := normed_field.exists_norm_lt 𝕜 r_pos.lt,
+    have : (∥z∥₊ : ennreal) ≤ p.radius,
+    by { simp only [dist_zero_right] at h,
+      apply formal_multilinear_series.le_radius_of_tendsto,
+      convert tendsto_norm.comp (h le_z).summable.tendsto_at_top_zero,
+      funext; simp [norm_smul, mul_comm] },
+    refine lt_of_lt_of_le _ this,
+    simp only [ennreal.coe_pos],
+    exact zero_lt_iff.mpr (nnnorm_ne_zero_iff.mpr (norm_pos_iff.mp z_pos)) },
+  { simp only [emetric.mem_ball, lt_inf_iff, edist_lt_coe, apply_eq_pow_smul_coeff, and_imp,
+      dist_zero_right] at h ⊢,
+    refine λ y hyp hyr, h _,
+    simpa [nndist_eq_nnnorm, real.lt_to_nnreal_iff_coe_lt] using hyr }
+end
+
+lemma has_fpower_series_at_iff' : has_fpower_series_at f p z₀ ↔
+  ∀ᶠ z in 𝓝 z₀, has_sum (λ n, (z - z₀) ^ n • p.coeff n) (f z) :=
+begin
+  rw [← map_add_left_nhds_zero, eventually_map, has_fpower_series_at_iff],
+  congrm ∀ᶠ z in (𝓝 0 : filter 𝕜), has_sum (λ n, _) (f (z₀ + z)),
+  rw add_sub_cancel'
 end
 
 end

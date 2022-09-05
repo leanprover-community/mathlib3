@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import algebra.big_operators.finprod
 import data.set.pointwise
 import topology.algebra.mul_action
+import algebra.big_operators.pi
 
 /-!
 # Theory of topological monoids
@@ -295,25 +296,10 @@ topological closure."]
 def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
   (hs : ∀ (x y : s), x * y = y * x) : comm_monoid s.topological_closure :=
 { mul_comm :=
-  begin
-    intros a b,
-    have h₁ : (s.topological_closure : set M) = closure s := rfl,
-    let f₁ := λ (x : M × M), x.1 * x.2,
-    let f₂ := λ (x : M × M), x.2 * x.1,
-    let S : set (M × M) := s ×ˢ s,
-    have h₃ : set.eq_on f₁ f₂ (closure S),
-    { refine set.eq_on.closure _ continuous_mul (by continuity),
-      intros x hx,
-      rw [set.mem_prod] at hx,
-      rcases hx with ⟨hx₁, hx₂⟩,
-      change ((⟨x.1, hx₁⟩ : s) : M) * (⟨x.2, hx₂⟩ : s) = (⟨x.2, hx₂⟩ : s) * (⟨x.1, hx₁⟩ : s),
-      exact_mod_cast hs _ _ },
-    ext,
-    change f₁ ⟨a, b⟩ = f₂ ⟨a, b⟩,
-    refine h₃ _,
-    rw [closure_prod_eq, set.mem_prod],
-    exact ⟨by simp [←h₁], by simp [←h₁]⟩
-  end,
+    have ∀ (x ∈ s) (y ∈ s), x * y = y * x,
+      from λ x hx y hy, congr_arg subtype.val (hs ⟨x, hx⟩ ⟨y, hy⟩),
+    λ ⟨x, hx⟩ ⟨y, hy⟩, subtype.ext $
+      eq_on_closure₂ this continuous_mul (continuous_snd.mul continuous_fst) x hx y hy,
   ..s.topological_closure.to_monoid }
 
 @[to_additive exists_open_nhds_zero_half]
@@ -514,6 +500,16 @@ by { rcases s with ⟨l⟩, simpa using continuous_list_prod l }
 lemma continuous_finset_prod {f : ι → X → M} (s : finset ι) :
   (∀ i ∈ s, continuous (f i)) → continuous (λa, ∏ i in s, f i a) :=
 continuous_multiset_prod _
+
+@[to_additive] lemma eventually_eq_prod {X M : Type*} [comm_monoid M]
+  {s : finset ι} {l : filter X} {f g : ι → X → M} (hs : ∀ i ∈ s, f i =ᶠ[l] g i) :
+  ∏ i in s, f i =ᶠ[l] ∏ i in s, g i :=
+begin
+  replace hs: ∀ᶠ x in l, ∀ i ∈ s, f i x = g i x,
+  { rwa eventually_all_finset },
+  filter_upwards [hs] with x hx,
+  simp only [finset.prod_apply, finset.prod_congr rfl hx],
+end
 
 open function
 

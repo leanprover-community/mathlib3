@@ -128,7 +128,7 @@ h.imp (λ hx, by rw [hx, map_zero]) $ or.imp (λ hy, by rw [hy, map_zero]) $
 
 /-- The images of two vectors under an injective linear map are on the same ray if and only if the
 original vectors are on the same ray. -/
-lemma _root_.function.injective.same_ray_map_iff {f : M →ₗ[R] N}
+lemma _root_.function.injective.same_ray_map_iff {F : Type*} [linear_map_class F R M N] {f : F}
   (hf : function.injective f) : same_ray R (f x) (f y) ↔ same_ray R x y :=
 by simp only [same_ray, map_zero, ← hf.eq_iff, map_smul]
 

@@ -1170,6 +1170,19 @@ begin
     simp only [linear_map.zero_apply, inner_zero_left] }
 end
 
+/--
+If `⟪T x, x⟫_ℂ = ⟪S x, x⟫_ℂ` for all x, then T = S.
+-/
+lemma inner_map_eq_all (S T :  V →ₗ[ℂ] V) :
+  (∀ (x : V), ⟪T x, x⟫_ℂ = ⟪S x, x⟫_ℂ ) ↔ S = T :=
+begin
+  split,
+  { intro h, rw [←neg_neg T, ←add_eq_zero_iff_eq_neg, ←inner_map_self_eq_zero], intro x,
+    specialize h x, simp only [linear_map.neg_apply, linear_map.add_apply],
+    rw [inner_add_left, inner_neg_left, add_eq_zero_iff_eq_neg, neg_neg, ←h], },
+  { rintros rfl x, refl, },
+end
+
 end complex
 
 section

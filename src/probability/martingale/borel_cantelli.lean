@@ -470,10 +470,10 @@ begin
   { apply_instance },
 end
 
--- you can show the difference is bounded by 1 but that is unnecessary for our purposes
 lemma mgale_diff_le (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
-  ∀ᵐ ω ∂μ, |mgale ℱ μ s (n + 1) ω - mgale ℱ μ s n ω| ≤ 2 :=
+  ∀ᵐ ω ∂μ, |mgale ℱ μ s (n + 1) ω - mgale ℱ μ s n ω| ≤ 1 :=
 begin
+  simp_rw [mgale, finset.sum_apply, finset.sum_range_succ_sub_sum],
   have h₁ : μ[(s (n + 1)).indicator 1|ℱ n] ≤ᵐ[μ] 1,
   { change _ ≤ᵐ[μ] (λ ω, 1 : Ω → ℝ),
     rw ← @condexp_const _ _ _ _ _ _ _ μ (ℱ.le n) (1 : ℝ),
@@ -486,20 +486,17 @@ begin
       ((integrable_indicator_iff (ℱ.le _ _ (hs $ _))).2 (integrable_const 1).integrable_on)
       (eventually_of_forall $ λ ω, set.indicator_nonneg (λ _ _, zero_le_one) _) },
   filter_upwards [h₁, h₂] with ω hω₁ hω₂,
-  simp only [mgale, finset.sum_range_succ, pi.add_apply, pi.sub_apply,
-    finset.sum_apply, add_sub_cancel', ← one_add_one_eq_two],
-  refine (abs_add _ _).trans (add_le_add _ _),
-  { rw ← real.norm_eq_abs,
-    refine (norm_indicator_le_norm_self _ _).trans _,
-    simp only [pi.one_apply, cstar_ring.norm_one] },
-  { rwa [abs_neg, abs_of_nonneg hω₂] }
+  rw [abs_le, neg_le, pi.sub_apply, neg_sub, tsub_le_iff_right, tsub_le_iff_right,
+    add_comm (1 : ℝ), add_comm (1 : ℝ)],
+  exact ⟨le_add_of_nonneg_of_le (set.indicator_nonneg (λ _ _, zero_le_one) _) hω₁,
+    le_add_of_nonneg_of_le hω₂ (set.indicator_le' (λ _ _, le_rfl) (λ _ _, zero_le_one) ω)⟩,
 end
 
 lemma mgale_diff_le' (hs : ∀ n, measurable_set[ℱ n] (s n)) :
-  ∀ᵐ ω ∂μ, ∀ n, |mgale ℱ μ s (n + 1) ω - mgale ℱ μ s n ω| ≤ (2 : ℝ≥0) :=
+  ∀ᵐ ω ∂μ, ∀ n, |mgale ℱ μ s (n + 1) ω - mgale ℱ μ s n ω| ≤ (1 : ℝ≥0) :=
 begin
-  rw [ae_all_iff, nnreal.coe_bit0, nonneg.coe_one],
-  exact mgale_diff_le hs,
+  rw [ae_all_iff, nonneg.coe_one],
+  exact mgale_diff_le hs ,
 end
 
 lemma limsup_eq_tendsto_sum_indicator_at_top (s : ℕ → set Ω) :

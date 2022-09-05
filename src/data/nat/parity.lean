@@ -210,6 +210,21 @@ by rw [bit0_eq_two_mul m, ←nat.div_div_eq_div_mul, bit0_div_two]
 @[simp] lemma bit1_div_bit0 : bit1 n / bit0 m = n / m :=
 by rw [bit0_eq_two_mul, ←nat.div_div_eq_div_mul, bit1_div_two]
 
+@[simp] lemma bit0_mod_bit0 : bit0 n % bit0 m = bit0 (n % m) :=
+by rw [bit0_eq_two_mul n, bit0_eq_two_mul m, bit0_eq_two_mul (n % m), nat.mul_mod_mul_left]
+
+@[simp] lemma bit1_mod_bit0 : bit1 n % bit0 m = bit1 (n % m) :=
+begin
+  have h₁ := congr_arg (λ x, 2 * x + 1) (nat.div_add_mod n m),
+  dsimp only at h₁,
+  rw [mul_add, ← mul_assoc, add_assoc, ← bit0_eq_two_mul m, ← bit0_eq_two_mul n,
+      ← bit0_eq_two_mul (n % m), ← succ_eq_add_one, ← nat.bit1_eq_succ_bit0,
+      ← succ_eq_add_one, ← nat.bit1_eq_succ_bit0] at h₁,
+  have h₂ := nat.div_add_mod (bit1 n) (bit0 m),
+  rw [bit1_div_bit0] at h₂,
+  exact add_left_cancel (h₂.trans h₁.symm),
+end
+
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
 example (m n : ℕ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=

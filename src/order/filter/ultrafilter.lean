@@ -193,7 +193,7 @@ begin
   rwa [← principal_singleton, le_principal_iff]
 end
 
-lemma eq_pure_of_fintype [fintype α] (f : ultrafilter α) : ∃ a, (f : filter α) = pure a :=
+lemma eq_pure_of_finite [finite α] (f : ultrafilter α) : ∃ a, (f : filter α) = pure a :=
 (eq_pure_of_finite_mem finite_univ univ_mem).imp $ λ a ⟨_, ha⟩, ha
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
@@ -258,10 +258,8 @@ lemma exists_ultrafilter_of_finite_inter_nonempty (S : set (set α))
   (cond : ∀ T : finset (set α), (↑T : set (set α)) ⊆ S → (⋂₀ (↑T : set (set α))).nonempty) :
   ∃ F : ultrafilter α, S ⊆ F.sets :=
 begin
-  suffices : ∃ F : filter α, ne_bot F ∧ S ⊆ F.sets,
-  { rcases this with ⟨F, cond, hF⟩,
-    resetI,
-    obtain ⟨G : ultrafilter α, h1 : ↑G ≤ F⟩ := exists_le F,
+  rsufficesI ⟨F, cond, hF⟩ : ∃ F : filter α, ne_bot F ∧ S ⊆ F.sets,
+  { obtain ⟨G : ultrafilter α, h1 : ↑G ≤ F⟩ := exists_le F,
     exact ⟨G, λ T hT, h1 (hF hT)⟩ },
   use filter.generate S,
   refine ⟨_, λ T hT, filter.generate_sets.basic hT⟩,

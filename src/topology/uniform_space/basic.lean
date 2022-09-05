@@ -132,7 +132,7 @@ by simp [subset_def]; exact forall_congr (λ a, by simp)
 /-- The composition of relations -/
 def comp_rel {α : Type u} (r₁ r₂ : set (α×α)) := {p : α × α | ∃z:α, (p.1, z) ∈ r₁ ∧ (z, p.2) ∈ r₂}
 
-localized "infix ` ○ `:55 := comp_rel" in uniformity
+localized "infix (name := uniformity.comp_rel) ` ○ `:55 := comp_rel" in uniformity
 
 @[simp] theorem mem_comp_rel {r₁ r₂ : set (α×α)}
   {x y : α} : (x, y) ∈ r₁ ○ r₂ ↔ ∃ z, (x, z) ∈ r₁ ∧ (z, y) ∈ r₂ := iff.rfl
@@ -317,7 +317,7 @@ variables [uniform_space α]
 def uniformity (α : Type u) [uniform_space α] : filter (α × α) :=
   (@uniform_space.to_core α _).uniformity
 
-localized "notation `𝓤` := uniformity" in uniformity
+localized "notation (name := uniformity) `𝓤` := uniformity" in uniformity
 
 lemma is_open_uniformity {s : set α} :
   is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ 𝓤 α) :=
@@ -1241,6 +1241,31 @@ instance : uniform_space bool := ⊥
 instance : uniform_space ℕ := ⊥
 instance : uniform_space ℤ := ⊥
 
+section
+variables [uniform_space α]
+
+open additive multiplicative
+
+instance : uniform_space (additive α) := ‹uniform_space α›
+instance : uniform_space (multiplicative α) := ‹uniform_space α›
+
+lemma uniform_continuous_of_mul : uniform_continuous (of_mul : α → additive α) :=
+uniform_continuous_id
+lemma uniform_continuous_to_mul : uniform_continuous (to_mul : additive α → α) :=
+uniform_continuous_id
+lemma uniform_continuous_of_add : uniform_continuous (of_add : α → multiplicative α) :=
+uniform_continuous_id
+lemma uniform_continuous_to_add : uniform_continuous (to_add : multiplicative α → α) :=
+uniform_continuous_id
+
+lemma uniformity_additive : 𝓤 (additive α) = (𝓤 α).map (prod.map of_mul of_mul) :=
+by { convert map_id.symm, exact prod.map_id }
+
+lemma uniformity_multiplicative : 𝓤 (multiplicative α) = (𝓤 α).map (prod.map of_add of_add) :=
+by { convert map_id.symm, exact prod.map_id }
+
+end
+
 instance {p : α → Prop} [t : uniform_space α] : uniform_space (subtype p) :=
 uniform_space.comap subtype.val t
 
@@ -1256,7 +1281,7 @@ lemma uniform_continuous_subtype_coe {p : α → Prop} [uniform_space α] :
   uniform_continuous (coe : {a : α // p a} → α) :=
 uniform_continuous_subtype_val
 
-lemma uniform_continuous_subtype_mk {p : α → Prop} [uniform_space α] [uniform_space β]
+lemma uniform_continuous.subtype_mk {p : α → Prop} [uniform_space α] [uniform_space β]
   {f : β → α} (hf : uniform_continuous f) (h : ∀x, p (f x)) :
   uniform_continuous (λx, ⟨f x, h x⟩ : β → subtype p) :=
 uniform_continuous_comap' hf

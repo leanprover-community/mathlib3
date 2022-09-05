@@ -55,7 +55,7 @@ class enriched_category (C : Type u₁) :=
   Π W X Y Z, (α_ _ _ _).inv ≫ (comp W X Y ⊗ 𝟙 _) ≫ comp W Y Z = (𝟙 _ ⊗ comp X Y Z) ≫ comp W X Z
   . obviously)
 
-notation X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
+notation (name := enriched_category.hom) X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
 
 variables (V) {C : Type u₁} [enriched_category V C]
 
@@ -93,7 +93,7 @@ A type synonym for `C`, which should come equipped with a `V`-enriched category 
 In a moment we will equip this with the `W`-enriched category structure
 obtained by applying the functor `F : lax_monoidal_functor V W` to each hom object.
 -/
-@[nolint has_inhabited_instance unused_arguments]
+@[nolint has_nonempty_instance unused_arguments]
 def transport_enrichment (F : lax_monoidal_functor V W) (C : Type u₁) := C
 
 instance (F : lax_monoidal_functor V W) :
@@ -180,7 +180,7 @@ When `V` is any of `Type`, `Top`, `AddCommGroup`, or `Module R`,
 For `V = Algebra R`, the usual forgetful functor is coyoneda of `polynomial R`, not of `R`.
 (Perhaps we should have a typeclass for this situation: `concrete_monoidal`?)
 -/
-@[nolint has_inhabited_instance unused_arguments]
+@[nolint has_nonempty_instance unused_arguments]
 def forget_enrichment
   (W : Type (v+1)) [category.{v} W] [monoidal_category W] (C : Type u₁) [enriched_category W C] :=
 C
@@ -354,7 +354,7 @@ coming from the ambient braiding on `V`.)
 The type of `A`-graded natural transformations between `V`-functors `F` and `G`.
 This is the type of morphisms in `V` from `A` to the `V`-object of natural transformations.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure graded_nat_trans (A : center V) (F G : enriched_functor V C D) :=
 (app : Π (X : C), A.1 ⟶ (F.obj X ⟶[V] G.obj X))
 (naturality :

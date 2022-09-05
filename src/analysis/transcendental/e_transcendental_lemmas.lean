@@ -200,21 +200,20 @@ $|f(x)|\le \bar{f}(t)$
 -/
 lemma f_bar_ineq (f : ℤ[X]) (t x : ℝ) (hx1 : 0 ≤ x) (hx2 : x ≤ t) :
   abs (aeval x f) ≤ aeval t (f_bar f) :=
-begin
-  calc |aeval x f| = |∑ i in f.support, (f.coeff i : ℝ) * x ^ i| : _
-  ... ≤ ∑ i in f.support, |(f.coeff i : ℝ) * x ^ i| : finset.abs_sum_le_sum_abs _ _
-  ... = ∑ i in f.support, |(f.coeff i : ℝ)| * x ^ i : finset.sum_congr rfl (λ i hi, _)
-  ... ≤ ∑ i in (f_bar f).support, abs (f.coeff i : ℝ) * t ^ i : _
-  ... = _ : _,
-  { rw [aeval_eq_sum_support x f], simp only [zsmul_eq_mul] },
-  { have := pow_nonneg hx1 i,
-    rw [abs_mul, abs_of_nonneg this], },
-  { rw bar_supp,
+calc |aeval x f| = |∑ i in f.support, (f.coeff i : ℝ) * x ^ i| :
+  by simp only [aeval_eq_sum_support x f, zsmul_eq_mul]
+... ≤ ∑ i in f.support, |(f.coeff i : ℝ) * x ^ i| :
+  finset.abs_sum_le_sum_abs _ _
+... = ∑ i in f.support, |(f.coeff i : ℝ)| * x ^ i :
+  finset.sum_congr rfl (λ i hi, by rw [abs_mul, abs_of_nonneg (pow_nonneg hx1 i)])
+... ≤ ∑ i in (f_bar f).support, abs (f.coeff i : ℝ) * t ^ i :
+  begin
+    rw bar_supp,
     refine finset.sum_le_sum (λ n hn, mul_le_mul_of_nonneg_left _ (abs_nonneg _)),
-    exact pow_le_pow_of_le_left hx1 hx2 _ },
-  { rw [aeval_eq_sum_support],
-    simp only [e_transcendental_lemmas.bar_coeff, finset.sum_congr, zsmul_eq_mul, int.cast_abs] }
-end
+    exact pow_le_pow_of_le_left hx1 hx2 _
+  end
+... = aeval t (f_bar f) :
+  by simp only [aeval_eq_sum_support, bar_coeff, zsmul_eq_mul, int.cast_abs]
 
 theorem eval_f_bar_mul (f g : ℤ[X]) (k : ℕ) :
   eval (k:ℤ) (f_bar (f * g)) ≤

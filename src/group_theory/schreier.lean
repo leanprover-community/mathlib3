@@ -130,10 +130,8 @@ begin
   exact ⟨⟨T, hT⟩⟩,
 end
 
-lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0)
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)]
-  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ closure (S : set H) = ⊤)] :
-  @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
+lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0) :
+  @group.rank H _ (fg_of_index_ne_zero hH) ≤ H.index * group.rank G :=
 begin
   haveI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
@@ -146,8 +144,7 @@ end
 open_locale big_operators
 
 -- PRed
-lemma card_dvd_exponent_pow_rank (G : Type*) [comm_group G] [group.fg G]
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
+lemma card_dvd_exponent_pow_rank (G : Type*) [comm_group G] [group.fg G] :
   nat.card G ∣ monoid.exponent G ^ group.rank G :=
 begin
   classical,
@@ -174,13 +171,12 @@ begin
 end
 
 -- PRed
-lemma card_dvd_exponent_pow_rank' {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
+lemma card_dvd_exponent_pow_rank' {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1) :
   nat.card G ∣ n ^ group.rank G :=
 (card_dvd_exponent_pow_rank G).trans
     (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
 
--- waiting on rank refactor
+-- PRed
 @[to_additive]
 lemma closure_preimage_eq_top {G : Type*} [group G] (s : set G) :
   closure ((closure s).subtype ⁻¹' s) = ⊤ :=
@@ -192,7 +188,7 @@ begin
   exact subset_closure,
 end
 
--- waiting on rank refactor
+-- PRed
 @[to_additive]
 instance closure_finset_fg {G : Type*} [group G] (s : finset G) : group.fg (closure (s : set G)) :=
 begin
@@ -201,7 +197,7 @@ begin
   exact closure_preimage_eq_top s,
 end
 
--- waiting on rank refactor
+-- PRed
 @[to_additive]
 instance closure_finite_fg {G : Type*} [group G] (s : set G) [finite s] : group.fg (closure s) :=
 begin
@@ -209,10 +205,8 @@ begin
   exact s.coe_to_finset ▸ subgroup.closure_finset_fg s.to_finset,
 end
 
--- waiting on rank refactor
-@[to_additive] lemma rank_closure_finset_le_card {G : Type*} [group G] (s : finset G)
-  [decidable_pred (λ n, ∃ (S : finset (closure (s : set G))),
-    S.card = n ∧ subgroup.closure (S : set (closure (s : set G))) = ⊤)] :
+-- PRed
+@[to_additive] lemma rank_closure_finset_le_card {G : Type*} [group G] (s : finset G) :
   group.rank (closure (s : set G)) ≤ s.card :=
 begin
   classical,
@@ -226,9 +220,8 @@ begin
   { apply subtype.coe_injective.inj_on },
 end
 
--- waiting on rank refactor
-lemma rank_closure_finite_le_nat_card {G : Type*} [group G] (s : set G) [finite s]
-  [decidable_pred (λ n, ∃ (S : finset (closure s)), S.card = n ∧ closure (S : set (closure s)) = ⊤)] :
+-- PRed
+lemma rank_closure_finite_le_nat_card {G : Type*} [group G] (s : set G) [finite s] :
   group.rank (closure s) ≤ nat.card s :=
 begin
   classical,
@@ -244,7 +237,7 @@ begin
   { apply subtype.coe_injective.inj_on },
 end
 
--- waiting on rank refactor
+-- PR ready
 instance (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.fg (commutator G) :=
 begin
@@ -255,9 +248,8 @@ end
 
 variables (G)
 
--- waiting on rank refactor
-lemma rank_commutator_le_card [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
-  [decidable_pred (λ n, ∃ (S : finset (commutator G)), S.card = n ∧ closure (S : set (commutator G)) = ⊤)] :
+-- PR ready
+lemma rank_commutator_le_card [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.rank (commutator G) ≤ nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 begin
   haveI : finite {g | ∃ g₁ g₂ ∈ (⊤ : subgroup G), ⁅g₁, g₂⁆ = g},
@@ -284,8 +276,7 @@ begin
   exact subtype.ext (subtype.ext this),
 end
 
-lemma key_lemma1 [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G]
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ closure (S : set G) = ⊤)] :
+lemma key_lemma1 [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≤ (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) ^ group.rank G :=
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,

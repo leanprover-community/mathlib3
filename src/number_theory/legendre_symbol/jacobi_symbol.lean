@@ -241,7 +241,7 @@ end
 
 /-- If `b` is odd, then `[-1 | b]ⱼ` is given by `χ₄ b`. -/
 lemma jacobi_sym_neg_one {b : ℕ} (hb : odd b) : [-1 | b]ⱼ = χ₄ b :=
-jacobi_sym_value (-1) χ₄ (λ p pp h2, @legendre_sym_neg_one p ⟨pp⟩ h2) hb
+jacobi_sym_value (-1) χ₄ (λ p pp, @legendre_sym_neg_one p ⟨pp⟩) hb
 
 /-- If `b` is odd, then `[-a | b]ⱼ = χ₄ b * [a | b]ⱼ`. -/
 lemma jacobi_sym_neg (a : ℤ) {b : ℕ} (hb : odd b) : [-a | b]ⱼ = χ₄ b * [a | b]ⱼ :=
@@ -249,11 +249,11 @@ by rw [neg_eq_neg_one_mul, jacobi_sym_mul_left, jacobi_sym_neg_one hb]
 
 /-- If `b` is odd, then `[2 | b]ⱼ` is given by `χ₈ b`. -/
 lemma jacobi_sym_two {b : ℕ} (hb : odd b) : [2 | b]ⱼ = χ₈ b :=
-jacobi_sym_value 2 χ₈ (λ p pp h2, @legendre_sym_two p ⟨pp⟩ h2) hb
+jacobi_sym_value 2 χ₈ (λ p pp, @legendre_sym_two p ⟨pp⟩) hb
 
 /-- If `b` is odd, then `[-2 | b]ⱼ` is given by `χ₈' b`. -/
 lemma jacobi_sym_neg_two {b : ℕ} (hb : odd b) : [-2 | b]ⱼ = χ₈' b :=
-jacobi_sym_value (-2) χ₈' (λ p pp h2, @legendre_sym_neg_two p ⟨pp⟩ h2) hb
+jacobi_sym_value (-2) χ₈' (λ p pp, @legendre_sym_neg_two p ⟨pp⟩) hb
 
 
 /-!

@@ -279,22 +279,22 @@ end
 
 variables {G}
 
+-- PRed
 lemma le_centralizer_iff {H K : subgroup G} : H ≤ K.centralizer ↔ K ≤ H.centralizer :=
 ⟨λ h x hx y hy, (h hy x hx).symm, λ h x hx y hy, (h hy x hx).symm⟩
 
--- lemma centralizer_eq_top_iff {H : subgroup G} : H.centralizer = ⊤ ↔ H ≤ center G :=
--- by rw [eq_top_iff, le_centralizer_iff, centralizer_top]
+-- PRed
+lemma centralizer_le {H K : subgroup G} (h : H ≤ K) : centralizer K ≤ centralizer H :=
+submonoid.centralizer_le h
 
+-- PRed
 lemma centralizer_closure (S : set G) :
   (closure S).centralizer = ⨅ g ∈ S, (zpowers g).centralizer :=
-begin
-  refine le_antisymm (le_infi (λ g, le_infi (λ hg, _))) _,
-  { sorry },
-  { simp_rw [le_centralizer_iff, closure_le, set.subset_def, set_like.mem_coe, ←zpowers_le],
-    exact λ g hg, le_centralizer_iff.mp (infi_le_of_le g (infi_le_of_le hg le_rfl)) },
-end
+le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ subset_closure hg)
+  $ le_centralizer_iff.1 $ (closure_le _).2
+  $ λ g, set_like.mem_coe.2 ∘ zpowers_le.1 ∘ le_centralizer_iff.1 ∘ infi_le_of_le g ∘ infi_le _
 
--- PR ready
+-- PRed
 lemma index_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
   (⨅ i, f i).index ≤ ∏ i, (f i).index :=
 begin
@@ -313,7 +313,26 @@ end
 
 variables (G)
 
-lemma key_lemma1 [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
+-- PR ready
+lemma nat.card_le_of_injective {α β : Type*} [finite β] (f : α → β) (h : function.injective f) :
+  nat.card α ≤ nat.card β :=
+begin
+  haveI : fintype β := fintype.of_finite β,
+  haveI : fintype α := fintype.of_injective f h,
+  simp_rw [nat.card_eq_fintype_card, fintype.card_le_of_injective f h],
+end
+
+-- PR ready
+lemma nat.card_le_of_surjective {α β : Type*} [finite α] (f : α → β) (h : function.surjective f) :
+  nat.card β ≤ nat.card α :=
+begin
+  classical,
+  haveI : fintype α := fintype.of_finite α,
+  haveI : fintype β := fintype.of_surjective f h,
+  simp_rw [nat.card_eq_fintype_card, fintype.card_le_of_surjective f h],
+end
+
+lemma index_center_le_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≤ (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) ^ group.rank G :=
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
@@ -323,33 +342,103 @@ begin
   rintros ⟨g, hg⟩ -,
   rw subtype.coe_mk,
   clear hg,
-  have key : (zpowers g).centralizer = mul_action.stabilizer (conj_act G) g,
+  have : mul_action.stabilizer (conj_act G) g = (zpowers g).centralizer :=
+  le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
+    (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm),
+  rw [←this, index, ←nat.card_congr (mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g)],
+  exact nat.card_le_of_injective (λ x, ⟨x * g⁻¹, let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩)
+    (λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp),
 end
 
-def myfun (n : ℕ) := (n ^ (2 * n)) ^ (n ^ (2 * n) * n + 1)
+lemma nat.card_pos {α : Type*} [finite α] [nonempty α] : 0 < nat.card α :=
+begin
+  haveI := fintype.of_finite α,
+  rw nat.card_eq_fintype_card,
+  exact fintype.card_pos,
+end
+
+lemma commutator_element_self (g : G) : ⁅g, g⁆ = 1 :=
+(commute.refl g).commutator_eq
+
+/-- docstring -/
+def myfun (n : ℕ) := (n ^ (n + n)) ^ (n ^ (n + n) * n + 1)
 
 lemma key_lemma [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   nat.card (commutator G) ≤ myfun (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) :=
 begin
   classical,
   let n := nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
-  let S : set G := sorry,
-  have hS : nat.card S = 2 * n := sorry,
-  haveI : finite S := sorry,
-  let H := closure S,
-  have hn : n = nat.card {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} := sorry,
-  haveI : finite ({g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g}) := sorry,
-  have hH : nat.card (commutator H) = nat.card (commutator G) := sorry,
-  have hH' : group.rank H = 2 * n := sorry,
-  have key := key_lemma1 H,
-  have key' := card_commutator_dvd_index_center_pow H,
-  rw [hH', ←hn] at key,
-  rw ← hn at key',
-  rw ← hH,
-  refine (nat.le_of_dvd sorry key').trans _,
-  refine (nat.pow_le_pow_of_le_left key _).trans (nat.pow_le_pow_of_le_right sorry
-    (add_le_add_right (mul_le_mul_right' key _) 1)),
+  change nat.card (commutator G) ≤ myfun n,
+  haveI := fintype.of_finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
+  have hn₀ : 0 < n := @nat.card_pos _ _ ⟨by exact ⟨1, 1, 1, commutator_element_self G 1⟩⟩,
+  let f : {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} → G × G :=
+  λ g, (classical.some g.2, classical.some (classical.some_spec g.2)),
+  have hf : ∀ g, ⁅(f g).1, (f g).2⁆ = g := λ g, classical.some_spec (classical.some_spec g.2),
+  let S₀ : finset (G × G) := finset.univ.image f, -- potentially eliminate this step?
+  have hS₀ : S₀.card ≤ n :=
+  finset.card_image_le.trans_eq (finset.card_univ.trans nat.card_eq_fintype_card.symm),
+  let S : finset G := S₀.image prod.fst ∪ S₀.image prod.snd,
+  have hS : S.card ≤ n + n := (finset.card_union_le _ _).trans
+    (add_le_add (finset.card_image_le.trans hS₀) (finset.card_image_le.trans hS₀)),
+  let H := closure (S : set G),
+  have hH : group.rank H ≤ n + n := (rank_closure_finset_le_card S).trans hS,
+
+  have key : set.image H.subtype {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} = {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
+  { refine set.subset.antisymm _ _,
+    { rintros - ⟨-, ⟨g₁, g₂, rfl⟩, rfl⟩,
+      exact ⟨g₁, g₂, (map_commutator_element H.subtype g₁ g₂).symm⟩ },
+    { intros g hg,
+      have h1 : (f ⟨g, hg⟩).1 ∈ S :=
+      finset.mem_union_left _ (finset.mem_image_of_mem _ (finset.mem_image_of_mem _ (finset.mem_univ _))),
+      have h2 : (f ⟨g, hg⟩).2 ∈ S :=
+      finset.mem_union_right _ (finset.mem_image_of_mem _ (finset.mem_image_of_mem _ (finset.mem_univ _))),
+      replace h1 : (f ⟨g, hg⟩).1 ∈ H := subset_closure h1,
+      replace h2 : (f ⟨g, hg⟩).2 ∈ H := subset_closure h2,
+      refine ⟨(⁅(⟨(f ⟨g, hg⟩).1, h1⟩ : H), (⟨(f ⟨g, hg⟩).2, h2⟩ : H)⁆ : H),
+        ⟨⟨(f ⟨g, hg⟩).1, h1⟩, ⟨(f ⟨g, hg⟩).2, h2⟩, rfl⟩, _⟩,
+      rw map_commutator_element,
+      exact hf ⟨g, hg⟩ } },
+
+  let e := (equiv.set.image H.subtype {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} subtype.coe_injective).symm,
+  rw key at e,
+  haveI : finite {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} := finite.of_equiv _ e,
+  have hn : n = nat.card {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} := nat.card_congr e,
+  have hH₀ : nat.card (commutator H) = nat.card (commutator G),
+  { rw [commutator_eq_closure G, ←key, ←monoid_hom.map_closure, ←commutator_eq_closure H],
+    exact nat.card_congr (equiv.set.image H.subtype (commutator H) subtype.coe_injective) },
+
+  have h1 := index_center_le_pow H,
+  have h2 := card_commutator_dvd_index_center_pow H,
+  rw ← hn at h1 h2,
+  replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ hH),
+  replace h2 := hH₀.ge.trans (nat.le_of_dvd (pow_pos sorry _) h2), -- need center_index_pos
+  refine h2.trans _,
+  refine (nat.pow_le_pow_of_le_left h1 _).trans (nat.pow_le_pow_of_le_right
+    (pow_pos hn₀ _) (add_le_add_right (mul_le_mul_right' h1 _) 1)),
 end
+
+-- lemma key_lemma [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+--   nat.card (commutator G) ≤ myfun (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) :=
+-- begin
+--   classical,
+--   let n := nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
+--   let S : set G := sorry,
+--   have hS : nat.card S = 2 * n := sorry,
+--   haveI : finite S := sorry,
+--   let H := closure S,
+--   have hn : n = nat.card {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} := sorry,
+--   haveI : finite ({g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g}) := sorry,
+--   have hH : nat.card (commutator H) = nat.card (commutator G) := sorry,
+--   have hH' : group.rank H = 2 * n := sorry,
+--   have key := index_center_le_pow H,
+--   have key' := card_commutator_dvd_index_center_pow H,
+--   rw [hH', ←hn] at key,
+--   rw ← hn at key',
+--   rw ← hH,
+--   refine (nat.le_of_dvd sorry key').trans _,
+--   refine (nat.pow_le_pow_of_le_left key _).trans (nat.pow_le_pow_of_le_right sorry
+--     (add_le_add_right (mul_le_mul_right' key _) 1)),
+-- end
 
 -- bounded commutators and bounded index of center implies bounded commutator subgroup (DONE!)
 

@@ -258,6 +258,7 @@ begin
   simp only [mem_top, exists_true_left],
 end
 
+-- PR ready
 lemma card_commutator_dvd_index_center_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   nat.card (commutator G) ∣ (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
 begin
@@ -276,15 +277,53 @@ begin
   exact subtype.ext (subtype.ext this),
 end
 
+variables {G}
+
+lemma le_centralizer_iff {H K : subgroup G} : H ≤ K.centralizer ↔ K ≤ H.centralizer :=
+⟨λ h x hx y hy, (h hy x hx).symm, λ h x hx y hy, (h hy x hx).symm⟩
+
+-- lemma centralizer_eq_top_iff {H : subgroup G} : H.centralizer = ⊤ ↔ H ≤ center G :=
+-- by rw [eq_top_iff, le_centralizer_iff, centralizer_top]
+
+lemma centralizer_closure (S : set G) :
+  (closure S).centralizer = ⨅ g ∈ S, (zpowers g).centralizer :=
+begin
+  refine le_antisymm (le_infi (λ g, le_infi (λ hg, _))) _,
+  { sorry },
+  { simp_rw [le_centralizer_iff, closure_le, set.subset_def, set_like.mem_coe, ←zpowers_le],
+    exact λ g hg, le_centralizer_iff.mp (infi_le_of_le g (infi_le_of_le hg le_rfl)) },
+end
+
+-- PR ready
+lemma index_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
+  (⨅ i, f i).index ≤ ∏ i, (f i).index :=
+begin
+  unfreezingI { revert ι },
+  refine fintype.induction_empty_option _ _ _,
+  { introsI α β _ e h t,
+    haveI : fintype α := fintype.of_equiv β e.symm,
+    rw [←e.infi_congr (λ _, rfl), ←fintype.prod_equiv e _ _ (λ _, rfl)],
+    convert h (t ∘ e) },
+  { intro t,
+    rw [infi_of_empty, index_top, fintype.univ_pempty, finset.prod_empty] },
+  { intros α _ h t,
+    rw [infi_option, fintype.prod_option],
+    exact index_inf_le.trans (mul_le_mul_left' (h (t ∘ some)) (t none).index) },
+end
+
+variables (G)
+
 lemma key_lemma1 [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≤ (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) ^ group.rank G :=
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw ← hS1,
-  have key : center G = ⨅ (g : {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}), centralizer (zpowers g),
-  -- or just use `mul_action.stabilizer` to simplify the application of orbit-stabilizer
-  { sorry },
-  sorry,
+  rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype'', ←fintype.card_coe],
+  refine (index_infi_le _).trans (finset.prod_le_pow_card _ _ _ _),
+  rintros ⟨g, hg⟩ -,
+  rw subtype.coe_mk,
+  clear hg,
+  have key : (zpowers g).centralizer = mul_action.stabilizer (conj_act G) g,
 end
 
 def myfun (n : ℕ) := (n ^ (2 * n)) ^ (n ^ (2 * n) * n + 1)

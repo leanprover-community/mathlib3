@@ -45,9 +45,9 @@ lemma exists_has_sum_smul_of_apply_eq_zero (hs : has_sum (λ m, z ^ m • a m) s
   (ha : ∀ k < n, a k = 0) :
   ∃ t : E, z ^ n • t = s ∧ has_sum (λ m, z ^ m • a (m + n)) t :=
 begin
-  refine classical.by_cases (λ hn : n = 0, by { subst n; simpa }) (λ hn, _),
-  replace hn := nat.pos_of_ne_zero hn,
-  by_cases (z = 0),
+  obtain rfl|hn := n.eq_zero_or_pos,
+  { simpa },
+  by_cases h : z = 0,
   { have : s = 0 := hs.unique (by simpa [ha 0 hn, h] using has_sum_at_zero a),
     exact ⟨a n, by simp [h, hn, this], by simpa [h] using has_sum_at_zero (λ m, a (m + n))⟩ },
   { refine ⟨(z ^ n)⁻¹ • s, by field_simp [smul_smul], _⟩,
@@ -56,7 +56,8 @@ begin
     have h2 : has_sum (λ m, z ^ (m + n) • a (m + n)) s,
       by simpa [h1] using (has_sum_nat_add_iff' n).mpr hs,
     convert @has_sum.const_smul E ℕ 𝕜 _ _ _ _ _ _ _ (z⁻¹ ^ n) h2,
-    field_simp [pow_add, smul_smul], simp only [inv_pow] }
+    { field_simp [pow_add, smul_smul] },
+    { simp only [inv_pow] } }
 end
 
 end has_sum
@@ -70,7 +71,7 @@ begin
   have hp0 : p.coeff 0 = f z₀ := hp.coeff_zero 1,
   simp only [has_fpower_series_at_iff, apply_eq_pow_smul_coeff, coeff_fslope] at hp ⊢,
   refine hp.mono (λ x hx, _),
-  by_cases x = 0,
+  by_cases h : x = 0,
   { convert has_sum_single 0 _; intros; simp [*] },
   { have hxx : ∀ (n : ℕ), x⁻¹ * x ^ (n + 1) = x ^ n := λ n, by field_simp [h, pow_succ'],
     suffices : has_sum (λ n, x⁻¹ • x ^ (n + 1) • p.coeff (n + 1)) (x⁻¹ • (f (z₀ + x) - f z₀)),

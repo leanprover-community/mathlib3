@@ -112,7 +112,7 @@ begin
   exacts [rfl, λ p hp, (list.mem_append.mp hp).elim prime_of_mem_factors prime_of_mem_factors],
 end
 
-/-- The Jacobi symbol takes only the values `0`, `1` and `1`. -/
+/-- The Jacobi symbol takes only the values `0`, `1` and `-1`. -/
 lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=
 ((@sign_type.cast_hom ℤ _ _).to_monoid_hom.mrange.copy {0, 1, -1} $
   by {rw set.pair_comm, exact (sign_type.range_eq sign_type.cast_hom).symm}).list_prod_mem

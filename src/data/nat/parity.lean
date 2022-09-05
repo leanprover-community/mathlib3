@@ -227,3 +227,25 @@ variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
 lemma neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
 ⟨λ h', of_not_not $ λ hn, h $ (odd.neg_one_pow $ odd_iff_not_even.mpr hn).symm.trans h',
   even.neg_one_pow⟩
+
+/-- If `a` is even, then `n` is odd iff `n % a` is odd. -/
+lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd (n % a) ↔ odd n :=
+((even_sub' $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
+   dvd_sub_mod n).symm
+
+/-- If `a` is even, then `n` is even iff `n % a` is even. -/
+lemma even.mod_even_iff {n a : ℕ} (ha : even a) : even (n % a) ↔ even n :=
+((even_sub $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
+   dvd_sub_mod n).symm
+
+/-- If `n` is odd and `a` is even, then `n % a` is odd. -/
+lemma odd.mod_even {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
+(odd.mod_even_iff ha).mpr hn
+
+/-- If `n` is even and `a` is even, then `n % a` is even. -/
+lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
+(even.mod_even_iff ha).mpr hn
+
+/-- `2` is not a prime factor of an odd natural number. -/
+lemma odd.factors_ne_two {n p : ℕ} (hn : odd n) (hp : p ∈ n.factors) : p ≠ 2 :=
+by { rintro rfl, exact two_dvd_ne_zero.mpr (odd_iff.mp hn) (dvd_of_mem_factors hp) }

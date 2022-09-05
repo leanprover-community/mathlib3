@@ -482,6 +482,14 @@ begin
   { simp [hqp, (factorization_le_iff_dvd hd0 hn0).2 hdn q] },
 end
 
+/-- If `n` is a nonzero natural number and `p ≠ 1`, then there are natural numbers `e`
+and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
+lemma exists_eq_pow_mul_and_not_dvd {n : ℕ} (hn : n ≠ 0) (p : ℕ) (hp : p ≠ 1) :
+  ∃ e n' : ℕ, ¬ p ∣ n' ∧ n = p ^ e * n' :=
+let ⟨a', h₁, h₂⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd
+                      (multiplicity.finite_nat_iff.mpr ⟨hp, nat.pos_of_ne_zero hn⟩) in
+⟨_, a', h₂, h₁⟩
+
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin

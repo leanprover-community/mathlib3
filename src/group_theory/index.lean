@@ -33,7 +33,7 @@ Several theorems proved in this file are known as Lagrange's theorem.
 
 namespace subgroup
 
-open_locale cardinal
+open_locale big_operators cardinal
 
 variables {G : Type*} [group G] (H K L : subgroup G)
 
@@ -272,6 +272,26 @@ end
 
 @[to_additive] lemma index_inf_le : (H ⊓ K).index ≤ H.index * K.index :=
 by simp_rw [←relindex_top_right, relindex_inf_le]
+
+@[to_additive] lemma relindex_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
+  (⨅ i, f i).relindex L ≤ ∏ i, (f i).relindex L :=
+begin
+  unfreezingI { revert ι },
+  refine fintype.induction_empty_option _ _ _,
+  { introsI α β _ e h t,
+    haveI : fintype α := fintype.of_equiv β e.symm,
+    rw [←e.infi_congr (λ _, rfl), ←fintype.prod_equiv e _ _ (λ _, rfl)],
+    convert h (t ∘ e) },
+  { intro t,
+    rw [infi_of_empty, relindex_top_left, fintype.univ_pempty, finset.prod_empty] },
+  { intros α _ h t,
+    rw [infi_option, fintype.prod_option],
+    exact relindex_inf_le.trans (mul_le_mul_left' (h (t ∘ some)) ((t none).relindex L)) },
+end
+
+@[to_additive] lemma index_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
+  (⨅ i, f i).index ≤ ∏ i, (f i).index :=
+by simp_rw [←relindex_top_right, relindex_infi_le]
 
 @[simp, to_additive index_eq_one] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,

@@ -3,11 +3,7 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis, Yaël Dillies
 -/
-import algebra.module.pi
-import algebra.module.prod
-import algebra.order.pi
 import algebra.order.smul
-import data.set.pointwise
 
 /-!
 # Ordered module
@@ -27,13 +23,9 @@ open_locale pointwise
 
 variables {k M N : Type*}
 
-namespace order_dual
-
 instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k Mᵒᵈ :=
 { add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
   zero_smul := λ m, order_dual.rec (zero_smul _) m }
-
-end order_dual
 
 section semiring
 variables [ordered_semiring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
@@ -190,56 +182,9 @@ variables (M)
   right_inv := smul_inv_smul₀ hc.ne,
   map_rel_iff' := λ b₁ b₂, smul_le_smul_iff_of_neg hc }
 
-variables {M} [ordered_add_comm_group N] [module k N] [ordered_smul k N]
-
--- TODO: solve `prod.has_lt` and `prod.has_le` misalignment issue
-instance prod.ordered_smul : ordered_smul k (M × N) :=
-ordered_smul.mk' $ λ (v u : M × N) (c : k) h hc,
-  ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
-
-instance pi.smul_with_zero'' {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
-  [Π i, mul_action_with_zero k (M i)] :
-  smul_with_zero k (Π i : ι, M i) := by apply_instance
-
-instance pi.ordered_smul {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
-  [Π i, mul_action_with_zero k (M i)] [∀ i, ordered_smul k (M i)] :
-  ordered_smul k (Π i : ι, M i) :=
-begin
-  refine (ordered_smul.mk' $ λ v u c h hc i, _),
-  change c • v i ≤ c • u i,
-  exact smul_le_smul_of_nonneg (h.le i) hc.le,
-end
-
--- Sometimes Lean fails to apply the dependent version to non-dependent functions,
--- so we define another instance
-instance pi.ordered_smul' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
-  [mul_action_with_zero k M] [ordered_smul k M] :
-  ordered_smul k (ι → M) :=
-pi.ordered_smul
-
 end field
 
 /-! ### Upper/lower bounds -/
-
-section ordered_semiring
-variables [ordered_semiring k] [ordered_add_comm_monoid M] [smul_with_zero k M] [ordered_smul k M]
-  {s : set M} {c : k}
-
-lemma smul_lower_bounds_subset_lower_bounds_smul (hc : 0 ≤ c) :
-  c • lower_bounds s ⊆ lower_bounds (c • s) :=
-(monotone_smul_left hc).image_lower_bounds_subset_lower_bounds_image
-
-lemma smul_upper_bounds_subset_upper_bounds_smul (hc : 0 ≤ c) :
-  c • upper_bounds s ⊆ upper_bounds (c • s) :=
-(monotone_smul_left hc).image_upper_bounds_subset_upper_bounds_image
-
-lemma bdd_below.smul_of_nonneg (hs : bdd_below s) (hc : 0 ≤ c) : bdd_below (c • s) :=
-(monotone_smul_left hc).map_bdd_below hs
-
-lemma bdd_above.smul_of_nonneg (hs : bdd_above s) (hc : 0 ≤ c) : bdd_above (c • s) :=
-(monotone_smul_left hc).map_bdd_above hs
-
-end ordered_semiring
 
 section ordered_ring
 variables [ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
@@ -262,27 +207,8 @@ lemma bdd_above.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_above s) : bdd_below (c 
 end ordered_ring
 
 section linear_ordered_field
-variables [linear_ordered_field k] [ordered_add_comm_group M]
-
-section mul_action_with_zero
-variables [mul_action_with_zero k M] [ordered_smul k M] {s t : set M} {c : k}
-
-@[simp] lemma lower_bounds_smul_of_pos (hc : 0 < c) : lower_bounds (c • s) = c • lower_bounds s :=
-(order_iso.smul_left _ hc).lower_bounds_image
-
-@[simp] lemma upper_bounds_smul_of_pos (hc : 0 < c) : upper_bounds (c • s) = c • upper_bounds s :=
-(order_iso.smul_left _ hc).upper_bounds_image
-
-@[simp] lemma bdd_below_smul_iff_of_pos (hc : 0 < c) : bdd_below (c • s) ↔ bdd_below s :=
-(order_iso.smul_left _ hc).bdd_below_image
-
-@[simp] lemma bdd_above_smul_iff_of_pos (hc : 0 < c) : bdd_above (c • s) ↔ bdd_above s :=
-(order_iso.smul_left _ hc).bdd_above_image
-
-end mul_action_with_zero
-
-section module
-variables [module k M] [ordered_smul k M] {s t : set M} {c : k}
+variables [linear_ordered_field k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+  {s : set M} {c : k}
 
 @[simp] lemma lower_bounds_smul_of_neg (hc : c < 0) : lower_bounds (c • s) = c • upper_bounds s :=
 (order_iso.smul_left_dual M hc).upper_bounds_image
@@ -296,5 +222,4 @@ variables [module k M] [ordered_smul k M] {s t : set M} {c : k}
 @[simp] lemma bdd_above_smul_iff_of_neg (hc : c < 0) : bdd_above (c • s) ↔ bdd_below s :=
 (order_iso.smul_left_dual M hc).bdd_below_image
 
-end module
 end linear_ordered_field

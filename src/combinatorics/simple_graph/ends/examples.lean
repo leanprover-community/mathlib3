@@ -285,8 +285,17 @@ variables  {V' : Type v}
 
 lemma cofinite_of_coarse_Lipschitz_inv (φ : V → V') (ψ : V' → V) (m : ℕ) (mge : m ≥ 1)
   (φψ : ∀ (v : V), G.dist (ψ $ φ v) v ≤ m)
-  (φl : coarse_Lipschitz G G' φ m) (ψl : coarse_Lipschitz G' G ψ m) : cofinite φ := sorry
-
+  (φl : coarse_Lipschitz G G' φ m) (ψl : coarse_Lipschitz G' G ψ m) : cofinite φ :=
+begin
+  have : ∀ v : V, {u | G.dist v u ≤ m}.finite, by sorry, -- by Glf
+  rintro x,
+  dsimp only [set.preimage],
+  simp only [mem_singleton_iff],
+  fapply set.finite.subset (this (ψ x)),
+  rintro y φyx, simp only [mem_set_of_eq] at φyx,
+  rcases φyx with rfl,
+  exact (φψ y),
+end
 
 include Gpc Gpc' Glf Glf'
 lemma qi_invariance (φ : V → V') (ψ : V' → V) (m : ℕ) (mge : m ≥ 1)
@@ -296,8 +305,8 @@ lemma qi_invariance (φ : V → V') (ψ : V' → V) (m : ℕ) (mge : m ≥ 1)
 begin
   haveI : locally_finite G := Glf,
   have mmm : m ≤ m*m, by {exact nat.le_mul_self m,},
-  have φcof : cofinite φ := sorry,
-  have ψcof : cofinite ψ := sorry,
+  have φcof : cofinite φ := cofinite_of_coarse_Lipschitz_inv G G' φ ψ m mge φψ φl ψl,
+  have ψcof : cofinite ψ := cofinite_of_coarse_Lipschitz_inv G' G ψ φ m mge ψφ ψl φl,
   have φc := coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' φ m φl φcof,
   have ψc := coarse.of_coarse_Lipschitz_of_cofinite G' G Gpc ψ m ψl ψcof,
   have φψcl : coarse_close G' G' (φ ∘ ψ) id, by

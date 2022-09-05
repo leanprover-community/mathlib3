@@ -633,6 +633,7 @@ section extend
 
 #check set.Union
 #check @finset.bUnion
+#check set.finite.to_finset
 
 variables (G) (Gpc : G.preconnected) (Glf : G.locally_finite)
           (k : finset V) (kn : k.nonempty) (Kc : (G.induce (k : set V)).connected)
@@ -652,47 +653,104 @@ begin
   exact k ∪ ‹finite_pieces.finite›.to_finset,
 end
 
+lemma preconnected_of_all_adj {α : Type*} {k : finset V} (kconn : (G.induce ↑k).connected) {S : α → set V} {hS_fin : set.finite (set.Union S)} (hS_conn : ∀ {A : α}, (G.induce (S A)).connected) : (∀ {A : α}, (∃ (ck : V × V), ck.1 ∈ S A ∧ ck.2 ∈ k ∧ G.adj ck.1 ck.2) ∨ (S A ⊆ ↑k)) → (G.induce ↑(k ∪ hS_fin.to_finset)).connected :=
+begin
+  intro h,
+  rw connected_iff,
+  split, {
+    rintros vv ww,
+    have hv := vv.prop, have hw := ww.prop,
+    simp at hv hw,
+    cases hv, cases hw,
+    {
+      sorry,
+    }, {
+      sorry,
+    }, cases hw, {
+      sorry,
+    }, {
+      sorry
+    },
+  },  {
+    apply set.nonempty_coe_sort.mpr,
+    apply set.nonempty.mono, rotate,
+    rw [← set.nonempty_coe_sort],
+    exact ((connected_iff _).mp kconn).2,
+    simp, }
+end
+
+
 lemma extend_with_fin.sub : k ⊆ extend_with_fin G Gpc Glf k kn :=
 begin
   dsimp [extend_with_fin],
   exact subset_union_left k _,
 end
 
-lemma extend_with_fin.connected :
+lemma extend_with_fin.dis_iff_comp_inf {v : V} : disjoint ↑(extend_with_fin G Gpc Glf k kn) (connected_component_mk (G.out  ↑(extend_with_fin G Gpc Glf k kn)) v : set V) ↔ inf (connected_component_mk (G.out k) v) := sorry
+
+lemma extend_with_fin.connected (kconn : (G.induce ↑k).connected) :
   (G.induce ↑(extend_with_fin G Gpc Glf k kn)).connected :=
 begin
   dsimp [extend_with_fin],
-  rw connected_iff,
-  split,
-  { sorry },
-  { apply set.nonempty_coe_sort.mpr,
-    fapply set.nonempty.mono,
-    exact k,
-    { intro, simp, intro, left, assumption, },
-    exact kn,
-  }
+  apply preconnected_of_all_adj _ kconn,
+  { rintro ⟨C, Cfin⟩, dsimp, exact connected C,},
+  { rintro ⟨C, Cfin⟩,
+    by_cases disjoint (k : set V) (C : set V),
+    {left, apply @adj _ _ _ _ _,
+      dsimp [coe_b, has_coe.coe],
+      all_goals {assumption},},
+    { right, dsimp,
+      simp at h,
+      rcases h with ⟨k_, hk_k, hk_C⟩,
+      rw ← hk_C, simp, assumption, } },
 end
-
-include Gpc Glf
-lemma extend_with_fin.finite : (extend_with_fin G Gpc Glf k kn).finite :=
-begin
-  apply set.finite.union Kf,
-  haveI : finite (G.comp_out K), by apply comp_out_finite G K Gpc Glf Kf Kn,
-  apply set.finite_Union,
-  rintro ⟨C, Cfin⟩,
-  exact Cfin,
-end
-
 
 lemma extend_with_fin.components_spec :
-  ∀ (C : set V), (∃ D : (G.comp_out K), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G Gpc Glf k kn)), D.dis ∧ C = D) := sorry
+  ∀ (C : set V), (∃ D : (G.comp_out k), D.inf ∧  C = D) ↔ (∃ (D : G.comp_out (extend_with_fin G Gpc Glf k kn)), D.dis ∧ C = D) :=
+begin
+  intro C,
+  split,
+  { rintro ⟨D, Dinf, DC⟩,
+    use D.lift (connected_component_mk _) (by {
+      intros v w p hp, simp, apply nonempty.intro,
+      sorry -- this is just a "coercion" of the path `p`
+    }),
+    split,
+    { revert D, intro D, refine D.ind _,
+      intro v,
+      simp, dsimp [dis],
+      intro Dinf, intro DC,
+      rw [extend_with_fin.dis_iff_comp_inf],
+      sorry -- this uses `Dinf` and should be factored out as a lemma
+    },
+    { rw DC, clear DC,
+      revert D, intro D, refine D.ind _,
+      intro v, simp,
+      intro Dinf,
+      dsimp [extend_with_fin],
+      ext, simp,
+      sorry,
+     }
+  },
+  { rintro ⟨D, Ddis, DC⟩,
+    use D.back (extend_with_fin.sub _ _ _ _ _),
+    split,
+    { dsimp [dis] at Ddis,
+      apply back_of_inf,
+      sorry, },
+    { rw DC,
+      -- ext,
+      -- refine D.ind _, -- ?
+      sorry,
+    }}
+end
 
 lemma extend_connected_with_fin_bundled  :
   {k' : finset V | k ⊆ k'
                  ∧ (G.induce (k' : set V)).connected
-                 ∧ ∀ C : (G.comp_out k'), C.dis → C.inf} := sorry
+                 ∧ ∀ C : (G.comp_out k'), C.dis → C.inf} :=
 begin
-  have Kn : K.nonempty, by {rw ←set.nonempty_coe_sort, rw connected_iff at Kc, exact Kc.2,},
+  have kn : k.nonempty, by {sorry {rw ←set.nonempty_coe_sort, rw connected_iff at Kc, exact Kc.2,}},
   use extend_with_fin G K,
   use extend_with_fin.sub G K,
   use extend_with_fin.finite Gpc Glf Kf Kn,

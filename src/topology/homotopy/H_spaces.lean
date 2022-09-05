@@ -333,8 +333,7 @@ end
 
 lemma continuous_Q'_left : continuous Q'_left :=
 begin
-  refine @continuous_if (I × I) ℝ _ _ (λ p, (p.1 : ℝ) ≤ p.2/2) 0 (λ p, (2 * p.1 - p.2)/(2 - p.2))
-    _ _ _ _,
+  apply @continuous_if (I × I) ℝ _ _ (λ p, (p.1 : ℝ) ≤ p.2/2) 0 (λ p, (2 * p.1 - p.2)/(2 - p.2)),
   { intros _ hp,
     have h := @continuous.div_const (I × I) ℝ _ _ _ (coe ∘ prod.snd) _ (continuous_subtype_coe.comp
     continuous_snd) 2,

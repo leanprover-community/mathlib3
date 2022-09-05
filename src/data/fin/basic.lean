@@ -241,7 +241,7 @@ begin
   { right, exact ⟨⟨j, nat.lt_of_succ_lt_succ h⟩, rfl⟩, }
 end
 
-lemma eq_succ_of_ne_zero {n : ℕ} {i : fin (n+1)} (hi : i ≠ 0) : ∃ j : fin n, i = j.succ :=
+lemma eq_succ_of_ne_zero {n : ℕ} {i : fin (n + 1)} (hi : i ≠ 0) : ∃ j : fin n, i = j.succ :=
 begin
   cases eq_zero_or_eq_succ i,
   { exfalso, exact hi h, },

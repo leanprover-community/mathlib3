@@ -80,15 +80,23 @@ lemma subsingleton (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :
   ((h ha hb ab).1.trans (h ha' hb' ab').1.symm) $ (h ha hb ab).2.trans (h ha' hb' ab').2.symm⟩
 
 @[to_additive]
+lemma set_subsingleton (A B : finset G) (a0 b0 : G) (h : unique_mul A B a0 b0) :
+  set.subsingleton { ab : G × G | ab.1 ∈ A ∧ ab.2 ∈ B ∧ ab.1 * ab.2 = a0 * b0 } :=
+begin
+  rintros ⟨x1, y1⟩ (hx : x1 ∈ A ∧ y1 ∈ B ∧ x1 * y1 = a0 * b0)
+          ⟨x2, y2⟩ (hy : x2 ∈ A ∧ y2 ∈ B ∧ x2 * y2 = a0 * b0),
+  rcases h hx.1 hx.2.1 hx.2.2 with ⟨rfl, rfl⟩,
+  rcases h hy.1 hy.2.1 hy.2.2 with ⟨rfl, rfl⟩,
+  refl,
+end
+
+@[to_additive]
 lemma iff_exists_unique (aA : a0 ∈ A) (bB : b0 ∈ B) :
   unique_mul A B a0 b0 ↔ ∃! ab ∈ A ×ˢ B, ab.1 * ab.2 = a0 * b0 :=
-⟨λ _, ⟨(a0, b0), ⟨finset.mem_product.mpr ⟨aA, bB⟩, rfl, by simp⟩, by simpa⟩, λ h, begin
-  rcases h with ⟨⟨a, b⟩, -, J⟩,
-  refine λ x y xA yB H, _,
-  replace J : ∀ {r s : G}, r ∈ A → s ∈ B → r * s = a0 * b0 → r = a ∧ s = b, by simpa using J,
-  rcases J xA yB H with ⟨rfl, rfl⟩,
-  rcases J aA bB rfl with ⟨rfl, rfl⟩,
-  exact ⟨rfl, rfl⟩,
+⟨λ _, ⟨(a0, b0), ⟨finset.mem_product.mpr ⟨aA, bB⟩, rfl, by simp⟩, by simpa⟩, λ h, h.elim2 begin
+  rintro ⟨x1, x2⟩ _ _ J x y hx hy l,
+  rcases prod.mk.inj_iff.mp (J (a0,b0) (finset.mk_mem_product aA bB) rfl) with ⟨rfl, rfl⟩,
+  exact prod.mk.inj_iff.mp (J (x,y) (finset.mk_mem_product hx hy) l),
 end⟩
 
 @[to_additive]

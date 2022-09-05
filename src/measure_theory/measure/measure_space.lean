@@ -1996,7 +1996,7 @@ ae_restrict_bUnion_eq s t.countable_to_set
 
 lemma ae_eq_restrict_Union_iff [countable ι] (s : ι → set α) (f g : α → δ) :
   f =ᵐ[μ.restrict (⋃ i, s i)] g ↔ ∀ i, f =ᵐ[μ.restrict (s i)] g :=
-by simp_rw [filter.eventually_eq, filter.eventually, ae_restrict_Union_eq, filter.mem_supr]
+by simp_rw [eventually_eq, ae_restrict_Union_eq, eventually_supr]
 
 lemma ae_eq_restrict_bUnion_iff (s : ι → set α) {t : set ι} (ht : t.countable) (f g : α → δ) :
   f =ᵐ[μ.restrict (⋃ i ∈ t, s i)] g ↔ ∀ i ∈ t, f =ᵐ[μ.restrict (s i)] g :=

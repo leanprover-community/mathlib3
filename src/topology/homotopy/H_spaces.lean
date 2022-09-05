@@ -37,8 +37,8 @@ begin
 end
 
 lemma mem_closure_iff {θ : ℝ} {t : I} : t ∈ closure {s : I | (s : ℝ) ≤ θ} ↔ (t : ℝ) ≤ θ :=
-  by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
-    apply_instance}
+by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
+  apply_instance}
 
 lemma not_mem_interior {θ : ℝ} {t : I} : t ∉ interior {s : I | (s : ℝ) ≤ θ} → θ ≤ t :=
 begin

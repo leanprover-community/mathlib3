@@ -992,6 +992,7 @@ by casesI nonempty_fintype σ; exact
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
   (rename_equiv R (fintype.equiv_fin σ).symm).to_ring_equiv is_noetherian_ring_fin
 
+--  Why is this instance needed?
 instance {R σ : Type*} [comm_semiring R] [no_zero_divisors R] :
   no_zero_divisors (mv_polynomial σ R) :=
 add_monoid_algebra.finsupp_no_zero_divisors
@@ -1153,16 +1154,24 @@ end
 end polynomial
 
 namespace mv_polynomial
-
+.
+--  Why is this instance needed?
+noncomputable instance [no_zero_divisors R] : cancel_comm_monoid_with_zero (mv_polynomial σ R) :=
+{ mul_left_cancel_of_ne_zero := λ a b c a0 bc, sub_eq_zero.mp $ by
+    rwa [← (is_regular_of_ne_zero' a0).left.eq_iff, mul_zero, mul_sub, sub_eq_zero],
+  mul_right_cancel_of_ne_zero := λ a b c a0 bc, sub_eq_zero.mp $
+    (is_regular_of_ne_zero' a0).right.eq_iff.mp $ by rwa [zero_mul, sub_mul, sub_eq_zero],
+  ..(by apply_instance : comm_monoid_with_zero (mv_polynomial σ R)) }
+.
 private lemma unique_factorization_monoid_of_fintype [fintype σ] :
   unique_factorization_monoid (mv_polynomial σ D) :=
 (rename_equiv D (fintype.equiv_fin σ)).to_mul_equiv.symm.unique_factorization_monoid $
 begin
   induction fintype.card σ with d hd,
-  { apply (is_empty_alg_equiv D (fin 0)).to_mul_equiv.symm.unique_factorization_monoid,
-    apply_instance },
+  { exact (is_empty_alg_equiv D (fin 0)).to_mul_equiv.symm.unique_factorization_monoid ‹_› },
   { apply (fin_succ_equiv D d).to_mul_equiv.symm.unique_factorization_monoid,
-    exactI polynomial.unique_factorization_monoid },
+    exactI polynomial.unique_factorization_monoid,
+     },
 end
 
 @[priority 100]

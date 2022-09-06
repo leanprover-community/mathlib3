@@ -3,16 +3,11 @@ Copyright (c) 2022 Filippo A. E. Nuccio Mortarino Majno di Capriglio. All rights
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio
 -/
-import data.real.basic
-import tactic.field_simp
-import topology.algebra.order.basic
+
 import topology.compact_open
-import topology.homotopy.basic
 import topology.homotopy.path
 
-universes u v w
-
-classical theory
+universes u v
 
 noncomputable theory
 
@@ -20,21 +15,12 @@ open_locale unit_interval
 
 namespace unit_interval
 
-@[simp]
-lemma univ_eq_ge_zero {θ : ℝ} (h : θ ≤ 0): {s : I | θ ≤ (s : ℝ)} = set.univ :=
-begin
-  rw set.eq_univ_iff_forall,
-  intro,
-  simpa only [set.mem_set_of_eq] using (h.trans $ nonneg _),
-end
+/- This one is not used. Also the names of these two lemmas are obscure. -/
+@[simp] lemma univ_eq_ge_zero {θ : ℝ} (h : θ ≤ 0): {s : I | θ ≤ (s : ℝ)} = set.univ :=
+set.eq_univ_iff_forall.2 $ λ _, h.trans (nonneg _)
 
-@[simp]
-lemma univ_eq_le_one {θ : ℝ} (h : 1 ≤ θ) : {s : I | (s : ℝ) ≤ θ} = set.univ :=
-begin
-  rw set.eq_univ_iff_forall,
-  intro,
-  simpa only [set.mem_set_of_eq] using (le_one _).trans h,
-end
+@[simp] lemma univ_eq_le_one {θ : ℝ} (h : 1 ≤ θ) : {s : I | (s : ℝ) ≤ θ} = set.univ :=
+set.eq_univ_iff_forall.2 $ λ _, (le_one _).trans h
 
 lemma mem_closure_iff {θ : ℝ} {t : I} : t ∈ closure {s : I | (s : ℝ) ≤ θ} ↔ (t : ℝ) ≤ θ :=
 by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
@@ -47,7 +33,7 @@ begin
   -- `t = 1`. So we split the proof in the cases `1 ≤ θ` and `θ < 1`.
   by_cases h_θ_1 : 1 ≤ θ,
   { rw [univ_eq_le_one h_θ_1, interior_univ],
-    tauto },
+    tauto/-to be replaced-/ },
   intro h,
   by_cases h_θ_0 : 0 ≤ θ,
   { let θI : I := ⟨θ, set.mem_Icc.mpr ⟨h_θ_0, le_of_lt $ lt_of_not_ge h_θ_1⟩⟩,
@@ -61,10 +47,11 @@ begin
 end
 
 lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ) → (t : ℝ) = θ :=
-λ ⟨hl, hr⟩, by simp only [le_antisymm (not_mem_interior hr) (mem_closure_iff.mp hl)]
+λ ⟨hl, hr⟩, by simp only [(not_mem_interior hr).antisymm (mem_closure_iff.mp hl)]
+
+lemma one_add_pos {t : I} : 0 < (1 + t : ℝ) := add_pos_of_pos_of_nonneg zero_lt_one $ nonneg _
 
 end unit_interval
-
 
 namespace path
 
@@ -75,46 +62,74 @@ variables {X : Type u} [topological_space X]
 instance {x y : X} : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 
 instance {x y : X} : topological_space (path x y) :=
-  topological_space.induced (coe : _ → C(↥I, X)) continuous_map.compact_open
+topological_space.induced (coe : _ → C(I, X)) continuous_map.compact_open
 
-lemma continuous_eval {x y : X} : continuous (λ p : I × path x y, p.2 p.1) :=
-(continuous_eval'.comp $ continuous_induced_dom.prod_map (@continuous_id I _)).comp continuous_swap
+lemma continuous_eval {x y : X} : continuous (λ p : path x y × I, p.1 p.2) :=
+continuous_eval'.comp $ continuous_induced_dom.prod_map continuous_id
+
+@[continuity] lemma _root_.continuous.path_eval {x y : X} {Y} [topological_space Y]
+  {f : Y → path x y} {g : Y → I} (hf : continuous f) (hg : continuous g) :
+  continuous (λ y, f y (g y)) := continuous.comp continuous_eval (hf.prod_mk hg)
+
+section
+
+variables {Y : Type v} [topological_space Y] {x y : X} {g : Y → path x y}
+
+@[simp, continuity]
+lemma continuous_to_path_of_to_C (h : continuous (↑g : Y → C(I,X))) : continuous g :=
+continuous_induced_rng.mpr h
+
+@[simp, continuity]
+lemma continuous_to_path_of_continuous_uncurry
+  (h : continuous (λ p : Y × I, g p.1 p.2)) : continuous g :=
+continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
+
+end
+
+lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
+begin
+  apply continuous_to_path_of_continuous_uncurry,
+  apply continuous.piecewise,
+  { rintro ⟨p, t⟩ h,
+    change _ ∈ frontier (prod.snd ⁻¹' {s : I | (s : ℝ) ≤ 1 / 2}) at h,
+    simp only [← set.univ_prod, frontier_prod_eq, frontier_univ, closure_univ, set.empty_prod,
+      set.union_empty, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and] at h,
+    simp only [unit_interval.mem_frontier h, set.right_mem_Icc, zero_le_one, one_div,
+      mul_inv_cancel_of_invertible, extend_extends, set.Icc.mk_one, path.target,
+      set.left_mem_Icc, sub_self, set.Icc.mk_zero, path.source] },
+  all_goals { refine continuous.path_extend
+    ((continuous.comp _ $ continuous_fst.comp continuous_fst).path_eval continuous_snd) _ },
+  exacts [continuous_fst, by continuity, continuous_snd, by continuity],
+end
 
 end path
 
-namespace H_space
-
 open path continuous_map set.Icc
 
-class H_space (X : Type u) [topological_space X]  :=
-(Hmul : X × X → X)
+class H_space (X : Type u) [topological_space X] :=
+(Hmul : C(X × X, X))
 (e : X)
-(cont' : continuous Hmul)
 (Hmul_e_e : Hmul (e, e) = e)
-(left_Hmul_e : continuous_map.homotopy_rel
-  ⟨id, continuous_id'⟩
-  ⟨(λ x : X, Hmul (e, x)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
-  {e})
-(right_Hmul_e : continuous_map.homotopy_rel
-  ⟨(λ x : X, Hmul (x, e)), (continuous.comp cont' (continuous_id'.prod_mk continuous_const))⟩
-  ⟨id, continuous_id'⟩
-  {e})
+(left_Hmul_e : (Hmul.comp $ (const X e).prod_mk $ continuous_map.id X).homotopy_rel
+  (continuous_map.id X) {e})
+(right_Hmul_e : (Hmul.comp $ (continuous_map.id X).prod_mk $ const X e).homotopy_rel
+  (continuous_map.id X) {e})
 
+@[reducible] def H_space.Hmul' (X : Type u) [topological_space X] [H_space X] (x y : X) :=
+H_space.Hmul (x, y)
+infix ` ∧ₕ `:65 := H_space.Hmul'
 
--- notation ` ∧ `:65 x y := H_space.Hmul (x, y)
+namespace H_space
 
 section topological_group_H_space
 
-instance topological_group (G : Type u) [topological_space G] [group G]
+@[to_additive] instance topological_group (G : Type u) [topological_space G] [group G]
   [topological_group G] : H_space G :=
-{ Hmul := function.uncurry has_mul.mul,
+{ Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
   e := 1,
-  cont' := continuous_mul,
-  Hmul_e_e := by {simp only [function.uncurry_apply_pair, mul_one]},
-  left_Hmul_e := by {simp only [function.uncurry_apply_pair, one_mul],
-    exact continuous_map.homotopy_rel.refl _ _ },
-  right_Hmul_e := by {simp only [function.uncurry_apply_pair, mul_one],
-    exact continuous_map.homotopy_rel.refl _ _ }, }
+  Hmul_e_e := one_mul 1,
+  left_Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply one_mul}),
+  right_Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply mul_one}) }
 
 lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl
@@ -129,322 +144,72 @@ variables {X : Type u} [topological_space X]
 
 notation ` Ω(` x `)` := path x x
 
-variable {x : X}
+/- `Q_right` is analogous to the function `Q` defined on p. 475 of Serre's `Homologie`
+  `singulière des espaces fibrés` that helps proving continuity of `delayed_refl_right`.-/
+def Q_right (p : I × I) : I := set.proj_Icc 0 1 zero_le_one (2 * p.1 / (1 + p.2))
 
-@[simp, continuity]
-lemma continuous_to_Ω_if_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x)}
-  (h : continuous (↑g : Y → C(I,X))) : continuous g := continuous_induced_rng.mpr h
+lemma continuous_Q_right : continuous Q_right :=
+continuous_proj_Icc.comp $ continuous.div (by continuity) (by continuity) (λ x, one_add_pos.ne')
 
-@[simp, continuity]
-lemma continuous_to_Ω_if_continuous_uncurry {Y : Type u} [topological_space Y]
-  {g : Y → Ω(x)} (h : continuous (λ p : Y × I, g p.1 p.2)) : continuous g :=
-continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
+lemma Q_right_zero_left (θ : I) : Q_right (0, θ) = 0 :=
+set.proj_Icc_of_le_left _ $ by simp only [coe_zero, mul_zero, zero_div]
 
-lemma continuous_prod_first_half (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I,
-  x.1.1.extend (2 * x.2)) :=
+lemma Q_right_one_left (θ : I) : Q_right (1, θ) = 1 :=
+set.proj_Icc_of_right_le _ $ (le_div_iff one_add_pos).2 $
+  by { dsimp only, rw [coe_one, one_mul, mul_one], apply add_le_add_left (le_one _) }
+
+lemma Q_right_zero_right (t : I) : (Q_right (t, 0) : ℝ) = if (t : ℝ) ≤ 1 / 2 then 2 * t else 1 :=
 begin
-  have H : continuous (λ p : Ω(x) × I, p.1.extend (2 * p.2)),
-  { let Cproj : C(ℝ, I) := ⟨set.proj_Icc _ _ zero_le_one, continuous_proj_Icc⟩,
-    have h_left := (continuous_comp'.comp (continuous.prod.mk Cproj)).comp
-      continuous_induced_dom,
-    have h_right := (continuous_const.mul continuous_id').comp
-    (@continuous_induced_dom _ _ (coe : I → ℝ) _),
-    exact (continuous_eval'.comp (continuous.prod_map h_left h_right)) },
-  replace H := (homeomorph.comp_continuous_iff' $ homeomorph.prod_assoc Ω(x) _ _).mpr
-    (H.comp $ continuous_snd),
-  exact (H.comp $ continuous.prod_map continuous_swap continuous_id),
+  simp only [Q_right, coe_zero, add_zero, div_one],
+  split_ifs,
+  { rw set.proj_Icc_of_mem _ ((mul_pos_mem_iff zero_lt_two).2 _), exacts [rfl, ⟨t.2.1, h⟩] },
+  { rw (set.proj_Icc_eq_right _).2, { refl }, { linarith }, { exact zero_lt_one } },
 end
 
-lemma continuous_prod_second_half (x : X) :
-  continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.2.extend (2 * x.2 - 1)) :=
-begin
-  have H : continuous (λ p : Ω(x) × I, p.1.extend (2 * p.2 - 1)),
-  { let Cproj : C(ℝ, I) := ⟨set.proj_Icc 0 1 zero_le_one, continuous_proj_Icc⟩,
-    have h_left := (continuous_comp'.comp (continuous.prod.mk Cproj)).comp
-      continuous_induced_dom,
-    have aux : continuous (λ x : ℝ, 2 * x - 1),
-      from (continuous_const.mul continuous_id').sub continuous_const,
-    have h_right := aux.comp continuous_induced_dom,
-    exact (continuous_eval'.comp (continuous.prod_map h_left h_right)) },
-  exact (homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm).mp
-    (H.comp continuous_snd),
-end
+lemma Q_right_one_right (t : I) : Q_right (t, 1) = t :=
+eq.trans (by {rw Q_right, congr, apply mul_div_cancel_left, exact two_ne_zero}) $
+  set.proj_Icc_coe zero_le_one _
 
-theorem Hmul_cont (x : X) : continuous (λ x : (Ω(x) × Ω(x)) × I, x.1.1.trans x.1.2 x.2) :=
-begin
-  apply continuous.piecewise,
-  { rintros ⟨_, t⟩ h,
-    have h_eq : (λ i : (path x x × path x x) × I, (i.snd : ℝ) ≤ 1 / 2) =
-      set.univ ×ˢ {s : I | (s : ℝ) ≤ (1 / 2)},
-    { ext p,
-      change (p.2 : ℝ) ≤ 1 / 2 ↔ p ∈ @set.univ (Ω(x) × Ω(x)) ×ˢ {s : I | (s : ℝ) ≤ 1 / 2},
-      simp only [set.mem_prod, set.mem_univ, set.mem_set_of_eq, true_and] },
-    erw h_eq at h,
-    simp only [frontier_prod_eq, frontier_univ, closure_univ, set.empty_prod,
-      set.union_empty, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and] at h,
-    simp only [mem_frontier h, set.right_mem_Icc, zero_le_one, coe_one, one_div,
-      mul_inv_cancel_of_invertible, path.extend_extends, mk_one, path.target, set.left_mem_Icc,
-      sub_self, mk_zero, path.source] },
-  exacts [continuous_prod_first_half x, continuous_prod_second_half x],
-end
-
-
-/- This is the function defined on p. 475 of Serre's *Homologie singulière des espaces fibrés*
-defining a homotopy from a path `γ` to the product `γ ∧ e`.-/
-def delayed_refl_left {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
-{ to_fun := λ t, if (t : ℝ) ≤ θ / 2 then x
-                 else γ.extend ((2*t - θ)/(2 - θ)),
-  continuous_to_fun :=
-  begin
-    apply continuous.piecewise,
-    { intros t ht,
-      rw mem_frontier ht,
-      field_simp, },
-    exacts [continuous_const, (continuous_extend γ).comp ((continuous_const.mul
-      continuous_induced_dom).sub continuous_const).div_const ],
-  end,
-  source' :=
-  begin
-    simp only [coe_one, coe_zero, path.source, mul_zero, zero_sub, ite_eq_left_iff, not_le],
-    intro h,
-    contrapose! h,
-    exact div_nonneg θ.2.1 zero_le_two,
-  end,
-  target' :=
-  begin
-    simp only [coe_one, path.target, mul_one, ite_eq_left_iff, not_le],
-    intro,
-    rw div_self,
-    { simpa only [div_self, set.right_mem_Icc, zero_le_one, extend_extends, mk_one,
-      to_fun_eq_coe, coe_to_continuous_map] using γ.3 },
-    { linarith },
-  end }
-
-
-lemma delayed_refl_left_at_0 (γ : Ω(x)) : delayed_refl_left 0 γ = γ :=
-begin
-  ext t,
-  dsimp [delayed_refl_left],
-  rw [sub_zero, sub_zero, mul_div_assoc, mul_div_cancel' (t : ℝ) two_ne_zero, zero_div],
-  split_ifs with h,
-  { have := coe_eq_zero.mp (((nonneg t).antisymm) h).symm,
-    rwa [this, path.source] },
-  { exact extend_extends' _ _ },
-end
-
-lemma delayed_refl_left_at_1 (γ : Ω(x)) : delayed_refl_left 1 γ = (path.refl x).trans γ :=
-by {ext t, dsimp [delayed_refl_left], norm_num, refl}
-
-lemma delayed_refl_left_e (θ : I) : delayed_refl_left θ (refl x) = refl x :=
-by {ext t, dsimp [path.refl, delayed_refl_left], split_ifs; refl}
+variables {x y : X}
 
 /- This is the function analogous to the one on p. 475 of Serre's *Homologie singulière des espaces
   fibrés*, defining a homotopy from the product path `e ∧ γ` to `γ`.-/
-def delayed_refl_right {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
-{ to_fun := λ t, if  (t : ℝ) ≤ (1 + θ) / 2 then γ.extend (2 * t/(1 + θ))
-                 else x,
-  continuous_to_fun :=
-  begin
-    apply continuous.piecewise,
-    { intros t ht,
-      rw [mem_frontier ht, mul_div_cancel', div_self],
-      simp only [γ.target, set.right_mem_Icc, zero_le_one, extend_extends, mk_one],
-      exacts [ne_of_gt $ add_pos_of_pos_of_nonneg (@one_pos ℝ _ _) θ.2.1, two_ne_zero] },
-    exacts [(continuous_extend γ).comp (continuous_const.mul continuous_induced_dom).div_const,
-      continuous_const],
-  end,
-  source' :=
-  begin
-    simp only [zero_le_one, extend_extends, coe_zero, set.left_mem_Icc, mul_zero, zero_div, mk_zero,
-       path.source, if_t_t],
-  end,
-  target' :=
-  begin
-    simp only [coe_one, mul_one, ite_eq_right_iff, one_le_div (@two_pos ℝ _ _),
-      ← sub_le_iff_le_add],
-    intro h,
-    replace h : (1 : ℝ) ≤ θ := by linarith,
-    rw (h.antisymm θ.2.2).symm,
-    norm_num,
-  end }
-
--- def delayed_refl_left' {x : X} (θ : I) (γ : Ω(x)) : Ω(x) :=
---  λ t, 1 - ((delayed_refl_right (1 - θ) γ).symm t,
-
-lemma delayed_refl_right_at_0 (γ : Ω(x)) : (delayed_refl_right 0 γ) = γ.trans (path.refl x) :=
-begin
-  ext t,
-  dsimp [delayed_refl_right],
-  simp only [add_zero, div_one],
-  refl,
-end
-
-lemma delayed_refl_right_at_1 (γ : Ω(x)) : (delayed_refl_right 1 γ) = γ :=
-begin
-  ext t,
-  dsimp [delayed_refl_right],
-  split_ifs with h,
-  { norm_num,
-    rw [mul_div_assoc, mul_div_cancel' _ $ @two_ne_zero ℝ _ _, extend_extends'] },
-  { norm_num at h,
-    contrapose! h,
-    exact t.2.2 }
-end
-
-lemma delayed_refl_right_e (θ : I) : delayed_refl_right θ (refl x) = refl x :=
-begin
-  ext t,
-  dsimp [path.refl, delayed_refl_right],
-  split_ifs;
-  refl,
-end
-
-
--- `[FAE]` The two lemmas below might be unified, probably
-lemma aux_mem_I {t θ : I} (h : (θ : ℝ) / 2 < t) : 0 ≤ ((2 : ℝ) * t - θ)/(2 - θ) ∧
-  ((2 : ℝ) * t - θ)/(2 - θ) ≤ 1 := ⟨div_nonneg (le_of_lt $ sub_pos.mpr $ (div_lt_iff' two_pos).mp h)
-    (sub_nonneg.mpr $ (θ.2.2).trans one_le_two),
-    (div_le_one (sub_pos.mpr $ lt_of_le_of_lt θ.2.2 one_lt_two)).mpr ((sub_le_sub_iff_right ↑θ).mpr
-    $ mul_nonneg_le_one_le (@zero_le_two ℝ _ _ _ _ _) (le_of_eq rfl) t.2.1 t.2.2)⟩
-
-lemma aux_mem_I' {t θ : I} (h : (t : ℝ) ≤ (1 + θ) / 2) : 0 ≤ ((2 : ℝ) * t)/(1 + θ) ∧
-  ((2 : ℝ) * t)/(1 + θ) ≤ 1 := ⟨ div_nonneg (by {simpa only [zero_le_mul_left, zero_lt_bit0,
-    zero_lt_one] using t.2.1 }) (add_nonneg zero_le_one θ.2.1), ((div_le_one $
-    add_pos_of_pos_of_nonneg (@one_pos ℝ _ _) θ.2.1).mpr $ (le_div_iff' two_pos).mp h)⟩
-
-/- This is the function `Q` defined on p. 475 of Serre's *Homologie singulière des espaces fibrés*
-that helps proving continuity of `delayed_refl_left`.-/
-def Q_left : I × I → I := λ p, dite ((p.1 : ℝ) ≤ p.2 / 2) (λ h, 0)
-  (λ h, ⟨(2 * p.1 - p.2)/(2 - p.2), aux_mem_I $ not_le.mp h⟩)
-
-def Q'_left : I × I → ℝ := λ p,
-ite ((p.1 : ℝ) ≤ p.2 / 2) 0 ((2 * p.1 - p.2)/(2 - p.2))
-
-lemma Q'_left_extends_Q_left : Q_left = set.proj_Icc (0 : ℝ) _ zero_le_one ∘ Q'_left :=
-begin
-  ext,
-  dsimp only [Q_left, Q'_left, zero_le_one],
-  split_ifs,
-  { simp only [coe_zero, function.comp_app, if_pos h, zero_div, set.proj_Icc_left,
-    mk_zero, coe_zero]},
-  { simp only [(set.proj_Icc_of_mem (@zero_le_one ℝ _ _ _ _) (aux_mem_I $ not_le.mp h)).symm,
-    if_neg h, function.comp_app] },
-end
-
-lemma continuous_Q'_left : continuous Q'_left :=
-begin
-  apply @continuous_if (I × I) ℝ _ _ (λ p, (p.1 : ℝ) ≤ p.2/2) 0 (λ p, (2 * p.1 - p.2)/(2 - p.2)),
-  { intros _ hp,
-    have h := @continuous.div_const (I × I) ℝ _ _ _ (coe ∘ prod.snd) _ (continuous_subtype_coe.comp
-    continuous_snd) 2,
-    replace hp := frontier_le_subset_eq (continuous_subtype_coe.comp continuous_fst) h hp,
-    simp only [pi.zero_apply, function.comp_app, set.mem_set_of_eq] at ⊢ hp,
-    field_simp [hp] },
-  { exact continuous_zero.continuous_on },
-  { refine (((continuous_const.mul (continuous_induced_dom.comp continuous_fst)).sub
-    (continuous_induced_dom.comp continuous_snd)).div (continuous_const.sub
-      (continuous_induced_dom.comp continuous_snd)) (λ p, _)).continuous_on,
-    exact sub_ne_zero_of_ne (ne_of_lt (lt_of_le_of_lt p.2.2.2 one_lt_two)).symm },
-end
-
-lemma continuous_Q_left : continuous Q_left :=
-  by simp only [Q'_left_extends_Q_left, continuous_proj_Icc.comp continuous_Q'_left]
-
-lemma continuous_delayed_refl_left {x : X} :
-  continuous (λ p : I × Ω(x), delayed_refl_left p.1 p.2) :=
-begin
-  apply continuous_to_Ω_if_continuous_uncurry,
-  have hQ := ((homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr
-    ((continuous.comp continuous_Q_left continuous_fst).prod_mk continuous_snd)).comp
-      continuous_swap,
-  convert continuous_eval.comp hQ,--this is slow
-  ext,
-  dsimp [delayed_refl_left, prod.swap, homeomorph.prod_assoc, Q_left],
-  split_ifs,
-  exacts [(path.source _).symm, extend_extends _ _],
-end
-
-/- This `Q_left` is analogous to the function `Q` defined on p. 475 of Serre's `Homologie`
-  `singulière des espaces fibrés` that helps proving continuity of `delayed_refl_right`.-/
-def Q_right : I × I → I := λ p, dite ((p.1 : ℝ) ≤ (1 + p.2) / 2)
-  (λ h, ⟨(2 * p.1)/(1 + p.2), aux_mem_I' h⟩) (λ h, 1)
-
-def Q'_right : I × I → ℝ := λ p,
-ite ((p.1 : ℝ) ≤ (1 + p.2) / 2) ((2 * p.1)/(1 + p.2)) 1
-
-lemma Q'_right_extends_Q_right : Q_right = (set.proj_Icc (0 : ℝ) _ zero_le_one) ∘ Q'_right :=
-begin
-  ext,
-  dsimp only [Q_right, Q'_right, zero_le_one],
-  split_ifs,
-  { simp only [if_pos h, (set.proj_Icc_of_mem (@zero_le_one ℝ _ _ _ _) (aux_mem_I' h)).symm,
-    function.comp_app] },
-  { simp only [if_neg h, function.comp_app, set.proj_Icc_right, mk_one] },
-end
-
-lemma continuous_Q'_right : continuous Q'_right :=
-begin
-  have : ∀ a : I, (1 : ℝ) + a ≠ 0 := λ a, ne_of_gt $ add_pos_of_pos_of_nonneg one_pos a.2.1,
-  refine @continuous_if (I × I) ℝ _ _ (λ p, (p.1 : ℝ) ≤ (1 + p.2)/2) (λ p, (2 * p.1)/(1 + p.2)) 1
-    _ _ _ _,
-  { intros _ hp,
-    have h : continuous (λ (x : I × I), ((1 : ℝ) + (x.snd)) / 2),
-    exact (continuous_const.add (continuous_induced_dom.comp continuous_snd)).div_const,
-    replace hp := frontier_le_subset_eq (continuous_subtype_coe.comp continuous_fst) h hp,
-    simp only [pi.one_apply, function.comp_app, set.mem_set_of_eq] at ⊢ hp,
-    rw [hp, mul_div_cancel' _ (@two_ne_zero ℝ _ _), div_self],
-    exact this a.2 },
-  { refine ((continuous_const.mul $ continuous_induced_dom.comp continuous_fst).div
-      (continuous_const.add (continuous_induced_dom.comp continuous_snd)) (λ a, _)).continuous_on,
-    exact this a.2 },
-  { exact continuous_one.continuous_on },
-end
-
-lemma continuous_Q_right : continuous Q_right :=
-  by simp only [Q'_right_extends_Q_right, continuous_proj_Icc.comp continuous_Q'_right]
+def delayed_refl_right (θ : I) (γ : path x y) : path x y :=
+{ to_fun := λ t, γ (Q_right (t, θ)),
+  continuous_to_fun := γ.continuous.comp (continuous_Q_right.comp $ continuous.prod.mk_left θ),
+  source' := by { dsimp only, rw [Q_right_zero_left, γ.source] },
+  target' := by { dsimp only, rw [Q_right_one_left, γ.target] } }
 
 lemma continuous_delayed_refl_right {x : X} :
-  continuous (λ p : I × Ω(x), delayed_refl_right p.1 p.2) :=
+  continuous (λ p : I × path x y, delayed_refl_right p.1 p.2) :=
+continuous_to_path_of_continuous_uncurry $ (continuous_snd.comp continuous_fst).path_eval
+  (continuous_Q_right.comp $ continuous_snd.prod_mk $ continuous_fst.comp continuous_fst)
+
+def delayed_refl_left {x : X} (θ : I) (γ : path x y) : path x y :=
+(delayed_refl_right (unit_interval.symm θ) γ.symm).symm
+
+lemma delayed_refl_right_zero (γ : path x y) : delayed_refl_right 0 γ = γ.trans (path.refl y) :=
 begin
-  apply continuous_to_Ω_if_continuous_uncurry,
-  have hQ := ((homeomorph.comp_continuous_iff' $ (homeomorph.prod_assoc I I Ω(x)).symm).mpr
-    ((continuous.comp continuous_Q_right continuous_fst).prod_mk continuous_snd)).comp
-      continuous_swap,
-  convert continuous_eval.comp hQ,----this is slow
-  ext,
-  dsimp [delayed_refl_right, prod.swap, homeomorph.prod_assoc, Q_right],
-  split_ifs,
-  exacts [extend_extends _ _, (path.target _).symm],
+  ext t,
+  simp only [delayed_refl_right,
+    trans_apply, refl_extend, path.coe_mk, function.comp_app, refl_apply],
+  split_ifs, swap, conv_rhs { rw ← γ.target },
+  all_goals { apply congr_arg γ, ext1, rw Q_right_zero_right },
+  exacts [if_neg h, if_pos h],
 end
 
+lemma delayed_refl_right_one (γ : path x y) : delayed_refl_right 1 γ = γ :=
+by { ext t, exact congr_arg γ (Q_right_one_right t) }
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
-{ Hmul := λ ρ, ρ.1.trans ρ.2,
-  e := refl _,
-  cont' := continuous_to_Ω_if_to_C $ continuous_of_continuous_uncurry _ $ Hmul_cont x,
+{ Hmul := ⟨λ ρ, ρ.1.trans ρ.2, continuous_trans⟩,
+  e := refl x,
   Hmul_e_e := refl_trans_refl,
-  left_Hmul_e :=
-  begin
-    use ⟨λ p, delayed_refl_left p.1 p.2, continuous_delayed_refl_left⟩;
-    intro x,
-    { exact delayed_refl_left_at_0 x },
-    { exact delayed_refl_left_at_1 x },
-    { intros _ h,
-      simp only [set.mem_singleton_iff.mp h, continuous_map.coe_mk, refl_trans_refl, id.def,
-        and_self],
-      exact delayed_refl_left_e x, },
-  end,
+  left_Hmul_e := sorry,
   right_Hmul_e :=
-  begin
-    use ⟨λ p, delayed_refl_right p.1 p.2, continuous_delayed_refl_right⟩;
-    intro x,
-    { exact delayed_refl_right_at_0 x },
-    { exact delayed_refl_right_at_1 x },
-    { intros _ h,
-      simp only [set.mem_singleton_iff.mp h, continuous_map.coe_mk, refl_trans_refl, id.def,
-        and_self],
-      exact delayed_refl_right_e x },
-  end  }
+  { to_homotopy := ⟨⟨λ p, delayed_refl_right p.1 p.2, continuous_delayed_refl_right⟩,
+      delayed_refl_right_zero, delayed_refl_right_one⟩,
+    prop' := by { rintros t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } }
 
 end path_space_H_space
 

@@ -11,8 +11,9 @@ import category_theory.sites.left_exact
 /-!
 # Category of sheaves is abelian
 Let `C, D` be categories and `J` be a grothendieck topology on `C`, when `D` is abelian and
-sheafification is possible in `C`, `Sheaf J D` is abelian as well. Hence, `presheaf_to_Sheaf` is an
-additive functor.
+sheafification is possible in `C`, `Sheaf J D` is abelian as well (`Sheaf_is_abelian`).
+
+Hence, `presheaf_to_Sheaf` is an additive functor (`presheaf_to_Sheaf_additive`).
 
 -/
 
@@ -43,9 +44,11 @@ variables [concrete_category.{max v u} D] [preserves_limits (forget D)]
 variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
 variables [reflects_isomorphisms (forget D)]
 
-instance [has_finite_limits D] : abelian (Sheaf J D) :=
+instance Sheaf_is_abelian [has_finite_limits D] : abelian (Sheaf J D) :=
 let adj := (sheafification_adjunction J D) in abelian_of_adjunction _ _ (as_iso adj.counit) $ adj
 
+-- `preserves_binary_biproduct_of_preserves_binary_product` is marked as a `def`, so this need to be
+-- specified manually.
 instance : preserves_binary_biproducts (presheaf_to_Sheaf J D) :=
 { preserves := λ F G, preserves_binary_biproduct_of_preserves_binary_product _ }
 

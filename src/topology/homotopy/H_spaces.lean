@@ -48,7 +48,7 @@ begin
 end
 
 lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ) → (t : ℝ) = θ :=
-λ ⟨hl, hr⟩, by simp only [le_antisymm (not_mem_interior hr) (mem_closure_iff.mp hl)]
+λ ⟨hl, hr⟩, by simp only [(not_mem_interior hr).antisymm (mem_closure_iff.mp hl)]
 
 lemma one_add_pos {t : I} : 0 < (1 + t : ℝ) := add_pos_of_pos_of_nonneg zero_lt_one $ nonneg _
 

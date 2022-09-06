@@ -680,10 +680,11 @@ end restrict_scalars
 
 section continuity
 
-variables [semi_normed_ring 𝕜] [normed_algebra ℝ 𝕜] [norm_one_class 𝕜] [add_comm_group E]
-  [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [semi_normed_ring 𝕜] [add_comm_group E]
+  [module 𝕜 E]
 
-lemma continuous_at_zero [topological_space E] [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E}
+lemma continuous_at_zero [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] [topological_space E] [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E}
   (hp : is_open $ p.ball 0 1) :
   continuous_at p 0 :=
 begin
@@ -701,7 +702,7 @@ begin
 end
 
 protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
-  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
+  {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
   uniform_continuous p :=
 begin
   have hp : filter.tendsto p (𝓝 0) (𝓝 0) := p.map_zero ▸ hp,
@@ -712,7 +713,7 @@ begin
 end
 
 protected lemma continuous_of_continuous_at_zero [topological_space E] [topological_add_group E]
-  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
+  {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
   continuous p :=
 begin
   letI := topological_add_group.to_uniform_space E,
@@ -720,12 +721,14 @@ begin
   exact (seminorm.uniform_continuous_of_continuous_at_zero hp).continuous
 end
 
-protected lemma uniform_continuous [uniform_space E] [uniform_add_group E]
-  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
+protected lemma uniform_continuous [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] [uniform_space E] [uniform_add_group E] [has_continuous_const_smul ℝ E]
+  {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
   uniform_continuous p :=
 seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero hp)
 
-protected lemma continuous [topological_space E] [topological_add_group E]
+protected lemma continuous [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] [topological_space E] [topological_add_group E]
   [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
   continuous p :=
 seminorm.continuous_of_continuous_at_zero (continuous_at_zero hp)

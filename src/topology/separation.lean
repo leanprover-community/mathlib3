@@ -605,6 +605,16 @@ have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
 have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id'.2 $ pure_le_nhds a),
 fact₂ fact₁ (eq.refl $ f a)
 
+lemma filter.tendsto.eventually_ne [topological_space β] [t1_space β] {α : Type*} {g : α → β}
+  {l : filter α} {b₁ b₂ : β} (hg : tendsto g l (𝓝 b₁)) (hb : b₁ ≠ b₂) :
+  ∀ᶠ z in l, g z ≠ b₂ :=
+hg.eventually (is_open_compl_singleton.eventually_mem hb)
+
+lemma continuous_at.eventually_ne [topological_space β] [t1_space β] {g : α → β}
+  {a : α} {b : β} (hg1 : continuous_at g a) (hg2 : g a ≠ b) :
+  ∀ᶠ z in 𝓝 a, g z ≠ b :=
+hg1.tendsto.eventually_ne hg2
+
 /-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
 `f` admits *some* limit at `a`. -/
 lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
@@ -720,11 +730,11 @@ eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_
 is the discrete topology on `X`. -/
 lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
   {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
-begin
-  constructor,
-  rw discrete_topology.eq_bot Y,
-  exact induced_bot hf
-end
+by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
+
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
 
 /-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
 by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/

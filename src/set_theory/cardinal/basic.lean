@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
+import data.fintype.card
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
@@ -75,7 +76,7 @@ Cantor's theorem, König's theorem, Konig's theorem
 -/
 
 open function set order
-open_locale classical
+open_locale big_operators classical
 
 noncomputable theory
 
@@ -716,6 +717,23 @@ begin
   exact mk_congr (equiv.ulift.trans $ equiv.Pi_congr_right $ λ i, equiv.ulift.symm)
 end
 
+lemma prod_eq_of_fintype {α : Type u} [fintype α] (f : α → cardinal.{v}) :
+  prod f = cardinal.lift.{u} (∏ i, f i) :=
+begin
+  revert f,
+  refine fintype.induction_empty_option _ _ _ α,
+  { introsI α β hβ e h f,
+    letI := fintype.of_equiv β e.symm,
+    rw [←e.prod_comp f, ←h],
+    exact mk_congr (e.Pi_congr_left _).symm },
+  { intro f,
+    rw [fintype.univ_pempty, finset.prod_empty, lift_one, cardinal.prod, mk_eq_one] },
+  { intros α hα h f,
+    rw [cardinal.prod, mk_congr equiv.pi_option_equiv_prod, mk_prod, lift_umax', mk_out,
+        ←cardinal.prod, lift_prod, fintype.prod_option, lift_mul, ←h (λ a, f (some a))],
+    simp only [lift_id] },
+end
+
 @[simp] theorem lift_Inf (s : set cardinal) : lift (Inf s) = Inf (lift '' s) :=
 begin
   rcases eq_empty_or_nonempty s with rfl | hs,
@@ -1178,6 +1196,18 @@ begin
   { rw [to_nat_apply_of_aleph_0_le hx2, zero_mul, to_nat_apply_of_aleph_0_le],
     exact aleph_0_le_mul_iff'.2 (or.inr ⟨hx2, hy1⟩) },
 end
+
+/-- `cardinal.to_nat` as a `monoid_with_zero_hom`. -/
+@[simps]
+def to_nat_hom : cardinal →*₀ ℕ :=
+{ to_fun := to_nat,
+  map_zero' := zero_to_nat,
+  map_one' := one_to_nat,
+  map_mul' := to_nat_mul }
+
+lemma to_nat_finset_prod (s : finset α) (f : α → cardinal) :
+  to_nat (∏ i in s, f i) = ∏ i in s, to_nat (f i) :=
+map_prod to_nat_hom _ _
 
 @[simp] lemma to_nat_add_of_lt_aleph_0 {a : cardinal.{u}} {b : cardinal.{v}}
   (ha : a < ℵ₀) (hb : b < ℵ₀) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=

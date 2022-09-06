@@ -2350,23 +2350,23 @@ linear_map.mk_continuous₂ innerₗ 1
 
 namespace old
 
-instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
-  has_inner 𝕜' (completion E') :=
-{ inner := dense_inducing_coe.extend (λ x, dense_inducing_coe.extend (inner x)) }
-
-@[simp] lemma coe_inner (a b : E) :
-  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
-begin
-  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
-  calc inner (a : completion E) (b : completion E)
-      = dense_inducing_coe.extend (inner a) b :
-        begin
-          refine congr_fun (dense_inducing_coe.extend_eq _ _) (b : completion E),
-          sorry
-        end
-  ... = inner a b : dense_inducing_coe.extend_eq _ _,
-  sorry
-end
+--instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
+--  has_inner 𝕜' (completion E') :=
+--{ inner := dense_inducing_coe.extend (λ x, dense_inducing_coe.extend (inner x)) }
+--
+--@[simp] lemma coe_inner (a b : E) :
+--  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
+--begin
+--  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
+--  calc inner (a : completion E) (b : completion E)
+--      = dense_inducing_coe.extend (inner a) b :
+--        begin
+--          refine congr_fun (dense_inducing_coe.extend_eq _ _) (b : completion E),
+--          sorry
+--        end
+--  ... = inner a b : dense_inducing_coe.extend_eq _ _,
+--  sorry
+--end
 
 end old
 
@@ -2376,30 +2376,29 @@ instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_in
 
 @[simp] lemma coe_inner (a b : E) :
   inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
-begin
-  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
-  exact (dense_inducing_coe.prod dense_inducing_coe).extend_eq
-    (@continuous_linear_map.continuous₂ ℝ _ E _ _ E _ _ 𝕜 _ _ innerL) (a, b),
-end
+(dense_inducing_coe.prod dense_inducing_coe).extend_eq
+  (continuous_inner : continuous (uncurry inner : E × E → 𝕜)) (a, b)
 
-protected lemma continuous_inner₂ :
+protected lemma continuous_inner :
   continuous (uncurry inner : completion E × completion E → 𝕜) :=
 begin
-  rw completion.has_inner,
-  unfold_projs,
-  rw uncurry_curry _,
-  refine (dense_inducing_coe.prod dense_inducing_coe).continuous_extend (λ b, _),
-  haveI := (dense_inducing_coe.prod dense_inducing_coe).comap_nhds_ne_bot b,
-  rw ← cauchy_map_iff_exists_tendsto,
-  sorry
+  let inner' : E →+ E →+ 𝕜 :=
+  { to_fun := λ x, (innerₛₗ x).to_add_monoid_hom,
+    map_zero' := by ext x; exact inner_zero_left,
+    map_add' := λ x y, by ext z; exact inner_add_left },
+  have : continuous (λ p : E × E, inner' p.1 p.2) := continuous_inner,
+  rw [completion.has_inner, uncurry_curry _],
+  change continuous (((dense_inducing_to_compl E).prod (dense_inducing_to_compl E)).extend
+    (λ p : E × E, inner' p.1 p.2)),
+  exact (dense_inducing_to_compl E).extend_Z_bilin (dense_inducing_to_compl E) this,
 end
 
-protected lemma continuous.inner₂ {α : Type*} [topological_space α]
+protected lemma continuous.inner {α : Type*} [topological_space α]
   {f g : α → completion E} (hf : continuous f) (hg : continuous g) :
   continuous (λ x : α, inner (f x) (g x) : α → 𝕜) :=
-uniform_space.completion.continuous_inner₂.comp (hf.prod_mk hg : _)
+uniform_space.completion.continuous_inner.comp (hf.prod_mk hg : _)
 
-local attribute [continuity] uniform_space.completion.continuous.inner₂
+local attribute [continuity] uniform_space.completion.continuous.inner
 
 instance : inner_product_space 𝕜 (completion E) :=
 { norm_sq_eq_inner := λ x, completion.induction_on x

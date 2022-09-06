@@ -192,13 +192,29 @@ end
 
 end
 
-lemma seminorm.continuous_at_zero {p : seminorm ℝ E} (hp : is_open $ p.ball 0 1) :
+def seminorm.restrict_real (p : seminorm 𝕜 E) : seminorm ℝ E :=
+{ to_fun := p,
+  smul' := λ a x,
+  begin
+    convert p.smul' (a : 𝕜) x,
+    { exact is_R_or_C.real_smul_eq_coe_smul a x },
+    { simp }
+  end,
+  ..p }
+
+@[simp] lemma seminorm.restrict_real_ball (p : seminorm 𝕜 E) :
+  p.restrict_real.ball = p.ball :=
+rfl
+
+lemma seminorm.continuous_at_zero {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
   continuous_at p 0 :=
 begin
+  change continuous_at p.restrict_real 0,
+  rw ← p.restrict_real_ball at hp,
   refine metric.nhds_basis_ball.tendsto_right_iff.mpr _,
   intros ε hε,
-  rw p.map_zero,
-  suffices : p.ball 0 ε ∈ (𝓝 0 : filter E),
+  rw p.restrict_real.map_zero,
+  suffices : p.restrict_real.ball 0 ε ∈ (𝓝 0 : filter E),
   { rwa seminorm.ball_zero_eq_preimage_ball at this },
   have := hp.smul₀ hε.ne.symm,
   rw [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
@@ -212,14 +228,12 @@ begin
   exact ⟨p.le_insert' _ _, p.le_insert _ _⟩
 end
 
-lemma seminorm.uniform_continuous_of_continuous_at_zero {E' : Type*} [add_comm_group E']
-  [module ℝ E'] {p : seminorm ℝ E'} [uniform_space E'] [uniform_add_group E']
-  [has_continuous_smul ℝ E'] (hp : is_open $ p.ball 0 1) :
+lemma seminorm.uniform_continuous {E' : Type*} [add_comm_group E']
+  [module 𝕜 E'] [module ℝ E'] [is_scalar_tower ℝ 𝕜 E'] {p : seminorm 𝕜 E'} [uniform_space E']
+  [uniform_add_group E'] [has_continuous_smul ℝ E'] (hp : is_open $ p.ball 0 1) :
   uniform_continuous p :=
 begin
-  have hp := seminorm.continuous_at_zero hp,
-  rw [continuous_at, p.map_zero] at hp,
-  have := uniformity_eq_comap_nhds_zero_swapped E',
+  have hp : filter.tendsto p (𝓝 0) (𝓝 0) := p.map_zero ▸ (seminorm.continuous_at_zero hp).tendsto,
   rw [uniform_continuous, uniformity_eq_comap_nhds_zero_swapped,
       metric.uniformity_eq_comap_nhds_zero, filter.tendsto_comap_iff],
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
@@ -239,15 +253,19 @@ def maximal_seminorm_family : seminorm_family 𝕜 E (cont_seminorms 𝕜 E) := 
 variables {𝕜 E}
 
 lemma with_maximal_seminorm_family [topological_add_group E] [has_continuous_smul 𝕜 E]
-  [locally_convex_space ℝ E] :
+  [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E] :
   with_seminorms (maximal_seminorm_family 𝕜 E) :=
 begin
+  letI := topological_add_group.to_uniform_space E,
+  haveI : uniform_add_group E := topological_add_group_is_uniform,
   rw seminorm_family.with_seminorms_iff_nhds_eq_infi,
   refine le_antisymm (le_infi $ λ i, filter.map_le_iff_le_comap.mp $ i.1.map_zero ▸ i.2.tendsto 0)
     ((nhds_basis_abs_convex_open 𝕜 E).ge_iff.mpr $ λ t ht,
     filter.mem_infi_of_mem
-      ⟨gauge_seminorm ht.2.2.1 ht.2.2.2 (absorbent_nhds_zero $ ht.2.1.mem_nhds ht.1), sorry⟩ $
+      ⟨gauge_seminorm ht.2.2.1 ht.2.2.2 (absorbent_nhds_zero $ ht.2.1.mem_nhds ht.1), _⟩ $
     filter.mem_comap.mpr ⟨metric.ball 0 1, metric.ball_mem_nhds _ zero_lt_one, _⟩),
+  { refine (seminorm.uniform_continuous _).continuous,
+    rw gauge_seminorm_family_ball },
   change gauge_seminorm _ _ _ ⁻¹' metric.ball 0 1 ⊆ t,
   rw [← seminorm.ball_zero_eq_preimage_ball, seminorm.ball_zero_eq],
   simp_rw gauge_seminorm_to_fun,

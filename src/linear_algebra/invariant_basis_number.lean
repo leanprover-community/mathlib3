@@ -252,8 +252,10 @@ private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] 
 begin
   refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr, simp }
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr,
+    simp only [map_add, linear_equiv.coe_coe, linear_equiv.map_smulₛₗ, ring_hom.id_apply,
+               linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] }
 end
 
 end

@@ -61,7 +61,7 @@ variables {M : Type*} [topological_space M] [charted_space H M]
 {M' : Type*} [topological_space M'] [charted_space H' M']
 {N : Type*} [topological_space N] [charted_space G N]
 {N' : Type*} [topological_space N'] [charted_space G' N']
-{n : with_top ℕ}
+{n : ℕ∞}
 
 section defs
 
@@ -77,11 +77,13 @@ structure diffeomorph extends M ≃ M' :=
 
 end defs
 
-localized "notation M ` ≃ₘ^` n:1000 `⟮`:50 I `,` J `⟯ ` N := diffeomorph I J M N n" in manifold
-localized "notation M ` ≃ₘ⟮` I `,` J `⟯ ` N := diffeomorph I J M N ⊤" in manifold
-localized "notation E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' :=
+localized "notation (name := diffeomorph) M ` ≃ₘ^` n:1000 `⟮`:50 I `,` J `⟯ ` N :=
+  diffeomorph I J M N n" in manifold
+localized "notation (name := diffeomorph.top) M ` ≃ₘ⟮` I `,` J `⟯ ` N :=
+  diffeomorph I J M N ⊤" in manifold
+localized "notation (name := diffeomorph.self) E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' :=
   diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' n" in manifold
-localized "notation E ` ≃ₘ[` 𝕜 `] ` E' :=
+localized "notation (name := diffeomorph.self.top) E ` ≃ₘ[` 𝕜 `] ` E' :=
   diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' ⊤" in manifold
 
 namespace diffeomorph

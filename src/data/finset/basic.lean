@@ -2463,18 +2463,29 @@ finset.val_inj.1 (multiset.dedup_map_dedup_eq _ _).symm
 section to_list
 
 /-- Produce a list of the elements in the finite set using choice. -/
-@[reducible] noncomputable def to_list (s : finset α) : list α := s.1.to_list
+noncomputable def to_list (s : finset α) : list α := s.1.to_list
 
 lemma nodup_to_list (s : finset α) : s.to_list.nodup :=
 by { rw [to_list, ←multiset.coe_nodup, multiset.coe_to_list], exact s.nodup }
 
-@[simp] lemma mem_to_list {a : α} (s : finset α) : a ∈ s.to_list ↔ a ∈ s :=
-by { rw [to_list, ←multiset.mem_coe, multiset.coe_to_list], exact iff.rfl }
+@[simp] lemma mem_to_list {a : α} {s : finset α} : a ∈ s.to_list ↔ a ∈ s := mem_to_list
 
-@[simp] lemma to_list_empty : (∅ : finset α).to_list = [] := by simp [to_list]
+@[simp] lemma to_list_eq_nil {s : finset α} : s.to_list = [] ↔ s = ∅ :=
+to_list_eq_nil.trans val_eq_zero
+
+@[simp] lemma empty_to_list {s : finset α} : s.to_list.empty ↔ s = ∅ :=
+list.empty_iff_eq_nil.trans to_list_eq_nil
+
+@[simp] lemma to_list_empty : (∅ : finset α).to_list = [] := to_list_eq_nil.mpr rfl
+
+lemma nonempty.to_list_ne_nil {s : finset α} (hs : s.nonempty) : s.to_list ≠ [] :=
+mt to_list_eq_nil.mp hs.ne_empty
+
+lemma nonempty.not_empty_to_list {s : finset α} (hs : s.nonempty) : ¬s.to_list.empty :=
+mt empty_to_list.mp hs.ne_empty
 
 @[simp, norm_cast]
-lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := by { classical, ext, simp }
+lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := s.val.coe_to_list
 
 @[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
 by { ext, simp }

@@ -88,10 +88,11 @@ begin
     obtain ⟨A, hA⟩ := (h (ε/2) h11),
     use A,
     intros z hz,
-    have hzs : f z ∈ s, by {apply h2,
+    have hzs : f z ∈ s,
+    { apply h2,
       simp only [mem_ball_zero_iff, norm_eq_abs],
       apply lt_of_le_of_lt (hA z hz),
-      linarith,},
+      linarith },
     apply hzs,}
 end
 

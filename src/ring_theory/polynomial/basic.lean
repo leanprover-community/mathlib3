@@ -992,6 +992,9 @@ by casesI nonempty_fintype σ; exact
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
   (rename_equiv R (fintype.equiv_fin σ).symm).to_ring_equiv is_noetherian_ring_fin
 
+instance {R σ : Type*} [comm_ring R] [is_domain R] : no_zero_divisors (mv_polynomial σ R) :=
+add_monoid_algebra.finsupp_no_zero_divisors
+
 protected theorem eq_zero_or_eq_zero_of_mul_eq_zero
   {R : Type u} [comm_ring R] [is_domain R] {σ : Type v}
   (p q : mv_polynomial σ R) (h : p * q = 0) : p = 0 ∨ q = 0 :=

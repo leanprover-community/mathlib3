@@ -39,6 +39,7 @@ begin
 end
 
 local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
+local attribute [instance, nolint fails_quickly] affine_subspace.to_add_torsor
 
 /-- Restrict domain and codomain of an affine map to the given submodules. -/
 def affine_map.restrict

@@ -7,7 +7,6 @@ import data.real.pointwise
 import data.real.sqrt
 import topology.algebra.filter_basis
 import topology.algebra.module.locally_convex
-import data.complex.is_R_or_C
 
 /-!
 # Seminorms

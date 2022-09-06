@@ -25,7 +25,7 @@ noncomputable theory
 
 namespace upper_half_plane
 
-/--Filter for approaching `i∞`-/
+/-- Filter for approaching `i∞`. -/
 def at_im_infty := filter.at_top.comap upper_half_plane.im
 
 lemma at_im_infty_basis : (at_im_infty).has_basis (λ _, true) (λ (i : ℝ), im ⁻¹' set.Ici i) :=
@@ -41,24 +41,28 @@ begin
   rwa hx,
 end
 
-/--A function ` f : ℍ → ℂ` is bounded at infinity if there exist real numbers `M, A` such that
+/-- A function ` f : ℍ → ℂ` is bounded at infinity if there exist real numbers `M, A` such that
 for all `z ∈ ℍ` with `im z ≥ A` we have `abs(f (z)) ≤ M`,
  i.e. the function is bounded as you approach `i∞`. -/
-def is_bounded_at_im_infty (f : ℍ → ℂ) : Prop := asymptotics.is_O at_im_infty f (1 : ℍ → ℂ)
+def is_bounded_at_im_infty {α : Type*} [has_norm α] [has_one (ℍ → α)] (f : ℍ → α) : Prop :=
+bounded_at_filter at_im_infty f
 
-/--A function ` f : ℍ → ℂ` is zero at infinity if for any `ε > 0` there exist a real
+/-- A function ` f : ℍ → ℂ` is zero at infinity if for any `ε > 0` there exist a real
 number `A` such that for all `z ∈ ℍ` with `im z ≥ A` we have `abs(f (z)) ≤ ε`,
  i.e. the function tends to zero as you approach `i∞`. -/
-def is_zero_at_im_infty (f : ℍ → ℂ) : Prop := filter.tendsto f at_im_infty (𝓝 0)
+def is_zero_at_im_infty (f : ℍ → ℂ) : Prop := zero_at_filter at_im_infty f
 
-lemma zero_form_is_bounded_at_im_infty : is_bounded_at_im_infty 0 :=
-zero_is_bounded_at_filter _
+lemma zero_form_is_bounded_at_im_infty {α : Type*} [normed_field α] :
+  is_bounded_at_im_infty (0 : ℍ → α) :=
+zero_is_bounded_at_filter at_im_infty
 
-/--Module of functions that are zero at infinity.-/
-def zero_at_im_infty_submodule : submodule ℂ (ℍ → ℂ) := zero_at_filter_submodule at_im_infty
+/-- Module of functions that are zero at infinity. -/
+def zero_at_im_infty_submodule (α : Type*) [normed_field α] : submodule α (ℍ → α) :=
+zero_at_filter_submodule at_im_infty
 
-/--Subalgebra of functions that are bounded at infinity.-/
-def bounded_at_im_infty_subalgebra : subalgebra ℂ (ℍ → ℂ) := bounded_filter_subalgebra at_im_infty
+/-- ubalgebra of functions that are bounded at infinity. -/
+def bounded_at_im_infty_subalgebra (α : Type*) [normed_field α] : subalgebra α (ℍ → α) :=
+bounded_filter_subalgebra at_im_infty
 
 lemma prod_of_bounded_is_bounded {f g : ℍ → ℂ} (hf : is_bounded_at_im_infty f)
   (hg : is_bounded_at_im_infty g) : is_bounded_at_im_infty (f * g) :=
@@ -67,13 +71,14 @@ by simpa only [pi.one_apply, mul_one, norm_eq_abs, complex.abs_mul] using hf.mul
 @[simp] lemma bounded_mem (f : ℍ → ℂ) :
   is_bounded_at_im_infty f ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M :=
 begin
-  simp [is_bounded_at_im_infty, asymptotics.is_O_iff, filter.eventually, at_im_infty_mem],
+  simp [is_bounded_at_im_infty, bounded_at_filter, asymptotics.is_O_iff, filter.eventually,
+    at_im_infty_mem],
 end
 
 lemma zero_at_im_infty (f : ℍ → ℂ) :
   is_zero_at_im_infty f ↔ ∀ ε : ℝ, 0 < ε → ∃ A : ℝ, ∀ z : ℍ, A ≤ im z → abs (f z) ≤ ε :=
 begin
-  rw [is_zero_at_im_infty, tendsto_iff_forall_eventually_mem],
+  rw [is_zero_at_im_infty, zero_at_filter, tendsto_iff_forall_eventually_mem],
   split,
   {  simp_rw [filter.eventually, at_im_infty_mem],
     intros h ε hε,

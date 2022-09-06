@@ -65,4 +65,14 @@ begin
   case topological_space.generate_open.sUnion : { apply is_lower_set_sUnion h_ih, },
 end
 
+-- II 14th Dec 2001 Lawson = Fell
+-- III 6th July 2002 Primitive nets
+-- IV 15th Jan 2003 Deduce Fell
+
+
+lemma singleton_closure (a : α) : closure {a} = Ici a :=
+begin
+  sorry
+end
+
 end lower_topology

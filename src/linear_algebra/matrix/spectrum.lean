@@ -76,8 +76,8 @@ begin
 end
 
 lemma conj_transpose_eigenvector_matrix_inv : hA.eigenvector_matrix_invᴴ = hA.eigenvector_matrix :=
-by { ext i j, rw [conj_transpose_apply, eigenvector_matrix_inv_apply, eigenvector_matrix_apply,
-  star_star] }
+by { ext i j,
+  rw [conj_transpose_apply, eigenvector_matrix_inv_apply, eigenvector_matrix_apply, star_star] }
 
 lemma conj_transpose_eigenvector_matrix : hA.eigenvector_matrixᴴ = hA.eigenvector_matrix_inv :=
 by rw [← conj_transpose_eigenvector_matrix_inv, conj_transpose_conj_transpose]

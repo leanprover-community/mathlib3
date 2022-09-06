@@ -107,8 +107,7 @@ by simp only [jacobi_sym, factors_prime fp.1, list.prod_cons, list.prod_nil, mul
 lemma jacobi_sym_mul_right' (a : ℤ) {b₁ b₂ : ℕ} (hb₁ : b₁ ≠ 0) (hb₂ : b₂ ≠ 0) :
   [a | b₁ * b₂]ⱼ = [a | b₁]ⱼ * [a | b₂]ⱼ :=
 begin
-  rw [jacobi_sym, ((perm_factors_mul hb₁ hb₂).pmap _).prod_eq,
-      list.pmap_append, list.prod_append],
+  rw [jacobi_sym, ((perm_factors_mul hb₁ hb₂).pmap _).prod_eq, list.pmap_append, list.prod_append],
   exacts [rfl, λ p hp, (list.mem_append.mp hp).elim prime_of_mem_factors prime_of_mem_factors],
 end
 

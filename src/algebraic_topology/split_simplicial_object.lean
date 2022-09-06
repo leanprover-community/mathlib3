@@ -89,7 +89,7 @@ begin
   induction Δ₁ using opposite.rec,
   induction Δ₂ using opposite.rec,
   simp only at h₁,
-  have h₂ : Δ₁ = Δ₂ := by { ext1, simpa only [subtype.mk_eq_mk] using h₁.1, },
+  have h₂ : Δ₁ = Δ₂ := by { ext1, simpa only [fin.mk_eq_mk] using h₁.1, },
   subst h₂,
   refine ext _ _ rfl _,
   ext : 2,

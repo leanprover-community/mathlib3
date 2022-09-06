@@ -368,13 +368,9 @@ instance : has_add (P ⟶ Q) :=
   (f + g).1.app U = f.1.app U + g.1.app U := rfl
 
 instance : add_comm_group (P ⟶ Q) :=
-begin
-  refine @@function.injective.add_comm_group _ _ category_theory.Sheaf_hom_has_nsmul _ _
-    category_theory.Sheaf_hom_has_zsmul
-    (category_theory.functor_category_preadditive.hom_group _ _) (λ f, f.1)
-    (λ _ _ h, Sheaf.hom.ext _ _ h) _ _ _ _ _ _,
-  all_goals { intros, refl <|> { dsimp at *, ext, simpa [*], } },
-end
+function.injective.add_comm_group (λ (f : Sheaf.hom P Q), f.1)
+  (λ _ _ h, Sheaf.hom.ext _ _ h) rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, by { dsimp at *, ext, simpa [*] }) (λ _ _, by { dsimp at *, ext, simpa [*] })
 
 instance : preadditive (Sheaf J A) :=
 { hom_group := λ P Q, infer_instance,

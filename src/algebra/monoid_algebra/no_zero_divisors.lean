@@ -182,8 +182,8 @@ noncomputable instance finsupp_add_right_cancel_monoid {α N} [add_right_cancel_
   end,
   ..(by apply_instance : add_monoid (α →₀ N)) }
 
-instance finsupp_no_zero_divisors {α N} [no_zero_divisors R] [add_right_cancel_monoid N] [linear_order N]
-  [covariant_class N N (+) (<)] [covariant_class N N (function.swap (+)) (<)] :
+instance finsupp_no_zero_divisors {α N} [no_zero_divisors R] [add_right_cancel_monoid N]
+  [linear_order N] [covariant_class N N (+) (<)] [covariant_class N N (function.swap (+)) (<)] :
   no_zero_divisors (add_monoid_algebra R (α →₀ N)) :=
 begin
   haveI : linear_order α := @linear_extension.linear_order α

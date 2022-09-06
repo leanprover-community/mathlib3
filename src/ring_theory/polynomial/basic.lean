@@ -1154,7 +1154,7 @@ end
 end polynomial
 
 namespace mv_polynomial
-.
+
 --  Why is this instance needed?
 noncomputable instance [no_zero_divisors R] : cancel_comm_monoid_with_zero (mv_polynomial σ R) :=
 { mul_left_cancel_of_ne_zero := λ a b c a0 bc, sub_eq_zero.mp $ by
@@ -1162,7 +1162,7 @@ noncomputable instance [no_zero_divisors R] : cancel_comm_monoid_with_zero (mv_p
   mul_right_cancel_of_ne_zero := λ a b c a0 bc, sub_eq_zero.mp $
     (is_regular_of_ne_zero' a0).right.eq_iff.mp $ by rwa [zero_mul, sub_mul, sub_eq_zero],
   ..(by apply_instance : comm_monoid_with_zero (mv_polynomial σ R)) }
-.
+
 private lemma unique_factorization_monoid_of_fintype [fintype σ] :
   unique_factorization_monoid (mv_polynomial σ D) :=
 (rename_equiv D (fintype.equiv_fin σ)).to_mul_equiv.symm.unique_factorization_monoid $

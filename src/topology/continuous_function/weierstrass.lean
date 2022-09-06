@@ -78,7 +78,6 @@ begin
     -- so all subalgebras are the same anyway.
     haveI : subsingleton (set.Icc a b) := ⟨λ x y, le_antisymm
       ((x.2.2.trans (not_lt.mp h)).trans y.2.1) ((y.2.2.trans (not_lt.mp h)).trans x.2.1)⟩,
-    haveI := (continuous_map.subsingleton_subalgebra (set.Icc a b) ℝ),
     apply subsingleton.elim, }
 end
 

@@ -49,7 +49,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
 /-- local homeomorphisms, defined on open subsets of the space -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure local_homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends local_equiv α β :=
 (open_source        : is_open source)
@@ -947,7 +947,7 @@ lemma continuous_within_at_iff_continuous_within_at_comp_left
   {f : γ → α} {s : set γ} {x : γ} (hx : f x ∈ e.source) (h : f ⁻¹' e.source ∈ 𝓝[s] x) :
   continuous_within_at f s x ↔ continuous_within_at (e ∘ f) s x :=
 begin
-  refine ⟨(e.continuous_at hx).tendsto.comp, λ fe_cont, _⟩,
+  refine ⟨(e.continuous_at hx).comp_continuous_within_at, λ fe_cont, _⟩,
   rw [← continuous_within_at_inter' h] at fe_cont ⊢,
   have : continuous_within_at (e.symm ∘ (e ∘ f)) (s ∩ f ⁻¹' e.source) x,
   { have : continuous_within_at e.symm univ (e (f x))
@@ -991,10 +991,10 @@ def to_homeomorph_source_target : e.source ≃ₜ e.target :=
   inv_fun := e.symm_maps_to.restrict _ _ _,
   left_inv := λ x, subtype.eq $ e.left_inv x.2,
   right_inv := λ x, subtype.eq $ e.right_inv x.2,
-  continuous_to_fun := continuous_subtype_mk _ $
-    continuous_on_iff_continuous_restrict.1 e.continuous_on,
-  continuous_inv_fun := continuous_subtype_mk _ $
-    continuous_on_iff_continuous_restrict.1 e.symm.continuous_on }
+  continuous_to_fun :=
+    (continuous_on_iff_continuous_restrict.1 e.continuous_on).subtype_mk _,
+  continuous_inv_fun :=
+    (continuous_on_iff_continuous_restrict.1 e.symm.continuous_on).subtype_mk _ }
 
 lemma second_countable_topology_source [second_countable_topology β]
   (e : local_homeomorph α β) :

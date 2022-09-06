@@ -32,12 +32,12 @@ open sets in `Proj`, more specifically:
 
 1. We prove that `Proj` can be covered by basic open sets at homogeneous element of positive degree.
 2. We prove that for any `f : A`, `Proj.T | (pbo f)` is homeomorphic to `Spec.T A⁰_f`:
-  - forward direction :
+  - forward direction `to_Spec`:
     for any `x : pbo f`, i.e. a relevant homogeneous prime ideal `x`, send it to
-    `x ∩ span {g / 1 | g ∈ A}` (see `Top_component.forward.carrier`). This ideal is prime, the proof
-    is in `Top_component.forward.to_fun`. The fact that this function is continuous is found in
-    `Top_component.forward`
-  - backward direction : TBC
+    `x ∩ span {g / 1 | g ∈ A}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is
+    prime, the proof is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function
+    is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
+  - backward direction `from_Spec`: TBC
 
 ## Main Definitions and Statements
 
@@ -45,11 +45,10 @@ open sets in `Proj`, more specifically:
   element of degree `n` is the subring of elements of the form `a/f^m` where `a` has degree `mn`.
 
 For a homogeneous element `f` of degree `n`
-* `Top_component.forward`: `forward f` is the
+* `Proj_iso_Spec_Top_component.to_Spec`: `forward f` is the
   continuous map between `Proj.T| pbo f` and `Spec.T A⁰_f`
-* `Top_component.forward.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero, then the preimage
-  of `sbo a/f^m` under `forward f` is `pbo f ∩ pbo a`.
-
+* `Proj_iso_Spec_Top_component.to_Spec.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero,
+  then the preimage of `sbo a/f^m` under `to_Spec f` is `pbo f ∩ pbo a`.
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]: Chapter II.2 Proposition 2.5
 -/
@@ -97,20 +96,20 @@ The degree zero part of the localized ring `Aₓ` is the subring of elements of 
 that `a` and `x^n` have the same degree.
 -/
 def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f) :=
-{ carrier := { y | ∃ (n : ℕ) (a : 𝒜 (m * n)), y = mk a.1 ⟨f^n, ⟨n, rfl⟩⟩ },
+{ carrier := { y | ∃ (n : ℕ) (a : 𝒜 (m * n)), y = mk a ⟨f^n, ⟨n, rfl⟩⟩ },
   mul_mem' := λ _ _ ⟨n, ⟨a, h⟩⟩ ⟨n', ⟨b, h'⟩⟩, h.symm ▸ h'.symm ▸
     ⟨n+n', ⟨⟨a.1 * b.1, (mul_add m n n').symm ▸ mul_mem a.2 b.2⟩,
     by {rw mk_mul, congr' 1, simp only [pow_add], refl }⟩⟩,
   one_mem' := ⟨0, ⟨1, (mul_zero m).symm ▸ one_mem⟩,
-    by { symmetry, convert ← mk_self 1, simp only [pow_zero], refl, }⟩,
+    by { symmetry, rw subtype.coe_mk, convert ← mk_self 1, simp only [pow_zero], refl, }⟩,
   add_mem' := λ _ _ ⟨n, ⟨a, h⟩⟩ ⟨n', ⟨b, h'⟩⟩, h.symm ▸ h'.symm ▸
     ⟨n+n', ⟨⟨f ^ n * b.1 + f ^ n' * a.1, (mul_add m n n').symm ▸
-      add_mem (mul_mem (by { rw mul_comm, exact set_like.graded_monoid.pow_mem n f_deg }) b.2)
+      add_mem (mul_mem (by { rw mul_comm, exact set_like.pow_mem_graded n f_deg }) b.2)
         begin
           rw add_comm,
           refine mul_mem _ a.2,
           rw mul_comm,
-          exact set_like.graded_monoid.pow_mem _ f_deg
+          exact set_like.pow_mem_graded _ f_deg
         end⟩, begin
           rw add_mk,
           congr' 1,

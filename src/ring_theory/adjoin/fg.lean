@@ -126,7 +126,7 @@ end
 
 lemma fg_of_fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hf : function.injective f)
   (hs : (S.map f).fg) : S.fg :=
-let ⟨s, hs⟩ := hs in ⟨s.preimage f $ λ _ _ _ _ h, hf h, map_injective f hf $
+let ⟨s, hs⟩ := hs in ⟨s.preimage f $ λ _ _ _ _ h, hf h, map_injective hf $
 by { rw [← algebra.adjoin_image, finset.coe_preimage, set.image_preimage_eq_of_subset, hs],
   rw [← alg_hom.coe_range, ← algebra.adjoin_le_iff, hs, ← algebra.map_top], exact map_mono le_top }⟩
 

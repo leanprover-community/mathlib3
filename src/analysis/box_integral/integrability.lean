@@ -22,7 +22,7 @@ open_locale classical nnreal ennreal topological_space big_operators
 
 universes u v
 
-variables {ι : Type u} {E : Type v} [fintype ι] [normed_group E] [normed_space ℝ E]
+variables {ι : Type u} {E : Type v} [fintype ι] [normed_add_comm_group E] [normed_space ℝ E]
 
 open measure_theory metric set finset filter box_integral
 

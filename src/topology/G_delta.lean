@@ -111,7 +111,7 @@ lemma is_closed.is_Gδ {α} [uniform_space α] [is_countably_generated (𝓤 α)
 begin
   rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -⟩,
   rw [← hs.closure_eq, ← hU.bInter_bUnion_ball],
-  refine is_Gδ_bInter (countable_encodable _) (λ n hn, is_open.is_Gδ _),
+  refine is_Gδ_bInter (to_countable _) (λ n hn, is_open.is_Gδ _),
   exact is_open_bUnion (λ x hx, uniform_space.is_open_ball _ (hUo _).2)
 end
 
@@ -145,7 +145,7 @@ lemma is_Gδ_singleton (a : α) : is_Gδ ({a} : set α) :=
 begin
   rcases (nhds_basis_opens a).exists_antitone_subbasis with ⟨U, hU, h_basis⟩,
   rw [← bInter_basis_nhds h_basis.to_has_basis],
-  exact is_Gδ_bInter (countable_encodable _) (λ n hn, (hU n).2.is_Gδ),
+  exact is_Gδ_bInter (to_countable _) (λ n hn, (hU n).2.is_Gδ),
 end
 
 lemma set.finite.is_Gδ {s : set α} (hs : s.finite) : is_Gδ s :=

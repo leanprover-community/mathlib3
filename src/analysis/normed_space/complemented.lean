@@ -20,8 +20,9 @@ is always a complemented subspace.
 complemented subspace, normed vector space
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] {G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 E F G : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
+  [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F] [normed_add_comm_group G]
+  [normed_space 𝕜 G]
 
 noncomputable theory
 
@@ -75,8 +76,6 @@ namespace subspace
 
 variables [complete_space E] (p q : subspace 𝕜 E)
 
-open continuous_linear_map (subtype_val)
-
 /-- If `q` is a closed complement of a closed subspace `p`, then `p × q` is continuously
 isomorphic to `E`. -/
 def prod_equiv_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
@@ -84,7 +83,7 @@ def prod_equiv_of_closed_compl (h : is_compl p q) (hp : is_closed (p : set E))
 begin
   haveI := hp.complete_space_coe, haveI := hq.complete_space_coe,
   refine (p.prod_equiv_of_is_compl q h).to_continuous_linear_equiv_of_continuous _,
-  exact ((subtype_val p).coprod (subtype_val q)).continuous
+  exact (p.subtypeL.coprod q.subtypeL).continuous
 end
 
 /-- Projection to a closed submodule along a closed complement. -/

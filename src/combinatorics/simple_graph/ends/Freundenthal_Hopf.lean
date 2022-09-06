@@ -37,7 +37,7 @@ variables  {V : Type u}
 
 namespace comp_out
 
-include Gpc
+include Glf Gpc
 lemma nicely_arranged (H K : set V) (Hnempty : H.nonempty) (Knempty : K.nonempty)
   (E E' : G.comp_out H) (Einf : E.inf) (Einf' : E'.inf) (En : E ≠ E')
   (F : G.comp_out K) (Finf : F.inf)
@@ -85,17 +85,15 @@ end comp_out
 
 namespace inf_comp_out
 
-
-
-
+include Glf Gpc
 lemma bwd_map_non_inj (H K : finset V) (C : G.inf_comp_out H)
   (D D' : G.inf_comp_out K)
   (Ddist : D ≠ D')
   (h : (D : set V) ⊆ C) (h' : (D' : set V) ⊆ C) :
   ¬ injective (@inf_comp_out.back _ G _ _ (finset.subset_union_left H K : H ⊆ H ∪ K)) :=
 begin
-  rcases back_surjective (finset.subset_union_right H K) D  with ⟨E,rfl⟩,
-  rcases back_surjective (finset.subset_union_right H K) D' with ⟨E',rfl⟩,
+  rcases inf_comp_out.back_surjective G Glf Gpc (finset.subset_union_right H K) D  with ⟨E,rfl⟩,
+  rcases inf_comp_out.back_surjective G Glf Gpc (finset.subset_union_right H K) D' with ⟨E',rfl⟩,
   have Edist : E ≠ E', by {rintro Eeq, rw Eeq at Ddist,exact Ddist (refl _)},
   have : E.back (finset.subset_union_left H K) = E'.back (finset.subset_union_left H K), by {
     have EsubC : (E : set V) ⊆ C, by {refine  set.subset.trans _ h, apply back_sub,},
@@ -109,7 +107,6 @@ begin
 end
 
 
-include Gpc
 lemma nicely_arranged_bwd_map_not_inj (H K : finset V) (Hnempty : H.nonempty) (Knempty : K.nonempty)
   (E : G.inf_comp_out H) (inf_comp_H_large : fin 3 ↪ (G.inf_comp_out H))
   (F : G.inf_comp_out K)
@@ -130,9 +127,9 @@ begin
   },
   rcases this with ⟨E₁, E₂, h₀₁, h₀₂, h₁₂⟩,
   rw [ne.def,←subtype.coe_inj,←subtype.coe_inj,←ne.def] at h₀₁ h₀₂,
-  apply bwd_map_non_inj G K H F E₁ E₂ h₁₂ _ _,
-  {apply comp_out.nicely_arranged G Gpc H K Hnempty Knempty E E₁ E.prop E₁.prop h₀₁ F F.prop H_F K_E,},
-  {apply comp_out.nicely_arranged G Gpc H K Hnempty Knempty E E₂ E.prop E₂.prop h₀₂ F F.prop H_F K_E,},
+  apply bwd_map_non_inj G Glf Gpc K H F E₁ E₂ h₁₂ _ _,
+  {apply comp_out.nicely_arranged G Glf Gpc H K Hnempty Knempty E E₁ E.prop E₁.prop h₀₁ F F.prop H_F K_E,},
+  {apply comp_out.nicely_arranged G Glf Gpc H K Hnempty Knempty E E₂ E.prop E₂.prop h₀₂ F F.prop H_F K_E,},
 end
 
 end inf_comp_out

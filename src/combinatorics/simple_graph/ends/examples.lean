@@ -283,16 +283,37 @@ variables  {V' : Type v}
            (Glf' : locally_finite G')
 
 
+def _root_.simple_graph.ball (v : V) (m : ℕ) := {u : V | G.dist v u ≤ m}
+
+lemma _root_.simple_graph.balls_zero (Gc : G.connected) (v : V) :
+  G.ball v 0 = {v} := by
+{ unfold ball,
+  simp only [le_zero_iff, connected.dist_eq_zero_iff Gc,set_of_eq_eq_singleton'], }
+
+-- Not the right approach it feels
+lemma _root_.simple_graph.balls_succ (Gc : G.connected) (v : V) (m : ℕ) :
+  G.ball v (m+1) = G.ball v m ∪ (⋃ w ∈ G.ball v m, G.neighbor_set w) := by
+{ unfold ball,
+  ext u, split,
+  { rintro xms,
+    simp at xms,
+    obtain ⟨p,plen⟩ := connected.exists_walk_of_dist Gc v u,
+    cases p,
+    {simp at plen, left, simp, sorry,},
+    {rw walk.length_cons at plen,sorry,},},
+  { rintro xU,sorry},
+}
+
 include Gpc Glf
-lemma simple_graph.finite_balls (v : V) (m : ℕ) : set.finite {u | G.dist v u ≤ m} :=
+lemma simple_graph.finite_balls (v : V) (m : ℕ) : set.finite (G.ball v m) :=
 begin
   have : G.connected, by {rw connected_iff, use Gpc, use ⟨v⟩,},
   induction m,
-  { simp only [le_zero_iff, connected.dist_eq_zero_iff this],
-    simp only [set_of_eq_eq_singleton', finite_singleton],},
-  { have : {u : V | G.dist v u ≤ m_n.succ} = ⋃ w ∈ {u : V | G.dist v u ≤ m_n}, G.neighbor_set w, by
-    { sorry, },
-    rw this,
+  { rw simple_graph.balls_zero G this v, simp only [finite_singleton],  },
+  {
+    rw simple_graph.balls_succ G this v m_n,
+    apply set.finite.union,
+    apply m_ih,
     apply set.finite.bUnion,
     apply m_ih,
     rintro w hw,
@@ -314,7 +335,7 @@ begin
   exact (φψ y),
 end
 
-include Gpc Gpc' Glf Glf'
+include Gpc' Glf'
 lemma qi_invariance (φ : V → V') (ψ : V' → V) (m : ℕ) (mge : m ≥ 1)
   (φψ : ∀ (v : V), G.dist (ψ $ φ v) v ≤ m) (ψφ : ∀ (v : V'), G'.dist (φ $ ψ v) v ≤ m)
   (φl : coarse_Lipschitz G G' φ m) (ψl : coarse_Lipschitz G' G ψ m) :
@@ -322,8 +343,8 @@ lemma qi_invariance (φ : V → V') (ψ : V' → V) (m : ℕ) (mge : m ≥ 1)
 begin
   haveI : locally_finite G := Glf,
   have mmm : m ≤ m*m, by {exact nat.le_mul_self m,},
-  have φcof : cofinite φ := cofinite_of_coarse_Lipschitz_inv G G' φ ψ m mge φψ φl ψl,
-  have ψcof : cofinite ψ := cofinite_of_coarse_Lipschitz_inv G' G ψ φ m mge ψφ ψl φl,
+  have φcof : cofinite φ := cofinite_of_coarse_Lipschitz_inv G Gpc Glf G' φ ψ m mge φψ φl ψl,
+  have ψcof : cofinite ψ := cofinite_of_coarse_Lipschitz_inv G' Gpc' Glf' G ψ φ m mge ψφ ψl φl,
   have φc := coarse.of_coarse_Lipschitz_of_cofinite G G' Gpc' φ m φl φcof,
   have ψc := coarse.of_coarse_Lipschitz_of_cofinite G' G Gpc ψ m ψl ψcof,
   have φψcl : coarse_close G' G' (φ ∘ ψ) id, by

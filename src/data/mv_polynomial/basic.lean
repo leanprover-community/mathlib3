@@ -1110,7 +1110,7 @@ theorem aeval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
   φ = aeval (φ ∘ X) :=
 by { ext i, simp }
 
-@[simp] lemma aeval_X_left : aeval X = alg_hom.id R (mv_polynomial σ R) :=
+lemma aeval_X_left : aeval X = alg_hom.id R (mv_polynomial σ R) :=
 (aeval_unique (alg_hom.id R _)).symm
 
 lemma aeval_X_left_apply (p : mv_polynomial σ R) : aeval X p = p :=

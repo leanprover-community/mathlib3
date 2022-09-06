@@ -3,14 +3,10 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction.basic
-import category_theory.adjunction.comma
 import category_theory.generator
+import category_theory.limits.cone_category
 import category_theory.limits.constructions.weakly_initial
-import category_theory.limits.preserves.basic
-import category_theory.limits.creates
-import category_theory.limits.comma
-import category_theory.punit
+import category_theory.limits.functor_category
 import category_theory.subobject.comma
 
 /-!
@@ -32,6 +28,9 @@ This file also proves the special adjoint functor theorem, in the form:
 * If `G : D ⥤ C` preserves limits and `D` is complete, well-powered and has a small coseparating
   set, then `G` has a left adjoint: `is_right_adjoint_of_preserves_limits_of_is_coseparating`
 
+Finally, we prove the following corollary of the special adjoint functor theorem:
+* If `C` is complete, well-powered and has a small coseparating set, then it is cocomplete:
+  `has_colimits_of_has_limits_of_is_coseparating`
 
 -/
 universes v u u'
@@ -120,5 +119,23 @@ have ∀ A, has_terminal (costructured_arrow F A),
 by exactI is_left_adjoint_of_costructured_arrow_terminals _
 
 end special_adjoint_functor_theorem
+
+namespace limits
+
+/-- A consequence of the special adjoint functor theorem: if `C` is complete, well-powered and
+    has a small coseparating set, then it is cocomplete. -/
+lemma has_colimits_of_has_limits_of_is_coseparating [has_limits C] [well_powered C]
+  {𝒢 : set C} [small.{v} 𝒢] (h𝒢 : is_coseparating 𝒢) : has_colimits C :=
+{ has_colimits_of_shape := λ J hJ, by exactI has_colimits_of_shape_iff_is_right_adjoint_const.2
+    ⟨is_right_adjoint_of_preserves_limits_of_is_coseparating h𝒢 _⟩ }
+
+/-- A consequence of the special adjoint functor theorem: if `C` is cocomplete, well-copowered and
+    has a small separating set, then it is complete. -/
+lemma has_limits_of_has_colimits_of_is_separating [has_colimits C] [well_powered Cᵒᵖ]
+  {𝒢 : set C} [small.{v} 𝒢] (h𝒢 : is_separating 𝒢) : has_limits C :=
+{ has_limits_of_shape := λ J hJ, by exactI has_limits_of_shape_iff_is_left_adjoint_const.2
+    ⟨is_left_adjoint_of_preserves_colimits_of_is_separatig h𝒢 _⟩ }
+
+end limits
 
 end category_theory

@@ -212,4 +212,35 @@ end
 
 end equalizer
 
+section pullback
+
+/--
+In the category of `CommRing`, the pullback of `f : A ⟶ C` and `g : B ⟶ C` is the `eq_locus` of
+the two maps `A × B ⟶ C`. This is the constructed pullback cone.
+-/
+def pullback_cone {A B C : CommRing.{u}} (f : A ⟶ C) (g : B ⟶ C) : pullback_cone f g :=
+pullback_cone.mk
+  (CommRing.of_hom $ (ring_hom.fst A B).comp
+    (ring_hom.eq_locus (f.comp (ring_hom.fst A B)) (g.comp (ring_hom.snd A B))).subtype)
+  (CommRing.of_hom $ (ring_hom.snd A B).comp
+    (ring_hom.eq_locus (f.comp (ring_hom.fst A B)) (g.comp (ring_hom.snd A B))).subtype)
+  (by { ext ⟨x, e⟩, simpa [CommRing.of_hom] using e })
+
+/-- The constructed pullback cone is indeed the limit. -/
+def pullback_cone_is_limit {A B C : CommRing.{u}} (f : A ⟶ C) (g : B ⟶ C) :
+  is_limit (pullback_cone f g) :=
+begin
+  fapply pullback_cone.is_limit.mk,
+  { intro s,
+    apply (s.fst.prod s.snd).cod_restrict,
+    intro x, exact congr_arg (λ f : s.X →+* C, f x) s.condition },
+  { intro s, ext x, refl },
+  { intro s, ext x, refl },
+  { intros s m e₁ e₂, ext,
+    { exact (congr_arg (λ f : s.X →+* A, f x) e₁ : _) },
+    { exact (congr_arg (λ f : s.X →+* B, f x) e₂ : _) } }
+end
+
+end pullback
+
 end CommRing

@@ -1212,6 +1212,12 @@ Intuitively, the stopped process stops evolving once the stopping time has occur
 def stopped_process (u : ι → Ω → β) (τ : Ω → ι) : ι → Ω → β :=
 λ i ω, u (min i (τ ω)) ω
 
+lemma stopped_process_eq_stopped_value {u : ι → Ω → β} {τ : Ω → ι} :
+  stopped_process u τ = λ i, stopped_value u (λ ω, min i (τ ω)) := rfl
+
+lemma stopped_value_stopped_process {u : ι → Ω → β} {τ σ : Ω → ι} :
+  stopped_value (stopped_process u τ) σ = stopped_value u (λ ω, min (σ ω) (τ ω)) := rfl
+
 lemma stopped_process_eq_of_le {u : ι → Ω → β} {τ : Ω → ι}
   {i : ι} {ω : Ω} (h : i ≤ τ ω) : stopped_process u τ i ω = u i ω :=
 by simp [stopped_process, min_eq_left h]

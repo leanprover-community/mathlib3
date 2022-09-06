@@ -236,6 +236,17 @@ instance : has_continuous_star ℂ := ⟨conj_lie.continuous⟩
 
 @[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := continuous_star
 
+/-- The only continuous ring homomorphisms from `ℂ` to `ℂ` are the identity and the complex
+conjugation. -/
+lemma ring_hom_eq_id_or_conj_of_continuous {f : ℂ →+* ℂ} (hf : continuous f) :
+  f = ring_hom.id ℂ ∨ f = conj :=
+begin
+  refine (real_alg_hom_eq_id_or_conj $ alg_hom.mk' f $ λ x z, congr_fun _ x).imp (λ h, _) (λ h, _),
+  { refine rat.dense_embedding_coe_real.dense.equalizer (by continuity) (by continuity) _,
+    ext1, simp only [real_smul, function.comp_app, map_rat_cast, of_real_rat_cast, map_mul], },
+  all_goals { convert congr_arg alg_hom.to_ring_hom h, ext1, refl, },
+end
+
 /-- Continuous linear equiv version of the conj function, from `ℂ` to `ℂ`. -/
 def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie
 

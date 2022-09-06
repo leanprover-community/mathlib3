@@ -110,10 +110,10 @@ class H_space (X : Type u) [topological_space X] :=
 (Hmul : C(X × X, X))
 (e : X)
 (Hmul_e_e : Hmul (e, e) = e)
-(left_Hmul_e : (continuous_map.id X).homotopy_rel
-  (Hmul.comp $ (const X e).prod_mk $ continuous_map.id X) {e})
-(right_Hmul_e : (continuous_map.id X).homotopy_rel
-  (Hmul.comp $ (continuous_map.id X).prod_mk $ const X e) {e})
+(left_Hmul_e : (Hmul.comp $ (const X e).prod_mk $ continuous_map.id X).homotopy_rel
+  (continuous_map.id X) {e})
+(right_Hmul_e : (Hmul.comp $ (continuous_map.id X).prod_mk $ const X e).homotopy_rel
+  (continuous_map.id X) {e})
 
 @[reducible] def H_space.Hmul' (X : Type u) [topological_space X] [H_space X] (x y : X) :=
 H_space.Hmul (x, y)
@@ -128,8 +128,8 @@ section topological_group_H_space
 { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
   e := 1,
   Hmul_e_e := one_mul 1,
-  left_Hmul_e := (homotopy_rel.refl _ _).cast (by {ext1, apply one_mul}) rfl,
-  right_Hmul_e := (homotopy_rel.refl _ _).cast (by {ext1, apply mul_one}) rfl }
+  left_Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply one_mul}),
+  right_Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply mul_one}) }
 
 lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl
@@ -208,7 +208,7 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
   e := refl x,
   Hmul_e_e := refl_trans_refl,
   left_Hmul_e := sorry,
-  right_Hmul_e := homotopy_rel.symm
+  right_Hmul_e :=
   { to_homotopy := ⟨⟨λ p, delayed_refl_right p.1 p.2, continuous_delayed_refl_right⟩,
       delayed_refl_right_zero, delayed_refl_right_one⟩,
     prop' := begin

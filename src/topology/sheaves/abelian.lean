@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang
+Authors: Adam Topaz, Jujian Zhang
 -/
 import category_theory.abelian.functor_category
 import category_theory.preadditive.functor_category

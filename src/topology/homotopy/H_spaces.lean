@@ -201,8 +201,6 @@ end
 lemma delayed_refl_right_one (γ : path x y) : delayed_refl_right 1 γ = γ :=
 by { ext t, exact congr_arg γ (Q_right_one_right t) }
 
-lemma delayed_refl_right_e (θ : I) : delayed_refl_right θ (refl x) = refl x := rfl
-
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := ⟨λ ρ, ρ.1.trans ρ.2, continuous_trans⟩,
   e := refl x,
@@ -211,11 +209,7 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
   right_Hmul_e :=
   { to_homotopy := ⟨⟨λ p, delayed_refl_right p.1 p.2, continuous_delayed_refl_right⟩,
       delayed_refl_right_zero, delayed_refl_right_one⟩,
-    prop' := begin
-      rintros t _ (rfl : _ = _),
-      simp only [continuous_map.coe_mk, delayed_refl_right_e],
-      exact ⟨refl_trans_refl.symm, rfl⟩,
-    end } }
+    prop' := by { rintros t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } }
 
 end path_space_H_space
 

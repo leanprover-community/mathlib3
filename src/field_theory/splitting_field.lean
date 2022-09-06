@@ -143,6 +143,55 @@ end
 
 lemma splits_X_pow (n : ℕ) : (X ^ n).splits i := splits_pow i (splits_X i) n
 
+theorem splits_id_iff_splits {f : K[X]} :
+  (f.map i).splits (ring_hom.id L) ↔ f.splits i :=
+by rw [splits_map_iff, ring_hom.id_comp]
+
+lemma exists_root_of_splits' {f : K[X]} (hs : splits i f) (hf0 : degree (f.map i) ≠ 0) :
+  ∃ x, eval₂ i x f = 0 :=
+if hf0' : f.map i = 0 then by simp [eval₂_eq_eval_map, hf0']
+else
+  let ⟨g, hg⟩ := wf_dvd_monoid.exists_irreducible_factor
+    (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 hf0) hf0' in
+  let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.resolve_left hf0' hg.1 hg.2) in
+  let ⟨i, hi⟩ := hg.2 in
+  ⟨x, by rw [← eval_map, hi, eval_mul, show _ = _, from hx, zero_mul]⟩
+
+lemma roots_ne_zero_of_splits' {f : K[X]} (hs : splits i f) (hf0 : nat_degree (f.map i) ≠ 0) :
+  (f.map i).roots ≠ 0 :=
+let ⟨x, hx⟩ := exists_root_of_splits' i hs (λ h, hf0 $ nat_degree_eq_of_degree_eq_some h) in
+λ h, by { rw ← eval_map at hx,
+  cases h.subst ((mem_roots _).2 hx), exact ne_zero_of_nat_degree_gt (nat.pos_of_ne_zero hf0) }
+
+/-- Pick a root of a polynomial that splits. -/
+def root_of_splits' {f : K[X]} (hf : f.splits i) (hfd : (f.map i).degree ≠ 0) : L :=
+classical.some $ exists_root_of_splits' i hf hfd
+
+theorem map_root_of_splits' {f : K[X]} (hf : f.splits i) (hfd) :
+  f.eval₂ i (root_of_splits' i hf hfd) = 0 :=
+classical.some_spec $ exists_root_of_splits' i hf hfd
+
+lemma nat_degree_eq_card_roots' {p : K[X]} {i : K →+* L}
+  (hsplit : splits i p) : (p.map i).nat_degree = (p.map i).roots.card :=
+begin
+  by_cases hp : p.map i = 0,
+  { rw [hp, nat_degree_zero, roots_zero, multiset.card_zero] },
+  obtain ⟨q, he, hd, hr⟩ := exists_prod_multiset_X_sub_C_mul (p.map i),
+  rw [← splits_id_iff_splits, ← he] at hsplit,
+  rw ← he at hp,
+  have hq : q ≠ 0 := λ h, hp (by rw [h, mul_zero]),
+  rw [← hd, add_right_eq_self],
+  by_contra,
+  have h' : (map (ring_hom.id L) q).nat_degree ≠ 0, { simp [h], },
+  have := roots_ne_zero_of_splits' (ring_hom.id L) (splits_of_splits_mul' _ _ hsplit).2 h',
+  { rw map_id at this, exact this hr },
+  { rw [map_id], exact mul_ne_zero monic_prod_multiset_X_sub_C.ne_zero hq },
+end
+
+lemma degree_eq_card_roots' {p : K[X]} {i : K →+* L} (p_ne_zero : p.map i ≠ 0)
+  (hsplit : splits i p) : (p.map i).degree = (p.map i).roots.card :=
+by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots' hsplit]
+
 end comm_ring
 
 variables [field K] [field L] [field F]
@@ -172,10 +221,6 @@ lemma splits_of_splits_gcd_right {f g : K[X]} (hg0 : g ≠ 0) (hg : splits i g) 
   splits i (euclidean_domain.gcd f g) :=
 polynomial.splits_of_splits_of_dvd i hg0 hg (euclidean_domain.gcd_dvd_right f g)
 
-theorem splits_id_iff_splits {f : K[X]} :
-  (f.map i).splits (ring_hom.id L) ↔ f.splits i :=
-by rw [splits_map_iff, ring_hom.id_comp]
-
 theorem splits_mul_iff {f g : K[X]} (hf : f ≠ 0) (hg : g ≠ 0) :
   (f * g).splits i ↔ f.splits i ∧ g.splits i :=
 ⟨splits_of_splits_mul i (mul_ne_zero hf hg), λ ⟨hfs, hgs⟩, splits_mul i hfs hgs⟩
@@ -199,20 +244,11 @@ end
 
 lemma exists_root_of_splits {f : K[X]} (hs : splits i f) (hf0 : degree f ≠ 0) :
   ∃ x, eval₂ i x f = 0 :=
-if hf0 : f = 0 then by simp [hf0]
-else
-  let ⟨g, hg⟩ := wf_dvd_monoid.exists_irreducible_factor
-    (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
-    (map_ne_zero hf0) in
-  let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.def.resolve_left hf0 hg.1 hg.2) in
-  let ⟨i, hi⟩ := hg.2 in
-  ⟨x, by rw [← eval_map, hi, eval_mul, show _ = _, from hx, zero_mul]⟩
+exists_root_of_splits' i hs (ne_of_eq_of_ne (degree_map f i) hf0)
 
 lemma roots_ne_zero_of_splits {f : K[X]} (hs : splits i f) (hf0 : nat_degree f ≠ 0) :
   (f.map i).roots ≠ 0 :=
-let ⟨x, hx⟩ := exists_root_of_splits i hs (λ h, hf0 $ nat_degree_eq_of_degree_eq_some h) in
-λ h, by { rw ← eval_map at hx,
-  cases h.subst ((mem_roots _).2 hx), exact map_ne_zero (λ h, (h.subst hf0) rfl) }
+roots_ne_zero_of_splits' i hs (ne_of_eq_of_ne (nat_degree_map i) hf0)
 
 /-- Pick a root of a polynomial that splits. -/
 def root_of_splits {f : K[X]} (hf : f.splits i) (hfd : f.degree ≠ 0) : L :=
@@ -224,19 +260,7 @@ classical.some_spec $ exists_root_of_splits i hf hfd
 
 lemma nat_degree_eq_card_roots {p : K[X]} {i : K →+* L}
   (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
-begin
-  by_cases hp : p = 0,
-  { rw [hp, nat_degree_zero, polynomial.map_zero, roots_zero, multiset.card_zero] },
-  obtain ⟨q, he, hd, hr⟩ := exists_prod_multiset_X_sub_C_mul (p.map i),
-  rw [← splits_id_iff_splits, ← he] at hsplit,
-  have hpm : p.map i ≠ 0 := map_ne_zero hp, rw ← he at hpm,
-  have hq : q ≠ 0 := λ h, hpm (by rw [h, mul_zero]),
-  rw [← nat_degree_map i, ← hd, add_right_eq_self],
-  by_contra,
-  have := roots_ne_zero_of_splits (ring_hom.id L) (splits_of_splits_mul _ _ hsplit).2 h,
-  { rw map_id at this, exact this hr },
-  { exact mul_ne_zero monic_prod_multiset_X_sub_C.ne_zero hq },
-end
+(nat_degree_map i).symm.trans $ nat_degree_eq_card_roots' hsplit
 
 lemma degree_eq_card_roots {p : K[X]} {i : K →+* L} (p_ne_zero : p ≠ 0)
   (hsplit : splits i p) : p.degree = (p.map i).roots.card :=

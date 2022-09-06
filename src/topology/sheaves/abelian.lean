@@ -4,16 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import category_theory.abelian.functor_category
+import category_theory.preadditive.functor_category
 import category_theory.abelian.transfer
 import category_theory.sites.left_exact
 
 /-!
 # Category of sheaves is abelian
 Let `C, D` be categories and `J` be a grothendieck topology on `C`, when `D` is abelian and
-sheafification is possible in `C`, `Sheaf J D` is abelian as well.
+sheafification is possible in `C`, `Sheaf J D` is abelian as well. Hence, `presheaf_to_Sheaf` is an
+additive functor.
 
 -/
-
 
 noncomputable theory
 
@@ -44,6 +45,12 @@ variables [reflects_isomorphisms (forget D)]
 
 instance [has_finite_limits D] : abelian (Sheaf J D) :=
 let adj := (sheafification_adjunction J D) in abelian_of_adjunction _ _ (as_iso adj.counit) $ adj
+
+instance : preserves_binary_biproducts (presheaf_to_Sheaf J D) :=
+{ preserves := λ F G, preserves_binary_biproduct_of_preserves_binary_product _ }
+
+instance presheaf_to_Sheaf_additive : (presheaf_to_Sheaf J D).additive :=
+(presheaf_to_Sheaf J D).additive_of_preserves_binary_biproducts
 
 end abelian
 

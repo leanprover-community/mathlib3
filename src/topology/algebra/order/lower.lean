@@ -79,8 +79,8 @@ lemma singleton_closure (a : α) : closure {a} = Ici a :=
 begin
   rw subset_antisymm_iff,
   split,
-  { sorry },
-  { sorry }
+  { apply closure_minimal _ (ici_is_closed a), rw [singleton_subset_iff, mem_Ici], },
+  { sorry}
 end
 
 end lower_topology

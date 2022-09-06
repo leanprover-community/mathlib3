@@ -121,10 +121,10 @@ theorem splits_of_is_unit [is_domain K] {u : K[X]} (hu : is_unit u) : u.splits i
 (is_unit_iff.mp hu).some_spec.2 ▸ splits_C _ _
 
 theorem splits_X_sub_C {x : K} : (X - C x).splits i :=
-splits_of_degree_le_one _ $ degree_X_sub_C_le
+splits_of_degree_le_one _ degree_X_sub_C_le
 
 theorem splits_X : X.splits i :=
-splits_of_degree_le_one _ $ degree_X_le
+splits_of_degree_le_one _ degree_X_le
 
 theorem splits_prod {ι : Type u} {s : ι → K[X]} {t : finset ι} :
   (∀ j ∈ t, (s j).splits i) → (∏ x in t, s x).splits i :=

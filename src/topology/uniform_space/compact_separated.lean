@@ -45,7 +45,7 @@ begin
   symmetry, refine le_antisymm supr_nhds_le_uniformity _,
   by_contra H,
   obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 Vᶜ ≠ ⊥,
-  { simpa [le_iff_forall_inf_principal_compl] using H },
+  { simpa only [le_iff_forall_inf_principal_compl, mem_supr, not_forall, exists_prop] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
   haveI : ne_bot F := ⟨h⟩,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=

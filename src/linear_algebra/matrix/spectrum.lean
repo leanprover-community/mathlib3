@@ -56,7 +56,7 @@ lemma eigenvector_matrix_mul_inv :
 by apply basis.to_matrix_mul_to_matrix_flip
 
 noncomputable instance : invertible hA.eigenvector_matrix_inv :=
-  invertible_of_left_inverse _ _ hA.eigenvector_matrix_mul_inv
+invertible_of_left_inverse _ _ hA.eigenvector_matrix_mul_inv
 
 noncomputable instance : invertible hA.eigenvector_matrix :=
 invertible_of_right_inverse _ _ hA.eigenvector_matrix_mul_inv

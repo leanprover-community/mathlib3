@@ -47,10 +47,7 @@ variables [reflects_isomorphisms (forget D)]
 instance Sheaf_is_abelian [has_finite_limits D] : abelian (Sheaf J D) :=
 let adj := (sheafification_adjunction J D) in abelian_of_adjunction _ _ (as_iso adj.counit) $ adj
 
--- `preserves_binary_biproduct_of_preserves_binary_product` is marked as a `def`, so this need to be
--- specified manually.
-instance : preserves_binary_biproducts (presheaf_to_Sheaf J D) :=
-{ preserves := λ F G, preserves_binary_biproduct_of_preserves_binary_product _ }
+local attribute [instance] preserves_binary_biproducts_of_preserves_binary_products
 
 instance presheaf_to_Sheaf_additive : (presheaf_to_Sheaf J D).additive :=
 (presheaf_to_Sheaf J D).additive_of_preserves_binary_biproducts

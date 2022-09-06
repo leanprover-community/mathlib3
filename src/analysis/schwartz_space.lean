@@ -192,7 +192,7 @@ begin
   exact mul_le_mul_of_nonneg_left (f.le_seminorm_aux k n x) (norm_nonneg _),
 end
 
-instance has_smul_nat : has_smul ℕ 𝓢(E, F) :=
+instance has_nsmul : has_smul ℕ 𝓢(E, F) :=
 ⟨λ c f, { to_fun := c • f,
   smooth' := (f.smooth _).const_smul c,
   decay' := begin
@@ -202,7 +202,7 @@ instance has_smul_nat : has_smul ℕ 𝓢(E, F) :=
     exact ((c : ℝ) • f).decay',
   end}⟩
 
-instance has_smul_int : has_smul ℤ 𝓢(E, F) :=
+instance has_zsmul : has_smul ℤ 𝓢(E, F) :=
 ⟨λ c f, { to_fun := c • f,
   smooth' := (f.smooth _).const_smul c,
   decay' := begin

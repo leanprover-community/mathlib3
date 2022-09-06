@@ -104,13 +104,18 @@ lemma legendre_sym.to_jacobi_sym {p : ℕ} [fp : fact p.prime] {a : ℤ} :
 by simp only [jacobi_sym, factors_prime fp.1, list.prod_cons, list.prod_nil, mul_one, list.pmap]
 
 /-- The Jacobi symbol is multiplicative in its second argument. -/
-lemma jacobi_sym_mul_right (a : ℤ) (b₁ b₂ : ℕ) [ne_zero b₁] [ne_zero b₂] :
+lemma jacobi_sym_mul_right' (a : ℤ) {b₁ b₂ : ℕ} (hb₁ : b₁ ≠ 0) (hb₂ : b₂ ≠ 0) :
   [a | b₁ * b₂]ⱼ = [a | b₁]ⱼ * [a | b₂]ⱼ :=
 begin
-  rw [jacobi_sym, ((perm_factors_mul (ne_zero.ne b₁) (ne_zero.ne b₂)).pmap _).prod_eq,
+  rw [jacobi_sym, ((perm_factors_mul hb₁ hb₂).pmap _).prod_eq,
       list.pmap_append, list.prod_append],
   exacts [rfl, λ p hp, (list.mem_append.mp hp).elim prime_of_mem_factors prime_of_mem_factors],
 end
+
+/-- The Jacobi symbol is multiplicative in its second argument. -/
+lemma jacobi_sym_mul_right (a : ℤ) (b₁ b₂ : ℕ) [ne_zero b₁] [ne_zero b₂] :
+  [a | b₁ * b₂]ⱼ = [a | b₁]ⱼ * [a | b₂]ⱼ :=
+jacobi_sym_mul_right' a (ne_zero.ne b₁) (ne_zero.ne b₂)
 
 /-- The Jacobi symbol takes only the values `0`, `1` and `-1`. -/
 lemma jacobi_sym_trichotomy (a : ℤ) (b : ℕ) : [a | b]ⱼ = 0 ∨ [a | b]ⱼ = 1 ∨ [a | b]ⱼ = -1 :=

@@ -15,8 +15,7 @@ open_locale unit_interval
 
 namespace unit_interval
 
-/- first simplify the most advanced proofs, then check
-  whether these preliminary lemmas are still necessary. -/
+/- This one is not used. Also the names of these two lemmas are obscure. -/
 @[simp] lemma univ_eq_ge_zero {θ : ℝ} (h : θ ≤ 0): {s : I | θ ≤ (s : ℝ)} = set.univ :=
 set.eq_univ_iff_forall.2 $ λ _, h.trans (nonneg _)
 

@@ -75,12 +75,29 @@ begin
   use b,
 end
 
+open classical
+
 lemma singleton_closure (a : α) : closure {a} = Ici a :=
 begin
   rw subset_antisymm_iff,
   split,
   { apply closure_minimal _ (ici_is_closed a), rw [singleton_subset_iff, mem_Ici], },
-  { sorry}
+  { unfold closure,
+    refine subset_sInter _,
+    intro u,
+    intro h,
+    rw mem_set_of_eq at h,
+    intro b,
+    intro hb,
+    rw mem_Ici at hb,
+    rw singleton_subset_iff at h,
+    rw ← is_open_compl_iff at h,
+    by_contradiction H,
+    rw ← mem_compl_iff at H,
+    have h1: a ∈ uᶜ, from lower_open_is_lower h.left hb H,
+    rw mem_compl_iff at h1,
+    rw ← not_not_mem at h,
+    apply absurd h1 h.right, },
 end
 
 end lower_topology

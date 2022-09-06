@@ -1674,7 +1674,9 @@ begin
   { cases n,
     { exfalso,
       exact not_lt_zero' a.is_lt, },
-    { rw [fin.pred_above_below a b h₂, fin.pred_above_below a.succ b.succ (by tidy)],
+    { rw [fin.pred_above_below a b h₂, fin.pred_above_below a.succ b.succ
+        (by simpa only [le_iff_coe_le_coe, coe_succ, coe_cast_succ,
+          add_le_add_iff_right] using h₂)],
       ext,
       have h₀ : (b : ℕ) < n+1,
       { simp only [le_iff_coe_le_coe, coe_cast_succ] at h₂,

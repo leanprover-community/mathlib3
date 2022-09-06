@@ -87,7 +87,7 @@ lemma lift_le {f : filter α} {g : set α → filter β} {h : filter β} {s : se
 infi₂_le_of_le s hs hg
 
 lemma le_lift {f : filter α} {g : set α → filter β} {h : filter β} :
-  h ≤ f.lift g ↔ ∀s∈f, h ≤ g s :=
+  h ≤ f.lift g ↔ ∀ s ∈ f, h ≤ g s :=
 le_infi₂_iff
 
 lemma lift_mono (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : f₁.lift g₁ ≤ f₂.lift g₂ :=
@@ -298,12 +298,10 @@ lemma lift'_bot (hh : monotone h) : (⊥ : filter α).lift' h = 𝓟 (h ∅) :=
 by rw [← principal_empty, lift'_principal hh]
 
 lemma le_lift' {f : filter α} {h : set α → set β} {g : filter β} :
-  g ≤ f.lift' h ↔ ∀s∈f, h s ∈ g :=
+  g ≤ f.lift' h ↔ ∀ s ∈ f, h s ∈ g :=
 le_lift.trans $ forall₂_congr $ λ s hs, le_principal_iff
 
-lemma principal_le_lift' {t : set β} (hh : ∀ s ∈ f, t ⊆ h s) :
-  𝓟 t ≤ f.lift' h :=
-le_lift'.2 hh
+lemma principal_le_lift' {t : set β} : 𝓟 t ≤ f.lift' h ↔ ∀ s ∈ f, t ⊆ h s := le_lift'
 
 theorem monotone_lift' [preorder γ] {f : γ → filter α} {g : γ → set α → set β}
   (hf : monotone f) (hg : monotone g) : monotone (λc, (f c).lift' (g c)) :=

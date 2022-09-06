@@ -700,7 +700,7 @@ begin
   exact this.mem_nhds (show (0 : E) ∈ p.ball 0 ε, by simp [hε]),
 end
 
-lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
+protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
   [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
   uniform_continuous p :=
 begin
@@ -711,7 +711,7 @@ begin
     (hp.comp filter.tendsto_comap) (λ xy, dist_nonneg) (λ xy, p.norm_sub_le _ _)
 end
 
-lemma continuous_of_continuous_at_zero [topological_space E] [topological_add_group E]
+protected lemma continuous_of_continuous_at_zero [topological_space E] [topological_add_group E]
   [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
   continuous p :=
 begin
@@ -723,12 +723,12 @@ end
 protected lemma uniform_continuous [uniform_space E] [uniform_add_group E]
   [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
   uniform_continuous p :=
-uniform_continuous_of_continuous_at_zero (continuous_at_zero hp)
+seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero hp)
 
 protected lemma continuous [topological_space E] [topological_add_group E]
   [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
   continuous p :=
-continuous_of_continuous_at_zero (continuous_at_zero hp)
+seminorm.continuous_of_continuous_at_zero (continuous_at_zero hp)
 
 end continuity
 

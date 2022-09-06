@@ -41,15 +41,11 @@ begin
   rwa hx,
 end
 
-/-- A function ` f : ℍ → ℂ` is bounded at infinity if there exist real numbers `M, A` such that
-for all `z ∈ ℍ` with `im z ≥ A` we have `abs(f (z)) ≤ M`,
- i.e. the function is bounded as you approach `i∞`. -/
+/-- A function ` f : ℍ → α` is bounded at infinity if it is bounded along `at_im_infty`. -/
 def is_bounded_at_im_infty {α : Type*} [has_norm α] [has_one (ℍ → α)] (f : ℍ → α) : Prop :=
 bounded_at_filter at_im_infty f
 
-/-- A function ` f : ℍ → ℂ` is zero at infinity if for any `ε > 0` there exist a real
-number `A` such that for all `z ∈ ℍ` with `im z ≥ A` we have `abs(f (z)) ≤ ε`,
- i.e. the function tends to zero as you approach `i∞`. -/
+/-- A function ` f : ℍ → α` is zero at infinity it is zero along `at_im_infty`. -/
 def is_zero_at_im_infty {α : Type*} [has_zero α] [topological_space α] (f : ℍ → α) : Prop :=
 zero_at_filter at_im_infty f
 

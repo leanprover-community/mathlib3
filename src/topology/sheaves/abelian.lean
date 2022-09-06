@@ -1,6 +1,19 @@
+/-
+Copyright (c) 2022 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
 import category_theory.sites.left_exact
+
+/-!
+# Category of sheaves is abelian
+Let `C, D` be categories and `J` be a grothendieck topology on `C`, when `D` is abelian and
+sheafification is possible in `C`, `Sheaf J D` is abelian as well.
+
+-/
+
 
 noncomputable theory
 

@@ -7,7 +7,6 @@ import data.real.pointwise
 import data.real.sqrt
 import topology.algebra.filter_basis
 import topology.algebra.module.locally_convex
-import data.complex.is_R_or_C
 
 /-!
 # Seminorms
@@ -283,6 +282,12 @@ calc p y = p (x - (x - y)) : by rw sub_sub_cancel
 
 /-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
 lemma le_insert' (x y : E) : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
+
+lemma norm_sub_le (x y : E) : ∥p x - p y∥ ≤ p (x - y) :=
+begin
+  rw [real.norm_eq_abs, abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
+  exact ⟨p.le_insert' _ _, p.le_insert _ _⟩
+end
 
 end
 
@@ -670,6 +675,62 @@ rfl
 rfl
 
 end restrict_scalars
+
+/-! ### Continuity criterions for seminorms -/
+
+section continuity
+
+variables [semi_normed_ring 𝕜] [normed_algebra ℝ 𝕜] [norm_one_class 𝕜] [add_comm_group E]
+  [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+
+lemma continuous_at_zero [topological_space E] [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E}
+  (hp : is_open $ p.ball 0 1) :
+  continuous_at p 0 :=
+begin
+  change continuous_at (p.restrict_scalars ℝ) 0,
+  rw ← p.restrict_scalars_ball ℝ at hp,
+  refine metric.nhds_basis_ball.tendsto_right_iff.mpr _,
+  intros ε hε,
+  rw map_zero,
+  suffices : (p.restrict_scalars ℝ).ball 0 ε ∈ (𝓝 0 : filter E),
+  { rwa seminorm.ball_zero_eq_preimage_ball at this },
+  have := hp.smul₀ hε.ne.symm,
+  rw [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
+      real.norm_of_nonneg hε.le, mul_one] at this,
+  exact this.mem_nhds (show (0 : E) ∈ p.ball 0 ε, by simp [hε]),
+end
+
+lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
+  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
+  uniform_continuous p :=
+begin
+  have hp : filter.tendsto p (𝓝 0) (𝓝 0) := p.map_zero ▸ hp,
+  rw [uniform_continuous, uniformity_eq_comap_nhds_zero_swapped,
+      metric.uniformity_eq_comap_nhds_zero, filter.tendsto_comap_iff],
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (hp.comp filter.tendsto_comap) (λ xy, dist_nonneg) (λ xy, p.norm_sub_le _ _)
+end
+
+lemma continuous_of_continuous_at_zero [topological_space E] [topological_add_group E]
+  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
+  continuous p :=
+begin
+  letI := topological_add_group.to_uniform_space E,
+  haveI : uniform_add_group E := topological_add_comm_group_is_uniform,
+  exact (seminorm.uniform_continuous_of_continuous_at_zero hp).continuous
+end
+
+protected lemma uniform_continuous [uniform_space E] [uniform_add_group E]
+  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
+  uniform_continuous p :=
+uniform_continuous_of_continuous_at_zero (continuous_at_zero hp)
+
+protected lemma continuous [topological_space E] [topological_add_group E]
+  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
+  continuous p :=
+continuous_of_continuous_at_zero (continuous_at_zero hp)
+
+end continuity
 
 end seminorm
 

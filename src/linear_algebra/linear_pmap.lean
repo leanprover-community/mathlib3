@@ -364,6 +364,9 @@ instance : has_vadd (E →ₗ[R] F) (E →ₗ.[R] F) :=
 @[simp] lemma vadd_apply (f : E →ₗ[R] F) (g : E →ₗ.[R] F) (x : (f +ᵥ g).domain) :
   (f +ᵥ g) x = f x + g x := rfl
 
+lemma coe_vadd (f : E →ₗ[R] F) (g : E →ₗ.[R] F) :
+  ⇑(f +ᵥ g) = f.comp g.domain.subtype + g := rfl
+
 instance : add_action (E →ₗ[R] F) (E →ₗ.[R] F) :=
 { vadd := (+ᵥ),
   zero_vadd := λ f,

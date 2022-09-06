@@ -2324,51 +2324,9 @@ lemma submodule.orthogonal_family_self :
 
 end orthogonal
 
-.
-
 namespace uniform_space.completion
 
 open uniform_space function
-
--- move me
-def _root_.innerₗ [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [has_continuous_const_smul ℝ E] :
-  E →ₗ[ℝ] E →ₗ[ℝ] 𝕜 :=
-{ to_fun := λ x,
-  { to_fun := inner x,
-    map_add' := λ a b, inner_add_right,
-    map_smul' := λ c a, by rw [real_smul_eq_coe_smul c _];
-      [exact inner_smul_real_right, apply_instance] },
-  map_add' := λ a b, by ext; exact inner_add_left,
-  map_smul' := λ c a, by ext; rw [real_smul_eq_coe_smul c _];
-    [exact inner_smul_real_left, apply_instance] }
-
--- move me
-def _root_.innerL [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [has_continuous_const_smul ℝ E] :
-  E →L[ℝ] E →L[ℝ] 𝕜 :=
-linear_map.mk_continuous₂ innerₗ 1
-(λ x y, by change ∥inner x y∥ ≤ _; simp only [norm_inner_le_norm, one_mul])
-
-namespace old
-
---instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
---  has_inner 𝕜' (completion E') :=
---{ inner := dense_inducing_coe.extend (λ x, dense_inducing_coe.extend (inner x)) }
---
---@[simp] lemma coe_inner (a b : E) :
---  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
---begin
---  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
---  calc inner (a : completion E) (b : completion E)
---      = dense_inducing_coe.extend (inner a) b :
---        begin
---          refine congr_fun (dense_inducing_coe.extend_eq _ _) (b : completion E),
---          sorry
---        end
---  ... = inner a b : dense_inducing_coe.extend_eq _ _,
---  sorry
---end
-
-end old
 
 instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
   has_inner 𝕜' (completion E') :=

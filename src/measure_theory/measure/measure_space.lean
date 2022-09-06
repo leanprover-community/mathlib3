@@ -1983,6 +1983,29 @@ le_antisymm (ae_sum_eq (λ i, μ.restrict (s i)) ▸ ae_mono restrict_Union_le) 
   (μ.restrict (s ∪ t)).ae = (μ.restrict s).ae ⊔ (μ.restrict t).ae :=
 by simp [union_eq_Union, supr_bool_eq]
 
+lemma ae_restrict_bUnion_eq (s : ι → set α) {t : set ι} (ht : t.countable) :
+  (μ.restrict (⋃ i ∈ t, s i)).ae = ⨆ i ∈ t, (μ.restrict (s i)).ae :=
+begin
+  haveI := ht.to_subtype,
+  rw [bUnion_eq_Union, ae_restrict_Union_eq, ← supr_subtype''],
+end
+
+lemma ae_restrict_bUnion_finset_eq (s : ι → set α) (t : finset ι) :
+  (μ.restrict (⋃ i ∈ t, s i)).ae = ⨆ i ∈ t, (μ.restrict (s i)).ae :=
+ae_restrict_bUnion_eq s t.countable_to_set
+
+lemma ae_eq_restrict_Union_iff [countable ι] (s : ι → set α) (f g : α → δ) :
+  f =ᵐ[μ.restrict (⋃ i, s i)] g ↔ ∀ i, f =ᵐ[μ.restrict (s i)] g :=
+by simp_rw [eventually_eq, ae_restrict_Union_eq, eventually_supr]
+
+lemma ae_eq_restrict_bUnion_iff (s : ι → set α) {t : set ι} (ht : t.countable) (f g : α → δ) :
+  f =ᵐ[μ.restrict (⋃ i ∈ t, s i)] g ↔ ∀ i ∈ t, f =ᵐ[μ.restrict (s i)] g :=
+by simp_rw [ae_restrict_bUnion_eq s ht, eventually_eq, eventually_supr]
+
+lemma ae_eq_restrict_bUnion_finset_iff (s : ι → set α) (t : finset ι) (f g : α → δ) :
+  f =ᵐ[μ.restrict (⋃ i ∈ t, s i)] g ↔ ∀ i ∈ t, f =ᵐ[μ.restrict (s i)] g :=
+ae_eq_restrict_bUnion_iff s t.countable_to_set f g
+
 lemma ae_restrict_interval_oc_eq [linear_order α] (a b : α) :
   (μ.restrict (Ι a b)).ae = (μ.restrict (Ioc a b)).ae ⊔ (μ.restrict (Ioc b a)).ae :=
 by simp only [interval_oc_eq_union, ae_restrict_union_eq]

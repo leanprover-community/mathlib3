@@ -34,8 +34,6 @@ TODO: generalize universe level when calculating stalks, after generalizing univ
 
 noncomputable theory
 
-section
-
 open topological_space
 open category_theory category_theory.limits
 open Top
@@ -43,8 +41,11 @@ open opposite
 
 universes u v w
 
-variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{w} C] (A : C)
-variables [has_terminal C] [Π (U : opens X), decidable (p₀ ∈ U)]
+variables {X : Top.{u}} (p₀ : X) [Π (U : opens X), decidable (p₀ ∈ U)]
+
+section
+
+variables {C : Type v} [category.{w} C] (A : C) [has_terminal C]
 
 /--
 A skyscraper presheaf is a presheaf supported at a single point: if `p₀ ∈ X` is a specified
@@ -77,16 +78,8 @@ section
 -- In this section, we calculate the stalks for skyscraper presheaves.
 -- We need to restrict universe level.
 
-open topological_space
-open category_theory category_theory.limits
-open Top
-open opposite
+variables {C : Type v} [category.{u} C] (A : C) [has_terminal C]
 
-universes u v
-
-variables {X : Top.{u}} (p₀ : X) {C : Type v} [category.{u} C] (A : C) [has_terminal C]
-
-variable [Π (U : opens X), decidable (p₀ ∈ U)]
 /--
 The cocone at `A` for the stalk functor of `skyscraper_presheaf p₀ A` when `y ∈ closure {p₀}`
 -/

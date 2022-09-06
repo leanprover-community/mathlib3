@@ -47,29 +47,32 @@ variables {F : Type u} {K : Type v} {L : Type w}
 
 namespace polynomial
 
-variables [field K] [field L] [field F]
 open polynomial
 
 section splits
 
+section comm_ring
+variables [comm_ring K] [field L] [field F]
 variables (i : K →+* L)
 
 /-- A polynomial `splits` iff it is zero or all of its irreducible factors have `degree` 1. -/
 def splits (f : K[X]) : Prop :=
-f = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1
+f.map i = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1
 
-@[simp] lemma splits_zero : splits i (0 : K[X]) := or.inl rfl
+@[simp] lemma splits_zero : splits i (0 : K[X]) := or.inl (polynomial.map_zero i)
 
-@[simp] lemma splits_C (a : K) : splits i (C a) :=
-if ha : a = 0 then ha.symm ▸ (@C_0 K _).symm ▸ splits_zero i
-else
-have hia : i a ≠ 0, from mt ((injective_iff_map_eq_zero i).1 i.injective _) ha,
-or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
-  by have := congr_arg degree hp;
-    simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
-      nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tauto))
+lemma splits_of_map_eq_C {f : K[X]} {a : L} (h : f.map i = C a) : splits i f :=
+if ha : a = 0 then or.inl (h.trans (ha.symm ▸ C_0))
+else or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 $ not_not.2 $ is_unit_iff_degree_eq_zero.2 $
+begin
+  have := congr_arg degree hp,
+  rw [h, degree_C ha, degree_mul, @eq_comm (with_bot ℕ) 0, nat.with_bot.add_eq_zero_iff] at this,
+  exact this.1,
+end
 
-lemma splits_of_degree_eq_one {f : K[X]} (hf : degree f = 1) : splits i f :=
+@[simp] lemma splits_C (a : K) : splits i (C a) := splits_of_map_eq_C i (map_C i)
+
+lemma splits_of_map_degree_eq_one {f : K[X]} (hf : degree (f.map i) = 1) : splits i f :=
 or.inr $ λ g hg ⟨p, hp⟩,
   by have := congr_arg degree hp;
   simp [nat.with_bot.add_eq_one_iff, hf, @eq_comm (with_bot ℕ) 1,
@@ -77,17 +80,15 @@ or.inr $ λ g hg ⟨p, hp⟩,
   clear _fun_match; tauto
 
 lemma splits_of_degree_le_one {f : K[X]} (hf : degree f ≤ 1) : splits i f :=
-begin
-  cases h : degree f with n,
-  { rw [degree_eq_bot.1 h]; exact splits_zero i },
-  { cases n with n,
-    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h le_rfl)];
-      exact splits_C _ _ },
-    { have hn : n = 0,
-      { rw h at hf,
-        cases n, { refl }, { exact absurd hf dec_trivial } },
-      exact splits_of_degree_eq_one _ (by rw [h, hn]; refl) } }
+if hif : degree (f.map i) ≤ 0 then splits_of_map_eq_C i (degree_le_zero_iff.mp hif)
+else begin
+  push_neg at hif,
+  rw [← order.succ_le_iff, ← with_bot.coe_zero, with_bot.succ_coe, nat.succ_eq_succ] at hif,
+  exact splits_of_map_degree_eq_one i (le_antisymm ((degree_map_le i _).trans hf) hif),
 end
+
+lemma splits_of_degree_eq_one {f : K[X]} (hf : degree f = 1) : splits i f :=
+splits_of_degree_le_one i hf.le
 
 lemma splits_of_nat_degree_le_one {f : K[X]} (hf : nat_degree f ≤ 1) : splits i f :=
 splits_of_degree_le_one i (degree_le_of_nat_degree_le hf)
@@ -96,30 +97,18 @@ lemma splits_of_nat_degree_eq_one {f : K[X]} (hf : nat_degree f = 1) : splits i 
 splits_of_nat_degree_le_one i (le_of_eq hf)
 
 lemma splits_mul {f g : K[X]} (hf : splits i f) (hg : splits i g) : splits i (f * g) :=
-if h : f * g = 0 then by simp [h]
+if h : (f * g).map i = 0 then or.inl h
 else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.2 _ _
     (show p ∣ map i f * map i g, by convert hpf; rw polynomial.map_mul)).elim
   (hf.resolve_left (λ hf, by simpa [hf] using h) hp)
   (hg.resolve_left (λ hg, by simpa [hg] using h) hp)
 
-lemma splits_of_splits_mul {f g : K[X]} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
+lemma splits_of_splits_mul' {f g : K[X]} (hfg : (f * g).map i ≠ 0) (h : splits i (f * g)) :
   splits i f ∧ splits i g :=
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
    (by rw polynomial.map_mul; exact hg.trans (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
    (by rw polynomial.map_mul; exact hg.trans (dvd_mul_left _ _))⟩
-
-lemma splits_of_splits_of_dvd {f g : K[X]} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
-  splits i g :=
-by { obtain ⟨f, rfl⟩ := hgf, exact (splits_of_splits_mul i hf0 hf).1 }
-
-lemma splits_of_splits_gcd_left {f g : K[X]} (hf0 : f ≠ 0) (hf : splits i f) :
-  splits i (euclidean_domain.gcd f g) :=
-polynomial.splits_of_splits_of_dvd i hf0 hf (euclidean_domain.gcd_dvd_left f g)
-
-lemma splits_of_splits_gcd_right {f g : K[X]} (hg0 : g ≠ 0) (hg : splits i g) :
-  splits i (euclidean_domain.gcd f g) :=
-polynomial.splits_of_splits_of_dvd i hg0 hg (euclidean_domain.gcd_dvd_right f g)
 
 lemma splits_map_iff (j : L →+* F) {f : K[X]} :
   splits j (f.map i) ↔ splits (j.comp i) f :=
@@ -128,22 +117,14 @@ by simp [splits, polynomial.map_map]
 theorem splits_one : splits i 1 :=
 splits_C i 1
 
-theorem splits_of_is_unit {u : K[X]} (hu : is_unit u) : u.splits i :=
-splits_of_splits_of_dvd i one_ne_zero (splits_one _) $ is_unit_iff_dvd_one.1 hu
+theorem splits_of_is_unit [is_domain K] {u : K[X]} (hu : is_unit u) : u.splits i :=
+(is_unit_iff.mp hu).some_spec.2 ▸ splits_C _ _
 
 theorem splits_X_sub_C {x : K} : (X - C x).splits i :=
-splits_of_degree_eq_one _ $ degree_X_sub_C x
+splits_of_degree_le_one _ $ degree_X_sub_C_le
 
 theorem splits_X : X.splits i :=
-splits_of_degree_eq_one _ $ degree_X
-
-theorem splits_id_iff_splits {f : K[X]} :
-  (f.map i).splits (ring_hom.id L) ↔ f.splits i :=
-by rw [splits_map_iff, ring_hom.id_comp]
-
-theorem splits_mul_iff {f g : K[X]} (hf : f ≠ 0) (hg : g ≠ 0) :
-  (f * g).splits i ↔ f.splits i ∧ g.splits i :=
-⟨splits_of_splits_mul i (mul_ne_zero hf hg), λ ⟨hfs, hgs⟩, splits_mul i hfs hgs⟩
+splits_of_degree_le_one _ $ degree_X_le
 
 theorem splits_prod {ι : Type u} {s : ι → K[X]} {t : finset ι} :
   (∀ j ∈ t, (s j).splits i) → (∏ x in t, s x).splits i :=
@@ -161,6 +142,43 @@ end
 
 lemma splits_X_pow (n : ℕ) : (X ^ n).splits i := splits_pow i (splits_X i) n
 
+end comm_ring
+
+variables [field K] [field L] [field F]
+variables (i : K →+* L)
+
+lemma splits_iff (f : K[X]) :
+  splits i f ↔ f = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1 :=
+by rw [splits, map_eq_zero]
+
+lemma splits.def {i : K →+* L} {f : K[X]} (h : splits i f) :
+  f = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1 :=
+(splits_iff i f).mp h
+
+lemma splits_of_splits_mul {f g : K[X]} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
+  splits i f ∧ splits i g :=
+splits_of_splits_mul' i (map_ne_zero hfg) h
+
+lemma splits_of_splits_of_dvd {f g : K[X]} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
+  splits i g :=
+by { obtain ⟨f, rfl⟩ := hgf, exact (splits_of_splits_mul i hf0 hf).1 }
+
+lemma splits_of_splits_gcd_left {f g : K[X]} (hf0 : f ≠ 0) (hf : splits i f) :
+  splits i (euclidean_domain.gcd f g) :=
+polynomial.splits_of_splits_of_dvd i hf0 hf (euclidean_domain.gcd_dvd_left f g)
+
+lemma splits_of_splits_gcd_right {f g : K[X]} (hg0 : g ≠ 0) (hg : splits i g) :
+  splits i (euclidean_domain.gcd f g) :=
+polynomial.splits_of_splits_of_dvd i hg0 hg (euclidean_domain.gcd_dvd_right f g)
+
+theorem splits_id_iff_splits {f : K[X]} :
+  (f.map i).splits (ring_hom.id L) ↔ f.splits i :=
+by rw [splits_map_iff, ring_hom.id_comp]
+
+theorem splits_mul_iff {f g : K[X]} (hf : f ≠ 0) (hg : g ≠ 0) :
+  (f * g).splits i ↔ f.splits i ∧ g.splits i :=
+⟨splits_of_splits_mul i (mul_ne_zero hf hg), λ ⟨hfs, hgs⟩, splits_mul i hfs hgs⟩
+
 theorem splits_prod_iff {ι : Type u} {s : ι → K[X]} {t : finset ι} :
   (∀ j ∈ t, s j ≠ 0) → ((∏ x in t, s x).splits i ↔ ∀ j ∈ t, (s j).splits i) :=
 begin
@@ -169,14 +187,12 @@ begin
   rw [finset.prod_insert hat, splits_mul_iff i ht.1 (finset.prod_ne_zero_iff.2 ht.2), ih ht.2]
 end
 
-lemma degree_eq_one_of_irreducible_of_splits {p : L[X]}
-  (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
+lemma degree_eq_one_of_irreducible_of_splits {p : K[X]}
+  (hp : irreducible p) (hp_splits : splits (ring_hom.id K) p) :
   p.degree = 1 :=
 begin
-  by_cases h_nz : p = 0,
-  { exfalso, simp * at *, },
   rcases hp_splits,
-  { contradiction },
+  { exfalso, simp * at *, },
   { apply hp_splits hp, simp }
 end
 
@@ -187,7 +203,7 @@ else
   let ⟨g, hg⟩ := wf_dvd_monoid.exists_irreducible_factor
     (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
     (map_ne_zero hf0) in
-  let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.resolve_left hf0 hg.1 hg.2) in
+  let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.def.resolve_left hf0 hg.1 hg.2) in
   let ⟨i, hi⟩ := hg.2 in
   ⟨x, by rw [← eval_map, hi, eval_mul, show _ = _, from hx, zero_mul]⟩
 
@@ -285,7 +301,7 @@ open unique_factorization_monoid associates
 lemma splits_of_exists_multiset {f : K[X]} {s : multiset L}
   (hs : f.map i = C (i f.leading_coeff) * (s.map (λ a : L, X - C a)).prod) :
   splits i f :=
-if hf0 : f = 0 then or.inl hf0
+if hf0 : f = 0 then hf0.symm ▸ splits_zero i
 else or.inr $ λ p hp hdp, begin
   rw irreducible_iff_prime at hp,
   rw [hs, ← multiset.prod_to_list] at hdp,
@@ -298,13 +314,13 @@ else or.inr $ λ p hp hdp, begin
     exact degree_X_sub_C a },
 end
 
-lemma splits_of_splits_id {f : K[X]} : splits (ring_hom.id _) f → splits i f :=
+lemma splits_of_splits_id {f : K[X]} : splits (ring_hom.id K) f → splits i f :=
 unique_factorization_monoid.induction_on_prime f (λ _, splits_zero _)
   (λ _ hu _, splits_of_degree_le_one _
     ((is_unit_iff_degree_eq_zero.1 hu).symm ▸ dec_trivial))
   (λ a p ha0 hp ih hfi, splits_mul _
     (splits_of_degree_eq_one _
-      ((splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).1.resolve_left
+      ((splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).1.def.resolve_left
         hp.1 hp.irreducible (by rw map_id)))
     (ih (splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).2))
 

@@ -2749,6 +2749,23 @@ begin
     { simpa [hl] } }
 end
 
+lemma pmap_append {p : ι → Prop} (f : Π (a : ι), p a → α) (l₁ l₂ : list ι)
+  (h : ∀ a ∈ l₁ ++ l₂, p a) :
+  (l₁ ++ l₂).pmap f h = l₁.pmap f (λ a ha, h a (mem_append_left l₂ ha)) ++
+                        l₂.pmap f (λ a ha, h a (mem_append_right l₁ ha)) :=
+begin
+  induction l₁ with _ _ ih,
+  { refl, },
+  { dsimp only [pmap, cons_append],
+    rw ih, }
+end
+
+lemma pmap_append' {α β : Type*} {p : α → Prop} (f : Π (a : α), p a → β) (l₁ l₂ : list α)
+  (h₁ : ∀ a ∈ l₁, p a) (h₂ : ∀ a ∈ l₂, p a) :
+  (l₁ ++ l₂).pmap f (λ a ha, (list.mem_append.1 ha).elim (h₁ a) (h₂ a)) =
+  l₁.pmap f h₁ ++ l₂.pmap f h₂ :=
+pmap_append f l₁ l₂ _
+
 /-! ### find -/
 
 section find

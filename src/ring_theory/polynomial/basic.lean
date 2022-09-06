@@ -986,8 +986,9 @@ theorem is_noetherian_ring_fin [is_noetherian_ring R] :
 
 /-- The multivariate polynomial ring in finitely many variables over a noetherian ring
 is itself a noetherian ring. -/
-instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
+instance is_noetherian_ring [finite σ] [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial σ R) :=
+by casesI nonempty_fintype σ; exact
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
   (rename_equiv R (fintype.equiv_fin σ).symm).to_ring_equiv is_noetherian_ring_fin
 
@@ -996,10 +997,11 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero
   (p q : mv_polynomial σ R) (h : p * q = 0) : p = 0 ∨ q = 0 :=
 zero_eq_mul.mp h.symm
 
-lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [fintype σ]
+lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [finite σ]
   (ϕ : mv_polynomial σ R →+* S) (p : mv_polynomial σ R) :
   ϕ p = mv_polynomial.eval₂ (ϕ.comp mv_polynomial.C) (λ s, ϕ (mv_polynomial.X s)) p :=
 begin
+  casesI nonempty_fintype σ,
   refine trans (congr_arg ϕ (mv_polynomial.as_sum p)) _,
   rw [mv_polynomial.eval₂_eq', ϕ.map_sum],
   congr,

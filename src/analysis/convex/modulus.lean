@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.normed_space.ordered
+import order.upper_lower
 
 /-!
 # Modulus and characteristic of convexity
@@ -26,6 +27,39 @@ lemma range_const_subsingleton (a : α) : (set.range (λ i : ι, a)).subsingleto
 set.subsingleton_of_subset_singleton set.range_const_subset
 
 end set
+
+section
+variables {α : Type*} [preorder α] [no_min_order α] {s : set α}
+
+open set
+
+lemma is_lower_set.not_bdd_below (hs : is_lower_set s) : s.nonempty → ¬ bdd_below s :=
+begin
+  rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  obtain ⟨c, hc⟩ := exists_lt b,
+  exact hc.not_le (hb $ hs (hc.le.trans $ hb ha) ha),
+end
+
+lemma not_bdd_below_Iic (a : α) : ¬ bdd_below (Iic a) :=
+(is_lower_set_Iic _).not_bdd_below nonempty_Iic
+
+lemma not_bdd_below_Iio (a : α) : ¬ bdd_below (Iio a) :=
+(is_lower_set_Iio _).not_bdd_below nonempty_Iio
+
+end
+
+section
+variables {α : Type*} [preorder α] [no_max_order α] {s : set α}
+
+open set
+
+lemma is_upper_set.not_bdd_above (hs : is_upper_set s) : s.nonempty → ¬ bdd_above s :=
+hs.of_dual.not_bdd_below
+
+lemma not_bdd_above_Ici (a : α) : ¬ bdd_above (Ici a) := @not_bdd_below_Iic αᵒᵈ _ _ _
+lemma not_bdd_above_Ioi (a : α) : ¬ bdd_above (Ioi a) := @not_bdd_below_Iio αᵒᵈ _ _ _
+
+end
 
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] {a : α}
@@ -52,12 +86,7 @@ open set
 
 lemma supr_congr_subtype (f : ι → α) (hpq : ∀ i, p i ↔ q i) :
   (⨆ i : subtype p, f i) = ⨆ i : subtype q, f i :=
-begin
-  unfold supr,
-  congr' 1,
-  ext,
-  simp_rw [mem_range, subtype.exists, subtype.coe_mk, exists_prop, hpq],
-end
+by { have : p = q := funext (λ i, propext $ hpq _), subst this }
 
 end has_Sup
 
@@ -66,8 +95,8 @@ variables {ι : Sort*} {α : Type*} [conditionally_complete_lattice α] {f g : �
   {s : set α} {r : ℝ} {a b : α}
 
 lemma bcsupr_mono_right (hg : bdd_above (set.range g)) (hfg : ∀ i, p i → f i ≤ g i) :
-  (⨆ (i : ι) (hi : p i), f i) ≤ ⨆ (i : ι) (hi : p i), g i :=
-csupr_le_csupr begin
+  (⨆ i (hi : p i), f i) ≤ ⨆ i (hi : p i), g i :=
+csupr_mono begin
   obtain ⟨x, hx⟩ := hg,
   refine ⟨Sup ∅ ⊔ x, _⟩,
   rintro _ ⟨i, rfl⟩,
@@ -75,7 +104,7 @@ csupr_le_csupr begin
   { convert le_sup_left,
     exact (set.range_eq_empty _).symm },
   { exact (csupr_le $ λ _, hx $ set.mem_range_self _).trans le_sup_right }
-end $ λ a, csupr_le_csupr (set.range_const_subsingleton _).bdd_above $ hfg _
+end $ λ a, csupr_mono (set.range_const_subsingleton _).bdd_above $ hfg _
 
 -- lemma le_bcsupr {f : ι → α} (hf : bdd_above (set.range f)) (i : ι) (hi : p i) :
 --   f i ≤ ⨆ (i : ι) (hi : p i), f i :=
@@ -111,9 +140,6 @@ begin
   { exact csupr_le (λ x, le_csupr_of_le hf ⟨x, hfg _ x.2⟩ le_rfl) }
 end
 
-/-- The indexed infimum of a function is bounded above by the value taken at one point. -/
-lemma cinfi_le' {f : ι → α} (i : ι) : infi f ≤ f i := cinfi_le (order_bot.bdd_below _) _
-
 lemma cInf_le_of_le' {s : set α} (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
 cInf_le_of_le (order_bot.bdd_below _) hb h
 
@@ -122,16 +148,13 @@ cinfi_le_of_le (order_bot.bdd_below _) _ h
 
 lemma cSup_le_of_forall_le {s : set α} (h : ∀ b ∈ s, b ≤ a) : Sup s ≤ a :=
 begin
-  obtain rfl | ⟨i, hi⟩ := s.eq_empty_or_nonempty,
+  obtain rfl | hs := s.eq_empty_or_nonempty,
   { exact cSup_empty.trans_le bot_le },
-  {
-    sorry
-    -- exact cSup_le'' hi,
-  }
+  { exact cSup_le hs h }
 end
 
 lemma cinfi_le_cinfi' {f g : ι → α} (h : ∀ i, f i ≤ g i) : infi f ≤ infi g :=
-cinfi_le_cinfi (order_bot.bdd_below _) h
+cinfi_mono (order_bot.bdd_below _) h
 
 lemma cinfi₂_le_cinfi₂' {f g : Π i, κ i → α} (h : ∀ i j, f i j ≤ g i j) :
   (⨅ i j, f i j) ≤ ⨅ i j, g i j :=
@@ -217,7 +240,7 @@ supr_le_of_nonneg hr $ λ i, supr_le_of_nonneg hr $ hf i
 lemma bsupr_mono (hg : bdd_above (set.range g)) (hg' : ∀ a, q a → 0 ≤ g a) (hfg : ∀ a, f a ≤ g a)
   (hpq : ∀ i, p i → q i) :
   (⨆ i (hi : p i), f i) ≤ ⨆ i (hi : q i), g i :=
-csupr_le_csupr begin
+csupr_mono begin
   obtain ⟨x, hx⟩ := hg,
   refine ⟨max 0 x, _⟩,
   rintro _ ⟨a, rfl⟩,
@@ -262,32 +285,13 @@ variables {ι : Sort*} {κ : ι → Sort*} {p q : ι → Prop} {f g : ι → ℝ
 
 open set
 
-lemma coe_infi (f : ι → ℝ≥0) : (↑(infi f) : ℝ) = ⨅ i, f i :=
-by { rw [infi, coe_Inf, ←range_comp], refl }
-
 lemma coe_infi₂ (f : Π i, κ i → ℝ≥0) : (↑(⨅ i j, f i j) : ℝ) = ⨅ i j, f i j := by simp_rw coe_infi
-
-protected lemma Inf_empty : Inf (∅ : set ℝ≥0) = 0 :=
-nnreal.coe_injective $ by rw [coe_Inf, nnreal.coe_zero, image_empty, real.Inf_empty]
 
 protected lemma infi_of_empty [is_empty ι] (f : ι → ℝ≥0) : infi f = 0 :=
 by rw [infi_of_empty', nnreal.Inf_empty]
 
 protected lemma supr_of_empty [is_empty ι] (f : ι → ℝ≥0) : supr f = 0 :=
 by rw [supr_of_empty', cSup_empty, bot_eq_zero]
-
-lemma binfi_mono_left (hf : bdd_above $ set.range $ f ∘ (coe : subtype q → ι))
-  (hfg : ∀ i, q i → p i) :
-  (⨅ i : subtype p, f i) ≤ ⨅ i : subtype q, f i :=
-begin
-  sorry
-  -- casesI is_empty_or_nonempty (subtype q),
-  -- { exact (nnreal.infi_of_empty _).trans_le bot_le },
-  -- { haveI : nonempty (subtype q) :=
-  --     nonempty.map (λ x : subtype p, ⟨x.1, hfg _ x.2⟩) ‹nonempty (subtype p)›,
-
-  --   refine le_cinfi (λ x, cinfi_le_of_le' _ _), }
-end
 
 lemma Inf_le_of_forall_le {s : set ℝ≥0} (h : ∀ b ∈ s, b ≤ a) : Inf s ≤ a :=
 begin
@@ -298,10 +302,9 @@ end
 
 lemma infi_le_of_forall_le {f : ι → ℝ≥0} (h : ∀ i, f i ≤ a) : infi f ≤ a :=
 begin
-  sorry
-  -- obtain rfl | ⟨i, hi⟩ := s.eq_empty_or_nonempty,
-  -- { exact nnreal.Inf_empty.trans_le bot_le },
-  -- { exact cInf_le_of_le' hi (h _ hi) }
+  casesI is_empty_or_nonempty ι,
+  { exact (nnreal.infi_of_empty _).trans_le bot_le },
+  { exact cinfi_le_of_le' _ (h $ classical.arbitrary _) }
 end
 
 lemma infi₂_le_of_forall_le {f : Π i, κ i → ℝ≥0} (h : ∀ i j, f i j ≤ a) : (⨅ i j, f i j) ≤ a :=
@@ -325,10 +328,10 @@ end nnreal
 
 open nnreal
 
-variables {E : Type*} {ε : ℝ}
+variables {E : Type*} {ε δ : ℝ}
 
-section semi_normed_group
-variables (E ε) [semi_normed_group E]
+section seminormed_add_comm_group
+variables (E ε) [seminormed_add_comm_group E]
 
 /-- Modulus of convexity. -/
 noncomputable def convex_mod (ε : ℝ) : ℝ≥0 :=
@@ -348,23 +351,43 @@ lemma convex_mod_set_bdd_above (ε : ℝ) :
 
 lemma convex_mod_mono : monotone (convex_mod E) :=
 begin
-  rintro a b hab,
-  unfold convex_mod,
-  refine tsub_le_tsub_left ((div_le_div_right₀ _).2 _) _,
+  refine λ a b hab, tsub_le_tsub_left ((div_le_div_right₀ _).2 _) _,
   { exact zero_lt_two.ne' },
   { exact bcsupr_mono_left (λ xy : E × E, ∥(xy : E × E).1 + (xy : E × E).2∥₊)
       (convex_mod_set_bdd_above _ _) (λ xy, and.imp_right (and.imp_right hab.trans)) }
 end
 
-lemma convex_mod_of_two_lt {ε : ℝ} (hε : 2 < ε) : convex_mod E ε = 1 :=
+variables {ε}
+
+lemma convex_mod_of_two_lt (hε : 2 < ε) : convex_mod E ε = 1 :=
 begin
   unfold convex_mod,
   rw [nnreal.supr_zero (λ x, _), zero_div, tsub_zero],
-  refine (hε.not_le $ x.2.2.2.trans $ (dist_le_norm_add_norm _ _).trans $
+  exact (hε.not_le $ x.2.2.2.trans $ (dist_le_norm_add_norm _ _).trans $
     add_le_add x.2.1 x.2.2.1).elim,
 end
 
-variables {ε}
+@[simp] lemma convex_mod_zero' [normed_space ℚ E] [has_one E] [norm_one_class E] :
+  convex_mod E 0 = 0 :=
+begin
+  refine tsub_eq_zero_of_le ((nnreal.le_div_iff two_ne_zero).2 _),
+  refine le_csupr_of_le (convex_mod_set_bdd_above _ _) ⟨1, by simp [dist_nonneg]⟩ _,
+  dsimp,
+  rw [←two_smul ℚ, nnnorm_smul],
+  change _ ≤ abs _ * _,
+  simp only [one_mul, nnreal.coe_bit0, nonneg.coe_one, rat.cast_bit0, rat.cast_one, abs_two,
+    nnnorm_one, mul_one],
+end
+
+@[simp] lemma convex_mod_zero [normed_space ℝ E] [has_one E] [norm_one_class E] :
+  convex_mod E 0 = 0 :=
+begin
+  refine tsub_eq_zero_of_le ((nnreal.le_div_iff two_ne_zero).2 _),
+  refine le_csupr_of_le (convex_mod_set_bdd_above _ _) ⟨1, by simp [dist_nonneg]⟩ _,
+  dsimp,
+  rw [←two_smul ℝ, nnnorm_smul, ←norm_to_nnreal, real.norm_two],
+  simp only [one_mul, to_nnreal_bit0, to_nnreal_one, nnnorm_one, mul_one],
+end
 
 lemma convex_mod_of_nonpos'' (hε : ε ≤ 0) : convex_mod E ε = convex_mod E 0 :=
 begin
@@ -374,17 +397,52 @@ begin
   rw [and_iff_left dist_nonneg, and_iff_left (hε.trans dist_nonneg)],
 end
 
+variables {E}
+
+lemma convex_char_of_convex_mod_zero_pos (h : 0 < convex_mod E 0) : convex_char E = 0 :=
+begin
+  rw [convex_char, @set.eq_empty_of_forall_not_mem _ {ε : ℝ | convex_mod E ε = 0} (λ ε hε, _),
+    real.Sup_empty],
+  obtain hε' | hε' := le_total 0 ε,
+  { exact (convex_mod_mono E hε').not_lt (hε.trans_lt h) },
+  { exact (convex_mod_of_nonpos'' _ hε').not_lt (hε.trans_lt h) }
+end
+
+variables (E)
+
 lemma convex_char_nonneg : 0 ≤ convex_char E :=
 begin
   obtain h | h := (zero_le $ convex_mod E 0).eq_or_lt,
   { exact Sup_nonneg' h.symm le_rfl },
-  { exact Sup_nonneg _ (λ ε H, le_of_not_lt $ λ hε, h.ne' $
-    (convex_mod_of_nonpos'' _ hε.le).symm.trans H) }
+  { rw convex_char_of_convex_mod_zero_pos h }
 end
+
+lemma convex_char_set_bdd_above : bdd_above {ε | convex_mod E ε = 0} :=
+⟨2, λ ε hε, not_lt.1 $ λ h, zero_ne_one $ hε.symm.trans $ convex_mod_of_two_lt _ h⟩
+
+variables {E}
+
+lemma convex_char_le_iff'' (h : convex_mod E 0 = 0) :
+  convex_char E ≤ ε ↔ ∀ ⦃δ⦄, convex_mod E δ = 0 → δ ≤ ε :=
+cSup_le_iff (convex_char_set_bdd_above E) ⟨0, h⟩
+
+lemma convex_char_le_iff' [normed_space ℚ E] [has_one E] [norm_one_class E] :
+  convex_char E ≤ ε ↔ ∀ ⦃δ⦄, convex_mod E δ = 0 → δ ≤ ε :=
+convex_char_le_iff'' $ convex_mod_zero' _
+
+lemma convex_char_le_iff [normed_space ℝ E] [has_one E] [norm_one_class E] :
+  convex_char E ≤ ε ↔ ∀ ⦃δ⦄, convex_mod E δ = 0 → δ ≤ ε :=
+convex_char_le_iff'' $ convex_mod_zero _
 
 lemma convex_char_eq_Inf : convex_char E = Inf {ε | 0 < convex_mod E ε} :=
 begin
-  sorry
+  obtain h | h := (zero_le $ convex_mod E 0).eq_or_lt,
+  { refine eq_of_forall_ge_iff (λ c, _),
+    rw convex_char_le_iff'' h.symm,
+    sorry },
+  { rw [convex_char_of_convex_mod_zero_pos h, Inf_of_not_bdd_below],
+    exact λ h', not_bdd_below_Iic 0 (h'.mono $ λ ε hε,
+      h.trans_eq (convex_mod_of_nonpos'' _ hε).symm) }
 end
 
 variables (E)
@@ -419,12 +477,11 @@ sorry
 @[simp] lemma convex_mod_pos_iff : 0 < convex_mod E ε ↔ convex_char E < ε :=
 sorry
 
-end semi_normed_group
+end seminormed_add_comm_group
 
 section normed_division_ring
 variables (E) [normed_division_ring E] [normed_space ℝ E]
 
 lemma convex_mod_of_nonpos (hε : ε ≤ 0) : convex_mod E ε = 0 := convex_mod_of_nonpos' norm_one hε
-@[simp] lemma convex_mod_zero : convex_mod E 0 = 0 := convex_mod_of_nonpos _ le_rfl
 
 end normed_division_ring

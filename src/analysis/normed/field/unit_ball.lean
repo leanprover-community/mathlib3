@@ -68,10 +68,6 @@ instance [non_unital_semi_normed_ring 𝕜] : has_continuous_mul (closed_ball (0
 lemma coe_mul_unit_closed_ball [non_unital_semi_normed_ring 𝕜] (x y : closed_ball (0 : 𝕜) 1) :
   ↑(x * y) = (x * y : 𝕜) := rfl
 
-@[simp, norm_cast]
-lemma coe_mul_unit_closed_ball [non_unital_semi_normed_ring 𝕜] (x y : closed_ball (0 : 𝕜) 1) :
-  ↑(x * y) = (x * y : 𝕜) := rfl
-
 /-- Closed unit ball in a semi normed ring as a bundled `submonoid`. -/
 def submonoid.unit_closed_ball (𝕜 : Type*) [semi_normed_ring 𝕜] [norm_one_class 𝕜] :
   submonoid 𝕜 :=
@@ -136,13 +132,6 @@ lemma coe_mul_unit_sphere [normed_division_ring 𝕜] (x y : sphere (0 : 𝕜) 1
 @[simp, norm_cast]
 lemma coe_pow_unit_sphere [normed_division_ring 𝕜] (x : sphere (0 : 𝕜) 1) (n : ℕ) :
   ↑(x ^ n) = (x ^ n : 𝕜) := rfl
-
-@[simp, norm_cast]
-lemma coe_one_unit_sphere [normed_division_ring 𝕜] : ((1 : sphere (0 : 𝕜) 1) : 𝕜) = 1 := rfl
-
-@[simp, norm_cast]
-lemma coe_mul_unit_sphere [normed_division_ring 𝕜] (x y : sphere (0 : 𝕜) 1) :
-  ↑(x * y) = (x * y : 𝕜) := rfl
 
 /-- Monoid homomorphism from the unit sphere to the group of units. -/
 def unit_sphere_to_units (𝕜 : Type*) [normed_division_ring 𝕜] : sphere (0 : 𝕜) 1 →* units 𝕜 :=

@@ -492,6 +492,7 @@ begin
       { exact (tsum_nonneg $ λ _, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) }}},
 end
 
+
 def non_standard_normed_group_lp : normed_add_comm_group (lp E p) :=
 normed_add_comm_group.of_core _
 { norm_eq_zero_iff :=
@@ -505,7 +506,12 @@ normed_add_comm_group.of_core _
         using @lp.norm_eq_zero_iff α E p _ f },
   end,
   triangle := λ f g, begin
-    unfreezingI { rcases p.dichotomy with rfl | hp' },
+    rcases or.assoc.mpr p.trichotomy with _ | h_pos,
+    { simp only [norm_zero_top_eq_standard_norm h],
+      sorry,--this is just `triangle` for the usual norm
+     },
+    { by_cases hp : fact (1 ≤ p),
+      unfreezingI {rcases p.dichotomy with rfl | hp'},
     { casesI is_empty_or_nonempty α,
       { simp [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
@@ -513,19 +519,25 @@ normed_add_comm_group.of_core _
       refine le_trans _ (add_mem_upper_bounds_add (lp.is_lub_norm f).1 (lp.is_lub_norm g).1
         ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
       exact norm_add_le (f i) (g i) },
-    { have hp'' : 0 < p.to_real := zero_lt_one.trans_le hp',
-      have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
-      have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
-      have hf₂ := lp.has_sum_norm hp'' f,
-      have hg₂ := lp.has_sum_norm hp'' g,
-      -- apply Minkowski's inequality
-      obtain ⟨C, hC₁, hC₂, hCfg⟩ :=
-        real.Lp_add_le_has_sum_of_nonneg hp' hf₁ hg₁ (norm_nonneg' _) (norm_nonneg' _) hf₂ hg₂,
-      refine le_trans _ hC₂,
-      rw ← real.rpow_le_rpow_iff (norm_nonneg' (f + g)) hC₁ hp'',
-      refine has_sum_le _ (lp.has_sum_norm hp'' (f + g)) hCfg,
-      intros i,
-      exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
+    { sorry, -- `[FAE]` the case `1 ≤ p`, but translated in the non-standard norm.
+      -- have := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
+      -- simp only [norm_eq_pow_standard_norm this.1 this.2],
+      -- have ineq := nnreal.add_rpow_le_rpow_add,
+      -- have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
+      -- have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
+      -- have hf₂ := lp.has_sum_norm h_pos f,
+      -- have hg₂ := lp.has_sum_norm h_pos g,
+      -- -- apply Minkowski's inequality
+      -- obtain ⟨C, hC₁, hC₂, hCfg⟩ :=
+      --   real.Lp_add_le_has_sum_of_nonneg _ hf₁ hg₁ (norm_nonneg' _) (norm_nonneg' _) hf₂ hg₂,
+      -- refine le_trans _ hC₂,
+      -- rw ← real.rpow_le_rpow_iff (norm_nonneg' (f + g)) hC₁ h,
+      -- refine has_sum_le _ (lp.has_sum_norm hp'' (f + g)) hCfg,
+      -- intros i,
+      -- exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le,
+      },
+    -- `[FAE]` the case `p ≤ 1`.
+      },
   end,
   norm_neg :=
   begin
@@ -537,8 +549,6 @@ normed_add_comm_group.of_core _
   end }
 
 end p_le_one
-
-#exit
 
 instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
 normed_add_comm_group.of_core _
@@ -567,6 +577,9 @@ normed_add_comm_group.of_core _
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
   norm_neg := norm_neg }
+
+
+#exit
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.

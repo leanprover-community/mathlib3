@@ -19,7 +19,7 @@ This file introduces the lower topology on a preorder
 * [Gierz et al, A Compendium of Continuous Lattices][GierzEtAl1980]
 -/
 
-universes u v w
+universes u
 variables {α : Type u}
 
 open  set topological_space
@@ -48,8 +48,6 @@ lemma is_open_iff_generate_Ici_comp {s : set α} :
   is_open s ↔ generate_open {s | ∃a, s = (Ici a)ᶜ} s :=
 by rw [t.topology_eq_generate_Ici_comp]; refl
 
-
-
 lemma lower_open_is_lower {s : set α} (h: is_open s) : is_lower_set s :=
 begin
   rw is_open_iff_generate_Ici_comp at h,
@@ -69,10 +67,20 @@ end
 -- III 6th July 2002 Primitive nets
 -- IV 15th Jan 2003 Deduce Fell
 
+lemma ici_is_closed (b : α) : is_closed (Ici b)  :=
+begin
+  rw [← is_open_compl_iff, is_open_iff_generate_Ici_comp],
+  fconstructor,
+  rw mem_set_of_eq,
+  use b,
+end
 
 lemma singleton_closure (a : α) : closure {a} = Ici a :=
 begin
-  sorry
+  rw subset_antisymm_iff,
+  split,
+  { sorry },
+  { sorry }
 end
 
 end lower_topology

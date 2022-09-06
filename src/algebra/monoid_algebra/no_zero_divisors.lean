@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.monoid_algebra.support
+import order.extension
+import data.finsupp.lex
 
 /-!
 # Variations on non-zero divisors in `add_monoid_algebra`s
@@ -149,7 +151,53 @@ lemma no_zero_divisors.of_right_ordered [no_zero_divisors R]
       { haveI : covariant_class A A (function.swap (+)) (≤) := has_add.to_covariant_class_right A,
         exact add_le_add_right (finset.min'_le _ _ bf) _ } } }
 end⟩
+.
+
+lemma pro_left {A} [has_add A] [linear_order A] [covariant_class A A (+) (<)]
+  {a b c : A} (bc : a + b = a + c) : b = c :=
+begin
+  contrapose bc,
+  rcases trichotomous_of (<) b c with h | rfl | h,
+  exacts [(add_lt_add_left h a).ne, (bc rfl).elim, (add_lt_add_left h a).ne'],
+end
+
+lemma pro_right {A} [has_add A] [linear_order A] [covariant_class A A (function.swap (+)) (<)]
+  {a b c : A} (bc : b + a = c + a) : b = c :=
+begin
+  contrapose bc,
+  rcases trichotomous_of (<) b c with h | rfl | h,
+  exacts [(add_lt_add_right h a).ne, (bc rfl).elim, (add_lt_add_right h a).ne'],
+end
+.
+noncomputable instance finsupp_add_right_cancel_monoid {α N} [add_right_cancel_monoid N]
+  [linear_order N] [covariant_class N N (function.swap (+)) (<)] :
+  add_right_cancel_monoid (lex (α →₀ N)) :=
+{ add_right_cancel := begin
+    haveI : linear_order α := @linear_extension.linear_order α
+    { le          := eq,
+      le_refl     := eq.refl,
+      le_trans    := λ _ _ _, eq.trans,
+      le_antisymm := λ _ _ h _, h },
+    exact λ a b c, pro_right
+  end,
+  ..(by apply_instance : add_monoid (α →₀ N)) }
+
+--local attribute [instance] finsupp_add_right_cancel_monoid
+
+instance finsupp_no_zero_divisors {α N} [no_zero_divisors R] [add_right_cancel_monoid N] [linear_order N]
+  [covariant_class N N (+) (<)] [covariant_class N N (function.swap (+)) (<)] :
+  no_zero_divisors (add_monoid_algebra R (α →₀ N)) :=
+begin
+  haveI : linear_order α := @linear_extension.linear_order α
+  { le          := eq,
+    le_refl     := eq.refl,
+    le_trans    := λ _ _ _, eq.trans,
+    le_antisymm := λ _ _ h _, h },
+--  haveI : add_right_cancel_monoid (lex (α →₀ N)) := finsupp_add_right_cancel_monoid,
+  exact @add_monoid_algebra.no_zero_divisors.of_left_ordered R (lex (α →₀ N)) _ _ _ finsupp.lex.linear_order _,
+end
 
 end left_or_right_orderability
 
 end add_monoid_algebra
+#lint

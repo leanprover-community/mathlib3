@@ -451,7 +451,7 @@ theorem mem_closure_iff {s : set α} {a : α} :
   let ⟨x, hc, hs⟩ := (H _ h₁.is_open_compl nc) in hc (h₂ hs)⟩
 
 lemma filter.le_lift'_closure (l : filter α) : l ≤ l.lift' closure :=
-le_infi₂ $ λ s hs, le_principal_iff.2 $ mem_of_superset hs subset_closure
+le_lift'.2 $ λ s hs, mem_of_superset hs subset_closure
 
 lemma filter.has_basis.lift'_closure {l : filter α} {p : ι → Prop} {s : ι → set α}
   (h : l.has_basis p s) :

@@ -126,7 +126,7 @@ calc ((𝓤 α).lift' gen).lift' (λs, comp_rel s s) =
 instance : uniform_space (Cauchy α) :=
 uniform_space.of_core
 { uniformity  := (𝓤 α).lift' gen,
-  refl        := principal_le_lift' $ assume s hs ⟨a, b⟩ (a_eq_b : a = b),
+  refl        := principal_le_lift'.2 $ λ s hs ⟨a, b⟩ (a_eq_b : a = b),
     a_eq_b ▸ a.property.right hs,
   symm        := symm_gen,
   comp        := comp_gen }

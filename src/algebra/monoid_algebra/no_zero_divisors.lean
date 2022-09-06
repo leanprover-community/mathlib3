@@ -110,7 +110,7 @@ by rwa [support_mul_single _ _ (λ y, by rw mul_one : ∀ y : R, y * 1 = 0 ↔ _
 
 /--  If `R` is a semiring with no non-trivial zero-divisors and `A` is a left-ordered add right
 cancel semigroup, then `add_monoid_algebra R A` also contains no non-zero zero-divisors. -/
-lemma no_zero_divisors.of_left_ordered [no_zero_divisors R]
+instance no_zero_divisors.of_left_ordered [no_zero_divisors R]
   [add_right_cancel_semigroup A] [linear_order A] [covariant_class A A (+) (<)] :
   no_zero_divisors (add_monoid_algebra R A) :=
 ⟨λ f g fg, begin

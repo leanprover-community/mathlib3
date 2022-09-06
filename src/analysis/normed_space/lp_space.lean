@@ -497,14 +497,11 @@ normed_add_comm_group.of_core _
 { norm_eq_zero_iff :=
   begin
     intro f,
-    rcases p.trichotomy with _ | _ | hp,
-    { rw norm_zero_top_eq_standard_norm (or.intro_left (p = ⊤) h),
-      exact @lp.norm_eq_zero_iff α E p _ f },
-    { rw norm_zero_top_eq_standard_norm (or.intro_right (p = 0) h),
-      exact @lp.norm_eq_zero_iff α E p _ f },
-    { have := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt hp)),
+    rcases or.assoc.mpr p.trichotomy with _ | h_pos,
+    { simpa only [norm_zero_top_eq_standard_norm h] using @lp.norm_eq_zero_iff _ _ _ _ f },
+    { have := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
       rw [norm_eq_pow_standard_norm this.1 this.2, real.rpow_eq_zero_iff_of_nonneg (norm_nonneg' f)],
-      simpa only [ne_of_gt hp, ne.def, not_false_iff, and_true]
+      simpa only [ne_of_gt h_pos, ne.def, not_false_iff, and_true]
         using @lp.norm_eq_zero_iff α E p _ f },
   end,
   triangle := λ f g, begin
@@ -530,7 +527,14 @@ normed_add_comm_group.of_core _
       intros i,
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
-  norm_neg := norm_neg }
+  norm_neg :=
+  begin
+    intro f,
+    rcases or.assoc.mpr p.trichotomy with _ | h_pos,
+    { simp only [norm_zero_top_eq_standard_norm h, @lp.norm_neg _ _ _ _ f], },
+    { have := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
+      simp only [norm_eq_pow_standard_norm this.1 this.2, @lp.norm_neg _ _ _ _ f] },
+  end }
 
 end p_le_one
 

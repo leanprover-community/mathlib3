@@ -50,8 +50,10 @@ instance : normed_field ℂ :=
   norm_mul' := abs_mul,
   .. complex.field, .. complex.normed_add_comm_group }
 
-instance : nontrivially_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp; norm_num⟩ }
+instance : densely_normed_field ℂ :=
+{ lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨x, h⟩ := normed_field.exists_lt_norm_lt ℝ h₀ hr in
+    have this : ∥(∥x∥ : ℂ)∥ = ∥(∥x∥)∥, by simp only [norm_eq_abs, abs_of_real, real.norm_eq_abs],
+    ⟨∥x∥, by rwa [this, norm_norm]⟩ }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
 { norm_smul_le := λ r x, begin
@@ -233,6 +235,17 @@ linear_equiv_det_conj_ae
 instance : has_continuous_star ℂ := ⟨conj_lie.continuous⟩
 
 @[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := continuous_star
+
+/-- The only continuous ring homomorphisms from `ℂ` to `ℂ` are the identity and the complex
+conjugation. -/
+lemma ring_hom_eq_id_or_conj_of_continuous {f : ℂ →+* ℂ} (hf : continuous f) :
+  f = ring_hom.id ℂ ∨ f = conj :=
+begin
+  refine (real_alg_hom_eq_id_or_conj $ alg_hom.mk' f $ λ x z, congr_fun _ x).imp (λ h, _) (λ h, _),
+  { refine rat.dense_embedding_coe_real.dense.equalizer (by continuity) (by continuity) _,
+    ext1, simp only [real_smul, function.comp_app, map_rat_cast, of_real_rat_cast, map_mul], },
+  all_goals { convert congr_arg alg_hom.to_ring_hom h, ext1, refl, },
+end
 
 /-- Continuous linear equiv version of the conj function, from `ℂ` to `ℂ`. -/
 def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie

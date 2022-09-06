@@ -293,7 +293,7 @@ else or.inr $ λ p hp hdp, begin
   { refine (hp.2.1 $ is_unit_of_dvd_unit hd _).elim,
     exact is_unit_C.2 ((leading_coeff_ne_zero.2 hf0).is_unit.map i) },
   { obtain ⟨q, hq, hd⟩ := hp.dvd_prod_iff.1 hd,
-    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 ((multiset.mem_to_list _ _).1 hq),
+    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 (multiset.mem_to_list.1 hq),
     rw degree_eq_degree_of_associated ((hp.dvd_prime_iff_associated $ prime_X_sub_C a).1 hd),
     exact degree_X_sub_C a },
 end
@@ -834,7 +834,5 @@ begin
     multiset.map_pmap, polynomial.map_sub, map_C, map_X],
   refl,
 end
-
--- TODO (Thomas): If `p` splits in `L/K`, then `p.is_splitting_field K (adjoin K (p.root_set L))`
 
 end intermediate_field

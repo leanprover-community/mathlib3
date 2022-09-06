@@ -61,7 +61,7 @@ namespace pos_def
 variables {M : matrix n n ℝ} (hM : M.pos_def)
 include hM
 
-lemma pos_det [decidable_eq n] : 0 < det M :=
+lemma det_pos [decidable_eq n] : 0 < det M :=
 begin
   rw hM.is_hermitian.det_eq_prod_eigenvalues,
   apply finset.prod_pos,

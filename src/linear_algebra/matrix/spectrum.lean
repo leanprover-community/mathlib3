@@ -59,7 +59,7 @@ noncomputable instance : invertible hA.eigenvector_matrix_inv :=
   invertible_of_left_inverse _ _ hA.eigenvector_matrix_mul_inv
 
 noncomputable instance : invertible hA.eigenvector_matrix :=
-  invertible_of_right_inverse _ _ hA.eigenvector_matrix_mul_inv
+invertible_of_right_inverse _ _ hA.eigenvector_matrix_mul_inv
 
 lemma eigenvector_matrix_apply (i j : n) : hA.eigenvector_matrix i j = hA.eigenvector_basis j i :=
 by simp only [eigenvector_matrix, basis.to_matrix_apply, orthonormal_basis.coe_to_basis,

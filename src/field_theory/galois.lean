@@ -74,7 +74,7 @@ lemma splits [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) :=
 
 variables (F E)
 
-instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
+instance of_fixed_field (G : Type*) [group G] [finite G] [mul_semiring_action G E] :
   is_galois (fixed_points.subfield G E) E :=
 ⟨⟩
 

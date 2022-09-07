@@ -41,7 +41,6 @@ at a specific time and is the first step in formalizing stochastic processes.
 
 filtration, stopping time, stochastic process
 
-test
 -/
 
 open filter order topological_space

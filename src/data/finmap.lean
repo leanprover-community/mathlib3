@@ -45,7 +45,7 @@ structure finmap (β : α → Type v) : Type (max u v) :=
 /-- The quotient map from `alist` to `finmap`. -/
 def alist.to_finmap (s : alist β) : finmap β := ⟨s.entries, s.nodupkeys⟩
 
-local notation `⟦`:max a `⟧`:0 := alist.to_finmap a
+local notation (name := to_finmap) `⟦`:max a `⟧`:0 := alist.to_finmap a
 
 theorem alist.to_finmap_eq {s₁ s₂ : alist β} :
   ⟦s₁⟧ = ⟦s₂⟧ ↔ s₁.entries ~ s₂.entries :=

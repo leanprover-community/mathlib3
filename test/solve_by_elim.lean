@@ -171,3 +171,7 @@ begin
   rintro ⟨n, hf | hg⟩,
   solve_by_elim* [or.inl, or.inr, Exists.intro] { max_depth := 20 },
 end
+
+-- Check that no list of arguments is needed when using a config object
+example (a : ℤ) (h : a = 2) : a = 2 :=
+by apply_assumption {use_exfalso := ff}

@@ -40,7 +40,8 @@ by rw [smul_smul, mul_right_inv, one_smul]
 add_decl_doc add_action.to_perm
 
 /-- `mul_action.to_perm` is injective on faithful actions. -/
-@[to_additive] lemma mul_action.to_perm_injective [has_faithful_smul α β] :
+@[to_additive "`add_action.to_perm` is injective on faithful actions."]
+lemma mul_action.to_perm_injective [has_faithful_smul α β] :
   function.injective (mul_action.to_perm : α → equiv.perm β) :=
 (show function.injective (equiv.to_fun ∘ mul_action.to_perm), from smul_left_injective').of_comp
 

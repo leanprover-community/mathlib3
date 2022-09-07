@@ -47,7 +47,7 @@ variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals that
 are prime and do not contain the irrelevant ideal.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def projective_spectrum :=
 {I : homogeneous_ideal 𝒜 // I.to_ideal.is_prime ∧ ¬(homogeneous_ideal.irrelevant 𝒜 ≤ I)}
 
@@ -252,7 +252,7 @@ by convert (gc_ideal 𝒜).u_infi; exact homogeneous_ideal.to_ideal_infi _
 
 lemma zero_locus_inf (I J : ideal A) :
   zero_locus 𝒜 ((I ⊓ J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.inf_le
+set.ext $ λ x, x.2.1.inf_le
 
 lemma union_zero_locus (s s' : set A) :
   zero_locus 𝒜 s ∪ zero_locus 𝒜 s' = zero_locus 𝒜 ((ideal.span s) ⊓ (ideal.span s'): ideal A) :=
@@ -260,11 +260,11 @@ by { rw zero_locus_inf, simp }
 
 lemma zero_locus_mul_ideal (I J : ideal A) :
   zero_locus 𝒜 ((I * J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.mul_le
+set.ext $ λ x, x.2.1.mul_le
 
 lemma zero_locus_mul_homogeneous_ideal (I J : homogeneous_ideal 𝒜) :
   zero_locus 𝒜 ((I * J : homogeneous_ideal 𝒜) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.mul_le
+set.ext $ λ x, x.2.1.mul_le
 
 lemma zero_locus_singleton_mul (f g : A) :
   zero_locus 𝒜 ({f * g} : set A) = zero_locus 𝒜 {f} ∪ zero_locus 𝒜 {g} :=

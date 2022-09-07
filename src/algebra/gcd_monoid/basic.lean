@@ -101,6 +101,14 @@ theorem associated_normalize (x : α) : associated x (normalize x) :=
 theorem normalize_associated (x : α) : associated (normalize x) x :=
 (associated_normalize _).symm
 
+lemma associated_normalize_iff {x y : α} :
+  associated x (normalize y) ↔ associated x y :=
+⟨λ h, h.trans (normalize_associated y), λ h, h.trans (associated_normalize y)⟩
+
+lemma normalize_associated_iff {x y : α} :
+  associated (normalize x) y ↔ associated x y :=
+⟨λ h, (associated_normalize _).trans h, λ h, (normalize_associated _).trans h⟩
+
 lemma associates.mk_normalize (x : α) : associates.mk (normalize x) = associates.mk x :=
 associates.mk_eq_mk_iff_associated.2 (normalize_associated _)
 
@@ -538,6 +546,28 @@ lemma gcd_greatest_associated {α : Type*} [cancel_comm_monoid_with_zero α] [gc
 begin
   have h := hd _ (gcd_monoid.gcd_dvd_left a b) (gcd_monoid.gcd_dvd_right a b),
   exact associated_of_dvd_dvd (gcd_monoid.dvd_gcd hda hdb) h,
+end
+
+lemma is_unit_gcd_of_eq_mul_gcd {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α]
+  {x y x' y' : α} (ex : x = gcd x y * x') (ey : y = gcd x y * y') (h : gcd x y ≠ 0) :
+  is_unit (gcd x' y') :=
+begin
+  rw ← associated_one_iff_is_unit,
+  refine associated.of_mul_left _ (associated.refl $ gcd x y) h,
+  convert (gcd_mul_left' _ _ _).symm using 1,
+  rw [← ex, ← ey, mul_one],
+end
+
+lemma extract_gcd {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α] (x y : α) :
+  ∃ x' y' d : α, x = d * x' ∧ y = d * y' ∧ is_unit (gcd x' y') :=
+begin
+  cases eq_or_ne (gcd x y) 0 with h h,
+  { obtain ⟨rfl, rfl⟩ := (gcd_eq_zero_iff x y).1 h,
+    simp_rw ← associated_one_iff_is_unit,
+    exact ⟨1, 1, 0, (zero_mul 1).symm, (zero_mul 1).symm, gcd_one_left' 1⟩ },
+  obtain ⟨x', ex⟩ := gcd_dvd_left x y,
+  obtain ⟨y', ey⟩ := gcd_dvd_right x y,
+  exact ⟨x', y', gcd x y, ex, ey, is_unit_gcd_of_eq_mul_gcd ex ey h⟩,
 end
 
 end gcd

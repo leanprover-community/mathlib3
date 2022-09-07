@@ -137,7 +137,7 @@ begin
   { rw [lift_alternating_algebra_map, ι_multi_zero_apply, algebra.algebra_map_eq_smul_one] },
   { rw [map_add, hx, hy] },
   { simp_rw [lift_alternating_ι_mul, ι_multi_succ_curry_left, lift_alternating_comp,
-      linear_map.comp_apply, algebra.lmul_left_apply, hx] },
+      linear_map.comp_apply, linear_map.mul_left_apply, hx] },
 end
 
 /-- `exterior_algebra.lift_alternating` is an equivalence. -/

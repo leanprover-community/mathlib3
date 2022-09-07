@@ -11,9 +11,60 @@ import tactic.interactive
 `congr` through the matching.  This allows more flexibility than `congr' n`, which enters uniformly
 through `n` iterations.  Instead, we can guide the matching deeper on some parts of the expression
 and stop earlier on other parts.
+
+##  Implementation notes
+
+###  Function underscores
+
+See the doc-string to `tactic.interactive.congrm` for more details.  Here we describe how to add
+more "function underscores".
+
+The pattern for generating a function underscore is to define a "generic" `n`-ary function, for some
+number `n`.  You can take a look at `tactic.congrm_fun_1, ..., tactic.congrm_fun_4`.
+These implement the "function underscores" `_₁, ..., _₄`.  If you want a different arity for your
+function, simply
+introduce
+```lean
+@[nolint unused_arguments]
+def congrm_fun_n {α₁ … αₙ ρ} {r : ρ} : α₁ → ⋯ → aₙ → ρ := λ _ … _, r
+notation `_ₙ` := congrm_fun_n
+```
+_Warning:_ `convert_to_explicit` checks that the first 18 characters in the name of `_ₙ` are
+identical to `tactic.congrm_fun_` to perform its job.  Thus, if you want to implement
+"function underscores" with different arity, either make sure that their names begin with
+`tactic.congrm_fun_` or you should change `convert_to_explicit` accordingly.
 -/
 
 namespace tactic
+
+/--  A generic function with one argument.  It is the "function underscore" input to `congrm`. -/
+@[nolint unused_arguments]
+def congrm_fun_1 {α ρ} {r : ρ} : α → ρ := λ _, r
+notation `_₁` := congrm_fun_1
+
+/--  A generic function with two arguments.  It is the "function underscore" input to `congrm`. -/
+@[nolint unused_arguments]
+def congrm_fun_2 {α β ρ} {r : ρ} : α → β → ρ := λ _ _, r
+notation `_₂` := congrm_fun_2
+
+/--  A generic function with three arguments.  It is the "function underscore" input to `congrm`. -/
+@[nolint unused_arguments]
+def congrm_fun_3 {α β γ ρ} {r : ρ} : α → β → γ → ρ := λ _ _ _, r
+notation `_₃` := congrm_fun_3
+
+/--  A generic function with four arguments.  It is the "function underscore" input to `congrm`. -/
+@[nolint unused_arguments]
+def congrm_fun_4 {α β γ δ ρ} {r : ρ} : α → β → γ → δ → ρ := λ _ _ _ _, r
+notation `_₄` := congrm_fun_4
+
+/--  Replaces a "function underscore" input to `congrm` into the correct expression,
+read off from the left-hand-side of the target expression. -/
+meta def convert_to_explicit (pat lhs : expr) : tactic expr :=
+if pat.get_app_fn.const_name.to_string.starts_with "tactic.congrm_fun_"
+then
+  pat.list_explicit_args >>= lhs.replace_explicit_args
+else
+  return pat
 
 /--
 For each element of `list congr_arg_kind` that is `eq`, add a pair `(g, pat)` to the
@@ -53,6 +104,8 @@ if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then do
   get_goals <* set_goals []
 else match pat with
 | expr.app _ _ := do
+  `(%%lhs = %%_) ← target,
+  pat ← convert_to_explicit pat lhs,
   cl ← mk_specialized_congr_lemma pat,
   H_congr_lemma ← assertv `H_congr_lemma cl.type cl.proof,
   [prf] ← get_goals,
@@ -125,6 +178,12 @@ begin
   exact h,
 end
 ```
+
+The tactic also allows for "function underscores", denoted by `_₁, ..., _₄`.  The index denotes
+the number of explicit arguments of the function to be matched.
+If `e` has a "function underscore" in a location, then the tactic reads off the function `f` that
+appears in `lhs` at the current location, replacing the *explicit* arguments of `f` by the user
+inputs to the "function underscore".  After that, `congrm` continues with its matching.
 -/
 meta def congrm (arg : parse texpr) : tactic unit := do
 try $ applyc ``_root_.eq.to_iff,

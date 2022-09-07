@@ -8,12 +8,12 @@ import tactic.linarith
 /-!
 # `remove_subs` -- a tactic for splitting nat-subtractions
 
-The tactic `remove_subs` looks for nat-subtractions in the goal and it recursively replaces
-any subexpression of the form `a - b` by two branches: one where `a ≤ b` and `a - b` is replaced
-by `0` and one where `b < a` and it tries to replace `a` by `b + c`, for some `c : ℕ`.
+Subtraction between natural numbers is defined to be `0` when it should yield a negative number.
+The tactic `remove_subs` tries to remedy this by doing a case-split on each nat-subtractions,
+depending on whether the subtraction is truncated to `0` or coincides with the usual notion of
+subtraction.
 
-If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
-also tries `linarith` on all remaining goals.
+See the tactic-doc for more details.
 -/
 
 lemma nat.le_cases (a b : ℕ) : a - b = 0 ∨ ∃ c, a = b + c :=
@@ -65,11 +65,12 @@ swap
 namespace interactive
 setup_tactic_parser
 
-/--  Iterate replacing a subtraction with two cases, depending on whether the subtraction is
-truncated to `0` or it is an "actual" subtraction.
+/--  The tactic `remove_subs` looks for nat-subtractions in the goal and it recursively replaces
+any subexpression of the form `a - b` by two branches: one where `a ≤ b` and `a - b` is replaced
+by `0` and one where `b < a` and it tries to replace `a` by `b + c`, for some `c : ℕ`.
 
-If an optional `!` is passed, then, once the case splits in `remove_subs` are done,
-the tactic also tries `linarith` on all remaining goals. -/
+If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
+also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : tactic unit := focus1 $ do
 repeat (do
   some (a, b) ← list.last' <$> (target >>= get_sub),
@@ -79,3 +80,8 @@ ite la.is_some (any_goals' $ try $ `[ linarith ]) skip
 end interactive
 
 end tactic
+add_tactic_doc
+{ name       := "remove_subs",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.remove_subs],
+  tags       := ["arithmetic", "case bashing", "finishing"] }

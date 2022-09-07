@@ -30,17 +30,20 @@ namespace tactic
 /--  `get_sub e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
 subexpression of `e`. -/
 meta def get_sub : expr → tactic (list (expr × expr))
-| `(%%a - %%b) := do [ga, gb] ← [a, b].mmap get_sub,
-                    return ((a, b) :: (ga ++ gb))
-| (expr.app f a) := do [gf, ga] ← [f, a].mmap get_sub,
-                    return (gf ++ ga)
+| `(%%a - %%b)    := do [ga, gb] ← [a, b].mmap get_sub,
+                        return ((a, b) :: (ga ++ gb))
+| `(nat.pred %%a) := do try $ to_expr ``(nat.pred_eq_sub_one) >>= rewrite_target,
+                        ga ← get_sub a,
+                        return ((a, `(1)) :: ga)
+| (expr.app f a)  := do [gf, ga] ← [f, a].mmap get_sub,
+                        return (gf ++ ga)
 | _ := pure []
 
 /--  `remove_one_sub a b` assumes that the expression `a - b` occurs in the target.
 It splits two cases:
-*  `a ≤ b`, in which case it replaces `a - b` with `0`, introduces the inequality `a ≤ b` into
-   the local context and tries `simp`;
-*  writes `a = b + c`, for some `c`, tries to substitute this equality and tries `simp`.
+*  `a ≤ b`, in which case it replaces `a - b` with `0` and introduces the inequality `a ≤ b` into
+   the local context;
+*  writes `a = b + c`, for some `c` and tries to substitute this equality.
 -/
 meta def remove_one_sub (a b : expr) : tactic unit := do
 -- introduce names with the following meanings:
@@ -75,11 +78,12 @@ meta def remove_subs (la : parse (tk "!" )?) : tactic unit := focus1 $ do
 repeat (do
   some (a, b) ← list.last' <$> (target >>= get_sub),
   remove_one_sub a b ),
-ite la.is_some (any_goals' $ try $ `[ linarith ]) skip
+if la.is_some then (any_goals' $ try $ `[ linarith ]) else skip
 
 end interactive
 
 end tactic
+
 add_tactic_doc
 { name       := "remove_subs",
   category   := doc_category.tactic,

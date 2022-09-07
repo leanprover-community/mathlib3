@@ -6,3 +6,6 @@ by remove_subs!
 
 example (n m : ℕ) : nat.pred n - m = nat.pred (n - m) :=
 show n - 1 - m = n - m - 1, by remove_subs!
+
+example (n m : ℕ) : nat.pred n - m = nat.pred (n - m) :=
+by remove_subs!

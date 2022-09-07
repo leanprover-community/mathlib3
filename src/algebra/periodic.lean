@@ -85,7 +85,7 @@ end
 lemma _root_.multiset.periodic_prod [has_add α] [comm_monoid β]
   (s : multiset (α → β)) (hs : ∀ f ∈ s, periodic f c) :
   periodic s.prod c :=
-s.prod_to_list ▸ s.to_list.periodic_prod $ λ f hf, hs f $ (multiset.mem_to_list f s).mp hf
+s.prod_to_list ▸ s.to_list.periodic_prod $ λ f hf, hs f $ multiset.mem_to_list.mp hf
 
 @[to_additive]
 lemma _root_.finset.periodic_prod [has_add α] [comm_monoid β]

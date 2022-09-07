@@ -501,7 +501,7 @@ by rw [is_hilbert_sum.linear_isometry_equiv_symm_apply_single,
 
 @[simp] protected lemma coe_mk (hsp : ⊤ ≤ (span 𝕜 (set.range v)).topological_closure) :
   ⇑(hilbert_basis.mk hv hsp) = v :=
-funext $ orthonormal.linear_isometry_equiv_symm_apply_single_one hv _
+by apply (funext $ orthonormal.linear_isometry_equiv_symm_apply_single_one hv hsp)
 
 /-- An orthonormal family of vectors whose span has trivial orthogonal complement is a Hilbert
 basis. -/

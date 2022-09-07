@@ -375,7 +375,7 @@ begin
   have bound := calc
     (p * (X - C r)).nat_degree
          ≤ p.nat_degree + (X - C r).nat_degree : nat_degree_mul_le
-     ... ≤ p.nat_degree + 1 : add_le_add_left nat_degree_X_sub_C_le _
+     ... ≤ p.nat_degree + 1 : add_le_add_left (nat_degree_X_sub_C_le _) _
      ... < p.nat_degree + 2 : lt_add_one _,
   rw sum_over_range' _ _ (p.nat_degree + 2) bound,
   swap,

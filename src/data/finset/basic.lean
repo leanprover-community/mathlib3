@@ -2506,6 +2506,8 @@ end to_list
 
 section disj_Union
 
+variables {s s₁ s₂ : finset α} {t t₁ t₂ : α → finset β}
+
 /-- `disj_Union s f h` is the set such that `a ∈ disj_Union s f` iff `a ∈ f i` for some `i ∈ s`.
 It is the same as `s.bUnion f`, but it does not require decidable equality on the type. The
 hypothesis ensures that the sets are disjoint. -/
@@ -2519,9 +2521,12 @@ def disj_Union (s : finset α) (t : α → finset β)
 
 @[simp] theorem disj_Union_empty (t : α → finset β) : disj_Union ∅ t (by simp) = ∅ := rfl
 
-@[simp] lemma mem_disj_Union {b : β} {s : finset α} {t : α → finset β} {h} :
+@[simp] lemma mem_disj_Union {b : β} {h} :
   b ∈ s.disj_Union t h ↔ ∃ a ∈ s, b ∈ t a :=
 by simp only [mem_def, disj_Union_val, mem_bind, exists_prop]
+
+@[simp, norm_cast] lemma coe_disj_Union {h} : (s.disj_Union t h : set β) = ⋃ x ∈ (s : set α), t x :=
+by simp only [set.ext_iff, mem_disj_Union, set.mem_Union, iff_self, mem_coe, implies_true_iff]
 
 @[simp] theorem disj_Union_cons (a : α) (s : finset α) (ha : a ∉ s) (f : α → finset β) (H) :
   disj_Union (cons a s ha) f H = (f a).disj_union
@@ -2530,6 +2535,24 @@ by simp only [mem_def, disj_Union_val, mem_bind, exists_prop]
     (λ b hb h, let ⟨c, hc, h⟩ := mem_disj_Union.mp h in
       H (mem_cons_self a s) (mem_cons_of_mem hc) (ne_of_mem_of_not_mem hc ha).symm b hb h) :=
 eq_of_veq $ multiset.cons_bind _ _ _
+
+@[simp] lemma singleton_disj_Union (a : α) {h} : finset.disj_Union {a} t h = t a :=
+eq_of_veq $ multiset.singleton_bind _ _
+
+theorem map_disj_Union {f : α ↪ β} {s : finset α} {t : β → finset γ} {h} :
+  (s.map f).disj_Union t h = s.disj_Union (λa, t (f a))
+    (λ a ha b hb hab, h (mem_map_of_mem _ ha) (mem_map_of_mem _ hb) (f.injective.ne hab)) :=
+eq_of_veq $ multiset.bind_map _ _ _
+
+theorem bUnion_map {s : finset α} {t : α → finset β} {f : β ↪ γ} {h} :
+  (s.disj_Union t h).map f = s.disj_Union (λa, (t a).map f)
+    (λ a ha b hb hab x hxa hxb, begin
+      obtain ⟨xa, hfa, rfl⟩ := mem_map.mp hxa,
+      obtain ⟨xb, hfb, hfab⟩ := mem_map.mp hxb,
+      obtain rfl := f.injective hfab,
+      exact h ha hb hab _ hfa hfb,
+    end) :=
+eq_of_veq $ multiset.map_bind _ _ _
 
 end disj_Union
 

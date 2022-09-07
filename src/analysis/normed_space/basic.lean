@@ -519,16 +519,6 @@ instance pi.normed_algebra {E : ι → Type*} [fintype ι]
 
 end normed_algebra
 
-@[priority 100] -- see Note [lower instance priority]
-instance non_unital_alg_hom_class.to_non_unital_ring_hom_class {F R A B : Type*} [monoid R]
-  [non_unital_non_assoc_semiring A] [non_unital_non_assoc_semiring B] [distrib_mul_action R A]
-  [distrib_mul_action R B] [hF : non_unital_alg_hom_class F R A B] :
-  non_unital_ring_hom_class F A B :=
-{ .. hF }
-
--- `R` becomes a metavariable but that's fine because it's an `out_param`
-attribute [nolint dangerous_instance] non_unital_alg_hom_class.to_non_unital_ring_hom_class
-
 /-- A non-unital algebra homomorphism from an `algebra` to a `normed_algebra` induces a
 `normed_algebra` structure on the domain, using the `semi_normed_ring.induced` norm.
 

@@ -40,6 +40,7 @@ variables [comm_semiring R] [comm_semiring S] [comm_semiring A]
 variables [algebra R S] [algebra S A] [algebra R A]
 variables [is_scalar_tower R S A]
 
+variables (R S A) {B}
 theorem aeval_apply (f : σ → A) (p : mv_polynomial σ R) : mv_polynomial.aeval f p =
   mv_polynomial.aeval f (mv_polynomial.map (algebra_map R S) p) :=
 by rw [mv_polynomial.aeval_def, mv_polynomial.aeval_def, mv_polynomial.eval₂_map,

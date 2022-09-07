@@ -516,8 +516,9 @@ rfl
 class set_like.graded_monoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   (A : ι → S) extends set_like.has_graded_one A, set_like.has_graded_mul A : Prop
 
-instance set_like.graded_monoid.to_has_graded_smul
-  {S : Type*} [set_like S R] [monoid R] [add_monoid ι] (A : ι → S) [set_like.graded_monoid A] :
+/-- Internally graded version of `has_mul.to_has_smul`. -/
+instance set_like.has_graded_mul.to_has_graded_smul
+  {S : Type*} [set_like S R] (A : ι → S) [set_like.has_graded_mul A] :
   set_like.has_graded_smul A A :=
 { smul_mem := λ i j ai bj hi hj, set_like.graded_monoid.mul_mem hi hj, }
 

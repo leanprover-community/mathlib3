@@ -2504,6 +2504,12 @@ cons_eq_insert _ _ h ▸ to_list_cons _
 
 end to_list
 
+/-!
+### disj_Union
+
+This section is about the bounded union of a disjoint indexed family `t : α → finset β` of finite
+sets over a finite set `s : finset α`. In most cases `finset.bUnion` should be preferred.
+-/
 section disj_Union
 
 variables {s s₁ s₂ : finset α} {t t₁ t₂ : α → finset β}
@@ -2544,7 +2550,7 @@ theorem map_disj_Union {f : α ↪ β} {s : finset α} {t : β → finset γ} {h
     (λ a ha b hb hab, h (mem_map_of_mem _ ha) (mem_map_of_mem _ hb) (f.injective.ne hab)) :=
 eq_of_veq $ multiset.bind_map _ _ _
 
-theorem bUnion_map {s : finset α} {t : α → finset β} {f : β ↪ γ} {h} :
+theorem disj_Union_map {s : finset α} {t : α → finset β} {f : β ↪ γ} {h} :
   (s.disj_Union t h).map f = s.disj_Union (λa, (t a).map f)
     (λ a ha b hb hab x hxa hxb, begin
       obtain ⟨xa, hfa, rfl⟩ := mem_map.mp hxa,
@@ -2553,6 +2559,21 @@ theorem bUnion_map {s : finset α} {t : α → finset β} {f : β ↪ γ} {h} :
       exact h ha hb hab _ hfa hfb,
     end) :=
 eq_of_veq $ multiset.map_bind _ _ _
+
+lemma disj_Union_disj_Union (s : finset α) (f : α → finset β) (g : β → finset γ)
+  (h1) (h2) :
+  (s.disj_Union f h1).disj_Union g h2 =
+    s.attach.disj_Union (λ a, (f a).disj_Union g $
+      λ b hb c hc, h2 (mem_disj_Union.mpr ⟨_, a.prop, hb⟩) (mem_disj_Union.mpr ⟨_, a.prop, hc⟩))
+      (λ a ha b hb hab x hxa hxb, begin
+        obtain ⟨xa, hfa, hga⟩ := mem_disj_Union.mp hxa,
+        obtain ⟨xb, hfb, hgb⟩ := mem_disj_Union.mp hxb,
+        refine h2
+          (mem_disj_Union.mpr ⟨_, a.prop, hfa⟩) (mem_disj_Union.mpr ⟨_, b.prop, hfb⟩) _ _ hga hgb,
+        rintro rfl,
+        exact h1 a.prop b.prop (subtype.coe_injective.ne hab) _ hfa hfb,
+      end) :=
+eq_of_veq $ multiset.bind_assoc.trans (multiset.attach_bind_coe _ _).symm
 
 end disj_Union
 

@@ -1079,8 +1079,12 @@ theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
 quot.induction_on s $ λ l H, congr_arg coe $ map_pmap g f l H
 
 theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
-  (s) : ∀ H, pmap f s H = s.attach.map (λ x, f x.1 (H _ x.2)) :=
+  (s) : ∀ H, pmap f s H = s.attach.map (λ x, f x (H _ x.prop)) :=
 quot.induction_on s $ λ l H, congr_arg coe $ pmap_eq_map_attach f l H
+
+@[simp] theorem attach_map_coe (s : multiset α) (f : α → β) :
+  s.attach.map (λ i, f i) = s.map f :=
+quot.induction_on s $ λ l, congr_arg coe $ attach_map_coe l f
 
 theorem attach_map_val (s : multiset α) : s.attach.map subtype.val = s :=
 quot.induction_on s $ λ l, congr_arg coe $ attach_map_val l

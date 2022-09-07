@@ -196,7 +196,7 @@ theorem nodup_map_iff {f : α → β} {l : list α} (hf : injective f) : nodup (
 ⟨nodup.of_map _, nodup.map hf⟩
 
 @[simp] theorem nodup_attach {l : list α} : nodup (attach l) ↔ nodup l :=
-⟨λ h, attach_map_val l ▸ h.map (λ a b, subtype.eq),
+⟨λ h, attach_map_coe l id ▸ h.map (λ a b, subtype.eq),
   λ h, nodup.of_map subtype.val ((attach_map_val l).symm ▸ h)⟩
 
 alias nodup_attach ↔ nodup.of_attach nodup.attach

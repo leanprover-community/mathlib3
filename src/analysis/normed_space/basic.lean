@@ -519,6 +519,26 @@ instance pi.normed_algebra {E : ι → Type*} [fintype ι]
 
 end normed_algebra
 
+@[priority 100] -- see Note [lower instance priority]
+instance non_unital_alg_hom_class.to_non_unital_ring_hom_class {F R A B : Type*} [monoid R]
+  [non_unital_non_assoc_semiring A] [non_unital_non_assoc_semiring B] [distrib_mul_action R A]
+  [distrib_mul_action R B] [hF : non_unital_alg_hom_class F R A B] :
+  non_unital_ring_hom_class F A B :=
+{ .. hF }
+
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] non_unital_alg_hom_class.to_non_unital_ring_hom_class
+
+/-- A non-unital algebra homomorphism from an `algebra` to a `normed_algebra` induces a
+`normed_algebra` structure on the domain, using the `semi_normed_ring.induced` norm.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_algebra.induced {F : Type*} (α β γ : Type*) [normed_field α] [ring β]
+  [algebra α β] [semi_normed_ring γ] [normed_algebra α γ] [non_unital_alg_hom_class F α β γ]
+  (f : F) : @normed_algebra α β _ (semi_normed_ring.induced β γ f) :=
+{ norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
+
 section restrict_scalars
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']

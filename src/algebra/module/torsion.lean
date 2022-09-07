@@ -141,7 +141,7 @@ namespace submodule
 
 /-- The `a`-torsion submodule for `a` in `R`, containing all elements `x` of `M` such that
   `a • x = 0`. -/
-@[simps] def torsion_by (a : R) : submodule R M := (distrib_mul_action.to_linear_map _ _ a).ker
+@[simps] def torsion_by (a : R) : submodule R M := (distrib_mul_action.to_linear_map R M a).ker
 
 /-- The submodule containing all elements `x` of `M` such that `a • x = 0` for all `a` in `s`. -/
 @[simps] def torsion_by_set (s : set R) : submodule R M := Inf (torsion_by R M '' s)

@@ -93,9 +93,21 @@ finsupp.induction_linear f h0 hadd hsingle
 instance polynomial_module : module R[X] (polynomial_module R M) :=
 module_polynomial_of_endo (finsupp.lmap_domain _ _ nat.succ)
 
-instance (M : Type u) [add_comm_group M] [module R M] :
-  is_scalar_tower R R[X] (polynomial_module R M) :=
-module_polynomial_of_endo.is_scalar_tower _
+instance (M : Type u) [add_comm_group M] [module R M] [module S M] [is_scalar_tower S R M] :
+  is_scalar_tower S R (polynomial_module R M) :=
+finsupp.is_scalar_tower _ _
+
+instance is_scalar_tower' (M : Type u) [add_comm_group M] [module R M] [module S M]
+  [is_scalar_tower S R M] :
+  is_scalar_tower S R[X] (polynomial_module R M) :=
+begin
+  haveI : is_scalar_tower R R[X] (polynomial_module R M) :=
+    module_polynomial_of_endo.is_scalar_tower _,
+  constructor,
+  intros x y z,
+  rw [← @is_scalar_tower.algebra_map_smul S R, ← @is_scalar_tower.algebra_map_smul S R,
+    smul_assoc],
+end
 
 @[simp]
 lemma monomial_smul_single (i : ℕ) (r : R) (j : ℕ) (m : M) :
@@ -176,5 +188,108 @@ noncomputable
 def equiv_polynomial {S : Type*} [comm_ring S] [algebra R S] :
   polynomial_module R S ≃ₗ[R] S[X] :=
 { map_smul' := λ r x, rfl, ..(polynomial.to_finsupp_iso S).symm  }
+
+variables (R' : Type*) {M' : Type*} [comm_ring R'] [add_comm_group M'] [module R' M']
+variables [algebra R R'] [module R M'] [is_scalar_tower R R' M']
+
+/-- The image of a polynomial under a linear map. -/
+noncomputable
+def map (f : M →ₗ[R] M') : polynomial_module R M →ₗ[R] polynomial_module R' M' :=
+finsupp.map_range.linear_map f
+
+@[simp]
+lemma map_single (f : M →ₗ[R] M') (i : ℕ) (m : M) :
+  map R' f (single R i m) = single R' i (f m) :=
+finsupp.map_range_single
+
+lemma map_smul (f : M →ₗ[R] M') (p : R[X]) (q : polynomial_module R M) :
+  map R' f (p • q) = p.map (algebra_map R R') • map R' f q :=
+begin
+  apply induction_linear q,
+  { rw [smul_zero, map_zero, smul_zero] },
+  { intros f g e₁ e₂, rw [smul_add, map_add, e₁, e₂, map_add, smul_add] },
+  intros i m,
+  apply polynomial.induction_on' p,
+  { intros p q e₁ e₂, rw [add_smul, map_add, e₁, e₂, polynomial.map_add, add_smul] },
+  { intros j s,
+    rw [monomial_smul_single, map_single, polynomial.map_monomial, map_single,
+      monomial_smul_single, f.map_smul, algebra_map_smul] }
+end
+
+/-- Evaulate a polynomial `p : polynomial_module R M` at `r : R`. -/
+@[simps (lemmas_only)]
+def eval (r : R) : polynomial_module R M →ₗ[R] M :=
+{ to_fun := λ p, p.sum (λ i m, r ^ i • m),
+  map_add' := λ x y, finsupp.sum_add_index' (λ _, smul_zero _) (λ _ _ _, smul_add _ _ _),
+  map_smul' := λ s m, begin
+    refine (finsupp.sum_smul_index' _).trans _,
+    { exact λ i, smul_zero _ },
+    { simp_rw [← smul_comm s, ← finsupp.smul_sum], refl }
+  end }
+
+@[simp]
+lemma eval_single (r : R) (i : ℕ) (m : M) : eval r (single R i m) = r ^ i • m :=
+finsupp.sum_single_index (smul_zero _)
+
+lemma eval_smul (p : R[X]) (q : polynomial_module R M) (r : R) :
+  eval r (p • q) = p.eval r • eval r q :=
+begin
+  apply induction_linear q,
+  { rw [smul_zero, map_zero, smul_zero] },
+  { intros f g e₁ e₂, rw [smul_add, map_add, e₁, e₂, map_add, smul_add] },
+  intros i m,
+  apply polynomial.induction_on' p,
+  { intros p q e₁ e₂, rw [add_smul, map_add, polynomial.eval_add, e₁, e₂, add_smul] },
+  { intros j s,
+    rw [monomial_smul_single, eval_single, polynomial.eval_monomial, eval_single,
+      smul_comm, ← smul_smul, pow_add, mul_smul] }
+end
+
+@[simp]
+lemma eval_map (f : M →ₗ[R] M') (q : polynomial_module R M) (r : R) :
+  eval (algebra_map R R' r) (map R' f q) = f (eval r q) :=
+begin
+  apply induction_linear q,
+  { simp_rw map_zero },
+  { intros f g e₁ e₂, simp_rw [map_add, e₁, e₂] },
+  { intros i m,
+    rw [map_single, eval_single, eval_single, f.map_smul, ← map_pow, algebra_map_smul] }
+end
+
+@[simp]
+lemma eval_map' (f : M →ₗ[R] M) (q : polynomial_module R M) (r : R) :
+  eval r (map R f q) = f (eval r q) :=
+eval_map R f q r
+
+/-- `comp p q` is the composition of `p : R[X]` and `q : M[X]` as `q(p(x))`.  -/
+@[simps] noncomputable
+def comp (p : R[X]) : polynomial_module R M →ₗ[R] polynomial_module R M :=
+((eval p).restrict_scalars R).comp (map R[X] (lsingle R 0))
+
+lemma comp_single (p : R[X]) (i : ℕ) (m : M) : comp p (single R i m) = p ^ i • single R 0 m :=
+begin
+  rw comp_apply,
+  erw [map_single, eval_single],
+  refl
+end
+
+lemma comp_eval (p : R[X]) (q : polynomial_module R M) (r : R) :
+  eval r (comp p q) = eval (p.eval r) q :=
+begin
+  rw ← linear_map.comp_apply,
+  apply induction_linear q,
+  { rw [map_zero, map_zero] },
+  { intros _ _ e₁ e₂, rw [map_add, map_add, e₁, e₂] },
+  { intros i m,
+    rw [linear_map.comp_apply, comp_single, eval_single, eval_smul, eval_single, pow_zero,
+      one_smul, polynomial.eval_pow] }
+end
+
+lemma comp_smul (p p' : R[X]) (q : polynomial_module R M) :
+  comp p (p' • q) = p'.comp p • comp p q :=
+begin
+  rw [comp_apply, map_smul, eval_smul, polynomial.comp, polynomial.eval_map, comp_apply],
+  refl
+end
 
 end polynomial_module

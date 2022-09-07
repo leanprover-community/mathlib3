@@ -361,6 +361,57 @@ lemma map_proj_nhds (ex : x ∈ e.source) : map proj (𝓝 x) = 𝓝 (proj x) :=
 by rw [← e.coe_fst ex, ← map_congr (e.coe_fst_eventually_eq_proj ex), ← map_map, ← e.coe_coe,
   e.to_local_homeomorph.map_nhds_eq ex, map_fst_nhds]
 
+lemma preimage_subset_source {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s ⊆ e.source :=
+λ p hp, e.mem_source.mpr (hb hp)
+
+lemma image_preimage_eq_prod_univ {s : set B} (hb : s ⊆ e.base_set) :
+  e '' (proj ⁻¹' s) = s ×ˢ univ :=
+subset.antisymm (image_subset_iff.mpr (λ p hp,
+  ⟨(e.proj_to_fun p (e.preimage_subset_source hb hp)).symm ▸ hp, trivial⟩)) (λ p hp,
+  let hp' : p ∈ e.target := e.mem_target.mpr (hb hp.1) in
+  ⟨e.inv_fun p, mem_preimage.mpr ((e.proj_symm_apply hp').symm ▸ hp.1), e.apply_symm_apply hp'⟩)
+
+/-- The preimage of a subset of the base set is homeomorphic to the product with the fiber. -/
+def preimage_homeomorph {s : set B} (hb : s ⊆ e.base_set) : proj ⁻¹' s ≃ₜ s × F :=
+(e.to_local_homeomorph.homeomorph_of_image_subset_source (e.preimage_subset_source hb)
+  (e.image_preimage_eq_prod_univ hb)).trans
+  ((homeomorph.set.prod s univ).trans ((homeomorph.refl s).prod_congr (homeomorph.set.univ F)))
+
+@[simp] lemma preimage_homeomorph_apply {s : set B} (hb : s ⊆ e.base_set) (p : proj ⁻¹' s) :
+  e.preimage_homeomorph hb p = (⟨proj p, p.2⟩, (e p).2) :=
+prod.ext (subtype.ext (e.proj_to_fun p (e.mem_source.mpr (hb p.2)))) rfl
+
+@[simp] lemma preimage_homeomorph_symm_apply {s : set B} (hb : s ⊆ e.base_set) (p : s × F) :
+  (e.preimage_homeomorph hb).symm p = ⟨e.symm (p.1, p.2), ((e.preimage_homeomorph hb).symm p).2⟩ :=
+rfl
+
+/-- The source is homeomorphic to the product of the base set with the fiber. -/
+def source_homeomorph_base_set_prod : e.source ≃ₜ e.base_set × F :=
+(homeomorph.set_congr e.source_eq).trans (e.preimage_homeomorph subset_rfl)
+
+@[simp] lemma source_homeomorph_base_set_prod_apply (p : e.source) :
+  e.source_homeomorph_base_set_prod p = (⟨proj p, e.mem_source.mp p.2⟩, (e p).2) :=
+e.preimage_homeomorph_apply subset_rfl ⟨p, e.mem_source.mp p.2⟩
+
+@[simp] lemma source_homeomorph_base_set_prod_symm_apply (p : e.base_set × F) :
+  e.source_homeomorph_base_set_prod.symm p =
+    ⟨e.symm (p.1, p.2), (e.source_homeomorph_base_set_prod.symm p).2⟩ :=
+rfl
+
+/-- Each fiber of a trivialization is homeomorphic to the specified fiber. -/
+def preimage_singleton_homeomorph {b : B} (hb : b ∈ e.base_set) : proj ⁻¹' {b} ≃ₜ F :=
+(e.preimage_homeomorph (set.singleton_subset_iff.mpr hb)).trans (((homeomorph.homeomorph_of_unique
+  ({b} : set B) punit).prod_congr (homeomorph.refl F)).trans (homeomorph.punit_prod F))
+
+@[simp] lemma preimage_singleton_homeomorph_apply {b : B} (hb : b ∈ e.base_set)
+  (p : proj ⁻¹' {b}) : e.preimage_singleton_homeomorph hb p = (e p).2 :=
+rfl
+
+@[simp] lemma preimage_singleton_homeomorph_symm_apply {b : B} (hb : b ∈ e.base_set) (p : F) :
+  (e.preimage_singleton_homeomorph hb).symm p =
+    ⟨e.symm (b, p), by rw [mem_preimage, e.proj_symm_apply' hb, mem_singleton_iff]⟩ :=
+rfl
+
 /-- In the domain of a bundle trivialization, the projection is continuous-/
 lemma continuous_at_proj (ex : x ∈ e.source) : continuous_at proj x :=
 (e.map_proj_nhds ex).le
@@ -769,9 +820,8 @@ begin
   done. Otherwise we show that `proj` can be trivialized over a larger interval `[a, d]`,
   `d ∈ (c, b]`, hence `c` is not an upper bound of `s`. -/
   cases hc.2.eq_or_lt with heq hlt, { exact ⟨ec, heq ▸ hec⟩ },
-  suffices : ∃ (d ∈ Ioc c b) (e : trivialization F proj), Icc a d ⊆ e.base_set,
-  { rcases this with ⟨d, hdcb, hd⟩,
-    exact ((hsc.1 ⟨⟨hc.1.trans hdcb.1.le, hdcb.2⟩, hd⟩).not_lt hdcb.1).elim },
+  rsuffices ⟨d, hdcb, hd⟩ : ∃ (d ∈ Ioc c b) (e : trivialization F proj), Icc a d ⊆ e.base_set,
+  { exact ((hsc.1 ⟨⟨hc.1.trans hdcb.1.le, hdcb.2⟩, hd⟩).not_lt hdcb.1).elim },
   /- Since the base set of `ec` is open, it includes `[c, d)` (hence, `[a, d)`) for some
   `d ∈ (c, b]`. -/
   obtain ⟨d, hdcb, hd⟩ : ∃ d ∈ Ioc c b, Ico c d ⊆ ec.base_set :=

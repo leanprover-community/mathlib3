@@ -66,7 +66,37 @@ end
 
 lemma cayley_connected [nonempty G] [decidable_eq S] : (cayley m).connected := ⟨cayley_preconnected _⟩
 
-def cayley_locally_finite (Sfin : finite S) : (cayley m).locally_finite := sorry
+def gens_as_els : set G := set.range (λ s : S, m (free_group.of s))
+def gens_as_els.finite [fintype S] : (gens_as_els m).finite :=
+by apply set.finite_range
+
+lemma cayley_neighbor_set_sub (g : G) :
+  (cayley m).neighbor_set g ⊆ (set.image (λ (x : G), g * x) (gens_as_els m))
+                              ∪ (set.image (λ (x : G), g * x ⁻¹) (gens_as_els m)) :=
+begin
+  rintro h hn,
+  simp only [cayley.adj_iff, simple_graph.mem_neighbor_set, ne.def, bool.exists_bool,
+             free_group.of_gen_false_inv,free_group.of_gen_to_of, map_inv] at hn,
+  rcases hn with ⟨ne,⟨s,rfl|rfl⟩⟩,
+  { right,
+    unfold gens_as_els,
+    simp only [set.mem_image, set.mem_range, exists_exists_eq_and, exists_apply_eq_apply]},
+  { left,
+    unfold gens_as_els,
+    simp only [set.image_mul_left, set.mem_preimage, inv_mul_cancel_left, set.mem_range,
+               exists_apply_eq_apply]}
+end
+
+noncomputable def cayley_locally_finite [fintype S] : (cayley m).locally_finite :=
+begin
+  rintro g,
+  --rw cayley_neighbor_set_eq,
+  apply set.finite.fintype,
+  apply set.finite.subset _ (cayley_neighbor_set_sub m g),
+  apply set.finite.union;
+  apply set.finite.image;
+  apply gens_as_els.finite,
+end
 
 def mul_isom (g : G) : (cayley m) ≃g (cayley m) :=
 begin

@@ -81,4 +81,30 @@ def map {β} (f : α → β) : tree α → tree β
 | nil := nil
 | (node a l r) := node (f a) (map l) (map r)
 
+/-- The number of nodes (including leaves) of a binary tree -/
+@[simp] def nodes : tree α → ℕ
+| nil := 1
+| (node _ a b) := a.nodes + b.nodes + 1
+
+/-- The number of leaves of a binary tree -/
+@[simp] def leaves : tree α → ℕ
+| nil := 1
+| (node _ a b) := a.leaves + b.leaves
+
+lemma leaves_pos (x : tree α) : 0 < x.leaves :=
+by { induction x, { exact nat.zero_lt_one, }, apply nat.lt_add_left, assumption, }
+
+/-- A non-nil ptree; useful when we want an arbitrary value other than `nil` -/
+abbreviation non_nil [inhabited α] : tree α := node default nil nil
+
+@[simp] lemma non_nil_ne [inhabited α] : non_nil ≠ (@nil α) := by trivial
+
+@[simp] def left : tree α → tree α
+| nil := nil
+| (node _ l r) := l
+
+@[simp] def right : tree α → tree α
+| nil := nil
+| (node _ l r) := r
+
 end tree

@@ -241,41 +241,33 @@ end
 
 /-- For `n : ℕ`, define `w n` as `2^(4*n) * n!^4 / ((2*n)!^2 * (2*n + 1))` -/
 noncomputable def w (n : ℕ) : ℝ :=
-  ((2 : ℝ) ^ (4 * n) * (n.factorial) ^ 4) / ((((2 * n).factorial) ^ 2) * (2 * (n : ℝ) + 1))
+(2 ^ (4 * n) * n.factorial ^ 4) / ((2 * n).factorial ^ 2 * (2 * n + 1))
 
 /-- The sequence `w n` converges to `π/2` -/
 lemma wallis_consequence : tendsto (λ (n : ℕ), w n) at_top (𝓝 (π/2)) :=
 begin
-  convert equality1,
-  ext n,
-  induction n with d hd,
-  { rw [w, Ico_self, cast_zero, prod_empty, mul_zero, mul_zero, pow_zero, factorial_zero, cast_one,
-      one_pow, one_pow, mul_zero, zero_add, mul_one, div_one], },
-  rw [prod_Ico_succ_top, ← hd, w, w, wallis_inside_prod],
-  repeat {rw mul_succ},
-  rw [factorial_succ, factorial_succ, factorial_succ],
-  push_cast,
-  rw [zero_add, one_add_one_eq_two],
-  rw [pow_two, pow_two, pow_add],
-  have : 2 * ((d : ℝ) + 1) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
-  have : 2 * (d : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
-  have : 2 * ((d : ℝ) + 1) - 1 ≠ 0, by {ring_nf, norm_cast, exact succ_ne_zero _},
-  have : 2 * (d : ℝ) + 1 + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
-  have : (_ ≠ (0 : ℝ)) := cast_ne_zero.mpr (factorial_ne_zero (2 * d)),
-  have : ((2 * d).factorial : ℝ) * ((2 * d).factorial : ℝ) * (2 * (d : ℝ) + 1) ≠ 0, by
-    apply_rules [mul_ne_zero],
-  have : (2 * (d : ℝ) + 1 + 1) * ((2 * ↑d + 1) * ↑((2 * d).factorial)) *
-        ((2 * ↑d + 1 + 1) * ((2 * ↑d + 1) * ↑((2 * d).factorial))) * (2 * (↑d + 1) + 1) ≠ 0, by
-    apply_rules [mul_ne_zero],
-  field_simp,
-  ring_nf,
-  exact succ_le_succ (zero_le d),
+  convert tendsto_prod_pi_div_two,
+  funext n,
+  induction n with n ih,
+  { rw [w, prod_range_zero, cast_zero, mul_zero, pow_zero, one_mul, mul_zero, factorial_zero,
+        cast_one, one_pow, one_pow, one_mul, mul_zero, zero_add, div_one] },
+  rw [w, prod_range_succ, ←ih, w, _root_.div_mul_div_comm, _root_.div_mul_div_comm],
+  refine (div_eq_div_iff (ne_of_gt _) (ne_of_gt _)).mpr _,
+  { exact mul_pos (pow_pos (cast_pos.mpr (2 * n.succ).factorial_pos) 2)
+      (add_pos (mul_pos two_pos (cast_pos.mpr n.succ_pos)) one_pos) },
+  { let h : 0 < 2 * (n : ℝ) + 1 :=
+    add_pos_of_nonneg_of_pos (mul_nonneg zero_le_two n.cast_nonneg) one_pos,
+    exact mul_pos (mul_pos (pow_pos (cast_pos.mpr (2 * n).factorial_pos) 2) h)
+      (mul_pos h (add_pos_of_nonneg_of_pos (mul_nonneg zero_le_two n.cast_nonneg) three_pos)) },
+  { simp_rw [nat.mul_succ, factorial_succ, succ_eq_add_one, pow_succ],
+    push_cast,
+    ring_nf },
 end
 
 /-- For `n : ℕ`, define `c n` as
 $\sqrt{2n}(\frac{n}{e})^{4n}*\frac{2^{4n}}{(\sqrt{4n}(\frac{2n}{e})^(2n))^2 * (2n+1)}$ -/
-noncomputable def c (n : ℕ) : ℝ := ((sqrt (2 * n) * ((n / (exp 1)) ^ n)) ^ 4) * 2 ^ (4 * n) /
-  (((sqrt (4 * n) * (((2 * n) / (exp 1))) ^ (2 * n))) ^ 2 * (2 * n + 1))
+noncomputable def c (n : ℕ) : ℝ := (sqrt (2 * n) * (n / exp 1) ^ n) ^ 4 * 2 ^ (4 * n) /
+  ((sqrt (4 * n) * (((2 * n) / exp 1)) ^ (2 * n)) ^ 2 * (2 * n + 1))
 
 /-- For any `n : ℕ`, we have `c n` = n / (2 * n + 1) -/
 lemma rest_cancel (n : ℕ) : (n : ℝ) / (2 * n + 1) = c n :=

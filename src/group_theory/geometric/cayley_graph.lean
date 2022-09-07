@@ -5,6 +5,7 @@ Authors: Georgi Kocharyan
 -/
 import combinatorics.simple_graph.metric
 import group_theory.geometric.marked_group
+import data.finset.basic
 
 /-!
 # Cayley graphs
@@ -64,6 +65,47 @@ begin
 end
 
 lemma cayley_connected [nonempty G] [decidable_eq S] : (cayley m).connected := ⟨cayley_preconnected _⟩
+
+def cayley_locally_finite (Sfin : finite S) : (cayley m).locally_finite := sorry
+
+def mul_isom (g : G) : (cayley m) ≃g (cayley m) :=
+begin
+  fsplit,
+  { refine ⟨(λ x, g * x),(λx, g ⁻¹ * x),_,_⟩,
+    { dsimp only [function.left_inverse],
+      funext x, simp },
+    { dsimp only [function.right_inverse,function.left_inverse],
+      funext x, simp },},
+  rintro a b,
+  simp only [cayley.adj_iff, equiv.coe_fn_mk, ne.def, mul_right_inj, bool.exists_bool,
+             free_group.of_gen_false_inv, free_group.of_gen_to_of, map_inv, and.congr_right_iff],
+  rintro,
+  apply exists_congr,
+  rintro,
+  apply or_congr; rw mul_assoc;
+  apply function.injective.eq_iff;
+  apply function.bijective.injective;
+  apply group.mul_left_bijective,
+end
+
+-- Don't know of a good name
+lemma infinite_well_spaced [infinite G] [decidable_eq G] (K : finset G) :
+  ∃ g : G, disjoint (finset.image (mul_isom m g) K) K :=
+begin
+  let KKm := finset.bUnion K (λ x, finset.image (λ y, x * y ⁻¹) K),
+  obtain ⟨g,gKKm⟩ := infinite.exists_not_mem_finset KKm,
+  use g,
+  rintro _ h,
+  simp only [finset.inf_eq_inter, finset.mem_inter, finset.mem_image, exists_prop] at h,
+  obtain ⟨⟨k,kK,rfl⟩,gkK⟩ := h,
+  suffices : (g * k) * k⁻¹ ∈ KKm, {
+    rw [mul_assoc,mul_right_inv,mul_one] at this,
+    exact gKKm this,},
+  rw finset.mem_bUnion,
+  use [g*k,gkK],
+  simp only [finset.mem_image, exists_prop],
+  use [k,kK],
+end
 
 variables (g : G)
 

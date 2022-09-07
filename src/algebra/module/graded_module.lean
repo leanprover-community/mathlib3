@@ -128,18 +128,21 @@ open graded_monoid
 
 include σ' A σ M
 
--- variables [add_comm_monoid M] [module A M] [set_like σ M] [add_submonoid_class σ' A]
---   [add_submonoid_class σ M] [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜]
+instance gmul_action [add_monoid M] [distrib_mul_action A M]
+  [set_like σ M] [add_submonoid_class σ M] [set_like.graded_monoid 𝓐]
+  [set_like.has_graded_smul 𝓐 𝓜] :
+  gmul_action (λ i, 𝓐 i) (λ i, 𝓜 i) :=
+{ smul := λ i j x y, ⟨(x : A) • (y : M), set_like.has_graded_smul.smul_mem x.2 y.2⟩,
+  one_smul := λ ⟨i, m⟩, sigma.subtype_ext (zero_add _) (one_smul _ _),
+  mul_smul := λ ⟨i, a⟩ ⟨j, a'⟩ ⟨k, b⟩, sigma.subtype_ext (add_assoc _ _ _) (mul_smul _ _ _) }
 
 instance gdistrib_mul_action [add_monoid M] [distrib_mul_action A M]
   [set_like σ M] [add_submonoid_class σ M] [set_like.graded_monoid 𝓐]
   [set_like.has_graded_smul 𝓐 𝓜] :
   gdistrib_mul_action (λ i, 𝓐 i) (λ i, 𝓜 i) :=
-{ smul := λ i j x y, ⟨(x : A) • (y : M), set_like.has_graded_smul.smul_mem x.2 y.2⟩,
-  one_smul := λ ⟨i, m⟩, sigma.subtype_ext (zero_add _) (one_smul _ _),
-  mul_smul := λ ⟨i, a⟩ ⟨j, a'⟩ ⟨k, b⟩, sigma.subtype_ext (add_assoc _ _ _) (mul_smul _ _ _),
-  smul_add := λ i j a b c, subtype.ext $ smul_add _ _ _,
-  smul_zero := λ i j a, subtype.ext $ smul_zero _ }
+{ smul_add := λ i j a b c, subtype.ext $ smul_add _ _ _,
+  smul_zero := λ i j a, subtype.ext $ smul_zero _,
+  ..(_ : gmul_action (λ i, 𝓐 i) (λ i, 𝓜 i)) }
 
 variables [add_comm_monoid M] [module A M] [set_like σ M] [add_submonoid_class σ' A]
   [add_submonoid_class σ M] [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜]

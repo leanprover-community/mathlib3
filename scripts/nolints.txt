@@ -10,25 +10,10 @@ apply_nolint mul_hom.ext_iff to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
 
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
-apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_injective fintype_finite
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
 
--- category_theory/limits/shapes/biproducts.lean
-apply_nolint category_theory.limits.has_biproduct.of_has_coproduct fintype_finite
-apply_nolint category_theory.limits.has_biproduct.of_has_product fintype_finite
-
--- category_theory/limits/shapes/finite_limits.lean
-apply_nolint category_theory.limits.has_colimits_of_shape_wide_pushout_shape fintype_finite
-apply_nolint category_theory.limits.has_limits_of_shape_wide_pullback_shape fintype_finite
-
 -- category_theory/limits/shapes/finite_products.lean
-apply_nolint category_theory.limits.has_colimits_of_shape_discrete fintype_finite
 apply_nolint category_theory.limits.has_fintype_coproducts fintype_finite
-apply_nolint category_theory.limits.has_fintype_products fintype_finite
-apply_nolint category_theory.limits.has_limits_of_shape_discrete fintype_finite
-
--- category_theory/preadditive/biproducts.lean
-apply_nolint category_theory.biproduct.column_nonzero_of_iso' fintype_finite
 
 -- computability/partrec.lean
 apply_nolint computable doc_blame

@@ -317,6 +317,11 @@ begin
 end
 
 @[to_additive]
+lemma prod_map_le_prod_map {s : multiset ι} (f : ι → α) (g : ι → α) (h : ∀ i, i ∈ s → f i ≤ g i) :
+  (s.map f).prod ≤ (s.map g).prod :=
+prod_le_prod_of_rel_le $ rel_map.2 $ rel_refl_of_refl_on h
+
+@[to_additive]
 lemma prod_map_le_prod (f : α → α) (h : ∀ x, x ∈ s → f x ≤ x) : (s.map f).prod ≤ s.prod :=
 prod_le_prod_of_rel_le $ rel_map_left.2 $ rel_refl_of_refl_on h
 

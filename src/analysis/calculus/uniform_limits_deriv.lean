@@ -422,18 +422,10 @@ variables {ι : Type*} {l : filter ι}
   {f : ι → 𝕜 → G} {g : 𝕜 → G} {f' : ι → 𝕜 → G} {g' : 𝕜 → G}
   {x : 𝕜}
 
-/-- Transform a derivative into a Fréchet derivative -/
-protected def promote_deriv (f' : 𝕜 → G) : 𝕜 → (𝕜 →L[𝕜] G) :=
-λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' z)
-
-/-- Transform a sequence of derivatives into a sequence of Fréchet derivatives -/
-protected def promote_deriv_seq (f' : ι → 𝕜 → G) : ι → 𝕜 → (𝕜 →L[𝕜] G) :=
-λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)
-
 /-- If our derivatives converge uniformly, then the Fréchet derivatives converge uniformly -/
-lemma uniform_cauchy_seq_on_filter_promote_deriv_seq_of_uniform_cauchy_seq_on_filter {l' : filter 𝕜}
+lemma uniform_cauchy_seq_on_filter.one_smul_right {l' : filter 𝕜}
   (hf' : uniform_cauchy_seq_on_filter f' l l') :
-  uniform_cauchy_seq_on_filter (promote_deriv_seq f') l l' :=
+  uniform_cauchy_seq_on_filter (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)) l l' :=
 begin
   -- The tricky part of this proof is that operator norms are written in terms of `≤` whereas
   -- metrics are written in terms of `<`. So we need to shrink `ε` utilizing the archimedian
@@ -446,7 +438,7 @@ begin
   apply (hf' q hq).mono,
   intros n hn,
   refine lt_of_le_of_lt _ hq',
-  simp only [promote_deriv_seq, dist_eq_norm, pi.zero_apply, zero_sub, norm_neg] at hn ⊢,
+  simp only [dist_eq_norm, pi.zero_apply, zero_sub, norm_neg] at hn ⊢,
   refine continuous_linear_map.op_norm_le_bound _ hq.le _,
   intros z,
   simp only [continuous_linear_map.coe_sub', pi.sub_apply, continuous_linear_map.smul_right_apply,
@@ -465,7 +457,7 @@ lemma uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_deriv
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
   exact uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv
-    (uniform_cauchy_seq_on_filter_promote_deriv_seq_of_uniform_cauchy_seq_on_filter hf') hf hfg,
+    hf'.one_smul_right hf hfg,
 end
 
 lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
@@ -477,9 +469,9 @@ lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
   rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter at hf',
-  have hf' : uniform_cauchy_seq_on (promote_deriv_seq f') l (metric.ball x r),
+  have hf' : uniform_cauchy_seq_on (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)) l (metric.ball x r),
   { rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
-    exact uniform_cauchy_seq_on_filter_promote_deriv_seq_of_uniform_cauchy_seq_on_filter hf', },
+    exact hf'.one_smul_right, },
   exact uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_fderiv hr hf' hf hfg,
 end
 
@@ -491,8 +483,8 @@ lemma has_deriv_at_of_tendsto_uniformly_on_filter
 begin
   -- The first part of the proof rewrites `hf` and the goal to be functions so that Lean
   -- can recognize them when we apply `has_fderiv_at_of_tendsto_uniformly_on_filter`
-  let F' := promote_deriv_seq f',
-  let G' := promote_deriv g',
+  let F' := (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)),
+  let G' := λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (g' z),
   simp_rw has_deriv_at_iff_has_fderiv_at at hf ⊢,
 
   -- Now we need to rewrite hf' in terms of continuous_linear_maps. The tricky part is that
@@ -509,7 +501,7 @@ begin
     refine continuous_linear_map.op_norm_le_bound _ hq.le _,
     intros z,
     simp only [continuous_linear_map.coe_sub', pi.sub_apply, continuous_linear_map.smul_right_apply,
-      continuous_linear_map.one_apply, promote_deriv_seq, promote_deriv],
+      continuous_linear_map.one_apply],
     rw [←smul_sub, norm_smul, mul_comm],
     exact mul_le_mul hn.le rfl.le (norm_nonneg _) hq.le, },
   exact has_fderiv_at_of_tendsto_uniformly_on_filter hf' hf hfg,

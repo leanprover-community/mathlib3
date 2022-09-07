@@ -313,7 +313,7 @@ end
 
 variables (G)
 
--- PR ready
+-- PR ready (`card_le_of_jective`, just need to PR)
 lemma nat.card_le_of_injective {α β : Type*} [finite β] (f : α → β) (h : function.injective f) :
   nat.card α ≤ nat.card β :=
 begin
@@ -322,7 +322,7 @@ begin
   simp_rw [nat.card_eq_fintype_card, fintype.card_le_of_injective f h],
 end
 
--- PR ready
+-- PR ready (`card_le_of_jective`, just need to PR)
 lemma nat.card_le_of_surjective {α β : Type*} [finite α] (f : α → β) (h : function.surjective f) :
   nat.card β ≤ nat.card α :=
 begin
@@ -332,6 +332,7 @@ begin
   simp_rw [nat.card_eq_fintype_card, fintype.card_le_of_surjective f h],
 end
 
+-- TODO: add `index_center_pos`
 lemma index_center_le_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≤ (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) ^ group.rank G :=
 begin

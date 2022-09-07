@@ -172,8 +172,10 @@ if_neg h
 
 instance [decidable_eq R] : inhabited (ring_norm R) := ⟨trivial_norm R⟩
 
+end ring_norm
+
 /-- A nonzero ring seminorm on a field `K` is a ring norm. -/
-def of_ring_seminorm {K : Type*} [field K] (f : ring_seminorm K)
+def ring_seminorm.to_ring_horm {K : Type*} [field K] (f : ring_seminorm K)
   (hnt : f ≠ 0) : ring_norm K :=
 { ne_zero := λ x hx, begin
     obtain ⟨c, hc⟩ := ring_seminorm.ne_zero_iff.mp hnt,
@@ -187,8 +189,6 @@ def of_ring_seminorm {K : Type*} [field K] (f : ring_seminorm K)
     exact lt_of_le_of_ne (f.nonneg _) hfx,
   end,
   ..f }
-
-end ring_norm
 
 /-- The norm of a normed_ring as a ring_norm. -/
 @[simps] def norm_ring_norm (R : Type*) [non_unital_normed_ring R] : ring_norm R :=

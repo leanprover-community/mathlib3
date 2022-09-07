@@ -6,27 +6,158 @@ Authors: Mario Carneiro
 import data.list.join
 import logic.equiv.list
 import logic.function.iterate
+import logic.encodable.tree
 
 /-!
 # The primitive recursive functions
 
 The primitive recursive functions are the least collection of functions
-`nat → nat` which are closed under projections (using the mkpair
-pairing function), composition, zero, successor, and primitive recursion
-(i.e. nat.rec where the motive is C n := nat).
+`tree → tree` which are closed under projections (using the mkpair
+pairing function), composition, zero, successor, and iteration.
 
 We can extend this definition to a large class of basic types by
-using canonical encodings of types as natural numbers (Gödel numbering),
-which we implement through the type class `encodable`. (More precisely,
+using canonical encodings of types as trees (akin to Gödel numbering),
+which we implement through the type class `tencodable`. (More precisely,
 we need that the composition of encode with decode yields a
 primitive recursive function, so we have the `primcodable` type class
 for this.)
+
+## Implementation Notes
+
+The definition of `primrec` is a kind of "promise"-ed primitive recursive:
+There needs to be a function which acts correctly on correctly encoded inputs.
+This is convenient because it is the form we most commonly use to prove functions are primitive
+recursive, but it is equivalent to a more general form if the types are `primcodable`
 
 ## References
 
 * [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
 -/
 
+open tree tencodable function
+
+namespace tree
+
+inductive primrec : (tree unit → tree unit) → Prop
+| nil : primrec (λ _, nil)
+| left : primrec (λ x, x.left)
+| right : primrec (λ x, x.right)
+| pair {f₁ f₂} : primrec f₁ → primrec f₂ → primrec (λ x, node () (f₁ x) (f₂ x))
+| comp {f₁ f₂} : primrec f₁ → primrec f₂ → primrec (f₁ ∘ f₂)
+| prec {f g} : primrec f → primrec g → primrec (λ x, g^[to_nat (f x)] x)
+
+namespace primrec
+
+theorem of_eq {f g : tree unit → tree unit} (hf : primrec f) (H : ∀ n, f n = g n) : primrec g :=
+(funext H : f = g) ▸ hf
+
+protected theorem const : ∀ (n : tree unit), primrec (λ _, n)
+| tree.nil := nil
+| (node () x y) := (const x).pair (const y)
+
+protected theorem id : primrec (λ x, x) := prec nil left
+
+protected theorem ite {f g₁ g₂} (hf : primrec f) (hg₁ : primrec g₁) (hg₂ : primrec g₂) :
+  primrec (λ x, if f x = tree.nil then g₁ x else g₂ x) :=
+(left.comp ((prec (hf.comp right) (pair (hg₂.comp right) right)).comp (pair hg₁ primrec.id))).of_eq
+begin
+  intro x,
+  rcases H : f x with (_ | ⟨U, _, _⟩), { simp [H], },
+  simp only [H, comp_app, tree.right, to_nat_node, iterate_succ, punit_eq_star U],
+  rw iterate_fixed; simp,
+end
+
+end primrec
+
+end tree
+
+variables {α β γ δ ε ζ η : Type*}
+variables [tencodable α] [tencodable β]
+
+/-- A primitive recursive function in one argument -/
+def primrec1 (f : α → β) : Prop :=
+∃ (f' : tree unit → tree unit), tree.primrec f' ∧ ∀ x : α, f' (encode x) = encode (f x)
+
+/-- Primitive recursive functions on many arguments -/
+def primrec [has_uncurry γ α β] (f : γ) : Prop :=
+primrec1 ↿f
+
+@[simp] lemma primrec1_iff_primrec {f : α → β} : primrec1 f ↔ primrec f := iff.rfl
+
+lemma tree.primrec.of_primrec {f : tree unit → tree unit} : primrec f → tree.primrec f
+| ⟨f', pf, hf⟩ := pf.of_eq hf
+
+@[simp] lemma tree.primrec.iff_primrec {f : tree unit → tree unit} :
+  tree.primrec f ↔ primrec f :=
+⟨λ pf, ⟨f, pf, λ _, rfl⟩, tree.primrec.of_primrec⟩
+
+namespace primrec
+
+protected theorem id : primrec (@id α) :=
+⟨_, tree.primrec.id, λ _, rfl⟩
+
+protected theorem const (x : α) :
+primrec (λ _ : β, x) := ⟨_, tree.primrec.const (encode x), λ _, rfl⟩
+
+
+section primcodable
+
+/-- A type is considered `primcodable` if the decoding function is
+  primitive recursive. -/
+class primcodable (α : Type*) extends tencodable α :=
+(prim [] : primrec (tencodable.decode α))
+
+end primcodable
+
+variables [tencodable γ] [tencodable δ]
+  [tencodable ε] [tencodable ζ] [tencodable η]
+
+theorem comp {f : β → γ} {g : α → β} :
+  primrec f → primrec g → primrec (λ x, f (g x))
+| ⟨f', pf', hf'⟩ ⟨g', pg', hg'⟩ :=
+⟨_, pf'.comp pg', λ x, by simp [hf', hg', has_uncurry.uncurry]⟩
+
+theorem pair {f : α → β} {g : α → γ} : primrec f → primrec g → primrec (λ x, (f x, g x))
+| ⟨f', pf', hf'⟩ ⟨g', pg', hg'⟩ :=
+⟨_, pf'.pair pg', λ x, by simp [hf', hg', encode, has_uncurry.uncurry]⟩
+
+theorem fst : primrec (@prod.fst α β) := ⟨_, tree.primrec.left, λ _, rfl⟩
+theorem snd : primrec (@prod.snd α β) := ⟨_, tree.primrec.right, λ _, rfl⟩
+
+protected lemma ite {P : α → Prop} [decidable_pred P] {f : α → β} {g : α → β} :
+  primrec (λ x, (P x : bool)) → primrec f → primrec g → primrec (λ x, if P x then f x else g x)
+| ⟨P', pP, hP⟩ ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ :=
+⟨_, tree.primrec.ite pP pf pg, λ x, by by_cases P x; simp [*, encode, has_uncurry.uncurry]⟩
+
+-- TODO: Autogenerate these lemmas
+
+theorem comp₂ {f : α → β → γ} {g : δ → α} {h : δ → β} (hf : primrec f) (hg : primrec g)
+  (hh : primrec h) : primrec (λ x, f (g x) (h x)) := hf.comp $ hg.pair hh
+
+theorem comp₃  {f : α → β → γ → δ} {g₁ : ε → α} {g₂ : ε → β} {g₃ : ε → γ}
+  (hf : primrec f) (hg₁ : primrec g₁) (hg₂ : primrec g₂) (hg₃ : primrec g₃) :
+  primrec (λ x, f (g₁ x) (g₂ x) (g₃ x)) := hf.comp $ hg₁.pair $ hg₂.pair hg₃
+
+theorem comp₄ {f : α → β → γ → δ → ε} {g₁ : ζ → α} {g₂ : ζ → β} {g₃ : ζ → γ} {g₄ : ζ → δ}
+  (hf : primrec f) (hg₁ : primrec g₁) (hg₂ : primrec g₂) (hg₃ : primrec g₃) (hg₄ : primrec g₄) :
+  primrec (λ x, f (g₁ x) (g₂ x) (g₃ x) (g₄ x)) := hf.comp $ hg₁.pair $ hg₂.pair $ hg₃.pair hg₄
+
+theorem comp₅ {f : α → β → γ → δ → ε → ζ} {g₁ : η → α} {g₂ : η → β} {g₃ : η → γ} {g₄ : η → δ}
+  {g₅ : η → ε} (hf : primrec f) (hg₁ : primrec g₁) (hg₂ : primrec g₂) (hg₃ : primrec g₃)
+  (hg₄ : primrec g₄) (hg₅ : primrec g₅) : primrec (λ x, f (g₁ x) (g₂ x) (g₃ x) (g₄ x) (g₅ x)) :=
+hf.comp $ hg₁.pair $ hg₂.pair $ hg₃.pair $ hg₄.pair hg₅
+
+lemma some : primrec (@some α) :=
+⟨_, tree.primrec.nil.pair tree.primrec.id, λ x, by simp [encode, has_uncurry.uncurry]⟩
+
+instance : primcodable (tree unit) :=
+{ prim := some }
+
+instance : primcodable unit :=
+{ prim := primrec.const _ }
+
+end primrec
+#exit
 open denumerable encodable function
 
 namespace nat

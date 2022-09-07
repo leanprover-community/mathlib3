@@ -410,7 +410,12 @@ end limits_of_derivatives
 
 section deriv
 
-/-! ### `deriv` versions of above theorems -/
+/-! ### `deriv` versions of above theorems
+
+In this section, we provide `deriv` equivalents of the `fderiv` lemmas in the previous section.
+The protected function `promote_deriv` provides the translation between derivatives and Fréchet
+derivatives
+-/
 
 variables {ι : Type*} {l : filter ι} [ne_bot l]
   {𝕜 : Type*} [is_R_or_C 𝕜]
@@ -418,37 +423,48 @@ variables {ι : Type*} {l : filter ι} [ne_bot l]
   {f : ι → 𝕜 → G} {g : 𝕜 → G} {f' : ι → 𝕜 → G} {g' : 𝕜 → G}
   {x : 𝕜}
 
+/-- Transform a derivative into a Fréchet derivative -/
+protected def promote_deriv (f' : 𝕜 → G) : 𝕜 → (𝕜 →L[𝕜] G) :=
+λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' z)
+
+/-- Transform a sequence of derivatives into a sequence of Fréchet derivatives -/
+protected def promote_deriv_seq (f' : ι → 𝕜 → G) : ι → 𝕜 → (𝕜 →L[𝕜] G) :=
+λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)
+
+/-- If our derivatives converge uniformly, then the Fréchet derivatives converge uniformly -/
+lemma uniform_cauchy_seq_on_filter_promote_deriv_seq_of_uniform_cauchy_seq_on_filter {l' : filter 𝕜}
+  (hf' : uniform_cauchy_seq_on_filter f' l l') :
+  uniform_cauchy_seq_on_filter (promote_deriv_seq f') l l' :=
+begin
+  -- The tricky part of this proof is that operator norms are written in terms of `≤` whereas
+  -- metrics are written in terms of `<`. So we need to shrink `ε` utilizing the archimedian
+  -- property of `ℝ`
+
+  rw [normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
+      metric.tendsto_uniformly_on_filter_iff] at hf' ⊢,
+  intros ε hε,
+  obtain ⟨q, hq, hq'⟩ := exists_between hε.lt,
+  apply (hf' q hq).mono,
+  intros n hn,
+  refine lt_of_le_of_lt _ hq',
+  simp only [promote_deriv_seq, dist_eq_norm, pi.zero_apply, zero_sub, norm_neg] at hn ⊢,
+  refine continuous_linear_map.op_norm_le_bound _ hq.le _,
+  intros z,
+  simp only [continuous_linear_map.coe_sub', pi.sub_apply, continuous_linear_map.smul_right_apply,
+    continuous_linear_map.one_apply],
+  rw [←smul_sub, norm_smul, mul_comm],
+  exact mul_le_mul hn.le rfl.le (norm_nonneg _) hq.le,
+end
+
 lemma uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_deriv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × 𝕜) in (l ×ᶠ 𝓝 x), has_deriv_at (f n.1) (f' n.1 n.2) n.2)
   (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
-  -- The first part of the proof rewrites `hf` and the goal to be functions so that Lean
-  -- can recognize them when we apply
-  -- `uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv`
-  let F' : ι → 𝕜 → (𝕜 →L[𝕜] G) := (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)),
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
-
-  -- Now we need to rewrite hf' in terms of continuous_linear_maps. The tricky part is that
-  -- operator norms are written in terms of `≤` whereas metrics are written in terms of `<`. So we
-  -- need to shrink `ε` utilizing the archimedian property of `ℝ`
-  have hf' : uniform_cauchy_seq_on_filter F' l (𝓝 x),
-  { rw [normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
-      metric.tendsto_uniformly_on_filter_iff] at hf' ⊢,
-    intros ε hε,
-    obtain ⟨q, hq, hq'⟩ := exists_rat_btwn hε.lt,
-    apply (hf' q hq).mono,
-    intros n hn,
-    refine lt_of_le_of_lt _ hq',
-    simp only [F', dist_eq_norm, pi.zero_apply, zero_sub, norm_neg] at hn ⊢,
-    refine continuous_linear_map.op_norm_le_bound _ hq.le _,
-    intros z,
-    simp only [continuous_linear_map.coe_sub', pi.sub_apply, continuous_linear_map.smul_right_apply,
-      continuous_linear_map.one_apply],
-    rw [←smul_sub, norm_smul, mul_comm],
-    exact mul_le_mul hn.le rfl.le (norm_nonneg _) hq.le, },
-  exact uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv hf' hf hfg,
+  exact uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv
+    (uniform_cauchy_seq_on_filter_promote_deriv_seq_of_uniform_cauchy_seq_on_filter hf') hf hfg,
 end
 
 lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
@@ -458,30 +474,11 @@ lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
   (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
-  -- The first part of the proof rewrites `hf` and the goal to be functions so that Lean
-  -- can recognize them when we apply
-  -- `uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv`
-  let F' : ι → 𝕜 → (𝕜 →L[𝕜] G) := (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)),
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
-
-  -- Now we need to rewrite hf' in terms of continuous_linear_maps. The tricky part is that
-  -- operator norms are written in terms of `≤` whereas metrics are written in terms of `<`. So we
-  -- need to shrink `ε` utilizing the archimedian property of `ℝ`
-  have hf' : uniform_cauchy_seq_on F' l (metric.ball x r),
-  { rw [normed_add_comm_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero,
-      metric.tendsto_uniformly_on_iff] at hf' ⊢,
-    intros ε hε,
-    obtain ⟨q, hq, hq'⟩ := exists_rat_btwn hε.lt,
-    apply (hf' q hq).mono,
-    intros n hn y hy,
-    refine lt_of_le_of_lt _ hq',
-    simp only [F', dist_eq_norm, pi.zero_apply, zero_sub, norm_neg] at hn ⊢,
-    refine continuous_linear_map.op_norm_le_bound _ hq.le _,
-    intros z,
-    simp only [continuous_linear_map.coe_sub', pi.sub_apply, continuous_linear_map.smul_right_apply,
-      continuous_linear_map.one_apply],
-    rw [←smul_sub, norm_smul, mul_comm],
-    exact mul_le_mul (hn y hy).le rfl.le (norm_nonneg _) hq.le, },
+  rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter at hf',
+  have hf' : uniform_cauchy_seq_on (promote_deriv_seq f') l (metric.ball x r),
+  { rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
+    exact uniform_cauchy_seq_on_filter_promote_deriv_seq_of_uniform_cauchy_seq_on_filter hf', },
   exact uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_fderiv hr hf' hf hfg,
 end
 
@@ -493,8 +490,8 @@ lemma has_deriv_at_of_tendsto_uniformly_on_filter
 begin
   -- The first part of the proof rewrites `hf` and the goal to be functions so that Lean
   -- can recognize them when we apply `has_fderiv_at_of_tendsto_uniformly_on_filter`
-  let F' : ι → 𝕜 → (𝕜 →L[𝕜] G) := (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)),
-  let G' : 𝕜 → (𝕜 →L[𝕜] G) := (λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (g' z)),
+  let F' := promote_deriv_seq f',
+  let G' := promote_deriv g',
   simp_rw has_deriv_at_iff_has_fderiv_at at hf ⊢,
 
   -- Now we need to rewrite hf' in terms of continuous_linear_maps. The tricky part is that
@@ -503,7 +500,7 @@ begin
   have hf' : tendsto_uniformly_on_filter F' G' l (𝓝 x),
   { rw metric.tendsto_uniformly_on_filter_iff at hf' ⊢,
     intros ε hε,
-    obtain ⟨q, hq, hq'⟩ := exists_rat_btwn hε.lt,
+    obtain ⟨q, hq, hq'⟩ := exists_between hε.lt,
     apply (hf' q hq).mono,
     intros n hn,
     refine lt_of_le_of_lt _ hq',
@@ -511,7 +508,7 @@ begin
     refine continuous_linear_map.op_norm_le_bound _ hq.le _,
     intros z,
     simp only [continuous_linear_map.coe_sub', pi.sub_apply, continuous_linear_map.smul_right_apply,
-      continuous_linear_map.one_apply],
+      continuous_linear_map.one_apply, promote_deriv_seq, promote_deriv],
     rw [←smul_sub, norm_smul, mul_comm],
     exact mul_le_mul hn.le rfl.le (norm_nonneg _) hq.le, },
   exact has_fderiv_at_of_tendsto_uniformly_on_filter hf' hf hfg,

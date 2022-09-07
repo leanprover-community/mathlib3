@@ -41,7 +41,7 @@ cardinal.to_nat_congr f
 lemma card_eq_of_bijective (f : α → β) (hf : function.bijective f) : nat.card α = nat.card β :=
 card_congr (equiv.of_bijective f hf)
 
-lemma nat.card_le_of_injective [finite β] (f : α → β) (h : function.injective f) :
+lemma card_le_of_injective [finite β] (f : α → β) (h : function.injective f) :
   nat.card α ≤ nat.card β :=
 begin
   haveI := fintype.of_finite β,
@@ -49,7 +49,7 @@ begin
   simp_rw [nat.card_eq_fintype_card, fintype.card_le_of_injective f h],
 end
 
-lemma nat.card_le_of_surjective [finite α] (f : α → β) (h : function.surjective f) :
+lemma card_le_of_surjective [finite α] (f : α → β) (h : function.surjective f) :
   nat.card β ≤ nat.card α :=
 begin
   classical,

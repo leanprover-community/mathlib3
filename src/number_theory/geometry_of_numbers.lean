@@ -154,16 +154,16 @@ begin
       exact measure_preimage_add _ _ _, }, },
   { refl, },
   { exact measurable_const_add v, },
-  { exact measurable_set.univ_pi_fintype hS, },
+  { exact measurable_set.univ_pi hS, },
 end
 
 /-- The closed unit cube with sides the intervals [0,1] as a positive compact set, for inducing the
     Haar measure equal to the lebesgue measure on ℝ^n. -/
 def unit_cube [fintype ι] : positive_compacts (ι → ℝ) :=
-⟨Icc 0 1, begin
+⟨⟨Icc 0 1, begin
   simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
   exact is_compact_univ_pi (λ i, is_compact_Icc),
-end,
+end⟩,
 begin
   -- rw interior_Icc,
   simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply,
@@ -180,9 +180,8 @@ end
 lemma pi_haar_measure_eq_lebesgue_measure [fintype ι] : add_haar_measure (unit_cube ι) = volume :=
 begin
   convert (add_haar_measure_unique _ (unit_cube ι)).symm,
-  { rw [unit_cube],
-    suffices : measure_space.volume (Icc (0 : ι → ℝ) 1) = 1,
-    { rw [this, one_smul], },
+  { suffices : measure_space.volume (Icc (0 : ι → ℝ) 1) = 1,
+    { erw [this, one_smul], },
     exact volume_Icc ι, },
   { apply_instance },
   { exact is_add_left_invariant_pi_volume ι, },
@@ -221,23 +220,24 @@ include fund
 translate."]
 protected def interior : set Y := F \ ⋃ (l : X) (h : l ≠ 1), (l • F)
 
-@[to_additive]
-lemma measurable_set_nontrivial_translates [measurable_space X] [has_measurable_smul X Y]
-  [encodable X] : measurable_set ⋃ (l : X) (h : l ≠ 1), l • F :=
-begin
-  apply measurable_set.Union,
-  intros b,
-  cases eq_or_ne b 1 with h h,
-  { simp [h], },
-  { -- TODO squeeze_simp output wrong
-    simp [h, -set.image_smul, set.Union_true, ne.def, not_false_iff, set.Union_congr_Prop],
-    exact measurable_set_smul fund _, },
-end
+-- @[to_additive]
+-- lemma measurable_set_nontrivial_translates [measurable_space X] [has_measurable_smul X Y]
+--   [encodable X] : measurable_set ⋃ (l : X) (h : l ≠ 1), l • F :=
+-- begin
+--   apply measurable_set.Union,
+--   intros b,
+--   cases eq_or_ne b 1 with h h,
+--   { simp [h], },
+--   { -- TODO squeeze_simp output wrong
+--     simp [h, -set.image_smul, set.Union_true, ne.def, not_false_iff, set.Union_congr_Prop],
+--     -- library_search!,
+--     exact measurable_set_smul b fund.is_measurable_set, },
+-- end
 
-@[to_additive]
-lemma measurable_set_interior [measurable_space X] [has_measurable_smul X Y] [encodable X] :
-  measurable_set fund.interior :=
-measurable_set.diff fund.measurable_set fund.measurable_set_nontrivial_translates
+-- @[to_additive]
+-- lemma measurable_set_interior [measurable_space X] [has_measurable_smul X Y] [encodable X] :
+--   measurable_set fund.interior :=
+-- measurable_set.diff fund.measurable_set fund.measurable_set_nontrivial_translates
 
 
 /-- The boundary of a fundamental domain, those points of the domain that also lie in a nontrivial
@@ -250,10 +250,10 @@ protected def boundary : set Y := F ∩ ⋃ (l : X) (h : l ≠ 1), l • F
 lemma eq_interior_union_boundary : F = fund.interior ∪ fund.boundary :=
 (diff_union_inter _ _).symm
 
-@[to_additive]
-lemma measurable_set_boundary [measurable_space X] [has_measurable_smul X Y] [encodable X] :
-  measurable_set fund.boundary :=
-measurable_set.inter fund.measurable_set fund.measurable_set_nontrivial_translates
+-- @[to_additive]
+-- lemma measurable_set_boundary [measurable_space X] [has_measurable_smul X Y] [encodable X] :
+--   measurable_set fund.boundary :=
+-- measurable_set.inter fund.measurable_set fund.measurable_set_nontrivial_translates
 
 open set
 
@@ -284,7 +284,8 @@ measure_diff_null' (volume_boundary fund)
 open measure_theory
 
 -- @[to_additive]
--- lemma volume_set_eq_tsum_volume_inter [measurable_space X] [has_measurable_smul X Y] [encodable X]
+-- lemma volume_set_eq_tsum_volume_inter [measurable_space X] [has_measurable_smul X Y]
+--   [encodable X]
 --   {S : set Y} (hS : measurable_set S) [smul_invariant_measure X Y (volume : measure Y)] :
 --   ∑' (x : X), volume (x • S ∩ F) = volume S :=
 -- begin
@@ -344,22 +345,42 @@ end measure_theory
 --   almost_disjoint := by simp,
 --   covers := λ v, by simp } }
 
-instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
-  measure_space (subtype p) :=
-{ volume := measure.comap subtype.val volume,
-  ..subtype.measurable_space }
+-- instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
+--   measure_space (subtype p) :=
+-- { volume := measure.comap subtype.val volume,
+--   ..subtype.measurable_space }
 
-lemma volume_subtype_univ {V : Type*} [measure_space V] {p : set V} (hmp : measurable_set p) :
-  volume (set.univ : set (subtype p)) = volume p :=
-begin
-  dsimp only [measure_space.volume],
-  rw [measure.comap_apply _ subtype.val_injective, set.image_univ],
-  { congr,
-    exact subtype.range_val, },
-  { intros x,
-    exact measurable_set.subtype_image hmp, },
-  { exact measurable_set.univ, }
-end
+-- lemma volume_subtype_univ {V : Type*} [measure_space V] {p : set V} (hmp : measurable_set p) :
+--   volume (set.univ : set (subtype p)) = volume p :=
+-- begin
+--   dsimp only [measure_space.volume],
+--   rw [measure.comap_apply _ subtype.val_injective, set.image_univ],
+--   { congr,
+--     exact subtype.range_val, },
+--   { intros x,
+--     exact measurable_set.subtype_image hmp, },
+--   { exact measurable_set.univ, }
+-- end
+
+variables {V : Type*} [measure_space V] {p : V → Prop}
+
+lemma subtype.volume_def {s : set V} : (volume : measure s) = volume.comap subtype.val := rfl
+
+lemma subtype.volume_univ {s : set V} (hs : null_measurable_set s) :
+  volume (univ : set s) = volume s := sorry
+
+
+open function
+lemma comap_apply₀ {α β} {s} [measurable_space α] {mβ : measurable_space β} (f : α → β)
+  (μ : measure β)
+  (hfi : injective f) (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ)
+  (hs : measurable_set s) :
+comap f μ s = μ (f '' s) := sorry
+
+lemma measurable_set.null_measurable_set_subtype_image {s : set V} {t : set s}
+  (hs : null_measurable_set s) (ht : measurable_set t) :
+  null_measurable_set ((coe : s → V) '' t) :=
+sorry
 
 open measure_theory
 
@@ -387,8 +408,9 @@ begin
       split,
       exact mem_univ (p₂⁻¹ * p₁),
       rw [mul_smul, ht₁, ← ht₂, ← mul_smul, inv_mul_self, one_smul], }, },
-  rw ← volume_subtype_univ fund.measurable_set at hlt,
-  have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure subtype.measure_space.volume
+  rw ← subtype.volume_univ at hlt,
+  -- rw ← volume_subtype_univ fund.measurable_set at hlt,
+  have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure (set_coe.measure_space _).volume
     (_ : (∀ p : X, measurable_set (λ a, (p • S) a : set F))) _,
   { rcases this with ⟨i, j, hij, t, ht⟩,
     use [i, j, hij, t],
@@ -400,18 +422,21 @@ begin
   symmetry,
   convert fund.measure_eq_tsum S,
   ext1 l,
-  dsimp only [subtype.measure_space], -- TODO lemma
-  rw measure.comap_apply _ subtype.val_injective _ _ _,
+  dsimp only [subtype.volume_def], -- TODO lemma
+  rw measure.comap_apply₀ _ _ subtype.val_injective _ _,
   { congr,
     ext1 v,
     simp only [mem_image, mem_inter_eq, exists_and_distrib_right, exists_eq_right, subtype.exists,
       subtype.coe_mk, subtype.val_eq_coe],
     split; { intros a, rcases a with ⟨a_left, a_right⟩, split; assumption, }, },
   { intros X hX,
-    convert measurable_set.subtype_image fund.measurable_set hX, },
+    simp only [subtype.val_eq_coe],
+    exact measurable_set.null_measurable_set_subtype_image fund.null_measurable_set hX, },
   { erw [← inv_inv l, ← preimage_smul (l⁻¹ : X) S],
-    exact measurable_set_preimage
-      ((measurable_const_smul (l⁻¹ : X)).comp measurable_subtype_coe) hS, },
+    simp,
+    apply measurable_set.null_measurable_set,
+    exact ((measurable_const_smul (l⁻¹ : X)).comp measurable_subtype_coe) hS, },
+  { exact fund.null_measurable_set, }
 end
 
 -- TODO version giving `ceiling (volume S / volume F)` points whose difference is in a subgroup
@@ -474,12 +499,12 @@ begin
       erw ← measure.map_apply (measurable_const_mul r⁻¹) (hS i),
       conv_rhs { rw [← real.smul_map_volume_mul_left (inv_ne_zero (ne_of_gt hr))], },
       congr,
-      rw [ennreal.of_real_inv_of_pos hr, abs_of_pos (inv_pos.mpr hr)], }, },
+      rw [ring_hom.id_apply, ennreal.of_real_inv_of_pos hr, abs_of_pos (inv_pos.mpr hr)], }, },
   { exact smul_right_injective (ι → ℝ) (ne_of_gt hr), },
   { intros S hS,
     rw [image_smul],
     exact measurable_set.const_smul₀ hS r, },
-  { exact measurable_set.univ_pi_fintype hS, },
+  { exact measurable_set.univ_pi hS, },
 end
 
 open ennreal fintype
@@ -504,7 +529,7 @@ begin
     simp only [one_div, fintype.card_fin] at this ⊢,
     rw ← ennreal.of_real_inv_of_pos (by norm_num : 0 < (2 : ℝ)) at this,
     simp only [zero_le_one, of_real_one, of_real_bit0] at this,
-    rw [← measure.smul_apply, ← this, comap_apply _ _ _ _ hS],
+    rw [← smul_eq_mul, ← measure.smul_apply, ← this, comap_apply _ _ _ _ hS],
     { simp, },
     { exact smul_right_injective _ (by norm_num), },
     { intros S hS,

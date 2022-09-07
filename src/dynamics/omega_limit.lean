@@ -45,10 +45,10 @@ variables {τ : Type*} {α : Type*} {β : Type*} {ι : Type*}
 def omega_limit [topological_space β] (f : filter τ) (ϕ : τ → α → β) (s : set α) : set β :=
 ⋂ u ∈ f, closure (image2 ϕ u s)
 
-localized "notation `ω` := omega_limit" in omega_limit
+localized "notation (name := omega_limit) `ω` := omega_limit" in omega_limit
 
-localized "notation `ω⁺` := omega_limit filter.at_top" in omega_limit
-localized "notation `ω⁻` := omega_limit filter.at_bot" in omega_limit
+localized "notation (name := omega_limit.at_top) `ω⁺` := omega_limit filter.at_top" in omega_limit
+localized "notation (name := omega_limit.at_bot) `ω⁻` := omega_limit filter.at_bot" in omega_limit
 
 variables [topological_space β]
 variables (f : filter τ) (ϕ : τ → α → β) (s s₁ s₂: set α)
@@ -68,7 +68,7 @@ begin
 end
 
 lemma omega_limit_mono_left {f₁ f₂ : filter τ} (hf : f₁ ≤ f₂) : ω f₁ ϕ s ⊆ ω f₂ ϕ s :=
-omega_limit_subset_of_tendsto ϕ s (tendsto_id' hf)
+omega_limit_subset_of_tendsto ϕ s (tendsto_id'.2 hf)
 
 lemma omega_limit_mono_right {s₁ s₂ : set α} (hs : s₁ ⊆ s₂) : ω f ϕ s₁ ⊆ ω f ϕ s₂ :=
 Inter₂_mono $ λ u hu, closure_mono (image2_subset subset.rfl hs)
@@ -337,9 +337,11 @@ open_locale omega_limit
 
 lemma is_invariant_omega_limit (hf : ∀ t, tendsto ((+) t) f f) :
   is_invariant ϕ (ω f ϕ s) :=
-λ t, maps_to.mono (subset.refl _) (omega_limit_subset_of_tendsto ϕ s (hf t)) $
-  maps_to_omega_limit _ (maps_to_id _) (λ t' x, (ϕ.map_add _ _ _).symm)
+begin
+  refine λ t, maps_to.mono_right _ (omega_limit_subset_of_tendsto ϕ s (hf t)),
+  exact maps_to_omega_limit _ (maps_to_id _) (λ t' x, (ϕ.map_add _ _ _).symm)
     (continuous_const.flow ϕ continuous_id)
+end
 
 lemma omega_limit_image_subset (t : τ) (ht : tendsto (+ t) f f) :
   ω f ϕ (ϕ t '' s) ⊆ ω f ϕ s :=

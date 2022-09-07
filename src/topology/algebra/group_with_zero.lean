@@ -10,9 +10,9 @@ import topology.homeomorph
 /-!
 # Topological group with zero
 
-In this file we define `has_continuous_inv'` to be a mixin typeclass a type with `has_inv` and
+In this file we define `has_continuous_inv₀` to be a mixin typeclass a type with `has_inv` and
 `has_zero` (e.g., a `group_with_zero`) such that `λ x, x⁻¹` is continuous at all nonzero points. Any
-normed (semi)field has this property. Currently the only example of `has_continuous_inv'` in
+normed (semi)field has this property. Currently the only example of `has_continuous_inv₀` in
 `mathlib` which is not a normed field is the type `nnnreal` (a.k.a. `ℝ≥0`) of nonnegative real
 numbers.
 
@@ -22,7 +22,7 @@ and `continuous`. As a special case, we provide `*.div_const` operations that re
 `group_with_zero` and `has_continuous_mul` instances.
 
 All lemmas about `(⁻¹)` use `inv'` in their names because lemmas without `'` are used for
-`topological_group`s. We also use `'` in the typeclass name `has_continuous_inv'` for the sake of
+`topological_group`s. We also use `'` in the typeclass name `has_continuous_inv₀` for the sake of
 consistency of notation.
 
 On a `group_with_zero` with continuous multiplication, we also define left and right multiplication
@@ -73,7 +73,7 @@ end div_const
 
 /-- A type with `0` and `has_inv` such that `λ x, x⁻¹` is continuous at all nonzero points. Any
 normed (semi)field has this property. -/
-class has_continuous_inv₀ (G₀ : Type*) [has_zero G₀] [has_inv G₀] [topological_space G₀] :=
+class has_continuous_inv₀ (G₀ : Type*) [has_zero G₀] [has_inv G₀] [topological_space G₀] : Prop :=
 (continuous_at_inv₀ : ∀ ⦃x : G₀⦄, x ≠ 0 → continuous_at has_inv.inv x)
 
 export has_continuous_inv₀ (continuous_at_inv₀)

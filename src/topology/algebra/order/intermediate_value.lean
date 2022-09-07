@@ -99,7 +99,7 @@ lemma is_preconnected.intermediate_value₂_eventually₁ {s : set X} (hs : is_p
 begin
   rw continuous_on_iff_continuous_restrict at hf hg,
   obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₁ _ _ _ _ _ _ (subtype.preconnected_space hs)
-    ⟨a, ha⟩ _ (comap_coe_ne_bot_of_le_principal hl) _ _ hf hg ha' (eventually_comap' he),
+    ⟨a, ha⟩ _ (comap_coe_ne_bot_of_le_principal hl) _ _ hf hg ha' (he.comap _),
   exact ⟨b, b.prop, h⟩,
 end
 
@@ -111,7 +111,7 @@ begin
   rw continuous_on_iff_continuous_restrict at hf hg,
   obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₂ _ _ _ _ _ _ (subtype.preconnected_space hs)
     _ _ (comap_coe_ne_bot_of_le_principal hl₁) (comap_coe_ne_bot_of_le_principal hl₂)
-    _ _ hf hg (eventually_comap' he₁) (eventually_comap' he₂),
+    _ _ hf hg (he₁.comap _) (he₂.comap _),
   exact ⟨b, b.prop, h⟩,
 end
 
@@ -267,7 +267,7 @@ end
 lemma is_preconnected.Iio_cSup_subset {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
   (ha : bdd_above s) :
   Iio (Sup s) ⊆ s :=
-@is_preconnected.Ioi_cInf_subset (order_dual α) _ _ _ s hs ha hb
+@is_preconnected.Ioi_cInf_subset αᵒᵈ _ _ _ s hs ha hb
 
 /-- A preconnected set in a conditionally complete linear order is either one of the intervals
 `[Inf s, Sup s]`, `[Inf s, Sup s)`, `(Inf s, Sup s]`, `(Inf s, Sup s)`, `[Inf s, +∞)`,
@@ -547,7 +547,7 @@ lemma continuous.surjective {f : α → δ} (hf : continuous f) (h_top : tendsto
 lemma continuous.surjective' {f : α → δ} (hf : continuous f) (h_top : tendsto f at_bot at_top)
   (h_bot : tendsto f at_top at_bot) :
   function.surjective f :=
-@continuous.surjective (order_dual α) _ _ _ _ _ _ _ _ _ hf h_top h_bot
+@continuous.surjective αᵒᵈ _ _ _ _ _ _ _ _ _ hf h_top h_bot
 
 /-- If a function `f : α → β` is continuous on a nonempty interval `s`, its restriction to `s`
 tends to `at_bot : filter β` along `at_bot : filter ↥s` and tends to `at_top : filter β` along
@@ -569,4 +569,4 @@ lemma continuous_on.surj_on_of_tendsto' {f : α → δ} {s : set α} [ord_connec
   (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_top)
   (htop : tendsto (λ x : s, f x) at_top at_bot) :
   surj_on f s univ :=
-@continuous_on.surj_on_of_tendsto α _ _ _ _ (order_dual δ) _ _ _ _ _ _ hs hf hbot htop
+@continuous_on.surj_on_of_tendsto α _ _ _ _ δᵒᵈ _ _ _ _ _ _ hs hf hbot htop

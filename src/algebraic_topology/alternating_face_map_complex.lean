@@ -4,13 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joël Riou, Adam Topaz, Johan Commelin
 -/
 
-import algebra.homology.homological_complex
-import algebraic_topology.simplicial_object
+import algebra.homology.additive
 import algebraic_topology.Moore_complex
-import category_theory.abelian.basic
-import algebra.big_operators.basic
-import tactic.ring_exp
-import data.fintype.card
+import algebra.big_operators.fin
+import category_theory.preadditive.opposite
 
 /-!
 
@@ -21,6 +18,9 @@ functor `alternating_face_map_complex : simplicial_object C ⥤ chain_complex C 
 for any preadditive category `C`. For any simplicial object `X` in `C`,
 this is the homological complex `... → X_2 → X_1 → X_0`
 where the differentials are alternating sums of faces.
+
+The dual version `alternating_coface_map_complex : cosimplicial_object C ⥤ cochain_complex C ℕ`
+is also constructed.
 
 We also construct the natural transformation
 `inclusion_of_Moore_complex : normalized_Moore_complex A ⟶ alternating_face_map_complex A`
@@ -33,7 +33,7 @@ when `A` is an abelian category.
 -/
 
 open category_theory category_theory.limits category_theory.subobject
-open category_theory.preadditive
+open category_theory.preadditive category_theory.category
 open opposite
 
 open_locale big_operators
@@ -125,10 +125,19 @@ end
 /-- The alternating face map complex, on objects -/
 def obj : chain_complex C ℕ := chain_complex.of (λ n, X _[n]) (obj_d X) (d_squared X)
 
+@[simp]
+lemma obj_X (X : simplicial_object C) (n : ℕ) :
+  (alternating_face_map_complex.obj X).X n = X _[n] := rfl
+
+@[simp]
+lemma obj_d_eq (X : simplicial_object C) (n : ℕ) :
+  (alternating_face_map_complex.obj X).d (n+1) n =
+  ∑ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i :=
+by apply chain_complex.of_d
+
 variables {X} {Y}
 
 /-- The alternating face map complex, on morphisms -/
-@[simp]
 def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
 chain_complex.of_hom _ _ _ _ _ _
   (λ n, f.app (op [n]))
@@ -138,20 +147,61 @@ chain_complex.of_hom _ _ _ _ _ _
       rw [comp_sum, sum_comp],
       apply finset.sum_congr rfl (λ x h, _),
       rw [comp_zsmul, zsmul_comp],
-      apply congr_arg,
-      erw f.naturality,
-      refl,
+      congr' 1,
+      symmetry,
+      apply f.naturality,
     end)
+
+@[simp]
+lemma map_f (f : X ⟶ Y) (n : ℕ) : (map f).f n = f.app (op [n]) := rfl
 
 end alternating_face_map_complex
 
 variables (C : Type*) [category C] [preadditive C]
 
 /-- The alternating face map complex, as a functor -/
-@[simps]
 def alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ :=
 { obj := alternating_face_map_complex.obj,
   map := λ X Y f, alternating_face_map_complex.map f }
+
+variable {C}
+
+@[simp]
+lemma alternating_face_map_complex_obj_X (X : simplicial_object C) (n : ℕ) :
+  ((alternating_face_map_complex C).obj X).X n = X _[n] := rfl
+
+@[simp]
+lemma alternating_face_map_complex_obj_d (X : simplicial_object C) (n : ℕ) :
+  ((alternating_face_map_complex C).obj X).d (n+1) n =
+  alternating_face_map_complex.obj_d X n :=
+by apply chain_complex.of_d
+
+@[simp]
+lemma alternating_face_map_complex_map_f {X Y : simplicial_object C} (f : X ⟶ Y) (n : ℕ) :
+  ((alternating_face_map_complex C).map f).f n = f.app (op [n]) := rfl
+
+lemma map_alternating_face_map_complex {D : Type*} [category D] [preadditive D]
+  (F : C ⥤ D) [F.additive] :
+  alternating_face_map_complex C ⋙ F.map_homological_complex _ =
+  (simplicial_object.whiskering C D).obj F ⋙ alternating_face_map_complex D :=
+begin
+  apply category_theory.functor.ext,
+  { intros X Y f,
+    ext n,
+    simp only [functor.comp_map, homological_complex.comp_f,
+      alternating_face_map_complex_map_f, functor.map_homological_complex_map_f,
+      homological_complex.eq_to_hom_f, eq_to_hom_refl, comp_id, id_comp,
+      simplicial_object.whiskering_obj_map_app], },
+  { intro X,
+    apply homological_complex.ext,
+    { rintros i j (rfl : j + 1 = i),
+      dsimp only [functor.comp_obj],
+      simpa only [functor.map_homological_complex_obj_d, alternating_face_map_complex_obj_d,
+        eq_to_hom_refl, id_comp, comp_id, alternating_face_map_complex.obj_d,
+        functor.map_sum, functor.map_zsmul], },
+    { ext n,
+      refl, }, },
+end
 
 /-!
 ## Construction of the natural inclusion of the normalized Moore complex
@@ -184,7 +234,7 @@ chain_complex.of_hom _ _ _ _ _ _
         rw normalized_Moore_complex.obj_X,
         rw ← factor_thru_arrow _ _
           (finset_inf_arrow_factors finset.univ _ j (by simp only [finset.mem_univ])),
-        slice_lhs 2 3 { erw kernel_subobject_arrow_comp (X.δ j.succ), },
+        slice_lhs 2 3 { rw kernel_subobject_arrow_comp (X.δ j.succ), },
         simp only [comp_zero], },
       rw [fintype.sum_eq_zero _ null],
       simp only [add_zero],
@@ -209,5 +259,54 @@ as a natural transformation -/
 def inclusion_of_Moore_complex :
   (normalized_Moore_complex A) ⟶ (alternating_face_map_complex A) :=
 { app := inclusion_of_Moore_complex_map, }
+
+namespace alternating_coface_map_complex
+
+variables (X Y : cosimplicial_object C)
+
+/-- The differential on the alternating coface map complex is the alternate
+sum of the coface maps -/
+@[simp]
+def obj_d (n : ℕ) : X.obj [n] ⟶ X.obj [n+1] :=
+∑ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i
+
+lemma d_eq_unop_d (n : ℕ) :
+  obj_d X n = (alternating_face_map_complex.obj_d
+    ((cosimplicial_simplicial_equiv C).functor.obj (op X)) n).unop :=
+by simpa only [obj_d, alternating_face_map_complex.obj_d, unop_sum, unop_zsmul]
+
+lemma d_squared (n : ℕ) : obj_d X n ≫ obj_d X (n+1) = 0 :=
+by simp only [d_eq_unop_d, ← unop_comp, alternating_face_map_complex.d_squared, unop_zero]
+
+/-- The alternating coface map complex, on objects -/
+def obj : cochain_complex C ℕ := cochain_complex.of (λ n, X.obj [n]) (obj_d X) (d_squared X)
+
+variables {X} {Y}
+
+/-- The alternating face map complex, on morphisms -/
+@[simp]
+def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
+cochain_complex.of_hom _ _ _ _ _ _
+  (λ n, f.app [n])
+  (λ n,
+    begin
+      dsimp,
+      rw [comp_sum, sum_comp],
+      apply finset.sum_congr rfl (λ x h, _),
+      rw [comp_zsmul, zsmul_comp],
+      congr' 1,
+      symmetry,
+      apply f.naturality,
+    end)
+
+end alternating_coface_map_complex
+
+variable (C)
+
+/-- The alternating coface map complex, as a functor -/
+@[simps]
+def alternating_coface_map_complex : cosimplicial_object C ⥤ cochain_complex C ℕ :=
+{ obj := alternating_coface_map_complex.obj,
+  map := λ X Y f, alternating_coface_map_complex.map f }
 
 end algebraic_topology

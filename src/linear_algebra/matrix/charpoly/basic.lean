@@ -15,6 +15,8 @@ import tactic.squeeze
 We define characteristic polynomials of matrices and
 prove the Cayley–Hamilton theorem over arbitrary commutative rings.
 
+See the file `matrix/charpoly/coeff` for corollaries of this theorem.
+
 ## Main definitions
 
 * `matrix.charpoly` is the characteristic polynomial of a matrix.
@@ -43,6 +45,9 @@ The determinant of this matrix is the characteristic polynomial.
 -/
 def charmatrix (M : matrix n n R) : matrix n n R[X] :=
 matrix.scalar n (X : R[X]) - (C : R →+* R[X]).map_matrix M
+
+lemma charmatrix_apply (M : matrix n n R) (i j : n) :
+  charmatrix M i j = X * (1 : matrix n n R[X]) i j - C (M i j) := rfl
 
 @[simp] lemma charmatrix_apply_eq (M : matrix n n R) (i : n) :
   charmatrix M i i = (X : R[X]) - C (M i i) :=
@@ -93,6 +98,8 @@ The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a matrix,
 applied to the matrix itself, is zero.
 
 This holds over any commutative ring.
+
+See `linear_map.aeval_self_charpoly` for the equivalent statement about endomorphisms.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
 theorem matrix.aeval_self_charpoly (M : matrix n n R) :

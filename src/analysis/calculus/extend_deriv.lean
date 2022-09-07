@@ -20,8 +20,8 @@ of the one-dimensional derivative `deriv ℝ f`.
 -/
 
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
-          {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+          {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 open filter set metric continuous_linear_map
 open_locale topological_space
@@ -122,14 +122,16 @@ begin
     { have : y ∈ s := sab ⟨lt_of_le_of_ne hy.1 (ne.symm h), hy.2⟩,
       exact (f_diff.continuous_on y this).mono ts } },
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
-  { simp [deriv_fderiv.symm],
-    refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim' },
+  { simp only [deriv_fderiv.symm],
+    exact tendsto.comp
+      (is_bounded_bilinear_map_smul_right : is_bounded_bilinear_map ℝ _)
+        .continuous_right.continuous_at
+      (tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim'), },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc a b) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
     exact has_fderiv_at_boundary_of_tendsto_fderiv t_diff t_conv t_open t_cont t_diff' },
-  exact this.nhds_within (mem_nhds_within_Ici_iff_exists_Icc_subset.2 ⟨b, ab, subset.refl _⟩)
+  exact this.nhds_within (Icc_mem_nhds_within_Ici $ left_mem_Ico.2 ab)
 end
 
 /-- If a function is differentiable on the left of a point `a : ℝ`, continuous at `a`, and
@@ -159,14 +161,16 @@ begin
     { have : y ∈ s := sab ⟨hy.1, lt_of_le_of_ne hy.2 h⟩,
       exact (f_diff.continuous_on y this).mono ts } },
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
-  { simp [deriv_fderiv.symm],
-    refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim' },
+  { simp only [deriv_fderiv.symm],
+    exact tendsto.comp
+      (is_bounded_bilinear_map_smul_right : is_bounded_bilinear_map ℝ _)
+        .continuous_right.continuous_at
+      (tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim'), },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc b a) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
     exact has_fderiv_at_boundary_of_tendsto_fderiv t_diff t_conv t_open t_cont t_diff' },
-  exact this.nhds_within (mem_nhds_within_Iic_iff_exists_Icc_subset.2 ⟨b, ba, subset.refl _⟩)
+  exact this.nhds_within (Icc_mem_nhds_within_Iic $ right_mem_Ioc.2 ba)
 end
 
 /-- If a real function `f` has a derivative `g` everywhere but at a point, and `f` and `g` are

@@ -39,6 +39,8 @@ namespace modeq
 
 protected theorem rfl : a ≡ a [MOD n] := modeq.refl _
 
+instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
+
 @[symm] protected theorem symm : a ≡ b [MOD n] → b ≡ a [MOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
@@ -95,7 +97,7 @@ end
 
 protected theorem add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
 begin
-  rw [modeq_iff_dvd, int.coe_nat_add, int.coe_nat_add, add_sub_comm],
+  rw [modeq_iff_dvd, int.coe_nat_add, int.coe_nat_add, add_sub_add_comm],
   exact dvd_add h₁.dvd h₂.dvd,
 end
 
@@ -109,7 +111,7 @@ protected theorem add_left_cancel (h₁ : a ≡ b [MOD n]) (h₂ : a + c ≡ b +
   c ≡ d [MOD n] :=
 begin
   simp only [modeq_iff_dvd, int.coe_nat_add] at *,
-  rw add_sub_comm at h₂,
+  rw add_sub_add_comm at h₂,
   convert _root_.dvd_sub h₂ h₁ using 1,
   rw add_sub_cancel',
 end
@@ -405,7 +407,7 @@ lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
 have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
-(nat.mul_right_inj (show 0 < 2, from dec_trivial)).1 $
+(nat.mul_right_inj zero_lt_two).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
   ← add_tsub_assoc_of_le (succ_le_of_lt hm0),
@@ -417,6 +419,12 @@ by simpa [modeq, show 2 * 2 = 4, by norm_num] using @modeq.of_modeq_mul_left 2 n
 lemma odd_of_mod_four_eq_three {n : ℕ} : n % 4 = 3 → n % 2 = 1 :=
 by simpa [modeq, show 2 * 2 = 4, by norm_num, show 3 % 4 = 3, by norm_num]
   using @modeq.of_modeq_mul_left 2 n 3 2
+
+/-- A natural number is odd iff it has residue `1` or `3` mod `4`-/
+lemma odd_mod_four_iff {n : ℕ} : n % 2 = 1 ↔ n % 4 = 1 ∨ n % 4 = 3 :=
+have help : ∀ (m : ℕ), m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
+⟨λ hn, help (n % 4) (mod_lt n (by norm_num)) $ (mod_mod_of_dvd n (by norm_num : 2 ∣ 4)).trans hn,
+ λ h, or.dcases_on h odd_of_mod_four_eq_one odd_of_mod_four_eq_three⟩
 
 end nat
 

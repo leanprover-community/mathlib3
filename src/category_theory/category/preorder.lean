@@ -3,9 +3,8 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
-
-import category_theory.category.Cat
-import order.category.Preorder
+import category_theory.adjunction.basic
+import order.galois_connection
 
 /-!
 
@@ -40,7 +39,7 @@ Because we don't allow morphisms to live in `Prop`,
 we have to define `X ⟶ Y` as `ulift (plift (X ≤ Y))`.
 See `category_theory.hom_of_le` and `category_theory.le_of_hom`.
 
-See https://stacks.math.columbia.edu/tag/00D3.
+See <https://stacks.math.columbia.edu/tag/00D3>.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance small_category (α : Type u) [preorder α] : small_category α :=
@@ -61,7 +60,7 @@ Express an inequality as a morphism in the corresponding preorder category.
 -/
 def hom_of_le {x y : X} (h : x ≤ y) : x ⟶ y := ulift.up (plift.up h)
 
-alias hom_of_le ← has_le.le.hom
+alias hom_of_le ← _root_.has_le.le.hom
 
 @[simp] lemma hom_of_le_refl {x : X} : (le_refl x).hom = 𝟙 x := rfl
 @[simp] lemma hom_of_le_comp {x y z : X} (h : x ≤ y) (k : y ≤ z) :
@@ -72,7 +71,7 @@ Extract the underlying inequality from a morphism in a preorder category.
 -/
 lemma le_of_hom {x y : X} (h : x ⟶ y) : x ≤ y := h.down.down
 
-alias le_of_hom ← quiver.hom.le
+alias le_of_hom ← _root_.quiver.hom.le
 
 @[simp] lemma le_of_hom_hom_of_le {x y : X} (h : x ≤ y) : h.hom.le = h := rfl
 @[simp] lemma hom_of_le_le_of_hom {x y : X} (h : x ⟶ y) : h.le.hom = h :=
@@ -129,23 +128,6 @@ An adjunction between preorder categories induces a galois connection.
 lemma adjunction.gc {L : X ⥤ Y} {R : Y ⥤ X} (adj : L ⊣ R) :
   galois_connection L.obj R.obj :=
 λ x y, ⟨λ h, ((adj.hom_equiv x y).to_fun h.hom).le, λ h, ((adj.hom_equiv x y).inv_fun h.hom).le⟩
-
-/--
-The embedding of `Preorder` into `Cat`.
--/
-@[simps]
-def Preorder_to_Cat : Preorder.{u} ⥤ Cat :=
-{ obj := λ X, Cat.of X.1,
-  map := λ X Y f, f.monotone.functor,
-  map_id' := λ X, begin apply category_theory.functor.ext, tidy end,
-  map_comp' := λ X Y Z f g, begin apply category_theory.functor.ext, tidy end }
-
-instance : faithful Preorder_to_Cat.{u} :=
-{ map_injective' := λ X Y f g h, begin ext x, exact functor.congr_obj h x end }
-
-instance : full Preorder_to_Cat.{u} :=
-{ preimage := λ X Y f, ⟨f.obj, f.monotone⟩,
-  witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }
 
 end preorder
 

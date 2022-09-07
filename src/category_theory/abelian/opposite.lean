@@ -21,8 +21,8 @@ open category_theory.limits
 variables (C : Type*) [category C] [abelian C]
 
 local attribute [instance]
-  finite_limits_from_equalizers_and_finite_products
-  finite_colimits_from_coequalizers_and_finite_coproducts
+  has_finite_limits_of_has_equalizers_and_finite_products
+  has_finite_colimits_of_has_coequalizers_and_finite_coproducts
   has_finite_limits_opposite has_finite_colimits_opposite has_finite_products_opposite
 
 instance : abelian Cᵒᵖ :=
@@ -87,6 +87,14 @@ def kernel_unop_op : opposite.op (kernel g.unop) ≅ cokernel g :=
 def cokernel_unop_op : opposite.op (cokernel g.unop) ≅ kernel g :=
 (kernel_op_unop g.unop).op
 
+lemma cokernel.π_op : (cokernel.π f.op).unop =
+  (cokernel_op_unop f).hom ≫ kernel.ι f ≫ eq_to_hom (opposite.unop_op _).symm :=
+by simp [cokernel_op_unop]
+
+lemma kernel.ι_op : (kernel.ι f.op).unop =
+  eq_to_hom (opposite.unop_op _) ≫ cokernel.π f ≫ (kernel_op_unop f).inv :=
+by simp [kernel_op_unop]
+
 /-- The kernel of `f.op` is the opposite of `cokernel f`. -/
 @[simps]
 def kernel_op_op : kernel f.op ≅ opposite.op (cokernel f) :=
@@ -101,6 +109,14 @@ def cokernel_op_op : cokernel f.op ≅ opposite.op (kernel f) :=
 @[simps]
 def kernel_unop_unop : kernel g.unop ≅ (cokernel g).unop :=
 (kernel_unop_op g).unop.symm
+
+lemma kernel.ι_unop : (kernel.ι g.unop).op =
+  eq_to_hom (opposite.op_unop _) ≫ cokernel.π g ≫ (kernel_unop_op g).inv :=
+by simp
+
+lemma cokernel.π_unop : (cokernel.π g.unop).op =
+  (cokernel_unop_op g).hom ≫ kernel.ι g ≫ eq_to_hom (opposite.op_unop _).symm :=
+by simp
 
 /-- The cokernel of `g.unop` is the opposite of `kernel g`. -/
 @[simps]

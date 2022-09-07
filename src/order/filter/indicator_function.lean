@@ -86,3 +86,31 @@ begin
   refine monotone.tendsto_indicator (λ n : finset ι, ⋃ i ∈ n, s i) _ f a,
   exact λ t₁ t₂, bUnion_subset_bUnion_left
 end
+
+lemma filter.eventually_eq.support [has_zero β] {f g : α → β} {l : filter α}
+  (h : f =ᶠ[l] g) :
+  function.support f =ᶠ[l] function.support g :=
+begin
+  filter_upwards [h] with x hx,
+  rw eq_iff_iff,
+  change f x ≠ 0 ↔ g x ≠ 0,
+  rw hx,
+end
+
+lemma filter.eventually_eq.indicator [has_zero β] {l : filter α} {f g : α → β} {s : set α}
+  (hfg : f =ᶠ[l] g) :
+  s.indicator f =ᶠ[l] s.indicator g :=
+begin
+  filter_upwards [hfg] with x hx,
+  by_cases x ∈ s,
+  { rwa [indicator_of_mem h, indicator_of_mem h] },
+  { rw [indicator_of_not_mem h, indicator_of_not_mem h] }
+end
+
+lemma filter.eventually_eq.indicator_zero [has_zero β] {l : filter α}
+  {f : α → β} {s : set α} (hf : f =ᶠ[l] 0) :
+  s.indicator f =ᶠ[l] 0 :=
+begin
+  refine hf.indicator.trans _,
+  rw indicator_zero'
+end

@@ -17,8 +17,6 @@ import analysis.normed_space.lattice_ordered_group
 
 - move definitions of `Lp.pos_part` and `Lp.neg_part` to this file, and define them as
   `has_pos_part.pos` and `has_pos_part.neg` given by the lattice structure.
-- show that if `E` is a `normed_lattice_add_comm_group` then so is `Lp E p μ` for `1 ≤ p`. In
-  particular, this shows `order_closed_topology` for `Lp`.
 
 -/
 
@@ -31,8 +29,7 @@ namespace measure_theory
 namespace Lp
 
 section order
-variables [normed_lattice_add_comm_group E] [measurable_space E] [borel_space E]
-  [second_countable_topology E]
+variables [normed_lattice_add_comm_group E]
 
 lemma coe_fn_le (f g : Lp E p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
 by rw [← subtype.coe_le_coe, ← ae_eq_fun.coe_fn_le, ← coe_fn_coe_base, ← coe_fn_coe_base]
@@ -56,8 +53,50 @@ begin
 end
 
 instance : ordered_add_comm_group (Lp E p μ) :=
-{ add_le_add_left := λ f g hfg f', add_le_add_left hfg f',
+{ add_le_add_left := λ f g, add_le_add_left,
   ..subtype.partial_order _, ..add_subgroup.to_add_comm_group _}
+
+lemma _root_.measure_theory.mem_ℒp.sup {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
+  mem_ℒp (f ⊔ g) p μ :=
+mem_ℒp.mono' (hf.norm.add hg.norm) (hf.1.sup hg.1)
+  (filter.eventually_of_forall (λ x, norm_sup_le_add (f x) (g x)))
+
+lemma _root_.measure_theory.mem_ℒp.inf {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
+  mem_ℒp (f ⊓ g) p μ :=
+mem_ℒp.mono' (hf.norm.add hg.norm) (hf.1.inf hg.1)
+  (filter.eventually_of_forall (λ x, norm_inf_le_add (f x) (g x)))
+
+lemma _root_.measure_theory.mem_ℒp.abs {f : α → E} (hf : mem_ℒp f p μ)  :
+  mem_ℒp (|f|) p μ :=
+hf.sup hf.neg
+
+instance : lattice (Lp E p μ) :=
+subtype.lattice (λ f g hf hg, by { rw mem_Lp_iff_mem_ℒp at *,
+    exact (mem_ℒp_congr_ae (ae_eq_fun.coe_fn_sup _ _)).mpr (hf.sup hg), })
+  (λ f g hf hg, by { rw mem_Lp_iff_mem_ℒp at *,
+    exact (mem_ℒp_congr_ae (ae_eq_fun.coe_fn_inf _ _)).mpr (hf.inf hg),})
+
+lemma coe_fn_sup (f g : Lp E p μ) : ⇑(f ⊔ g) =ᵐ[μ] ⇑f ⊔ ⇑g :=
+ae_eq_fun.coe_fn_sup _ _
+
+lemma coe_fn_inf (f g : Lp E p μ) : ⇑(f ⊓ g) =ᵐ[μ] ⇑f ⊓ ⇑g :=
+ae_eq_fun.coe_fn_inf _ _
+
+lemma coe_fn_abs (f : Lp E p μ) : ⇑|f| =ᵐ[μ] λ x, |f x| :=
+ae_eq_fun.coe_fn_abs _
+
+noncomputable
+instance [fact (1 ≤ p)] : normed_lattice_add_comm_group (Lp E p μ) :=
+{ add_le_add_left := λ f g, add_le_add_left,
+  solid := λ f g hfg, begin
+    rw ← coe_fn_le at hfg,
+    simp_rw [Lp.norm_def, ennreal.to_real_le_to_real (Lp.snorm_ne_top f) (Lp.snorm_ne_top g)],
+    refine snorm_mono_ae _,
+    filter_upwards [hfg, Lp.coe_fn_abs f, Lp.coe_fn_abs g] with x hx hxf hxg,
+    rw [hxf, hxg] at hx,
+    exact solid hx,
+  end,
+  ..Lp.lattice, ..Lp.normed_add_comm_group, }
 
 end order
 

@@ -3,9 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import ring_theory.subsemiring.basic
 import algebra.group_ring_action
-import algebra.pointwise
+import ring_theory.subsemiring.basic
 
 /-! # Pointwise instances on `subsemiring`s
 
@@ -19,6 +18,8 @@ This actions is available in the `pointwise` locale.
 This file is almost identical to `group_theory/submonoid/pointwise.lean`. Where possible, try to
 keep them in sync.
 -/
+
+open set
 
 variables {M R : Type*}
 

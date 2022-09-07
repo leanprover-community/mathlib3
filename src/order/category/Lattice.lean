@@ -12,7 +12,7 @@ import order.hom.lattice
 This defines `Lattice`, the category of lattices.
 
 Note that `Lattice` doesn't correspond to the literature definition of [`Lat`]
-[https://ncatlab.org/nlab/show/Lat] as we don't require bottom or top elements. Instead, `Lat`
+(https://ncatlab.org/nlab/show/Lat) as we don't require bottom or top elements. Instead, `Lat`
 corresponds to `BoundedLattice` (not yet in mathlib).
 
 ## TODO
@@ -34,6 +34,8 @@ instance (X : Lattice) : lattice X := X.str
 
 /-- Construct a bundled `Lattice` from a `lattice`. -/
 def of (α : Type*) [lattice α] : Lattice := bundled.of α
+
+@[simp] lemma coe_of (α : Type*) [lattice α] : ↥(of α) = α := rfl
 
 instance : inhabited Lattice := ⟨of bool⟩
 
@@ -58,8 +60,7 @@ instance has_forget_to_PartialOrder : has_forget₂ Lattice PartialOrder :=
   inv_hom_id' := by { ext, exact e.apply_symm_apply _ } }
 
 /-- `order_dual` as a functor. -/
-@[simps] def dual : Lattice ⥤ Lattice :=
-{ obj := λ X, of (order_dual X), map := λ X Y, lattice_hom.dual }
+@[simps] def dual : Lattice ⥤ Lattice := { obj := λ X, of Xᵒᵈ, map := λ X Y, lattice_hom.dual }
 
 /-- The equivalence between `Lattice` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : Lattice ≌ Lattice :=
@@ -71,4 +72,4 @@ end Lattice
 
 lemma Lattice_dual_comp_forget_to_PartialOrder :
   Lattice.dual ⋙ forget₂ Lattice PartialOrder =
-    forget₂ Lattice PartialOrder ⋙ PartialOrder.to_dual := rfl
+    forget₂ Lattice PartialOrder ⋙ PartialOrder.dual := rfl

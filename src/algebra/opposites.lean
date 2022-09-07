@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.group.defs
-import data.equiv.basic
+import logic.equiv.basic
 import logic.nontrivial
 
 /-!
@@ -104,13 +104,21 @@ instance [has_sub α] : has_sub αᵐᵒᵖ :=
 instance [has_neg α] : has_neg αᵐᵒᵖ :=
 { neg := λ x, op $ -(unop x) }
 
+instance [has_involutive_neg α] : has_involutive_neg αᵐᵒᵖ :=
+{ neg_neg := λ a, unop_injective $ neg_neg _,
+  ..mul_opposite.has_neg α }
+
 @[to_additive] instance [has_mul α] : has_mul αᵐᵒᵖ :=
 { mul := λ x y, op (unop y * unop x) }
 
 @[to_additive] instance [has_inv α] : has_inv αᵐᵒᵖ :=
 { inv := λ x, op $ (unop x)⁻¹ }
 
-@[to_additive] instance (R : Type*) [has_scalar R α] : has_scalar R αᵐᵒᵖ :=
+@[to_additive] instance [has_involutive_inv α] : has_involutive_inv αᵐᵒᵖ :=
+{ inv_inv := λ a, unop_injective $ inv_inv _,
+  ..mul_opposite.has_inv α }
+
+@[to_additive] instance (R : Type*) [has_smul R α] : has_smul R αᵐᵒᵖ :=
 { smul := λ c x, op (c • unop x) }
 
 section
@@ -139,10 +147,10 @@ variable {α}
 @[simp] lemma op_sub [has_sub α] (x y : α) : op (x - y) = op x - op y := rfl
 @[simp] lemma unop_sub [has_sub α] (x y : αᵐᵒᵖ) : unop (x - y) = unop x - unop y := rfl
 
-@[simp, to_additive] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) :
+@[simp, to_additive] lemma op_smul {R : Type*} [has_smul R α] (c : R) (a : α) :
   op (c • a) = c • op a := rfl
 
-@[simp, to_additive] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵐᵒᵖ) :
+@[simp, to_additive] lemma unop_smul {R : Type*} [has_smul R α] (c : R) (a : αᵐᵒᵖ) :
   unop (c • a) = c • unop a := rfl
 
 end
@@ -187,6 +195,10 @@ instance [has_mul α] : has_mul αᵃᵒᵖ := { mul := λ a b, op (unop a * uno
 @[simp] lemma unop_mul [has_mul α] (a b : αᵃᵒᵖ) : unop (a * b) = unop a * unop b := rfl
 
 instance [has_inv α] : has_inv αᵃᵒᵖ := { inv := λ a, op (unop a)⁻¹ }
+
+instance [has_involutive_inv α] : has_involutive_inv αᵃᵒᵖ :=
+{ inv_inv := λ a, unop_injective $ inv_inv _,
+  ..add_opposite.has_inv }
 
 @[simp] lemma op_inv [has_inv α] (a : α) : op a⁻¹ = (op a)⁻¹ := rfl
 @[simp] lemma unop_inv [has_inv α] (a : αᵃᵒᵖ) : unop a⁻¹ = (unop a)⁻¹ := rfl

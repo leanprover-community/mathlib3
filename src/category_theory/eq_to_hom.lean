@@ -24,7 +24,8 @@ This file introduces various `simp` lemmas which in favourable circumstances
 result in the various `eq_to_hom` morphisms to drop out at the appropriate moment!
 -/
 
-universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ u₁ u₂ u₃
+-- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 open opposite
@@ -113,24 +114,22 @@ lemma ext {F G : C ⥤ D} (h_obj : ∀ X, F.obj X = G.obj X)
   F = G :=
 begin
   cases F with F_obj _ _ _, cases G with G_obj _ _ _,
-  have : F_obj = G_obj, by ext X; apply h_obj,
-  subst this,
+  obtain rfl : F_obj = G_obj, by { ext X, apply h_obj },
   congr,
   funext X Y f,
   simpa using h_map X Y f
 end
 
+/-- Two morphisms are conjugate via eq_to_hom if and only if they are heterogeneously equal. --/
+lemma conj_eq_to_hom_iff_heq {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) (h : W = Y) (h' : X = Z) :
+  f = eq_to_hom h ≫ g ≫ eq_to_hom h'.symm ↔ f == g :=
+by { cases h, cases h', simp }
+
 /-- Proving equality between functors using heterogeneous equality. -/
 lemma hext {F G : C ⥤ D} (h_obj : ∀ X, F.obj X = G.obj X)
   (h_map : ∀ X Y (f : X ⟶ Y), F.map f == G.map f) : F = G :=
-begin
-  cases F with F_obj _ _ _, cases G with G_obj _ _ _,
-  have : F_obj = G_obj, by ext X; apply h_obj,
-  subst this,
-  congr,
-  funext X Y f,
-  exact eq_of_heq (h_map X Y f)
-end
+functor.ext h_obj (λ _ _ f,
+  (conj_eq_to_hom_iff_heq _ _ (h_obj _) (h_obj _)).2 $ h_map _ _ f)
 
 -- Using equalities between functors.
 
@@ -141,13 +140,66 @@ lemma congr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) :
   F.map f = eq_to_hom (congr_obj h X) ≫ G.map f ≫ eq_to_hom (congr_obj h Y).symm :=
 by subst h; simp
 
+lemma congr_inv_of_congr_hom (F G : C ⥤ D) {X Y : C} (e : X ≅ Y)
+  (hX : F.obj X = G.obj X) (hY : F.obj Y = G.obj Y)
+  (h₂ : F.map e.hom = eq_to_hom (by rw hX) ≫ G.map e.hom ≫ eq_to_hom (by rw hY)) :
+F.map e.inv = eq_to_hom (by rw hY) ≫ G.map e.inv ≫ eq_to_hom (by rw hX) :=
+by simp only [← is_iso.iso.inv_hom e, functor.map_inv, h₂, is_iso.inv_comp,
+  inv_eq_to_hom, category.assoc]
+
+lemma congr_map (F : C ⥤ D) {X Y : C} {f g : X ⟶ Y} (h : f = g) :
+  F.map f = F.map g := by rw h
+
+section heq
+
+/- Composition of functors and maps w.r.t. heq -/
+
+variables {E : Type u₃} [category.{v₃} E] {F G : C ⥤ D} {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z}
+
+lemma map_comp_heq (hx : F.obj X = G.obj X) (hy : F.obj Y = G.obj Y) (hz : F.obj Z = G.obj Z)
+  (hf : F.map f == G.map f) (hg : F.map g == G.map g) : F.map (f ≫ g) == G.map (f ≫ g) :=
+by { rw [F.map_comp, G.map_comp], congr' }
+
+lemma map_comp_heq' (hobj : ∀ X : C, F.obj X = G.obj X)
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) :
+  F.map (f ≫ g) == G.map (f ≫ g) :=
+by rw functor.hext hobj (λ _ _, hmap)
+
+lemma precomp_map_heq (H : E ⥤ C)
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) {X Y : E} (f : X ⟶ Y) :
+  (H ⋙ F).map f == (H ⋙ G).map f := hmap _
+
+lemma postcomp_map_heq (H : D ⥤ E) (hx : F.obj X = G.obj X) (hy : F.obj Y = G.obj Y)
+  (hmap : F.map f == G.map f) : (F ⋙ H).map f == (G ⋙ H).map f :=
+by { dsimp, congr' }
+
+lemma postcomp_map_heq' (H : D ⥤ E) (hobj : ∀ X : C, F.obj X = G.obj X)
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) :
+  (F ⋙ H).map f == (G ⋙ H).map f :=
+by rw functor.hext hobj (λ _ _, hmap)
+
+lemma hcongr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) : F.map f == G.map f :=
+by subst h
+
+end heq
+
 end functor
 
-@[simp] lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+/--
+This is not always a good idea as a `@[simp]` lemma,
+as we lose the ability to use results that interact with `F`,
+e.g. the naturality of a natural transformation.
+
+In some files it may be appropriate to use `local attribute [simp] eq_to_hom_map`, however.
+-/
+lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
 by cases p; simp
 
-@[simp] lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+/--
+See the note on `eq_to_hom_map` regarding using this as a `simp` lemma.
+-/
+lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 by ext; cases p; simp
 
@@ -157,10 +209,14 @@ by subst h; refl
 
 lemma nat_trans.congr {F G : C ⥤ D} (α : F ⟶ G) {X Y : C} (h : X = Y) :
   α.app X = F.map (eq_to_hom h) ≫ α.app Y ≫ G.map (eq_to_hom h.symm) :=
-by { rw [α.naturality_assoc], simp }
+by { rw [α.naturality_assoc], simp [eq_to_hom_map], }
 
 lemma eq_conj_eq_to_hom {X Y : C} (f : X ⟶ Y) :
   f = eq_to_hom rfl ≫ f ≫ eq_to_hom rfl :=
 by simp only [category.id_comp, eq_to_hom_refl, category.comp_id]
+
+lemma dcongr_arg {ι : Type*} {F G : ι → C} (α : ∀ i, F i ⟶ G i) {i j : ι} (h : i = j) :
+  α i = eq_to_hom (congr_arg F h) ≫ α j ≫ eq_to_hom (congr_arg G h.symm) :=
+by { subst h, simp }
 
 end category_theory

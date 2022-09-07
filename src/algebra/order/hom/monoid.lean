@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.group.hom
+import algebra.hom.group
 import algebra.order.with_zero
 import order.hom.basic
 
@@ -161,6 +161,16 @@ instance [order_monoid_with_zero_hom_class F α β] : has_coe_t F (α →*₀o �
 
 end monoid_with_zero
 
+section ordered_add_comm_monoid
+variables [ordered_add_comm_monoid α] [ordered_add_comm_monoid β] [order_add_monoid_hom_class F α β]
+  (f : F) {a : α}
+include β
+
+lemma map_nonneg (ha : 0 ≤ a) : 0 ≤ f a := by { rw ←map_zero f, exact order_hom_class.mono _ ha }
+lemma map_nonpos (ha : a ≤ 0) : f a ≤ 0 := by { rw ←map_zero f, exact order_hom_class.mono _ ha }
+
+end ordered_add_comm_monoid
+
 namespace order_monoid_hom
 section preorder
 variables [preorder α] [preorder β] [preorder γ] [preorder δ] [mul_one_class α]
@@ -176,7 +186,9 @@ instance : order_monoid_hom_class (α →*o β) α β :=
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
-@[to_additive] instance : has_coe_to_fun (α →*o β) (λ _, α → β) := fun_like.has_coe_to_fun
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
+instance : has_coe_to_fun (α →*o β) (λ _, α → β) := fun_like.has_coe_to_fun
 
 -- Other lemmas should be accessed through the `fun_like` API
 @[ext, to_additive] lemma ext (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h

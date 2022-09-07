@@ -18,8 +18,8 @@ bipointed types. Two-pointed types form a full subcategory of those.
 
 ## References
 
-[Coalgebra of the real interval]
-[http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/coalgebra+of+the+real+interval]
+* [nLab, *Coalgebra of the real interval*]
+  (https://ncatlab.org/nlab/show/coalgebra+of+the+real+interval)
 -/
 
 open function

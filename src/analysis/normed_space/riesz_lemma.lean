@@ -1,23 +1,31 @@
 /-
 Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jean Lo
+Authors: Jean Lo, Yury Kudryashov
 -/
+import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
 
 /-!
-# Riesz's lemma
+# Applications of the Hausdorff distance in normed spaces
 
 Riesz's lemma, stated for a normed space over a normed field: for any
 closed proper subspace `F` of `E`, there is a nonzero `x` such that `∥x - F∥`
 is at least `r * ∥x∥` for any `r < 1`. This is `riesz_lemma`.
 
-In a nondiscrete normed field (with an element `c` of norm `> 1`) and any `R > ∥c∥`, one can
+In a nontrivially normed field (with an element `c` of norm `> 1`) and any `R > ∥c∥`, one can
 guarantee `∥x∥ ≤ R` and `∥x - y∥ ≥ 1` for any `y` in `F`. This is `riesz_lemma_of_norm_lt`.
+
+A further lemma, `metric.closed_ball_inf_dist_compl_subset_closure`, finds a *closed* ball within
+the closure of a set `s` of optimal distance from a point in `x` to the frontier of `s`.
 -/
 
+open set metric
+open_locale topological_space
+
 variables {𝕜 : Type*} [normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [seminormed_add_comm_group F] [normed_space ℝ F]
 
 /-- Riesz's lemma, which usually states that it is possible to find a
 vector with norm 1 whose distance to a closed proper subspace is
@@ -61,7 +69,7 @@ which is at distance  at least `1` of every element of `F`. Here, `R` is any giv
 strictly larger than the norm of an element of norm `> 1`. For a version without an `R`, see
 `riesz_lemma`.
 
-Since we are considering a general nondiscrete normed field, there may be a gap in possible norms
+Since we are considering a general nontrivially normed field, there may be a gap in possible norms
 (for instance no element of norm in `(1,2)`). Hence, we can not allow `R` arbitrarily close to `1`,
 and require `R > ∥c∥` for some `c : 𝕜` with norm `> 1`.
 -/
@@ -88,4 +96,14 @@ begin
   ... ≤ ∥d∥ * ∥x - y'∥ :
     mul_le_mul_of_nonneg_left (hx y' (by simp [hy', submodule.smul_mem _ _ hy])) (norm_nonneg _)
   ... = ∥d • x - y∥ : by simp [yy', ← smul_sub, norm_smul],
+end
+
+lemma metric.closed_ball_inf_dist_compl_subset_closure {x : F} {s : set F} (hx : x ∈ s) :
+  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
+begin
+  cases eq_or_ne (inf_dist x sᶜ) 0 with h₀ h₀,
+  { rw [h₀, closed_ball_zero'],
+    exact closure_mono (singleton_subset_iff.2 hx) },
+  { rw ← closure_ball x h₀,
+    exact closure_mono ball_inf_dist_compl_subset }
 end

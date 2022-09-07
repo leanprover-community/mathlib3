@@ -32,7 +32,7 @@ along with a term `a : α` if the value is `true`.
 -/
 
 namespace option
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ δ : Type*}
 
 lemma coe_def : (coe : α → option α) = some := rfl
 
@@ -67,6 +67,9 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
 by cases x; [contradiction, rw get_or_else_some]
+
+@[simp] lemma coe_get {o : option α} (h : o.is_some) : ((option.get h : α) : option α) = o :=
+option.some_get h
 
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
@@ -152,9 +155,13 @@ theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 
 theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
+theorem map_coe {α β} {a : α} {f : α → β} : f <$> (a : option α) = ↑(f a) := rfl
+
 @[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
+
+@[simp] theorem map_coe' {a : α} {f : α → β} : option.map f (a : option α) = ↑(f a) := rfl
 
 theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
   f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
@@ -181,6 +188,10 @@ by { cases x; simp only [map_none', map_some', h, mem_def] }
 @[simp] lemma map_map (h : β → γ) (g : α → β) (x : option α) :
   option.map h (option.map g x) = option.map (h ∘ g) x :=
 by { cases x; simp only [map_none', map_some'] }
+
+lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
+  (option.map f₁ a).map g₁ = (option.map f₂ a).map g₂ :=
+by rw [map_map, h, ←map_map]
 
 lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
   option.map (h ∘ g) x = option.map h (option.map g x) := (map_map _ _ _).symm
@@ -375,6 +386,9 @@ theorem iget_mem [inhabited α] : ∀ {o : option α}, is_some o → o.iget ∈ 
 theorem iget_of_mem [inhabited α] {a : α} : ∀ {o : option α}, a ∈ o → o.iget = a
 | _ rfl := rfl
 
+lemma get_or_else_default_eq_iget [inhabited α] (o : option α) : o.get_or_else default = o.iget :=
+by cases o; refl
+
 @[simp] theorem guard_eq_some {p : α → Prop} [decidable_pred p] {a b : α} :
   guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
@@ -482,5 +496,8 @@ rfl
 
 @[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
 rfl
+
+@[simp] lemma elim_none_some (f : option α → β) : option.elim (f none) (f ∘ some) = f :=
+funext $ λ o, by cases o; refl
 
 end option

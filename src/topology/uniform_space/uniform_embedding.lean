@@ -31,6 +31,9 @@ lemma uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s) : uniform_inducing f :=
 ⟨by simp [eq_comm, filter.ext_iff, subset_def, h]⟩
 
+lemma uniform_inducing_id : uniform_inducing (@id α) :=
+⟨by rw [← prod.map_def, prod.map_id, comap_id]⟩
+
 lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
   {f : α → β} (hf : uniform_inducing f) : uniform_inducing (g ∘ f) :=
 ⟨ by rw [show (λ (x : α × α), ((g ∘ f) x.1, (g ∘ f) x.2)) =
@@ -41,6 +44,15 @@ lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f
   {ι : Sort*} {p : ι → Prop} {s : ι → set (β × β)} (H : (𝓤 β).has_basis p s) :
   (𝓤 α).has_basis p (λ i, prod.map f f ⁻¹' s i) :=
 hf.1 ▸ H.comap _
+
+lemma uniform_inducing_of_compose {f : α → β} {g : β → γ} (hf : uniform_continuous f)
+  (hg : uniform_continuous g) (hgf : uniform_inducing (g ∘ f)) : uniform_inducing f :=
+begin
+  refine ⟨le_antisymm _ hf.le_comap⟩,
+  rw [← hgf.1, ← prod.map_def, ← prod.map_def, ← prod.map_comp_map f f g g,
+      ← @comap_comap _ _ _ _ (prod.map f f)],
+  exact comap_mono hg.le_comap
+end
 
 /-- A map `f : α → β` between uniform spaces is a *uniform embedding* if it is uniform inducing and
 injective. If `α` is a separated space, then the latter assumption follows from the former. -/
@@ -89,6 +101,19 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
 ⟨λ ⟨I, H⟩, ⟨I, λ s su, (H _).2 ⟨s, su, λ x y, id⟩, λ s, (H s).1⟩,
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
    λ ⟨t, tu, h⟩, mem_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
+
+lemma equiv.uniform_embedding {α β : Type*} [uniform_space α] [uniform_space β] (f : α ≃ β)
+  (h₁ : uniform_continuous f) (h₂ : uniform_continuous f.symm) : uniform_embedding f :=
+{ comap_uniformity :=
+  begin
+    refine le_antisymm _ _,
+    { change comap (f.prod_congr f) _ ≤ _,
+      rw ← map_equiv_symm (f.prod_congr f),
+      exact h₂ },
+    { rw ← map_le_iff_le_comap,
+      exact h₁ }
+  end,
+  inj := f.injective }
 
 theorem uniform_embedding_inl : uniform_embedding (sum.inl : α → α ⊕ β) :=
 begin
@@ -166,8 +191,8 @@ lemma uniform_inducing.inducing {f : α → β} (h : uniform_inducing f) : induc
 begin
   refine ⟨eq_of_nhds_eq_nhds $ assume a, _ ⟩,
   rw [nhds_induced, nhds_eq_uniformity, nhds_eq_uniformity, ← h.comap_uniformity,
-    comap_lift'_eq, comap_lift'_eq2];
-    { refl <|> exact monotone_preimage }
+    comap_lift'_eq, comap_lift'_eq2],
+  exacts [rfl, monotone_preimage]
 end
 
 lemma uniform_inducing.prod {α' : Type*} {β' : Type*} [uniform_space α'] [uniform_space β']
@@ -512,9 +537,9 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
     from calc _ ⊆ preimage (λp:(β×β), (e p.1, e p.2)) (interior t) : preimage_mono hm
     ... ⊆ preimage (λp:(β×β), (e p.1, e p.2)) t : preimage_mono interior_subset
     ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
-  have f '' (e ⁻¹' m₁) ×ˢ f '' (e ⁻¹' m₂) ⊆ s,
+  have (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) ⊆ s,
     from calc (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) =
-      (λp:(β×β), (f p.1, f p.2)) '' (e ⁻¹' m₁ ×ˢ e ⁻¹' m₂) : prod_image_image_eq
+      (λp:(β×β), (f p.1, f p.2)) '' ((e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂)) : prod_image_image_eq
     ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' ((λp:(β×β), (f p.1, f p.2)) ⁻¹' s) : monotone_image this
     ... ⊆ s : image_preimage_subset _ _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,

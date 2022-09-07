@@ -220,7 +220,7 @@ begin
   apply (to_finset_card_le P.to_poly.roots).trans,
   by_cases hP : P.to_poly = 0,
   { exact (card_roots' P.to_poly).trans (by { rw [hP, nat_degree_zero], exact zero_le 3 }) },
-  { simpa only [← @with_bot.coe_le_coe _ _ _ 3] using (card_roots hP).trans degree_cubic_le }
+  { exact with_bot.coe_le_coe.1 ((card_roots hP).trans degree_cubic_le) }
 end
 
 end extension
@@ -233,7 +233,7 @@ section split
 
 theorem splits_iff_card_roots (ha : P.a ≠ 0) : splits φ P.to_poly ↔ (map φ P).roots.card = 3 :=
 begin
-  replace ha : (map φ P).a ≠ 0 := (ring_hom.map_ne_zero φ).mpr ha,
+  replace ha : (map φ P).a ≠ 0 := (_root_.map_ne_zero φ).mpr ha,
   nth_rewrite_lhs 0 [← ring_hom.id_comp φ],
   rw [roots, ← splits_map_iff, ← map_to_poly, splits_iff_card_roots,
       ← ((degree_eq_iff_nat_degree_eq $ ne_zero_of_a_ne_zero ha).mp $ degree ha : _ = 3)]
@@ -297,10 +297,8 @@ end
 theorem disc_ne_zero_iff_roots_ne (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :
   P.disc ≠ 0 ↔ x ≠ y ∧ x ≠ z ∧ y ≠ z :=
 begin
-  rw [← ring_hom.map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
-  simp only [mul_ne_zero_iff, sub_ne_zero],
-  rw [ring_hom.map_ne_zero],
-  tautology
+  rw [←_root_.map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
+  simp_rw [mul_ne_zero_iff, sub_ne_zero, _root_.map_ne_zero, and_self, and_iff_right ha, and_assoc],
 end
 
 theorem disc_ne_zero_iff_roots_nodup (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :

@@ -70,7 +70,7 @@ lemma wmodular_mem (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
   f ∈ (weakly_modular_submodule k Γ) ↔ ∀ (γ : Γ), (f ∣[k, γ]) = f := iff.rfl
 
 lemma slash_mul (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
-  (f * g) ∣[k1+k2, A] = (((↑ₘ A).det) : ℝ) • (f ∣[k1, A]) * (g ∣[k2, A]) :=
+  (f * g) ∣[k1 + k2, A] = (((↑ₘ A).det) : ℝ) • (f ∣[k1, A]) * (g ∣[k2, A]) :=
 begin
   ext1,
   simp only [slash_action.map, slash, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
@@ -102,7 +102,7 @@ begin
 end
 
 lemma slash_mul_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2,ℤ)) (A : Γ) (f g : ℍ → ℂ) :
-  (f * g) ∣[k1+k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
+  (f * g) ∣[k1 + k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
 begin
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   by { simp only [coe_coe,matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,

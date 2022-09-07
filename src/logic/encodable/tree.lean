@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import data.tree
 import logic.equiv.basic
 import tactic.ring
+import tactic.zify
 
 /-!
 # Encodable types using trees
@@ -155,17 +156,23 @@ end list
 
 section nat
 
+def to_nat (x : tree unit) : ℕ := x.leaves - 1
+@[simp] lemma to_nat_nil : to_nat nil = 0 := rfl
+@[simp] lemma to_nat_node (a b : tree unit) : to_nat (node () a b) = (to_nat a) + (to_nat b) + 1 :=
+begin
+  simp only [to_nat, leaves],
+  zify [tree.leaves_pos, nat.add_pos_left a.leaves_pos _],
+  ring,
+end
+
 /-- This is a unary encoding for natural numbers -/
 instance _root_.nat.unary_tencodable : tencodable ℕ :=
 { encode := λ n, (equiv_list.symm $ list.repeat nil n),
-  decode := λ t, some (t.leaves - 1),
+  decode := λ t, some (to_nat t),
   encodek := λ n,
 begin
-  suffices : ∀ m, (equiv_list.symm $ list.repeat nil m).leaves = m + 1,
-  { rw this, simp, },
-  intro m, induction m with m ih,
-  { simp, },
-  simp [ih, nat.succ_eq_add_one], ring,
+  induction n with n ih, { simp, },
+  simpa [nat.succ_eq_add_one] using ih,
 end }
 
 lemma encode_zero : encode 0 = nil := rfl

@@ -7,6 +7,9 @@ Authors: Violeta Hernández Palacios
 import computability.primrec
 import tactic.linarith
 
+#exit -- TODO: Refactor to use trees
+-- (I have this locally, it's actually a lot simpler without
+-- the pair bound lemmas being needed)
 /-!
 # Ackermann function
 

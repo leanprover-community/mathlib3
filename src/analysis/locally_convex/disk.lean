@@ -133,112 +133,7 @@ end absolutely_convex_sets
 
 variables [is_R_or_C 𝕜]
 variables [add_comm_group E] [topological_space E]
-variables [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
-variables [has_continuous_smul ℝ E]
-
-variables (𝕜 E)
-
-/-- The family of seminorms defined by the gauges of absolute convex open sets. -/
-noncomputable
-def gauge_seminorm_family : seminorm_family 𝕜 E (abs_convex_open_sets 𝕜 E) :=
-λ s, gauge_seminorm s.coe_balanced s.coe_convex (absorbent_nhds_zero s.coe_nhds)
-
-variables {𝕜 E}
-
-lemma gauge_seminorm_family_ball (s : abs_convex_open_sets 𝕜 E) :
-  (gauge_seminorm_family 𝕜 E s).ball 0 1 = (s : set E) :=
-begin
-  dunfold gauge_seminorm_family,
-  rw seminorm.ball_zero_eq,
-  simp_rw gauge_seminorm_to_fun,
-  exact gauge_lt_one_eq_self_of_open s.coe_convex s.coe_zero_mem s.coe_is_open,
-end
-
-section
-
-variables [topological_add_group E] [has_continuous_smul 𝕜 E]
-variables [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E]
-
-/-- The topology of a locally convex space is induced by the maximal seminorm family. -/
-lemma with_gauge_seminorm_family : with_seminorms (gauge_seminorm_family 𝕜 E) :=
-begin
-  refine seminorm_family.with_seminorms_of_has_basis _ _,
-  refine filter.has_basis.to_has_basis (nhds_basis_abs_convex_open 𝕜 E) (λ s hs, _) (λ s hs, _),
-  { refine ⟨s, ⟨_, rfl.subset⟩⟩,
-    rw seminorm_family.basis_sets_iff,
-    refine ⟨{⟨s, hs⟩}, 1, one_pos, _⟩,
-    simp only [finset.sup_singleton],
-    rw gauge_seminorm_family_ball,
-    simp only [subtype.coe_mk] },
-  refine ⟨s, ⟨_, rfl.subset⟩⟩,
-  rw seminorm_family.basis_sets_iff at hs,
-  rcases hs with ⟨t, r, hr, hs⟩,
-  rw seminorm.ball_finset_sup_eq_Inter _ _ _ hr at hs,
-  rw hs,
-  -- We have to show that the intersection contains zero, is open, balanced, and convex
-  refine ⟨mem_Inter₂.mpr (λ _ _, by simp [seminorm.mem_ball_zero, hr]),
-    is_open_bInter (to_finite _) (λ _ _, _),
-    balanced_Inter₂ (λ _ _, seminorm.balanced_ball_zero _ _),
-    convex_Inter₂ (λ _ _, seminorm.convex_ball _ _ _)⟩,
-  -- The only nontrivial part is to show that the ball is open
-  have hr' : r = ∥(r : 𝕜)∥ * 1 := by simp [abs_of_pos hr],
-  have hr'' : (r : 𝕜) ≠ 0 := by simp [ne_of_gt hr],
-  rw hr',
-  rw ←seminorm.smul_ball_zero (norm_pos_iff.mpr hr''),
-  refine is_open.smul₀ _ hr'',
-  rw gauge_seminorm_family_ball,
-  exact abs_convex_open_sets.coe_is_open _,
-end
-
-end
-
-def seminorm.restrict_real (p : seminorm 𝕜 E) : seminorm ℝ E :=
-{ to_fun := p,
-  smul' := λ a x,
-  begin
-    convert p.smul' (a : 𝕜) x,
-    { exact is_R_or_C.real_smul_eq_coe_smul a x },
-    { simp }
-  end,
-  ..p }
-
-@[simp] lemma seminorm.restrict_real_ball (p : seminorm 𝕜 E) :
-  p.restrict_real.ball = p.ball :=
-rfl
-
-lemma seminorm.continuous_at_zero {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
-  continuous_at p 0 :=
-begin
-  change continuous_at p.restrict_real 0,
-  rw ← p.restrict_real_ball at hp,
-  refine metric.nhds_basis_ball.tendsto_right_iff.mpr _,
-  intros ε hε,
-  rw p.restrict_real.map_zero,
-  suffices : p.restrict_real.ball 0 ε ∈ (𝓝 0 : filter E),
-  { rwa seminorm.ball_zero_eq_preimage_ball at this },
-  have := hp.smul₀ hε.ne.symm,
-  rw [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
-      real.norm_of_nonneg hε.le, mul_one] at this,
-  exact this.mem_nhds (show (0 : E) ∈ p.ball 0 ε, by simp [hε]),
-end
-
-lemma seminorm.norm_sub_le (p : seminorm 𝕜 E) {x y : E} : ∥p x - p y∥ ≤ p (x - y) :=
-begin
-  rw [real.norm_eq_abs, abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
-  exact ⟨p.le_insert' _ _, p.le_insert _ _⟩
-end
-
-lemma seminorm.uniform_continuous {E' : Type*} [add_comm_group E']
-  [module 𝕜 E'] [module ℝ E'] [is_scalar_tower ℝ 𝕜 E'] {p : seminorm 𝕜 E'} [uniform_space E']
-  [uniform_add_group E'] [has_continuous_smul ℝ E'] (hp : is_open $ p.ball 0 1) :
-  uniform_continuous p :=
-begin
-  have hp : filter.tendsto p (𝓝 0) (𝓝 0) := p.map_zero ▸ (seminorm.continuous_at_zero hp).tendsto,
-  rw [uniform_continuous, uniformity_eq_comap_nhds_zero_swapped,
-      metric.uniformity_eq_comap_nhds_zero, filter.tendsto_comap_iff],
-  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
-    (hp.comp filter.tendsto_comap) (λ xy, dist_nonneg) (λ xy, p.norm_sub_le)
-end
+variables [module 𝕜 E]
 
 variables (𝕜 E)
 
@@ -252,22 +147,25 @@ def maximal_seminorm_family : seminorm_family 𝕜 E (cont_seminorms 𝕜 E) := 
 
 variables {𝕜 E}
 
-lemma with_maximal_seminorm_family [topological_add_group E] [has_continuous_smul 𝕜 E]
+lemma with_maximal_seminorm_family [topological_add_group E] [module ℝ E]
+  [has_continuous_smul 𝕜 E] [has_continuous_smul ℝ E] [is_scalar_tower ℝ 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E] :
   with_seminorms (maximal_seminorm_family 𝕜 E) :=
 begin
   letI := topological_add_group.to_uniform_space E,
-  haveI : uniform_add_group E := topological_add_group_is_uniform,
+  haveI : uniform_add_group E := topological_add_comm_group_is_uniform,
   rw seminorm_family.with_seminorms_iff_nhds_eq_infi,
   refine le_antisymm (le_infi $ λ i, filter.map_le_iff_le_comap.mp $ i.1.map_zero ▸ i.2.tendsto 0)
     ((nhds_basis_abs_convex_open 𝕜 E).ge_iff.mpr $ λ t ht,
     filter.mem_infi_of_mem
       ⟨gauge_seminorm ht.2.2.1 ht.2.2.2 (absorbent_nhds_zero $ ht.2.1.mem_nhds ht.1), _⟩ $
     filter.mem_comap.mpr ⟨metric.ball 0 1, metric.ball_mem_nhds _ zero_lt_one, _⟩),
-  { refine (seminorm.uniform_continuous _).continuous,
-    rw gauge_seminorm_family_ball },
-  change gauge_seminorm _ _ _ ⁻¹' metric.ball 0 1 ⊆ t,
-  rw [← seminorm.ball_zero_eq_preimage_ball, seminorm.ball_zero_eq],
-  simp_rw gauge_seminorm_to_fun,
-  exact subset_of_eq (gauge_lt_one_eq_self_of_open ht.2.2.2 ht.1 ht.2.1)
+  { refine seminorm.continuous _,
+    simp_rw [seminorm.ball_zero_eq, gauge_seminorm_to_fun],
+    rw gauge_lt_one_eq_self_of_open ht.2.2.2 ht.1 ht.2.1,
+    exact ht.2.1 },
+  { change gauge_seminorm _ _ _ ⁻¹' metric.ball 0 1 ⊆ t,
+    rw [← seminorm.ball_zero_eq_preimage_ball, seminorm.ball_zero_eq],
+    simp_rw gauge_seminorm_to_fun,
+    exact subset_of_eq (gauge_lt_one_eq_self_of_open ht.2.2.2 ht.1 ht.2.1) }
 end

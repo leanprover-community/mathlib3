@@ -42,23 +42,23 @@ theorem encode_injective : function.injective (@encode α _)
 @[simp] lemma encode_inj {a b : α} : encode a = encode b ↔ a = b :=
 encode_injective.eq_iff
 
+/-- Any tencodable element has decidable equality by checking if the encodings are equal -/
 def decidable_eq_of_encodable (α) [tencodable α] : decidable_eq α
 | a b := decidable_of_iff _ encode_inj
 
 /-- If `α` is encodable and there is an injection `f : β → α`, then `β` is encodable as well. -/
-def of_left_injection [tencodable α]
-  (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) : tencodable β :=
+def of_left_injection {β} (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) :
+  tencodable β :=
 ⟨λ b, encode (f b),
  λ n, (decode α n).bind finv,
  λ b, by simp [linv]⟩
 
 /-- If `α` is encodable and `f : β → α` is invertible, then `β` is encodable as well. -/
-def of_left_inverse [tencodable α]
-  (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : tencodable β :=
+def of_left_inverse {β} (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : tencodable β :=
 of_left_injection f (some ∘ finv) (λ b, congr_arg some (linv b))
 
 /-- Encodability is preserved by equivalence. -/
-def of_equiv (α) [tencodable α] (e : β ≃ α) : tencodable β :=
+def of_equiv {β} (α) [tencodable α] (e : β ≃ α) : tencodable β :=
 of_left_inverse e e.symm e.left_inv
 
 instance _root_.tree_unit.tencodable : tencodable (tree unit) :=
@@ -104,10 +104,13 @@ end bool
 
 section list
 
+/-- Interpret a tree as a list of trees according to the left children
+  of the nodes on the rightmost path-/
 def as_list : tree unit → list (tree unit)
 | nil := []
 | (node _ a b) := a :: as_list b
 
+/-- Interpret a list of trees as a single tree -/
 def of_list : list (tree unit) → tree unit
 | [] := nil
 | (x :: xs) := node () x (of_list xs)
@@ -156,7 +159,10 @@ end list
 
 section nat
 
+/-- Interpret a tree as a natural number by counting the leaves
+  (subtracting 1 so that it is a surjection) -/
 def to_nat (x : tree unit) : ℕ := x.leaves - 1
+
 @[simp] lemma to_nat_nil : to_nat nil = 0 := rfl
 @[simp] lemma to_nat_node (a b : tree unit) : to_nat (node () a b) = (to_nat a) + (to_nat b) + 1 :=
 begin
@@ -165,7 +171,8 @@ begin
   ring,
 end
 
-/-- This is a unary encoding for natural numbers -/
+/-- This is a unary encoding for natural numbers. The canonical
+  way of representing `n` is as n ↦ nil.node (nil.node (... etc.)) -/
 instance _root_.nat.unary_tencodable : tencodable ℕ :=
 { encode := λ n, (equiv_list.symm $ list.repeat nil n),
   decode := λ t, some (to_nat t),
@@ -182,14 +189,17 @@ end nat
 
 section option
 
+/-- Encode an `option α`, using `nil` as `none` -/
 @[simp] def of_option : option α → tree unit
 | none := nil
 | (some x) := node () nil (encode x)
 
+/-- Decode an `option α` as a tree -/
 @[simp] def to_option : tree unit → option (option α)
 | nil := some none
 | (node _ x y) := (decode α y).map some
 
+/-- Encoding of `option α` when `α` has an encoding -/
 instance : tencodable (option α) :=
 { encode := of_option,
   decode := to_option,
@@ -199,14 +209,17 @@ end option
 
 section sum
 
+/-- Encode a sum by using the left child of the root to signal if the right represents α or β -/
 @[simp] def of_sum : α ⊕ β → tree unit
 | (sum.inl x) := node () nil (encode x)
 | (sum.inr x) := node () non_nil (encode x)
 
+/-- Decode a sum by using the left child of the root to signal if the right represents α or β -/
 @[simp] def to_sum (x : tree unit) : option (α ⊕ β) :=
   if x.left = nil then (decode α x.right).map sum.inl
   else (decode β x.right).map sum.inr
 
+/-- Encoding of a sum type given encodings for `α` and `β` -/
 instance : tencodable (α ⊕ β) :=
 { encode := of_sum,
   decode := to_sum,

@@ -210,22 +210,23 @@ lemma mul_comm [has_mul α] [add_comm_semigroup α] [has_one α] [invertible (2 
   a * b = b * a :=
 by rw [mul_def, mul_def, add_comm]
 
+
 instance [ring α] [invertible (2 : α)] : is_comm_jordan αˢʸᵐ :=
 { mul_comm := sym_alg.mul_comm,
   lmul_comm_rmul_rmul := λ a b, begin
     -- Rearrange LHS
-    --(commute.one_left (unsym (a*a))).bit0_left.inv_of_left
-    rw [mul_def, mul_def a b, unsym_sym, ← mul_assoc,
-      ← (commute.one_left (unsym (a*a))).bit0_left.inv_of_left.eq, mul_assoc, mul_assoc, ← mul_add,
-      ← mul_assoc, add_mul, mul_add (unsym (a * a)), ← add_assoc, ← mul_assoc, ← mul_assoc],
+    have commute_half_left := λ a : α, (commute.one_left a).bit0_left.inv_of_left.eq,
+    rw [mul_def, mul_def a b, unsym_sym, ← mul_assoc, ← commute_half_left (unsym (a*a)), mul_assoc,
+      mul_assoc, ← mul_add, ← mul_assoc, add_mul, mul_add (unsym (a * a)), ← add_assoc, ← mul_assoc,
+      ← mul_assoc],
 
     -- Rearrange RHS
     nth_rewrite_rhs 0 [mul_def],
     nth_rewrite_rhs 0 [mul_def],
     nth_rewrite_rhs 2 [mul_def],
 
-    rw [unsym_sym, sym_inj, ← mul_assoc, ← (commute.one_left (unsym a)).bit0_left.inv_of_left.eq,
-      mul_assoc (⅟2) (unsym a), mul_assoc (⅟2) _ (unsym a), ← mul_add, ← mul_assoc],
+    rw [unsym_sym, sym_inj, ← mul_assoc, ← commute_half_left (unsym a), mul_assoc (⅟2) (unsym a),
+      mul_assoc (⅟2) _ (unsym a), ← mul_add, ← mul_assoc],
 
     nth_rewrite_rhs 0 mul_add (unsym a),
     rw [add_mul, ← add_assoc, ← mul_assoc, ← mul_assoc],

@@ -87,7 +87,7 @@ such that
 We can then glue the spaces `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subspaces of the glued space.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data extends glue_data (PresheafedSpace.{v} C) :=
 (f_open : ∀ i j, is_open_immersion (f i j))
 
@@ -488,7 +488,7 @@ such that
 We can then glue the spaces `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subspaces of the glued space.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data extends glue_data (SheafedSpace.{v} C) :=
 (f_open : ∀ i j, SheafedSpace.is_open_immersion (f i j))
 
@@ -560,7 +560,7 @@ such that
 We can then glue the spaces `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subspaces of the glued space.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data extends glue_data LocallyRingedSpace :=
 (f_open : ∀ i j, LocallyRingedSpace.is_open_immersion (f i j))
 

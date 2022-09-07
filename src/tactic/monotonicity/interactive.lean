@@ -16,8 +16,8 @@ open lean lean.parser  interactive
 open interactive.types
 open tactic
 
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+local postfix (name := parser.optional) `?`:9001 := optional
+local postfix (name := parser.many) *:9001 := many
 
 meta inductive mono_function (elab : bool := tt)
  | non_assoc : expr elab → list (expr elab) → list (expr elab) → mono_function

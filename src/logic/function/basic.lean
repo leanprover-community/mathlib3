@@ -86,7 +86,7 @@ h ▸ hf.ne_iff
 
 /-- If the co-domain `β` of an injective function `f : α → β` has decidable equality, then
 the domain `α` also has decidable equality. -/
-def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
+protected def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
 λ a b, decidable_of_iff _ I.eq_iff
 
 lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
@@ -647,7 +647,7 @@ class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := 
 for bundled maps.-/
 add_decl_doc has_uncurry.uncurry
 
-notation `↿`:max x:max := has_uncurry.uncurry x
+notation (name := uncurry) `↿`:max x:max := has_uncurry.uncurry x
 
 instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
 

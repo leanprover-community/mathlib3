@@ -451,7 +451,7 @@ def premetric_optimal_GH_dist : pseudo_metric_space (X ⊕ Y) :=
 local attribute [instance] premetric_optimal_GH_dist pseudo_metric.dist_setoid
 
 /-- A metric space which realizes the optimal coupling between `X` and `Y` -/
-@[derive metric_space, nolint has_inhabited_instance]
+@[derive metric_space, nolint has_nonempty_instance]
 definition optimal_GH_coupling : Type* :=
 pseudo_metric_quot (X ⊕ Y)
 

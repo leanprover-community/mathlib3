@@ -144,7 +144,7 @@ instance gdistrib_mul_action [add_monoid M] [distrib_mul_action A M]
 variables [add_comm_monoid M] [module A M] [set_like σ M] [add_submonoid_class σ' A]
   [add_submonoid_class σ M] [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜]
 
-/- [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜] is the internal version of graded
+/-- `[set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜]` is the internal version of graded
   module, the internal version can be translated into the external version `gmodule`. -/
 instance gmodule : gmodule (λ i, 𝓐 i) (λ i, 𝓜 i) :=
 { smul := λ i j x y, ⟨(x : A) • (y : M), set_like.has_graded_smul.smul_mem x.2 y.2⟩,

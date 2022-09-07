@@ -149,8 +149,8 @@ lemma encode_cons (x : α) (xs : list α) : encode (x :: xs) = node () (encode x
 @[simp] lemma encode_list_tree (x : list (tree unit)) : encode x = equiv_list.symm x :=
 by simp [encode]
 
-@[simp] lemma decode_list_tree (x : tree unit) : decode (list (tree unit)) x = some (equiv_list x) :=
-by simp [decode]
+@[simp] lemma decode_list_tree (x : tree unit) :
+  decode (list (tree unit)) x = some (equiv_list x) := by simp [decode]
 
 end list
 

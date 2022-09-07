@@ -15,7 +15,7 @@ open_locale unit_interval
 
 namespace unit_interval
 
-/- This one is not used. Also the names of these two lemmas are obscure. -/
+/- This one is not used. Also the names of these two lemmas are obscure.
 @[simp] lemma univ_eq_ge_zero {θ : ℝ} (h : θ ≤ 0): {s : I | θ ≤ (s : ℝ)} = set.univ :=
 set.eq_univ_iff_forall.2 $ λ _, h.trans (nonneg _)
 
@@ -47,7 +47,7 @@ begin
 end
 
 lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ) → (t : ℝ) = θ :=
-λ ⟨hl, hr⟩, by simp only [(not_mem_interior hr).antisymm (mem_closure_iff.mp hl)]
+λ ⟨hl, hr⟩, by simp only [(not_mem_interior hr).antisymm (mem_closure_iff.mp hl)]-/
 
 lemma one_add_pos {t : I} : 0 < (1 + t : ℝ) := add_pos_of_pos_of_nonneg zero_lt_one $ nonneg _
 
@@ -75,31 +75,25 @@ section
 
 variables {Y : Type v} [topological_space Y] {x y : X} {g : Y → path x y}
 
-@[simp, continuity]
+/-@[simp, continuity]
 lemma continuous_to_path_of_to_C (h : continuous (↑g : Y → C(I,X))) : continuous g :=
-continuous_induced_rng.mpr h
+continuous_induced_rng.mpr h-/
 
-@[simp, continuity]
+lemma continuous_uncurry_iff : continuous ↿g ↔ continuous g :=
+iff.symm $ continuous_induced_rng.trans
+  ⟨λ h, continuous_uncurry_of_continuous ⟨_, h⟩, continuous_of_continuous_uncurry ↑g⟩
+
+/-@[simp, continuity]
 lemma continuous_to_path_of_continuous_uncurry
-  (h : continuous (λ p : Y × I, g p.1 p.2)) : continuous g :=
-continuous_induced_rng.mpr $ continuous_of_continuous_uncurry ↑g h
+  (h : continuous (λ p : Y × I, g p.1 p.2)) : continuous g := continuous_uncurry_iff.mp h-/
 
 end
 
 lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
-begin
-  apply continuous_to_path_of_continuous_uncurry,
-  apply continuous.piecewise,
-  { rintro ⟨p, t⟩ h,
-    change _ ∈ frontier (prod.snd ⁻¹' {s : I | (s : ℝ) ≤ 1 / 2}) at h,
-    simp only [← set.univ_prod, frontier_prod_eq, frontier_univ, closure_univ, set.empty_prod,
-      set.union_empty, set.prod_mk_mem_set_prod_eq, set.mem_univ, true_and] at h,
-    simp only [unit_interval.mem_frontier h, set.right_mem_Icc, zero_le_one, one_div,
-      mul_inv_cancel_of_invertible, extend_extends, set.Icc.mk_one, path.target,
-      set.left_mem_Icc, sub_self, set.Icc.mk_zero, path.source] },
-  all_goals { refine continuous.path_extend
-    ((continuous.comp _ $ continuous_fst.comp continuous_fst).path_eval continuous_snd) _ },
-  exacts [continuous_fst, by continuity, continuous_snd, by continuity],
+continuous_uncurry_iff.mp begin
+  apply trans_continuous_family;
+  refine (continuous.comp _ continuous_fst).path_eval continuous_snd,
+  exacts [continuous_fst, continuous_snd],
 end
 
 end path
@@ -182,11 +176,10 @@ def delayed_refl_right (θ : I) (γ : path x y) : path x y :=
 
 lemma continuous_delayed_refl_right {x : X} :
   continuous (λ p : I × path x y, delayed_refl_right p.1 p.2) :=
-continuous_to_path_of_continuous_uncurry $ (continuous_snd.comp continuous_fst).path_eval
-  (continuous_Q_right.comp $ continuous_snd.prod_mk $ continuous_fst.comp continuous_fst)
+continuous_uncurry_iff.mp $ (continuous_snd.comp continuous_fst).path_eval $
+  continuous_Q_right.comp $ continuous_snd.prod_mk $ continuous_fst.comp continuous_fst
 
-def delayed_refl_left {x : X} (θ : I) (γ : path x y) : path x y :=
-(delayed_refl_right (unit_interval.symm θ) γ.symm).symm
+def delayed_refl_left (θ : I) (γ : path x y) : path x y := (delayed_refl_right θ γ.symm).symm
 
 lemma delayed_refl_right_zero (γ : path x y) : delayed_refl_right 0 γ = γ.trans (path.refl y) :=
 begin
@@ -209,7 +202,7 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
   right_Hmul_e :=
   { to_homotopy := ⟨⟨λ p, delayed_refl_right p.1 p.2, continuous_delayed_refl_right⟩,
       delayed_refl_right_zero, delayed_refl_right_one⟩,
-    prop' := by { rintros t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } }
+    prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } } }
 
 end path_space_H_space
 

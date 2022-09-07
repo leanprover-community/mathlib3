@@ -106,17 +106,17 @@ namespace augmented
 
 namespace standard_simplex
 
-/-- When `[has_zero X]`, the shift of a map `f : fin (n+1) → X`
-is a map `fin (n+2) → X` which sends `0` to `0` and `i.succ` to `f i`. -/
-def shift_fun {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X) (i : fin (n+2)) : X :=
+/-- When `[has_zero X]`, the shift of a map `f : fin n → X`
+is a map `fin (n+1) → X` which sends `0` to `0` and `i.succ` to `f i`. -/
+def shift_fun {n : ℕ} {X : Type*} [has_zero X] (f : fin n → X) (i : fin (n+1)) : X :=
 dite (i = 0) (λ h, 0) (λ h, f (i.pred h))
 
 @[simp]
-lemma shift_fun_0 {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X) : shift_fun f 0 = 0 := rfl
+lemma shift_fun_0 {n : ℕ} {X : Type*} [has_zero X] (f : fin n → X) : shift_fun f 0 = 0 := rfl
 
 @[simp]
-lemma shift_fun_succ {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X)
-  (i : fin (n+1)) : shift_fun f i.succ = f i :=
+lemma shift_fun_succ {n : ℕ} {X : Type*} [has_zero X] (f : fin n → X)
+  (i : fin n) : shift_fun f i.succ = f i :=
 begin
   dsimp [shift_fun],
   split_ifs,

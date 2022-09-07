@@ -12,8 +12,7 @@ import logic.encodable.tree
 # The primitive recursive functions
 
 The primitive recursive functions are the least collection of functions
-`tree → tree` which are closed under projections (using the mkpair
-pairing function), composition, zero, successor, and iteration.
+`tree → tree` which are closed under projections, composition, zero, successor, and iteration.
 
 We can extend this definition to a large class of basic types by
 using canonical encodings of types as trees (akin to Gödel numbering),
@@ -22,12 +21,16 @@ we need that the composition of encode with decode yields a
 primitive recursive function, so we have the `primcodable` type class
 for this.)
 
-## Implementation Notes
+## Definitions
 
-The definition of `primrec` is a kind of "promise"-ed primitive recursive:
-There needs to be a function which acts correctly on correctly encoded inputs.
-This is convenient because it is the form we most commonly use to prove functions are primitive
-recursive, but it is equivalent to a more general form if the types are `primcodable`
+  - `tree.primrec` -  Functions `tree unit → tree unit` which are primitive recursive
+  - `primrec1` - In general, the promise problems which have primitive recursive solutions.
+    Specifically, `f : α → β` is `primrec1` if there is a primitive recursive function
+    `ptree → ptree` which computes `f(x)` assuming `x` is correctly encoded.
+
+    If the type has a `primcodable` instance on it, then it is primitive recursive in the usual
+    sense.
+  - `primrec` - Version of `primrec1` for functions of many arguments.
 
 ## References
 
@@ -78,7 +81,7 @@ variables [tencodable α] [tencodable β]
 def primrec1 (f : α → β) : Prop :=
 ∃ (f' : tree unit → tree unit), tree.primrec f' ∧ ∀ x : α, f' (encode x) = encode (f x)
 
-/-- Primitive recursive functions on many arguments -/
+/-- Primitive recursive functions in many arguments -/
 def primrec [has_uncurry γ α β] (f : γ) : Prop :=
 primrec1 ↿f
 

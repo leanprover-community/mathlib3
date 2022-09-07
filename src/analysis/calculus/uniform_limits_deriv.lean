@@ -417,7 +417,7 @@ The protected function `promote_deriv` provides the translation between derivati
 derivatives
 -/
 
-variables {ι : Type*} {l : filter ι} [ne_bot l]
+variables {ι : Type*} {l : filter ι}
   {𝕜 : Type*} [is_R_or_C 𝕜]
   {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
   {f : ι → 𝕜 → G} {g : 𝕜 → G} {f' : ι → 𝕜 → G} {g' : 𝕜 → G}
@@ -455,6 +455,8 @@ begin
   rw [←smul_sub, norm_smul, mul_comm],
   exact mul_le_mul hn.le rfl.le (norm_nonneg _) hq.le,
 end
+
+variables [ne_bot l]
 
 lemma uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_deriv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))

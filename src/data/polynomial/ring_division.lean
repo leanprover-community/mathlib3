@@ -14,6 +14,18 @@ import algebra.polynomial.big_operators
 
 This file starts looking like the ring theory of $ R[X] $
 
+## Main definitions
+
+* `polynomial.roots p`: The multiset containing all the roots of `p`, including their
+  multiplicities.
+* `polynomial.root_set p E`: The set of distinct roots of `p` in an algebra `E`.
+
+## Main statements
+
+* `polynomial.C_leading_coeff_mul_prod_multiset_X_sub_C`: If a polynomial has as many roots as its
+  degree, it can be written as the product of its leading coefficient with `∏ (X - a)` where `a`
+  ranges through its roots.
+
 -/
 
 noncomputable theory

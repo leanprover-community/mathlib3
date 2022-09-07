@@ -304,7 +304,7 @@ end units
 
 section ideal
 
-/-- An ideal which contains an element within `1` of `1 : R` is `⊤`-/
+/-- An ideal which contains an element within `1` of `1 : R` is the unit ideal. -/
 lemma ideal.eq_top_of_norm_lt_one (I : ideal R) {x : R} (hxI : x ∈ I) (hx : ∥1 - x∥ < 1) : I = ⊤ :=
 let u := units.one_sub (1 - x) hx in (I.eq_top_iff_one.mpr $
   by simpa only [show u.inv * x = 1, by simp] using I.mul_mem_left u.inv hxI)

@@ -46,15 +46,14 @@ def decidable_eq_of_encodable (α) [tencodable α] : decidable_eq α
 | a b := decidable_of_iff _ encode_inj
 
 /-- If `α` is encodable and there is an injection `f : β → α`, then `β` is encodable as well. -/
-def of_left_injection [tencodable α]
-  (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) : tencodable β :=
+def of_left_injection (f : β → α) (finv : α → option β) (linv : ∀ b, finv (f b) = some b) :
+  tencodable β :=
 ⟨λ b, encode (f b),
  λ n, (decode α n).bind finv,
  λ b, by simp [linv]⟩
 
 /-- If `α` is encodable and `f : β → α` is invertible, then `β` is encodable as well. -/
-def of_left_inverse [tencodable α]
-  (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : tencodable β :=
+def of_left_inverse (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : tencodable β :=
 of_left_injection f (some ∘ finv) (λ b, congr_arg some (linv b))
 
 /-- Encodability is preserved by equivalence. -/

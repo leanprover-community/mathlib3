@@ -271,12 +271,11 @@ end
 _uniformly_ to their limit at `x`.
 
 In words the assumptions mean the following:
-  * `hf`: There is a neighborhood of `x` such that for all sufficiently large `n`, `f' n` is the
-    derivative of `f n` **and** for all sufficiently large `N`, there is a neighborhood of `x`
-    such that for all `n ≥ N`, `f' n` is the derivative of `f n`
-  * `hfg`: The `f n` converge pointwise to `g` on a neighborhood of `x`
-  * `hfg'`: The `f'` converge "uniformly at" `x` to `g'`. This does not mean that the `f' n` even
-    converge away from `x`! --/
+  * `hf'`: The `f'` converge "uniformly at" `x` to `g'`. This does not mean that the `f' n` even
+    converge away from `x`!
+  * `hf`: For all `(y, n)` with `y` sufficiently close to `x` and `n` sufficiently large, `f' n` is
+    the derivative of `f n`
+  * `hfg`: The `f n` converge pointwise to `g` on a neighborhood of `x` -/
 lemma has_fderiv_at_of_tendsto_uniformly_on_filter
   (hf' : tendsto_uniformly_on_filter f' g' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)

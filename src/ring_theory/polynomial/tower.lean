@@ -21,7 +21,7 @@ When you update this file, you can also try to make a corresponding update in
 universes u v w u₁
 open_locale polynomial
 
-variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁) {σ : Type*}
+variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)
 
 namespace is_scalar_tower
 

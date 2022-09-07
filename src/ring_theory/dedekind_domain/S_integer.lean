@@ -9,20 +9,24 @@ import ring_theory.dedekind_domain.adic_valuation
 /-!
 # `S`-integers and `S`-units of fraction fields of Dedekind domains
 
-This file defines the ring of `S`-integers and the group of `S`-units of the field of fractions of a
-Dedekind domain, to be specialised to the case of a number field or a function field separately.
+Let `K` be the field of fractions of a Dedekind domain `R`, and let `S` be a set of prime ideals in
+the height one spectrum of `R`. An `S`-integer of `K` is defined to have `v`-adic valuation at most
+one for all primes ideals `v` away from `S`, whereas an `S`-unit of `Kˣ` is defined to have `v`-adic
+valuation exactly one for all prime ideals `v` away from `S`.
+
+This file defines the subring of `S`-integers of `K` and the subgroup of `S`-units of `Kˣ`, which
+can be specialised to the case of a number field or a function field separately.
 
 TODO:
  * notation for `S`-integers and `S`-units.
- * proof that `S`-integers is the intersection of valuation rings.
  * proof that `S`-units is the kernel of a map to a product.
  * proof that `∅`-integers is the usual ring of integers.
  * finite generation of `S`-units and Dirichlet's `S`-unit theorem.
 
 ## Main definitions
 
- * `set.integer`: the ring of `S`-integers.
- * `set.unit`: the group of `S`-units.
+ * `set.integer`: `S`-integers.
+ * `set.unit`: `S`-units.
 
 ## Main statements
 
@@ -36,7 +40,7 @@ TODO:
 
 ## Tags
 
-S-integer, S-unit
+S integer, S-integer, S unit, S-unit
 -/
 
 open is_dedekind_domain

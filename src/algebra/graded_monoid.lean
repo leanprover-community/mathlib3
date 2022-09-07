@@ -126,6 +126,7 @@ if `a ∈ A i` and `m ∈ M j`, then `a • b` must be in `M (i + j)`-/
 class ghas_smul [has_add ι] :=
 (smul {i j} : A i → M j → M (i + j))
 
+/-- A graded version of `has_mul.to_has_smul` -/
 instance ghas_mul.to_ghas_smul [has_add ι] [ghas_mul A] : ghas_smul A A :=
 { smul := λ _ _, ghas_mul.mul }
 
@@ -218,6 +219,7 @@ class gmul_action [add_monoid ι] [gmonoid A] extends ghas_smul A M :=
 (one_smul (b : graded_monoid M) : (1 : graded_monoid A) • b = b)
 (mul_smul (a a' : graded_monoid A) (b : graded_monoid M) : (a * a') • b = a • a' • b)
 
+/-- The graded version of `monoid.to_mul_action`. -/
 instance gmonoid.to_gmul_action [add_monoid ι] [gmonoid A] :
   gmul_action A A :=
 { one_smul := gmonoid.one_mul,

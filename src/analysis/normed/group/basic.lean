@@ -485,12 +485,7 @@ variables {E' : Type*} {f : ι → E' → G} {s : set E'} {l : filter ι}
 
 lemma normed_add_comm_group.tendsto_uniformly_on_zero :
   tendsto_uniformly_on f 0 l s ↔ ∀ ε > 0, ∀ᶠ (N : ι) in l, ∀ x : E', x ∈ s → ∥f N x∥ < ε :=
-begin
-  rw metric.tendsto_uniformly_on_iff,
-  split,
-  { exact (λ h ε hε, (h ε hε).mono (λ i hi x hx, by simpa using (hi x hx))), },
-  { exact (λ h ε hε, (h ε hε).mono (λ i hi x hx, by simpa using (hi x hx))), },
-end
+by simp_rw [tendsto_uniformly_on_iff, pi.zero_apply, dist_zero_left]
 
 lemma normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero
   {l' : filter E'} : uniform_cauchy_seq_on_filter f l l' ↔
@@ -499,19 +494,12 @@ begin
   split,
   { intros hf u hu,
     obtain ⟨ε, hε, H⟩ := uniformity_basis_dist.mem_uniformity_iff.mp hu,
-    have : {p : G × G | dist p.fst p.snd < ε} ∈ (𝓤 G),
-    { rw uniformity_basis_dist.mem_uniformity_iff,
-      exact ⟨ε, hε, by simp [H]⟩, },
-    refine (hf {p : G × G | dist p.fst p.snd < ε} this).mono (λ x hx,
+    refine (hf {p : G × G | dist p.fst p.snd < ε} $ dist_mem_uniformity hε).mono (λ x hx,
       H 0 (f x.fst.fst x.snd - f x.fst.snd x.snd) _),
     simpa [dist_eq_norm, norm_sub_rev] using hx, },
-
   { intros hf u hu,
     obtain ⟨ε, hε, H⟩ := uniformity_basis_dist.mem_uniformity_iff.mp hu,
-    have : {p : G × G | dist p.fst p.snd < ε} ∈ (𝓤 G),
-    { rw uniformity_basis_dist.mem_uniformity_iff,
-      exact ⟨ε, hε, by simp [H]⟩, },
-    refine (hf {p : G × G | dist p.fst p.snd < ε} this).mono (λ x hx,
+    refine (hf {p : G × G | dist p.fst p.snd < ε} $ dist_mem_uniformity hε).mono (λ x hx,
       H (f x.fst.fst x.snd) (f x.fst.snd x.snd) _),
     simpa [dist_eq_norm, norm_sub_rev] using hx, },
 end

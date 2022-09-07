@@ -9,7 +9,7 @@ import order.filter.prod
 # Curried Filters
 
 This file provides an operation (`filter.curry`) on filters which provides the equivalence
-`∀ᶠ a in l, ∀ᶠ b in l', p (a, b) ↔ ∀ᶠ c in (l ×ᶠ l'), p c` (see `filter.eventually_curry_iff`).
+`∀ᶠ a in l, ∀ᶠ b in l', p (a, b) ↔ ∀ᶠ c in (l.curry l'), p c` (see `filter.eventually_curry_iff`).
 
 To understand when this operation might arise, it is helpful to think of `∀ᶠ` as a combination of
 the quantifiers `∃ ∀`. For instance, `∀ᶠ n in at_top, p n ↔ ∃ N, ∀ n ≥ N, p n`. A curried filter
@@ -34,8 +34,6 @@ tending to some limit on a curried filter is just iterated limits (see `tendsto.
 * `filter.eventually_curry_iff`: An alternative definition of a curried filter
 * `filter.curry_le_prod`: Something that is eventually true on the a product filter is eventually
    true on the curried filter
-
-## Implementation notes
 
 ## Tags
 
@@ -66,11 +64,7 @@ def curry (f : filter α) (g : filter β) : filter (α × β) :=
 
 lemma eventually_curry_iff {f : filter α} {g : filter β} {p : α × β → Prop} :
   (∀ᶠ (x : α × β) in f.curry g, p x) ↔ ∀ᶠ (x : α) in f, ∀ᶠ (y : β) in g, p (x, y) :=
-begin
-  simp only [curry],
-  rw eventually_iff,
-  simp only [filter.mem_mk, set.mem_set_of_eq],
-end
+iff.rfl
 
 lemma curry_le_prod {f : filter α} {g : filter β} :
   f.curry g ≤ f.prod g :=

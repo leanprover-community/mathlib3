@@ -66,7 +66,8 @@ instance : set_like young_diagram (ℕ × ℕ) :=
 @[simp] lemma mem_cells {μ : young_diagram} (c : ℕ × ℕ) :
   c ∈ μ.cells ↔ c ∈ μ := iff.rfl
 
-instance decidable_mem (μ : young_diagram) : decidable_pred (∈ μ) := λ _, μ.cells.decidable_mem _
+instance decidable_mem (μ : young_diagram) : decidable_pred (∈ μ) :=
+show decidable_pred (∈ μ.cells), by apply_instance
 
 /-- In "English notation", a Young diagram is drawn so that (i1, j1) ≤ (i2, j2)
     means (i1, j1) is weakly up-and-left of (i2, j2). -/
@@ -129,8 +130,8 @@ end distrib_lattice
 @[reducible] protected def card (μ : young_diagram) : ℕ := μ.cells.card
 
 section transpose
-/-- The `transpose` of a Young diagram is obtained by swapping i's with j's. --/
 
+/-- The `transpose` of a Young diagram is obtained by swapping i's with j's. -/
 def transpose (μ : young_diagram) : young_diagram :=
 { cells :=  (equiv.prod_comm _ _).finset_congr μ.cells,
   is_lower_set := λ _ _ h, begin
@@ -154,7 +155,7 @@ by { split; { rintro rfl, simp } }
   μ.transpose = ν.transpose ↔ μ = ν :=
 by { rw transpose_eq_iff_eq_transpose, simp }
 
--- This is effectively both directions of the iff statement below.
+-- This is effectively both directions of `transpose_le_iff` below.
 protected lemma le_of_transpose_le {μ ν : young_diagram} (h_le : μ.transpose ≤ ν) :
   μ ≤ ν.transpose :=
 λ c hc, by { simp only [mem_transpose], apply h_le, simpa }
@@ -165,10 +166,10 @@ protected lemma le_of_transpose_le {μ ν : young_diagram} (h_le : μ.transpose 
 
 @[mono]
 protected lemma transpose_mono {μ ν : young_diagram} (h_le : μ ≤ ν) : μ.transpose ≤ ν.transpose :=
-by simp [h_le]
+transpose_le_iff.mpr h_le
 
 /-- Transposing Young diagrams is an `order_iso`. -/
-def transpose_order_iso : young_diagram ≃o young_diagram :=
+@[simps] def transpose_order_iso : young_diagram ≃o young_diagram :=
 ⟨⟨transpose, transpose, λ _, by simp, λ _, by simp⟩, by simp⟩
 
 end transpose
@@ -206,7 +207,7 @@ lemma mem_iff_lt_row_len {μ : young_diagram} {i j : ℕ} : (i, j) ∈ μ ↔ j 
 by { rw [row_len, nat.lt_find_iff], push_neg,
      exact ⟨λ h _ hmj, μ.up_left_mem (by refl) hmj h, λ h, h _ (by refl)⟩ }
 
-lemma row_eq_prod {μ : young_diagram} {i : ℕ} : μ.row i = {i} ×ˢ (finset.range (μ.row_len i)) :=
+lemma row_eq_prod {μ : young_diagram} {i : ℕ} : μ.row i = {i} ×ˢ finset.range (μ.row_len i) :=
 by { ext ⟨a, b⟩,
      simp only [finset.mem_product, finset.mem_singleton, finset.mem_range,
                 mem_row_iff, mem_iff_lt_row_len, and_comm, and.congr_right_iff],
@@ -264,10 +265,10 @@ by { by_contra' h_lt, rw ← lt_self_iff_false (μ.col_len j1),
      rw ← mem_iff_lt_col_len at h_lt ⊢,
      exact μ.up_left_mem (by refl) hj h_lt }
 
-@[simp] lemma transpose_col_len (μ : young_diagram) (j : ℕ) : μ.transpose.col_len j = μ.row_len j :=
+@[simp] lemma col_len_transpose (μ : young_diagram) (j : ℕ) : μ.transpose.col_len j = μ.row_len j :=
 by simp [row_len, col_len]
 
-@[simp] lemma transpose_row_len (μ : young_diagram) (i : ℕ) : μ.transpose.row_len i = μ.col_len i :=
+@[simp] lemma row_len_transpose (μ : young_diagram) (i : ℕ) : μ.transpose.row_len i = μ.col_len i :=
 by simp [row_len, col_len]
 
 end columns

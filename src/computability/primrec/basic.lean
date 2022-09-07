@@ -107,6 +107,15 @@ section primcodable
 class primcodable (α : Type*) extends tencodable α :=
 (prim [] : primrec (tencodable.decode α))
 
+lemma some : primrec (@some α) :=
+⟨_, tree.primrec.nil.pair tree.primrec.id, λ x, by simp [encode, has_uncurry.uncurry]⟩
+
+instance : primcodable (tree unit) :=
+{ prim := some }
+
+instance : primcodable unit :=
+{ prim := primrec.const _ }
+
 end primcodable
 
 variables [tencodable γ] [tencodable δ]
@@ -147,16 +156,8 @@ theorem comp₅ {f : α → β → γ → δ → ε → ζ} {g₁ : η → α} {
   (hg₄ : primrec g₄) (hg₅ : primrec g₅) : primrec (λ x, f (g₁ x) (g₂ x) (g₃ x) (g₄ x) (g₅ x)) :=
 hf.comp $ hg₁.pair $ hg₂.pair $ hg₃.pair $ hg₄.pair hg₅
 
-lemma some : primrec (@some α) :=
-⟨_, tree.primrec.nil.pair tree.primrec.id, λ x, by simp [encode, has_uncurry.uncurry]⟩
-
-instance : primcodable (tree unit) :=
-{ prim := some }
-
-instance : primcodable unit :=
-{ prim := primrec.const _ }
-
 end primrec
+
 #exit
 open denumerable encodable function
 

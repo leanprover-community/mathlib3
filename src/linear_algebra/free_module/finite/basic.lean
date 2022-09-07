@@ -59,22 +59,22 @@ begin
     (linear_map.to_matrix (module.free.choose_basis R M) (module.free.choose_basis R N)).symm,
 end
 
-variables {R M}
+variables {R}
 
 /-- A free module with a basis indexed by a `fintype` is finite. -/
-lemma _root_.module.finite.of_basis {R : Type*} {M : Type*} {ι : Type*} [comm_ring R]
-  [add_comm_group M] [module R M] [fintype ι] (b : basis ι R M) : module.finite R M :=
+lemma _root_.module.finite.of_basis {R M ι : Type*} [comm_ring R] [add_comm_group M] [module R M]
+  [finite ι] (b : basis ι R M) : module.finite R M :=
 begin
+  casesI nonempty_fintype ι,
   classical,
   refine ⟨⟨finset.univ.image b, _⟩⟩,
   simp only [set.image_univ, finset.coe_univ, finset.coe_image, basis.span_eq],
 end
 
-instance _root_.module.finite.matrix {ι₁ : Type*} [fintype ι₁] {ι₂ : Type*} [fintype ι₂] :
+instance _root_.module.finite.matrix {ι₁ ι₂ : Type*} [finite ι₁] [finite ι₂] :
   module.finite R (matrix ι₁ ι₂ R) :=
-module.finite.of_basis $ pi.basis $ λ i, pi.basis_fun R _
-
-variables (M)
+by { casesI nonempty_fintype ι₁, casesI nonempty_fintype ι₂,
+  exact module.finite.of_basis (pi.basis $ λ i, pi.basis_fun R _) }
 
 instance _root_.module.finite.linear_map [module.finite R M] [module.finite R N] :
   module.finite R (M →ₗ[R] N) :=

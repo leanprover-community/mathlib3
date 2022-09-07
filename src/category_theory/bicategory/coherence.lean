@@ -68,7 +68,7 @@ def preinclusion (B : Type u) [quiver.{v+1} B] :
   prelax_functor (locally_discrete (paths B)) (free_bicategory B) :=
 { obj   := id,
   map   := λ a b, (inclusion_path a b).obj,
-  map₂  := λ a b, (inclusion_path a b).map }
+  map₂  := λ a b f g η, (inclusion_path a b).map η }
 
 @[simp]
 lemma preinclusion_obj (a : B) :

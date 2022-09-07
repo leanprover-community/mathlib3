@@ -96,7 +96,7 @@ instance [fact (1 ≤ p)] : normed_lattice_add_comm_group (Lp E p μ) :=
     rw [hxf, hxg] at hx,
     exact solid hx,
   end,
-  ..Lp.lattice, ..Lp.normed_group, }
+  ..Lp.lattice, ..Lp.normed_add_comm_group, }
 
 end order
 

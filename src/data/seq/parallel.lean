@@ -18,7 +18,7 @@ open wseq
 variables {α : Type u} {β : Type v}
 
 def parallel.aux2 : list (computation α) → α ⊕ list (computation α) :=
-list.foldr (λc o, match o with
+list.foldr (λ c o, match o with
 | sum.inl a  := sum.inl a
 | sum.inr ls := rmap (λ c', c' :: ls) (destruct c)
 end) (sum.inr [])
@@ -204,7 +204,7 @@ def parallel_rec {S : wseq (computation α)} (C : α → Sort v)
   (H : ∀ s ∈ S, ∀ a ∈ s, C a) {a} (h : a ∈ parallel S) : C a :=
 begin
   let T : wseq (computation (α × computation α)) :=
-    S.map (λc, c.map (λ a, (a, c))),
+    S.map (λ c, c.map (λ a, (a, c))),
   have : S = T.map (map (λ c, c.1)),
   { rw [←wseq.map_comp], refine (wseq.map_id _).symm.trans (congr_arg (λ f, wseq.map f S) _),
     funext c, dsimp [id, function.comp], rw [←map_comp], exact (map_id _).symm },
@@ -243,11 +243,11 @@ theorem parallel_congr_lem {S T : wseq (computation α)} {a}
 theorem parallel_congr_left {S T : wseq (computation α)} {a}
   (h1 : ∀ s ∈ S, s ~> a) (H : S.lift_rel equiv T) : parallel S ~ parallel T :=
 let h2 := (parallel_congr_lem H).1 h1 in
-λ a', ⟨λh, by have aa := parallel_promises h1 h; rw ←aa; rw ←aa at h; exact
+λ a', ⟨λ h, by have aa := parallel_promises h1 h; rw ←aa; rw ←aa at h; exact
   let ⟨s, sS, as⟩ := exists_of_mem_parallel h,
       ⟨t, tT, st⟩ := wseq.exists_of_lift_rel_left H sS,
       aT := (st _).1 as in mem_parallel h2 tT aT,
-λh, by have aa := parallel_promises h2 h; rw ←aa; rw ←aa at h; exact
+λ h, by have aa := parallel_promises h2 h; rw ←aa; rw ←aa at h; exact
   let ⟨s, sS, as⟩ := exists_of_mem_parallel h,
       ⟨t, tT, st⟩ := wseq.exists_of_lift_rel_right H sS,
       aT := (st _).2 as in mem_parallel h1 tT aT⟩

@@ -142,7 +142,7 @@ instance gdistrib_mul_action [add_monoid M] [distrib_mul_action A M]
   gdistrib_mul_action (λ i, 𝓐 i) (λ i, 𝓜 i) :=
 { smul_add := λ i j a b c, subtype.ext $ smul_add _ _ _,
   smul_zero := λ i j a, subtype.ext $ smul_zero _,
-  ..(_ : gmul_action (λ i, 𝓐 i) (λ i, 𝓜 i)) }
+  ..graded_module.gmul_action 𝓐 𝓜 }
 
 variables [add_comm_monoid M] [module A M] [set_like σ M] [add_submonoid_class σ' A]
   [add_submonoid_class σ M] [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜]

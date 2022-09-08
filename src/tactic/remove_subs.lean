@@ -14,6 +14,9 @@ depending on whether the subtraction is truncated to `0` or coincides with the u
 subtraction.
 
 See the tactic-doc for more details.
+
+##  Todo
+*  allow `remove_subs` to work `at` some hypotheses?
 -/
 
 namespace tactic

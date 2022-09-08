@@ -116,7 +116,7 @@ begin
   rw [subgroup.coe_pow, units.coe_pow],
 end
 
-lemma roots_of_unity.norm_one [normed_division_ring R] (φ : M →* R) (ζ : Mˣ) (h : ζ ^ (k : ℕ) = 1) :
+lemma roots_of_unity.norm_one [normed_division_ring R] (φ : M →* R) {ζ : Mˣ} (h : ζ ^ (k : ℕ) = 1) :
   ∥φ ζ∥ = 1 :=
 begin
   rw ( _ :  ∥φ ζ∥ = 1 ↔ ∥φ ζ∥₊ = 1),

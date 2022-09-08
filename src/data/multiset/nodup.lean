@@ -205,14 +205,14 @@ lemma map_eq_map_of_bij_of_nodup (f : α → γ) (g : β → γ) {s : multiset �
   (i_inj : ∀a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂)
   (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
   s.map f = t.map g :=
-have t = s.attach.map (λ x, i x.1 x.2),
+have t = s.attach.map (λ x, i x x.2),
   from (ht.ext $ (nodup_attach.2 hs).map $
-      show injective (λ x : {x // x ∈ s}, i x.1 x.2), from λ x y hxy,
-        subtype.eq $ i_inj x.1 y.1 x.2 y.2 hxy).2
+      show injective (λ x : {x // x ∈ s}, i x x.2), from λ x y hxy,
+        subtype.ext $ i_inj x y x.2 y.2 hxy).2
     (λ x, by simp only [mem_map, true_and, subtype.exists, eq_comm, mem_attach];
       exact ⟨i_surj _, λ ⟨y, hy⟩, hy.snd.symm ▸ hi _ _⟩),
-calc s.map f = s.pmap  (λ x _, f x) (λ _, id) : by rw [pmap_eq_map]
-... = s.attach.map (λ x, f x.1) : by rw [pmap_eq_map_attach]
+calc s.map f = s.pmap (λ x _, f x) (λ _, id) : by rw [pmap_eq_map]
+... = s.attach.map (λ x, f x) : by rw [pmap_eq_map_attach]
 ... = t.map g : by rw [this, multiset.map_map]; exact map_congr rfl (λ x _, h _ _)
 
 end multiset

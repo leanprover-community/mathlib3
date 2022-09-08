@@ -53,7 +53,7 @@ def esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.pro
 
 lemma _root_.finset.esymm_map_val {σ} (f : σ → R) (s : finset σ) (n : ℕ) :
   (s.val.map f).esymm n = (s.powerset_len n).sum (λ t, t.prod f) :=
-by { rw [esymm, powerset_len_map, ← finset.map_val_val_powerset_len], simpa only [map_map] }
+by simpa only [esymm, powerset_len_map, ← finset.map_val_val_powerset_len, map_map]
 
 end multiset
 

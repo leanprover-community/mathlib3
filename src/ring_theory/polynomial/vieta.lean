@@ -149,7 +149,7 @@ lemma mv_polynomial.prod_C_add_X_eq_sum_esymm :
 begin
   let s := finset.univ.val.map (λ i : σ, mv_polynomial.X i),
   rw (_ : card σ = s.card),
-  { simp_rw [mv_polynomial.esymm_eq_multiset_esymm σ R _, finset.prod_eq_multiset_prod],
+  { simp_rw [mv_polynomial.esymm_eq_multiset_esymm σ R, finset.prod_eq_multiset_prod],
     convert multiset.prod_X_add_C_eq_sum_esymm s,
     rwa multiset.map_map, },
   { rw multiset.card_map, refl, }
@@ -160,7 +160,7 @@ lemma mv_polynomial.prod_X_add_C_coeff (k : ℕ) (h : k ≤ card σ) :
 begin
   let s := finset.univ.val.map (λ i, (mv_polynomial.X i : mv_polynomial σ R)),
   rw (_ : card σ = s.card) at ⊢ h,
-  { rw [mv_polynomial.esymm_eq_multiset_esymm σ R (s.card - k), finset.prod_eq_multiset_prod],
+  { rw [mv_polynomial.esymm_eq_multiset_esymm σ R, finset.prod_eq_multiset_prod],
     convert multiset.prod_X_add_C_coeff s h,
     rwa multiset.map_map },
   repeat { rw multiset.card_map, refl, },

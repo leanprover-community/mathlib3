@@ -241,10 +241,6 @@ structure primitive_add_char (R : Type u) [comm_ring R] [fintype R] (R' : Type v
 
 variables {C : Type v} [comm_ring C]
 
--- For `n : ℕ+`, automatically generate instance `fact (0 < (n : ℕ))`.
--- This is needed for the API for `zmod n` (until that gets refactored to use `ne_zero`).
-local attribute [instance] pnat.fact_pos
-
 section zmod_char_def
 
 open multiplicative -- so we can write simply `to_add`, which we need here again

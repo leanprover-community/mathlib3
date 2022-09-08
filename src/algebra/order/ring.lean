@@ -230,6 +230,10 @@ def function.injective.ordered_semiring [has_zero β] [has_one β] [has_add β] 
 section nontrivial
 variables [nontrivial α]
 
+@[priority 100] -- see Note [lower instance priority]
+instance ordered_semiring.to_no_max_order : no_max_order α :=
+⟨λ a, ⟨a + 1, lt_add_of_pos_right _ one_pos⟩⟩
+
 @[simp] lemma zero_lt_one : 0 < (1 : α) := zero_le_one.lt_of_ne zero_ne_one
 @[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
 @[simp] lemma zero_lt_three : (0 : α) < 3 :=
@@ -1491,10 +1495,8 @@ lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λ
 begin
   cases a; cases b; simp only [none_eq_top, some_eq_coe],
   { simp [← coe_mul] },
-  { suffices : ⊤ * (b : with_top α) = ⊤ ↔ b ≠ 0, by simpa,
-    by_cases hb : b = 0; simp [hb] },
-  { suffices : (a : with_top α) * ⊤ = ⊤ ↔ a ≠ 0, by simpa,
-    by_cases ha : a = 0; simp [ha] },
+  { by_cases hb : b = 0; simp [hb] },
+  { by_cases ha : a = 0; simp [ha] },
   { simp [← coe_mul] }
 end
 
@@ -1522,12 +1524,12 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
   one := 1,
   zero := 0,
   one_mul := λ a, match a with
-  | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
-  | (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
+  | ⊤       := mul_top (mt coe_eq_coe.1 one_ne_zero)
+  | (a : α) := by rw [← coe_one, ← coe_mul, one_mul]
   end,
   mul_one := λ a, match a with
-  | none     := show ⊤ * ((1:α) : with_top α) = ⊤, by simp [-with_top.coe_one]
-  | (some a) := show ↑a * ((1:α) : with_top α) = a, by simp [coe_mul.symm, -with_top.coe_one]
+  | ⊤       := top_mul (mt coe_eq_coe.1 one_ne_zero)
+  | (a : α) := by rw [← coe_one, ← coe_mul, mul_one]
   end,
   .. with_top.mul_zero_class }
 
@@ -1559,16 +1561,13 @@ instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (w
 { mul := (*),
   zero := 0,
   mul_assoc := λ a b c, begin
-    cases a,
-    { by_cases hb : b = 0; by_cases hc : c = 0;
-        simp [*, none_eq_top] },
-    cases b,
-    { by_cases ha : a = 0; by_cases hc : c = 0;
-        simp [*, none_eq_top, some_eq_coe] },
-    cases c,
-    { by_cases ha : a = 0; by_cases hb : b = 0;
-        simp [*, none_eq_top, some_eq_coe] },
-    simp [some_eq_coe, coe_mul.symm, mul_assoc]
+    rcases eq_or_ne a 0 with rfl|ha, { simp only [zero_mul] },
+    rcases eq_or_ne b 0 with rfl|hb, { simp only [zero_mul, mul_zero] },
+    rcases eq_or_ne c 0 with rfl|hc, { simp only [mul_zero] },
+    induction a using with_top.rec_top_coe, { simp [hb, hc] },
+    induction b using with_top.rec_top_coe, { simp [ha, hc] },
+    induction c using with_top.rec_top_coe, { simp [ha, hb] },
+    simp only [← coe_mul, mul_assoc]
   end,
   .. with_top.mul_zero_class }
 
@@ -1579,22 +1578,17 @@ instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
   comm_monoid_with_zero (with_top α) :=
 { mul := (*),
   zero := 0,
-  mul_comm := λ a b, begin
-    by_cases ha : a = 0, { simp [ha] },
-    by_cases hb : b = 0, { simp [hb] },
-    simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
-  end,
+  mul_comm := λ a b,
+    by simp only [or_comm, mul_def, option.bind_comm a b, mul_comm],
   .. with_top.monoid_with_zero }
 
 variables [canonically_ordered_comm_semiring α]
 
 private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
 begin
-  cases c,
-  { show (a + b) * ⊤ = a * ⊤ + b * ⊤,
-    by_cases ha : a = 0; simp [ha] },
-  { show (a + b) * c = a * c + b * c,
-    by_cases hc : c = 0, { simp [hc] },
+  induction c using with_top.rec_top_coe,
+  { by_cases ha : a = 0; simp [ha] },
+  { by_cases hc : c = 0, { simp [hc] },
     simp [mul_coe hc], cases a; cases b,
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end

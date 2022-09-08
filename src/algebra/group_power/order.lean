@@ -243,8 +243,8 @@ monotone_nat_of_le_succ $ λ n,
 theorem pow_le_pow (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
 pow_mono ha h
 
-theorem le_self_pow (ha : 1 ≤ a) (h : 1 ≤ m) : a ≤ a ^ m :=
-eq.trans_le (pow_one a).symm (pow_le_pow ha h)
+theorem le_self_pow (ha : 1 ≤ a) (h : m ≠ 0) : a ≤ a ^ m :=
+(pow_one a).symm.trans_le (pow_le_pow ha $ pos_iff_ne_zero.mpr h)
 
 @[mono] lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp

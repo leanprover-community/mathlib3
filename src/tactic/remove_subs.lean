@@ -58,9 +58,9 @@ meta def get_sub : expr → tactic (list (expr × expr))
 
 /--  `remove_one_sub a b` assumes that the expression `a - b` occurs in the target.
 It splits two cases:
-*  `a ≤ b`, in which case it replaces `a - b` with `0` and introduces the inequality `a ≤ b` into
+*  if `a ≤ b`, then it replaces `a - b` with `0` and introduces the inequality `a ≤ b` into
    the local context;
-*  writes `a = b + c`, for some `c` and tries to substitute this equality.
+*  otherwise, it writes `a = b + c`, for some `c` and tries to substitute this equality.
 -/
 meta def remove_one_sub (a b : expr) : tactic unit := do
 -- introduce names with the following meanings:
@@ -90,7 +90,7 @@ setup_tactic_parser
 
 /--  The tactic `remove_subs` looks for `ℕ`-subtractions in the goal and it recursively replaces
 any subexpression of the form `a - b` by two branches: one where `a ≤ b` and `a - b` is replaced
-by `0` and one where `b < a` and it tries to replace `a` by `b + c`, for some `c : ℕ`.
+by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b + c`.
 
 `remove_subs` fails if there are no `ℕ`-subtractions.
 

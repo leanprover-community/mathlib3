@@ -235,6 +235,10 @@ lemma ne_zero_of_norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { r
 @[nontriviality] lemma norm_of_subsingleton [subsingleton E] (x : E) : ∥x∥ = 0 :=
 by rw [subsingleton.elim x 0, norm_zero]
 
+lemma norm_multiset_sum_le (m : multiset E) :
+  ∥m.sum∥ ≤ (m.map (λ x, ∥x∥)).sum :=
+m.le_sum_of_subadditive norm norm_zero norm_add_le
+
 lemma norm_sum_le (s : finset ι) (f : ι → E) : ∥∑ i in s, f i∥ ≤ ∑ i in s, ∥f i∥ :=
 s.le_sum_of_subadditive norm norm_zero norm_add_le f
 
@@ -707,6 +711,10 @@ by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
 
 @[simp] lemma edist_sub_right (g₁ g₂ h : E) : edist (g₁ - h) (g₂ - h) = edist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using edist_add_right _ _ _
+
+lemma nnnorm_multiset_sum_le (m : multiset E) :
+  ∥m.sum∥₊ ≤ (m.map (λ x, ∥x∥₊)).sum :=
+m.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
 
 lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=

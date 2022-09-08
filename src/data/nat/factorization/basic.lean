@@ -5,10 +5,9 @@ Authors: Stuart Presnell
 -/
 import algebra.big_operators.finsupp
 import data.finsupp.multiset
-import data.nat.interval
 import data.nat.prime
-import data.nat.parity
 import number_theory.padics.padic_val
+import data.nat.interval
 import tactic.interval_cases
 
 /-!

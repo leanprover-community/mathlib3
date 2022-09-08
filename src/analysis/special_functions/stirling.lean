@@ -320,12 +320,6 @@ begin
   ring,
 end
 
-/-- For any `n : ℕ`, we have the identity
-(stirling_seq n+1)^4/ (stirling_seq (2(n+1)))^2 * (c n+1) = w n+1. -/
-lemma expand_in_limit' (n : ℕ) :
-  (stirling_seq n.succ) ^ 4 * (1 / (stirling_seq (2 * n.succ))) ^ 2 * c n.succ = w n.succ :=
-  expand_in_limit n.succ (succ_ne_zero n)
-
 /--
 Suppose the sequence `stirling_seq` (defined above) has the limit `a ≠ 0`.
 Then the sequence `w` has limit `a^2/2`

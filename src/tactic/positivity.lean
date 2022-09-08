@@ -145,8 +145,8 @@ meta def attr : user_attribute (expr → tactic strictness) unit :=
         (t e) $ orelse' -- run all the extensions on `e`
           (norm_num.positivity e) $ orelse' -- directly try `norm_num` on `e`
             (positivity_canon e) $ -- try showing nonnegativity from canonicity of the order
-          -- loop over hypotheses and try to compare with `e`
-          local_context >>= list.foldl (λ tac h, orelse' tac (compare_hyp e h)) failed  },
+            -- loop over hypotheses and try to compare with `e`
+            local_context >>= list.foldl (λ tac h, orelse' tac (compare_hyp e h)) failed },
     dependencies := [] } }
 
 /-- Look for a proof of positivity/nonnegativity of an expression `e`; if found, return the proof

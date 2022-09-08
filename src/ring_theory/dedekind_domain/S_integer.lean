@@ -17,20 +17,18 @@ valuation exactly one for all prime ideals `v` away from `S`.
 This file defines the subring of `S`-integers of `K` and the subgroup of `S`-units of `Kˣ`, which
 can be specialised to the case of a number field or a function field separately.
 
-TODO:
- * notation for `S`-integers and `S`-units.
- * proof that `S`-units is the kernel of a map to a product.
- * proof that `∅`-integers is the usual ring of integers.
- * finite generation of `S`-units and Dirichlet's `S`-unit theorem.
-
 ## Main definitions
 
  * `set.integer`: `S`-integers.
  * `set.unit`: `S`-units.
+ * TODO: notation for `S`-integers and `S`-units.
 
 ## Main statements
 
  * `set.units_integer_equiv_unit`: units of `S`-integers are `S`-units.
+ * TODO: proof that `S`-units is the kernel of a map to a product.
+ * TODO: proof that `∅`-integers is the usual ring of integers.
+ * TODO: finite generation of `S`-units and Dirichlet's `S`-unit theorem.
 
 ## References
 
@@ -103,7 +101,7 @@ end
 /-- The group of units of the ring of `S`-integers is the group of `S`-units. -/
 @[simps] def units_integer_equiv_unit : (S.integer K)ˣ ≃* S.unit K :=
 { to_fun    := λ x, ⟨units.mk0 x $ λ hx, x.ne_zero ((subring.coe_eq_zero_iff _).mp hx),
-  λ v hv, eq_one_of_mul_eq_one_left (x.val.property v hv) (x.inv.property v hv) $
+  λ v hv, eq_one_of_one_le_mul_left (x.val.property v hv) (x.inv.property v hv) $
     by { rw [← map_mul, ← v.valuation.map_one], congr' 1, exact subtype.mk_eq_mk.mp x.val_inv }⟩,
   inv_fun   := λ x, ⟨⟨x.val, λ v hv, by { rw [x.property v hv], exact le_rfl }⟩,
     ⟨x.val.inv, λ v hv, by { rw [← v.valuation.map_one, ← congr_arg v.valuation x.val.val_inv,

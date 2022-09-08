@@ -50,6 +50,18 @@ by rw [box_prod_adj, and_iff_left rfl, or_iff_left (λ h : H.adj b b ∧ _, h.1.
 @[simp] lemma box_prod_adj_right : (G □ H).adj (a, b₁) (a, b₂) ↔ H.adj b₁ b₂ :=
 by rw [box_prod_adj, and_iff_left rfl, or_iff_right (λ h : G.adj a a ∧ _, h.1.ne rfl)]
 
+lemma box_prod_neighbor_set (a : α) (b : β) :
+  (G □ H).neighbor_set ⟨a,b⟩ =
+    ((λ x, (⟨x,b⟩ : α × β)) '' (G.neighbor_set a)) ∪
+    ((λ y, (⟨a,y⟩ : α × β)) '' (H.neighbor_set b)) :=
+begin
+  ext ⟨x,y⟩,
+  simp only [mem_neighbor_set, box_prod_adj, set.mem_union_eq, set.mem_image, prod.mk.inj_iff,
+             exists_eq_right_right],
+  simp_rw [and_comm _ (b = y), exists_eq_right_right],
+  finish,
+end
+
 variables (G H I)
 
 /-- The box product is commutative up to isomorphism. `equiv.prod_comm` as a graph isomorphism. -/
@@ -164,5 +176,37 @@ by { haveI := (nonempty_prod.1 h.nonempty).1, haveI := (nonempty_prod.1 h.nonemp
 
 @[simp] lemma box_prod_connected : (G □ H).connected ↔ G.connected ∧ H.connected :=
 ⟨λ h, ⟨h.of_box_prod_left, h.of_box_prod_right⟩, λ h, h.1.box_prod h.2⟩
+
+instance
+  [decidable_eq α] [decidable_eq β] [locally_finite G] [locally_finite H] :
+  locally_finite (G □ H) :=
+begin
+  rintro ⟨_,_⟩,
+  rw box_prod_neighbor_set,
+  apply_instance,
+end
+
+lemma box_prod_degree [decidable_eq α] [decidable_eq β]
+  [locally_finite G] [locally_finite H] (a : α) (b : β) :
+  (G □ H).degree ⟨a,b⟩ = G.degree a + H.degree b :=
+begin
+  dsimp only [degree,neighbor_finset],
+  simp_rw [box_prod_neighbor_set a b,set.to_finset_union],
+  rw finset.card_disjoint_union,
+  have l : ((λ (x : α), (x, b)) '' G.neighbor_set a).to_finset.card
+         = (G.neighbor_set a).to_finset.card, by
+  { simp only [set.to_finset_card, fintype.card_of_finset,
+               finset.card_image_of_injective _ (prod.mk.inj_right b)],},
+  have r : ((λ (x' : β), (a, x')) '' H.neighbor_set b).to_finset.card
+         = (H.neighbor_set b).to_finset.card, by
+  { simp only [set.to_finset_card, fintype.card_of_finset,
+               finset.card_image_of_injective _ (prod.mk.inj_left a)],},
+  rw [l, r],
+  { rintro ⟨x,x'⟩ q,
+    simp only [finset.inf_eq_inter, finset.mem_inter, set.mem_to_finset, set.mem_image,
+               mem_neighbor_set,prod.mk.inj_iff,exists_eq_right_right] at q,
+    obtain ⟨⟨_,_,rfl,rfl⟩,⟨a,_,_,_⟩⟩ := q,
+    exact (a.ne (rfl)).elim, },
+end
 
 end simple_graph

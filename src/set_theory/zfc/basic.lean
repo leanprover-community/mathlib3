@@ -931,7 +931,7 @@ mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, A y ↔ y = x)
 
 /-- Function value -/
 def fval (F A : Class.{u}) : Class.{u} := iota (λ y, to_Set (λ x, F (Set.pair x y)) A)
-infixl `′`:100 := fval
+infixl ` ′ `:100 := fval
 
 theorem fval_ex (F A : Class.{u}) : F ′ A ∈ univ.{u} := iota_ex _
 

@@ -322,9 +322,8 @@ begin
     rw [←mul_one_div, one_div, ←pow_sub_of_lt a],
     norm_num },
   rw h,
-  refine ((ha.pow 4).div ((ha.comp (tendsto_id.const_mul_at_top' two_pos)).pow 2)
-    (pow_ne_zero 2 hane)).mul _,
-  exact tendsto.congr (λ n, (rest_cancel n).symm) rest_has_limit_one_half,
+  exact ((ha.pow 4).div ((ha.comp (tendsto_id.const_mul_at_top' two_pos)).pow 2)
+    (pow_ne_zero 2 hane)).mul rest_has_limit_one_half,
 end
 
 /-- **Stirling's Formula** -/

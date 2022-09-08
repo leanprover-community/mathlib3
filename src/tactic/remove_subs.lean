@@ -102,6 +102,26 @@ swap,
   end,
 swap
 
+setup_tactic_parser
+/--  `remove_subs_aux` acts like `remove_subs`, except that it takes a single location as input.
+See the doc-string of `remove_subs` for more details. -/
+meta def remove_subs_aux (la : parse (tk "!" )?) (lo : option name) : tactic unit := focus1 $ do
+ht ← match lo with
+     | none    := target
+     | some na := get_local na >>= infer_type
+end,
+(a, b) ← (do subs ← get_sub lo ht,
+             list.last' subs) <|> fail"no ℕ-subtraction found",
+remove_one_sub lo a b,
+repeat (do
+ht ← match lo with
+     | none    := target
+     | some na := get_local na >>= infer_type
+end,
+some (a, b) ← list.last' <$> (get_sub lo ht),
+remove_one_sub lo a b ),
+when la.is_some $ any_goals' $ try `[ linarith ]
+
 end remove_subs
 
 namespace interactive
@@ -116,22 +136,30 @@ by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b 
 
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/
-meta def remove_subs (la : parse (tk "!" )?) (lo : option name) : tactic unit := focus1 $ do
-ht ← match lo with
-  | none    := target
-  | some na := get_local na >>= infer_type
-end,
-(a, b) ← (do subs ← get_sub lo ht,
-             list.last' subs) <|> fail"no ℕ-subtraction found",
-remove_one_sub lo a b,
-repeat (do
-ht ← match lo with
-  | none    := target
-  | some na := get_local na >>= infer_type
-end,
-  some (a, b) ← list.last' <$> (get_sub lo ht),
-  remove_one_sub lo a b ),
-when la.is_some $ any_goals' $ try `[ linarith ]
+meta def remove_subs (la : parse (tk "!" )?) : parse location → tactic unit
+| loc.wildcard := do ctx ← local_context, fail"* not yet supported"
+| (loc.ns xs)  := do probs ← xs.mfilter $ λ x,
+                    (do cond ← succeeds (remove_subs_aux la x), pure (not cond)),
+                  let with_goal := none ∈ probs,
+                  match probs.reduce_option with
+                  | [] := when with_goal (fail format!"remove the Goal from the list of locations")
+                  | [h]  := if with_goal then
+                      (fail format!"remove the Goal and `{h}` from the list of locations") else
+                      (fail format!"remove `{h}` from the list of locations")
+                  | h  := if with_goal then
+                      (fail format!"remove the Goal and `{h}` from the list of locations") else
+                      (fail format!"remove `{h}` from the list of locations")
+                  end
+--    match x with
+--    | none := fail format!"try removing the goal from the list of locations"
+--    | some h := fail format!"try removing hypothesis `h` from the list of locations"
+--    end
+--| (loc.ns xs)  := probs ← xs.mmap' $ --λ x,
+--      remove_subs_aux la --x <|> do
+----    match x with
+----    | none := fail format!"try removing the goal from the list of locations"
+----    | some h := fail format!"try removing hypothesis `h` from the list of locations"
+----    end
 
 end interactive
 

@@ -1081,7 +1081,7 @@ by { rw [comap, dif_pos], exacts [to_measure_apply _ _ hs, ⟨hfi, hf⟩], }
 lemma le_comap_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (μ : measure β)
   (hfi : injective f) (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) (s : set α) :
   μ (f '' s) ≤ comap f μ s :=
-by { rw [comap, dif_pos], exacts [le_to_measure_apply _ _ _, ⟨hfi, hf⟩], }
+by { rw [comap, dif_pos (and.intro hfi hf)], exact le_to_measure_apply _ _ _, }
 
 lemma comap_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
@@ -1120,33 +1120,16 @@ begin
   refine generate_from_induction
     (λ t : set s, null_measurable_set (coe '' t) volume)
     {t : set s | ∃ (s' : set V), measurable_set s' ∧ coe ⁻¹' s' = t} _ _ _ _ ht,
-  { rintros t' ⟨s', hs', hs'_eq⟩,
-    rw ← hs'_eq,
-    simp only [subtype.image_preimage_coe],
+  { rintros t' ⟨s', hs', rfl⟩,
+    rw [subtype.image_preimage_coe],
     exact hs'.null_measurable_set.inter hs, },
   { simp only [image_empty, null_measurable_set_empty], },
-  { intros t' ht',
-    have : coe '' t'ᶜ = s \ (coe '' t'),
-    { ext1 x,
-      simp only [mem_image, mem_compl_eq, set_coe.exists, subtype.coe_mk, exists_and_distrib_right,
-        exists_eq_right, mem_diff, not_exists],
-      split; intro h,
-      { obtain ⟨hxs, hxt'⟩ := h,
-        exact ⟨hxs, λ _, hxt'⟩, },
-      { exact ⟨h.1, h.2 h.1⟩, }, },
-    rw this,
-    exact hs.diff ht', },
-  { intros f hf,
-    have : (coe '' ⋃ (i : ℕ), f i) = ⋃ (i : ℕ), coe '' f i,
-    { ext1 (x : V),
-      simp only [mem_image, mem_Union, set_coe.exists],
-      split,
-      { rintros ⟨y, hys, ⟨i, hyi⟩, hyx⟩,
-        exact ⟨i, y, hys, hyi, hyx⟩, },
-      { rintros ⟨i, y, hys, hyi, hyx⟩,
-        exact ⟨y, hys, ⟨i, hyi⟩, hyx⟩, }, },
-    rw this,
-    exact null_measurable_set.Union hf, },
+  { intro t',
+    simp only [←range_diff_image subtype.coe_injective, subtype.range_coe_subtype, set_of_mem_eq],
+    exact hs.diff, },
+  { intro f,
+    rw image_Union,
+    exact null_measurable_set.Union, },
 end
 
 lemma subtype.volume_univ {s : set V} (hs : null_measurable_set s) :
@@ -1155,17 +1138,18 @@ begin
   rw [subtype.volume_def, comap_apply₀ _ _ _ _ measurable_set.univ],
   { congr, simp only [subtype.val_eq_coe, image_univ, subtype.range_coe_subtype, set_of_mem_eq], },
   { exact subtype.coe_injective, },
-  { exact λ t ht, measurable_set.null_measurable_set_subtype_image hs ht, },
+  { exact λ t, measurable_set.null_measurable_set_subtype_image hs, },
 end
 
 lemma volume_coe_le_volume {s : set V} (hs : null_measurable_set s) (t : set s) :
   volume ((coe : s → V) '' t) ≤ volume t :=
 le_comap_apply _ _ subtype.coe_injective
-  (λ t ht, measurable_set.null_measurable_set_subtype_image hs ht) _
+  (λ t, measurable_set.null_measurable_set_subtype_image hs) _
 
-lemma todo' {s : set V} (hs : null_measurable_set s) {t : set s} (ht : volume t = 0) :
+lemma volume_image_coe_eq_zero_of_volume_eq_zero {s : set V} (hs : null_measurable_set s)
+  {t : set s} (ht : volume t = 0) :
   volume ((coe : s → V) '' t) = 0 :=
-le_antisymm ((volume_coe_le_volume hs t).trans ht.le) (zero_le _)
+eq_bot_iff.mpr $ (volume_coe_le_volume hs t).trans ht.le
 
 lemma mem_image_coe {s : set V} {t : set s} {x : V} :
   x ∈ (coe : s → V) '' t ↔ ∃ (hxs : x ∈ s), (⟨x, hxs⟩ : s) ∈ t :=
@@ -1180,10 +1164,11 @@ lemma todo {s : set V} {p q : s → Prop} :
   = {a : V | ∃ (h : a ∈ s), ¬ (p ⟨a, h⟩ ↔ q ⟨a, h⟩)} :=
 begin
   ext1 a,
+  simp only [mem_set_of_eq],
+  rw [← not_forall, not_iff_not],
   by_cases has : a ∈ s,
-  { simp only [mem_set_of_eq, has, exists_true_left], },
-  { simp only [mem_set_of_eq, has, is_empty.exists_iff, false_iff, not_not],
-    exact not_false, },
+  { simp only [has, exists_true_left, forall_true_left], },
+  { simp only [mem_set_of_eq, has, is_empty.exists_iff, is_empty.forall_iff, iff_self], },
 end
 
 lemma null_measurable_set.subtype_image {s : set V} {t : set s} (hs : null_measurable_set s)
@@ -1195,21 +1180,18 @@ begin
   refine eventually_eq.trans _ (null_measurable_set.to_measurable_ae_eq _).symm,
   { have h := @null_measurable_set.to_measurable_ae_eq s _ (volume : measure s) t ht,
     rw [eventually_eq, ae_iff] at h ⊢,
-    simp_rw eq_iff_iff,
-    have h' := todo' hs h,
+    have h' := volume_image_coe_eq_zero_of_volume_eq_zero hs h,
     rw image_coe at h',
+    -- change volume {x : V | ∃ (hxs : x ∈ s), ¬to_measurable volume t ⟨x, hxs⟩ = t ⟨x, hxs⟩} = 0 at h',
+    simp_rw eq_iff_iff at h' ⊢,
+    simp_rw iff.comm at h',
     change volume
       {a : V | ¬((a ∈ (coe : s → V) '' t) ↔ (a ∈ (coe : s → V) '' to_measurable volume t))} = 0,
     simp_rw mem_image_coe,
     change volume {a : V | ¬((∃ (hxs : a ∈ s), t ⟨a, hxs⟩)
       ↔ ∃ (hxs : a ∈ s),to_measurable volume t ⟨a, hxs⟩)} = 0,
     rw todo,
-    change volume {x : V | ∃ (hxs : x ∈ s), ¬to_measurable volume t ⟨x, hxs⟩ = t ⟨x, hxs⟩} = 0 at h',
-    simp_rw eq_iff_iff at h',
-    convert h',
-    ext1 a,
-    rw eq_iff_iff,
-    split; rintros ⟨has, h_not⟩; rw iff.comm at h_not; exact ⟨has, h_not⟩, },
+    exact h', },
   { exact measurable_set.null_measurable_set_subtype_image hs (measurable_set_to_measurable _ _), },
 end
 

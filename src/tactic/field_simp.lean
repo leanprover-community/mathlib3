@@ -76,6 +76,14 @@ begin
 end
 ```
 
+Moreover, the `field_simp` tactic can also take care of inverses of units in
+a general (commutative) monoid/ring and partial division `/ₚ`, see `algebra.group.units`
+for the definition. Analogue to the case above, the lemma `one_divp` is removed from the simpset
+as this works against the algorithm. If you have objects with a `is_unit x` instance like
+`(x : R) (hx : is_unit x)`, you should lift them with
+`lift x to Rˣ using id hx, rw is_unit.unit_of_coe_units, clear hx`
+before using `field_simp`.
+
 See also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions
 that have numerals in denominators.
 The tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to
@@ -86,7 +94,8 @@ meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (locat : parse location)
   (cfg : simp_config_ext := {discharger := field_simp.ne_zero}) : tactic unit :=
 let attr_names := `field_simps :: attr_names,
-    hs := simp_arg_type.except `one_div :: simp_arg_type.except `mul_eq_zero :: hs in
+    hs := simp_arg_type.except `one_div :: simp_arg_type.except `mul_eq_zero ::
+          simp_arg_type.except `one_divp :: hs in
 propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat >> skip)
 
 add_tactic_doc

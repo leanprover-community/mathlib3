@@ -127,7 +127,7 @@ def cone_of_cone_uncurry_is_limit
         dsimp,
         slice_rhs 3 4 { rw ←nat_trans.naturality, },
         slice_rhs 2 3 { rw ←(D.obj j).π.naturality, },
-        simp only [functor.const.obj_map, category.id_comp, category.assoc],
+        simp only [functor.const_obj_map, category.id_comp, category.assoc],
         have w := (D.map fj).w k',
         dsimp at w,
         rw ←w,

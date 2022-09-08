@@ -385,7 +385,14 @@ meta def rcases (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit 
     | none := i_to_expr p
     end,
   if e.is_local_constant then
-    focus1 (rcases_core pat e >>= clear_goals)
+    match pat.name with
+    | some x := do
+      n ← revert e,
+      e ← intro x,
+      intron (n - 1),
+      focus1 (rcases_core pat e >>= clear_goals)
+    | none := focus1 (rcases_core pat e >>= clear_goals)
+    end
   else do
     x ← pat.name.elim mk_fresh_name pure,
     n ← revert_kdependencies e semireducible,
@@ -409,7 +416,14 @@ meta def rcases_many (ps : listΠ pexpr) (pat : rcases_patt) : tactic unit := do
     end,
     e ← i_to_expr p,
     if e.is_local_constant then
-      pure (pat, e)
+      match pat.name with
+      | some x := do
+        n ← revert e,
+        e ← intro x,
+        intron (n - 1),
+        pure (pat, e)
+      | none := pure (pat, e)
+      end
     else do
       x ← pat.name.elim mk_fresh_name pure,
       n ← revert_kdependencies e semireducible,
@@ -864,8 +878,6 @@ add_tactic_doc
   tags       := ["induction"],
   inherit_description_from := `tactic.interactive.rintro }
 
-setup_tactic_parser
-
 /-- Parses `patt? (: expr)? (:= expr)?`, the arguments for `obtain`.
  (This is almost the same as `rcases_patt_parse`,
 but it allows the pattern part to be empty.) -/
@@ -930,6 +942,35 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.obtain],
   tags       := ["induction"] }
+
+/--
+The `rsuffices` tactic is an alternative version of `suffices`, that allows the usage
+of any syntax that would be valid in an `obtain` block. This tactic just calls `obtain`
+on the expression, and then `rotate 1`.
+-/
+meta def rsuffices (h : parse obtain_parse) : tactic unit :=
+focus1 $ obtain h >> tactic.rotate 1
+
+add_tactic_doc
+{ name       := "rsuffices",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rsuffices],
+  tags       := ["induction"] }
+
+/--
+The `rsufficesI` tactic is an instance-cache aware version of `rsuffices`; it resets the instance
+cache on the resulting goals.
+-/
+
+meta def rsufficesI (h : parse obtain_parse) : tactic unit :=
+rsuffices h ; resetI
+
+add_tactic_doc
+{ name       := "rsufficesI",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rsufficesI],
+  tags       := ["induction", "type class"] }
+
 
 end interactive
 end tactic

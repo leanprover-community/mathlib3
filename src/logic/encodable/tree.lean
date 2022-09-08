@@ -69,7 +69,7 @@ instance _root_.tree_unit.tencodable : tencodable (tree unit) :=
 @[simp] lemma encode_tree_unit (x : tree unit) : encode x = x := rfl
 @[simp] lemma decode_tree_unit (x : tree unit) : decode (tree unit) x = some x := rfl
 
-@[priority 100] instance _root_.is_empty.to_tencodable [is_empty α] : tencodable α :=
+@[priority 100] instance _root_.is_empty.to_tencodable {α} [is_empty α] : tencodable α :=
 ⟨is_empty_elim, λ n, none, is_empty_elim⟩
 
 instance _root_.punit.tencodable : tencodable punit :=

@@ -99,10 +99,12 @@ abbreviation non_nil [inhabited α] : tree α := node default nil nil
 
 @[simp] lemma non_nil_ne [inhabited α] : non_nil ≠ (@nil α) := by trivial
 
+/-- The left child of the tree, or `nil` if the tree is `nil` -/
 @[simp] def left : tree α → tree α
 | nil := nil
 | (node _ l r) := l
 
+/-- The right child of the tree, or `nil` if the tree is `nil` -/
 @[simp] def right : tree α → tree α
 | nil := nil
 | (node _ l r) := r

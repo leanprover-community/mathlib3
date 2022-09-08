@@ -64,7 +64,7 @@ noncomputable
 def taylor_within_eval (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ x : ℝ) : E :=
 polynomial_module.eval x (taylor_within f n s x₀)
 
-lemma taylor_within_succ {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ : ℝ} :
+lemma taylor_within_succ (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ : ℝ) :
   taylor_within f (n+1) s x₀ = taylor_within f n s x₀
   + polynomial_module.comp (polynomial.X - polynomial.C x₀)
   (polynomial_module.single ℝ (n+1) (taylor_coeff_within f (n+1) s x₀)) :=
@@ -73,7 +73,7 @@ begin
   rw finset.sum_range_succ,
 end
 
-@[simp] lemma taylor_within_eval_succ {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
+@[simp] lemma taylor_within_eval_succ (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ x : ℝ) :
   taylor_within_eval f (n+1) s x₀ x = taylor_within_eval f n s x₀ x
   + (((n + 1 : ℝ) * n!)⁻¹ * (x - x₀)^(n+1)) • iterated_deriv_within (n + 1) f s x₀ :=
 begin
@@ -87,7 +87,7 @@ begin
 end
 
 /-- The Taylor polynomial of order zero evaluates to `f x`. -/
-@[simp] lemma taylor_within_zero_eval {f : ℝ → E} {s : set ℝ} {x₀ x : ℝ} :
+@[simp] lemma taylor_within_zero_eval (f : ℝ → E) (s : set ℝ) (x₀ x : ℝ) :
   taylor_within_eval f 0 s x₀ x = f x₀ :=
 begin
   dunfold taylor_within_eval,
@@ -97,15 +97,15 @@ begin
 end
 
 /-- Evaluating the Taylor polynomial at `x = x₀` yields `f x`. -/
-@[simp] lemma taylor_within_eval_self {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ : ℝ} :
+@[simp] lemma taylor_within_eval_self (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ : ℝ) :
   taylor_within_eval f n s x₀ x₀ = f x₀ :=
 begin
   induction n with k hk,
-  { exact taylor_within_zero_eval },
+  { exact taylor_within_zero_eval _ _ _ _},
   simp [hk]
 end
 
-lemma taylor_within_apply {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
+lemma taylor_within_apply (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ x : ℝ) :
   taylor_within_eval f n s x₀ x = ∑ k in finset.range (n+1),
     ((k! : ℝ)⁻¹ * (x - x₀)^k) • iterated_deriv_within k f s x₀ :=
 begin
@@ -117,7 +117,7 @@ end
 
 /-- If `f` is `n` times continuous differentiable, then the Taylor polynomial is continuous in the
   second variable. -/
-lemma taylor_within_eval_continuous_on {f : ℝ → E} {x : ℝ} {n : ℕ} {s : set ℝ}
+lemma continuous_on_taylor_within_eval {f : ℝ → E} {x : ℝ} {n : ℕ} {s : set ℝ}
   (hs : unique_diff_on ℝ s) (hf : cont_diff_on ℝ n f s) :
   continuous_on (λ t, taylor_within_eval f n s t x) s :=
 begin
@@ -134,7 +134,7 @@ begin
 end
 
 /-- Helper lemma for calculating the derivative of the monomial that appears in Taylor expansions.-/
-lemma monomial_has_deriv_aux (t x : ℝ) {n : ℕ} :
+lemma monomial_has_deriv_aux (t x : ℝ) (n : ℕ) :
   has_deriv_at (λ y, (x - y)^(n+1)) (-(n+1) * (x - t)^n) t :=
 begin
   simp_rw sub_eq_neg_add,
@@ -168,19 +168,17 @@ begin
       (((k+1 : ℝ) * k!)⁻¹ * (-(k+1) *(x - y)^k)) :=
     by { field_simp [nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k], ring_nf },
     rw this,
-    exact (monomial_has_deriv_aux y x).has_deriv_within_at.const_mul _,
+    exact (monomial_has_deriv_aux y x _).has_deriv_within_at.const_mul _,
   end,
   convert this.smul hf'',
   field_simp [nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k],
-  rw neg_div,
-  rw neg_smul,
-  rw sub_eq_add_neg,
+  rw [neg_div, neg_smul, sub_eq_add_neg],
 end
 
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`.
 
 Version for arbitrary sets -/
-lemma taylor_within_eval_has_deriv_within_at {f : ℝ → E} {x y : ℝ} {n : ℕ} {s s' : set ℝ}
+lemma has_deriv_within_at_taylor_within_eval {f : ℝ → E} {x y : ℝ} {n : ℕ} {s s' : set ℝ}
   (hs'_unique : unique_diff_within_at ℝ s' y) (hs_unique : unique_diff_on ℝ s)
   (hs' : s' ∈ 𝓝[s] y) (hy : y ∈ s') (h : s' ⊆ s)
   (hf : cont_diff_on ℝ n f s)
@@ -221,7 +219,7 @@ lemma taylor_within_eval_has_deriv_at_Ioo {f : ℝ → E} {a b t : ℝ} (x : ℝ
     (((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t)) t :=
 begin
   have h_nhds := is_open.mem_nhds is_open_Ioo ht,
-  exact (taylor_within_eval_has_deriv_within_at (unique_diff_within_at_Ioo ht)
+  exact (has_deriv_within_at_taylor_within_eval (unique_diff_within_at_Ioo ht)
     (unique_diff_on_Icc hx) (nhds_within_le_nhds h_nhds) ht Ioo_subset_Icc_self hf hf')
     .has_deriv_at h_nhds,
 end
@@ -229,13 +227,12 @@ end
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`.
 
 Version for closed intervals -/
-lemma taylor_within_eval_has_deriv_within_at_Icc {f : ℝ → E} {a b t : ℝ} (x : ℝ) {n : ℕ}
+lemma has_deriv_within_taylor_within_eval_at_Icc {f : ℝ → E} {a b t : ℝ} (x : ℝ) {n : ℕ}
   (hx : a < b) (ht : t ∈ Icc a b) (hf : cont_diff_on ℝ n f (Icc a b))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc a b)) (Icc a b)) :
   has_deriv_within_at (λ y, taylor_within_eval f n (Icc a b) y x)
-    (((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t))
-    (Icc a b) t :=
-taylor_within_eval_has_deriv_within_at (unique_diff_on_Icc hx t ht) (unique_diff_on_Icc hx)
+    (((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t)) (Icc a b) t :=
+has_deriv_within_at_taylor_within_eval (unique_diff_on_Icc hx t ht) (unique_diff_on_Icc hx)
   self_mem_nhds_within ht rfl.subset hf hf'
 
 /-! ### Taylor's theorem with mean value type remainder estimate -/
@@ -255,7 +252,7 @@ begin
   -- We apply the mean value theorem
   rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_within_eval f n (Icc x₀ x) t x)
     (λ t, ((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc x₀ x) t)) hx
-    (taylor_within_eval_continuous_on (unique_diff_on_Icc hx) hf)
+    (continuous_on_taylor_within_eval (unique_diff_on_Icc hx) hf)
     (λ _ hy, taylor_within_eval_has_deriv_at_Ioo x hx hy hf hf')
     g g' gcont gdiff with ⟨y, hy, h⟩,
   use [y, hy],
@@ -287,7 +284,7 @@ begin
   have hg' : ∀ (y : ℝ), y ∈ Ioo x₀ x → -(↑n + 1) * (x - y) ^ n ≠ 0 :=
   λ y hy, mul_ne_zero (neg_ne_zero.mpr (nat.cast_add_one_ne_zero n)) (xy_ne y hy),
   -- We apply the general theorem with g(t) = (x - t)^(n+1)
-  rcases taylor_mean_remainder hx hf hf' gcont (λ y _, monomial_has_deriv_aux y x) hg'
+  rcases taylor_mean_remainder hx hf hf' gcont (λ y _, monomial_has_deriv_aux y x _) hg'
     with ⟨y, hy, h⟩,
   use [y, hy],
   simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, mul_neg] at h,
@@ -362,7 +359,7 @@ begin
   end,
   -- Apply the mean value theorem for vector valued functions:
   have := norm_image_sub_le_of_norm_deriv_le_segment'
-    (λ _ ht, taylor_within_eval_has_deriv_within_at_Icc x h ht hf.of_succ hf') h' x hx,
+    (λ _ ht, has_deriv_within_taylor_within_eval_at_Icc x h ht hf.of_succ hf') h' x hx,
   simp only [taylor_within_eval_self] at this,
   refine le_trans this _,
   -- The rest is a trivial calculation

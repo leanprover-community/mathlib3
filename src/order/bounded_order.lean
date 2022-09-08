@@ -1528,7 +1528,7 @@ end distrib_lattice_bot
 end disjoint
 
 section codisjoint
-section partial_order_bot
+section partial_order_top
 variables [partial_order α] [order_top α] {a b c d : α}
 
 /-- Two elements of a lattice are codisjoint if their sup is the top element.
@@ -1568,7 +1568,7 @@ eq_top_iff.2 $ hab le_rfl h
 
 lemma codisjoint.eq_top_of_ge (hab : codisjoint a b) : a ≤ b → b = ⊤ := hab.symm.eq_top_of_le
 
-end partial_order_bot
+end partial_order_top
 
 section partial_bounded_order
 variables [partial_order α] [bounded_order α] {a : α}
@@ -1581,7 +1581,6 @@ variables [partial_order α] [bounded_order α] {a : α}
 
 end partial_bounded_order
 
-section codisjoint
 section semilattice_sup_top
 variables [semilattice_sup α] [order_top α] {a b c d : α}
 
@@ -1674,11 +1673,18 @@ section is_compl
 
 namespace is_compl
 
-section bounded_order
-
-variables [lattice α] [bounded_order α] {x y z : α}
+section bounded_partial_order
+variables [partial_order α] [bounded_order α] {x y z : α}
 
 @[symm] protected lemma symm (h : is_compl x y) : is_compl y x := ⟨h.1.symm, h.2.symm⟩
+
+lemma dual (h : is_compl x y) : is_compl (to_dual x) (to_dual y) := ⟨h.2, h.1⟩
+lemma of_dual {a b : αᵒᵈ} (h : is_compl a b) : is_compl (of_dual a) (of_dual b) := ⟨h.2, h.1⟩
+
+end bounded_partial_order
+
+section bounded_lattice
+variables [lattice α] [bounded_order α] {x y z : α}
 
 lemma of_eq (h₁ : x ⊓ y = ⊥) (h₂ : x ⊔ y = ⊤) : is_compl x y :=
 ⟨disjoint_iff.mpr h₁, codisjoint_iff.mpr h₂⟩
@@ -1686,10 +1692,7 @@ lemma of_eq (h₁ : x ⊓ y = ⊥) (h₂ : x ⊔ y = ⊤) : is_compl x y :=
 lemma inf_eq_bot (h : is_compl x y) : x ⊓ y = ⊥ := h.disjoint.eq_bot
 lemma sup_eq_top (h : is_compl x y) : x ⊔ y = ⊤ := h.codisjoint.eq_top
 
-lemma dual (h : is_compl x y) : is_compl (to_dual x) (to_dual y) := ⟨h.2, h.1⟩
-lemma of_dual {a b : αᵒᵈ} (h : is_compl a b) : is_compl (of_dual a) (of_dual b) := ⟨h.2, h.1⟩
-
-end bounded_order
+end bounded_lattice
 
 variables [distrib_lattice α] [bounded_order α] {a b x y z : α}
 

@@ -54,7 +54,7 @@ instance [decidable_eq ι] [gmonoid A] [gmodule A M] :
   has_smul (⨁ i, A i) (⨁ i, M i) :=
 { smul := λ x y, gmodule.smul_add_monoid_hom A M x y }
 
-@[simp] lemma gmodule.smul_def[decidable_eq ι]  [gmonoid A] [gmodule A M]
+@[simp] lemma gmodule.smul_def [decidable_eq ι]  [gmonoid A] [gmodule A M]
   (x : ⨁ i, A i) (y : ⨁ i, M i) : x • y = gmodule.smul_add_monoid_hom _ _ x y := rfl
 
 @[simp] lemma gmodule.smul_add_monoid_hom_apply_of_of [decidable_eq ι] [gmonoid A] [gmodule A M]
@@ -129,8 +129,7 @@ open graded_monoid
 include σ' A σ M
 
 instance gmul_action [add_monoid M] [distrib_mul_action A M]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.graded_monoid 𝓐]
-  [set_like.has_graded_smul 𝓐 𝓜] :
+  [set_like σ M] [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜] :
   gmul_action (λ i, 𝓐 i) (λ i, 𝓜 i) :=
 { one_smul := λ ⟨i, m⟩, sigma.subtype_ext (zero_add _) (one_smul _ _),
   mul_smul := λ ⟨i, a⟩ ⟨j, a'⟩ ⟨k, b⟩, sigma.subtype_ext (add_assoc _ _ _) (mul_smul _ _ _),

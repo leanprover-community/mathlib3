@@ -28,10 +28,11 @@ end
 namespace tactic
 
 /--  `get_sub e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
-subexpression of `e`. -/
+subexpression of `e`.  While doing this, it also assumes that `e` was the target and rewrites the
+target to reduce the number of nat-subtractions, using the identity `a - b - c = a - (b + c)`. -/
 meta def get_sub : expr → tactic (list (expr × expr))
 | `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
-                           to_expr ``(nat.sub_sub) >>= rewrite_target,
+                           to_expr ``(nat.sub_sub %%a %%b %%c) >>= rewrite_target,
                            [ga, gb, gc] ← [a, b, c].mmap get_sub,
                            return ((a, bc) :: (ga ++ gb ++ gc))
 | `(%%a - %%b)       := do [ga, gb] ← [a, b].mmap get_sub,

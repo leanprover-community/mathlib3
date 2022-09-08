@@ -240,32 +240,6 @@ begin
     ring_nf },
 end
 
-/-- For `n : ℕ`, define `c n` as
-$\sqrt{2n}(\frac{n}{e})^{4n}*\frac{2^{4n}}{(\sqrt{4n}(\frac{2n}{e})^(2n))^2 * (2n+1)}$ -/
-noncomputable def c (n : ℕ) : ℝ := (sqrt (2 * n) * (n / exp 1) ^ n) ^ 4 * 2 ^ (4 * n) /
-  ((sqrt (4 * n) * (((2 * n) / exp 1)) ^ (2 * n)) ^ 2 * (2 * n + 1))
-
-/-- For any `n : ℕ`, we have `c n` = n / (2 * n + 1) -/
-lemma rest_cancel (n : ℕ) : (n : ℝ) / (2 * n + 1) = c n :=
-begin
-  rw c,
-  have h₀ : 4 = 2 * 2, by refl,
-  rw [mul_pow, mul_pow, h₀, pow_mul, sq_sqrt, sq_sqrt],
-  { cases n,
-    { rw [cast_zero, zero_div, mul_zero, zero_pow, zero_mul, zero_mul, zero_div],
-    exact two_pos },
-    { have h₁ : 2 * ((n : ℝ) + 1) + 1 ≠ 0,
-    by { norm_cast, exact succ_ne_zero (2*n.succ) },
-    have h₂ : exp 1 ≠ 0, from exp_ne_zero 1,
-    have h₃ : (n : ℝ) + 1 ≠ 0, from cast_add_one_ne_zero n,
-    field_simp,
-    repeat {rw [← pow_mul]},
-    rw [← h₀, mul_assoc 2 n.succ 2, mul_left_comm 2 n.succ 2, ← h₀, mul_pow (2 : ℝ) _ (n.succ * 4),
-      mul_comm 4 n.succ],
-    ring_nf }, },
-  { norm_cast, linarith },
-  { norm_cast, linarith },
-end
 
 /-- The sequence `c n` has limit `1/2` -/
 lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), (n : ℝ) / (2 * n + 1)) at_top (𝓝 (1 / 2)) :=

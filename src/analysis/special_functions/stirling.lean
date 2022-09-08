@@ -244,22 +244,10 @@ end
 /-- The sequence `c n` has limit `1/2` -/
 lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), (n : ℝ) / (2 * n + 1)) at_top (𝓝 (1 / 2)) :=
 begin
-  rw one_div,
-  suffices h : tendsto (λ n : ℕ, (2 * ↑n + 1) / ( n : ℝ)) at_top (𝓝 2), by
-  { convert (tendsto.inv₀ h two_ne_zero),
-    funext,
-    rw inv_div, },
-  have h : tendsto (λ n : ℕ, 2 + 1 / (n : ℝ)) at_top (𝓝 2), by
-  { rw [← add_zero (2 : ℝ)],
-     convert tendsto.add tendsto_const_nhds _,
-     { exact (add_zero 2).symm },
-     { apply_instance },
-     exact tendsto_const_div_at_top_nhds_0_nat 1, },
-  rw ← tendsto_add_at_top_iff_nat 1 at h ⊢,
-  convert h,
-  funext,
-  rw [add_div _ (1 : ℝ), ←mul_div,
-    div_self  (cast_ne_zero.mpr (succ_ne_zero n) : ((n.succ) : ℝ) ≠ 0), mul_one],
+  conv { congr, skip, skip, rw [one_div, ←add_zero (2 : ℝ)] },
+  refine (((tendsto_const_div_at_top_nhds_0_nat 1).const_add (2 : ℝ)).inv₀
+    ((add_zero (2 : ℝ)).symm ▸ two_ne_zero)).congr' (eventually_at_top.mpr ⟨1, λ n hn, _⟩),
+  rw [add_div' (1 : ℝ) (2 : ℝ) (n : ℝ) (cast_ne_zero.mpr (one_le_iff_ne_zero.mp hn)), inv_div],
 end
 
 

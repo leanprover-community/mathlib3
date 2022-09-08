@@ -142,16 +142,6 @@ ite (l = []) ("`remove_subs" ++ ite la "!" "" ++ "` made no progress") $
   ite (l = [none]) ("Try this: remove_subs" ++ ite la "!" "") $
   ("Try this: remove_subs" ++ ite la "!" "" ++ " at" ++ clear_up l)
 
-/-
-#eval clear_up [some `h, none, some `k, none, some `df]
-#eval report [some `h, none, some `k, none, some `df] tt
-#eval report [some `h, none, some `k, none, some `df] ff
-#eval report ([] :  list (option name)) tt
-#eval report ([] :  list (option name)) ff
-#eval report ([none] :  list (option name)) tt
-#eval report ([none] :  list (option name)) ff
--/
-
 end error_formatting
 
 end remove_subs

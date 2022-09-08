@@ -65,14 +65,14 @@ meta def remove_one_sub (a b : expr) : tactic unit := do
 -- introduce names with the following meanings:
 -- `eq0 : a - b = 0`, `exis : ∃ c, a = b + c`, `var = c`, `ide : a = b + c`
 [eq0, exis, var, ide] ← ["h", "k", "x", "hx"].mmap (λ y, get_unused_name y),
--- either `a ≤ b` or `a = b + c`
+-- either `a ≤ b` or `∃ c, a = b + c`
 cases `(nat.le_cases %%a %%b) [eq0, exis],
 -- on the branch where `a ≤ b`...
   prf0 ← get_local eq0,
   rewrite_target prf0,
   to_expr ``(@nat.sub_eq_zero_iff_le %%a %%b) >>= λ x, rewrite_hyp x prf0,
 swap,
--- on the branch where `b < a`...
+-- on the branch where `∃ c, a = b + c`...
   get_local exis >>= λ x, cases x [var, ide],
   -- either substitute or rewrite
   get_local ide >>= (λ x, subst x <|> rewrite_target x),
@@ -93,8 +93,8 @@ by `0` and one where `b < a` and it tries to replace `a` by `b + c`, for some `c
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : tactic unit := focus1 $ do
-subs ← target >>= get_sub <|> fail"no ℕ-subtraction found",
-(a, b) ← list.last' subs <|> fail"no ℕ-subtraction found",
+(a, b) ← (do subs ← target >>= get_sub,
+             list.last' subs) <|> fail"no ℕ-subtraction found",
 remove_one_sub a b,
 repeat (do
   some (a, b) ← list.last' <$> (target >>= get_sub),

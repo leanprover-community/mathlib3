@@ -874,10 +874,7 @@ end alg_hom
 
 @[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
   @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
-begin
-  rw [algebra.smul_def, mul_one],
-  refl,
-end
+by rw [algebra.smul_def, mul_one, eq_rat_cast]
 
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/

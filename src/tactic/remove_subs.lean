@@ -122,6 +122,38 @@ some (a, b) ← list.last' <$> (get_sub lo ht),
 remove_one_sub lo a b ),
 when la.is_some $ any_goals' $ try `[ linarith ]
 
+section error_formatting
+variables {α : Type*} [has_to_string α]
+
+/--  `clear_up` converts a list `l` of `option α` to a string:
+* if an element of `l` is `some a`, then `clear_up` converts it to `a.to_string`,
+* if an element of `l` is `none`, then `clear_up` converts it to `⊢`.
+
+This function is useful to produce a `Try this: ...` output. -/
+def clear_up : list (option α) → string
+| []             := ""
+| (some a :: as) := " " ++ has_to_string.to_string a ++ clear_up as
+| (none :: as)   := " ⊢" ++ clear_up as
+
+/--  `report l la` returns `Try this: remove_subs at <output of clear_up on l>`,
+with an `!`-flag depending on `la` and some differences on edge-cases. -/
+def report [decidable_eq α] (l : list (option α )) (la : bool) : string :=
+ite (l = []) ("`remove_subs" ++ ite la "!" "" ++ "` made no progress") $
+  ite (l = [none]) ("Try this: remove_subs" ++ ite la "!" "") $
+  ("Try this: remove_subs" ++ ite la "!" "" ++ " at" ++ clear_up l)
+
+/-
+#eval clear_up [some `h, none, some `k, none, some `df]
+#eval report [some `h, none, some `k, none, some `df] tt
+#eval report [some `h, none, some `k, none, some `df] ff
+#eval report ([] :  list (option name)) tt
+#eval report ([] :  list (option name)) ff
+#eval report ([none] :  list (option name)) tt
+#eval report ([none] :  list (option name)) ff
+-/
+
+end error_formatting
+
 end remove_subs
 
 namespace interactive
@@ -138,28 +170,9 @@ If `remove_subs` is called with the optional flag `!`, then, after the case spli
 also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : parse location → tactic unit
 | loc.wildcard := do ctx ← local_context, fail"* not yet supported"
-| (loc.ns xs)  := do probs ← xs.mfilter $ λ x,
-                    (do cond ← succeeds (remove_subs_aux la x), pure (not cond)),
-                  let with_goal := none ∈ probs,
-                  match probs.reduce_option with
-                  | [] := when with_goal (fail format!"remove the Goal from the list of locations")
-                  | [h]  := if with_goal then
-                      (fail format!"remove the Goal and `{h}` from the list of locations") else
-                      (fail format!"remove `{h}` from the list of locations")
-                  | h  := if with_goal then
-                      (fail format!"remove the Goal and `{h}` from the list of locations") else
-                      (fail format!"remove `{h}` from the list of locations")
-                  end
---    match x with
---    | none := fail format!"try removing the goal from the list of locations"
---    | some h := fail format!"try removing hypothesis `h` from the list of locations"
---    end
---| (loc.ns xs)  := probs ← xs.mmap' $ --λ x,
---      remove_subs_aux la --x <|> do
-----    match x with
-----    | none := fail format!"try removing the goal from the list of locations"
-----    | some h := fail format!"try removing hypothesis `h` from the list of locations"
-----    end
+| (loc.ns xs)  := do
+  goods ← xs.mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la x),
+  when (goods.length < xs.length) $ fail (report goods la.is_some)
 
 end interactive
 

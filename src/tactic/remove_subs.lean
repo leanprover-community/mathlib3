@@ -9,12 +9,15 @@ import tactic.linarith
 # `remove_subs` -- a tactic for splitting `ℕ`-subtractions
 
 Subtraction between natural numbers is defined to be `0` when it should yield a negative number.
-The tactic `remove_subs` tries to remedy this by doing a case-split on each `ℕ`-subtractions,
+The tactic `remove_subs` tries to remedy this by doing a case-split on each `ℕ`-subtraction,
 depending on whether the subtraction is truncated to `0` or coincides with the usual notion of
 subtraction.
 
 See the tactic-doc for more details.
 -/
+
+namespace tactic
+namespace remove_subs
 
 lemma nat.le_cases (a b : ℕ) : a - b = 0 ∨ ∃ c, a = b + c :=
 begin
@@ -25,11 +28,9 @@ begin
     exact ⟨_, rfl⟩ },
 end
 
-namespace tactic
-
 /--  Given a list `l` of pairs of expressions, `local_constants_last l` reorders the list `l`
 so that all pairs `(a,b) ∈ l` with `a` a local constant appear last.  This is used in `get_sub`
-so that the replacement of the `ℕ`-subtractions begins with the subtractions where an old term
+so that the replacement of the `ℕ`-subtractions begins with subtractions where an old term
 can be substituted, rather than simply rewritten. -/
 meta def local_constants_last (l : list (expr × expr)) : list (expr × expr) :=
 let (csts, not_csts) := l.partition (λ e : expr × expr, e.1.is_local_constant) in not_csts ++ csts
@@ -81,7 +82,10 @@ swap,
     fail"could not rewrite: something went wrong",
 swap
 
+end remove_subs
+
 namespace interactive
+open remove_subs
 setup_tactic_parser
 
 /--  The tactic `remove_subs` looks for `ℕ`-subtractions in the goal and it recursively replaces

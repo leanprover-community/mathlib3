@@ -305,8 +305,7 @@ begin
   simp only [padic_norm.of_int, true_and],
 end
 
-lemma of_nat (m : ℕ) : padic_norm p m ≤ 1 :=
-padic_norm.of_int p (m : ℤ)
+lemma of_nat (m : ℕ) : padic_norm p m ≤ 1 := padic_norm.of_int (m : ℤ)
 
 /-- The `p`-adic norm of a natural `m` is one iff `p` doesn't divide `m`. -/
 lemma nat_eq_one_iff (m : ℕ) : padic_norm p m = 1 ↔ ¬ p ∣ m :=
@@ -318,8 +317,7 @@ by simp only [←int.coe_nat_dvd, ←int_lt_one_iff, int.cast_coe_nat]
 open_locale big_operators
 
 lemma sum_lt {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α} :
-  s.nonempty → (∀ i ∈ s, padic_norm p (F i) < t) →
-  padic_norm p (∑ i in s, F i) < t :=
+  s.nonempty → (∀ i ∈ s, padic_norm p (F i) < t) → padic_norm p (∑ i in s, F i) < t :=
 begin
   classical,
   refine s.induction_on (by { rintro ⟨-, ⟨⟩⟩, }) _,
@@ -333,8 +331,7 @@ begin
 end
 
 lemma sum_le {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α} :
-  s.nonempty → (∀ i ∈ s, padic_norm p (F i) ≤ t) →
-  padic_norm p (∑ i in s, F i) ≤ t :=
+  s.nonempty → (∀ i ∈ s, padic_norm p (F i) ≤ t) → padic_norm p (∑ i in s, F i) ≤ t :=
 begin
   classical,
   refine s.induction_on (by { rintro ⟨-, ⟨⟩⟩, }) _,
@@ -347,18 +344,16 @@ begin
   { simp * at *, },
 end
 
-lemma sum_lt' {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α}
-  (hF : ∀ i ∈ s, padic_norm p (F i) < t) (ht : 0 < t) :
-  padic_norm p (∑ i in s, F i) < t :=
+lemma sum_lt' {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α} (hF : ∀ i ∈ s, padic_norm p (F i) < t)
+  (ht : 0 < t) : padic_norm p (∑ i in s, F i) < t :=
 begin
   obtain rfl | hs := finset.eq_empty_or_nonempty s,
   { simp [ht], },
   { exact sum_lt hs hF, },
 end
 
-lemma sum_le' {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α}
-  (hF : ∀ i ∈ s, padic_norm p (F i) ≤ t) (ht : 0 ≤ t) :
-  padic_norm p (∑ i in s, F i) ≤ t :=
+lemma sum_le' {α : Type*} {F : α → ℚ} {t : ℚ} {s : finset α} (hF : ∀ i ∈ s, padic_norm p (F i) ≤ t)
+  (ht : 0 ≤ t) : padic_norm p (∑ i in s, F i) ≤ t :=
 begin
   obtain rfl | hs := finset.eq_empty_or_nonempty s,
   { simp [ht], },

@@ -52,14 +52,18 @@ noncomputable
 def taylor_coeff_within (f : ℝ → E) (k : ℕ) (s : set ℝ) (x₀ : ℝ) : E :=
 (k! : ℝ)⁻¹ • (iterated_deriv_within k f s x₀)
 
-/-- The Taylor polynomial. -/
+/-- The Taylor polynomial with derivatives inside of a set `s`.
+
+The Taylor polynomial is given by
+$$∑_{k=0}^n \\frac{(x - x₀)^k}{k!} f^{(k)}(x₀),$$
+where $f^{(k)}(x₀)$ denotes the iterated derivative in the set `s`. -/
 noncomputable
 def taylor_within (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ : ℝ) : polynomial_module ℝ E :=
 (finset.range (n+1)).sum (λ k,
   polynomial_module.comp (polynomial.X - polynomial.C x₀)
   (polynomial_module.single ℝ k (taylor_coeff_within f k s x₀)))
 
-/-- The Taylor polynomial considered as a function `ℝ → E`-/
+/-- The Taylor polynomial with derivatives inside of a set `s` considered as a function `ℝ → E`-/
 noncomputable
 def taylor_within_eval (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ x : ℝ) : E :=
 polynomial_module.eval x (taylor_within f n s x₀)

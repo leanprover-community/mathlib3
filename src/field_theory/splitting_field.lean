@@ -160,7 +160,8 @@ let ⟨x, hx⟩ := exists_root_of_splits' i hs (λ h, hf0 $ nat_degree_eq_of_deg
 λ h, by { rw ← eval_map at hx,
   cases h.subst ((mem_roots _).2 hx), exact ne_zero_of_nat_degree_gt (nat.pos_of_ne_zero hf0) }
 
-/-- Pick a root of a polynomial that splits. -/
+/-- Pick a root of a polynomial that splits. See `root_of_splits'` for polynomials over a field
+which has simpler assumptions. -/
 def root_of_splits' {f : K[X]} (hf : f.splits i) (hfd : (f.map i).degree ≠ 0) : L :=
 classical.some $ exists_root_of_splits' i hf hfd
 
@@ -194,10 +195,12 @@ end comm_ring
 variables [field K] [field L] [field F]
 variables (i : K →+* L)
 
+/-- This lemma is for polynomials over a field. -/
 lemma splits_iff (f : K[X]) :
   splits i f ↔ f = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1 :=
 by rw [splits, map_eq_zero]
 
+/-- This lemma is for polynomials over a field. -/
 lemma splits.def {i : K →+* L} {f : K[X]} (h : splits i f) :
   f = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1 :=
 (splits_iff i f).mp h
@@ -247,7 +250,8 @@ lemma roots_ne_zero_of_splits {f : K[X]} (hs : splits i f) (hf0 : nat_degree f �
   (f.map i).roots ≠ 0 :=
 roots_ne_zero_of_splits' i hs (ne_of_eq_of_ne (nat_degree_map i) hf0)
 
-/-- Pick a root of a polynomial that splits. -/
+/-- Pick a root of a polynomial that splits. This version is for polynomials over a field and has
+simpler assumptions. -/
 def root_of_splits {f : K[X]} (hf : f.splits i) (hfd : f.degree ≠ 0) : L :=
 classical.some $ exists_root_of_splits i hf hfd
 

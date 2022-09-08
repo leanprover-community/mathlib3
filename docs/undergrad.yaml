@@ -592,7 +592,7 @@ Distribution calculus:
     convergence of sequences of distributions: ''
     support of a distribution: ''
   Spaces $\mathcal{S}(\R^d)$:
-    Schwartz space of rapidly decreasing functions: ''
+    Schwartz space of rapidly decreasing functions: 'schwartz_map'
     stability by derivation: ''
     stability by multiplication by a slowly growing smooth function: ''
     gaussian functions: ''

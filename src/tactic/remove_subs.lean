@@ -44,15 +44,23 @@ subexpression of `e`.  While doing this, it also assumes that
   using the identity `a - b - c = a - (b + c)`;
 * the subtractions that get extracted are subtractions in `ℕ`.
 -/
-meta def get_sub : expr → tactic (list (expr × expr))
+meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
 | `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
-                           to_expr ``(nat.sub_sub %%a %%b %%c) >>= rewrite_target,
+                           lem ← to_expr ``(nat.sub_sub %%a %%b %%c),
+                           match lo with
+                           | none    := rewrite_target lem
+                           | some na := get_local na >>= rewrite_hyp lem >> skip
+                           end,
                            [ga, gb, gc] ← [a, b, c].mmap get_sub,
                            return $ local_constants_last ((a, bc) :: (ga ++ gb ++ gc))
 | `(%%a - %%b)       := do infer_type a >>= is_def_eq `(ℕ),
                            [ga, gb] ← [a, b].mmap get_sub,
                            return $ local_constants_last ((a, b) :: (ga ++ gb))
-| `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one %%a) >>= rewrite_target,
+| `(nat.pred %%a)    := do lem ← to_expr ``(nat.pred_eq_sub_one %%a),
+                           match lo with
+                           | none    := rewrite_target lem
+                           | some na := get_local na >>= rewrite_hyp lem >> skip
+                           end,
                            ga ← get_sub a,
                            return $ local_constants_last ((a, `(1)) :: ga)
 | (expr.app f a)     := local_constants_last <$>
@@ -65,7 +73,7 @@ It splits two cases:
    the local context;
 *  otherwise, it writes `a = b + c`, for some `c` and tries to substitute this equality.
 -/
-meta def remove_one_sub (a b : expr) : tactic unit := do
+meta def remove_one_sub (lo : option name) (a b : expr) : tactic unit := do
 -- introduce names with the following meanings:
 -- `eq0 : a - b = 0`, `exis : ∃ c, a = b + c`, `var = c`, `ide : a = b + c`
 [eq0, exis, var, ide] ← ["h", "k", "x", "hx"].mmap (λ y, get_unused_name y),
@@ -73,16 +81,25 @@ meta def remove_one_sub (a b : expr) : tactic unit := do
 cases `(nat.le_cases %%a %%b) [eq0, exis],
 -- on the branch where `a ≤ b`...
   prf0 ← get_local eq0,
-  rewrite_target prf0,
+  match lo with
+  | none    := rewrite_target prf0
+  | some na := get_local na >>= rewrite_hyp prf0 >> skip
+  end,
   to_expr ``(@nat.sub_eq_zero_iff_le %%a %%b) >>= λ x, rewrite_hyp x prf0,
 swap,
 -- on the branch where `∃ c, a = b + c`...
   get_local exis >>= λ x, cases x [var, ide],
-  -- either substitute or rewrite
-  get_local ide >>= (λ x, subst x <|> rewrite_target x),
-  vare ← get_local var,
-  to_expr ``(nat.add_sub_cancel_left %%b %%vare) >>= rewrite_target <|>
-    fail"could not rewrite: something went wrong",
+  [vare, lide] ← [var, ide].mmap get_local,
+  lem ← to_expr ``(nat.add_sub_cancel_left %%b %%vare),
+  -- either substitute or rewrite `a` and then clear the subtraction
+  match lo with
+  | none    := do subst lide <|> rewrite_target lide,
+                  rewrite_target lem <|> fail"could not rewrite: something went wrong"
+  | some na := do nah ← get_local na,
+                  subst lide <|> rewrite_hyp lide nah >> skip,
+                  nah ← get_local na,  -- again, since the previous step changed its type!
+                  rewrite_hyp lem nah >> skip <|> fail"could not rewrite: something went wrong"
+  end,
 swap
 
 end remove_subs
@@ -99,13 +116,21 @@ by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b 
 
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/
-meta def remove_subs (la : parse (tk "!" )?) : tactic unit := focus1 $ do
-(a, b) ← (do subs ← target >>= get_sub,
+meta def remove_subs (la : parse (tk "!" )?) (lo : option name) : tactic unit := focus1 $ do
+ht ← match lo with
+  | none    := target
+  | some na := get_local na >>= infer_type
+end,
+(a, b) ← (do subs ← get_sub lo ht,
              list.last' subs) <|> fail"no ℕ-subtraction found",
-remove_one_sub a b,
+remove_one_sub lo a b,
 repeat (do
-  some (a, b) ← list.last' <$> (target >>= get_sub),
-  remove_one_sub a b ),
+ht ← match lo with
+  | none    := target
+  | some na := get_local na >>= infer_type
+end,
+  some (a, b) ← list.last' <$> (get_sub lo ht),
+  remove_one_sub lo a b ),
 when la.is_some $ any_goals' $ try `[ linarith ]
 
 end interactive

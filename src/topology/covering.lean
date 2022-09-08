@@ -64,7 +64,7 @@ function.surjective f ∧ ∀ x, is_evenly_covered f x (f ⁻¹' {x})
 
 namespace is_covering_map
 
-lemma mk (F : X → Type*) [hF₀ : Π x, nonempty (F x)] [Π x, topological_space (F x)]
+lemma mk (F : X → Type*) [Π x, topological_space (F x)] [hF₀ : Π x, nonempty (F x)]
   [hF : Π x, discrete_topology (F x)] (e : Π x, trivialization (F x) f)
   (h : ∀ x, x ∈ (e x).base_set) : is_covering_map f :=
 ⟨λ x, ⟨(e x).symm ⟨x, (hF₀ x).some⟩, (e x).proj_symm_apply' (h x)⟩,
@@ -106,7 +106,7 @@ hf.is_open_map.to_quotient_map hf.continuous hf.1
 
 end is_covering_map
 
-lemma is_topological_fiber_bundle.is_covering_map {B F Z : Type*} [topological_space B]
-  [topological_space F] [topological_space Z] [nonempty F] [discrete_topology F] {f : Z → B}
+lemma is_topological_fiber_bundle.is_covering_map {B Z F : Type*} [topological_space B]
+  [topological_space Z] [topological_space F] [nonempty F] [discrete_topology F] {f : Z → B}
   (hf : is_topological_fiber_bundle F f) : is_covering_map f :=
 is_covering_map.mk f (λ x, F) (λ x, classical.some (hf x)) (λ x, classical.some_spec (hf x))

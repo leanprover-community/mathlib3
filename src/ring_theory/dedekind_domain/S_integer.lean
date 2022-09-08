@@ -25,7 +25,7 @@ can be specialised to the case of a number field or a function field separately.
 
 ## Main statements
 
- * `set.units_integer_equiv_unit`: units of `S`-integers are `S`-units.
+ * `set.unit_equiv_units_integer`: `S`-units are units of `S`-integers.
  * TODO: proof that `S`-units is the kernel of a map to a product.
  * TODO: proof that `∅`-integers is the usual ring of integers.
  * TODO: finite generation of `S`-units and Dirichlet's `S`-unit theorem.
@@ -58,16 +58,17 @@ variables {R : Type u} [comm_ring R] [is_domain R] [is_dedekind_domain R]
 
 /-- The subring of `S`-integers of `K`. -/
 @[simps] def integer : subring K :=
-{ carrier   := {x : K | ∀ v ∉ S, (v : height_one_spectrum R).valuation x ≤ 1},
-  mul_mem'  := λ _ _ hx hy v hv, by simp only [map_mul, mul_le_one₀ (hx v hv) (hy v hv)],
-  one_mem'  := λ _ _, by simp only [map_one, le_refl],
-  add_mem'  := λ _ _ hx hy v hv, v.valuation.map_add_le (hx v hv) (hy v hv),
-  zero_mem' := λ _ _, by simp only [map_zero, zero_le_one],
-  neg_mem'  := λ _ hx v hv, by simp only [valuation.map_neg, hx v hv] }
+(⨅ v ∉ S, (v : height_one_spectrum R).valuation.valuation_subring.to_subring).copy
+  {x : K | ∀ v ∉ S, (v : height_one_spectrum R).valuation x ≤ 1} $ set.ext $ λ _,
+  by simpa only [set_like.mem_coe, subring.mem_infi]
 
 lemma integer_eq :
   S.integer K = ⨅ v ∉ S, (v : height_one_spectrum R).valuation.valuation_subring.to_subring :=
-subring.ext $ λ _, by simpa only [subring.mem_infi]
+subring.copy_eq _ _ _
+
+lemma integer_valuation_le_one (x : S.integer K) {v : height_one_spectrum R} (hv : v ∉ S) :
+  v.valuation (x : K) ≤ 1 :=
+x.property v hv
 
 /-- The subring of `S`-integers of `K` is an algebra over `R`. -/
 instance : algebra R (S.integer K) :=
@@ -84,29 +85,27 @@ instance : algebra R (S.integer K) :=
 
 /-- The subgroup of `S`-units of `Kˣ`. -/
 @[simps] def unit : subgroup Kˣ :=
-{ carrier  := {x : Kˣ | ∀ v ∉ S, (v : height_one_spectrum R).valuation (x : K) = 1},
-  mul_mem' := λ _ _ hx hy v hv, by rw [units.coe_mul, map_mul, hx v hv, hy v hv, one_mul],
-  one_mem' := λ _ _, map_one _,
-  inv_mem' := λ _ hx v hv, by rw [map_units_inv, hx v hv, inv_one] }
+(⨅ v ∉ S, (v : height_one_spectrum R).valuation.valuation_subring.unit_group).copy
+  {x : Kˣ | ∀ v ∉ S, (v : height_one_spectrum R).valuation (x : K) = 1} $ set.ext $ λ _,
+  by simpa only [set_like.mem_coe, subgroup.mem_infi, valuation.mem_unit_group_iff]
 
 lemma unit_eq :
   S.unit K = ⨅ v ∉ S, (v : height_one_spectrum R).valuation.valuation_subring.unit_group :=
-begin
-  ext,
-  simp only [subgroup.mem_infi],
-  exact forall₂_congr (λ _ _, (valuation.is_equiv_iff_val_eq_one _ _).mp $
-                        valuation.is_equiv_valuation_valuation_subring _)
-end
+subgroup.copy_eq _ _ _
 
-/-- The group of units of the ring of `S`-integers is the group of `S`-units. -/
-@[simps] def units_integer_equiv_unit : (S.integer K)ˣ ≃* S.unit K :=
-{ to_fun    := λ x, ⟨units.mk0 x $ λ hx, x.ne_zero ((subring.coe_eq_zero_iff _).mp hx),
-  λ v hv, eq_one_of_one_le_mul_left (x.val.property v hv) (x.inv.property v hv) $
-    by { rw [← map_mul, ← v.valuation.map_one], congr' 1, exact subtype.mk_eq_mk.mp x.val_inv }⟩,
-  inv_fun   := λ x, ⟨⟨x.val, λ v hv, by { rw [x.property v hv], exact le_rfl }⟩,
+lemma unit_valuation_eq_one (x : S.unit K) {v : height_one_spectrum R} (hv : v ∉ S) :
+  v.valuation (x : K) = 1 :=
+x.property v hv
+
+/-- The group of `S`-units is the group of units of the ring of `S`-integers. -/
+@[simps] def unit_equiv_units_integer : S.unit K ≃* (S.integer K)ˣ :=
+{ to_fun    := λ x, ⟨⟨x.val, λ v hv, by { rw [x.property v hv], exact le_rfl }⟩,
     ⟨x.val.inv, λ v hv, by { rw [← v.valuation.map_one, ← congr_arg v.valuation x.val.val_inv,
       map_mul, units.val_eq_coe, x.property v hv, one_mul], exact le_rfl }⟩,
     subtype.mk_eq_mk.mpr x.val.val_inv, subtype.mk_eq_mk.mpr x.val.inv_val⟩,
+  inv_fun   := λ x, ⟨units.mk0 x $ λ hx, x.ne_zero ((subring.coe_eq_zero_iff _).mp hx),
+  λ v hv, eq_one_of_one_le_mul_left (x.val.property v hv) (x.inv.property v hv) $ eq.ge $
+    by { rw [← map_mul, ← v.valuation.map_one], congr' 1, exact subtype.mk_eq_mk.mp x.val_inv }⟩,
   left_inv  := λ _, by { ext, refl },
   right_inv := λ _, by { ext, refl },
   map_mul'  := λ _ _, by { ext, refl } }

@@ -13,8 +13,9 @@ import data.polynomial.module
 /-!
 # Taylor's theorem
 
-This file defines the Taylor polynomial of a real function `f : ℝ → ℝ`
-and proves Taylor's theorem, which states that if `f` is sufficiently smooth
+This file defines the Taylor polynomial of a real function `f : ℝ → E`,
+where `E` is a normed vector space over `ℝ` and proves Taylor's theorem,
+which states that if `f` is sufficiently smooth, then
 `f` can be approximated by the Taylor polynomial up to an explicit error term.
 
 ## Main definitions
@@ -49,7 +50,7 @@ variables [normed_add_comm_group E] [normed_space ℝ E]
 /-- The `k`th coefficient of the Taylor polynomial. -/
 noncomputable
 def taylor_coeff_within (f : ℝ → E) (k : ℕ) (s : set ℝ) (x₀ : ℝ) : E :=
-(k.factorial : ℝ)⁻¹ • (iterated_deriv_within k f s x₀)
+(k! : ℝ)⁻¹ • (iterated_deriv_within k f s x₀)
 
 /-- The Taylor polynomial. -/
 noncomputable
@@ -74,7 +75,7 @@ end
 
 @[simp] lemma taylor_within_eval_succ {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
   taylor_within_eval f (n+1) s x₀ x = taylor_within_eval f n s x₀ x
-  + (((↑n + 1) * ↑(n.factorial))⁻¹ * (x - x₀)^(n+1)) • iterated_deriv_within (n + 1) f s x₀ :=
+  + (((n + 1 : ℝ) * n!)⁻¹ * (x - x₀)^(n+1)) • iterated_deriv_within (n + 1) f s x₀ :=
 begin
   simp_rw [taylor_within_eval, taylor_within_succ, linear_map.map_add, polynomial_module.comp_eval],
   congr,
@@ -106,7 +107,7 @@ end
 
 lemma taylor_within_apply {f : ℝ → E} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
   taylor_within_eval f n s x₀ x = ∑ k in finset.range (n+1),
-    ((k.factorial : ℝ)⁻¹ * (x - x₀)^k) • iterated_deriv_within k f s x₀ :=
+    ((k! : ℝ)⁻¹ * (x - x₀)^k) • iterated_deriv_within k f s x₀ :=
 begin
   induction n with k hk,
   { simp },
@@ -147,9 +148,9 @@ lemma taylor_coeff_within_has_deriv_within_at {f : ℝ → E} {x y : ℝ} {k : �
   (hs' : s' ∈ 𝓝[s] y) (hy : y ∈ s') (h : s' ⊆ s)
   (hf' : differentiable_on ℝ (iterated_deriv_within (k+1) f s) s') :
   has_deriv_within_at (λ t,
-    (((k+1 : ℝ) * k.factorial)⁻¹ * (x - t)^(k+1)) • iterated_deriv_within (k+1) f s t)
-    ((((k+1 : ℝ) * k.factorial)⁻¹ * (x - y)^(k+1)) • iterated_deriv_within (k+2) f s y -
-    ((k.factorial : ℝ)⁻¹ * (x - y)^k) • iterated_deriv_within (k+1) f s y) s' y :=
+    (((k+1 : ℝ) * k!)⁻¹ * (x - t)^(k+1)) • iterated_deriv_within (k+1) f s t)
+    ((((k+1 : ℝ) * k!)⁻¹ * (x - y)^(k+1)) • iterated_deriv_within (k+2) f s y -
+    ((k! : ℝ)⁻¹ * (x - y)^k) • iterated_deriv_within (k+1) f s y) s' y :=
 begin
   have hf'' : has_deriv_within_at (λ t, iterated_deriv_within (k+1) f s t)
     (iterated_deriv_within (k+2) f s y) s' y :=
@@ -159,12 +160,12 @@ begin
     refine (deriv_within_subset h hs'_unique _).symm,
     exact (hf' y hy).antimono h hs',
   end,
-  have : has_deriv_within_at (λ t, (((k+1 : ℝ) * k.factorial)⁻¹ * (x - t)^(k+1)))
-    (-((k.factorial : ℝ)⁻¹ * (x - y)^k)) s' y :=
+  have : has_deriv_within_at (λ t, (((k+1 : ℝ) * k!)⁻¹ * (x - t)^(k+1)))
+    (-((k! : ℝ)⁻¹ * (x - y)^k)) s' y :=
   begin
     -- Commuting the factors:
-    have : (-((k.factorial : ℝ)⁻¹ * (x - y)^k)) =
-      (((k+1 : ℝ) * k.factorial)⁻¹ * (-(k+1) *(x - y)^k)) :=
+    have : (-((k! : ℝ)⁻¹ * (x - y)^k)) =
+      (((k+1 : ℝ) * k!)⁻¹ * (-(k+1) *(x - y)^k)) :=
     by { field_simp [nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k], ring_nf },
     rw this,
     exact (monomial_has_deriv_aux y x).has_deriv_within_at.const_mul _,
@@ -185,7 +186,7 @@ lemma taylor_within_eval_has_deriv_within_at {f : ℝ → E} {x y : ℝ} {n : �
   (hf : cont_diff_on ℝ n f s)
   (hf' : differentiable_on ℝ (iterated_deriv_within n f s) s') :
   has_deriv_within_at (λ t, taylor_within_eval f n s t x)
-    (((n.factorial : ℝ)⁻¹ * (x - y)^n) • (iterated_deriv_within (n+1) f s y)) s' y :=
+    (((n! : ℝ)⁻¹ * (x - y)^n) • (iterated_deriv_within (n+1) f s y)) s' y :=
 begin
   induction n with k hk,
   { simp only [taylor_within_zero_eval, nat.factorial_zero, nat.cast_one, inv_one, pow_zero,
@@ -217,7 +218,7 @@ lemma taylor_within_eval_has_deriv_at_Ioo {f : ℝ → E} {a b t : ℝ} (x : ℝ
   (hf : cont_diff_on ℝ n f (Icc a b))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc a b)) (Ioo a b)) :
   has_deriv_at (λ y, taylor_within_eval f n (Icc a b) y x)
-    (((n.factorial : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t)) t :=
+    (((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t)) t :=
 begin
   have h_nhds := is_open.mem_nhds is_open_Ioo ht,
   exact (taylor_within_eval_has_deriv_within_at (unique_diff_within_at_Ioo ht)
@@ -232,7 +233,7 @@ lemma taylor_within_eval_has_deriv_within_at_Icc {f : ℝ → E} {a b t : ℝ} (
   (hx : a < b) (ht : t ∈ Icc a b) (hf : cont_diff_on ℝ n f (Icc a b))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc a b)) (Icc a b)) :
   has_deriv_within_at (λ y, taylor_within_eval f n (Icc a b) y x)
-    (((n.factorial : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t))
+    (((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc a b) t))
     (Icc a b) t :=
 taylor_within_eval_has_deriv_within_at (unique_diff_on_Icc hx t ht) (unique_diff_on_Icc hx)
   self_mem_nhds_within ht rfl.subset hf hf'
@@ -247,13 +248,13 @@ lemma taylor_mean_remainder {f : ℝ → ℝ} {g g' : ℝ → ℝ} {x x₀ : ℝ
   (gdiff : ∀ (x_1 : ℝ), x_1 ∈ Ioo x₀ x → has_deriv_at g (g' x_1) x_1)
   (g'_ne : ∀ (x_1 : ℝ), x_1 ∈ Ioo x₀ x → g' x_1 ≠ 0) :
   ∃ (x' : ℝ) (hx' : x' ∈ Ioo x₀ x), f x - taylor_within_eval f n (Icc x₀ x) x₀ x =
-  ((x - x')^n /n.factorial * (g x - g x₀) / g' x') •
+  ((x - x')^n /n! * (g x - g x₀) / g' x') •
     (iterated_deriv_within (n+1) f (Icc x₀ x) x')
   :=
 begin
   -- We apply the mean value theorem
   rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_within_eval f n (Icc x₀ x) t x)
-    (λ t, ((n.factorial : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc x₀ x) t)) hx
+    (λ t, ((n! : ℝ)⁻¹ * (x - t)^n) • (iterated_deriv_within (n+1) f (Icc x₀ x) t)) hx
     (taylor_within_eval_continuous_on (unique_diff_on_Icc hx) hf)
     (λ _ hy, taylor_within_eval_has_deriv_at_Ioo x hx hy hf hf')
     g g' gcont gdiff with ⟨y, hy, h⟩,
@@ -271,7 +272,7 @@ lemma taylor_mean_remainder_lagrange {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} 
   (hf : cont_diff_on ℝ n f (Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc x₀ x)) (Ioo x₀ x)) :
   ∃ (x' : ℝ) (hx' : x' ∈ Ioo x₀ x), f x - taylor_within_eval f n (Icc x₀ x) x₀ x =
-  (iterated_deriv_within (n+1) f (Icc x₀ x) x') * (x - x₀)^(n+1) /(n+1).factorial :=
+  (iterated_deriv_within (n+1) f (Icc x₀ x) x') * (x - x₀)^(n+1) /(n+1)! :=
 begin
   have gcont : continuous_on (λ (t : ℝ), (x - t) ^ (n + 1)) (Icc x₀ x) :=
   by { refine continuous.continuous_on _, continuity },
@@ -300,7 +301,7 @@ lemma taylor_mean_remainder_cauchy {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (h
   (hf : cont_diff_on ℝ n f (Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc x₀ x)) (Ioo x₀ x)) :
   ∃ (x' : ℝ) (hx' : x' ∈ Ioo x₀ x), f x - taylor_within_eval f n (Icc x₀ x) x₀ x =
-  (iterated_deriv_within (n+1) f (Icc x₀ x) x') * (x - x')^n /n.factorial * (x - x₀) :=
+  (iterated_deriv_within (n+1) f (Icc x₀ x) x') * (x - x')^n /n! * (x - x₀) :=
 begin
   have gcont : continuous_on id (Icc x₀ x) := continuous.continuous_on (by continuity),
   have gdiff : (∀ (x_1 : ℝ), x_1 ∈ Ioo x₀ x → has_deriv_at id
@@ -317,14 +318,14 @@ end
 lemma taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
   (h : a < b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
   ∃ C : ℝ, ∀ (x : ℝ) (hx : x ∈ Icc a b),
-  ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (b - a)^(n+1) / n.factorial :=
+  ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (b - a)^(n+1) / n! :=
 begin
   -- The nth iterated derivative is differentiable
   have hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc a b)) (Icc a b) :=
   hf.differentiable_on_iterated_deriv_within (with_top.coe_lt_coe.mpr n.lt_succ_self)
     (unique_diff_on_Icc h),
   -- natural numbers are non-negative
-  have fac_nonneg : 0 ≤ (n.factorial : ℝ) := n.factorial.cast_nonneg,
+  have fac_nonneg : 0 ≤ (n! : ℝ) := n!.cast_nonneg,
 
   -- We estimate by the supremum of the norm of the iterated derivative
   let g : ℝ → ℝ := λ y, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥,
@@ -344,8 +345,8 @@ begin
   end,
   -- We can uniformly bound the derivative of the Taylor polynomial
   have h' : ∀ (y : ℝ) (hy : y ∈ Ico a b),
-    ∥((n.factorial : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y∥
-    ≤ (n.factorial : ℝ)⁻¹ * |(b - a)|^n * has_Sup.Sup (g '' Icc a b) :=
+    ∥((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y∥
+    ≤ (n! : ℝ)⁻¹ * |(b - a)|^n * has_Sup.Sup (g '' Icc a b) :=
   begin
     intros y hy,
     rw [norm_smul, real.norm_eq_abs],

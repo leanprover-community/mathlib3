@@ -244,7 +244,7 @@ end
 
 lemma exists_root_of_splits {f : K[X]} (hs : splits i f) (hf0 : degree f ≠ 0) :
   ∃ x, eval₂ i x f = 0 :=
-exists_root_of_splits' i hs (ne_of_eq_of_ne (degree_map f i) hf0)
+exists_root_of_splits' i hs ((f.degree_map i).symm ▸ hf0)
 
 lemma roots_ne_zero_of_splits {f : K[X]} (hs : splits i f) (hf0 : nat_degree f ≠ 0) :
   (f.map i).roots ≠ 0 :=
@@ -253,11 +253,15 @@ roots_ne_zero_of_splits' i hs (ne_of_eq_of_ne (nat_degree_map i) hf0)
 /-- Pick a root of a polynomial that splits. This version is for polynomials over a field and has
 simpler assumptions. -/
 def root_of_splits {f : K[X]} (hf : f.splits i) (hfd : f.degree ≠ 0) : L :=
-classical.some $ exists_root_of_splits i hf hfd
+root_of_splits' i hf ((f.degree_map i).symm ▸ hfd)
+
+/-- `root_of_splits'` is definitionally equal to `root_of_splits`. -/
+lemma root_of_splits'_eq_root_of_splits {f : K[X]} (hf : f.splits i) (hfd) :
+  root_of_splits' i hf hfd = root_of_splits i hf (f.degree_map i ▸ hfd) := rfl
 
 theorem map_root_of_splits {f : K[X]} (hf : f.splits i) (hfd) :
   f.eval₂ i (root_of_splits i hf hfd) = 0 :=
-classical.some_spec $ exists_root_of_splits i hf hfd
+map_root_of_splits' i hf (ne_of_eq_of_ne (degree_map f i) hfd)
 
 lemma nat_degree_eq_card_roots {p : K[X]} {i : K →+* L}
   (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=

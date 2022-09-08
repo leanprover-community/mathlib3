@@ -1473,7 +1473,7 @@ open uniform_space function
 variables {δ' : Type*} [uniform_space α] [uniform_space β] [uniform_space γ] [uniform_space δ]
   [uniform_space δ']
 
-local notation f `∘₂` g := function.bicompr f g
+local notation f ` ∘₂ ` g := function.bicompr f g
 
 /-- Uniform continuity for functions of two variables. -/
 def uniform_continuous₂ (f : α → β → γ) := uniform_continuous (uncurry f)

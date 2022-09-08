@@ -389,6 +389,13 @@ lemma gauge_seminorm_lt_one_of_open (hs : is_open s) {x : E} (hx : x ∈ s) :
   gauge_seminorm hs₀ hs₁ hs₂ x < 1 :=
 gauge_lt_one_of_mem_of_open hs₁ hs₂.zero_mem hs hx
 
+lemma gauge_seminorm_ball_one (hs : is_open s) :
+  (gauge_seminorm hs₀ hs₁ hs₂).ball 0 1 = s :=
+begin
+  rw seminorm.ball_zero_eq,
+  exact gauge_lt_one_eq_self_of_open hs₁ hs₂.zero_mem hs
+end
+
 end is_R_or_C
 
 /-- Any seminorm arises as the gauge of its unit ball. -/

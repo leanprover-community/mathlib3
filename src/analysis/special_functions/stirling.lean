@@ -279,9 +279,7 @@ begin
   refine tendsto.congr' (eventually_at_top.mpr ⟨1, λ n hn,
     expand_in_limit n (one_le_iff_ne_zero.mp hn)⟩) _,
   have h : a ^ 2 / 2 = (a ^ 4 / a ^ 2) * (1 / 2),
-  { rw mul_one_div,
-    congr,
-    rw [←mul_one_div, one_div, ←pow_sub_of_lt a],
+  { rw [mul_one_div, ←mul_one_div (a ^ 4) (a ^ 2), one_div, ←pow_sub_of_lt a],
     norm_num },
   rw h,
   exact ((ha.pow 4).div ((ha.comp (tendsto_id.const_mul_at_top' two_pos)).pow 2)

@@ -74,7 +74,7 @@ end primrec
 
 end tree
 
-variables {α β γ δ ε ζ η : Type*}
+variables {α β γ δ ε ζ η : Type}
 variables [tencodable α] [tencodable β]
 
 /-- A primitive recursive function in one argument -/
@@ -84,6 +84,12 @@ def primrec1 (f : α → β) : Prop :=
 /-- Primitive recursive functions in many arguments -/
 def primrec [has_uncurry γ α β] (f : γ) : Prop :=
 primrec1 ↿f
+
+/-- Primitive recursive predicates in many arguments.
+  We use classical.dec here, because typeclass search
+  won't find decidable (↿f x), even if `f` is `decidable_rel`, etc. -/
+def primrec_pred [has_uncurry γ α Prop] (f : γ) : Prop :=
+primrec1 (λ x : α, @to_bool (↿f x) (classical.dec _))
 
 @[simp] lemma primrec1_iff_primrec {f : α → β} : primrec1 f ↔ primrec f := iff.rfl
 
@@ -124,7 +130,7 @@ end primcodable
 variables [tencodable γ] [tencodable δ]
   [tencodable ε] [tencodable ζ] [tencodable η]
 
-theorem comp {f : β → γ} {g : α → β} :
+theorem comp {f : α → β} {g : γ → α} :
   primrec f → primrec g → primrec (λ x, f (g x))
 | ⟨f', pf', hf'⟩ ⟨g', pg', hg'⟩ :=
 ⟨_, pf'.comp pg', λ x, by simp [hf', hg', has_uncurry.uncurry]⟩

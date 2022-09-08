@@ -75,17 +75,9 @@ section
 
 variables {Y : Type v} [topological_space Y] {x y : X} {g : Y → path x y}
 
-/-@[simp, continuity]
-lemma continuous_to_path_of_to_C (h : continuous (↑g : Y → C(I,X))) : continuous g :=
-continuous_induced_rng.mpr h-/
-
 lemma continuous_uncurry_iff : continuous ↿g ↔ continuous g :=
 iff.symm $ continuous_induced_rng.trans
   ⟨λ h, continuous_uncurry_of_continuous ⟨_, h⟩, continuous_of_continuous_uncurry ↑g⟩
-
-/-@[simp, continuity]
-lemma continuous_to_path_of_continuous_uncurry
-  (h : continuous (λ p : Y × I, g p.1 p.2)) : continuous g := continuous_uncurry_iff.mp h-/
 
 end
 

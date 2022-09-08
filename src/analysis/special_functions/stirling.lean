@@ -288,18 +288,6 @@ begin
     div_self  (cast_ne_zero.mpr (succ_ne_zero n) : ((n.succ) : ℝ) ≠ 0), mul_one],
 end
 
-/--
-Suppose the sequence `stirling_seq` (defined above) has a nonzero limit `a ≠ 0`.
-Then the sequence `1/(log_stirling_seq n)^2` has the limit `1/a^2`.
--/
-lemma stirling_seq_aux3 (a : ℝ) (hane : a ≠ 0)
-  (ha : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a)) :
-  tendsto (λ (n : ℕ), (1 / (stirling_seq n)) ^ 2) at_top (𝓝 ((1 / a) ^ 2)) :=
-begin
- convert tendsto.pow (tendsto.congr (λ n, (one_div (stirling_seq n)).symm)
-   (tendsto.inv₀ ha hane)) 2,
- rw [one_div],
-end
 
 /-- For any `n ≠ 0`, we have the identity
 `(stirling_seq n)^4/(stirling_seq (2*n))^2 * (c n) = w n`. -/

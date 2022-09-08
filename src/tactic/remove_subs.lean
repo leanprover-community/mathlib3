@@ -16,7 +16,7 @@ subtraction.
 See the tactic-doc for more details.
 
 ##  Todo
-*  allow `remove_subs` to work `at` some hypotheses?
+*  make `remove_subs` to work `at *`?
 -/
 
 namespace tactic
@@ -44,28 +44,32 @@ subexpression of `e`.  While doing this, it also assumes that
   using the identity `a - b - c = a - (b + c)`;
 * the subtractions that get extracted are subtractions in `ℕ`.
 -/
-meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
-| `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
+meta def get_sub : option expr → expr → tactic (list (expr × expr))
+| lo `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),trace bc,
                            lem ← to_expr ``(nat.sub_sub %%a %%b %%c),
-                           match lo with
-                           | none    := rewrite_target lem
-                           | some na := get_local na >>= rewrite_hyp lem >> skip
+                           na ← match lo with
+                           | none    := rewrite_target lem >> pure none
+                           | some na := do rewrite_hyp lem na, (na,  _, _) ← rewrite_core lem na,
+                              pure $ some na
+                           --skip >> (infer_type na >>= trace)
                            end,
-                           [ga, gb, gc] ← [a, b, c].mmap get_sub,
+                           [ga, gb, gc] ← [a, b, c].mmap $ get_sub na,
                            return $ local_constants_last ((a, bc) :: (ga ++ gb ++ gc))
-| `(%%a - %%b)       := do infer_type a >>= is_def_eq `(ℕ),
-                           [ga, gb] ← [a, b].mmap get_sub,
+| lo `(%%a - %%b)       := do infer_type a >>= is_def_eq `(ℕ),
+                           [ga, gb] ← [a, b].mmap $ get_sub lo,
                            return $ local_constants_last ((a, b) :: (ga ++ gb))
-| `(nat.pred %%a)    := do lem ← to_expr ``(nat.pred_eq_sub_one %%a),
-                           match lo with
-                           | none    := rewrite_target lem
-                           | some na := get_local na >>= rewrite_hyp lem >> skip
+| lo `(nat.pred %%a)    := do lem ← to_expr ``(nat.pred_eq_sub_one %%a),
+                           na ← match lo with
+                           | none    := rewrite_target lem >> pure none
+                           | some na := do rewrite_hyp lem na, (na, _, _) ← rewrite_core lem na,
+                              pure $ some na
+                           -- >> skip
                            end,
-                           ga ← get_sub a,
+                           ga ← get_sub na a,
                            return $ local_constants_last ((a, `(1)) :: ga)
-| (expr.app f a)     := local_constants_last <$>
-                          ((++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure []))
-| _                  := pure []
+| lo (expr.app f a)     := local_constants_last <$>
+                          ((++) <$> (get_sub lo f <|> pure []) <*> (get_sub lo a <|> pure []))
+| _ _                  := pure []
 
 /--  `remove_one_sub a b` assumes that the expression `a - b` occurs in the target.
 It splits two cases:
@@ -73,7 +77,7 @@ It splits two cases:
    the local context;
 *  otherwise, it writes `a = b + c`, for some `c` and tries to substitute this equality.
 -/
-meta def remove_one_sub (lo : option name) (a b : expr) : tactic unit := do
+meta def remove_one_sub (lo : option expr) (a b : expr) : tactic unit := do
 -- introduce names with the following meanings:
 -- `eq0 : a - b = 0`, `exis : ∃ c, a = b + c`, `var = c`, `ide : a = b + c`
 [eq0, exis, var, ide] ← ["h", "k", "x", "hx"].mmap (λ y, get_unused_name y),
@@ -83,7 +87,7 @@ cases `(nat.le_cases %%a %%b) [eq0, exis],
   prf0 ← get_local eq0,
   match lo with
   | none    := rewrite_target prf0
-  | some na := get_local na >>= rewrite_hyp prf0 >> skip
+  | some na := rewrite_hyp prf0 na >> skip
   end,
   to_expr ``(@nat.sub_eq_zero_iff_le %%a %%b) >>= λ x, rewrite_hyp x prf0,
 swap,
@@ -95,9 +99,11 @@ swap,
   match lo with
   | none    := do subst lide <|> rewrite_target lide,
                   rewrite_target lem <|> fail"could not rewrite: something went wrong"
-  | some na := do nah ← get_local na,
-                  subst lide <|> rewrite_hyp lide nah >> skip,
-                  nah ← get_local na,  -- again, since the previous step changed its type!
+  | some na := do nah ← (do subst lide,
+                            (nah, _, _) ← rewrite_core lide na,
+                            return nah) <|>
+                          rewrite_hyp lide na,
+--                  nah ← get_local na,  -- again, since the previous step changed its type!
                   rewrite_hyp lem nah >> skip <|> fail"could not rewrite: something went wrong"
   end,
 swap
@@ -105,18 +111,18 @@ swap
 setup_tactic_parser
 /--  `remove_subs_aux` acts like `remove_subs`, except that it takes a single location as input.
 See the doc-string of `remove_subs` for more details. -/
-meta def remove_subs_aux (la : parse (tk "!" )?) (lo : option name) : tactic unit := focus1 $ do
+meta def remove_subs_aux (la : parse (tk "!" )?) (lo : option expr) : tactic unit := focus1 $ do
 ht ← match lo with
      | none    := target
-     | some na := get_local na >>= infer_type
-end,
-(a, b) ← (do subs ← get_sub lo ht,
-             list.last' subs) <|> fail"no ℕ-subtraction found",
+     | some na := infer_type na
+end,trace ht,
+(a, b) ← (do subs ← get_sub lo ht,trace subs,
+             list.last' subs) <|> fail"no ℕ-subtraction found",trace format!"{[a, b]}",
 remove_one_sub lo a b,
 repeat (do
 ht ← match lo with
      | none    := target
-     | some na := get_local na >>= infer_type
+     | some na := infer_type na
 end,
 some (a, b) ← list.last' <$> (get_sub lo ht),
 remove_one_sub lo a b ),
@@ -159,13 +165,22 @@ by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b 
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : parse location → tactic unit
-| loc.wildcard := do ctx ← local_context, fail"`remove_subs at *` is not yet supported"
+| loc.wildcard := do
+  --ctx ← local_context,
+  --trace $ ctx.map expr.local_uniq_name,
+  --(ctx.map expr.local_uniq_name).mmap $  λ x, remove_subs_aux la x,
+  fail"`remove_subs at *` is not yet supported"
 | (loc.ns xs)  := do
-  goods ← xs.mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la x),
+--  goods ← xs.mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la x),
+  goods ← xs.mfilter $ λ x, option.is_some <$> try_core
+    (do xl : option expr ← match x with
+            | none := pure none
+            | some na := trace na >> some <$> get_local na end,trace xl,
+       remove_subs_aux la xl),
   when (goods.length < xs.length) $ fail (report goods la.is_some)
 
 end interactive
-
+#check expr.const_name
 end tactic
 
 add_tactic_doc

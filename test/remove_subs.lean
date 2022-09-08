@@ -60,3 +60,9 @@ begin
   success_if_fail_with_msg {remove_subs! at ⊢ a} "Try this: remove_subs!",
   remove_subs!,
 end
+
+example {a b : ℕ} : a - b  = a - b :=
+begin
+  success_if_fail_with_msg {remove_subs at *} "`remove_subs at *` is not yet supported",
+  refl,
+end

@@ -28,20 +28,23 @@ end
 namespace tactic
 
 /--  `get_sub e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
-subexpression of `e`.  While doing this, it also assumes that `e` was the target and rewrites the
-target to reduce the number of nat-subtractions, using the identity `a - b - c = a - (b + c)`. -/
+subexpression of `e`.  While doing this, it also assumes that
+* the initial input `e` was the target and rewrites it to reduce the number of nat-subtractions,
+  using the identity `a - b - c = a - (b + c)`;
+* the subtractions that get extracted are subtractions in `ℕ`.
+-/
 meta def get_sub : expr → tactic (list (expr × expr))
 | `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
                            to_expr ``(nat.sub_sub %%a %%b %%c) >>= rewrite_target,
                            [ga, gb, gc] ← [a, b, c].mmap get_sub,
                            return ((a, bc) :: (ga ++ gb ++ gc))
-| `(%%a - %%b)       := do [ga, gb] ← [a, b].mmap get_sub,
+| `(%%a - %%b)       := do infer_type a >>= is_def_eq `(ℕ),
+                           [ga, gb] ← [a, b].mmap get_sub,
                            return ((a, b) :: (ga ++ gb))
-| `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one) >>= rewrite_target,
+| `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one %%a) >>= rewrite_target,
                            ga ← get_sub a,
                            return ((a, `(1)) :: ga)
-| (expr.app f a)     := do [gf, ga] ← [f, a].mmap get_sub,
-                           return (gf ++ ga)
+| (expr.app f a)     := (++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure [])
 | _                  := pure []
 
 /--  `remove_one_sub a b` assumes that the expression `a - b` occurs in the target.
@@ -80,10 +83,13 @@ by `0` and one where `b < a` and it tries to replace `a` by `b + c`, for some `c
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : tactic unit := focus1 $ do
+subs ← target >>= get_sub <|> fail"no ℕ-subtraction found",
+(a, b) ← list.last' subs <|> fail"no ℕ-subtraction found",
+remove_one_sub a b,
 repeat (do
   some (a, b) ← list.last' <$> (target >>= get_sub),
   remove_one_sub a b ),
-if la.is_some then (any_goals' $ try $ `[ linarith ]) else skip
+when la.is_some $ any_goals' $ try `[ linarith ]
 
 end interactive
 

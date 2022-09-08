@@ -17,7 +17,7 @@ if it is the smallest field extension of `K` such that `f` splits.
 
 ## Main definitions
 
-* `polynomial.splits i f`: A predicate on a homomorphism `i : K → L` from a commutative ring to a
+* `polynomial.splits i f`: A predicate on a homomorphism `i : K →+* L` from a commutative ring to a
   field and a polynomial `f` saying that `f.map i` is zero or all of its irreducible factors over
   `L` have degree `1`.
 * `polynomial.splitting_field f`: A fixed splitting field of the polynomial `f`.

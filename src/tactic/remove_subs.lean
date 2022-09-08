@@ -159,7 +159,7 @@ by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b 
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : parse location → tactic unit
-| loc.wildcard := do ctx ← local_context, fail"* not yet supported"
+| loc.wildcard := do ctx ← local_context, fail"`remove_subs at *` is not yet supported"
 | (loc.ns xs)  := do
   goods ← xs.mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la x),
   when (goods.length < xs.length) $ fail (report goods la.is_some)

@@ -103,7 +103,7 @@ namespace cardinal
 /-- The cardinal number of a type -/
 def mk : Type u → cardinal := quotient.mk
 
-localized "notation (name := cardinal.mk) `#` := cardinal.mk" in cardinal
+localized "prefix (name := cardinal.mk) `#` := cardinal.mk" in cardinal
 
 instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
 ⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩

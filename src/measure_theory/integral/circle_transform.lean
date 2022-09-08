@@ -97,8 +97,7 @@ def circle_transform_bounding_function (R : ℝ) (z : ℂ) (w : ℂ × ℝ) : �
 circle_transform_deriv R z w.1 (λ x, 1) w.2
 
 lemma continuous_on_prod_circle_transform_function {R r : ℝ} (hr : r < R) {z : ℂ} :
- continuous_on (λ (w : ℂ × ℝ), ((circle_map z R w.snd - w.fst)⁻¹) ^ 2)
-  ((closed_ball z r) ×ˢ (⊤ : set ℝ)) :=
+  continuous_on (λ w : ℂ × ℝ, ((circle_map z R w.snd - w.fst)⁻¹) ^ 2) (closed_ball z r ×ˢ univ) :=
 begin
   simp_rw ←one_div,
   apply_rules [continuous_on.pow, continuous_on.div, continuous_on_const],
@@ -111,8 +110,7 @@ begin
 end
 
 lemma continuous_on_abs_circle_transform_bounding_function {R r : ℝ} (hr : r < R) (z : ℂ) :
-  continuous_on (abs ∘ (λ t, circle_transform_bounding_function R z t))
-  ((closed_ball z r) ×ˢ (⊤ : set ℝ) : set $ ℂ × ℝ) :=
+  continuous_on (abs ∘ (λ t, circle_transform_bounding_function R z t)) (closed_ball z r ×ˢ univ) :=
 begin
   have : continuous_on (circle_transform_bounding_function R z) (closed_ball z r ×ˢ (⊤ : set ℝ)),
   { apply_rules [continuous_on.smul, continuous_on_const],
@@ -127,12 +125,12 @@ begin
 end
 
 lemma abs_circle_transform_bounding_function_le {R r : ℝ} (hr : r < R) (hr' : 0 ≤ r) (z : ℂ) :
-  ∃ (x : ((closed_ball z r) ×ˢ [0, 2 * π] : set $ ℂ × ℝ)),
-  ∀ (y : ((closed_ball z r) ×ˢ [0, 2 * π] : set $ ℂ × ℝ)),
+  ∃ x : closed_ball z r ×ˢ [0, 2 * π],
+  ∀ y : closed_ball z r ×ˢ [0, 2 * π],
   abs (circle_transform_bounding_function R z y) ≤ abs (circle_transform_bounding_function R z x) :=
 begin
   have cts := continuous_on_abs_circle_transform_bounding_function hr z,
-  have comp : is_compact (((closed_ball z r) ×ˢ [0, 2 * π]) : set (ℂ × ℝ)),
+  have comp : is_compact (closed_ball z r ×ˢ [0, 2 * π]),
   { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
   have none := (nonempty_closed_ball.2 hr').prod nonempty_interval,
   simpa using is_compact.exists_forall_ge comp none (cts.mono (by { intro z, simp, tauto })),

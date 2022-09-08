@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import field_theory.intermediate_field
 import ring_theory.adjoin_root
 
 /-!
@@ -24,9 +25,6 @@ if it is the smallest field extension of `K` such that `f` splits.
 
 ## Main statements
 
-* `polynomial.C_leading_coeff_mul_prod_multiset_X_sub_C`: If a polynomial has as many roots as its
-  degree, it can be written as the product of its leading coefficient with `∏ (X - a)` where `a`
-  ranges through its roots.
 * `lift_of_splits`: If `K` and `L` are field extensions of a field `F` and for some finite subset
   `S` of `K`, the minimal polynomial of every `x ∈ K` splits as a polynomial with coefficients in
   `L`, then `algebra.adjoin F S` embeds into `L`.
@@ -229,6 +227,22 @@ theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
 (roots_map_of_injective_card_eq_total_degree i.injective $
   by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
 
+lemma image_root_set [algebra F K] [algebra F L] {p : F[X]} (h : p.splits (algebra_map F K))
+  (f : K →ₐ[F] L) : f '' p.root_set K = p.root_set L :=
+begin
+  classical,
+  rw [root_set, ←finset.coe_image, ←multiset.to_finset_map, ←f.coe_to_ring_hom, ←roots_map ↑f
+      ((splits_id_iff_splits (algebra_map F K)).mpr h), map_map, f.comp_algebra_map, ←root_set],
+end
+
+lemma adjoin_root_set_eq_range [algebra F K] [algebra F L] {p : F[X]}
+  (h : p.splits (algebra_map F K)) (f : K →ₐ[F] L) :
+  algebra.adjoin F (p.root_set L) = f.range ↔ algebra.adjoin F (p.root_set K) = ⊤ :=
+begin
+  rw [←image_root_set h f, algebra.adjoin_image, ←algebra.map_top],
+  exact (subalgebra.map_injective f.to_ring_hom.injective).eq_iff,
+end
+
 lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L} (hsplit : splits i p) :
   p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
 begin
@@ -276,7 +290,7 @@ else or.inr $ λ p hp hdp, begin
   { refine (hp.2.1 $ is_unit_of_dvd_unit hd _).elim,
     exact is_unit_C.2 ((leading_coeff_ne_zero.2 hf0).is_unit.map i) },
   { obtain ⟨q, hq, hd⟩ := hp.dvd_prod_iff.1 hd,
-    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 ((multiset.mem_to_list _ _).1 hq),
+    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 (multiset.mem_to_list.1 hq),
     rw degree_eq_degree_of_associated ((hp.dvd_prime_iff_associated $ prime_X_sub_C a).1 hd),
     exact degree_X_sub_C a },
 end
@@ -356,7 +370,6 @@ end
 end splits
 
 end polynomial
-
 
 section embeddings
 
@@ -784,8 +797,39 @@ begin
   exact ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)
 end
 
+lemma of_alg_equiv [algebra K F] (p : K[X]) (f : F ≃ₐ[K] L) [is_splitting_field K F p] :
+  is_splitting_field K L p :=
+begin
+  split,
+  { rw ← f.to_alg_hom.comp_algebra_map,
+    exact splits_comp_of_splits _ _ (splits F p) },
+  { rw [←(algebra.range_top_iff_surjective f.to_alg_hom).mpr f.surjective,
+        ←root_set, adjoin_root_set_eq_range (splits F p), root_set, adjoin_roots F p] },
+end
+
 end is_splitting_field
 
 end splitting_field
 
 end polynomial
+
+namespace intermediate_field
+
+open polynomial
+
+variables [field K] [field L] [algebra K L] {p : polynomial K}
+
+lemma splits_of_splits {F : intermediate_field K L} (h : p.splits (algebra_map K L))
+  (hF : ∀ x ∈ p.root_set L, x ∈ F) : p.splits (algebra_map K F) :=
+begin
+  simp_rw [root_set, finset.mem_coe, multiset.mem_to_finset] at hF,
+  rw splits_iff_exists_multiset,
+  refine ⟨multiset.pmap subtype.mk _ hF, map_injective _ (algebra_map F L).injective _⟩,
+  conv_lhs { rw [polynomial.map_map, ←is_scalar_tower.algebra_map_eq,
+    eq_prod_roots_of_splits h, ←multiset.pmap_eq_map _ _ _ hF] },
+  simp_rw [polynomial.map_mul, polynomial.map_multiset_prod,
+    multiset.map_pmap, polynomial.map_sub, map_C, map_X],
+  refl,
+end
+
+end intermediate_field

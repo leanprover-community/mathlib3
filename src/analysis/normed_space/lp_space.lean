@@ -229,7 +229,7 @@ begin
   { refine (real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp.le).trans _,
     dsimp [C],
     split_ifs with h h,
-    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp h.le) },
+    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp.le h.le) },
     { let F : fin 2 → ℝ≥0 := ![∥f i∥₊, ∥g i∥₊],
       have : ∀ i, (0:ℝ) ≤ F i := λ i, (F i).coe_nonneg,
       simp only [not_lt] at h,
@@ -462,7 +462,7 @@ normed_add_comm_group.of_core _
 { norm_eq_zero_iff := norm_eq_zero_iff,
   triangle := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
-    { cases is_empty_or_nonempty α; resetI,
+    { casesI is_empty_or_nonempty α,
       { simp [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
       rintros x ⟨i, rfl⟩,

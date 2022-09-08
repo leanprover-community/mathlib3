@@ -561,7 +561,7 @@ begin
   apply (cauchy_seq_range_of_norm_bounded _ _ (_ : ∀ n, _ ≤ b * |f(n+1) - f(n)|)).neg,
   { exact normed_uniform_group },
   { simp_rw [abs_of_nonneg (sub_nonneg_of_le (hfa (nat.le_succ _))), ← mul_sum],
-    apply real.uniform_continuous_mul_const.comp_cauchy_seq,
+    apply real.uniform_continuous_const_mul.comp_cauchy_seq,
     simp_rw [sum_range_sub, sub_eq_add_neg],
     exact (tendsto.cauchy_seq hf0).add_const },
   { intro n,

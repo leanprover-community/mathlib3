@@ -708,7 +708,7 @@ begin
     rcases hp x with ⟨c, hc⟩,
     rw [hc, ←two_mul],
     simp only [mul_div_right, succ_pos'],
-    rw [←pow_add, ←two_mul] },
+    rw [←pow_add, ←two_mul] }
 end
 
 lemma _root_.is_square.of_coprime_of_mul_left (hmn : m.coprime n) :
@@ -730,9 +730,6 @@ See `is_square.mul`. Similarly, this lemma could be generalized to unique factor
 we make use of `nat.factorization` in this proof. -/
 lemma is_square_mul (hmn : m.coprime n) : is_square (m * n) ↔ is_square m ∧ is_square n :=
 ⟨λ h, ⟨h.of_coprime_of_mul_left hmn, h.of_coprime_of_mul_right hmn⟩, λ ⟨hm, hn⟩, hm.mul hn⟩
-
-@[simp] lemma nat.cast_apply {ι α : Type*} [add_monoid_with_one α] (n : ℕ) (i : ι) :
-  (n : ι → α) i = n := rfl
 
 lemma square_pow_iff : is_square (a ^ n) ↔ is_square a ∨ even n :=
 begin

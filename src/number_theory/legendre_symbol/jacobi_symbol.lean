@@ -70,7 +70,8 @@ We define localized notation (locale `number_theory_symbols`) `J(a | b)` for the
 symbol `jacobi_sym a b`. (Unfortunately, there is no subscript "J" in unicode.)
 -/
 
-open zmod nat
+namespace zmod
+open nat
 
 /-- The Jacobi symbol of `a` and `b` -/
 -- Since we need the fact that the factors are prime, we use `list.pmap`.
@@ -378,5 +379,7 @@ begin
     rw [jacobi_sym_neg _ hb, jacobi_sym_neg _ hb', jacobi_sym_mod_right' _ hb, χ₄_nat_mod_four,
         χ₄_nat_mod_four (b % (4 * _)), mod_mod_of_dvd b (dvd_mul_right 4 _)], }
 end
+
+end zmod
 
 end jacobi

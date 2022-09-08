@@ -10,21 +10,21 @@ show n - 1 - m = n - m - 1, by {remove_subs!, }
 example (n m : ℕ) : nat.pred n - m = nat.pred (n - m) :=
 by remove_subs!
 
---example {a b c d e f g : ℕ} : a - b - c - d - e - f - g = a - f - g - e - c - d - b :=
---by {remove_subs!, }
+example {a b c d e f g : ℕ} : a - b - c - d - e - f - g = a - f - g - e - c - d - b :=
+by remove_subs!
 
 example {a b c d e f g : ℕ} (h : a - b - c - d - e - f - g = a - f - g - e - c - d - b) : true :=
-by {remove_subs at h; trivial }
+by remove_subs at h; trivial
 
 example {a b c : ℕ} : a + b + c = a + b + c :=
 begin
---  success_if_fail_with_msg {remove_subs} "no ℕ-subtraction found",
+  success_if_fail_with_msg {remove_subs} "`remove_subs` made no progress",
   refl
 end
 
 example {a b c : ℕ} : (a : ℤ) - b = a - b :=
 begin
---  success_if_fail_with_msg {remove_subs} "no ℕ-subtraction found",
+  success_if_fail_with_msg {remove_subs} "`remove_subs` made no progress",
   refl
 end
 
@@ -42,7 +42,21 @@ by remove_subs! at bc ca
 
 example {a b c : ℕ} (bc : b - c = a) (ca : c - a = b) (h : a + b = b + a) : a = 0 :=
 begin
-  success_if_fail_with_msg {remove_subs! at bc ca h h ⊢ bc}
-    "remove the Goal and `[h, h, bc]` from the list of locations",
+  success_if_fail_with_msg {remove_subs at bc ca h h ⊢ bc} "Try this: remove_subs at bc ca",
+  success_if_fail_with_msg {remove_subs! at bc ca h h ⊢ bc} "Try this: remove_subs! at bc ca",
   remove_subs! at bc ca
+end
+
+example : true :=
+begin
+  success_if_fail_with_msg {remove_subs at bc ca h h ⊢ bc} "`remove_subs` made no progress",
+  success_if_fail_with_msg {remove_subs! at bc ca h h ⊢ bc} "`remove_subs!` made no progress",
+  trivial
+end
+
+example {a b : ℕ} : a - b  = a - b :=
+begin
+  success_if_fail_with_msg {remove_subs at ⊢ a} "Try this: remove_subs",
+  success_if_fail_with_msg {remove_subs! at ⊢ a} "Try this: remove_subs!",
+  remove_subs!,
 end

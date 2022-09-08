@@ -585,7 +585,7 @@ end
 
 lemma map_roots_of_injective [is_domain A] [is_domain B] (p : A[X])
   {f : A →+* B} (hf : function.injective f) :
-  p.roots.map f ≤ (map f p).roots :=
+  p.roots.map f ≤ (p.map f).roots :=
 begin
   by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
   have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },

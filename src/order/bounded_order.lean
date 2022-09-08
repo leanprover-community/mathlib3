@@ -1686,6 +1686,9 @@ end bounded_partial_order
 section bounded_lattice
 variables [lattice α] [bounded_order α] {x y z : α}
 
+lemma of_le (h₁ : x ⊓ y ≤ ⊥) (h₂ : ⊤ ≤ x ⊔ y) : is_compl x y :=
+⟨disjoint_iff_inf_le.mpr h₁, codisjoint_iff_le_sup.mpr h₂⟩
+
 lemma of_eq (h₁ : x ⊓ y = ⊥) (h₂ : x ⊔ y = ⊤) : is_compl x y :=
 ⟨disjoint_iff.mpr h₁, codisjoint_iff.mpr h₂⟩
 

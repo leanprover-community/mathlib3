@@ -848,9 +848,7 @@ begin
     exact h s h0 h0', },
 end
 
-/-- The action of alternating_group α on the n-element subsets of α is preprimitive
-provided 0 < n < #α and #α ≠ 2*n -/
-theorem nat.finset_is_preprimitive_of' (n : ℕ) (h_one_le : 1 ≤ n) (hn : n < fintype.card α)
+/- theorem nat.finset_is_preprimitive_of' (n : ℕ) (h_one_le : 1 ≤ n) (hn : n < fintype.card α)
   (hα : fintype.card α ≠ 2 * n) : is_preprimitive (alternating_group α) (n.finset α) :=
 begin
   have hα' : 3 ≤ fintype.card α := three_le h_one_le hn hα,
@@ -896,8 +894,10 @@ begin
 
     sorry, },
 --     apply nat.finset_is_pretransitive_of_multiply_pretransitive, },
-end
+end -/
 
+/-- The action of alternating_group α on the n-element subsets of α is preprimitive
+provided 0 < n < #α and #α ≠ 2*n -/
 theorem nat.finset_is_preprimitive_of (n : ℕ) (h_one_le : 1 ≤ n) (hn : n < fintype.card α)
   (hα : fintype.card α ≠ 2 * n) : is_preprimitive (alternating_group α) (n.finset α) :=
 begin
@@ -960,8 +960,6 @@ begin
   apply_instance,
 end
 
-open_locale classical
-
 def Iw_t (s : finset α) : (equiv.perm s) →* (equiv.perm α) := equiv.perm.of_subtype
 
 def Iw_T (s : finset α) :=
@@ -978,6 +976,54 @@ example {G : Type*} [group G] (N : subgroup G) (hN : N.normal) :
     one_smul := sorry,
     mul_smul := sorry,
   }
+
+/-
+  f : G →* G
+  N, K ≤ G
+  j : N →* G
+
+
+   f (j⁻¹ K) = j⁻¹ (f (K))
+-/
+lemma map_comap_equiv {G : Type*} [group G] (N K : subgroup G) (f : G ≃* G) (f' : N ≃* N)
+  (hff' : ∀ (y : N), f ↑y = f' y) :
+  subgroup.map f'.to_monoid_hom (subgroup.comap N.subtype K) =
+    subgroup.comap N.subtype (subgroup.map f.to_monoid_hom K)  :=
+begin
+  ext x,
+  simp only [subgroup.mem_map, subgroup.mem_comap, subgroup.coe_subtype, exists_prop],
+  split,
+  { rintro ⟨y, hy, rfl⟩,
+    use ↑y, apply and.intro hy,exact hff' y, },
+  { rintro ⟨z, hz, hz'⟩,
+    simp only [mul_equiv.coe_to_monoid_hom] at hz',
+    use z,
+--     use f'.symm x,
+--    simp only [mul_equiv.coe_to_monoid_hom, mul_equiv.apply_symm_apply, eq_self_iff_true, and_true],
+    { -- z ∈ N
+      suffices : z = f'.symm x,
+      rw this, apply set_like.coe_mem,
+      apply mul_equiv.injective f,
+      rw hz', rw hff', simp only [mul_equiv.apply_symm_apply],  },
+    -- z ∈ K
+    apply and.intro hz,
+    -- f' z = x
+    simp only [← subtype.coe_inj, ← hz', mul_equiv.coe_to_monoid_hom, ← hff'],
+    refl, },
+end
+
+
+example {G : Type*} [group G] (N : subgroup G) (g : N) (K : subgroup G) :
+  (mul_aut.conj g) • K.subgroup_of N = (mul_aut.conj (g : G) • K).subgroup_of N :=
+begin
+  change subgroup.map _ _ = (subgroup.map _ K).subgroup_of N,
+  simp only [subgroup.subgroup_of],
+  simp only [mul_distrib_mul_action.to_monoid_End_apply],
+  apply map_comap_equiv,
+  { intro y,refl, },
+end
+
+
 lemma IwT_is_conj (s : finset α) (g : alternating_group α) :
   Iw_T (g • s) = mul_aut.conj g • (Iw_T s) :=
 begin
@@ -990,6 +1036,40 @@ begin
       rw ← finset.smul_mem_smul_finset_iff g,
       refl,
     end),
+  let pg : equiv.perm (↥s) → equiv.perm ↥(g • s) := λ k, (kg.symm.trans k).trans kg,
+  let pg' : equiv.perm ↥(g • s) → equiv.perm ↥s := λ k, (kg.trans k).trans kg.symm,
+  have hpgg' : ∀ k, k = pg (pg' k) ,
+  { intro k,
+    change k = (kg.symm.trans ((kg.trans k).trans kg.symm)).trans kg,
+    simp only [← equiv.trans_assoc, equiv.symm_trans_self, equiv.refl_trans],
+    rw [equiv.trans_assoc, equiv.symm_trans_self, equiv.trans_refl], },
+/-   have hpg'g : ∀ k, k = pg' (pg k) ,
+  { intro k,
+    change k = (kg.trans ((kg.symm.trans k).trans kg)).trans kg.symm,
+    simp only [← equiv.trans_assoc, equiv.self_trans_symm, equiv.refl_trans],
+    rw [equiv.trans_assoc, equiv.self_trans_symm, equiv.trans_refl], }, -/
+
+
+  simp only [subgroup.subgroup_of],
+  change _ = subgroup.map _ _,
+  simp only [mul_distrib_mul_action.to_monoid_End_apply],
+  change _ = subgroup.map (mul_aut.conj g).to_monoid_hom _,
+  rw map_comap_equiv _ _
+    (mul_aut.conj (g: equiv.perm α)) (mul_aut.conj g),
+  apply congr_arg,
+  rw subgroup.map_map,
+
+
+  have : (mul_aut.conj ↑g).to_monoid_hom.comp (Iw_t s) =
+    λ k, (Iw_t (↑g • s)) (Iw_c s ↑g k),
+
+  ext,
+  let hzz :=  Iw_conj' s ↑g,
+  simp only [Iw_t] at hzz,
+
+  sorry,
+  {intro y, refl,},
+
 
   have this1 :
     (mul_aut.conj g) • (Iw_t s).range = ((mul_aut.conj g).to_monoid_hom.comp (Iw_t s)).range,
@@ -1013,35 +1093,12 @@ begin
     rw [equiv.trans_assoc, equiv.self_trans_symm, equiv.trans_refl], }, -/
 
 
-  suffices this3 : ∀(k : equiv.perm ↥s), ((mul_aut.conj g).to_monoid_hom.comp ts) k  = tgs (pg k),
-
   ext,
   split,
-  rintro ⟨k,rfl⟩, use pg' k, conv_rhs {rw hpgg' k}, rw this3,
-  rintro ⟨k, rfl⟩, use pg k, rw this3,
+  rintro ⟨k,rfl⟩, use pg' k, conv_rhs {rw hpgg' k}, rw Iw_conj',
+  rintro ⟨k, rfl⟩, use pg k, rw Iw_conj',
 
-  intro k,
-  ext x,
-  cases em (x ∈ g • s) with hx hx',
-  { -- x ∈ g • s
-    dsimp [tgs, Iw_T, Iw_t], rw equiv.perm.of_subtype_apply_of_mem,
-    dsimp [pg],
-    simp only [embedding_like.apply_eq_iff_eq],
-    dsimp [ts, Iw_T, Iw_t], rw equiv.perm.of_subtype_apply_of_mem,
-    apply congr_arg, apply congr_arg,
-    rw ← subtype.coe_inj, simp only [subtype.coe_mk],
-    refl,
 
-    { rw [← equiv.perm.smul_def, finset.inv_smul_mem_iff],
-      exact hx, },
-    exact hx, },
-  { -- x ∉ g • s
-    dsimp [tgs, Iw_T, Iw_t], rw equiv.perm.of_subtype_apply_of_not_mem,
-    dsimp [ts, Iw_T, Iw_t], rw equiv.perm.of_subtype_apply_of_not_mem,
-    simp only [equiv.perm.apply_inv_self],
-    { intro hx, apply hx',
-      rw [← finset.inv_smul_mem_iff], exact hx,  },
-    exact hx', },
 end
 
 example (G : Type*) [group G] (H K : subgroup G) (hH : H.is_commutative) :

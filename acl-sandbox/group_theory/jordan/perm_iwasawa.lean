@@ -790,9 +790,9 @@ begin
   haveI : nontrivial α,
   { rw ← fintype.one_lt_card_iff_nontrivial,
     exact lt_trans h_one_lt hn },
-  haveI ht : is_pretransitive (equiv.perm α) (n.finset α) := nat.finset_is_pretransitive,
+  haveI ht : is_pretransitive (equiv.perm α) (n.finset α) := nat.finset_is_pretransitive α n,
   haveI : nontrivial (n.finset α) :=
-    nat.finset_nontrivial (lt_trans (nat.lt_succ_self 0) h_one_lt) hn,
+    nat.finset_nontrivial α n (lt_trans (nat.lt_succ_self 0) h_one_lt) hn,
   obtain ⟨sn : n.finset α⟩ := nontrivial.to_nonempty,
   let s := sn.val,
   let hs : s.card = n := sn.prop,
@@ -816,7 +816,27 @@ begin
   apply_instance,
 end
 
-open_locale classical
+def equiv.perm_ulift.down (α : Type*): equiv.perm (ulift α) ≃* equiv.perm α := {
+to_fun := λ k, {
+  to_fun := λ x, (k {down := x}).down,
+  inv_fun := λ x, (k.symm {down := x}).down,
+  left_inv := λ x,
+    by simp only [ulift.down_up, ulift.up_down, k.left_inv, equiv.symm_apply_apply],
+  right_inv := λ x,
+    by simp only [ulift.down_up, ulift.up_down, k.right_inv, equiv.apply_symm_apply], },
+inv_fun := λ k, {
+  to_fun := λ x, {down := k x.down},
+  inv_fun := λ x, {down := k.symm x.down},
+  left_inv := λ x,
+    by simp only [ulift.down_up, ulift.up_down, k.left_inv, equiv.symm_apply_apply],
+  right_inv := λ x,
+    by simp only [ulift.down_up, ulift.up_down, k.right_inv, equiv.apply_symm_apply], },
+left_inv := λ k, equiv.perm.ext (λ x,
+    by simp only [equiv.coe_fn_mk, ulift.down_inj, embedding_like.apply_eq_iff_eq, ulift.up_down]),
+right_inv := λ k, equiv.perm.ext (λ x,by simp only [equiv.coe_fn_mk]),
+map_mul' := λ h k, equiv.perm.ext (λ x, by
+    simp only [ulift.up_down, equiv.perm.coe_mul, equiv.coe_fn_mk, ulift.down_inj]),
+     }
 
 def Iw_t (s : finset α) : (equiv.perm s) →* (equiv.perm α) := equiv.perm.of_subtype
 def Iw_T(s : finset α) := (Iw_t s).range
@@ -830,39 +850,41 @@ def Iw_k (s : finset α) (g : equiv.perm α) :  ↥s ≃ ↥(g • s) :=
 def Iw_c (s : finset α) (g : equiv.perm α) (k : equiv.perm ↥s) :=
   ((Iw_k s g).symm.trans k).trans (Iw_k s g)
 
+
+def Iw_c' (s : finset α) (g : equiv.perm α) : equiv.perm (↥s) ≃ equiv.perm (↥(g • s)) :=
+equiv.perm_congr (equiv.subtype_equiv g
+  (λ a, by simp only [← equiv.perm.smul_def, finset.smul_mem_smul_finset_iff]))
+
 lemma Iw_conj' : ∀ (s : finset α) (g : equiv.perm α )(k : equiv.perm ↥s),
-  ((mul_aut.conj g).to_monoid_hom.comp (Iw_t s)) k  = (Iw_t (g • s)) (Iw_c s g k) :=
+  ((mul_aut.conj g).to_monoid_hom.comp (Iw_t s)) k  = (Iw_t (g • s)) (Iw_c' s g k) :=
 begin
   intros s g k,
+  dsimp only [Iw_t, Iw_c'],
   ext x,
+  simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app,
+      mul_aut.conj_apply, equiv.perm.coe_mul],
   cases em (x ∈ g • s) with hx hx',
   { -- x ∈ g • s
-    dsimp only [Iw_t],
     rw equiv.perm.of_subtype_apply_of_mem,
-    { simp only [subtype.coe_mk, monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom,
-        function.comp_app, mul_aut.conj_apply, equiv.perm.coe_mul, equiv.subtype_equiv_symm,
-        equiv.coe_trans, equiv.subtype_equiv_apply, embedding_like.apply_eq_iff_eq],
-      rw equiv.perm.of_subtype_apply_of_mem,
-      { apply congr_arg, apply congr_arg,
-        rw ← subtype.coe_inj, simp only [subtype.coe_mk],
-        refl, }, },
-    exact hx, },
+    rw equiv.perm.of_subtype_apply_of_mem,
+    simp only [subtype.coe_mk, equiv.perm_congr_apply, equiv.subtype_equiv_symm,
+      equiv.subtype_equiv_apply, embedding_like.apply_eq_iff_eq],
+    apply congr_arg, apply congr_arg,
+    rw ← subtype.coe_inj, simp only [subtype.coe_mk], refl,
+    exact hx,
+    rw ← finset.inv_smul_mem_iff at hx, exact hx, },
   { -- x ∉ g • s
-    dsimp only [Iw_t],
     rw equiv.perm.of_subtype_apply_of_not_mem,
-    { simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app,
-        mul_aut.conj_apply, equiv.perm.coe_mul],
-      { rw equiv.perm.of_subtype_apply_of_not_mem,
-        simp only [equiv.perm.apply_inv_self],
-        { intro hx, apply hx',
-          rw [← finset.inv_smul_mem_iff], exact hx,  }, }, },
-      exact hx', },
+    rw equiv.perm.of_subtype_apply_of_not_mem,
+    simp only [equiv.perm.apply_inv_self],
+    exact hx',
+    { rw [← finset.inv_smul_mem_iff] at hx', exact hx', }, },
 end
-
 
 lemma Iw_is_conj (s : finset α) (g : equiv.perm α) :
   (Iw_t (g • s)).range = mul_aut.conj g • (Iw_t s).range :=
 begin
+
   have this1 :
     (mul_aut.conj g) • (Iw_t s).range = ((mul_aut.conj g).to_monoid_hom.comp (Iw_t s)).range,
     simp only [←  monoid_hom.map_range], refl,
@@ -887,8 +909,10 @@ begin
         rw [equiv.trans_assoc, equiv.self_trans_symm, equiv.trans_refl], }, -/
   ext,
   split,
-  rintro ⟨k,rfl⟩, use pg' k, conv_rhs {rw hpgg' k}, rw Iw_conj',
-  rintro ⟨k, rfl⟩, use pg k, rw Iw_conj',
+  { rintro ⟨k,rfl⟩, use (Iw_c' s g).symm k,
+
+  conv_rhs {rw hpgg' k}, rw Iw_conj', },
+  rintro ⟨k, rfl⟩, use (Iw_c' s g) k, rw Iw_conj',
 end
 
 
@@ -975,13 +999,22 @@ begin
   -- N acts nontrivially
   intro h,
   obtain ⟨g, hgN, hg_ne⟩ := N.nontrivial_iff_exists_ne_one.mp ntN,
-  obtain ⟨s, hs⟩ := nat.finset.mul_action_faithful α 2 _ _ g hg_ne,
-  apply hs,
-  suffices : s ∈ fixed_points N (nat.finset α 2),
-  rw mem_fixed_points at this, exact this ⟨g, hgN⟩,
-  rw h, rw set.top_eq_univ, apply set.mem_univ,
+  obtain ⟨s, hs⟩ := nat.finset.mul_action_faithful 2 _ _ _,
+  { -- Conclusion
+    apply hs,
+    suffices : s ∈ fixed_points N (nat.finset α 2),
+    rw mem_fixed_points at this, exact this ⟨g, hgN⟩,
+    rw h, rw set.top_eq_univ, apply set.mem_univ, },
+  -- fintype α
+  apply_instance,
+  -- 1 < 2
   norm_num,
+  -- 2 < fintype.card α
   apply lt_of_lt_of_le _ hα, norm_num,
+  -- to_perm g ≠ 1
+  suffices : to_perm (⟨g, hgN⟩ : N) = g,
+  rw this, exact hg_ne,
+  ext x, simp only [to_perm_apply], refl,
 end
 
 

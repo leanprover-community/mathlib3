@@ -143,7 +143,7 @@ begin
   simp only [nat.cast_add, nat.cast_one],
 end
 
-lemma taylor_coeff_within_has_deriv_within_at {f : ℝ → E} {x y : ℝ} {k : ℕ} {s s' : set ℝ}
+lemma has_deriv_within_at_taylor_coeff_within {f : ℝ → E} {x y : ℝ} {k : ℕ} {s s' : set ℝ}
   (hs'_unique : unique_diff_within_at ℝ s' y)
   (hs' : s' ∈ 𝓝[s] y) (hy : y ∈ s') (h : s' ⊆ s)
   (hf' : differentiable_on ℝ (iterated_deriv_within (k+1) f s) s') :
@@ -204,7 +204,7 @@ begin
     exact hf.differentiable_on_iterated_deriv_within coe_lt_succ hs_unique,
   end,
   specialize hk (cont_diff_on.of_succ hf) hdiff,
-  convert hk.add (taylor_coeff_within_has_deriv_within_at hs'_unique hs' hy h hf'),
+  convert hk.add (has_deriv_within_at_taylor_coeff_within hs'_unique hs' hy h hf'),
   exact (add_sub_cancel'_right _ _).symm,
 end
 

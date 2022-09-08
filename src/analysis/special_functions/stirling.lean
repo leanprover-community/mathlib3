@@ -215,30 +215,6 @@ end
  https://proofwiki.org/wiki/Stirling%27s_Formula#Part_2
 -/
 
-/--
-Define `wallis_inside_prod n` as `2 * n / (2 * n - 1) * 2 * n / (2 * n + 1)`.
-This is the term appearing inside the Wallis product
--/
-noncomputable def wallis_inside_prod (n : ℕ) : ℝ :=
-  (((2 : ℝ) * n) / (2 * n - 1)) * ((2 * n) / (2 * n + 1))
-
-/-- The Wallis product $\prod_{n=1}^k \frac{2n}{2n-1}\frac{2n}{2n+1}$
-  converges to `π/2` as `k → ∞` -/
-lemma equality1 :
-  tendsto (λ (k : ℕ), ∏ i in Ico 1 k.succ, wallis_inside_prod i) at_top (𝓝 (π / 2)) :=
-begin
-  convert tendsto_prod_pi_div_two,
-  funext,
-  rw [range_eq_Ico, ← prod_Ico_add _ 0 k 1],
-  congr,
-  funext,
-  rw wallis_inside_prod,
-  push_cast,
-  rw [zero_add, mul_add, mul_one, add_comm, ← add_sub, add_assoc],
-  congr,
-  linarith,
-end
-
 /-- For `n : ℕ`, define `w n` as `2^(4*n) * n!^4 / ((2*n)!^2 * (2*n + 1))` -/
 noncomputable def w (n : ℕ) : ℝ :=
 (2 ^ (4 * n) * n.factorial ^ 4) / ((2 * n).factorial ^ 2 * (2 * n + 1))
@@ -329,26 +305,18 @@ end
 /-- For any `n ≠ 0`, we have the identity
 `(stirling_seq n)^4/(stirling_seq (2*n))^2 * (c n) = w n`. -/
 lemma expand_in_limit (n : ℕ) (hn : n ≠ 0) :
-  (stirling_seq n) ^ 4 * (1 / (stirling_seq (2 * n))) ^ 2 * c n = w n :=
+  ((stirling_seq n) ^ 4 / (stirling_seq (2 * n)) ^ 2) * (n / (2 * n + 1)) = w n :=
 begin
-  rw [stirling_seq, stirling_seq, c, w],
-  have : (4 : ℝ) = (2 : ℝ) * 2, by norm_cast,
-  rw this,
-  rw [cast_mul 2 n, cast_two, ←mul_assoc],
-  rw sqrt_mul (mul_self_nonneg 2) (n : ℝ),
-  rw sqrt_mul_self zero_le_two,
-  have h₀ : (n : ℝ) ≠ 0, from cast_ne_zero.mpr hn,
-  have h₁ : sqrt (2 * (n : ℝ)) ≠ 0, from
-    (sqrt_ne_zero'.mpr $ mul_pos two_pos $ cast_pos.mpr (zero_lt_iff.mpr hn)),
-  have h₂ : (exp 1) ≠ 0, from exp_ne_zero 1,
-  have h₃ : ((2 * n).factorial : ℝ) ≠ 0, from cast_ne_zero.mpr (factorial_ne_zero (2 * n)),
-  have h₄ : sqrt (n : ℝ) ≠ 0, from sqrt_ne_zero'.mpr (cast_pos.mpr (zero_lt_iff.mpr hn)),
-  have h₅ : (((2 * n) : ℕ) : ℝ) ≠ 0, from
-    cast_ne_zero.mpr (mul_ne_zero two_ne_zero hn),
-  have h₆ : sqrt (4 * (n : ℝ)) ≠ 0, from
-    sqrt_ne_zero'.mpr (mul_pos four_pos $ cast_pos.mpr (zero_lt_iff.mpr hn)),
-  have h₇ : 2 * (n : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*n)},
+  rw [bit0_eq_two_mul, stirling_seq, pow_mul, stirling_seq, w],
+  simp_rw [div_pow, mul_pow],
+  rw [sq_sqrt (mul_nonneg two_pos.le n.cast_nonneg),
+      sq_sqrt (mul_nonneg two_pos.le (2 * n).cast_nonneg)],
+  have : (n : ℝ) ≠ 0, from cast_ne_zero.mpr hn,
+  have : (exp 1) ≠ 0, from exp_ne_zero 1,
+  have : ((2 * n).factorial : ℝ) ≠ 0, from cast_ne_zero.mpr (factorial_ne_zero (2 * n)),
+  have : 2 * (n : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*n)},
   field_simp,
+  simp only [mul_pow, mul_comm 2 n, mul_comm 4 n, pow_mul],
   ring,
 end
 
@@ -365,22 +333,17 @@ Then the sequence `w` has limit `a^2/2`
 lemma second_wallis_limit (a : ℝ) (hane : a ≠ 0) (ha : tendsto stirling_seq at_top (𝓝 a)) :
   tendsto w at_top (𝓝 (a ^ 2 / 2)):=
 begin
-  rw ←(filter.tendsto_add_at_top_iff_nat 1),
-  apply tendsto.congr expand_in_limit',
-  let qn := λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2 * c n,
-  have hqn :
-    ∀ (n : ℕ), qn n.succ = stirling_seq n.succ ^ 4 * (1 / stirling_seq (2 * n.succ)) ^ 2 * c n.succ
-    := by tauto,
-  apply tendsto.congr hqn,
-  rw filter.tendsto_add_at_top_iff_nat 1,
-  have has : tendsto (λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2)
-    at_top (𝓝 (a ^ 2)),
-  { convert tendsto.mul (tendsto.pow ha 4)
-      ((stirling_seq_aux3 a hane ha).comp (tendsto_id.const_mul_at_top' two_pos)),
-    field_simp,
-    ring_nf, },
-  convert tendsto.mul has rest_has_limit_one_half,
-  rw [one_div, div_eq_mul_inv],
+  refine tendsto.congr' (eventually_at_top.mpr ⟨1, λ n hn,
+    expand_in_limit n (one_le_iff_ne_zero.mp hn)⟩) _,
+  have h : a ^ 2 / 2 = (a ^ 4 / a ^ 2) * (1 / 2),
+  { rw mul_one_div,
+    congr,
+    rw [←mul_one_div, one_div, ←pow_sub_of_lt a],
+    norm_num },
+  rw h,
+  refine ((ha.pow 4).div ((ha.comp (tendsto_id.const_mul_at_top' two_pos)).pow 2)
+    (pow_ne_zero 2 hane)).mul _,
+  exact tendsto.congr (λ n, (rest_cancel n).symm) rest_has_limit_one_half,
 end
 
 /-- **Stirling's Formula** -/

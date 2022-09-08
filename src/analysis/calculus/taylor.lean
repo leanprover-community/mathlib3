@@ -115,8 +115,8 @@ begin
   simp,
 end
 
-/-- If `f` is `n` times continuous differentiable, then the Taylor polynomial is continuous in the
-  second variable. -/
+/-- If `f` is `n` times continuous differentiable on a set `s`, then the Taylor polynomial
+  `taylor_within_eval f n s x₀ x` is continuous in `x₀`. -/
 lemma continuous_on_taylor_within_eval {f : ℝ → E} {x : ℝ} {n : ℕ} {s : set ℝ}
   (hs : unique_diff_on ℝ s) (hf : cont_diff_on ℝ n f s) :
   continuous_on (λ t, taylor_within_eval f n s t x) s :=
@@ -237,7 +237,13 @@ has_deriv_within_at_taylor_within_eval (unique_diff_on_Icc hx t ht) (unique_diff
 
 /-! ### Taylor's theorem with mean value type remainder estimate -/
 
-/-- **Taylor's theorem** with the general mean value form of the remainder. -/
+/-- **Taylor's theorem** with the general mean value form of the remainder.
+
+We assume that `f` is `n+1`-times continuously differentiable in the closed set `Icc x₀ x` and
+`n+1`-times differentiable on the open set `Ioo x₀ x`, and `g` is a differentiable function on
+`Ioo x₀ x` and continuous on `Icc x₀ x`. Then there exists a `x' ∈ Ioo x₀ x` such that
+$$f(x) - (P_n f)(x₀, x) = \\frac{(x - x')^n}{n!} \\frac{g(x) - g(x₀)}{g' x'},$$
+where $P_n f$ denotes the Taylor polynomial of degree $n$. -/
 lemma taylor_mean_remainder {f : ℝ → ℝ} {g g' : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
   (hf : cont_diff_on ℝ n f (Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc x₀ x)) (Ioo x₀ x))
@@ -264,7 +270,13 @@ begin
   ring,
 end
 
-/-- **Taylor's theorem** with the Lagrange form of the remainder. -/
+/-- **Taylor's theorem** with the Lagrange form of the remainder.
+
+We assume that `f` is `n+1`-times continuously differentiable in the closed set `Icc x₀ x` and
+`n+1`-times differentiable on the open set `Ioo x₀ x`. Then there exists a `x' ∈ Ioo x₀ x` such that
+$$f(x) - (P_n f)(x₀, x) = \\frac{f^{(n+1)}(x') (x - x₀)^{n+1}}{(n+1)!},$$
+where $P_n f$ denotes the Taylor polynomial of degree $n$ and $f^{(n+1)}$ is the $n+1$-th iterated
+derivative. -/
 lemma taylor_mean_remainder_lagrange {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
   (hf : cont_diff_on ℝ n f (Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc x₀ x)) (Ioo x₀ x)) :
@@ -293,7 +305,13 @@ begin
   ring,
 end
 
-/-- **Taylor's theorem** with the Cauchy form of the remainder. -/
+/-- **Taylor's theorem** with the Cauchy form of the remainder.
+
+We assume that `f` is `n+1`-times continuously differentiable in the closed set `Icc x₀ x` and
+`n+1`-times differentiable on the open set `Ioo x₀ x`. Then there exists a `x' ∈ Ioo x₀ x` such that
+$$f(x) - (P_n f)(x₀, x) = \\frac{f^{(n+1)}(x') (x - x')^n (x-x₀)}{n!},$$
+where $P_n f$ denotes the Taylor polynomial of degree $n$ and $f^{(n+1)}$ is the $n+1$-th iterated
+derivative. -/
 lemma taylor_mean_remainder_cauchy {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
   (hf : cont_diff_on ℝ n f (Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc x₀ x)) (Ioo x₀ x)) :

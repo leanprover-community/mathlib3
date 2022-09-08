@@ -294,8 +294,5 @@ begin
   obtain ⟨a, hapos, halimit⟩ := stirling_seq_has_pos_limit_a,
   have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique wallis_consequence
     (second_wallis_limit a (ne_of_gt hapos) halimit),
-  field_simp at hπ,
-  rw ← (sq_sqrt (le_of_lt pi_pos)) at hπ,
-  have h := (sq_eq_sq (sqrt_nonneg π) (le_of_lt hapos)).mp hπ,
-  convert halimit,
+  rwa [(div_left_inj' (show (2 : ℝ) ≠ 0, from two_ne_zero)).mp hπ, sqrt_sq hapos.le],
 end

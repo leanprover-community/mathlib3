@@ -30,14 +30,18 @@ namespace tactic
 /--  `get_sub e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
 subexpression of `e`. -/
 meta def get_sub : expr → tactic (list (expr × expr))
-| `(%%a - %%b)    := do [ga, gb] ← [a, b].mmap get_sub,
-                        return ((a, b) :: (ga ++ gb))
-| `(nat.pred %%a) := do try $ to_expr ``(nat.pred_eq_sub_one) >>= rewrite_target,
-                        ga ← get_sub a,
-                        return ((a, `(1)) :: ga)
-| (expr.app f a)  := do [gf, ga] ← [f, a].mmap get_sub,
-                        return (gf ++ ga)
-| _ := pure []
+| `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
+                           to_expr ``(nat.sub_sub) >>= rewrite_target,
+                           [ga, gb, gc] ← [a, b, c].mmap get_sub,
+                           return ((a, bc) :: (ga ++ gb ++ gc))
+| `(%%a - %%b)       := do [ga, gb] ← [a, b].mmap get_sub,
+                           return ((a, b) :: (ga ++ gb))
+| `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one) >>= rewrite_target,
+                           ga ← get_sub a,
+                           return ((a, `(1)) :: ga)
+| (expr.app f a)     := do [gf, ga] ← [f, a].mmap get_sub,
+                           return (gf ++ ga)
+| _                  := pure []
 
 /--  `remove_one_sub a b` assumes that the expression `a - b` occurs in the target.
 It splits two cases:

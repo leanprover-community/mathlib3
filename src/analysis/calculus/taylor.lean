@@ -135,7 +135,7 @@ end
 
 /-- Helper lemma for calculating the derivative of the monomial that appears in Taylor expansions.-/
 lemma monomial_has_deriv_aux (t x : ℝ) {n : ℕ} :
-  has_deriv_at (λ y, (x - y)^(n+1)) ((-(n+1) * (x - t)^n)) t :=
+  has_deriv_at (λ y, (x - y)^(n+1)) (-(n+1) * (x - t)^n) t :=
 begin
   simp_rw sub_eq_neg_add,
   rw [←neg_one_mul, mul_comm (-1 : ℝ), mul_assoc, mul_comm (-1 : ℝ), ←mul_assoc],

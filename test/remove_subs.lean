@@ -7,11 +7,9 @@ by remove_subs!
 example (n m : ℕ) : nat.pred n - m = nat.pred (n - m) :=
 show n - 1 - m = n - m - 1, by remove_subs!
 
---1.36s
 example (n m : ℕ) : nat.pred n - m = nat.pred (n - m) :=
 by remove_subs!
 
---3.05s
 example {a b c d e f g : ℕ} : a - b - c - d - e - f - g = a - f - g - e - c - d - b :=
 by remove_subs!
 
@@ -27,7 +25,7 @@ begin
   refl
 end
 
-example {R} [ring R] {a b c d : ℕ} : (a : R) - b = a - b ∨ a - b = c - d :=
+example {R} [ring R] {a b c d : ℕ} : (a : R) - b = a - b ∨ a - b = c - d ∨ (a : ℤ) - b = c - d :=
 by remove_subs; exact or.inl rfl
 
 example {R} [ring R] {a b c d : ℕ} : ite (a - b = a - b) ((a : R) - b = a - b) (a - b = c - d) :=

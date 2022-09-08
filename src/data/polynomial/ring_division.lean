@@ -583,15 +583,21 @@ begin
     exact h ⟨k, rfl⟩, },
 end
 
+lemma map_roots_of_injective [is_domain A] [is_domain B] (p : A[X])
+  {f : A →+* B} (hf : function.injective f) :
+  p.roots.map f ≤ (map f p).roots :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
+  simpa only [multiset.le_iff_count, count_roots] using count_map_roots p hf,
+end
+
 lemma roots_map_of_injective_card_eq_total_degree [is_domain A] [is_domain B] {p : A[X]}
   {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :
   p.roots.map f = (map f p).roots :=
 begin
-  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
-  apply multiset.eq_of_le_of_card_le,
-  { simpa only [multiset.le_iff_count, count_roots] using count_map_roots p hf },
-  { simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p) },
+  apply multiset.eq_of_le_of_card_le (map_roots_of_injective p hf),
+  simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p),
 end
 
 end

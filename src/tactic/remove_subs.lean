@@ -6,10 +6,10 @@ Authors: Damiano Testa
 import tactic.linarith
 
 /-!
-# `remove_subs` -- a tactic for splitting nat-subtractions
+# `remove_subs` -- a tactic for splitting `ℕ`-subtractions
 
 Subtraction between natural numbers is defined to be `0` when it should yield a negative number.
-The tactic `remove_subs` tries to remedy this by doing a case-split on each nat-subtractions,
+The tactic `remove_subs` tries to remedy this by doing a case-split on each `ℕ`-subtractions,
 depending on whether the subtraction is truncated to `0` or coincides with the usual notion of
 subtraction.
 
@@ -27,9 +27,16 @@ end
 
 namespace tactic
 
+/--  Given a list `l` of pairs of expressions, `local_constants_last l` reorders the list `l`
+so that all pairs `(a,b) ∈ l` with `a` a local constant appear last.  This is used in `get_sub`
+so that the replacement of the `ℕ`-subtractions begins with the subtractions where an old term
+can be substituted, rather than simply rewritten. -/
+meta def local_constants_last (l : list (expr × expr)) : list (expr × expr) :=
+let (csts, not_csts) := l.partition (λ e : expr × expr, e.1.is_local_constant) in not_csts ++ csts
+
 /--  `get_sub e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
 subexpression of `e`.  While doing this, it also assumes that
-* the initial input `e` was the target and rewrites it to reduce the number of nat-subtractions,
+* the initial input `e` was the target and rewrites it to reduce the number of `ℕ`-subtractions,
   using the identity `a - b - c = a - (b + c)`;
 * the subtractions that get extracted are subtractions in `ℕ`.
 -/
@@ -37,14 +44,15 @@ meta def get_sub : expr → tactic (list (expr × expr))
 | `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
                            to_expr ``(nat.sub_sub %%a %%b %%c) >>= rewrite_target,
                            [ga, gb, gc] ← [a, b, c].mmap get_sub,
-                           return ((a, bc) :: (ga ++ gb ++ gc))
+                           return $ local_constants_last ((a, bc) :: (ga ++ gb ++ gc))
 | `(%%a - %%b)       := do infer_type a >>= is_def_eq `(ℕ),
                            [ga, gb] ← [a, b].mmap get_sub,
-                           return ((a, b) :: (ga ++ gb))
+                           return $ local_constants_last ((a, b) :: (ga ++ gb))
 | `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one %%a) >>= rewrite_target,
                            ga ← get_sub a,
-                           return ((a, `(1)) :: ga)
-| (expr.app f a)     := (++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure [])
+                           return $ local_constants_last ((a, `(1)) :: ga)
+| (expr.app f a)     := local_constants_last <$>
+                          ((++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure []))
 | _                  := pure []
 
 /--  `remove_one_sub a b` assumes that the expression `a - b` occurs in the target.
@@ -62,7 +70,7 @@ cases `(nat.le_cases %%a %%b) [eq0, exis],
 -- on the branch where `a ≤ b`...
   prf0 ← get_local eq0,
   rewrite_target prf0,
-  to_expr ``(nat.sub_eq_zero_iff_le) >>= λ x, rewrite_hyp x prf0,
+  to_expr ``(@nat.sub_eq_zero_iff_le %%a %%b) >>= λ x, rewrite_hyp x prf0,
 swap,
 -- on the branch where `b < a`...
   get_local exis >>= λ x, cases x [var, ide],
@@ -76,9 +84,11 @@ swap
 namespace interactive
 setup_tactic_parser
 
-/--  The tactic `remove_subs` looks for nat-subtractions in the goal and it recursively replaces
+/--  The tactic `remove_subs` looks for `ℕ`-subtractions in the goal and it recursively replaces
 any subexpression of the form `a - b` by two branches: one where `a ≤ b` and `a - b` is replaced
 by `0` and one where `b < a` and it tries to replace `a` by `b + c`, for some `c : ℕ`.
+
+`remove_subs` fails if there are no `ℕ`-subtractions.
 
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/

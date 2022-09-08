@@ -7,18 +7,26 @@ Authors:  Alex J. Best, X-F. Roblot
 import number_theory.number_field
 import analysis.complex.polynomial
 import topology.algebra.polynomial
+import ring_theory.roots_of_unity
 
 section forward
 
 open complex
 
-variables {K : Type*} [monoid K] {n : ℕ} (x : K)
+variables {M : Type*} [comm_monoid M] {k : ℕ+}
 
-lemma absolute_value_one  (φ : K →* ℂ) (hx : x ^ n = 1) (hn : 0 < n) : abs (φ x) = 1 :=
+variables {R : Type*} [normed_division_ring R]
+
+lemma absolute_value_one  (φ : M →* R) (ζ : Mˣ) (h : ζ ^ (k : ℕ) = 1) : ∥φ ζ∥ = 1 :=
 begin
-  have h_pow : (φ x)^n = 1, by simp [←monoid_hom.map_pow, hx, monoid_hom.map_one],
-  exact norm_eq_one_of_pow_eq_one h_pow (ne_of_gt hn),
+  rw ( _ :  ∥φ ζ∥ = 1 ↔ ∥φ ζ∥₊ = 1),
+  { apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
+    rw [← nnnorm_pow, one_pow, ← monoid_hom.map_pow, (mem_roots_of_unity' _ _).mp h,
+      monoid_hom.map_one, nnnorm_one], },
+  { refine subtype.mk_eq_mk.symm, },
 end
+
+#exit
 
 end forward
 
@@ -49,6 +57,7 @@ end
 
 local attribute [-instance] complex.algebra
 
+-- this has no use, it should be merged with the next result
 lemma minpoly_coeff_le_of_all_abs_le {B : ℝ}
   (hxi : is_integral ℤ x) (hx : x ∈ {x : K | ∀ (φ : K →+* ℂ), abs (φ x) ≤ B})  (i : ℕ) :
   (|(minpoly ℤ x).coeff i| : ℝ) ≤ B^((minpoly ℤ x).nat_degree - i)
@@ -75,7 +84,7 @@ begin
   intros z hz,
   suffices : ∃ (φ : K →+* ℂ), φ x = z,
   { obtain ⟨φ, hφ⟩ := this, rw ←hφ, exact (hx φ), },
-  rw [←set.mem_range, number_field.embeddings.rat_range_eq_roots, mem_root_set_iff _, aeval_def],
+  rw [← mem_range, number_field.embeddings.rat_range_eq_roots, mem_root_set_iff _, aeval_def],
   rwa mem_roots_map at hz,
   repeat { rw hmp, refine monic.ne_zero _,
     exact monic.map (algebra_map ℤ ℚ) (minpoly.monic hxi), },
@@ -95,6 +104,7 @@ begin
     rw mem_Union,
     use minpoly ℤ x,
     rw [mem_Union, exists_prop, finset.mem_coe, multiset.mem_to_finset],
+    -- This is an abomination
     refine ⟨⟨_, _⟩, _⟩,
     { exact nat_degree_le_finrank hx.1, },
     { intro i,

@@ -134,7 +134,10 @@ lemma biprod.of_components_eq (f : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂) :
   biprod.of_components (biprod.inl ≫ f ≫ biprod.fst) (biprod.inl ≫ f ≫ biprod.snd)
     (biprod.inr ≫ f ≫ biprod.fst) (biprod.inr ≫ f ≫ biprod.snd) = f :=
 begin
-  ext; simp,
+  ext;
+  simp only [category.comp_id, biprod.inr_fst, biprod.inr_snd, biprod.inl_snd, add_zero, zero_add,
+    biprod.inl_of_components, biprod.inr_of_components, eq_self_iff_true, category.assoc, comp_zero,
+    biprod.inl_fst, preadditive.add_comp],
 end
 
 @[simp]

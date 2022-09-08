@@ -268,9 +268,8 @@ begin
 end
 
 /-- The sequence `c n` has limit `1/2` -/
-lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), c n) at_top (𝓝 (1 / 2)) :=
+lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), (n : ℝ) / (2 * n + 1)) at_top (𝓝 (1 / 2)) :=
 begin
-  apply (tendsto.congr rest_cancel),
   rw one_div,
   suffices h : tendsto (λ n : ℕ, (2 * ↑n + 1) / ( n : ℝ)) at_top (𝓝 2), by
   { convert (tendsto.inv₀ h two_ne_zero),

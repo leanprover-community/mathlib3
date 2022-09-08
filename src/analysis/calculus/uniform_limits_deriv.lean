@@ -428,7 +428,7 @@ lemma uniform_cauchy_seq_on_filter.one_smul_right {l' : filter 𝕜}
   uniform_cauchy_seq_on_filter (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)) l l' :=
 begin
   -- The tricky part of this proof is that operator norms are written in terms of `≤` whereas
-  -- metrics are written in terms of `<`. So we need to shrink `ε` utilizing the archimedian
+  -- metrics are written in terms of `<`. So we need to shrink `ε` utilizing the archimedean
   -- property of `ℝ`
 
   rw [normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
@@ -469,7 +469,8 @@ lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
   rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter at hf',
-  have hf' : uniform_cauchy_seq_on (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)) l (metric.ball x r),
+  have hf' : uniform_cauchy_seq_on (λ n, λ z, (1 : 𝕜 →L[𝕜] 𝕜).smul_right (f' n z)) l
+    (metric.ball x r),
   { rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
     exact hf'.one_smul_right, },
   exact uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_fderiv hr hf' hf hfg,
@@ -489,7 +490,7 @@ begin
 
   -- Now we need to rewrite hf' in terms of continuous_linear_maps. The tricky part is that
   -- operator norms are written in terms of `≤` whereas metrics are written in terms of `<`. So we
-  -- need to shrink `ε` utilizing the archimedian property of `ℝ`
+  -- need to shrink `ε` utilizing the archimedean property of `ℝ`
   have hf' : tendsto_uniformly_on_filter F' G' l (𝓝 x),
   { rw metric.tendsto_uniformly_on_filter_iff at hf' ⊢,
     intros ε hε,

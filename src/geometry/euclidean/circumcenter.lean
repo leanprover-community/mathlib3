@@ -366,7 +366,7 @@ begin
     (λ i j : fin 2, dist (s.points i) (finset.univ.centroid ℝ s.points) =
                     dist (s.points j) (finset.univ.centroid ℝ s.points)),
   { intros i hi j hj hij,
-    rw [finset.centroid_insert_singleton_fin, dist_eq_norm_vsub V (s.points i),
+    rw [finset.centroid_pair_fin, dist_eq_norm_vsub V (s.points i),
         dist_eq_norm_vsub V (s.points j), vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub,
         ←one_smul ℝ (s.points i -ᵥ s.points 0), ←one_smul ℝ (s.points j -ᵥ s.points 0)],
     fin_cases i; fin_cases j; simp [-one_smul, ←sub_smul]; norm_num },
@@ -376,6 +376,8 @@ begin
           (centroid_mem_affine_span_of_card_eq_add_one ℝ _ (finset.card_fin 2))
           (λ i, hr i (set.mem_univ _))).symm
 end
+
+local attribute [instance] affine_subspace.to_add_torsor
 
 /-- The orthogonal projection of a point `p` onto the hyperplane spanned by the simplex's points. -/
 def orthogonal_projection_span {n : ℕ} (s : simplex ℝ P n) :

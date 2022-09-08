@@ -792,6 +792,10 @@ quotient.induction_on' s $ λ l, begin
   refl
 end
 
+theorem chain_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
+  chain r (list.range n.succ) ↔ r n 0 ∧ ∀ m < n, r m m.succ :=
+by rw [range_succ, ←coe_cons_eq_coe_append, chain_coe_cons, ←range_succ, chain_range_succ]
+
 variables {r : α → α → Prop} {s : cycle α}
 
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
@@ -817,25 +821,25 @@ begin
     exact hs b (Hl hb) a Ha }
 end
 
-theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
+theorem chain_iff_pairwise [is_trans α r] : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
 ⟨begin
   induction s using cycle.induction_on with a l _,
   exact λ _ b hb, hb.elim,
   intros hs b hb c hc,
-  rw [cycle.chain_coe_cons, chain_iff_pairwise hr] at hs,
+  rw [cycle.chain_coe_cons, chain_iff_pairwise] at hs,
   simp only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
-    forall_false_left, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
+    is_empty.forall_iff, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
   simp only [mem_coe_iff, mem_cons_iff] at hb hc,
   rcases hb with rfl | hb;
   rcases hc with rfl | hc,
   { exact hs.1 c (or.inr rfl) },
   { exact hs.1 c (or.inl hc) },
   { exact hs.2.2 b hb },
-  { exact hr (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
+  { exact trans (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
 end, cycle.chain_of_pairwise⟩
 
-theorem forall_eq_of_chain (hr : transitive r) (hr' : anti_symmetric r)
+theorem forall_eq_of_chain [is_trans α r] [is_antisymm α r]
   (hs : chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=
-by { rw chain_iff_pairwise hr at hs, exact hr' (hs a ha b hb) (hs b hb a ha) }
+by { rw chain_iff_pairwise at hs, exact antisymm (hs a ha b hb) (hs b hb a ha) }
 
 end cycle

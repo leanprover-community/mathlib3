@@ -276,6 +276,16 @@ lemma vadd_mem_iff_mem_direction {s : affine_subspace k P} (v : V) {p : P} (hp :
   v +ᵥ p ∈ s ↔ v ∈ s.direction :=
 ⟨λ h, by simpa using vsub_mem_direction h hp, λ h, vadd_mem_of_mem_direction h hp⟩
 
+/-- Adding a vector in the direction to a point produces a point in the subspace if and only if
+the original point is in the subspace. -/
+lemma vadd_mem_iff_mem_of_mem_direction {s : affine_subspace k P} {v : V} (hv : v ∈ s.direction)
+  {p : P} : v +ᵥ p ∈ s ↔ p ∈ s :=
+begin
+  refine ⟨λ h, _, λ h, vadd_mem_of_mem_direction hv h⟩,
+  convert vadd_mem_of_mem_direction (submodule.neg_mem _ hv) h,
+  simp
+end
+
 /-- Given a point in an affine subspace, the set of vectors in its
 direction equals the set of vectors subtracting that point on the
 right. -/
@@ -376,7 +386,9 @@ begin
     exact vsub_mem_direction hp hq2 }
 end
 
-instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
+/-- This is not an instance because it loops with `add_torsor.nonempty`. -/
+@[reducible] -- See note [reducible non instances]
+def to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
 { vadd := λ a b, ⟨(a:V) +ᵥ (b:P), vadd_mem_of_mem_direction a.2 b.2⟩,
   zero_vadd := by simp,
   add_vadd := λ a b c, by { ext, apply add_vadd },
@@ -384,6 +396,8 @@ instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.dir
   nonempty := by apply_instance,
   vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
   vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
+
+local attribute [instance] to_add_torsor
 
 @[simp, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
   ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
@@ -1241,6 +1255,13 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
 @[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
 coe_injective $ image_empty f
 
+@[simp] lemma map_eq_bot_iff {s : affine_subspace k P₁} : s.map f = ⊥ ↔ s = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [←coe_eq_bot_iff, coe_map, image_eq_empty, coe_eq_bot_iff] at h },
+  { rw [h, map_bot] }
+end
+
 omit V₂
 
 @[simp] lemma map_id (s : affine_subspace k P₁) : s.map (affine_map.id k P₁) = s :=
@@ -1285,7 +1306,9 @@ by rw [← affine_subspace.map_span, h, map_top_of_surjective f hf]
 
 end affine_map
 
-lemma affine_equiv.span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
+namespace affine_equiv
+
+lemma span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
   affine_span k s = ⊤ ↔ affine_span k (e '' s) = ⊤ :=
 begin
   refine ⟨(e : P₁ →ᵃ[k] P₂).span_eq_top_of_surjective e.surjective, _⟩,
@@ -1294,6 +1317,8 @@ begin
   rw this,
   exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
 end
+
+end affine_equiv
 
 end
 

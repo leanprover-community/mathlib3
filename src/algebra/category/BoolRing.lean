@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import algebra.ring.boolean_ring
 import order.category.BoolAlg
 
@@ -59,3 +59,11 @@ end BoolRing
 @[simps] instance BoolAlg.has_forget_to_BoolRing : has_forget₂ BoolAlg BoolRing :=
 { forget₂ := { obj := λ X, BoolRing.of (as_boolring X),
                map := λ X Y, bounded_lattice_hom.as_boolring } }
+
+/-- The equivalence between Boolean rings and Boolean algebras. This is actually an isomorphism. -/
+@[simps functor inverse] def BoolRing_equiv_BoolAlg : BoolRing ≌ BoolAlg :=
+equivalence.mk (forget₂ BoolRing BoolAlg) (forget₂ BoolAlg BoolRing)
+  (nat_iso.of_components (λ X, BoolRing.iso.mk $ (ring_equiv.as_boolring_as_boolalg X).symm) $
+    λ X Y f, rfl)
+  (nat_iso.of_components (λ X, BoolAlg.iso.mk $ order_iso.as_boolalg_as_boolring X) $
+    λ X Y f, rfl)

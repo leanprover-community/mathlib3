@@ -97,7 +97,7 @@ element of the endomorphism general linear group on `n → R`. -/
 def to_linear : general_linear_group n R ≃* linear_map.general_linear_group R (n → R) :=
 units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 
--- Note that without the `@` and `‹_›`, lean infers `λ a b, _inst_1 a b` instead of `_inst_1` as the
+-- Note that without the `@` and `‹_›`, lean infers `λ a b, _inst a b` instead of `_inst` as the
 -- decidability argument, which prevents `simp` from obtaining the instance by unification.
 -- These `λ a b, _inst a b` terms also appear in the type of `A`, but simp doesn't get confused by
 -- them so for now we do not care.
@@ -155,18 +155,15 @@ instance : has_neg (GL_pos n R) :=
     exact g.prop,
   end⟩⟩
 
-instance : has_distrib_neg (GL_pos n R) :=
-{ neg := has_neg.neg,
-  neg_neg := λ x, subtype.ext $ neg_neg _,
-  neg_mul := λ x y, subtype.ext $ neg_mul _ _,
-  mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
-
-@[simp] lemma GL_pos.coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
-rfl
+@[simp] lemma GL_pos.coe_neg_GL (g : GL_pos n R) : ↑(-g) = -(g : GL n R) := rfl
+@[simp] lemma GL_pos.coe_neg (g : GL_pos n R) : ↑(-g) = -(g : matrix n n R) := rfl
 
 @[simp] lemma GL_pos.coe_neg_apply (g : GL_pos n R) (i j : n) :
   (↑(-g) : matrix n n R) i j = -((↑g : matrix n n R) i j) :=
 rfl
+
+instance : has_distrib_neg (GL_pos n R) :=
+subtype.coe_injective.has_distrib_neg _ GL_pos.coe_neg_GL (GL_pos n R).coe_mul
 
 end has_neg
 
@@ -213,11 +210,11 @@ $GL_2(R)$ if `a ^ 2 + b ^ 2` is nonzero. -/
 @[simps coe {fully_applied := ff}]
 def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   matrix.general_linear_group (fin 2) R :=
-general_linear_group.mk_of_det_ne_zero ![![a, -b], ![b, a]]
+general_linear_group.mk_of_det_ne_zero !![a, -b; b, a]
   (by simpa [det_fin_two, sq] using hab)
 
-/- TODO: Add Iwasawa matrices `n_x=![![1,x],![0,1]]`, `a_t=![![exp(t/2),0],![0,exp(-t/2)]]` and
-  `k_θ==![![cos θ, sin θ],![-sin θ, cos θ]]`
+/- TODO: Add Iwasawa matrices `n_x=!![1,x; 0,1]`, `a_t=!![exp(t/2),0;0,exp(-t/2)]` and
+  `k_θ=!![cos θ, sin θ; -sin θ, cos θ]`
 -/
 
 end examples

@@ -35,11 +35,17 @@ def linear_yoneda : C ⥤ Cᵒᵖ ⥤ Module R :=
 { obj := λ X,
   { obj := λ Y, Module.of R (unop Y ⟶ X),
     map := λ Y Y' f, linear.left_comp R _ f.unop,
-    map_comp' := λ _ _ _ f g, begin ext, dsimp, erw [category.assoc] end,
-    map_id' := λ Y, begin ext, dsimp, erw [category.id_comp] end },
-  map := λ X X' f, { app := λ Y, linear.right_comp R _ f },
-  map_id' := λ X, by { ext, simp }, -- `obviously` provides these, but slowly
-  map_comp' := λ _ _ _ f g, by { ext, simp } }
+    map_comp' := λ _ _ _ f g, linear_map.ext $ λ _, category.assoc _ _ _,
+    map_id' := λ Y, linear_map.ext $ λ _, category.id_comp _ },
+  map := λ X X' f,
+  { app := λ Y, linear.right_comp R _ f,
+    naturality' := λ X Y f, linear_map.ext $ λ x, by simp only [category.assoc, Module.coe_comp,
+      function.comp_app, linear.left_comp_apply, linear.right_comp_apply] },
+  map_id' := λ X, nat_trans.ext _ _ $ funext $ λ _, linear_map.ext $ λ _,
+    by simp only [linear.right_comp_apply, category.comp_id, nat_trans.id_app, Module.id_apply],
+  map_comp' := λ _ _ _ f g, nat_trans.ext _ _ $ funext $ λ _, linear_map.ext $ λ _,
+    by simp only [category.assoc, linear.right_comp_apply, nat_trans.comp_app, Module.coe_comp,
+      function.comp_app] }
 
 /-- The Yoneda embedding for `R`-linear categories `C`,
 sending an object `Y : Cᵒᵖ` to the `Module R`-valued copresheaf on `C`,
@@ -49,11 +55,18 @@ def linear_coyoneda : Cᵒᵖ ⥤ C ⥤ Module R :=
 { obj := λ Y,
   { obj := λ X, Module.of R (unop Y ⟶ X),
     map := λ Y Y', linear.right_comp _ _,
-    map_id' := λ Y, by { ext, exact category.comp_id _ },
-    map_comp' := λ _ _ _ f g, by { ext, exact eq.symm (category.assoc _ _ _) } },
-  map := λ Y Y' f, { app := λ X, linear.left_comp _ _ f.unop },
-  map_id' := λ X, by { ext, simp }, -- `obviously` provides these, but slowly
-  map_comp' := λ _ _ _ f g, by { ext, simp } }
+    map_id' := λ Y, linear_map.ext $ λ _, category.comp_id _,
+    map_comp' := λ _ _ _ f g, linear_map.ext $ λ _, eq.symm (category.assoc _ _ _) },
+  map := λ Y Y' f,
+  { app := λ X, linear.left_comp _ _ f.unop,
+    naturality' := λ X Y f, linear_map.ext $ λ x, by simp only [category.assoc, Module.coe_comp,
+      function.comp_app, linear.right_comp_apply, linear.left_comp_apply] },
+  map_id' := λ X, nat_trans.ext _ _ $ funext $ λ _, linear_map.ext $ λ _,
+    by simp only [linear.left_comp_apply, unop_id, category.id_comp, nat_trans.id_app,
+      Module.id_apply],
+  map_comp' := λ _ _ _ f g, nat_trans.ext _ _ $ funext $ λ _, linear_map.ext $ λ _,
+    by simp only [category.assoc, Module.coe_comp, function.comp_app, linear.left_comp_apply,
+      unop_comp, nat_trans.comp_app]}
 
 instance linear_yoneda_obj_additive (X : C) : ((linear_yoneda R C).obj X).additive := {}
 instance linear_coyoneda_obj_additive (Y : Cᵒᵖ) : ((linear_coyoneda R C).obj Y).additive := {}

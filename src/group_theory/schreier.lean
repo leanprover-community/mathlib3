@@ -76,7 +76,7 @@ begin
   apply (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR r).unique,
   { rw [subtype.coe_mk, mul_inv_self],
     exact H.one_mem },
-  { rw [subtype.coe_mk, one_inv, mul_one],
+  { rw [subtype.coe_mk, inv_one, mul_one],
     exact (H.mul_mem_cancel_left (hU hg)).mp hh },
 end
 
@@ -115,7 +115,7 @@ begin
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
   refine ⟨_, _, closure_mul_image_eq_top' hR hR1 hS⟩,
   calc _ ≤ (R * S).card : finset.card_image_le
-  ... ≤ (R.product S).card : finset.card_image_le
+  ... ≤ (R ×ˢ S).card : finset.card_image_le
   ... = R.card * S.card : R.card_product S
   ... = H.index * S.card : congr_arg (* S.card) _,
   calc R.card = fintype.card R : (fintype.card_coe R).symm
@@ -133,10 +133,8 @@ begin
   exact ⟨⟨T, hT⟩⟩,
 end
 
-lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0)
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
-  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)] :
-  @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
+lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0) :
+  @group.rank H _ (fg_of_index_ne_zero hH) ≤ H.index * group.rank G :=
 begin
   haveI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,

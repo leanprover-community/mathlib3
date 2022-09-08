@@ -115,10 +115,7 @@ end
 
 noncomputable
 instance (R : CommRing) [is_domain R] : algebra R (Scheme.Spec.obj $ op R).function_field :=
-begin
-  apply ring_hom.to_algebra,
-  exact structure_sheaf.to_stalk R _,
-end
+ring_hom.to_algebra $ by { change CommRing.of R ⟶ _, apply structure_sheaf.to_stalk }
 
 @[simp] lemma generic_point_eq_bot_of_affine (R : CommRing) [is_domain R] :
   generic_point (Scheme.Spec.obj $ op R).carrier = (⟨0, ideal.bot_prime⟩ : prime_spectrum R) :=

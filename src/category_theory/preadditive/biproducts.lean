@@ -270,11 +270,12 @@ end
 variables [preadditive.{v} C]
 
 lemma biproduct.column_nonzero_of_iso'
-  {σ τ : Type v} [decidable_eq σ] [decidable_eq τ] [fintype τ]
-  {S : σ → C} [has_biproduct.{v} S] {T : τ → C} [has_biproduct.{v} T]
+  {σ τ : Type} [finite τ]
+  {S : σ → C} [has_biproduct S] {T : τ → C} [has_biproduct T]
   (s : σ) (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   (∀ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t = 0) → 𝟙 (S s) = 0 :=
 begin
+  casesI nonempty_fintype τ,
   intro z,
   set x := biproduct.ι S s ≫ f ≫ inv f ≫ biproduct.π S s,
   have h₁ : x = 𝟙 (S s), by simp [x],
@@ -292,15 +293,14 @@ If `f : ⨁ S ⟶ ⨁ T` is an isomorphism, and `s` is a non-trivial summand of 
 then there is some `t` in the target so that the `s, t` matrix entry of `f` is nonzero.
 -/
 def biproduct.column_nonzero_of_iso
-  {σ τ : Type v} [decidable_eq σ] [decidable_eq τ] [fintype τ]
-  {S : σ → C} [has_biproduct.{v} S] {T : τ → C} [has_biproduct.{v} T]
+  {σ τ : Type} [fintype τ]
+  {S : σ → C} [has_biproduct S] {T : τ → C} [has_biproduct T]
   (s : σ) (nz : 𝟙 (S s) ≠ 0)
-  [∀ t, decidable_eq (S s ⟶ T t)]
   (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   trunc (Σ' t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t ≠ 0) :=
 begin
+  classical,
   apply trunc_sigma_of_exists,
-  -- Do this before we run `classical`, so we get the right `decidable_eq` instances.
   have t := biproduct.column_nonzero_of_iso'.{v} s f,
   by_contradiction h,
   simp only [not_exists_not] at h,

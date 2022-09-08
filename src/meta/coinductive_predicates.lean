@@ -517,7 +517,7 @@ do
 namespace interactive
 open interactive interactive.types expr lean.parser
 local postfix `?`:9001 := optional
-local postfix *:9001 := many
+local postfix (name := parser.many) *:9001 := many
 
 meta def coinduction (corec_name : parse ident)
   (ns : parse with_ident_list)

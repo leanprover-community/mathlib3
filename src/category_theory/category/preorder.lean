@@ -60,7 +60,7 @@ Express an inequality as a morphism in the corresponding preorder category.
 -/
 def hom_of_le {x y : X} (h : x ≤ y) : x ⟶ y := ulift.up (plift.up h)
 
-alias hom_of_le ← has_le.le.hom
+alias hom_of_le ← _root_.has_le.le.hom
 
 @[simp] lemma hom_of_le_refl {x : X} : (le_refl x).hom = 𝟙 x := rfl
 @[simp] lemma hom_of_le_comp {x y z : X} (h : x ≤ y) (k : y ≤ z) :
@@ -71,7 +71,7 @@ Extract the underlying inequality from a morphism in a preorder category.
 -/
 lemma le_of_hom {x y : X} (h : x ⟶ y) : x ≤ y := h.down.down
 
-alias le_of_hom ← quiver.hom.le
+alias le_of_hom ← _root_.quiver.hom.le
 
 @[simp] lemma le_of_hom_hom_of_le {x y : X} (h : x ≤ y) : h.hom.le = h := rfl
 @[simp] lemma hom_of_le_le_of_hom {x y : X} (h : x ⟶ y) : h.le.hom = h :=

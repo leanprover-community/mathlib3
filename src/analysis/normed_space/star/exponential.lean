@@ -23,12 +23,12 @@ subtypes `self_adjoint A` and `unitary A`.
 section star
 
 variables {A : Type*}
-[normed_ring A] [normed_algebra ℂ A] [star_ring A] [cstar_ring A] [complete_space A]
+[normed_ring A] [normed_algebra ℂ A] [star_ring A] [has_continuous_star A] [complete_space A]
 [star_module ℂ A]
 
 open complex
 
-lemma self_adjoint.exp_i_smul_unitary {a : A} (ha : a ∈ self_adjoint A) :
+lemma is_self_adjoint.exp_i_smul_unitary {a : A} (ha : is_self_adjoint a) :
   exp ℂ (I • a) ∈ unitary A :=
 begin
   rw [unitary.mem_iff, star_exp],
@@ -42,7 +42,7 @@ end
 over ℂ. -/
 @[simps]
 noncomputable def self_adjoint.exp_unitary (a : self_adjoint A) : unitary A :=
-⟨exp ℂ (I • a), self_adjoint.exp_i_smul_unitary (a.property)⟩
+⟨exp ℂ (I • a), a.prop.exp_i_smul_unitary⟩
 
 open self_adjoint
 

@@ -291,8 +291,8 @@ the $p$-adic order/valuation of a number, and `proj` and `compl` are for the pro
 complementary projection. The term `n.factorization p` is the $p$-adic order itself.
 For example, `ord_proj[2] n` is the even part of `n` and `ord_compl[2] n` is the odd part. -/
 
-notation `ord_proj[` p `]` n:max := p ^ (nat.factorization n p)
-notation `ord_compl[` p `]` n:max := n / ord_proj[p] n
+notation `ord_proj[` p `] ` n:max := p ^ (nat.factorization n p)
+notation `ord_compl[` p `] ` n:max := n / ord_proj[p] n
 
 @[simp] lemma ord_proj_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_proj[p] n = 1 :=
 by simp [factorization_eq_zero_of_non_prime n hp]

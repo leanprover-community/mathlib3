@@ -128,7 +128,7 @@ open unit_interval path
 
 variables {X : Type u} [topological_space X]
 
-notation ` Ω(` x `)` := path x x
+notation ` Ω_[` x `]` := path x x
 
 /- `Q_right` is analogous to the function `Q` defined on p. 475 of Serre's `Homologie`
   `singulière des espaces fibrés` that helps proving continuity of `delayed_refl_right`.-/
@@ -171,8 +171,6 @@ lemma continuous_delayed_refl_right {x : X} :
 continuous_uncurry_iff.mp $ (continuous_snd.comp continuous_fst).path_eval $
   continuous_Q_right.comp $ continuous_snd.prod_mk $ continuous_fst.comp continuous_fst
 
-def delayed_refl_left (θ : I) (γ : path x y) : path x y := (delayed_refl_right θ γ.symm).symm
-
 lemma delayed_refl_right_zero (γ : path x y) : delayed_refl_right 0 γ = γ.trans (path.refl y) :=
 begin
   ext t,
@@ -186,11 +184,48 @@ end
 lemma delayed_refl_right_one (γ : path x y) : delayed_refl_right 1 γ = γ :=
 by { ext t, exact congr_arg γ (Q_right_one_right t) }
 
-instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
+
+def delayed_refl_left (θ : I) (γ : path x y) : path x y := (delayed_refl_right θ γ.symm).symm
+
+
+lemma continuous_symm {x y : X} : continuous (symm : (path x y) → (path y x)) :=
+begin
+  sorry,
+end
+
+lemma continuous_delayed_refl_left {x : X} :
+  continuous (λ p : I × path x y, delayed_refl_left p.1 p.2) :=
+continuous_symm.comp $ continuous_delayed_refl_right.comp $ continuous_fst.prod_mk $
+  (continuous_symm).comp continuous_snd
+
+lemma delayed_refl_left_zero (γ : path x y) : (delayed_refl_left 0 γ) = (path.refl x).trans γ :=
+by { simp only [delayed_refl_left, delayed_refl_right_zero, trans_symm, refl_symm, path.symm_symm]}
+
+lemma delayed_refl_left_one (γ : path x y) : (delayed_refl_left 1 γ) = γ :=
+  by {simp only [delayed_refl_left, delayed_refl_right_one, path.symm_symm] }
+
+instance loop_space_is_H_space (x : X) : H_space Ω_[x] :=
 { Hmul := ⟨λ ρ, ρ.1.trans ρ.2, continuous_trans⟩,
   e := refl x,
   Hmul_e_e := refl_trans_refl,
-  left_Hmul_e := sorry,
+  left_Hmul_e := --very much WIP, I am testing the needed lemmas for the proof to work
+  begin
+    fconstructor,
+    { let uno : C(I×Ω_[x],Ω_[x]):= ⟨λ p : I × Ω_[x], delayed_refl_left p.1 p.2,
+      continuous_delayed_refl_left⟩,
+      use uno,
+      intro γ,
+      -- exact delayed_refl_left_zero' γ,
+      have zer' := delayed_refl_left_zero γ,
+      simp,
+      exact zer',
+      simp,
+      intro γ,
+      have uno' := delayed_refl_left_one γ,
+      exact uno',      -- apply delayed_refl_left_one,
+    },
+    sorry,
+  end,
   right_Hmul_e :=
   { to_homotopy := ⟨⟨λ p, delayed_refl_right p.1 p.2, continuous_delayed_refl_right⟩,
       delayed_refl_right_zero, delayed_refl_right_one⟩,

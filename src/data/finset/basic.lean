@@ -2108,6 +2108,7 @@ eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 lemma disjoint_range_add_left_embedding (a b : ℕ) :
   disjoint (range a) (map (add_left_embedding a) (range b)) :=
 begin
+  refine disjoint_iff_inf_le.mpr _,
   intros k hk,
   simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
     mem_inter] at hk,
@@ -2118,6 +2119,7 @@ end
 lemma disjoint_range_add_right_embedding (a b : ℕ) :
   disjoint (range a) (map (add_right_embedding a) (range b)) :=
 begin
+  refine disjoint_iff_inf_le.mpr _,
   intros k hk,
   simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
     mem_inter] at hk,
@@ -2644,17 +2646,20 @@ end bUnion
 /-! ### disjoint -/
 --TODO@Yaël: Kill lemmas duplicate with `boolean_algebra`
 section disjoint
-variables [decidable_eq α] [decidable_eq β] {f : α → β} {s t u : finset α} {a b : α}
+variables {f : α → β} {s t u : finset α} {a b : α}
 
 lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t :=
-by simp only [_root_.disjoint, inf_eq_inter, le_iff_subset, subset_iff, mem_inter, not_and,
-  and_imp]; refl
+begin
+  classical,
+  simp only [_root_.disjoint_iff_inf_le, inf_eq_inter, le_iff_subset, subset_iff, mem_inter,
+    not_and, and_imp]; refl
+end
 
 lemma disjoint_val : disjoint s t ↔ s.1.disjoint t.1 := disjoint_left
-lemma disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ := disjoint_iff
+lemma disjoint_iff_inter_eq_empty [decidable_eq α] : disjoint s t ↔ s ∩ t = ∅ := disjoint_iff
 
-instance decidable_disjoint (U V : finset α) : decidable (disjoint U V) :=
-decidable_of_decidable_of_iff (by apply_instance) eq_bot_iff
+instance decidable_disjoint [decidable_eq α] (U V : finset α) : decidable (disjoint U V) :=
+decidable_of_decidable_of_iff (by apply_instance) disjoint_iff.symm
 
 lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 lemma disjoint_iff_ne : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
@@ -2664,7 +2669,7 @@ lemma _root_.disjoint.forall_ne_finset (h : disjoint s t) (ha : a ∈ s) (hb : b
 disjoint_iff_ne.1 h _ ha _ hb
 
 lemma not_disjoint_iff : ¬ disjoint s t ↔ ∃ a, a ∈ s ∧ a ∈ t :=
-not_forall.trans $ exists_congr $ λ a, not_not.trans mem_inter
+disjoint_left.not.trans $ not_forall.trans $ exists_congr $ λ _, by rw [not_imp, not_not]
 
 lemma disjoint_of_subset_left (h : s ⊆ u) (d : disjoint u t) : disjoint s t :=
 disjoint_left.2 (λ x m₁, (disjoint_left.1 d) (h m₁))
@@ -2683,6 +2688,11 @@ disjoint.comm.trans disjoint_singleton_left
 
 @[simp] lemma disjoint_singleton : disjoint ({a} : finset α) {b} ↔ a ≠ b :=
 by rw [disjoint_singleton_left, mem_singleton]
+
+lemma disjoint_self_iff_empty (s : finset α) : disjoint s s ↔ s = ∅ := disjoint_self
+
+section decidable
+variables [decidable_eq α]
 
 @[simp] lemma disjoint_insert_left : disjoint (insert a s) t ↔ a ∉ t ∧ disjoint s t :=
 by simp only [disjoint_left, mem_insert, or_imp_distrib, forall_and_distrib, forall_eq]
@@ -2704,7 +2714,6 @@ disjoint_of_subset_right (inter_subset_right _ _) sdiff_disjoint
 
 lemma sdiff_eq_self_iff_disjoint : s \ t = s ↔ disjoint s t := sdiff_eq_self_iff_disjoint'
 lemma sdiff_eq_self_of_disjoint (h : disjoint s t) : s \ t = s := sdiff_eq_self_iff_disjoint.2 h
-lemma disjoint_self_iff_empty (s : finset α) : disjoint s s ↔ s = ∅ := disjoint_self
 
 lemma disjoint_bUnion_left {ι : Type*} (s : finset ι) (f : ι → finset α) (t : finset α) :
   disjoint (s.bUnion f) t ↔ (∀ i ∈ s, disjoint (f i) t) :=
@@ -2719,6 +2728,8 @@ end
 lemma disjoint_bUnion_right {ι : Type*} (s : finset α) (t : finset ι) (f : ι → finset α) :
   disjoint s (t.bUnion f) ↔ ∀ i ∈ t, disjoint s (f i) :=
 by simpa only [disjoint.comm] using disjoint_bUnion_left t f s
+
+end decidable
 
 lemma disjoint_filter {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
   disjoint (s.filter p) (s.filter q) ↔ ∀ x ∈ s, p x → ¬ q x :=
@@ -2739,6 +2750,9 @@ by { rw [finset.disjoint_left, set.disjoint_left], refl }
   s.pairwise_disjoint (λ i, f i : ι → set α) ↔ s.pairwise_disjoint f :=
 forall₅_congr $ λ _ _ _ _ _, disjoint_coe
 
+section decidable
+variables [decidable_eq β]
+
 @[simp] lemma _root_.disjoint.of_image_finset (h : disjoint (s.image f) (t.image f)) :
   disjoint s t :=
 disjoint_iff_ne.2 $ λ a ha b hb, ne_of_apply_ne f $ h.forall_ne_finset
@@ -2753,8 +2767,10 @@ begin
   exact hf.ne (h _ ha _ hb),
 end
 
+end decidable
+
 @[simp] lemma disjoint_map {f : α ↪ β} : disjoint (s.map f) (t.map f) ↔ disjoint s t :=
-by { simp_rw map_eq_image, exact disjoint_image f.injective }
+by { classical, simp_rw map_eq_image, exact disjoint_image f.injective }
 
 end disjoint
 

@@ -188,9 +188,20 @@ by { ext t, exact congr_arg γ (Q_right_one_right t) }
 def delayed_refl_left (θ : I) (γ : path x y) : path x y := (delayed_refl_right θ γ.symm).symm
 
 
+-- `[FAE]` This should probably be moved to `path_conneceted.lean`
 lemma continuous_symm {x y : X} : continuous (symm : (path x y) → (path y x)) :=
 begin
-  sorry,
+ let f := @path.symm _ _ x y,
+--  let g := λ γ : path x y, γ ∘ σ,
+--  have : continuous f,
+--  have hg : continuous g := by continuity,
+ let g := λ p : path x y × I, (p.1 ∘ σ) p.2,
+ have hg : continuous g,
+ { exact continuous_fst.path_eval (continuous_symm.comp continuous_snd), },
+ let g' : C(path x y × I, X) := ⟨g, hg⟩,
+ let g'' := g'.curry,
+ convert g''.2 using 1,
+ sorry,
 end
 
 lemma continuous_delayed_refl_left {x : X} :
@@ -208,24 +219,10 @@ instance loop_space_is_H_space (x : X) : H_space Ω_[x] :=
 { Hmul := ⟨λ ρ, ρ.1.trans ρ.2, continuous_trans⟩,
   e := refl x,
   Hmul_e_e := refl_trans_refl,
-  left_Hmul_e := --very much WIP, I am testing the needed lemmas for the proof to work
-  begin
-    fconstructor,
-    { let uno : C(I×Ω_[x],Ω_[x]):= ⟨λ p : I × Ω_[x], delayed_refl_left p.1 p.2,
-      continuous_delayed_refl_left⟩,
-      use uno,
-      intro γ,
-      -- exact delayed_refl_left_zero' γ,
-      have zer' := delayed_refl_left_zero γ,
-      simp,
-      exact zer',
-      simp,
-      intro γ,
-      have uno' := delayed_refl_left_one γ,
-      exact uno',      -- apply delayed_refl_left_one,
-    },
-    sorry,
-  end,
+  left_Hmul_e :=
+  { to_homotopy := ⟨⟨λ p : I × Ω_[x], delayed_refl_left p.1 p.2,
+      continuous_delayed_refl_left⟩, delayed_refl_left_zero, delayed_refl_left_one⟩,
+    prop' := by {rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩} },
   right_Hmul_e :=
   { to_homotopy := ⟨⟨λ p, delayed_refl_right p.1 p.2, continuous_delayed_refl_right⟩,
       delayed_refl_right_zero, delayed_refl_right_one⟩,

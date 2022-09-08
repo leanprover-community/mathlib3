@@ -51,9 +51,8 @@ by rw [box_prod_adj, and_iff_left rfl, or_iff_left (λ h : H.adj b b ∧ _, h.1.
 by rw [box_prod_adj, and_iff_left rfl, or_iff_right (λ h : G.adj a a ∧ _, h.1.ne rfl)]
 
 lemma box_prod_neighbor_set (a : α) (b : β) :
-  (G □ H).neighbor_set ⟨a,b⟩ =
-    ((λ x, (⟨x,b⟩ : α × β)) '' (G.neighbor_set a)) ∪
-    ((λ y, (⟨a,y⟩ : α × β)) '' (H.neighbor_set b)) :=
+  (G □ H).neighbor_set ⟨a,b⟩ = ((λ x, (⟨x,b⟩ : α × β)) '' (G.neighbor_set a)) ∪
+                               ((λ y, (⟨a,y⟩ : α × β)) '' (H.neighbor_set b)) :=
 begin
   ext ⟨x,y⟩,
   simp only [mem_neighbor_set, box_prod_adj, set.mem_union_eq, set.mem_image, prod.mk.inj_iff,
@@ -177,8 +176,7 @@ by { haveI := (nonempty_prod.1 h.nonempty).1, haveI := (nonempty_prod.1 h.nonemp
 @[simp] lemma box_prod_connected : (G □ H).connected ↔ G.connected ∧ H.connected :=
 ⟨λ h, ⟨h.of_box_prod_left, h.of_box_prod_right⟩, λ h, h.1.box_prod h.2⟩
 
-instance
-  [decidable_eq α] [decidable_eq β] [locally_finite G] [locally_finite H] :
+instance [decidable_eq α] [decidable_eq β] [locally_finite G] [locally_finite H] :
   locally_finite (G □ H) :=
 begin
   rintro ⟨_,_⟩,
@@ -210,3 +208,4 @@ begin
 end
 
 end simple_graph
+

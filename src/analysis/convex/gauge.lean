@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.convex.star
+import analysis.convex.basic
 import analysis.normed_space.pointwise
 import analysis.seminorm
 import data.complex.is_R_or_C
@@ -387,6 +387,13 @@ variables {hs₀ : balanced 𝕜 s} {hs₁ : convex ℝ s} {hs₂ : absorbent �
 lemma gauge_seminorm_lt_one_of_open (hs : is_open s) {x : E} (hx : x ∈ s) :
   gauge_seminorm hs₀ hs₁ hs₂ x < 1 :=
 gauge_lt_one_of_mem_of_open hs₁ hs₂.zero_mem hs hx
+
+lemma gauge_seminorm_ball_one (hs : is_open s) :
+  (gauge_seminorm hs₀ hs₁ hs₂).ball 0 1 = s :=
+begin
+  rw seminorm.ball_zero_eq,
+  exact gauge_lt_one_eq_self_of_open hs₁ hs₂.zero_mem hs
+end
 
 end is_R_or_C
 

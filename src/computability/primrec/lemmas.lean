@@ -56,10 +56,10 @@ by { rw [← primrec1_iff_primrec_pred], simpa using primrec.id, }
   primrec (λ x, to_bool (P x)) :=
 by { rw [← primrec1_iff_primrec, primrec1_iff_primrec_pred'], exact hP, }
 
-@[primrec] lemma band : primrec (&&) :=
+@[primrec] protected lemma band : primrec (&&) :=
 by { primrec using (λ b₁ b₂, if b₁ then b₂ else ff), cases b₁; simp, }
 
-@[primrec] lemma bnot : primrec bnot :=
+@[primrec] protected lemma bnot : primrec bnot :=
 by { primrec using (λ b, if b then ff else tt), cases b; refl, }
 
 @[primrec] lemma and {P₁ P₂ : α → Prop} (h₁ : primrec_pred P₁) (h₂ : primrec_pred P₂) :
@@ -92,13 +92,13 @@ begin
   cases f x; simp,
 end
 
-namespace option
+section option
 
 @[primrec] lemma option_elim {f : α → option β} {g : α → γ} {h : α → β → γ} :
   primrec f → primrec g → primrec h → primrec (λ x, (f x).elim (g x) (h x)) :=
 begin
   rintros ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ ⟨h', ph, hh⟩, replace hh := λ x₁ x₂, hh (x₁, x₂),
-  refine ⟨λ x, if f' x = unit_tree.nil then g' x else h' (unit_tree.node x (f' x).right), _, _⟩,
+  refine ⟨λ x, if f' x = unit_tree.nil then g' x else h' (x.node (f' x).right), _, _⟩,
   { rw tree.primrec.iff_primrec at *, primrec, },
   intro x, simp only [hf, hg, has_uncurry.uncurry, id],
   cases f x, { simp [encode], }, { simpa [encode] using hh _ _, },
@@ -184,7 +184,59 @@ begin
   cases f x, { simp [encode], }, { simpa [encode] using hh _ _ _, },
 end
 
+@[primrec] lemma head' : primrec (@list.head' α) :=
+by { delta list.head', delta id_rhs, primrec, }
+
+end list
+
+section nat
+
+@[primrec] lemma succ : primrec nat.succ :=
+⟨_, unit_tree.primrec.nil.pair unit_tree.primrec.id, λ x, by simp [tencodable.encode_succ]⟩
+
+lemma iterate_aux (n : α → unit_tree) (f : α → α) :
+  primrec n → primrec f → primrec (λ x, f^[(n x).nodes] x)
+| ⟨n', pn, hn⟩ ⟨f', pf, hf⟩ :=
+⟨_, unit_tree.primrec.prec pn pf, λ x, begin
+ simp only [hn, has_uncurry.uncurry, id, encode],
+ induction (encode $ n x).nodes; simp [*, function.iterate_succ'],
+end⟩
+
+lemma iterate_aux' {n : α → unit_tree} {f : α → β → β} {g : α → β} (hn : primrec n)
+  (hf : primrec f) (hg : primrec g) : primrec (λ x, (f x)^[(decode ℕ (n x)).iget] (g x)) :=
+begin
+  have := iterate_aux (λ xy, n (prod.fst xy)) (λ xy, (xy.1, f xy.1 xy.2)) (by primrec) (by primrec),
+  convert (snd.comp this).comp (primrec.id.pair hg),
+  ext x, generalize : g x = y, dsimp only [id, decode],
+  induction (n x).nodes with n ih generalizing y, { simp, }, simp [← ih],
+end
+
+@[primrec] lemma iterate {n : α → ℕ} {f : α → β → β} {g : α → β} (hn : primrec n)
+  (hf : primrec f) (hg : primrec g) : primrec (λ x, (f x)^[n x] (g x)) :=
+by simpa using iterate_aux' (primrec.encode.comp hn) hf hg
+
+/- TODO: Move -/
+@[simp] lemma _root_.nat.succ_iterate (n m : ℕ) : nat.succ^[m] n = n + m :=
+by induction m; simp [nat.add_succ, function.iterate_succ', *]
+
+@[primrec] lemma nodes : primrec unit_tree.nodes :=
+by simpa using iterate_aux' primrec.id
+    (show primrec (λ _ : unit_tree, nat.succ), by primrec)
+    (primrec.const 0)
+
+@[primrec] lemma add : primrec ((+) : ℕ → ℕ → ℕ) :=
+by { primrec using (λ x y, nat.succ^[y] x), simp, }
+
+@[primrec] lemma mul : primrec ((*) : ℕ → ℕ → ℕ) :=
+by { primrec using (λ x y, (+x)^[y] 0), induction y; simp [function.iterate_succ', nat.mul_succ, *], }
+
+@[primrec] lemma pred : primrec nat.pred :=
+⟨_, unit_tree.primrec.right, λ n, by cases n; refl⟩
+
+end nat
+
 section stack_recursion
+
 variables {base : γ → α → β} {pre₁ pre₂ : γ → unit_tree → α → α}
   {post : γ → β → β → unit_tree → α → β}
 
@@ -192,10 +244,33 @@ variables {base : γ → α → β} {pre₁ pre₂ : γ → unit_tree → α →
   (hb : primrec base) (hp₁ : primrec pre₁) (hp₂ : primrec pre₂)
   (hp : primrec post) (hs : primrec start) :
    primrec (λ x : γ, unit_tree.stack_step (base x) (pre₁ x) (pre₂ x) (post x) (start x)) :=
-by { delta unit_tree.stack_step, delta id_rhs, primrec, }
+by { delta unit_tree.stack_step, delta id_rhs, sorry { primrec, }, }
+
+@[primrec] lemma tree_stack_rec {start : γ → unit_tree} {arg : γ → α}
+  (hb : primrec base) (hp₁ : primrec pre₁) (hp₂ : primrec pre₂)
+  (hp : primrec post) (hs : primrec start) (hs' : primrec arg) :
+  primrec (λ x, unit_tree.stack_rec (base x) (pre₁ x) (pre₂ x) (post x) (start x) (arg x)) :=
+begin
+  rw [congr_some],
+  primrec using λ x, ((unit_tree.stack_step (base x) (pre₁ x)
+    (pre₂ x) (post x))^[5 * (start x).nodes + 1] [sum.inl (start x, arg x, none)])
+    .head'.bind sum.get_right,
+  rw unit_tree.stack_step_iterate'; refl,
+end
+
+lemma ptree_eq : primrec_pred (@eq unit_tree) :=
+begin
+  suffices : primrec (λ (x y : unit_tree), (x = y : bool)),
+  { rw primrec_pred, simp only [primrec, has_uncurry.uncurry] at this, convert this, ext, congr, },
+  primrec using λ x y, x.stack_rec (λ y' : unit_tree, (y' = unit_tree.nil : bool))
+    (λ _ y', y'.left) (λ _ y', y'.right)
+    (λ b₁ b₂ _ y, !(y = unit_tree.nil : bool) && (b₁ && b₂)) y,
+  induction x with l r ih₁ ih₂ generalizing y; cases y; simp [*],
+end
+
+@[primrec] lemma eq : primrec_pred (@eq α) :=
+by { have := ptree_eq, primrec using (λ x y, encode x = encode y), simp, }
 
 end stack_recursion
-
-end list
 
 end primrec

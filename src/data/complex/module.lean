@@ -316,7 +316,7 @@ variables {A : Type*} [add_comm_group A] [module ℂ A] [star_add_monoid A] [sta
 @[simps] def skew_adjoint.neg_I_smul : skew_adjoint A →ₗ[ℝ] self_adjoint A :=
 { to_fun := λ a, ⟨-I • a, by simp only [self_adjoint.mem_iff, neg_smul, star_neg, star_smul,
     star_def, conj_I, skew_adjoint.star_coe_eq, neg_smul_neg]⟩,
-  map_add' := λ a b, by { ext, simp only [add_subgroup.coe_add, smul_add, add_mem_class.mk_add_mk] },
+  map_add' := λ a b, by { ext, simp only [add_subgroup.coe_add, smul_add, add_mem_class.mk_add_mk]},
   map_smul' := λ a b, by { ext, simp only [neg_smul, skew_adjoint.coe_smul, add_subgroup.coe_mk,
     ring_hom.id_apply, self_adjoint.coe_smul, smul_neg, neg_inj], rw smul_comm, } }
 

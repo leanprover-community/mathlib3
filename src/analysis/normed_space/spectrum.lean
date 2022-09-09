@@ -16,6 +16,9 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 ## Main definitions
 
 * `spectral_radius : ℝ≥0∞`: supremum of `∥k∥₊` for all `k ∈ spectrum 𝕜 a`
+* `normed_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
+  Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
+  is given by selecting the (unique) element of `spectrum ℂ a`
 
 ## Main statements
 
@@ -29,9 +32,6 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius`: Gelfand's formula for the
   spectral radius in Banach algebras over `ℂ`.
 * `spectrum.nonempty`: the spectrum of any element in a complex Banach algebra is nonempty.
-* `normed_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
-  Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
-  is given by selecting the (unique) element of `spectrum ℂ a`
 
 
 ## TODO

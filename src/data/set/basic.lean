@@ -77,7 +77,7 @@ universes u v w x
 
 namespace set
 
-variable {α : Type*}
+variables {α : Type*} {s t : set α}
 
 instance : has_le (set α) := ⟨λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t⟩
 instance : has_subset (set α) := ⟨(≤)⟩
@@ -103,6 +103,12 @@ instance : has_inter (set α) := ⟨(⊓)⟩
 @[simp] lemma inf_eq_inter : ((⊓) : set α → set α → set α) = (∩) := rfl
 @[simp] lemma le_eq_subset : ((≤) : set α → set α → Prop) = (⊆) := rfl
 @[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
+
+lemma le_iff_subset : s ≤ t ↔ s ⊆ t := iff.rfl
+lemma lt_iff_ssubset : s ≤ t ↔ s ⊆ t := iff.rfl
+
+alias le_iff_subset ↔ _root_.has_le.le.subset _root_.has_subset.subset.le
+alias lt_iff_ssubset ↔ _root_.has_lt.lt.ssubset _root_.has_ssubset.ssubset.lt
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type u} : has_coe_to_sort (set α) (Type u) := ⟨λ s, {x // x ∈ s}⟩

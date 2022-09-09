@@ -294,7 +294,7 @@ begin
   have hwuv : s ((w ∩ u) ∆ (w ∩ v)) = 0,
   { refine subset_positive_null_set (hu.union hv) ((hw.inter hu).symm_diff (hw.inter hv))
       (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs _ _,
-    { exact symm_diff_le_sup u v },
+    { exact symm_diff_le_sup.subset },
     { rintro x (⟨⟨hxw, hxu⟩, hx⟩ | ⟨⟨hxw, hxv⟩, hx⟩);
       rw [set.mem_inter_eq, not_and] at hx,
       { exact or.inl ⟨hxu, hx hxw⟩ },

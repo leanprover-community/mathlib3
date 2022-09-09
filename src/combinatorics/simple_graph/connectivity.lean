@@ -1176,10 +1176,10 @@ begin
   exact h.elim (λ q, hp q.to_path),
 end
 
-protected def adj.reachable {u v : V} (h : G.adj u v) :
+protected lemma adj.reachable {u v : V} (h : G.adj u v) :
   G.reachable u v := ⟨walk.cons h walk.nil⟩
 
-protected def walk.reachable {G : simple_graph V} {u v : V} (p : G.walk u v) :
+protected lemma walk.reachable {G : simple_graph V} {u v : V} (p : G.walk u v) :
   G.reachable u v := ⟨p⟩
 
 @[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }

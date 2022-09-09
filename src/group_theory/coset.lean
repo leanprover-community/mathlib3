@@ -496,11 +496,6 @@ lemma quotient_subgroup_of_embedding_of_le_apply_mk (H : subgroup α) (h : s ≤
     quotient_group.mk (inclusion h g) :=
 rfl
 
-@[simp, to_additive]
-lemma quotient_subgroup_of_embedding_of_le_apply_mk' (H : subgroup α) (h : s ≤ t) (g : s) :
-  quotient_subgroup_of_embedding_of_le H h (quotient.mk' g) = quotient.mk' (inclusion h g) :=
-rfl
-
 /-- If `s ≤ t`, then there is an map `H ⧸ s.subgroup_of H ↪ H ⧸ t.subgroup_of H`. -/
 @[to_additive "If `s ≤ t`, then there is an map
   `H ⧸ s.add_subgroup_of H ↪ H ⧸ t.add_subgroup_of H`."]
@@ -511,11 +506,6 @@ quotient.map' id (λ a b, by { simp_rw left_rel_eq, apply h })
 @[simp, to_additive]
 lemma quotient_subgroup_of_map_of_le_apply_mk (H : subgroup α) (h : s ≤ t) (g : H) :
   quotient_subgroup_of_map_of_le H h (quotient_group.mk g) = quotient_group.mk g :=
-rfl
-
-@[simp, to_additive]
-lemma quotient_subgroup_of_map_of_le_apply_mk' (H : subgroup α) (h : s ≤ t) (g : H) :
-  quotient_subgroup_of_map_of_le H h (quotient.mk' g) = quotient.mk' g :=
 rfl
 
 /-- There is an embedding `H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H`. -/
@@ -535,11 +525,6 @@ def quotient_infi_embedding {ι : Type*} (f : ι → subgroup α) (H : subgroup 
 @[simp, to_additive] lemma quotient_infi_embedding_apply_mk
   {ι : Type*} (f : ι → subgroup α) (H : subgroup α) (g : H) (i : ι) :
   quotient_infi_embedding f H (quotient_group.mk g) i = quotient_group.mk g :=
-rfl
-
-@[simp, to_additive] lemma quotient_infi_embedding_apply_mk'
-  {ι : Type*} (f : ι → subgroup α) (H : subgroup α) (g : H) (i : ι) :
-  quotient_infi_embedding f H (quotient.mk' g) i = quotient.mk' g :=
 rfl
 
 @[to_additive] lemma card_eq_card_quotient_mul_card_subgroup

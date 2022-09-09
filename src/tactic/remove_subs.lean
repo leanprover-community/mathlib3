@@ -12,13 +12,12 @@ The tactic `remove_subs` looks for `ℕ`-subtractions in the goal and recursivel
 subexpression of the form `a - b` by two branches: one where `a ≤ b` and `a - b` is replaced
 by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b + c`.
 
-If called with an optional `!` flag, then `remove_subs!` tries `linarith` on all remaining goals.
+If called with the optional `!`-flag, then `remove_subs!` tries `linarith` on all remaining goals.
 
 See the tactic-doc for further details.
 
 ##  Todo
-*  allow `remove_subs` to work `at *`?
-*  extend its scope to include also case-splits on `max/min`?  possibly even `split_ifs`?
+*  extend the scope of `remove_subs` to include also `max/min`?  possibly even `split_ifs`?
 -/
 
 namespace tactic
@@ -85,17 +84,16 @@ cases `(nat.le_cases %%a %%b) [eq0, exis],
 swap,
 -- on the branch where `∃ c, a = b + c`...
   get_local exis >>= λ x, cases x [var, ide],
-  [vare, lide] ← [var, ide].mmap get_local,
-  -- either substitute or rewrite `a` and then clear the subtraction
-  subst lide <|> rw_at lo lide,
+  -- either substitute `a = b + c` or rewrite `a` and then simplify the subtraction `b + c - b`
+  get_local ide >>= (λ x, subst x <|> rw_at lo x),
+  vare ← get_local var,
   to_expr ``(nat.add_sub_cancel_left %%b %%vare) >>= rw_at lo <|>
     fail"could not rewrite: something went wrong",
 swap
 
-setup_tactic_parser
 /--  `remove_subs_aux` acts like `remove_subs`, except that it takes a single location as input.
 See the doc-string of `remove_subs` for more details. -/
-meta def remove_subs_aux (la : parse (tk "!" )?) (lo : option name) : tactic unit := focus1 $ do
+meta def remove_subs_aux (la : bool) (lo : option name) : tactic unit := focus1 $ do
 ht ← match lo with
      | none    := target
      | some na := get_local na >>= infer_type
@@ -110,7 +108,7 @@ ht ← match lo with
 end,
 some (a, b) ← list.last' <$> (get_sub lo ht),
 remove_one_sub lo a b ),
-when la.is_some $ any_goals' $ try `[ linarith ]
+when la $ any_goals' $ try `[ linarith ]
 
 section error_reporting
 
@@ -140,18 +138,19 @@ number.  The tactic `remove_subs` tries to remedy this by doing a case-split on 
 usual notion of subtraction.
 
 `remove_subs` fails if there are unused locations, unless it is `remove_subs at *` which only
-fails if it uses at most one location (and suggests the unique location via a `Try this`, when
+fails if it uses at most one location (and suggests the unique location via `Try this`, when
 appropriate).
 
-If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
+If `remove_subs` is called with the optional `!`-flag, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : parse location → tactic unit
 | loc.wildcard := do
   nms ← loc.get_local_pp_names loc.wildcard,
-  goods ← (none :: nms.map some).mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la x),
+  goods ← (none :: nms.map some).mfilter $
+    λ x, option.is_some <$> try_core (remove_subs_aux la.is_some x),
   when (goods.length ≤ 1) $ fail (report goods la.is_some)
 | (loc.ns xs)  := do
-  goods ← xs.mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la x),
+  goods ← xs.mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la.is_some x),
   when (goods.length < xs.length) $ fail (report goods la.is_some)
 
 end interactive

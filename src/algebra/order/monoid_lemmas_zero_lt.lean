@@ -884,37 +884,36 @@ lemma lt_mul_of_one_lt_left [mul_pos_strict_mono α] (b0 : 0 < b) (h : 1 < a) : 
 lt_mul_of_one_lt_of_le h le_rfl b0
 
 lemma le_of_mul_le_of_one_le_left [pos_mul_mono α]
-  (h : a * b ≤ c) (hle : 1 ≤ b) (a0 : 0 ≤ a) : a ≤ c :=
-(le_mul_of_one_le_right hle a0).trans h
+  (h : a * b ≤ c) (hb : 1 ≤ b) (a0 : 0 ≤ a) : a ≤ c :=
+(le_mul_of_one_le_right hb a0).trans h
 
 lemma lt_of_mul_lt_of_one_le_left [pos_mul_mono α]
-  (h : a * b < c) (hle : 1 ≤ b) (a0 : 0 ≤ a) : a < c :=
-(le_mul_of_one_le_right hle a0).trans_lt h
+  (h : a * b < c) (hb : 1 ≤ b) (a0 : 0 ≤ a) : a < c :=
+(le_mul_of_one_le_right hb a0).trans_lt h
 
 lemma le_of_le_mul_of_le_one_left [pos_mul_mono α]
-  (h : a ≤ b * c) (hle : c ≤ 1) (b0 : 0 ≤ b) : a ≤ b :=
-h.trans (mul_le_of_le_one_right hle b0)
+  (h : c ≤ a * b) (hb : b ≤ 1) (a0 : 0 ≤ a) : c ≤ a :=
+h.trans (mul_le_of_le_one_right hb a0)
 
 lemma lt_of_lt_mul_of_le_one_left [pos_mul_mono α]
-  (h : a < b * c) (hle : c ≤ 1) (b0 : 0 ≤ b) : a < b :=
-h.trans_le (mul_le_of_le_one_right hle b0)
+  (h : c < a * b) (hb : b ≤ 1) (a0 : 0 ≤ a) : c < a :=
+h.trans_le (mul_le_of_le_one_right hb a0)
 
 lemma le_of_mul_le_of_one_le_right [mul_pos_mono α]
-  (h : a * b ≤ c) (hle : 1 ≤ a) (b0 : 0 ≤ b) : b ≤ c :=
-(le_mul_of_one_le_left hle b0).trans h
+  (h : a * b ≤ c) (ha : 1 ≤ a) (b0 : 0 ≤ b) : b ≤ c :=
+(le_mul_of_one_le_left ha b0).trans h
 
 lemma lt_of_mul_lt_of_one_le_right [mul_pos_mono α]
-  (h : a * b < c) (hle : 1 ≤ a) (b0 : 0 ≤ b) : b < c :=
-(le_mul_of_one_le_left hle b0).trans_lt h
+  (h : a * b < c) (ha : 1 ≤ a) (b0 : 0 ≤ b) : b < c :=
+(le_mul_of_one_le_left ha b0).trans_lt h
 
 lemma le_of_le_mul_of_le_one_right [mul_pos_mono α]
-  (h : a ≤ b * c) (hle : b ≤ 1) (c0 : 0 ≤ c) : a ≤ c :=
-h.trans (mul_le_of_le_one_left hle c0)
+  (h : c ≤ a * b) (ha : a ≤ 1) (b0 : 0 ≤ b) : c ≤ b :=
+h.trans (mul_le_of_le_one_left ha b0)
 
 lemma lt_of_lt_mul_of_le_one_right [mul_pos_mono α]
-  (h : a < b * c) (hle : b ≤ 1) (c0 : 0 ≤ c) :
-  a < c :=
-h.trans_le (mul_le_of_le_one_left hle c0)
+  (h : c < a * b) (ha : a ≤ 1) (b0 : 0 ≤ b) : c < b :=
+h.trans_le (mul_le_of_le_one_left ha b0)
 
 end preorder
 

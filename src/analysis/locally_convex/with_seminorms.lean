@@ -133,7 +133,7 @@ begin
   { simp_rw (lt_div_iff h).symm,
     rw ←_root_.ball_zero_eq,
     exact metric.ball_mem_nhds 0 (div_pos hr h) },
-  simp_rw [le_antisymm (not_lt.mp h) (map_nonneg_add _ v), mul_zero, hr],
+  simp_rw [le_antisymm (not_lt.mp h) (map_nonneg _ v), mul_zero, hr],
   exact is_open.mem_nhds is_open_univ (mem_univ 0),
 end
 

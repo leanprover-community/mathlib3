@@ -397,7 +397,7 @@ begin
   obtain hp | hp := {r : ℝ | 0 < r ∧ x ∈ r • p.ball 0 1}.eq_empty_or_nonempty,
   { rw [gauge, hp, real.Inf_empty],
     by_contra,
-    have hpx : 0 < p x := (map_nonneg_add _ _).lt_of_ne h,
+    have hpx : 0 < p x := (map_nonneg _ _).lt_of_ne h,
     have hpx₂ : 0 < 2 * p x := mul_pos zero_lt_two hpx,
     refine hp.subset ⟨hpx₂, (2 * p x)⁻¹ • x, _, smul_inv_smul₀ hpx₂.ne' _⟩,
     rw [p.mem_ball_zero, map_smul_eq_mul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpx₂),

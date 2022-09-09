@@ -90,7 +90,7 @@ include E
 @[to_additive] lemma map_div_le_add : f (x / y) ≤ f x + f y :=
 by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 
-@[simp, to_additive] lemma map_nonneg_mul : 0 ≤ f x :=
+@[simp, to_additive] lemma map_nonneg : 0 ≤ f x :=
 nonneg_of_mul_nonneg_right
   (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' x], exact map_div_le_add _ _ _ }) two_pos
 
@@ -116,8 +116,8 @@ open positivity
 /-- Extension for the `positivity` tactic: seminorms are nonnegative. -/
 @[positivity]
 meta def positivity_seminorm : expr → tactic strictness
-| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg_add [f, a]
-               <|> nonnegative <$> mk_app ``map_nonneg_mul [f, a]
+| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
+               <|> nonnegative <$> mk_app ``map_nonneg [f, a]
 | _ := failed
 
 end tactic

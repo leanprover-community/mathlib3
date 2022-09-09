@@ -143,11 +143,10 @@ also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : parse location → tactic unit
 | loc.wildcard := do
   nms ← loc.get_local_pp_names loc.wildcard,
-  goods ← (none :: nms.map some).mfilter $
-    λ x, option.is_some <$> try_core (remove_subs_aux la.is_some x),
+  goods ← (none :: nms.map some).mfilter $ λ x, succeeds $ remove_subs_aux la.is_some x,
   when (goods.length ≤ 1) $ fail (report goods la.is_some)
 | (loc.ns xs)  := do
-  goods ← xs.mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la.is_some x),
+  goods ← xs.mfilter $ λ x, succeeds $ remove_subs_aux la.is_some x,
   when (goods.length < xs.length) $ fail (report goods la.is_some)
 
 end interactive

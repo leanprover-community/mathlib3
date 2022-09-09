@@ -58,6 +58,24 @@ lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiri
 -- `char_p.char_p_to_char_zero A _ (char_p_of_injective_algebra_map h 0)` does not work
 -- here as it would require `ring A`.
 
+/-!
+As an application, a `ℚ`-algebra has characteristic zero.
+-/
+section Q_algebra
+
+variables (R : Type*) [nontrivial R]
+
+instance Q_algebra_char_p_zero [semiring R] [algebra ℚ R] : char_p R 0 :=
+char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0
+
+instance Q_algebra_char_zero [ring R] [algebra ℚ R] : char_zero R :=
+char_p.char_p_to_char_zero R
+
+end Q_algebra
+
+/-!
+An algebra over a field has the same characteristic as the field.
+-/
 section
 
 variables (K L : Type*) [field K] [comm_semiring L] [nontrivial L] [algebra K L]

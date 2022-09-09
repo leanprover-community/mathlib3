@@ -727,7 +727,6 @@ end
 instance ordered_ring.to_ordered_cancel_semiring : ordered_cancel_semiring α :=
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
-  add_left_cancel            := @add_left_cancel α _,
   le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
   mul_lt_mul_of_pos_left     := @ordered_ring.mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @ordered_ring.mul_lt_mul_of_pos_right α _,
@@ -937,14 +936,7 @@ variables [linear_ordered_ring α] {a b c : α}
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semiring α :=
-{ mul_zero                   := mul_zero,
-  zero_mul                   := zero_mul,
-  add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
-  mul_lt_mul_of_pos_left     := λ _ _ _, mul_lt_mul_of_pos_left,
-  mul_lt_mul_of_pos_right    := λ _ _ _, mul_lt_mul_of_pos_right,
-  le_total                   := linear_ordered_ring.le_total,
-  ..‹linear_ordered_ring α› }
+{ ..‹linear_ordered_ring α›, ..ordered_ring.to_ordered_cancel_semiring }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.is_domain : is_domain α :=

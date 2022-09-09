@@ -123,17 +123,10 @@ include E
 @[to_additive] lemma map_div_le_add : f (x / y) ≤ f x + f y :=
 by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 
-@[simp, to_additive] lemma map_nonneg_mul : 0 ≤ f x :=
-nonneg_of_mul_nonneg_right
-  (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' x], exact map_div_le_add _ _ _ }) two_pos
-
 @[to_additive] lemma map_div_rev : f (x / y) = f (y / x) := by rw [←inv_div, map_inv_eq_map]
 
-/-- The direct path from `1` to `x` is shorter than the path with `y` "inserted" in between. -/
-@[to_additive "The direct path from `0` to `x` is shorter than the path with `y` \"inserted\" in
-between."]
-lemma le_map_add_map_div' : f x ≤ f y + f (x / y) :=
-by simpa only [add_comm, div_mul_cancel'] using map_mul_le_add f (x / y) y
+@[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
+by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
 
 end group_seminorm_class
 
@@ -149,7 +142,7 @@ variables [group E] [group_norm_class F E] (f : F) {x : E}
 include E
 
 @[to_additive] lemma map_pos_of_ne_one (hx : x ≠ 1) : 0 < f x :=
-(map_nonneg_mul _ _).lt_of_ne $ λ h, hx $ eq_one_of_map_eq_zero _ h.symm
+(map_nonneg _ _).lt_of_ne $ λ h, hx $ eq_one_of_map_eq_zero _ h.symm
 
 @[simp, to_additive] lemma map_eq_zero_iff_eq_one : f x = 0 ↔ x = 1 :=
 ⟨eq_one_of_map_eq_zero _, by { rintro rfl, exact map_one_eq_zero _ }⟩

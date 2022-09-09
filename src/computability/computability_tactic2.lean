@@ -123,8 +123,8 @@ end interactive
 
 end tactic
 
-@[primrec] lemma tree.primrec.of_primrec {f : tree unit → tree unit} (hf : primrec f) :
-  tree.primrec f := by simpa
+@[primrec] lemma unit_tree.primrec.of_primrec {f : unit_tree → unit_tree} (hf : primrec f) :
+  unit_tree.primrec f := by simpa
 
 @[primrec] lemma primrec1_of_primrec {α β : Type} [tencodable α] [tencodable β] {f : α → β}
   (hf : primrec f) : primrec1 f := by simpa

@@ -39,22 +39,22 @@ to write functions naturally in Lean and then automatically prove that they are 
 polynomial time, etc. using a tactic.
 -/
 
-namespace tree
+namespace unit_tree
 
-/-- Recursion with an explicit stack for `tree unit` -/
+/-- Recursion with an explicit stack for `unit_tree` -/
 @[simp]
-def stack_rec {α : Type} {motive : Type} (base : α → motive) (pre₁ pre₂ : tree unit → α → α)
-  (post : motive → motive → tree unit → α → motive) : tree unit → α → motive
+def stack_rec {α : Type} {motive : Type} (base : α → motive) (pre₁ pre₂ : unit_tree → α → α)
+  (post : motive → motive → unit_tree → α → motive) : unit_tree → α → motive
 | nil d := base d
-| T@(node () x y) d := post (stack_rec x (pre₁ T d)) (stack_rec y (pre₂ T d)) T d
+| T@(node x y) d := post (stack_rec x (pre₁ T d)) (stack_rec y (pre₂ T d)) T d
 
 /-- An element on the stack is either the result (`sum.inr (x : β)`), or
   the: tree, the argument α, and potentially what the left branch computed
   if that computation has finished (`option β`)
   -/
-abbreviation iterator_stack (α β : Type) := (tree unit × α × option β) ⊕ β
-variables {α : Type} {β : Type} (base : α → β) (pre₁ pre₂ : tree unit → α → α)
-  (post : β → β → tree unit → α → β)
+abbreviation iterator_stack (α β : Type) := (unit_tree × α × option β) ⊕ β
+variables {α : Type} {β : Type} (base : α → β) (pre₁ pre₂ : unit_tree → α → α)
+  (post : β → β → unit_tree → α → β)
 
 /-- Do a single step of the iteration. In particular,
     - If the top of the stack is a result, pop the value before that and plug in the result.
@@ -69,37 +69,31 @@ variables {α : Type} {β : Type} (base : α → β) (pre₁ pre₂ : tree unit 
     sum.inr (post left_res res tree arg) :: xs
 | L@(sum.inl (tree, arg, some left_res) :: xs) := sum.inl (tree.right, pre₂ tree arg, none) :: L
 | (sum.inl (nil, arg, none) :: xs) := sum.inr (base arg) :: xs
-| L@(sum.inl ((node () x y), arg, none) :: xs) := sum.inl (x, pre₁ (node () x y) arg, none) :: L
+| L@(sum.inl ((node x y), arg, none) :: xs) := sum.inl (x, pre₁ (node x y) arg, none) :: L
 | x := x
 
 @[simp] lemma stack_step_nil : stack_step base pre₁ pre₂ post [] = [] := rfl
 @[simp] lemma stack_step_singleton (res : β) :
   stack_step base pre₁ pre₂ post [sum.inr res] = [sum.inr res] := rfl
 
-def time_steps (x : tree unit) : ℕ := 5 * (tencodable.to_nat x) + 1
+def time_steps (x : unit_tree) : ℕ := 5 * x.nodes + 1
 
 @[simp] lemma time_steps_nil : time_steps nil = 1 := rfl
-lemma time_steps_node (a b) : time_steps (node () a b) = 1 + b.time_steps + 2 + a.time_steps + 1 :=
-by { simp only [time_steps, tencodable.to_nat_node, mul_add, show 5 * 1 = 1 + 2 + 1 + 1, from rfl],
-  ac_refl, }
+lemma time_steps_node (a b) : time_steps (node a b) = 1 + b.time_steps + 2 + a.time_steps + 1 :=
+by { simp only [time_steps, nodes, mul_add, show 5 * 1 = 1 + 2 + 1 + 1, from rfl], ac_refl, }
 
-@[simp] lemma stack_step_iterate (x : tree unit) (arg : α) (xs : list (iterator_stack α β)) :
+@[simp] lemma stack_step_iterate (x : unit_tree) (arg : α) (xs : list (iterator_stack α β)) :
   (stack_step base pre₁ pre₂ post)^[x.time_steps] (sum.inl (x, arg, none) :: xs) =
   (sum.inr $ x.stack_rec base pre₁ pre₂ post arg) :: xs :=
-by {
-  induction x generalizing arg xs,
-  { simp [time_steps_node, function.iterate_add, *], },
-  have : x_ᾰ = () := punit_eq_star _,
-  simp [time_steps_node, function.iterate_add, *],
-}
+by induction x generalizing arg xs; simp [time_steps_node, function.iterate_add, *]
 
-lemma stack_step_iterate' (x : tree unit) (arg : α) {n : ℕ} (hn : 5 * (tencodable.to_nat x) + 1 ≤ n) :
-  (stack_step base pre₁ pre₂ post)^[n] [sum.inl (x, arg, none)] = [sum.inr $ x.stack_rec base pre₁ pre₂ post arg] :=
+lemma stack_step_iterate' (x : unit_tree) (arg : α) {n : ℕ} (hn : 5 * x.nodes + 1 ≤ n) :
+  (stack_step base pre₁ pre₂ post)^[n] [sum.inl (x, arg, none)] =
+    [sum.inr $ x.stack_rec base pre₁ pre₂ post arg] :=
 begin
   rw ← time_steps at hn,
   rcases le_iff_exists_add'.mp hn with ⟨n, rfl⟩,
   simp [function.iterate_add, function.iterate_fixed],
 end
 
-
-end tree
+end unit_tree

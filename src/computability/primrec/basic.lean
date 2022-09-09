@@ -23,7 +23,7 @@ for this.)
 
 ## Definitions
 
-  - `tree.primrec` -  Functions `tree unit → tree unit` which are primitive recursive
+  - `tree.primrec` -  Functions `unit_tree → unit_tree` which are primitive recursive
   - `primrec1` - In general, the promise problems which have primitive recursive solutions.
     Specifically, `f : α → β` is `primrec1` if there is a primitive recursive function
     `ptree → ptree` which computes `f(x)` assuming `x` is correctly encoded.
@@ -37,49 +37,48 @@ for this.)
 * [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
 -/
 
-open tree tencodable function
+open unit_tree tencodable function
 
-namespace tree
+namespace unit_tree
 
-inductive primrec : (tree unit → tree unit) → Prop
+inductive primrec : (unit_tree → unit_tree) → Prop
 | nil : primrec (λ _, nil)
 | left : primrec (λ x, x.left)
 | right : primrec (λ x, x.right)
-| pair {f₁ f₂} : primrec f₁ → primrec f₂ → primrec (λ x, node () (f₁ x) (f₂ x))
+| pair {f₁ f₂} : primrec f₁ → primrec f₂ → primrec (λ x, node (f₁ x) (f₂ x))
 | comp {f₁ f₂} : primrec f₁ → primrec f₂ → primrec (f₁ ∘ f₂)
-| prec {f g} : primrec f → primrec g → primrec (λ x, g^[to_nat (f x)] x)
+| prec {f g} : primrec f → primrec g → primrec (λ x, g^[(f x).nodes] x)
 
 namespace primrec
 
-theorem of_eq {f g : tree unit → tree unit} (hf : primrec f) (H : ∀ n, f n = g n) : primrec g :=
+theorem of_eq {f g : unit_tree → unit_tree} (hf : primrec f) (H : ∀ n, f n = g n) : primrec g :=
 (funext H : f = g) ▸ hf
 
-protected theorem const : ∀ (n : tree unit), primrec (λ _, n)
-| tree.nil := nil
-| (node () x y) := (const x).pair (const y)
+protected theorem const : ∀ (n : unit_tree), primrec (λ _, n)
+| unit_tree.nil := nil
+| (node x y) := (const x).pair (const y)
 
 protected theorem id : primrec (λ x, x) := prec nil left
 
 protected theorem ite {f g₁ g₂} (hf : primrec f) (hg₁ : primrec g₁) (hg₂ : primrec g₂) :
-  primrec (λ x, if f x = tree.nil then g₁ x else g₂ x) :=
+  primrec (λ x, if f x = unit_tree.nil then g₁ x else g₂ x) :=
 (left.comp ((prec (hf.comp right) (pair (hg₂.comp right) right)).comp (pair hg₁ primrec.id))).of_eq
 begin
-  intro x,
-  rcases H : f x with (_ | ⟨U, _, _⟩), { simp [H], },
-  simp only [H, comp_app, tree.right, to_nat_node, iterate_succ, punit_eq_star U],
+  intro x, cases H : f x, { simp [H], },
+  simp only [H, comp_app, unit_tree.right, nodes, iterate_succ],
   rw iterate_fixed; simp,
 end
 
 end primrec
 
-end tree
+end unit_tree
 
 variables {α β γ δ ε ζ η : Type}
 variables [tencodable α] [tencodable β]
 
 /-- A primitive recursive function in one argument -/
 def primrec1 (f : α → β) : Prop :=
-∃ (f' : tree unit → tree unit), tree.primrec f' ∧ ∀ x : α, f' (encode x) = encode (f x)
+∃ (f' : unit_tree → unit_tree), unit_tree.primrec f' ∧ ∀ x : α, f' (encode x) = encode (f x)
 
 /-- Primitive recursive functions in many arguments -/
 def primrec [has_uncurry γ α β] (f : γ) : Prop :=
@@ -100,17 +99,17 @@ primrec1 (λ x : α, @to_bool (↿f x) (classical.dec _))
   primrec1 (λ x, to_bool (f x)) ↔ primrec_pred f :=
 by { convert primrec1_iff_primrec_pred, ext, congr, }
 
-@[simp] lemma tree.primrec.iff_primrec {f : tree unit → tree unit} :
-  tree.primrec f ↔ primrec f :=
+@[simp] lemma tree.primrec.iff_primrec {f : unit_tree → unit_tree} :
+  unit_tree.primrec f ↔ primrec f :=
 ⟨λ pf, ⟨f, pf, λ _, rfl⟩, λ ⟨f', pf, hf⟩, pf.of_eq hf⟩
 
 namespace primrec
 
 protected theorem id : primrec (@id α) :=
-⟨_, tree.primrec.id, λ _, rfl⟩
+⟨_, unit_tree.primrec.id, λ _, rfl⟩
 
 protected theorem const (x : α) :
-primrec (λ _ : β, x) := ⟨_, tree.primrec.const (encode x), λ _, rfl⟩
+primrec (λ _ : β, x) := ⟨_, unit_tree.primrec.const (encode x), λ _, rfl⟩
 
 section primcodable
 
@@ -120,9 +119,9 @@ class primcodable (α : Type*) extends tencodable α :=
 (prim [] : primrec (tencodable.decode α))
 
 protected lemma some : primrec (@some α) :=
-⟨_, tree.primrec.nil.pair tree.primrec.id, λ x, by simp [encode, has_uncurry.uncurry]⟩
+⟨_, unit_tree.primrec.nil.pair unit_tree.primrec.id, λ x, by simp [encode, has_uncurry.uncurry]⟩
 
-instance : primcodable (tree unit) :=
+instance : primcodable unit_tree :=
 { prim := primrec.some }
 
 instance : primcodable unit :=
@@ -142,13 +141,13 @@ theorem pair {f : α → β} {g : α → γ} : primrec f → primrec g → primr
 | ⟨f', pf', hf'⟩ ⟨g', pg', hg'⟩ :=
 ⟨_, pf'.pair pg', λ x, by simp [hf', hg', encode, has_uncurry.uncurry]⟩
 
-theorem fst : primrec (@prod.fst α β) := ⟨_, tree.primrec.left, λ _, rfl⟩
-theorem snd : primrec (@prod.snd α β) := ⟨_, tree.primrec.right, λ _, rfl⟩
+theorem fst : primrec (@prod.fst α β) := ⟨_, unit_tree.primrec.left, λ _, rfl⟩
+theorem snd : primrec (@prod.snd α β) := ⟨_, unit_tree.primrec.right, λ _, rfl⟩
 
 protected lemma ite {P : α → Prop} [decidable_pred P] {f : α → β} {g : α → β} :
   primrec_pred P → primrec f → primrec g → primrec (λ x, if P x then f x else g x)
 | ⟨P', pP, hP⟩ ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ :=
-⟨_, tree.primrec.ite pP pf pg, λ x, by by_cases P x; simp [*, encode, has_uncurry.uncurry]⟩
+⟨_, unit_tree.primrec.ite pP pf pg, λ x, by by_cases P x; simp [*, encode, has_uncurry.uncurry]⟩
 
 -- TODO: Autogenerate these lemmas
 

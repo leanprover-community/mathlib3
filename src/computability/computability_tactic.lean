@@ -223,7 +223,7 @@ namespace interactive
 
 meta def primrec (rw_tgt : parse $ (tk "using" *> texpr)?) :
   tactic unit :=
-`[simp only [primrec1_iff_primrec, primrec1_iff_primrec_pred', tree.primrec.iff_primrec] { fail_if_unchanged := ff}] >>
+`[simp only [primrec1_iff_primrec, primrec1_iff_primrec_pred', unit_tree.primrec.iff_primrec] { fail_if_unchanged := ff}] >>
 rw_tgt.elim skip (λ rw_tgt', rw_arg_ext rw_tgt') >>
 repeat1 step_computability
 

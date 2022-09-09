@@ -368,7 +368,7 @@ lemma left.mul_pos [pos_mul_strict_mono α]
 have h : a * 0 < a * b, from mul_lt_mul_left' hb ha,
 by rwa [mul_zero] at h
 
-alias left.mul_pos ← _root_.mul_pos
+alias left.mul_pos ← mul_pos
 
 lemma mul_neg_of_pos_of_neg [pos_mul_strict_mono α]
   (ha : 0 < a) (hb : b < 0) :
@@ -573,6 +573,8 @@ lemma left.neg_of_mul_neg_left [pos_mul_mono α]
   b < 0 :=
 lt_of_not_ge (assume h2 : b ≥ 0, (left.mul_nonneg h1 h2).not_lt h)
 
+alias left.neg_of_mul_neg_left ← neg_of_mul_neg_left
+
 lemma right.neg_of_mul_neg_left [mul_pos_mono α]
   (h : a * b < 0) (h1 : 0 ≤ a) :
   b < 0 :=
@@ -581,6 +583,8 @@ lt_of_not_ge (assume h2 : b ≥ 0, (right.mul_nonneg h1 h2).not_lt h)
 lemma left.neg_of_mul_neg_right [pos_mul_mono α]
   (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
 lt_of_not_ge (assume h2 : a ≥ 0, (left.mul_nonneg h2 h1).not_lt h)
+
+alias left.neg_of_mul_neg_right ← neg_of_mul_neg_right
 
 lemma right.neg_of_mul_neg_right [mul_pos_mono α]
   (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
@@ -687,7 +691,7 @@ calc  b * a < b * 1 : mul_lt_mul_left' ha b0
 
 -- proven with `a0 : 0 ≤ a` as `left.mul_le_one_of_le_of_le`
 /-- Assumes left covariance. -/
-lemma preorder.left.mul_le_one_of_le_of_le' [pos_mul_mono α]
+lemma preorder.left.mul_le_one_of_le_of_le [pos_mul_mono α]
   (ha : a ≤ 1) (hb : b ≤ 1) (a0 : 0 < a) : a * b ≤ 1 :=
 preorder.mul_le_of_le_of_le_one ha hb a0
 

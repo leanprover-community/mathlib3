@@ -14,6 +14,18 @@ import algebra.polynomial.big_operators
 
 This file starts looking like the ring theory of $ R[X] $
 
+## Main definitions
+
+* `polynomial.roots p`: The multiset containing all the roots of `p`, including their
+  multiplicities.
+* `polynomial.root_set p E`: The set of distinct roots of `p` in an algebra `E`.
+
+## Main statements
+
+* `polynomial.C_leading_coeff_mul_prod_multiset_X_sub_C`: If a polynomial has as many roots as its
+  degree, it can be written as the product of its leading coefficient with `∏ (X - a)` where `a`
+  ranges through its roots.
+
 -/
 
 noncomputable theory
@@ -144,6 +156,12 @@ begin
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
+lemma degree_le_of_dvd {p q : R[X]} (h1 : p ∣ q) (h2 : q ≠ 0) : degree p ≤ degree q :=
+begin
+  rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
+  exact degree_le_mul_left p h2.2,
+end
+
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
 lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
@@ -152,6 +170,36 @@ begin
   rw sub_eq_sub_iff_add_eq_add,
   norm_cast,
   rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
+end
+
+variables [char_zero R]
+
+@[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
+by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : polynomial R) = C 2),
+  @polynomial.degree_C R _ _ two_ne_zero', zero_add]
+
+@[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
+nat_degree_eq_of_degree_eq $ degree_bit0_eq p
+
+@[simp]
+lemma nat_degree_bit1_eq (p : R[X]) : nat_degree (bit1 p) = nat_degree p :=
+begin
+  rw bit1,
+  apply le_antisymm,
+  convert nat_degree_add_le _ _,
+  { simp, },
+  by_cases h : p.nat_degree = 0,
+  { simp [h], },
+  apply le_nat_degree_of_ne_zero,
+  intro hh,
+  apply h,
+  simp [*, coeff_one, if_neg (ne.symm h)] at *,
+end
+
+lemma degree_bit1_eq {p : R[X]} (hp : 0 < degree p) : degree (bit1 p) = degree p :=
+begin
+  rw [bit1, degree_add_eq_left_of_degree_lt, degree_bit0_eq],
+  rwa [degree_one, degree_bit0_eq]
 end
 
 end no_zero_divisors
@@ -372,6 +420,12 @@ end
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
 
+lemma ne_zero_of_mem_roots (h : a ∈ p.roots) : p ≠ 0 :=
+λ hp, by rwa [hp, roots_zero] at h
+
+lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a :=
+(mem_roots $ ne_zero_of_mem_roots h).mp h
+
 theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R} (h : Z.val ⊆ p.roots) :
   Z.card ≤ p.nat_degree :=
 (multiset.card_le_of_le (finset.val_le_iff_val_subset.2 h)).trans (polynomial.card_roots' p)
@@ -421,7 +475,7 @@ begin
   rw [count_roots, root_multiplicity_X_sub_C],
   split_ifs with h,
   { rw [h, count_singleton_self] },
-  { rw [singleton_eq_cons, count_cons_of_ne h, count_zero] }
+  { rw [←cons_zero, count_cons_of_ne h, count_zero] }
 end
 
 @[simp] lemma roots_C (x : R) : (C x).roots = 0 :=
@@ -671,6 +725,23 @@ begin
   rw ←polynomial.map_zero (algebra_map T S) at h,
   exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
 end
+
+lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S'] (hp : p.map (algebra_map T S') ≠ 0)
+  (f : S →ₐ[T] S') : (p.root_set S).maps_to f (p.root_set S') :=
+λ x hx, begin
+  rw [mem_root_set_iff' hp, ← f.comp_algebra_map, ← map_map, eval_map],
+  erw [eval₂_hom, (mem_root_set_iff' (mt (λ h, _) hp) x).1 hx, _root_.map_zero],
+  rw [← f.comp_algebra_map, ← map_map, h, polynomial.map_zero],
+end
+
+lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S] {a : S}
+  (h : a ∈ p.root_set S) : p ≠ 0 :=
+λ hf, by rwa [hf, root_set_zero] at h
+
+lemma aeval_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S]
+  [no_zero_smul_divisors T S] {a : S} (hx : a ∈ p.root_set S) : aeval a p = 0 :=
+(mem_root_set_iff (ne_zero_of_mem_root_set hx) a).mp hx
 
 end roots
 

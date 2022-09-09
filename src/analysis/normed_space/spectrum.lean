@@ -130,7 +130,7 @@ section resolvent
 
 open filter asymptotics
 
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
@@ -185,10 +185,10 @@ open continuous_multilinear_map ennreal formal_multilinear_series
 open_locale nnreal ennreal
 
 variables
-[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+[nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 variable (𝕜)
-/-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
+/-- In a Banach algebra `A` over a nontrivially normed field `𝕜`, for any `a : A` the
 power series with coefficients `a ^ n` represents the function `(1 - z • a)⁻¹` in a disk of
 radius `∥a∥₊⁻¹`. -/
 lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) :
@@ -413,27 +413,34 @@ section normed_field
 variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
+
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
 automatically bounded). -/
-@[simps] def to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
-φ.to_linear_map.mk_continuous_of_exists_bound $
-  ⟨1, λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _)⟩
+instance [norm_one_class A] : continuous_linear_map_class (A →ₐ[𝕜] 𝕜) 𝕜 A 𝕜 :=
+{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ 1 $
+    λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (apply_mem_spectrum φ _),
+  .. alg_hom_class.linear_map_class }
 
-lemma continuous [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : continuous φ :=
-φ.to_continuous_linear_map.continuous
+/-- An algebra homomorphism into the base field, as a continuous linear map (since it is
+automatically bounded). -/
+def to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
+{ cont := map_continuous φ, .. φ.to_linear_map }
+
+@[simp] lemma coe_to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
+  ⇑φ.to_continuous_linear_map = φ := rfl
 
 end normed_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+section nontrivially_normed_field
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 @[simp] lemma to_continuous_linear_map_norm [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
   ∥φ.to_continuous_linear_map∥ = 1 :=
 continuous_linear_map.op_norm_eq_of_bounds zero_le_one
-  (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _))
-  (λ _ _ h, by simpa only [to_continuous_linear_map_apply, mul_one, map_one, norm_one] using h 1)
+  (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (apply_mem_spectrum φ _))
+  (λ _ _ h, by simpa only [coe_to_continuous_linear_map, map_one, norm_one, mul_one] using h 1)
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 
 end alg_hom

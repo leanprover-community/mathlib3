@@ -380,7 +380,7 @@ variable (M)
 /-- A `neword M i j` is a representation of a non-empty reduced words where the first letter comes
 from `M i` and the last letter comes from `M j`. It can be constructed from singletons and via
 concatentation, and thus provides a useful induction principle. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 inductive neword : ι → ι → Type (max u_1 u_2)
 | singleton : ∀ {i} (x : M i) (hne1 : x ≠ 1), neword i i
 | append : ∀ {i j k l} (w₁ : neword i j) (hne : j ≠ k) (w₂ : neword k l), neword i l
@@ -461,8 +461,8 @@ def to_word {i j} (w : neword M i j) : word M :=
 lemma of_word (w : word M) (h : w ≠ empty) :
   ∃ i j (w' : neword M i j), w'.to_word = w :=
 begin
-  suffices : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
-  { obtain ⟨i, j, w, h⟩ := this, refine ⟨i, j, w, _⟩, ext, rw h, },
+  rsuffices ⟨i, j, w, h⟩ : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
+  { refine ⟨i, j, w, _⟩, ext, rw h, },
   cases w with l hnot1 hchain,
   induction l with x l hi,
   { contradiction, },

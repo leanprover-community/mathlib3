@@ -32,12 +32,12 @@ open sets in `Proj`, more specifically:
 
 1. We prove that `Proj` can be covered by basic open sets at homogeneous element of positive degree.
 2. We prove that for any `f : A`, `Proj.T | (pbo f)` is homeomorphic to `Spec.T A⁰_f`:
-  - forward direction :
+  - forward direction `to_Spec`:
     for any `x : pbo f`, i.e. a relevant homogeneous prime ideal `x`, send it to
-    `x ∩ span {g / 1 | g ∈ A}` (see `Top_component.forward.carrier`). This ideal is prime, the proof
-    is in `Top_component.forward.to_fun`. The fact that this function is continuous is found in
-    `Top_component.forward`
-  - backward direction : TBC
+    `x ∩ span {g / 1 | g ∈ A}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is
+    prime, the proof is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function
+    is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
+  - backward direction `from_Spec`: TBC
 
 ## Main Definitions and Statements
 
@@ -45,11 +45,10 @@ open sets in `Proj`, more specifically:
   element of degree `n` is the subring of elements of the form `a/f^m` where `a` has degree `mn`.
 
 For a homogeneous element `f` of degree `n`
-* `Top_component.forward`: `forward f` is the
+* `Proj_iso_Spec_Top_component.to_Spec`: `forward f` is the
   continuous map between `Proj.T| pbo f` and `Spec.T A⁰_f`
-* `Top_component.forward.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero, then the preimage
-  of `sbo a/f^m` under `forward f` is `pbo f ∩ pbo a`.
-
+* `Proj_iso_Spec_Top_component.to_Spec.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero,
+  then the preimage of `sbo a/f^m` under `to_Spec f` is `pbo f ∩ pbo a`.
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]: Chapter II.2 Proposition 2.5
 -/
@@ -80,13 +79,13 @@ local notation `Proj| ` U := Proj .restrict (opens.open_embedding (U : opens Pro
 local notation `Proj.T| ` U :=
   (Proj .restrict (opens.open_embedding (U : opens Proj.T))).to_SheafedSpace.to_PresheafedSpace.1
 -- the underlying topological space of `Proj` restricted to some open set
-local notation `pbo` x := projective_spectrum.basic_open 𝒜 x
+local notation `pbo ` x := projective_spectrum.basic_open 𝒜 x
 -- basic open sets in `Proj`
-local notation `sbo` f := prime_spectrum.basic_open f
+local notation `sbo ` f := prime_spectrum.basic_open f
 -- basic open sets in `Spec`
-local notation `Spec` ring := Spec.LocallyRingedSpace_obj (CommRing.of ring)
+local notation `Spec ` ring := Spec.LocallyRingedSpace_obj (CommRing.of ring)
 -- `Spec` as a locally ringed space
-local notation `Spec.T` ring :=
+local notation `Spec.T ` ring :=
   (Spec.LocallyRingedSpace_obj (CommRing.of ring)).to_SheafedSpace.to_PresheafedSpace.1
 -- the underlying topological space of `Spec`
 
@@ -122,7 +121,7 @@ def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f)
 
 end
 
-local notation `A⁰_` f_deg := degree_zero_part f_deg
+local notation `A⁰_ ` f_deg := degree_zero_part f_deg
 
 section
 

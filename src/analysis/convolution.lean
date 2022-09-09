@@ -81,12 +81,12 @@ open continuous_linear_map metric
 open_locale pointwise topological_space nnreal
 
 variables {𝕜 G E E' E'' F F' F'' : Type*}
-variables [normed_group E] [normed_group E'] [normed_group E''] [normed_group F]
-variables {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
+variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
+  [normed_add_comm_group F] {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
 
-section nondiscrete_normed_field
+section nontrivially_normed_field
 
-variables [nondiscrete_normed_field 𝕜]
+variables [nontrivially_normed_field 𝕜]
 variables [normed_space 𝕜 E] [normed_space 𝕜 E'] [normed_space 𝕜 E''] [normed_space 𝕜 F]
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 
@@ -356,11 +356,13 @@ noncomputable def convolution [has_sub G] (f : G → E) (g : G → E') (L : E �
   (μ : measure G . volume_tac) : G → F :=
 λ x, ∫ t, L (f t) (g (x - t)) ∂μ
 
-localized "notation f ` ⋆[`:67 L:67 `, ` μ:67 `] `:0 g:66 := convolution f g L μ" in convolution
-localized "notation f ` ⋆[`:67 L:67 `]`:0 g:66 := convolution f g L
-  measure_theory.measure_space.volume" in convolution
-localized "notation f ` ⋆ `:67 g:66 := convolution f g (continuous_linear_map.lsmul ℝ ℝ)
-  measure_theory.measure_space.volume" in convolution
+localized "notation (name := convolution) f ` ⋆[`:67 L:67 `, ` μ:67 `] `:0 g:66 :=
+  convolution f g L μ" in convolution
+localized "notation (name := convolution.volume) f ` ⋆[`:67 L:67 `]`:0 g:66 :=
+  convolution f g L measure_theory.measure_space.volume" in convolution
+localized "notation (name := convolution.lsmul) f ` ⋆ `:67 g:66 :=
+  convolution f g (continuous_linear_map.lsmul ℝ ℝ) measure_theory.measure_space.volume"
+  in convolution
 
 lemma convolution_def [has_sub G] : (f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - t)) ∂μ := rfl
 
@@ -563,9 +565,9 @@ by { rw [← convolution_flip], exact hcf.continuous_convolution_right_of_integr
 
 end comm_group
 
-section normed_group
+section normed_add_comm_group
 
-variables [semi_normed_group G]
+variables [seminormed_add_comm_group G]
 
 /-- Compute `(f ⋆ g) x₀` if the support of the `f` is within `metric.ball 0 R`, and `g` is constant
 on `metric.ball x₀ R`.
@@ -680,11 +682,11 @@ begin
     .trans_lt (half_lt_self hε)
 end
 
-end normed_group
+end normed_add_comm_group
 
 namespace cont_diff_bump_of_inner
 
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [normed_space ℝ E']
 variables [inner_product_space ℝ G]
 variables [complete_space E']
@@ -725,7 +727,7 @@ lemma convolution_tendsto_right' {ι} {φ : ι → cont_diff_bump_of_inner (0 : 
 begin
   refine convolution_tendsto_right (λ i, (φ i).nonneg_normed) (λ i, (φ i).integral_normed)
     _ hmg hcg,
-  rw [normed_group.tendsto_nhds_zero] at hφ,
+  rw [normed_add_comm_group.tendsto_nhds_zero] at hφ,
   rw [tendsto_small_sets_iff],
   intros t ht,
   rcases metric.mem_nhds_iff.mp ht with ⟨ε, hε, ht⟩,
@@ -746,7 +748,7 @@ end cont_diff_bump_of_inner
 
 end measurability
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 
 open_locale convolution
 
@@ -758,14 +760,14 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space 𝕜 E'']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [complete_space F]
 variables [measurable_space G] {μ : measure G}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 
 section assoc
-variables [normed_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
-variables [normed_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
+variables [normed_add_comm_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
+variables [normed_add_comm_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
 variables {k : G → E''}
 variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
 variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
@@ -795,7 +797,7 @@ end
 
 end assoc
 
-variables [normed_group G] [borel_space G]
+variables [normed_add_comm_group G] [borel_space G]
 variables [second_countable_topology G] [sigma_compact_space G]
 
 lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
@@ -854,7 +856,7 @@ lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 begin
-  induction n using with_top.nat_induction with n ih ih generalizing g,
+  induction n using enat.nat_induction with n ih ih generalizing g,
   { rw [cont_diff_zero] at hg ⊢,
     exact hcg.continuous_convolution_right L hf hg },
   { have h : ∀ x, has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x) x :=
@@ -888,7 +890,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
 variables {f₀ : 𝕜 → E} {g₀ : 𝕜 → E'}
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 variables [complete_space F]
 variables {μ : measure 𝕜}

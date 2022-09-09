@@ -108,7 +108,7 @@ end bottom_row
 section tendsto_lemmas
 
 open filter continuous_linear_map
-local attribute [instance] matrix.normed_group matrix.normed_space
+local attribute [instance] matrix.normed_add_comm_group matrix.normed_space
 local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
@@ -409,9 +409,9 @@ def fd : set ℍ :=
 def fdo : set ℍ :=
 {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}
 
-localized "notation `𝒟` := modular_group.fd" in modular
+localized "notation (name := modular_group.fd) `𝒟` := modular_group.fd" in modular
 
-localized "notation `𝒟ᵒ` := modular_group.fdo" in modular
+localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" in modular
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin

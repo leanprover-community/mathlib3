@@ -101,3 +101,13 @@ begin
 end
 
 end lower_topology
+
+section prime
+
+variables [has_inf α] [has_le α]
+
+def is_prime (a : α) : Prop := ∀ b c, a ≤ b ⊓ c → a ≤ b ∨ a ≤ c
+
+def prime (β : Type u) [has_inf β] [has_le β] := {a : β // is_prime a}
+
+end prime

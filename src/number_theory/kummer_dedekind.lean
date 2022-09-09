@@ -200,7 +200,7 @@ begin
   have temp := multiplicity_factor_dvd_iso_eq_multiplicity_of_mem_normalized_factor hI' _  hJ
   (by { rintros ⟨l, hl⟩ ⟨l', hl'⟩,
     rw [subtype.coe_mk, subtype.coe_mk],
-    apply find_me_a_name pb hI l l' hl hl' }),
+    apply factors_equiv_is_dvd_iso pb hI l l' hl hl' }),
   have : (factors_equiv pb hI : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
     {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }})
     ⟨J, dvd_of_mem_normalized_factors hJ⟩ = factors_equiv pb hI
@@ -248,9 +248,11 @@ noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (h
 theorem multiplicity_factors_map_eq_multiplicity (hI : is_maximal I)
   (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0)
   {J : ideal S}  (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
-  multiplicity J (I.map (algebra_map R S)) = multiplicity ↑(factors_equiv' pb hI hI' hpb ⟨J, hJ⟩)
+  multiplicity J (I.map (algebra_map R S)) =
+    multiplicity ↑(normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb ⟨J, hJ⟩)
     (map I^.quotient.mk (minpoly R pb.gen)) :=
-by rw [factors_equiv', equiv.coe_trans, function.comp_app,
+by rw [normalized_factors_map_equiv_normalized_factors_min_poly_mk, equiv.coe_trans,
+       function.comp_app,
        multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity,
        normalized_factors_equiv_multiplicity_eq_multiplicity ]
 
@@ -259,7 +261,8 @@ theorem normalized_factors_ideal_map_eq_normalized_factors_min_poly_mk_map
   (hI : is_maximal I) (hI' : I.map (algebra_map R S) ≠ ⊥)
   (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) :
   normalized_factors (I.map (algebra_map R S)) =
-    multiset.map (λ f, ((factors_equiv' pb hI hI' hpb).symm f : ideal S))
+    multiset.map (λ f,
+    ((normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb).symm f : ideal S))
       (normalized_factors (polynomial.map I^.quotient.mk (minpoly R pb.gen))).attach :=
 begin
   ext J,
@@ -268,10 +271,11 @@ begin
   { rw [multiset.count_eq_zero.mpr hJ, eq_comm, multiset.count_eq_zero, multiset.mem_map],
     simp only [multiset.mem_attach, true_and, not_exists],
     rintros J' rfl,
-    exact hJ ((factors_equiv' pb hI hI' hpb).symm J').prop },
+    exact hJ
+      ((normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb).symm J').prop },
 
   -- Then we just have to compare the multiplicities, which we already proved are equal.
-  have := multiplicity_factors_equiv'_eq_multiplicity pb hI hI' hpb hJ,
+  have := multiplicity_factors_map_eq_multiplicity pb hI hI' hpb hJ,
   rw [multiplicity_eq_count_normalized_factors, multiplicity_eq_count_normalized_factors,
       unique_factorization_monoid.normalize_normalized_factor _ hJ,
       unique_factorization_monoid.normalize_normalized_factor,
@@ -279,16 +283,21 @@ begin
     at this,
   refine this.trans _,
   -- Get rid of the `map` by applying the equiv to both sides.
-  generalize hJ' : (factors_equiv' pb hI hI' hpb) ⟨J, hJ⟩ = J',
-  have : ((factors_equiv' pb hI hI' hpb).symm J' : ideal S) = J,
+  generalize hJ' : (normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb)
+    ⟨J, hJ⟩ = J',
+  have : ((normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb).symm
+    J' : ideal S) = J,
   { rw [← hJ', equiv.symm_apply_apply _ _, subtype.coe_mk] },
   subst this,
   -- Get rid of the `attach` by applying the subtype `coe` to both sides.
-  rw [multiset.count_map_eq_count' (λ f, ((factors_equiv' pb hI hI' hpb).symm f : ideal S)),
+  rw [multiset.count_map_eq_count' (λ f,
+      ((normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb).symm f
+        : ideal S)),
       multiset.attach_count_eq_count_coe],
   { exact subtype.coe_injective.comp (equiv.injective _) },
-  { exact (factors_equiv' pb hI hI' hpb _).prop },
-  { exact irreducible_of_normalized_factor _ (factors_equiv' pb hI hI' hpb _).prop },
+  { exact (normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb _).prop },
+  { exact irreducible_of_normalized_factor _
+    (normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb _).prop },
   { assumption },
   { exact irreducible_of_normalized_factor _ hJ },
   { assumption },
@@ -309,7 +318,7 @@ begin
     exact irreducible_of_normalized_factor x
       (show x ∈ normalized_factors (I.map (algebra_map R S)), by simp [hx]) },
   rw normalized_factors_ideal_map_eq_normalized_factors_min_poly_mk_map pb hI hI' hpb,
-  use ((factors_equiv' pb hI hI' hpb).symm
+  use ((normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' hpb).symm
     ⟨normalize (map I^.quotient.mk (minpoly R pb.gen)), mem_norm_factors⟩ : ideal S),
   rw multiset.map_eq_singleton,
   use ⟨normalize (map I^.quotient.mk (minpoly R pb.gen)), mem_norm_factors⟩,

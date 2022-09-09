@@ -740,8 +740,9 @@ lemma right.one_lt_mul_of_lt_of_lt [mul_pos_strict_mono α]
   (ha : 1 < a) (hb : 1 < b) (b0 : 0 < b) : 1 < a * b :=
 lt_mul_of_one_lt_of_lt_of_pos ha hb b0
 
-lemma lt_mul_of_one_lt_of_lt_of_nonneg [mul_pos_mono α] (ha : 1 ≤ a) (bc : b < c) (hc : 0 ≤ c) : b < a * c :=
-bc.trans_le $ le_mul_of_one_le_left hc ha
+lemma lt_mul_of_one_lt_of_lt_of_nonneg [mul_pos_mono α] (ha : 1 ≤ a) (h : b < c) (hc : 0 ≤ c) :
+  b < a * c :=
+h.trans_le $ le_mul_of_one_le_left hc ha
 
 lemma lt_of_mul_lt_of_one_le_of_nonneg_left [pos_mul_mono α] (h : a * b < c) (hle : 1 ≤ b)
   (ha : 0 ≤ a) :

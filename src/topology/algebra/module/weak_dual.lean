@@ -250,16 +250,16 @@ weak_bilin (top_dual_pairing 𝕜 E).flip
 
 namespace weak_space
 
-variables {𝕜 E F} [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
-  [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E]
-  [add_comm_monoid F] [module 𝕜 F] [topological_space F]
+variables {𝕜 E F} [add_comm_monoid F] [module 𝕜 F] [topological_space F]
 
+/-- A continuous linear map from `E` to `F` is still continuous when `E` and `F` are equipped with
+their weak topologies. -/
 def map (f : E →L[𝕜] F) :
   weak_space 𝕜 E →L[𝕜] weak_space 𝕜 F :=
 { cont := weak_bilin.continuous_of_continuous_eval _ (λ l, weak_bilin.eval_continuous _ (l ∘L f)),
   ..f }
 
-@[simp] lemma map_apply (f : E →L[𝕜] F) (x : E) : weak_space.map f x = f x := rfl
+lemma map_apply (f : E →L[𝕜] F) (x : E) : weak_space.map f x = f x := rfl
 @[simp] lemma coe_map (f : E →L[𝕜] F) : (weak_space.map f : E → F) = f := rfl
 
 end weak_space

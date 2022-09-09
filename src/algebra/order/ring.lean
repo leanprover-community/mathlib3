@@ -28,10 +28,10 @@ For short,
 ## Typeclasses
 
 * `ordered_semiring`: Semiring with a partial order such that `+` and `*` respect `≤`.
-* `ordered_cancel_semiring`: Semiring with a partial order such that `+` and `*` respects `<`.
+* `strict_ordered_semiring`: Semiring with a partial order such that `+` and `*` respects `<`.
 * `ordered_comm_semiring`: Commutative semiring with a partial order such that `+` and `*` respect
   `≤`.
-* `ordered_cancel_comm_semiring`: Commutative semiring with a partial order such that `+` and `*`
+* `strict_ordered_comm_semiring`: Commutative semiring with a partial order such that `+` and `*`
   respect `<`.
 * `ordered_ring`: Ring with a partial order such that `+` respects `≤` and `*` respects `<`.
 * `ordered_comm_ring`: Commutative ring with a partial order such that `+` respects `≤` and
@@ -57,17 +57,17 @@ immediate predecessors and what conditions are added to each of them.
 * `ordered_semiring`
   - `ordered_add_comm_monoid` & multiplication & `*` respects `≤`
   - `semiring` & partial order structure & `+` respects `≤` & `*` respects `≤`
-* `ordered_cancel_semiring`
+* `strict_ordered_semiring`
   - `ordered_cancel_add_comm_monoid` & multiplication & `*` respects `<`
   - `ordered_semiring` & `+` respects `<` & `*` respects `<`
 * `ordered_comm_semiring`
   - `ordered_semiring` & commutativity of multiplication
   - `comm_semiring` & partial order structure & `+` respects `≤` & `*` respects `<`
-* `ordered_cancel_comm_semiring`
-  - `ordered_cancel_semiring` & commutativity of multiplication
+* `strict_ordered_comm_semiring`
+  - `strict_ordered_semiring` & commutativity of multiplication
   - `ordered_comm_semiring` & `+` respects `<` & `*` respects `<`
 * `ordered_ring`
-  - `ordered_cancel_semiring` & additive inverses
+  - `strict_ordered_semiring` & additive inverses
   - `ordered_add_comm_group` & multiplication & `*` respects `<`
   - `ring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `ordered_comm_ring`
@@ -75,7 +75,7 @@ immediate predecessors and what conditions are added to each of them.
   - `ordered_comm_semiring` & additive inverses
   - `comm_ring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `linear_ordered_semiring`
-  - `ordered_cancel_semiring` & totality of the order & nontriviality
+  - `strict_ordered_semiring` & totality of the order & nontriviality
   - `linear_ordered_add_comm_monoid` & multiplication & nontriviality & `*` respects `<`
 * `linear_ordered_ring`
   - `ordered_ring` & totality of the order & nontriviality
@@ -253,28 +253,28 @@ lemma mul_lt_one_of_nonneg_of_lt_one_right (ha : a ≤ 1) (hb₀ : 0 ≤ b) (hb 
 
 end ordered_semiring
 
-/-- An `ordered_cancel_semiring` is a semiring with a partial order such that addition is strictly
+/-- An `strict_ordered_semiring` is a semiring with a partial order such that addition is strictly
 monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
-class ordered_cancel_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
+class strict_ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
 (zero_le_one : (0 : α) ≤ 1)
 (mul_lt_mul_of_pos_left  : ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
-section ordered_cancel_semiring
-variables [ordered_cancel_semiring α] {a b c d : α}
+section strict_ordered_semiring
+variables [strict_ordered_semiring α] {a b c d : α}
 
 @[priority 200] -- see Note [lower instance priority]
-instance ordered_cancel_semiring.to_pos_mul_strict_mono : pos_mul_strict_mono α :=
-⟨λ x a b h, ordered_cancel_semiring.mul_lt_mul_of_pos_left _ _ _ h x.prop⟩
+instance strict_ordered_semiring.to_pos_mul_strict_mono : pos_mul_strict_mono α :=
+⟨λ x a b h, strict_ordered_semiring.mul_lt_mul_of_pos_left _ _ _ h x.prop⟩
 
 @[priority 200] -- see Note [lower instance priority]
-instance ordered_cancel_semiring.to_mul_pos_strict_mono : mul_pos_strict_mono α :=
-⟨λ x a b h, ordered_cancel_semiring.mul_lt_mul_of_pos_right _ _ _ h x.prop⟩
+instance strict_ordered_semiring.to_mul_pos_strict_mono : mul_pos_strict_mono α :=
+⟨λ x a b h, strict_ordered_semiring.mul_lt_mul_of_pos_right _ _ _ h x.prop⟩
 
-/-- A choice-free version of `ordered_cancel_semiring.to_ordered_semiring` to avoid using choice in
+/-- A choice-free version of `strict_ordered_semiring.to_ordered_semiring` to avoid using choice in
 basic `nat` lemmas. -/
-@[reducible] def ordered_cancel_semiring.to_ordered_semiring' [@decidable_rel α (≤)] :
+@[reducible] def strict_ordered_semiring.to_ordered_semiring' [@decidable_rel α (≤)] :
   ordered_semiring α :=
 { mul_le_mul_of_nonneg_left := λ a b c hab hc, begin
     obtain rfl | hab := decidable.eq_or_lt_of_le hab,
@@ -290,19 +290,19 @@ basic `nat` lemmas. -/
     { simp },
     { exact (mul_lt_mul_of_pos_right hab hc).le }
   end,
-  ..‹ordered_cancel_semiring α› }
+  ..‹strict_ordered_semiring α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance ordered_cancel_semiring.to_ordered_semiring : ordered_semiring α :=
+instance strict_ordered_semiring.to_ordered_semiring : ordered_semiring α :=
 { mul_le_mul_of_nonneg_left := λ _ _ _, begin
-    letI := @ordered_cancel_semiring.to_ordered_semiring' α _ (classical.dec_rel _),
+    letI := @strict_ordered_semiring.to_ordered_semiring' α _ (classical.dec_rel _),
     exact mul_le_mul_of_nonneg_left,
   end,
   mul_le_mul_of_nonneg_right := λ _ _ _, begin
-    letI := @ordered_cancel_semiring.to_ordered_semiring' α _ (classical.dec_rel _),
+    letI := @strict_ordered_semiring.to_ordered_semiring' α _ (classical.dec_rel _),
     exact mul_le_mul_of_nonneg_right,
   end,
-  ..‹ordered_cancel_semiring α› }
+  ..‹strict_ordered_semiring α› }
 
 lemma mul_lt_mul (hac : a < c) (hbd : b ≤ d) (hb : 0 < b) (hc : 0 ≤ c) : a * b < c * d :=
 (mul_lt_mul_of_pos_right hac hb).trans_le $ mul_le_mul_of_nonneg_left hbd hc
@@ -380,17 +380,17 @@ lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf₀ : ∀ x, 
 
 end monotone
 
-/-- Pullback an `ordered_cancel_semiring` under an injective map.
+/-- Pullback an `strict_ordered_semiring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
-def function.injective.ordered_cancel_semiring
+def function.injective.strict_ordered_semiring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
   [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (nat_cast : ∀ n : ℕ, f n = n) :
-  ordered_cancel_semiring β :=
+  strict_ordered_semiring β :=
 { mul_lt_mul_of_pos_left := λ  a b c ab c0, show f (c * a) < f (c * b),
     begin
       rw [mul, mul],
@@ -423,12 +423,12 @@ lemma nat.strict_mono_cast : strict_mono (coe : ℕ → α) :=
 strict_mono_nat_of_lt_succ $ λ n, by rw [nat.cast_succ]; apply lt_add_one
 
 @[priority 100] -- see Note [lower instance priority]
-instance ordered_cancel_semiring.to_no_max_order : no_max_order α :=
+instance strict_ordered_semiring.to_no_max_order : no_max_order α :=
 ⟨λ a, ⟨a + 1, lt_add_of_pos_right _ one_pos⟩⟩
 
 /-- Note this is not an instance as `char_zero` implies `nontrivial`, and this would risk forming a
 loop. -/
-lemma ordered_cancel_semiring.to_char_zero : char_zero α := ⟨nat.strict_mono_cast.injective⟩
+lemma strict_ordered_semiring.to_char_zero : char_zero α := ⟨nat.strict_mono_cast.injective⟩
 
 end nontrivial
 
@@ -462,7 +462,7 @@ lemma mul_add_mul_lt_mul_add_mul' (hba : b < a) (hdc : d < c) : a • d + b • 
 by { rw [add_comm (a • d), add_comm (a • c)], exact mul_add_mul_lt_mul_add_mul hba hdc }
 
 end has_exists_add_of_le
-end ordered_cancel_semiring
+end strict_ordered_semiring
 
 section ordered_comm_semiring
 
@@ -486,37 +486,37 @@ def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Ty
 
 end ordered_comm_semiring
 
-/-- An `ordered_cancel_comm_semiring` is a commutative semiring with a partial order such that
+/-- An `strict_ordered_comm_semiring` is a commutative semiring with a partial order such that
 addition is strictly monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
-class ordered_cancel_comm_semiring (α : Type u) extends ordered_cancel_semiring α, comm_semiring α
+class strict_ordered_comm_semiring (α : Type u) extends strict_ordered_semiring α, comm_semiring α
 
-section ordered_cancel_comm_semiring
-variables [ordered_cancel_comm_semiring α]
+section strict_ordered_comm_semiring
+variables [strict_ordered_comm_semiring α]
 
-/-- A choice-free version of `ordered_cancel_comm_semiring.to_ordered_comm_semiring` to avoid using
+/-- A choice-free version of `strict_ordered_comm_semiring.to_ordered_comm_semiring` to avoid using
 choice in basic `nat` lemmas. -/
-@[reducible] def ordered_cancel_comm_semiring.to_ordered_comm_semiring' [@decidable_rel α (≤)] :
+@[reducible] def strict_ordered_comm_semiring.to_ordered_comm_semiring' [@decidable_rel α (≤)] :
   ordered_comm_semiring α :=
-{ ..‹ordered_cancel_comm_semiring α›, ..ordered_cancel_semiring.to_ordered_semiring' }
+{ ..‹strict_ordered_comm_semiring α›, ..strict_ordered_semiring.to_ordered_semiring' }
 
 @[priority 100] -- see Note [lower instance priority]
-instance ordered_cancel_comm_semiring.to_ordered_comm_semiring : ordered_comm_semiring α :=
-{ ..‹ordered_cancel_comm_semiring α›, ..ordered_cancel_semiring.to_ordered_semiring }
+instance strict_ordered_comm_semiring.to_ordered_comm_semiring : ordered_comm_semiring α :=
+{ ..‹strict_ordered_comm_semiring α›, ..strict_ordered_semiring.to_ordered_semiring }
 
 /-- Pullback an `ordered_comm_semiring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
-def function.injective.ordered_cancel_comm_semiring [add_monoid_with_one β] [has_mul β]
+def function.injective.strict_ordered_comm_semiring [add_monoid_with_one β] [has_mul β]
   [has_pow β ℕ] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (nat_cast : ∀ n : ℕ, f n = n) :
-  ordered_cancel_comm_semiring β :=
+  strict_ordered_comm_semiring β :=
 { ..hf.comm_semiring f zero one add mul nsmul npow nat_cast,
-  ..hf.ordered_cancel_semiring f zero one add mul nsmul npow nat_cast }
+  ..hf.strict_ordered_semiring f zero one add mul nsmul npow nat_cast }
 
-end ordered_cancel_comm_semiring
+end strict_ordered_comm_semiring
 
 /--
 A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
@@ -528,7 +528,7 @@ such that addition is monotone and multiplication by a positive number is strict
 -- typeclass search loops.
 @[protect_proj]
 class linear_ordered_semiring (α : Type u)
-  extends ordered_cancel_semiring α, linear_ordered_add_comm_monoid α, nontrivial α
+  extends strict_ordered_semiring α, linear_ordered_add_comm_monoid α, nontrivial α
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}
@@ -665,7 +665,7 @@ def function.injective.linear_ordered_semiring {β : Type*}
   linear_ordered_semiring β :=
 { .. linear_order.lift f hf hsup hinf,
   .. pullback_nonzero f zero one,
-  .. hf.ordered_cancel_semiring f zero one add mul nsmul npow nat_cast }
+  .. hf.strict_ordered_semiring f zero one add mul nsmul npow nat_cast }
 
 @[simp] lemma units.inv_pos {u : αˣ} : (0 : α) < ↑u⁻¹ ↔ (0 : α) < u :=
 have ∀ {u : αˣ}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
@@ -679,7 +679,7 @@ have ∀ {u : αˣ}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_char_zero : char_zero α :=
-ordered_cancel_semiring.to_char_zero
+strict_ordered_semiring.to_char_zero
 
 lemma cmp_mul_pos_left (ha : 0 < a) (b c : α) : cmp (a * b) (a * c) = cmp b c :=
 (strict_mono_mul_left_of_pos ha).cmp_map_eq b c
@@ -724,7 +724,7 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance ordered_ring.to_ordered_cancel_semiring : ordered_cancel_semiring α :=
+instance ordered_ring.to_strict_ordered_semiring : strict_ordered_semiring α :=
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
   le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
@@ -856,7 +856,7 @@ def function.injective.ordered_ring {β : Type*}
   (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   ordered_ring β :=
 { mul_pos := λ a b a0 b0, show f 0 < f (a * b), by { rw [zero, mul], apply mul_pos; rwa ← zero },
-  ..hf.ordered_cancel_semiring f zero one add mul nsmul npow nat_cast,
+  ..hf.strict_ordered_semiring f zero one add mul nsmul npow nat_cast,
   ..hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
 lemma le_iff_exists_nonneg_add (a b : α) : a ≤ b ↔ ∃ c ≥ 0, b = a + c :=
@@ -875,8 +875,8 @@ class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_ring α
 variables [ordered_comm_ring α]
 
 @[priority 100] -- See note [lower instance priority]
-instance ordered_comm_ring.to_ordered_cancel_comm_semiring : ordered_cancel_comm_semiring α :=
-{ ..ordered_ring.to_ordered_cancel_semiring, ..‹ordered_comm_ring α› }
+instance ordered_comm_ring.to_strict_ordered_comm_semiring : strict_ordered_comm_semiring α :=
+{ ..ordered_ring.to_strict_ordered_semiring, ..‹ordered_comm_ring α› }
 
 /-- Pullback an `ordered_comm_ring` under an injective map.
 See note [reducible non-instances]. -/
@@ -936,7 +936,7 @@ variables [linear_ordered_ring α] {a b c : α}
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semiring α :=
-{ ..‹linear_ordered_ring α›, ..ordered_ring.to_ordered_cancel_semiring }
+{ ..‹linear_ordered_ring α›, ..ordered_ring.to_strict_ordered_semiring }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.is_domain : is_domain α :=

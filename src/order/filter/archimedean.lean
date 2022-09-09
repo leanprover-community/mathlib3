@@ -19,16 +19,16 @@ variables {α R : Type*}
 
 open filter set
 
-@[simp] lemma nat.comap_coe_at_top [ordered_cancel_semiring R] [nontrivial R] [archimedean R] :
+@[simp] lemma nat.comap_coe_at_top [strict_ordered_semiring R] [nontrivial R] [archimedean R] :
   comap (coe : ℕ → R) at_top = at_top :=
 comap_embedding_at_top (λ _ _, nat.cast_le) exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_iff [ordered_cancel_semiring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_nat_at_top_iff [strict_ordered_semiring R] [nontrivial R] [archimedean R]
   {f : α → ℕ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_at_top [ordered_cancel_semiring R] [archimedean R] :
+lemma tendsto_coe_nat_at_top_at_top [strict_ordered_semiring R] [archimedean R] :
   tendsto (coe : ℕ → R) at_top at_top :=
 nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
 

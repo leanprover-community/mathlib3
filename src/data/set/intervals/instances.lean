@@ -159,7 +159,7 @@ end set.Ico
 
 end ordered_semiring
 
-variables [ordered_cancel_semiring α]
+variables [strict_ordered_semiring α]
 
 /-! ### Instances for `↥(set.Ioc 0 1)` -/
 
@@ -206,11 +206,11 @@ instance cancel_monoid {α : Type*} [ordered_ring α] [is_domain α] : cancel_mo
     subtype.ext $ mul_right_cancel₀ b.prop.1.ne' $ (congr_arg subtype.val h : _),
   ..set.Ioc.monoid}
 
-instance comm_semigroup {α : Type*} [ordered_cancel_comm_semiring α] :
+instance comm_semigroup {α : Type*} [strict_ordered_comm_semiring α] :
   comm_semigroup (Ioc (0:α) 1) :=
 subtype.coe_injective.comm_semigroup _ coe_mul
 
-instance comm_monoid {α : Type*} [ordered_cancel_comm_semiring α] [nontrivial α] :
+instance comm_monoid {α : Type*} [strict_ordered_comm_semiring α] [nontrivial α] :
   comm_monoid (Ioc (0:α) 1) :=
 subtype.coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
@@ -235,7 +235,7 @@ instance has_mul : has_mul (Ioo (0:α) 1) := { mul := λ p q, ⟨p.1 * q.1, ⟨m
 instance semigroup : semigroup (Ioo (0:α) 1) :=
 subtype.coe_injective.semigroup _ coe_mul
 
-instance comm_semigroup {α : Type*} [ordered_cancel_comm_semiring α] :
+instance comm_semigroup {α : Type*} [strict_ordered_comm_semiring α] :
   comm_semigroup (Ioo (0:α) 1) :=
 subtype.coe_injective.comm_semigroup _ coe_mul
 

@@ -258,8 +258,8 @@ lemma one_lt_pow (ha : 1 < a) : ∀ {n : ℕ} (hn : n ≠ 0), 1 < a ^ n
 
 end ordered_semiring
 
-section ordered_cancel_semiring
-variables [ordered_cancel_semiring R] {a x y : R} {n m : ℕ}
+section strict_ordered_semiring
+variables [strict_ordered_semiring R] {a x y : R} {n m : ℕ}
 
 lemma pow_lt_pow_of_lt_left (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
   x ^ n < y ^ n :=
@@ -301,7 +301,7 @@ lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : 
 
 lemma sq_pos_of_pos (ha : 0 < a) : 0 < a ^ 2 := by { rw sq, exact mul_pos ha ha }
 
-end ordered_cancel_semiring
+end strict_ordered_semiring
 
 section ordered_ring
 variables [ordered_ring R] {a : R}

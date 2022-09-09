@@ -72,12 +72,12 @@ instance : linear_ordered_comm_monoid_with_zero ℕ :=
   ..nat.linear_ordered_semiring,
   ..(infer_instance : comm_monoid_with_zero ℕ)}
 
-instance : ordered_cancel_comm_semiring ℕ := { ..nat.comm_semiring, ..nat.linear_ordered_semiring }
+instance : strict_ordered_comm_semiring ℕ := { ..nat.comm_semiring, ..nat.linear_ordered_semiring }
 
 /-! Extra instances to short-circuit type class resolution and ensure computability -/
 -- Not using `infer_instance` avoids `classical.choice` in the following two
-instance : ordered_semiring ℕ      := ordered_cancel_semiring.to_ordered_semiring'
-instance : ordered_comm_semiring ℕ := ordered_cancel_comm_semiring.to_ordered_comm_semiring'
+instance : ordered_semiring ℕ      := strict_ordered_semiring.to_ordered_semiring'
+instance : ordered_comm_semiring ℕ := strict_ordered_comm_semiring.to_ordered_comm_semiring'
 instance : add_comm_monoid ℕ       := infer_instance
 instance : add_monoid ℕ            := infer_instance
 instance : monoid ℕ                := infer_instance

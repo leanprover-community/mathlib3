@@ -692,9 +692,9 @@ variable {l}
 
 end ordered_group
 
-section ordered_cancel_semiring
+section strict_ordered_semiring
 
-variables [ordered_cancel_semiring α] {l : filter β} {f g : β → α}
+variables [strict_ordered_semiring α] {l : filter β} {f g : β → α}
 
 lemma tendsto_bit1_at_top : tendsto bit1 (at_top : filter α) at_top :=
 tendsto_at_top_add_nonneg_right tendsto_bit0_at_top (λ _, zero_le_one)
@@ -715,7 +715,7 @@ A version for positive real powers exists as `tendsto_rpow_at_top`. -/
 lemma tendsto_pow_at_top {n : ℕ} (hn : n ≠ 0) : tendsto (λ x : α, x ^ n) at_top at_top :=
 tendsto_at_top_mono' _ ((eventually_ge_at_top 1).mono $ λ x hx, le_self_pow hx hn) tendsto_id
 
-end ordered_cancel_semiring
+end strict_ordered_semiring
 
 lemma zero_pow_eventually_eq [monoid_with_zero α] :
   (λ n : ℕ, (0 : α) ^ n) =ᶠ[at_top] (λ n, 0) :=

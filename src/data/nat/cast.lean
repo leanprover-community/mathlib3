@@ -76,8 +76,8 @@ by { cases n, { cases hn.false }, { rw cast_succ, exact cast_add_one_pos _ } }
 
 end ordered_semiring
 
-section ordered_cancel_semiring
-variables [ordered_cancel_semiring α] [nontrivial α]
+section strict_ordered_semiring
+variables [strict_ordered_semiring α] [nontrivial α]
 
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
@@ -101,7 +101,7 @@ by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
 @[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
 
-end ordered_cancel_semiring
+end strict_ordered_semiring
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=

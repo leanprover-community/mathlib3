@@ -516,14 +516,14 @@ end
 
 end ordered_comm_semiring
 
-section ordered_cancel_comm_semiring
-variables [ordered_cancel_comm_semiring R] [nontrivial R] {f : ι → R} {s : finset ι}
+section strict_ordered_comm_semiring
+variables [strict_ordered_comm_semiring R] [nontrivial R] {f : ι → R} {s : finset ι}
 
 /- This is also true for a ordered commutative multiplicative monoid with zero -/
 lemma prod_pos (h0 : ∀ i ∈ s, 0 < f i) : 0 < ∏ i in s, f i :=
 prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
-end ordered_cancel_comm_semiring
+end strict_ordered_comm_semiring
 
 section canonically_ordered_comm_semiring
 

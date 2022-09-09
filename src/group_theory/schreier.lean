@@ -279,6 +279,22 @@ end
 
 variables {G}
 
+lemma index_infi_ne_zero {ι : Type*} [fintype ι] (f : ι → subgroup G) (hf : ∀ i, (f i).index ≠ 0) :
+  (⨅ i, f i).index ≠ 0 :=
+begin
+  unfreezingI { revert ι },
+  refine fintype.induction_empty_option _ _ _,
+  { intros α β _ e h t hf,
+    rw ← e.infi_congr (λ _, rfl),
+    exact h (t ∘ e) (λ i, hf (e i)) },
+  { intros t hf,
+    rw [infi_of_empty, index_top],
+    exact one_ne_zero },
+  { intros α _ h t hf,
+    rw infi_option,
+    exact index_inf_ne_zero (hf none) (h (t ∘ some) (λ i, hf (some i))) },
+end
+
 -- PRed
 lemma index_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
   (⨅ i, f i).index ≤ ∏ i, (f i).index :=
@@ -296,7 +312,7 @@ begin
     exact index_inf_le.trans (mul_le_mul_left' (h (t ∘ some)) (t none).index) },
 end
 
-variables (G)
+
 
 -- PRed
 lemma nat.card_le_of_injective {α β : Type*} [finite β] (f : α → β) (h : function.injective f) :
@@ -317,23 +333,53 @@ begin
   simp_rw [nat.card_eq_fintype_card, fintype.card_le_of_surjective f h],
 end
 
--- TODO: add `index_center_pos`
+lemma stabilizer_eq_centralizer (g : G) :
+  mul_action.stabilizer (conj_act G) g = (zpowers g).centralizer :=
+le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
+  (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm)
+
+section
+
+open quotient quotient_group
+
+def equiv_quotient_of_eq {M N : subgroup G} (h : M = N) :
+  G ⧸ M ≃ G ⧸ N :=
+{ to_fun := quotient.map' id (λ a b h', h ▸ h'),
+  inv_fun := quotient.map' id (λ a b h', h.symm ▸ h'),
+  left_inv := λ x, x.induction_on' $ by { intro, refl },
+  right_inv := λ x, x.induction_on' $ by { intro, refl } }
+
+end
+
+noncomputable def key_inclusion (g : G) :
+  G ⧸ centralizer (zpowers (g : G)) ↪ {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
+((mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g).trans
+  (equiv_quotient_of_eq (stabilizer_eq_centralizer g))).symm.to_embedding.trans
+  ⟨λ x, ⟨x * g⁻¹, let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩,
+  λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp⟩
+
+lemma key_inclusion_apply (g : G) (x : G) : ↑(key_inclusion g x) = ⁅x, g⁆ :=
+rfl
+
+variables (G)
+
+lemma index_center_ne_zero [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
+  (center G).index ≠ 0 :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype''],
+  refine index_infi_ne_zero _ (λ g, _),
+  let e := key_inclusion (g : G),
+  sorry,
+end
+
 lemma index_center_le_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≤ (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) ^ group.rank G :=
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
-  rw ← hS1,
-  rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype'', ←fintype.card_coe],
-  refine (index_infi_le _).trans (finset.prod_le_pow_card _ _ _ _),
-  rintros ⟨g, hg⟩ -,
-  rw subtype.coe_mk,
-  clear hg,
-  have : mul_action.stabilizer (conj_act G) g = (zpowers g).centralizer :=
-  le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
-    (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm),
-  rw [←this, index, ←nat.card_congr (mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g)],
-  exact nat.card_le_of_injective (λ x, ⟨x * g⁻¹, let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩)
-    (λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp),
+  rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype'', ←hS1, ←fintype.card_coe],
+  exact (index_infi_le _).trans (finset.prod_le_pow_card _ _ _
+    (λ g _, nat.card_le_of_injective _ (key_inclusion (g : G)).injective)),
 end
 
 lemma nat.card_pos {α : Type*} [finite α] [nonempty α] : 0 < nat.card α :=
@@ -397,7 +443,8 @@ begin
   have h2 := card_commutator_dvd_index_center_pow H,
   rw ← hn at h1 h2,
   replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ hH),
-  replace h2 := hH₀.ge.trans (nat.le_of_dvd (pow_pos sorry _) h2), -- need center_index_pos
+  replace h2 := hH₀.ge.trans (nat.le_of_dvd (pow_pos
+    (nat.pos_of_ne_zero (index_center_ne_zero H)) _) h2),
   refine h2.trans _,
   refine (nat.pow_le_pow_of_le_left h1 _).trans (nat.pow_le_pow_of_le_right
     (pow_pos hn₀ _) (add_le_add_right (mul_le_mul_right' h1 _) 1)),

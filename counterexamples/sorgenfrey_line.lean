@@ -38,7 +38,7 @@ half-open intervals `set.Ico a b`. -/
 @[derive [conditionally_complete_linear_order, linear_ordered_field, archimedean]]
 def sorgenfrey_line : Type := ℝ
 
-notation `ℝₗ` := sorgenfrey_line
+localized "notation (name := sorgenfrey_line) `ℝₗ` := sorgenfrey_line" in sorgenfrey_line
 
 namespace sorgenfrey_line
 
@@ -195,8 +195,9 @@ is_closed_singleton.preimage continuous_add
 lemma is_clopen_Ici_prod (x : ℝₗ × ℝₗ) : is_clopen (Ici x) :=
 (Ici_prod_eq x).symm ▸ (is_clopen_Ici _).prod (is_clopen_Ici _)
 
+/-- Any subset of an antidiagonal `{(x, y) : ℝₗ × ℝₗ| x + y = c}` is a closed set. -/
 lemma is_closed_of_subset_antidiagonal {s : set (ℝₗ × ℝₗ)} {c : ℝₗ}
-  (hs : ∀ x ∈ s, (x : _).1 + x.2 = c) : is_closed s :=
+  (hs : ∀ x : ℝₗ × ℝₗ, x ∈ s → x.1 + x.2 = c) : is_closed s :=
 begin
   rw [← closure_subset_iff_is_closed],
   rintro ⟨x, y⟩ H,
@@ -277,6 +278,7 @@ begin
     exact hxn.2 }
 end
 
+/-- Topology on the Sorgenfrey line is not metrizable. -/
 lemma not_metrizable_space : ¬metrizable_space ℝₗ :=
 begin
   introI,
@@ -284,6 +286,7 @@ begin
   exact not_normal_space_prod infer_instance
 end
 
+/-- Topology on the Sorgenfrey line is not second countable. -/
 lemma not_second_countable_topology : ¬second_countable_topology ℝₗ :=
 by { introI, exact not_metrizable_space (metrizable_space_of_t3_second_countable _) }
 

@@ -291,8 +291,8 @@ begin
   rw [cardinal.mk_pi, cardinal.prod_eq_of_fintype, cardinal.lift_lift, cardinal.lift_le] at this,
   by_cases hf : ∀ i, (f i).relindex L ≠ 0,
   { exact (cardinal.to_nat_le_of_le_of_lt_aleph_0 (lt_of_not_le $ finset.prod_ne_zero_iff.2
-    (λ a ha, hf a) ∘ (cardinal.to_nat_finset_prod _ _).symm.trans ∘
-    cardinal.to_nat_apply_of_aleph_0_le) this).trans_eq (cardinal.to_nat_finset_prod _ _) },
+      (λ a ha, hf a) ∘ (cardinal.to_nat_finset_prod _ _).symm.trans ∘
+      cardinal.to_nat_apply_of_aleph_0_le) this).trans_eq (cardinal.to_nat_finset_prod _ _) },
   { obtain ⟨i, hi⟩ := not_forall_not.1 hf,
     exact le_of_eq_of_le (relindex_eq_zero_of_le_left (infi_le f i) hi) zero_le' },
 end

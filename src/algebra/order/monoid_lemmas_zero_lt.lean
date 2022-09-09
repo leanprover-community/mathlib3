@@ -52,9 +52,6 @@ Some lemmas for `partial_order` also have a variant for `preorder`, where the `p
 stronger hypotheses.  In this case we put the `preorder` lemma in the `preorder` namespace.
 -/
 
-/- I am changing the file `algebra/order/monoid_lemmas` incrementally, with the idea of
-reproducing almost all of the proofs in `algebra/order/ring` with weaker assumptions. -/
-
 universe u
 variable {α : Type u}
 

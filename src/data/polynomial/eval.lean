@@ -611,6 +611,20 @@ end
 lemma nat_degree_map_le (p : R[X]) : nat_degree (p.map f) ≤ nat_degree p :=
 nat_degree_le_nat_degree (degree_map_le f p)
 
+protected
+lemma map_eq_zero_iff (hf : function.injective f) :
+  p.map f = 0 ↔ p = 0 :=
+begin
+  split, swap, { intro h, rw [h, polynomial.map_zero], },
+  rw [← polynomial.map_zero f],
+  exact λ h, polynomial.map_injective _ hf h,
+end
+
+protected
+lemma map_ne_zero_iff (hf : function.injective f) :
+  p.map f ≠ 0 ↔ p ≠ 0 :=
+(polynomial.map_eq_zero_iff f hf).not
+
 variables {f}
 
 lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=

@@ -791,6 +791,20 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
   { simp [hl] }
 end⟩
 
+/-- See also `complete_lattice.independent_iff_linear_independent_of_ne_zero`. -/
+lemma linear_independent.independent_span_singleton (hv : linear_independent R v) :
+  complete_lattice.independent $ λ i, R ∙ v i :=
+begin
+  refine complete_lattice.independent_def.mp (λ i m hm, (mem_bot R).mpr _),
+  simp only [mem_inf, mem_span_singleton, supr_subtype', ← span_range_eq_supr] at hm,
+  obtain ⟨⟨r, rfl⟩, hm⟩ := hm,
+  suffices : r = 0, { simp [this], },
+  apply linear_independent_iff_not_smul_mem_span.mp hv i,
+  convert hm,
+  ext,
+  simp,
+end
+
 variable (R)
 
 lemma exists_maximal_independent' (s : ι → M) :

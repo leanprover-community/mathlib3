@@ -69,9 +69,23 @@ instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
   .. add_monoid.End.monoid M,
   .. add_monoid_hom.add_comm_monoid }
 
+/-- See also `add_monoid.End.nat_cast_def`. -/
+@[simp] lemma add_monoid.End.nat_cast_apply [add_comm_monoid M] (n : ℕ) (m : M) :
+  (↑n : add_monoid.End M) m = n • m := rfl
+
+instance [add_comm_group M] : add_comm_group (add_monoid.End M) :=
+add_monoid_hom.add_comm_group
+
 instance [add_comm_group M] : ring (add_monoid.End M) :=
-{ .. add_monoid.End.semiring,
+{ int_cast := λ z, z • 1,
+  int_cast_of_nat := of_nat_zsmul _,
+  int_cast_neg_succ_of_nat  := zsmul_neg_succ_of_nat _,
+  .. add_monoid.End.semiring,
   .. add_monoid_hom.add_comm_group }
+
+/-- See also `add_monoid.End.int_cast_def`. -/
+@[simp] lemma add_monoid.End.int_cast_apply [add_comm_group M] (z : ℤ) (m : M) :
+  (↑z : add_monoid.End M) m = z • m := rfl
 
 /-!
 ### Morphisms of morphisms
@@ -208,7 +222,8 @@ variables {R S : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_
 
 This is a more-strongly bundled version of `add_monoid_hom.mul_left` and `add_monoid_hom.mul_right`.
 
-A stronger version of this exists for algebras as `algebra.lmul`.
+Stronger versions of this exists for algebras as `linear_map.mul`, `non_unital_alg_hom.mul`
+and `algebra.lmul`.
 -/
 def add_monoid_hom.mul : R →+ R →+ R :=
 { to_fun := add_monoid_hom.mul_left,

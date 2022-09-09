@@ -1,3 +1,4 @@
+import data.rat.basic
 import data.rat.meta_defs
 
 run_cmd let q : ℚ := 3/15 in

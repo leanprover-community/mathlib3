@@ -19,12 +19,12 @@ the limit of the parallel pair `f,0`, as well as the dual result.
 
 noncomputable theory
 
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
-variables {C : Type u₁} [category.{v} C] [has_zero_morphisms C]
-variables {D : Type u₂} [category.{v} D] [has_zero_morphisms D]
+variables {C : Type u₁} [category.{v₁} C] [has_zero_morphisms C]
+variables {D : Type u₂} [category.{v₂} D] [has_zero_morphisms D]
 variables (G : C ⥤ D) [functor.preserves_zero_morphisms G]
 
 namespace category_theory.limits

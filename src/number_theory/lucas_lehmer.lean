@@ -160,9 +160,6 @@ def lucas_lehmer_test (p : ℕ) : Prop := lucas_lehmer_residue p = 0
 /-- `q` is defined as the minimum factor of `mersenne p`, bundled as an `ℕ+`. -/
 def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (mersenne p), nat.min_fac_pos (mersenne p)⟩
 
-local attribute [instance]
-lemma fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) := ⟨q.2⟩
-
 /-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
 -- It would be nice to define this as (ℤ/qℤ)[x] / (x^2 - 3),
 -- obtaining the ring structure for free,

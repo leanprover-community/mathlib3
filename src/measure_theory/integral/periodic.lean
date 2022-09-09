@@ -53,7 +53,7 @@ end newstuff
 
 --------------------------
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 namespace function
 

@@ -53,7 +53,7 @@ lemma card_le_of_subset : s ⊆ t → s.card ≤ t.card := multiset.card_le_of_l
 lemma card_pos : 0 < s.card ↔ s.nonempty :=
 pos_iff_ne_zero.trans $ (not_congr card_eq_zero).trans nonempty_iff_ne_empty.symm
 
-alias finset.card_pos ↔ _ finset.nonempty.card_pos
+alias card_pos ↔ _ nonempty.card_pos
 
 lemma card_ne_zero_of_mem (h : a ∈ s) : s.card ≠ 0 := (not_congr card_eq_zero).2 $ ne_empty_of_mem h
 

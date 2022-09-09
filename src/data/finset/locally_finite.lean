@@ -57,9 +57,9 @@ by rw [←coe_eq_empty, coe_Ioc, set.Ioc_eq_empty_iff]
 @[simp] lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
 by rw [←coe_eq_empty, coe_Ioo, set.Ioo_eq_empty_iff]
 
-alias Icc_eq_empty_iff ↔ _ finset.Icc_eq_empty
-alias Ico_eq_empty_iff ↔ _ finset.Ico_eq_empty
-alias Ioc_eq_empty_iff ↔ _ finset.Ioc_eq_empty
+alias Icc_eq_empty_iff ↔ _ Icc_eq_empty
+alias Ico_eq_empty_iff ↔ _ Ico_eq_empty
+alias Ioc_eq_empty_iff ↔ _ Ioc_eq_empty
 
 @[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
@@ -191,6 +191,19 @@ begin
   rw [mem_filter, mem_Ico, mem_Ico, and_comm, and.left_comm],
   exact and_iff_right_of_imp (λ h, hac.trans h.1),
 end
+
+lemma Icc_filter_lt_of_lt_right {a b c : α} [decidable_pred (< c)] (h : b < c) :
+  (Icc a b).filter (< c) = Icc a b :=
+(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Icc.1 hx).2 h)
+
+lemma Ioc_filter_lt_of_lt_right {a b c : α} [decidable_pred (< c)] (h : b < c) :
+  (Ioc a b).filter (< c) = Ioc a b :=
+(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Ioc.1 hx).2 h)
+
+lemma Iic_filter_lt_of_lt_right {α} [preorder α] [locally_finite_order_bot α]
+    {a c : α} [decidable_pred (< c)] (h : a < c) :
+  (Iic a).filter (< c) = Iic a :=
+(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Iic.1 hx) h)
 
 variables (a b) [fintype α]
 
@@ -435,6 +448,13 @@ begin
   { rw [Ico_filter_le_of_left_le h, max_eq_right h] },
   { rw [Ico_filter_le_of_le_left h, max_eq_left h] }
 end
+
+@[simp] lemma Ioo_filter_lt (a b c : α) : (Ioo a b).filter (< c) = Ioo a (min b c) :=
+by { ext, simp [and_assoc] }
+
+@[simp] lemma Iio_filter_lt {α} [linear_order α] [locally_finite_order_bot α] (a b : α) :
+  (Iio a).filter (< b) = Iio (min a b) :=
+by { ext, simp [and_assoc] }
 
 @[simp] lemma Ico_diff_Ico_left (a b c : α) : (Ico a b) \ (Ico a c) = Ico (max a c) b :=
 begin

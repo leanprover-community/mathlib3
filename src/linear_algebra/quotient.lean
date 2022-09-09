@@ -70,46 +70,46 @@ quotient_add_group.add_comm_group p.to_add_subgroup
 
 @[simp] theorem mk_sub : (mk (x - y) : M ⧸ p) = mk x - mk y := rfl
 
-section has_scalar
+section has_smul
 
-variables {S : Type*} [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] (P : submodule R M)
+variables {S : Type*} [has_smul S R] [has_smul S M] [is_scalar_tower S R M] (P : submodule R M)
 
-instance has_scalar' : has_scalar S (M ⧸ P) :=
+instance has_smul' : has_smul S (M ⧸ P) :=
 ⟨λ a, quotient.map' ((•) a) $ λ x y h, left_rel_apply.mpr $
   by simpa [smul_sub] using P.smul_mem (a • 1 : R) (left_rel_apply.mp h)⟩
 
 /-- Shortcut to help the elaborator in the common case. -/
-instance has_scalar : has_scalar R (M ⧸ P) :=
-quotient.has_scalar' P
+instance has_smul : has_smul R (M ⧸ P) :=
+quotient.has_smul' P
 
 @[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : M ⧸ p) = r • mk x := rfl
 
-instance smul_comm_class (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
+instance smul_comm_class (T : Type*) [has_smul T R] [has_smul T M] [is_scalar_tower T R M]
   [smul_comm_class S T M] : smul_comm_class S T (M ⧸ P) :=
 { smul_comm := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_comm _ _ _) }
 
-instance is_scalar_tower (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
-  [has_scalar S T] [is_scalar_tower S T M] : is_scalar_tower S T (M ⧸ P) :=
+instance is_scalar_tower (T : Type*) [has_smul T R] [has_smul T M] [is_scalar_tower T R M]
+  [has_smul S T] [is_scalar_tower S T M] : is_scalar_tower S T (M ⧸ P) :=
 { smul_assoc := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_assoc _ _ _) }
 
-instance is_central_scalar [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+instance is_central_scalar [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
   [is_central_scalar S M] : is_central_scalar S (M ⧸ P) :=
 { op_smul_eq_smul := λ x, quotient.ind' $ by exact λ z, congr_arg mk $ op_smul_eq_smul _ _ }
 
-end has_scalar
+end has_smul
 
 section module
 
 variables {S : Type*}
 
-instance mul_action' [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+instance mul_action' [monoid S] [has_smul S R] [mul_action S M] [is_scalar_tower S R M]
   (P : submodule R M) : mul_action S (M ⧸ P) :=
 function.surjective.mul_action mk (surjective_quot_mk _) P^.quotient.mk_smul
 
 instance mul_action (P : submodule R M) : mul_action R (M ⧸ P) :=
 quotient.mul_action' P
 
-instance distrib_mul_action' [monoid S] [has_scalar S R] [distrib_mul_action S M]
+instance distrib_mul_action' [monoid S] [has_smul S R] [distrib_mul_action S M]
   [is_scalar_tower S R M]
   (P : submodule R M) : distrib_mul_action S (M ⧸ P) :=
 function.surjective.distrib_mul_action
@@ -118,7 +118,7 @@ function.surjective.distrib_mul_action
 instance distrib_mul_action (P : submodule R M) : distrib_mul_action R (M ⧸ P) :=
 quotient.distrib_mul_action' P
 
-instance module' [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
+instance module' [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M]
   (P : submodule R M) : module S (M ⧸ P) :=
 function.surjective.module _
   ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
@@ -131,7 +131,7 @@ variables (S)
 /-- The quotient of `P` as an `S`-submodule is the same as the quotient of `P` as an `R`-submodule,
 where `P : submodule R M`.
 -/
-def restrict_scalars_equiv [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M]
+def restrict_scalars_equiv [ring S] [has_smul S R] [module S M] [is_scalar_tower S R M]
   (P : submodule R M) :
   (M ⧸ P.restrict_scalars S) ≃ₗ[S] M ⧸ P :=
 { map_add' := λ x y, quotient.induction_on₂' x y (λ x' y', rfl),
@@ -139,12 +139,12 @@ def restrict_scalars_equiv [ring S] [has_scalar S R] [module S M] [is_scalar_tow
   ..quotient.congr_right $ λ _ _, iff.rfl }
 
 @[simp] lemma restrict_scalars_equiv_mk
-  [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] (P : submodule R M)
+  [ring S] [has_smul S R] [module S M] [is_scalar_tower S R M] (P : submodule R M)
   (x : M) : restrict_scalars_equiv S P (mk x) = mk x :=
 rfl
 
 @[simp] lemma restrict_scalars_equiv_symm_mk
-  [ring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] (P : submodule R M)
+  [ring S] [has_smul S R] [module S M] [is_scalar_tower S R M] (P : submodule R M)
   (x : M) : (restrict_scalars_equiv S P).symm (mk x) = mk x :=
 rfl
 
@@ -259,7 +259,7 @@ lemma mapq_comp {R₃ M₃ : Type*} [ring R₃] [add_comm_group M₃] [module R�
   p.mapq p₃ (g.comp f) h = (p₂.mapq p₃ g hg).comp (p.mapq p₂ f hf) :=
 by { ext, simp, }
 
-@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by simp) :
+@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by { rw comap_id, exact le_refl _ }) :
   p.mapq p linear_map.id h = linear_map.id :=
 by { ext, simp, }
 

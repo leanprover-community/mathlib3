@@ -66,8 +66,8 @@ structure freiman_hom (A : set α) (β : Type*) [comm_monoid α] [comm_monoid β
   (hs : s.card = n) (ht : t.card = n) (h : s.prod = t.prod) :
   (s.map to_fun).prod = (t.map to_fun).prod)
 
-notation A ` →+[`:25 n:25 `] `:0 β:0 := add_freiman_hom A β n
-notation A ` →*[`:25 n:25 `] `:0 β:0 := freiman_hom A β n
+notation (name := add_freiman_hom) A ` →+[`:25 n:25 `] `:0 β:0 := add_freiman_hom A β n
+notation (name := freiman_hom) A ` →*[`:25 n:25 `] `:0 β:0 := freiman_hom A β n
 
 /-- `add_freiman_hom_class F s β n` states that `F` is a type of `n`-ary sums-preserving morphisms.
 You should extend this class when you extend `add_freiman_hom`. -/
@@ -121,9 +121,10 @@ instance fun_like : fun_like (A →*[n] β) α (λ _, β) :=
 instance freiman_hom_class : freiman_hom_class (A →*[n] β) A β n :=
 { map_prod_eq_map_prod' := map_prod_eq_map_prod' }
 
-/-- Helper instance for when there's too many metavariables to apply
-`fun_like.has_coe_to_fun` directly. -/
-@[to_additive]
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
 instance : has_coe_to_fun (A →*[n] β) (λ _, α → β) := ⟨to_fun⟩
 
 initialize_simps_projections freiman_hom (to_fun → apply)

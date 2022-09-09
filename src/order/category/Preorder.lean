@@ -3,11 +3,10 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import category_theory.concrete_category.bundled_hom
-import algebra.punit_instances
-import order.hom.basic
 import category_theory.category.Cat
 import category_theory.category.preorder
+import category_theory.concrete_category.bundled_hom
+import order.hom.basic
 
 /-!
 # Category of preorders

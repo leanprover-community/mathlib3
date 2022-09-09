@@ -332,7 +332,7 @@ In this section, in order to enforce that `n` is positive, we write it as
 `m + 1` for some natural number `m`. -/
 
 /-! `dim X` will denote the dimension of a subspace `X` as a cardinal. -/
-notation `dim` X:70 := module.rank ℝ ↥X
+notation `dim ` X:70 := module.rank ℝ ↥X
 /-! `fdim X` will denote the (finite) dimension of a subspace `X` as a natural number. -/
 notation `fdim` := finrank ℝ
 
@@ -341,7 +341,7 @@ notation `Span` := submodule.span ℝ
 
 /-! `Card X` will denote the cardinal of a subset of a finite type, as a
 natural number. -/
-notation `Card` X:70 := X.to_finset.card
+notation `Card ` X:70 := X.to_finset.card
 
 /-! In the following, `⊓` and `⊔` will denote intersection and sums of ℝ-subspaces,
 equipped with their subspace structures. The notations come from the general
@@ -393,7 +393,7 @@ begin
     rw set.mem_to_finset,
     exact (dual_pair_e_ε _).mem_of_mem_span y_mem_H p p_in },
   obtain ⟨q, H_max⟩ : ∃ q : Q (m+1), ∀ q' : Q (m+1), |(ε q' : _) y| ≤ |ε q y|,
-    from fintype.exists_max _,
+    from finite.exists_max _,
   have H_q_pos : 0 < |ε q y|,
   { contrapose! y_ne,
     exact epsilon_total (λ p, abs_nonpos_iff.mp (le_trans (H_max p) y_ne)) },

@@ -402,8 +402,8 @@ end isometric
 
 namespace continuous_linear_equiv
 
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F]
 
 @[simp] lemma dimH_image (e : E ≃L[𝕜] F) (s : set E) : dimH (e '' s) = dimH s :=
 le_antisymm (e.lipschitz.dimH_image_le s) $
@@ -423,7 +423,8 @@ end continuous_linear_equiv
 
 namespace real
 
-variables {E : Type*} [fintype ι] [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type*} [fintype ι] [normed_add_comm_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E]
 
 theorem dimH_ball_pi (x : ι → ℝ) {r : ℝ} (hr : 0 < r) :
   dimH (metric.ball x r) = fintype.card ι :=
@@ -478,8 +479,8 @@ by rw [dimH_univ_eq_finrank ℝ, finite_dimensional.finrank_self, nat.cast_one]
 end real
 
 variables {E F : Type*}
-  [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-  [normed_group F] [normed_space ℝ F]
+  [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  [normed_add_comm_group F] [normed_space ℝ F]
 
 theorem dense_compl_of_dimH_lt_finrank {s : set E} (hs : dimH s < finrank ℝ E) : dense sᶜ :=
 begin

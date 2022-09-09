@@ -141,6 +141,10 @@ end set_like
 @[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
 
+/-! Transfer instances from `submodule R P` to `fractional_ideal S P`. --/
+instance (I : fractional_ideal S P) : add_comm_group I := submodule.add_comm_group ↑I
+instance (I : fractional_ideal S P) : module R I := submodule.module ↑I
+
 lemma coe_to_submodule_injective :
   function.injective (coe : fractional_ideal S P → submodule R P) :=
 subtype.coe_injective
@@ -382,7 +386,7 @@ lemma _root_.is_fractional.nsmul {I : submodule R P} :
   exact h.sup (_root_.is_fractional.nsmul n h)
 end
 
-instance : has_scalar ℕ (fractional_ideal S P) :=
+instance : has_smul ℕ (fractional_ideal S P) :=
 { smul := λ n I, ⟨n • I, I.is_fractional.nsmul n⟩}
 
 @[norm_cast]
@@ -961,7 +965,7 @@ end quotient
 
 section field
 
-variables {R₁ K L : Type*} [comm_ring R₁] [is_domain R₁] [field K] [field L]
+variables {R₁ K L : Type*} [comm_ring R₁] [field K] [field L]
 variables [algebra R₁ K] [is_fraction_ring R₁ K] [algebra K L] [is_fraction_ring K L]
 
 lemma eq_zero_or_one (I : fractional_ideal K⁰ L) : I = 0 ∨ I = 1 :=
@@ -974,7 +978,7 @@ begin
   { intro x_mem,
     obtain ⟨n, d, rfl⟩ := is_localization.mk'_surjective K⁰ x,
     refine ⟨n / d, _⟩,
-    rw [ring_hom.map_div, is_fraction_ring.mk'_eq_div] },
+    rw [map_div₀, is_fraction_ring.mk'_eq_div] },
   { rintro ⟨x, rfl⟩,
     obtain ⟨y, y_ne, y_mem⟩ := fractional_ideal.exists_ne_zero_mem_is_integer hI,
     rw [← div_mul_cancel x y_ne, ring_hom.map_mul, ← algebra.smul_def],
@@ -982,11 +986,7 @@ begin
 end
 
 lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
-begin
-  letI : field R₁ := hF.to_field,
-  -- TODO can this be less ugly?
-  exact @eq_zero_or_one R₁ K _ _ _ (by { unfreezingI {cases _inst_4}, convert _inst_9 }) I
-end
+by letI : field R₁ := hF.to_field; exact eq_zero_or_one I
 
 end field
 

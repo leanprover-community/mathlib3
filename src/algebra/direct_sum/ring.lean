@@ -40,7 +40,7 @@ the base ring `A 0` with:
 
 and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplication:
 
-* `direct_sum.grade_zero.has_scalar (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
+* `direct_sum.grade_zero.has_smul (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
 * `direct_sum.grade_zero.module (A 0)`
 * (nothing)
 * (nothing)
@@ -269,7 +269,7 @@ open_locale big_operators
 lemma mul_eq_sum_support_ghas_mul
   [Π (i : ι) (x : A i), decidable (x ≠ 0)] (a a' : ⨁ i, A i) :
   a * a' =
-    ∑ (ij : ι × ι) in (dfinsupp.support a).product (dfinsupp.support a'),
+    ∑ ij in dfinsupp.support a ×ˢ dfinsupp.support a',
       direct_sum.of _ _ (graded_monoid.ghas_mul.mul (a ij.fst) (a' ij.snd)) :=
 begin
   change direct_sum.mul_hom _ a a' = _,
@@ -566,7 +566,7 @@ def lift_ring_hom :
     f (graded_monoid.ghas_one.one) = 1 ∧
     ∀ {i j} (ai : A i) (aj : A j), f (graded_monoid.ghas_mul.mul ai aj) = f ai * f aj} ≃
     ((⨁ i, A i) →+* R) :=
-{ to_fun := λ f, to_semiring f.1 f.2.1 f.2.2,
+{ to_fun := λ f, to_semiring (λ _, f.1) f.2.1 (λ _ _, f.2.2),
   inv_fun := λ F,
     ⟨λ i, (F : (⨁ i, A i) →+ R).comp (of _ i), begin
       simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
@@ -578,7 +578,7 @@ def lift_ring_hom :
     end⟩,
   left_inv := λ f, begin
     ext xi xv,
-    exact to_add_monoid_of f.1 xi xv,
+    exact to_add_monoid_of (λ _, f.1) xi xv,
   end,
   right_inv := λ F, begin
     apply ring_hom.coe_add_monoid_hom_injective,

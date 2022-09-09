@@ -15,6 +15,11 @@ In this file we prove that `∫ x in t..t + T, f x = ∫ x in s..s + T, f x` for
 measurable) function periodic function with period `T`.
 -/
 
+/-!
+ TO DO in this file (9/9/22):
+  - pull names from `real_mod_zmultiples`
+-/
+
 open set function measure_theory measure_theory.measure topological_space
 open_locale measure_theory
 
@@ -28,7 +33,7 @@ begin
   simpa only [add_comm x] using exists_unique_add_zsmul_mem_Ioc hT x t
 end
 
-section newstuff
+section newstuff ---- NEW STUFF
 
 open add_subgroup
 
@@ -45,6 +50,8 @@ sorry
 lemma foo' : measure_preserving π (volume.restrict (Ioc t (t + T))) volume := sorry
 
 end newstuff
+
+--------------------------
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
 

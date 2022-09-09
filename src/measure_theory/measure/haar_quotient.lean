@@ -166,3 +166,5 @@ lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
   (h𝓕_finite : μ 𝓕 < ⊤) (h : μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K) = 1) :
   measure_preserving (quotient_group.mk' Γ) (μ.restrict 𝓕) (measure_theory.measure.haar_measure K) :=
 sorry
+
+-- LOOKS EASY - pull stuff from `periodic` file

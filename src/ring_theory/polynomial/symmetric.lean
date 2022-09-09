@@ -139,6 +139,10 @@ def esymm (n : ℕ) : mv_polynomial σ R :=
 lemma esymm_eq_multiset_esymm : esymm σ R = (finset.univ.val.map X).esymm :=
 funext $ λ n, (finset.univ.esymm_map_val X n).symm
 
+lemma aeval_esymm_eq_multiset_esymm [algebra R S] (f : σ → S) (n : ℕ) :
+  aeval f (esymm σ R n) = (finset.univ.val.map f).esymm n :=
+by simp_rw [esymm, aeval_sum, aeval_prod, aeval_X, esymm_map_val]
+
 /-- We can define `esymm σ R n` by summing over a subtype instead of over `powerset_len`. -/
 lemma esymm_eq_sum_subtype (n : ℕ) : esymm σ R n =
   ∑ t : {s : finset σ // s.card = n}, ∏ i in (t : finset σ), X i :=

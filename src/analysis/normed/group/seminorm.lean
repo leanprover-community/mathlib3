@@ -291,7 +291,7 @@ end group_seminorm
 see that `has_smul R ℝ` should be fixed because `ℝ` is fixed. -/
 
 namespace add_group_seminorm
-variables [add_group E] [add_group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+variables [add_group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (p : add_group_seminorm E)
 
 instance [decidable_eq E] : has_one (add_group_seminorm E) :=

@@ -3,6 +3,7 @@ Copyright (c) 2022 María Inés de Frutos-Fernández, Yaël Dillies. All rights 
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández, Yaël Dillies
 -/
+import algebra.order.hom.basic
 import data.real.nnreal
 
 /-!
@@ -262,13 +263,13 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
 
 @[to_additive] lemma mul_bdd_below_range_add {p q : group_seminorm E} {x : E} :
   bdd_below (range $ λ y, p y + q (x / y)) :=
-⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg_mul p _) (map_nonneg_mul q _) }⟩
+⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg p _) (map_nonneg q _) }⟩
 
 @[to_additive] noncomputable instance : has_inf (group_seminorm E) :=
 ⟨λ p q,
   { to_fun := λ x, ⨅ y, p y + q (x / y),
     map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-        (λ x, add_nonneg (map_nonneg_mul p _) (map_nonneg_mul q _))
+        (λ x, add_nonneg (map_nonneg p _) (map_nonneg q _))
         (λ r hr, ⟨1, by rwa [div_one, map_one_eq_zero p, map_one_eq_zero q, add_zero]⟩),
     mul_le' := λ x y, le_cinfi_add_cinfi $ λ u v, begin
       refine cinfi_le_of_le mul_bdd_below_range_add (u * v) _,
@@ -286,7 +287,7 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
     by rw [div_self', map_one_eq_zero q, add_zero],
   inf_le_right := λ p q x, cinfi_le_of_le mul_bdd_below_range_add (1 : E) $
     by simp only [div_one, map_one_eq_zero p, zero_add],
-  le_inf := λ a b c hb hc x, le_cinfi $ λ u, (le_map_add_map_div' a _ _).trans $
+  le_inf := λ a b c hb hc x, le_cinfi $ λ u, (le_map_add_map_div a _ _).trans $
     add_le_add (hb _) (hc _),
   ..group_seminorm.semilattice_sup }
 
@@ -297,7 +298,8 @@ end group_seminorm
 see that `has_smul R ℝ` should be fixed because `ℝ` is fixed. -/
 
 namespace add_group_seminorm
-variables [add_group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+variables [add_group E] [add_group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (p : add_group_seminorm E)
 
 instance [decidable_eq E] : has_one (add_group_seminorm E) :=
 ⟨{ to_fun := λ x, if x = 0 then 0 else 1,

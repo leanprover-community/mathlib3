@@ -457,22 +457,22 @@ begin
   { exact lt_of_mul_lt_mul_left' bc ((ne.symm a₀).le_iff_lt.mp a0) }
 end
 
-lemma pos_of_mul_pos_right [pos_mul_reflect_lt α] (h : 0 < a * b) (ha : 0 ≤ a) :
+lemma pos_of_mul_pos_right [pos_mul_reflect_lt α] (h : 0 < a * b) (a0 : 0 ≤ a) :
   0 < b :=
-lt_of_mul_lt_mul_left ((mul_zero a).symm ▸ h : a * 0 < a * b) ha
+lt_of_mul_lt_mul_left ((mul_zero a).symm ▸ h : a * 0 < a * b) a0
 
 lemma lt_of_mul_lt_mul_right [mul_pos_reflect_lt α]
-  (ab : a * c < b * c) (c0 : 0 ≤ c) :
-  a < b :=
+  (bc : b * a < c * a) (a0 : 0 ≤ a) :
+  b < c :=
 begin
-  by_cases c₀ : c = 0,
-  { exact (lt_irrefl (0 : α) (by simpa only [c₀, mul_zero] using ab)).elim },
-  { exact lt_of_mul_lt_mul_right' ab ((ne.symm c₀).le_iff_lt.mp c0) }
+  by_cases a₀ : a = 0,
+  { exact (lt_irrefl (0 : α) (by simpa only [a₀, mul_zero] using bc)).elim },
+  { exact lt_of_mul_lt_mul_right' bc ((ne.symm a₀).le_iff_lt.mp a0) }
 end
 
-lemma pos_of_mul_pos_left [mul_pos_reflect_lt α] (h : 0 < a * b) (hb : 0 ≤ b) :
+lemma pos_of_mul_pos_left [mul_pos_reflect_lt α] (h : 0 < a * b) (b0 : 0 ≤ b) :
   0 < a :=
-lt_of_mul_lt_mul_right ((zero_mul b).symm ▸ h : 0 * b < a * b) hb
+lt_of_mul_lt_mul_right ((zero_mul b).symm ▸ h : 0 * b < a * b) b0
 
 lemma pos_iff_pos_of_mul_pos [pos_mul_reflect_lt α] [mul_pos_reflect_lt α] (hab : 0 < a * b) :
   0 < a ↔ 0 < b :=
@@ -605,26 +605,28 @@ lemma neg_iff_neg_of_mul_pos [pos_mul_mono α] [mul_pos_mono α]
 ⟨neg_of_mul_pos_right hab ∘ le_of_lt, neg_of_mul_pos_left hab ∘ le_of_lt⟩
 
 lemma left.neg_of_mul_neg_left [pos_mul_mono α]
-  (h : a * b < 0) (h1 : 0 ≤ a) :
+  (h : a * b < 0) (a0 : 0 ≤ a) :
   b < 0 :=
-lt_of_not_ge (assume h2 : b ≥ 0, (left.mul_nonneg h1 h2).not_lt h)
+lt_of_not_ge (λ b0 : b ≥ 0, (left.mul_nonneg a0 b0).not_lt h)
 
 alias left.neg_of_mul_neg_left ← neg_of_mul_neg_left
 
 lemma right.neg_of_mul_neg_left [mul_pos_mono α]
-  (h : a * b < 0) (h1 : 0 ≤ a) :
+  (h : a * b < 0) (a0 : 0 ≤ a) :
   b < 0 :=
-lt_of_not_ge (assume h2 : b ≥ 0, (right.mul_nonneg h1 h2).not_lt h)
+lt_of_not_ge (λ b0 : b ≥ 0, (right.mul_nonneg a0 b0).not_lt h)
 
 lemma left.neg_of_mul_neg_right [pos_mul_mono α]
-  (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
-lt_of_not_ge (assume h2 : a ≥ 0, (left.mul_nonneg h2 h1).not_lt h)
+  (h : a * b < 0) (b0 : 0 ≤ b) :
+  a < 0 :=
+lt_of_not_ge (λ a0 : a ≥ 0, (left.mul_nonneg a0 b0).not_lt h)
 
 alias left.neg_of_mul_neg_right ← neg_of_mul_neg_right
 
 lemma right.neg_of_mul_neg_right [mul_pos_mono α]
-  (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
-lt_of_not_ge (assume h2 : a ≥ 0, (right.mul_nonneg h2 h1).not_lt h)
+  (h : a * b < 0) (b0 : 0 ≤ b) :
+  a < 0 :=
+lt_of_not_ge (λ a0 : a ≥ 0, (right.mul_nonneg a0 b0).not_lt h)
 
 end linear_order
 
@@ -1260,28 +1262,28 @@ lemma le_mul_of_one_le_left [mul_pos_mono α] (b0 : 0 ≤ b) (h : 1 ≤ a) :
 le_mul_of_one_le_of_le h le_rfl b0
 
 lemma le_of_mul_le_of_one_le_left [pos_mul_mono α]
-  (h : a * b ≤ c) (hle : 1 ≤ b) (a0 : 0 ≤ a) :
+  (h : a * b ≤ c) (hb : 1 ≤ b) (a0 : 0 ≤ a) :
   a ≤ c :=
-a0.lt_or_eq.elim (preorder.le_of_mul_le_of_one_le_left h hle)
+a0.lt_or_eq.elim (preorder.le_of_mul_le_of_one_le_left h hb)
   (λ ha, by simpa only [← ha, zero_mul] using h)
 
 lemma le_of_le_mul_of_le_one_left [pos_mul_mono α]
-  (h : a ≤ b * c) (hle : c ≤ 1) (b0 : 0 ≤ b) :
-  a ≤ b :=
-b0.lt_or_eq.elim (preorder.le_of_le_mul_of_le_one_left h hle)
-  (λ hb, by simpa only [← hb, zero_mul] using h)
+  (h : c ≤ a * b) (hb : b ≤ 1) (a0 : 0 ≤ a) :
+  c ≤ a :=
+a0.lt_or_eq.elim (preorder.le_of_le_mul_of_le_one_left h hb)
+  (λ ha, by simpa only [← ha, zero_mul] using h)
 
 lemma le_of_mul_le_of_one_le_right [mul_pos_mono α]
-  (h : a * b ≤ c) (hle : 1 ≤ a) (b0 : 0 ≤ b) :
+  (h : a * b ≤ c) (ha : 1 ≤ a) (b0 : 0 ≤ b) :
   b ≤ c :=
-b0.lt_or_eq.elim (preorder.le_of_mul_le_of_one_le_right h hle)
-  (λ ha, by simpa only [← ha, mul_zero] using h)
+b0.lt_or_eq.elim (preorder.le_of_mul_le_of_one_le_right h ha)
+  (λ hb, by simpa only [← hb, mul_zero] using h)
 
 lemma le_of_le_mul_of_le_one_right [mul_pos_mono α]
-  (h : a ≤ b * c) (hle : b ≤ 1) (c0 : 0 ≤ c) :
-  a ≤ c :=
-c0.lt_or_eq.elim (preorder.le_of_le_mul_of_le_one_right h hle)
-  (λ ha, by simpa only [← ha, mul_zero] using h)
+  (h : c ≤ a * b) (ha : a ≤ 1) (b0 : 0 ≤ b) :
+  c ≤ b :=
+b0.lt_or_eq.elim (preorder.le_of_le_mul_of_le_one_right h ha)
+  (λ hb, by simpa only [← hb, mul_zero] using h)
 
 end partial_order
 

@@ -51,14 +51,11 @@ by rw [box_prod_adj, and_iff_left rfl, or_iff_left (λ h : H.adj b b ∧ _, h.1.
 by rw [box_prod_adj, and_iff_left rfl, or_iff_right (λ h : G.adj a a ∧ _, h.1.ne rfl)]
 
 lemma box_prod_neighbor_set (x : α × β) :
-  (G □ H).neighbor_set x = ((λ a, (⟨a,x.2⟩ : α × β)) '' (G.neighbor_set x.1)) ∪
-                           ((λ b, (⟨x.1,b⟩ : α × β)) '' (H.neighbor_set x.2)) :=
+  (G □ H).neighbor_set x = ((G.neighbor_set x.1) ×ˢ {x.2}) ∪ ({x.1} ×ˢ (H.neighbor_set x.2)) :=
 begin
   ext ⟨a',b'⟩,
-  simp only [mem_neighbor_set, box_prod_adj, set.mem_union_eq, set.mem_image, prod.mk.inj_iff,
-             exists_eq_right_right],
-  simp_rw [and_comm _ (x.2 = b'), exists_eq_right_right],
-  finish,
+  simp only [mem_neighbor_set, set.mem_union, box_prod_adj, set.mem_prod, set.mem_singleton_iff],
+  simp only [eq_comm, and_comm],
 end
 
 variables (G H I)
@@ -188,23 +185,16 @@ lemma box_prod_degree [decidable_eq α] [decidable_eq β]
   [locally_finite G] [locally_finite H] (x : α × β) :
   (G □ H).degree x = G.degree x.1 + H.degree x.2 :=
 begin
-  dsimp only [degree,neighbor_finset],
-  simp_rw [box_prod_neighbor_set x,set.to_finset_union],
-  rw finset.card_disjoint_union,
-  have l : ((λ (a : α), (a, x.2)) '' G.neighbor_set x.1).to_finset.card
-         = (G.neighbor_set x.1).to_finset.card, by
-  { simp only [set.to_finset_card, fintype.card_of_finset,
-               finset.card_image_of_injective _ (prod.mk.inj_right x.2)],},
-  have r : ((λ (b : β), (x.1, b)) '' H.neighbor_set x.2).to_finset.card
-         = (H.neighbor_set x.2).to_finset.card, by
-  { simp only [set.to_finset_card, fintype.card_of_finset,
-               finset.card_image_of_injective _ (prod.mk.inj_left x.1)],},
-  rw [l, r],
+  simp_rw [← card_neighbor_set_eq_degree, box_prod_neighbor_set,
+    ← set.to_finset_card, set.to_finset_union],
+  convert finset.card_disjoint_union _;
+    simp only [set.to_finset_prod, finset.card_product, set.to_finset_card,
+      set.card_singleton, mul_one, one_mul],
   { rintro ⟨_,_⟩ q,
-    simp only [finset.inf_eq_inter, finset.mem_inter, set.mem_to_finset, set.mem_image,
-               mem_neighbor_set,prod.mk.inj_iff,exists_eq_right_right] at q,
-    obtain ⟨⟨_,_,rfl,rfl⟩,⟨a,_,_,_⟩⟩ := q,
-    exact (a.ne (rfl)).elim, },
+    simp only [finset.inf_eq_inter, finset.mem_inter, finset.mem_product, set.mem_to_finset,
+      mem_neighbor_set, set.mem_singleton_iff] at q,
+    obtain ⟨⟨q, rfl⟩, ⟨rfl, _⟩⟩ := q,
+    exact (q.ne rfl).elim, },
 end
 
 end simple_graph

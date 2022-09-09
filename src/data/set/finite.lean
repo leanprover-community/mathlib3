@@ -332,6 +332,10 @@ end set
 
 /-! ### Finset -/
 
+@[simp] lemma set.to_finset_prod (s : set α) (t : set β) [fintype s] [fintype t] :
+  (s ×ˢ t).to_finset = s.to_finset ×ˢ t.to_finset :=
+by { ext, simp only [set.mem_to_finset, set.mem_prod, finset.mem_product] }
+
 namespace finset
 
 /-- Gives a `set.finite` for the `finset` coerced to a `set`.

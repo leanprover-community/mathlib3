@@ -1,5 +1,17 @@
+/-
+Copyright (c) 2022 Mario Carneiro, Praneeth Kolichala. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro, Praneeth Kolichala
+-/
 import computability.computability_tactic2
 import computability.primrec.stack_recursion
+
+/-!
+# Lemmas about primitive recursive functions
+
+In this file, we prove a large family of basic functions on lists and trees
+primitive recursive.
+-/
 
 open tencodable (encode decode)
 open function

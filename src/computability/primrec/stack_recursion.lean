@@ -1,11 +1,68 @@
+/-
+Copyright (c) 2022 Praneeth Kolichala. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Praneeth Kolichala
+-/
 import data.tree
+import logic.encodable.tree
+
+/-!
+# Conversion of iteration to recursion using a stack
+
+This file essentially describes how to eliminate recursion into iteration.
+
+## Recursion with an explicit stack
+
+For W-types, we can define a function `stack_rec`,
+which is similar to `rec` except that it explicitly keeps track of the
+arguments on the stack, rather than allowing the recursive function to return
+higher-order (non-encodable) functions.
+
+For example, consider checking for equality of trees: the recursor has type `tree → tree → bool`,
+the motive is `tree → bool`, and the inductive step calls the inductive hypotheses,
+which are `left : tree → bool` and `right : tree bool` on the current left and right subtrees.
+
+This is an issue, because `tree → bool` is not encodable, and indeed, any total
+complexity class (e.g. the primitive recursive functions) cannot interpret itself,
+so it is not possible to have the motive be a representation of the "code" for `tree → bool`.
+
+In general, for a W-type with nodes labeled by `α` and children by `β : α → Type`,
+we write `stack_rec : W_type β → γ → δ`,
+  - `pre : Π x, β x → γ → γ`: "prepares" the arguments to the inductive hypothesis,
+    given the current node's children `Π x, β x` and the current argument `γ`
+  - `post : (Π x, (β x → δ) → δ) → γ → δ`: computes the result given the inductive
+  hypotheses `(β x → δ)` and the current argument `γ`.
+
+TODO: generalize `stack_rec` to all W-types. Tactic to automatically convert structural
+recursion where the motive is itself a function to `stack_rec`. This will enable us
+to write functions naturally in Lean and then automatically prove that they are primitive recursive,
+polynomial time, etc. using a tactic.
+-/
 
 namespace tree
 
-abbreviation iterator_stack (α β : Type*) := (tree unit × α × option β) ⊕ β
+/-- Recursion with an explicit stack for `tree unit` -/
+@[simp]
+def stack_rec {α : Type} {motive : Type} (base : α → motive) (pre₁ pre₂ : tree unit → α → α)
+  (post : motive → motive → tree unit → α → motive) : tree unit → α → motive
+| nil d := base d
+| T@(node () x y) d := post (stack_rec x (pre₁ T d)) (stack_rec y (pre₂ T d)) T d
+
+/-- An element on the stack is either the result (`sum.inr (x : β)`), or
+  the: tree, the argument α, and potentially what the left branch computed
+  if that computation has finished (`option β`)
+  -/
+abbreviation iterator_stack (α β : Type) := (tree unit × α × option β) ⊕ β
 variables {α : Type} {β : Type} (base : α → β) (pre₁ pre₂ : tree unit → α → α)
   (post : β → β → tree unit → α → β)
 
+/-- Do a single step of the iteration. In particular,
+    - If the top of the stack is a result, pop the value before that and plug in the result.
+    - If the top of the stack is a tree with the left branch uncomputed, push to the stack the
+        arguments for the left branch, unless the tree is `nil`, in which case we directly
+        compute the result.
+    - If the top of the stack is a tree with the left branch computed, push to the stack the
+      arguments for the right branch. -/
 @[simp] def stack_step : list (iterator_stack α β) → list (iterator_stack α β)
 | (sum.inr res :: sum.inl (tree, arg, none) :: xs) := sum.inl (tree, arg, some res) :: xs
 | (sum.inr res :: sum.inl (tree, arg, some left_res) :: xs) :=
@@ -14,5 +71,35 @@ variables {α : Type} {β : Type} (base : α → β) (pre₁ pre₂ : tree unit 
 | (sum.inl (nil, arg, none) :: xs) := sum.inr (base arg) :: xs
 | L@(sum.inl ((node () x y), arg, none) :: xs) := sum.inl (x, pre₁ (node () x y) arg, none) :: L
 | x := x
+
+@[simp] lemma stack_step_nil : stack_step base pre₁ pre₂ post [] = [] := rfl
+@[simp] lemma stack_step_singleton (res : β) :
+  stack_step base pre₁ pre₂ post [sum.inr res] = [sum.inr res] := rfl
+
+def time_steps (x : tree unit) : ℕ := 5 * (tencodable.to_nat x) + 1
+
+@[simp] lemma time_steps_nil : time_steps nil = 1 := rfl
+lemma time_steps_node (a b) : time_steps (node () a b) = 1 + b.time_steps + 2 + a.time_steps + 1 :=
+by { simp only [time_steps, tencodable.to_nat_node, mul_add, show 5 * 1 = 1 + 2 + 1 + 1, from rfl],
+  ac_refl, }
+
+@[simp] lemma stack_step_iterate (x : tree unit) (arg : α) (xs : list (iterator_stack α β)) :
+  (stack_step base pre₁ pre₂ post)^[x.time_steps] (sum.inl (x, arg, none) :: xs) =
+  (sum.inr $ x.stack_rec base pre₁ pre₂ post arg) :: xs :=
+by {
+  induction x generalizing arg xs,
+  { simp [time_steps_node, function.iterate_add, *], },
+  have : x_ᾰ = () := punit_eq_star _,
+  simp [time_steps_node, function.iterate_add, *],
+}
+
+lemma stack_step_iterate' (x : tree unit) (arg : α) {n : ℕ} (hn : 5 * (tencodable.to_nat x) + 1 ≤ n) :
+  (stack_step base pre₁ pre₂ post)^[n] [sum.inl (x, arg, none)] = [sum.inr $ x.stack_rec base pre₁ pre₂ post arg] :=
+begin
+  rw ← time_steps at hn,
+  rcases le_iff_exists_add'.mp hn with ⟨n, rfl⟩,
+  simp [function.iterate_add, function.iterate_fixed],
+end
+
 
 end tree

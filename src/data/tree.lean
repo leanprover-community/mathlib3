@@ -84,6 +84,7 @@ def map {β} (f : α → β) : tree α → tree β
 end tree
 
 /-- A unit tree is a binary tree with no data (only units) attached -/
+@[derive [has_reflect, decidable_eq]]
 inductive unit_tree
 | nil : unit_tree
 | node : unit_tree → unit_tree → unit_tree

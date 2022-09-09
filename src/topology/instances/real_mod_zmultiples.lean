@@ -11,6 +11,10 @@ import tactic.congrm
 
 /-!
 # The topology on the quotient group `ℝ / a ℤ`
+
+
+TO DO in this file (9/9/22):
+ - proper discontinuity
 -/
 
 open add_subgroup
@@ -21,16 +25,14 @@ instance : has_continuous_const_vadd (zmultiples a).opposite ℝ :=
 sorry
 -- follows by `to_additive` of `smul_comm_class.has_continuous_const_smul`
 
+-- This *IS* used (as a simp lemma)
 -- move to `group_theory.subgroup.basic` and `to_additive` it
 @[simp] lemma add_subgroup.zmultiples_zero {G : Type*} [add_group G] : zmultiples (0:G) = ⊥ :=
 begin
   sorry,
 end
 
--- move to `topology.metric_space.basic`
-
-/-- For nonzero `a`, under the "multiples of `a`" map from `ℤ` to `ℝ`, inverse images of compact
-sets are finite. -/
+/- THIS IS NOT USED (9/9/22)
 lemma int.tendsto_zmultiples_hom_cofinite {a : ℝ} (ha : a ≠ 0) :
   filter.tendsto (zmultiples_hom ℝ a) filter.cofinite (filter.cocompact ℝ) :=
 begin
@@ -39,11 +41,16 @@ begin
   change ∀ r : ℝ, ((λ n : ℤ, n • a) ⁻¹' (metric.ball (0 : ℝ) r)).finite,
   simp [real.ball_eq_Ioo, set.finite_Ioo],
 end
+-/
 
 -- this exsits in mathlib
 theorem finite.of_fintype {α : set Type*} (h : fintype α) : set.finite α := sorry
 
 
+-- move to `topology.metric_space.basic`
+
+/-- For nonzero `a`, under the "multiples of `a`" map from `ℤ` to `ℝ`, inverse images of compact
+sets are finite. -/
 -- this is the version we actually use
 lemma int.tendsto_zmultiples_hom_cofinite' (a : ℝ) :
   filter.tendsto (coe : zmultiples a → ℝ) filter.cofinite (filter.cocompact ℝ) :=
@@ -129,10 +136,12 @@ begin
   ring,
 end
 
+/-
 lemma baz₂ : set.surj_on π (set.Ioc 0 a) set.univ :=
 begin
   sorry
 end
+-/
 
 instance : compact_space (ℝ ⧸ zmultiples a) :=
 is_compact_Icc.compact_space continuous_quotient_mk $
@@ -141,9 +150,8 @@ is_compact_Icc.compact_space continuous_quotient_mk $
 instance : normal_space (ℝ ⧸ zmultiples a) := normal_of_compact_t2
 
 
--------------------------
-
-
+------------------------- NOT NEEDED (?)
+/-
 lemma is_compact.finite_inter_zmultiples (a : ℝ) {s : set ℝ} (hs : is_compact s) :
   ((coe : zmultiples a → ℝ) ⁻¹' s).finite :=
 begin
@@ -165,3 +173,4 @@ begin
   rw [compl_compl,  set.image_preimage_eq_inter_range, set.inter_comm, ← range_zmultiples_hom],
   refl,
 end
+-/

@@ -130,7 +130,7 @@ begin
   ring,
 end
 
-lemma triangle_removal_2 {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) (hG : G.triangle_free_far ε) :
+lemma triangle_removal_2 {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) (hG : G.far_from_triangle_free ε) :
   triangle_removal_bound ε * (card α)^3 ≤ (G.clique_finset 3).card :=
 begin
   let l : ℕ := nat.ceil (4/ε),
@@ -163,12 +163,8 @@ lemma triangle_removal {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1)
 begin
   by_contra,
   push_neg at h,
-  have : G.triangle_free_far ε,
-  { intros G' hG hG',
-    apply le_of_not_lt,
-    intro i,
-    apply h G' hG i hG' },
-  apply not_le_of_lt hG (triangle_removal_2 hε hε₁ this),
+  exact hG.not_le (triangle_removal_2 hε hε₁ $ far_from_triangle_free_iff.2 $
+    λ G' hG hG', le_of_not_lt $ λ i, h G' hG i hG'),
 end
 
 end simple_graph

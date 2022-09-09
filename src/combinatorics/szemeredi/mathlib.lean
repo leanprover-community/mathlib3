@@ -171,9 +171,6 @@ variables {G G' : simple_graph α} {s : finset α}
 
 instance {r : α → α → Prop} [h : decidable_rel r] : decidable_pred (uncurry r) := λ x, h x.1 x.2
 
-@[mono] lemma edge_set_mono (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
-λ s, sym2.induction_on s $ λ x y h', h h'
-
 @[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.is_adj
 
 variables (G G') [decidable_eq α] [decidable_rel G.adj] [decidable_rel G'.adj]
@@ -204,8 +201,5 @@ begin
   refine card_congr (λ i _, (i.fst, i.snd)) (by simp) (by simp [dart.ext_iff, ←and_imp]) _,
   exact λ xy h, ⟨⟨xy, (mem_filter.1 h).2⟩, mem_univ _, prod.mk.eta⟩,
 end
-
-@[mono] lemma edge_finset_mono (h : G ≤ G') : G.edge_finset ⊆ G'.edge_finset :=
-set.to_finset_mono.2 (edge_set_mono h)
 
 end simple_graph

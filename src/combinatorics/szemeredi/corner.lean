@@ -170,7 +170,7 @@ begin
 end
 
 lemma triangle_trivial_of_no_corners (cs : ∀ (x y h : ℕ), is_corner s x y h → h = 0)
-  (as : ∀ (x y h : ℕ), is_anticorner s x y h → h = 0)
+  (as : ∀ x y h, is_anticorner s x y h → h = 0)
   {h v : fin N} {k : fin (2 * N)} (hv : (↑h, ↑v) ∈ s)
   (hk₁ : (h : ℕ) ≤ k) (hk₁' : ((h : ℕ), (k : ℕ) - h) ∈ s)
   (vk₁ : (v : ℕ) ≤ k) (vk₁' : ((k : ℕ) - v, (v : ℕ)) ∈ s) :
@@ -182,8 +182,7 @@ begin
 end
 
 lemma card_clique_finset_graph_le {s : finset (ℕ × ℕ)} {n : ℕ}
-  (cs : ∀ (x y h : ℕ), is_corner s x y h → h = 0)
-  (as : ∀ (x y h : ℕ), is_anticorner s x y h → h = 0) :
+  (cs : ∀ x y h, is_corner s x y h → h = 0) (as : ∀ x y h, is_anticorner s x y h → h = 0) :
   ((graph n s).clique_finset 3).card ≤ n^2 :=
 begin
   have : ((range n).product (range n)).card = n^2,
@@ -196,9 +195,9 @@ begin
   simp only [true_and, prod.forall, mem_filter, mem_univ, prod.mk.inj_iff, explicit_triangles],
   rintro h ⟨v, k₁⟩ ⟨hv, ⟨hk₁', hk₁⟩, vk₁', vk₁⟩ h₂ ⟨v₂, k₂⟩ ⟨-, ⟨hk₂', hk₂⟩, vk₂', vk₂⟩ ⟨heq, veq⟩,
   dsimp at *,
-  rw subtype.coe_injective.eq_iff at heq veq,
+  rw fin.coe_eq_coe at heq veq,
   substs heq veq,
-  simp only [true_and, prod.mk.inj_iff, eq_self_iff_true, subtype.ext_iff],
+  simp only [true_and, prod.mk.inj_iff, eq_self_iff_true, fin.ext_iff],
   rw triangle_trivial_of_no_corners cs as hv hk₁' hk₁ vk₁' vk₁,
   rw triangle_trivial_of_no_corners cs as hv hk₂' hk₂ vk₂' vk₂,
 end
@@ -219,10 +218,10 @@ lemma card_trivial_triangles (hA : s ⊆ (range N).product (range N)) :
 begin
   refine card_congr (λ xyz _, (xyz.1, xyz.2.1)) _ _ _,
   { rintro ⟨x, y, z⟩ t,
-    apply (mem_filter.1 t).2.1 },
+    exact (mem_filter.1 t).2.1 },
   { rintro ⟨x₁, y₁, z₁⟩ ⟨x₂, y₂, z₂⟩ t₁ t₂ hxy,
     simp only [prod.mk.inj_iff] at hxy,
-    simp only [prod.mk.inj_iff, subtype.ext_iff, ←and.assoc, hxy, true_and, eq_self_iff_true],
+    simp only [prod.mk.inj_iff, fin.ext_iff, ←and.assoc, hxy, true_and, eq_self_iff_true],
     rw ←(mem_filter.1 t₁).2.2,
     rw ←(mem_filter.1 t₂).2.2,
     simp [hxy.1, hxy.2] },
@@ -234,11 +233,11 @@ begin
   apply add_lt_add this.1 this.2,
 end
 
-lemma triangle_free_far_graph {ε : ℝ} (hA : s ⊆ (range N).product (range N))
+lemma far_from_triangle_free_graph {ε : ℝ} (hA : s ⊆ (range N).product (range N))
   (hA' : ε * N^2 ≤ s.card) :
-  (graph N s).triangle_free_far (ε/16) :=
+  (graph N s).far_from_triangle_free (ε/16) :=
 begin
-  refine simple_graph.triangle_free_far_of_disjoint_triangles
+  refine simple_graph.far_from_triangle_free_of_disjoint_triangles
     ((trivial_triangles N s).map ⟨_, triangle_map_injective⟩) _ _ _,
   { simp only [subset_iff, and_imp, exists_prop, forall_exists_index, embedding.coe_fn_mk,
       mem_map],
@@ -251,10 +250,10 @@ begin
     substs i₁ i₂,
     rw triangle_map_injective.ne_iff at q,
     dsimp [triangle_map],
-    simp only [prod.mk.inj_iff, subtype.mk_eq_mk, ne.def] at q,
+    simp only [prod.mk.inj_iff, fin.mk_eq_mk, ne.def] at q,
     rw finset.card_le_one,
     simp only [and_imp, mem_insert, mem_inter, mem_singleton, true_and, forall_eq_or_imp, and_true,
-      false_or, forall_eq, implies_true_iff, eq_self_iff_true, subtype.mk_eq_mk, or_false,
+      false_or, forall_eq, implies_true_iff, eq_self_iff_true, fin.mk_eq_mk, or_false,
       forall_and_distrib, and_assoc, @imp.swap (_ + _ = _), in₀, in₁, in₂, inl.inj_eq, inr.inj_eq],
     refine ⟨_, _, _, _, _, _⟩;
     { intros i₁ i₂,
@@ -282,7 +281,7 @@ begin
     simp only [sq, card_range, nat.cast_mul, card_product] at this,
     rwa mul_le_iff_le_one_left at this,
     exact mul_pos (nat.cast_pos.2 n_pos) (nat.cast_pos.2 n_pos) },
-  have tf : (graph n s).triangle_free_far (ε/16) := triangle_free_far_graph hA hA',
+  have tf : (graph n s).far_from_triangle_free (ε/16) := far_from_triangle_free_graph hA hA',
   by_contra h,
   simp only [not_and', or_imp_distrib, forall_and_distrib, not_exists, not_lt, le_zero_iff] at h,
   have h₁ := triangle_removal_2 (show 0 < ε/16, by linarith) (by linarith) tf,

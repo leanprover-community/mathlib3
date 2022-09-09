@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .mathlib
-import .triangle
 import combinatorics.simple_graph.regularity.uniform
+import combinatorics.simple_graph.triangle.basic
 import data.real.basic
 import order.partition.equipartition
 
@@ -210,7 +210,7 @@ variables {G}
 
 lemma reduced_graph_le {ε : ℝ} {P : finpartition univ} : reduced_graph G ε P ≤ G := λ x y, and.left
 
-lemma triangle_free_far_of_disjoint_triangles_aux
+lemma far_from_triangle_free_of_disjoint_triangles_aux
   (tris : finset (finset α)) (htris : tris ⊆ G.clique_finset 3)
   (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1)) :
   ∀ (G' ≤ G), G'.clique_free 3 → tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
@@ -240,16 +240,16 @@ begin
   { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfy t₂ ht₂) (hfy t₁ ht₁) $ t.2.symm ▸ hfx t₂ ht₂) }
 end
 
-lemma triangle_free_far_of_disjoint_triangles {ε : ℝ}
+lemma far_from_triangle_free_of_disjoint_triangles {ε : ℝ}
   (tris : finset (finset α)) (htris : tris ⊆ G.clique_finset 3)
   (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1))
   (tris_big : ε * (card α ^ 2 : ℕ) ≤ tris.card) :
-  G.triangle_free_far ε :=
+  G.far_from_triangle_free ε :=
 begin
-  intros G' hG hG',
+  refine far_from_triangle_free_iff.2 (λ G' hG hG', _),
   rw ←nat.cast_sub (card_le_of_subset (edge_finset_mono hG)),
   exact tris_big.trans
-    (nat.cast_le.2 $ triangle_free_far_of_disjoint_triangles_aux tris htris pd G' hG hG'),
+    (nat.cast_le.2 $ far_from_triangle_free_of_disjoint_triangles_aux tris htris pd G' hG hG'),
 end
 
 lemma reduced_double_edges {ε : ℝ} {P : finpartition univ} :
@@ -279,11 +279,7 @@ end
 lemma non_uniform_killed_card {ε : ℝ} {P : finpartition univ} :
   (((P.non_uniforms G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) ≤
     (∑ i in P.non_uniforms G ε, i.1.card * i.2.card : ℝ) :=
-begin
-  norm_cast,
-  simp_rw ←card_product,
-  exact card_bUnion_le,
-end
+by { norm_cast, simp_rw ←card_product, exact card_bUnion_le }
 
 lemma internal_killed_card [nonempty α] {P : finpartition (univ : finset α)}
   (hP : P.is_equipartition) :

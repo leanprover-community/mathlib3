@@ -91,23 +91,20 @@ swap,
     fail"could not rewrite: something went wrong",
 swap
 
+/--  Similar to `repeat` except that it guarantees a number of repetitions, or fails. -/
+meta def repeat_at_least : ℕ → tactic unit → tactic unit
+| 0 t := repeat t
+| (n + 1) t := t >> repeat_at_least n t
+
 /--  `remove_subs_aux` acts like `remove_subs`, except that it takes a single location as input.
 See the doc-string of `remove_subs` for more details. -/
 meta def remove_subs_aux (la : bool) (lo : option name) : tactic unit := focus1 $ do
-ht ← match lo with
-     | none    := target
-     | some na := get_local na >>= infer_type
-end,
-(a, b) ← (do subs ← get_sub lo ht,
-             list.last' subs) <|> fail"no ℕ-subtraction found",
-remove_one_sub lo a b,
-repeat (do
-ht ← match lo with
-     | none    := target
-     | some na := get_local na >>= infer_type
-end,
-some (a, b) ← list.last' <$> (get_sub lo ht),
-remove_one_sub lo a b ),
+repeat_at_least 1 (do ht ← match lo with
+                           | none    := target
+                           | some na := get_local na >>= infer_type
+                      end,
+                      some (a, b) ← list.last' <$> (get_sub lo ht),
+                      remove_one_sub lo a b),
 when la $ any_goals' $ try `[ linarith ]
 
 section error_reporting

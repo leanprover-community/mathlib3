@@ -18,11 +18,9 @@ import number_theory.modular_forms.slash_actions
 
 This file defines modular forms and proves some basic properties about them.
 
-We begin by defining the `slash` operator on the space of functions `ℍ → ℂ` and from this
-define the notion of weakly modular form.
-
-Finally we construct the vector space of modular forms and prove that the product of two
-modular forms is a modular form (of higher weight).
+We begin by defining the notion of weakly modular form from which we then we construct the vector
+space of modular forms, cusp forms and prove that the product of two modular forms is a modular
+form (of higher weight).
 -/
 
 universes u v

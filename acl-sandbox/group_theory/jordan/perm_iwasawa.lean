@@ -816,50 +816,27 @@ begin
   apply_instance,
 end
 
-def equiv.perm_ulift.down (α : Type*): equiv.perm (ulift α) ≃* equiv.perm α := {
-to_fun := λ k, {
-  to_fun := λ x, (k {down := x}).down,
-  inv_fun := λ x, (k.symm {down := x}).down,
-  left_inv := λ x,
-    by simp only [ulift.down_up, ulift.up_down, k.left_inv, equiv.symm_apply_apply],
-  right_inv := λ x,
-    by simp only [ulift.down_up, ulift.up_down, k.right_inv, equiv.apply_symm_apply], },
-inv_fun := λ k, {
-  to_fun := λ x, {down := k x.down},
-  inv_fun := λ x, {down := k.symm x.down},
-  left_inv := λ x,
-    by simp only [ulift.down_up, ulift.up_down, k.left_inv, equiv.symm_apply_apply],
-  right_inv := λ x,
-    by simp only [ulift.down_up, ulift.up_down, k.right_inv, equiv.apply_symm_apply], },
-left_inv := λ k, equiv.perm.ext (λ x,
-    by simp only [equiv.coe_fn_mk, ulift.down_inj, embedding_like.apply_eq_iff_eq, ulift.up_down]),
-right_inv := λ k, equiv.perm.ext (λ x,by simp only [equiv.coe_fn_mk]),
-map_mul' := λ h k, equiv.perm.ext (λ x, by
-    simp only [ulift.up_down, equiv.perm.coe_mul, equiv.coe_fn_mk, ulift.down_inj]),
-     }
 
-def Iw_t (s : finset α) : (equiv.perm s) →* (equiv.perm α) := equiv.perm.of_subtype
-def Iw_T(s : finset α) := (Iw_t s).range
-def Iw_k (s : finset α) (g : equiv.perm α) :  ↥s ≃ ↥(g • s) :=
-  equiv.subtype_equiv g
-  begin
-    intro a,
-    rw ← equiv.perm.smul_def,
-    rw finset.smul_mem_smul_finset_iff,
-  end
-def Iw_c (s : finset α) (g : equiv.perm α) (k : equiv.perm ↥s) :=
-  ((Iw_k s g).symm.trans k).trans (Iw_k s g)
+/- Definition of the Iwasawa structure -/
 
 
-def Iw_c' (s : finset α) (g : equiv.perm α) : equiv.perm (↥s) ≃ equiv.perm (↥(g • s)) :=
-equiv.perm_congr (equiv.subtype_equiv g
-  (λ a, by simp only [← equiv.perm.smul_def, finset.smul_mem_smul_finset_iff]))
+def Iw_conj (s : finset α) (g : equiv.perm α) : equiv.perm s ≃* equiv.perm ((g • s) : finset α) :=
+{ map_mul' := λ h k, equiv.ext (λ x, by simp only [equiv.to_fun_as_coe, equiv.perm_congr_apply,
+    equiv.subtype_equiv_symm, equiv.subtype_equiv_apply, equiv.perm.coe_mul,
+    function.comp_app, subtype.coe_mk, equiv.symm_apply_apply, finset.mk_coe])
+  ..
+  equiv.perm_congr (@equiv.subtype_equiv α α (λ a, a ∈ s) (λ a, a ∈ g • s) (g : α ≃ α)
+  ((λ a, by rw [← finset.smul_mem_smul_finset_iff g, equiv.perm.smul_def]) :
+    ∀ (a : α), a ∈ s ↔ g a ∈ g • s)) }
 
-lemma Iw_conj' : ∀ (s : finset α) (g : equiv.perm α )(k : equiv.perm ↥s),
-  ((mul_aut.conj g).to_monoid_hom.comp (Iw_t s)) k  = (Iw_t (g • s)) (Iw_c' s g k) :=
+
+lemma Iw_conj_eq : ∀ (s : finset α) (g : equiv.perm α )(k : equiv.perm ↥s),
+  ((mul_aut.conj g).to_monoid_hom.comp
+    (equiv.perm.of_subtype :(equiv.perm s) →* (equiv.perm α)) k)  =
+  (equiv.perm.of_subtype : equiv.perm ((g • s) : finset α) →* (equiv.perm α)) (Iw_conj s g k) :=
 begin
   intros s g k,
-  dsimp only [Iw_t, Iw_c'],
+  dsimp only [Iw_conj],
   ext x,
   simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app,
       mul_aut.conj_apply, equiv.perm.coe_mul],
@@ -867,8 +844,8 @@ begin
   { -- x ∈ g • s
     rw equiv.perm.of_subtype_apply_of_mem,
     rw equiv.perm.of_subtype_apply_of_mem,
-    simp only [subtype.coe_mk, equiv.perm_congr_apply, equiv.subtype_equiv_symm,
-      equiv.subtype_equiv_apply, embedding_like.apply_eq_iff_eq],
+    simp only [subtype.coe_mk, equiv.subtype_equiv_symm, equiv.to_fun_as_coe, mul_equiv.coe_mk,
+      equiv.perm_congr_apply, equiv.subtype_equiv_apply, embedding_like.apply_eq_iff_eq],
     apply congr_arg, apply congr_arg,
     rw ← subtype.coe_inj, simp only [subtype.coe_mk], refl,
     exact hx,
@@ -881,49 +858,49 @@ begin
     { rw [← finset.inv_smul_mem_iff] at hx', exact hx', }, },
 end
 
-lemma Iw_is_conj (s : finset α) (g : equiv.perm α) :
-  (Iw_t (g • s)).range = mul_aut.conj g • (Iw_t s).range :=
+lemma Iw_is_conj' (s : finset α) (g : equiv.perm α) :
+  equiv.perm.of_subtype.comp (Iw_conj s g).to_monoid_hom =
+    ((mul_aut.conj g).to_monoid_hom).comp equiv.perm.of_subtype :=
 begin
-
-  have this1 :
-    (mul_aut.conj g) • (Iw_t s).range = ((mul_aut.conj g).to_monoid_hom.comp (Iw_t s)).range,
-    simp only [←  monoid_hom.map_range], refl,
-  rw this1,
-
-  suffices this2 : (Iw_t (g • s)).range = ((mul_aut.conj g).to_monoid_hom.comp (Iw_t s)).range,
-  rw this2,
-
-  let kg := Iw_k s g,
-  let pg : equiv.perm (↥s) → equiv.perm ↥(g • s) := Iw_c s g, -- λ k, (kg.symm.trans k).trans kg,
-  let pg' : equiv.perm ↥(g • s) → equiv.perm ↥s :=  λ k, (kg.trans k).trans kg.symm,
-  have hpgg' : ∀ k, k = pg (pg' k) ,
-  { intro k,
-    change k = (kg.symm.trans ((kg.trans k).trans kg.symm)).trans kg,
-    simp only [← equiv.trans_assoc, equiv.symm_trans_self, equiv.refl_trans],
-    rw [equiv.trans_assoc, equiv.symm_trans_self, equiv.trans_refl], },
-  /- -- symmetric, but useless
-     have hpg'g : ∀ k, k = pg' (pg k) ,
-      { intro k,
-        change k = (kg.trans ((kg.symm.trans k).trans kg)).trans kg.symm,
-        simp only [← equiv.trans_assoc, equiv.self_trans_symm, equiv.refl_trans],
-        rw [equiv.trans_assoc, equiv.self_trans_symm, equiv.trans_refl], }, -/
-  ext,
-  split,
-  { rintro ⟨k,rfl⟩, use (Iw_c' s g).symm k,
-
-  conv_rhs {rw hpgg' k}, rw Iw_conj', },
-  rintro ⟨k, rfl⟩, use (Iw_c' s g) k, rw Iw_conj',
+  ext k x,
+  simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app,
+    mul_aut.conj_apply, equiv.perm.coe_mul],
+  rw ← Iw_conj_eq,
+  simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app,
+    mul_aut.conj_apply, equiv.perm.coe_mul],
 end
 
+lemma Iw_is_conj (s : finset α) (g : equiv.perm α) :
+  (equiv.perm.of_subtype : equiv.perm ((g • s) : finset α) →* (equiv.perm α)).range =
+  mul_aut.conj g • ((equiv.perm.of_subtype : equiv.perm s →* equiv.perm α)).range :=
+begin
+  suffices : (equiv.perm.of_subtype : equiv.perm ((g • s) : finset α) →* (equiv.perm α)).range
+   = ((equiv.perm.of_subtype : equiv.perm ((g • s) : finset α) →* (equiv.perm α)).comp
+    (Iw_conj s g).to_monoid_hom).range,
+  { rw this,
+    change _ = subgroup.map (mul_aut.conj g).to_monoid_hom _,
+    simp only [monoid_hom.map_range],
+    apply congr_arg,
+    apply Iw_is_conj', },
+
+  simp only [monoid_hom.range_eq_map, ← subgroup.map_map],
+  apply congr_arg,
+  simp only [← monoid_hom.range_eq_map],
+  -- Via sets :
+  apply set_like.coe_injective,
+  simp only [monoid_hom.coe_range, mul_equiv.coe_to_monoid_hom, subgroup.coe_top,
+  ← mul_equiv.coe_to_equiv, equiv.range_eq_univ],
+end
 
 def Iw2 : iwasawa_structure (equiv.perm α) (nat.finset α 2) :=
-{ T := λ s, (Iw_t ↑s).range,
+{ T := λ s, (equiv.perm.of_subtype : (equiv.perm (s : finset α)) →* (equiv.perm α)).range,
   is_comm := λ s,
   begin
     apply monoid_hom.range_is_commutative,
     rw ← equiv.perm.is_commutative_iff,
     apply le_of_eq,
-    simp only [coe_sort_coe_base, fintype.card_coe],
+    change fintype.card ↥(s : finset α) = 2,
+    simp only [fintype.card_coe],
     exact s.prop,
   end,
   is_conj := λ g s, Iw_is_conj ↑s g,
@@ -937,7 +914,6 @@ def Iw2 : iwasawa_structure (equiv.perm α) (nat.finset α 2) :=
     obtain ⟨a,b, hab, rfl⟩ := hg,
     let s : nat.finset α 2 := ⟨{a,b}, finset.card_doubleton hab⟩,
     apply subgroup.mem_supr_of_mem s,
-    dsimp [Iw_T, Iw_t],
     let a' : ↥s := ⟨a,
     begin
       change a ∈ ↑s, dsimp [s],

@@ -276,6 +276,16 @@ lemma vadd_mem_iff_mem_direction {s : affine_subspace k P} (v : V) {p : P} (hp :
   v +ᵥ p ∈ s ↔ v ∈ s.direction :=
 ⟨λ h, by simpa using vsub_mem_direction h hp, λ h, vadd_mem_of_mem_direction h hp⟩
 
+/-- Adding a vector in the direction to a point produces a point in the subspace if and only if
+the original point is in the subspace. -/
+lemma vadd_mem_iff_mem_of_mem_direction {s : affine_subspace k P} {v : V} (hv : v ∈ s.direction)
+  {p : P} : v +ᵥ p ∈ s ↔ p ∈ s :=
+begin
+  refine ⟨λ h, _, λ h, vadd_mem_of_mem_direction hv h⟩,
+  convert vadd_mem_of_mem_direction (submodule.neg_mem _ hv) h,
+  simp
+end
+
 /-- Given a point in an affine subspace, the set of vectors in its
 direction equals the set of vectors subtracting that point on the
 right. -/

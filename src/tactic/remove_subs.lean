@@ -33,6 +33,11 @@ begin
     exact ⟨_, rfl⟩ },
 end
 
+/--  A convenience definition: `rw_at` rewrites at either a hypothesis or at the target. -/
+meta def rw_at : option name → expr → tactic unit
+| none      lem := rewrite_target lem
+| (some na) lem := get_local na >>= rewrite_hyp lem >> skip
+
 /--  Given a list `l` of pairs of expressions, `local_constants_last l` reorders the list `l`
 so that all pairs `(a,b) ∈ l` with `a` a local constant appear last.  This is used in `get_sub`
 so that the replacement of the `ℕ`-subtractions begins with subtractions where an old term
@@ -48,21 +53,13 @@ subexpression of `e`.  While doing this, it also assumes that
 -/
 meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
 | `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
-                           lem ← to_expr ``(nat.sub_sub %%a %%b %%c),
-                           match lo with
-                           | none    := rewrite_target lem
-                           | some na := get_local na >>= rewrite_hyp lem >> skip
-                           end,
+                           to_expr ``(nat.sub_sub %%a %%b %%c) >>= rw_at lo,
                            [ga, gb, gc] ← [a, b, c].mmap get_sub,
                            return $ local_constants_last ((a, bc) :: (ga ++ gb ++ gc))
 | `(%%a - %%b)       := do infer_type a >>= is_def_eq `(ℕ),
                            [ga, gb] ← [a, b].mmap get_sub,
                            return $ local_constants_last ((a, b) :: (ga ++ gb))
-| `(nat.pred %%a)    := do lem ← to_expr ``(nat.pred_eq_sub_one %%a),
-                           match lo with
-                           | none    := rewrite_target lem
-                           | some na := get_local na >>= rewrite_hyp lem >> skip
-                           end,
+| `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one %%a) >>= rw_at lo,
                            ga ← get_sub a,
                            return $ local_constants_last ((a, `(1)) :: ga)
 | (expr.app f a)     := local_constants_last <$>
@@ -83,25 +80,16 @@ meta def remove_one_sub (lo : option name) (a b : expr) : tactic unit := do
 cases `(nat.le_cases %%a %%b) [eq0, exis],
 -- on the branch where `a ≤ b`...
   prf0 ← get_local eq0,
-  match lo with
-  | none    := rewrite_target prf0
-  | some na := get_local na >>= rewrite_hyp prf0 >> skip
-  end,
+  rw_at lo prf0,
   to_expr ``(@nat.sub_eq_zero_iff_le %%a %%b) >>= λ x, rewrite_hyp x prf0,
 swap,
 -- on the branch where `∃ c, a = b + c`...
   get_local exis >>= λ x, cases x [var, ide],
   [vare, lide] ← [var, ide].mmap get_local,
-  lem ← to_expr ``(nat.add_sub_cancel_left %%b %%vare),
   -- either substitute or rewrite `a` and then clear the subtraction
-  match lo with
-  | none    := do subst lide <|> rewrite_target lide,
-                  rewrite_target lem <|> fail"could not rewrite: something went wrong"
-  | some na := do nah ← get_local na,
-                  subst lide <|> rewrite_hyp lide nah >> skip,
-                  nah ← get_local na,  -- again, since the previous step changed the type of `nah`!
-                  rewrite_hyp lem nah >> skip <|> fail"could not rewrite: something went wrong"
-  end,
+  subst lide <|> rw_at lo lide,
+  to_expr ``(nat.add_sub_cancel_left %%b %%vare) >>= rw_at lo <|>
+    fail"could not rewrite: something went wrong",
 swap
 
 setup_tactic_parser

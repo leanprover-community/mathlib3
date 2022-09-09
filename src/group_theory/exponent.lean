@@ -322,7 +322,7 @@ open_locale big_operators
 
 variables (G) [comm_group G] [group.fg G]
 
-lemma card_dvd_exponent_pow_rank : nat.card G ∣ monoid.exponent G ^ group.rank G :=
+@[to_additive] lemma card_dvd_exponent_pow_rank : nat.card G ∣ monoid.exponent G ^ group.rank G :=
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
@@ -346,7 +346,7 @@ begin
   exact monoid.order_dvd_exponent (g : G),
 end
 
-lemma card_dvd_exponent_pow_rank' {n : ℕ} (hG : ∀ g : G, g ^ n = 1) :
+@[to_additive] lemma card_dvd_exponent_pow_rank' {n : ℕ} (hG : ∀ g : G, g ^ n = 1) :
   nat.card G ∣ n ^ group.rank G :=
 (card_dvd_exponent_pow_rank G).trans
     (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))

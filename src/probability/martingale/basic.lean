@@ -575,8 +575,8 @@ begin
   have h := set_integral_ge_of_const_le (measurable_set_le measurable_const
     (finset.measurable_range_sup'' (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))))
     (measure_ne_top _ _) this
-    (integrable.integrable_on (@integrable_stopped_value Ω ℕ _ _ _ _ _ _ _ _ _
-      (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable _ hitting_le)),
+    (integrable.integrable_on (integrable_stopped_value ℕ
+      (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
   { exact h },
   { exact ennreal.mul_ne_top (by simp) (measure_ne_top _ _) },

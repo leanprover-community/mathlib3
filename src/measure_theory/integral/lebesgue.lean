@@ -1680,7 +1680,7 @@ begin
     have : ∫⁻ x, f x ∂μ + (↑n)⁻¹ * μ {x : α | f x + n⁻¹ ≤ g x} ≤ ∫⁻ x, f x ∂μ,
       from (lintegral_add_mul_meas_add_le_le_lintegral hfg hg n⁻¹).trans hgf,
     rw [(ennreal.cancel_of_ne hf).add_le_iff_nonpos_right, nonpos_iff_eq_zero, mul_eq_zero] at this,
-    exact this.resolve_left (ennreal.inv_ne_zero.2 ennreal.coe_nat_ne_top) },
+    exact this.resolve_left (ennreal.inv_ne_zero.2 (ennreal.nat_ne_top _)) },
   refine hfg.mp ((ae_all_iff.2 this).mono (λ x hlt hle, hle.antisymm _)),
   suffices : tendsto (λ n : ℕ, f x + n⁻¹) at_top (𝓝 (f x)),
     from ge_of_tendsto' this (λ i, (hlt i).le),
@@ -1926,11 +1926,12 @@ end
 section
 open encodable
 
-/-- Monotone convergence for a suprema over a directed family and indexed by an encodable type -/
-theorem lintegral_supr_directed [encodable β] {f : β → α → ℝ≥0∞}
+/-- Monotone convergence for a supremum over a directed family and indexed by a countable type -/
+theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
   (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
 begin
+  casesI nonempty_encodable β,
   casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
   inhabit β,
   have : ∀a, (⨆ b, f b a) = (⨆ n, f (h_directed.sequence f n) a),
@@ -1952,7 +1953,7 @@ end
 
 end
 
-lemma lintegral_tsum [encodable β] {f : β → α → ℝ≥0∞} (hf : ∀i, measurable (f i)) :
+lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, measurable (f i)) :
   ∫⁻ a, ∑' i, f i a ∂μ = ∑' i, ∫⁻ a, f i a ∂μ :=
 begin
   simp only [ennreal.tsum_eq_supr_sum],
@@ -1968,12 +1969,12 @@ end
 
 open measure
 
-lemma lintegral_Union₀ [encodable β] {s : β → set α} (hm : ∀ i, null_measurable_set (s i) μ)
+lemma lintegral_Union₀ [countable β] {s : β → set α} (hm : ∀ i, null_measurable_set (s i) μ)
   (hd : pairwise (ae_disjoint μ on s)) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
 by simp only [measure.restrict_Union_ae hd hm, lintegral_sum_measure]
 
-lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, measurable_set (s i))
+lemma lintegral_Union [countable β] {s : β → set α} (hm : ∀ i, measurable_set (s i))
   (hd : pairwise (disjoint on s)) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
 lintegral_Union₀ (λ i, (hm i).null_measurable_set) hd.ae_disjoint f
@@ -2003,7 +2004,7 @@ lemma lintegral_bUnion_finset {s : finset β} {t : β → set α}
   ∫⁻ a in ⋃ b ∈ s, t b, f a ∂μ = ∑ b in s, ∫⁻ a in t b, f a ∂μ :=
 lintegral_bUnion_finset₀ hd.ae_disjoint (λ b hb, (hm b hb).null_measurable_set) f
 
-lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ℝ≥0∞) :
+lemma lintegral_Union_le [countable β] (s : β → set α) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
 begin
   rw [← lintegral_sum_measure],
@@ -2165,7 +2166,7 @@ section countable
 ### Lebesgue integral over finite and countable types and sets
 -/
 
-lemma lintegral_encodable [encodable α] [measurable_singleton_class α] (f : α → ℝ≥0∞) :
+lemma lintegral_countable' [countable α] [measurable_singleton_class α] (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
 begin
   conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
@@ -2694,13 +2695,13 @@ begin
   have : ∀ n, μ (s n) < ∞,
     from λ n, (measure_mono $ disjointed_subset _ _).trans_lt (measure_spanning_sets_lt_top μ n),
   obtain ⟨δ, δpos, δsum⟩ : ∃ δ : ℕ → ℝ≥0, (∀ i, 0 < δ i) ∧ ∑' i, μ (s i) * δ i < ε,
-    from ennreal.exists_pos_tsum_mul_lt_of_encodable ε0 _ (λ n, (this n).ne),
+    from ennreal.exists_pos_tsum_mul_lt_of_countable ε0 _ (λ n, (this n).ne),
   set N : α → ℕ := spanning_sets_index μ,
   have hN_meas : measurable N := measurable_spanning_sets_index μ,
   have hNs : ∀ n, N ⁻¹' {n} = s n := preimage_spanning_sets_index_singleton μ,
   refine ⟨δ ∘ N, λ x, δpos _, measurable_from_nat.comp hN_meas, _⟩,
   simpa [lintegral_comp measurable_from_nat.coe_nnreal_ennreal hN_meas, hNs,
-    lintegral_encodable, measurable_spanning_sets_index, mul_comm] using δsum,
+    lintegral_countable', measurable_spanning_sets_index, mul_comm] using δsum,
 end
 
 lemma lintegral_trim {μ : measure α} (hm : m ≤ m0) {f : α → ℝ≥0∞} (hf : measurable[m] f) :

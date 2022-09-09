@@ -79,6 +79,28 @@ instance no_min_order.to_no_bot_order (α : Type*) [preorder α] [no_min_order �
 instance no_max_order.to_no_top_order (α : Type*) [preorder α] [no_max_order α] : no_top_order α :=
 ⟨λ a, (exists_gt a).imp $ λ _, not_le_of_lt⟩
 
+lemma no_bot_order.to_no_min_order (α : Type*) [linear_order α] [no_bot_order α] : no_min_order α :=
+{ exists_lt := by { convert λ a : α, exists_not_ge a, simp_rw not_le, } }
+
+lemma no_top_order.to_no_max_order (α : Type*) [linear_order α] [no_top_order α] : no_max_order α :=
+{ exists_gt := by { convert λ a : α, exists_not_le a, simp_rw not_le, } }
+
+lemma no_bot_order_iff_no_min_order (α : Type*) [linear_order α] :
+  no_bot_order α ↔ no_min_order α :=
+⟨λ h, by { haveI := h, exact no_bot_order.to_no_min_order α },
+  λ h, by { haveI := h, exact no_min_order.to_no_bot_order α }⟩
+
+lemma no_top_order_iff_no_max_order (α : Type*) [linear_order α] :
+  no_top_order α ↔ no_max_order α :=
+⟨λ h, by { haveI := h, exact no_top_order.to_no_max_order α },
+  λ h, by { haveI := h, exact no_max_order.to_no_top_order α }⟩
+
+theorem no_min_order.not_acc [has_lt α] [no_min_order α] (a : α) : ¬ acc (<) a :=
+λ h, acc.rec_on h $ λ x _, (exists_lt x).rec_on
+
+theorem no_max_order.not_acc [has_lt α] [no_max_order α] (a : α) : ¬ acc (>) a :=
+λ h, acc.rec_on h $ λ x _, (exists_gt x).rec_on
+
 section has_le
 variables [has_le α] {a b : α}
 

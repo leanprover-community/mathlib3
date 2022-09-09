@@ -45,7 +45,7 @@ begin
   symmetry, refine le_antisymm supr_nhds_le_uniformity _,
   by_contra H,
   obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 Vᶜ ≠ ⊥,
-  { simpa [le_iff_forall_inf_principal_compl] using H },
+  { simpa only [le_iff_forall_inf_principal_compl, mem_supr, not_forall, exists_prop] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
   haveI : ne_bot F := ⟨h⟩,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
@@ -221,11 +221,11 @@ hs.uniform_continuous_on_of_continuous' (is_separated_of_separated_space s) hf
 neighborhood `U` of `x`. -/
 lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space β]
   [separated_space β] [uniform_space γ] {f : α → β → γ} {x : α} {U : set α}
-  (hxU : U ∈ 𝓝 x) (hU : is_separated U) (h : continuous_on ↿f (U ×ˢ (univ : set β))) :
+  (hxU : U ∈ 𝓝 x) (hU : is_separated U) (h : continuous_on ↿f (U ×ˢ univ)) :
   tendsto_uniformly f (f x) (𝓝 x) :=
 begin
   rcases locally_compact_space.local_compact_nhds _ _ hxU with ⟨K, hxK, hKU, hK⟩,
-  have : uniform_continuous_on ↿f (K ×ˢ (univ : set β)),
+  have : uniform_continuous_on ↿f (K ×ˢ univ),
   { refine is_compact.uniform_continuous_on_of_continuous' (hK.prod compact_univ) _
       (h.mono $ prod_mono hKU subset.rfl),
     exact (hU.mono hKU).prod (is_separated_of_separated_space _) },

@@ -214,31 +214,39 @@ lemma preorder.mul_le_mul_of_le_of_le [pos_mul_mono α] [mul_pos_mono α]
 
 -- proven with `b0 : 0 ≤ b` `c0 : 0 ≤ c` as `mul_le_mul_of_le_of_le'`
 lemma preorder.mul_le_mul_of_le_of_le' [pos_mul_mono α] [mul_pos_mono α]
-  (h₁ : a ≤ b) (h₂ : c ≤ d) (b0 : 0 < b) (c0 : 0 < c) : a * c ≤ b * d :=
+  (h₁ : a ≤ b) (h₂ : c ≤ d) (c0 : 0 < c) (b0 : 0 < b) : a * c ≤ b * d :=
 (mul_le_mul_of_pos_right h₁ c0).trans (mul_le_mul_of_pos_left h₂ b0)
 
-lemma mul_lt_mul_of_le_of_lt [pos_mul_strict_mono α] [mul_pos_mono α]
+-- proven with `d0 : 0 ≤ d` as `mul_lt_mul_of_le_of_lt`
+lemma preorder.mul_lt_mul_of_le_of_lt [pos_mul_strict_mono α] [mul_pos_mono α]
   (h₁ : a ≤ b) (h₂ : c < d) (a0 : 0 < a) (d0 : 0 < d) : a * c < b * d :=
 (mul_lt_mul_left' h₂ a0).trans_le (mul_le_mul_of_pos_right h₁ d0)
 
-lemma mul_lt_mul_of_le_of_lt' [pos_mul_strict_mono α] [mul_pos_mono α]
-  (h₁ : a ≤ b) (h₂ : c < d) (b0 : 0 < b) (c0 : 0 < c) : a * c < b * d :=
+-- proven with `c0 : 0 ≤ c` as `mul_lt_mul_of_le_of_lt'`
+lemma preorder.mul_lt_mul_of_le_of_lt' [pos_mul_strict_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c < d) (c0 : 0 < c) (b0 : 0 < b) : a * c < b * d :=
 (mul_le_mul_of_pos_right h₁ c0).trans_lt (mul_lt_mul_left' h₂ b0)
 
-lemma mul_lt_mul_of_lt_of_le [pos_mul_mono α] [mul_pos_strict_mono α]
+-- proven with `a0 : 0 ≤ a` as `mul_lt_mul_of_lt_of_le`
+lemma preorder.mul_lt_mul_of_lt_of_le [pos_mul_mono α] [mul_pos_strict_mono α]
   (h₁ : a < b) (h₂ : c ≤ d) (a0 : 0 < a) (d0 : 0 < d) : a * c < b * d :=
 (mul_le_mul_of_pos_left h₂ a0).trans_lt (mul_lt_mul_right' h₁ d0)
 
-lemma mul_lt_mul_of_lt_of_le' [pos_mul_mono α] [mul_pos_strict_mono α]
-  (h₁ : a < b) (h₂ : c ≤ d) (b0 : 0 < b) (c0 : 0 < c) : a * c < b * d :=
+-- proven with `b0 : 0 ≤ b` as `mul_lt_mul_of_lt_of_le'`
+lemma preorder.mul_lt_mul_of_lt_of_le' [pos_mul_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c ≤ d) (c0 : 0 < c) (b0 : 0 < b) : a * c < b * d :=
 (mul_lt_mul_right' h₁ c0).trans_le (mul_le_mul_of_pos_left h₂ b0)
 
+/--  See `mul_lt_mul_of_le_of_lt`, `mul_lt_mul_of_le_of_lt'`, `mul_lt_mul_of_lt_of_le`, and
+`mul_lt_mul_of_lt_of_le'` for `partial_order` version with weaker assumptions. -/
 lemma mul_lt_mul_of_lt_of_lt [pos_mul_strict_mono α] [mul_pos_strict_mono α]
   (h₁ : a < b) (h₂ : c < d) (a0 : 0 < a) (d0 : 0 < d) : a * c < b * d :=
 (mul_lt_mul_left' h₂ a0).trans (mul_lt_mul_right' h₁ d0)
 
+/--  See `mul_lt_mul_of_le_of_lt`, `mul_lt_mul_of_le_of_lt'`, `mul_lt_mul_of_lt_of_le`, and
+`mul_lt_mul_of_lt_of_le'` for `partial_order` version with weaker assumptions. -/
 lemma mul_lt_mul_of_lt_of_lt' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
-  (h₁ : a < b) (h₂ : c < d) (b0 : 0 < b) (c0 : 0 < c) : a * c < b * d :=
+  (h₁ : a < b) (h₂ : c < d) (c0 : 0 < c) (b0 : 0 < b) : a * c < b * d :=
 (mul_lt_mul_right' h₁ c0).trans (mul_lt_mul_left' h₂ b0)
 
 -- proven with `a0 : 0 ≤ a` as `mul_le_of_mul_le_left`
@@ -480,6 +488,34 @@ lemma mul_le_mul_of_le_of_le' [pos_mul_mono α] [mul_pos_mono α]
 
 alias mul_le_mul_of_le_of_le' ← mul_le_mul -- this name was in `algebra/order/ring`
 
+lemma mul_lt_mul_of_le_of_lt [pos_mul_strict_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c < d) (a0 : 0 < a) (d0 : 0 ≤ d) : a * c < b * d :=
+(mul_lt_mul_left' h₂ a0).trans_le (mul_le_mul_of_nonneg_right h₁ d0)
+
+lemma mul_lt_mul_of_le_of_lt' [pos_mul_strict_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c < d) (c0 : 0 ≤ c) (b0 : 0 < b) : a * c < b * d :=
+(mul_le_mul_of_nonneg_right h₁ c0).trans_lt (mul_lt_mul_left' h₂ b0)
+
+lemma mul_lt_mul_of_lt_of_le [pos_mul_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c ≤ d) (a0 : 0 ≤ a) (d0 : 0 < d) : a * c < b * d :=
+(mul_le_mul_of_nonneg_left h₂ a0).trans_lt (mul_lt_mul_right' h₁ d0)
+
+lemma mul_lt_mul_of_lt_of_le' [pos_mul_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c ≤ d) (c0 : 0 < c) (b0 : 0 ≤ b) : a * c < b * d :=
+(mul_lt_mul_right' h₁ c0).trans_le (mul_le_mul_of_nonneg_left h₂ b0)
+
+/-- Assumes left strict covariance. -/
+lemma left.mul_lt_mul [pos_mul_strict_mono α] [mul_pos_mono α]
+  (h₁ : a < b) (h₂ : c < d) (a0 : 0 ≤ a) (c0 : 0 ≤ c) : a * c < b * d :=
+mul_lt_mul_of_le_of_lt' h₁.le h₂ c0 (a0.trans_lt h₁)
+
+/-- Assumes right strict covariance. -/
+lemma right.mul_lt_mul [pos_mul_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c < d) (a0 : 0 ≤ a) (c0 : 0 ≤ c) : a * c < b * d :=
+mul_lt_mul_of_lt_of_le h₁ h₂.le a0 (c0.trans_lt h₂)
+
+alias left.mul_lt_mul ← mul_lt_mul
+
 lemma mul_le_of_mul_le_left [pos_mul_mono α]
   (h : a * b ≤ c) (hle : d ≤ b) (a0 : 0 ≤ a) :
   a * d ≤ c :=
@@ -525,7 +561,7 @@ end
 
 lemma mul_eq_mul_iff_eq_and_eq' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
   [pos_mul_mono_rev α] [mul_pos_mono_rev α]
-  (hac : a ≤ b) (hbd : c ≤ d) (b0 : 0 < b) (c0 : 0 < c) :
+  (hac : a ≤ b) (hbd : c ≤ d) (c0 : 0 < c) (b0 : 0 < b) :
   a * c = b * d ↔ a = b ∧ c = d :=
 begin
   refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
@@ -533,7 +569,7 @@ begin
   { exact ⟨rfl, (mul_left_cancel_iff_of_pos b0).mp h⟩ },
   rcases eq_or_lt_of_le hbd with rfl | hbd,
   { exact ⟨(mul_right_cancel_iff_of_pos c0).mp h, rfl⟩ },
-  exact ((mul_lt_mul_of_lt_of_lt' hac hbd b0 c0).ne h).elim,
+  exact ((mul_lt_mul_of_lt_of_lt' hac hbd c0 b0).ne h).elim,
 end
 
 end partial_order
@@ -1068,6 +1104,21 @@ end mul_one_class
 
 section mul_zero_one_class
 variables [mul_zero_one_class α]
+
+section preorder
+variables [preorder α]
+
+lemma left.zero_lt_one_of_pos [pos_mul_reflect_lt α]
+  (a0 : 0 < a) : (0 : α) < 1 :=
+lt_of_mul_lt_mul_left' ((mul_zero _).le.trans_lt (a0.trans_le (mul_one _).ge)) a0
+
+lemma right.zero_lt_one_of_pos [mul_pos_reflect_lt α]
+  (a0 : 0 < a) : (0 : α) < 1 :=
+lt_of_mul_lt_mul_right' ((zero_mul _).le.trans_lt (a0.trans_le (one_mul _).ge)) a0
+
+alias left.zero_lt_one_of_pos ← zero_lt_one_of_pos
+
+end preorder
 
 section partial_order
 variables [partial_order α]

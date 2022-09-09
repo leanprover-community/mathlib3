@@ -60,7 +60,6 @@ attribute [simp] map_nonneg
   [mul_le_add_hom_class F α β] (f : F) (a b : α) : f a ≤ f b + f (a / b) :=
 by simpa only [add_comm, div_mul_cancel'] using map_mul_le_add f (a / b) b
 
-
 namespace tactic
 open positivity
 

@@ -60,32 +60,30 @@ end is_evenly_covered
 /-- A covering map is a continuous function `f : E → X` with discrete fibers such that each point
   of `X` has an evenly covered neighborhood. -/
 def is_covering_map :=
-function.surjective f ∧ ∀ x, is_evenly_covered f x (f ⁻¹' {x})
+∀ x, is_evenly_covered f x (f ⁻¹' {x})
 
 namespace is_covering_map
 
-lemma mk (F : X → Type*) [Π x, topological_space (F x)] [hF₀ : Π x, nonempty (F x)]
-  [hF : Π x, discrete_topology (F x)] (e : Π x, trivialization (F x) f)
-  (h : ∀ x, x ∈ (e x).base_set) : is_covering_map f :=
-⟨λ x, ⟨(e x).symm ⟨x, (hF₀ x).some⟩, (e x).proj_symm_apply' (h x)⟩,
-  λ x, is_evenly_covered.to_is_evenly_covered_preimage ⟨hF x, e x, h x⟩⟩
+lemma mk (F : X → Type*) [Π x, topological_space (F x)] [hF : Π x, discrete_topology (F x)]
+  (e : Π x, trivialization (F x) f) (h : ∀ x, x ∈ (e x).base_set) : is_covering_map f :=
+λ x, is_evenly_covered.to_is_evenly_covered_preimage ⟨hF x, e x, h x⟩
 
 variables {f}
 
 lemma continuous (hf : is_covering_map f) : continuous f :=
-continuous_iff_continuous_at.mpr (λ x, (hf.2 (f x)).continuous_at)
+continuous_iff_continuous_at.mpr (λ x, (hf (f x)).continuous_at)
 
 lemma is_locally_homeomorph (hf : is_covering_map f) : is_locally_homeomorph f :=
 begin
   refine is_locally_homeomorph.mk f (λ x, _),
-  let e := (hf.2 (f x)).to_trivialization,
-  have h := (hf.2 (f x)).mem_to_trivialization_base_set,
+  let e := (hf (f x)).to_trivialization,
+  have h := (hf (f x)).mem_to_trivialization_base_set,
   refine ⟨e.to_local_homeomorph.trans
   { to_fun := λ p, p.1,
     inv_fun := λ p, ⟨p, x, rfl⟩,
     source := e.base_set ×ˢ ({⟨x, rfl⟩} : set (f ⁻¹' {f x})),
     target := e.base_set,
-    open_source := e.open_base_set.prod (singletons_open_iff_discrete.2 (hf.2 (f x)).1 ⟨x, rfl⟩),
+    open_source := e.open_base_set.prod (singletons_open_iff_discrete.2 (hf (f x)).1 ⟨x, rfl⟩),
     open_target := e.open_base_set,
     map_source' := λ p, and.left,
     map_target' := λ p hp, ⟨hp, rfl⟩,
@@ -93,7 +91,7 @@ begin
     right_inv' := λ p hp, rfl,
     continuous_to_fun := continuous_fst.continuous_on,
     continuous_inv_fun := (continuous_id'.prod_mk continuous_const).continuous_on },
-    ⟨e.mem_source.2 h, _, (hf.2 (f x)).to_trivialization_apply⟩, λ p h, (e.proj_to_fun p h.1).symm⟩,
+    ⟨e.mem_source.2 h, _, (hf (f x)).to_trivialization_apply⟩, λ p h, (e.proj_to_fun p h.1).symm⟩,
   rwa [e.to_local_homeomorph.symm_symm, e.proj_to_fun],
   rwa e.mem_source,
 end
@@ -101,12 +99,12 @@ end
 lemma is_open_map (hf : is_covering_map f) : is_open_map f :=
 hf.is_locally_homeomorph.is_open_map
 
-lemma quotient_map (hf : is_covering_map f) : quotient_map f :=
-hf.is_open_map.to_quotient_map hf.continuous hf.1
+lemma quotient_map (hf : is_covering_map f) (hf' : function.surjective f) : quotient_map f :=
+hf.is_open_map.to_quotient_map hf.continuous hf'
 
 end is_covering_map
 
 lemma is_topological_fiber_bundle.is_covering_map {B Z F : Type*} [topological_space B]
-  [topological_space Z] [topological_space F] [nonempty F] [discrete_topology F] {f : Z → B}
+  [topological_space Z] [topological_space F] [discrete_topology F] {f : Z → B}
   (hf : is_topological_fiber_bundle F f) : is_covering_map f :=
 is_covering_map.mk f (λ x, F) (λ x, classical.some (hf x)) (λ x, classical.some_spec (hf x))

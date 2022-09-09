@@ -1029,7 +1029,7 @@ lemma eventually_Sup {p : α → Prop} {fs : set (filter α)} :
 iff.rfl
 
 @[simp]
-lemma eventually_supr {p : α → Prop} {fs : β → filter α} :
+lemma eventually_supr {p : α → Prop} {fs : ι → filter α} :
   (∀ᶠ x in (⨆ b, fs b), p x) ↔ (∀ b, ∀ᶠ x in fs b, p x) :=
 mem_supr
 

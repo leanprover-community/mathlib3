@@ -1,4 +1,5 @@
 import computability.computability_tactic
+import computability.primrec.stack_recursion
 
 open tencodable (encode decode)
 open function
@@ -160,5 +161,32 @@ instance : primcodable (α' ⊕ β') :=
 { prim := by { simp only [decode], delta tencodable.to_sum, primrec, } }
 
 end primcodable
+
+section list
+
+@[primrec list.rec] lemma list_cases {f : α → list β} {g : α → γ} {h : α → β → list β → γ} :
+  primrec f → primrec g → primrec h →
+  @primrec α γ (α → γ) _ _ _ (λ x, @list.cases_on β (λ _, γ) (f x) (g x) (h x)) :=
+begin
+  rintros ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ ⟨h', ph, hh⟩, replace hh := λ x₁ x₂ x₃, hh (x₁, x₂, x₃),
+  use λ x, if f' x = tree.nil then g' x else h' (encode (x, (f' x).left, (f' x).right)), split,
+  { rw tree.primrec.iff_primrec at *, primrec, },
+  intro x, simp only [hf, hg, has_uncurry.uncurry, id],
+  cases f x, { simp [encode], }, { simpa [encode] using hh _ _ _, },
+end
+
+section stack_recursion
+variables {base : γ → α → β} {pre₁ pre₂ : γ → tree unit → α → α}
+  {post : γ → β → β → tree unit → α → β}
+
+@[primrec] lemma prec_stack_iterate {start : γ → list (tree.iterator_stack α β)}
+  (hb : primrec base) (hp₁ : primrec pre₁) (hp₂ : primrec pre₂)
+  (hp : primrec post) (hs : primrec start) :
+   primrec (λ x : γ, tree.stack_step (base x) (pre₁ x) (pre₂ x) (post x) (start x)) :=
+by { delta tree.stack_step, delta id_rhs,  }
+
+end stack_recursion
+
+end list
 
 end primrec

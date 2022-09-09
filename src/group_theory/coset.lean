@@ -449,7 +449,7 @@ def quotient_equiv_of_eq (h : s = t) : α ⧸ s ≃ α ⧸ t :=
   left_inv := λ q, induction_on' q (λ g, rfl),
   right_inv := λ q, induction_on' q (λ g, rfl) }
 
-def quotient_equiv_of_eq_mk (h : s = t) (a : α) :
+lemma quotient_equiv_of_eq_mk (h : s = t) (a : α) :
   quotient_equiv_of_eq h (quotient_group.mk a) = (quotient_group.mk a) :=
 rfl
 

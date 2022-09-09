@@ -187,7 +187,9 @@ do guard e.is_lambda <|> fail!"Goal {e} not a lambda function",
    skip
 
 meta def uncurry_target : tactic unit :=
-do dsimp_target simp_lemmas.mk [``primrec, ``primrec_pred, ``function.has_uncurry.uncurry, ``id],
+do fail_if_success get_goal_uncurry_base_fun,
+   dsimp_target simp_lemmas.mk [``primrec, ``primrec_pred, ``function.has_uncurry.uncurry, ``id]
+  { md := reducible },
    (to_expr ``(primrec1_iff_primrec_pred) >>= rewrite_target) <|>
    (to_expr ``(primrec1_iff_primrec) >>= rewrite_target)
 
@@ -197,7 +199,7 @@ do dsimp_target simp_lemmas.mk [] { fail_if_unchanged := ff },
    when_tracing `primrec_tac trace!"Trying to solve {e}",
    (assumption <|> solve_const e >>
     when_tracing `primrec_tac trace!"Solved goal!") <|> (do
-    uncurry_target,
+    try uncurry_target,
     (dm_enc, out_enc, e') ← get_goal_uncurry_base_fun,
     e'' ← (guard (e'.is_lambda) >> pure e') <|> (head_eta_expand e'),
     (solve_apply e'' >>

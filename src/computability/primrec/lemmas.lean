@@ -1,4 +1,4 @@
-import computability.computability_tactic
+import computability.computability_tactic2
 import computability.primrec.stack_recursion
 
 open tencodable (encode decode)
@@ -75,7 +75,7 @@ end bool
   primrec_pred (λ x, (f x) = y) :=
 by simpa using (eq_const_aux (encode y)).comp hf
 
-@[primrec tree.rec] lemma tree_cases {f : α → tree unit} {g : α → β}
+@[primrec] lemma tree_cases {f : α → tree unit} {g : α → β}
   {h : α → unit → tree unit → tree unit → β} (hf : primrec f) (hg : primrec g) (hh : primrec h) :
   @primrec α β (α → β) _ _ _ (λ x, @tree.cases_on unit (λ _, β) (f x) (g x) (h x)) :=
 begin
@@ -164,7 +164,7 @@ end primcodable
 
 section list
 
-@[primrec list.rec] lemma list_cases {f : α → list β} {g : α → γ} {h : α → β → list β → γ} :
+@[primrec] lemma list_cases {f : α → list β} {g : α → γ} {h : α → β → list β → γ} :
   primrec f → primrec g → primrec h →
   @primrec α γ (α → γ) _ _ _ (λ x, @list.cases_on β (λ _, γ) (f x) (g x) (h x)) :=
 begin
@@ -175,6 +175,10 @@ begin
   cases f x, { simp [encode], }, { simpa [encode] using hh _ _ _, },
 end
 
+@[primrec] lemma punit_rec {f : α → unit} {g : α → β} (hf : primrec f) (hg : primrec g) :
+  @primrec α β (α → β) _ _ _ (λ x, @punit.rec (λ _, β) (g x) (f x)) :=
+by { convert hg, ext x, cases f x, refl, }
+
 section stack_recursion
 variables {base : γ → α → β} {pre₁ pre₂ : γ → tree unit → α → α}
   {post : γ → β → β → tree unit → α → β}
@@ -183,7 +187,7 @@ variables {base : γ → α → β} {pre₁ pre₂ : γ → tree unit → α →
   (hb : primrec base) (hp₁ : primrec pre₁) (hp₂ : primrec pre₂)
   (hp : primrec post) (hs : primrec start) :
    primrec (λ x : γ, tree.stack_step (base x) (pre₁ x) (pre₂ x) (post x) (start x)) :=
-by { delta tree.stack_step, delta id_rhs,  }
+by { delta tree.stack_step, delta id_rhs, primrec, }
 
 end stack_recursion
 

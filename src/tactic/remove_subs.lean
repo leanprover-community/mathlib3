@@ -8,15 +8,17 @@ import tactic.linarith
 /-!
 # `remove_subs` -- a tactic for splitting `ℕ`-subtractions
 
-Subtraction between natural numbers is defined to be `0` when it should yield a negative number.
-The tactic `remove_subs` tries to remedy this by doing a case-split on each `ℕ`-subtraction,
-depending on whether the subtraction is truncated to `0` or coincides with the usual notion of
-subtraction.
+The tactic `remove_subs` looks for `ℕ`-subtractions in the goal and recursively replaces any
+subexpression of the form `a - b` by two branches: one where `a ≤ b` and `a - b` is replaced
+by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b + c`.
 
-See the tactic-doc for more details.
+If called with an optional `!` flag, then `remove_subs!` tries `linarith` on all remaining goals.
+
+See the tactic-doc for further details.
 
 ##  Todo
-*  allow `remove_subs` to work `at` some hypotheses?
+*  allow `remove_subs` to work `at *`?
+*  extend its scope to include also case-splits on `max/min`?  possibly even `split_ifs`?
 -/
 
 namespace tactic
@@ -122,27 +124,17 @@ some (a, b) ← list.last' <$> (get_sub lo ht),
 remove_one_sub lo a b ),
 when la.is_some $ any_goals' $ try `[ linarith ]
 
-section error_formatting
-variables {α : Type*} [has_to_string α]
+section error_reporting
 
-/--  `clear_up` converts a list `l` of `option α` to a string:
-* if an element of `l` is `some a`, then `clear_up` converts it to `a.to_string`,
-* if an element of `l` is `none`, then `clear_up` converts it to `⊢`.
+/--  `report l la` returns `Try this: remove_subs at <subset of user input>`,
+with an `!`-flag depending on `la` (or something else in edge-cases). -/
+meta def report (l : list (option name)) (la : bool) : string :=
+let rm := "remove_subs" ++ if la then "!" else "" in
+if (l = []) then ("`" ++ rm ++ "` made no progress") else
+  "Try this: " ++ rm ++ if (l = [none]) then "" else " at " ++
+    (" ".intercalate $ l.map $ λ a, (a.get_or_else "⊢").to_string)
 
-This function is useful to produce a `Try this: ...` output. -/
-def clear_up : list (option α) → string
-| []             := ""
-| (some a :: as) := " " ++ has_to_string.to_string a ++ clear_up as
-| (none :: as)   := " ⊢" ++ clear_up as
-
-/--  `report l la` returns `Try this: remove_subs at <output of clear_up on l>`,
-with an `!`-flag depending on `la` and some differences on edge-cases. -/
-def report [decidable_eq α] (l : list (option α )) (la : bool) : string :=
-ite (l = []) ("`remove_subs" ++ ite la "!" "" ++ "` made no progress") $
-  ite (l = [none]) ("Try this: remove_subs" ++ ite la "!" "") $
-  ("Try this: remove_subs" ++ ite la "!" "" ++ " at" ++ clear_up l)
-
-end error_formatting
+end error_reporting
 
 end remove_subs
 
@@ -150,11 +142,13 @@ namespace interactive
 open remove_subs
 setup_tactic_parser
 
-/--  The tactic `remove_subs` looks for `ℕ`-subtractions in the goal and it recursively replaces
-any subexpression of the form `a - b` by two branches: one where `a ≤ b` and `a - b` is replaced
-by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b + c`.
+/--
+Subtraction between natural numbers in Lean is defined to be `0` when it should yield a negative
+number.  The tactic `remove_subs` tries to remedy this by doing a case-split on each
+`ℕ`-subtraction, depending on whether the subtraction is truncated to `0` or coincides with the
+usual notion of subtraction.
 
-`remove_subs` fails if there are no `ℕ`-subtractions.
+`remove_subs` fails if there are unused locations.
 
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/

@@ -5,7 +5,7 @@ example {i l : ℕ} (i1 : 1 ≤ i) (il : i + 1 ≤ l) :
 by remove_subs!
 
 example (n m : ℕ) : nat.pred n - m = nat.pred (n - m) :=
-show n - 1 - m = n - m - 1, by {remove_subs!, }
+show n - 1 - m = n - m - 1, by remove_subs!
 
 example (n m : ℕ) : nat.pred n - m = nat.pred (n - m) :=
 by remove_subs!
@@ -57,6 +57,12 @@ end
 example {a b : ℕ} : a - b  = a - b :=
 begin
   success_if_fail_with_msg {remove_subs at ⊢ a} "Try this: remove_subs",
-  success_if_fail_with_msg {remove_subs! at ⊢ a} "Try this: remove_subs!",
+  success_if_fail_with_msg {remove_subs! at a ⊢ a} "Try this: remove_subs!",
   remove_subs!,
+end
+
+example {a b : ℕ} (h : a - b = b): a - b = b :=
+begin
+  success_if_fail_with_msg {remove_subs! at h ⊢ ⊢ h ⊢} "Try this: remove_subs! at h ⊢ ⊢",
+  remove_subs! at h ⊢ ⊢
 end

@@ -66,3 +66,10 @@ begin
   success_if_fail_with_msg {remove_subs! at h ⊢ ⊢ h ⊢} "Try this: remove_subs! at h ⊢ ⊢",
   remove_subs! at h ⊢ ⊢
 end
+
+example {a b : ℕ} (h : a - b = b): a - b = b :=
+begin
+  remove_subs! at *,
+  success_if_fail_with_msg {remove_subs! at *} "Try this: remove_subs! at h",
+  remove_subs! at h,
+end

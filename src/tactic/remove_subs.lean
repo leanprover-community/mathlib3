@@ -128,11 +128,12 @@ section error_reporting
 
 /--  `report l la` returns `Try this: remove_subs at <subset of user input>`,
 with an `!`-flag depending on `la` (or something else in edge-cases). -/
-meta def report (l : list (option name)) (la : bool) : string :=
+def report {α} [decidable_eq α] [has_to_string α] (l : list (option α)) (la : bool) : string :=
 let rm := "remove_subs" ++ if la then "!" else "" in
 if (l = []) then ("`" ++ rm ++ "` made no progress") else
   "Try this: " ++ rm ++ if (l = [none]) then "" else " at " ++
-    (" ".intercalate $ l.map $ λ a, (a.get_or_else "⊢").to_string)
+    (" ".intercalate $ l.map $ λ a,
+      dite a.is_some (λ h, has_to_string.to_string (option.get h)) (λ _, "⊢"))
 
 end error_reporting
 
@@ -148,12 +149,17 @@ number.  The tactic `remove_subs` tries to remedy this by doing a case-split on 
 `ℕ`-subtraction, depending on whether the subtraction is truncated to `0` or coincides with the
 usual notion of subtraction.
 
-`remove_subs` fails if there are unused locations.
+`remove_subs` fails if there are unused locations, unless it is `remove_subs at *` which only
+fails if it uses at most one location (and suggests the unique location via a `Try this`, when
+appropriate).
 
 If `remove_subs` is called with the optional flag `!`, then, after the case splits, the tactic
 also tries `linarith` on all remaining goals. -/
 meta def remove_subs (la : parse (tk "!" )?) : parse location → tactic unit
-| loc.wildcard := do ctx ← local_context, fail"`remove_subs at *` is not yet supported"
+| loc.wildcard := do
+  nms ← loc.get_local_pp_names loc.wildcard,
+  goods ← (none :: nms.map some).mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la x),
+  when (goods.length ≤ 1) $ fail (report goods la.is_some)
 | (loc.ns xs)  := do
   goods ← xs.mfilter $ λ x, option.is_some <$> try_core (remove_subs_aux la x),
   when (goods.length < xs.length) $ fail (report goods la.is_some)

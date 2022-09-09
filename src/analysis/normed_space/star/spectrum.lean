@@ -7,6 +7,7 @@ import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
 import algebra.star.module
 import analysis.normed_space.star.exponential
+import topology.algebra.module.character_space
 import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras
@@ -14,6 +15,8 @@ In this file, we establish various propreties related to the spectrum of element
 -/
 
 local postfix `⋆`:std.prec.max_plus := star
+
+section
 
 open_locale topological_space ennreal
 open filter ennreal spectrum cstar_ring
@@ -151,3 +154,53 @@ noncomputable instance : continuous_linear_map_class F ℂ A B :=
   .. alg_hom_class.linear_map_class }
 
 end star_alg_hom
+
+end
+
+namespace weak_dual
+
+open continuous_map complex
+open_locale complex_star_module
+
+variables {F A : Type*} [normed_ring A] [normed_algebra ℂ A] [nontrivial A] [complete_space A]
+  [star_ring A] [cstar_ring A] [star_module ℂ A] [hF : alg_hom_class F ℂ A ℂ]
+
+include hF
+
+/-- This instance is provided instead of `star_alg_hom_class` to avoid type class inference loops.
+See note [lower instance priority] -/
+@[priority 100]
+noncomputable instance : star_hom_class F A ℂ :=
+{ coe := λ φ, φ,
+  coe_injective' := fun_like.coe_injective',
+  map_star := λ φ a,
+  begin
+    suffices hsa : ∀ s : self_adjoint A, (φ s)⋆ = φ s,
+    { rw ←real_part_add_I_smul_imaginary_part a,
+      simp only [map_add, map_smul, star_add, star_smul, hsa, self_adjoint.star_coe_eq] },
+    { intros s,
+      have := alg_hom.apply_mem_spectrum φ (s : A),
+      rw self_adjoint.coe_re_map_spectrum s at this,
+      rcases this with ⟨⟨_, _⟩, _, heq⟩,
+      rw [←heq, is_R_or_C.star_def, is_R_or_C.conj_of_real] }
+  end }
+
+/-- This is not an instance to avoid type class inference loops. See
+`weak_dual.complex.star_hom_class`. -/
+noncomputable def _root_.alg_hom_class.star_alg_hom_class : star_alg_hom_class F ℂ A ℂ :=
+{ .. hF, .. weak_dual.complex.star_hom_class }
+
+omit hF
+
+variable (A)
+/-- The `gelfand_transform` as a `star_alg_hom` when the scalar field is `ℂ`. -/
+noncomputable def gelfand_star_transform : A →⋆ₐ[ℂ] C(character_space ℂ A, ℂ) :=
+{ map_star' := λ a, continuous_map.ext $
+    λ φ, by simp only [alg_hom.to_fun_eq_coe, gelfand_transform_apply_apply, map_star, star_apply],
+  .. gelfand_transform ℂ A }
+variable {A}
+
+@[simp] lemma gelfand_star_transform_apply_apply (a : A) (φ : character_space ℂ A) :
+  gelfand_star_transform A a φ = φ a := rfl
+
+end weak_dual

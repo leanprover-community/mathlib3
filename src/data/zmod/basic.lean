@@ -177,9 +177,6 @@ int_cast_zmod_cast
 lemma int_cast_surjective : function.surjective (coe : ℤ → zmod n) :=
 int_cast_right_inverse.surjective
 
-example : comm_ring (zmod n) := infer_instance
-def foo (R : Type) [comm_ring R] (a : zmod n) : R := ↑a
-
 @[norm_cast]
 lemma cast_id : ∀ n (i : zmod n), ↑i = i
 | 0     i := int.cast_id i
@@ -468,7 +465,7 @@ begin
     rw [val_int_cast, int.mod_add_div] },
   { rintro ⟨k, rfl⟩,
     rw [int.cast_add, int.cast_mul, int.cast_coe_nat, int.cast_coe_nat, nat_cast_val,
-      zmod.nat_cast_self, zero_mul, add_zero, cast_id], }
+      zmod.nat_cast_self, zero_mul, add_zero, cast_id] }
 end
 
 @[push_cast, simp]

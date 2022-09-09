@@ -651,12 +651,10 @@ begin
         exact (not_le.2 hω₂) hω₁ },
       { exact (measurable_set_lt (finset.measurable_range_sup''
           (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },
-      { exact (integrable.integrable_on (@integrable_stopped_value  Ω ℕ _ _ _ _ _ _ _ _ _
-          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable _
-          hitting_le)) },
-      { exact (integrable.integrable_on (@integrable_stopped_value Ω ℕ _ _ _ _ _ _ _ _ _
-          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable _
-          hitting_le)) },
+      { exact (integrable.integrable_on (integrable_stopped_value  ℕ
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
+      { exact (integrable.integrable_on (integrable_stopped_value ℕ
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
       exacts [integral_nonneg (λ x, hnonneg _ _), integral_nonneg (λ x, hnonneg _ _)],
     end
     ... ≤ ennreal.of_real (μ[f n]) :

@@ -185,6 +185,36 @@ lemma is_lower_set.not_bot_mem (hs : is_lower_set s) : ⊥ ∉ s ↔ s = ∅ :=
 hs.bot_mem.not.trans not_nonempty_iff_eq_empty
 
 end order_bot
+
+section no_max_order
+variables [no_max_order α] (a)
+
+lemma is_upper_set.not_bdd_above (hs : is_upper_set s) : s.nonempty → ¬ bdd_above s :=
+begin
+  rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  obtain ⟨c, hc⟩ := exists_gt b,
+  exact hc.not_le (hb $ hs ((hb ha).trans hc.le) ha),
+end
+
+lemma not_bdd_above_Ici : ¬ bdd_above (Ici a) := (is_upper_set_Ici _).not_bdd_above nonempty_Ici
+lemma not_bdd_above_Ioi : ¬ bdd_above (Ioi a) := (is_upper_set_Ioi _).not_bdd_above nonempty_Ioi
+
+end no_max_order
+
+section no_min_order
+variables [no_min_order α] (a)
+
+lemma is_lower_set.not_bdd_below (hs : is_lower_set s) : s.nonempty → ¬ bdd_below s :=
+begin
+  rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  obtain ⟨c, hc⟩ := exists_lt b,
+  exact hc.not_le (hb $ hs (hc.le.trans $ hb ha) ha),
+end
+
+lemma not_bdd_below_Iic : ¬ bdd_below (Iic a) := (is_lower_set_Iic _).not_bdd_below nonempty_Iic
+lemma not_bdd_below_Iio : ¬ bdd_below (Iio a) := (is_lower_set_Iio _).not_bdd_below nonempty_Iio
+
+end no_min_order
 end preorder
 
 /-! ### Bundled upper/lower sets -/

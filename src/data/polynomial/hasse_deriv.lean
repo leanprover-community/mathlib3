@@ -86,13 +86,9 @@ begin
   simp [nat.choose_eq_zero_of_lt ((le_nat_degree_of_mem_supp _ hx).trans_lt h)]
 end
 
-example (R : Type*) [semiring R] (r : R) (n : ℕ) : (n : R) * r = r * n :=
-begin
-  refine cast_comm n r,
-end
-
 lemma hasse_deriv_one' : hasse_deriv 1 f = derivative f :=
-by simp [hasse_deriv_apply, derivative_apply, cast_comm, monomial_eq_C_mul_X]
+by simp only [hasse_deriv_apply, derivative_apply, monomial_eq_C_mul_X, nat.choose_one_right,
+    (nat.cast_commute _ _).eq]
 
 @[simp] lemma hasse_deriv_one : @hasse_deriv R _ 1 = derivative :=
 linear_map.ext $ hasse_deriv_one'

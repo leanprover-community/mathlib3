@@ -104,18 +104,6 @@ instance group_seminorm_class.to_nonneg_hom_class [group E] [group_seminorm_clas
     (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' a], exact map_div_le_add _ _ _ }) two_pos,
   ..‹group_seminorm_class F E› }
 
-namespace tactic
-open positivity
-
-/-- Extension for the `positivity` tactic: seminorms are nonnegative. -/
-@[positivity]
-meta def positivity_seminorm : expr → tactic strictness
-| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
-               <|> nonnegative <$> mk_app ``map_nonneg [f, a]
-| _ := failed
-
-end tactic
-
 namespace group_seminorm
 section group
 variables [group E] [group F] [group G] {p q : group_seminorm E}

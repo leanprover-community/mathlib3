@@ -7,10 +7,11 @@ import computability.primrec.basic
 
 /-!
 # Tactic for proving functions are in a computational class
-
+(Written only for `primrec` for now, but it is relatively general)
 -/
 
 namespace tactic
+setup_tactic_parser
 
 @[reducible]
 def primrec_key := with_bot name
@@ -40,30 +41,31 @@ do f' ← mk_const f,
 
 @[user_attribute]
 meta def primrec_attr : user_attribute
-  (native.rb_lmap primrec_key name) (option primrec_key) :=
+  (native.rb_lmap primrec_key name) (list primrec_key) :=
 { name  := `primrec
 , descr := "Attribute marking a lemma to be used to prove function is primitive recursive"
 , cache_cfg :=
   { dependencies := [],
     mk_cache := λ ls,
     do ps ← ls.mmap primrec_attr.get_param,
-       let ps := ps.reduce_option,
        pure $ (ps.zip ls).foldl
-         (flip $ function.uncurry (λ k n m, m.insert k n))
+         (flip $ function.uncurry (λ k n m, k.foldl (λ m' k', m'.insert k' n) m))
          (native.rb_lmap.mk primrec_key _) }
 , after_set := some $ λ n prio p,
-  do { none ← primrec_attr.get_param n | pure (),
-      when_tracing `primrec_tac trace!"Setting attribute {n}",
-      k ← mk_key_of_name n,
-      when_tracing `primrec_tac trace!"Using key {k}",
-      primrec_attr.set n (some k) tt,
-      return () }
-, parser := some (none : option primrec_key) }
-
-/- In order to help resolve propositions (which are converted to bool's),
-  we simplify -/
-meta def simp_to_bool : tactic unit :=
-`[simp only [bool.to_bool_not, bool.to_bool_and, bool.to_bool_or, bool.to_bool_coe] { eta := ff }]
+  do { ks ← primrec_attr.get_param n,
+      if ks.length = 0 then do
+        when_tracing `primrec_tac trace!"Setting attribute {n}",
+        k ← mk_key_of_name n,
+        when_tracing `primrec_tac trace!"Using key {k}",
+        primrec_attr.set n [k] tt,
+        return ()
+      else when_tracing `primrec_tac trace!"Using keys {ks}" }
+, parser :=
+  (functor.map (λ x : name, [x]) ident)
+  <|>
+  (tk "[" *> sep_by (tk ",") ((coe : name → primrec_key) <$> ident) <* tk "]")
+  <|> pure []
+ }
 
 /- Given a goal of the form `primrec (λ x, f (a b c [types/instances]) x₁ x₂ .. xₙ)
   split into `primrec (f (a b c ...)` and `primrec (λ x, x₁) ... primrec (λ x, xₙ)`.
@@ -72,13 +74,12 @@ meta def simp_to_bool : tactic unit :=
   We need to detect this cycle
 
   Steps:
-    0. Call `dsimp only` (or just `whnf`?), ensure no lambda terms in head
-    0.5. Try `id` and `const`
+    0. Call `dsimp only`
     1. detect non-lambda functions (i.e. constants/app's with constant fun's),
-      try solve using tree or assumption;
+      try solve using lemma or assumption;
     2. Unfold `primrec` to `primrec1`, then to `primrec`
-    3. Find head term, try using `comp`
-    4. Take head term, look it up in tree; try those lemmas
+    3. Take head term, look it up in tree; try those lemmas
+    4. Find head term, try using `comp`
   -/
 
 /-- Given `fn` applied to `args`, where `fn` has type `tp`
@@ -190,7 +191,6 @@ do dsimp_target simp_lemmas.mk [``primrec, ``primrec_pred, ``function.has_uncurr
    (to_expr ``(primrec1_iff_primrec_pred) >>= rewrite_target) <|>
    (to_expr ``(primrec1_iff_primrec) >>= rewrite_target)
 
-
 meta def step_computability : tactic unit :=
 do dsimp_target simp_lemmas.mk [] { fail_if_unchanged := ff },
    e ← get_goal_fun,
@@ -203,7 +203,8 @@ do dsimp_target simp_lemmas.mk [] { fail_if_unchanged := ff },
     (solve_apply e'' >>
       when_tracing `primrec_tac trace!"Made progress using solve_apply") <|>
     (comp_core e'' dm_enc out_enc [e] >>
-      when_tracing `primrec_tac trace!"Made progress using comp")
+      when_tracing `primrec_tac trace!"Made progress using comp") <|>
+    fail!"No progress could be made"
    )
 
 meta def rw_arg_ext (new_tgt : pexpr) : tactic unit :=
@@ -217,10 +218,10 @@ do tgt ← target,
    resolve_name n >>= to_expr >>= rewrite_target
 
 namespace interactive
-setup_tactic_parser
 
 meta def primrec (rw_tgt : parse $ (tk "using" *> texpr)?) :
   tactic unit :=
+`[simp only [primrec1_iff_primrec, primrec1_iff_primrec_pred', tree.primrec.iff_primrec] { fail_if_unchanged := ff}] >>
 rw_tgt.elim skip (λ rw_tgt', rw_arg_ext rw_tgt') >>
 repeat1 step_computability
 
@@ -231,26 +232,12 @@ end tactic
 
 declare_trace primrec_tac
 
-attribute [primrec] primrec.fst
-attribute [primrec] primrec.snd
-attribute [primrec] primrec.id
-attribute [primrec] primrec.const
+attribute [primrec]
+  primrec.fst
+  primrec.snd
+  primrec.id
+  primrec.const
+  primrec.ite
 
 @[primrec] lemma primrec.id' {α : Type} [tencodable α] : primrec (λ x : α, x) :=
 primrec.id
-
-@[primrec] lemma primrec.prod_mk {α β : Type} [tencodable α] [tencodable β] :
-  primrec (@prod.mk α β) := primrec.id
-
-@[primrec] lemma primrec.cons {α : Type} [tencodable α] :
-  primrec (@list.cons α) := primrec.id
-
-example {α β γ δ ε : Type} [tencodable α] [tencodable β]
-  [tencodable γ] [tencodable δ] [tencodable ε]
-  (f : α → β → γ) (g : γ → δ → α) (h : α → β → γ → δ)
-  (hf : primrec f) (hg : primrec g) (hh : primrec h) :
-  primrec (λ (x : γ) (y : δ) (z : β), (f (g x y) z, h (g x y) z x)) :=
-by primrec
-
-@[primrec] lemma primrec.eq {α : Type} [tencodable α] :
-  primrec_pred ((=) : α → α → Prop) := sorry

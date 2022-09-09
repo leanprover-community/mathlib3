@@ -94,15 +94,15 @@ primrec1 (λ x : α, @to_bool (↿f x) (classical.dec _))
 @[simp] lemma primrec1_iff_primrec {f : α → β} : primrec1 f ↔ primrec f := iff.rfl
 
 @[simp] lemma primrec1_iff_primrec_pred {f : α → Prop} :
-  primrec1 (λ x, @to_bool (f x) (classical.dec _)) ↔ primrec_pred f :=
-primrec1_iff_primrec
+  primrec1 (λ x, @to_bool (f x) (classical.dec _)) ↔ primrec_pred f := iff.rfl
 
-lemma tree.primrec.of_primrec {f : tree unit → tree unit} : primrec f → tree.primrec f
-| ⟨f', pf, hf⟩ := pf.of_eq hf
+@[simp] lemma primrec1_iff_primrec_pred' {f : α → Prop} [decidable_pred f] :
+  primrec1 (λ x, to_bool (f x)) ↔ primrec_pred f :=
+by { convert primrec1_iff_primrec_pred, ext, congr, }
 
 @[simp] lemma tree.primrec.iff_primrec {f : tree unit → tree unit} :
   tree.primrec f ↔ primrec f :=
-⟨λ pf, ⟨f, pf, λ _, rfl⟩, tree.primrec.of_primrec⟩
+⟨λ pf, ⟨f, pf, λ _, rfl⟩, λ ⟨f', pf, hf⟩, pf.of_eq hf⟩
 
 namespace primrec
 
@@ -112,7 +112,6 @@ protected theorem id : primrec (@id α) :=
 protected theorem const (x : α) :
 primrec (λ _ : β, x) := ⟨_, tree.primrec.const (encode x), λ _, rfl⟩
 
-
 section primcodable
 
 /-- A type is considered `primcodable` if the decoding function is
@@ -120,11 +119,11 @@ section primcodable
 class primcodable (α : Type*) extends tencodable α :=
 (prim [] : primrec (tencodable.decode α))
 
-lemma some : primrec (@some α) :=
+protected lemma some : primrec (@some α) :=
 ⟨_, tree.primrec.nil.pair tree.primrec.id, λ x, by simp [encode, has_uncurry.uncurry]⟩
 
 instance : primcodable (tree unit) :=
-{ prim := some }
+{ prim := primrec.some }
 
 instance : primcodable unit :=
 { prim := primrec.const _ }
@@ -147,7 +146,7 @@ theorem fst : primrec (@prod.fst α β) := ⟨_, tree.primrec.left, λ _, rfl⟩
 theorem snd : primrec (@prod.snd α β) := ⟨_, tree.primrec.right, λ _, rfl⟩
 
 protected lemma ite {P : α → Prop} [decidable_pred P] {f : α → β} {g : α → β} :
-  primrec (λ x, (P x : bool)) → primrec f → primrec g → primrec (λ x, if P x then f x else g x)
+  primrec_pred P → primrec f → primrec g → primrec (λ x, if P x then f x else g x)
 | ⟨P', pP, hP⟩ ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ :=
 ⟨_, tree.primrec.ite pP pf pg, λ x, by by_cases P x; simp [*, encode, has_uncurry.uncurry]⟩
 

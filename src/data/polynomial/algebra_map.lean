@@ -216,7 +216,7 @@ alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
 alg_hom_ext $ aeval_X X
 
 theorem aeval_X_left_apply (p : R[X]) : aeval X p = p :=
-by rw [aeval_X_left, alg_hom.id_apply]
+alg_hom.congr_fun (@aeval_X_left R _) p
 
 theorem eval_unique (φ : R[X] →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=

@@ -82,7 +82,7 @@ begin
     (upper_half_plane.denom A x)^(-k2),
   by { rw [int.neg_add, zpow_add₀], exact upper_half_plane.denom_ne_zero A x, },
   rw [h1, h22],
-  simp only [upper_half_plane.denom, pi.mul_apply, coe_coe, zpow_neg, algebra.smul_mul_assoc,
+  simp only [slash, upper_half_plane.denom, pi.mul_apply, coe_coe, zpow_neg, algebra.smul_mul_assoc,
     pi.smul_apply, real_smul],
   ring,
 end
@@ -132,9 +132,9 @@ begin
     matrix.special_linear_group.det_coe ((γ : SL(2, ℤ)) : SL(2, ℝ))],
   simp only [of_real_one, one_zpow, mul_one], },
   { intros hf γ,
-  simp_rw [slash_action_eq_slash, slash],
+  simp_rw [slash_action_eq_slash],
   ext1,
-  rw [←upper_half_plane.subgroup_moeb, (hf γ x), mul_comm],
+  rw [slash, ←upper_half_plane.subgroup_moeb, (hf γ x), mul_comm],
   have h55 := zpow_neg_mul_zpow_self k (upper_half_plane.denom_ne_zero (γ : GL(2, ℝ)⁺) x),
   simp_rw upper_half_plane.denom at *,
   simp only [matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix, coe_coe,
@@ -201,20 +201,22 @@ by apply_rules [is_modular_form_of_weight_and_level_of_is_cusp_form_of_weight_an
 def space_of_mod_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
 { carrier := { f : ℍ → ℂ | is_modular_form_of_weight_and_level k Γ f },
   zero_mem':= by { simp only [set.mem_set_of_eq], apply zero_mod_form},
-  add_mem' := by { intros a b ha hb,
+  add_mem' := begin intros a b ha hb,
     split,
     { exact mdifferentiable_add ha.hol hb.hol },
     { exact (weakly_modular_submodule k Γ).add_mem' ha.transf hb.transf} ,
     { intro A,
       rw slash_action.add_action,
-      exact (bounded_at_im_infty_subalgebra ℂ).add_mem' (ha.infinity A) (hb.infinity A)}},
-  smul_mem' := by { intros c f hf,
+      exact (bounded_at_im_infty_subalgebra ℂ).add_mem' (ha.infinity A) (hb.infinity A)}
+    end,
+  smul_mem' := begin intros c f hf,
     split,
     { exact mdifferentiable_smul _ hf.hol },
     { exact (weakly_modular_submodule k Γ).smul_mem' _ hf.transf },
     { intro A,
       rw slash_action.smul_action,
-      apply ((bounded_at_im_infty_subalgebra ℂ).smul_mem (hf.infinity A))}}}
+      apply ((bounded_at_im_infty_subalgebra ℂ).smul_mem (hf.infinity A))}
+    end}
 
 localized "notation `M`:= space_of_mod_forms_of_weight_and_level " in modular_forms
 
@@ -222,20 +224,22 @@ localized "notation `M`:= space_of_mod_forms_of_weight_and_level " in modular_fo
 def space_of_cusp_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
 { carrier := is_cusp_form_of_weight_and_level k Γ,
   zero_mem' := by apply zero_cusp_form,
-  add_mem' := by { intros a b ha hb,
+  add_mem' := begin intros a b ha hb,
     split,
     { exact mdifferentiable_add ha.hol hb.hol },
     { exact (weakly_modular_submodule k Γ).add_mem' ha.transf hb.transf },
     { intro A,
       rw slash_action.add_action,
-      apply ((zero_at_im_infty_submodule ℂ).add_mem' (ha.infinity A) (hb.infinity A))}},
-  smul_mem' := by { intros c f hf,
+      apply ((zero_at_im_infty_submodule ℂ).add_mem' (ha.infinity A) (hb.infinity A))}
+    end,
+  smul_mem' :=begin intros c f hf,
     split,
     { exact mdifferentiable_smul _ hf.hol },
     { exact (weakly_modular_submodule k Γ).smul_mem' _ hf.transf },
     { intro A,
       rw slash_action.smul_action,
-      apply (zero_at_im_infty_submodule ℂ).smul_mem' c (hf.infinity A)}}}
+      apply (zero_at_im_infty_submodule ℂ).smul_mem' c (hf.infinity A)},
+    end}
 
 localized "notation `S`:= space_of_cusp_forms_of_weight_and_level" in modular_forms
 
@@ -261,22 +265,21 @@ lemma const_one_form_is_bound : is_bounded_at_im_infty const_one_form :=
 /-- The constant function 1 is invariant under any subgroup of `SL(2,ℤ)`. -/
 lemma const_one_form_is_invar (A : SL(2,ℤ)) : const_one_form ∣[(0 : ℤ), A] = const_one_form :=
 begin
-  rw [slash_action_eq_slash', slash, const_one_form],
-  dsimp only,
+  rw [slash_action_eq_slash', const_one_form],
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,
       matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
       matrix.special_linear_group.det_coe], },
-  rw [zero_sub, this],
+  funext,
+  rw [slash, zero_sub, this],
   simp only [pi.one_apply, of_real_one, one_zpow, mul_one, neg_zero', zpow_zero],
-  refl,
 end
 
 /-- The constant function 1 is modular of weight 0. -/
 lemma const_mod_form : const_one_form ∈ M 0 Γ :=
-{ hol := by { simp_rw const_one_form, apply mdifferentiable_one, },
-  transf := by { intro γ, apply const_one_form_is_invar, },
-  infinity := by { intro A, rw const_one_form_is_invar A, exact const_one_form_is_bound,} }
+{ hol := by { simp_rw const_one_form, apply mdifferentiable_one },
+  transf := by { intro γ, apply const_one_form_is_invar },
+  infinity := by { intro A, rw const_one_form_is_invar A, exact const_one_form_is_bound }}
 
 end const_mod_form
 

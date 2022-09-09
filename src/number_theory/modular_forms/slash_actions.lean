@@ -49,8 +49,8 @@ namespace modular_forms
 noncomputable theory
 
 /--The weight `k` action of `GL(2, ℝ)⁺` on functions `f : ℍ → ℂ`. -/
-def slash : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k γ f,
-  (λ (x : ℍ), f (γ • x) * (((↑ₘ γ).det) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(-k))
+def slash (k : ℤ) (γ : GL(2, ℝ)⁺) (f : ℍ → ℂ) (x : ℍ) : ℂ :=
+f (γ • x) * (((↑ₘ γ).det) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(-k)
 
 variables {Γ : subgroup SL(2,ℤ)} {k: ℤ} (f : ℍ → ℂ)
 
@@ -79,18 +79,15 @@ end
 lemma slash_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin
-  simp only [slash, pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
-    coe_coe],
   ext1,
-  simp only [pi.add_apply],
+  simp only [slash, pi.add_apply, denom, coe_coe, zpow_neg],
   ring,
 end
 
 lemma slash_mul_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
 begin
- simp_rw slash,
  ext1,
- simp,
+ simp [slash],
 end
 
 lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
@@ -104,7 +101,7 @@ end
 
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
 { map := slash,
-  mul_zero := by {intros k g, rw slash, simp only [pi.zero_apply, zero_mul], refl, },
+  mul_zero := by {intros k g, funext, simp only [slash, pi.zero_apply, zero_mul], },
   one_mul := by {apply slash_mul_one,},
   right_action := by {apply slash_right_action},
   smul_action := by {apply smul_slash},

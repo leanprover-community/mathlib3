@@ -137,8 +137,8 @@ noncomputable def factors_equiv (hI : is_maximal I) :
     {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }} :=
 ideal_factors_equiv_of_quot_equiv (pb.quotient_equiv_quotient_minpoly_map I)
 
-lemma factors_equiv_is_dvd_iso (hI : is_maximal I) (l l' : ideal S) (hl : l ∣  I.map (algebra_map R S))
-  (hl' : l'∣ I.map (algebra_map R S) ) :
+lemma factors_equiv_is_dvd_iso (hI : is_maximal I) (l l' : ideal S)
+  (hl : l ∣  I.map (algebra_map R S)) (hl' : l'∣ I.map (algebra_map R S) ) :
   (factors_equiv pb hI ⟨l, hl⟩ : ideal (polynomial $ R ⧸ I )) ∣
     (factors_equiv pb hI ⟨l', hl'⟩) ↔ l ∣ l' :=
 begin

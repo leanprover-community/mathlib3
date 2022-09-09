@@ -273,6 +273,22 @@ end
 @[to_additive] lemma index_inf_le : (H ⊓ K).index ≤ H.index * K.index :=
 by simp_rw [←relindex_top_right, relindex_inf_le]
 
+@[to_additive] lemma relindex_infi_ne_zero {ι : Type*} [fintype ι] (f : ι → subgroup G)
+  (hf : ∀ i, (f i).relindex L ≠ 0) : (⨅ i, f i).relindex L ≠ 0 :=
+begin
+  unfreezingI { revert ι },
+  refine fintype.induction_empty_option _ _ _,
+  { intros α β _ e h t hf,
+    rw ← e.infi_congr (λ _, rfl),
+    exact h (t ∘ e) (λ i, hf (e i)) },
+  { intros t hf,
+    rw [infi_of_empty, relindex_top_left],
+    exact one_ne_zero },
+  { intros α _ h t hf,
+    rw infi_option,
+    exact relindex_inf_ne_zero (hf none) (h (t ∘ some) (λ i, hf (some i))) },
+end
+
 @[to_additive] lemma relindex_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
   (⨅ i, f i).relindex L ≤ ∏ i, (f i).relindex L :=
 begin
@@ -287,6 +303,13 @@ begin
   { intros α _ h t,
     rw [infi_option, fintype.prod_option],
     exact relindex_inf_le.trans (mul_le_mul_left' (h (t ∘ some)) ((t none).relindex L)) },
+end
+
+@[to_additive] lemma index_infi_ne_zero {ι : Type*} [fintype ι] (f : ι → subgroup G)
+  (hf : ∀ i, (f i).index ≠ 0) : (⨅ i, f i).index ≠ 0 :=
+begin
+  simp_rw ← relindex_top_right at hf ⊢,
+  exact relindex_infi_ne_zero f hf,
 end
 
 @[to_additive] lemma index_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :

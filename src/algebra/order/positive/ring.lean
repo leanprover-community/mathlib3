@@ -96,10 +96,8 @@ end mul
 
 section mul_comm
 
-instance [ordered_cancel_comm_semiring R] [nontrivial R] :
-  ordered_cancel_comm_monoid {x : R // 0 < x} :=
+instance [ordered_cancel_comm_semiring R] [nontrivial R] : ordered_comm_monoid {x : R // 0 < x} :=
 { mul_le_mul_left := λ x y hxy c, subtype.coe_le_coe.1 $ mul_le_mul_of_nonneg_left hxy c.2.le,
-  le_of_mul_le_mul_left := λ x y h, subtype.coe_le_coe.1 $ le_of_mul_le_mul_left h c.2,
   .. subtype.partial_order _,
   .. subtype.coe_injective.comm_monoid (coe : {x : R // 0 < x} → R) coe_one coe_mul coe_pow }
 
@@ -108,8 +106,9 @@ ordered cancellative commutative monoid. We don't have a typeclass for linear or
 semirings, so we assume `[linear_ordered_semiring R] [is_commutative R (*)] instead. -/
 instance [linear_ordered_semiring R] [is_commutative R (*)] [nontrivial R] :
   linear_ordered_cancel_comm_monoid {x : R // 0 < x} :=
-{ .. subtype.linear_order _,
-  .. @positive.subtype.ordered_cancel_comm_monoid R
+{ le_of_mul_le_mul_left := λ a b c h, subtype.coe_le_coe.1 $ (mul_le_mul_left a.2).1 h,
+  .. subtype.linear_order _,
+  .. @positive.subtype.ordered_comm_monoid R
     { mul_comm := is_commutative.comm, .. ‹linear_ordered_semiring R› } _  }
 
 end mul_comm

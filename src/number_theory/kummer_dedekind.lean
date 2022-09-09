@@ -137,7 +137,7 @@ noncomputable def factors_equiv (hI : is_maximal I) :
     {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }} :=
 ideal_factors_equiv_of_quot_equiv (pb.quotient_equiv_quotient_minpoly_map I)
 
-lemma find_me_a_name (hI : is_maximal I) (l l' : ideal S) (hl : l ∣  I.map (algebra_map R S))
+lemma factors_equiv_is_dvd_iso (hI : is_maximal I) (l l' : ideal S) (hl : l ∣  I.map (algebra_map R S))
   (hl' : l'∣ I.map (algebra_map R S) ) :
   (factors_equiv pb hI ⟨l, hl⟩ : ideal (polynomial $ R ⧸ I )) ∣
     (factors_equiv pb hI ⟨l', hl'⟩) ↔ l ∣ l' :=
@@ -158,7 +158,7 @@ begin
   { by_contra ; exact hpb (span_singleton_eq_bot.mp h)},
   { rintros ⟨l, hl⟩ ⟨l', hl'⟩,
     rw [subtype.coe_mk, subtype.coe_mk],
-    apply find_me_a_name pb hI l l' hl hl' },
+    apply factors_equiv_is_dvd_iso pb hI l l' hl hl' },
 end
 
 lemma factors_equiv_symm_mem (hI : I.is_maximal) (hI' : map (algebra_map R S) I ≠ ⊥)
@@ -171,7 +171,7 @@ begin
   refine mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors _ hI' j.prop _,
   { rw [ne.def, ideal.zero_eq_bot, ideal.span_singleton_eq_bot], exact hpb },
   { rintros ⟨l, hl⟩ ⟨l', hl'⟩,
-    rw ← find_me_a_name pb hI,
+    rw ← factors_equiv_is_dvd_iso pb hI,
     simp only [subtype.coe_mk, subtype.coe_eta, rel_iso.coe_fn_to_equiv,
       order_iso.apply_symm_apply],
     all_goals { simp only [rel_iso.coe_fn_to_equiv], exact ((factors_equiv pb hI).symm _).prop } },
@@ -236,7 +236,7 @@ end
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case,
   stating that the prime factors of `I*S` are in bijection with those of the minimal poly of
   the generator of `S` over `R`, taken `mod I`-/
-noncomputable def factors_equiv' (hI : is_maximal I)
+noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (hI : is_maximal I)
   (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) :
  {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S) )} ≃
     {d : polynomial $ R ⧸ I  | d ∈ normalized_factors (map I^.quotient.mk (minpoly R pb.gen)) } :=
@@ -245,7 +245,7 @@ noncomputable def factors_equiv' (hI : is_maximal I)
 
 /-- The second half of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the
     bijection `factors_equiv'` defined in the first half preserves multiplicities. -/
-theorem multiplicity_factors_equiv'_eq_multiplicity (hI : is_maximal I)
+theorem multiplicity_factors_map_eq_multiplicity (hI : is_maximal I)
   (hI' : I.map (algebra_map R S) ≠ ⊥) (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0)
   {J : ideal S}  (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
   multiplicity J (I.map (algebra_map R S)) = multiplicity ↑(factors_equiv' pb hI hI' hpb ⟨J, hJ⟩)

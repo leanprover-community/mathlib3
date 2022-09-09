@@ -99,7 +99,7 @@ swap,
                   rewrite_target lem <|> fail"could not rewrite: something went wrong"
   | some na := do nah ← get_local na,
                   subst lide <|> rewrite_hyp lide nah >> skip,
-                  nah ← get_local na,  -- again, since the previous step changed its type!
+                  nah ← get_local na,  -- again, since the previous step changed the type of `nah`!
                   rewrite_hyp lem nah >> skip <|> fail"could not rewrite: something went wrong"
   end,
 swap
@@ -126,8 +126,10 @@ when la.is_some $ any_goals' $ try `[ linarith ]
 
 section error_reporting
 
-/--  `report l la` returns `Try this: remove_subs at <subset of user input>`,
-with an `!`-flag depending on `la` (or something else in edge-cases). -/
+/--  `report l la` returns `Try this: remove_subs at <subset of user input>` or
+`remove_subs made no progress`, with an `!`-flag depending on `la`.
+In edge-cases, it reports some variation. -/
+--  `report` uses a generic `α` instead of `name`, since otherwise Lean wanted it to be `meta`.
 def report {α} [decidable_eq α] [has_to_string α] (l : list (option α)) (la : bool) : string :=
 let rm := "remove_subs" ++ if la then "!" else "" in
 if (l = []) then ("`" ++ rm ++ "` made no progress") else

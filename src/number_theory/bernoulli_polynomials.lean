@@ -216,7 +216,7 @@ begin
   set u : units ℚ := ⟨(n+1)!, (n+1)!⁻¹,
     mul_inv_cancel (by exact_mod_cast factorial_ne_zero (n+1)),
       inv_mul_cancel (by exact_mod_cast factorial_ne_zero (n+1))⟩ with hu,
-  rw ←units.mul_right_inj (units.map (algebra_map ℚ A).to_monoid_hom u),
+  rw ←units.mul_right_inj (units.map (algebra_map ℚ A) u),
   -- now tidy up unit mess and generally do trivial rearrangements
   -- to make RHS (n+1)*t^n
   rw [units.coe_map, mul_left_comm, ring_hom.to_monoid_hom_eq_coe,

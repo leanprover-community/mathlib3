@@ -15,6 +15,12 @@ namespace tactic
 @[reducible]
 def primrec_key := with_bot name
 
+meta def get_primrec_fun (E : expr) : tactic expr :=
+(do `(primrec %%e) ← pure E,
+   return e) <|>
+(do `(primrec_pred %%e) ← pure E,
+   return e)
+
 meta def mk_key_of_expr' (f : expr) : primrec_key :=
 if f.is_app then
   let app := f.get_app_fn in
@@ -28,7 +34,7 @@ if f.is_lambda then mk_key_of_expr' f.lambda_body else mk_key_of_expr' f
 meta def mk_key_of_name (f : name) : tactic primrec_key :=
 do f' ← mk_const f,
    tp ← infer_type f' >>= instantiate_mvars,
-   `(primrec %%a) ← pure tp.pi_binders.2 |
+   a ← get_primrec_fun tp.pi_binders.2 |
       fail!"{tp} is not a lemma of the form `primrec f`",
    return (mk_key_of_expr a)
 
@@ -102,10 +108,13 @@ do
 meta def comp_lemmas : list name :=
 [``primrec.const, ``primrec.comp, ``primrec.comp₂, ``primrec.comp₃, ``primrec.comp₄, ``primrec.comp₅]
 
+meta def comp_lemmas_pred : list name :=
+[``primrec.const, ``primrec_pred.comp, ``primrec_pred.comp₂]
+
 meta def get_comp_lemma
   (fn_app : expr) (args : list expr)
   (dm_tp : expr) (v : expr)
-  (dm_enc : expr) (out_enc : expr)
+  (dm_enc : expr) (out_enc : option expr)
   (exclude : list expr) : tactic expr :=
 do
   app_tp ← infer_type fn_app,
@@ -120,21 +129,23 @@ do
     trace!"Instances: {insts}",
     trace!"Output type: {out_tp}",
     trace!"Excluding: {exclude}"),
-  guard (rest.length < comp_lemmas.length) <|> fail!"Not enough comp lemmas for {fn_app} ({rest.length} arguments)",
+  let lemmas : list name := if out_enc.is_some then comp_lemmas else comp_lemmas_pred,
+  guard (rest.length < lemmas.length) <|> fail!"Not enough comp lemmas for {fn_app} ({rest.length} arguments)",
   exclude.mall (λ e : expr, bnot <$> succeeds (unify fn_part e reducible)) >>= guardb <|> fail!"Unable to make progress",
   -- Loop through app_tp, which should be of the form (Π α₁, Π α₂, ..., αₙ → α_{n+1} → ... → αₘ → β)
   -- and the args should be `m` expressions which match the types.
   if rest.length = 0 then fail "Unimplemented: special case constants"
   else do
-    lemm : expr ← mk_const (comp_lemmas.inth rest.length),
+    let lemm : expr := expr.const (lemmas.inth rest.length) [],
     let rest' : list expr := rest.map (λ x, x.bind_lambda v),
     return (lemm.mk_app
-      (rest_tp ++ [out_tp, dm_tp] ++ insts ++ [out_enc, dm_enc] ++
+      (rest_tp ++ (if out_enc.is_some then [out_tp] else []) ++
+      [dm_tp] ++ insts ++ [out_enc, dm_enc].reduce_option ++
         [fn_part] ++ rest'))
 
 /-- The goal is supposed to be `primrec fn@(λ x, _)` where _ is whnf -/
 meta def comp_core (fn : expr)
-  (dm_enc : expr) (out_enc : expr)
+  (dm_enc : expr) (out_enc : option expr)
   (exclude : opt_param (list expr) []) : tactic unit :=
 do guard fn.is_lambda <|> fail!"{fn} is not a lambda function",
    v ← mk_local_def fn.binding_name fn.binding_domain,
@@ -147,12 +158,13 @@ do guard fn.is_lambda <|> fail!"{fn} is not a lambda function",
    return ()
 
 meta def get_goal_fun : tactic expr :=
-do `(primrec %%e) ← target,
-   return e
+target >>= get_primrec_fun
 
-meta def get_goal_uncurry_base_fun : tactic (expr × expr × expr) :=
-do `(@primrec _ _ _ %%dm_enc %%out_enc (@function.has_uncurry_base _ _) %%e) ← target,
-   return (dm_enc, out_enc, e)
+meta def get_goal_uncurry_base_fun : tactic (expr × option expr × expr) :=
+(do `(@primrec _ _ _ %%dm_enc %%out_enc (@function.has_uncurry_base _ _) %%e) ← target,
+   return (dm_enc, out_enc, e)) <|>
+(do `(@primrec_pred _ _ %%dm_enc (@function.has_uncurry_base _ _) %%e) ← target,
+   return (dm_enc, none, e))
 
 meta def solve_const (e : expr) : tactic unit :=
 do let nm := mk_key_of_expr' e,
@@ -173,14 +185,19 @@ do guard e.is_lambda <|> fail!"Goal {e} not a lambda function",
    first $ results.map (λ x, mk_const x >>= λ e, apply e { md := reducible }),
    skip
 
+meta def uncurry_target : tactic unit :=
+do dsimp_target simp_lemmas.mk [``primrec, ``primrec_pred, ``function.has_uncurry.uncurry, ``id],
+   (to_expr ``(primrec1_iff_primrec_pred) >>= rewrite_target) <|>
+   (to_expr ``(primrec1_iff_primrec) >>= rewrite_target)
+
+
 meta def step_computability : tactic unit :=
 do dsimp_target simp_lemmas.mk [] { fail_if_unchanged := ff },
    e ← get_goal_fun,
    when_tracing `primrec_tac trace!"Trying to solve {e}",
    (assumption <|> solve_const e >>
     when_tracing `primrec_tac trace!"Solved goal!") <|> (do
-    dsimp_target simp_lemmas.mk [``primrec, ``function.has_uncurry.uncurry, ``id],
-    to_expr ``(primrec1_iff_primrec) >>= rewrite_target,
+    uncurry_target,
     (dm_enc, out_enc, e') ← get_goal_uncurry_base_fun,
     e'' ← (guard (e'.is_lambda) >> pure e') <|> (head_eta_expand e'),
     (solve_apply e'' >>
@@ -189,7 +206,24 @@ do dsimp_target simp_lemmas.mk [] { fail_if_unchanged := ff },
       when_tracing `primrec_tac trace!"Made progress using comp")
    )
 
+meta def rw_arg_ext (new_tgt : pexpr) : tactic unit :=
+do tgt ← target,
+   guard (expr.is_app tgt),
+   let arg := expr.app_arg tgt,
+   n ← mk_fresh_name,
+   to_expr ``(%%arg = %%new_tgt) >>= assert n,
+   focus1 (symmetry >> tactic.funext),
+   swap,
+   resolve_name n >>= to_expr >>= rewrite_target
+
 namespace interactive
+setup_tactic_parser
+
+meta def primrec (rw_tgt : parse $ (tk "using" *> texpr)?) :
+  tactic unit :=
+rw_tgt.elim skip (λ rw_tgt', rw_arg_ext rw_tgt') >>
+repeat1 step_computability
+
 
 end interactive
 
@@ -202,8 +236,21 @@ attribute [primrec] primrec.snd
 attribute [primrec] primrec.id
 attribute [primrec] primrec.const
 
-@[primrec] lemma primrec.id' {α : Type*} [tencodable α] : primrec (λ x : α, x) :=
+@[primrec] lemma primrec.id' {α : Type} [tencodable α] : primrec (λ x : α, x) :=
 primrec.id
 
-@[primrec] lemma primrec.prod_mk {α β : Type*} [tencodable α] [tencodable β] :
+@[primrec] lemma primrec.prod_mk {α β : Type} [tencodable α] [tencodable β] :
   primrec (@prod.mk α β) := primrec.id
+
+@[primrec] lemma primrec.cons {α : Type} [tencodable α] :
+  primrec (@list.cons α) := primrec.id
+
+example {α β γ δ ε : Type} [tencodable α] [tencodable β]
+  [tencodable γ] [tencodable δ] [tencodable ε]
+  (f : α → β → γ) (g : γ → δ → α) (h : α → β → γ → δ)
+  (hf : primrec f) (hg : primrec g) (hh : primrec h) :
+  primrec (λ (x : γ) (y : δ) (z : β), (f (g x y) z, h (g x y) z x)) :=
+by primrec
+
+@[primrec] lemma primrec.eq {α : Type} [tencodable α] :
+  primrec_pred ((=) : α → α → Prop) := sorry

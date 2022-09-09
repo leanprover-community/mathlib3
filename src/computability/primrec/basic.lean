@@ -93,6 +93,10 @@ primrec1 (λ x : α, @to_bool (↿f x) (classical.dec _))
 
 @[simp] lemma primrec1_iff_primrec {f : α → β} : primrec1 f ↔ primrec f := iff.rfl
 
+@[simp] lemma primrec1_iff_primrec_pred {f : α → Prop} :
+  primrec1 (λ x, @to_bool (f x) (classical.dec _)) ↔ primrec_pred f :=
+primrec1_iff_primrec
+
 lemma tree.primrec.of_primrec {f : tree unit → tree unit} : primrec f → tree.primrec f
 | ⟨f', pf, hf⟩ := pf.of_eq hf
 
@@ -164,6 +168,17 @@ theorem comp₅ {f : α → β → γ → δ → ε → ζ} {g₁ : η → α} {
   {g₅ : η → ε} (hf : primrec f) (hg₁ : primrec g₁) (hg₂ : primrec g₂) (hg₃ : primrec g₃)
   (hg₄ : primrec g₄) (hg₅ : primrec g₅) : primrec (λ x, f (g₁ x) (g₂ x) (g₃ x) (g₄ x) (g₅ x)) :=
 hf.comp $ hg₁.pair $ hg₂.pair $ hg₃.pair $ hg₄.pair hg₅
+
+theorem _root_.primrec_pred.comp {f : α → Prop} {g : β → α} (hf : primrec_pred f) (hg : primrec g) :
+  primrec_pred (λ x, f (g x)) := comp hf hg
+
+theorem _root_.primrec_pred.comp₂ {f : α → β → Prop} {g₁ : γ → α} {g₂ : γ → β} (hf : primrec_pred f)
+  (hg₁ : primrec g₁) (hg₂ : primrec g₂) :
+  primrec_pred (λ x, f (g₁ x) (g₂ x)) := hf.comp $ hg₁.pair hg₂
+
+theorem _root_.primrec_pred.comp₃ {f : α → β → γ → Prop} {g₁ : δ → α} {g₂ : δ → β} {g₃ : δ → γ}
+  (hf : primrec_pred f) (hg₁ : primrec g₁) (hg₂ : primrec g₂) (hg₃ : primrec g₃) :
+  primrec_pred (λ x, f (g₁ x) (g₂ x) (g₃ x)) := hf.comp $ hg₁.pair $ hg₂.pair hg₃
 
 end primrec
 

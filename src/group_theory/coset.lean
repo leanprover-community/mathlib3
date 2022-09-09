@@ -441,6 +441,18 @@ calc α ≃ Σ L : α ⧸ s, {x : α // (x : α ⧸ s) = L} :
 
 variables {t : subgroup α}
 
+/-- If two subgroups `M` and `N` of `G` are equal, their quotients are in bijection. -/
+@[to_additive "If two subgroups `M` and `N` of `G` are equal, their quotients are in bijection."]
+def quotient_equiv_of_eq (h : s = t) : α ⧸ s ≃ α ⧸ t :=
+{ to_fun := quotient.map' id (λ a b h', h ▸ h'),
+  inv_fun := quotient.map' id (λ a b h', h.symm ▸ h'),
+  left_inv := λ q, induction_on' q (λ g, rfl),
+  right_inv := λ q, induction_on' q (λ g, rfl) }
+
+def quotient_equiv_of_eq_mk (h : s = t) (a : α) :
+  quotient_equiv_of_eq h (quotient_group.mk a) = (quotient_group.mk a) :=
+rfl
+
 /-- If `H ≤ K`, then `G/H ≃ G/K × K/H` constructively, using the provided right inverse
 of the quotient map `G → G/K`. The classical version is `quotient_equiv_prod_of_le`. -/
 @[to_additive "If `H ≤ K`, then `G/H ≃ G/K × K/H` constructively, using the provided right inverse

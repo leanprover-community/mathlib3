@@ -1237,9 +1237,8 @@ section arithmetic
 
 variables {S: topological_space.opens 𝕜}
 
-lemma mdifferentiable_add {f g : S → 𝕜}
-(hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f) (hg : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) :
-mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (f + g) :=
+lemma mdifferentiable_add {f g : S → 𝕜} (hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f)
+  (hg : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (f + g) :=
 begin
   simp_rw mdifferentiable at *,
   simp only [mdifferentiable_at, differentiable_within_at_univ] at *,
@@ -1249,9 +1248,8 @@ begin
   { convert (differentiable_within_at.add (hf x).2 (hg x).2) },
 end
 
-lemma mdifferentiable_mul {f g : S → 𝕜}
-(hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f) (hg : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) :
-mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (f * g) :=
+lemma mdifferentiable_mul {f g : S → 𝕜} (hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f)
+  (hg : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (f * g) :=
 begin
   simp_rw mdifferentiable at *,
   simp only [mdifferentiable_at, differentiable_within_at_univ] at *,
@@ -1275,8 +1273,7 @@ begin
   { refl },
 end
 
-lemma mdifferentiable_zero :
-mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (0 : S → 𝕜) :=
+lemma mdifferentiable_zero : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (0 : S → 𝕜) :=
 begin
   intro x,
   rw mdifferentiable_at,

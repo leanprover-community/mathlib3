@@ -67,10 +67,8 @@ by simpa only [pi.one_apply, mul_one, norm_eq_abs, complex.abs_mul] using hf.mul
 
 @[simp] lemma bounded_mem (f : ℍ → ℂ) :
   is_bounded_at_im_infty f ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M :=
-begin
-  simp [is_bounded_at_im_infty, bounded_at_filter, asymptotics.is_O_iff, filter.eventually,
-    at_im_infty_mem],
-end
+by simp [is_bounded_at_im_infty, bounded_at_filter, asymptotics.is_O_iff, filter.eventually,
+    at_im_infty_mem]
 
 lemma zero_at_im_infty (f : ℍ → ℂ) :
   is_zero_at_im_infty f ↔ ∀ ε : ℝ, 0 < ε → ∃ A : ℝ, ∀ z : ℍ, A ≤ im z → abs (f z) ≤ ε :=

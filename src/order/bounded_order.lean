@@ -35,13 +35,13 @@ instances for `Prop` and `fun`.
   Typical examples include `Prop` and `set α`.
 -/
 
-open order_dual
+open function order_dual
 
 set_option old_structure_cmd true
 
 universes u v
 
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {γ δ : Type*}
 
 /-! ### Top, bottom element -/
 
@@ -548,6 +548,9 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 
 instance : inhabited (with_bot α) := ⟨⊥⟩
 
+lemma coe_injective : injective (coe : α → with_bot α) := option.some_injective _
+@[norm_cast] lemma coe_inj : (a : with_bot α) = b ↔ a = b := option.some_inj
+
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
@@ -579,6 +582,10 @@ def map (f : α → β) : with_bot α → with_bot β := option.map f
 
 @[simp] lemma map_bot (f : α → β) : map f ⊥ = ⊥ := rfl
 @[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
+
+lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
+  map g₁ (map f₁ a) = map g₂ (map f₂ a) :=
+option.map_comm h _
 
 lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x := option.ne_none_iff_exists
 
@@ -916,6 +923,10 @@ def map (f : α → β) : with_top α → with_top β := option.map f
 
 @[simp] lemma map_top (f : α → β) : map f ⊤ = ⊤ := rfl
 @[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
+
+lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
+  map g₁ (map f₁ a) = map g₂ (map f₂ a) :=
+option.map_comm h _
 
 lemma map_to_dual (f : αᵒᵈ → βᵒᵈ) (a : with_bot α) :
   map f (with_bot.to_dual a) = a.map (to_dual ∘ f) := rfl

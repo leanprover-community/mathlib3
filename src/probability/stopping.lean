@@ -1390,11 +1390,12 @@ begin
   exact mem_ℒp_stopped_value_of_mem_finset hτ hu hbdd,
 end
 
+variables (ι)
+
 lemma integrable_stopped_value [locally_finite_order_bot ι]
   (hτ : is_stopping_time ℱ τ) (hu : ∀ n, integrable (u n) μ) {N : ι} (hbdd : ∀ ω, τ ω ≤ N) :
   integrable (stopped_value u τ) μ :=
 integrable_stopped_value_of_mem_finset hτ hu (λ ω, finset.mem_Iic.mpr (hbdd ω))
-
 end stopped_value_of_mem_finset
 
 

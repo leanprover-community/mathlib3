@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
+import algebra.algebra.basic
 import data.polynomial.field_division
 import linear_algebra.finite_dimensional
 import ring_theory.adjoin.basic
@@ -641,6 +642,71 @@ by rw [quot_adjoin_root_equiv_quot_polynomial_quot, ring_equiv.symm_trans_apply,
     quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk_symm_quot_quot_mk,
     quot_map_of_equiv_quot_map_C_map_span_mk_symm_mk]
 
+/-- Promote `quot_adjoin_root_equiv_quot_polynomial_quot` to an alg_equiv  -/
+noncomputable def adjoin_root.quot_equiv_quot_map (f : R[X]) (I : ideal R) :
+  ((adjoin_root f) ⧸ (ideal.map (adjoin_root.of f) I)) ≃ₐ[R]
+     ((R ⧸ I) [X]) ⧸ (ideal.span ({polynomial.map I^.quotient.mk f} : set ((R ⧸ I) [X]))) :=
+alg_equiv.of_ring_equiv (quot_adjoin_root_equiv_quot_polynomial_quot I f)
+begin
+  intros x,
+  have : algebra_map R (adjoin_root f ⧸ (ideal.map (adjoin_root.of f) I)) x =
+    ideal.quotient.mk (ideal.map (adjoin_root.of f) I) (of f x) := rfl,
+  rw temporary f x at this,
+  rw this,
+  rw adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of,
+  have : algebra_map R (polynomial (R ⧸ I) ⧸ (ideal.span {polynomial.map
+    (ideal.quotient.mk I) f})) x =
+    ideal.quotient.mk (ideal.span {polynomial.map (ideal.quotient.mk I) f})
+    (polynomial.C (ideal.quotient.mk I x)) := rfl,
+  rw this,
+  simp only [map_C],
 end
 
+@[simp] lemma adjoin_root.quot_equiv_quot_map_apply (f g : polynomial R) (I : ideal R)  :
+  adjoin_root.quot_equiv_quot_map f I (ideal.quotient.mk _ (adjoin_root.mk f g)) =
+    ideal.quotient.mk _ (g.map I^.quotient.mk) :=
+by rw [adjoin_root.quot_equiv_quot_map, alg_equiv.of_ring_equiv_apply,
+    adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of]
+
+lemma adjoin_root.quot_equiv_quot_map_symm_apply (f g : polynomial R) (I : ideal R)  :
+  (adjoin_root.quot_equiv_quot_map f I).symm (ideal.quotient.mk _ (map (ideal.quotient.mk I) g)) =
+    ideal.quotient.mk _ (adjoin_root.mk f g) :=
+by rw [adjoin_root.quot_equiv_quot_map, alg_equiv.of_ring_equiv_symm_apply,
+    adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_symm_mk_mk]
+
 end adjoin_root
+
+namespace power_basis
+
+/-- Let `α` have minimal polynomial `f` over `R` and `I` be an ideal of `R`,
+then `R[α] / (I) = (R[x] / (f)) / pS = (R/p)[x] / (f mod p)` -/
+noncomputable def power_basis.quotient_equiv_quotient_minpoly_map [is_domain R] [is_domain S]
+  (pb : power_basis R S) (I : ideal R)  :
+  (S ⧸ I.map (algebra_map R S)) ≃ₐ[R] (polynomial (R ⧸ I)) ⧸
+    (ideal.span ({(minpoly R pb.gen).map I^.quotient.mk} : set (polynomial (R ⧸ I)))) :=
+alg_equiv.trans
+  (alg_equiv.of_ring_equiv
+    (ideal.quotient_equiv _ (ideal.map (adjoin_root.of (minpoly R pb.gen)) I)
+    (adjoin_root.equiv' (minpoly R pb.gen) pb
+    (by rw [adjoin_root.aeval_eq, adjoin_root.mk_self])
+    (minpoly.aeval _ _)).symm.to_ring_equiv
+    (by rw [ideal.map_map, alg_equiv.to_ring_equiv_eq_coe, ← alg_equiv.coe_ring_hom_commutes,
+            ← adjoin_root.algebra_map_eq, alg_hom.comp_algebra_map]))
+  (λ x, by rw [← ideal.quotient.mk_algebra_map, ideal.quotient_equiv_apply,
+    ring_hom.to_fun_eq_coe, ideal.quotient_map_mk, alg_equiv.to_ring_equiv_eq_coe,
+    ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv, alg_equiv.commutes,
+    quotient.mk_algebra_map]))
+  (adjoin_root.quot_equiv_quot_map _ _)
+
+@[simp] lemma power_basis.quotient_equiv_quotient_minpoly_map_apply [is_domain R] [is_domain S]
+  (pb : power_basis R S) (I : ideal R) (x : polynomial R) :
+  pb.quotient_equiv_quotient_minpoly_map I (ideal.quotient.mk _ (aeval pb.gen x)) =
+    ideal.quotient.mk _ (x.map I^.quotient.mk) :=
+by rw [power_basis.quotient_equiv_quotient_minpoly_map, alg_equiv.trans_apply,
+    alg_equiv.of_ring_equiv_apply, quotient_equiv_mk, alg_equiv.coe_ring_equiv',
+    adjoin_root.equiv'_symm_apply, power_basis.lift_aeval,
+    adjoin_root.aeval_eq, adjoin_root.quot_equiv_quot_map_apply]
+
+end power_basis
+
+end

@@ -183,60 +183,6 @@ The character space itself consists of all algebra homomorphisms from `A` to `�
 end gelfand_transform
 
 open complex
-
-section self_skew_adjoint
-
-variables {A : Type*} [add_comm_group A] [module ℂ A] [star_add_monoid A] [star_module ℂ A]
-
-/-- Create a `self_adjoint` element from a `skew_adjoint` element by multiplying by the scalar
-`-complex.I`. -/
-@[simps] def skew_adjoint.neg_I_smul : skew_adjoint A →ₗ[ℝ] self_adjoint A :=
-{ to_fun := λ a, ⟨-I • a, by simp only [self_adjoint.mem_iff, neg_smul, star_neg, star_smul,
-    is_R_or_C.star_def, conj_I, skew_adjoint.star_coe_eq, neg_smul_neg]⟩,
-  map_add' := λ a b, by { ext, simp only [add_subgroup.coe_add, smul_add, add_mem_class.mk_add_mk] },
-  map_smul' := λ a b, by { ext, simp only [neg_smul, skew_adjoint.coe_smul, add_subgroup.coe_mk,
-    ring_hom.id_apply, self_adjoint.coe_smul, smul_neg, neg_inj], rw smul_comm, } }
-
-lemma skew_adjoint.I_smul_neg_I (a : skew_adjoint A) :
-  I • (skew_adjoint.neg_I_smul a : A) = a :=
-by simp only [smul_smul, skew_adjoint.neg_I_smul_apply_coe, neg_smul, smul_neg, I_mul_I, one_smul,
-  neg_neg]
-
-/-- The real part `ℜ a` of an element `a` of a star module over `ℂ`, as a linear map. This is just
-`self_adjoint_part ℝ`, but we provide it as a separate definition in order to link it with lemmas
-concerning the `imaginary_part`, which doesn't exist in more generic star modules. -/
-noncomputable def real_part : A →ₗ[ℝ] self_adjoint A := self_adjoint_part ℝ
-
-@[simp] lemma coe_real_part_apply (a : A) : (real_part a : A) = (2 : ℝ)⁻¹ • a + (2 : ℝ)⁻¹ • a⋆ :=
-by { unfold real_part, simp only [self_adjoint_part_apply_coe, inv_of_eq_inv, smul_add] }
-
-/-- The imaginary part `ℑ a` of an element `a` of a star module over `ℂ`, as a linear map into the
-self adjoint elements. In a general star module, we have a decomposition into the `self_adjoint`
-and `skew_adjoint` parts, but in a star module over `ℂ` we have
-`star_module.real_part_add_I_smul_imaginary_part`, which allows us to decompose into a linear
-combination of `self_adjoint`s. -/
-noncomputable
-def imaginary_part : A →ₗ[ℝ] self_adjoint A := skew_adjoint.neg_I_smul.comp (skew_adjoint_part ℝ)
-
-@[simp] lemma coe_imaginary_part_apply (a : A) :
-  (imaginary_part a : A) = -I • ((2 : ℝ)⁻¹ • a - (2 : ℝ)⁻¹ • a⋆) :=
-begin
-  unfold imaginary_part,
-  simp only [linear_map.coe_comp, skew_adjoint.neg_I_smul_apply_coe, skew_adjoint_part_apply_coe,
-    inv_of_eq_inv, neg_smul, neg_inj, smul_sub],
-end
-
-localized "notation `ℜ` := real_part" in complex_star_module
-localized "notation `ℑ` := imaginary_part" in complex_star_module
-
-/-- The standard decomposition of `ℜ a + complex.I • ℑ a = a` of an element of a star module over
-`ℂ` into a linear combination of self adjoint elements. -/
-lemma star_module.real_part_add_I_smul_imaginary_part (a : A) : (ℜ a + I • ℑ a : A) = a :=
-by simpa only [smul_smul, coe_real_part_apply, coe_imaginary_part_apply, neg_smul, smul_neg,
-  I_mul_I, one_smul, neg_sub, add_add_sub_cancel] using inv_of_two_smul_add_inv_of_two_smul ℝ a
-
-end self_skew_adjoint
-
 open_locale complex_star_module
 
 variables {F A : Type*} [normed_ring A] [normed_algebra ℂ A] [nontrivial A] [complete_space A]
@@ -253,7 +199,7 @@ noncomputable instance : star_hom_class F A ℂ :=
   map_star := λ φ a,
   begin
     suffices hsa : ∀ s : self_adjoint A, (φ s)⋆ = φ s,
-    { rw ←star_module.real_part_add_I_smul_imaginary_part a,
+    { rw ←real_part_add_I_smul_imaginary_part a,
       simp only [map_add, map_smul, star_add, star_smul, hsa, self_adjoint.star_coe_eq] },
     { intros s,
       have := alg_hom.apply_mem_spectrum φ (s : A),

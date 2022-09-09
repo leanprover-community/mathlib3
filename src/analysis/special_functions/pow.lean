@@ -294,6 +294,8 @@ by rw [rpow_def_of_nonneg (le_of_lt hx), if_neg (ne_of_gt hx)]
 lemma exp_mul (x y : ℝ) : exp (x * y) = (exp x) ^ y :=
 by rw [rpow_def_of_pos (exp_pos _), log_exp]
 
+@[simp] lemma exp_one_rpow (x : ℝ) : exp 1 ^ x = exp x := by rw [←exp_mul, one_mul]
+
 lemma rpow_eq_zero_iff_of_nonneg {x y : ℝ} (hx : 0 ≤ x) : x ^ y = 0 ↔ x = 0 ∧ y ≠ 0 :=
 by { simp only [rpow_def_of_nonneg hx], split_ifs; simp [*, exp_ne_zero] }
 
@@ -1067,7 +1069,7 @@ lemma tendsto_log_div_rpow_nhds_zero {r : ℝ} (hr : r < 0) :
   tendsto (λ x, log x / x ^ r) (𝓝[>] 0) (𝓝 0) :=
 (is_o_log_rpow_nhds_zero hr).tendsto_div_nhds_zero
 
-lemma tensdto_log_mul_rpow_nhds_zero {r : ℝ} (hr : 0 < r) :
+lemma tendsto_log_mul_rpow_nhds_zero {r : ℝ} (hr : 0 < r) :
   tendsto (λ x, log x * x ^ r) (𝓝[>] 0) (𝓝 0) :=
 (tendsto_log_div_rpow_nhds_zero $ neg_lt_zero.2 hr).congr' $
   eventually_mem_nhds_within.mono $ λ x hx, by rw [rpow_neg hx.out.le, div_inv_eq_mul]

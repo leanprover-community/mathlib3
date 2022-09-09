@@ -33,8 +33,7 @@ variables [linear_ordered_field 𝕜] (r : α → β → Prop) [Π a, decidable_
   {s s₁ s₂ : finset α} {t t₁ t₂ : finset β} {a : α} {b : β} {δ : 𝕜}
 
 /-- Finset of edges of a relation between two finsets of vertices. -/
-def interedges (s : finset α) (t : finset β) : finset (α × β) :=
-(s.product t).filter $ λ e, r e.1 e.2
+def interedges (s : finset α) (t : finset β) : finset (α × β) := (s ×ˢ t).filter $ λ e, r e.1 e.2
 
 /-- Edge density of a relation between two finsets of vertices. -/
 def edge_density (s : finset α) (t : finset β) : ℚ := (interedges r s t).card / (s.card * t.card)
@@ -93,7 +92,7 @@ ext $ λ a, by simp only [mem_interedges_iff, mem_bUnion, ←exists_and_distrib_
 
 lemma interedges_bUnion (s : finset ι) (t : finset κ) (f : ι → finset α) (g : κ → finset β) :
   interedges r (s.bUnion f) (t.bUnion g) =
-    (s.product t).bUnion (λ ab, interedges r (f ab.1) (g ab.2)) :=
+    (s ×ˢ t).bUnion (λ ab, interedges r (f ab.1) (g ab.2)) :=
 by simp_rw [product_bUnion, interedges_bUnion_left, interedges_bUnion_right]
 
 end decidable_eq
@@ -143,7 +142,7 @@ end
 
 lemma card_interedges_finpartition [decidable_eq α] [decidable_eq β] (P : finpartition s)
   (Q : finpartition t) :
-  (interedges r s t).card = ∑ ab in P.parts.product Q.parts, (interedges r ab.1 ab.2).card :=
+  (interedges r s t).card = ∑ ab in P.parts ×ˢ Q.parts, (interedges r ab.1 ab.2).card :=
 by simp_rw [card_interedges_finpartition_left _ P, card_interedges_finpartition_right _ _ Q,
   sum_product]
 
@@ -266,7 +265,7 @@ def interedges (s t : finset α) : finset (α × α) := interedges G.adj s t
 def edge_density : finset α → finset α → ℚ := edge_density G.adj
 
 lemma interedges_def (s t : finset α) :
-  G.interedges s t = (s.product t).filter (λ e, G.adj e.1 e.2) := rfl
+  G.interedges s t = (s ×ˢ t).filter (λ e, G.adj e.1 e.2) := rfl
 
 lemma edge_density_def (s t : finset α) :
   G.edge_density s t = (G.interedges s t).card / (s.card * t.card) := rfl
@@ -306,14 +305,14 @@ interedges_bUnion_right _ _ _ _
 
 lemma interedges_bUnion (s : finset ι) (t : finset κ) (f : ι → finset α) (g : κ → finset α) :
   G.interedges (s.bUnion f) (t.bUnion g) =
-    (s.product t).bUnion (λ ab, G.interedges (f ab.1) (g ab.2)) :=
+    (s ×ˢ t).bUnion (λ ab, G.interedges (f ab.1) (g ab.2)) :=
 interedges_bUnion _ _ _ _ _
 
 lemma card_interedges_add_card_interedges_compl (h : disjoint s t) :
   (G.interedges s t).card + (Gᶜ.interedges s t).card = s.card * t.card :=
 begin
   rw [←card_product, interedges_def, interedges_def],
-  have : (s.product t).filter (λ e , Gᶜ.adj e.1 e.2) = (s.product t).filter (λ e , ¬ G.adj e.1 e.2),
+  have : (s ×ˢ t).filter (λ e , Gᶜ.adj e.1 e.2) = (s ×ˢ t).filter (λ e , ¬ G.adj e.1 e.2),
   { refine filter_congr (λ x hx, _),
     rw mem_product at hx,
     rw [compl_adj, and_iff_right (h.forall_ne_finset hx.1 hx.2)] },

@@ -241,7 +241,7 @@ end
 section
 /-! ### Simp lemmas for derivatives of `λ x, complex.cos (f x)` etc., `f : E → ℂ` -/
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
   {x : E} {s : set E}
 
 /-! #### `complex.cos` -/
@@ -568,6 +568,9 @@ by simpa only [sinh_zero] using @sinh_lt_sinh x 0
 @[simp] lemma sinh_nonneg_iff : 0 ≤ sinh x ↔ 0 ≤ x :=
 by simpa only [sinh_zero] using @sinh_le_sinh 0 x
 
+lemma abs_sinh (x : ℝ) : |sinh x| = sinh (|x|) :=
+by cases le_total x 0; simp [abs_of_nonneg, abs_of_nonpos, *]
+
 lemma cosh_strict_mono_on : strict_mono_on cosh (Ici 0) :=
 (convex_Ici _).strict_mono_on_of_deriv_pos continuous_cosh.continuous_on $ λ x hx,
   by { rw [interior_Ici, mem_Ioi] at hx, rwa [deriv_cosh, sinh_pos_iff] }
@@ -713,7 +716,7 @@ section
 
 /-! ### Simp lemmas for derivatives of `λ x, real.cos (f x)` etc., `f : E → ℝ` -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
 
 /-! #### `real.cos` -/

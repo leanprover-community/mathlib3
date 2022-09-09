@@ -369,12 +369,12 @@ begin
   -- (here the addition of `dist f g`) preserve infimum and supremum
   have E1 : ∀ x, (⨅ y, g (inl x, inr y)) + dist f g = ⨅ y, g (inl x, inr y) + dist f g,
   { assume x,
-    refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+    refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { show bdd_below (range (λ (y : Y), g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2(λi, Hcg _)⟩ } },
   have E2 : (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g = ⨆ x, (⨅ y, g (inl x, inr y)) + dist f g,
-  { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+  { refine monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
@@ -398,12 +398,12 @@ begin
   -- (here the addition of `dist f g`) preserve infimum and supremum
   have E1 : ∀ y, (⨅ x, g (inl x, inr y)) + dist f g = ⨅ x, g (inl x, inr y) + dist f g,
   { assume y,
-    refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+    refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { show bdd_below (range (λx:X, g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2 (λi, Hcg _)⟩ } },
   have E2 : (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g = ⨆ y, (⨅ x, g (inl x, inr y)) + dist f g,
-  { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+  { refine monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
@@ -451,7 +451,7 @@ def premetric_optimal_GH_dist : pseudo_metric_space (X ⊕ Y) :=
 local attribute [instance] premetric_optimal_GH_dist pseudo_metric.dist_setoid
 
 /-- A metric space which realizes the optimal coupling between `X` and `Y` -/
-@[derive metric_space, nolint has_inhabited_instance]
+@[derive metric_space, nolint has_nonempty_instance]
 definition optimal_GH_coupling : Type* :=
 pseudo_metric_quot (X ⊕ Y)
 

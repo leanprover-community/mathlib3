@@ -162,13 +162,13 @@ perms ← parse_permutations perms,
   | some pat := do
     pat ← to_expr pat,
     let vars' := vars.filter $ λv, v.occurs pat,
-    case_pat ← mk_pattern [] vars' pat [] vars',
+    case_pat ← tactic.mk_pattern [] vars' pat [] vars',
     perms' ← match_perms case_pat cases,
     return (pat, perms')
   | none := do
     (p :: ps) ← dest_or cases,
     let vars' := vars.filter $ λv, v.occurs p,
-    case_pat ← mk_pattern [] vars' p [] vars',
+    case_pat ← tactic.mk_pattern [] vars' p [] vars',
     perms' ← (p :: ps).mmap (λp, do m ← match_pattern case_pat p, return m.2),
     return (p, perms')
   end,

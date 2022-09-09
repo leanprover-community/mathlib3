@@ -39,9 +39,10 @@ structure zero_at_infty_continuous_map (α : Type u) (β : Type v)
   Type (max u v) :=
 (zero_at_infty' : tendsto to_fun (cocompact α) (𝓝 0))
 
-localized "notation [priority 2000] `C₀(` α `, ` β `)` := zero_at_infty_continuous_map α β"
-  in zero_at_infty
-localized "notation α ` →C₀ ` β := zero_at_infty_continuous_map α β" in zero_at_infty
+localized "notation [priority 2000] (name := zero_at_infty_continuous_map)
+  `C₀(` α `, ` β `)` := zero_at_infty_continuous_map α β" in zero_at_infty
+localized "notation (name := zero_at_infty_continuous_map.arrow)
+  α ` →C₀ ` β := zero_at_infty_continuous_map α β" in zero_at_infty
 
 /-- `zero_at_infty_continuous_map_class F α β` states that `F` is a type of continuous maps which
 vanish at infinity.
@@ -382,7 +383,7 @@ field `𝕜` whenever `β` is as well.
 
 section normed_space
 
-variables [normed_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables [normed_add_comm_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 /-- The natural inclusion `to_bcf : C₀(α, β) → (α →ᵇ β)` realized as an additive monoid
 homomorphism. -/
@@ -394,8 +395,8 @@ def to_bcf_add_monoid_hom : C₀(α, β) →+ (α →ᵇ β) :=
 @[simp]
 lemma coe_to_bcf_add_monoid_hom (f : C₀(α, β)) : (f.to_bcf_add_monoid_hom : α → β) = f := rfl
 
-noncomputable instance : normed_group C₀(α, β) :=
-normed_group.induced to_bcf_add_monoid_hom (to_bcf_injective α β)
+noncomputable instance : normed_add_comm_group C₀(α, β) :=
+normed_add_comm_group.induced to_bcf_add_monoid_hom (to_bcf_injective α β)
 
 @[simp]
 lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ∥f.to_bcf∥ = ∥f∥ := rfl
@@ -412,7 +413,7 @@ variables [non_unital_normed_ring β]
 noncomputable instance : non_unital_normed_ring C₀(α, β) :=
 { norm_mul := λ f g, norm_mul_le f.to_bcf g.to_bcf,
   ..zero_at_infty_continuous_map.non_unital_ring,
-  ..zero_at_infty_continuous_map.normed_group }
+  ..zero_at_infty_continuous_map.normed_add_comm_group }
 
 end normed_ring
 
@@ -453,7 +454,7 @@ end star
 
 section normed_star
 
-variables [normed_group β] [star_add_monoid β] [normed_star_group β]
+variables [normed_add_comm_group β] [star_add_monoid β] [normed_star_group β]
 
 instance : normed_star_group C₀(α, β) :=
 { norm_star := λ f, (norm_star f.to_bcf : _) }

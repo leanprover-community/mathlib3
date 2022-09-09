@@ -54,9 +54,9 @@ variables {α : Type*} {β : Type*} {E : Type*} {F : Type*} {G : Type*}
   {R : Type*} {R' : Type*} {𝕜 : Type*} {𝕜' : Type*}
 
 variables [has_norm E] [has_norm F] [has_norm G]
-variables [semi_normed_group E'] [semi_normed_group F'] [semi_normed_group G']
-variables [normed_group E''] [normed_group F''] [normed_group G'']
-variables [semi_normed_ring R] [semi_normed_ring R']
+variables [seminormed_add_comm_group E'] [seminormed_add_comm_group F']
+  [seminormed_add_comm_group G'] [normed_add_comm_group E''] [normed_add_comm_group F'']
+  [normed_add_comm_group G''] [semi_normed_ring R] [semi_normed_ring R']
 variables [normed_field 𝕜] [normed_field 𝕜']
 variables {c c' c₁ c₂ : ℝ} {f : α → E} {g : α → F} {k : α → G}
 variables {f' : α → E'} {g' : α → F'} {k' : α → G'}
@@ -1457,7 +1457,7 @@ begin
   split,
   { exact λ h, ⟨λ x, u x / v x, h.tendsto_div_nhds_zero, h.eventually_mul_div_cancel.symm⟩ },
   { unfold is_o, rintros ⟨φ, hφ, huvφ⟩ c hpos,
-    rw normed_group.tendsto_nhds_zero at hφ,
+    rw normed_add_comm_group.tendsto_nhds_zero at hφ,
     exact is_O_with_of_eq_mul _ ((hφ c hpos).mono $ λ x, le_of_lt)  huvφ }
 end
 
@@ -1496,8 +1496,8 @@ theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}
   f =O[l] g :=
 (is_O_iff_div_is_bounded_under hgf).2 $ H.norm.is_bounded_under_le
 
-lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
-  {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : u =o[l] v) (hv : tendsto v l (𝓝 y)) :
+lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_add_comm_group E] [normed_field 𝕜]
+  {u : α → E} {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : u =o[l] v) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=
 begin
   suffices h : u =o[l] (λ x, (1 : 𝕜)),
@@ -1582,13 +1582,13 @@ theorem is_O_one_nat_at_top_iff {f : ℕ → E''} :
 iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
   by simp only [norm_one, mul_one]
 
-theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} {C : ℝ} (hC : 0 ≤ C) :
   is_O_with C l f g' ↔ ∀ i, is_O_with C l (λ x, f x i) g' :=
 have ∀ x, 0 ≤ C * ∥g' x∥, from λ x, mul_nonneg hC (norm_nonneg _),
 by simp only [is_O_with_iff, pi_norm_le_iff (this _), eventually_all]
 
-@[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+@[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :
   f =O[l] g' ↔ ∀ i, (λ x, f x i) =O[l] g' :=
 begin
@@ -1596,7 +1596,7 @@ begin
   exact eventually_congr (eventually_at_top.2 ⟨0, λ c, is_O_with_pi⟩)
 end
 
-@[simp] theorem is_o_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+@[simp] theorem is_o_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :
   f =o[l] g' ↔ ∀ i, (λ x, f x i) =o[l] g' :=
 begin
@@ -1608,12 +1608,12 @@ end asymptotics
 
 open asymptotics
 
-lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E} {g : ι → ℝ}
+lemma summable_of_is_O {ι E} [normed_add_comm_group E] [complete_space E] {f : ι → E} {g : ι → ℝ}
   (hg : summable g) (h : f =O[cofinite] g) : summable f :=
 let ⟨C, hC⟩ := h.is_O_with in
 summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) (hg.abs.mul_left _) hC.bound
 
-lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} {g : ℕ → ℝ}
+lemma summable_of_is_O_nat {E} [normed_add_comm_group E] [complete_space E] {f : ℕ → E} {g : ℕ → ℝ}
   (hg : summable g) (h : f =O[at_top] g) : summable f :=
 summable_of_is_O hg $ nat.cofinite_eq_at_top.symm ▸ h
 

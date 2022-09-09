@@ -485,7 +485,7 @@ namespace submartingale
 lemma integrable_stopped_value [has_le E] {f : ℕ → Ω → E} (hf : submartingale f 𝒢 μ) {τ : Ω → ℕ}
   (hτ : is_stopping_time 𝒢 τ) {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
   integrable (stopped_value f τ) μ :=
-integrable_stopped_value hτ hf.integrable hbdd
+integrable_stopped_value ℕ hτ hf.integrable hbdd
 
 -- We may generalize the below lemma to functions taking value in a `normed_lattice_add_comm_group`.
 -- Similarly, generalize `(super/)submartingale.set_integral_le`.

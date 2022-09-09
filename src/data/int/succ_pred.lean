@@ -32,6 +32,8 @@ instance : pred_order ℤ :=
 @[simp] lemma succ_eq_succ : order.succ = succ := rfl
 @[simp] lemma pred_eq_pred : order.pred = pred := rfl
 
+lemma pos_iff_one_le {a : ℤ} : 0 < a ↔ 1 ≤ a := order.succ_le_iff.symm
+
 lemma succ_iterate (a : ℤ) : ∀ n, succ^[n] a = a + n
 | 0       := (add_zero a).symm
 | (n + 1) := by { rw [function.iterate_succ', int.coe_nat_succ, ←add_assoc],

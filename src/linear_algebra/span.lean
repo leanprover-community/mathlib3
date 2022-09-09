@@ -202,7 +202,7 @@ by rw [submodule.span_union, p.span_eq]
 
 /- Note that the character `∙` U+2219 used below is different from the scalar multiplication
 character `•` U+2022 and the matrix multiplication character `⬝` U+2B1D. -/
-notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
+notation R` ∙ `:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, R ∙ x :=
 by simp only [←span_Union, set.bUnion_of_singleton s]

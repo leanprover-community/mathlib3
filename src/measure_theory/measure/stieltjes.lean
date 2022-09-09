@@ -174,7 +174,7 @@ begin
     (le_infi₂ $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε εpos h, _),
   let δ := ε / 2,
   have δpos : 0 < (δ : ℝ≥0∞), by simpa using εpos.ne',
-  rcases ennreal.exists_pos_sum_of_encodable δpos.ne' ℕ with ⟨ε', ε'0, hε⟩,
+  rcases ennreal.exists_pos_sum_of_countable δpos.ne' ℕ with ⟨ε', ε'0, hε⟩,
   obtain ⟨a', ha', aa'⟩ : ∃ a', f a' - f a < δ ∧ a < a',
   { have A : continuous_within_at (λ r, f r - f a) (Ioi a) a,
     { refine continuous_within_at.sub _ continuous_within_at_const,
@@ -239,7 +239,7 @@ begin
   rw outer_measure.trim_eq_infi,
   refine le_infi (λ t, le_infi $ λ ht,
     ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
-  rcases ennreal.exists_pos_sum_of_encodable
+  rcases ennreal.exists_pos_sum_of_countable
     (ennreal.coe_pos.2 ε0).ne' ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,

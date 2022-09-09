@@ -57,8 +57,8 @@ by {refl}
 def weakly_modular_submodule (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
   {carrier := { f : (ℍ → ℂ) | ∀ (γ : Γ), (f  ∣[k, γ]) = f },
   zero_mem' := by {apply slash_action.mul_zero },
-  add_mem' := by {  intros f g hf hg γ,
-    rw [slash_action.add_action k γ f g, hf γ, hg γ], },
+  add_mem' := by { intros f g hf hg γ,
+    rw [slash_action.add_action k γ f g, hf γ, hg γ]},
   smul_mem' := by { intros c f hf γ,
     have : (c • f) ∣[k, γ] = c • (f ∣[k, γ]), by {apply slash_action.smul_action},
     rw (hf γ) at this,
@@ -111,7 +111,7 @@ begin
   convert t1,
 end
 
-/--A function `f : ℍ → ℂ` is modular, of weight `k ∈ ℤ` and level `Γ`, if for every matrix in
+/--A function `f : ℍ → ℂ` is weakly modular, of weight `k ∈ ℤ` and level `Γ`, if for every matrix in
  `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
  and it acts on `ℍ` via Moebius trainsformations. -/
 lemma wmodular_mem' (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :

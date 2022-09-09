@@ -276,35 +276,25 @@ by simp_rw [←relindex_top_right, relindex_inf_le]
 @[to_additive] lemma relindex_infi_ne_zero {ι : Type*} [hι : finite ι] (f : ι → subgroup G)
   (hf : ∀ i, (f i).relindex L ≠ 0) : (⨅ i, f i).relindex L ≠ 0 :=
 begin
-  replace hι := fintype.of_finite ι,
-  revert f,
-  revert ι,
-  refine fintype.induction_empty_option _ _ _,
-  { intros α β _ e h t hf,
-    rw ← e.infi_congr (λ _, rfl),
-    exact h (t ∘ e) (λ i, hf (e i)) },
-  { intros t hf,
-    rw [infi_of_empty, relindex_top_left],
-    exact one_ne_zero },
-  { intros α _ h t hf,
-    rw infi_option,
-    exact relindex_inf_ne_zero (hf none) (h (t ∘ some) (λ i, hf (some i))) },
+  haveI := fintype.of_finite ι,
+  let := cardinal.lift_mk_le.mpr ⟨quotient_infi_embedding f L⟩,
+  rw [cardinal.mk_pi, cardinal.prod_eq_of_fintype, cardinal.lift_lift, cardinal.lift_le] at this,
+  exact cardinal.mk_ne_zero _ ∘ (cardinal.cast_to_nat_of_lt_aleph_0 $ this.trans_lt $ lt_of_not_le
+    $ finset.prod_ne_zero_iff.2 (λ a ha, hf a) ∘ (cardinal.to_nat_finset_prod _ _).symm.trans ∘
+    cardinal.to_nat_apply_of_aleph_0_le).symm.trans ∘ cardinal.nat_cast_inj.2,
 end
 
 @[to_additive] lemma relindex_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
   (⨅ i, f i).relindex L ≤ ∏ i, (f i).relindex L :=
 begin
-  unfreezingI { revert ι },
-  refine fintype.induction_empty_option _ _ _,
-  { introsI α β _ e h t,
-    haveI : fintype α := fintype.of_equiv β e.symm,
-    rw [←e.infi_congr (λ _, rfl), ←fintype.prod_equiv e _ _ (λ _, rfl)],
-    convert h (t ∘ e) },
-  { intro t,
-    rw [infi_of_empty, relindex_top_left, fintype.univ_pempty, finset.prod_empty] },
-  { intros α _ h t,
-    rw [infi_option, fintype.prod_option],
-    exact relindex_inf_le.trans (mul_le_mul_left' (h (t ∘ some)) ((t none).relindex L)) },
+  have := cardinal.lift_mk_le.mpr ⟨quotient_infi_embedding f L⟩,
+  rw [cardinal.mk_pi, cardinal.prod_eq_of_fintype, cardinal.lift_lift, cardinal.lift_le] at this,
+  by_cases hf : ∀ i, (f i).relindex L ≠ 0,
+  { exact (cardinal.to_nat_le_of_le_of_lt_aleph_0 (lt_of_not_le $ finset.prod_ne_zero_iff.2
+    (λ a ha, hf a) ∘ (cardinal.to_nat_finset_prod _ _).symm.trans ∘
+    cardinal.to_nat_apply_of_aleph_0_le) this).trans_eq (cardinal.to_nat_finset_prod _ _) },
+  { obtain ⟨i, hi⟩ := not_forall_not.1 hf,
+    exact le_of_eq_of_le (relindex_eq_zero_of_le_left (infi_le f i) hi) zero_le' },
 end
 
 @[to_additive] lemma index_infi_ne_zero {ι : Type*} [finite ι] (f : ι → subgroup G)

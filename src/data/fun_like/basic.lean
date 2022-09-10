@@ -207,7 +207,3 @@ congr_arg _ h₂
 end fun_like
 
 end non_dependent
-
-instance Pi.fun_like {α : Sort*} {β : α → Sort*} : fun_like (Π a, β a) α β :=
-{ coe := id,
-  coe_injective' := λ x y h, h }

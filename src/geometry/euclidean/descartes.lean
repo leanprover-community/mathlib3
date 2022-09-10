@@ -9,8 +9,6 @@ import data.real.basic
 import linear_algebra.matrix.bilinear_form
 import analysis.normed_space.pi_Lp
 import data.matrix.rank
---import tactic.polyrith
---import analysis.inner_product_space.pi_L2
 
 /-!
 # Spheres
@@ -23,55 +21,11 @@ This file proves
 
 -/
 
-open_locale big_operators real_inner_product_space
+open_locale big_operators real_inner_product_space matrix
 
 open finite_dimensional
 
 noncomputable theory
-
-----------------------------AREA FOR MESSING AROUND -----------------
-/-
--
-
-universe u
-
-variables (E₁ E₂ : Type u) [inner_product_space ℝ E₁] [inner_product_space ℝ E₂]
-
-@[derive [add_comm_group, module ℝ]]def new_space := E₁ × E₂
-
-instance : inner_product_space ℝ (new_space E₁ E₂) :=
-begin
-  have := pi_Lp 2 (![E₁, E₂] : (fin 2) → (Type u)),
-  let E : (fin 2) → (Type*) := ![E₁, E₂],
-end
-
-def new_inner : new_space E₁ E₂ →ₗ[ℝ] new_space E₁ E₂ →ₗ[ℝ] ℝ := linear_map.mk₂ ℝ
-  (λ ⟨x₁, z₁⟩ ⟨x₂, z₂⟩, ⟪x₁, x₂⟫ + ⟪z₁, z₂⟫)
-  -- (λ ⟨x₁, z₁⟩ ⟨x₂, z₂⟩ ⟨x₃, z₃⟩, by dsimp [new_inner._match_2, new_inner._match_1];
-  --   rw inner_add_left; ring)
-  begin
-  end
-  (λ r ⟨x₁, z₁⟩ ⟨x₂, z₂⟩, by dsimp [new_inner._match_2, new_inner._match_1]; rw inner_smul_left;
-    simp only [is_R_or_C.conj_to_real]; ring)
-  (λ ⟨x₁, z₁⟩ ⟨x₂, z₂⟩ ⟨x₃, z₃⟩, by dsimp [new_inner._match_2, new_inner._match_1];
-    rw inner_add_right; ring)
-  (λ r ⟨x₁, z₁⟩ ⟨x₂, z₂⟩, by dsimp [new_inner._match_2, new_inner._match_1]; rw inner_smul_right;
-    simp only [is_R_or_C.conj_to_real]; ring)
-
-
-
-example (E : Type*) {n : ℕ} [inner_product_space ℝ E] [finite_dimensional ℝ E]
-  [fact (finrank ℝ E = n)] [fact (n ≠ 0)] (vs : fin n → E) (Q : E →ₗ[ℝ] E →ₗ[ℝ] ℝ )
-  (G : matrix (fin n) (fin n) ℝ) (hG : invertible G) (h : ∀ i j, Q (vs i) (vs j) = G i j) :
-  linear_independent ℝ vs
-:= begin
-  sorry,
-end
-
-#exit
-
--
--/
 
 variables (E : Type*) {n : ℕ} [inner_product_space ℝ E] [finite_dimensional ℝ E]
 [fact (finrank ℝ E = n)] [fact (n ≠ 0)]
@@ -84,15 +38,15 @@ structure sphere :=
 (rad_pos : 0 < radius)
 
 /-- The inversive coordinate system attached to a sphere `S` is given by the `n+2`-tuple:
-  `(bend, bend*center, cobend)`. -/
+  `(bend, cobend, bend*center)`. -/
 @[derive [add_comm_group, module ℝ]]def inv_coord_space := ((fin 2) → ℝ) × E
 
 variables {E}
 
-/-- The `bend` is the reciprocal of the radius -/
+/-- The `bend` of a `sphere` is the reciprocal of the radius -/
 def bend (S : sphere E) : ℝ := 1 / S.radius
 
-/-- The `bend` is nonzero -/
+/-- The `bend` of a `sphere` is nonzero -/
 lemma bend_nonzero (S : sphere E) : bend S ≠ 0 := one_div_ne_zero S.rad_pos.ne.symm
 
 /-- The square norm in Euclidean space -/
@@ -102,11 +56,13 @@ def norm_sq (z : E) := ⟪z,z⟫
   the sphere through the unit sphere -/
 def cobend (S : sphere E) : ℝ := (norm_sq (S.center) - S.radius ^ 2) * (bend S)
 
-/-- Two spheres are `tangent` if the (square of) the distance between their centers is the
- (square of) the sum of their radii -/
+/-- Two spheres are defined to be `tangent` if the distance between their centers is the the sum
+  of their radii -/
 def tangent (S₁ S₂ : sphere E) : Prop :=
   ∥S₁.center - S₂.center∥ = S₁.radius + S₂.radius
 
+/-- Two spheres are `tangent` if and only if the norm squared of their centers is the square of the
+  sum of the radii -/
 lemma tangent_iff (S₁ S₂ : sphere E) : tangent S₁ S₂ ↔
   norm_sq (S₁.center - S₂.center) = (S₁.radius + S₂.radius)^2 :=
 begin
@@ -122,15 +78,15 @@ end
   `(bend, cobend, bend*center)`. -/
 def inv_coords (S : sphere E) : inv_coord_space E := ⟨![bend S, cobend S], (bend S) • S.center⟩
 
+
 def inv_prod : (inv_coord_space E) →ₗ[ℝ] (inv_coord_space E) →ₗ[ℝ] ℝ := linear_map.mk₂ ℝ
-  (λ ⟨x₁, z₁⟩ ⟨x₂, z₂⟩, (x₁ 0) * (x₂ 1) + (x₁ 1) * (x₂ 0) - 2 * ⟪z₁, z₂⟫)
-  (λ ⟨x₁, z₁⟩ ⟨x₂, z₂⟩ ⟨x₃, z₃⟩, by dsimp [inv_prod._match_2, inv_prod._match_1];
-    rw inner_add_left; ring)
-  (λ r ⟨x₁, z₁⟩ ⟨x₂, z₂⟩, by dsimp [inv_prod._match_2, inv_prod._match_1]; rw inner_smul_left;
+  (λ p₁ p₂, (p₁.1 0) * (p₂.1 1) + (p₁.1 1) * (p₂.1 0) - 2 * ⟪p₁.2, p₂.2⟫)
+  (λ ⟨x₁, z₁⟩ ⟨x₂, z₂⟩ ⟨x₃, z₃⟩, by dsimp; rw inner_add_left; ring)
+  (λ r ⟨x₁, z₁⟩ ⟨x₂, z₂⟩, by dsimp; rw inner_smul_left;
     simp only [is_R_or_C.conj_to_real]; ring)
-  (λ ⟨x₁, z₁⟩ ⟨x₂, z₂⟩ ⟨x₃, z₃⟩, by dsimp [inv_prod._match_2, inv_prod._match_1];
+  (λ ⟨x₁, z₁⟩ ⟨x₂, z₂⟩ ⟨x₃, z₃⟩, by dsimp;
     rw inner_add_right; ring)
-  (λ r ⟨x₁, z₁⟩ ⟨x₂, z₂⟩, by dsimp [inv_prod._match_2, inv_prod._match_1]; rw inner_smul_right;
+  (λ r ⟨x₁, z₁⟩ ⟨x₂, z₂⟩, by dsimp; rw inner_smul_right;
     simp only [is_R_or_C.conj_to_real]; ring)
 
 lemma inv_prod_self (S : sphere E) : inv_prod (inv_coords S) (inv_coords S) = -2 :=
@@ -242,13 +198,13 @@ by ext; simp [not_or_distrib, eq_comm, and.comm]
   finset.filter (λ x, x ≠ i) (finset.univ \ {k}) = finset.univ \ {i, k} :=
 by ext; simp [not_or_distrib, eq_comm, and.comm]
 -/
-
+/-
 lemma G_inv_mul_G (n : ℕ) (hn : 3 ≤ (n:ℝ)) (G : matrix (fin n) (fin n) ℝ)
   (hG : ∀ i j, G i j = ite (i=j) (-2) 2) (Ginv : matrix (fin n) (fin n) ℝ)
   (hGinv : ∀ i j, Ginv i j = if (i = j) then (-((-3 + n) / (4 * (-2 + n))))
     else (1 / (4 * (-2 + n)))) :
   Ginv.mul G = 1 := sorry
-  /-
+
 begin
   have : -2 + (n : ℝ) ≠ 0 := by linarith,
   ext i j,
@@ -324,8 +280,68 @@ lemma spanning_of_invertible_gram (E : Type*) {n : ℕ} [add_comm_group E] [modu
   (Q : E →ₗ[ℝ] E →ₗ[ℝ] ℝ) (G : matrix (fin n) (fin n) ℝ) (hG : invertible G)
   (h : ∀ i j, Q (vs i) (vs j) = G i j) : ⊤ ≤ submodule.span ℝ (set.range vs) :=
 begin
-  sorry,
+  by_cases h_n : n = 0,
+  {
+    simp [h_n] at *,
+    sorry, -- ask on Zulip! -- include finite dimensional; otherwise finrank could be 0...
+--    haveI : unique E
+
+  },
+  haveI : nonempty (fin n),
+  {
+  have : 0 < n := sorry,
+  exact fin.pos_iff_nonempty.mp this,
+  },
+  rw top_le_iff,
+  apply span_eq_top_of_linear_independent_of_card_eq_finrank,
+  {
+    -- linear indepence
+    sorry,
+  },
+  convert hr.symm,
+  simp,
 end
+
+#exit
+
+lemma open_square {α : Type*} {β : Type*} [ring β]
+  (s : finset α) (f : α → β) :
+(∑ i in s, f i)^2 = ∑ i in s, ∑ j in s, (f i) * (f j) :=
+begin
+  rw pow_two (∑ i in s, f i),
+  rw finset.sum_mul_sum s s f f,
+  exact finset.sum_product,
+end
+
+def matrix.const (n m : Type*) {R : Type*} [fintype n] [fintype m] (c : R) : matrix n m R :=
+  λ i j, c
+
+@[simp] lemma matrix.const_apply {n m : Type*} {R : Type*} [fintype n] [fintype m] (c : R) (i : n)
+  (j : m) : (matrix.const n m c) i j = c := rfl
+
+@[simp] lemma matrix.smul_const {n m : Type*} {R : Type*} [fintype n] [fintype m] [has_mul R]
+  (c₁ c₂ : R) : c₂ • (matrix.const n m c₁) = matrix.const n m (c₂ * c₁) := rfl
+
+lemma matrix.const.add {n m : Type*} {R : Type*} [fintype n] [fintype m] [has_add R]
+  (c₁ c₂ : R) : (matrix.const n m c₁) + (matrix.const n m c₂)  = matrix.const n m (c₁ + c₂) := rfl
+
+lemma matrix.const.sub {n m : Type*} {R : Type*} [fintype n] [fintype m] [has_sub R]
+  (c₁ c₂ : R) : (matrix.const n m c₁) - (matrix.const n m c₂)  = matrix.const n m (c₁ - c₂) := rfl
+
+lemma matrix.const.zero {n : Type*} {R : Type*} [fintype n] [ring R]
+  (c : R) (h : c = 0) : matrix.const n n c = 0 := by rw h; refl
+
+
+lemma matrix.const_mul_const {n m k : Type*} {R : Type*} [fintype n] [fintype m] [fintype k]
+  [semiring R] {c₁ c₂: R} :
+  (matrix.const n m c₁) ⬝ (matrix.const m k c₂) = matrix.const n k ((fintype.card m) • c₁* c₂) :=
+begin
+  ext i j,
+  simp only [matrix.const, matrix.mul, matrix.dot_product, finset.sum_const, ← smul_mul_assoc],
+  refl,
+end
+
+--set_option trace.simplify.rewrite true
 
 -- Descartes / Soddy-Gossett Theorem
 theorem descartes_soddy_gossett (Ss : (fin (n+2)) → (sphere E))
@@ -333,18 +349,158 @@ theorem descartes_soddy_gossett (Ss : (fin (n+2)) → (sphere E))
 --(h : pairwise tangent Ss) :
 (∑ (i : fin (n+2)), (bend (Ss i))) ^ 2 - n * ∑ (i : fin (n+2)), (bend (Ss i)) ^ 2 = 0
 := begin
-  let G : matrix (fin (n+2)) (fin (n+2)) ℝ := λ i j, inv_prod (inv_coords (Ss i)) (inv_coords (Ss j)),
-  have Gis : ∀ i j, G i j = ite (i = j) (-2) 2,
-  { intros i j,
+  have n_ne_zero : (n : ℝ) ≠ 0 := by exact_mod_cast (fact.out _ : n ≠ 0),
+  suffices : (∑ (i : fin (n+2)), (bend (Ss i))) ^ 2 / (4 * n)
+    - n * (∑ (i : fin (n+2)), (bend (Ss i)) ^ 2) / (4 * n) = 0,
+  {
+    sorry,
+    /-
+    rw ← sub_div at this,
+    cases (div_eq_zero_iff.mp this) with hhh hhh,
+    { exact hhh, },
+    exfalso,
+    rw mul_eq_zero at hhh,
+    simp only [bit0_eq_zero, one_ne_zero, nat.cast_eq_zero, false_or] at hhh,
+    have : n ≠ 0 := fact.out _,
+    exact this hhh,
+    -/ },
+  let G : matrix (fin (n+2)) (fin (n+2)) ℝ :=
+    λ i j, inv_prod (inv_coords (Ss i)) (inv_coords (Ss j)),
+  have Gis : G = matrix.const (fin (n+2)) (fin (n+2)) (2:ℝ) - 4,
+  {
+    sorry,
+    /-
+    ext i j,
     by_cases hh : i = j,
-    { simp only [hh, eq_self_iff_true, if_true],
-      convert inv_prod_self (Ss j), },
-    { simp [hh],
-      apply inv_prod_tangent (Ss i) (Ss j) (h i j hh), }, },
-  let Ginv : matrix (fin (n+2)) (fin (n+2)) ℝ := λ i j, if (i = j) then (-((n - 1) / (4 * n)))
-    else (1 / (4 * n)),
-  have GinvG : Ginv.mul G = 1,
-  { have n_ne_zero : n ≠ 0 := fact.out _,
+    { simp only [hh, matrix.const_apply, G, pi.sub_apply, pi.bit0_apply, matrix.one_apply_eq],
+      convert inv_prod_self (Ss j),
+      norm_num, },
+    { simp only [hh, matrix.const_apply, G, pi.sub_apply, pi.bit0_apply, matrix.one_apply_ne,
+        ne.def, not_false_iff, bit0_zero, tsub_zero],
+      apply inv_prod_tangent (Ss i) (Ss j) (h i j hh), },
+      -/ },
+  let Ginv := (matrix.const (fin (n+2)) (fin (n+2)) ((1 : ℝ) / (4 * n))) - ((n : ℝ) / (4 * n)) • 1,
+  have GinvG : Ginv * G = 1,
+  {
+    simp [matrix.mul_eq_mul, Gis, Ginv, matrix.const_mul_const, sub_mul, mul_add, add_mul,
+      mul_sub],
+    rw ← sub_add,
+    transitivity (0 : matrix (fin (n+2)) (fin (n+2)) ℝ) + 1,
+    {  congr,
+      {
+        simp [bit0, matrix.const.sub, matrix.const.add, add_mul, mul_add, sub_mul, mul_sub,
+          ← matrix.mul_eq_mul],
+        apply matrix.const.zero,
+        ring_nf,
+        field_simp,
+        ring,
+      },
+      { rw [div_mul_left n_ne_zero],
+        norm_num,
+        sorry,
+      },
+    },
+    simp,
+},
+  have invble_G := matrix.invertible_of_left_inverse G Ginv GinvG,
+  have Ginv_is : G⁻¹ = Ginv := matrix.inv_eq_left_inv GinvG,
+  have finrank_inv_coord_space : finrank ℝ (inv_coord_space E) = n + 2 := sorry,
+/-  { rw add_comm,
+    have : finrank ℝ E = n := fact.out _,
+    letI : module.finite ℝ (fin 2 → ℝ) := module.finite.pi,
+    convert module.free.finrank_prod ℝ _ _,
+    { simp, },
+    { exact this.symm, },
+    { exact @module.free.pi (fin 2) ℝ _ (λ _, ℝ) _ _ _ _, },
+    { exact _inst, },
+    { exact module.free.of_division_ring ℝ E, },
+    { exact _inst_2, }, },-/
+  haveI : finite_dimensional ℝ (inv_coord_space E) := sorry,
+--    finite_dimensional.finite_dimensional_of_finrank (by linarith),
+
+  let vs := inv_coords ∘ Ss,
+  have lin_indep_vs : linear_independent ℝ vs := sorry,
+  -- linear_independent_of_invertible_gram
+    --(inv_coord_space E) vs inv_prod G invble_G (λ i j, by simp [G, vs]),
+
+  have span_vs : ⊤ ≤ submodule.span ℝ (set.range vs) := sorry,
+  --spanning_of_invertible_gram (inv_coord_space E) finrank_inv_coord_space vs
+    --inv_prod G invble_G (λ i j, by simp [G, vs]),
+
+  let vs_basis := basis.mk lin_indep_vs span_vs,
+  convert congr_arg (λ (f : (inv_coord_space E) →ₗ[ℝ] (inv_coord_space E) →ₗ[ℝ] ℝ),
+    f bend_covector bend_covector) ((inv_prod_apply vs_basis G
+    invble_G _).symm),
+  { rw [inv_prod_aux_apply, Ginv_is, open_square],
+    -- make all these rw and four simps into single simp???
+
+
+    simp only [Ginv, matrix.const, inv_prod, bend_covector, vs, inv_coords, basis.coe_mk, zero_mul,
+      function.comp_app, linear_map.mk₂_apply, matrix.cons_val_zero, matrix.cons_val_one, zero_add,
+      matrix.head_cons, one_mul, inner_zero_left, mul_zero, tsub_zero, neg_smul, mul_inv_rev,
+      pi.smul_const, algebra.id.smul_eq_mul, mul_one, pi.add_apply, pi.neg_apply, pi.smul_apply,
+      function.const_apply,  mul_add, mul_neg, mul_sub, finset.sum_add_distrib, one_div,
+      finset.sum_neg_distrib, mul_ite, finset.sum_ite_eq, pi.sub_apply, matrix.one_apply,
+      algebra.id.smul_eq_mul, mul_boole, finset.sum_sub_distrib],
+    simp only [finset.mem_univ, if_true],
+    simp only [finset.mul_sum, finset.sum_div],
+    congrm (∑ i j, _) -(∑ i, _) ,
+    { field_simp [-mul_ne_zero],
+      ring_nf, },
+    { ring, },
+  },
+  { simp [inv_prod, bend_covector], },
+  {
+    sorry, -- trivial, definition of G
+  },
+
+end
+--  is_basis_iff_det
+
+#exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+have Ginv_is : G⁻¹ = (-((n : ℝ) / (4 * n))) • (1 : matrix (fin (n+2)) (fin (n+2)) ℝ)
+    + ((1 : ℝ) / (4 * n)) • (λ i j, 1) := sorry, -- not needed
+/-  { rw matrix.inv_eq_left_inv GinvG,
+    ext i j,
+    by_cases hh : i = j,
+    {
+      simp [Ginv, hh],
+      sorry,
+    },
+    { simp [Ginv, hh], }, },
+-/
+
+
+
+
+    -- transitivity (
+    --   matrix.const (fin (n + 2)) (fin (n + 2)) (↑n * ((↑n)⁻¹ * 4⁻¹) * 2 + 2 * ((↑n)⁻¹ * 4⁻¹) * 2 - ↑n / (4 * ↑n) * 2) - matrix.const (fin (n + 2)) (fin (n + 2)) ((↑n)⁻¹ * 4⁻¹) ⬝ 4) + (↑n / (4 * ↑n)) • 4
+    -- ),
+
+      -- ← add_assoc, add_sub_assoc,
+      --add_sub_assoc'],
+    /-
+
     have : (n : ℝ) ≠ 0 := by exact_mod_cast n_ne_zero,
     have : 1 ≤ n := nat.one_le_iff_ne_zero.mpr n_ne_zero,
     have : (3 : ℝ) ≤ n+2 := by norm_cast; linarith,
@@ -356,49 +512,9 @@ theorem descartes_soddy_gossett (Ss : (fin (n+2)) → (sphere E))
       ring, },
     { simp only [hh, one_div, mul_inv_rev, if_false, mul_eq_mul_right_iff, inv_inj, inv_eq_zero,
         bit0_eq_zero, one_ne_zero, or_false],
-      field_simp, }, },
-  have invble_G := matrix.invertible_of_left_inverse G Ginv GinvG,
-  have finrank_inv_coord_space : finrank ℝ (inv_coord_space E) = n + 2,
-  { rw add_comm,
-    have : finrank ℝ E = n := fact.out _,
-    letI : module.finite ℝ (fin 2 → ℝ) := module.finite.pi,
-    convert module.free.finrank_prod ℝ _ _,
-    { simp, },
-    { exact this.symm, },
-    { sorry, }, --exact module.free.pi ℝ, },
-    { exact _inst, },
-    { exact module.free.of_division_ring ℝ E, },
-    { exact _inst_2, }, },
-  haveI : finite_dimensional ℝ (inv_coord_space E) := sorry,
-  let vs := inv_coords ∘ Ss,
-  have lin_indep_vs := linear_independent_of_invertible_gram
-    (inv_coord_space E) vs inv_prod G invble_G (λ i j, by simp [G, vs]),
+      field_simp, },
+      -/
 
-  have span_vs := spanning_of_invertible_gram (inv_coord_space E) finrank_inv_coord_space vs
-    inv_prod G invble_G (λ i j, by simp [G, vs]),
-
-  let vs_basis := basis.mk lin_indep_vs span_vs,
-  convert congr_arg (λ (f : (inv_coord_space E) →ₗ[ℝ] (inv_coord_space E) →ₗ[ℝ] ℝ),
-    f bend_covector bend_covector) ((inv_prod_apply vs_basis G
-    invble_G _).symm),
-  {
-    rw inv_prod_aux_apply,
-    rw (_ : G⁻¹ = Ginv),
-    simp [Ginv, inv_prod, bend_covector, vs, inv_coords],
-    repeat {sorry},
-  },
-  { simp [inv_prod, bend_covector], },
-  {
-    sorry,
-  },
-  {
-    intros i j,
-    sorry,
-  },
-end
---  is_basis_iff_det
-
-#exit
 
 
 

@@ -2080,8 +2080,47 @@ begin
   rw [hg_eq s hs hμs, set_integral_condexp hm hf hs],
 end
 
-lemma condexp_bot' (f : α → F') :
-  μ[f|⊥] =ᵐ[μ] λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
+--todo move
+lemma simple_func_bot (f : @simple_func α ⊥ F) : ∃ c, ∀ x, f x = c :=
+begin
+  have hf_meas := @simple_func.measurable_set_fiber α _ ⊥ f,
+  simp_rw measurable_space.measurable_set_bot_iff at hf_meas,
+  casesI is_empty_or_nonempty α,
+  { simp only [is_empty.forall_iff, exists_const], },
+  { specialize hf_meas (f h.some),
+    cases hf_meas,
+    { exfalso,
+      refine set.not_mem_empty h.some _,
+      rw [← hf_meas, set.mem_preimage],
+      exact set.mem_singleton _, },
+    { refine ⟨f h.some, λ x, _⟩,
+      have : x ∈ f ⁻¹' {f h.some},
+      { rw hf_meas, exact set.mem_univ x, },
+      rwa [set.mem_preimage, set.mem_singleton_iff] at this, }, },
+end
+
+--todo move
+lemma strongly_measurable_bot_iff : strongly_measurable[⊥] f ↔ ∃ c, f = λ _, c :=
+begin
+  casesI is_empty_or_nonempty α with hα hα,
+  { simp only [subsingleton.strongly_measurable', eq_iff_true_of_subsingleton, exists_const], },
+  refine ⟨λ hf, _, λ hf_eq, _⟩,
+  { refine ⟨f hα.some, _⟩,
+    let fs := hf.approx,
+    have h_fs_tendsto : ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x)) := hf.tendsto_approx,
+    have : ∀ n, ∃ c, ∀ x, fs n x = c := λ n, simple_func_bot (fs n),
+    let cs := λ n, (this n).some,
+    have h_cs_eq : ∀ n, ⇑(fs n) = (λ x, cs n) := λ n, funext (this n).some_spec,
+    simp_rw h_cs_eq at h_fs_tendsto,
+    have h_tendsto : tendsto cs at_top (𝓝 (f hα.some)) := h_fs_tendsto hα.some,
+    ext1 x,
+    exact tendsto_nhds_unique (h_fs_tendsto x) h_tendsto, },
+  { obtain ⟨c, rfl⟩ := hf_eq,
+    exact strongly_measurable_const, },
+end
+
+lemma condexp_bot' [hμ : μ.ae.ne_bot] (f : α → F') :
+  μ[f|⊥] = λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
 begin
   by_cases hμ_finite : is_finite_measure μ,
   swap,
@@ -2092,28 +2131,34 @@ begin
     simp only [hμ_finite, ennreal.top_to_real, inv_zero, zero_smul],
     refl, },
   haveI : is_finite_measure μ := hμ_finite,
-  by_cases hμ : μ = 0,
-  { simp only [hμ, ae_zero], },
   by_cases hf : integrable f μ,
   swap, { rw [integral_undef hf, smul_zero, condexp_undef hf], refl, },
-  refine (ae_eq_condexp_of_forall_set_integral_eq bot_le hf _ _ _).symm,
-  { intros s hs hμs,
-    rw integrable_on_const,
-    exact or.inr hμs, },
-  { intros s hs hμs,
-    rw measurable_space.measurable_set_bot_iff at hs,
-    cases hs,
-    { simp only [hs, measure.restrict_empty, integral_zero_measure], },
-    { have h_ne_zero : (μ set.univ).to_real ≠ 0,
-      { rw [ne.def, ennreal.to_real_eq_zero_iff, auto.not_or_eq, measure.measure_univ_eq_zero],
-        exact ⟨hμ, measure_ne_top μ _⟩, },
-      simp only [hs, measure.restrict_univ, integral_const, ← smul_assoc, smul_eq_mul,
-        mul_inv_cancel h_ne_zero, one_smul], }, },
-  { exact strongly_measurable.ae_strongly_measurable' strongly_measurable_const, },
+  have h_meas : strongly_measurable[⊥] (μ[f|⊥]) := strongly_measurable_condexp,
+  obtain ⟨c, h_eq⟩ := strongly_measurable_bot_iff.mp h_meas,
+  rw h_eq,
+  have h_integral : ∫ x, μ[f|⊥] x ∂μ = ∫ x, f x ∂μ := integral_condexp hf,
+  swap, { exact bot_le, },
+  swap, { rw sigma_finite_trim_bot_iff, exact hμ_finite, },
+  simp_rw [h_eq, integral_const] at h_integral,
+  rw [← h_integral, ← smul_assoc, smul_eq_mul, inv_mul_cancel, one_smul],
+  rw [ne.def, ennreal.to_real_eq_zero_iff, auto.not_or_eq, measure.measure_univ_eq_zero,
+    ← ae_eq_bot, ← ne.def, ← ne_bot_iff],
+  exact ⟨hμ, measure_ne_top μ set.univ⟩,
+end
+
+lemma condexp_bot_ae_eq (f : α → F') :
+  μ[f|⊥] =ᵐ[μ] λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
+begin
+  cases em μ.ae.ne_bot,
+  { refine eventually_of_forall (λ x, _),
+    rw condexp_bot' f,
+    exact h, },
+  { rw [ne_bot_iff, not_not, ae_eq_bot] at h,
+    simp only [h, ae_zero], },
 end
 
 lemma condexp_bot [is_probability_measure μ] (f : α → F') :
-  μ[f|⊥] =ᵐ[μ] λ _, ∫ x, f x ∂μ :=
+  μ[f|⊥] = λ _, ∫ x, f x ∂μ :=
 by { refine (condexp_bot' f).trans _, rw [measure_univ, ennreal.one_to_real, inv_one, one_smul], }
 
 lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :

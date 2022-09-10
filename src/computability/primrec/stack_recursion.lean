@@ -27,7 +27,7 @@ complexity class (e.g. the primitive recursive functions) cannot interpret itsel
 so it is not possible to have the motive be a representation of the "code" for `tree → bool`.
 
 In general, for a W-type with nodes labeled by `α` and children by `β : α → Type`,
-we write `stack_rec : W_type β → γ → δ`,
+we write `stack_rec : W_type β → γ → δ`, defined primarily by
   - `pre : Π x, β x → γ → γ`: "prepares" the arguments to the inductive hypothesis,
     given the current node's children `Π x, β x` and the current argument `γ`
   - `post : (Π x, (β x → δ) → δ) → γ → δ`: computes the result given the inductive
@@ -40,21 +40,20 @@ polynomial time, etc. using a tactic.
 -/
 
 namespace unit_tree
+variables {α : Type} {β : Type} (base : α → β) (pre₁ pre₂ : unit_tree → unit_tree → α → α)
+  (post : β → β → unit_tree → unit_tree → α → β)
 
 /-- Recursion with an explicit stack for `unit_tree` -/
 @[simp]
-def stack_rec {α : Type} {motive : Type} (base : α → motive) (pre₁ pre₂ : unit_tree → α → α)
-  (post : motive → motive → unit_tree → α → motive) : unit_tree → α → motive
+def stack_rec : unit_tree → α → β
 | nil d := base d
-| T@(node x y) d := post (stack_rec x (pre₁ T d)) (stack_rec y (pre₂ T d)) T d
+| (node x y) d := post (stack_rec x (pre₁ x y d)) (stack_rec y (pre₂ x y d)) x y d
 
 /-- An element on the stack is either the result (`sum.inr (x : β)`), or
   the: tree, the argument α, and potentially what the left branch computed
   if that computation has finished (`option β`)
   -/
 abbreviation iterator_stack (α β : Type) := (unit_tree × α × option β) ⊕ β
-variables {α : Type} {β : Type} (base : α → β) (pre₁ pre₂ : unit_tree → α → α)
-  (post : β → β → unit_tree → α → β)
 
 /-- Do a single step of the iteration. In particular,
     - If the top of the stack is a result, pop the value before that and plug in the result.
@@ -62,14 +61,17 @@ variables {α : Type} {β : Type} (base : α → β) (pre₁ pre₂ : unit_tree 
         arguments for the left branch, unless the tree is `nil`, in which case we directly
         compute the result.
     - If the top of the stack is a tree with the left branch computed, push to the stack the
-      arguments for the right branch. -/
+      arguments for the right branch.
+  This halts when the stack contains fewer than 2 elements, or the top 2 elements are both results
+  -/
 @[simp] def stack_step : list (iterator_stack α β) → list (iterator_stack α β)
 | (sum.inr res :: sum.inl (tree, arg, none) :: xs) := sum.inl (tree, arg, some res) :: xs
 | (sum.inr res :: sum.inl (tree, arg, some left_res) :: xs) :=
-    sum.inr (post left_res res tree arg) :: xs
-| L@(sum.inl (tree, arg, some left_res) :: xs) := sum.inl (tree.right, pre₂ tree arg, none) :: L
+    sum.inr (post left_res res tree.left tree.right arg) :: xs
+| L@(sum.inl (tree, arg, some left_res) :: xs) :=
+  sum.inl (tree.right, pre₂ tree.left tree.right arg, none) :: L
 | (sum.inl (nil, arg, none) :: xs) := sum.inr (base arg) :: xs
-| L@(sum.inl ((node x y), arg, none) :: xs) := sum.inl (x, pre₁ (node x y) arg, none) :: L
+| L@(sum.inl ((node x y), arg, none) :: xs) := sum.inl (x, pre₁ x y arg, none) :: L
 | x := x
 
 @[simp] lemma stack_step_nil : stack_step base pre₁ pre₂ post [] = [] := rfl
@@ -97,3 +99,13 @@ begin
 end
 
 end unit_tree
+
+namespace list
+variables {α β : Type} {γ : Type*} (base : α → β) (pre : γ → list γ → α → α)
+  (post : β → γ → list γ → α → β)
+
+@[simp] def stack_rec : list γ → α → β
+| [] a := base a
+| (x :: xs) a := post (stack_rec xs (pre x xs a)) x xs a
+
+end list

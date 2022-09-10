@@ -60,7 +60,7 @@ meta def tactic_classes.comp_lemmas : tactic_classes → list name
 
 meta def tactic_classes.fun_match : tactic_classes → tactic (expr × list name)
 | tactic_classes.prim := (do `(primrec %%s) ← target, return (s,
-  [``primrec.const, ``primrec.comp, ``primrec.comp₂, ``primrec.comp₃, ``primrec.comp₄, ``primrec.comp₅])) <|>
+  [``primrec.const, ``primrec.comp, ``primrec.comp₂, ``primrec.comp₃, ``primrec.comp₄, ``primrec.comp₅, ``primrec.comp₆])) <|>
   (do `(primrec_pred %%s) ← target, return (s,
   [``primrec.const, ``primrec_pred.comp, ``primrec_pred.comp₂, ``primrec_pred.comp₃]))
 | _ := fail "Unimplemented class"
@@ -75,13 +75,13 @@ do t.fail_lemmas.mfoldl (λ (_ : unit) x, fail_if_success (do
    old_goal ← target,
    (target_fun, comp_lemmas) ← t.fun_match,
    n ← get_num_params target_fun,
-   guard (0 < n ∧ n < t.comp_lemmas.length),
+   guard (0 < n ∧ n < comp_lemmas.length),
    s' ← to_expr $ expr.const (comp_lemmas.inth n) [],
    apply s' {md := md},
    try `[ any_goals { apply_instance, } ], -- why is this necessary??
    (fail_if_success (uncurry_target md >> target >>= λ t, unify t old_goal md)) <|>
     focus1 (apply_rules [] [t.attr_name] 50 { md := md } >> done),
-  return (n-1)
+  return n
 
 meta def auto_computable (t : tactic_classes) (md : transparency := reducible) : list (tactic string) :=
 [

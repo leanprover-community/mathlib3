@@ -73,7 +73,7 @@ end primrec
 
 end unit_tree
 
-variables {α β γ δ ε ζ η : Type}
+variables {α β γ δ ε ζ η θ : Type}
 variables [tencodable α] [tencodable β]
 
 /-- A primitive recursive function in one argument -/
@@ -130,7 +130,7 @@ instance : primcodable unit :=
 end primcodable
 
 variables [tencodable γ] [tencodable δ]
-  [tencodable ε] [tencodable ζ] [tencodable η]
+  [tencodable ε] [tencodable ζ] [tencodable η] [tencodable θ]
 
 theorem comp {f : α → β} {g : γ → α} :
   primrec f → primrec g → primrec (λ x, f (g x))
@@ -166,6 +166,12 @@ theorem comp₅ {f : α → β → γ → δ → ε → ζ} {g₁ : η → α} {
   {g₅ : η → ε} (hf : primrec f) (hg₁ : primrec g₁) (hg₂ : primrec g₂) (hg₃ : primrec g₃)
   (hg₄ : primrec g₄) (hg₅ : primrec g₅) : primrec (λ x, f (g₁ x) (g₂ x) (g₃ x) (g₄ x) (g₅ x)) :=
 hf.comp $ hg₁.pair $ hg₂.pair $ hg₃.pair $ hg₄.pair hg₅
+
+theorem comp₆ {f : α → β → γ → δ → ε → ζ → η} {g₁ : θ → α} {g₂ : θ → β} {g₃ : θ → γ}
+  {g₄ : θ → δ} {g₅ : θ → ε} {g₆ : θ → ζ} (hf : primrec f) (hg₁ : primrec g₁) (hg₂ : primrec g₂)
+  (hg₃ : primrec g₃) (hg₄ : primrec g₄) (hg₅ : primrec g₅) (hg₆ : primrec g₆) :
+  primrec (λ x, f (g₁ x) (g₂ x) (g₃ x) (g₄ x) (g₅ x) (g₆ x)) :=
+hf.comp $ hg₁.pair $ hg₂.pair $ hg₃.pair $ hg₄.pair $ hg₅.pair hg₆
 
 theorem _root_.primrec_pred.comp {f : α → Prop} {g : β → α} (hf : primrec_pred f) (hg : primrec g) :
   primrec_pred (λ x, f (g x)) := comp hf hg

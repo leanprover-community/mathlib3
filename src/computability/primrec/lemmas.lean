@@ -116,11 +116,11 @@ lemma congr_some {f : α → β} : primrec f ↔ primrec (λ x, some (f x)) :=
 
 @[primrec] lemma option_bind {f : α → option β} {g : α → β → option γ} (hf : primrec f)
   (hg : primrec g) : primrec (λ x, (f x).bind (g x)) :=
-by { primrec using (λ x, (f x).elim none (g x)), cases f x; simp, }
+by { delta option.bind, delta id_rhs, primrec, }
 
 @[primrec] lemma option_map {f : α → option β} {g : α → β → γ} (hf : primrec f) (hg : primrec g) :
   primrec (λ x, (f x).map (g x)) :=
-by { primrec using (λ x, (f x).bind (λ y, some (g x y))), cases f x; simp, }
+by { delta option.map, primrec, }
 
 end option
 
@@ -237,8 +237,8 @@ end nat
 
 section stack_recursion
 
-variables {base : γ → α → β} {pre₁ pre₂ : γ → unit_tree → α → α}
-  {post : γ → β → β → unit_tree → α → β}
+variables {base : γ → α → β} {pre₁ pre₂ : γ → unit_tree → unit_tree→  α → α}
+  {post : γ → β → β → unit_tree → unit_tree → α → β}
 
 @[primrec] lemma prec_stack_iterate {start : γ → list (unit_tree.iterator_stack α β)}
   (hb : primrec base) (hp₁ : primrec pre₁) (hp₂ : primrec pre₂)
@@ -263,8 +263,8 @@ begin
   suffices : primrec (λ (x y : unit_tree), (x = y : bool)),
   { rw primrec_pred, simp only [primrec, has_uncurry.uncurry] at this, convert this, ext, congr, },
   primrec using λ x y, x.stack_rec (λ y' : unit_tree, (y' = unit_tree.nil : bool))
-    (λ _ y', y'.left) (λ _ y', y'.right)
-    (λ b₁ b₂ _ y, !(y = unit_tree.nil : bool) && (b₁ && b₂)) y,
+    (λ _ _ y', y'.left) (λ _ _ y', y'.right)
+    (λ b₁ b₂ _ _ y, !(y = unit_tree.nil : bool) && (b₁ && b₂)) y,
   induction x with l r ih₁ ih₂ generalizing y; cases y; simp [*],
 end
 
@@ -272,5 +272,79 @@ end
 by { have := ptree_eq, primrec using (λ x y, encode x = encode y), simp, }
 
 end stack_recursion
+
+section list
+
+@[primrec] lemma ptree_equiv_list : primrec ⇑tencodable.equiv_list :=
+⟨_, unit_tree.primrec.id, by simp⟩
+
+@[primrec] lemma list_rec {base : δ → α → β} {pre : δ → γ → list γ → α → α}
+  {post : δ → β → γ → list γ → α → β} {start : δ → list γ} {arg : δ → α} :
+  primrec base → primrec pre → primrec post → primrec start → primrec arg →
+  primrec (λ x : δ, (start x).stack_rec (base x) (pre x) (post x) (arg x)) :=
+begin
+  rintros ⟨base', pb, hb⟩ ⟨pre', ppr, hpr⟩ ⟨post', ppo, hpo⟩ ⟨start', ps, hs⟩ ⟨arg', pa, ha⟩,
+  replace hb := λ x₁ x₂, hb (x₁, x₂), replace hpr := λ x₁ x₂ x₃ x₄, hpr (x₁, x₂, x₃, x₄), replace hpo := λ x₁ x₂ x₃ x₄ x₅, hpo (x₁, x₂, x₃, x₄, x₅),
+  refine ⟨λ x : unit_tree, (start' x).stack_rec (λ a : unit_tree, base' (x.node a)) default
+    (λ l r a, pre' (x.node $ l.node $ r.node $ a))
+    (λ _ ih l r a, post' (x.node $ ih.node $ l.node $ r.node a)) (arg' x), _, _⟩,
+  { rw tree.primrec.iff_primrec at *, simp_rw pi.default_def, primrec, },
+  intro x,
+  simp only [tencodable.encode_prod, has_uncurry.uncurry, id] at hb hpr hpo,
+  simp only [ha, hs, has_uncurry.uncurry, id, pi.default_def],
+  generalize : arg x = y, induction (start x) with hd tl ih generalizing y,
+  { simp [tencodable.encode_nil, hb], },
+  { simp [tencodable.encode_cons, hpr, hpo, ih], },
+end
+
+-- TODO: Given `stack_rec`, if we had a "custom" equation compiler,
+-- we could easily automate all these lemmas, because they just involve
+-- restating the standard Lean definition in terms of `stack_rec`
+
+@[primrec] lemma foldr {f : γ → α → β → β} {start : γ → β} {ls : γ → list α}
+  (hf : primrec f) (hs : primrec start) (hls : primrec ls) :
+  primrec (λ x, (ls x).foldr (f x) (start x)) :=
+begin
+  primrec using (λ x, (ls x).stack_rec (λ _ : unit, (start x)) (λ _ _ _, ())
+    (λ ih hd tl _, f x hd ih) ()),
+  induction ls x; simp [*],
+end
+
+@[primrec] lemma append : primrec ((++) : list α → list α → list α) :=
+by { primrec using (λ l₁ l₂, l₁.foldr (λ hd acc, hd :: acc) l₂), induction l₁; simp [*], }
+
+@[primrec] lemma reverse : primrec (@list.reverse α) :=
+by { primrec using (λ l, l.foldr (λ hd acc, acc ++ [hd]) []), induction l; simp [*], }
+
+@[primrec] lemma map {f : γ → α → β} {ls : γ → list α} (hf : primrec f) (hls : primrec ls) :
+  primrec (λ x, (ls x).map (f x)) :=
+by { primrec using (λ x, (ls x).foldr (λ hd acc, f x hd :: acc) []), induction ls x; simp [*], }
+
+@[primrec] lemma all_some : primrec (@list.all_some α) :=
+begin
+  primrec using (λ l, l.foldr (λ hd' acc', hd'.bind (λ hd, acc'.map (λ acc, hd :: acc))) (some [])),
+  induction l with hd, { simp, }, cases hd; simp [*],
+end
+
+@[primrec] lemma nth : primrec (@list.nth α) :=
+begin
+  primrec using (λ l n, l.stack_rec (λ n : ℕ, (@none α)) (λ hd tl n, n.pred)
+    (λ ih hd tl n, if n = 0 then some hd else ih) n),
+  induction l generalizing n, { refl, }, cases n; simp [*],
+end
+
+@[primrec] lemma list_length : primrec (@list.length α) :=
+by { primrec using (λ l, l.foldr (λ _ n, n + 1) 0), induction l; simp [*], }
+
+@[primrec] lemma list_foldl {f : γ → β → α → β} {start : γ → β} {ls : γ → list α}
+  (hf : primrec f) (hstart : primrec start) (hls : primrec ls) :
+  primrec (λ x, (ls x).foldl (f x) (start x)) :=
+begin
+  primrec using (λ x, (ls x).stack_rec (@id β) (λ hd _ acc, f x acc hd)
+    (λ ih hd tl acc, ih) (start x)),
+  generalize : start x = y, induction (ls x) generalizing y; simp [*],
+end
+
+end list
 
 end primrec

@@ -1536,7 +1536,9 @@ is_bilimit_of_is_limit _ $
 
 /-- In a preadditive category, if the product over `f : J → C` exists,
     then the biproduct over `f` exists. -/
-lemma has_biproduct.of_has_product (f : J → C) [has_product f] : has_biproduct f :=
+lemma has_biproduct.of_has_product {J : Type} [finite J] (f : J → C) [has_product f] :
+  has_biproduct f :=
+by casesI nonempty_fintype J; exact
 has_biproduct.mk
 { bicone := _,
   is_bilimit := bicone_is_bilimit_of_limit_cone_of_is_limit (limit.is_limit _) }
@@ -1559,7 +1561,9 @@ is_bilimit_of_is_colimit _ $
 
 /-- In a preadditive category, if the coproduct over `f : J → C` exists,
     then the biproduct over `f` exists. -/
-lemma has_biproduct.of_has_coproduct (f : J → C) [has_coproduct f] : has_biproduct f :=
+lemma has_biproduct.of_has_coproduct {J : Type} [finite J] (f : J → C) [has_coproduct f] :
+  has_biproduct f :=
+by casesI nonempty_fintype J; exact
 has_biproduct.mk
 { bicone := _,
   is_bilimit := bicone_is_bilimit_of_colimit_cocone_of_is_colimit (colimit.is_colimit _) }

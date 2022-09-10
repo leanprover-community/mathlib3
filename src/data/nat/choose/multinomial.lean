@@ -7,6 +7,7 @@ Authors: Kyle Miller, Pim Otte
 import algebra.big_operators.fin
 import algebra.big_operators.order
 import data.nat.choose.basic
+import data.nat.factorial.big_operators
 import data.fin.vec_notation
 
 import tactic.linarith
@@ -35,19 +36,6 @@ from `s`, where `c ∈ s` appears with multiplicity `f c`.
 Defined as `(∑ i in s, f i)! / ∏ i in s, (f i)!`.
 -/
 def multinomial : ℕ := (∑ i in s, f i)! / ∏ i in s, (f i)!
-
-lemma prod_factorial_dvd_factorial_sum : (∏ i in s, (f i)!) ∣ (∑ i in s, f i)! :=
-begin
-  classical,
-  induction s using finset.induction with a' s' has ih,
-  { simp only [finset.sum_empty, finset.prod_empty, factorial], },
-  { simp only [finset.prod_insert has, finset.sum_insert has],
-    refine dvd_trans (mul_dvd_mul_left ((f a')!) ih) _,
-    apply nat.factorial_mul_factorial_dvd_factorial_add, },
-end
-
-lemma prod_factorial_pos : 0 < ∏ i in s, (f i)! :=
-finset.prod_pos (λ i _, factorial_pos (f i))
 
 lemma multinomial_pos : 0 < multinomial s f := nat.div_pos
   (le_of_dvd (factorial_pos _) (prod_factorial_dvd_factorial_sum s f)) (prod_factorial_pos s f)

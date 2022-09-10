@@ -124,8 +124,14 @@ section prime
 
 variables [has_inf α] [has_le α]
 
+/--
+An element `a` is said to be prime if whenever `a ≤ b ⊓ c` at least one of `a ≤ b`, `a ≤ c` holds.
+-/
 def is_prime (a : α) : Prop := ∀ b c, a ≤ b ⊓ c → a ≤ b ∨ a ≤ c
 
-def prime (β : Type u) [has_inf β] [has_le β] := {a : β // is_prime a}
+/-
+The subtype of prime elements of a partial order with inf
+-/
+-- def prime (β : Type u) [has_inf β] [has_le β] := {a : β // is_prime a}
 
 end prime

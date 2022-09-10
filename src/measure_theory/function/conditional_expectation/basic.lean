@@ -2110,7 +2110,7 @@ end
 lemma condexp_bot_ae_eq (f : α → F') :
   μ[f|⊥] =ᵐ[μ] λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
 begin
-  cases em μ.ae.ne_bot,
+  by_cases μ.ae.ne_bot,
   { refine eventually_of_forall (λ x, _),
     rw condexp_bot' f,
     exact h, },

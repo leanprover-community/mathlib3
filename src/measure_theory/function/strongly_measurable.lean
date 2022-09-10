@@ -250,7 +250,7 @@ begin
     { rwa div_le_one (lt_of_le_of_ne (norm_nonneg _) (ne.symm h0)), }, },
 end
 
-lemma strongly_measurable_bot_iff [nonempty β] [t2_space β] :
+lemma _root_.strongly_measurable_bot_iff [nonempty β] [t2_space β] :
   strongly_measurable[⊥] f ↔ ∃ c, f = λ _, c :=
 begin
   casesI is_empty_or_nonempty α with hα hα,

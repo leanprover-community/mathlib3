@@ -1171,16 +1171,14 @@ begin
 end
 
 /--
-If `⟪T x, x⟫_ℂ = ⟪S x, x⟫_ℂ` for all x, then T = S.
+If `⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ` for all x, then S = T.
 -/
-lemma inner_map_eq_all (S T :  V →ₗ[ℂ] V) :
-  (∀ (x : V), ⟪T x, x⟫_ℂ = ⟪S x, x⟫_ℂ ) ↔ S = T :=
+lemma inner_map_eq_all (S T : V →ₗ[ℂ] V) :
+  (∀ (x : V), ⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ) ↔ S = T :=
 begin
-  split,
-  { intro h, rw [←neg_neg T, ←add_eq_zero_iff_eq_neg, ←inner_map_self_eq_zero], intro x,
-    specialize h x, simp only [linear_map.neg_apply, linear_map.add_apply],
-    rw [inner_add_left, inner_neg_left, add_eq_zero_iff_eq_neg, neg_neg, ←h], },
-  { rintros rfl x, refl, },
+  rw [←sub_eq_zero, ←inner_map_self_eq_zero],
+  refine forall_congr (λ x, _),
+  rw [linear_map.sub_apply, inner_sub_left, sub_eq_zero],
 end
 
 end complex

@@ -348,8 +348,13 @@ def subtype : s →+* R :=
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 
-/-- A subsemiring of an `strict_ordered_semiring` is an `strict_ordered_semiring`. -/
-instance to_ordered_semiring {R} [strict_ordered_semiring R] (s : subsemiring R) :
+/-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
+instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
+subtype.coe_injective.ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+/-- A subsemiring of a `strict_ordered_semiring` is a `strict_ordered_semiring`. -/
+instance to_strict_ordered_semiring {R} [strict_ordered_semiring R] (s : subsemiring R) :
   strict_ordered_semiring s :=
 subtype.coe_injective.strict_ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
@@ -358,6 +363,12 @@ subtype.coe_injective.strict_ordered_semiring coe
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
   ordered_comm_semiring s :=
 subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+/-- A subsemiring of a `strict_ordered_comm_semiring` is a `strict_ordered_comm_semiring`. -/
+instance to_strict_ordered_comm_semiring {R} [strict_ordered_comm_semiring R] (s : subsemiring R) :
+  strict_ordered_comm_semiring s :=
+subtype.coe_injective.strict_ordered_comm_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/

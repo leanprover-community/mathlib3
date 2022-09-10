@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.order.floor
+import algebra.order.to_interval_mod
 import analysis.normed.group.quotient
 
 /-!
@@ -56,7 +57,7 @@ section linear_ordered_field
 
 variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] (p q : 𝕜)
 
-@[continuity] protected lemma continuous_mk' :
+@[continuity, nolint unused_arguments] protected lemma continuous_mk' :
   continuous (quotient_add_group.mk' (zmultiples p) : 𝕜 → add_circle p) :=
 continuous_coinduced_rng
 
@@ -87,48 +88,27 @@ variables [floor_ring 𝕜]
 /-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
 def equiv_Ico (hp : 0 < p) : add_circle p ≃ Ico 0 p :=
 { inv_fun := quotient_add_group.mk' _ ∘ coe,
-  to_fun :=
-  begin
-    have h₀ : ∀ (x : 𝕜), 0 ≤ fract (x / p) * p := λ x, mul_nonneg (fract_nonneg _) hp.le,
-    have h₁ : ∀ (x : 𝕜), fract (x / p) * p < p := λ x, mul_lt_of_lt_one_left hp $ fract_lt_one _,
-    letI := quotient_add_group.left_rel (zmultiples p),
-    have : ∀ (x y : 𝕜) (h: x ≈ y),
-      (⟨fract (x / p) * p, h₀ x, h₁ x⟩ : Ico 0 p) = (⟨fract (y / p) * p, h₀ y, h₁ y⟩ : Ico 0 p),
-    { intros,
-      obtain ⟨z, hz⟩ := mem_zmultiples_iff.mp (quotient_add_group.left_rel_apply.mp h),
-      ext,
-      simp [(by { rw hz, abel, } : y = z • p + x), mul_div_cancel _ hp.ne.symm, add_div], },
-    exact quotient.lift _ this,
-  end,
-  right_inv :=
-  begin
-    rintros ⟨x, hx, hx'⟩,
-    ext,
-    change fract (x / p) * p = x,
-    replace hx : 0 ≤ x / p := div_nonneg hx hp.le,
-    replace hx' : x / p < 1 := (div_lt_one hp).mpr hx',
-    rw [fract_eq_self.mpr ⟨hx, hx'⟩, div_mul_cancel x hp.ne.symm],
-  end,
+  to_fun := λ x, ⟨(to_Ico_mod_periodic 0 hp).lift x, quot.induction_on x $ to_Ico_mod_mem_Ico' hp⟩,
+  right_inv := by { rintros ⟨x, hx⟩, ext, simp [to_Ico_mod_eq_self, hx.1, hx.2], },
   left_inv :=
   begin
     rintros ⟨x⟩,
-    change quotient_add_group.mk (fract (x / p) * p) = quotient_add_group.mk x,
-    rw [quotient_add_group.eq', fract, sub_mul, neg_sub, div_mul_cancel x hp.ne.symm,
-      sub_add_cancel],
+    change quotient_add_group.mk (to_Ico_mod 0 hp x) = quotient_add_group.mk x,
+    rw [quotient_add_group.eq', neg_add_eq_sub, self_sub_to_Ico_mod, zsmul_eq_mul],
     apply int_cast_mul_mem_zmultiples,
   end }
 
 @[simp] lemma coe_equiv_Ico_mk_apply (hp : 0 < p) (x : 𝕜) :
   (equiv_Ico p hp $ quotient_add_group.mk x : 𝕜) = fract (x / p) * p :=
-rfl
+to_Ico_mod_eq_fract_mul hp x
 
 @[continuity] lemma continuous_equiv_Ico_symm (hp : 0 < p) : continuous (equiv_Ico p hp).symm :=
 continuous_coinduced_rng.comp continuous_induced_dom
 
 /-- The image of the closed interval `[0, p]` under the quotient map `𝕜 → add_circle p` is the
 entire space. -/
-@[simp] lemma mk'_image_Icc_eq (hp : 0 < p) :
-  (quotient_add_group.mk' $ zmultiples p) '' (Icc 0 p) = univ :=
+@[simp] lemma coe_image_Icc_eq (hp : 0 < p) :
+  (coe : 𝕜 → add_circle p) '' (Icc 0 p) = univ :=
 begin
   refine eq_univ_iff_forall.mpr (λ x, _),
   let y := equiv_Ico p hp x,
@@ -143,9 +123,9 @@ variables (p : ℝ)
 
 instance : normed_add_comm_group (add_circle p) := add_subgroup.normed_add_comm_group_quotient _
 
-instance compact_space (hp : 0 < p) : compact_space $ add_circle p :=
+lemma compact_space (hp : 0 < p) : compact_space $ add_circle p :=
 begin
-  rw [← is_compact_univ_iff, ← mk'_image_Icc_eq p hp],
+  rw [← is_compact_univ_iff, ← coe_image_Icc_eq p hp],
   exact is_compact_Icc.image (add_circle.continuous_mk' p),
 end
 

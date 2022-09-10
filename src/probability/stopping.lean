@@ -461,7 +461,7 @@ def is_stopping_time [preorder ι] (f : filtration ι m) (τ : Ω → ι) :=
 ∀ i : ι, measurable_set[f i] $ {ω | τ ω ≤ i}
 
 lemma is_stopping_time_const [preorder ι] (f : filtration ι m) (i : ι) :
-  is_stopping_time f (λ x, i) :=
+  is_stopping_time f (λ ω, i) :=
 λ j, by simp only [measurable_set.const]
 
 section measurable_set
@@ -873,7 +873,7 @@ lemma measurable_space_le_of_le_const (hτ : is_stopping_time f τ) {i : ι} (h�
   hτ.measurable_space ≤ f i :=
 (measurable_space_mono hτ _ hτ_le).trans (measurable_space_const _ _).le
 
-lemma measurable_space_le_of_le (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+lemma measurable_space_le_of_le (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) :
   hτ.measurable_space ≤ m :=
 (hτ.measurable_space_le_of_le_const hτ_le).trans (f.le n)
 
@@ -897,7 +897,7 @@ end
 
 instance sigma_finite_stopping_time_of_le {ι} [semilattice_sup ι] [order_bot ι]
   {μ : measure Ω} {f : filtration ι m} {τ : Ω → ι}
-  [sigma_finite_filtration μ f] (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+  [sigma_finite_filtration μ f] (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) :
   sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le)) :=
 begin
   refine sigma_finite_trim_mono (hτ.measurable_space_le_of_le hτ_le) _,
@@ -1118,8 +1118,8 @@ begin
 end
 
 lemma measurable_set_inter_le_const_iff (hτ : is_stopping_time f τ) (s : set Ω) (i : ι) :
-  measurable_set[hτ.measurable_space] (s ∩ {x | τ x ≤ i})
-    ↔ measurable_set[(hτ.min_const i).measurable_space] (s ∩ {x | τ x ≤ i}) :=
+  measurable_set[hτ.measurable_space] (s ∩ {ω | τ ω ≤ i})
+    ↔ measurable_set[(hτ.min_const i).measurable_space] (s ∩ {ω | τ ω ≤ i}) :=
 begin
   rw [is_stopping_time.measurable_set_min_iff hτ (is_stopping_time_const _ i),
     is_stopping_time.measurable_space_const, is_stopping_time.measurable_set],
@@ -1223,7 +1223,7 @@ section linear_order
 /-! ## Stopped value and stopped process -/
 
 /-- Given a map `u : ι → Ω → E`, its stopped value with respect to the stopping
-time `τ` is the map `x ↦ u (τ ω) x`. -/
+time `τ` is the map `x ↦ u (τ ω) ω`. -/
 def stopped_value (u : ι → Ω → β) (τ : Ω → ι) : Ω → β :=
 λ ω, u (τ ω) ω
 
@@ -1232,8 +1232,8 @@ rfl
 
 variable [linear_order ι]
 
-/-- Given a map `u : ι → Ω → E`, the stopped process with respect to `τ` is `u i x` if
-`i ≤ τ ω`, and `u (τ ω) x` otherwise.
+/-- Given a map `u : ι → Ω → E`, the stopped process with respect to `τ` is `u i ω` if
+`i ≤ τ ω`, and `u (τ ω) ω` otherwise.
 
 Intuitively, the stopped process stops evolving once the stopping time has occured. -/
 def stopped_process (u : ι → Ω → β) (τ : Ω → ι) : ι → Ω → β :=
@@ -1349,14 +1349,14 @@ section stopped_value_of_mem_finset
 
 variables {μ : measure Ω} {τ σ : Ω → ι} {E : Type*} {p : ℝ≥0∞} {u : ι → Ω → E}
 
-lemma stopped_value_eq_of_mem_finset [add_comm_monoid E] {s : finset ι} (hbdd : ∀ x, τ x ∈ s) :
-  stopped_value u τ = ∑ i in s, set.indicator {x | τ x = i} (u i) :=
+lemma stopped_value_eq_of_mem_finset [add_comm_monoid E] {s : finset ι} (hbdd : ∀ ω, τ ω ∈ s) :
+  stopped_value u τ = ∑ i in s, set.indicator {ω | τ ω = i} (u i) :=
 begin
   ext y,
   rw [stopped_value, finset.sum_apply, finset.sum_indicator_eq_sum_filter],
-  suffices : finset.filter (λ i, y ∈ {x : Ω | τ x = i}) s = ({τ y} : finset ι),
+  suffices : finset.filter (λ i, y ∈ {ω : Ω | τ ω = i}) s = ({τ y} : finset ι),
     by rw [this, finset.sum_singleton],
-  ext1 x,
+  ext1 ω,
   simp only [set.mem_set_of_eq, finset.mem_filter, finset.mem_singleton],
   split; intro h,
   { exact h.2.symm, },
@@ -1364,43 +1364,44 @@ begin
 end
 
 lemma stopped_value_eq' [preorder ι] [locally_finite_order_bot ι] [add_comm_monoid E]
-  {N : ι} (hbdd : ∀ x, τ x ≤ N) :
-  stopped_value u τ = ∑ i in finset.Iic N, set.indicator {x | τ x = i} (u i) :=
+  {N : ι} (hbdd : ∀ ω, τ ω ≤ N) :
+  stopped_value u τ = ∑ i in finset.Iic N, set.indicator {ω | τ ω = i} (u i) :=
 stopped_value_eq_of_mem_finset (λ ω, finset.mem_Iic.mpr (hbdd ω))
 
 variables [partial_order ι] {ℱ : filtration ι m} [normed_add_comm_group E]
 
 lemma mem_ℒp_stopped_value_of_mem_finset (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ)
-  {s : finset ι} (hbdd : ∀ x, τ x ∈ s)  :
+  {s : finset ι} (hbdd : ∀ ω, τ ω ∈ s)  :
   mem_ℒp (stopped_value u τ) p μ :=
 begin
   rw stopped_value_eq_of_mem_finset hbdd,
   swap, apply_instance,
   refine mem_ℒp_finset_sum' _ (λ i hi, mem_ℒp.indicator _ (hu i)),
   refine ℱ.le i {a : Ω | τ a = i} (hτ.measurable_set_eq_of_countable_range _ i),
-  refine ((finset.finite_to_set s).subset (λ x hx, _)).countable,
-  obtain ⟨y, rfl⟩ := hx,
+  refine ((finset.finite_to_set s).subset (λ ω hω, _)).countable,
+  obtain ⟨y, rfl⟩ := hω,
   exact hbdd y,
 end
 
 lemma mem_ℒp_stopped_value [locally_finite_order_bot ι]
-  (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ) {N : ι} (hbdd : ∀ x, τ x ≤ N) :
+  (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ) {N : ι} (hbdd : ∀ ω, τ ω ≤ N) :
   mem_ℒp (stopped_value u τ) p μ :=
 mem_ℒp_stopped_value_of_mem_finset hτ hu (λ ω, finset.mem_Iic.mpr (hbdd ω))
 
 lemma integrable_stopped_value_of_mem_finset (hτ : is_stopping_time ℱ τ)
-  (hu : ∀ n, integrable (u n) μ) {s : finset ι} (hbdd : ∀ x, τ x ∈ s) :
+  (hu : ∀ n, integrable (u n) μ) {s : finset ι} (hbdd : ∀ ω, τ ω ∈ s) :
   integrable (stopped_value u τ) μ :=
 begin
   simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
   exact mem_ℒp_stopped_value_of_mem_finset hτ hu hbdd,
 end
 
+variables (ι)
+
 lemma integrable_stopped_value [locally_finite_order_bot ι]
-  (hτ : is_stopping_time ℱ τ) (hu : ∀ n, integrable (u n) μ) {N : ι} (hbdd : ∀ x, τ x ≤ N) :
+  (hτ : is_stopping_time ℱ τ) (hu : ∀ n, integrable (u n) μ) {N : ι} (hbdd : ∀ ω, τ ω ≤ N) :
   integrable (stopped_value u τ) μ :=
 integrable_stopped_value_of_mem_finset hτ hu (λ ω, finset.mem_Iic.mpr (hbdd ω))
-
 end stopped_value_of_mem_finset
 
 
@@ -1554,13 +1555,12 @@ variables [preorder ι] {𝒢 : filtration ι m} {τ η : Ω → ι} {i j : ι} 
 /-- Given stopping times `τ` and `η` which are bounded below, `set.piecewise s τ η` is also
 a stopping time with respect to the same filtration. -/
 lemma is_stopping_time.piecewise_of_le (hτ_st : is_stopping_time 𝒢 τ)
-  (hη_st : is_stopping_time 𝒢 η) (hτ : ∀ ω, i ≤ τ ω) (hη : ∀ x, i ≤ η x)
+  (hη_st : is_stopping_time 𝒢 η) (hτ : ∀ ω, i ≤ τ ω) (hη : ∀ ω, i ≤ η ω)
   (hs : measurable_set[𝒢 i] s) :
   is_stopping_time 𝒢 (s.piecewise τ η) :=
 begin
   intro n,
-  have : {x | s.piecewise τ η x ≤ n}
-    = (s ∩ {ω | τ ω ≤ n}) ∪ (sᶜ ∩ {x | η x ≤ n}),
+  have : {ω | s.piecewise τ η ω ≤ n} = (s ∩ {ω | τ ω ≤ n}) ∪ (sᶜ ∩ {ω | η ω ≤ n}),
   { ext1 ω,
     simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
     by_cases hx : ω ∈ s; simp [hx], },

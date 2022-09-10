@@ -27,12 +27,11 @@ lemma nat.le_cases (a b : ℕ) : a - b = 0 ∨ ∃ c, a = b + c :=
 begin
   by_cases ab : a ≤ b,
   { exact or.inl (tsub_eq_zero_of_le ab) },
-  { refine or.inr _,
-    rcases nat.exists_eq_add_of_le ((not_le.mp ab).le) with ⟨c, rfl⟩,
-    exact ⟨_, rfl⟩ },
+  { rcases nat.exists_eq_add_of_le (not_le.mp ab).le with ⟨c, rfl⟩,
+    exact or.inr ⟨_, rfl⟩ },
 end
 
-/--  A convenience definition: `rw_at` rewrites at either a hypothesis or at the target. -/
+/--  A convenience definition: `rw_at` rewrites either at a hypothesis or at the target. -/
 meta def rw_at : option name → expr → tactic unit
 | none      lem := rewrite_target lem
 | (some na) lem := get_local na >>= rewrite_hyp lem >> skip
@@ -44,9 +43,9 @@ can be substituted, rather than simply rewritten. -/
 meta def local_constants_last (l : list (expr × expr)) : list (expr × expr) :=
 let (csts, not_csts) := l.partition (λ e : expr × expr, e.1.is_local_constant) in not_csts ++ csts
 
-/--  `get_sub e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
-subexpression of `e`.  While doing this, it also assumes that
-* the initial input `e` was the target and rewrites it to reduce the number of `ℕ`-subtractions,
+/--  `get_sub lo e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
+subexpression of `e`.  It also takes argument `lo`, informing it that
+* the initial input `e` is hypothesis `lo` and rewrites it to reduce the number of `ℕ`-subtractions,
   using the identity `a - b - c = a - (b + c)`;
 * the subtractions that get extracted are subtractions in `ℕ`.
 -/
@@ -65,7 +64,7 @@ meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
                           ((++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure []))
 | _                  := pure []
 
-/--  `remove_one_sub a b` assumes that the expression `a - b` occurs in the target.
+/--  `remove_one_sub lo a b` assumes that the expression `a - b` occurs in hypothesis `lo`.
 It splits two cases:
 *  if `a ≤ b`, then it replaces `a - b` with `0` and introduces the inequality `a ≤ b` into
    the local context;
@@ -96,7 +95,8 @@ meta def repeat_at_least : ℕ → tactic unit → tactic unit
 | 0 t := repeat t
 | (n + 1) t := t >> repeat_at_least n t
 
-/--  `remove_subs_aux` acts like `remove_subs`, except that it takes a single location as input.
+/--  `remove_subs_aux la lo` acts like `remove_subs`, except that it acts at the single hypothesis
+`lo`.  The input `la` is used to know if `linarith` should be called at the end.
 See the doc-string of `remove_subs` for more details. -/
 meta def remove_subs_aux (la : bool) (lo : option name) : tactic unit := focus1 $ do
 repeat_at_least 1 (do ht ← match lo with

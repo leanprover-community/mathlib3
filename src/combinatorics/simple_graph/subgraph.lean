@@ -73,7 +73,7 @@ protected def singleton_subgraph (G : simple_graph V) (v : V) : G.subgraph :=
 
 /-- The one-edge subgraph. -/
 @[simps]
-protected def subgraph_of_adj (G : simple_graph V) {v w : V} (hvw : G.adj v w) : G.subgraph :=
+def subgraph_of_adj (G : simple_graph V) {v w : V} (hvw : G.adj v w) : G.subgraph :=
 { verts := {v, w},
   adj := λ a b, ⟦(v, w)⟧ = ⟦(a, b)⟧,
   adj_sub := λ a b h, by { rw [← G.mem_edge_set, ← h], exact hvw },

@@ -98,8 +98,7 @@ begin
       or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
     apply h r r_prime,
     exact
-    { to_char_zero := infer_instance,
-      p_pos := nat.prime.ne_zero r_prime,
+    { p_pos := nat.prime.ne_zero r_prime,
       char_p_quotient :=
       begin
         use M,
@@ -308,7 +307,7 @@ begin
   cases p,
   { exact hp },
   { have h_mixed : mixed_char_zero R p.succ :=
-    ⟨infer_instance, p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
+    ⟨p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
     exact absurd h_mixed (h p.succ) }
 end
 
@@ -344,8 +343,7 @@ begin
   split,
   { intro h_alg,
     haveI h_alg' : algebra ℚ R := h_alg.some,
-    apply Q_algebra_to_equal_char_zero,
-   },
+    apply Q_algebra_to_equal_char_zero },
   { intro h,
     apply nonempty.intro,
     exact equal_char_zero_to_Q_algebra R h }

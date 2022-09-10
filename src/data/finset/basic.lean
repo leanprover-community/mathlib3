@@ -759,6 +759,7 @@ end
 end insert
 
 /-! ### Lattice structure -/
+
 section lattice
 variables [decidable_eq α] {s t u v : finset α} {a b : α}
 

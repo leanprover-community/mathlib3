@@ -142,13 +142,24 @@ variables [topological_space β] [partial_order β] [s : lower_topology β]
 
 include s
 
-lemma open1 (a : α) (b : β) : is_open (Ici (a,b))ᶜ :=
-begin
-  rw [is_open_compl_iff, l1],
-  apply is_closed.inter,
-  { apply is_closed.prod is_closed_univ, apply ici_is_closed, },
-  { apply is_closed.prod, apply ici_is_closed, apply is_closed_univ, }
-end
+instance : lower_topology (α × β) := {
+  topology_eq_generate_Ici_comp :=
+  begin
+    rw le_antisymm_iff,
+    split,
+    { apply le_generate_from,
+      intros,
+      rw mem_set_of_eq at H,
+      rcases H,
+      cases H_w,
+      rw H_h,
+      rw [is_open_compl_iff, l1],
+      apply is_closed.inter,
+      { apply is_closed.prod is_closed_univ, apply ici_is_closed, },
+      { apply is_closed.prod, apply ici_is_closed, apply is_closed_univ, } },
+    { sorry }
+  end
+}
 
 end lower_topology
 

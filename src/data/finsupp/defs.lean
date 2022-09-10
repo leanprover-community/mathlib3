@@ -985,4 +985,34 @@ lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) 
   f.update a b = f - single a (f a) + single a b :=
 by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
+/-! ### Declarations about `const_on` -/
+
+section const_on
+variables [has_zero M] {a : α} {b : M}
+
+def const_on (s : finset α) (x : M) : α →₀ M :=
+{ support := if x = 0 then ∅ else s,
+  to_fun := λ i, if i ∈ s then x else 0,
+  mem_support_to_fun := λ a, by split_ifs; simp [h, h_1], }
+
+lemma const_on_apply (s : finset α) (x : M) (i : α) :
+  const_on s x i = if i ∈ s then x else 0 := rfl
+
+lemma const_on_apply_of_mem {s : finset α} {x : M} {i : α} (hi : i ∈ s) :
+  const_on s x i = x :=
+by rw [const_on_apply, if_pos hi]
+
+lemma const_on_apply_of_not_mem {s : finset α} {x : M} {i : α} (hi : i ∉ s) :
+  const_on s x i = 0 :=
+by rw [const_on_apply, if_neg hi]
+
+lemma support_const_on (s : finset α) (x : M) :
+  (const_on s x).support = if x = 0 then ∅ else s := rfl
+
+lemma support_const_on_subset {s : finset α} {x : M} :
+  (const_on s x).support ⊆ s :=
+by { rw [support_const_on], split_ifs, exacts [empty_subset _, subset_rfl], }
+
+end const_on
+
 end finsupp

@@ -310,6 +310,10 @@ instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] :
   fintype (s ×ˢ t : set (α × β)) :=
 fintype.of_finset (s.to_finset ×ˢ t.to_finset) $ by simp
 
+@[simp] lemma to_finset_prod (s : set α) (t : set β) [fintype s] [fintype t] :
+  (s ×ˢ t).to_finset = s.to_finset ×ˢ t.to_finset :=
+by { ext, simp only [set.mem_to_finset, set.mem_prod, finset.mem_product] }
+
 /-- `image2 f s t` is `fintype` if `s` and `t` are. -/
 instance fintype_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β)
   [hs : fintype s] [ht : fintype t] : fintype (image2 f s t : set γ) :=
@@ -331,10 +335,6 @@ end fintype_instances
 end set
 
 /-! ### Finset -/
-
-@[simp] lemma set.to_finset_prod (s : set α) (t : set β) [fintype s] [fintype t] :
-  (s ×ˢ t).to_finset = s.to_finset ×ˢ t.to_finset :=
-by { ext, simp only [set.mem_to_finset, set.mem_prod, finset.mem_product] }
 
 namespace finset
 

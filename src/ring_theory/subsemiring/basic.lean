@@ -134,8 +134,8 @@ subtype.coe_injective.linear_ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_comm_semiring` is a `linear_ordered_comm_semiring`. -/
-instance to_linear_ordered_comm_semiring {R} [linear_ordered_semiring R] [set_like S R]
-  [subsemiring_class S R] : linear_ordered_semiring s :=
+instance to_linear_ordered_comm_semiring {R} [linear_ordered_comm_semiring R] [set_like S R]
+  [subsemiring_class S R] : linear_ordered_comm_semiring s :=
 subtype.coe_injective.linear_ordered_comm_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 

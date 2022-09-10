@@ -16,7 +16,7 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 ## Main definitions
 
 * `spectral_radius : ℝ≥0∞`: supremum of `∥k∥₊` for all `k ∈ spectrum 𝕜 a`
-* `normed_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
+* `normed_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
   Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
   is given by selecting the (unique) element of `spectrum ℂ a`
 

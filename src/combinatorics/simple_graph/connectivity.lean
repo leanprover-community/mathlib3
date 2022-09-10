@@ -85,6 +85,10 @@ attribute [refl] walk.nil
 
 @[simps] instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨walk.nil⟩
 
+/-- The one-edge walk associated to a pair of adjacent vertices. -/
+@[pattern, reducible] def adj.to_walk {G : simple_graph V} {u v : V} (h : G.adj u v) :
+  G.walk u v := walk.cons h walk.nil
+
 namespace walk
 variables {G}
 
@@ -1176,11 +1180,11 @@ begin
   exact h.elim (λ q, hp q.to_path),
 end
 
-protected lemma adj.reachable {u v : V} (h : G.adj u v) :
-  G.reachable u v := ⟨walk.cons h walk.nil⟩
-
 protected lemma walk.reachable {G : simple_graph V} {u v : V} (p : G.walk u v) :
   G.reachable u v := ⟨p⟩
+
+protected lemma adj.reachable {u v : V} (h : G.adj u v) :
+  G.reachable u v := h.to_walk.reachable
 
 @[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
 protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _

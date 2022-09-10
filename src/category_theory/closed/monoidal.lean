@@ -3,9 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.functor
 import category_theory.adjunction.limits
 import category_theory.adjunction.mates
+import category_theory.functor.inv_isos
 
 /-!
 # Closed monoidal categories
@@ -16,13 +17,17 @@ Define (right) closed objects and (right) closed monoidal categories.
 Some of the theorems proved about cartesian closed categories
 should be generalised and moved to this file.
 -/
-universes v u u₂
+universes v u u₂ v₂
 
 namespace category_theory
 
 open category monoidal_category
 
 /-- An object `X` is (right) closed if `(X ⊗ -)` is a left adjoint. -/
+-- Note that this class carries a particular choice of right adjoint,
+-- (which is only unique up to isomorphism),
+-- not merely the existence of such, and
+-- so definitional properties of instances may be important.
 class closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 (is_adj : is_left_adjoint (tensor_left X))
 
@@ -71,12 +76,6 @@ variables [closed A]
 
 /--
 This is the internal hom `A ⟶[C] -`.
-Note that this is essentially an opaque definition,
-and so will not agree definitionally with any "native" internal hom the category has.
-
-TODO: we could introduce a `has_ihom` class
-that allows specifying a particular definition of the internal hom,
-and provide a low priority opaque instance.
 -/
 def ihom : C ⥤ C :=
 (@closed.is_adj _ _ _ A _).right
@@ -108,7 +107,7 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (ihom A).map ((𝟙 A) ⊗ f) :=
 (coev A).naturality f
 
-notation A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
+notation (name := ihom) A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
 
 @[simp, reassoc] lemma ev_coev :
   ((𝟙 A) ⊗ ((coev A).app B)) ≫ (ev A).app (A ⊗ B) = 𝟙 (A ⊗ B) :=
@@ -237,6 +236,24 @@ end pre
 def internal_hom [monoidal_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
 { obj := λ X, ihom X.unop,
   map := λ X Y f, pre f.unop }
+
+section of_equiv
+
+variables {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
+
+/-- Transport the property of being monoidal closed across a monoidal equivalence of categories -/
+noncomputable
+def of_equiv (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoidal_closed D] :
+  monoidal_closed C :=
+{ closed' := λ X,
+  { is_adj := begin
+      haveI q : closed (F.to_functor.obj X) := infer_instance,
+      haveI : is_left_adjoint (tensor_left (F.to_functor.obj X)) := q.is_adj,
+      have i := comp_inv_iso (monoidal_functor.comm_tensor_left F X),
+      exact adjunction.left_adjoint_of_nat_iso i,
+    end } }
+
+end of_equiv
 
 end monoidal_closed
 

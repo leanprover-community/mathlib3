@@ -62,7 +62,7 @@ variables {L : grothendieck_topology A}
 A functor `G : (C, J) ⥤ (D, K)` between sites is *cover-preserving*
 if for all covering sieves `R` in `C`, `R.pushforward_functor G` is a covering sieve in `D`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure cover_preserving (G : C ⥤ D) : Prop :=
 (cover_preserve : ∀ {U : C} {S : sieve U} (hS : S ∈ J U), S.functor_pushforward G ∈ K (G.obj U))
 
@@ -86,7 +86,7 @@ compatible family of elements at `C` and valued in `G.op ⋙ ℱ`, and each comm
 This is actually stronger than merely preserving compatible families because of the definition of
 `functor_pushforward` used.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (compatible :
   ∀ (ℱ : SheafOfTypes.{w} K) {Z} {T : presieve Z}
@@ -166,7 +166,7 @@ end
 If `G` is cover-preserving and compatible-preserving,
 then `G.op ⋙ _` pulls sheaves back to sheaves.
 
-This result is basically https://stacks.math.columbia.edu/tag/00WW.
+This result is basically <https://stacks.math.columbia.edu/tag/00WW>.
 -/
 theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving.{v₃} K G)
   (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) :
@@ -249,7 +249,7 @@ end
 /-- The pushforward functor is left adjoint to the pullback functor. -/
 def sites.pullback_pushforward_adjunction {G : C ⥤ D} (hG₁ : compatible_preserving K G)
   (hG₂ : cover_preserving J K G) : sites.pushforward A J K G ⊣ sites.pullback A hG₁ hG₂ :=
-((Lan.adjunction A G.op).comp _ _ (sheafification_adjunction K A)).restrict_fully_faithful
+((Lan.adjunction A G.op).comp (sheafification_adjunction K A)).restrict_fully_faithful
   (Sheaf_to_presheaf J A) (𝟭 _)
   (nat_iso.of_components (λ _, iso.refl _)
     (λ _ _ _,(category.comp_id _).trans (category.id_comp _).symm))

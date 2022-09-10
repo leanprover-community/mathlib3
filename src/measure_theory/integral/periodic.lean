@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import measure_theory.group.fundamental_domain
 import measure_theory.integral.interval_integral
-import topology.algebra.floor_ring
+import topology.algebra.order.floor
 
 /-!
 # Integrals of periodic functions
@@ -27,7 +27,7 @@ begin
   simpa only [add_comm x] using exists_unique_add_zsmul_mem_Ioc hT x t
 end
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 namespace function
 

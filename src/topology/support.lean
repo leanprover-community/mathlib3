@@ -59,7 +59,31 @@ by rw [mul_tsupport, closure_empty_iff, mul_support_eq_empty_iff]
 lemma image_eq_zero_of_nmem_mul_tsupport {f : X → α} {x : X} (hx : x ∉ mul_tsupport f) : f x = 1 :=
 mul_support_subset_iff'.mp (subset_mul_tsupport f) x hx
 
+@[to_additive]
+lemma range_subset_insert_image_mul_tsupport (f : X → α) :
+  range f ⊆ insert 1 (f '' mul_tsupport f) :=
+(range_subset_insert_image_mul_support f).trans $
+  insert_subset_insert $ image_subset _ subset_closure
+
+@[to_additive]
+lemma range_eq_image_mul_tsupport_or (f : X → α) :
+  range f = f '' mul_tsupport f ∨ range f = insert 1 (f '' mul_tsupport f) :=
+(wcovby_insert _ _).eq_or_eq (image_subset_range _ _) (range_subset_insert_image_mul_tsupport f)
+
+lemma tsupport_mul_subset_left {α : Type*} [mul_zero_class α] {f g : X → α} :
+  tsupport (λ x, f x * g x) ⊆ tsupport f :=
+closure_mono (support_mul_subset_left _ _)
+
+lemma tsupport_mul_subset_right {α : Type*} [mul_zero_class α] {f g : X → α} :
+  tsupport (λ x, f x * g x) ⊆ tsupport g :=
+closure_mono (support_mul_subset_right _ _)
+
 end one
+
+lemma tsupport_smul_subset_left {M α} [topological_space X] [has_zero M] [has_zero α]
+  [smul_with_zero M α] (f : X → M) (g : X → α) :
+  tsupport (λ x, f x • g x) ⊆ tsupport f :=
+closure_mono $ support_smul_subset_left f g
 
 section
 
@@ -68,9 +92,14 @@ variables [has_one β] [has_one γ] [has_one δ]
 variables {g : β → γ} {f : α → β} {f₂ : α → γ} {m : β → γ → δ} {x : α}
 
 @[to_additive]
-lemma not_mem_closure_mul_support_iff_eventually_eq : x ∉ mul_tsupport f ↔ f =ᶠ[𝓝 x] 1 :=
+lemma not_mem_mul_tsupport_iff_eventually_eq : x ∉ mul_tsupport f ↔ f =ᶠ[𝓝 x] 1 :=
 by simp_rw [mul_tsupport, mem_closure_iff_nhds, not_forall, not_nonempty_iff_eq_empty,
     ← disjoint_iff_inter_eq_empty, disjoint_mul_support_iff, eventually_eq_iff_exists_mem]
+
+@[to_additive] lemma continuous_of_mul_tsupport [topological_space β] {f : α → β}
+  (hf : ∀ x ∈ mul_tsupport f, continuous_at f x) : continuous f :=
+continuous_iff_continuous_at.2 $ λ x, (em _).elim (hf x) $ λ hx,
+  (@continuous_at_const _ _ _ _ _ 1).congr (not_mem_mul_tsupport_iff_eventually_eq.mp hx).symm
 
 /-- A function `f` *has compact multiplicative support* or is *compactly supported* if the closure
 of the multiplicative support of `f` is compact. In a T₂ space this is equivalent to `f` being equal
@@ -110,6 +139,14 @@ lemma has_compact_mul_support_iff_eventually_eq :
     λ x, not_imp_comm.mpr $ λ hx, subset_mul_tsupport f hx⟩,
   λ h, let ⟨C, hC⟩ := mem_coclosed_compact'.mp h in
     compact_of_is_closed_subset hC.2.1 (is_closed_mul_tsupport _) (closure_minimal hC.2.2 hC.1)⟩
+
+@[to_additive]
+lemma has_compact_mul_support.is_compact_range [topological_space β]
+  (h : has_compact_mul_support f) (hf : continuous f) : is_compact (range f) :=
+begin
+  cases range_eq_image_mul_tsupport_or f with h2 h2; rw [h2],
+  exacts [h.image hf, (h.image hf).insert 1]
+end
 
 @[to_additive]
 lemma has_compact_mul_support.mono' {f' : α → γ} (hf : has_compact_mul_support f)

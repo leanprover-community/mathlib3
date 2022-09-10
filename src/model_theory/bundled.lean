@@ -3,7 +3,7 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import model_theory.semantics
+import model_theory.elementary_maps
 import category_theory.concrete_category.bundled
 /-!
 # Bundled First-Order Structures
@@ -18,7 +18,7 @@ This file bundles types together with their first-order structure.
 
 -/
 
-universes u v w
+universes u v w w'
 
 variables {L : first_order.language.{u v}}
 
@@ -27,9 +27,27 @@ variables {L : first_order.language.{u v}}
   L.Structure M :=
 M.str
 
+open_locale first_order cardinal
+
+namespace equiv
+
+variables (L) {M : Type w} [L.Structure M] {N : Type w'} (g : M ≃ N)
+
+/-- A type bundled with the structure induced by an equivalence. -/
+@[simps] def bundled_induced  :
+  category_theory.bundled.{w'} L.Structure :=
+⟨N, g.induced_Structure⟩
+
+/-- An equivalence of types as a first-order equivalence to the bundled structure on the codomain.
+-/
+@[simp] def bundled_induced_equiv :
+  M ≃[L] g.bundled_induced L :=
+g.induced_Structure_equiv
+
+end equiv
+
 namespace first_order
 namespace language
-open_locale first_order
 
 /-- The equivalence relation on bundled `L.Structure`s indicating that they are isomorphic. -/
 instance equiv_setoid : setoid (category_theory.bundled L.Structure) :=
@@ -54,6 +72,8 @@ namespace Model
 
 instance : has_coe_to_sort T.Model (Type w) := ⟨Model.carrier⟩
 
+@[simp] lemma carrier_eq_coe (M : T.Model) : M.carrier = M := rfl
+
 /-- The object in the category of R-algebras associated to a type equipped with the appropriate
 typeclasses. -/
 def of (M : Type w) [L.Structure M] [M ⊨ T] [nonempty M] :
@@ -73,6 +93,43 @@ instance : inhabited (Model (∅ : L.Theory)) :=
 
 end inhabited
 
+variable {T}
+
+/-- Maps a bundled model along a bijection. -/
+def equiv_induced {M : Model.{u v w} T} {N : Type w'} (e : M ≃ N) :
+  Model.{u v w'} T :=
+{ carrier := N,
+  struc := e.induced_Structure,
+  is_model := @equiv.Theory_model L M N _ e.induced_Structure T e.induced_Structure_equiv _,
+  nonempty' := e.symm.nonempty }
+
+instance of_small (M : Type w) [nonempty M] [L.Structure M] [M ⊨ T] [h : small.{w'} M] :
+  small.{w'} (Model.of T M) := h
+
+/-- Shrinks a small model to a particular universe. -/
+noncomputable def shrink (M : Model.{u v w} T) [small.{w'} M] :
+  Model.{u v w'} T := equiv_induced (equiv_shrink M)
+
+/-- Lifts a model to a particular universe. -/
+def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
+  equiv_induced (equiv.ulift.symm : M ≃ _)
+
+/-- The reduct of any model of `φ.on_Theory T` is a model of `T`. -/
+@[simps] def reduct {L' : language} (φ : L →ᴸ L') (M : (φ.on_Theory T).Model) :
+  T.Model :=
+{ carrier := M,
+  struc := φ.reduct M,
+  nonempty' := M.nonempty',
+  is_model := (@Lhom.on_Theory_model L L' M (φ.reduct M) _ φ _ T).1 M.is_model, }
+
+instance left_Structure {L' : language} {T : (L.sum L').Theory} (M : T.Model) :
+  L.Structure M :=
+(Lhom.sum_inl : L →ᴸ L.sum L').reduct M
+
+instance right_Structure {L' : language} {T : (L.sum L').Theory} (M : T.Model) :
+  L'.Structure M :=
+(Lhom.sum_inr : L' →ᴸ L.sum L').reduct M
+
 end Model
 
 variables {T}
@@ -87,5 +144,22 @@ lemma coe_of {M : Type w} [L.Structure M] [nonempty M] (h : M ⊨ T) :
   (h.bundled : Type w) = M := rfl
 
 end Theory
+
+/-- A structure that is elementarily equivalent to a model, bundled as a model. -/
+def elementarily_equivalent.to_Model {M : T.Model} {N : Type*} [LN : L.Structure N] (h : M ≅[L] N) :
+  T.Model :=
+{ carrier := N,
+  struc := LN,
+  nonempty' := h.nonempty,
+  is_model := h.Theory_model }
+
+/-- An elementary substructure of a bundled model as a bundled model. -/
+def elementary_substructure.to_Model {M : T.Model} (S : L.elementary_substructure M) : T.Model :=
+S.elementarily_equivalent.symm.to_Model T
+
+instance {M : T.Model} (S : L.elementary_substructure M) [h : small S] :
+  small (S.to_Model T) :=
+h
+
 end language
 end first_order

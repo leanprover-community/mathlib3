@@ -25,14 +25,14 @@ open opposite
 open category_theory.limits
 open category_theory.category category_theory.functor
 
-variables (C : Type u) [category.{v} C] [limits.has_products C]
+variables (C : Type u) [category.{v} C] [has_products.{v} C]
 
 local attribute [tidy] tactic.op_induction'
 
 namespace algebraic_geometry
 
 /-- A `SheafedSpace C` is a topological space equipped with a sheaf of `C`s. -/
-structure SheafedSpace extends PresheafedSpace C :=
+structure SheafedSpace extends PresheafedSpace.{v} C :=
 (is_sheaf : presheaf.is_sheaf)
 
 variables {C}
@@ -45,7 +45,7 @@ instance coe_carrier : has_coe (SheafedSpace C) Top :=
 /-- Extract the `sheaf C (X : Top)` from a `SheafedSpace C`. -/
 def sheaf (X : SheafedSpace C) : sheaf C (X : Top.{v}) := ⟨X.presheaf, X.is_sheaf⟩
 
-@[simp] lemma as_coe (X : SheafedSpace C) : X.carrier = (X : Top.{v}) := rfl
+@[simp] lemma as_coe (X : SheafedSpace.{v} C) : X.carrier = (X : Top.{v}) := rfl
 @[simp] lemma mk_coe (carrier) (presheaf) (h) :
   (({ carrier := carrier, presheaf := presheaf, is_sheaf := h } : SheafedSpace.{v} C) :
   Top.{v}) = carrier :=
@@ -53,23 +53,23 @@ rfl
 
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 
-/-- The trivial `punit` valued sheaf on any topological space. -/
-def punit (X : Top) : SheafedSpace (discrete punit) :=
-{ is_sheaf := presheaf.is_sheaf_punit _,
-  ..@PresheafedSpace.const (discrete punit) _ X punit.star }
+/-- The trivial `unit` valued sheaf on any topological space. -/
+def unit (X : Top) : SheafedSpace (discrete unit) :=
+{ is_sheaf := presheaf.is_sheaf_unit _,
+  ..@PresheafedSpace.const (discrete unit) _ X ⟨⟨⟩⟩ }
 
-instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of pempty)⟩
+instance : inhabited (SheafedSpace (discrete _root_.unit)) := ⟨unit (Top.of pempty)⟩
 
 instance : category (SheafedSpace C) :=
-show category (induced_category (PresheafedSpace C) SheafedSpace.to_PresheafedSpace),
+show category (induced_category (PresheafedSpace.{v} C) SheafedSpace.to_PresheafedSpace),
 by apply_instance
 
 /-- Forgetting the sheaf condition is a functor from `SheafedSpace C` to `PresheafedSpace C`. -/
 @[derive [full, faithful]]
-def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
+def forget_to_PresheafedSpace : (SheafedSpace.{v} C) ⥤ (PresheafedSpace.{v} C) :=
 induced_functor _
 
-instance is_PresheafedSpace_iso {X Y : SheafedSpace C} (f : X ⟶ Y) [is_iso f] :
+instance is_PresheafedSpace_iso {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) [is_iso f] :
   @is_iso (PresheafedSpace C) _ _ _ f :=
 SheafedSpace.forget_to_PresheafedSpace.map_is_iso f
 
@@ -119,8 +119,9 @@ The restriction of a sheafed space along an open embedding into the space.
 -/
 def restrict {U : Top} (X : SheafedSpace C)
   {f : U ⟶ (X : Top.{v})} (h : open_embedding f) : SheafedSpace C :=
-{ is_sheaf := λ ι 𝒰, ⟨is_limit.of_iso_limit
-    ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.is_sheaf _).some)
+{ is_sheaf := (is_sheaf_iff_is_sheaf_equalizer_products _).mpr $ λ ι 𝒰, ⟨is_limit.of_iso_limit
+    ((is_limit.postcompose_inv_equiv _ _).inv_fun
+    ((is_sheaf_iff_is_sheaf_equalizer_products _).mp X.is_sheaf _).some)
     (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm⟩,
   ..X.to_PresheafedSpace.restrict h }
 
@@ -129,9 +130,7 @@ The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` 
 -/
 def restrict_top_iso (X : SheafedSpace C) :
   X.restrict (opens.open_embedding ⊤) ≅ X :=
-@preimage_iso _ _ _ _ forget_to_PresheafedSpace _ _
-  (X.restrict (opens.open_embedding ⊤)) _
-  X.to_PresheafedSpace.restrict_top_iso
+forget_to_PresheafedSpace.preimage_iso X.to_PresheafedSpace.restrict_top_iso
 
 /--
 The global sections, notated Gamma.

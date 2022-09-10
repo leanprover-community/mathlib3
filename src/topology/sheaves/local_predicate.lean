@@ -215,7 +215,7 @@ def subsheaf_to_Types (P : local_predicate T) : sheaf (Type v) X :=
 There is a canonical map from the stalk to the original fiber, given by evaluating sections.
 -/
 def stalk_to_fiber (P : local_predicate T) (x : X) :
-  (subsheaf_to_Types P).1.stalk x ⟶ T x :=
+  (subsheaf_to_Types P).presheaf.stalk x ⟶ T x :=
 begin
   refine colimit.desc _
     { X := T x, ι := { app := λ U f, _, naturality' := _ } },
@@ -224,7 +224,7 @@ begin
 end
 
 @[simp] lemma stalk_to_fiber_germ (P : local_predicate T) (U : opens X) (x : U) (f) :
-  stalk_to_fiber P x ((subsheaf_to_Types P).1.germ x f) = f.1 x :=
+  stalk_to_fiber P x ((subsheaf_to_Types P).presheaf.germ x f) = f.1 x :=
 begin
   dsimp [presheaf.germ, stalk_to_fiber],
   cases x,
@@ -243,7 +243,7 @@ lemma stalk_to_fiber_surjective (P : local_predicate T) (x : X)
 begin
   rcases w t with ⟨U, f, h, rfl⟩,
   fsplit,
-  { exact (subsheaf_to_Types P).1.germ ⟨x, U.2⟩ ⟨f, h⟩, },
+  { exact (subsheaf_to_Types P).presheaf.germ ⟨x, U.2⟩ ⟨f, h⟩, },
   { exact stalk_to_fiber_germ _ U.1 ⟨x, U.2⟩ ⟨f, h⟩, }
 end
 
@@ -261,16 +261,16 @@ begin
   -- We promise to provide all the ingredients of the proof later:
   let Q :
     ∃ (W : (open_nhds x)ᵒᵖ) (s : Π w : (unop W).1, T w) (hW : P.pred s),
-      tU = (subsheaf_to_Types P).1.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ ∧
-      tV = (subsheaf_to_Types P).1.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ := _,
+      tU = (subsheaf_to_Types P).presheaf.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ ∧
+      tV = (subsheaf_to_Types P).presheaf.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ := _,
   { choose W s hW e using Q,
     exact e.1.trans e.2.symm, },
   -- Then use induction to pick particular representatives of `tU tV : stalk x`
-  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := jointly_surjective' tU,
-  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective' tV,
+  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := jointly_surjective'.{v v} tU,
+  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective'.{v v} tV,
   { -- Decompose everything into its constituent parts:
     dsimp,
-    simp only [stalk_to_fiber, types.colimit.ι_desc_apply] at h,
+    simp only [stalk_to_fiber, types.colimit.ι_desc_apply'] at h,
     specialize w (unop U) (unop V) fU hU fV hV h,
     rcases w with ⟨W, iU, iV, w⟩,
     -- and put it back together again in the correct order.

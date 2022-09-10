@@ -16,7 +16,7 @@ This file defines three properties of functions:
 * `dense_embedding e`  means `e` is also an `embedding`.
 
 The main theorem `continuous_extend` gives a criterion for a function
-`f : X → Z` to a regular (T₃) space Z to extend along a dense embedding
+`f : X → Z` to a T₃ space Z to extend along a dense embedding
 `i : X → Y` to a continuous function `g : Y → Z`. Actually `i` only
 has to be `dense_inducing` (not necessarily injective).
 
@@ -179,7 +179,7 @@ lemma extend_unique [t2_space γ] {f : α → γ} {g : β → γ} (di : dense_in
   di.extend f = g :=
 funext $ λ b, extend_unique_at di (eventually_of_forall hf) hg.continuous_at
 
-lemma continuous_at_extend [regular_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
+lemma continuous_at_extend [t3_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
   (hf : ∀ᶠ x in 𝓝 b, ∃c, tendsto f (comap i $ 𝓝 x) (𝓝 c)) :
   continuous_at (di.extend f) b :=
 begin
@@ -206,7 +206,7 @@ begin
   tauto,
 end
 
-lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing i)
+lemma continuous_extend [t3_space γ] {f : α → γ} (di : dense_inducing i)
   (hf : ∀b, ∃c, tendsto f (comap i (𝓝 b)) (𝓝 c)) : continuous (di.extend f) :=
 continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem' hf
 
@@ -336,4 +336,27 @@ lemma dense_range.equalizer (hfd : dense_range f)
   {g h : β → γ} (hg : continuous g) (hh : continuous h) (H : g ∘ f = h ∘ f) :
   g = h :=
 funext $ λ y, hfd.induction_on y (is_closed_eq hg hh) $ congr_fun H
+end
+
+-- Bourbaki GT III §3 no.4 Proposition 7 (generalised to any dense-inducing map to a T₃ space)
+lemma filter.has_basis.has_basis_of_dense_inducing
+  [topological_space α] [topological_space β] [t3_space β]
+  {ι : Type*} {s : ι → set α} {p : ι → Prop} {x : α} (h : (𝓝 x).has_basis p s)
+  {f : α → β} (hf : dense_inducing f) :
+  (𝓝 (f x)).has_basis p $ λ i, closure $ f '' (s i) :=
+begin
+  rw filter.has_basis_iff at h ⊢,
+  intros T,
+  refine ⟨λ hT, _, λ hT, _⟩,
+  { obtain ⟨T', hT₁, hT₂, hT₃⟩ := nhds_is_closed hT,
+    have hT₄ : f⁻¹' T' ∈ 𝓝 x,
+    { rw hf.to_inducing.nhds_eq_comap x,
+      exact ⟨T', hT₁, subset.rfl⟩, },
+    obtain ⟨i, hi, hi'⟩ := (h _).mp hT₄,
+    exact ⟨i, hi, (closure_mono (image_subset f hi')).trans (subset.trans (closure_minimal
+      (image_subset_iff.mpr subset.rfl) hT₃) hT₂)⟩, },
+  { obtain ⟨i, hi, hi'⟩ := hT,
+    suffices : closure (f '' s i) ∈ 𝓝 (f x), { filter_upwards [this] using hi', },
+    replace h := (h (s i)).mpr ⟨i, hi, subset.rfl⟩,
+    exact hf.closure_image_mem_nhds h, },
 end

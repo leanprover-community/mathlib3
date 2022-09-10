@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Pim Otte. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Pim Otte
+Authors: Kyle Miller, Pim Otte
 -/
 
 import algebra.big_operators.fin
@@ -22,8 +22,7 @@ This file defines the multinomial coefficient and several small lemma's for mani
 
 -/
 
-open_locale nat
-open_locale big_operators
+open_locale big_operators nat
 
 namespace nat
 
@@ -33,7 +32,7 @@ variables {a b : α}
 /-- The multinomial coefficient. Gives the number of strings consisting of symbols
 from `s`, where `c ∈ s` appears with multiplicity `f c`.
 
-Defined as `(∑ i in s, f i)! / ∏ i in s, (f i)!`
+Defined as `(∑ i in s, f i)! / ∏ i in s, (f i)!`.
 -/
 def multinomial : ℕ := (∑ i in s, f i)! / ∏ i in s, (f i)!
 

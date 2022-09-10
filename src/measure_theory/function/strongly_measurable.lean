@@ -250,6 +250,26 @@ begin
     { rwa div_le_one (lt_of_le_of_ne (norm_nonneg _) (ne.symm h0)), }, },
 end
 
+lemma strongly_measurable_bot_iff [nonempty β] [t2_space β] :
+  strongly_measurable[⊥] f ↔ ∃ c, f = λ _, c :=
+begin
+  casesI is_empty_or_nonempty α with hα hα,
+  { simp only [subsingleton.strongly_measurable', eq_iff_true_of_subsingleton, exists_const], },
+  refine ⟨λ hf, _, λ hf_eq, _⟩,
+  { refine ⟨f hα.some, _⟩,
+    let fs := hf.approx,
+    have h_fs_tendsto : ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x)) := hf.tendsto_approx,
+    have : ∀ n, ∃ c, ∀ x, fs n x = c := λ n, simple_func.simple_func_bot (fs n),
+    let cs := λ n, (this n).some,
+    have h_cs_eq : ∀ n, ⇑(fs n) = (λ x, cs n) := λ n, funext (this n).some_spec,
+    simp_rw h_cs_eq at h_fs_tendsto,
+    have h_tendsto : tendsto cs at_top (𝓝 (f hα.some)) := h_fs_tendsto hα.some,
+    ext1 x,
+    exact tendsto_nhds_unique (h_fs_tendsto x) h_tendsto, },
+  { obtain ⟨c, rfl⟩ := hf_eq,
+    exact strongly_measurable_const, },
+end
+
 end basic_properties_in_any_topological_space
 
 lemma fin_strongly_measurable_of_set_sigma_finite [topological_space β] [has_zero β]

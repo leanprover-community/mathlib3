@@ -2080,45 +2080,6 @@ begin
   rw [hg_eq s hs hμs, set_integral_condexp hm hf hs],
 end
 
---todo move
-lemma simple_func_bot (f : @simple_func α ⊥ F) : ∃ c, ∀ x, f x = c :=
-begin
-  have hf_meas := @simple_func.measurable_set_fiber α _ ⊥ f,
-  simp_rw measurable_space.measurable_set_bot_iff at hf_meas,
-  casesI is_empty_or_nonempty α,
-  { simp only [is_empty.forall_iff, exists_const], },
-  { specialize hf_meas (f h.some),
-    cases hf_meas,
-    { exfalso,
-      refine set.not_mem_empty h.some _,
-      rw [← hf_meas, set.mem_preimage],
-      exact set.mem_singleton _, },
-    { refine ⟨f h.some, λ x, _⟩,
-      have : x ∈ f ⁻¹' {f h.some},
-      { rw hf_meas, exact set.mem_univ x, },
-      rwa [set.mem_preimage, set.mem_singleton_iff] at this, }, },
-end
-
---todo move
-lemma strongly_measurable_bot_iff : strongly_measurable[⊥] f ↔ ∃ c, f = λ _, c :=
-begin
-  casesI is_empty_or_nonempty α with hα hα,
-  { simp only [subsingleton.strongly_measurable', eq_iff_true_of_subsingleton, exists_const], },
-  refine ⟨λ hf, _, λ hf_eq, _⟩,
-  { refine ⟨f hα.some, _⟩,
-    let fs := hf.approx,
-    have h_fs_tendsto : ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x)) := hf.tendsto_approx,
-    have : ∀ n, ∃ c, ∀ x, fs n x = c := λ n, simple_func_bot (fs n),
-    let cs := λ n, (this n).some,
-    have h_cs_eq : ∀ n, ⇑(fs n) = (λ x, cs n) := λ n, funext (this n).some_spec,
-    simp_rw h_cs_eq at h_fs_tendsto,
-    have h_tendsto : tendsto cs at_top (𝓝 (f hα.some)) := h_fs_tendsto hα.some,
-    ext1 x,
-    exact tendsto_nhds_unique (h_fs_tendsto x) h_tendsto, },
-  { obtain ⟨c, rfl⟩ := hf_eq,
-    exact strongly_measurable_const, },
-end
-
 lemma condexp_bot' [hμ : μ.ae.ne_bot] (f : α → F') :
   μ[f|⊥] = λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
 begin

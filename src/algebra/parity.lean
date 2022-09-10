@@ -67,7 +67,7 @@ lemma is_square.map [mul_one_class α] [mul_one_class β] [monoid_hom_class F α
 by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp⟩ }
 
 section monoid
-variables [monoid α] {n : ℕ}
+variables [monoid α] {n : ℕ} {a : α}
 
 @[to_additive even_iff_exists_two_nsmul]
 lemma is_square_iff_exists_sq (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
@@ -80,6 +80,9 @@ attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
 
 attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
 `even_iff_exists_two_nsmul`."] is_square_of_exists_sq
+
+@[to_additive even.nsmul] lemma is_square.pow (n : ℕ) : is_square a → is_square (a ^ n) :=
+by { rintro ⟨a, rfl⟩, exact ⟨a ^ n, (commute.refl _).mul_pow _⟩ }
 
 @[simp, to_additive even.nsmul']
 lemma even.is_square_pow : even n → ∀ a : α, is_square (a ^ n) :=
@@ -103,9 +106,6 @@ by { rintro ⟨a, rfl⟩ ⟨b, rfl⟩, exact ⟨a * b, mul_mul_mul_comm _ _ _ _�
 
 section comm_monoid
 variables [comm_monoid α] {a : α}
-
-@[to_additive even.nsmul] lemma is_square.pow (n : ℕ) : is_square a → is_square (a ^ n) :=
-by { rintro ⟨a, rfl⟩, exact ⟨a ^ n, mul_pow _ _ _⟩ }
 
 lemma irreducible.not_square (ha : irreducible a) : ¬ is_square a :=
 by { rintro ⟨b, rfl⟩, simp only [irreducible_mul_iff, or_self] at ha, exact ha.1.not_unit ha.2 }
@@ -143,6 +143,9 @@ alias is_square_inv ↔ _ is_square.inv
 
 attribute [to_additive] is_square.inv
 
+@[to_additive even.zsmul] lemma is_square.zpow (n : ℤ) : is_square a → is_square (a ^ n) :=
+by { rintro ⟨a, rfl⟩, exact ⟨a ^ n, (commute.refl _).mul_zpow _⟩ }
+
 variables [has_distrib_neg α] {n : ℤ}
 
 lemma even.neg_zpow : even n → ∀ a : α, (-a) ^ n = a ^ n :=
@@ -155,16 +158,10 @@ end division_monoid
 lemma even_abs [subtraction_monoid α] [linear_order α] {a : α} : even (|a|) ↔ even a :=
 by cases abs_choice a; simp only [h, even_neg]
 
-section division_comm_monoid
-variables [division_comm_monoid α] {a b : α}
-
-@[to_additive] lemma is_square.div (ha : is_square a) (hb : is_square b) : is_square (a / b) :=
+@[to_additive]
+lemma is_square.div [division_comm_monoid α] {a b : α} (ha : is_square a) (hb : is_square b) :
+  is_square (a / b) :=
 by { rw div_eq_mul_inv, exact ha.mul hb.inv }
-
-@[to_additive even.zsmul] lemma is_square.zpow (n : ℤ) : is_square a → is_square (a ^ n) :=
-by { rintro ⟨a, rfl⟩, exact ⟨a ^ n, mul_zpow _ _ _⟩ }
-
-end division_comm_monoid
 
 @[simp, to_additive even.zsmul']
 lemma even.is_square_zpow [group α] {n : ℤ} : even n → ∀ a : α, is_square (a ^ n) :=

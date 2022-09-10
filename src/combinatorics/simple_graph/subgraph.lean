@@ -563,15 +563,15 @@ lemma eq_singleton_subgraph_iff_verts_eq (H : G.subgraph) {v : V} :
   H = G.singleton_subgraph v ↔ H.verts = {v} :=
 begin
   refine ⟨λ h, by simp [h], λ h, _⟩,
-	ext,
-	{ rw [h, singleton_subgraph_verts] },
-	{ simp only [Prop.bot_eq_false, singleton_subgraph_adj, pi.bot_apply, iff_false],
-	  intro ha,
-	  have ha1 := ha.fst_mem,
-	  have ha2 := ha.snd_mem,
-	  rw [h, set.mem_singleton_iff] at ha1 ha2,
-	  subst_vars,
-	  exact ha.ne rfl },
+  ext,
+  { rw [h, singleton_subgraph_verts] },
+  { simp only [Prop.bot_eq_false, singleton_subgraph_adj, pi.bot_apply, iff_false],
+    intro ha,
+    have ha1 := ha.fst_mem,
+    have ha2 := ha.snd_mem,
+    rw [h, set.mem_singleton_iff] at ha1 ha2,
+    subst_vars,
+    exact ha.ne rfl },
 end
 
 instance nonempty_subgraph_of_adj_verts {v w : V} (hvw : G.adj v w) :

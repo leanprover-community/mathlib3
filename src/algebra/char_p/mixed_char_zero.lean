@@ -74,7 +74,8 @@ Reduction to `p` prime: When proving any statement `P` about mixed characteristi
 can always assume that `p` is prime.
 -/
 lemma reduce_to_p_prime {P : Prop} :
-  (∀ (p : ℕ), (mixed_char_zero R p → P)) ↔ (∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) :=
+  (∀ (p : ℕ), (mixed_char_zero R p → P)) ↔
+  (∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) :=
 begin
   split,
   { intros h q q_prime q_mixed_char,
@@ -160,8 +161,7 @@ We show `(1) ↔ (2) ↔ (3)`, and most of the following is concerned with const
 an explicit algebra map `ℚ →+* R` (given by `x ↦ (x.num : R) /ₚ ↑x.pnat_denom`)
 for the direction `(1) ← (2)`.
 
-Note: Property `(2)` is denoted as `equal_char_zero` in the statement names below due to lack
-of a nice description.
+Note: Property `(2)` is denoted as `equal_char_zero` in the statement names below.
 -/
 section equal_char_zero
 

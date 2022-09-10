@@ -272,7 +272,6 @@ t` such that its preimage in `s` has at least `n` elements. See also
 lemma exists_le_card_fiber_of_mul_le_card_of_maps_to (hf : ∀ a ∈ s, f a ∈ t) (ht : t.nonempty)
   (hn : t.card * n ≤ s.card) :
   ∃ y ∈ t, n ≤ (s.filter (λ x, f x = y)).card :=
-begin
 exists_le_card_fiber_of_nsmul_le_card_of_maps_to hf ht hn
 
 /-- The pigeonhole principle for finitely many pigeons counted by heads: given a function `f`, a
@@ -367,7 +366,7 @@ More formally, given a function `f` between finite types `α` and `β` and a num
 elements. -/
 lemma exists_lt_card_fiber_of_mul_lt_card (hn : card β * n < card α) :
   ∃ y : β, n < (univ.filter (λ x, f x = y)).card :=
-exists_lt_card_fiber_of_nsmul_lt_card hn
+exists_lt_card_fiber_of_nsmul_lt_card _ hn
 
 /-- The strong pigeonhole principle for finitely many pigeons and pigeonholes. There is a pigeonhole
 with at most as many pigeons as the floor of the average number of pigeons across all pigeonholes.
@@ -387,7 +386,7 @@ More formally, given a function `f` between finite types `α` and `β` and a num
 elements. -/
 lemma exists_card_fiber_lt_of_card_lt_mul (hn : card α < card β * n) :
   ∃ y : β, (univ.filter (λ x, f x = y)).card < n :=
-exists_card_fiber_lt_of_card_lt_nsmul hn
+exists_card_fiber_lt_of_card_lt_nsmul _ hn
 
 /-- The strong pigeonhole principle for finitely many pigeons and pigeonholes.  Given a function `f`
 between finite types `α` and `β` and a number `b` such that `card β • b ≤ card α`, there exists an
@@ -404,7 +403,7 @@ element `y : β` such that its preimage has at least `n` elements. See also
 `fintype.exists_lt_card_fiber_of_mul_lt_card` for a stronger statement. -/
 lemma exists_le_card_fiber_of_mul_le_card [nonempty β] (hn : card β * n ≤ card α) :
   ∃ y : β, n ≤ (univ.filter (λ x, f x = y)).card :=
-exists_le_card_fiber_of_nsmul_le_card hn
+exists_le_card_fiber_of_nsmul_le_card _ hn
 
 /-- The strong pigeonhole principle for finitely many pigeons and pigeonholes.  Given a function `f`
 between finite types `α` and `β` and a number `b` such that `card α ≤ card β • b`, there exists an
@@ -420,7 +419,7 @@ element `y : β` such that its preimage has at most `n` elements. See also
 `fintype.exists_card_fiber_lt_of_card_lt_mul` for a stronger statement. -/
 lemma exists_card_fiber_le_of_card_le_mul [nonempty β] (hn : card α ≤ card β * n) :
   ∃ y : β, (univ.filter (λ x, f x = y)).card ≤ n :=
-exists_card_fiber_le_of_card_le_nsmul hn
+exists_card_fiber_le_of_card_le_nsmul _ hn
 
 end fintype
 

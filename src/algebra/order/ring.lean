@@ -803,9 +803,14 @@ end linear_ordered_semiring
 
 /-- A `linear_ordered_comm_semiring` is a nontrivial commutative semiring with a linear order such
 that addition is monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor ordered_comm_semiring linear_ordered_semiring]
 class linear_ordered_comm_semiring (α : Type*)
   extends ordered_comm_semiring α, linear_ordered_semiring α
+
+@[priority 100] -- See note [lower instance priority]
+instance linear_ordered_comm_semiring.to_linear_ordered_cancel_add_comm_monoid
+  [linear_ordered_comm_semiring α] : linear_ordered_cancel_add_comm_monoid α :=
+{ ..‹linear_ordered_comm_semiring α› }
 
 /-- Pullback a `linear_ordered_semiring` under an injective map.
 See note [reducible non-instances]. -/

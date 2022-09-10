@@ -557,30 +557,21 @@ by { ext u, refl }
 
 @[simp] lemma edge_set_singleton_subgraph (v : V) :
   (G.singleton_subgraph v).edge_set = ∅ :=
-begin
-  ext e,
-  refine e.ind _,
-  intros,
-  simp [-set.bot_eq_empty, Prop.bot_eq_false],
-end
+sym2.from_rel_bot
 
 lemma eq_singleton_subgraph_iff_verts_eq (H : G.subgraph) {v : V} :
   H = G.singleton_subgraph v ↔ H.verts = {v} :=
 begin
-  split,
-  { rintro rfl,
-    simp, },
-  { intro h,
-    ext,
-    { rw h,
-      simp, },
-    { simp only [Prop.bot_eq_false, singleton_subgraph_adj, pi.bot_apply, iff_false],
-      intro ha,
-      have ha1 := ha.fst_mem,
-      have ha2 := ha.snd_mem,
-      rw [h, set.mem_singleton_iff] at ha1 ha2,
-      subst_vars,
-      exact ha.ne rfl } },
+  refine ⟨λ h, by simp [h], λ h, _⟩,
+	ext,
+	{ rw [h, singleton_subgraph_verts] },
+	{ simp only [Prop.bot_eq_false, singleton_subgraph_adj, pi.bot_apply, iff_false],
+	  intro ha,
+	  have ha1 := ha.fst_mem,
+	  have ha2 := ha.snd_mem,
+	  rw [h, set.mem_singleton_iff] at ha1 ha2,
+	  subst_vars,
+	  exact ha.ne rfl },
 end
 
 instance nonempty_subgraph_of_adj_verts {v w : V} (hvw : G.adj v w) :
@@ -591,7 +582,7 @@ instance nonempty_subgraph_of_adj_verts {v w : V} (hvw : G.adj v w) :
 begin
   ext e,
   refine e.ind _,
-  simp only [set.mem_singleton_iff, subgraph.mem_edge_set, subgraph_of_adj_adj, eq_comm,
+  simp only [eq_comm, set.mem_singleton_iff, subgraph.mem_edge_set, subgraph_of_adj_adj,
     iff_self, forall_2_true_iff],
 end
 
@@ -819,6 +810,25 @@ begin
   { split;
     simp only [induce_adj, implies_true_iff, and_true] {contextual := tt},
     exact λ ha, ⟨G'.edge_vert ha, G'.edge_vert ha.symm⟩ }
+end
+
+lemma singleton_subgraph_eq_induce {v : V} :
+  G.singleton_subgraph v = (⊤ : G.subgraph).induce {v} :=
+by ext; simp [-set.bot_eq_empty, Prop.bot_eq_false] { contextual := tt }
+
+lemma subgraph_of_adj_eq_induce {v w : V} {hvw : G.adj v w} :
+  G.subgraph_of_adj hvw = (⊤ : G.subgraph).induce {v, w} :=
+begin
+  ext,
+  { simp },
+  { split,
+    { intro h,
+      simp only [subgraph_of_adj_adj, quotient.eq, sym2.rel_iff] at h,
+      obtain ⟨rfl, rfl⟩|⟨rfl, rfl⟩ := h; simp [hvw, hvw.symm], },
+    { intro h,
+      simp only [induce_adj, set.mem_insert_iff, set.mem_singleton_iff, top_adj_iff] at h,
+      obtain ⟨rfl|rfl, rfl|rfl, ha⟩ := h;
+        exact (ha.ne rfl).elim <|> simp } }
 end
 
 end induce

@@ -108,10 +108,7 @@ instance lower_topology.to_t0_space : t0_space α :=
 begin
   rw t0_space_iff_inseparable,
   intros x y h,
-  rw inseparable_iff_closure_eq at h,
-  rw singleton_closure at h,
-  rw singleton_closure at h,
-  rw subset_antisymm_iff at h,
+  rw [inseparable_iff_closure_eq, singleton_closure, singleton_closure, subset_antisymm_iff] at h,
   rw le_antisymm_iff,
   split,
   { rw ← Ici_subset_Ici, apply h.2, },

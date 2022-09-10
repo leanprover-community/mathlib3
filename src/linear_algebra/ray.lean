@@ -23,9 +23,9 @@ noncomputable theory
 
 open_locale big_operators
 
-section ordered_comm_semiring
+section strict_ordered_comm_semiring
 
-variables (R : Type*) [ordered_comm_semiring R]
+variables (R : Type*) [strict_ordered_comm_semiring R]
 variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
@@ -297,7 +297,7 @@ x.some_ray_vector.property
 
 end module.ray
 
-end ordered_comm_semiring
+end strict_ordered_comm_semiring
 
 section ordered_comm_ring
 

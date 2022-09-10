@@ -90,7 +90,7 @@ directly. -/
 `fun_like.has_coe_to_fun` directly."]
 instance : has_coe_to_fun (continuous_monoid_hom A B) (λ _, A → B) := fun_like.has_coe_to_fun
 
-@[to_additive] lemma ext {f g : continuous_monoid_hom A B} (h : ∀ x, f x = g x) : f = g :=
+@[to_additive, ext] lemma ext {f g : continuous_monoid_hom A B} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext _ _ h
 
 /-- Reinterpret a `continuous_monoid_hom` as a `continuous_map`. -/
@@ -291,8 +291,42 @@ end continuous_monoid_hom
 /-- The Pontryagin dual of `A` is the group of continuous homomorphism `A → circle`. -/
 @[derive [topological_space, t2_space, comm_group, topological_group, inhabited]]
 def pontryagin_dual := continuous_monoid_hom A circle
+variables {A B C D E}
+
+noncomputable instance : continuous_monoid_hom_class (pontryagin_dual A) A circle :=
+continuous_monoid_hom.continuous_monoid_hom_class
+
+namespace continuous_monoid_hom
 
 /-- `pontryagin_dual` is a functor. -/
-noncomputable def continuous_monoid_hom.pontryagin_dual (f : continuous_monoid_hom A B) :
+noncomputable def dual (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (pontryagin_dual B) (pontryagin_dual A) :=
 f.comp_left circle
+
+@[simp] lemma dual_apply (f : continuous_monoid_hom A B) (x : pontryagin_dual B) (y : A) :
+  dual f x y = x (f y) :=
+rfl
+
+@[simp] lemma dual_one : dual (one A B) = one (pontryagin_dual B) (pontryagin_dual A) :=
+ext (λ x, ext (λ y, map_one x))
+
+@[simp] lemma dual_comp (g : continuous_monoid_hom B C) (f : continuous_monoid_hom A B) :
+  dual (comp g f) = comp (dual f) (dual g) :=
+ext (λ x, ext (λ y, rfl))
+
+@[simp] lemma dual_mul (f g : continuous_monoid_hom A E) : dual (f * g) = dual f * dual g :=
+ext (λ x, ext (λ y, map_mul x (f y) (g y)))
+
+variables (A B C D E)
+
+/-- `pontryagin_dual` is a functor. -/
+noncomputable def dual' [locally_compact_space E] :
+  continuous_monoid_hom (continuous_monoid_hom A E)
+    (continuous_monoid_hom (pontryagin_dual E) (pontryagin_dual A)) :=
+{ to_fun := dual,
+  map_one' := dual_one,
+  map_mul' := dual_mul,
+  continuous_to_fun := (is_inducing _ _).continuous_iff.mpr
+    (continuous_map.continuous_of_continuous_uncurry _ continuous_comp) }
+
+end continuous_monoid_hom

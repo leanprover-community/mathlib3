@@ -319,7 +319,7 @@ ext (λ x, ext (λ y, map_mul x (f y) (g y)))
 
 variables (A B C D E)
 
-/-- `pontryagin_dual` is a functor. -/
+/-- `continuous_monoid_hom.dual` as a `continuous_monoid_hom`. -/
 noncomputable def dual_hom [locally_compact_space E] :
   continuous_monoid_hom (continuous_monoid_hom A E)
     (continuous_monoid_hom (pontryagin_dual E) (pontryagin_dual A)) :=

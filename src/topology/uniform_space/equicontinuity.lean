@@ -104,7 +104,7 @@ local attribute [instance] uniform_convergence.uniform_space
 
 lemma equicontinuous_at_iff_continuous_at {F : ι → X → α} {x₀ : X} :
   equicontinuous_at F x₀ ↔ continuous_at (function.swap F) x₀ :=
-by rw [continuous_at, (uniform_convergence.has_basis_nhds ι α).tendsto_right_iff]; refl
+by rw [continuous_at, (uniform_convergence.has_basis_nhds ι α _).tendsto_right_iff]; refl
 
 lemma equicontinuous_iff_continuous {F : ι → X → α} :
   equicontinuous F ↔ continuous (function.swap F) :=
@@ -114,15 +114,14 @@ lemma uniform_equicontinuous_iff_uniform_continuous {F : ι → β → α} :
   uniform_equicontinuous F ↔ uniform_continuous (function.swap F) :=
 by rw [uniform_continuous, (uniform_convergence.has_basis_uniformity ι α).tendsto_right_iff]; refl
 
-#check filter.has_basis.tendsto_iff
-
-lemma filter.has_basis.equicontinuous_at_iff {κ₁ κ₂ : Sort*} {p₁ : κ₁ → Prop} {s₁ : κ₁ → set X}
+lemma filter.has_basis.equicontinuous_at_iff {κ₁ κ₂ : Type*} {p₁ : κ₁ → Prop} {s₁ : κ₁ → set X}
   {p₂ : κ₂ → Prop} {s₂ : κ₂ → set (α × α)} {F : ι → X → α} {x₀ : X}
   (hX : (𝓝 x₀).has_basis p₁ s₁) (hα : (𝓤 α).has_basis p₂ s₂) : equicontinuous_at F x₀ ↔
   ∀ k₂, p₂ k₂ → ∃ k₁ (_ : p₁ k₁), ∀ x ∈ s₁ k₁, ∀ i, (F i x₀, F i x) ∈ s₂ k₂ :=
 begin
-  rw [equicontinuous_at_iff_continuous_at, continuous_at],
-  sorry
+  rw [equicontinuous_at_iff_continuous_at, continuous_at,
+      hX.tendsto_iff (uniform_convergence.has_basis_nhds_of_basis ι α _ hα)],
+  refl
 end
 
 end

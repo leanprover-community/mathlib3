@@ -38,29 +38,26 @@ section
 open uniform_space filter
 open_locale uniformity topological_space
 
-variables {ι X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological_space Y]
+variables {ι X Y Z α β γ : Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [uniform_space α] [uniform_space β] [uniform_space γ]
 
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U
 
-protected abbreviation set.equicontinuous_at [has_coe_to_fun 𝓕 (λ _, X → α)]
-  (H : set 𝓕) (x₀ : X) : Prop :=
-equicontinuous_at (coe_fn ∘ (coe : H → 𝓕)) x₀
+protected abbreviation set.equicontinuous_at (H : set $ X → α) (x₀ : X) : Prop :=
+equicontinuous_at (coe : H → X → α) x₀
 
 def equicontinuous (F : ι → X → α) : Prop :=
 ∀ x₀, equicontinuous_at F x₀
 
-protected abbreviation set.equicontinuous [has_coe_to_fun 𝓕 (λ _, X → α)]
-  (H : set 𝓕) : Prop :=
-equicontinuous (coe_fn ∘ (coe : H → 𝓕))
+protected abbreviation set.equicontinuous (H : set $ X → α) : Prop :=
+equicontinuous (coe : H → X → α)
 
 def uniform_equicontinuous (F : ι → β → α) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U
 
-protected abbreviation set.uniform_equicontinuous [has_coe_to_fun 𝓕 (λ _, β → α)]
-  (H : set 𝓕) : Prop :=
-uniform_equicontinuous (coe_fn ∘ (coe : H → 𝓕))
+protected abbreviation set.uniform_equicontinuous (H : set $ β → α) : Prop :=
+uniform_equicontinuous (coe : H → β → α)
 
 lemma uniform_equicontinuous.equicontinuous {F : ι → β → α} (h : uniform_equicontinuous F) :
   equicontinuous F :=
@@ -75,27 +72,24 @@ begin
   exact mem_map.mpr (mem_of_superset (h V hV₁) (λ x hx, hV₂ (hx i)))
 end
 
-protected lemma set.equicontinuous_at.continuous_at_of_mem [has_coe_to_fun 𝓕 (λ _, X → α)]
-  {H : set 𝓕} {x₀ : X} (h : H.equicontinuous_at x₀) {f : 𝓕} (hf : f ∈ H) :
-  continuous_at f x₀ :=
+protected lemma set.equicontinuous_at.continuous_at_of_mem {H : set $ X → α} {x₀ : X}
+  (h : H.equicontinuous_at x₀) {f : X → α} (hf : f ∈ H) : continuous_at f x₀ :=
 h.continuous_at ⟨f, hf⟩
 
 lemma equicontinuous.continuous {F : ι → X → α} (h : equicontinuous F) (i : ι) :
   continuous (F i) :=
 continuous_iff_continuous_at.mpr (λ x, (h x).continuous_at i)
 
-protected lemma set.equicontinuous.continuous_of_mem [has_coe_to_fun 𝓕 (λ _, X → α)]
-  {H : set 𝓕} (h : H.equicontinuous) {f : 𝓕} (hf : f ∈ H) :
-  continuous f :=
+protected lemma set.equicontinuous.continuous_of_mem {H : set $ X → α} (h : H.equicontinuous)
+  {f : X → α} (hf : f ∈ H) : continuous f :=
 h.continuous ⟨f, hf⟩
 
 lemma uniform_equicontinuous.uniform_continuous {F : ι → β → α} (h : uniform_equicontinuous F)
   (i : ι) : uniform_continuous (F i) :=
 λ U hU, mem_map.mpr (mem_of_superset (h U hU) $ λ xy hxy, (hxy i))
 
-protected lemma set.uniform_equicontinuous.uniform_continuous_of_mem
-  [has_coe_to_fun 𝓕 (λ _, β → α)] {H : set 𝓕} (h : H.uniform_equicontinuous) {f : 𝓕} (hf : f ∈ H) :
-  uniform_continuous f :=
+protected lemma set.uniform_equicontinuous.uniform_continuous_of_mem {H : set $ β → α}
+  (h : H.uniform_equicontinuous) {f : β → α} (hf : f ∈ H) : uniform_continuous f :=
 h.uniform_continuous ⟨f, hf⟩
 
 section

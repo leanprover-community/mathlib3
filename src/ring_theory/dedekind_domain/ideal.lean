@@ -983,7 +983,7 @@ end
 def normalized_factors_equiv_of_quot_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
   {p : ideal R | p ∈ normalized_factors I } ≃ {q : ideal A | q ∈ normalized_factors J } :=
 { to_fun := λ j, ⟨ideal_factors_equiv_of_quot_equiv f ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩,
-    ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors f hJ j.prop ⟩,
+   ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors f hJ j.prop⟩,
   inv_fun := λ j, ⟨(ideal_factors_equiv_of_quot_equiv f).symm
     ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩, by { rw ideal_factors_equiv_of_quot_equiv_symm,
       exact ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors
@@ -1006,7 +1006,7 @@ lemma normalized_factors_equiv_of_quot_equiv_multiplicity_eq_multiplicity (hI : 
 begin
   rw [normalized_factors_equiv_of_quot_equiv, equiv.coe_fn_mk, subtype.coe_mk],
   exact multiplicity_factor_dvd_iso_eq_multiplicity_of_mem_normalized_factor hI hJ hL
-    (λ ⟨l, hl⟩ ⟨l', hl'⟩, ideal_factors_equiv_of_quot_equiv_is_dvd_iso f l l' hl hl'),
+    (λ ⟨l, hl⟩ ⟨l', hl'⟩, ideal_factors_equiv_of_quot_equiv_is_dvd_iso f hl hl'),
 end
 
 end

@@ -27,6 +27,29 @@ variables {α β: Type u}
 
 open  set topological_space
 
+section preorder
+
+variables [preorder α] [preorder β]
+
+
+lemma l1  (a : α) (b : β) : Ici (a,b) = (univ ×ˢ (Ici b)) ∩ ((Ici a) ×ˢ univ) :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { intros x h, simp, rw mem_Ici at h, rw prod.le_def at h, simp at h, rw and.comm, apply h, },
+  { intros x h, simp, simp at h, rw and.comm at h, rw prod.le_def, simp, apply h, }
+end
+
+lemma l2 (a : α) (b : β) : (Ici a)ᶜ ×ˢ (Ici b)ᶜ = ((univ ×ˢ Ici b) ∪ (Ici a ×ˢ univ))ᶜ :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { intros x h, simp, simp at h, rw and.comm, apply h, },
+  { intros x h, simp, simp at h,  rw and.comm, apply h, }
+end
+
+end preorder
+
 -- def Ici (a : α) := {x | a ≤ x}
 
 lemma ici_comp_is_lower [preorder α] (a : α) : is_lower_set (Ici a)ᶜ :=

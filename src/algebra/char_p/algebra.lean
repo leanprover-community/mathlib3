@@ -65,11 +65,17 @@ section Q_algebra
 
 variables (R : Type*) [nontrivial R]
 
-instance Q_algebra_char_p_zero [semiring R] [algebra ℚ R] : char_p R 0 :=
+/-
+Implementation note: These are not instances because the counter direction `algebra_rat` in
+[algebra.algebra.basic] is chosen as instance:
+(`algebra_rat [division_ring α] [char_zero α] : algebra ℚ α`)
+-/
+
+def Q_algebra_char_p_zero [semiring R] [algebra ℚ R] : char_p R 0 :=
 char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0
 
-instance Q_algebra_char_zero [ring R] [algebra ℚ R] : char_zero R :=
-char_p.char_p_to_char_zero R
+def Q_algebra_char_zero [ring R] [algebra ℚ R] : char_zero R :=
+@char_p.char_p_to_char_zero R _ (Q_algebra_char_p_zero R)
 
 end Q_algebra
 

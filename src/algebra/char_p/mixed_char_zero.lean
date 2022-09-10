@@ -49,7 +49,7 @@ characteristic case for convenience:
 
 -/
 
-variables (R : Type*) [comm_ring R] [nontrivial R]
+variables (R : Type*) [comm_ring R]
 
 /-!
 ### Mixed characteristic
@@ -60,9 +60,12 @@ A ring of characteristic zero is of "mixed characteristic `(0, p)`" if there exi
 such that the quotient `R ⧸ I` has caracteristic `p > 0`.
 -/
 class mixed_char_zero (p : ℕ) : Prop :=
-(char_zero : char_zero R)
+[to_char_zero : char_zero R]
 (p_pos : p ≠ 0)
 (char_p_quotient : ∃ (I : ideal R), (I ≠ ⊤) ∧ char_p (R ⧸ I) p)
+
+-- See note [lower instance priority]
+attribute [priority 100, instance] mixed_char_zero.to_char_zero
 
 namespace mixed_char_zero
 
@@ -81,7 +84,7 @@ begin
 
     -- Krull's Thm: There exists a prime ideal `P` such that `I ≤ P`
     rcases ideal.exists_le_maximal I hI_ne_top with ⟨M, ⟨hM_max, h_IM⟩⟩,
-    resetI,
+    resetI, -- make `hI_char : char_p (R ⧸ I) q` an instance.
 
     let r := ring_char (R ⧸ M),
     have r_pos : r ≠ 0 :=
@@ -91,12 +94,11 @@ begin
       apply ne_zero_of_dvd_ne_zero q_mixed_char.p_pos,
       exact (char_p.cast_eq_zero_iff (R ⧸ M) r q).mp q_zero
     end,
-    --haveI : nontrivial (R ⧸ M) := sorry,
     have r_prime : nat.prime r :=
       or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
     apply h r r_prime,
     exact
-    { char_zero := q_mixed_char.char_zero,
+    { to_char_zero := infer_instance,
       p_pos := nat.prime.ne_zero r_prime,
       char_p_quotient :=
       begin
@@ -118,7 +120,6 @@ begin
   split,
   { intro g,
     rcases g with ⟨I, ⟨hI_not_top, hI⟩⟩,
-    resetI,
 
     -- Krull's Thm: There exists a prime ideal `M` such that `I ≤ M`.
     rcases ideal.exists_le_maximal I hI_not_top with ⟨M, ⟨hM_max, hM⟩⟩,
@@ -128,7 +129,7 @@ begin
     exact hM_max,
     { cases char_p.exists (R ⧸ M) with r hr,
       convert hr,
-      resetI,
+      resetI, -- make `hr : char_p (R ⧸ M) r` an instance.
 
       have r_dvd_p : r ∣ p :=
       begin
@@ -137,7 +138,6 @@ begin
       end,
       rw eq_comm,
       apply or_iff_not_imp_left.mp (nat.prime.eq_one_or_self_of_dvd hp r r_dvd_p),
-      --haveI : nontrivial (R ⧸ M) := sorry,
       exact char_p.char_ne_one (R ⧸ M) r }},
   { intro g,
     rcases g with ⟨I, ⟨hI_max, hI⟩⟩,
@@ -169,9 +169,11 @@ section equal_char_zero
 /--
 `ℚ`-algebra implies equal characteristic.
 -/
-lemma Q_algebra_to_equal_char_zero [algebra ℚ R] :
+lemma Q_algebra_to_equal_char_zero [nontrivial R] [algebra ℚ R] :
   ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I) :=
 begin
+    haveI : char_zero R := @char_p.char_p_to_char_zero R _
+      (char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0),
     intros I hI,
     exact
     ⟨begin
@@ -186,14 +188,16 @@ begin
 
       -- `i(↑a - ↑b)` is a unit contained in `I`, which contradicts `I ≠ ⊤`.
       by_contradiction h_ne_zero,
-      exact absurd (I.eq_top_of_is_unit_mem h_ab (is_unit.map (algebra_map ℚ R) (is_unit.mk0 _ h_ne_zero))) hI,
+      have hI' : I = ⊤ :=
+        I.eq_top_of_is_unit_mem h_ab (is_unit.map (algebra_map ℚ R) (is_unit.mk0 _ h_ne_zero)),
+      exact absurd hI' hI,
     end⟩
 end
 
 section construction_of_Q_algebra
 
 /-- Internal: Not intended to be used outside this local construction. -/
-lemma equal_char_zero.pnat_coe_is_unit [fact (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I))]
+lemma equal_char_zero.pnat_coe_is_unit [h : fact (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I))]
   (n : ℕ+) : is_unit (n : R) :=
 begin
   rw is_unit_iff_exists_inv',
@@ -212,7 +216,7 @@ begin
   end,
 
   -- by assumption `char_zero R⧸(n)` so `n = 0`.
-  have h_char_zero : char_zero (R ⧸ I) := (_inst_3.elim) I ((ideal.ne_top_iff_one I).mpr hI),
+  have h_char_zero : char_zero (R ⧸ I) := (h.elim) I ((ideal.ne_top_iff_one I).mpr hI),
   have n_zero : (n : ℕ) = 0 :=
   begin
     apply h_char_zero.cast_injective,
@@ -225,8 +229,8 @@ begin
 end
 
 /-- Internal: Not intended to be used outside this local construction. -/
-noncomputable instance equal_char_zero.pnat_has_coe_units [fact (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I))] :
-  has_coe_t ℕ+ Rˣ :=
+noncomputable instance equal_char_zero.pnat_has_coe_units
+  [fact (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I))] : has_coe_t ℕ+ Rˣ :=
 ⟨λn, (equal_char_zero.pnat_coe_is_unit R n).unit⟩
 
 /-- Internal: Not intended to be used outside this local construction. -/
@@ -267,26 +271,21 @@ begin
     begin
       intros a b,
       field_simp,
+      repeat { rw equal_char_zero.pnat_coe_units_coe_eq_coe R },
       convert_to (↑((a * b).num * (a.denom) * (b.denom)) : R) = _,
-      { simp_rw [int.cast_mul, int.cast_coe_nat],
-        repeat{rw equal_char_zero.pnat_coe_units_coe_eq_coe R},
-        simp,
-        ring,
-      },
+      { simp_rw [int.cast_mul, int.cast_coe_nat, coe_coe, rat.coe_pnat_denom],
+        ring },
       rw rat.mul_num_denom' a b,
-      rw equal_char_zero.pnat_coe_units_coe_eq_coe R,
-      simp,
+      simp
     end,
     map_add' :=
     begin
       intros a b,
       field_simp,
+      repeat { rw equal_char_zero.pnat_coe_units_coe_eq_coe R },
       convert_to (↑((a + b).num * a.denom * b.denom) : R)  = _,
-      { simp_rw [int.cast_mul, int.cast_coe_nat],
-        repeat{rw equal_char_zero.pnat_coe_units_coe_eq_coe R},
-        simp,
+      { simp_rw [int.cast_mul, int.cast_coe_nat, coe_coe, rat.coe_pnat_denom],
         ring },
-      repeat {rw equal_char_zero.pnat_coe_units_coe_eq_coe R},
       rw rat.add_num_denom' a b,
       simp
     end }
@@ -309,20 +308,21 @@ begin
   cases p,
   { exact hp },
   { have h_mixed : mixed_char_zero R p.succ :=
-      ⟨infer_instance, p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
+    ⟨infer_instance, p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
     exact absurd h_mixed (h p.succ) }
 end
 
 /--
 Equal characteristic implies not mixed characteristic.
--/lemma equal_char_zero_to_not_mixed_char (h : ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) :
+-/
+lemma equal_char_zero_to_not_mixed_char (h : ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) :
   ¬(∃ p, mixed_char_zero R p) :=
 begin
   push_neg,
   intro p,
   by_contradiction hp,
   rcases hp.char_p_quotient with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
-  haveI hI_zero := (h I hI_ne_top),
+  haveI hI_zero : char_zero (R ⧸ I) := (h I hI_ne_top),
   replace hI_zero : char_p (R ⧸ I) 0 := char_p.of_char_zero _,
   exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) hp.p_pos,
 end
@@ -343,7 +343,7 @@ theorem Q_algebra_iff_equal_char_zero [nontrivial R] :
 begin
   split,
   { intro h_alg,
-    haveI h_alg' := h_alg.some,
+    haveI h_alg' : algebra ℚ R := h_alg.some,
     apply Q_algebra_to_equal_char_zero,
    },
   { intro h,
@@ -401,11 +401,11 @@ theorem split_by_characteristic
   (h_equal : algebra ℚ R → P)
   (h_mixed : ∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=
 begin
-  casesI char_p.exists R with p p_char,
+  cases char_p.exists R with p p_char,
   by_cases p = 0,
   { rw h at p_char,
-    resetI,
-    haveI h0 := char_p.char_p_to_char_zero R,
+    resetI, -- make `p_char : char_p R 0` an instance.
+    haveI h0 : char_zero R := char_p.char_p_to_char_zero R,
     exact split_equal_mixed_char R h_equal h_mixed },
   exact h_pos p h p_char,
 end
@@ -422,7 +422,7 @@ theorem split_by_characteristic_domain [is_domain R]
 begin
   refine split_by_characteristic R _ h_equal h_mixed,
   introsI p p_pos p_char,
-  have p_prime := or_iff_not_imp_right.mp (char_p.char_is_prime_or_zero R p) p_pos,
+  have p_prime : nat.prime p := or_iff_not_imp_right.mp (char_p.char_is_prime_or_zero R p) p_pos,
   exact h_pos p p_prime p_char,
 end
 
@@ -438,8 +438,8 @@ theorem split_by_characteristic_local_ring [local_ring R]
 begin
   refine split_by_characteristic R _ h_equal h_mixed,
   introsI p p_pos p_char,
-  have p_prime_pow := or_iff_not_imp_left.mp (char_p_zero_or_prime_power R p) p_pos,
-  exact h_pos p p_prime_pow p_char,
+  have p_ppow : is_prime_pow p := or_iff_not_imp_left.mp (char_p_zero_or_prime_power R p) p_pos,
+  exact h_pos p p_ppow p_char,
 end
 
 end main_statements
@@ -452,22 +452,22 @@ this coersion.
 -/
 namespace algebra
 
-variable [algebra ℚ R]
+variables [nontrivial R] [algebra ℚ R]
 
 /--
 The coersion `ℕ+ → Rˣ` coming the fact that there is an algebra map `ℚ →+* R`.
 -/
 noncomputable instance pnat_has_coe_units : has_coe_t ℕ+ Rˣ :=
-@equal_char_zero.pnat_has_coe_units R _ _ ⟨(Q_algebra_to_equal_char_zero R)⟩
+@equal_char_zero.pnat_has_coe_units R _ ⟨(Q_algebra_to_equal_char_zero R)⟩
 
 @[simp, norm_cast]
 lemma pnat_coe_units_eq_one : ((1 : ℕ+) : Rˣ) = 1 :=
 begin
-convert @equal_char_zero.pnat_coe_units_eq_one R _ _ ⟨(Q_algebra_to_equal_char_zero R)⟩,
+convert @equal_char_zero.pnat_coe_units_eq_one R _ ⟨(Q_algebra_to_equal_char_zero R)⟩,
 end
 
 @[simp, norm_cast]
 lemma pnat_coe_units_coe_eq_coe (n : ℕ+) : ((n : Rˣ) : R) = ↑n :=
-@equal_char_zero.pnat_coe_units_coe_eq_coe R _ _ ⟨(Q_algebra_to_equal_char_zero R)⟩ n
+@equal_char_zero.pnat_coe_units_coe_eq_coe R _ ⟨(Q_algebra_to_equal_char_zero R)⟩ n
 
 end algebra

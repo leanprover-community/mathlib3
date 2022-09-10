@@ -77,7 +77,7 @@ by refine
 intros; trivial
 
 instance : linear_ordered_cancel_add_comm_monoid punit :=
-{ =le_of_add_le_add_left := λ _ _ _ _, trivial,
+{ le_of_add_le_add_left := λ _ _ _ _, trivial,
   .. punit.canonically_ordered_add_monoid, ..punit.linear_order }
 
 instance : has_smul R punit :=

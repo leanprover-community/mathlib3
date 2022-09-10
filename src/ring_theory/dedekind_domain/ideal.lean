@@ -1230,13 +1230,14 @@ begin
         span_singleton_dvd_span_singleton_iff_dvd], exact not_finite_iff_forall.mp h n }) }
 end
 
+variables [decidable_eq R] [decidable_eq (ideal R)] [normalization_monoid R]
+
 /-- The bijection between the (normalized) prime factors of `r` and the (normalized) prime factors
     of `span {r}` -/
 @[simps]
-noncomputable def normalized_factors_equiv_span_normalized_factors [normalization_monoid R]
-  [decidable_eq R] [decidable_eq (ideal R)] {r : R} (hr : r ≠ 0) :
+noncomputable def normalized_factors_equiv_span_normalized_factors {r : R} (hr : r ≠ 0) :
   {d : R | d ∈ normalized_factors r} ≃
-  {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
+    {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
 equiv.of_bijective
   (λ d, ⟨ideal.span {↑d}, singleton_span_mem_normalized_factors_of_mem_normalized_factors d.prop⟩)
 begin
@@ -1258,13 +1259,13 @@ begin
       dvd_iff_le.mp (dvd_of_mem_normalized_factors hi))) (mem_span_singleton.mpr (dvd_refl r))) } }
 end
 
-variables [decidable_eq R] [decidable_eq (ideal R)]
+variables [decidable_rel ((∣) : R → R → Prop)] [decidable_rel ((∣) : ideal R → ideal R → Prop)]
 
 /-- The bijection `normalized_factors_equiv_span_normalized_factors` between the set of prime
     factors of `r` and the set of prime factors of the ideal `⟨r⟩` preserves multiplicities. -/
-lemma multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity
-  [is_principal_ideal_ring R] [normalization_monoid R] {r d: R} (hr : r ≠ 0)
-  (hd : d ∈ normalized_factors r) : multiplicity d r =
+lemma multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity {r d: R}
+  (hr : r ≠ 0) (hd : d ∈ normalized_factors r) :
+  multiplicity d r =
     multiplicity (normalized_factors_equiv_span_normalized_factors hr ⟨d, hd⟩ : ideal R)
       (ideal.span {r}) :=
 by simp only [normalized_factors_equiv_span_normalized_factors, multiplicity_eq_multiplicity_span,
@@ -1273,9 +1274,7 @@ by simp only [normalized_factors_equiv_span_normalized_factors, multiplicity_eq_
 /-- The bijection `normalized_factors_equiv_span_normalized_factors.symm` between the set of prime
     factors of the ideal `⟨r⟩` and the set of prime factors of `r` preserves multiplicities. -/
 lemma multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity
-  [comm_ring R] [is_domain R]
-  [is_principal_ideal_ring R] [normalization_monoid R] {r : R} (hr : r ≠ 0)
-  (I : {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))}) :
+  {r : R} (hr : r ≠ 0) (I : {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))}) :
   multiplicity ((normalized_factors_equiv_span_normalized_factors hr).symm I : R) r =
     multiplicity (I : ideal R) (ideal.span {r}) :=
 begin

@@ -138,6 +138,18 @@ begin
   { rw ← Ici_subset_Ici, apply h.1, }
 end
 
+variables [topological_space β] [partial_order β] [s : lower_topology β]
+
+include s
+
+lemma open1 (a : α) (b : β) : is_open (Ici (a,b))ᶜ :=
+begin
+  rw [is_open_compl_iff, l1],
+  apply is_closed.inter,
+  { apply is_closed.prod is_closed_univ, apply ici_is_closed, },
+  { apply is_closed.prod, apply ici_is_closed, apply is_closed_univ, }
+end
+
 end lower_topology
 
 section prime

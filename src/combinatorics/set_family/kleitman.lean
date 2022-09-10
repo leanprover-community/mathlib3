@@ -5,7 +5,6 @@ Authors: Yaël Dillies
 -/
 import combinatorics.set_family.harris_kleitman
 import combinatorics.set_family.intersecting
-import tactic.positivity
 
 /-!
 # Kleitman's bound on the size of intersecting families

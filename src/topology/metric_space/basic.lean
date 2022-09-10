@@ -10,6 +10,7 @@ import topology.algebra.order.compact
 import topology.metric_space.emetric_space
 import topology.bornology.constructions
 import topology.uniform_space.complete_separated
+import topology.uniform_space.equicontinuity
 
 /-!
 # Metric spaces
@@ -998,6 +999,30 @@ lemma _root_.dense_range.exists_dist_lt {β : Type*} {f : β → α} (hf : dense
   (x : α) {ε : ℝ} (hε : 0 < ε) :
   ∃ y, dist x (f y) < ε :=
 exists_range_iff.1 (hf.exists_dist_lt x hε)
+
+lemma equicontinuous_at_iff_right {ι : Type*} [topological_space β] {F : ι → β → α} {x₀ : β} :
+  equicontinuous_at F x₀ ↔ ∀ ε > 0, ∀ᶠ x in 𝓝 x₀, ∀ i, dist (F i x₀) (F i x) < ε :=
+uniformity_basis_dist.equicontinuous_at_iff_right
+
+lemma equicontinuous_at_iff {ι : Type*} [pseudo_metric_space β] {F : ι → β → α} {x₀ : β} :
+  equicontinuous_at F x₀ ↔ ∀ ε > 0, ∃ δ > 0, ∀ x, dist x x₀ < δ → ∀ i, dist (F i x₀) (F i x) < ε :=
+nhds_basis_ball.equicontinuous_at_iff uniformity_basis_dist
+
+lemma equicontinuous_at_iff_right' {ι : Type*} [topological_space β] {F : ι → β → α} {x₀ : β} :
+  equicontinuous_at F x₀ ↔ ∀ ε > 0, ∃ U ∈ 𝓝 x₀, ∀ (x x' ∈ U), ∀ i, dist (F i x) (F i x') < ε :=
+begin
+  rw equicontinuous_at_iff_right,
+  split,
+  { refine λ H ε hε, ⟨_, H (ε/2) (div_pos hε two_pos), λ x hx x' hx' i,
+      (dist_triangle _ (F i x₀) _).trans_lt _⟩,
+    specialize hx i,
+    specialize hx' i,
+    rw dist_comm at hx,
+    linarith },
+  { intros H ε hε,
+    rcases H ε hε with ⟨U, hUmem, hU⟩,
+    filter_upwards [hUmem] using λ x hx, hU x₀ (mem_of_mem_nhds hUmem) x hx }
+end
 
 end metric
 

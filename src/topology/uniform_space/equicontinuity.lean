@@ -38,26 +38,29 @@ section
 open uniform_space filter
 open_locale uniformity topological_space
 
-variables {ι X Y Z α β γ : Type*} [topological_space X] [topological_space Y] [topological_space Z]
-  [uniform_space α] [uniform_space β] [uniform_space γ]
+variables {ι X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological_space Y]
+  [topological_space Z] [uniform_space α] [uniform_space β] [uniform_space γ]
 
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U
 
-protected abbreviation set.equicontinuous_at (H : set $ X → α) (x₀ : X) : Prop :=
-equicontinuous_at (coe : H → X → α) x₀
+protected abbreviation set.equicontinuous_at [has_coe_to_fun 𝓕 (λ _, X → α)]
+  (H : set 𝓕) (x₀ : X) : Prop :=
+equicontinuous_at (coe_fn ∘ (coe : H → 𝓕)) x₀
 
 def equicontinuous (F : ι → X → α) : Prop :=
 ∀ x₀, equicontinuous_at F x₀
 
-protected abbreviation set.equicontinuous (H : set $ X → α) : Prop :=
-equicontinuous (coe : H → X → α)
+protected abbreviation set.equicontinuous [has_coe_to_fun 𝓕 (λ _, X → α)]
+  (H : set 𝓕) : Prop :=
+equicontinuous (coe_fn ∘ (coe : H → 𝓕))
 
 def uniform_equicontinuous (F : ι → β → α) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U
 
-protected abbreviation set.uniform_equicontinuous (H : set $ β → α) : Prop :=
-uniform_equicontinuous (coe : H → β → α)
+protected abbreviation set.uniform_equicontinuous [has_coe_to_fun 𝓕 (λ _, β → α)]
+  (H : set 𝓕) : Prop :=
+uniform_equicontinuous (coe_fn ∘ (coe : H → 𝓕))
 
 lemma uniform_equicontinuous.equicontinuous {F : ι → β → α} (h : uniform_equicontinuous F) :
   equicontinuous F :=
@@ -72,8 +75,8 @@ begin
   exact mem_map.mpr (mem_of_superset (h V hV₁) (λ x hx, hV₂ (hx i)))
 end
 
-protected lemma set.equicontinuous_at.continuous_at_of_mem {H : set $ X → α} {x₀ : X}
-  (h : H.equicontinuous_at x₀) {f : X → α} (hf : f ∈ H) :
+protected lemma set.equicontinuous_at.continuous_at_of_mem [has_coe_to_fun 𝓕 (λ _, X → α)]
+  {H : set 𝓕} {x₀ : X} (h : H.equicontinuous_at x₀) {f : 𝓕} (hf : f ∈ H) :
   continuous_at f x₀ :=
 h.continuous_at ⟨f, hf⟩
 
@@ -81,8 +84,8 @@ lemma equicontinuous.continuous {F : ι → X → α} (h : equicontinuous F) (i 
   continuous (F i) :=
 continuous_iff_continuous_at.mpr (λ x, (h x).continuous_at i)
 
-protected lemma set.equicontinuous.continuous_of_mem {H : set $ X → α}
-  (h : H.equicontinuous) {f : X → α} (hf : f ∈ H) :
+protected lemma set.equicontinuous.continuous_of_mem [has_coe_to_fun 𝓕 (λ _, X → α)]
+  {H : set 𝓕} (h : H.equicontinuous) {f : 𝓕} (hf : f ∈ H) :
   continuous f :=
 h.continuous ⟨f, hf⟩
 
@@ -90,8 +93,8 @@ lemma uniform_equicontinuous.uniform_continuous {F : ι → β → α} (h : unif
   (i : ι) : uniform_continuous (F i) :=
 λ U hU, mem_map.mpr (mem_of_superset (h U hU) $ λ xy hxy, (hxy i))
 
-protected lemma set.uniform_equicontinuous.uniform_continuous_of_mem {H : set $ β → α}
-  (h : H.uniform_equicontinuous) {f : β → α} (hf : f ∈ H) :
+protected lemma set.uniform_equicontinuous.uniform_continuous_of_mem
+  [has_coe_to_fun 𝓕 (λ _, β → α)] {H : set 𝓕} (h : H.uniform_equicontinuous) {f : 𝓕} (hf : f ∈ H) :
   uniform_continuous f :=
 h.uniform_continuous ⟨f, hf⟩
 
@@ -114,6 +117,24 @@ lemma uniform_equicontinuous_iff_uniform_continuous {F : ι → β → α} :
   uniform_equicontinuous F ↔ uniform_continuous (function.swap F) :=
 by rw [uniform_continuous, (uniform_convergence.has_basis_uniformity ι α).tendsto_right_iff]; refl
 
+lemma filter.has_basis.equicontinuous_at_iff_left {κ : Type*} {p : κ → Prop} {s : κ → set X}
+  {F : ι → X → α} {x₀ : X} (hX : (𝓝 x₀).has_basis p s) : equicontinuous_at F x₀ ↔
+  ∀ U ∈ 𝓤 α, ∃ k (_ : p k), ∀ x ∈ s k, ∀ i, (F i x₀, F i x) ∈ U :=
+begin
+  rw [equicontinuous_at_iff_continuous_at, continuous_at,
+      hX.tendsto_iff (uniform_convergence.has_basis_nhds ι α _)],
+  refl
+end
+
+lemma filter.has_basis.equicontinuous_at_iff_right {κ : Type*} {p : κ → Prop} {s : κ → set (α × α)}
+  {F : ι → X → α} {x₀ : X} (hα : (𝓤 α).has_basis p s) : equicontinuous_at F x₀ ↔
+  ∀ k, p k → ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ s k :=
+begin
+  rw [equicontinuous_at_iff_continuous_at, continuous_at,
+      (uniform_convergence.has_basis_nhds_of_basis ι α _ hα).tendsto_right_iff],
+  refl
+end
+
 lemma filter.has_basis.equicontinuous_at_iff {κ₁ κ₂ : Type*} {p₁ : κ₁ → Prop} {s₁ : κ₁ → set X}
   {p₂ : κ₂ → Prop} {s₂ : κ₂ → set (α × α)} {F : ι → X → α} {x₀ : X}
   (hX : (𝓝 x₀).has_basis p₁ s₁) (hα : (𝓤 α).has_basis p₂ s₂) : equicontinuous_at F x₀ ↔
@@ -121,6 +142,16 @@ lemma filter.has_basis.equicontinuous_at_iff {κ₁ κ₂ : Type*} {p₁ : κ₁
 begin
   rw [equicontinuous_at_iff_continuous_at, continuous_at,
       hX.tendsto_iff (uniform_convergence.has_basis_nhds_of_basis ι α _ hα)],
+  refl
+end
+
+lemma filter.has_basis.uniform_equicontinuous_iff {κ₁ κ₂ : Type*} {p₁ : κ₁ → Prop}
+  {s₁ : κ₁ → set (β × β)} {p₂ : κ₂ → Prop} {s₂ : κ₂ → set (α × α)} {F : ι → β → α}
+  (hβ : (𝓤 β).has_basis p₁ s₁) (hα : (𝓤 α).has_basis p₂ s₂) : uniform_equicontinuous F ↔
+  ∀ k₂, p₂ k₂ → ∃ k₁ (_ : p₁ k₁), ∀ (xy : β × β), xy ∈ s₁ k₁ → ∀ i, (F i xy.1, F i xy.2) ∈ s₂ k₂ :=
+begin
+  rw [uniform_equicontinuous_iff_uniform_continuous, uniform_continuous,
+      hβ.tendsto_iff (uniform_convergence.has_basis_uniformity_of_basis ι α hα)],
   refl
 end
 

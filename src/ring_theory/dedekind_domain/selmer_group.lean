@@ -107,6 +107,21 @@ def valuation_of_ne_zero : Kˣ →* multiplicative ℤ :=
   (v.valuation_of_ne_zero x : ℤₘ₀) = v.valuation (x : K) :=
 valuation_of_ne_zero_to_fun_eq v x
 
+@[simp] lemma valuation_of_unit_eq (x : Rˣ) :
+  v.valuation_of_ne_zero (units.map (algebra_map R K).to_monoid_hom x) = 1 :=
+begin
+  rw [← with_zero.coe_inj, valuation_of_ne_zero_eq, units.coe_map, eq_iff_le_not_lt],
+  split,
+  { exact v.valuation_le_one x },
+  { cases x with x _ hx _,
+    change ¬v.valuation (algebra_map R K x) < 1,
+    apply_fun v.int_valuation at hx,
+    rw [map_one, map_mul] at hx,
+    rw [not_lt, ← hx, ← mul_one $ v.valuation _, valuation_of_algebra_map,
+        mul_le_mul_left₀ $ left_ne_zero_of_mul_eq_one hx],
+    exact v.int_valuation_le_one _ }
+end
+
 local attribute [semireducible] mul_opposite
 
 /-- The multiplicative `v`-adic valuation on `Kˣ/(Kˣ)ⁿ`. -/
@@ -118,6 +133,12 @@ begin
   rintro _ ⟨x, rfl⟩,
   exact ⟨v.valuation_of_ne_zero x, by simpa only [pow_monoid_hom_apply, map_pow, int.to_add_pow]⟩
 end
+
+@[simp] lemma valuation_of_unit_mod_eq (n : ℕ) (x : Rˣ) :
+  v.valuation_of_ne_zero_mod n (quotient_group.mk' _ $ units.map (algebra_map R K).to_monoid_hom x)
+    = 1 :=
+by rw [valuation_of_ne_zero_mod, monoid_hom.comp_apply, quotient_group.map_mk',
+       valuation_of_unit_eq, quotient_group.coe_one, map_one]
 
 end height_one_spectrum
 
@@ -155,6 +176,12 @@ begin
     { exact hx v hv } },
   { exact λ hx', funext $ λ v, hx' v $ set.not_mem_empty v }
 end
+
+def from_unit (n : ℕ) : Rˣ →* (K⟮(∅ : set $ height_one_spectrum R), n⟯) :=
+{ to_fun   := λ x, ⟨quotient_group.mk $ units.map (algebra_map R K).to_monoid_hom x,
+                    λ v _, v.valuation_of_unit_mod_eq n x⟩,
+  map_one' := by simpa only [map_one],
+  map_mul' := λ _ _, by simpa only [map_mul] }
 
 end selmer_group
 

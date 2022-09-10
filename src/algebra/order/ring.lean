@@ -1286,8 +1286,8 @@ instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_
 { ..d }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
-   linear_ordered_semiring α :=
+instance linear_ordered_comm_ring.to_linear_ordered_comm_semiring [d : linear_ordered_comm_ring α] :
+   linear_ordered_comm_semiring α :=
 { .. d, ..linear_ordered_ring.to_linear_ordered_semiring }
 
 section linear_ordered_comm_ring
@@ -1760,4 +1760,3 @@ instance [canonically_ordered_comm_semiring α] [nontrivial α] :
 zero_lt.pos_mul_mono_iff_mul_pos_mono.mp zero_lt.pos_mul_mono
 
 end with_bot
-#lint

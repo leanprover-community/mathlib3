@@ -77,7 +77,7 @@ class second_countable_topology_either
   second_countable_topology_either α β :=
 { out := or.inr (by apply_instance) }
 
-variables {α β γ ι : Type*} [encodable ι]
+variables {α β γ ι : Type*} [countable ι]
 namespace measure_theory
 
 local infixr ` →ₛ `:25 := simple_func
@@ -89,8 +89,8 @@ variable [topological_space β]
 def strongly_measurable [measurable_space α] (f : α → β) : Prop :=
 ∃ fs : ℕ → α →ₛ β, ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x))
 
-localized "notation `strongly_measurable[` m `]` := @measure_theory.strongly_measurable _ _ _ m"
-in measure_theory
+localized "notation (name := strongly_measurable_of)
+  `strongly_measurable[` m `]` := @measure_theory.strongly_measurable _ _ _ m" in measure_theory
 
 /-- A function is `fin_strongly_measurable` with respect to a measure if it is the limit of simple
   functions with support with finite measure. -/
@@ -1848,12 +1848,11 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine measurable_of_tendsto_metrizable (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_meas : measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
         = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
     rw [this, @measurable_swap_iff α ↥((t_sf n).range) β m],
-    exact measurable_from_prod_encodable (λ j, h j), },
+    exact measurable_from_prod_countable (λ j, h j), },
   have : (λ p : ι × α, u (t_sf n p.fst) p.snd)
     = (λ p : ↥(t_sf n).range × α, u p.fst p.snd)
       ∘ (λ p : ι × α, (⟨t_sf n p.fst, simple_func.mem_range_self _ _⟩, p.snd)) := rfl,
@@ -1880,13 +1879,12 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine strongly_measurable_of_tendsto _ (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_str_meas : strongly_measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
     { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
           = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
       rw [this, measurable_swap_iff],
-      exact measurable_from_prod_encodable (λ j, (h j).measurable), },
+      exact measurable_from_prod_countable (λ j, (h j).measurable), },
     { have : is_separable (⋃ (i : (t_sf n).range), range (u i)) :=
         is_separable_Union (λ i, (h i).is_separable_range),
       apply this.mono,

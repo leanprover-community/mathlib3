@@ -96,7 +96,7 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (ι →₀ α) :
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_add_comm_monoid (ι →₀ α) :=
 { le_of_add_le_add_left := λ f g i h s, le_of_add_le_add_left (h s),
-  d.. finsupp.ordered_add_comm_monoid }
+  .. finsupp.ordered_add_comm_monoid }
 
 instance [ordered_add_comm_monoid α] [contravariant_class α α (+) (≤)] :
   contravariant_class (ι →₀ α) (ι →₀ α) (+) (≤) :=

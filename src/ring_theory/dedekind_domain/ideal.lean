@@ -949,7 +949,7 @@ order_iso.of_hom_inv
 lemma ideal_factors_equiv_of_quot_equiv_symm :
   (ideal_factors_equiv_of_quot_equiv f).symm = ideal_factors_equiv_of_quot_equiv f.symm := rfl
 
-lemma ideal_factors_equiv_of_quot_equiv_is_dvd_iso (L M : ideal R) (hL : L ∣ I) (hM : M ∣ I) :
+lemma ideal_factors_equiv_of_quot_equiv_is_dvd_iso {L M : ideal R} (hL : L ∣ I) (hM : M ∣ I) :
   (ideal_factors_equiv_of_quot_equiv f ⟨L, hL⟩ : ideal A) ∣
     ideal_factors_equiv_of_quot_equiv f ⟨M, hM⟩  ↔ L ∣ M :=
 begin

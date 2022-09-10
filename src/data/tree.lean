@@ -91,6 +91,8 @@ inductive unit_tree
 
 namespace unit_tree
 
+instance : inhabited unit_tree := ⟨nil⟩
+
 /-- A unit tree is the same thing as `tree unit` -/
 @[simp] def to_tree : unit_tree → tree punit
 | nil := tree.nil

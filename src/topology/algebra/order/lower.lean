@@ -6,6 +6,7 @@ Authors: Christopher Hoskin
 
 import topology.basic
 import topology.order
+import topology.separation
 import data.set.intervals.basic
 import order.upper_lower
 
@@ -14,13 +15,15 @@ import order.upper_lower
 
 This file introduces the lower topology on a preorder
 
+Based on `order_topology` from topology.algebra.order.basic
+
 ## References
 
 * [Gierz et al, A Compendium of Continuous Lattices][GierzEtAl1980]
 -/
 
 universes u
-variables {α : Type u}
+variables {α β: Type u}
 
 open  set topological_space
 
@@ -98,6 +101,21 @@ begin
     rw mem_compl_iff at h1,
     rw ← not_not_mem at h,
     apply absurd h1 h.right, },
+end
+
+@[priority 90] -- see Note [lower instance priority]
+instance lower_topology.to_t0_space : t0_space α :=
+begin
+  rw t0_space_iff_inseparable,
+  intros x y h,
+  rw inseparable_iff_closure_eq at h,
+  rw singleton_closure at h,
+  rw singleton_closure at h,
+  rw subset_antisymm_iff at h,
+  rw le_antisymm_iff,
+  split,
+  { rw ← Ici_subset_Ici, apply h.2, },
+  { rw ← Ici_subset_Ici, apply h.1, }
 end
 
 end lower_topology

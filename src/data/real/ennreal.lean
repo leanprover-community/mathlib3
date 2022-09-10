@@ -1931,16 +1931,11 @@ private alias nnreal.coe_pos ↔ _ nnreal_coe_pos
 @[positivity]
 meta def positivity_coe_nnreal : expr → tactic strictness
 | `(@coe _ _ %%inst %%a) := do
-  match inst with
-  | `(@coe_to_lift _ _ %%inst) := do
-    strictness_a ← core a,
-    match inst, strictness_a with
-    | `(@coe_base _ _ nnreal.real.has_coe), positive p := positive <$> mk_app ``nnreal_coe_pos [p]
-    | `(@coe_base _ _ nnreal.real.has_coe), nonnegative p :=
-      nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
-    | _, _ := failed
-    end
-  | _  := failed
+  unify inst `(@coe_to_lift _ _ $ @coe_base _ _ nnreal.real.has_coe),
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
+  | nonnegative p := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
   end
 | _ := failed
 

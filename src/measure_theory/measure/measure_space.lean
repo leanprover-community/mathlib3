@@ -1092,14 +1092,6 @@ instance subtype.measure_space : measure_space (subtype p) :=
 
 lemma subtype.volume_def {s : set V} : (volume : measure s) = volume.comap subtype.val := rfl
 
-@[elab_as_eliminator]
-lemma generate_from_induction (p : set α → Prop) (C : set (set α))
-  (hC : ∀ t ∈ C, p t) (h_empty : p ∅) (h_compl : ∀ t, p t → p tᶜ)
-  (h_Union : ∀ f : ℕ → set α, (∀ n, p (f n)) → p (⋃ i, f i))
-  {s : set α} (hs : measurable_set[generate_from C] s) :
-  p s :=
-by { induction hs, exacts [hC _ hs_H, h_empty, h_compl _ hs_ih, h_Union hs_f hs_ih], }
-
 lemma measurable_set.null_measurable_set_subtype_image {s : set V} {t : set s}
   (hs : null_measurable_set s) (ht : measurable_set t) :
   null_measurable_set ((coe : s → V) '' t) :=

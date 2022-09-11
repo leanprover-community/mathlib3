@@ -3,9 +3,8 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import algebra.group_with_zero.power
-import algebra.ring.equiv
-import tactic.linarith
+import data.rat.cast
+import tactic.positivity
 
 /-!
 # Integer power operation on fields and division rings
@@ -52,13 +51,8 @@ end
 lemma pow_le_max_of_min_le (hx : 1 ≤ x) {a b c : ℤ} (h : min a b ≤ c) :
   x ^ (-c) ≤ max (x ^ (-a)) (x ^ (-b)) :=
 begin
-  wlog hle : a ≤ b,
-  have hnle : -b ≤ -a, from neg_le_neg hle,
-  have hfle : x ^ (-b) ≤ x ^ (-a), from zpow_le_of_le hx hnle,
-  have : x ^ (-c) ≤ x ^ (-a),
-  { apply zpow_le_of_le hx,
-    simpa only [min_eq_left hle, neg_le_neg_iff] using h },
-  simpa only [max_eq_left hfle]
+  have : antitone (λ n : ℤ, x ^ -n) := λ m n h, zpow_le_of_le hx (neg_le_neg h),
+  exact (this h).trans_eq this.map_min,
 end
 
 lemma zpow_le_one_of_nonpos (ha : 1 ≤ a) (hn : n ≤ 0) : a ^ n ≤ 1 :=
@@ -100,8 +94,7 @@ begin
   rwa [zpow_le_iff_le hx, neg_le_neg_iff] at h
 end
 
-@[simp] lemma pos_div_pow_pos (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
-div_pos ha (pow_pos hb k)
+@[simp] lemma pos_div_pow_pos (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k := by positivity
 
 @[simp] lemma div_pow_le (ha : 0 < a) (hb : 1 ≤ b) (k : ℕ) : a/b^k ≤ a :=
 (div_le_iff $ pow_pos (lt_of_lt_of_le zero_lt_one hb) k).mpr
@@ -151,3 +144,35 @@ by rw [le_iff_lt_or_eq, le_iff_lt_or_eq, zpow_bit1_neg_iff, zpow_eq_zero_iff (bi
 lt_iff_lt_of_le_iff_le zpow_bit1_nonpos_iff
 
 end linear_ordered_field
+
+namespace tactic
+open positivity
+
+private lemma zpow_zero_pos [linear_ordered_semifield α] (a : α) : 0 < a ^ (0 : ℤ) :=
+zero_lt_one.trans_le (zpow_zero a).ge
+
+/-- Extension for the `positivity` tactic: raising a number `a` to an integer power `n` is positive
+if `n = 0` (since `a ^ 0 = 1`) or if `0 < a`, and is known to be nonnegative if
+`n = 2` (squares are nonnegative) or if `0 ≤ a`. -/
+@[positivity]
+meta def positivity_zpow : expr → tactic strictness
+| `(%%a ^ %%n) := do
+  n_typ ← infer_type n,
+  unify n_typ `(ℤ),
+  if n = `(0 : ℤ) then
+    positive <$> mk_app ``zpow_zero_pos [a]
+  else positivity.orelse'
+    (do -- even powers are nonnegative
+      match n with
+      | `(bit0 %% n) := nonnegative <$> mk_app ``zpow_bit0_nonneg [a, n]
+      | _ := failed
+      end) $
+    do -- `a ^ n` is positive if `a` is, and nonnegative if `a` is
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := positive <$> mk_app ``zpow_pos_of_pos [p, n]
+      | nonnegative p := nonnegative <$> mk_app ``zpow_nonneg [p, n]
+      end
+| _ := failed
+
+end tactic

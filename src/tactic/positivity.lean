@@ -361,22 +361,21 @@ known to be positive if `n = 0` (since `a ^ 0 = 1`) or if `0 < a`, and is known 
 meta def positivity_pow : expr → tactic strictness
 | `(%%a ^ %%n) := do
   n_typ ← infer_type n,
-  match n_typ with
-  | `(ℕ) := do
-    if n = `(0) then
-      positive <$> mk_app ``pow_zero_pos [a]
-    else tactic.positivity.orelse'
-      -- squares are nonnegative (TODO: similar for any `bit0` exponent?)
-      (nonnegative <$> mk_app ``sq_nonneg [a])
-      -- moreover `a ^ n` is positive if `a` is and nonnegative if `a` is
-      (do
-        strictness_a ← core a,
-        match strictness_a with
-        | (positive pa) := positive <$> mk_app ``pow_pos [pa, n]
-        | (nonnegative pa) := nonnegative <$> mk_app ``pow_nonneg [pa, n]
-        end)
-  | _ := failed -- TODO handle integer powers, maybe even real powers
-  end
+  unify n_typ `(ℕ),
+  if n = `(0) then
+    positive <$> mk_app ``pow_zero_pos [a]
+  else positivity.orelse'
+    (do -- even powers are nonnegative
+      match n with
+      | `(bit0 %% n) := nonnegative <$> mk_app ``pow_bit0_nonneg [a, n]
+      | _ := failed
+      end) $
+    do -- `a ^ n` is positive if `a` is, and nonnegative if `a` is
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := positive <$> mk_app ``pow_pos [p, n]
+      | nonnegative p := nonnegative <$> mk_app `pow_nonneg [p, n]
+      end
 | _ := failed
 
 /-- Extension for the `positivity` tactic: an absolute value is nonnegative, and is strictly

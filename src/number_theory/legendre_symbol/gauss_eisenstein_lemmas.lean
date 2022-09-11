@@ -22,7 +22,6 @@ section wilson
 
 variables (p : ℕ) [fact p.prime]
 
--- One can probably deduce the following from `finite_field.prod_univ_units_id_eq_neg_one`
 /-- **Wilson's Lemma**: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
 @[simp] lemma wilsons_lemma : ((p - 1)! : zmod p) = -1 :=
 begin

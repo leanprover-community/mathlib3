@@ -623,8 +623,6 @@ end⟩⟩
 
 @[simp] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
 
-protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c := sorry
-
 theorem sup_lim_zero {f g : cau_seq α abs}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊔ g)
 | ε ε0 := (exists_forall_ge_and (hf _ ε0) (hg _ ε0)).imp $
@@ -632,6 +630,46 @@ theorem sup_lim_zero {f g : cau_seq α abs}
     rw abs_lt at H₁ H₂ ⊢,
     exact ⟨lt_sup_iff.mpr (or.inl H₁.1), sup_lt_iff.mpr ⟨H₁.2, H₂.2⟩⟩
   end
+
+protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c :=
+begin
+  obtain ⟨⟨εa, εa0, ia, ha⟩ | ha, ⟨εb, εb0, ib, hb⟩ | hb⟩ := ⟨ha, hb⟩,
+  { left,
+    refine ⟨εa ⊓ εb, lt_inf_iff.mpr ⟨εa0, εb0⟩, ia ⊔ ib, λ i hi, _⟩,
+    have := min_le_min (ha _ (sup_le_iff.mp hi).1) (hb _ (sup_le_iff.mp hi).2),
+    exact this.trans_eq (min_sub_sub_left (c i) (a i) (b i)) },
+  { -- right or left?
+    right,
+    intros ε ε0,
+    obtain ⟨ib, hbi⟩ := hb ε ε0,
+    refine ⟨ia ⊔ ib, λ i hi, _⟩,
+    dsimp,
+    erw ←max_sub_sub_right,
+    refine abs_max_le_max_abs_abs.trans_lt _,
+    sorry },
+  { -- right or left?
+    left,
+    obtain ⟨ia, ha'⟩ := ha _ εb0,
+    refine ⟨εb, εb0, ia ⊔ ib, λ i hi, _⟩,
+    dsimp only [sub_apply] at *,
+    erw ←min_sub_sub_left,
+    refine le_min _ (hb _ (sup_le_iff.mp hi).2),
+    have := ha' _ (sup_le_iff.mp hi).1,
+    rw [abs_lt, neg_lt] at this,
+    sorry },
+  { right,
+    intros ε ε0,
+    obtain ⟨ai, hai⟩ := ha ε ε0,
+    obtain ⟨bi, hbi⟩ := hb ε ε0,
+    refine ⟨ai ⊔ bi, λ i hi, _⟩,
+    dsimp,
+    erw ←max_sub_sub_right,
+    refine abs_max_le_max_abs_abs.trans_lt
+      (max_lt (hai i (sup_le_iff.mp hi).1) (hbi i (sup_le_iff.mp hi).2)) },
+
+end
+
+#check max_abs
 
 instance : has_inf (cau_seq α abs) := ⟨λ f g, ⟨f ⊓ g, λ ε ε0, begin
   obtain ⟨fi, hf⟩ := f.prop (ε / 2) (half_pos ε0),

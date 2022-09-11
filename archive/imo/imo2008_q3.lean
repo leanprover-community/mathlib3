@@ -66,11 +66,11 @@ begin
   have hreal₃ : (k:ℝ) ^ 2 + 4 ≥ p, { assumption_mod_cast },
 
   have hreal₅ : (k:ℝ) > 4,
-  { apply lt_of_pow_lt_pow 2 k.cast_nonneg,
+  { refine lt_of_pow_lt_pow 2 k.cast_nonneg _,
     linarith only [hreal₂, hreal₃] },
 
   have hreal₆ : (k:ℝ) > sqrt (2 * n),
-  { apply lt_of_pow_lt_pow 2 k.cast_nonneg,
+  { refine lt_of_pow_lt_pow 2 k.cast_nonneg _,
     rw sq_sqrt (mul_nonneg zero_le_two n.cast_nonneg),
     linarith only [hreal₁, hreal₃, hreal₅] },
 

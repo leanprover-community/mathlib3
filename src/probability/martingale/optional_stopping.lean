@@ -24,8 +24,7 @@ This file also contains Doob's maximal inequality: given a non-negative submarti
 
  -/
 
-open topological_space filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators
+open_locale nnreal ennreal measure_theory probability_theory
 
 namespace measure_theory
 

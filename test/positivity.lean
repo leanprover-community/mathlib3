@@ -1,5 +1,6 @@
 import algebra.order.smul
 import analysis.normed.group.basic
+import analysis.special_functions.pow
 import data.real.sqrt
 import tactic.positivity
 
@@ -7,6 +8,10 @@ import tactic.positivity
 
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
+
+open_locale ennreal nnreal
+
+universe u
 
 /- ## Numeric goals -/
 
@@ -50,7 +55,18 @@ example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14
 
 example {a : ℤ} (ha : 0 < a) : 0 < a / a := by positivity
 
+/-! ### Exponentiation -/
+
 example {a : ℕ} : 0 < a ^ 0 := by positivity
+
+example {a b : cardinal.{u}} (ha : 0 < a) : 0 < a ^ b := by positivity
+example {a b : ordinal.{u}} (ha : 0 < a) : 0 < a ^ b := by positivity
+
+example {a b : ℝ} (ha : 0 ≤ a) : 0 ≤ a ^ b := by positivity
+example {a b : ℝ} (ha : 0 < a) : 0 < a ^ b := by positivity
+example {a : ℝ≥0} {b : ℝ} (ha : 0 < a) : 0 < a ^ b := by positivity
+example {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 ≤ b) : 0 < a ^ b := by positivity
+example {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 < b) : 0 < a ^ b := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 2 + a := by positivity
 

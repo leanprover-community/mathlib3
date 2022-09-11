@@ -1185,6 +1185,11 @@ abs_le'.2 ⟨
   (min_neg_neg _ _).symm.trans_le $ min_le_max.trans $
     max_le_max (neg_le_abs_self _) (neg_le_abs_self _)⟩
 
+lemma abs_min_le_max_abs_abs : |min a b| ≤ max (|a|) (|b|) :=
+abs_le'.2 ⟨
+  (min_le_min (le_abs_self _) (le_abs_self _)).trans min_le_max,
+  (max_neg_neg _ _).symm.trans_le $ max_le_max (neg_le_abs_self _) (neg_le_abs_self _)⟩
+
 lemma eq_of_abs_sub_eq_zero {a b : α} (h : |a - b| = 0) : a = b :=
 sub_eq_zero.1 $ abs_eq_zero.1 h
 

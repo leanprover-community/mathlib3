@@ -336,6 +336,13 @@ begin
   exact neg_lim_zero hf,
 end
 
+lemma sub_equiv_sub {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
+  f1 - g1 ≈ f2 - g2 :=
+begin
+  rw [sub_eq_add_neg, sub_eq_add_neg],
+  exact add_equiv_add hf (neg_equiv_neg hg),
+end
+
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
 (exists_forall_ge_and (h _ $ half_pos ε0) (f.cauchy₃ $ half_pos ε0)).imp $
@@ -416,6 +423,11 @@ variables {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf
+
+lemma mul_equiv_mul {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
+  f1 * g1 ≈ f2 * g2 :=
+by simpa [(≈), setoid.r, mul_add, mul_comm, add_assoc, sub_eq_add_neg]
+  using add_lim_zero (mul_lim_zero_right g1 hf) (mul_lim_zero_right f2 hg)
 
 end comm_ring
 

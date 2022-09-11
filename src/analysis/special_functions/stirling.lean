@@ -115,7 +115,7 @@ begin
     ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ,
   { refine λ k, mul_le_of_le_one_left (pow_nonneg h_nonneg k.succ) _,
     rw one_div,
-    exact inv_le_one (le_add_of_nonneg_left (mul_pos two_pos (cast_pos.mpr k.succ_pos)).le) },
+    exact inv_le_one (le_add_of_nonneg_left $ mul_nonneg (by positivity) $ cast_nonneg _) },
   exact has_sum_le hab (log_stirling_seq_diff_has_sum n) g,
 end
 
@@ -163,7 +163,7 @@ begin
     rw ← sum_range_sub' log_stirling_seq' n
   ... ≤ ∑ k in range n, (1/4) * (1 / k.succ^2) : sum_le_sum (λ k _, h₁ k)
   ... = 1 / 4 * ∑ k in range n, 1 / k.succ ^ 2 : by rw mul_sum
-  ... ≤ 1 / 4 * d : (mul_le_mul_left (one_div_pos.mpr four_pos)).mpr h₂,
+  ... ≤ 1 / 4 * d : mul_le_mul_of_nonneg_left h₂ $ by positivity,
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/

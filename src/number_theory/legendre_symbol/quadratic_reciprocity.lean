@@ -14,6 +14,9 @@ We define the Legendre symbol `(a / p)` as `legendre_sym p a`.
 Note the order of arguments! The advantage of this form is that then `legendre_sym p`
 is a multiplicative map.
 
+The Legendre symbol is used to define the Jacobi symbol, `jacobi_sym a b`, for integers `a`
+and (odd) natural numbers `b`, which extends the Legendre symbol.
+
 ## Main results
 
 We prove the law of quadratic reciprocity, see `legendre_sym_quadratic_reciprocity` and
@@ -194,6 +197,8 @@ section values
 
 /-!
 ### The value of the Legendre symbol at `-1`
+
+See `jacobi_symbol_neg_one` for the corresponding statement for the Jacobi symbol.
 -/
 
 variables {p : ℕ} [fact p.prime]
@@ -230,6 +235,9 @@ end zmod
 
 /-!
 ### The value of the Legendre symbol at `2` and `-2`
+
+See `jacobi_symbol_two` and `jacobi_symbol_neg_two` for the corresponding statements
+for the Jacobi symbol.
 -/
 
 variables (hp : p ≠ 2)
@@ -275,6 +283,9 @@ section reciprocity
 
 /-!
 ### The Law of Quadratic Reciprocity
+
+See `jacobi_sym_quadratic_reciprocity` and variants for a version of Quadratic Reciprocity
+for the Jacobi symbol.
 -/
 
 variables {p q : ℕ} [fact p.prime] [fact q.prime]

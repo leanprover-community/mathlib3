@@ -38,7 +38,7 @@ section
 open uniform_space filter
 open_locale uniformity topological_space
 
-variables {ι X Y Z α β γ : Type*} [topological_space X] [topological_space Y]
+variables {ι κ X Y Z α β γ : Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [uniform_space α] [uniform_space β] [uniform_space γ]
 
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
@@ -91,6 +91,18 @@ lemma uniform_equicontinuous.uniform_continuous {F : ι → β → α} (h : unif
 protected lemma set.uniform_equicontinuous.uniform_continuous_of_mem {H : set $ β → α}
   (h : H.uniform_equicontinuous) {f : β → α} (hf : f ∈ H) : uniform_continuous f :=
 h.uniform_continuous ⟨f, hf⟩
+
+lemma equicontinuous_at.comp {F : ι → X → α} {x₀ : X} (h : equicontinuous_at F x₀) (u : κ → ι) :
+  equicontinuous_at (F ∘ u) x₀ :=
+λ U hU, (h U hU).mono (λ x H k, H (u k))
+
+lemma equicontinuous.comp {F : ι → X → α} (h : equicontinuous F) (u : κ → ι) :
+  equicontinuous (F ∘ u) :=
+λ x, (h x).comp u
+
+lemma uniform_equicontinuous.comp {F : ι → β → α} (h : uniform_equicontinuous F) (u : κ → ι) :
+  uniform_equicontinuous (F ∘ u) :=
+λ U hU, (h U hU).mono (λ x H k, H (u k))
 
 section
 
@@ -147,6 +159,32 @@ begin
   rw [uniform_equicontinuous_iff_uniform_continuous, uniform_continuous,
       hβ.tendsto_iff (uniform_convergence.has_basis_uniformity_of_basis ι α hα)],
   refl
+end
+
+lemma uniform_inducing.equicontinuous_at_iff {F : ι → X → α} {x₀ : X} {u : α → β}
+  (hu : uniform_inducing u) :
+  equicontinuous_at F x₀ ↔ equicontinuous_at (((∘) u) ∘ F) x₀ :=
+begin
+  have := (uniform_convergence.postcomp_uniform_inducing hu).inducing,
+  rw [equicontinuous_at_iff_continuous_at, equicontinuous_at_iff_continuous_at,
+      this.continuous_at_iff]
+end
+
+lemma uniform_inducing.equicontinuous_iff {F : ι → X → α} {u : α → β}
+  (hu : uniform_inducing u) :
+  equicontinuous F ↔ equicontinuous (((∘) u) ∘ F) :=
+begin
+  congrm (∀ x, (_ : Prop)),
+  rw hu.equicontinuous_at_iff
+end
+
+lemma uniform_inducing.uniform_equicontinuous_iff {F : ι → β → α} {u : α → γ}
+  (hu : uniform_inducing u) :
+  uniform_equicontinuous F ↔ uniform_equicontinuous (((∘) u) ∘ F) :=
+begin
+  have := uniform_convergence.postcomp_uniform_inducing hu,
+  rw [uniform_equicontinuous_iff_uniform_continuous, uniform_equicontinuous_iff_uniform_continuous,
+      this.uniform_continuous_iff]
 end
 
 end

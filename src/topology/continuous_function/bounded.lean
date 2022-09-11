@@ -18,7 +18,7 @@ the uniform distance.
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal
+open_locale topological_space classical nnreal uniformity
 
 open set filter metric function
 
@@ -412,10 +412,10 @@ and several useful variations around it. -/
 theorem arzela_ascoli₁ [compact_space β]
   (A : set (α →ᵇ β))
   (closed : is_closed A)
-  (H : ∀ (x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact A :=
 begin
+  simp_rw [equicontinuous, metric.equicontinuous_at_iff_right'] at H,
   refine compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
   rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,
@@ -432,7 +432,7 @@ begin
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
           ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
-      ⟨V, xV, openV, λy hy z hz f hf, hU y (VU hy) z (VU hz) f hf⟩,
+      ⟨V, xV, openV, λy hy z hz f hf, hU y (VU hy) z (VU hz) ⟨f, hf⟩⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A
   fluctuate by at most ε₂.
@@ -476,8 +476,7 @@ theorem arzela_ascoli₂
   (A : set (α →ᵇ β))
   (closed : is_closed A)
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact A :=
 /- This version is deduced from the previous one by restricting to the compact type in the target,
 using compactness there and then lifting everything to the original space. -/
@@ -487,10 +486,9 @@ begin
   refine compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
-    refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
-      (λ x ε ε0, bex.imp_right (λ U U_nhds hU y hy z hz f hf, _) (H x ε ε0)),
-    calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
-                        ... < ε : hU y hy z hz (F f) hf },
+    refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed) _,
+    rw uniform_embedding_subtype_coe.to_uniform_inducing.equicontinuous_iff,
+    exact H.comp (A.restrict_preimage F) },
   { let g := cod_restrict s f (λx, in_s f x hf),
     rw [show f = F g, by ext; refl] at hf ⊢,
     exact ⟨g, hf, rfl⟩ }
@@ -502,8 +500,7 @@ theorem arzela_ascoli [t2_space β]
   (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact (closure A) :=
 /- This version is deduced from the previous one by checking that the closure of A, in
 addition to being closed, still satisfies the properties of compact range and equicontinuity -/
@@ -511,18 +508,30 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ f x hf, (mem_of_closed' hs.is_closed).2 $ λ ε ε0,
     let ⟨g, gA, dist_fg⟩ := metric.mem_closure_iff.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
-  (λ x ε ε0, show ∃ U ∈ 𝓝 x,
-      ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
-    begin
-      refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
-      rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
-      replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
-      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
-        dist_triangle4_right _ _ _ _
-          ... < ε/2/2 + ε/2/2 + ε/2 :
-            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
-          ... = ε : by rw [add_halves, add_halves]
-    end)
+  begin
+    --intros x U hU,
+    --have : ∃ V ∈ 𝓤 β, V ○ V ○ V ⊆ U := sorry,
+    --rcases this with ⟨V, hV, hVU⟩,
+    --filter_upwards [H x V hV],
+    --rintros y hy ⟨i, hi⟩,
+    --have := uniform_space.mem_closure_iff_ball.mp hi,
+    sorry,
+    --sorry,
+    --simp_rw [equicontinuous, metric.equicontinuous_at_iff_right', forall_subtype] at *,
+    --intros x ε ε0,
+  end
+--  (λ x ε ε0, show ∃ U ∈ 𝓝 x,
+--      ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
+--    begin
+--      refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
+--      rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
+--      replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
+--      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
+--        dist_triangle4_right _ _ _ _
+--          ... < ε/2/2 + ε/2/2 + ε/2 :
+--            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
+--          ... = ε : by rw [add_halves, add_halves]
+--    end)
 
 /- To apply the previous theorems, one needs to check the equicontinuity. An important
 instance is when the source space is a metric space, and there is a fixed modulus of continuity

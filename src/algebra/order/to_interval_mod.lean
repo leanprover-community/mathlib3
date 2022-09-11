@@ -430,8 +430,6 @@ section linear_ordered_field
 
 variables {α : Type*} [linear_ordered_field α] [floor_ring α]
 
-local attribute [instance] floor_ring.archimedean
-
 lemma to_Ico_div_eq_neg_floor (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_div a hb x = -⌊(x - a) / b⌋ :=
 begin

@@ -73,3 +73,11 @@ begin
   success_if_fail_with_msg {remove_subs! at *} "Try this: remove_subs! at h",
   remove_subs! at h,
 end
+
+/-
+https://leanprover.zulipchat.com/#narrow/stream/ --merge the next line with this!
+217875-Is-there-code-for-X.3F/topic/.E2.9C.94.20converse.20of.20.60nat.2Esub_le_sub_left.60
+-/
+example {n m k : ℕ} (hm : m ≤ k) (hn : n ≤ k) (h : k - m ≤ k - n) : n ≤ m := by remove_subs! at h
+
+example {n m : ℕ} (k) (h : n ≤ m) : k - m ≤ k - n := by remove_subs!

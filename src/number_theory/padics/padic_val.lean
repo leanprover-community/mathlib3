@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 import algebra.order.absolute_value
-import algebra.field_power
-import ring_theory.int.basic
-import tactic.basic
-import tactic.ring_exp
 import number_theory.divisors
+import ring_theory.int.basic
+import tactic.ring_exp
 
 /-!
 # p-adic Valuation

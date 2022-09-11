@@ -1115,7 +1115,7 @@ end
 lemma subtype.volume_univ {s : set V} (hs : null_measurable_set s) :
   volume (univ : set s) = volume s :=
 begin
-  rw [subtype.volume_def, comap_apply₀ _ _ _ _ measurable_set.univ],
+  rw [subtype.volume_def, comap_apply₀ _ _ _ _ measurable_set.univ.null_measurable_set],
   { congr, simp only [subtype.val_eq_coe, image_univ, subtype.range_coe_subtype, set_of_mem_eq], },
   { exact subtype.coe_injective, },
   { exact λ t, measurable_set.null_measurable_set_subtype_image hs, },

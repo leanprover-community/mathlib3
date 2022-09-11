@@ -6,8 +6,21 @@ Authors: Kexing Ying
 
 import probability.martingale.basic
 
-/-! # Optional stopping theorem
+/-! # Optional stopping theorem (fair game theorem)
 
+The optional stopping theorem states that an adapted integrable process `f` is a submartingale if
+and only if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
+stopped value of `f` at `τ` has expectation smaller than its stopped value at `π`.
+
+This file also contains Doob's maximal inequality: given a non-negative submartingale `f`, for all
+`ε : ℝ≥0`, we have `ε • μ {ε ≤ f* n} ≤ ∫ ω in {ε ≤ f* n}, f n` where `f* n ω = max_{k ≤ n}, f k ω`.
+
+### Main results
+
+* `measure_theory.submartingale_iff_expected_stopped_value_mono`: the optional stopping theorem.
+* `measure_theory.submartingale.stopped_process`: the stopped process of a submartingale with
+  respect to a stopping time is a submartingale.
+* `measure_theory.maximal_ineq`: Doob's maximal inequality.
 
  -/
 
@@ -16,13 +29,8 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
-variables {Ω E : Type*}
-  {m0 : measurable_space Ω} {μ : measure Ω}
-  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
-  {f g : ℕ → Ω → E} {𝒢 : filtration ℕ m0}
-
-
-namespace submartingale
+variables {Ω : Type*} {m0 : measurable_space Ω} {μ : measure Ω} {𝒢 : filtration ℕ m0}
+  {f : ℕ → Ω → ℝ} {τ π : Ω → ℕ}
 
 -- We may generalize the below lemma to functions taking value in a `normed_lattice_add_comm_group`.
 -- Similarly, generalize `(super/)submartingale.set_integral_le`.
@@ -30,9 +38,8 @@ namespace submartingale
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 expectation of `stopped_value f τ` is less than or equal to the expectation of `stopped_value f π`.
 This is the forward direction of the optional stopping theorem. -/
-lemma expected_stopped_value_mono [sigma_finite_filtration μ 𝒢]
-  {f : ℕ → Ω → ℝ} (hf : submartingale f 𝒢 μ) {τ π : Ω → ℕ}
-  (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
+lemma submartingale.expected_stopped_value_mono [sigma_finite_filtration μ 𝒢]
+  (hf : submartingale f 𝒢 μ) (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
   {N : ℕ} (hbdd : ∀ ω, π ω ≤ N) :
   μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
 begin
@@ -57,13 +64,11 @@ begin
   { exact hf.integrable_stopped_value hτ (λ ω, le_trans (hle ω) (hbdd ω)) }
 end
 
-end submartingale
-
 /-- The converse direction of the optional stopping theorem, i.e. an adapted integrable process `f`
 is a submartingale if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 stopped value of `f` at `τ` has expectation smaller than its stopped value at `π`. -/
 lemma submartingale_of_expected_stopped_value_mono [is_finite_measure μ]
-  {f : ℕ → Ω → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
   (hf : ∀ τ π : Ω → ℕ, is_stopping_time 𝒢 τ → is_stopping_time 𝒢 π → τ ≤ π → (∃ N, ∀ ω, π ω ≤ N) →
     μ[stopped_value f τ] ≤ μ[stopped_value f π]) :
   submartingale f 𝒢 μ :=
@@ -83,7 +88,7 @@ end
 is a submartingale if and only if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 stopped value of `f` at `τ` has expectation smaller than its stopped value at `π`. -/
 lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
-  {f : ℕ → Ω → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ) :
+  (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ) :
   submartingale f 𝒢 μ ↔
   ∀ τ π : Ω → ℕ, is_stopping_time 𝒢 τ → is_stopping_time 𝒢 π → τ ≤ π → (∃ N, ∀ x, π x ≤ N) →
     μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
@@ -93,7 +98,7 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 /-- The stopped process of a submartingale with respect to a stopping time is a submartingale. -/
 @[protected]
 lemma submartingale.stopped_process [is_finite_measure μ]
-  {f : ℕ → Ω → ℝ} (h : submartingale f 𝒢 μ) {τ : Ω → ℕ} (hτ : is_stopping_time 𝒢 τ) :
+  (h : submartingale f 𝒢 μ) (hτ : is_stopping_time 𝒢 τ) :
   submartingale (stopped_process f τ) 𝒢 μ :=
 begin
   rw submartingale_iff_expected_stopped_value_mono,
@@ -112,7 +117,7 @@ section maximal
 open finset
 
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]
-  {f : ℕ → Ω → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
+  (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)} ≤
   ennreal.of_real (∫ ω in {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)},
     stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) ω ∂μ) :=
@@ -143,7 +148,7 @@ we have `ε • μ {ε ≤ f* n} ≤ ∫ ω in {ε ≤ f* n}, f n` where `f* n �
 In some literature, the Doob's maximal inequality refers to what we call Doob's Lp inequality
 (which is a corollary of this lemma and will be proved in an upcomming PR). -/
 lemma maximal_ineq [is_finite_measure μ]
-  {f : ℕ → Ω → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
+  (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)} ≤
   ennreal.of_real (∫ ω in {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)},
     f n ω ∂μ) :=

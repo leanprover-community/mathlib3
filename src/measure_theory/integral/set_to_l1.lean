@@ -604,9 +604,8 @@ calc ∥f.set_to_simple_func T∥
     refine finset.sum_le_sum (λ b hb, _),
     by_cases hb : ∥b∥ = 0,
     { rw hb, simp, },
-    refine (mul_le_mul_right _).mpr _, swap, -- remove swap or inline the second subcase
-    { exact hT_norm _ (simple_func.measurable_set_fiber _ _), },
-    { exact lt_of_le_of_ne (norm_nonneg _) (ne.symm hb), },
+    exact (mul_le_mul_right (lt_of_le_of_ne (norm_nonneg _) (ne.symm hb))).mpr
+      (hT_norm _ (simple_func.measurable_set_fiber _ _)),
   end
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
 
@@ -621,11 +620,10 @@ calc ∥f.set_to_simple_func T∥
     refine finset.sum_le_sum (λ b hb, _),
     by_cases hb : ∥b∥ = 0,
     { rw hb, simp, },
-    refine (mul_le_mul_right _).mpr _, swap, -- remove swap or inline the second subcase
-    { refine hT_norm _ (simple_func.measurable_set_fiber _ _)
-        (simple_func.measure_preimage_lt_top_of_integrable _ hf _),
-      rwa norm_eq_zero at hb, },
-    { exact lt_of_le_of_ne (norm_nonneg _) (ne.symm hb), },
+    refine (mul_le_mul_right (lt_of_le_of_ne (norm_nonneg _) (ne.symm hb))).mpr
+      (hT_norm _ (simple_func.measurable_set_fiber _ _)
+        (simple_func.measure_preimage_lt_top_of_integrable _ hf _)),
+    rwa norm_eq_zero at hb,
   end
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
 

@@ -26,7 +26,7 @@ variables (R : α → β → Prop) (S : γ → δ → Prop)
 def lift_fun (f : α → γ) (g : β → δ) : Prop :=
 ∀⦃a b⦄, R a b → S (f a) (g b)
 
-infixr ⇒ := lift_fun
+infixr ` ⇒ ` := lift_fun
 
 end
 

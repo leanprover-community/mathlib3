@@ -414,6 +414,24 @@ lemma tsum_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
   ∑' (x : s), f x = ∑' (x : t), f x :=
 by rw h
 
+lemma tsum_zero' (hz : is_closed ({0} : set α)) : ∑' b : β, (0 : α) = 0 :=
+begin
+  classical,
+  rw [tsum, dif_pos summable_zero],
+  suffices : ∀ (x : α), has_sum (λ (b : β), (0 : α)) x → x = 0,
+  { exact this _ (classical.some_spec _) },
+  intros x hx,
+  contrapose! hx,
+  simp only [has_sum, tendsto_nhds, finset.sum_const_zero, filter.mem_at_top_sets, ge_iff_le,
+              finset.le_eq_subset, set.mem_preimage, not_forall, not_exists, exists_prop,
+              exists_and_distrib_right],
+  refine ⟨{0}ᶜ, ⟨is_open_compl_iff.mpr hz, _⟩, λ y, ⟨⟨y, subset_refl _⟩, _⟩⟩,
+  { simpa using hx },
+  { simp }
+end
+
+@[simp] lemma tsum_zero [t1_space α] : ∑' b : β, (0 : α) = 0 := tsum_zero' is_closed_singleton
+
 variables [t2_space α] {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum.tsum_eq (ha : has_sum f a) : ∑'b, f b = a :=
@@ -421,8 +439,6 @@ lemma has_sum.tsum_eq (ha : has_sum f a) : ∑'b, f b = a :=
 
 lemma summable.has_sum_iff (h : summable f) : has_sum f a ↔ ∑'b, f b = a :=
 iff.intro has_sum.tsum_eq (assume eq, eq ▸ h.has_sum)
-
-@[simp] lemma tsum_zero : ∑'b:β, (0:α) = 0 := has_sum_zero.tsum_eq
 
 @[simp] lemma tsum_empty [is_empty β] : ∑'b, f b = 0 := has_sum_empty.tsum_eq
 
@@ -558,8 +574,9 @@ end
 
 end has_continuous_star
 
-section encodable
 open encodable
+
+section encodable
 variable [encodable γ]
 
 /-- You can compute a sum over an encodably type by summing over the natural numbers and
@@ -591,25 +608,29 @@ theorem tsum_Union_decode₂ (m : set β → α) (m0 : m ∅ = 0)
   (s : γ → set β) : ∑' i, m (⋃ b ∈ decode₂ γ i, s b) = ∑' b, m (s b) :=
 tsum_supr_decode₂ m m0 s
 
+end encodable
+
 /-! Some properties about measure-like functions.
   These could also be functions defined on complete sublattices of sets, with the property
   that they are countably sub-additive.
   `R` will probably be instantiated with `(≤)` in all applications.
 -/
 
-/-- If a function is countably sub-additive then it is sub-additive on encodable types -/
+section countable
+variables [countable γ]
+
+/-- If a function is countably sub-additive then it is sub-additive on countable types -/
 theorem rel_supr_tsum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ∑' i, m (s i))
   (s : γ → β) : R (m (⨆ b : γ, s b)) ∑' b : γ, m (s b) :=
-by { rw [← supr_decode₂, ← tsum_supr_decode₂ _ m0 s], exact m_supr _ }
+by { casesI nonempty_encodable γ, rw [←supr_decode₂, ←tsum_supr_decode₂ _ m0 s], exact m_supr _ }
 
 /-- If a function is countably sub-additive then it is sub-additive on finite sets -/
 theorem rel_supr_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) (∑' i, m (s i)))
   (s : δ → β) (t : finset δ) :
   R (m (⨆ d ∈ t, s d)) (∑ d in t, m (s d)) :=
-by { cases t.nonempty_encodable, rw [supr_subtype'], convert rel_supr_tsum m m0 R m_supr _,
-     rw [← finset.tsum_subtype], assumption }
+by { rw [supr_subtype', ←finset.tsum_subtype], exact rel_supr_tsum m m0 R m_supr _ }
 
 /-- If a function is countably sub-additive then it is binary sub-additive -/
 theorem rel_sup_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
@@ -621,7 +642,7 @@ begin
   { rw [tsum_fintype, fintype.sum_bool, cond, cond] }
 end
 
-end encodable
+end countable
 
 variables [has_continuous_add α]
 
@@ -1322,7 +1343,7 @@ lemma summable.vanishing (hf : summable f) ⦃e : set G⦄ (he : e ∈ 𝓝 (0 :
   ∃ s : finset α, ∀ t, disjoint t s → ∑ k in t, f k ∈ e :=
 begin
   letI : uniform_space G := topological_add_group.to_uniform_space G,
-  letI : uniform_add_group G := topological_add_group_is_uniform,
+  letI : uniform_add_group G := topological_add_comm_group_is_uniform,
   rcases hf with ⟨y, hy⟩,
   exact cauchy_seq_finset_iff_vanishing.1 hy.cauchy_seq e he
 end

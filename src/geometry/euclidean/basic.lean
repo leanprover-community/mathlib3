@@ -394,7 +394,7 @@ include V
 notation. -/
 def angle (p1 p2 p3 : P) : ℝ := angle (p1 -ᵥ p2 : V) (p3 -ᵥ p2)
 
-localized "notation `∠` := euclidean_geometry.angle" in euclidean_geometry
+localized "notation (name := angle) `∠` := euclidean_geometry.angle" in euclidean_geometry
 
 lemma continuous_at_angle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
   continuous_at (λ y : P × P × P, ∠ y.1 y.2.1 y.2.2) x :=
@@ -406,6 +406,11 @@ begin
     ((continuous_fst.vsub continuous_snd.fst).prod_mk
       (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
 end
+
+@[simp] lemma _root_.affine_isometry.angle_map {V₂ P₂ : Type*} [inner_product_space ℝ V₂]
+  [metric_space P₂] [normed_add_torsor V₂ P₂] (f : P →ᵃⁱ[ℝ] P₂) (p₁ p₂ p₃ : P) :
+  ∠ (f p₁) (f p₂) (f p₃) = ∠ p₁ p₂ p₃ :=
+by simp_rw [angle, ←affine_isometry.map_vsub, linear_isometry.angle_map]
 
 /-- The angle at a point does not depend on the order of the other two
 points. -/
@@ -782,6 +787,8 @@ lemma orthogonal_projection_fn_vsub_mem_direction_orthogonal {s : affine_subspac
   orthogonal_projection_fn s p -ᵥ p ∈ s.directionᗮ :=
 direction_mk' p s.directionᗮ ▸
   vsub_mem_direction (orthogonal_projection_fn_mem_orthogonal p) (self_mem_mk' _ _)
+
+local attribute [instance] affine_subspace.to_add_torsor
 
 /-- The orthogonal projection of a point onto a nonempty affine
 subspace, whose direction is complete. The corresponding linear map

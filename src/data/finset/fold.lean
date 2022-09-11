@@ -18,7 +18,7 @@ variables {α β γ : Type*}
 /-! ### fold -/
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
-local notation a * b := op a b
+local notation (name := op) a ` * ` b := op a b
 include hc ha
 
 /-- `fold op b f s` folds the commutative associative operation `op` over the
@@ -229,6 +229,11 @@ end
 
 lemma lt_fold_max : c < s.fold max b f ↔ (c < b ∨ ∃ x∈s, c < f x) :=
 fold_op_rel_iff_or $ λ x y z, lt_max_iff
+
+lemma fold_max_add [has_add β] [covariant_class β β (function.swap (+)) (≤)]
+ (n : with_bot β) (s : finset α) :
+  s.fold max ⊥ (λ (x : α), ↑(f x) + n) = s.fold max ⊥ (coe ∘ f) + n :=
+by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
 
 end order
 

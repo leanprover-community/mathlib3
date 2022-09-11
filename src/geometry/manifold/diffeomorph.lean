@@ -46,10 +46,10 @@ diffeomorphism, manifold
 open_locale manifold topological_space
 open function set
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {H : Type*} [topological_space H]
 {H' : Type*} [topological_space H']
 {G : Type*} [topological_space G]
@@ -61,7 +61,7 @@ variables {M : Type*} [topological_space M] [charted_space H M]
 {M' : Type*} [topological_space M'] [charted_space H' M']
 {N : Type*} [topological_space N] [charted_space G N]
 {N' : Type*} [topological_space N'] [charted_space G' N']
-{n : with_top ℕ}
+{n : ℕ∞}
 
 section defs
 
@@ -70,18 +70,20 @@ variables (I I' M M' n)
 /--
 `n`-times continuously differentiable diffeomorphism between `M` and `M'` with respect to I and I'
 -/
-@[protect_proj, nolint has_inhabited_instance]
+@[protect_proj, nolint has_nonempty_instance]
 structure diffeomorph extends M ≃ M' :=
 (cont_mdiff_to_fun  : cont_mdiff I I' n to_equiv)
 (cont_mdiff_inv_fun : cont_mdiff I' I n to_equiv.symm)
 
 end defs
 
-localized "notation M ` ≃ₘ^` n:1000 `⟮`:50 I `,` J `⟯ ` N := diffeomorph I J M N n" in manifold
-localized "notation M ` ≃ₘ⟮` I `,` J `⟯ ` N := diffeomorph I J M N ⊤" in manifold
-localized "notation E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' :=
+localized "notation (name := diffeomorph) M ` ≃ₘ^` n:1000 `⟮`:50 I `, ` J `⟯ ` N :=
+  diffeomorph I J M N n" in manifold
+localized "notation (name := diffeomorph.top) M ` ≃ₘ⟮` I `, ` J `⟯ ` N :=
+  diffeomorph I J M N ⊤" in manifold
+localized "notation (name := diffeomorph.self) E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' :=
   diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' n" in manifold
-localized "notation E ` ≃ₘ[` 𝕜 `] ` E' :=
+localized "notation (name := diffeomorph.self.top) E ` ≃ₘ[` 𝕜 `] ` E' :=
   diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' ⊤" in manifold
 
 namespace diffeomorph

@@ -97,9 +97,11 @@ if h : (mul_support (f ∘ plift.down)).finite then ∏ i in h.to_finset, f i.do
 
 end
 
-localized "notation `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r" in big_operators
+localized "notation (name := finsum)
+  `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r" in big_operators
 
-localized "notation `∏ᶠ` binders `, ` r:(scoped:67 f, finprod f) := r" in big_operators
+localized "notation (name := finprod)
+  `∏ᶠ` binders `, ` r:(scoped:67 f, finprod f) := r" in big_operators
 
 @[to_additive] lemma finprod_eq_prod_plift_of_mul_support_to_finset_subset
   {f : α → M} (hf : (mul_support (f ∘ plift.down)).finite) {s : finset (plift α)}
@@ -776,10 +778,11 @@ finprod_mem_mul_diff' hst (ht.inter_of_left _)
 @[to_additive "Given a family of pairwise disjoint finite sets `t i` indexed by a finite type, the
 sum of `f a` over the union `⋃ i, t i` is equal to the sum over all indexes `i` of the sums of `f a`
 over `a ∈ t i`."]
-lemma finprod_mem_Union [fintype ι] {t : ι → set α} (h : pairwise (disjoint on t))
+lemma finprod_mem_Union [finite ι] {t : ι → set α} (h : pairwise (disjoint on t))
   (ht : ∀ i, (t i).finite) :
   ∏ᶠ a ∈ (⋃ i : ι, t i), f a = ∏ᶠ i, ∏ᶠ a ∈ t i, f a :=
 begin
+  casesI nonempty_fintype ι,
   lift t to ι → finset α using ht,
   classical,
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,

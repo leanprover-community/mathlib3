@@ -62,20 +62,20 @@ theorem well_founded_iff_no_descending_seq :
 end rel_embedding
 
 namespace nat
-variables (s : set ℕ) [decidable_pred (∈ s)] [infinite s]
+variables (s : set ℕ) [infinite s]
 
 /-- An order embedding from `ℕ` to itself with a specified range -/
-def order_embedding_of_set : ℕ ↪o ℕ :=
+def order_embedding_of_set [decidable_pred (∈ s)] : ℕ ↪o ℕ :=
 (rel_embedding.order_embedding_of_lt_embedding
   (rel_embedding.nat_lt (nat.subtype.of_nat s) (λ n, nat.subtype.lt_succ_self _))).trans
   (order_embedding.subtype s)
 
-/-- `nat.subtype.of_nat` as an order isomorphism between `ℕ` and an infinite decidable subset.
-See also `nat.nth` for a version where the subset may be finite. -/
+/-- `nat.subtype.of_nat` as an order isomorphism between `ℕ` and an infinite subset. See also
+`nat.nth` for a version where the subset may be finite. -/
 noncomputable def subtype.order_iso_of_nat : ℕ ≃o s :=
-rel_iso.of_surjective (rel_embedding.order_embedding_of_lt_embedding
+by { classical, exact rel_iso.of_surjective (rel_embedding.order_embedding_of_lt_embedding
   (rel_embedding.nat_lt (nat.subtype.of_nat s) (λ n, nat.subtype.lt_succ_self _)))
-  nat.subtype.of_nat_surjective
+  nat.subtype.of_nat_surjective }
 
 variable {s}
 
@@ -148,7 +148,7 @@ theorem exists_increasing_or_nonincreasing_subseq (r : α → α → Prop) [is_t
 begin
   obtain ⟨g, hr | hnr⟩ := exists_increasing_or_nonincreasing_subseq' r f,
   { refine ⟨g, or.intro_left _ (λ m n mn, _)⟩,
-    obtain ⟨x, rfl⟩ := le_iff_exists_add.1 (nat.succ_le_iff.2 mn),
+    obtain ⟨x, rfl⟩ := exists_add_of_le (nat.succ_le_iff.2 mn),
     induction x with x ih,
     { apply hr },
     { apply is_trans.trans _ _ _ _ (hr _),

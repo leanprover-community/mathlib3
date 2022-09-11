@@ -299,11 +299,8 @@ begin
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
                                   : by { rw variance npos, ring, }
         ... ≤ (2 * ∥f∥) * δ^(-2 : ℤ) / n
-                                  : (div_le_div_right npos).mpr
-                                    begin
-                                      apply mul_nonneg_le_one_le w₂,
-                                      apply mul_nonneg_le_one_le w₂ le_rfl,
-                                      all_goals { unit_interval, },
-                                    end
+                                  : (div_le_div_right npos).mpr $
+                                    by { rw [mul_assoc], refine mul_le_of_le_one_right w₂
+                                                          (mul_le_one _ _ _); unit_interval, }
         ... < ε/2 : nh, }
 end

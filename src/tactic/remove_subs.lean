@@ -53,8 +53,7 @@ meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
 | `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one %%a) >>= rw_at lo,
                            ga ← get_sub a,
                            return ((a, `(1)) :: ga)
-| (expr.app f a)     := local_constants_last <$>
-                          ((++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure []))
+| (expr.app f a)     := ((++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure []))
 | _                  := pure []
 
 /--  `remove_one_sub lo a b` assumes that the expression `a - b` occurs in hypothesis `lo`.

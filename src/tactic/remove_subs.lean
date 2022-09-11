@@ -36,13 +36,6 @@ meta def rw_at : option name → expr → tactic unit
 | none      lem := rewrite_target lem
 | (some na) lem := get_local na >>= rewrite_hyp lem >> skip
 
-/--  Given a list `l` of pairs of expressions, `local_constants_last l` reorders the list `l`
-so that all pairs `(a,b) ∈ l` with `a` a local constant appear last.  This is used in `get_sub`
-so that the replacement of the `ℕ`-subtractions begins with subtractions where an old term
-can be substituted, rather than simply rewritten. -/
-meta def local_constants_last (l : list (expr × expr)) : list (expr × expr) :=
-let (csts, not_csts) := l.partition (λ e : expr × expr, e.1.is_local_constant) in not_csts ++ csts
-
 /--  `get_sub lo e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
 subexpression of `e`.  It also takes argument `lo`, informing it that
 * the initial input `e` is hypothesis `lo` and rewrites it to reduce the number of `ℕ`-subtractions,
@@ -53,13 +46,13 @@ meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
 | `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
                            to_expr ``(nat.sub_sub %%a %%b %%c) >>= rw_at lo,
                            [ga, gb, gc] ← [a, b, c].mmap get_sub,
-                           return $ local_constants_last ((a, bc) :: (ga ++ gb ++ gc))
+                           return ((a, bc) :: (ga ++ gb ++ gc))
 | `(%%a - %%b)       := do infer_type a >>= is_def_eq `(ℕ),
                            [ga, gb] ← [a, b].mmap get_sub,
-                           return $ local_constants_last ((a, b) :: (ga ++ gb))
+                           return ((a, b) :: (ga ++ gb))
 | `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one %%a) >>= rw_at lo,
                            ga ← get_sub a,
-                           return $ local_constants_last ((a, `(1)) :: ga)
+                           return ((a, `(1)) :: ga)
 | (expr.app f a)     := local_constants_last <$>
                           ((++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure []))
 | _                  := pure []
@@ -99,12 +92,18 @@ meta def repeat_at_least : ℕ → tactic unit → tactic unit
 `lo`.  The input `la` is used to know if `linarith` should be called at the end.
 See the doc-string of `remove_subs` for more details. -/
 meta def remove_subs_aux (la : bool) (lo : option name) : tactic unit := focus1 $ do
-repeat_at_least 1 (do ht ← match lo with
-                           | none    := target
-                           | some na := get_local na >>= infer_type
-                      end,
-                      some (a, b) ← list.last' <$> (get_sub lo ht),
-                      remove_one_sub lo a b),
+repeat_at_least 1 (do
+  ht ← match lo with
+       | none    := target
+       | some na := get_local na >>= infer_type
+  end,
+  subs ← (get_sub lo ht),  -- extract all subtractions
+  -- move all subtractions `a - b` with `a` a local constant last, so that `remove_one_sub`
+  -- uses `subst` instead of `rw` (when it can)
+  let subs := let (csts, not_csts) := subs.partition (λ e : expr × expr,
+    e.1.is_local_constant) in not_csts ++ csts,
+  some (a, b) ← pure $ list.last' subs,
+  remove_one_sub lo a b),
 when la $ any_goals' $ try `[ linarith ]
 
 section error_reporting

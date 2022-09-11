@@ -99,8 +99,8 @@ repeat_at_least 1 (do
   subs ← (get_sub lo ht),  -- extract all subtractions
   -- move all subtractions `a - b` with `a` a local constant last, so that `remove_one_sub`
   -- uses `subst` instead of `rw` (when it can)
-  let subs := let (csts, not_csts) := subs.partition (λ e : expr × expr,
-    e.1.is_local_constant) in not_csts ++ csts,
+  let subs := let (csts, not_csts) := subs.partition (λ e : expr × expr, e.1.is_local_constant)
+    in not_csts ++ csts,
   some (a, b) ← pure $ list.last' subs,
   remove_one_sub lo a b),
 when la $ any_goals' $ try `[ linarith ]

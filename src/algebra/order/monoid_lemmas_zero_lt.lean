@@ -148,8 +148,8 @@ lemma le_of_mul_le_mul_right [mul_pos_mono_rev α]
   (bc : b * a ≤ c * a) (a0 : 0 < a) : b ≤ c :=
 @contravariant_class.elim α>0 α (λ x y, y * x) (≤) _ ⟨a, a0⟩ _ _ bc
 
-alias lt_of_mul_lt_mul_left  ← lt_of_mul_lt_mul_of_pos_left
-alias lt_of_mul_lt_mul_right ← lt_of_mul_lt_mul_of_pos_right
+alias lt_of_mul_lt_mul_left  ← lt_of_mul_lt_mul_of_nonneg_left
+alias lt_of_mul_lt_mul_right ← lt_of_mul_lt_mul_of_nonneg_right
 alias le_of_mul_le_mul_left  ← le_of_mul_le_mul_of_pos_left
 alias le_of_mul_le_mul_right ← le_of_mul_le_mul_of_pos_right
 

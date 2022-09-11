@@ -88,7 +88,7 @@ begin
     simp only [set.mem_univ, set.mem_range, true_and, set.Union_exists, set.Union_Union_eq',
       set.mem_Union, set.mem_set_of_eq, exists_apply_eq_apply'], },
   nth_rewrite 0 ← @measure.restrict_univ Ω _ μ,
-  rw [this, ae_eq_restrict_Union_countable_iff _ h_countable_range],
+  rw [this, ae_eq_restrict_bUnion_iff _ h_countable_range],
   exact λ i hi, stopped_value_ae_eq_restrict_eq h _ hτ_le i,
 end
 

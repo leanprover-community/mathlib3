@@ -14,6 +14,18 @@ import algebra.polynomial.big_operators
 
 This file starts looking like the ring theory of $ R[X] $
 
+## Main definitions
+
+* `polynomial.roots p`: The multiset containing all the roots of `p`, including their
+  multiplicities.
+* `polynomial.root_set p E`: The set of distinct roots of `p` in an algebra `E`.
+
+## Main statements
+
+* `polynomial.C_leading_coeff_mul_prod_multiset_X_sub_C`: If a polynomial has as many roots as its
+  degree, it can be written as the product of its leading coefficient with `∏ (X - a)` where `a`
+  ranges through its roots.
+
 -/
 
 noncomputable theory
@@ -158,6 +170,36 @@ begin
   rw sub_eq_sub_iff_add_eq_add,
   norm_cast,
   rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
+end
+
+variables [char_zero R]
+
+@[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
+by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : polynomial R) = C 2),
+  @polynomial.degree_C R _ _ two_ne_zero', zero_add]
+
+@[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
+nat_degree_eq_of_degree_eq $ degree_bit0_eq p
+
+@[simp]
+lemma nat_degree_bit1_eq (p : R[X]) : nat_degree (bit1 p) = nat_degree p :=
+begin
+  rw bit1,
+  apply le_antisymm,
+  convert nat_degree_add_le _ _,
+  { simp, },
+  by_cases h : p.nat_degree = 0,
+  { simp [h], },
+  apply le_nat_degree_of_ne_zero,
+  intro hh,
+  apply h,
+  simp [*, coeff_one, if_neg (ne.symm h)] at *,
+end
+
+lemma degree_bit1_eq {p : R[X]} (hp : 0 < degree p) : degree (bit1 p) = degree p :=
+begin
+  rw [bit1, degree_add_eq_left_of_degree_lt, degree_bit0_eq],
+  rwa [degree_one, degree_bit0_eq]
 end
 
 end no_zero_divisors

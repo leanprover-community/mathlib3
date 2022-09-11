@@ -17,7 +17,7 @@ about this type.
 @[derive [has_zero, add_comm_monoid_with_one, canonically_ordered_comm_semiring, nontrivial,
   linear_order, order_bot, order_top, has_bot, has_top, canonically_linear_ordered_add_monoid,
   has_sub, has_ordered_sub, complete_linear_order, linear_ordered_add_comm_monoid_with_top,
-  succ_order]]
+  succ_order, well_founded_lt, has_well_founded]]
 def enat : Type := with_top ℕ
 
 notation `ℕ∞` := enat
@@ -25,6 +25,7 @@ notation `ℕ∞` := enat
 namespace enat
 
 instance : inhabited ℕ∞ := ⟨0⟩
+instance : is_well_order ℕ∞ (<) := { }
 
 variables {m n : ℕ∞}
 

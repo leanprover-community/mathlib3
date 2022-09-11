@@ -70,8 +70,7 @@ We define localized notation (locale `number_theory_symbols`) `J(a | b)` for the
 symbol `jacobi_sym a b`. (Unfortunately, there is no subscript "J" in unicode.)
 -/
 
-namespace zmod
-open nat
+open nat zmod
 
 /-- The Jacobi symbol of `a` and `b` -/
 -- Since we need the fact that the factors are prime, we use `list.pmap`.
@@ -203,7 +202,7 @@ lemma jacobi_sym_mod_left' {a₁ a₂ : ℤ} {b : ℕ} (h : a₁ % b = a₂ % b)
 by rw [jacobi_sym_mod_left, h, ← jacobi_sym_mod_left]
 
 /-- If `J(a | b)` is `-1`, then `a` is not a square modulo `b`. -/
-lemma nonsquare_of_jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : J(a | b) = -1) :
+lemma zmod.nonsquare_of_jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : J(a | b) = -1) :
   ¬ is_square (a : zmod b) :=
 λ ⟨r, ha⟩, begin
   rw [← r.coe_val_min_abs, ← int.cast_mul, int_coe_eq_int_coe_iff', ← sq] at ha,
@@ -213,14 +212,14 @@ lemma nonsquare_of_jacobi_sym_eq_neg_one {a : ℤ} {b : ℕ} (h : J(a | b) = -1)
 end
 
 /-- If `p` is prime, then `J(a | p)` is `-1` iff `a` is not a square modulo `p`. -/
-lemma nonsquare_iff_jacobi_sym_eq_neg_one {a : ℤ} {p : ℕ} [fact p.prime] :
+lemma zmod.nonsquare_iff_jacobi_sym_eq_neg_one {a : ℤ} {p : ℕ} [fact p.prime] :
   J(a | p) = -1 ↔ ¬ is_square (a : zmod p) :=
 by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym_eq_neg_one_iff p }
 
 /-- If `p` is prime and `J(a | p) = 1`, then `a` is q square mod `p`. -/
-lemma is_square_of_jacobi_sym_eq_one {a : ℤ} {p : ℕ} [fact p.prime] (h : J(a | p) = 1) :
+lemma zmod.is_square_of_jacobi_sym_eq_one {a : ℤ} {p : ℕ} [fact p.prime] (h : J(a | p) = 1) :
   is_square (a : zmod p) :=
-not_not.mp $ mt nonsquare_iff_jacobi_sym_eq_neg_one.mpr $
+not_not.mp $ mt zmod.nonsquare_iff_jacobi_sym_eq_neg_one.mpr $
   λ hf, one_ne_zero $ neg_eq_self_iff.mp $ hf.symm.trans h
 
 /-!
@@ -314,7 +313,7 @@ begin
   refine jacobi_sym_value p (rhs p) (λ q pq hq, _) ha,
   have hqo := pq.eq_two_or_odd'.resolve_left hq,
   rw [rhs_apply, nat.cast_id, ← @legendre_sym.to_jacobi_sym p ⟨pp⟩, qr_sign_symm hqo hpo,
-      qr_sign_neg_one_pow hpo hqo, @quadratic_reciprocity' p q ⟨pp⟩ ⟨pq⟩ hp hq],
+      qr_sign_neg_one_pow hpo hqo, @legendre_sym_quadratic_reciprocity' p q ⟨pp⟩ ⟨pq⟩ hp hq],
 end
 
 /-- The Law of Quadratic Reciprocity for the Jacobi symbol -/
@@ -379,7 +378,5 @@ begin
     rw [jacobi_sym_neg _ hb, jacobi_sym_neg _ hb', jacobi_sym_mod_right' _ hb, χ₄_nat_mod_four,
         χ₄_nat_mod_four (b % (4 * _)), mod_mod_of_dvd b (dvd_mul_right 4 _)], }
 end
-
-end zmod
 
 end jacobi

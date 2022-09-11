@@ -198,7 +198,7 @@ section values
 /-!
 ### The value of the Legendre symbol at `-1`
 
-See `jacobi_symbol_neg_one` for the corresponding statement for the Jacobi symbol.
+See `jacobi_sym_neg_one` for the corresponding statement for the Jacobi symbol.
 -/
 
 variables {p : ℕ} [fact p.prime]
@@ -236,7 +236,7 @@ end zmod
 /-!
 ### The value of the Legendre symbol at `2` and `-2`
 
-See `jacobi_symbol_two` and `jacobi_symbol_neg_two` for the corresponding statements
+See `jacobi_sym_two` and `jacobi_sym_neg_two` for the corresponding statements
 for the Jacobi symbol.
 -/
 

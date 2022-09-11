@@ -11,13 +11,15 @@ import topology.separation
 
 ## Main statements
 
-* `compact_space_uniformity`: On a separated compact uniform space, the topology determines the
+* `compact_space_uniformity`: On a compact uniform space, the topology determines the
   uniform structure, entourages are exactly the neighborhoods of the diagonal.
+
 * `uniform_space_of_compact_t2`: every compact T2 topological structure is induced by a uniform
   structure. This uniform structure is described in the previous item.
-* Heine-Cantor theorem: continuous functions on compact separated uniform spaces with values in
-  uniform spaces are automatically uniformly continuous. There are several variations, the main one
-  is `compact_space.uniform_continuous_of_continuous`.
+
+* **Heine-Cantor** theorem: continuous functions on compact uniform spaces with values in uniform
+  spaces are automatically uniformly continuous. There are several variations, the main one is
+  `compact_space.uniform_continuous_of_continuous`.
 
 ## Implementation notes
 
@@ -34,11 +36,9 @@ open filter uniform_space set
 
 variables {α β γ : Type*} [uniform_space α] [uniform_space β]
 
-
 /-!
-### Uniformity on compact separated spaces
+### Uniformity on compact spaces
 -/
-
 
 /-- On a compact uniform space, the topology determines the uniform structure, entourages are
 exactly the neighborhoods of the diagonal. -/

@@ -631,7 +631,7 @@ theorem sup_lim_zero {f g : cau_seq α abs}
     exact ⟨lt_sup_iff.mpr (or.inl H₁.1), sup_lt_iff.mpr ⟨H₁.2, H₂.2⟩⟩
   end
 
-lemma sup_equiv_sup (a₁ b₁ a₂ b₂ : cau_seq α abs) (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂) :
+lemma sup_equiv_sup {a₁ b₁ a₂ b₂ : cau_seq α abs} (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂) :
   a₁ ⊔ b₁ ≈ a₂ ⊔ b₂ :=
 begin
   intros ε ε0,
@@ -652,22 +652,23 @@ end
 
 protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c :=
 begin
-  obtain ⟨⟨εa, εa0, ia, ha⟩ | ha, ⟨εb, εb0, ib, hb⟩ | hb⟩ := ⟨ha, hb⟩,
+  obtain ⟨⟨εa, εa0: _ < _, ia, ha⟩ | ha, ⟨εb, εb0 : _ < _, ib, hb⟩ | hb⟩ := ⟨ha, hb⟩,
   { left,
     exact cau_seq.sup_lt ⟨εa, εa0, ia, ha⟩ ⟨εb, εb0, ib, hb⟩ },
   { -- right or left?
     right,
     intros ε ε0,
-    obtain ⟨ib, hbi⟩ := hb ε ε0,
+    obtain ⟨ib, hbi⟩ := hb (ε ⊓ εa) (lt_min ε0 εa0),
     refine ⟨ia ⊔ ib, λ i hi, _⟩,
     dsimp,
     erw ←max_sub_sub_right,
     refine abs_max_le_max_abs_abs.trans_lt _,
+    refine max_lt _ _,
+    sorry,
     sorry },
   { -- right or left?
-    left,
-    rw gt at εb0,
     obtain ⟨ia, ha'⟩ := ha _ εb0,
+    left,
     refine ⟨εb, εb0, ia ⊔ ib, λ i hi, _⟩,
     dsimp only [sub_apply] at *,
     erw ←min_sub_sub_left,
@@ -676,14 +677,10 @@ begin
     rw [abs_lt, neg_lt, neg_sub] at this,
     sorry },
   { right,
-    intros ε ε0,
-    obtain ⟨ai, hai⟩ := ha ε ε0,
-    obtain ⟨bi, hbi⟩ := hb ε ε0,
-    refine ⟨ai ⊔ bi, λ i hi, _⟩,
-    dsimp,
-    erw ←max_sub_sub_right,
-    refine abs_max_le_max_abs_abs.trans_lt
-      (max_lt (hai i (sup_le_iff.mp hi).1) (hbi i (sup_le_iff.mp hi).2)) },
+    refine setoid.trans (sup_equiv_sup ha hb) _,
+    convert setoid.refl _,
+    ext,
+    exact sup_idem.symm },
 
 end
 

@@ -302,8 +302,12 @@ instance : distrib_lattice ℝ :=
     rw [←mk_sup, mk_le],
     refine le_of_exists ⟨0, λ j hj, le_sup_right⟩,
   end,
-  sup_le := λ a b c ha hb, begin
-    sorry
+  sup_le := λ a b c, begin
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    induction c using real.ind_mk with c,
+    simp_rw [←mk_sup, mk_le],
+    exact cau_seq.sup_le,
   end,
   inf := (⊓),
   inf_le_left := λ a b, begin
@@ -318,8 +322,12 @@ instance : distrib_lattice ℝ :=
     rw [←mk_inf, mk_le],
     refine le_of_exists ⟨0, λ j hj, inf_le_right⟩,
   end,
-  le_inf := begin
-    sorry
+  le_inf := λ a b c, begin
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    induction c using real.ind_mk with c,
+    simp_rw [←mk_inf, mk_le],
+    exact cau_seq.le_inf,
   end,
   le_sup_inf := λ a b c, eq.le begin
     induction a using real.ind_mk with a,
@@ -331,6 +339,11 @@ instance : distrib_lattice ℝ :=
     exact max_min_distrib_left.symm,
   end,
   .. real.partial_order  }
+
+/- Extra instances to short-circuit type class resolution -/
+instance : lattice ℝ         := infer_instance
+instance : semilattice_inf ℝ := infer_instance
+instance : semilattice_sup ℝ := infer_instance
 
 open_locale classical
 
@@ -374,12 +387,6 @@ noncomputable instance : linear_ordered_field ℝ :=
 noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
 noncomputable instance field : field ℝ                            := by apply_instance
 noncomputable instance : division_ring ℝ                          := by apply_instance
-noncomputable instance : distrib_lattice ℝ                        := by apply_instance
-noncomputable instance : lattice ℝ                                := by apply_instance
-noncomputable instance : semilattice_inf ℝ                        := by apply_instance
-noncomputable instance : semilattice_sup ℝ                        := by apply_instance
-noncomputable instance : has_inf ℝ                                := by apply_instance
-noncomputable instance : has_sup ℝ                                := by apply_instance
 noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance

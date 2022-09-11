@@ -623,6 +623,8 @@ end⟩⟩
 
 @[simp] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
 
+protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c := sorry
+
 theorem sup_lim_zero {f g : cau_seq α abs}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊔ g)
 | ε ε0 := (exists_forall_ge_and (hf _ ε0) (hg _ ε0)).imp $
@@ -649,6 +651,8 @@ instance : has_inf (cau_seq α abs) := ⟨λ f g, ⟨f ⊓ g, λ ε ε0, begin
 end⟩⟩
 
 @[simp] lemma coe_inf (f g : cau_seq α abs) : ⇑(f ⊓ g) = f ⊓ g := rfl
+
+protected lemma le_inf {a b c : cau_seq α abs} (hb : a ≤ b) (hc : a ≤ c) : a ≤ b ⊓ c := sorry
 
 theorem inf_lim_zero {f g : cau_seq α abs}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊓ g)

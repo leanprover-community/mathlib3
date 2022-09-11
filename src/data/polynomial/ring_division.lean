@@ -233,9 +233,8 @@ lemma le_root_multiplicity_iff {p : R[X]} (p0 : p ≠ 0) {a : R} {n : ℕ} :
   n ≤ root_multiplicity a p ↔ (X - C a) ^ n ∣ p :=
 begin
   simp_rw [root_multiplicity, dif_neg p0, nat.le_find_iff, not_not],
-  split; intro h,
-  { cases n, { rw pow_zero, apply one_dvd }, { exact h n n.lt_succ_self } },
-  { exact λ m hm, (pow_dvd_pow _ hm).trans h },
+  refine ⟨λ h, _, λ h m hm, (pow_dvd_pow _ hm).trans h⟩,
+  cases n, { rw pow_zero, apply one_dvd }, { exact h n n.lt_succ_self },
 end
 
 lemma root_multiplicity_le_iff {p : R[X]} (p0 : p ≠ 0) (a : R) (n : ℕ) :

@@ -643,45 +643,43 @@ by rw [quot_adjoin_root_equiv_quot_polynomial_quot, ring_equiv.symm_trans_apply,
     quot_map_of_equiv_quot_map_C_map_span_mk_symm_mk]
 
 /-- Promote `quot_adjoin_root_equiv_quot_polynomial_quot` to an alg_equiv  -/
-noncomputable def adjoin_root.quot_equiv_quot_map (f : R[X]) (I : ideal R) :
-  ((adjoin_root f) ⧸ (ideal.map (adjoin_root.of f) I)) ≃ₐ[R]
+noncomputable def quot_equiv_quot_map (f : R[X]) (I : ideal R) :
+  ((adjoin_root f) ⧸ (ideal.map (of f) I)) ≃ₐ[R]
      ((R ⧸ I) [X]) ⧸ (ideal.span ({polynomial.map I^.quotient.mk f} : set ((R ⧸ I) [X]))) :=
 alg_equiv.of_ring_equiv (quot_adjoin_root_equiv_quot_polynomial_quot I f)
 begin
   intros x,
-  have : algebra_map R (adjoin_root f ⧸ (ideal.map (adjoin_root.of f) I)) x =
-    ideal.quotient.mk (ideal.map (adjoin_root.of f) I) (of f x) := rfl,
-  rw temporary f x at this,
-  rw this,
-  rw adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of,
-  have : algebra_map R (polynomial (R ⧸ I) ⧸ (ideal.span {polynomial.map
-    (ideal.quotient.mk I) f})) x =
-    ideal.quotient.mk (ideal.span {polynomial.map (ideal.quotient.mk I) f})
-    (polynomial.C (ideal.quotient.mk I x)) := rfl,
-  rw this,
-  simp only [map_C],
+  have : algebra_map R (adjoin_root f ⧸ (ideal.map (of f) I)) x =
+    ideal.quotient.mk (ideal.map (adjoin_root.of f) I) ((mk f) (C x)) := rfl,
+  rw [this, quot_adjoin_root_equiv_quot_polynomial_quot_mk_of, map_C],
+  refl,
 end
 
-@[simp] lemma adjoin_root.quot_equiv_quot_map_apply (f g : polynomial R) (I : ideal R)  :
+@[simp]
+lemma quot_equiv_quot_map_apply (f g : polynomial R) (I : ideal R)  :
   adjoin_root.quot_equiv_quot_map f I (ideal.quotient.mk _ (adjoin_root.mk f g)) =
     ideal.quotient.mk _ (g.map I^.quotient.mk) :=
 by rw [adjoin_root.quot_equiv_quot_map, alg_equiv.of_ring_equiv_apply,
     adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of]
 
-lemma adjoin_root.quot_equiv_quot_map_symm_apply (f g : polynomial R) (I : ideal R)  :
+lemma quot_equiv_quot_map_symm_apply (f g : polynomial R) (I : ideal R)  :
   (adjoin_root.quot_equiv_quot_map f I).symm (ideal.quotient.mk _ (map (ideal.quotient.mk I) g)) =
     ideal.quotient.mk _ (adjoin_root.mk f g) :=
 by rw [adjoin_root.quot_equiv_quot_map, alg_equiv.of_ring_equiv_symm_apply,
     adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_symm_mk_mk]
 
+end
+
 end adjoin_root
 
 namespace power_basis
 
+variables [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] [algebra R S]
+
 /-- Let `α` have minimal polynomial `f` over `R` and `I` be an ideal of `R`,
 then `R[α] / (I) = (R[x] / (f)) / pS = (R/p)[x] / (f mod p)` -/
-noncomputable def power_basis.quotient_equiv_quotient_minpoly_map [is_domain R] [is_domain S]
-  (pb : power_basis R S) (I : ideal R)  :
+noncomputable def quotient_equiv_quotient_minpoly_map (pb : power_basis R S)
+  (I : ideal R) :
   (S ⧸ I.map (algebra_map R S)) ≃ₐ[R] (polynomial (R ⧸ I)) ⧸
     (ideal.span ({(minpoly R pb.gen).map I^.quotient.mk} : set (polynomial (R ⧸ I)))) :=
 alg_equiv.trans
@@ -698,7 +696,8 @@ alg_equiv.trans
     quotient.mk_algebra_map]))
   (adjoin_root.quot_equiv_quot_map _ _)
 
-@[simp] lemma power_basis.quotient_equiv_quotient_minpoly_map_apply [is_domain R] [is_domain S]
+@[simp]
+lemma quotient_equiv_quotient_minpoly_map_apply
   (pb : power_basis R S) (I : ideal R) (x : polynomial R) :
   pb.quotient_equiv_quotient_minpoly_map I (ideal.quotient.mk _ (aeval pb.gen x)) =
     ideal.quotient.mk _ (x.map I^.quotient.mk) :=
@@ -708,5 +707,3 @@ by rw [power_basis.quotient_equiv_quotient_minpoly_map, alg_equiv.trans_apply,
     adjoin_root.aeval_eq, adjoin_root.quot_equiv_quot_map_apply]
 
 end power_basis
-
-end

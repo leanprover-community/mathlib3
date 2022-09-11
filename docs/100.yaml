@@ -20,8 +20,10 @@
   title  : Godel’s Incompleteness Theorem
 7:
   title  : Law of Quadratic Reciprocity
-  decl   : zmod.quadratic_reciprocity
-  author : Chris Hughes
+  decls  :
+    - legendre_sym_quadratic_reciprocity
+    - jacobi_sym_quadratic_reciprocity
+  author : Chris Hughes (first) and Michael Stoll (second)
 8:
   title  : The Impossibility of Trisecting the Angle and Doubling the Cube
 9:

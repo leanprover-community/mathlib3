@@ -5,6 +5,7 @@ Authors: Patrick Massot
 -/
 import topology.uniform_space.separation
 import topology.uniform_space.uniform_convergence
+import topology.uniform_space.equicontinuity
 /-!
 # Compact separated uniform spaces
 
@@ -238,3 +239,21 @@ lemma continuous.tendsto_uniformly [separated_space α] [locally_compact_space �
   [compact_space β] [separated_space β] [uniform_space γ]
   (f : α → β → γ) (h : continuous ↿f) (x : α) : tendsto_uniformly f (f x) (𝓝 x) :=
 h.continuous_on.tendsto_uniformly univ_mem $ is_separated_of_separated_space _
+
+section uniform_convergence
+
+local attribute [-instance] Pi.topological_space
+local attribute [-instance] Pi.uniform_space
+local attribute [instance] uniform_convergence.topological_space
+local attribute [instance] uniform_convergence.uniform_space
+
+lemma compact_space.uniform_equicontinuous_of_equicontinuous {ι : Type*} {F : ι → β → α}
+  [compact_space β] [separated_space β] (h : equicontinuous F) :
+  uniform_equicontinuous F :=
+begin
+  rw equicontinuous_iff_continuous at h,
+  rw uniform_equicontinuous_iff_uniform_continuous,
+  exact compact_space.uniform_continuous_of_continuous h
+end
+
+end uniform_convergence

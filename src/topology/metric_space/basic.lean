@@ -1783,8 +1783,6 @@ local attribute [-instance] Pi.topological_space
 local attribute [-instance] Pi.uniform_space
 local attribute [instance] uniform_convergence.topological_space
 
-#check tendsto_uniformly
-
 lemma uniform_equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
   (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (F : ι → α → β)

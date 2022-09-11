@@ -585,11 +585,6 @@ instance ordered_cancel_comm_monoid.to_contravariant_class_le_left :
   contravariant_class α α (*) (≤) :=
 ⟨ordered_cancel_comm_monoid.le_of_mul_le_mul_left⟩
 
-@[priority 200, to_additive] -- see Note [lower instance priority]
-instance ordered_cancel_comm_monoid.to_contravariant_class_le_right :
-  contravariant_class α α (swap (*)) (≤) :=
-infer_instance
-
 @[to_additive]
 lemma ordered_cancel_comm_monoid.lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c :=
 λ a b c h, lt_of_le_not_le

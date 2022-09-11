@@ -221,6 +221,29 @@ iff.intro
     λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
     λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
 
+section uniform_convergence
+
+local attribute [-instance] Pi.topological_space
+local attribute [-instance] Pi.uniform_space
+local attribute [instance] uniform_convergence.topological_space
+
+lemma inducing_coe_fn : @inducing (α →ᵇ β) (α → β) _
+  (uniform_convergence.topological_space α β) (coe_fn : (α →ᵇ β) → (α → β)) :=
+begin
+  rw inducing_iff_nhds,
+  refine λ f, eq_of_forall_le_iff (λ l, _),
+  rw [← tendsto_iff_comap, ← tendsto_id', tendsto_iff_tendsto_uniformly,
+      uniform_convergence.tendsto_iff_tendsto_uniformly],
+  refl
+end
+
+-- TODO: upgrade to a `uniform_embedding`
+lemma embedding_coe_fn : @_root_.embedding (α →ᵇ β) (α → β) _
+  (uniform_convergence.topological_space α β) (coe_fn : (α →ᵇ β) → (α → β)) :=
+⟨inducing_coe_fn, λ f g h, ext $ λ x, h ▸ rfl⟩
+
+end uniform_convergence
+
 variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
@@ -494,6 +517,12 @@ begin
     exact ⟨g, hf, rfl⟩ }
 end
 
+section uniform_convergence
+
+local attribute [-instance] Pi.topological_space
+local attribute [-instance] Pi.uniform_space
+local attribute [instance] uniform_convergence.topological_space
+
 /-- Third (main) version, with pointwise equicontinuity and range in a compact subset, but
 without closedness. The closure is then compact -/
 theorem arzela_ascoli [t2_space β]
@@ -508,44 +537,9 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ f x hf, (mem_of_closed' hs.is_closed).2 $ λ ε ε0,
     let ⟨g, gA, dist_fg⟩ := metric.mem_closure_iff.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
-  begin
-    simp_rw [equicontinuous, metric.equicontinuous_at_iff_right', set_coe.forall] at *,
-    intros x ε ε0,
-    refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
-    rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
-    replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
-    calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
-      dist_triangle4_right _ _ _ _
-        ... < ε/2/2 + ε/2/2 + ε/2 :
-          add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
-        ... = ε : by rw [add_halves, add_halves]
-  end
+  (inducing_coe_fn.continuous.equicontinuous_closure H)
 
-/- To apply the previous theorems, one needs to check the equicontinuity. An important
-instance is when the source space is a metric space, and there is a fixed modulus of continuity
-for all the functions in the set A -/
-
-lemma equicontinuous_of_continuity_modulus {α : Type u} [pseudo_metric_space α]
-  (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
-  (A : set (α →ᵇ β))
-  (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y)) :
-  equicontinuous (coe_fn : A → α → β) :=
-begin
-  intro x,
-  rw metric.equicontinuous_at_iff_right',
-  intros ε ε0,
-  rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
-  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y hy z hz f, _⟩,
-  have : dist y z < δ := calc
-    dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
-    ... < δ/2 + δ/2 : add_lt_add hy hz
-    ... = δ : add_halves _,
-  calc
-    dist (f y) (f z) ≤ b (dist y z) : H y z f f.2
-    ... ≤ |b (dist y z)| : le_abs_self _
-    ... = dist (b (dist y z)) 0 : by simp [real.dist_eq]
-    ... < ε : hδ (by simpa [real.dist_eq] using this),
-end
+end uniform_convergence
 
 end arzela_ascoli
 

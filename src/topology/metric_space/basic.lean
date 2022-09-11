@@ -1024,6 +1024,16 @@ begin
     filter_upwards [hUmem] using λ x hx, hU x₀ (mem_of_mem_nhds hUmem) x hx }
 end
 
+lemma uniform_equicontinuous_iff_right {ι : Type*} [uniform_space β] {F : ι → β → α} :
+  uniform_equicontinuous F ↔
+  ∀ ε > 0, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, dist (F i xy.1) (F i xy.2) < ε :=
+uniformity_basis_dist.uniform_equicontinuous_iff_right
+
+lemma uniform_equicontinuous_iff {ι : Type*} [pseudo_metric_space β] {F : ι → β → α} :
+  uniform_equicontinuous F ↔
+  ∀ ε > 0, ∃ δ > 0, ∀ x y, dist x y < δ → ∀ i, dist (F i x) (F i y) < ε :=
+uniformity_basis_dist.uniform_equicontinuous_iff uniformity_basis_dist
+
 end metric
 
 open metric
@@ -1766,6 +1776,40 @@ begin
   exact (is_separable_univ_iff.2 hs.separable_space).image
     (continuous_on_iff_continuous_restrict.1 hf),
 end
+
+section uniform_convergence
+
+local attribute [-instance] Pi.topological_space
+local attribute [-instance] Pi.uniform_space
+local attribute [instance] uniform_convergence.topological_space
+
+#check tendsto_uniformly
+
+lemma uniform_equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
+  (b_lim : tendsto b (𝓝 0) (𝓝 0))
+  (F : ι → α → β)
+  (H : ∀(x y:α) i, dist (F i x) (F i y) ≤ b (dist x y)) :
+  uniform_equicontinuous F :=
+begin
+  rw metric.uniform_equicontinuous_iff,
+  intros ε ε0,
+  rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
+  refine ⟨δ, δ0, λ x y hxy i, _⟩,
+  calc
+    dist (F i x) (F i y) ≤ b (dist x y) : H x y i
+    ... ≤ |b (dist x y)| : le_abs_self _
+    ... = dist (b (dist x y)) 0 : by simp [real.dist_eq]
+    ... < ε : hδ (by simpa only [real.dist_eq, tsub_zero, abs_dist] using hxy)
+end
+
+lemma equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
+  (b_lim : tendsto b (𝓝 0) (𝓝 0))
+  (F : ι → α → β)
+  (H : ∀(x y:α) i, dist (F i x) (F i y) ≤ b (dist x y)) :
+  equicontinuous F :=
+(uniform_equicontinuous_of_continuity_modulus b b_lim F H).equicontinuous
+
+end uniform_convergence
 
 end metric
 

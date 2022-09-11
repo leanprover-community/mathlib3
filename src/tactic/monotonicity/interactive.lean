@@ -80,27 +80,20 @@ section config
 parameter opt : mono_cfg
 parameter asms : list expr
 
+meta def test_tgt : tactic unit :=
+do tgt ← tactic.target >>= tactic.instantiate_mvars,
+   tactic.trace tgt,
+   tactic.is_class tgt >>= tactic.trace,
+   return ()
+
 meta def unify_with_instance (e : expr) : tactic unit :=
 as_goal e $
-apply_instance
+(((local_context >>= mmap infer_type) >>= tactic.trace) >> test_tgt >>
+  ((apply_instance >> tactic.trace "ok\n") <|> (test_tgt >> tactic.trace "why?\n" >> fail "")))
 <|>
 apply_opt_param
 <|>
 apply_auto_param
-<|>
-/- see https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-
-.2F-tactics/topic/.60apply_instance.60.20fails.20to.20infer.20instance.3F -/
-exact ```(pos_mul_strict_mono.to_pos_mul_mono)
-<|>
-exact ```(mul_pos_strict_mono.to_mul_pos_mono)
-<|>
-exact ```(pos_mul_mono_rev.to_pos_mul_reflect_lt)
-<|>
-exact ```(mul_pos_mono_rev.to_mul_pos_reflect_lt)
-<|>
-exact ```(pos_mul_strict_mono.to_pos_mul_mono_rev)
-<|>
-exact ```(mul_pos_strict_mono.to_mul_pos_mono_rev)
 <|>
 tactic.solve_by_elim { lemmas := some asms }
 <|>

@@ -321,27 +321,14 @@ instance equiv : setoid (cau_seq β abv) :=
 
 lemma add_equiv_add {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
   f1 + g1 ≈ f2 + g2 :=
-begin
-  change lim_zero ((f1 + g1) - _),
-  convert add_lim_zero hf hg using 1,
-  simp only [sub_eq_add_neg, add_assoc],
-  rw add_comm (-f2), simp only [add_assoc],
-  congr' 2, simp
-end
+by simpa only [←add_sub_add_comm] using add_lim_zero hf hg
 
 lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
-begin
-  show lim_zero (-f - -g),
-  rw ←neg_sub',
-  exact neg_lim_zero hf,
-end
+by simpa only [neg_sub'] using neg_lim_zero hf
 
 lemma sub_equiv_sub {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
   f1 - g1 ≈ f2 - g2 :=
-begin
-  rw [sub_eq_add_neg, sub_eq_add_neg],
-  exact add_equiv_add hf (neg_equiv_neg hg),
-end
+by simpa only [sub_eq_add_neg] using add_equiv_add hf (neg_equiv_neg hg)
 
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
@@ -426,7 +413,7 @@ by rw mul_comm; apply mul_equiv_zero _ hf
 
 lemma mul_equiv_mul {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
   f1 * g1 ≈ f2 * g2 :=
-by simpa [(≈), setoid.r, mul_add, mul_comm, add_assoc, sub_eq_add_neg]
+by simpa only [mul_sub, mul_comm, sub_add_sub_cancel]
   using add_lim_zero (mul_lim_zero_right g1 hf) (mul_lim_zero_right f2 hg)
 
 end comm_ring

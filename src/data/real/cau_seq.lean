@@ -604,6 +604,60 @@ theorem exists_lt (f : cau_seq α abs) : ∃ a : α, const a < f :=
 let ⟨a, h⟩ := (-f).exists_gt in ⟨-a, show pos _,
   by rwa [const_neg, sub_neg_eq_add, add_comm, ← sub_neg_eq_add]⟩
 
+instance : has_sup (cau_seq α abs) := ⟨λ f g, ⟨f ⊔ g, λ ε ε0, begin
+  obtain ⟨fi, hf⟩ := f.prop (ε / 2) (half_pos ε0),
+  obtain ⟨gi, hg⟩ := g.prop (ε / 2) (half_pos ε0),
+  refine ⟨fi ⊔ gi, λ i hi, _⟩,
+  have hfi := hf i (sup_le_iff.mp hi).1,
+  have hgi := hg i (sup_le_iff.mp hi).2,
+  have hfs := hf (fi ⊔ gi) le_sup_left,
+  have hgs := hg (fi ⊔ gi) le_sup_right,
+  rw abs_sub_comm at hfs hgs,
+  have hf'' := abs_add (f i - f fi) (f fi - f (fi ⊔ gi)),
+  have hg'' := abs_add (g i - g gi) (g gi - g (fi ⊔ gi)),
+  rw sub_add_sub_cancel at hf'' hg'',
+  refine (abs_max_sub_max_le_max _ _ _ _).trans_lt (max_lt (hf''.trans_lt _) (hg''.trans_lt _)),
+  { exact (add_lt_add hfi hfs).trans_eq (add_halves _) },
+  { exact (add_lt_add hgi hgs).trans_eq (add_halves _) },
+end⟩⟩
+
+@[simp] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
+
+theorem sup_lim_zero {f g : cau_seq α abs}
+  (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊔ g)
+| ε ε0 := (exists_forall_ge_and (hf _ ε0) (hg _ ε0)).imp $
+  λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in begin
+    rw abs_lt at H₁ H₂ ⊢,
+    exact ⟨lt_sup_iff.mpr (or.inl H₁.1), sup_lt_iff.mpr ⟨H₁.2, H₂.2⟩⟩
+  end
+
+instance : has_inf (cau_seq α abs) := ⟨λ f g, ⟨f ⊓ g, λ ε ε0, begin
+  obtain ⟨fi, hf⟩ := f.prop (ε / 2) (half_pos ε0),
+  obtain ⟨gi, hg⟩ := g.prop (ε / 2) (half_pos ε0),
+  refine ⟨fi ⊔ gi, λ i hi, _⟩,
+  have hfi := hf i (sup_le_iff.mp hi).1,
+  have hgi := hg i (sup_le_iff.mp hi).2,
+  have hfs := hf (fi ⊔ gi) le_sup_left,
+  have hgs := hg (fi ⊔ gi) le_sup_right,
+  rw abs_sub_comm at hfs hgs,
+  have hf'' := abs_add (f i - f fi) (f fi - f (fi ⊔ gi)),
+  have hg'' := abs_add (g i - g gi) (g gi - g (fi ⊔ gi)),
+  rw sub_add_sub_cancel at hf'' hg'',
+  refine (abs_min_sub_min_le_max _ _ _ _).trans_lt (max_lt (hf''.trans_lt _) (hg''.trans_lt _)),
+  { exact (add_lt_add hfi hfs).trans_eq (add_halves _) },
+  { exact (add_lt_add hgi hgs).trans_eq (add_halves _) },
+end⟩⟩
+
+@[simp] lemma coe_inf (f g : cau_seq α abs) : ⇑(f ⊓ g) = f ⊓ g := rfl
+
+theorem inf_lim_zero {f g : cau_seq α abs}
+  (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊓ g)
+| ε ε0 := (exists_forall_ge_and (hf _ ε0) (hg _ ε0)).imp $
+  λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in begin
+    rw abs_lt at H₁ H₂ ⊢,
+    exact ⟨lt_inf_iff.mpr ⟨H₁.1, H₂.1⟩, inf_lt_iff.mpr (or.inl H₁.2), ⟩
+  end
+
 end abs
 
 end cau_seq

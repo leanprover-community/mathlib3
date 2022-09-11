@@ -257,6 +257,75 @@ instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
 instance : ordered_add_comm_monoid ℝ    := by apply_instance
 instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
+@[irreducible]
+private def sup : ℝ → ℝ → ℝ | ⟨x⟩ ⟨y⟩ :=
+⟨quotient.map₂ (⊔) (λ x₁ x₂ hx y₁ y₂ hy ε ε0, begin
+  obtain ⟨xi, hxi⟩ := hx ε ε0,
+  obtain ⟨yi, hyi⟩ := hy ε ε0,
+  exact ⟨xi ⊔ yi, λ i hi,
+    (abs_max_sub_max_le_max (x₁ i) (y₁ i) (x₂ i) (y₂ i)).trans_lt
+    (max_lt (hxi i (sup_le_iff.mp hi).1) (hyi i (sup_le_iff.mp hi).2))⟩,
+end) x y⟩
+
+instance : has_sup ℝ := ⟨sup⟩
+
+lemma of_cauchy_sup (a b) : (⟨⟦a ⊔ b⟧⟩ : ℝ) = ⟨⟦a⟧⟩ ⊔ ⟨⟦b⟧⟩ := show _ = sup _ _, by { rw sup, refl }
+@[simp] lemma mk_sup (a b) : (mk (a ⊔ b) : ℝ) = mk a ⊔ mk b := of_cauchy_sup _ _
+
+@[irreducible]
+private def inf : ℝ → ℝ → ℝ | ⟨x⟩ ⟨y⟩ :=
+⟨quotient.map₂ (⊓) (λ x₁ x₂ hx y₁ y₂ hy ε ε0, begin
+  obtain ⟨xi, hxi⟩ := hx ε ε0,
+  obtain ⟨yi, hyi⟩ := hy ε ε0,
+  exact ⟨xi ⊔ yi, λ i hi,
+    (abs_min_sub_min_le_max (x₁ i) (y₁ i) (x₂ i) (y₂ i)).trans_lt
+    (max_lt (hxi i (sup_le_iff.mp hi).1) (hyi i (sup_le_iff.mp hi).2))⟩,
+end) x y⟩
+
+instance : has_inf ℝ := ⟨inf⟩
+
+lemma of_cauchy_inf (a b) : (⟨⟦a ⊓ b⟧⟩ : ℝ) = ⟨⟦a⟧⟩ ⊓ ⟨⟦b⟧⟩ := show _ = inf _ _, by { rw inf, refl }
+@[simp] lemma mk_inf (a b) : (mk (a ⊓ b) : ℝ) = mk a ⊓ mk b := of_cauchy_inf _ _
+
+instance : distrib_lattice ℝ :=
+{ sup := (⊔),
+  le := (≤),
+  le_sup_left := λ a b, begin
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    rw [←mk_sup, mk_le],
+    refine le_of_exists ⟨0, λ j hj, le_sup_left⟩,
+  end,
+  le_sup_right := λ a b, begin
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    rw [←mk_sup, mk_le],
+    refine le_of_exists ⟨0, λ j hj, le_sup_right⟩,
+  end,
+  sup_le := λ a b c ha hb, begin
+    sorry
+  end,
+  inf := (⊓),
+  inf_le_left := λ a b, begin
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    rw [←mk_inf, mk_le],
+    refine le_of_exists ⟨0, λ j hj, inf_le_left⟩,
+  end,
+  inf_le_right := λ a b, begin
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    rw [←mk_inf, mk_le],
+    refine le_of_exists ⟨0, λ j hj, inf_le_right⟩,
+  end,
+  le_inf := begin
+    sorry
+  end,
+  le_sup_inf := λ x y z, begin
+    sorry,
+  end,
+  .. real.partial_order  }
+
 open_locale classical
 
 noncomputable instance : linear_order ℝ :=
@@ -267,7 +336,7 @@ noncomputable instance : linear_order ℝ :=
     simpa using le_total a b,
   end,
   decidable_le := by apply_instance,
-  .. real.partial_order }
+  .. real.distrib_lattice }
 
 noncomputable instance : linear_ordered_comm_ring ℝ :=
 { .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }

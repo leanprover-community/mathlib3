@@ -321,8 +321,14 @@ instance : distrib_lattice ℝ :=
   le_inf := begin
     sorry
   end,
-  le_sup_inf := λ x y z, begin
-    sorry,
+  le_sup_inf := λ a b c, eq.le begin
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    induction c using real.ind_mk with c,
+    simp only [←mk_sup, ←mk_inf],
+    congr' 1,
+    ext : 2,
+    exact max_min_distrib_left.symm,
   end,
   .. real.partial_order  }
 

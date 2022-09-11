@@ -631,13 +631,30 @@ theorem sup_lim_zero {f g : cau_seq α abs}
     exact ⟨lt_sup_iff.mpr (or.inl H₁.1), sup_lt_iff.mpr ⟨H₁.2, H₂.2⟩⟩
   end
 
+lemma sup_equiv_sup (a₁ b₁ a₂ b₂ : cau_seq α abs) (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂) :
+  a₁ ⊔ b₁ ≈ a₂ ⊔ b₂ :=
+begin
+  intros ε ε0,
+  obtain ⟨ai, hai⟩ := ha ε ε0,
+  obtain ⟨bi, hbi⟩ := hb ε ε0,
+  exact ⟨ai ⊔ bi, λ i hi,
+    (abs_max_sub_max_le_max (a₁ i) (b₁ i) (a₂ i) (b₂ i)).trans_lt
+    (max_lt (hai i (sup_le_iff.mp hi).1) (hbi i (sup_le_iff.mp hi).2))⟩,
+end
+
+protected lemma sup_lt {a b c : cau_seq α abs} (ha : a < c) (hb : b < c) : a ⊔ b < c :=
+begin
+  obtain ⟨⟨εa, εa0, ia, ha⟩, ⟨εb, εb0, ib, hb⟩⟩ := ⟨ha, hb⟩,
+  refine ⟨εa ⊓ εb, lt_inf_iff.mpr ⟨εa0, εb0⟩, ia ⊔ ib, λ i hi, _⟩,
+  have := min_le_min (ha _ (sup_le_iff.mp hi).1) (hb _ (sup_le_iff.mp hi).2),
+  exact this.trans_eq (min_sub_sub_left (c i) (a i) (b i))
+end
+
 protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c :=
 begin
   obtain ⟨⟨εa, εa0, ia, ha⟩ | ha, ⟨εb, εb0, ib, hb⟩ | hb⟩ := ⟨ha, hb⟩,
   { left,
-    refine ⟨εa ⊓ εb, lt_inf_iff.mpr ⟨εa0, εb0⟩, ia ⊔ ib, λ i hi, _⟩,
-    have := min_le_min (ha _ (sup_le_iff.mp hi).1) (hb _ (sup_le_iff.mp hi).2),
-    exact this.trans_eq (min_sub_sub_left (c i) (a i) (b i)) },
+    exact cau_seq.sup_lt ⟨εa, εa0, ia, ha⟩ ⟨εb, εb0, ib, hb⟩ },
   { -- right or left?
     right,
     intros ε ε0,
@@ -649,13 +666,14 @@ begin
     sorry },
   { -- right or left?
     left,
+    rw gt at εb0,
     obtain ⟨ia, ha'⟩ := ha _ εb0,
     refine ⟨εb, εb0, ia ⊔ ib, λ i hi, _⟩,
     dsimp only [sub_apply] at *,
     erw ←min_sub_sub_left,
     refine le_min _ (hb _ (sup_le_iff.mp hi).2),
     have := ha' _ (sup_le_iff.mp hi).1,
-    rw [abs_lt, neg_lt] at this,
+    rw [abs_lt, neg_lt, neg_sub] at this,
     sorry },
   { right,
     intros ε ε0,
@@ -668,8 +686,6 @@ begin
       (max_lt (hai i (sup_le_iff.mp hi).1) (hbi i (sup_le_iff.mp hi).2)) },
 
 end
-
-#check max_abs
 
 instance : has_inf (cau_seq α abs) := ⟨λ f g, ⟨f ⊓ g, λ ε ε0, begin
   obtain ⟨fi, hf⟩ := f.prop (ε / 2) (half_pos ε0),

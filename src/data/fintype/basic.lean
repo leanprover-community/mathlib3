@@ -1390,6 +1390,59 @@ lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
   univ.map e = univ :=
 by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
 
+/-- There exists a bijection between two types of the same finite cardinality, which extends a given
+bijection on a given finset. -/
+lemma finset.exists_equiv_extend_of_card_eq [fintype α] [decidable_eq β] {t : finset β}
+  (hαt : fintype.card α = t.card) {s : finset α} :
+  ∀ {f : α → β} (hfst : s.image f ⊆ t) (hfs : set.inj_on f s),
+    ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
+begin
+  classical,
+  apply @finset.induction α
+    (λ s, ∀ f (hfst : s.image f ⊆ t) (hfs : set.inj_on f s), ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i),
+  { intros f hfst hfs,
+    have : nonempty (α ≃ ↥t) := by rwa [← fintype.card_eq, fintype.card_coe],
+    use this.some,
+    simp }, clear s,
+  intros a s has H f hfst hfs,
+  have hfst' : finset.image f s ⊆ t := (finset.image_mono _ (s.subset_insert a)).trans hfst,
+  have hfs' : set.inj_on f s := hfs.mono (s.subset_insert a),
+  obtain ⟨g', hg'⟩ := H f hfst' hfs',
+  have hfat : f a ∈ t := hfst (finset.mem_image_of_mem _ (s.mem_insert_self a)),
+  use g'.trans (equiv.swap (⟨f a, hfat⟩ : t) (g' a)),
+  intros i hi,
+  obtain rfl | his : i = a ∨ i ∈ s := by simpa using hi,
+  { simp },
+  simp only [equiv.coe_trans, comp_app],
+  rw equiv.swap_apply_of_ne_of_ne,
+  { rw hg' i his },
+  { intros h,
+    apply has,
+    have h' : f i = f a := by simpa only [subtype.ext_iff, hg' i his, subtype.coe_mk] using h,
+    rw ← hfs (finset.mem_coe.mpr hi) (s.mem_insert_self a) h',
+    exact his },
+  { apply g'.injective.ne,
+    rintros rfl,
+    contradiction }
+end
+
+/-- There exists a bijection between two types of the same finite cardinality, which extends a given
+bijection on a given set. -/
+lemma finset.exists_equiv_extend_of_card_eq' [fintype α] {t : finset β}
+  (hαt : fintype.card α = t.card) {s : set α} {f : α → β} (hfst : f '' s ⊆ t)
+  (hfs : set.inj_on f s) :
+  ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
+begin
+  classical,
+  let s' : finset α := s.to_finset,
+  have hfst' : s'.image f ⊆ t := by simpa [← finset.coe_subset] using hfst,
+  have hfs' : set.inj_on f s' := by simpa using hfs,
+  obtain ⟨g, hg⟩ := finset.exists_equiv_extend_of_card_eq hαt hfst' hfs',
+  refine ⟨g, λ i hi, _⟩,
+  apply hg,
+  simpa using hi,
+end
+
 namespace fintype
 
 /-- Given `fintype α`, `finset_equiv_set` is the equiv between `finset α` and `set α`. (All

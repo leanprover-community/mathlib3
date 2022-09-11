@@ -13,25 +13,19 @@ lemma my_pow_mod_aux_one (a c ac n m : ℕ) (hac : a * c = ac) (hm : ac % n = m)
   my_pow_mod_aux a 1 c n = m :=
 by rwa [my_pow_mod_aux, pow_one, hac]
 
-lemma my_pow_mod_aux_bit0 (a b c n m a2 ra2 qa2 za2 : ℕ)
-  (ha2 : a * a = a2) (hqa2 : n * qa2 = za2) (hra2 : ra2 + za2 = a2)
-  (hm : my_pow_mod_aux ra2 b c n = m) :
+lemma my_pow_mod_aux_bit0 (a b c n m a2 ra2 : ℕ)
+  (ha2 : a * a = a2) (hra2 : a2 % n = ra2) (hm : my_pow_mod_aux ra2 b c n = m) :
   my_pow_mod_aux a (bit0 b) c n = m :=
-begin
-  substs za2 a2,
-  rwa [my_pow_mod_aux, pow_bit0', mul_mod, pow_mod, ←hra2, add_mul_mod_self_left,
-    ←pow_mod, ←mul_mod]
-end
+by { substs ra2 a2, rwa [my_pow_mod_aux, pow_bit0', mul_mod, pow_mod, ←mul_mod] }
 
-lemma my_pow_mod_aux_bit1 (a b c n m qa2 za2 ra2 a2 qac zac rac ac : ℕ)
-  (ha2 : a * a = a2) (hqa2 : n * qa2 = za2) (hra2 : ra2 + za2 = a2)
-  (hac : a * c = ac) (hqac : n * qac = zac) (hrac : rac + zac = ac)
+lemma my_pow_mod_aux_bit1 (a b c n m ra2 a2 rac ac : ℕ)
+  (ha2 : a * a = a2) (hra2 : a2 % n = ra2)
+  (hac : a * c = ac) (hrac : ac % n = rac)
   (hm : my_pow_mod_aux ra2 b rac n = m) :
   my_pow_mod_aux a (bit1 b) c n = m :=
 begin
-  substs a2 za2 ac zac,
-  rwa [my_pow_mod_aux, pow_bit1', mul_assoc, ←hra2, ←hrac, mul_mod, pow_mod, add_mul_mod_self_left,
-    add_mul_mod_self_left, ←pow_mod, ←mul_mod],
+  substs ra2 a2 rac ac,
+  rwa [my_pow_mod_aux, pow_bit1', mul_assoc, mul_mod, pow_mod, ←mod_mod (a * c), ←mul_mod]
 end
 
 lemma my_pow_mod_eq (a b n m : ℕ) (h : my_pow_mod_aux a b 1 n = m) :
@@ -60,40 +54,17 @@ meta def prove_pow_mod_aux :
       return (ic, m, q)
   | bit0 b := do
       (ic, a2, ha2) ← prove_mul_nat ic a a,
-      nn ← n.to_nat,
-      na2 ← a2.to_nat,
-      let nra2 := na2 % nn,
-      let nqa2 := na2 / nn,
-        -- instead of using `prove_div_mod`, mimic its proof since the prove_lt bit is unneeded
-        -- should i use rats instead like that does?
-      (ic, ra2) ← ic.of_nat nra2,
-      (ic, qa2) ← ic.of_nat nqa2,
-      (ic, za2, hqa2) ← prove_mul_nat ic n qa2,
-      (ic, hra2) ← prove_add_nat ic ra2 za2 a2,
+      (ic, ra2, hra2) ← prove_div_mod ic a2 n tt,
       (ic, m, hm) ← prove_pow_mod_aux ic ra2 b c n,
-      q ← mk_app ``my_pow_mod_aux_bit0 [a, b, c, n, m, a2, ra2, qa2, za2, ha2, hqa2, hra2, hm],
+      q ← mk_app ``my_pow_mod_aux_bit0 [a, b, c, n, m, a2, ra2, ha2, hra2, hm],
       return (ic, m, q)
   | bit1 b := do
       (ic, a2, ha2) ← prove_mul_nat ic a a,
       (ic, ac, hac) ← prove_mul_nat ic a c,
-      nn ← n.to_nat,
-      na2 ← a2.to_nat,
-      nac ← ac.to_nat,
-      let nra2 := na2 % nn,
-      let nqa2 := na2 / nn,
-      let nrac := nac % nn,
-      let nqac := nac / nn,
-      (ic, ra2) ← ic.of_nat nra2,
-      (ic, qa2) ← ic.of_nat nqa2,
-      (ic, rac) ← ic.of_nat nrac,
-      (ic, qac) ← ic.of_nat nqac,
-      (ic, za2, hqa2) ← prove_mul_nat ic n qa2,
-      (ic, zac, hqac) ← prove_mul_nat ic n qac,
-      (ic, hra2) ← prove_add_nat ic ra2 za2 a2,
-      (ic, hrac) ← prove_add_nat ic rac zac ac,
+      (ic, ra2, hra2) ← prove_div_mod ic a2 n tt,
+      (ic, rac, hrac) ← prove_div_mod ic ac n tt,
       (ic, m, hm) ← prove_pow_mod_aux ic ra2 b rac n,
-      q ← mk_app ``my_pow_mod_aux_bit1 [a, b, c, n, m, qa2, za2, ra2, a2, qac, zac, rac, ac, ha2,
-        hqa2, hra2, hac, hqac, hrac, hm],
+      q ← mk_app ``my_pow_mod_aux_bit1 [a, b, c, n, m, ra2, a2, rac, ac, ha2, hra2, hac, hrac, hm],
       return (ic, m, q)
   | _ := failed
   end
@@ -156,21 +127,73 @@ pratt_rule_2 a hp h h'
 
 -- these rules aren't great for integration with norm_num for now, but they're nice for testing
 
+set_option profiler true
+
+lemma small_test : prime 199999 :=
+begin
+  refine pratt_rule_2' 3 (by norm_num) (by norm_num) _,
+  refine pratt_rule_1' 2 99999 prime_two (by norm_num) (by norm_num) _,
+  refine pratt_rule_1' 3 33333 prime_three (by norm_num) (by norm_num) _,
+  refine pratt_rule_1' 3 11111 prime_three (by norm_num) (by norm_num) _,
+  refine pratt_rule_1' 41 271 (by norm_num) (by norm_num) (by norm_num) _,
+  refine pratt_rule_1' 271 1 _ (by norm_num) (by norm_num) (pratt_axiom _ _),
+  norm_num
+end
+#eval min_fac 271
+
+-- lemma smallish_test : prime 1000000007 :=
+-- begin
+--   refine pratt_rule_2' 5 (by norm_num) (by norm_num) _,
+--   refine pratt_rule_1' 2 500000003 prime_two (by norm_num) (by norm_num) _,
+--   refine pratt_rule_1' 500000003 1 _ (by norm_num) (by norm_num) (pratt_axiom _ _),
+--   refine pratt_rule_2' 2 (by norm_num) (by norm_num) _,
+--   refine pratt_rule_1' 2 250000001 prime_two (by norm_num) (by norm_num) _,
+--   refine pratt_rule_1' 41 6097561 (by norm_num) (by norm_num) (by norm_num) _,
+--   refine pratt_rule_1' 41 148721 (by norm_num) (by norm_num) (by norm_num) _,
+--   refine pratt_rule_1' 148721 1 (by norm_num) (by norm_num) (by norm_num) (pratt_axiom _ _),
+--     -- can quickly prove 148721 is prime by trial division instead of using pratt again
+-- end
+
+-- lemma bigger_test : prime 23509285402367 :=
+-- begin
+--   refine pratt_rule_2' 5 (by norm_num1) (by norm_num1 /- goal 1 -/) _,
+--   refine pratt_rule_1' 2 11754642701183 (by norm_num1) (by norm_num1) (by norm_num1) _,
+--   refine pratt_rule_1' 11754642701183 1 _ (by norm_num1) (by norm_num1) (pratt_axiom _ _),
+--   refine pratt_rule_2' 5 (by norm_num1) _ _,
+--   -- { norm_num1 },
+--   -- timesout if goal 1 and 2 are here
+--   sorry,
+-- end
+
 -- example : my_pow_mod 5 23509285402366 23509285402367 = 1 :=
 -- begin
---   norm_num1,
+--   norm_num1, -- succeeds
 -- end
 
 -- example : my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
 -- begin
---   norm_num1,
+--   norm_num1, -- succeeds
 -- end
 
--- example : my_pow_mod 5 23509285402366 23509285402367 = 1 ∧ my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
+-- lemma it :
+--   my_pow_mod 5 (23509285402367 - 1) 23509285402367 = 1 ∧
+--   my_pow_mod 5 ((23509285402367 - 1) / 2) 23509285402367 ≠ 1 ∧
+--   my_pow_mod 5 ((23509285402367 - 1) / 11754642701183) 23509285402367 ≠ 1 ∧
+--   my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 ∧
+--   true :=
 -- begin
 --   split,
---   norm_num1,
---   norm_num1,
+--   { show_term {norm_num1} },
+--   sorry,
+--   -- split,
+--   -- { norm_num1 },
+--   -- split,
+--   -- { norm_num },
+--   -- split,
+--   -- { show_term { norm_num } },
+--   -- sorry, -- trivial,
+--     -- last goal is `true`
+--     -- but if I sorry this goal, the whole lemma says deterministic timeout
 -- end
 
 -- example : 7 ^ 1269505852555753484910 % 1269505852555753484911 = 1 :=
@@ -178,36 +201,32 @@ pratt_rule_2 a hp h h'
 --   norm_num,
 -- end
 
-lemma test : 7 ^ 1269505852555753484910 % 1269505852555753484911 = 1 :=
-begin
-  refine my_pow_mod_eq _ _ _ _ _,
-  refine my_pow_mod_aux_bit0 _ _ _ _ _ 49 49 0 0 (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 2401 2401 0 0 49 49 (by norm_num1) (by norm_num1)
-    (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 5764801 5764801 0 0 117649 117649 (by norm_num1)
-    (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 33232930569601 33232930569601 0 0 678223072849
-    678223072849 (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1)
-    (by norm_num1) _,
-  refine my_pow_mod_aux_bit0 _ _ _ _ _ 1104427674243920646305299201 745719402010051216175 869966
-    1104426928524518636254083026 (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 438042428409998988884
-    556097426534228377830055119958269350729324 833361688327230901301
-    556097426534228377830888481646596581630625 398394464504 505764104313643389425349689099144
-    732293592728383033431 505764104314375683018078072132575 (by norm_num1) (by norm_num1)
-    (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 547056716732318032581
-    694491703571612736654661674958057989885291 343899984206813607310
-    694491703571612736655005574942264803492601 480710997557640317587
-    610265424787338902615536835216852052429757 537956025130491963974
-    610265424787338902616074791241982544393731 (by norm_num1) (by norm_num1) (by norm_num1)
-    (by norm_num1) (by norm_num1) (by norm_num1) _,
-end
+-- lemma test : 7 ^ 1269505852555753484910 % 1269505852555753484911 = 1 :=
+-- begin
+--   refine my_pow_mod_eq _ _ _ _ _,
+--   refine my_pow_mod_aux_bit0 _ _ _ _ _ 49 49 0 0 (by norm_num1) (by norm_num1) (by norm_num1) _,
+--   refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 2401 2401 0 0 49 49 (by norm_num1) (by norm_num1)
+--     (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
+--   refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 5764801 5764801 0 0 117649 117649 (by norm_num1)
+--     (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
+--   refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 33232930569601 33232930569601 0 0 678223072849
+--     678223072849 (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1)
+--     (by norm_num1) _,
+--   refine my_pow_mod_aux_bit0 _ _ _ _ _ 1104427674243920646305299201 745719402010051216175 869966
+--     1104426928524518636254083026 (by norm_num1) (by norm_num1) (by norm_num1) _,
+--   refine my_pow_mod_aux_bit1 _ _ _ _ _ 438042428409998988884
+--     556097426534228377830055119958269350729324 833361688327230901301
+--     556097426534228377830888481646596581630625 398394464504 505764104313643389425349689099144
+--     732293592728383033431 505764104314375683018078072132575 (by norm_num1) (by norm_num1)
+--     (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
+--   refine my_pow_mod_aux_bit1 _ _ _ _ _ 547056716732318032581
+--     694491703571612736654661674958057989885291 343899984206813607310
+--     694491703571612736655005574942264803492601 480710997557640317587
+--     610265424787338902615536835216852052429757 537956025130491963974
+--     610265424787338902616074791241982544393731 (by norm_num1) (by norm_num1) (by norm_num1)
+--     (by norm_num1) (by norm_num1) (by norm_num1) _,
+-- end
 
-#eval 833361688327230901301 * 732293592728383033431
-#eval 610265424787338902616074791241982544393731 / 1269505852555753484911
-#eval 610265424787338902616074791241982544393731 % 1269505852555753484911
-#eval 610265424787338902616074791241982544393731 - 537956025130491963974
 
 -- lemma thing : prime 23509285402469 :=
 -- begin
@@ -219,21 +238,7 @@ end
 
 -- end
 
-#eval 5877321350617 / 127
-#exit
+-- #exit
 
-lemma thing : prime 1000000007 :=
-begin
-  refine pratt_rule_2' 5 (by norm_num) (by norm_num) _,
-  refine pratt_rule_1' 2 500000003 prime_two (by norm_num) (by norm_num) _,
-  refine pratt_rule_1' 500000003 1 _ (by norm_num) (by norm_num) (pratt_axiom _ _),
-  refine pratt_rule_2' 2 (by norm_num) (by norm_num) _,
-  refine pratt_rule_1' 2 250000001 prime_two (by norm_num) (by norm_num) _,
-  refine pratt_rule_1' 41 6097561 (by norm_num) (by norm_num) (by norm_num) _,
-  refine pratt_rule_1' 41 148721 (by norm_num) (by norm_num) (by norm_num) _,
-  refine pratt_rule_1' 148721 1 (by norm_num) (by norm_num) (by norm_num) (pratt_axiom _ _),
-    -- can quickly prove 148721 is prime by trial division
-end
-
-end arithmetic_function
+-- end arithmetic_function
 end nat

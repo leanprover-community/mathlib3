@@ -379,14 +379,14 @@ variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
 Warning: in general the right and left uniformities do not coincide and so one does not obtain a
 `uniform_group` structure. Two important special cases where they _do_ coincide are for
-commutative groups (see `topological_comm_group_is_uniform`) and for compact Hausdorff groups (see
+commutative groups (see `topological_comm_group_is_uniform`) and for compact groups (see
 `topological_group_is_uniform_of_compact_space`). -/
 @[to_additive "The right uniformity on a topological additive group (as opposed to the left
 uniformity).
 
 Warning: in general the right and left uniformities do not coincide and so one does not obtain a
 `uniform_add_group` structure. Two important special cases where they _do_ coincide are for
-commutative additive groups (see `topological_add_comm_group_is_uniform`) and for compact Hausdorff
+commutative additive groups (see `topological_add_comm_group_is_uniform`) and for compact
 additive groups (see `topological_add_comm_group_is_uniform_of_compact_space`)."]
 def topological_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
@@ -440,9 +440,8 @@ local attribute [instance] topological_group.to_uniform_space
   𝓤 G = comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)) := rfl
 
 @[to_additive] lemma topological_group_is_uniform_of_compact_space
-  [compact_space G] [t2_space G] : uniform_group G :=
+  [compact_space G] : uniform_group G :=
 ⟨begin
-  haveI : separated_space G := separated_iff_t2.mpr (by apply_instance),
   apply compact_space.uniform_continuous_of_continuous,
   exact continuous_div',
 end⟩

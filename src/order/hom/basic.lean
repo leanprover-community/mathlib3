@@ -807,7 +807,8 @@ lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o �
   f (x ⊓ y) = f x ⊓ f y :=
 begin
   refine (f.to_order_embedding.map_inf_le x y).antisymm _,
-  simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
+  apply f.symm.le_iff_le.1,
+  simpa using f.symm.to_order_embedding.map_inf_le (f x) (f y),
 end
 
 lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :

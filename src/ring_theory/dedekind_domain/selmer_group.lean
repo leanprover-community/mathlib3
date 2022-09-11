@@ -108,7 +108,7 @@ def valuation_of_ne_zero : Kˣ →* multiplicative ℤ :=
 valuation_of_ne_zero_to_fun_eq v x
 
 @[simp] lemma valuation_of_unit_eq (x : Rˣ) :
-  v.valuation_of_ne_zero (units.map (algebra_map R K).to_monoid_hom x) = 1 :=
+  v.valuation_of_ne_zero (units.map (algebra_map R K : R →* K) x) = 1 :=
 begin
   rw [← with_zero.coe_inj, valuation_of_ne_zero_eq, units.coe_map, eq_iff_le_not_lt],
   split,
@@ -124,7 +124,7 @@ end
 
 local attribute [semireducible] mul_opposite
 
-/-- The multiplicative `v`-adic valuation on `Kˣ/(Kˣ)ⁿ`. -/
+/-- The multiplicative `v`-adic valuation on `Kˣ` modulo `n`-th powers. -/
 def valuation_of_ne_zero_mod (n : ℕ) : K/n →* multiplicative (zmod n) :=
 (int.quotient_zmultiples_nat_equiv_zmod n).to_multiplicative.to_monoid_hom.comp $
   quotient_group.map (pow_monoid_hom n : Kˣ →* Kˣ).range
@@ -135,10 +135,9 @@ begin
 end
 
 @[simp] lemma valuation_of_unit_mod_eq (n : ℕ) (x : Rˣ) :
-  v.valuation_of_ne_zero_mod n (quotient_group.mk' _ $ units.map (algebra_map R K).to_monoid_hom x)
-    = 1 :=
-by rw [valuation_of_ne_zero_mod, monoid_hom.comp_apply, quotient_group.map_mk',
-       valuation_of_unit_eq, quotient_group.coe_one, map_one]
+  v.valuation_of_ne_zero_mod n (units.map (algebra_map R K : R →* K) x : K/n) = 1 :=
+by rw [valuation_of_ne_zero_mod, monoid_hom.comp_apply, ← quotient_group.coe_mk',
+       quotient_group.map_mk', valuation_of_unit_eq, quotient_group.coe_one, map_one]
 
 end height_one_spectrum
 
@@ -146,7 +145,7 @@ end height_one_spectrum
 
 variables {S S' : set $ height_one_spectrum R} {n : ℕ}
 
-/-- The Selmer group `K(S, n) = {x(Kˣ)ⁿ ∈ Kˣ/(Kˣ)ⁿ | ∀ v ∉ S, ord_v(x) ≡ 0 mod n}`. -/
+/-- The Selmer group `K⟮S, n⟯`. -/
 def selmer_group : subgroup $ K/n :=
 { carrier  := {x : K/n | ∀ v ∉ S, (v : height_one_spectrum R).valuation_of_ne_zero_mod n x = 1},
   one_mem' := λ _ _, by rw [map_one],
@@ -159,7 +158,7 @@ namespace selmer_group
 
 lemma monotone (hS : S ≤ S') : K⟮S, n⟯ ≤ (K⟮S', n⟯) := λ _ hx v, hx v ∘ mt (@hS v)
 
-/-- The multiplicative `v`-adic valuations on `K(S, n)` for all `v ∈ S`. -/
+/-- The multiplicative `v`-adic valuations on `K⟮S, n⟯` for all `v ∈ S`. -/
 def valuation : K⟮S, n⟯ →* S → multiplicative (zmod n) :=
 { to_fun   := λ x v, (v : height_one_spectrum R).valuation_of_ne_zero_mod n (x : K/n),
   map_one' := funext $ λ v, map_one _,
@@ -177,6 +176,7 @@ begin
   { exact λ hx', funext $ λ v, hx' v $ set.not_mem_empty v }
 end
 
+/-- The natural homomorphism from `Rˣ` to `K⟮S, n⟯`. -/
 def from_unit (n : ℕ) : Rˣ →* (K⟮(∅ : set $ height_one_spectrum R), n⟯) :=
 { to_fun   := λ x, ⟨quotient_group.mk $ units.map (algebra_map R K).to_monoid_hom x,
                     λ v _, v.valuation_of_unit_mod_eq n x⟩,

@@ -172,10 +172,10 @@ begin
   rw ae_eq_restrict_iff_indicator_ae_eq
     (hτ.measurable_space_le _ (hτ.measurable_set_le_stopping_time hσ)),
   swap, apply_instance,
-  refine (condexp_indicator (integrable_stopped_value hτ h.integrable hτ_le)
+  refine (condexp_indicator (integrable_stopped_value ι hτ h.integrable hτ_le)
     (hτ.measurable_set_stopping_time_le hσ)).symm.trans _,
   have h_int : integrable ({ω : Ω | τ ω ≤ σ ω}.indicator (stopped_value (λ (n : ι), f n) τ)) μ,
-  { refine (integrable_stopped_value hτ h.integrable hτ_le).indicator _,
+  { refine (integrable_stopped_value ι hτ h.integrable hτ_le).indicator _,
     exact hτ.measurable_space_le _ (hτ.measurable_set_le_stopping_time hσ), },
   have h_meas : ae_strongly_measurable' hσ.measurable_space
     ({ω : Ω | τ ω ≤ σ ω}.indicator (stopped_value (λ (n : ι), f n) τ)) μ,
@@ -238,7 +238,7 @@ begin
       { refine condexp_of_strongly_measurable hτ.measurable_space_le _ _,
         { refine measurable.strongly_measurable _,
           exact measurable_stopped_value h_prog hτ, },
-        { exact integrable_stopped_value hτ h.integrable hτ_le, }, },
+        { exact integrable_stopped_value ι hτ h.integrable hτ_le, }, },
       rw h1,
       exact (condexp_stopped_value_stopping_time_ae_eq_restrict_le h h_prog hτ hσ hτ_le).symm, }, },
 end

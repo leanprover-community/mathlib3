@@ -509,29 +509,17 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
     let ⟨g, gA, dist_fg⟩ := metric.mem_closure_iff.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
   begin
-    --intros x U hU,
-    --have : ∃ V ∈ 𝓤 β, V ○ V ○ V ⊆ U := sorry,
-    --rcases this with ⟨V, hV, hVU⟩,
-    --filter_upwards [H x V hV],
-    --rintros y hy ⟨i, hi⟩,
-    --have := uniform_space.mem_closure_iff_ball.mp hi,
-    sorry,
-    --sorry,
-    --simp_rw [equicontinuous, metric.equicontinuous_at_iff_right', forall_subtype] at *,
-    --intros x ε ε0,
+    simp_rw [equicontinuous, metric.equicontinuous_at_iff_right', set_coe.forall] at *,
+    intros x ε ε0,
+    refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
+    rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
+    replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
+    calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
+      dist_triangle4_right _ _ _ _
+        ... < ε/2/2 + ε/2/2 + ε/2 :
+          add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
+        ... = ε : by rw [add_halves, add_halves]
   end
---  (λ x ε ε0, show ∃ U ∈ 𝓝 x,
---      ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
---    begin
---      refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
---      rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
---      replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
---      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
---        dist_triangle4_right _ _ _ _
---          ... < ε/2/2 + ε/2/2 + ε/2 :
---            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
---          ... = ε : by rw [add_halves, add_halves]
---    end)
 
 /- To apply the previous theorems, one needs to check the equicontinuity. An important
 instance is when the source space is a metric space, and there is a fixed modulus of continuity
@@ -540,18 +528,20 @@ for all the functions in the set A -/
 lemma equicontinuous_of_continuity_modulus {α : Type u} [pseudo_metric_space α]
   (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (A : set (α →ᵇ β))
-  (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
-  (x:α) (ε : ℝ) (ε0 : 0 < ε) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε :=
+  (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y)) :
+  equicontinuous (coe_fn : A → α → β) :=
 begin
+  intro x,
+  rw metric.equicontinuous_at_iff_right',
+  intros ε ε0,
   rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
-  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y hy z hz f hf, _⟩,
+  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y hy z hz f, _⟩,
   have : dist y z < δ := calc
     dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
     ... < δ/2 + δ/2 : add_lt_add hy hz
     ... = δ : add_halves _,
   calc
-    dist (f y) (f z) ≤ b (dist y z) : H y z f hf
+    dist (f y) (f z) ≤ b (dist y z) : H y z f f.2
     ... ≤ |b (dist y z)| : le_abs_self _
     ... = dist (b (dist y z)) 0 : by simp [real.dist_eq]
     ... < ε : hδ (by simpa [real.dist_eq] using this),

@@ -805,21 +805,18 @@ end
 /-- A Galois connection. -/
 lemma _root_.multiset.prod_X_sub_C_dvd_iff_le_roots {p : R[X]} (hp : p ≠ 0) (s : multiset R) :
   (s.map (λ a, X - C a)).prod ∣ p ↔ s ≤ p.roots :=
-begin
-  split; intro h,
-  { refine multiset.le_iff_count.2 (λ r, _),
-    rw [count_roots, le_root_multiplicity_iff hp, ← multiset.prod_repeat,
-      ← multiset.map_repeat (λ a, X - C a), ← multiset.filter_eq],
-    exact (multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ s.filter_le _).trans h },
-  exact (multiset.prod_dvd_prod_of_le $ multiset.map_le_map h).trans (prod_multiset_X_sub_C_dvd p),
-end
+⟨λ h, multiset.le_iff_count.2 $ λ r, begin
+  rw [count_roots, le_root_multiplicity_iff hp, ← multiset.prod_repeat,
+    ← multiset.map_repeat (λ a, X - C a), ← multiset.filter_eq],
+  exact (multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ s.filter_le _).trans h,
+end, λ h, (multiset.prod_dvd_prod_of_le $ multiset.map_le_map h).trans p.prod_multiset_X_sub_C_dvd⟩
 
 lemma exists_prod_multiset_X_sub_C_mul (p : R[X]) : ∃ q,
   (p.roots.map (λ a, X - C a)).prod * q = p ∧
   p.roots.card + q.nat_degree = p.nat_degree ∧
   q.roots = 0 :=
 begin
-  obtain ⟨q, he⟩ := prod_multiset_X_sub_C_dvd p,
+  obtain ⟨q, he⟩ := p.prod_multiset_X_sub_C_dvd,
   use [q, he.symm],
   obtain (rfl|hq) := eq_or_ne q 0,
   { rw mul_zero at he, subst he, simp },
@@ -836,8 +833,7 @@ can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
 lemma C_leading_coeff_mul_prod_multiset_X_sub_C (hroots : p.roots.card = p.nat_degree) :
   C p.leading_coeff * (p.roots.map (λ a, X - C a)).prod = p :=
 (eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le monic_prod_multiset_X_sub_C
-  (prod_multiset_X_sub_C_dvd p) $
-  ((nat_degree_multiset_prod_X_sub_C_eq_card _).trans hroots).ge).symm
+  p.prod_multiset_X_sub_C_dvd ((nat_degree_multiset_prod_X_sub_C_eq_card _).trans hroots).ge).symm
 
 /-- A monic polynomial `p` that has as many roots as its degree
 can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
@@ -876,7 +872,7 @@ begin
   rw [le_root_multiplicity_iff hmap, ← multiset.prod_repeat, ← multiset.map_repeat (λ a, X - C a)],
   rw ← multiset.filter_eq,
   refine (multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ multiset.filter_le _ _).trans _,
-  convert polynomial.map_dvd _ (prod_multiset_X_sub_C_dvd p),
+  convert polynomial.map_dvd _ p.prod_multiset_X_sub_C_dvd,
   simp only [polynomial.map_multiset_prod, multiset.map_map],
   congr, ext1,
   simp only [function.comp_app, polynomial.map_sub, map_X, map_C],

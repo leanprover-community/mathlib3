@@ -2056,7 +2056,7 @@ begin
   exact set_integral_condexp_L1 hf hs,
 end
 
-lemma integral_condexp {hm : m ≤ m0} [hμm : sigma_finite (μ.trim hm)]
+lemma integral_condexp (hm : m ≤ m0) [hμm : sigma_finite (μ.trim hm)]
   (hf : integrable f μ) : ∫ x, μ[f|m] x ∂μ = ∫ x, f x ∂μ :=
 begin
   suffices : ∫ x in set.univ, μ[f|m] x ∂μ = ∫ x in set.univ, f x ∂μ,
@@ -2097,9 +2097,7 @@ begin
   have h_meas : strongly_measurable[⊥] (μ[f|⊥]) := strongly_measurable_condexp,
   obtain ⟨c, h_eq⟩ := strongly_measurable_bot_iff.mp h_meas,
   rw h_eq,
-  have h_integral : ∫ x, μ[f|⊥] x ∂μ = ∫ x, f x ∂μ := integral_condexp hf,
-  swap, { exact bot_le, },
-  swap, { rw sigma_finite_trim_bot_iff, exact hμ_finite, },
+  have h_integral : ∫ x, μ[f|⊥] x ∂μ = ∫ x, f x ∂μ := integral_condexp bot_le hf,
   simp_rw [h_eq, integral_const] at h_integral,
   rw [← h_integral, ← smul_assoc, smul_eq_mul, inv_mul_cancel, one_smul],
   rw [ne.def, ennreal.to_real_eq_zero_iff, auto.not_or_eq, measure.measure_univ_eq_zero,

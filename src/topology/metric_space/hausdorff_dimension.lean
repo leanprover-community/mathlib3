@@ -436,7 +436,7 @@ begin
     have : μH[fintype.card ι] (metric.ball x r) = ennreal.of_real ((2 * r) ^ fintype.card ι),
       by rw [hausdorff_measure_pi_real, real.volume_pi_ball _ hr],
     refine dimH_of_hausdorff_measure_ne_zero_ne_top _ _; rw [nnreal.coe_nat_cast, this],
-    { simp [pow_pos (mul_pos zero_lt_two hr)] },
+    { simp [pow_pos (mul_pos (zero_lt_two' ℝ) hr)] },
     { exact ennreal.of_real_ne_top } }
 end
 

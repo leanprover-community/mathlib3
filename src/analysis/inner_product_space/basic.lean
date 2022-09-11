@@ -1173,7 +1173,7 @@ end
 /--
 If `⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ` for all x, then S = T.
 -/
-lemma inner_map_eq_all (S T : V →ₗ[ℂ] V) :
+lemma ext_inner_map (S T : V →ₗ[ℂ] V) :
   (∀ (x : V), ⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ) ↔ S = T :=
 begin
   rw [←sub_eq_zero, ←inner_map_self_eq_zero],

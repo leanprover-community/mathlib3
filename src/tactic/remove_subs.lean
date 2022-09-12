@@ -109,8 +109,7 @@ section error_reporting
 /--  `report l la` returns `Try this: remove_subs at <subset of user input>` or
 `remove_subs made no progress`, with an `!`-flag depending on `la`.
 In edge-cases, it reports some variation. -/
---  `report` uses a generic `α` instead of `name`, since otherwise Lean wanted it to be `meta`.
-def report {α} [decidable_eq α] [has_to_string α] (l : list (option α)) (la : bool) : string :=
+def report (l : list (option name)) (la : bool) : string :=
 let rm := "remove_subs" ++ if la then "!" else "" in match l with
 | []     :=          "`" ++ rm ++ "` made no progress"
 | [none] := "Try this: " ++ rm

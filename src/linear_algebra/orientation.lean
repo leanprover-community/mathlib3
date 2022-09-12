@@ -108,7 +108,7 @@ lemma orientation_units_smul [nontrivial R] (e : basis ι R M) (w : ι → units
   (e.units_smul w).orientation = (∏ i, w i)⁻¹ • e.orientation :=
 begin
   rw [basis.orientation, basis.orientation, smul_ray_of_ne_zero, ray_eq_iff,
-      e.det.eq_smul_basis_det (e.units_smul w), det_units_smul, units.smul_def, smul_smul],
+      e.det.eq_smul_basis_det (e.units_smul w), det_units_smul_self, units.smul_def, smul_smul],
   norm_cast,
   simp
 end

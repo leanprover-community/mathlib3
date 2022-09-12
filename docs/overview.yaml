@@ -343,6 +343,9 @@ Analysis:
     Phragmen-Lindelöf principle: 'phragmen_lindelof.horizontal_strip'
     fundamental theorem of algebra: 'complex.is_alg_closed'
 
+  Distribution theory:
+    Schwartz space: 'schwartz_map'
+
 Probability Theory:
   Definitions in probability theory:
     probability measure: 'measure_theory.is_probability_measure'
@@ -405,7 +408,7 @@ Combinatorics:
     adjacency matrix: 'simple_graph.adj_matrix'
   Pigeonhole principles:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'
-    infinite: 'fintype.exists_infinite_fiber'
+    infinite: 'finite.exists_infinite_fiber'
     strong pigeonhole principle: 'fintype.exists_lt_card_fiber_of_mul_lt_card'
   Transversals:
     Hall's marriage theorem: 'finset.all_card_le_bUnion_card_iff_exists_injective'

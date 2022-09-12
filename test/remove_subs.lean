@@ -80,10 +80,10 @@ example {a b : ℝ≥0} (h : a - b = b): a - b = b :=
 begin
   success_if_fail_with_msg {remove_subs at h ⊢ ⊢ h ⊢} "Try this: remove_subs at h ⊢",
   remove_subs at h ⊢,
-  assumption,
-  subst h,
-  simpa only [zero_add, le_zero_iff] using h_1,
-  simpa only [add_tsub_cancel_left],
+  { assumption },
+  { subst h,
+    simpa only [zero_add, le_zero_iff] using h_1 },
+  { simpa only [add_tsub_cancel_left] },
 end
 
 example {a b : ℕ} (h : a - b = b): a - b = b :=

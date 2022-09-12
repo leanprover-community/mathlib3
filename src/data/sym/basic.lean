@@ -120,6 +120,9 @@ lemma mem_mk (a : α) (s : multiset α) (h : s.card = n) : a ∈ mk s h ↔ a �
 @[simp] lemma mem_cons {a b : α} {s : sym α n} : a ∈ b ::ₛ s ↔ a = b ∨ a ∈ s :=
 multiset.mem_cons
 
+@[simp] lemma mem_coe {a : α} {s : sym α n} : a ∈ (s : multiset α) ↔ a ∈ s :=
+iff.rfl
+
 lemma mem_cons_of_mem {a b : α} {s : sym α n} (h : a ∈ s) : a ∈ b ::ₛ s :=
 multiset.mem_cons_of_mem h
 
@@ -314,30 +317,68 @@ multiset.mem_attach _ _
   :=
 coe_injective $ multiset.attach_cons _ _
 
-/-- fill an elment `sym α (n - i)` with `i` copies of `a` to obtain an element of `sym α n` -/
-def fill (a : α) (m : Σ i : fin (n + 1), sym α (n - i)) : sym α n :=
-sym.mk (m.1.1 • {a} + m.2) begin
-  erw [multiset.card_add, m.2.2, multiset.card_nsmul, multiset.card_singleton, mul_one],
-  exact nat.add_sub_of_le (nat.lt_succ_iff.1 m.1.2),
-end
+@[simps] protected def cast {n m : ℕ} (h : n = m) : sym α n ≃ sym α m :=
+{ to_fun := λ s, ⟨s.val, s.2.trans h⟩,
+  inv_fun := λ s, ⟨s.val, s.2.trans h.symm⟩,
+  left_inv := λ s, subtype.ext rfl,
+  right_inv := λ s, subtype.ext rfl }
 
-/-- filter an element of `sym α n` of `a`, if it has `i` copies,
-  it yields an element of `sym α (n - i)` -/
+@[simp] lemma cast_rfl : sym.cast rfl s = s := subtype.ext rfl
+
+@[simp] lemma cast_cast {n n' n'' : ℕ} (s : sym α n) (h : n = n') (h' : n' = n'') :
+  sym.cast h' (sym.cast h s) = sym.cast (h.trans h') s := rfl
+
+@[simp] lemma coe_cast {n m : ℕ} (h : n = m) (s : sym α n) :
+  (sym.cast h s : multiset α) = s := rfl
+
+@[simp] lemma mem_cast {n m : ℕ} (h : n = m) (s : sym α n) (a : α) :
+  a ∈ sym.cast h s ↔ a ∈ s := iff.rfl
+
+def append {n n' : ℕ} (s : sym α n) (s' : sym α n') : sym α (n + n') :=
+⟨s.1 + s'.1, by simp_rw [← s.2, ← s'.2, map_add]⟩
+
+@[simp] lemma append_inj_right {n n' : ℕ} (s : sym α n) (t t' : sym α n') :
+  s.append t = s.append t' ↔ t = t' :=
+subtype.ext_iff.trans $ (add_right_inj _).trans subtype.ext_iff.symm
+
+@[simp] lemma append_inj_left {n n' : ℕ} (s s' : sym α n) (t : sym α n') :
+  s.append t = s'.append t ↔ s = s' :=
+subtype.ext_iff.trans $ (add_left_inj _).trans subtype.ext_iff.symm
+
+lemma append_comm {n n' : ℕ} (s : sym α n) (s' : sym α n') :
+  s.append s' = sym.cast (add_comm _ _) (s'.append s) :=
+by { ext, simp [append, add_comm], }
+
+@[simp] lemma coe_append {n n' : ℕ} (s : sym α n) (s' : sym α n') :
+  (s.append s' : multiset α) = s + s' :=
+by rw [append, sym.mk_coe, subtype.val_eq_coe, subtype.val_eq_coe]
+
+lemma append_mem {n m : ℕ} (a : α)  (s : sym α n) (s' : sym α m) :
+  a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' :=
+by simp_rw [append, sym.mem_mk, multiset.mem_add, subtype.val_eq_coe, mem_coe]
+
+/-- Fill a term `m : sym α (n - i)` with `i` copies of `a` to obtain a term of `sym α n`.
+This is a convenience wrapper for `m.append (repeat a i)` that adjusts the term using `sym.cast`. -/
+def fill (a : α) (i : fin (n + 1)) (m : sym α (n - i)) : sym α n :=
+sym.cast (nat.sub_add_cancel i.is_le) (m.append (repeat a i))
+
+lemma fill_mem {n m : ℕ} (a b : α) (i : fin (n + 1)) (s : sym α (n - i)) :
+  a ∈ sym.fill b i s ↔ ((i : nat) ≠ 0 ∧ a = b) ∨ a ∈ s :=
+by rw [fill, mem_cast, append_mem, or_comm, mem_repeat]
+
+/-- Remove every `a` from a given `sym α n`.
+Yields the number of copies `i` and a term of `sym α (n - i)`. -/
 def filter_ne [decidable_eq α] (a : α) {n : ℕ} (m : sym α n) : Σ i : fin (n + 1), sym α (n - i) :=
 ⟨⟨m.1.count a, (multiset.count_le_card _ _).trans_lt $ by rw [m.2, nat.lt_succ_iff]⟩,
-  sym.mk (m.1.filter ((≠) a)) $ eq_tsub_of_add_eq begin
-    conv_rhs { rw [← m.2, multiset.card_eq_countp_add_countp ((=) a), add_comm] },
-    rw multiset.countp_eq_card_filter, refl,
-  end⟩
+  m.1.filter ((≠) a), eq_tsub_of_add_eq $ eq.trans begin
+    rw [← multiset.countp_eq_card_filter, add_comm],
+    exact (multiset.card_eq_countp_add_countp _ _).symm,
+  end m.2⟩
 
-lemma sigma_ext (m₁ m₂ : Σ i : fin (n + 1), sym α (n - i))
-  (h : m₁.2.1 = m₂.2.1) : m₁ = m₂ :=
-sigma.subtype_ext (fin.ext $ begin
-  have h₁ := nat.sub_sub_self (nat.lt_succ_iff.1 m₁.1.2),
-  have h₂ := nat.sub_sub_self (nat.lt_succ_iff.1 m₂.1.2),
-  dsimp only [fin.val_eq_coe] at h₁ h₂,
-  rw [← h₁, ← h₂, ← m₁.2.2, ← m₂.2.2, h],
-end) h
+lemma sigma_sub_ext (m₁ m₂ : Σ i : fin (n + 1), sym α (n - i))
+  (h : (m₁.2 : multiset α) = m₂.2) : m₁ = m₂ :=
+sigma.subtype_ext (fin.ext $ by rw [← nat.sub_sub_self m₁.1.is_le, ← nat.sub_sub_self m₂.1.is_le,
+  ← m₁.2.2, ← m₂.2.2, subtype.val_eq_coe, subtype.val_eq_coe, h]) h
 
 end sym
 

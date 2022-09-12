@@ -189,9 +189,9 @@ namespace interactive
 setup_tactic_parser
 
 /-- Tactic solving goals of the form `0 ≤ x`, `0 < x` and `x ≠ 0`.  The tactic works recursively
-according to the syntax of the expression `x`, if the atoms composing the expression all have numeric
-lower bounds which can be proved positive/nonnegative by `norm_num`.  This tactic either closes the
-goal or fails.
+according to the syntax of the expression `x`, if the atoms composing the expression all have
+numeric lower bounds which can be proved positive/nonnegative by `norm_num`.  This tactic either
+closes the goal or fails.
 
 Examples:
 ```

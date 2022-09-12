@@ -88,20 +88,6 @@ apply_opt_param
 <|>
 apply_auto_param
 <|>
-/- see https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-
-.2F-tactics/topic/.60apply_instance.60.20fails.20to.20infer.20instance.3F -/
-exact ```(pos_mul_strict_mono.to_pos_mul_mono)
-<|>
-exact ```(mul_pos_strict_mono.to_mul_pos_mono)
-<|>
-exact ```(pos_mul_mono_rev.to_pos_mul_reflect_lt)
-<|>
-exact ```(mul_pos_mono_rev.to_mul_pos_reflect_lt)
-<|>
-exact ```(pos_mul_strict_mono.to_pos_mul_mono_rev)
-<|>
-exact ```(mul_pos_strict_mono.to_mul_pos_mono_rev)
-<|>
 tactic.solve_by_elim { lemmas := some asms }
 <|>
 reflexivity
@@ -113,7 +99,7 @@ return ()
 private meta def match_rule_head  (p : expr)
 : list expr → expr → expr → tactic expr
  | vs e t :=
-(unify t p >> mmap' unify_with_instance vs >> instantiate_mvars e)
+(unify t p >> mmap' unify_with_instance vs.reverse >> instantiate_mvars e)
 <|>
 do (expr.pi _ _ d b) ← return t | failed,
    v ← mk_meta_var d,

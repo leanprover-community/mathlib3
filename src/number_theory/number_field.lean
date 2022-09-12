@@ -234,7 +234,7 @@ begin
     exact (adjoin_root.lift_root hK).symm, },
 end
 
-variables (K A : Type*) [field K] [number_field K] [field A] [char_zero A] [is_alg_closed A] (x : K)
+variables (K A : Type*) [field K] [number_field K] [field A] [algebra ℚ A] [is_alg_closed A] (x : K)
 
 /-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K` a number field.
 The images of `x` by the embeddings of `K` in `A` are exactly the roots in `A` of

@@ -541,6 +541,11 @@ by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 @[simp] lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
+@[simp] lemma map_bit0 : (bit0 p).map f = bit0 (p.map f) := by simp only [bit0, polynomial.map_add]
+
+@[simp] lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
+by simp only [bit1, polynomial.map_add, map_bit0, polynomial.map_one]
+
 /-- `polynomial.map` as a `ring_hom`. -/
 -- `map` is a ring-hom unconditionally, and theoretically the definition could be replaced,
 -- but this turns out not to be easy because `p.map f` does not resolve to `polynomial.map`

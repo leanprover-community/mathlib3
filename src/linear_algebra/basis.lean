@@ -68,7 +68,7 @@ universe u
 open function set submodule
 open_locale classical big_operators
 
-variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
+variables {ι : Type*} {ι' : Type*} {R : Type*} {R₂ : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
@@ -859,8 +859,8 @@ section module
 open linear_map
 
 variables {v : ι → M}
-variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
-variables [module R M] [module R M'] [module R M'']
+variables [ring R] [comm_ring R₂] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [module R M] [module R₂ M] [module R M'] [module R M'']
 variables {c d : R} {x y : M}
 variables (b : basis ι R M)
 
@@ -1019,6 +1019,25 @@ lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
   v.units_smul w i = w i • v i :=
 mk_apply
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge i
+
+@[simp] lemma coord_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (i : ι) :
+  (e.units_smul w).coord i = (w i)⁻¹ • e.coord i :=
+begin
+  apply e.ext,
+  intros j,
+  transitivity ((e.units_smul w).coord i) ((w j)⁻¹ • (e.units_smul w) j),
+  { congr,
+    simp [basis.units_smul, ← mul_smul], },
+  simp only [basis.coord_apply, linear_map.smul_apply, basis.repr_self, units.smul_def,
+    smul_hom_class.map_smul, finsupp.single_apply],
+  split_ifs with h h,
+  { simp [h] },
+  { simp }
+end
+
+@[simp] lemma repr_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (v : M) (i : ι) :
+  (e.units_smul w).repr v i = (w i)⁻¹ • e.repr v i :=
+congr_arg (λ f : M →ₗ[R₂] R₂, f v) (e.coord_units_smul w i)
 
 /-- A version of `smul_of_units` that uses `is_unit`. -/
 def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):

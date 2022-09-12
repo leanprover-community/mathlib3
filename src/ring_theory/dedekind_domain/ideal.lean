@@ -999,10 +999,11 @@ lemma normalized_factors_equiv_of_quot_equiv_apply (hI : I ≠ ⊥) (hJ : J ≠ 
 rfl
 
 lemma normalized_factors_equiv_of_quot_equiv_symm_apply (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (M) :
-  normalized_factors_equiv_of_quot_equiv f.symm hJ hI M = ⟨(ideal_factors_equiv_of_quot_equiv f).symm
-    ⟨↑M, dvd_of_mem_normalized_factors M.prop⟩, by { rw ideal_factors_equiv_of_quot_equiv_symm,
-      exact ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors
-      f.symm hI M.prop} ⟩ :=
+  normalized_factors_equiv_of_quot_equiv f.symm hJ hI M =
+  ⟨(ideal_factors_equiv_of_quot_equiv f).symm ⟨↑M, dvd_of_mem_normalized_factors M.prop⟩,
+    by { rw ideal_factors_equiv_of_quot_equiv_symm,
+          exact ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors
+          f.symm hI M.prop } ⟩ :=
 rfl
 
 lemma normalized_factors_equiv_of_quot_equiv_symm (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :

@@ -177,10 +177,20 @@ lemma is_swap.of_subtype_is_swap {p : α → Prop} [decidable_pred p]
 let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
 ⟨x, y, by { simp only [ne.def] at hxy, exact hxy.1 },
   equiv.ext $ λ z, begin
-    rw [hxy.2, of_subtype],
+    rw [hxy.2, swap_apply_def],
+    split_ifs,
+    { rw [h_1, of_subtype_apply_of_mem, swap_apply_left], refl, },
+    { rw [h_2, of_subtype_apply_of_mem, swap_apply_right], refl, },
+    { by_cases h_z : p z,
+      { rw [of_subtype_apply_of_mem _ h_z],
+        rw swap_apply_of_ne_of_ne, refl,
+        simp only [h_1, ne.def, not_false_iff],
+        simp only [h_2, ne.def, not_false_iff], },
+      { rw of_subtype_apply_of_not_mem, exact h_z, }, },
+    /- rw [hxy.2, of_subtype],
     simp only [swap_apply_def, coe_fn_mk, swap_inv, subtype.mk_eq_mk, monoid_hom.coe_mk],
     split_ifs;
-    rw subtype.coe_mk <|> cc,
+       rw subtype.coe_mk <|> cc, -/
   end⟩
 
 lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}

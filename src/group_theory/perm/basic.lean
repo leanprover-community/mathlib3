@@ -275,7 +275,6 @@ lemma of_subtype_apply_of_mem {p : α → Prop} [decidable_pred p]
   of_subtype f x = f ⟨x, hx⟩ := extend_domain_apply_subtype f _ hx
 -- dif_pos hx
 
-
 @[simp] lemma of_subtype_apply_coe {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : subtype p)  :
   of_subtype f x = f x :=

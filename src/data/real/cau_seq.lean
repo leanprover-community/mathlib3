@@ -679,7 +679,7 @@ begin
   exact this.trans_eq (min_sub_sub_left _ _ _)
 end
 
-protected lemma inf_lt {a b c : cau_seq α abs} (hb : a < b) (hc : a < c) : a < b ⊓ c :=
+protected lemma lt_inf {a b c : cau_seq α abs} (hb : a < b) (hc : a < c) : a < b ⊓ c :=
 begin
   obtain ⟨⟨εb, εb0, ib, hb⟩, ⟨εc, εc0, ic, hc⟩⟩ := ⟨hb, hc⟩,
   refine ⟨εb ⊓ εc, lt_inf_iff.mpr ⟨εb0, εc0⟩, ib ⊔ ic, λ i hi, _⟩,
@@ -689,40 +689,63 @@ end
 
 protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c :=
 begin
-  obtain ⟨⟨εa, εa0: _ < _, ia, ha⟩ | ha, ⟨εb, εb0 : _ < _, ib, hb⟩ | hb⟩ := ⟨ha, hb⟩,
+  obtain ⟨ha | ha, hb | hb⟩ := ⟨ha, hb⟩,
   { left,
-    exact cau_seq.sup_lt ⟨εa, εa0, ia, ha⟩ ⟨εb, εb0, ib, hb⟩ },
-  { -- right or left?
-    right,
+    exact cau_seq.sup_lt ha hb },
+  { replace ha := lt_of_lt_of_eq ha (setoid.symm hb),
+    refine le_of_le_of_eq (or.inr _) hb,
     intros ε ε0,
-    obtain ⟨ib, hbi⟩ := hb (ε ⊓ εa) (lt_min ε0 εa0),
-    refine ⟨ia ⊔ ib, λ i hi, _⟩,
+    obtain ⟨εa, εa0: _ < _, ia, ha⟩ := ha,
+    refine ⟨ia, λ i hi, _⟩,
     dsimp,
     erw ←max_sub_sub_right,
-    refine abs_max_le_max_abs_abs.trans_lt _,
-    refine max_lt _ _,
-    sorry,
-    sorry },
-  { -- right or left?
-    obtain ⟨ia, ha'⟩ := ha _ εb0,
-    left,
-    refine ⟨εb, εb0, ia ⊔ ib, λ i hi, _⟩,
-    dsimp only [sub_apply] at *,
-    erw ←min_sub_sub_left,
-    refine le_min _ (hb _ (sup_le_iff.mp hi).2),
-    have := ha' _ (sup_le_iff.mp hi).1,
-    rw [abs_lt, neg_lt, neg_sub] at this,
-    sorry },
+    rwa [sub_self, max_eq_right, abs_zero],
+    simpa using εa0.le.trans (ha _ hi) },
+  { replace hb := lt_of_lt_of_eq hb (setoid.symm ha),
+    refine le_of_le_of_eq (or.inr _) ha,
+    intros ε ε0,
+    obtain ⟨εb, εb0: _ < _, ib, hb⟩ := hb,
+    refine ⟨ib, λ i hi, _⟩,
+    dsimp,
+    erw ←max_sub_sub_right,
+    rwa [sub_self, max_eq_left, abs_zero],
+    simpa using εb0.le.trans (hb _ hi) },
   { right,
     refine setoid.trans (sup_equiv_sup ha hb) _,
     convert setoid.refl _,
     ext,
     exact sup_idem.symm },
-
 end
 
-protected lemma le_inf {a b c : cau_seq α abs} (hb : a ≤ b) (hc : a ≤ c) : a ≤ b ⊓ c := sorry
-
+protected lemma le_inf {a b c : cau_seq α abs} (hb : a ≤ b) (hc : a ≤ c) : a ≤ b ⊓ c :=
+begin
+  obtain ⟨hb | hb, hc | hc⟩ := ⟨hb, hc⟩,
+  { left,
+    exact cau_seq.lt_inf hb hc },
+  { replace hb := lt_of_eq_of_lt (setoid.symm hc) hb,
+    refine le_of_eq_of_le hc (or.inr _),
+    intros ε ε0,
+    obtain ⟨εb, εb0 : _ < _, ib, hb⟩ := hb,
+    refine ⟨ib, λ i hi, _⟩,
+    dsimp,
+    erw ←max_sub_sub_left,
+    rwa [sub_self, max_eq_right, abs_zero],
+    simpa using εb0.le.trans (hb _ hi) },
+  { replace hc := lt_of_eq_of_lt (setoid.symm hb) hc,
+    refine le_of_eq_of_le hb (or.inr _),
+    intros ε ε0,
+    obtain ⟨εc, εc0 : _ < _, ic, hc⟩ := hc,
+    refine ⟨ic, λ i hi, _⟩,
+    dsimp,
+    erw ←max_sub_sub_left,
+    rwa [sub_self, max_eq_left, abs_zero],
+    simpa using εc0.le.trans (hc _ hi) },
+  { right,
+    refine setoid.trans _ (inf_equiv_inf hb hc),
+    convert setoid.refl _,
+    ext,
+    exact inf_idem },
+end
 
 end abs
 

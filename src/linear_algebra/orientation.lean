@@ -207,6 +207,26 @@ begin
       simp [units_smul_apply, hi] }
 end
 
+lemma basis.det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+  (x : orientation R M ι) :
+  (e.adjust_to_orientation x).det = e.det ∨ (e.adjust_to_orientation x).det = - e.det :=
+begin
+  dsimp [basis.adjust_to_orientation],
+  split_ifs,
+  { left,
+    refl },
+  { right,
+    simp [e.det_units_smul', ← units.coe_prod, finset.prod_update_of_mem] }
+end
+
+lemma basis.abs_det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+  (x : orientation R M ι) (v : ι → M) :
+  |(e.adjust_to_orientation x).det v| = |e.det v| :=
+begin
+  cases e.det_adjust_to_orientation x with h h;
+  simp [h]
+end
+
 end basis
 
 end linear_ordered_comm_ring

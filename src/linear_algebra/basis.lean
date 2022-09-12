@@ -1020,6 +1020,25 @@ lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
 mk_apply
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge i
 
+@[simp] lemma basis.coord_units_smul (e : basis ι R M) (w : ι → Rˣ) (i : ι) :
+  (e.units_smul w).coord i = (w i)⁻¹ • e.coord i :=
+begin
+  apply e.ext,
+  intros j,
+  transitivity ((e.units_smul w).coord i) ((w j)⁻¹ • (e.units_smul w) j),
+  { congr,
+    simp [basis.units_smul, ← mul_smul], },
+  simp only [basis.coord_apply, linear_map.smul_apply, basis.repr_self, units.smul_def, map_smul,
+    finsupp.single_apply],
+  split_ifs with h h,
+  { simp [h] },
+  { simp }
+end
+
+@[simp] lemma basis.repr_units_smul (e : basis ι R M) (w : ι → Rˣ) (v : M) (i : ι) :
+  (e.units_smul w).repr v i = (w i)⁻¹ • e.repr v i :=
+congr_arg (λ f : M →ₗ[R] R, f v) (e.coord_units_smul w i)
+
 /-- A version of `smul_of_units` that uses `is_unit`. -/
 def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):
   basis ι R M :=

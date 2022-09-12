@@ -1022,17 +1022,15 @@ nhds_basis_ball.equicontinuous_at_iff uniformity_basis_dist
 lemma equicontinuous_at_iff_right' {ι : Type*} [topological_space β] {F : ι → β → α} {x₀ : β} :
   equicontinuous_at F x₀ ↔ ∀ ε > 0, ∃ U ∈ 𝓝 x₀, ∀ (x x' ∈ U), ∀ i, dist (F i x) (F i x') < ε :=
 begin
-  rw equicontinuous_at_iff_right,
-  split,
-  { refine λ H ε hε, ⟨_, H (ε/2) (div_pos hε two_pos), λ x hx x' hx' i,
-      (dist_triangle _ (F i x₀) _).trans_lt _⟩,
-    specialize hx i,
-    specialize hx' i,
-    rw dist_comm at hx,
-    linarith },
-  { intros H ε hε,
-    rcases H ε hε with ⟨U, hUmem, hU⟩,
-    filter_upwards [hUmem] using λ x hx, hU x₀ (mem_of_mem_nhds hUmem) x hx }
+  rw equicontinuous_at_iff_pair,
+  split; intros H,
+  { intros ε hε,
+    refine exists_imp_exists (λ V, exists_imp_exists $ λ hV h, _) (H _ (dist_mem_uniformity hε)),
+    exact λ x hx x' hx', h _ hx _ hx' },
+  { intros U hU,
+    rcases mem_uniformity_dist.mp hU with ⟨ε, hε, hεU⟩,
+    refine exists_imp_exists (λ V, exists_imp_exists $ λ hV h, _) (H _ hε),
+    exact λ x hx x' hx' i, hεU (h _ hx _ hx' i) }
 end
 
 lemma uniform_equicontinuous_iff_right {ι : Type*} [uniform_space β] {F : ι → β → α} :

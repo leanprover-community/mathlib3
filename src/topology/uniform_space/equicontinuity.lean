@@ -38,31 +38,53 @@ section
 open uniform_space filter set
 open_locale uniformity topological_space
 
-variables {ι κ X Y Z α β γ : Type*} [topological_space X] [topological_space Y]
+variables {ι κ X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [uniform_space α] [uniform_space β] [uniform_space γ]
 
+/-- Equicontinuity of a family of functions at a point. -/
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U
 
 protected abbreviation set.equicontinuous_at (H : set $ X → α) (x₀ : X) : Prop :=
 equicontinuous_at (coe : H → X → α) x₀
 
+protected abbreviation set.equicontinuous_at_as_fn [has_coe_to_fun 𝓕 (λ _, X → α)]
+  (H : set 𝓕) (x₀ : X) : Prop :=
+equicontinuous_at (coe_fn : H → X → α) x₀
+
+/-- Equicontinuity of a family of functions on the whole domain. -/
 def equicontinuous (F : ι → X → α) : Prop :=
 ∀ x₀, equicontinuous_at F x₀
 
 protected abbreviation set.equicontinuous (H : set $ X → α) : Prop :=
 equicontinuous (coe : H → X → α)
 
+/-- Uniform equicontinuity of a family of functions. -/
 def uniform_equicontinuous (F : ι → β → α) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U
 
 protected abbreviation set.uniform_equicontinuous (H : set $ β → α) : Prop :=
 uniform_equicontinuous (coe : H → β → α)
 
+/-- Reformulation of equicontinuity at `x₀` comparing two variables near `x₀` instead of comparing
+only one with `x₀`. -/
+lemma equicontinuous_at_iff_pair {F : ι → X → α} {x₀ : X} : equicontinuous_at F x₀ ↔
+  ∀ U ∈ 𝓤 α, ∃ V ∈ 𝓝 x₀, ∀ (x y ∈ V) i, (F i x, F i y) ∈ U :=
+begin
+  split; intros H U hU,
+  { rcases comp_symm_mem_uniformity_sets hU with ⟨V, hV, hVsymm, hVU⟩,
+    refine ⟨_, H V hV, λ x hx y hy i, hVU (prod_mk_mem_comp_rel _ (hy i))⟩,
+    exact hVsymm.mk_mem_comm.mp (hx i) },
+  { rcases H U hU with ⟨V, hV, hVU⟩,
+    filter_upwards [hV] using λ x hx i, (hVU x₀ (mem_of_mem_nhds hV) x hx i) }
+end
+
+/-- Uniform equicontinuity implies equicontinuity. -/
 lemma uniform_equicontinuous.equicontinuous {F : ι → β → α} (h : uniform_equicontinuous F) :
   equicontinuous F :=
 λ x₀ U hU, mem_of_superset (ball_mem_nhds x₀ (h U hU)) (λ x hx i, hx i)
 
+/-- Each function of a family equicontinuous at `x₀` is continuous at `x₀`. -/
 lemma equicontinuous_at.continuous_at {F : ι → X → α} {x₀ : X} (h : equicontinuous_at F x₀)
   (i : ι) : continuous_at (F i) x₀ :=
 begin
@@ -76,6 +98,7 @@ protected lemma set.equicontinuous_at.continuous_at_of_mem {H : set $ X → α} 
   (h : H.equicontinuous_at x₀) {f : X → α} (hf : f ∈ H) : continuous_at f x₀ :=
 h.continuous_at ⟨f, hf⟩
 
+/-- Each function of an equicontinuous family is continuous. -/
 lemma equicontinuous.continuous {F : ι → X → α} (h : equicontinuous F) (i : ι) :
   continuous (F i) :=
 continuous_iff_continuous_at.mpr (λ x, (h x).continuous_at i)
@@ -84,6 +107,7 @@ protected lemma set.equicontinuous.continuous_of_mem {H : set $ X → α} (h : H
   {f : X → α} (hf : f ∈ H) : continuous f :=
 h.continuous ⟨f, hf⟩
 
+/-- Each function of a uniformly equicontinuous family is uniformly continuous. -/
 lemma uniform_equicontinuous.uniform_continuous {F : ι → β → α} (h : uniform_equicontinuous F)
   (i : ι) : uniform_continuous (F i) :=
 λ U hU, mem_map.mpr (mem_of_superset (h U hU) $ λ xy hxy, (hxy i))
@@ -92,6 +116,7 @@ protected lemma set.uniform_equicontinuous.uniform_continuous_of_mem {H : set $ 
   (h : H.uniform_equicontinuous) {f : β → α} (hf : f ∈ H) : uniform_continuous f :=
 h.uniform_continuous ⟨f, hf⟩
 
+/-- Taking sub-families preserves equicontinuity at a point. -/
 lemma equicontinuous_at.comp {F : ι → X → α} {x₀ : X} (h : equicontinuous_at F x₀) (u : κ → ι) :
   equicontinuous_at (F ∘ u) x₀ :=
 λ U hU, (h U hU).mono (λ x H k, H (u k))
@@ -100,6 +125,7 @@ protected lemma set.equicontinuous_at.mono {H H' : set $ X → α} {x₀ : X}
   (h : H.equicontinuous_at x₀) (hH : H' ⊆ H) : H'.equicontinuous_at x₀ :=
 h.comp (inclusion hH)
 
+/-- Taking sub-families preserves equicontinuity. -/
 lemma equicontinuous.comp {F : ι → X → α} (h : equicontinuous F) (u : κ → ι) :
   equicontinuous (F ∘ u) :=
 λ x, (h x).comp u
@@ -108,6 +134,7 @@ protected lemma set.equicontinuous.mono {H H' : set $ X → α}
   (h : H.equicontinuous) (hH : H' ⊆ H) : H'.equicontinuous :=
 h.comp (inclusion hH)
 
+/-- Taking sub-families preserves uniform equicontinuity. -/
 lemma uniform_equicontinuous.comp {F : ι → β → α} (h : uniform_equicontinuous F) (u : κ → ι) :
   uniform_equicontinuous (F ∘ u) :=
 λ U hU, (h U hU).mono (λ x H k, H (u k))
@@ -116,14 +143,20 @@ protected lemma set.uniform_equicontinuous.mono {H H' : set $ β → α}
   (h : H.uniform_equicontinuous) (hH : H' ⊆ H) : H'.uniform_equicontinuous :=
 h.comp (inclusion hH)
 
+/-- A family `𝓕 : ι → X → α` is equicontinuous at `x₀` iff `range 𝓕` is equicontinuous at `x₀`,
+i.e the family `coe : range F → X → α` is equicontinuous at `x₀`. -/
 lemma equicontinuous_at_iff_range {F : ι → X → α} {x₀ : X} :
   equicontinuous_at F x₀ ↔ equicontinuous_at (coe : range F → X → α) x₀ :=
 ⟨λ h, by rw ← comp_range_splitting F; exact h.comp _, λ h, h.comp (range_factorization F)⟩
 
+/-- A family `𝓕 : ι → X → α` is equicontinuous iff `range 𝓕` is equicontinuous,
+i.e the family `coe : range F → X → α` is equicontinuous. -/
 lemma equicontinuous_iff_range {F : ι → X → α} :
   equicontinuous F ↔ equicontinuous (coe : range F → X → α) :=
 forall_congr (λ x₀, equicontinuous_at_iff_range)
 
+/-- A family `𝓕 : ι → β → α` is uniformly equicontinuous iff `range 𝓕` is uniformly equicontinuous,
+i.e the family `coe : range F → β → α` is uniformly equicontinuous. -/
 lemma uniform_equicontinuous_at_iff_range {F : ι → β → α} :
   uniform_equicontinuous F ↔ uniform_equicontinuous (coe : range F → β → α) :=
 ⟨λ h, by rw ← comp_range_splitting F; exact h.comp _, λ h, h.comp (range_factorization F)⟩
@@ -135,14 +168,26 @@ local attribute [-instance] Pi.uniform_space
 local attribute [instance] uniform_convergence.topological_space
 local attribute [instance] uniform_convergence.uniform_space
 
+/-- A family `𝓕 : ι → X → α` is equicontinuous at `x₀` iff the function `swap 𝓕 : X → ι → α` is
+continuous at `x₀` *when `ι → α` is equipped with the topology of uniform convergence*. This is
+very useful for developping the equicontinuity API, but it should not be used directly for other
+purposes. -/
 lemma equicontinuous_at_iff_continuous_at {F : ι → X → α} {x₀ : X} :
   equicontinuous_at F x₀ ↔ continuous_at (function.swap F) x₀ :=
 by rw [continuous_at, (uniform_convergence.has_basis_nhds ι α _).tendsto_right_iff]; refl
 
+/-- A family `𝓕 : ι → X → α` is equicontinuous iff the function `swap 𝓕 : X → ι → α` is
+continuous *when `ι → α` is equipped with the topology of uniform convergence*. This is
+very useful for developping the equicontinuity API, but it should not be used directly for other
+purposes. -/
 lemma equicontinuous_iff_continuous {F : ι → X → α} :
   equicontinuous F ↔ continuous (function.swap F) :=
 by simp_rw [equicontinuous, continuous_iff_continuous_at, equicontinuous_at_iff_continuous_at]
 
+/-- A family `𝓕 : ι → β → α` is uniformly equicontinuous iff the function `swap 𝓕 : β → ι → α` is
+uniformly continuous *when `ι → α` is equipped with the uniform structure of uniform convergence*.
+This is very useful for developping the equicontinuity API, but it should not be used directly
+for other purposes. -/
 lemma uniform_equicontinuous_iff_uniform_continuous {F : ι → β → α} :
   uniform_equicontinuous F ↔ uniform_continuous (function.swap F) :=
 by rw [uniform_continuous, (uniform_convergence.has_basis_uniformity ι α).tendsto_right_iff]; refl
@@ -231,6 +276,8 @@ begin
       this.uniform_continuous_iff]
 end
 
+/-- If a set of functions is equicontinuous, its closure *for the topology of uniform convergence*
+is also equicontinuous. -/
 lemma equicontinuous.closure {A : set $ X → α} (hA : A.equicontinuous) :
   (closure A).equicontinuous :=
 begin
@@ -244,6 +291,10 @@ begin
     hVsymm.mk_mem_comm.mp (hgf y))
 end
 
+/-- A version of `equicontinuous.closure` applicable to subsets of types which embed continuously
+into `X → α` *with the topology of uniform convergence*. It turns out we don't need any
+other condition on the embedding than continuity, but in practice this will mostly be applied
+to `fun_like` types where the coercion is injective. -/
 lemma continuous.equicontinuous_closure {A : set Y} {u : Y → X → α}
   (hA : equicontinuous (u ∘ coe : A → X → α)) (hu : continuous u) :
   equicontinuous (u ∘ coe : (closure A) → X → α) :=

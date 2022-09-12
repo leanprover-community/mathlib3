@@ -258,7 +258,7 @@ open finite_dimensional polynomial set
 variables (K : Type*) [field K] [number_field K]
 variables (A : Type*) [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
 
-lemma finite_of_norm_le {B : ℝ} (hB : 1 ≤ B) :
+lemma finite_of_norm_le (B : ℝ) :
   {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥ φ x ∥  ≤ B}.finite :=
 begin
   classical,
@@ -345,7 +345,7 @@ lemma mem_roots_of_unity_of_norm_eq_one {x : K}
   ∃ (n : ℕ) (hn : 0 < n), x ^ n = 1 :=
 begin
   obtain ⟨a, -, b, -, habne, h⟩ := @set.infinite.exists_ne_map_eq_of_maps_to _ _ _ _
-    ((^) x : ℕ → K) set.infinite_univ _ (finite_of_norm_le K A (le_refl 1)),
+    ((^) x : ℕ → K) set.infinite_univ _ (finite_of_norm_le K A (1:ℝ)),
   { replace habne := habne.lt_or_lt,
     wlog : a < b := habne using [a b],
     refine ⟨b - a, tsub_pos_of_lt habne, _⟩,

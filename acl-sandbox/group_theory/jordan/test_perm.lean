@@ -523,3 +523,47 @@ begin
     swap, exact ⟨s, hs3⟩,
     exact hsg, },
 end
+
+
+
+
+lemma equiv.perm.of_subtype_eq_extend_domain {α : Type*} [decidable_eq α] [fintype α]
+  {p : α → Prop} [decidable_pred p]
+  {g : equiv.perm (subtype p)} : g.of_subtype = g.extend_domain (equiv.refl (subtype p)) :=
+begin
+  ext x,
+  cases dec_em (p x),
+    { rw equiv.perm.extend_domain_apply_subtype g (equiv.refl (subtype p)) h,
+      rw equiv.perm.of_subtype_apply_of_mem g h,
+      refl, },
+    { rw equiv.perm.extend_domain_apply_not_subtype g (equiv.refl (subtype p)) h,
+      rw equiv.perm.of_subtype_apply_of_not_mem g h, },
+end
+
+lemma equiv.perm.of_subtype.cycle_type {α : Type*} [decidable_eq α] [fintype α]
+  {p : α → Prop} [decidable_pred p]
+  {g : equiv.perm (subtype p)} :  (g.of_subtype).cycle_type = g.cycle_type :=
+begin
+  rw equiv.perm.of_subtype_eq_extend_domain,
+  rw equiv.perm.cycle_type_extend_domain,
+end
+
+
+lemma example3' (g : equiv.perm α)  :
+  ∃ (s : finset α) (k : equiv.perm s),
+    k.cycle_type = g.cycle_type ∧
+    (equiv.perm.of_subtype : equiv.perm s →* equiv.perm α) k = g :=
+begin
+  use (g : equiv.perm α).support,
+  let k : equiv.perm (g : equiv.perm α).support := equiv.perm.subtype_perm (g : equiv.perm α) (λ a, by simp only [equiv.perm.apply_mem_support]),
+  use k,
+  suffices : (equiv.perm.of_subtype : equiv.perm g.support →* equiv.perm α) k = g,
+  split,
+  { -- cycle_type
+    simp_rw ← this,
+    rw equiv.perm.of_subtype.cycle_type, },
+  exact this,
+  { -- k.of_subtype = g
+    apply equiv.perm.of_subtype_subtype_perm,
+    { intro a, simp only [equiv.perm.mem_support, imp_self] }, },
+end

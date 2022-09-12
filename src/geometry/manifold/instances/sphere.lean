@@ -454,8 +454,9 @@ begin
   exact cont_mdiff_coe_sphere,
 end
 
-/-- Consider the differential of the sphere in `E` at the point `v` as a continuous linear map from
-`tangent_space (𝓡 n) v` to `E`.  The range of this map is the orthogonal complement of `v` in `E`.
+/-- Consider the differential of the inclusion of the sphere in `E` at the point `v` as a continuous
+linear map from `tangent_space (𝓡 n) v` to `E`.  The range of this map is the orthogonal complement
+of `v` in `E`.
 
 Note that there is an abuse here of the defeq between `E` and the tangent space to `E` at `(v:E`).
 In general this defeq is not canonical, but in this case (the tangent space of a vector space) it is
@@ -492,8 +493,8 @@ begin
     exact submodule.mem_span_singleton_self v },
 end
 
-/-- Consider the differential of the sphere in `E` at the point `v` as a continuous linear map from
-`tangent_space (𝓡 n) v` to `E`.  This map is injective. -/
+/-- Consider the differential of the inclusion of the sphere in `E` at the point `v` as a continuous
+linear map from `tangent_space (𝓡 n) v` to `E`.  This map is injective. -/
 lemma mfderiv_coe_sphere_injective {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   injective (mfderiv (𝓡 n) 𝓘(ℝ, E) (coe : sphere (0:E) 1 → E) v) :=
 begin

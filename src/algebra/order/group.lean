@@ -54,8 +54,7 @@ instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group 
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] :
   ordered_cancel_comm_monoid α :=
-{ mul_left_cancel       := λ a b c, (mul_right_inj a).mp,
-  le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
+{ le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
 
 @[priority 100, to_additive] -- See note [lower instance priority]
@@ -872,7 +871,6 @@ variables [linear_ordered_comm_group α] {a b c : α}
 instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   linear_ordered_cancel_comm_monoid α :=
 { le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
-  mul_left_cancel := λ x y z, mul_left_cancel,
   ..‹linear_ordered_comm_group α› }
 
 /-- Pullback a `linear_ordered_comm_group` under an injective map.

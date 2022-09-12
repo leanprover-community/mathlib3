@@ -14,14 +14,17 @@ import topology.algebra.infinite_sum
 # Principle of isolated zeros
 
 This file proves the fact that the zeros of a non-constant analytic function of one variable are
-isolated. It also introduces a little bit of API in the `has_fpower_series_at` namespace that
-is useful in this setup.
+isolated. It also introduces a little bit of API in the `has_fpower_series_at` namespace that is
+useful in this setup.
 
 ## Main results
 
 * `analytic_at.eventually_eq_zero_or_eventually_ne_zero` is the main statement that if a function is
   analytic at `z₀`, then either it is identically zero in a neighborhood of `z₀`, or it does not
   vanish in a punctured neighborhood of `z₀`.
+* `analytic_on.eq_on_of_preconnected_of_frequently_eq` is the identity theorem for analytic
+  functions: if an analytic function `f` on a connected open set `U` is zero on set with an
+  accumulation point in `U` then `f` is identically `0` on `U`.
 -/
 
 open_locale classical
@@ -138,3 +141,33 @@ begin
 end
 
 end analytic_at
+
+namespace analytic_on
+
+theorem eq_on_of_preconnected_of_frequently_eq (hf1 : analytic_on 𝕜 f U) (hU1 : is_open U)
+  (hU2 : is_preconnected U) {w : 𝕜} (hw : w ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] w, f z = 0) :
+  eq_on f 0 U :=
+begin
+  by_contra,
+  simp only [eq_on, not_forall] at h,
+  obtain ⟨x, hx1, hx2⟩ := h,
+
+  let u := { z | f =ᶠ[𝓝 z] 0 },
+  have hu : is_open u := is_open_set_of_eventually_nhds,
+  have hu' : (U ∩ u).nonempty := ⟨w, hw, (hf1 w hw).frequently_zero_iff_eventually_zero.mp hfw⟩,
+
+  let v := { z | ∀ᶠ w in 𝓝[≠] z, f w ≠ 0 },
+  have hv : is_open v := by apply is_open_set_of_eventually_nhds_within,
+  have hv' : (U ∩ v).nonempty,
+    from ⟨x, hx1, ((hf1 x hx1).continuous_at.eventually_ne hx2).filter_mono nhds_within_le_nhds⟩,
+
+  have huv : U ⊆ u ∪ v := λ z hz, (hf1 z hz).eventually_eq_zero_or_eventually_ne_zero,
+  have huv' : u ∩ v = ∅,
+    by { ext z,
+      simp only [mem_inter_eq, mem_empty_eq, iff_false, not_and],
+      exact λ h, (h.filter_mono nhds_within_le_nhds).frequently },
+
+  simpa [huv'] using hU2 u v hu hv huv hu' hv'
+end
+
+end analytic_on

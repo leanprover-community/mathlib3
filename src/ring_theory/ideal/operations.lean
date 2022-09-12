@@ -2189,18 +2189,17 @@ section algebra
 @[simp]
 lemma quot_quot_equiv_comm_mk_mk [comm_ring R] (I J : ideal R) (x : R) :
   quot_quot_equiv_comm I J (ideal.quotient.mk _ (ideal.quotient.mk _ x)) =
-    algebra_map R _ x :=
-rfl
+    algebra_map R _ x := rfl
 
 variables [comm_semiring R] {A : Type v} [comm_ring A] [algebra R A] (I J : ideal A)
 
 @[simp]
-lemma quot_quot_equiv_quot_sup_quot_quot_algebra_map  (x : R) :
+lemma quot_quot_equiv_quot_sup_quot_quot_algebra_map (x : R) :
   double_quot.quot_quot_equiv_quot_sup I J (algebra_map R _ x) = algebra_map _ _ x :=
 rfl
 
 @[simp]
-lemma quot_quot_equiv_comm_algebra_map  (x : R) :
+lemma quot_quot_equiv_comm_algebra_map (x : R) :
   quot_quot_equiv_comm I J (algebra_map R _ x) = algebra_map _ _ x :=
 rfl
 

@@ -1000,9 +1000,7 @@ symm_bijective.injective $ ext $ λ x, rfl
 theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
 
 @[simp]
-lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) :
-  (f : A₁ ≃+* A₁).symm = f.symm :=
-rfl
+lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) : (f : A₁ ≃+* A₁).symm = f.symm := rfl
 
 /-- Algebra equivalences are transitive. -/
 @[trans]
@@ -1173,9 +1171,9 @@ end of_linear_equiv
 
 section of_ring_equiv
 
-/-- Promotes a linear ring_equiv to an alg_equiv -/
+/-- Promotes a linear ring_equiv to an alg_equiv. -/
 @[simps]
-def of_ring_equiv (f : A₁ ≃+* A₂)
+def of_ring_equiv {f : A₁ ≃+* A₂}
   (hf : ∀ x, f (algebra_map R A₁ x) = algebra_map R A₂ x) : A₁ ≃ₐ[R] A₂ :=
 { to_fun := f,
   inv_fun := f.symm,

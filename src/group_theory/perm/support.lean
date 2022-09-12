@@ -187,10 +187,6 @@ let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
         simp only [h_1, ne.def, not_false_iff],
         simp only [h_2, ne.def, not_false_iff], },
       { rw of_subtype_apply_of_not_mem, exact h_z, }, },
-    /- rw [hxy.2, of_subtype],
-    simp only [swap_apply_def, coe_fn_mk, swap_inv, subtype.mk_eq_mk, monoid_hom.coe_mk],
-    split_ifs;
-       rw subtype.coe_mk <|> cc, -/
   end⟩
 
 lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}

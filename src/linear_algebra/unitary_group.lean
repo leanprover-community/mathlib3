@@ -59,7 +59,22 @@ lemma mem_unitary_group_iff {A : matrix n n α} :
   A ∈ matrix.unitary_group n α ↔ A * star A = 1 :=
 begin
   refine ⟨and.right, λ hA, ⟨_, hA⟩⟩,
-  simpa only [matrix.mul_eq_mul, matrix.mul_eq_one_comm] using hA
+  simpa only [mul_eq_mul, mul_eq_one_comm] using hA
+end
+
+lemma mem_unitary_group_iff' {A : matrix n n α} :
+  A ∈ matrix.unitary_group n α ↔ star A * A = 1 :=
+begin
+  refine ⟨and.left, λ hA, ⟨hA, _⟩⟩,
+  rwa [mul_eq_mul, mul_eq_one_comm] at hA,
+end
+
+lemma det_of_mem_unitary {A : matrix n n α} (hA : A ∈ matrix.unitary_group n α) :
+  A.det ∈ unitary α :=
+begin
+  split,
+  { simpa [star, det_transpose] using congr_arg det hA.1 },
+  { simpa [star, det_transpose] using congr_arg det hA.2 },
 end
 
 namespace unitary_group
@@ -163,7 +178,14 @@ lemma mem_orthogonal_group_iff {A : matrix n n β} :
   A ∈ matrix.orthogonal_group n β ↔ A * star A = 1 :=
 begin
   refine ⟨and.right, λ hA, ⟨_, hA⟩⟩,
-  simpa only [matrix.mul_eq_mul, matrix.mul_eq_one_comm] using hA
+  simpa only [mul_eq_mul, mul_eq_one_comm] using hA
+end
+
+lemma mem_orthogonal_group_iff' {A : matrix n n β} :
+  A ∈ matrix.orthogonal_group n β ↔ star A * A = 1 :=
+begin
+  refine ⟨and.left, λ hA, ⟨hA, _⟩⟩,
+  rwa [mul_eq_mul, mul_eq_one_comm] at hA,
 end
 
 end orthogonal_group

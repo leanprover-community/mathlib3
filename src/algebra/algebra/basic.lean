@@ -1122,7 +1122,7 @@ by { ext, refl }
 
 end of_linear_equiv
 
-@[simps mul one {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
+@[simps mul one inv {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
   mul_assoc := λ ϕ ψ χ, rfl,
   one := refl,
@@ -1134,8 +1134,6 @@ end of_linear_equiv
 @[simp] lemma one_apply (x : A₁) : (1 : A₁ ≃ₐ[R] A₁) x = x := rfl
 
 @[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
-
-@[simp] lemma inv_eq_symm {a : A₁ ≃ₐ[R] A₁} : a⁻¹ = a.symm := rfl
 
 /-- An algebra isomorphism induces a group isomorphism between automorphism groups -/
 @[simps apply]

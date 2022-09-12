@@ -27,9 +27,9 @@ namespace measure_theory
 namespace martingale
 
 variables {Ω ι E : Type*} {m : measurable_space Ω} {μ : measure Ω}
-  [linear_order ι] {ℱ : filtration ι m} {τ σ : Ω → ι}
+  [linear_order ι] [topological_space ι] [order_topology ι]
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
-  {f : ι → Ω → E} [topological_space ι] [order_topology ι] {i n : ι}
+  {ℱ : filtration ι m} {τ σ : Ω → ι} {f : ι → Ω → E}  {i n : ι}
 
 section first_countable_topology
 

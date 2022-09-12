@@ -1020,7 +1020,7 @@ lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
 mk_apply
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge i
 
-@[simp] lemma basis.coord_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (i : ι) :
+@[simp] lemma coord_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (i : ι) :
   (e.units_smul w).coord i = (w i)⁻¹ • e.coord i :=
 begin
   apply e.ext,
@@ -1035,7 +1035,7 @@ begin
   { simp }
 end
 
-@[simp] lemma basis.repr_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (v : M) (i : ι) :
+@[simp] lemma repr_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (v : M) (i : ι) :
   (e.units_smul w).repr v i = (w i)⁻¹ • e.repr v i :=
 congr_arg (λ f : M →ₗ[R₂] R₂, f v) (e.coord_units_smul w i)
 

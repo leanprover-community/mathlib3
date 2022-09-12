@@ -240,14 +240,30 @@ begin
     ext a', obtain rfl | h := eq_or_ne a a', { exact he.1 },
     erw [← multiset.count_filter_of_pos h, he.2, multiset.count_filter_of_pos h], refl },
   { rw [finset.mem_sigma, finset.mem_sym_iff] at hm,
-    refine ⟨sym.fill a m, finset.mem_sym_iff.2 (λ a' h', finset.mem_insert.2 _), _⟩,
-    { rw [sym.fill, sym.mem_mk, multiset.mem_add] at h',
-      exact h'.imp (λ h, multiset.mem_singleton.1 (multiset.mem_of_mem_nsmul h)) (λ h, hm.2 a' h) },
-    apply sym.sigma_ext, ext1 a',
+    refine ⟨sym.fill a m.1 m.2, finset.mem_sym_iff.2 (λ a' h', finset.mem_insert.2 _), _⟩,
+    {
+      cases (sym.fill_mem a' a m.1 m.2).mp h',
+      {
+        left,
+        exact h.2,
+      },
+      {
+        right,
+        exact hm.2 a' h,
+      },
+      -- huh?
+      exact n,
+    },
+    apply sym.sigma_sub_ext, ext1 a',
     dsimp only [sym.filter_ne, sym.fill],
-    rw [multiset.count_filter], split_ifs,
-    { rw [multiset.count_add, multiset.count_nsmul, multiset.count_singleton, if_neg h.symm],
-      rw [mul_zero, zero_add], refl },
+    simp only [subtype.val_eq_coe, sym.coe_cast, sym.coe_append, multiset.filter_add, sym.mk_coe, multiset.count_add, multiset.count_filter],
+    split_ifs,
+    { rw sym.coe_repeat,
+      simp [self_eq_add_right, multiset.count_repeat, h],
+      intro h₁,
+      exfalso,
+      exact h (eq_comm.mp h₁),
+      },
     { exact multiset.count_eq_zero.2 (λ h', ha $ (not_ne_iff.1 h).symm ▸ hm.2 a' h') } },
 end
 

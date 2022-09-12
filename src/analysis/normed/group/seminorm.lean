@@ -95,6 +95,12 @@ by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 @[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
 by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
 
+@[to_additive] lemma norm_map_fiv_le (x y : E) : ∥p x - p y∥ ≤ p (x / y) :=
+begin
+  rw [real.norm_eq_abs, abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
+  exact ⟨p.le_insert' _ _, p.le_insert _ _⟩
+end
+
 end group
 
 @[to_additive, priority 100] -- See note [lower instance priority]

@@ -107,3 +107,8 @@ example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity
 example {a : ℤ} (ha : 0 < a) : a ≥ 0 := by positivity
 
 example {a : ℤ} (ha : a > 0) : a ≥ 0 := by positivity
+
+example {a : ℤ} (ha : 0 < a) : a ≠ 0 := by positivity
+example {a : ℤ} (ha : a > 0) : a ≠ 0 := by positivity
+example {a : ℤ} (ha : 0 < a) : 0 ≠ a := by positivity
+example {a : ℤ} (ha : a > 0) : 0 ≠ a := by positivity

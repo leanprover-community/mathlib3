@@ -7,9 +7,9 @@ import tactic.norm_num
 
 /-! # `positivity` tactic
 
-The `positivity` tactic in this file solves goals of the form `0 ≤ x` and `0 < x`.  The tactic works
-recursively according to the syntax of the expression `x`.  For example, a goal of the form
-`0 ≤ 3 * a ^ 2 + b * c` can be solved either
+The `positivity` tactic in this file solves goals of the form `0 ≤ x`, `0 < x` and `x ≠ 0`.  The
+tactic works recursively according to the syntax of the expression `x`.  For example, a goal of the
+form `0 ≤ 3 * a ^ 2 + b * c` can be solved either
 * by a hypothesis such as `5 ≤ 3 * a ^ 2 + b * c` which directly implies the nonegativity of
   `3 * a ^ 2 + b * c`; or,
 * by the application of the lemma `add_nonneg` and the success of the `positivity` tactic on the two
@@ -44,14 +44,26 @@ introduce these operations.
   `tactic.positivity.strictness`, containing an `expr` which is a proof of the
   strict-positivity/nonnegativity of `e` as well as an indication of whether what could be proved
   was strict-positivity or nonnegativity
+* `tactic.positivity.order_rel` is a custom inductive type recording whether the goal is
+  `0 ≤ e`/`e ≥ 0`, `0 < e`/`e > 0`, `e ≠ 0` or `0 ≠ e`.
 * `tactic.interactive.positivity` is the user-facing tactic.  It parses the goal and, if it is of
-  one of the forms `0 ≤ e`, `0 < e`, `e > 0`, `e ≥ 0`, it sends `e` to `tactic.positivity.core`.
+  one of the forms `0 ≤ e`, `0 < e`, `e > 0`, `e ≥ 0`, `e ≠ 0`, `0 ≠ e`, it sends `e` to
+  `tactic.positivity.core`.
+
+## Notes
+
+`positivity` only attempts to prove `a ≠ 0` by first proving `0 < a`. This means that the following
+is expected to fail:
+```lean
+example {a : ℤ} (ha : a ≠ 0) : a ≠ 0 := by positivity -- fails
+```
 
 ## TODO
 
 Implement extensions for other operations (raising to non-numeral powers, `exp`, `log`, coercions
 from `ℕ` and `ℝ≥0`).
 
+Handle non-zeroness fully, rather than the current light postprocessing we have.
 -/
 
 namespace tactic
@@ -85,6 +97,22 @@ meta def norm_num.positivity (e : expr) : tactic strictness := do
   else failed
 
 namespace positivity
+
+/-- Inductive type recording whether the goal `positivity` is called on is nonnegativity, positivity
+or different from `0`. -/
+inductive order_rel : Type
+| le  : order_rel -- `0 ≤ a`
+| lt  : order_rel -- `0 < a`
+| ne  : order_rel -- `a ≠ 0`
+| ne' : order_rel -- `0 ≠ a`
+
+meta instance : has_to_format order_rel :=
+⟨λ r, match r with
+  | order_rel.le := "order_rel.le"
+  | order_rel.lt := "order_rel.lt"
+  | order_rel.ne := "order_rel.ne"
+  | order_rel.ne' := "order_rel.ne'"
+  end⟩
 
 /-- Given two tactics whose result is `strictness`, report a `strictness`:
 - if at least one gives `positive`, report `positive` and one of the expressions giving a proof of
@@ -160,10 +188,10 @@ namespace interactive
 
 setup_tactic_parser
 
-/-- Tactic solving goals of the form `0 ≤ x` and `0 < x`.  The tactic works recursively according to
-the syntax of the expression `x`, if the atoms composing the expression all have numeric lower
-bounds which can be proved positive/nonnegative by `norm_num`.  This tactic either closes the goal
-or fails.
+/-- Tactic solving goals of the form `0 ≤ x`, `0 < x` and `x ≠ 0`.  The tactic works recursively
+according to the syntax of the expression `x`, if the atoms composing the expression all have numeric
+lower bounds which can be proved positive/nonnegative by `norm_num`.  This tactic either closes the
+goal or fails.
 
 Examples:
 ```
@@ -177,19 +205,37 @@ example {b : ℤ} : 0 ≤ max (-3) (b ^ 2) := by positivity
 meta def positivity : tactic unit := focus1 $ do
   t ← target,
   (rel_desired, a) ← match t with
-  | `(0 ≤ %%e₂) := pure (ff, e₂)
-  | `(%%e₂ ≥ 0) := pure (ff, e₂)
-  | `(0 < %%e₂) := pure (tt, e₂)
-  | `(%%e₂ > 0) := pure (tt, e₂)
+  | `(0 ≤ %%e) := pure (order_rel.le, e)
+  | `(%%e ≥ 0) := pure (order_rel.le, e)
+  | `(0 < %%e) := pure (order_rel.lt, e)
+  | `(%%e > 0) := pure (order_rel.lt, e)
+  | `(@ne %%type %%e₁ %%e₂) := do
+                        match e₂ with
+                        | `(has_zero.zero) := pure (order_rel.ne, e₁)
+                        | _ := match e₁ with
+                          | `(has_zero.zero) := pure (order_rel.ne', e₂)
+                          | _ := fail "not a positivity/nonnegativity goal"
+                          end
+                        end
   | _ := fail "not a positivity/nonnegativity goal"
   end,
   strictness_proved ← tactic.positivity.core a,
   match rel_desired, strictness_proved with
-  | tt, (positive p) := pure p
-  | tt, (nonnegative _) := fail ("failed to prove strict positivity, but it would be possible to "
-      ++ "prove nonnegativity if desired")
-  | ff, (positive p) := mk_app ``le_of_lt [p]
-  | ff, (nonnegative p) := pure p
+  | order_rel.lt, (positive p) := pure p
+  | order_rel.lt, (nonnegative _) := fail ("failed to prove strict positivity, but it would be " ++
+    "possible to prove nonnegativity if desired")
+  | order_rel.le, (positive p) := mk_app ``le_of_lt [p]
+  | order_rel.le, (nonnegative p) := pure p
+  | order_rel.ne, (positive p) := do
+                                    type_a ← infer_type a,
+                                    mk_mapp ``ne_of_gt [type_a, none, none, none, p]
+  | order_rel.ne, (nonnegative p) := fail ("failed to prove nonzeroness, but it would be " ++
+    "to prove nonnegativity if desired")
+  | order_rel.ne', (positive p) := do
+                                    type_a ← infer_type a,
+                                    mk_mapp ``ne_of_lt [type_a, none, none, none, p]
+  | order_rel.ne', (nonnegative p) := fail ("failed to prove nonzeroness, but it would be " ++
+    "to prove nonnegativity if desired")
   end >>= tactic.exact
 
 add_tactic_doc

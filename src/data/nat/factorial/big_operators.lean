@@ -9,7 +9,10 @@ import algebra.big_operators.order
 /-!
 # Factorial with big operators
 
-This file contains some lemma's on factorials in combination with big operators
+This file contains some lemmas on factorials in combination with big operators.
+
+While in terms of semantics they could be in the `basic.lean` file, importing 
+`algebra.big_operators.basic` leads to a cyclic import.
 
 -/
 

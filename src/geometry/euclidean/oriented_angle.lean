@@ -819,7 +819,8 @@ by simp [oangle]
 
 /-- The value of `oangle` does not depend on the choice of basis for a given orientation. -/
 lemma oangle_eq_of_orientation_eq (b₂ : orthonormal_basis (fin 2) ℝ V)
-  (ho : b.to_basis.orientation = b₂.to_basis.orientation) (x y : V) : b.oangle x y = b₂.oangle x y :=
+  (ho : b.to_basis.orientation = b₂.to_basis.orientation) (x y : V) :
+  b.oangle x y = b₂.oangle x y :=
 begin
   obtain ⟨θ, rfl⟩ := b.exists_linear_isometry_equiv_map_eq_of_orientation_eq b₂ ho,
   simp [b.orthonormal],
@@ -827,7 +828,8 @@ end
 
 /-- Negating the orientation negates the value of `oangle`. -/
 lemma oangle_eq_neg_of_orientation_eq_neg (b₂ : orthonormal_basis (fin 2) ℝ V)
-  (ho : b.to_basis.orientation = -b₂.to_basis.orientation) (x y : V) : b.oangle x y = -b₂.oangle x y :=
+  (ho : b.to_basis.orientation = -b₂.to_basis.orientation) (x y : V) :
+  b.oangle x y = -b₂.oangle x y :=
 begin
   obtain ⟨θ, rfl⟩ := b.exists_linear_isometry_equiv_map_eq_of_orientation_eq_neg b₂ ho,
   rw b.oangle_map,

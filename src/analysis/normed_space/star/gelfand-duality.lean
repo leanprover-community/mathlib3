@@ -4,6 +4,8 @@ import analysis.normed.group.quotient
 import analysis.normed_space.algebra
 import topology.continuous_function.units
 import topology.continuous_function.compact
+import topology.algebra.algebra
+import topology.continuous_function.stone_weierstrass
 
 .
 
@@ -97,7 +99,6 @@ end
 
 lemma key₀ (a : A) (ha : ¬ is_unit a) : ∃ f : character_space ℂ A, f a = 0 :=
 begin
-  --rw continuous_map.is_unit_iff_forall_ne_zero,
   obtain ⟨M, hM, haM⟩ := ideal.exists_le_maximal (ideal.span {a}) (ideal.span_singleton_ne_top ha),
   haveI := hM,
   exact ⟨ideal.is_maximal.character_space M, ideal.is_maximal.character_space_apply_zero_of_mem _ _
@@ -134,7 +135,8 @@ instance foo {X E : Type*} [topological_space X] [compact_space X] [nonempty X] 
 
 open_locale nnreal
 
-lemma key₄ : isometry (gelfand_star_transform A : A → C(character_space ℂ A, ℂ)) :=
+variables (A)
+lemma key₄ : isometry (gelfand_star_transform A) :=
 begin
   refine add_monoid_hom_class.isometry_of_norm (gelfand_star_transform A) (λ a, _),
   have : spectral_radius ℂ (gelfand_star_transform A (star a * a)) = spectral_radius ℂ (star a * a),
@@ -146,6 +148,45 @@ begin
 end
 
 .
+lemma bar : ⇑(gelfand_transform ℂ A) = gelfand_star_transform A :=
+funext $ λ a, continuous_map.ext $ λ φ, rfl
+
+lemma key₅ : function.surjective (gelfand_star_transform A) :=
+begin
+  have clsd := (key₄ A).closed_embedding.closed_range,
+  change function.surjective (gelfand_transform ℂ A),
+  rw ←bar at clsd,
+  have clsd' : (gelfand_transform ℂ A).range.topological_closure = (gelfand_transform ℂ A).range,
+  from le_antisymm (subalgebra.topological_closure_minimal _ le_rfl clsd)
+    (subalgebra.subalgebra_topological_closure _),
+  have : (gelfand_transform ℂ A).range = ⊤,
+  { rw ← clsd',
+    refine continuous_map.subalgebra_is_R_or_C_topological_closure_eq_top_of_separates_points _ _ _,
+    { intros φ ψ,
+      contrapose!,
+      intro h,
+      apply subtype.ext, apply continuous_linear_map.ext, rintro a,
+      simp only [character_space.coe_coe],
+      exact h (gelfand_transform ℂ A a) ⟨gelfand_transform ℂ A a, ⟨a, rfl⟩, rfl⟩, },
+    { intros φ hφ,
+      simp only [subalgebra.mem_restrict_scalars, alg_hom.mem_range],
+      rcases subalgebra.mem_map.mp hφ with ⟨ψ, ⟨a, ha⟩, rfl⟩,
+      simp only [alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] at ha,
+      use star a,
+      rw [bar, map_star, ←bar, ha],
+      ext1,
+      simp only [ring_hom.coe_monoid_hom, alg_equiv.coe_alg_hom, ring_hom.to_monoid_hom_eq_coe,
+        alg_equiv.to_alg_hom_eq_coe, ring_hom.to_fun_eq_coe, continuous_map.coe_mk,
+        is_R_or_C.conj_ae_coe, alg_hom.coe_to_ring_hom, monoid_hom.to_fun_eq_coe,
+        ring_hom.comp_left_continuous_apply, monoid_hom.comp_left_continuous_apply,
+        continuous_map.comp_apply, alg_hom.to_ring_hom_eq_coe, alg_hom.comp_left_continuous_apply],
+      refl,
+       },
+    },
+  exact λ x, this.symm ▸ (gelfand_transform ℂ A).mem_range.mp (this.symm ▸ algebra.mem_top),
+end
+
+
 
 
 end

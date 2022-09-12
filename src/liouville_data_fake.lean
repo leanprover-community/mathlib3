@@ -13,6 +13,9 @@ by { rw [prime_counting, prime_counting', count_eq_card_filter_range, primes_le]
 lemma primes_le_sorted {n : ℕ} : (primes_le n).sorted (<) :=
 list.pairwise.sublist (list.filter_sublist _) (list.pairwise_lt_range (n + 1))
 
+lemma primes_le_reverse_sorted {n : ℕ} : (primes_le n).reverse.sorted (>) :=
+list.pairwise_reverse.2 primes_le_sorted
+
 lemma primes_le_nodup {n : ℕ} : (primes_le n).nodup := primes_le_sorted.nodup
 
 lemma primes_le_10 : primes_le 10 = [2,3,5,7] :=

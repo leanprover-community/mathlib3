@@ -979,9 +979,9 @@ begin
 end
 
 /-- The bijection between the sets of normalized factors of I and J induced by a ring
-    isomorphism `f : R/I ≅ A/J` -/
+    isomorphism `f : R/I ≅ A/J`. -/
 def normalized_factors_equiv_of_quot_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
-  {p : ideal R | p ∈ normalized_factors I } ≃ {q : ideal A | q ∈ normalized_factors J } :=
+  {L : ideal R | L ∈ normalized_factors I } ≃ {M : ideal A | M ∈ normalized_factors J } :=
 { to_fun := λ j, ⟨ideal_factors_equiv_of_quot_equiv f ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩,
    ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors f hJ j.prop⟩,
   inv_fun := λ j, ⟨(ideal_factors_equiv_of_quot_equiv f).symm
@@ -991,6 +991,20 @@ def normalized_factors_equiv_of_quot_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
   left_inv := λ ⟨j, hj⟩, by simp,
   right_inv := λ ⟨j, hj⟩, by simp }
 
+lemma normalized_factors_equiv_of_quot_equiv_apply (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (L) :
+  normalized_factors_equiv_of_quot_equiv f hI hJ L = ⟨ideal_factors_equiv_of_quot_equiv f
+    ⟨↑L, dvd_of_mem_normalized_factors L.prop⟩,
+      ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors
+      f hJ L.prop⟩ :=
+rfl
+
+lemma normalized_factors_equiv_of_quot_equiv_symm_apply (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (M) :
+  normalized_factors_equiv_of_quot_equiv f.symm hJ hI M = ⟨(ideal_factors_equiv_of_quot_equiv f).symm
+    ⟨↑M, dvd_of_mem_normalized_factors M.prop⟩, by { rw ideal_factors_equiv_of_quot_equiv_symm,
+      exact ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors
+      f.symm hI M.prop} ⟩ :=
+rfl
+
 lemma normalized_factors_equiv_of_quot_equiv_symm (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
   (normalized_factors_equiv_of_quot_equiv f hI hJ).symm =
     normalized_factors_equiv_of_quot_equiv f.symm hJ hI :=
@@ -999,7 +1013,7 @@ rfl
 variable [decidable_rel ((∣) : ideal R → ideal R → Prop)]
 variable [decidable_rel ((∣) : ideal A → ideal A → Prop)]
 
-/-- The map `normalized_factors_equiv_of_quot_equiv` preserves multiplicities -/
+/-- The map `normalized_factors_equiv_of_quot_equiv` preserves multiplicities. -/
 lemma normalized_factors_equiv_of_quot_equiv_multiplicity_eq_multiplicity (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
   (L : ideal R) (hL : L ∈ normalized_factors I) :
   multiplicity ↑(normalized_factors_equiv_of_quot_equiv f hI hJ ⟨L, hL⟩) J = multiplicity L I :=

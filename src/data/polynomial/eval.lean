@@ -545,7 +545,7 @@ by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 by simp only [bit0, polynomial.map_add]
 
 @[simp] protected lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
-by simp only [bit1, polynomial.map_add, map_bit0, polynomial.map_one]
+by simp only [bit1, polynomial.map_add, polynomial.map_bit0, polynomial.map_one]
 
 /-- `polynomial.map` as a `ring_hom`. -/
 -- `map` is a ring-hom unconditionally, and theoretically the definition could be replaced,

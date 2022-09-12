@@ -548,7 +548,7 @@ end
 
 /-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` has
 unit length. -/
-lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
+@[simp] lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
   ∥a.to_basis.det b∥ = 1 :=
 begin
   have : (norm_sq (a.to_basis.det b) : 𝕜) = 1,

@@ -207,7 +207,7 @@ begin
       simp [units_smul_apply, hi] }
 end
 
-lemma basis.det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+lemma det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
   (x : orientation R M ι) :
   (e.adjust_to_orientation x).det = e.det ∨ (e.adjust_to_orientation x).det = - e.det :=
 begin
@@ -219,7 +219,7 @@ begin
     simp [e.det_units_smul, ← units.coe_prod, finset.prod_update_of_mem] }
 end
 
-@[simp] lemma basis.abs_det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+@[simp] lemma abs_det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
   (x : orientation R M ι) (v : ι → M) :
   |(e.adjust_to_orientation x).det v| = |e.det v| :=
 begin

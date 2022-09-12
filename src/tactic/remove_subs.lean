@@ -23,11 +23,13 @@ See the tactic-doc for further details.
 namespace tactic
 namespace remove_subs
 
-lemma nat.le_cases (a b : ℕ) : a - b = 0 ∨ ∃ c, a = b + c :=
+lemma le_cases {R} [canonically_linear_ordered_add_monoid R] [has_sub R] [has_ordered_sub R]
+  (a b : R) :
+  a - b = 0 ∨ ∃ c, a = b + c :=
 begin
   by_cases ab : a ≤ b,
   { exact or.inl (tsub_eq_zero_of_le ab) },
-  { rcases nat.exists_eq_add_of_le (not_le.mp ab).le with ⟨c, rfl⟩,
+  { rcases exists_add_of_le (not_le.mp ab).le with ⟨c, rfl⟩,
     exact or.inr ⟨_, rfl⟩ },
 end
 
@@ -43,12 +45,11 @@ subexpression of `e`.  It also takes argument `lo`, informing it that
 * the subtractions that get extracted are subtractions in `ℕ`.
 -/
 meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
-| `(%%a - %%b - %%c) := do bc ← to_expr ``(%%b + %%c),
-                           to_expr ``(nat.sub_sub %%a %%b %%c) >>= rw_at lo,
+| `(%%a - %%b - %%c) := do bc ← mk_app `has_add.add [b, c],
+                           to_expr ``(tsub_tsub %%a %%b %%c) >>= rw_at lo,
                            [ga, gb, gc] ← [a, b, c].mmap get_sub,
                            return ((a, bc) :: (ga ++ gb ++ gc))
-| `(%%a - %%b)       := do infer_type a >>= is_def_eq `(ℕ),
-                           [ga, gb] ← [a, b].mmap get_sub,
+| `(%%a - %%b)       := do [ga, gb] ← [a, b].mmap get_sub,
                            return ((a, b) :: (ga ++ gb))
 | `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one %%a) >>= rw_at lo,
                            ga ← get_sub a,
@@ -67,18 +68,18 @@ meta def remove_one_sub (lo : option name) (a b : expr) : tactic unit := do
 -- `eq0 : a - b = 0`, `exis : ∃ c, a = b + c`, `var = c`, `ide : a = b + c`
 [eq0, exis, var, ide] ← ["h", "k", "x", "hx"].mmap (λ y, get_unused_name y),
 -- either `a ≤ b` or `∃ c, a = b + c`
-cases `(nat.le_cases %%a %%b) [eq0, exis],
+to_expr ``(le_cases %%a %%b) >>= λ x, cases x [eq0, exis],
 -- on the branch where `a ≤ b`...
   prf0 ← get_local eq0,
   rw_at lo prf0,
-  to_expr ``(@nat.sub_eq_zero_iff_le %%a %%b) >>= λ x, rewrite_hyp x prf0,
+  to_expr ``(@tsub_eq_zero_iff_le _ _ _ _ %%a %%b) >>= λ x, rewrite_hyp x prf0,
 swap,
 -- on the branch where `∃ c, a = b + c`...
   get_local exis >>= λ x, cases x [var, ide],
   -- either substitute `a = b + c` or rewrite `a` and then simplify the subtraction `b + c - b`
   get_local ide >>= (λ x, subst x <|> rw_at lo x),
   vare ← get_local var,
-  to_expr ``(nat.add_sub_cancel_left %%b %%vare) >>= rw_at lo <|>
+  to_expr ``(add_tsub_cancel_left %%b %%vare) >>= rw_at lo <|>
     fail"could not rewrite: something went wrong",
 swap
 

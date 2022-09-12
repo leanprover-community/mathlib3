@@ -223,6 +223,53 @@ begin
   { exact ((f_mble.pow measurable_const).div_const p).ennreal_of_real, },
 end
 
+theorem integral_rpow_eq_integral_meas_le_mul (μ : measure α) [sigma_finite μ]
+  {p : ℝ} (hp : 0 < p) (hf : 0 ≤ f) (hm : measurable f) (hint : integrable (f ^ p) μ) :
+  ∫ x, f x ^ p ∂μ = p * ∫ x in Ioi 0, (μ {ω | x ≤ f ω}).to_real * x^(p - 1) :=
+begin
+  rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, _))
+    (hm.pow measurable_const).ae_strongly_measurable,
+    lintegral_rpow_eq_lintegral_meas_le_mul μ hf hm hp, ennreal.to_real_mul,
+    ennreal.to_real_of_real hp.le, integral_eq_lintegral_of_nonneg_ae],
+  { congr' 2,
+    refine set_lintegral_congr_fun measurable_set_Ioi (eventually_of_forall $ λ x hx, _),
+    rw [ennreal.of_real_mul ennreal.to_real_nonneg, ennreal.of_real_to_real],
+    refine λ h, ne_of_lt hint.2 (eq_top_iff.2 _),
+    calc ⊤ = ∫⁻ ω in {ω | x ≤ f ω}, ∥x ^ p∥₊ ∂μ :
+      begin
+        rw [set_lintegral_const, h, ennreal.mul_top, if_neg],
+        rw [← ennreal.coe_zero, ennreal.coe_eq_coe, nnnorm_eq_zero,
+          real.rpow_eq_zero_iff_of_nonneg (le_of_lt hx)],
+        exact not_and_distrib.2 (or.inl (ne_of_lt hx).symm)
+      end
+      ...  ≤ ∫⁻ ω in {ω | x ≤ f ω}, ∥f ω ^ p∥₊ ∂μ :
+      begin
+        have hx' : 0 ≤ x := le_of_lt hx,
+        refine set_lintegral_mono measurable_const
+          (hm.pow measurable_const).nnnorm.coe_nnreal_ennreal (λ ω hω, _),
+        rw [ennreal.coe_le_coe, ← nnreal.coe_le_coe, coe_nnnorm, coe_nnnorm,
+          real.norm_of_nonneg (real.rpow_nonneg_of_nonneg hx' _),
+          real.norm_of_nonneg (real.rpow_nonneg_of_nonneg (hx'.trans hω) _) ],
+        exact real.rpow_le_rpow hx' hω hp.le,
+      end
+      ...  ≤ ∫⁻ ω, ∥f ω ^ p∥₊ ∂μ :
+      begin
+        conv_rhs { rw ← set_lintegral_univ },
+        exact lintegral_mono_set (subset_univ _),
+      end },
+  { change ∀ᵐ x ∂(volume.restrict (Ioi (0 : ℝ))), _ ≤ _,
+    rw ae_restrict_iff' measurable_set_Ioi,
+    exact eventually_of_forall
+      (λ x hx, mul_nonneg ennreal.to_real_nonneg (real.rpow_nonneg_of_nonneg (le_of_lt hx) _)),
+    all_goals { apply_instance } },
+  { refine ae_strongly_measurable.mul (measurable.ae_strongly_measurable _)
+      (measurable_id'.pow measurable_const).ae_strongly_measurable,
+    exact ennreal.measurable_to_real.comp
+      (antitone.measurable $ λ x y hxy, measure_mono $ λ ω hω, hxy.trans hω) },
+  { exact real.rpow_nonneg_of_nonneg (hf x) _ },
+  all_goals { apply_instance },
+end
+
 end measure_theory
 
 end layercake

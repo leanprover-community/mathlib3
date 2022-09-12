@@ -380,7 +380,7 @@ lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf₀ : ∀ x, 
 
 end monotone
 
-/-- Pullback an `strict_ordered_semiring` under an injective map.
+/-- Pullback a `strict_ordered_semiring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.strict_ordered_semiring
@@ -730,7 +730,7 @@ instance ordered_ring.to_strict_ordered_semiring : strict_ordered_semiring α :=
   le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
   mul_lt_mul_of_pos_left     := @ordered_ring.mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @ordered_ring.mul_lt_mul_of_pos_right α _,
-  ..‹ordered_ring α› }
+  ..‹ordered_ring α›, ..ring.to_semiring }
 
 lemma mul_le_mul_of_nonpos_left (h : b ≤ a) (hc : c ≤ 0) : c * a ≤ c * b :=
 have -c ≥ 0,              from neg_nonneg_of_nonpos hc,

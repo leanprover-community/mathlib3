@@ -585,12 +585,6 @@ instance ordered_cancel_comm_monoid.to_contravariant_class_le_left :
   contravariant_class α α (*) (≤) :=
 ⟨ordered_cancel_comm_monoid.le_of_mul_le_mul_left⟩
 
-/- This instance can be proven with `infer_instance`. -/
-@[priority 200, to_additive] -- see Note [lower instance priority]
-instance ordered_cancel_comm_monoid.to_contravariant_class_le_right :
-  contravariant_class α α (swap (*)) (≤) :=
-infer_instance
-
 @[to_additive]
 lemma ordered_cancel_comm_monoid.lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c :=
 λ a b c h, lt_of_le_not_le
@@ -846,7 +840,7 @@ instance [ordered_comm_monoid α] [ordered_comm_monoid β] : ordered_comm_monoid
 instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
   ordered_cancel_comm_monoid (M × N) :=
 { le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
-  .. prod.cancel_comm_monoid, .. prod.ordered_comm_monoid }
+  .. prod.ordered_comm_monoid }
 
 @[to_additive] instance [has_le α] [has_le β] [has_mul α] [has_mul β] [has_exists_mul_of_le α]
   [has_exists_mul_of_le β] : has_exists_mul_of_le (α × β) :=
@@ -1356,12 +1350,10 @@ instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_comm_monoid (multiplicative α) :=
 { le_of_mul_le_mul_left := @ordered_cancel_add_comm_monoid.le_of_add_le_add_left α _,
-  ..multiplicative.left_cancel_semigroup,
   ..multiplicative.ordered_comm_monoid }
 
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (additive α) :=
 { le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
-  ..additive.add_left_cancel_semigroup,
   ..additive.ordered_add_comm_monoid }
 
 instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multiplicative α) :=

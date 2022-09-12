@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import group_theory.subgroup.basic
 import group_theory.submonoid.pointwise
+import group_theory.group_action.conj_act
 
 /-! # Pointwise instances on `subgroup` and `add_subgroup`s
 
@@ -128,6 +129,27 @@ begin
     mul_inv_cancel_left h h'⟩),
   rintros _ ⟨h, h', rfl : _ = _, hh', rfl⟩,
   exact H.mul_mem hh hh',
+end
+
+lemma normal.conj_act {G : Type*} [group G] {H : subgroup G} (hH : H.normal ) (g : conj_act G) :
+  g • H = H :=
+begin
+  ext,
+  split,
+  { intro h,
+    have := hH.conj_mem (g⁻¹ • x) _ (conj_act.of_conj_act g),
+    rw subgroup.mem_pointwise_smul_iff_inv_smul_mem at h,
+    dsimp at *,
+    rw conj_act.smul_def at *,
+    simp only [conj_act.of_conj_act_inv, conj_act.of_conj_act_to_conj_act, inv_inv] at *,
+    convert this,
+    simp only [←mul_assoc, mul_right_inv, one_mul, mul_inv_cancel_right],
+    rw subgroup.mem_pointwise_smul_iff_inv_smul_mem at h,
+    exact h},
+  { intro h,
+    rw [subgroup.mem_pointwise_smul_iff_inv_smul_mem, conj_act.smul_def],
+    apply hH.conj_mem,
+    exact h}
 end
 
 end group

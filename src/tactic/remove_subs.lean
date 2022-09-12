@@ -24,6 +24,14 @@ See the tactic-doc for further details.
 namespace tactic
 namespace remove_subs
 
+lemma nat.le_cases (a b : ℕ) : a - b = 0 ∨ ∃ c, a = b + c :=
+begin
+  by_cases ab : a ≤ b,
+  { exact or.inl (nat.sub_eq_zero_of_le ab) },
+  { rcases nat.exists_eq_add_of_le (not_le.mp ab).le with ⟨c, rfl⟩,
+    exact or.inr ⟨_, rfl⟩ },
+end
+
 lemma le_cases {R} [canonically_linear_ordered_add_monoid R] [has_sub R] [has_ordered_sub R]
   (a b : R) :
   a - b = 0 ∨ ∃ c, a = b + c :=

@@ -603,24 +603,35 @@ theorem exists_lt (f : cau_seq α abs) : ∃ a : α, const a < f :=
 let ⟨a, h⟩ := (-f).exists_gt in ⟨-a, show pos _,
   by rwa [const_neg, sub_neg_eq_add, add_comm, ← sub_neg_eq_add]⟩
 
-instance : has_sup (cau_seq α abs) := ⟨λ f g, ⟨f ⊔ g, λ ε ε0, begin
-  obtain ⟨fi, hf⟩ := f.prop (ε / 2) (half_pos ε0),
-  obtain ⟨gi, hg⟩ := g.prop (ε / 2) (half_pos ε0),
-  refine ⟨fi ⊔ gi, λ i hi, _⟩,
-  have hfi := hf i (sup_le_iff.mp hi).1,
-  have hgi := hg i (sup_le_iff.mp hi).2,
-  have hfs := hf (fi ⊔ gi) le_sup_left,
-  have hgs := hg (fi ⊔ gi) le_sup_right,
-  rw abs_sub_comm at hfs hgs,
-  have hf'' := abs_add (f i - f fi) (f fi - f (fi ⊔ gi)),
-  have hg'' := abs_add (g i - g gi) (g gi - g (fi ⊔ gi)),
-  rw sub_add_sub_cancel at hf'' hg'',
-  refine (abs_max_sub_max_le_max _ _ _ _).trans_lt (max_lt (hf''.trans_lt _) (hg''.trans_lt _)),
-  { exact (add_lt_add hfi hfs).trans_eq (add_halves _) },
-  { exact (add_lt_add hgi hgs).trans_eq (add_halves _) },
-end⟩⟩
+-- so named to match `rat_add_continuous_lemma`
+theorem _root_.rat_sup_continuous_lemma
+  {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : α},
+  abs (a₁ - b₁) < δ → abs (a₂ - b₂) < δ → abs (a₁ ⊔ a₂ - (b₁ ⊔ b₂)) < ε :=
+⟨ε, ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
+  (abs_max_sub_max_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)⟩
+
+-- so named to match `rat_add_continuous_lemma`
+theorem _root_.rat_inf_continuous_lemma
+  {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : α},
+  abs (a₁ - b₁) < δ → abs (a₂ - b₂) < δ → abs (a₁ ⊓ a₂ - (b₁ ⊓ b₂)) < ε :=
+⟨ε, ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
+  (abs_min_sub_min_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)⟩
+
+instance : has_sup (cau_seq α abs) :=
+⟨λ f g, ⟨f ⊔ g, λ ε ε0,
+  let ⟨δ, δ0, Hδ⟩ := rat_sup_continuous_lemma ε0,
+      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
+  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
+
+instance : has_inf (cau_seq α abs) :=
+⟨λ f g, ⟨f ⊓ g, λ ε ε0,
+  let ⟨δ, δ0, Hδ⟩ := rat_inf_continuous_lemma ε0,
+      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
+  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
 
 @[simp] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
+
+@[simp] lemma coe_inf (f g : cau_seq α abs) : ⇑(f ⊓ g) = f ⊓ g := rfl
 
 theorem sup_lim_zero {f g : cau_seq α abs}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊔ g)
@@ -628,6 +639,14 @@ theorem sup_lim_zero {f g : cau_seq α abs}
   λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in begin
     rw abs_lt at H₁ H₂ ⊢,
     exact ⟨lt_sup_iff.mpr (or.inl H₁.1), sup_lt_iff.mpr ⟨H₁.2, H₂.2⟩⟩
+  end
+
+theorem inf_lim_zero {f g : cau_seq α abs}
+  (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊓ g)
+| ε ε0 := (exists_forall_ge_and (hf _ ε0) (hg _ ε0)).imp $
+  λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in begin
+    rw abs_lt at H₁ H₂ ⊢,
+    exact ⟨lt_inf_iff.mpr ⟨H₁.1, H₂.1⟩, inf_lt_iff.mpr (or.inl H₁.2), ⟩
   end
 
 lemma sup_equiv_sup {a₁ b₁ a₂ b₂ : cau_seq α abs} (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂) :
@@ -641,12 +660,31 @@ begin
     (max_lt (hai i (sup_le_iff.mp hi).1) (hbi i (sup_le_iff.mp hi).2))⟩,
 end
 
+lemma inf_equiv_inf {a₁ b₁ a₂ b₂ : cau_seq α abs} (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂) :
+  a₁ ⊓ b₁ ≈ a₂ ⊓ b₂ :=
+begin
+  intros ε ε0,
+  obtain ⟨ai, hai⟩ := ha ε ε0,
+  obtain ⟨bi, hbi⟩ := hb ε ε0,
+  exact ⟨ai ⊔ bi, λ i hi,
+    (abs_min_sub_min_le_max (a₁ i) (b₁ i) (a₂ i) (b₂ i)).trans_lt
+    (max_lt (hai i (sup_le_iff.mp hi).1) (hbi i (sup_le_iff.mp hi).2))⟩,
+end
+
 protected lemma sup_lt {a b c : cau_seq α abs} (ha : a < c) (hb : b < c) : a ⊔ b < c :=
 begin
   obtain ⟨⟨εa, εa0, ia, ha⟩, ⟨εb, εb0, ib, hb⟩⟩ := ⟨ha, hb⟩,
   refine ⟨εa ⊓ εb, lt_inf_iff.mpr ⟨εa0, εb0⟩, ia ⊔ ib, λ i hi, _⟩,
   have := min_le_min (ha _ (sup_le_iff.mp hi).1) (hb _ (sup_le_iff.mp hi).2),
-  exact this.trans_eq (min_sub_sub_left (c i) (a i) (b i))
+  exact this.trans_eq (min_sub_sub_left _ _ _)
+end
+
+protected lemma inf_lt {a b c : cau_seq α abs} (hb : a < b) (hc : a < c) : a < b ⊓ c :=
+begin
+  obtain ⟨⟨εb, εb0, ib, hb⟩, ⟨εc, εc0, ic, hc⟩⟩ := ⟨hb, hc⟩,
+  refine ⟨εb ⊓ εc, lt_inf_iff.mpr ⟨εb0, εc0⟩, ib ⊔ ic, λ i hi, _⟩,
+  have := min_le_min (hb _ (sup_le_iff.mp hi).1) (hc _ (sup_le_iff.mp hi).2),
+  exact this.trans_eq (min_sub_sub_right _ _ _),
 end
 
 protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c :=
@@ -683,45 +721,8 @@ begin
 
 end
 
-instance : has_inf (cau_seq α abs) := ⟨λ f g, ⟨f ⊓ g, λ ε ε0, begin
-  obtain ⟨fi, hf⟩ := f.prop (ε / 2) (half_pos ε0),
-  obtain ⟨gi, hg⟩ := g.prop (ε / 2) (half_pos ε0),
-  refine ⟨fi ⊔ gi, λ i hi, _⟩,
-  have hfi := hf i (sup_le_iff.mp hi).1,
-  have hgi := hg i (sup_le_iff.mp hi).2,
-  have hfs := hf (fi ⊔ gi) le_sup_left,
-  have hgs := hg (fi ⊔ gi) le_sup_right,
-  rw abs_sub_comm at hfs hgs,
-  have hf'' := abs_add (f i - f fi) (f fi - f (fi ⊔ gi)),
-  have hg'' := abs_add (g i - g gi) (g gi - g (fi ⊔ gi)),
-  rw sub_add_sub_cancel at hf'' hg'',
-  refine (abs_min_sub_min_le_max _ _ _ _).trans_lt (max_lt (hf''.trans_lt _) (hg''.trans_lt _)),
-  { exact (add_lt_add hfi hfs).trans_eq (add_halves _) },
-  { exact (add_lt_add hgi hgs).trans_eq (add_halves _) },
-end⟩⟩
-
-@[simp] lemma coe_inf (f g : cau_seq α abs) : ⇑(f ⊓ g) = f ⊓ g := rfl
-
 protected lemma le_inf {a b c : cau_seq α abs} (hb : a ≤ b) (hc : a ≤ c) : a ≤ b ⊓ c := sorry
 
-lemma inf_equiv_inf {a₁ b₁ a₂ b₂ : cau_seq α abs} (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂) :
-  a₁ ⊓ b₁ ≈ a₂ ⊓ b₂ :=
-begin
-  intros ε ε0,
-  obtain ⟨ai, hai⟩ := ha ε ε0,
-  obtain ⟨bi, hbi⟩ := hb ε ε0,
-  exact ⟨ai ⊔ bi, λ i hi,
-    (abs_min_sub_min_le_max (a₁ i) (b₁ i) (a₂ i) (b₂ i)).trans_lt
-    (max_lt (hai i (sup_le_iff.mp hi).1) (hbi i (sup_le_iff.mp hi).2))⟩,
-end
-
-theorem inf_lim_zero {f g : cau_seq α abs}
-  (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊓ g)
-| ε ε0 := (exists_forall_ge_and (hf _ ε0) (hg _ ε0)).imp $
-  λ i H j ij, let ⟨H₁, H₂⟩ := H _ ij in begin
-    rw abs_lt at H₁ H₂ ⊢,
-    exact ⟨lt_inf_iff.mpr ⟨H₁.1, H₂.1⟩, inf_lt_iff.mpr (or.inl H₁.2), ⟩
-  end
 
 end abs
 

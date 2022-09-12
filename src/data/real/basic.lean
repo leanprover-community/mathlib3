@@ -343,21 +343,7 @@ instance : is_total ℝ (≤) :=
 end⟩
 
 noncomputable instance : linear_order ℝ :=
-{ le_total := total_of (≤),
-  decidable_le := by apply_instance,
-  min := (⊓),
-  min_def := funext₂ $ λ x y, begin
-    cases total_of (≤) x y,
-    sorry,
-    sorry,
-  end,
-  max := (⊔),
-  max_def := funext₂ $ λ x y, begin
-    cases total_of (≤) x y,
-    sorry,
-    sorry,
-  end,
-  .. real.distrib_lattice }
+lattice.to_linear_order _
 
 noncomputable instance : linear_ordered_comm_ring ℝ :=
 { .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }

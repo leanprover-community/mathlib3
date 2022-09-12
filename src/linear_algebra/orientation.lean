@@ -216,7 +216,7 @@ begin
   { left,
     refl },
   { right,
-    simp [e.det_units_smul', ← units.coe_prod, finset.prod_update_of_mem] }
+    simp [e.det_units_smul, ← units.coe_prod, finset.prod_update_of_mem] }
 end
 
 lemma basis.abs_det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)

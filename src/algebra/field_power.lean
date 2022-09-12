@@ -103,10 +103,8 @@ end
 @[simp] lemma pos_div_pow_pos (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
 div_pos ha (pow_pos hb k)
 
-@[simp] lemma div_pow_le (ha : 0 < a) (hb : 1 ≤ b) (k : ℕ) : a/b^k ≤ a :=
-(div_le_iff $ pow_pos (zero_lt_one.trans_le hb) k).mpr
-(calc a = a * 1 : (mul_one a).symm
-   ...  ≤ a*b^k : (mul_le_mul_left ha).mpr $ one_le_pow_of_one_le hb _)
+@[simp] lemma div_pow_le (ha : 0 ≤ a) (hb : 1 ≤ b) (k : ℕ) : a/b^k ≤ a :=
+div_le_self ha $ one_le_pow_of_one_le hb _
 
 lemma zpow_injective (h₀ : 0 < x) (h₁ : x ≠ 1) : injective ((^) x : ℤ → α) :=
 begin

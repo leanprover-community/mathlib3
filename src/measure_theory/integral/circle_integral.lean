@@ -250,6 +250,8 @@ lemma continuous_on.circle_integrable {f : ℂ → E} {c : ℂ} {R : ℝ} (hR : 
   circle_integrable f c R :=
 continuous_on.circle_integrable' $ (_root_.abs_of_nonneg hR).symm ▸ hf
 
+.
+
 /-- The function `λ z, (z - w) ^ n`, `n : ℤ`, is circle integrable on the circle with center `c` and
 radius `|R|` if and only if `R = 0` or `0 ≤ n`, or `w` does not belong to this circle. -/
 @[simp] lemma circle_integrable_sub_zpow_iff {c w : ℂ} {R : ℝ} {n : ℤ} :
@@ -268,12 +270,17 @@ begin
           (deriv_circle_map_ne_zero hR)).eventually this,
       filter_upwards [self_mem_nhds_within,
         mem_nhds_within_of_mem_nhds (ball_mem_nhds _ zero_lt_one)],
-      simp [dist_eq, sub_eq_zero] { contextual := tt } },
+      simp only [dist_eq, sub_eq_zero, mem_compl_eq, mem_singleton_iff, mem_ball, mem_diff,
+                 mem_ball_zero_iff, norm_eq_abs, not_false_iff, and_self, implies_true_iff]
+                {contextual := tt} },
     refine ((((has_deriv_at_circle_map c R θ).is_O_sub).mono inf_le_left).inv_rev
       (this.mono (λ θ' h₁ h₂, absurd h₂ h₁.2))).trans _,
     refine is_O.of_bound (|R|)⁻¹ (this.mono $ λ θ' hθ', _),
     set x := abs (f θ'),
-    suffices : x⁻¹ ≤ x ^ n, by simpa [inv_mul_cancel_left₀, mt _root_.abs_eq_zero.1 hR],
+    suffices : x⁻¹ ≤ x ^ n,
+    by simpa only [inv_mul_cancel_left₀, abs_eq_zero.not.2 hR, norm_eq_abs, map_inv₀,
+                   algebra.id.smul_eq_mul, map_mul, abs_circle_map_zero, abs_I, mul_one,
+                   abs_zpow, ne.def, not_false_iff] using this,
     have : x ∈ Ioo (0 : ℝ) 1, by simpa [and.comm, x] using hθ',
     rw ← zpow_neg_one,
     refine (zpow_strict_anti this.1 this.2).le_iff_le.2 (int.lt_add_one_iff.1 _), exact hn },

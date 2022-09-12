@@ -2200,8 +2200,7 @@ rfl
 
 @[simp]
 lemma quot_quot_equiv_comm_algebra_map (x : R) :
-  quot_quot_equiv_comm I J (algebra_map R _ x) = algebra_map _ _ x :=
-rfl
+  quot_quot_equiv_comm I J (algebra_map R _ x) = algebra_map _ _ x := rfl
 
 end algebra
 

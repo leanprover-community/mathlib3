@@ -314,12 +314,38 @@ multiset.mem_attach _ _
   :=
 coe_injective $ multiset.attach_cons _ _
 
+@[simps] protected def cast {n m : ℕ} (h : n = m) : sym α n ≃ sym α m :=
+{ to_fun := λ s, ⟨s.val, s.2.trans h⟩,
+  inv_fun := λ s, ⟨s.val, s.2.trans h.symm⟩,
+  left_inv := λ s, subtype.ext rfl,
+  right_inv := λ s, subtype.ext rfl }
+
+@[simp] lemma cast_rfl : sym.cast rfl s = s := subtype.ext rfl
+
+@[simp] lemma cast_cast {n n' n'' : ℕ} (s : sym α n) (h : n = n') (h' : n' = n'') :
+  sym.cast h' (sym.cast h s) = sym.cast (h.trans h') s := rfl
+
+@[simp] lemma coe_cast {n m : ℕ} (h : n = m) (s : sym α n) :
+  (sym.cast h s : multiset α) = s := rfl
+
+def append {n n' : ℕ} (s : sym α n) (s' : sym α n') : sym α (n + n') :=
+⟨s.1 + s'.1, by simp_rw [← s.2, ← s'.2, map_add]⟩
+
+@[simp] lemma append_inj_right {n n' : ℕ} (s : sym α n) (t t' : sym α n') :
+  s.append t = s.append t' ↔ t = t' :=
+subtype.ext_iff.trans $ (add_right_inj _).trans subtype.ext_iff.symm
+
+@[simp] lemma append_inj_left {n n' : ℕ} (s s' : sym α n) (t : sym α n') :
+  s.append t = s'.append t ↔ s = s' :=
+subtype.ext_iff.trans $ (add_left_inj _).trans subtype.ext_iff.symm
+
+lemma append_comm {n n' : ℕ} (s : sym α n) (s' : sym α n') :
+  s.append s' = sym.cast (add_comm _ _) (s'.append s) :=
+by { ext, simp [append, add_comm], }
+
 /-- fill an elment `sym α (n - i)` with `i` copies of `a` to obtain an element of `sym α n` -/
-def fill (a : α) (m : Σ i : fin (n + 1), sym α (n - i)) : sym α n :=
-sym.mk (m.1.1 • {a} + m.2) begin
-  erw [multiset.card_add, m.2.2, multiset.card_nsmul, multiset.card_singleton, mul_one],
-  exact nat.add_sub_of_le (nat.lt_succ_iff.1 m.1.2),
-end
+def fill (a : α) {i : ℕ} (h : i ≤ n) (m : sym α (n - i)) : sym α n :=
+sym.cast (nat.sub_add_cancel h) (m.append (repeat a i))
 
 /-- filter an element of `sym α n` of `a`, if it has `i` copies,
   it yields an element of `sym α (n - i)` -/

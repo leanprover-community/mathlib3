@@ -52,13 +52,14 @@ section layercake
 namespace measure_theory
 
 variables {α : Type*} [measurable_space α] {f : α → ℝ} {g : ℝ → ℝ} {s : set α}
+  (μ : measure α) [sigma_finite μ]
 
 /-- An auxiliary version of the layer cake theorem (Cavalieri's principle, tail probability
 formula), with a measurability assumption that would also essentially follow from the
 integrability assumptions.
 
 See `measure_theory.layercake` for the main formulation of the layer cake theorem. -/
-lemma lintegral_comp_eq_lintegral_meas_le_mul_of_measurable (μ : measure α) [sigma_finite μ]
+lemma lintegral_comp_eq_lintegral_meas_le_mul_of_measurable
   (f_nn : 0 ≤ f) (f_mble : measurable f)
   (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
   (g_mble : measurable g) (g_nn : ∀ t > 0, 0 ≤ g t) :
@@ -141,16 +142,17 @@ the integral over the positive real line of the "tail measures" `μ {ω | f(ω) 
 weighted by `g`.
 
 Roughly speaking, the statement is: `∫⁻ (G ∘ f) ∂μ = ∫⁻ t in 0 .. ∞, g(t) * μ {ω | f(ω) ≥ t}`. -/
-theorem lintegral_comp_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite μ]
+theorem lintegral_comp_eq_lintegral_meas_le_mul
   (f_nn : 0 ≤ f) (f_mble : measurable f)
   (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
-  (g_nn : ∀ᵐ t ∂(volume.restrict (Ioi 0)), 0 ≤ g t) :
+  (g_nn : ∀ᵐ t, t ∈ Ioi (0 : ℝ) → 0 ≤ g t) :
   ∫⁻ ω, ennreal.of_real (∫ t in 0 .. f ω, g t) ∂μ
     = ∫⁻ t in Ioi 0, μ {a : α | t ≤ f a} * ennreal.of_real (g t) :=
 begin
   have ex_G : ∃ (G : ℝ → ℝ), measurable G ∧ 0 ≤ G ∧ g =ᵐ[volume.restrict (Ioi 0)] G,
-  { refine ae_measurable.exists_measurable_nonneg _ g_nn,
-    exact ae_measurable_Ioi_of_forall_Ioc (λ t ht, (g_intble t ht).1.1.ae_measurable), },
+  { rw ← ae_restrict_iff' (@measurable_set_Ioi ℝ _ _ _ _ _ 0) at g_nn,
+    refine ae_measurable.exists_measurable_nonneg _ g_nn,
+    exact ae_measurable_Ioi_of_forall_Ioc (λ t ht, (g_intble t ht).1.1.ae_measurable) },
   rcases ex_G with ⟨G, G_mble, G_nn, g_eq_G⟩,
   have g_eq_G_on : ∀ t, g =ᵐ[volume.restrict (Ioc 0 t)] G,
     from λ t, ae_mono (measure.restrict_mono Ioc_subset_Ioi_self le_rfl) g_eq_G,
@@ -174,11 +176,58 @@ begin
     G_intble G_mble (λ t t_pos, G_nn t),
 end
 
+#check ae_restrict_iff'
+theorem integral_comp_eq_integral_meas_le_mul
+  (f_nn : 0 ≤ f) (f_mble : measurable f) (fint : integrable f μ)
+  (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
+  (g_nn : ∀ᵐ t, t ∈ Ioi (0 : ℝ) → 0 ≤ g t) :
+  ∫ ω, (∫ t in 0 .. f ω, g t) ∂μ
+    = ∫ t in Ioi 0, ennreal.to_real (μ {a : α | t ≤ f a}) * (g t) :=
+begin
+  rw integral_eq_lintegral_of_nonneg_ae,
+  rotate 1,
+  { refine eventually_of_forall (λ ω, _),
+    simp_rw [pi.zero_apply],
+    rw interval_integral.integral_of_le,
+    { refine set_integral_nonneg_ae measurable_set_Ioc _,
+      filter_upwards [g_nn] with ω hω hωmem using hω hωmem.1 },
+    { exact f_nn _ } },
+  { sorry
+
+   },
+  rw lintegral_comp_eq_lintegral_meas_le_mul μ f_nn f_mble g_intble g_nn,
+  rw integral_eq_lintegral_of_nonneg_ae,
+  { congr' 1,
+    refine set_lintegral_congr_fun measurable_set_Ioi (eventually_of_forall $ λ t ht, _),
+    rw [ennreal.of_real_mul ennreal.to_real_nonneg, ennreal.of_real_to_real],
+    intro h,
+    refine ne_of_lt fint.2 (eq_top_iff.2 _),
+    calc ⊤ = ∫⁻ x in {x | t ≤ f x}, ennreal.of_real t ∂μ :
+    begin
+      rw [set_lintegral_const, h, ennreal.mul_top, if_neg],
+      rw [ennreal.of_real_eq_zero, not_le],
+      exact ht
+    end
+      ...  ≤ ∫⁻ x in {x | t ≤ f x}, ∥f x∥₊ ∂μ :
+    begin
+      refine set_lintegral_mono measurable_const f_mble.nnnorm.coe_nnreal_ennreal (λ x hx, _),
+      rw [ennreal.of_real_eq_coe_nnreal (le_of_lt ht), ennreal.coe_le_coe, ← nnreal.coe_le_coe,
+        subtype.coe_mk, coe_nnnorm, real.norm_eq_abs, abs_of_nonneg ((le_of_lt ht).trans hx)],
+      exact hx
+    end
+      ...  ≤ ∫⁻ x, ∥f x∥₊ ∂μ :
+    begin
+      conv_rhs { rw ← set_lintegral_univ },
+      exact lintegral_mono_set (subset_univ _)
+    end },
+
+end
+
 /-- The standard case of the layer cake formula / Cavalieri's principle / tail probability formula:
 
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f ∂μ = ∫⁻ t in 0 .. ∞, μ {ω | f(ω) ≥ t}`. -/
-theorem lintegral_eq_lintegral_meas_le (μ : measure α) [sigma_finite μ]
+theorem lintegral_eq_lintegral_meas_le
   (f_nn : 0 ≤ f) (f_mble : measurable f) :
   ∫⁻ ω, ennreal.of_real (f ω) ∂μ = ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) :=
 begin
@@ -197,7 +246,7 @@ end
 
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f^p ∂μ = p * ∫⁻ t in 0 .. ∞, t^(p-1) * μ {ω | f(ω) ≥ t}`. -/
-theorem lintegral_rpow_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite μ]
+theorem lintegral_rpow_eq_lintegral_meas_le_mul
   (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ} (p_pos: 0 < p) :
   ∫⁻ ω, ennreal.of_real ((f ω)^p) ∂μ
     = (ennreal.of_real p) * ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) * ennreal.of_real (t^(p-1)) :=

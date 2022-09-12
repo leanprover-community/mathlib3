@@ -262,7 +262,7 @@ subtype.cases_on x $ λ _, of_subtype_apply_of_mem f
 
 lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) {x : α} (hx : ¬ p x) :
-  of_subtype f x = x := extend_domain_apply_not_subtype f _ hx
+  of_subtype f x = x := extend_domain_apply_not_subtype f (equiv.refl (subtype p)) hx
 
 lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : α) :

@@ -335,67 +335,58 @@ end
 
 /-- **Taylor's theorem** with a uniform bound of the remainder -/
 lemma taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
-  (h : a < b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
+  (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
   ∃ C : ℝ, ∀ (x : ℝ) (hx : x ∈ Icc a b),
-  ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (b - a)^(n+1) / n! :=
+  ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) / n! :=
 begin
+  rcases eq_or_lt_of_le hab with rfl|h,
+  { refine ⟨0, λ x hx, _⟩,
+    have : a = x, by simpa [← le_antisymm_iff] using hx,
+    simp [← this] },
   -- The nth iterated derivative is differentiable
   have hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc a b)) (Icc a b) :=
   hf.differentiable_on_iterated_deriv_within (with_top.coe_lt_coe.mpr n.lt_succ_self)
     (unique_diff_on_Icc h),
   -- natural numbers are non-negative
   have fac_nonneg : 0 ≤ (n! : ℝ) := n!.cast_nonneg,
-
   -- We estimate by the supremum of the norm of the iterated derivative
   let g : ℝ → ℝ := λ y, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥,
   use [has_Sup.Sup (g '' Icc a b)],
   intros x hx,
-
   -- For every `y ∈ Icc a b` the norm of the iterated derivative is controlled by the supremum
   have le_Sup_Icc : ∀ (y : ℝ) (hy : y ∈ Icc a b),
     ∥iterated_deriv_within (n + 1) f (Icc a b) y∥ ≤ Sup (g '' Icc a b) :=
   λ y, (hf.continuous_on_iterated_deriv_within rfl.le $ unique_diff_on_Icc h).norm.le_Sup_image_Icc,
   -- In particular the supremum is non-negative
-  have hSup : 0 ≤ Sup (g '' Icc a b) :=
-  begin
-    refine le_trans (by positivity) (le_Sup_Icc a _),
+  have hSup : 0 ≤ Sup (g '' Icc a b),
+  { refine le_trans (by positivity) (le_Sup_Icc a _),
     rw left_mem_Icc,
-    exact h.le,
-  end,
+    exact h.le },
   -- We can uniformly bound the derivative of the Taylor polynomial
-  have h' : ∀ (y : ℝ) (hy : y ∈ Ico a b),
+  have h' : ∀ (y : ℝ) (hy : y ∈ Ico a x),
     ∥((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y∥
-    ≤ (n! : ℝ)⁻¹ * |(b - a)|^n * has_Sup.Sup (g '' Icc a b) :=
-  begin
-    intros y hy,
+    ≤ (n! : ℝ)⁻¹ * |(x - a)|^n * has_Sup.Sup (g '' Icc a b),
+  { intros y hy,
     rw [norm_smul, real.norm_eq_abs],
     -- Estimate the iterated derivative by `Sup (g '' Icc a b)`
-    refine mul_le_mul _ (le_Sup_Icc y (Ico_subset_Icc_self hy)) (by positivity) (by positivity),
+    refine mul_le_mul _ (le_Sup_Icc y ⟨hy.1, hy.2.le.trans hx.2⟩) (by positivity) (by positivity),
     -- The rest is a trivial calculation
     rw [abs_mul, abs_pow, abs_inv, nat.abs_cast],
     mono*,
     any_goals { positivity },
-    { exact hx.2 },
     { exact hy.1 },
-    { linarith [hx.1, hy.2] },
-  end,
+    { linarith [hx.1, hy.2] } },
   -- Apply the mean value theorem for vector valued functions:
-  have := norm_image_sub_le_of_norm_deriv_le_segment'
-    (λ _ ht, has_deriv_within_taylor_within_eval_at_Icc x h ht hf.of_succ hf') h' x hx,
+  have A : ∀ t ∈ Icc a x, has_deriv_within_at (λ y, taylor_within_eval f n (Icc a b) y x)
+    (((↑n!)⁻¹ * (x - t) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) t) (Icc a x) t,
+  { assume t ht,
+    have I : Icc a x ⊆ Icc a b := Icc_subset_Icc_right hx.2,
+    exact (has_deriv_within_taylor_within_eval_at_Icc x h (I ht) hf.of_succ hf').mono I },
+  have := norm_image_sub_le_of_norm_deriv_le_segment' A h' x (right_mem_Icc.2 hx.1),
   simp only [taylor_within_eval_self] at this,
-  refine le_trans this _,
+  refine le_trans this (le_of_eq _),
   -- The rest is a trivial calculation
   -- We need to help positivity with a few hypotheses
-  have hxa : 0 ≤ x - a := sub_nonneg.mpr hx.1,
-  have hba : 0 < b - a := sub_pos.mpr h,
-  rw abs_of_pos hba,
-  rw pow_succ,
-  field_simp [nat.factorial_ne_zero n],
-  mono,
-  nth_rewrite 1 mul_comm,
-  rw mul_assoc,
-  nth_rewrite 1 mul_comm,
-  mono* with 0 ≤ (b - a) ^ n,
-  any_goals { positivity },
-  exact hx.2,
+  rw [abs_of_nonneg (sub_nonneg.mpr hx.1)],
+  ring_exp,
 end

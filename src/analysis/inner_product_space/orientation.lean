@@ -136,7 +136,8 @@ def volume_form : alternating_map ℝ E ℝ (fin n.succ) :=
 
 /-- The volume form on an oriented real inner product space can be evaluated as the determinant with
 respect to any orthonormal basis of the space compatible with the orientation. -/
-lemma volume_form_robust (b : orthonormal_basis (fin n.succ) ℝ E) (hb : b.to_basis.orientation = ω) :
+lemma volume_form_robust (b : orthonormal_basis (fin n.succ) ℝ E)
+  (hb : b.to_basis.orientation = ω) :
   ω.volume_form = b.to_basis.det :=
 begin
   let e : orthonormal_basis (fin n.succ) ℝ E := ω.fin_orthonormal_basis n.succ_pos (fact.out _),

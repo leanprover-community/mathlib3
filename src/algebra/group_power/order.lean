@@ -261,17 +261,10 @@ end ordered_semiring
 section strict_ordered_semiring
 variables [strict_ordered_semiring R] {a x y : R} {n m : ℕ}
 
-lemma pow_lt_pow_of_lt_left (h : x < y) (hx : 0 ≤ x) (hn : 0 < n) : x ^ n < y ^ n :=
-begin
-  obtain rfl | hx := hx.eq_or_lt,
-  { rw zero_pow hn,
-    exact pow_pos h _ },
-  rw ←tsub_add_cancel_of_le (nat.succ_le_of_lt hn),
-  induction (n - 1),
-  { simpa only [pow_one] },
-  rw [pow_add, pow_add, nat.succ_eq_add_one, pow_one, pow_one],
-  exact mul_lt_mul ih h.le h (pow_nonneg $ hx.trans h).le _),
-end
+lemma pow_lt_pow_of_lt_left (h : x < y) (hx : 0 ≤ x) : ∀ {n : ℕ}, 0 < n → x ^ n < y ^ n
+| 0 hn := hn.false.elim
+| (n + 1) _ := by simpa only [pow_succ'] using
+    mul_lt_mul_of_le_of_le' (pow_le_pow_of_le_left hx h.le _) h (pow_pos (hx.trans_lt h) _) hx
 
 lemma strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
 λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn

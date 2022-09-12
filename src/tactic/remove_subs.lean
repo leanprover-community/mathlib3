@@ -99,9 +99,8 @@ repeat_at_least 1 (do
   subs ← get_sub lo ht,  -- extract all subtractions
   -- move all subtractions `a - b` with `a` a local constant last, so that `remove_one_sub`
   -- uses `subst` instead of `rw` (when it can)
-  let subs := let (csts, not_csts) := subs.partition (λ e : expr × expr, e.1.is_local_constant)
-    in not_csts ++ csts,
-  some (a, b) ← pure subs.last',
+  some (a, b) ← pure $ let (csts, not_csts) := subs.partition
+    (λ e : expr × expr, e.1.is_local_constant) in (not_csts ++ csts).last',
   remove_one_sub lo a b),
 when la $ any_goals' $ try `[ linarith ]
 
@@ -113,7 +112,7 @@ In edge-cases, it reports some variation. -/
 --  `report` uses a generic `α` instead of `name`, since otherwise Lean wanted it to be `meta`.
 def report {α} [decidable_eq α] [has_to_string α] (l : list (option α)) (la : bool) : string :=
 let rm := "remove_subs" ++ if la then "!" else "" in match l with
-| []     := "`" ++ rm ++ "` made no progress"
+| []     :=          "`" ++ rm ++ "` made no progress"
 | [none] := "Try this: " ++ rm
 | l      := "Try this: " ++ rm ++ " at " ++ (" ".intercalate $ l.map $ λ a,
               dite a.is_some (λ h, has_to_string.to_string (option.get h)) (λ _, "⊢"))

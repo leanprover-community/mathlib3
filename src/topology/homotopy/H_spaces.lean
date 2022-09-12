@@ -77,7 +77,7 @@ lemma continuous_uncurry_iff {Y} [topological_space Y] {g : Y → path x y} :
 iff.symm $ continuous_induced_rng.trans
   ⟨λ h, continuous_uncurry_of_continuous ⟨_, h⟩, continuous_of_continuous_uncurry ↑g⟩
 
--- `[FAE]` These should probably be moved to `path_conneceted.lean`
+-- `[FAE]` This should probably be moved to `path_conneceted.lean`
 lemma continuous_symm : continuous (symm : path x y → path y x) :=
 continuous_uncurry_iff.mp $ symm_continuous_family _ (continuous_fst.path_eval continuous_snd)
 
@@ -105,11 +105,9 @@ class H_space (X : Type u) [topological_space X] :=
 H_space.Hmul (x, y)
 infix ` ∧ₕ `:65 := H_space.Hmul'
 
-namespace H_space
+namespace topological_group
 
-section topological_group_H_space
-
-@[to_additive] instance topological_group (G : Type u) [topological_space G] [group G]
+@[to_additive] instance H_space (G : Type u) [topological_space G] [group G]
   [topological_group G] : H_space G :=
 { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
   e := 1,
@@ -117,14 +115,14 @@ section topological_group_H_space
   left_Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply one_mul}),
   right_Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply mul_one}) }
 
-lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] :
+lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl
 
-end topological_group_H_space
+end topological_group
 
-section path_space_H_space
+namespace path
 
-open unit_interval path
+open unit_interval
 
 variables {X : Type u} [topological_space X]
 
@@ -195,7 +193,7 @@ by simp only [delayed_refl_left, delayed_refl_right_one, path.symm_symm]
 
 notation ` Ω_[` x `]` := path x x
 
-instance loop_space_is_H_space (x : X) : H_space Ω_[x] :=
+instance H_space (x : X) : H_space Ω_[x] :=
 { Hmul := ⟨λ ρ, ρ.1.trans ρ.2, continuous_trans⟩,
   e := refl x,
   Hmul_e_e := refl_trans_refl,
@@ -208,6 +206,4 @@ instance loop_space_is_H_space (x : X) : H_space Ω_[x] :=
       continuous_delayed_refl_right⟩, delayed_refl_right_zero, delayed_refl_right_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } } }
 
-end path_space_H_space
-
-end H_space
+end path

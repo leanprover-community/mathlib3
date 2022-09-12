@@ -704,6 +704,17 @@ end⟩⟩
 
 protected lemma le_inf {a b c : cau_seq α abs} (hb : a ≤ b) (hc : a ≤ c) : a ≤ b ⊓ c := sorry
 
+lemma inf_equiv_inf {a₁ b₁ a₂ b₂ : cau_seq α abs} (ha : a₁ ≈ a₂) (hb : b₁ ≈ b₂) :
+  a₁ ⊓ b₁ ≈ a₂ ⊓ b₂ :=
+begin
+  intros ε ε0,
+  obtain ⟨ai, hai⟩ := ha ε ε0,
+  obtain ⟨bi, hbi⟩ := hb ε ε0,
+  exact ⟨ai ⊔ bi, λ i hi,
+    (abs_min_sub_min_le_max (a₁ i) (b₁ i) (a₂ i) (b₂ i)).trans_lt
+    (max_lt (hai i (sup_le_iff.mp hi).1) (hbi i (sup_le_iff.mp hi).2))⟩,
+end
+
 theorem inf_lim_zero {f g : cau_seq α abs}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊓ g)
 | ε ε0 := (exists_forall_ge_and (hf _ ε0) (hg _ ε0)).imp $

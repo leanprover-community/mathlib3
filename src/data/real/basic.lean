@@ -259,13 +259,7 @@ instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
 @[irreducible]
 private def sup : ℝ → ℝ → ℝ | ⟨x⟩ ⟨y⟩ :=
-⟨quotient.map₂ (⊔) (λ x₁ x₂ hx y₁ y₂ hy ε ε0, begin
-  obtain ⟨xi, hxi⟩ := hx ε ε0,
-  obtain ⟨yi, hyi⟩ := hy ε ε0,
-  exact ⟨xi ⊔ yi, λ i hi,
-    (abs_max_sub_max_le_max (x₁ i) (y₁ i) (x₂ i) (y₂ i)).trans_lt
-    (max_lt (hxi i (sup_le_iff.mp hi).1) (hyi i (sup_le_iff.mp hi).2))⟩,
-end) x y⟩
+⟨quotient.map₂ (⊔) (λ x₁ x₂ hx y₁ y₂ hy, sup_equiv_sup hx hy) x y⟩
 
 instance : has_sup ℝ := ⟨sup⟩
 
@@ -274,13 +268,7 @@ lemma of_cauchy_sup (a b) : (⟨⟦a ⊔ b⟧⟩ : ℝ) = ⟨⟦a⟧⟩ ⊔ ⟨�
 
 @[irreducible]
 private def inf : ℝ → ℝ → ℝ | ⟨x⟩ ⟨y⟩ :=
-⟨quotient.map₂ (⊓) (λ x₁ x₂ hx y₁ y₂ hy ε ε0, begin
-  obtain ⟨xi, hxi⟩ := hx ε ε0,
-  obtain ⟨yi, hyi⟩ := hy ε ε0,
-  exact ⟨xi ⊔ yi, λ i hi,
-    (abs_min_sub_min_le_max (x₁ i) (y₁ i) (x₂ i) (y₂ i)).trans_lt
-    (max_lt (hxi i (sup_le_iff.mp hi).1) (hyi i (sup_le_iff.mp hi).2))⟩,
-end) x y⟩
+⟨quotient.map₂ (⊓) (λ x₁ x₂ hx y₁ y₂ hy, inf_equiv_inf hx hy) x y⟩
 
 instance : has_inf ℝ := ⟨inf⟩
 
@@ -347,14 +335,28 @@ instance : semilattice_sup ℝ := infer_instance
 
 open_locale classical
 
+instance : is_total ℝ (≤) :=
+⟨λ a b, begin
+  induction a using real.ind_mk with a,
+  induction b using real.ind_mk with b,
+  simpa using le_total a b,
+end⟩
+
 noncomputable instance : linear_order ℝ :=
-{ le_total := begin
-    intros a b,
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
-    simpa using le_total a b,
-  end,
+{ le_total := total_of (≤),
   decidable_le := by apply_instance,
+  min := (⊓),
+  min_def := funext₂ $ λ x y, begin
+    cases total_of (≤) x y,
+    sorry,
+    sorry,
+  end,
+  max := (⊔),
+  max_def := funext₂ $ λ x y, begin
+    cases total_of (≤) x y,
+    sorry,
+    sorry,
+  end,
   .. real.distrib_lattice }
 
 noncomputable instance : linear_ordered_comm_ring ℝ :=

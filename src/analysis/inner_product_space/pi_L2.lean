@@ -618,7 +618,7 @@ begin
   { simp },
 end
 
-lemma _root_.orthonormal.exists_orthonormal_basis_extension_of_card_eq [finite_dimensional 𝕜 E]
+lemma _root_.orthonormal.exists_orthonormal_basis_extension_of_card_eq
   {ι : Type*} [fintype ι] (card_ι : finrank 𝕜 E = fintype.card ι) {v : ι → E} {s : set ι}
   (hv : orthonormal 𝕜 (s.restrict v)) :
   ∃ b : orthonormal_basis ι 𝕜 E, ∀ i ∈ s, b i = v i :=

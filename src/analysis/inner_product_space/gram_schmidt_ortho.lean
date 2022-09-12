@@ -360,7 +360,8 @@ lemma inner_gram_schmidt_orthonormal_basis'_eq_zero {f : ι → E} {i : ι}
   ⟪gram_schmidt_orthonormal_basis' h f i, f j⟫ = 0 :=
 begin
   apply inner_right_of_mem_orthogonal_singleton,
-  suffices : span 𝕜 (gram_schmidt_normed 𝕜 f '' Iic j) ≤ (𝕜 ∙ gram_schmidt_orthonormal_basis' h f i)ᗮ,
+  suffices : span 𝕜 (gram_schmidt_normed 𝕜 f '' Iic j)
+    ≤ (𝕜 ∙ gram_schmidt_orthonormal_basis' h f i)ᗮ,
   { apply this,
     rw span_gram_schmidt_normed,
     simpa using mem_span_gram_schmidt 𝕜 f (le_refl j) },

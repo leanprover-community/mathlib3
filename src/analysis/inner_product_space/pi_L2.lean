@@ -580,8 +580,7 @@ lemma _root_.orthonormal.exists_orthonormal_basis_extension_of_card_eq [finite_d
 begin
   have hsv : injective (s.restrict v) := hv.linear_independent.injective,
   have hX : orthonormal 𝕜 (coe : set.range (s.restrict v) → E),
-  { rwa orthonormal_subtype_range hsv,
-    apply_instance },
+  { rwa orthonormal_subtype_range hsv },
   obtain ⟨Y, b₀, hX, hb₀⟩ := hX.exists_orthonormal_basis_extension,
   have hιY : fintype.card ι = Y.card,
   { refine (card_ι.symm.trans _),

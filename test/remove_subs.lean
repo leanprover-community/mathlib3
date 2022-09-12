@@ -20,13 +20,13 @@ by remove_subs at h; trivial
 
 example {a b c : ℕ} : a + b + c = a + b + c :=
 begin
-  success_if_fail_with_msg {remove_subs} "`remove_subs` made no progress",
+  success_if_fail_with_msg {remove_subs} "'remove_subs' made no progress",
   refl
 end
 
 example {a b c : ℕ} : (a : ℤ) - b = a - b :=
 begin
-  success_if_fail_with_msg {remove_subs} "`remove_subs` made no progress",
+  success_if_fail_with_msg {remove_subs} "'remove_subs' made no progress",
   refl
 end
 
@@ -58,8 +58,8 @@ end
 
 example : true :=
 begin
-  success_if_fail_with_msg {remove_subs at bc ca h h ⊢ bc} "`remove_subs` made no progress",
-  success_if_fail_with_msg {remove_subs! at bc ca h h ⊢ bc} "`remove_subs!` made no progress",
+  success_if_fail_with_msg {remove_subs at bc ca h h ⊢ bc} "'remove_subs' made no progress",
+  success_if_fail_with_msg {remove_subs! at bc ca h h ⊢ bc} "'remove_subs!' made no progress",
   trivial
 end
 

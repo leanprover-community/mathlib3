@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 
 import probability.martingale.basic
+import measure_theory.integral.layercake
 
 /-! # Optional stopping theorem (fair game theorem)
 
@@ -20,7 +21,7 @@ This file also contains Doob's maximal inequality: given a non-negative submarti
 * `measure_theory.submartingale_iff_expected_stopped_value_mono`: the optional stopping theorem.
 * `measure_theory.submartingale.stopped_process`: the stopped process of a submartingale with
   respect to a stopping time is a submartingale.
-* `measure_theory.maximal_ineq`: Doob's maximal inequality.
+* `measure_theory.submartingale.maximal_ineq`: Doob's maximal inequality.
 
  -/
 
@@ -146,7 +147,7 @@ we have `ε • μ {ε ≤ f* n} ≤ ∫ ω in {ε ≤ f* n}, f n` where `f* n �
 
 In some literature, the Doob's maximal inequality refers to what we call Doob's Lp inequality
 (which is a corollary of this lemma and will be proved in an upcomming PR). -/
-lemma maximal_ineq [is_finite_measure μ]
+lemma submartingale.maximal_ineq [is_finite_measure μ]
   (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)} ≤
   ennreal.of_real (∫ ω in {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)},
@@ -223,6 +224,15 @@ begin
         (hitting_is_stopping_time hsub.adapted measurable_set_Ici)
         (is_stopping_time_const _ _) (λ ω, hitting_le ω) (λ ω, le_rfl : ∀ ω, n ≤ n),
     end
+end
+
+lemma submartingale.lp_ineq [is_finite_measure μ]
+  {p q : ℝ≥0∞} (hp : 1 < p) (hpq : p⁻¹ + q⁻¹ = 1)
+  (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
+  snorm (λ ω, (range (n + 1)).sup' nonempty_range_succ (λ k, f k ω)) p μ ≤
+  q * snorm (f n) p μ :=
+begin
+  sorry
 end
 
 end maximal

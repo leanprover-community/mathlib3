@@ -56,6 +56,26 @@ begin
   apply hM.2 x hx,
 end
 
+namespace pos_def
+
+variables {M : matrix n n ℝ} (hM : M.pos_def)
+include hM
+
+lemma det_pos [decidable_eq n] : 0 < det M :=
+begin
+  rw hM.is_hermitian.det_eq_prod_eigenvalues,
+  apply finset.prod_pos,
+  intros i _,
+  rw hM.is_hermitian.eigenvalues_eq,
+  apply hM.2 _ (λ h, _),
+  have h_det : (hM.is_hermitian.eigenvector_matrix)ᵀ.det = 0,
+    from matrix.det_eq_zero_of_row_eq_zero i (λ j, congr_fun h j),
+  simpa only [h_det, not_is_unit_zero] using
+    is_unit_det_of_invertible hM.is_hermitian.eigenvector_matrixᵀ,
+end
+
+end pos_def
+
 end matrix
 
 namespace quadratic_form

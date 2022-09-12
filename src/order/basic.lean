@@ -555,8 +555,8 @@ end min_max_rec
 /-- Typeclass for the `⊓` (`\glb`) notation -/
 @[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
 
-infix ⊔ := has_sup.sup
-infix ⊓ := has_inf.inf
+infix ` ⊔ ` := has_sup.sup
+infix ` ⊓ ` := has_inf.inf
 
 /-! ### Lifts of order instances -/
 

@@ -617,7 +617,7 @@ protected lemma map_eq_zero_iff (hf : function.injective f) : p.map f = 0 ↔ p 
 ⟨λ h, map_injective _ hf (polynomial.map_zero f ▸ h), λ h, by rw [h, polynomial.map_zero]⟩
 
 protected lemma map_ne_zero_iff (hf : function.injective f) : p.map f ≠ 0 ↔ p ≠ 0 :=
-(polynomial.map_eq_zero_iff f hf).not
+(polynomial.map_eq_zero_iff hf).not
 
 lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
 ⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp only [mul_one, hp.leading_coeff, f.map_one]

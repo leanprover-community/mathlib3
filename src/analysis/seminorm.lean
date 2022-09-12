@@ -320,6 +320,12 @@ begin
   { exact nnreal.coe_pos.mpr ha },
 end
 
+lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ∥p x - p y∥ ≤ p (x - y) :=
+begin
+  rw real.norm_eq_abs,
+  exact abs_sub_map_le_sub p x y
+end
+
 end module
 end semi_normed_ring
 
@@ -681,11 +687,11 @@ protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [unif
   {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
   uniform_continuous p :=
 begin
-  have hp : filter.tendsto p (𝓝 0) (𝓝 0) := p.map_zero ▸ hp,
+  have hp : filter.tendsto p (𝓝 0) (𝓝 0) := map_zero p ▸ hp,
   rw [uniform_continuous, uniformity_eq_comap_nhds_zero_swapped,
       metric.uniformity_eq_comap_nhds_zero, filter.tendsto_comap_iff],
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
-    (hp.comp filter.tendsto_comap) (λ xy, dist_nonneg) (λ xy, p.norm_sub_le _ _)
+    (hp.comp filter.tendsto_comap) (λ xy, dist_nonneg) (λ xy, p.norm_sub_map_le_sub _ _)
 end
 
 protected lemma continuous_of_continuous_at_zero [topological_space E] [topological_add_group E]

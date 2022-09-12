@@ -1,4 +1,6 @@
 import tactic.remove_subs
+import data.real.nnreal
+open_locale nnreal
 
 example {i l : ℕ} (i1 : 1 ≤ i) (il : i + 1 ≤ l) :
   i - 1 + (l - i - 1 + 1) + 1 = l :=
@@ -47,6 +49,13 @@ begin
   remove_subs! at bc ca
 end
 
+example {a b c : ℕ} (bc : b - c = a) (ca : c - a = b) (h : a + b = b + a) : a = 0 :=
+begin
+  success_if_fail_with_msg {remove_subs at bc ca h h ⊢ bc} "Try this: remove_subs at bc ca",
+  success_if_fail_with_msg {remove_subs! at bc ca h h ⊢ bc} "Try this: remove_subs! at bc ca",
+  remove_subs! at bc ca
+end
+
 example : true :=
 begin
   success_if_fail_with_msg {remove_subs at bc ca h h ⊢ bc} "`remove_subs` made no progress",
@@ -64,7 +73,17 @@ end
 example {a b : ℕ} (h : a - b = b): a - b = b :=
 begin
   success_if_fail_with_msg {remove_subs! at h ⊢ ⊢ h ⊢} "Try this: remove_subs! at h ⊢ ⊢",
-  remove_subs! at h ⊢ ⊢
+  remove_subs! at h ⊢ ⊢,
+end
+
+example {a b : ℝ≥0} (h : a - b = b): a - b = b :=
+begin
+  success_if_fail_with_msg {remove_subs at h ⊢ ⊢ h ⊢} "Try this: remove_subs at h ⊢",
+  remove_subs at h ⊢,
+  assumption,
+  subst h,
+  simpa only [zero_add, le_zero_iff] using h_1,
+  simpa only [add_tsub_cancel_left],
 end
 
 example {a b : ℕ} (h : a - b = b): a - b = b :=

@@ -992,6 +992,7 @@ def normalized_factors_equiv_of_quot_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
   left_inv := λ ⟨j, hj⟩, by simp,
   right_inv := λ ⟨j, hj⟩, by simp }
 
+@[simp]
 lemma normalized_factors_equiv_of_quot_equiv_symm (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
   (normalized_factors_equiv_of_quot_equiv f hI hJ).symm =
     normalized_factors_equiv_of_quot_equiv f.symm hJ hI :=

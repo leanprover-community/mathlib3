@@ -54,7 +54,7 @@ meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
 | `(nat.pred %%a)    := do to_expr ``(nat.pred_eq_sub_one %%a) >>= rw_at lo,
                            ga ← get_sub a,
                            return ((a, `(1)) :: ga)
-| (expr.app f a)     := ((++) <$> (get_sub f <|> pure []) <*> (get_sub a <|> pure []))
+| (expr.app f a)     := (++) <$> (get_sub f <|> pure []) <*> get_sub a <|> pure []
 | _                  := pure []
 
 /--  `remove_one_sub lo a b` assumes that the expression `a - b` occurs in hypothesis `lo`.
@@ -96,12 +96,12 @@ repeat_at_least 1 (do
        | none    := target
        | some na := get_local na >>= infer_type
   end,
-  subs ← (get_sub lo ht),  -- extract all subtractions
+  subs ← get_sub lo ht,  -- extract all subtractions
   -- move all subtractions `a - b` with `a` a local constant last, so that `remove_one_sub`
   -- uses `subst` instead of `rw` (when it can)
   let subs := let (csts, not_csts) := subs.partition (λ e : expr × expr, e.1.is_local_constant)
     in not_csts ++ csts,
-  some (a, b) ← pure $ list.last' subs,
+  some (a, b) ← pure subs.last',
   remove_one_sub lo a b),
 when la $ any_goals' $ try `[ linarith ]
 
@@ -112,11 +112,12 @@ section error_reporting
 In edge-cases, it reports some variation. -/
 --  `report` uses a generic `α` instead of `name`, since otherwise Lean wanted it to be `meta`.
 def report {α} [decidable_eq α] [has_to_string α] (l : list (option α)) (la : bool) : string :=
-let rm := "remove_subs" ++ if la then "!" else "" in
-if (l = []) then ("`" ++ rm ++ "` made no progress") else
-  "Try this: " ++ rm ++ if (l = [none]) then "" else " at " ++
-    (" ".intercalate $ l.map $ λ a,
-      dite a.is_some (λ h, has_to_string.to_string (option.get h)) (λ _, "⊢"))
+let rm := "remove_subs" ++ if la then "!" else "" in match l with
+| []     := "`" ++ rm ++ "` made no progress"
+| [none] := "Try this: " ++ rm
+| l      := "Try this: " ++ rm ++ " at " ++ (" ".intercalate $ l.map $ λ a,
+              dite a.is_some (λ h, has_to_string.to_string (option.get h)) (λ _, "⊢"))
+end
 
 end error_reporting
 

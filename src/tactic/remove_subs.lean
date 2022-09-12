@@ -6,11 +6,12 @@ Authors: Damiano Testa
 import tactic.linarith
 
 /-!
-# `remove_subs` -- a tactic for splitting `ℕ`-subtractions
+# `remove_subs` -- a tactic for splitting truncated subtractions
 
-The tactic `remove_subs` looks for `ℕ`-subtractions in the goal and recursively replaces any
-subexpression of the form `a - b` by two branches: one where `a ≤ b` and `a - b` is replaced
-by `0` and one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b + c`.
+The tactic `remove_subs` looks for truncated subtractions in the goal or `at` one or more
+hypotheses and recursively replaces any subexpression of the form `a - b` by two branches:
+* one where `a ≤ b` and `a - b` is replaced by `0` and
+* one where `∃ c : ℕ, a = b + c` and it tries to replace `a` by `b + c`.
 
 If called with the optional `!`-flag, then `remove_subs!` tries `linarith` on all remaining goals.
 
@@ -39,11 +40,10 @@ meta def rw_at : option name → expr → tactic unit
 | (some na) lem := get_local na >>= rewrite_hyp lem >> skip
 
 /--  `get_sub lo e` extracts a list of pairs `(a, b)` from the expression `e`, where `a - b` is a
-subexpression of `e`.  It also takes argument `lo`, informing it that
-* the initial input `e` is hypothesis `lo` and rewrites it to reduce the number of `ℕ`-subtractions,
-  using the identity `a - b - c = a - (b + c)`;
-* the subtractions that get extracted are subtractions in `ℕ`.
--/
+subexpression of `e`.  It also takes argument `lo : option name`, informing it that the initial
+input `e` is hypothesis `na`, if `lo = some na`, or the goal, if `lo = none`.  The tactic
+rewrites this location to reduce the number of truncated subtractions, using the identity
+`a - b - c = a - (b + c)`. -/
 meta def get_sub (lo : option name) : expr → tactic (list (expr × expr))
 | `(%%a - %%b - %%c) := do bc ← mk_app `has_add.add [b, c],
                            to_expr ``(tsub_tsub %%a %%b %%c) >>= rw_at lo,
@@ -76,11 +76,10 @@ to_expr ``(le_cases %%a %%b) >>= λ x, cases x [eq0, exis],
 swap,
 -- on the branch where `∃ c, a = b + c`...
   get_local exis >>= λ x, cases x [var, ide],
-  -- either substitute `a = b + c` or rewrite `a` and then simplify the subtraction `b + c - b`
+  -- either substitute `a = b + c` or rewrite `a`, after which simplify the subtraction `b + c - b`
   get_local ide >>= (λ x, subst x <|> rw_at lo x),
   vare ← get_local var,
-  to_expr ``(add_tsub_cancel_left %%b %%vare) >>= rw_at lo <|>
-    fail"could not rewrite: something went wrong",
+  to_expr ``(add_tsub_cancel_left %%b %%vare) >>= rw_at lo,
 swap
 
 /--  Similar to `repeat` except that it guarantees a number of repetitions, or fails. -/
@@ -130,15 +129,18 @@ setup_tactic_parser
 /--
 Subtraction between natural numbers in Lean is defined to be `0` when it should yield a negative
 number.  The tactic `remove_subs` tries to remedy this by doing a case-split on each
-`ℕ`-subtraction, depending on whether the subtraction is truncated to `0` or coincides with the
-usual notion of subtraction.
+truncated subtraction, depending on whether the subtraction is truncated to `0` or coincides with
+the usual notion of subtraction.
 
 `remove_subs` fails if there are unused locations, unless it is `remove_subs at *` which only
 fails if it uses at most one location (and suggests the unique location via `Try this`, when
 appropriate).
 
 If `remove_subs` is called with the optional `!`-flag, then, after the case splits, the tactic
-also tries `linarith` on all remaining goals. -/
+also tries `linarith` on all remaining goals.
+
+The tactic works not only on `ℕ`, but on any `canonically_linear_ordered_add_monoid` `R` with
+`has_sub R` and `has_ordered_sub R`. -/
 meta def remove_subs (la : parse (tk "!" )?) : parse location → tactic unit
 | loc.wildcard := do
   nms ← loc.get_local_pp_names loc.wildcard,

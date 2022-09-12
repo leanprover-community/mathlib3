@@ -315,10 +315,8 @@ multiset.mem_attach _ _
 coe_injective $ multiset.attach_cons _ _
 
 @[simps] protected def cast {n m : ℕ} (h : n = m) : sym α n ≃ sym α m :=
-{ to_fun := λ s, ⟨s.val, s.2.trans h⟩,
-  inv_fun := λ s, ⟨s.val, s.2.trans h.symm⟩,
-  left_inv := λ s, subtype.ext rfl,
-  right_inv := λ s, subtype.ext rfl }
+{ to_fun := λ s, ⟨s.val, s.2.trans h⟩, inv_fun := λ s, ⟨s.val, s.2.trans h.symm⟩,
+  left_inv := λ s, subtype.ext rfl, right_inv := λ s, subtype.ext rfl }
 
 @[simp] lemma cast_rfl : sym.cast rfl s = s := subtype.ext rfl
 
@@ -356,8 +354,7 @@ def filter_ne [decidable_eq α] (a : α) {n : ℕ} (m : sym α n) : Σ i : fin (
     rw multiset.countp_eq_card_filter, refl,
   end⟩
 
-lemma sigma_ext (m₁ m₂ : Σ i : fin (n + 1), sym α (n - i))
-  (h : m₁.2.1 = m₂.2.1) : m₁ = m₂ :=
+lemma sigma_ext (m₁ m₂ : Σ i : fin (n + 1), sym α (n - i)) (h : m₁.2.1 = m₂.2.1) : m₁ = m₂ :=
 sigma.subtype_ext (fin.ext $ begin
   have h₁ := nat.sub_sub_self (nat.lt_succ_iff.1 m₁.1.2),
   have h₂ := nat.sub_sub_self (nat.lt_succ_iff.1 m₂.1.2),

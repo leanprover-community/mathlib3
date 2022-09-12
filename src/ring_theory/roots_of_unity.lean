@@ -116,14 +116,15 @@ begin
   rw [subgroup.coe_pow, units.coe_pow],
 end
 
-lemma roots_of_unity.norm_one [normed_division_ring R] (φ : M →* R) {ζ : Mˣ} (h : ζ ^ (k : ℕ) = 1) :
+lemma roots_of_unity.norm_one [normed_division_ring R] (φ : M →* R) {ζ : Mˣ}
+  (h : ζ ∈ roots_of_unity k M) :
   ∥φ ζ∥ = 1 :=
 begin
   rw ( _ :  ∥φ ζ∥ = 1 ↔ ∥φ ζ∥₊ = 1),
   { apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
     rw [← nnnorm_pow, one_pow, ← monoid_hom.map_pow, (mem_roots_of_unity' _ _).mp h,
       monoid_hom.map_one, nnnorm_one], },
-  { refine subtype.mk_eq_mk.symm, },
+  { exact subtype.mk_eq_mk.symm, },
 end
 
 section comm_semiring

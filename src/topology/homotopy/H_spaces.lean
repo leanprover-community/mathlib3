@@ -189,20 +189,8 @@ def delayed_refl_left (θ : I) (γ : path x y) : path x y := (delayed_refl_right
 
 
 -- `[FAE]` This should probably be moved to `path_conneceted.lean`
-lemma continuous_symm {x y : X} : continuous (symm : (path x y) → (path y x)) :=
-begin
- let f := @path.symm _ _ x y,
---  let g := λ γ : path x y, γ ∘ σ,
---  have : continuous f,
---  have hg : continuous g := by continuity,
- let g := λ p : path x y × I, (p.1 ∘ σ) p.2,
- have hg : continuous g,
- { exact continuous_fst.path_eval (continuous_symm.comp continuous_snd), },
- let g' : C(path x y × I, X) := ⟨g, hg⟩,
- let g'' := g'.curry,
- convert g''.2 using 1,
- sorry,
-end
+lemma continuous_symm : continuous (symm : path x y → path y x) :=
+continuous_uncurry_iff.mp $ symm_continuous_family _ (continuous_fst.path_eval continuous_snd)
 
 lemma continuous_delayed_refl_left {x : X} :
   continuous (λ p : I × path x y, delayed_refl_left p.1 p.2) :=

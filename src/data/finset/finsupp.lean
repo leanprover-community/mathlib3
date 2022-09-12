@@ -37,15 +37,15 @@ namespace finset
 
 /-- Finitely supported product of finsets. -/
 protected def finsupp (s : finset ι) (t : ι → finset α) : finset (ι →₀ α) :=
-(s.pi t).map ⟨indicator s, indicator_injective s⟩
+(s.pi t).map ⟨pindicator s, pindicator_injective s⟩
 
 lemma mem_finsupp_iff {t : ι → finset α} : f ∈ s.finsupp t ↔ f.support ⊆ s ∧ ∀ i ∈ s, f i ∈ t i :=
 begin
   refine mem_map.trans ⟨_, _⟩,
   { rintro ⟨f, hf, rfl⟩,
-    refine ⟨support_indicator_subset _ _, λ i hi, _⟩,
+    refine ⟨support_pindicator_subset _ _, λ i hi, _⟩,
     convert mem_pi.1 hf i hi,
-    exact indicator_of_mem hi _ },
+    exact pindicator_of_mem hi _ },
   { refine λ h, ⟨λ i _, f i, mem_pi.2 h.2, _⟩,
     ext i,
     exact ite_eq_left_iff.2 (λ hi, (not_mem_support_iff.1 $ λ H, hi $ h.1 H).symm) }

@@ -473,21 +473,21 @@ begin
   exact h2,
 end
 
-lemma const_on_eq_sum_single [add_comm_monoid M] (s : finset α) (x : M) :
-  const_on s x = ∑ i in s, single i x :=
+lemma indicator_eq_sum_single [add_comm_monoid M] (s : finset α) (f : α → M) :
+  indicator s f = ∑ x in s, single x (f x) :=
 begin
-  rw [← sum_single (const_on s x), sum, sum_subset (support_const_on_subset _ _)],
-  { refine finset.sum_congr rfl (λ i hi, _), rw [const_on_apply_of_mem _ hi], },
+  rw [← sum_single (indicator s f), sum, sum_subset (support_indicator_subset _ _)],
+  { refine finset.sum_congr rfl (λ x hx, _), rw [indicator_apply_of_mem _ hx], },
   intros i _ hi, rw [not_mem_support_iff.mp hi, single_zero],
 end
 
 @[simp, to_additive]
-lemma prod_const_on_index [has_zero M] [comm_monoid N]
-  {s : finset α} {b : M} {h : α → M → N} (h_zero : ∀ a ∈ s, h a 0 = 1) :
-  (const_on s b).prod h = ∏ a in s, h a b :=
+lemma prod_indicator_index [has_zero M] [comm_monoid N]
+  {s : finset α} (f : α → M) {h : α → M → N} (h_zero : ∀ a ∈ s, h a 0 = 1) :
+  (indicator s f).prod h = ∏ x in s, h x (f x) :=
 begin
-  rw [prod_of_support_subset _ (support_const_on_subset _ _) h h_zero],
-  refine finset.prod_congr rfl (λ x hx, _), rw [const_on_apply_of_mem _ hx],
+  rw [prod_of_support_subset _ (support_indicator_subset _ _) h h_zero],
+  refine finset.prod_congr rfl (λ x hx, _), rw [indicator_apply_of_mem _ hx],
 end
 
 end finsupp

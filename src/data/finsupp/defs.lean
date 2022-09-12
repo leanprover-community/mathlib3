@@ -214,7 +214,7 @@ end⟩
 lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
 by convert rfl
 
-lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
+lemma single_eq_set_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
 by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
 
 @[simp] lemma single_eq_same : (single a b : α →₀ M) a = b :=
@@ -224,7 +224,7 @@ if_pos rfl
 if_neg h
 
 lemma single_eq_update [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
-by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
+by rw [single_eq_set_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
 
 lemma single_eq_pi_single [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = pi.single a b :=
 single_eq_update a b
@@ -263,7 +263,7 @@ have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq
 by rwa [single_eq_same, single_eq_same] at this
 
 lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ (x = a → b = 0) :=
-by simp [single_eq_indicator]
+by simp [single_eq_set_indicator]
 
 lemma single_apply_ne_zero {a x : α} {b : M} : single a b x ≠ 0 ↔ (x = a ∧ b ≠ 0) :=
 by simp [single_apply_eq_zero]
@@ -316,7 +316,7 @@ lemma support_single_disjoint [decidable_eq α] {b' : M} (hb : b ≠ 0) (hb' : b
 by rw [support_single_ne_zero _ hb, support_single_ne_zero _ hb', disjoint_singleton]
 
 @[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
-by simp [ext_iff, single_eq_indicator]
+by simp [ext_iff, single_eq_set_indicator]
 
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
 by simp only [single_apply]; ac_refl
@@ -985,35 +985,42 @@ lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) 
   f.update a b = f - single a (f a) + single a b :=
 by rw [update_eq_erase_add_single, erase_eq_sub_single]
 
-/-! ### Declarations about `const_on` -/
+/-! ### Declarations about `indicator` -/
 
-section const_on
+section indicator
 variables [has_zero M]
 
-/-- `const_on s b` is the finitely supported function with value `b` on `s` and zero otherwise. -/
-def const_on (s : finset α) (b : M) : α →₀ M :=
-{ support := if b = 0 then ∅ else s,
-  to_fun := λ i, if i ∈ s then b else 0,
-  mem_support_to_fun := λ a, by split_ifs; simp [h, h_1], }
+/-- `finsupp.indicator s b` is the finitely supported function corresponding to `set.indicator`. -/
+def indicator (s : finset α) (f : α → M) : α →₀ M :=
+{ support := s.filter (λ a, f a ≠ 0),
+  to_fun := λ x, if x ∈ s then f x else 0,
+  mem_support_to_fun := λ a, by simp }
 
-lemma const_on_apply (s : finset α) (b : M) (i : α) :
-  const_on s b i = if i ∈ s then b else 0 := rfl
+lemma indicator_apply (s : finset α) (f : α → M) (x : α) :
+  indicator s f x = if x ∈ s then f x else 0 := rfl
 
-lemma const_on_apply_of_mem {s : finset α} (b : M) {i : α} (hi : i ∈ s) :
-  const_on s b i = b :=
-by rw [const_on_apply, if_pos hi]
+lemma indicator_apply_of_mem {s : finset α} (f : α → M) {x : α} (hx : x ∈ s) :
+  indicator s f x = f x :=
+by rw [indicator_apply, if_pos hx]
 
-lemma const_on_apply_of_not_mem {s : finset α} (b : M) {i : α} (hi : i ∉ s) :
-  const_on s b i = 0 :=
-by rw [const_on_apply, if_neg hi]
+lemma indicator_apply_of_not_mem {s : finset α} (f : α → M) {x : α} (hx : x ∉ s) :
+  indicator s f x = 0 :=
+by rw [indicator_apply, if_neg hx]
 
-lemma support_const_on (s : finset α) (b : M) :
-  (const_on s b).support = if b = 0 then ∅ else s := rfl
+lemma support_indicator (s : finset α) (f : α → M) :
+  (indicator s f).support = s.filter (λ a, f a ≠ 0) := rfl
 
-lemma support_const_on_subset (s : finset α) (b : M) :
-  (const_on s b).support ⊆ s :=
-by { rw [support_const_on], split_ifs, exacts [empty_subset _, subset_rfl], }
+lemma support_indicator_subset (s : finset α) (f : α → M) :
+  (indicator s f).support ⊆ s :=
+by simp [support_indicator]
 
-end const_on
+lemma single_eq_indicator (a : α) (b : M) : single a b = indicator {a} (λ _, b) :=
+by { ext, simp [single_apply, indicator_apply, @eq_comm _ a] }
+
+lemma indicator_eq_set_indicator (s : finset α) (f : α → M) :
+  ⇑(indicator s f) = set.indicator ↑s f :=
+by { ext, simp [indicator_apply, set.indicator_apply], }
+
+end indicator
 
 end finsupp

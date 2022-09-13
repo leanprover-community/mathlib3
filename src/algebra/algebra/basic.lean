@@ -908,7 +908,7 @@ rfl
 
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
 
-lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
+@[simp] lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 
 lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
 λ e₁ e₂ h, ext $ ring_equiv.congr_fun h
@@ -1001,9 +1001,9 @@ symm_bijective.injective $ ext $ λ x, rfl
 theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
 
 @[simp]
-lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) :
-  (f : A₁ ≃+* A₁).symm = f.symm :=
-rfl
+lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) : (f : A₁ ≃+* A₁).symm = f.symm := rfl
+
+--@[simp] lemma coe_ring_equiv_symm : (e.symm : A₂ ≃+* A₁) = (e : A₁ ≃+* A₂).symm := rfl
 
 /-- Algebra equivalences are transitive. -/
 @[trans]
@@ -1174,9 +1174,9 @@ end of_linear_equiv
 
 section of_ring_equiv
 
-/-- Promotes a linear ring_equiv to an alg_equiv -/
+/-- Promotes a linear ring_equiv to an alg_equiv. -/
 @[simps]
-def of_ring_equiv (f : A₁ ≃+* A₂)
+def of_ring_equiv {f : A₁ ≃+* A₂}
   (hf : ∀ x, f (algebra_map R A₁ x) = algebra_map R A₂ x) : A₁ ≃ₐ[R] A₂ :=
 { to_fun := f,
   inv_fun := f.symm,

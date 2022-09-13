@@ -2109,7 +2109,7 @@ end ring_hom
 
 namespace double_quot
 open ideal
-variables {R : Type u}
+variable {R : Type u}
 
 section
 
@@ -2134,9 +2134,6 @@ by exact ideal.quotient.lift (J.map (ideal.quotient.mk I)) (quot_left_to_quot_su
 /-- The composite of the maps `R → (R/I)` and `(R/I) → (R/I)/J'` -/
 def quot_quot_mk : R →+* ((R ⧸ I) ⧸ J.map I^.quotient.mk) :=
 by exact ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
-
-@[simp] lemma quot_quot_mk_apply (x : R) :
-  quot_quot_mk I J x = (ideal.quotient.mk (J.map I^.quotient.mk)) (ideal.quotient.mk I x) := rfl
 
 /-- The kernel of `quot_quot_mk` -/
 lemma ker_quot_quot_mk : (quot_quot_mk I J).ker = I ⊔ J :=
@@ -2186,5 +2183,25 @@ lemma quot_quot_equiv_comm_symm :
 rfl
 
 end
+
+section algebra
+
+@[simp]
+lemma quot_quot_equiv_comm_mk_mk [comm_ring R] (I J : ideal R) (x : R) :
+  quot_quot_equiv_comm I J (ideal.quotient.mk _ (ideal.quotient.mk _ x)) =
+    algebra_map R _ x := rfl
+
+variables [comm_semiring R] {A : Type v} [comm_ring A] [algebra R A] (I J : ideal A)
+
+@[simp]
+lemma quot_quot_equiv_quot_sup_quot_quot_algebra_map (x : R) :
+  double_quot.quot_quot_equiv_quot_sup I J (algebra_map R _ x) = algebra_map _ _ x :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_comm_algebra_map (x : R) :
+  quot_quot_equiv_comm I J (algebra_map R _ x) = algebra_map _ _ x := rfl
+
+end algebra
 
 end double_quot

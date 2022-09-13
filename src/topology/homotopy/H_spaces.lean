@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Filippo A. E. Nuccio Mortarino Majno di Capriglio. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Filippo A. E. Nuccio
+Authors: Filippo A. E. Nuccio and Junyan Xu
 -/
 
 import topology.compact_open
@@ -12,47 +12,6 @@ universes u v
 noncomputable theory
 
 open_locale unit_interval
-
-namespace unit_interval
-
-/- This one is not used. Also the names of these two lemmas are obscure.
-@[simp] lemma univ_eq_ge_zero {θ : ℝ} (h : θ ≤ 0): {s : I | θ ≤ (s : ℝ)} = set.univ :=
-set.eq_univ_iff_forall.2 $ λ _, h.trans (nonneg _)
-
-@[simp] lemma univ_eq_le_one {θ : ℝ} (h : 1 ≤ θ) : {s : I | (s : ℝ) ≤ θ} = set.univ :=
-set.eq_univ_iff_forall.2 $ λ _, (le_one _).trans h
-
-lemma mem_closure_iff {θ : ℝ} {t : I} : t ∈ closure {s : I | (s : ℝ) ≤ θ} ↔ (t : ℝ) ≤ θ :=
-by {rw [(is_closed_le continuous_induced_dom continuous_const).closure_eq, set.mem_set_of_eq],
-  apply_instance}
-
-lemma not_mem_interior {θ : ℝ} {t : I} : t ∉ interior {s : I | (s : ℝ) ≤ θ} → θ ≤ t :=
-begin
-  -- For `θ = 1` the set `{s : I | (s : ℝ) ≤ θ}` is the whole `I`, whose interior (in the induced
-  -- topology) is `I` again, and `t ∉ interior I = I` is always false, whereas `1 ≤ t` is true for
-  -- `t = 1`. So we split the proof in the cases `1 ≤ θ` and `θ < 1`.
-  by_cases h_θ_1 : 1 ≤ θ,
-  { rw [univ_eq_le_one h_θ_1, interior_univ],
-    tauto/-to be replaced-/ },
-  intro h,
-  by_cases h_θ_0 : 0 ≤ θ,
-  { let θI : I := ⟨θ, set.mem_Icc.mpr ⟨h_θ_0, le_of_lt $ lt_of_not_ge h_θ_1⟩⟩,
-    have : {s : ↥I | (s : ℝ) ≤ θ} = set.Iic θI := rfl,
-    have H_ne : (set.Ioi θI).nonempty := ⟨1, _⟩,
-    simpa only [this, interior_Iic' H_ne, ← set.Iio_def, set.mem_set_of_eq, not_lt,
-      ← subtype.coe_le_coe] using h,
-    simpa only [set.mem_Ioi, ← subtype.coe_lt_coe, subtype.coe_mk, set.Icc.coe_one] using
-      lt_of_not_ge h_θ_1, },
-  { exact le_of_lt (lt_of_lt_of_le (lt_of_not_ge h_θ_0) t.2.1) },
-end
-
-lemma mem_frontier {θ : ℝ} {t : I} : t ∈ frontier (λ i : I, (i : ℝ) ≤ θ) → (t : ℝ) = θ :=
-λ ⟨hl, hr⟩, by simp only [(not_mem_interior hr).antisymm (mem_closure_iff.mp hl)]-/
-
-/- TODO: move to unit_interval .. generalize to any positive real instead of 1? -/
-lemma one_add_pos {t : I} : 0 < (1 + t : ℝ) := add_pos_of_pos_of_nonneg zero_lt_one $ nonneg _
-
-end unit_interval
 
 namespace path
 
@@ -100,10 +59,6 @@ class H_space (X : Type u) [topological_space X] :=
   (continuous_map.id X) {e})
 (right_Hmul_e : (Hmul.comp $ (continuous_map.id X).prod_mk $ const X e).homotopy_rel
   (continuous_map.id X) {e})
-
-@[reducible] def H_space.Hmul' {X : Type u} [topological_space X] [H_space X] (x y : X) :=
-H_space.Hmul (x, y)
-infix ` ∧ₕ `:65 := H_space.Hmul'
 
 namespace topological_group
 
@@ -179,6 +134,8 @@ end
 lemma delayed_refl_right_one (γ : path x y) : delayed_refl_right 1 γ = γ :=
 by { ext t, exact congr_arg γ (Q_right_one_right t) }
 
+/-- This is the function on p. 475 of Serre's *Homologie singulière des espaces
+  fibrés*, defining a homotopy from a path `γ` to the product path `e ∧ γ`.-/
 def delayed_refl_left (θ : I) (γ : path x y) : path x y := (delayed_refl_right θ γ.symm).symm
 
 lemma continuous_delayed_refl_left : continuous (λ p : I × path x y, delayed_refl_left p.1 p.2) :=

@@ -101,7 +101,7 @@ end
 
 variables {α β}
 
-instance : noetherian_space (cofinite_topology α) :=
+instance {α} : noetherian_space (cofinite_topology α) :=
 begin
   simp only [noetherian_space_iff_opens, is_compact_iff_ultrafilter_le_nhds,
     cofinite_topology.nhds_eq, ultrafilter.le_sup_iff],

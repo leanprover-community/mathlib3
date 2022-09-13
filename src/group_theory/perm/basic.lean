@@ -236,7 +236,6 @@ equiv.ext $ λ ⟨_, _⟩, rfl
 def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm α :=
 { to_fun := λ f, extend_domain f (equiv.refl (subtype p)),
   map_one' := equiv.perm.extend_domain_one _,
-  /- begin ext, dsimp, split_ifs; refl, end -/
   map_mul' := λ f g, (equiv.perm.extend_domain_mul _ f g).symm, }
 
 lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p]

@@ -33,9 +33,9 @@ We prove the main properties of the Jacobi symbol, including the following.
   (`jacobi_sym.eq_zero_iff`)
 
 * If the symbol has the value `-1`, then `a : zmod b` is not a square
-  (`nonsquare_of_jacobi_sym_eq_neg_one`); the converse holds when `b = p` is a prime
-  (`nonsquare_iff_jacobi_sym_eq_neg_one`); in particular, in this case `a` is a
-  square mod `p` when the symbol has the value `1` (`is_square_of_jacobi_sym_eq_one`).
+  (`zmod.nonsquare_of_jacobi_sym_eq_neg_one`); the converse holds when `b = p` is a prime
+  (`zmod.nonsquare_iff_jacobi_sym_eq_neg_one`); in particular, in this case `a` is a
+  square mod `p` when the symbol has the value `1` (`zmod.is_square_of_jacobi_sym_eq_one`).
 
 * Quadratic reciprocity (`jacobi_sym.quadratic_reciprocity`,
   `jacobi_sym.quadratic_reciprocity_one_mod_four`,
@@ -95,7 +95,7 @@ by simp only [jacobi_sym, factors_one, list.prod_nil, list.pmap]
 
 /-- The Legendre symbol `legendre_sym p a` with an integer `a` and a prime number `p`
 is the same as the Jacobi symbol `J(a | p)`. -/
-lemma legendre_sym.to_jacobi_sym {p : ℕ} [fp : fact p.prime] {a : ℤ} :
+lemma _root_.legendre_sym.to_jacobi_sym {p : ℕ} [fp : fact p.prime] {a : ℤ} :
   legendre_sym p a = J(a | p) :=
 by simp only [jacobi_sym, factors_prime fp.1, list.prod_cons, list.prod_nil, mul_one, list.pmap]
 
@@ -133,8 +133,7 @@ lemma mul_left (a₁ a₂ : ℤ) (b : ℕ) : J(a₁ * a₂ | b) = J(a₁ | b) * 
 by { simp_rw [jacobi_sym, list.pmap_eq_map_attach, legendre_sym.mul], exact list.prod_map_mul }
 
 /-- The symbol `J(a | b)` vanishes iff `a` and `b` are not coprime (assuming `b ≠ 0`). -/
-lemma eq_zero_iff_not_coprime {a : ℤ} {b : ℕ} [ne_zero b] :
-  J(a | b) = 0 ↔ a.gcd b ≠ 1 :=
+lemma eq_zero_iff_not_coprime {a : ℤ} {b : ℕ} [ne_zero b] : J(a | b) = 0 ↔ a.gcd b ≠ 1 :=
 list.prod_eq_zero_iff.trans begin
   rw [list.mem_pmap, int.gcd_eq_nat_abs, ne, prime.not_coprime_iff_dvd],
   simp_rw [legendre_sym.eq_zero_iff, int_coe_zmod_eq_zero_iff_dvd, mem_factors (ne_zero.ne b),
@@ -165,8 +164,7 @@ lemma zero_left {b : ℕ} (hb : 1 < b) : J(0 | b) = 0 :=
   by { rw [int.gcd_zero_left, int.nat_abs_of_nat], exact hb.ne' }
 
 /-- The symbol `J(a | b)` takes the value `1` or `-1` if `a` and `b` are coprime. -/
-lemma eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) :
-  J(a | b) = 1 ∨ J(a | b) = -1 :=
+lemma eq_one_or_neg_one {a : ℤ} {b : ℕ} (h : a.gcd b = 1) : J(a | b) = 1 ∨ J(a | b) = -1 :=
 (trichotomy a b).resolve_left $ jacobi_sym.ne_zero h
 
 /-- We have that `J(a^e | b) = J(a | b)^e`. -/
@@ -268,6 +266,7 @@ value_at 2 χ₈ (λ p pp, @legendre_sym.at_two p ⟨pp⟩) hb
 lemma at_neg_two {b : ℕ} (hb : odd b) : J(-2 | b) = χ₈' b :=
 value_at (-2) χ₈' (λ p pp, @legendre_sym.at_neg_two p ⟨pp⟩) hb
 
+end jacobi_sym
 
 /-!
 ### Quadratic Reciprocity
@@ -276,39 +275,45 @@ value_at (-2) χ₈' (λ p pp, @legendre_sym.at_neg_two p ⟨pp⟩) hb
 /-- The bi-multiplicative map giving the sign in the Law of Quadratic Reciprocity -/
 def qr_sign (m n : ℕ) : ℤ := J(χ₄ m | n)
 
+namespace qr_sign
+
 /-- We can express `qr_sign m n` as a power of `-1` when `m` and `n` are odd. -/
-lemma qr_sign.neg_one_pow {m n : ℕ} (hm : odd m) (hn : odd n) :
+lemma neg_one_pow {m n : ℕ} (hm : odd m) (hn : odd n) :
   qr_sign m n = (-1) ^ ((m / 2) * (n / 2)) :=
 begin
   rw [qr_sign, pow_mul, ← χ₄_eq_neg_one_pow (odd_iff.mp hm)],
   cases odd_mod_four_iff.mp (odd_iff.mp hm) with h h,
-  { rw [χ₄_nat_one_mod_four h, one_left, one_pow], },
-  { rw [χ₄_nat_three_mod_four h, ← χ₄_eq_neg_one_pow (odd_iff.mp hn), at_neg_one hn], }
+  { rw [χ₄_nat_one_mod_four h, jacobi_sym.one_left, one_pow], },
+  { rw [χ₄_nat_three_mod_four h, ← χ₄_eq_neg_one_pow (odd_iff.mp hn), jacobi_sym.at_neg_one hn], }
 end
 
 /-- When `m` and `n` are odd, then the square of `qr_sign m n` is `1`. -/
-lemma qr_sign.sq_eq_one {m n : ℕ} (hm : odd m) (hn : odd n) : (qr_sign m n) ^ 2 = 1 :=
-by rw [qr_sign.neg_one_pow hm hn, ← pow_mul, mul_comm, pow_mul, neg_one_sq, one_pow]
+lemma sq_eq_one {m n : ℕ} (hm : odd m) (hn : odd n) : (qr_sign m n) ^ 2 = 1 :=
+by rw [neg_one_pow hm hn, ← pow_mul, mul_comm, pow_mul, neg_one_sq, one_pow]
 
 /-- `qr_sign` is multiplicative in the first argument. -/
-lemma qr_sign.mul_left (m₁ m₂ n : ℕ) : qr_sign (m₁ * m₂) n = qr_sign m₁ n * qr_sign m₂ n :=
-by simp_rw [qr_sign, nat.cast_mul, map_mul, mul_left]
+lemma mul_left (m₁ m₂ n : ℕ) : qr_sign (m₁ * m₂) n = qr_sign m₁ n * qr_sign m₂ n :=
+by simp_rw [qr_sign, nat.cast_mul, map_mul, jacobi_sym.mul_left]
 
 /-- `qr_sign` is multiplicative in the second argument. -/
-lemma qr_sign.mul_right (m n₁ n₂ : ℕ) [ne_zero n₁] [ne_zero n₂] :
+lemma mul_right (m n₁ n₂ : ℕ) [ne_zero n₁] [ne_zero n₂] :
   qr_sign m (n₁ * n₂) = qr_sign m n₁ * qr_sign m n₂ :=
-mul_right (χ₄ m) n₁ n₂
+jacobi_sym.mul_right (χ₄ m) n₁ n₂
 
 /-- `qr_sign` is symmetric when both arguments are odd. -/
 protected
-lemma qr_sign.symm {m n : ℕ} (hm : odd m) (hn : odd n) : qr_sign m n = qr_sign n m :=
-by rw [qr_sign.neg_one_pow hm hn, qr_sign.neg_one_pow hn hm, mul_comm (m / 2)]
+lemma symm {m n : ℕ} (hm : odd m) (hn : odd n) : qr_sign m n = qr_sign n m :=
+by rw [neg_one_pow hm hn, neg_one_pow hn hm, mul_comm (m / 2)]
 
 /-- We can move `qr_sign m n` from one side of an equality to the other when `m` and `n` are odd. -/
-lemma qr_sign.eq_iff_eq {m n : ℕ} (hm : odd m) (hn : odd n) (x y : ℤ) :
+lemma eq_iff_eq {m n : ℕ} (hm : odd m) (hn : odd n) (x y : ℤ) :
   qr_sign m n * x = y ↔ x = qr_sign m n * y :=
 by refine ⟨λ h', let h := h'.symm in _, λ h, _⟩;
-   rw [h, ← mul_assoc, ← pow_two, qr_sign.sq_eq_one hm hn, one_mul]
+   rw [h, ← mul_assoc, ← pow_two, sq_eq_one hm hn, one_mul]
+
+end qr_sign
+
+namespace jacobi_sym
 
 /-- The Law of Quadratic Reciprocity for the Jacobi symbol, version with `qr_sign` -/
 lemma quadratic_reciprocity' {a b : ℕ} (ha : odd a) (hb : odd b) :
@@ -351,8 +356,7 @@ theorem quadratic_reciprocity_one_mod_four' {a b : ℕ} (ha : odd a) (hb : b % 4
 
 /-- The Law of Quadratic Reciprocityfor the Jacobi symbol: if `a` and `b` are natural numbers
 both congruent to `3` mod `4`, then `J(a | b) = -J(b | a)`. -/
-theorem quadratic_reciprocity_three_mod_four
-  {a b : ℕ} (ha : a % 4 = 3) (hb : b % 4 = 3) :
+theorem quadratic_reciprocity_three_mod_four {a b : ℕ} (ha : a % 4 = 3) (hb : b % 4 = 3) :
   J(a | b) = - J(b | a) :=
 let nop := @neg_one_pow_div_two_of_three_mod_four in begin
   rw [quadratic_reciprocity, pow_mul, nop ha, nop hb, neg_one_mul];
@@ -368,15 +372,13 @@ begin
   rcases exists_eq_pow_mul_and_not_dvd ha₀ 2 (by norm_num) with ⟨e, a', ha₁', ha₂⟩,
   have ha₁ := odd_iff.mpr (two_dvd_ne_zero.mp ha₁'),
   nth_rewrite 1 [ha₂], nth_rewrite 0 [ha₂],
-  rw [nat.cast_mul, mul_left, mul_left,
-      quadratic_reciprocity' ha₁ hb, quadratic_reciprocity' ha₁ hb',
-      nat.cast_pow, pow_left, pow_left,
-      (show ((2 : ℕ) : ℤ) = 2, by refl), at_two hb, at_two hb'],
+  rw [nat.cast_mul, mul_left, mul_left, quadratic_reciprocity' ha₁ hb,
+      quadratic_reciprocity' ha₁ hb', nat.cast_pow, pow_left, pow_left,
+      nat.cast_two, at_two hb, at_two hb'],
   congr' 1, swap, congr' 1,
   { simp_rw [qr_sign],
     rw [χ₄_nat_mod_four, χ₄_nat_mod_four (b % (4 * a)), mod_mod_of_dvd b (dvd_mul_right 4 a) ] },
-  { rw [mod_left ↑(b % _), mod_left b, int.coe_nat_mod,
-        int.mod_mod_of_dvd b],
+  { rw [mod_left ↑(b % _), mod_left b, int.coe_nat_mod, int.mod_mod_of_dvd b],
     simp only [ha₂, nat.cast_mul, ← mul_assoc],
     exact dvd_mul_left a' _, },
   cases e, { refl },

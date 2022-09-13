@@ -124,18 +124,19 @@ end
 
 /-- The symbol `J(1 | b)` has the value `1`. -/
 @[simp] lemma jacobi_sym_one_left (b : ℕ) : J(1 | b) = 1 :=
-list.prod_eq_one (λ z hz, let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [← he, legendre_sym_one])
+list.prod_eq_one (λ z hz,
+                  let ⟨p, hp, he⟩ := list.mem_pmap.1 hz in by rw [← he, legendre_sym.at_one])
 
 /-- The Jacobi symbol is multiplicative in its first argument. -/
 lemma jacobi_sym_mul_left (a₁ a₂ : ℤ) (b : ℕ) : J(a₁ * a₂ | b) = J(a₁ | b) * J(a₂ | b) :=
-by { simp_rw [jacobi_sym, list.pmap_eq_map_attach, legendre_sym_mul], exact list.prod_map_mul }
+by { simp_rw [jacobi_sym, list.pmap_eq_map_attach, legendre_sym.mul], exact list.prod_map_mul }
 
 /-- The symbol `J(a | b)` vanishes iff `a` and `b` are not coprime (assuming `b ≠ 0`). -/
 lemma jacobi_sym_eq_zero_iff_not_coprime {a : ℤ} {b : ℕ} [ne_zero b] :
   J(a | b) = 0 ↔ a.gcd b ≠ 1 :=
 list.prod_eq_zero_iff.trans begin
   rw [list.mem_pmap, int.gcd_eq_nat_abs, ne, prime.not_coprime_iff_dvd],
-  simp_rw [legendre_sym_eq_zero_iff, int_coe_zmod_eq_zero_iff_dvd, mem_factors (ne_zero.ne b),
+  simp_rw [legendre_sym.eq_zero_iff, int_coe_zmod_eq_zero_iff_dvd, mem_factors (ne_zero.ne b),
     ← int.coe_nat_dvd_left, int.coe_nat_dvd, exists_prop, and_assoc, and_comm],
 end
 
@@ -193,8 +194,8 @@ by rw [jacobi_sym_pow_left, jacobi_sym_sq_one h]
 lemma jacobi_sym_mod_left (a : ℤ) (b : ℕ) : J(a | b) = J(a % b | b) :=
 congr_arg list.prod $ list.pmap_congr _ begin
   rintro p hp _ _,
-  conv_rhs { rw [legendre_sym_mod, int.mod_mod_of_dvd _
-    (int.coe_nat_dvd.2 $ dvd_of_mem_factors hp), ← legendre_sym_mod] },
+  conv_rhs { rw [legendre_sym.mod, int.mod_mod_of_dvd _
+    (int.coe_nat_dvd.2 $ dvd_of_mem_factors hp), ← legendre_sym.mod] },
 end
 
 /-- The symbol `J(a | b)` depends only on `a` mod `b`. -/
@@ -214,7 +215,7 @@ end
 /-- If `p` is prime, then `J(a | p)` is `-1` iff `a` is not a square modulo `p`. -/
 lemma zmod.nonsquare_iff_jacobi_sym_eq_neg_one {a : ℤ} {p : ℕ} [fact p.prime] :
   J(a | p) = -1 ↔ ¬ is_square (a : zmod p) :=
-by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym_eq_neg_one_iff p }
+by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym.eq_neg_one_iff p }
 
 /-- If `p` is prime and `J(a | p) = 1`, then `a` is q square mod `p`. -/
 lemma zmod.is_square_of_jacobi_sym_eq_one {a : ℤ} {p : ℕ} [fact p.prime] (h : J(a | p) = 1) :
@@ -240,7 +241,7 @@ end
 
 /-- If `b` is odd, then `J(-1 | b)` is given by `χ₄ b`. -/
 lemma jacobi_sym_neg_one {b : ℕ} (hb : odd b) : J(-1 | b) = χ₄ b :=
-jacobi_sym_value (-1) χ₄ (λ p pp, @legendre_sym_neg_one p ⟨pp⟩) hb
+jacobi_sym_value (-1) χ₄ (λ p pp, @legendre_sym.at_neg_one p ⟨pp⟩) hb
 
 /-- If `b` is odd, then `J(-a | b) = χ₄ b * J(a | b)`. -/
 lemma jacobi_sym_neg (a : ℤ) {b : ℕ} (hb : odd b) : J(-a | b) = χ₄ b * J(a | b) :=
@@ -248,11 +249,11 @@ by rw [neg_eq_neg_one_mul, jacobi_sym_mul_left, jacobi_sym_neg_one hb]
 
 /-- If `b` is odd, then `J(2 | b)` is given by `χ₈ b`. -/
 lemma jacobi_sym_two {b : ℕ} (hb : odd b) : J(2 | b) = χ₈ b :=
-jacobi_sym_value 2 χ₈ (λ p pp, @legendre_sym_two p ⟨pp⟩) hb
+jacobi_sym_value 2 χ₈ (λ p pp, @legendre_sym.at_two p ⟨pp⟩) hb
 
 /-- If `b` is odd, then `J(-2 | b)` is given by `χ₈' b`. -/
 lemma jacobi_sym_neg_two {b : ℕ} (hb : odd b) : J(-2 | b) = χ₈' b :=
-jacobi_sym_value (-2) χ₈' (λ p pp, @legendre_sym_neg_two p ⟨pp⟩) hb
+jacobi_sym_value (-2) χ₈' (λ p pp, @legendre_sym.at_neg_two p ⟨pp⟩) hb
 
 
 /-!
@@ -313,7 +314,7 @@ begin
   refine jacobi_sym_value p (rhs p) (λ q pq hq, _) ha,
   have hqo := pq.eq_two_or_odd'.resolve_left hq,
   rw [rhs_apply, nat.cast_id, ← @legendre_sym.to_jacobi_sym p ⟨pp⟩, qr_sign_symm hqo hpo,
-      qr_sign_neg_one_pow hpo hqo, @legendre_sym_quadratic_reciprocity' p q ⟨pp⟩ ⟨pq⟩ hp hq],
+      qr_sign_neg_one_pow hpo hqo, @legendre_sym.quadratic_reciprocity' p q ⟨pp⟩ ⟨pq⟩ hp hq],
 end
 
 /-- The Law of Quadratic Reciprocity for the Jacobi symbol -/

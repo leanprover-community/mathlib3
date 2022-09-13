@@ -77,9 +77,9 @@ structure diffeomorph extends M ≃ M' :=
 
 end defs
 
-localized "notation (name := diffeomorph) M ` ≃ₘ^` n:1000 `⟮`:50 I `,` J `⟯ ` N :=
+localized "notation (name := diffeomorph) M ` ≃ₘ^` n:1000 `⟮`:50 I `, ` J `⟯ ` N :=
   diffeomorph I J M N n" in manifold
-localized "notation (name := diffeomorph.top) M ` ≃ₘ⟮` I `,` J `⟯ ` N :=
+localized "notation (name := diffeomorph.top) M ` ≃ₘ⟮` I `, ` J `⟯ ` N :=
   diffeomorph I J M N ⊤" in manifold
 localized "notation (name := diffeomorph.self) E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' :=
   diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' n" in manifold

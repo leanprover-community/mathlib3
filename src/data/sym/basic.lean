@@ -354,11 +354,10 @@ by { ext, simp [append, add_comm], }
 
 @[simp] lemma coe_append {n n' : ℕ} (s : sym α n) (s' : sym α n') :
   (s.append s' : multiset α) = s + s' :=
-by rw [append, sym.mk_coe, subtype.val_eq_coe, subtype.val_eq_coe]
+  (s.append s' : multiset α) = s + s' := rfl
 
-lemma append_mem {n m : ℕ} (a : α)  (s : sym α n) (s' : sym α m) :
-  a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' :=
-by simp_rw [append, sym.mem_mk, multiset.mem_add, subtype.val_eq_coe, mem_coe]
+lemma append_mem {n m : ℕ} (a : α) (s : sym α n) (s' : sym α m) :
+  a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' := multiset.mem_add
 
 /-- Fill a term `m : sym α (n - i)` with `i` copies of `a` to obtain a term of `sym α n`.
 This is a convenience wrapper for `m.append (repeat a i)` that adjusts the term using `sym.cast`. -/
@@ -366,7 +365,7 @@ def fill (a : α) (i : fin (n + 1)) (m : sym α (n - i)) : sym α n :=
 sym.cast (nat.sub_add_cancel i.is_le) (m.append (repeat a i))
 
 lemma fill_mem {n m : ℕ} (a b : α) (i : fin (n + 1)) (s : sym α (n - i)) :
-  a ∈ sym.fill b i s ↔ ((i : nat) ≠ 0 ∧ a = b) ∨ a ∈ s :=
+  a ∈ sym.fill b i s ↔ ((i : ℕ) ≠ 0 ∧ a = b) ∨ a ∈ s :=
 by rw [fill, mem_cast, append_mem, or_comm, mem_repeat]
 
 /-- Remove every `a` from a given `sym α n`.

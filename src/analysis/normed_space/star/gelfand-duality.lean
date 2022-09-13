@@ -22,28 +22,6 @@ instance continuous_map.norm_one_class {X E : Type*} [topological_space X] [comp
 
 end prerequisites
 
-section algebra_map
-
-variables {A : Type*} [normed_ring A] [normed_algebra ℂ A] (hA : ∀ (a : A), is_unit a ↔ a ≠ 0)
-  [complete_space A]
-
-/- This wouldn't be necessary if either we assumed `[norm_one_class A]`, or if we knew that algebra
-homomorphisms into the base field were continuous. This requires generalizing things in
-`analysis/normed_space/spectrum` away from `norm_one_class`, or else proving that any Banach algebra
-is equivalent to a `norm_one_class` Banach algebra. -/
-lemma normed_ring.alg_equiv_complex_of_complete_symm_continuous :
-  continuous ((normed_ring.alg_equiv_complex_of_complete hA).symm : A → ℂ) :=
-begin
-  have one_pos := norm_pos_iff.mpr ((hA 1).mp ⟨⟨1, 1, mul_one _, mul_one _⟩, rfl⟩),
-  refine add_monoid_hom_class.continuous_of_bound _ (∥(1 : A)∥⁻¹) _,
-  intros x,
-  obtain ⟨y, rfl⟩ := (normed_ring.alg_equiv_complex_of_complete hA).surjective x,
-  simpa only [←inv_mul_le_iff (inv_pos.mpr one_pos), inv_inv, mul_comm, alg_equiv.symm_apply_apply]
-    using (norm_algebra_map A (y : ℂ)).ge,
-end
-
-end algebra_map
-
 section general
 open weak_dual
 

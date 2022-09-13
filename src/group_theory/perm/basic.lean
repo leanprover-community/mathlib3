@@ -242,7 +242,6 @@ lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p]
   (h₁ : ∀ x, p x ↔ p (f x)) (h₂ : ∀ x, f x ≠ x → p x) :
   of_subtype (subtype_perm f h₁) = f :=
 equiv.ext $ λ x, begin
-  -- rw [of_subtype, subtype_perm],
   by_cases hx : p x,
   { exact (subtype_perm f h₁).extend_domain_apply_subtype _ hx, },
   { rw [of_subtype, monoid_hom.coe_mk, equiv.perm.extend_domain_apply_not_subtype],

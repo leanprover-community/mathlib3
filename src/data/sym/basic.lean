@@ -314,7 +314,9 @@ multiset.mem_attach _ _
   :=
 coe_injective $ multiset.attach_cons _ _
 
-@[simps] protected def cast {n m : ℕ} (h : n = m) : sym α n ≃ sym α m :=
+/-- Change the length of a `sym` using an equality.
+The simp-normal form is for the `cast` to be pushed outward. -/
+protected def cast {n m : ℕ} (h : n = m) : sym α n ≃ sym α m :=
 { to_fun := λ s, ⟨s.val, s.2.trans h⟩,
   inv_fun := λ s, ⟨s.val, s.2.trans h.symm⟩,
   left_inv := λ s, subtype.ext rfl,
@@ -328,6 +330,7 @@ coe_injective $ multiset.attach_cons _ _
 @[simp] lemma coe_cast {n m : ℕ} (h : n = m) (s : sym α n) :
   (sym.cast h s : multiset α) = s := rfl
 
+/-- Append a pair of `sym` terms. -/
 def append {n n' : ℕ} (s : sym α n) (s' : sym α n') : sym α (n + n') :=
 ⟨s.1 + s'.1, by simp_rw [← s.2, ← s'.2, map_add]⟩
 

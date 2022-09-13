@@ -2219,6 +2219,13 @@ include m0
 /-- A measure `μ` is called finite if `μ univ < ∞`. -/
 class is_finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
 
+lemma not_is_finite_measure_iff : ¬ is_finite_measure μ ↔ μ set.univ = ∞ :=
+begin
+  refine ⟨λ h, _, λ h, λ h', h'.measure_univ_lt_top.ne h⟩,
+  by_contra h',
+  exact h ⟨lt_top_iff_ne_top.mpr h'⟩,
+end
+
 instance restrict.is_finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
   is_finite_measure (μ.restrict s) :=
 ⟨by simp [hs.elim]⟩
@@ -2753,13 +2760,34 @@ lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
 
 end measure
 
-include m0
-
 /-- Every finite measure is σ-finite. -/
 @[priority 100]
-instance is_finite_measure.to_sigma_finite (μ : measure α) [is_finite_measure μ] :
+instance is_finite_measure.to_sigma_finite {m0 : measurable_space α} (μ : measure α)
+  [is_finite_measure μ] :
   sigma_finite μ :=
 ⟨⟨⟨λ _, univ, λ _, trivial, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
+
+lemma sigma_finite_bot_iff (μ : @measure α ⊥) : sigma_finite μ ↔ is_finite_measure μ :=
+begin
+  refine ⟨λ h, ⟨_⟩, λ h, by { haveI := h, apply_instance, }⟩,
+  haveI : sigma_finite μ := h,
+  let s := spanning_sets μ,
+  have hs_univ : (⋃ i, s i) = set.univ := Union_spanning_sets μ,
+  have hs_meas : ∀ i, measurable_set[⊥] (s i) := measurable_spanning_sets μ,
+  simp_rw measurable_space.measurable_set_bot_iff at hs_meas,
+  by_cases h_univ_empty : set.univ = ∅,
+  { rw [h_univ_empty, measure_empty], exact ennreal.zero_ne_top.lt_top, },
+  obtain ⟨i, hsi⟩ : ∃ i, s i = set.univ,
+  { by_contra h_not_univ,
+    push_neg at h_not_univ,
+    have h_empty : ∀ i, s i = ∅, by simpa [h_not_univ] using hs_meas,
+    simp [h_empty] at hs_univ,
+    exact h_univ_empty hs_univ.symm, },
+  rw ← hsi,
+  exact measure_spanning_sets_lt_top μ i,
+end
+
+include m0
 
 instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
   sigma_finite (μ.restrict s) :=
@@ -3312,6 +3340,14 @@ begin
     ... = (μ.trim (hm₂.trans hm)) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
       by rw @trim_trim _ _ μ _ _ hm₂ hm
     ... < ∞ : measure_spanning_sets_lt_top _ _, },
+end
+
+lemma sigma_finite_trim_bot_iff : sigma_finite (μ.trim bot_le) ↔ is_finite_measure μ :=
+begin
+  rw sigma_finite_bot_iff,
+  refine ⟨λ h, ⟨_⟩, λ h, ⟨_⟩⟩; have h_univ := h.measure_univ_lt_top,
+  { rwa trim_measurable_set_eq bot_le measurable_set.univ at h_univ, },
+  { rwa trim_measurable_set_eq bot_le measurable_set.univ, },
 end
 
 end trim

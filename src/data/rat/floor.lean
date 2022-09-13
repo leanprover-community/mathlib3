@@ -149,4 +149,55 @@ begin
   rwa [q_inv_eq, this.left, this.right, q_num_abs_eq_q_num, mul_comm] at q_inv_num_denom_ineq
 end
 
+namespace norm_num
+open tactic
+
+/-- A norm_num extension for `int.floor`, `int.ceil`, and `int.fract`. -/
+@[norm_num] meta def eval_floor_ceil : expr → tactic (expr × expr)
+| e@`(@int.floor %%R %%inst_1 %%inst_2 %%x) := do
+  q ← x.to_rat,
+  let z := int.floor q,
+  let ze := `(z),
+  t ← to_expr ``(%%e = %%ze),
+  ((), p) ← tactic.solve_aux t (do {
+    tactic.mk_mapp `int.floor_eq_iff [some R, some inst_1, some inst_2] >>= tactic.rewrite_target,
+    tactic.interactive.norm_num [] (interactive.loc.ns [none])
+  }),
+  p ← instantiate_mvars p,
+  pure (ze, p)
+| e@`(@int.ceil %%R %%inst_1 %%inst_2 %%x) := do
+  q ← x.to_rat,
+  let z := int.ceil q,
+  let ze := `(z),
+  t ← to_expr ``(%%e = %%ze),
+  ((), p) ← tactic.solve_aux t (do {
+    tactic.mk_mapp `int.ceil_eq_iff [some R, some inst_1, some inst_2] >>= tactic.rewrite_target,
+    `[norm_num]
+  }),
+  p ← instantiate_mvars p,
+  pure (ze, p)
+| e@`(@int.fract %%R %%inst_1 %%inst_2 %%x) := do
+  q ← x.to_rat,
+  ic ← mk_instance_cache R,
+  let q' := int.fract q,
+  (ic, q'e) ← ic.of_rat q',
+  let z := int.floor q,
+  let ze := `(z),
+  t ← to_expr ``(%%e = %%q'e),
+  ((), p) ← tactic.solve_aux t (do {
+    `[rw int.fract_eq_iff; norm_num],
+    tactic.refine ``(⟨%%ze, _⟩),
+    `[norm_num]
+  }),
+  p ← instantiate_mvars p,
+  pure (q'e, p)
+| _ := failed
+
+variables (R :Type*) [linear_ordered_field R] [floor_ring R]
+
+example : int.floor (15 / 16 : R) + 1 = 1 := by norm_num
+example : int.ceil (15 / 16 : R) + 1 = 2 := by norm_num
+example : int.fract (17 / 16 : R) + 1 = 17 / 16 := by norm_num
+
+end norm_num
 end rat

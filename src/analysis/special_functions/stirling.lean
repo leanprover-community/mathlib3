@@ -32,9 +32,10 @@ We use the fact that the series defined in part 1 converges againt a real number
 $a = \sqrt{\pi}$. Here the main ingredient is the convergence of the Wallis product.
 -/
 
-open_locale topological_space real big_operators
+open_locale topological_space real big_operators nat
 open finset filter nat real
 
+namespace stirling
 /-!
  ### Part 1
  https://proofwiki.org/wiki/Stirling%27s_Formula#Part_1
@@ -45,7 +46,7 @@ Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
 Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
 noncomputable def stirling_seq (n : ℕ) : ℝ :=
-n.factorial / (sqrt (2 * n) * (n / exp 1) ^ n)
+n! / (sqrt (2 * n) * (n / exp 1) ^ n)
 
 @[simp] lemma stirling_seq_zero : stirling_seq 0 = 0 :=
 by rw [stirling_seq, cast_zero, mul_zero, real.sqrt_zero, zero_mul, div_zero]
@@ -58,9 +59,9 @@ We have the expression
 `log (stirling_seq (n + 1)) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
 -/
 lemma log_stirling_seq_formula (n : ℕ) : log (stirling_seq n.succ) =
-  log n.succ.factorial - 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
+  log n.succ!- 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
-  have h1 : (0 : ℝ) < n.succ.factorial := cast_pos.mpr n.succ.factorial_pos,
+  have h1 : (0 : ℝ) < n.succ!:= cast_pos.mpr n.succ.factorial_pos,
   have h2 : (0 : ℝ) < (2 * n.succ) := mul_pos two_pos (cast_pos.mpr (succ_pos n)),
   have h3 := real.sqrt_pos.mpr h2,
   have h4 := pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) n.succ,
@@ -217,10 +218,10 @@ end
 
 /-- For `n : ℕ`, define `w n` as `2^(4*n) * n!^4 / ((2*n)!^2 * (2*n + 1))` -/
 noncomputable def w (n : ℕ) : ℝ :=
-(2 ^ (4 * n) * n.factorial ^ 4) / ((2 * n).factorial ^ 2 * (2 * n + 1))
+(2 ^ (4 * n) * n! ^ 4) / ((2 * n)!^ 2 * (2 * n + 1))
 
 /-- The sequence `w n` converges to `π/2` -/
-lemma wallis_consequence : tendsto (λ (n : ℕ), w n) at_top (𝓝 (π/2)) :=
+lemma tendsto_w_at_top: tendsto (λ (n : ℕ), w n) at_top (𝓝 (π/2)) :=
 begin
   convert tendsto_prod_pi_div_two,
   funext n,
@@ -241,7 +242,8 @@ begin
 end
 
 /-- The sequence `n / (2 * n + 1)` tends to `1/2` -/
-lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), (n : ℝ) / (2 * n + 1)) at_top (𝓝 (1 / 2)) :=
+lemma tendsto_self_div_two_mul_self_add_one :
+  tendsto (λ (n : ℕ), (n : ℝ) / (2 * n + 1)) at_top (𝓝 (1 / 2)) :=
 begin
   conv { congr, skip, skip, rw [one_div, ←add_zero (2 : ℝ)] },
   refine (((tendsto_const_div_at_top_nhds_0_nat 1).const_add (2 : ℝ)).inv₀
@@ -251,8 +253,8 @@ end
 
 
 /-- For any `n ≠ 0`, we have the identity
-`(stirling_seq n)^4/(stirling_seq (2*n))^2 * (c n) = w n`. -/
-lemma expand_in_limit (n : ℕ) (hn : n ≠ 0) :
+`(stirling_seq n)^4/(stirling_seq (2*n))^2 * (n / (2 * n + 1)) = w n`. -/
+lemma stirling_seq_pow_four_div_stirling_seq_pow_two_eq (n : ℕ) (hn : n ≠ 0) :
   ((stirling_seq n) ^ 4 / (stirling_seq (2 * n)) ^ 2) * (n / (2 * n + 1)) = w n :=
 begin
   rw [bit0_eq_two_mul, stirling_seq, pow_mul, stirling_seq, w],
@@ -261,7 +263,7 @@ begin
       sq_sqrt (mul_nonneg two_pos.le (2 * n).cast_nonneg)],
   have : (n : ℝ) ≠ 0, from cast_ne_zero.mpr hn,
   have : (exp 1) ≠ 0, from exp_ne_zero 1,
-  have : ((2 * n).factorial : ℝ) ≠ 0, from cast_ne_zero.mpr (factorial_ne_zero (2 * n)),
+  have : ((2 * n)!: ℝ) ≠ 0, from cast_ne_zero.mpr (factorial_ne_zero (2 * n)),
   have : 2 * (n : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*n)},
   field_simp,
   simp only [mul_pow, mul_comm 2 n, mul_comm 4 n, pow_mul],
@@ -276,20 +278,22 @@ lemma second_wallis_limit (a : ℝ) (hane : a ≠ 0) (ha : tendsto stirling_seq 
   tendsto w at_top (𝓝 (a ^ 2 / 2)):=
 begin
   refine tendsto.congr' (eventually_at_top.mpr ⟨1, λ n hn,
-    expand_in_limit n (one_le_iff_ne_zero.mp hn)⟩) _,
+    stirling_seq_pow_four_div_stirling_seq_pow_two_eq n (one_le_iff_ne_zero.mp hn)⟩) _,
   have h : a ^ 2 / 2 = (a ^ 4 / a ^ 2) * (1 / 2),
   { rw [mul_one_div, ←mul_one_div (a ^ 4) (a ^ 2), one_div, ←pow_sub_of_lt a],
     norm_num },
   rw h,
   exact ((ha.pow 4).div ((ha.comp (tendsto_id.const_mul_at_top' two_pos)).pow 2)
-    (pow_ne_zero 2 hane)).mul rest_has_limit_one_half,
+    (pow_ne_zero 2 hane)).mul tendsto_self_div_two_mul_self_add_one,
 end
 
 /-- **Stirling's Formula** -/
 theorem tendsto_stirling_seq_sqrt_pi : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 (sqrt π)) :=
 begin
   obtain ⟨a, hapos, halimit⟩ := stirling_seq_has_pos_limit_a,
-  have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique wallis_consequence
+  have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique tendsto_w_at_top
     (second_wallis_limit a (ne_of_gt hapos) halimit),
   rwa [(div_left_inj' (show (2 : ℝ) ≠ 0, from two_ne_zero)).mp hπ, sqrt_sq hapos.le],
 end
+
+end stirling

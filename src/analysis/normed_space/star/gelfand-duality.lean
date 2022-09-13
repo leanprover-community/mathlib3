@@ -6,46 +6,11 @@ import topology.continuous_function.compact
 import topology.algebra.algebra
 import topology.continuous_function.stone_weierstrass
 
-section prerequisites
-
-lemma ideal.span_singleton_ne_top {R : Type*} [comm_semiring R] {r : R} (hr : ¬ is_unit r) :
-  ideal.span ({r} : set R) ≠ ⊤ :=
-begin
-  refine (ideal.ne_top_iff_one _).mpr (λ h1, _),
-  obtain ⟨x, hx⟩ := ideal.mem_span_singleton'.mp h1,
-  exact hr ⟨⟨r, x, mul_comm x r ▸ hx, hx⟩, rfl⟩,
-end
-
-instance continuous_map.norm_one_class {X E : Type*} [topological_space X] [compact_space X]
-  [nonempty X] [normed_ring E] [norm_one_class E] : norm_one_class C(X, E) :=
-⟨by simp [continuous_map.norm_eq_supr_norm]⟩
-
-end prerequisites
-
 section general
 open weak_dual
 
 variables {A : Type*} [normed_comm_ring A] [normed_algebra ℂ A] [complete_space A]
   [norm_one_class A] (I : ideal A) [hI : I.is_maximal]
-
-/-- The equivalence between characters and algebra homomorphisms into the base field. This requires
-`norm_one_class` for technical reasons, but with enough work could be replaced with `nontrivial`. -/
-def weak_dual.character_space.equiv_alg_hom {𝕜 A : Type*} [normed_field 𝕜] [normed_ring A]
-  [normed_algebra 𝕜 A] [complete_space A] [norm_one_class A] : (character_space 𝕜 A) ≃ (A →ₐ[𝕜] 𝕜)  :=
-{ to_fun := λ f, character_space.to_alg_hom f,
-  inv_fun := λ f,
-  { val := f.to_continuous_linear_map,
-    property := by { rw character_space.eq_set_map_one_map_mul, exact ⟨map_one f, map_mul f⟩ } },
-  left_inv := λ f, subtype.ext $ continuous_linear_map.ext $ λ x, rfl,
-  right_inv := λ f, alg_hom.ext $ λ x, rfl }
-
-@[simp] lemma weak_dual.character_space.equiv_alg_hom_coe {𝕜 A : Type*} [normed_field 𝕜]
-  [normed_ring A] [normed_algebra 𝕜 A] [complete_space A] [norm_one_class A]
-  (f : character_space 𝕜 A) : ⇑(weak_dual.character_space.equiv_alg_hom f) = f := rfl
-
-@[simp] lemma weak_dual.character_space.equiv_alg_hom_symm_coe {𝕜 A : Type*} [normed_field 𝕜]
-  [normed_ring A] [normed_algebra 𝕜 A] [complete_space A] [norm_one_class A] (f : A →ₐ[𝕜] 𝕜) :
-  ⇑(weak_dual.character_space.equiv_alg_hom.symm f) = f := rfl
 
 include hI
 

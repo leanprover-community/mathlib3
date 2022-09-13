@@ -8,6 +8,7 @@ import analysis.special_functions.pow
 import analysis.special_functions.exponential
 import analysis.complex.liouville
 import analysis.analytic.radius_liminf
+import topology.algebra.module.character_space
 /-!
 # The spectrum of elements in a complete normed algebra
 
@@ -453,3 +454,27 @@ continuous_linear_map.op_norm_eq_of_bounds zero_le_one
 end nontrivially_normed_field
 
 end alg_hom
+
+namespace weak_dual
+
+namespace character_space
+
+variables [normed_field 𝕜] [normed_ring A] [complete_space A] [norm_one_class A]
+variables [normed_algebra 𝕜 A]
+
+/-- The equivalence between characters and algebra homomorphisms into the base field. -/
+def equiv_alg_hom : (character_space 𝕜 A) ≃ (A →ₐ[𝕜] 𝕜)  :=
+{ to_fun := to_alg_hom,
+  inv_fun := λ f,
+  { val := f.to_continuous_linear_map,
+    property := by { rw eq_set_map_one_map_mul, exact ⟨map_one f, map_mul f⟩ } },
+  left_inv := λ f, subtype.ext $ continuous_linear_map.ext $ λ x, rfl,
+  right_inv := λ f, alg_hom.ext $ λ x, rfl }
+
+@[simp] lemma equiv_alg_hom_coe (f : character_space 𝕜 A) : ⇑(equiv_alg_hom f) = f := rfl
+
+@[simp] lemma equiv_alg_hom_symm_coe  (f : A →ₐ[𝕜] 𝕜) : ⇑(equiv_alg_hom.symm f) = f := rfl
+
+end character_space
+
+end weak_dual

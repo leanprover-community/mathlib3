@@ -138,6 +138,26 @@ begin
   simp
 end
 
+open continuous_map
+
+instance : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
+
+instance : topological_space (path x y) :=
+topological_space.induced (coe : _ → C(I, X)) continuous_map.compact_open
+
+lemma continuous_eval : continuous (λ p : path x y × I, p.1 p.2) :=
+continuous_eval'.comp $ continuous_induced_dom.prod_map continuous_id
+
+@[continuity] lemma _root_.continuous.path_eval {Y} [topological_space Y]
+  {f : Y → path x y} {g : Y → I} (hf : continuous f) (hg : continuous g) :
+  continuous (λ y, f y (g y)) := continuous.comp continuous_eval (hf.prod_mk hg)
+
+lemma continuous_uncurry_iff {Y} [topological_space Y] {g : Y → path x y} :
+  continuous ↿g ↔ continuous g :=
+iff.symm $ continuous_induced_rng.trans
+  ⟨λ h, continuous_uncurry_of_continuous ⟨_, h⟩, continuous_of_continuous_uncurry ↑g⟩
+
+
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := Icc_extend zero_le_one γ
 
@@ -346,6 +366,9 @@ lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_s
   continuous ↿(λ t, (γ t).symm) :=
 h.comp (continuous_id.prod_map continuous_symm)
 
+lemma continuous_symm : continuous (symm : path x y → path y x) :=
+continuous_uncurry_iff.mp $ symm_continuous_family _ (continuous_fst.path_eval continuous_snd)
+
 @[continuity]
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
   [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
@@ -371,6 +394,15 @@ begin
   { rintros st hst,
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
+
+
+lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
+continuous_uncurry_iff.mp begin
+  apply trans_continuous_family;
+  refine (continuous.comp _ continuous_fst).path_eval continuous_snd,
+  exacts [continuous_fst, continuous_snd],
+end
+
 
 /-! #### Product of paths -/
 section prod

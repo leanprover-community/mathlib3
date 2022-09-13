@@ -237,33 +237,113 @@ namespace arrow
 
 namespace augmented_cech_nerve
 
-/-- The augmented Čech nerve associated to a split epimorphism has an extra degeneracy. -/
-def for_cech_nerve_of_split_epi (f : arrow C)
+variables (f : arrow C)
   [∀ n : ℕ, has_wide_pullback f.right (λ i : fin (n+1), f.left) (λ i, f.hom)]
-  (S : split_epi f.hom) :
-  simplicial_object.augmented.extra_degeneracy f.augmented_cech_nerve :=
-{ s' := S.section_ ≫ wide_pullback.lift f.hom (λ i, 𝟙 _) (λ i, by rw id_comp),
-  s := λ n, wide_pullback.lift (wide_pullback.base _)
-  begin
-    rintro ⟨i⟩,
-    by_cases i = 0,
-    { exact wide_pullback.base _ ≫ S.section_, },
-    { exact wide_pullback.π _ ((σ (0 : fin (n+1))).to_order_hom i), },
-  end
-  begin
-    intro j,
-    cases j,
-    dsimp,
+  (S : split_epi f.hom)
+
+include S
+
+def extra_degeneracy.s (n : ℕ) : f.cech_nerve.obj (op [n]) ⟶ f.cech_nerve.obj (op [n + 1]) :=
+wide_pullback.lift (wide_pullback.base _)
+  (λ i, dite (i = 0) (λ h, wide_pullback.base _ ≫ S.section_)
+    (λ h, wide_pullback.π _ (i.pred h)))
+  (λ i, begin
     split_ifs,
     { subst h,
       simp only [assoc, split_epi.id, comp_id], },
     { simp only [wide_pullback.π_arrow], },
+  end)
+
+@[simp]
+lemma extra_degeneracy.s_comp_π_0 (n : ℕ) : extra_degeneracy.s f S n ≫ wide_pullback.π _ 0 =
+  wide_pullback.base _ ≫ S.section_ :=
+begin
+  dsimp [extra_degeneracy.s],
+  simpa only [wide_pullback.lift_π],
+end
+
+@[simp]
+lemma extra_degeneracy.s_comp_π_succ (n : ℕ) (i : fin (n+1)) :
+  extra_degeneracy.s f S n ≫ wide_pullback.π _ i.succ = wide_pullback.π _ i :=
+begin
+  dsimp [extra_degeneracy.s],
+  simp only [wide_pullback.lift_π],
+  split_ifs,
+  { exfalso,
+    simpa only [fin.ext_iff, fin.coe_succ, fin.coe_zero, nat.succ_ne_zero] using h, },
+  { congr,
+    apply fin.pred_succ, },
+end
+
+@[simp]
+lemma extra_degeneracy.s_comp_base (n : ℕ) : extra_degeneracy.s f S n ≫ wide_pullback.base _ =
+  wide_pullback.base _ :=
+by apply wide_pullback.lift_base
+
+/-- The augmented Čech nerve associated to a split epimorphism has an extra degeneracy. -/
+def extra_degeneracy :
+  simplicial_object.augmented.extra_degeneracy f.augmented_cech_nerve :=
+{ s' := S.section_ ≫ wide_pullback.lift f.hom (λ i, 𝟙 _) (λ i, by rw id_comp),
+  s := λ n, extra_degeneracy.s f S n,
+  s'_comp_ε' := by simp only [augmented_cech_nerve_hom_app, assoc,
+    wide_pullback.lift_base, split_epi.id],
+  s₀_comp_δ₁' := begin
+    dsimp [cech_nerve, simplicial_object.δ, simplex_category.δ],
+    ext j,
+    { fin_cases j,
+      simpa only [assoc, wide_pullback.lift_π, comp_id] using extra_degeneracy.s_comp_π_0 f S 0, },
+    { simpa only [assoc, wide_pullback.lift_base, split_epi.id, comp_id]
+        using extra_degeneracy.s_comp_base f S 0, },
   end,
-  s'_comp_ε' := sorry,
-  s₀_comp_δ₁' := sorry,
-  s_comp_δ₀' := sorry,
-  s_comp_δ' := sorry,
-  s_comp_σ' := sorry, }
+  s_comp_δ₀' := λ n, begin
+    dsimp [cech_nerve, simplicial_object.δ, simplex_category.δ],
+    ext j,
+    { simpa only [assoc, wide_pullback.lift_π, id_comp]
+        using extra_degeneracy.s_comp_π_succ f S n j, },
+    { simpa only [assoc, wide_pullback.lift_base, id_comp]
+        using extra_degeneracy.s_comp_base f S n, },
+  end,
+  s_comp_δ' := λ n i, begin
+    dsimp [cech_nerve, simplicial_object.δ, simplex_category.δ],
+    ext j,
+    { simp only [assoc, wide_pullback.lift_π],
+      by_cases j = 0,
+      { subst h,
+        erw [fin.succ_succ_above_zero, extra_degeneracy.s_comp_π_0,
+          extra_degeneracy.s_comp_π_0],
+        dsimp,
+        simp only [wide_pullback.lift_base_assoc], },
+      { cases fin.eq_succ_of_ne_zero h with k hk,
+        subst hk,
+        erw [fin.succ_succ_above_succ, extra_degeneracy.s_comp_π_succ,
+          extra_degeneracy.s_comp_π_succ],
+        dsimp,
+        simp only [wide_pullback.lift_π], }, },
+    { simp only [assoc, wide_pullback.lift_base],
+      erw [extra_degeneracy.s_comp_base, extra_degeneracy.s_comp_base],
+      dsimp,
+      simp only [wide_pullback.lift_base], },
+  end,
+  s_comp_σ' := λ n i, begin
+    dsimp [cech_nerve, simplicial_object.σ, simplex_category.σ],
+    ext j,
+    { simp only [assoc, wide_pullback.lift_π],
+      by_cases j = 0,
+      { subst h,
+        erw [extra_degeneracy.s_comp_π_0, extra_degeneracy.s_comp_π_0],
+        dsimp,
+        simp only [wide_pullback.lift_base_assoc], },
+      { cases fin.eq_succ_of_ne_zero h with k hk,
+        subst hk,
+        erw [fin.succ_pred_above_succ, extra_degeneracy.s_comp_π_succ,
+          extra_degeneracy.s_comp_π_succ],
+        dsimp,
+        simp only [wide_pullback.lift_π], }, },
+    { simp only [assoc, wide_pullback.lift_base],
+      erw [extra_degeneracy.s_comp_base, extra_degeneracy.s_comp_base],
+      dsimp,
+      simp only [wide_pullback.lift_base], },
+  end, }
 
 end augmented_cech_nerve
 

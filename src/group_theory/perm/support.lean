@@ -173,7 +173,7 @@ variable [decidable_eq α]
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
 
 @[simp] lemma of_subtype_swap_eq {p : α → Prop} [decidable_pred p]
-  (x y : subtype p) : -- (hxy : x ≠ y) :
+  (x y : subtype p) :
   (equiv.swap x y).of_subtype = equiv.swap ↑x ↑y :=
 equiv.ext $ λ z, begin
   by_cases hz : p z,

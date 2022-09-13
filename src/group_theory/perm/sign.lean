@@ -564,11 +564,6 @@ have hl'₂ : (l.1.map of_subtype).prod = f,
 by { conv { congr, rw ← l.2.1, skip, rw ← hl'₂ },
   rw [sign_prod_list_swap l.2.2, sign_prod_list_swap hl', list.length_map] }
 
-/- @[simp] lemma sign_of_subtype {p : α → Prop} [decidable_pred p]
-  (f : perm (subtype p)) : sign (of_subtype f) = sign f :=
-have ∀ x, of_subtype f x ≠ x → p x, from λ x, not_imp_comm.1 (of_subtype_apply_of_not_mem f),
-by conv {to_rhs, rw [← subtype_perm_of_subtype f, sign_subtype_perm _ _ this]} -/
-
 lemma sign_eq_sign_of_equiv [decidable_eq β] [fintype β] (f : perm α) (g : perm β)
   (e : α ≃ β) (h : ∀ x, e (f x) = g (e x)) : sign f = sign g :=
 have hg : g = (e.symm.trans f).trans e, from equiv.ext $ by simp [h],

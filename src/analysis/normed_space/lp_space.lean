@@ -464,7 +464,7 @@ add_group_norm.to_normed_add_comm_group
   neg' := norm_neg,
   add_le' := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
-    { cases is_empty_or_nonempty α; resetI,
+    { casesI is_empty_or_nonempty α,
       { simp [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
       rintros x ⟨i, rfl⟩,

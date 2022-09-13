@@ -403,7 +403,7 @@ by unfold degree; rw support_neg
 by simp [nat_degree]
 
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : R[X]) = 0 :=
-by simp only [←C_eq_int_cast, nat_degree_C]
+by rw [←C_eq_int_cast, nat_degree_C]
 
 @[simp] lemma leading_coeff_neg (p : R[X]) : (-p).leading_coeff = -p.leading_coeff :=
 by rw [leading_coeff, leading_coeff, nat_degree_neg, coeff_neg]
@@ -1047,10 +1047,11 @@ calc degree (p - q) = degree (erase (nat_degree q) p + -erase (nat_degree q) q) 
   : degree_neg (erase (nat_degree q) q) ▸ degree_add_le _ _
 ... < degree p : max_lt_iff.2 ⟨hd' ▸ degree_erase_lt hp0, hd.symm ▸ degree_erase_lt hq0⟩
 
+lemma degree_X_sub_C_le (r : R) : (X - C r).degree ≤ 1 :=
+(degree_sub_le _ _).trans (max_le degree_X_le (degree_C_le.trans zero_le_one))
 
-lemma nat_degree_X_sub_C_le {r : R} : (X - C r).nat_degree ≤ 1 :=
-nat_degree_le_iff_degree_le.2 $ le_trans (degree_sub_le _ _) $ max_le degree_X_le $
-le_trans degree_C_le $ with_bot.coe_le_coe.2 zero_le_one
+lemma nat_degree_X_sub_C_le (r : R) : (X - C r).nat_degree ≤ 1 :=
+nat_degree_le_iff_degree_le.2 $ degree_X_sub_C_le r
 
 lemma degree_sub_eq_left_of_degree_lt (h : degree q < degree p) : degree (p - q) = degree p :=
 by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_left_of_degree_lt h] }

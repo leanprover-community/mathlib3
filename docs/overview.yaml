@@ -343,6 +343,9 @@ Analysis:
     Phragmen-Lindelöf principle: 'phragmen_lindelof.horizontal_strip'
     fundamental theorem of algebra: 'complex.is_alg_closed'
 
+  Distribution theory:
+    Schwartz space: 'schwartz_map'
+
 Probability Theory:
   Definitions in probability theory:
     probability measure: 'measure_theory.is_probability_measure'

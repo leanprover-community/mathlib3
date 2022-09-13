@@ -60,16 +60,38 @@ export seminorm_class (map_smul_eq_mul)
 -- `𝕜` is an `out_param`, so this is a false positive.
 attribute [nolint dangerous_instance] seminorm_class.to_add_group_seminorm_class
 
+section of
+
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` that is a module over a
 `semi_norm_ring 𝕜`. -/
-def seminorm.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  (f : E → ℝ) (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
+def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
+  (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
   map_zero' := by rw [←zero_smul 𝕜 (0 : E), smul, norm_zero, zero_mul],
   add_le'   := add_le,
   smul'     := smul,
   neg'      := λ x, by rw [←neg_one_smul 𝕜, smul, norm_neg, ← smul, one_smul] }
+
+/-- Alternative constructor for a `seminorm` over a normed field `𝕜` that only assumes `f 0 = 0`
+and an inequality for the scalar multiplication. -/
+def seminorm.of_smul_le [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
+  (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
+  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
+seminorm.of f add_le
+  (λ r x, begin
+    refine le_antisymm (smul_le r x) _,
+    by_cases r = 0,
+    { simp [h, map_zero] },
+    rw ←mul_le_mul_left (inv_pos.mpr (norm_pos_iff.mpr h)),
+    rw inv_mul_cancel_left₀ (norm_ne_zero_iff.mpr h),
+    specialize smul_le r⁻¹ (r • x),
+    rw norm_inv at smul_le,
+    convert smul_le,
+    simp [h],
+  end)
+
+end of
 
 namespace seminorm
 
@@ -349,7 +371,7 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
   inf_le_right := λ p q x, cinfi_le_of_le bdd_below_range_add 0 $
     by simp only [sub_self, map_zero, zero_add, sub_zero],
   le_inf := λ a b c hab hac x,
-    le_cinfi $ λ u, (le_map_add_map_sub' a _ _).trans $ add_le_add (hab _) (hac _),
+    le_cinfi $ λ u, (le_map_add_map_sub a _ _).trans $ add_le_add (hab _) (hac _),
   ..seminorm.semilattice_sup }
 
 lemma smul_inf [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
@@ -582,7 +604,7 @@ variables [has_smul ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
 /-- A seminorm is convex. Also see `convex_on_norm`. -/
 protected lemma convex_on : convex_on ℝ univ p :=
 begin
-  refine ⟨convex_univ, λ x y _ _ a b ha hb hab, _⟩,
+  refine ⟨convex_univ, λ x _ y _ a b ha hb hab, _⟩,
   calc p (a • x + b • y) ≤ p (a • x) + p (b • y) : map_add_le_add p _ _
     ... = ∥a • (1 : 𝕜)∥ * p x + ∥b • (1 : 𝕜)∥ * p y
         : by rw [←map_smul_eq_mul p, ←map_smul_eq_mul p, smul_one_smul, smul_one_smul]
@@ -607,6 +629,29 @@ end
 
 end module
 end convex
+
+section restrict_scalars
+
+variables (𝕜) {𝕜' : Type*} [normed_field 𝕜] [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+  [norm_one_class 𝕜'] [add_comm_group E] [module 𝕜' E] [has_smul 𝕜 E] [is_scalar_tower 𝕜 𝕜' E]
+
+/-- Reinterpret a seminorm over a field `𝕜'` as a seminorm over a smaller field `𝕜`. This will
+typically be used with `is_R_or_C 𝕜'` and `𝕜 = ℝ`. -/
+protected def restrict_scalars (p : seminorm 𝕜' E) :
+  seminorm 𝕜 E :=
+{ smul' := λ a x, by rw [← smul_one_smul 𝕜' a x, p.smul', norm_smul, norm_one, mul_one],
+  ..p }
+
+@[simp] lemma coe_restrict_scalars (p : seminorm 𝕜' E) :
+  (p.restrict_scalars 𝕜 : E → ℝ) = p :=
+rfl
+
+@[simp] lemma restrict_scalars_ball (p : seminorm 𝕜' E) :
+  (p.restrict_scalars 𝕜).ball = p.ball :=
+rfl
+
+end restrict_scalars
+
 end seminorm
 
 /-! ### The norm as a seminorm -/

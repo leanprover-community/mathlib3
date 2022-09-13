@@ -50,6 +50,9 @@ lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl
 instance no_max_order [partial_order α] [no_max_order α] {a : α} : no_max_order {x : α // a ≤ x} :=
 set.Ici.no_max_order
 
+instance semilattice_sup [semilattice_sup α] {a : α} : semilattice_sup {x : α // a ≤ x} :=
+set.Ici.semilattice_sup
+
 instance semilattice_inf [semilattice_inf α] {a : α} : semilattice_inf {x : α // a ≤ x} :=
 set.Ici.semilattice_inf
 

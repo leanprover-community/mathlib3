@@ -29,7 +29,7 @@ useful in this setup.
 
 open_locale classical
 
-open filter function nat formal_multilinear_series emetric
+open filter function nat formal_multilinear_series emetric set
 open_locale topological_space big_operators
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
@@ -140,12 +140,19 @@ begin
   { exact or.inr (hp.locally_ne_zero h) }
 end
 
+lemma frequently_zero_iff_eventually_zero {f : 𝕜 → E} {w : 𝕜} (hf : analytic_at 𝕜 f w) :
+  (∃ᶠ z in 𝓝[≠] w, f z = 0) ↔ (∀ᶠ z in 𝓝 w, f z = 0) :=
+⟨λ h, hf.eventually_eq_zero_or_eventually_ne_zero.cases_on id (false.elim ∘ h),
+  λ h, (h.filter_mono nhds_within_le_nhds).frequently⟩
+
 end analytic_at
 
 namespace analytic_on
 
-theorem eq_on_of_preconnected_of_frequently_eq (hf1 : analytic_on 𝕜 f U) (hU1 : is_open U)
-  (hU2 : is_preconnected U) {w : 𝕜} (hw : w ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] w, f z = 0) :
+variables {U : set 𝕜} {w : 𝕜}
+
+theorem eq_on_of_preconnected_of_frequently_eq (hU1 : is_open U) (hU2 : is_preconnected U)
+  (hf : analytic_on 𝕜 f U) (hw : w ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] w, f z = 0) :
   eq_on f 0 U :=
 begin
   by_contra,
@@ -154,14 +161,14 @@ begin
 
   let u := { z | f =ᶠ[𝓝 z] 0 },
   have hu : is_open u := is_open_set_of_eventually_nhds,
-  have hu' : (U ∩ u).nonempty := ⟨w, hw, (hf1 w hw).frequently_zero_iff_eventually_zero.mp hfw⟩,
+  have hu' : (U ∩ u).nonempty := ⟨w, hw, (hf w hw).frequently_zero_iff_eventually_zero.mp hfw⟩,
 
   let v := { z | ∀ᶠ w in 𝓝[≠] z, f w ≠ 0 },
   have hv : is_open v := by apply is_open_set_of_eventually_nhds_within,
   have hv' : (U ∩ v).nonempty,
-    from ⟨x, hx1, ((hf1 x hx1).continuous_at.eventually_ne hx2).filter_mono nhds_within_le_nhds⟩,
+    from ⟨x, hx1, ((hf x hx1).continuous_at.eventually_ne hx2).filter_mono nhds_within_le_nhds⟩,
 
-  have huv : U ⊆ u ∪ v := λ z hz, (hf1 z hz).eventually_eq_zero_or_eventually_ne_zero,
+  have huv : U ⊆ u ∪ v := λ z hz, (hf z hz).eventually_eq_zero_or_eventually_ne_zero,
   have huv' : u ∩ v = ∅,
     by { ext z,
       simp only [mem_inter_eq, mem_empty_eq, iff_false, not_and],

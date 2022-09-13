@@ -72,35 +72,35 @@ by apply_instance
 noncomputable example : preserves_colimits (forget₂ (Rep k G) (Module.{u} k)) :=
 by apply_instance
 
-section linearisation
+section linearization
 
 variables (k G)
 
 /-- The monoidal functor sending a type `H` with a `G`-action to the induced `k`-linear
 `G`-representation on `k[H].` -/
-noncomputable def linearisation :
+noncomputable def linearization :
   monoidal_functor (Action (Type u) (Mon.of G)) (Rep k G) :=
 (Module.monoidal_free k).map_Action (Mon.of G)
 
 variables {k G}
 
-@[simp] lemma linearisation_obj_def (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V →₀ k) :
-  ((linearisation k G).1.1.obj X).ρ g x = finsupp.lmap_domain k k (X.ρ g) x := rfl
+@[simp] lemma linearization_obj_def (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V →₀ k) :
+  ((linearization k G).1.1.obj X).ρ g x = finsupp.lmap_domain k k (X.ρ g) x := rfl
 
-@[simp] lemma linearisation_of (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V) :
-  ((linearisation k G).1.1.obj X).ρ g (finsupp.single x (1 : k))
+@[simp] lemma linearization_of (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V) :
+  ((linearization k G).1.1.obj X).ρ g (finsupp.single x (1 : k))
     = finsupp.single (X.ρ g x) (1 : k) :=
-by rw [linearisation_obj_def, finsupp.lmap_domain_apply, finsupp.map_domain_single]
+by rw [linearization_obj_def, finsupp.lmap_domain_apply, finsupp.map_domain_single]
 
 variables (X Y : Action (Type u) (Mon.of G)) (f : X ⟶ Y)
 
-@[simp] lemma linearisation_map_def :
-  ((linearisation k G).1.1.map f).hom = finsupp.lmap_domain k k f.hom := rfl
+@[simp] lemma linearization_map_def :
+  ((linearization k G).1.1.map f).hom = finsupp.lmap_domain k k f.hom := rfl
 
-lemma linearisation_map_of (x : X.V) :
-  ((linearisation k G).1.1.map f).hom (finsupp.single x (1 : k))
+lemma linearization_map_of (x : X.V) :
+  ((linearization k G).1.1.map f).hom (finsupp.single x (1 : k))
     = finsupp.single (f.hom x) (1 : k) :=
-by rw [linearisation_map_def, finsupp.lmap_domain_apply, finsupp.map_domain_single]
+by rw [linearization_map_def, finsupp.lmap_domain_apply, finsupp.map_domain_single]
 
 variables (k G)
 
@@ -109,13 +109,13 @@ variables (k G)
 noncomputable abbreviation of_mul_action (H : Type u) [mul_action G H] : Rep k G :=
 of $ representation.of_mul_action k G H
 
-/-- The linearisation of a type `H` with a `G`-action is definitionally isomorphic to the
+/-- The linearization of a type `H` with a `G`-action is definitionally isomorphic to the
 `k`-linear `G`-representation on `k[H]` induced by the `G`-action on `H`. -/
-noncomputable def linearisation_of_mul_action_iso (n : ℕ) :
-  (linearisation k G).1.1.obj (Action.of_mul_action G (fin n → G))
+noncomputable def linearization_of_mul_action_iso (n : ℕ) :
+  (linearization k G).1.1.obj (Action.of_mul_action G (fin n → G))
     ≅ of_mul_action k G (fin n → G) := iso.refl _
 
-end linearisation
+end linearization
 end Rep
 
 /-!

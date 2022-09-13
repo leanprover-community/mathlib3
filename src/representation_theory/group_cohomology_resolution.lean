@@ -5,6 +5,7 @@ Authors: Amelia Livingston
 -/
 
 import algebraic_topology.alternating_face_map_complex
+import algebraic_topology.cech_nerve
 import representation_theory.basic
 import representation_theory.Rep
 
@@ -22,8 +23,10 @@ This allows us to define a `k[G]`-basis on `k[Gⁿ⁺¹]`, by mapping the natura
 `k[G] ⊗ₖ k[Gⁿ]` along the isomorphism.
 
 We then define the standard resolution of `k` as a trivial representation, by
-taking the alternating face map complex associated with an appropriate simplicial `k`-linear
-`G`-representation.
+taking the alternating face map complex associated to an appropriate simplicial `k`-linear
+`G`-representation. This simplicial object is the `linearization` of the simplicial `G`-set given
+by the universal cover of the classifying space of `G`. We prove this `G`-set is isomorphic to the
+Čech nerve of the natural arrow of `G`-sets `G ⟶ {pt}`.
 
 ## Main definitions
 
@@ -32,6 +35,8 @@ taking the alternating face map complex associated with an appropriate simplicia
  * `Rep.of_mul_action`
  * `group_cohomology.resolution.equiv_tensor`
  * `group_cohomology.resolution.of_mul_action_basis`
+ * `classifying_space_universal_cover`
+ * `classifying_space_universal_cover.cech_nerve_iso`
  * `group_cohomology.resolution.standard_resolution`
 
 ## TODO
@@ -225,12 +230,11 @@ lemma of_mul_action_free :
 module.free.of_basis (of_mul_action_basis k G n)
 
 end basis
-section differential
-variables (k G)
+end group_cohomology.resolution
+variables (G)
 
-/- This should maybe be expressed as a nerve... -/
-/-- The simplicial `G`-action sending `[n]` to `Gⁿ⁺¹` equipped with the diagonal action of `G`. -/
-def _root_.simplicial_object.standard_resolution [group G] :
+/-- The simplicial `G`-set sending `[n]` to `Gⁿ⁺¹` equipped with the diagonal action of `G`. -/
+def classifying_space_universal_cover [monoid G] :
   simplicial_object (Action (Type u) $ Mon.of G) :=
 { obj := λ n, Action.of_mul_action G (fin (n.unop.len + 1) → G),
   map := λ m n f,
@@ -239,6 +243,67 @@ def _root_.simplicial_object.standard_resolution [group G] :
   map_id' := λ n, rfl,
   map_comp' := λ i j k f g, rfl }
 
+namespace classifying_space_universal_cover
+
+open category_theory.limits category_theory.arrow
+variables (G) [monoid G] (m : simplex_categoryᵒᵖ)
+
+/-- The natural hom of `G`-sets `G ⟶ {pt}` as an arrow. -/
+def arrow : arrow (Action (Type u) (Mon.of G)) :=
+⟨Action.of_mul_action G G, default, ⟨λ x, punit.star, λ g, rfl⟩⟩
+
+/-- The diagram `option (fin (m + 1)) ⥤ G-Set` sending `none` to `{pt}` and `some j` to `G` (with
+the left regular action). -/
+abbreviation wide_cospan :
+  wide_pullback_shape (fin ((opposite.unop m).len + 1)) ⥤ Action (Type u) (Mon.of G) :=
+wide_pullback_shape.wide_cospan default (λ (i : fin (m.unop.len + 1)), Action.of_mul_action G G)
+  (λ i, ⟨λ x, punit.star, λ g, rfl⟩)
+
+/-- The `G-Set` `Gᵐ⁺¹` (with the diagonal action) is the vertex of a cone on `wide_cospan G m`. -/
+def cone : cone (wide_cospan G m) :=
+{ X := Action.of_mul_action G (fin (m.unop.len + 1) → G),
+  π :=
+  { app := λ X, option.cases_on X (⟨λ x, punit.star, λ g, rfl⟩)
+      (λ i, ⟨λ x, x i, λ x, by ext; refl⟩),
+    naturality' := λ X Y f, by { cases f, cases X, obviously }}}
+
+/-- The cone on `wide_cospan G m` with `Gᵐ⁺¹` as a vertex is a limit. -/
+def is_limit : is_limit (cone G m) :=
+{ lift := λ s,
+  { hom := λ x j, (s.π.app (some j)).hom x,
+    comm' := λ g, by ext; convert congr_fun ((s.π.app (some j)).comm' g) i },
+  fac' := λ s j, option.cases_on j (by ext) (λ j, by ext; refl),
+  uniq' := λ s f h, by ext x j; simpa only [←h (some j)] }
+
+instance has_wide_pullback : has_wide_pullback (arrow G).right
+  (λ i : fin (m.unop.len + 1), (arrow G).left) (λ i, (arrow G).hom) :=
+⟨⟨⟨cone G m, is_limit G m⟩⟩⟩
+
+/-- The `m`th object of the Čech nerve of the `G`-set hom `G ⟶ {pt}` is isomorphic to `Gᵐ⁺¹` with
+the diagonal action. -/
+def cech_nerve_obj_iso :
+  (cech_nerve (arrow G)).obj m ≅ Action.of_mul_action G (fin (m.unop.len + 1) → G) :=
+is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (is_limit G m)
+
+/-- The Čech nerve of the `G`-set hom `G ⟶ {pt}` is naturally isomorphic to `EG`, the universal
+cover of the classifying space of `G` as a simplicial `G`-set. -/
+def cech_nerve_iso : cech_nerve (arrow G) ≅ classifying_space_universal_cover G :=
+(@nat_iso.of_components _ _ _ _ (classifying_space_universal_cover G) (cech_nerve (arrow G))
+(λ n, (cech_nerve_obj_iso G n).symm) $ λ m n f,  wide_pullback.hom_ext (λ j, (arrow G).hom) _ _
+(λ j, begin
+  simp only [category.assoc],
+  dsimp,
+  rw wide_pullback.lift_π,
+  erw [limit.cone_point_unique_up_to_iso_hom_comp (is_limit G n),
+    limit.cone_point_unique_up_to_iso_hom_comp (is_limit G m)],
+  refl,
+end) (by ext)).symm
+
+end classifying_space_universal_cover
+namespace group_cohomology.resolution
+
+section differential
+variables (k G)
 /-- The `k`-linear map underlying the differential in the standard resolution of `k` as a trivial
 `k`-linear `G`-representation. It sends `(g₀, ..., gₙ) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ)`. -/
 def d (n : ℕ) : ((fin (n + 1) → G) →₀ k) →ₗ[k] ((fin n → G) →₀ k) :=
@@ -252,12 +317,12 @@ variables {k G}
     (c ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))) :=
 by simp [d]
 
-variables (k G) [group G]
+variables (k G) [monoid G]
 
 /-- The standard resolution of `k` as a trivial representation, defined as the alternating
 face map complex of a simplicial `k`-linear `G`-representation. -/
 def standard_resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
-  (simplicial_object.standard_resolution G ⋙ (Rep.linearisation k G).1.1)
+  (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
 
 /- Leaving this here for now - not sure it should exist or where it should go. Everything I tried
 to avoid this lemma was messy or gave me weird errors. -/

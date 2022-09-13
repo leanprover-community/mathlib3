@@ -74,6 +74,8 @@ variable (G : Mon.{u})
 
 section
 
+instance inhabited' : inhabited (Action (Type u) G) := ⟨⟨punit, 1⟩⟩
+
 /-- The trivial representation of a group. -/
 def trivial : Action AddCommGroup G :=
 { V := AddCommGroup.of punit,

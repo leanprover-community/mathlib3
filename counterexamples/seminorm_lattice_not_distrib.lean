@@ -53,7 +53,7 @@ begin
            ... ≤ 4 * |1 - x.snd| : (mul_le_mul_left zero_lt_four).mpr (le_abs_self _)
            ... = q2 ((1, 1) - x) : rfl
            ... ≤ (p ⊔ q2) ((1, 1) - x) : le_sup_right
-           ... ≤ (p ⊔ q1) x + (p ⊔ q2) ((1, 1) - x) : le_add_of_nonneg_left (map_nonneg_add _ _) },
+           ... ≤ (p ⊔ q1) x + (p ⊔ q2) ((1, 1) - x) : le_add_of_nonneg_left (map_nonneg _ _) },
     { calc 4/3 = 2/3 + (1 - 1/3) : by norm_num
            ... ≤ x.snd + (1 - x.fst) : add_le_add (le_of_lt h2) (sub_le_sub_left h1 _)
            ... ≤ |x.snd| + |1 - x.fst| : add_le_add (le_abs_self _) (le_abs_self _)
@@ -64,7 +64,7 @@ begin
          ... ≤ 4 * |x.fst| : (mul_le_mul_left zero_lt_four).mpr (le_abs_self _)
          ... = q1 x : rfl
          ... ≤ (p ⊔ q1) x : le_sup_right
-         ... ≤ (p ⊔ q1) x + (p ⊔ q2) ((1, 1) - x) : le_add_of_nonneg_right (map_nonneg_add _ _) }
+         ... ≤ (p ⊔ q1) x + (p ⊔ q2) ((1, 1) - x) : le_add_of_nonneg_right (map_nonneg _ _) }
 end
 
 end seminorm_not_distrib

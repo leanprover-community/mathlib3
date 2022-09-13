@@ -247,7 +247,7 @@ lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] 
 @[simps] def pullback (f : E →ₗ[𝕜] F) : seminorm 𝕜 F →+ seminorm 𝕜 E :=
 ⟨λ p, p.comp f, zero_comp f, λ p q, add_comp p q f⟩
 
-instance : order_bot (seminorm 𝕜 E) := ⟨0, map_nonneg_add⟩
+instance : order_bot (seminorm 𝕜 E) := ⟨0, map_nonneg⟩
 
 @[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
 
@@ -259,11 +259,11 @@ begin
   simp_rw [le_def, pi.le_def, coe_smul],
   intros x,
   simp_rw [pi.smul_apply, nnreal.smul_def, smul_eq_mul],
-  exact mul_le_mul hab (hpq x) (map_nonneg_add p x) (nnreal.coe_nonneg b),
+  exact mul_le_mul hab (hpq x) (map_nonneg p x) (nnreal.coe_nonneg b),
 end
 
 lemma finset_sup_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
-  s.sup p x = ↑(s.sup (λ i, ⟨p i x, map_nonneg_add (p i) x⟩) : ℝ≥0) :=
+  s.sup p x = ↑(s.sup (λ i, ⟨p i x, map_nonneg (p i) x⟩) : ℝ≥0) :=
 begin
   induction s using finset.cons_induction_on with a s ha ih,
   { rw [finset.sup_empty, finset.sup_empty, coe_bot, _root_.bot_eq_zero, pi.zero_apply,
@@ -319,7 +319,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {p q : seminorm
 
 /-- Auxiliary lemma to show that the infimum of seminorms is well-defined. -/
 lemma bdd_below_range_add : bdd_below (range $ λ u, p u + q (x - u)) :=
-⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg_add p _) (map_nonneg_add q _) }⟩
+⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg p _) (map_nonneg q _) }⟩
 
 noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
@@ -330,7 +330,7 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       obtain rfl | ha := eq_or_ne a 0,
       { rw [norm_zero, zero_mul, zero_smul],
         refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-          (λ i, add_nonneg (map_nonneg_add p _) (map_nonneg_add q _))
+          (λ i, add_nonneg (map_nonneg p _) (map_nonneg q _))
           (λ x hx, ⟨0, by rwa [map_zero, sub_zero, map_zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←map_smul_eq_mul p,
         ←map_smul_eq_mul q, smul_sub],
@@ -445,7 +445,7 @@ begin
   ext x,
   simp only [mem_ball, sub_zero, mem_preimage, mem_ball_zero_iff],
   rw real.norm_of_nonneg,
-  exact map_nonneg_add p _,
+  exact map_nonneg p _,
 end
 
 @[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) :
@@ -457,7 +457,7 @@ lemma balanced_ball_zero (r : ℝ) : balanced 𝕜 (ball p 0 r) :=
 begin
   rintro a ha x ⟨y, hy, hx⟩,
   rw [mem_ball_zero, ←hx, map_smul_eq_mul],
-  calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg_add p _) ha
+  calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg p _) ha
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
@@ -485,14 +485,14 @@ begin
   rcases hx with ⟨a, y, ha, hy, hx⟩,
   rw [←hx, mem_ball_zero, map_smul_eq_mul],
   exact mul_lt_mul'' (mem_ball_zero_iff.mp ha) (p.mem_ball_zero.mp hy) (norm_nonneg a)
-    (map_nonneg_add p y),
+    (map_nonneg p y),
 end
 
 @[simp] lemma ball_eq_emptyset (p : seminorm 𝕜 E) {x : E} {r : ℝ} (hr : r ≤ 0) : p.ball x r = ∅ :=
 begin
   ext,
   rw [seminorm.mem_ball, set.mem_empty_eq, iff_false, not_lt],
-  exact hr.trans (map_nonneg_add p _),
+  exact hr.trans (map_nonneg p _),
 end
 
 end module
@@ -542,7 +542,7 @@ protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E
 begin
   rw absorbent_iff_nonneg_lt,
   rintro x,
-  have hxr : 0 ≤ p x/r := div_nonneg (map_nonneg_add p _) hr.le,
+  have hxr : 0 ≤ p x/r := div_nonneg (map_nonneg p _) hr.le,
   refine ⟨p x/r, hxr, λ a ha, _⟩,
   have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
   refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,

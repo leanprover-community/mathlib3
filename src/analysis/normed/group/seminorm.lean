@@ -123,7 +123,7 @@ include E
 @[to_additive] lemma map_div_le_add : f (x / y) ≤ f x + f y :=
 by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 
-@[simp, to_additive] lemma map_nonneg_mul : 0 ≤ f x :=
+@[simp, to_additive] lemma map_nonneg : 0 ≤ f x :=
 nonneg_of_mul_nonneg_right
   (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' x], exact map_div_le_add _ _ _ }) two_pos
 
@@ -152,7 +152,7 @@ variables [group E] [group_norm_class F E] (f : F) {x : E}
 include E
 
 @[to_additive] lemma map_pos_of_ne_one (hx : x ≠ 1) : 0 < f x :=
-(map_nonneg_mul _ _).lt_of_ne $ λ h, hx $ eq_one_of_map_eq_zero _ h.symm
+(map_nonneg _ _).lt_of_ne $ λ h, hx $ eq_one_of_map_eq_zero _ h.symm
 
 @[simp, to_additive] lemma map_eq_zero_iff_eq_one : f x = 0 ↔ x = 1 :=
 ⟨eq_one_of_map_eq_zero _, by { rintro rfl, exact map_one_eq_zero _ }⟩
@@ -266,13 +266,13 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
 
 @[to_additive] lemma mul_bdd_below_range_add {p q : group_seminorm E} {x : E} :
   bdd_below (range $ λ y, p y + q (x / y)) :=
-⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg_mul p _) (map_nonneg_mul q _) }⟩
+⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg p _) (map_nonneg q _) }⟩
 
 @[to_additive] noncomputable instance : has_inf (group_seminorm E) :=
 ⟨λ p q,
   { to_fun := λ x, ⨅ y, p y + q (x / y),
     map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-        (λ x, add_nonneg (map_nonneg_mul p _) (map_nonneg_mul q _))
+        (λ x, add_nonneg (map_nonneg p _) (map_nonneg q _))
         (λ r hr, ⟨1, by rwa [div_one, map_one_eq_zero p, map_one_eq_zero q, add_zero]⟩),
     mul_le' := λ x y, le_cinfi_add_cinfi $ λ u v, begin
       refine cinfi_le_of_le mul_bdd_below_range_add (u * v) _,

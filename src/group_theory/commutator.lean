@@ -145,6 +145,19 @@ begin
     exact mem_map_of_mem _ (commutator_mem_commutator hp hq) }
 end
 
+variables {H₁ H₂}
+
+lemma commutator_le_map_commutator {f : G →* G'} {K₁ K₂ : subgroup G'}
+  (h₁ : K₁ ≤ H₁.map f) (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
+(commutator_mono h₁ h₂).trans (ge_of_eq (map_commutator H₁ H₂ f))
+
+variables (H₁ H₂)
+
+instance commutator_characteristic [h₁ : characteristic H₁] [h₂ : characteristic H₂] :
+  characteristic ⁅H₁, H₂⁆ :=
+characteristic_iff_le_map.mpr (λ ϕ, commutator_le_map_commutator
+  (characteristic_iff_le_map.mp h₁ ϕ) (characteristic_iff_le_map.mp h₂ ϕ))
+
 lemma commutator_prod_prod (K₁ K₂ : subgroup G') :
   ⁅H₁.prod K₁, H₂.prod K₂⁆ = ⁅H₁, H₂⁆.prod ⁅K₁, K₂⁆ :=
 begin
@@ -161,7 +174,7 @@ end
 
 /-- The commutator of direct product is contained in the direct product of the commutators.
 
-See `commutator_pi_pi_of_fintype` for equality given `fintype η`.
+See `commutator_pi_pi_of_finite` for equality given `fintype η`.
 -/
 lemma commutator_pi_pi_le {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
   (H K : Π i, subgroup (Gs i)) :
@@ -170,7 +183,7 @@ commutator_le.mpr $ λ p hp q hq i hi, commutator_mem_commutator (hp i hi) (hq i
 
 /-- The commutator of a finite direct product is contained in the direct product of the commutators.
 -/
-lemma commutator_pi_pi_of_fintype {η : Type*} [fintype η] {Gs : η → Type*}
+lemma commutator_pi_pi_of_finite {η : Type*} [finite η] {Gs : η → Type*}
   [∀ i, group (Gs i)] (H K : Π i, subgroup (Gs i)) :
   ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ = subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
 begin

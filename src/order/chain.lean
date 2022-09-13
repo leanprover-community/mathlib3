@@ -4,16 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.pairwise
+import data.set_like.basic
 
 /-!
-# Chains
+# Chains and flags
 
-This file defines chains for an arbitrary relation and proves Hausdorff's Maximality Principle.
+This file defines chains for an arbitrary relation and flags for an order and proves Hausdorff's
+Maximality Principle.
 
 ## Main declarations
 
 * `is_chain s`: A chain `s` is a set of comparable elements.
 * `max_chain_spec`: Hausdorff's Maximality Principle.
+* `flag`: The type of flags, aka maximal chains, of an order.
 
 ## Notes
 
@@ -24,12 +27,14 @@ Fleuriot, Tobias Nipkow, Christian Sternagel.
 
 open classical set
 
-variables {α β : Type*} (r : α → α → Prop)
+variables {α β : Type*}
 
-local infix ` ≺ `:50 := r
+/-! ### Chains -/
 
 section chain
-variables (r)
+variables (r : α → α → Prop)
+
+local infix ` ≺ `:50 := r
 
 /-- A chain is a set `s` satisfying `x ≺ y ∨ x = y ∨ y ≺ x` for all `x y ∈ s`. -/
 def is_chain (s : set α) : Prop := s.pairwise (λ x y, x ≺ y ∨ y ≺ x)
@@ -47,6 +52,10 @@ lemma is_chain_empty : is_chain r ∅ := set.pairwise_empty _
 lemma set.subsingleton.is_chain (hs : s.subsingleton) : is_chain r s := hs.pairwise _
 
 lemma is_chain.mono : s ⊆ t → is_chain r t → is_chain r s := set.pairwise.mono
+
+lemma is_chain.mono_rel {r' : α → α → Prop} (h : is_chain r s)
+  (h_imp : ∀ x y, r x y → r' x y) : is_chain r' s :=
+h.mono' $ λ x y, or.imp (h_imp x y) (h_imp y x)
 
 /-- This can be used to turn `is_chain (≥)` into `is_chain (≤)` and vice-versa. -/
 lemma is_chain.symm (h : is_chain r s) : is_chain (flip r) s := h.mono' $ λ _ _, or.symm
@@ -87,11 +96,28 @@ protected lemma is_chain.directed {f : β → α} {c : set β} (h : is_chain (f 
     exact ⟨b, hb, refl _⟩) $
   λ hab, (h ha hb hab).elim (λ h, ⟨⟨b, hb⟩, h, refl _⟩) $ λ h, ⟨⟨a, ha⟩, refl _, h⟩
 
+lemma is_chain.exists3 (hchain : is_chain r s) [is_trans α r] {a b c}
+  (mem1 : a ∈ s) (mem2 : b ∈ s) (mem3 : c ∈ s) :
+  ∃ (z) (mem4 : z ∈ s), r a z ∧ r b z ∧ r c z :=
+begin
+  rcases directed_on_iff_directed.mpr (is_chain.directed hchain) a mem1 b mem2 with
+    ⟨z, mem4, H1, H2⟩,
+  rcases directed_on_iff_directed.mpr (is_chain.directed hchain) z mem4 c mem3 with
+    ⟨z', mem5, H3, H4⟩,
+  exact ⟨z', mem5, trans H1 H3, trans H2 H3, H4⟩,
+end
+
 end total
 
 lemma is_max_chain.is_chain (h : is_max_chain r s) : is_chain r s := h.1
 lemma is_max_chain.not_super_chain (h : is_max_chain r s) : ¬super_chain r s t :=
 λ ht, ht.2.ne $ h.2 ht.1 ht.2.1
+
+lemma is_max_chain.bot_mem [has_le α] [order_bot α] (h : is_max_chain (≤) s) : ⊥ ∈ s :=
+(h.2 (h.1.insert $ λ a _ _, or.inl bot_le) $ subset_insert _ _).symm ▸ mem_insert _ _
+
+lemma is_max_chain.top_mem [has_le α] [order_top α] (h : is_max_chain (≤) s) : ⊤ ∈ s :=
+(h.2 (h.1.insert $ λ a _ _, or.inr le_top) $ subset_insert _ _).symm ▸ mem_insert _ _
 
 open_locale classical
 
@@ -219,3 +245,67 @@ let ⟨h₁, H⟩ := chain_closure_max_chain.is_chain.super_chain_succ_chain h i
   H.ne (chain_closure_max_chain.succ_fixpoint_iff.mpr rfl).symm
 
 end chain
+
+/-! ### Flags -/
+
+/-- The type of flags, aka maximal chains, of an order. -/
+structure flag (α : Type*) [has_le α] :=
+(carrier : set α)
+(chain' : is_chain (≤) carrier)
+(max_chain' : ∀ ⦃s⦄, is_chain (≤) s → carrier ⊆ s → carrier = s)
+
+namespace flag
+section has_le
+variables [has_le α] {s t : flag α} {a : α}
+
+instance : set_like (flag α) α :=
+{ coe := carrier,
+  coe_injective' := λ s t h, by { cases s, cases t, congr' } }
+
+@[ext] lemma ext : (s : set α) = t → s = t := set_like.ext'
+@[simp] lemma mem_coe_iff : a ∈ (s : set α) ↔ a ∈ s := iff.rfl
+@[simp] lemma coe_mk (s : set α) (h₁ h₂) : (mk s h₁ h₂ : set α) = s := rfl
+@[simp] lemma mk_coe (s : flag α) : mk (s : set α) s.chain' s.max_chain' = s := ext rfl
+
+lemma chain_le (s : flag α) : is_chain (≤) (s : set α) := s.chain'
+protected lemma max_chain (s : flag α) : is_max_chain (≤) (s : set α) := ⟨s.chain_le, s.max_chain'⟩
+
+lemma top_mem [order_top α] (s : flag α) : (⊤ : α) ∈ s := s.max_chain.top_mem
+lemma bot_mem [order_bot α] (s : flag α) : (⊥ : α) ∈ s := s.max_chain.bot_mem
+
+end has_le
+
+section preorder
+variables [preorder α] {a b : α}
+
+protected lemma le_or_le (s : flag α) (ha : a ∈ s) (hb : b ∈ s) : a ≤ b ∨ b ≤ a :=
+s.chain_le.total ha hb
+
+instance [order_top α] (s : flag α) : order_top s := subtype.order_top s.top_mem
+instance [order_bot α] (s : flag α) : order_bot s := subtype.order_bot s.bot_mem
+instance [bounded_order α] (s : flag α) : bounded_order s :=
+subtype.bounded_order s.bot_mem s.top_mem
+
+end preorder
+
+section partial_order
+variables [partial_order α]
+
+lemma chain_lt (s : flag α) : is_chain (<) (s : set α) :=
+λ a ha b hb h, (s.le_or_le ha hb).imp h.lt_of_le h.lt_of_le'
+
+instance [decidable_eq α] [@decidable_rel α (≤)] [@decidable_rel α (<)] (s : flag α) :
+  linear_order s :=
+{ le_total := λ a b, s.le_or_le a.2 b.2,
+  decidable_eq := subtype.decidable_eq,
+  decidable_le := subtype.decidable_le,
+  decidable_lt := subtype.decidable_lt,
+  ..subtype.partial_order _ }
+
+end partial_order
+
+instance [linear_order α] : unique (flag α) :=
+{ default := ⟨univ, is_chain_of_trichotomous _, λ s _, s.subset_univ.antisymm'⟩,
+  uniq := λ s, set_like.coe_injective $ s.3 (is_chain_of_trichotomous _) $ subset_univ _ }
+
+end flag

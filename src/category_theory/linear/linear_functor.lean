@@ -81,7 +81,7 @@ instance nat_linear : F.linear ℕ :=
 { map_smul' := λ X Y f r, F.map_add_hom.map_nsmul f r, }
 
 instance int_linear : F.linear ℤ :=
-{ map_smul' := λ X Y f r, F.map_add_hom.map_zsmul f r, }
+{ map_smul' := λ X Y f r, (F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_zsmul f r, }
 
 variables [category_theory.linear ℚ C] [category_theory.linear ℚ D]
 

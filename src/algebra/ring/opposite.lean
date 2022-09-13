@@ -3,8 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.ring.basic
 import algebra.group.opposite
+import algebra.hom.ring
 
 /-!
 # Ring structures on the multiplicative opposite
@@ -41,11 +41,15 @@ instance [non_unital_semiring α] : non_unital_semiring αᵐᵒᵖ :=
 { .. mul_opposite.semigroup_with_zero α, .. mul_opposite.non_unital_non_assoc_semiring α }
 
 instance [non_assoc_semiring α] : non_assoc_semiring αᵐᵒᵖ :=
-{ .. mul_opposite.mul_zero_one_class α, .. mul_opposite.non_unital_non_assoc_semiring α }
+{ .. mul_opposite.add_monoid_with_one α, .. mul_opposite.mul_zero_one_class α,
+  .. mul_opposite.non_unital_non_assoc_semiring α }
 
 instance [semiring α] : semiring αᵐᵒᵖ :=
 { .. mul_opposite.non_unital_semiring α, .. mul_opposite.non_assoc_semiring α,
   .. mul_opposite.monoid_with_zero α }
+
+instance [non_unital_comm_semiring α] : non_unital_comm_semiring αᵐᵒᵖ :=
+{ .. mul_opposite.non_unital_semiring α, .. mul_opposite.comm_semigroup α }
 
 instance [comm_semiring α] : comm_semiring αᵐᵒᵖ :=
 { .. mul_opposite.semiring α, .. mul_opposite.comm_semigroup α }
@@ -58,10 +62,14 @@ instance [non_unital_ring α] : non_unital_ring αᵐᵒᵖ :=
   .. mul_opposite.distrib α}
 
 instance [non_assoc_ring α] : non_assoc_ring αᵐᵒᵖ :=
-{ .. mul_opposite.add_comm_group α, .. mul_opposite.mul_zero_one_class α, .. mul_opposite.distrib α}
+{ .. mul_opposite.add_comm_group α, .. mul_opposite.mul_zero_one_class α, .. mul_opposite.distrib α,
+  .. mul_opposite.add_group_with_one α }
 
 instance [ring α] : ring αᵐᵒᵖ :=
-{ .. mul_opposite.add_comm_group α, .. mul_opposite.monoid α, .. mul_opposite.semiring α }
+{ .. mul_opposite.monoid α, .. mul_opposite.non_assoc_ring α }
+
+instance [non_unital_comm_ring α] : non_unital_comm_ring αᵐᵒᵖ :=
+{ .. mul_opposite.non_unital_ring α, .. mul_opposite.non_unital_comm_semiring α }
 
 instance [comm_ring α] : comm_ring αᵐᵒᵖ :=
 { .. mul_opposite.ring α, .. mul_opposite.comm_semiring α }
@@ -85,8 +93,8 @@ end mul_opposite
 namespace add_opposite
 
 instance [distrib α] : distrib αᵃᵒᵖ :=
-{ left_distrib := λ x y z, unop_injective $ mul_add x _ _,
-  right_distrib := λ x y z, unop_injective $ add_mul _ _ z,
+{ left_distrib := λ x y z, unop_injective $ @mul_add α _ _ _ x z y,
+  right_distrib := λ x y z, unop_injective $ @add_mul α _ _ _ y x z,
   .. add_opposite.has_add α, .. @add_opposite.has_mul α _}
 
 instance [mul_zero_class α] : mul_zero_class αᵃᵒᵖ :=
@@ -117,6 +125,9 @@ instance [semiring α] : semiring αᵃᵒᵖ :=
 { .. add_opposite.non_unital_semiring α, .. add_opposite.non_assoc_semiring α,
   .. add_opposite.monoid_with_zero α }
 
+instance [non_unital_comm_semiring α] : non_unital_comm_semiring αᵃᵒᵖ :=
+{ .. add_opposite.non_unital_semiring α, .. add_opposite.comm_semigroup α }
+
 instance [comm_semiring α] : comm_semiring αᵃᵒᵖ :=
 { .. add_opposite.semiring α, .. add_opposite.comm_semigroup α }
 
@@ -132,6 +143,9 @@ instance [non_assoc_ring α] : non_assoc_ring αᵃᵒᵖ :=
 
 instance [ring α] : ring αᵃᵒᵖ :=
 { .. add_opposite.add_comm_group α, .. add_opposite.monoid α, .. add_opposite.semiring α }
+
+instance [non_unital_comm_ring α] : non_unital_comm_ring αᵃᵒᵖ :=
+{ .. add_opposite.non_unital_ring α, .. add_opposite.non_unital_comm_semiring α }
 
 instance [comm_ring α] : comm_ring αᵃᵒᵖ :=
 { .. add_opposite.ring α, .. add_opposite.comm_semiring α }
@@ -155,6 +169,41 @@ end add_opposite
 
 open mul_opposite
 
+/-- A non-unital ring homomorphism `f : R →ₙ+* S` such that `f x` commutes with `f y` for all `x, y`
+defines a non-unital ring homomorphism to `Sᵐᵒᵖ`. -/
+@[simps {fully_applied := ff}]
+def non_unital_ring_hom.to_opposite {R S : Type*} [non_unital_non_assoc_semiring R]
+  [non_unital_non_assoc_semiring S] (f : R →ₙ+* S) (hf : ∀ x y, commute (f x) (f y)) :
+  R →ₙ+* Sᵐᵒᵖ :=
+{ to_fun := mul_opposite.op ∘ f,
+  .. ((op_add_equiv : S ≃+ Sᵐᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵐᵒᵖ),
+  .. f.to_mul_hom.to_opposite hf }
+
+/-- A non-unital ring homomorphism `f : R →ₙ* S` such that `f x` commutes with `f y` for all `x, y`
+defines a non-unital ring homomorphism from `Rᵐᵒᵖ`. -/
+@[simps {fully_applied := ff}]
+def non_unital_ring_hom.from_opposite {R S : Type*} [non_unital_non_assoc_semiring R]
+  [non_unital_non_assoc_semiring S] (f : R →ₙ+* S) (hf : ∀ x y, commute (f x) (f y)) :
+  Rᵐᵒᵖ →ₙ+* S :=
+{ to_fun := f ∘ mul_opposite.unop,
+  .. (f.to_add_monoid_hom.comp (op_add_equiv : R ≃+ Rᵐᵒᵖ).symm.to_add_monoid_hom : Rᵐᵒᵖ →+ S),
+  .. f.to_mul_hom.from_opposite hf }
+
+/-- A non-unital ring hom `α →ₙ+* β` can equivalently be viewed as a non-unital ring hom
+`αᵐᵒᵖ →+* βᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
+@[simps]
+def non_unital_ring_hom.op {α β} [non_unital_non_assoc_semiring α]
+  [non_unital_non_assoc_semiring β] : (α →ₙ+* β) ≃ (αᵐᵒᵖ →ₙ+* βᵐᵒᵖ) :=
+{ to_fun    := λ f, { ..f.to_add_monoid_hom.mul_op, ..f.to_mul_hom.op },
+  inv_fun   := λ f, { ..f.to_add_monoid_hom.mul_unop, ..f.to_mul_hom.unop },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, simp } }
+
+/-- The 'unopposite' of a non-unital ring hom `αᵐᵒᵖ →ₙ+* βᵐᵒᵖ`. Inverse to
+`non_unital_ring_hom.op`. -/
+@[simp] def non_unital_ring_hom.unop {α β} [non_unital_non_assoc_semiring α]
+  [non_unital_non_assoc_semiring β] : (αᵐᵒᵖ →ₙ+* βᵐᵒᵖ) ≃ (α →ₙ+* β) := non_unital_ring_hom.op.symm
+
 /-- A ring homomorphism `f : R →+* S` such that `f x` commutes with `f y` for all `x, y` defines
 a ring homomorphism to `Sᵐᵒᵖ`. -/
 @[simps {fully_applied := ff}]
@@ -164,8 +213,8 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   .. ((op_add_equiv : S ≃+ Sᵐᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵐᵒᵖ),
   .. f.to_monoid_hom.to_opposite hf }
 
-/-- A monoid homomorphism `f : R →* S` such that `f x` commutes with `f y` for all `x, y` defines
-a monoid homomorphism from `Rᵐᵒᵖ`. -/
+/-- A ring homomorphism `f : R →+* S` such that `f x` commutes with `f y` for all `x, y` defines
+a ring homomorphism from `Rᵐᵒᵖ`. -/
 @[simps {fully_applied := ff}]
 def ring_hom.from_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   (hf : ∀ x y, commute (f x) (f y)) : Rᵐᵒᵖ →+* S :=

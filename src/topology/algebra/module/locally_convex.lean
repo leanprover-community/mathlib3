@@ -28,7 +28,7 @@ In a module, this is equivalent to `0` satisfying such properties.
 
 -/
 
-open topological_space filter
+open topological_space filter set
 
 open_locale topological_space
 
@@ -47,8 +47,8 @@ lemma locally_convex_space_iff :
   ∀ x : E, (𝓝 x).has_basis (λ (s : set E), s ∈ 𝓝 x ∧ convex 𝕜 s) id :=
 ⟨@locally_convex_space.convex_basis _ _ _ _ _ _, locally_convex_space.mk⟩
 
-lemma locally_convex_space.of_bases {ι : Type*} (b : E → ι → set E) (p : ι → Prop)
-  (hbasis : ∀ x : E, (𝓝 x).has_basis p (b x)) (hconvex : ∀ x i, p i → convex 𝕜 (b x i)) :
+lemma locally_convex_space.of_bases {ι : Type*} (b : E → ι → set E) (p : E → ι → Prop)
+  (hbasis : ∀ x : E, (𝓝 x).has_basis (p x) (b x)) (hconvex : ∀ x i, p x i → convex 𝕜 (b x i)) :
   locally_convex_space 𝕜 E :=
 ⟨λ x, (hbasis x).to_has_basis
   (λ i hi, ⟨b x i, ⟨⟨(hbasis x).mem_of_mem hi, hconvex x i hi⟩, le_refl (b x i)⟩⟩)
@@ -74,7 +74,7 @@ lemma locally_convex_space.of_basis_zero {ι : Type*} (b : ι → set E) (p : ι
   (hbasis : (𝓝 0).has_basis p b) (hconvex : ∀ i, p i → convex 𝕜 (b i)) :
   locally_convex_space 𝕜 E :=
 begin
-  refine locally_convex_space.of_bases 𝕜 E (λ (x : E) (i : ι), ((+) x) '' b i) p (λ x, _)
+  refine locally_convex_space.of_bases 𝕜 E (λ (x : E) (i : ι), ((+) x) '' b i) (λ _, p) (λ x, _)
     (λ x i hi, (hconvex i hi).translate x),
   rw ← map_add_left_nhds_zero,
   exact hbasis.map _
@@ -91,4 +91,70 @@ lemma locally_convex_space_iff_exists_convex_subset_zero :
   ∀ U ∈ (𝓝 0 : filter E), ∃ S ∈ (𝓝 0 : filter E), convex 𝕜 S ∧ S ⊆ U :=
 (locally_convex_space_iff_zero 𝕜 E).trans has_basis_self
 
+-- see Note [lower instance priority]
+@[priority 100] instance locally_convex_space.to_locally_connected_space [module ℝ E]
+  [has_continuous_smul ℝ E] [locally_convex_space ℝ E] :
+  locally_connected_space E :=
+locally_connected_space_of_connected_bases _ _
+  (λ x, @locally_convex_space.convex_basis ℝ _ _ _ _ _ _ x)
+  (λ x s hs, hs.2.is_preconnected)
+
 end module
+
+section lattice_ops
+
+variables {ι : Sort*} {𝕜 E F : Type*} [ordered_semiring 𝕜] [add_comm_monoid E]
+  [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F]
+
+lemma locally_convex_space_Inf {ts : set (topological_space E)}
+  (h : ∀ t ∈ ts, @locally_convex_space 𝕜 E  _ _ _ t) :
+  @locally_convex_space 𝕜 E _ _ _ (Inf ts) :=
+begin
+  letI : topological_space E := Inf ts,
+  refine locally_convex_space.of_bases 𝕜 E
+    (λ x, λ If : set ts × (ts → set E), ⋂ i ∈ If.1, If.2 i)
+    (λ x, λ If : set ts × (ts → set E), If.1.finite ∧ ∀ i ∈ If.1,
+      ((If.2 i) ∈ @nhds _ ↑i x ∧ convex 𝕜 (If.2 i)))
+    (λ x, _) (λ x If hif, convex_Inter $ λ i, convex_Inter $ λ hi, (hif.2 i hi).2),
+  rw [nhds_Inf, ← infi_subtype''],
+  exact has_basis_infi' (λ i : ts, (@locally_convex_space_iff 𝕜 E _ _ _ ↑i).mp (h ↑i i.2) x),
+end
+
+lemma locally_convex_space_infi {ts' : ι → topological_space E}
+  (h' : ∀ i, @locally_convex_space 𝕜 E  _ _ _ (ts' i)) :
+  @locally_convex_space 𝕜 E _ _ _ (⨅ i, ts' i) :=
+begin
+  refine locally_convex_space_Inf _,
+  rwa forall_range_iff
+end
+
+lemma locally_convex_space_inf {t₁ t₂ : topological_space E}
+  (h₁ : @locally_convex_space 𝕜 E _ _ _ t₁) (h₂ : @locally_convex_space 𝕜 E _ _ _ t₂) :
+  @locally_convex_space 𝕜 E _ _ _ (t₁ ⊓ t₂) :=
+by {rw inf_eq_infi, refine locally_convex_space_infi (λ b, _), cases b; assumption}
+
+lemma locally_convex_space_induced {t : topological_space F} [locally_convex_space 𝕜 F]
+  (f : E →ₗ[𝕜] F) :
+  @locally_convex_space 𝕜 E _ _ _ (t.induced f) :=
+begin
+  letI : topological_space E := t.induced f,
+  refine locally_convex_space.of_bases 𝕜 E (λ x, preimage f)
+    (λ x, λ (s : set F), s ∈ 𝓝 (f x) ∧ convex 𝕜 s) (λ x, _)
+    (λ x s ⟨_, hs⟩, hs.linear_preimage f),
+  rw nhds_induced,
+  exact (locally_convex_space.convex_basis $ f x).comap f
+end
+
+instance {ι : Type*} {X : ι → Type*} [Π i, add_comm_monoid (X i)] [Π i, topological_space (X i)]
+  [Π i, module 𝕜 (X i)] [Π i, locally_convex_space 𝕜 (X i)] :
+  locally_convex_space 𝕜 (Π i, X i) :=
+locally_convex_space_infi (λ i, locally_convex_space_induced (linear_map.proj i))
+
+instance [topological_space E] [topological_space F] [locally_convex_space 𝕜 E]
+  [locally_convex_space 𝕜 F] :
+  locally_convex_space 𝕜 (E × F) :=
+locally_convex_space_inf
+  (locally_convex_space_induced (linear_map.fst _ _ _))
+  (locally_convex_space_induced (linear_map.snd _ _ _))
+
+end lattice_ops

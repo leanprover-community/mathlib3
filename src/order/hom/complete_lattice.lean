@@ -484,7 +484,7 @@ namespace Sup_hom
 variables [has_Sup α] [has_Sup β] [has_Sup γ]
 
 /-- Reinterpret a `⨆`-homomorphism as an `⨅`-homomorphism between the dual orders. -/
-@[simps] protected def dual : Sup_hom α β ≃ Inf_hom (order_dual α) (order_dual β) :=
+@[simps] protected def dual : Sup_hom α β ≃ Inf_hom αᵒᵈ βᵒᵈ :=
 { to_fun := λ f, ⟨to_dual ∘ f ∘ of_dual, f.map_Sup'⟩,
   inv_fun := λ f, ⟨of_dual ∘ f ∘ to_dual, f.map_Inf'⟩,
   left_inv := λ f, Sup_hom.ext $ λ a, rfl,
@@ -495,8 +495,7 @@ variables [has_Sup α] [has_Sup β] [has_Sup γ]
   (g.comp f).dual = g.dual.comp f.dual := rfl
 
 @[simp] lemma symm_dual_id : Sup_hom.dual.symm (Inf_hom.id _) = Sup_hom.id α := rfl
-@[simp] lemma symm_dual_comp (g : Inf_hom (order_dual β) (order_dual γ))
-  (f : Inf_hom (order_dual α) (order_dual β)) :
+@[simp] lemma symm_dual_comp (g : Inf_hom βᵒᵈ γᵒᵈ) (f : Inf_hom αᵒᵈ βᵒᵈ) :
   Sup_hom.dual.symm (g.comp f) = (Sup_hom.dual.symm g).comp (Sup_hom.dual.symm f) := rfl
 
 end Sup_hom
@@ -505,7 +504,7 @@ namespace Inf_hom
 variables [has_Inf α] [has_Inf β] [has_Inf γ]
 
 /-- Reinterpret an `⨅`-homomorphism as a `⨆`-homomorphism between the dual orders. -/
-@[simps] protected def dual : Inf_hom α β ≃ Sup_hom (order_dual α) (order_dual β) :=
+@[simps] protected def dual : Inf_hom α β ≃ Sup_hom αᵒᵈ βᵒᵈ :=
 { to_fun := λ f, { to_fun := to_dual ∘ f ∘ of_dual,
                    map_Sup' := λ _, congr_arg to_dual (map_Inf f _) },
   inv_fun := λ f, { to_fun := of_dual ∘ f ∘ to_dual,
@@ -518,8 +517,7 @@ variables [has_Inf α] [has_Inf β] [has_Inf γ]
   (g.comp f).dual = g.dual.comp f.dual := rfl
 
 @[simp] lemma symm_dual_id : Inf_hom.dual.symm (Sup_hom.id _) = Inf_hom.id α := rfl
-@[simp] lemma symm_dual_comp (g : Sup_hom (order_dual β) (order_dual γ))
-  (f : Sup_hom (order_dual α) (order_dual β)) :
+@[simp] lemma symm_dual_comp (g : Sup_hom βᵒᵈ γᵒᵈ) (f : Sup_hom αᵒᵈ βᵒᵈ) :
   Inf_hom.dual.symm (g.comp f) = (Inf_hom.dual.symm g).comp (Inf_hom.dual.symm f) := rfl
 
 end Inf_hom
@@ -529,8 +527,7 @@ variables [complete_lattice α] [complete_lattice β] [complete_lattice γ]
 
 /-- Reinterpret a complete lattice homomorphism as a complete lattice homomorphism between the dual
 lattices. -/
-@[simps] protected def dual :
-   complete_lattice_hom α β ≃ complete_lattice_hom (order_dual α) (order_dual β) :=
+@[simps] protected def dual : complete_lattice_hom α β ≃ complete_lattice_hom αᵒᵈ βᵒᵈ :=
 { to_fun := λ f, ⟨f.to_Sup_hom.dual, f.map_Inf'⟩,
   inv_fun := λ f, ⟨f.to_Sup_hom.dual, f.map_Inf'⟩,
   left_inv := λ f, ext $ λ a, rfl,
@@ -542,8 +539,7 @@ lattices. -/
 
 @[simp] lemma symm_dual_id :
   complete_lattice_hom.dual.symm (complete_lattice_hom.id _) = complete_lattice_hom.id α := rfl
-@[simp] lemma symm_dual_comp (g : complete_lattice_hom (order_dual β) (order_dual γ))
-  (f : complete_lattice_hom (order_dual α) (order_dual β)) :
+@[simp] lemma symm_dual_comp (g : complete_lattice_hom βᵒᵈ γᵒᵈ) (f : complete_lattice_hom αᵒᵈ βᵒᵈ) :
   complete_lattice_hom.dual.symm (g.comp f) =
     (complete_lattice_hom.dual.symm g).comp (complete_lattice_hom.dual.symm f) := rfl
 

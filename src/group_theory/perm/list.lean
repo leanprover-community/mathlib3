@@ -56,6 +56,8 @@ prod_cons
 
 lemma form_perm_pair (x y : α) : form_perm [x, y] = swap x y := rfl
 
+variables {l} {x : α}
+
 lemma form_perm_apply_of_not_mem (x : α) (l : list α) (h : x ∉ l) :
   form_perm l x = x :=
 begin
@@ -67,6 +69,9 @@ begin
     simp only [not_or_distrib, mem_cons_iff] at h,
     simp [IH, swap_apply_of_ne_of_ne, h] }
 end
+
+lemma mem_of_form_perm_apply_ne (x : α) (l : list α) : l.form_perm x ≠ x → x ∈ l :=
+not_imp_comm.2 $ list.form_perm_apply_of_not_mem _ _
 
 lemma form_perm_apply_mem_of_mem (x : α) (l : list α) (h : x ∈ l) :
   form_perm l x ∈ l :=
@@ -82,6 +87,29 @@ begin
     { replace h : x = y := or.resolve_right h hx,
       simp [form_perm_apply_of_not_mem _ _ hx, ←h] } }
 end
+
+lemma mem_of_form_perm_apply_mem (x : α) (l : list α) (h : l.form_perm x ∈ l) : x ∈ l :=
+begin
+  cases l with y l,
+  { simpa },
+  induction l with z l IH generalizing x y,
+  { simpa using h },
+  { by_cases hx : (z :: l).form_perm x ∈ z :: l,
+    { rw [list.form_perm_cons_cons, mul_apply, swap_apply_def] at h,
+      split_ifs at h;
+      simp [IH _ _ hx] },
+    { replace hx := (function.injective.eq_iff (equiv.injective _)).mp
+        (list.form_perm_apply_of_not_mem _ _ hx),
+      simp only [list.form_perm_cons_cons, hx, equiv.perm.coe_mul, function.comp_app,
+        list.mem_cons_iff, swap_apply_def, ite_eq_left_iff] at h,
+      simp only [list.mem_cons_iff],
+      obtain h | h | h := h;
+      { split_ifs at h;
+        cc }}}
+end
+
+lemma form_perm_mem_iff_mem : l.form_perm x ∈ l ↔ x ∈ l :=
+⟨l.mem_of_form_perm_apply_mem x, l.form_perm_apply_mem_of_mem x⟩
 
 @[simp] lemma form_perm_cons_concat_apply_last (x y : α) (xs : list α) :
   form_perm (x :: (xs ++ [y])) y = x :=
@@ -114,6 +142,8 @@ begin
   { simp },
   { simpa using form_perm_apply_head _ _ _ h }
 end
+
+variables (l)
 
 lemma form_perm_eq_head_iff_eq_last (x y : α) :
   form_perm (y :: l) x = y ↔ x = last (y :: l) (cons_ne_nil _ _) :=

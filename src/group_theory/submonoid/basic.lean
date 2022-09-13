@@ -57,31 +57,86 @@ section non_assoc
 variables [mul_one_class M] {s : set M}
 variables [add_zero_class A] {t : set A}
 
+/-- `one_mem_class S M` says `S` is a type of subsets `s ≤ M`, such that `1 ∈ s` for all `s`. -/
+class one_mem_class (S : Type*) (M : out_param $ Type*) [has_one M] [set_like S M] :=
+(one_mem : ∀ (s : S), (1 : M) ∈ s)
+
+export one_mem_class (one_mem)
+
+/-- `zero_mem_class S M` says `S` is a type of subsets `s ≤ M`, such that `0 ∈ s` for all `s`. -/
+class zero_mem_class (S : Type*) (M : out_param $ Type*) [has_zero M] [set_like S M] :=
+(zero_mem : ∀ (s : S), (0 : M) ∈ s)
+
+export zero_mem_class (zero_mem)
+
+attribute [to_additive] one_mem_class
+
+section
+
 set_option old_structure_cmd true
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
+@[ancestor subsemigroup]
 structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
+
+end
 
 /-- A submonoid of a monoid `M` can be considered as a subsemigroup of that monoid. -/
 add_decl_doc submonoid.to_subsemigroup
 
+/-- `submonoid_class S M` says `S` is a type of subsets `s ≤ M` that contain `1`
+and are closed under `(*)` -/
+class submonoid_class (S : Type*) (M : out_param $ Type*) [mul_one_class M] [set_like S M]
+  extends mul_mem_class S M :=
+(one_mem : ∀ (s : S), (1 : M) ∈ s)
+
+section
+
+set_option old_structure_cmd true
+
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
+@[ancestor add_subsemigroup]
 structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
+
+end
 
 /-- An additive submonoid of an additive monoid `M` can be considered as an
 additive subsemigroup of that additive monoid. -/
 add_decl_doc add_submonoid.to_add_subsemigroup
 
-attribute [to_additive] submonoid
+/-- `add_submonoid_class S M` says `S` is a type of subsets `s ≤ M` that contain `0`
+and are closed under `(+)` -/
+class add_submonoid_class (S : Type*) (M : out_param $ Type*) [add_zero_class M] [set_like S M]
+  extends add_mem_class S M :=
+(zero_mem : ∀ (s : S), (0 : M) ∈ s)
+
+attribute [to_additive] submonoid submonoid_class
+
+@[to_additive, priority 100] -- See note [lower instance priority]
+instance submonoid_class.to_one_mem_class (S : Type*) (M : out_param $ Type*) [mul_one_class M]
+  [set_like S M] [h : submonoid_class S M] : one_mem_class S M :=
+{ ..h }
+
+@[to_additive]
+lemma pow_mem {M} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M] {S : A} {x : M}
+  (hx : x ∈ S) : ∀ (n : ℕ), x ^ n ∈ S
+| 0 := by { rw pow_zero, exact one_mem_class.one_mem S }
+| (n + 1) := by { rw pow_succ, exact mul_mem_class.mul_mem hx (pow_mem n) }
 
 namespace submonoid
 
 @[to_additive]
 instance : set_like (submonoid M) M :=
-⟨submonoid.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := submonoid.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+@[to_additive]
+instance : submonoid_class (submonoid M) M :=
+{ one_mem := submonoid.one_mem',
+  mul_mem := submonoid.mul_mem' }
 
 /-- See Note [custom simps projection] -/
 @[to_additive " See Note [custom simps projection]"]
@@ -113,7 +168,7 @@ theorem ext {S T : submonoid M}
 protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 { carrier := s,
   one_mem' := hs.symm ▸ S.one_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem' }
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem' }
 
 variable {S : submonoid M}
 
@@ -127,11 +182,11 @@ variable (S)
 
 /-- A submonoid contains the monoid's 1. -/
 @[to_additive "An `add_submonoid` contains the monoid's 0."]
-theorem one_mem : (1 : M) ∈ S := S.one_mem'
+protected theorem one_mem : (1 : M) ∈ S := one_mem S
 
 /-- A submonoid is closed under multiplication. -/
 @[to_additive "An `add_submonoid` is closed under addition."]
-theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
+protected theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := mul_mem
 
 /-- The submonoid `M` of the monoid `M`. -/
 @[to_additive "The additive submonoid `M` of the `add_monoid M`."]
@@ -284,7 +339,7 @@ lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
 lemma closure_induction' (s : set M) {p : Π x, x ∈ closure s → Prop}
   (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
   (H1 : p 1 (one_mem _))
-  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem _ hx hy))
+  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem hx hy))
   {x} (hx : x ∈ closure s) :
   p x hx :=
 begin
@@ -394,7 +449,8 @@ def eq_mlocus (f g : M →* N) : submonoid M :=
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
-@[to_additive]
+@[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its submonoid
+closure."]
 lemma eq_on_mclosure {f g : M →* N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_mlocus g, from closure_le.2 h

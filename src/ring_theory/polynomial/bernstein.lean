@@ -133,7 +133,7 @@ lemma derivative_succ (n ν : ℕ) :
 begin
   cases n,
   { simp [bernstein_polynomial], },
-  { apply derivative_succ_aux, }
+  { rw nat.cast_succ, apply derivative_succ_aux, }
 end
 
 lemma derivative_zero (n : ℕ) :
@@ -151,9 +151,9 @@ begin
   { rw nat.lt_succ_iff,
     induction k with k ih generalizing n ν,
     { simp [eval_at_0], },
-    { simp only [derivative_succ, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
+    { simp only [derivative_succ, int.coe_nat_eq_zero, mul_eq_zero,
         function.comp_app, function.iterate_succ,
-        polynomial.iterate_derivative_sub, polynomial.iterate_derivative_cast_nat_mul,
+        polynomial.iterate_derivative_sub, polynomial.iterate_derivative_nat_cast_mul,
         polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
       intro h,
       apply mul_eq_zero_of_right,
@@ -180,7 +180,7 @@ begin
     { have h' : ν ≤ n-1 := le_tsub_of_add_le_right h,
       simp only [derivative_succ, ih (n-1) h', iterate_derivative_succ_at_0_eq_zero,
         nat.succ_sub_succ_eq_sub, tsub_zero, sub_zero,
-        iterate_derivative_sub, iterate_derivative_cast_nat_mul,
+        iterate_derivative_sub, iterate_derivative_nat_cast_mul,
         eval_one, eval_mul, eval_add, eval_sub, eval_X, eval_comp, eval_nat_cast,
         function.comp_app, function.iterate_succ, pochhammer_succ_left],
       obtain rfl | h'' := ν.eq_zero_or_pos,

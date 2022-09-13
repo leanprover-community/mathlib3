@@ -41,8 +41,7 @@ begin
     (adjoin K {x}) (λ i, ⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ)),
   { have := hx'.linear_independent_pow,
     rwa minpoly_eq at this },
-  { rw _root_.eq_top_iff,
-    rintros ⟨y, hy⟩ _,
+  { rintros ⟨y, hy⟩ _,
     have := hx'.mem_span_pow,
     rw minpoly_eq at this,
     apply this,
@@ -54,7 +53,8 @@ begin
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
-where `d` is the degree of the minimal polynomial of `x`. -/
+where `d` is the degree of the minimal polynomial of `x`. See `algebra.adjoin.power_basis'` for
+a version over a more general base ring. -/
 @[simps gen dim] noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
   power_basis K (adjoin K ({x} : set S)) :=
 { gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
@@ -66,7 +66,8 @@ end algebra
 
 open algebra
 
-/-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. -/
+/-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. See `power_basis.of_gen_mem_adjoin'`
+for a version over a more general base ring. -/
 @[simps] noncomputable def power_basis.of_gen_mem_adjoin {x : S} (B : power_basis K S)
   (hint : _root_.is_integral K x) (hx : B.gen ∈ adjoin K ({x} : set S)) : power_basis K S :=
 (algebra.adjoin.power_basis hint).map $
@@ -152,22 +153,18 @@ lemma repr_pow_is_integral [is_domain S] {x : A} (hx : ∀ i, is_integral R (B.b
   (hmin : minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)) (n : ℕ) :
   ∀ i, is_integral R ((B.basis.repr (x ^ n) i)) :=
 begin
-  by_cases htriv : nontrivial A, swap,
-  { intro i,
-    rw [subsingleton_iff.1 (not_nontrivial_iff_subsingleton.1 htriv) (x ^ n) 0],
-    simp [is_integral_zero] },
-  letI := htriv,
+  nontriviality A using [subsingleton.elim (x ^ n) 0, is_integral_zero],
   revert hx,
   refine nat.case_strong_induction_on n _ (λ n hn, _),
   { intros hx i,
     rw [pow_zero, ← pow_zero B.gen, ← fin.coe_mk B.dim_pos, ← B.basis_eq_pow,
       B.basis.repr_self_apply],
-    by_cases hi : (⟨0, B.dim_pos⟩ : fin _) = i,
-    { simp [hi, is_integral_one] },
-    { simp [hi, is_integral_zero] } },
-  { intros hx i,
+    split_ifs,
+    { exact is_integral_one },
+    { exact is_integral_zero } },
+  { intros hx,
     rw [pow_succ],
-    refine repr_mul_is_integral hB hx (λ _, hn _ le_rfl (λ _, hx _) _) hmin _ }
+    exact repr_mul_is_integral hB hx (λ _, hn _ le_rfl (λ _, hx _) _) hmin }
 end
 
 /-- Let `B B' : power_basis K S` be such that `is_integral R B.gen`, and let `P : R[X]` be such that

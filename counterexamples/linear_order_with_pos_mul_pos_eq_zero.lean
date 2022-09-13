@@ -47,7 +47,7 @@ lemma aux1_inj : function.injective aux1 :=
 by boom
 
 instance : linear_order foo :=
-linear_order.lift aux1 $ aux1_inj
+linear_order.lift' aux1 aux1_inj
 
 /-- Multiplication on `foo`: the only external input is that `ε ^ 2 = 0`. -/
 def mul : foo → foo → foo

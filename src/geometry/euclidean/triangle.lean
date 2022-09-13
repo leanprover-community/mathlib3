@@ -108,7 +108,7 @@ begin
   by_cases hxy : x = y,
   { rw hxy },
   { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,
-        mul_inv_rev₀, mul_inv_rev₀, ←mul_assoc, ←mul_assoc] at h,
+        mul_inv_rev, mul_inv_rev, ←mul_assoc, ←mul_assoc] at h,
     replace h :=
       mul_right_cancel₀ (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
     rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_mul_norm,
@@ -296,7 +296,7 @@ include V
 lemma dist_sq_eq_dist_sq_add_dist_sq_iff_angle_eq_pi_div_two (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 = dist p1 p2 * dist p1 p2 + dist p3 p2 * dist p3 p2 ↔
     ∠ p1 p2 p3 = π / 2 :=
-by erw [pseudo_metric_space.dist_comm p3 p2, dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2,
+by erw [dist_comm p3 p2, dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2,
         dist_eq_norm_vsub V p2 p3,
         ←norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two,
         vsub_sub_vsub_cancel_right p1, ←neg_vsub_eq_vsub_rev p2 p3, norm_neg]
@@ -397,7 +397,7 @@ begin
   { have hab'₁ : a' = b', { rw [← dist_eq_zero, hab, dist_eq_zero.mpr hab₁, mul_zero r] },
     rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },
   { have h1 : 0 ≤ r * dist a b, { rw ← hab, exact dist_nonneg },
-    have h2 : 0 ≤ r := nonneg_of_mul_nonneg_right h1 (dist_pos.mpr hab₁),
+    have h2 : 0 ≤ r := nonneg_of_mul_nonneg_left h1 (dist_pos.mpr hab₁),
     exact (sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
 end
 

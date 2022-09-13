@@ -3,10 +3,10 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import set_theory.cardinal.basic
 import topology.metric_space.closeds
-import set_theory.cardinal
-import topology.metric_space.gromov_hausdorff_realized
 import topology.metric_space.completion
+import topology.metric_space.gromov_hausdorff_realized
 import topology.metric_space.kuratowski
 
 /-!
@@ -83,7 +83,7 @@ definition to_GH_space (X : Type u) [metric_space X] [compact_space X] [nonempty
 instance : inhabited GH_space := ⟨quot.mk _ ⟨⟨{0}, is_compact_singleton⟩, singleton_nonempty _⟩⟩
 
 /-- A metric space representative of any abstract point in `GH_space` -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def GH_space.rep (p : GH_space) : Type := (quotient.out p : nonempty_compacts ℓ_infty_ℝ)
 
 lemma eq_to_GH_space_iff {X : Type u} [metric_space X] [compact_space X] [nonempty X]
@@ -366,7 +366,8 @@ end
 
 /-- The Gromov-Hausdorff distance defines a genuine distance on the Gromov-Hausdorff space. -/
 instance : metric_space GH_space :=
-{ dist_self := λ x, begin
+{ dist := dist,
+  dist_self := λ x, begin
     rcases exists_rep x with ⟨y, hy⟩,
     refine le_antisymm _ _,
     { apply cInf_le,
@@ -533,8 +534,8 @@ begin
     glue_metric_approx (λ x:s, (x:X)) (λ x, Φ x) (ε₂/2 + δ) (by linarith) this,
   let Fl := @sum.inl X Y,
   let Fr := @sum.inr X Y,
-  have Il : isometry Fl := isometry_emetric_iff_metric.2 (λ x y, rfl),
-  have Ir : isometry Fr := isometry_emetric_iff_metric.2 (λ x y, rfl),
+  have Il : isometry Fl := isometry.of_dist_eq (λ x y, rfl),
+  have Ir : isometry Fr := isometry.of_dist_eq (λ x y, rfl),
   /- The proof goes as follows : the `GH_dist` is bounded by the Hausdorff distance of the images
   in the coupling, which is bounded (using the triangular inequality) by the sum of the Hausdorff
   distances of `X` and `s` (in the coupling or, equivalently in the original space), of `s` and
@@ -593,12 +594,12 @@ begin
   refine second_countable_of_countable_discretization (λ δ δpos, _),
   let ε := (2/5) * δ,
   have εpos : 0 < ε := mul_pos (by norm_num) δpos,
-  have : ∀ p:GH_space, ∃ s : set p.rep, finite s ∧ (univ ⊆ (⋃x∈s, ball x ε)) :=
+  have : ∀ p:GH_space, ∃ s : set p.rep, s.finite ∧ (univ ⊆ (⋃x∈s, ball x ε)) :=
     λ p, by simpa using finite_cover_balls_of_compact (@compact_univ p.rep _ _) εpos,
   -- for each `p`, `s p` is a finite `ε`-dense subset of `p` (or rather the metric space
   -- `p.rep` representing `p`)
   choose s hs using this,
-  have : ∀ p:GH_space, ∀ t:set p.rep, finite t → ∃ n:ℕ, ∃ e:equiv t (fin n), true,
+  have : ∀ p:GH_space, ∀ t:set p.rep, t.finite → ∃ n:ℕ, ∃ e:equiv t (fin n), true,
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
     exact ⟨fintype.card t, fintype.equiv_fin t, trivial⟩ },
@@ -674,12 +675,12 @@ begin
       have : (F p).2 ((E p) x) ((E p) y) = floor (ε⁻¹ * dist x y),
         by simp only [F, (E p).symm_apply_apply],
       have Ap : (F p).2 ⟨i, hip⟩ ⟨j, hjp⟩ = floor (ε⁻¹ * dist x y),
-        by { rw ← this, congr; apply (fin.ext_iff _ _).2; refl },
+        by { rw ← this, congr; apply fin.ext_iff.2; refl },
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
       have : (F q).2 ((E q) (Ψ x)) ((E q) (Ψ y)) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
         by simp only [F, (E q).symm_apply_apply],
       have Aq : (F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩ = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
-        by { rw ← this, congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] },
+        by { rw ← this, congr; apply fin.ext_iff.2; [exact i', exact j'] },
       -- use the equality between `F p` and `F q` to deduce that the distances have equal
       -- integer parts
       have : (F p).2 ⟨i, hip⟩ ⟨j, hjp⟩ = (F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩,
@@ -745,7 +746,7 @@ begin
       { rw ← fintype.card_eq, simp },
       use [∅, 0, bot_le, choice (this)] },
     { rcases hcov _ (set.not_not_mem.1 hp) n with ⟨s, ⟨scard, scover⟩⟩,
-      rcases cardinal.lt_omega.1 (lt_of_le_of_lt scard (cardinal.nat_lt_omega _)) with ⟨N, hN⟩,
+      rcases cardinal.lt_aleph_0.1 (lt_of_le_of_lt scard (cardinal.nat_lt_aleph_0 _)) with ⟨N, hN⟩,
       rw [hN, cardinal.nat_cast_le] at scard,
       have : cardinal.mk s = cardinal.mk (fin N), by rw [hN, cardinal.mk_fin],
       cases quotient.exact this with E,
@@ -762,7 +763,7 @@ begin
   refine ⟨_, _, (λ p, F p), _⟩, apply_instance,
   -- It remains to show that if `F p = F q`, then `p` and `q` are `ε`-close
   rintros ⟨p, pt⟩ ⟨q, qt⟩ hpq,
-  have Npq : N p = N q := (fin.ext_iff _ _).1 (sigma.mk.inj_iff.1 hpq).1,
+  have Npq : N p = N q := fin.ext_iff.1 (sigma.mk.inj_iff.1 hpq).1,
   let Ψ : s p → s q := λ x, (E q).symm (fin.cast Npq ((E p) x)),
   let Φ : s p → q.rep := λ x, Ψ x,
   have main : GH_dist p.rep (q.rep) ≤ ε + ε/2 + ε,
@@ -816,7 +817,7 @@ begin
       -- Express `dist x y` in terms of `F p`
       have Ap : ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ⌊ε⁻¹ * dist x y⌋₊ := calc
         ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ((F p).2 ((E p) x) ((E p) y)).1 :
-          by { congr; apply (fin.ext_iff _ _).2; refl }
+          by { congr; apply fin.ext_iff.2; refl }
         ... = min M ⌊ε⁻¹ * dist x y⌋₊ :
           by simp only [F, (E p).symm_apply_apply]
         ... = ⌊ε⁻¹ * dist x y⌋₊ :
@@ -830,7 +831,7 @@ begin
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
       have Aq : ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ := calc
         ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ((F q).2 ((E q) (Ψ x)) ((E q) (Ψ y))).1 :
-          by { congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] }
+          by { congr; apply fin.ext_iff.2; [exact i', exact j'] }
         ... = min M ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ :
           by simp only [F, (E q).symm_apply_apply]
         ... = ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ :

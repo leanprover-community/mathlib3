@@ -55,24 +55,19 @@ lemma cardinal_mk_le_sigma_polynomial :
   end)
 
 /--The cardinality of an algebraic extension is at most the maximum of the cardinality
-of the base ring or `ω` -/
-lemma cardinal_mk_le_max : #L ≤ max (#R) ω :=
+of the base ring or `ℵ₀` -/
+lemma cardinal_mk_le_max : #L ≤ max (#R) ℵ₀ :=
 calc #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
   cardinal_mk_le_sigma_polynomial R L halg
 ... = cardinal.sum (λ p : R[X], #{ x : L | x ∈ (p.map (algebra_map R L)).roots }) :
   by rw ← mk_sigma; refl
-... ≤ cardinal.sum.{u u} (λ p : R[X], ω) : sum_le_sum _ _
-  (λ p, le_of_lt begin
-    rw [lt_omega_iff_finite],
-    classical,
-    simp only [← @multiset.mem_to_finset _ _ _ (p.map (algebra_map R L)).roots],
-    exact set.finite_mem_finset _,
-  end)
-... = #R[X] * ω : sum_const' _ _
-... ≤ max (max (#R[X]) ω) ω : mul_le_max _ _
-... ≤ max (max (max (#R) ω) ω) ω :
+... ≤ cardinal.sum.{u u} (λ p : R[X], ℵ₀) :
+  sum_le_sum _ _ $ λ p, (multiset.finite_to_set _).lt_aleph_0.le
+... = #R[X] * ℵ₀ : sum_const' _ _
+... ≤ max (max (#R[X]) ℵ₀) ℵ₀ : mul_le_max _ _
+... ≤ max (max (max (#R) ℵ₀) ℵ₀) ℵ₀ :
   max_le_max (max_le_max polynomial.cardinal_mk_le_max le_rfl) le_rfl
-... = max (#R) ω : by simp only [max_assoc, max_comm omega.{u}, max_left_comm omega.{u}, max_self]
+... = max (#R) ℵ₀ : by simp only [max_assoc, max_comm ℵ₀, max_left_comm ℵ₀, max_self]
 
 end algebra.is_algebraic
 
@@ -130,25 +125,25 @@ variables {ι : Type u} (v : ι → K)
 variable (hv : is_transcendence_basis R v)
 
 lemma cardinal_le_max_transcendence_basis (hv : is_transcendence_basis R v) :
-  #K ≤ max (max (#R) (#ι)) ω :=
-calc #K ≤ max (#(algebra.adjoin R (set.range v))) ω :
+  #K ≤ max (max (#R) (#ι)) ℵ₀ :=
+calc #K ≤ max (#(algebra.adjoin R (set.range v))) ℵ₀ :
   by letI := is_alg_closure_of_transcendence_basis v hv;
    exact algebra.is_algebraic.cardinal_mk_le_max _ _ is_alg_closure.algebraic
-... = max (#(mv_polynomial ι R)) ω : by rw [cardinal.eq.2 ⟨(hv.1.aeval_equiv).to_equiv⟩]
-... ≤ max (max (max (#R) (#ι)) ω) ω : max_le_max mv_polynomial.cardinal_mk_le_max le_rfl
+... = max (#(mv_polynomial ι R)) ℵ₀ : by rw [cardinal.eq.2 ⟨(hv.1.aeval_equiv).to_equiv⟩]
+... ≤ max (max (max (#R) (#ι)) ℵ₀) ℵ₀ : max_le_max mv_polynomial.cardinal_mk_le_max le_rfl
 ... = _ : by simp [max_assoc]
 
 /-- If `K` is an uncountable algebraically closed field, then its
 cardinality is the same as that of a transcendence basis. -/
-lemma cardinal_eq_cardinal_transcendence_basis_of_omega_lt [nontrivial R]
-  (hv : is_transcendence_basis R v) (hR : #R ≤ ω) (hK : ω < #K) : #K = #ι :=
-have ω ≤ #ι,
+lemma cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt [nontrivial R]
+  (hv : is_transcendence_basis R v) (hR : #R ≤ ℵ₀) (hK : ℵ₀ < #K) : #K = #ι :=
+have ℵ₀ ≤ #ι,
   from le_of_not_lt (λ h,
     not_le_of_gt hK $ calc
-      #K ≤ max (max (#R) (#ι)) ω : cardinal_le_max_transcendence_basis v hv
+      #K ≤ max (max (#R) (#ι)) ℵ₀ : cardinal_le_max_transcendence_basis v hv
      ... ≤ _ : max_le (max_le hR (le_of_lt h)) le_rfl),
 le_antisymm
-  (calc #K ≤ max (max (#R) (#ι)) ω : cardinal_le_max_transcendence_basis v hv
+  (calc #K ≤ max (max (#R) (#ι)) ℵ₀ : cardinal_le_max_transcendence_basis v hv
        ... = #ι : begin
          rw [max_eq_left, max_eq_right],
          { exact le_trans hR this },
@@ -163,7 +158,7 @@ variables {K L : Type} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
 /-- Two uncountable algebraically closed fields of characteristic zero are isomorphic
 if they have the same cardinality. -/
 @[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_of_char_zero [char_zero K] [char_zero L]
-  (hK : ω < #K) (hKL : #K = #L) : K ≃+* L :=
+  (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,
   cases exists_is_transcendence_basis ℤ
@@ -173,15 +168,15 @@ begin
     (show function.injective (algebra_map ℤ L),
       from int.cast_injective) with t ht,
   have : #s = #t,
-  { rw [← cardinal_eq_cardinal_transcendence_basis_of_omega_lt _ hs (le_of_eq mk_int) hK,
-        ← cardinal_eq_cardinal_transcendence_basis_of_omega_lt _ ht (le_of_eq mk_int), hKL],
+  { rw [← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ hs (le_of_eq mk_int) hK,
+        ← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ ht (le_of_eq mk_int), hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
   exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩
 end
 
 private lemma ring_equiv_of_cardinal_eq_of_char_p (p : ℕ) [fact p.prime]
-  [char_p K p] [char_p L p] (hK : ω < #K) (hKL : #K = #L) : K ≃+* L :=
+  [char_p K p] [char_p L p] (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,
   cases exists_is_transcendence_basis (zmod p)
@@ -191,10 +186,10 @@ begin
     (show function.injective (algebra_map (zmod p) L),
       from ring_hom.injective _) with t ht,
   have : #s = #t,
-  { rw [← cardinal_eq_cardinal_transcendence_basis_of_omega_lt _ hs
-      (le_of_lt $ lt_omega_iff_fintype.2 ⟨infer_instance⟩) hK,
-        ← cardinal_eq_cardinal_transcendence_basis_of_omega_lt _ ht
-      (le_of_lt $ lt_omega_iff_fintype.2 ⟨infer_instance⟩), hKL],
+  { rw [← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ hs
+      (lt_aleph_0_of_finite (zmod p)).le hK,
+        ← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ ht
+      (lt_aleph_0_of_finite (zmod p)).le, hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
   exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩
@@ -203,7 +198,7 @@ end
 /-- Two uncountable algebraically closed fields are isomorphic
 if they have the same cardinality and the same characteristic. -/
 @[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_of_char_eq (p : ℕ) [char_p K p] [char_p L p]
-  (hK : ω < #K) (hKL : #K = #L) : K ≃+* L :=
+  (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,
   rcases char_p.char_is_prime_or_zero K p with hp | hp,

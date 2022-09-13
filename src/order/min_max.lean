@@ -25,7 +25,13 @@ variables [linear_order α] [linear_order β] {f : α → β} {s : set α} {a b 
 
 -- translate from lattices to linear orders (sup → max, inf → min)
 @[simp] lemma le_min_iff : c ≤ min a b ↔ c ≤ a ∧ c ≤ b := le_inf_iff
+@[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c := le_sup_iff
+@[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c := inf_le_iff
 @[simp] lemma max_le_iff : max a b ≤ c ↔ a ≤ c ∧ b ≤ c := sup_le_iff
+@[simp] lemma lt_min_iff : a < min b c ↔ a < b ∧ a < c := lt_inf_iff
+@[simp] lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c := lt_sup_iff
+@[simp] lemma min_lt_iff : min a b < c ↔ a < c ∨ b < c := inf_lt_iff
+@[simp] lemma max_lt_iff : max a b < c ↔ a < c ∧ b < c := sup_lt_iff
 lemma max_le_max : a ≤ c → b ≤ d → max a b ≤ max c d := sup_le_sup
 lemma min_le_min : a ≤ c → b ≤ d → min a b ≤ min c d := inf_le_inf
 lemma le_max_of_le_left : a ≤ b → a ≤ max b c := le_sup_of_le_left
@@ -62,8 +68,7 @@ end
 /-- For elements `a` and `b` of a linear order, either `max a b = a` and `b ≤ a`,
     or `max a b = b` and `a < b`.
     Use cases on this lemma to automate linarith in inequalities -/
-lemma max_cases (a b : α) : max a b = a ∧ b ≤ a ∨ max a b = b ∧ a < b :=
-@min_cases (order_dual α) _ a b
+lemma max_cases (a b : α) : max a b = a ∧ b ≤ a ∨ max a b = b ∧ a < b := @min_cases αᵒᵈ _ a b
 
 lemma min_eq_iff : min a b = c ↔ a = c ∧ a ≤ b ∨ b = c ∧ b ≤ a :=
 begin
@@ -75,8 +80,17 @@ begin
     simp [h] }
 end
 
-lemma max_eq_iff : max a b = c ↔ a = c ∧ b ≤ a ∨ b = c ∧ a ≤ b :=
-@min_eq_iff (order_dual α) _ a b c
+lemma max_eq_iff : max a b = c ↔ a = c ∧ b ≤ a ∨ b = c ∧ a ≤ b := @min_eq_iff αᵒᵈ _ a b c
+
+lemma min_lt_min_left_iff : min a c < min b c ↔ a < b ∧ a < c :=
+by { simp_rw [lt_min_iff, min_lt_iff, or_iff_left (lt_irrefl _)],
+  exact and_congr_left (λ h, or_iff_left_of_imp h.trans) }
+
+lemma min_lt_min_right_iff : min a b < min a c ↔ b < c ∧ b < a :=
+by simp_rw [min_comm a, min_lt_min_left_iff]
+
+lemma max_lt_max_left_iff : max a c < max b c ↔ a < b ∧ c < b := @min_lt_min_left_iff αᵒᵈ _ _ _ _
+lemma max_lt_max_right_iff : max a b < max a c ↔ b < c ∧ a < c := @min_lt_min_right_iff αᵒᵈ _ _ _ _
 
 /-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
@@ -84,31 +98,12 @@ instance max_idem : is_idempotent α max := by apply_instance -- short-circuit t
 /-- An instance asserting that `min a a = a` -/
 instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
 
-@[simp] lemma max_lt_iff : max a b < c ↔ (a < c ∧ b < c) :=
-sup_lt_iff
-
-@[simp] lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
-lt_inf_iff
-
-@[simp] lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c :=
-lt_sup_iff
-
-@[simp] lemma min_lt_iff : min a b < c ↔ a < c ∨ b < c :=
-@lt_max_iff (order_dual α) _ _ _ _
-
-@[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
-inf_le_iff
-
-@[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
-@min_le_iff (order_dual α) _ _ _ _
-
 lemma min_lt_max : min a b < max a b ↔ a ≠ b := inf_lt_sup
 
 lemma max_lt_max (h₁ : a < c) (h₂ : b < d) : max a b < max c d :=
 by simp [lt_max_iff, max_lt_iff, *]
 
-lemma min_lt_min (h₁ : a < c) (h₂ : b < d) : min a b < min c d :=
-@max_lt_max (order_dual α) _ _ _ _ _ h₁ h₂
+lemma min_lt_min (h₁ : a < c) (h₂ : b < d) : min a b < min c d := @max_lt_max αᵒᵈ _ _ _ _ _ h₁ h₂
 
 theorem min_right_comm (a b c : α) : min (min a b) c = min (min a c) b :=
 right_comm min min_comm min_assoc a b c
@@ -147,24 +142,11 @@ by cases le_total a b; simp [h, hf h]
 lemma antitone.map_min (hf : antitone f) : f (min a b) = max (f a) (f b) :=
 hf.dual.map_max
 
-lemma min_rec {p : α → Prop} {x y : α} (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
-(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
-  (λ h, (min_eq_right h).symm.subst (hy h))
-
-lemma max_rec {p : α → Prop} {x y : α} (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) :=
-@min_rec (order_dual α) _ _ _ _ hx hy
-
-lemma min_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (min x y) :=
-min_rec (λ _, hx) (λ _, hy)
-
-lemma max_rec' (p : α → Prop) {x y : α} (hx : p x) (hy : p y) : p (max x y) :=
-max_rec (λ _, hx) (λ _, hy)
-
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
 by cases le_total a b; simp *
 
 theorem max_choice (a b : α) : max a b = a ∨ max a b = b :=
-@min_choice (order_dual α) _ a b
+@min_choice αᵒᵈ _ a b
 
 lemma le_of_max_le_left {a b c : α} (h : max a b ≤ c) : a ≤ c :=
 le_trans (le_max_left _ _) h

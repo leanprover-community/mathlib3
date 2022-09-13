@@ -117,8 +117,7 @@ by conv_rhs { rw [←vsub_vadd p1 p2, map_vadd, vadd_vsub] }
 begin
   rcases f with ⟨f, f_linear, f_add⟩,
   rcases g with ⟨g, g_linear, g_add⟩,
-  have : f = g := funext h,
-  subst g,
+  obtain rfl : f = g := funext h,
   congr' with v,
   cases (add_torsor.nonempty : nonempty P1) with p,
   apply vadd_right_cancel (f p),
@@ -178,7 +177,7 @@ def mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p : P1) (h : ∀ p' : P1, f p' =
 
 @[simp] lemma mk'_linear (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p h) : (mk' f f' p h).linear = f' := rfl
 
-section has_scalar
+section has_smul
 variables {R : Type*} [monoid R] [distrib_mul_action R V2] [smul_comm_class k R V2]
 
 /-- The space of affine maps to a module inherits an `R`-action from the action on its codomain. -/
@@ -195,7 +194,7 @@ instance [distrib_mul_action Rᵐᵒᵖ V2] [is_central_scalar R V2] :
   is_central_scalar R (P1 →ᵃ[k] V2) :=
 { op_smul_eq_smul := λ r x, ext $ λ _, op_smul_eq_smul _ _ }
 
-end has_scalar
+end has_smul
 
 instance : has_zero (P1 →ᵃ[k] V2) := { zero := ⟨0, 0, λ p v, (zero_vadd _ _).symm⟩ }
 instance : has_add (P1 →ᵃ[k] V2) :=
@@ -589,9 +588,13 @@ by { ext p, simp [homothety_apply] }
 
 @[simp] lemma homothety_apply_same (c : P1) (r : k) : homothety c r c = c := line_map_same_apply c r
 
+lemma homothety_mul_apply (c : P1) (r₁ r₂ : k) (p : P1) :
+  homothety c (r₁ * r₂) p = homothety c r₁ (homothety c r₂ p) :=
+by simp [homothety_apply, mul_smul]
+
 lemma homothety_mul (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ * r₂) = (homothety c r₁).comp (homothety c r₂) :=
-by { ext p, simp [homothety_apply, mul_smul] }
+ext $ homothety_mul_apply c r₁ r₂
 
 @[simp] lemma homothety_zero (c : P1) : homothety c (0:k) = const k P1 c :=
 by { ext p, simp [homothety_apply] }
@@ -618,3 +621,14 @@ rfl
 end comm_ring
 
 end affine_map
+
+section
+variables {𝕜 E F : Type*} [ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+/-- Applying an affine map to an affine combination of two points yields an affine combination of
+the images. -/
+lemma convex.combo_affine_apply {x y : E} {a b : 𝕜} {f : E →ᵃ[𝕜] F} (h : a + b = 1) :
+  f (a • x + b • y) = a • f x + b • f y :=
+by { simp only [convex.combo_eq_smul_sub_add h, ←vsub_eq_sub], exact f.apply_line_map _ _ _ }
+
+end

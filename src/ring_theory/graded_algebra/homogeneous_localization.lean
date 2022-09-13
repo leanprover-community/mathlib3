@@ -50,6 +50,8 @@ circumvent this, we quotient `num_denom_same_deg 𝒜 x` by the kernel of `c ↦
 * `homogeneous_localization.eq_num_div_denom`: if `f : homogeneous_localization 𝒜 x`, then
   `f.val : Aₓ` is equal to `f.num / f.denom`.
 
+* `homogeneous_localization.local_ring`: `homogeneous_localization 𝒜 x` is a local ring.
+
 ## References
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]
@@ -77,7 +79,7 @@ section
 Let `x` be a prime ideal, then `num_denom_same_deg 𝒜 x` is a structure with a numerator and a
 denominator with same grading such that the denominator is not contained in `x`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure num_denom_same_deg :=
 (deg : ι)
 (num denom : 𝒜 deg)
@@ -137,7 +139,7 @@ instance : has_add (num_denom_same_deg 𝒜 x) :=
 { add := λ c1 c2,
   { deg := c1.deg + c2.deg,
     num := ⟨c1.denom * c2.num + c2.denom * c1.num,
-      add_mem _ (mul_mem c1.denom.2 c2.num.2)
+      add_mem (mul_mem c1.denom.2 c2.num.2)
         (add_comm c2.deg c1.deg ▸ mul_mem c2.denom.2 c1.num.2)⟩,
     denom := ⟨c1.denom * c2.denom, mul_mem c1.denom.2 c2.denom.2⟩,
     denom_not_mem := λ r, or.elim
@@ -150,7 +152,7 @@ instance : has_add (num_denom_same_deg 𝒜 x) :=
   ((c1 + c2).denom : A) = c1.denom * c2.denom := rfl
 
 instance : has_neg (num_denom_same_deg 𝒜 x) :=
-{ neg := λ c, ⟨c.deg, ⟨-c.num, neg_mem _ c.num.2⟩, c.denom, c.denom_not_mem⟩ }
+{ neg := λ c, ⟨c.deg, ⟨-c.num, neg_mem c.num.2⟩, c.denom, c.denom_not_mem⟩ }
 
 @[simp] lemma deg_neg (c : num_denom_same_deg 𝒜 x) : (-c).deg = c.deg := rfl
 @[simp] lemma num_neg (c : num_denom_same_deg 𝒜 x) : ((-c).num : A) = -c.num := rfl
@@ -165,10 +167,12 @@ instance : comm_monoid (num_denom_same_deg 𝒜 x) :=
   mul_comm := λ c1 c2, ext _ (add_comm _ _) (mul_comm _ _) (mul_comm _ _) }
 
 instance : has_pow (num_denom_same_deg 𝒜 x) ℕ :=
-{ pow := λ c n, ⟨n • c.deg, ⟨c.num ^ n, pow_mem n c.num.2⟩, ⟨c.denom ^ n, pow_mem n c.denom.2⟩,
+{ pow := λ c n, ⟨n • c.deg,
+    @graded_monoid.gmonoid.gnpow _ (λ i, ↥(𝒜 i)) _ _ n _ c.num,
+    @graded_monoid.gmonoid.gnpow _ (λ i, ↥(𝒜 i)) _ _ n _ c.denom,
     begin
       cases n,
-      { simp only [pow_zero],
+      { simp only [graded_monoid.gmonoid.gnpow, subtype.coe_mk, pow_zero],
         exact λ r, (infer_instance : x.is_prime).ne_top $ (ideal.eq_top_iff_one _).mpr r, },
       { exact λ r, c.denom_not_mem $
           ((infer_instance : x.is_prime).pow_mem_iff_mem n.succ (nat.zero_lt_succ _)).mp r }
@@ -179,10 +183,10 @@ instance : has_pow (num_denom_same_deg 𝒜 x) ℕ :=
 @[simp] lemma denom_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) :
   ((c ^ n).denom : A) = c.denom ^ n := rfl
 
-section has_scalar
-variables {α : Type*} [has_scalar α R] [has_scalar α A] [is_scalar_tower α R A]
+section has_smul
+variables {α : Type*} [has_smul α R] [has_smul α A] [is_scalar_tower α R A]
 
-instance : has_scalar α (num_denom_same_deg 𝒜 x) :=
+instance : has_smul α (num_denom_same_deg 𝒜 x) :=
 { smul := λ m c, ⟨c.deg, m • c.num, c.denom, c.denom_not_mem⟩ }
 
 @[simp] lemma deg_smul (c : num_denom_same_deg 𝒜 x) (m : α) : (m • c).deg = c.deg := rfl
@@ -190,7 +194,7 @@ instance : has_scalar α (num_denom_same_deg 𝒜 x) :=
 @[simp] lemma denom_smul (c : num_denom_same_deg 𝒜 x) (m : α) :
   ((m • c).denom : A) = c.denom := rfl
 
-end has_scalar
+end has_smul
 
 variable (𝒜)
 
@@ -210,7 +214,7 @@ For `x : prime ideal of A`, `homogeneous_localization 𝒜 x` is `num_denom_same
 kernel of `embedding 𝒜 x`. This is essentially the subring of `Aₓ` where the numerator and
 denominator share the same grading.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def homogeneous_localization : Type* :=
 quotient (setoid.ker $ homogeneous_localization.num_denom_same_deg.embedding 𝒜 x)
 
@@ -225,6 +229,10 @@ numerator and denominator are of the same grading.
 -/
 def val (y : homogeneous_localization 𝒜 x) : at x :=
 quotient.lift_on' y (num_denom_same_deg.embedding 𝒜 x) $ λ _ _, id
+
+@[simp] lemma val_mk' (i : num_denom_same_deg 𝒜 x) :
+  val (quotient.mk' i) = localization.mk i.num ⟨i.denom, i.denom_not_mem⟩ :=
+rfl
 
 variable (x)
 lemma val_injective :
@@ -241,11 +249,11 @@ instance has_pow : has_pow (homogeneous_localization 𝒜 x) ℕ :=
       refl,
     end) : homogeneous_localization 𝒜 x → homogeneous_localization 𝒜 x) z }
 
-section has_scalar
-variables {α : Type*} [has_scalar α R] [has_scalar α A] [is_scalar_tower α R A]
+section has_smul
+variables {α : Type*} [has_smul α R] [has_smul α A] [is_scalar_tower α R A]
 variables [is_scalar_tower α A A]
 
-instance : has_scalar α (homogeneous_localization 𝒜 x) :=
+instance : has_smul α (homogeneous_localization 𝒜 x) :=
 { smul := λ m, quotient.map' ((•) m)
     (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
@@ -259,7 +267,7 @@ instance : has_scalar α (homogeneous_localization 𝒜 x) :=
   (n • y).val = n • y.val :=
 begin
   induction y using quotient.induction_on,
-  unfold homogeneous_localization.val has_scalar.smul,
+  unfold homogeneous_localization.val has_smul.smul,
   simp only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
   change localization.mk _ _ = n • localization.mk _ _,
   dsimp only,
@@ -267,7 +275,7 @@ begin
   congr' 1,
 end
 
-end has_scalar
+end has_smul
 
 instance : has_neg (homogeneous_localization 𝒜 x) :=
 { neg := quotient.map' has_neg.neg
@@ -373,9 +381,18 @@ begin
   congr' 1,
 end
 
+instance : has_nat_cast (homogeneous_localization 𝒜 x) := ⟨nat.unary_cast⟩
+instance : has_int_cast (homogeneous_localization 𝒜 x) := ⟨int.cast_def⟩
+
+@[simp] lemma nat_cast_val (n : ℕ) : (n : homogeneous_localization 𝒜 x).val = n :=
+show val (nat.unary_cast n) = _, by induction n; simp [nat.unary_cast, zero_val, one_val, *]
+
+@[simp] lemma int_cast_val (n : ℤ) : (n : homogeneous_localization 𝒜 x).val = n :=
+show val (int.cast_def n) = _, by cases n; simp [int.cast_def, zero_val, one_val, *]
+
 instance : comm_ring (homogeneous_localization 𝒜 x) :=
 (homogeneous_localization.val_injective x).comm_ring _ zero_val one_val add_val mul_val neg_val
-  sub_val (λ z n, smul_val x z n) (λ z n, smul_val x z n) pow_val
+  sub_val (λ z n, smul_val x z n) (λ z n, smul_val x z n) pow_val nat_cast_val int_cast_val
 
 end homogeneous_localization
 
@@ -428,5 +445,66 @@ lemma ext_iff_val (f g : homogeneous_localization 𝒜 x) : f = g ↔ f.val = g.
     unfold homogeneous_localization.val at h,
     simpa only [quotient.lift_on'_mk] using h,
   end }
+
+lemma is_unit_iff_is_unit_val (f : homogeneous_localization 𝒜 x) :
+  is_unit f.val ↔ is_unit f :=
+⟨λ h1, begin
+  rcases h1 with ⟨⟨a, b, eq0, eq1⟩, (eq2 : a = f.val)⟩,
+  rw eq2 at eq0 eq1,
+  clear' a eq2,
+  induction b using localization.induction_on with data,
+  rcases data with ⟨a, ⟨b, hb⟩⟩,
+  dsimp only at eq0 eq1,
+  have b_f_denom_not_mem : b * f.denom ∈ x.prime_compl := λ r, or.elim
+    (ideal.is_prime.mem_or_mem infer_instance r) (λ r2, hb r2) (λ r2, f.denom_not_mem r2),
+  rw [f.eq_num_div_denom, localization.mk_mul,
+    show (⟨b, hb⟩ : x.prime_compl) * ⟨f.denom, _⟩ = ⟨b * f.denom, _⟩, from rfl,
+    show (1 : at x) = localization.mk 1 1, by erw localization.mk_self 1,
+    localization.mk_eq_mk', is_localization.eq] at eq1,
+  rcases eq1 with ⟨⟨c, hc⟩, eq1⟩,
+  simp only [← subtype.val_eq_coe] at eq1,
+  change a * f.num * 1 * c = _ at eq1,
+  simp only [one_mul, mul_one] at eq1,
+  have mem1 : a * f.num * c ∈ x.prime_compl :=
+    eq1.symm ▸ λ r, or.elim (ideal.is_prime.mem_or_mem infer_instance r) (by tauto)(by tauto),
+  have mem2 : f.num ∉ x,
+  { contrapose! mem1,
+    erw [not_not],
+    exact ideal.mul_mem_right _ _ (ideal.mul_mem_left _ _ mem1), },
+  refine ⟨⟨f, quotient.mk' ⟨f.deg, ⟨f.denom, f.denom_mem⟩, ⟨f.num, f.num_mem⟩, mem2⟩, _, _⟩, rfl⟩;
+  simp only [ext_iff_val, mul_val, val_mk', ← subtype.val_eq_coe, f.eq_num_div_denom,
+    localization.mk_mul, one_val];
+  convert localization.mk_self _;
+  simpa only [mul_comm]
+end, λ ⟨⟨_, b, eq1, eq2⟩, rfl⟩, begin
+  simp only [ext_iff_val, mul_val, one_val] at eq1 eq2,
+  exact ⟨⟨f.val, b.val, eq1, eq2⟩, rfl⟩
+end⟩
+
+instance : nontrivial (homogeneous_localization 𝒜 x) :=
+⟨⟨0, 1, λ r, by simpa [ext_iff_val, zero_val, one_val, zero_ne_one] using r⟩⟩
+
+instance : local_ring (homogeneous_localization 𝒜 x) :=
+local_ring.of_is_unit_or_is_unit_one_sub_self $ λ a, begin
+  simp only [← is_unit_iff_is_unit_val, sub_val, one_val],
+  induction a using quotient.induction_on',
+  simp only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
+  by_cases mem1 : a.num.1 ∈ x,
+  { right,
+    have : a.denom.1 - a.num.1 ∈ x.prime_compl := λ h, a.denom_not_mem
+      ((sub_add_cancel a.denom.val a.num.val) ▸ ideal.add_mem _ h mem1 : a.denom.1 ∈ x),
+    apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.denom.1 - a.num.1, this⟩),
+    simp only [sub_mul, localization.mk_mul, one_mul, localization.sub_mk, ← subtype.val_eq_coe,
+      submonoid.coe_mul],
+    convert localization.mk_self _,
+    simp only [← subtype.val_eq_coe, submonoid.coe_mul],
+    ring, },
+  { left,
+    change _ ∈ x.prime_compl at mem1,
+    apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.num.1, mem1⟩),
+    rw [localization.mk_mul],
+    convert localization.mk_self _,
+    simpa only [mul_comm], },
+end
 
 end homogeneous_localization

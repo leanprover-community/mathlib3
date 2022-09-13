@@ -34,7 +34,7 @@ to monoid objects.
 
 ## References
 
-See https://stacks.math.columbia.edu/tag/0FFL.
+See <https://stacks.math.columbia.edu/tag/0FFL>.
 -/
 
 open category_theory
@@ -130,7 +130,7 @@ end
 /--
 A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms.
 
-See https://stacks.math.columbia.edu/tag/0FFL.
+See <https://stacks.math.columbia.edu/tag/0FFL>.
 -/
 structure monoidal_functor
 extends lax_monoidal_functor.{v₁ v₂} C D :=
@@ -219,6 +219,18 @@ nat_iso.of_components
 @[simp] lemma ε_iso_hom : F.ε_iso.hom = F.ε := rfl
 @[simp, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
 @[simp] lemma ε_hom_inv_id : F.ε ≫ F.ε_iso.inv = 𝟙 _ := F.ε_iso.hom_inv_id
+
+/-- Monoidal functors commute with left tensoring up to isomorphism -/
+@[simps] noncomputable def comm_tensor_left (X : C) :
+  F.to_functor ⋙ (tensor_left (F.to_functor.obj X)) ≅
+  tensor_left X ⋙ F.to_functor :=
+nat_iso.of_components (λ Y, F.μ_iso X Y) (λ Y Z f, by { convert F.μ_natural' (𝟙 _) f, simp })
+
+/-- Monoidal functors commute with right tensoring up to isomorphism -/
+@[simps] noncomputable def comm_tensor_right (X : C) :
+  F.to_functor ⋙ (tensor_right (F.to_functor.obj X)) ≅
+  tensor_right X ⋙ F.to_functor :=
+nat_iso.of_components (λ Y, F.μ_iso Y X) (λ Y Z f, by { convert F.μ_natural' f (𝟙 _), simp })
 
 end
 
@@ -347,7 +359,8 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
   μ_is_iso := by { dsimp, apply_instance },
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
 
-infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
+-- We overload notation; potentially dangerous, but it seems to work.
+infixr (name := monoidal_functor.comp) ` ⊗⋙ `:80 := comp
 
 end monoidal_functor
 
@@ -430,15 +443,12 @@ def monoidal_adjoint (F : monoidal_functor C D) {G : D ⥤ C} (h : F.to_functor 
   end }.
 
 /-- If a monoidal functor `F` is an equivalence of categories then its inverse is also monoidal. -/
+@[simps]
 noncomputable
 def monoidal_inverse (F : monoidal_functor C D) [is_equivalence F.to_functor] :
   monoidal_functor D C :=
 { to_lax_monoidal_functor := monoidal_adjoint F (as_equivalence _).to_adjunction,
   ε_is_iso := by { dsimp [equivalence.to_adjunction], apply_instance },
   μ_is_iso := λ X Y, by { dsimp [equivalence.to_adjunction], apply_instance } }
-
-@[simp]
-lemma monoidal_inverse_to_functor (F : monoidal_functor C D) [is_equivalence F.to_functor] :
-  (monoidal_inverse F).to_functor = F.to_functor.inv := rfl
 
 end category_theory

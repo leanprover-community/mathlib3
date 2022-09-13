@@ -106,9 +106,8 @@ when la $ any_goals' $ try `[ linarith ]
 
 section error_reporting
 
-/--  `report l la` returns `Try this: remove_subs at <subset of user input>` or
-`'remove_subs' made no progress`, with an `!`-flag depending on `la`.
-In edge-cases, it reports some variation. -/
+/--  Depending on `l`, `report l la` returns `Try this: remove_subs at <data extracted from l>`, or
+`Try this: remove_subs`, or `'remove_subs' made no progress`, with an `!`-flag depending on `la`. -/
 def report (l : list (option name)) (la : bool) : string :=
 let rm := "remove_subs" ++ if la then "!" else "" in match l with
 | []     :=          "'" ++ rm ++ "' made no progress"

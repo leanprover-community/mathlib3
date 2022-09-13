@@ -1166,7 +1166,7 @@ by { ext, refl }
 
 end of_linear_equiv
 
-@[simps mul one {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
+@[simps mul one inv {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
   mul_assoc := λ ϕ ψ χ, rfl,
   one := refl,

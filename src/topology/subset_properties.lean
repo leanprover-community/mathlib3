@@ -803,6 +803,9 @@ lemma is_compact_range [compact_space α] {f : α → β} (hf : continuous f) :
   is_compact (range f) :=
 by rw ← image_univ; exact compact_univ.image hf
 
+lemma is_compact_diagonal [compact_space α] : is_compact (diagonal α) :=
+@range_diag α ▸ is_compact_range (continuous_id.prod_mk continuous_id)
+
 /-- If X is is_compact then pr₂ : X × Y → Y is a closed map -/
 theorem is_closed_proj_of_is_compact
   {X : Type*} [topological_space X] [compact_space X]

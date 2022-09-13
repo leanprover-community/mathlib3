@@ -221,7 +221,7 @@ begin
   { exact (hFP _ n).some }
 end
 
-theorem exists_countable_is_age_of_iff [L.countable_functions] :
+theorem exists_countable_is_age_of_iff [countable (Σl, L.functions l)] :
   (∃ (M : bundled.{w} L.Structure), (univ : set M).countable ∧ L.age M = K) ↔
     K.nonempty ∧
     (∀ (M N : bundled.{w} L.Structure), nonempty (M ≃[L] N) → (M ∈ K ↔ N ∈ K)) ∧
@@ -253,9 +253,9 @@ variables {L} (K)
 
 /-- A structure `M` is a Fraïssé limit for a class `K` if it is countably generated,
 ultrahomogeneous, and has age `K`. -/
-structure is_fraisse_limit [countable_functions L] : Prop :=
+structure is_fraisse_limit [countable (Σl, L.functions l)] : Prop :=
 (ultrahomogeneous : is_ultrahomogeneous L M)
-(countable : (univ : set M).countable)
+(is_countable : (univ : set M).countable)
 (age : L.age M = K)
 
 variables {L} {M}
@@ -288,8 +288,9 @@ lemma is_ultrahomogeneous.age_is_fraisse (hc : (univ : set M).countable)
 namespace is_fraisse_limit
 
 /-- If a class has a Fraïssé limit, it must be Fraïssé. -/
-theorem is_fraisse [countable_functions L] (h : is_fraisse_limit K M) : is_fraisse K :=
-(congr rfl h.age).mp (h.ultrahomogeneous.age_is_fraisse h.countable)
+theorem is_fraisse [_root_.countable (Σl, L.functions l)] (h : is_fraisse_limit K M) :
+  is_fraisse K :=
+(congr rfl h.age).mp (h.ultrahomogeneous.age_is_fraisse h.is_countable)
 
 end is_fraisse_limit
 

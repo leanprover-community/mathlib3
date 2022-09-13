@@ -26,7 +26,7 @@ def cons (a : α) (s : stream α) : stream α
 | 0       := a
 | (n + 1) := s n
 
-notation h :: t := cons h t
+notation (name := stream.cons) h :: t := cons h t
 
 /-- Head of a stream: `stream.head s = stream.nth 0 s`. -/
 def head (s : stream α) : α :=

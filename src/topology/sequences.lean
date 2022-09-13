@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jan-David Salchow, Patrick Massot
+Authors: Jan-David Salchow, Patrick Massot, Yury Kudryashov
 -/
 import topology.subset_properties
 import topology.metric_space.basic
@@ -10,18 +10,54 @@ import topology.metric_space.basic
 # Sequences in topological spaces
 
 In this file we define sequences in topological spaces and show how they are related to
-filters and the topology. In particular, we
-* define the sequential closure of a set and prove that it's contained in the closure,
-* define a type class "sequential_space" in which closure and sequential closure agree,
-* define sequential continuity and show that it coincides with continuity in sequential spaces,
-* provide an instance that shows that every first-countable (and in particular metric) space is
-  a sequential space.
-* define sequential compactness, prove that compactness implies sequential compactness in first
-  countable spaces, and prove they are equivalent for uniform spaces having a countable uniformity
-  basis (in particular metric spaces).
+filters and the topology.
+
+## Main definitions
+
+### Set operation
+* `seq_closure s`: sequential closure of a set, the set of limits of sequences of points of `s`;
+
+### Predicates
+
+* `is_seq_closed s`: predicate saying that a set is sequentially closed, i.e., `seq_closure s ⊆ s`;
+* `seq_continuous f`: predicate saying that a function is sequentially continuous, i.e.,
+  for any sequence `u : ℕ → X` that converges to a point `x`, the sequence `f ∘ u` converges to
+  `f x`;
+* `is_seq_compact s`: predicate saying that a set is sequentially compact, i.e., every sequence
+  taking values in `s` has a converging subsequence.
+
+### Type classes
+
+* `frechet_urysohn_space X`: a typeclass saying that a topological space is a *Fréchet-Urysohn
+  space*, i.e., the sequential closure of any set is equal to its closure.
+* `sequential_space X`: a typeclass saying that a topological space is a *sequential space*, i.e.,
+  any sequentially closed set in this space is closed. This condition is weaker than being a
+  Fréchet-Urysohn space.
+* `seq_compact_space X`: a typeclass saying that a topological space is sequentially compact, i.e.,
+  every sequence in `X` has a converging subsequence.
+
+## Main results
+
+* `seq_closure_subset_closure`: closure of a set includes its sequential closure;
+* `is_closed.is_seq_closed`: a closed set is sequentially closed;
+* `is_seq_closed.seq_closure_eq`: sequential closure of a sequentially closed set `s` is equal
+  to `s`;
+* `seq_closure_eq_closure`: in a Fréchet-Urysohn space, the sequential closure of a set is equal to
+  its closure;
+* `tendsto_nhds_iff_seq_tendsto`, `frechet_urysohn_space.of_seq_tendsto_imp_tendsto`: a topological
+  space is a Fréchet-Urysohn space if and only if sequential convergence implies convergence;
+* `topological_space.first_countable_topology.frechet_urysohn_space`: every topological space with
+  first countable topology is a Fréchet-Urysohn space;
+* `frechet_urysohn_space.to_sequential_space`: every Fréchet-Urysohn space is a sequential space;
+* `is_seq_compact.is_compact`: a sequentially compact set in a uniform space with countably
+  generated uniformity is compact.
+
+## Tags
+
+sequentially closed, sequentially compact, sequential space
 -/
 
-open set function filter
+open set function filter topological_space
 open_locale topological_space
 
 variables {X Y : Type*}
@@ -30,129 +66,160 @@ variables {X Y : Type*}
 section topological_space
 variables [topological_space X] [topological_space Y]
 
-/-- The sequential closure of a set `s : set X` in a topological space `X` is
-the set of all `a : X` which arise as limit of sequences in `s`. -/
+/-- The sequential closure of a set `s : set X` in a topological space `X` is the set of all `a : X`
+which arise as limit of sequences in `s`. Note that the sequential closure of a set is not
+guaranteed to be sequentially closed. -/
 def seq_closure (s : set X) : set X :=
 {a | ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ tendsto x at_top (𝓝 a)}
 
-lemma subset_seq_closure (s : set X) : s ⊆ seq_closure s :=
-λ a ha, ⟨const ℕ a, λ n, ha, tendsto_const_nhds⟩
-
-/-- A set `s` is sequentially closed if for any converging sequence `x n` of elements of `s`,
-the limit belongs to `s` as well. -/
-def is_seq_closed (s : set X) : Prop := s = seq_closure s
-
-/-- A convenience lemma for showing that a set is sequentially closed. -/
-lemma is_seq_closed_of_def {s : set X}
-  (h : ∀ (x : ℕ → X) (a : X), (∀ n : ℕ, x n ∈ s) → tendsto x at_top (𝓝 a) → a ∈ s) :
-  is_seq_closed s :=
-show s = seq_closure s, from subset.antisymm
-  (subset_seq_closure s)
-  (show ∀ a, a ∈ seq_closure s → a ∈ s, from
-    (assume a ⟨x, hxs, hxa⟩, show a ∈ s, from h x a hxs hxa))
+lemma subset_seq_closure {s : set X} : s ⊆ seq_closure s :=
+λ p hp, ⟨const ℕ p, λ _, hp, tendsto_const_nhds⟩
 
 /-- The sequential closure of a set is contained in the closure of that set.
 The converse is not true. -/
-lemma seq_closure_subset_closure (s : set X) : seq_closure s ⊆ closure s :=
-assume a ⟨x, xM, xa⟩,
-mem_closure_of_tendsto xa (eventually_of_forall xM)
+lemma seq_closure_subset_closure {s : set X} : seq_closure s ⊆ closure s :=
+λ p ⟨x, xM, xp⟩, mem_closure_of_tendsto xp (univ_mem' xM)
+
+/-- A set `s` is sequentially closed if for any converging sequence `x n` of elements of `s`, the
+limit belongs to `s` as well. Note that the sequential closure of a set is not guaranteed to be
+sequentially closed. -/
+def is_seq_closed (s : set X) : Prop :=
+∀ ⦃x : ℕ → X⦄ ⦃p : X⦄, (∀ n, x n ∈ s) → tendsto x at_top (𝓝 p) → p ∈ s
+
+/-- The sequential closure of a sequentially closed set is the set itself. -/
+lemma is_seq_closed.seq_closure_eq {s : set X} (hs : is_seq_closed s) :
+  seq_closure s = s :=
+subset.antisymm (λ p ⟨x, hx, hp⟩, hs hx hp) subset_seq_closure
+
+/-- If a set is equal to its sequential closure, then it is sequentially closed. -/
+lemma is_seq_closed_of_seq_closure_eq {s : set X} (hs : seq_closure s = s) :
+  is_seq_closed s :=
+λ x p hxs hxp, hs ▸ ⟨x, hxs, hxp⟩
+
+/-- A set is sequentially closed iff it is equal to its sequential closure. -/
+lemma is_seq_closed_iff {s : set X} :
+  is_seq_closed s ↔ seq_closure s = s :=
+⟨is_seq_closed.seq_closure_eq, is_seq_closed_of_seq_closure_eq⟩
 
 /-- A set is sequentially closed if it is closed. -/
-lemma is_closed.is_seq_closed {s : set X} (hs : is_closed s) : is_seq_closed s :=
-suffices seq_closure s ⊆ s, from (subset_seq_closure s).antisymm this,
-calc seq_closure s ⊆ closure s : seq_closure_subset_closure s
-               ... = s         : hs.closure_eq
+protected lemma is_closed.is_seq_closed {s : set X} (hc : is_closed s) : is_seq_closed s :=
+λ u x hu hx, hc.mem_of_tendsto hx (eventually_of_forall hu)
 
-/-- The limit of a convergent sequence in a sequentially closed set is in that set.-/
-lemma is_seq_closed.mem_of_tendsto {s : set X} (hs : is_seq_closed s) {x : ℕ → X}
-  (hmem : ∀ n, x n ∈ s) {a : X} (ha : tendsto x at_top (𝓝 a)) : a ∈ s :=
-have a ∈ seq_closure s, from ⟨x, hmem, ha⟩,
-eq.subst (eq.symm ‹is_seq_closed s›) ‹a ∈ seq_closure s›
+/-- A topological space is called a *Fréchet-Urysohn space*, if the sequential closure of any set
+is equal to its closure. Since one of the inclusions is trivial, we require only the non-trivial one
+in the definition. -/
+class frechet_urysohn_space (X : Type*) [topological_space X] : Prop :=
+(closure_subset_seq_closure : ∀ s : set X, closure s ⊆ seq_closure s)
 
-/-- A sequential space is a space in which 'sequences are enough to probe the topology'. This can be
- formalised by demanding that the sequential closure and the closure coincide. The following
- statements show that other topological properties can be deduced from sequences in sequential
- spaces. -/
+lemma seq_closure_eq_closure [frechet_urysohn_space X] (s : set X) :
+  seq_closure s = closure s :=
+seq_closure_subset_closure.antisymm $ frechet_urysohn_space.closure_subset_seq_closure s
+
+/-- In a Fréchet-Urysohn space, a point belongs to the closure of a set iff it is a limit
+of a sequence taking values in this set. -/
+lemma mem_closure_iff_seq_limit [frechet_urysohn_space X] {s : set X} {a : X} :
+  a ∈ closure s ↔ ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ tendsto x at_top (𝓝 a) :=
+by { rw [← seq_closure_eq_closure], refl }
+
+/-- If the domain of a function `f : α → β` is a Fréchet-Urysohn space, then convergence
+is equivalent to sequential convergence. See also `filter.tendsto_iff_seq_tendsto` for a version
+that works for any pair of filters assuming that the filter in the domain is countably generated.
+
+This property is equivalent to the definition of `frechet_urysohn_space`, see
+`frechet_urysohn_space.of_seq_tendsto_imp_tendsto`. -/
+lemma tendsto_nhds_iff_seq_tendsto [frechet_urysohn_space X] {f : X → Y} {a : X} {b : Y} :
+  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ u : ℕ → X, tendsto u at_top (𝓝 a) → tendsto (f ∘ u) at_top (𝓝 b) :=
+begin
+  refine ⟨λ hf u hu, hf.comp hu,
+    λ h, ((nhds_basis_closeds _).tendsto_iff (nhds_basis_closeds _)).2 _⟩,
+  rintro s ⟨hbs, hsc⟩,
+  refine ⟨closure (f ⁻¹' s), ⟨mt _ hbs, is_closed_closure⟩, λ x, mt $ λ hx, subset_closure hx⟩,
+  rw [← seq_closure_eq_closure],
+  rintro ⟨u, hus, hu⟩,
+  exact hsc.mem_of_tendsto (h u hu) (eventually_of_forall hus)
+end
+
+/-- An alternative construction for `frechet_urysohn_space`: if sequential convergence implies
+convergence, then the space is a Fréchet-Urysohn space. -/
+lemma frechet_urysohn_space.of_seq_tendsto_imp_tendsto
+  (h : ∀ (f : X → Prop) (a : X),
+    (∀ u : ℕ → X, tendsto u at_top (𝓝 a) → tendsto (f ∘ u) at_top (𝓝 (f a))) → continuous_at f a) :
+  frechet_urysohn_space X :=
+begin
+  refine ⟨λ s x hcx, _⟩,
+  specialize h (∉ s) x,
+  by_cases hx : x ∈ s, { exact subset_seq_closure hx },
+  simp_rw [(∘), continuous_at, hx, not_false_iff, nhds_true, tendsto_pure, eq_true,
+    ← mem_compl_iff, eventually_mem_set, ← mem_interior_iff_mem_nhds, interior_compl] at h,
+  rw [mem_compl_iff, imp_not_comm] at h,
+  simp only [not_forall, not_eventually, mem_compl_iff, not_not] at h,
+  rcases h hcx with ⟨u, hux, hus⟩,
+  rcases extraction_of_frequently_at_top hus with ⟨φ, φ_mono, hφ⟩,
+  exact ⟨u ∘ φ, hφ, hux.comp φ_mono.tendsto_at_top⟩
+end
+
+/-- Every first-countable space is a Fréchet-Urysohn space. -/
+@[priority 100] -- see Note [lower instance priority]
+instance topological_space.first_countable_topology.frechet_urysohn_space
+  [first_countable_topology X] : frechet_urysohn_space X :=
+frechet_urysohn_space.of_seq_tendsto_imp_tendsto $ λ f a, tendsto_iff_seq_tendsto.2
+
+/-- A topological space is said to be a *sequential space* if any sequentially closed set in this
+space is closed. This condition is weaker than being a Fréchet-Urysohn space. -/
 class sequential_space (X : Type*) [topological_space X] : Prop :=
-(seq_closure_eq_closure : ∀ s : set X, seq_closure s = closure s)
+(is_closed_of_seq : ∀ s : set X, is_seq_closed s → is_closed s)
+
+/-- Every Fréchet-Urysohn space is a sequential space. -/
+@[priority 100] -- see Note [lower instance priority]
+instance frechet_urysohn_space.to_sequential_space [frechet_urysohn_space X] :
+  sequential_space X :=
+⟨λ s hs, by rw [← closure_eq_iff_is_closed, ← seq_closure_eq_closure, hs.seq_closure_eq]⟩
+
+/-- In a sequential space, a sequentially closed set is closed. -/
+protected lemma is_seq_closed.is_closed [sequential_space X] {s : set X} (hs : is_seq_closed s) :
+  is_closed s :=
+sequential_space.is_closed_of_seq s hs
 
 /-- In a sequential space, a set is closed iff it's sequentially closed. -/
-lemma is_seq_closed_iff_is_closed [sequential_space X] {s : set X} :
-  is_seq_closed s ↔ is_closed s :=
-iff.intro
-  (assume _, closure_eq_iff_is_closed.mp (eq.symm
-    (calc s = seq_closure s : by assumption
-        ... = closure s     : sequential_space.seq_closure_eq_closure s)))
-  is_closed.is_seq_closed
-
-alias is_seq_closed_iff_is_closed ↔ is_seq_closed.is_closed _
-
-/-- In a sequential space, a point belongs to the closure of a set iff it is a limit of a sequence
-taking values in this set. -/
-lemma mem_closure_iff_seq_limit [sequential_space X] {s : set X} {a : X} :
-  a ∈ closure s ↔ ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ tendsto x at_top (𝓝 a) :=
-by { rw ← sequential_space.seq_closure_eq_closure, exact iff.rfl }
+lemma is_seq_closed_iff_is_closed [sequential_space X] {M : set X} :
+  is_seq_closed M ↔ is_closed M :=
+⟨is_seq_closed.is_closed, is_closed.is_seq_closed⟩
 
 /-- A function between topological spaces is sequentially continuous if it commutes with limit of
  convergent sequences. -/
 def seq_continuous (f : X → Y) : Prop :=
-∀ (x : ℕ → X), ∀ {a : X}, tendsto x at_top (𝓝 a) → tendsto (f ∘ x) at_top (𝓝 (f a))
+∀ ⦃x : ℕ → X⦄ ⦃p : X⦄, tendsto x at_top (𝓝 p) → tendsto (f ∘ x) at_top (𝓝 (f p))
+
+/-- The preimage of a sequentially closed set under a sequentially continuous map is sequentially
+closed. -/
+lemma is_seq_closed.preimage {f : X → Y} {s : set Y} (hs : is_seq_closed s)
+  (hf : seq_continuous f) :
+  is_seq_closed (f ⁻¹' s) :=
+λ x p hx hp, hs hx (hf hp)
 
 /- A continuous function is sequentially continuous. -/
-protected lemma continuous.seq_continuous {f : X → Y} (hf : continuous f) : seq_continuous f :=
-λ x a, (hf.tendsto _).comp
+protected lemma continuous.seq_continuous {f : X → Y} (hf : continuous f) :
+  seq_continuous f :=
+λ x p hx, (hf.tendsto p).comp hx
 
-/-- In a sequential space, continuity and sequential continuity coincide. -/
-lemma continuous_iff_seq_continuous {f : X → Y} [sequential_space X] :
+/-- A sequentially continuous function defined on a sequential space is continuous. -/
+protected lemma seq_continuous.continuous [sequential_space X] {f : X → Y} (hf : seq_continuous f) :
+  continuous f :=
+continuous_iff_is_closed.mpr $ λ s hs, (hs.is_seq_closed.preimage hf).is_closed
+
+/-- If the domain of a function is a sequential space, then continuity of this function is
+equivalent to its sequential continuity. -/
+lemma continuous_iff_seq_continuous [sequential_space X] {f : X → Y} :
   continuous f ↔ seq_continuous f :=
-iff.intro
-  continuous.seq_continuous
-  (assume : seq_continuous f, show continuous f, from
-    suffices h : ∀ {s : set Y}, is_closed s → is_seq_closed (f ⁻¹' s), from
-      continuous_iff_is_closed.mpr (assume s _, is_seq_closed_iff_is_closed.mp $ h ‹is_closed s›),
-    assume s (_ : is_closed s),
-      is_seq_closed_of_def $
-        assume (x : ℕ → X) a (_ : ∀ n, f (x n) ∈ s) (_ : tendsto x at_top (𝓝 a)),
-        have tendsto (f ∘ x) at_top (𝓝 (f a)), from ‹seq_continuous f› x ‹_›,
-        show f a ∈ s,
-          from ‹is_closed s›.is_seq_closed.mem_of_tendsto ‹∀ n, f (x n) ∈ s› ‹_›)
+⟨continuous.seq_continuous, seq_continuous.continuous⟩
 
-alias continuous_iff_seq_continuous ↔ _ seq_continuous.continuous
+lemma quotient_map.sequential_space [sequential_space X] {f : X → Y} (hf : quotient_map f) :
+  sequential_space Y :=
+⟨λ s hs, hf.is_closed_preimage.mp $ (hs.preimage $ hf.continuous.seq_continuous).is_closed⟩
 
-end topological_space
-
-namespace topological_space
-
-namespace first_countable_topology
-
-variables [topological_space X] [first_countable_topology X]
-
-/-- Every first-countable space is sequential. -/
-@[priority 100] -- see Note [lower instance priority]
-instance : sequential_space X :=
-⟨show ∀ s, seq_closure s = closure s, from assume s,
-  suffices closure s ⊆ seq_closure s,
-    from set.subset.antisymm (seq_closure_subset_closure s) this,
-  -- For every a ∈ closure s, we need to construct a sequence `x` in `s` that converges to `a`:
-  assume (a : X) (ha : a ∈ closure s),
-  -- Since we are in a first-countable space, the neighborhood filter around `a` has a decreasing
-  -- basis `U` indexed by `ℕ`.
-  let ⟨U, hU⟩ := (𝓝 a).exists_antitone_basis in
-  -- Since `p ∈ closure M`, there is an element in each `M ∩ U i`
-  have ha : ∀ (i : ℕ), ∃ (y : X), y ∈ s ∧ y ∈ U i,
-    by simpa using (mem_closure_iff_nhds_basis hU.1).mp ha,
-  begin
-    -- The axiom of (countable) choice builds our sequence from the later fact
-    choose u hu using ha,
-    rw forall_and_distrib at hu,
-    -- It clearly takes values in `M`
-    use [u, hu.1],
-    -- and converges to `p` because the basis is decreasing.
-    apply hU.tendsto hu.2,
-  end⟩
-
-
-end first_countable_topology
+/-- The quotient of a sequential space is a sequential space. -/
+instance [sequential_space X] {s : setoid X} : sequential_space (quotient s) :=
+quotient_map_quot_mk.sequential_space
 
 end topological_space
 
@@ -225,9 +292,8 @@ begin
   obtain ⟨V, hV, Vsymm⟩ :
     ∃ V : ℕ → set (X × X), (𝓤 X).has_antitone_basis V ∧ ∀ n, swap ⁻¹' V n = V n,
       from uniform_space.has_seq_basis X,
-  suffices : ∃ n, ∀ x ∈ s, ∃ i, ball x (V n) ⊆ c i,
-  { cases this with n hn,
-    exact ⟨V n, hV.to_has_basis.mem_of_mem trivial, Vsymm n, hn⟩ },
+  rsuffices ⟨n, hn⟩ : ∃ n, ∀ x ∈ s, ∃ i, ball x (V n) ⊆ c i,
+  { exact ⟨V n, hV.to_has_basis.mem_of_mem trivial, Vsymm n, hn⟩ },
   by_contradiction H,
   obtain ⟨x, x_in, hx⟩ : ∃ x : ℕ → X, (∀ n, x n ∈ s) ∧ ∀ n i, ¬ ball (x n) (V n) ⊆ c i,
   { push_neg at H,

@@ -278,49 +278,32 @@ lemma of_cauchy_inf (a b) : (⟨⟦a ⊓ b⟧⟩ : ℝ) = ⟨⟦a⟧⟩ ⊓ ⟨�
 instance : distrib_lattice ℝ :=
 { sup := (⊔),
   le := (≤),
-  le_sup_left := λ a b, begin
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
+  le_sup_left := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
     rw [←mk_sup, mk_le],
-    refine le_of_exists ⟨0, λ j hj, le_sup_left⟩,
+    exact le_of_exists ⟨0, λ j hj, le_sup_left⟩,
   end,
-  le_sup_right := λ a b, begin
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
+  le_sup_right := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
     rw [←mk_sup, mk_le],
     refine le_of_exists ⟨0, λ j hj, le_sup_right⟩,
   end,
-  sup_le := λ a b c, begin
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
-    induction c using real.ind_mk with c,
+  sup_le := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, begin
     simp_rw [←mk_sup, mk_le],
     exact cau_seq.sup_le,
   end,
   inf := (⊓),
-  inf_le_left := λ a b, begin
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
+  inf_le_left := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
     rw [←mk_inf, mk_le],
     refine le_of_exists ⟨0, λ j hj, inf_le_left⟩,
   end,
-  inf_le_right := λ a b, begin
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
+  inf_le_right := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
     rw [←mk_inf, mk_le],
     refine le_of_exists ⟨0, λ j hj, inf_le_right⟩,
   end,
-  le_inf := λ a b c, begin
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
-    induction c using real.ind_mk with c,
+  le_inf := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, begin
     simp_rw [←mk_inf, mk_le],
     exact cau_seq.le_inf,
   end,
-  le_sup_inf := λ a b c, eq.le begin
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
-    induction c using real.ind_mk with c,
+  le_sup_inf := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, eq.le begin
     simp only [←mk_sup, ←mk_inf],
     congr' 1,
     ext : 2,
@@ -336,11 +319,7 @@ instance : semilattice_sup ℝ := infer_instance
 open_locale classical
 
 instance : is_total ℝ (≤) :=
-⟨λ a b, begin
-  induction a using real.ind_mk with a,
-  induction b using real.ind_mk with b,
-  simpa using le_total a b,
-end⟩
+⟨λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, by simpa using le_total a b⟩
 
 noncomputable instance : linear_order ℝ :=
 lattice.to_linear_order _
@@ -353,7 +332,6 @@ noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
 noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : is_domain ℝ :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
-
 
 noncomputable instance : linear_ordered_field ℝ :=
 { inv := has_inv.inv,

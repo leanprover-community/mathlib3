@@ -649,8 +649,8 @@ noncomputable def quot_equiv_quot_map (f : R[X]) (I : ideal R) :
      ((R ⧸ I) [X]) ⧸ (ideal.span ({polynomial.map I^.quotient.mk f} : set ((R ⧸ I) [X]))) :=
 alg_equiv.of_ring_equiv (show ∀ x, (quot_adjoin_root_equiv_quot_polynomial_quot I f)
   (algebra_map R _ x) = algebra_map R _ x, from λ x, begin
-    have : algebra_map R ((adjoin_root f) ⧸ (ideal.map (of f) I)) x = ideal.quotient.mk (ideal.map (adjoin_root.of f) I)
-      ((mk f) (C x)) := rfl,
+    have : algebra_map R ((adjoin_root f) ⧸ (ideal.map (of f) I)) x = ideal.quotient.mk
+      (ideal.map (adjoin_root.of f) I) ((mk f) (C x)) := rfl,
     simpa only [this, quot_adjoin_root_equiv_quot_polynomial_quot_mk_of, map_C]
   end)
 

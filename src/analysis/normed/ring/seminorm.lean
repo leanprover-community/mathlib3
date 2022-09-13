@@ -73,10 +73,7 @@ instance : inhabited (ring_seminorm R) := ⟨0⟩
 
 variables (p : ring_seminorm R)
 
-protected lemma nonneg : 0 ≤ p x := p.nonneg' _
-@[simp] protected lemma map_zero : p 0 = 0 := p.map_zero'
-protected lemma add_le : p (x + y) ≤ p x + p y := p.add_le' _ _
-@[simp] protected lemma neg : p (- x) = p x := p.neg' _
+protected lemma nonneg : 0 ≤ p x := sorry
 protected lemma mul_le : p (x * y) ≤ p x * p y := p.mul_le' _ _
 
 end non_unital_ring
@@ -101,12 +98,12 @@ begin
     { rw ← mul_one x,
       apply le_trans (p.mul_le x 1) _,
       rw [hp0, mul_zero], },
-    exact absurd (le_antisymm hx' (p.nonneg x) ) hx },
+      exact absurd (le_antisymm hx' (p.nonneg x) ) hx },
   { have h1 : p 1 * 1 ≤ p 1 * p 1,
     { conv_lhs { rw ← one_mul (1 : R) },
       convert p.mul_le 1 1,
       rw mul_one, },
-    rw mul_le_mul_left (lt_of_le_of_ne (p.nonneg _) (ne.symm hp0)) at h1,
+      rw mul_le_mul_left (lt_of_le_of_ne (p.nonneg _) (ne.symm hp0)) at h1,
     exact le_antisymm hp h1, }
 end
 
@@ -118,11 +115,8 @@ end ring_seminorm
 def norm_ring_seminorm (R : Type*) [non_unital_semi_normed_ring R] :
   ring_seminorm R :=
 { to_fun    := norm,
-  map_zero' := norm_zero,
-  nonneg'   := norm_nonneg,
-  add_le'   := norm_add_le,
-  neg'      := norm_neg,
-  mul_le'   := norm_mul_le }
+  mul_le'   := norm_mul_le,
+  ..(norm_add_group_seminorm R) }
 
 /-- A function `f : R → ℝ` is a norm on a (nonunital) ring if it is a seminorm and `f x = 0`
   implies `x = 0`. -/
@@ -150,22 +144,23 @@ fun_like.ext p q h
 
 variable (R)
 
+
 /-- The trivial norm on a ring `R` is the `ring_norm` taking value `0` at `0` and `1` at every
   other element. -/
 def trivial_norm [decidable_eq R] : ring_norm R :=
 { mul_le' := λ x y, begin
     by_cases h : x * y = 0,
-    { simp only [add_group_seminorm.trivial_norm, if_pos h], apply mul_nonneg;
+    { simp only [add_group_seminorm.to_fun_eq_coe, add_group_norm.apply_one, if_pos h],
+      apply mul_nonneg;
       { split_ifs, exacts [le_refl _, zero_le_one] }},
-    { simp only [add_group_seminorm.to_fun_eq_coe, add_group_seminorm.trivial_norm_of_ne_zero h,
-        add_group_seminorm.trivial_norm_of_ne_zero (left_ne_zero_of_mul h),
-        add_group_seminorm.trivial_norm_of_ne_zero (right_ne_zero_of_mul h), mul_one] }
+    { simp only [add_group_seminorm.to_fun_eq_coe, add_group_norm.apply_one, if_neg h,
+        if_neg (left_ne_zero_of_mul h), if_neg (right_ne_zero_of_mul h), mul_one] }
   end,
   ne_zero := λ x hx, begin
-    simp only [add_group_seminorm.trivial_norm, if_neg hx],
+    simp only [add_group_seminorm.to_fun_eq_coe, add_group_norm.apply_one, if_neg hx],
     exact zero_lt_one
   end,
-  .. add_group_seminorm.trivial_norm R }
+  ..(1 : add_group_norm R) }
 
 lemma trivial_norm_of_ne_zero [decidable_eq R] {z : R} (h : z ≠ 0) : trivial_norm R z = 1 :=
 if_neg h
@@ -185,8 +180,8 @@ def ring_seminorm.to_ring_horm {K : Type*} [field K] (f : ring_seminorm K)
       { rw [← mul_one c, ← mul_inv_cancel hx, ← mul_assoc, mul_comm c, mul_assoc],
         refine le_trans (f.mul_le x _) _,
         rw [← h0, zero_mul] },
-      exact hc (le_antisymm hc' (f.nonneg _)), },
-    exact lt_of_le_of_ne (f.nonneg _) hfx,
+        exact hc (le_antisymm hc' (f.nonneg _)),  },
+      exact lt_of_le_of_ne (f.nonneg _) hfx,
   end,
   ..f }
 

@@ -481,14 +481,23 @@ begin
   simp,
 end
 
-lemma roots_of_unity.norm_one [comm_monoid β] (φ : β →* α) {x : β} {k : ℕ+}
+example (x : α) : ∥x∥ = ∥x∥₊ := (coe_nnnorm x).symm
+
+lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
+  ∥x∥ = 1 :=
+begin
+  rw ( _ :  ∥x∥ = 1 ↔ ∥x∥₊ = 1),
+  apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
+  { rw [← nnnorm_pow, one_pow, h, nnnorm_one], },
+  { exact subtype.mk_eq_mk.symm, },
+end
+
+lemma norm_map_one_of_pow_eq_one [comm_monoid β] (φ : β →* α) {x : β} {k : ℕ+}
   (h : x ^ (k : ℕ) = 1) :
   ∥φ x∥ = 1 :=
 begin
-  rw ( _ :  ∥φ x∥ = 1 ↔ ∥φ x∥₊ = 1),
-  { apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
-    rw [← nnnorm_pow, one_pow, ← monoid_hom.map_pow, h, monoid_hom.map_one, nnnorm_one], },
-  { exact subtype.mk_eq_mk.symm, },
+  have : (φ x) ^ (k : ℕ) = 1 := by rw [← monoid_hom.map_pow, h, monoid_hom.map_one],
+  exact norm_one_of_pow_eq_one this,
 end
 
 end normed_division_ring

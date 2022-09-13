@@ -1,5 +1,6 @@
 import algebra.order.smul
 import analysis.normed.group.basic
+import data.complex.exponential
 import data.real.sqrt
 import tactic.positivity
 
@@ -99,6 +100,8 @@ example {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [smul
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 
 example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
+
+example {r : ℝ} : 0 < r.exp := by positivity
 
 /- ## Tests that the tactic is agnostic on reversed inequalities -/
 

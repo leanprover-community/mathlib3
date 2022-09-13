@@ -1630,6 +1630,17 @@ end
 
 end real
 
+namespace tactic
+open positivity real
+
+/-- Extension for the `positivity` tactic: `real.exp` is always positive. -/
+@[positivity]
+meta def positivity_exp : expr → tactic strictness
+| `(exp %%a) := positive <$> mk_app ``exp_pos [a]
+| _ := failed
+
+end tactic
+
 namespace complex
 
 @[simp] lemma abs_cos_add_sin_mul_I (x : ℝ) : abs (cos x + sin x * I) = 1 :=

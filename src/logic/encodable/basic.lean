@@ -7,6 +7,7 @@ import logic.equiv.nat
 import order.directed
 import data.countable.defs
 import order.rel_iso
+import data.fin.basic
 
 /-!
 # Encodable types
@@ -304,7 +305,7 @@ by cases a; refl
 end subtype
 
 instance _root_.fin.encodable (n) : encodable (fin n) :=
-subtype.encodable
+of_equiv _ fin.equiv_subtype
 
 instance _root_.int.encodable : encodable ℤ :=
 of_equiv _ equiv.int_equiv_nat
@@ -332,6 +333,9 @@ nonempty.some $ let ⟨f, hf⟩ := exists_injective_nat α in ⟨of_inj f hf⟩
 ⟨λ ⟨h⟩, @encodable.countable α h, λ h, ⟨@of_countable _ h⟩⟩
 
 end encodable
+
+lemma nonempty_encodable (α : Type*) [countable α] : nonempty (encodable α) :=
+⟨encodable.of_countable _⟩
 
 instance : countable ℕ+ := subtype.countable -- short-circuit instance search
 

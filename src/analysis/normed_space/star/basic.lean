@@ -112,6 +112,47 @@ subtype.ext norm_star_mul_self
 
 end non_unital
 
+section prod_pi
+
+variables {ι R₁ R₂ : Type*} {R : ι → Type*}
+variables [non_unital_normed_ring R₁] [star_ring R₁] [cstar_ring R₁]
+variables [non_unital_normed_ring R₂] [star_ring R₂] [cstar_ring R₂]
+variables [Π i, non_unital_normed_ring (R i)] [Π i, star_ring (R i)]
+
+/-- This instance exists to short circuit type class resolution because of problems with
+inference involving Π-types. -/
+instance _root_.pi.star_ring' : star_ring (Π i, R i) := infer_instance
+
+variables [fintype ι] [Π i, cstar_ring (R i)]
+
+instance _root_.prod.cstar_ring : cstar_ring (R₁ × R₂) :=
+{ norm_star_mul_self := λ x,
+  begin
+    unfold norm,
+    simp only [prod.fst_mul, prod.fst_star, prod.snd_mul, prod.snd_star, norm_star_mul_self, ←sq],
+    refine le_antisymm _ _,
+    { refine max_le _ _;
+      rw [sq_le_sq, abs_of_nonneg (norm_nonneg _)],
+      exact (le_max_left _ _).trans (le_abs_self _),
+      exact (le_max_right _ _).trans (le_abs_self _) },
+    { rw le_max_iff,
+      rcases le_total (∥x.fst∥) (∥x.snd∥) with (h | h);
+      simp [h] }
+  end }
+
+instance _root_.pi.cstar_ring : cstar_ring (Π i, R i) :=
+{ norm_star_mul_self := λ x,
+  begin
+    simp only [norm, pi.mul_apply, pi.star_apply, nnnorm_star_mul_self, ←sq],
+    norm_cast,
+    exact (finset.comp_sup_eq_sup_comp_of_is_total (λ x : nnreal, x ^ 2)
+      (λ x y h, by simpa only [sq] using mul_le_mul' h h) (by simp)).symm,
+  end }
+
+instance _root_.pi.cstar_ring' : cstar_ring (ι → R₁) := pi.cstar_ring
+
+end prod_pi
+
 section unital
 variables [normed_ring E] [star_ring E] [cstar_ring E]
 
@@ -162,8 +203,8 @@ norm_mul_coe_unitary A ⟨U, hU⟩
 end unital
 end cstar_ring
 
-lemma nnnorm_pow_two_pow_of_self_adjoint [normed_ring E] [star_ring E] [cstar_ring E]
-  {x : E} (hx : x ∈ self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
+lemma is_self_adjoint.nnnorm_pow_two_pow [normed_ring E] [star_ring E]
+  [cstar_ring E] {x : E} (hx : is_self_adjoint x) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
 begin
   induction n with k hk,
   { simp only [pow_zero, pow_one] },
@@ -174,7 +215,7 @@ end
 
 lemma self_adjoint.nnnorm_pow_two_pow [normed_ring E] [star_ring E] [cstar_ring E]
   (x : self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
-nnnorm_pow_two_pow_of_self_adjoint x.property _
+x.prop.nnnorm_pow_two_pow _
 
 section starₗᵢ
 

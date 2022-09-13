@@ -36,6 +36,9 @@ def ne_locus (f g : α →₀ N) : finset α :=
 by simpa only [ne_locus, finset.mem_filter, finset.mem_union, mem_support_iff,
     and_iff_right_iff_imp] using ne.ne_or_ne _
 
+lemma not_mem_ne_locus {f g : α →₀ N} {a : α} : a ∉ f.ne_locus g ↔ f a = g a :=
+mem_ne_locus.not.trans not_ne_iff
+
 @[simp] lemma coe_ne_locus : ↑(f.ne_locus g) = {x | f x ≠ g x} :=
 by { ext, exact mem_ne_locus }
 

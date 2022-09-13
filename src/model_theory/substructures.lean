@@ -272,7 +272,7 @@ end
 
 variable (L)
 
-instance _root_.set.countable.substructure_closure [countable (Σl, L.functions l)]
+lemma _root_.set.countable.substructure_closure [countable (Σl, L.functions l)]
   (h : s.countable) :
   countable.{w + 1} (closure L s) :=
 begin

@@ -1590,6 +1590,11 @@ theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
 by simpa only [univ_inter, univ_subset_iff] using
   @preirreducible_space.is_preirreducible_univ α _ _ s t
 
+/-- In a (pre)irreducible space, a nonempty open set is dense. -/
+protected theorem is_open.dense [preirreducible_space α] {s : set α} (ho : is_open s)
+  (hne : s.nonempty) : dense s :=
+dense_iff_inter_open.2 $ λ t hto htne, nonempty_preirreducible_inter hto ho htne hne
+
 theorem is_preirreducible.image {s : set α} (H : is_preirreducible s)
   (f : α → β) (hf : continuous_on f s) : is_preirreducible (f '' s) :=
 begin
@@ -1611,7 +1616,7 @@ end
 
 theorem is_irreducible.image {s : set α} (H : is_irreducible s)
   (f : α → β) (hf : continuous_on f s) : is_irreducible (f '' s) :=
-⟨nonempty_image_iff.mpr H.nonempty, H.is_preirreducible.image f hf⟩
+⟨H.nonempty.image _, H.is_preirreducible.image f hf⟩
 
 lemma subtype.preirreducible_space {s : set α} (h : is_preirreducible s) :
   preirreducible_space s :=
@@ -1632,6 +1637,17 @@ lemma subtype.irreducible_space {s : set α} (h : is_irreducible s) :
 { is_preirreducible_univ :=
   (subtype.preirreducible_space h.is_preirreducible).is_preirreducible_univ,
   to_nonempty := h.nonempty.to_subtype }
+
+/-- An infinite type with cofinite topology is an irreducible topological space. -/
+@[priority 100] instance {α} [infinite α] : irreducible_space (cofinite_topology α) :=
+{ is_preirreducible_univ := λ u v,
+    begin
+      haveI : infinite (cofinite_topology α) := ‹_›,
+      simp only [cofinite_topology.is_open_iff, univ_inter],
+      intros hu hv hu' hv',
+      simpa only [compl_union, compl_compl] using ((hu hu').union (hv hv')).infinite_compl.nonempty
+    end,
+  to_nonempty := (infer_instance : nonempty α) }
 
 /-- A set `s` is irreducible if and only if
 for every finite collection of open sets all of whose members intersect `s`,

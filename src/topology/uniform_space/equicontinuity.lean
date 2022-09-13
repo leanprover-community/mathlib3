@@ -10,27 +10,50 @@ import topology.uniform_space.uniform_convergence_topology
 
 ## Main definitions
 
-* `foo_bar`
+* `equicontinuous_at`: equicontinuity of a family of functions at a point
+* `equicontinuous`: equicontinuity of a family of functions on the whole domain
+* `uniform_equicontinuous`: uniform equicontinuity of a family of functions on the whole domain
 
 ## Main statements
 
-* `foo_bar_unique`
+* `equicontinuous_iff_continuous`: equicontinuity can be expressed as a simple continuity
+  condition between well-chosen function spaces. This is really useful for building up the theory.
+* `equicontinuous.closure`: if a set of functions is equicontinuous, its closure
+  *for the topology of uniform convergence* is also equicontinuous.
 
-## Notation
+## Notations
 
-
+Throughout this file, we use :
+- `ι`, `κ` for indexing types
+- `X`, `Y`, `Z` for topological spaces
+- `α`, `β`, `γ` for uniform spaces
 
 ## Implementation details
 
+We choose to express equicontinuity as a properties of indexed families of functions rather
+than sets of functions for the following reasons:
+- it is really easy to express equicontinuity of `H : set (X → α)` using our setup: it is just
+  equicontinuity of the family `coe : ↥H → (X → α)`. On the other hand, going the other way around
+  would require working with the range of the family, which is always annoying because it
+  introduces useless existentials.
+- in most applications, one doesn't work with bare functions but with a more specific hom type
+  `hom`. Equicontinuity of a set `H : set hom` would then have to be expressed as equicontinuity
+  of `coe_fn '' H`, which is super annoying to work with. This is much simpler with families,
+  because equicontinuity of a family `𝓕 : ι → hom` would simply be expressed as equicontinuity
+  of `coe_fn ∘ 𝓕`, which doesn't introduce any nasty existentials.
 
+To simplify statements, we do provide abbreviations `set.equicontinuous_at`, `set.equicontinuous`
+and `set.uniform_equicontinuous` asserting the corresponding fact about the family
+`coe : ↥H → (X → α)` where `H : set (X → α)`. Note however that these won't work for sets of hom
+types, and in that case one should go back to the family definition rather than using `set.image`.
 
 ## References
 
-* [F. Bar, *Quuxes*][bibkey]
+* [N. Bourbaki, *General Topology, Chapter X*][bourbaki1966]
 
 ## Tags
 
-Foobars, barfoos
+equicontinuity, uniform convergence, ascoli
 -/
 
 section
@@ -45,17 +68,17 @@ variables {ι κ X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U
 
+/-- We say that a set of `H : set (X → α)` functions is equicontinuous at a point if the family
+`coe : ↥H → (X → α)` is equicontinuous at that point. -/
 protected abbreviation set.equicontinuous_at (H : set $ X → α) (x₀ : X) : Prop :=
 equicontinuous_at (coe : H → X → α) x₀
-
-protected abbreviation set.equicontinuous_at_as_fn [has_coe_to_fun 𝓕 (λ _, X → α)]
-  (H : set 𝓕) (x₀ : X) : Prop :=
-equicontinuous_at (coe_fn : H → X → α) x₀
 
 /-- Equicontinuity of a family of functions on the whole domain. -/
 def equicontinuous (F : ι → X → α) : Prop :=
 ∀ x₀, equicontinuous_at F x₀
 
+/-- We say that a set of `H : set (X → α)` functions is equicontinuous if the family
+`coe : ↥H → (X → α)` is equicontinuous. -/
 protected abbreviation set.equicontinuous (H : set $ X → α) : Prop :=
 equicontinuous (coe : H → X → α)
 
@@ -63,6 +86,8 @@ equicontinuous (coe : H → X → α)
 def uniform_equicontinuous (F : ι → β → α) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U
 
+/-- We say that a set of `H : set (X → α)` functions is uniformly equicontinuous if the family
+`coe : ↥H → (X → α)` is uniformly equicontinuous. -/
 protected abbreviation set.uniform_equicontinuous (H : set $ β → α) : Prop :=
 uniform_equicontinuous (coe : H → β → α)
 

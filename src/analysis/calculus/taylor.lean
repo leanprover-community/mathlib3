@@ -333,14 +333,14 @@ begin
   ring,
 end
 
-/-- **Taylor's theorem** with a uniform bound of the remainder
+/-- **Taylor's theorem** with a polynomial bound on the remainder
 
 We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc a b`.
 The difference of `f` and its `n`-th Taylor polynomial can be estimated by
 `C * (x - a)^(n+1) / n!` where `C` is a bound for the `n+1`-th iterated derivative of `f`. -/
-lemma taylor_mean_remainder_bound {f : ℝ → E} {a b C x: ℝ} {n : ℕ}
+lemma taylor_mean_remainder_bound {f : ℝ → E} {a b C x : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) (hx : x ∈ Icc a b)
-  (hC : ∀ (y : ℝ) (hy : y ∈ Icc a b), ∥iterated_deriv_within (n + 1) f (Icc a b) y∥ ≤ C) :
+  (hC : ∀ y ∈ Icc a b, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥ ≤ C) :
   ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) / n! :=
 begin
   rcases eq_or_lt_of_le hab with rfl|h,
@@ -355,10 +355,10 @@ begin
   -- We can uniformly bound the derivative of the Taylor polynomial
   have h' : ∀ (y : ℝ) (hy : y ∈ Ico a x),
     ∥((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y∥
-    ≤ (n! : ℝ)⁻¹ * |(x - a)|^n * C, --has_Sup.Sup (g '' Icc a b),
+    ≤ (n! : ℝ)⁻¹ * |(x - a)|^n * C,
   { intros y hy,
     rw [norm_smul, real.norm_eq_abs],
-    -- Estimate the iterated derivative by `Sup (g '' Icc a b)`
+    -- Estimate the iterated derivative by `C`
     refine mul_le_mul _ (hC y ⟨hy.1, hy.2.le.trans hx.2⟩) (by positivity) (by positivity),
     -- The rest is a trivial calculation
     rw [abs_mul, abs_pow, abs_inv, nat.abs_cast],
@@ -380,7 +380,7 @@ begin
   ring_exp,
 end
 
-/-- **Taylor's theorem** with a uniform bound of the remainder
+/-- **Taylor's theorem** with a polynomial bound on the remainder
 
 We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc a b`.
 There exists a constant `C` such that for all `x ∈ Icc a b` The difference of `f` and its `n`-th
@@ -388,8 +388,7 @@ Taylor polynomial can be estimated by `C * (x - a)^(n+1) / n!` where `C` is a bo
 iterated derivative of `f`. -/
 lemma exists_taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
-  ∃ C : ℝ, ∀ (x : ℝ) (hx : x ∈ Icc a b),
-  ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) / n! :=
+  ∃ C, ∀ x ∈ Icc a b, ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) / n! :=
 begin
   rcases eq_or_lt_of_le hab with rfl|h,
   { refine ⟨0, λ x hx, _⟩,

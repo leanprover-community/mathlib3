@@ -172,22 +172,42 @@ variable [decidable_eq α]
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
 
+lemma of_subtype_swap_eq {p : α → Prop} [decidable_pred p]
+  (x y : subtype p) : -- (hxy : x ≠ y) :
+  (equiv.swap x y).of_subtype = equiv.swap ↑x ↑y :=
+equiv.ext $ λ z, begin
+  by_cases hz : p z,
+  { rw [swap_apply_def, of_subtype_apply_of_mem _ hz],
+    split_ifs with hzx hzy,
+    { simp_rw [hzx, subtype.coe_eta, swap_apply_left], },
+    { simp_rw [hzy, subtype.coe_eta, swap_apply_right], },
+    { rw swap_apply_of_ne_of_ne, refl,
+      intro h, apply hzx, rw ← h, refl,
+      intro h, apply hzy, rw ← h, refl, } },
+  { rw [of_subtype_apply_of_not_mem _ hz, swap_apply_of_ne_of_ne],
+    intro h, apply hz, rw h, exact subtype.prop x,
+    intro h, apply hz, rw h, exact subtype.prop y, }
+/- -- Initial proof, I don't know which one is better?
+    rw [swap_apply_def],
+    split_ifs with hzx hzy,
+    { rw [hzx, of_subtype_apply_of_mem, subtype.coe_eta, swap_apply_left],
+      exact subtype.prop x,  },
+    { rw [hzy, of_subtype_apply_of_mem, subtype.coe_eta, swap_apply_right],
+      exact subtype.prop y, },
+    { by_cases hz : p z,
+      { rw [of_subtype_apply_of_mem _ hz],
+        rw swap_apply_of_ne_of_ne, refl,
+        intro h, apply hzx, rw ← h, refl,
+        intro h, apply hzy, rw ← h, refl, },
+      { rw of_subtype_apply_of_not_mem, exact hz, }, }
+ -/
+end
+
 lemma is_swap.of_subtype_is_swap {p : α → Prop} [decidable_pred p]
   {f : perm (subtype p)} (h : f.is_swap) : (of_subtype f).is_swap :=
 let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
 ⟨x, y, by { simp only [ne.def] at hxy, exact hxy.1 },
-  equiv.ext $ λ z, begin
-    rw [hxy.2, swap_apply_def],
-    split_ifs,
-    { rw [h_1, of_subtype_apply_of_mem, swap_apply_left], refl, },
-    { rw [h_2, of_subtype_apply_of_mem, swap_apply_right], refl, },
-    { by_cases h_z : p z,
-      { rw [of_subtype_apply_of_mem _ h_z],
-        rw swap_apply_of_ne_of_ne, refl,
-        simp only [h_1, ne.def, not_false_iff],
-        simp only [h_2, ne.def, not_false_iff], },
-      { rw of_subtype_apply_of_not_mem, exact h_z, }, },
-  end⟩
+  by { simp only [hxy.2, of_subtype_swap_eq], refl, }⟩
 
 lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}
   (hy : (swap x (f x) * f) y ≠ y) : f y ≠ y ∧ y ≠ x :=

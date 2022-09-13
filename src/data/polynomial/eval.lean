@@ -541,12 +541,6 @@ by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 @[simp] protected lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
-@[simp] protected lemma map_bit0 : (bit0 p).map f = bit0 (p.map f) :=
-by simp only [bit0, polynomial.map_add]
-
-@[simp] protected lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
-by simp only [bit1, polynomial.map_add, polynomial.map_bit0, polynomial.map_one]
-
 /-- `polynomial.map` as a `ring_hom`. -/
 -- `map` is a ring-hom unconditionally, and theoretically the definition could be replaced,
 -- but this turns out not to be easy because `p.map f` does not resolve to `polynomial.map`
@@ -566,6 +560,12 @@ def map_ring_hom (f : R →+* S) : R[X] →+* S[X] :=
 -- This is protected to not clash with the global `map_nat_cast`.
 @[simp] protected theorem map_nat_cast (n : ℕ) : (n : R[X]).map f = n :=
 map_nat_cast (map_ring_hom f) n
+
+@[simp] protected lemma map_bit0 : (bit0 p).map f = bit0 (p.map f) :=
+map_bit0 (map_ring_hom f) p
+
+@[simp] protected lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
+map_bit1 (map_ring_hom f) p
 
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=

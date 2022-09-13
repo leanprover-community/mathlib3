@@ -23,7 +23,7 @@ useful in this setup.
   analytic at `z₀`, then either it is identically zero in a neighborhood of `z₀`, or it does not
   vanish in a punctured neighborhood of `z₀`.
 * `analytic_on.eq_on_of_preconnected_of_frequently_eq` is the identity theorem for analytic
-  functions: if an analytic function `f` on a connected open set `U` is zero on set with an
+  functions: if a function `f` is analytic on a connected set `U` and is zero on a set with an
   accumulation point in `U` then `f` is identically `0` on `U`.
 -/
 
@@ -142,7 +142,7 @@ end
 
 lemma frequently_zero_iff_eventually_zero {f : 𝕜 → E} {w : 𝕜} (hf : analytic_at 𝕜 f w) :
   (∃ᶠ z in 𝓝[≠] w, f z = 0) ↔ (∀ᶠ z in 𝓝 w, f z = 0) :=
-⟨λ h, hf.eventually_eq_zero_or_eventually_ne_zero.cases_on id (false.elim ∘ h),
+⟨hf.eventually_eq_zero_or_eventually_ne_zero.resolve_right,
   λ h, (h.filter_mono nhds_within_le_nhds).frequently⟩
 
 end analytic_at

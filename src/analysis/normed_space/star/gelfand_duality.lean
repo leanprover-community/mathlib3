@@ -69,9 +69,6 @@ section complex_cstar_algebra
 variables (A : Type*) [normed_comm_ring A] [normed_algebra ℂ A] [complete_space A]
 variables [star_ring A] [cstar_ring A] [star_module ℂ A] [nontrivial A]
 
-lemma coe_gelfand_star_transform : ⇑(gelfand_star_transform A) = gelfand_transform ℂ A :=
-funext $ λ a, continuous_map.ext $ λ φ, rfl
-
 /-- The Gelfand transform is an isometry when the algebra is a C⋆-algebra over `ℂ`. -/
 lemma gelfand_star_transform_isometry : isometry (gelfand_star_transform A) :=
 begin

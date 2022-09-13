@@ -198,6 +198,12 @@ noncomputable def gelfand_star_transform : A →⋆ₐ[ℂ] C(character_space �
 { map_star' := λ a, continuous_map.ext $
     λ φ, by simp only [alg_hom.to_fun_eq_coe, gelfand_transform_apply_apply, map_star, star_apply],
   .. gelfand_transform ℂ A }
+
+-- This is not a simp lemma because in general we don't want to strip the `map_star` property from
+-- `gelfand_star_transform`.
+lemma coe_gelfand_star_transform : ⇑(gelfand_star_transform A) = gelfand_transform ℂ A :=
+funext $ λ a, continuous_map.ext $ λ φ, rfl
+
 variable {A}
 
 @[simp] lemma gelfand_star_transform_apply_apply (a : A) (φ : character_space ℂ A) :

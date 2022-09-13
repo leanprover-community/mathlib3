@@ -710,9 +710,11 @@ by rw [power_basis.quotient_equiv_quotient_minpoly_map, alg_equiv.trans_apply,
 lemma quotient_equiv_quotient_minpoly_map_symm_apply_mk (pb : power_basis R S) (I : ideal R)
   (g : polynomial R) : (pb.quotient_equiv_quotient_minpoly_map I).symm
   (ideal.quotient.mk _ (g.map I^.quotient.mk)) = (ideal.quotient.mk _ (aeval pb.gen g)) :=
-by simp only [quotient_equiv_quotient_minpoly_map, to_ring_equiv_eq_coe, symm_trans_apply,
+begin simp only [quotient_equiv_quotient_minpoly_map, to_ring_equiv_eq_coe, symm_trans_apply,
     quot_equiv_quot_map_symm_apply_mk, of_ring_equiv_symm_apply, quotient_equiv_symm_mk,
-    coe_ring_equiv_symm, ring_equiv.symm_symm, adjoin_root.equiv'_apply, coe_ring_equiv,
-    lift_hom_mk]
+    to_ring_equiv_symm, ring_equiv.symm_symm, adjoin_root.equiv'_apply, coe_ring_equiv,
+    lift_hom_mk, symm_to_ring_equiv],
+
+end
 
 end power_basis

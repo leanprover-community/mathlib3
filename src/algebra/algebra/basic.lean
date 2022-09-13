@@ -1003,7 +1003,7 @@ theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl
 @[simp]
 lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) : (f : A₁ ≃+* A₁).symm = f.symm := rfl
 
---@[simp] lemma coe_ring_equiv_symm : (e.symm : A₂ ≃+* A₁) = (e : A₁ ≃+* A₂).symm := rfl
+@[simp] lemma symm_to_ring_equiv : (e.symm : A₂ ≃+* A₁) = e.symm := rfl
 
 /-- Algebra equivalences are transitive. -/
 @[trans]

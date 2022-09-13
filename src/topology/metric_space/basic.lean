@@ -2765,7 +2765,7 @@ end real
 
 section nnreal
 
-noncomputable instance : metric_space ℝ≥0 := subtype.metric_space
+instance : metric_space ℝ≥0 := subtype.metric_space
 
 end nnreal
 

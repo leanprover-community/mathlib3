@@ -110,7 +110,7 @@ instance : normed_add_comm_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-noncomputable instance : normed_add_comm_group ℝ :=
+instance : normed_add_comm_group ℝ :=
 { norm := λ x, |x|,
   dist_eq := assume x y, rfl }
 

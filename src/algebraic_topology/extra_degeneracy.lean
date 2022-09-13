@@ -51,7 +51,9 @@ open_locale simplicial
 
 universes u
 
-namespace algebraic_topology
+namespace simplicial_object
+
+namespace augmented
 
 variables {C : Type*} [category C]
 
@@ -96,11 +98,11 @@ def map {D : Type*} [category D]
 
 end extra_degeneracy
 
-end algebraic_topology
+end augmented
+
+end simplicial_object
 
 namespace sSet
-
-open algebraic_topology
 
 namespace augmented
 
@@ -143,7 +145,8 @@ def shift {n : ℕ} {Δ : simplex_category} (f : [n] ⟶ Δ) : [n+1] ⟶ Δ := s
 
 /-- The obvious extra degeneracy on the standard simplex. -/
 @[protected]
-def extra_degeneracy (Δ : simplex_category) : extra_degeneracy (standard_simplex.obj Δ) :=
+def extra_degeneracy (Δ : simplex_category) :
+  simplicial_object.augmented.extra_degeneracy (standard_simplex.obj Δ) :=
 { s' := λ x, simplex_category.hom.mk (order_hom.const _ 0),
   s := λ n f, shift f,
   s'_comp_ε' := by { ext1 j, fin_cases j, },
@@ -175,7 +178,7 @@ def extra_degeneracy (Δ : simplex_category) : extra_degeneracy (standard_simple
   end, }
 
 instance nonempty_extra_degeneracy_standard_simplex (Δ : simplex_category) :
-  nonempty (extra_degeneracy (standard_simplex.obj Δ)) :=
+  nonempty (simplicial_object.augmented.extra_degeneracy (standard_simplex.obj Δ)) :=
 ⟨standard_simplex.extra_degeneracy Δ⟩
 
 end standard_simplex

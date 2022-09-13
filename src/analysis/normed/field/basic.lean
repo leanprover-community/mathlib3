@@ -481,8 +481,6 @@ begin
   simp,
 end
 
-example (x : α) : ∥x∥ = ∥x∥₊ := (coe_nnnorm x).symm
-
 lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
   ∥x∥ = 1 :=
 begin

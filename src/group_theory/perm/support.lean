@@ -187,20 +187,6 @@ equiv.ext $ λ z, begin
   { rw [of_subtype_apply_of_not_mem _ hz, swap_apply_of_ne_of_ne],
     intro h, apply hz, rw h, exact subtype.prop x,
     intro h, apply hz, rw h, exact subtype.prop y, }
-/- -- Initial proof, I don't know which one is better?
-    rw [swap_apply_def],
-    split_ifs with hzx hzy,
-    { rw [hzx, of_subtype_apply_of_mem, subtype.coe_eta, swap_apply_left],
-      exact subtype.prop x,  },
-    { rw [hzy, of_subtype_apply_of_mem, subtype.coe_eta, swap_apply_right],
-      exact subtype.prop y, },
-    { by_cases hz : p z,
-      { rw [of_subtype_apply_of_mem _ hz],
-        rw swap_apply_of_ne_of_ne, refl,
-        intro h, apply hzx, rw ← h, refl,
-        intro h, apply hzy, rw ← h, refl, },
-      { rw of_subtype_apply_of_not_mem, exact hz, }, }
- -/
 end
 
 lemma is_swap.of_subtype_is_swap {p : α → Prop} [decidable_pred p]

@@ -37,10 +37,8 @@ lemma norm_sub (h : same_ray ℝ x y) : ∥x - y∥ = |∥x∥ - ∥y∥| :=
 begin
   rcases h.exists_eq_smul with ⟨u, a, b, ha, hb, -, rfl, rfl⟩,
   wlog hab : b ≤ a,
-  { cases le_total b a with H H,
-    { exact hab u a b ha hb h H },
-    { rw same_ray_comm at h, rw [norm_sub_rev, abs_sub_comm],
-      exact hab u b a hb ha h H, } },
+  { rw same_ray_comm at h, rw [norm_sub_rev, abs_sub_comm],
+    exact this u b a hb ha h (le_of_not_le hab), },
   rw ← sub_nonneg at hab,
   rw [← sub_smul, norm_smul_of_nonneg hab, norm_smul_of_nonneg ha,
     norm_smul_of_nonneg hb, ← sub_mul, abs_of_nonneg (mul_nonneg hab (norm_nonneg _))]

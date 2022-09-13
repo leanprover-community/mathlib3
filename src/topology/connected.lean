@@ -95,7 +95,7 @@ begin
   have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
   wlog xu : x ∈ u,
   { rw inter_comm u v, rw union_comm at hs,
-    refine this x H v u hv hu hs y ys yv z zs zu xs (or_iff_not_imp_right.1 (hs xs) xu), },
+    exact this x H v u hv hu hs y ys yv z zs zu xs ((hs xs).resolve_right xu), },
   rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
   have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
   exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)

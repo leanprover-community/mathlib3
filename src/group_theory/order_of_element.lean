@@ -341,8 +341,8 @@ by rw [modeq_zero_iff_dvd, order_of_dvd_iff_pow_eq_one]
 
 lemma pow_eq_pow_iff_modeq : x ^ n = x ^ m ↔ n ≡ m [MOD (order_of x)] :=
 begin
-  doneif hmn : m ≤ n generalizing m n, swap,
-  { cases le_total m n with H H, { exact hmn H }, { rw [eq_comm, modeq.comm, hmn H], } },
+  wlog hmn : m ≤ n generalizing m n,
+  { rw [eq_comm, modeq.comm, this (le_of_not_le hmn)], },
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn,
   rw [← mul_one (x ^ m), pow_add, mul_left_cancel_iff, pow_eq_one_iff_modeq],
   exact ⟨λ h, nat.modeq.add_left _ h, λ h, nat.modeq.add_left_cancel' _ h⟩,
@@ -462,8 +462,7 @@ begin
     by simpa only [not_forall, exists_prop, injective]
       using (not_injective_infinite_finite (λi:ℕ, x^i)),
   wlog h'' : j ≤ i,
-  { cases le_total j i with H H,
-    { exact h'' x i j a_eq ne H }, { exact h'' x j i a_eq.symm ne.symm H } },
+  { exact this x j i a_eq.symm ne.symm (le_of_not_le h'') },
   refine ⟨i - j, tsub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
   rw [mul_one, ← pow_add, ← a_eq, add_tsub_cancel_of_le h''],
 end

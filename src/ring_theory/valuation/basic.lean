@@ -240,9 +240,7 @@ begin
     from or_iff_not_imp_right.1 (le_iff_eq_or_lt.1 (v.map_add x y)) this,
   intro h',
   wlog vyx : v y < v x,
-  { cases h.lt_or_lt with H H,
-    { refine vyx v h.symm _ H, rwa [add_comm, max_comm] },
-    { exact vyx v h h' H } },
+  { refine this v h.symm _ (h.lt_or_lt.resolve_right vyx), rwa [add_comm, max_comm] },
   rw max_eq_left_of_lt vyx at h',
   apply lt_irrefl (v x),
   calc v x = v ((x+y) - y)         : by simp

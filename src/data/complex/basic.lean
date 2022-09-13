@@ -595,7 +595,7 @@ begin
   cases z with x y,
   simp only [abs, norm_sq_mk, ← sq],
   wlog hle : |x| ≤ |y|,
-  { cases le_total (|x|) (|y|) with H H; [skip, rw [add_comm, max_comm]]; exact hle _ _ H, },
+  { rw [add_comm, max_comm], exact this _ _ (le_of_not_le hle), },
   calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
     real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
   ... = real.sqrt 2 * max (|x|) (|y|) :

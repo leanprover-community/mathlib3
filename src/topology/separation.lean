@@ -205,7 +205,7 @@ begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
   wlog h : x ∈ U ∧ y ∉ U,
-  { exact this hmin y hy x hx (ne.symm hxy) U hUo hU.symm (or_iff_not_imp_left.1 hU h), },
+  { exact this hmin y hy x hx (ne.symm hxy) U hUo hU.symm (hU.resolve_left h), },
   cases h with hxU hyU,
   have : s \ U = s := hmin (s \ U) (diff_subset _ _) ⟨y, hy, hyU⟩ (hs.sdiff hUo),
   exact (this.symm.subset hx).2 hxU
@@ -234,7 +234,7 @@ begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
   wlog h : x ∈ U ∧ y ∉ U,
-  { exact this hs hmin y hy x hx (ne.symm hxy) U hUo hU.symm (or_iff_not_imp_left.1 hU h), },
+  { exact this hs hmin y hy x hx (ne.symm hxy) U hUo hU.symm (hU.resolve_left h), },
   cases h with hxU hyU,
   have : s ∩ U = s := hmin (s ∩ U) (inter_subset_left _ _) ⟨x, hx, hxU⟩ (hs.inter hUo),
   exact hyU (this.symm.subset hy).2

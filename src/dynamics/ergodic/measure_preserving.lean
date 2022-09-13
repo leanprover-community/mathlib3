@@ -121,10 +121,8 @@ begin
     by simpa only [B, nsmul_eq_mul, finset.sum_const, finset.card_range],
   rcases exists_nonempty_inter_of_measure_univ_lt_sum_measure μ (λ m hm, A m) this
     with ⟨i, hi, j, hj, hij, x, hxi, hxj⟩,
-  -- without `tactic.skip` Lean closes the extra goal but it takes a long time; not sure why
-  doneif hlt : i < j generalizing i j, swap,
-  { cases hij.lt_or_lt with H H,
-    { refine hlt i j hi hj hij hxi hxj H }, { refine hlt j i hj hi hij.symm hxj hxi H }, },
+  wlog hlt : i < j generalizing i j,
+  { exact this j hj i hi hij.symm hxj hxi (hij.lt_or_lt.resolve_left hlt) },
   simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
   refine ⟨f^[i] x, hxi, j - i, ⟨tsub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
   rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le]

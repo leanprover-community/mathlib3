@@ -336,10 +336,8 @@ theorem unique_separable_of_irreducible {f : F[X]} (hf : irreducible f) (hp : 0 
 begin
   revert g₁ g₂,
   wlog hn : n₁ ≤ n₂,
-  { cases le_total n₁ n₂ with H H,
-    { exact hn hf hp n₁ n₂ H },
-    { intros g₁ g₂ hg₁ Hg₁ hg₂ Hg₂,
-      simpa only [eq_comm] using hn hf hp n₂ n₁ H g₂ g₁ hg₂ Hg₂ hg₁ Hg₁ } },
+  { intros g₁ g₂ hg₁ Hg₁ hg₂ Hg₂,
+    simpa only [eq_comm] using this hf hp n₂ n₁ (le_of_not_le hn) g₂ g₁ hg₂ Hg₂ hg₁ Hg₁ },
   have hf0 : f ≠ 0 := hf.ne_zero,
   unfreezingI { intros, rw le_iff_exists_add at hn, rcases hn with ⟨k, rfl⟩,
     rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp n₁)] at hgf₂, subst hgf₂,

@@ -1482,8 +1482,7 @@ lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
   wlog h : b ≤ a,
-  { cases le_total b a with H H, { exact h a b H },
-    { rw [nndist_comm, max_comm], exact h b a H } },
+  { rw [nndist_comm, max_comm], exact this b a (le_of_not_le h) },
   rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
     max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg],
 end

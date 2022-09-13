@@ -323,8 +323,7 @@ lemma mem_base_set.exists_common_compl (h₁ : l.mem_base_set I c₁ r₁ π₁)
     (l.bDistortion → π.distortion ≤ c₁) ∧ (l.bDistortion → π.distortion ≤ c₂) :=
 begin
   wlog hc : c₁ ≤ c₂,
-  { cases le_total c₁ c₂ with H H, { exact hc h₁ h₂ hU H },
-    { simpa [hU, and_comm] using hc h₂ h₁ hU.symm H } },
+  { simpa [hU, and_comm] using this h₂ h₁ hU.symm (le_of_not_le hc) },
   by_cases hD : (l.bDistortion : Prop),
   { rcases h₁.4 hD with ⟨π, hπU, hπc⟩,
     exact ⟨π, hπU, λ _, hπc, λ _, hπc.trans hc⟩ },

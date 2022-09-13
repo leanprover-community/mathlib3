@@ -811,9 +811,9 @@ by rw [algebra.smul_def, mul_one, eq_rat_cast]
 set_option old_structure_cmd true
 /-- An equivalence of algebras is an equivalence of rings commuting with the actions of scalars. -/
 structure alg_equiv (R : Type u) (A : Type v) (B : Type w)
-  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  [has_add A] [has_mul A] [has_add B] [has_mul B] [has_smul R A] [has_smul R B]
   extends A ≃ B, A ≃* B, A ≃+ B, A ≃+* B :=
-(commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)
+(map_smul' : ∀ (r : R) (a : A), to_fun (r • a) = r • to_fun a)
 
 attribute [nolint doc_blame] alg_equiv.to_ring_equiv
 attribute [nolint doc_blame] alg_equiv.to_equiv
@@ -825,9 +825,9 @@ notation A ` ≃ₐ[`:50 R `] ` A' := alg_equiv R A A'
 /-- `alg_equiv_class F R A B` states that `F` is a type of algebra structure preserving
   equivalences. You should extend this class when you extend `alg_equiv`. -/
 class alg_equiv_class (F : Type*) (R A B : out_param Type*)
-  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  [has_add A] [has_mul A] [has_add B] [has_mul B] [has_smul R A] [has_smul R B]
   extends ring_equiv_class F A B :=
-(commutes : ∀ (f : F) (r : R), f (algebra_map R A r) = algebra_map R B r)
+(map_smul : ∀ (f : F) (r : R) (a : A), f (r • a) = r • f a)
 
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] alg_equiv_class.to_ring_equiv_class
@@ -842,15 +842,17 @@ instance to_alg_hom_class (F R A B : Type*)
   coe_injective' := fun_like.coe_injective,
   map_zero := map_zero,
   map_one := map_one,
+  commutes := λ f r, by simp only [algebra.algebra_map_eq_smul_one, map_smul, map_one],
   .. h }
 
 @[priority 100]
 instance to_linear_equiv_class (F R A B : Type*)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
   [h : alg_equiv_class F R A B] : linear_equiv_class F R A B :=
-{ map_smulₛₗ := λ f, map_smulₛₗ f,
+{ map_smulₛₗ := λ f, map_smul f,
   ..h }
 
+#exit
 end alg_equiv_class
 
 namespace alg_equiv
@@ -859,9 +861,14 @@ variables {R : Type u} {A₁ : Type v} {A₂ : Type w} {A₃ : Type u₁}
 
 section semiring
 
+variables [has_add A₁] [has_mul A₁] [has_add A₂] [has_mul A₂] [has_add A₃] [has_mul A₃]
+variables [has_smul R A₁] [has_smul R A₂] [has_smul R A₃]
+variables (e : A₁ ≃ₐ[R] A₂)
+/-
 variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 variables (e : A₁ ≃ₐ[R] A₂)
+-/
 
 instance : alg_equiv_class (A₁ ≃ₐ[R] A₂) R A₁ A₂ :=
 { coe := to_fun,
@@ -869,7 +876,7 @@ instance : alg_equiv_class (A₁ ≃ₐ[R] A₂) R A₁ A₂ :=
   coe_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
   map_add := map_add',
   map_mul := map_mul',
-  commutes := commutes',
+  map_smul := map_smul',
   left_inv := left_inv,
   right_inv := right_inv }
 

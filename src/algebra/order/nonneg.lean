@@ -53,6 +53,9 @@ set.Ici.no_max_order
 instance semilattice_inf [semilattice_inf α] {a : α} : semilattice_inf {x : α // a ≤ x} :=
 set.Ici.semilattice_inf
 
+instance distrib_lattice [distrib_lattice α] {a : α} : distrib_lattice {x : α // a ≤ x} :=
+set.Ici.distrib_lattice
+
 instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
   densely_ordered {x : α // a ≤ x} :=
 show densely_ordered (Ici a), from set.densely_ordered

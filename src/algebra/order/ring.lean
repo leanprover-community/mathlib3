@@ -691,7 +691,7 @@ end
 
 theorem mul_nonneg_iff_right_nonneg_of_pos (ha : 0 < a) : 0 ≤ a * b ↔ 0 ≤ b :=
 by haveI := @linear_order.decidable_le α _; exact
-⟨λ h, nonneg_of_mul_nonneg_right h ha, λ h, mul_nonneg ha.le h⟩
+⟨λ h, nonneg_of_mul_nonneg_right h ha, λ h, decidable.mul_nonneg ha.le h⟩
 
 theorem mul_nonneg_iff_left_nonneg_of_pos (hb : 0 < b) : 0 ≤ a * b ↔ 0 ≤ a :=
 by haveI := @linear_order.decidable_le α _; exact
@@ -825,13 +825,10 @@ end
 
 @[priority 100] -- see Note [lower instance priority]
 instance ordered_ring.to_ordered_semiring : ordered_semiring α :=
-{ mul_zero                   := mul_zero,
-  zero_mul                   := zero_mul,
-  add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
+{ le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
   mul_lt_mul_of_pos_left     := @ordered_ring.mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @ordered_ring.mul_lt_mul_of_pos_right α _,
-  ..‹ordered_ring α› }
+  ..‹ordered_ring α›, ..ring.to_semiring }
 
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul_of_nonpos_left [@decidable_rel α (≤)]
@@ -997,14 +994,7 @@ local attribute [instance] linear_ordered_ring.decidable_le linear_ordered_ring.
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semiring α :=
-{ mul_zero                   := mul_zero,
-  zero_mul                   := zero_mul,
-  add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
-  mul_lt_mul_of_pos_left     := λ a b c, mul_lt_mul_of_pos_left,
-  mul_lt_mul_of_pos_right    := λ a b c, mul_lt_mul_of_pos_right,
-  le_total                   := linear_ordered_ring.le_total,
-  ..‹linear_ordered_ring α› }
+{ ..‹linear_ordered_ring α›, ..ordered_ring.to_ordered_semiring }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.is_domain : is_domain α :=

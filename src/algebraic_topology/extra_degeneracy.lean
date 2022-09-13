@@ -376,14 +376,34 @@ def augmented_std_simplex (Δ : simplex_category) : sSet.augmented :=
   right := terminal _,
   hom := { app := λ Δ', terminal.from _, }, }
 
+def shift_fn {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X)
+  (i : fin (n+2)) : X :=
+begin
+  by_cases i = 0,
+  { exact 0, },
+  { exact f (i.pred h), },
+end
+
+@[simp]
+lemma shift_fn_0 {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X) :
+  shift_fn f 0 = 0 := rfl
+
+@[simp]
+lemma shift_fn_succ {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X)
+  (i : fin (n+1)) : shift_fn f i.succ = f i :=
+begin
+  dsimp [shift_fn],
+  split_ifs,
+  { exfalso,
+    simpa only [fin.ext_iff, fin.coe_succ] using h, },
+  { simp only [fin.pred_succ], },
+end
+
+
 @[simp]
 def shift {n : ℕ} {Δ : simplex_category} (f : [n] ⟶ Δ) : [n+1] ⟶ Δ :=
 simplex_category.hom.mk
-{ to_fun := λ x, begin
-    by_cases x = 0,
-    { exact 0, },
-    { exact f.to_order_hom (x.pred h), },
-  end,
+{ to_fun := shift_fun f.to_order_hom,
   monotone' := λ x₁ x₂ ineq, begin
     dsimp,
     split_ifs with h₁ h₂ h₂,
@@ -398,6 +418,10 @@ simplex_category.hom.mk
     { apply f.to_order_hom.monotone,
       simpa only [fin.pred_le_pred_iff] using ineq, },
   end }
+
+lemma shift {n : ℕ}
+
+#exit
 
 @[simp]
 lemma fin.succ_pred_above_succ {n : ℕ} (x : fin n) (y : fin (n+1)) :

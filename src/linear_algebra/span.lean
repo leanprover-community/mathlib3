@@ -51,6 +51,9 @@ lemma span_le {p} : span R s ≤ p ↔ s ⊆ p :=
 lemma span_mono (h : s ⊆ t) : span R s ≤ span R t :=
 span_le.2 $ subset.trans h subset_span
 
+lemma span_monotone : monotone (span R : set M → submodule R M) :=
+λ _ _, span_mono
+
 lemma span_eq_of_le (h₁ : s ⊆ p) (h₂ : p ≤ span R s) : span R s = p :=
 le_antisymm (span_le.2 h₁) h₂
 
@@ -202,7 +205,7 @@ by rw [submodule.span_union, p.span_eq]
 
 /- Note that the character `∙` U+2219 used below is different from the scalar multiplication
 character `•` U+2022 and the matrix multiplication character `⬝` U+2B1D. -/
-notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
+notation R` ∙ `:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, R ∙ x :=
 by simp only [←span_Union, set.bUnion_of_singleton s]

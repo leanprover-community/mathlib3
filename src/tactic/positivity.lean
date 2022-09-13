@@ -100,6 +100,7 @@ namespace positivity
 
 /-- Inductive type recording whether the goal `positivity` is called on is nonnegativity, positivity
 or different from `0`. -/
+@[derive inhabited]
 inductive order_rel : Type
 | le  : order_rel -- `0 ≤ a`
 | lt  : order_rel -- `0 < a`

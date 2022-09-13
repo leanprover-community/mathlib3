@@ -36,9 +36,8 @@ def simplicial_object := simplex_categoryᵒᵖ ⥤ C
 
 namespace simplicial_object
 
-localized
-  "notation X `_[`:1000 n `]` :=
-    (X : category_theory.simplicial_object _).obj (opposite.op (simplex_category.mk n))"
+localized "notation (name := simplicial_object.at) X `_[`:1000 n `]` :=
+  (X : category_theory.simplicial_object hole!).obj (opposite.op (simplex_category.mk n))"
   in simplicial
 
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
@@ -109,6 +108,14 @@ by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_c
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   X.σ j ≫ X.σ i.cast_succ = X.σ i ≫ X.σ j.succ :=
 by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H] }
+
+@[simp, reassoc]
+lemma naturality_δ {X' X : simplicial_object C} (f : X ⟶ X') {n : ℕ} (i : fin (n+2)) :
+  X.δ i ≫ f.app _ = f.app _ ≫ X'.δ i := f.naturality _
+
+@[simp, reassoc]
+lemma naturality_σ {X' X : simplicial_object C} (f : X ⟶ X') {n : ℕ} (i : fin (n+1)) :
+  X.σ i ≫ f.app _ = f.app _ ≫ X'.σ i := f.naturality _
 
 variable (C)
 
@@ -196,6 +203,7 @@ def to_arrow : augmented C ⥤ arrow C :=
     end } }
 
 /-- The compatibility of a morphism with the augmentation, on 0-simplices -/
+@[reassoc]
 lemma w₀ {X Y : augmented C} (f : X ⟶ Y) :
   (augmented.drop.map f).app (op (simplex_category.mk 0)) ≫
     Y.hom.app (op (simplex_category.mk 0)) =
@@ -244,7 +252,7 @@ end augmented
 
 open_locale simplicial
 
-/-- Aaugment a simplicial object with an object. -/
+/-- Augment a simplicial object with an object. -/
 @[simps]
 def augment (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀)
   (w : ∀ (i : simplex_category) (g₁ g₂ : [0] ⟶ i),
@@ -273,10 +281,8 @@ def cosimplicial_object := simplex_category ⥤ C
 
 namespace cosimplicial_object
 
-localized
-  "notation X `_[`:1000 n `]` :=
-    (X : category_theory.cosimplicial_object _).obj (simplex_category.mk n)"
-  in simplicial
+localized "notation (name := cosimplicial_object.at) X `_[`:1000 n `]` :=
+  (X : category_theory.cosimplicial_object hole!).obj (simplex_category.mk n)" in simplicial
 
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
   has_limits_of_shape J (cosimplicial_object C) := by {dsimp [cosimplicial_object], apply_instance}

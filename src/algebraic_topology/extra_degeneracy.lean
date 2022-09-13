@@ -32,11 +32,22 @@ simplicial objects in any category.
 functor `C ⥤ D`
 - `extra_degeneracy.for_cech_nerve_of_split_epi`: the augmented Čech nerve of a split
 epimorphism has an extra degeneracy
-- `sSet.augmented_cech.extra_degeneracy`...
 - `extra_degeneracy.preadditive.homotopy_equivalence`: when the category `C` is
 preadditive and has a zero object, and `X : simplicial_object.augmented C` has an extra
 degeneracy, then the augmentation `alternating_face_map_complex.ε.app X` is a homotopy
 equivalence of chain complexes
+- `sSet.augmented.standard_simplex.extra_degeneracy`: the standard `n`-simplex has
+an extra degeneracy
+
+TODO @joelriou:
+1) when the category `C` is preadditive and has a zero object, and
+`X : simplicial_object.augmented C` has an extra degeneracy, then the augmentation
+on the alternating face map complex of `X` is a homotopy equivalence of chain
+complexes.
+
+2) extra degeneracy for the cech nerve of a split epi. In particular the
+universal cover EG of the classifying space of a group G has an extra
+degeneracy.
 
 ## References
 * [Paul G. Goerss, John F. Jardine, *Simplical Homotopy Theory*][goerss-jardine-2009]
@@ -45,8 +56,6 @@ equivalence of chain complexes
 
 noncomputable theory
 
-attribute [reassoc] category_theory.simplicial_object.augmented.w₀
-
 open category_theory category_theory.category category_theory.limits
 open category_theory.simplicial_object.augmented
 open opposite simplex_category
@@ -54,29 +63,11 @@ open_locale simplicial
 
 universes u
 
-lemma fin.is_succ_of_ne_zero {n : ℕ} (x : fin (n+1)) (hx : x ≠ 0) :
-  ∃ (y : fin n), x = y.succ :=
-⟨x.pred hx, by simp only [fin.succ_pred]⟩
-
-lemma fin.coe_cast_pred {n : ℕ} (x : fin (n+2)) (hx : x ≠ fin.last _) :
-  (x.cast_pred : ℕ) = x :=
-begin
-  dsimp only [fin.cast_pred, fin.pred_above],
-  split_ifs,
-  { exfalso,
-    simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ,
-      fin.coe_last] at h,
-    have h' := x.is_lt,
-    apply hx,
-    ext,
-    dsimp,
-    linarith, },
-  { refl, },
-end
-
-namespace algebraic_topology
-
 variables {C : Type*} [category C]
+
+namespace simplicial_object
+
+namespace augmented
 
 /-- The datum of an extra degeneracy is a technical condition on
 augmented simplicial objects. The morphisms `s'` and `s n` of the
@@ -128,32 +119,129 @@ def of_iso {X Y : simplicial_object.augmented C} (e : X ≅ Y) (ed : extra_degen
   s'_comp_ε' := by simpa only [functor.map_iso, assoc, w₀, ed.s'_comp_ε_assoc]
     using (point.map_iso e).inv_hom_id,
   s₀_comp_δ₁' := begin
-    simp only [functor.map_iso, assoc, ← w₀_assoc, ← ed.s₀_comp_δ₁_assoc],
-    congr' 2,
-    exact ((drop.map e.hom).naturality _).symm,
+    have h := w₀ e.inv,
+    dsimp at h ⊢,
+    simp only [assoc, ← simplicial_object.naturality_δ, ed.s₀_comp_δ₁_assoc, reassoc_of h],
   end,
   s_comp_δ₀' := λ n, begin
-    simp only [functor.map_iso, assoc],
-    erw [← (drop.map e.hom).naturality (simplex_category.δ (0 : fin (n+2))).op,
-      ed.s_comp_δ₀_assoc],
-    exact congr_app (drop.map_iso e).inv_hom_id (op [n]),
+    have h := ed.s_comp_δ₀',
+    dsimp at ⊢ h,
+    simpa only [assoc, ← simplicial_object.naturality_δ, reassoc_of h]
+      using congr_app (drop.map_iso e).inv_hom_id (op [n]),
   end,
   s_comp_δ' := λ n i, begin
-    simp only [functor.map_iso, assoc],
-    erw [← (drop.map e.hom).naturality, ed.s_comp_δ_assoc, ← (drop.map e.inv).naturality_assoc],
-    refl,
+    have h := ed.s_comp_δ' n i,
+    dsimp at ⊢ h,
+    simp only [assoc, ← simplicial_object.naturality_δ, reassoc_of h, ← simplicial_object.naturality_δ_assoc],
   end,
   s_comp_σ' := λ n i, begin
-    simp only [functor.map_iso, assoc],
-    erw [← (drop.map e.hom).naturality, ed.s_comp_σ_assoc, ← (drop.map e.inv).naturality_assoc],
-    refl,
+    have h := ed.s_comp_σ' n i,
+    dsimp at ⊢ h,
+    simp only [assoc, ← simplicial_object.naturality_σ, reassoc_of h, ← simplicial_object.naturality_σ_assoc],
+  end,}
+
+end extra_degeneracy
+
+end augmented
+
+end simplicial_object
+
+namespace sSet
+
+namespace augmented
+
+namespace standard_simplex
+
+/-- When `[has_zero X]`, the shift of a map `f : fin n → X`
+is a map `fin (n+1) → X` which sends `0` to `0` and `i.succ` to `f i`. -/
+def shift_fun {n : ℕ} {X : Type*} [has_zero X] (f : fin n → X) (i : fin (n+1)) : X :=
+dite (i = 0) (λ h, 0) (λ h, f (i.pred h))
+
+@[simp]
+lemma shift_fun_0 {n : ℕ} {X : Type*} [has_zero X] (f : fin n → X) : shift_fun f 0 = 0 := rfl
+
+@[simp]
+lemma shift_fun_succ {n : ℕ} {X : Type*} [has_zero X] (f : fin n → X)
+  (i : fin n) : shift_fun f i.succ = f i :=
+begin
+  dsimp [shift_fun],
+  split_ifs,
+  { exfalso,
+    simpa only [fin.ext_iff, fin.coe_succ] using h, },
+  { simp only [fin.pred_succ], },
+end
+
+/-- The shift of a morphism `f : [n] → Δ` in `simplex_category` corresponds to
+the monotone map which sends `0` to `0` and `i.succ` to `f.to_order_hom i`. -/
+@[simp]
+def shift {n : ℕ} {Δ : simplex_category} (f : [n] ⟶ Δ) : [n+1] ⟶ Δ := simplex_category.hom.mk
+{ to_fun := shift_fun f.to_order_hom,
+  monotone' := λ i₁ i₂ hi, begin
+    by_cases h₁ : i₁ = 0,
+    { subst h₁,
+      simp only [shift_fun_0, fin.zero_le], },
+    { have h₂ : i₂ ≠ 0 := by { intro h₂, subst h₂, exact h₁ (le_antisymm hi (fin.zero_le _)), },
+      cases fin.eq_succ_of_ne_zero h₁ with j₁ hj₁,
+      cases fin.eq_succ_of_ne_zero h₂ with j₂ hj₂,
+      substs hj₁ hj₂,
+      simpa only [shift_fun_succ] using f.to_order_hom.monotone (fin.succ_le_succ_iff.mp hi), },
   end, }
+
+/-- The obvious extra degeneracy on the standard simplex. -/
+@[protected]
+def extra_degeneracy (Δ : simplex_category) :
+  simplicial_object.augmented.extra_degeneracy (standard_simplex.obj Δ) :=
+{ s' := λ x, simplex_category.hom.mk (order_hom.const _ 0),
+  s := λ n f, shift f,
+  s'_comp_ε' := by { ext1 j, fin_cases j, },
+  s₀_comp_δ₁' := by { ext x j, fin_cases j, refl, },
+  s_comp_δ₀' := λ n, begin
+    ext φ i : 4,
+    dsimp [simplicial_object.δ, simplex_category.δ, sSet.standard_simplex],
+    simp only [shift_fun_succ],
+  end,
+  s_comp_δ' := λ n i, begin
+    ext φ j : 4,
+    dsimp [simplicial_object.δ, simplex_category.δ, sSet.standard_simplex],
+    by_cases j = 0,
+    { subst h,
+      simp only [fin.succ_succ_above_zero, shift_fun_0], },
+    { cases fin.eq_succ_of_ne_zero h with k hk,
+      subst hk,
+      simp only [fin.succ_succ_above_succ, shift_fun_succ], },
+  end,
+  s_comp_σ' := λ n i, begin
+    ext φ j : 4,
+    dsimp [simplicial_object.σ, simplex_category.σ, sSet.standard_simplex],
+    by_cases j = 0,
+    { subst h,
+      simpa only [shift_fun_0] using shift_fun_0 φ.to_order_hom, },
+    { cases fin.eq_succ_of_ne_zero h with k hk,
+      subst hk,
+      simp only [fin.succ_pred_above_succ, shift_fun_succ], },
+  end, }
+
+instance nonempty_extra_degeneracy_standard_simplex (Δ : simplex_category) :
+  nonempty (simplicial_object.augmented.extra_degeneracy (standard_simplex.obj Δ)) :=
+⟨standard_simplex.extra_degeneracy Δ⟩
+
+end standard_simplex
+
+end augmented
+
+end sSet
+
+namespace category_theory
+
+namespace arrow
+
+namespace augmented_cech_nerve
 
 /-- The augmented Čech nerve associated to a split epimorphism has an extra degeneracy. -/
 def for_cech_nerve_of_split_epi (f : arrow C)
   [∀ n : ℕ, has_wide_pullback f.right (λ i : fin (n+1), f.left) (λ i, f.hom)]
   (S : split_epi f.hom) :
-  extra_degeneracy (f.augmented_cech_nerve) :=
+  simplicial_object.augmented.extra_degeneracy f.augmented_cech_nerve :=
 { s' := S.section_ ≫ wide_pullback.lift f.hom (λ i, 𝟙 _) (λ i, by rw id_comp),
   s := λ n, wide_pullback.lift (wide_pullback.base _)
   begin
@@ -171,128 +259,27 @@ def for_cech_nerve_of_split_epi (f : arrow C)
       simp only [assoc, split_epi.id, comp_id], },
     { simp only [wide_pullback.π_arrow], },
   end,
-  s'_comp_ε' := by simp only [arrow.augmented_cech_nerve_hom_app, assoc,
-    wide_pullback.lift_base, split_epi.id],
-  s₀_comp_δ₁' := begin
-    sorry,
-  end,
-  s_comp_δ₀' := begin
-    sorry,
-  end,
-  s_comp_δ' := begin
-    sorry,
-  end,
-  s_comp_σ' := begin
-    sorry,
-  end, }
+  s'_comp_ε' := sorry,
+  s₀_comp_δ₁' := sorry,
+  s_comp_δ₀' := sorry,
+  s_comp_δ' := sorry,
+  s_comp_σ' := sorry, }
 
-/- broken since the (is_)split_epi refactor
-ds₀ := begin
-    sorry,
-    ext; dsimp [simplicial_object.δ],
-    { simp only [assoc, comp_id, wide_pullback.lift_π, ite_eq_left_iff],
-      intro h,
-      exfalso,
-      apply h,
-      fin_cases j,
-      refl, },
-    { simp only [assoc, split_epi.id, comp_id, wide_pullback.lift_base], },
-  end,
-  d₀s := λ n, begin
-    ext; dsimp [simplicial_object.δ],
-    { simp only [assoc, wide_pullback.lift_π, id_comp],
-      split_ifs,
-      { exfalso,
-        exact j.down.succ_ne_zero h, },
-      { congr,
-        cases j,
-        ext1,
-        have eq : δ 0 ≫ σ 0 = 𝟙 [n] := δ_comp_σ_self,
-        exact hom.congr_eval eq j, }, },
-    { simp only [assoc, wide_pullback.lift_base, id_comp], },
-  end,
-  ds := λ n i, begin
-    ext,
-    { cases j,
-      dsimp [simplicial_object.δ],
-      simp only [assoc, wide_pullback.lift_π],
-      by_cases hj : j = 0,
-      { subst hj,
-        split_ifs,
-        { simp only [wide_pullback.lift_base_assoc], },
-        { exfalso,
-          apply h,
-          apply fin.succ_above_below i.succ 0,
-          simp only [fin.cast_succ_zero, fin.succ_pos], }, },
-      { split_ifs with h₁,
-        { exfalso,
-          have h₂ : i.succ.succ_above j = 0 := h₁,
-          by_cases h₃ : fin.cast_succ j < i.succ,
-          { apply hj,
-            ext,
-            erw fin.succ_above_below _ _ h₃ at h₁,
-            simpa only [fin.ext_iff] using h₁, },
-          { simp only [not_lt] at h₃,
-            rw fin.succ_above_above i.succ j h₃ at h₂,
-            exact (fin.succ_ne_zero j) h₂, }, },
-        { simp only [wide_pullback.lift_π],
-          congr,
-          cases nonzero_as_δ₀ hj with k hk,
-          subst hk,
-          have eq : δ 0 ≫ δ i.succ ≫ σ 0 = δ 0 ≫ σ 0 ≫ δ i,
-          { slice_lhs 1 2 { rw δ_comp_δ (fin.zero_le i), },
-            slice_lhs 2 3 { rw δ_comp_σ_self, },
-            slice_rhs 1 2 { erw δ_comp_σ_self, },
-            rw [id_comp, comp_id], },
-          simpa only [coe_coe, fin.coe_coe_eq_self] using hom.congr_eval eq k, }, }, },
-    { dsimp [simplicial_object.δ],
-      simp only [assoc, wide_pullback.lift_base], },
-  end,
-  ss := λ n i, begin
-    ext,
-    { cases j,
-      dsimp [simplicial_object.σ],
-      simp only [assoc, wide_pullback.lift_π],
-      by_cases hj : j = 0,
-      { subst hj,
-        split_ifs,
-        { simp only [wide_pullback.lift_base_assoc], },
-        { exfalso,
-          apply h,
-          refl, }, },
-      { split_ifs with h₁,
-        { exfalso,
-          apply hj,
-          ext,
-          have h₂ : i.succ.pred_above j = 0 := h₁,
-          dsimp [fin.pred_above] at h₂,
-          split_ifs at h₂ with h₃,
-          { rw [← fin.succ_pred j hj, h₂, fin.lt_iff_coe_lt_coe] at h₃,
-            simpa only [fin.coe_cast_succ, fin.coe_succ, fin.succ_zero_eq_one,
-              fin.coe_one, nat.lt_one_iff] using h₃, },
-          { simpa only [fin.ext_iff] using h₂, }, },
-        { simp only [wide_pullback.lift_π],
-          congr' 1,
-          ext1,
-          cases nonzero_as_δ₀ hj with k hk,
-          subst hk,
-          have eq : δ 0 ≫ σ i.succ ≫ σ 0 = δ 0 ≫ σ 0 ≫ σ i,
-          { slice_lhs 1 2 { erw δ_comp_σ_of_le (fin.cast_succ i).zero_le, },
-            slice_lhs 2 3 { erw δ_comp_σ_self, },
-            slice_rhs 1 2 { erw δ_comp_σ_self, },
-            rw [id_comp, comp_id], },
-          simpa only [coe_coe, fin.coe_coe_eq_self] using hom.congr_eval eq k, }, }, },
-      { dsimp [simplicial_object.σ],
-        simp only [assoc, wide_pullback.lift_base], },
-  end, } -/
-.
-namespace preadditive
+end augmented_cech_nerve
 
-/-- In the (pre)additive case, if an augmented simplicial object `X` has an extra
-degeneracy, then the augmentation `alternating_face_map_complex.ε.app X` is a
-homotopy equivalence of chain complexes. -/
---@[simps]
-def homotopy_equivalence [preadditive C] [has_zero_object C]
+end arrow
+
+end category_theory
+
+namespace simplicial_object
+
+namespace augmented
+
+namespace extra_degeneracy
+
+open algebraic_topology
+
+def preadditive.homotopy_equivalence [preadditive C] [has_zero_object C]
   {X : simplicial_object.augmented C} (ed : extra_degeneracy X) :
   homotopy_equiv (algebraic_topology.alternating_face_map_complex.obj (drop.obj X))
     ((chain_complex.single₀ C).obj (point.obj X)) :=
@@ -358,245 +345,8 @@ def homotopy_equivalence [preadditive C] [has_zero_object C]
     { tidy, },
   end, }
 
-end preadditive
-
 end extra_degeneracy
 
-end algebraic_topology
+end augmented
 
-open algebraic_topology
-
-namespace sSet
-
-abbreviation augmented := simplicial_object.augmented (Type u)
-
-@[simps]
-def augmented_std_simplex (Δ : simplex_category) : sSet.augmented :=
-{ left := yoneda.obj Δ,
-  right := terminal _,
-  hom := { app := λ Δ', terminal.from _, }, }
-
-def shift_fn {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X)
-  (i : fin (n+2)) : X :=
-begin
-  by_cases i = 0,
-  { exact 0, },
-  { exact f (i.pred h), },
-end
-
-@[simp]
-lemma shift_fn_0 {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X) :
-  shift_fn f 0 = 0 := rfl
-
-@[simp]
-lemma shift_fn_succ {n : ℕ} {X : Type*} [has_zero X] (f : fin (n+1) → X)
-  (i : fin (n+1)) : shift_fn f i.succ = f i :=
-begin
-  dsimp [shift_fn],
-  split_ifs,
-  { exfalso,
-    simpa only [fin.ext_iff, fin.coe_succ] using h, },
-  { simp only [fin.pred_succ], },
-end
-
-
-@[simp]
-def shift {n : ℕ} {Δ : simplex_category} (f : [n] ⟶ Δ) : [n+1] ⟶ Δ :=
-simplex_category.hom.mk
-{ to_fun := shift_fun f.to_order_hom,
-  monotone' := λ x₁ x₂ ineq, begin
-    dsimp,
-    split_ifs with h₁ h₂ h₂,
-    { refl, },
-    { simp only [fin.zero_le], },
-    { exfalso,
-      apply h₁,
-      rw [h₂] at ineq,
-      apply le_antisymm,
-      { exact ineq, },
-      { simp only [fin.zero_le], }, },
-    { apply f.to_order_hom.monotone,
-      simpa only [fin.pred_le_pred_iff] using ineq, },
-  end }
-
-lemma shift {n : ℕ}
-
-#exit
-
-@[simp]
-lemma fin.succ_pred_above_succ {n : ℕ} (x : fin n) (y : fin (n+1)) :
-  x.succ.pred_above y.succ = (x.pred_above y).succ :=
-begin
-  obtain h₁ | h₂ := lt_or_le x.cast_succ y,
-  { rw [fin.pred_above_above _ _ h₁, fin.succ_pred,
-      fin.pred_above_above, fin.pred_succ],
-    simpa only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ,
-      fin.coe_succ, add_lt_add_iff_right] using h₁, },
-  { cases n,
-    { exfalso,
-      exact not_lt_zero' x.is_lt, },
-    { rw [fin.pred_above_below _ _ h₂, fin.pred_above_below],
-      ext,
-      have hx : (x : ℕ) < n+1 := x.is_lt,
-      rw [fin.coe_succ, fin.coe_cast_pred, fin.coe_cast_pred, fin.coe_succ],
-      { by_contra,
-        simp only [h, fin.le_iff_coe_le_coe, fin.coe_last, fin.coe_cast_succ] at h₂,
-        linarith, },
-      { by_contra,
-        rw [← fin.succ_le_succ_iff] at h₂,
-        simp only [h, fin.le_iff_coe_le_coe, fin.coe_last, fin.coe_succ, fin.coe_cast_succ,
-          add_le_add_iff_right] at h₂,
-        change n+1 ≤ x at h₂,
-        linarith, },
-      { rw ← fin.succ_le_succ_iff at h₂,
-        convert h₂,
-        ext,
-        simp only [fin.coe_cast_succ, fin.coe_succ], }, }, },
-end
-
-def augmented_std_simplex.extra_degeneracy (Δ : simplex_category) :
-  extra_degeneracy (augmented_std_simplex Δ) :=
-{ s' := λ x, simplex_category.hom.mk (order_hom.const _ 0),
-  s := λ n f, shift f,
-  s'_comp_ε' := by { dsimp, apply subsingleton.elim, },
-  s₀_comp_δ₁' := begin
-    ext f x : 4,
-    dsimp at x f ⊢,
-    have eq : x = 0 := by { simp only [eq_iff_true_of_subsingleton], },
-    subst eq,
-    refl,
-  end,
-  s_comp_δ₀' := λ n, begin
-    ext f x : 4,
-    dsimp [simplicial_object.δ] at x f ⊢,
-    split_ifs,
-    { exfalso,
-      exact fin.succ_ne_zero _ h, },
-    { congr' 1,
-      apply fin.pred_succ, },
-  end,
-  s_comp_δ' := λ n i, begin
-    ext f x : 4,
-    dsimp [simplicial_object.δ],
-    split_ifs with h₁ h₂ h₂,
-    { refl, },
-    { exfalso,
-      change fin.succ_above i.succ x = 0 at h₁,
-      dsimp [fin.succ_above] at h₁,
-      split_ifs at h₁,
-      { apply h₂,
-        simpa only [fin.ext_iff] using h₁, },
-      { exact fin.succ_ne_zero x h₁, }, },
-    { subst h₂,
-      exfalso,
-      apply h₁,
-      change fin.succ_above i.succ 0 = 0,
-      rw fin.succ_above_eq_zero_iff,
-      apply fin.succ_ne_zero, },
-    { cases x.is_succ_of_ne_zero h₂ with y hy,
-      subst hy,
-      congr' 1,
-      simp only [fin.pred_succ],
-      change (fin.succ_above i.succ y.succ).pred h₁ = fin.succ_above i y,
-      apply fin.succ_injective,
-      simp only [fin.succ_succ_above_succ, fin.pred_succ], },
-  end,
-  s_comp_σ' := λ n i, begin
-    ext f x : 4,
-    dsimp [simplicial_object.σ] at x f ⊢,
-    split_ifs with h₁ h₂ h₂,
-    { refl, },
-    { exfalso,
-      change i.succ.pred_above x = 0 at h₁,
-      cases x.is_succ_of_ne_zero h₂ with y hy,
-      subst hy,
-      simp only [fin.succ_pred_above_succ] at h₁,
-      exact fin.succ_ne_zero _ h₁, },
-    { exfalso,
-      rw h₂ at h₁,
-      apply h₁,
-      refl, },
-    { congr' 1,
-      cases x.is_succ_of_ne_zero h₂ with y hy,
-      subst hy,
-      simp only [fin.pred_succ],
-      change (fin.pred_above i.succ y.succ).pred h₁ = fin.pred_above i y,
-      apply fin.succ_injective,
-      simp only [fin.succ_pred, fin.succ_pred_above_succ], },
-  end, }
-
-@[simps]
-def cech (X : Type u) : sSet.{u} :=
-{ obj := λ n, fin (n.unop.len + 1) → X,
-  map := λ m n f φ, φ ∘ f.unop.to_order_hom, }
-
-@[simps]
-def augmented_cech (X : Type u) (x : X) : sSet.augmented.{u} :=
-{ left := cech X,
-  right := terminal _,
-  hom := { app := λ Δ, terminal.from _ }, }
-
-namespace augmented_cech
-
-def extra_degeneracy_s (X : Type u) (x : X) {n : ℕ} (φ : (cech X).obj (op [n])) :
-  (cech X).obj (op [n+1]) :=
-λ i, begin
-  by_cases i = 0,
-  { exact x, },
-  { exact φ (i.pred h), }
-end
-
-@[simp]
-lemma extra_degeneracy_s_0 (X : Type u) (x : X) {n : ℕ}
-  (φ : (cech X).obj (op [n])) :
-  augmented_cech.extra_degeneracy_s X x φ 0 = x := rfl
-
-@[simp]
-lemma extra_degeneracy_s_succ (X : Type u) (x : X) {n : ℕ}
-  (φ : (cech X).obj (op [n])) (i : fin (n+1)):
-  augmented_cech.extra_degeneracy_s X x φ i.succ = φ i :=
-begin
-  dsimp [augmented_cech.extra_degeneracy_s],
-  split_ifs,
-  { exfalso,
-    simpa only [fin.ext_iff, fin.coe_succ, fin.coe_zero, nat.succ_ne_zero] using h, },
-  { simp only [fin.pred_succ], }
-end
-
-def extra_degeneracy (X : Type u) (x : X) : extra_degeneracy (augmented_cech X x) :=
-{ s' := λ y i, x,
-  s := λ n φ, extra_degeneracy_s X x φ,
-  s'_comp_ε' := is_terminal.hom_ext terminal_is_terminal _ _,
-  s₀_comp_δ₁' := by { ext φ i, fin_cases i, refl, },
-  s_comp_δ₀' := λ n, begin
-    ext φ i,
-    dsimp [simplicial_object.δ, simplex_category.δ],
-    rw extra_degeneracy_s_succ,
-  end,
-  s_comp_δ' := λ n i, begin
-    ext φ j,
-    dsimp [simplicial_object.δ, simplex_category.δ],
-    by_cases j = 0,
-    { subst h,
-      simp only [fin.succ_succ_above_zero, extra_degeneracy_s_0], },
-    { cases fin.is_succ_of_ne_zero j h with k hk,
-      subst hk,
-      simp only [fin.succ_succ_above_succ, extra_degeneracy_s_succ,
-        cech_map, quiver.hom.unop_op, hom.to_order_hom_mk, order_embedding.to_order_hom_coe], },
-  end,
-  s_comp_σ' := λ n i, begin
-    ext φ j,
-    dsimp [simplicial_object.σ, simplex_category.σ],
-    by_cases j = 0,
-    { subst h,
-      simp only [extra_degeneracy_s_0],
-      apply augmented_cech.extra_degeneracy_s_0, },
-    { cases fin.is_succ_of_ne_zero j h with k hk,
-      subst hk,
-      simp only [fin.succ_pred_above_succ, extra_degeneracy_s_succ,
-        cech_map, quiver.hom.unop_op, hom.to_order_hom_mk, order_hom.coe_fun_mk], },
-  end, }
-
-end augmented_cech
-
-end sSet
+end simplicial_object

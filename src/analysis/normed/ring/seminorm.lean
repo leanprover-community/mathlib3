@@ -82,12 +82,6 @@ section ring
 
 variables [ring R] (p : ring_seminorm R)
 
-lemma pow_le : ∀ {n : ℕ}, 0 < n → p (x ^ n) ≤ (p x) ^ n
-| 1 h := by simp only [pow_one]
-| (n + 2) h :=
-by simpa only [pow_succ _ (n + 1)] using le_trans (p.mul_le x _)
-  (mul_le_mul_of_nonneg_left (pow_le n.succ_pos) (p.nonneg _))
-
 lemma seminorm_one_eq_one_iff_ne_zero (hp : p 1 ≤ 1) :
   p 1 = 1 ↔ p ≠ 0 :=
 begin

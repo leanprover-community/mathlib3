@@ -179,7 +179,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
 ### Heine-Cantor theorem
 -/
 
-/-- Heine-Cantor: a continuous function on a compact separated uniform space is uniformly
+/-- Heine-Cantor: a continuous function on a compact uniform space is uniformly
 continuous. -/
 lemma compact_space.uniform_continuous_of_continuous [compact_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
@@ -229,8 +229,10 @@ local attribute [-instance] Pi.uniform_space
 local attribute [instance] uniform_convergence.topological_space
 local attribute [instance] uniform_convergence.uniform_space
 
+/-- An equicontinuous family of functions defined on a compact uniform space is automatically
+uniformly equicontinuous. -/
 lemma compact_space.uniform_equicontinuous_of_equicontinuous {ι : Type*} {F : ι → β → α}
-  [compact_space β] [separated_space β] (h : equicontinuous F) :
+  [compact_space β] (h : equicontinuous F) :
   uniform_equicontinuous F :=
 begin
   rw equicontinuous_iff_continuous at h,

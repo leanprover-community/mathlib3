@@ -6,7 +6,7 @@ Authors: Anatole Dedecker
 import topology.uniform_space.uniform_convergence_topology
 
 /-!
-# Equicontinuity
+# Equicontinuity of a family of functions
 
 ## Main definitions
 
@@ -250,6 +250,9 @@ begin
   refl
 end
 
+/-- Given `u : α → β` a uniform inducing, a family `𝓕 : ι → X → α` is equicontinuous at a point
+`x₀ : X` iff the family `𝓕'`, obtained by precomposing each function of `𝓕` by `u`, is
+equicontinuous at `x₀`. -/
 lemma uniform_inducing.equicontinuous_at_iff {F : ι → X → α} {x₀ : X} {u : α → β}
   (hu : uniform_inducing u) :
   equicontinuous_at F x₀ ↔ equicontinuous_at (((∘) u) ∘ F) x₀ :=
@@ -259,6 +262,8 @@ begin
       this.continuous_at_iff]
 end
 
+/-- Given `u : α → β` a uniform inducing, a family `𝓕 : ι → X → α` is equicontinuous iff the
+family `𝓕'`, obtained by precomposing each function of `𝓕` by `u`, is equicontinuous. -/
 lemma uniform_inducing.equicontinuous_iff {F : ι → X → α} {u : α → β}
   (hu : uniform_inducing u) :
   equicontinuous F ↔ equicontinuous (((∘) u) ∘ F) :=
@@ -267,6 +272,9 @@ begin
   rw hu.equicontinuous_at_iff
 end
 
+/-- Given `u : α → γ` a uniform inducing, a family `𝓕 : ι → β → α` is uniformly equicontinuous iff
+the family `𝓕'`, obtained by precomposing each function of `𝓕` by `u`, is uniformly
+equicontinuous. -/
 lemma uniform_inducing.uniform_equicontinuous_iff {F : ι → β → α} {u : α → γ}
   (hu : uniform_inducing u) :
   uniform_equicontinuous F ↔ uniform_equicontinuous (((∘) u) ∘ F) :=

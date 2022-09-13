@@ -227,6 +227,8 @@ local attribute [-instance] Pi.topological_space
 local attribute [-instance] Pi.uniform_space
 local attribute [instance] uniform_convergence.topological_space
 
+/-- The topology on `α →ᵇ β` is exactly the one induced by the topology of uniform convergence on
+`α → β` (note this is not the topology `α → β` is typically endowed with).-/
 lemma inducing_coe_fn : @inducing (α →ᵇ β) (α → β) _
   (uniform_convergence.topological_space α β) (coe_fn : (α →ᵇ β) → (α → β)) :=
 begin
@@ -438,7 +440,7 @@ theorem arzela_ascoli₁ [compact_space β]
   (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact A :=
 begin
-  simp_rw [equicontinuous, metric.equicontinuous_at_iff_right'] at H,
+  simp_rw [equicontinuous, metric.equicontinuous_at_iff_pair] at H,
   refine compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
   rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,

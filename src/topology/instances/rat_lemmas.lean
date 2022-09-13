@@ -79,7 +79,10 @@ instance : totally_disconnected_space ℚ :=
 begin
   refine ⟨λ s hsu hs x hx y hy, _⟩, clear hsu,
   by_contra' H : x ≠ y,
-  wlog hlt : x < y := H.lt_or_lt using [x y, y x],
+  wlog hlt : x < y,
+  { cases H.lt_or_lt with h h,
+    { exact hlt s hs x hx y hy H h },
+    { exact hlt s hs y hy x hx H.symm h } },
   rcases exists_irrational_btwn (rat.cast_lt.2 hlt) with ⟨z, hz, hxz, hzy⟩,
   have := hs.image coe continuous_coe_real.continuous_on,
   rw [is_preconnected_iff_ord_connected] at this,

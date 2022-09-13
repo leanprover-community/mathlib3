@@ -615,11 +615,12 @@ by rw [pow_min_fac hk, hp.min_fac_eq]
 
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
-⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [sq],
+⟨λ h,
 begin
   wlog H : p ∣ x,
-  { cases hp.dvd_mul.1 pdvdxy with hpx hpy, { apply_assumption, assumption' },
-    { refine (H hp hy hx _ _ hpy).symm; rwa mul_comm } },
+  { have pdvdxy : p ∣ x * y, by rw h; simp [sq],
+    have hpy : p ∣ y := or_iff_not_imp_left.1 (hp.dvd_mul.1 pdvdxy) H,
+    refine (this hp hy hx _ hpy).symm, rwa mul_comm },
   rsuffices rfl : x = p, { simp only [sq, nat.mul_right_inj hp.pos] at h, simp only [h, and_self] },
   cases H with a ha,
   have hap : a ∣ p := ⟨y, by rwa [ha, sq, mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,

@@ -116,8 +116,7 @@ begin
     rw [h, zero_dvd_iff, mul_eq_zero] at hbc,
     cases hbc; contradiction },
   wlog hℵ₀b : ℵ₀ ≤ b,
-  { have H := hℵ₀, cases H, { exact hℵ₀b h b c hbc h' hb hc hℵ₀ hn H, },
-    { refine (hℵ₀b h c b _ _ hc hb hℵ₀.symm hn H).symm; rwa mul_comm }, },
+  { refine (this h c b _ _ hc hb hℵ₀.symm hn (or_iff_not_imp_left.1 hℵ₀ hℵ₀b)).symm; rwa mul_comm },
   exact or.inl (dvd_of_le_of_aleph_0_le hn ((nat_lt_aleph_0 n).le.trans hℵ₀b) hℵ₀b),
 end
 

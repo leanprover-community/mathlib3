@@ -94,10 +94,8 @@ begin
   rintros u v hu hv hs ⟨z, zs, zu⟩ ⟨y, ys, yv⟩,
   have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
   wlog xu : x ∈ u,
-  { cases hs xs with hx hx; [skip, rw inter_comm u v];
-    [ apply xu x H _ _ _ _ _ z zs _ y ys _ xs _,
-      apply xu x H _ _ _ _ _ y ys _ z zs _ xs _],
-    assumption', rwa union_comm },
+  { rw inter_comm u v, rw union_comm at hs,
+    refine this x H v u hv hu hs y ys yv z zs zu xs (or_iff_not_imp_right.1 (hs xs) xu), },
   rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
   have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
   exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)

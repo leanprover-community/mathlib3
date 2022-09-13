@@ -2061,9 +2061,8 @@ private lemma nat_embedding_aux_injective (α : Type*) [infinite α] :
 begin
   rintro m n h,
   letI := classical.dec_eq α,
-  doneif hmlen : m ≤ n generalizing m n, swap,
-  { cases le_total m n with H H; [skip, symmetry];
-    apply_assumption; try { assumption }, exact h.symm },
+  wlog hmlen : m ≤ n generalizing m n,
+  { exact (this h.symm (le_of_not_le hmlen)).symm, },
   by_contradiction hmn,
   have hmn : m < n, from lt_of_le_of_ne hmlen hmn,
   refine (classical.some_spec (exists_not_mem_finset

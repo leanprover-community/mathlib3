@@ -341,9 +341,7 @@ lemma disjoint_range {i₁ i₂ : fin c.length} (h : i₁ ≠ i₂) :
   disjoint (set.range (c.embedding i₁)) (set.range (c.embedding i₂)) :=
 begin
   classical,
-  wlog h' : i₁ < i₂,
-  { rcases lt_trichotomy i₁ i₂ with (H|rfl|H),
-    { solve_by_elim }, { contradiction }, { exact (h' c h.symm H).symm } },
+  wlog h' : i₁ < i₂, { { exact (this c h.symm (lt_of_le_of_ne (le_of_not_lt h') h.symm)).symm } },
   by_contradiction d,
   obtain ⟨x, hx₁, hx₂⟩ :
     ∃ x : fin n, (x ∈ set.range (c.embedding i₁) ∧ x ∈ set.range (c.embedding i₂)) :=

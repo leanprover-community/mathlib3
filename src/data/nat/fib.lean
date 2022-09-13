@@ -218,8 +218,7 @@ lemma gcd_fib_add_mul_self (m n : ℕ) : ∀ k, gcd (fib m) (fib (n + k * m)) = 
   see https://proofwiki.org/wiki/GCD_of_Fibonacci_Numbers -/
 lemma fib_gcd (m n : ℕ) : fib (gcd m n) = gcd (fib m) (fib n) :=
 begin
-  wlog h : m ≤ n,
-  { cases le_total m n with H H, { exact h _ _ H }, { simpa only [gcd_comm] using h _ _ H } },
+  wlog h : m ≤ n, { simpa only [gcd_comm] using this _ _ (le_of_not_le h) },
   apply gcd.induction m n,
   { simp },
   intros m n mpos h,

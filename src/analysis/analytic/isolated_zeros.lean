@@ -151,8 +151,8 @@ namespace analytic_on
 
 variables {U : set 𝕜} {w : 𝕜}
 
-theorem eq_on_of_preconnected_of_frequently_eq (hU1 : is_open U) (hU2 : is_preconnected U)
-  (hf : analytic_on 𝕜 f U) (hw : w ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] w, f z = 0) :
+theorem eq_on_of_preconnected_of_frequently_eq (hf : analytic_on 𝕜 f U)
+  (hU : is_preconnected U) (hw : w ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] w, f z = 0) :
   eq_on f 0 U :=
 begin
   by_contra,
@@ -174,7 +174,7 @@ begin
       simp only [mem_inter_eq, mem_empty_eq, iff_false, not_and],
       exact λ h, (h.filter_mono nhds_within_le_nhds).frequently },
 
-  simpa [huv'] using hU2 u v hu hv huv hu' hv'
+  simpa [huv'] using hU u v hu hv huv hu' hv'
 end
 
 end analytic_on

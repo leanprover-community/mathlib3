@@ -19,17 +19,17 @@ and (odd) natural numbers `b`, which extends the Legendre symbol.
 
 ## Main results
 
-We prove the law of quadratic reciprocity, see `legendre_sym_quadratic_reciprocity` and
-`legendre_sym_quadratic_reciprocity'`, as well as the
+We prove the law of quadratic reciprocity, see `legendre_sym.quadratic_reciprocity` and
+`legendre_sym.quadratic_reciprocity'`, as well as the
 interpretations in terms of existence of square roots depending on the congruence mod 4,
 `zmod.exists_sq_eq_prime_iff_of_mod_four_eq_one`, and
 `zmod.exists_sq_eq_prime_iff_of_mod_four_eq_three`.
 
 We also prove the supplementary laws that give conditions for when `-1` or `2`
 (or `-2`) is a square modulo a prime `p`:
-`legendre_sym_neg_one` and `zmod.exists_sq_eq_neg_one_iff` for `-1`,
-`legendre_sym_two` and `zmod.exists_sq_eq_two_iff` for `2`,
-`legendre_sym_neg_two` and `zmod.exists_sq_eq_neg_two_iff` for `-2`.
+`legendre_sym.at_neg_one` and `zmod.exists_sq_eq_neg_one_iff` for `-1`,
+`legendre_sym.at_two` and `zmod.exists_sq_eq_two_iff` for `2`,
+`legendre_sym.at_neg_two` and `zmod.exists_sq_eq_neg_two_iff` for `-2`.
 
 ## Implementation notes
 
@@ -112,7 +112,7 @@ that `legendre_sym p` is a multiplicative function `ℤ → ℤ`.
 def legendre_sym (a : ℤ) : ℤ := quadratic_char (zmod p) a
 
 /-- We have the congruence `legendre_sym p a ≡ a ^ (p / 2) mod p`. -/
-lemma legendre_sym_eq_pow (a : ℤ) : (legendre_sym p a : zmod p) = a ^ (p / 2) :=
+lemma legendre_sym.eq_pow (a : ℤ) : (legendre_sym p a : zmod p) = a ^ (p / 2) :=
 begin
   cases eq_or_ne (ring_char (zmod p)) 2 with hc hc,
   { by_cases ha : (a : zmod p) = 0,
@@ -129,65 +129,67 @@ begin
 end
 
 /-- If `p ∤ a`, then `legendre_sym p a` is `1` or `-1`. -/
-lemma legendre_sym_eq_one_or_neg_one {a : ℤ} (ha : (a : zmod p) ≠ 0) :
+lemma legendre_sym.eq_one_or_neg_one {a : ℤ} (ha : (a : zmod p) ≠ 0) :
   legendre_sym p a = 1 ∨ legendre_sym p a = -1 :=
 quadratic_char_dichotomy ha
 
-lemma legendre_sym_eq_neg_one_iff_not_one {a : ℤ} (ha : (a : zmod p) ≠ 0) :
+lemma legendre_sym.eq_neg_one_iff_not_one {a : ℤ} (ha : (a : zmod p) ≠ 0) :
   legendre_sym p a = -1 ↔ ¬ legendre_sym p a = 1 :=
 quadratic_char_eq_neg_one_iff_not_one ha
 
 /-- The Legendre symbol of `p` and `a` is zero iff `p ∣ a`. -/
-lemma legendre_sym_eq_zero_iff (a : ℤ) : legendre_sym p a = 0 ↔ (a : zmod p) = 0 :=
+lemma legendre_sym.eq_zero_iff (a : ℤ) : legendre_sym p a = 0 ↔ (a : zmod p) = 0 :=
 quadratic_char_eq_zero_iff
 
-@[simp] lemma legendre_sym_zero : legendre_sym p 0 = 0 :=
+@[simp] lemma legendre_sym.at_zero : legendre_sym p 0 = 0 :=
 by rw [legendre_sym, int.cast_zero, mul_char.map_zero]
 
-@[simp] lemma legendre_sym_one : legendre_sym p 1 = 1 :=
+@[simp] lemma legendre_sym.at_one : legendre_sym p 1 = 1 :=
 by rw [legendre_sym, int.cast_one, mul_char.map_one]
 
 /-- The Legendre symbol is multiplicative in `a` for `p` fixed. -/
-lemma legendre_sym_mul (a b : ℤ) : legendre_sym p (a * b) = legendre_sym p a * legendre_sym p b :=
+protected
+lemma legendre_sym.mul (a b : ℤ) : legendre_sym p (a * b) = legendre_sym p a * legendre_sym p b :=
 by simp only [legendre_sym, int.cast_mul, map_mul]
 
 /-- The Legendre symbol is a homomorphism of monoids with zero. -/
-@[simps] def legendre_sym_hom : ℤ →*₀ ℤ :=
+@[simps] def legendre_sym.hom : ℤ →*₀ ℤ :=
 { to_fun := legendre_sym p,
-  map_zero' := legendre_sym_zero p,
-  map_one' := legendre_sym_one p,
-  map_mul' := legendre_sym_mul p }
+  map_zero' := legendre_sym.at_zero p,
+  map_one' := legendre_sym.at_one p,
+  map_mul' := legendre_sym.mul p }
 
 /-- The square of the symbol is 1 if `p ∤ a`. -/
-theorem legendre_sym_sq_one {a : ℤ} (ha : (a : zmod p) ≠ 0) : (legendre_sym p a) ^ 2 = 1 :=
+theorem legendre_sym.sq_one {a : ℤ} (ha : (a : zmod p) ≠ 0) : (legendre_sym p a) ^ 2 = 1 :=
 quadratic_char_sq_one ha
 
 /-- The Legendre symbol of `a^2` at `p` is 1 if `p ∤ a`. -/
-theorem legendre_sym_sq_one' {a : ℤ} (ha : (a : zmod p) ≠ 0) : legendre_sym p (a ^ 2) = 1 :=
+theorem legendre_sym.sq_one' {a : ℤ} (ha : (a : zmod p) ≠ 0) : legendre_sym p (a ^ 2) = 1 :=
 by exact_mod_cast quadratic_char_sq_one' ha
 
 /-- The Legendre symbol depends only on `a` mod `p`. -/
-theorem legendre_sym_mod (a : ℤ) : legendre_sym p a = legendre_sym p (a % p) :=
+protected
+theorem legendre_sym.mod (a : ℤ) : legendre_sym p a = legendre_sym p (a % p) :=
 by simp only [legendre_sym, int_cast_mod]
 
 /-- When `p ∤ a`, then `legendre_sym p a = 1` iff `a` is a square mod `p`. -/
-lemma legendre_sym_eq_one_iff {a : ℤ} (ha0 : (a : zmod p) ≠ 0) :
+lemma legendre_sym.eq_one_iff {a : ℤ} (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = 1 ↔ is_square (a : zmod p) :=
 quadratic_char_one_iff_is_square ha0
 
-lemma legendre_sym_eq_one_iff' {a : ℕ} (ha0 : (a : zmod p) ≠ 0) :
+lemma legendre_sym.eq_one_iff' {a : ℕ} (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = 1 ↔ is_square (a : zmod p) :=
-by {rw legendre_sym_eq_one_iff, norm_cast, exact_mod_cast ha0}
+by {rw legendre_sym.eq_one_iff, norm_cast, exact_mod_cast ha0}
 
 /-- `legendre_sym p a = -1` iff `a` is a nonsquare mod `p`. -/
-lemma legendre_sym_eq_neg_one_iff {a : ℤ} : legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
+lemma legendre_sym.eq_neg_one_iff {a : ℤ} : legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
 quadratic_char_neg_one_iff_not_is_square
 
-lemma legendre_sym_eq_neg_one_iff' {a : ℕ} : legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
-by {rw legendre_sym_eq_neg_one_iff, norm_cast}
+lemma legendre_sym.eq_neg_one_iff' {a : ℕ} : legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
+by {rw legendre_sym.eq_neg_one_iff, norm_cast}
 
 /-- The number of square roots of `a` modulo `p` is determined by the Legendre symbol. -/
-lemma legendre_sym_card_sqrts (hp : p ≠ 2) (a : ℤ) :
+lemma legendre_sym.card_sqrts (hp : p ≠ 2) (a : ℤ) :
   ↑{x : zmod p | x^2 = a}.to_finset.card = legendre_sym p a + 1 :=
 quadratic_char_card_sqrts ((ring_char_zmod_n p).substr hp) a
 
@@ -198,7 +200,7 @@ section values
 /-!
 ### The value of the Legendre symbol at `-1`
 
-See `jacobi_sym_neg_one` for the corresponding statement for the Jacobi symbol.
+See `jacobi_sym.at_neg_one` for the corresponding statement for the Jacobi symbol.
 -/
 
 variables {p : ℕ} [fact p.prime]
@@ -206,7 +208,7 @@ variables {p : ℕ} [fact p.prime]
 open zmod
 
 /-- `legendre_sym p (-1)` is given by `χ₄ p`. -/
-lemma legendre_sym_neg_one (hp : p ≠ 2) : legendre_sym p (-1) = χ₄ p :=
+lemma legendre_sym.at_neg_one (hp : p ≠ 2) : legendre_sym p (-1) = χ₄ p :=
 by simp only [legendre_sym, card p, quadratic_char_neg_one ((ring_char_zmod_n p).substr hp),
               int.cast_neg, int.cast_one]
 
@@ -236,7 +238,7 @@ end zmod
 /-!
 ### The value of the Legendre symbol at `2` and `-2`
 
-See `jacobi_sym_two` and `jacobi_sym_neg_two` for the corresponding statements
+See `jacobi_sym.at_two` and `jacobi_sym.at_neg_two` for the corresponding statements
 for the Jacobi symbol.
 -/
 
@@ -244,7 +246,7 @@ variables (hp : p ≠ 2)
 include hp
 
 /-- `legendre_sym p 2` is given by `χ₈ p`. -/
-lemma legendre_sym_two : legendre_sym p 2 = χ₈ p :=
+lemma legendre_sym.at_two : legendre_sym p 2 = χ₈ p :=
 by simp only [legendre_sym, card p, quadratic_char_two ((ring_char_zmod_n p).substr hp),
               int.cast_bit0, int.cast_one]
 
@@ -261,7 +263,7 @@ begin
 end
 
 /-- `legendre_sym p (-2)` is given by `χ₈' p`. -/
-lemma legendre_sym_neg_two : legendre_sym p (-2) = χ₈' p :=
+lemma legendre_sym.at_neg_two : legendre_sym p (-2) = χ₈' p :=
 by simp only [legendre_sym, card p, quadratic_char_neg_two ((ring_char_zmod_n p).substr hp),
               int.cast_bit0, int.cast_one, int.cast_neg]
 
@@ -284,7 +286,7 @@ section reciprocity
 /-!
 ### The Law of Quadratic Reciprocity
 
-See `jacobi_sym_quadratic_reciprocity` and variants for a version of Quadratic Reciprocity
+See `jacobi_sym.quadratic_reciprocity` and variants for a version of Quadratic Reciprocity
 for the Jacobi symbol.
 -/
 
@@ -294,7 +296,7 @@ open zmod
 
 /-- The Law of Quadratic Reciprocity: if `p` and `q` are distinct odd primes, then
 `(q / p) * (p / q) = (-1)^((p-1)(q-1)/4)`. -/
-theorem legendre_sym_quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
+theorem legendre_sym.quadratic_reciprocity (hp : p ≠ 2) (hq : q ≠ 2) (hpq : p ≠ q) :
   legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=
 begin
   have hp₁ := (prime.eq_two_or_odd $ fact.out p.prime).resolve_left hp,
@@ -312,31 +314,31 @@ end
 
 /-- The Law of Quadratic Reciprocity: if `p` and `q` are odd primes, then
 `(q / p) = (-1)^((p-1)(q-1)/4) * (p / q)`. -/
-theorem legendre_sym_quadratic_reciprocity' (hp : p ≠ 2) (hq : q ≠ 2) :
+theorem legendre_sym.quadratic_reciprocity' (hp : p ≠ 2) (hq : q ≠ 2) :
   legendre_sym q p = (-1) ^ ((p / 2) * (q / 2)) * legendre_sym p q :=
 begin
   cases eq_or_ne p q with h h,
   { substI p,
-    rw [(legendre_sym_eq_zero_iff q q).mpr (by exact_mod_cast nat_cast_self q), mul_zero] },
-  { have qr := congr_arg (* legendre_sym p q) (legendre_sym_quadratic_reciprocity hp hq h),
+    rw [(legendre_sym.eq_zero_iff q q).mpr (by exact_mod_cast nat_cast_self q), mul_zero] },
+  { have qr := congr_arg (* legendre_sym p q) (legendre_sym.quadratic_reciprocity hp hq h),
     have : ((q : ℤ) : zmod p) ≠ 0 := by exact_mod_cast prime_ne_zero p q h,
-    simpa only [mul_assoc, ← pow_two, legendre_sym_sq_one p this, mul_one] using qr }
+    simpa only [mul_assoc, ← pow_two, legendre_sym.sq_one p this, mul_one] using qr }
 end
 
 /-- The Law of Quadratic Reciprocity: if `p` and `q` are odd primes and `p % 4 = 1`,
 then `(q / p) = (p / q)`. -/
-theorem legendre_sym_quadratic_reciprocity_one_mod_four (hp : p % 4 = 1) (hq : q ≠ 2) :
+theorem legendre_sym.quadratic_reciprocity_one_mod_four (hp : p % 4 = 1) (hq : q ≠ 2) :
   legendre_sym q p = legendre_sym p q :=
-by rw [legendre_sym_quadratic_reciprocity' (prime.mod_two_eq_one_iff_ne_two.mp
+by rw [legendre_sym.quadratic_reciprocity' (prime.mod_two_eq_one_iff_ne_two.mp
                                              (odd_of_mod_four_eq_one hp)) hq,
        pow_mul, neg_one_pow_div_two_of_one_mod_four hp, one_pow, one_mul]
 
 /-- The Law of Quadratic Reciprocity: if `p` and `q` are primes that are both congruent
 to `3` mod `4`, then `(q / p) = -(p / q)`. -/
-theorem legendre_sym_quadratic_reciprocity_three_mod_four (hp : p % 4 = 3) (hq : q % 4 = 3):
+theorem legendre_sym.quadratic_reciprocity_three_mod_four (hp : p % 4 = 3) (hq : q % 4 = 3):
   legendre_sym q p = -legendre_sym p q :=
 let nop := @neg_one_pow_div_two_of_three_mod_four in begin
-  rw [legendre_sym_quadratic_reciprocity', pow_mul, nop hp, nop hq, neg_one_mul];
+  rw [legendre_sym.quadratic_reciprocity', pow_mul, nop hp, nop hq, neg_one_mul];
   rwa [← prime.mod_two_eq_one_iff_ne_two, odd_of_mod_four_eq_three],
 end
 
@@ -347,9 +349,9 @@ lemma zmod.exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q 
 begin
   cases eq_or_ne p q with h h,
   { substI p },
-  { rw [← legendre_sym_eq_one_iff' p (prime_ne_zero p q h),
-        ← legendre_sym_eq_one_iff' q (prime_ne_zero q p h.symm),
-        legendre_sym_quadratic_reciprocity_one_mod_four hp1 hq1], }
+  { rw [← legendre_sym.eq_one_iff' p (prime_ne_zero p q h),
+        ← legendre_sym.eq_one_iff' q (prime_ne_zero q p h.symm),
+        legendre_sym.quadratic_reciprocity_one_mod_four hp1 hq1], }
 end
 
 /-- If `p` and `q` are distinct primes that are both congruent to `3` mod `4`, then `q` is
@@ -357,7 +359,7 @@ a square mod `p` iff `p` is a nonsquare mod `q`. -/
 lemma zmod.exists_sq_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3) (hq3 : q % 4 = 3)
   (hpq : p ≠ q) :
   is_square (q : zmod p) ↔ ¬ is_square (p : zmod q) :=
-by rw [← legendre_sym_eq_one_iff' p (prime_ne_zero p q hpq), ← legendre_sym_eq_neg_one_iff' q,
-       legendre_sym_quadratic_reciprocity_three_mod_four hp3 hq3, neg_inj]
+by rw [← legendre_sym.eq_one_iff' p (prime_ne_zero p q hpq), ← legendre_sym.eq_neg_one_iff' q,
+       legendre_sym.quadratic_reciprocity_three_mod_four hp3 hq3, neg_inj]
 
 end reciprocity

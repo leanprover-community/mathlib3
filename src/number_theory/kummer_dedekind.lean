@@ -238,7 +238,10 @@ begin
     ⟨normalize (map I^.quotient.mk (minpoly R pb.gen)), mem_norm_factors⟩ : ideal S),
   rw multiset.map_eq_singleton,
   use ⟨normalize (map I^.quotient.mk (minpoly R pb.gen)), mem_norm_factors⟩,
-  refine ⟨by {rw normalized_factors_irreducible hf, refl}, rfl⟩,
+  refine ⟨_, rfl⟩,
+  apply multiset.map_injective subtype.coe_injective,
+  rw [multiset.attach_map_coe, multiset.map_singleton, subtype.coe_mk],
+  exact normalized_factors_irreducible hf
 end
 
 end kummer_dedekind

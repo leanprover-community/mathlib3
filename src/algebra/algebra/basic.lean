@@ -401,8 +401,8 @@ lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x 
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
 def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
-  (M : submonoid R) : (submonoid S) :=
-submonoid.map (algebra_map R S : R →* S) M
+  (M : submonoid R) : submonoid S :=
+M.map (algebra_map R S)
 
 lemma mem_algebra_map_submonoid_of_mem {S : Type*} [semiring S] [algebra R S] {M : submonoid R}
   (x : M) : (algebra_map R S x) ∈ algebra_map_submonoid S M :=
@@ -997,13 +997,11 @@ symm_bijective.injective $ ext $ λ x, rfl
   { to_fun := f', inv_fun := f,
     ..(⟨f, f', h₁, h₂, h₃, h₄, h₅⟩ : A₁ ≃ₐ[R] A₂).symm } := rfl
 
-@[simp]
-theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
+@[simp] theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
 
-@[simp]
-lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) : (f : A₁ ≃+* A₁).symm = f.symm := rfl
+@[simp] lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) : (f : A₁ ≃+* A₁).symm = f.symm := rfl
 
-@[simp] lemma symm_to_ring_equiv : (e.symm : A₂ ≃+* A₁) = e.symm := rfl
+@[simp] lemma symm_to_ring_equiv : (e.symm : A₂ ≃+* A₁) = (e : A₁ ≃+* A₂).symm := rfl
 
 /-- Algebra equivalences are transitive. -/
 @[trans]

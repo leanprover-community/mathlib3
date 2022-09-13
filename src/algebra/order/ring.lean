@@ -463,7 +463,7 @@ by classical; exact decidable.one_lt_mul
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_one [@decidable_rel α (≤)]
   (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
-one_mul (1 : α) ▸ mul_le_mul ha hb hb' zero_le_one
+one_mul (1 : α) ▸ decidable.mul_le_mul ha hb hb' zero_le_one
 
 lemma mul_le_one : a ≤ 1 → 0 ≤ b → b ≤ 1 → a * b ≤ 1 :=
 by classical; exact decidable.mul_le_one

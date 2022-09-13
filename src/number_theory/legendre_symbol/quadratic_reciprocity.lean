@@ -10,7 +10,7 @@ import number_theory.legendre_symbol.quadratic_char
 
 This file contains results about quadratic residues modulo a prime number.
 
-We define the Legendre symbol `(a / p)` as `legendre_sym p a`.
+We define the Legendre symbol $\Bigl(\frac{a}{p}\Bigr)$ as `legendre_sym p a`.
 Note the order of arguments! The advantage of this form is that then `legendre_sym p`
 is a multiplicative map.
 

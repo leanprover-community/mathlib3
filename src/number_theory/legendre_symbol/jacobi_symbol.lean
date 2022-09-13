@@ -95,7 +95,7 @@ by simp only [jacobi_sym, factors_one, list.prod_nil, list.pmap]
 
 /-- The Legendre symbol `legendre_sym p a` with an integer `a` and a prime number `p`
 is the same as the Jacobi symbol `J(a | p)`. -/
-lemma _root_.legendre_sym.to_jacobi_sym {p : ℕ} [fp : fact p.prime] {a : ℤ} :
+lemma _root_.legendre_sym.to_jacobi_sym (p : ℕ) [fp : fact p.prime] (a : ℤ) :
   legendre_sym p a = J(a | p) :=
 by simp only [jacobi_sym, factors_prime fp.1, list.prod_cons, list.prod_nil, mul_one, list.pmap]
 

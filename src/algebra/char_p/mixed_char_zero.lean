@@ -59,7 +59,7 @@ variables (R : Type*) [comm_ring R]
 A ring of characteristic zero is of "mixed characteristic `(0, p)`" if there exists an ideal
 such that the quotient `R ⧸ I` has caracteristic `p > 0`.
 -/
-class mixed_char_zero (p : ℕ) : Prop :=
+class mixed_char_zero {p : ℕ} : Prop :=
 [to_char_zero : char_zero R]
 (p_pos : p ≠ 0)
 (char_p_quotient : ∃ (I : ideal R), (I ≠ ⊤) ∧ char_p (R ⧸ I) p)
@@ -441,31 +441,3 @@ begin
 end
 
 end main_statements
-
-/-!
-### Properties for ℚ-algebras
-As by-product of the construction of equal/mixed characteristic one gets a coersion
-`ℕ+ → Rˣ` for any `ℚ`-algbebra `R`. In this section, we provide the definitions for
-this coersion.
--/
-namespace algebra
-
-variables [nontrivial R] [algebra ℚ R]
-
-/--
-The coersion `ℕ+ → Rˣ` coming the fact that there is an algebra map `ℚ →+* R`.
--/
-noncomputable instance pnat_has_coe_units : has_coe_t ℕ+ Rˣ :=
-@equal_char_zero.pnat_has_coe_units R _ ⟨(Q_algebra_to_equal_char_zero R)⟩
-
-@[simp, norm_cast]
-lemma pnat_coe_units_eq_one : ((1 : ℕ+) : Rˣ) = 1 :=
-begin
-convert @equal_char_zero.pnat_coe_units_eq_one R _ ⟨(Q_algebra_to_equal_char_zero R)⟩,
-end
-
-@[simp, norm_cast]
-lemma pnat_coe_units_coe_eq_coe (n : ℕ+) : ((n : Rˣ) : R) = ↑n :=
-@equal_char_zero.pnat_coe_units_coe_eq_coe R _ ⟨(Q_algebra_to_equal_char_zero R)⟩ n
-
-end algebra

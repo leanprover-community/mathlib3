@@ -71,10 +71,10 @@ Implementation note: These are not instances because the counter direction `alge
 (`algebra_rat [division_ring α] [char_zero α] : algebra ℚ α`)
 -/
 
-def Q_algebra_char_p_zero [semiring R] [algebra ℚ R] : char_p R 0 :=
+lemma Q_algebra_char_p_zero [semiring R] [algebra ℚ R] : char_p R 0 :=
 char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0
 
-def Q_algebra_char_zero [ring R] [algebra ℚ R] : char_zero R :=
+lemma Q_algebra_char_zero [ring R] [algebra ℚ R] : char_zero R :=
 @char_p.char_p_to_char_zero R _ (Q_algebra_char_p_zero R)
 
 end Q_algebra

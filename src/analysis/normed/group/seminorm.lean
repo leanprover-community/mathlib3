@@ -3,6 +3,7 @@ Copyright (c) 2022 María Inés de Frutos-Fernández, Yaël Dillies. All rights 
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández, Yaël Dillies
 -/
+import algebra.order.hom.basic
 import data.real.nnreal
 
 /-!
@@ -70,9 +71,8 @@ attribute [nolint doc_blame] add_group_seminorm.to_zero_hom  add_group_norm.to_a
 
 You should extend this class when you extend `add_group_seminorm`. -/
 class add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add_group α]
-  extends fun_like F α (λ _, ℝ) :=
+  extends subadditive_hom_class F α ℝ :=
 (map_zero (f : F) : f 0 = 0)
-(map_add_le_add (f : F) (a b : α) : f (a + b) ≤ f a + f b)
 (map_neg_eq_map (f : F) (a : α) : f (-a) = f a)
 
 /-- `group_seminorm_class F α` states that `F` is a type of seminorms on the group `α`.
@@ -80,9 +80,8 @@ class add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add_group �
 You should extend this class when you extend `group_seminorm`. -/
 @[to_additive]
 class group_seminorm_class (F : Type*) (α : out_param $ Type*) [group α]
-  extends fun_like F α (λ _,  ℝ) :=
+  extends mul_le_add_hom_class F α ℝ :=
 (map_one_eq_zero (f : F) : f 1 = 0)
-(map_mul_le_add (f : F) (a b : α) : f (a * b) ≤ f a + f b)
 (map_inv_eq_map (f : F) (a : α) : f a⁻¹ = f a)
 
 /-- `add_group_norm_class F α` states that `F` is a type of norms on the additive group `α`.
@@ -100,14 +99,15 @@ class group_norm_class (F : Type*) (α : out_param $ Type*) [group α]
   extends group_seminorm_class F α :=
 (eq_one_of_map_eq_zero (f : F) {a : α} : f a = 0 → a = 1)
 
-export add_group_seminorm_class (map_add_le_add map_neg_eq_map)
-       group_seminorm_class     (map_one_eq_zero map_mul_le_add map_inv_eq_map)
+export add_group_seminorm_class (map_neg_eq_map)
+       group_seminorm_class     (map_one_eq_zero map_inv_eq_map)
        add_group_norm_class     (eq_zero_of_map_eq_zero)
        group_norm_class         (eq_one_of_map_eq_zero)
 
 attribute [simp, to_additive map_zero] map_one_eq_zero
 attribute [simp] map_neg_eq_map
 attribute [simp, to_additive] map_inv_eq_map
+attribute [to_additive] group_seminorm_class.to_mul_le_add_hom_class
 attribute [to_additive] group_norm.to_group_seminorm
 attribute [to_additive] group_norm_class.to_group_seminorm_class
 
@@ -117,35 +117,25 @@ instance add_group_seminorm_class.to_zero_hom_class [add_group E] [add_group_sem
 { ..‹add_group_seminorm_class F E› }
 
 section group_seminorm_class
-variables [group E] [group_seminorm_class F E] (f : F) (x y z : E)
+variables [group E] [group_seminorm_class F E] (f : F) (x y : E)
 include E
 
 @[to_additive] lemma map_div_le_add : f (x / y) ≤ f x + f y :=
 by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 
-@[simp, to_additive] lemma map_nonneg : 0 ≤ f x :=
-nonneg_of_mul_nonneg_right
-  (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' x], exact map_div_le_add _ _ _ }) two_pos
-
 @[to_additive] lemma map_div_rev : f (x / y) = f (y / x) := by rw [←inv_div, map_inv_eq_map]
 
-/-- The direct path from `1` to `x` is shorter than the path with `y` "inserted" in between. -/
-@[to_additive "The direct path from `0` to `x` is shorter than the path with `y` \"inserted\" in
-between."]
-lemma le_map_add_map_div' : f x ≤ f y + f (x / y) :=
-by simpa only [add_comm, div_mul_cancel'] using map_mul_le_add f (x / y) y
-
-/-- The direct path from `1` to `y` is shorter than the path with `x` "inserted" in between. -/
-@[to_additive "The direct path from `0` to `y` is shorter than the path with `x` \"inserted\" in
-between."]
-lemma le_map_add_map_div : f y ≤ f x + f (x / y) :=
-by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (y / x) x
-
-@[to_additive]
-lemma le_map_div_add_map_div : f (x / z) ≤ f (x / y) + f (y / z) :=
-by simpa only [div_mul_div_cancel'] using map_mul_le_add f (x / y) (y / z)
+@[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
+by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
 
 end group_seminorm_class
+
+@[to_additive, priority 100] -- See note [lower instance priority]
+instance group_seminorm_class.to_nonneg_hom_class [group E] [group_seminorm_class F E] :
+  nonneg_hom_class F E ℝ :=
+{ map_nonneg := λ f a, nonneg_of_mul_nonneg_right
+    (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' a], exact map_div_le_add _ _ _ }) two_pos,
+  ..‹group_seminorm_class F E› }
 
 section group_norm_class
 variables [group E] [group_norm_class F E] (f : F) {x : E}
@@ -290,7 +280,7 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
     by rw [div_self', map_one_eq_zero q, add_zero],
   inf_le_right := λ p q x, cinfi_le_of_le mul_bdd_below_range_add (1 : E) $
     by simp only [div_one, map_one_eq_zero p, zero_add],
-  le_inf := λ a b c hb hc x, le_cinfi $ λ u, (le_map_add_map_div' a _ _).trans $
+  le_inf := λ a b c hb hc x, le_cinfi $ λ u, (le_map_add_map_div a _ _).trans $
     add_le_add (hb _) (hc _),
   ..group_seminorm.semilattice_sup }
 
@@ -302,6 +292,7 @@ see that `has_smul R ℝ` should be fixed because `ℝ` is fixed. -/
 
 namespace add_group_seminorm
 variables [add_group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (p : add_group_seminorm E)
 
 instance [decidable_eq E] : has_one (add_group_seminorm E) :=
 ⟨{ to_fun := λ x, if x = 0 then 0 else 1,

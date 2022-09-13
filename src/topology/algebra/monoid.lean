@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import algebra.big_operators.finprod
 import data.set.pointwise
 import topology.algebra.mul_action
+import algebra.big_operators.pi
 
 /-!
 # Theory of topological monoids
@@ -499,6 +500,16 @@ by { rcases s with ⟨l⟩, simpa using continuous_list_prod l }
 lemma continuous_finset_prod {f : ι → X → M} (s : finset ι) :
   (∀ i ∈ s, continuous (f i)) → continuous (λa, ∏ i in s, f i a) :=
 continuous_multiset_prod _
+
+@[to_additive] lemma eventually_eq_prod {X M : Type*} [comm_monoid M]
+  {s : finset ι} {l : filter X} {f g : ι → X → M} (hs : ∀ i ∈ s, f i =ᶠ[l] g i) :
+  ∏ i in s, f i =ᶠ[l] ∏ i in s, g i :=
+begin
+  replace hs: ∀ᶠ x in l, ∀ i ∈ s, f i x = g i x,
+  { rwa eventually_all_finset },
+  filter_upwards [hs] with x hx,
+  simp only [finset.prod_apply, finset.prod_congr rfl hx],
+end
 
 open function
 

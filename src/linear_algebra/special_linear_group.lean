@@ -62,7 +62,8 @@ def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end
 
-localized "notation `SL(` n `,` R `)`:= matrix.special_linear_group (fin n) R" in matrix_groups
+localized "notation (name := special_linear_group.fin)
+  `SL(`n`, `R`)`:= matrix.special_linear_group (fin n) R" in matrix_groups
 
 namespace special_linear_group
 
@@ -208,6 +209,29 @@ function.injective.has_distrib_neg _ subtype.coe_injective coe_neg coe_mul
 subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g
 
 end has_neg
+
+section special_cases
+
+lemma SL2_inv_expl_det (A : SL(2,R)) : det ![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]] = 1 :=
+begin
+  rw [matrix.det_fin_two, mul_comm],
+  simp only [subtype.val_eq_coe, cons_val_zero, cons_val_one, head_cons, mul_neg, neg_mul, neg_neg],
+  have := A.2,
+  rw matrix.det_fin_two at this,
+  convert this,
+end
+
+lemma SL2_inv_expl (A : SL(2, R)) : A⁻¹ = ⟨![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]],
+    SL2_inv_expl_det A⟩ :=
+begin
+  ext,
+  have := matrix.adjugate_fin_two A.1,
+  simp only [subtype.val_eq_coe] at this,
+  rw [coe_inv, this],
+  refl,
+end
+
+end special_cases
 
 -- this section should be last to ensure we do not use it in lemmas
 section coe_fn_instance

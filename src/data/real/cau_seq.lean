@@ -691,9 +691,9 @@ end
 
 @[simp] protected lemma inf_idem (a : cau_seq α abs) : a ⊓ a = a := subtype.ext inf_idem
 
-@[simp] protected lemma sup_comm (a b : cau_seq α abs) : a ⊔ b = b ⊔ a := subtype.ext sup_comm
+protected lemma sup_comm (a b : cau_seq α abs) : a ⊔ b = b ⊔ a := subtype.ext sup_comm
 
-@[simp] protected lemma inf_comm (a b : cau_seq α abs) : a ⊓ b = b ⊓ a := subtype.ext inf_comm
+protected lemma inf_comm (a b : cau_seq α abs) : a ⊓ b = b ⊓ a := subtype.ext inf_comm
 
 protected lemma sup_eq_right {a b : cau_seq α abs} (h : a < b) :
   a ⊔ b ≈ b :=

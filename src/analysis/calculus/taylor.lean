@@ -311,7 +311,7 @@ end
 
 /-- **Taylor's theorem** with the Cauchy form of the remainder.
 
-We assume that `f` is `n+1`-times continuously differentiable in the closed set `Icc x₀ x` and
+We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc x₀ x` and
 `n+1`-times differentiable on the open set `Ioo x₀ x`. Then there exists a `x' ∈ Ioo x₀ x` such that
 $$f(x) - (P_n f)(x₀, x) = \\frac{f^{(n+1)}(x') (x - x')^n (x-x₀)}{n!},$$
 where $P_n f$ denotes the Taylor polynomial of degree $n$ and $f^{(n+1)}$ is the $n+1$-th iterated
@@ -333,7 +333,11 @@ begin
   ring,
 end
 
-/-- **Taylor's theorem** with a uniform bound of the remainder -/
+/-- **Taylor's theorem** with a uniform bound of the remainder
+
+We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc a b`.
+The difference of `f` and its `n`-th Taylor polynomial can be estimated by
+`C * (x - a)^(n+1) / n!` where `C` is a bound for the `n+1`-th iterated derivative of `f`. -/
 lemma taylor_mean_remainder_bound {f : ℝ → E} {a b C x: ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) (hx : x ∈ Icc a b)
   (hC : ∀ (y : ℝ) (hy : y ∈ Icc a b), ∥iterated_deriv_within (n + 1) f (Icc a b) y∥ ≤ C) :
@@ -374,4 +378,28 @@ begin
   -- The rest is a trivial calculation
   rw [abs_of_nonneg (sub_nonneg.mpr hx.1)],
   ring_exp,
+end
+
+/-- **Taylor's theorem** with a uniform bound of the remainder
+
+We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc a b`.
+There exists a constant `C` such that for all `x ∈ Icc a b` The difference of `f` and its `n`-th
+Taylor polynomial can be estimated by `C * (x - a)^(n+1) / n!` where `C` is a bound for the `n+1`-th
+iterated derivative of `f`. -/
+lemma exists_taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
+  (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
+  ∃ C : ℝ, ∀ (x : ℝ) (hx : x ∈ Icc a b),
+  ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) / n! :=
+begin
+  rcases eq_or_lt_of_le hab with rfl|h,
+  { refine ⟨0, λ x hx, _⟩,
+    have : a = x, by simpa [← le_antisymm_iff] using hx,
+    simp [← this] },
+  -- We estimate by the supremum of the norm of the iterated derivative
+  let g : ℝ → ℝ := λ y, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥,
+  use [has_Sup.Sup (g '' Icc a b)],
+  intros x hx,
+  refine taylor_mean_remainder_bound hab hf hx (λ y, _),
+  exact (hf.continuous_on_iterated_deriv_within rfl.le $ unique_diff_on_Icc h)
+    .norm.le_Sup_image_Icc,
 end

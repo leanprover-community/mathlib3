@@ -231,7 +231,7 @@ begin
   refine (div_eq_div_iff (ne_of_gt _) (ne_of_gt _)).mpr _,
   { exact mul_pos (pow_pos (cast_pos.mpr (2 * n.succ).factorial_pos) 2)
       (add_pos (mul_pos two_pos (cast_pos.mpr n.succ_pos)) one_pos) },
-  { let h : 0 < 2 * (n : ℝ) + 1 :=
+  { have h : 0 < 2 * (n : ℝ) + 1 :=
     add_pos_of_nonneg_of_pos (mul_nonneg zero_le_two n.cast_nonneg) one_pos,
     exact mul_pos (mul_pos (pow_pos (cast_pos.mpr (2 * n).factorial_pos) 2) h)
       (mul_pos h (add_pos_of_nonneg_of_pos (mul_nonneg zero_le_two n.cast_nonneg) three_pos)) },
@@ -240,8 +240,7 @@ begin
     ring_nf },
 end
 
-
-/-- The sequence `c n` has limit `1/2` -/
+/-- The sequence `n / (2 * n + 1)` tends to `1/2` -/
 lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), (n : ℝ) / (2 * n + 1)) at_top (𝓝 (1 / 2)) :=
 begin
   conv { congr, skip, skip, rw [one_div, ←add_zero (2 : ℝ)] },
@@ -287,7 +286,7 @@ begin
 end
 
 /-- **Stirling's Formula** -/
-theorem stirling_seq_has_limit_sqrt_pi : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 (sqrt π)) :=
+theorem tendsto_stirling_seq_sqrt_pi : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 (sqrt π)) :=
 begin
   obtain ⟨a, hapos, halimit⟩ := stirling_seq_has_pos_limit_a,
   have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique wallis_consequence

@@ -661,6 +661,7 @@ lemma quot_equiv_quot_map_apply_mk (f g : polynomial R) (I : ideal R)  :
 by rw [adjoin_root.quot_equiv_quot_map_apply,
     adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of]
 
+@[simp]
 lemma quot_equiv_quot_map_symm_apply_mk (f g : polynomial R) (I : ideal R)  :
   (adjoin_root.quot_equiv_quot_map f I).symm (ideal.quotient.mk _ (map (ideal.quotient.mk I) g)) =
     ideal.quotient.mk _ (adjoin_root.mk f g) :=

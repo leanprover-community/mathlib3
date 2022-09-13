@@ -59,8 +59,8 @@ variables (R : Type*) [comm_ring R]
 A ring of characteristic zero is of "mixed characteristic `(0, p)`" if there exists an ideal
 such that the quotient `R ⧸ I` has caracteristic `p > 0`.
 -/
-class mixed_char_zero {p : ℕ} : Prop :=
-[to_char_zero : char_zero R]
+class mixed_char_zero (p : ℕ) : Prop :=
+(to_char_zero : char_zero R)
 (p_pos : p ≠ 0)
 (char_p_quotient : ∃ (I : ideal R), (I ≠ ⊤) ∧ char_p (R ⧸ I) p)
 
@@ -99,7 +99,8 @@ begin
       or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
     apply h r r_prime,
     exact
-    { p_pos := nat.prime.ne_zero r_prime,
+    { to_char_zero := infer_instance,
+      p_pos := nat.prime.ne_zero r_prime,
       char_p_quotient :=
       begin
         use M,
@@ -307,7 +308,7 @@ begin
   cases p,
   { exact hp },
   { have h_mixed : mixed_char_zero R p.succ :=
-    ⟨p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
+      ⟨infer_instance, p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
     exact absurd h_mixed (h p.succ) }
 end
 

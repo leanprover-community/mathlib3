@@ -60,8 +60,8 @@ section jacobi
 /-!
 ### Definition of the Jacobi symbol
 
-We define the Jacobi symbol $\Bigl\frac{a}{b}\Bigr$ for integers `a` and natural numbers `b` as the
-product of the Legendre symbols $\Bigl\frac{a}{p}\Bigr$, where `p` runs through the prime divisors
+We define the Jacobi symbol $\Bigl(\frac{a}{b}\Bigr)$ for integers `a` and natural numbers `b` as the
+product of the Legendre symbols $(\Bigl\frac{a}{p}\Bigr)$, where `p` runs through the prime divisors
 (with multiplicity) of `b`, as provided by `b.factors`. This agrees with the Jacobi symbol
 when `b` is odd and gives less meaningful values when it is not (e.g., the symbol is `1`
 when `b = 0`). This is called `jacobi_sym a b`.

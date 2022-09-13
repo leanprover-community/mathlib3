@@ -8,6 +8,7 @@ import data.finsupp.multiset
 import data.nat.prime
 import number_theory.padics.padic_val
 import data.nat.interval
+import tactic.interval_cases
 
 /-!
 # Prime factorizations
@@ -290,8 +291,8 @@ the $p$-adic order/valuation of a number, and `proj` and `compl` are for the pro
 complementary projection. The term `n.factorization p` is the $p$-adic order itself.
 For example, `ord_proj[2] n` is the even part of `n` and `ord_compl[2] n` is the odd part. -/
 
-notation `ord_proj[` p `]` n:max := p ^ (nat.factorization n p)
-notation `ord_compl[` p `]` n:max := n / ord_proj[p] n
+notation `ord_proj[` p `] ` n:max := p ^ (nat.factorization n p)
+notation `ord_compl[` p `] ` n:max := n / ord_proj[p] n
 
 @[simp] lemma ord_proj_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord_proj[p] n = 1 :=
 by simp [factorization_eq_zero_of_non_prime n hp]
@@ -481,6 +482,14 @@ begin
   { simp [hqp, (factorization_le_iff_dvd hd0 hn0).2 hdn q] },
 end
 
+/-- If `n` is a nonzero natural number and `p ≠ 1`, then there are natural numbers `e`
+and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
+lemma exists_eq_pow_mul_and_not_dvd {n : ℕ} (hn : n ≠ 0) (p : ℕ) (hp : p ≠ 1) :
+  ∃ e n' : ℕ, ¬ p ∣ n' ∧ n = p ^ e * n' :=
+let ⟨a', h₁, h₂⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd
+                      (multiplicity.finite_nat_iff.mpr ⟨hp, nat.pos_of_ne_zero hn⟩) in
+⟨_, a', h₂, h₁⟩
+
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin
@@ -493,6 +502,54 @@ begin
   cases (exists_factorization_lt_of_lt (mul_ne_zero h1 hd) (not_le.mp h2)) with p hp,
   rwa [factorization_mul h1 hd, add_apply, ←lt_tsub_iff_right, h, tsub_apply,
     lt_self_iff_false] at hp
+end
+
+lemma ord_proj_dvd_ord_proj_of_dvd {a b : ℕ} (hb0 : b ≠ 0) (hab : a ∣ b) (p : ℕ) :
+  ord_proj[p] a ∣ ord_proj[p] b :=
+begin
+  rcases em' p.prime with pp | pp, { simp [pp] },
+  rcases eq_or_ne a 0 with rfl | ha0, { simp },
+  rw pow_dvd_pow_iff_le_right pp.one_lt,
+  exact (factorization_le_iff_dvd ha0 hb0).2 hab p,
+end
+
+lemma ord_proj_dvd_ord_proj_iff_dvd {a b : ℕ} (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
+  (∀ p : ℕ, ord_proj[p] a ∣ ord_proj[p] b) ↔ (a ∣ b) :=
+begin
+  refine ⟨λ h, _, λ hab p, ord_proj_dvd_ord_proj_of_dvd hb0 hab p⟩,
+  rw ←factorization_le_iff_dvd ha0 hb0,
+  intro q,
+  rcases le_or_lt q 1 with hq_le | hq1, { interval_cases q; simp },
+  exact (pow_dvd_pow_iff_le_right hq1).1 (h q),
+end
+
+lemma ord_compl_dvd_ord_compl_of_dvd {a b : ℕ} (hab : a ∣ b) (p : ℕ) :
+  ord_compl[p] a ∣ ord_compl[p] b :=
+begin
+  rcases em' p.prime with pp | pp, { simp [pp, hab] },
+  rcases eq_or_ne b 0 with rfl | hb0, { simp },
+  rcases eq_or_ne a 0 with rfl | ha0, { cases hb0 (zero_dvd_iff.1 hab) },
+  have ha := (nat.div_pos (ord_proj_le p ha0) (ord_proj_pos a p)).ne',
+  have hb := (nat.div_pos (ord_proj_le p hb0) (ord_proj_pos b p)).ne',
+  rw [←factorization_le_iff_dvd ha hb, factorization_ord_compl a p, factorization_ord_compl b p],
+  intro q,
+  rcases eq_or_ne q p with rfl | hqp, { simp },
+  simp_rw erase_ne hqp,
+  exact (factorization_le_iff_dvd ha0 hb0).2 hab q,
+end
+
+lemma ord_compl_dvd_ord_compl_iff_dvd (a b : ℕ) :
+  (∀ p : ℕ, ord_compl[p] a ∣ ord_compl[p] b) ↔ (a ∣ b) :=
+begin
+  refine ⟨λ h, _, λ hab p, ord_compl_dvd_ord_compl_of_dvd hab p⟩,
+  rcases eq_or_ne b 0 with rfl | hb0, { simp },
+  by_cases pa : a.prime, swap, { simpa [pa] using h a },
+  by_cases pb : b.prime, swap, { simpa [pb] using h b },
+  rw prime_dvd_prime_iff_eq pa pb,
+  by_contradiction hab,
+  apply pa.ne_one,
+  rw [←nat.dvd_one, ←nat.mul_dvd_mul_iff_left hb0.bot_lt, mul_one],
+  simpa [prime.factorization_self pb, prime.factorization pa, hab] using h b,
 end
 
 lemma dvd_iff_prime_pow_dvd_dvd (n d : ℕ) :
@@ -671,7 +728,7 @@ begin
   by_cases ha1 : a = 1,
   { rw [ha1, mul_one],
     exact hp p n hp' hn },
-  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
+  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le hn.ne'))
     _ _ (hp _ _ hp' hn) hPa,
   { contrapose! hpa,
     simp [lt_one_iff.1 (lt_of_le_of_ne hpa ha1)] },

@@ -54,8 +54,7 @@ instance : comm_semiring ℕ :=
     by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul] }
 
 instance : linear_ordered_semiring nat :=
-{ add_left_cancel            := @nat.add_left_cancel,
-  lt                         := nat.lt,
+{ lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
   le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
   zero_le_one                := nat.le_of_lt (nat.zero_lt_succ 0),
@@ -66,9 +65,7 @@ instance : linear_ordered_semiring nat :=
   ..nat.comm_semiring, ..nat.linear_order }
 
 -- all the fields are already included in the linear_ordered_semiring instance
-instance : linear_ordered_cancel_add_comm_monoid ℕ :=
-{ add_left_cancel := @nat.add_left_cancel,
-  ..nat.linear_ordered_semiring }
+instance : linear_ordered_cancel_add_comm_monoid ℕ := { ..nat.linear_ordered_semiring }
 
 instance : linear_ordered_comm_monoid_with_zero ℕ :=
 { mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
@@ -1626,9 +1623,9 @@ by { convert bit1_lt_bit0_iff, refl, }
 | ff := bit0_le_bit1_iff
 | tt := bit1_le_bit1
 
-@[simp] lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
+lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
 
-@[simp] lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
+lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
 
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }

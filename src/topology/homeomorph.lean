@@ -379,6 +379,12 @@ def punit_prod : punit × α ≃ₜ α :=
 
 @[simp] lemma coe_punit_prod : ⇑(punit_prod α) = prod.snd := rfl
 
+/-- If both `α` and `β` have a unique element, then `α ≃ₜ β`. -/
+@[simps] def _root_.homeomorph.homeomorph_of_unique [unique α] [unique β] : α ≃ₜ β :=
+{ continuous_to_fun := @continuous_const α β _ _ default,
+  continuous_inv_fun := @continuous_const β α _ _ default,
+  .. equiv.equiv_of_unique α β }
+
 end
 
 /-- `ulift α` is homeomorphic to `α`. -/

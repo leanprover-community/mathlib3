@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
 import analysis.normed.group.basic
+import linear_algebra.affine_space.affine_subspace
 import linear_algebra.affine_space.midpoint
 
 /-!
@@ -36,6 +37,13 @@ variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_spac
 @[priority 100]
 instance seminormed_add_comm_group.to_normed_add_torsor : normed_add_torsor V V :=
 { dist_eq_norm' := dist_eq_norm }
+
+/-- A nonempty affine subspace of a `normed_add_torsor` is itself a `normed_add_torsor`. -/
+@[nolint fails_quickly] -- Because of the add_torsor.nonempty instance.
+instance affine_subspace.to_normed_add_torsor {R : Type*} [ring R] [module R V]
+  (s : affine_subspace R P) [nonempty s] : normed_add_torsor s.direction s :=
+{ dist_eq_norm' := λ x y, normed_add_torsor.dist_eq_norm' ↑x ↑y,
+  ..affine_subspace.to_add_torsor s }
 
 include V
 

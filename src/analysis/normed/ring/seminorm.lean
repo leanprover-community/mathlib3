@@ -73,7 +73,7 @@ instance : inhabited (ring_seminorm R) := ⟨0⟩
 
 variables (p : ring_seminorm R)
 
-protected lemma nonneg : 0 ≤ p x := sorry
+protected lemma nonneg : 0 ≤ p x := map_nonneg p.to_add_group_seminorm _
 protected lemma mul_le : p (x * y) ≤ p x * p y := p.mul_le' _ _
 
 end non_unital_ring
@@ -144,20 +144,19 @@ fun_like.ext p q h
 
 variable (R)
 
-
 /-- The trivial norm on a ring `R` is the `ring_norm` taking value `0` at `0` and `1` at every
   other element. -/
 def trivial_norm [decidable_eq R] : ring_norm R :=
 { mul_le' := λ x y, begin
     by_cases h : x * y = 0,
-    { simp only [add_group_seminorm.to_fun_eq_coe, add_group_norm.apply_one, if_pos h],
+    { simp only [add_group_norm.to_fun_eq_coe, add_group_norm.apply_one, if_pos h],
       apply mul_nonneg;
       { split_ifs, exacts [le_refl _, zero_le_one] }},
-    { simp only [add_group_seminorm.to_fun_eq_coe, add_group_norm.apply_one, if_neg h,
+    { simp only [add_group_norm.to_fun_eq_coe, add_group_norm.apply_one, if_neg h,
         if_neg (left_ne_zero_of_mul h), if_neg (right_ne_zero_of_mul h), mul_one] }
   end,
   ne_zero := λ x hx, begin
-    simp only [add_group_seminorm.to_fun_eq_coe, add_group_norm.apply_one, if_neg hx],
+    simp only [add_group_norm.to_fun_eq_coe, add_group_norm.apply_one, if_neg hx],
     exact zero_lt_one
   end,
   ..(1 : add_group_norm R) }

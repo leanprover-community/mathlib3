@@ -372,8 +372,7 @@ lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q ≠ 2
 begin
   cases eq_or_ne p q with h h,
   { substI p },
-  { rw [← eq_one_iff' p (prime_ne_zero p q h),
-        ← eq_one_iff' q (prime_ne_zero q p h.symm),
+  { rw [← eq_one_iff' p (prime_ne_zero p q h), ← eq_one_iff' q (prime_ne_zero q p h.symm),
         quadratic_reciprocity_one_mod_four hp1 hq1], }
 end
 

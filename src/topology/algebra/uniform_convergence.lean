@@ -9,7 +9,7 @@ import topology.algebra.uniform_group
 /-!
 # Algebraic facts about the topology of uniform convergence
 
-This file contains algrebraic compatibility results about the uniform structure of uniform
+This file contains algebraic compatibility results about the uniform structure of uniform
 convergence / `𝔖`-convergence. They will mostly be useful for defining strong topologies on the
 space of continuous linear maps between two topological vector spaces.
 
@@ -41,24 +41,24 @@ section group
 variables {α G : Type*} [group G] [uniform_space G] [uniform_group G] {𝔖 : set $ set α}
 
 local attribute [-instance] Pi.uniform_space
-local attribute [-instance] Pi.topological_space
-local attribute [instance] uniform_convergence.uniform_space
 
 /-- If `G` is a uniform group, then the uniform structure of uniform convergence makes `α → G`
 a uniform group as well. -/
 @[to_additive "If `G` is a uniform additive group, then the uniform structure of uniform
 convergence makes `α → G` a uniform additive group as well."]
 protected lemma uniform_convergence.uniform_group :
-  uniform_group (α → G) :=
--- Since `(/) : G × G → G` is uniformly continuous,
--- `uniform_convergence.postcomp_uniform_continuous` tells us that
--- `((/) ∘ —) : (α → G × G) → (α → G)` is uniformly continuous too. By precomposing with
--- `uniform_convergence.uniform_equiv_prod_arrow`, this gives that
--- `(/) : (α → G) × (α → G) → (α → G)` is also uniformly continuous
-⟨(uniform_convergence.postcomp_uniform_continuous uniform_continuous_div).comp
-  uniform_convergence.uniform_equiv_prod_arrow.symm.uniform_continuous⟩
-
-local attribute [-instance] uniform_convergence.uniform_space
+  @uniform_group (α → G) (uniform_convergence.uniform_space α G) _ :=
+begin
+  -- Since `(/) : G × G → G` is uniformly continuous,
+  -- `uniform_convergence.postcomp_uniform_continuous` tells us that
+  -- `((/) ∘ —) : (α → G × G) → (α → G)` is uniformly continuous too. By precomposing with
+  -- `uniform_convergence.uniform_equiv_prod_arrow`, this gives that
+  -- `(/) : (α → G) × (α → G) → (α → G)` is also uniformly continuous
+  letI : uniform_space (α → G) := uniform_convergence.uniform_space α G,
+  letI : uniform_space (α → G × G) := uniform_convergence.uniform_space α (G × G),
+  exact ⟨(uniform_convergence.postcomp_uniform_continuous uniform_continuous_div).comp
+    uniform_convergence.uniform_equiv_prod_arrow.symm.uniform_continuous⟩
+end
 
 /-- Let `𝔖 : set (set α)`. If `G` is a uniform group, then the uniform structure of
 `𝔖`-convergence makes `α → G` a uniform group as well. -/

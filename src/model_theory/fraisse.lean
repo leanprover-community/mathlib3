@@ -147,21 +147,19 @@ lemma age.joint_embedding : joint_embedding (L.age M) :=
 /-- The age of a countable structure is essentially countable (has countably many isomorphism
 classes). -/
 lemma age.countable_quotient [h : countable M] :
-  (quotient.mk '' (L.age M)).countable :=
+  (quotient.mk '' L.age M).countable :=
 begin
-  refine (congr rfl (set.ext _)).mp ((countable_set_of_finite_subset
-    (countable_univ : (univ : set M).countable)).image
-    (λ s, ⟦⟨closure L s, infer_instance⟩⟧)),
-  rw forall_quotient_iff,
-  intro N,
-  simp only [subset_univ, and_true, mem_image, mem_set_of_eq, quotient.eq],
+  classical,
+  refine (congr_arg _ (set.ext $ forall_quotient_iff.2 $ λ N, _)).mp
+    (countable_range $ λ s : finset M, ⟦⟨closure L (s : set M), infer_instance⟩⟧),
+  simp only [mem_image, mem_range, mem_set_of_eq, quotient.eq],
   split,
-  { rintro ⟨s, hs1, hs2⟩,
-    use bundled.of ↥(closure L s),
-    exact ⟨⟨(fg_iff_Structure_fg _).1 (fg_closure hs1), ⟨subtype _⟩⟩, hs2⟩ },
+  { rintro ⟨s, hs⟩,
+    use bundled.of ↥(closure L (s : set M)),
+    exact ⟨⟨(fg_iff_Structure_fg _).1 (fg_closure s.finite_to_set), ⟨subtype _⟩⟩, hs⟩ },
   { rintro ⟨P, ⟨⟨s, hs⟩, ⟨PM⟩⟩, hP2⟩,
-    refine ⟨PM '' s, set.finite.image PM s.finite_to_set, setoid.trans _ hP2⟩,
-    rw [← embedding.coe_to_hom, closure_image PM.to_hom, hs, ← hom.range_eq_map],
+    refine ⟨s.image PM, setoid.trans _ hP2⟩,
+    rw [← embedding.coe_to_hom, finset.coe_image, closure_image PM.to_hom, hs, ← hom.range_eq_map],
     exact ⟨PM.equiv_range.symm⟩ }
 end
 

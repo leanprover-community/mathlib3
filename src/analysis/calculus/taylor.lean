@@ -386,7 +386,7 @@ end
 /-- **Taylor's theorem** with a polynomial bound on the remainder
 
 We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc a b`.
-There exists a constant `C` such that for all `x ∈ Icc a b` The difference of `f` and its `n`-th
+There exists a constant `C` such that for all `x ∈ Icc a b` the difference of `f` and its `n`-th
 Taylor polynomial can be estimated by `C * (x - a)^(n+1)`. -/
 lemma exists_taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :

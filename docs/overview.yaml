@@ -127,7 +127,7 @@ General algebra:
   Number theory:
     sum of two squares: 'nat.prime.sq_add_sq'
     sum of four squares: 'nat.sum_four_squares'
-    quadratic reciprocity: 'zmod.quadratic_reciprocity'
+    quadratic reciprocity: 'legendre_sym.quadratic_reciprocity'
     "solutions to Pell's equation": 'pell.pell'
     "Matiyasevič's theorem": 'pell.matiyasevic'
     arithmetic functions: 'nat.arithmetic_function'

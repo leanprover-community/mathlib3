@@ -687,6 +687,15 @@ open_embedding_of_embedding_open (hf.1.prod_mk hg.1)
 lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λ x, (x, f x)) :=
 embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embedding_id
 
+lemma map_mem_closure₂ {f : α → β → γ} {a : α} {b : β} {s : set α} {t : set β} {u : set γ}
+  (hf : continuous (uncurry f)) (ha : a ∈ closure s) (hb : b ∈ closure t)
+  (h : ∀ (a ∈ s) (b ∈ t), f a b ∈ u) :
+  f a b ∈ closure u :=
+have H₁ : (a, b) ∈ closure (s ×ˢ t),
+  by simpa only [closure_prod_eq] using mk_mem_prod ha hb,
+have H₂ : maps_to (uncurry f) (s ×ˢ t) u, from forall_prod_set.2 h,
+H₂.closure hf H₁
+
 end prod
 
 section sum
@@ -1300,22 +1309,3 @@ continuous_induced_dom
 continuous_induced_rng.2 continuous_id
 
 end ulift
-
-lemma mem_closure_of_continuous [topological_space α] [topological_space β]
-  {f : α → β} {a : α} {s : set α} {t : set β}
-  (hf : continuous f) (ha : a ∈ closure s) (h : maps_to f s (closure t)) :
-  f a ∈ closure t :=
-calc f a ∈ f '' closure s : mem_image_of_mem _ ha
-  ... ⊆ closure (f '' s) : image_closure_subset_closure_image hf
-  ... ⊆ closure t : closure_minimal h.image_subset is_closed_closure
-
-lemma mem_closure_of_continuous2 [topological_space α] [topological_space β] [topological_space γ]
-  {f : α → β → γ} {a : α} {b : β} {s : set α} {t : set β} {u : set γ}
-  (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
-  (h : ∀a∈s, ∀b∈t, f a b ∈ closure u) :
-  f a b ∈ closure u :=
-have (a,b) ∈ closure (s ×ˢ t),
-  by simp [closure_prod_eq, ha, hb],
-show f (a, b).1 (a, b).2 ∈ closure u,
-  from @mem_closure_of_continuous (α×β) _ _ _ (λp:α×β, f p.1 p.2) (a,b) _ u hf this $
-    assume ⟨p₁, p₂⟩ ⟨h₁, h₂⟩, h p₁ h₁ p₂ h₂

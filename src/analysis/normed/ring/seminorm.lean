@@ -49,10 +49,12 @@ section non_unital_ring
 
 variables [non_unital_ring R]
 
-instance zero_hom_class : zero_hom_class (ring_seminorm R) R ℝ :=
+instance add_group_seminorm_class : add_group_seminorm_class (ring_seminorm R) R :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_zero := λ f, f.map_zero' }
+  map_zero := λ f, f.map_zero',
+  map_add_le_add := λ f, f.add_le',
+  map_neg_eq_map := λ f, f.neg', }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (ring_seminorm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
@@ -73,7 +75,6 @@ instance : inhabited (ring_seminorm R) := ⟨0⟩
 
 variables (p : ring_seminorm R)
 
-protected lemma nonneg : 0 ≤ p x := map_nonneg p.to_add_group_seminorm _
 protected lemma mul_le : p (x * y) ≤ p x * p y := p.mul_le' _ _
 
 end non_unital_ring
@@ -92,12 +93,12 @@ begin
     { rw ← mul_one x,
       apply le_trans (p.mul_le x 1) _,
       rw [hp0, mul_zero], },
-      exact absurd (le_antisymm hx' (p.nonneg x) ) hx },
+      exact absurd (le_antisymm hx' (map_nonneg _ _) ) hx },
   { have h1 : p 1 * 1 ≤ p 1 * p 1,
     { conv_lhs { rw ← one_mul (1 : R) },
       convert p.mul_le 1 1,
       rw mul_one, },
-      rw mul_le_mul_left (lt_of_le_of_ne (p.nonneg _) (ne.symm hp0)) at h1,
+      rw mul_le_mul_left (lt_of_le_of_ne (map_nonneg _ _) (ne.symm hp0)) at h1,
     exact le_antisymm hp h1, }
 end
 
@@ -123,10 +124,17 @@ namespace ring_norm
 
 variable [non_unital_ring R]
 
-instance zero_hom_class : zero_hom_class (ring_norm R) R ℝ :=
+instance add_group_norm_class : add_group_norm_class (ring_norm R) R :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_zero := λ f, f.map_zero' }
+  map_zero := λ f, f.map_zero',
+  map_add_le_add := λ f, f.add_le',
+  map_neg_eq_map := λ f, f.neg',
+  eq_zero_of_map_eq_zero := λ f x hfx,
+  begin
+    by_contra hx,
+    exact (ne_of_gt (f.ne_zero x hx)) hfx,
+  end, }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (ring_norm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
@@ -173,8 +181,8 @@ def ring_seminorm.to_ring_horm {K : Type*} [field K] (f : ring_seminorm K)
       { rw [← mul_one c, ← mul_inv_cancel hx, ← mul_assoc, mul_comm c, mul_assoc],
         refine le_trans (f.mul_le x _) _,
         rw [← h0, zero_mul] },
-        exact hc (le_antisymm hc' (f.nonneg _)),  },
-      exact lt_of_le_of_ne (f.nonneg _) hfx,
+        exact hc (le_antisymm hc' (map_nonneg _ _)),  },
+      exact lt_of_le_of_ne (map_nonneg f x) hfx,
   end,
   ..f }
 

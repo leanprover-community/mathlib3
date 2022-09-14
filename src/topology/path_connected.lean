@@ -402,7 +402,6 @@ continuous_uncurry_iff.mp begin
   exacts [continuous_fst, continuous_snd],
 end
 
-
 /-! #### Product of paths -/
 section prod
 variables {a₁ a₂ a₃ : X} {b₁ b₂ b₃ : Y}

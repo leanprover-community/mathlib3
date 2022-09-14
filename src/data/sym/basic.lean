@@ -329,7 +329,7 @@ protected def cast {n m : ℕ} (h : n = m) : sym α n ≃ sym α m :=
 @[simp] lemma cast_cast {n'' : ℕ} (h : n = n') (h' : n' = n'') :
   sym.cast h' (sym.cast h s) = sym.cast (h.trans h') s := rfl
 
-@[simp] lemma coe_cast  (h : n = m) : (sym.cast h s : multiset α) = s := rfl
+@[simp] lemma coe_cast (h : n = m) : (sym.cast h s : multiset α) = s := rfl
 
 @[simp] lemma mem_cast (h : n = m) : a ∈ sym.cast h s ↔ a ∈ s := iff.rfl
 
@@ -337,7 +337,7 @@ protected def cast {n m : ℕ} (h : n = m) : sym α n ≃ sym α m :=
 def append (s : sym α n) (s' : sym α n') : sym α (n + n') :=
 ⟨s.1 + s'.1, by simp_rw [← s.2, ← s'.2, map_add]⟩
 
-@[simp] lemma append_inj_right (t t' : sym α n') :
+@[simp] lemma append_inj_right (s : sym α n) {t t' : sym α n'} :
   s.append t = s.append t' ↔ t = t' :=
 subtype.ext_iff.trans $ (add_right_inj _).trans subtype.ext_iff.symm
 
@@ -349,9 +349,9 @@ lemma append_comm (s' : sym α n') :
   s.append s' = sym.cast (add_comm _ _) (s'.append s) :=
 by { ext, simp [append, add_comm], }
 
-@[simp] lemma coe_append (s' : sym α n') : (s.append s' : multiset α) = s + s' := rfl
+@[simp, norm_cast] lemma coe_append (s' : sym α n') : (s.append s' : multiset α) = s + s' := rfl
 
-lemma append_mem (s' : sym α m) : a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' := multiset.mem_add
+lemma mem_append_iff (s' : sym α m) : a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' := multiset.mem_add
 
 /-- Fill a term `m : sym α (n - i)` with `i` copies of `a` to obtain a term of `sym α n`.
 This is a convenience wrapper for `m.append (repeat a i)` that adjusts the term using `sym.cast`. -/

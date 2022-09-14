@@ -10,8 +10,9 @@ import topology.homotopy.path
 # H-spaces
 
 This file defines H-spaces mainly following the approach proposed by Serre in his paper
-*Homologie singulière des espaces fibrés*.
-
+*Homologie singulière des espaces fibrés*. The main results are the H-space `instance` on every
+topological group, and the H-space structure on the loop space (based at `x : X` of any topological
+space `X`, for which we introduce the notation `Ω_[x]`.
 
 ## References
 
@@ -89,7 +90,7 @@ lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological
 
 end topological_group
 
--- `FAE` The following lemma is being moved to `unit_interval.lean` through
+-- `FAE` The following lemma is being moved to `unit_interval.lean` through #16507
 namespace unit_interval
 
 lemma add_pos {t : I} {x : ℝ} (hx : 0 < x) : 0 < (x + t : ℝ) :=
@@ -101,8 +102,8 @@ open unit_interval
 
 variables {X : Type u} [topological_space X]
 
-/-- `Q_right` is analogous to the function `Q` defined on p. 475 of Serre's `Homologie`
-  `singulière des espaces fibrés` that helps proving continuity of `delayed_refl_right`.-/
+/-- `Q_right` is analogous to the function `Q` defined on p. 475 of [serre1951] that helps proving
+continuity of `delayed_refl_right`.-/
 def Q_right (p : I × I) : I := set.proj_Icc 0 1 zero_le_one (2 * p.1 / (1 + p.2))
 
 lemma continuous_Q_right : continuous Q_right :=
@@ -130,8 +131,8 @@ eq.trans (by {rw Q_right, congr, apply mul_div_cancel_left, exact two_ne_zero}) 
 
 variables {x y : X}
 
-/-- This is the function analogous to the one on p. 475 of Serre's *Homologie singulière des espaces
-  fibrés*, defining a homotopy from the product path `e ∧ γ` to `γ`.-/
+/-- This is the function analogous to the one on p. 475 of [serre1951], defining a homotopy from
+the product path `e ∧ γ` to `γ`.-/
 def delayed_refl_right (θ : I) (γ : path x y) : path x y :=
 { to_fun := λ t, γ (Q_right (t, θ)),
   continuous_to_fun := γ.continuous.comp (continuous_Q_right.comp $ continuous.prod.mk_left θ),
@@ -155,8 +156,8 @@ end
 lemma delayed_refl_right_one (γ : path x y) : delayed_refl_right 1 γ = γ :=
 by { ext t, exact congr_arg γ (Q_right_one_right t) }
 
-/-- This is the function on p. 475 of Serre's *Homologie singulière des espaces
-  fibrés*, defining a homotopy from a path `γ` to the product path `e ∧ γ`.-/
+/-- This is the function on p. 475 of [serre1951]], defining a homotopy from a path `γ` to the
+product path `e ∧ γ`.-/
 def delayed_refl_left (θ : I) (γ : path x y) : path x y := (delayed_refl_right θ γ.symm).symm
 
 lemma continuous_delayed_refl_left : continuous (λ p : I × path x y, delayed_refl_left p.1 p.2) :=

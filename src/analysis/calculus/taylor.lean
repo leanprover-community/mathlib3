@@ -28,6 +28,8 @@ which states that if `f` is sufficiently smooth, then
 * `taylor_mean_remainder`: Taylor's theorem with the general form of the remainder term
 * `taylor_mean_remainder_lagrange`: Taylor's theorem with the Lagrange remainder
 * `taylor_mean_remainder_cauchy`: Taylor's theorem with the Cauchy remainder
+* `exists_taylor_mean_remainder_bound`: Taylor's theorem for vector valued functions with a polynomial
+bound on the remainder
 
 ## TODO
 
@@ -380,6 +382,7 @@ begin
   ring_exp,
 end
 
+
 /-- **Taylor's theorem** with a polynomial bound on the remainder
 
 We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc a b`.
@@ -388,7 +391,7 @@ Taylor polynomial can be estimated by `C * (x - a)^(n+1) / n!` where `C` is a bo
 iterated derivative of `f`. -/
 lemma exists_taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
-  ∃ C, ∀ x ∈ Icc a b, ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) / n! :=
+  ∃ C, ∀ x ∈ Icc a b, ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) :=
 begin
   rcases eq_or_lt_of_le hab with rfl|h,
   { refine ⟨0, λ x hx, _⟩,
@@ -396,8 +399,9 @@ begin
     simp [← this] },
   -- We estimate by the supremum of the norm of the iterated derivative
   let g : ℝ → ℝ := λ y, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥,
-  use [has_Sup.Sup (g '' Icc a b)],
+  use [has_Sup.Sup (g '' Icc a b) / n!],
   intros x hx,
+  rw div_mul_eq_mul_div₀,
   refine taylor_mean_remainder_bound hab hf hx (λ y, _),
   exact (hf.continuous_on_iterated_deriv_within rfl.le $ unique_diff_on_Icc h)
     .norm.le_Sup_image_Icc,

@@ -614,7 +614,7 @@ nat_degree_le_nat_degree (degree_map_le f p)
 variables {f}
 
 protected lemma map_eq_zero_iff (hf : function.injective f) : p.map f = 0 ↔ p = 0 :=
-⟨λ h, map_injective _ hf (polynomial.map_zero f ▸ h), λ h, by rw [h, polynomial.map_zero]⟩
+map_eq_zero_iff (map_ring_hom f) (map_injective f hf)
 
 protected lemma map_ne_zero_iff (hf : function.injective f) : p.map f ≠ 0 ↔ p ≠ 0 :=
 (polynomial.map_eq_zero_iff hf).not

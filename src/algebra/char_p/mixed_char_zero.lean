@@ -59,9 +59,8 @@ variables (R : Type*) [comm_ring R]
 A ring of characteristic zero is of "mixed characteristic `(0, p)`" if there exists an ideal
 such that the quotient `R ⧸ I` has caracteristic `p > 0`.
 -/
-class mixed_char_zero (p : ℕ) : Prop :=
-(to_char_zero : char_zero R)
-(p_pos : p ≠ 0)
+class mixed_char_zero (p : ℕ+) : Prop :=
+[to_char_zero : char_zero R]
 (char_p_quotient : ∃ (I : ideal R), (I ≠ ⊤) ∧ char_p (R ⧸ I) p)
 
 -- See note [lower instance priority]
@@ -69,13 +68,20 @@ attribute [priority 100, instance] mixed_char_zero.to_char_zero
 
 namespace mixed_char_zero
 
+/-- Accessing the property `0 < p`. -/
+def pos {R : Type*} [comm_ring R] {p : ℕ+} (h : mixed_char_zero R p) := p.pos
+
+/-- Accessing the property `p ≠ 0`. -/
+def ne_zero {R : Type*} [comm_ring R] {p : ℕ+} (h : mixed_char_zero R p) : p.val ≠ 0 :=
+ne_of_gt p.pos
+
 /--
 Reduction to `p` prime: When proving any statement `P` about mixed characteristic rings we
 can always assume that `p` is prime.
 -/
 lemma reduce_to_p_prime {P : Prop} :
-  (∀ (p : ℕ), (mixed_char_zero R p → P)) ↔
-  (∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) :=
+  (∀ (p : ℕ+), (mixed_char_zero R p → P)) ↔
+  (∀ (p : ℕ+), (nat.prime p → mixed_char_zero R p → P)) :=
 begin
   split,
   { intros h q q_prime q_mixed_char,
@@ -92,22 +98,19 @@ begin
     begin
       have q_zero := congr_arg (ideal.quotient.factor I M h_IM) (char_p.cast_eq_zero (R ⧸ I) q),
       simp only [map_nat_cast, map_zero] at q_zero,
-      apply ne_zero_of_dvd_ne_zero q_mixed_char.p_pos,
+      apply ne_zero_of_dvd_ne_zero q_mixed_char.ne_zero,
       exact (char_p.cast_eq_zero_iff (R ⧸ M) r q).mp q_zero
     end,
     have r_prime : nat.prime r :=
       or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
-    apply h r r_prime,
+    apply h ⟨r, zero_lt_iff.mpr r_pos⟩ r_prime,
     exact
-    { to_char_zero := infer_instance,
-      p_pos := nat.prime.ne_zero r_prime,
-      char_p_quotient :=
-      begin
+    ⟨begin
         use M,
         split,
         exact hM_max.ne_top,
         refine ring_char.of_eq rfl
-      end }}
+      end⟩ }
 end
 
 /--
@@ -307,9 +310,8 @@ begin
   cases char_p.exists (R ⧸ I) with p hp,
   cases p,
   { exact hp },
-  { have h_mixed : mixed_char_zero R p.succ :=
-      ⟨infer_instance, p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
-    exact absurd h_mixed (h p.succ) }
+  { have h_mixed : mixed_char_zero R ⟨p.succ, p.succ_pos⟩ := ⟨⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
+    exact absurd h_mixed (h ⟨p.succ, p.succ_pos⟩) }
 end
 
 /--
@@ -324,7 +326,7 @@ begin
   rcases hp.char_p_quotient with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
   haveI hI_zero : char_zero (R ⧸ I) := (h I hI_ne_top),
   replace hI_zero : char_p (R ⧸ I) 0 := char_p.of_char_zero _,
-  exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) hp.p_pos,
+  exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) hp.ne_zero,
 end
 
 /--
@@ -378,9 +380,9 @@ Split a `Prop` in characteristic zero into equal and mixed characteristic.
 -/
 theorem split_equal_mixed_char [char_zero R]
   (h_equal : algebra ℚ R → P)
-  (h_mixed : ∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=
+  (h_mixed : ∀ (p : ℕ+), (nat.prime p → mixed_char_zero R p → P)) : P :=
 begin
-  by_cases h : ∃ (p : ℕ), mixed_char_zero R p,
+  by_cases h : ∃ (p : ℕ+), mixed_char_zero R p,
   { cases h with p hp,
     rw ←mixed_char_zero.reduce_to_p_prime at h_mixed,
     apply h_mixed p,
@@ -390,15 +392,18 @@ begin
     exact h.some },
 end
 
+example (n : ℕ) (h : n ≠ 0) :0 < n := zero_lt_iff.mpr h
+
+
 /-- Split any `Prop` over `R` into the three cases:
 - positive characteristic.
 - equal characteristic zero.
 - mixed characteristic `(0, p)`.
 -/
 theorem split_by_characteristic
-  (h_pos : ∀ (p : ℕ), (p ≠ 0 → char_p R p → P))
+  (h_pos : ∀ (p : ℕ+), (char_p R p → P))
   (h_equal : algebra ℚ R → P)
-  (h_mixed : ∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=
+  (h_mixed : ∀ (p : ℕ+), (nat.prime p → mixed_char_zero R p → P)) : P :=
 begin
   cases char_p.exists R with p p_char,
   by_cases p = 0,
@@ -406,7 +411,7 @@ begin
     resetI, -- make `p_char : char_p R 0` an instance.
     haveI h0 : char_zero R := char_p.char_p_to_char_zero R,
     exact split_equal_mixed_char R h_equal h_mixed },
-  exact h_pos p h p_char,
+  exact h_pos ⟨p, zero_lt_iff.mpr h⟩ p_char,
 end
 
 /-- In a `is_domain R`, split any `Prop` over `R` into the three cases:
@@ -417,11 +422,11 @@ end
 theorem split_by_characteristic_domain [is_domain R]
   (h_pos : ∀ (p : ℕ), (nat.prime p → char_p R p → P))
   (h_equal : algebra ℚ R → P)
-  (h_mixed : ∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=
+  (h_mixed : ∀ (p : ℕ+), (nat.prime p → mixed_char_zero R p → P)) : P :=
 begin
   refine split_by_characteristic R _ h_equal h_mixed,
-  introsI p p_pos p_char,
-  have p_prime : nat.prime p := or_iff_not_imp_right.mp (char_p.char_is_prime_or_zero R p) p_pos,
+  introsI p p_char,
+  have p_prime : nat.prime p := or_iff_not_imp_right.mp (char_p.char_is_prime_or_zero R p) (ne_of_gt p.pos),
   exact h_pos p p_prime p_char,
 end
 
@@ -433,11 +438,11 @@ end
 theorem split_by_characteristic_local_ring [local_ring R]
   (h_pos : ∀ (p : ℕ), (is_prime_pow p → char_p R p → P))
   (h_equal : algebra ℚ R → P)
-  (h_mixed : ∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=
+  (h_mixed : ∀ (p : ℕ+), (nat.prime p → mixed_char_zero R p → P)) : P :=
 begin
   refine split_by_characteristic R _ h_equal h_mixed,
-  introsI p p_pos p_char,
-  have p_ppow : is_prime_pow p := or_iff_not_imp_left.mp (char_p_zero_or_prime_power R p) p_pos,
+  introsI p p_char,
+  have p_ppow : is_prime_pow (p : ℕ) := or_iff_not_imp_left.mp (char_p_zero_or_prime_power R p) (ne_of_gt p.pos),
   exact h_pos p p_ppow p_char,
 end
 

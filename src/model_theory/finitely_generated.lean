@@ -156,7 +156,7 @@ begin
   exact hom.map_le_range h'
 end
 
-theorem cg_iff_countable [L.countable_functions] {s : L.substructure M} :
+theorem cg_iff_countable [countable (Σl, L.functions l)] {s : L.substructure M} :
   s.cg ↔ countable s :=
 begin
   refine ⟨_, λ h, ⟨s, h.to_set, s.closure_eq⟩⟩,
@@ -224,7 +224,7 @@ begin
   exact h.range f,
 end
 
-lemma cg_iff_countable [L.countable_functions] : cg L M ↔ countable M :=
+lemma cg_iff_countable [countable (Σl, L.functions l)] : cg L M ↔ countable M :=
 by rw [cg_def, cg_iff_countable, top_equiv.to_equiv.countable_iff]
 
 lemma fg.cg (h : fg L M) : cg L M :=

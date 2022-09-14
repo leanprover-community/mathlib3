@@ -3,9 +3,21 @@ Copyright (c) 2022 Filippo A. E. Nuccio Mortarino Majno di Capriglio. All rights
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio and Junyan Xu
 -/
-
 import topology.compact_open
 import topology.homotopy.path
+
+/-!
+# H-spaces
+
+This file defines H-spaces mainly following the approach proposed by Serre in his paper
+*Homologie singulière des espaces fibrés*.
+
+
+## References
+
+* [J.-P. Serre, *Homologie singulière des espaces fibrés. Applications*,
+  Ann. of Math (2) 1951, 54, 425–505][serre1951]
+-/
 
 universes u v
 
@@ -13,6 +25,8 @@ noncomputable theory
 
 open_locale unit_interval
 
+-- `FAE` All lemmas in `path`(until `continuous_trans`) are being moved to `path_connected.lean`
+  -- through #16501
 namespace path
 
 open continuous_map path
@@ -75,7 +89,13 @@ lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological
 
 end topological_group
 
-namespace path
+-- `FAE` The following lemma is being moved to `unit_interval.lean` through
+namespace unit_interval
+
+lemma add_pos {t : I} {x : ℝ} (hx : 0 < x) : 0 < (x + t : ℝ) :=
+  add_pos_of_pos_of_nonneg hx $ nonneg _
+
+end unit_interval
 
 open unit_interval
 
@@ -86,13 +106,14 @@ variables {X : Type u} [topological_space X]
 def Q_right (p : I × I) : I := set.proj_Icc 0 1 zero_le_one (2 * p.1 / (1 + p.2))
 
 lemma continuous_Q_right : continuous Q_right :=
-continuous_proj_Icc.comp $ continuous.div (by continuity) (by continuity) (λ x, one_add_pos.ne')
+continuous_proj_Icc.comp $ continuous.div (by continuity) (by continuity)
+  (λ x, (add_pos zero_lt_one).ne')
 
 lemma Q_right_zero_left (θ : I) : Q_right (0, θ) = 0 :=
 set.proj_Icc_of_le_left _ $ by simp only [coe_zero, mul_zero, zero_div]
 
 lemma Q_right_one_left (θ : I) : Q_right (1, θ) = 1 :=
-set.proj_Icc_of_right_le _ $ (le_div_iff one_add_pos).2 $
+set.proj_Icc_of_right_le _ $ (le_div_iff $ add_pos zero_lt_one).2 $
   by { dsimp only, rw [coe_one, one_mul, mul_one], apply add_le_add_left (le_one _) }
 
 lemma Q_right_zero_right (t : I) : (Q_right (t, 0) : ℝ) = if (t : ℝ) ≤ 1 / 2 then 2 * t else 1 :=
@@ -150,7 +171,7 @@ by simp only [delayed_refl_left, delayed_refl_right_one, path.symm_symm]
 
 notation ` Ω_[` x `]` := path x x
 
-instance H_space (x : X) : H_space Ω_[x] :=
+instance (x : X) : H_space Ω_[x] :=
 { Hmul := ⟨λ ρ, ρ.1.trans ρ.2, continuous_trans⟩,
   e := refl x,
   Hmul_e_e := refl_trans_refl,
@@ -162,5 +183,3 @@ instance H_space (x : X) : H_space Ω_[x] :=
   { to_homotopy := ⟨⟨λ p : I × Ω_[x], delayed_refl_right p.1 p.2,
       continuous_delayed_refl_right⟩, delayed_refl_right_zero, delayed_refl_right_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } } }
-
-end path

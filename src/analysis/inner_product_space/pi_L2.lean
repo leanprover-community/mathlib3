@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Sébastien Gouëzel, Heather Macbeth
 -/
 import analysis.inner_product_space.projection
-import linear_algebra.finite_dimensional
 import analysis.normed_space.pi_Lp
+import linear_algebra.finite_dimensional
+import linear_algebra.unitary_group
 
 /-!
 # `L²` inner product space structure on finite products of inner product spaces
@@ -532,6 +533,59 @@ by simp [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (
 
 open finite_dimensional
 
+/-! ### Matrix representation of an orthonormal basis with respect to another -/
+
+section to_matrix
+variables [decidable_eq ι]
+
+section
+variables (a b : orthonormal_basis ι 𝕜 E)
+
+/-- The change-of-basis matrix between two orthonormal bases `a`, `b` is a unitary matrix. -/
+lemma orthonormal_basis.to_matrix_orthonormal_basis_mem_unitary :
+  a.to_basis.to_matrix b ∈ matrix.unitary_group ι 𝕜 :=
+begin
+  rw matrix.mem_unitary_group_iff',
+  ext i j,
+  convert a.repr.inner_map_map (b i) (b j),
+  rw orthonormal_iff_ite.mp b.orthonormal i j,
+  refl,
+end
+
+/-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` has
+unit length. -/
+@[simp] lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
+  ∥a.to_basis.det b∥ = 1 :=
+begin
+  have : (norm_sq (a.to_basis.det b) : 𝕜) = 1,
+  { simpa [is_R_or_C.mul_conj]
+      using (matrix.det_of_mem_unitary (a.to_matrix_orthonormal_basis_mem_unitary b)).2 },
+  norm_cast at this,
+  rwa [← sqrt_norm_sq_eq_norm, sqrt_eq_one],
+end
+
+end
+
+section real
+variables (a b : orthonormal_basis ι ℝ F)
+
+/-- The change-of-basis matrix between two orthonormal bases `a`, `b` is an orthogonal matrix. -/
+lemma orthonormal_basis.to_matrix_orthonormal_basis_mem_orthogonal :
+  a.to_basis.to_matrix b ∈ matrix.orthogonal_group ι ℝ :=
+a.to_matrix_orthonormal_basis_mem_unitary b
+
+/-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` is ±1. -/
+lemma orthonormal_basis.det_to_matrix_orthonormal_basis_real :
+  a.to_basis.det b = 1 ∨ a.to_basis.det b = -1 :=
+begin
+  rw ← sq_eq_one_iff,
+  simpa [unitary, sq] using matrix.det_of_mem_unitary (a.to_matrix_orthonormal_basis_mem_unitary b)
+end
+
+end real
+
+end to_matrix
+
 /-! ### Existence of orthonormal basis, etc. -/
 
 section finite_dimensional
@@ -708,7 +762,8 @@ begin
       linear_isometry.coe_to_linear_map]},
     -- Mx_decomp is the orthogonal decomposition of M x
     have Mx_orth : ⟪ L (p1 x), L3 (p2 x) ⟫ = 0,
-    { have Lp1x : L (p1 x) ∈ L.to_linear_map.range := L.to_linear_map.mem_range_self (p1 x),
+    { have Lp1x : L (p1 x) ∈ L.to_linear_map.range :=
+        linear_map.mem_range_self L.to_linear_map (p1 x),
       have Lp2x : L3 (p2 x) ∈ (L.to_linear_map.range)ᗮ,
       { simp only [L3, linear_isometry.coe_comp, function.comp_app, submodule.coe_subtypeₗᵢ,
           ← submodule.range_subtype (LSᗮ)],

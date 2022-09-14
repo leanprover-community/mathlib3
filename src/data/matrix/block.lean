@@ -152,29 +152,21 @@ def to_block (M : matrix m n α) (p : m → Prop) (q : n → Prop) :
 @[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) (q : n → Prop)
   (i : {a // p a}) (j : {a // q a}) : to_block M p q i j = M ↑i ↑j := rfl
 
-/-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
-  `to_square_block M b k` is the block `k` matrix. -/
-def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
-  matrix {a // b a = k} {a // b a = k} α := M.submatrix coe coe
-
-@[simp] lemma to_square_block_def (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
-  to_square_block M b k = λ i j, M ↑i ↑j := rfl
-
-/-- Alternate version with `b : m → nat`. Let `b` map rows and columns of a square matrix `M` to
-  blocks. Then `to_square_block' M b k` is the block `k` matrix. -/
-def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
-  matrix {a // b a = k} {a // b a = k} α := M.submatrix coe coe
-
-@[simp] lemma to_square_block_def' (M : matrix m m α) (b : m → nat) (k : nat) :
-  to_square_block' M b k = λ i j, M ↑i ↑j := rfl
-
 /-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
   `to_square_block_prop M p` is the corresponding block matrix. -/
-def to_square_block_prop (M : matrix m m α) (p : m → Prop) :
-  matrix {a // p a} {a // p a} α := M.submatrix coe coe
+def to_square_block_prop (M : matrix m m α) (p : m → Prop) : matrix {a // p a} {a // p a} α :=
+to_block M _ _
 
-@[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) :
+lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) :
   to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
+
+/-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
+  `to_square_block M b k` is the block `k` matrix. -/
+def to_square_block (M : matrix m m α) (b : m → β) (k : β) :
+  matrix {a // b a = k} {a // b a = k} α := to_square_block_prop M _
+
+lemma to_square_block_def (M : matrix m m α) (b : m → β) (k : β) :
+  to_square_block M b k = λ i j, M ↑i ↑j := rfl
 
 lemma from_blocks_smul [has_smul R α]
   (x : R) (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :

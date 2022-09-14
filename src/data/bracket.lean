@@ -34,4 +34,4 @@ these are the Unicode "square with quill" brackets rather than the usual square 
      `K` of a group. -/
 class has_bracket (L M : Type*) := (bracket : L → M → M)
 
-notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
+notation `⁅`x`, `y`⁆` := has_bracket.bracket x y

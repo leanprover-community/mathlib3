@@ -100,7 +100,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
 lemma real.continuous.inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from real.continuous_inv.comp (continuous_subtype_mk _ hf)
+  from real.continuous_inv.comp (hf.subtype_mk _)
 
 lemma real.uniform_continuous_const_mul {x : ℝ} : uniform_continuous ((*) x) :=
 uniform_continuous_const_smul x

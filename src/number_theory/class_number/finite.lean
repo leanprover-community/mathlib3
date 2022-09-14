@@ -158,7 +158,7 @@ variables [infinite R]
 
 /-- In the following results, we need a large set of distinct elements of `R`. -/
 noncomputable def distinct_elems : fin (cardM bS adm).succ ↪ R :=
-function.embedding.trans (fin.coe_embedding _).to_embedding (infinite.nat_embedding R)
+fin.coe_embedding.trans (infinite.nat_embedding R)
 
 variables [decidable_eq R]
 
@@ -204,7 +204,7 @@ begin
                 (abv b ^ fintype.card ι),
   { have := norm_bound_pos abv bS,
     have := abv.nonneg b,
-    rw [ε_eq, algebra.smul_def, ring_hom.eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
+    rw [ε_eq, algebra.smul_def, eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
         div_mul_cancel, rpow_neg_one, mul_left_comm, mul_inv_cancel, mul_one, rpow_nat_cast];
       try { norm_cast, linarith },
     { apply rpow_nonneg_of_nonneg,

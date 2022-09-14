@@ -89,7 +89,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 
 variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-notation `ℓ²(` ι `,` 𝕜 `)` := lp (λ i : ι, 𝕜) 2
+notation `ℓ²(`ι`, `𝕜`)` := lp (λ i : ι, 𝕜) 2
 
 /-! ### Inner product space structure on `lp G 2` -/
 
@@ -491,32 +491,15 @@ protected lemma has_sum_orthogonal_projection {U : submodule 𝕜 E}
 by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
   using b.has_sum_repr (orthogonal_projection U x)
 
-/-- For `e : hilbert_basis ι 𝕜 E` and `J : finset ι`, `e.partial_span J` is the span of
-the `e j`s for `j ∈ J`. -/
-def partial_span (b : hilbert_basis ι 𝕜 E) (J : finset ι) : submodule 𝕜 E :=
-span 𝕜 (J.image b)
-
-instance {b : hilbert_basis ι 𝕜 E} {J : finset ι} : finite_dimensional 𝕜 (b.partial_span J) :=
-show finite_dimensional 𝕜 (span 𝕜 (J.image b : set E)), from infer_instance
-
-lemma partial_span_mono (b : hilbert_basis ι 𝕜 E) : monotone b.partial_span :=
-λ _ _ h, span_mono $ finset.coe_subset.mpr $ finset.image_mono _ h
-
-lemma partial_span_dense (b : hilbert_basis ι 𝕜 E) :
-  (⨆ J, b.partial_span J).topological_closure = ⊤ :=
+lemma finite_spans_dense (b : hilbert_basis ι 𝕜 E) :
+  (⨆ J : finset ι, span 𝕜 (J.image b : set E)).topological_closure = ⊤ :=
 eq_top_iff.mpr $ b.dense_span.ge.trans
 begin
-  simp_rw [partial_span, ← submodule.span_Union],
+  simp_rw [← submodule.span_Union],
   exact topological_closure_mono (span_mono $ set.range_subset_iff.mpr $
     λ i, set.mem_Union_of_mem {i} $ finset.mem_coe.mpr $ finset.mem_image_of_mem _ $
     finset.mem_singleton_self i)
 end
-
-protected lemma partial_span.tendsto_orthogonal_projection_at_top [complete_space E]
-  (b : hilbert_basis ι 𝕜 E) (x : E) :
-  tendsto (λ J : finset ι, (orthogonal_projection (b.partial_span J) x : E))
-    at_top (𝓝 x) :=
-orthogonal_projection_tendsto_self 𝕜 b.partial_span b.partial_span_mono _ b.partial_span_dense.ge
 
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
@@ -534,7 +517,7 @@ by rw [is_hilbert_sum.linear_isometry_equiv_symm_apply_single,
 
 @[simp] protected lemma coe_mk (hsp : ⊤ ≤ (span 𝕜 (set.range v)).topological_closure) :
   ⇑(hilbert_basis.mk hv hsp) = v :=
-funext $ orthonormal.linear_isometry_equiv_symm_apply_single_one hv _
+by apply (funext $ orthonormal.linear_isometry_equiv_symm_apply_single_one hv hsp)
 
 /-- An orthonormal family of vectors whose span has trivial orthogonal complement is a Hilbert
 basis. -/

@@ -25,9 +25,6 @@ if it is the smallest field extension of `K` such that `f` splits.
 
 ## Main statements
 
-* `polynomial.C_leading_coeff_mul_prod_multiset_X_sub_C`: If a polynomial has as many roots as its
-  degree, it can be written as the product of its leading coefficient with `∏ (X - a)` where `a`
-  ranges through its roots.
 * `lift_of_splits`: If `K` and `L` are field extensions of a field `F` and for some finite subset
   `S` of `K`, the minimal polynomial of every `x ∈ K` splits as a polynomial with coefficients in
   `L`, then `algebra.adjoin F S` embeds into `L`.
@@ -293,7 +290,7 @@ else or.inr $ λ p hp hdp, begin
   { refine (hp.2.1 $ is_unit_of_dvd_unit hd _).elim,
     exact is_unit_C.2 ((leading_coeff_ne_zero.2 hf0).is_unit.map i) },
   { obtain ⟨q, hq, hd⟩ := hp.dvd_prod_iff.1 hd,
-    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 ((multiset.mem_to_list _ _).1 hq),
+    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 (multiset.mem_to_list.1 hq),
     rw degree_eq_degree_of_associated ((hp.dvd_prime_iff_associated $ prime_X_sub_C a).1 hd),
     exact degree_X_sub_C a },
 end

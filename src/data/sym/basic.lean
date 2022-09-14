@@ -341,7 +341,7 @@ def append (s : sym α n) (s' : sym α n') : sym α (n + n') :=
   s.append t = s.append t' ↔ t = t' :=
 subtype.ext_iff.trans $ (add_right_inj _).trans subtype.ext_iff.symm
 
-@[simp] lemma append_inj_left (s s' : sym α n) (t : sym α n') :
+@[simp] lemma append_inj_left {s s' : sym α n} (t : sym α n') :
   s.append t = s'.append t ↔ s = s' :=
 subtype.ext_iff.trans $ (add_left_inj _).trans subtype.ext_iff.symm
 
@@ -351,7 +351,7 @@ by { ext, simp [append, add_comm], }
 
 @[simp, norm_cast] lemma coe_append (s' : sym α n') : (s.append s' : multiset α) = s + s' := rfl
 
-lemma mem_append_iff (s' : sym α m) : a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' := multiset.mem_add
+lemma mem_append_iff {s' : sym α m} : a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' := multiset.mem_add
 
 /-- Fill a term `m : sym α (n - i)` with `i` copies of `a` to obtain a term of `sym α n`.
 This is a convenience wrapper for `m.append (repeat a i)` that adjusts the term using `sym.cast`. -/

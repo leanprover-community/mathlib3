@@ -426,7 +426,8 @@ theorem split_by_characteristic_domain [is_domain R]
 begin
   refine split_by_characteristic R _ h_equal h_mixed,
   introsI p p_char,
-  have p_prime : nat.prime p := or_iff_not_imp_right.mp (char_p.char_is_prime_or_zero R p) (ne_of_gt p.pos),
+  have p_prime : nat.prime p :=
+    or_iff_not_imp_right.mp (char_p.char_is_prime_or_zero R p) (ne_of_gt p.pos),
   exact h_pos p p_prime p_char,
 end
 
@@ -442,7 +443,8 @@ theorem split_by_characteristic_local_ring [local_ring R]
 begin
   refine split_by_characteristic R _ h_equal h_mixed,
   introsI p p_char,
-  have p_ppow : is_prime_pow (p : ℕ) := or_iff_not_imp_left.mp (char_p_zero_or_prime_power R p) (ne_of_gt p.pos),
+  have p_ppow : is_prime_pow (p : ℕ) :=
+    or_iff_not_imp_left.mp (char_p_zero_or_prime_power R p) (ne_of_gt p.pos),
   exact h_pos p p_ppow p_char,
 end
 

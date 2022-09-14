@@ -630,7 +630,7 @@ lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
 by simpa only [disjoint_iff] using filter.disjoint_iff
 
-lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [fintype ι]
+lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
   {l : ι → filter α} (hd : pairwise (disjoint on l)) :
   ∃ s : ι → set α, (∀ i, s i ∈ l i) ∧ pairwise (disjoint on s) :=
 begin

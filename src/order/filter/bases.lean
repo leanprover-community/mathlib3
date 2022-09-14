@@ -569,7 +569,7 @@ lemma _root_.disjoint.exists_mem_filter_basis (h : disjoint l l') (hl : l.has_ba
   ∃ i (hi : p i) i' (hi' : p' i'), disjoint (s i) (s' i') :=
 (hl.disjoint_iff hl').1 h
 
-lemma _root_.pairwise.exists_mem_filter_basis_of_disjoint {I : Type*} [fintype I]
+lemma _root_.pairwise.exists_mem_filter_basis_of_disjoint {I : Type*} [finite I]
   {l : I → filter α} {ι : I → Sort*} {p : Π i, ι i → Prop} {s : Π i, ι i → set α}
   (hd : pairwise (disjoint on l)) (h : ∀ i, (l i).has_basis (p i) (s i)) :
   ∃ ind : Π i, ι i, (∀ i, p i (ind i)) ∧ pairwise (disjoint on λ i, s i (ind i)) :=

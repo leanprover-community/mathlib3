@@ -278,7 +278,7 @@ lemma _root_.set.countable.substructure_closure [countable (Σl, L.functions l)]
 begin
   haveI : countable s := h.to_subtype,
   rw [← mk_le_aleph_0_iff, ← lift_le_aleph_0],
-  exact lift_card_closure_le_card_term.trans (mk_le_aleph_0_iff.2 term.countable),
+  exact lift_card_closure_le_card_term.trans mk_le_aleph_0
 end
 
 variables {L} (S)

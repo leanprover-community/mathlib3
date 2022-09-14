@@ -395,7 +395,6 @@ begin
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
 
-
 lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
 continuous_uncurry_iff.mp begin
   apply trans_continuous_family;

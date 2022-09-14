@@ -1704,7 +1704,6 @@ begin
     exact ⟨U, coe '' U, hU, ha, subset_Inter₂ (λ Z _, Z.2.1.connected_component_subset Z.2.2),
       (connected_components_preimage_image U).symm ▸ hU.bUnion_connected_component_eq⟩ },
   rw connected_components.quotient_map_coe.is_clopen_preimage at hU,
-  refine disjoint_of_disjoint_of_mem disjoint_compl_left (hU.compl.is_open.mem_nhds _)
-    (hU.is_open.mem_nhds $ hb mem_connected_component),
+  refine ⟨Vᶜ, V, hU.compl.is_open, hU.is_open, _, hb mem_connected_component, disjoint_compl_left⟩,
   exact λ h, flip set.nonempty.ne_empty ha ⟨a, mem_connected_component, h⟩,
 end

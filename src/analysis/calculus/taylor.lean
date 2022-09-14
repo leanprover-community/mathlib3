@@ -248,7 +248,7 @@ has_deriv_within_at_taylor_within_eval (unique_diff_on_Icc hx t ht) (unique_diff
 We assume that `f` is `n+1`-times continuously differentiable in the closed set `Icc x₀ x` and
 `n+1`-times differentiable on the open set `Ioo x₀ x`, and `g` is a differentiable function on
 `Ioo x₀ x` and continuous on `Icc x₀ x`. Then there exists a `x' ∈ Ioo x₀ x` such that
-$$f(x) - (P_n f)(x₀, x) = \frac{(x - x')^n}{n!} \\frac{g(x) - g(x₀)}{g' x'},$$
+$$f(x) - (P_n f)(x₀, x) = \frac{(x - x')^n}{n!} \frac{g(x) - g(x₀)}{g' x'},$$
 where $P_n f$ denotes the Taylor polynomial of degree $n$. -/
 lemma taylor_mean_remainder {f : ℝ → ℝ} {g g' : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
   (hf : cont_diff_on ℝ n f (Icc x₀ x))

@@ -331,7 +331,7 @@ def conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵐᵒᵖ) :=
 { to_fun := op ∘ conj,
   inv_fun := conj ∘ unop,
   map_mul' := λ x y, by simp,
-  commutes' := λ r, by simp,
+  map_smul' := λ r a, by simp,
   .. conj.to_add_equiv.trans op_add_equiv }
 
 @[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] _) = op ∘ conj := rfl

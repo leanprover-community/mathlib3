@@ -140,7 +140,7 @@ def to_alg_equiv {X Y : Algebra R} (i : X ≅ Y) : X ≃ₐ[R] Y :=
   right_inv := by tidy,
   map_add'  := by tidy,
   map_mul'  := by tidy,
-  commutes' := by tidy, }.
+  map_smul' := by tidy, }.
 
 end category_theory.iso
 

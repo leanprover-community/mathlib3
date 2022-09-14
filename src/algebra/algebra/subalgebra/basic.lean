@@ -493,6 +493,7 @@ def of_left_inverse
   right_inv := λ x, subtype.ext $
     let ⟨x', hx'⟩ := f.mem_range.mp x.prop in
     show f (g x) = x, by rw [←hx', h x'],
+  map_smul' := map_smul f.range_restrict,
   ..f.range_restrict }
 
 @[simp] lemma of_left_inverse_apply

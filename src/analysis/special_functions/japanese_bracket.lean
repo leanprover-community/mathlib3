@@ -13,15 +13,10 @@ import tactic.positivity
 /-!
 # Japanese Bracket
 
-In this file, we define the Japanese bracket $\langle x \rangle \coloneqq (1 + \|x\|^2)^{1/2}$
-and prove that it is smooth, positive and can be estimated from above and below by $1 + \|x\|$.
-Moreover, we prove that
-$$\int_{\mathbb{R}^n} \langle x \rangle^{-r} dx$$
-is integrable for $r > n$.
-
-## Main definitions
-
-* `foo_bar`
+In this file, we show that Japanese bracket $(1 + \|x\|^2)^{1/2}$ can be estimated from above
+and below by $1 + \|x\|$.
+We prove that $(1 + \|x\|^2)^{-r/2}$ and $(1 + |x|)^{-r}$
+are integrable for $r > n$.
 
 ## Main statements
 
@@ -103,13 +98,74 @@ integrable_on.lintegral_lt_top_ae hf (ae_of_all μ hf')
 
 end
 
--- Intermediate goal: Prove that ∫ t : Ioo 0 1, t^{-r} dt < ∞ if r > 0 and r < 1
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
--- interval_integral.interval_integrable_rpow'
+lemma rpow_two_sqrt {x : ℝ} (hx : 0 ≤ x): (real.sqrt x)^(2 : ℝ) = x :=
+begin
+  rw [sqrt_eq_rpow, ←rpow_mul hx],
+  norm_num,
+end
 
--- Goal: Prove that ∫ (1 + ∥x∥)^{-d-ε} dx < ∞
+lemma pow_two_sqrt {x : ℝ} (hx : 0 ≤ x): (real.sqrt x)^2 = x :=
+by rw [←rpow_two, rpow_two_sqrt hx]
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+lemma rpow_div_two_eq_sqrt {x : ℝ} (r : ℝ) (hx : 0 ≤ x) : x^(r/2) = x.sqrt^r :=
+begin
+  rw [sqrt_eq_rpow, ←rpow_mul hx],
+  congr,
+  ring,
+end
+
+lemma jap_le_one_add_norm (x : E) : real.sqrt (1 + ∥x∥^2) ≤ 1 + ∥x∥ :=
+begin
+  have h1 : 0 ≤ real.sqrt (1 + ∥x∥^2) := by positivity,
+  have h1' : 0 ≤ 1 + ∥x∥^2 := by positivity,
+  have h2 : 0 ≤ 1 + ∥x∥ := by positivity,
+  have h3 : 0 < (2 : ℝ) := by positivity,
+  rw ←rpow_le_rpow_iff h1 h2 h3,
+  rw rpow_two_sqrt h1',
+  rw rpow_two,
+  rw add_pow_two,
+  simp,
+end
+
+lemma one_add_norm_le_jap (x : E) : 1 + ∥x∥ ≤ (real.sqrt 2) * sqrt (1 + ∥x∥^2) :=
+begin
+  have h1 : 0 ≤ 1 + ∥x∥^2 := by positivity,
+  have h2 : 0 ≤ (real.sqrt 2) * real.sqrt (1 + ∥x∥^2) := by positivity,
+  have : (sqrt 2 * sqrt (1 + ∥x∥ ^ 2)) ^ 2 - (1 + ∥x∥) ^ 2 = (1 - ∥x∥) ^2 :=
+  begin
+    rw [mul_pow, pow_two_sqrt h1, add_pow_two, sub_pow_two],
+    norm_num,
+    ring,
+  end,
+  refine le_of_pow_le_pow 2 h2 (by norm_num) _,
+  rw ←sub_nonneg,
+  rw this,
+  positivity,
+end
+
+lemma rpow_neg_jap_le_one_add_norm {r : ℝ} (x : E) (hr : 0 < r) :
+  (1 + ∥x∥^2)^(-r/2) ≤ 2^(r/2) * (1 + ∥x∥)^(-r) :=
+begin
+  have h1 : 0 ≤ (2 : ℝ) := by positivity,
+  have h2 : 0 ≤ (1 + ∥x∥^2) := by positivity,
+  have h3 : 0 < sqrt 2 := by positivity,
+  have h4 : 0 < 1 + ∥x∥ := by positivity,
+  have h5 : 0 < sqrt (1 + ∥x∥ ^ 2) := by positivity,
+  have h6 : 0 < sqrt 2 * sqrt (1 + ∥x∥^2) := mul_pos h3 h5,
+  rw rpow_div_two_eq_sqrt _ h1,
+  rw rpow_div_two_eq_sqrt _ h2,
+  rw ←inv_mul_le_iff (rpow_pos_of_pos h3 _),
+  rw [rpow_neg h4.le, rpow_neg (sqrt_nonneg _)],
+  rw ←mul_inv,
+  rw ←mul_rpow h3.le h5.le,
+  rw inv_le_inv (rpow_pos_of_pos h6 _) (rpow_pos_of_pos h4 _),
+  rw rpow_le_rpow_iff h4.le h6.le hr,
+  exact one_add_norm_le_jap _,
+end
+
+variables [finite_dimensional ℝ E]
 
 lemma continuous_foo {ε : ℝ} (hε : 0 < ε) :
   continuous (λ (x : E), (1 + ∥x∥)^(-((finrank ℝ E : ℝ) + ε))) :=
@@ -291,4 +347,18 @@ begin
   end,
   rw [has_finite_integral_iff_norm, this],
   exact finite_foo hnr,
+end
+
+lemma integrable_jap [measure_space E] [borel_space E] [(@volume E _).is_add_haar_measure]
+  {r : ℝ} (hnr : (finrank ℝ E : ℝ) < r) :
+  integrable (λ (x : E), (1 + ∥x∥^2) ^ (-r/2)) :=
+begin
+  have hr : 0 < r := lt_of_le_of_lt (nat.cast_nonneg _) hnr,
+  refine ((foo hnr).const_mul (2^(r/2))).mono (by measurability) (eventually_of_forall _),
+  intros x,
+  have h1 : 0 ≤ (1 + ∥x∥ ^ 2) ^ (-r/2) := rpow_nonneg_of_nonneg (by positivity) _,
+  have h2 : 0 ≤ (1 + ∥x∥) ^ -r := rpow_nonneg_of_nonneg (by positivity) _,
+  have h3 : 0 ≤ (2 : ℝ)^(r/2) := rpow_nonneg_of_nonneg (by positivity) _,
+  simp_rw [norm_mul, norm_eq_abs, abs_of_nonneg h1, abs_of_nonneg h2, abs_of_nonneg h3],
+  exact rpow_neg_jap_le_one_add_norm _ hr,
 end

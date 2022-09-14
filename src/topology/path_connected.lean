@@ -144,6 +144,10 @@ open continuous_map
 
 instance : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 
+/--
+The following instance defines the topology on the path space to be induced from the
+compact-open topology on the space `C(I,X)` of continuous maps from `I` to `X`.
+-/
 instance : topological_space (path x y) :=
 topological_space.induced (coe : _ → C(I, X)) continuous_map.compact_open
 

@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.module.basic
+import algebra.module.ulift
+import algebra.ne_zero
 import algebra.ring.aut
 import algebra.ring.ulift
-import algebra.module.ulift
 import linear_algebra.span
 import tactic.abel
 
@@ -400,8 +401,8 @@ lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x 
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
 def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
-  (M : submonoid R) : (submonoid S) :=
-submonoid.map (algebra_map R S : R →* S) M
+  (M : submonoid R) : submonoid S :=
+M.map (algebra_map R S)
 
 lemma mem_algebra_map_submonoid_of_mem {S : Type*} [semiring S] [algebra R S] {M : submonoid R}
   (x : M) : (algebra_map R S x) ∈ algebra_map_submonoid S M :=
@@ -476,6 +477,23 @@ lemma algebra_map_End_eq_smul_id (a : R) :
 linear_map.ker_smul _ _ ha
 
 end module
+
+namespace linear_map
+
+variables {R : Type*} {A : Type*} {B : Type*} [comm_semiring R] [semiring A] [semiring B]
+  [algebra R A] [algebra R B]
+
+/-- An alternate statement of `linear_map.map_smul` for when `algebra_map` is more convenient to
+work with than `•`. -/
+lemma map_algebra_map_mul (f : A →ₗ[R] B) (a : A) (r : R) :
+  f (algebra_map R A r * a) = algebra_map R B r * f a :=
+by rw [←algebra.smul_def, ←algebra.smul_def, map_smul]
+
+lemma map_mul_algebra_map (f : A →ₗ[R] B) (a : A) (r : R) :
+  f (a * algebra_map R A r) = f a * algebra_map R B r :=
+by rw [←algebra.commutes, ←algebra.commutes, map_algebra_map_mul]
+
+end linear_map
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
@@ -1148,7 +1166,7 @@ by { ext, refl }
 
 end of_linear_equiv
 
-@[simps mul one {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
+@[simps mul one inv {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
   mul_assoc := λ ϕ ψ χ, rfl,
   one := refl,
@@ -1432,6 +1450,10 @@ lemma algebra_map_injective [comm_ring R] [ring A] [nontrivial A]
 suffices function.injective (λ (c : R), c • (1 : A)),
 by { convert this, ext, rw [algebra.smul_def, mul_one] },
 smul_left_injective R one_ne_zero
+
+lemma _root_.ne_zero.of_no_zero_smul_divisors (n : ℕ) [comm_ring R] [ne_zero (n : R)] [ring A]
+  [nontrivial A] [algebra R A] [no_zero_smul_divisors R A] : ne_zero (n : A) :=
+ne_zero.nat_of_injective $ no_zero_smul_divisors.algebra_map_injective R A
 
 variables {R A}
 lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R A] :

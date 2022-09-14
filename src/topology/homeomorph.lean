@@ -168,7 +168,7 @@ protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 noncomputable def of_embedding (f : α → β) (hf : embedding f) : α ≃ₜ (set.range f) :=
 { continuous_to_fun := hf.continuous.subtype_mk _,
   continuous_inv_fun := by simp [hf.continuous_iff, continuous_subtype_coe],
-  .. equiv.of_injective f hf.inj }
+  to_equiv := equiv.of_injective f hf.inj }
 
 protected lemma second_countable_topology [topological_space.second_countable_topology β]
   (h : α ≃ₜ β) :
@@ -383,6 +383,12 @@ def punit_prod : punit × α ≃ₜ α :=
 
 @[simp] lemma coe_punit_prod : ⇑(punit_prod α) = prod.snd := rfl
 
+/-- If both `α` and `β` have a unique element, then `α ≃ₜ β`. -/
+@[simps] def _root_.homeomorph.homeomorph_of_unique [unique α] [unique β] : α ≃ₜ β :=
+{ continuous_to_fun := @continuous_const α β _ _ default,
+  continuous_inv_fun := @continuous_const β α _ _ default,
+  .. equiv.equiv_of_unique α β }
+
 end
 
 /-- `ulift α` is homeomorphic to `α`. -/
@@ -451,11 +457,10 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
 /-- `s ×ˢ t` is homeomorphic to `s × t`. -/
 @[simps] def set.prod (s : set α) (t : set β) : ↥(s ×ˢ t) ≃ₜ s × t :=
 { to_equiv := equiv.set.prod s t,
-  continuous_to_fun := continuous.prod_mk
-    (continuous_subtype_mk _ (continuous_fst.comp continuous_induced_dom))
-    (continuous_subtype_mk _ (continuous_snd.comp continuous_induced_dom)),
-  continuous_inv_fun := continuous_subtype_mk _ (continuous.prod_mk
-    (continuous_induced_dom.comp continuous_fst) (continuous_induced_dom.comp continuous_snd)) }
+  continuous_to_fun := (continuous_subtype_coe.fst.subtype_mk _).prod_mk
+    (continuous_subtype_coe.snd.subtype_mk _),
+  continuous_inv_fun := (continuous_subtype_coe.fst'.prod_mk
+    continuous_subtype_coe.snd').subtype_mk _ }
 
 end homeomorph
 

@@ -32,7 +32,7 @@ noncomputable theory
 open order
 
 namespace ordinal
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 
 /-! ### Principal ordinals -/
 

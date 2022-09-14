@@ -138,6 +138,8 @@ begin
   simp
 end
 
+/-! #### Space of paths -/
+
 open continuous_map
 
 instance : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩

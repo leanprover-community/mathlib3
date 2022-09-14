@@ -199,7 +199,7 @@ convex_iff_open_segment_subset.mpr $ λ x hx y hy,
 protected lemma convex.closure {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (closure s) :=
 λ x hx y hy a b ha hb hab,
 let f : E → E → E := λ x' y', a • x' + b • y' in
-have hf : continuous (uncurry f),
+have hf : continuous (function.uncurry f),
   from (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
 show f x y ∈ closure s,
   from map_mem_closure₂ hf hx hy (λ x' hx' y' hy', hs hx' hy' ha hb hab)

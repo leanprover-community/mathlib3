@@ -538,7 +538,7 @@ end
 @[simp] protected lemma map_mul : (p * q).map f = p.map f * q.map f :=
 by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 
-@[simp] lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
+@[simp] protected lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
 /-- `polynomial.map` as a `ring_hom`. -/
@@ -560,6 +560,12 @@ def map_ring_hom (f : R →+* S) : R[X] →+* S[X] :=
 -- This is protected to not clash with the global `map_nat_cast`.
 @[simp] protected theorem map_nat_cast (n : ℕ) : (n : R[X]).map f = n :=
 map_nat_cast (map_ring_hom f) n
+
+@[simp] protected lemma map_bit0 : (bit0 p).map f = bit0 (p.map f) :=
+map_bit0 (map_ring_hom f) p
+
+@[simp] protected lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
+map_bit1 (map_ring_hom f) p
 
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=

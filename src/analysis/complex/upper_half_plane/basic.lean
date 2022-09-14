@@ -42,7 +42,7 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 @[derive [λ α, has_coe α ℂ]]
 def upper_half_plane := {point : ℂ // 0 < point.im}
 
-localized "notation `ℍ` := upper_half_plane" in upper_half_plane
+localized "notation (name := upper_half_plane) `ℍ` := upper_half_plane" in upper_half_plane
 
 namespace upper_half_plane
 
@@ -154,7 +154,7 @@ begin
   change _ = (_ * (_ / _) + _) * _,
   field_simp [denom_ne_zero, -denom, -num],
   simp only [matrix.mul, dot_product, fin.sum_univ_succ, denom, num, coe_coe, subgroup.coe_mul,
-    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_zero,
     finset.sum_singleton, fin.succ_zero_eq_one, complex.of_real_add, complex.of_real_mul],
   ring
 end
@@ -167,7 +167,7 @@ begin
   rw denom_cocycle,
   field_simp [denom_ne_zero, -denom, -num],
   simp only [matrix.mul, dot_product, fin.sum_univ_succ, num, denom, coe_coe, subgroup.coe_mul,
-    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_zero,
     finset.sum_singleton, fin.succ_zero_eq_one, complex.of_real_add, complex.of_real_mul],
   ring
 end

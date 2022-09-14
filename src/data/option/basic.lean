@@ -32,7 +32,7 @@ along with a term `a : α` if the value is `true`.
 -/
 
 namespace option
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ δ : Type*}
 
 lemma coe_def : (coe : α → option α) = some := rfl
 
@@ -188,6 +188,10 @@ by { cases x; simp only [map_none', map_some', h, mem_def] }
 @[simp] lemma map_map (h : β → γ) (g : α → β) (x : option α) :
   option.map h (option.map g x) = option.map (h ∘ g) x :=
 by { cases x; simp only [map_none', map_some'] }
+
+lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
+  (option.map f₁ a).map g₁ = (option.map f₂ a).map g₂ :=
+by rw [map_map, h, ←map_map]
 
 lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
   option.map (h ∘ g) x = option.map h (option.map g x) := (map_map _ _ _).symm

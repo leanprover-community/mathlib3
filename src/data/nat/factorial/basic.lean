@@ -26,7 +26,7 @@ namespace nat
 | 0        := 1
 | (succ n) := succ n * factorial n
 
-localized "notation n `!`:10000 := nat.factorial n" in nat
+localized "notation (name := nat.factorial) n `!`:10000 := nat.factorial n" in nat
 
 section factorial
 

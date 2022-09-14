@@ -259,9 +259,9 @@ instance : has_pow (self_adjoint R) ℤ :=
 
 @[simp, norm_cast] lemma coe_zpow (x : self_adjoint R) (z : ℤ) : ↑(x ^ z) = (x : R) ^ z := rfl
 
-lemma rat_cast_mem : ∀ (x : ℚ), (x : R) ∈ self_adjoint R
+lemma rat_cast_mem : ∀ (x : ℚ), is_self_adjoint (x : R)
 | ⟨a, b, h1, h2⟩ :=
-  by rw [mem_iff, rat.cast_mk', star_mul', star_inv', star_nat_cast, star_int_cast]
+  by rw [is_self_adjoint, rat.cast_mk', star_mul', star_inv', star_nat_cast, star_int_cast]
 
 instance : has_rat_cast (self_adjoint R) :=
 ⟨λ n, ⟨n, rat_cast_mem n⟩⟩

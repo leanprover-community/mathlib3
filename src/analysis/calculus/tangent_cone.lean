@@ -427,6 +427,10 @@ is_open_Ioo.unique_diff_on
 lemma unique_diff_on_Icc_zero_one : unique_diff_on ℝ (Icc (0:ℝ) 1) :=
 unique_diff_on_Icc zero_lt_one
 
+lemma unique_diff_within_at_Ioo {a b t : ℝ} (ht : t ∈ set.Ioo a b) :
+  unique_diff_within_at ℝ (set.Ioo a b) t :=
+is_open.unique_diff_within_at is_open_Ioo ht
+
 lemma unique_diff_within_at_Ioi (a : ℝ) : unique_diff_within_at ℝ (Ioi a) a :=
 unique_diff_within_at_convex (convex_Ioi a) (by simp) (by simp)
 

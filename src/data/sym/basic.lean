@@ -345,11 +345,11 @@ subtype.ext_iff.trans $ (add_right_inj _).trans subtype.ext_iff.symm
   s.append t = s'.append t ↔ s = s' :=
 subtype.ext_iff.trans $ (add_left_inj _).trans subtype.ext_iff.symm
 
-lemma append_comm (s' : sym α n') :
+lemma append_comm (s : sym α n') (s' : sym α n') :
   s.append s' = sym.cast (add_comm _ _) (s'.append s) :=
 by { ext, simp [append, add_comm], }
 
-@[simp, norm_cast] lemma coe_append (s' : sym α n') : (s.append s' : multiset α) = s + s' := rfl
+@[simp, norm_cast] lemma coe_append (s : sym α n') (s' : sym α n') : (s.append s' : multiset α) = s + s' := rfl
 
 lemma mem_append_iff {s' : sym α m} : a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' := multiset.mem_add
 
@@ -358,7 +358,7 @@ This is a convenience wrapper for `m.append (repeat a i)` that adjusts the term 
 def fill (a : α) (i : fin (n + 1)) (m : sym α (n - i)) : sym α n :=
 sym.cast (nat.sub_add_cancel i.is_le) (m.append (repeat a i))
 
-lemma mem_append_iff (a b : α) (i : fin (n + 1)) (s : sym α (n - i)) :
+lemma mem_fill_iff (a b : α) (i : fin (n + 1)) (s : sym α (n - i)) :
   a ∈ sym.fill b i s ↔ ((i : ℕ) ≠ 0 ∧ a = b) ∨ a ∈ s :=
 by rw [fill, mem_cast, mem_append_iff, or_comm, mem_repeat]
 

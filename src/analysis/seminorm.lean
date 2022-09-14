@@ -410,6 +410,8 @@ variables {x y : E} {r : ℝ}
 
 @[simp] lemma mem_ball : y ∈ ball p x r ↔ p (y - x) < r := iff.rfl
 
+lemma mem_ball_self (hr : 0 < r) : x ∈ ball p x r := by simp [hr]
+
 lemma mem_ball_zero : y ∈ ball p 0 r ↔ p y < r := by rw [mem_ball, sub_zero]
 
 lemma ball_zero_eq : ball p 0 r = { y : E | p y < r } := set.ext $ λ x, p.mem_ball_zero
@@ -667,7 +669,7 @@ variables [semi_normed_ring 𝕜] [add_comm_group E]
 
 lemma continuous_at_zero [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
   [is_scalar_tower ℝ 𝕜 E] [topological_space E] [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E}
-  (hp : is_open $ p.ball 0 1) :
+  (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
   continuous_at p 0 :=
 begin
   change continuous_at (p.restrict_scalars ℝ) 0,
@@ -677,10 +679,9 @@ begin
   rw map_zero,
   suffices : (p.restrict_scalars ℝ).ball 0 ε ∈ (𝓝 0 : filter E),
   { rwa seminorm.ball_zero_eq_preimage_ball at this },
-  have := hp.smul₀ hε.ne.symm,
-  rw [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
-      real.norm_of_nonneg hε.le, mul_one] at this,
-  exact this.mem_nhds (show (0 : E) ∈ p.ball 0 ε, by simp [hε]),
+  have := (set_smul_mem_nhds_zero_iff hε.ne.symm).mpr hp,
+  rwa [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
+      real.norm_of_nonneg hε.le, mul_one] at this
 end
 
 protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
@@ -705,15 +706,26 @@ end
 
 protected lemma uniform_continuous [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
   [is_scalar_tower ℝ 𝕜 E] [uniform_space E] [uniform_add_group E] [has_continuous_const_smul ℝ E]
-  {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
+  {p : seminorm 𝕜 E} (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
   uniform_continuous p :=
 seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero hp)
 
 protected lemma continuous [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
   [is_scalar_tower ℝ 𝕜 E] [topological_space E] [topological_add_group E]
-  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
+  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
   continuous p :=
 seminorm.continuous_of_continuous_at_zero (continuous_at_zero hp)
+
+lemma continuous_of_le [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] [topological_space E] [topological_add_group E]
+  [has_continuous_const_smul ℝ E] {p q : seminorm 𝕜 E} (hq : continuous q) (hpq : p ≤ q) :
+  continuous p :=
+begin
+  refine seminorm.continuous (filter.mem_of_superset
+    (is_open.mem_nhds _ $ q.mem_ball_self zero_lt_one) (ball_antitone hpq)),
+  rw ball_zero_eq,
+  exact is_open_lt hq continuous_const
+end
 
 end continuity
 

@@ -160,7 +160,7 @@ let ⟨x, hx⟩ := exists_root_of_splits' i hs (λ h, hf0 $ nat_degree_eq_of_deg
 λ h, by { rw ← eval_map at hx,
   cases h.subst ((mem_roots _).2 hx), exact ne_zero_of_nat_degree_gt (nat.pos_of_ne_zero hf0) }
 
-/-- Pick a root of a polynomial that splits. See `root_of_splits'` for polynomials over a field
+/-- Pick a root of a polynomial that splits. See `root_of_splits` for polynomials over a field
 which has simpler assumptions. -/
 def root_of_splits' {f : K[X]} (hf : f.splits i) (hfd : (f.map i).degree ≠ 0) : L :=
 classical.some $ exists_root_of_splits' i hf hfd

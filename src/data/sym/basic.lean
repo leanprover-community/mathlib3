@@ -358,9 +358,9 @@ This is a convenience wrapper for `m.append (repeat a i)` that adjusts the term 
 def fill (a : α) (i : fin (n + 1)) (m : sym α (n - i)) : sym α n :=
 sym.cast (nat.sub_add_cancel i.is_le) (m.append (repeat a i))
 
-lemma fill_mem (a b : α) (i : fin (n + 1)) (s : sym α (n - i)) :
+lemma mem_append_iff (a b : α) (i : fin (n + 1)) (s : sym α (n - i)) :
   a ∈ sym.fill b i s ↔ ((i : ℕ) ≠ 0 ∧ a = b) ∨ a ∈ s :=
-by rw [fill, mem_cast, append_mem, or_comm, mem_repeat]
+by rw [fill, mem_cast, mem_append_iff, or_comm, mem_repeat]
 
 /-- Remove every `a` from a given `sym α n`.
 Yields the number of copies `i` and a term of `sym α (n - i)`. -/

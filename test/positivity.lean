@@ -101,7 +101,7 @@ example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by posi
 
 example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
 
-example {r : ℝ} : 0 < r.exp := by positivity
+example {r : ℝ} : 0 < real.exp r := by positivity
 
 /- ## Tests that the tactic is agnostic on reversed inequalities -/
 

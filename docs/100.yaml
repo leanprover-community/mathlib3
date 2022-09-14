@@ -127,6 +127,10 @@
   author : Anatole Dedecker, Yury Kudryashov
 35:
   title  : Taylor’s Theorem
+  decls  :
+    - taylor_mean_remainder_lagrange
+    - taylor_mean_remainder_cauchy
+  author : Moritz Doll
 36:
   title  : Brouwer Fixed Point Theorem
 37:

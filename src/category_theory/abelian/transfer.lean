@@ -351,7 +351,7 @@ lemma enough_injectives.of_adjunction {C : Type u₁} {D : Type u₂}
     enough_injectives_of_adjunction_auxs.mono_to_RJ adj A⟩⟩ }
 
 -- Implementation note: only `abelian C` if `category C` and `category D` have the same morphism
--- universe level, in that case `abelian D` is implied by `abelian_of_equivalence`; but in this
+-- universe level, in that case `abelian D` is implied by `abelian_of_equivalence`. But in this
 -- implementation, we choose not to ask two categories with the same morphism universe level, so
 -- we need an additional assumption `abelian D`.
 /--

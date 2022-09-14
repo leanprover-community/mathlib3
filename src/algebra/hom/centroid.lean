@@ -242,8 +242,6 @@ instance : has_neg (centroid_hom α) :=
   { map_mul_left' := by simp [map_mul_left],
     map_mul_right' := by simp [map_mul_right],
     .. (-f : α →+ α) }⟩
-
-
 instance : has_sub (centroid_hom α) :=
 ⟨λ f g,
 { map_mul_left' := λ a b, by simp [map_mul_left, mul_sub],

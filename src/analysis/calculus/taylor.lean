@@ -57,7 +57,7 @@ def taylor_coeff_within (f : ℝ → E) (k : ℕ) (s : set ℝ) (x₀ : ℝ) : E
 /-- The Taylor polynomial with derivatives inside of a set `s`.
 
 The Taylor polynomial is given by
-$$∑_{k=0}^n \\frac{(x - x₀)^k}{k!} f^{(k)}(x₀),$$
+$$∑_{k=0}^n \frac{(x - x₀)^k}{k!} f^{(k)}(x₀),$$
 where $f^{(k)}(x₀)$ denotes the iterated derivative in the set `s`. -/
 noncomputable
 def taylor_within (f : ℝ → E) (n : ℕ) (s : set ℝ) (x₀ : ℝ) : polynomial_module ℝ E :=
@@ -248,7 +248,7 @@ has_deriv_within_at_taylor_within_eval (unique_diff_on_Icc hx t ht) (unique_diff
 We assume that `f` is `n+1`-times continuously differentiable in the closed set `Icc x₀ x` and
 `n+1`-times differentiable on the open set `Ioo x₀ x`, and `g` is a differentiable function on
 `Ioo x₀ x` and continuous on `Icc x₀ x`. Then there exists a `x' ∈ Ioo x₀ x` such that
-$$f(x) - (P_n f)(x₀, x) = \\frac{(x - x')^n}{n!} \\frac{g(x) - g(x₀)}{g' x'},$$
+$$f(x) - (P_n f)(x₀, x) = \frac{(x - x')^n}{n!} \frac{g(x) - g(x₀)}{g' x'},$$
 where $P_n f$ denotes the Taylor polynomial of degree $n$. -/
 lemma taylor_mean_remainder {f : ℝ → ℝ} {g g' : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
   (hf : cont_diff_on ℝ n f (Icc x₀ x))
@@ -280,7 +280,7 @@ end
 
 We assume that `f` is `n+1`-times continuously differentiable in the closed set `Icc x₀ x` and
 `n+1`-times differentiable on the open set `Ioo x₀ x`. Then there exists a `x' ∈ Ioo x₀ x` such that
-$$f(x) - (P_n f)(x₀, x) = \\frac{f^{(n+1)}(x') (x - x₀)^{n+1}}{(n+1)!},$$
+$$f(x) - (P_n f)(x₀, x) = \frac{f^{(n+1)}(x') (x - x₀)^{n+1}}{(n+1)!},$$
 where $P_n f$ denotes the Taylor polynomial of degree $n$ and $f^{(n+1)}$ is the $n+1$-th iterated
 derivative. -/
 lemma taylor_mean_remainder_lagrange {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
@@ -315,7 +315,7 @@ end
 
 We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc x₀ x` and
 `n+1`-times differentiable on the open set `Ioo x₀ x`. Then there exists a `x' ∈ Ioo x₀ x` such that
-$$f(x) - (P_n f)(x₀, x) = \\frac{f^{(n+1)}(x') (x - x')^n (x-x₀)}{n!},$$
+$$f(x) - (P_n f)(x₀, x) = \frac{f^{(n+1)}(x') (x - x')^n (x-x₀)}{n!},$$
 where $P_n f$ denotes the Taylor polynomial of degree $n$ and $f^{(n+1)}$ is the $n+1$-th iterated
 derivative. -/
 lemma taylor_mean_remainder_cauchy {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ} (hx : x₀ < x)
@@ -386,9 +386,8 @@ end
 /-- **Taylor's theorem** with a polynomial bound on the remainder
 
 We assume that `f` is `n+1`-times continuously differentiable on the closed set `Icc a b`.
-There exists a constant `C` such that for all `x ∈ Icc a b` The difference of `f` and its `n`-th
-Taylor polynomial can be estimated by `C * (x - a)^(n+1) / n!` where `C` is a bound for the `n+1`-th
-iterated derivative of `f`. -/
+There exists a constant `C` such that for all `x ∈ Icc a b` the difference of `f` and its `n`-th
+Taylor polynomial can be estimated by `C * (x - a)^(n+1)`. -/
 lemma exists_taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
   ∃ C, ∀ x ∈ Icc a b, ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) :=

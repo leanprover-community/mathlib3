@@ -146,10 +146,11 @@ lemma age.joint_embedding : joint_embedding (L.age M) :=
 
 /-- The age of a countable structure is essentially countable (has countably many isomorphism
 classes). -/
-lemma age.countable_quotient (h : (univ : set M).countable) :
+lemma age.countable_quotient [h : countable M] :
   (quotient.mk '' (L.age M)).countable :=
 begin
-  refine eq.mp (congr rfl (set.ext _)) ((countable_set_of_finite_subset h).image
+  refine (congr rfl (set.ext _)).mp ((countable_set_of_finite_subset
+    (countable_univ : (univ : set M).countable)).image
     (λ s, ⟦⟨closure L s, infer_instance⟩⟧)),
   rw forall_quotient_iff,
   intro N,
@@ -222,7 +223,7 @@ begin
 end
 
 theorem exists_countable_is_age_of_iff [countable (Σl, L.functions l)] :
-  (∃ (M : bundled.{w} L.Structure), (univ : set M).countable ∧ L.age M = K) ↔
+  (∃ (M : bundled.{w} L.Structure), countable M ∧ L.age M = K) ↔
     K.nonempty ∧
     (∀ (M N : bundled.{w} L.Structure), nonempty (M ≃[L] N) → (M ∈ K ↔ N ∈ K)) ∧
     (quotient.mk '' K).countable ∧
@@ -233,12 +234,11 @@ begin
   split,
   { rintros ⟨M, h1, h2, rfl⟩,
     resetI,
-    refine ⟨age.nonempty M, age.is_equiv_invariant L M, age.countable_quotient M h1, λ N hN, hN.1,
+    refine ⟨age.nonempty M, age.is_equiv_invariant L M, age.countable_quotient M, λ N hN, hN.1,
       age.hereditary M, age.joint_embedding M⟩, },
   { rintros ⟨Kn, eqinv, cq, hfg, hp, jep⟩,
     obtain ⟨M, hM, rfl⟩ := exists_cg_is_age_of Kn eqinv cq hfg hp jep,
-    haveI : countable M := Structure.cg_iff_countable.1 hM,
-    exact ⟨M, to_countable _, rfl⟩, }
+    exact ⟨M, Structure.cg_iff_countable.1 hM, rfl⟩ }
 end
 
 variables {K} (L) (M)
@@ -253,9 +253,9 @@ variables {L} (K)
 
 /-- A structure `M` is a Fraïssé limit for a class `K` if it is countably generated,
 ultrahomogeneous, and has age `K`. -/
-structure is_fraisse_limit [countable (Σl, L.functions l)] : Prop :=
+@[protect_proj] structure is_fraisse_limit [countable (Σl, L.functions l)]
+  [countable M] : Prop :=
 (ultrahomogeneous : is_ultrahomogeneous L M)
-(is_countable : (univ : set M).countable)
 (age : L.age M = K)
 
 variables {L} {M}
@@ -279,18 +279,18 @@ begin
     set.coe_inclusion, embedding.equiv_range_apply, hgn],
 end
 
-lemma is_ultrahomogeneous.age_is_fraisse (hc : (univ : set M).countable)
+lemma is_ultrahomogeneous.age_is_fraisse [countable M]
   (h : L.is_ultrahomogeneous M) :
   is_fraisse (L.age M) :=
-⟨age.nonempty M, λ _ hN, hN.1, age.is_equiv_invariant L M, age.countable_quotient M hc,
+⟨age.nonempty M, λ _ hN, hN.1, age.is_equiv_invariant L M, age.countable_quotient M,
   age.hereditary M, age.joint_embedding M, h.amalgamation_age⟩
 
 namespace is_fraisse_limit
 
 /-- If a class has a Fraïssé limit, it must be Fraïssé. -/
-theorem is_fraisse [_root_.countable (Σl, L.functions l)] (h : is_fraisse_limit K M) :
+theorem is_fraisse [countable (Σl, L.functions l)] [countable M] (h : is_fraisse_limit K M) :
   is_fraisse K :=
-(congr rfl h.age).mp (h.ultrahomogeneous.age_is_fraisse h.is_countable)
+(congr rfl h.age).mp h.ultrahomogeneous.age_is_fraisse
 
 end is_fraisse_limit
 

@@ -151,7 +151,6 @@ encodable.of_left_injection list_encode (λ l, (list_decode l).head'.join)
     simp only [option.join, head', list.map, option.some_bind, id.def],
   end)
 
-
 instance [h1 : countable α] [h2 : countable (Σl, L.functions l)] :
   countable (L.term α) :=
 begin

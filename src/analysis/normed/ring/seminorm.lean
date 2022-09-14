@@ -56,6 +56,11 @@ instance add_group_seminorm_class : add_group_seminorm_class (ring_seminorm R) R
   map_add_le_add := λ f, f.add_le',
   map_neg_eq_map := λ f, f.neg', }
 
+instance submultiplicative_hom_class : submultiplicative_hom_class (ring_seminorm R) R ℝ :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_mul_le_mul := λ f x y, f.mul_le' _ _, }
+
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (ring_seminorm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
 
@@ -115,9 +120,9 @@ def norm_ring_seminorm (R : Type*) [non_unital_semi_normed_ring R] :
 
 /-- A function `f : R → ℝ` is a norm on a (nonunital) ring if it is a seminorm and `f x = 0`
   implies `x = 0`. -/
-structure ring_norm (R : Type*) [non_unital_ring R] extends ring_seminorm R :=
-(ne_zero : ∀ x, x ≠ 0 → 0 < to_fun x)
+structure ring_norm (R : Type*) [non_unital_ring R] extends add_group_norm R, ring_seminorm R
 
+attribute [nolint doc_blame] ring_norm.to_add_group_norm
 attribute [nolint doc_blame] ring_norm.to_ring_seminorm
 
 namespace ring_norm
@@ -130,11 +135,7 @@ instance add_group_norm_class : add_group_norm_class (ring_norm R) R :=
   map_zero := λ f, f.map_zero',
   map_add_le_add := λ f, f.add_le',
   map_neg_eq_map := λ f, f.neg',
-  eq_zero_of_map_eq_zero := λ f x hfx,
-  begin
-    by_contra hx,
-    exact (ne_of_gt (f.ne_zero x hx)) hfx,
-  end, }
+  eq_zero_of_map_eq_zero := λ f x hfx, f.eq_zero_of_map_eq_zero' x hfx }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (ring_norm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
@@ -157,9 +158,11 @@ def trivial_norm [decidable_eq R] : ring_norm R :=
     { simp only [add_group_norm.to_fun_eq_coe, add_group_norm.apply_one, if_neg h,
         if_neg (left_ne_zero_of_mul h), if_neg (right_ne_zero_of_mul h), mul_one] }
   end,
-  ne_zero := λ x hx, begin
-    simp only [add_group_norm.to_fun_eq_coe, add_group_norm.apply_one, if_neg hx],
-    exact zero_lt_one
+  eq_zero_of_map_eq_zero' := λ x hx, begin
+    simp only [add_group_norm.to_fun_eq_coe, add_group_norm.apply_one, ite_eq_left_iff,
+      one_ne_zero] at hx,
+    by_contra h,
+    exact hx h,
   end,
   ..(1 : add_group_norm R) }
 
@@ -171,22 +174,21 @@ instance [decidable_eq R] : inhabited (ring_norm R) := ⟨trivial_norm R⟩
 end ring_norm
 
 /-- A nonzero ring seminorm on a field `K` is a ring norm. -/
-def ring_seminorm.to_ring_horm {K : Type*} [field K] (f : ring_seminorm K)
-  (hnt : f ≠ 0) : ring_norm K :=
-{ ne_zero := λ x hx, begin
+def ring_seminorm.to_ring_horm {K : Type*} [field K] (f : ring_seminorm K) (hnt : f ≠ 0) :
+  ring_norm K :=
+{ eq_zero_of_map_eq_zero' := λ x hx,
+  begin
     obtain ⟨c, hc⟩ := ring_seminorm.ne_zero_iff.mp hnt,
-    have hfx : 0 ≠ f x,
-    { intro h0,
-      have hc' : f c ≤ 0,
-      { rw [← mul_one c, ← mul_inv_cancel hx, ← mul_assoc, mul_comm c, mul_assoc],
-        refine le_trans (f.mul_le x _) _,
-        rw [← h0, zero_mul] },
-        exact hc (le_antisymm hc' (map_nonneg _ _)),  },
-      exact lt_of_le_of_ne (map_nonneg f x) hfx,
+    by_contradiction hn0,
+    have hc0 : f c = 0,
+    { rw [← mul_one c, ← mul_inv_cancel hn0, ← mul_assoc, mul_comm c, mul_assoc],
+      exact le_antisymm (le_trans (map_mul_le_mul f _ _)
+        (by rw [← ring_seminorm.to_fun_eq_coe, hx, zero_mul])) (map_nonneg f _) },
+    exact hc hc0,
   end,
   ..f }
 
 /-- The norm of a normed_ring as a ring_norm. -/
 @[simps] def norm_ring_norm (R : Type*) [non_unital_normed_ring R] : ring_norm R :=
-{ ne_zero := λ x, norm_pos_iff.mpr,
+{ eq_zero_of_map_eq_zero' := λ x hx, norm_eq_zero.mp hx,
   ..norm_ring_seminorm R }

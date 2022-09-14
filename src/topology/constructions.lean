@@ -34,7 +34,7 @@ product, sum, disjoint union, subspace, quotient space
 
 noncomputable theory
 
-open topological_space set filter
+open topological_space set filter function
 open_locale classical topological_space filter
 
 universes u v
@@ -388,15 +388,15 @@ lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
 continuous_snd.prod_mk continuous_fst
 
 lemma continuous_uncurry_left {f : α → β → γ} (a : α)
-  (h : continuous (function.uncurry f)) : continuous (f a) :=
-show continuous (function.uncurry f ∘ (λ b, (a, b))), from h.comp (by continuity)
+  (h : continuous (uncurry f)) : continuous (f a) :=
+show continuous (uncurry f ∘ (λ b, (a, b))), from h.comp (by continuity)
 
 lemma continuous_uncurry_right {f : α → β → γ} (b : β)
-  (h : continuous (function.uncurry f)) : continuous (λ a, f a b) :=
-show continuous (function.uncurry f ∘ (λ a, (a, b))), from h.comp (by continuity)
+  (h : continuous (uncurry f)) : continuous (λ a, f a b) :=
+show continuous (uncurry f ∘ (λ a, (a, b))), from h.comp (by continuity)
 
 lemma continuous_curry {g : α × β → γ} (a : α)
-  (h : continuous g) : continuous (function.curry g a) :=
+  (h : continuous g) : continuous (curry g a) :=
 show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
 
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
@@ -409,7 +409,7 @@ by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced
 /-- If a function `f x y` is such that `y ↦ f x y` is continuous for all `x`, and `x` lives in a
 discrete space, then `f` is continuous. -/
 lemma continuous_uncurry_of_discrete_topology [discrete_topology α]
-  {f : α → β → γ} (hf : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
+  {f : α → β → γ} (hf : ∀ a, continuous (f a)) : continuous (uncurry f) :=
 begin
   apply continuous_iff_continuous_at.2,
   rintros ⟨a, x⟩,
@@ -544,10 +544,10 @@ lemma prod_induced_induced {α γ : Type*} (f : α → β) (g : γ → δ) :
 by simp_rw [prod.topological_space, induced_inf, induced_compose]
 
 lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
-  {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
+  {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (uncurry f) :=
 continuous_iff_continuous_at.2 $ λ ⟨a, b⟩,
   by simp only [continuous_at, nhds_prod_eq, nhds_discrete α, pure_prod, tendsto_map'_iff, (∘),
-    function.uncurry, (h a).tendsto]
+    uncurry, (h a).tendsto]
 
 /-- Given a neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood
   that is a subset of `s`. -/
@@ -1022,23 +1022,23 @@ tendsto_pi_nhds
 lemma filter.tendsto.update [∀i, topological_space (π i)] [decidable_eq ι]
   {l : filter α} {f : α → Π i, π i} {x : Π i, π i} (hf : tendsto f l (𝓝 x)) (i : ι)
   {g : α → π i} {xi : π i} (hg : tendsto g l (𝓝 xi)) :
-  tendsto (λ a, function.update (f a) i (g a)) l (𝓝 $ function.update x i xi) :=
+  tendsto (λ a, update (f a) i (g a)) l (𝓝 $ update x i xi) :=
 tendsto_pi_nhds.2 $ λ j, by { rcases em (j = i) with rfl|hj; simp [*, hf.apply] }
 
 lemma continuous_at.update [∀i, topological_space (π i)] [topological_space α] [decidable_eq ι]
   {f : α → Π i, π i} {a : α} (hf : continuous_at f a) (i : ι) {g : α → π i}
   (hg : continuous_at g a) :
-  continuous_at (λ a, function.update (f a) i (g a)) a :=
+  continuous_at (λ a, update (f a) i (g a)) a :=
 hf.update i hg
 
 lemma continuous.update [∀i, topological_space (π i)] [topological_space α] [decidable_eq ι]
   {f : α → Π i, π i} (hf : continuous f) (i : ι) {g : α → π i} (hg : continuous g) :
-  continuous (λ a, function.update (f a) i (g a)) :=
+  continuous (λ a, update (f a) i (g a)) :=
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_at
 
 /-- `function.update f i x` is continuous in `(f, x)`. -/
 @[continuity] lemma continuous_update [∀i, topological_space (π i)] [decidable_eq ι] (i : ι) :
-  continuous (λ f : (Π j, π j) × π i, function.update f.1 i f.2) :=
+  continuous (λ f : (Π j, π j) × π i, update f.1 i f.2) :=
 continuous_fst.update i continuous_snd
 
 lemma filter.tendsto.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topological_space (π i)]
@@ -1104,7 +1104,7 @@ lemma pi_eq_generate_from [∀a, topological_space (π a)] :
 le_antisymm
   (le_generate_from $ assume g ⟨s, i, hi, eq⟩, eq.symm ▸ is_open_set_pi (finset.finite_to_set _) hi)
   (le_infi $ assume a s ⟨t, ht, s_eq⟩, generate_open.basic _ $
-    ⟨function.update (λa, univ) a t, {a}, by simpa using ht, s_eq ▸ by ext f; simp [set.pi]⟩)
+    ⟨update (λa, univ) a t, {a}, by simpa using ht, s_eq ▸ by ext f; simp [set.pi]⟩)
 
 lemma pi_generate_from_eq {g : Πa, set (set (π a))} :
   @Pi.topological_space ι π (λa, generate_from (g a)) =
@@ -1119,7 +1119,7 @@ begin
     apply is_open_bInter (finset.finite_to_set _),
     assume a ha, show ((generate_from G).coinduced (λf:Πa, π a, f a)).is_open (t a),
     refine le_generate_from _ _ (hi a ha),
-    exact assume s hs, generate_open.basic _ ⟨function.update (λa, univ) a s, {a}, by simp [hs]⟩ }
+    exact assume s hs, generate_open.basic _ ⟨update (λa, univ) a s, {a}, by simp [hs]⟩ }
 end
 
 lemma pi_generate_from_eq_finite {g : Πa, set (set (π a))} [finite ι] (hg : ∀a, ⋃₀ g a = univ) :
@@ -1165,7 +1165,7 @@ instance Pi.discrete_topology : discrete_topology (Π i, π i) :=
 singletons_open_iff_discrete.mp (λ x,
 begin
   rw show {x} = ⋂ i, {y : Π i, π i | y i = x i},
-  { ext, simp only [function.funext_iff, set.mem_singleton_iff, set.mem_Inter, set.mem_set_of_eq] },
+  { ext, simp only [funext_iff, set.mem_singleton_iff, set.mem_Inter, set.mem_set_of_eq] },
   exact is_open_Inter (λ i, (continuous_apply i).is_open_preimage {x i} (is_open_discrete {x i}))
 end)
 

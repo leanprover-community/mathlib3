@@ -19,16 +19,16 @@ variables {A : Type*} [normed_comm_ring A] [normed_algebra ℂ A] [complete_spac
 algebra. In particular, the character, which may be identified as an algebra homomorphism due to
 `weak_dual.character_space.equiv_alg_hom`, is given by the composition of the quotient map and
 the Gelfand-Mazur isomorphism `normed_ring.alg_equiv_complex_of_complete`. -/
-@[protected] noncomputable def ideal.character_space : character_space ℂ A :=
+noncomputable def ideal.to_character_space : character_space ℂ A :=
 character_space.equiv_alg_hom.symm $ ((@normed_ring.alg_equiv_complex_of_complete (A ⧸ I) _ _
   (by { letI := quotient.field I, exact @is_unit_iff_ne_zero (A ⧸ I) _ }) _).symm :
   A ⧸ I →ₐ[ℂ] ℂ).comp
   (quotient.mkₐ ℂ I)
 
-lemma ideal.character_space_apply_zero_of_mem {a : A} (ha : a ∈ I) :
-  I.character_space a = 0 :=
+lemma ideal.to_character_space_apply_zero_of_mem {a : A} (ha : a ∈ I) :
+  I.to_character_space a = 0 :=
 begin
-  unfold ideal.character_space,
+  unfold ideal.to_character_space,
   simpa only [character_space.equiv_alg_hom_symm_coe, alg_hom.coe_comp,
     alg_equiv.coe_alg_hom, quotient.mkₐ_eq_mk, function.comp_app, quotient.eq_zero_iff_mem.mpr ha,
     spectrum.zero_eq, normed_ring.alg_equiv_complex_of_complete_symm_apply]
@@ -41,7 +41,7 @@ lemma weak_dual.character_space.exists_apply_eq_zero {a : A} (ha : ¬ is_unit a)
   ∃ f : character_space ℂ A, f a = 0 :=
 begin
   unfreezingI { obtain ⟨M, hM, haM⟩ := (span {a}).exists_le_maximal (span_singleton_ne_top ha) },
-  exact ⟨M.character_space, M.character_space_apply_zero_of_mem
+  exact ⟨M.to_character_space, M.to_character_space_apply_zero_of_mem
     (haM (mem_span_singleton.mpr ⟨1, (mul_one a).symm⟩))⟩,
 end
 

@@ -834,6 +834,14 @@ attribute [nolint dangerous_instance] alg_equiv_class.to_ring_equiv_class
 
 namespace alg_equiv_class
 
+@[priority 100] -- See note [lower_instance_priority]
+instance to_smul_hom_class (F : Type*) (R A B : out_param Type*)
+  [has_add A] [has_mul A] [has_add B] [has_mul B] [has_smul R A] [has_smul R B]
+  [h : alg_equiv_class F R A B] : smul_hom_class F R A B :=
+{ coe := coe_fn,
+  coe_injective' := fun_like.coe_injective,
+  .. h }
+
 @[priority 100] -- See note [lower instance priority]
 instance to_alg_hom_class (F R A B : Type*)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
@@ -845,30 +853,25 @@ instance to_alg_hom_class (F R A B : Type*)
   commutes := λ f r, by simp only [algebra.algebra_map_eq_smul_one, map_smul, map_one],
   .. h }
 
+-- type class assumptions here should be weakened.
 @[priority 100]
 instance to_linear_equiv_class (F R A B : Type*)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
   [h : alg_equiv_class F R A B] : linear_equiv_class F R A B :=
-{ map_smulₛₗ := λ f, map_smul f,
+{ map_smulₛₗ := map_smul,
   ..h }
 
-#exit
 end alg_equiv_class
 
 namespace alg_equiv
 
 variables {R : Type u} {A₁ : Type v} {A₂ : Type w} {A₃ : Type u₁}
 
-section semiring
+section basic
 
 variables [has_add A₁] [has_mul A₁] [has_add A₂] [has_mul A₂] [has_add A₃] [has_mul A₃]
 variables [has_smul R A₁] [has_smul R A₂] [has_smul R A₃]
 variables (e : A₁ ≃ₐ[R] A₂)
-/-
-variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
-variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
-variables (e : A₁ ≃ₐ[R] A₂)
--/
 
 instance : alg_equiv_class (A₁ ≃ₐ[R] A₂) R A₁ A₂ :=
 { coe := to_fun,
@@ -919,66 +922,65 @@ lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
 λ e₁ e₂ h, ext $ ring_equiv.congr_fun h
 
-protected lemma map_add : ∀ x y, e (x + y) = e x + e y := map_add e
-protected lemma map_zero : e 0 = 0 := map_zero e
-protected lemma map_mul : ∀ x y, e (x * y) = (e x) * (e y) := map_mul e
-protected lemma map_one : e 1 = 1 := map_one e
-
-@[simp] lemma commutes : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
-  e.commutes'
-
-@[simp] lemma map_smul (r : R) (x : A₁) : e (r • x) = r • e x :=
-by simp only [algebra.smul_def, map_mul, commutes]
-
-lemma map_sum {ι : Type*} (f : ι → A₁) (s : finset ι) :
-  e (∑ x in s, f x) = ∑ x in s, e (f x) :=
-e.to_add_equiv.map_sum f s
-
-lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A₁) :
-  e (f.sum g) = f.sum (λ i b, e (g i b)) :=
-e.map_sum _ _
-
-/-- Interpret an algebra equivalence as an algebra homomorphism.
-
-This definition is included for symmetry with the other `to_*_hom` projections.
-The `simp` normal form is to use the coercion of the `has_coe_to_alg_hom` instance. -/
-def to_alg_hom : A₁ →ₐ[R] A₂ :=
-{ map_one' := e.map_one, map_zero' := e.map_zero, ..e }
-
-instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂) :=
-⟨to_alg_hom⟩
-
-@[simp] lemma to_alg_hom_eq_coe : e.to_alg_hom = e := rfl
-
-@[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
-rfl
-
-lemma coe_alg_hom_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ →ₐ[R] A₂)) :=
-λ e₁ e₂ h, ext $ alg_hom.congr_fun h
-
-/-- The two paths coercion can take to a `ring_hom` are equivalent -/
-lemma coe_ring_hom_commutes : ((e : A₁ →ₐ[R] A₂) : A₁ →+* A₂) = ((e : A₁ ≃+* A₂) : A₁ →+* A₂) :=
-rfl
-
-protected lemma map_pow : ∀ (x : A₁) (n : ℕ), e (x ^ n) = (e x) ^ n := map_pow _
 protected lemma injective : function.injective e := equiv_like.injective e
 protected lemma surjective : function.surjective e := equiv_like.surjective e
 protected lemma bijective : function.bijective e := equiv_like.bijective e
 
+protected lemma map_add : ∀ x y, e (x + y) = e x + e y := map_add e
+protected lemma map_mul : ∀ x y, e (x * y) = (e x) * (e y) := map_mul e
+protected lemma map_smul (r : R) (x : A₁) : e (r • x) = r • e x := e.map_smul' r x
+
+protected lemma map_neg {R A₁ A₂} [add_group A₁] [add_group A₂] [has_mul A₁]
+  [has_mul A₂] [has_smul R A₁] [has_smul R A₂] (e : A₁ ≃ₐ[R] A₂) (x) : e (-x) = -e x := map_neg e x
+
+protected lemma map_sub {R A₁ A₂} [add_group A₁] [add_group A₂] [has_mul A₁]
+  [has_mul A₂] [has_smul R A₁] [has_smul R A₂] (e : A₁ ≃ₐ[R] A₂) (x y) :
+  e (x - y) = e x - e y := map_sub e x y
+
+protected lemma map_zero {R A₁ A₂} [add_zero_class A₁] [add_zero_class A₂] [has_mul A₁]
+  [has_mul A₂] [has_smul R A₁] [has_smul R A₂] (e : A₁ ≃ₐ[R] A₂) : e 0 = 0 := map_zero e
+
+protected lemma map_one {R A₁ A₂} [mul_one_class A₁] [mul_one_class A₂] [has_add A₁] [has_add A₂]
+  [has_smul R A₁] [has_smul R A₂] (e : A₁ ≃ₐ[R] A₂) : e 1 = 1 := map_one e
+
+protected lemma map_pow {R A₁ A₂} [monoid A₁] [monoid A₂] [has_add A₁] [has_add A₂]
+  [has_smul R A₁] [has_smul R A₂] (e : A₁ ≃ₐ[R] A₂) :
+  ∀ (x : A₁) (n : ℕ), e (x ^ n) = (e x) ^ n := map_pow _
+
+protected lemma commutes {R A₁ A₂} [comm_semiring R] [semiring A₁] [semiring A₂] [algebra R A₁]
+  [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
+alg_hom_class.commutes e
+
+lemma map_sum {R A₁ A₂} [add_comm_monoid A₁] [add_comm_monoid A₂] [has_mul A₁] [has_mul A₂]
+  [has_smul R A₁] [has_smul R A₂] (e : A₁ ≃ₐ[R] A₂) {ι : Type*} (f : ι → A₁) (s : finset ι) :
+  e (∑ x in s, f x) = ∑ x in s, e (f x) :=
+e.to_add_equiv.map_sum f s
+
+lemma map_finsupp_sum {R A₁ A₂} [add_comm_monoid A₁] [add_comm_monoid A₂] [has_mul A₁] [has_mul A₂]
+  [has_smul R A₁] [has_smul R A₂] (e : A₁ ≃ₐ[R] A₂){α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
+  (g : ι → α → A₁) : e (f.sum g) = f.sum (λ i b, e (g i b)) :=
+e.map_sum _ _
+
+
 /-- Algebra equivalences are reflexive. -/
-@[refl] def refl : A₁ ≃ₐ[R] A₁ := {commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}
+@[refl] def refl : A₁ ≃ₐ[R] A₁ := {map_smul' := λ r a, rfl, ..(1 : A₁ ≃+* A₁)}
 
 instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨refl⟩
-
-@[simp] lemma refl_to_alg_hom : ↑(refl : A₁ ≃ₐ[R] A₁) = alg_hom.id R A₁ := rfl
 
 @[simp] lemma coe_refl : ⇑(refl : A₁ ≃ₐ[R] A₁) = id := rfl
 
 /-- Algebra equivalences are symmetric. -/
 @[symm]
 def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
-{ commutes' := λ r, by { rw ←e.to_ring_equiv.symm_apply_apply (algebra_map R A₁ r), congr,
-                         change _ = e _, rw e.commutes, },
+{ map_smul' := λ r a,
+  begin
+    rw ←e.to_ring_equiv.symm_apply_apply (r • e.to_ring_equiv.symm.to_fun a),
+    congr,
+    change _ = e _,
+    rw map_smul,
+    change _ = r • e.to_ring_equiv (e.to_ring_equiv.symm _),
+    rw e.to_ring_equiv.apply_symm_apply,
+  end,
   ..e.to_ring_equiv.symm, }
 
 /-- See Note [custom simps projection] -/
@@ -1009,7 +1011,7 @@ theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl
 /-- Algebra equivalences are transitive. -/
 @[trans]
 def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃ₐ[R] A₃ :=
-{ commutes' := λ r, show e₂.to_fun (e₁.to_fun _) = _, by rw [e₁.commutes', e₂.commutes'],
+{ map_smul' := λ r a, show e₂ (e₁ (r • a)) = r • (e₂ (e₁ a)), by rw [map_smul, map_smul],
   ..(e₁.to_ring_equiv.trans e₂.to_ring_equiv), }
 
 @[simp] lemma apply_symm_apply (e : A₁ ≃ₐ[R] A₂) : ∀ x, e (e.symm x) = x :=
@@ -1027,6 +1029,147 @@ def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃�
 @[simp] lemma trans_apply (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) (x : A₁) :
   (e₁.trans e₂) x = e₂ (e₁ x) := rfl
 
+theorem left_inverse_symm (e : A₁ ≃ₐ[R] A₂) : function.left_inverse e.symm e := e.left_inv
+
+theorem right_inverse_symm (e : A₁ ≃ₐ[R] A₂) : function.right_inverse e.symm e := e.right_inv
+
+@[simps mul one inv {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
+{ mul := λ ϕ ψ, ψ.trans ϕ,
+  mul_assoc := λ ϕ ψ χ, rfl,
+  one := refl,
+  one_mul := λ ϕ, ext $ λ x, rfl,
+  mul_one := λ ϕ, ext $ λ x, rfl,
+  inv := symm,
+  mul_left_inv := λ ϕ, ext $ symm_apply_apply ϕ }
+
+@[simp] lemma one_apply (x : A₁) : (1 : A₁ ≃ₐ[R] A₁) x = x := rfl
+
+@[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
+
+/-- An algebra isomorphism induces a group isomorphism between automorphism groups -/
+@[simps apply]
+def aut_congr (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ ≃ₐ[R] A₁) ≃* (A₂ ≃ₐ[R] A₂) :=
+{ to_fun := λ ψ, ϕ.symm.trans (ψ.trans ϕ),
+  inv_fun := λ ψ, ϕ.trans (ψ.trans ϕ.symm),
+  left_inv := λ ψ, by { ext, simp_rw [trans_apply, symm_apply_apply] },
+  right_inv := λ ψ, by { ext, simp_rw [trans_apply, apply_symm_apply] },
+  map_mul' := λ ψ χ, by { ext, simp only [mul_apply, trans_apply, symm_apply_apply] } }
+
+@[simp] lemma aut_congr_refl : aut_congr (alg_equiv.refl) = mul_equiv.refl (A₁ ≃ₐ[R] A₁) :=
+by { ext, refl }
+
+@[simp] lemma aut_congr_symm (ϕ : A₁ ≃ₐ[R] A₂) : (aut_congr ϕ).symm = aut_congr ϕ.symm := rfl
+
+@[simp] lemma aut_congr_trans (ϕ : A₁ ≃ₐ[R] A₂) (ψ : A₂ ≃ₐ[R] A₃) :
+  (aut_congr ϕ).trans (aut_congr ψ) = aut_congr (ϕ.trans ψ) := rfl
+
+end basic
+section linear
+
+variables [semiring R] [add_comm_monoid A₁] [add_comm_monoid A₂] [add_comm_monoid A₃]
+variables [has_mul A₁] [has_mul A₂] [has_mul A₃] [module R A₁] [module R A₂] [module R A₃]
+variables (e : A₁ ≃ₐ[R] A₂)
+
+/-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
+@[simps apply] def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
+{ to_fun    := e,
+  map_smul' := e.map_smul,
+  inv_fun   := e.symm,
+  .. e }
+
+@[simp] lemma to_linear_equiv_refl :
+  (alg_equiv.refl : A₁ ≃ₐ[R] A₁).to_linear_equiv = linear_equiv.refl R A₁ := rfl
+
+@[simp] lemma to_linear_equiv_symm (e : A₁ ≃ₐ[R] A₂) :
+  e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
+
+@[simp] lemma to_linear_equiv_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
+  (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv := rfl
+
+theorem to_linear_equiv_injective : function.injective (to_linear_equiv : _ → (A₁ ≃ₗ[R] A₂)) :=
+λ e₁ e₂ h, ext $ linear_equiv.congr_fun h
+
+/-- Interpret an algebra equivalence as a linear map. -/
+def to_linear_map : A₁ →ₗ[R] A₂ :=
+e.to_linear_equiv.to_linear_map
+
+@[simp] lemma to_linear_equiv_to_linear_map :
+  e.to_linear_equiv.to_linear_map = e.to_linear_map := rfl
+
+@[simp] lemma to_linear_map_apply (x : A₁) : e.to_linear_map x = e x := rfl
+
+theorem to_linear_map_injective : function.injective (to_linear_map : _ → (A₁ →ₗ[R] A₂)) :=
+λ e₁ e₂ h, ext $ linear_map.congr_fun h
+
+@[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
+  (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
+
+section of_linear_equiv
+
+variables (l : A₁ ≃ₗ[R] A₂) (map_mul : ∀ x y : A₁, l (x * y) = l x * l y)
+
+/--
+Upgrade a linear equivalence to an algebra equivalence,
+given that it distributes over multiplication.
+-/
+@[simps apply]
+def of_linear_equiv : A₁ ≃ₐ[R] A₂ :=
+{ to_fun := l,
+  inv_fun := l.symm,
+  map_mul' := map_mul,
+  map_smul' := map_smul l,
+  ..l }
+
+@[simp]
+lemma of_linear_equiv_symm : (of_linear_equiv l map_mul).symm = of_linear_equiv l.symm
+  ((of_linear_equiv l map_mul).symm.map_mul) :=
+rfl
+
+@[simp] lemma of_linear_equiv_to_linear_equiv (map_mul) :
+  of_linear_equiv e.to_linear_equiv map_mul = e :=
+by { ext, refl }
+
+@[simp] lemma to_linear_equiv_of_linear_equiv :
+  to_linear_equiv (of_linear_equiv l map_mul) = l :=
+by { ext, refl }
+
+end of_linear_equiv
+
+end linear
+
+section semiring
+
+variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
+variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
+variables (e : A₁ ≃ₐ[R] A₂)
+
+/-- Interpret an algebra equivalence as an algebra homomorphism.
+
+This definition is included for symmetry with the other `to_*_hom` projections.
+The `simp` normal form is to use the coercion of the `has_coe_to_alg_hom` instance. -/
+def to_alg_hom : A₁ →ₐ[R] A₂ :=
+{ map_one' := e.map_one, map_zero' := e.map_zero, commutes' := e.commutes, ..e }
+
+instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂) :=
+⟨to_alg_hom⟩
+
+@[simp] lemma to_alg_hom_eq_coe : e.to_alg_hom = e := rfl
+
+@[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
+rfl
+
+@[simp] lemma to_alg_hom_to_linear_map :
+  (e : A₁ →ₐ[R] A₂).to_linear_map = e.to_linear_map := rfl
+
+lemma coe_alg_hom_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ →ₐ[R] A₂)) :=
+λ e₁ e₂ h, ext $ alg_hom.congr_fun h
+
+/-- The two paths coercion can take to a `ring_hom` are equivalent -/
+lemma coe_ring_hom_commutes : ((e : A₁ →ₐ[R] A₂) : A₁ →+* A₂) = ((e : A₁ ≃+* A₂) : A₁ →+* A₂) :=
+rfl
+
+@[simp] lemma refl_to_alg_hom : ↑(refl : A₁ ≃ₐ[R] A₁) = alg_hom.id R A₁ := rfl
+
 @[simp] lemma comp_symm (e : A₁ ≃ₐ[R] A₂) :
   alg_hom.comp (e : A₁ →ₐ[R] A₂) ↑e.symm = alg_hom.id R A₂ :=
 by { ext, simp }
@@ -1034,10 +1177,6 @@ by { ext, simp }
 @[simp] lemma symm_comp (e : A₁ ≃ₐ[R] A₂) :
   alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
 by { ext, simp }
-
-theorem left_inverse_symm (e : A₁ ≃ₐ[R] A₂) : function.left_inverse e.symm e := e.left_inv
-
-theorem right_inverse_symm (e : A₁ ≃ₐ[R] A₂) : function.right_inverse e.symm e := e.right_inv
 
 /-- If `A₁` is equivalent to `A₁'` and `A₂` is equivalent to `A₂'`, then the type of maps
 `A₁ →ₐ[R] A₂` is equivalent to the type of maps `A₁' →ₐ[R] A₂'`. -/
@@ -1079,6 +1218,7 @@ def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.com
   inv_fun   := g,
   left_inv  := alg_hom.ext_iff.1 h₂,
   right_inv := alg_hom.ext_iff.1 h₁,
+  map_smul' := map_smul f,
   ..f }
 
 lemma coe_alg_hom_of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ h₂) :
@@ -1093,7 +1233,7 @@ lemma of_alg_hom_symm (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ 
 
 /-- Promotes a bijective algebra homomorphism to an algebra equivalence. -/
 noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijective f) : A₁ ≃ₐ[R] A₂ :=
-{ .. ring_equiv.of_bijective (f : A₁ →+* A₂) hf, .. f }
+{ map_smul' := map_smul f, .. ring_equiv.of_bijective (f : A₁ →+* A₂) hf, .. f }
 
 @[simp] lemma coe_of_bijective {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} :
   (alg_equiv.of_bijective f hf : A₁ → A₂) = f := rfl
@@ -1101,117 +1241,15 @@ noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijectiv
 lemma of_bijective_apply {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} (a : A₁) :
   (alg_equiv.of_bijective f hf) a = f a := rfl
 
-/-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
-@[simps apply] def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
-{ to_fun    := e,
-  map_smul' := e.map_smul,
-  inv_fun   := e.symm,
-  .. e }
-
-@[simp] lemma to_linear_equiv_refl :
-  (alg_equiv.refl : A₁ ≃ₐ[R] A₁).to_linear_equiv = linear_equiv.refl R A₁ := rfl
-
-@[simp] lemma to_linear_equiv_symm (e : A₁ ≃ₐ[R] A₂) :
-  e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
-
-@[simp] lemma to_linear_equiv_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
-  (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv := rfl
-
-theorem to_linear_equiv_injective : function.injective (to_linear_equiv : _ → (A₁ ≃ₗ[R] A₂)) :=
-λ e₁ e₂ h, ext $ linear_equiv.congr_fun h
-
-/-- Interpret an algebra equivalence as a linear map. -/
-def to_linear_map : A₁ →ₗ[R] A₂ :=
-e.to_alg_hom.to_linear_map
-
-@[simp] lemma to_alg_hom_to_linear_map :
-  (e : A₁ →ₐ[R] A₂).to_linear_map = e.to_linear_map := rfl
-
-@[simp] lemma to_linear_equiv_to_linear_map :
-  e.to_linear_equiv.to_linear_map = e.to_linear_map := rfl
-
-@[simp] lemma to_linear_map_apply (x : A₁) : e.to_linear_map x = e x := rfl
-
-theorem to_linear_map_injective : function.injective (to_linear_map : _ → (A₁ →ₗ[R] A₂)) :=
-λ e₁ e₂ h, ext $ linear_map.congr_fun h
-
-@[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
-  (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
-
-section of_linear_equiv
-
-variables (l : A₁ ≃ₗ[R] A₂)
-  (map_mul : ∀ x y : A₁, l (x * y) = l x * l y)
-  (commutes : ∀ r : R, l (algebra_map R A₁ r) = algebra_map R A₂ r)
-
-/--
-Upgrade a linear equivalence to an algebra equivalence,
-given that it distributes over multiplication and action of scalars.
--/
-@[simps apply]
-def of_linear_equiv : A₁ ≃ₐ[R] A₂ :=
-{ to_fun := l,
-  inv_fun := l.symm,
-  map_mul' := map_mul,
-  commutes' := commutes,
-  ..l }
-
-@[simp]
-lemma of_linear_equiv_symm :
-  (of_linear_equiv l map_mul commutes).symm = of_linear_equiv l.symm
-    ((of_linear_equiv l map_mul commutes).symm.map_mul)
-    ((of_linear_equiv l map_mul commutes).symm.commutes) :=
-rfl
-
-@[simp] lemma of_linear_equiv_to_linear_equiv (map_mul) (commutes) :
-  of_linear_equiv e.to_linear_equiv map_mul commutes = e :=
-by { ext, refl }
-
-@[simp] lemma to_linear_equiv_of_linear_equiv :
-  to_linear_equiv (of_linear_equiv l map_mul commutes) = l :=
-by { ext, refl }
-
-end of_linear_equiv
-
-@[simps mul one inv {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
-{ mul := λ ϕ ψ, ψ.trans ϕ,
-  mul_assoc := λ ϕ ψ χ, rfl,
-  one := refl,
-  one_mul := λ ϕ, ext $ λ x, rfl,
-  mul_one := λ ϕ, ext $ λ x, rfl,
-  inv := symm,
-  mul_left_inv := λ ϕ, ext $ symm_apply_apply ϕ }
-
-@[simp] lemma one_apply (x : A₁) : (1 : A₁ ≃ₐ[R] A₁) x = x := rfl
-
-@[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
-
-/-- An algebra isomorphism induces a group isomorphism between automorphism groups -/
-@[simps apply]
-def aut_congr (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ ≃ₐ[R] A₁) ≃* (A₂ ≃ₐ[R] A₂) :=
-{ to_fun := λ ψ, ϕ.symm.trans (ψ.trans ϕ),
-  inv_fun := λ ψ, ϕ.trans (ψ.trans ϕ.symm),
-  left_inv := λ ψ, by { ext, simp_rw [trans_apply, symm_apply_apply] },
-  right_inv := λ ψ, by { ext, simp_rw [trans_apply, apply_symm_apply] },
-  map_mul' := λ ψ χ, by { ext, simp only [mul_apply, trans_apply, symm_apply_apply] } }
-
-@[simp] lemma aut_congr_refl : aut_congr (alg_equiv.refl) = mul_equiv.refl (A₁ ≃ₐ[R] A₁) :=
-by { ext, refl }
-
-@[simp] lemma aut_congr_symm (ϕ : A₁ ≃ₐ[R] A₂) : (aut_congr ϕ).symm = aut_congr ϕ.symm := rfl
-
-@[simp] lemma aut_congr_trans (ϕ : A₁ ≃ₐ[R] A₂) (ψ : A₂ ≃ₐ[R] A₃) :
-  (aut_congr ϕ).trans (aut_congr ψ) = aut_congr (ϕ.trans ψ) := rfl
-
 /-- The tautological action by `A₁ ≃ₐ[R] A₁` on `A₁`.
 
 This generalizes `function.End.apply_mul_action`. -/
 instance apply_mul_semiring_action : mul_semiring_action (A₁ ≃ₐ[R] A₁) A₁ :=
 { smul := ($),
-  smul_zero := alg_equiv.map_zero,
-  smul_add := alg_equiv.map_add,
-  smul_one := alg_equiv.map_one,
-  smul_mul := alg_equiv.map_mul,
+  smul_zero := λ f, map_zero f,
+  smul_add := λ f, map_add f,
+  smul_one := λ f, map_one f,
+  smul_mul := λ f, map_mul f,
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
@@ -1248,16 +1286,6 @@ map_finsupp_prod _ f g
 
 end comm_semiring
 
-section ring
-
-variables [comm_semiring R] [ring A₁] [ring A₂]
-variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
-
-protected lemma map_neg (x) : e (-x) = -e x := map_neg e x
-protected lemma map_sub (x y) : e (x - y) = e x - e y := map_sub e x y
-
-end ring
-
 end alg_equiv
 
 namespace mul_semiring_action
@@ -1293,7 +1321,7 @@ This is a stronger version of `mul_semiring_action.to_ring_equiv` and
 @[simps]
 def to_alg_equiv (g : G) : A ≃ₐ[R] A :=
 { .. mul_semiring_action.to_ring_equiv _ _ g,
-  .. mul_semiring_action.to_alg_hom R A g }
+  .. (mul_semiring_action.to_alg_hom R A g).to_linear_map }
 
 theorem to_alg_equiv_injective [has_faithful_smul G A] :
   function.injective (mul_semiring_action.to_alg_equiv R A : G → A ≃ₐ[R] A) :=
@@ -1567,7 +1595,7 @@ def Pi_congr_right {R ι : Type*} {A₁ A₂ : ι → Type*} [comm_semiring R]
   (e : Π i, A₁ i ≃ₐ[R] A₂ i) : (Π i, A₁ i) ≃ₐ[R] Π i, A₂ i :=
 { to_fun := λ x j, e j (x j),
   inv_fun := λ x j, (e j).symm (x j),
-  commutes' := λ r, by { ext i, simp },
+  map_smul' := λ r a, by { ext, simp },
   .. @ring_equiv.Pi_congr_right ι A₁ A₂ _ _ (λ i, (e i).to_ring_equiv) }
 
 @[simp]

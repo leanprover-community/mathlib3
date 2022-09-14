@@ -44,8 +44,6 @@ open function
 
 variables {F α : Type*}
 
-section
-
 -- Making `centroid_hom` an old structure will allow the lemma `to_add_monoid_hom_eq_coe`
 -- to be true by `rfl`. After upgrading to Lean 4, this should no longer be needed
 -- because eta for structures should provide the same result.
@@ -57,8 +55,6 @@ structure centroid_hom (α : Type*) [non_unital_non_assoc_semiring α] extends �
 (map_mul_right' (a b : α) : to_fun (a * b) = to_fun a * b)
 
 attribute [nolint doc_blame] centroid_hom.to_add_monoid_hom
-
-end
 
 /-- `centroid_hom_class F α` states that `F` is a type of centroid homomorphisms.
 

@@ -259,7 +259,7 @@ instance has_smul_int : has_smul ℤ (centroid_hom α) :=
 instance : has_int_cast (centroid_hom α) :=
 { int_cast := λ z, z • 1 }
 
-@[simp] lemma int_cast_apply (z : ℤ) (m : α):
+@[simp] lemma int_cast_apply (z : ℤ) (m : α) :
   (z : centroid_hom α) m = z • m := rfl
 
 instance : add_comm_group (centroid_hom α) :=

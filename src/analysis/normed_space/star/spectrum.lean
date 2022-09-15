@@ -7,7 +7,6 @@ import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
 import algebra.star.module
 import analysis.normed_space.star.exponential
-import topology.algebra.module.character_space
 import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras

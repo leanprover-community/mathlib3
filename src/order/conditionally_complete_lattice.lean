@@ -235,6 +235,30 @@ instance (α : Type*) [conditionally_complete_linear_order α] :
 
 end order_dual
 
+def conditionally_complete_lattice_of_Sup (α : Type*) [H1 : lattice α]
+  [H2 : has_Sup α]
+  (is_lub_Sup : ∀ s : set α, bdd_above s → s.nonempty → is_lub s (Sup s)) :
+  conditionally_complete_lattice α :=
+{ Inf := λ s, Sup (lower_bounds s),
+  cSup_le := λ s a hs ha, (is_lub_Sup s ⟨a, ha⟩ hs).2 ha,
+  le_cSup := λ s a hs ha, (is_lub_Sup s hs ⟨a, ha⟩).1 ha,
+  cInf_le := λ s a hs ha, (is_lub_Sup (lower_bounds s)
+    (nonempty.bdd_above_lower_bounds ⟨a, ha⟩) hs).2 (λ b hb, hb ha),
+  le_cInf := λ s a hs ha, (is_lub_Sup (lower_bounds s) hs.bdd_above_lower_bounds ⟨a, ha⟩).1 ha,
+  .. H1, .. H2 }
+
+def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : lattice α]
+  [H2 : has_Inf α]
+  (is_glb_Inf : ∀ s : set α, bdd_below s → s.nonempty → is_glb s (Inf s)) :
+  conditionally_complete_lattice α :=
+{ Sup := λ s, Inf (upper_bounds s),
+  le_cInf := λ s a hs ha, (is_glb_Inf s ⟨a, ha⟩ hs).2 ha,
+  cInf_le := λ s a hs ha, (is_glb_Inf s hs ⟨a, ha⟩).1 ha,
+  le_cSup := λ s a hs ha, (is_glb_Inf (upper_bounds s)
+    (nonempty.bdd_below_upper_bounds ⟨a, ha⟩) hs).2 (λ b hb, hb ha),
+  cSup_le := λ s a hs ha, (is_glb_Inf (upper_bounds s) hs.bdd_below_upper_bounds ⟨a, ha⟩).1 ha,
+  .. H1, .. H2 }
+
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}
 

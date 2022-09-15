@@ -383,6 +383,53 @@ begin
     smul_eq_mul, real.mul_infi_of_nonneg (subtype.prop _), mul_add],
 end
 
+section classical
+
+open_locale classical
+
+noncomputable instance : has_Sup (seminorm 𝕜 E) :=
+{ Sup := λ s, if h : bdd_above s then
+  { to_fun := ⨆ p : s, p,
+    map_zero' :=
+    begin
+      rw [supr_apply, ← @real.csupr_const_zero s],
+      congrm ⨆ i, _,
+      exact map_zero i.1
+    end,
+    add_le' := λ x y,
+    begin
+      rcases h with ⟨q, hq⟩,
+      obtain rfl | h := s.eq_empty_or_nonempty,
+      { simp [real.csupr_empty] },
+      haveI : nonempty ↥s := nonempty_coe_sort.mpr h,
+      simp only [supr_apply],
+      refine csupr_le (λ i, ((i : seminorm 𝕜 E).add_le' x y).trans $
+        add_le_add (le_csupr ⟨q x, _⟩ i) (le_csupr ⟨q y, _⟩ i));
+      rw [mem_upper_bounds, forall_range_iff];
+      exact λ j, hq j.2 _,
+    end,
+    neg' := λ x,
+    begin
+      simp only [supr_apply],
+      congrm ⨆ i, _,
+      exact i.1.neg' _
+    end,
+    smul' := λ a x,
+    begin
+      simp only [supr_apply],
+      rw [← smul_eq_mul, real.smul_supr_of_nonneg (norm_nonneg a) (λ i : s, i x)],
+      congrm ⨆ i, _,
+      exact i.1.smul' a x
+    end }
+  else ⊥ }
+
+#check conditionally_complete_lattice
+
+noncomputable instance : has_Inf (seminorm 𝕜 E) :=
+{ Inf := λ s, Sup (lower_bounds s) }
+
+end classical
+
 end normed_field
 
 /-! ### Seminorm ball -/

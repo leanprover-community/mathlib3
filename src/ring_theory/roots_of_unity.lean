@@ -4,8 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import algebra.char_p.two
+import algebra.ne_zero
+import data.polynomial.ring_division
 import field_theory.finite.basic
-import analysis.normed.field.basic
+import field_theory.separable
+import group_theory.specific_groups.cyclic
+import number_theory.divisors
+import ring_theory.integral_domain
+import tactic.zify
 
 /-!
 # Roots of unity and primitive roots of unity
@@ -114,16 +121,6 @@ end
 begin
   change ↑(↑(ζ ^ m) : Rˣ) = ↑(ζ : Rˣ) ^ m,
   rw [subgroup.coe_pow, units.coe_pow],
-end
-
-lemma roots_of_unity.norm_one [normed_division_ring R] (φ : M →* R) (ζ : Mˣ) (h : ζ ^ (k : ℕ) = 1) :
-  ∥φ ζ∥ = 1 :=
-begin
-  rw ( _ :  ∥φ ζ∥ = 1 ↔ ∥φ ζ∥₊ = 1),
-  { apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
-    rw [← nnnorm_pow, one_pow, ← monoid_hom.map_pow, (mem_roots_of_unity' _ _).mp h,
-      monoid_hom.map_one, nnnorm_one], },
-  { refine subtype.mk_eq_mk.symm, },
 end
 
 section comm_semiring

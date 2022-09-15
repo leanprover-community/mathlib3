@@ -160,7 +160,7 @@ by simp_rw [← image_univ, ord_connected_image e]
 end preorder
 
 section linear_order
-variables {α : Type*} [linear_order α] {s : set α} {x : α}
+variables {α : Type*} [linear_order α] {s : set α} {x y z : α}
 
 @[instance] lemma ord_connected_interval {a b : α} : ord_connected [a, b] := ord_connected_Icc
 @[instance] lemma ord_connected_interval_oc {a b : α} : ord_connected (Ι a b) := ord_connected_Ioc
@@ -190,6 +190,45 @@ end
 lemma ord_connected_iff_interval_subset_right (hx : x ∈ s) :
   ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [y, x] ⊆ s :=
 by simp_rw [ord_connected_iff_interval_subset_left hx, interval_swap]
+
+def ord_connected_component (s : set α) (x : α) : set α := {y | [x, y] ⊆ s}
+
+lemma mem_ord_connected_component : y ∈ ord_connected_component s x ↔ [x, y] ⊆ s := iff.rfl
+
+lemma ord_connected_component_subset : ord_connected_component s x ⊆ s :=
+λ y hy, hy right_mem_interval
+
+lemma subset_ord_connected_component {t} [h : ord_connected s] (hs : x ∈ s) (ht : s ⊆ t) :
+  s ⊆ ord_connected_component t x :=
+λ y hy, (h.interval_subset hs hy).trans ht
+
+@[simp] lemma self_mem_ord_connected_component : x ∈ ord_connected_component s x ↔ x ∈ s :=
+by rw [mem_ord_connected_component, interval_self, singleton_subset_iff]
+
+@[simp] lemma nonempty_ord_connected_component : (ord_connected_component s x).nonempty ↔ x ∈ s :=
+⟨λ ⟨y, hy⟩, hy $ left_mem_interval, λ h, ⟨x, self_mem_ord_connected_component.2 h⟩⟩
+
+@[simp] lemma ord_connected_component_eq_empty : ord_connected_component s x = ∅ ↔ x ∉ s :=
+by rw [← not_nonempty_iff_eq_empty, nonempty_ord_connected_component]
+
+@[simp] lemma ord_connected_component_empty : ord_connected_component ∅ x = ∅ :=
+ord_connected_component_eq_empty.2 (not_mem_empty x)
+
+@[simp] lemma ord_connected_component_univ : ord_connected_component univ x = univ :=
+by simp [ord_connected_component]
+
+lemma ord_connected_component_inter (s t : set α) (x : α) :
+  ord_connected_component (s ∩ t) x = ord_connected_component s x ∩ ord_connected_component t x :=
+by simp [ord_connected_component, set_of_and]
+
+lemma mem_ord_connected_component_comm :
+  y ∈ ord_connected_component s x ↔ x ∈ ord_connected_component s y :=
+by rw [mem_ord_connected_component, mem_ord_connected_component, interval_swap]
+
+lemma mem_ord_connected_component_trans (hxy : y ∈ ord_connected_component s x)
+  (hyz : z ∈ ord_connected_component s y) : z ∈ ord_connected_component s x :=
+calc [x, z] ⊆ [x, y] ∪ [y, z] : interval_subset_interval_union_interval
+... ⊆ s : union_subset hxy hyz
 
 end linear_order
 end set

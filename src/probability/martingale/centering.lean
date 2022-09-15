@@ -35,13 +35,6 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
--- todo move
-lemma adapted.sub {Ω E : Type*} {m0 : measurable_space Ω}
-  [topological_space E] [has_sub E] [has_continuous_sub E]
-  {f g : ℕ → Ω → E} {ℱ : filtration ℕ m0}
-  (hf : adapted ℱ f) (hg : adapted ℱ g) : adapted ℱ (f - g) :=
-λ n, (hf n).sub (hg n)
-
 variables {Ω E : Type*} {m0 : measurable_space Ω} {μ : measure Ω}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   {f : ℕ → Ω → E} {ℱ : filtration ℕ m0} {n : ℕ}

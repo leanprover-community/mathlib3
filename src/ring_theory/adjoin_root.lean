@@ -371,7 +371,6 @@ begin
   { rw [nat_degree_mul hf, nat_degree_C, add_zero],
     { rwa [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] } },
   have minpoly_eq : minpoly K (root f) = f' := minpoly_root hf,
-  let b' := power_basis_aux' (monic_mul_leading_coeff_inv hf),
   apply @basis.mk _ _ _ (λ (i : fin f.nat_degree), (root f ^ i.val)),
   { rw [← deg_f', ← minpoly_eq],
     exact (is_integral_root hf).linear_independent_pow },

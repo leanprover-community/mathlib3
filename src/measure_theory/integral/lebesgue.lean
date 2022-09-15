@@ -1227,6 +1227,18 @@ lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measu
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
 by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
 
+lemma lintegral_norm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
+  ∫⁻ x, ennreal.of_real (∥f x∥) ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+begin
+  apply lintegral_congr_ae,
+  filter_upwards [h_nonneg] with x hx,
+  rw real.norm_of_nonneg hx,
+end
+
+lemma lintegral_norm_eq_of_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ f) :
+  ∫⁻ x, ennreal.of_real (∥f x∥) ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+lintegral_norm_eq_of_ae_nonneg (filter.eventually_of_forall h_nonneg)
+
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
 See `lintegral_supr_directed` for a more general form. -/

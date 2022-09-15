@@ -718,19 +718,19 @@ instance ordered_ring.to_strict_ordered_semiring : strict_ordered_semiring α :=
   ..‹ordered_ring α›, ..ring.to_semiring }
 
 lemma mul_le_mul_of_nonpos_left (h : b ≤ a) (hc : c ≤ 0) : c * a ≤ c * b :=
-by simpa only [neg_mul, neg_le_neg_iff] using mul_le_mul_of_nonneg_left h $ neg_nonneg.2 hc
+by simpa only [neg_mul, neg_le_neg_iff] using mul_le_mul_of_nonneg_left h (neg_nonneg.2 hc)
 
 lemma mul_le_mul_of_nonpos_right (h : b ≤ a) (hc : c ≤ 0) : a * c ≤ b * c :=
-by simpa only [mul_neg, neg_le_neg_iff] using mul_le_mul_of_nonneg_right h $ neg_nonneg.2 hc
+by simpa only [mul_neg, neg_le_neg_iff] using mul_le_mul_of_nonneg_right h (neg_nonneg.2 hc)
 
 lemma mul_nonneg_of_nonpos_of_nonpos (ha : a ≤ 0) (hb : b ≤ 0) : 0 ≤ a * b :=
 by simpa only [zero_mul] using mul_le_mul_of_nonpos_right ha hb
 
 lemma mul_lt_mul_of_neg_left (h : b < a) (hc : c < 0) : c * a < c * b :=
-by simpa only [neg_mul, neg_lt_neg_iff] using mul_lt_mul_of_pos_left h $ neg_pos_of_neg hc
+by simpa only [neg_mul, neg_lt_neg_iff] using mul_lt_mul_of_pos_left h (neg_pos_of_neg hc)
 
 lemma mul_lt_mul_of_neg_right (h : b < a) (hc : c < 0) : a * c < b * c :=
-by simpa only [mul_neg, neg_lt_neg_iff] using mul_lt_mul_of_pos_right h $ neg_pos_of_neg hc
+by simpa only [mul_neg, neg_lt_neg_iff] using mul_lt_mul_of_pos_right h (neg_pos_of_neg hc)
 
 lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
 by simpa only [zero_mul] using mul_lt_mul_of_neg_right ha hb
@@ -1006,15 +1006,6 @@ begin
   simp [ha],
 end
 
-lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
-have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
-have h2 : -(c * b) < -(c * a), from neg_lt_neg h,
-have h3 : (-c) * b < (-c) * a, from calc
-     (-c) * b = - (c * b)    : by rewrite neg_mul_eq_neg_mul
-          ... < -(c * a)     : h2
-          ... = (-c) * a     : by rewrite neg_mul_eq_neg_mul,
-lt_of_mul_lt_mul_left h3 nhc
-
 lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
@@ -1028,6 +1019,12 @@ lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
 
 @[simp] lemma mul_lt_mul_right_of_neg {a b c : α} (h : c < 0) : a * c < b * c ↔ b < a :=
 (strict_anti_mul_right h).lt_iff_lt
+
+lemma lt_of_mul_lt_mul_of_nonpos_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
+lt_of_mul_lt_mul_left (by rwa [neg_mul, neg_mul, neg_lt_neg_iff]) $ neg_nonneg.2 hc
+
+lemma lt_of_mul_lt_mul_of_nonpos_right (h : a * c < b * c) (hc : c ≤ 0) : b < a :=
+lt_of_mul_lt_mul_right (by rwa [mul_neg, mul_neg, neg_lt_neg_iff]) $ neg_nonneg.2 hc
 
 lemma cmp_mul_neg_left {a : α} (ha : a < 0) (b c : α) : cmp (a * b) (a * c) = cmp c b :=
 (strict_anti_mul_left ha).cmp_map_eq b c

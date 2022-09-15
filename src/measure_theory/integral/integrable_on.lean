@@ -246,15 +246,6 @@ begin
   exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
 end
 
-lemma lintegral_to_real_le_lintegral_nnnorm (f : α → ℝ) :
-  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ∥f x∥₊ ∂μ :=
-begin
-  simp_rw ← of_real_norm_eq_coe_nnnorm,
-  refine lintegral_mono (λ x, ennreal.of_real_le_of_real _),
-  rw real.norm_eq_abs,
-  exact le_abs_self (f x),
-end
-
 lemma integrable.lintegral_lt_top {f : α → ℝ} (hf : integrable f μ) :
   ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
 calc ∫⁻ x, ennreal.of_real (f x) ∂μ

@@ -1227,6 +1227,15 @@ lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measu
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
 by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
 
+lemma lintegral_to_real_le_lintegral_nnnorm (f : α → ℝ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ∥f x∥₊ ∂μ :=
+begin
+  simp_rw ← of_real_norm_eq_coe_nnnorm,
+  refine lintegral_mono (λ x, ennreal.of_real_le_of_real _),
+  rw real.norm_eq_abs,
+  exact le_abs_self (f x),
+end
+
 lemma lintegral_norm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
   ∫⁻ x, ennreal.of_real (∥f x∥) ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 begin

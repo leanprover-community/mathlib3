@@ -1869,7 +1869,8 @@ ring_hom.ker_lift_injective f
 def quotient_ker_alg_equiv_of_right_inverse
   {f : A →ₐ[R₁] B} {g : B → A} (hf : function.right_inverse g f) :
   (A ⧸ f.to_ring_hom.ker) ≃ₐ[R₁] B :=
-{ ..ring_hom.quotient_ker_equiv_of_right_inverse (λ x, show f.to_ring_hom (g x) = x, from hf x),
+{ map_smul' := map_smul (ker_lift_alg f),
+  ..ring_hom.quotient_ker_equiv_of_right_inverse (λ x, show f.to_ring_hom (g x) = x, from hf x),
   ..ker_lift_alg f}
 
 @[simp]
@@ -1979,7 +1980,7 @@ where`J = f(I)`. -/
 def quotient_equiv_alg (I : ideal A) (J : ideal B) (f : A ≃ₐ[R₁] B)
   (hIJ : J = I.map (f : A →+* B)) :
   (A ⧸ I) ≃ₐ[R₁] B ⧸ J :=
-{ commutes' := λ r, by simp,
+{ map_smul' := map_smul (J.quotient_mapₐ (f : A →ₐ[R₁] B) (_ : I ≤ ideal.comap _ J)),
   ..quotient_equiv I J (f : A ≃+* B) hIJ }
 
 @[priority 100]

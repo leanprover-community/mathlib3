@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.char_zero.defs
-import algebra.order.group
-import algebra.order.monoid_lemmas_zero_lt
-import algebra.order.sub
 import algebra.hom.ring
+import algebra.order.group
+import algebra.order.ring_lemmas
 import data.set.intervals.basic
 
 /-!

@@ -950,7 +950,6 @@ lemma mul_neg_iff : a * b < 0 ↔ 0 < a ∧ b < 0 ∨ a < 0 ∧ 0 < b :=
 by rw [← neg_pos, neg_mul_eq_mul_neg, mul_pos_iff, neg_pos, neg_lt_zero]
 
 lemma mul_nonneg_iff : 0 ≤ a * b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0 :=
-by haveI := @linear_order.decidable_le α _; exact
 ⟨nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg,
   λ h, h.elim (and_imp.2 mul_nonneg) (and_imp.2 mul_nonneg_of_nonpos_of_nonpos)⟩
 
@@ -1061,11 +1060,9 @@ lemma nonneg_of_mul_nonpos_right {a b : α} (h : a * b ≤ 0) (ha : a < 0) : 0 �
 le_of_not_gt (λ hb, absurd h (mul_pos_of_neg_of_neg ha hb).not_le)
 
 lemma pos_of_mul_neg_left {a b : α} (h : a * b < 0) (hb : b ≤ 0) : 0 < a :=
-by haveI := @linear_order.decidable_le α _; exact
 lt_of_not_ge (λ ha, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
 lemma pos_of_mul_neg_right {a b : α} (h : a * b < 0) (ha : a ≤ 0) : 0 < b :=
-by haveI := @linear_order.decidable_le α _; exact
 lt_of_not_ge (λ hb, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
 lemma neg_iff_pos_of_mul_neg (hab : a * b < 0) : a < 0 ↔ 0 < b :=
@@ -1144,7 +1141,6 @@ variables [linear_ordered_comm_ring α] {a b c d : α}
 
 lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
   max (a * b) (d * c) ≤ max a c * max d b :=
-by haveI := @linear_order.decidable_le α _; exact
 have ba : b * a ≤ max d b * max c a, from
   mul_le_mul (le_max_right d b) (le_max_right c a) ha (le_trans hd (le_max_left d b)),
 have cd : c * d ≤ max a c * max b d, from

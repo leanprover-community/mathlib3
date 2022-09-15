@@ -200,7 +200,6 @@ lemma mul_lt_mul_of_lt_of_ltₚ' [pos_mul_strict_mono α] [mul_pos_strict_mono �
 alias mul_le_mul_of_le_of_leₚ' ← mul_le_mul -- this name was in `algebra.order.ring`
 alias mul_lt_mul_of_lt_of_leₚ' ← mul_lt_mul -- this name was in `algebra.order.ring`
 alias mul_lt_mul_of_le_of_ltₚ' ← mul_lt_mul' -- this name was in `algebra.order.ring`
-alias mul_lt_mul_of_le_of_ltₚ' ← mul_lt_mul_of_le_of_lt' -- this name was in `algebra.order.ring`
 
 lemma mul_le_of_mul_le_leftₚ [pos_mul_mono α]
   (h : a * b ≤ c) (hle : d ≤ b) (a0 : 0 ≤ a) : a * d ≤ c :=
@@ -349,7 +348,7 @@ lemma pos_iff_pos_of_mul_pos [pos_mul_reflect_lt α] [mul_pos_reflect_lt α] (ha
 /-- Assumes left strict covariance. -/
 lemma left.mul_lt_mulₚ [pos_mul_strict_mono α] [mul_pos_mono α]
   (h₁ : a < b) (h₂ : c < d) (a0 : 0 ≤ a) (c0 : 0 ≤ c) : a * c < b * d :=
-mul_lt_mul_of_le_of_lt' h₁.le h₂ c0 (a0.trans_lt h₁)
+mul_lt_mul_of_le_of_ltₚ' h₁.le h₂ c0 (a0.trans_lt h₁)
 
 /-- Assumes right strict covariance. -/
 lemma right.mul_lt_mulₚ [pos_mul_mono α] [mul_pos_strict_mono α]

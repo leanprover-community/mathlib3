@@ -53,7 +53,7 @@ lemma adapted_predictable_part : adapted ℱ (λ n, predictable_part ℱ μ f (n
 λ n, finset.strongly_measurable_sum' _
   (λ i hin, strongly_measurable_condexp.mono (ℱ.mono (finset.mem_range_succ_iff.mp hin)))
 
-lemma adapted_predictable_part' : adapted ℱ  (λ n, predictable_part ℱ μ f n) :=
+lemma adapted_predictable_part' : adapted ℱ (λ n, predictable_part ℱ μ f n) :=
 λ n, finset.strongly_measurable_sum' _
   (λ i hin, strongly_measurable_condexp.mono (ℱ.mono (finset.mem_range_le hin)))
 

@@ -557,8 +557,7 @@ begin
   exact set_fintype set.univ,
 end
 
-/-- The target of an equivariant map of large image is preprimitive
-is the source is -/
+/-- The target of an equivariant map of large image is preprimitive if the source is -/
 theorem is_preprimitive_of_large_image
   [fintype β] [htβ : is_pretransitive N β]
   {φ : M → N} {f : α →ₑ[φ] β}
@@ -583,7 +582,7 @@ begin
 
   -- We reduce to proving that
   -- fintype.card (set.range f) ≤ fintype.card (set.range (λ g, g • B))
-  apply lt_of_mul_lt_mul_right',
+  apply zero_lt.lt_of_mul_lt_mul_right',
   apply lt_of_le_of_lt _ hf',
   rw ← card_of_block_mul_card_of_orbit_of hB hB_ne,
   apply nat.mul_le_mul_left _,
@@ -604,7 +603,8 @@ begin
  -- It suffices to prove that the preimage is subsingleton
   rw [fintype.card_le_one_iff_subsingleton, set.inter_comm, ← set.image_preimage_eq_inter_range,
     set.subsingleton_coe],
-  apply set.subsingleton.image ,
+  apply set.subsingleton.image,
+
   -- Since the action of M on α is primitive, it suffices to prove that
   -- the preimage is a block which is not ⊤
   apply or.resolve_right (hM.has_trivial_blocks (is_block_preimage f (is_block_of_block g hB))),
@@ -616,14 +616,19 @@ begin
   apply hB_ne_top,
   apply is_top_of_large_block hB,
 
-  -- It remains to show that 2 * fintype.card B > fintype.card β
+  -- It remains to show that fintype.card β < 2 * fintype.card B
   apply lt_of_lt_of_le hf',
   simp only [mul_le_mul_left, nat.succ_pos'],
   rw ← set.smul_set_card_eq g B,
   -- This last step is disgusting :
   -- the types are identical, but not the proofs that they are finite
   refine le_trans _ (le_trans (set.card_le_of_subset h') _),
-  all_goals { apply le_of_eq, apply fintype.card_congr', refl }
+  apply le_of_eq, refl,
+  apply le_of_eq, refl,
+
+  apply zero_lt.lt_of_mul_lt_mul_left',
+  apply lt_of_le_of_lt _ hf',
+  norm_num, norm_num,
 end
 
 /-- Theorem of Rudio (Wielandt, 1964, Th. 8.1) -/

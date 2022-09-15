@@ -19,7 +19,7 @@ import .index_normal
 import .primitive
 import .multiple_transitivity
 
--- import .jordan
+import .jordan
 import .perm_iwasawa
 
 open_locale pointwise classical
@@ -37,7 +37,7 @@ begin
   simp only [subgroup.ker_subtype, sup_bot_eq],
 end
 
-lemma mul_action.stabilizer_subgroup_of_eq {a : α}  :
+lemma mul_action.stabilizer_subgroup_of_eq {a : α} :
   stabilizer N a = (stabilizer G a).subgroup_of N :=
 begin
   ext n,
@@ -584,9 +584,6 @@ begin
       rw ← hBs',
       apply disjoint.subset_compl_right ,
       exact h, }, },
-
-
-
 
     { -- is_trivial_block (coe ⁻¹' B : set s),
       suffices : is_preprimitive (stabilizer G s) (s : set α),
@@ -1244,8 +1241,8 @@ begin
 end
 
 
-/-- If α has at least 5 elements, then
-the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
+/-- If α has at least 5 elements, but not 6,
+then the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
 theorem alternating_group.normal_subgroups {α : Type*} [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α) (hα' : fintype.card α ≠ 6)
   {N : subgroup (alternating_group α)} (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=

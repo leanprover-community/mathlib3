@@ -113,7 +113,7 @@ begin
   split,
   exact eq.subset,
   { -- intro h,
-    rw ← set.to_finset_inj , rw ← set.to_finset_mono,
+    rw [← set.to_finset_inj, ← set.to_finset_subset],
     intro h,
     apply finset.eq_of_subset_of_card_le h,
     apply le_of_eq,

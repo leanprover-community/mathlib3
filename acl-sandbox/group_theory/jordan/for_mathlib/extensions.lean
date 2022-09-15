@@ -39,8 +39,6 @@ begin
     exact cardinal.nat_lt_aleph_0 m }
 end
 
-#check fintype.equiv_fin_of_card_eq
-
 lemma gimme_some_equiv {m : ℕ} [fintype α] (hα : m = fintype.card α) :
   nonempty (fin m ≃ α) :=
 begin
@@ -92,15 +90,13 @@ begin
   use (λ i, if hi : p i then f ⟨i, hi⟩ else f' ⟨i, hi⟩),
   { refine function.injective.dite p _ _ _,
     { rintros ⟨i, hi⟩ ⟨j, hj⟩ hij,
-      simp only [subtype.mk_eq_mk],
-      let hij' := subtype.mk_eq_mk.mp (x.inj' hij),
-      simp only [fin.val_eq_coe] at hij',
-      exact fin.ext hij' },
+      rw subtype.mk_eq_mk,
+      apply fin.ext,
+      rw ← fin.coe_cast_lt i _, rw ← fin.coe_cast_lt j _,
+      rw x.inj' hij, },
   { rintros ⟨i, hi⟩ ⟨j, hj⟩ hij,
-    simp only [subtype.mk_eq_mk],
-    rw [← subtype.coe_inj,
-        nat.eq_of_lt_succ_of_not_lt i.prop hi,
-        nat.eq_of_lt_succ_of_not_lt j.prop hj] },
+    simp only [subtype.mk_eq_mk, fin.eq_iff_veq],
+    rw [nat.eq_of_lt_succ_of_not_lt i.prop hi, nat.eq_of_lt_succ_of_not_lt j.prop hj], },
   { intros _ _ _ _,
     change x.to_fun _ ≠ a,
     intro h, apply ha, use ⟨_,h⟩ } },
@@ -163,11 +159,7 @@ begin
   use (λ i, if hi : p i then f ⟨i, hi⟩ else g ⟨i, hi⟩),
   { refine function.injective.dite p _ _ _ ,
     { rintros ⟨i, hi⟩ ⟨j, hj⟩ hij,
-      let hij' := x.inj' (subtype.coe_injective  hij),
-      simp only at hij', unfold fin.cast_lt at hij',
-      simp only [subtype.mk_eq_mk] at hij' ⊢,
-      apply fin.ext,
-      simpa only using hij' },
+      simpa only [subtype.mk_eq_mk, fin.eq_iff_veq] using x.inj' (subtype.coe_injective  hij), },
     { rintros ⟨i, hi⟩ ⟨j, hj⟩ hij,
       simp only [subtype.mk_eq_mk],
       apply (fin.cast h').injective,

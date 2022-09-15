@@ -790,7 +790,7 @@ begin
     refine finset.eq_of_subset_of_card_le _ _,
     exact hfB', apply set.finite.map, exact hfB',
 
-    rw set.finite.to_finset_mono,
+    rw set.finite.to_finset_subset,
     exact hag g hg,
     apply eq.ge,
     rw set.finite.card_to_finset _,

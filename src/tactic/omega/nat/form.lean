@@ -31,11 +31,11 @@ inductive preform
 | or  : preform → preform → preform
 | and : preform → preform → preform
 
-localized "notation x ` =* ` y := omega.nat.preform.eq x y" in omega.nat
-localized "notation x ` ≤* ` y := omega.nat.preform.le x y" in omega.nat
-localized "notation `¬* ` p    := omega.nat.preform.not p" in omega.nat
-localized "notation p ` ∨* ` q := omega.nat.preform.or p q" in omega.nat
-localized "notation p ` ∧* ` q := omega.nat.preform.and p q" in omega.nat
+localized "notation (name := preform.eq) x ` =* ` y := omega.nat.preform.eq x y" in omega.nat
+localized "notation (name := preform.le) x ` ≤* ` y := omega.nat.preform.le x y" in omega.nat
+localized "notation (name := preform.not) `¬* ` p    := omega.nat.preform.not p" in omega.nat
+localized "notation (name := preform.or) p ` ∨* ` q := omega.nat.preform.or p q" in omega.nat
+localized "notation (name := preform.and) p ` ∧* ` q := omega.nat.preform.and p q" in omega.nat
 
 namespace preform
 

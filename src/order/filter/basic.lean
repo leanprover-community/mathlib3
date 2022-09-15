@@ -242,7 +242,7 @@ def principal (s : set α) : filter α :=
   sets_of_superset := λ x y hx, subset.trans hx,
   inter_sets       := λ x y, subset_inter }
 
-localized "notation `𝓟` := filter.principal" in filter
+localized "notation (name := filter.principal) `𝓟` := filter.principal" in filter
 
 instance : inhabited (filter α) :=
 ⟨𝓟 ∅⟩
@@ -1029,7 +1029,7 @@ lemma eventually_Sup {p : α → Prop} {fs : set (filter α)} :
 iff.rfl
 
 @[simp]
-lemma eventually_supr {p : α → Prop} {fs : β → filter α} :
+lemma eventually_supr {p : α → Prop} {fs : ι → filter α} :
   (∀ᶠ x in (⨆ b, fs b), p x) ↔ (∀ b, ∀ᶠ x in fs b, p x) :=
 mem_supr
 
@@ -1436,10 +1436,19 @@ h.mono $ λ x, mt
   (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
 h.inter h'.compl
 
-lemma eventually_le.mul_le_mul [ordered_semiring β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+lemma eventually_le.mul_le_mul
+  [mul_zero_class β] [partial_order β] [pos_mul_mono β] [mul_pos_mono β]
+  {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
   (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) (hg₀ : 0 ≤ᶠ[l] g₁) (hf₀ : 0 ≤ᶠ[l] f₂) :
   f₁ * g₁ ≤ᶠ[l] f₂ * g₂ :=
 by filter_upwards [hf, hg, hg₀, hf₀] with x using mul_le_mul
+
+@[to_additive eventually_le.add_le_add]
+lemma eventually_le.mul_le_mul' [has_mul β] [preorder β]
+  [covariant_class β β (*) (≤)] [covariant_class β β (swap (*)) (≤)]
+  {l : filter α} {f₁ f₂ g₁ g₂ : α → β} (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) :
+  f₁ * g₁ ≤ᶠ[l] f₂ * g₂ :=
+by filter_upwards [hf, hg] with x hfx hgx using mul_le_mul' hfx hgx
 
 lemma eventually_le.mul_nonneg [ordered_semiring β] {l : filter α} {f g : α → β}
   (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) :
@@ -2026,18 +2035,14 @@ lemma disjoint_map {m : α → β} (hm : injective m) {f₁ f₂ : filter α} :
   disjoint (map m f₁) (map m f₂) ↔ disjoint f₁ f₂ :=
 by simp only [disjoint_iff, ← map_inf hm, map_eq_bot_iff]
 
-lemma map_eq_comap_of_inverse {f : filter α} {m : α → β} {n : β → α}
-  (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = comap n f :=
-le_antisymm
-  (λ b ⟨a, ha, (h : preimage n a ⊆ b)⟩, f.sets_of_superset ha $
-    calc a = preimage (n ∘ m) a : by simp only [h₂, preimage_id, eq_self_iff_true]
-      ... ⊆ preimage m b : preimage_mono h)
-  (λ b (hb : preimage m b ∈ f),
-    ⟨preimage m b, hb, show preimage (m ∘ n) b ⊆ b, by simp only [h₁]; apply subset.refl⟩)
-
 lemma map_equiv_symm (e : α ≃ β) (f : filter β) :
   map e.symm f = comap e f :=
-map_eq_comap_of_inverse e.symm_comp_self e.self_comp_symm
+map_injective e.injective $ by rw [map_map, e.self_comp_symm, map_id,
+  map_comap_of_surjective e.surjective]
+
+lemma map_eq_comap_of_inverse {f : filter α} {m : α → β} {n : β → α}
+  (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = comap n f :=
+map_equiv_symm ⟨n, m, congr_fun h₁, congr_fun h₂⟩ f
 
 lemma comap_equiv_symm (e : α ≃ β) (f : filter α) :
   comap e.symm f = map e f :=

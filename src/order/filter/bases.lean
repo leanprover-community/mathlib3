@@ -954,6 +954,11 @@ begin
     ⟨hs.to_has_basis.inf ht.to_has_basis, set.to_countable _⟩
 end
 
+instance map.is_countably_generated (l : filter α) [l.is_countably_generated] (f : α → β) :
+  (map f l).is_countably_generated :=
+let ⟨x, hxl⟩ := l.exists_antitone_basis in
+has_countable_basis.is_countably_generated ⟨hxl.map.to_has_basis, to_countable _⟩
+
 instance comap.is_countably_generated (l : filter β) [l.is_countably_generated] (f : α → β) :
   (comap f l).is_countably_generated :=
 let ⟨x, hxl⟩ := l.exists_antitone_basis in

@@ -650,8 +650,8 @@ noncomputable def quot_equiv_quot_map (f : R[X]) (I : ideal R) :
      ((R ⧸ I) [X]) ⧸ (ideal.span ({polynomial.map I^.quotient.mk f} : set ((R ⧸ I) [X]))) :=
 alg_equiv.of_ring_equiv (show ∀ x, (quot_adjoin_root_equiv_quot_polynomial_quot I f)
   (algebra_map R _ x) = algebra_map R _ x, from λ x, begin
-    have : algebra_map R ((adjoin_root f) ⧸ (ideal.map (of f) I)) x = ideal.quotient.mk (ideal.map (adjoin_root.of f) I)
-      ((mk f) (C x)) := rfl,
+    have : algebra_map R ((adjoin_root f) ⧸ (ideal.map (of f) I)) x = ideal.quotient.mk
+      (ideal.map (adjoin_root.of f) I) ((mk f) (C x)) := rfl,
     simpa only [this, quot_adjoin_root_equiv_quot_polynomial_quot_mk_of, map_C]
   end)
 
@@ -662,6 +662,7 @@ lemma quot_equiv_quot_map_apply_mk (f g : polynomial R) (I : ideal R)  :
 by rw [adjoin_root.quot_equiv_quot_map_apply,
     adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of]
 
+@[simp]
 lemma quot_equiv_quot_map_symm_apply_mk (f g : polynomial R) (I : ideal R)  :
   (adjoin_root.quot_equiv_quot_map f I).symm (ideal.quotient.mk _ (map (ideal.quotient.mk I) g)) =
     ideal.quotient.mk _ (adjoin_root.mk f g) :=
@@ -711,9 +712,11 @@ by rw [power_basis.quotient_equiv_quotient_minpoly_map, alg_equiv.trans_apply,
 lemma quotient_equiv_quotient_minpoly_map_symm_apply_mk (pb : power_basis R S) (I : ideal R)
   (g : polynomial R) : (pb.quotient_equiv_quotient_minpoly_map I).symm
   (ideal.quotient.mk _ (g.map I^.quotient.mk)) = (ideal.quotient.mk _ (aeval pb.gen g)) :=
-by simp only [quotient_equiv_quotient_minpoly_map, to_ring_equiv_eq_coe, symm_trans_apply,
+begin simp only [quotient_equiv_quotient_minpoly_map, to_ring_equiv_eq_coe, symm_trans_apply,
     quot_equiv_quot_map_symm_apply_mk, of_ring_equiv_symm_apply, quotient_equiv_symm_mk,
-    coe_ring_equiv_symm, ring_equiv.symm_symm, adjoin_root.equiv'_apply, coe_ring_equiv,
-    lift_hom_mk]
+    to_ring_equiv_symm, ring_equiv.symm_symm, adjoin_root.equiv'_apply, coe_ring_equiv,
+    lift_hom_mk, symm_to_ring_equiv],
+
+end
 
 end power_basis

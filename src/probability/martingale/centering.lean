@@ -49,7 +49,7 @@ def predictable_part {m0 : measurable_space Ω}
 @[simp] lemma predictable_part_zero : predictable_part ℱ μ f 0 = 0 :=
 by simp_rw [predictable_part, finset.range_zero, finset.sum_empty]
 
-lemma adapted_predictable_part : adapted ℱ  (λ n, predictable_part ℱ μ f (n+1)) :=
+lemma adapted_predictable_part : adapted ℱ (λ n, predictable_part ℱ μ f (n+1)) :=
 λ n, finset.strongly_measurable_sum' _
   (λ i hin, strongly_measurable_condexp.mono (ℱ.mono (finset.mem_range_succ_iff.mp hin)))
 

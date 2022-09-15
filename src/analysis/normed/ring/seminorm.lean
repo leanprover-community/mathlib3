@@ -27,8 +27,6 @@ For a ring `R`:
 ring_seminorm, ring_norm
 -/
 
-noncomputable theory
-
 set_option old_structure_cmd true
 
 open_locale nnreal
@@ -41,7 +39,24 @@ structure ring_seminorm (R : Type*) [non_unital_ring R]
   extends add_group_seminorm R :=
 (mul_le' : ∀ x y : R, to_fun (x * y) ≤ to_fun x * to_fun y)
 
-attribute [nolint doc_blame] ring_seminorm.to_add_group_seminorm
+/-- A function `f : R → ℝ` is a norm on a (nonunital) ring if it is a seminorm and `f x = 0`
+  implies `x = 0`. -/
+structure ring_norm (R : Type*) [non_unital_ring R] extends add_group_norm R, ring_seminorm R
+
+attribute [nolint doc_blame] ring_seminorm.to_add_group_seminorm ring_norm.to_add_group_norm
+  ring_norm.to_ring_seminorm
+
+/-- `ring_seminorm_class F α` states that `F` is a type of seminorms on the ring `α`.
+
+You should extend this class when you extend `ring_seminorm`. -/
+class ring_seminorm_class (F : Type*) (α : out_param $ Type*) [non_unital_ring α]
+  extends add_group_seminorm_class F α, submultiplicative_hom_class F α ℝ
+
+/-- `ring_norm_class F α` states that `F` is a type of norms on the ring `α`.
+
+You should extend this class when you extend `ring_norm`. -/
+class ring_norm_class (F : Type*) (α : out_param $ Type*) [non_unital_ring α]
+  extends ring_seminorm_class F α, add_group_norm_class F α
 
 namespace ring_seminorm
 
@@ -49,38 +64,29 @@ section non_unital_ring
 
 variables [non_unital_ring R]
 
-instance add_group_seminorm_class : add_group_seminorm_class (ring_seminorm R) R :=
+instance ring_seminorm_class : ring_seminorm_class (ring_seminorm R) R :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero',
   map_add_le_add := λ f, f.add_le',
-  map_neg_eq_map := λ f, f.neg', }
-
-instance submultiplicative_hom_class : submultiplicative_hom_class (ring_seminorm R) R ℝ :=
-{ coe := λ f, f.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_mul_le_mul := λ f x y, f.mul_le' _ _, }
+  map_mul_le_mul := λ f, f.mul_le',
+  map_neg_eq_map := λ f, f.neg' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
-instance : has_coe_to_fun (ring_seminorm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun⟩
+instance : has_coe_to_fun (ring_seminorm R) (λ _, R → ℝ) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe (p : ring_seminorm R) : p.to_fun = p := rfl
 
-@[ext] lemma ext {p q : ring_seminorm R} (h : ∀ x, p x = q x) : p = q :=
-fun_like.ext p q h
+@[ext] lemma ext {p q : ring_seminorm R} : (∀ x, p x = q x) → p = q := fun_like.ext p q
 
 instance : has_zero (ring_seminorm R) :=
-⟨{ mul_le' :=  λ _ _, eq.ge (zero_mul _),
+⟨{ mul_le' := λ _ _, (zero_mul _).ge,
   ..add_group_seminorm.has_zero.zero }⟩
 
 lemma eq_zero_iff {p : ring_seminorm R} : p = 0 ↔ ∀ x, p x = 0 := fun_like.ext_iff
 lemma ne_zero_iff {p : ring_seminorm R} : p ≠ 0 ↔ ∃ x, p x ≠ 0 := by simp [eq_zero_iff]
 
 instance : inhabited (ring_seminorm R) := ⟨0⟩
-
-variables (p : ring_seminorm R)
-
-protected lemma mul_le : p (x * y) ≤ p x * p y := p.mul_le' _ _
 
 end non_unital_ring
 
@@ -92,19 +98,11 @@ lemma seminorm_one_eq_one_iff_ne_zero (hp : p 1 ≤ 1) :
   p 1 = 1 ↔ p ≠ 0 :=
 begin
   refine ⟨λ h, ne_zero_iff.mpr ⟨1, by {rw h, exact one_ne_zero}⟩, λ h, _⟩,
-  obtain ⟨x, hx⟩ := ne_zero_iff.mp h,
-  by_cases hp0 : p 1 = 0,
-  { have hx' : p x ≤ 0,
-    { rw ← mul_one x,
-      apply le_trans (p.mul_le x 1) _,
-      rw [hp0, mul_zero], },
-      exact absurd (le_antisymm hx' (map_nonneg _ _) ) hx },
-  { have h1 : p 1 * 1 ≤ p 1 * p 1,
-    { conv_lhs { rw ← one_mul (1 : R) },
-      convert p.mul_le 1 1,
-      rw mul_one, },
-      rw mul_le_mul_left (lt_of_le_of_ne (map_nonneg _ _) (ne.symm hp0)) at h1,
-    exact le_antisymm hp h1, }
+  obtain hp0 | hp0 := (map_nonneg p (1 : R)).eq_or_gt,
+  { cases h (ext $ λ x, (map_nonneg _ _).antisymm' _),
+    simpa only [hp0, mul_one, mul_zero] using map_mul_le_mul p x 1},
+  { refine hp.antisymm ((le_mul_iff_one_le_left hp0).1 _),
+    simpa only [one_mul] using map_mul_le_mul p (1 : R) _ }
 end
 
 end ring
@@ -118,22 +116,16 @@ def norm_ring_seminorm (R : Type*) [non_unital_semi_normed_ring R] :
   mul_le'   := norm_mul_le,
   ..(norm_add_group_seminorm R) }
 
-/-- A function `f : R → ℝ` is a norm on a (nonunital) ring if it is a seminorm and `f x = 0`
-  implies `x = 0`. -/
-structure ring_norm (R : Type*) [non_unital_ring R] extends add_group_norm R, ring_seminorm R
-
-attribute [nolint doc_blame] ring_norm.to_add_group_norm
-attribute [nolint doc_blame] ring_norm.to_ring_seminorm
-
 namespace ring_norm
 
 variable [non_unital_ring R]
 
-instance add_group_norm_class : add_group_norm_class (ring_norm R) R :=
+instance ring_norm_class : ring_norm_class (ring_norm R) R :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero',
   map_add_le_add := λ f, f.add_le',
+  map_mul_le_mul := λ f, f.mul_le',
   map_neg_eq_map := λ f, f.neg',
   eq_zero_of_map_eq_zero := λ f, f.eq_zero_of_map_eq_zero' }
 
@@ -142,8 +134,7 @@ instance : has_coe_to_fun (ring_norm R) (λ _, R → ℝ) := ⟨λ p, p.to_fun�
 
 @[simp] lemma to_fun_eq_coe (p : ring_norm R) : p.to_fun = p := rfl
 
-@[ext] lemma ext {p q : ring_norm R} (h : ∀ x, p x = q x) : p = q :=
-fun_like.ext p q h
+@[ext] lemma ext {p q : ring_norm R} : (∀ x, p x = q x) → p = q := fun_like.ext p q
 
 variable (R)
 

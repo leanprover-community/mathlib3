@@ -55,6 +55,11 @@ namespace adapted
   adapted f (u * v) :=
 λ i, (hu i).mul (hv i)
 
+@[protected, to_additive] lemma div [has_div β] [has_continuous_div β]
+  (hu : adapted f u) (hv : adapted f v) :
+  adapted f (u / v) :=
+λ i, (hu i).div (hv i)
+
 @[protected, to_additive] lemma inv [group β] [topological_group β] (hu : adapted f u) :
   adapted f u⁻¹ :=
 λ i, (hu i).inv

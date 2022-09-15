@@ -31,11 +31,14 @@ of the gcd of `a` and `b`. More precisely, the computation is done in the follow
 * Remove powers of two from `b`. This is done via `J(2a | 2b) = 0` and
   `J(2a+1 | 2b) = J(2a+1 | b)` (another artifact of the definition).
 
-* Now `0 ≤ a < b` and `b` is odd. We remove powers of two from `a` via
-  `J(4a | b) = J(a | b)` and `J(2a | b) = χ₈ b * J(a | b)`.
-  Once `a` is odd, we use Quadratic Reciprocity (QR) in the form
-  `J(a | b) = ± J(b % a | a)`, where the sign is determined by the residue classes
-  of `a` and `b` mod 4.
+* Now `0 ≤ a < b` and `b` is odd. If `b = 1`, then the value is `1`.
+  If `a = 0` (and `b < 1`), then the value is `0`. Otherwise, we remove powers of two from `a`
+  via `J(4a | b) = J(a | b)` and `J(2a | b) = ±J(a | b)`, where the sign is determined
+  by the residue class of `b` mod 8, to reduce to `a` odd.
+
+* Once `a` is odd, we use Quadratic Reciprocity (QR) in the form
+  `J(a | b) = ±J(b % a | a)`, where the sign is determined by the residue classes
+  of `a` and `b` mod 4. We are then back in the previous case.
 
 We provide customized versions of these results for the various reduction steps,
 where we encode the residue classes mod 2, mod 4, or mod 8 by using terms like

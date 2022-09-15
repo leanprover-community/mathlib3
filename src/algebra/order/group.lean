@@ -54,8 +54,7 @@ instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group 
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] :
   ordered_cancel_comm_monoid α :=
-{ mul_left_cancel       := λ a b c, (mul_right_inj a).mp,
-  le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
+{ le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
 
 @[priority 100, to_additive] -- See note [lower instance priority]
@@ -872,7 +871,6 @@ variables [linear_ordered_comm_group α] {a b c : α}
 instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   linear_ordered_cancel_comm_monoid α :=
 { le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
-  mul_left_cancel := λ x y z, mul_left_cancel,
   ..‹linear_ordered_comm_group α› }
 
 /-- Pullback a `linear_ordered_comm_group` under an injective map.
@@ -1174,10 +1172,30 @@ begin
   rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb]
 end
 
-lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : |b| ≤ max (|a|) (|c|) :=
+lemma abs_le_max_abs_abs (hab : a ≤ b) (hbc : b ≤ c) : |b| ≤ max (|a|) (|c|) :=
 abs_le'.2
   ⟨by simp [hbc.trans (le_abs_self c)],
    by simp [(neg_le_neg_iff.mpr hab).trans (neg_le_abs_self a)]⟩
+
+lemma min_abs_abs_le_abs_max : min (|a|) (|b|) ≤ |max a b| :=
+(le_total a b).elim
+  (λ h, (min_le_right _ _).trans_eq $ congr_arg _ (max_eq_right h).symm)
+  (λ h, (min_le_left _ _).trans_eq $ congr_arg _ (max_eq_left h).symm)
+
+lemma min_abs_abs_le_abs_min : min (|a|) (|b|) ≤ |min a b| :=
+(le_total a b).elim
+  (λ h, (min_le_left _ _).trans_eq $ congr_arg _ (min_eq_left h).symm)
+  (λ h, (min_le_right _ _).trans_eq $ congr_arg _ (min_eq_right h).symm)
+
+lemma abs_max_le_max_abs_abs : |max a b| ≤ max (|a|) (|b|) :=
+(le_total a b).elim
+  (λ h, (congr_arg _ $ max_eq_right h).trans_le $ le_max_right _ _)
+  (λ h, (congr_arg _ $ max_eq_left h).trans_le $ le_max_left _ _)
+
+lemma abs_min_le_max_abs_abs : |min a b| ≤ max (|a|) (|b|) :=
+(le_total a b).elim
+  (λ h, (congr_arg _ $ min_eq_left h).trans_le $ le_max_left _ _)
+  (λ h, (congr_arg _ $ min_eq_right h).trans_le $ le_max_right _ _)
 
 lemma eq_of_abs_sub_eq_zero {a b : α} (h : |a - b| = 0) : a = b :=
 sub_eq_zero.1 $ abs_eq_zero.1 h

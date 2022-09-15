@@ -530,9 +530,8 @@ by simp only [mem_cons, or_imp_distrib, forall_and_distrib, forall_eq]
 
 @[simp] lemma nonempty_cons (h : a ∉ s) : (cons a s h).nonempty := ⟨a, mem_cons.2 $ or.inl rfl⟩
 
-@[simp] lemma nonempty_mk_coe : ∀ {l : list α} {hl}, (⟨↑l, hl⟩ : finset α).nonempty ↔ l ≠ []
-| []       hl := by simp
-| (a :: l) hl := by simp [← multiset.cons_coe]
+@[simp] lemma nonempty_mk {m : multiset α} {hm} : (⟨m, hm⟩ : finset α).nonempty ↔ m ≠ 0 :=
+by induction m using multiset.induction_on; simp
 
 @[simp] lemma coe_cons {a s h} : (@cons α a s h : set α) = insert a s := by { ext, simp }
 
@@ -1250,14 +1249,13 @@ sdiff_le_sdiff ‹s ≤ t› ‹v ≤ u›
 @[simp, norm_cast] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (s₁ \ s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
-@[simp] theorem union_sdiff_self_eq_union : s ∪ (t \ s) = s ∪ t := sup_sdiff_self_right
-
-@[simp] theorem sdiff_union_self_eq_union : (s \ t) ∪ t = s ∪ t := sup_sdiff_self_left
+@[simp] lemma union_sdiff_self_eq_union : s ∪ t \ s = s ∪ t := sup_sdiff_self_right _ _
+@[simp] lemma sdiff_union_self_eq_union : s \ t ∪ t = s ∪ t := sup_sdiff_self_left _ _
 
 lemma union_sdiff_left (s t : finset α) : (s ∪ t) \ s = t \ s := sup_sdiff_left_self
 lemma union_sdiff_right (s t : finset α) : (s ∪ t) \ t = s \ t := sup_sdiff_right_self
 
-lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := sup_sdiff_symm
+lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := by simp [union_comm]
 
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s := sup_sdiff_inf _ _
 
@@ -2464,18 +2462,29 @@ finset.val_inj.1 (multiset.dedup_map_dedup_eq _ _).symm
 section to_list
 
 /-- Produce a list of the elements in the finite set using choice. -/
-@[reducible] noncomputable def to_list (s : finset α) : list α := s.1.to_list
+noncomputable def to_list (s : finset α) : list α := s.1.to_list
 
 lemma nodup_to_list (s : finset α) : s.to_list.nodup :=
 by { rw [to_list, ←multiset.coe_nodup, multiset.coe_to_list], exact s.nodup }
 
-@[simp] lemma mem_to_list {a : α} (s : finset α) : a ∈ s.to_list ↔ a ∈ s :=
-by { rw [to_list, ←multiset.mem_coe, multiset.coe_to_list], exact iff.rfl }
+@[simp] lemma mem_to_list {a : α} {s : finset α} : a ∈ s.to_list ↔ a ∈ s := mem_to_list
 
-@[simp] lemma to_list_empty : (∅ : finset α).to_list = [] := by simp [to_list]
+@[simp] lemma to_list_eq_nil {s : finset α} : s.to_list = [] ↔ s = ∅ :=
+to_list_eq_nil.trans val_eq_zero
+
+@[simp] lemma empty_to_list {s : finset α} : s.to_list.empty ↔ s = ∅ :=
+list.empty_iff_eq_nil.trans to_list_eq_nil
+
+@[simp] lemma to_list_empty : (∅ : finset α).to_list = [] := to_list_eq_nil.mpr rfl
+
+lemma nonempty.to_list_ne_nil {s : finset α} (hs : s.nonempty) : s.to_list ≠ [] :=
+mt to_list_eq_nil.mp hs.ne_empty
+
+lemma nonempty.not_empty_to_list {s : finset α} (hs : s.nonempty) : ¬s.to_list.empty :=
+mt empty_to_list.mp hs.ne_empty
 
 @[simp, norm_cast]
-lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := by { classical, ext, simp }
+lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := s.val.coe_to_list
 
 @[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
 by { ext, simp }

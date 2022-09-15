@@ -483,23 +483,29 @@ lemma neg_iff_neg_of_mul_pos [pos_mul_mono α] [mul_pos_mono α]
   a < 0 ↔ b < 0 :=
 ⟨neg_of_mul_pos_right hab ∘ le_of_lt, neg_of_mul_pos_left hab ∘ le_of_lt⟩
 
-lemma left.neg_of_mul_neg_left [pos_mul_mono α]
-  (h : a * b < 0) (h1 : 0 ≤ a) :
-  b < 0 :=
-lt_of_not_ge (assume h2 : b ≥ 0, (left.mul_nonneg h1 h2).not_lt h)
-
-lemma right.neg_of_mul_neg_left [mul_pos_mono α]
-  (h : a * b < 0) (h1 : 0 ≤ a) :
-  b < 0 :=
-lt_of_not_ge (assume h2 : b ≥ 0, (right.mul_nonneg h1 h2).not_lt h)
-
 lemma left.neg_of_mul_neg_right [pos_mul_mono α]
-  (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
-lt_of_not_ge (assume h2 : a ≥ 0, (left.mul_nonneg h2 h1).not_lt h)
+  (h : a * b < 0) (a0 : 0 ≤ a) :
+  b < 0 :=
+lt_of_not_ge (λ b0 : b ≥ 0, (left.mul_nonneg a0 b0).not_lt h)
+
+alias left.neg_of_mul_neg_right ← neg_of_mul_neg_right
 
 lemma right.neg_of_mul_neg_right [mul_pos_mono α]
-  (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
-lt_of_not_ge (assume h2 : a ≥ 0, (right.mul_nonneg h2 h1).not_lt h)
+  (h : a * b < 0) (a0 : 0 ≤ a) :
+  b < 0 :=
+lt_of_not_ge (λ b0 : b ≥ 0, (right.mul_nonneg a0 b0).not_lt h)
+
+lemma left.neg_of_mul_neg_left [pos_mul_mono α]
+  (h : a * b < 0) (b0 : 0 ≤ b) :
+  a < 0 :=
+lt_of_not_ge (λ a0 : a ≥ 0, (left.mul_nonneg a0 b0).not_lt h)
+
+alias left.neg_of_mul_neg_left ← neg_of_mul_neg_left
+
+lemma right.neg_of_mul_neg_left [mul_pos_mono α]
+  (h : a * b < 0) (b0 : 0 ≤ b) :
+  a < 0 :=
+lt_of_not_ge (λ a0 : a ≥ 0, (right.mul_nonneg a0 b0).not_lt h)
 
 end linear_order
 

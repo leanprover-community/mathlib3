@@ -691,40 +691,6 @@ hb.trans (lt_mul_of_one_lt_left b0 ha)
 
 end without_zero_le_one
 
-/-! Lemmas of the form `a * b ≤ c` → `1 ≤ b` → `a ≤ c`. -/
-
-lemma le_of_mul_le_of_one_le_leftₚ [pos_mul_mono α]
-  (h : a * b ≤ c) (hb : 1 ≤ b) (a0 : 0 ≤ a) : a ≤ c :=
-(le_mul_of_one_le_right a0 hb).trans h
-
-lemma lt_of_mul_lt_of_one_le_leftₚ [pos_mul_mono α]
-  (h : a * b < c) (hb : 1 ≤ b) (a0 : 0 ≤ a) : a < c :=
-(le_mul_of_one_le_right a0 hb).trans_lt h
-
-lemma le_of_le_mul_of_le_one_leftₚ [pos_mul_mono α]
-  (h : c ≤ a * b) (hb : b ≤ 1) (a0 : 0 ≤ a) : c ≤ a :=
-h.trans (mul_le_of_le_one_right a0 hb)
-
-lemma lt_of_lt_mul_of_le_one_leftₚ [pos_mul_mono α]
-  (h : c < a * b) (hb : b ≤ 1) (a0 : 0 ≤ a) : c < a :=
-h.trans_le (mul_le_of_le_one_right a0 hb)
-
-lemma le_of_mul_le_of_one_le_rightₚ [mul_pos_mono α]
-  (h : a * b ≤ c) (ha : 1 ≤ a) (b0 : 0 ≤ b) : b ≤ c :=
-(le_mul_of_one_le_left b0 ha).trans h
-
-lemma lt_of_mul_lt_of_one_le_rightₚ [mul_pos_mono α]
-  (h : a * b < c) (ha : 1 ≤ a) (b0 : 0 ≤ b) : b < c :=
-(le_mul_of_one_le_left b0 ha).trans_lt h
-
-lemma le_of_le_mul_of_le_one_rightₚ [mul_pos_mono α]
-  (h : c ≤ a * b) (ha : a ≤ 1) (b0 : 0 ≤ b) : c ≤ b :=
-h.trans (mul_le_of_le_one_left b0 ha)
-
-lemma lt_of_lt_mul_of_le_one_rightₚ [mul_pos_mono α]
-  (h : c < a * b) (ha : a ≤ 1) (b0 : 0 ≤ b) : c < b :=
-h.trans_le (mul_le_of_le_one_left b0 ha)
-
 end preorder
 
 end mul_one_class

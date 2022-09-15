@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.martingale.convergence
+import probability.martingale.optional_stopping
+import probability.martingale.centering
 import probability.conditional_expectation
 
 /-!
@@ -102,7 +104,7 @@ begin
     { exact λ ω, min_le_min (hσ_le_π ω) le_rfl, }, },
   { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_nat
       (hf.adapted.is_stopping_time_least_ge _ _) least_ge_le, },
-  { exact λ i, integrable_stopped_value ((hf.adapted.is_stopping_time_least_ge _ _))
+  { exact λ i, integrable_stopped_value _ ((hf.adapted.is_stopping_time_least_ge _ _))
       (hf.integrable) least_ge_le, },
 end
 
@@ -278,66 +280,51 @@ by filter_upwards [hf.bdd_above_range_iff_bdd_below_range hbdd] with ω hω htop
 
 namespace borel_cantelli
 
-/-- Auxiliary definition required to prove Lévy's generalization of the Borel-Cantelli lemmas.
-The sum of the differences of the indicator functions with their conditional expectation forms a
-martingale satisfying the conditions of the one sided martingale bound. -/
+/-- Auxiliary definition required to prove Lévy's generalization of the Borel-Cantelli lemmas for
+which we will take the martingale part. -/
 noncomputable
-def mgale (ℱ : filtration ℕ m0) (μ : measure Ω) (s : ℕ → set Ω) (n : ℕ) : Ω → ℝ :=
-∑ k in finset.range n, ((s (k + 1)).indicator 1 - μ[(s (k + 1)).indicator 1 | ℱ k])
+def process (s : ℕ → set Ω) (n : ℕ) : Ω → ℝ :=
+∑ k in finset.range n, (s (k + 1)).indicator 1
 
 variables {s : ℕ → set Ω}
 
-lemma mgale_succ (n : ℕ) :
-  mgale ℱ μ s (n + 1) =
-    mgale ℱ μ s n + ((s (n + 1)).indicator 1 - μ[(s (n + 1)).indicator 1 | ℱ n]) :=
-by rw [mgale, mgale, finset.sum_range_succ]
+lemma process_zero : process s 0 = 0 :=
+by rw [process, finset.range_zero, finset.sum_empty]
 
-lemma adapted_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) :
-  adapted ℱ (mgale ℱ μ s) :=
-λ n, finset.strongly_measurable_sum' _ (λ k hk, (strongly_measurable_one.indicator
-  (ℱ.mono (nat.succ_le_of_lt (finset.mem_range.1 hk)) _ (hs _))).sub
-  (strongly_measurable_condexp.mono (ℱ.mono (finset.mem_range.1 hk).le)))
+lemma adapted_process (hs : ∀ n, measurable_set[ℱ n] (s n)) :
+  adapted ℱ (process s) :=
+λ n, finset.strongly_measurable_sum' _ $ λ k hk, strongly_measurable_one.indicator $
+  ℱ.mono (finset.mem_range.1 hk) _ $ hs _
+
+lemma martingale_part_process_ae_eq (ℱ : filtration ℕ m0) (s : ℕ → set Ω) (n : ℕ) :
+  martingale_part ℱ μ (process s) n =ᵐ[μ]
+  ∑ k in finset.range n, ((s (k + 1)).indicator 1 - μ[(s (k + 1)).indicator 1 | ℱ k]) :=
+begin
+  simp only [martingale_part_eq_sum, process_zero, zero_add],
+  refine eventually_eq_sum (λ k hk, _),
+  simp only [process, finset.sum_range_succ_sub_sum],
+end
+
+lemma martingale_part_process_ae_eq' (ℱ : filtration ℕ m0) (s : ℕ → set Ω) :
+  ∀ᵐ ω ∂μ, ∀ n, martingale_part ℱ μ (process s) n ω =
+  ∑ k in finset.range n, ((s (k + 1)).indicator 1 - μ[(s (k + 1)).indicator 1 | ℱ k]) ω :=
+begin
+  rw ae_all_iff,
+  intro n,
+  convert martingale_part_process_ae_eq ℱ s n,
+  ext ω,
+  rw finset.sum_apply,
+end
 
 variables [is_finite_measure μ]
 
-lemma integrable_mgale (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
-  integrable (mgale ℱ μ s n) μ :=
-integrable_finset_sum' _ (λ k hk,
-  ((integrable_indicator_iff (ℱ.le (k + 1) _ (hs $ k + 1))).2
-  (integrable_const 1).integrable_on).sub integrable_condexp)
+lemma integrable_process (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
+  integrable (process s n) μ :=
+integrable_finset_sum' _ $ λ k hk, integrable_on.indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
 
-lemma martingale_mgale
-  (μ : measure Ω) [is_finite_measure μ] (hs : ∀ n, measurable_set[ℱ n] (s n)) :
-  martingale (mgale ℱ μ s) ℱ μ :=
+lemma martingale_part_process_diff_le (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
+  ∀ᵐ ω ∂μ, |martingale_part ℱ μ (process s) (n + 1) ω - martingale_part ℱ μ (process s) n ω| ≤ 1 :=
 begin
-  refine martingale_nat (adapted_mgale hs) (integrable_mgale hs)
-    (λ n, eventually_eq.symm $ (condexp_finset_sum _).trans $
-    (@eventually_eq_sum _ _ _ _ _ _ _
-    (λ k, (μ[(s (k + 1)).indicator 1|ℱ n] - μ[(s (k + 1)).indicator 1|ℱ k])) _).trans _),
-  { intros k hk,
-    exact ((integrable_indicator_iff (ℱ.le (k + 1) _ (hs $ k + 1))).2
-      (integrable_const 1).integrable_on).sub integrable_condexp },
-  { intros k hk,
-    rw finset.mem_range_succ_iff at hk,
-    refine (condexp_sub ((integrable_indicator_iff (ℱ.le (k + 1) _ (hs $ k + 1))).2
-      (integrable_const 1).integrable_on) integrable_condexp).trans
-      ((ae_eq_refl _).sub _),
-    rw (condexp_of_strongly_measurable (ℱ.le _)
-      (strongly_measurable.mono strongly_measurable_condexp (ℱ.mono hk)) integrable_condexp),
-    apply_instance },
-  simp_rw [finset.sum_range_succ, sub_self, add_zero, mgale],
-  refine eventually_eq_sum (λ i hi, eventually_eq.sub _ $ ae_eq_refl _),
-  rw [finset.mem_range, ← nat.succ_le_iff] at hi,
-  rw condexp_of_strongly_measurable (ℱ.le _)
-    (strongly_measurable_one.indicator (ℱ.mono hi _ $ hs _)),
-  { exact (integrable_indicator_iff (ℱ.le _ _ (hs _))).2 (integrable_const 1).integrable_on },
-  { apply_instance },
-end
-
-lemma mgale_diff_le (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
-  ∀ᵐ ω ∂μ, |mgale ℱ μ s (n + 1) ω - mgale ℱ μ s n ω| ≤ 1 :=
-begin
-  simp_rw [mgale, finset.sum_apply, finset.sum_range_succ_sub_sum],
   have h₁ : μ[(s (n + 1)).indicator 1|ℱ n] ≤ᵐ[μ] 1,
   { change _ ≤ᵐ[μ] (λ ω, 1 : Ω → ℝ),
     rw ← @condexp_const _ _ _ _ _ _ _ μ (ℱ.le n) (1 : ℝ),
@@ -346,18 +333,21 @@ begin
       (eventually_of_forall $ λ ω, set.indicator_le_self' (λ _ _, zero_le_one) ω) },
   have h₂ : (0 : Ω → ℝ) ≤ᵐ[μ] μ[(s (n + 1)).indicator 1|ℱ n],
     from condexp_nonneg (eventually_of_forall $ λ ω, set.indicator_nonneg (λ _ _, zero_le_one) _),
-  filter_upwards [h₁, h₂] with ω hω₁ hω₂,
+  filter_upwards [h₁, h₂, martingale_part_process_ae_eq ℱ s (n + 1),
+    martingale_part_process_ae_eq ℱ s n] with ω hω₁ hω₂ hω₃ hω₄,
+  simp_rw [hω₃, hω₄, finset.sum_apply, finset.sum_range_succ_sub_sum],
   rw [abs_le, neg_le, pi.sub_apply, neg_sub, tsub_le_iff_right, tsub_le_iff_right,
     add_comm (1 : ℝ), add_comm (1 : ℝ)],
   exact ⟨le_add_of_nonneg_of_le (set.indicator_nonneg (λ _ _, zero_le_one) _) hω₁,
     le_add_of_nonneg_of_le hω₂ (set.indicator_le' (λ _ _, le_rfl) (λ _ _, zero_le_one) ω)⟩,
 end
 
-lemma mgale_diff_le' (hs : ∀ n, measurable_set[ℱ n] (s n)) :
-  ∀ᵐ ω ∂μ, ∀ n, |mgale ℱ μ s (n + 1) ω - mgale ℱ μ s n ω| ≤ (1 : ℝ≥0) :=
+lemma martingale_part_process_diff_le' (hs : ∀ n, measurable_set[ℱ n] (s n)) :
+  ∀ᵐ ω ∂μ, ∀ n,
+    |martingale_part ℱ μ (process s) (n + 1) ω - martingale_part ℱ μ (process s) n ω| ≤ (1 : ℝ≥0) :=
 begin
   rw [ae_all_iff, nonneg.coe_one],
-  exact mgale_diff_le hs ,
+  exact martingale_part_process_diff_le hs ,
 end
 
 end borel_cantelli
@@ -365,33 +355,36 @@ end borel_cantelli
 open borel_cantelli
 
 lemma tendsto_sum_indicator_at_top_iff
-  (μ : measure Ω) [is_finite_measure μ] {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
+  [is_finite_measure μ] {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ∀ᵐ ω ∂μ,
     tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω) at_top at_top ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
       at_top at_top :=
 begin
-  have h₁ := (martingale_mgale μ hs).ae_not_tendsto_at_top_at_top (mgale_diff_le' hs),
-  have h₂ := (martingale_mgale μ hs).ae_not_tendsto_at_top_at_bot (mgale_diff_le' hs),
+  have h₁ := (martingale_martingale_part (adapted_process hs)
+    (integrable_process hs)).ae_not_tendsto_at_top_at_top (martingale_part_process_diff_le' hs),
+  have h₂ := (martingale_martingale_part (adapted_process hs)
+    (integrable_process hs)).ae_not_tendsto_at_top_at_bot (martingale_part_process_diff_le' hs),
   have h₃ : ∀ᵐ ω ∂μ, ∀ k, (0 : ℝ) ≤ μ[(s (k + 1)).indicator 1|ℱ k] ω,
   { rw ae_all_iff,
     exact λ n, condexp_nonneg (eventually_of_forall $ set.indicator_nonneg $ λ _ _, zero_le_one) },
-  filter_upwards [h₁, h₂, h₃] with ω hω₁ hω₂ hω₃,
+  filter_upwards [h₁, h₂, h₃, martingale_part_process_ae_eq' ℱ s] with ω hω₁ hω₂ hω₃ hω₄,
   split; intro ht,
   { refine tendsto_at_top_at_top_of_monotone'
       (λ n m hnm, finset.sum_mono_set_of_nonneg hω₃ $ finset.range_mono hnm) _,
     rintro ⟨b, hbdd⟩,
     rw ← tendsto_neg_at_bot_iff at ht,
-    simp_rw [mgale, finset.sum_apply, pi.sub_apply, finset.sum_sub_distrib, sub_eq_add_neg] at hω₁,
+    simp only [hω₄, pi.sub_apply, finset.sum_sub_distrib] at hω₁,
     exact hω₁ (tendsto_at_top_add_right_of_le _ (-b)
-      ((tendsto_neg_at_bot_iff at_top).1 ht) $ λ n, neg_le_neg (hbdd ⟨n, rfl⟩)) },
+      (tendsto_neg_at_bot_iff.1 ht) $ λ n, neg_le_neg (hbdd ⟨n, rfl⟩)) },
   { refine tendsto_at_top_at_top_of_monotone'
       (λ n m hnm, finset.sum_mono_set_of_nonneg (λ i, set.indicator_nonneg (λ _ _, zero_le_one) _) $
       finset.range_mono hnm) _,
     rintro ⟨b, hbdd⟩,
-    simp_rw [mgale, finset.sum_apply, pi.sub_apply, finset.sum_sub_distrib, sub_eq_add_neg] at hω₂,
+    simp only [hω₄, pi.sub_apply, finset.sum_sub_distrib] at hω₂,
     exact hω₂ (tendsto_at_bot_add_left_of_ge _ b (λ n, hbdd ⟨n, rfl⟩) $
-      (tendsto_neg_at_bot_iff at_top).2 ht) },
+      tendsto_neg_at_bot_iff.2 ht) },
+  all_goals { apply_instance }
 end
 
 /-- **Lévy's generalization of the Borel-Cantelli lemma**: given a sequence of sets `s` and a
@@ -402,6 +395,6 @@ theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
   ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
       at_top at_top :=
-(limsup_eq_tendsto_sum_indicator_at_top ℝ s).symm ▸ tendsto_sum_indicator_at_top_iff μ hs
+(limsup_eq_tendsto_sum_indicator_at_top ℝ s).symm ▸ tendsto_sum_indicator_at_top_iff hs
 
 end measure_theory

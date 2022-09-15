@@ -15,7 +15,7 @@ begin
     guard_target false,
     admit },
   { guard_hyp h : ¬x ≤ y,
-    guard_hyp this : x ≤ y → false, -- `doneif` does not generalize by default
+    guard_hyp this : ∀ {x y : ℕ}, x ≤ y → false, -- `doneif` generalizes by default
     guard_target false,
     admit }
 end
@@ -25,7 +25,7 @@ begin
   suffices : false, trivial,
   wlog h : x ≤ y,
   { guard_hyp h : ¬x ≤ y,
-    guard_hyp this : ∀ {x y : ℕ}, x ≤ y → false, -- `wlog` does generalize by default
+    guard_hyp this : ∀ {x y : ℕ}, x ≤ y → false, -- `wlog` generalizes by default
     guard_target false,
     admit },
   { guard_hyp h : x ≤ y,

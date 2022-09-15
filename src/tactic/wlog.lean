@@ -30,8 +30,7 @@ namespace interactive
 setup_tactic_parser
 
 /-- `doneif` is a tactic that behaves very similar to `wlog`,
-the difference being the order in which goals are placed on the stack
-and the amount of context that is reverted by default.
+the difference being the order in which goals are placed on the stack.
 
 `doneif h : P` will add an assumption `h : P` to the main goal,
 and add a new goal that requires showing that the case `h : ¬ P` can be reduced to the case
@@ -50,10 +49,10 @@ to revert certain parts of the context before creating the new goal.
 In this way, the claim `this` can be applied to `x` and `y` in different orders
 (exploiting symmetry, which is the typical use case).
 
-By default, nothing is reverted. -/
+By default, the entire context is reverted. -/
 meta def doneif (H : parse ident) (t : parse (tk ":" *> texpr))
   (revert : parse (
-    (tk "generalizing" *> ((none <$ tk "*") <|> some <$> ident*)) <|> pure (some [])))
+    (tk "generalizing" *> ((none <$ tk "*") <|> some <$> ident*)) <|> pure none))
   (h : parse (tk "using" *> ident)?) :
   tactic unit := do
   let h := h.get_or_else `this,
@@ -103,8 +102,7 @@ In this way, the wlog-claim `this` can be applied to `x` and `y` in different or
 
 By default, the entire context is reverted.
 
-See `doneif` for a version that leaves the main goal at the top of the stack,
-and that doesn't revert the entire context by default. -/
+See `doneif` for a version that leaves the main goal at the top of the stack. -/
 meta def wlog (H : parse ident) (t : parse (tk ":" *> texpr))
   (revert : parse (
     (tk "generalizing" *> ((none <$ tk "*") <|> some <$> ident*)) <|> pure none))

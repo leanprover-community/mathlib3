@@ -1143,6 +1143,15 @@ variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 variables (e : A₁ ≃ₐ[R] A₂)
 
+/-- This lemma exists solely for convenience. In particular, it may be the case that one wants to
+upgrade a `ring_equiv` to an `alg_equiv` by providing a `commutes'` field instead of the `map_smul'`
+field. In that case, one can simply apply this lemma. -/
+lemma map_smul_of_map_mul_of_commutes {f : A₁ → A₂} (map_mul' : ∀ x y, f (x * y) = f x * f y)
+  (commutes' : ∀ r : R, f (algebra_map R A₁ r) = algebra_map R A₂ r) :
+  ∀ (r : R) (a : A₁), f (r • a) = r • f a :=
+λ r a, by simpa only [algebra.algebra_map_eq_smul_one, algebra.smul_mul_assoc, one_mul] using
+  (commutes' r ▸ map_mul' _ _ : f (algebra_map R A₁ r * a) = algebra_map R A₂ r * f a)
+
 /-- Interpret an algebra equivalence as an algebra homomorphism.
 
 This definition is included for symmetry with the other `to_*_hom` projections.

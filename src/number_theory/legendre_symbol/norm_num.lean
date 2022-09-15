@@ -54,9 +54,8 @@ def jacobi_sym_nat (a b : ℕ) : ℤ  := jacobi_sym a b
 /-!
 ### API Lemmas
 
-We repeat part of the API for `jacobi_sym` with `jacobi_sym_nat` and
-without implicit arguments, in a form that is suitable for constructing proofs
-in `norm_num`.
+We repeat part of the API for `jacobi_sym` with `jacobi_sym_nat` and without implicit arguments,
+in a form that is suitable for constructing proofs in `norm_num`.
 -/
 
 /-- Base cases: `b = 0`, `b = 1`, `a = 0`, `a = 1`. -/

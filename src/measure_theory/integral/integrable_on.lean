@@ -246,19 +246,19 @@ begin
   exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
 end
 
-lemma lintegral_to_real_le_lintegral_to_real_norm (f : α → ℝ) :
-  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ennreal.of_real (∥f x∥) ∂μ :=
+lemma lintegral_to_real_le_lintegral_nnnorm (f : α → ℝ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ∥f x∥₊ ∂μ :=
 begin
+  simp_rw ← of_real_norm_eq_coe_nnnorm,
   refine lintegral_mono (λ x, ennreal.of_real_le_of_real _),
   rw real.norm_eq_abs,
   exact le_abs_self (f x),
 end
 
-lemma integrable_on.lintegral_lt_top {f : α → ℝ} {s : set α} (hf : integrable_on f s μ) :
+lemma integrable_on.lintegral_lt_top_ae' {f : α → ℝ} {s : set α} (hf : integrable_on f s μ) :
   ∫⁻ x in s, ennreal.of_real (f x) ∂μ < ∞ :=
 calc ∫⁻ x in s, ennreal.of_real (f x) ∂μ
-    ≤ ∫⁻ x in s, ennreal.of_real (∥f x∥) ∂μ : lintegral_to_real_le_lintegral_to_real_norm f
-... = ∫⁻ x in s, ↑∥f x∥₊ ∂μ : by simp_rw ← of_real_norm_eq_coe_nnnorm
+    ≤ ∫⁻ x in s, ↑∥f x∥₊ ∂μ : lintegral_to_real_le_lintegral_nnnorm f
 ... < ∞ : hf.2
 
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some

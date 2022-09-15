@@ -155,7 +155,7 @@ begin
   letI := topological_add_group.to_uniform_space E,
   haveI : uniform_add_group E := topological_add_comm_group_is_uniform,
   rw seminorm_family.with_seminorms_iff_nhds_eq_infi,
-  refine le_antisymm (le_infi $ λ i, filter.map_le_iff_le_comap.mp $ i.1.map_zero ▸ i.2.tendsto 0)
+  refine le_antisymm (le_infi $ λ i, filter.map_le_iff_le_comap.mp $ map_zero i.1 ▸ i.2.tendsto 0)
     ((nhds_basis_abs_convex_open 𝕜 E).ge_iff.mpr $ λ t ht,
     filter.mem_infi_of_mem
       ⟨gauge_seminorm ht.2.2.1 ht.2.2.2 (absorbent_nhds_zero $ ht.2.1.mem_nhds ht.1), _⟩ $
@@ -163,7 +163,7 @@ begin
   { refine seminorm.continuous _,
     simp_rw [seminorm.ball_zero_eq, gauge_seminorm_to_fun],
     rw gauge_lt_one_eq_self_of_open ht.2.2.2 ht.1 ht.2.1,
-    exact ht.2.1 },
+    exact ht.2.1.mem_nhds ht.1 },
   { change gauge_seminorm _ _ _ ⁻¹' metric.ball 0 1 ⊆ t,
     rw [← seminorm.ball_zero_eq_preimage_ball, seminorm.ball_zero_eq],
     simp_rw gauge_seminorm_to_fun,

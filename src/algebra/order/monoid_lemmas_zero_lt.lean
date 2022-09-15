@@ -145,26 +145,22 @@ alias lt_of_mul_lt_mul_right ← lt_of_mul_lt_mul_of_nonneg_right
 alias le_of_mul_le_mul_left  ← le_of_mul_le_mul_of_pos_left
 alias le_of_mul_le_mul_right ← le_of_mul_le_mul_of_pos_right
 
-@[simp]
-lemma mul_lt_mul_left [pos_mul_strict_mono α] [pos_mul_reflect_lt α]
+@[simp] lemma mul_lt_mul_left [pos_mul_strict_mono α] [pos_mul_reflect_lt α]
   (a0 : 0 < a) :
   a * b < a * c ↔ b < c :=
 @rel_iff_cov α>0 α (λ x y, x * y) (<) _ _ ⟨a, a0⟩ _ _
 
-@[simp]
-lemma mul_lt_mul_right [mul_pos_strict_mono α] [mul_pos_reflect_lt α]
+@[simp] lemma mul_lt_mul_right [mul_pos_strict_mono α] [mul_pos_reflect_lt α]
   (a0 : 0 < a) :
   b * a < c * a ↔ b < c :=
 @rel_iff_cov α>0 α (λ x y, y * x) (<) _ _ ⟨a, a0⟩ _ _
 
-@[simp]
-lemma mul_le_mul_left [pos_mul_mono α] [pos_mul_mono_rev α]
+@[simp] lemma mul_le_mul_left [pos_mul_mono α] [pos_mul_mono_rev α]
   (a0 : 0 < a) :
   a * b ≤ a * c ↔ b ≤ c :=
 @rel_iff_cov α>0 α (λ x y, x * y) (≤) _ _ ⟨a, a0⟩ _ _
 
-@[simp]
-lemma mul_le_mul_right [mul_pos_mono α] [mul_pos_mono_rev α]
+@[simp] lemma mul_le_mul_right [mul_pos_mono α] [mul_pos_mono_rev α]
   (a0 : 0 < a) :
   b * a ≤ c * a ↔ b ≤ c :=
 @rel_iff_cov α>0 α (λ x y, y * x) (≤) _ _ ⟨a, a0⟩ _ _
@@ -648,7 +644,7 @@ lemma mul_lt_one_of_lt_of_lt_right [mul_pos_strict_mono α]
   (ha : a < 1) (hb : b < 1) (b0 : 0 < b) : a * b < 1 :=
 (mul_lt_of_lt_one_left b0 ha).trans hb
 
-namespace no_zero_le_one
+namespace without_zero_le_one
 
 /-! Lemmas of the form `b ≤ c → 1 ≤ a → b ≤ c * a`. -/
 
@@ -694,7 +690,7 @@ lemma one_lt_mul_of_lt_of_lt_right [mul_pos_strict_mono α]
   (ha : 1 < a) (hb : 1 < b) (b0 : 0 < b) : 1 < a * b :=
 hb.trans (lt_mul_of_one_lt_left b0 ha)
 
-end no_zero_le_one
+end without_zero_le_one
 
 /-! Lemmas of the form `a * b ≤ c` → `1 ≤ b` → `a ≤ c`. -/
 

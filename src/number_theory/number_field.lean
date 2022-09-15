@@ -340,7 +340,7 @@ begin
     { exact λ p _, polynomial.root_set_finite p K, }},
 end
 
-lemma mem_roots_of_unity_of_norm_eq_one {x : K}
+lemma pow_eq_one_of_norm_eq_one {x : K}
   (hxi : is_integral ℤ x)  (hx : ∀ φ : K →+* A, ∥ φ x ∥ = 1) :
   ∃ (n : ℕ) (hn : 0 < n), x ^ n = 1 :=
 begin
@@ -355,7 +355,7 @@ begin
       use (is_alg_closed.lift (number_field.is_algebraic K)).to_ring_hom, },
     { rw [pow_sub₀ _ hxne habne.le, h, mul_inv_cancel (pow_ne_zero b hxne)], }},
   { rw set.maps_univ_to,
-    refine λ a, ⟨hxi.pow a, λ φ, by simp [hx φ, norm_pow, one_pow]⟩, },
+    exact λ a, ⟨hxi.pow a, λ φ, by simp [hx φ, norm_pow, one_pow]⟩, },
 end
 
 end bounded

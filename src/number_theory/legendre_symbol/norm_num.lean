@@ -310,7 +310,7 @@ meta def prove_jacobi_sym_odd : instance_cache → instance_cache → expr → e
       (zc, nc, er, p) ← prove_jacobi_sym_odd zc nc bma ea, -- compute `jacobi_sym_nat (b % a) a`
       match match_numeral ea₁ with
       -- | match_numeral_result.zero :=  -- `a = 1`, not reached
-      | match_numeral_result.one := do -- `a = 3`
+      | match_numeral_result.one := do -- `a = 3`; need to consider `b`
         match match_numeral eb₁ with
         -- | match_numeral_result.zero := -- `b = 1`, not reached
         -- | match_numeral_result.one := -- `b = 3`, not reached, since `a < b`

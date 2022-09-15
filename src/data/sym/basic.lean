@@ -349,7 +349,7 @@ lemma append_comm (s : sym α n') (s' : sym α n') :
   s.append s' = sym.cast (add_comm _ _) (s'.append s) :=
 by { ext, simp [append, add_comm], }
 
-@[simp, norm_cast] lemma coe_append (s : sym α n') (s' : sym α n') :
+@[simp, norm_cast] lemma coe_append (s : sym α n) (s' : sym α n') :
   (s.append s' : multiset α) = s + s' := rfl
 
 lemma mem_append_iff {s' : sym α m} : a ∈ s.append s' ↔ a ∈ s ∨ a ∈ s' := multiset.mem_add

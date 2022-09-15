@@ -237,8 +237,14 @@ begin
     simp only [multiset.count_filter, subtype.val_eq_coe, sym.coe_cast, sym.coe_append,
       multiset.filter_add, sym.mk_coe, multiset.count_add, ite_not],
     split_ifs,
-    { simp [self_eq_add_right, multiset.count_repeat, h.symm], },
-    { exact multiset.count_eq_zero.2 (λ h', ha $ (not_ne_iff.1 h).symm ▸ hm.2 a' h') } },
+    { simp only [h.symm, multiset.count_eq_zero, sym.mem_coe],
+      by_contradiction H,
+      exact ha (hm.2 a H)},
+    { simp only [self_eq_add_right, multiset.count_eq_zero, sym.mem_coe,
+        sym.mem_repeat, ne.def, not_and],
+      intro _,
+      by_contradiction H,
+      exact h H.symm } },
 end
 
 end nat

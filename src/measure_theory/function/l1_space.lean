@@ -109,7 +109,7 @@ by simp only [has_finite_integral_iff_norm, edist_dist, dist_zero_right]
 
 lemma has_finite_integral_iff_of_real {f : α → ℝ} (h : 0 ≤ᵐ[μ] f) :
   has_finite_integral f μ ↔ ∫⁻ a, ennreal.of_real (f a) ∂μ < ∞ :=
-by rw [has_finite_integral_iff_norm, lintegral_norm_eq_of_ae_nonneg h]
+by rw [lintegral_nnnorm_eq_of_ae_nonneg h]
 
 lemma has_finite_integral_iff_of_nnreal {f : α → ℝ≥0} :
   has_finite_integral (λ x, (f x : ℝ)) μ ↔ ∫⁻ a, f a ∂μ < ∞ :=

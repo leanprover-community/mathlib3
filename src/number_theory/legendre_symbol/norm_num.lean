@@ -30,7 +30,7 @@ of the gcd of `a` and `b`. More precisely, the computation is done in the follow
   `J(2a+1 | 2b) = J(2a+1 | b)` (another artifact of the definition).
 
 * Now `0 ≤ a < b` and `b` is odd. If `b = 1`, then the value is `1`.
-  If `a = 0` (and `b < 1`), then the value is `0`. Otherwise, we remove powers of two from `a`
+  If `a = 0` (and `b > 1`), then the value is `0`. Otherwise, we remove powers of two from `a`
   via `J(4a | b) = J(a | b)` and `J(2a | b) = ±J(a | b)`, where the sign is determined
   by the residue class of `b` mod 8, to reduce to `a` odd.
 

@@ -461,6 +461,9 @@ example : J(58378362899022564339483801989973056405585914719065 |
             53974350278769849773003214636618718468638750007307) = -1 := by norm_num
 -- set_option profiler false
 
+example : J(3 + 4 | 3 * 5) = -1 := by norm_num
+example : J(J(-1 | 7) | 11) = -1 := by norm_num
+
 instance prime_1000003 : fact (nat.prime 1000003) := ⟨by norm_num⟩
 example : legendre_sym 1000003 7 = -1 := by norm_num
 

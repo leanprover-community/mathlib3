@@ -9,8 +9,9 @@ import probability.martingale.basic
 /-!
 # Centering lemma for stochastic processes
 
-Any `ℕ`-indexed stochastic process can be written as the sum of a martingale and a predictable
-process. From a process `f`, a filtration `ℱ` and a measure `μ`, we define two processes
+Any `ℕ`-indexed stochastic process which is adapted and integrable can be written as the sum of a
+martingale and a predictable process.
+From a process `f`, a filtration `ℱ` and a measure `μ`, we define two processes
 `martingale_part ℱ μ f` and `predictable_part ℱ μ f`.
 
 ## Main definitions

@@ -101,6 +101,14 @@ theorem associated_normalize (x : α) : associated x (normalize x) :=
 theorem normalize_associated (x : α) : associated (normalize x) x :=
 (associated_normalize _).symm
 
+lemma associated_normalize_iff {x y : α} :
+  associated x (normalize y) ↔ associated x y :=
+⟨λ h, h.trans (normalize_associated y), λ h, h.trans (associated_normalize y)⟩
+
+lemma normalize_associated_iff {x y : α} :
+  associated (normalize x) y ↔ associated x y :=
+⟨λ h, (associated_normalize _).trans h, λ h, (normalize_associated _).trans h⟩
+
 lemma associates.mk_normalize (x : α) : associates.mk (normalize x) = associates.mk x :=
 associates.mk_eq_mk_iff_associated.2 (normalize_associated _)
 

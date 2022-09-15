@@ -133,10 +133,8 @@ begin
   exact ⟨⟨T, hT⟩⟩,
 end
 
-lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0)
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
-  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)] :
-  @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
+lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0) :
+  @group.rank H _ (fg_of_index_ne_zero hH) ≤ H.index * group.rank G :=
 begin
   haveI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,

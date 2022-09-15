@@ -58,7 +58,8 @@ This file defines the predicate `separated`, and common separation axioms
 * `is_compact.is_closed`: All compact sets are closed.
 * `locally_compact_of_compact_nhds`: If every point has a compact neighbourhood,
   then the space is locally compact.
-* `tot_sep_of_zero_dim`: If `α` has a clopen basis, it is a `totally_separated_space`.
+* `totally_separated_space_of_t1_of_basis_clopen`: If `α` has a clopen basis, then
+  it is a `totally_separated_space`.
 * `loc_compact_t2_tot_disc_iff_tot_sep`: A locally compact T₂ space is totally disconnected iff
   it is totally separated.
 
@@ -605,6 +606,16 @@ have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
 have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id'.2 $ pure_le_nhds a),
 fact₂ fact₁ (eq.refl $ f a)
 
+lemma filter.tendsto.eventually_ne [topological_space β] [t1_space β] {α : Type*} {g : α → β}
+  {l : filter α} {b₁ b₂ : β} (hg : tendsto g l (𝓝 b₁)) (hb : b₁ ≠ b₂) :
+  ∀ᶠ z in l, g z ≠ b₂ :=
+hg.eventually (is_open_compl_singleton.eventually_mem hb)
+
+lemma continuous_at.eventually_ne [topological_space β] [t1_space β] {g : α → β}
+  {a : α} {b : β} (hg1 : continuous_at g a) (hg2 : g a ≠ b) :
+  ∀ᶠ z in 𝓝 a, g z ≠ b :=
+hg1.tendsto.eventually_ne hg2
+
 /-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
 `f` admits *some* limit at `a`. -/
 lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
@@ -720,11 +731,11 @@ eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_
 is the discrete topology on `X`. -/
 lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
   {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
-begin
-  constructor,
-  rw discrete_topology.eq_bot Y,
-  exact induced_bot hf
-end
+by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
+
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
 
 /-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
 by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
@@ -1534,22 +1545,19 @@ end
 
 section profinite
 
-variables [t2_space α]
-
-/-- A Hausdorff space with a clopen basis is totally separated. -/
-lemma tot_sep_of_zero_dim (h : is_topological_basis {s : set α | is_clopen s}) :
+/-- A T1 space with a clopen basis is totally separated. -/
+lemma totally_separated_space_of_t1_of_basis_clopen [t1_space α]
+  (h : is_topological_basis {s : set α | is_clopen s}) :
   totally_separated_space α :=
 begin
   constructor,
   rintros x - y - hxy,
-  obtain ⟨u, v, hu, hv, xu, yv, disj⟩ := t2_separation hxy,
-  obtain ⟨w, hw : is_clopen w, xw, wu⟩ := (is_topological_basis.mem_nhds_iff h).1
-    (is_open.mem_nhds hu xu),
-  refine ⟨w, wᶜ, hw.1, hw.compl.1, xw, λ h, disj ⟨wu h, yv⟩, _, disjoint_compl_right⟩,
-  rw set.union_compl_self,
+  rcases h.mem_nhds_iff.mp (is_open_ne.mem_nhds hxy) with ⟨U, hU, hxU, hyU⟩,
+  exact ⟨U, Uᶜ, hU.is_open, hU.compl.is_open, hxU, λ h, hyU h rfl,
+    (union_compl_self U).superset, disjoint_compl_right⟩
 end
 
-variables [compact_space α]
+variables [t2_space α] [compact_space α]
 
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
@@ -1668,7 +1676,7 @@ theorem loc_compact_t2_tot_disc_iff_tot_sep :
 begin
   split,
   { introI h,
-    exact tot_sep_of_zero_dim loc_compact_Haus_tot_disc_of_zero_dim, },
+    exact totally_separated_space_of_t1_of_basis_clopen loc_compact_Haus_tot_disc_of_zero_dim },
   apply totally_separated_space.totally_disconnected_space,
 end
 

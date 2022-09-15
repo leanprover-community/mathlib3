@@ -16,6 +16,9 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 ## Main definitions
 
 * `spectral_radius : ℝ≥0∞`: supremum of `∥k∥₊` for all `k ∈ spectrum 𝕜 a`
+* `normed_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
+  Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
+  is given by selecting the (unique) element of `spectrum ℂ a`
 
 ## Main statements
 
@@ -29,9 +32,6 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius`: Gelfand's formula for the
   spectral radius in Banach algebras over `ℂ`.
 * `spectrum.nonempty`: the spectrum of any element in a complex Banach algebra is nonempty.
-* `normed_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
-  Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
-  is given by selecting the (unique) element of `spectrum ℂ a`
 
 
 ## TODO
@@ -347,23 +347,32 @@ end
 
 section gelfand_mazur_isomorphism
 
-variables [normed_division_ring A] [normed_algebra ℂ A]
+variables [normed_ring A] [normed_algebra ℂ A] (hA : ∀ {a : A}, is_unit a ↔ a ≠ 0)
+include hA
 
 local notation `σ` := spectrum ℂ
 
 lemma algebra_map_eq_of_mem {a : A} {z : ℂ} (h : z ∈ σ a) : algebra_map ℂ A z = a :=
-by rwa [mem_iff, is_unit_iff_ne_zero, not_not, sub_eq_zero] at h
+by rwa [mem_iff, hA, not_not, sub_eq_zero] at h
 
 /-- **Gelfand-Mazur theorem**: For a complex Banach division algebra, the natural `algebra_map ℂ A`
 is an algebra isomorphism whose inverse is given by selecting the (unique) element of
-`spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry. -/
+`spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry.
+
+Note: because `normed_division_ring` requires the field `norm_mul' : ∀ a b, ∥a * b∥ = ∥a∥ * ∥b∥`, we
+don't use this type class and instead opt for a `normed_ring` in which the nonzero elements are
+precisely the units. This allows for the application of this isomorphism in broader contexts, e.g.,
+to the quotient of a complex Banach algebra by a maximal ideal. In the case when `A` is actually a
+`normed_division_ring`, one may fill in the argument `hA` with the lemma `is_unit_iff_ne_zero`. -/
 @[simps]
-noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
+noncomputable def _root_.normed_ring.alg_equiv_complex_of_complete
   [complete_space A] : ℂ ≃ₐ[ℂ] A :=
+let nt : nontrivial A := ⟨⟨1, 0, hA.mp ⟨⟨1, 1, mul_one _, mul_one _⟩, rfl⟩⟩⟩ in
 { to_fun := algebra_map ℂ A,
-  inv_fun := λ a, (spectrum.nonempty a).some,
-  left_inv := λ z, by simpa only [scalar_eq] using (spectrum.nonempty $ algebra_map ℂ A z).some_mem,
-  right_inv := λ a, algebra_map_eq_of_mem (spectrum.nonempty a).some_mem,
+  inv_fun := λ a, (@spectrum.nonempty _ _ _ _ nt a).some,
+  left_inv := λ z, by simpa only [@scalar_eq _ _ _ _ _ nt _] using
+    (@spectrum.nonempty _ _ _ _ nt $ algebra_map ℂ A z).some_mem,
+  right_inv := λ a, algebra_map_eq_of_mem @hA (@spectrum.nonempty _ _ _ _ nt a).some_mem,
   ..algebra.of_id ℂ A }
 
 end gelfand_mazur_isomorphism

@@ -1787,6 +1787,8 @@ def centralizer : subgroup G :=
   inv_mem' := λ g, set.inv_mem_centralizer,
   .. submonoid.centralizer ↑H }
 
+variables {H}
+
 @[to_additive] lemma mem_centralizer_iff {g : G} : g ∈ H.centralizer ↔ ∀ h ∈ H, h * g = g * h :=
 iff.rfl
 
@@ -1796,6 +1798,12 @@ by simp only [mem_centralizer_iff, mul_inv_eq_iff_eq_mul, one_mul]
 
 @[to_additive] lemma centralizer_top : centralizer ⊤ = center G :=
 set_like.ext' (set.centralizer_univ G)
+
+@[to_additive] lemma le_centralizer_iff : H ≤ K.centralizer ↔ K ≤ H.centralizer :=
+⟨λ h x hx y hy, (h hy x hx).symm, λ h x hx y hy, (h hy x hx).symm⟩
+
+@[to_additive] lemma centralizer_le (h : H ≤ K) : centralizer K ≤ centralizer H :=
+submonoid.centralizer_le h
 
 @[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :
   H.centralizer.characteristic :=
@@ -2699,6 +2707,12 @@ by rw [eq_bot_iff, zpowers_le, mem_bot]
    subgroup.zpowers (1 : G) = ⊥ :=
 subgroup.zpowers_eq_bot.mpr rfl
 
+@[to_additive] lemma centralizer_closure (S : set G) :
+  (closure S).centralizer = ⨅ g ∈ S, (zpowers g).centralizer :=
+le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ subset_closure hg)
+  $ le_centralizer_iff.1 $ (closure_le _).2
+  $ λ g, set_like.mem_coe.2 ∘ zpowers_le.1 ∘ le_centralizer_iff.1 ∘ infi_le_of_le g ∘ infi_le _
+
 end subgroup
 
 namespace monoid_hom
@@ -3168,11 +3182,17 @@ namespace subgroup
 /-- A subgroup `H` of `G` determines a subgroup `H.opposite` of the opposite group `Gᵐᵒᵖ`. -/
 @[to_additive "An additive subgroup `H` of `G` determines an additive subgroup `H.opposite` of the
   opposite additive group `Gᵃᵒᵖ`."]
-def opposite (H : subgroup G) : subgroup Gᵐᵒᵖ :=
-{ carrier := mul_opposite.unop ⁻¹' (H : set G),
-  one_mem' := H.one_mem,
-  mul_mem' := λ a b ha hb, H.mul_mem hb ha,
-  inv_mem' := λ a, H.inv_mem }
+def opposite : subgroup G ≃ subgroup Gᵐᵒᵖ :=
+{ to_fun := λ H, { carrier := mul_opposite.unop ⁻¹' (H : set G),
+                   one_mem' := H.one_mem,
+                   mul_mem' := λ a b ha hb, H.mul_mem hb ha,
+                   inv_mem' := λ a, H.inv_mem },
+  inv_fun := λ H, { carrier := mul_opposite.op ⁻¹' (H : set Gᵐᵒᵖ),
+                   one_mem' := H.one_mem,
+                   mul_mem' := λ a b ha hb, H.mul_mem hb ha,
+                   inv_mem' := λ a, H.inv_mem },
+  left_inv := λ H, set_like.coe_injective rfl,
+  right_inv := λ H, set_like.coe_injective rfl }
 
 /-- Bijection between a subgroup `H` and its opposite. -/
 @[to_additive "Bijection between an additive subgroup `H` and its opposite.", simps]
@@ -3181,6 +3201,9 @@ mul_opposite.op_equiv.subtype_equiv $ λ _, iff.rfl
 
 @[to_additive] instance (H : subgroup G) [encodable H] : encodable H.opposite :=
 encodable.of_equiv H H.opposite_equiv.symm
+
+@[to_additive] instance (H : subgroup G) [countable H] : countable H.opposite :=
+countable.of_equiv H H.opposite_equiv
 
 @[to_additive] lemma smul_opposite_mul {H : subgroup G} (x g : G) (h : H.opposite) :
   h • (g * x) = g * (h • x) :=

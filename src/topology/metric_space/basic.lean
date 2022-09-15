@@ -800,6 +800,17 @@ begin
   exact hs _ (dist_mem_uniformity ε_pos),
 end
 
+/-- Expressing uniform convergence using `dist` -/
+lemma tendsto_uniformly_on_filter_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} {p' : filter β} :
+  tendsto_uniformly_on_filter F f p p' ↔
+  ∀ ε > 0, ∀ᶠ (n : ι × β) in (p ×ᶠ p'), dist (f n.snd) (F n.fst n.snd) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (dist_mem_uniformity hε), λ H u hu, _⟩,
+  rcases mem_uniformity_dist.1 hu with ⟨ε, εpos, hε⟩,
+  refine (H ε εpos).mono (λ n hn, hε hn),
+end
+
 /-- Expressing locally uniform convergence on a set using `dist`. -/
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
@@ -1682,7 +1693,7 @@ lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : i
 begin
   classical,
   rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
-  { haveI : encodable (∅ : set α) := fintype.to_encodable ↥∅, exact encodable.to_separable_space },
+  { apply_instance },
   rcases hs with ⟨c, hc, h'c⟩,
   haveI : encodable c := hc.to_encodable,
   obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧

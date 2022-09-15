@@ -1,15 +1,14 @@
 /-
 Copyright (c) 2022 Pim Otte. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Pim Otte
+Authors: Kyle Miller, Pim Otte
 -/
 
 import algebra.big_operators.fin
 import algebra.big_operators.order
-import data.nat.choose.sum
+import data.nat.choose.basic
+import data.nat.factorial.big_operators
 import data.fin.vec_notation
-import data.finset.sym
-import data.finsupp.multiset
 
 import tactic.linarith
 
@@ -28,7 +27,7 @@ This file defines the multinomial coefficient and several small lemma's for mani
 
 -/
 
-open_locale nat
+open_locale big_operators nat
 open_locale big_operators
 
 namespace nat
@@ -38,22 +37,9 @@ variables {α : Type*} (s : finset α) (f : α → ℕ) {a b : α} (n : ℕ )
 /-- The multinomial coefficient. Gives the number of strings consisting of symbols
 from `s`, where `c ∈ s` appears with multiplicity `f c`.
 
-Defined as `(∑ i in s, f i)! / ∏ i in s, (f i)!`
+Defined as `(∑ i in s, f i)! / ∏ i in s, (f i)!`.
 -/
 def multinomial : ℕ := (∑ i in s, f i)! / ∏ i in s, (f i)!
-
-lemma prod_factorial_dvd_factorial_sum : (∏ i in s, (f i)!) ∣ (∑ i in s, f i)! :=
-begin
-  classical,
-  induction s using finset.induction with a' s' has ih,
-  { simp only [finset.sum_empty, finset.prod_empty, factorial], },
-  { simp only [finset.prod_insert has, finset.sum_insert has],
-    refine dvd_trans (mul_dvd_mul_left ((f a')!) ih) _,
-    apply nat.factorial_mul_factorial_dvd_factorial_add, },
-end
-
-lemma prod_factorial_pos : 0 < ∏ i in s, (f i)! :=
-finset.prod_pos (λ i _, factorial_pos (f i))
 
 lemma multinomial_pos : 0 < multinomial s f := nat.div_pos
   (le_of_dvd (factorial_pos _) (prod_factorial_dvd_factorial_sum s f)) (prod_factorial_pos s f)

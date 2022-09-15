@@ -358,10 +358,23 @@ lemma tendsto_list_prod {f : ι → α → M} {x : filter α} {a : ι → M} :
 
 @[to_additive]
 lemma continuous_list_prod {f : ι → X → M} (l : list ι)
-  (h : ∀i∈l, continuous (f i)) :
-  continuous (λa, (l.map (λi, f i a)).prod) :=
+  (h : ∀ i ∈ l, continuous (f i)) :
+  continuous (λ a, (l.map (λ i, f i a)).prod) :=
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
+
+@[to_additive]
+lemma continuous_on_list_prod {f : ι → X → M} (l : list ι) {t : set X}
+  (h : ∀ i ∈ l, continuous_on (f i) t) :
+  continuous_on (λ a, (l.map (λ i, f i a)).prod) t :=
+begin
+  intros x hx,
+  rw continuous_within_at_iff_continuous_at_restrict _ hx,
+  refine tendsto_list_prod _ (λ i hi, _),
+  specialize h i hi x hx,
+  rw continuous_within_at_iff_continuous_at_restrict _ hx at h,
+  exact h,
+end
 
 @[continuity, to_additive]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
@@ -493,13 +506,23 @@ tendsto_multiset_prod _
 
 @[continuity, to_additive]
 lemma continuous_multiset_prod {f : ι → X → M} (s : multiset ι) :
-  (∀i ∈ s, continuous (f i)) → continuous (λ a, (s.map (λ i, f i a)).prod) :=
+  (∀ i ∈ s, continuous (f i)) → continuous (λ a, (s.map (λ i, f i a)).prod) :=
 by { rcases s with ⟨l⟩, simpa using continuous_list_prod l }
+
+@[to_additive]
+lemma continuous_on_multiset_prod {f : ι → X → M} (s : multiset ι) {t : set X} :
+  (∀i ∈ s, continuous_on (f i) t) → continuous_on (λ a, (s.map (λ i, f i a)).prod) t :=
+by { rcases s with ⟨l⟩, simpa using continuous_on_list_prod l }
 
 @[continuity, to_additive]
 lemma continuous_finset_prod {f : ι → X → M} (s : finset ι) :
-  (∀ i ∈ s, continuous (f i)) → continuous (λa, ∏ i in s, f i a) :=
+  (∀ i ∈ s, continuous (f i)) → continuous (λ a, ∏ i in s, f i a) :=
 continuous_multiset_prod _
+
+@[to_additive]
+lemma continuous_on_finset_prod {f : ι → X → M} (s : finset ι) {t : set X} :
+  (∀ i ∈ s, continuous_on (f i) t) → continuous_on (λ a, ∏ i in s, f i a) t :=
+continuous_on_multiset_prod _
 
 @[to_additive] lemma eventually_eq_prod {X M : Type*} [comm_monoid M]
   {s : finset ι} {l : filter X} {f g : ι → X → M} (hs : ∀ i ∈ s, f i =ᶠ[l] g i) :

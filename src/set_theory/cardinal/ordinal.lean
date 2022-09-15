@@ -284,7 +284,7 @@ lemma aleph_0_lt_aleph_one : ℵ₀ < aleph 1 :=
 by { rw ←succ_aleph_0, apply lt_succ }
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : s.countable ↔ #s < aleph 1 :=
-by rw [←succ_aleph_0, lt_succ_iff, mk_set_le_aleph_0]
+by rw [←succ_aleph_0, lt_succ_iff, le_aleph_0_iff_set_countable]
 
 /-- Ordinals that are cardinals are unbounded. -/
 theorem ord_card_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
@@ -404,7 +404,7 @@ begin
     quotient.induction_on c $ λ α IH ol, _) h,
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
-  letI := linear_order_of_STO' r,
+  letI := linear_order_of_STO r,
   haveI : is_well_order α (<) := wo,
   -- Define an order `s` on `α × α` by writing `(a, b) < (c, d)` if `max a b < max c d`, or
   -- the max are equal and `a < c`, or the max are equal and `a = c` and `b < d`.

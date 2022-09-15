@@ -305,6 +305,8 @@ end big_operators
 
 section jacobi
 
+-- Jacobi and Legendre symbols
+
 open_locale number_theory_symbols
 
 example : J(123 | 335) = -1 := by norm_num

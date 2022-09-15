@@ -252,12 +252,13 @@ meta def prove_jacobi_sym_odd : instance_cache → instance_cache → expr → e
   match match_numeral eb with
   | match_numeral_result.one :=  -- `b = 1`, result is `1`
     pure (zc, nc, `(1 : ℤ), `(jacobi_sym_nat.one_right).mk_app [ea])
-  | match_numeral_result.bit1 eb₁ := do -- `b` is odd
+  | match_numeral_result.bit1 eb₁ := do -- `b > 1` (recall that `b` is odd)
     match match_numeral ea with
     | match_numeral_result.zero := do -- `a = 0`, result is `0`
       b ← eb₁.to_nat,
       (nc, phb₀) ← prove_ne nc eb₁ `(0 : ℕ) b 0, -- proof of `b ≠ 0`
       let er : expr := `(0 : ℤ),
+      -- writing`` `(0 : ℤ)`` directly in the line below gives an error in the next case
       pure (zc, nc, er, `(jacobi_sym_nat.zero_left_odd).mk_app [eb₁, phb₀])
     | match_numeral_result.one := do -- `a = 1`, result is `1`
       let er : expr := `(1 : ℤ),

@@ -609,7 +609,8 @@ variables (M S Q)
 there is an isomorphism of localizations `S ≃ₐ[R] Q`. -/
 @[simps]
 noncomputable def alg_equiv : S ≃ₐ[R] Q :=
-{ commutes' := ring_equiv_of_ring_equiv_eq _,
+{ map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes
+    (map_mul $ ring_equiv_of_ring_equiv S Q (ring_equiv.refl R) _) (ring_equiv_of_ring_equiv_eq _),
   .. ring_equiv_of_ring_equiv S Q (ring_equiv.refl R) M.map_id }
 
 end
@@ -658,7 +659,8 @@ lemma is_localization_iff_of_ring_equiv (h : S ≃+* P) :
     @@is_localization _ M P _ (h.to_ring_hom.comp $ algebra_map R S).to_algebra :=
 begin
   letI := (h.to_ring_hom.comp $ algebra_map R S).to_algebra,
-  exact is_localization_iff_of_alg_equiv M { commutes' := λ _, rfl, ..h },
+  exact is_localization_iff_of_alg_equiv M
+  { map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (map_mul h) (λ _, rfl), ..h },
 end
 
 variable (S)

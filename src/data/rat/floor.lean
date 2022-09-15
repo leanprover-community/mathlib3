@@ -159,10 +159,9 @@ open tactic
   let z := int.floor q,
   let ze := `(z),
   t ← to_expr ``(%%e = %%ze),
-  ((), p) ← tactic.solve_aux t (do {
+  ((), p) ← tactic.solve_aux t (do
     tactic.mk_mapp `int.floor_eq_iff [some R, some inst_1, some inst_2] >>= tactic.rewrite_target,
-    tactic.interactive.norm_num [] (interactive.loc.ns [none])
-  }),
+    tactic.interactive.norm_num [] (interactive.loc.ns [none])),
   p ← instantiate_mvars p,
   pure (ze, p)
 | e@`(@int.ceil %%R %%inst_1 %%inst_2 %%x) := do
@@ -170,10 +169,9 @@ open tactic
   let z := int.ceil q,
   let ze := `(z),
   t ← to_expr ``(%%e = %%ze),
-  ((), p) ← tactic.solve_aux t (do {
+  ((), p) ← tactic.solve_aux t (do
     tactic.mk_mapp `int.ceil_eq_iff [some R, some inst_1, some inst_2] >>= tactic.rewrite_target,
-    `[norm_num]
-  }),
+    `[norm_num]),
   p ← instantiate_mvars p,
   pure (ze, p)
 | e@`(@int.fract %%R %%inst_1 %%inst_2 %%x) := do
@@ -184,20 +182,13 @@ open tactic
   let z := int.floor q,
   let ze := `(z),
   t ← to_expr ``(%%e = %%q'e),
-  ((), p) ← tactic.solve_aux t (do {
+  ((), p) ← tactic.solve_aux t (do
     `[rw int.fract_eq_iff; norm_num],
     tactic.refine ``(⟨%%ze, _⟩),
-    `[norm_num]
-  }),
+    `[norm_num]),
   p ← instantiate_mvars p,
   pure (q'e, p)
 | _ := failed
-
-variables (R :Type*) [linear_ordered_field R] [floor_ring R]
-
-example : int.floor (15 / 16 : R) + 1 = 1 := by norm_num
-example : int.ceil (15 / 16 : R) + 1 = 2 := by norm_num
-example : int.fract (17 / 16 : R) + 1 = 17 / 16 := by norm_num
 
 end norm_num
 end rat

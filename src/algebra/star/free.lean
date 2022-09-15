@@ -56,7 +56,7 @@ by simp [star, has_star.star]
 
 /-- `star` as an `alg_equiv` -/
 def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵐᵒᵖ :=
-{ commutes' := λ r, by simp [star_algebra_map],
+{ map_smul' := λ r a, by simp [has_star.star],
   ..star_ring_equiv }
 
 end free_algebra

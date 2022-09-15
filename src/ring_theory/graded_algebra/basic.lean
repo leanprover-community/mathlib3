@@ -199,7 +199,7 @@ an algebra to a direct sum of components. -/
 def decompose_alg_equiv : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
 { map_mul' := (coe_alg_hom 𝒜).map_mul,
   map_add' := (coe_alg_hom 𝒜).map_add,
-  commutes' := (coe_alg_hom 𝒜).commutes,
+  map_smul' := map_smul (coe_alg_hom 𝒜),
   ..(decompose_add_equiv 𝒜).symm }
 
 end direct_sum

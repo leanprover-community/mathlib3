@@ -133,6 +133,7 @@ def rename_equiv (f : σ ≃ τ) : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ
   inv_fun := rename f.symm,
   left_inv := λ p, by rw [rename_rename, f.symm_comp_self, rename_id],
   right_inv := λ p, by rw [rename_rename, f.self_comp_symm, rename_id],
+  map_smul' := map_smul (rename f),
   ..rename f}
 
 @[simp] lemma rename_equiv_refl :

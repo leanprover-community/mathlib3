@@ -85,7 +85,8 @@ def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] R[X] :=
         eval₂_mul, eval₂_C, eval₂_pow, eval₂_X]),
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _,
-  commutes' := λ _, eval₂_C _ _ _}
+  map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (λ _ _, eval₂_mul _ _)
+    (λ _, eval₂_C _ _ _) }
 
 section map
 variables {R} (σ)
@@ -120,6 +121,7 @@ variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 def map_alg_equiv (e : A₁ ≃ₐ[R] A₂) :
   mv_polynomial σ A₁ ≃ₐ[R] mv_polynomial σ A₂ :=
 { to_fun := map (e : A₁ →+* A₂),
+  map_smul' := map_smul (map_alg_hom (e : A₁ →ₐ[R] A₂) : mv_polynomial σ A₁ →ₐ[R] _),
   ..map_alg_hom (e : A₁ →ₐ[R] A₂),
   ..map_equiv σ (e : A₁ ≃+* A₂) }
 
@@ -243,7 +245,8 @@ with coefficents in multivariable polynomials in the other type.
 -/
 def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
   mv_polynomial S₁ (mv_polynomial S₂ R) :=
-{ commutes' := begin
+{ map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (map_mul $ sum_ring_equiv R S₁ S₂)
+  begin
     intro r,
     have A : algebra_map R (mv_polynomial S₁ (mv_polynomial S₂ R)) r = (C (C r) : _), by refl,
     have B : algebra_map R (mv_polynomial (S₁ ⊕ S₂) R) r = C r, by refl,

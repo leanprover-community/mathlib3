@@ -82,11 +82,8 @@ variable (R)
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
 @[simps]
 def to_finsupp_iso_alg : R[X] ≃ₐ[R] add_monoid_algebra R ℕ :=
-{ commutes' := λ r,
-  begin
-    dsimp,
-    exact to_finsupp_algebra_map _,
-  end,
+{ map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (map_mul $ to_finsupp_iso R)
+    (λ r, by { dsimp, exact to_finsupp_algebra_map _, }),
   ..to_finsupp_iso R }
 
 variable {R}

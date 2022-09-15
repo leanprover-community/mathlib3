@@ -377,7 +377,8 @@ lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u
 begin
   split,
   { rintro ⟨n, f, hfs, hfk⟩,
-    set ulift_var := mv_polynomial.rename_equiv R equiv.ulift,
+    set ulift_var : mv_polynomial (ulift (fin n)) _ ≃ₐ[R] _ :=
+      mv_polynomial.rename_equiv R equiv.ulift,
     refine ⟨ulift (fin n), infer_instance, f.comp ulift_var.to_alg_hom,
       hfs.comp ulift_var.surjective,
       ideal.fg_ker_comp _ _ _ hfk ulift_var.surjective⟩,
@@ -405,12 +406,14 @@ begin
   let g := (mv_polynomial.map_alg_hom f).comp (mv_polynomial.sum_alg_equiv R ι ι').to_alg_hom,
   casesI nonempty_fintype (ι ⊕ ι'),
   refine ⟨ι ⊕ ι', by apply_instance, g,
-    (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
-    ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,
+    (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _), _⟩,
+  apply ideal.fg_ker_comp,
   { convert submodule.fg_bot,
-    exact ring_hom.ker_coe_equiv (mv_polynomial.sum_alg_equiv R ι ι').to_ring_equiv },
+    rw ←ring_hom.injective_iff_ker_eq_bot,
+    simpa only using (mv_polynomial.sum_alg_equiv R ι ι').injective, },
   { rw [alg_hom.to_ring_hom_eq_coe, mv_polynomial.map_alg_hom_coe_ring_hom, mv_polynomial.ker_map],
-    exact hf_ker.map mv_polynomial.C, }
+    exact hf_ker.map mv_polynomial.C, },
+  exact (alg_equiv.surjective _),
 end
 
 /-- If `A` is an `R`-algebra and `S` is an `A`-algebra, both finitely presented, then `S` is

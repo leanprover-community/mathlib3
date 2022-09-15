@@ -184,8 +184,9 @@ namespace alg_equiv
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/
 def restrict_scalars (f : A ≃ₐ[S] B) : A ≃ₐ[R] B :=
-{ commutes' := λ r, by { rw [algebra_map_apply R S A, algebra_map_apply R S B],
-    exact f.commutes (algebra_map R S r) },
+{ map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (map_mul f)
+    (λ r, by { rw [algebra_map_apply R S A, algebra_map_apply R S B],
+      exact f.commutes (algebra_map R S r) }),
   .. (f : A ≃+* B) }
 
 lemma restrict_scalars_apply (f : A ≃ₐ[S] B) (x : A) : f.restrict_scalars R x = f x := rfl

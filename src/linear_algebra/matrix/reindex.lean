@@ -108,7 +108,7 @@ a matrix's rows and columns with equivalent types, `matrix.reindex`, is an equiv
 def reindex_alg_equiv (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,
   map_mul'  := λ a b, (reindex_linear_equiv_mul R R e e e a b).symm,
-  commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, submatrix_smul],
+  map_smul' := by simp [submatrix_smul],
   ..(reindex_linear_equiv R R e e) }
 
 @[simp] lemma reindex_alg_equiv_apply (e : m ≃ n) (M : matrix m m R) :

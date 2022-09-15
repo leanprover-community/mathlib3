@@ -1171,7 +1171,8 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
         eval₂_X],
       simp only [hp] }
   end,
-  commutes' := λ r, eval₂_hom_C _ _ (ideal.quotient.mk I r) }
+  map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (map_mul _)
+    (λ r, eval₂_hom_C _ _ (ideal.quotient.mk I r)) }
 
 end mv_polynomial
 

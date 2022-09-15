@@ -72,4 +72,3 @@ by simpa only [add_comm, div_mul_cancel'] using map_mul_le_add f (a / b) b
 lemma le_map_div_add_map_div [group α] [add_comm_semigroup β] [has_le β]
   [mul_le_add_hom_class F α β] (f : F) (a b c: α) : f (a / c) ≤ f (a / b) + f (b / c) :=
 by simpa only [div_mul_div_cancel'] using map_mul_le_add f (a / b) (b / c)
-#lint

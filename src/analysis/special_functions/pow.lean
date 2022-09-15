@@ -907,7 +907,7 @@ begin
     rw [sqrt_eq_zero_of_nonpos h.le, rpow_def_of_neg h, this, cos_pi_div_two, mul_zero] }
 end
 
-@[simp] lemma rpow_two_sqrt {x : ℝ} (hx : 0 ≤ x): (real.sqrt x)^(2 : ℝ) = x :=
+lemma rpow_two_sqrt {x : ℝ} (hx : 0 ≤ x): (real.sqrt x)^(2 : ℝ) = x :=
 begin
   rw [sqrt_eq_rpow, ←rpow_mul hx],
   norm_num,

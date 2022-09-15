@@ -168,7 +168,7 @@ instance [decidable_eq R] : inhabited (ring_norm R) := ⟨1⟩
 end ring_norm
 
 /-- A nonzero ring seminorm on a field `K` is a ring norm. -/
-def ring_seminorm.to_ring_horm {K : Type*} [field K] (f : ring_seminorm K) (hnt : f ≠ 0) :
+def ring_seminorm.to_ring_norm {K : Type*} [field K] (f : ring_seminorm K) (hnt : f ≠ 0) :
   ring_norm K :=
 { eq_zero_of_map_eq_zero' := λ x hx,
   begin

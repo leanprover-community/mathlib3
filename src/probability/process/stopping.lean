@@ -1028,6 +1028,8 @@ end
 
 section add_comm_monoid
 
+variables [add_comm_monoid β]
+
 /-- For filtrations indexed by `ℕ`, the stopped process obtained from an adapted process is
 adapted. -/
 lemma adapted.stopped_process_of_nat [topological_space β] [has_continuous_add β]

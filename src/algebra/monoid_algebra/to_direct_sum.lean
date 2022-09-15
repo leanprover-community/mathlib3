@@ -191,7 +191,7 @@ def add_monoid_algebra_alg_equiv_direct_sum
   [Π m : A, decidable (m ≠ 0)] :
   add_monoid_algebra A ι ≃ₐ[R] ⨁ i : ι, A :=
 { to_fun := add_monoid_algebra.to_direct_sum, inv_fun := direct_sum.to_add_monoid_algebra,
-  commutes' := λ r, add_monoid_algebra.to_direct_sum_single _ _,
+  map_smul' := finsupp.to_dfinsupp_smul,
   ..(add_monoid_algebra_ring_equiv_direct_sum : add_monoid_algebra A ι ≃+* ⨁ i : ι, A) }
 
 end equivs

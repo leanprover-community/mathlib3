@@ -202,7 +202,6 @@ lemma mul_lt_mul_of_lt_of_ltₚ' [pos_mul_strict_mono α] [mul_pos_strict_mono �
 alias mul_le_mul_of_le_of_leₚ' ← mul_le_mul -- this name was in `algebra.order.ring`
 alias mul_lt_mul_of_lt_of_leₚ' ← mul_lt_mul -- this name was in `algebra.order.ring`
 alias mul_lt_mul_of_le_of_ltₚ' ← mul_lt_mul' -- this name was in `algebra.order.ring`
-alias mul_lt_mul_of_le_of_ltₚ' ← mul_lt_mul_of_le_of_lt' -- this name was in `algebra.order.ring`
 
 lemma mul_le_of_mul_le_leftₚ [pos_mul_mono α]
   (h : a * b ≤ c) (hle : d ≤ b) (a0 : 0 ≤ a) : a * d ≤ c :=

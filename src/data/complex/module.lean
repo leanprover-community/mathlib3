@@ -182,9 +182,9 @@ restrict_scalars.is_scalar_tower ℝ ℂ E
 rfl
 
 @[priority 900]
-instance module.real_complex_smul_comm_class {E F : Type*} [add_comm_group E] [module ℂ E]
+instance module.real_complex_smul_comm_class {E F : Type*}
   [add_comm_group F] [module ℂ F] [has_smul E F] [smul_comm_class ℂ E F] : smul_comm_class ℝ E F :=
-{ smul_comm := λ r _ _, by simpa only [complex.coe_smul] using smul_comm (r : ℂ) _ _ }
+{ smul_comm := λ r _ _, (smul_comm (r : ℂ) _ _ : _) }
 
 @[priority 100]
 instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E]

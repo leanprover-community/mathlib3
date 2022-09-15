@@ -40,7 +40,7 @@ of the gcd of `a` and `b`. More precisely, the computation is done in the follow
 
 We provide customized versions of these results for the various reduction steps,
 where we encode the residue classes mod 2, mod 4, or mod 8 by using terms like
-`bit1 (bit0 a)`. In this way, we only divisions we have to compute and prove
+`bit1 (bit0 a)`. In this way, the only divisions we have to compute and prove
 are the ones occurring in the usse of QR above.
 -/
 

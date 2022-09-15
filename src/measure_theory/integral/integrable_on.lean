@@ -246,6 +246,37 @@ begin
   exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
 end
 
+lemma integrable_on.lintegral_lt_top_ae' {f : α → ℝ} {s : set α}
+  (hf : integrable_on f s μ) (h_nonneg : 0 ≤ᵐ[μ.restrict s] f) :
+  ∫⁻ x in s, ennreal.of_real (f x) ∂μ < ⊤ :=
+begin
+  rw [←lintegral_norm_eq_of_ae_nonneg h_nonneg, ←has_finite_integral_iff_norm],
+  exact hf.2,
+end
+
+lemma integrable_on.lintegral_lt_top_ae {f : α → ℝ} {s : set α}
+  (hf : integrable_on f s μ) (hf' : ∀ᵐ x ∂μ, x ∈ s → 0 ≤ f x) :
+  ∫⁻ x in s, ennreal.of_real (f x) ∂μ < ⊤ :=
+begin
+  let g := hf.1.mk _,
+  have : ∫⁻ x in s, ennreal.of_real (f x) ∂μ = ∫⁻ x in s, ennreal.of_real (g x) ∂μ,
+  { apply lintegral_congr_ae,
+    filter_upwards [hf.1.ae_eq_mk] with x hx,
+    rw hx },
+  rw this,
+  apply integrable_on.lintegral_lt_top_ae' (hf.congr hf.1.ae_eq_mk),
+  apply (ae_restrict_iff (measurable_set_le measurable_zero (hf.1.measurable_mk))).2,
+  filter_upwards [hf', ae_imp_of_ae_restrict hf.1.ae_eq_mk] with x hx h'x,
+  assume xs,
+  rw ← h'x xs,
+  exact hx xs,
+end
+
+lemma integrable_on.lintegral_lt_top {f : α → ℝ} {s : set α}
+  (hf : integrable_on f s μ) (hf' : ∀ x : α, x ∈ s → 0 ≤ f x) :
+  ∫⁻ x in s, ennreal.of_real (f x) ∂μ < ⊤ :=
+integrable_on.lintegral_lt_top_ae hf (ae_of_all μ hf')
+
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
 set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.small_sets`. -/
 def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=

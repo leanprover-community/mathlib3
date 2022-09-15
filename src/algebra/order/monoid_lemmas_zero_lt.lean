@@ -167,45 +167,83 @@ alias le_of_mul_le_mul_of_pos_right ← le_of_mul_le_mul_right
   b * a ≤ c * a ↔ b ≤ c :=
 @rel_iff_cov α>0 α (λ x y, y * x) (≤) _ _ ⟨a, ha⟩ _ _
 
-lemma mul_lt_mul_of_pos_of_nonneg [pos_mul_strict_mono α] [mul_pos_mono α]
+lemma mul_le_mul_of_le_of_leₚ [pos_mul_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c ≤ d) (a0 : 0 ≤ a) (d0 : 0 ≤ d) : a * c ≤ b * d :=
+(mul_le_mul_of_nonneg_left h₂ a0).trans (mul_le_mul_of_nonneg_right h₁ d0)
+
+lemma mul_le_mul_of_le_of_leₚ' [pos_mul_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c ≤ d) (c0 : 0 ≤ c) (b0 : 0 ≤ b) : a * c ≤ b * d :=
+(mul_le_mul_of_nonneg_right h₁ c0).trans (mul_le_mul_of_nonneg_left h₂ b0)
+
+lemma mul_lt_mul_of_le_of_ltₚ [pos_mul_strict_mono α] [mul_pos_mono α]
   (h₁ : a ≤ b) (h₂ : c < d) (a0 : 0 < a) (d0 : 0 ≤ d) : a * c < b * d :=
 (mul_lt_mul_of_pos_left h₂ a0).trans_le (mul_le_mul_of_nonneg_right h₁ d0)
 
-lemma mul_lt_mul_of_le_of_le' [pos_mul_strict_mono α] [mul_pos_mono α]
-  (h₁ : a ≤ b) (h₂ : c < d) (b0 : 0 < b) (c0 : 0 ≤ c) : a * c < b * d :=
+lemma mul_lt_mul_of_le_of_ltₚ' [pos_mul_strict_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c < d) (c0 : 0 ≤ c) (b0 : 0 < b) : a * c < b * d :=
 (mul_le_mul_of_nonneg_right h₁ c0).trans_lt (mul_lt_mul_of_pos_left h₂ b0)
 
-lemma mul_lt_mul_of_nonneg_of_pos [pos_mul_mono α] [mul_pos_strict_mono α]
+lemma mul_lt_mul_of_lt_of_leₚ [pos_mul_mono α] [mul_pos_strict_mono α]
   (h₁ : a < b) (h₂ : c ≤ d) (a0 : 0 ≤ a) (d0 : 0 < d) : a * c < b * d :=
 (mul_le_mul_of_nonneg_left h₂ a0).trans_lt (mul_lt_mul_of_pos_right h₁ d0)
 
-lemma mul_lt_mul_of_le_of_lt' [pos_mul_mono α] [mul_pos_strict_mono α]
-  (h₁ : a < b) (h₂ : c ≤ d) (b0 : 0 ≤ b) (c0 : 0 < c) : a * c < b * d :=
+lemma mul_lt_mul_of_lt_of_leₚ' [pos_mul_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c ≤ d) (c0 : 0 < c) (b0 : 0 ≤ b) : a * c < b * d :=
 (mul_lt_mul_of_pos_right h₁ c0).trans_le (mul_le_mul_of_nonneg_left h₂ b0)
 
-lemma mul_lt_mul_of_pos_of_pos [pos_mul_strict_mono α] [mul_pos_strict_mono α]
+lemma mul_lt_mul_of_lt_of_ltₚ [pos_mul_strict_mono α] [mul_pos_strict_mono α]
   (h₁ : a < b) (h₂ : c < d) (a0 : 0 < a) (d0 : 0 < d) : a * c < b * d :=
 (mul_lt_mul_of_pos_left h₂ a0).trans (mul_lt_mul_of_pos_right h₁ d0)
 
-lemma mul_lt_mul_of_lt_of_lt' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
-  (h₁ : a < b) (h₂ : c < d) (b0 : 0 < b) (c0 : 0 < c) : a * c < b * d :=
+lemma mul_lt_mul_of_lt_of_ltₚ' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c < d) (c0 : 0 < c) (b0 : 0 < b) : a * c < b * d :=
 (mul_lt_mul_of_pos_right h₁ c0).trans (mul_lt_mul_of_pos_left h₂ b0)
 
-lemma mul_lt_of_mul_lt_of_nonneg_left [pos_mul_mono α] (h : a * b < c) (hdb : d ≤ b) (ha : 0 ≤ a) :
-  a * d < c :=
-(mul_le_mul_of_nonneg_left hdb ha).trans_lt h
+alias mul_le_mul_of_le_of_leₚ' ← mul_le_mul -- this name was in `algebra.order.ring`
+alias mul_lt_mul_of_lt_of_leₚ' ← mul_lt_mul -- this name was in `algebra.order.ring`
+alias mul_lt_mul_of_le_of_ltₚ' ← mul_lt_mul' -- this name was in `algebra.order.ring`
+alias mul_lt_mul_of_le_of_ltₚ' ← mul_lt_mul_of_le_of_lt' -- this name was in `algebra.order.ring`
 
-lemma lt_mul_of_lt_mul_of_nonneg_left [pos_mul_mono α] (h : a < b * c) (hcd : c ≤ d) (hb : 0 ≤ b) :
-  a < b * d :=
-h.trans_le $ mul_le_mul_of_nonneg_left hcd hb
+lemma mul_le_of_mul_le_leftₚ [pos_mul_mono α]
+  (h : a * b ≤ c) (hle : d ≤ b) (a0 : 0 ≤ a) : a * d ≤ c :=
+(mul_le_mul_of_nonneg_left hle a0).trans h
 
-lemma mul_lt_of_mul_lt_of_nonneg_right [mul_pos_mono α] (h : a * b < c) (hda : d ≤ a) (hb : 0 ≤ b) :
-  d * b < c :=
-(mul_le_mul_of_nonneg_right hda hb).trans_lt h
+lemma mul_lt_of_mul_lt_leftₚ [pos_mul_mono α]
+  (h : a * b < c) (hle : d ≤ b) (a0 : 0 ≤ a) : a * d < c :=
+(mul_le_mul_of_nonneg_left hle a0).trans_lt h
 
-lemma lt_mul_of_lt_mul_of_nonneg_right [mul_pos_mono α] (h : a < b * c) (hbd : b ≤ d) (hc : 0 ≤ c) :
-  a < d * c :=
-h.trans_le $ mul_le_mul_of_nonneg_right hbd hc
+lemma le_mul_of_le_mul_leftₚ [pos_mul_mono α]
+  (h : a ≤ b * c) (hle : c ≤ d) (b0 : 0 ≤ b) : a ≤ b * d :=
+h.trans (mul_le_mul_of_nonneg_left hle b0)
+
+lemma lt_mul_of_lt_mul_leftₚ [pos_mul_mono α]
+  (h : a < b * c) (hle : c ≤ d) (b0 : 0 ≤ b) : a < b * d :=
+h.trans_le (mul_le_mul_of_nonneg_left hle b0)
+
+lemma mul_le_of_mul_le_rightₚ [mul_pos_mono α]
+  (h : a * b ≤ c) (hle : d ≤ a) (b0 : 0 ≤ b) : d * b ≤ c :=
+(mul_le_mul_of_nonneg_right hle b0).trans h
+
+lemma mul_lt_of_mul_lt_rightₚ [mul_pos_mono α]
+  (h : a * b < c) (hle : d ≤ a) (b0 : 0 ≤ b) : d * b < c :=
+(mul_le_mul_of_nonneg_right hle b0).trans_lt h
+
+lemma le_mul_of_le_mul_rightₚ [mul_pos_mono α]
+  (h : a ≤ b * c) (hle : b ≤ d) (c0 : 0 ≤ c) : a ≤ d * c :=
+h.trans (mul_le_mul_of_nonneg_right hle c0)
+
+lemma lt_mul_of_lt_mul_rightₚ [mul_pos_mono α]
+  (h : a < b * c) (hle : b ≤ d) (c0 : 0 ≤ c) : a < d * c :=
+h.trans_le (mul_le_mul_of_nonneg_right hle c0)
+
+alias mul_le_of_mul_le_leftₚ ← mul_le_of_mul_le_of_nonneg_left
+alias mul_lt_of_mul_lt_leftₚ ← mul_lt_of_mul_lt_of_nonneg_left
+alias le_mul_of_le_mul_leftₚ ← le_mul_of_le_mul_of_nonneg_left
+alias lt_mul_of_lt_mul_leftₚ ← lt_mul_of_lt_mul_of_nonneg_left
+alias mul_le_of_mul_le_rightₚ ← mul_le_of_mul_le_of_nonneg_right
+alias mul_lt_of_mul_lt_rightₚ ← mul_lt_of_mul_lt_of_nonneg_right
+alias le_mul_of_le_mul_rightₚ ← le_mul_of_le_mul_of_nonneg_right
+alias lt_mul_of_lt_mul_rightₚ ← lt_mul_of_lt_mul_of_nonneg_right
 
 end preorder
 
@@ -314,30 +352,6 @@ lemma pos_iff_pos_of_mul_pos [pos_mul_reflect_lt α] [mul_pos_reflect_lt α] (ha
   0 < a ↔ 0 < b :=
 ⟨pos_of_mul_pos_right hab ∘ le_of_lt, pos_of_mul_pos_left hab ∘ le_of_lt⟩
 
-lemma mul_le_mul_of_le_of_le [pos_mul_mono α] [mul_pos_mono α]
-  (h₁ : a ≤ b) (h₂ : c ≤ d) (a0 : 0 ≤ a) (d0 : 0 ≤ d) : a * c ≤ b * d :=
-(mul_le_mul_of_nonneg_left h₂ a0).trans $ mul_le_mul_of_nonneg_right h₁ d0
-
-lemma mul_le_mul [pos_mul_mono α] [mul_pos_mono α]
-  (h₁ : a ≤ b) (h₂ : c ≤ d) (c0 : 0 ≤ c) (b0 : 0 ≤ b) : a * c ≤ b * d :=
-(mul_le_mul_of_nonneg_right h₁ c0).trans $ mul_le_mul_of_nonneg_left h₂ b0
-
-lemma mul_le_of_mul_le_of_nonneg_left [pos_mul_mono α] (h : a * b ≤ c) (hle : d ≤ b) (a0 : 0 ≤ a) :
-  a * d ≤ c :=
-(mul_le_mul_of_nonneg_left hle a0).trans h
-
-lemma le_mul_of_le_mul_of_nonneg_left [pos_mul_mono α] (h : a ≤ b * c) (hle : c ≤ d) (b0 : 0 ≤ b) :
-  a ≤ b * d :=
-h.trans (mul_le_mul_of_nonneg_left hle b0)
-
-lemma mul_le_of_mul_le_of_nonneg_right [mul_pos_mono α] (h : a * b ≤ c) (hle : d ≤ a) (b0 : 0 ≤ b) :
-  d * b ≤ c :=
-(mul_le_mul_of_nonneg_right hle b0).trans h
-
-lemma le_mul_of_le_mul_of_nonneg_right [mul_pos_mono α] (h : a ≤ b * c) (hle : b ≤ d) (c0 : 0 ≤ c) :
-  a ≤ d * c :=
-h.trans (mul_le_mul_of_nonneg_right hle c0)
-
 end preorder
 
 section partial_order
@@ -409,7 +423,7 @@ begin
   { exact ⟨rfl, (mul_left_cancel_iff_of_pos a0).mp h⟩ },
   rcases eq_or_lt_of_le hbd with rfl | hbd,
   { exact ⟨(mul_right_cancel_iff_of_pos d0).mp h, rfl⟩ },
-  exact ((mul_lt_mul_of_pos_of_pos hac hbd a0 d0).ne h).elim,
+  exact ((mul_lt_mul_of_lt_of_ltₚ hac hbd a0 d0).ne h).elim,
 end
 
 lemma mul_eq_mul_iff_eq_and_eq_of_pos' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
@@ -422,7 +436,7 @@ begin
   { exact ⟨rfl, (mul_left_cancel_iff_of_pos b0).mp h⟩ },
   rcases eq_or_lt_of_le hbd with rfl | hbd,
   { exact ⟨(mul_right_cancel_iff_of_pos c0).mp h, rfl⟩ },
-  exact ((mul_lt_mul_of_lt_of_lt' hac hbd b0 c0).ne h).elim,
+  exact ((mul_lt_mul_of_lt_of_ltₚ' hac hbd c0 b0).ne h).elim,
 end
 
 end partial_order

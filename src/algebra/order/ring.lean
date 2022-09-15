@@ -224,18 +224,12 @@ calc
   a * b < c * b : mul_lt_mul_of_pos_right hac pos_b
     ... ≤ c * d : decidable.mul_le_mul_of_nonneg_left hbd nn_c
 
-lemma mul_lt_mul : a < c → b ≤ d → 0 < b → 0 ≤ c → a * b < c * d :=
-by classical; exact decidable.mul_lt_mul
-
 -- See Note [decidable namespace]
 protected lemma decidable.mul_lt_mul' [@decidable_rel α (≤)]
   (h1 : a ≤ c) (h2 : b < d) (h3 : 0 ≤ b) (h4 : 0 < c) : a * b < c * d :=
 calc
    a * b ≤ c * b : decidable.mul_le_mul_of_nonneg_right h1 h3
      ... < c * d : mul_lt_mul_of_pos_left h2 h4
-
-lemma mul_lt_mul' : a ≤ c → b < d → 0 ≤ b → 0 < c → a * b < c * d :=
-by classical; exact decidable.mul_lt_mul'
 
 @[simp] theorem pow_pos (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := by { nontriviality, rw pow_zero, exact zero_lt_one }
@@ -272,9 +266,6 @@ h4.lt_or_eq_dec.elim
   (λ b0, decidable.mul_lt_mul h1 h2.le b0 $ h3.trans h1.le)
   (λ b0, by rw [← b0, mul_zero]; exact
     mul_pos (h3.trans_lt h1) (h4.trans_lt h2))
-
-lemma mul_lt_mul'' : a < c → b < d → 0 ≤ a → 0 ≤ b → a * b < c * d :=
-by classical; exact decidable.mul_lt_mul''
 
 -- See Note [decidable namespace]
 protected lemma decidable.le_mul_of_one_le_right [@decidable_rel α (≤)]

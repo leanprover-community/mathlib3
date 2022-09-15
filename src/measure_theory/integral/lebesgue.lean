@@ -1236,17 +1236,17 @@ begin
   exact le_abs_self (f x),
 end
 
-lemma lintegral_norm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
-  ∫⁻ x, ennreal.of_real (∥f x∥) ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+lemma lintegral_nnnorm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
+  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 begin
   apply lintegral_congr_ae,
   filter_upwards [h_nonneg] with x hx,
-  rw real.norm_of_nonneg hx,
+  rw [real.nnnorm_of_nonneg hx, ennreal.of_real_eq_coe_nnreal hx],
 end
 
-lemma lintegral_norm_eq_of_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ f) :
-  ∫⁻ x, ennreal.of_real (∥f x∥) ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
-lintegral_norm_eq_of_ae_nonneg (filter.eventually_of_forall h_nonneg)
+lemma lintegral_nnnorm_eq_of_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ f) :
+  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+lintegral_nnnorm_eq_of_ae_nonneg (filter.eventually_of_forall h_nonneg)
 
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 

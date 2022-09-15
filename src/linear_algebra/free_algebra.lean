@@ -22,8 +22,8 @@ mapping `[x₁, x₂, ..., xₙ]` to the "monomial" `1 • x₁ * x₂ * ⋯ * x
 @[simps]
 noncomputable def basis_free_monoid (R : Type u) (X : Type v) [comm_ring R] :
   basis (free_monoid X) R (free_algebra R X) :=
-finsupp.basis_single_one.map
-  (equiv_monoid_algebra_free_monoid.symm.to_linear_equiv : _ ≃ₗ[R] free_algebra R X)
+finsupp.basis_single_one.map (equiv_monoid_algebra_free_monoid :
+  free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X)).symm.to_linear_equiv
 
 -- TODO: generalize to `X : Type v`
 lemma dim_eq {K : Type u} {X : Type (max u v)} [field K] :

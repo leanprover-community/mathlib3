@@ -289,7 +289,6 @@ def matrix.to_lin'_of_inv [fintype m] [decidable_eq m]
 /-- Linear maps `(n → R) →ₗ[R] (n → R)` are algebra equivalent to `matrix n n R`. -/
 def linear_map.to_matrix_alg_equiv' : ((n → R) →ₗ[R] (n → R)) ≃ₐ[R] matrix n n R :=
 alg_equiv.of_linear_equiv linear_map.to_matrix' linear_map.to_matrix'_mul
-  linear_map.to_matrix'_algebra_map
 
 /-- A `matrix n n R` is algebra equivalent to a linear map `(n → R) →ₗ[R] (n → R)`. -/
 def matrix.to_lin_alg_equiv' : matrix n n R ≃ₐ[R] ((n → R) →ₗ[R] (n → R)) :=
@@ -522,7 +521,6 @@ equivalence between linear maps `M₁ →ₗ M₁` and square matrices over `R` 
 def linear_map.to_matrix_alg_equiv :
   (M₁ →ₗ[R] M₁) ≃ₐ[R] matrix n n R :=
 alg_equiv.of_linear_equiv (linear_map.to_matrix v₁ v₁) (linear_map.to_matrix_mul v₁)
-  (linear_map.to_matrix_algebra_map v₁)
 
 /-- Given a basis of a module `M₁` over a commutative ring `R`, we get an algebra
 equivalence between square matrices over `R` indexed by the basis and linear maps `M₁ →ₗ M₁`. -/
@@ -759,8 +757,7 @@ is compatible with the algebra structures. -/
 def alg_equiv_matrix' [fintype n] : module.End R (n → R) ≃ₐ[R] matrix n n R :=
 { map_mul'  := linear_map.to_matrix'_comp,
   map_add'  := linear_map.to_matrix'.map_add,
-  commutes' := λ r, by { change (r • (linear_map.id : module.End R _)).to_matrix' = r • 1,
-                         rw ←linear_map.to_matrix'_id, refl, apply_instance },
+  map_smul' := linear_map.to_matrix'.map_smul,
   ..linear_map.to_matrix' }
 
 /-- A linear equivalence of two modules induces an equivalence of algebras of their
@@ -769,8 +766,7 @@ def linear_equiv.alg_conj (e : M₁ ≃ₗ[R] M₂) :
   module.End R M₁ ≃ₐ[R] module.End R M₂ :=
 { map_mul'  := λ f g, by apply e.arrow_congr_comp,
   map_add'  := e.conj.map_add,
-  commutes' := λ r, by { change e.conj (r • linear_map.id) = r • linear_map.id,
-                         rw [linear_equiv.map_smul, linear_equiv.conj_id], },
+  map_smul' := e.conj.map_smul,
   ..e.conj }
 
 /-- A basis of a module induces an equivalence of algebras from the endomorphisms of the module to

@@ -220,9 +220,10 @@ coe_to_add_monoid_hom_injective.add_comm_monoid _ to_End_zero to_End_add to_End_
 instance : has_nat_cast (centroid_hom α) :=
 { nat_cast := λ n, n • 1 }
 
-@[simp] lemma nat_cast_apply (n : ℕ) (m : α):
+lemma nat_cast_apply (n : ℕ) (m : α):
   (n : centroid_hom α) m = n • m := rfl
 
+@[simp] lemma coe_nat_cast (n : ℕ) : ⇑(n : centroid_hom α) = n • id := rfl
 
 @[simp] lemma to_End_one : (1 : centroid_hom α).to_End = 1 := rfl
 @[simp] lemma to_End_mul (x y : centroid_hom α) : (x * y).to_End = x.to_End * y.to_End := rfl
@@ -266,7 +267,7 @@ instance has_smul_int : has_smul ℤ (centroid_hom α) :=
 instance : has_int_cast (centroid_hom α) :=
 { int_cast := λ z, z • 1 }
 
-@[simp] lemma int_cast_apply (z : ℤ) (m : α) :
+lemma int_cast_apply (z : ℤ) (m : α) :
   (z : centroid_hom α) m = z • m := rfl
 
 @[simp] lemma to_End_neg (x : centroid_hom α) : (-x).to_End = -x.to_End := rfl
@@ -277,6 +278,7 @@ instance : add_comm_group (centroid_hom α) :=
 to_End_injective.add_comm_group _ to_End_zero to_End_add to_End_neg to_End_sub
   to_End_smul_nat to_End_smul_int
 
+@[simp] lemma coe_int_cast (z : ℤ) : ⇑(z : centroid_hom α) = z • id := rfl
 @[simp] lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
 @[simp] lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl
 

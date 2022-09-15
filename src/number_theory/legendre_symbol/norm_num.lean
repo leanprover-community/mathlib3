@@ -247,8 +247,6 @@ and produces a proof term for the equality, assuming that `a < b` and `b` is odd
 meta def prove_jacobi_sym_odd : instance_cache → instance_cache → expr → expr →
    tactic (instance_cache × instance_cache × expr × expr)
 | zc nc ea eb := do
-  -- a ← ea.to_nat, b ← eb.to_nat, -- for `trace`
-  -- trace $ "prove_jacobi_sym_odd: a = " ++ (to_string a) ++ ", b = " ++ (to_string b),
   match match_numeral eb with
   | match_numeral_result.one :=  -- `b = 1`, result is `1`
     pure (zc, nc, `(1 : ℤ), `(jacobi_sym_nat.one_right).mk_app [ea])
@@ -350,8 +348,6 @@ by removing powers of `2` from `b` and then calling `prove_jacobi_sym_odd`. -/
 meta def prove_jacobi_sym_nat : instance_cache → instance_cache → expr → expr →
    tactic (instance_cache × instance_cache × expr × expr)
 | zc nc ea eb := do
-  -- a ← ea.to_nat, b ← eb.to_nat, -- for `trace`
-  -- trace $ "prove_jacobi_sym_nat: a = " ++ (to_string a) ++ ", b = " ++ (to_string b),
   match match_numeral eb with
   | match_numeral_result.zero := -- `b = 0`, result is `1`
     pure (zc, nc, `(1 : ℤ), `(jacobi_sym_nat.zero_right).mk_app [ea])
@@ -394,8 +390,6 @@ This is done by reducing to `r := jacobi_sym_nat (a % b) b`. -/
 meta def prove_jacobi_sym : instance_cache → instance_cache → expr → expr
     → tactic (instance_cache × instance_cache × expr × expr)
 | zc nc ea eb := do
-  -- a ← ea.to_int, b ← eb.to_nat, -- for `trace`
-  -- trace $ "prove_jacobi_sym: a = " ++ (to_string a) ++ ", b = " ++ (to_string b),
   match match_numeral eb with -- deal with simple cases right away
   | match_numeral_result.zero := pure (zc, nc, `(1 : ℤ), `(jacobi_sym.zero_right).mk_app [ea])
   | match_numeral_result.one := pure (zc, nc, `(1 : ℤ), `(jacobi_sym.one_right).mk_app [ea])
@@ -456,10 +450,8 @@ example : J(-2345 | 6789) = -1 := by norm_num
 example : J(-1 | 1655801) = 1 := by norm_num
 example : J(-102334155 | 165580141) = -1 := by norm_num
 
--- set_option profiler true
 example : J(58378362899022564339483801989973056405585914719065 |
             53974350278769849773003214636618718468638750007307) = -1 := by norm_num
--- set_option profiler false
 
 example : J(3 + 4 | 3 * 5) = -1 := by norm_num
 example : J(J(-1 | 7) | 11) = -1 := by norm_num

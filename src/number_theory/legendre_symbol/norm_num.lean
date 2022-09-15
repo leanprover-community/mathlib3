@@ -5,8 +5,6 @@ Authors: Michael Stoll
 -/
 import number_theory.legendre_symbol.jacobi_symbol
 
-section lemmas
-
 /-!
 # A `norm_num` extension for Jacobi and Legendre symbols
 
@@ -45,6 +43,8 @@ where we encode the residue classes mod 2, mod 4, or mod 8 by using terms like
 `bit1 (bit0 a)`. In this way, we only divisions we have to compute and prove
 are the ones occurring in the usse of QR above.
 -/
+
+section lemmas
 
 namespace norm_num
 

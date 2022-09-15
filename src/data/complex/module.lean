@@ -307,7 +307,11 @@ alg_hom_ext $ (lift_aux_apply_I _ _).trans conj_I.symm
 
 end lift
 
+end complex
+
 section real_imaginary_part
+
+open complex
 
 variables {A : Type*} [add_comm_group A] [module ℂ A] [star_add_monoid A] [star_module ℂ A]
 
@@ -373,5 +377,3 @@ lemma imaginary_part_smul (z : ℂ) (a : A) : ℑ (z • a) = z.re • ℑ a + z
 by { nth_rewrite 0 ←re_add_im z, simp [-re_add_im, add_smul, ←smul_smul] }
 
 end real_imaginary_part
-
-end complex

@@ -126,6 +126,33 @@ lemma range_const_subset (α) [measurable_space α] (b : β) :
   (const α b).range ⊆ {b} :=
 finset.coe_subset.1 $ by simp
 
+lemma simple_func_bot {α} (f : @simple_func α ⊥ β) [nonempty β] : ∃ c, ∀ x, f x = c :=
+begin
+  have hf_meas := @simple_func.measurable_set_fiber α _ ⊥ f,
+  simp_rw measurable_space.measurable_set_bot_iff at hf_meas,
+  casesI is_empty_or_nonempty α,
+  { simp only [is_empty.forall_iff, exists_const], },
+  { specialize hf_meas (f h.some),
+    cases hf_meas,
+    { exfalso,
+      refine set.not_mem_empty h.some _,
+      rw [← hf_meas, set.mem_preimage],
+      exact set.mem_singleton _, },
+    { refine ⟨f h.some, λ x, _⟩,
+      have : x ∈ f ⁻¹' {f h.some},
+      { rw hf_meas, exact set.mem_univ x, },
+      rwa [set.mem_preimage, set.mem_singleton_iff] at this, }, },
+end
+
+lemma simple_func_bot' {α} [nonempty β] (f : @simple_func α ⊥ β) :
+  ∃ c, f = @simple_func.const α _ ⊥ c :=
+begin
+  obtain ⟨c, h_eq⟩ := simple_func_bot f,
+  refine ⟨c, _⟩,
+  ext1 x,
+  rw [h_eq x, simple_func.coe_const],
+end
+
 lemma measurable_set_cut (r : α → β → Prop) (f : α →ₛ β)
   (h : ∀b, measurable_set {a | r a b}) : measurable_set {a | r a (f a)} :=
 begin

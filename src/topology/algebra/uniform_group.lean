@@ -383,14 +383,14 @@ variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
 Warning: in general the right and left uniformities do not coincide and so one does not obtain a
 `uniform_group` structure. Two important special cases where they _do_ coincide are for
-commutative groups (see `topological_comm_group_is_uniform`) and for compact Hausdorff groups (see
+commutative groups (see `topological_comm_group_is_uniform`) and for compact groups (see
 `topological_group_is_uniform_of_compact_space`). -/
 @[to_additive "The right uniformity on a topological additive group (as opposed to the left
 uniformity).
 
 Warning: in general the right and left uniformities do not coincide and so one does not obtain a
 `uniform_add_group` structure. Two important special cases where they _do_ coincide are for
-commutative additive groups (see `topological_add_comm_group_is_uniform`) and for compact Hausdorff
+commutative additive groups (see `topological_add_comm_group_is_uniform`) and for compact
 additive groups (see `topological_add_comm_group_is_uniform_of_compact_space`)."]
 def topological_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
@@ -444,9 +444,8 @@ local attribute [instance] topological_group.to_uniform_space
   𝓤 G = comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)) := rfl
 
 @[to_additive] lemma topological_group_is_uniform_of_compact_space
-  [compact_space G] [t2_space G] : uniform_group G :=
+  [compact_space G] : uniform_group G :=
 ⟨begin
-  haveI : separated_space G := separated_iff_t2.mpr (by apply_instance),
   apply compact_space.uniform_continuous_of_continuous,
   exact continuous_div',
 end⟩
@@ -757,10 +756,19 @@ universe u
 open topological_space classical
 
 /-- The quotient `G ⧸ N` of a complete first countable topological group `G` by a normal subgroup
-is itself complete. [N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b] -/
+is itself complete. [N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b]
+
+Because a topological group is not equipped with a `uniform_space` instance by default, we must
+explicitly provide it in order to consider completeness. See `quotient_group.complete_space` for a
+version in which `G` is already equipped with a uniform structure. -/
 @[to_additive "The quotient `G ⧸ N` of a complete first countable topological additive group
 `G` by a normal additive subgroup is itself complete. Consequently, quotients of Banach spaces by
-subspaces are complete. [N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b]"]
+subspaces are complete. [N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b]
+
+Because an additive topological group is not equipped with a `uniform_space` instance by default,
+we must explicitly provide it in order to consider completeness. See
+`quotient_add_group.complete_space` for a version in which `G` is already equipped with a uniform
+structure."]
 instance quotient_group.complete_space' (G : Type u) [group G] [topological_space G]
   [topological_group G] [first_countable_topology G] (N : subgroup G) [N.normal]
   [@complete_space G (topological_group.to_uniform_space G)] :
@@ -832,12 +840,23 @@ end
 /-- The quotient `G ⧸ N` of a complete first countable uniform group `G` by a normal subgroup
 is itself complete. In constrast to `quotient_group.complete_space'`, in this version `G` is
 already equipped with a uniform structure.
-[N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b] -/
+[N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b]
+
+Even though `G` is equipped with a uniform structure, the quotient `G ⧸ N` does not inherit a
+uniform structure, so it is still provided manually via `topological_group.to_uniform_space`.
+In the most common use cases, this coincides (definitionally) with the uniform structure on the
+quotient obtained via other means.  -/
 @[to_additive "The quotient `G ⧸ N` of a complete first countable uniform additive group
 `G` by a normal additive subgroup is itself complete. Consequently, quotients of Banach spaces by
 subspaces are complete. In constrast to `quotient_add_group.complete_space'`, in this version
 `G` is already equipped with a uniform structure.
-[N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b]"]
+[N. Bourbaki, *General Topology*, IX.3.1 Proposition 4][bourbaki1966b]
+
+Even though `G` is equipped with a uniform structure, the quotient `G ⧸ N` does not inherit a
+uniform structure, so it is still provided manually via `topological_add_group.to_uniform_space`.
+In the most common use case ─ quotients of normed additive commutative groups by subgroups ─
+significant care was taken so that the uniform structure inherent in that setting coincides
+(definitionally) with the uniform structure provided here."]
 instance quotient_group.complete_space (G : Type u) [group G] [us : uniform_space G]
   [uniform_group G] [first_countable_topology G] (N : subgroup G) [N.normal]
   [hG : complete_space G] : @complete_space (G ⧸ N) (topological_group.to_uniform_space (G ⧸ N)) :=

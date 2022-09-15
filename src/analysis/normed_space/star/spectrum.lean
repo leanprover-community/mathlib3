@@ -190,23 +190,4 @@ noncomputable instance : star_hom_class F A ℂ :=
 noncomputable def _root_.alg_hom_class.star_alg_hom_class : star_alg_hom_class F ℂ A ℂ :=
 { .. hF, .. weak_dual.complex.star_hom_class }
 
-omit hF
-
-variable (A)
-/-- The `gelfand_transform` as a `star_alg_hom` when the scalar field is `ℂ`. -/
-noncomputable def gelfand_star_transform : A →⋆ₐ[ℂ] C(character_space ℂ A, ℂ) :=
-{ map_star' := λ a, continuous_map.ext $
-    λ φ, by simp only [alg_hom.to_fun_eq_coe, gelfand_transform_apply_apply, map_star, star_apply],
-  .. gelfand_transform ℂ A }
-
--- This is not a simp lemma because in general we don't want to strip the `map_star` property from
--- `gelfand_star_transform`.
-lemma coe_gelfand_star_transform : ⇑(gelfand_star_transform A) = gelfand_transform ℂ A :=
-funext $ λ a, continuous_map.ext $ λ φ, rfl
-
-variable {A}
-
-@[simp] lemma gelfand_star_transform_apply_apply (a : A) (φ : character_space ℂ A) :
-  gelfand_star_transform A a φ = φ a := rfl
-
 end weak_dual

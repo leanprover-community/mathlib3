@@ -599,14 +599,9 @@ lemma norm_set_to_simple_func_le_sum_mul_norm (T : set α → F →L[ℝ] F') {C
   ∥f.set_to_simple_func T∥ ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ :=
 calc ∥f.set_to_simple_func T∥
     ≤ ∑ x in f.range, ∥T (f ⁻¹' {x})∥ * ∥x∥ : norm_set_to_simple_func_le_sum_op_norm T f
-... ≤ ∑ x in f.range, C * (μ (f ⁻¹' {x})).to_real * ∥x∥ :
-  begin
-    refine finset.sum_le_sum (λ b hb, _),
-    by_cases hb : ∥b∥ = 0,
-    { rw hb, simp, },
-    exact (mul_le_mul_right (lt_of_le_of_ne (norm_nonneg _) (ne.symm hb))).mpr
-      (hT_norm _ (simple_func.measurable_set_fiber _ _)),
-  end
+... ≤ ∑ x in f.range, C * (μ (f ⁻¹' {x})).to_real * ∥x∥
+    : sum_le_sum $ λ b hb, mul_le_mul_of_nonneg_right
+        (hT_norm _ $ simple_func.measurable_set_fiber _ _) $ norm_nonneg _
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
 
 lemma norm_set_to_simple_func_le_sum_mul_norm_of_integrable (T : set α → E →L[ℝ] F') {C : ℝ}
@@ -618,12 +613,10 @@ calc ∥f.set_to_simple_func T∥
 ... ≤ ∑ x in f.range, C * (μ (f ⁻¹' {x})).to_real * ∥x∥ :
   begin
     refine finset.sum_le_sum (λ b hb, _),
-    by_cases hb : ∥b∥ = 0,
-    { rw hb, simp, },
-    refine (mul_le_mul_right (lt_of_le_of_ne (norm_nonneg _) (ne.symm hb))).mpr
-      (hT_norm _ (simple_func.measurable_set_fiber _ _)
-        (simple_func.measure_preimage_lt_top_of_integrable _ hf _)),
-    rwa norm_eq_zero at hb,
+    obtain rfl | hb := eq_or_ne b 0,
+    { simp },
+    exact mul_le_mul_of_nonneg_right (hT_norm _ (simple_func.measurable_set_fiber _ _) $
+      simple_func.measure_preimage_lt_top_of_integrable _ hf hb) (norm_nonneg _),
   end
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
 

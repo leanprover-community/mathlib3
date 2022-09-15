@@ -300,7 +300,6 @@ begin
                                   : by { rw variance npos, ring, }
         ... ≤ (2 * ∥f∥) * δ^(-2 : ℤ) / n
                                   : (div_le_div_right npos).mpr $
-                                    by { rw [mul_assoc], refine mul_le_of_le_one_right w₂
-                                                          (mul_le_one _ _ _); unit_interval, }
+              by refine mul_le_of_le_of_le_one' (mul_le_of_le_one_right w₂ _) _ _ w₂; unit_interval
         ... < ε/2 : nh, }
 end

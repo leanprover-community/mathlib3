@@ -1383,13 +1383,11 @@ begin
 end
 
 @[priority 200] -- see Note [lower instance priority]
-instance canonically_ordered_comm_semiring.pos_mul_mono :
-  pos_mul_mono α :=
+instance canonically_ordered_comm_semiring.to_pos_mul_mono : pos_mul_mono α :=
 ⟨λ x a b h, by { obtain ⟨d, rfl⟩ := exists_add_of_le h, simp_rw [left_distrib, le_self_add], }⟩
 
 @[priority 200] -- see Note [lower instance priority]
-instance canonically_ordered_comm_semiring.mul_pos_mono :
-  mul_pos_mono α :=
+instance canonically_ordered_comm_semiring.to_mul_pos_mono : mul_pos_mono α :=
 ⟨λ x a b h, by { obtain ⟨d, rfl⟩ := exists_add_of_le h, simp_rw [right_distrib, le_self_add], }⟩
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
@@ -1679,21 +1677,17 @@ with_top.comm_monoid_with_zero
 instance [canonically_ordered_comm_semiring α] [nontrivial α] : comm_semiring (with_bot α) :=
 with_top.comm_semiring
 
-instance [canonically_ordered_comm_semiring α] [nontrivial α] :
-  pos_mul_mono (with_bot α) :=
-⟨ begin
+instance [canonically_ordered_comm_semiring α] [nontrivial α] : pos_mul_mono (with_bot α) :=
+pos_mul_mono_iff_covariant_pos.2 ⟨begin
     rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
-    rcases x0.eq_or_lt with rfl | x0, { simpa only [zero_mul] using le_rfl, },
-    induction x using with_bot.rec_bot_coe,
-    { have := bot_lt_coe (0 : α), rw [coe_zero] at this, exact absurd x0.le this.not_le, },
-    { induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le], },
-      induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le, },
-      { simp only [← coe_mul, coe_le_coe] at *,
-        exact mul_le_mul_left' h x, }, },
+    lift x to α using x0.ne_bot,
+    induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le] },
+    induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le },
+    simp only [← coe_mul, coe_le_coe] at *,
+    exact mul_le_mul_left' h x,
   end ⟩
 
-instance [canonically_ordered_comm_semiring α] [nontrivial α] :
-  mul_pos_mono (with_bot α) :=
+instance [canonically_ordered_comm_semiring α] [nontrivial α] : mul_pos_mono (with_bot α) :=
 pos_mul_mono_iff_mul_pos_mono.mp infer_instance
 
 end with_bot

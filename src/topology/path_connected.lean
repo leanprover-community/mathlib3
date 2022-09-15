@@ -372,6 +372,7 @@ lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_s
   continuous ↿(λ t, (γ t).symm) :=
 h.comp (continuous_id.prod_map continuous_symm)
 
+@[continuity]
 lemma continuous_symm : continuous (symm : path x y → path y x) :=
 continuous_uncurry_iff.mp $ symm_continuous_family _ (continuous_fst.path_eval continuous_snd)
 
@@ -401,6 +402,7 @@ begin
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
 
+@[continuity]
 lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
 continuous_uncurry_iff.mp begin
   apply trans_continuous_family;

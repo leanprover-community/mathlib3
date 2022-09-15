@@ -323,7 +323,7 @@ Single Variable Real Analysis:
   Taylor-like theorems:
     Taylor's theorem with little-o remainder: "https://en.wikipedia.org/wiki/Taylor%27s_theorem#Taylor's_theorem_in_one_real_variable"
     Taylor's theorem with integral form for remainder: 'https://en.wikipedia.org/wiki/Taylor%27s_theorem#Explicit_formulas_for_the_remainder'
-    Taylor's theorem with Lagrange form for remainder: 'https://en.wikipedia.org/wiki/Taylor%27s_theorem#Explicit_formulas_for_the_remainder'
+    Taylor's theorem with Lagrange form for remainder: 'taylor_mean_remainder_lagrange'
     Taylor series expansions: 'https://en.wikipedia.org/wiki/Taylor_series'
   Elementary functions (trigonometric, rational, $\exp$, $\log$, etc):
     polynomial functions: 'polynomial.eval'
@@ -592,7 +592,7 @@ Distribution calculus:
     convergence of sequences of distributions: ''
     support of a distribution: ''
   Spaces $\mathcal{S}(\R^d)$:
-    Schwartz space of rapidly decreasing functions: ''
+    Schwartz space of rapidly decreasing functions: 'schwartz_map'
     stability by derivation: ''
     stability by multiplication by a slowly growing smooth function: ''
     gaussian functions: ''

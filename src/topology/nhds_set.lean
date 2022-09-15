@@ -35,6 +35,9 @@ Sup (nhds '' s)
 
 localized "notation (name := nhds_set) `𝓝ˢ` := nhds_set" in topological_space
 
+lemma nhds_set_diagonal (α) [topological_space (α × α)] : 𝓝ˢ (diagonal α) = ⨆ x, 𝓝 (x, x) :=
+by { rw [nhds_set, ← range_diag, ← range_comp], refl }
+
 lemma mem_nhds_set_iff_forall : s ∈ 𝓝ˢ t ↔ ∀ (x : α), x ∈ t → s ∈ 𝓝 x :=
 by simp_rw [nhds_set, filter.mem_Sup, ball_image_iff]
 

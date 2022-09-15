@@ -68,7 +68,7 @@ begin
       (convex_Ioi 0.5)).add ((strict_concave_on_sqrt_mul_log_Ioi.concave_on.comp_linear_map
       ((2 : ℝ) • linear_map.id)).subset
       (λ a ha, lt_of_eq_of_lt _ ((mul_lt_mul_left two_pos).mpr ha)) (convex_Ioi 0.5))).sub
-      ((convex_on_id (convex_Ioi 0.5)).smul (div_nonneg (log_nonneg _) _)); norm_num1 },
+      ((convex_on_id (convex_Ioi (0.5 : ℝ))).smul (div_nonneg (log_nonneg _) _)); norm_num1 },
   suffices : ∃ x1 x2, 0.5 < x1 ∧ x1 < x2 ∧ x2 ≤ x ∧ 0 ≤ f x1 ∧ f x2 ≤ 0,
   { obtain ⟨x1, x2, h1, h2, h0, h3, h4⟩ := this,
     exact (h.right_le_of_le_left'' h1 ((h1.trans h2).trans_le h0) h2 h0 (h4.trans h3)).trans h4 },

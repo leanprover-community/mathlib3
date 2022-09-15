@@ -56,7 +56,7 @@ lemma snorm_one_condexp_le_snorm (f : α → ℝ) :
   snorm (μ[f | m]) 1 μ ≤ snorm f 1 μ :=
 begin
   by_cases hf : integrable f μ,
-  swap, { rw [snorm_congr_ae (condexp_undef hf), snorm_zero], exact zero_le _ },
+  swap, { rw [condexp_undef hf, snorm_zero], exact zero_le _ },
   by_cases hm : m ≤ m0,
   swap, { rw [condexp_of_not_le hm, snorm_zero], exact zero_le _ },
   by_cases hsig : sigma_finite (μ.trim hm),

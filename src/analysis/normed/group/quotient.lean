@@ -20,6 +20,13 @@ to a normed group hom defined on `M ⧸ S`.
 This file also introduces a predicate `is_quotient` characterizing normed group homs that
 are isomorphic to the canonical projection onto a normed group quotient.
 
+In addition, this file also provides normed structures for quotients of modules by submodules, and
+of (commutative) rings by ideals. The `seminormed_add_comm_group` and `normed_add_comm_group`
+instances described above are transferred directly, but we also define instances of `normed_space`,
+`semi_normed_comm_ring`, `normed_comm_ring` and `normed_algebra` under appropriate type class
+assumptions on the original space. Moreover, while `quotient_add_group.complete_space` works
+out-of-the-box for quotients of `normed_add_comm_group`s by `add_subgroup`s, we need to transfer
+this instance in `submodule.quotient.complete_space` so that it applies to these other quotients.
 
 ## Main definitions
 

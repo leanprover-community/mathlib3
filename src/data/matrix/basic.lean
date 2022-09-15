@@ -1088,7 +1088,7 @@ coefficients. This is `matrix.map` as a `alg_equiv`. -/
 def map_matrix (f : α ≃ₐ[R] β) : matrix m m α ≃ₐ[R] matrix m m β :=
 { to_fun := λ M, M.map f,
   inv_fun := λ M, M.map f.symm,
-  .. f.to_alg_hom.map_matrix,
+  .. f.to_linear_map.map_matrix,
   .. f.to_ring_equiv.map_matrix }
 
 @[simp] lemma map_matrix_refl :
@@ -1452,8 +1452,7 @@ variables (R m α)
 def transpose_alg_equiv [comm_semiring R] [comm_semiring α] [fintype m] [decidable_eq m]
   [algebra R α] : matrix m m α ≃ₐ[R] (matrix m m α)ᵐᵒᵖ :=
 { to_fun := λ M, mul_opposite.op (Mᵀ),
-  commutes' := λ r, by simp only [algebra_map_eq_diagonal, diagonal_transpose,
-                                  mul_opposite.algebra_map_apply],
+  map_smul' := by simp [transpose_smul],
   ..(transpose_add_equiv m m α).trans mul_opposite.op_add_equiv,
   ..transpose_ring_equiv m α }
 

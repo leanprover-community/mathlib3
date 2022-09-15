@@ -88,6 +88,23 @@ lemma ne_zero_iff {p : ring_seminorm R} : p ≠ 0 ↔ ∃ x, p x ≠ 0 := by sim
 
 instance : inhabited (ring_seminorm R) := ⟨0⟩
 
+/-- The trivial seminorm on a ring `R` is the `ring_seminorm` taking value `0` at `0` and `1` at
+every other element. -/
+instance [decidable_eq R] : has_one (ring_seminorm R) :=
+⟨{ mul_le' := λ x y, begin
+    by_cases h : x * y = 0,
+    { refine (if_pos h).trans_le (mul_nonneg _ _);
+      { change _ ≤ ite _ _ _,
+        split_ifs,
+        exacts [le_rfl, zero_le_one] } },
+    { change ite _ _ _ ≤ ite _ _ _ * ite _ _ _,
+      simp only [if_false, h, left_ne_zero_of_mul h, right_ne_zero_of_mul h, mul_one] }
+  end,
+  ..(1 : add_group_seminorm R) }⟩
+
+@[simp] lemma apply_one [decidable_eq R] (x : R) :
+  (1 : ring_seminorm R) x = if x = 0 then 0 else 1 := rfl
+
 end non_unital_ring
 
 section ring
@@ -140,21 +157,13 @@ variable (R)
 
 /-- The trivial norm on a ring `R` is the `ring_norm` taking value `0` at `0` and `1` at every
   other element. -/
-def trivial_norm [decidable_eq R] : ring_norm R :=
-{ mul_le' := λ x y, begin
-    by_cases h : x * y = 0,
-    { simp only [add_group_norm.to_fun_eq_coe, add_group_norm.apply_one, if_pos h],
-      apply mul_nonneg;
-      { split_ifs, exacts [le_refl _, zero_le_one] }},
-    { simp only [add_group_norm.to_fun_eq_coe, add_group_norm.apply_one, if_neg h,
-        if_neg (left_ne_zero_of_mul h), if_neg (right_ne_zero_of_mul h), mul_one] }
-  end,
-  ..(1 : add_group_norm R) }
+instance [decidable_eq R] : has_one (ring_norm R) :=
+⟨{ ..(1 : ring_seminorm R), ..(1 : add_group_norm R) }⟩
 
-lemma trivial_norm_of_ne_zero [decidable_eq R] {z : R} (h : z ≠ 0) : trivial_norm R z = 1 :=
-if_neg h
+@[simp] lemma apply_one [decidable_eq R] (x : R) : (1 : ring_norm R) x = if x = 0 then 0 else 1 :=
+rfl
 
-instance [decidable_eq R] : inhabited (ring_norm R) := ⟨trivial_norm R⟩
+instance [decidable_eq R] : inhabited (ring_norm R) := ⟨1⟩
 
 end ring_norm
 

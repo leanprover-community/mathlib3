@@ -229,10 +229,10 @@ end norm_num
 
 end lemmas
 
+section evaluation
+
 -- The following is to prevent strange error messages from occurring.
 instance : ring ℚ := division_ring.to_ring ℚ
-
-section evaluation
 
 /-!
 ### Certified evaluation of the Jacobi symbol

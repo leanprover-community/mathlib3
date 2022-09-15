@@ -262,15 +262,28 @@ instance : add_comm_group (centroid_hom α) :=
 to_End_injective.add_comm_group _ (by { ext, refl }) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
   (λ _ _, rfl) (λ _ _, by { ext, refl })
 
-instance : ring (centroid_hom α) := to_End_injective.ring _ (by { ext, refl }) (by { ext, refl })
-  (λ _ _, rfl)  (λ _ _, rfl) (congr_fun rfl) (congr_fun₂ rfl) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _ _, by { ext, refl }) (λ n, rfl) (λ n, rfl)
-
 @[simp] lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
 @[simp] lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl
 
 @[simp] lemma neg_apply (f : centroid_hom α) (a : α) : (-f) a = - f a := rfl
 @[simp] lemma sub_apply (f g : centroid_hom α) (a : α) : (f - g) a = f a - g a := rfl
+
+@[simp] lemma to_End_zero : (0 : centroid_hom α).to_End = 0 := rfl
+@[simp] lemma to_End_one : (1 : centroid_hom α).to_End = 1 := rfl
+@[simp] lemma to_End_add (x y : centroid_hom α) : (x + y).to_End = x.to_End + y.to_End := rfl
+@[simp] lemma to_End_mul (x y : centroid_hom α) : (x * y).to_End = x.to_End * y.to_End := rfl
+@[simp] lemma to_End_neg (x : centroid_hom α) : (-x).to_End = -x.to_End := rfl
+@[simp] lemma to_End_sub (x y : centroid_hom α) : (x - y).to_End = x.to_End - y.to_End := rfl
+lemma to_End_smul_nat (x : centroid_hom α) (n : ℕ) : (n • x).to_End = n • x.to_End := rfl
+lemma to_End_smul_int (x : centroid_hom α) (n : ℤ) : (n • x).to_End = n • x.to_End := rfl
+@[simp] lemma to_End_pow (x : centroid_hom α) (n : ℕ) : (x ^ n).to_End = x.to_End ^ n :=
+by { ext, refl }
+@[simp] lemma to_End_nat (n : ℕ) : (n :centroid_hom α).to_End = ↑n := rfl
+@[simp] lemma to_End_int (z : ℤ) : (z :centroid_hom α).to_End = ↑z := rfl
+
+instance : ring (centroid_hom α) := to_End_injective.ring _ to_End_zero to_End_one
+  to_End_add  to_End_mul to_End_neg to_End_sub to_End_smul_nat to_End_smul_int
+  to_End_pow to_End_nat to_End_int
 
 end non_unital_non_assoc_ring
 

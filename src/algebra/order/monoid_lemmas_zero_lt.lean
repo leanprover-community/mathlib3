@@ -351,6 +351,19 @@ lemma pos_iff_pos_of_mul_pos [pos_mul_reflect_lt α] [mul_pos_reflect_lt α] (ha
   0 < a ↔ 0 < b :=
 ⟨pos_of_mul_pos_right hab ∘ le_of_lt, pos_of_mul_pos_left hab ∘ le_of_lt⟩
 
+/-- Assumes left strict covariance. -/
+lemma left.mul_lt_mulₚ [pos_mul_strict_mono α] [mul_pos_mono α]
+  (h₁ : a < b) (h₂ : c < d) (a0 : 0 ≤ a) (c0 : 0 ≤ c) : a * c < b * d :=
+mul_lt_mul_of_le_of_ltₚ' h₁.le h₂ c0 (a0.trans_lt h₁)
+
+/-- Assumes right strict covariance. -/
+lemma right.mul_lt_mulₚ [pos_mul_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c < d) (a0 : 0 ≤ a) (c0 : 0 ≤ c) : a * c < b * d :=
+mul_lt_mul_of_lt_of_leₚ h₁ h₂.le a0 (c0.trans_lt h₂)
+
+alias left.mul_lt_mulₚ ← mul_lt_mulₚ
+alias left.mul_lt_mulₚ ← mul_lt_mul'' -- this name was in `algebra.order.ring`
+
 end preorder
 
 section partial_order

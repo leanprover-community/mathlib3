@@ -43,6 +43,28 @@ open finite_dimensional complex
 open_locale real
 open_locale real_inner_product_space
 
+-- move this to `analysis.special_functions.trigonometric.angle`
+namespace real.angle
+
+lemma sin_add (θ₁ θ₂ : real.angle) :
+  sin (θ₁ + θ₂) = sin θ₁ * cos θ₂ + cos θ₁ * sin θ₂ :=
+begin
+  induction θ₁ using real.angle.induction_on,
+  induction θ₂ using real.angle.induction_on,
+  exact real.sin_add θ₁ θ₂
+end
+
+
+lemma cos_add (θ₁ θ₂ : real.angle) :
+  cos (θ₁ + θ₂) = cos θ₁ * cos θ₂ - sin θ₁ * sin θ₂ :=
+begin
+  induction θ₂ using real.angle.induction_on,
+  induction θ₁ using real.angle.induction_on,
+  exact real.cos_add θ₁ θ₂,
+end
+
+end real.angle
+
 namespace orientation
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
@@ -57,15 +79,16 @@ local notation `J` := o.almost_complex
 /-- The oriented angle from `x` to `y`, modulo `2 * π`. If either vector is 0, this is 0.
 See `inner_product_geometry.angle` for the corresponding unoriented angle definition. -/
 def oangle (x y : V) : real.angle :=
-complex.arg (⟪x, y⟫ + ω x y * I)
+complex.arg (o.kahler x y)
 
 /-- Oriented angles are continuous when the vectors involved are nonzero. -/
 lemma continuous_at_oangle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
   continuous_at (λ y : V × V, o.oangle y.1 y.2) x :=
 begin
   refine (complex.continuous_at_arg_coe_angle _).comp _,
-  { sorry }, -- nonzeroness
+  { exact o.kahler_ne_zero hx1 hx2 },
   apply (continuous_of_real.comp continuous_inner).continuous_at.add,
+  dsimp,
   refine (continuous.mul _ continuous_const).continuous_at,
   refine continuous_of_real.comp _,
   sorry -- continuity of `ω`
@@ -82,7 +105,7 @@ by simp [oangle]
 /-- If the two vectors passed to `oangle` are the same, the result is 0. -/
 @[simp] lemma oangle_self (x : V) : o.oangle x x = 0 :=
 begin
-  simp only [oangle, area_form_apply_self, of_real_zero, zero_mul, add_zero],
+  simp only [oangle, kahler_apply_apply, area_form_apply_self, of_real_zero, zero_smul, add_zero],
   convert quotient_add_group.coe_zero _,
   apply arg_of_real_of_nonneg,
   exact real_inner_self_nonneg
@@ -106,9 +129,7 @@ lemma oangle_neg_left {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
 begin
   simp only [oangle, map_neg],
   convert complex.arg_neg_coe_angle _,
-  { simp [neg_add, -neg_add_rev] },
-  -- simp [hx, hy]
-  sorry -- nonzeroness
+  exact o.kahler_ne_zero hx hy,
 end
 
 /-- Negating the second vector passed to `oangle` adds `π` to the angle. -/
@@ -117,9 +138,7 @@ lemma oangle_neg_right {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
 begin
   simp only [oangle, map_neg],
   convert complex.arg_neg_coe_angle _,
-  { simp [neg_add, -neg_add_rev] },
-  sorry -- nonzeroness
-  -- simp [hx, hy]
+  exact o.kahler_ne_zero hx hy,
 end
 
 /-- Negating the first vector passed to `oangle` does not change twice the angle. -/
@@ -146,7 +165,8 @@ end
 
 /-- Negating both vectors passed to `oangle` does not change the angle. -/
 @[simp] lemma oangle_neg_neg (x y : V) : o.oangle (-x) (-y) = o.oangle x y :=
-by simp [oangle, neg_div_neg_eq]
+by simp only [oangle, kahler_apply_apply, arg_coe_angle_eq_iff, of_real_neg, real_smul,
+  inner_neg_right, linear_map.neg_apply, map_neg, neg_neg]
 
 /-- Negating the first vector produces the same angle as negating the second vector. -/
 lemma oangle_neg_left_eq_neg_right (x y : V) : o.oangle (-x) y = o.oangle x (-y) :=
@@ -194,8 +214,7 @@ begin
   simp only [oangle, linear_isometry_equiv.map_smul, complex.real_smul, inner_smul_left, map_smul,
     is_R_or_C.conj_to_real, of_real_mul, linear_map.smul_apply, algebra.id.smul_eq_mul],
   congr' 1,
-  convert complex.arg_real_mul _ hr,
-  ring,
+  exact complex.arg_real_mul _ hr,
 end
 
 /-- Multiplying the second vector passed to `oangle` by a positive real does not change the
@@ -207,7 +226,6 @@ begin
     is_R_or_C.conj_to_real, of_real_mul, linear_map.smul_apply, algebra.id.smul_eq_mul],
   congr' 1,
   convert complex.arg_real_mul _ hr,
-  ring,
 end
 
 /-- Multiplying the first vector passed to `oangle` by a negative real produces the same angle
@@ -407,8 +425,8 @@ begin
     sorry }, -- a guessed identity for product of `ω`
   { have : 0 < ∥y∥ := by simpa using hy,
     positivity },
-  { sorry }, -- nonzeroness
-  { sorry } -- nonzeroness
+  { exact o.kahler_ne_zero hx hy, },
+  { exact o.kahler_ne_zero hy hz }
 end
 
 /-- Given three nonzero vectors, the angle between the second and the third plus the angle
@@ -456,7 +474,8 @@ lemma oangle_sub_eq_oangle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) 
   o.oangle x (x - y) = o.oangle (y - x) y :=
 begin
   have : ⟪x, x⟫ = ⟪y, y⟫ := sorry, -- use the hypothesis `h`
-  simp [oangle, inner_sub_left, inner_sub_right, this],
+  simp only [oangle, kahler_apply_apply, linear_map.sub_apply, map_sub, inner_sub_left,
+    inner_sub_right, area_form_apply_self, this],
 end
 
 /-- The angle at the apex of an isosceles triangle is `π` minus twice a base angle, oriented
@@ -520,8 +539,8 @@ o.oangle_eq_two_zsmul_oangle_sub_of_norm_eq_real hx₁yne hx₁zne hx₁ hy hz �
 def rotation (θ : real.angle) : V ≃ₗᵢ[ℝ] V :=
 { norm_map' := sorry,
   .. linear_equiv.of_linear
-      (real.angle.cos θ • linear_map.id + real.angle.sin θ • J)
-      (real.angle.cos θ • linear_map.id - real.angle.sin θ • J)
+      (real.angle.cos θ • linear_map.id + real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
+      (real.angle.cos θ • linear_map.id - real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
       sorry
       sorry }
 
@@ -563,14 +582,18 @@ end
   (o.rotation θ₁).trans (o.rotation θ₂) = o.rotation (θ₂ + θ₁) :=
 begin
   ext x,
-  simp [o.rotation_apply, ← mul_smul],
-  sorry -- need double-angle formula and lemma about J^2
+  simp only [o.rotation_apply, ←mul_smul, real.angle.cos_add, real.angle.sin_add, add_smul,
+    sub_smul, linear_isometry_equiv.trans_apply, smul_add, linear_isometry_equiv.map_add,
+    linear_isometry_equiv.map_smul, almost_complex_almost_complex, smul_neg],
+  ring_nf,
+  abel,
 end
 
 /-- Rotating the first vector by `θ` subtracts `θ` from the angle between two vectors. -/
 @[simp] lemma oangle_rotation_left {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) (θ : real.angle) :
   o.oangle (o.rotation θ x) y = o.oangle x y - θ :=
 begin
+  simp [oangle, o.rotation_apply, ←mul_smul, real.angle.cos_add, real.angle.sin_add],
   sorry
   -- simp [oangle, rotation, complex.arg_div_coe_angle, complex.arg_mul_coe_angle, hx, hy,
   --       ne_zero_of_mem_circle],
@@ -905,21 +928,12 @@ lemma inner_eq_norm_mul_norm_mul_cos_oangle (x y : V) :
 begin
   by_cases hx : x = 0, { simp [hx] },
   by_cases hy : y = 0, { simp [hy] },
-  rw [oangle, real.angle.cos_coe, complex.cos_arg], swap, { sorry }, -- nonzeroness, previously simp [hx, hy] },
-  sorry
-  -- simp_rw [complex.abs_div, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map, complex.div_re,
-  --          ←complex.sq_abs, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map,
-  --          complex.isometry_of_orthonormal_symm_apply, complex.add_re, complex.add_im,
-  --          is_R_or_C.I, complex.mul_I_re, complex.mul_I_im, complex.of_real_re,
-  --          complex.of_real_im, basis.coord_apply, neg_zero, zero_add, add_zero],
-  -- conv_lhs { rw [←o.sum_repr x, ←o.sum_repr y] },
-  -- simp_rw [o.orthonormal.inner_sum, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1}),
-  --          star_ring_end_apply, star_trivial],
-  -- rw [finset.sum_insert (dec_trivial : (0 : fin 2) ∉ ({1} : finset (fin 2))),
-  --     finset.sum_singleton],
-  -- field_simp only [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy, ne.def, not_false_iff,
-  --   orthonormal_basis.coe_to_basis_repr_apply],
-  -- ring
+  have : ∥x∥ ≠ 0 := by simpa using hx,
+  have : ∥y∥ ≠ 0 := by simpa using hy,
+  rw [oangle, real.angle.cos_coe, complex.cos_arg, o.abs_kahler],
+  { field_simp,
+    ring },
+  { exact o.kahler_ne_zero hx hy }
 end
 
 /-- The cosine of the oriented angle between two nonzero vectors is the inner product divided by

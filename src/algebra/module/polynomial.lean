@@ -41,7 +41,7 @@ namespace module_with_End
 variables {E : End R M}
 
 instance : module S (module_with_End E) := (infer_instance : module S M)
-instance is_scalar_tower' [has_scalar S R] [is_scalar_tower S R M] :
+instance is_scalar_tower' [has_smul S R] [is_scalar_tower S R M] :
   is_scalar_tower S R (module_with_End E) := (infer_instance : is_scalar_tower S R M)
 /--The type conversion `M → module_with_End E`, as a `R`-linear isomorphism.-/
 def of_module (E : End R M) : M ≃ₗ[R] module_with_End E := linear_equiv.refl R M

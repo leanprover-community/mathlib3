@@ -223,7 +223,7 @@ lemma support_smul_subset_left [has_zero M] [has_zero β] [smul_with_zero M β]
 lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
   [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
   support (f • g) = support f ∩ support g :=
-ext $ λ x, smul_ne_zero
+ext $ λ x, smul_ne_zero_iff
 
 lemma support_const_smul_of_ne_zero [semiring R] [add_comm_monoid M] [module R M]
   [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :

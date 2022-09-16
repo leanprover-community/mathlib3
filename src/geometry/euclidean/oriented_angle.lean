@@ -333,7 +333,7 @@ begin
     by_cases hx : x = 0, { simp [hx] },
     rcases lt_trichotomy r 0 with hr|hr|hr,
     { rw ←neg_smul,
-      exact or.inr ⟨hx, smul_ne_zero.2 ⟨hr.ne, hx⟩,
+      exact or.inr ⟨hx, smul_ne_zero hr.ne hx,
                     same_ray_pos_smul_right x (left.neg_pos_iff.2 hr)⟩ },
     { simp [hr] },
     { exact or.inl (same_ray_pos_smul_right x hr) } }

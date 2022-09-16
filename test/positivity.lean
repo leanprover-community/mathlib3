@@ -1,6 +1,6 @@
-import algebra.order.smul
-import analysis.normed.group.basic
-import data.real.sqrt
+-- import algebra.order.smul
+-- import analysis.normed.group.basic
+-- import data.real.sqrt
 import tactic.positivity
 
 /-! # Tests for the `positivity` tactic
@@ -18,21 +18,91 @@ example : 0 < 3 := by positivity
 
 /- ## Goals working directly from a hypothesis -/
 
-example {a : ℤ} (ha : 0 ≤ a) : 0 ≤ a := by positivity
-
-example {a : ℤ} (ha : 0 < a) : 0 ≤ a := by positivity
-
 example {a : ℤ} (ha : 0 < a) : 0 < a := by positivity
+example {a : ℤ} (ha : 0 < a) : 0 ≤ a := by positivity
+example {a : ℤ} (ha : 0 < a) : a ≠ 0 := by positivity
+example {a : ℤ} (ha : 0 ≤ a) : 0 ≤ a := by positivity
+example {a : ℤ} (ha : a ≠ 0) : a ≠ 0 := by positivity
+example {a : ℤ} (ha : a = 0) : 0 ≤ a := by positivity
 
+/- ### Reversing hypotheses -/
+
+example {a : ℤ} (ha : a > 0) : 0 < a := by positivity
+example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity
+example {a : ℤ} (ha : a > 0) : a ≠ 0 := by positivity
+example {a : ℤ} (ha : a ≥ 0) : 0 ≤ a := by positivity
+example {a : ℤ} (ha : 0 ≠ a) : a ≠ 0 := by positivity
+example {a : ℤ} (ha : 0 < a) : a > 0 := by positivity
+example {a : ℤ} (ha : 0 < a) : a ≥ 0 := by positivity
+example {a : ℤ} (ha : 0 < a) : 0 ≠ a := by positivity
+example {a : ℤ} (ha : 0 ≤ a) : a ≥ 0 := by positivity
+example {a : ℤ} (ha : a ≠ 0) : 0 ≠ a := by positivity
+example {a : ℤ} (ha : a = 0) : a ≥ 0 := by positivity
+example {a : ℤ} (ha : 0 = a) : 0 ≤ a := by positivity
+example {a : ℤ} (ha : 0 = a) : a ≥ 0 := by positivity
+
+/- ### Calling `norm_num` -/
+
+example {a : ℤ} (ha : 3 = a) : 0 ≤ a := by positivity
+example {a : ℤ} (ha : 3 = a) : a ≠ 0 := by positivity
+example {a : ℤ} (ha : 3 = a) : 0 < a := by positivity
+example {a : ℤ} (ha : a = -1) : a ≠ 0 := by positivity
+
+example {a : ℤ} (ha : 3 ≤ a) : 0 ≤ a := by positivity
+example {a : ℤ} (ha : 3 ≤ a) : a ≠ 0 := by positivity
 example {a : ℤ} (ha : 3 ≤ a) : 0 < a := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a := by positivity
-
+example {a : ℤ} (ha : 3 < a) : a ≠ 0 := by positivity
 example {a : ℤ} (ha : 3 < a) : 0 < a := by positivity
 
 example {a b : ℤ} (h : 0 ≤ a + b) : 0 ≤ a + b := by positivity
 
+example {a : ℤ} (hlt : 0 ≤ a) (hne : a ≠ 0) : 0 < a := by positivity
+
 /- ## Tests of the @[positivity] plugin tactics (addition, multiplication, division) -/
+
+example {a b : ℚ} (ha : 0 < a) (hb : 0 < b) : 0 < min a b := by positivity
+example {a b : ℚ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ min a b := by positivity
+example {a b : ℚ} (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ min a b := by positivity
+example {a b : ℚ} (ha : 0 < a) (hb : b ≠ 0) : min a b ≠ 0 := by positivity
+example {a b : ℚ} (ha : a ≠ 0) (hb : 0 < b) : min a b ≠ 0 := by positivity
+example {a b : ℚ} (ha : a ≠ 0) (hb : b ≠ 0) : min a b ≠ 0 := by positivity
+
+example {a b : ℚ} (ha : 0 < a) (hb : 0 < b) : 0 < a * b := by positivity
+example {a b : ℚ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a * b := by positivity
+example {a b : ℚ} (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a * b := by positivity
+example {a b : ℚ} (ha : 0 < a) (hb : b ≠ 0) : a * b ≠ 0 := by positivity
+example {a b : ℚ} (ha : a ≠ 0) (hb : 0 < b) : a * b ≠ 0 := by positivity
+example {a b : ℚ} (ha : a ≠ 0) (hb : b ≠ 0) : a * b ≠ 0 := by positivity
+
+example {a b : ℚ} (ha : 0 < a) (hb : 0 < b) : 0 < a / b := by positivity
+example {a b : ℚ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a / b := by positivity
+example {a b : ℚ} (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a / b := by positivity
+example {a b : ℚ} (ha : 0 < a) (hb : b ≠ 0) : a / b ≠ 0 := by positivity
+example {a b : ℚ} (ha : a ≠ 0) (hb : 0 < b) : a / b ≠ 0 := by positivity
+example {a b : ℚ} (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 := by positivity
+
+example {a : ℚ} (ha : 0 < a) : 0 < a⁻¹ := by positivity
+example {a : ℚ} (ha : 0 ≤ a) : 0 ≤ a⁻¹ := by positivity
+example {a : ℚ} (ha : a ≠ 0) : a⁻¹ ≠ 0 := by positivity
+
+example {a : ℚ} (n : ℕ) (ha : 0 < a) : 0 < a ^ n := by positivity
+example {a : ℚ} (n : ℕ) (ha : 0 ≤ a) : 0 ≤ a ^ n := by positivity
+example {a : ℚ} (n : ℕ) (ha : a ≠ 0) : a ^ n ≠ 0 := by positivity
+example {a : ℚ} (n : ℕ) : 0 ≤ a ^ (bit0 n) := by positivity
+example {a : ℚ} (n : ℕ) (ha : a ≠ 0) : 0 < a ^ (bit0 n) := by positivity
+
+example {a : ℚ} (ha : 0 < a) : 0 < |a| := by positivity
+example {a : ℚ} (ha : a ≠ 0) : 0 < |a| := by positivity
+example (a : ℚ) : 0 ≤ |a| := by positivity
+
+example {a : ℤ} {b : ℚ} (ha : 0 < a) (hb : 0 < b) : 0 < a • b := by positivity
+example {a : ℤ} {b : ℚ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a • b := by positivity
+example {a : ℤ} {b : ℚ} (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a • b := by positivity
+example {a : ℤ} {b : ℚ} (ha : 0 < a) (hb : b ≠ 0) : a • b ≠ 0 := by positivity
+example {a : ℤ} {b : ℚ} (ha : a ≠ 0) (hb : 0 < b) : a • b ≠ 0 := by positivity
+example {a : ℤ} {b : ℚ} (ha : a ≠ 0) (hb : b ≠ 0) : a • b ≠ 0 := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a + a := by positivity
 
@@ -99,16 +169,3 @@ example {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [smul
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 
 example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
-
-/- ## Tests that the tactic is agnostic on reversed inequalities -/
-
-example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity
-
-example {a : ℤ} (ha : 0 < a) : a ≥ 0 := by positivity
-
-example {a : ℤ} (ha : a > 0) : a ≥ 0 := by positivity
-
-example {a : ℤ} (ha : 0 < a) : a ≠ 0 := by positivity
-example {a : ℤ} (ha : a > 0) : a ≠ 0 := by positivity
-example {a : ℤ} (ha : 0 < a) : 0 ≠ a := by positivity
-example {a : ℤ} (ha : a > 0) : 0 ≠ a := by positivity

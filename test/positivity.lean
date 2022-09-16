@@ -1,5 +1,6 @@
-import algebra.order.smul
-import analysis.normed.group.basic
+-- import algebra.order.smul
+-- import analysis.normed.group.basic
+import data.rat.nnrat
 import data.real.ereal
 import data.real.sqrt
 import tactic.positivity
@@ -8,6 +9,8 @@ import tactic.positivity
 
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
+
+open_locale ennreal nnrat nnreal
 
 /- ## Numeric goals -/
 
@@ -101,6 +104,30 @@ example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by posi
 
 example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
 
+/- ### Canonical orders -/
+
+example {a : ℕ} : 0 ≤ a := by positivity
+example {a : ℚ≥0} : 0 ≤ a := by positivity
+example {a : ℝ≥0} : 0 ≤ a := by positivity
+example {a : ℝ≥0∞} : 0 ≤ a := by positivity
+
+/- ### Coercions -/
+
+set_option pp.all true
+
+example {a : ℕ} : 0 ≤ (a : ℤ) := by positivity
+example {a : ℕ} (hn : 0 < a) : (0 : ℤ) < a := by positivity
+example {a : ℤ} (hn : 0 ≤ a) : (0 : ℚ) ≤ a := by positivity
+example {a : ℤ} (hn : 0 < a) : (0 : ℚ) < a := by positivity
+example {a : ℚ} (hn : 0 ≤ a) : (0 : ℝ) ≤ a := by positivity
+example {a : ℚ} (hn : 0 < a) : (0 : ℝ) < a := by positivity
+example {α : Type*} [ordered_ring α] {n : ℤ} : 0 ≤ ((n ^ 2 : ℤ) : α) := by positivity
+example {α : Type*} [linear_ordered_field α] {a : ℚ} (ha : 0 < a) : 0 < (a : α) := by positivity
+example {r : ℝ} (hr : 0 ≤ r) : 0 ≤ (r : ereal) := by positivity
+example {r : ℝ} (hr : 0 < r) : 0 < (r : ereal) := by positivity
+example {r : ℝ≥0} : 0 ≤ ((r : ℝ) : ereal) := by positivity
+example {r : ℝ≥0} : 0 < ((r + 1 : ℝ) : ereal) := by positivity
+
 /- ## Tests that the tactic is agnostic on reversed inequalities -/
 
 example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity
@@ -108,18 +135,3 @@ example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity
 example {a : ℤ} (ha : 0 < a) : a ≥ 0 := by positivity
 
 example {a : ℤ} (ha : a > 0) : a ≥ 0 := by positivity
-
-/- ## Coercions -/
-
-open_locale nnreal
-
-example {n : ℕ} : 0 ≤ n := by positivity
-example {n : ℕ} : 0 ≤ (n : ℤ) := by positivity
-example {n : ℕ} : 0 ≤ (n : ℚ) := by positivity
-example {n : ℕ} : 0 ≤ ((n : ℚ) : ℝ) := by positivity
-example {α : Type*} [ordered_ring α] {n : ℤ} : 0 ≤ (n ^ 2 : ℤ) := by positivity
-example {α : Type*} [linear_ordered_field α] {a : ℚ} (ha : 0 < a) : 0 < (a : α) := by positivity
-example {r : ℝ} (hr : 0 < r) : 0 < (r : ereal) := by positivity
-example {r : ℝ} (hr : 0 ≤ r) : 0 ≤ (r : ereal) := by positivity
-example {r : ℝ≥0} : 0 ≤ ((r : ℝ) : ereal) := by positivity
-example {r : ℝ≥0} : 0 < ((r + 1 : ℝ) : ereal) := by positivity

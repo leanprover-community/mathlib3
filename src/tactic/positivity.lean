@@ -402,6 +402,9 @@ private lemma int_coe_nat_pos {n : ℕ} : 0 < n → 0 < (n : ℤ) := nat.cast_po
 private lemma int_cast_nonneg [ordered_ring α] {n : ℤ} (hn : 0 ≤ n) : 0 ≤ (n : α) :=
 by { rw ←int.cast_zero, exact int.cast_mono hn }
 
+private lemma int_cast_pos [ordered_ring α] [nontrivial α] {n : ℤ} : 0 < n → 0 < (n : α) :=
+int.cast_pos.2
+
 private alias int.cast_pos ↔ _ int_cast_pos
 
 private alias rat.cast_nonneg ↔ _ rat_cast_nonneg
@@ -417,8 +420,9 @@ meta def positivity_coe : expr → tactic strictness
     match inst, strictness_a with
     | `(nat.cast_coe), positive p := positive <$> mk_app ``nat_cast_pos [p]
     | `(nat.cast_coe), _ := nonnegative <$> mk_mapp ``nat.cast_nonneg [typ, none, a]
-    | `(int.cast_coe), positive p := positive <$> mk_app ``int_cast_pos [p]
-    | `(int.cast_coe), nonnegative p := nonnegative <$> mk_app ``int_cast_nonneg [p]
+    | `(int.cast_coe), positive p := positive <$> mk_mapp ``int_cast_pos [typ, none, none, none, p]
+    | `(int.cast_coe), nonnegative p := nonnegative <$>
+                                          mk_mapp ``int_cast_nonneg [typ, none, none, p]
     | `(rat.cast_coe), positive p := positive <$> mk_app ``rat_cast_pos [p]
     | `(rat.cast_coe), nonnegative p := nonnegative <$> mk_app ``rat_cast_nonneg [p]
     | `(@coe_base _ _ int.has_coe), positive p := positive <$> mk_app ``int_coe_nat_pos [p]

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.real.nnreal
-import tactic.positivity
 
 /-!
 # Extended non-negative reals
@@ -212,7 +211,7 @@ lemma coe_mono : monotone (coe : ℝ≥0 → ℝ≥0∞) := λ _ _, coe_le_coe.2
 @[simp, norm_cast] lemma zero_eq_coe : 0 = (↑r : ℝ≥0∞) ↔ 0 = r := coe_eq_coe
 @[simp, norm_cast] lemma coe_eq_one : (↑r : ℝ≥0∞) = 1 ↔ r = 1 := coe_eq_coe
 @[simp, norm_cast] lemma one_eq_coe : 1 = (↑r : ℝ≥0∞) ↔ 1 = r := coe_eq_coe
-@[simp, norm_cast] lemma coe_nonneg : 0 ≤ (↑r : ℝ≥0∞) ↔ 0 ≤ r := coe_le_coe
+@[simp] lemma coe_nonneg : 0 ≤ (↑r : ℝ≥0∞) := coe_le_coe.2 $ zero_le _
 @[simp, norm_cast] lemma coe_pos : 0 < (↑r : ℝ≥0∞) ↔ 0 < r := coe_lt_coe
 lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
 
@@ -1934,21 +1933,18 @@ end ord_connected
 end set
 
 namespace tactic
-
 open positivity
 
-private alias nnreal.coe_pos ↔ _ nnreal_coe_pos
+private lemma nnreal_coe_pos {r : ℝ≥0} : 0 < r → 0 < (r : ℝ≥0∞) := ennreal.coe_pos.2
 
-/-- Extension for the `positivity` tactic: cast from `ℝ≥0` to `ℝ`. -/
+/-- Extension for the `positivity` tactic: cast from `ℝ≥0` to `ℝ≥0∞`. -/
 @[positivity]
-meta def positivity_coe_nnreal : expr → tactic strictness
+meta def positivity_coe_nnreal_ennreal : expr → tactic strictness
 | `(@coe _ _ %%inst %%a) := do
-  unify inst `(@coe_to_lift _ _ $ @coe_base _ _ nnreal.real.has_coe),
-  strictness_a ← core a,
-  match strictness_a with
-  | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
-  | nonnegative p := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
-  end
-| _ := failed
+  unify inst `(@coe_to_lift _ _ $ @coe_base _ _ ennreal.has_coe),
+  positive p ← core a, -- We already know `0 ≤ r` for all `r : ℝ≥0∞`
+  positive <$> mk_app ``nnreal_coe_pos [p]
+| e := pp e >>= fail ∘ format.bracket "The expression "
+         " is not of the form `(r : ℝ≥0∞)` for `r : ℝ≥0`"
 
 end tactic

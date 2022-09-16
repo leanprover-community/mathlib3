@@ -2966,6 +2966,14 @@ begin
   exact hf hz.le
 end
 
+lemma left_lim_le_left_lim [no_min_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
+  left_lim f x ≤ left_lim f y :=
+begin
+  rcases eq_or_lt_of_le h with rfl|hxy,
+  { exact le_rfl },
+  { exact (hf.left_lim_le le_rfl).trans (hf.le_left_lim hxy) }
+end
+
 lemma le_right_lim [no_max_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
   f x ≤ right_lim f y :=
 @left_lim_le αᵒᵈ βᵒᵈ _ _ _ f hf.dual y x h
@@ -2974,9 +2982,13 @@ lemma right_lim_le {f : α → β} (hf : monotone f) {x y : α} (h : x < y) :
   right_lim f x ≤ f y :=
 @le_left_lim αᵒᵈ βᵒᵈ _ _ f hf.dual y x h
 
+lemma right_lim_le_right_lim [no_max_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
+  right_lim f x ≤ right_lim f y :=
+@left_lim_le_left_lim αᵒᵈ βᵒᵈ _ _ _ f hf.dual y x h
+
 variables [topological_space α] [order_topology α] [topological_space β] [order_topology β]
 
-lemma tendsto_nhds_within_Iio {f : α → β} (Mf : monotone f) (x : α) :
+lemma tendsto_left_lim {f : α → β} (Mf : monotone f) (x : α) :
   tendsto f (𝓝[<] x) (𝓝 (left_lim f x)) :=
 begin
   rcases eq_empty_or_nonempty (Iio x) with h|h, { simp [h] },
@@ -2991,9 +3003,9 @@ begin
     exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy), },
 end
 
-lemma tendsto_nhds_within_Ioi {f : α → β} (Mf : monotone f) (x : α) :
+lemma tendsto_right_lim {f : α → β} (Mf : monotone f) (x : α) :
   tendsto f (𝓝[>] x) (𝓝 (right_lim f x)) :=
-@monotone.tendsto_nhds_within_Iio αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x
+@monotone.tendsto_left_lim αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x
 
 /-- A monotone is continuous at a point if and only if its left and right limits coincide. -/
 lemma left_lim_eq_right_lim_iff_continuous_at [no_min_order α] [no_max_order α] [densely_ordered α]
@@ -3013,14 +3025,14 @@ begin
     rw [continuous_at, this, tendsto_sup, tendsto_sup],
     refine ⟨⟨_, _⟩, _⟩,
     { rw ← h',
-      exact tendsto_nhds_within_Iio Mf x },
+      exact tendsto_left_lim Mf x },
     { rw [← h', h],
-      exact tendsto_nhds_within_Ioi Mf x },
+      exact tendsto_right_lim Mf x },
     { simp [tendsto_pure_nhds f x] } },
   { have A : left_lim f x = f x, from tendsto_nhds_unique
-      (tendsto_nhds_within_Iio Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
+      (tendsto_left_lim Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
     have B : right_lim f x = f x, from tendsto_nhds_unique
-      (tendsto_nhds_within_Ioi Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
+      (tendsto_right_lim Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
     exact A.trans B.symm },
 end
 

@@ -27,113 +27,6 @@ open classical set filter
 open ennreal (of_real)
 open_locale big_operators ennreal nnreal topological_space measure_theory
 
-section left_and_right_lim
-
-namespace monotone
-
-variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order β]
-
-def left_lim (f : α → β) (x : α) : β :=
-Sup (f '' (Iio x))
-
-def right_lim (f : α → β) (x : α) : β :=
-Inf (f '' (Ioi x))
-
-lemma left_lim_le [no_min_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
-  left_lim f x ≤ f y :=
-begin
-  refine cSup_le (by simp) _,
-  simp only [mem_image, mem_Iio, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
-  assume z hz,
-  exact hf (hz.le.trans h),
-end
-
-lemma le_left_lim {f : α → β} (hf : monotone f) {x y : α} (h : x < y) :
-  f x ≤ left_lim f y :=
-begin
-  refine le_cSup ⟨f y, _⟩ (mem_image_of_mem _ h),
-  simp only [upper_bounds, mem_image, mem_Iio, forall_exists_index, and_imp,
-    forall_apply_eq_imp_iff₂, mem_set_of_eq],
-  assume z hz,
-  exact hf hz.le
-end
-
-lemma le_right_lim [no_max_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
-  f x ≤ right_lim f y :=
-@left_lim_le (order_dual α) (order_dual β) _ _ _ f hf.dual y x h
-
-lemma right_lim_le {f : α → β} (hf : monotone f) {x y : α} (h : x < y) :
-  right_lim f x ≤ f y :=
-@le_left_lim (order_dual α) (order_dual β) _ _ f hf.dual y x h
-
-variables [topological_space α] [order_topology α] [topological_space β] [order_topology β]
-
-lemma tendsto_nhds_within_Iio' {f : α → β} (Mf : monotone f) (x : α) :
-  tendsto f (𝓝[<] x) (𝓝 (left_lim f x)) :=
-tendsto_nhds_within_Iio Mf x
-
-lemma tendsto_nhds_within_Ioi' {f : α → β} (Mf : monotone f) (x : α) :
-  tendsto f (𝓝[>] x) (𝓝 (right_lim f x)) :=
-tendsto_nhds_within_Ioi Mf x
-
-lemma left_lim_eq_right_lim_iff_continuous_at [no_min_order α] [no_max_order α] [densely_ordered α]
-  {f : α → β} (Mf : monotone f) (x : α) :
-  left_lim f x = right_lim f x ↔ continuous_at f x :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have h' : left_lim f x = f x,
-    { apply le_antisymm (left_lim_le Mf (le_refl _)),
-      rw h,
-      exact le_right_lim Mf (le_refl _) },
-    have : 𝓝 x = (𝓝[<] x) ⊔ (𝓝[>] x) ⊔ (𝓝[{x}] x),
-    { rw [← nhds_within_union, ← nhds_within_union, ← nhds_within_univ],
-      congr,
-      ext y,
-      simp },
-    rw [continuous_at, this, tendsto_sup, tendsto_sup],
-    refine ⟨⟨_, _⟩, _⟩,
-    { rw ← h',
-      exact tendsto_nhds_within_Iio' Mf x },
-    { rw [← h', h],
-      exact tendsto_nhds_within_Ioi' Mf x },
-    { simp [tendsto_pure_nhds f x] } },
-  { have A : left_lim f x = f x, from tendsto_nhds_unique
-      (tendsto_nhds_within_Iio' Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
-    have B : right_lim f x = f x, from tendsto_nhds_unique
-      (tendsto_nhds_within_Ioi' Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
-    exact A.trans B.symm },
-end
-
-#exit
-
-
-/-- A monotone map has a limit to the left of any point `x`, equal to `Sup (f '' (Iio x))`. -/
-lemma monotone.tendsto_nhds_within_Iio {α β : Type*}
-  [linear_order α] [topological_space α] [order_topology α]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
-  {f : α → β} (Mf : monotone f) (x : α) :
-  tendsto f (𝓝[<] x) (𝓝 (Sup (f '' (Iio x)))) :=
-begin
-  rcases eq_empty_or_nonempty (Iio x) with h|h, { simp [h] },
-  refine tendsto_order.2 ⟨λ l hl, _, λ m hm, _⟩,
-  { obtain ⟨z, zx, lz⟩ : ∃ (a : α), a < x ∧ l < f a,
-      by simpa only [mem_image, exists_prop, exists_exists_and_eq_and]
-        using exists_lt_of_lt_cSup (nonempty_image_iff.2 h) hl,
-    exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' zx).2
-      ⟨z, zx, λ y hy, lz.trans_le (Mf (hy.1.le))⟩ },
-  { filter_upwards [self_mem_nhds_within] with _ hy,
-    apply lt_of_le_of_lt _ hm,
-    exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy), },
-end
-
-/-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/
-lemma monotone.tendsto_nhds_within_Ioi {α β : Type*}
-  [linear_order α] [topological_space α] [order_topology α]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
-  {f : α → β} (Mf : monotone f) (x : α) :
-  tendsto f (𝓝[>] x) (𝓝 (Inf (f '' (Ioi x)))) :=
-@monotone.tendsto_nhds_within_Iio αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x
-
 /-! ### Basic properties of Stieltjes functions -/
 
 /-- Bundled monotone right-continuous real functions, used to construct Stieltjes measures. -/
@@ -156,24 +49,16 @@ lemma right_continuous (x : ℝ) : continuous_within_at f (Ici x) x := f.right_c
 
 /-- The limit of a Stieltjes function to the left of `x` (it exists by monotonicity). The fact that
 it is indeed a left limit is asserted in `tendsto_left_lim` -/
-@[irreducible] def left_lim (x : ℝ) := Sup (f '' (Iio x))
+def left_lim := monotone.left_lim f
 
 lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[<] x) (𝓝 (f.left_lim x)) :=
-by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
+f.mono.tendsto_nhds_within_Iio x
 
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
-begin
-  apply le_of_tendsto (f.tendsto_left_lim x),
-  filter_upwards [self_mem_nhds_within] with _ hz using (f.mono (le_of_lt hz)).trans (f.mono h),
-end
+f.mono.left_lim_le h
 
 lemma le_left_lim {x y : ℝ} (h : x < y) : f x ≤ f.left_lim y :=
-begin
-  apply ge_of_tendsto (f.tendsto_left_lim y),
-  apply mem_nhds_within_Iio_iff_exists_Ioo_subset.2 ⟨x, h, _⟩,
-  assume z hz,
-  exact f.mono hz.1.le,
-end
+f.mono.le_left_lim h
 
 lemma left_lim_le_left_lim {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f.left_lim y :=
 begin

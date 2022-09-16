@@ -96,7 +96,7 @@ lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.
 ⟨ϕ.to_ring_hom.injective, λ x, by
 { letI : algebra E K := ϕ.to_ring_hom.to_algebra,
   obtain ⟨h1, h2⟩ := h.out (algebra_map K E x),
-  cases minpoly.mem_range_of_degree_eq_one E x (or.resolve_left h2 (minpoly.ne_zero h1)
+  cases minpoly.mem_range_of_degree_eq_one E x (h2.def.resolve_left (minpoly.ne_zero h1)
     (minpoly.irreducible (is_integral_of_is_scalar_tower x
       ((is_integral_algebra_map_iff (algebra_map K E).injective).mp h1)))
     (minpoly.dvd E x ((algebra_map K E).injective (by
@@ -246,7 +246,7 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
     rintros x ⟨y, ⟨z, hy⟩, hx⟩,
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
-    exact or.resolve_left (h.splits z) (minpoly.ne_zero (h.is_integral z))
+    exact or.resolve_left (h.splits z).def (minpoly.ne_zero (h.is_integral z))
       (minpoly.irreducible $ is_integral_of_is_scalar_tower _ $
         is_integral_alg_hom ϕ $ is_integral_alg_hom _ $ h.is_integral z)
       (minpoly.dvd E _ $ by rw [aeval_map, aeval_alg_hom, aeval_alg_hom, alg_hom.comp_apply,

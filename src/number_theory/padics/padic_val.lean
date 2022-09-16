@@ -320,8 +320,8 @@ begin
     multiplicity.mul (nat.prime_iff_prime_int.1 hp.1), add_mul],
   rw [← @rat.num_denom q, ← @rat.num_denom r, padic_val_rat_le_padic_val_rat_iff hqn hrn hqd hrd,
     ← multiplicity_le_multiplicity_iff] at h,
-  calc _ ≤ min (multiplicity ↑p (q.num * r.denom * q.denom))
-    (multiplicity ↑p (q.denom * r.num * q.denom)) : (le_min
+  calc _ ≤ min (multiplicity ↑p (q.num * ↑r.denom * ↑q.denom))
+    (multiplicity ↑p (↑q.denom * r.num * ↑q.denom)) : (le_min
     (by rw [@multiplicity.mul _ _ _ _ (_ * _) _ (nat.prime_iff_prime_int.1 hp.1), add_comm])
     (by rw [mul_assoc, @multiplicity.mul _ _ _ _ (q.denom : ℤ)
         (_ * _) (nat.prime_iff_prime_int.1 hp.1)]; exact add_le_add_left h _))

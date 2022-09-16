@@ -573,8 +573,7 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
     f ((a₁ * a₂) ⊗ₜ (b₁ * b₂) ⊗ₜ (c₁ * c₂)) = f (a₁ ⊗ₜ b₁ ⊗ₜ c₁) * f (a₂ ⊗ₜ b₂ ⊗ₜ c₂))
   (w₂ : ∀ r, f (((algebra_map R A) r ⊗ₜ[R] (1 : B)) ⊗ₜ[R] (1 : C)) = (algebra_map R D) r) :
   (A ⊗[R] B) ⊗[R] C ≃ₐ[R] D :=
-{ to_fun := f,
-  map_mul' := λ x y,
+have w₃ : ∀ x y, f (x * y) = f x * f y := λ x y,
   begin
     apply tensor_product.induction_on x,
     { simp only [map_zero, zero_mul] },
@@ -599,7 +598,9 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
     { intros x₁ x₂ h₁ h₂,
       simp only [tmul_mul_tmul, map_add, mul_add, add_mul, h₁, h₂], }
   end,
-  commutes' := λ r, by simp [w₂],
+{ to_fun := f,
+  map_mul' := w₃,
+  map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes w₃ (λ r, by simp [w₂]),
   .. f }
 
 @[simp]

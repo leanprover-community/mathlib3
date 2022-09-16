@@ -231,7 +231,7 @@ def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
 { inv_fun := conj,
   left_inv := star_star,
   right_inv := star_star,
-  commutes' := conj_of_real,
+  map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (map_mul _) conj_of_real,
   .. conj }
 
 @[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl

@@ -198,7 +198,9 @@ The `R`-algebra isomorphism `polynomial A ≃ₐ[R] (A ⊗[R] R[X])`.
 -/
 def poly_equiv_tensor : A[X] ≃ₐ[R] (A ⊗[R] R[X]) :=
 alg_equiv.symm
-{ ..(poly_equiv_tensor.to_fun_alg_hom R A), ..(poly_equiv_tensor.equiv R A) }
+{ map_smul' := map_smul (poly_equiv_tensor.to_fun_alg_hom R A),
+  ..(poly_equiv_tensor.to_fun_alg_hom R A),
+  ..(poly_equiv_tensor.equiv R A) }
 
 @[simp]
 lemma poly_equiv_tensor_apply (p : A[X]) :

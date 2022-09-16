@@ -714,7 +714,9 @@ ideals in `P` and in `P'` -/
 noncomputable def canonical_equiv :
   fractional_ideal S P ≃+* fractional_ideal S P' :=
 map_equiv
-  { commutes' := λ r, ring_equiv_of_ring_equiv_eq _ _,
+  { map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes
+      (λ x y, by simp only [ring_equiv.to_fun_eq_coe, mul_hom_class.map_mul])
+      (λ r, ring_equiv_of_ring_equiv_eq _ _),
     ..ring_equiv_of_ring_equiv P P' (ring_equiv.refl R)
       (show S.map _ = S, by rw [ring_equiv.to_monoid_hom_refl, submonoid.map_id]) }
 

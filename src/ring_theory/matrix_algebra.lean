@@ -138,7 +138,10 @@ variables [fintype n] [decidable_eq n]
 The `R`-algebra isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
 -/
 def matrix_equiv_tensor : matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R) :=
-alg_equiv.symm { ..(matrix_equiv_tensor.to_fun_alg_hom R A n), ..(matrix_equiv_tensor.equiv R A n) }
+alg_equiv.symm
+{ map_smul' := map_smul (matrix_equiv_tensor.to_fun_alg_hom R A n),
+  ..(matrix_equiv_tensor.to_fun_alg_hom R A n),
+  ..(matrix_equiv_tensor.equiv R A n) }
 
 open matrix_equiv_tensor
 

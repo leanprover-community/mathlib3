@@ -165,7 +165,8 @@ section involute
 lemma submodule_map_involute_eq_comap (p : submodule R (clifford_algebra Q)) :
   p.map (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map
     = p.comap (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map :=
-(submodule.map_equiv_eq_comap_symm involute_equiv.to_linear_equiv _)
+(submodule.map_equiv_eq_comap_symm
+  (involute_equiv : clifford_algebra Q ≃ₐ[R] clifford_algebra Q).to_linear_equiv _)
 
 @[simp] lemma ι_range_map_involute :
   (ι Q).range.map (involute : clifford_algebra Q →ₐ[R] clifford_algebra Q).to_linear_map

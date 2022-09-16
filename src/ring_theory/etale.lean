@@ -118,7 +118,9 @@ begin
   { introsI B _ I hI _, exact formally_smooth.comp_surjective I hI },
   { introsI B _ I J hIJ h₁ h₂ _ g,
     let : ((B ⧸ I) ⧸ J.map (ideal.quotient.mk I)) ≃ₐ[R] B ⧸ J :=
-      { commutes' := λ x, rfl,
+      { map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes
+          (map_mul $ (double_quot.quot_quot_equiv_quot_sup I J).trans
+          (ideal.quot_equiv_of_eq (sup_eq_right.mpr hIJ))) (λ x, rfl),
         ..((double_quot.quot_quot_equiv_quot_sup I J).trans
           (ideal.quot_equiv_of_eq (sup_eq_right.mpr hIJ))) },
     obtain ⟨g', e⟩ := h₂ (this.symm.to_alg_hom.comp g),

@@ -173,16 +173,17 @@ by { haveI := (nonempty_prod.1 h.nonempty).1, haveI := (nonempty_prod.1 h.nonemp
 @[simp] lemma box_prod_connected : (G □ H).connected ↔ G.connected ∧ H.connected :=
 ⟨λ h, ⟨h.of_box_prod_left, h.of_box_prod_right⟩, λ h, h.1.box_prod h.2⟩
 
-instance [decidable_eq α] [decidable_eq β] [locally_finite G] [locally_finite H] :
-  locally_finite (G □ H) :=
+instance [decidable_eq α] [decidable_eq β] (x : α × β)
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] :
+  fintype ((G □ H).neighbor_set x) :=
 begin
-  rintro ⟨_,_⟩,
   rw box_prod_neighbor_set,
   apply_instance,
 end
 
-lemma box_prod_degree [decidable_eq α] [decidable_eq β]
-  [locally_finite G] [locally_finite H] (x : α × β) :
+lemma box_prod_degree [decidable_eq α] [decidable_eq β] (x : α × β)
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)]
+  [fintype ((G □ H).neighbor_set x)] :
   (G □ H).degree x = G.degree x.1 + H.degree x.2 :=
 begin
   simp_rw [← card_neighbor_set_eq_degree, box_prod_neighbor_set,

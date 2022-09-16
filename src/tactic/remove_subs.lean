@@ -93,7 +93,7 @@ See the doc-string of `remove_subs` for more details. -/
 meta def remove_subs_aux (la : bool) (lo : option name) : tactic unit := focus1 $ do
 repeat_at_least 1 (do
   ht ← match lo with
-       | none    := target
+       | none    := target  >>= instantiate_mvars
        | some na := get_local na >>= infer_type
   end,
   subs ← get_sub lo ht,  -- extract all subtractions

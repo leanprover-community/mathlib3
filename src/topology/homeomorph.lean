@@ -387,6 +387,22 @@ def punit_prod : punit × α ≃ₜ α :=
 
 end
 
+/-- If each `β₁ i` is homeomorphic to `β₂ i`, then `Π i, β₁ i` is homeomorphic to `Π i, β₂ i`. -/
+def Pi_congr_right {ι : Type*} {β₁ β₂ : ι → Type*} [Π i, topological_space (β₁ i)]
+  [Π i, topological_space (β₂ i)] (F : Π i, β₁ i ≃ₜ β₂ i) :
+  (Π i, β₁ i) ≃ₜ (Π i, β₂ i) :=
+{ continuous_to_fun := continuous_pi (λ i, (F i).continuous.comp $ continuous_apply i),
+  continuous_inv_fun := continuous_pi (λ i, (F i).symm.continuous.comp $ continuous_apply i),
+  .. equiv.Pi_congr_right (λ i, (F i).to_equiv) }
+
+@[simp] lemma Pi_congr_right_symm {ι : Type*} {β₁ β₂ : ι → Type*} [Π i, topological_space (β₁ i)]
+  [Π i, topological_space (β₂ i)] (F : Π i, β₁ i ≃ₜ β₂ i) :
+  (Pi_congr_right F).symm = Pi_congr_right (λ i, (F i).symm) := rfl
+
+@[simp] lemma Pi_congr_right_apply {ι : Type*} {β₁ β₂ : ι → Type*} [Π i, topological_space (β₁ i)]
+  [Π i, topological_space (β₂ i)] (F : Π i, β₁ i ≃ₜ β₂ i) (x : Π i, β₁ i) (i : ι):
+  Pi_congr_right F x i = F i (x i) := rfl
+
 /-- `ulift α` is homeomorphic to `α`. -/
 def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
 { continuous_to_fun := continuous_ulift_down,

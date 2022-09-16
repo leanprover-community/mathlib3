@@ -56,16 +56,15 @@ namespace kummer_dedekind
 
 open_locale big_operators polynomial classical
 
-open ideal polynomial double_quot unique_factorization_monoid ring_hom
+open ideal polynomial double_quot unique_factorization_monoid
 
 variables {R : Type*} [comm_ring R]
 variables {S : Type*} [comm_ring S] [is_domain S] [is_dedekind_domain S] [algebra R S]
 variables (pb : power_basis R S) {I : ideal R}
 
-@[reducible] noncomputable instance [hI : is_maximal I] : field (R ⧸ I) :=
-  ((ideal.quotient.maximal_ideal_iff_is_field_quotient I).mp hI).to_field
+local attribute [instance] ideal.quotient.field
 
-variable [is_domain R] [is_dedekind_domain R]
+variables [is_domain R] [is_dedekind_domain R]
 
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the prime
     factors of `I*S` are in bijection with those of the minimal polynomial of the generator of `S`

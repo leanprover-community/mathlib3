@@ -336,7 +336,6 @@ noncomputable def is_field.to_semifield {R : Type u} [semiring R] (h : is_field 
   .. ‹semiring R›, ..h }
 
 /-- Transferring from `is_field` to `field`. -/
-@[reducible]
 noncomputable def is_field.to_field {R : Type u} [ring R] (h : is_field R) : field R :=
 { .. ‹ring R›, ..is_field.to_semifield h }
 

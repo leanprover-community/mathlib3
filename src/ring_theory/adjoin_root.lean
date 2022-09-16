@@ -500,6 +500,7 @@ def equiv' (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g
     obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x,
     rw [pb.lift_aeval, aeval_eq, lift_hom_mk]
   end,
+  map_smul' := map_smul (adjoin_root.lift_hom g pb.gen h₂),
   .. adjoin_root.lift_hom g pb.gen h₂ }
 
 @[simp] lemma equiv'_to_alg_hom

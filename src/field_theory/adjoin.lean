@@ -923,7 +923,7 @@ lemma alg_hom_mk_adjoin_splits' (hS : adjoin F S = ⊤)
 begin
   cases alg_hom_mk_adjoin_splits hK with ϕ,
   rw hS at ϕ,
-  exact ⟨ϕ.comp top_equiv.symm.to_alg_hom⟩,
+  exact ⟨ϕ.comp $ alg_equiv.to_alg_hom top_equiv.symm⟩,
 end
 
 end alg_hom_mk_adjoin_splits

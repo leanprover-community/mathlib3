@@ -650,7 +650,7 @@ begin
   rw ring_hom.comp_assoc at this,
   convert this,
   refine ring_hom.ext (λ x, _),
-  exact ((rename_equiv R e).commutes' x).symm,
+  exact ((rename_equiv R e).commutes x).symm,
 end
 
 end mv_polynomial

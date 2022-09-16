@@ -376,7 +376,8 @@ begin
     map_one' := alg_equiv.ext (λ _, rfl),
     map_mul' := λ _ _, alg_equiv.ext (λ _, rfl) },
   refine solvable_of_ker_le_range f (alg_equiv.restrict_normal_hom K₁)
-    (λ ϕ hϕ, ⟨{commutes' := λ x, _, .. ϕ}, alg_equiv.ext (λ _, rfl)⟩),
+    (λ ϕ hϕ, ⟨{map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (map_mul ϕ) (λ x, _), .. ϕ},
+      alg_equiv.ext (λ _, rfl)⟩),
   exact (eq.trans (ϕ.restrict_normal_commutes K₁ x).symm (congr_arg _ (alg_equiv.ext_iff.mp hϕ x))),
 end
 

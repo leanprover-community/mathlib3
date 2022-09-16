@@ -175,6 +175,13 @@ begin
   ext i j, rcases i; rcases j; simp [from_blocks],
 end
 
+lemma from_blocks_neg [has_neg R]
+  (A : matrix n l R) (B : matrix n m R) (C : matrix o l R) (D : matrix o m R) :
+  - (from_blocks A B C D) = from_blocks (-A) (-B) (-C) (-D) :=
+begin
+  ext i j, cases i; cases j; simp [from_blocks],
+end
+
 lemma from_blocks_add [has_add α]
   (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
   (A' : matrix n l α) (B' : matrix n m α) (C' : matrix o l α) (D' : matrix o m α) :

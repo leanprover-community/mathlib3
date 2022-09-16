@@ -274,6 +274,15 @@ lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → �
 λ i, @strongly_measurable_zero Ω β (f i) _ _
 variable {β}
 
+-- this dot notation will make more sense once we have a more general definition for predictable
+lemma predictable.adapted {f : filtration ℕ m} {u : ℕ → Ω → β}
+  (hu : adapted f (λ n, u (n + 1))) (hu0 : strongly_measurable[f 0] (u 0)) :
+  adapted f u :=
+λ n, match n with
+  | 0 := hu0
+  | n + 1 := (hu n).mono (f.mono n.le_succ)
+end
+
 /-- Progressively measurable process. A sequence of functions `u` is said to be progressively
 measurable with respect to a filtration `f` if at each point in time `i`, `u` restricted to
 `set.Iic i × Ω` is measurable with respect to the product `measurable_space` structure where the

@@ -64,7 +64,8 @@ def martingale_part {m0 : measurable_space Ω}
   (ℱ : filtration ℕ m0) (μ : measure Ω) (f : ℕ → Ω → E) : ℕ → Ω → E :=
 λ n, f n - predictable_part ℱ μ f n
 
-lemma martingale_part_add_predictable_part (f : ℕ → Ω → E) :
+lemma martingale_part_add_predictable_part
+  (ℱ : filtration ℕ m0) (μ : measure Ω) (f : ℕ → Ω → E) :
   martingale_part ℱ μ f + predictable_part ℱ μ f = f :=
 sub_add_cancel _ _
 
@@ -134,6 +135,41 @@ begin
   refine (eventually_eq_sum (λ k hk, h_ge k (finset.mem_Ico.mp hk).1)).trans _,
   simp only [finset.sum_const_zero, pi.zero_apply],
   refl,
+end
+
+-- The following two lemma demonstrates the essential uniqueness of the decomposition
+lemma martingale_part_add_ae_eq [sigma_finite_filtration μ ℱ] {f g : ℕ → Ω → E}
+  (hf : martingale f ℱ μ) (hg : adapted ℱ (λ n, g (n + 1))) (hg0 : g 0 = 0)
+  (hgint : ∀ n, integrable (g n) μ) (n : ℕ) :
+  martingale_part ℱ μ (f + g) n =ᵐ[μ] f n :=
+begin
+  set h := f - martingale_part ℱ μ (f + g) with hhdef,
+  have hh : h = predictable_part ℱ μ (f + g) - g,
+  { rw [hhdef, sub_eq_sub_iff_add_eq_add, add_comm (predictable_part ℱ μ (f + g)),
+      martingale_part_add_predictable_part] },
+  have hhpred : adapted ℱ (λ n, h (n + 1)),
+  { rw hh,
+    exact adapted_predictable_part.sub hg },
+  have hhmgle : martingale h ℱ μ := hf.sub (martingale_martingale_part
+    (hf.adapted.add $ predictable.adapted hg $ hg0.symm ▸ strongly_measurable_zero) $
+    λ n, (hf.integrable n).add $ hgint n),
+  refine (eventually_eq_iff_sub.2 _).symm,
+  filter_upwards [hhmgle.eq_zero_of_predicatable hhpred n] with ω hω,
+  rw [hhdef, pi.sub_apply] at hω,
+  rw [hω, pi.sub_apply, martingale_part],
+  simp [hg0],
+end
+
+lemma predictable_part_add_ae_eq [sigma_finite_filtration μ ℱ] {f g : ℕ → Ω → E}
+  (hf : martingale f ℱ μ) (hg : adapted ℱ (λ n, g (n + 1))) (hg0 : g 0 = 0)
+  (hgint : ∀ n, integrable (g n) μ) (n : ℕ) :
+  predictable_part ℱ μ (f + g) n =ᵐ[μ] g n :=
+begin
+  filter_upwards [martingale_part_add_ae_eq hf hg hg0 hgint n] with ω hω,
+  rw ← add_right_inj (f n ω),
+  conv_rhs { rw [← pi.add_apply, ← pi.add_apply,
+    ← martingale_part_add_predictable_part ℱ μ (f + g)] },
+  rw [pi.add_apply, pi.add_apply, hω],
 end
 
 end measure_theory

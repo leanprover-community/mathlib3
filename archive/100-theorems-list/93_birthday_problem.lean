@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 import data.fintype.card_embedding
+import probability.cond_count
 import probability.notation
-import tactic.norm_num
 
 /-!
 # Birthday Problem
@@ -30,7 +30,7 @@ end
 
 section measure_theory
 
-open measure_theory
+open measure_theory probability_theory
 open_locale probability_theory ennreal
 
 variables {n m : ℕ}
@@ -40,16 +40,11 @@ tell Lean that there is a `measurable_space` structure on the space. Note that t
 is only for `fin m` - Lean automatically figures out that the function space `fin n → fin m`
 is _also_ measurable, by using `measurable_space.pi` -/
 
-instance : measurable_space (fin m) :=
-{ measurable_set' := λ _, true,
-  measurable_set_empty := trivial,
-  measurable_set_compl := λ _ _, trivial,
-  measurable_set_Union := λ _ _, trivial }
+instance : measurable_space (fin m) := ⊤
 
-/- We then endow the space with a canonical measure, which is called ℙ. We define this to be
-the counting measure, scaled by the size of the whole set. -/
-noncomputable instance : measure_space (fin n → fin m) :=
-  ⟨(measure.count (set.univ : set $ fin n → fin m))⁻¹ • measure.count⟩
+/- We then endow the space with a canonical measure, which is called ℙ.
+We define this to be the conditional counting measure. -/
+noncomputable instance : measure_space (fin n → fin m) := ⟨cond_count set.univ⟩
 
 -- Singletons are measurable; therefore, as `fin n → fin m` is finite, all sets are measurable.
 instance : measurable_singleton_class (fin n → fin m) :=
@@ -62,23 +57,11 @@ end⟩
 
 /- The canonical measure on `fin n → fin m` is a probability measure (except on an empty space). -/
 example : is_probability_measure (ℙ : measure (fin n → fin (m + 1))) :=
-is_probability_measure_smul
-begin
-  rw [ne.def, ←measure.measure_univ_eq_zero, measure.count_apply_finite, set.finite_univ_to_finset,
-      finset.card_univ, ←ne.def],
-  norm_cast,
-  exact fintype.card_ne_zero,
-  exact set.finite_univ
-end
+cond_count_is_probability_measure set.finite_univ set.univ_nonempty
 
 lemma fin_fin.measure_apply {s : set $ fin n → fin m} :
   ℙ s = (|s.to_finite.to_finset|) / ‖fin n → fin m‖ :=
-begin
-  change _ • measure.count _ = _,
-  rw [measure.count_apply_finite, measure.count_apply_finite, smul_eq_mul,
-      ←ennreal.div_eq_inv_mul, set.finite_univ_to_finset, finset.card_univ],
-  exact set.finite_univ
-end
+by erw [cond_count_univ, measure.count_apply_finite]
 
 /-- **Birthday Problem**: first probabilistic interpretation. -/
 theorem birthday_measure : ℙ {f : fin 23 → fin 365 | function.injective f} < 1 / 2 :=

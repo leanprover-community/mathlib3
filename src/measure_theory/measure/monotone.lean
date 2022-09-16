@@ -103,68 +103,38 @@ begin
     exact Icc_subset_Icc hy.1 (by linarith) }
 end
 
-@[to_additive] lemma tendsto_const_mul_nhds_right {α : Type*}
-  [linear_ordered_comm_group α] [topological_space α] [has_continuous_mul α]
-  (x a : α) : tendsto (λ y, x * y) (𝓝[>] a) (𝓝[>] (x * a)) :=
+lemma slope_def_field' {k : Type*} [field k] (f : k → k) (a : k) :
+  slope f a = λ b, (f b - f a) / (b - a) :=
+(div_eq_inv_mul _ _).symm
+
+lemma monotone.countable_not_continuous_at {f : ℝ → ℝ} (hf : monotone f) :
+  set.countable {x | ¬(continuous_at f x)} := sorry
+
+
+lemma stieltjes_function.countable_left_lim_ne (f : stieltjes_function) :
+  set.countable {x | f.left_lim x ≠ f x} :=
 begin
-  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
-  { exact (tendsto.const_mul x tendsto_id).mono_left nhds_within_le_nhds },
-  { filter_upwards [self_mem_nhds_within],
-    rintros y (hy : a < y),
-    rw mem_Ioi,
-    exact mul_lt_mul_left' hy _, }
+  apply countable.mono _ (f.mono.countable_not_continuous_at),
+  assume x hx h'x,
+  apply hx,
+  exact tendsto_nhds_unique (f.tendsto_left_lim x) (h'x.tendsto.mono_left nhds_within_le_nhds),
 end
 
-@[to_additive] lemma tendsto_mul_const_nhds_right {α : Type*}
-  [linear_ordered_comm_group α] [topological_space α] [has_continuous_mul α]
-  (x a : α) : tendsto (λ y, y * x) (𝓝[>] a) (𝓝[>] (a * x)) :=
-begin
-  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
-  { exact (tendsto.mul_const x tendsto_id).mono_left nhds_within_le_nhds },
-  { filter_upwards [self_mem_nhds_within],
-    rintros y (hy : a < y),
-    rw mem_Ioi,
-    exact mul_lt_mul_right' hy _, }
-end
-
-
-@[to_additive] lemma tendsto_const_mul_nhds_left {α : Type*}
-  [linear_ordered_comm_group α] [topological_space α] [has_continuous_mul α]
-  (x a : α) : tendsto (λ y, x * y) (𝓝[<] a) (𝓝[<] (x * a)) :=
-begin
-  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
-  { exact (tendsto.const_mul x tendsto_id).mono_left nhds_within_le_nhds },
-  { filter_upwards [self_mem_nhds_within],
-    rintros y (hy : y < a),
-    rw mem_Iio,
-    exact mul_lt_mul_left' hy _, }
-end
-
-@[to_additive] lemma tendsto_mul_const_nhds_left {α : Type*}
-  [linear_ordered_comm_group α] [topological_space α] [has_continuous_mul α]
-  (x a : α) : tendsto (λ y, y * x) (𝓝[<] a) (𝓝[<] (a * x)) :=
-begin
-  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
-  { exact (tendsto.mul_const x tendsto_id).mono_left nhds_within_le_nhds },
-  { filter_upwards [self_mem_nhds_within],
-    rintros y (hy : y < a),
-    rw mem_Iio,
-    exact mul_lt_mul_right' hy _, }
-end
-
+/-- A monotone right-continuous function `f` is almost everywhere differentiable. Its derivative is
+given by the Radon-Nikodym derivative of the Stieltjes measure associated to `f` with respect to
+Lebesgue measure. -/
 lemma foo (f : stieltjes_function) :
   ∀ᵐ x, has_deriv_at f (rn_deriv f.measure volume x).to_real x :=
 begin
   filter_upwards [vitali_family.ae_tendsto_rn_deriv real.vitali_family f.measure,
-    rn_deriv_lt_top f.measure volume] with x hx h'x,
-  have A : f.left_lim x = f x := sorry,
+    rn_deriv_lt_top f.measure volume, f.countable_left_lim_ne.ae_not_mem volume] with x hx h'x h''x,
   have L1 : tendsto (λ y, (f y - f x) / (y - x))
     (𝓝[>] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
   { apply tendsto.congr' _
       ((ennreal.tendsto_to_real h'x.ne).comp (hx.comp (tendsto_Icc_vitali_family_right x))),
     filter_upwards [self_mem_nhds_within],
     rintros y (hxy : x < y),
-    simp only [comp_app, stieltjes_function.measure_Icc, volume_Icc, A],
+    simp only [comp_app, stieltjes_function.measure_Icc, volume_Icc, not_not.1 h''x],
     rw [← ennreal.of_real_div_of_pos (sub_pos.2 hxy), ennreal.to_real_of_real],
     exact div_nonneg (sub_nonneg.2 (f.mono hxy.le)) (sub_pos.2 hxy).le },
   have L2 : tendsto (λ y, (f.left_lim y - f x) / (y - x))
@@ -173,12 +143,40 @@ begin
       ((ennreal.tendsto_to_real h'x.ne).comp (hx.comp (tendsto_Icc_vitali_family_left x))),
     filter_upwards [self_mem_nhds_within],
     rintros y (hxy : y < x),
-    simp only [comp_app, stieltjes_function.measure_Icc, volume_Icc, A],
+    simp only [comp_app, stieltjes_function.measure_Icc, volume_Icc],
     rw [← ennreal.of_real_div_of_pos (sub_pos.2 hxy), ennreal.to_real_of_real, ← neg_neg (y - x),
         div_neg, neg_div', neg_sub, neg_sub],
     exact div_nonneg (sub_nonneg.2 (f.left_lim_le hxy.le)) (sub_pos.2 hxy).le },
   have L3 : tendsto (λ y, (f.left_lim (y + (x - y)^2) - f x) / (y - x))
-    (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)), sorry,
+    (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
+  { have fylt : ∀ y ∈ Ioo (x-1) x, y + (x-y)^2 < x,
+    { rintros y ⟨hy : x - 1 < y, h'y : y < x⟩, nlinarith },
+    have Ioo_lt : Ioo (x - 1) x ∈ 𝓝[<] x,
+    { apply Ioo_mem_nhds_within_Iio, exact ⟨by linarith, le_refl _⟩ },
+    have L : tendsto (λ y, y + (x - y)^2) (𝓝[<] x) (𝓝[<] x),
+    { apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
+      { apply tendsto.mono_left _ nhds_within_le_nhds,
+        have : tendsto (λ (y : ℝ), y + (x - y) ^ 2) (𝓝 x) (𝓝 (x + (x - x)^2)) :=
+          tendsto_id.add ((tendsto.const_sub x tendsto_id).pow 2),
+        simpa using this },
+      { filter_upwards [Ioo_lt] with y hy using fylt y hy } },
+    have L' : tendsto (λ y, (y + (x - y)^2 - x) / (y - x)) (𝓝[<] x) (𝓝 1),
+    { have : tendsto (λ y, (1 + (y - x))) (𝓝[<] x) (𝓝 (1 + (x - x))),
+      { apply tendsto.mono_left _ nhds_within_le_nhds,
+        exact (tendsto_id.sub_const x).const_add 1 },
+      simp only [_root_.sub_self, add_zero] at this,
+      apply tendsto.congr' _ this,
+      filter_upwards [self_mem_nhds_within],
+      rintros y (hy : y < x),
+      have : y - x < 0, by linarith,
+      field_simp [this.ne],
+      ring },
+    have Z := (L2.comp L).mul L',
+    rw mul_one at Z,
+    apply tendsto.congr' _ Z,
+    filter_upwards [Ioo_lt] with y hy,
+    have A : y + (x - y) ^ 2 - x < 0, by linarith [fylt y hy],
+    field_simp [A.ne] },
   have L4 : tendsto (λ y, (f y - f x) / (y - x))
     (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
   { apply tendsto_of_tendsto_of_tendsto_of_le_of_le' L3 L2,
@@ -192,81 +190,8 @@ begin
       rintros y (hy : y < x),
       refine div_le_div_of_nonpos_of_le (by linarith) _,
       simpa only [sub_le_sub_iff_right] using f.left_lim_le (le_refl y) } },
+  rw [has_deriv_at_iff_tendsto_slope, slope_def_field'],
+  have : 𝓝[≠] x = 𝓝[<] x ⊔ 𝓝[>] x, by simp only [← nhds_within_union, Iio_union_Ioi],
+  rw [this, tendsto_sup],
+  exact ⟨L4, L1⟩
 end
-
-#exit
-
-/-- A monotone right-continuous function `f` is almost everywhere differentiable. Its derivative is
-given by the Radon-Nikodym derivative of the Stieltjes measure associated to `f` with respect to
-Lebesgue measure. -/
-lemma foo (f : stieltjes_function) :
-  ∀ᵐ x, has_deriv_at f (rn_deriv f.measure volume x).to_real x :=
-begin
-  filter_upwards [vitali_family.ae_tendsto_rn_deriv real.vitali_family f.measure,
-    rn_deriv_lt_top f.measure volume] with x hx h'x,
-  have A : f.left_lim x = f x := sorry,
-  have L1 : tendsto (λ r, (f (x + r) - f x) / r)
-    (𝓝[>] 0) (𝓝 ((rn_deriv f.measure volume x).to_real)),
-  sorry { have L : tendsto (λ r, x + r) (𝓝[>] 0) (𝓝[>] x),
-      by simpa using tendsto_const_add_nhds_right x 0,
-    apply tendsto.congr' _
-      ((ennreal.tendsto_to_real h'x.ne).comp (hx.comp ((tendsto_Icc_vitali_family_right x).comp L))),
-    filter_upwards [self_mem_nhds_within],
-    rintros r (rpos : 0 < r),
-    simp only [comp_app, stieltjes_function.measure_Icc, volume_Icc, A, add_tsub_cancel_left],
-    rw [← ennreal.of_real_div_of_pos rpos, ennreal.to_real_of_real],
-    exact div_nonneg (sub_nonneg.2 (f.mono (by linarith))) epos.le, },
-  have L2 : tendsto (λ r, (f.left_lim (x + r) - f x) / r)
-    (𝓝[<] 0) (𝓝 ((rn_deriv f.measure volume x).to_real)),
-  sorry { have L : tendsto (λ r, x + r) (𝓝[<] 0) (𝓝[<] x),
-      by simpa using tendsto_const_add_nhds_left x 0,
-    apply tendsto.congr' _
-      ((ennreal.tendsto_to_real h'x.ne).comp (hx.comp ((tendsto_Icc_vitali_family_left x).comp L))),
-    filter_upwards [self_mem_nhds_within],
-    rintros r (rneg : r < 0),
-    simp only [comp_app, stieltjes_function.measure_Icc, volume_Icc, A, sub_add_cancel'],
-    rw [← ennreal.of_real_div_of_pos (neg_pos.2 rneg), ennreal.to_real_of_real,
-        div_neg, neg_div', neg_sub],
-    exact div_nonneg (sub_nonneg.2 (f.left_lim_le (by linarith))) (neg_pos.2 rneg).le },
-  have L3 : tendsto (λ r, (f.left_lim (x + r * (1 - |r|)) - f x) / r)
-    (𝓝[<] 0) (𝓝 ((rn_deriv f.measure volume x).to_real)), sorry,
-  have L4 : tendsto (λ r, (f (x + r) - f x) / r)
-    (𝓝[<] 0) (𝓝 ((rn_deriv f.measure volume x).to_real)),
-  sorry { apply tendsto_of_tendsto_of_tendsto_of_le_of_le' L3 L2,
-    { filter_upwards [self_mem_nhds_within],
-      rintros r (rneg : r < 0),
-      apply div_le_div_of_nonpos_of_le rneg.le ((sub_le_sub_iff_right _).2 _),
-      apply f.le_left_lim,
-      have : r * |r| < 0 := mul_neg_of_neg_of_pos rneg (abs_pos_of_neg rneg),
-      rw [mul_sub_left_distrib],
-      linarith },
-    { filter_upwards [self_mem_nhds_within],
-      rintros r (rneg : r < 0),
-      apply div_le_div_of_nonpos_of_le rneg.le,
-      simpa only [sub_le_sub_iff_right] using f.left_lim_le (le_refl (x + r)) } },
-  rw has_deriv_at_iff_tendsto_slope,
-
-
-end
-
-
-#exit
-
-have : tendsto (λ y, (f y - f x) / (y - x))
-    (𝓝[>] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
-  { apply tendsto.congr' _
-      ((ennreal.tendsto_to_real h'x.ne).comp (hx.comp (tendsto_Icc_vitali_family_right x))),
-    filter_upwards [self_mem_nhds_within],
-    rintros y (hxy : x < y),
-    simp only [comp_app, stieltjes_function.measure_Icc, volume_Icc, A],
-    rw [← ennreal.of_real_div_of_pos (sub_pos.2 hxy), ennreal.to_real_of_real],
-    exact div_nonneg (sub_nonneg.2 (f.mono hxy.le)) (sub_pos.2 hxy).le },
-  have : tendsto (λ y, (f x - f.left_lim y) / (x - y))
-    (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
-  { apply tendsto.congr' _
-      ((ennreal.tendsto_to_real h'x.ne).comp (hx.comp (tendsto_Icc_vitali_family_left x))),
-    filter_upwards [self_mem_nhds_within],
-    rintros y (hxy : y < x),
-    simp only [comp_app, stieltjes_function.measure_Icc, volume_Icc, A],
-    rw [← ennreal.of_real_div_of_pos (sub_pos.2 hxy), ennreal.to_real_of_real],
-    exact div_nonneg (sub_nonneg.2 (f.left_lim_le hxy.le)) (sub_pos.2 hxy).le }

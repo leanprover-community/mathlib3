@@ -59,14 +59,10 @@ variables (R : Type*) [comm_ring R]
 A ring of characteristic zero is of "mixed characteristic `(0, p)`" if there exists an ideal
 such that the quotient `R ⧸ I` has caracteristic `p > 0`.
 -/
-@[nolint dangerous_instance] -- TODO: this is temp. here because it wants `p` to become a metav.
 class mixed_char_zero (p : ℕ) : Prop :=
 [to_char_zero : char_zero R]
 (p_pos : p ≠ 0)
 (char_p_quotient : ∃ (I : ideal R), (I ≠ ⊤) ∧ char_p (R ⧸ I) p)
-
--- See note [lower instance priority]
-attribute [priority 100, instance] mixed_char_zero.to_char_zero
 
 namespace mixed_char_zero
 

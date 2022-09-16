@@ -120,7 +120,7 @@ end
 end padic_val_int
 
 /-- `padic_val_rat` defines the valuation of a rational `q` to be the valuation of `q.num` minus the
-valuation of `q.denom`. If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0. -/
+valuation of `q.denom`. If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to `0`. -/
 def padic_val_rat (p : ℕ) (q : ℚ) : ℤ := padic_val_int p q.num - padic_val_nat p q.denom
 
 namespace padic_val_rat
@@ -284,7 +284,7 @@ divisibility by `p^n`. -/
 lemma padic_val_rat_le_padic_val_rat_iff {n₁ n₂ d₁ d₂ : ℤ}
   (hn₁ : n₁ ≠ 0) (hn₂ : n₂ ≠ 0) (hd₁ : d₁ ≠ 0) (hd₂ : d₂ ≠ 0) :
   padic_val_rat p (n₁ /. d₁) ≤ padic_val_rat p (n₂ /. d₂) ↔
-  ∀ n : ℕ, (p : ℤ) ^ n ∣ n₁ * d₂ → (p : ℤ) ^ n ∣ n₂ * d₁ :=
+  ∀ n : ℕ, ↑p ^ n ∣ n₁ * d₂ → ↑p ^ n ∣ n₂ * d₁ :=
 have hf1 : finite (p : ℤ) (n₁ * d₂),
   from finite_int_prime_iff.2 (mul_ne_zero hn₁ hd₂),
 have hf2 : finite (p : ℤ) (n₂ * d₁),
@@ -320,8 +320,8 @@ begin
     multiplicity.mul (nat.prime_iff_prime_int.1 hp.1), add_mul],
   rw [← @rat.num_denom q, ← @rat.num_denom r, padic_val_rat_le_padic_val_rat_iff hqn hrn hqd hrd,
     ← multiplicity_le_multiplicity_iff] at h,
-  calc _ ≤ min (multiplicity (p : ℤ) (q.num * r.denom * q.denom))
-    (multiplicity (p : ℤ) (q.denom * r.num * q.denom)) : (le_min
+  calc _ ≤ min (multiplicity ↑p (q.num * r.denom * q.denom))
+    (multiplicity ↑p (q.denom * r.num * q.denom)) : (le_min
     (by rw [@multiplicity.mul _ _ _ _ (_ * _) _ (nat.prime_iff_prime_int.1 hp.1), add_comm])
     (by rw [mul_assoc, @multiplicity.mul _ _ _ _ (q.denom : ℤ)
         (_ * _) (nat.prime_iff_prime_int.1 hp.1)]; exact add_le_add_left h _))

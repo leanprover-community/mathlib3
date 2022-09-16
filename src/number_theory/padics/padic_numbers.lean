@@ -9,16 +9,16 @@ import number_theory.padics.padic_norm
 /-!
 # p-adic numbers
 
-This file defines the `p`-adic numbers (rationals) `ℚ_p` as
+This file defines the `p`-adic numbers (rationals) `ℚ_[p]` as
 the completion of `ℚ` with respect to the `p`-adic norm.
-We show that the `p`-adic norm on `ℚ` extends to `ℚ_p`, that `ℚ` is embedded in `ℚ_p`,
-and that `ℚ_p` is Cauchy complete.
+We show that the `p`-adic norm on `ℚ` extends to `ℚ_[p]`, that `ℚ` is embedded in `ℚ_[p]`,
+and that `ℚ_[p]` is Cauchy complete.
 
 ## Important definitions
 
 * `padic` : the type of `p`-adic numbers
-* `padic_norm_e` : the rational valued `p`-adic norm on `ℚ_p`
-* `padic.add_valuation` : the additive `p`-adic valuation on `ℚ_p`, with values in `with_top ℤ`.
+* `padic_norm_e` : the rational valued `p`-adic norm on `ℚ_[p]`
+* `padic.add_valuation` : the additive `p`-adic valuation on `ℚ_[p]`, with values in `with_top ℤ`.
 
 ## Notation
 
@@ -30,22 +30,22 @@ Much, but not all, of this file assumes that `p` is prime. This assumption is in
 by taking `[fact p.prime]` as a type class argument.
 
 We use the same concrete Cauchy sequence construction that is used to construct `ℝ`.
-`ℚ_p` inherits a field structure from this construction.
-The extension of the norm on `ℚ` to `ℚ_p` is *not* analogous to extending the absolute value to `ℝ`
-and hence the proof that `ℚ_p` is complete is different from the proof that ℝ is complete.
+`ℚ_[p]` inherits a field structure from this construction.
+The extension of the norm on `ℚ` to `ℚ_[p]` is *not* analogous to extending the absolute value to
+`ℝ` and hence the proof that `ℚ_[p]` is complete is different from the proof that ℝ is complete.
 
 A small special-purpose simplification tactic, `padic_index_simp`, is used to manipulate sequence
 indices in the proof that the norm extends.
 
-`padic_norm_e` is the rational-valued `p`-adic norm on `ℚ_p`.
-To instantiate `ℚ_p` as a normed field, we must cast this into a `ℝ`-valued norm.
+`padic_norm_e` is the rational-valued `p`-adic norm on `ℚ_[p]`.
+To instantiate `ℚ_[p]` as a normed field, we must cast this into a `ℝ`-valued norm.
 The `ℝ`-valued norm, using notation `∥ ∥` from normed spaces,
 is the canonical representation of this norm.
 
 `simp` prefers `padic_norm` to `padic_norm_e` when possible.
 Since `padic_norm_e` and `∥ ∥` have different types, `simp` does not rewrite one to the other.
 
-Coercions from `ℚ` to `ℚ_p` are set up to work with the `norm_cast` tactic.
+Coercions from `ℚ` to `ℚ_[p]` are set up to work with the `norm_cast` tactic.
 
 ## References
 
@@ -467,7 +467,7 @@ instance : char_zero ℚ_[p] := ⟨λ m n, by { rw ← rat.cast_coe_nat, norm_ca
 end completion
 end padic
 
-/-- The rational-valued `p`-adic norm on `ℚ_p` is lifted from the norm on Cauchy sequences. The
+/-- The rational-valued `p`-adic norm on `ℚ_[p]` is lifted from the norm on Cauchy sequences. The
 canonical form of this function is the normed space instance, with notation `∥ ∥`. -/
 def padic_norm_e {p : ℕ} [hp : fact p.prime] : ℚ_[p] → ℚ :=
 quotient.lift padic_seq.norm $ @padic_seq.norm_equiv _ _
@@ -717,7 +717,7 @@ include hp
 @[simp] protected lemma mul (q r : ℚ_[p]) : ∥q * r∥ = ∥q∥ * ∥r∥ :=
 by simp [has_norm.norm, padic_norm_e.mul']
 
-protected lemma is_norm (q : ℚ_[p]) : (padic_norm_e q : ℝ) = ∥q∥ := rfl
+protected lemma is_norm (q : ℚ_[p]) : ↑(padic_norm_e q) = ∥q∥ := rfl
 
 theorem nonarchimedean (q r : ℚ_[p]) : ∥q + r∥ ≤ max (∥q∥) (∥r∥) :=
 begin
@@ -808,7 +808,7 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
 theorem norm_int_le_one (z : ℤ) : ∥(z : ℚ_[p])∥ ≤ 1 :=
 suffices ∥((z : ℚ) : ℚ_[p])∥ ≤ 1, by simpa, norm_rat_le_one $ by simp [hp.1.ne_one]
 
-lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℚ_[p])∥ < 1 ↔ (p : ℤ) ∣ k :=
+lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k :=
 begin
   split,
   { intro h,
@@ -985,7 +985,7 @@ begin
   exact h_norm
 end
 
-/-- The additive `p`-adic valuation on `ℚ_p`, with values in `with_top ℤ`. -/
+/-- The additive `p`-adic valuation on `ℚ_[p]`, with values in `with_top ℤ`. -/
 def add_valuation_def : ℚ_[p] → with_top ℤ := λ x, if x = 0 then ⊤ else x.valuation
 
 @[simp] lemma add_valuation.map_zero : add_valuation_def (0 : ℚ_[p]) = ⊤ :=
@@ -1021,7 +1021,7 @@ begin
         exact valuation_map_add hxy }}}
 end
 
-/-- The additive `p`-adic valuation on `ℚ_p`, as an `add_valuation`. -/
+/-- The additive `p`-adic valuation on `ℚ_[p]`, as an `add_valuation`. -/
 def add_valuation : add_valuation ℚ_[p] (with_top ℤ) :=
 add_valuation.of add_valuation_def add_valuation.map_zero add_valuation.map_one
   add_valuation.map_add add_valuation.map_mul

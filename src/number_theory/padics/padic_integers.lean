@@ -11,8 +11,8 @@ import topology.metric_space.cau_seq_filter
 /-!
 # p-adic integers
 
-This file defines the `p`-adic integers `ℤ_p` as the subtype of `ℚ_p` with norm `≤ 1`.
-We show that `ℤ_p`
+This file defines the `p`-adic integers `ℤ_[p]` as the subtype of `ℚ_[p]` with norm `≤ 1`.
+We show that `ℤ_[p]`
 * is complete
 * is nonarchimedean
 * is a normed ring
@@ -34,7 +34,7 @@ We introduce the notation `ℤ_[p]` for the `p`-adic integers.
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
 by taking `[fact p.prime]` as a type class argument.
 
-Coercions into `ℤ_p` are set up to work with the `norm_cast` tactic.
+Coercions into `ℤ_[p]` are set up to work with the `norm_cast` tactic.
 
 ## References
 
@@ -51,7 +51,7 @@ open padic metric local_ring
 noncomputable theory
 open_locale classical
 
-/-- The `p`-adic integers `ℤ_p` are the `p`-adic numbers with norm `≤ 1`. -/
+/-- The `p`-adic integers `ℤ_[p]` are the `p`-adic numbers with norm `≤ 1`. -/
 def padic_int (p : ℕ) [fact p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 
 notation `ℤ_[`p`]` := padic_int p
@@ -81,24 +81,24 @@ def subring : subring (ℚ_[p]) :=
 
 variables {p}
 
-/-- Addition on `ℤ_p` is inherited from `ℚ_p`. -/
+/-- Addition on `ℤ_[p]` is inherited from `ℚ_[p]`. -/
 instance : has_add ℤ_[p] := (by apply_instance : has_add (subring p))
 
-/-- Multiplication on `ℤ_p` is inherited from `ℚ_p`. -/
+/-- Multiplication on `ℤ_[p]` is inherited from `ℚ_[p]`. -/
 instance : has_mul ℤ_[p] := (by apply_instance : has_mul (subring p))
 
-/-- Negation on `ℤ_p` is inherited from `ℚ_p`. -/
+/-- Negation on `ℤ_[p]` is inherited from `ℚ_[p]`. -/
 instance : has_neg ℤ_[p] := (by apply_instance : has_neg (subring p))
 
-/-- Subtraction on `ℤ_p` is inherited from `ℚ_p`. -/
+/-- Subtraction on `ℤ_[p]` is inherited from `ℚ_[p]`. -/
 instance : has_sub ℤ_[p] := (by apply_instance : has_sub (subring p))
 
-/-- Zero on `ℤ_p` is inherited from `ℚ_p`. -/
+/-- Zero on `ℤ_[p]` is inherited from `ℚ_[p]`. -/
 instance : has_zero ℤ_[p] := (by apply_instance : has_zero (subring p))
 
 instance : inhabited ℤ_[p] := ⟨0⟩
 
-/-- One on `ℤ_p` is inherited from `ℚ_p`. -/
+/-- One on `ℤ_[p]` is inherited from `ℚ_[p]`. -/
 instance : has_one ℤ_[p] := ⟨⟨1, by norm_num⟩⟩
 
 @[simp] lemma mk_zero {h} : (⟨0, h⟩ : ℤ_[p]) = (0 : ℤ_[p]) := rfl
@@ -121,7 +121,7 @@ instance : comm_ring ℤ_[p] :=
 @[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : ℤ_[p]) : ℚ_[p]) = n := rfl
 @[simp, norm_cast] lemma coe_int_cast (z : ℤ) : ((z : ℤ_[p]) : ℚ_[p]) = z := rfl
 
-/-- The coercion from `ℤ[p]` to `ℚ[p]` as a ring homomorphism. -/
+/-- The coercion from `ℤ_[p]` to `ℚ_[p]` as a ring homomorphism. -/
 def coe.ring_hom : ℤ_[p] →+* ℚ_[p] := (subring p).subtype
 
 @[simp, norm_cast] lemma coe_pow (x : ℤ_[p]) (n : ℕ) : (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n := rfl
@@ -146,7 +146,7 @@ by norm_cast
 integer. -/
 def of_int_seq (seq : ℕ → ℤ) (h : is_cau_seq (padic_norm p) (λ n, seq n)) : ℤ_[p] :=
 ⟨⟦⟨_, h⟩⟧,
- show (padic_seq.norm _ : ℝ) ≤ (1 : ℝ), begin
+ show ↑(padic_seq.norm _) ≤ (1 : ℝ), begin
    rw padic_seq.norm,
    split_ifs with hne; norm_cast,
    { exact zero_le_one },
@@ -254,7 +254,7 @@ variables (p : ℕ) [hp : fact p.prime]
 
 include hp
 
-lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℝ) ^ -(k : ℤ) < ε :=
+lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) : ∃ k : ℕ, ↑p ^ -(k : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
@@ -268,7 +268,7 @@ begin
   { exact_mod_cast hp.1.pos }
 end
 
-lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℚ) ^ -(k : ℤ) < ε :=
+lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, ↑p ^ -(k : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := @exists_pow_neg_lt p _ ε (by exact_mod_cast hε),
   use k,
@@ -316,7 +316,7 @@ begin
 end
 
 @[simp] lemma valuation_p_pow_mul (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
-  (p ^ n * c : ℤ_[p]).valuation = n + c.valuation :=
+  (↑p ^ n * c).valuation = n + c.valuation :=
 begin
   have : ∥(↑p ^ n * c)∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
   { exact norm_mul _ _ },
@@ -409,7 +409,7 @@ section norm_le_iff
 /-! ### Various characterizations of open unit balls -/
 
 lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
-  ∥x∥ ≤ p ^ (-n : ℤ) ↔ (n : ℤ) ≤ x.valuation :=
+  ∥x∥ ≤ p ^ (-n : ℤ) ↔ ↑n ≤ x.valuation :=
 begin
   rw norm_eq_pow_val hx,
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
@@ -423,7 +423,7 @@ begin
 end
 
 lemma mem_span_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
-  x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) ↔ (n : ℤ) ≤ x.valuation :=
+  x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) ↔ ↑n ≤ x.valuation :=
 begin
   rw [ideal.mem_span_singleton],
   split,
@@ -457,7 +457,7 @@ end
 lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℤ_[p]) (n : ℤ) : ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
 by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
 
-lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ (p : ℤ_[p]) ∣ x :=
+lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ ↑p ∣ x :=
 begin
   have := norm_le_pow_iff_mem_span_pow x 1,
   rw [ideal.mem_span_singleton, pow_one] at this,
@@ -465,7 +465,7 @@ begin
   simp only [zpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add]
 end
 
-@[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ (p : ℤ) ^ n ∣ a :=
+@[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
 by rw [← norm_int_le_pow_iff_dvd, norm_le_pow_iff_mem_span_pow, ideal.mem_span_singleton]
 
 end norm_le_iff

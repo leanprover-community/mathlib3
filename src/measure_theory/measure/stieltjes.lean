@@ -345,4 +345,7 @@ begin
       ← ennreal.of_real_add] }
 end
 
+instance : is_locally_finite_measure f.measure :=
+⟨λ x, ⟨Ioo (x-1) (x+1), Ioo_mem_nhds (by linarith) (by linarith), by simp⟩⟩
+
 end stieltjes_function

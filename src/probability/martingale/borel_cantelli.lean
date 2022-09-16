@@ -387,6 +387,175 @@ begin
   all_goals { apply_instance }
 end
 
+section centering
+
+section move
+
+variables {α : Type*} {n m : measurable_space α} {ν : @measure α m}
+
+lemma set_integral_gt_gt {R : ℝ} (hR : 0 ≤ R) {f : α → ℝ}
+  (hfm : measurable f) (hfint : integrable_on f {x | ↑R < f x} ν) (hν : ν {x | ↑R < f x} ≠ 0):
+  (ν {x | ↑R < f x}).to_real * R < ∫ x in {x | ↑R < f x}, f x ∂ν :=
+begin
+  have : integrable_on (λ x, R) {x | ↑R < f x} ν,
+  { refine ⟨ae_strongly_measurable_const, lt_of_le_of_lt _ hfint.2⟩,
+    refine set_lintegral_mono (measurable.nnnorm _).coe_nnreal_ennreal
+      hfm.nnnorm.coe_nnreal_ennreal (λ x hx, _),
+    { exact measurable_const },
+    { simp only [ennreal.coe_le_coe, real.nnnorm_of_nonneg hR,
+        real.nnnorm_of_nonneg (hR.trans $ le_of_lt hx), subtype.mk_le_mk],
+      exact le_of_lt hx } },
+  rw [← sub_pos, ← smul_eq_mul, ← set_integral_const, ← integral_sub hfint this,
+    set_integral_pos_iff_support_of_nonneg_ae],
+  { rw ← zero_lt_iff at hν,
+    rwa set.inter_eq_self_of_subset_right,
+    exact λ x hx, ne.symm (ne_of_lt $ sub_pos.2 hx) },
+  { change ∀ᵐ x ∂(ν.restrict _), _,
+    rw ae_restrict_iff,
+    { exact eventually_of_forall (λ x hx, sub_nonneg.2 $ le_of_lt hx) },
+    { exact measurable_set_le measurable_zero (hfm.sub measurable_const) } },
+  { exact integrable.sub hfint this },
+end
+
+lemma ennreal.coe_nnnorm {E : Type*} [seminormed_add_comm_group E] {a : E} :
+  ↑∥a∥₊ = ennreal.of_real (∥a∥) :=
+begin
+  rw ennreal.of_real_eq_coe_nnreal,
+  refl,
+end
+
+lemma integral_abs_condexp_le (f : α → ℝ) :
+  ∫ x, |ν[f | n] x| ∂ν ≤ ∫ x, |f x| ∂ν :=
+begin
+  by_cases hnm : n ≤ m,
+  swap,
+  { simp_rw [condexp_of_not_le hnm, pi.zero_apply, abs_zero, integral_zero],
+    exact integral_nonneg (λ x, abs_nonneg _) },
+  by_cases hfint : integrable f ν,
+  swap,
+  { simp only [condexp_undef hfint, pi.zero_apply, abs_zero, integral_const,
+      algebra.id.smul_eq_mul, mul_zero],
+    exact integral_nonneg (λ x, abs_nonneg _) },
+  rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
+  { rw ennreal.to_real_le_to_real; simp_rw [← real.norm_eq_abs, ← ennreal.coe_nnnorm],
+    { rw [← snorm_one_eq_lintegral_nnnorm, ← snorm_one_eq_lintegral_nnnorm],
+      exact snorm_one_condexp_le_snorm _ },
+    { exact ne_of_lt integrable_condexp.2 },
+    { exact ne_of_lt hfint.2 } },
+  { exact eventually_of_forall (λ x, abs_nonneg _) },
+  { simp_rw ← real.norm_eq_abs,
+    exact hfint.1.norm },
+  { exact eventually_of_forall (λ x, abs_nonneg _) },
+  { simp_rw ← real.norm_eq_abs,
+    exact (strongly_measurable_condexp.mono hnm).ae_strongly_measurable.norm }
+end
+
+lemma set_integral_abs_condexp_le {s : set α} (hs : measurable_set[n] s) (f : α → ℝ) :
+  ∫ x in s, |ν[f | n] x| ∂ν ≤ ∫ x in s, |f x| ∂ν :=
+begin
+  by_cases hnm : n ≤ m,
+  swap,
+  { simp_rw [condexp_of_not_le hnm, pi.zero_apply, abs_zero, integral_zero],
+    exact integral_nonneg (λ x, abs_nonneg _) },
+  by_cases hfint : integrable f ν,
+  swap,
+  { simp only [condexp_undef hfint, pi.zero_apply, abs_zero, integral_const,
+      algebra.id.smul_eq_mul, mul_zero],
+    exact integral_nonneg (λ x, abs_nonneg _) },
+  have : ∫ x in s, |ν[f | n] x| ∂ν = ∫ x, |ν[s.indicator f | n] x| ∂ν,
+  { rw ← integral_indicator,
+    swap, { exact hnm _ hs },
+    refine integral_congr_ae _,
+    have : (λ x, |ν[s.indicator f | n] x|) =ᵐ[ν] λ x, |s.indicator (ν[f | n]) x| :=
+      eventually_eq.fun_comp (condexp_indicator hfint hs) _,
+    refine eventually_eq.trans (eventually_of_forall $ λ x, _) this.symm,
+    rw [← real.norm_eq_abs, norm_indicator_eq_indicator_norm],
+    refl },
+  rw [this, ← integral_indicator],
+  swap, { exact hnm _ hs },
+  refine (integral_abs_condexp_le _).trans (le_of_eq $ integral_congr_ae $
+    eventually_of_forall $ λ x, _),
+  rw [← real.norm_eq_abs, norm_indicator_eq_indicator_norm],
+  refl,
+end
+
+lemma ae_bdd_condexp_of_ae_bdd {f : α → ℝ} (hbdd : ∀ᵐ x ∂ν, |f x| ≤ R) :
+  ∀ᵐ x ∂ν, |ν[f|n] x| ≤ R :=
+begin
+  by_cases hnm : n ≤ m,
+  swap,
+  { simp_rw [condexp_of_not_le hnm, pi.zero_apply, abs_zero],
+    refine eventually_of_forall (λ x, R.coe_nonneg) },
+  by_cases hfint : integrable f ν,
+  swap,
+  { simp_rw [condexp_undef hfint],
+    filter_upwards [hbdd] with x hx,
+    rw [pi.zero_apply, abs_zero],
+    exact (abs_nonneg _).trans hx },
+  by_contra h,
+  change ν _ ≠ 0 at h,
+  simp only [← zero_lt_iff, set.compl_def, set.mem_set_of_eq, not_le] at h,
+  suffices : (ν {x | ↑R < |ν[f|n] x|}).to_real * ↑R < (ν {x | ↑R < |ν[f|n] x|}).to_real * ↑R,
+  { exact this.ne rfl },
+  refine lt_of_lt_of_le (set_integral_gt_gt R.coe_nonneg _ _ h.ne.symm) _,
+  { simp_rw [← real.norm_eq_abs],
+    exact (strongly_measurable_condexp.mono hnm).measurable.norm },
+  { exact integrable_condexp.abs.integrable_on },
+  refine (set_integral_abs_condexp_le _ _).trans _,
+  { simp_rw [← real.norm_eq_abs],
+    exact @measurable_set_lt _ _ _ _ _ n _ _ _ _ _ measurable_const
+      strongly_measurable_condexp.norm.measurable },
+  simp only [← smul_eq_mul, ← set_integral_const, nnreal.val_eq_coe,
+    is_R_or_C.coe_real_eq_id, id.def],
+  refine set_integral_mono_ae hfint.abs.integrable_on _ _,
+  { refine ⟨ae_strongly_measurable_const, lt_of_le_of_lt _
+      (integrable_condexp.integrable_on : integrable_on (ν[f|n]) {x | ↑R < |ν[f|n] x|} ν).2⟩,
+    refine set_lintegral_mono (measurable.nnnorm _).coe_nnreal_ennreal
+      (strongly_measurable_condexp.mono hnm).measurable.nnnorm.coe_nnreal_ennreal (λ x hx, _),
+    { exact measurable_const },
+    { rw [ennreal.coe_le_coe, real.nnnorm_of_nonneg R.coe_nonneg],
+      exact subtype.mk_le_mk.2 (le_of_lt hx) } },
+  { exact hbdd },
+end
+
+end move
+
+lemma predictable_part_bdd_difference
+  (ℱ : filtration ℕ m0) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
+  ∀ᵐ ω ∂μ, ∀ i, |predictable_part ℱ μ f (i + 1) ω - predictable_part ℱ μ f i ω| ≤ R :=
+begin
+  simp_rw [predictable_part, finset.sum_apply, finset.sum_range_succ_sub_sum],
+  exact ae_all_iff.2 (λ i, ae_bdd_condexp_of_ae_bdd $ ae_all_iff.1 hbdd i),
+end
+
+lemma martingale_part_bdd_difference
+  (ℱ : filtration ℕ m0) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
+  ∀ᵐ ω ∂μ, ∀ i, |martingale_part ℱ μ f (i + 1) ω - martingale_part ℱ μ f i ω| ≤ ↑(2 * R) :=
+begin
+  filter_upwards [hbdd, predictable_part_bdd_difference ℱ hbdd] with ω hω₁ hω₂ i,
+  simp only [two_mul, martingale_part, pi.sub_apply],
+  have : |f (i + 1) ω - predictable_part ℱ μ f (i + 1) ω - (f i ω - predictable_part ℱ μ f i ω)| =
+    |(f (i + 1) ω - f i ω) - (predictable_part ℱ μ f (i + 1) ω - predictable_part ℱ μ f i ω)|,
+  { ring_nf }, -- `ring` suggests `ring_nf` despite proving the goal
+  rw this,
+  exact (abs_sub _ _).trans (add_le_add (hω₁ i) (hω₂ i)),
+end
+
+lemma tendsto_sum_indicator_at_top_iff'
+  [is_finite_measure μ] (hf : adapted ℱ f) (hint : ∀ n, integrable (f n) μ)
+  (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
+  ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top at_top ↔
+    tendsto (λ n, predictable_part ℱ μ f n ω) at_top at_top :=
+begin
+  have h₁ := (martingale_martingale_part hf hint).ae_not_tendsto_at_top_at_top
+    (martingale_part_bdd_difference ℱ hbdd),
+  have h₂ := (martingale_martingale_part hf hint).ae_not_tendsto_at_top_at_bot
+    (martingale_part_bdd_difference ℱ hbdd),
+  sorry
+end
+
+end centering
+
 /-- **Lévy's generalization of the Borel-Cantelli lemma**: given a sequence of sets `s` and a
 filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.limsup s` is almost
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/

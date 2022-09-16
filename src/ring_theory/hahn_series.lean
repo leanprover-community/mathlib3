@@ -1118,7 +1118,8 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
 
 /-- The `R`-algebra `hahn_series ℕ A` is isomorphic to `power_series A`. -/
 @[simps] def to_power_series_alg : (hahn_series ℕ A) ≃ₐ[R] power_series A :=
-{ commutes' := λ r, begin
+{ map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (map_mul (@to_power_series A _)) $ λ r,
+  begin
     ext n,
     simp only [algebra_map_apply, power_series.algebra_map_apply, ring_equiv.to_fun_eq_coe, C_apply,
       coeff_to_power_series],
@@ -1130,13 +1131,29 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
   end,
   .. to_power_series }
 
+set_option pp.all true
 variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
 /-- Casting a power series as a Hahn series with coefficients from an `ordered_semiring`
   is an algebra homomorphism. -/
 @[simps] def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=
+begin
+  let bar := (@to_power_series_alg R _ A _ _).symm.to_alg_hom,
+  let foo := (hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
+  (λ (_ : ℕ) _, nat.cast_le) : hahn_series ℕ A →ₐ[R] hahn_series Γ A),
+  refine alg_hom.comp _ bar,
+  refine hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) _ _,
+  exact nat.strict_mono_cast.injective,
+  intros g g',
+  simp only [@nat.coe_cast_add_monoid_hom Γ _],
+  have := @nat.cast_le Γ _inst_4 _inst_5 g g',
+  --exact this
+end
+#exit
+/-
 (hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
   (λ _ _, nat.cast_le)).comp
-  (alg_equiv.to_alg_hom (to_power_series_alg R).symm)
+  (alg_equiv.to_alg_hom (@to_power_series_alg R _ A _ _).symm)
+  -/
 
 instance power_series_algebra {S : Type*} [comm_semiring S] [algebra S (power_series R)] :
   algebra S (hahn_series Γ R) :=

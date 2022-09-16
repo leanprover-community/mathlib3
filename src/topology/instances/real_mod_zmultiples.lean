@@ -6,83 +6,120 @@ Authors: Alex Kontorovich, Heather Macbeth
 import topology.algebra.const_mul_action
 import topology.instances.real
 import tactic.linear_combination
-import tactic.congrm
-
 
 /-!
 # The topology on the quotient group `ℝ / a ℤ`
 
-
-TO DO in this file (9/9/22):
- - proper discontinuity
 -/
 
 open add_subgroup
 
-variables {a : ℝ} --[fact (0 < a)]
+section move_to_group_theory_subgroup_basic
+
+lemma add_monoid_hom.coe_comp_range_restrict {G : Type*} [add_group G] {N : Type*} [add_group N]
+  (f : G →+ N) :
+  (coe : f.range → N) ∘ (⇑(f.range_restrict) : G → f.range) = f :=
+begin
+  ext g,
+  exact f.coe_range_restrict g,
+end
+
+lemma add_monoid_hom.subtype_comp_range_restrict {G : Type*} [add_group G] {N : Type*} [add_group N]
+  (f : G →+ N) :
+  f.range.subtype.comp (f.range_restrict) = f :=
+begin
+  ext g,
+  exact f.coe_range_restrict g,
+end
+
+end move_to_group_theory_subgroup_basic
+
+section move_to_topology_subset_properties
+
+lemma set.surj_on.compact_space {X : Type*} [topological_space X] {s : set X} (hs : is_compact s)
+  {Y : Type*} [topological_space Y] {f : X → Y} (hf : continuous f)
+  (hf' : set.surj_on f s set.univ) :
+  compact_space Y :=
+is_compact_univ_iff.mp
+begin
+  convert ← hs.image hf,
+  rw ← set.univ_subset_iff,
+  exact hf',
+end
+
+end move_to_topology_subset_properties
+
+section move_to_topology_algebra_monoid
+
+/-- Right-multiplication by a right-invertible element of a topological monoid is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_right {R : Type*} [monoid R] [topological_space R]
+  [has_continuous_mul R] {a : R} {b : R} (ha : a * b = 1) :
+  filter.tendsto (λ x : R, x * a) (filter.cocompact R) (filter.cocompact R) :=
+begin
+  refine filter.tendsto.of_tendsto_comp _ (filter.comap_cocompact_le (continuous_mul_right b)),
+  convert filter.tendsto_id,
+  ext x,
+  simp [ha],
+end
+
+end move_to_topology_algebra_monoid
+
+section move_to_topology_algebra_field
+
+/-- Right-multiplication by a nonzero element of a topological division ring is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_right₀ {R : Type*} [division_ring R] [topological_space R]
+  [has_continuous_mul R] {a : R} (ha : a ≠ 0) :
+  filter.tendsto (λ x : R, x * a) (filter.cocompact R) (filter.cocompact R) :=
+filter.tendsto_cocompact_mul_right (mul_inv_cancel ha)
+
+end move_to_topology_algebra_field
+
+section move_to_topology_metric_space_basic
+
+/-- For nonzero `a`, the "multiples of `a`" map `zmultiples_hom` from `ℤ` to `ℝ` is discrete, i.e.
+inverse images of compact sets are finite. -/
+lemma int.tendsto_zmultiples_hom_cofinite {a : ℝ} (ha : a ≠ 0) :
+  filter.tendsto (zmultiples_hom ℝ a) filter.cofinite (filter.cocompact ℝ) :=
+begin
+  convert (filter.tendsto_cocompact_mul_right₀ ha).comp int.tendsto_coe_cofinite,
+  ext n,
+  simp,
+end
+
+/-- The coercion into `ℝ` from its subtype "multiples of `a`" (`zmultiples a`) is discrete, i.e.
+inverse images of compact sets are finite. -/
+lemma int.tendsto_coe_zmultiples_cofinite (a : ℝ) :
+  filter.tendsto (coe : zmultiples a → ℝ) filter.cofinite (filter.cocompact ℝ) :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { rw add_subgroup.zmultiples_zero_eq_bot,
+    intros K hK,
+    rw [filter.mem_map, filter.mem_cofinite],
+    apply set.to_finite },
+  intros K hK,
+  have H := int.tendsto_zmultiples_hom_cofinite ha hK,
+  simp only [filter.mem_map, filter.mem_cofinite, ← set.preimage_compl] at ⊢ H,
+  rw [← (zmultiples_hom ℝ a).range_restrict_surjective.image_preimage (coe ⁻¹' Kᶜ),
+    ← set.preimage_comp, ← add_monoid_hom.coe_comp_range_restrict],
+  exact set.finite.image _ H,
+end
+
+end move_to_topology_metric_space_basic
+
+variables {a : ℝ}
 
 instance : has_continuous_const_vadd (zmultiples a).opposite ℝ :=
 sorry
 -- follows by `to_additive` of `smul_comm_class.has_continuous_const_smul`
 
--- This *IS* used (as a simp lemma)
--- move to `group_theory.subgroup.basic` and `to_additive` it
-@[simp] lemma add_subgroup.zmultiples_zero {G : Type*} [add_group G] : zmultiples (0:G) = ⊥ :=
-begin
-  sorry,
-end
-
-/- THIS IS NOT USED (9/9/22)
-lemma int.tendsto_zmultiples_hom_cofinite {a : ℝ} (ha : a ≠ 0) :
-  filter.tendsto (zmultiples_hom ℝ a) filter.cofinite (filter.cocompact ℝ) :=
-begin
-  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
-  simp only [filter.tendsto_at_top, filter.eventually_cofinite, not_le, ← metric.mem_ball],
-  change ∀ r : ℝ, ((λ n : ℤ, n • a) ⁻¹' (metric.ball (0 : ℝ) r)).finite,
-  simp [real.ball_eq_Ioo, set.finite_Ioo],
-end
--/
-
-
--- move to `topology.metric_space.basic`
-
-/-- For nonzero `a`, under the "multiples of `a`" map from `ℤ` to `ℝ`, inverse images of compact
-sets are finite. -/
--- this is the version we actually use
-lemma int.tendsto_zmultiples_hom_cofinite' (a : ℝ) :
-  filter.tendsto (coe : zmultiples a → ℝ) filter.cofinite (filter.cocompact ℝ) :=
-begin
-  by_cases ha : a = 0,
-  {
-    have : zmultiples a = ⊥,
-    {
-      simp [ha],
-    },
-    rw this,
-    intros K hK,
-    simp [ha, this],
-    sorry,
-    -- apply finite.of_fintype,
-
-  },
-  sorry,
-  -- refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
-  -- simp only [filter.tendsto_at_top, filter.eventually_cofinite, not_le, ← metric.mem_ball],
-  -- change ∀ r : ℝ, ((λ n : ℤ, n • a) ⁻¹' (metric.ball (0 : ℝ) r)).finite,
-  -- simp [real.ball_eq_Ioo, set.finite_Ioo],
-end
-
-
-
--- move to `topology.metric_space.basic`
-
--- **
-
-
+/-- The action on `ℝ` by right multiplication of its the subgroup `zmultiples a` (the multiples of
+`a:ℝ`) is properly discontinuous. -/
 instance : properly_discontinuous_vadd (zmultiples a).opposite ℝ :=
 { finite_disjoint_inter_image := begin
     intros K L hK hL,
-    have H : set.finite _ := int.tendsto_zmultiples_hom_cofinite'
+    have H : set.finite _ := int.tendsto_coe_zmultiples_cofinite
       a ((hL.prod hK).image continuous_sub).compl_mem_cocompact,
     convert H,
     ext x,
@@ -98,27 +135,16 @@ instance : properly_discontinuous_vadd (zmultiples a).opposite ℝ :=
     split; intros hh; linear_combination - hh,
   end }
 
+/-- The quotient of `ℝ` by the subgroup `zmultiples a` (the multiples of `a:ℝ`) is Hausdorff. -/
 instance : t2_space (ℝ ⧸ zmultiples a) := t2_space_of_properly_discontinuous_vadd_of_t2_space
-
--- check, remove later
-example : topological_add_group (ℝ ⧸ zmultiples a) := by apply_instance
 
 variables [fact (0 < a)]
 
-lemma is_compact.compact_space {X : Type*} [topological_space X] {s : set X} (hs : is_compact s)
-  {Y : Type*} [topological_space Y] {f : X → Y} (hf : continuous f)
-  (hf' : set.surj_on f s set.univ) :
-  compact_space Y :=
-{ compact_univ := begin
-    convert hs.image hf,
-    symmetry,
-    rw ← set.univ_subset_iff,
-    exact hf',
-  end }
-
 local notation `π` := quotient_add_group.mk' (zmultiples a)
 
-lemma baz₁ : set.surj_on π (set.Ico 0 a) set.univ :=
+/-- Under the map from `ℝ` to its quotient by `zmultiples a` (the multiples of `a:ℝ`), the image of
+the interval [0, a) is the whole quotient. -/
+lemma real.surj_on_quotient_Ico : set.surj_on π (set.Ico 0 a) set.univ :=
 begin
   rintros x₀ -,
   apply @quotient.induction_on ℝ (quotient_add_group.left_rel (zmultiples a))
@@ -134,41 +160,11 @@ begin
   ring,
 end
 
-/-
-lemma baz₂ : set.surj_on π (set.Ioc 0 a) set.univ :=
-begin
-  sorry
-end
--/
-
+/-- The quotient of `ℝ` by the subgroup `zmultiples a` (the multiples of `a:ℝ`) is compact. -/
 instance : compact_space (ℝ ⧸ zmultiples a) :=
-is_compact_Icc.compact_space continuous_quotient_mk $
-  baz₁.mono set.Ico_subset_Icc_self (set.subset.refl _)
+(real.surj_on_quotient_Ico.mono set.Ico_subset_Icc_self (set.subset.refl _)).compact_space
+  is_compact_Icc
+  continuous_quotient_mk
 
+/-- The quotient of `ℝ` by the subgroup `zmultiples a` (the multiples of `a:ℝ`) is normal. -/
 instance : normal_space (ℝ ⧸ zmultiples a) := normal_of_compact_t2
-
-
-------------------------- NOT NEEDED (?)
-/-
-lemma is_compact.finite_inter_zmultiples (a : ℝ) {s : set ℝ} (hs : is_compact s) :
-  ((coe : zmultiples a → ℝ) ⁻¹' s).finite :=
-begin
-  by_cases ha : a = 0,
-  { sorry }, --exact set.finite.inter_of_left (by simp [ha]) s },
-  convert (int.tendsto_zmultiples_hom_cofinite ha hs.compl_mem_cocompact).image (zmultiples_hom ℝ a),
-  dsimp,
-  rw [compl_compl,  set.image_preimage_eq_inter_range, set.inter_comm, ← range_zmultiples_hom],
-  refl,
-end
-
-lemma is_compact.finite_inter_zmultiples' (a : ℝ) {s : set ℝ} (hs : is_compact s) :
-  ((zmultiples a : set ℝ) ∩ s).finite :=
-begin
-  by_cases ha : a = 0,
-  { exact set.finite.inter_of_left (by simp [ha]) s },
-  convert (int.tendsto_zmultiples_hom_cofinite ha hs.compl_mem_cocompact).image (zmultiples_hom ℝ a),
-  dsimp,
-  rw [compl_compl,  set.image_preimage_eq_inter_range, set.inter_comm, ← range_zmultiples_hom],
-  refl,
-end
--/

@@ -834,7 +834,7 @@ attribute [nolint dangerous_instance] alg_equiv_class.to_ring_equiv_class
 
 namespace alg_equiv_class
 
-@[priority 100] -- See note [lower_instance_priority]
+@[priority 50] -- See note [lower_instance_priority]
 instance to_smul_hom_class (F : Type*) (R A B : out_param Type*)
   [has_add A] [has_mul A] [has_add B] [has_mul B] [has_smul R A] [has_smul R B]
   [h : alg_equiv_class F R A B] : smul_hom_class F R A B :=

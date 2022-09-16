@@ -1637,7 +1637,7 @@ open positivity real
 @[positivity]
 meta def positivity_exp : expr → tactic strictness
 | `(real.exp %%a) := positive <$> mk_app `real.exp_pos [a]
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `real.exp r`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `real.exp r`"
 
 end tactic
 

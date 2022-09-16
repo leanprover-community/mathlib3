@@ -229,12 +229,12 @@ lemma nat_cast_apply (n : ℕ) (m : α):
 @[simp] lemma to_End_mul (x y : centroid_hom α) : (x * y).to_End = x.to_End * y.to_End := rfl
 @[simp] lemma to_End_pow (x : centroid_hom α) (n : ℕ) : (x ^ n).to_End = x.to_End ^ n :=
 by { ext, refl }
-@[simp] lemma to_End_nat (n : ℕ) : (n :centroid_hom α).to_End = ↑n := rfl
+@[simp, norm_cast] lemma to_End_nat_cast (n : ℕ) : (n : centroid_hom α).to_End = ↑n := rfl
 
 -- cf `add_monoid.End.semiring`
 instance : semiring (centroid_hom α) :=
 to_End_injective.semiring _ to_End_zero to_End_one to_End_add to_End_mul
-  to_End_nsmul to_End_pow to_End_nat
+  to_End_nsmul to_End_pow to_End_nat_cast
 
 lemma comp_mul_comm (T S : centroid_hom α) (a b : α) : (T ∘ S) (a * b) = (S ∘ T) (a * b) :=
 by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]
@@ -285,11 +285,11 @@ to_End_injective.add_comm_group _ to_End_zero to_End_add to_End_neg to_End_sub
 @[simp] lemma neg_apply (f : centroid_hom α) (a : α) : (-f) a = - f a := rfl
 @[simp] lemma sub_apply (f g : centroid_hom α) (a : α) : (f - g) a = f a - g a := rfl
 
-@[simp] lemma to_End_int (z : ℤ) : (z :centroid_hom α).to_End = ↑z := rfl
+@[simp, norm_cast] lemma to_End_int_cast (z : ℤ) : (z : centroid_hom α).to_End = ↑z := rfl
 
 instance : ring (centroid_hom α) := to_End_injective.ring _ to_End_zero to_End_one
   to_End_add  to_End_mul to_End_neg to_End_sub to_End_nsmul to_End_zsmul
-  to_End_pow to_End_nat to_End_int
+  to_End_pow to_End_nat_cast to_End_int_cast
 
 end non_unital_non_assoc_ring
 

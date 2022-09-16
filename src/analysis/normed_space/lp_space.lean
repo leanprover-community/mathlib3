@@ -519,6 +519,8 @@ begin
       { exact (tsum_nonneg $ λ _, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) }}},
 end
 
+example (a b : ℕ) : ((a + b) : ℝ) = (a : ℝ) + (b : ℝ) := by library_search
+
 -- `[FAE]` I believe that with the non-standard norm, ℓ^p(E) is not a normed group when `1 ≤ p`
 -- because the triangle inequality is not satisfied.
 def non_standard_normed_group_lp (H : p < 1) : normed_add_comm_group (lp E p) :=
@@ -534,16 +536,25 @@ normed_add_comm_group.of_core _
         using @lp.norm_eq_zero_iff α E p _ f },
   end,
   triangle := λ f g, begin
+    classical,
     rcases or.assoc.mpr p.trichotomy with _ | h_pos,
     { simp only [norm_zero_top_eq_standard_norm h],
       replace h : p = 0,
-      sorry,--this is just `triangle` for the usual norm
-      -- simp_rw h at f g ⊢,
+      sorry,
+
       subst h,
       simp only [norm_eq_card_dsupport],
       simp,
-      sorry,
-      -- have := finset.card_union_le,
+      let X := (lp.mem_ℓp (f+g)).finite_dsupport.to_finset,
+      let S := (lp.mem_ℓp f).finite_dsupport.to_finset,
+      let T := (lp.mem_ℓp g).finite_dsupport.to_finset,
+      have temp : X = S ∪ T, sorry,
+      -- sorry,
+      have := finset.card_union_le S T,
+      rwa [← temp, ← @nat.cast_le ℝ _ _, nat.cast_add] at this,
+      -- exact
+      -- convert this,
+      -- rw nat.cast_add,
       -- have := dfinsupp.support_add,
 
 

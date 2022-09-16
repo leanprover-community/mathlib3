@@ -281,8 +281,8 @@ to_End_injective.add_comm_group _ to_End_zero to_End_add to_End_neg to_End_sub
   to_End_nsmul to_End_zsmul
 
 
-@[simp] lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
-@[simp] lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl
+@[simp, norm_cast] lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
+@[simp, norm_cast] lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl
 
 @[simp] lemma neg_apply (f : centroid_hom α) (a : α) : (-f) a = - f a := rfl
 @[simp] lemma sub_apply (f g : centroid_hom α) (a : α) : (f - g) a = f a - g a := rfl

@@ -66,7 +66,8 @@ omit nf
 is the integral closure of ℤ in the number field. -/
 def ring_of_integers := integral_closure ℤ K
 
-localized "notation `𝓞` := number_field.ring_of_integers" in number_field
+localized "notation (name := ring_of_integers)
+  `𝓞` := number_field.ring_of_integers" in number_field
 
 lemma mem_ring_of_integers (x : K) : x ∈ 𝓞 K ↔ is_integral ℤ x := iff.rfl
 

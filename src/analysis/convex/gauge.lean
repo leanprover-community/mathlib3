@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.convex.star
+import analysis.convex.basic
 import analysis.normed_space.pointwise
 import analysis.seminorm
 import data.complex.is_R_or_C
@@ -389,6 +389,13 @@ lemma gauge_seminorm_lt_one_of_open (hs : is_open s) {x : E} (hx : x ∈ s) :
   gauge_seminorm hs₀ hs₁ hs₂ x < 1 :=
 gauge_lt_one_of_mem_of_open hs₁ hs₂.zero_mem hs hx
 
+lemma gauge_seminorm_ball_one (hs : is_open s) :
+  (gauge_seminorm hs₀ hs₁ hs₂).ball 0 1 = s :=
+begin
+  rw seminorm.ball_zero_eq,
+  exact gauge_lt_one_eq_self_of_open hs₁ hs₂.zero_mem hs
+end
+
 end is_R_or_C
 
 /-- Any seminorm arises as the gauge of its unit ball. -/
@@ -398,21 +405,21 @@ begin
   obtain hp | hp := {r : ℝ | 0 < r ∧ x ∈ r • p.ball 0 1}.eq_empty_or_nonempty,
   { rw [gauge, hp, real.Inf_empty],
     by_contra,
-    have hpx : 0 < p x := (p.nonneg x).lt_of_ne h,
+    have hpx : 0 < p x := (map_nonneg _ _).lt_of_ne h,
     have hpx₂ : 0 < 2 * p x := mul_pos zero_lt_two hpx,
     refine hp.subset ⟨hpx₂, (2 * p x)⁻¹ • x, _, smul_inv_smul₀ hpx₂.ne' _⟩,
-    rw [p.mem_ball_zero, p.smul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpx₂), inv_mul_lt_iff hpx₂,
-      mul_one],
+    rw [p.mem_ball_zero, map_smul_eq_mul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpx₂),
+      inv_mul_lt_iff hpx₂, mul_one],
     exact lt_mul_of_one_lt_left hpx one_lt_two },
   refine is_glb.cInf_eq ⟨λ r, _, λ r hr, le_of_forall_pos_le_add $ λ ε hε, _⟩ hp,
   { rintro ⟨hr, y, hy, rfl⟩,
     rw p.mem_ball_zero at hy,
-    rw [p.smul, real.norm_eq_abs, abs_of_pos hr],
+    rw [map_smul_eq_mul, real.norm_eq_abs, abs_of_pos hr],
     exact mul_le_of_le_one_right hr.le hy.le },
-  { have hpε : 0 < p x + ε := add_pos_of_nonneg_of_pos (p.nonneg _) hε,
+  { have hpε : 0 < p x + ε := add_pos_of_nonneg_of_pos (map_nonneg _ _) hε,
     refine hr ⟨hpε, (p x + ε)⁻¹ • x, _, smul_inv_smul₀ hpε.ne' _⟩,
-    rw [p.mem_ball_zero, p.smul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpε), inv_mul_lt_iff hpε,
-      mul_one],
+    rw [p.mem_ball_zero, map_smul_eq_mul, real.norm_eq_abs, abs_of_pos (inv_pos.2 hpε),
+      inv_mul_lt_iff hpε, mul_one],
     exact lt_add_of_pos_right _ hε }
 end
 

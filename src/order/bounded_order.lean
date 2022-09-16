@@ -24,7 +24,7 @@ instances for `Prop` and `fun`.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
 * `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
-* `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
+* `complemented_lattice α`: Typeclass stating that any element of a lattice has a complement.
 
 ## Common lattices
 
@@ -35,13 +35,13 @@ instances for `Prop` and `fun`.
   Typical examples include `Prop` and `set α`.
 -/
 
-open order_dual
+open function order_dual
 
 set_option old_structure_cmd true
 
 universes u v
 
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {γ δ : Type*}
 
 /-! ### Top, bottom element -/
 
@@ -355,8 +355,7 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
   inf_le_left  := @and.left,
   inf_le_right := @and.right,
   le_inf       := λ a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
-  le_sup_inf   := λ a b c H, or_iff_not_imp_left.2 $
-    λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
+  le_sup_inf   := λ a b c, or_and_distrib_left.2,
   ..Prop.partial_order }
 
 /-- Propositions form a bounded order. -/
@@ -548,6 +547,9 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 
 instance : inhabited (with_bot α) := ⟨⊥⟩
 
+lemma coe_injective : injective (coe : α → with_bot α) := option.some_injective _
+@[norm_cast] lemma coe_inj : (a : with_bot α) = b ↔ a = b := option.some_inj
+
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
@@ -579,6 +581,10 @@ def map (f : α → β) : with_bot α → with_bot β := option.map f
 
 @[simp] lemma map_bot (f : α → β) : map f ⊥ = ⊥ := rfl
 @[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
+
+lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
+  map g₁ (map f₁ a) = map g₂ (map f₂ a) :=
+option.map_comm h _
 
 lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x := option.ne_none_iff_exists
 
@@ -916,6 +922,10 @@ def map (f : α → β) : with_top α → with_top β := option.map f
 
 @[simp] lemma map_top (f : α → β) : map f ⊤ = ⊤ := rfl
 @[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
+
+lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
+  map g₁ (map f₁ a) = map g₂ (map f₂ a) :=
+option.map_comm h _
 
 lemma map_to_dual (f : αᵒᵈ → βᵒᵈ) (a : with_bot α) :
   map f (with_bot.to_dual a) = a.map (to_dual ∘ f) := rfl
@@ -1724,18 +1734,18 @@ end
 
 /-- A complemented bounded lattice is one where every element has a (not necessarily unique)
 complement. -/
-class is_complemented (α) [lattice α] [bounded_order α] : Prop :=
+class complemented_lattice (α) [lattice α] [bounded_order α] : Prop :=
 (exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)
 
-export is_complemented (exists_is_compl)
+export complemented_lattice (exists_is_compl)
 
-namespace is_complemented
-variables [lattice α] [bounded_order α] [is_complemented α]
+namespace complemented_lattice
+variables [lattice α] [bounded_order α] [complemented_lattice α]
 
-instance : is_complemented αᵒᵈ :=
+instance : complemented_lattice αᵒᵈ :=
 ⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.dual⟩⟩
 
-end is_complemented
+end complemented_lattice
 
 end is_compl
 

@@ -42,7 +42,7 @@ theorem mem_annihilator {r} : r ∈ N.annihilator ↔ ∀ n ∈ N, r • n = (0:
 ⟨λ hr n hn, congr_arg subtype.val (linear_map.ext_iff.1 (linear_map.mem_ker.1 hr) ⟨n, hn⟩),
 λ h, linear_map.mem_ker.2 $ linear_map.ext $ λ n, subtype.eq $ h n.1 n.2⟩
 
-theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • linear_map.id) ⊥ :=
+theorem mem_annihilator' {r} : r ∈ N.annihilator ↔ N ≤ comap (r • (linear_map.id : M →ₗ[R] M)) ⊥ :=
 mem_annihilator.trans ⟨λ H n hn, (mem_bot R).2 $ H n hn, λ H n hn, (mem_bot R).1 $ H hn⟩
 
 lemma mem_annihilator_span (s : set M) (r : R) :
@@ -148,7 +148,8 @@ le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   (λ r hr s hs,
     (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
   (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _))
-(smul_le.2 $ λ r hr sn hsn, suffices J • N ≤ submodule.comap (r • linear_map.id) ((I • J) • N),
+(smul_le.2 $ λ r hr sn hsn,
+  suffices J • N ≤ submodule.comap (r • (linear_map.id : M →ₗ[R] M)) ((I • J) • N),
   from this hsn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
   from mul_smul r s n ▸ smul_mem_smul (smul_mem_smul hr hs) hn)
@@ -282,7 +283,7 @@ theorem mem_colon {r} : r ∈ N.colon P ↔ ∀ p ∈ P, r • p ∈ N :=
 mem_annihilator.trans ⟨λ H p hp, (quotient.mk_eq_zero N).1 (H (quotient.mk p) (mem_map_of_mem hp)),
 λ H m ⟨p, hp, hpm⟩, hpm ▸ (N.mkq).map_smul r p ▸ (quotient.mk_eq_zero N).2 $ H p hp⟩
 
-theorem mem_colon' {r} : r ∈ N.colon P ↔ P ≤ comap (r • linear_map.id) N :=
+theorem mem_colon' {r} : r ∈ N.colon P ↔ P ≤ comap (r • (linear_map.id : M →ₗ[R] M)) N :=
 mem_colon
 
 theorem colon_mono (hn : N₁ ≤ N₂) (hp : P₁ ≤ P₂) : N₁.colon P₂ ≤ N₂.colon P₁ :=
@@ -733,7 +734,7 @@ begin
   obtain ⟨t, rfl⟩ : ∃ t, s = b ::ₘ t,
   from ⟨s.erase b, (multiset.cons_erase hb).symm⟩,
   refine t.induction_on _ _,
-  { simp only [exists_prop, ←multiset.singleton_eq_cons, multiset.prod_singleton,
+  { simp only [exists_prop, multiset.cons_zero, multiset.prod_singleton,
       multiset.mem_singleton, exists_eq_left, imp_self] },
   intros a s ih h,
   rw [multiset.cons_swap, multiset.prod_cons, hp.mul_le] at h,
@@ -1137,6 +1138,19 @@ begin
     rw smul_add, exact submodule.add_mem _ hx hy },
 end
 
+@[simp] lemma coe_restrict_scalars {R S : Type*} [comm_semiring R] [semiring S] [algebra R S]
+  (I : ideal S) : ((I.restrict_scalars R) : set S) = ↑I :=
+rfl
+
+/-- The smallest `S`-submodule that contains all `x ∈ I * y ∈ J`
+is also the smallest `R`-submodule that does so. -/
+@[simp] lemma restrict_scalars_mul {R S : Type*} [comm_semiring R] [comm_semiring S] [algebra R S]
+  (I J : ideal S) : (I * J).restrict_scalars R = I.restrict_scalars R * J.restrict_scalars R :=
+le_antisymm (λ x hx, submodule.mul_induction_on hx
+    (λ x hx y hy, submodule.mul_mem_mul hx hy)
+    (λ x y, submodule.add_mem _))
+  (submodule.mul_le.mpr (λ x hx y hy, ideal.mul_mem_mul hx hy))
+
 section surjective
 variables (hf : function.surjective f)
 include hf
@@ -1297,7 +1311,7 @@ def rel_iso_of_bijective : ideal S ≃o ideal R :=
   left_inv := (rel_iso_of_surjective f hf.right).left_inv,
   right_inv := λ J, subtype.ext_iff.1
     ((rel_iso_of_surjective f hf.right).right_inv ⟨J, comap_bot_le_of_injective f hf.left⟩),
-  map_rel_iff' := (rel_iso_of_surjective f hf.right).map_rel_iff' }
+  map_rel_iff' := λ _ _, (rel_iso_of_surjective f hf.right).map_rel_iff' }
 
 lemma comap_le_iff_le_map {I : ideal R} {K : ideal S} : comap f K ≤ I ↔ K ≤ map f I :=
 ⟨λ h, le_map_of_comap_le_of_surjective f hf.right h,
@@ -1762,6 +1776,10 @@ by apply_instance
 def quotient.mkₐ (I : ideal A) : A →ₐ[R₁] A ⧸ I :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
 
+lemma quotient.alg_hom_ext {I : ideal A} {S} [semiring S] [algebra R₁ S] ⦃f g : A ⧸ I →ₐ[R₁] S⦄
+  (h : f.comp (quotient.mkₐ R₁ I) = g.comp (quotient.mkₐ R₁ I)) : f = g :=
+alg_hom.ext $ λ x, quotient.induction_on' x $ alg_hom.congr_fun h
+
 lemma quotient.alg_map_eq (I : ideal A) :
   algebra_map R₁ (A ⧸ I) = (algebra_map A (A ⧸ I)).comp (algebra_map R₁ A) :=
 rfl
@@ -2091,7 +2109,11 @@ end ring_hom
 
 namespace double_quot
 open ideal
-variables {R : Type u} [comm_ring R] (I J : ideal R)
+variable {R : Type u}
+
+section
+
+variables [comm_ring R] (I J : ideal R)
 
 /-- The obvious ring hom `R/I → R/(I ⊔ J)` -/
 def quot_left_to_quot_sup : R ⧸ I →+* R ⧸ (I ⊔ J) :=
@@ -2159,5 +2181,27 @@ ring_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
 lemma quot_quot_equiv_comm_symm :
   (quot_quot_equiv_comm I J).symm = quot_quot_equiv_comm J I :=
 rfl
+
+end
+
+section algebra
+
+@[simp]
+lemma quot_quot_equiv_comm_mk_mk [comm_ring R] (I J : ideal R) (x : R) :
+  quot_quot_equiv_comm I J (ideal.quotient.mk _ (ideal.quotient.mk _ x)) =
+    algebra_map R _ x := rfl
+
+variables [comm_semiring R] {A : Type v} [comm_ring A] [algebra R A] (I J : ideal A)
+
+@[simp]
+lemma quot_quot_equiv_quot_sup_quot_quot_algebra_map (x : R) :
+  double_quot.quot_quot_equiv_quot_sup I J (algebra_map R _ x) = algebra_map _ _ x :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_comm_algebra_map (x : R) :
+  quot_quot_equiv_comm I J (algebra_map R _ x) = algebra_map _ _ x := rfl
+
+end algebra
 
 end double_quot

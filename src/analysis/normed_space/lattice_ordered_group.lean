@@ -33,7 +33,7 @@ normed, lattice, ordered, group
 Motivated by the theory of Banach Lattices, this section introduces normed lattice ordered groups.
 -/
 
-local notation `|`a`|` := abs a
+local notation (name := abs) `|`a`|` := abs a
 
 /--
 Let `α` be a normed commutative group equipped with a partial order covariant with addition, with

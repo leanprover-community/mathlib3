@@ -58,7 +58,7 @@ lemma ae_inf_principal_eq_mk {s} (h : ae_measurable f (μ.restrict s)) :
 le_ae_restrict h.ae_eq_mk
 
 @[measurability]
-lemma sum_measure [encodable ι] {μ : ι → measure α} (h : ∀ i, ae_measurable f (μ i)) :
+lemma sum_measure [countable ι] {μ : ι → measure α} (h : ∀ i, ae_measurable f (μ i)) :
   ae_measurable f (sum μ) :=
 begin
   nontriviality β, inhabit β,
@@ -87,7 +87,7 @@ begin
     exact λ h, hx (mem_Inter.1 h i) }
 end
 
-@[simp] lemma _root_.ae_measurable_sum_measure_iff [encodable ι] {μ : ι → measure α} :
+@[simp] lemma _root_.ae_measurable_sum_measure_iff [countable ι] {μ : ι → measure α} :
   ae_measurable f (sum μ) ↔ ∀ i, ae_measurable f (μ i) :=
 ⟨λ h i, h.mono_measure (le_sum _ _), sum_measure⟩
 
@@ -101,11 +101,11 @@ lemma add_measure {f : α → β} (hμ : ae_measurable f μ) (hν : ae_measurabl
 ae_measurable_add_measure_iff.2 ⟨hμ, hν⟩
 
 @[measurability]
-protected lemma Union [encodable ι] {s : ι → set α} (h : ∀ i, ae_measurable f (μ.restrict (s i))) :
+protected lemma Union [countable ι] {s : ι → set α} (h : ∀ i, ae_measurable f (μ.restrict (s i))) :
   ae_measurable f (μ.restrict (⋃ i, s i)) :=
 (sum_measure h).mono_measure $ restrict_Union_le
 
-@[simp] lemma _root_.ae_measurable_Union_iff [encodable ι] {s : ι → set α} :
+@[simp] lemma _root_.ae_measurable_Union_iff [countable ι] {s : ι → set α} :
   ae_measurable f (μ.restrict (⋃ i, s i)) ↔ ∀ i, ae_measurable f (μ.restrict (s i)) :=
 ⟨λ h i, h.mono_measure $ restrict_mono (subset_Union _ _) le_rfl, ae_measurable.Union⟩
 

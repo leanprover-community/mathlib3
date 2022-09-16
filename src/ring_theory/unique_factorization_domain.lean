@@ -250,7 +250,7 @@ lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
 ⟨begin
   classical,
   refine rel_hom_class.well_founded
-    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : with_top ℕ → with_top ℕ → Prop))
+    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : ℕ∞ → ℕ∞ → Prop))
     (with_top.well_founded_lt nat.lt_wf),
   { intro a,
     by_cases h : a = 0, { exact ⊤ },
@@ -602,6 +602,15 @@ begin
   { rw [← (normalized_factors_prod hx).dvd_iff_dvd_left,
       ← (normalized_factors_prod hy).dvd_iff_dvd_right],
     apply multiset.prod_dvd_prod_of_le }
+end
+
+lemma associated_iff_normalized_factors_eq_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  x ~ᵤ y ↔ normalized_factors x = normalized_factors y :=
+begin
+  refine ⟨λ h, _,
+    λ h, (normalized_factors_prod hx).symm.trans (trans (by rw h) (normalized_factors_prod hy))⟩,
+  apply le_antisymm; rw [← dvd_iff_normalized_factors_le_normalized_factors],
+  all_goals { simp [*, h.dvd, h.symm.dvd], },
 end
 
 theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
@@ -1672,10 +1681,8 @@ by { ext, simp [factorization] }
 lemma associated_of_factorization_eq (a b: α) (ha: a ≠ 0) (hb: b ≠ 0)
   (h: factorization a = factorization b) : associated a b :=
 begin
-  simp only [factorization, add_equiv.apply_eq_iff_eq] at h,
-  have ha' := normalized_factors_prod ha,
-  rw h at ha',
-  exact associated.trans ha'.symm (normalized_factors_prod hb),
+  simp_rw [factorization, add_equiv.apply_eq_iff_eq] at h,
+  rwa [associated_iff_normalized_factors_eq_normalized_factors ha hb],
 end
 
 end finsupp

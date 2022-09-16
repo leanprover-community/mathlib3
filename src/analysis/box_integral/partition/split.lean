@@ -258,7 +258,7 @@ end
 
 section fintype
 
-variable [fintype ι]
+variable [finite ι]
 
 /-- Let `s` be a finite set of boxes in `ℝⁿ = ι → ℝ`. Then there exists a finite set `t₀` of
 hyperplanes (namely, the set of all hyperfaces of boxes in `s`) such that for any `t ⊇ t₀`
@@ -269,6 +269,7 @@ lemma eventually_not_disjoint_imp_le_of_mem_split_many (s : finset (box ι)) :
   ∀ᶠ t : finset (ι × ℝ) in at_top, ∀ (I : box ι) (J ∈ s) (J' ∈ split_many I t),
     ¬disjoint (J : with_bot (box ι)) J' → J' ≤ J :=
 begin
+  casesI nonempty_fintype ι,
   refine eventually_at_top.2
     ⟨s.bUnion (λ J, finset.univ.bUnion (λ i, {(i, J.lower i), (i, J.upper i)})),
       λ t ht I J hJ J' hJ', not_disjoint_imp_le_of_subset_of_mem_split_many (λ i, _) hJ'⟩,

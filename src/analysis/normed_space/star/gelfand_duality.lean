@@ -29,9 +29,9 @@ and even an equivalence between C⋆-algebras.
 
 * `spectrum.gelfand_transform_eq` : the Gelfand transform is spectrum-preserving when the algebra is
   a commutative complex Banach algebra.
-* `gelfand_transform_isometry` : the Gefland transform is an isometry when the algebra is a
+* `gelfand_transform_isometry` : the Gelfand transform is an isometry when the algebra is a
   commutative (unital) C⋆-algebra over `ℂ`.
-* `gelfand_transform_surjective` : the Gefland transform is surjective when the algebra is a
+* `gelfand_transform_bijective` : the Gelfand transform is bijective when the algebra is a
   commutative (unital) C⋆-algebra over `ℂ`.
 
 ## TODO
@@ -71,7 +71,7 @@ character_space.equiv_alg_hom.symm $ ((@normed_ring.alg_equiv_complex_of_complet
   A ⧸ I →ₐ[ℂ] ℂ).comp
   (quotient.mkₐ ℂ I)
 
-lemma ideal.to_character_space_apply_zero_of_mem {a : A} (ha : a ∈ I) :
+lemma ideal.to_character_space_apply_eq_zero_of_mem {a : A} (ha : a ∈ I) :
   I.to_character_space a = 0 :=
 begin
   unfold ideal.to_character_space,
@@ -87,7 +87,7 @@ lemma weak_dual.character_space.exists_apply_eq_zero {a : A} (ha : ¬ is_unit a)
   ∃ f : character_space ℂ A, f a = 0 :=
 begin
   unfreezingI { obtain ⟨M, hM, haM⟩ := (span {a}).exists_le_maximal (span_singleton_ne_top ha) },
-  exact ⟨M.to_character_space, M.to_character_space_apply_zero_of_mem
+  exact ⟨M.to_character_space, M.to_character_space_apply_eq_zero_of_mem
     (haM (mem_span_singleton.mpr ⟨1, (mul_one a).symm⟩))⟩,
 end
 
@@ -121,7 +121,7 @@ begin
   refine add_monoid_hom_class.isometry_of_norm (gelfand_transform ℂ A) (λ a, _),
   have gt_map_star : gelfand_transform ℂ A (star a) = star (gelfand_transform ℂ A a),
     from continuous_map.ext (λ φ, map_star φ a),
-  /- by `spectrum.gelfand_transform_eq`, the spectra of `star a * a` and its
+  /- By `spectrum.gelfand_transform_eq`, the spectra of `star a * a` and its
   `gelfand_transform` coincide. Therefore, so do their spectral radii, and since they are
   self-adjoint, so also do their norms. Applying the C⋆-property of the norm and taking square
   roots shows that the norm is preserved. -/
@@ -133,9 +133,10 @@ begin
     using congr_arg ((coe : ℝ≥0 → ℝ) ∘ ⇑nnreal.sqrt) this,
 end
 
-/-- The Gelfand transform is surjective when the algebra is a C⋆-algebra over `ℂ`. -/
-lemma gelfand_transform_surjective : function.surjective (gelfand_transform ℂ A) :=
+/-- The Gelfand transform is bijective when the algebra is a C⋆-algebra over `ℂ`. -/
+lemma gelfand_transform_bijective : function.bijective (gelfand_transform ℂ A) :=
 begin
+  refine ⟨(gelfand_transform_isometry A).injective, _⟩,
   suffices : (gelfand_transform ℂ A).range = ⊤,
   { exact λ x, this.symm ▸ (gelfand_transform ℂ A).mem_range.mp (this.symm ▸ algebra.mem_top) },
   /- Because the `gelfand_transform ℂ A` is an isometry, it has closed range, and so by the

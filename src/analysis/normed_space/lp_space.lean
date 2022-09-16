@@ -519,7 +519,9 @@ begin
       { exact (tsum_nonneg $ λ _, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) }}},
 end
 
-def non_standard_normed_group_lp : normed_add_comm_group (lp E p) :=
+-- `[FAE]` I believe that with the non-standard norm, ℓ^p(E) is not a normed group when `1 ≤ p`
+-- because the triangle inequality is not satisfied.
+def non_standard_normed_group_lp (H : p < 1) : normed_add_comm_group (lp E p) :=
 normed_add_comm_group.of_core _
 { norm_eq_zero_iff :=
   begin
@@ -538,14 +540,17 @@ normed_add_comm_group.of_core _
      },
     { by_cases hp : fact (1 ≤ p),
       unfreezingI {rcases p.dichotomy with rfl | hp'},
-    { casesI is_empty_or_nonempty α,
-      { simp [lp.eq_zero' f] },
-      refine (lp.is_lub_norm (f + g)).2 _,
-      rintros x ⟨i, rfl⟩,
-      refine le_trans _ (add_mem_upper_bounds_add (lp.is_lub_norm f).1 (lp.is_lub_norm g).1
-        ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
-      exact norm_add_le (f i) (g i) },
-    { sorry, -- `[FAE]` the case `1 ≤ p`, but translated in the non-standard norm.
+    { sorry, --exfalso H,
+      -- casesI is_empty_or_nonempty α,
+      -- { simp [lp.eq_zero' f] },
+      -- refine (lp.is_lub_norm (f + g)).2 _,
+      -- rintros x ⟨i, rfl⟩,
+      -- refine le_trans _ (add_mem_upper_bounds_add (lp.is_lub_norm f).1 (lp.is_lub_norm g).1
+      --   ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
+      -- exact norm_add_le (f i) (g i)
+      },
+    { --exfalso H hp'
+      sorry, -- `[FAE]` the case `1 ≤ p`, but translated in the non-standard norm.
       -- have := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
       -- simp only [norm_eq_pow_standard_norm this.1 this.2],
       -- have ineq := nnreal.add_rpow_le_rpow_add,
@@ -564,17 +569,19 @@ normed_add_comm_group.of_core _
       },
       { have this := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
         simp only [norm_eq_pow_standard_norm this.1 this.2],
-        have tempu : p.to_real ≤ 1, sorry,
-        have tempz : 0 ≤ p.to_real, sorry,
-        let F : ℝ≥0 := ⟨@has_norm.norm _ lp.has_norm f, norm_nonneg' _ ⟩,
-        let G : ℝ≥0 := ⟨@has_norm.norm _ lp.has_norm g, norm_nonneg' _ ⟩,
-        have due := nnreal.rpow_add_le_add_rpow F G tempz tempu,
-        simp only [← nnreal.coe_le_coe, nnreal.coe_rpow, subtype.coe_mk, nonneg.coe_add] at due,
-        refine le_trans (real.rpow_le_rpow (norm_nonneg' _) _ tempz) due,
-        sorry,--this is just `triangle` for the usual norm
-      },
-    -- `[FAE]` the case `p ≤ 1`.
-      },
+        have h₀ : 0 ≤ p.to_real, sorry,
+        replace H : p.to_real < 1, sorry,
+        simp only [norm_rpow_eq_tsum h_pos],
+        rw ← tsum_add,
+        apply tsum_le_tsum,
+        { intro i,
+          have := nnreal.rpow_add_le_add_rpow ⟨∥f i∥, norm_nonneg _⟩ ⟨∥g i∥, norm_nonneg _⟩ h₀
+            (le_of_lt H),
+          exact (real.rpow_le_rpow (norm_nonneg $ (f + g) i) (norm_add_le _ _) h₀).trans this },
+        swap,
+        apply summable.add,
+        all_goals {exact (lp.mem_ℓp _).summable h_pos},
+      }},
   end,
   norm_neg :=
   begin

@@ -2035,18 +2035,14 @@ lemma disjoint_map {m : α → β} (hm : injective m) {f₁ f₂ : filter α} :
   disjoint (map m f₁) (map m f₂) ↔ disjoint f₁ f₂ :=
 by simp only [disjoint_iff, ← map_inf hm, map_eq_bot_iff]
 
-lemma map_eq_comap_of_inverse {f : filter α} {m : α → β} {n : β → α}
-  (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = comap n f :=
-le_antisymm
-  (λ b ⟨a, ha, (h : preimage n a ⊆ b)⟩, f.sets_of_superset ha $
-    calc a = preimage (n ∘ m) a : by simp only [h₂, preimage_id, eq_self_iff_true]
-      ... ⊆ preimage m b : preimage_mono h)
-  (λ b (hb : preimage m b ∈ f),
-    ⟨preimage m b, hb, show preimage (m ∘ n) b ⊆ b, by simp only [h₁]; apply subset.refl⟩)
-
 lemma map_equiv_symm (e : α ≃ β) (f : filter β) :
   map e.symm f = comap e f :=
-map_eq_comap_of_inverse e.symm_comp_self e.self_comp_symm
+map_injective e.injective $ by rw [map_map, e.self_comp_symm, map_id,
+  map_comap_of_surjective e.surjective]
+
+lemma map_eq_comap_of_inverse {f : filter α} {m : α → β} {n : β → α}
+  (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = comap n f :=
+map_equiv_symm ⟨n, m, congr_fun h₁, congr_fun h₂⟩ f
 
 lemma comap_equiv_symm (e : α ≃ β) (f : filter α) :
   comap e.symm f = map e f :=

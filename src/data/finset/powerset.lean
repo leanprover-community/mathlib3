@@ -195,15 +195,17 @@ begin
   simp [card_insert_of_not_mem this, nat.succ_inj']
 end
 
-lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n < s.card) :
+lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n ≤ s.card) :
   (powerset_len n s).nonempty :=
 begin
   classical,
   induction s using finset.induction_on with x s hx IH generalizing n,
-  { simpa using h },
+  { rw [card_empty, le_zero_iff] at h,
+    rw [h, powerset_len_zero],
+    exact finset.singleton_nonempty _,  },
   { cases n,
     { simp },
-    { rw [card_insert_of_not_mem hx, nat.succ_lt_succ_iff] at h,
+    { rw [card_insert_of_not_mem hx, nat.succ_le_succ_iff] at h,
       rw powerset_len_succ_insert hx,
       refine nonempty.mono _ ((IH h).image (insert x)),
       convert (subset_union_right _ _) } }
@@ -247,7 +249,8 @@ begin
       { refine ⟨insert x t, _, mem_insert_self _ _⟩,
         rw [←insert_erase hx, powerset_len_succ_insert (not_mem_erase _ _)],
         exact mem_union_right _ (mem_image_of_mem _ ht) },
-      { rwa [card_erase_of_mem hx, lt_tsub_iff_right] } } }
+      { rw [card_erase_of_mem hx],
+        exact nat.le_pred_of_lt hn, } } }
 end
 
 @[simp]

@@ -12,7 +12,7 @@ import ring_theory.algebra_tower
 # Kummer-Dedekind theorem
 
 This file proves the monogenic version of the Kummer-Dedekind theorem on the splitting of prime
-ideals in an extension of the ring of integers.This states that if `I` is a prime ideal of
+ideals in an extension of the ring of integers. This states that if `I` is a prime ideal of
 Dedekind domain `R` and `S = R[α]` for some `α` that is integral over `R` with minimal polynomial
 `f`, then the prime factorisations of `I * S` and `f mod I` have the same shape, i.e. they have the
 same number of prime factors, and each prime factors of `I * S` can be paired with a prime factor of
@@ -21,8 +21,9 @@ with a formula).
 
 ## Main definitions
 
- * `factors_equiv'` : The bijection in the Kummer-Dedekind theorem. This is the pairing beteen the
-      prime factors of `I * S` and the prime factors of `f mod I`.
+ * `normalized_factors_map_equiv_normalized_factors_min_poly_mk` : The bijection in the
+    Kummer-Dedekind theorem. This is the pairing between the prime factors of `I * S` and the prime
+    factors of `f mod I`.
 
 ## Main results
 
@@ -41,6 +42,7 @@ with a formula).
  * Prove that `normalized_factors_map_equiv_normalized_factors_min_poly_mk` can be expressed as
     `normalized_factors_map_equiv_normalized_factors_min_poly_mk g = ⟨I, G(α)⟩` for `g` a prime
     factor of `f mod I` and `G` a lift of `g` to `R[X]`.
+
 ## References
 
  * [J. Neukirch, *Algebraic Number Theory*][Neukirch1992]

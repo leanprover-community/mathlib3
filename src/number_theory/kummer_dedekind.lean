@@ -15,8 +15,8 @@ This file proves the monogenic version of the Kummer-Dedekind theorem on the spl
 ideals in an extension of the ring of integers. This states that if `I` is a prime ideal of
 Dedekind domain `R` and `S = R[α]` for some `α` that is integral over `R` with minimal polynomial
 `f`, then the prime factorisations of `I * S` and `f mod I` have the same shape, i.e. they have the
-same number of prime factors, and each prime factors of `I * S` can be paired with a prime factor of
-`f mod I` in a way that ensures multiplicities match (in fact, this pairing can be made explicit
+same number of prime factors, and each prime factors of `I * S` can be paired with a prime factor
+of `f mod I` in a way that ensures multiplicities match (in fact, this pairing can be made explicit
 with a formula).
 
 ## Main definitions
@@ -64,7 +64,7 @@ variables (pb : power_basis R S) {I : ideal R}
 
 local attribute [instance] ideal.quotient.field
 
-variables [is_domain R] [is_dedekind_domain R]
+variables [is_domain R]
 
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the prime
     factors of `I*S` are in bijection with those of the minimal polynomial of the generator of `S`

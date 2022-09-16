@@ -290,7 +290,7 @@ to_End_injective.add_comm_group _ to_End_zero to_End_add to_End_neg to_End_sub
 @[simp, norm_cast] lemma to_End_int_cast (z : ℤ) : (z : centroid_hom α).to_End = ↑z := rfl
 
 instance : ring (centroid_hom α) := to_End_injective.ring _ to_End_zero to_End_one
-  to_End_add  to_End_mul to_End_neg to_End_sub to_End_nsmul to_End_zsmul
+  to_End_add to_End_mul to_End_neg to_End_sub to_End_nsmul to_End_zsmul
   to_End_pow to_End_nat_cast to_End_int_cast
 
 end non_unital_non_assoc_ring

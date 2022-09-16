@@ -101,7 +101,7 @@ begin
     right_inv := λ _, rfl,
     map_mul' := λ _ _, rfl,
     map_add' := λ _ _, rfl,
-    commutes' := λ _, rfl },
+    map_smul' := λ _ _, rfl },
   have H : is_integral F α := is_galois.integral F α,
   have h_sep : (minpoly F α).separable := is_galois.separable F α,
   have h_splits : (minpoly F α).splits (algebra_map F E) := is_galois.splits F α,
@@ -191,7 +191,10 @@ lemma le_iff_le : K ≤ fixed_field H ↔ H ≤ fixing_subgroup K :=
 
 /-- The fixing_subgroup of `K : intermediate_field F E` is isomorphic to `E ≃ₐ[K] E` -/
 def fixing_subgroup_equiv : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
-{ to_fun := λ ϕ, { commutes' := ϕ.mem, ..alg_equiv.to_ring_equiv ↑ϕ },
+{ to_fun := λ ϕ,
+  { map_smul' := alg_equiv.map_smul_of_map_mul_of_commutes (by simpa only [ring_equiv.to_fun_eq_coe]
+      using map_mul _) ϕ.mem,
+    ..alg_equiv.to_ring_equiv ↑ϕ },
   inv_fun := λ ϕ, ⟨ϕ.restrict_scalars _, ϕ.commutes⟩,
   left_inv := λ _, by { ext, refl },
   right_inv := λ _, by { ext, refl },
@@ -379,9 +382,10 @@ begin
   suffices : P (intermediate_field.adjoin F ↑s),
   { rw adjoin_root at this,
     apply of_card_aut_eq_finrank,
-    rw ← eq.trans this (linear_equiv.finrank_eq intermediate_field.top_equiv.to_linear_equiv),
+    rw ← eq.trans this (linear_equiv.finrank_eq $
+      alg_equiv.to_linear_equiv intermediate_field.top_equiv),
     exact fintype.card_congr ((alg_equiv_equiv_alg_hom F E).to_equiv.trans
-      (intermediate_field.top_equiv.symm.arrow_congr alg_equiv.refl)) },
+      ((@intermediate_field.top_equiv F _ E _ _).symm.arrow_congr alg_equiv.refl)) },
   apply intermediate_field.induction_on_adjoin_finset s P,
   { have key := intermediate_field.card_alg_hom_adjoin_integral F
       (show is_integral F (0 : E), by exact is_integral_zero),

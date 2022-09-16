@@ -37,7 +37,7 @@ by the universal cover of the classifying space of `G`. We prove this `G`-set is
  * `group_cohomology.resolution.of_mul_action_basis`
  * `classifying_space_universal_cover`
  * `classifying_space_universal_cover.cech_nerve_iso`
- * `group_cohomology.resolution.standard_resolution`
+ * `group_cohomology.resolution`
 
 ## TODO
 
@@ -260,7 +260,7 @@ wide_pullback_shape.wide_cospan default (λ (i : fin (m.unop.len + 1)), Action.o
   (λ i, ⟨λ x, punit.star, λ g, rfl⟩)
 
 /-- The `G-Set` `Gᵐ⁺¹` (with the diagonal action) is the vertex of a cone on `wide_cospan G m`. -/
-def cone : cone (wide_cospan G m) :=
+def wide_cospan.cone : cone (wide_cospan G m) :=
 { X := Action.of_mul_action G (fin (m.unop.len + 1) → G),
   π :=
   { app := λ X, option.cases_on X (⟨λ x, punit.star, λ g, rfl⟩)
@@ -268,7 +268,7 @@ def cone : cone (wide_cospan G m) :=
     naturality' := λ X Y f, by { cases f, cases X, obviously }}}
 
 /-- The cone on `wide_cospan G m` with `Gᵐ⁺¹` as a vertex is a limit. -/
-def is_limit : is_limit (cone G m) :=
+def wide_cospan.is_limit : is_limit (wide_cospan.cone G m) :=
 { lift := λ s,
   { hom := λ x j, (s.π.app (some j)).hom x,
     comm' := λ g, by ext; convert congr_fun ((s.π.app (some j)).comm' g) i },
@@ -277,13 +277,13 @@ def is_limit : is_limit (cone G m) :=
 
 instance has_wide_pullback : has_wide_pullback (arrow G).right
   (λ i : fin (m.unop.len + 1), (arrow G).left) (λ i, (arrow G).hom) :=
-⟨⟨⟨cone G m, is_limit G m⟩⟩⟩
+⟨⟨⟨wide_cospan.cone G m, wide_cospan.is_limit G m⟩⟩⟩
 
 /-- The `m`th object of the Čech nerve of the `G`-set hom `G ⟶ {pt}` is isomorphic to `Gᵐ⁺¹` with
 the diagonal action. -/
 def cech_nerve_obj_iso :
   (cech_nerve (arrow G)).obj m ≅ Action.of_mul_action G (fin (m.unop.len + 1) → G) :=
-is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (is_limit G m)
+is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (wide_cospan.is_limit G m)
 
 /-- The Čech nerve of the `G`-set hom `G ⟶ {pt}` is naturally isomorphic to `EG`, the universal
 cover of the classifying space of `G` as a simplicial `G`-set. -/
@@ -294,8 +294,8 @@ def cech_nerve_iso : cech_nerve (arrow G) ≅ classifying_space_universal_cover 
   simp only [category.assoc],
   dsimp,
   rw wide_pullback.lift_π,
-  erw [limit.cone_point_unique_up_to_iso_hom_comp (is_limit G n),
-    limit.cone_point_unique_up_to_iso_hom_comp (is_limit G m)],
+  erw [limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.is_limit G n),
+    limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.is_limit G m)],
   refl,
 end) (by ext)).symm
 
@@ -317,12 +317,16 @@ variables {k G}
     (c ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))) :=
 by simp [d]
 
+end differential
+end group_cohomology.resolution
 variables (k G) [monoid G]
 
 /-- The standard resolution of `k` as a trivial representation, defined as the alternating
 face map complex of a simplicial `k`-linear `G`-representation. -/
-def standard_resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
+def group_cohomology.resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
   (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
+
+namespace group_cohomology.resolution
 
 /- Leaving this here for now - not sure it should exist or where it should go. Everything I tried
 to avoid this lemma was messy or gave me weird errors. -/
@@ -332,18 +336,17 @@ algebra_map_smul k r x
 
 /-- The `n`th object of the standard resolution of `k` is definitionally isomorphic to `k[Gⁿ⁺¹]`
 equipped with the representation induced by the diagonal action of `G`. -/
-def standard_resolution_X (n : ℕ) :
-  (standard_resolution k G).X n ≅ Rep.of_mul_action k G (fin (n + 1) → G) := iso.refl _
+def X_iso (n : ℕ) :
+  (group_cohomology.resolution k G).X n ≅ Rep.of_mul_action k G (fin (n + 1) → G) := iso.refl _
 
 /-- Simpler expression for the differential in the standard resolution of `k` as a
 `G`-representation. It sends `(g₀, ..., gₙ₊₁) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ₊₁)`. -/
-theorem standard_resolution_d (n : ℕ) :
-  ((standard_resolution k G).d (n + 1) n).hom = d k G (n + 1) :=
+theorem d_eq (n : ℕ) :
+  ((group_cohomology.resolution k G).d (n + 1) n).hom = d k G (n + 1) :=
 begin
   ext x y,
-  dsimp [standard_resolution],
+  dsimp [group_cohomology.resolution],
   simpa [←@int_cast_smul k, simplicial_object.δ],
 end
 
-end differential
 end group_cohomology.resolution

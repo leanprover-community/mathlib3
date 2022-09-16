@@ -84,23 +84,23 @@ noncomputable def linearization :
 
 variables {k G}
 
-@[simp] lemma linearization_obj_def (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V →₀ k) :
+@[simp] lemma linearization_obj_ρ (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V →₀ k) :
   ((linearization k G).1.1.obj X).ρ g x = finsupp.lmap_domain k k (X.ρ g) x := rfl
 
 @[simp] lemma linearization_of (X : Action (Type u) (Mon.of G)) (g : G) (x : X.V) :
   ((linearization k G).1.1.obj X).ρ g (finsupp.single x (1 : k))
     = finsupp.single (X.ρ g x) (1 : k) :=
-by rw [linearization_obj_def, finsupp.lmap_domain_apply, finsupp.map_domain_single]
+by rw [linearization_obj_ρ, finsupp.lmap_domain_apply, finsupp.map_domain_single]
 
 variables (X Y : Action (Type u) (Mon.of G)) (f : X ⟶ Y)
 
-@[simp] lemma linearization_map_def :
+@[simp] lemma linearization_map_hom :
   ((linearization k G).1.1.map f).hom = finsupp.lmap_domain k k f.hom := rfl
 
-lemma linearization_map_of (x : X.V) :
+lemma linearization_map_hom_of (x : X.V) :
   ((linearization k G).1.1.map f).hom (finsupp.single x (1 : k))
     = finsupp.single (f.hom x) (1 : k) :=
-by rw [linearization_map_def, finsupp.lmap_domain_apply, finsupp.map_domain_single]
+by rw [linearization_map_hom, finsupp.lmap_domain_apply, finsupp.map_domain_single]
 
 variables (k G)
 

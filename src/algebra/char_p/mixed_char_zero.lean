@@ -89,12 +89,13 @@ begin
     begin
       have q_zero := congr_arg (ideal.quotient.factor I M h_IM) (char_p.cast_eq_zero (R ⧸ I) q),
       simp only [map_nat_cast, map_zero] at q_zero,
-      apply ne_zero_of_dvd_ne_zero q_mixed_char.p_pos,
+      apply ne_zero_of_dvd_ne_zero (nat.prime.ne_zero q_prime),
       exact (char_p.cast_eq_zero_iff (R ⧸ M) r q).mp q_zero
     end,
     have r_prime : nat.prime r :=
       or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
     apply h r r_prime,
+    haveI : char_zero R := q_mixed_char.to_char_zero,
     exact
     ⟨ r_pos,
       begin

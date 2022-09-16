@@ -65,7 +65,7 @@ def seminorm_from_const_seq (x : R) : ℕ → ℝ :=
 lemma seminorm_from_const_nonneg (x : R) (n : ℕ) : 0 ≤ seminorm_from_const_seq c f x n :=
 div_nonneg (map_nonneg f (x * c ^ n)) (pow_nonneg (map_nonneg f c) n)
 
-lemma seminorm_from_const_is_bounded (x : R) :
+lemma seminorm_from_const_is_bdd_below (x : R) :
   bdd_below (set.range (seminorm_from_const_seq c f x)) :=
 begin
   use 0,
@@ -127,9 +127,7 @@ omit hc hpm hf1
 variables (f c)
 
 /-- The limit of the sequence `seminorm_from_const`. -/
-def seminorm_from_const_seq_lim (x : R) : ℝ :=
-classical.some (real.exists_is_glb (set.range_nonempty (seminorm_from_const_seq c f x))
-  (seminorm_from_const_is_bounded c f x))
+def seminorm_from_const_seq_lim (x : R) : ℝ := ⨅ n, seminorm_from_const_seq c f x n
 
 /-- The real-valued function sending `x ∈ R` to the limit of `(f (x * c^n))/((f c)^n)`. -/
 def seminorm_from_const_def : R → ℝ := λ x, seminorm_from_const_seq_lim c f x
@@ -142,8 +140,7 @@ lemma seminorm_from_const_seq_lim_is_limit (x : R) :
   filter.tendsto ((seminorm_from_const_seq c f x)) filter.at_top
     (𝓝 (seminorm_from_const_seq_lim c f x)) :=
 tendsto_at_top_is_glb (seminorm_from_const_seq_antitone hf1 hc hpm x)
-  (classical.some_spec ((real.exists_is_glb (set.range_nonempty (seminorm_from_const_seq c f x))
-    (seminorm_from_const_is_bounded c f x))))
+  (is_glb_cinfi (seminorm_from_const_is_bdd_below c f x))
 
 lemma seminorm_from_const_zero : seminorm_from_const_def c f 0 = 0 :=
 tendsto_nhds_unique (seminorm_from_const_seq_lim_is_limit hf1 hc hpm 0)

@@ -1,0 +1,63 @@
+name: Ping maintainers on Zulip when comment contains "maintainer merge"
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  ping_zulip:
+    name: Ping maintainers on Zulip
+    if: (toJSON(github.event.issue.pull_request) != 'null') && (startsWith(github.event.comment.body, 'maintainer merge') || contains(toJSON(github.event.comment.body), '\r\nmaintainer merge'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2.x
+        name: Get PR head
+        id: get_pr_head
+        with:
+          route: GET /repos/:repository/pulls/:pull_number
+          repository: ${{ github.repository }}
+          pull_number: ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Parse steps.get_pr_head.outputs.data, since it is a string
+      - id: parse_pr_head
+        name: Parse PR head
+        uses: gr2m/get-json-paths-action@v1.x
+        with:
+          json: ${{ steps.get_pr_head.outputs.data }}
+          head_user: 'head.user.login'
+
+      # we skip the rest if this PR is from a fork,
+      # since the GITHUB_TOKEN doesn't have write perms
+      - if: steps.parse_pr_head.outputs.head_user == 'leanprover-community'
+        uses: octokit/request-action@v2.x
+        name: Get comment author
+        id: get_user
+        with:
+          route: GET /repos/:repository/collaborators/:username/permission
+          repository: ${{ github.repository }}
+          username: ${{ github.event.comment.user.login }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Parse steps.get_user.outputs.data, since it is a string
+      - if: steps.parse_pr_head.outputs.head_user == 'leanprover-community'
+        id: parse_user
+        name: Parse comment author permission
+        uses: gr2m/get-json-paths-action@v1.x
+        with:
+          json: ${{ steps.get_user.outputs.data }}
+          permission: 'permission'
+
+      - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community') && (steps.parse_user.outputs.permission == 'admin')
+        name: Send message on Zulip
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: 'username@example.com'
+          organization-url: 'https://leanprover.zulipchat.com'
+          to: 'mathlib maintainers'
+          type: 'stream'
+          topic: 'maintainer merge'
+          content: ${{ github.event.issue.number }}

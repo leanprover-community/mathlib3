@@ -1124,19 +1124,15 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
 variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
 /-- Casting a power series as a Hahn series with coefficients from an `ordered_semiring`
   is an algebra homomorphism. -/
-@[simps] def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=
-begin
-  let bar := (@to_power_series_alg R _ A _ _).symm.to_alg_hom,
-  let foo := (hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
-  (λ (_ : ℕ) _, nat.cast_le) : hahn_series ℕ A →ₐ[R] hahn_series Γ A),
-  refine alg_hom.comp foo bar,
-end
-#exit
-/-
+def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=
 (hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
   (λ _ _, nat.cast_le)).comp
-  (alg_equiv.to_alg_hom (@to_power_series_alg R _ A _ _).symm)
-  -/
+  (alg_equiv.to_alg_hom (to_power_series_alg R).symm)
+
+lemma hahn_series.of_power_series_alg_apply_coeff (f : power_series A) (x : Γ) :
+  (hahn_series.of_power_series_alg Γ R f).coeff x =
+  dite (∃ (a : ℕ), ¬power_series.coeff A a f = 0 ∧ ↑a = x)
+  (λ h, (power_series.coeff A (classical.some h)) f) (λ _, 0) := rfl
 
 instance power_series_algebra {S : Type*} [comm_semiring S] [algebra S (power_series R)] :
   algebra S (hahn_series Γ R) :=

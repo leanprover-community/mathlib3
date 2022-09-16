@@ -328,8 +328,6 @@ lemma integrable_process (μ : measure Ω) [is_finite_measure μ]
   integrable (process s n) μ :=
 integrable_finset_sum' _ $ λ k hk, integrable_on.indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
 
-variables [is_finite_measure μ]
-
 end borel_cantelli
 
 open borel_cantelli
@@ -359,8 +357,8 @@ end
 
 /-- An a.e. monotone adapted process `f` with uniformly bounded differences converges to `+∞` if
 and only if its predictable part also coverges to `+∞`. -/
-lemma tendsto_sum_indicator_at_top_iff
-  [is_finite_measure μ] (hfmono : ∀ᵐ ω ∂μ, ∀ n, f n ω ≤ f (n + 1) ω)
+lemma tendsto_sum_indicator_at_top_iff [is_finite_measure μ]
+  (hfmono : ∀ᵐ ω ∂μ, ∀ n, f n ω ≤ f (n + 1) ω)
   (hf : adapted ℱ f) (hint : ∀ n, integrable (f n) μ)
   (hbdd : ∀ᵐ ω ∂μ, ∀ n, |f (n + 1) ω - f n ω| ≤ R) :
   ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top at_top ↔
@@ -394,8 +392,8 @@ end centering
 
 open borel_cantelli
 
-lemma tendsto_sum_indicator_at_top_iff'
-  [is_finite_measure μ] {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
+lemma tendsto_sum_indicator_at_top_iff' [is_finite_measure μ]
+  {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ∀ᵐ ω ∂μ,
     tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : Ω → ℝ) ω) at_top at_top ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)

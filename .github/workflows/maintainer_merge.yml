@@ -50,12 +50,12 @@ jobs:
           json: ${{ steps.get_user.outputs.data }}
           permission: 'permission'
 
-      - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community') && (steps.parse_user.outputs.permission == 'admin')
+      - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community')
         name: Send message on Zulip
         uses: zulip/github-actions-zulip/send-message@v1
         with:
           api-key: ${{ secrets.ZULIP_API_KEY }}
-          email: 'username@example.com'
+          email: 'github-bot@leanprover.zulipchat.com'
           organization-url: 'https://leanprover.zulipchat.com'
           to: 'mathlib maintainers'
           type: 'stream'

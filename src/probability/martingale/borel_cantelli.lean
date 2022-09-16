@@ -332,29 +332,6 @@ end borel_cantelli
 
 open borel_cantelli
 
-section centering
-
-lemma predictable_part_bdd_difference
-  (ℱ : filtration ℕ m0) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
-  ∀ᵐ ω ∂μ, ∀ i, |predictable_part ℱ μ f (i + 1) ω - predictable_part ℱ μ f i ω| ≤ R :=
-begin
-  simp_rw [predictable_part, finset.sum_apply, finset.sum_range_succ_sub_sum],
-  exact ae_all_iff.2 (λ i, ae_bdd_condexp_of_ae_bdd $ ae_all_iff.1 hbdd i),
-end
-
-lemma martingale_part_bdd_difference
-  (ℱ : filtration ℕ m0) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
-  ∀ᵐ ω ∂μ, ∀ i, |martingale_part ℱ μ f (i + 1) ω - martingale_part ℱ μ f i ω| ≤ ↑(2 * R) :=
-begin
-  filter_upwards [hbdd, predictable_part_bdd_difference ℱ hbdd] with ω hω₁ hω₂ i,
-  simp only [two_mul, martingale_part, pi.sub_apply],
-  have : |f (i + 1) ω - predictable_part ℱ μ f (i + 1) ω - (f i ω - predictable_part ℱ μ f i ω)| =
-    |(f (i + 1) ω - f i ω) - (predictable_part ℱ μ f (i + 1) ω - predictable_part ℱ μ f i ω)|,
-  { ring_nf }, -- `ring` suggests `ring_nf` despite proving the goal
-  rw this,
-  exact (abs_sub _ _).trans (add_le_add (hω₁ i) (hω₂ i)),
-end
-
 /-- An a.e. monotone adapted process `f` with uniformly bounded differences converges to `+∞` if
 and only if its predictable part also coverges to `+∞`. -/
 lemma tendsto_sum_indicator_at_top_iff [is_finite_measure μ]
@@ -387,8 +364,6 @@ begin
     exact hω₂ (tendsto_at_bot_add_left_of_ge _ b (λ n, hbdd ⟨n, rfl⟩) $
       tendsto_neg_at_bot_iff.2 ht) },
 end
-
-end centering
 
 open borel_cantelli
 

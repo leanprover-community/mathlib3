@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández
 -/
 import analysis.special_functions.pow
-import analysis.normed.ring.filter
 import analysis.normed.ring.seminorm
+import topology.metric_space.basic
+import topology.algebra.order.monotone_convergence
 
 /-!
 # Smoothing procedures for seminorms

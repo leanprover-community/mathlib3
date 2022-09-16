@@ -43,9 +43,6 @@ begin
 end
 -/
 
--- this exsits in mathlib
-theorem finite.of_fintype {α : set Type*} (h : fintype α) : set.finite α := sorry
-
 
 -- move to `topology.metric_space.basic`
 
@@ -64,14 +61,15 @@ begin
     rw this,
     intros K hK,
     simp [ha, this],
-    apply finite.of_fintype,
+    sorry,
+    -- apply finite.of_fintype,
 
   },
-
-  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
-  simp only [filter.tendsto_at_top, filter.eventually_cofinite, not_le, ← metric.mem_ball],
-  change ∀ r : ℝ, ((λ n : ℤ, n • a) ⁻¹' (metric.ball (0 : ℝ) r)).finite,
-  simp [real.ball_eq_Ioo, set.finite_Ioo],
+  sorry,
+  -- refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
+  -- simp only [filter.tendsto_at_top, filter.eventually_cofinite, not_le, ← metric.mem_ball],
+  -- change ∀ r : ℝ, ((λ n : ℤ, n • a) ⁻¹' (metric.ball (0 : ℝ) r)).finite,
+  -- simp [real.ball_eq_Ioo, set.finite_Ioo],
 end
 
 

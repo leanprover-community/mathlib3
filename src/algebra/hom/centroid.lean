@@ -95,7 +95,7 @@ instance : has_coe_to_fun (centroid_hom α) (λ _, α → α) := fun_like.has_co
 
 @[ext] lemma ext {f g : centroid_hom α} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
-@[simp] lemma coe_to_add_monoid_hom (f : centroid_hom α) : ⇑(f : α →+ α) = f := rfl
+@[simp, norm_cast] lemma coe_to_add_monoid_hom (f : centroid_hom α) : ⇑(f : α →+ α) = f := rfl
 @[simp] lemma to_add_monoid_hom_eq_coe (f : centroid_hom α) : f.to_add_monoid_hom = f := rfl
 
 lemma coe_to_add_monoid_hom_injective : injective (coe : centroid_hom α → α →+ α) :=
@@ -126,9 +126,10 @@ protected def id : centroid_hom α :=
 
 instance : inhabited (centroid_hom α) := ⟨centroid_hom.id α⟩
 
-@[simp] lemma coe_id : ⇑(centroid_hom.id α) = id := rfl
+@[simp, norm_cast] lemma coe_id : ⇑(centroid_hom.id α) = id := rfl
 
-lemma coe_to_add_monoid_hom_id : (centroid_hom.id α : α →+ α) = add_monoid_hom.id α := rfl
+@[simp, norm_cast] lemma coe_to_add_monoid_hom_id :
+  (centroid_hom.id α : α →+ α) = add_monoid_hom.id α := rfl
 
 variables {α}
 
@@ -140,9 +141,9 @@ def comp (g f : centroid_hom α) : centroid_hom α :=
   map_mul_right' := λ a b, (congr_arg g $ f.map_mul_right' _ _).trans $ g.map_mul_right' _ _,
   .. g.to_add_monoid_hom.comp f.to_add_monoid_hom }
 
-@[simp] lemma coe_comp (g f : centroid_hom α) : ⇑(g.comp f) = g ∘ f := rfl
+@[simp, norm_cast] lemma coe_comp (g f : centroid_hom α) : ⇑(g.comp f) = g ∘ f := rfl
 @[simp] lemma comp_apply (g f : centroid_hom α) (a : α) : g.comp f a = g (f a) := rfl
-@[simp] lemma coe_comp_add_monoid_hom (g f : centroid_hom α) :
+@[simp, norm_cast] lemma coe_comp_add_monoid_hom (g f : centroid_hom α) :
   (g.comp f : α →+ α) = (g : α →+ α).comp f := rfl
 @[simp] lemma comp_assoc (h g f : centroid_hom α) : (h.comp g).comp f = h.comp (g.comp f) := rfl
 @[simp] lemma comp_id (f : centroid_hom α) : f.comp (centroid_hom.id α) = f := ext $ λ a, rfl
@@ -194,10 +195,10 @@ instance has_npow_nat : has_pow (centroid_hom α) ℕ :=
   end,
   ..(f.to_End ^ n : add_monoid.End α) }⟩
 
-@[simp] lemma coe_zero : ⇑(0 : centroid_hom α) = 0 := rfl
-@[simp] lemma coe_one : ⇑(1 : centroid_hom α) = id := rfl
-@[simp] lemma coe_add (f g : centroid_hom α) : ⇑(f + g) = f + g := rfl
-@[simp] lemma coe_mul (f g : centroid_hom α) : ⇑(f * g) = f ∘ g := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : centroid_hom α) = 0 := rfl
+@[simp, norm_cast] lemma coe_one : ⇑(1 : centroid_hom α) = id := rfl
+@[simp, norm_cast] lemma coe_add (f g : centroid_hom α) : ⇑(f + g) = f + g := rfl
+@[simp, norm_cast] lemma coe_mul (f g : centroid_hom α) : ⇑(f * g) = f ∘ g := rfl
 -- Eligible for `dsimp`
 @[simp, nolint simp_nf] lemma coe_nsmul (f : centroid_hom α) (n : ℕ) : ⇑(n • f) = n • f := rfl
 
@@ -220,7 +221,7 @@ coe_to_add_monoid_hom_injective.add_comm_monoid _ to_End_zero to_End_add to_End_
 instance : has_nat_cast (centroid_hom α) :=
 { nat_cast := λ n, n • 1 }
 
-@[simp] lemma coe_nat_cast (n : ℕ) : ⇑(n : centroid_hom α) = n • id := rfl
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ⇑(n : centroid_hom α) = n • id := rfl
 
 lemma nat_cast_apply (n : ℕ) (m : α):
   (n : centroid_hom α) m = n • m := rfl
@@ -267,7 +268,7 @@ instance has_zsmul : has_smul ℤ (centroid_hom α) :=
 instance : has_int_cast (centroid_hom α) :=
 { int_cast := λ z, z • 1 }
 
-@[simp] lemma coe_int_cast (z : ℤ) : ⇑(z : centroid_hom α) = z • id := rfl
+@[simp, norm_cast] lemma coe_int_cast (z : ℤ) : ⇑(z : centroid_hom α) = z • id := rfl
 
 lemma int_cast_apply (z : ℤ) (m : α) :
   (z : centroid_hom α) m = z • m := rfl

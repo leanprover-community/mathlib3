@@ -87,9 +87,12 @@ end
 
 This is an auxiliary definition for the equivalence `matrix.to_bilin_form'`. -/
 def bilin_form.to_matrix_aux (b : n → M₂) : bilin_form R₂ M₂ →ₗ[R₂] matrix n n R₂ :=
-{ to_fun := λ B i j, B (b i) (b j),
+{ to_fun := λ B, of $ λ i j, B (b i) (b j),
   map_add' := λ f g, rfl,
   map_smul' := λ f g, rfl }
+
+@[simp] lemma bilin_form.to_matrix_aux_apply (B : bilin_form R₂ M₂) (b : n → M₂) (i j : n) :
+  bilin_form.to_matrix_aux b B i j = B (b i) (b j) := rfl
 
 variables [fintype n] [fintype o]
 
@@ -97,8 +100,8 @@ lemma to_bilin'_aux_to_matrix_aux [decidable_eq n] (B₂ : bilin_form R₂ (n �
   matrix.to_bilin'_aux (bilin_form.to_matrix_aux (λ j, std_basis R₂ (λ _, R₂) j 1) B₂) = B₂ :=
 begin
   refine ext_basis (pi.basis_fun R₂ n) (λ i j, _),
-  rw [bilin_form.to_matrix_aux, linear_map.coe_mk, pi.basis_fun_apply, pi.basis_fun_apply,
-      matrix.to_bilin'_aux_std_basis]
+  rw [pi.basis_fun_apply, pi.basis_fun_apply, matrix.to_bilin'_aux_std_basis,
+    bilin_form.to_matrix_aux_apply]
 end
 
 section to_matrix'
@@ -115,7 +118,8 @@ def bilin_form.to_matrix' : bilin_form R₂ (n → R₂) ≃ₗ[R₂] matrix n n
 { inv_fun := matrix.to_bilin'_aux,
   left_inv := by convert to_bilin'_aux_to_matrix_aux,
   right_inv := λ M,
-    by { ext i j, simp only [bilin_form.to_matrix_aux, matrix.to_bilin'_aux_std_basis] },
+    by { ext i j, simp only [to_fun_eq_coe, bilin_form.to_matrix_aux_apply,
+      matrix.to_bilin'_aux_std_basis] },
   ..bilin_form.to_matrix_aux (λ j, std_basis R₂ (λ _, R₂) j 1) }
 
 @[simp] lemma bilin_form.to_matrix_aux_std_basis (B : bilin_form R₂ (n → R₂)) :
@@ -187,7 +191,7 @@ begin
     { apply sum_congr rfl,
       rintros j' -,
       simp only [smul_eq_mul, pi.basis_fun_repr, mul_assoc, mul_comm, mul_left_comm,
-                 pi.basis_fun_apply] },
+                 pi.basis_fun_apply, of_apply] },
     { intros, simp only [zero_smul, smul_zero] } },
   { intros, simp only [zero_smul, finsupp.sum_zero] }
 end
@@ -269,7 +273,7 @@ end
 -- Not a `simp` lemma since `bilin_form.to_matrix` needs an extra argument
 lemma bilinear_form.to_matrix_aux_eq (B : bilin_form R₂ M₂) :
   bilin_form.to_matrix_aux b B = bilin_form.to_matrix b B :=
-ext (λ i j, by rw [bilin_form.to_matrix_apply, bilin_form.to_matrix_aux, linear_map.coe_mk])
+ext (λ i j, by rw [bilin_form.to_matrix_apply, bilin_form.to_matrix_aux_apply])
 
 @[simp] lemma bilin_form.to_matrix_symm :
   (bilin_form.to_matrix b).symm = matrix.to_bilin b :=

@@ -80,8 +80,8 @@ open_locale topological_space
 
 namespace continuous_linear_map
 
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F]
 
 lemma measurable_apply₂ [measurable_space E] [opens_measurable_space E]
   [second_countable_topology E] [second_countable_topology (E →L[𝕜] F)]
@@ -93,9 +93,9 @@ end continuous_linear_map
 
 section fderiv
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 variables {f : E → F} (K : set (E →L[𝕜] F))
 
 namespace fderiv_measurable_aux
@@ -378,8 +378,8 @@ is Borel-measurable. -/
 theorem measurable_set_of_differentiable_at_of_is_complete
   {K : set (E →L[𝕜] F)} (hK : is_complete K) :
   measurable_set {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter_Prop,
-         measurable_set.Inter, measurable_set.Union]
+by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter,
+         measurable_set.Union]
 
 variable [complete_space F]
 
@@ -432,7 +432,7 @@ end fderiv
 
 section right_deriv
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 variables {f : ℝ → F} (K : set F)
 
 namespace right_deriv_measurable_aux
@@ -728,8 +728,8 @@ set, is Borel-measurable. -/
 theorem measurable_set_of_differentiable_within_at_Ici_of_is_complete
   {K : set F} (hK : is_complete K) :
   measurable_set {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter_Prop,
-         measurable_set.Inter, measurable_set.Union]
+by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter,
+         measurable_set.Union]
 
 variable [complete_space F]
 

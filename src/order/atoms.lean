@@ -45,7 +45,7 @@ which are lattices with only two elements, and related ideas.
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
   * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
-  * `fintype.to_is_atomic`, `fintype.to_is_coatomic`: Finite partial orders with bottom resp. top
+  * `finite.to_is_atomic`, `finite.to_is_coatomic`: Finite partial orders with bottom resp. top
     are atomic resp. coatomic.
 
 -/
@@ -454,17 +454,6 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
         simp [h] }
     end,
   top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
-  sup_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
-      rcases eq_bot_or_eq_top y with rfl | rfl; simp [bot_ne_top],
-  inf_inf_sdiff := λ x y, begin
-      rcases eq_bot_or_eq_top x with rfl | rfl,
-      { simpa },
-      rcases eq_bot_or_eq_top y with rfl | rfl,
-      { simpa },
-      { simp only [true_and, top_inf_eq, eq_self_iff_true],
-        split_ifs with h h;
-        simpa [h] }
-    end,
   .. (show bounded_order α, by apply_instance),
   .. is_simple_order.distrib_lattice }
 
@@ -647,9 +636,10 @@ lemma is_coatom_iff_is_atom : is_coatom a ↔ is_atom b := hc.symm.is_atom_iff_i
 
 end is_compl
 
-variables [is_complemented α]
+variables [complemented_lattice α]
 
-lemma is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] : is_coatomic α :=
+lemma is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular [is_atomic α] :
+  is_coatomic α :=
 ⟨λ x, begin
   rcases exists_is_compl x with ⟨y, xy⟩,
   apply (eq_bot_or_exists_atom_le y).imp _ _,
@@ -662,12 +652,13 @@ lemma is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] :
     apply ha.Iic }
 end⟩
 
-lemma is_atomic_of_is_coatomic_of_is_complemented_of_is_modular [is_coatomic α] : is_atomic α :=
-is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_is_complemented_of_is_modular
+lemma is_atomic_of_is_coatomic_of_complemented_lattice_of_is_modular [is_coatomic α] :
+  is_atomic α :=
+is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular
 
 theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
-⟨λ h, @is_coatomic_of_is_atomic_of_is_complemented_of_is_modular _ _ _ _ _ h,
-  λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ _ h⟩
+⟨λ h, @is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular _ _ _ _ _ h,
+  λ h, @is_atomic_of_is_coatomic_of_complemented_lattice_of_is_modular _ _ _ _ _ h⟩
 
 end is_modular_lattice
 
@@ -676,11 +667,11 @@ section fintype
 open finset
 
 @[priority 100]  -- see Note [lower instance priority]
-instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] : is_coatomic α :=
+instance finite.to_is_coatomic [partial_order α] [order_top α] [finite α] : is_coatomic α :=
 begin
   refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
   obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
-    (set.finite.of_fintype _) ⟨b, le_rfl, ht⟩,
+    (set.to_finite _) ⟨b, le_rfl, ht⟩,
   refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
   by_contra hyt,
   obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,
@@ -688,7 +679,7 @@ begin
 end
 
 @[priority 100]  -- see Note [lower instance priority]
-instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
-is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
+instance finite.to_is_atomic [partial_order α] [order_bot α] [finite α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.mp finite.to_is_coatomic
 
 end fintype

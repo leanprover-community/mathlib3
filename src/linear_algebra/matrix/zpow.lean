@@ -144,7 +144,7 @@ lemma inv_zpow' {A : M} (h : is_unit A.det) (n : ℤ) :
 by rw [zpow_neg h, inv_zpow]
 
 lemma zpow_add_one {A : M} (h : is_unit A.det) : ∀ n : ℤ, A ^ (n + 1) = A ^ n * A
-| (n : ℕ)        := by simp [← int.coe_nat_succ, pow_succ']
+| (n : ℕ)        := by simp only [← nat.cast_succ, pow_succ', zpow_coe_nat]
 | -((n : ℕ) + 1) :=
 calc  A ^ (-(n + 1) + 1 : ℤ)
     = (A ^ n)⁻¹ : by rw [neg_add, neg_add_cancel_right, zpow_neg h, zpow_coe_nat]
@@ -239,7 +239,7 @@ begin
 end
 
 lemma zpow_add_one_of_ne_neg_one {A : M} : ∀ (n : ℤ), n ≠ -1 → A ^ (n + 1) = A ^ n * A
-| (n : ℕ) _ := by simp [← int.coe_nat_succ, pow_succ']
+| (n : ℕ) _ := by simp only [pow_succ', ← nat.cast_succ, zpow_coe_nat]
 | (-1) h := absurd rfl h
 | (-((n : ℕ) + 2)) _ := begin
   rcases nonsing_inv_cancel_or_zero A with ⟨h, h'⟩ | h,

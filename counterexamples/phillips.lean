@@ -212,7 +212,7 @@ def restrict (f : bounded_additive_measure α) (t : set α) : bounded_additive_m
 /-- There is a maximal countable set of positive measure, in the sense that any countable set
 not intersecting it has nonpositive measure. Auxiliary lemma to prove `exists_discrete_support`. -/
 lemma exists_discrete_support_nonpos (f : bounded_additive_measure α) :
-  ∃ (s : set α), countable s ∧ (∀ t, countable t → f (t \ s) ≤ 0) :=
+  ∃ (s : set α), s.countable ∧ (∀ t : set α, t.countable → f (t \ s) ≤ 0) :=
 begin
   /- The idea of the proof is to construct the desired set inductively, adding at each step a
   countable set with close to maximal measure among those points that have not already been chosen.
@@ -223,46 +223,49 @@ begin
 
   We argue from the start by contradiction, as this means that our inductive construction will
   never be stuck, so we won't have to consider this case separately.
+
+  In this proof, we use explicit coercions `↑s` for `s : A` as otherwise the system tries to find
+  a `has_coe_to_fun` instance on `↥A`, which is too costly.
   -/
   by_contra' h,
   -- We will formulate things in terms of the type of countable subsets of `α`, as this is more
   -- convenient to formalize the inductive construction.
-  let A : set (set α) := {t | countable t},
+  let A : set (set α) := {t | t.countable},
   let empty : A := ⟨∅, countable_empty⟩,
   haveI : nonempty A := ⟨empty⟩,
   -- given a countable set `s`, one can find a set `t` in its complement with measure close to
   -- maximal.
-  have : ∀ (s : A), ∃ (t : A), (∀ (u : A), f (u \ s) ≤ 2 * f (t \ s)),
+  have : ∀ (s : A), ∃ (t : A), (∀ (u : A), f (↑u \ ↑s) ≤ 2 * f (↑t \ ↑s)),
   { assume s,
-    have B : bdd_above (range (λ (u : A), f (u \ s))),
+    have B : bdd_above (range (λ (u : A), f (↑u \ ↑s))),
       { refine ⟨f.C, λ x hx, _⟩,
         rcases hx with ⟨u, hu⟩,
         rw ← hu,
         exact f.le_bound _ },
-    let S := supr (λ (t : A), f (t \ s)),
+    let S := supr (λ (t : A), f (↑t \ ↑s)),
     have S_pos : 0 < S,
     { rcases h s.1 s.2  with ⟨t, t_count, ht⟩,
       apply ht.trans_le,
       let t' : A := ⟨t, t_count⟩,
-      change f (t' \ s) ≤ S,
+      change f (↑t' \ ↑s) ≤ S,
       exact le_csupr B t' },
     rcases exists_lt_of_lt_csupr (half_lt_self S_pos) with ⟨t, ht⟩,
     refine ⟨t, λ u, _⟩,
-    calc f (u \ s) ≤ S : le_csupr B _
+    calc f (↑u \ ↑s) ≤ S : le_csupr B _
       ... = 2 * (S / 2) : by ring
-      ... ≤ 2 * f (t \ s) : mul_le_mul_of_nonneg_left ht.le (by norm_num) },
+      ... ≤ 2 * f (↑t \ ↑s) : mul_le_mul_of_nonneg_left ht.le (by norm_num) },
   choose! F hF using this,
   -- iterate the above construction, by adding at each step a set with measure close to maximal in
   -- the complement of already chosen points. This is the set `s n` at step `n`.
-  let G : A → A := λ u, ⟨u ∪ F u, u.2.union (F u).2⟩,
+  let G : A → A := λ u, ⟨(↑u : set α) ∪ ↑(F u), u.2.union (F u).2⟩,
   let s : ℕ → A := λ n, G^[n] empty,
   -- We will get a contradiction from the fact that there is a countable set `u` with positive
   -- measure in the complement of `⋃ n, s n`.
-  rcases h (⋃ n, s n) (countable_Union (λ n, (s n).2)) with ⟨t, t_count, ht⟩,
-  let u : A := ⟨t \ ⋃ n, s n, t_count.mono (diff_subset _ _)⟩,
-  set ε := f u with hε,
+  rcases h (⋃ n, ↑(s n)) (countable_Union (λ n, (s n).2)) with ⟨t, t_count, ht⟩,
+  let u : A := ⟨t \ ⋃ n, ↑(s n), t_count.mono (diff_subset _ _)⟩,
+  set ε := f (↑u) with hε,
   have ε_pos : 0 < ε := ht,
-  have I1 : ∀ n, ε / 2 ≤ f (s (n+1) \ s n),
+  have I1 : ∀ n, ε / 2 ≤ f (↑(s (n+1)) \ ↑(s n)),
   { assume n,
     rw [div_le_iff' (show (0 : ℝ) < 2, by norm_num), hε],
     convert hF (s n) u using 3,
@@ -271,26 +274,27 @@ begin
       simp only [not_exists, mem_Union, mem_diff],
       tauto },
     { simp only [s, function.iterate_succ', subtype.coe_mk, union_diff_left] } },
-  have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (s n),
+  have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (↑(s n)),
   { assume n,
     induction n with n IH,
     { simp only [s, bounded_additive_measure.empty, id.def, nat.cast_zero, zero_mul,
         function.iterate_zero, subtype.coe_mk], },
-    { have : (s (n+1) : set α) = (s (n+1) \ s n) ∪ s n,
+    { have : (↑(s (n+1)) : set α) = (↑(s (n+1)) \ ↑(s n)) ∪ ↑(s n),
         by simp only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
           union_diff_left],
       rw [nat.succ_eq_add_one, this, f.additive],
       swap, { rw disjoint.comm, apply disjoint_diff },
-      calc ((n + 1) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by ring
-      ... ≤ f ((s (n + 1)) \ (s n)) + f (s n) : add_le_add (I1 n) IH } },
+      calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
+      ... ≤ f (↑(s (n + 1 : ℕ)) \ ↑(s n)) + f (↑(s n)) :
+        add_le_add (I1 n) IH } },
   rcases exists_nat_gt (f.C / (ε / 2)) with ⟨n, hn⟩,
   have : (n : ℝ) ≤ f.C / (ε / 2),
     by { rw le_div_iff (half_pos ε_pos), exact (I2 n).trans (f.le_bound _) },
-  exact lt_irrefl _ (this.trans_lt hn),
+  exact lt_irrefl _ (this.trans_lt hn)
 end
 
 lemma exists_discrete_support (f : bounded_additive_measure α) :
-  ∃ (s : set α), countable s ∧ (∀ t, countable t → f (t \ s) = 0) :=
+  ∃ s : set α, s.countable ∧ (∀ t : set α, t.countable → f (t \ s) = 0) :=
 begin
   rcases f.exists_discrete_support_nonpos with ⟨s₁, s₁_count, h₁⟩,
   rcases (-f).exists_discrete_support_nonpos with ⟨s₂, s₂_count, h₂⟩,
@@ -312,10 +316,10 @@ def discrete_support (f : bounded_additive_measure α) : set α :=
 (exists_discrete_support f).some
 
 lemma countable_discrete_support (f : bounded_additive_measure α) :
-  countable f.discrete_support :=
+  f.discrete_support.countable :=
 (exists_discrete_support f).some_spec.1
 
-lemma apply_countable (f : bounded_additive_measure α) (t : set α) (ht : countable t) :
+lemma apply_countable (f : bounded_additive_measure α) (t : set α) (ht : t.countable) :
   f (t \ f.discrete_support) = 0 :=
 (exists_discrete_support f).some_spec.2 t ht
 
@@ -343,7 +347,7 @@ lemma discrete_part_apply (f : bounded_additive_measure α) (s : set α) :
   f.discrete_part s = f (f.discrete_support ∩ s) := rfl
 
 lemma continuous_part_apply_eq_zero_of_countable (f : bounded_additive_measure α)
-  (s : set α) (hs : countable s) : f.continuous_part s = 0 :=
+  (s : set α) (hs : s.countable) : f.continuous_part s = 0 :=
 begin
   simp [continuous_part],
   convert f.apply_countable s hs using 2,
@@ -352,7 +356,7 @@ begin
 end
 
 lemma continuous_part_apply_diff (f : bounded_additive_measure α)
-  (s t : set α) (hs : countable s) : f.continuous_part (t \ s) = f.continuous_part t :=
+  (s t : set α) (hs : s.countable) : f.continuous_part (t \ s) = f.continuous_part t :=
 begin
   conv_rhs { rw ← diff_union_inter t s },
   rw [additive, self_eq_add_right],
@@ -379,18 +383,18 @@ by applying the functional to the indicator functions. -/
 def _root_.continuous_linear_map.to_bounded_additive_measure
   [topological_space α] [discrete_topology α]
   (f : (α →ᵇ ℝ) →L[ℝ] ℝ) : bounded_additive_measure α :=
-{ to_fun := λ s, f (of_normed_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)),
+{ to_fun := λ s, f (of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)),
   additive' := λ s t hst,
     begin
-      have : of_normed_group_discrete (indicator (s ∪ t) 1) 1 (norm_indicator_le_one (s ∪ t))
-              = of_normed_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)
-              + of_normed_group_discrete (indicator t 1) 1 (norm_indicator_le_one t),
+      have : of_normed_add_comm_group_discrete (indicator (s ∪ t) 1) 1 (norm_indicator_le_one _)
+              = of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)
+              + of_normed_add_comm_group_discrete (indicator t 1) 1 (norm_indicator_le_one t),
         by { ext x, simp [indicator_union_of_disjoint hst], },
       rw [this, f.map_add],
     end,
   exists_bound := ⟨∥f∥, λ s, begin
-    have I : ∥of_normed_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)∥ ≤ 1,
-      by apply norm_of_normed_group_le _ zero_le_one,
+    have I : ∥of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)∥ ≤ 1,
+      by apply norm_of_normed_add_comm_group_le _ zero_le_one,
     apply le_trans (f.le_op_norm _),
     simpa using mul_le_mul_of_nonneg_left I (norm_nonneg f),
   end⟩ }
@@ -410,7 +414,7 @@ lemma to_functions_to_measure [measurable_space α] (μ : measure α) [is_finite
   μ.extension_to_bounded_functions.to_bounded_additive_measure s = (μ s).to_real :=
 begin
   change μ.extension_to_bounded_functions
-    (of_normed_group_discrete (indicator s (λ x, 1)) 1 (norm_indicator_le_one s)) = (μ s).to_real,
+    (of_normed_add_comm_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)) = (μ s).to_real,
   rw extension_to_bounded_functions_apply,
   { change ∫ x, s.indicator (λ y, (1 : ℝ)) x ∂μ = _,
     simp [integral_indicator hs] },
@@ -449,7 +453,7 @@ We need the continuum hypothesis to construct it.
 -/
 
 theorem sierpinski_pathological_family (Hcont : #ℝ = aleph 1) :
-  ∃ (f : ℝ → set ℝ), (∀ x, countable (univ \ f x)) ∧ (∀ y, countable {x | y ∈ f x}) :=
+  ∃ (f : ℝ → set ℝ), (∀ x, (univ \ f x).countable) ∧ (∀ y, {x : ℝ | y ∈ f x}.countable) :=
 begin
   rcases cardinal.ord_eq ℝ with ⟨r, hr, H⟩,
   resetI,
@@ -477,10 +481,10 @@ contained in only countably many of them. -/
 def spf (Hcont : #ℝ = aleph 1) (x : ℝ) : set ℝ :=
 (sierpinski_pathological_family Hcont).some x
 
-lemma countable_compl_spf (Hcont : #ℝ = aleph 1) (x : ℝ) : countable (univ \ spf Hcont x) :=
+lemma countable_compl_spf (Hcont : #ℝ = aleph 1) (x : ℝ) : (univ \ spf Hcont x).countable :=
 (sierpinski_pathological_family Hcont).some_spec.1 x
 
-lemma countable_spf_mem (Hcont : #ℝ = aleph 1) (y : ℝ) : countable {x | y ∈ spf Hcont x} :=
+lemma countable_spf_mem (Hcont : #ℝ = aleph 1) (y : ℝ) : {x | y ∈ spf Hcont x}.countable :=
 (sierpinski_pathological_family Hcont).some_spec.2 y
 
 /-!
@@ -500,7 +504,7 @@ which is large (it has countable complement), as in the Sierpinski pathological 
 taking values in `{0, 1}`), indexed by a real parameter `x`, corresponding to the characteristic
 functions of the different fibers of the Sierpinski pathological family -/
 def f (Hcont : #ℝ = aleph 1) (x : ℝ) : (discrete_copy ℝ →ᵇ ℝ) :=
-of_normed_group_discrete (indicator (spf Hcont x) 1) 1 (norm_indicator_le_one _)
+of_normed_add_comm_group_discrete (indicator (spf Hcont x) 1) 1 (norm_indicator_le_one _)
 
 lemma apply_f_eq_continuous_part (Hcont : #ℝ = aleph 1)
   (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) (x : ℝ)
@@ -516,7 +520,7 @@ begin
 end
 
 lemma countable_ne (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) :
-  countable {x | φ.to_bounded_additive_measure.continuous_part univ ≠ φ (f Hcont x)} :=
+  {x | φ.to_bounded_additive_measure.continuous_part univ ≠ φ (f Hcont x)}.countable :=
 begin
   have A : {x | φ.to_bounded_additive_measure.continuous_part univ ≠ φ (f Hcont x)}
     ⊆ {x | φ.to_bounded_additive_measure.discrete_support ∩ spf Hcont x ≠ ∅},
@@ -579,7 +583,7 @@ end
 
 /-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` is uniformly bounded by `1` in norm. -/
 lemma norm_bound (Hcont : #ℝ = aleph 1) (x : ℝ) : ∥f Hcont x∥ ≤ 1 :=
-norm_of_normed_group_le _ zero_le_one _
+norm_of_normed_add_comm_group_le _ zero_le_one _
 
 /-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` has no Pettis integral. -/
 theorem no_pettis_integral (Hcont : #ℝ = aleph 1) :

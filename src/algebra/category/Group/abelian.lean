@@ -28,12 +28,12 @@ variables {X Y : AddCommGroup.{u}} (f : X ⟶ Y)
 /-- In the category of abelian groups, every monomorphism is normal. -/
 def normal_mono (hf : mono f) : normal_mono f :=
 equivalence_reflects_normal_mono (forget₂ (Module.{u} ℤ) AddCommGroup.{u}).inv $
-  Module.normal_mono _ $ right_adjoint_preserves_mono (functor.adjunction _) hf
+  Module.normal_mono _ infer_instance
 
 /-- In the category of abelian groups, every epimorphism is normal. -/
 def normal_epi (hf : epi f) : normal_epi f :=
 equivalence_reflects_normal_epi (forget₂ (Module.{u} ℤ) AddCommGroup.{u}).inv $
-  Module.normal_epi _ $ left_adjoint_preserves_epi (functor.adjunction _) hf
+  Module.normal_epi _ infer_instance
 
 end
 

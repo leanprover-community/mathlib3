@@ -133,7 +133,7 @@ begin
   have hn''' : (X ^ n - 1 : F[X]) ≠ 0 :=
     λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
-    λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (or.resolve_left h hn'''
+    λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (h.def.resolve_left hn'''
       (minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c)) (minpoly.dvd F c
       (by rwa [map_id, alg_hom.map_sub, sub_eq_zero, aeval_X_pow, aeval_one])))),
   apply is_solvable_of_comm,
@@ -311,7 +311,7 @@ begin
       (minpoly.dvd F α (by rw [aeval_comp, aeval_X_pow, minpoly.aeval]))⟩ },
   { refine gal_is_solvable_tower p (p.comp (X ^ n)) _ hα _,
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
-    { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
+    { obtain ⟨s, hs⟩ := (splits_iff_exists_multiset _).1 (splitting_field.splits p),
       rw [map_comp, polynomial.map_pow, map_X, hs, mul_comp, C_comp],
       apply gal_mul_is_solvable (gal_C_is_solvable _),
       rw multiset_prod_comp,

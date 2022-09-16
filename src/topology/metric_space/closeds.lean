@@ -315,7 +315,7 @@ begin
     let v0 := {t : set α | t.finite ∧ t ⊆ s},
     let v : set (nonempty_compacts α) := {t : nonempty_compacts α | (t : set α) ∈ v0},
     refine  ⟨⟨v, _, _⟩⟩,
-    { have : countable v0, from countable_set_of_finite_subset cs,
+    { have : v0.countable, from countable_set_of_finite_subset cs,
       exact this.preimage set_like.coe_injective },
     { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
@@ -377,7 +377,7 @@ begin
       -- we have proved that `d` is a good approximation of `t` as requested
       exact ⟨d, ‹d ∈ v›, Dtc⟩ },
   end,
-  apply uniform_space.second_countable_of_separable,
+  exact uniform_space.second_countable_of_separable (nonempty_compacts α),
 end
 
 end --section

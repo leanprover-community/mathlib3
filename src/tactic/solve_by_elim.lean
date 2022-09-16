@@ -273,13 +273,13 @@ Optional arguments:
   the next one will be attempted.
 -/
 meta def apply_assumption
-  (lemmas : option (list expr) := none)
+  (lemmas : parse pexpr_list?)
   (opt : apply_any_opt := {})
   (tac : tactic unit := skip) : tactic unit :=
 do
   lemmas ← match lemmas with
   | none := local_context
-  | some lemmas := return lemmas
+  | some lemmas := lemmas.mmap to_expr
   end,
   tactic.apply_any lemmas opt tac
 

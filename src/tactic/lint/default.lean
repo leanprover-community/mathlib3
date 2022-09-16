@@ -19,13 +19,8 @@ attribute.
 
 open tactic
 
-add_tactic_doc
-{ name                     := "linting commands",
-  category                 := doc_category.cmd,
-  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters],
-  tags                     := ["linting"],
-  description              :=
-"User commands to spot common mistakes in the code
+/--
+User commands to spot common mistakes in the code
 
 * `#lint`: check all declarations in the current file
 * `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
@@ -40,7 +35,8 @@ The following linters are run by default:
 4. `ge_or_gt` checks whether ≥/> is used in the declaration.
 5. `instance_priority` checks that instances that always apply have priority below default.
 6. `doc_blame` checks for missing doc strings on definitions and constants.
-7.  `has_inhabited_instance` checks whether every type has an associated `inhabited` instance.
+7.  `has_nonempty_instance` checks whether every type has an associated `inhabited`, `unique`
+    or `nonempty` instance.
 8.  `impossible_instance` checks for instances that can never fire.
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
@@ -92,7 +88,13 @@ or `lint only my_new_check`.
 If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
 
 Adding the attribute `@[nolint doc_blame unused_arguments]` to a declaration
-omits it from only the specified linter checks." }
+omits it from only the specified linter checks.
+-/
+add_tactic_doc
+{ name                     := "linting commands",
+  category                 := doc_category.cmd,
+  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters],
+  tags                     := ["linting"] }
 
 /-- The default linters used in mathlib CI. -/
 meta def mathlib_linters : list name := by do

@@ -5,6 +5,7 @@ Authors: Robert Y. Lewis
 -/
 
 import data.int.cast            -- used by clients
+import data.int.char_zero
 import tactic.norm_cast
 
 /-!

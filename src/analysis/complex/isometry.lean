@@ -29,7 +29,7 @@ noncomputable theory
 open complex
 open_locale complex_conjugate
 
-local notation `|` x `|` := complex.abs x
+local notation (name := complex.abs) `|` x `|` := complex.abs x
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
 rotation. -/
@@ -141,7 +141,7 @@ begin
 end
 
 /-- The matrix representation of `rotation a` is equal to the conformal matrix
-`![![re a, -im a], ![im a, re a]]`. -/
+`!![re a, -im a; im a, re a]`. -/
 lemma to_matrix_rotation (a : circle) :
   linear_map.to_matrix basis_one_I basis_one_I (rotation a).to_linear_equiv =
     matrix.plane_conformal_matrix (re a) (im a) (by simp [pow_two, ←norm_sq_apply]) :=

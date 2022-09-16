@@ -279,11 +279,10 @@ end
 variable {p}
 
 lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ (p : ℤ) ∣ k :=
-suffices ∥(k : ℚ_[p])∥ < 1 ↔ (p : ℤ) ∣ k, by rwa norm_int_cast_eq_padic_norm,
+suffices ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k, by rwa norm_int_cast_eq_padic_norm,
 padic_norm_e.norm_int_lt_one_iff_dvd k
 
-lemma norm_int_le_pow_iff_dvd {k : ℤ} {n : ℕ} :
-  ∥(k : ℤ_[p])∥ ≤ p ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k :=
+lemma norm_int_le_pow_iff_dvd {k : ℤ} {n : ℕ} : ∥(k : ℤ_[p])∥ ≤ p ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k :=
 suffices ∥(k : ℚ_[p])∥ ≤ p ^ (-n : ℤ) ↔ ↑(p ^ n) ∣ k,
 by simpa [norm_int_cast_eq_padic_norm], padic_norm_e.norm_int_le_pow_iff_dvd _ _
 
@@ -319,9 +318,9 @@ end
 @[simp] lemma valuation_p_pow_mul (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
   (p ^ n * c : ℤ_[p]).valuation = n + c.valuation :=
 begin
-  have : ∥(p ^ n * c : ℤ_[p])∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
+  have : ∥(↑p ^ n * c)∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
   { exact norm_mul _ _ },
-  have aux : (p ^ n * c : ℤ_[p]) ≠ 0,
+  have aux : (↑p ^ n * c) ≠ 0,
   { contrapose! hc, rw mul_eq_zero at hc, cases hc,
     { refine (hp.1.ne_zero _).elim,
       exact_mod_cast (pow_eq_zero hc) },

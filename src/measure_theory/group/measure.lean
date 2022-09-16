@@ -384,7 +384,7 @@ begin
   calc μ K ≤ μ (⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U) : measure_mono hKt
   ... ≤ ∑ g in t, μ ((λ (h : G), g * h) ⁻¹' U) : measure_bUnion_finset_le _ _
   ... = finset.card t * μ U : by simp only [measure_preimage_mul, finset.sum_const, nsmul_eq_mul]
-  ... < ∞ : ennreal.mul_lt_top ennreal.coe_nat_ne_top h
+  ... < ∞ : ennreal.mul_lt_top (ennreal.nat_ne_top _) h
 end
 
 /-- If a left-invariant measure gives finite mass to a set with nonempty interior, then

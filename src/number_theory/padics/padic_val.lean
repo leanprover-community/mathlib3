@@ -172,7 +172,7 @@ variables {p : ℕ}
 lemma zero_le_padic_val_rat_of_nat (n : ℕ) : 0 ≤ padic_val_rat p n := by simp
 
 /-- `padic_val_rat` coincides with `padic_val_nat`. -/
-@[norm_cast] lemma padic_val_rat_of_nat (n : ℕ) : (padic_val_nat p n : ℤ) = padic_val_rat p n :=
+@[norm_cast] lemma padic_val_rat_of_nat (n : ℕ) : ↑(padic_val_nat p n) = padic_val_rat p n :=
 by simp
 
 /-- A simplification of `padic_val_nat` when one input is prime, by analogy with
@@ -448,7 +448,7 @@ begin
     split_ifs,
     { rw part_enat.coe_le_iff,
       exact λ hn, or.inr (hn _) },
-    { simp only [true_and, not_lt, ne.def, not_false_iff, nat.le_zero_iff, hp.out.ne_one] at h,
+    { simp only [true_and, not_lt, ne.def, not_false_iff, le_zero_iff, hp.out.ne_one] at h,
       exact λ hn, or.inl h } },
   { rintro (rfl|h),
     { exact dvd_zero (p ^ n) },

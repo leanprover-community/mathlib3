@@ -60,7 +60,7 @@ variables {L : grothendieck_topology E}
 A functor `G : (C, J) ⥤ (D, K)` between sites is called to have the cover-lifting property
 if for all covering sieves `R` in `D`, `R.pullback G` is a covering sieve in `C`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure cover_lifting (G : C ⥤ D) : Prop :=
 (cover_lift : ∀ {U : C} {S : sieve (G.obj U)} (hS : S ∈ K (G.obj U)), S.functor_pullback G ∈ J U)
 

@@ -81,8 +81,8 @@ variables {α : Type*} {β : Type*}
   linear_ordered_add_comm_monoid_with_top]]
 def ennreal := with_top ℝ≥0
 
-localized "notation `ℝ≥0∞` := ennreal" in ennreal
-localized "notation `∞` := (⊤ : ennreal)" in ennreal
+localized "notation (name := ennreal) `ℝ≥0∞` := ennreal" in ennreal
+localized "notation (name := ennreal.top) `∞` := (⊤ : ennreal)" in ennreal
 
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
@@ -93,6 +93,12 @@ canonically_ordered_comm_semiring.to_covariant_mul_le
 
 instance covariant_class_add_le : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
 ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
+
+noncomputable instance : linear_ordered_comm_monoid_with_zero ℝ≥0∞ :=
+{ mul_le_mul_left := λ a b, mul_le_mul_left',
+  zero_le_one := zero_le 1,
+  .. ennreal.linear_ordered_add_comm_monoid_with_top,
+  .. (show comm_semiring ℝ≥0∞, from infer_instance) }
 
 instance : inhabited ℝ≥0∞ := ⟨0⟩
 
@@ -221,7 +227,6 @@ protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
-lemma one_le_two : (1 : ℝ≥0∞) ≤ 2 := one_lt_two.le
 @[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
@@ -230,8 +235,7 @@ lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
 
 /-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces. -/
-instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
-⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
+instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) := ⟨one_le_two⟩
 
 /-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces. -/
 instance _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
@@ -560,7 +564,6 @@ lemma coe_nat_lt_coe {n : ℕ} : (n : ℝ≥0∞) < r ↔ ↑n < r := ennreal.co
 lemma coe_lt_coe_nat {n : ℕ} : (r : ℝ≥0∞) < n ↔ r < n := ennreal.coe_nat n ▸ coe_lt_coe
 @[simp, norm_cast] lemma coe_nat_lt_coe_nat {m n : ℕ} : (m : ℝ≥0∞) < n ↔ m < n :=
 ennreal.coe_nat n ▸ coe_nat_lt_coe.trans nat.cast_lt
-lemma coe_nat_ne_top {n : ℕ} : (n : ℝ≥0∞) ≠ ∞ := ennreal.coe_nat n ▸ coe_ne_top
 lemma coe_nat_mono : strict_mono (coe : ℕ → ℝ≥0∞) := λ _ _, coe_nat_lt_coe_nat.2
 @[simp, norm_cast] lemma coe_nat_le_coe_nat {m n : ℕ} : (m : ℝ≥0∞) ≤ n ↔ m ≤ n :=
 coe_nat_mono.le_iff_le
@@ -582,7 +585,7 @@ begin
 end
 
 @[simp] lemma Union_Iic_coe_nat : (⋃ n : ℕ, Iic (n : ℝ≥0∞)) = {∞}ᶜ :=
-subset.antisymm (Union_subset $ λ n x hx, ne_top_of_le_ne_top coe_nat_ne_top hx) $
+subset.antisymm (Union_subset $ λ n x hx, ne_top_of_le_ne_top (nat_ne_top n) hx) $
   Union_Iio_coe_nat ▸ Union_mono (λ n, Iio_subset_Iic_self)
 
 @[simp] lemma Union_Ioc_coe_nat : (⋃ n : ℕ, Ioc a n) = Ioi a \ {∞} :=
@@ -1347,8 +1350,8 @@ begin
   rcases exists_nat_pos_mul_gt hb ha with ⟨n, npos, hn⟩,
   have : (n : ℝ≥0∞) ≠ 0 := nat.cast_ne_zero.2 npos.lt.ne',
   use [n, npos],
-  rwa [← one_mul b, ← inv_mul_cancel this coe_nat_ne_top,
-    mul_assoc, mul_lt_mul_left (inv_ne_zero.2 coe_nat_ne_top) (inv_ne_top.2 this)]
+  rwa [← one_mul b, ← inv_mul_cancel this (nat_ne_top n),
+    mul_assoc, mul_lt_mul_left (inv_ne_zero.2 $ nat_ne_top _) (inv_ne_top.2 this)]
 end
 
 lemma exists_nnreal_pos_mul_lt (ha : a ≠ ∞) (hb : b ≠ 0) :
@@ -1546,6 +1549,18 @@ lemma to_real_max (hr : a ≠ ∞) (hp : b ≠ ∞) :
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, max_eq_right])
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, max_eq_left])
 
+lemma to_real_min {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞) :
+  ennreal.to_real (min a b) = min (ennreal.to_real a) (ennreal.to_real b) :=
+(le_total a b).elim
+  (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, min_eq_left])
+  (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, min_eq_right])
+
+lemma to_real_sup {a b : ℝ≥0∞}
+  : a ≠ ∞ → b ≠ ∞ → (a ⊔ b).to_real = a.to_real ⊔ b.to_real := to_real_max
+
+lemma to_real_inf {a b : ℝ≥0∞}
+  : a ≠ ∞ → b ≠ ∞ → (a ⊓ b).to_real = a.to_real ⊓ b.to_real := to_real_min
+
 lemma to_nnreal_pos_iff : 0 < a.to_nnreal ↔ (0 < a ∧ a < ∞) :=
 by { induction a using with_top.rec_top_coe; simp }
 
@@ -1736,6 +1751,10 @@ begin
   { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
   exact this.imp_right (λ h, h.2)
 end
+
+lemma to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.to_real ↔ p ≠ ∞ :=
+⟨λ h hp, let this : (0 : ℝ) ≠ 0 := top_to_real ▸ (hp ▸ h.ne : 0 ≠ ∞.to_real) in this rfl,
+ λ h, zero_lt_one.trans_le (p.dichotomy.resolve_left h)⟩
 
 lemma to_nnreal_inv (a : ℝ≥0∞) : (a⁻¹).to_nnreal = (a.to_nnreal)⁻¹ :=
 begin

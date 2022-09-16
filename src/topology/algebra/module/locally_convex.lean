@@ -91,6 +91,14 @@ lemma locally_convex_space_iff_exists_convex_subset_zero :
   ∀ U ∈ (𝓝 0 : filter E), ∃ S ∈ (𝓝 0 : filter E), convex 𝕜 S ∧ S ⊆ U :=
 (locally_convex_space_iff_zero 𝕜 E).trans has_basis_self
 
+-- see Note [lower instance priority]
+@[priority 100] instance locally_convex_space.to_locally_connected_space [module ℝ E]
+  [has_continuous_smul ℝ E] [locally_convex_space ℝ E] :
+  locally_connected_space E :=
+locally_connected_space_of_connected_bases _ _
+  (λ x, @locally_convex_space.convex_basis ℝ _ _ _ _ _ _ x)
+  (λ x s hs, hs.2.is_preconnected)
+
 end module
 
 section lattice_ops

@@ -557,7 +557,7 @@ begin
       simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul],
       rw ennreal.mul_div_cancel',
       { simp only [Npos, ne.def, nat.cast_eq_zero, not_false_iff] },
-      { exact ennreal.coe_nat_ne_top }
+      { exact (ennreal.nat_ne_top _) }
     end
     ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },
   -- choose an index `i` of a subfamily covering at least a proportion `1/N` of `s`.
@@ -602,7 +602,7 @@ begin
     { apply measurable_set.inter _ omeas,
       haveI : encodable (u i) := (u_count i).to_encodable,
       exact measurable_set.Union
-        (λ b, measurable_set.Union_Prop (λ hb, measurable_set_closed_ball)) },
+        (λ b, measurable_set.Union (λ hb, measurable_set_closed_ball)) },
     calc
     μ o = 1/(N+1) * μ s + N/(N+1) * μ s :
       by { rw [μo, ← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simp }

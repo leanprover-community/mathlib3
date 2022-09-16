@@ -57,12 +57,16 @@ the axioms of your new type of morphisms.
 Continuing the example above:
 
 ```
+section
+set_option old_structure_cmd true
+
 /-- `my_hom_class F A B` states that `F` is a type of `my_class.op`-preserving morphisms.
 You should extend this class when you extend `my_hom`. -/
 class my_hom_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class B]
   extends fun_like F A (λ _, B) :=
 (map_op : ∀ (f : F) (x y : A), f (my_class.op x y) = my_class.op (f x) (f y))
 
+end
 @[simp] lemma map_op {F A B : Type*} [my_class A] [my_class B] [my_hom_class F A B]
   (f : F) (x y : A) : f (my_class.op x y) = my_class.op (f x) (f y) :=
 my_hom_class.map_op
@@ -84,9 +88,14 @@ structure cooler_hom (A B : Type*) [cool_class A] [cool_class B]
   extends my_hom A B :=
 (map_cool' : to_fun cool_class.cool = cool_class.cool)
 
+section
+set_option old_structure_cmd true
+
 class cooler_hom_class (F : Type*) (A B : out_param $ Type*) [cool_class A] [cool_class B]
   extends my_hom_class F A B :=
 (map_cool : ∀ (f : F), f cool_class.cool = cool_class.cool)
+
+end
 
 @[simp] lemma map_cool {F A B : Type*} [cool_class A] [cool_class B] [cooler_hom_class F A B]
   (f : F) : f cool_class.cool = cool_class.cool :=

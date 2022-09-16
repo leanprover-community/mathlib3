@@ -49,7 +49,7 @@ variables (C)
 
 /-- We say an object in the free monoidal category is in normal form if it is of the form
     `(((𝟙_ C) ⊗ X₁) ⊗ X₂) ⊗ ⋯`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 inductive normal_monoidal_object : Type u
 | unit : normal_monoidal_object
 | tensor : normal_monoidal_object → C → normal_monoidal_object

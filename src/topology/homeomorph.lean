@@ -387,6 +387,13 @@ def punit_prod : punit × α ≃ₜ α :=
 
 end
 
+def Pi_congr_right {ι : Type*} {β₁ β₂ : ι → Type*} [Π i, topological_space (β₁ i)]
+  [Π i, topological_space (β₂ i)] (F : Π i, β₁ i ≃ₜ β₂ i) :
+  (Π i, β₁ i) ≃ₜ (Π i, β₂ i) :=
+{ continuous_to_fun := continuous_pi (λ i, (F i).continuous.comp $ continuous_apply i),
+  continuous_inv_fun := continuous_pi (λ i, (F i).symm.continuous.comp $ continuous_apply i),
+  .. equiv.Pi_congr_right (λ i, (F i).to_equiv) }
+
 /-- `ulift α` is homeomorphic to `α`. -/
 def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
 { continuous_to_fun := continuous_ulift_down,

@@ -332,6 +332,28 @@ end semi_normed_ring
 section non_unital_normed_ring
 variables [non_unital_normed_ring α]
 
+/-- The constant norm that is `c` everywhere except at `dist x x = 0`.
+
+See note [reducible non-instances]-/
+@[reducible]
+def non_unital_normed_ring.const {E} [decidable_eq E] [non_unital_ring E] (c : ℝ)
+  (hc : 1 ≤ c) : non_unital_normed_ring E :=
+{ norm_mul := λ a b, begin
+    letI : normed_group E := normed_group.const c (zero_lt_one.trans_le hc),
+    suffices : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊,
+    { have := nnreal.coe_le_coe.mpr this,
+      rw [coe_nnnorm, nnreal.coe_mul,coe_nnnorm, coe_nnnorm] at this,
+      exact this },
+    rw [const_nnnorm_eq, const_nnnorm_eq, const_nnnorm_eq],
+    split_ifs with hab ha hb hb ha hb hb,
+    iterate 4 { exact zero_le _ },
+    { exfalso, substs ha hb, exact hab (zero_mul _) },
+    { exfalso, substs ha, exact hab (zero_mul _) },
+    { exfalso, substs hb, exact hab (mul_zero _) },
+    { exact le_mul_of_one_le_right (zero_le _) (nnreal.coe_le_coe.mp hc) }
+  end,
+  ..normed_group.const c (zero_lt_one.trans_le hc) }
+
 instance : non_unital_normed_ring (ulift α) :=
 { .. ulift.non_unital_semi_normed_ring,
   .. ulift.seminormed_add_comm_group }
@@ -360,6 +382,14 @@ norm_pos_iff.mpr (units.ne_zero x)
 
 lemma units.nnnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
 x.norm_pos
+
+/-- The constant norm that is `c` everywhere except at `dist x x = 0`.
+
+See note [reducible non-instances]-/
+@[reducible]
+def normed_ring.const {E} [decidable_eq E] [ring E] (c : ℝ)
+  (hc : 1 ≤ c) : normed_ring E :=
+{ ..non_unital_normed_ring.const c hc }
 
 instance : normed_ring (ulift α) :=
 { .. ulift.semi_normed_ring,
@@ -615,6 +645,23 @@ dense_of_exists_between $ λ _ _ hr, let ⟨x, h⟩ := exists_lt_nnnorm_lt α hr
 end densely
 
 end normed_field
+
+/-- The constant norm that is `1` everywhere except at `dist x x = 0`.
+
+See note [reducible non-instances]-/
+@[reducible]
+def normed_field.discrete {E} [decidable_eq E] [field E] : normed_field E :=
+{ norm_mul' := λ a b, begin
+    letI : normed_group E := normed_group.const 1 zero_lt_one,
+    iterate 3 { rw const_norm_eq 1 zero_lt_one },
+    obtain rfl | ha := eq_or_ne a 0,
+    { rw [zero_mul, if_pos rfl, zero_mul] },
+    rw [if_neg ha],
+    obtain rfl | hb := eq_or_ne b 0,
+    { rw [mul_zero, if_pos rfl, mul_zero] },
+    rw [if_neg hb, if_neg (mul_ne_zero ha hb), mul_one]
+  end
+  ..normed_ring.const 1 le_rfl }
 
 instance : normed_field ℝ :=
 { norm_mul' := abs_mul,

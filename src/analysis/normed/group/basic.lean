@@ -1220,6 +1220,37 @@ def normed_add_comm_group.induced {E} [add_comm_group E]
 { .. seminormed_add_comm_group.induced f,
   .. metric_space.induced f h normed_add_comm_group.to_metric_space, }
 
+/-- The constant norm that is `c` everywhere except at `dist x x = 0`.
+
+See note [reducible non-instances]-/
+@[reducible]
+def normed_group.const {E} [decidable_eq E] [add_comm_group E] (c : ℝ) (hc : 0 < c) :
+  normed_group E :=
+{ norm := λ x, if x = 0 then 0 else c,
+  dist_eq := λ x y, if_congr sub_eq_zero.symm rfl rfl,
+  to_metric_space := metric_space.const ⟨c, hc.le⟩ $ (nonneg.mk_eq_zero _).not.mpr hc.ne' }
+
+lemma const_norm_eq {E} [decidable_eq E] [add_comm_group E] (c : ℝ) (hc : 0 < c)
+  (x : E) :
+  (by haveI : normed_group E := normed_group.const c hc; exact ∥x∥) = if x = 0 then 0 else c :=
+rfl
+
+lemma const_nnnorm_eq {E} [decidable_eq E] [add_comm_group E] (c : ℝ) (hc : 0 < c)
+  (x : E) :
+  (by haveI : normed_group E := normed_group.const c hc; exact ∥x∥₊) =
+    if x = 0 then (0 : ℝ≥0) else ⟨c, hc.le⟩ :=
+subtype.ext $ eq.symm $ apply_ite _ _ _ _
+
+lemma const_norm_eq_of_ne_zero {E} [decidable_eq E] [add_comm_group E] (c : ℝ) (hc : 0 < c)
+  (x : E) (hx : x ≠ 0) :
+  (by haveI : normed_group E := normed_group.const c hc; exact ∥x∥) = c :=
+if_neg hx
+
+lemma const_nnnorm_eq_of_ne_zero {E} [decidable_eq E] [add_comm_group E] (c : ℝ) (hc : 0 < c)
+  (x : E) (hx : x ≠ 0) :
+  (by haveI : normed_group E := normed_group.const c hc; exact ∥x∥₊) = ⟨c, hc.le⟩ :=
+(const_nnnorm_eq c hc x).trans $ if_neg hx
+
 /-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
 instance add_subgroup.normed_add_comm_group (s : add_subgroup E) : normed_add_comm_group s :=
 normed_add_comm_group.induced s.subtype subtype.coe_injective

@@ -181,11 +181,12 @@ begin
   apply_instance,
 end
 
-lemma box_prod_degree [decidable_eq α] [decidable_eq β] (x : α × β)
+lemma box_prod_degree (x : α × β)
   [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)]
   [fintype ((G □ H).neighbor_set x)] :
   (G □ H).degree x = G.degree x.1 + H.degree x.2 :=
 begin
+  classical,
   simp_rw [← card_neighbor_set_eq_degree, box_prod_neighbor_set,
     ← set.to_finset_card, set.to_finset_union],
   convert finset.card_disjoint_union _;

@@ -1636,8 +1636,8 @@ open positivity real
 /-- Extension for the `positivity` tactic: `real.exp` is always positive. -/
 @[positivity]
 meta def positivity_exp : expr → tactic strictness
-| `(exp %%a) := positive <$> mk_app `real.exp_pos [a]
-| _ := failed
+| `(real.exp %%a) := positive <$> mk_app `real.exp_pos [a]
+| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `real.exp r`"
 
 end tactic
 

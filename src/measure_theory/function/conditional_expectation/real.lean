@@ -104,7 +104,7 @@ begin
     exact integral_nonneg (λ x, abs_nonneg _) },
   rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
   { rw ennreal.to_real_le_to_real;
-    simp_rw [← real.norm_eq_abs, ← ennreal.of_real_norm_eq_coe_nnnorm],
+    simp_rw [← real.norm_eq_abs, of_real_norm_eq_coe_nnnorm],
     { rw [← snorm_one_eq_lintegral_nnnorm, ← snorm_one_eq_lintegral_nnnorm],
       exact snorm_one_condexp_le_snorm _ },
     { exact ne_of_lt integrable_condexp.2 },

@@ -536,52 +536,33 @@ normed_add_comm_group.of_core _
   triangle := λ f g, begin
     rcases or.assoc.mpr p.trichotomy with _ | h_pos,
     { simp only [norm_zero_top_eq_standard_norm h],
+      replace h : p = 0,
       sorry,--this is just `triangle` for the usual norm
+      -- simp_rw h at f g ⊢,
+      subst h,
+      simp only [norm_eq_card_dsupport],
+      simp,
+      sorry,
+      -- have := finset.card_union_le,
+      -- have := dfinsupp.support_add,
+
+
      },
-    { by_cases hp : fact (1 ≤ p),
-      unfreezingI {rcases p.dichotomy with rfl | hp'},
-    { sorry, --exfalso H,
-      -- casesI is_empty_or_nonempty α,
-      -- { simp [lp.eq_zero' f] },
-      -- refine (lp.is_lub_norm (f + g)).2 _,
-      -- rintros x ⟨i, rfl⟩,
-      -- refine le_trans _ (add_mem_upper_bounds_add (lp.is_lub_norm f).1 (lp.is_lub_norm g).1
-      --   ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
-      -- exact norm_add_le (f i) (g i)
-      },
-    { --exfalso H hp'
-      sorry, -- `[FAE]` the case `1 ≤ p`, but translated in the non-standard norm.
-      -- have := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
-      -- simp only [norm_eq_pow_standard_norm this.1 this.2],
-      -- have ineq := nnreal.add_rpow_le_rpow_add,
-      -- have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
-      -- have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
-      -- have hf₂ := lp.has_sum_norm h_pos f,
-      -- have hg₂ := lp.has_sum_norm h_pos g,
-      -- -- apply Minkowski's inequality
-      -- obtain ⟨C, hC₁, hC₂, hCfg⟩ :=
-      --   real.Lp_add_le_has_sum_of_nonneg _ hf₁ hg₁ (norm_nonneg' _) (norm_nonneg' _) hf₂ hg₂,
-      -- refine le_trans _ hC₂,
-      -- rw ← real.rpow_le_rpow_iff (norm_nonneg' (f + g)) hC₁ h,
-      -- refine has_sum_le _ (lp.has_sum_norm hp'' (f + g)) hCfg,
-      -- intros i,
-      -- exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le,
-      },
-      { have this := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
-        simp only [norm_eq_pow_standard_norm this.1 this.2],
-        have h₀ : 0 ≤ p.to_real, sorry,
-        replace H : p.to_real < 1, sorry,
-        simp only [norm_rpow_eq_tsum h_pos],
-        rw ← tsum_add,
-        apply tsum_le_tsum,
-        { intro i,
-          have := nnreal.rpow_add_le_add_rpow ⟨∥f i∥, norm_nonneg _⟩ ⟨∥g i∥, norm_nonneg _⟩ h₀
-            (le_of_lt H),
-          exact (real.rpow_le_rpow (norm_nonneg $ (f + g) i) (norm_add_le _ _) h₀).trans this },
-        swap,
-        apply summable.add,
-        all_goals {exact (lp.mem_ℓp _).summable h_pos},
-      }},
+    { have this := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
+      simp only [norm_eq_pow_standard_norm this.1 this.2],
+      have h₀ : 0 ≤ p.to_real := by {simp only [ennreal.to_real_nonneg]},
+      replace H : p.to_nnreal < 1 := by { rwa [← ennreal.coe_lt_coe, ennreal.coe_one,
+        ennreal.coe_to_nnreal this.2] },
+      simp only [norm_rpow_eq_tsum h_pos],
+      rw ← tsum_add,
+      apply tsum_le_tsum,
+      { intro i,
+        have := nnreal.rpow_add_le_add_rpow ⟨∥f i∥, norm_nonneg _⟩ ⟨∥g i∥, norm_nonneg _⟩ h₀
+          (le_of_lt H),
+        exact (real.rpow_le_rpow (norm_nonneg $ (f + g) i) (norm_add_le _ _) h₀).trans this },
+      swap,
+      apply summable.add,
+      all_goals {exact (lp.mem_ℓp _).summable h_pos}, },
   end,
   norm_neg :=
   begin

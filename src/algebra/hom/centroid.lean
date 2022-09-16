@@ -200,7 +200,8 @@ instance has_npow_nat : has_pow (centroid_hom α) ℕ :=
 @[simp, norm_cast] lemma coe_add (f g : centroid_hom α) : ⇑(f + g) = f + g := rfl
 @[simp, norm_cast] lemma coe_mul (f g : centroid_hom α) : ⇑(f * g) = f ∘ g := rfl
 -- Eligible for `dsimp`
-@[simp, norm_cast, nolint simp_nf] lemma coe_nsmul (f : centroid_hom α) (n : ℕ) : ⇑(n • f) = n • f := rfl
+@[simp, norm_cast, nolint simp_nf] lemma coe_nsmul (f : centroid_hom α) (n : ℕ) : ⇑(n • f) = n • f
+:= rfl
 
 @[simp] lemma zero_apply (a : α) : (0 : centroid_hom α) a = 0 := rfl
 @[simp] lemma one_apply (a : α) : (1 : centroid_hom α) a = a := rfl

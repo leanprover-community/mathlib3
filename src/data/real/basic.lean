@@ -434,7 +434,7 @@ begin
       let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
 end
 
-theorem real.exists_is_glb {S : set ℝ} (hne : S.nonempty) (hbdd : bdd_below S) :
+theorem exists_is_glb {S : set ℝ} (hne : S.nonempty) (hbdd : bdd_below S) :
   ∃ x, is_glb S x :=
 begin
   set T := - S with hT,

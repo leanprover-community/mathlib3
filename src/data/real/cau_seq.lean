@@ -604,34 +604,28 @@ let ⟨a, h⟩ := (-f).exists_gt in ⟨-a, show pos _,
   by rwa [const_neg, sub_neg_eq_add, add_comm, ← sub_neg_eq_add]⟩
 
 -- so named to match `rat_add_continuous_lemma`
-theorem _root_.rat_sup_continuous_lemma
-  {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : α},
-  abs (a₁ - b₁) < δ → abs (a₂ - b₂) < δ → abs (a₁ ⊔ a₂ - (b₁ ⊔ b₂)) < ε :=
-⟨ε, ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
-  (abs_max_sub_max_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)⟩
+theorem _root_.rat_sup_continuous_lemma {ε : α} {a₁ a₂ b₁ b₂ : α} :
+  abs (a₁ - b₁) < ε → abs (a₂ - b₂) < ε → abs (a₁ ⊔ a₂ - (b₁ ⊔ b₂)) < ε :=
+λ h₁ h₂, (abs_max_sub_max_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)
 
 -- so named to match `rat_add_continuous_lemma`
-theorem _root_.rat_inf_continuous_lemma
-  {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : α},
-  abs (a₁ - b₁) < δ → abs (a₂ - b₂) < δ → abs (a₁ ⊓ a₂ - (b₁ ⊓ b₂)) < ε :=
-⟨ε, ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
-  (abs_min_sub_min_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)⟩
+theorem _root_.rat_inf_continuous_lemma {ε : α} {a₁ a₂ b₁ b₂ : α} :
+  abs (a₁ - b₁) < ε → abs (a₂ - b₂) < ε → abs (a₁ ⊓ a₂ - (b₁ ⊓ b₂)) < ε :=
+λ h₁ h₂, (abs_min_sub_min_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)
 
 instance : has_sup (cau_seq α abs) :=
 ⟨λ f g, ⟨f ⊔ g, λ ε ε0,
-  let ⟨δ, δ0, Hδ⟩ := rat_sup_continuous_lemma ε0,
-      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
-  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
+  (exists_forall_ge_and (f.cauchy₃ ε0) (g.cauchy₃ ε0)).imp $ λ i H j ij,
+    let ⟨H₁, H₂⟩ := H _ le_rfl in rat_sup_continuous_lemma (H₁ _ ij) (H₂ _ ij)⟩⟩
 
 instance : has_inf (cau_seq α abs) :=
 ⟨λ f g, ⟨f ⊓ g, λ ε ε0,
-  let ⟨δ, δ0, Hδ⟩ := rat_inf_continuous_lemma ε0,
-      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
-  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
+  (exists_forall_ge_and (f.cauchy₃ ε0) (g.cauchy₃ ε0)).imp $ λ i H j ij,
+    let ⟨H₁, H₂⟩ := H _ le_rfl in rat_inf_continuous_lemma (H₁ _ ij) (H₂ _ ij)⟩⟩
 
-@[simp] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
+@[simp, norm_cast] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
 
-@[simp] lemma coe_inf (f g : cau_seq α abs) : ⇑(f ⊓ g) = f ⊓ g := rfl
+@[simp, norm_cast] lemma coe_inf (f g : cau_seq α abs) : ⇑(f ⊓ g) = f ⊓ g := rfl
 
 theorem sup_lim_zero {f g : cau_seq α abs}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊔ g)
@@ -695,71 +689,69 @@ protected lemma sup_comm (a b : cau_seq α abs) : a ⊔ b = b ⊔ a := subtype.e
 
 protected lemma inf_comm (a b : cau_seq α abs) : a ⊓ b = b ⊓ a := subtype.ext inf_comm
 
-protected lemma sup_eq_right {a b : cau_seq α abs} (h : a < b) :
+protected lemma sup_eq_right {a b : cau_seq α abs} (h : a ≤ b) :
   a ⊔ b ≈ b :=
 begin
-  intros _ _,
-  obtain ⟨ε, ε0 : _ < _, i, h⟩ := h,
-  refine ⟨i, λ j hj, _⟩,
-  dsimp,
-  erw ←max_sub_sub_right,
-  rwa [sub_self, max_eq_right, abs_zero],
-  rw [sub_nonpos, ←sub_nonneg],
-  exact ε0.le.trans (h _ hj)
+  obtain ⟨ε, ε0 : _ < _, i, h⟩ | h := h,
+  { intros _ _,
+    refine ⟨i, λ j hj, _⟩,
+    dsimp,
+    erw ←max_sub_sub_right,
+    rwa [sub_self, max_eq_right, abs_zero],
+    rw [sub_nonpos, ←sub_nonneg],
+    exact ε0.le.trans (h _ hj) },
+  { refine setoid.trans (sup_equiv_sup h (setoid.refl _)) _,
+    rw cau_seq.sup_idem,
+    exact setoid.refl _ },
 end
 
-protected lemma inf_eq_right {a b : cau_seq α abs} (h : b < a) :
+protected lemma inf_eq_right {a b : cau_seq α abs} (h : b ≤ a) :
   a ⊓ b ≈ b :=
 begin
-  intros _ _,
-  obtain ⟨ε, ε0 : _ < _, i, h⟩ := h,
-  refine ⟨i, λ j hj, _⟩,
-  dsimp,
-  erw ←min_sub_sub_right,
-  rwa [sub_self, min_eq_right, abs_zero],
-  exact ε0.le.trans (h _ hj)
+  obtain ⟨ε, ε0 : _ < _, i, h⟩ | h := h,
+  { intros _ _,
+    refine ⟨i, λ j hj, _⟩,
+    dsimp,
+    erw ←min_sub_sub_right,
+    rwa [sub_self, min_eq_right, abs_zero],
+    exact ε0.le.trans (h _ hj) },
+  { refine setoid.trans (inf_equiv_inf (setoid.symm h) (setoid.refl _)) _,
+    rw cau_seq.inf_idem,
+    exact setoid.refl _ },
 end
 
-protected lemma sup_eq_left {a b : cau_seq α abs} (h : b < a) :
+protected lemma sup_eq_left {a b : cau_seq α abs} (h : b ≤ a) :
   a ⊔ b ≈ a :=
 by simpa only [cau_seq.sup_comm] using cau_seq.sup_eq_right h
 
-protected lemma inf_eq_left {a b : cau_seq α abs} (h : a < b) :
+protected lemma inf_eq_left {a b : cau_seq α abs} (h : a ≤ b) :
   a ⊓ b ≈ a :=
 by simpa only [cau_seq.inf_comm] using cau_seq.inf_eq_right h
 
 protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c :=
 begin
-  obtain ⟨ha | ha, hb | hb⟩ := ⟨ha, hb⟩,
-  { left,
-    exact cau_seq.sup_lt ha hb },
-  { replace ha := lt_of_lt_of_eq ha (setoid.symm hb),
-    refine le_of_le_of_eq (or.inr _) hb,
-    exact cau_seq.sup_eq_right ha },
-  { replace hb := lt_of_lt_of_eq hb (setoid.symm ha),
+  cases ha with ha ha,
+  { cases hb with hb hb,
+    { exact or.inl (cau_seq.sup_lt ha hb) },
+    { replace ha := le_of_le_of_eq ha.le (setoid.symm hb),
+      refine le_of_le_of_eq (or.inr _) hb,
+      exact cau_seq.sup_eq_right ha }, },
+  { replace hb := le_of_le_of_eq hb (setoid.symm ha),
     refine le_of_le_of_eq (or.inr _) ha,
-    exact cau_seq.sup_eq_left hb },
-  { right,
-    refine setoid.trans (sup_equiv_sup ha hb) _,
-    rw cau_seq.sup_idem,
-    exact setoid.refl _ },
+    exact cau_seq.sup_eq_left hb }
 end
 
 protected lemma le_inf {a b c : cau_seq α abs} (hb : a ≤ b) (hc : a ≤ c) : a ≤ b ⊓ c :=
 begin
-  obtain ⟨hb | hb, hc | hc⟩ := ⟨hb, hc⟩,
-  { left,
-    exact cau_seq.lt_inf hb hc },
-  { replace hb := lt_of_eq_of_lt (setoid.symm hc) hb,
-    refine le_of_eq_of_le hc (or.inr _),
-    exact setoid.symm (cau_seq.inf_eq_right hb) },
-  { replace hc := lt_of_eq_of_lt (setoid.symm hb) hc,
+  cases hb with hb hb,
+  { cases hc with hc hc,
+    { exact or.inl (cau_seq.lt_inf hb hc) },
+    { replace hb := le_of_eq_of_le (setoid.symm hc) hb.le,
+      refine le_of_eq_of_le hc (or.inr _),
+      exact setoid.symm (cau_seq.inf_eq_right hb) }, },
+  { replace hc := le_of_eq_of_le (setoid.symm hb) hc,
     refine le_of_eq_of_le hb (or.inr _),
-    exact setoid.symm (cau_seq.inf_eq_left hc) },
-  { right,
-    refine setoid.trans _ (inf_equiv_inf hb hc),
-    rw cau_seq.inf_idem,
-    exact setoid.refl _ },
+    exact setoid.symm (cau_seq.inf_eq_left hc) }
 end
 
 /-! Note that `distrib_lattice (cau_seq α abs)` is not true because there is no `partial_order`. -/

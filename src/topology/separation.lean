@@ -58,7 +58,8 @@ This file defines the predicate `separated`, and common separation axioms
 * `is_compact.is_closed`: All compact sets are closed.
 * `locally_compact_of_compact_nhds`: If every point has a compact neighbourhood,
   then the space is locally compact.
-* `tot_sep_of_zero_dim`: If `α` has a clopen basis, it is a `totally_separated_space`.
+* `totally_separated_space_of_t1_of_basis_clopen`: If `α` has a clopen basis, then
+  it is a `totally_separated_space`.
 * `loc_compact_t2_tot_disc_iff_tot_sep`: A locally compact T₂ space is totally disconnected iff
   it is totally separated.
 
@@ -177,8 +178,14 @@ t0_space_iff_inseparable α
 lemma nhds_injective [t0_space α] : injective (𝓝 : α → filter α) :=
 (t0_space_iff_nhds_injective α).1 ‹_›
 
+lemma inseparable_iff_eq [t0_space α] {x y : α} : inseparable x y ↔ x = y :=
+nhds_injective.eq_iff
+
 @[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 nhds_injective.eq_iff
+
+@[simp] lemma inseparable_eq_eq [t0_space α] : inseparable = @eq α :=
+funext₂ $ λ x y, propext inseparable_iff_eq
 
 lemma t0_space_iff_exists_is_open_xor_mem (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
@@ -284,6 +291,20 @@ instance [topological_space β] [t0_space α] [t0_space β] : t0_space (α × β
 instance {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)] [Π i, t0_space (π i)] :
   t0_space (Π i, π i) :=
 ⟨λ x y h, funext $ λ i, (h.map (continuous_apply i)).eq⟩
+
+lemma t0_space.of_cover (h : ∀ x y, inseparable x y → ∃ s : set α, x ∈ s ∧ y ∈ s ∧ t0_space s) :
+  t0_space α :=
+begin
+  refine ⟨λ x y hxy, _⟩,
+  rcases h x y hxy with ⟨s, hxs, hys, hs⟩, resetI,
+  lift x to s using hxs, lift y to s using hys,
+  rw ← subtype_inseparable_iff at hxy,
+  exact congr_arg coe hxy.eq
+end
+
+lemma t0_space.of_open_cover (h : ∀ x, ∃ s : set α, x ∈ s ∧ is_open s ∧ t0_space s) : t0_space α :=
+t0_space.of_cover $ λ x y hxy,
+  let ⟨s, hxs, hso, hs⟩ := h x in ⟨s, hxs, (hxy.mem_open_iff hso).1 hxs, hs⟩
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
   where every singleton set is closed. Equivalently, for every pair
@@ -423,8 +444,17 @@ t1_space_iff_disjoint_nhds_pure.mp ‹_› h
 lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
 t1_space_iff_specializes_imp_eq.1 ‹_› h
 
-@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
+lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
 ⟨specializes.eq, λ h, h ▸ specializes_rfl⟩
+
+@[simp] lemma specializes_eq_eq [t1_space α] : (⤳) = @eq α :=
+funext₂ $ λ x y, propext specializes_iff_eq
+
+@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
+specializes_iff_pure.symm.trans specializes_iff_eq
+
+@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+specializes_iff_eq
 
 instance {α : Type*} : t1_space (cofinite_topology α) :=
 t1_space_iff_continuous_cofinite_of.mpr continuous_id
@@ -502,7 +532,7 @@ hs.induction_on (by simp) $ λ x, by simp
 
 @[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
   (closure s).subsingleton ↔ s.subsingleton :=
-⟨λ h, h.mono subset_closure, λ h, h.closure⟩
+⟨λ h, h.anti subset_closure, λ h, h.closure⟩
 
 lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
   is_closed_map (function.const α y) :=
@@ -517,17 +547,6 @@ begin
   rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
-
-@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
-begin
-  refine ⟨λ h, _, λ h, h ▸ pure_le_nhds a⟩,
-  by_contra hab,
-  simpa only [mem_pure, mem_compl_iff, mem_singleton, not_true] using
-    h (compl_singleton_mem_nhds $ ne.symm hab)
-end
-
-@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
-⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
 
 @[simp] lemma compl_singleton_mem_nhds_set_iff [t1_space α] {x : α} {s : set α} :
   {x}ᶜ ∈ 𝓝ˢ s ↔ x ∉ s :=
@@ -591,6 +610,16 @@ have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
 have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id'.2 $ pure_le_nhds a),
 fact₂ fact₁ (eq.refl $ f a)
 
+lemma filter.tendsto.eventually_ne [topological_space β] [t1_space β] {α : Type*} {g : α → β}
+  {l : filter α} {b₁ b₂ : β} (hg : tendsto g l (𝓝 b₁)) (hb : b₁ ≠ b₂) :
+  ∀ᶠ z in l, g z ≠ b₂ :=
+hg.eventually (is_open_compl_singleton.eventually_mem hb)
+
+lemma continuous_at.eventually_ne [topological_space β] [t1_space β] {g : α → β}
+  {a : α} {b : β} (hg1 : continuous_at g a) (hg2 : g a ≠ b) :
+  ∀ᶠ z in 𝓝 a, g z ≠ b :=
+hg1.tendsto.eventually_ne hg2
+
 /-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
 `f` admits *some* limit at `a`. -/
 lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
@@ -614,7 +643,7 @@ begin
   rwa [← mem_interior_iff_mem_nhds, interior_singleton] at D
 end
 
-lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [fintype X] :
+lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [finite X] :
   discrete_topology X :=
 begin
   apply singletons_open_iff_discrete.mp,
@@ -706,11 +735,11 @@ eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_
 is the discrete topology on `X`. -/
 lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
   {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
-begin
-  constructor,
-  rw discrete_topology.eq_bot Y,
-  exact induced_bot hf
-end
+by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
+
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
 
 /-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
 by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
@@ -1007,7 +1036,7 @@ begin
   { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩ }
 end
 
-variables [topological_space β]
+variables {γ : Type*} [topological_space β] [topological_space γ]
 
 lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
@@ -1029,6 +1058,22 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
   (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)
+
+lemma eq_on_closure₂' [t2_space α] {s : set β} {t : set γ} {f g : β → γ → α}
+  (h : ∀ (x ∈ s) (y ∈ t), f x y = g x y)
+  (hf₁ : ∀ x, continuous (f x)) (hf₂ : ∀ y, continuous (λ x, f x y))
+  (hg₁ : ∀ x, continuous (g x)) (hg₂ : ∀ y, continuous (λ x, g x y)) :
+  ∀ (x ∈ closure s) (y ∈ closure t), f x y = g x y :=
+suffices closure s ⊆ ⋂ y ∈ closure t, {x | f x y = g x y}, by simpa only [subset_def, mem_Inter],
+closure_minimal (λ x hx, mem_Inter₂.2 $ set.eq_on.closure (h x hx) (hf₁ _) (hg₁ _)) $
+  is_closed_bInter $ λ y hy, is_closed_eq (hf₂ _) (hg₂ _)
+
+lemma eq_on_closure₂ [t2_space α] {s : set β} {t : set γ} {f g : β → γ → α}
+  (h : ∀ (x ∈ s) (y ∈ t), f x y = g x y)
+  (hf : continuous (uncurry f)) (hg : continuous (uncurry g)) :
+  ∀ (x ∈ closure s) (y ∈ closure t), f x y = g x y :=
+eq_on_closure₂' h (λ x, continuous_uncurry_left x hf) (λ x, continuous_uncurry_right x hf)
+  (λ y, continuous_uncurry_left y hg) (λ y, continuous_uncurry_right y hg)
 
 /-- If `f x = g x` for all `x ∈ s` and `f`, `g` are continuous on `t`, `s ⊆ t ⊆ closure s`, then
 `f x = g x` for all `x ∈ t`. See also `set.eq_on.closure`. -/
@@ -1198,6 +1243,20 @@ begin
     compact_closure_of_subset_compact hK' interior_subset⟩,
 end
 
+/--
+In a locally compact T₂ space, given a compact set `K` inside an open set `U`, we can find a
+open set `V` between these sets with compact closure: `K ⊆ V` and the closure of `V` is inside `U`.
+-/
+lemma exists_open_between_and_is_compact_closure [locally_compact_space α] [t2_space α]
+  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
+  ∃ V, is_open V ∧ K ⊆ V ∧ closure V ⊆ U ∧ is_compact (closure V) :=
+begin
+  rcases exists_compact_between hK hU hKU with ⟨V, hV, hKV, hVU⟩,
+  exact ⟨interior V, is_open_interior, hKV,
+    (closure_minimal interior_subset hV.is_closed).trans hVU,
+    compact_closure_of_subset_compact hV interior_subset⟩,
+end
+
 lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
   is_preirreducible S ↔ S.subsingleton :=
 begin
@@ -1319,42 +1378,6 @@ begin
   tauto
 end
 
-/--
-In a locally compact T₃ space, given a compact set `K` inside an open set `U`, we can find a
-compact set `K'` between these sets: `K` is inside the interior of `K'` and `K' ⊆ U`.
--/
-lemma exists_compact_between [locally_compact_space α] [t3_space α]
-  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
-  ∃ K', is_compact K' ∧ K ⊆ interior K' ∧ K' ⊆ U :=
-begin
-  choose C hxC hCU hC using λ x : K, nhds_is_closed (hU.mem_nhds $ hKU x.2),
-  choose L hL hxL using λ x : K, exists_compact_mem_nhds (x : α),
-  have : K ⊆ ⋃ x, interior (L x) ∩ interior (C x), from
-  λ x hx, mem_Union.mpr ⟨⟨x, hx⟩,
-    ⟨mem_interior_iff_mem_nhds.mpr (hxL _), mem_interior_iff_mem_nhds.mpr (hxC _)⟩⟩,
-  rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
-  { refine ⟨⋃ x ∈ t, L x ∩ C x, t.compact_bUnion (λ x _, (hL x).inter_right (hC x)), λ x hx, _, _⟩,
-    { obtain ⟨y, hyt, hy : x ∈ interior (L y) ∩ interior (C y)⟩ := mem_Union₂.mp (ht hx),
-      rw [← interior_inter] at hy,
-      refine interior_mono (subset_bUnion_of_mem hyt) hy },
-    { simp_rw [Union_subset_iff], rintro x -, exact (inter_subset_right _ _).trans (hCU _) } },
-  { exact λ _, is_open_interior.inter is_open_interior }
-end
-
-/--
-In a locally compact regular space, given a compact set `K` inside an open set `U`, we can find a
-open set `V` between these sets with compact closure: `K ⊆ V` and the closure of `V` is inside `U`.
--/
-lemma exists_open_between_and_is_compact_closure [locally_compact_space α] [t3_space α]
-  {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
-  ∃ V, is_open V ∧ K ⊆ V ∧ closure V ⊆ U ∧ is_compact (closure V) :=
-begin
-  rcases exists_compact_between hK hU hKU with ⟨V, hV, hKV, hVU⟩,
-  refine ⟨interior V, is_open_interior, hKV,
-    (closure_minimal interior_subset hV.is_closed).trans hVU,
-    compact_closure_of_subset_compact hV interior_subset⟩,
-end
-
 end t3
 
 section normality
@@ -1472,7 +1495,7 @@ begin
   -- We do this by showing that any disjoint cover by two closed sets implies
   -- that one of these closed sets must contain our whole thing.
   -- To reduce to the case where the cover is disjoint on all of `α` we need that `s` is closed
-  have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z) :=
+  have hs : @is_closed α _ (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z) :=
     is_closed_Inter (λ Z, Z.2.1.2),
   rw (is_preconnected_iff_subset_of_fully_disjoint_closed hs),
   intros a b ha hb hab ab_disj,
@@ -1484,9 +1507,8 @@ begin
   -- If we can find a clopen set around x, contained in u ∪ v, we get a disjoint decomposition
   -- Z = Z ∩ u ∪ Z ∩ v of clopen sets. The intersection of all clopen neighbourhoods will then lie
   -- in whichever of u or v x lies in and hence will be a subset of either a or b.
-  suffices : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v,
-  { cases this with Z H,
-    have H1 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hu hv huv,
+  rsuffices ⟨Z, H⟩ : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v,
+  { have H1 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hu hv huv,
     rw [union_comm] at H,
     have H2 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hv hu huv.symm,
     by_cases (x ∈ u),
@@ -1527,22 +1549,19 @@ end
 
 section profinite
 
-variables [t2_space α]
-
-/-- A Hausdorff space with a clopen basis is totally separated. -/
-lemma tot_sep_of_zero_dim (h : is_topological_basis {s : set α | is_clopen s}) :
+/-- A T1 space with a clopen basis is totally separated. -/
+lemma totally_separated_space_of_t1_of_basis_clopen [t1_space α]
+  (h : is_topological_basis {s : set α | is_clopen s}) :
   totally_separated_space α :=
 begin
   constructor,
   rintros x - y - hxy,
-  obtain ⟨u, v, hu, hv, xu, yv, disj⟩ := t2_separation hxy,
-  obtain ⟨w, hw : is_clopen w, xw, wu⟩ := (is_topological_basis.mem_nhds_iff h).1
-    (is_open.mem_nhds hu xu),
-  refine ⟨w, wᶜ, hw.1, hw.compl.1, xw, λ h, disj ⟨wu h, yv⟩, _, disjoint_compl_right⟩,
-  rw set.union_compl_self,
+  rcases h.mem_nhds_iff.mp (is_open_ne.mem_nhds hxy) with ⟨U, hU, hxU, hyU⟩,
+  exact ⟨U, Uᶜ, hU.is_open, hU.compl.is_open, hxU, λ h, hyU h rfl,
+    (union_compl_self U).superset, disjoint_compl_right⟩
 end
 
-variables [compact_space α]
+variables [t2_space α] [compact_space α]
 
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
@@ -1575,9 +1594,8 @@ lemma nhds_basis_clopen (x : α) : (𝓝 x).has_basis (λ s : set α, x ∈ s �
     rw connected_component_eq_Inter_clopen at this,
     intros hU,
     let N := {Z // is_clopen Z ∧ x ∈ Z},
-    suffices : ∃ Z : N, Z.val ⊆ U,
-    { rcases this with ⟨⟨s, hs, hs'⟩, hs''⟩,
-      exact ⟨s, ⟨hs', hs⟩, hs''⟩ },
+    rsuffices ⟨⟨s, hs, hs'⟩, hs''⟩ : ∃ Z : N, Z.val ⊆ U,
+    { exact ⟨s, ⟨hs', hs⟩, hs''⟩ },
     haveI : nonempty N := ⟨⟨univ, is_clopen_univ, mem_univ x⟩⟩,
     have hNcl : ∀ Z : N, is_closed Z.val := (λ Z, Z.property.1.2),
     have hdir : directed superset (λ Z : N, Z.val),
@@ -1662,7 +1680,7 @@ theorem loc_compact_t2_tot_disc_iff_tot_sep :
 begin
   split,
   { introI h,
-    exact tot_sep_of_zero_dim loc_compact_Haus_tot_disc_of_zero_dim, },
+    exact totally_separated_space_of_t1_of_basis_clopen loc_compact_Haus_tot_disc_of_zero_dim },
   apply totally_separated_space.totally_disconnected_space,
 end
 

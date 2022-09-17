@@ -171,7 +171,8 @@ continuous_at_inv
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
 converges to the inverse of this value. For the version in normed fields assuming additionally
 that the limit is nonzero, use `tendsto.inv'`. -/
-@[to_additive]
+@[to_additive "If a function converges to a value in an additive topological group, then its
+negation converges to the negation of this value."]
 lemma filter.tendsto.inv {f : α → G} {l : filter α} {y : G} (h : tendsto f l (𝓝 y)) :
   tendsto (λ x, (f x)⁻¹) l (𝓝 y⁻¹) :=
 (continuous_inv.tendsto y).comp h
@@ -319,7 +320,7 @@ continuous.
 
 When you declare an instance that does not already have a `uniform_space` instance,
 you should also provide an instance of `uniform_space` and `uniform_group` using
-`topological_group.to_uniform_space` and `topological_group_is_uniform`. -/
+`topological_group.to_uniform_space` and `topological_comm_group_is_uniform`. -/
 @[to_additive]
 class topological_group (G : Type*) [topological_space G] [group G]
   extends has_continuous_mul G, has_continuous_inv G : Prop
@@ -746,11 +747,48 @@ instance topological_group_quotient [N.normal] : topological_group (G ⧸ N) :=
       { exact (surjective_quot_mk _).prod_map (surjective_quot_mk _) } },
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
-  continuous_inv := begin
-    have : continuous ((coe : G → G ⧸ N) ∘ (λ (a : G), a⁻¹)) :=
-      continuous_quot_mk.comp continuous_inv,
-    convert continuous_quotient_lift _ this,
-  end }
+  continuous_inv := by convert (@continuous_inv G _ _ _).quotient_map' _ }
+
+/-- Neighborhoods in the quotient are precisely the map of neighborhoods in the prequotient. -/
+@[to_additive "Neighborhoods in the quotient are precisely the map of neighborhoods in
+the prequotient."]
+lemma quotient_group.nhds_eq (x : G) : 𝓝 (x : G ⧸ N) = map coe (𝓝 x) :=
+le_antisymm ((quotient_group.is_open_map_coe N).nhds_le x) continuous_quot_mk.continuous_at
+
+variables (G) [first_countable_topology G]
+
+/-- Any first countable topological group has an antitone neighborhood basis `u : ℕ → set G` for
+which `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is a key tool for
+`quotient_group.complete_space` -/
+@[to_additive "Any first countable topological additive group has an antitone neighborhood basis
+`u : ℕ → set G` for which `u (n + 1) + u (n + 1) ⊆ u n`. The existence of such a neighborhood basis
+is a key tool for `quotient_add_group.complete_space`"]
+lemma topological_group.exists_antitone_basis_nhds_one :
+  ∃ (u : ℕ → set G), (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) :=
+begin
+  rcases (𝓝 (1 : G)).exists_antitone_basis with ⟨u, hu, u_anti⟩,
+  have := ((hu.prod_nhds hu).tendsto_iff hu).mp
+    (by simpa only [mul_one] using continuous_mul.tendsto ((1, 1) : G × G)),
+  simp only [and_self, mem_prod, and_imp, prod.forall, exists_true_left, prod.exists,
+    forall_true_left] at this,
+  have event_mul : ∀ n : ℕ, ∀ᶠ m in at_top, u m * u m ⊆ u n,
+  { intros n,
+    rcases this n with ⟨j, k, h⟩,
+    refine at_top_basis.eventually_iff.mpr ⟨max j k, true.intro, λ m hm, _⟩,
+    rintro - ⟨a, b, ha, hb, rfl⟩,
+    exact h a b (u_anti ((le_max_left _ _).trans hm) ha) (u_anti ((le_max_right _ _).trans hm) hb)},
+  obtain ⟨φ, -, hφ, φ_anti_basis⟩ := has_antitone_basis.subbasis_with_rel ⟨hu, u_anti⟩ event_mul,
+  exact ⟨u ∘ φ, φ_anti_basis, λ n, hφ n.lt_succ_self⟩,
+end
+
+include n
+
+/-- In a first countable topological group `G` with normal subgroup `N`, `1 : G ⧸ N` has a
+countable neighborhood basis. -/
+@[to_additive "In a first countable topological additive group `G` with normal additive subgroup
+`N`, `0 : G ⧸ N` has a countable neighborhood basis."]
+instance quotient_group.nhds_one_is_countably_generated : (𝓝 (1 : G ⧸ N)).is_countably_generated :=
+(quotient_group.nhds_eq N 1).symm ▸ map.is_countably_generated _ _
 
 end quotient_topological_group
 
@@ -1060,7 +1098,9 @@ end
 
 /-- Every locally compact separable topological group is σ-compact.
   Note: this is not true if we drop the topological group hypothesis. -/
-@[priority 100, to_additive separable_locally_compact_add_group.sigma_compact_space]
+@[priority 100, to_additive separable_locally_compact_add_group.sigma_compact_space "Every locally
+compact separable topological group is σ-compact.
+Note: this is not true if we drop the topological group hypothesis."]
 instance separable_locally_compact_group.sigma_compact_space
   [separable_space G] [locally_compact_space G] : sigma_compact_space G :=
 begin
@@ -1144,19 +1184,14 @@ variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G
 
 @[to_additive]
 instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G (G ⧸ Γ) :=
-{ continuous_const_smul := λ g₀, begin
-    apply continuous_coinduced_dom.2,
-    change continuous (λ g : G, quotient_group.mk (g₀ * g)),
-    exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
-  end }
+{ continuous_const_smul := λ g,
+    by convert ((@continuous_const _ _ _ _ g).mul continuous_id).quotient_map' _ }
 
 @[to_additive]
 lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
 begin
-  obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
-  { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
-  change continuous (λ g, quotient_group.mk (g * g₀)),
-  exact continuous_coinduced_rng.comp (continuous_mul_right g₀)
+  induction x using quotient_group.induction_on,
+  exact continuous_quotient_mk.comp (continuous_mul_right x)
 end
 
 @[to_additive]
@@ -1250,7 +1285,7 @@ namespace group_topology
 variables [group α]
 
 /-- A version of the global `continuous_mul` suitable for dot notation. -/
-@[to_additive]
+@[to_additive "A version of the global `continuous_add` suitable for dot notation."]
 lemma continuous_mul' (g : group_topology α) :
   by haveI := g.to_topological_space; exact continuous (λ p : α × α, p.1 * p.2) :=
 begin
@@ -1260,7 +1295,7 @@ begin
 end
 
 /-- A version of the global `continuous_inv` suitable for dot notation. -/
-@[to_additive]
+@[to_additive "A version of the global `continuous_neg` suitable for dot notation."]
 lemma continuous_inv' (g : group_topology α) :
   by haveI := g.to_topological_space; exact continuous (has_inv.inv : α → α) :=
 begin
@@ -1278,9 +1313,10 @@ lemma to_topological_space_injective :
 lemma ext' {f g : group_topology α} (h : f.is_open = g.is_open) : f = g :=
 to_topological_space_injective $ topological_space_eq h
 
-/-- The ordering on group topologies on the group `γ`.
-  `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
-@[to_additive]
+/-- The ordering on group topologies on the group `γ`. `t ≤ s` if every set open in `s` is also open
+in `t` (`t` is finer than `s`). -/
+@[to_additive "The ordering on group topologies on the group `γ`. `t ≤ s` if every set open in `s`
+is also open in `t` (`t` is finer than `s`)."]
 instance : partial_order (group_topology α) :=
 partial_order.lift to_topological_space to_topological_space_injective
 
@@ -1328,6 +1364,8 @@ to_topological_space_injective.semilattice_inf _ to_topological_space_inf
 instance : inhabited (group_topology α) := ⟨⊤⟩
 
 local notation `cont` := @continuous _ _
+
+/-- Infimum of a collection of group topologies. -/
 @[to_additive "Infimum of a collection of additive group topologies"]
 instance : has_Inf (group_topology α) :=
 { Inf := λ S,
@@ -1350,7 +1388,14 @@ The infimum of a collection of group topologies is the topology generated by all
 
 The supremum of two group topologies `s` and `t` is the infimum of the family of all group
 topologies contained in the intersection of `s` and `t`. -/
-@[to_additive]
+@[to_additive "Group topologies on `γ` form a complete lattice, with `⊥` the discrete topology and
+`⊤` the indiscrete topology.
+
+The infimum of a collection of group topologies is the topology generated by all their open sets
+(which is a group topology).
+
+The supremum of two group topologies `s` and `t` is the infimum of the family of all group
+topologies contained in the intersection of `s` and `t`."]
 instance : complete_semilattice_Inf (group_topology α) :=
 { Inf_le := λ S a haS, to_topological_space_le.1 $ Inf_le ⟨a, haS, rfl⟩,
   le_Inf :=

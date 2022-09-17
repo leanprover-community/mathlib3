@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.order.ring
+import algebra.order.with_zero
 
 /-!
 # Basic operations on the natural numbers
@@ -53,8 +54,7 @@ instance : comm_semiring ℕ :=
     by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul] }
 
 instance : linear_ordered_semiring nat :=
-{ add_left_cancel            := @nat.add_left_cancel,
-  lt                         := nat.lt,
+{ lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
   le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
   zero_le_one                := nat.le_of_lt (nat.zero_lt_succ 0),
@@ -65,9 +65,7 @@ instance : linear_ordered_semiring nat :=
   ..nat.comm_semiring, ..nat.linear_order }
 
 -- all the fields are already included in the linear_ordered_semiring instance
-instance : linear_ordered_cancel_add_comm_monoid ℕ :=
-{ add_left_cancel := @nat.add_left_cancel,
-  ..nat.linear_ordered_semiring }
+instance : linear_ordered_cancel_add_comm_monoid ℕ := { ..nat.linear_ordered_semiring }
 
 instance : linear_ordered_comm_monoid_with_zero ℕ :=
 { mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
@@ -136,19 +134,6 @@ attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.zero_ne_bit1 nat.bit1_ne_zero
   nat.bit0_ne_one nat.one_ne_bit0
   nat.bit0_ne_bit1 nat.bit1_ne_bit0
-
-/-!
-Inject some simple facts into the type class system.
-This `fact` should not be confused with the factorial function `nat.fact`!
--/
-section facts
-
-instance succ_pos'' (n : ℕ) : fact (0 < n.succ) := ⟨n.succ_pos⟩
-
-instance pos_of_one_lt (n : ℕ) [h : fact (1 < n)] : fact (0 < n) :=
-⟨lt_trans zero_lt_one h.1⟩
-
-end facts
 
 variables {m n k : ℕ}
 namespace nat
@@ -230,9 +215,6 @@ add_right_eq_self.mp $ le_antisymm ((two_mul a).symm.trans_le h) le_add_self
 
 lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
-
-theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
-⟨nat.eq_zero_of_le_zero, λ h, h ▸ le_refl i⟩
 
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
@@ -556,7 +538,7 @@ le_iff_le_iff_lt_iff_lt.1 mul_self_le_mul_self_iff
 
 theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_rfl
-| (n+1) := let t := nat.mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
+| (n+1) := by simp
 
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
@@ -648,7 +630,7 @@ def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}
 
 theorem le_rec_on_self {C : ℕ → Sort u} {n} {h : n ≤ n} {next} (x : C n) :
   (le_rec_on h next x : C n) = x :=
-by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self, dif_pos rfl]
+by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self]
 
 theorem le_rec_on_succ {C : ℕ → Sort u} {n m} (h1 : n ≤ m) {h2 : n ≤ m+1} {next} (x : C n) :
   (le_rec_on h2 @next x : C (m+1)) = next (le_rec_on h1 @next x : C m) :=
@@ -871,7 +853,7 @@ attribute [simp] nat.div_self
 protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=
 (nat.eq_zero_or_pos k).elim
   (λ k0, by rw [k0, nat.div_zero]; apply zero_le)
-  (λ k0, (_root_.mul_le_mul_left k0).1 $
+  (λ k0, (mul_le_mul_left k0).1 $
     calc k * (m / k)
         ≤ m % k + k * (m / k) : nat.le_add_left _ _
     ... = m                   : mod_add_div _ _
@@ -1019,6 +1001,15 @@ begin
 end
 
 /-! ### `mod`, `dvd` -/
+
+lemma mod_eq_iff_lt {a b : ℕ} (h : b ≠ 0) : a % b = a ↔ a < b :=
+begin
+  cases b, contradiction,
+  exact ⟨λ h, h.ge.trans_lt (mod_lt _ (succ_pos _)), mod_eq_of_lt⟩,
+end
+
+@[simp] lemma mod_succ_eq_iff_lt {a b : ℕ} : a % b.succ = a ↔ a < b.succ :=
+mod_eq_iff_lt (succ_ne_zero _)
 
 lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=
 (nat.add_comm _ _).trans (mod_add_div _ _)
@@ -1632,9 +1623,9 @@ by { convert bit1_lt_bit0_iff, refl, }
 | ff := bit0_le_bit1_iff
 | tt := bit1_le_bit1
 
-@[simp] lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
+lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
 
-@[simp] lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
+lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
 
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }

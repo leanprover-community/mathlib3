@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.convex.uniform
+import analysis.normed_space.completion
 import analysis.normed_space.bounded_linear_maps
 import analysis.normed_space.banach
 import linear_algebra.bilinear_form
@@ -85,8 +86,10 @@ notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ _ _ x y
 
 section notations
 
-localized "notation `⟪`x`, `y`⟫` := @inner ℝ _ _ x y" in real_inner_product_space
-localized "notation `⟪`x`, `y`⟫` := @inner ℂ _ _ x y" in complex_inner_product_space
+localized "notation (name := inner.real)
+  `⟪`x`, `y`⟫` := @inner ℝ _ _ x y" in real_inner_product_space
+localized "notation (name := inner.complex)
+  `⟪`x`, `y`⟫` := @inner ℂ _ _ x y" in complex_inner_product_space
 
 end notations
 
@@ -275,7 +278,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, inner_conj_sym, hT, ring_hom.map_div, h₁, h₃]
+                  : by field_simp [-mul_re, inner_conj_sym, hT, map_div₀, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
@@ -647,7 +650,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, hT, ring_hom.map_div, h₁, h₃, inner_conj_sym]
+                  : by field_simp [-mul_re, hT, map_div₀, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
@@ -2313,4 +2316,71 @@ begin
   rwa [h, inf_comm, top_inf_eq] at this
 end
 
+lemma submodule.orthogonal_family_self :
+  @orthogonal_family 𝕜 E _ _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
+  (λ b, (cond b K Kᗮ).subtypeₗᵢ)
+| tt tt := absurd rfl
+| tt ff := λ _ x y, submodule.inner_right_of_mem_orthogonal x.prop y.prop
+| ff tt := λ _ x y, submodule.inner_left_of_mem_orthogonal y.prop x.prop
+| ff ff := absurd rfl
+
 end orthogonal
+
+namespace uniform_space.completion
+
+open uniform_space function
+
+instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
+  has_inner 𝕜' (completion E') :=
+{ inner := curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (uncurry inner) }
+
+@[simp] lemma inner_coe (a b : E) :
+  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
+(dense_inducing_coe.prod dense_inducing_coe).extend_eq
+  (continuous_inner : continuous (uncurry inner : E × E → 𝕜)) (a, b)
+
+protected lemma continuous_inner :
+  continuous (uncurry inner : completion E × completion E → 𝕜) :=
+begin
+  let inner' : E →+ E →+ 𝕜 :=
+  { to_fun := λ x, (innerₛₗ x).to_add_monoid_hom,
+    map_zero' := by ext x; exact inner_zero_left,
+    map_add' := λ x y, by ext z; exact inner_add_left },
+  have : continuous (λ p : E × E, inner' p.1 p.2) := continuous_inner,
+  rw [completion.has_inner, uncurry_curry _],
+  change continuous (((dense_inducing_to_compl E).prod (dense_inducing_to_compl E)).extend
+    (λ p : E × E, inner' p.1 p.2)),
+  exact (dense_inducing_to_compl E).extend_Z_bilin (dense_inducing_to_compl E) this,
+end
+
+protected lemma continuous.inner {α : Type*} [topological_space α]
+  {f g : α → completion E} (hf : continuous f) (hg : continuous g) :
+  continuous (λ x : α, inner (f x) (g x) : α → 𝕜) :=
+uniform_space.completion.continuous_inner.comp (hf.prod_mk hg : _)
+
+instance : inner_product_space 𝕜 (completion E) :=
+{ norm_sq_eq_inner := λ x, completion.induction_on x
+    (is_closed_eq
+      (continuous_norm.pow 2)
+      (continuous_re.comp (continuous.inner continuous_id' continuous_id')))
+    (λ a, by simp only [norm_coe, inner_coe, inner_self_eq_norm_sq]),
+  conj_sym := λ x y, completion.induction_on₂ x y
+    (is_closed_eq
+      (continuous_conj.comp (continuous.inner continuous_snd continuous_fst))
+      (continuous.inner continuous_fst continuous_snd))
+    (λ a b, by simp only [inner_coe, inner_conj_sym]),
+  add_left := λ x y z, completion.induction_on₃ x y z
+    (is_closed_eq
+      (continuous.inner (continuous_fst.add (continuous_fst.comp continuous_snd))
+        (continuous_snd.comp continuous_snd))
+      ((continuous.inner continuous_fst (continuous_snd.comp continuous_snd)).add
+        (continuous.inner (continuous_fst.comp continuous_snd)
+          (continuous_snd.comp continuous_snd))))
+    (λ a b c, by simp only [← coe_add, inner_coe, inner_add_left]),
+  smul_left := λ x y c, completion.induction_on₂ x y
+    (is_closed_eq
+      (continuous.inner (continuous_fst.const_smul c) continuous_snd)
+      ((continuous_mul_left _).comp (continuous.inner continuous_fst continuous_snd)))
+    (λ a b, by simp only [← coe_smul c a, inner_coe, inner_smul_left]) }
+
+end uniform_space.completion

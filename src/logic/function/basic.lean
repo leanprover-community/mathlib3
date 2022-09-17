@@ -622,7 +622,7 @@ def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
 f (g a b)
 
 -- Suggested local notation:
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) := rfl
@@ -647,7 +647,7 @@ class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := 
 for bundled maps.-/
 add_decl_doc has_uncurry.uncurry
 
-notation `↿`:max x:max := has_uncurry.uncurry x
+notation (name := uncurry) `↿`:max x:max := has_uncurry.uncurry x
 
 instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
 

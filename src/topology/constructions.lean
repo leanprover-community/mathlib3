@@ -598,7 +598,7 @@ empty -/
 lemma is_open_prod_iff' {s : set α} {t : set β} :
   is_open (s ×ˢ t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
-  cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
+  cases (s ×ˢ t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.1 h] },
   { have st : s.nonempty ∧ t.nonempty, from prod_nonempty_iff.1 h,
     split,
@@ -631,11 +631,11 @@ lemma frontier_prod_eq (s : set α) (t : set β) :
 by simp only [frontier, closure_prod_eq, interior_prod_eq, prod_diff_prod]
 
 @[simp] lemma frontier_prod_univ_eq (s : set α) :
-  frontier (s ×ˢ (univ : set β)) = frontier s ×ˢ (univ : set β) :=
+  frontier (s ×ˢ (univ : set β)) = frontier s ×ˢ univ :=
 by simp [frontier_prod_eq]
 
 @[simp] lemma frontier_univ_prod_eq (s : set β) :
-  frontier ((univ : set α) ×ˢ s) = (univ : set α) ×ˢ (frontier s) :=
+  frontier ((univ : set α) ×ˢ s) = univ ×ˢ frontier s :=
 by simp [frontier_prod_eq]
 
 lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
@@ -830,12 +830,16 @@ lemma is_closed.closed_embedding_subtype_coe {s : set α} (hs : is_closed s) :
   inj := subtype.coe_injective,
   closed_range := (subtype.range_coe : range coe = s).symm ▸ hs }
 
-@[continuity] lemma continuous_subtype_mk {f : β → α}
-  (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
+@[continuity] lemma continuous.subtype_mk {f : β → α} (h : continuous f)
+  (hp : ∀x, p (f x)) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng.2 h
 
+lemma continuous.subtype_map {f : α → β} (h : continuous f) {q : β → Prop}
+  (hpq : ∀ x, p x → q (f x)) : continuous (subtype.map f hpq) :=
+(h.comp continuous_subtype_coe).subtype_mk _
+
 lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) :=
-continuous_subtype_mk _ continuous_subtype_coe
+continuous_id.subtype_map h
 
 lemma continuous_at_subtype_coe {p : α → Prop} {a : subtype p} :
   continuous_at (coe : subtype p → α) a :=
@@ -912,7 +916,7 @@ lemma continuous_at.restrict_preimage {f : α → β} {s : set β} {x : f ⁻¹'
 h.restrict _
 
 @[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
-  (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
+  (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := hf.subtype_mk hs
 
 lemma inducing.cod_restrict {e : α → β} (he : inducing e) {s : set β} (hs : ∀ x, e x ∈ s) :
   inducing (cod_restrict e s hs) :=
@@ -944,13 +948,18 @@ quotient_map_quot_mk
 lemma continuous_quotient_mk : continuous (@quotient.mk α s) :=
 continuous_coinduced_rng
 
-lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
-  (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
+lemma continuous.quotient_lift {f : α → β} (h : continuous f) (hs : ∀ a b, a ≈ b → f a = f b) :
+  continuous (quotient.lift f hs : quotient s → β) :=
 continuous_coinduced_dom.2 h
 
-lemma continuous_quotient_lift_on' {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
-  (h : continuous f) : continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
-continuous_coinduced_dom.2 h
+lemma continuous.quotient_lift_on' {f : α → β} (h : continuous f)
+  (hs : ∀ a b, @setoid.r _ s a b → f a = f b) :
+  continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
+h.quotient_lift hs
+
+lemma continuous.quotient_map' {t : setoid β} {f : α → β} (hf : continuous f)
+  (H : (s.r ⇒ t.r) f f) : continuous (quotient.map' f H) :=
+(continuous_quotient_mk.comp hf).quotient_lift _
 
 end quotient
 
@@ -1104,10 +1113,11 @@ begin
     exact assume s hs, generate_open.basic _ ⟨function.update (λa, univ) a s, {a}, by simp [hs]⟩ }
 end
 
-lemma pi_generate_from_eq_fintype {g : Πa, set (set (π a))} [fintype ι] (hg : ∀a, ⋃₀ g a = univ) :
+lemma pi_generate_from_eq_finite {g : Πa, set (set (π a))} [finite ι] (hg : ∀a, ⋃₀ g a = univ) :
   @Pi.topological_space ι π (λa, generate_from (g a)) =
   generate_from {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} :=
 begin
+  casesI nonempty_fintype ι,
   rw [pi_generate_from_eq],
   refine le_antisymm (generate_from_mono _) (le_generate_from _),
   exact assume s ⟨t, ht, eq⟩, ⟨t, finset.univ, by simp [ht, eq]⟩,

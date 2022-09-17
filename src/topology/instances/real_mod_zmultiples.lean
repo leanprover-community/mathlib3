@@ -25,7 +25,7 @@ sorry
 instance : properly_discontinuous_vadd (zmultiples a).opposite ℝ :=
 { finite_disjoint_inter_image := begin
     intros K L hK hL,
-    have H : set.finite _ := int.tendsto_coe_zmultiples_cofinite
+    have H : set.finite _ := add_subgroup.tendsto_coe_zmultiples_cofinite
       a ((hL.prod hK).image continuous_sub).compl_mem_cocompact,
     convert H,
     ext x,

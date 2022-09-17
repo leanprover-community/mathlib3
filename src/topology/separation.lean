@@ -31,6 +31,7 @@ This file defines the predicate `separated`, and common separation axioms
 * `normal_space`: A T₄ space (sometimes referred to as normal, but authors vary on
   whether this includes T₂; `mathlib` does), is one where given two disjoint closed sets,
   we can find two open sets that separate them. In `mathlib`, T₄ implies T₃.
+* `t5_space`: A T₅ space, also known as a *completely normal Hausdorff space*
 
 ## Main results
 
@@ -1487,6 +1488,10 @@ end normality
 
 section completely_normal
 
+/-- A topological space `α` is a *completely normal Hausdorff space* if each subspace `s : set α` is
+a normal Hausdorff space. Equivalently, `α` is a `T₁` space and for any two sets `s`, `t` such that
+`closure s` is disjoint with `t` and `s` is disjoint with `closure t`, there exist disjoint
+neighbourhoods of `s` and `t`. -/
 class t5_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
 (completely_normal : ∀ ⦃s t : set α⦄, disjoint (closure s) t → disjoint s (closure t) →
   disjoint (𝓝ˢ s) (𝓝ˢ t))
@@ -1506,8 +1511,10 @@ begin
       ← he.closure_eq_preimage_closure_image, subset_compl_iff_disjoint_right] }
 end
 
+/-- A subspace of a `T₅` space is a `T₅` space. -/
 instance [t5_space α] {p : α → Prop} : t5_space {x // p x} := embedding_subtype_coe.t5_space
 
+/-- A `T₅` space is a `T₄` space. -/
 @[priority 100] -- see Note [lower instance priority]
 instance t5_space.to_normal_space [t5_space α] : normal_space α :=
 ⟨λ s t hs ht hd, separated_iff_disjoint.2 $

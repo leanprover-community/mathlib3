@@ -74,7 +74,7 @@ begin
     { simp_rw [←fintype.card_coe, set.finite.coe_sort_to_finset, set.coe_set_of],
       exact fintype.card_congr (equiv.subtype_injective_equiv_embedding _ _) },
     { simp only [fintype.card_embedding_eq, fintype.card_fin, nat.desc_factorial],
-    norm_num } },
+      norm_num } },
   rw [this, ennreal.lt_div_iff_mul_lt, mul_comm, mul_div, ennreal.div_lt_iff],
   rotate, iterate 2 { right, norm_num }, iterate 2 { left, norm_num },
   norm_cast,

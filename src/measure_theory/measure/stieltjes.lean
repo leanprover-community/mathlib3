@@ -75,6 +75,33 @@ tendsto_nhds_unique (stieltjes_function.id.tendsto_left_lim x) $
 
 instance : inhabited stieltjes_function := ⟨stieltjes_function.id⟩
 
+/-- If a function `f : ℝ → ℝ` is monotone, then the function mapping `x` to the right limit of `f`
+at `x` is a Stieltjes function, i.e., it is monotone and right-continuous. -/
+noncomputable def _root_.monotone.stieltjes_function {f : ℝ → ℝ} (hf : monotone f) :
+  stieltjes_function :=
+{ to_fun := monotone.right_lim f,
+  mono' := λ x y hxy, hf.right_lim_le_right_lim hxy,
+  right_continuous' :=
+  begin
+    assume x s hs,
+    obtain ⟨l, u, hlu, lus⟩ : ∃ (l u : ℝ), monotone.right_lim f x ∈ Ioo l u ∧ Ioo l u ⊆ s :=
+      mem_nhds_iff_exists_Ioo_subset.1 hs,
+    obtain ⟨y, xy, h'y⟩ : ∃ (y : ℝ) (H : x < y), Ioc x y ⊆ f ⁻¹' (Ioo l u) :=
+      mem_nhds_within_Ioi_iff_exists_Ioc_subset.1
+        (hf.tendsto_right_lim x (Ioo_mem_nhds hlu.1 hlu.2)),
+    change ∀ᶠ y in 𝓝[≥] x, monotone.right_lim f y ∈ s,
+    filter_upwards [Ico_mem_nhds_within_Ici ⟨le_refl x, xy⟩] with z hz,
+    apply lus,
+    refine ⟨hlu.1.trans_le (hf.right_lim_le_right_lim hz.1), _⟩,
+    obtain ⟨a, za, ay⟩ : ∃ (a : ℝ), z < a ∧ a < y := exists_between hz.2,
+    calc monotone.right_lim f z ≤ f a : hf.right_lim_le za
+                            ... < u   : (h'y ⟨hz.1.trans_lt za, ay.le⟩).2,
+  end }
+
+lemma _root_.monotone.stieltjes_function_eq {f : ℝ → ℝ} (hf : monotone f) (x : ℝ) :
+  hf.stieltjes_function x = monotone.right_lim f x := rfl
+
+
 /-! ### The outer measure associated to a Stieltjes function -/
 
 /-- Length of an interval. This is the largest monotone function which correctly measures all

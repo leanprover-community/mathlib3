@@ -604,30 +604,24 @@ let ⟨a, h⟩ := (-f).exists_gt in ⟨-a, show pos _,
   by rwa [const_neg, sub_neg_eq_add, add_comm, ← sub_neg_eq_add]⟩
 
 -- so named to match `rat_add_continuous_lemma`
-theorem _root_.rat_sup_continuous_lemma
-  {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : α},
-  abs (a₁ - b₁) < δ → abs (a₂ - b₂) < δ → abs (a₁ ⊔ a₂ - (b₁ ⊔ b₂)) < ε :=
-⟨ε, ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
-  (abs_max_sub_max_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)⟩
+theorem _root_.rat_sup_continuous_lemma {ε : α} {a₁ a₂ b₁ b₂ : α} :
+  abs (a₁ - b₁) < ε → abs (a₂ - b₂) < ε → abs (a₁ ⊔ a₂ - (b₁ ⊔ b₂)) < ε :=
+λ h₁ h₂, (abs_max_sub_max_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)
 
 -- so named to match `rat_add_continuous_lemma`
-theorem _root_.rat_inf_continuous_lemma
-  {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : α},
-  abs (a₁ - b₁) < δ → abs (a₂ - b₂) < δ → abs (a₁ ⊓ a₂ - (b₁ ⊓ b₂)) < ε :=
-⟨ε, ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
-  (abs_min_sub_min_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)⟩
+theorem _root_.rat_inf_continuous_lemma {ε : α} {a₁ a₂ b₁ b₂ : α} :
+  abs (a₁ - b₁) < ε → abs (a₂ - b₂) < ε → abs (a₁ ⊓ a₂ - (b₁ ⊓ b₂)) < ε :=
+λ h₁ h₂, (abs_min_sub_min_le_max _ _ _ _).trans_lt (max_lt h₁ h₂)
 
 instance : has_sup (cau_seq α abs) :=
 ⟨λ f g, ⟨f ⊔ g, λ ε ε0,
-  let ⟨δ, δ0, Hδ⟩ := rat_sup_continuous_lemma ε0,
-      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
-  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
+  (exists_forall_ge_and (f.cauchy₃ ε0) (g.cauchy₃ ε0)).imp $ λ i H j ij,
+    let ⟨H₁, H₂⟩ := H _ le_rfl in rat_sup_continuous_lemma (H₁ _ ij) (H₂ _ ij)⟩⟩
 
 instance : has_inf (cau_seq α abs) :=
 ⟨λ f g, ⟨f ⊓ g, λ ε ε0,
-  let ⟨δ, δ0, Hδ⟩ := rat_inf_continuous_lemma ε0,
-      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
-  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
+  (exists_forall_ge_and (f.cauchy₃ ε0) (g.cauchy₃ ε0)).imp $ λ i H j ij,
+    let ⟨H₁, H₂⟩ := H _ le_rfl in rat_inf_continuous_lemma (H₁ _ ij) (H₂ _ ij)⟩⟩
 
 @[simp, norm_cast] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
 

@@ -2986,6 +2986,20 @@ lemma right_lim_le_right_lim [no_max_order α] {f : α → β} (hf : monotone f)
   right_lim f x ≤ right_lim f y :=
 @left_lim_le_left_lim αᵒᵈ βᵒᵈ _ _ _ f hf.dual y x h
 
+lemma left_lim_le_right_lim [no_min_order α] [no_max_order α]
+  {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
+  monotone.left_lim f x ≤ monotone.right_lim f y :=
+(hf.left_lim_le le_rfl).trans (hf.le_right_lim h)
+
+lemma monotone.right_lim_le_left_lim [densely_ordered α]
+  {f : α → β} (hf : monotone f) {x y : α} (h : x < y) :
+  monotone.right_lim f x ≤ monotone.left_lim f y :=
+begin
+  rcases exists_between h with ⟨a, xa, ay⟩,
+  calc monotone.right_lim f x ≤ f a : hf.right_lim_le xa
+  ... ≤ monotone.left_lim f y : hf.le_left_lim ay
+end
+
 variables [topological_space α] [order_topology α] [topological_space β] [order_topology β]
 
 lemma tendsto_left_lim {f : α → β} (Mf : monotone f) (x : α) :
@@ -3009,7 +3023,7 @@ lemma tendsto_right_lim {f : α → β} (Mf : monotone f) (x : α) :
 
 /-- A monotone is continuous at a point if and only if its left and right limits coincide. -/
 lemma left_lim_eq_right_lim_iff_continuous_at [no_min_order α] [no_max_order α] [densely_ordered α]
-  {f : α → β} (Mf : monotone f) (x : α) :
+  {f : α → β} (Mf : monotone f) {x : α} :
   left_lim f x = right_lim f x ↔ continuous_at f x :=
 begin
   refine ⟨λ h, _, λ h, _⟩,

@@ -107,8 +107,31 @@ lemma slope_def_field' {k : Type*} [field k] (f : k → k) (a : k) :
   slope f a = λ b, (f b - f a) / (b - a) :=
 (div_eq_inv_mul _ _).symm
 
+
+
 lemma monotone.countable_not_continuous_at {f : ℝ → ℝ} (hf : monotone f) :
-  set.countable {x | ¬(continuous_at f x)} := sorry
+  set.countable {x | ¬(continuous_at f x)} :=
+begin
+  have : ∀ x, ¬(continuous_at f x) →
+    ∃ (y : ℚ), monotone.left_lim f x < y ∧ (y : ℝ) < monotone.right_lim f x,
+  { assume x hx,
+    have : monotone.left_lim f x < monotone.right_lim f x,
+    { rcases eq_or_lt_of_le (hf.left_lim_le_right_lim (le_refl x)) with h|h,
+      { exact (hx ((hf.left_lim_eq_right_lim_iff_continuous_at x).1 h)).elim },
+      { exact h } },
+    exact exists_rat_btwn this },
+  choose! F hF using this,
+  have A : maps_to F {x | ¬(continuous_at f x)} (univ : set ℚ) := maps_to_univ _ _,
+  have B : inj_on F {x | ¬(continuous_at f x)},
+  { apply strict_mono_on.inj_on,
+    assume x hx y hy hxy,
+    have : (F x : ℝ) < F y, from calc
+      (F x : ℝ) < monotone.right_lim f x : (hF _ hx).2
+      ... ≤ monotone.left_lim f y : hf.right_lim_le_left_lim hxy
+      ... < F y : (hF _ hy).1,
+    exact_mod_cast this },
+  exact maps_to.countable_of_inj_on A B countable_univ,
+end
 
 
 lemma stieltjes_function.countable_left_lim_ne (f : stieltjes_function) :

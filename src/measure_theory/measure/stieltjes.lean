@@ -52,7 +52,7 @@ it is indeed a left limit is asserted in `tendsto_left_lim` -/
 def left_lim := monotone.left_lim f
 
 lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[<] x) (𝓝 (f.left_lim x)) :=
-f.mono.tendsto_nhds_within_Iio x
+f.mono.tendsto_left_lim x
 
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
 f.mono.left_lim_le h
@@ -61,11 +61,7 @@ lemma le_left_lim {x y : ℝ} (h : x < y) : f x ≤ f.left_lim y :=
 f.mono.le_left_lim h
 
 lemma left_lim_le_left_lim {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f.left_lim y :=
-begin
-  rcases eq_or_lt_of_le h with rfl|hxy,
-  { exact le_rfl },
-  { exact (f.left_lim_le le_rfl).trans (f.le_left_lim hxy) }
-end
+f.mono.left_lim_le_left_lim h
 
 /-- The identity of `ℝ` as a Stieltjes function, used to construct Lebesgue measure. -/
 @[simps] protected def id : stieltjes_function :=

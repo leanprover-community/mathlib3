@@ -157,6 +157,17 @@ by { erw [(e : α ≃o β).image_eq_preimage], apply ord_connected_preimage }
   ord_connected (range e) :=
 by simp_rw [← image_univ, ord_connected_image e]
 
+@[simp] lemma dual_ord_connected_iff {s : set α} :
+  ord_connected (of_dual ⁻¹' s) ↔ ord_connected s :=
+begin
+  simp_rw [ord_connected_def, to_dual.surjective.forall, dual_Icc, subtype.forall'],
+  exact forall_swap
+end
+
+@[instance] lemma dual_ord_connected {s : set α} [ord_connected s] :
+  ord_connected (of_dual ⁻¹' s) :=
+dual_ord_connected_iff.2 ‹_›
+
 end preorder
 
 section linear_order

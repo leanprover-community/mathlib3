@@ -235,6 +235,10 @@ lemma ne_zero_of_norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { r
 @[nontriviality] lemma norm_of_subsingleton [subsingleton E] (x : E) : ∥x∥ = 0 :=
 by rw [subsingleton.elim x 0, norm_zero]
 
+lemma norm_multiset_sum_le (m : multiset E) :
+  ∥m.sum∥ ≤ (m.map (λ x, ∥x∥)).sum :=
+m.le_sum_of_subadditive norm norm_zero norm_add_le
+
 lemma norm_sum_le (s : finset ι) (f : ι → E) : ∥∑ i in s, f i∥ ≤ ∑ i in s, ∥f i∥ :=
 s.le_sum_of_subadditive norm norm_zero norm_add_le f
 
@@ -707,6 +711,10 @@ by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
 
 @[simp] lemma edist_sub_right (g₁ g₂ h : E) : edist (g₁ - h) (g₂ - h) = edist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using edist_add_right _ _ _
+
+lemma nnnorm_multiset_sum_le (m : multiset E) :
+  ∥m.sum∥₊ ≤ (m.map (λ x, ∥x∥₊)).sum :=
+m.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
 
 lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
@@ -1191,6 +1199,16 @@ norm_sub_eq_zero_iff.1 h
 by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
 
 lemma nnnorm_ne_zero_iff {g : E} : ∥g∥₊ ≠ 0 ↔ g ≠ 0 := not_congr nnnorm_eq_zero
+
+variables (E)
+
+/-- The norm of a normed group as an additive group norm. -/
+def norm_add_group_norm : add_group_norm E := ⟨norm, norm_zero, norm_add_le, norm_neg,
+  λ {g : E}, norm_eq_zero.mp⟩
+
+@[simp] lemma coe_norm_add_group_norm : ⇑(norm_add_group_norm E) = norm := rfl
+
+variables {E}
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_add_comm_group` induces a
 `normed_add_comm_group` structure on the domain.

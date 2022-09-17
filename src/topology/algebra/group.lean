@@ -749,6 +749,47 @@ instance topological_group_quotient [N.normal] : topological_group (G ⧸ N) :=
   end,
   continuous_inv := by convert (@continuous_inv G _ _ _).quotient_map' _ }
 
+/-- Neighborhoods in the quotient are precisely the map of neighborhoods in the prequotient. -/
+@[to_additive "Neighborhoods in the quotient are precisely the map of neighborhoods in
+the prequotient."]
+lemma quotient_group.nhds_eq (x : G) : 𝓝 (x : G ⧸ N) = map coe (𝓝 x) :=
+le_antisymm ((quotient_group.is_open_map_coe N).nhds_le x) continuous_quot_mk.continuous_at
+
+variables (G) [first_countable_topology G]
+
+/-- Any first countable topological group has an antitone neighborhood basis `u : ℕ → set G` for
+which `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is a key tool for
+`quotient_group.complete_space` -/
+@[to_additive "Any first countable topological additive group has an antitone neighborhood basis
+`u : ℕ → set G` for which `u (n + 1) + u (n + 1) ⊆ u n`. The existence of such a neighborhood basis
+is a key tool for `quotient_add_group.complete_space`"]
+lemma topological_group.exists_antitone_basis_nhds_one :
+  ∃ (u : ℕ → set G), (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) :=
+begin
+  rcases (𝓝 (1 : G)).exists_antitone_basis with ⟨u, hu, u_anti⟩,
+  have := ((hu.prod_nhds hu).tendsto_iff hu).mp
+    (by simpa only [mul_one] using continuous_mul.tendsto ((1, 1) : G × G)),
+  simp only [and_self, mem_prod, and_imp, prod.forall, exists_true_left, prod.exists,
+    forall_true_left] at this,
+  have event_mul : ∀ n : ℕ, ∀ᶠ m in at_top, u m * u m ⊆ u n,
+  { intros n,
+    rcases this n with ⟨j, k, h⟩,
+    refine at_top_basis.eventually_iff.mpr ⟨max j k, true.intro, λ m hm, _⟩,
+    rintro - ⟨a, b, ha, hb, rfl⟩,
+    exact h a b (u_anti ((le_max_left _ _).trans hm) ha) (u_anti ((le_max_right _ _).trans hm) hb)},
+  obtain ⟨φ, -, hφ, φ_anti_basis⟩ := has_antitone_basis.subbasis_with_rel ⟨hu, u_anti⟩ event_mul,
+  exact ⟨u ∘ φ, φ_anti_basis, λ n, hφ n.lt_succ_self⟩,
+end
+
+include n
+
+/-- In a first countable topological group `G` with normal subgroup `N`, `1 : G ⧸ N` has a
+countable neighborhood basis. -/
+@[to_additive "In a first countable topological additive group `G` with normal additive subgroup
+`N`, `0 : G ⧸ N` has a countable neighborhood basis."]
+instance quotient_group.nhds_one_is_countably_generated : (𝓝 (1 : G ⧸ N)).is_countably_generated :=
+(quotient_group.nhds_eq N 1).symm ▸ map.is_countably_generated _ _
+
 end quotient_topological_group
 
 /-- A typeclass saying that `λ p : G × G, p.1 - p.2` is a continuous function. This property

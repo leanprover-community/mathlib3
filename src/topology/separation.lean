@@ -58,7 +58,8 @@ This file defines the predicate `separated`, and common separation axioms
 * `is_compact.is_closed`: All compact sets are closed.
 * `locally_compact_of_compact_nhds`: If every point has a compact neighbourhood,
   then the space is locally compact.
-* `tot_sep_of_zero_dim`: If `α` has a clopen basis, it is a `totally_separated_space`.
+* `totally_separated_space_of_t1_of_basis_clopen`: If `α` has a clopen basis, then
+  it is a `totally_separated_space`.
 * `loc_compact_t2_tot_disc_iff_tot_sep`: A locally compact T₂ space is totally disconnected iff
   it is totally separated.
 
@@ -177,8 +178,14 @@ t0_space_iff_inseparable α
 lemma nhds_injective [t0_space α] : injective (𝓝 : α → filter α) :=
 (t0_space_iff_nhds_injective α).1 ‹_›
 
+lemma inseparable_iff_eq [t0_space α] {x y : α} : inseparable x y ↔ x = y :=
+nhds_injective.eq_iff
+
 @[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 nhds_injective.eq_iff
+
+@[simp] lemma inseparable_eq_eq [t0_space α] : inseparable = @eq α :=
+funext₂ $ λ x y, propext inseparable_iff_eq
 
 lemma t0_space_iff_exists_is_open_xor_mem (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
@@ -437,8 +444,17 @@ t1_space_iff_disjoint_nhds_pure.mp ‹_› h
 lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
 t1_space_iff_specializes_imp_eq.1 ‹_› h
 
-@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
+lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
 ⟨specializes.eq, λ h, h ▸ specializes_rfl⟩
+
+@[simp] lemma specializes_eq_eq [t1_space α] : (⤳) = @eq α :=
+funext₂ $ λ x y, propext specializes_iff_eq
+
+@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
+specializes_iff_pure.symm.trans specializes_iff_eq
+
+@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+specializes_iff_eq
 
 instance {α : Type*} : t1_space (cofinite_topology α) :=
 t1_space_iff_continuous_cofinite_of.mpr continuous_id
@@ -531,17 +547,6 @@ begin
   rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
-
-@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
-begin
-  refine ⟨λ h, _, λ h, h ▸ pure_le_nhds a⟩,
-  by_contra hab,
-  simpa only [mem_pure, mem_compl_iff, mem_singleton, not_true] using
-    h (compl_singleton_mem_nhds $ ne.symm hab)
-end
-
-@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
-⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
 
 @[simp] lemma compl_singleton_mem_nhds_set_iff [t1_space α] {x : α} {s : set α} :
   {x}ᶜ ∈ 𝓝ˢ s ↔ x ∉ s :=
@@ -1651,22 +1656,19 @@ end
 
 section profinite
 
-variables [t2_space α]
-
-/-- A Hausdorff space with a clopen basis is totally separated. -/
-lemma tot_sep_of_zero_dim (h : is_topological_basis {s : set α | is_clopen s}) :
+/-- A T1 space with a clopen basis is totally separated. -/
+lemma totally_separated_space_of_t1_of_basis_clopen [t1_space α]
+  (h : is_topological_basis {s : set α | is_clopen s}) :
   totally_separated_space α :=
 begin
   constructor,
   rintros x - y - hxy,
-  obtain ⟨u, v, hu, hv, xu, yv, disj⟩ := t2_separation hxy,
-  obtain ⟨w, hw : is_clopen w, xw, wu⟩ := (is_topological_basis.mem_nhds_iff h).1
-    (is_open.mem_nhds hu xu),
-  refine ⟨w, wᶜ, hw.1, hw.compl.1, xw, λ h, disj ⟨wu h, yv⟩, _, disjoint_compl_right⟩,
-  rw set.union_compl_self,
+  rcases h.mem_nhds_iff.mp (is_open_ne.mem_nhds hxy) with ⟨U, hU, hxU, hyU⟩,
+  exact ⟨U, Uᶜ, hU.is_open, hU.compl.is_open, hxU, λ h, hyU h rfl,
+    (union_compl_self U).superset, disjoint_compl_right⟩
 end
 
-variables [compact_space α]
+variables [t2_space α] [compact_space α]
 
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
@@ -1785,7 +1787,7 @@ theorem loc_compact_t2_tot_disc_iff_tot_sep :
 begin
   split,
   { introI h,
-    exact tot_sep_of_zero_dim loc_compact_Haus_tot_disc_of_zero_dim, },
+    exact totally_separated_space_of_t1_of_basis_clopen loc_compact_Haus_tot_disc_of_zero_dim },
   apply totally_separated_space.totally_disconnected_space,
 end
 

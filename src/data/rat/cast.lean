@@ -204,6 +204,8 @@ variable {α}
 
 @[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
 @[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
+@[simp, norm_cast] theorem cast_zpow (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
+map_zpow₀ (cast_hom α) q n
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]

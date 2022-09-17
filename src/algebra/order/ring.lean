@@ -199,10 +199,14 @@ def function.injective.ordered_semiring [has_zero β] [has_one β] [has_add β] 
 section nontrivial
 variables [nontrivial α]
 
+/-- See `zero_lt_one'` for a version with the type explicit. -/
 @[simp] lemma zero_lt_one : 0 < (1 : α) := zero_le_one.lt_of_ne zero_ne_one
+/-- See `zero_lt_two'` for a version with the type explicit. -/
 @[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
+/-- See `zero_lt_three'` for a version with the type explicit. -/
 @[simp] lemma zero_lt_three : (0 : α) < 3 :=
 zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono zero_le_one
+/-- See `zero_lt_four'` for a version with the type explicit. -/
 @[simp] lemma zero_lt_four : (0 : α) < 4 := zero_lt_two.trans_le $ bit0_mono one_le_two
 
 @[field_simps] lemma two_ne_zero : (2 : α) ≠ 0 := zero_lt_two.ne'
@@ -219,9 +223,13 @@ zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono h
 
 variables (α)
 
+/-- See `zero_lt_one` for a version with the type implicit. -/
 lemma zero_lt_one' : (0 : α) < 1 := zero_lt_one
+/-- See `zero_lt_two` for a version with the type implicit. -/
 lemma zero_lt_two' : (0 : α) < 2 := zero_lt_two
+/-- See `zero_lt_three` for a version with the type implicit. -/
 lemma zero_lt_three' : (0 : α) < 3 := zero_lt_three
+/-- See `zero_lt_four` for a version with the type implicit. -/
 lemma zero_lt_four' : (0 : α) < 4 := zero_lt_four
 
 end nontrivial
@@ -247,7 +255,7 @@ lemma mul_lt_one_of_nonneg_of_lt_one_right (ha : a ≤ 1) (hb₀ : 0 ≤ b) (hb 
 
 end ordered_semiring
 
-/-- An `strict_ordered_semiring` is a semiring with a partial order such that addition is strictly
+/-- A `strict_ordered_semiring` is a semiring with a partial order such that addition is strictly
 monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
 class strict_ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
@@ -403,15 +411,12 @@ def function.injective.strict_ordered_semiring
 section nontrivial
 variables [nontrivial α]
 
-lemma one_lt_two : 1 < (2:α) :=
-calc (2:α) = 1+1 : one_add_one_eq_two
-     ...   > 1+0 : add_lt_add_left zero_lt_one _
-     ...   = 1   : add_zero 1
-
-lemma lt_two_mul_self (ha : 0 < a) : a < 2 * a := lt_mul_of_one_lt_left ha one_lt_two
-
 lemma lt_add_one (a : α) : a < a + 1 := lt_add_of_le_of_pos le_rfl zero_lt_one
 lemma lt_one_add (a : α) : a < 1 + a := (lt_add_one _).trans_eq $ add_comm _ _
+
+lemma one_lt_two : (1 : α) < 2 := lt_add_one _
+
+lemma lt_two_mul_self (ha : 0 < a) : a < 2 * a := lt_mul_of_one_lt_left ha one_lt_two
 
 lemma nat.strict_mono_cast : strict_mono (coe : ℕ → α) :=
 strict_mono_nat_of_lt_succ $ λ n, by rw [nat.cast_succ]; apply lt_add_one
@@ -480,7 +485,7 @@ def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Ty
 
 end ordered_comm_semiring
 
-/-- An `strict_ordered_comm_semiring` is a commutative semiring with a partial order such that
+/-- A `strict_ordered_comm_semiring` is a commutative semiring with a partial order such that
 addition is strictly monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
 class strict_ordered_comm_semiring (α : Type u) extends strict_ordered_semiring α, comm_semiring α
@@ -535,9 +540,7 @@ instance linear_ordered_semiring.to_pos_mul_reflect_lt : pos_mul_reflect_lt α :
 instance linear_ordered_semiring.to_mul_pos_reflect_lt : mul_pos_reflect_lt α :=
 ⟨λ a b c, (monotone_mul_right_of_nonneg a.2).reflect_lt⟩
 
--- TODO: Why is this shortcut instance necessary?
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_decidable_lt : @decidable_rel α (<) := linear_order.decidable_lt
+local attribute [instance] linear_ordered_semiring.decidable_lt
 
 lemma nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg (hab : 0 ≤ a * b) :
     (0 ≤ a ∧ 0 ≤ b) ∨ (a ≤ 0 ∧ b ≤ 0) :=
@@ -902,6 +905,8 @@ end linear_ordered_semiring
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
 
+local attribute [instance] linear_ordered_ring.decidable_le linear_ordered_ring.decidable_lt
+
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semiring α :=
 { ..‹linear_ordered_ring α›, ..ordered_ring.to_strict_ordered_semiring }
@@ -917,10 +922,6 @@ instance linear_ordered_ring.is_domain : is_domain α :=
         (mul_neg_of_pos_of_neg ha hb).ne, (mul_pos ha hb).ne.symm]
     end,
   .. ‹linear_ordered_ring α› }
-
--- TODO: Why is this shortcut instance necessary?
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.to_decidable_lt : @decidable_rel α (<) := linear_order.decidable_lt
 
 @[simp] lemma abs_one : |(1 : α)| = 1 := abs_of_pos zero_lt_one
 @[simp] lemma abs_two : |(2 : α)| = 2 := abs_of_pos zero_lt_two

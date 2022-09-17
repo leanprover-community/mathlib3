@@ -2496,7 +2496,7 @@ end
 
 /-- For nonzero `a`, the "multiples of `a`" map `zmultiples_hom` from `ℤ` to `ℝ` is discrete, i.e.
 inverse images of compact sets are finite. -/
-lemma int.tendsto_zmultiples_hom_cofinite {a : ℝ} (ha : a ≠ 0) :
+lemma tendsto_zmultiples_hom_cofinite {a : ℝ} (ha : a ≠ 0) :
   filter.tendsto (zmultiples_hom ℝ a) filter.cofinite (filter.cocompact ℝ) :=
 begin
   convert (filter.tendsto_cocompact_mul_right₀ ha).comp int.tendsto_coe_cofinite,
@@ -2506,7 +2506,7 @@ end
 
 /-- The coercion into `ℝ` from its subtype "multiples of `a`" (`zmultiples a`) is discrete, i.e.
 inverse images of compact sets are finite. -/
-lemma int.tendsto_coe_zmultiples_cofinite (a : ℝ) :
+lemma tendsto_coe_zmultiples_cofinite (a : ℝ) :
   filter.tendsto (coe : zmultiples a → ℝ) filter.cofinite (filter.cocompact ℝ) :=
 begin
   rcases eq_or_ne a 0 with rfl | ha,

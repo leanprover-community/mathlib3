@@ -687,7 +687,7 @@ it returns `none` otherwise -/
 | [a]    := some a
 | (b::l) := last' l
 
-def int_rotate (l : list α) (z : ℤ) : list α :=
+def rotate (l : list α) (z : ℤ) : list α :=
 let (l₁, l₂) := list.split_at (int.nat_mod z (l.length : ℤ)) l in l₂ ++ l₁
 
 /-- `rotatel l n` rotates the elements of `l` to the left by `n`

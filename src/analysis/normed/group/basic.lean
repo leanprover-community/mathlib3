@@ -1201,6 +1201,16 @@ by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
 
 lemma nnnorm_ne_zero_iff {g : E} : ∥g∥₊ ≠ 0 ↔ g ≠ 0 := not_congr nnnorm_eq_zero
 
+variables (E)
+
+/-- The norm of a normed group as an additive group norm. -/
+def norm_add_group_norm : add_group_norm E := ⟨norm, norm_zero, norm_add_le, norm_neg,
+  λ {g : E}, norm_eq_zero.mp⟩
+
+@[simp] lemma coe_norm_add_group_norm : ⇑(norm_add_group_norm E) = norm := rfl
+
+variables {E}
+
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_add_comm_group` induces a
 `normed_add_comm_group` structure on the domain.
 

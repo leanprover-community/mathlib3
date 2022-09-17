@@ -1172,7 +1172,7 @@ begin
   rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb]
 end
 
-lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : |b| ≤ max (|a|) (|c|) :=
+lemma abs_le_max_abs_abs (hab : a ≤ b) (hbc : b ≤ c) : |b| ≤ max (|a|) (|c|) :=
 abs_le'.2
   ⟨by simp [hbc.trans (le_abs_self c)],
    by simp [(neg_le_neg_iff.mpr hab).trans (neg_le_abs_self a)]⟩

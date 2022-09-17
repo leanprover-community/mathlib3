@@ -169,6 +169,8 @@ variables [group E] [group F] [group G] {p q : group_seminorm E}
 `fun_like.has_coe_to_fun`. "]
 instance : has_coe_to_fun (group_seminorm E) (λ _, E → ℝ) := ⟨to_fun⟩
 
+@[simp, to_additive] lemma to_fun_eq_coe : p.to_fun = p := rfl
+
 @[ext, to_additive] lemma ext : (∀ x, p x = q x) → p = q := fun_like.ext p q
 
 @[to_additive] instance : partial_order (group_seminorm E) :=
@@ -407,6 +409,8 @@ directly. -/
 @[to_additive "Helper instance for when there's too many metavariables to apply
 `fun_like.has_coe_to_fun` directly. "]
 instance : has_coe_to_fun (group_norm E) (λ _, E → ℝ) := fun_like.has_coe_to_fun
+
+@[simp, to_additive] lemma to_fun_eq_coe : p.to_fun = p := rfl
 
 @[ext, to_additive] lemma ext : (∀ x, p x = q x) → p = q := fun_like.ext p q
 

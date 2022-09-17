@@ -619,6 +619,12 @@ nat_degree_le_nat_degree (degree_map_le f p)
 
 variables {f}
 
+protected lemma map_eq_zero_iff (hf : function.injective f) : p.map f = 0 ↔ p = 0 :=
+map_eq_zero_iff (map_ring_hom f) (map_injective f hf)
+
+protected lemma map_ne_zero_iff (hf : function.injective f) : p.map f ≠ 0 ↔ p ≠ 0 :=
+(polynomial.map_eq_zero_iff hf).not
+
 lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
 ⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp only [mul_one, hp.leading_coeff, f.map_one]
                 ... = f x * (p.map f).coeff p.nat_degree : congr_arg _ (coeff_map _ _).symm

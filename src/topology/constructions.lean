@@ -1289,13 +1289,13 @@ end
 
 end sigma
 
-section ulift
+namespace ulift
 
-@[continuity] lemma continuous_ulift_down [topological_space α] :
+@[continuity] lemma continuous_down [topological_space α] :
   continuous (ulift.down : ulift.{v u} α → α) :=
 continuous_induced_dom
 
-@[continuity] lemma continuous_ulift_up [topological_space α] :
+@[continuity] lemma continuous_up [topological_space α] :
   continuous (ulift.up : α → ulift.{v u} α) :=
 continuous_induced_rng.2 continuous_id
 

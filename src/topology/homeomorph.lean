@@ -389,8 +389,8 @@ end
 
 /-- `ulift α` is homeomorphic to `α`. -/
 def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
-{ continuous_to_fun := continuous_ulift_down,
-  continuous_inv_fun := continuous_ulift_up,
+{ continuous_to_fun := ulift.continuous_down,
+  continuous_inv_fun := ulift.continuous_up,
   to_equiv := equiv.ulift }
 
 section distrib

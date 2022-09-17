@@ -48,9 +48,6 @@ begin
   simpa using this,
 end
 
-lemma diam_Icc {a b : ℝ} (h : a ≤ b) : metric.diam (Icc a b) = b - a :=
-by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
-
 lemma Icc_mem_vitali_family_at_right {x y : ℝ} (hxy : x < y) :
   Icc x y ∈ real.vitali_family.sets_at x :=
 begin
@@ -103,7 +100,7 @@ begin
     exact Icc_subset_Icc hy.1 (by linarith) }
 end
 
-lemma monotone.countable_not_continuous_at {f : ℝ → ℝ} (hf : monotone f) :
+lemma _root_.monotone.countable_not_continuous_at {f : ℝ → ℝ} (hf : monotone f) :
   set.countable {x | ¬(continuous_at f x)} :=
 begin
   have : ∀ x, ¬(continuous_at f x) →
@@ -127,7 +124,7 @@ begin
   exact maps_to.countable_of_inj_on A B countable_univ,
 end
 
-lemma stieltjes_function.countable_left_lim_ne (f : stieltjes_function) :
+lemma _root_.stieltjes_function.countable_left_lim_ne (f : stieltjes_function) :
   set.countable {x | f.left_lim x ≠ f x} :=
 begin
   apply countable.mono _ (f.mono.countable_not_continuous_at),
@@ -206,8 +203,33 @@ begin
       rintros y (hy : y < x),
       refine div_le_div_of_nonpos_of_le (by linarith) _,
       simpa only [sub_le_sub_iff_right] using f.left_lim_le (le_refl y) } },
-  rw [has_deriv_at_iff_tendsto_slope, slope_def_field'],
+  rw [has_deriv_at_iff_tendsto_slope, slope_fun_def_field],
   have : 𝓝[≠] x = 𝓝[<] x ⊔ 𝓝[>] x, by simp only [← nhds_within_union, Iio_union_Ioi],
   rw [this, tendsto_sup],
   exact ⟨L4, L1⟩
 end
+
+end real
+
+/-- If a function `f : ℝ → ℝ` is monotone, then the function mapping `x` to the right limit of `f`
+at `x` is a Stieltjes function, i.e., it is monotone and right-continuous. -/
+noncomputable def stieltjes_function.of_monotone (f : ℝ → ℝ) (hf : monotone f) :
+  stieltjes_function :=
+{ to_fun := monotone.right_lim f,
+  mono' := λ x y hxy, hf.right_lim_le_right_lim hxy,
+  right_continuous' :=
+  begin
+    assume x s hs,
+    obtain ⟨l, u, hlu, lus⟩ : ∃ (l u : ℝ), monotone.right_lim f x ∈ Ioo l u ∧ Ioo l u ⊆ s :=
+      mem_nhds_iff_exists_Ioo_subset.1 hs,
+    obtain ⟨y, xy, h'y⟩ : ∃ (y : ℝ) (H : x < y), Ioc x y ⊆ f ⁻¹' (Ioo l u) :=
+      mem_nhds_within_Ioi_iff_exists_Ioc_subset.1
+        (hf.tendsto_right_lim x (Ioo_mem_nhds hlu.1 hlu.2)),
+    change ∀ᶠ y in 𝓝[≥] x, monotone.right_lim f y ∈ s,
+    filter_upwards [Ico_mem_nhds_within_Ici ⟨le_refl x, xy⟩] with z hz,
+    apply lus,
+    refine ⟨hlu.1.trans_le (hf.right_lim_le_right_lim hz.1), _⟩,
+    obtain ⟨a, za, ay⟩ : ∃ (a : ℝ), z < a ∧ a < y := exists_between hz.2,
+    calc monotone.right_lim f z ≤ f a : hf.right_lim_le za
+                            ... < u   : (h'y ⟨hz.1.trans_lt za, ay.le⟩).2,
+  end }

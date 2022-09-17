@@ -629,9 +629,9 @@ instance : has_inf (cau_seq α abs) :=
       ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
   ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
 
-@[simp] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
+@[simp, norm_cast] lemma coe_sup (f g : cau_seq α abs) : ⇑(f ⊔ g) = f ⊔ g := rfl
 
-@[simp] lemma coe_inf (f g : cau_seq α abs) : ⇑(f ⊓ g) = f ⊓ g := rfl
+@[simp, norm_cast] lemma coe_inf (f g : cau_seq α abs) : ⇑(f ⊓ g) = f ⊓ g := rfl
 
 theorem sup_lim_zero {f g : cau_seq α abs}
   (hf : lim_zero f) (hg : lim_zero g) : lim_zero (f ⊔ g)

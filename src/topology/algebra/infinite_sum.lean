@@ -369,7 +369,7 @@ lemma summable.even_add_odd {f : ℕ → α} (he : summable (λ k, f (2 * k)))
   summable f :=
 (he.has_sum.even_add_odd ho.has_sum).summable
 
-lemma has_sum.sigma [t3_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
+lemma has_sum.sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
   (ha : has_sum f a) (hf : ∀b, has_sum (λc, f ⟨b, c⟩) (g b)) : has_sum g a :=
 begin
   refine (at_top_basis.tendsto_iff (closed_nhds_basis a)).mpr _,
@@ -390,12 +390,12 @@ end
 
 /-- If a series `f` on `β × γ` has sum `a` and for each `b` the restriction of `f` to `{b} × γ`
 has sum `g b`, then the series `g` has sum `a`. -/
-lemma has_sum.prod_fiberwise [t3_space α] {f : β × γ → α} {g : β → α} {a : α}
+lemma has_sum.prod_fiberwise [regular_space α] {f : β × γ → α} {g : β → α} {a : α}
   (ha : has_sum f a) (hf : ∀b, has_sum (λc, f (b, c)) (g b)) :
   has_sum g a :=
 has_sum.sigma ((equiv.sigma_equiv_prod β γ).has_sum_iff.2 ha) hf
 
-lemma summable.sigma' [t3_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
+lemma summable.sigma' [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) (hf : ∀b, summable (λc, f ⟨b, c⟩)) :
   summable (λb, ∑'c, f ⟨b, c⟩) :=
 (ha.has_sum.sigma (assume b, (hf b).has_sum)).summable
@@ -541,22 +541,22 @@ lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (
   ∑'b, ∑ i in s, f i b = ∑ i in s, ∑'b, f i b :=
 (has_sum_sum $ assume i hi, (hf i hi).has_sum).tsum_eq
 
-lemma tsum_sigma' [t3_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
-  (h₁ : ∀b, summable (λc, f ⟨b, c⟩)) (h₂ : summable f) : ∑'p, f p = ∑'b c, f ⟨b, c⟩ :=
+variables [add_comm_monoid δ] [topological_space δ] [t3_space δ] [has_continuous_add δ]
+
+lemma tsum_sigma' {γ : β → Type*} {f : (Σb:β, γ b) → δ} (h₁ : ∀b, summable (λc, f ⟨b, c⟩))
+  (h₂ : summable f) : ∑'p, f p = ∑'b c, f ⟨b, c⟩ :=
 (h₂.has_sum.sigma (assume b, (h₁ b).has_sum)).tsum_eq.symm
 
-lemma tsum_prod' [t3_space α] {f : β × γ → α} (h : summable f)
-  (h₁ : ∀b, summable (λc, f (b, c))) :
+lemma tsum_prod' {f : β × γ → δ} (h : summable f) (h₁ : ∀b, summable (λc, f (b, c))) :
   ∑'p, f p = ∑'b c, f (b, c) :=
 (h.has_sum.prod_fiberwise (assume b, (h₁ b).has_sum)).tsum_eq.symm
 
-lemma tsum_comm' [t3_space α] {f : β → γ → α} (h : summable (function.uncurry f))
-  (h₁ : ∀b, summable (f b)) (h₂ : ∀ c, summable (λ b, f b c)) :
+lemma tsum_comm' {f : β → γ → δ} (h : summable (function.uncurry f)) (h₁ : ∀b, summable (f b))
+  (h₂ : ∀ c, summable (λ b, f b c)) :
   ∑' c b, f b c = ∑' b c, f b c :=
 begin
-  erw [← tsum_prod' h h₁, ← tsum_prod' h.prod_symm h₂, ← (equiv.prod_comm β γ).tsum_eq],
-  refl,
-  assumption
+  erw [← tsum_prod' h h₁, ← tsum_prod' h.prod_symm h₂, ← (equiv.prod_comm γ β).tsum_eq (uncurry f)],
+  refl
 end
 
 end has_continuous_add

@@ -53,6 +53,10 @@ lemma nhds_left_sup_nhds_right' (a : α) :
   𝓝[≤] a ⊔ 𝓝[>] a = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ioi, nhds_within_univ]
 
+lemma nhds_left'_sup_nhds_right' (a : α) :
+  𝓝[<] a ⊔ 𝓝[>] a = 𝓝[≠] a :=
+by rw [← nhds_within_union, Iio_union_Ioi]
+
 lemma continuous_at_iff_continuous_left_right {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iic a) a ∧ continuous_within_at f (Ici a) a :=
 by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_left_sup_nhds_right]

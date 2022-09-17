@@ -101,6 +101,15 @@ noncomputable def _root_.monotone.stieltjes_function {f : ℝ → ℝ} (hf : mon
 lemma _root_.monotone.stieltjes_function_eq {f : ℝ → ℝ} (hf : monotone f) (x : ℝ) :
   hf.stieltjes_function x = monotone.right_lim f x := rfl
 
+lemma countable_left_lim_ne (f : stieltjes_function) :
+  set.countable {x | f.left_lim x ≠ f x} :=
+begin
+  apply countable.mono _ (f.mono.countable_not_continuous_at),
+  assume x hx h'x,
+  apply hx,
+  exact tendsto_nhds_unique (f.tendsto_left_lim x) (h'x.tendsto.mono_left nhds_within_le_nhds),
+end
+
 
 /-! ### The outer measure associated to a Stieltjes function -/
 

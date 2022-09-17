@@ -2933,6 +2933,7 @@ monotone.map_cinfi_of_continuous_at
 
 end conditionally_complete_linear_order
 
+
 namespace monotone
 
 variables [linear_order α] [conditionally_complete_linear_order β]
@@ -3048,6 +3049,76 @@ begin
     have B : right_lim f x = f x, from tendsto_nhds_unique
       (tendsto_right_lim Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
     exact A.trans B.symm },
+end
+
+lemma countable_not_right_continuous_at [second_countable_topology β]
+  {f : α → β} (Mf : monotone f) :
+  set.countable {x | ¬(tendsto f (𝓝[>] x) (𝓝 (f x)))} :=
+begin
+  /- If `f` is not continuous on the right at `x`, there is an inverval `(f x, z x)` which is not
+  reached by `f`. This gives a family of disjoint open intervals in `β`. Such a family can only
+  be countable as `β` is second-countable. -/
+  nontriviality α,
+  inhabit α,
+  haveI : nonempty β := ⟨f default⟩,
+  let s := {x | ¬(tendsto f (𝓝[>] x) (𝓝 (f x)))},
+  have : ∀ x, x ∈ s → ∃ z, f x < z ∧ ∀ y, x < y → z ≤ f y,
+  { rintros x (hx : ¬(tendsto f (𝓝[>] x) (𝓝 (f x)))),
+    contrapose! hx,
+    refine tendsto_order.2 ⟨λ m hm, _, λ u hu, _⟩,
+    { filter_upwards [self_mem_nhds_within] with y hy using hm.trans_le (Mf (le_of_lt hy)) },
+    rcases hx u hu with ⟨v, xv, fvu⟩,
+    have : Ioo x v ∈ 𝓝[>] x, from Ioo_mem_nhds_within_Ioi ⟨le_refl _, xv⟩,
+    filter_upwards [this] with y hy,
+    apply (Mf hy.2.le).trans_lt fvu },
+  -- choose `z x` such that `f` does not take the values in `(f x, z x)`.
+  choose! z hz using this,
+  have I : inj_on f s,
+  { apply strict_mono_on.inj_on,
+    assume x hx y hy hxy,
+    calc f x < z x : (hz x hx).1
+    ... ≤ f y : (hz x hx).2 y hxy },
+  -- show that `f s` is countable by arguing that a disjoint family of disjoint open intervals
+  -- (the intervals `(f x, z x)`) is at most countable.
+  have fs_count : (f '' s).countable,
+  { have A : (f '' s).pairwise_disjoint (λ x, Ioo x (z (inv_fun_on f s x))),
+    { rintros _ ⟨u, us, rfl⟩ _ ⟨v, vs, rfl⟩ huv,
+      wlog h'uv : u ≤ v := le_total u v using [u v, v u] tactic.skip,
+      { rcases eq_or_lt_of_le h'uv with rfl|h''uv,
+        { exact (huv rfl).elim },
+        apply disjoint_iff_forall_ne.2,
+        rintros a ha b hb rfl,
+        simp [I.left_inv_on_inv_fun_on us, I.left_inv_on_inv_fun_on vs] at ha hb,
+        exact lt_irrefl _ ((ha.2.trans_le ((hz u us).2 v h''uv)).trans hb.1) },
+      { assume hu hv h'uv,
+        exact (this hv hu h'uv.symm).symm } },
+    apply set.pairwise_disjoint.countable_of_Ioo A,
+    rintros _ ⟨y, ys, rfl⟩,
+    simpa only [I.left_inv_on_inv_fun_on ys] using (hz y ys).1 },
+  exact maps_to.countable_of_inj_on (maps_to_image f s) I fs_count,
+end
+
+lemma countable_not_left_continuous_at [second_countable_topology β]
+  {f : α → β} (Mf : monotone f) :
+  set.countable {x | ¬(tendsto f (𝓝[<] x) (𝓝 (f x)))} :=
+@monotone.countable_not_right_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ f Mf.dual
+
+lemma countable_not_continuous_at [second_countable_topology β]
+  {f : α → β} (Mf : monotone f) :
+  set.countable {x | ¬(continuous_at f x)} :=
+begin
+  apply (Mf.countable_not_right_continuous_at.union Mf.countable_not_left_continuous_at).mono _,
+  refine compl_subset_compl.1 _,
+  simp only [compl_union],
+  rintros x ⟨hx, h'x⟩,
+  simp only [mem_compl_eq, mem_set_of_eq, not_not] at hx h'x ⊢,
+  have : 𝓝 x = (𝓝[<] x) ⊔ (𝓝[>] x) ⊔ (𝓝[{x}] x),
+  { rw [← nhds_within_union, ← nhds_within_union, ← nhds_within_univ],
+    congr,
+    ext y,
+    simp },
+  rw [continuous_at, this, tendsto_sup, tendsto_sup],
+  refine ⟨⟨h'x, hx⟩, by simp [tendsto_pure_nhds f x]⟩,
 end
 
 end monotone

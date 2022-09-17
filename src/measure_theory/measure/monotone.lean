@@ -38,18 +38,6 @@ section
 
 variables {α : Type*} [metric_space α] [measurable_space α] {μ : measure α}
 
-lemma vitali_family.tendsto_filter_at (v : vitali_family μ) {β : Type*} {l : filter β}
-  {f : β → set α} {x : α}
-  (H : ∀ᶠ i in l, f i ∈ v.sets_at x) (H' : ∀ (ε > (0 : ℝ)), ∀ᶠ i in l, f i ⊆ closed_ball x ε) :
-  tendsto f l (v.filter_at x)  :=
-begin
-  assume s hs,
-  change ∀ᶠ i in l, f i ∈ s,
-  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ (a : set α),
-    a ∈ v.sets_at x → a ⊆ closed_ball x ε → a ∈ s :=
-      (vitali_family.mem_filter_at_iff _).1 hs,
-  filter_upwards [H, H' ε εpos] with i hi h'i using hε _ hi h'i,
-end
 
 end
 
@@ -127,74 +115,7 @@ end real
 
 open topological_space
 
-lemma monotone.countable_not_continuous_at {α β : Type*} [linear_order α] [linear_order β]
-  [topological_space α] [order_topology α] [topological_space β] [order_topology β]
-  [second_countable_topology β]
-  {f : α → β} (Mf : monotone f) :
-  set.countable {x | ¬(tendsto f (𝓝[>] x) (𝓝 (f x)))} :=
-begin
-  nontriviality α,
-  inhabit α,
-  haveI : nonempty β := ⟨f default⟩,
-  let s := {x | ¬(tendsto f (𝓝[>] x) (𝓝 (f x)))},
-  have : ∀ x, x ∈ s → ∃ z, f x < z ∧ ∀ y, x < y → z ≤ f y, sorry,
-  choose! z hz using this,
-  have I : inj_on f s,
-  { apply strict_mono_on.inj_on,
-    assume x hx y hy hxy,
-    calc f x < z x : (hz x hx).1
-    ... ≤ f y : (hz x hx).2 y hxy },
-  have fs_count : (f '' s).countable,
-  { have A : (f '' s).pairwise_disjoint (λ x, Ioo x (z (inv_fun_on f s x))),
-    { rintros _ ⟨u, us, rfl⟩ _ ⟨v, vs, rfl⟩ huv,
-      wlog h'uv : u ≤ v := le_total u v using [u v, v u] tactic.skip,
-      { rcases eq_or_lt_of_le h'uv with rfl|h''uv,
-        { exact (huv rfl).elim },
-        apply disjoint_iff_forall_ne.2,
-        rintros a ha b hb rfl,
-        simp [I.left_inv_on_inv_fun_on us, I.left_inv_on_inv_fun_on vs] at ha hb,
-        exact lt_irrefl _ ((ha.2.trans_le ((hz u us).2 v h''uv)).trans hb.1) },
-      { assume hu hv h'uv,
-        exact (this hv hu h'uv.symm).symm } },
-    apply set.pairwise_disjoint.countable_of_Ioo A,
-    rintros _ ⟨y, ys, rfl⟩,
-    simpa only [I.left_inv_on_inv_fun_on ys] using (hz y ys).1 },
-  exact maps_to.countable_of_inj_on (maps_to_image f s) I fs_count,
-end
 
-#exit
-
-∀ x, ¬(continuous_at f x) →
-    ∃ (s : set α), s ∈ countable_basis α ∧ (∀ y)
-
-    ∃ (y : ℚ), monotone.left_lim f x < y ∧ (y : ℝ) < monotone.right_lim f x,
-  { assume x hx,
-    have : monotone.left_lim f x < monotone.right_lim f x,
-    { rcases eq_or_lt_of_le (hf.left_lim_le_right_lim (le_refl x)) with h|h,
-      { exact (hx (hf.left_lim_eq_right_lim_iff_continuous_at.1 h)).elim },
-      { exact h } },
-    exact exists_rat_btwn this },
-  choose! F hF using this,
-  have A : maps_to F {x | ¬(continuous_at f x)} (univ : set ℚ) := maps_to_univ _ _,
-  have B : inj_on F {x | ¬(continuous_at f x)},
-  { apply strict_mono_on.inj_on,
-    assume x hx y hy hxy,
-    have : (F x : ℝ) < F y, from calc
-      (F x : ℝ) < monotone.right_lim f x : (hF _ hx).2
-      ... ≤ monotone.left_lim f y : hf.right_lim_le_left_lim hxy
-      ... < F y : (hF _ hy).1,
-    exact_mod_cast this },
-  exact maps_to.countable_of_inj_on A B countable_univ,
-end
-
-lemma stieltjes_function.countable_left_lim_ne (f : stieltjes_function) :
-  set.countable {x | f.left_lim x ≠ f x} :=
-begin
-  apply countable.mono _ (f.mono.countable_not_continuous_at),
-  assume x hx h'x,
-  apply hx,
-  exact tendsto_nhds_unique (f.tendsto_left_lim x) (h'x.tendsto.mono_left nhds_within_le_nhds),
-end
 
 /-- If `(f y - f x) / (y - x)` converges to a limit as `y` tends to `x`, then the same goes if
 `y` is shifted a limit bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.

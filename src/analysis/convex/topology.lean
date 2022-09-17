@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
+import analysis.convex.strict
 import analysis.normed.group.pointwise
 import topology.algebra.module.finite_dimension
 import analysis.normed_space.ray

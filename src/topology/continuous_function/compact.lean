@@ -159,6 +159,9 @@ instance : normed_add_comm_group C(α, E) :=
     rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm, mk_of_compact_sub],
   dist := dist, norm := norm, .. continuous_map.metric_space _ _, .. continuous_map.add_comm_group }
 
+instance [nonempty α] [has_one E] [norm_one_class E] : norm_one_class C(α, E) :=
+{ norm_one := by simp only [←norm_mk_of_compact, mk_of_compact_one, norm_one] }
+
 section
 variables (f : C(α, E))
 -- The corresponding lemmas for `bounded_continuous_function` are stated with `{f}`,

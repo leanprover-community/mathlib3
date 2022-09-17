@@ -638,13 +638,13 @@ by simp [frontier_prod_eq]
   frontier ((univ : set α) ×ˢ s) = univ ×ˢ frontier s :=
 by simp [frontier_prod_eq]
 
-lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
-  (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
-  (hu : ∀a b, a ∈ s → b ∈ t → f a b ∈ u) :
+lemma map_mem_closure₂ {f : α → β → γ} {a : α} {b : β} {s : set α} {t : set β} {u : set γ}
+  (hf : continuous (uncurry f)) (ha : a ∈ closure s) (hb : b ∈ closure t)
+  (h : ∀ (a ∈ s) (b ∈ t), f a b ∈ u) :
   f a b ∈ closure u :=
-have (a, b) ∈ closure (s ×ˢ t), by rw [closure_prod_eq]; from ⟨ha, hb⟩,
-show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
-  map_mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
+have H₁ : (a, b) ∈ closure (s ×ˢ t), by simpa only [closure_prod_eq] using mk_mem_prod ha hb,
+have H₂ : maps_to (uncurry f) (s ×ˢ t) u, from forall_prod_set.2 h,
+H₂.closure hf H₁
 
 lemma is_closed.prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
   is_closed (s₁ ×ˢ s₂) :=
@@ -686,15 +686,6 @@ open_embedding_of_embedding_open (hf.1.prod_mk hg.1)
 
 lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λ x, (x, f x)) :=
 embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embedding_id
-
-lemma map_mem_closure₂ {f : α → β → γ} {a : α} {b : β} {s : set α} {t : set β} {u : set γ}
-  (hf : continuous (uncurry f)) (ha : a ∈ closure s) (hb : b ∈ closure t)
-  (h : ∀ (a ∈ s) (b ∈ t), f a b ∈ u) :
-  f a b ∈ closure u :=
-have H₁ : (a, b) ∈ closure (s ×ˢ t),
-  by simpa only [closure_prod_eq] using mk_mem_prod ha hb,
-have H₂ : maps_to (uncurry f) (s ×ˢ t) u, from forall_prod_set.2 h,
-H₂.closure hf H₁
 
 end prod
 

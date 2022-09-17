@@ -272,3 +272,10 @@ instance [ordered_semiring α] [ordered_semiring β] : ordered_semiring (α × �
 
 instance [ordered_comm_semiring α] [ordered_comm_semiring β] : ordered_comm_semiring (α × β) :=
 { ..prod.comm_semiring, ..prod.ordered_semiring }
+
+instance [ordered_ring α] [ordered_ring β] : ordered_ring (α × β) :=
+{ mul_nonneg := λ a b c hab hc, ⟨mul_nonneg hab.1 hc.1, mul_nonneg hab.2 hc.2⟩,
+  ..prod.ring, ..prod.ordered_semiring }
+
+instance [ordered_comm_ring α] [ordered_comm_ring β] : ordered_comm_ring (α × β) :=
+{ ..prod.comm_ring, ..prod.ordered_ring }

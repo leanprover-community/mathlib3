@@ -65,4 +65,11 @@ instance [Π i, ordered_semiring (f i)] : ordered_semiring (Π i, f i) :=
 instance [Π i, ordered_comm_semiring (f i)] : ordered_comm_semiring (Π i, f i) :=
 { ..pi.comm_semiring, ..pi.ordered_semiring }
 
+instance [Π i, ordered_ring (f i)] : ordered_ring (Π i, f i) :=
+{ mul_nonneg := λ a b ha hb i, mul_nonneg (ha _) (hb _),
+    ..pi.ring, ..pi.ordered_semiring }
+
+instance [Π i, ordered_comm_ring (f i)] : ordered_comm_ring (Π i, f i) :=
+{ ..pi.comm_ring, ..pi.ordered_ring }
+
 end pi

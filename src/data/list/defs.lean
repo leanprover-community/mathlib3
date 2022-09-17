@@ -694,13 +694,13 @@ let (l₁, l₂) := list.split_at (int.nat_mod z (l.length : ℤ)) l in l₂ ++ 
 
      rotatel [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
 def rotatel (l : list α) (n : ℕ) : list α :=
-l.int_rotate (n : ℤ)
+l.rotate (n : ℤ)
 
 /-- `rotater l n` rotates the elements of `l` to the right by `n`
 
      rotater [0, 1, 2, 3, 4, 5] 2 = [4, 5, 0, 1, 2, 3] -/
 def rotater (l : list α) (n : ℕ) : list α :=
-l.int_rotate (-(n : ℤ))
+l.rotate (-(n : ℤ))
 
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : list α)

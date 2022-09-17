@@ -14,7 +14,8 @@ implies `P x`. Well-founded relations can be used for induction and recursion, i
 construction of fixed points in the space of dependent functions `Π x : α , β x`.
 
 The predicate `well_founded` is defined in the core library. In this file we prove some extra lemmas
-and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `well_founded.succ`.
+and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `well_founded.succ`,
+and an induction principle `well_founded.induction_bot`.
 -/
 
 variables {α : Type*}
@@ -211,3 +212,23 @@ not_lt.mp $ not_lt_argmin_on f h s ha hs
 end linear_order
 
 end function
+
+section induction
+
+/-- Let `r` be a well-founded relation on `α` and let `bot : α`.
+This induction principle that shows that `P bot` holds, given that some `a : α` satisfies `P`
+and for each `b` that satisfies `P`, there is `c` satisfying `P` such that `r c b` holds.
+The naming is inspired by the fact that when `r` is transitive, it follows that `bot` is
+the smallest element w.r.t. `r` that satisfies `P`. -/
+lemma well_founded.induction_bot {α} (r : α → α → Prop) (hwf : well_founded r) {a bot : α}
+  {C : α → Prop} (ha : C a) (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C bot :=
+begin
+  revert ha,
+  refine well_founded.induction hwf a (λ x ih', _),
+  intro hC,
+  rcases eq_or_ne x bot with (rfl | hbot),
+  { exact hC, },
+  { obtain ⟨y, hy₁, hy₂⟩ := ih x hbot hC, exact ih' y hy₁ hy₂, },
+end
+
+end induction

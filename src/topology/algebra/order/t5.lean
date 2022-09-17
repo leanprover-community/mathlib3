@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import topology.algebra.order.basic
 
 /-!
@@ -33,6 +38,39 @@ sep_set_comm t s ▸ disjoint_left_sep_set
 lemma dual_sep_set : sep_set (of_dual ⁻¹' s) (of_dual ⁻¹' t) = of_dual ⁻¹' (sep_set s t) :=
 by simp only [sep_set, mem_preimage, ← to_dual.surjective.Union_comp, of_dual_to_dual,
   dual_ord_connected_component, ← preimage_compl, preimage_inter, preimage_Union]
+
+def nhd (s t : set X) : set X :=
+⋃ x ∈ s, ord_connected_component (tᶜ ∩ (ord_connected_section $ sep_set s t)ᶜ) x
+
+lemma disjoint_nhd : disjoint (nhd s t) (nhd t s) :=
+begin
+  rintro x ⟨hx₁, hx₂⟩,
+  rcases mem_Union₂.1 hx₁ with ⟨a, has, ha⟩, clear hx₁,
+  rcases mem_Union₂.1 hx₂ with ⟨b, hbt, hb⟩, clear hx₂,
+  rw [mem_ord_connected_component, subset_inter_iff] at ha hb,
+  wlog hab : a ≤ b := le_total a b using [a b s t, b a t s] tactic.skip,
+  rotate, from λ h₁ h₂ h₃ h₄, this h₂ h₁ h₄ h₃,
+  cases ha with ha ha', cases hb with hb hb',
+  have hsub : [a, b] ⊆ (sep_set s t).ord_connected_sectionᶜ,
+  { rw [sep_set_comm, interval_swap] at hb',
+    calc [a, b] ⊆ [a, x] ∪ [x, b] : interval_subset_interval_union_interval
+    ... ⊆ (sep_set s t).ord_connected_sectionᶜ : union_subset ha' hb' },
+  clear ha' hb',
+  cases le_total x a with hxa hax,
+  { exact hb (Icc_subset_interval' ⟨hxa, hab⟩) has },
+  cases le_total b x with hbx hxb,
+  { exact ha (Icc_subset_interval ⟨hab, hbx⟩) hbt },
+  have : x ∈ sep_set s t,
+  { exact ⟨mem_Union₂.2 ⟨a, has, ha⟩, mem_Union₂.2 ⟨b, hbt, hb⟩⟩ },
+  lift x to sep_set s t using this,
+  suffices : ord_connected_component (sep_set s t) x ⊆ [a, b],
+    from hsub (this $ ord_connected_proj_mem_ord_connected_component _ _) (mem_range_self _),
+  rintros y (hy : [↑x, y] ⊆ sep_set s t),
+  rw [interval_of_le hab, mem_Icc, ← not_lt, ← not_lt],
+  refine ⟨λ hya, _, λ hyb, _⟩,
+  { exact disjoint_left.1 disjoint_left_sep_set has (hy $ Icc_subset_interval' ⟨hya.le, hax⟩) },
+  { exact disjoint_left.1 disjoint_right_sep_set hbt (hy $ Icc_subset_interval ⟨hxb, hyb.le⟩) }
+end
 
 variables [topological_space X] [order_topology X]
 
@@ -83,43 +121,10 @@ begin
     compl_section_sep_set_mem_nhds_within_Ici hd ha⟩
 end
 
-def nhd (s t : set X) : set X :=
-⋃ x ∈ s, ord_connected_component (tᶜ ∩ (ord_connected_section $ sep_set s t)ᶜ) x
-
 lemma nhd_mem_nhds_set (hd : disjoint s (closure t)) : nhd s t ∈ 𝓝ˢ s :=
 bUnion_mem_nhds_set $ λ x hx, ord_connected_component_mem_nhds.2 $
   inter_mem (by { rw [← mem_interior_iff_mem_nhds, interior_compl], exact disjoint_left.1 hd hx })
     (compl_section_sep_set_mem_nhds hd hx)
-
-lemma disjoint_nhd : disjoint (nhd s t) (nhd t s) :=
-begin
-  rintro x ⟨hx₁, hx₂⟩,
-  rcases mem_Union₂.1 hx₁ with ⟨a, has, ha⟩, clear hx₁,
-  rcases mem_Union₂.1 hx₂ with ⟨b, hbt, hb⟩, clear hx₂,
-  rw [mem_ord_connected_component, subset_inter_iff] at ha hb,
-  wlog hab : a ≤ b := le_total a b using [a b s t, b a t s] tactic.skip,
-  rotate, from λ h₁ h₂ h₃ h₄, this h₂ h₁ h₄ h₃,
-  cases ha with ha ha', cases hb with hb hb',
-  have hsub : [a, b] ⊆ (sep_set s t).ord_connected_sectionᶜ,
-  { rw [sep_set_comm, interval_swap] at hb',
-    calc [a, b] ⊆ [a, x] ∪ [x, b] : interval_subset_interval_union_interval
-    ... ⊆ (sep_set s t).ord_connected_sectionᶜ : union_subset ha' hb' },
-  clear ha' hb',
-  cases le_total x a with hxa hax,
-  { exact hb (Icc_subset_interval' ⟨hxa, hab⟩) has },
-  cases le_total b x with hbx hxb,
-  { exact ha (Icc_subset_interval ⟨hab, hbx⟩) hbt },
-  have : x ∈ sep_set s t,
-  { exact ⟨mem_Union₂.2 ⟨a, has, ha⟩, mem_Union₂.2 ⟨b, hbt, hb⟩⟩ },
-  lift x to sep_set s t using this,
-  suffices : ord_connected_component (sep_set s t) x ⊆ [a, b],
-    from hsub (this $ ord_connected_proj_mem_ord_connected_component _ _) (mem_range_self _),
-  rintros y (hy : [↑x, y] ⊆ sep_set s t),
-  rw [interval_of_le hab, mem_Icc, ← not_lt, ← not_lt],
-  refine ⟨λ hya, _, λ hyb, _⟩,
-  { exact disjoint_left.1 disjoint_left_sep_set has (hy $ Icc_subset_interval' ⟨hya.le, hax⟩) },
-  { exact disjoint_left.1 disjoint_right_sep_set hbt (hy $ Icc_subset_interval ⟨hxb, hyb.le⟩) }
-end
 
 lemma t5 (h₁ : disjoint (closure s) t) (h₂ : disjoint s (closure t)) :
   disjoint (𝓝ˢ s) (𝓝ˢ t) :=
@@ -128,5 +133,6 @@ filter.disjoint_iff.2
 
 end order_normal
 
+@[priority 100]
 instance order_topology.t5_space [topological_space X] [order_topology X] : t5_space X :=
 ⟨λ s t, order_normal.t5⟩

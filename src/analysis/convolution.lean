@@ -515,10 +515,11 @@ variables [add_comm_group G]
 lemma support_convolution_subset : support (f ⋆[L, μ] g) ⊆ support f + support g :=
 (support_convolution_subset_swap L).trans (add_comm _ _).subset
 
-variables [topological_space G]
-variables [topological_add_group G]
-variables [borel_space G]
-variables [is_add_left_invariant μ]  [is_neg_invariant μ]
+variables [is_add_left_invariant μ] [is_neg_invariant μ]
+
+section measurable
+variables [has_measurable_neg G]
+variables [has_measurable_add G]
 
 variable (L)
 /-- Commutativity of convolution -/
@@ -544,6 +545,11 @@ lemma convolution_lmul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G
   (f ⋆[lmul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
 convolution_eq_swap _
 
+end measurable
+
+variables [topological_space G]
+variables [topological_add_group G]
+variables [borel_space G]
 variables [second_countable_topology G]
 
 lemma has_compact_support.continuous_convolution_left [locally_compact_space G] [t2_space G]

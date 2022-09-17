@@ -103,12 +103,6 @@ begin
     exact Icc_subset_Icc hy.1 (by linarith) }
 end
 
-lemma slope_def_field' {k : Type*} [field k] (f : k → k) (a : k) :
-  slope f a = λ b, (f b - f a) / (b - a) :=
-(div_eq_inv_mul _ _).symm
-
-
-
 lemma monotone.countable_not_continuous_at {f : ℝ → ℝ} (hf : monotone f) :
   set.countable {x | ¬(continuous_at f x)} :=
 begin
@@ -117,7 +111,7 @@ begin
   { assume x hx,
     have : monotone.left_lim f x < monotone.right_lim f x,
     { rcases eq_or_lt_of_le (hf.left_lim_le_right_lim (le_refl x)) with h|h,
-      { exact (hx ((hf.left_lim_eq_right_lim_iff_continuous_at x).1 h)).elim },
+      { exact (hx (hf.left_lim_eq_right_lim_iff_continuous_at.1 h)).elim },
       { exact h } },
     exact exists_rat_btwn this },
   choose! F hF using this,
@@ -132,7 +126,6 @@ begin
     exact_mod_cast this },
   exact maps_to.countable_of_inj_on A B countable_univ,
 end
-
 
 lemma stieltjes_function.countable_left_lim_ne (f : stieltjes_function) :
   set.countable {x | f.left_lim x ≠ f x} :=

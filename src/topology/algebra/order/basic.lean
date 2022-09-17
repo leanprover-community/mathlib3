@@ -2991,7 +2991,7 @@ lemma left_lim_le_right_lim [no_min_order α] [no_max_order α]
   monotone.left_lim f x ≤ monotone.right_lim f y :=
 (hf.left_lim_le le_rfl).trans (hf.le_right_lim h)
 
-lemma monotone.right_lim_le_left_lim [densely_ordered α]
+lemma right_lim_le_left_lim [densely_ordered α]
   {f : α → β} (hf : monotone f) {x y : α} (h : x < y) :
   monotone.right_lim f x ≤ monotone.left_lim f y :=
 begin

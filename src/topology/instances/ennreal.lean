@@ -1436,6 +1436,18 @@ le_antisymm (ediam_Icc a b ▸ diam_mono Ico_subset_Icc_self)
 le_antisymm (ediam_Icc a b ▸ diam_mono Ioc_subset_Icc_self)
   (ediam_Ioo a b ▸ diam_mono Ioo_subset_Ioc_self)
 
+lemma diam_Icc {a b : ℝ} (h : a ≤ b) : metric.diam (Icc a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ico {a b : ℝ} (h : a ≤ b) : metric.diam (Ico a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ioc {a b : ℝ} (h : a ≤ b) : metric.diam (Ioc a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ioo {a b : ℝ} (h : a ≤ b) : metric.diam (Ioo a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
 end real
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
+import data.finite.card
 import group_theory.abelianization
 import group_theory.transfer
 
@@ -312,27 +313,6 @@ begin
     exact index_inf_le.trans (mul_le_mul_left' (h (t ∘ some)) (t none).index) },
 end
 
-
-
--- PRed
-lemma nat.card_le_of_injective {α β : Type*} [finite β] (f : α → β) (h : function.injective f) :
-  nat.card α ≤ nat.card β :=
-begin
-  haveI : fintype β := fintype.of_finite β,
-  haveI : fintype α := fintype.of_injective f h,
-  simp_rw [nat.card_eq_fintype_card, fintype.card_le_of_injective f h],
-end
-
--- PRed
-lemma nat.card_le_of_surjective {α β : Type*} [finite α] (f : α → β) (h : function.surjective f) :
-  nat.card β ≤ nat.card α :=
-begin
-  classical,
-  haveI : fintype α := fintype.of_finite α,
-  haveI : fintype β := fintype.of_surjective f h,
-  simp_rw [nat.card_eq_fintype_card, fintype.card_le_of_surjective f h],
-end
-
 lemma stabilizer_eq_centralizer (g : G) :
   mul_action.stabilizer (conj_act G) g = (zpowers g).centralizer :=
 le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
@@ -342,7 +322,8 @@ section
 
 open quotient quotient_group
 
-def equiv_quotient_of_eq {M N : subgroup G} (h : M = N) :
+-- PRed
+def quotient_equiv_of_eq {M N : subgroup G} (h : M = N) :
   G ⧸ M ≃ G ⧸ N :=
 { to_fun := quotient.map' id (λ a b h', h ▸ h'),
   inv_fun := quotient.map' id (λ a b h', h.symm ▸ h'),
@@ -354,12 +335,26 @@ end
 noncomputable def key_inclusion (g : G) :
   G ⧸ centralizer (zpowers (g : G)) ↪ {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
 ((mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g).trans
-  (equiv_quotient_of_eq (stabilizer_eq_centralizer g))).symm.to_embedding.trans
+  (quotient_equiv_of_eq (stabilizer_eq_centralizer g))).symm.to_embedding.trans
   ⟨λ x, ⟨x * g⁻¹, let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩,
   λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp⟩
 
 lemma key_inclusion_apply (g : G) (x : G) : ↑(key_inclusion g x) = ⁅x, g⁆ :=
 rfl
+
+def quotient_infi_embedding {ι : Type*} (f : ι → subgroup G) :
+  (G ⧸ ⨅ i, f i) ↪ Π i, G ⧸ f i :=
+sorry
+
+noncomputable def key_inclusio (S : finset G) (hS : closure (S : set G) = ⊤) :
+  G ⧸ center G ↪ S → {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
+begin
+  refine ((quotient_equiv_of_eq _).to_embedding.trans
+    (quotient_infi_embedding (λ g : S, centralizer (zpowers (g : G))))).trans
+    (function.embedding.Pi_congr_right (λ g : S, key_inclusion (g : G))),
+  rw [←centralizer_top, ←hS, centralizer_closure, ←infi_subtype''],
+  refl,
+end
 
 variables (G)
 
@@ -367,9 +362,10 @@ lemma index_center_ne_zero [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}
   (center G).index ≠ 0 :=
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  let e := key_inclusio S hS2, -- use this + nat.card_ne_zero_of_embedding
+
   rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype''],
   refine index_infi_ne_zero _ (λ g, _),
-  let e := key_inclusion (g : G),
   sorry,
 end
 
@@ -379,7 +375,7 @@ begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype'', ←hS1, ←fintype.card_coe],
   exact (index_infi_le _).trans (finset.prod_le_pow_card _ _ _
-    (λ g _, nat.card_le_of_injective _ (key_inclusion (g : G)).injective)),
+    (λ g _, finite.card_le_of_injective _ (key_inclusion (g : G)).injective)),
 end
 
 lemma nat.card_pos {α : Type*} [finite α] [nonempty α] : 0 < nat.card α :=

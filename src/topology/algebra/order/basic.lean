@@ -10,7 +10,6 @@ import topology.algebra.field
 import tactic.linarith
 import tactic.tfae
 import tactic.positivity
-import topology.algebra.order.left_right
 
 /-!
 # Theory of topology on ordered spaces
@@ -2932,80 +2931,13 @@ lemma antitone.map_cinfi_of_continuous_at {f : α → β} {g : γ → α}
 monotone.map_cinfi_of_continuous_at
   (show continuous_at (order_dual.to_dual ∘ f) (⨅ i, g i), from Cf) Af H
 
-end conditionally_complete_linear_order
 
-
-namespace monotone
-
-variables [linear_order α] [conditionally_complete_linear_order β]
-
-/-- The left limit of a monotone function, defined as the supremum of the function strictly to
-the left of a given point. -/
-def left_lim (f : α → β) (x : α) : β :=
-Sup (f '' (Iio x))
-
-/-- The right limit of a monotone function, defined as the infimum of the function strictly to
-the right of a given point. -/
-def right_lim (f : α → β) (x : α) : β :=
-Inf (f '' (Ioi x))
-
-lemma left_lim_le [no_min_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
-  left_lim f x ≤ f y :=
-begin
-  refine cSup_le (by simp) _,
-  simp only [mem_image, mem_Iio, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
-  assume z hz,
-  exact hf (hz.le.trans h),
-end
-
-lemma le_left_lim {f : α → β} (hf : monotone f) {x y : α} (h : x < y) :
-  f x ≤ left_lim f y :=
-begin
-  refine le_cSup ⟨f y, _⟩ (mem_image_of_mem _ h),
-  simp only [upper_bounds, mem_image, mem_Iio, forall_exists_index, and_imp,
-    forall_apply_eq_imp_iff₂, mem_set_of_eq],
-  assume z hz,
-  exact hf hz.le
-end
-
-lemma left_lim_le_left_lim [no_min_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
-  left_lim f x ≤ left_lim f y :=
-begin
-  rcases eq_or_lt_of_le h with rfl|hxy,
-  { exact le_rfl },
-  { exact (hf.left_lim_le le_rfl).trans (hf.le_left_lim hxy) }
-end
-
-lemma le_right_lim [no_max_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
-  f x ≤ right_lim f y :=
-@left_lim_le αᵒᵈ βᵒᵈ _ _ _ f hf.dual y x h
-
-lemma right_lim_le {f : α → β} (hf : monotone f) {x y : α} (h : x < y) :
-  right_lim f x ≤ f y :=
-@le_left_lim αᵒᵈ βᵒᵈ _ _ f hf.dual y x h
-
-lemma right_lim_le_right_lim [no_max_order α] {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
-  right_lim f x ≤ right_lim f y :=
-@left_lim_le_left_lim αᵒᵈ βᵒᵈ _ _ _ f hf.dual y x h
-
-lemma left_lim_le_right_lim [no_min_order α] [no_max_order α]
-  {f : α → β} (hf : monotone f) {x y : α} (h : x ≤ y) :
-  monotone.left_lim f x ≤ monotone.right_lim f y :=
-(hf.left_lim_le le_rfl).trans (hf.le_right_lim h)
-
-lemma right_lim_le_left_lim [densely_ordered α]
-  {f : α → β} (hf : monotone f) {x y : α} (h : x < y) :
-  monotone.right_lim f x ≤ monotone.left_lim f y :=
-begin
-  rcases exists_between h with ⟨a, xa, ay⟩,
-  calc monotone.right_lim f x ≤ f a : hf.right_lim_le xa
-  ... ≤ monotone.left_lim f y : hf.le_left_lim ay
-end
-
-variables [topological_space α] [order_topology α] [topological_space β] [order_topology β]
-
-lemma tendsto_left_lim {f : α → β} (Mf : monotone f) (x : α) :
-  tendsto f (𝓝[<] x) (𝓝 (left_lim f x)) :=
+/-- A monotone map has a limit to the left of any point `x`, equal to `Sup (f '' (Iio x))`. -/
+lemma monotone.tendsto_nhds_within_Iio {α β : Type*}
+  [linear_order α] [topological_space α] [order_topology α]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  {f : α → β} (Mf : monotone f) (x : α) :
+  tendsto f (𝓝[<] x) (𝓝 (Sup (f '' (Iio x)))) :=
 begin
   rcases eq_empty_or_nonempty (Iio x) with h|h, { simp [h] },
   refine tendsto_order.2 ⟨λ l hl, _, λ m hm, _⟩,
@@ -3019,105 +2951,14 @@ begin
     exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy), },
 end
 
-lemma tendsto_right_lim {f : α → β} (Mf : monotone f) (x : α) :
-  tendsto f (𝓝[>] x) (𝓝 (right_lim f x)) :=
-@monotone.tendsto_left_lim αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x
+/-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/
+lemma monotone.tendsto_nhds_within_Ioi {α β : Type*}
+  [linear_order α] [topological_space α] [order_topology α]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  {f : α → β} (Mf : monotone f) (x : α) :
+  tendsto f (𝓝[>] x) (𝓝 (Inf (f '' (Ioi x)))) :=
+@monotone.tendsto_nhds_within_Iio αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x
 
-/-- A monotone is continuous at a point if and only if its left and right limits coincide. -/
-lemma left_lim_eq_right_lim_iff_continuous_at [no_min_order α] [no_max_order α] [densely_ordered α]
-  {f : α → β} (Mf : monotone f) {x : α} :
-  left_lim f x = right_lim f x ↔ continuous_at f x :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have h' : left_lim f x = f x,
-    { apply le_antisymm (left_lim_le Mf (le_refl _)),
-      rw h,
-      exact le_right_lim Mf (le_refl _) },
-    have : 𝓝 x = (𝓝[<] x) ⊔ (𝓝[>] x) ⊔ (𝓝[{x}] x),
-    { rw [← nhds_within_union, ← nhds_within_union, ← nhds_within_univ],
-      congr,
-      ext y,
-      simp },
-    rw [continuous_at, this, tendsto_sup, tendsto_sup],
-    refine ⟨⟨_, _⟩, _⟩,
-    { rw ← h',
-      exact tendsto_left_lim Mf x },
-    { rw [← h', h],
-      exact tendsto_right_lim Mf x },
-    { simp [tendsto_pure_nhds f x] } },
-  { have A : left_lim f x = f x, from tendsto_nhds_unique
-      (tendsto_left_lim Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
-    have B : right_lim f x = f x, from tendsto_nhds_unique
-      (tendsto_right_lim Mf x) ((h.tendsto).mono_left nhds_within_le_nhds),
-    exact A.trans B.symm },
-end
-
-lemma countable_not_continuous_within_at_Ioi [second_countable_topology β]
-  {f : α → β} (Mf : monotone f) :
-  set.countable {x | ¬(continuous_within_at f (Ioi x) x)} :=
-begin
-  /- If `f` is not continuous on the right at `x`, there is an inverval `(f x, z x)` which is not
-  reached by `f`. This gives a family of disjoint open intervals in `β`. Such a family can only
-  be countable as `β` is second-countable. -/
-  nontriviality α,
-  inhabit α,
-  haveI : nonempty β := ⟨f default⟩,
-  let s := {x | ¬(continuous_within_at f (Ioi x) x)},
-  have : ∀ x, x ∈ s → ∃ z, f x < z ∧ ∀ y, x < y → z ≤ f y,
-  { rintros x (hx : ¬(continuous_within_at f (Ioi x) x)),
-    contrapose! hx,
-    refine tendsto_order.2 ⟨λ m hm, _, λ u hu, _⟩,
-    { filter_upwards [self_mem_nhds_within] with y hy using hm.trans_le (Mf (le_of_lt hy)) },
-    rcases hx u hu with ⟨v, xv, fvu⟩,
-    have : Ioo x v ∈ 𝓝[>] x, from Ioo_mem_nhds_within_Ioi ⟨le_refl _, xv⟩,
-    filter_upwards [this] with y hy,
-    apply (Mf hy.2.le).trans_lt fvu },
-  -- choose `z x` such that `f` does not take the values in `(f x, z x)`.
-  choose! z hz using this,
-  have I : inj_on f s,
-  { apply strict_mono_on.inj_on,
-    assume x hx y hy hxy,
-    calc f x < z x : (hz x hx).1
-    ... ≤ f y : (hz x hx).2 y hxy },
-  -- show that `f s` is countable by arguing that a disjoint family of disjoint open intervals
-  -- (the intervals `(f x, z x)`) is at most countable.
-  have fs_count : (f '' s).countable,
-  { have A : (f '' s).pairwise_disjoint (λ x, Ioo x (z (inv_fun_on f s x))),
-    { rintros _ ⟨u, us, rfl⟩ _ ⟨v, vs, rfl⟩ huv,
-      wlog h'uv : u ≤ v := le_total u v using [u v, v u] tactic.skip,
-      { rcases eq_or_lt_of_le h'uv with rfl|h''uv,
-        { exact (huv rfl).elim },
-        apply disjoint_iff_forall_ne.2,
-        rintros a ha b hb rfl,
-        simp [I.left_inv_on_inv_fun_on us, I.left_inv_on_inv_fun_on vs] at ha hb,
-        exact lt_irrefl _ ((ha.2.trans_le ((hz u us).2 v h''uv)).trans hb.1) },
-      { assume hu hv h'uv,
-        exact (this hv hu h'uv.symm).symm } },
-    apply set.pairwise_disjoint.countable_of_Ioo A,
-    rintros _ ⟨y, ys, rfl⟩,
-    simpa only [I.left_inv_on_inv_fun_on ys] using (hz y ys).1 },
-  exact maps_to.countable_of_inj_on (maps_to_image f s) I fs_count,
-end
-
-lemma countable_not_continuous_within_at_Iio [second_countable_topology β]
-  {f : α → β} (Mf : monotone f) :
-  set.countable {x | ¬(continuous_within_at f (Iio x) x)} :=
-@monotone.countable_not_continuous_within_at_Ioi αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ f Mf.dual
-
-/-- If a function is monotone, then it has at most countably many discontinuity points. -/
-lemma countable_not_continuous_at [second_countable_topology β]
-  {f : α → β} (Mf : monotone f) :
-  set.countable {x | ¬(continuous_at f x)} :=
-begin
-  apply (Mf.countable_not_continuous_within_at_Ioi.union
-         Mf.countable_not_continuous_within_at_Iio).mono _,
-  refine compl_subset_compl.1 _,
-  simp only [compl_union],
-  rintros x ⟨hx, h'x⟩,
-  simp only [mem_compl_eq, mem_set_of_eq, not_not] at hx h'x ⊢,
-  exact continuous_at_iff_continuous_left'_right'.2 ⟨h'x, hx⟩
-end
-
-end monotone
+end conditionally_complete_linear_order
 
 end order_topology

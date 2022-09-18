@@ -531,6 +531,16 @@ theorem perm_append_right_iff {l₁ l₂ : list α} (l) : l₁++l ~ l₂++l ↔ 
 ⟨λ p, (perm_append_left_iff _).1 $ perm_append_comm.trans $ p.trans perm_append_comm,
  perm.append_right _⟩
 
+lemma perm.map_congr {α β} {l₁ l₂ : list α} (h : l₁ ~ l₂) (f : α → β) : l₁.map f ~ l₂.map f :=
+begin
+  induction h,
+  { exact perm.refl _, },
+  { simpa only [map, perm_cons]},
+  { exact perm.swap _ _ _ },
+  case perm.trans : _ _ _ _ _ h₁₂ h₂₃
+  { exact h₁₂.trans h₂₃ },
+end
+
 theorem perm_option_to_list {o₁ o₂ : option α} : o₁.to_list ~ o₂.to_list ↔ o₁ = o₂ :=
 begin
   refine ⟨λ p, _, λ e, e ▸ perm.refl _⟩,

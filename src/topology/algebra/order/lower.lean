@@ -152,8 +152,7 @@ begin
     simp only [exists_prop, mem_sUnion, mem_set_of_eq, exists_exists_and_eq_and, mem_compl_eq,
       mem_Ici],
     simp only [mem_compl_eq, mem_Ici, Sup_le_iff, not_forall, exists_prop] at h,
-    apply h,
-  }
+    apply h, }
 end
 
 variables [topological_space β] [partial_order β] [s : lower_topology β]

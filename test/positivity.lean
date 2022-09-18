@@ -115,16 +115,23 @@ example {a : ℝ≥0∞} : 0 ≤ a := by positivity
 
 set_option pp.all true
 
-example {a : ℕ} : 0 ≤ (a : ℤ) := by positivity
+example {a : ℕ} : (0 : ℤ) ≤ a := by positivity
 example {a : ℕ} (hn : 0 < a) : (0 : ℤ) < a := by positivity
 example {a : ℤ} (hn : 0 ≤ a) : (0 : ℚ) ≤ a := by positivity
 example {a : ℤ} (hn : 0 < a) : (0 : ℚ) < a := by positivity
 example {a : ℚ} (hn : 0 ≤ a) : (0 : ℝ) ≤ a := by positivity
 example {a : ℚ} (hn : 0 < a) : (0 : ℝ) < a := by positivity
+example {r : ℝ≥0} : (0 : ℝ) ≤ r := by positivity
+example {r : ℝ≥0} (hr : 0 < r) : (0 : ℝ) < r := by positivity
+example {r : ℝ≥0} (hr : 0 < r) : (0 : ℝ≥0∞) < r := by positivity
+-- example {r : ℝ≥0} : (0 : ereal) ≤ r := by positivity -- TODO: Handle `coe_trans`
+-- example {r : ℝ≥0} (hr : 0 < r) : (0 : ereal) < r := by positivity
+example {r : ℝ} (hr : 0 ≤ r) : (0 : ereal) ≤ r := by positivity
+example {r : ℝ} (hr : 0 < r) : (0 : ereal) < r := by positivity
+example {r : ℝ≥0∞} : (0 : ereal) ≤ r := by positivity
+example {r : ℝ≥0∞} (hr : 0 < r) : (0 : ereal) < r := by positivity
+
 example {α : Type*} [ordered_ring α] {n : ℤ} : 0 ≤ ((n ^ 2 : ℤ) : α) := by positivity
-example {α : Type*} [linear_ordered_field α] {a : ℚ} (ha : 0 < a) : 0 < (a : α) := by positivity
-example {r : ℝ} (hr : 0 ≤ r) : 0 ≤ (r : ereal) := by positivity
-example {r : ℝ} (hr : 0 < r) : 0 < (r : ereal) := by positivity
 example {r : ℝ≥0} : 0 ≤ ((r : ℝ) : ereal) := by positivity
 example {r : ℝ≥0} : 0 < ((r + 1 : ℝ) : ereal) := by positivity
 

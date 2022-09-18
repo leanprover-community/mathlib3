@@ -558,7 +558,7 @@ meta def positivity_coe_ennreal_ereal : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``ereal_coe_ennreal_pos [p]
-  | nonnegative _ := nonnegative <$> mk_app ``ereal.coe_ennreal_nonneg [a]
+  | nonnegative _ := nonnegative <$> mk_mapp `ereal.coe_ennreal_nonneg [a]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ereal)` for `r : ℝ≥0∞`"

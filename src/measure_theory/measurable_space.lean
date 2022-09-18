@@ -279,12 +279,8 @@ instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
 
-instance : measurable_singleton_class empty := ⟨λ _, trivial⟩
-instance : measurable_singleton_class punit := ⟨λ _, trivial⟩
-instance : measurable_singleton_class bool := ⟨λ _, trivial⟩
-instance : measurable_singleton_class ℕ := ⟨λ _, trivial⟩
-instance : measurable_singleton_class ℤ := ⟨λ _, trivial⟩
-instance : measurable_singleton_class ℚ := ⟨λ _, trivial⟩
+instance top.measurable_singleton_class {α : Type*} : @measurable_singleton_class α ⊤ :=
+{ measurable_set_singleton := λ x, trivial }
 
 lemma measurable_to_countable [measurable_space α] [countable α] [measurable_space β] {f : β → α}
   (h : ∀ y, measurable_set (f ⁻¹' {f y})) :

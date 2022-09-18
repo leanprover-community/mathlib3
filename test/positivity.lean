@@ -1,5 +1,5 @@
--- import algebra.order.smul
--- import analysis.normed.group.basic
+import algebra.order.smul
+import analysis.normed.group.basic
 import data.rat.nnrat
 import data.real.ereal
 import data.real.sqrt

@@ -531,6 +531,8 @@ theorem perm_append_right_iff {l₁ l₂ : list α} (l) : l₁++l ~ l₂++l ↔ 
 ⟨λ p, (perm_append_left_iff _).1 $ perm_append_comm.trans $ p.trans perm_append_comm,
  perm.append_right _⟩
 
+/-- Mapping a function `f` over two permutation equivalent lists results in permutation
+equivalent lists. -/
 lemma perm.map_congr {α β} {l₁ l₂ : list α} (h : l₁ ~ l₂) (f : α → β) : l₁.map f ~ l₂.map f :=
 begin
   induction h,

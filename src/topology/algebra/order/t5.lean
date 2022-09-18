@@ -87,7 +87,6 @@ end set
 open set
 
 /-- A linear order with order topology is a completely normal Hausdorff topological space. -/
-@[priority 100]
-instance order_topology.t5_space [topological_space X] [order_topology X] : t5_space X :=
+@[priority 100] instance order_topology.t5_space : t5_space X :=
 ⟨λ s t h₁ h₂, filter.disjoint_iff.2 ⟨ord_t5_nhd s t, ord_t5_nhd_mem_nhds_set h₂, ord_t5_nhd t s,
   ord_t5_nhd_mem_nhds_set h₁.symm, disjoint_ord_t5_nhd⟩⟩

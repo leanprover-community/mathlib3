@@ -92,38 +92,9 @@ end
 
 end tuple
 
-lemma list.perm.map_congr {α β} {l₁ l₂ : list α} (h : l₁ ~ l₂) (f : α → β) : l₁.map f ~ l₂.map f :=
-begin
-  induction h,
-  { simp },
-  { simpa },
-  { simpa using list.perm.swap _ _ _ },
-  case list.perm.trans : _ _ _ _ _ h₁₂ h₂₃
-  { exact h₁₂.trans h₂₃ },
-end
-
 open list
 
 variables {n : ℕ} {α : Type*}
-
-lemma equiv.perm.of_fn_comp_perm (f : fin n → α) (σ : equiv.perm (fin n)) :
-  of_fn (f ∘ σ) ~ of_fn f :=
-begin
-  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
-  apply perm.map_congr,
-  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
-  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
-end
-
-lemma monotone.of_fn_sorted [preorder α] {f : fin n → α} (h : monotone f) :
-  (of_fn f).sorted (≤) :=
-begin
-  rw [sorted, pairwise_iff_nth_le],
-  intros i j hj hij,
-  rw [nth_le_of_fn', nth_le_of_fn'],
-  apply h,
-  exact hij.le
-end
 
 namespace tuple
 

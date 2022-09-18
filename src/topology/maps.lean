@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.order
+import topology.nhds_set
 
 /-!
 # Specific classes of maps between topological spaces
@@ -76,6 +77,10 @@ lemma inducing_iff_nhds {f : α → β} : inducing f ↔ ∀ a, 𝓝 a = comap f
 lemma inducing.nhds_eq_comap {f : α → β} (hf : inducing f) :
   ∀ (a : α), 𝓝 a = comap f (𝓝 $ f a) :=
 inducing_iff_nhds.1 hf
+
+lemma inducing.nhds_set_eq_comap {f : α → β} (hf : inducing f) (s : set α) :
+  𝓝ˢ s = comap f (𝓝ˢ (f '' s)) :=
+by simp only [nhds_set, Sup_image, comap_supr, hf.nhds_eq_comap, supr_image]
 
 lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) :
   (𝓝 a).map f = 𝓝[range f] (f a) :=

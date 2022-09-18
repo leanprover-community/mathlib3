@@ -721,9 +721,8 @@ lemma zero_pow_eventually_eq [monoid_with_zero α] :
   (λ n : ℕ, (0 : α) ^ n) =ᶠ[at_top] (λ n, 0) :=
 eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 
-section ordered_ring
-
-variables [ordered_ring α] {l : filter β} {f g : β → α}
+section strict_ordered_ring
+variables [strict_ordered_ring α] {l : filter β} {f g : β → α}
 
 lemma tendsto.at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x * g x) l at_bot :=
@@ -742,7 +741,7 @@ have tendsto (λ x, (-f x) * (-g x)) l at_top :=
   (tendsto_neg_at_bot_at_top.comp hf).at_top_mul_at_top (tendsto_neg_at_bot_at_top.comp hg),
 by simpa only [neg_mul_neg] using this
 
-end ordered_ring
+end strict_ordered_ring
 
 section linear_ordered_add_comm_group
 

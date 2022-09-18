@@ -53,7 +53,7 @@ instance : comm_semiring ℕ :=
   nsmul_succ'    := λ n x,
     by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul] }
 
-instance : linear_ordered_comm_semiring nat :=
+instance : linear_ordered_comm_semiring ℕ :=
 { lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
   le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
@@ -63,9 +63,6 @@ instance : linear_ordered_comm_semiring nat :=
   decidable_eq               := nat.decidable_eq,
   exists_pair_ne             := ⟨0, 1, ne_of_lt nat.zero_lt_one⟩,
   ..nat.comm_semiring, ..nat.linear_order }
-
--- all the fields are already included in the `linear_ordered_comm_semiring` instance
-instance : linear_ordered_cancel_add_comm_monoid ℕ := { ..nat.linear_ordered_comm_semiring }
 
 instance : linear_ordered_comm_monoid_with_zero ℕ :=
 { mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
@@ -85,6 +82,7 @@ instance : distrib ℕ               := infer_instance
 instance : semiring ℕ              := infer_instance
 instance : ordered_semiring ℕ      := infer_instance
 instance : ordered_comm_semiring ℕ := infer_instance
+instance : linear_ordered_cancel_add_comm_monoid ℕ := infer_instance
 
 instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }

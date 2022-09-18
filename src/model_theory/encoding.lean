@@ -151,13 +151,12 @@ encodable.of_left_injection list_encode (λ l, (list_decode l).head'.join)
     simp only [option.join, head', list.map, option.some_bind, id.def],
   end)
 
-lemma card_le_aleph_0 [h1 : countable α] [h2 : L.countable_functions] :
-  # (L.term α) ≤ ℵ₀ :=
+instance [h1 : countable α] [h2 : countable (Σl, L.functions l)] :
+  countable (L.term α) :=
 begin
-  refine (card_le.trans _),
-  rw [max_le_iff],
+  refine mk_le_aleph_0_iff.1 (card_le.trans (max_le_iff.2 _)),
   simp only [le_refl, mk_sum, add_le_aleph_0, lift_le_aleph_0, true_and],
-  exact ⟨mk_le_aleph_0, L.card_functions_le_aleph_0⟩,
+  exact ⟨cardinal.mk_le_aleph_0, cardinal.mk_le_aleph_0⟩,
 end
 
 instance small [small.{u} α] :

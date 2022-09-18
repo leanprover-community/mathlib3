@@ -26,7 +26,7 @@ attribute [mono] add_le_add mul_le_mul neg_le_neg
          mul_le_mul_of_nonpos_left mul_le_mul_of_nonpos_right
          imp_imp_imp le_implies_le_of_le_of_le
          tsub_lt_tsub_left_of_le tsub_lt_tsub_right_of_le
-         sub_le_sub tsub_le_tsub tsub_le_tsub_right abs_le_abs sup_le_sup
+         tsub_le_tsub abs_le_abs sup_le_sup
          inf_le_inf
 attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
 attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul

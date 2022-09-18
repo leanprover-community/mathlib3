@@ -70,6 +70,26 @@ lemma is_satisfiable.mono (h : T'.is_satisfiable) (hs : T ⊆ T') :
   T.is_satisfiable :=
 ⟨(Theory.model.mono (Model.is_model h.some) hs).bundled⟩
 
+lemma is_satisfiable_empty (L : language.{u v}) :
+  is_satisfiable (∅ : L.Theory) :=
+⟨default⟩
+
+lemma is_satisfiable_of_is_satisfiable_on_Theory {L' : language.{w w'}} (φ : L →ᴸ L')
+  (h : (φ.on_Theory T).is_satisfiable) :
+  T.is_satisfiable :=
+model.is_satisfiable (h.some.reduct φ)
+
+lemma is_satisfiable_on_Theory_iff {L' : language.{w w'}} {φ : L →ᴸ L'}
+  (h : φ.injective) :
+  (φ.on_Theory T).is_satisfiable ↔ T.is_satisfiable :=
+begin
+  classical,
+  refine ⟨is_satisfiable_of_is_satisfiable_on_Theory φ,
+    λ h', _⟩,
+  haveI : inhabited (h'.some) := classical.inhabited_of_nonempty',
+  exact model.is_satisfiable (h'.some.default_expansion h),
+end
+
 lemma is_satisfiable.is_finitely_satisfiable (h : T.is_satisfiable) :
   T.is_finitely_satisfiable :=
 λ _, h.mono
@@ -154,6 +174,20 @@ begin
   rw [← mk_univ],
   refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
   rw lift_lift,
+end
+
+lemma is_satisfiable_Union_iff_is_satisfiable_Union_finset {ι : Type*} (T : ι → L.Theory) :
+  is_satisfiable (⋃ i, T i) ↔ ∀ (s : finset ι), is_satisfiable (⋃ (i ∈ s), T i) :=
+begin
+  classical,
+  refine ⟨λ h s, h.mono (set.Union_mono (λ _, set.Union_subset_iff.2 (λ _, refl _))), λ h, _⟩,
+  rw is_satisfiable_iff_is_finitely_satisfiable,
+  intros s hs,
+  rw set.Union_eq_Union_finset at hs,
+  obtain ⟨t, ht⟩ := directed.exists_mem_subset_of_finset_subset_bUnion _ hs,
+  { exact (h t).mono ht },
+  { exact (monotone.directed_le (λ t1 t2 h, set.Union_mono (λ _, set.Union_mono'
+    (λ h1, ⟨h h1, refl _⟩)))) },
 end
 
 end Theory

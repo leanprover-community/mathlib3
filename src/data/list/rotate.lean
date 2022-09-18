@@ -78,7 +78,8 @@ by rw [rotatel'_cons_succ, rotatel'_eq_drop_append_take hnl', drop, take,
 lemma rotatel'_rotatel' : ∀ (l : list α) (n m : ℕ), (l.rotatel' n).rotatel' m = l.rotatel' (n + m)
 | (a::l) 0     m := by simp
 | []     n     m := by simp
-| (a::l) (n+1) m := by rw [rotatel'_cons_succ, rotatel'_rotatel', add_right_comm, rotatel'_cons_succ]
+| (a::l) (n+1) m := by rw [rotatel'_cons_succ, rotatel'_rotatel', add_right_comm,
+                        rotatel'_cons_succ]
 
 @[simp] lemma rotatel'_length (l : list α) : rotatel' l l.length = l :=
 by rw rotatel'_eq_drop_append_take le_rfl; simp
@@ -99,7 +100,8 @@ calc l.rotatel' (n % l.length) = (l.rotatel' (n % l.length)).rotatel'
 lemma rotatel_eq_rotatel' (l : list α) (n : ℕ) : l.rotatel n = l.rotatel' n :=
 if h : l.length = 0 then by simp [length_eq_zero, *] at *
 else by
-  rw [← rotatel'_mod, rotatel'_eq_drop_append_take (le_of_lt (nat.mod_lt _ (nat.pos_of_ne_zero h)))];
+  rw [← rotatel'_mod,
+    rotatel'_eq_drop_append_take (le_of_lt (nat.mod_lt _ (nat.pos_of_ne_zero h)))];
   simp [rotatel]
 
 lemma rotatel_cons_one (l : list α) (a : α) (n : ℤ) :
@@ -249,7 +251,8 @@ begin
   induction n with n hn generalizing l k,
   { have hk' : k < l.length := by simpa using hk,
     simp [nat.mod_eq_of_lt hk'] },
-  { simp [nat.succ_eq_add_one, ←rotatel_rotatel, nth_le_rotatel_one, hn l, add_comm, add_left_comm] }
+  { simp [nat.succ_eq_add_one, ←rotatel_rotatel, nth_le_rotatel_one, hn l, add_comm,
+      add_left_comm] }
 end
 
 /-- A variant of `nth_le_rotatel` useful for rewrites. -/
@@ -377,7 +380,8 @@ by simp [rotate]
 
 @[simp] lemma rotate_zero (l : list α) : l.rotate 0 = l := by simp [rotate]
 
-lemma rotate_eq_rotatel_mod (l : list α) (n : ℤ) : l.rotate n = l.rotatel (int.nat_mod n l.length) :=
+lemma rotate_eq_rotatel_mod (l : list α) (n : ℤ) :
+  l.rotate n = l.rotatel (int.nat_mod n l.length) :=
 begin
 -- tidy
   sorry,

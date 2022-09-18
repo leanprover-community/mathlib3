@@ -297,10 +297,8 @@ lemma sq_pos_of_pos (ha : 0 < a) : 0 < a ^ 2 := by { rw sq, exact mul_pos ha ha 
 
 end strict_ordered_semiring
 
-section ordered_ring
-variables [ordered_ring R] {a : R}
-
-lemma sq_pos_of_neg (ha : a < 0) : 0 < a ^ 2 := by { rw sq, exact mul_pos_of_neg_of_neg ha ha }
+section strict_ordered_ring
+variables [strict_ordered_ring R] {a : R}
 
 lemma pow_bit0_pos_of_neg (ha : a < 0) (n : ℕ) : 0 < a ^ bit0 n :=
 begin
@@ -314,7 +312,9 @@ begin
   exact mul_neg_of_neg_of_pos ha (pow_bit0_pos_of_neg ha n),
 end
 
-end ordered_ring
+lemma sq_pos_of_neg (ha : a < 0) : 0 < a ^ 2 := pow_bit0_pos_of_neg ha _
+
+end strict_ordered_ring
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring R] {a b : R}

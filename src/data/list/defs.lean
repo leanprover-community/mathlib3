@@ -700,9 +700,7 @@ def rotatel' : list α → ℕ → list α
 | (a::l) (n+1) := rotatel' (l ++ [a]) n
 
 /-- `rotate l n` rotates the elements of `l` to the left by `z`, or equivalently to the right by
-`-z` where `z` is an integer
-
-     rotatel [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
+`-z` where `z` is an integer -/
 def rotate (l : list α) (z : ℤ) : list α :=
 l.rotatel (z.nat_mod l.length)
 

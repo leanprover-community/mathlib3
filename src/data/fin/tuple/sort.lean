@@ -98,6 +98,8 @@ open list
 
 variables {n : ℕ} {α : Type*}
 
+/-- If we swap two strictly decreasing entries in a tuple, then the result is lexicographically
+smaller than the original tuple. -/
 lemma lex_desc [preorder α] {f : fin n → α} {i j : fin n} (h₁ : i < j) (h₂ : f j < f i) :
   to_lex (f ∘ equiv.swap i j) < to_lex f :=
 begin
@@ -107,13 +109,15 @@ begin
   { simpa only [equiv.swap_apply_left], }
 end
 
-lemma unique_monotone [partial_order α] {f : fin n → α}
-  {σ : equiv.perm (fin n)} (hf : monotone f) (hfσ : monotone (f ∘ σ)) : f ∘ σ = f :=
+/-- If a tuple `f` and a permutation of `f` are both monotone, then they are equal. -/
+lemma unique_monotone [partial_order α] {f : fin n → α} {σ : equiv.perm (fin n)} (hf : monotone f)
+  (hfσ : monotone (f ∘ σ)) : f ∘ σ = f :=
 of_fn_injective $ eq_of_perm_of_sorted (σ.of_fn_comp_perm f) hfσ.of_fn_sorted hf.of_fn_sorted
 
 variables [linear_order α] {f : fin n → α}
 
-lemma unique_sort' {σ : equiv.perm (fin n)} (h : monotone (f ∘ σ)) : f ∘ σ = f ∘ (sort f) :=
+/-- If a permutation of a tuple `f` is monotone, then it is equal to `f ∘ sort f`. -/
+lemma unique_sort' {σ : equiv.perm (fin n)} (h : monotone (f ∘ σ)) : f ∘ σ = f ∘ sort f :=
 begin
   let σ' := (sort f)⁻¹ * σ,
   have h' : f ∘ σ = (f ∘ sort f) ∘ σ',
@@ -123,7 +127,8 @@ begin
   rwa [← h'],
 end
 
-lemma unique_sort (h : monotone f) : f = f ∘ (sort f) :=
+/-- If a tuple `f` is monotone, then it equals `f ∘ sort f`. -/
+lemma unique_sort (h : monotone f) : f = f ∘ sort f :=
 begin
   have hf : f = f ∘ (1 : equiv.perm (fin n)),
   { simp only [equiv.perm.coe_one, function.comp.right_id], },
@@ -136,16 +141,16 @@ lemma unique_sort'' {σ : equiv.perm (fin n)} (hf : monotone f) (hfσ : monotone
   f ∘ σ = f :=
 (unique_sort' hfσ).trans (unique_sort hf).symm
 
-lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ (sort f) :=
+lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
   let τ := σ⁻¹ * (sort f),
-  have h' : (f ∘ σ) ∘ τ = f ∘ (sort f),
+  have h' : (f ∘ σ) ∘ τ = f ∘ sort f,
   { ext, simp only [equiv.perm.coe_mul, function.comp_app, equiv.perm.apply_inv_self] },
   have hm : monotone ((f ∘ σ) ∘ τ) := by { rw [h'], exact monotone_sort _, },
   exact (unique_sort' hm).symm.trans h',
 end
 
-lemma antitone_pair_of_not_sorted' {σ : equiv.perm (fin n)} (h : f ∘ σ ≠ f ∘ (sort f)) :
+lemma antitone_pair_of_not_sorted' {σ : equiv.perm (fin n)} (h : f ∘ σ ≠ f ∘ sort f) :
   ∃ i j, i < j ∧ (f ∘ σ) j < (f ∘ σ) i :=
 begin
   by_contra' hf,
@@ -157,7 +162,7 @@ begin
   exact h (unique_sort' hm),
 end
 
-lemma antitone_pair_of_not_sorted (h : f ≠ f ∘ (sort f)) : ∃ i j, i < j ∧ f j < f i :=
+lemma antitone_pair_of_not_sorted (h : f ≠ f ∘ sort f) : ∃ i j, i < j ∧ f j < f i :=
 begin
   have hf : f = f ∘ (1 : equiv.perm (fin n)),
   { simp only [equiv.perm.coe_one, function.comp.right_id], },

@@ -30,22 +30,7 @@ limit of `(f y - f x) / (y - x)` by a lower and upper approximation argument fro
 behavior of `μ [x, y]`.
 -/
 
-open set filter function metric measure_theory measure_theory.measure_space
-open_locale nnreal ennreal topological_space
-
-
-section
-
-variables {α : Type*} [metric_space α] [measurable_space α] {μ : measure α}
-
-
-end
-
-
-
-
-open measure_theory measure_theory.measure set filter
-
+open set filter function metric measure_theory measure_theory.measure topological_space
 open_locale nnreal ennreal topological_space
 
 namespace real
@@ -113,10 +98,6 @@ end
 
 end real
 
-open topological_space
-
-
-
 /-- If `(f y - f x) / (y - x)` converges to a limit as `y` tends to `x`, then the same goes if
 `y` is shifted a limit bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.
 This lemma contains a slightly more general version of this statement (where one considers
@@ -144,7 +125,6 @@ begin
   field_simp [sub_ne_zero.2 hy],
 end
 
-
 lemma nhds_within_le_of_subset {α : Type*} [topological_space α] {s t : set α} (h : s ⊆ t) (x : α) :
   𝓝[s] x ≤ 𝓝[t] x :=
 nhds_within_le_iff.2 (mem_of_superset self_mem_nhds_within h)
@@ -160,8 +140,16 @@ nhds_within_le_of_subset (λ y hy, ne_of_gt hy) x
 lemma stieltjes_function.has_deriv_at (f : stieltjes_function) :
   ∀ᵐ x, has_deriv_at f (rn_deriv f.measure volume x).to_real x :=
 begin
+  /- Denote by `μ` the Stieltjes measure associated to `f`.
+  The general theorem `vitali_family.ae_tendsto_rn_deriv` ensures that `μ [x, y] / (y - x)` tends
+  to the Radon-Nikodym derivative as `y` tends to `x` from the right. As `μ [x, y] = f y - f (x^-)`
+  and `f (x^-) = f x` almost everywhere, this gives differentiability on the right.
+  On the left, `μ [y, x] / (x - y)` again tends to the Radon-Nikodym derivative.
+  As `μ [y, x] = f x - f (y^-)`, this is not exactly the right result, so one uses a sandwiching
+  argument to deduce the convergence for `(f x - f y) / (x - y)`. -/
   filter_upwards [vitali_family.ae_tendsto_rn_deriv real.vitali_family f.measure,
     rn_deriv_lt_top f.measure volume, f.countable_left_lim_ne.ae_not_mem volume] with x hx h'x h''x,
+  -- Limit on the right, following from differentiation of measures
   have L1 : tendsto (λ y, (f y - f x) / (y - x))
     (𝓝[>] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
   { apply tendsto.congr' _
@@ -171,6 +159,8 @@ begin
     simp only [comp_app, stieltjes_function.measure_Icc, real.volume_Icc, not_not.1 h''x],
     rw [← ennreal.of_real_div_of_pos (sub_pos.2 hxy), ennreal.to_real_of_real],
     exact div_nonneg (sub_nonneg.2 (f.mono hxy.le)) (sub_pos.2 hxy).le },
+  -- Limit on the left, following from differentiation of measures. Its form is not exactly the one
+  -- we need, due to the appearance of a left limit.
   have L2 : tendsto (λ y, (f.left_lim y - f x) / (y - x))
     (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
   { apply tendsto.congr' _
@@ -181,6 +171,7 @@ begin
     rw [← ennreal.of_real_div_of_pos (sub_pos.2 hxy), ennreal.to_real_of_real, ← neg_neg (y - x),
         div_neg, neg_div', neg_sub, neg_sub],
     exact div_nonneg (sub_nonneg.2 (f.left_lim_le hxy.le)) (sub_pos.2 hxy).le },
+  -- Shifting a little bit the limit on the left, by `(y - x)^2`.
   have L3 : tendsto (λ y, (f.left_lim (y + 1 * (y - x)^2) - f x) / (y - x))
     (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
   { apply tendsto_apply_add_mul_sq_div_sub (nhds_within_Iio_le_nhds_within_ne x) L2,
@@ -195,6 +186,7 @@ begin
       rintros y ⟨hy : x - 1 < y, h'y : y < x⟩,
       rw mem_Iio,
       nlinarith } },
+  -- Deduce the correct limit on the left, by sandwiching.
   have L4 : tendsto (λ y, (f y - f x) / (y - x))
     (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
   { apply tendsto_of_tendsto_of_tendsto_of_le_of_le' L3 L2,
@@ -208,9 +200,9 @@ begin
       rintros y (hy : y < x),
       refine div_le_div_of_nonpos_of_le (by linarith) _,
       simpa only [sub_le_sub_iff_right] using f.left_lim_le (le_refl y) } },
-  rw [has_deriv_at_iff_tendsto_slope, slope_fun_def_field],
-  have : 𝓝[≠] x = 𝓝[<] x ⊔ 𝓝[>] x, by simp only [← nhds_within_union, Iio_union_Ioi],
-  rw [this, tendsto_sup],
+  -- prove the result by splitting into left and right limits.
+  rw [has_deriv_at_iff_tendsto_slope, slope_fun_def_field, ← nhds_left'_sup_nhds_right',
+    tendsto_sup],
   exact ⟨L4, L1⟩
 end
 
@@ -225,8 +217,8 @@ begin
     apply le_antisymm _ (hf.le_right_lim (le_refl _)),
     rw ← h'x,
     exact hf.left_lim_le (le_refl _) },
-  have B : 𝓝[≠] x = 𝓝[<] x ⊔ 𝓝[>] x, by simp only [← nhds_within_union, Iio_union_Ioi],
-  rw [has_deriv_at_iff_tendsto_slope, B, tendsto_sup, slope_fun_def_field, A] at hx,
+  rw [has_deriv_at_iff_tendsto_slope, (nhds_left'_sup_nhds_right' x).symm, tendsto_sup,
+    slope_fun_def_field, A] at hx,
   have L1 : tendsto (λ y, (f y - f x) / (y - x)) (𝓝[>] x)
      (𝓝 (rn_deriv hf.stieltjes_function.measure volume x).to_real),
   { have : tendsto (λ y, (hf.stieltjes_function (y + (-1) * (y-x)^2) - f x) / (y - x)) (𝓝[>] x)
@@ -279,7 +271,8 @@ begin
       have : 0 < (y - x)^2, from sq_pos_of_neg (sub_neg.2 hy),
       apply div_le_div_of_nonpos_of_le (sub_neg.2 hy).le,
       exact (sub_le_sub_iff_right _).2 (hf.right_lim_le (by linarith)) } },
-  rw [has_deriv_at_iff_tendsto_slope, slope_fun_def_field, B, tendsto_sup],
+  rw [has_deriv_at_iff_tendsto_slope, slope_fun_def_field, (nhds_left'_sup_nhds_right' x).symm,
+    tendsto_sup],
   exact ⟨L2, L1⟩
 end
 

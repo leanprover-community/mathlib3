@@ -91,3 +91,107 @@ begin
 end
 
 end tuple
+
+lemma list.perm.map_congr {α β} {l₁ l₂ : list α} (h : l₁ ~ l₂) (f : α → β) : l₁.map f ~ l₂.map f :=
+begin
+  induction h,
+  { simp },
+  { simpa },
+  { simpa using list.perm.swap _ _ _ },
+  case list.perm.trans : _ _ _ _ _ h₁₂ h₂₃
+  { exact h₁₂.trans h₂₃ },
+end
+
+open list
+
+variables {n : ℕ} {α : Type*}
+
+lemma equiv.perm.of_fn_comp_perm (f : fin n → α) (σ : equiv.perm (fin n)) :
+  of_fn (f ∘ σ) ~ of_fn f :=
+begin
+  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
+  apply perm.map_congr,
+  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
+  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
+end
+
+lemma monotone.of_fn_sorted [preorder α] {f : fin n → α} (h : monotone f) :
+  (of_fn f).sorted (≤) :=
+begin
+  rw [sorted, pairwise_iff_nth_le],
+  intros i j hj hij,
+  rw [nth_le_of_fn', nth_le_of_fn'],
+  apply h,
+  exact hij.le
+end
+
+namespace tuple
+
+lemma lex_desc [preorder α] {f : fin n → α} {i j : fin n} (h₁ : i < j) (h₂ : f j < f i) :
+  to_lex (f ∘ equiv.swap i j) < to_lex f :=
+begin
+  simp [has_lt.lt, pi.lex],
+  refine ⟨i, λ k (hik : k < i), _, _⟩,
+  { rw [equiv.swap_apply_of_ne_of_ne (ne_of_lt hik) (ne_of_lt $ hik.trans h₁)], },
+  { simpa only [equiv.swap_apply_left], }
+end
+
+lemma unique_monotone [partial_order α] {f : fin n → α}
+  {σ : equiv.perm (fin n)} (hf : monotone f) (hfσ : monotone (f ∘ σ)) : f ∘ σ = f :=
+of_fn_injective $ eq_of_perm_of_sorted (σ.of_fn_comp_perm f) hfσ.of_fn_sorted hf.of_fn_sorted
+
+variables [linear_order α] {f : fin n → α}
+
+lemma unique_sort' {σ : equiv.perm (fin n)} (h : monotone (f ∘ σ)) : f ∘ σ = f ∘ (sort f) :=
+begin
+  let σ' := (sort f)⁻¹ * σ,
+  have h' : f ∘ σ = (f ∘ sort f) ∘ σ',
+  { ext, simp only [function.comp_app, equiv.perm.coe_mul, equiv.perm.apply_inv_self], },
+  rw [h'],
+  refine unique_monotone (monotone_sort f) _,
+  rwa [← h'],
+end
+
+lemma unique_sort (h : monotone f) : f = f ∘ (sort f) :=
+begin
+  have hf : f = f ∘ (1 : equiv.perm (fin n)),
+  { simp only [equiv.perm.coe_one, function.comp.right_id], },
+  conv_lhs {rw hf},
+  rw hf at h,
+  exact unique_sort' h,
+end
+
+lemma unique_sort'' {σ : equiv.perm (fin n)} (hf : monotone f) (hfσ : monotone (f ∘ σ)) :
+  f ∘ σ = f :=
+(unique_sort' hfσ).trans (unique_sort hf).symm
+
+lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ (sort f) :=
+begin
+  let τ := σ⁻¹ * (sort f),
+  have h' : (f ∘ σ) ∘ τ = f ∘ (sort f),
+  { ext, simp only [equiv.perm.coe_mul, function.comp_app, equiv.perm.apply_inv_self] },
+  have hm : monotone ((f ∘ σ) ∘ τ) := by { rw [h'], exact monotone_sort _, },
+  exact (unique_sort' hm).symm.trans h',
+end
+
+lemma antitone_pair_of_not_sorted' {σ : equiv.perm (fin n)} (h : f ∘ σ ≠ f ∘ (sort f)) :
+  ∃ i j, i < j ∧ (f ∘ σ) j < (f ∘ σ) i :=
+begin
+  by_contra' hf,
+  have hm : monotone (f ∘ σ),
+  { intros i j hij,
+    cases eq_or_lt_of_le hij with heq hlt,
+    { rw [heq], },
+    { exact hf i j hlt, } },
+  exact h (unique_sort' hm),
+end
+
+lemma antitone_pair_of_not_sorted (h : f ≠ f ∘ (sort f)) : ∃ i j, i < j ∧ f j < f i :=
+begin
+  have hf : f = f ∘ (1 : equiv.perm (fin n)),
+  { simp only [equiv.perm.coe_one, function.comp.right_id], },
+  rw [hf], nth_rewrite 0 hf at h,
+  exact antitone_pair_of_not_sorted' h,
+end
+
+end tuple

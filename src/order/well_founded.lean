@@ -220,7 +220,7 @@ This induction principle that shows that `P bot` holds, given that some `a : α`
 and for each `b` that satisfies `P`, there is `c` satisfying `P` such that `r c b` holds.
 The naming is inspired by the fact that when `r` is transitive, it follows that `bot` is
 the smallest element w.r.t. `r` that satisfies `P`. -/
-lemma well_founded.induction_bot {α} (r : α → α → Prop) (hwf : well_founded r) {a bot : α}
+lemma well_founded.induction_bot {α} {r : α → α → Prop} (hwf : well_founded r) {a bot : α}
   {C : α → Prop} (ha : C a) (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C bot :=
 begin
   revert ha,

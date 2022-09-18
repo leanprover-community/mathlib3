@@ -8,7 +8,6 @@ import analysis.calculus.deriv
 import measure_theory.covering.differentiation
 import measure_theory.covering.vitali
 
-
 /-!
 # Differentiability of monotone functions
 
@@ -17,10 +16,10 @@ We show that a monotone function `f : ℝ → ℝ` is differentiable almost ever
 
 If the function `f` is continuous, this follows directly from general differentiation of measure
 theorems. Let `μ` be the Stieltjes measure associated to `f`. Then, almost everywhere,
-`μ [x, y] / (y - x)` (resp. `μ [y, x] / (x - y)`) converges to the Radon-Nikodym derivative of `μ`
-with respect to Lebesgue when `y` tends to `x` in `(x, +∞)` (resp. `(-∞, x)`), by
-`vitali_family.ae_tendsto_rn_deriv`. As `μ [x, y] = f y - f x`, this gives differentiability right
-away.
+`μ [x, y] / Leb [x, y]` (resp. `μ [y, x] / Leb [y, x]`) converges to the Radon-Nikodym derivative
+of `μ` with respect to Lebesgue when `y` tends to `x` in `(x, +∞)` (resp. `(-∞, x)`), by
+`vitali_family.ae_tendsto_rn_deriv`. As `μ [x, y] = f y - f x` and `Leb [x, y] = y - x`, this
+gives differentiability right away.
 
 When `f` is only monotone, the same argument works up to small adjustments, as the associated
 Stieltjes measure satisfies `μ [x, y] = f (y^+) - f (x^-)` (the right and left limits of `f` at `y`
@@ -151,7 +150,7 @@ begin
     exact div_nonneg (sub_nonneg.2 (f.mono hxy.le)) (sub_pos.2 hxy).le },
   -- Limit on the left, following from differentiation of measures. Its form is not exactly the one
   -- we need, due to the appearance of a left limit.
-  have L2 : tendsto (λ y, (f.left_lim y - f x) / (y - x))
+  have L2 : tendsto (λ y, (left_lim f y - f x) / (y - x))
     (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
   { apply tendsto.congr' _
       ((ennreal.tendsto_to_real h'x.ne).comp (hx.comp (real.tendsto_Icc_vitali_family_left x))),
@@ -160,11 +159,11 @@ begin
     simp only [comp_app, stieltjes_function.measure_Icc, real.volume_Icc],
     rw [← ennreal.of_real_div_of_pos (sub_pos.2 hxy), ennreal.to_real_of_real, ← neg_neg (y - x),
         div_neg, neg_div', neg_sub, neg_sub],
-    exact div_nonneg (sub_nonneg.2 (f.left_lim_le hxy.le)) (sub_pos.2 hxy).le },
+    exact div_nonneg (sub_nonneg.2 (f.mono.left_lim_le hxy.le)) (sub_pos.2 hxy).le },
   -- Shifting a little bit the limit on the left, by `(y - x)^2`.
-  have L3 : tendsto (λ y, (f.left_lim (y + 1 * (y - x)^2) - f x) / (y - x))
+  have L3 : tendsto (λ y, (left_lim f (y + 1 * (y - x)^2) - f x) / (y - x))
     (𝓝[<] x) (𝓝 ((rn_deriv f.measure volume x).to_real)),
-  { apply tendsto_apply_add_mul_sq_div_sub (nhds_within_Iio_le_nhds_within_ne x) L2,
+  { apply tendsto_apply_add_mul_sq_div_sub (nhds_left'_le_nhds_ne x) L2,
     apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
     { apply tendsto.mono_left _ nhds_within_le_nhds,
       have : tendsto (λ (y : ℝ), y + 1 * (y - x) ^ 2) (𝓝 x) (𝓝 (x + 1 * (x - x)^2)) :=
@@ -183,13 +182,13 @@ begin
     { filter_upwards [self_mem_nhds_within],
       rintros y (hy : y < x),
       refine div_le_div_of_nonpos_of_le (by linarith) ((sub_le_sub_iff_right _).2 _),
-      apply f.le_left_lim,
+      apply f.mono.le_left_lim,
       have : 0 < (x - y)^2 := sq_pos_of_pos (sub_pos.2 hy),
       linarith },
     { filter_upwards [self_mem_nhds_within],
       rintros y (hy : y < x),
       refine div_le_div_of_nonpos_of_le (by linarith) _,
-      simpa only [sub_le_sub_iff_right] using f.left_lim_le (le_refl y) } },
+      simpa only [sub_le_sub_iff_right] using f.mono.left_lim_le (le_refl y) } },
   -- prove the result by splitting into left and right limits.
   rw [has_deriv_at_iff_tendsto_slope, slope_fun_def_field, ← nhds_left'_sup_nhds_right',
     tendsto_sup],
@@ -220,7 +219,7 @@ begin
   { -- limit of a helper function, with a small shift compared to `g`
     have : tendsto (λ y, (hf.stieltjes_function (y + (-1) * (y-x)^2) - f x) / (y - x)) (𝓝[>] x)
       (𝓝 (rn_deriv hf.stieltjes_function.measure volume x).to_real),
-    { apply tendsto_apply_add_mul_sq_div_sub (nhds_within_Ioi_le_nhds_within_ne x) hx.2,
+    { apply tendsto_apply_add_mul_sq_div_sub (nhds_right'_le_nhds_ne x) hx.2,
       apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
       { apply tendsto.mono_left _ nhds_within_le_nhds,
         have : tendsto (λ (y : ℝ), y + (-1) * (y - x) ^ 2) (𝓝 x) (𝓝 (x + (-1) * (x - x)^2)) :=
@@ -249,7 +248,7 @@ begin
   { -- limit of a helper function, with a small shift compared to `g`
     have : tendsto (λ y, (hf.stieltjes_function (y + (-1) * (y-x)^2) - f x) / (y - x)) (𝓝[<] x)
       (𝓝 (rn_deriv hf.stieltjes_function.measure volume x).to_real),
-    { apply tendsto_apply_add_mul_sq_div_sub (nhds_within_Iio_le_nhds_within_ne x) hx.1,
+    { apply tendsto_apply_add_mul_sq_div_sub (nhds_left'_le_nhds_ne x) hx.1,
       apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
       { apply tendsto.mono_left _ nhds_within_le_nhds,
         have : tendsto (λ (y : ℝ), y + (-1) * (y - x) ^ 2) (𝓝 x) (𝓝 (x + (-1) * (x - x)^2)) :=

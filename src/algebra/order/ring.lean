@@ -603,26 +603,24 @@ instance strict_ordered_ring.to_strict_ordered_semiring : strict_ordered_semirin
     by simpa only [sub_mul, sub_pos] using strict_ordered_ring.mul_pos _ _ (sub_pos.2 h) hc,
   ..‹strict_ordered_ring α›,  ..ring.to_semiring }
 
-/-- A choice-free version of `strict_ordered_ring.to_ordered_ring'` to avoid using choice in basic
+/-- A choice-free version of `strict_ordered_ring.to_ordered_ring` to avoid using choice in basic
 `int` lemmas. -/
 def strict_ordered_ring.to_ordered_ring' [@decidable_rel α (≤)] : ordered_ring α :=
 { mul_nonneg := λ a b ha hb, begin
-    obtain rfl | ha := decidable.eq_or_lt_of_le ha,
-    { rw zero_mul },
-    obtain rfl | hb := decidable.eq_or_lt_of_le hb,
-    { rw mul_zero },
+    cases decidable.eq_or_lt_of_le ha with ha ha,
+    { rw [←ha, zero_mul] },
+    cases decidable.eq_or_lt_of_le hb with hb hb,
+    { rw [←hb, mul_zero] },
     { exact (mul_pos ha hb).le }
   end,
   ..‹strict_ordered_ring α›,  ..ring.to_semiring }
 
+
 @[priority 100] -- see Note [lower instance priority]
 instance strict_ordered_ring.to_ordered_ring : ordered_ring α :=
-{ mul_nonneg := λ a b ha hb, begin
-    obtain rfl | ha := ha.eq_or_lt,
-    { rw zero_mul },
-    obtain rfl | hb := hb.eq_or_lt,
-    { rw mul_zero },
-    { exact (mul_pos ha hb).le }
+{ mul_nonneg := λ a b, begin
+    letI := @strict_ordered_ring.to_ordered_ring' α _ (classical.dec_rel _),
+    exact mul_nonneg,
   end,
   ..‹strict_ordered_ring α› }
 
@@ -661,6 +659,11 @@ end strict_ordered_ring
 
 section strict_ordered_comm_ring
 variables [strict_ordered_comm_ring α]
+
+/-- A choice-free version of `strict_ordered_comm_ring.to_ordered_comm_semiring'` to avoid using
+choice in basic `int` lemmas. -/
+def strict_ordered_comm_ring.to_ordered_comm_ring' [@decidable_rel α (≤)] : ordered_comm_ring α :=
+{ ..‹strict_ordered_comm_ring α›, ..strict_ordered_ring.to_ordered_ring' }
 
 @[priority 100] -- See note [lower instance priority]
 instance strict_ordered_comm_ring.to_strict_ordered_comm_semiring :

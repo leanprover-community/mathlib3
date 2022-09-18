@@ -92,7 +92,12 @@ instance : linear_ordered_comm_ring int :=
   zero_le_one     := le_of_lt int.zero_lt_one,
   .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
 
-instance : ordered_ring int            := by apply_instance
+instance : ordered_comm_ring ℤ := strict_ordered_comm_ring.to_ordered_comm_ring'
+instance : ordered_ring ℤ := strict_ordered_ring.to_ordered_ring'
+
+
+#print strict_ordered_ring.to_ordered_ring'
+#print axioms strict_ordered_ring.to_ordered_ring'
 
 instance : linear_ordered_add_comm_group int :=
 by apply_instance

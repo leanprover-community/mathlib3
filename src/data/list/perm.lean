@@ -1402,7 +1402,7 @@ end
 -- TODO: `nodup s.permutations ↔ nodup s`
 -- TODO: `count s s.permutations = (zip_with count s s.tails).prod`
 
-lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (f : fin n → α) (σ : equiv.perm (fin n)) :
+lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (σ : equiv.perm (fin n)) (f : fin n → α) :
   of_fn (f ∘ σ) ~ of_fn f :=
 begin
   rw [of_fn_eq_map, of_fn_eq_map, ←map_map],

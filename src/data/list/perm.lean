@@ -1404,6 +1404,12 @@ end
 -- TODO: `nodup s.permutations ↔ nodup s`
 -- TODO: `count s s.permutations = (zip_with count s s.tails).prod`
 
+end permutations
+
+end list
+
+open list
+
 /-- The list obtained from a permutation of a tuple `f` is permutation equivalent to
 the list obtained from `f`. -/
 lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (σ : equiv.perm (fin n)) (f : fin n → α) :
@@ -1414,7 +1420,3 @@ begin
   rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
   simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
 end
-
-end permutations
-
-end list

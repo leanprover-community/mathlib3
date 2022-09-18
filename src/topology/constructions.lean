@@ -299,13 +299,13 @@ lemma continuous_at.snd'' {f : β → γ} {x : α × β} (hf : continuous_at f x
   continuous_at (λ x : α × β, f x.snd) x :=
 hf.comp continuous_at_snd
 
-@[simp] lemma continuous_prod_mk {f : γ → α} {g : γ → β} :
-  continuous (λ x, (f x, g x)) ↔ continuous f ∧ continuous g :=
-by rw [continuous_inf_rng, continuous_induced_rng, continuous_induced_rng]
-
 @[continuity] lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
-continuous_prod_mk.2 ⟨hf, hg⟩
+continuous_inf_rng.2 ⟨continuous_induced_rng.2 hf, continuous_induced_rng.2 hg⟩
+
+@[simp] lemma continuous_prod_mk {f : α → β} {g : α → γ} :
+  continuous (λ x, (f x, g x)) ↔ continuous f ∧ continuous g :=
+⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.prod_mk h.2⟩
 
 @[continuity] lemma continuous.prod.mk (a : α) : continuous (λ b : β, (a, b)) :=
 continuous_const.prod_mk continuous_id'

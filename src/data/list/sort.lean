@@ -104,6 +104,7 @@ end
 
 end sorted
 
+/-- The list obtained from a monotone tuple is sorted. -/
 lemma monotone.of_fn_sorted {n : ℕ} {α : Type uu} [preorder α] {f : fin n → α} (h : monotone f) :
   (of_fn f).sorted (≤) :=
 begin

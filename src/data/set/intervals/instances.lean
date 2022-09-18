@@ -199,13 +199,6 @@ subtype.coe_injective.semigroup _ coe_mul
 instance monoid [nontrivial α] : monoid (Ioc (0:α) 1) :=
 subtype.coe_injective.monoid _ coe_one coe_mul coe_pow
 
-instance cancel_monoid {α : Type*} [ordered_ring α] [is_domain α] : cancel_monoid (Ioc (0:α) 1) :=
-{ mul_left_cancel := λ a b c h,
-    subtype.ext $ mul_left_cancel₀ a.prop.1.ne' $ (congr_arg subtype.val h : _),
-  mul_right_cancel := λ a b c h,
-    subtype.ext $ mul_right_cancel₀ b.prop.1.ne' $ (congr_arg subtype.val h : _),
-  ..set.Ioc.monoid}
-
 instance comm_semigroup {α : Type*} [strict_ordered_comm_semiring α] :
   comm_semigroup (Ioc (0:α) 1) :=
 subtype.coe_injective.comm_semigroup _ coe_mul
@@ -214,7 +207,15 @@ instance comm_monoid {α : Type*} [strict_ordered_comm_semiring α] [nontrivial 
   comm_monoid (Ioc (0:α) 1) :=
 subtype.coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
-instance cancel_comm_monoid {α : Type*} [ordered_comm_ring α] [is_domain α] :
+instance cancel_monoid {α : Type*} [strict_ordered_ring α] [is_domain α] :
+  cancel_monoid (Ioc (0:α) 1) :=
+{ mul_left_cancel := λ a b c h,
+    subtype.ext $ mul_left_cancel₀ a.prop.1.ne' $ (congr_arg subtype.val h : _),
+  mul_right_cancel := λ a b c h,
+    subtype.ext $ mul_right_cancel₀ b.prop.1.ne' $ (congr_arg subtype.val h : _),
+  ..set.Ioc.monoid}
+
+instance cancel_comm_monoid {α : Type*} [strict_ordered_comm_ring α] [is_domain α] :
   cancel_comm_monoid (Ioc (0:α) 1) :=
 { ..set.Ioc.cancel_monoid, ..set.Ioc.comm_monoid }
 

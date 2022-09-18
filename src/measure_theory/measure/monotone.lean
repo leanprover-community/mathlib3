@@ -125,18 +125,8 @@ begin
   field_simp [sub_ne_zero.2 hy],
 end
 
-lemma nhds_within_le_of_subset {α : Type*} [topological_space α] {s t : set α} (h : s ⊆ t) (x : α) :
-  𝓝[s] x ≤ 𝓝[t] x :=
-nhds_within_le_iff.2 (mem_of_superset self_mem_nhds_within h)
-
-lemma nhds_within_Iio_le_nhds_within_ne {α : Type*} [preorder α] [topological_space α] (x : α) :
-  𝓝[<] x ≤ 𝓝[≠] x :=
-nhds_within_le_of_subset (λ y hy, ne_of_lt hy) x
-
-lemma nhds_within_Ioi_le_nhds_within_ne {α : Type*} [preorder α] [topological_space α] (x : α) :
-  𝓝[>] x ≤ 𝓝[≠] x :=
-nhds_within_le_of_subset (λ y hy, ne_of_gt hy) x
-
+/-- A Stieltjes function is almost everywhere differentiable, with derivative equal to the
+Radon-Nikodym derivative of the associated Stieltjes measure with respect to Lebesgue. -/
 lemma stieltjes_function.has_deriv_at (f : stieltjes_function) :
   ∀ᵐ x, has_deriv_at f (rn_deriv f.measure volume x).to_real x :=
 begin
@@ -206,10 +196,15 @@ begin
   exact ⟨L4, L1⟩
 end
 
-
+/-- A monotone function is almost everywhere differentiable, with derivative equal to the
+Radon-Nikodym derivative of the associated Stieltjes measure with respect to Lebesgue. -/
 lemma monotone.ae_has_deriv_at {f : ℝ → ℝ} (hf : monotone f) :
   ∀ᵐ x, has_deriv_at f (rn_deriv hf.stieltjes_function.measure volume x).to_real x :=
 begin
+  /- We already know that the Stieltjes function associated to `f` (i.e., `g : x ↦ f (x^+)`) is
+  differentiable almost everywhere. We reduce to this statement by sandwiching values of `f` with
+  values of `g`, by shifting with `(y - x)^2` (which has no influence on the relevant
+  scale `y - x`.)-/
   filter_upwards [hf.stieltjes_function.has_deriv_at,
     hf.countable_not_continuous_at.ae_not_mem volume] with x hx h'x,
   have A : hf.stieltjes_function x = f x,
@@ -219,9 +214,11 @@ begin
     exact hf.left_lim_le (le_refl _) },
   rw [has_deriv_at_iff_tendsto_slope, (nhds_left'_sup_nhds_right' x).symm, tendsto_sup,
     slope_fun_def_field, A] at hx,
+  -- prove differentiability on the right, by sandwiching with values of `g`
   have L1 : tendsto (λ y, (f y - f x) / (y - x)) (𝓝[>] x)
      (𝓝 (rn_deriv hf.stieltjes_function.measure volume x).to_real),
-  { have : tendsto (λ y, (hf.stieltjes_function (y + (-1) * (y-x)^2) - f x) / (y - x)) (𝓝[>] x)
+  { -- limit of a helper function, with a small shift compared to `g`
+    have : tendsto (λ y, (hf.stieltjes_function (y + (-1) * (y-x)^2) - f x) / (y - x)) (𝓝[>] x)
       (𝓝 (rn_deriv hf.stieltjes_function.measure volume x).to_real),
     { apply tendsto_apply_add_mul_sq_div_sub (nhds_within_Ioi_le_nhds_within_ne x) hx.2,
       apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
@@ -235,6 +232,7 @@ begin
         rintros y ⟨hy : x < y, h'y : y < x + 1⟩,
         rw mem_Ioi,
         nlinarith } },
+    -- apply the sandwiching argument, with the helper function and `g`
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' this hx.2,
     { filter_upwards [self_mem_nhds_within],
       rintros y (hy : x < y),
@@ -245,9 +243,11 @@ begin
       rintros y (hy : x < y),
       apply div_le_div_of_le_of_nonneg _ (sub_pos.2 hy).le,
       exact (sub_le_sub_iff_right _).2 (hf.le_right_lim (le_refl y)) } },
+  -- prove differentiability on the left, by sandwiching with values of `g`
   have L2 : tendsto (λ y, (f y - f x) / (y - x)) (𝓝[<] x)
      (𝓝 (rn_deriv hf.stieltjes_function.measure volume x).to_real),
-  { have : tendsto (λ y, (hf.stieltjes_function (y + (-1) * (y-x)^2) - f x) / (y - x)) (𝓝[<] x)
+  { -- limit of a helper function, with a small shift compared to `g`
+    have : tendsto (λ y, (hf.stieltjes_function (y + (-1) * (y-x)^2) - f x) / (y - x)) (𝓝[<] x)
       (𝓝 (rn_deriv hf.stieltjes_function.measure volume x).to_real),
     { apply tendsto_apply_add_mul_sq_div_sub (nhds_within_Iio_le_nhds_within_ne x) hx.1,
       apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
@@ -261,6 +261,7 @@ begin
         rintros y ⟨hy : x - 1 < y, h'y : y < x⟩,
         rw mem_Iio,
         nlinarith } },
+    -- apply the sandwiching argument, with `g` and the helper function
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' hx.1 this,
     { filter_upwards [self_mem_nhds_within],
       rintros y (hy : y < x),
@@ -271,6 +272,7 @@ begin
       have : 0 < (y - x)^2, from sq_pos_of_neg (sub_neg.2 hy),
       apply div_le_div_of_nonpos_of_le (sub_neg.2 hy).le,
       exact (sub_le_sub_iff_right _).2 (hf.right_lim_le (by linarith)) } },
+  -- conclude global differentiability
   rw [has_deriv_at_iff_tendsto_slope, slope_fun_def_field, (nhds_left'_sup_nhds_right' x).symm,
     tendsto_sup],
   exact ⟨L2, L1⟩

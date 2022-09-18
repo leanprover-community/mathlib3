@@ -10,6 +10,7 @@ import topology.algebra.field
 import tactic.linarith
 import tactic.tfae
 import tactic.positivity
+import topology.algebra.order.left_right
 
 /-!
 # Theory of topology on ordered spaces
@@ -3051,9 +3052,9 @@ begin
     exact A.trans B.symm },
 end
 
-lemma countable_not_right_continuous_at [second_countable_topology β]
+lemma countable_not_continuous_within_at_Ioi [second_countable_topology β]
   {f : α → β} (Mf : monotone f) :
-  set.countable {x | ¬(tendsto f (𝓝[>] x) (𝓝 (f x)))} :=
+  set.countable {x | ¬(continuous_within_at f (Ioi x) x)} :=
 begin
   /- If `f` is not continuous on the right at `x`, there is an inverval `(f x, z x)` which is not
   reached by `f`. This gives a family of disjoint open intervals in `β`. Such a family can only
@@ -3061,9 +3062,9 @@ begin
   nontriviality α,
   inhabit α,
   haveI : nonempty β := ⟨f default⟩,
-  let s := {x | ¬(tendsto f (𝓝[>] x) (𝓝 (f x)))},
+  let s := {x | ¬(continuous_within_at f (Ioi x) x)},
   have : ∀ x, x ∈ s → ∃ z, f x < z ∧ ∀ y, x < y → z ≤ f y,
-  { rintros x (hx : ¬(tendsto f (𝓝[>] x) (𝓝 (f x)))),
+  { rintros x (hx : ¬(continuous_within_at f (Ioi x) x)),
     contrapose! hx,
     refine tendsto_order.2 ⟨λ m hm, _, λ u hu, _⟩,
     { filter_upwards [self_mem_nhds_within] with y hy using hm.trans_le (Mf (le_of_lt hy)) },
@@ -3098,27 +3099,23 @@ begin
   exact maps_to.countable_of_inj_on (maps_to_image f s) I fs_count,
 end
 
-lemma countable_not_left_continuous_at [second_countable_topology β]
+lemma countable_not_continuous_within_at_Iio [second_countable_topology β]
   {f : α → β} (Mf : monotone f) :
-  set.countable {x | ¬(tendsto f (𝓝[<] x) (𝓝 (f x)))} :=
-@monotone.countable_not_right_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ f Mf.dual
+  set.countable {x | ¬(continuous_within_at f (Iio x) x)} :=
+@monotone.countable_not_continuous_within_at_Ioi αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ f Mf.dual
 
+/-- If a function is monotone, then it has at most countably many discontinuity points. -/
 lemma countable_not_continuous_at [second_countable_topology β]
   {f : α → β} (Mf : monotone f) :
   set.countable {x | ¬(continuous_at f x)} :=
 begin
-  apply (Mf.countable_not_right_continuous_at.union Mf.countable_not_left_continuous_at).mono _,
+  apply (Mf.countable_not_continuous_within_at_Ioi.union
+         Mf.countable_not_continuous_within_at_Iio).mono _,
   refine compl_subset_compl.1 _,
   simp only [compl_union],
   rintros x ⟨hx, h'x⟩,
   simp only [mem_compl_eq, mem_set_of_eq, not_not] at hx h'x ⊢,
-  have : 𝓝 x = (𝓝[<] x) ⊔ (𝓝[>] x) ⊔ (𝓝[{x}] x),
-  { rw [← nhds_within_union, ← nhds_within_union, ← nhds_within_univ],
-    congr,
-    ext y,
-    simp },
-  rw [continuous_at, this, tendsto_sup, tendsto_sup],
-  refine ⟨⟨h'x, hx⟩, by simp [tendsto_pure_nhds f x]⟩,
+  exact continuous_at_iff_continuous_left'_right'.2 ⟨h'x, hx⟩
 end
 
 end monotone

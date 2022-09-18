@@ -1635,6 +1635,9 @@ section is_compl
 (disjoint : disjoint x y)
 (codisjoint : codisjoint x y)
 
+lemma is_compl_iff [lattice α] [bounded_order α] {a b : α} :
+  is_compl a b ↔ disjoint a b ∧ codisjoint a b := ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
 namespace is_compl
 
 section bounded_order

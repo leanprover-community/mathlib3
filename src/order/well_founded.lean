@@ -215,6 +215,17 @@ end function
 
 section induction
 
+lemma acc.induction_bot {α} {r : α → α → Prop} {a bot : α} (hwf : acc r a)
+  {C : α → Prop} (ha : C a) (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C bot :=
+begin
+  revert ha,
+  refine hwf.rec_on (λ x ac ih', _),
+  intro hC,
+  rcases eq_or_ne x bot with (rfl | hbot),
+  { exact hC, },
+  { obtain ⟨y, hy₁, hy₂⟩ := ih x hbot hC, exact ih' y hy₁ hy₂, },
+end
+
 /-- Let `r` be a well-founded relation on `α` and let `bot : α`.
 This induction principle that shows that `P bot` holds, given that some `a : α` satisfies `P`
 and for each `b` that satisfies `P`, there is `c` satisfying `P` such that `r c b` holds.
@@ -222,13 +233,6 @@ The naming is inspired by the fact that when `r` is transitive, it follows that 
 the smallest element w.r.t. `r` that satisfies `P`. -/
 lemma well_founded.induction_bot {α} {r : α → α → Prop} (hwf : well_founded r) {a bot : α}
   {C : α → Prop} (ha : C a) (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C bot :=
-begin
-  revert ha,
-  refine well_founded.induction hwf a (λ x ih', _),
-  intro hC,
-  rcases eq_or_ne x bot with (rfl | hbot),
-  { exact hC, },
-  { obtain ⟨y, hy₁, hy₂⟩ := ih x hbot hC, exact ih' y hy₁ hy₂, },
-end
+(hwf.apply a).induction_bot ha ih
 
 end induction

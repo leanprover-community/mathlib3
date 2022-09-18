@@ -138,6 +138,24 @@ begin
   { rw ← Ici_subset_Ici, apply h.1, }
 end
 
+lemma u_union (β : Type*) [complete_lattice β] (s : set β):
+  ⋃₀ { (Ici a)ᶜ | a ∈ s } = (Ici (Sup s))ᶜ :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { rw sUnion_subset_iff,
+    simp only [mem_set_of_eq, forall_exists_index, forall_apply_eq_imp_iff₂, compl_subset_compl],
+    rintro a h,
+    rw Ici_subset_Ici,
+    apply le_Sup h, },
+  { rintro a h,
+    simp only [exists_prop, mem_sUnion, mem_set_of_eq, exists_exists_and_eq_and, mem_compl_eq,
+      mem_Ici],
+    simp only [mem_compl_eq, mem_Ici, Sup_le_iff, not_forall, exists_prop] at h,
+    apply h,
+  }
+end
+
 variables [topological_space β] [partial_order β] [s : lower_topology β]
 
 include s

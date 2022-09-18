@@ -59,7 +59,7 @@ by simp *
 lemma lt_of_lt_of_eq {α} [ordered_semiring α] {a b : α} (ha : a < 0) (hb : b = 0) : a + b < 0 :=
 by simp *
 
-lemma mul_neg {α} [ordered_ring α] {a b : α} (ha : a < 0) (hb : 0 < b) : b * a < 0 :=
+lemma mul_neg {α} [strict_ordered_ring α] {a b : α} (ha : a < 0) (hb : 0 < b) : b * a < 0 :=
 have (-b)*a > 0, from mul_pos_of_neg_of_neg (neg_neg_of_pos hb) ha,
 neg_of_neg_pos (by simpa)
 

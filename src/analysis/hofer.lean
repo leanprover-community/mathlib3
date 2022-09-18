@@ -23,6 +23,10 @@ open filter finset
 
 local notation `d` := dist
 
+@[simp] lemma pos_div_pow_pos {α : Type*} [linear_ordered_semifield α] {a b : α} (ha : 0 < a)
+  (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
+div_pos ha (pow_pos hb k)
+
 lemma hofer {X: Type*} [metric_space X] [complete_space X]
   (x : X) (ε : ℝ) (ε_pos : 0 < ε)
   {ϕ : X → ℝ} (cont : continuous ϕ) (nonneg : ∀ y, 0 ≤ ϕ y) :

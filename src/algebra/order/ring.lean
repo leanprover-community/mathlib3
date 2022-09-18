@@ -251,7 +251,7 @@ section nontrivial
 variables [nontrivial α]
 
 /-- See `zero_lt_one'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_one : 0 < (1 : α) := zero_le_one.lt_of_ne zero_ne_one
+@[simp] lemma zero_lt_one : (0 : α) < 1 := zero_le_one.lt_of_ne zero_ne_one
 /-- See `zero_lt_two'` for a version with the type explicit. -/
 @[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
 /-- See `zero_lt_three'` for a version with the type explicit. -/

@@ -232,12 +232,10 @@ lemma pos_mul_strict_mono_iff_pos_mul_mono_rev : pos_mul_strict_mono α ↔ pos_
 lemma mul_pos_strict_mono_iff_mul_pos_mono_rev : mul_pos_strict_mono α ↔ mul_pos_mono_rev α :=
 ⟨@mul_pos_strict_mono.to_mul_pos_mono_rev _ _ _ _, @mul_pos_mono_rev.to_mul_pos_strict_mono _ _ _ _⟩
 
-lemma pos_mul_reflect_lt.to_pos_mul_mono {α : Type*} [mul_zero_class α] [linear_order α]
-  [pos_mul_reflect_lt α] : pos_mul_mono α :=
+lemma pos_mul_reflect_lt.to_pos_mul_mono [pos_mul_reflect_lt α] : pos_mul_mono α :=
 ⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt $ lt_of_mul_lt_mul_left h' x.prop⟩
 
-lemma mul_pos_reflect_lt.to_mul_pos_mono {α : Type*} [mul_zero_class α] [linear_order α]
-  [mul_pos_reflect_lt α] : mul_pos_mono α :=
+lemma mul_pos_reflect_lt.to_mul_pos_mono [mul_pos_reflect_lt α] : mul_pos_mono α :=
 ⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt $ lt_of_mul_lt_mul_right h' x.prop⟩
 
 lemma pos_mul_mono.to_pos_mul_reflect_lt [pos_mul_mono α] : pos_mul_reflect_lt α :=
@@ -246,13 +244,11 @@ lemma pos_mul_mono.to_pos_mul_reflect_lt [pos_mul_mono α] : pos_mul_reflect_lt 
 lemma mul_pos_mono.to_mul_pos_reflect_lt [mul_pos_mono α] : mul_pos_reflect_lt α :=
 ⟨λ x a b h, lt_of_not_le $ λ h', h.not_le $ mul_le_mul_of_nonneg_right h' x.prop⟩
 
-lemma pos_mul_mono_iff_pos_mul_reflect_lt {α : Type*} [mul_zero_class α] [linear_order α] :
-  pos_mul_mono α ↔ pos_mul_reflect_lt α :=
-⟨@pos_mul_mono.to_pos_mul_reflect_lt _ _ _ _, @pos_mul_reflect_lt.to_pos_mul_mono _ _ _⟩
+lemma pos_mul_mono_iff_pos_mul_reflect_lt : pos_mul_mono α ↔ pos_mul_reflect_lt α :=
+⟨@pos_mul_mono.to_pos_mul_reflect_lt _ _ _ _, @pos_mul_reflect_lt.to_pos_mul_mono _ _ _ _⟩
 
-lemma mul_pos_mono_iff_mul_pos_reflect_lt {α : Type*} [mul_zero_class α] [linear_order α] :
-  mul_pos_mono α ↔ mul_pos_reflect_lt α :=
-⟨@mul_pos_mono.to_mul_pos_reflect_lt _ _ _ _, @mul_pos_reflect_lt.to_mul_pos_mono _ _ _⟩
+lemma mul_pos_mono_iff_mul_pos_reflect_lt : mul_pos_mono α ↔ mul_pos_reflect_lt α :=
+⟨@mul_pos_mono.to_mul_pos_reflect_lt _ _ _ _, @mul_pos_reflect_lt.to_mul_pos_mono _ _ _ _⟩
 
 end linear_order
 
@@ -268,7 +264,7 @@ variables [preorder α]
 lemma left.mul_pos [pos_mul_strict_mono α] (ha : 0 < a) (hb : 0 < b) : 0 < a * b :=
 by simpa only [mul_zero] using mul_lt_mul_of_pos_left hb ha
 
-alias left.mul_pos ← _root_.mul_pos
+alias left.mul_pos ← mul_pos
 
 lemma mul_neg_of_pos_of_neg [pos_mul_strict_mono α] (ha : 0 < a) (hb : b < 0) : a * b < 0 :=
 by simpa only [mul_zero] using mul_lt_mul_of_pos_left hb ha

@@ -1409,8 +1409,13 @@ lemma closure_subset_preimage_closure_image {f : α → β} {s : set α} (h : co
 by { rw ← set.image_subset_iff, exact image_closure_subset_closure_image h }
 
 lemma map_mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
-  (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
-set.maps_to.closure ht hf ha
+  (hf : continuous f) (ha : a ∈ closure s) (ht : maps_to f s t) : f a ∈ closure t :=
+ht.closure hf ha
+
+/-- If a continuous map `f` maps `s` to a closed set `t`, then it maps `closure s` to `t`. -/
+lemma set.maps_to.closure_left {s : set α} {t : set β} {f : α → β} (h : maps_to f s t)
+  (hc : continuous f) (ht : is_closed t) : maps_to f (closure s) t :=
+ht.closure_eq ▸ h.closure hc
 
 /-!
 ### Function with dense range

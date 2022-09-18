@@ -400,7 +400,7 @@ tc.stateless $ λ ft, do
                         then "goal-hyp-inst"
                         else "goal-hyp-noninst"
         | none := "goal-hyp-unfrozen"
-        end in h "span" [cn "goal-hyp b pr2", cn var_style] [html.of_name $ expr.local_pp_name n],
+        end in h "span" [cn $ var_style ++ " b pr2"] [html.of_name $ expr.local_pp_name n],
     pure $ h "li" [key lc.key] (ns ++ [": ", h "span" [cn "goal-hyp-type", key "type"] [lh]])),
   t_comp ← target_c g,
   pure $ h "ul" [key g.hash, className "list pl0 font-code"] $ case_tag ++ lchs ++ [

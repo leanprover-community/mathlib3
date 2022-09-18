@@ -65,6 +65,12 @@ instance : comm_ring int :=
                                   int.one_mul],
   zsmul_neg'     := λ n x, int.neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
+instance : linear_ordered_comm_ring int :=
+{ add_le_add_left := @int.add_le_add_left,
+  mul_pos         := @int.mul_pos,
+  zero_le_one     := le_of_lt int.zero_lt_one,
+  .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
+
 /-! ### Extra instances to short-circuit type class resolution
 
 These also prevent non-computable instances like `int.normed_comm_ring` being used to construct
@@ -85,22 +91,9 @@ instance : comm_semiring int      := by apply_instance
 instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
-
-instance : linear_ordered_comm_ring int :=
-{ add_le_add_left := @int.add_le_add_left,
-  mul_pos         := @int.mul_pos,
-  zero_le_one     := le_of_lt int.zero_lt_one,
-  .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
-
-instance : ordered_comm_ring ℤ := strict_ordered_comm_ring.to_ordered_comm_ring'
-instance : ordered_ring ℤ := strict_ordered_ring.to_ordered_ring'
-
-
-#print strict_ordered_ring.to_ordered_ring'
-#print axioms strict_ordered_ring.to_ordered_ring'
-
-instance : linear_ordered_add_comm_group int :=
-by apply_instance
+instance : ordered_comm_ring ℤ    := strict_ordered_comm_ring.to_ordered_comm_ring'
+instance : ordered_ring ℤ         := strict_ordered_ring.to_ordered_ring'
+instance : linear_ordered_add_comm_group ℤ := by apply_instance
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 

@@ -399,8 +399,7 @@ section distrib
 def sum_prod_distrib : (α ⊕ β) × γ ≃ₜ α × γ ⊕ β × γ :=
 homeomorph.symm $ homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm
   ((continuous_inl.prod_map continuous_id).sum_elim (continuous_inr.prod_map continuous_id)) $
-  is_open_map_sum (open_embedding_inl.is_open_map.prod is_open_map.id)
-    (open_embedding_inr.is_open_map.prod is_open_map.id)
+  (is_open_map_inl.prod is_open_map.id).sum_elim (is_open_map_inr.prod is_open_map.id)
 
 /-- `α × (β ⊕ γ)` is homeomorphic to `α × β ⊕ α × γ`. -/
 def prod_sum_distrib : α × (β ⊕ γ) ≃ₜ α × β ⊕ α × γ :=

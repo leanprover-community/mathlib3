@@ -699,67 +699,29 @@ continuous_sup_rng_left continuous_coinduced_rng
 @[continuity] lemma continuous_inr : continuous (@inr α β) :=
 continuous_sup_rng_right continuous_coinduced_rng
 
-@[continuity] lemma continuous.sum_elim {f : α → γ} {g : β → γ}
-  (hf : continuous f) (hg : continuous g) : continuous (sum.elim f g) :=
-by simp only [continuous_sup_dom, continuous_coinduced_dom, sum.elim_comp_inl, sum.elim_comp_inr,
-  true_and, *]
-
-@[continuity] lemma continuous.sum_map {f : α → β} {g : γ → δ}
-  (hf : continuous f) (hg : continuous g) : continuous (sum.map f g) :=
-(continuous_inl.comp hf).sum_elim (continuous_inr.comp hg)
-
 lemma is_open_sum_iff {s : set (α ⊕ β)} :
   is_open s ↔ is_open (inl ⁻¹' s) ∧ is_open (inr ⁻¹' s) :=
 iff.rfl
 
-lemma is_open_map_sum {f : α ⊕ β → γ}
-  (h₁ : is_open_map (λ a, f (inl a))) (h₂ : is_open_map (λ b, f (inr b))) :
-  is_open_map f :=
-begin
-  intros u hu,
-  rw is_open_sum_iff at hu,
-  cases hu with hu₁ hu₂,
-  have : u = inl '' (inl ⁻¹' u) ∪ inr '' (inr ⁻¹' u),
-  { ext (_|_); simp },
-  rw [this, set.image_union, set.image_image, set.image_image],
-  exact is_open.union (h₁ _ hu₁) (h₂ _ hu₂)
-end
+lemma is_open_map_inl : is_open_map (@inl α β) :=
+λ u hu, by simpa [is_open_sum_iff, preimage_image_eq u sum.inl_injective]
 
-lemma embedding_inl : embedding (@inl α β) :=
-{ induced := begin
-    unfold sum.topological_space,
-    apply le_antisymm,
-    { rw ← coinduced_le_iff_le_induced, exact le_sup_left },
-    { intros u hu, existsi (inl '' u),
-      change
-        (is_open (inl ⁻¹' (@inl α β '' u)) ∧
-         is_open (inr ⁻¹' (@inl α β '' u))) ∧
-        inl ⁻¹' (inl '' u) = u,
-      rw [preimage_image_eq u sum.inl_injective, preimage_inr_image_inl],
-      exact ⟨⟨hu, is_open_empty⟩, rfl⟩ }
-  end,
-  inj := λ _ _, inl.inj_iff.mp }
+lemma is_open_map_inr : is_open_map (@inr α β) :=
+λ u hu, by simpa [is_open_sum_iff, preimage_image_eq u sum.inr_injective]
 
-lemma embedding_inr : embedding (@inr α β) :=
-{ induced := begin
-    unfold sum.topological_space,
-    apply le_antisymm,
-    { rw ← coinduced_le_iff_le_induced, exact le_sup_right },
-    { intros u hu, existsi (inr '' u),
-      change
-        (is_open (inl ⁻¹' (@inr α β '' u)) ∧
-         is_open (inr ⁻¹' (@inr α β '' u))) ∧
-        inr ⁻¹' (inr '' u) = u,
-      rw [preimage_inl_image_inr, preimage_image_eq u sum.inr_injective],
-      exact ⟨⟨is_open_empty, hu⟩, rfl⟩ }
-  end,
-  inj := λ _ _, inr.inj_iff.mp }
+lemma open_embedding_inl : open_embedding (@inl α β) :=
+open_embedding_of_continuous_injective_open continuous_inl inl_injective is_open_map_inl
 
-lemma is_open_range_inl : is_open (range (inl : α → α ⊕ β)) :=
-is_open_sum_iff.2 $ by simp
+lemma open_embedding_inr : open_embedding (@inr α β) :=
+open_embedding_of_continuous_injective_open continuous_inr inr_injective is_open_map_inr
 
-lemma is_open_range_inr : is_open (range (inr : β → α ⊕ β)) :=
-is_open_sum_iff.2 $ by simp
+lemma embedding_inl : embedding (@inl α β) := open_embedding_inl.1
+
+lemma embedding_inr : embedding (@inr α β) := open_embedding_inr.1
+
+lemma is_open_range_inl : is_open (range (inl : α → α ⊕ β)) := open_embedding_inl.2
+
+lemma is_open_range_inr : is_open (range (inr : β → α ⊕ β)) := open_embedding_inr.2
 
 lemma is_closed_range_inl : is_closed (range (inl : α → α ⊕ β)) :=
 by { rw [← is_open_compl_iff, compl_range_inl], exact is_open_range_inr }
@@ -767,21 +729,45 @@ by { rw [← is_open_compl_iff, compl_range_inl], exact is_open_range_inr }
 lemma is_closed_range_inr : is_closed (range (inr : β → α ⊕ β)) :=
 by { rw [← is_open_compl_iff, compl_range_inr], exact is_open_range_inl }
 
-lemma open_embedding_inl : open_embedding (inl : α → α ⊕ β) :=
-{ open_range := is_open_range_inl,
-  .. embedding_inl }
-
-lemma open_embedding_inr : open_embedding (inr : β → α ⊕ β) :=
-{ open_range := is_open_range_inr,
-  .. embedding_inr }
-
 lemma closed_embedding_inl : closed_embedding (inl : α → α ⊕ β) :=
-{ closed_range := is_closed_range_inl,
-  .. embedding_inl }
+⟨embedding_inl, is_closed_range_inl⟩
 
 lemma closed_embedding_inr : closed_embedding (inr : β → α ⊕ β) :=
-{ closed_range := is_closed_range_inr,
-  .. embedding_inr }
+⟨embedding_inr, is_closed_range_inr⟩
+
+lemma nhds_inl (x : α) : 𝓝 (inl x : α ⊕ β) = map inl (𝓝 x) :=
+(open_embedding_inl.map_nhds_eq _).symm
+
+lemma nhds_inr (x : β) : 𝓝 (inr x : α ⊕ β) = map inr (𝓝 x) :=
+(open_embedding_inr.map_nhds_eq _).symm
+
+lemma continuous_sum_elim {f : α → γ} {g : β → γ} :
+  continuous (sum.elim f g) ↔ continuous f ∧ continuous g :=
+by simp only [continuous_sup_dom, continuous_coinduced_dom, sum.elim_comp_inl, sum.elim_comp_inr]
+
+@[continuity] lemma continuous.sum_elim {f : α → γ} {g : β → γ}
+  (hf : continuous f) (hg : continuous g) : continuous (sum.elim f g) :=
+continuous_sum_elim.2 ⟨hf, hg⟩
+
+@[simp] lemma continuous_sum_map {f : α → β} {g : γ → δ} :
+  continuous (sum.map f g) ↔ continuous f ∧ continuous g :=
+continuous_sum_elim.trans $ embedding_inl.continuous_iff.symm.and embedding_inr.continuous_iff.symm
+
+@[continuity] lemma continuous.sum_map {f : α → β} {g : γ → δ} (hf : continuous f)
+  (hg : continuous g) : continuous (sum.map f g) :=
+continuous_sum_map.2 ⟨hf, hg⟩
+
+lemma is_open_map_sum {f : α ⊕ β → γ} :
+  is_open_map f ↔ is_open_map (λ a, f (inl a)) ∧ is_open_map (λ b, f (inr b)) :=
+by simp only [is_open_map_iff_nhds_le, sum.forall, nhds_inl, nhds_inr, filter.map_map]
+
+@[simp] lemma is_open_map_sum_elim {f : α → γ} {g : β → γ} :
+  is_open_map (sum.elim f g) ↔ is_open_map f ∧ is_open_map g :=
+by simp only [is_open_map_sum, elim_inl, elim_inr]
+
+lemma is_open_map.sum_elim {f : α → γ} {g : β → γ} (hf : is_open_map f) (hg : is_open_map g) :
+  is_open_map (sum.elim f g) :=
+is_open_map_sum_elim.2 ⟨hf, hg⟩
 
 end sum
 

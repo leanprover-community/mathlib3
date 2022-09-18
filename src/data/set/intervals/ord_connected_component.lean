@@ -180,9 +180,10 @@ begin
     from hsub (this $ ord_connected_proj_mem_ord_connected_component _ _) (mem_range_self _),
   rintros y (hy : [↑x, y] ⊆ ord_separating_set s t),
   rw [interval_of_le hab, mem_Icc, ← not_lt, ← not_lt],
-  refine ⟨λ hya, _, λ hyb, _⟩,
-  { exact disjoint_left.1 disjoint_left_ord_separating_set has (hy $ Icc_subset_interval' ⟨hya.le, hax⟩) },
-  { exact disjoint_left.1 disjoint_right_ord_separating_set hbt (hy $ Icc_subset_interval ⟨hxb, hyb.le⟩) }
+  exact ⟨λ hya, disjoint_left.1 disjoint_left_ord_separating_set has
+    (hy $ Icc_subset_interval' ⟨hya.le, hax⟩),
+    λ hyb, disjoint_left.1 disjoint_right_ord_separating_set hbt
+      (hy $ Icc_subset_interval ⟨hxb, hyb.le⟩)⟩
 end
 
 end set

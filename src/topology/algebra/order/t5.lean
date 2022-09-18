@@ -44,8 +44,8 @@ begin
     rcases H with ⟨c, ⟨hac, hcb⟩, hc⟩,
     have hsub' : Icc a b ⊆ ord_connected_component tᶜ a,
       from subset_ord_connected_component (left_mem_Icc.2 hab) hsub,
-    replace hac : a < c := hac.lt_of_ne (ne.symm $ ne_of_mem_of_not_mem hc $
-      disjoint_left.1 (disjoint_left_ord_separating_set.mono_right ord_connected_section_subset) ha),
+    replace hac : a < c := hac.lt_of_ne (ne.symm $ ne_of_mem_of_not_mem hc $ disjoint_left.1
+      (disjoint_left_ord_separating_set.mono_right ord_connected_section_subset) ha),
     refine mem_of_superset (Ico_mem_nhds_within_Ici (left_mem_Ico.2 hac)) (λ x hx hx', _),
     refine hx.2.ne (eq_of_mem_ord_connected_section_of_interval_subset hx' hc _),
     refine subset_inter (subset_Union₂_of_subset a ha _) _,
@@ -62,8 +62,8 @@ begin
       exact hxy (Icc_subset_interval ⟨hya.le, hx.1⟩) ha } }
 end
 
-lemma compl_section_ord_separating_set_mem_nhds_within_Iic (hd : disjoint s (closure t)) (ha : a ∈ s) :
-  (ord_connected_section $ ord_separating_set s t)ᶜ ∈ 𝓝[≤] a :=
+lemma compl_section_ord_separating_set_mem_nhds_within_Iic (hd : disjoint s (closure t))
+  (ha : a ∈ s) : (ord_connected_section $ ord_separating_set s t)ᶜ ∈ 𝓝[≤] a :=
 have hd' : disjoint (of_dual ⁻¹' s) (closure $ of_dual ⁻¹' t) := hd,
 have ha' : to_dual a ∈ of_dual ⁻¹' s := ha,
 by simpa only [dual_ord_separating_set, dual_ord_connected_section]

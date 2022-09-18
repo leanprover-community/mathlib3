@@ -137,10 +137,6 @@ begin
   exact unique_sort' h,
 end
 
-lemma unique_sort'' {σ : equiv.perm (fin n)} (hf : monotone f) (hfσ : monotone (f ∘ σ)) :
-  f ∘ σ = f :=
-(unique_sort' hfσ).trans (unique_sort hf).symm
-
 lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
   let τ := σ⁻¹ * (sort f),

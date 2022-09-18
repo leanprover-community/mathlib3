@@ -22,7 +22,6 @@ attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
 
 attribute [mono] add_le_add mul_le_mul neg_le_neg
          mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
-         mul_le_mul_of_nonneg_left mul_le_mul_of_nonneg_right
          mul_le_mul_of_nonpos_left mul_le_mul_of_nonpos_right
          imp_imp_imp le_implies_le_of_le_of_le
          tsub_lt_tsub_left_of_le tsub_lt_tsub_right_of_le

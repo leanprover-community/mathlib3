@@ -279,6 +279,7 @@ instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
 
+@[priority 900]
 instance top.measurable_singleton_class {α : Type*} : @measurable_singleton_class α ⊤ :=
 { measurable_set_singleton := λ x, trivial }
 
@@ -1301,7 +1302,6 @@ class is_measurably_generated (f : filter α) : Prop :=
 instance is_measurably_generated_bot : is_measurably_generated (⊥ : filter α) :=
 ⟨λ _ _, ⟨∅, mem_bot, measurable_set.empty, empty_subset _⟩⟩
 
-instance is_measurably_generated_top : is_measurably_generated (⊤ : filter α) :=
 ⟨λ s hs, ⟨univ, univ_mem, measurable_set.univ, λ x _, hs x⟩⟩
 
 lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated f]

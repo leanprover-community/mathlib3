@@ -1402,6 +1402,15 @@ end
 -- TODO: `nodup s.permutations ↔ nodup s`
 -- TODO: `count s s.permutations = (zip_with count s s.tails).prod`
 
+lemma equiv.perm.of_fn_comp_perm {n : ℕ} (f : fin n → α) (σ : equiv.perm (fin n)) :
+  of_fn (f ∘ σ) ~ of_fn f :=
+begin
+  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
+  apply perm.map_congr,
+  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
+  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
+end
+
 end permutations
 
 end list

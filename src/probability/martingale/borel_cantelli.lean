@@ -333,7 +333,7 @@ end borel_cantelli
 open borel_cantelli
 
 /-- An a.e. monotone adapted process `f` with uniformly bounded differences converges to `+∞` if
-and only if its predictable part also coverges to `+∞`. -/
+and only if its predictable part also converges to `+∞`. -/
 lemma tendsto_sum_indicator_at_top_iff [is_finite_measure μ]
   (hfmono : ∀ᵐ ω ∂μ, ∀ n, f n ω ≤ f (n + 1) ω)
   (hf : adapted ℱ f) (hint : ∀ n, integrable (f n) μ)

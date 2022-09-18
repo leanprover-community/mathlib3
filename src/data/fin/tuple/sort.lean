@@ -137,6 +137,7 @@ begin
   exact unique_sort' h,
 end
 
+/-- The sorted versions of a tuple `f` and any permutation of it agree. -/
 lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
   let τ := σ⁻¹ * (sort f),
@@ -146,6 +147,8 @@ begin
   exact (unique_sort' hm).symm.trans h',
 end
 
+/-- If a permutation `f ∘ σ` of the tuple `f` is not the same as `f ∘ sort f`, then `f ∘ σ`
+has a pair of strictly decreasing entries. -/
 lemma antitone_pair_of_not_sorted' {σ : equiv.perm (fin n)} (h : f ∘ σ ≠ f ∘ sort f) :
   ∃ i j, i < j ∧ (f ∘ σ) j < (f ∘ σ) i :=
 begin
@@ -158,6 +161,8 @@ begin
   exact h (unique_sort' hm),
 end
 
+/-- If the tuple `f` is not the same as `f ∘ sort f`, then it has a pair of strictly decreasing
+entries. -/
 lemma antitone_pair_of_not_sorted (h : f ≠ f ∘ sort f) : ∃ i j, i < j ∧ f j < f i :=
 begin
   have hf : f = f ∘ (1 : equiv.perm (fin n)),

@@ -92,11 +92,11 @@ end
 
 end tuple
 
+namespace tuple
+
 open list
 
 variables {n : ℕ} {α : Type*}
-
-namespace tuple
 
 lemma lex_desc [preorder α] {f : fin n → α} {i j : fin n} (h₁ : i < j) (h₂ : f j < f i) :
   to_lex (f ∘ equiv.swap i j) < to_lex f :=

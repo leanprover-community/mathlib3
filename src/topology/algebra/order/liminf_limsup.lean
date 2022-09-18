@@ -369,7 +369,7 @@ begin
     { have hle : ∀ j ≤ i, ∑ k in finset.range j, (s (k + 1)).indicator 1 ω ≤ i,
       { refine λ j hij, (finset.sum_le_card_nsmul _ _ _ _ : _ ≤ (finset.range j).card • 1).trans _,
         { exact λ m hm, set.indicator_apply_le' (λ _, le_rfl) (λ _, zero_le_one) },
-        { simpa only [finset.card_range, algebra.id.smul_eq_mul, mul_one] } },
+        { simpa only [finset.card_range, smul_eq_mul, mul_one] } },
       by_cases hij : j < i,
       { exact hle _ hij.le },
       { rw ← finset.sum_range_add_sum_Ico _ (not_lt.1 hij),

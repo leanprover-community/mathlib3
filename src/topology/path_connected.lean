@@ -410,6 +410,16 @@ continuous_uncurry_iff.mp begin
   exacts [continuous_fst, continuous_snd],
 end
 
+@[continuity]
+lemma _root_.continuous.path_trans (Y₁ Y₂ : Type) [topological_space Y] (f : Y → path x y)
+  (g : Y → path y z) : continuous f → continuous g → continuous (λ t, (f t).trans (g t)) :=
+begin
+  intros hf hg,
+  apply continuous_uncurry_iff.mp,
+  exact trans_continuous_family _ (continuous_uncurry_iff.mpr hf)
+    _ (continuous_uncurry_iff.mpr hg),
+end
+
 /-! #### Product of paths -/
 section prod
 variables {a₁ a₂ a₃ : X} {b₁ b₂ b₃ : Y}

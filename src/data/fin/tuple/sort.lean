@@ -147,12 +147,7 @@ lemma antitone_pair_of_not_sorted' {σ : equiv.perm (fin n)} (h : f ∘ σ ≠ f
   ∃ i j, i < j ∧ (f ∘ σ) j < (f ∘ σ) i :=
 begin
   by_contra' hf,
-  have hm : monotone (f ∘ σ),
-  { intros i j hij,
-    cases eq_or_lt_of_le hij with heq hlt,
-    { rw [heq], },
-    { exact hf i j hlt, } },
-  exact h (sort_unique hm),
+  exact h (sort_unique $ monotone_iff_forall_lt.mpr hf),
 end
 
 /-- If the tuple `f` is not the same as `f ∘ sort f`, then it has a pair of strictly decreasing
@@ -160,7 +155,7 @@ entries. -/
 lemma antitone_pair_of_not_sorted (h : f ≠ f ∘ sort f) : ∃ i j, i < j ∧ f j < f i :=
 begin
   by_contra' hf,
-  exact mt monotone_iff_forall_lt.mpr (mt eq_comp_sort_iff_monotone.mpr h.symm.elim) hf,
+  exact h.symm (eq_comp_sort_iff_monotone.mpr $ monotone_iff_forall_lt.mpr hf),
 end
 
 end tuple

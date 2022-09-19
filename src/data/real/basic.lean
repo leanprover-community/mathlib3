@@ -273,7 +273,7 @@ noncomputable instance : linear_order ℝ :=
   .. real.partial_order }
 
 noncomputable instance : linear_ordered_comm_ring ℝ :=
-{ .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }
+{ .. real.nontrivial, .. real.strict_ordered_ring, .. real.comm_ring, .. real.linear_order }
 
 /- Extra instances to short-circuit type class resolution -/
 noncomputable instance : linear_ordered_ring ℝ        := by apply_instance

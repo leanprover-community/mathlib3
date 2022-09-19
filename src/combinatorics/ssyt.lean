@@ -26,7 +26,8 @@ We represent an SSYT as a function `ℕ → ℕ → ℕ`, which is required to b
 
 ## Main definitions
 
-- `ssyt (μ : young_diagram)` : semistandard Young tableaux of shape μ
+- `ssyt (μ : young_diagram)` : semistandard Young tableaux of shape `μ`. There is
+  a `has_coe_to_fun` instance such that `T i j` is value of the `(i, j)` entry of the SSYT `T`.
 - `ssyt.highest_weight (μ : young_diagram)`: the semistandard Young tableau whose `i`th row
   consists entirely of `i`s, for each `i`.
 
@@ -44,28 +45,28 @@ Semistandard Young tableau
 numbers, such that the entries in each row are weakly increasing (left to right), and the entries
 in each column are strictly increasing (top to bottom).
 
-Here, an SSYT is represented as an unrestricted function `ℕ → ℕ → ℕ`, but which is required to
-vanish outside `μ`. --/
+Here, an SSYT is represented as an unrestricted function `ℕ → ℕ → ℕ` that, for reasons of extensionality,
+is required to vanish outside `μ`. --/
 structure ssyt (μ : young_diagram) :=
-  (entry : ℕ → ℕ → ℕ)
-  (row_weak : ∀ {i j1 j2 : ℕ}, j1 < j2 → (i, j2) ∈ μ → entry i j1 ≤ entry i j2)
-  (col_strict : ∀ {i1 i2 j: ℕ}, i1 < i2 → (i2, j) ∈ μ → entry i1 j < entry i2 j)
-  (zeros' : ∀ {i j}, (i, j) ∉ μ → entry i j = 0)
+(entry : ℕ → ℕ → ℕ)
+(row_weak : ∀ {i j1 j2 : ℕ}, j1 < j2 → (i, j2) ∈ μ → entry i j1 ≤ entry i j2)
+(col_strict : ∀ {i1 i2 j : ℕ}, i1 < i2 → (i2, j) ∈ μ → entry i1 j < entry i2 j)
+(zeros' : ∀ {i j}, (i, j) ∉ μ → entry i j = 0)
 
 namespace ssyt
 
 instance fun_like {μ : young_diagram} : fun_like (ssyt μ) ℕ (λ _, ℕ → ℕ) :=
-{ coe := λ T, T.entry,
+{ coe := ssyt.entry,
   coe_injective' := λ T T' h, by { cases T, cases T', congr' } }
 
 /-- Helper instance for when there's too many metavariables to apply
 `fun_like.has_coe_to_fun` directly. -/
 instance {μ : young_diagram} : has_coe_to_fun (ssyt μ) (λ _, ℕ → ℕ → ℕ) :=
-  fun_like.has_coe_to_fun
+fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {μ : young_diagram} {T : ssyt μ} : T.entry = (T : ℕ → ℕ → ℕ) := rfl
 
-@[ext] theorem ext {μ : young_diagram} {T T': ssyt μ} (h : ∀ i j, T i j = T' i j) : T = T' :=
+@[ext] theorem ext {μ : young_diagram} {T T' : ssyt μ} (h : ∀ i j, T i j = T' i j) : T = T' :=
   fun_like.ext T T' (λ x, by { funext, apply h })
 
 /-- Copy of an `ssyt μ` with a new `entry` equal to the old one. Useful to fix definitional

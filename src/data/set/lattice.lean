@@ -294,6 +294,18 @@ explicit for this purpose. -/
 lemma Inter_subset_of_subset {s : ι → set α} {t : set α} (i : ι) (h : s i ⊆ t) : (⋂ i, s i) ⊆ t :=
 @infi_le_of_le (set α) _ _ _ _ i h
 
+/-- This rather trivial consequence of `subset_Union₂` is convenient with `apply`, and has `i` and
+`j` explicit for this purpose. -/
+lemma subset_Union₂_of_subset {s : set α} {t : Π i, κ i → set α} (i : ι) (j : κ i) (h : s ⊆ t i j) :
+  s ⊆ ⋃ i j, t i j :=
+@le_supr₂_of_le (set α) _ _ _ _ _ i j h
+
+/-- This rather trivial consequence of `Inter₂_subset` is convenient with `apply`, and has `i` and
+`j` explicit for this purpose. -/
+lemma Inter₂_subset_of_subset {s : Π i, κ i → set α} {t : set α} (i : ι) (j : κ i) (h : s i j ⊆ t) :
+  (⋂ i j, s i j) ⊆ t :=
+@infi₂_le_of_le (set α) _ _ _ _ _ i j h
+
 lemma Union_mono {s t : ι → set α} (h : ∀ i, s i ⊆ t i) : (⋃ i, s i) ⊆ ⋃ i, t i :=
 @supr_mono (set α) _ _ s t h
 

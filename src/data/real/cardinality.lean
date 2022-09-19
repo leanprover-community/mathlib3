@@ -164,7 +164,7 @@ by rw [mk_univ, mk_real]
 
 /-- **Non-Denumerability of the Continuum**: The reals are not countable. -/
 lemma not_countable_real : ¬ (set.univ : set ℝ).countable :=
-by { rw [← mk_set_le_aleph_0, not_le, mk_univ_real], apply cantor }
+by { rw [← le_aleph_0_iff_set_countable, not_le, mk_univ_real], apply cantor }
 
 /-- The cardinality of the interval (a, ∞). -/
 lemma mk_Ioi_real (a : ℝ) : #(Ioi a) = 𝔠 :=

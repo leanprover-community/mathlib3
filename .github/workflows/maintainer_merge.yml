@@ -32,7 +32,7 @@ jobs:
           json: ${{ steps.get_pr_head.outputs.data }}
           head_user: 'head.user.login'
 
-      - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community')
+      - if: (steps.parse_pr_head.outputs.head_user == 'jcommelin')
         name: Send message on Zulip
         uses: zulip/github-actions-zulip/send-message@v1
         with:
@@ -47,7 +47,7 @@ jobs:
 
             > ${{ github.event.issue.title }}
 
-      - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community')
+      - if: (steps.parse_pr_head.outputs.head_user == 'jcommelin')
         name: Add reaction
         uses: GrantBirki/comment@v2.0.1
         with:

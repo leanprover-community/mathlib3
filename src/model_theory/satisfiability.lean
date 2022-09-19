@@ -277,9 +277,49 @@ lemma models_sentence_of_mem {φ : L.sentence} (h : φ ∈ T) :
   T ⊨ φ :=
 models_sentence_iff.2 (λ _, realize_sentence_of_mem T h)
 
+lemma models_iff_not_satisfiable (φ : L.sentence) :
+  T ⊨ φ ↔ ¬ is_satisfiable (T ∪ {φ.not}) :=
+begin
+  rw [models_sentence_iff, is_satisfiable],
+  refine ⟨λ h1 h2, (sentence.realize_not _).1 (realize_sentence_of_mem (T ∪ {formula.not φ})
+    (set.subset_union_right _ _ (set.mem_singleton _)))
+    (h1 (h2.some.subtheory_Model (set.subset_union_left _ _))), λ h M, _⟩,
+  contrapose! h,
+  rw ← sentence.realize_not at h,
+  refine ⟨{ carrier := M,
+    is_model := ⟨λ ψ hψ, hψ.elim (realize_sentence_of_mem _) (λ h', _)⟩, }⟩,
+  rw set.mem_singleton_iff.1 h',
+  exact h,
+end
+
 /-- A theory is complete when it is satisfiable and models each sentence or its negation. -/
 def is_complete (T : L.Theory) : Prop :=
 T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)
+
+/-- A theory is maximal when it is satisfiable and contains each sentence or its negation.
+  Maximal theories are complete. -/
+def is_maximal (T : L.Theory) : Prop :=
+T.is_satisfiable ∧ ∀ (φ : L.sentence), φ ∈ T ∨ φ.not ∈ T
+
+lemma is_maximal.is_complete (h : T.is_maximal) : T.is_complete :=
+h.imp_right (forall_imp (λ _, or.imp models_sentence_of_mem models_sentence_of_mem))
+
+lemma is_maximal.mem_or_not_mem (h : T.is_maximal) (φ : L.sentence) :
+  φ ∈ T ∨ φ.not ∈ T :=
+h.2 φ
+
+lemma is_maximal.mem_of_models (h : T.is_maximal) {φ : L.sentence}
+  (hφ : T ⊨ φ) :
+  φ ∈ T :=
+begin
+  refine (h.mem_or_not_mem φ).resolve_right (λ con, _),
+  rw [models_iff_not_satisfiable, set.union_singleton, set.insert_eq_of_mem con] at hφ,
+  exact hφ h.1,
+end
+
+lemma is_maximal.mem_iff_models (h : T.is_maximal) (φ : L.sentence) :
+  φ ∈ T ↔ T ⊨ φ :=
+⟨models_sentence_of_mem, h.mem_of_models⟩
 
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
@@ -375,9 +415,11 @@ lemma mem_or_not_mem (φ : L.sentence) :
   φ ∈ L.complete_theory M ∨ φ.not ∈ L.complete_theory M :=
 by simp_rw [complete_theory, set.mem_set_of_eq, sentence.realize, formula.realize_not, or_not]
 
+lemma is_maximal [nonempty M] : (L.complete_theory M).is_maximal :=
+⟨is_satisfiable L M, mem_or_not_mem L M⟩
+
 lemma is_complete [nonempty M] : (L.complete_theory M).is_complete :=
-⟨is_satisfiable L M,
-  λ φ, ((mem_or_not_mem L M φ).imp Theory.models_sentence_of_mem Theory.models_sentence_of_mem)⟩
+(complete_theory.is_maximal L M).is_complete
 
 end complete_theory
 

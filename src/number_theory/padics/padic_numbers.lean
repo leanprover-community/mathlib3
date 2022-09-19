@@ -993,8 +993,8 @@ begin
       have hp_one : (1 : ℝ) < p,
       { rw [← nat.cast_one, nat.cast_lt],
         exact nat.prime.one_lt hp.elim },
-      rw [norm_eq_pow_val hx, norm_eq_pow_val hy, norm_eq_pow_val hxy] at h_norm,
-      exact min_le_of_zpow_le_max hp_one h_norm }}
+      rwa [norm_eq_pow_val hx, norm_eq_pow_val hy, norm_eq_pow_val hxy,
+        zpow_le_max_iff_min_le hp_one] at h_norm } }
 end
 
 @[simp] lemma valuation_map_mul {x y : ℚ_[p]} (hx : x ≠ 0) (hy : y ≠ 0) :

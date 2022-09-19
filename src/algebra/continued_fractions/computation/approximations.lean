@@ -5,6 +5,7 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.correctness_terminating
 import data.nat.fib
+import tactic positivity
 import tactic.solve_by_elim
 /-!
 # Approximations for Continued Fraction Computations (`generalized_continued_fraction.of`)
@@ -564,7 +565,8 @@ begin
     have : (ifp_succ_n.b : K) ≤ ifp_n.fr⁻¹, from
       int_fract_pair.succ_nth_stream_b_le_nth_stream_fr_inv stream_nth_eq succ_nth_stream_eq,
     have : 0 ≤ conts.b, from le_of_lt zero_lt_conts_b,
-    mono }
+    mono,
+    positivity }
 end
 
 /--

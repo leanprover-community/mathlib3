@@ -9,7 +9,9 @@ on:
 jobs:
   ping_zulip:
     name: Ping maintainers on Zulip
-    if: (toJSON(github.event.issue.pull_request) != 'null') && (startsWith(github.event.comment.body, 'maintainer merge') || contains(toJSON(github.event.comment.body), '\r\nmaintainer merge'))
+    if: (github.event.issue.pull_request != 'null') &&
+        (startsWith(github.event.comment.body, 'maintainer merge') || contains(github.event.comment.body, '\r\nmaintainer merge') ||
+        (startsWith(github.event.review.body, 'maintainer merge') || contains(github.event.review.body, '\r\nmaintainer merge'))
     runs-on: ubuntu-latest
     steps:
       - uses: octokit/request-action@v2.x

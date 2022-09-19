@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 -- import algebra.algebra.basic
+-- import algebra.indicator_function
 import algebra.order.nonneg.ring
+import data.rat.order
 
 /-!
 # Nonnegative rationals
@@ -23,12 +25,10 @@ of `x` with `↑x`. This tactic also works for a function `f : α → ℚ` with 
 -/
 
 open function
-open_locale big_operators
 
 /-- Nonnegative rational numbers. -/
-@[derive [canonically_ordered_comm_semiring, canonically_linear_ordered_semifield,
-  linear_ordered_comm_group_with_zero, has_sub, has_ordered_sub,
-  densely_ordered, archimedean, inhabited]]
+@[derive [canonically_ordered_comm_semiring, canonically_linear_ordered_add_monoid, has_sub,
+  has_ordered_sub, inhabited]]
 def nnrat := {q : ℚ // 0 ≤ q}
 
 localized "notation (name := nnrat) `ℚ≥0` := nnrat" in nnrat
@@ -73,8 +73,8 @@ open _root_.rat (to_nnrat)
 @[simp, norm_cast] lemma coe_one  : ((1 : ℚ≥0) : ℚ) = 1 := rfl
 @[simp, norm_cast] lemma coe_add (p q : ℚ≥0) : ((p + q : ℚ≥0) : ℚ) = p + q := rfl
 @[simp, norm_cast] lemma coe_mul (p q : ℚ≥0) : ((p * q : ℚ≥0) : ℚ) = p * q := rfl
-@[simp, norm_cast] lemma coe_inv (q : ℚ≥0) : ((q⁻¹ : ℚ≥0) : ℚ) = q⁻¹ := rfl
-@[simp, norm_cast] lemma coe_div (p q : ℚ≥0) : ((p / q : ℚ≥0) : ℚ) = p / q := rfl
+-- @[simp, norm_cast] lemma coe_inv (q : ℚ≥0) : ((q⁻¹ : ℚ≥0) : ℚ) = q⁻¹ := rfl
+-- @[simp, norm_cast] lemma coe_div (p q : ℚ≥0) : ((p / q : ℚ≥0) : ℚ) = p / q := rfl
 @[simp, norm_cast] lemma coe_bit0 (q : ℚ≥0) : ((bit0 q : ℚ≥0) : ℚ) = bit0 q := rfl
 @[simp, norm_cast] lemma coe_bit1 (q : ℚ≥0) : ((bit1 q : ℚ≥0) : ℚ) = bit1 q := rfl
 @[simp, norm_cast] lemma coe_sub (h : q ≤ p) : ((p - q : ℚ≥0) : ℚ) = p - q :=
@@ -108,8 +108,8 @@ def coe_hom : ℚ≥0 →+* ℚ := ⟨coe, coe_one, coe_mul, coe_zero, coe_add�
 @[simp] lemma mk_coe_nat (n : ℕ) : @eq ℚ≥0 (⟨(n : ℚ), n.cast_nonneg⟩ : ℚ≥0) n :=
 ext (coe_nat_cast n).symm
 
-/-- The rational numbers are an algebra over the non-negative rationals. -/
-instance : algebra ℚ≥0 ℚ := coe_hom.to_algebra
+-- /-- The rational numbers are an algebra over the non-negative rationals. -/
+-- instance : algebra ℚ≥0 ℚ := coe_hom.to_algebra
 
 /-- A `mul_action` over `ℚ` restricts to a `mul_action` over `ℚ≥0`. -/
 instance [mul_action ℚ α] : mul_action ℚ≥0 α := mul_action.comp_hom α coe_hom.to_monoid_hom
@@ -118,14 +118,14 @@ instance [mul_action ℚ α] : mul_action ℚ≥0 α := mul_action.comp_hom α c
 instance [add_comm_monoid α] [distrib_mul_action ℚ α] : distrib_mul_action ℚ≥0 α :=
 distrib_mul_action.comp_hom α coe_hom.to_monoid_hom
 
-/-- A `module` over `ℚ` restricts to a `module` over `ℚ≥0`. -/
-instance [add_comm_monoid α] [module ℚ α] : module ℚ≥0 α := module.comp_hom α coe_hom
+-- /-- A `module` over `ℚ` restricts to a `module` over `ℚ≥0`. -/
+-- instance [add_comm_monoid α] [module ℚ α] : module ℚ≥0 α := module.comp_hom α coe_hom
 
 @[simp] lemma coe_coe_hom : ⇑coe_hom = coe := rfl
 
-@[simp, norm_cast] lemma coe_indicator (s : set α) (f : α → ℚ≥0) (a : α) :
-  ((s.indicator f a : ℚ≥0) : ℚ) = s.indicator (λ x, f x) a :=
-(coe_hom : ℚ≥0 →+ ℚ).map_indicator _ _ _
+-- @[simp, norm_cast] lemma coe_indicator (s : set α) (f : α → ℚ≥0) (a : α) :
+--   ((s.indicator f a : ℚ≥0) : ℚ) = s.indicator (λ x, f x) a :=
+-- (coe_hom : ℚ≥0 →+ ℚ).map_indicator _ _ _
 
 @[simp, norm_cast] lemma coe_pow (q : ℚ≥0) (n : ℕ) : (↑(q ^ n) : ℚ) = q ^ n := coe_hom.map_pow _ _
 
@@ -141,28 +141,28 @@ coe_hom.map_multiset_sum _
 @[norm_cast] lemma coe_multiset_prod (s : multiset ℚ≥0) : (s.prod : ℚ) = (s.map coe).prod :=
 coe_hom.map_multiset_prod _
 
-@[norm_cast] lemma coe_sum {s : finset α} {f : α → ℚ≥0} : ↑(∑ a in s, f a) = ∑ a in s, (f a : ℚ) :=
-coe_hom.map_sum _ _
+-- @[norm_cast] lemma coe_sum {s : finset α} {f : α → ℚ≥0} : ↑(∑ a in s, f a) = ∑ a in s, (f a : ℚ) :=
+-- coe_hom.map_sum _ _
 
-lemma to_nnrat_sum_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a, a ∈ s → 0 ≤ f a) :
-  (∑ a in s, f a).to_nnrat = ∑ a in s, (f a).to_nnrat :=
-begin
-  rw [←coe_inj, coe_sum, rat.coe_to_nnrat _ (finset.sum_nonneg hf)],
-  exact finset.sum_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
-end
+-- lemma to_nnrat_sum_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a, a ∈ s → 0 ≤ f a) :
+--   (∑ a in s, f a).to_nnrat = ∑ a in s, (f a).to_nnrat :=
+-- begin
+--   rw [←coe_inj, coe_sum, rat.coe_to_nnrat _ (finset.sum_nonneg hf)],
+--   exact finset.sum_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
+-- end
 
-@[norm_cast] lemma coe_prod {s : finset α} {f : α → ℚ≥0} : ↑(∏ a in s, f a) = ∏ a in s, (f a : ℚ) :=
-coe_hom.map_prod _ _
+-- @[norm_cast] lemma coe_prod {s : finset α} {f : α → ℚ≥0} : ↑(∏ a in s, f a) = ∏ a in s, (f a : ℚ) :=
+-- coe_hom.map_prod _ _
 
-lemma to_nnrat_prod_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a ∈ s, 0 ≤ f a) :
-  (∏ a in s, f a).to_nnrat = ∏ a in s, (f a).to_nnrat :=
-begin
-  rw [←coe_inj, coe_prod, rat.coe_to_nnrat _ (finset.prod_nonneg hf)],
-  exact finset.prod_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
-end
+-- lemma to_nnrat_prod_of_nonneg {s : finset α} {f : α → ℚ} (hf : ∀ a ∈ s, 0 ≤ f a) :
+--   (∏ a in s, f a).to_nnrat = ∏ a in s, (f a).to_nnrat :=
+-- begin
+--   rw [←coe_inj, coe_prod, rat.coe_to_nnrat _ (finset.prod_nonneg hf)],
+--   exact finset.prod_congr rfl (λ x hxs, by rw rat.coe_to_nnrat _ (hf x hxs)),
+-- end
 
-@[norm_cast] lemma nsmul_coe (q : ℚ≥0) (n : ℕ) : ↑(n • q) = n • (q : ℚ) :=
-coe_hom.to_add_monoid_hom.map_nsmul _ _
+-- @[norm_cast] lemma nsmul_coe (q : ℚ≥0) (n : ℕ) : ↑(n • q) = n • (q : ℚ) :=
+-- coe_hom.to_add_monoid_hom.map_nsmul _ _
 
 lemma bdd_above_coe {s : set ℚ≥0} : bdd_above (coe '' s : set ℚ) ↔ bdd_above s :=
 ⟨λ ⟨b, hb⟩, ⟨to_nnrat b, λ ⟨y, hy⟩ hys, show y ≤ max b 0, from
@@ -171,11 +171,11 @@ lemma bdd_above_coe {s : set ℚ≥0} : bdd_above (coe '' s : set ℚ) ↔ bdd_a
 
 lemma bdd_below_coe (s : set ℚ≥0) : bdd_below ((coe : ℚ≥0 → ℚ) '' s) := ⟨0, λ r ⟨q, _, h⟩, h ▸ q.2⟩
 
-@[simp, norm_cast] lemma coe_max (x y : ℚ≥0) : ((max x y : ℚ≥0) : ℚ) = max (x : ℚ) (y : ℚ) :=
-coe_mono.map_max
+-- @[simp, norm_cast] lemma coe_max (x y : ℚ≥0) : ((max x y : ℚ≥0) : ℚ) = max (x : ℚ) (y : ℚ) :=
+-- coe_mono.map_max
 
-@[simp, norm_cast] lemma coe_min (x y : ℚ≥0) : ((min x y : ℚ≥0) : ℚ) = min (x : ℚ) (y : ℚ) :=
-coe_mono.map_min
+-- @[simp, norm_cast] lemma coe_min (x y : ℚ≥0) : ((min x y : ℚ≥0) : ℚ) = min (x : ℚ) (y : ℚ) :=
+-- coe_mono.map_min
 
 lemma sub_def (p q : ℚ≥0) : p - q = to_nnrat (p - q) := rfl
 
@@ -221,9 +221,9 @@ lemma to_nnrat_le_iff_le_coe {p : ℚ≥0} : to_nnrat q ≤ p ↔ q ≤ ↑p := 
 lemma le_to_nnrat_iff_coe_le {q : ℚ≥0} (hp : 0 ≤ p) : q ≤ to_nnrat p ↔ ↑q ≤ p :=
 by rw [←coe_le_coe, rat.coe_to_nnrat p hp]
 
-lemma le_to_nnrat_iff_coe_le' {q : ℚ≥0} (hq : 0 < q) : q ≤ to_nnrat p ↔ ↑q ≤ p :=
-(le_or_lt 0 p).elim le_to_nnrat_iff_coe_le $ λ hp,
-  by simp only [(hp.trans_le q.coe_nonneg).not_le, to_nnrat_eq_zero.2 hp.le, hq.not_le]
+-- lemma le_to_nnrat_iff_coe_le' {q : ℚ≥0} (hq : 0 < q) : q ≤ to_nnrat p ↔ ↑q ≤ p :=
+-- (le_or_lt 0 p).elim le_to_nnrat_iff_coe_le $ λ hp,
+--   by simp only [(hp.trans_le q.coe_nonneg).not_le, to_nnrat_eq_zero.2 hp.le, hq.not_le]
 
 lemma to_nnrat_lt_iff_lt_coe {p : ℚ≥0} (hq : 0 ≤ q) : to_nnrat q < p ↔ q < ↑p :=
 by rw [←coe_lt_coe, rat.coe_to_nnrat q hq]
@@ -244,19 +244,19 @@ begin
     rw [to_nnrat_eq_zero.2 hq, to_nnrat_eq_zero.2 hpq, mul_zero] }
 end
 
-lemma to_nnrat_inv (q : ℚ) : to_nnrat q⁻¹ = (to_nnrat q)⁻¹ :=
-begin
-  obtain hq | hq := le_total q 0,
-  { rw [to_nnrat_eq_zero.mpr hq, inv_zero, to_nnrat_eq_zero.mpr (inv_nonpos.mpr hq)] },
-  { nth_rewrite 0 ←rat.coe_to_nnrat q hq,
-    rw [←coe_inv, to_nnrat_coe] }
-end
+-- lemma to_nnrat_inv (q : ℚ) : to_nnrat q⁻¹ = (to_nnrat q)⁻¹ :=
+-- begin
+--   obtain hq | hq := le_total q 0,
+--   { rw [to_nnrat_eq_zero.mpr hq, inv_zero, to_nnrat_eq_zero.mpr (inv_nonpos.mpr hq)] },
+--   { nth_rewrite 0 ←rat.coe_to_nnrat q hq,
+--     rw [←coe_inv, to_nnrat_coe] }
+-- end
 
-lemma to_nnrat_div (hp : 0 ≤ p) : to_nnrat (p / q) = to_nnrat p / to_nnrat q :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, ←to_nnrat_inv, ←to_nnrat_mul hp]
+-- lemma to_nnrat_div (hp : 0 ≤ p) : to_nnrat (p / q) = to_nnrat p / to_nnrat q :=
+-- by rw [div_eq_mul_inv, div_eq_mul_inv, ←to_nnrat_inv, ←to_nnrat_mul hp]
 
-lemma to_nnrat_div' (hq : 0 ≤ q) : to_nnrat (p / q) = to_nnrat p / to_nnrat q :=
-by rw [div_eq_inv_mul, div_eq_inv_mul, to_nnrat_mul (inv_nonneg.2 hq), to_nnrat_inv]
+-- lemma to_nnrat_div' (hq : 0 ≤ q) : to_nnrat (p / q) = to_nnrat p / to_nnrat q :=
+-- by rw [div_eq_inv_mul, div_eq_inv_mul, to_nnrat_mul (inv_nonneg.2 hq), to_nnrat_inv]
 
 end rat
 
@@ -286,16 +286,16 @@ ext $ rat.ext ((int.nat_abs_inj_of_nonneg_of_nonneg
 lemma ext_num_denom_iff : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
 ⟨by { rintro rfl, exact ⟨rfl, rfl⟩ }, λ h, ext_num_denom h.1 h.2⟩
 
-@[simp] lemma num_div_denom (q : ℚ≥0) : (q.num : ℚ≥0) / q.denom = q :=
-begin
-  ext1,
-  rw [coe_div, coe_nat_cast, coe_nat_cast, num, ←int.cast_coe_nat,
-    int.nat_abs_of_nonneg (rat.num_nonneg_iff_zero_le.2 q.prop)],
-  exact rat.num_div_denom q,
-end
+-- @[simp] lemma num_div_denom (q : ℚ≥0) : (q.num : ℚ≥0) / q.denom = q :=
+-- begin
+--   ext1,
+--   rw [coe_div, coe_nat_cast, coe_nat_cast, num, ←int.cast_coe_nat,
+--     int.nat_abs_of_nonneg (rat.num_nonneg_iff_zero_le.2 q.prop)],
+--   exact rat.num_div_denom q,
+-- end
 
-/-- A recursor for nonnegative rationals in terms of numerators and denominators. -/
-protected def rec {α : ℚ≥0 → Sort*} (h : Π m n : ℕ, α (m / n)) (q : ℚ≥0) : α q :=
-(num_div_denom _).rec (h _ _)
+-- /-- A recursor for nonnegative rationals in terms of numerators and denominators. -/
+-- protected def rec {α : ℚ≥0 → Sort*} (h : Π m n : ℕ, α (m / n)) (q : ℚ≥0) : α q :=
+-- (num_div_denom _).rec (h _ _)
 
 end nnrat

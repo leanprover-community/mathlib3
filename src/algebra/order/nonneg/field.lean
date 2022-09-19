@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 -- import algebra.order.archimedean
+import algebra.order.field
 import algebra.order.nonneg.ring
-import order.lattice_intervals
-import order.complete_lattice_intervals
 
 /-!
 # Semifield structure on the type of nonnegative elements

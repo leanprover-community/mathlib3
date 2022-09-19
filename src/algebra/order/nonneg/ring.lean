@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.order.ring
-import order.lattice_intervals
 import order.complete_lattice_intervals
+import order.lattice_intervals
 
 /-!
 # The type of nonnegative elements
@@ -148,11 +148,6 @@ lemma nsmul_coe [ordered_add_comm_monoid α] (n : ℕ) (r : {x : α // 0 ≤ x})
   ↑(n • r) = n • (r : α) :=
 nonneg.coe_add_monoid_hom.map_nsmul _ _
 
-instance archimedean [ordered_add_comm_monoid α] [archimedean α] : archimedean {x : α // 0 ≤ x} :=
-⟨ assume x y pos_y,
-  let ⟨n, hr⟩ := archimedean.arch (x : α) (pos_y : (0 : α) < y) in
-  ⟨n, show (x : α) ≤ (n • y : {x : α // 0 ≤ x}), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
-
 instance has_one [ordered_semiring α] : has_one {x : α // 0 ≤ x} :=
 { one := ⟨1, zero_le_one⟩ }
 
@@ -249,25 +244,6 @@ instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divis
 instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
 { ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
-
-instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
-{ floor := λ a, ⌊(a : α)⌋₊,
-  ceil := λ a, ⌈(a : α)⌉₊,
-  floor_of_neg := λ a ha, floor_semiring.floor_of_neg ha,
-  gc_floor := λ a n ha, begin
-    refine (floor_semiring.gc_floor (show 0 ≤ (a : α), from ha)).trans _,
-    rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
-  end,
-  gc_ceil := λ a n, begin
-    refine (floor_semiring.gc_ceil (a : α) n).trans _,
-    rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
-  end}
-
-@[norm_cast] lemma nat_floor_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
-  ⌊(a : α)⌋₊ = ⌊a⌋₊ := rfl
-
-@[norm_cast] lemma nat_ceil_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
-  ⌈(a : α)⌉₊ = ⌈a⌉₊  := rfl
 
 section linear_order
 

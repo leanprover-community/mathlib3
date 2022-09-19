@@ -52,10 +52,9 @@ universe u
 variables {α β K : Type*}
 
 /-- The default definition of the coercion `(↑(a : ℚ≥0) : K)` for a division semiring `K` is define
-as `(a / b : K) = (a : K) * (b : K)⁻¹`. Use `coe` instead of `rat.cast_rec` for better definitional
-behaviour. -/
-def nnrat.cast_rec [has_lift_t ℕ K] [has_mul K] [has_inv K] : ℚ≥0 → K :=
-λ q, ↑q.1 * (↑q.2)⁻¹
+as `(a / b : K) = (a : K) * (b : K)⁻¹`. Use `coe` instead of `nnrat.cast_rec` for better
+definitional behaviour. -/
+def nnrat.cast_rec [has_lift_t ℕ K] [has_mul K] [has_inv K] : ℚ≥0 → K := λ q, ↑q.num * (↑q.denom)⁻¹
 
 /-- The default definition of the coercion `(↑(a : ℚ) : K)` for a division ring `K`
 is defined as `(a / b : K) = (a : K) * (b : K)⁻¹`.
@@ -90,10 +89,10 @@ coe a * x
 
 /-- A `division_semiring` is a `semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor semiring group_with_zero]
-class division_semiring (α : Type*) extends semiring α, group_with_zero α :=
+class division_semiring (α : Type u) extends semiring α, group_with_zero α, has_nnrat_cast α :=
 (nnrat_cast := nnrat.cast_rec)
-(nnrat_cast_mk : ∀ a b h1 h2 h3, nnrat_cast ⟨⟨a, b, h1, h2⟩, h3⟩ = a * b⁻¹ . try_refl_tac)
-(nnqsmul : ℚ≥0 → K → K := nnqsmul_rec nnrat_cast)
+(nnrat_cast_eq : ∀ q, nnrat_cast q = q.num * q.denom⁻¹ . try_refl_tac)
+(nnqsmul : ℚ≥0 → α → α := nnqsmul_rec nnrat_cast)
 (nnqsmul_eq_mul' : ∀ a x, nnqsmul a x = nnrat_cast a * x . try_refl_tac)
 
 /-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements.
@@ -107,11 +106,12 @@ definitions for some special cases of `K` (in particular `K = ℚ` itself).
 See also Note [forgetful inheritance].
 -/
 @[protect_proj, ancestor ring div_inv_monoid nontrivial]
-class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K, has_rat_cast K :=
+class division_ring (K : Type u)
+  extends ring K, div_inv_monoid K, nontrivial K, has_nnrat_cast K, has_rat_cast K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
 (nnrat_cast := nnrat.cast_rec)
-(nnrat_cast_mk : ∀ a b h1 h2 h3, nnrat_cast ⟨⟨a, b, h1, h2⟩, h3⟩ = a * b⁻¹ . try_refl_tac)
+(nnrat_cast_eq : ∀ q, nnrat_cast q = q.num * q.denom⁻¹ . try_refl_tac)
 (nnqsmul : ℚ≥0 → K → K := nnqsmul_rec nnrat_cast)
 (nnqsmul_eq_mul' : ∀ a x, nnqsmul a x = nnrat_cast a * x . try_refl_tac)
 (rat_cast := rat.cast_rec)

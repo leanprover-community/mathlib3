@@ -280,11 +280,11 @@ instance : distrib_lattice ℝ :=
   le := (≤),
   le_sup_left := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
     rw [←mk_sup, mk_le],
-    exact le_of_exists ⟨0, λ j hj, le_sup_left⟩,
+    exact cau_seq.le_sup_left,
   end,
   le_sup_right := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
     rw [←mk_sup, mk_le],
-    refine le_of_exists ⟨0, λ j hj, le_sup_right⟩,
+    exact cau_seq.le_sup_right,
   end,
   sup_le := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, begin
     simp_rw [←mk_sup, mk_le],
@@ -293,11 +293,11 @@ instance : distrib_lattice ℝ :=
   inf := (⊓),
   inf_le_left := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
     rw [←mk_inf, mk_le],
-    refine le_of_exists ⟨0, λ j hj, inf_le_left⟩,
+    exact cau_seq.inf_le_left,
   end,
   inf_le_right := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
     rw [←mk_inf, mk_le],
-    refine le_of_exists ⟨0, λ j hj, inf_le_right⟩,
+    exact cau_seq.inf_le_right,
   end,
   le_inf := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, begin
     simp_rw [←mk_inf, mk_le],
@@ -305,9 +305,7 @@ instance : distrib_lattice ℝ :=
   end,
   le_sup_inf := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, eq.le begin
     simp only [←mk_sup, ←mk_inf],
-    congr' 1,
-    ext : 2,
-    exact max_min_distrib_left.symm,
+    exact congr_arg mk (cau_seq.sup_inf_distrib_left _ _ _).symm
   end,
   .. real.partial_order  }
 

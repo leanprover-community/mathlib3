@@ -1,0 +1,31 @@
+name: Maintainer merge (review)
+
+on:
+  pull_request_review:
+    types: [submitted, edited]
+
+jobs:
+  ping_zulip:
+    name: Ping maintainers on Zulip
+    if: (github.event.issue.pull_request != 'null') && (startsWith(github.event.review.body, 'maintainer merge') || contains(toJSON(github.event.review.body), '\r\nmaintainer merge'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message on Zulip
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: 'github-bot@leanprover.zulipchat.com'
+          organization-url: 'https://leanprover.zulipchat.com'
+          to: 'mathlib maintainers'
+          type: 'stream'
+          topic: 'maintainer merge'
+          content: |
+            ${{ format('{0} requested a maintainer merge on PR #{1}:', github.event.review.user.login, github.event.pull_request.number) }}
+
+            > ${{ github.event.pull_request.title }}
+
+      - name: Add reaction
+        uses: GrantBirki/comment@v2.0.1
+        with:
+          comment-id: ${{ github.event.review.id }}
+          reactions: rocket

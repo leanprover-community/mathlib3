@@ -378,7 +378,7 @@ continuous_uncurry_iff.mp $ symm_continuous_family _ (continuous_fst.path_eval c
 
 @[continuity]
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
-  [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
+  [topological_space ι] {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).extend) :=
 h.comp (continuous_id.prod_map continuous_proj_Icc)
 

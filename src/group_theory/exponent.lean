@@ -327,8 +327,7 @@ variables (G) [comm_group G] [group.fg G]
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
-  let f : (Π g : S, zpowers (g : G)) →* G :=
-  noncomm_pi_coprod (λ s t h x y hx hy, mul_comm x y),
+  let f : (Π g : S, zpowers (g : G)) →* G := noncomm_pi_coprod (λ s t h x y hx hy, mul_comm x y),
   have hf : function.surjective f,
   { rw [←monoid_hom.range_top_iff_surjective, eq_top_iff, ←hS2, closure_le],
     exact λ g hg, ⟨pi.mul_single ⟨g, hg⟩ ⟨g, mem_zpowers g⟩, noncomm_pi_coprod_mul_single _ _⟩ },

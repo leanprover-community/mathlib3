@@ -1,4 +1,4 @@
-# Lean mathlib
+# Test
 
 ![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/24316)

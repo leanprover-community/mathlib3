@@ -238,7 +238,7 @@ begin
   simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
 end
 
-instance : ordered_comm_ring ℝ :=
+instance : strict_ordered_comm_ring ℝ :=
 { add_le_add_left :=
   begin
     simp only [le_iff_eq_or_lt],
@@ -250,12 +250,15 @@ instance : ordered_comm_ring ℝ :=
   mul_pos     := @real.mul_pos,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
-instance : ordered_ring ℝ               := by apply_instance
-instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_add_comm_group ℝ     := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
-instance : ordered_add_comm_monoid ℝ    := by apply_instance
-instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
+instance : strict_ordered_ring ℝ            := infer_instance
+instance : strict_ordered_comm_semiring ℝ   := infer_instance
+instance : strict_ordered_semiring ℝ        := infer_instance
+instance : ordered_ring ℝ                   := infer_instance
+instance : ordered_semiring ℝ               := infer_instance
+instance : ordered_add_comm_group ℝ         := infer_instance
+instance : ordered_cancel_add_comm_monoid ℝ := infer_instance
+instance : ordered_add_comm_monoid ℝ        := infer_instance
+instance : nontrivial ℝ                     := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
 open_locale classical
 

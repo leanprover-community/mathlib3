@@ -309,11 +309,6 @@ instance : distrib_lattice ℝ :=
   end,
   .. real.partial_order  }
 
-/- Extra instances to short-circuit type class resolution -/
-instance : lattice ℝ         := infer_instance
-instance : semilattice_inf ℝ := infer_instance
-instance : semilattice_sup ℝ := infer_instance
-
 open_locale classical
 
 instance : is_total ℝ (≤) :=
@@ -348,15 +343,13 @@ noncomputable instance : linear_ordered_field ℝ :=
 
 /- Extra instances to short-circuit type class resolution -/
 
+/- TODO: make `lattice` and related instances computable, in terms of `distrib_lattice`. -/
 noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
 noncomputable instance field : field ℝ                            := by apply_instance
 noncomputable instance : division_ring ℝ                          := by apply_instance
-noncomputable instance : distrib_lattice ℝ                        := by apply_instance
 noncomputable instance : lattice ℝ                                := by apply_instance
 noncomputable instance : semilattice_inf ℝ                        := by apply_instance
 noncomputable instance : semilattice_sup ℝ                        := by apply_instance
-noncomputable instance : has_inf ℝ                                := by apply_instance
-noncomputable instance : has_sup ℝ                                := by apply_instance
 noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance

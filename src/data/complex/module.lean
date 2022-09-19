@@ -181,9 +181,11 @@ restrict_scalars.is_scalar_tower ℝ ℂ E
   (x : ℂ) • y = x • y :=
 rfl
 
+/-- The scalar action of `ℝ` on a `ℂ`-module `E` induced by `moduel.complex_to_real` commutes with
+another scalar action of `M` on `E` whenever the action of `ℂ` commutes with the action of `M`. -/
 @[priority 900]
-instance module.real_complex_smul_comm_class {E F : Type*}
-  [add_comm_group F] [module ℂ F] [has_smul E F] [smul_comm_class ℂ E F] : smul_comm_class ℝ E F :=
+instance smul_comm_class.complex_to_real {M E : Type*}
+  [add_comm_group E] [module ℂ E] [has_smul M E] [smul_comm_class ℂ M E] : smul_comm_class ℝ M E :=
 { smul_comm := λ r _ _, (smul_comm (r : ℂ) _ _ : _) }
 
 @[priority 100]

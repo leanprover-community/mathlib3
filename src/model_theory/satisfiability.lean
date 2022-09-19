@@ -331,28 +331,6 @@ def is_complete (T : L.Theory) : Prop :=
 T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)
 /-- A theory is maximal when it is satisfiable and contains each sentence or its negation.
   Maximal theories are complete. -/
-def is_maximal (T : L.Theory) : Prop :=
-T.is_satisfiable ∧ ∀ (φ : L.sentence), φ ∈ T ∨ φ.not ∈ T
-
-lemma is_maximal.is_complete (h : T.is_maximal) : T.is_complete :=
-h.imp_right (forall_imp (λ _, or.imp models_sentence_of_mem models_sentence_of_mem))
-
-lemma is_maximal.mem_or_not_mem (h : T.is_maximal) (φ : L.sentence) :
-  φ ∈ T ∨ φ.not ∈ T :=
-h.2 φ
-
-lemma is_maximal.mem_of_models (h : T.is_maximal) {φ : L.sentence}
-  (hφ : T ⊨ φ) :
-  φ ∈ T :=
-begin
-  refine (h.mem_or_not_mem φ).resolve_right (λ con, _),
-  rw [models_iff_not_satisfiable, set.union_singleton, set.insert_eq_of_mem con] at hφ,
-  exact hφ h.1,
-end
-
-lemma is_maximal.mem_iff_models (h : T.is_maximal) (φ : L.sentence) :
-  φ ∈ T ↔ T ⊨ φ :=
-⟨models_sentence_of_mem, h.mem_of_models⟩
 
 /-- A theory is maximal when it is satisfiable and contains each sentence or its negation.
   Maximal theories are complete. -/

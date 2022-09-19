@@ -506,9 +506,9 @@ lemma quotient_subgroup_of_embedding_of_le_apply_mk (H : subgroup α) (h : s ≤
     quotient_group.mk (inclusion h g) :=
 rfl
 
-/-- If `s ≤ t`, then there is an map `H ⧸ s.subgroup_of H ↪ H ⧸ t.subgroup_of H`. -/
+/-- If `s ≤ t`, then there is an map `H ⧸ s.subgroup_of H → H ⧸ t.subgroup_of H`. -/
 @[to_additive "If `s ≤ t`, then there is an map
-  `H ⧸ s.add_subgroup_of H ↪ H ⧸ t.add_subgroup_of H`."]
+  `H ⧸ s.add_subgroup_of H → H ⧸ t.add_subgroup_of H`."]
 def quotient_subgroup_of_map_of_le (H : subgroup α) (h : s ≤ t) :
   H ⧸ s.subgroup_of H → H ⧸ t.subgroup_of H :=
 quotient.map' id (λ a b, by { simp_rw [left_rel_eq], apply h })

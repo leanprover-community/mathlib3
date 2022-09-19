@@ -99,7 +99,7 @@ variables {α β : Type*} [linear_order α] [topological_space β]
 let `a : α`. The limit strictly to the left of `f` at `a`, denoted with `left_lim f a`, is defined
 by using the order topology on `α`. If `a` is isolated to its left, we use `f a` instead to
 guarantee a good behavior in most cases. -/
-@[irreducible] noncomputable def left_lim (f : α → β) (a : α) : β :=
+@[irreducible] noncomputable def function.left_lim (f : α → β) (a : α) : β :=
 begin
   classical,
   haveI : nonempty β := ⟨f a⟩,
@@ -111,8 +111,10 @@ end
 let `a : α`. The limit strictly to the right of `f` at `a`, denoted with `right_lim f a`, is defined
 by using the order topology on `α`. If `a` is isolated to its left, we use `f a` instead to
 guarantee a good behavior in most cases. -/
-noncomputable def right_lim (f : α → β) (a : α) : β :=
-@left_lim αᵒᵈ β  _ _ f a
+noncomputable def function.right_lim (f : α → β) (a : α) : β :=
+@function.left_lim αᵒᵈ β  _ _ f a
+
+open function
 
 lemma left_lim_eq_of_ne_bot [hα : topological_space α] [h'α : order_topology α]
   (f : α → β) {a : α} (h : 𝓝[<] a ≠ ⊥) :
@@ -132,6 +134,8 @@ end
 
 end
 
+open function
+
 namespace monotone
 
 variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order β]
@@ -140,7 +144,7 @@ variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order
 include hf
 
 lemma left_lim_eq_Sup [topological_space α] [order_topology α] (h : 𝓝[<] x ≠ ⊥) :
-  left_lim f x = (Sup (f '' (Iio x))) :=
+  left_lim f x = Sup (f '' (Iio x)) :=
 begin
   haveI : ne_bot (𝓝[<] x) := ne_bot_iff.2 h,
   rw left_lim_eq_of_ne_bot f h,

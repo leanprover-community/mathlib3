@@ -1077,7 +1077,6 @@ def subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
     dsimp,
     simp_rw [set.ext_iff, prod.exists],
     rw (equiv.inv G).exists_congr_left,
-    dsimp,
     calc (¬∀ (l : G), (∃ (k : G), k ∈ K ∧ k * x = l) ∧ l ∈ L ↔ false)
         ↔ (¬∀ (l : G), (∃ (k : G), k ∈ K ∧ k⁻¹ * l = x) ∧ l ∈ L ↔ false) :
             begin

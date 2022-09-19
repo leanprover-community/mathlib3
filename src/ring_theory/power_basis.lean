@@ -55,7 +55,7 @@ This is a structure, not a class, since the same algebra can have many power bas
 For the common case where `S` is defined by adjoining an integral element to `R`,
 the canonical power basis is given by `{algebra,intermediate_field}.adjoin.power_basis`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 (gen : S)
 (dim : ℕ)
@@ -209,7 +209,7 @@ nat_degree_eq_of_degree_eq_some pb.degree_minpoly_gen
 
 lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
 begin
-  apply monic_sub_of_left (monic_pow (monic_X) _),
+  apply (monic_X_pow _).sub_of_left _,
   rw degree_X_pow,
   exact degree_sum_fin_lt _
 end
@@ -532,5 +532,27 @@ lemma equiv_of_minpoly_map (pb : power_basis A S) (e : S ≃ₐ[A] S')
 pb.equiv_of_root_map _ _ _
 
 end map
+
+section adjoin
+
+open algebra
+
+lemma adjoin_gen_eq_top (B : power_basis R S) : adjoin R ({B.gen} : set S) = ⊤ :=
+begin
+  rw [← to_submodule_eq_top, _root_.eq_top_iff, ← B.basis.span_eq, submodule.span_le],
+  rintros x ⟨i, rfl⟩,
+  rw [B.basis_eq_pow i],
+  exact subalgebra.pow_mem _ (subset_adjoin (set.mem_singleton _)) _,
+end
+
+lemma adjoin_eq_top_of_gen_mem_adjoin {B : power_basis R S} {x : S}
+  (hx : B.gen ∈ adjoin R ({x} : set S)) : adjoin R ({x} : set S) = ⊤ :=
+begin
+  rw [_root_.eq_top_iff, ← B.adjoin_gen_eq_top],
+  refine adjoin_le _,
+  simp [hx],
+end
+
+end adjoin
 
 end power_basis

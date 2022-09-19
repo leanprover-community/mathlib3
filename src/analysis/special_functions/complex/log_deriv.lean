@@ -56,10 +56,10 @@ lemma has_strict_fderiv_at_log_real {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
   has_strict_fderiv_at log (x⁻¹ • (1 : ℂ →L[ℝ] ℂ)) x :=
 (has_strict_deriv_at_log h).complex_to_real_fderiv
 
-lemma times_cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : with_top ℕ} :
-  times_cont_diff_at ℂ n log x :=
-exp_local_homeomorph.times_cont_diff_at_symm_deriv (exp_ne_zero $ log x) h
-  (has_deriv_at_exp _) times_cont_diff_exp.times_cont_diff_at
+lemma cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : ℕ∞} :
+  cont_diff_at ℂ n log x :=
+exp_local_homeomorph.cont_diff_at_symm_deriv (exp_ne_zero $ log x) h
+  (has_deriv_at_exp _) cont_diff_exp.cont_diff_at
 
 end complex
 
@@ -68,7 +68,7 @@ section log_deriv
 open complex filter
 open_locale topological_space
 
-variables {α : Type*} [topological_space α] {E : Type*} [normed_group E] [normed_space ℂ E]
+variables {α : Type*} [topological_space α] {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 
 lemma has_strict_fderiv_at.clog {f : E → ℂ} {f' : E →L[ℂ] ℂ} {x : E}
   (h₁ : has_strict_fderiv_at f f' x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :

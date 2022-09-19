@@ -6,7 +6,7 @@ Authors: Patrick Massot
 
 import topology.algebra.nonarchimedean.basic
 import topology.algebra.filter_basis
-import algebra.module.submodule_pointwise
+import algebra.module.submodule.pointwise
 
 /-!
 # Neighborhood bases for non-archimedean rings and modules

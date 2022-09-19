@@ -3,7 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.currying
+import category_theory.functor.currying
 import category_theory.limits.over
 import category_theory.limits.shapes.images
 import category_theory.adjunction.reflective
@@ -49,19 +49,19 @@ This isn't skeletal, so it's not a partial order.
 Later we define `subobject X` as the quotient of this by isomorphisms.
 -/
 @[derive [category]]
-def mono_over (X : C) := {f : over X // mono f.hom}
+def mono_over (X : C) := full_subcategory (λ (f : over X), mono f.hom)
 
 namespace mono_over
 
 /-- Construct a `mono_over X`. -/
 @[simps]
-def mk' {X A : C} (f : A ⟶ X) [hf : mono f] : mono_over X := { val := over.mk f, property := hf }
+def mk' {X A : C} (f : A ⟶ X) [hf : mono f] : mono_over X := { obj := over.mk f, property := hf }
 
 /-- The inclusion from monomorphisms over X to morphisms over X. -/
 def forget (X : C) : mono_over X ⥤ over X := full_subcategory_inclusion _
 
 instance : has_coe (mono_over X) C :=
-{ coe := λ Y, Y.val.left, }
+{ coe := λ Y, Y.obj.left, }
 
 @[simp]
 lemma forget_obj_left {f} : ((forget X).obj f).left = (f : C) := rfl
@@ -93,13 +93,13 @@ end⟩
 @[reassoc] lemma w {f g : mono_over X} (k : f ⟶ g) : k.left ≫ g.arrow = f.arrow := over.w _
 
 /-- Convenience constructor for a morphism in monomorphisms over `X`. -/
-abbreviation hom_mk {f g : mono_over X} (h : f.val.left ⟶ g.val.left) (w : h ≫ g.arrow = f.arrow) :
+abbreviation hom_mk {f g : mono_over X} (h : f.obj.left ⟶ g.obj.left) (w : h ≫ g.arrow = f.arrow) :
   f ⟶ g :=
 over.hom_mk h w
 
 /-- Convenience constructor for an isomorphism in monomorphisms over `X`. -/
 @[simps]
-def iso_mk {f g : mono_over X} (h : f.val.left ≅ g.val.left) (w : h.hom ≫ g.arrow = f.arrow) :
+def iso_mk {f g : mono_over X} (h : f.obj.left ≅ g.obj.left) (w : h.hom ≫ g.arrow = f.arrow) :
   f ≅ g :=
 { hom := hom_mk h.hom w,
   inv := hom_mk h.inv (by rw [h.inv_comp_eq, w]) }
@@ -217,7 +217,7 @@ def map_id : map (𝟙 X) ≅ 𝟭 _ :=
 lift_iso _ _ over.map_id ≪≫ lift_id
 
 @[simp] lemma map_obj_left (f : X ⟶ Y) [mono f] (g : mono_over X) :
-  (((map f).obj g) : C) = g.val.left :=
+  (((map f).obj g) : C) = g.obj.left :=
 rfl
 
 @[simp]
@@ -324,7 +324,7 @@ adjunction.mk_of_hom_equiv
     inv_fun := λ k,
     begin
       refine over.hom_mk _ _,
-      refine image.lift {I := g.val.left, m := g.arrow, e := k.left, fac' := over.w k},
+      refine image.lift {I := g.obj.left, m := g.arrow, e := k.left, fac' := over.w k},
       apply image.lift_fac,
     end,
     left_inv := λ k, subsingleton.elim _ _,
@@ -370,7 +370,7 @@ nat_iso.of_components
 begin
   intro Z,
   suffices : (forget _).obj ((«exists» f).obj Z) ≅ (forget _).obj ((map f).obj Z),
-    apply preimage_iso this,
+    apply (forget _).preimage_iso this,
   apply over.iso_mk _ _,
   apply image_mono_iso_source (Z.arrow ≫ f),
   apply image_mono_iso_source_hom_self,
@@ -388,7 +388,7 @@ end
 /-- `exists` is adjoint to `pullback` when images exist -/
 def exists_pullback_adj (f : X ⟶ Y) [has_pullbacks C] : «exists» f ⊣ pullback f :=
 adjunction.restrict_fully_faithful (forget X) (𝟭 _)
-  ((over.map_pullback_adj f).comp _ _ image_forget_adj)
+  ((over.map_pullback_adj f).comp image_forget_adj)
   (iso.refl _)
   (iso.refl _)
 

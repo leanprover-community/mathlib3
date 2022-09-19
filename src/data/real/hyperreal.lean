@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
 -/
 import order.filter.filter_product
-import analysis.specific_limits
+import analysis.specific_limits.basic
 
 /-!
 # Construction of the hyperreal numbers as an ultraproduct of real sequences.
@@ -62,8 +62,8 @@ noncomputable def epsilon : ℝ* := of_seq $ λ n, n⁻¹
 /-- A sample infinite hyperreal-/
 noncomputable def omega : ℝ* := of_seq coe
 
-localized "notation `ε` := hyperreal.epsilon" in hyperreal
-localized "notation `ω` := hyperreal.omega" in hyperreal
+localized "notation (name := hyperreal.epsilon) `ε` := hyperreal.epsilon" in hyperreal
+localized "notation (name := hyperreal.omega) `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
@@ -72,7 +72,7 @@ lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv _ _ ω
 lemma epsilon_pos : 0 < ε :=
 suffices ∀ᶠ i in hyperfilter ℕ, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def,
 have h0' : {n : ℕ | ¬ 0 < n} = {0} :=
-by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
+by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact le_bot_iff,
 begin
   simp only [inv_pos, nat.cast_pos],
   exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
@@ -89,7 +89,7 @@ theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, 0 < r → of_seq f < (r : ℝ*) :=
 begin
-  simp only [metric.tendsto_at_top, dist_zero_right, norm, lt_def] at hf ⊢,
+  simp only [metric.tendsto_at_top, real.dist_eq, sub_zero, lt_def] at hf ⊢,
   intros r hr, cases hf r hr with N hf',
   have hs : {i : ℕ | f i < r}ᶜ ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
@@ -170,10 +170,10 @@ have HR₁ : S.nonempty :=
 have HR₂ : bdd_above S :=
   ⟨ r₂, λ y hy, le_of_lt (coe_lt_coe.1 (lt_of_lt_of_le hy (not_lt.mp hr₂))) ⟩,
 λ δ hδ,
-  ⟨ lt_of_not_ge' $ λ c,
+  ⟨ lt_of_not_le $ λ c,
       have hc : ∀ y ∈ S, y ≤ R - δ := λ y hy, coe_le_coe.1 $ le_of_lt $ lt_of_lt_of_le hy c,
       not_lt_of_le (cSup_le HR₁ hc) $ sub_lt_self R hδ,
-    lt_of_not_ge' $ λ c,
+    lt_of_not_le $ λ c,
       have hc : ↑(R + δ / 2) < x :=
         lt_of_lt_of_le (add_lt_add_left (coe_lt_coe.2 (half_lt_self hδ)) R) c,
       not_lt_of_le (le_cSup HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
@@ -687,7 +687,7 @@ lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → i
 have H : _ := exists_st_of_not_infinite $ not_imp_not.mpr (infinitesimal_iff_infinite_inv h).mpr hi,
 Exists.cases_on H $ λ s hs,
 have H' : is_st 1 (r * s) := mul_inv_cancel h ▸ is_st_mul hxr hs,
-have H'' : s = r⁻¹ := one_div r ▸ eq_one_div_of_mul_eq_one (eq_of_is_st_real H').symm,
+have H'' : s = r⁻¹ := one_div r ▸ eq_one_div_of_mul_eq_one_right (eq_of_is_st_real H').symm,
 H'' ▸ hs
 
 lemma st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ :=

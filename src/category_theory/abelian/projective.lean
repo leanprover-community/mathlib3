@@ -61,7 +61,7 @@ chain_complex.mk'
 
 /--
 In any abelian category with enough projectives,
-`ProjectiveResolution.of Z` constructs a projection resolution of the object `Z`.
+`ProjectiveResolution.of Z` constructs a projective resolution of the object `Z`.
 -/
 @[irreducible] def of (Z : C) : ProjectiveResolution Z :=
 { complex := of_complex Z,

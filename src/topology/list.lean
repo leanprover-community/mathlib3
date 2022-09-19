@@ -60,7 +60,7 @@ by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
 
 lemma list.tendsto_cons {a : α} {l : list α} :
   tendsto (λp:α×list α, list.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
-by rw [nhds_cons, tendsto, map_prod]; exact le_rfl
+by rw [nhds_cons, tendsto, filter.map_prod]; exact le_rfl
 
 lemma filter.tendsto.cons {α : Type*} {f : α → β} {g : α → list β}
   {a : _root_.filter α} {b : β} {l : list β} (hf : tendsto f a (𝓝 b)) (hg : tendsto g a (𝓝 l)) :

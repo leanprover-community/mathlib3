@@ -18,6 +18,7 @@ and that `ℚ_p` is Cauchy complete.
 
 * `padic` : the type of p-adic numbers
 * `padic_norm_e` : the rational valued p-adic norm on `ℚ_p`
+* `padic.add_valuation` : the additive `p`-adic valuation on `ℚ_p`, with values in `with_top ℤ`.
 
 ## Notation
 
@@ -48,7 +49,7 @@ Coercions from `ℚ` to `ℚ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 
@@ -87,10 +88,10 @@ let ⟨ε, hε, N1, hN1⟩ := this,
     from lt_max_iff.2 (or.inl this),
   begin
     by_contradiction hne,
-    rw ←padic_norm.neg p (f m) at hne,
-    have hnam := add_eq_max_of_ne p hne,
+    rw ← padic_norm.neg (f m) at hne,
+    have hnam := add_eq_max_of_ne hne,
     rw [padic_norm.neg, max_comm] at hnam,
-    rw [←hnam, sub_eq_add_neg, add_comm] at this,
+    rw [← hnam, sub_eq_add_neg, add_comm] at this,
     apply _root_.lt_irrefl _ this
   end ⟩
 
@@ -214,7 +215,7 @@ begin
   use (stationary_point hf),
   intros n hn,
   rw stationary_point_spec hf le_rfl hn,
-  simpa [H] using hε,
+  simpa [H] using hε
 end
 
 lemma val_eq_iff_norm_eq {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) :
@@ -222,7 +223,7 @@ lemma val_eq_iff_norm_eq {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0)
 begin
   rw [norm_eq_pow_val hf, norm_eq_pow_val hg, ← neg_inj, zpow_inj],
   { exact_mod_cast (fact.out p.prime).pos },
-  { exact_mod_cast (fact.out p.prime).ne_one },
+  { exact_mod_cast (fact.out p.prime).ne_one }
 end
 
 end valuation
@@ -294,7 +295,7 @@ else
 lemma norm_values_discrete (a : padic_seq p) (ha : ¬ a ≈ 0) :
   (∃ (z : ℤ), a.norm = ↑p ^ (-z)) :=
 let ⟨k, hk, hk'⟩ := norm_eq_norm_app_of_nonzero ha in
-by simpa [hk] using padic_norm.values_discrete p hk'
+by simpa [hk] using padic_norm.values_discrete hk'
 
 lemma norm_one : norm (1 : padic_seq p) = 1 :=
 have h1 : ¬ (1 : padic_seq p) ≈ 0, from one_not_equiv_zero _,
@@ -313,8 +314,8 @@ begin
   have hN' := hN _ hi,
   padic_index_simp [N, hf, hg] at hN' h hlt,
   have hpne : padic_norm p (f i) ≠ padic_norm p (-(g i)),
-    by rwa [ ←padic_norm.neg p (g i)] at h,
-  let hpnem := add_eq_max_of_ne p hpne,
+    by rwa [← padic_norm.neg (g i)] at h,
+  let hpnem := add_eq_max_of_ne hpne,
   have hpeq : padic_norm p ((f - g) i) = max (padic_norm p (f i)) (padic_norm p (g i)),
   { rwa padic_norm.neg at hpnem },
   rw [hpeq, max_eq_left_of_lt hlt] at hN',
@@ -422,7 +423,7 @@ else
 begin
   unfold norm at ⊢ hfgne, split_ifs at ⊢ hfgne,
   padic_index_simp [hfg, hf, hg] at ⊢ hfgne,
-  exact padic_norm.add_eq_max_of_ne p hfgne
+  exact padic_norm.add_eq_max_of_ne hfgne
 end
 
 end embedding
@@ -437,14 +438,14 @@ namespace padic
 section completion
 variables {p : ℕ} [fact p.prime]
 
-/-- The discrete field structure on `ℚ_p` is inherited from the Cauchy completion construction. -/
-instance field : field (ℚ_[p]) :=
-cau_seq.completion.field
+instance : field (ℚ_[p]) := Cauchy.field
 
 instance : inhabited ℚ_[p] := ⟨0⟩
 
 -- short circuits
 
+instance : comm_ring (ℚ_[p]) := Cauchy.comm_ring
+instance : ring (ℚ_[p]) := Cauchy.ring
 instance : has_zero ℚ_[p] := by apply_instance
 instance : has_one ℚ_[p] := by apply_instance
 instance : has_add ℚ_[p] := by apply_instance
@@ -453,77 +454,30 @@ instance : has_sub ℚ_[p] := by apply_instance
 instance : has_neg ℚ_[p] := by apply_instance
 instance : has_div ℚ_[p] := by apply_instance
 instance : add_comm_group ℚ_[p] := by apply_instance
-instance : comm_ring ℚ_[p] := by apply_instance
 
 /-- Builds the equivalence class of a Cauchy sequence of rationals. -/
 def mk : padic_seq p → ℚ_[p] := quotient.mk
-end completion
 
-section completion
-variables (p : ℕ) [fact p.prime]
+variables (p)
 
 lemma mk_eq {f g : padic_seq p} : mk f = mk g ↔ f ≈ g := quotient.eq
 
-/-- Embeds the rational numbers in the p-adic numbers. -/
-def of_rat : ℚ → ℚ_[p] := cau_seq.completion.of_rat
-
-@[simp] lemma of_rat_add : ∀ (x y : ℚ), of_rat p (x + y) = of_rat p x + of_rat p y :=
-cau_seq.completion.of_rat_add
-
-@[simp] lemma of_rat_neg : ∀ (x : ℚ), of_rat p (-x) = -of_rat p x :=
-cau_seq.completion.of_rat_neg
-
-@[simp] lemma of_rat_mul : ∀ (x y : ℚ), of_rat p (x * y) = of_rat p x * of_rat p y :=
-cau_seq.completion.of_rat_mul
-
-@[simp] lemma of_rat_sub : ∀ (x y : ℚ), of_rat p (x - y) = of_rat p x - of_rat p y :=
-cau_seq.completion.of_rat_sub
-
-@[simp] lemma of_rat_div : ∀ (x y : ℚ), of_rat p (x / y) = of_rat p x / of_rat p y :=
-cau_seq.completion.of_rat_div
-
-@[simp] lemma of_rat_one : of_rat p 1 = 1 := rfl
-
-@[simp] lemma of_rat_zero : of_rat p 0 = 0 := rfl
-
-lemma cast_eq_of_rat_of_nat (n : ℕ) : (↑n : ℚ_[p]) = of_rat p n :=
-begin
-  induction n with n ih,
-  { refl },
-  { simpa using ih }
-end
-
-lemma cast_eq_of_rat_of_int (n : ℤ) : ↑n = of_rat p n :=
-by induction n; simp [cast_eq_of_rat_of_nat]
-
-lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
-| ⟨n, d, h1, h2⟩ :=
-  show ↑n / ↑d = _, from
-    have (⟨n, d, h1, h2⟩ : ℚ) = rat.mk n d, from rat.num_denom',
-    by simp [this, rat.mk_eq_div, of_rat_div, cast_eq_of_rat_of_int, cast_eq_of_rat_of_nat]
-
-@[norm_cast] lemma coe_add : ∀ {x y : ℚ}, (↑(x + y) : ℚ_[p]) = ↑x + ↑y := by simp [cast_eq_of_rat]
-@[norm_cast] lemma coe_neg : ∀ {x : ℚ}, (↑(-x) : ℚ_[p]) = -↑x := by simp [cast_eq_of_rat]
-@[norm_cast] lemma coe_mul : ∀ {x y : ℚ}, (↑(x * y) : ℚ_[p]) = ↑x * ↑y := by simp [cast_eq_of_rat]
-@[norm_cast] lemma coe_sub : ∀ {x y : ℚ}, (↑(x - y) : ℚ_[p]) = ↑x - ↑y := by simp [cast_eq_of_rat]
-@[norm_cast] lemma coe_div : ∀ {x y : ℚ}, (↑(x / y) : ℚ_[p]) = ↑x / ↑y := by simp [cast_eq_of_rat]
-
-@[norm_cast] lemma coe_one : (↑1 : ℚ_[p]) = 1 := by simp [cast_eq_of_rat]
-@[norm_cast] lemma coe_zero : (↑0 : ℚ_[p]) = 0 := rfl
-
 lemma const_equiv {q r : ℚ} : const (padic_norm p) q ≈ const (padic_norm p) r ↔ q = r :=
-⟨ λ heq : lim_zero (const (padic_norm p) (q - r)),
-    eq_of_sub_eq_zero $ const_lim_zero.1 heq,
-  λ heq, by rw heq; apply setoid.refl _ ⟩
-
-lemma of_rat_eq {q r : ℚ} : of_rat p q = of_rat p r ↔ q = r :=
-⟨(const_equiv p).1 ∘ quotient.eq.1, λ h, by rw h⟩
+⟨ λ heq, eq_of_sub_eq_zero $ const_lim_zero.1 heq, λ heq, by rw heq; apply setoid.refl _ ⟩
 
 @[norm_cast] lemma coe_inj {q r : ℚ} : (↑q : ℚ_[p]) = ↑r ↔ q = r :=
-by simp [cast_eq_of_rat, of_rat_eq]
+⟨(const_equiv p).1 ∘ quotient.eq.1, λ h, by rw h⟩
 
 instance : char_zero ℚ_[p] :=
 ⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast, exact id }⟩
+
+@[norm_cast] lemma coe_add : ∀ {x y : ℚ}, (↑(x + y) : ℚ_[p]) = ↑x + ↑y := rat.cast_add
+@[norm_cast] lemma coe_neg : ∀ {x : ℚ}, (↑(-x) : ℚ_[p]) = -↑x := rat.cast_neg
+@[norm_cast] lemma coe_mul : ∀ {x y : ℚ}, (↑(x * y) : ℚ_[p]) = ↑x * ↑y := rat.cast_mul
+@[norm_cast] lemma coe_sub : ∀ {x y : ℚ}, (↑(x - y) : ℚ_[p]) = ↑x - ↑y := rat.cast_sub
+@[norm_cast] lemma coe_div : ∀ {x y : ℚ}, (↑(x / y) : ℚ_[p]) = ↑x / ↑y := rat.cast_div
+@[norm_cast] lemma coe_one : (↑1 : ℚ_[p]) = 1 := rfl
+@[norm_cast] lemma coe_zero : (↑0 : ℚ_[p]) = 0 := rfl
 
 end completion
 end padic
@@ -540,23 +494,19 @@ variables {p : ℕ} [fact p.prime]
 
 lemma defn (f : padic_seq p) {ε : ℚ} (hε : 0 < ε) : ∃ N, ∀ i ≥ N, padic_norm_e (⟦f⟧ - f i) < ε :=
 begin
-  simp only [padic.cast_eq_of_rat],
   change ∃ N, ∀ i ≥ N, (f - const _ (f i)).norm < ε,
-  by_contradiction h,
+  by_contra' h,
   cases cauchy₂ f hε with N hN,
-  have : ∀ N, ∃ i ≥ N, ε ≤ (f - const _ (f i)).norm,
-    by simpa only [not_forall, not_exists, not_lt] using h,
-  rcases this N with ⟨i, hi, hge⟩,
+  rcases h N with ⟨i, hi, hge⟩,
   have hne : ¬ (f - const (padic_norm p) (f i)) ≈ 0,
   { intro h, unfold padic_seq.norm at hge; split_ifs at hge, exact not_lt_of_ge hge hε },
   unfold padic_seq.norm at hge; split_ifs at hge,
   apply not_le_of_gt _ hge,
-  cases decidable.em (N ≤ stationary_point hne) with hgen hngen,
-  { apply hN; assumption },
+  cases em (N ≤ stationary_point hne) with hgen hngen,
+  { apply hN _ hgen _ hi },
   { have := stationary_point_spec hne le_rfl (le_of_not_le hngen),
-    rw ←this,
-    apply hN,
-    exact le_rfl, assumption }
+    rw ← this,
+    exact hN _ le_rfl _ hi }
 end
 
 protected lemma nonneg (q : ℚ_[p]) : 0 ≤ padic_norm_e q :=
@@ -613,7 +563,7 @@ instance : is_absolute_value (@padic_norm_e p _) :=
   abv_add := padic_norm_e.add,
   abv_mul := padic_norm_e.mul' }
 
-@[simp] lemma eq_padic_norm' (q : ℚ) : padic_norm_e (padic.of_rat p q) = padic_norm p q :=
+@[simp] lemma eq_padic_norm' (q : ℚ) : padic_norm_e (q : ℚ_[p]) = padic_norm p q :=
 norm_const _
 
 protected theorem image' {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, padic_norm_e q = p ^ (-n) :=
@@ -639,7 +589,6 @@ quotient.induction_on q $ λ q',
   let ⟨N, hN⟩ := this in
   ⟨q' N,
     begin
-      simp only [padic.cast_eq_of_rat],
       change padic_seq.norm (q' - const _ (q' N)) < ε,
       cases decidable.em ((q' - const (padic_norm p) (q' N)) ≈ 0) with heq hne',
       { simpa only [heq, padic_seq.norm, dif_pos] },
@@ -650,8 +599,7 @@ quotient.induction_on q $ λ q',
         { have := eq.symm (this le_rfl hle),
           simp only [const_apply, sub_apply, padic_norm.zero, sub_self] at this,
           simpa only [this] },
-        { apply hN,
-          apply le_of_lt, apply lt_of_not_ge, apply hle, exact le_rfl }}
+        { exact hN _ (lt_of_not_ge hle).le _ le_rfl } }
     end⟩
 
 variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))
@@ -665,7 +613,7 @@ is a sequence of rationals with the same limit point as `f`. -/
 def lim_seq : ℕ → ℚ := λ n, classical.some (rat_dense' (f n) (div_nat_pos n))
 
 lemma exi_rat_seq_conv {ε : ℚ} (hε : 0 < ε) :
-  ∃ N, ∀ i ≥ N, padic_norm_e (f i - ((lim_seq f) i : ℚ_[p])) < ε :=
+  ∃ N, ∀ i ≥ N, padic_norm_e (f i - (lim_seq f i : ℚ_[p])) < ε :=
 begin
   refine (exists_nat_gt (1/ε)).imp (λ N hN i hi, _),
   have h := classical.some_spec (rat_dense' (f i) (div_nat_pos i)),
@@ -685,9 +633,9 @@ begin
   existsi max N N2,
   intros j hj,
   suffices :
-    padic_norm_e ((↑(lim_seq f j) - f (max N N2)) + (f (max N N2) - lim_seq f (max N N2))) < ε,
+    padic_norm_e ((lim_seq f j - f (max N N2)) + (f (max N N2) - lim_seq f (max N N2))) < ε,
   { ring_nf at this ⊢,
-    rw [← padic_norm_e.eq_padic_norm', ← padic.cast_eq_of_rat],
+    rw [← padic_norm_e.eq_padic_norm'],
     exact_mod_cast this },
   { apply lt_of_le_of_lt,
     { apply padic_norm_e.add },
@@ -704,9 +652,7 @@ begin
           { rw [padic_norm_e.sub_rev],
             apply_mod_cast hN,
             exact le_of_max_le_left hj },
-          { apply hN2,
-            exact le_of_max_le_right hj,
-            apply le_max_right }}},
+          { exact hN2 _ (le_of_max_le_right hj) _ (le_max_right _ _) } } },
       { apply_mod_cast hN,
         apply le_max_left }}}
 end
@@ -745,7 +691,8 @@ instance : has_dist ℚ_[p] := ⟨λ x y, padic_norm_e (x - y)⟩
 
 instance : metric_space ℚ_[p] :=
 { dist_self := by simp [dist],
-  dist_comm := λ x y, by unfold dist; rw ←padic_norm_e.neg (x - y); simp,
+  dist := dist,
+  dist_comm := λ x y, by unfold dist; rw ← padic_norm_e.neg (x - y); simp,
   dist_triangle :=
     begin
       intros, unfold dist,
@@ -763,7 +710,8 @@ instance : has_norm ℚ_[p] := ⟨λ x, padic_norm_e x⟩
 
 instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
-  norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
+  norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'],
+  norm := norm, .. padic.field, .. padic.metric_space p }
 
 instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
@@ -809,14 +757,16 @@ end
 @[simp] lemma eq_padic_norm (q : ℚ) : ∥(↑q : ℚ_[p])∥ = padic_norm p q :=
 begin
   unfold has_norm.norm,
-  rw [← padic_norm_e.eq_padic_norm', ← padic.cast_eq_of_rat]
+  rw [← padic_norm_e.eq_padic_norm']
 end
 
 @[simp] lemma norm_p : ∥(p : ℚ_[p])∥ = p⁻¹ :=
 begin
   have p₀ : p ≠ 0 := hp.1.ne_zero,
   have p₁ : p ≠ 1 := hp.1.ne_one,
-  simp [p₀, p₁, norm, padic_norm, padic_val_rat, zpow_neg, padic.cast_eq_of_rat_of_nat],
+  rw ← @rat.cast_coe_nat ℝ _ p,
+  rw ← @rat.cast_coe_nat (ℚ_[p]) _ p,
+  simp [p₀, p₁, norm, padic_norm, padic_val_rat, padic_val_int, zpow_neg, -rat.cast_coe_nat],
 end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
@@ -827,13 +777,14 @@ begin
 end
 
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
-by rw [normed_field.norm_zpow, norm_p]; field_simp
+by rw [norm_zpow, norm_p]; field_simp
 
-instance : nondiscrete_normed_field ℚ_[p] :=
+instance : nontrivially_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
-    rw [normed_field.norm_inv, norm_p, inv_inv],
+    rw [norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt
-  end⟩ }
+  end⟩,
+  .. padic.normed_field p }
 
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,
@@ -864,13 +815,14 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
         from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,
-      rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
-      have h : (multiplicity p d).get _ = 0, by simp [multiplicity_eq_zero_of_not_dvd, hq],
-      simp only, norm_cast,
-      rw_mod_cast [h, sub_zero],
-      apply zpow_le_one_of_nonpos,
-      { exact_mod_cast le_of_lt hp.1.one_lt, },
-      { apply neg_nonpos_of_nonneg, norm_cast, simp, }
+      rw [padic_norm.eq_zpow_of_nonzero hnz', padic_val_rat, neg_sub,
+        padic_val_nat.eq_zero_of_not_dvd hq],
+      norm_cast,
+      rw [zero_sub, zpow_neg, zpow_coe_nat],
+      apply inv_le_one,
+      { norm_cast,
+        apply one_le_pow,
+        exact hp.1.pos }
     end
 
 theorem norm_int_le_one (z : ℤ) : ∥(z : ℚ_[p])∥ ≤ 1 :=
@@ -896,11 +848,9 @@ begin
       apply dvd_zero },
     { norm_cast at H ⊢,
       convert zpow_zero _,
-      simp only [neg_eq_zero],
-      rw padic_val_rat.padic_val_rat_of_int _ hp.1.ne_one H,
+      rw [neg_eq_zero, padic_val_rat.of_int],
       norm_cast,
-      rw [← enat.coe_inj, enat.coe_get, nat.cast_zero],
-      apply multiplicity.multiplicity_eq_zero_of_not_dvd h } },
+      apply padic_val_int.eq_zero_of_not_dvd h } },
   { rintro ⟨x, rfl⟩,
     push_cast,
     rw padic_norm_e.mul,
@@ -909,15 +859,15 @@ begin
     ... < 1 : _,
     { rw [mul_one, padic_norm_e.norm_p],
       apply inv_lt_one,
-      exact_mod_cast hp.1.one_lt }, },
+      exact_mod_cast hp.1.one_lt } }
 end
 
-lemma norm_int_le_pow_iff_dvd (k : ℤ) (n : ℕ) : ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k :=
+lemma norm_int_le_pow_iff_dvd (k : ℤ) (n : ℕ) : ∥(k : ℚ_[p])∥ ≤ (↑p)^(-n : ℤ) ↔ ↑(p^n) ∣ k :=
 begin
   have : (p : ℝ) ^ (-n : ℤ) = ↑((p ^ (-n : ℤ) : ℚ)), {simp},
   rw [show (k : ℚ_[p]) = ((k : ℚ) : ℚ_[p]), by norm_cast, eq_padic_norm, this],
   norm_cast,
-  rw padic_norm.dvd_iff_norm_le,
+  rw ← padic_norm.dvd_iff_norm_le
 end
 
 lemma eq_of_norm_add_lt_right {p : ℕ} {hp : fact p.prime} {z1 z2 : ℚ_[p]}
@@ -934,8 +884,8 @@ end normed_space
 end padic_norm_e
 
 namespace padic
-variables {p : ℕ} [hp_prime : fact p.prime]
-include hp_prime
+variables {p : ℕ} [hp : fact p.prime]
+include hp
 
 set_option eqn_compiler.zeta true
 instance complete : cau_seq.is_complete ℚ_[p] norm :=
@@ -966,9 +916,21 @@ calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
                 ... ≤ a : max_le (le_of_lt (hN _ le_rfl)) (hf _)
 
-/-!
-### Valuation on `ℚ_[p]`
--/
+open filter set
+
+instance : complete_space ℚ_[p] :=
+begin
+  apply complete_of_cauchy_seq_tendsto,
+  intros u hu,
+  let c : cau_seq ℚ_[p] norm := ⟨u, metric.cauchy_seq_iff'.mp hu⟩,
+  refine ⟨c.lim, λ s h, _⟩,
+  rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
+  have := c.equiv_lim ε ε0,
+  simp only [mem_map, mem_at_top_sets, mem_set_of_eq],
+  exact this.imp (λ N hN n hn, hε (hN n hn))
+end
+
+/-! ### Valuation on `ℚ_[p]` -/
 
 /--
 `padic.valuation` lifts the p-adic valuation on rationals to `ℚ_[p]`.
@@ -981,7 +943,7 @@ begin
     simp [hf, hg, padic_seq.valuation] },
   { have hg : ¬ g ≈ 0, from (λ hg, hf (setoid.trans h hg)),
     rw padic_seq.val_eq_iff_norm_eq hf hg,
-    exact padic_seq.norm_equiv h },
+    exact padic_seq.norm_equiv h }
 end)
 
 @[simp] lemma valuation_zero : valuation (0 : ℚ_[p]) = 0 :=
@@ -993,7 +955,7 @@ begin
   have h : ¬ cau_seq.const (padic_norm p) 1 ≈ 0,
   { assume H, erw const_equiv p at H, exact one_ne_zero H },
   rw dif_neg h,
-  simp,
+  simp
 end
 
 lemma norm_eq_pow_val {x : ℚ_[p]} : x ≠ 0 → ∥x∥ = p^(-x.valuation) :=
@@ -1003,38 +965,114 @@ begin
   change (padic_seq.norm _ : ℝ) = (p : ℝ) ^ -padic_seq.valuation _,
   rw padic_seq.norm_eq_pow_val,
   change ↑((p : ℚ) ^ -padic_seq.valuation f) = (p : ℝ) ^ -padic_seq.valuation f,
-  { rw rat.cast_zpow,
-    congr' 1,
-    norm_cast },
+  { rw [rat.cast_zpow, rat.cast_coe_nat] },
   { apply cau_seq.not_lim_zero_of_not_congr_zero,
     contrapose! hf,
     apply quotient.sound,
-    simpa using hf, }
+    simpa using hf }
 end
 
 @[simp] lemma valuation_p : valuation (p : ℚ_[p]) = 1 :=
 begin
   have h : (1 : ℝ) < p := by exact_mod_cast (fact.out p.prime).one_lt,
-  rw ← neg_inj,
-  apply (zpow_strict_mono h).injective,
-  dsimp only,
-  rw ← norm_eq_pow_val,
-  { simp },
-  { exact_mod_cast (fact.out p.prime).ne_zero }
+  refine neg_injective ((zpow_strict_mono h).injective $ (norm_eq_pow_val _).symm.trans _),
+  { exact_mod_cast (fact.out p.prime).ne_zero },
+  { simp }
 end
 
+lemma valuation_map_add {x y : ℚ_[p]} (hxy : x + y ≠ 0) :
+  min (valuation x) (valuation y) ≤ valuation (x + y) :=
+begin
+  by_cases hx : x = 0,
+  { rw [hx, zero_add],
+    exact min_le_right _ _ },
+  { by_cases hy : y = 0,
+    { rw [hy, add_zero],
+      exact min_le_left _ _ },
+    { have h_norm : ∥x + y∥ ≤ (max ∥x∥ ∥y∥) := padic_norm_e.nonarchimedean x y,
+      have hp_one : (1 : ℝ) < p,
+      { rw [← nat.cast_one, nat.cast_lt],
+        exact nat.prime.one_lt hp.elim },
+      rwa [norm_eq_pow_val hx, norm_eq_pow_val hy, norm_eq_pow_val hxy,
+        zpow_le_max_iff_min_le hp_one] at h_norm } }
+end
+
+@[simp] lemma valuation_map_mul {x y : ℚ_[p]} (hx : x ≠ 0) (hy : y ≠ 0) :
+  valuation (x * y) = valuation x + valuation y :=
+begin
+  have h_norm : ∥x * y∥ = ∥x∥ * ∥y∥ := norm_mul x y,
+  have hp_ne_one : (p : ℝ) ≠ 1,
+  { rw [← nat.cast_one, ne.def, nat.cast_inj],
+    exact nat.prime.ne_one hp.elim },
+  have hp_pos : (0 : ℝ) < p,
+  { rw [← nat.cast_zero, nat.cast_lt],
+    exact nat.prime.pos hp.elim },
+  rw [norm_eq_pow_val hx, norm_eq_pow_val hy, norm_eq_pow_val (mul_ne_zero hx hy),
+    ← zpow_add₀ (ne_of_gt hp_pos), zpow_inj hp_pos hp_ne_one, ← neg_add, neg_inj] at h_norm,
+  exact h_norm
+end
+
+/-- The additive p-adic valuation on `ℚ_p`, with values in `with_top ℤ`. -/
+def add_valuation_def : ℚ_[p] → (with_top ℤ) :=
+λ x, if x = 0 then ⊤ else x.valuation
+
+@[simp] lemma add_valuation.map_zero : add_valuation_def (0 : ℚ_[p]) = ⊤ :=
+by simp only [add_valuation_def, if_pos (eq.refl _)]
+
+@[simp] lemma add_valuation.map_one : add_valuation_def (1 : ℚ_[p]) = 0 :=
+by simp only [add_valuation_def, if_neg one_ne_zero, valuation_one,
+  with_top.coe_zero]
+
+lemma add_valuation.map_mul (x y : ℚ_[p]) :
+  add_valuation_def (x * y) = add_valuation_def x + add_valuation_def y :=
+begin
+  simp only [add_valuation_def],
+  by_cases hx : x = 0,
+  { rw [hx, if_pos (eq.refl _), zero_mul, if_pos (eq.refl _), with_top.top_add] },
+  { by_cases hy : y = 0,
+    { rw [hy, if_pos (eq.refl _), mul_zero, if_pos (eq.refl _), with_top.add_top] },
+    { rw [if_neg hx, if_neg hy, if_neg (mul_ne_zero hx hy), ← with_top.coe_add,
+        with_top.coe_eq_coe, valuation_map_mul hx hy] }}
+end
+
+lemma add_valuation.map_add (x y : ℚ_[p]) :
+  min (add_valuation_def x) (add_valuation_def y) ≤ add_valuation_def (x + y) :=
+begin
+  simp only [add_valuation_def],
+  by_cases hxy : x + y = 0,
+  { rw [hxy, if_pos (eq.refl _)],
+    exact le_top },
+  { by_cases hx : x = 0,
+    { simp only [hx, if_pos (eq.refl _), min_eq_right, le_top, zero_add, le_refl] },
+    { by_cases hy : y = 0,
+      { simp only [hy, if_pos (eq.refl _), min_eq_left, le_top, add_zero, le_refl] },
+      { rw [if_neg hx, if_neg hy, if_neg hxy, ← with_top.coe_min, with_top.coe_le_coe],
+        exact valuation_map_add hxy }}}
+end
+
+/-- The additive `p`-adic valuation on `ℚ_p`, as an `add_valuation`. -/
+def add_valuation : add_valuation ℚ_[p] (with_top ℤ) :=
+add_valuation.of add_valuation_def add_valuation.map_zero add_valuation.map_one
+  add_valuation.map_add add_valuation.map_mul
+
+@[simp] lemma add_valuation.apply {x : ℚ_[p]} (hx : x ≠ 0) :
+  x.add_valuation = x.valuation :=
+by simp only [add_valuation, add_valuation.of_apply, add_valuation_def, if_neg hx]
+
 section norm_le_iff
+
 /-! ### Various characterizations of open unit balls -/
+
 lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℚ_[p]) (n : ℤ) :
   ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
 begin
   have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
-  { apply nat.zpow_pos_of_pos, exact hp_prime.1.pos },
-  by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
+  { apply nat.zpow_pos_of_pos, exact hp.1.pos },
+  by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)] },
   rw norm_eq_pow_val hx0,
-  have h1p : 1 < (p : ℝ), { exact_mod_cast hp_prime.1.one_lt },
+  have h1p : 1 < (p : ℝ), { exact_mod_cast hp.1.one_lt },
   have H := zpow_strict_mono h1p,
-  rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
+  rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff]
 end
 
 lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℚ_[p]) (n : ℤ) :

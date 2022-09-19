@@ -48,6 +48,8 @@ instance : has_coe_to_sort ωCPO Type* := bundled.has_coe_to_sort
 /-- Construct a bundled ωCPO from the underlying type and typeclass. -/
 def of (α : Type*) [omega_complete_partial_order α] : ωCPO := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [omega_complete_partial_order α] : ↥(of α) = α := rfl
+
 instance : inhabited ωCPO := ⟨of punit⟩
 
 instance (α : ωCPO) : omega_complete_partial_order α := α.str
@@ -65,15 +67,16 @@ fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.eval_order_hom j) (λ 
 /-- The pi-type is a limit cone for the product. -/
 def is_product (J : Type v) (f : J → ωCPO) : is_limit (product f) :=
 { lift := λ s,
-    ⟨⟨λ t j, s.π.app j t, λ x y h j, (s.π.app j).monotone h⟩,
-     λ x, funext (λ j, (s.π.app j).continuous x)⟩,
+    ⟨⟨λ t j, s.π.app ⟨j⟩ t, λ x y h j, (s.π.app ⟨j⟩).monotone h⟩,
+     λ x, funext (λ j, (s.π.app ⟨j⟩).continuous x)⟩,
   uniq' := λ s m w,
   begin
     ext t j,
-    change m t j = s.π.app j t,
-    rw ← w j,
+    change m t j = s.π.app ⟨j⟩ t,
+    rw ← w ⟨j⟩,
     refl,
-  end }.
+  end,
+  fac' := λ s j, by { cases j, tidy, } }.
 
 instance (J : Type v) (f : J → ωCPO.{v}) : has_product f :=
 has_limit.mk ⟨_, is_product _ f⟩
@@ -120,7 +123,7 @@ fork.is_limit.mk' _ $ λ s,
 
 end has_equalizers
 
-instance : has_products ωCPO.{v} :=
+instance : has_products.{v} ωCPO.{v} :=
 λ J, { has_limit := λ F, has_limit_of_iso discrete.nat_iso_functor.symm }
 
 instance {X Y : ωCPO.{v}} (f g : X ⟶ Y) : has_limit (parallel_pair f g) :=
@@ -128,7 +131,7 @@ has_limit.mk ⟨_, has_equalizers.is_equalizer f g⟩
 
 instance : has_equalizers ωCPO.{v} := has_equalizers_of_has_limit_parallel_pair _
 
-instance : has_limits ωCPO.{v} := limits_from_equalizers_and_products
+instance : has_limits ωCPO.{v} := has_limits_of_has_equalizers_and_products
 
 end
 

@@ -37,18 +37,30 @@ instance [inhabited σ] : inhabited (DFA α σ) :=
 def eval_from (start : σ) : list α → σ :=
 list.foldl M.step start
 
+@[simp] lemma eval_from_nil (s : σ) : M.eval_from s [] = s := rfl
+@[simp] lemma eval_from_singleton (s : σ) (a : α) : M.eval_from s [a] = M.step s a := rfl
+@[simp] lemma eval_from_append_singleton (s : σ) (x : list α) (a : α) :
+  M.eval_from s (x ++ [a]) = M.step (M.eval_from s x) a :=
+by simp only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
+
 /-- `M.eval x` evaluates `M` with input `x` starting from the state `M.start`. -/
-def eval := M.eval_from M.start
+def eval : list α → σ := M.eval_from M.start
+
+@[simp] lemma eval_nil : M.eval [] = M.start := rfl
+@[simp] lemma eval_singleton (a : α) : M.eval [a] = M.step M.start a := rfl
+@[simp] lemma eval_append_singleton (x : list α) (a : α) :
+  M.eval (x ++ [a]) = M.step (M.eval x) a :=
+eval_from_append_singleton _ _ _ _
+
+lemma eval_from_of_append (start : σ) (x y : list α) :
+  M.eval_from start (x ++ y) = M.eval_from (M.eval_from start x) y :=
+x.foldl_append _ _ y
 
 /-- `M.accepts` is the language of `x` such that `M.eval x` is an accept state. -/
 def accepts : language α :=
 λ x, M.eval x ∈ M.accept
 
 lemma mem_accepts (x : list α) : x ∈ M.accepts ↔ M.eval_from M.start x ∈ M.accept := by refl
-
-lemma eval_from_of_append (start : σ) (x y : list α) :
-  M.eval_from start (x ++ y) = M.eval_from (M.eval_from start x) y :=
-x.foldl_append _ _ y
 
 lemma eval_from_split [fintype σ] {x : list α} {s t : σ} (hlen : fintype.card σ ≤ x.length)
   (hx : M.eval_from s x = t) :

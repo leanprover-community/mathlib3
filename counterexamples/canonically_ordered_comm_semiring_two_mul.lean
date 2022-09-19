@@ -124,7 +124,7 @@ begin
   { exact or.inr (by simpa using bc) }
 end
 
-lemma zero_le_one : (0 : ℕ × zmod 2) ≤ 1 := dec_trivial
+instance : zero_le_one_class (ℕ × zmod 2) := ⟨dec_trivial⟩
 
 lemma mul_lt_mul_of_pos_left : ∀ (a b c : ℕ × zmod 2), a < b → 0 < c → c * a < c * b :=
 λ a b c ab c0, lt_def.mpr ((mul_lt_mul_left (lt_def.mp c0)).mpr (lt_def.mp ab))
@@ -150,12 +150,6 @@ open Nxzmod_2 subtype
 
 /-- Initially, `L` was defined as the subsemiring closure of `(1,0)`. -/
 def L : Type := { l : (ℕ × zmod 2) // l ≠ (0, 1) }
-
-instance zero : has_zero L := ⟨⟨(0, 0), dec_trivial⟩⟩
-
-instance one : has_one L := ⟨⟨(1, 1), dec_trivial⟩⟩
-
-instance inhabited : inhabited L := ⟨1⟩
 
 lemma add_L {a b : ℕ × zmod 2} (ha : a ≠ (0, 1)) (hb : b ≠ (0, 1)) :
   a + b ≠ (0, 1) :=
@@ -191,20 +185,18 @@ begin
   { simp [mul_ne_zero _ _, nat.succ_ne_zero _] }
 end
 
-instance has_add_L : has_add L :=
-{ add := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a + b, add_L ha hb⟩ }
-
-instance : has_mul L :=
-{ mul := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a * b, mul_L ha hb⟩ }
+/-- The subsemiring corresponding to the elements of `L`, used to transfer instances. -/
+def L_subsemiring : subsemiring (ℕ × zmod 2) :=
+{ carrier := { l | l ≠ (0, 1) },
+  zero_mem' := dec_trivial,
+  one_mem' := dec_trivial,
+  add_mem' := λ _ _, add_L,
+  mul_mem' := λ _ _, mul_L }
 
 instance : ordered_comm_semiring L :=
-begin
-  refine function.injective.ordered_comm_semiring _ subtype.coe_injective rfl rfl _ _;
-  { refine λ x y, _,
-    cases x,
-    cases y,
-    refl }
-end
+L_subsemiring.to_ordered_comm_semiring
+
+instance inhabited : inhabited L := ⟨1⟩
 
 lemma bot_le : ∀ (a : L), 0 ≤ a :=
 begin
@@ -217,37 +209,24 @@ begin
     exact nat.succ_pos _ }
 end
 
-instance order_bot : order_bot L :=
-{ bot := 0,
-  bot_le := bot_le,
-  ..(infer_instance : partial_order L) }
+instance order_bot : order_bot L := ⟨0, bot_le⟩
 
-lemma le_iff_exists_add : ∀ (a b : L), a ≤ b ↔ ∃ (c : L), b = a + c :=
+lemma exists_add_of_le : ∀ a b : L, a ≤ b → ∃ c, b = a + c :=
 begin
-  rintros ⟨⟨an, a2⟩, ha⟩ ⟨⟨bn, b2⟩, hb⟩,
-  rw subtype.mk_le_mk,
-  refine ⟨λ h, _, λ h, _⟩,
-  { rcases h with ⟨rfl, rfl⟩ | h,
-    { exact ⟨(0 : L), (add_zero _).symm⟩ },
-    { refine ⟨⟨⟨bn - an, b2 + a2⟩, _⟩, _⟩,
-      { rw [ne.def, prod.mk.inj_iff, not_and_distrib],
-        exact or.inl (ne_of_gt (tsub_pos_of_lt h)) },
-      { congr,
-        { exact (add_tsub_cancel_of_le h.le).symm },
-        { change b2 = a2 + (b2 + a2),
-          rw [add_comm b2, ← add_assoc, add_self_zmod_2, zero_add] } } } },
-  { rcases h with ⟨⟨⟨c, c2⟩, hc⟩, abc⟩,
-    injection abc with abc,
-    rw [prod.mk_add_mk, prod.mk.inj_iff] at abc,
-    rcases abc with ⟨rfl, rfl⟩,
-    cases c,
-    { refine or.inl _,
-      rw [ne.def, prod.mk.inj_iff, eq_self_iff_true, true_and] at hc,
-      rcases mem_zmod_2 c2 with rfl | rfl,
-      { rw [add_zero, add_zero] },
-      { exact (hc rfl).elim } },
-    { refine or.inr _,
-      exact (lt_add_iff_pos_right _).mpr c.succ_pos } }
+  rintro a ⟨b, _⟩ (⟨rfl, rfl⟩ | h),
+  { exact ⟨0, (add_zero _).symm⟩ },
+  { exact ⟨⟨b - a.1, λ H, (tsub_pos_of_lt h).ne' (prod.mk.inj_iff.1 H).1⟩,
+      subtype.ext $ prod.ext (add_tsub_cancel_of_le h.le).symm (add_sub_cancel'_right _ _).symm⟩ }
+end
+
+lemma le_self_add : ∀ a b : L, a ≤ a + b :=
+begin
+  rintro a ⟨⟨bn, b2⟩, hb⟩,
+  obtain rfl | h := nat.eq_zero_or_pos bn,
+  { obtain rfl | rfl := mem_zmod_2 b2,
+    { exact or.inl (prod.ext (add_zero _).symm (add_zero _).symm) },
+    { exact (hb rfl).elim } },
+  { exact or.inr ((lt_add_iff_pos_right _).mpr h) }
 end
 
 lemma eq_zero_or_eq_zero_of_mul_eq_zero : ∀ (a b : L), a * b = 0 → a = 0 ∨ b = 0 :=
@@ -268,7 +247,8 @@ begin
 end
 
 instance can : canonically_ordered_comm_semiring L :=
-{ le_iff_exists_add := le_iff_exists_add,
+{ exists_add_of_le := exists_add_of_le,
+  le_self_add := le_self_add,
   eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
   ..(infer_instance : order_bot L),
   ..(infer_instance : ordered_comm_semiring L) }

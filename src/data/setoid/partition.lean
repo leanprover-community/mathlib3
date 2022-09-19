@@ -7,6 +7,7 @@ Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 import data.fintype.basic
 import data.set.finite
 import data.setoid.basic
+import order.partition.finpartition
 
 /-!
 # Equivalence relations: partitions
@@ -20,9 +21,10 @@ There are two implementations of partitions here:
 
 Of course both implementations are related to `quotient` and `setoid`.
 
-## TODO
+`setoid.is_partition.partition` and `finpartition.is_partition_parts` furnish
+a link between `setoid.is_partition` and `finpartition`.
 
-Link `setoid.is_partition` and `finpartition`.
+## TODO
 
 Could the design of `finpartition` inform the one of `setoid.is_partition`? Maybe bundling it and
 changing it from `set (set α)` to `set α` where `[lattice α] [order_bot α]` would make it more
@@ -65,9 +67,8 @@ lemma classes_ker_subset_fiber_set {β : Type*} (f : α → β) :
   (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
 by { rintro s ⟨x, rfl⟩, rw set.mem_range, exact ⟨f x, rfl⟩ }
 
-lemma nonempty_fintype_classes_ker {α β : Type*} [fintype β] (f : α → β) :
-  nonempty (fintype (setoid.ker f).classes) :=
-by { classical, exact ⟨set.fintype_subset _ (classes_ker_subset_fiber_set f)⟩ }
+lemma finite_classes_ker {α β : Type*} [finite β] (f : α → β) : finite (setoid.ker f).classes :=
+by { classical, exact finite.set.subset _ (classes_ker_subset_fiber_set f) }
 
 lemma card_classes_ker_le {α β : Type*} [fintype β]
   (f : α → β) [fintype (setoid.ker f).classes] :
@@ -237,7 +238,22 @@ _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order
 
 end partition
 
+/-- A finite setoid partition furnishes a finpartition -/
+@[simps]
+def is_partition.finpartition {c : finset (set α)}
+  (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
+{ parts := c,
+  sup_indep := finset.sup_indep_iff_pairwise_disjoint.mpr $ eqv_classes_disjoint hc.2,
+  sup_parts := c.sup_id_set_eq_sUnion.trans hc.sUnion_eq_univ,
+  not_bot_mem := hc.left }
+
 end setoid
+
+/-- A finpartition gives rise to a setoid partition -/
+theorem finpartition.is_partition_parts {α} (f : finpartition (set.univ : set α)) :
+  setoid.is_partition (f.parts : set (set α)) :=
+⟨f.not_bot_mem, setoid.eqv_classes_of_disjoint_union
+  (f.parts.sup_id_set_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩
 
 /-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,
 `s : ι → set α`.
@@ -274,9 +290,9 @@ variables {ι α : Type*} {s : ι → set α} (hs : indexed_partition s)
 instance [unique ι] [inhabited α] :
   inhabited (indexed_partition (λ i : ι, (set.univ : set α))) :=
 ⟨{ eq_of_mem := λ x i j hi hj, subsingleton.elim _ _,
-   some := λ i, default,
+   some := default,
    some_mem := set.mem_univ,
-   index := λ a, default,
+   index := default,
    mem_index := set.mem_univ }⟩
 
 attribute [simp] some_mem mem_index

@@ -299,7 +299,7 @@ variables {γ : Type*} [uniform_space γ] (pkg'' : abstract_completion γ)
 local notation `hatγ` := pkg''.space
 local notation `ι''` := pkg''.coe
 
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 /-- Lift two variable maps to completions. -/
 protected def map₂ (f : α → β → γ) : hatα → hatβ → hatγ :=

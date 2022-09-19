@@ -72,9 +72,9 @@ begin
     ∧ ∀ a ∈ t, ∀ b ∈ u, set.nonempty (a ∩ b) → ∃ c ∈ u, (a ∩ c).nonempty ∧ δ a ≤ τ * δ c},
   -- By Zorn, choose a maximal family in the good set `T` of disjoint families.
   obtain ⟨u, uT, hu⟩ : ∃ u ∈ T, ∀ v ∈ T, u ⊆ v → v = u,
-  { refine zorn.zorn_subset _ (λ U UT hU, _),
+  { refine zorn_subset _ (λ U UT hU, _),
     refine ⟨⋃₀ U, _, λ s hs, subset_sUnion_of_mem hs⟩,
-    simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index,
+    simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index, mem_sUnion,
                 set.mem_set_of_eq],
     refine ⟨λ u hu, (UT hu).1, (pairwise_disjoint_sUnion hU.directed_on).2 (λ u hu, (UT hu).2.1),
       λ a hat b u uU hbu hab, _⟩,
@@ -235,7 +235,7 @@ theorem exists_disjoint_covering_ae [metric_space α] [measurable_space α] [ope
   (t : set (set α)) (hf : ∀ x ∈ s, ∀ (ε > (0 : ℝ)), ∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε)
   (ht : ∀ a ∈ t, (interior a).nonempty) (h't : ∀ a ∈ t, is_closed a)
   (C : ℝ≥0) (h : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (3 * diam a)) ≤ C * μ a) :
-  ∃ u ⊆ t, countable u ∧ u.pairwise_disjoint id ∧ μ (s \ ⋃ (a ∈ u), a) = 0 :=
+  ∃ u ⊆ t, u.countable ∧ u.pairwise_disjoint id ∧ μ (s \ ⋃ (a ∈ u), a) = 0 :=
 begin
   /- The idea of the proof is the following. Assume for simplicity that `μ` is finite. Applying the
   abstract Vitali covering theorem with `δ = diam`, one obtains a disjoint subfamily `u`, such
@@ -293,7 +293,7 @@ begin
   have ut : u ⊆ t := λ a hau, (ut' hau).1,
   -- As the space is second countable, the family is countable since all its sets have nonempty
   -- interior.
-  have u_count : countable u :=
+  have u_count : u.countable :=
     u_disj.countable_of_nonempty_interior (λ a ha, ht a (ut ha)),
   -- the family `u` will be the desired family
   refine ⟨u, λ a hat', (ut' hat').1, u_count, u_disj, _⟩,
@@ -303,6 +303,7 @@ begin
   let v := {a ∈ u | (a ∩ ball x (r x)).nonempty },
   have vu : v ⊆ u := λ a ha, ha.1,
   -- they are all contained in a fixed ball of finite measure, thanks to our choice of `t'`
+
   obtain ⟨R, μR, hR⟩ : ∃ R, μ (closed_ball x R) < ∞ ∧
                           ∀ a ∈ u, (a ∩ ball x (r x)).nonempty → a ⊆ closed_ball x R,
   { have : ∀ a ∈ u, ∃ y, a ⊆ closed_ball y (r y) := λ a hau, (ut' hau).2,
@@ -348,8 +349,8 @@ begin
     nonpos_iff_eq_zero.mp (le_of_forall_le_of_dense (λ ε εpos, _))⟩,
   -- the elements of `v` are disjoint and all contained in a finite volume ball, hence the sum
   -- of their measures is finite.
-  have I : ∑' (a : v), μ a < ∞,
-  { calc ∑' (a : v), μ a = μ (⋃ (a ∈ v), a) : begin
+  have I : ∑' (a : v), μ (↑a) < ∞,
+  { calc ∑' (a : v), μ (↑a) = μ (⋃ (a ∈ v), a) : begin
       rw measure_bUnion (u_count.mono vu) _ (λ a ha, (h't _ (vu.trans ut ha)).measurable_set),
       exact u_disj.subset vu
     end
@@ -357,7 +358,7 @@ begin
     ... < ∞ : μR },
   -- we can obtain a finite subfamily of `v`, such that the measures of the remaining elements
   -- add up to an arbitrarily small number, say `ε / C`.
-  obtain ⟨w, hw⟩ : ∃ (w : finset ↥v), ∑' (a : {a // a ∉ w}), μ a < ε / C,
+  obtain ⟨w, hw⟩ : ∃ (w : finset ↥v), ∑' (a : {a // a ∉ w}), μ (↑a) < ε / C,
   { haveI : ne_bot (at_top : filter (finset v)) := at_top_ne_bot,
     have : 0 < ε / C, by simp only [ennreal.div_pos_iff, εpos.ne', ennreal.coe_ne_top, ne.def,
                                     not_false_iff, and_self],
@@ -368,7 +369,7 @@ begin
   have M : (s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ ball x (r x)
     ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y a) (3 * diam (a : set α)),
   { assume z hz,
-    set k := ⋃ (a : v) (ha : a ∈ w), (a : set α) with hk,
+    set k := ⋃ (a : v) (ha : a ∈ w), (↑a : set α) with hk,
     have k_closed : is_closed k :=
       is_closed_bUnion w.finite_to_set (λ i hi, h't _ (ut (vu i.2))),
     have z_notmem_k : z ∉ k,
@@ -401,7 +402,7 @@ begin
     -- contrary to `b`
     have b'_notmem_w : b' ∉ w,
     { assume b'w,
-      have b'k : (b' : set α) ⊆ k := finset.subset_set_bUnion_of_mem b'w,
+      have b'k : (↑b' : set α) ⊆ k := finset.subset_set_bUnion_of_mem b'w,
       have : ((ball x (r x) \ k) ∩ k).nonempty := ab.mono (inter_subset_inter (ad.trans hd) b'k),
       simpa only [diff_inter_self, not_nonempty_empty] },
     let b'' : {a // a ∉ w} := ⟨b', b'_notmem_w⟩,
@@ -415,19 +416,20 @@ begin
         apply dist_le_diam_of_mem (bounded_closed_ball.mono hc) eb (hy b (ut bu)).1 },
       simp only [mem_closed_ball],
       linarith [dist_triangle z e (y b)] },
-    suffices H : closed_ball (y (b'' : set α)) (3 * diam (b'' : set α))
-      ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y (a : set α)) (3 * diam (a : set α)), from H zb,
-    exact subset_Union (λ (a : {a // a ∉ w}), closed_ball (y a) (3 * diam (a : set α))) b'' },
+    suffices H : closed_ball (y (↑b'')) (3 * diam (↑b'' : set α))
+      ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y (↑a)) (3 * diam (↑a : set α)), from H zb,
+    exact subset_Union (λ (a : {a // a ∉ w}), closed_ball (y (↑a)) (3 * diam (↑a : set α))) b'' },
   -- now that we have proved our main inclusion, we can use it to estimate the measure of the points
   -- in `ball x (r x)` not covered by `u`.
   haveI : encodable v := (u_count.mono vu).to_encodable,
   calc μ ((s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ ball x (r x))
-      ≤ μ (⋃ (a : {a // a ∉ w}), closed_ball (y a) (3 * diam (a : set α))) : measure_mono M
-  ... ≤ ∑' (a : {a // a ∉ w}), μ (closed_ball (y a) (3 * diam (a : set α))) : measure_Union_le _
-  ... ≤ ∑' (a : {a // a ∉ w}), C * μ a : ennreal.tsum_le_tsum (λ a, (hy a (ut (vu a.1.2))).2)
-  ... = C * ∑' (a : {a // a ∉ w}), μ a : ennreal.tsum_mul_left
+      ≤ μ (⋃ (a : {a // a ∉ w}), closed_ball (y (↑a)) (3 * diam (↑a : set α))) : measure_mono M
+  ... ≤ ∑' (a : {a // a ∉ w}), μ (closed_ball (y (↑a)) (3 * diam (↑a : set α))) :
+    measure_Union_le _
+  ... ≤ ∑' (a : {a // a ∉ w}), C * μ (↑a) : ennreal.tsum_le_tsum (λ a, (hy a (ut (vu a.1.2))).2)
+  ... = C * ∑' (a : {a // a ∉ w}), μ (↑a) : ennreal.tsum_mul_left
   ... ≤ C * (ε / C) : ennreal.mul_le_mul le_rfl hw.le
-  ... ≤ ε : ennreal.mul_div_le,
+  ... ≤ ε : ennreal.mul_div_le
 end
 
 /-- Assume that around every point there are arbitrarily small scales at which the measure is

@@ -203,7 +203,7 @@ instance : inhabited (cau_seq β abv) := ⟨0⟩
 @[simp] theorem const_zero : const 0 = 0 := rfl
 
 theorem const_add (x y : β) : const (x + y) = const x + const y :=
-ext $ λ i, rfl
+rfl
 
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i * g i : β), λ ε ε0,
@@ -234,17 +234,34 @@ instance : has_sub (cau_seq β abv) :=
 theorem const_sub (x y : β) : const (x - y) = const x - const y :=
 ext $ λ i, rfl
 
+instance : add_group (cau_seq β abv) :=
+by refine_struct
+     { add := (+),
+       neg := has_neg.neg,
+       zero := (0 : cau_seq β abv),
+       sub := has_sub.sub,
+       zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+       nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ };
+intros; try { refl }; apply ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+
+instance : add_group_with_one (cau_seq β abv) :=
+{ one := 1,
+  nat_cast := λ n, const n,
+  nat_cast_zero := congr_arg const nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg const (nat.cast_succ n),
+  int_cast := λ n, const n,
+  int_cast_of_nat := λ n, congr_arg const (int.cast_of_nat n),
+  int_cast_neg_succ_of_nat := λ n, congr_arg const (int.cast_neg_succ_of_nat n),
+  .. cau_seq.add_group }
+
 instance : ring (cau_seq β abv) :=
 by refine_struct
-     { neg := has_neg.neg,
-       add := (+),
+     { add := (+),
        zero := (0 : cau_seq β abv),
        mul := (*),
        one := 1,
-       sub := has_sub.sub,
        npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
-       nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩,
-       zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+       .. cau_seq.add_group_with_one };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 
@@ -304,20 +321,14 @@ instance equiv : setoid (cau_seq β abv) :=
 
 lemma add_equiv_add {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
   f1 + g1 ≈ f2 + g2 :=
-begin
-  change lim_zero ((f1 + g1) - _),
-  convert add_lim_zero hf hg using 1,
-  simp only [sub_eq_add_neg, add_assoc],
-  rw add_comm (-f2), simp only [add_assoc],
-  congr' 2, simp
-end
+by simpa only [←add_sub_add_comm] using add_lim_zero hf hg
 
 lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
-begin
-  have hf : lim_zero _ := neg_lim_zero hf,
-  show lim_zero (-f - -g),
-  convert hf using 1, simp
-end
+by simpa only [neg_sub'] using neg_lim_zero hf
+
+lemma sub_equiv_sub {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
+  f1 - g1 ≈ f2 - g2 :=
+by simpa only [sub_eq_add_neg] using add_equiv_add hf (neg_equiv_neg hg)
 
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
@@ -399,6 +410,11 @@ variables {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf
+
+lemma mul_equiv_mul {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
+  f1 * g1 ≈ f2 * g2 :=
+by simpa only [mul_sub, mul_comm, sub_add_sub_cancel]
+  using add_lim_zero (mul_lim_zero_right g1 hf) (mul_lim_zero_right f2 hg)
 
 end comm_ring
 

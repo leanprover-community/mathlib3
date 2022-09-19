@@ -3,10 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.opens
 import category_theory.category.preorder
 import category_theory.eq_to_hom
 import topology.category.Top.epi_mono
+import topology.sets.opens
 
 /-!
 # The category of open sets in a topological space.
@@ -292,6 +292,14 @@ begin
   exact ⟨ λ ⟨⟨_,_⟩,h,rfl⟩, h, λ h, ⟨⟨x,trivial⟩,h,rfl⟩ ⟩ },
   intros, apply subsingleton.helim, congr' 1,
   iterate 2 {apply inclusion_top_functor.obj_eq},
+end
+
+lemma functor_obj_map_obj {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) (U : opens Y) :
+  hf.functor.obj ((opens.map f).obj U) = hf.functor.obj ⊤ ⊓ U :=
+begin
+  ext, split,
+  { rintros ⟨x, hx, rfl⟩, exact ⟨⟨x, trivial, rfl⟩, hx⟩ },
+  { rintros ⟨⟨x, -, rfl⟩, hx⟩, exact ⟨x, hx, rfl⟩ }
 end
 
 end topological_space.opens

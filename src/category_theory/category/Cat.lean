@@ -63,11 +63,28 @@ instance bicategory.strict : bicategory.strict Cat.{v u} :=
 /-- Category structure on `Cat` -/
 instance category : large_category.{max v u} Cat.{v u} := strict_bicategory.category Cat.{v u}
 
+@[simp]
+lemma id_map {C : Cat} {X Y : C} (f : X ⟶ Y) : (𝟙 C : C ⥤ C).map f = f :=
+functor.id_map f
+
+@[simp]
+lemma comp_obj {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) (X : C) :
+  (F ≫ G).obj X = G.obj (F.obj X) :=
+functor.comp_obj F G X
+
+@[simp]
+lemma comp_map {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
+  (F ≫ G).map f = G.map (F.map f) :=
+functor.comp_map F G f
+
 /-- Functor that gets the set of objects of a category. It is not
 called `forget`, because it is not a faithful functor. -/
 def objects : Cat.{v u} ⥤ Type u :=
 { obj := λ C, C,
   map := λ C D F, F.obj }
+
+section
+local attribute [simp] eq_to_hom_map
 
 /-- Any isomorphism in `Cat` induces an equivalence of the underlying categories. -/
 def equiv_of_iso {C D : Cat} (γ : C ≅ D) : C ≌ D :=
@@ -75,6 +92,8 @@ def equiv_of_iso {C D : Cat} (γ : C ≅ D) : C ≌ D :=
   inverse := γ.inv,
   unit_iso := eq_to_iso $ eq.symm γ.hom_inv_id,
   counit_iso := eq_to_iso γ.inv_hom_id }
+
+end
 
 end Cat
 
@@ -86,19 +105,21 @@ This ought to be modelled as a 2-functor!
 @[simps]
 def Type_to_Cat : Type u ⥤ Cat :=
 { obj := λ X, Cat.of (discrete X),
-  map := λ X Y f, discrete.functor f,
+  map := λ X Y f, discrete.functor (discrete.mk ∘ f),
   map_id' := λ X, begin apply functor.ext, tidy, end,
   map_comp' := λ X Y Z f g, begin apply functor.ext, tidy, end }
 
-instance : faithful Type_to_Cat.{u} := {}
+instance : faithful Type_to_Cat.{u} :=
+{ map_injective' := λ X Y f g h, funext (λ x, congr_arg discrete.as (functor.congr_obj h ⟨x⟩)), }
+
 instance : full Type_to_Cat.{u} :=
-{ preimage := λ X Y F, F.obj,
+{ preimage := λ X Y F, discrete.as ∘ F.obj ∘ discrete.mk,
   witness' :=
   begin
     intros X Y F,
     apply functor.ext,
     { intros x y f, dsimp, ext, },
-    { intros x, refl, }
+    { rintros ⟨x⟩, ext, refl, }
   end }
 
 end category_theory

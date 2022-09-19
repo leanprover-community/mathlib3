@@ -34,7 +34,9 @@ attribute [protected] Bipointed.X
 /-- Turns a bipointing into a bipointed type. -/
 def of {X : Type*} (to_prod : X × X) : Bipointed := ⟨X, to_prod⟩
 
-alias of ← prod.Bipointed
+@[simp] lemma coe_of {X : Type*} (to_prod : X × X) : ↥(of to_prod) = X := rfl
+
+alias of ← _root_.prod.Bipointed
 
 instance : inhabited Bipointed := ⟨of ((), ())⟩
 

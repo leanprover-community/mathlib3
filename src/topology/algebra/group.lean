@@ -558,8 +558,7 @@ lemma subgroup.is_normal_topological_closure {G : Type*} [topological_space G] [
 { conj_mem := λ n hn g,
   begin
     apply map_mem_closure (topological_group.continuous_conj g) hn,
-    intros m hm,
-    exact (subgroup.normal.conj_mem infer_instance m hm g),
+    exact λ m hm, subgroup.normal.conj_mem infer_instance m hm g
   end }
 
 @[to_additive] lemma mul_mem_connected_component_one {G : Type*} [topological_space G]

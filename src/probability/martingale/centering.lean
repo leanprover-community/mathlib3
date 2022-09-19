@@ -64,8 +64,7 @@ def martingale_part {m0 : measurable_space Ω}
   (ℱ : filtration ℕ m0) (μ : measure Ω) (f : ℕ → Ω → E) : ℕ → Ω → E :=
 λ n, f n - predictable_part ℱ μ f n
 
-lemma martingale_part_add_predictable_part
-  (ℱ : filtration ℕ m0) (μ : measure Ω) (ℱ : filtration ℕ m0) (μ : measure Ω) (f : ℕ → Ω → E) :
+lemma martingale_part_add_predictable_part (ℱ : filtration ℕ m0) (μ : measure Ω) (f : ℕ → Ω → E) :
   martingale_part ℱ μ f + predictable_part ℱ μ f = f :=
 sub_add_cancel _ _
 

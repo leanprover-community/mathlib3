@@ -41,7 +41,7 @@ is only for `fin m` - Lean automatically figures out that the function space `fi
 is _also_ measurable, by using `measurable_space.pi`, and furthermore that all sets are measurable,
 from `measurable_singleton_class.pi`. -/
 instance : measurable_space (fin m) := ⊤
-instance : measurable_singleton_class bool := ⟨λ _, trivial⟩
+instance : measurable_singleton_class (fin m) := ⟨λ _, trivial⟩
 
 /- We then endow the space with a canonical measure, which is called ℙ.
 We define this to be the conditional counting measure. -/

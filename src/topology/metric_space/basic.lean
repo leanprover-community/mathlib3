@@ -2482,52 +2482,6 @@ lemma tendsto_cocompact_of_tendsto_dist_comp_at_top {f : β → α} {l : filter 
   (h : tendsto (λ y, dist (f y) x) l at_top) : tendsto f l (cocompact α) :=
 by { refine tendsto.mono_right _ (comap_dist_right_at_top_le_cocompact x), rwa tendsto_comap_iff }
 
-namespace int
-open metric
-
-/-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
-lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
-begin
-  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
-  simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
-  change ∀ r : ℝ, (coe ⁻¹' (ball (0 : ℝ) r)).finite,
-  simp [real.ball_eq_Ioo, set.finite_Ioo],
-end
-
-/-- For nonzero `a`, the "multiples of `a`" map `zmultiples_hom` from `ℤ` to `ℝ` is discrete, i.e.
-inverse images of compact sets are finite. -/
-lemma tendsto_zmultiples_hom_cofinite {a : ℝ} (ha : a ≠ 0) :
-  filter.tendsto (zmultiples_hom ℝ a) filter.cofinite (filter.cocompact ℝ) :=
-begin
-  convert (filter.tendsto_cocompact_mul_right₀ ha).comp int.tendsto_coe_cofinite,
-  ext n,
-  simp,
-end
-
-end int
-
-namespace add_subgroup
-
-/-- The coercion into `ℝ` from its subtype "multiples of `a`" (`zmultiples a`) is discrete, i.e.
-inverse images of compact sets are finite. -/
-lemma tendsto_coe_zmultiples_cofinite (a : ℝ) :
-  filter.tendsto (coe : zmultiples a → ℝ) filter.cofinite (filter.cocompact ℝ) :=
-begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { rw add_subgroup.zmultiples_zero_eq_bot,
-    intros K hK,
-    rw [filter.mem_map, filter.mem_cofinite],
-    apply set.to_finite },
-  intros K hK,
-  have H := int.tendsto_zmultiples_hom_cofinite ha hK,
-  simp only [filter.mem_map, filter.mem_cofinite, ← set.preimage_compl] at ⊢ H,
-  rw [← (zmultiples_hom ℝ a).range_restrict_surjective.image_preimage (coe ⁻¹' Kᶜ),
-    ← set.preimage_comp, ← add_monoid_hom.coe_comp_range_restrict],
-  exact set.finite.image _ H,
-end
-
-end add_subgroup
-
 /-- We now define `metric_space`, extending `pseudo_metric_space`. -/
 class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)

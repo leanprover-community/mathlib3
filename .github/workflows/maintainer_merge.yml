@@ -42,4 +42,11 @@ jobs:
             ${{ format('{0} requested a maintainer merge on PR #{1}:', github.event.comment.user.login, github.event.issue.number) }}
 
             > ${{ github.event.issue.title }}
+
+      - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community')
+        name: Add reaction
+        uses: GrantBirki/comment@v2.0.1
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: rocket
             

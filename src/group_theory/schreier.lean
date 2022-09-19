@@ -152,18 +152,10 @@ begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
   let f : (Π g : S, zpowers (g : G)) →* G :=
-  { to_fun := λ a, ∏ g : S, a g,
-    map_one' := finset.prod_const_one,
-    map_mul' := λ a b, finset.prod_mul_distrib },
+  noncomm_pi_coprod (λ s t h x y hx hy, mul_comm x y),
   have hf : function.surjective f,
   { rw [←monoid_hom.range_top_iff_surjective, eq_top_iff, ←hS2, closure_le],
-    intros g₀ hg₀,
-    refine ⟨λ g, if ↑g = g₀ then ⟨g, mem_zpowers g⟩ else 1, _⟩,
-    simp only [f, monoid_hom.coe_mk],
-    refine (finset.prod_eq_single_of_mem (⟨g₀, hg₀⟩ : S) (finset.mem_univ ⟨g₀, hg₀⟩)
-      (λ g _ hg, _)).trans (congr_arg coe (if_pos rfl)),
-    rw [ne, subtype.ext_iff, subtype.coe_mk] at hg,
-    rw [if_neg hg, coe_one] },
+    exact λ g hg, ⟨pi.mul_single ⟨g, hg⟩ ⟨g, mem_zpowers g⟩, noncomm_pi_coprod_mul_single _ _⟩ },
   replace hf := nat_card_dvd_of_surjective f hf,
   rw nat.card_pi at hf,
   refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
@@ -322,14 +314,6 @@ section
 
 open quotient quotient_group
 
--- PRed
-def quotient_equiv_of_eq {M N : subgroup G} (h : M = N) :
-  G ⧸ M ≃ G ⧸ N :=
-{ to_fun := quotient.map' id (λ a b h', h ▸ h'),
-  inv_fun := quotient.map' id (λ a b h', h.symm ▸ h'),
-  left_inv := λ x, x.induction_on' $ by { intro, refl },
-  right_inv := λ x, x.induction_on' $ by { intro, refl } }
-
 end
 
 noncomputable def key_inclusion (g : G) :
@@ -385,9 +369,6 @@ begin
   exact fintype.card_pos,
 end
 
-lemma commutator_element_self (g : G) : ⁅g, g⁆ = 1 :=
-(commute.refl g).commutator_eq
-
 /-- docstring -/
 def myfun (n : ℕ) := (n ^ (n + n)) ^ (n ^ (n + n) * n + 1)
 
@@ -398,7 +379,7 @@ begin
   let n := nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
   change nat.card (commutator G) ≤ myfun n,
   haveI := fintype.of_finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
-  have hn₀ : 0 < n := @nat.card_pos _ _ ⟨by exact ⟨1, 1, 1, commutator_element_self G 1⟩⟩,
+  have hn₀ : 0 < n := @nat.card_pos _ _ ⟨by exact ⟨1, 1, 1, commutator_element_self 1⟩⟩,
   let f : {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} → G × G :=
   λ g, (classical.some g.2, classical.some (classical.some_spec g.2)),
   have hf : ∀ g, ⁅(f g).1, (f g).2⁆ = g := λ g, classical.some_spec (classical.some_spec g.2),

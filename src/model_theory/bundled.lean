@@ -130,6 +130,16 @@ instance right_Structure {L' : language} {T : (L.sum L').Theory} (M : T.Model) :
   L'.Structure M :=
 (Lhom.sum_inr : L' →ᴸ L.sum L').reduct M
 
+/-- A model of a theory is also a model of any subtheory. -/
+@[simps] def subtheory_Model (M : T.Model) {T' : L.Theory} (h : T' ⊆ T) :
+  T'.Model :=
+{ carrier := M,
+  is_model := ⟨λ φ hφ, realize_sentence_of_mem T (h hφ)⟩ }
+
+instance subtheory_Model_models (M : T.Model) {T' : L.Theory} (h : T' ⊆ T) :
+  M.subtheory_Model h ⊨ T :=
+M.is_model
+
 end Model
 
 variables {T}

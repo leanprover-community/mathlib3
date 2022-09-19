@@ -30,10 +30,10 @@ open_locale topological_space
 
 namespace complex
 
-/-- We say that `l : filter ℂ` is an *exponent comparison filter* if the real part tends to infinity
-along `l` and the imaginary part grows subexponentially compared to the real part. These properties
-guarantee that `(λ z, z ^ a₁ * exp (b₁ * z)) =o[l] (λ z, z ^ a₂ * exp (b₂ * z))` for any complex
-`a₁`, `a₂` and real `b₁ < b₂`.
+/-- We say that `l : filter ℂ` is an *exponential comparison filter* if the real part tends to
+infinity along `l` and the imaginary part grows subexponentially compared to the real part. These
+properties guarantee that `(λ z, z ^ a₁ * exp (b₁ * z)) =o[l] (λ z, z ^ a₂ * exp (b₂ * z))` for any
+complex `a₁`, `a₂` and real `b₁ < b₂`.
 
 In particular, the second property is automatically satisfied if the imaginary part is bounded along
 `l`. -/
@@ -101,8 +101,8 @@ lemma abs_im_pow_eventually_le_exp_re (hl : is_exp_cmp_filter l) (n : ℕ) :
   (λ z : ℂ, |z.im| ^ n) ≤ᶠ[l] (λ z, real.exp z.re) :=
 by simpa using (hl.is_o_im_pow_exp_re n).bound zero_lt_one
 
-/-- If `l : filter ℂ` is an "exponent comparison filter", then $\log |z| =o(ℜ z)$ along `l`.
-This is the main lemma in 
+/-- If `l : filter ℂ` is an "exponential comparison filter", then $\log |z| =o(ℜ z)$ along `l`.
+This is the main lemma in the proof of `complex.is_exp_cmp_filter.is_o_cpow_exp` below.
 -/
 lemma is_o_log_abs_re (hl : is_exp_cmp_filter l) : (λ z, real.log (abs z)) =o[l] re :=
 calc (λ z, real.log (abs z)) =O[l] (λ z, real.log (real.sqrt 2) + real.log (max z.re (|z.im|))) :
@@ -133,8 +133,8 @@ calc (λ z, real.log (abs z)) =O[l] (λ z, real.log (real.sqrt 2) + real.log (ma
 ### Main results
 -/
 
-/-- If `l : filter ℂ` is an "exponent comparison filter", then for any complex `a` and any positive
-real `b`, we have `(λ z, z ^ a) =o[l] (λ z, exp (b * z))`. -/
+/-- If `l : filter ℂ` is an "exponential comparison filter", then for any complex `a` and any
+positive real `b`, we have `(λ z, z ^ a) =o[l] (λ z, exp (b * z))`. -/
 lemma is_o_cpow_exp (hl : is_exp_cmp_filter l) (a : ℂ) {b : ℝ} (hb : 0 < b) :
   (λ z, z ^ a) =o[l] (λ z, exp (b * z)) :=
 calc (λ z, z ^ a) =Θ[l] λ z, abs z ^ re a : is_Theta_cpow_const_rpow $ λ _ _, hl.eventually_ne
@@ -147,7 +147,7 @@ calc (λ z, z ^ a) =Θ[l] λ z, abs z ^ re a : is_Theta_cpow_const_rpow $ λ _ _
     exact (hl.is_o_log_abs_re.const_mul_left _).const_mul_right hb.ne'
   end
 
-/-- If `l : filter ℂ` is an "exponent comparison filter", then for any complex `a₁`, `a₂` and any
+/-- If `l : filter ℂ` is an "exponential comparison filter", then for any complex `a₁`, `a₂` and any
 real `b₁ < b₂`, we have `(λ z, z ^ a₁ * exp (b₁ * z)) =o[l] (λ z, z ^ a₂ * exp (b₂ * z))`. -/
 lemma is_o_cpow_mul_exp {b₁ b₂ : ℝ} (hl : is_exp_cmp_filter l) (hb : b₁ < b₂) (a₁ a₂ : ℂ) :
   (λ z, z ^ a₁ * exp (b₁ * z)) =o[l] (λ z, z ^ a₂ * exp (b₂ * z)) :=
@@ -159,19 +159,19 @@ calc (λ z, z ^ a₁ * exp (b₁ * z)) =ᶠ[l] (λ z, z ^ a₂ * exp (b₁ * z) 
 ... =ᶠ[l] λ z, z ^ a₂ * exp (b₂ * z) :
   by simp only [of_real_sub, sub_mul, mul_assoc, ← exp_add, add_sub_cancel'_right]
 
-/-- If `l : filter ℂ` is an "exponent comparison filter", then for any complex `a` and any negative
-real `b`, we have `(λ z, exp (b * z)) =o[l] (λ z, z ^ a)`. -/
+/-- If `l : filter ℂ` is an "exponential comparison filter", then for any complex `a` and any
+negative real `b`, we have `(λ z, exp (b * z)) =o[l] (λ z, z ^ a)`. -/
 lemma is_o_exp_cpow (hl : is_exp_cmp_filter l) (a : ℂ) {b : ℝ} (hb : b < 0) :
   (λ z, exp (b * z)) =o[l] (λ z, z ^ a) :=
 by simpa using hl.is_o_cpow_mul_exp hb 0 a
 
-/-- If `l : filter ℂ` is an "exponent comparison filter", then for any complex `a₁`, `a₂` and any
+/-- If `l : filter ℂ` is an "exponential comparison filter", then for any complex `a₁`, `a₂` and any
 natural `b₁ < b₂`, we have `(λ z, z ^ a₁ * exp (b₁ * z)) =o[l] (λ z, z ^ a₂ * exp (b₂ * z))`. -/
 lemma is_o_pow_mul_exp {b₁ b₂ : ℝ} (hl : is_exp_cmp_filter l) (hb : b₁ < b₂) (m n : ℕ) :
   (λ z, z ^ m * exp (b₁ * z)) =o[l] (λ z, z ^ n * exp (b₂ * z)) :=
 by simpa only [cpow_nat_cast] using hl.is_o_cpow_mul_exp hb m n
 
-/-- If `l : filter ℂ` is an "exponent comparison filter", then for any complex `a₁`, `a₂` and any
+/-- If `l : filter ℂ` is an "exponential comparison filter", then for any complex `a₁`, `a₂` and any
 integer `b₁ < b₂`, we have `(λ z, z ^ a₁ * exp (b₁ * z)) =o[l] (λ z, z ^ a₂ * exp (b₂ * z))`. -/
 lemma is_o_zpow_mul_exp {b₁ b₂ : ℝ} (hl : is_exp_cmp_filter l) (hb : b₁ < b₂) (m n : ℤ) :
   (λ z, z ^ m * exp (b₁ * z)) =o[l] (λ z, z ^ n * exp (b₂ * z)) :=

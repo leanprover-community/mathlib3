@@ -524,8 +524,8 @@ end monotone
 section nontrivial
 variables [nontrivial α]
 
-lemma lt_add_one (a : α) : a < a + 1 := lt_add_of_le_of_pos le_rfl zero_lt_one
-lemma lt_one_add (a : α) : a < 1 + a := (lt_add_one _).trans_eq $ add_comm _ _
+lemma lt_one_add (a : α) : a < 1 + a := lt_add_of_pos_left _ zero_lt_one
+lemma lt_add_one (a : α) : a < a + 1 := lt_add_of_pos_right _ zero_lt_one
 
 lemma one_lt_two : (1 : α) < 2 := lt_add_one _
 

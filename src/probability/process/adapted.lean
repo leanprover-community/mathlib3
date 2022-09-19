@@ -3,9 +3,7 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying, Rémy Degenne
 -/
-
 import probability.process.filtration
-
 
 /-!
 # Adapted and progressively measurable processes

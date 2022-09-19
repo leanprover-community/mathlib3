@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import data.zmod.quotient
+import group_theory.noncomm_pi_coprod
 import group_theory.order_of_element
 import algebra.gcd_monoid.finset
 import algebra.punit_instances
@@ -327,18 +328,10 @@ begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
   let f : (Π g : S, zpowers (g : G)) →* G :=
-  { to_fun := λ a, ∏ g : S, a g,
-    map_one' := finset.prod_const_one,
-    map_mul' := λ a b, finset.prod_mul_distrib },
+  noncomm_pi_coprod (λ s t h x y hx hy, mul_comm x y),
   have hf : function.surjective f,
   { rw [←monoid_hom.range_top_iff_surjective, eq_top_iff, ←hS2, closure_le],
-    intros g₀ hg₀,
-    refine ⟨λ g, if ↑g = g₀ then ⟨g, mem_zpowers g⟩ else 1, _⟩,
-    simp only [f, monoid_hom.coe_mk],
-    refine (finset.prod_eq_single_of_mem (⟨g₀, hg₀⟩ : S) (finset.mem_univ ⟨g₀, hg₀⟩)
-      (λ g _ hg, _)).trans (congr_arg coe (if_pos rfl)),
-    rw [ne, subtype.ext_iff, subtype.coe_mk] at hg,
-    rw [if_neg hg, coe_one] },
+    exact λ g hg, ⟨pi.mul_single ⟨g, hg⟩ ⟨g, mem_zpowers g⟩, noncomm_pi_coprod_mul_single _ _⟩ },
   replace hf := nat_card_dvd_of_surjective f hf,
   rw nat.card_pi at hf,
   refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),

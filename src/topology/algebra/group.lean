@@ -1069,21 +1069,21 @@ def subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
   properly_discontinuous_smul S.opposite G :=
 { finite_disjoint_inter_image := begin
     intros K L hK hL,
+    have : continuous (λ p : G × G, (p.1⁻¹, p.2)) := continuous_inv.prod_map continuous_id,
     have H : set.finite _ :=
-      hS (((hK.image continuous_inv).prod hL).image continuous_mul).compl_mem_cocompact,
+      hS ((hK.prod hL).image (continuous_mul.comp this)).compl_mem_cocompact,
     convert H using 1,
     ext x,
     obtain ⟨x, hx⟩ := x,
     dsimp,
     simp_rw [set.ext_iff, prod.exists],
-    rw (equiv.inv G).exists_congr_left,
     calc (¬∀ (l : G), (∃ (k : G), k ∈ K ∧ k * x = l) ∧ l ∈ L ↔ false)
-        ↔ (¬∀ (l : G), (∃ (k : G), k ∈ K ∧ k⁻¹ * l = x) ∧ l ∈ L ↔ false) :
+        ↔ ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ k * x = l : by tidy
+    ... ↔ ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ k⁻¹ * l = x :
             begin
-              congrm (¬∀ (l : G), (∃ (k : G), _ ∧ _) ∧ _ ↔ _),
+              congrm ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ _,
               rw [inv_mul_eq_iff_eq_mul, @comm G (=)]
             end
-    ... ↔ ¬¬∃ a l, ((∃ k, k ∈ K ∧ k⁻¹ = a⁻¹) ∧ l ∈ L) ∧ a⁻¹ * l = x : by tidy,
   end }
 
 end

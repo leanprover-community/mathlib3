@@ -116,8 +116,12 @@ of_fn_injective $ eq_of_perm_of_sorted (σ.of_fn_comp_perm f) hfσ.of_fn_sorted 
 
 variables [linear_order α] {f : fin n → α}
 
+/-- A tuple `f` equals its sorted version if and only if it is monotone. -/
+lemma eq_comp_sort_iff_monotone : f ∘ sort f = f ↔ monotone f :=
+⟨λ h, h ▸ monotone_sort f, λ h, unique_monotone h $ monotone_sort f⟩
+
 /-- If a permutation of a tuple `f` is monotone, then it is equal to `f ∘ sort f`. -/
-lemma unique_sort' {σ : equiv.perm (fin n)} (h : monotone (f ∘ σ)) : f ∘ σ = f ∘ sort f :=
+lemma sort_unique {σ : equiv.perm (fin n)} (h : monotone (f ∘ σ)) : f ∘ σ = f ∘ sort f :=
 begin
   let σ' := (sort f)⁻¹ * σ,
   have h' : f ∘ σ = (f ∘ sort f) ∘ σ',
@@ -127,16 +131,6 @@ begin
   rwa [← h'],
 end
 
-/-- If a tuple `f` is monotone, then it equals `f ∘ sort f`. -/
-lemma unique_sort (h : monotone f) : f = f ∘ sort f :=
-begin
-  have hf : f = f ∘ (1 : equiv.perm (fin n)),
-  { simp only [equiv.perm.coe_one, function.comp.right_id], },
-  conv_lhs {rw hf},
-  rw hf at h,
-  exact unique_sort' h,
-end
-
 /-- The sorted versions of a tuple `f` and any permutation of it agree. -/
 lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
@@ -144,7 +138,7 @@ begin
   have h' : (f ∘ σ) ∘ τ = f ∘ sort f,
   { ext, simp only [equiv.perm.coe_mul, function.comp_app, equiv.perm.apply_inv_self] },
   have hm : monotone ((f ∘ σ) ∘ τ) := by { rw [h'], exact monotone_sort _, },
-  exact (unique_sort' hm).symm.trans h',
+  exact (sort_unique hm).symm.trans h',
 end
 
 /-- If a permutation `f ∘ σ` of the tuple `f` is not the same as `f ∘ sort f`, then `f ∘ σ`
@@ -158,7 +152,7 @@ begin
     cases eq_or_lt_of_le hij with heq hlt,
     { rw [heq], },
     { exact hf i j hlt, } },
-  exact h (unique_sort' hm),
+  exact h (sort_unique hm),
 end
 
 /-- If the tuple `f` is not the same as `f ∘ sort f`, then it has a pair of strictly decreasing

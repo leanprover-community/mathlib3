@@ -101,6 +101,8 @@ lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
 lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
 lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
 lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
+lemma add_pos {t : I} {x : ℝ} (hx : 0 < x) : 0 < (x + t : ℝ) :=
+add_pos_of_pos_of_nonneg hx $ nonneg _
 
 /-- like `unit_interval.nonneg`, but with the inequality in `I`. -/
 lemma nonneg' {t : I} : 0 ≤ t := t.2.1

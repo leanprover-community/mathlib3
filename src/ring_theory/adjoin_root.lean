@@ -273,10 +273,10 @@ noncomputable instance has_inv [fact (irreducible f)] : has_inv (adjoin_root f) 
 begin
   unfold has_inv.inv field.inv adjoin_root.has_inv ideal.quotient.field,
   split_ifs with h,
-  { show of f (x⁻¹) = 0, rw [(ring_hom.map_eq_zero _).mp h, inv_zero, map_zero] },
+  { show of f (x⁻¹) = 0, rw [(_root_.map_eq_zero _).mp h, inv_zero, map_zero] },
   show of f (x⁻¹) = classical.some (ideal.quotient.exists_inv _),
   conv_lhs { rw [← mul_one (of f (x⁻¹)), ← classical.some_spec (ideal.quotient.exists_inv h)] },
-  have : x ≠ 0 := mt (ring_hom.map_eq_zero _).mpr h,
+  have : x ≠ 0 := mt (_root_.map_eq_zero _).mpr h,
   rw [← mul_assoc, ← _root_.map_mul, inv_mul_cancel this, map_one, one_mul],
 end
 
@@ -286,7 +286,7 @@ rfl
 noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
 { rat_cast := λ a, of f (a : K),
   rat_cast_mk := λ a b h1 h2,
-    by rw [rat.cast_mk', _root_.map_mul, ring_hom.map_int_cast, of_inv, map_nat_cast],
+    by rw [rat.cast_mk', _root_.map_mul, _root_.map_int_cast, of_inv, map_nat_cast],
   qsmul := (•),
   qsmul_eq_mul' := λ a x, adjoin_root.induction_on _ x (λ p,
     by { rw [smul_mk, ← mk_C_rat_cast, ← (mk f).map_mul, polynomial.rat_smul_eq_C_mul] }),

@@ -411,8 +411,8 @@ continuous_uncurry_iff.mp begin
 end
 
 @[continuity]
-lemma _root_.continuous.path_trans (Y₁ Y₂ : Type) [topological_space Y] (f : Y → path x y)
-  (g : Y → path y z) : continuous f → continuous g → continuous (λ t, (f t).trans (g t)) :=
+lemma _root_.continuous.path_trans (f : Y → path x y) (g : Y → path y z) : continuous f →
+  continuous g → continuous (λ t, (f t).trans (g t)) :=
 begin
   intros hf hg,
   apply continuous_uncurry_iff.mp,

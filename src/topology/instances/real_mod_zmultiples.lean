@@ -14,53 +14,6 @@ import tactic.linear_combination
 
 open add_subgroup
 
-/-- A discrete subgroup of a topological group `G` acts on `G` properly discontinuously on the left.
--/
-def zz {G : Type*} [add_group G] [topological_space G] [topological_add_group G]
-  {H : add_subgroup G} (hH : filter.tendsto H.subtype filter.cofinite (filter.cocompact G)) :
-  properly_discontinuous_vadd H G :=
-{ finite_disjoint_inter_image := begin
-    intros K L hK hL,
-    have H : set.finite _ := hH ((hL.prod hK).image continuous_sub).compl_mem_cocompact,
-    convert H,
-    ext x,
-    rcases x with ⟨(x:G), hx⟩,
-    change (_ ≠ ∅) ↔ _,
-    simp only [set.image_vadd, set.image_prod, set.image2_sub, compl_compl, set.mem_preimage,
-      coe_mk, set.ne_empty_iff_nonempty, set.preimage_compl],
-    congrm (∃ ℓ, _),
-    simp only [set.mem_inter_eq, coe_mk, exists_and_distrib_left],
-    rw and_comm,
-    congrm _ ∧ (∃ k, _ ∧ _),
-    change (x + k = ℓ) ↔ ℓ - k = x,
-    rw sub_eq_iff_eq_add,
-    exact comm,
-  end }
-
-/-- A discrete subgroup of an abelian topological group `G` acts on `G` properly discontinuously on
-the right. -/
-def zz' {G : Type*} [add_comm_group G] [topological_space G] [topological_add_group G]
-  {H : add_subgroup G} (hH : filter.tendsto H.subtype filter.cofinite (filter.cocompact G)) :
-  properly_discontinuous_vadd H.opposite G :=
-{ finite_disjoint_inter_image := begin
-    intros K L hK hL,
-    have H : set.finite _ := hH ((hL.prod hK).image continuous_sub).compl_mem_cocompact,
-    convert H,
-    ext x,
-    rcases x with ⟨(x:G), hx⟩,
-    change (_ ≠ ∅) ↔ _,
-    simp only [set.image_vadd, set.image_prod, set.image2_sub, compl_compl, set.mem_preimage,
-      coe_mk, set.ne_empty_iff_nonempty, set.preimage_compl],
-    congrm (∃ ℓ, _),
-    simp only [set.mem_inter_eq, coe_mk, exists_and_distrib_left],
-    rw and_comm,
-    congrm _ ∧ (∃ k, _ ∧ _),
-    change (k + x = ℓ) ↔ ℓ - k = x,
-    rw sub_eq_iff_eq_add,
-    rw add_comm,
-    exact comm,
-  end }
-
 variables {a : ℝ}
 
 instance : has_continuous_const_vadd (zmultiples a).opposite ℝ :=
@@ -70,7 +23,8 @@ sorry
 /-- The action on `ℝ` by right multiplication of its the subgroup `zmultiples a` (the multiples of
 `a:ℝ`) is properly discontinuous. -/
 instance : properly_discontinuous_vadd (zmultiples a).opposite ℝ :=
-zz' (add_subgroup.tendsto_zmultiples_subtype_cofinite a)
+(zmultiples a).properly_discontinuous_vadd_opposite_of_tendsto_cofinite
+  (add_subgroup.tendsto_zmultiples_subtype_cofinite a)
 
 /-- The quotient of `ℝ` by the subgroup `zmultiples a` (the multiples of `a:ℝ`) is Hausdorff. -/
 instance : t2_space (ℝ ⧸ zmultiples a) := t2_space_of_properly_discontinuous_vadd_of_t2_space

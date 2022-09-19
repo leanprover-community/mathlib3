@@ -965,6 +965,10 @@ calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
 lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
+/-- A set `s` is open iff for every point `x` in `s` and every `y` close to `x`, `y` is in `s`. -/
+lemma is_open_iff_eventually {s : set α} : is_open s ↔ ∀ x, x ∈ s → ∀ᶠ y in 𝓝 x, y ∈ s :=
+is_open_iff_mem_nhds
+
 theorem is_open_iff_ultrafilter {s : set α} :
   is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
 by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
@@ -986,6 +990,15 @@ by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl
 
 alias mem_closure_iff_frequently ↔ _ filter.frequently.mem_closure
+
+/-- A set `s` is closed iff for every point `x`, if there is a point `y` close to `x` that belongs
+to `s` then `x` is in `s`. -/
+lemma is_closed_iff_frequently {s : set α} : is_closed s ↔ ∀ x, (∃ᶠ y in 𝓝 x, y ∈ s) → x ∈ s :=
+begin
+  rw ← closure_subset_iff_is_closed,
+  apply forall_congr (λ x, _),
+  rw mem_closure_iff_frequently
+end
 
 /-- The set of cluster points of a filter is closed. In particular, the set of limit points
 of a sequence is closed. -/

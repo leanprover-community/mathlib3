@@ -116,6 +116,21 @@ begin
     exact (n a).sets_of_superset (ht _ hat) hts },
 end
 
+lemma nhds_mk_of_nhds_single [decidable_eq α] {a₀ : α} {l : filter α} (h : pure a₀ ≤ l) (b : α) :
+  @nhds α (topological_space.mk_of_nhds $ update pure a₀ l) b =
+    (update pure a₀ l : α → filter α) b :=
+begin
+  refine nhds_mk_of_nhds _ _ (le_update_iff.mpr ⟨h, λ _ _, le_rfl⟩) (λ a s hs, _),
+  rcases eq_or_ne a a₀ with rfl|ha,
+  { refine ⟨s, hs, subset.rfl, λ b hb, _⟩,
+    rcases eq_or_ne b a with rfl|hb,
+    { exact hs },
+    { rwa [update_noteq hb] } },
+  { have hs' := hs,
+    rw [update_noteq ha] at hs ⊢,
+    exact ⟨{a}, rfl, singleton_subset_iff.mpr hs, forall_eq.2 hs'⟩ }
+end
+
 lemma nhds_mk_of_nhds_filter_basis (B : α → filter_basis α) (a : α) (h₀ : ∀ x (n ∈ B x), x ∈ n)
   (h₁ : ∀ x (n ∈ B x), ∃ n₁ ∈ B x, n₁ ⊆ n ∧ ∀ x' ∈ n₁, ∃ n₂ ∈ B x', n₂ ⊆ n) :
   @nhds α (topological_space.mk_of_nhds (λ x, (B x).filter)) a = (B a).filter :=

@@ -1,4 +1,4 @@
-name: Ping maintainers on Zulip when comment contains "maintainer merge"
+name: Maintainer merge
 
 on:
   issue_comment:

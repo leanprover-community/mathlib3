@@ -486,3 +486,17 @@ lemma pow_subset_pow {s : add_submonoid R} {n : ℕ} : (↑s : set R)^n ⊆ ↑(
 end semiring
 
 end add_submonoid
+
+namespace set.is_pwo
+variables [ordered_cancel_comm_monoid α] {s : set α}
+
+@[to_additive]
+lemma submonoid_closure (hpos : ∀ x : α, x ∈ s → 1 ≤ x) (h : s.is_pwo) :
+  is_pwo ((submonoid.closure s) : set α) :=
+begin
+  rw submonoid.closure_eq_image_prod,
+  refine (h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _,
+  exact λ l1 hl1 l2 hl2 h12, h12.prod_le_prod' (λ x hx, hpos x $ hl2 x hx)
+end
+
+end set.is_pwo

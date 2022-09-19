@@ -11,7 +11,6 @@ import order.conditionally_complete_lattice
 In this file we
 
 * define a `conditionally_complete_linear_order_bot` structure on `ℕ`;
-* define a `complete_linear_order` structure on `part_enat`;
 * prove a few lemmas about `supr`/`infi`/`set.Union`/`set.Inter` and natural numbers.
 -/
 

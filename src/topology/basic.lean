@@ -641,18 +641,24 @@ neighborhoods of `a` forms a filter, the neighborhood filter at `a`, is here def
 infimum over the principal filters of all open sets containing `a`. -/
 @[irreducible] def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
-localized "notation `𝓝` := nhds" in topological_space
+localized "notation (name := nhds) `𝓝` := nhds" in topological_space
 
 /-- The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
 intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
-localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
-localized "notation `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topological_space
-localized "notation `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topological_space
-localized "notation `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topological_space
-localized "notation `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topological_space
-localized "notation `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topological_space
+localized "notation (name := nhds_within)
+  `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
+localized "notation (name := nhds_within.ne)
+  `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topological_space
+localized "notation (name := nhds_within.ge)
+  `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topological_space
+localized "notation (name := nhds_within.le)
+  `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topological_space
+localized "notation (name := nhds_within.gt)
+  `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topological_space
+localized "notation (name := nhds_within.lt)
+  `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
@@ -1403,8 +1409,13 @@ lemma closure_subset_preimage_closure_image {f : α → β} {s : set α} (h : co
 by { rw ← set.image_subset_iff, exact image_closure_subset_closure_image h }
 
 lemma map_mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
-  (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
-set.maps_to.closure ht hf ha
+  (hf : continuous f) (ha : a ∈ closure s) (ht : maps_to f s t) : f a ∈ closure t :=
+ht.closure hf ha
+
+/-- If a continuous map `f` maps `s` to a closed set `t`, then it maps `closure s` to `t`. -/
+lemma set.maps_to.closure_left {s : set α} {t : set β} {f : α → β} (h : maps_to f s t)
+  (hc : continuous f) (ht : is_closed t) : maps_to f (closure s) t :=
+ht.closure_eq ▸ h.closure hc
 
 /-!
 ### Function with dense range

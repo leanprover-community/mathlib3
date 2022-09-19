@@ -77,7 +77,7 @@ class second_countable_topology_either
   second_countable_topology_either α β :=
 { out := or.inr (by apply_instance) }
 
-variables {α β γ ι : Type*} [encodable ι]
+variables {α β γ ι : Type*} [countable ι]
 namespace measure_theory
 
 local infixr ` →ₛ `:25 := simple_func
@@ -89,8 +89,8 @@ variable [topological_space β]
 def strongly_measurable [measurable_space α] (f : α → β) : Prop :=
 ∃ fs : ℕ → α →ₛ β, ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x))
 
-localized "notation `strongly_measurable[` m `]` := @measure_theory.strongly_measurable _ _ _ m"
-in measure_theory
+localized "notation (name := strongly_measurable_of)
+  `strongly_measurable[` m `]` := @measure_theory.strongly_measurable _ _ _ m" in measure_theory
 
 /-- A function is `fin_strongly_measurable` with respect to a measure if it is the limit of simple
   functions with support with finite measure. -/
@@ -250,6 +250,26 @@ begin
     { rwa div_le_one (lt_of_le_of_ne (norm_nonneg _) (ne.symm h0)), }, },
 end
 
+lemma _root_.strongly_measurable_bot_iff [nonempty β] [t2_space β] :
+  strongly_measurable[⊥] f ↔ ∃ c, f = λ _, c :=
+begin
+  casesI is_empty_or_nonempty α with hα hα,
+  { simp only [subsingleton.strongly_measurable', eq_iff_true_of_subsingleton, exists_const], },
+  refine ⟨λ hf, _, λ hf_eq, _⟩,
+  { refine ⟨f hα.some, _⟩,
+    let fs := hf.approx,
+    have h_fs_tendsto : ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x)) := hf.tendsto_approx,
+    have : ∀ n, ∃ c, ∀ x, fs n x = c := λ n, simple_func.simple_func_bot (fs n),
+    let cs := λ n, (this n).some,
+    have h_cs_eq : ∀ n, ⇑(fs n) = (λ x, cs n) := λ n, funext (this n).some_spec,
+    simp_rw h_cs_eq at h_fs_tendsto,
+    have h_tendsto : tendsto cs at_top (𝓝 (f hα.some)) := h_fs_tendsto hα.some,
+    ext1 x,
+    exact tendsto_nhds_unique (h_fs_tendsto x) h_tendsto, },
+  { obtain ⟨c, rfl⟩ := hf_eq,
+    exact strongly_measurable_const, },
+end
+
 end basic_properties_in_any_topological_space
 
 lemma fin_strongly_measurable_of_set_sigma_finite [topological_space β] [has_zero β]
@@ -281,12 +301,10 @@ begin
     have h : tendsto (λ n, (f_approx n) x) at_top (𝓝 (f x)), from hf_meas.tendsto_approx x,
     obtain ⟨n₁, hn₁⟩ : ∃ n, ∀ m, n ≤ m → fs m x = f_approx m x,
     { obtain ⟨n, hn⟩ : ∃ n, ∀ m, n ≤ m → x ∈ S m ∩ t,
-      { suffices : ∃ n, ∀ m, n ≤ m → x ∈ S m,
-        { obtain ⟨n, hn⟩ := this,
-          exact ⟨n, λ m hnm, set.mem_inter (hn m hnm) hxt⟩, },
-        suffices : ∃ n, x ∈ S n,
-        { rcases this with ⟨n, hn⟩,
-          exact ⟨n, λ m hnm, monotone_spanning_sets (μ.restrict t) hnm hn⟩, },
+      { rsuffices ⟨n, hn⟩ : ∃ n, ∀ m, n ≤ m → x ∈ S m,
+        { exact ⟨n, λ m hnm, set.mem_inter (hn m hnm) hxt⟩, },
+        rsuffices ⟨n, hn⟩ : ∃ n, x ∈ S n,
+        { exact ⟨n, λ m hnm, monotone_spanning_sets (μ.restrict t) hnm hn⟩, },
         rw [← set.mem_Union, Union_spanning_sets (μ.restrict t)],
         trivial, },
       refine ⟨n, λ m hnm, _⟩,
@@ -1850,12 +1868,11 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine measurable_of_tendsto_metrizable (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_meas : measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
         = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
     rw [this, @measurable_swap_iff α ↥((t_sf n).range) β m],
-    exact measurable_from_prod_encodable (λ j, h j), },
+    exact measurable_from_prod_countable (λ j, h j), },
   have : (λ p : ι × α, u (t_sf n p.fst) p.snd)
     = (λ p : ↥(t_sf n).range × α, u p.fst p.snd)
       ∘ (λ p : ι × α, (⟨t_sf n p.fst, simple_func.mem_range_self _ _⟩, p.snd)) := rfl,
@@ -1882,13 +1899,12 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine strongly_measurable_of_tendsto _ (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_str_meas : strongly_measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
     { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
           = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
       rw [this, measurable_swap_iff],
-      exact measurable_from_prod_encodable (λ j, (h j).measurable), },
+      exact measurable_from_prod_countable (λ j, (h j).measurable), },
     { have : is_separable (⋃ (i : (t_sf n).range), range (u i)) :=
         is_separable_Union (λ i, (h i).is_separable_range),
       apply this.mono,

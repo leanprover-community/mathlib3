@@ -61,10 +61,10 @@ instance : set_like (intermediate_field K L) L :=
 ⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
 
 instance : subfield_class (intermediate_field K L) L :=
-{ add_mem := λ s, s.add_mem',
+{ add_mem := λ s _ _, s.add_mem',
   zero_mem := λ s, s.zero_mem',
   neg_mem := neg_mem',
-  mul_mem := λ s, s.mul_mem',
+  mul_mem := λ s _ _, s.mul_mem',
   one_mem := λ s, s.one_mem',
   inv_mem := inv_mem' }
 
@@ -370,7 +370,7 @@ begin
       ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },
   { obtain ⟨P, hPmo, hProot⟩ := h,
     refine ⟨P, hPmo, _⟩,
-    rw [← aeval_def, aeval_coe, aeval_def, hProot, add_submonoid_class.coe_zero] },
+    rw [← aeval_def, aeval_coe, aeval_def, hProot, zero_mem_class.coe_zero] },
 end
 
 /-- The map `E → F` when `E` is an intermediate field contained in the intermediate field `F`.

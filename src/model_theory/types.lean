@@ -29,7 +29,7 @@ More frequently they are described as maximal consistent sets of formulas, but t
 
 universes u v w w'
 
-open cardinal topological_space set
+open cardinal set
 open_locale cardinal first_order classical
 
 namespace first_order

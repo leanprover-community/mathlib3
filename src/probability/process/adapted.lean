@@ -10,7 +10,7 @@ import probability.process.filtration
 
 This file defines some standard definition from the theory of stochastic processes including
 filtrations and stopping times. These definitions are used to model the amount of information
-at a specific time and is the first step in formalizing stochastic processes.
+at a specific time and are the first step in formalizing stochastic processes.
 
 ## Main definitions
 

@@ -159,10 +159,10 @@ end
 entries. -/
 lemma antitone_pair_of_not_sorted (h : f ≠ f ∘ sort f) : ∃ i j, i < j ∧ f j < f i :=
 begin
-  have hf : f = f ∘ (1 : equiv.perm (fin n)),
-  { simp only [equiv.perm.coe_one, function.comp.right_id], },
-  rw [hf], nth_rewrite 0 hf at h,
-  exact antitone_pair_of_not_sorted' h,
+  have := mt eq_comp_sort_iff_monotone.mpr h.symm.elim,
+  simp only [monotone, not_forall, not_le, exists_prop] at this,
+  obtain ⟨i, j, hij, h⟩ := this,
+  exact ⟨i, j, lt_of_le_of_ne hij (λ hf, ne_of_lt h $ congr_arg f hf.symm), h⟩,
 end
 
 end tuple

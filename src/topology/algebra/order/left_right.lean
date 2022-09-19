@@ -245,10 +245,15 @@ lemma continuous_within_at_Ioi_iff_right_lim_eq :
 
 /-- A monotone function is continuous at a point if and only if its left and right limits
 coincide. -/
-lemma left_lim_eq_right_lim_iff_continuous_at :
-  left_lim f x = right_lim f x ↔ continuous_at f x :=
+lemma continuous_at_iff_left_lim_eq_right_lim :
+  continuous_at f x ↔ left_lim f x = right_lim f x :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
+  { have A : left_lim f x = f x,
+      from (hf.continuous_within_at_Iio_iff_left_lim_eq).1 h.continuous_within_at,
+    have B : right_lim f x = f x,
+      from (hf.continuous_within_at_Ioi_iff_right_lim_eq).1 h.continuous_within_at,
+    exact A.trans B.symm },
   { have h' : left_lim f x = f x,
     { apply le_antisymm (left_lim_le hf (le_refl _)),
       rw h,
@@ -257,16 +262,11 @@ begin
     { exact hf.continuous_within_at_Iio_iff_left_lim_eq.2 h' },
     { rw h at h',
       exact hf.continuous_within_at_Ioi_iff_right_lim_eq.2 h' } },
-  { have A : left_lim f x = f x,
-      from (hf.continuous_within_at_Iio_iff_left_lim_eq).1 h.continuous_within_at,
-    have B : right_lim f x = f x,
-      from (hf.continuous_within_at_Ioi_iff_right_lim_eq).1 h.continuous_within_at,
-    exact A.trans B.symm },
 end
 
 open function
 
-/-- In a second countable space, the set of points where a monotone function is not left-continuous
+/-- In a second countable space, the set of points where a monotone function is not right-continuous
 is at most countable. Superseded by `countable_not_continuous_at` which gives the two-sided
 version. -/
 lemma countable_not_continuous_within_at_Ioi [topological_space.second_countable_topology β] :
@@ -315,7 +315,7 @@ begin
   exact maps_to.countable_of_inj_on (maps_to_image f s) I fs_count,
 end
 
-/-- In a second countable space, the set of points where a monotone function is not right-continuous
+/-- In a second countable space, the set of points where a monotone function is not left-continuous
 is at most countable. Superseded by `countable_not_continuous_at` which gives the two-sided
 version. -/
 lemma countable_not_continuous_within_at_Iio [topological_space.second_countable_topology β] :

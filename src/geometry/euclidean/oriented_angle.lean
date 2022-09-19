@@ -54,13 +54,18 @@ begin
   exact real.sin_add θ₁ θ₂
 end
 
-
 lemma cos_add (θ₁ θ₂ : real.angle) :
   cos (θ₁ + θ₂) = cos θ₁ * cos θ₂ - sin θ₁ * sin θ₂ :=
 begin
   induction θ₂ using real.angle.induction_on,
   induction θ₁ using real.angle.induction_on,
   exact real.cos_add θ₁ θ₂,
+end
+
+@[simp] lemma cos_sq_add_sin_sq (θ : real.angle) : cos θ ^ 2 + sin θ ^ 2 = 1 :=
+begin
+  induction θ using real.angle.induction_on,
+  exact real.cos_sq_add_sin_sq θ,
 end
 
 end real.angle
@@ -515,14 +520,48 @@ lemma two_zsmul_oangle_sub_eq_two_zsmul_oangle_sub_of_norm_eq {x₁ x₂ y z : V
 o.oangle_eq_two_zsmul_oangle_sub_of_norm_eq_real hx₁yne hx₁zne hx₁ hy hz ▸
   o.oangle_eq_two_zsmul_oangle_sub_of_norm_eq_real hx₂yne hx₂zne hx₂ hy hz
 
+/-- Auxiliary construction to build a rotation by the oriented angle `θ`. -/
+def rotation_aux (θ : real.angle) : V →ₗᵢ[ℝ] V :=
+linear_map.isometry_of_inner
+  (real.angle.cos θ • linear_map.id
+        + real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
+  begin
+    intros x y,
+    simp [inner_smul_left, inner_smul_right, inner_add_left, inner_add_right],
+    linear_combination inner x y * θ.cos_sq_add_sin_sq,
+  end
+
+@[simp] lemma rotation_aux_apply (θ : real.angle) (x : V) :
+  o.rotation_aux θ x = real.angle.cos θ • x + real.angle.sin θ • J x :=
+rfl
+
 /-- A rotation by the oriented angle `θ`. -/
 def rotation (θ : real.angle) : V ≃ₗᵢ[ℝ] V :=
-{ norm_map' := sorry,
-  .. linear_equiv.of_linear
-      (real.angle.cos θ • linear_map.id + real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
-      (real.angle.cos θ • linear_map.id - real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
-      sorry
-      sorry }
+linear_isometry_equiv.of_linear_isometry
+  (o.rotation_aux θ)
+  (real.angle.cos θ • linear_map.id - real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
+  begin
+    ext x,
+    convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
+    { simp only [o.almost_complex_almost_complex, o.rotation_aux_apply, function.comp_app, id.def,
+        linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
+        linear_isometry_equiv.coe_to_linear_equiv, map_smul, map_sub, linear_map.coe_comp,
+        linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, ← mul_smul, add_smul,
+        smul_add, smul_neg, smul_sub, mul_comm, sq],
+      abel },
+    { simp },
+  end
+  begin
+    ext x,
+    convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
+    { simp [o.almost_complex_almost_complex, o.rotation_aux_apply, function.comp_app, id.def,
+        linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
+        linear_isometry_equiv.coe_to_linear_equiv, map_add, map_smul, linear_map.coe_comp,
+        linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, add_smul, ← mul_smul,
+        mul_comm, smul_add, smul_neg, sq],
+      abel },
+    { simp },
+  end
 
 lemma rotation_apply (θ : real.angle) (x : V) :
   o.rotation θ x = real.angle.cos θ • x + real.angle.sin θ • J x :=
@@ -531,6 +570,8 @@ rfl
 lemma rotation_symm_apply (θ : real.angle) (x : V) :
   (o.rotation θ).symm x = real.angle.cos θ • x - real.angle.sin θ • J x :=
 rfl
+
+attribute [irreducible] rotation
 
 /-- The determinant of `rotation` (as a linear map) is equal to `1`. -/
 @[simp] lemma det_rotation (θ : real.angle) :

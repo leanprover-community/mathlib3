@@ -355,8 +355,7 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
   inf_le_left  := @and.left,
   inf_le_right := @and.right,
   le_inf       := λ a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
-  le_sup_inf   := λ a b c H, or_iff_not_imp_left.2 $
-    λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
+  le_sup_inf   := λ a b c, or_and_distrib_left.2,
   ..Prop.partial_order }
 
 /-- Propositions form a bounded order. -/

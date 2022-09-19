@@ -13,7 +13,6 @@ import topology.instances.real
 
 The structure of a metric space on `ℚ` is introduced in this file, induced from `ℝ`.
 -/
--- noncomputable theory
 open metric set filter
 
 namespace rat

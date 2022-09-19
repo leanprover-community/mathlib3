@@ -5,7 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.orientation
-import tactic.linear_combination
+import tactic.polyrith
 
 
 noncomputable theory
@@ -188,20 +188,89 @@ by simp [o.inner_almost_complex_swap x y]
 lemma inner_comp_almost_complex (x y : E) : ⟪J x, J y⟫ = ⟪x, y⟫ :=
 linear_isometry_equiv.inner_map_map J x y
 
+@[simp] lemma area_form_almost_complex_left (x y : E) : ω (J x) y = - ⟪x, y⟫ :=
+by rw [← o.inner_comp_almost_complex, o.inner_almost_complex_right, neg_neg]
+
+@[simp] lemma area_form_almost_complex_right (x y : E) : ω x (J y) = ⟪x, y⟫ :=
+by rw [← o.inner_almost_complex_left, o.inner_comp_almost_complex]
+
 @[simp] lemma almost_complex_trans_almost_complex :
   linear_isometry_equiv.trans J J = linear_isometry_equiv.neg ℝ :=
 by ext; simp
+
+/-- For a nonzero vector `x` in an oriented two-dimensional inner product space `E`, `![x, J x]`
+forms an (orthogonal) basis for `E`. -/
+def basis_almost_complex (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
+@basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _ _ _ ![x, J x]
+(linear_independent_of_ne_zero_of_inner_eq_zero (λ i, by { fin_cases i; simp [hx] })
+  begin
+    intros i j hij,
+    fin_cases i; fin_cases j,
+    { simpa },
+    { simp },
+    { simp },
+    { simpa }
+  end)
+(fact.out (finrank ℝ E = 2)).symm
+
+@[simp] lemma coe_basis_almost_complex (x : E) (hx : x ≠ 0) :
+  ⇑(o.basis_almost_complex x hx) = ![x, J x] :=
+coe_basis_of_linear_independent_of_card_eq_finrank _ _
+
+lemma inner_mul_inner_add_area_form_mul_area_form' (a x : E) :
+  ⟪a, x⟫ • @innerₛₗ ℝ _ _ _ a + ω a x • ω a = ∥a∥ ^ 2 • @innerₛₗ ℝ _ _ _ x :=
+begin
+  by_cases ha : a = 0,
+  { simp [ha] },
+  apply (o.basis_almost_complex a ha).ext,
+  intros i,
+  fin_cases i,
+  { simp only [real_inner_self_eq_norm_sq, algebra.id.smul_eq_mul, innerₛₗ_apply,
+      linear_map.smul_apply, linear_map.add_apply, matrix.cons_val_zero, o.coe_basis_almost_complex,
+      o.area_form_apply_self, real_inner_comm],
+    ring },
+  { simp only [real_inner_self_eq_norm_sq, algebra.id.smul_eq_mul, innerₛₗ_apply,
+      linear_map.smul_apply, neg_inj, linear_map.add_apply, matrix.cons_val_one, matrix.head_cons,
+      o.coe_basis_almost_complex, o.area_form_almost_complex_right, o.area_form_apply_self,
+      o.inner_almost_complex_right],
+    rw o.area_form_swap,
+    ring, }
+end
+
+lemma inner_mul_inner_add_area_form_mul_area_form (a x y : E) :
+  ⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ∥a∥ ^ 2 * ⟪x, y⟫ :=
+congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_inner_add_area_form_mul_area_form' a x)
+
+lemma inner_sq_add_area_form_sq (a b : E) : ⟪a, b⟫ ^ 2 + ω a b ^ 2 = ∥a∥ ^ 2 * ∥b∥ ^ 2 :=
+by simpa [sq, real_inner_self_eq_norm_sq] using o.inner_mul_inner_add_area_form_mul_area_form a b b
+
+lemma inner_mul_area_form_sub' (a x : E) :
+  ⟪a, x⟫ • ω a - ω a x • @innerₛₗ ℝ _ _ _ a = ∥a∥ ^ 2 • ω x :=
+begin
+  by_cases ha : a = 0,
+  { simp [ha] },
+  apply (o.basis_almost_complex a ha).ext,
+  intros i,
+  fin_cases i,
+  { simp only [o.coe_basis_almost_complex, o.area_form_apply_self, o.area_form_swap a x,
+      real_inner_self_eq_norm_sq, algebra.id.smul_eq_mul, innerₛₗ_apply, linear_map.sub_apply,
+      linear_map.smul_apply, matrix.cons_val_zero],
+    ring },
+  { simp only [o.area_form_almost_complex_right, o.area_form_apply_self, o.coe_basis_almost_complex,
+      o.inner_almost_complex_right, real_inner_self_eq_norm_sq, real_inner_comm,
+      algebra.id.smul_eq_mul, innerₛₗ_apply, linear_map.smul_apply, linear_map.sub_apply,
+      matrix.cons_val_one, matrix.head_cons],
+  ring},
+end
+
+lemma inner_mul_area_form_sub (a x y : E) : ⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y :=
+congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_area_form_sub' a x)
 
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=
 (linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ (@innerₛₗ ℝ E _ _)
 + (linear_map.llcomp ℝ E ℝ ℂ ((linear_map.lsmul ℝ ℂ).flip complex.I)) ∘ₗ ω
 
-lemma kahler_apply (x : E) :
-  o.kahler x
-  = ↑complex.of_real_clm ∘ₗ @innerₛₗ ℝ E _ _ x + linear_map.smul_right (ω x) complex.I :=
-rfl
-
-@[simp] lemma kahler_apply_apply (x y : E) : o.kahler x y = ⟪x, y⟫ + ω x y • complex.I := rfl
+lemma kahler_apply_apply (x y : E) : o.kahler x y = ⟪x, y⟫ + ω x y • complex.I := rfl
 
 lemma kahler_swap (x y : E) : o.kahler x y = conj (o.kahler y x) :=
 begin
@@ -210,11 +279,41 @@ begin
   simp,
 end
 
-lemma norm_sq_kahler (x y : E) : complex.norm_sq (o.kahler x y) = ∥x∥ ^ 2 * ∥y∥ ^ 2 :=
+@[simp] lemma kahler_apply_self (x : E) : o.kahler x x = ∥x∥ ^ 2 :=
+by simp [kahler_apply_apply, real_inner_self_eq_norm_sq]
+
+@[simp] lemma kahler_almost_complex_left (x y : E) :
+  o.kahler (J x) y = - complex.I * o.kahler x y :=
 begin
-  simp [complex.norm_sq],
-  sorry
+  simp only [o.area_form_almost_complex_left, o.inner_almost_complex_left, o.kahler_apply_apply,
+    complex.of_real_neg, complex.real_smul],
+  linear_combination ω x y * complex.I_sq,
 end
+
+@[simp] lemma kahler_almost_complex_right (x y : E) : o.kahler x (J y) = complex.I * o.kahler x y :=
+begin
+  simp only [o.area_form_almost_complex_right, o.inner_almost_complex_right, o.kahler_apply_apply,
+    complex.of_real_neg, complex.real_smul],
+  linear_combination - ω x y * complex.I_sq,
+end
+
+lemma kahler_mul (a x y : E) : o.kahler x a * o.kahler a y = ∥a∥ ^ 2 * o.kahler x y :=
+begin
+  transitivity (↑(∥a∥ ^ 2) : ℂ) * o.kahler x y,
+  { ext,
+    { simp only [o.kahler_apply_apply, complex.add_im, complex.add_re, complex.I_im, complex.I_re,
+        complex.mul_im, complex.mul_re, complex.of_real_im, complex.of_real_re, complex.real_smul],
+      rw [real_inner_comm a x, o.area_form_swap x a],
+      linear_combination o.inner_mul_inner_add_area_form_mul_area_form a x y },
+    { simp only [o.kahler_apply_apply, complex.add_im, complex.add_re, complex.I_im, complex.I_re,
+        complex.mul_im, complex.mul_re, complex.of_real_im, complex.of_real_re, complex.real_smul],
+      rw [real_inner_comm a x, o.area_form_swap x a],
+      linear_combination o.inner_mul_area_form_sub a x y } },
+  { norm_cast },
+end
+
+lemma norm_sq_kahler (x y : E) : complex.norm_sq (o.kahler x y) = ∥x∥ ^ 2 * ∥y∥ ^ 2 :=
+by simpa [kahler_apply_apply, complex.norm_sq, sq] using o.inner_sq_add_area_form_sq x y
 
 lemma abs_kahler (x y : E) : complex.abs (o.kahler x y) = ∥x∥ * ∥y∥ :=
 begin

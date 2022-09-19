@@ -105,19 +105,15 @@ by simp [oangle]
 /-- If the two vectors passed to `oangle` are the same, the result is 0. -/
 @[simp] lemma oangle_self (x : V) : o.oangle x x = 0 :=
 begin
-  simp only [oangle, kahler_apply_apply, area_form_apply_self, of_real_zero, zero_smul, add_zero],
+  simp only [oangle, kahler_apply_self, ← complex.of_real_pow],
   convert quotient_add_group.coe_zero _,
   apply arg_of_real_of_nonneg,
-  exact real_inner_self_nonneg
+  positivity,
 end
 
 /-- Swapping the two vectors passed to `oangle` negates the angle. -/
 lemma oangle_rev (x y : V) : o.oangle y x = -o.oangle x y :=
-begin
-  simp only [oangle],
-  convert complex.arg_conj_coe_angle _,
-  simp [real_inner_comm, o.area_form_swap x y],
-end
+by simp only [oangle, o.kahler_swap y x, complex.arg_conj_coe_angle]
 
 /-- Adding the angles between two vectors in each order results in 0. -/
 @[simp] lemma oangle_add_oangle_rev (x y : V) : o.oangle x y + o.oangle y x = 0 :=
@@ -165,8 +161,7 @@ end
 
 /-- Negating both vectors passed to `oangle` does not change the angle. -/
 @[simp] lemma oangle_neg_neg (x y : V) : o.oangle (-x) (-y) = o.oangle x y :=
-by simp only [oangle, kahler_apply_apply, arg_coe_angle_eq_iff, of_real_neg, real_smul,
-  inner_neg_right, linear_map.neg_apply, map_neg, neg_neg]
+by simp [oangle]
 
 /-- Negating the first vector produces the same angle as negating the second vector. -/
 lemma oangle_neg_left_eq_neg_right (x y : V) : o.oangle (-x) y = o.oangle x (-y) :=
@@ -210,23 +205,13 @@ by rw [o.oangle_rev (-x), oangle_neg_left_eq_neg_right, add_neg_self]
 angle. -/
 @[simp] lemma oangle_smul_left_of_pos (x y : V) {r : ℝ} (hr : 0 < r) :
   o.oangle (r • x) y = o.oangle x y :=
-begin
-  simp only [oangle, linear_isometry_equiv.map_smul, complex.real_smul, inner_smul_left, map_smul,
-    is_R_or_C.conj_to_real, of_real_mul, linear_map.smul_apply, algebra.id.smul_eq_mul],
-  congr' 1,
-  exact complex.arg_real_mul _ hr,
-end
+by simp [oangle, complex.arg_real_mul _ hr]
 
 /-- Multiplying the second vector passed to `oangle` by a positive real does not change the
 angle. -/
 @[simp] lemma oangle_smul_right_of_pos (x y : V) {r : ℝ} (hr : 0 < r) :
   o.oangle x (r • y) = o.oangle x y :=
-begin
-  simp only [oangle, linear_isometry_equiv.map_smul, complex.real_smul, inner_smul_right, map_smul,
-    is_R_or_C.conj_to_real, of_real_mul, linear_map.smul_apply, algebra.id.smul_eq_mul],
-  congr' 1,
-  convert complex.arg_real_mul _ hr,
-end
+by simp [oangle, complex.arg_real_mul _ hr]
 
 /-- Multiplying the first vector passed to `oangle` by a negative real produces the same angle
 as negating that vector. -/
@@ -317,7 +302,7 @@ by rw [oangle_rev, neg_eq_zero]
 /-- The oriented angle between two vectors is zero if and only if they are on the same ray. -/
 lemma oangle_eq_zero_iff_same_ray {x y : V} : o.oangle x y = 0 ↔ same_ray ℝ x y :=
 begin
-  rw [oangle, complex.arg_coe_angle_eq_iff_eq_to_real, real.angle.to_real_zero,
+  rw [oangle, kahler_apply_apply, complex.arg_coe_angle_eq_iff_eq_to_real, real.angle.to_real_zero,
     complex.arg_eq_zero_iff],
   simp,
   sorry, -- 0 ≤ ⟪x, y⟫ ∧ ω x y = 0 ↔ same_ray ℝ x y
@@ -418,11 +403,10 @@ between the second and the third equals the angle between the first and the thir
   o.oangle x y + o.oangle y z = o.oangle x z :=
 begin
   simp_rw [oangle],
-  rw ←complex.arg_mul_coe_angle,
+  rw [←complex.arg_mul_coe_angle, o.kahler_mul y x z],
   congr' 1,
   convert complex.arg_real_mul _ (_ : 0 < ∥y∥ ^ 2) using 2,
-  { simp,
-    sorry }, -- a guessed identity for product of `ω`
+  { norm_cast },
   { have : 0 < ∥y∥ := by simpa using hy,
     positivity },
   { exact o.kahler_ne_zero hx hy, },
@@ -472,11 +456,7 @@ by simp_rw [←oangle_neg_left_eq_neg_right, o.oangle_add_cyc3_neg_left hx hy hz
 /-- Pons asinorum, oriented vector angle form. -/
 lemma oangle_sub_eq_oangle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
   o.oangle x (x - y) = o.oangle (y - x) y :=
-begin
-  have : ⟪x, x⟫ = ⟪y, y⟫ := sorry, -- use the hypothesis `h`
-  simp only [oangle, kahler_apply_apply, linear_map.sub_apply, map_sub, inner_sub_left,
-    inner_sub_right, area_form_apply_self, this],
-end
+by simp [oangle, h]
 
 /-- The angle at the apex of an isosceles triangle is `π` minus twice a base angle, oriented
 vector angle form. -/
@@ -589,25 +569,50 @@ begin
   abel,
 end
 
+/-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos θ - sin θ * I`. -/
+@[simp] lemma kahler_rotation_left (x y : V) (θ : real.angle) :
+  o.kahler (o.rotation θ x) y = (↑(θ.cos) - ↑(θ.sin) * I) * o.kahler x y :=
+begin
+  simp only [o.rotation_apply, map_add, linear_map.map_smulₛₗ, ring_hom.id_apply,
+    linear_map.add_apply, linear_map.smul_apply, real_smul, kahler_almost_complex_left],
+  ring,
+end
+
+/-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos (-θ) + sin (-θ) * I`.
+-/
+lemma kahler_rotation_left' (x y : V) (θ : real.angle) :
+  o.kahler (o.rotation θ x) y = (↑((-θ).cos) + ↑((-θ).sin) * I) * o.kahler x y :=
+by simpa [sub_eq_add_neg, -kahler_rotation_left] using o.kahler_rotation_left x y θ
+
+/-- Rotating the second of two vectors by `θ` scales their Kahler form by `cos θ + sin θ * I`. -/
+@[simp] lemma kahler_rotation_right (x y : V) (θ : real.angle) :
+  o.kahler x (o.rotation θ y) = (↑(θ.cos) + ↑(θ.sin) * I) * o.kahler x y :=
+begin
+  simp only [o.rotation_apply, map_add, linear_map.map_smulₛₗ, ring_hom.id_apply, real_smul,
+    kahler_almost_complex_right],
+  ring,
+end
+
 /-- Rotating the first vector by `θ` subtracts `θ` from the angle between two vectors. -/
 @[simp] lemma oangle_rotation_left {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) (θ : real.angle) :
   o.oangle (o.rotation θ x) y = o.oangle x y - θ :=
 begin
-  simp [oangle, o.rotation_apply, ←mul_smul, real.angle.cos_add, real.angle.sin_add],
-  sorry
-  -- simp [oangle, rotation, complex.arg_div_coe_angle, complex.arg_mul_coe_angle, hx, hy,
-  --       ne_zero_of_mem_circle],
-  -- abel
+  simp only [oangle, o.kahler_rotation_left'],
+  rw [complex.arg_mul_coe_angle, arg_cos_add_sin_mul_I_coe_angle],
+  { abel },
+  { sorry }, -- nonzeroness of `cos (-θ) + sin (-θ) * I`
+  { exact o.kahler_ne_zero hx hy },
 end
 
 /-- Rotating the second vector by `θ` adds `θ` to the angle between two vectors. -/
 @[simp] lemma oangle_rotation_right {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) (θ : real.angle) :
   o.oangle x (o.rotation θ y) = o.oangle x y + θ :=
 begin
-  sorry
-  -- simp [oangle, rotation, complex.arg_div_coe_angle, complex.arg_mul_coe_angle, hx, hy,
-  --       ne_zero_of_mem_circle],
-  -- abel
+  simp only [oangle, o.kahler_rotation_right],
+  rw [complex.arg_mul_coe_angle, arg_cos_add_sin_mul_I_coe_angle],
+  { abel },
+  { sorry }, -- nonzeroness of `cos θ + sin θ * I`
+  { exact o.kahler_ne_zero hx hy },
 end
 
 /-- The rotation of a vector by `θ` has an angle of `-θ` from that vector. -/
@@ -859,67 +864,45 @@ end
 --   exact ⟨θ, h⟩
 -- end
 
--- /-- The angle between two vectors, with respect to a basis given by `basis.map` with a linear
--- isometric equivalence, equals the angle between those two vectors, transformed by the inverse of
--- that equivalence, with respect to the original basis. -/
--- @[simp] lemma oangle_map (x y : V) (f : V ≃ₗᵢ[ℝ] V) :
---   (o.map f).oangle x y = o.oangle (f.symm x) (f.symm y) :=
+/-- The angle between two vectors, with respect to an orientation given by `orientation.map`
+with a linear isometric equivalence, equals the angle between those two vectors, transformed by
+the inverse of that equivalence, with respect to the original orientation. -/
+@[simp] lemma oangle_map (x y : V) (f : V ≃ₗᵢ[ℝ] V) :
+  (orientation.map (fin 2) f.to_linear_equiv o).oangle x y = o.oangle (f.symm x) (f.symm y) :=
 -- by simp [oangle]
+sorry
 
--- /-- The value of `oangle` does not depend on the choice of basis for a given orientation. -/
--- lemma oangle_eq_of_orientation_eq (b₂ : orthonormal_basis (fin 2) ℝ V)
---   (ho : o.to_basis.orientation = b₂.to_basis.orientation) (x y : V) :
---   o.oangle x y = b₂.oangle x y :=
--- begin
---   obtain ⟨θ, rfl⟩ := o.exists_linear_isometry_equiv_map_eq_of_orientation_eq b₂ ho,
---   simp [o.orthonormal],
--- end
+/-- Negating the orientation negates the value of `oangle`. -/
+lemma oangle_neg_orientation_eq_neg (x y : V) : (-o).oangle x y = -(o.oangle x y) :=
+begin
+  sorry
+  -- simp_rw oangle,
+  -- refine orthonormal_basis.oangle_eq_neg_of_orientation_eq_neg _ _ _ _ _,
+  -- simp_rw orientation.fin_orthonormal_basis_orientation
+end
 
--- /-- Negating the orientation negates the value of `oangle`. -/
--- lemma oangle_eq_neg_of_orientation_eq_neg (b₂ : orthonormal_basis (fin 2) ℝ V)
---   (ho : o.to_basis.orientation = -b₂.to_basis.orientation) (x y : V) :
---   o.oangle x y = -b₂.oangle x y :=
--- begin
---   obtain ⟨θ, rfl⟩ := o.exists_linear_isometry_equiv_map_eq_of_orientation_eq_neg b₂ ho,
---   rw o.oangle_map,
---   simp [o.orthonormal],
--- end
-
--- /-- `rotation` does not depend on the choice of basis for a given orientation. -/
--- lemma rotation_eq_of_orientation_eq (b₂ : orthonormal_basis (fin 2) ℝ V)
---   (ho : o.to_basis.orientation = b₂.to_basis.orientation) (θ : real.angle) :
---   o.rotation θ = b₂.rotation θ :=
--- begin
---   obtain ⟨θ₂, rfl⟩ := o.exists_linear_isometry_equiv_map_eq_of_orientation_eq b₂ ho,
---   simp_rw [rotation, complex.map_isometry_of_orthonormal b],
---   simp only [linear_isometry_equiv.trans_assoc, linear_isometry_equiv.self_trans_symm,
---              linear_isometry_equiv.refl_trans, linear_isometry_equiv.symm_trans],
---   simp only [←linear_isometry_equiv.trans_assoc, _root_.rotation_symm, _root_.rotation_trans,
---              mul_comm (real.angle.exp_map_circle θ), ←mul_assoc, mul_right_inv, one_mul]
--- end
-
--- /-- Negating the orientation negates the angle in `rotation`. -/
--- lemma rotation_eq_rotation_neg_of_orientation_eq_neg (b₂ : orthonormal_basis (fin 2) ℝ V)
---   (ho : o.to_basis.orientation = -b₂.to_basis.orientation) (θ : real.angle) :
---   o.rotation θ = b₂.rotation (-θ) :=
--- begin
---   obtain ⟨θ₂, rfl⟩ := o.exists_linear_isometry_equiv_map_eq_of_orientation_eq_neg b₂ ho,
---   simp_rw [rotation, complex.map_isometry_of_orthonormal b, conj_lie],
---   simp only [linear_isometry_equiv.trans_assoc, linear_isometry_equiv.self_trans_symm,
---              linear_isometry_equiv.refl_trans, linear_isometry_equiv.symm_trans],
---   congr' 1,
---   simp only [←linear_isometry_equiv.trans_assoc, _root_.rotation_symm,
---              linear_isometry_equiv.symm_symm, linear_isometry_equiv.self_trans_symm,
---              linear_isometry_equiv.trans_refl, complex.conj_lie_symm],
---   congr' 1,
---   ext1 x,
---   simp only [linear_isometry_equiv.coe_trans, function.comp_app, rotation_apply,
---              complex.conj_lie_apply, map_mul, star_ring_end_self_apply, ←coe_inv_circle_eq_conj,
---              inv_inv, real.angle.exp_map_circle_neg, ←mul_assoc],
---   congr' 1,
---   simp only [mul_comm (real.angle.exp_map_circle θ₂ : ℂ), mul_assoc],
---   rw [←submonoid.coe_mul, mul_left_inv, submonoid.coe_one, mul_one]
--- end
+/-- Negating the orientation negates the angle in `rotation`. -/
+lemma rotation_neg_orientation_eq_neg (θ : real.angle) :
+  (-o).rotation θ = o.rotation (-θ) :=
+begin
+  sorry
+  -- obtain ⟨θ₂, rfl⟩ := o.exists_linear_isometry_equiv_map_eq_of_orientation_eq_neg o₂ ho,
+  -- simp_rw [rotation, complex.map_isometry_of_orthonormal b, conj_lie],
+  -- simp only [linear_isometry_equiv.trans_assoc, linear_isometry_equiv.self_trans_symm,
+  --            linear_isometry_equiv.refl_trans, linear_isometry_equiv.symm_trans],
+  -- congr' 1,
+  -- simp only [←linear_isometry_equiv.trans_assoc, _root_.rotation_symm,
+  --            linear_isometry_equiv.symm_symm, linear_isometry_equiv.self_trans_symm,
+  --            linear_isometry_equiv.trans_refl, complex.conj_lie_symm],
+  -- congr' 1,
+  -- ext1 x,
+  -- simp only [linear_isometry_equiv.coe_trans, function.comp_app, rotation_apply,
+  --            complex.conj_lie_apply, map_mul, star_ring_end_self_apply, ←coe_inv_circle_eq_conj,
+  --            inv_inv, real.angle.exp_map_circle_neg, ←mul_assoc],
+  -- congr' 1,
+  -- simp only [mul_comm (real.angle.exp_map_circle θ₂ : ℂ), mul_assoc],
+  -- rw [←submonoid.coe_mul, mul_left_inv, submonoid.coe_one, mul_one]
+end
 
 /-- The inner product of two vectors is the product of the norms and the cosine of the oriented
 angle between the vectors. -/
@@ -931,7 +914,8 @@ begin
   have : ∥x∥ ≠ 0 := by simpa using hx,
   have : ∥y∥ ≠ 0 := by simpa using hy,
   rw [oangle, real.angle.cos_coe, complex.cos_arg, o.abs_kahler],
-  { field_simp,
+  { simp only [kahler_apply_apply, real_smul, add_re, of_real_re, mul_re, I_re, of_real_im],
+    field_simp,
     ring },
   { exact o.kahler_ne_zero hx hy }
 end
@@ -1220,54 +1204,5 @@ begin
         add_mul, mul_assoc, mul_comm r₂ r₁, ←mul_assoc, div_mul_cancel _ hr₁, add_comm,
         neg_mul, ←sub_eq_add_neg, mul_comm r₄, mul_comm r₃] }
 end
-
--- /-- The angle between two vectors, with respect to an orientation given by `orientation.map`
--- with a linear isometric equivalence, equals the angle between those two vectors, transformed by
--- the inverse of that equivalence, with respect to the original orientation. -/
--- @[simp] lemma oangle_map (x y : V) (f : V ≃ₗᵢ[ℝ] V) :
---   (orientation.map (fin 2) f.to_linear_equiv o).oangle x y = o.oangle (f.symm x) (f.symm y) :=
--- begin
---   convert o.oangle_map x y f using 1,
---   refine orthonormal_basis.oangle_eq_of_orientation_eq _ _ _ _ _,
---   simp_rw [orthonormal_basis.to_basis_map, basis.orientation_map,
---     orientation.fin_orthonormal_basis_orientation],
--- end
-
--- /-- `orientation.oangle` equals `orthonormal.oangle` for any orthonormal basis with that
--- orientation. -/
--- lemma oangle_eq_basis_oangle (b : orthonormal_basis (fin 2) ℝ V)
---   (h : o.to_basis.orientation = o) (x y : V) : o.oangle x y = o.oangle x y :=
--- begin
---   rw oangle,
---   refine orthonormal_basis.oangle_eq_of_orientation_eq _ _ _ _ _,
---   simp [h]
--- end
-
--- /-- Negating the orientation negates the value of `oangle`. -/
--- lemma oangle_neg_orientation_eq_neg (x y : V) : (-o).oangle x y = -(o.oangle x y) :=
--- begin
---   simp_rw oangle,
---   refine orthonormal_basis.oangle_eq_neg_of_orientation_eq_neg _ _ _ _ _,
---   simp_rw orientation.fin_orthonormal_basis_orientation
--- end
-
--- /-- `orientation.rotation` equals `orthonormal.rotation` for any orthonormal basis with that
--- orientation. -/
--- lemma rotation_eq_basis_rotation (b : orthonormal_basis (fin 2) ℝ V)
---   (h : o.to_basis.orientation = o) (θ : ℝ) : o.rotation θ = o.rotation θ :=
--- begin
---   rw rotation,
---   refine orthonormal_basis.rotation_eq_of_orientation_eq _ _ _ _,
---   simp [h]
--- end
-
--- /-- Negating the orientation negates the angle in `rotation`. -/
--- lemma rotation_neg_orientation_eq_neg (θ : real.angle) :
---   (-o).rotation θ = o.rotation (-θ) :=
--- begin
---   simp_rw rotation,
---   refine orthonormal_basis.rotation_eq_rotation_neg_of_orientation_eq_neg _ _ _ _,
---   simp_rw orientation.fin_orthonormal_basis_orientation
--- end
 
 end orientation

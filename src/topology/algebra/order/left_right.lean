@@ -93,35 +93,32 @@ section left_right_lim
 
 section
 
-variables {α β : Type*} [linear_order α] [linear_order β]
+variables {α β : Type*} [linear_order α] [topological_space β]
 
-/-- Let `f : α → β` be a function between two linears orders `α` and `β`, and `a : α`. The limit
-strictly to the left of `f` at `a`, denoted with `left_lim f a`, is defined by using the order
-topologies on both spaces. If `a` is isolated to its left, we use `f a` instead to guarantee a
-good behavior in most cases. -/
+/-- Let `f : α → β` be a function from a linear order `α` to a topological_space `β`, and
+let `a : α`. The limit strictly to the left of `f` at `a`, denoted with `left_lim f a`, is defined
+by using the order topology on `α`. If `a` is isolated to its left, we use `f a` instead to
+guarantee a good behavior in most cases. -/
 @[irreducible] noncomputable def left_lim (f : α → β) (a : α) : β :=
 begin
   classical,
   haveI : nonempty β := ⟨f a⟩,
   letI : topological_space α := preorder.topology α,
-  letI : topological_space β := preorder.topology β,
   exact if (𝓝[<] a) = ⊥ then f a else lim (𝓝[<] a) f
 end
 
-/-- Let `f : α → β` be a function between two linears orders `α` and `β`, and `a : α`. The limit
-strictly to the right of `f` at `a`, denoted with `right_lim f a`, is defined by using the order
-topologies on both spaces. If `a` is isolated to its right, we use `f a` instead to guarantee a
-good behavior in most cases. -/
+/-- Let `f : α → β` be a function from a linear order `α` to a topological_space `β`, and
+let `a : α`. The limit strictly to the right of `f` at `a`, denoted with `right_lim f a`, is defined
+by using the order topology on `α`. If `a` is isolated to its left, we use `f a` instead to
+guarantee a good behavior in most cases. -/
 noncomputable def right_lim (f : α → β) (a : α) : β :=
-@left_lim αᵒᵈ βᵒᵈ  _ _ f a
+@left_lim αᵒᵈ β  _ _ f a
 
-lemma left_lim_eq_of_ne_bot [hα : topological_space α] [hβ : topological_space β]
-  [h'α : order_topology α] [h'β : order_topology β]
+lemma left_lim_eq_of_ne_bot [hα : topological_space α] [h'α : order_topology α]
   (f : α → β) {a : α} (h : 𝓝[<] a ≠ ⊥) :
   left_lim f a = @lim _ _ _ ⟨f a⟩ (𝓝[<] a) f :=
 begin
   rw [h'α.topology_eq_generate_intervals] at h ⊢,
-  rw [h'β.topology_eq_generate_intervals],
   simp [left_lim, ite_eq_right_iff, h],
 end
 
@@ -138,14 +135,13 @@ end
 namespace monotone
 
 variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order β]
+[topological_space β] [order_topology β]
 {f : α → β} (hf : monotone f)  {x y : α}
 include hf
 
 lemma left_lim_eq_Sup [topological_space α] [order_topology α] (h : 𝓝[<] x ≠ ⊥) :
   left_lim f x = (Sup (f '' (Iio x))) :=
 begin
-  letI : topological_space β := preorder.topology β,
-  haveI : order_topology β := ⟨rfl⟩,
   haveI : ne_bot (𝓝[<] x) := ne_bot_iff.2 h,
   rw left_lim_eq_of_ne_bot f h,
   exact (hf.tendsto_nhds_within_Iio x).lim_eq,
@@ -189,13 +185,13 @@ begin
 end
 
 lemma le_right_lim (h : x ≤ y) : f x ≤ right_lim f y :=
-@left_lim_le αᵒᵈ βᵒᵈ _ _ f hf.dual y x h
+@left_lim_le αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual y x h
 
 lemma right_lim_le (h : x < y) : right_lim f x ≤ f y :=
-@le_left_lim αᵒᵈ βᵒᵈ _ _ f hf.dual y x h
+@le_left_lim αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual y x h
 
 lemma right_lim_le_right_lim (h : x ≤ y) : right_lim f x ≤ right_lim f y :=
-@left_lim_le_left_lim αᵒᵈ βᵒᵈ _ _ f hf.dual y x h
+@left_lim_le_left_lim αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual y x h
 
 lemma left_lim_le_right_lim (h : x ≤ y) : left_lim f x ≤ right_lim f y :=
 (hf.left_lim_le le_rfl).trans (hf.le_right_lim h)
@@ -214,7 +210,7 @@ begin
   ... ≤ left_lim f y : hf.le_left_lim ay
 end
 
-variables [topological_space α] [order_topology α] [topological_space β] [order_topology β]
+variables [topological_space α] [order_topology α]
 
 lemma tendsto_left_lim (x : α) : tendsto f (𝓝[<] x) (𝓝 (left_lim f x)) :=
 begin
@@ -226,7 +222,7 @@ end
 
 lemma tendsto_right_lim (x : α) :
   tendsto f (𝓝[>] x) (𝓝 (right_lim f x)) :=
-@monotone.tendsto_left_lim αᵒᵈ βᵒᵈ _ _ f hf.dual _ _ _ _ x
+@monotone.tendsto_left_lim αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual _ _ x
 
 /-- A monotone function is continuous to the left at a point if and only if its left limit
 coincides with the value of the function. -/
@@ -245,7 +241,7 @@ end
 coincides with the value of the function. -/
 lemma continuous_within_at_Ioi_iff_right_lim_eq :
   continuous_within_at f (Ioi x) x ↔ right_lim f x = f x :=
-@continuous_within_at_Iio_iff_left_lim_eq αᵒᵈ βᵒᵈ _ _ f hf.dual x _ _ _ _
+@continuous_within_at_Iio_iff_left_lim_eq αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual x _ _
 
 /-- A monotone function is continuous at a point if and only if its left and right limits
 coincide. -/
@@ -324,7 +320,7 @@ is at most countable. Superseded by `countable_not_continuous_at` which gives th
 version. -/
 lemma countable_not_continuous_within_at_Iio [topological_space.second_countable_topology β] :
   set.countable {x | ¬(continuous_within_at f (Iio x) x)} :=
-@monotone.countable_not_continuous_within_at_Ioi αᵒᵈ βᵒᵈ _ _ f hf.dual _ _ _ _ _
+@monotone.countable_not_continuous_within_at_Ioi αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual _ _ _
 
 /-- In a second countable space, the set of points where a monotone function is not continuous
 is at most countable. -/

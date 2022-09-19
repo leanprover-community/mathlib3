@@ -68,12 +68,13 @@ begin
     exact nat.sub_lt_succ s.card k }
 end
 
-lemma _root_.finset.prod_X_sub_C_coeff {σ} (s : finset σ) (r : σ → R) (k : ℕ) (h : k ≤ s.card) :
+lemma prod_X_add_C_coeff' {σ} (s : multiset σ) (r : σ → R) {k : ℕ} (h : k ≤ s.card) :
+  (s.map (λ i, X + C (r i))).prod.coeff k = (s.map r).esymm (s.card - k) :=
+by rw [← map_map (λ r, X + C r) r, prod_X_add_C_coeff]; rwa s.card_map r
+
+lemma _root_.finset.prod_X_add_C_coeff {σ} (s : finset σ) (r : σ → R) {k : ℕ} (h : k ≤ s.card) :
   (∏ i in s, (X + C (r i))).coeff k = ∑ t in s.powerset_len (s.card - k), ∏ i in t, r i :=
-begin
-  rw [finset.prod, ← map_map (λ r, X + C r) r, prod_X_add_C_coeff, finset.esymm_map_val];
-  rw s.val.card_map r, exacts [rfl, h],
-end
+by { rw [finset.prod, prod_X_add_C_coeff' _ r h, finset.esymm_map_val], refl }
 
 end semiring
 

@@ -2931,7 +2931,6 @@ lemma antitone.map_cinfi_of_continuous_at {f : α → β} {g : γ → α}
 monotone.map_cinfi_of_continuous_at
   (show continuous_at (order_dual.to_dual ∘ f) (⨅ i, g i), from Cf) Af H
 
-
 /-- A monotone map has a limit to the left of any point `x`, equal to `Sup (f '' (Iio x))`. -/
 lemma monotone.tendsto_nhds_within_Iio {α β : Type*}
   [linear_order α] [topological_space α] [order_topology α]

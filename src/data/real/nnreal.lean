@@ -8,7 +8,7 @@ import data.real.pointwise
 import algebra.indicator_function
 import algebra.algebra.basic
 import algebra.order.module
-import algebra.order.nonneg
+import algebra.order.nonneg.field
 
 /-!
 # Nonnegative real numbers

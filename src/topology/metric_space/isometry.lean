@@ -164,14 +164,6 @@ section pseudo_metric_isometry
 
 variables [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
 
-/-- An isometry preserves distances. -/
-theorem dist_eq (hf : isometry f) (x y : α) : dist (f x) (f y) = dist x y :=
-isometry_emetric_iff_metric.1 hf x y
-
-/-- An isometry preserves non-negative distances. -/
-theorem nndist_eq (hf : isometry f) (x y : α) : nndist (f x) (f y) = nndist x y :=
-by rw [nndist_edist, nndist_edist, hf]
-
 /-- An isometry preserves the diameter in pseudometric spaces. -/
 lemma diam_image (hf : isometry f) (s : set α) : metric.diam (f '' s) = metric.diam s :=
 by rw [metric.diam, metric.diam, hf.ediam_image]

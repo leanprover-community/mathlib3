@@ -22,7 +22,7 @@ a Borel measure `f.measure`.
 -/
 
 noncomputable theory
-open classical set filter
+open classical set filter function
 open ennreal (of_real)
 open_locale big_operators ennreal nnreal topological_space measure_theory
 

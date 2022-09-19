@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
+import data.finite.card
 import group_theory.quotient_group
-import set_theory.cardinal.finite
 
 /-!
 # Index of a Subgroup
@@ -228,9 +228,7 @@ eq_zero_of_zero_dvd (hKL ▸ (relindex_dvd_of_le_left L hHK))
 
 @[to_additive]
 lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
-cardinal.to_nat_apply_of_aleph_0_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_zero _
-  ((cardinal.cast_to_nat_of_lt_aleph_0 h).symm.trans (cardinal.nat_cast_inj.mpr hHK))))
-    (quotient_subgroup_of_embedding_of_le H hKL).cardinal_le)
+finite.card_eq_zero_of_embedding (quotient_subgroup_of_embedding_of_le H hKL) hHK
 
 @[to_additive] lemma relindex_le_of_le_left (hHK : H ≤ K) (hHL : H.relindex L ≠ 0) :
   K.relindex L ≤ H.relindex L :=
@@ -238,8 +236,7 @@ nat.le_of_dvd (nat.pos_of_ne_zero hHL) (relindex_dvd_of_le_left L hHK)
 
 @[to_additive] lemma relindex_le_of_le_right (hKL : K ≤ L) (hHL : H.relindex L ≠ 0) :
   H.relindex K ≤ H.relindex L :=
-cardinal.to_nat_le_of_le_of_lt_aleph_0 (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hHL))
-  (cardinal.mk_le_of_injective (quotient_subgroup_of_embedding_of_le H hKL).2)
+finite.card_le_of_embedding' (quotient_subgroup_of_embedding_of_le H hKL) (λ h, (hHL h).elim)
 
 @[to_additive] lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
   H.relindex L ≠ 0 :=
@@ -277,25 +274,15 @@ by simp_rw [←relindex_top_right, relindex_inf_le]
   (hf : ∀ i, (f i).relindex L ≠ 0) : (⨅ i, f i).relindex L ≠ 0 :=
 begin
   haveI := fintype.of_finite ι,
-  let := cardinal.lift_mk_le.mpr ⟨quotient_infi_embedding f L⟩,
-  rw [cardinal.mk_pi, cardinal.prod_eq_of_fintype, cardinal.lift_lift, cardinal.lift_le] at this,
-  exact cardinal.mk_ne_zero _ ∘ (cardinal.cast_to_nat_of_lt_aleph_0 $ this.trans_lt $ lt_of_not_le
-    $ finset.prod_ne_zero_iff.2 (λ a ha, hf a) ∘ (cardinal.to_nat_finset_prod _ _).symm.trans ∘
-    cardinal.to_nat_apply_of_aleph_0_le).symm.trans ∘ cardinal.nat_cast_inj.2,
+  exact finset.prod_ne_zero_iff.mpr (λ i hi, hf i) ∘ nat.card_pi.symm.trans ∘
+    finite.card_eq_zero_of_embedding (quotient_infi_embedding f L),
 end
 
 @[to_additive] lemma relindex_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
   (⨅ i, f i).relindex L ≤ ∏ i, (f i).relindex L :=
-begin
-  have := cardinal.lift_mk_le.mpr ⟨quotient_infi_embedding f L⟩,
-  rw [cardinal.mk_pi, cardinal.prod_eq_of_fintype, cardinal.lift_lift, cardinal.lift_le] at this,
-  by_cases hf : ∀ i, (f i).relindex L ≠ 0,
-  { exact (cardinal.to_nat_le_of_le_of_lt_aleph_0 (lt_of_not_le $ finset.prod_ne_zero_iff.2
-      (λ a ha, hf a) ∘ (cardinal.to_nat_finset_prod _ _).symm.trans ∘
-      cardinal.to_nat_apply_of_aleph_0_le) this).trans_eq (cardinal.to_nat_finset_prod _ _) },
-  { obtain ⟨i, hi⟩ := not_forall_not.1 hf,
-    exact le_of_eq_of_le (relindex_eq_zero_of_le_left (infi_le f i) hi) zero_le' },
-end
+le_of_le_of_eq (finite.card_le_of_embedding' (quotient_infi_embedding f L)
+  (λ h, let ⟨i, hi, h⟩ := finset.prod_eq_zero_iff.mp (nat.card_pi.symm.trans h) in
+    relindex_eq_zero_of_le_left (infi_le f i) h)) nat.card_pi
 
 @[to_additive] lemma index_infi_ne_zero {ι : Type*} [finite ι] (f : ι → subgroup G)
   (hf : ∀ i, (f i).index ≠ 0) : (⨅ i, f i).index ≠ 0 :=

@@ -829,41 +829,6 @@ end
 --   { exact ⟨θ, hf⟩ }
 -- end
 
--- /-- Two bases with the same orientation are related by a `rotation`. -/
--- lemma exists_linear_isometry_equiv_map_eq_of_orientation_eq (b₂ : orthonormal_basis (fin 2) ℝ V)
---   (ho : o.to_basis.orientation = b₂.to_basis.orientation) :
---   ∃ θ : real.angle, b₂ = o.map (o.rotation θ) :=
--- begin
---   have h : b₂ = o.map (o.repr.trans b₂.repr.symm),
---   { cases b₂ with B₂,
---     cases b with B,
---     simp only [orthonormal_basis.map, linear_isometry_equiv.symm_trans, B.symm_trans_self,
---       linear_isometry_equiv.symm_symm, ← linear_isometry_equiv.trans_assoc B₂ B.symm B,
---       B₂.trans_refl] },
---   rw [eq_comm, h, o.to_basis_map, o.to_basis.orientation_comp_linear_equiv_eq_iff_det_pos] at ho,
---   cases o.exists_linear_isometry_equiv_eq_of_det_pos ho with θ hθ,
---   rw hθ at h,
---   exact ⟨θ, h⟩
--- end
-
--- /-- Two bases with opposite orientations are related by `conj_lie` composed with a `rotation`. -/
--- lemma exists_linear_isometry_equiv_map_eq_of_orientation_eq_neg (b₂ : orthonormal_basis (fin 2) ℝ V)
---   (ho : o.to_basis.orientation = -b₂.to_basis.orientation) :
---   ∃ θ : real.angle, b₂ = o.map (o.conj_lie.trans (o.rotation θ)) :=
--- begin
---   have h : b₂ = o.map (o.repr.trans b₂.repr.symm),
---   { cases b₂ with B₂,
---     cases b with B,
---     simp only [orthonormal_basis.map, linear_isometry_equiv.symm_trans, B.symm_trans_self,
---       linear_isometry_equiv.symm_symm, ← linear_isometry_equiv.trans_assoc B₂ B.symm B,
---       B₂.trans_refl] },
---   rw [eq_neg_iff_eq_neg, h, o.to_basis_map,
---     o.to_basis.orientation_comp_linear_equiv_eq_neg_iff_det_neg] at ho,
---   cases o.exists_linear_isometry_equiv_eq_of_det_neg ho with θ hθ,
---   rw hθ at h,
---   exact ⟨θ, h⟩
--- end
-
 /-- The angle between two vectors, with respect to an orientation given by `orientation.map`
 with a linear isometric equivalence, equals the angle between those two vectors, transformed by
 the inverse of that equivalence, with respect to the original orientation. -/
@@ -874,35 +839,12 @@ sorry
 
 /-- Negating the orientation negates the value of `oangle`. -/
 lemma oangle_neg_orientation_eq_neg (x y : V) : (-o).oangle x y = -(o.oangle x y) :=
-begin
-  sorry
-  -- simp_rw oangle,
-  -- refine orthonormal_basis.oangle_eq_neg_of_orientation_eq_neg _ _ _ _ _,
-  -- simp_rw orientation.fin_orthonormal_basis_orientation
-end
+by simp [oangle]
 
 /-- Negating the orientation negates the angle in `rotation`. -/
 lemma rotation_neg_orientation_eq_neg (θ : real.angle) :
   (-o).rotation θ = o.rotation (-θ) :=
-begin
-  sorry
-  -- obtain ⟨θ₂, rfl⟩ := o.exists_linear_isometry_equiv_map_eq_of_orientation_eq_neg o₂ ho,
-  -- simp_rw [rotation, complex.map_isometry_of_orthonormal b, conj_lie],
-  -- simp only [linear_isometry_equiv.trans_assoc, linear_isometry_equiv.self_trans_symm,
-  --            linear_isometry_equiv.refl_trans, linear_isometry_equiv.symm_trans],
-  -- congr' 1,
-  -- simp only [←linear_isometry_equiv.trans_assoc, _root_.rotation_symm,
-  --            linear_isometry_equiv.symm_symm, linear_isometry_equiv.self_trans_symm,
-  --            linear_isometry_equiv.trans_refl, complex.conj_lie_symm],
-  -- congr' 1,
-  -- ext1 x,
-  -- simp only [linear_isometry_equiv.coe_trans, function.comp_app, rotation_apply,
-  --            complex.conj_lie_apply, map_mul, star_ring_end_self_apply, ←coe_inv_circle_eq_conj,
-  --            inv_inv, real.angle.exp_map_circle_neg, ←mul_assoc],
-  -- congr' 1,
-  -- simp only [mul_comm (real.angle.exp_map_circle θ₂ : ℂ), mul_assoc],
-  -- rw [←submonoid.coe_mul, mul_left_inv, submonoid.coe_one, mul_one]
-end
+linear_isometry_equiv.ext $ by simp [rotation_apply]
 
 /-- The inner product of two vectors is the product of the norms and the cosine of the oriented
 angle between the vectors. -/

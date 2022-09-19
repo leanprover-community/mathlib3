@@ -42,6 +42,17 @@ begin
   linarith,
 end
 
+/-- The change-of-basis matrix between two orthonormal bases with the opposite orientations has
+determinant -1. -/
+lemma det_to_matrix_orthonormal_basis_of_opposite_orientation
+  (h : e.to_basis.orientation ≠ f.to_basis.orientation) :
+  e.to_basis.det f = -1 :=
+begin
+  contrapose! h,
+  simp [e.to_basis.orientation_eq_iff_det_pos,
+    (e.det_to_matrix_orthonormal_basis_real f).resolve_right h],
+end
+
 /-- Two orthonormal bases with the same orientation determine the same "determinant" top-dimensional
 form on `E`. -/
 lemma det_eq_det_of_same_orientation
@@ -50,6 +61,16 @@ lemma det_eq_det_of_same_orientation
 begin
   rw e.to_basis.det.eq_smul_basis_det f.to_basis,
   simp [e.det_to_matrix_orthonormal_basis_of_same_orientation f h],
+end
+
+/-- Two orthonormal bases with opposite orientations determine opposite "determinant" top-dimensional
+forms on `E`. -/
+lemma det_eq_det_of_opposite_orientation
+  (h : e.to_basis.orientation ≠ f.to_basis.orientation) :
+  e.to_basis.det = -f.to_basis.det :=
+begin
+  rw e.to_basis.det.eq_smul_basis_det f.to_basis,
+  simp [e.det_to_matrix_orthonormal_basis_of_opposite_orientation f h],
 end
 
 section adjust_to_orientation
@@ -146,7 +167,29 @@ begin
   exact ω.fin_orthonormal_basis_orientation _ _,
 end
 
+/-- The volume form on an oriented real inner product space can be evaluated as the determinant with
+respect to any orthonormal basis of the space compatible with the orientation. -/
+lemma volume_form_robust_neg (b : orthonormal_basis (fin n.succ) ℝ E)
+  (hb : b.to_basis.orientation ≠ ω) :
+  ω.volume_form = - b.to_basis.det :=
+begin
+  let e : orthonormal_basis (fin n.succ) ℝ E := ω.fin_orthonormal_basis n.succ_pos (fact.out _),
+  apply e.det_eq_det_of_opposite_orientation b,
+  convert hb.symm,
+  exact ω.fin_orthonormal_basis_orientation _ _,
+end
+
 attribute [irreducible] orientation.volume_form
+
+@[simp] lemma volume_form_neg_orientation : (-ω).volume_form = - ω.volume_form :=
+begin
+  let e : orthonormal_basis (fin n.succ) ℝ E := ω.fin_orthonormal_basis n.succ_pos (fact.out _),
+  have h₁ : e.to_basis.orientation = ω := ω.fin_orthonormal_basis_orientation _ _,
+  have h₂ : e.to_basis.orientation ≠ -ω,
+  { symmetry,
+    rw [e.to_basis.orientation_ne_iff_eq_neg, h₁] },
+  rw [ω.volume_form_robust e h₁, (-ω).volume_form_robust_neg e h₂],
+end
 
 lemma volume_form_robust' (b : orthonormal_basis (fin n.succ) ℝ E) (v : fin n.succ → E) :
   |ω.volume_form v| = |b.to_basis.det v| :=

@@ -80,6 +80,12 @@ begin
   { norm_num }
 end
 
+@[simp] lemma area_form_neg_orientation : (-o).area_form = -o.area_form :=
+begin
+  ext x y,
+  simp [area_form_to_volume_form]
+end
+
 lemma abs_area_form_le (x y : E) : |ω x y| ≤ ∥x∥ * ∥y∥ :=
 by simpa [area_form_to_volume_form, fin.prod_univ_succ] using o.abs_volume_form_apply_le ![x, y]
 
@@ -198,6 +204,19 @@ by rw [← o.inner_almost_complex_left, o.inner_comp_almost_complex]
   linear_isometry_equiv.trans J J = linear_isometry_equiv.neg ℝ :=
 by ext; simp
 
+@[simp] lemma almost_complex_neg_orientation (x : E) :
+  (-o).almost_complex x = - o.almost_complex x :=
+begin
+  apply ext_inner_right ℝ,
+  intros y,
+  rw inner_almost_complex_left,
+  simp
+end
+
+@[simp] lemma almost_complex_trans_neg_orientation :
+  (-o).almost_complex = o.almost_complex.trans (linear_isometry_equiv.neg ℝ) :=
+linear_isometry_equiv.ext $ o.almost_complex_neg_orientation
+
 /-- For a nonzero vector `x` in an oriented two-dimensional inner product space `E`, `![x, J x]`
 forms an (orthogonal) basis for `E`. -/
 def basis_almost_complex (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
@@ -296,6 +315,9 @@ begin
     complex.of_real_neg, complex.real_smul],
   linear_combination - ω x y * complex.I_sq,
 end
+
+@[simp] lemma kahler_neg_orientation (x y : E) : (-o).kahler x y = conj (o.kahler x y) :=
+by simp [kahler_apply_apply]
 
 lemma kahler_mul (a x y : E) : o.kahler x a * o.kahler a y = ∥a∥ ^ 2 * o.kahler x y :=
 begin

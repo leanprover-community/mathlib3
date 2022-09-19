@@ -122,7 +122,8 @@ def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
   nonempty' := M.nonempty',
   is_model := (@Lhom.on_Theory_model L L' M (φ.reduct M) _ φ _ T).1 M.is_model, }
 
-/-- When `φ` is injective, expands a model of `T` to a model of `φ.on_Theory T` arbitrarily. -/
+/-- When `φ` is injective, `default_expansion` expands a model of `T` to a model of `φ.on_Theory T`
+  arbitrarily. -/
 @[simps] noncomputable def default_expansion {L' : language} {φ : L →ᴸ L'} (h : φ.injective)
   [∀ n (f : L'.functions n), decidable (f ∈ set.range (λ (f : L.functions n), φ.on_function f))]
   [∀ n (r : L'.relations n), decidable (r ∈ set.range (λ (r : L.relations n), φ.on_relation r))]

@@ -47,7 +47,10 @@ theorem split_mono_of_inclusion_retraction
 {
   exists_split_mono := ⟨{
     retraction := πₘ r,
-    id' := sorry,
+    id' := begin
+      rw ← category_theory.functor.map_comp, -- TODO: transform ≫ into vanilla ∘
+      rw retraction.id_of_retraction_of_inclusion,
+    end,
   }⟩,
 }
 

@@ -19,8 +19,8 @@ TODO: the `encoding`'s used in `src/computability` should be to trees.
 
 ## Main declarations
 
-* `encodable α`: States that there exists an explicit encoding function `encode : α → ℕ` with a
-  partial inverse `decode : unit_tree → option α`.
+* `encodable α`: States that there exists an explicit encoding function `encode : α → unit_tree`
+   with a partial inverse `decode : unit_tree → option α`.
 
 -/
 open unit_tree
@@ -130,16 +130,6 @@ def equiv_list : unit_tree ≃ list unit_tree :=
 @[simp] lemma equiv_list_symm_nil : equiv_list.symm [] = nil := rfl
 @[simp] lemma equiv_list_symm_cons (a : unit_tree) (b : list unit_tree) :
   equiv_list.symm (a :: b) = node a (equiv_list.symm b) := rfl
-
--- TODO: Move to list/lemmas
-@[simp] lemma list.nil_all_some {α : Type*} : (@list.nil $ option α).all_some = some [] := rfl
-@[simp] lemma list.none_cons_all_some {α} (x : list (option α)) :
-  (none :: x).all_some = none := rfl
-@[simp] lemma list.some_cons_all_some {α} (x : list (option α)) (y) :
-  (some y :: x).all_some = x.all_some.map (list.cons y) := rfl
-
-@[simp] theorem list.map_some_all_some {α} (x : list α) :
-  (x.map some).all_some = some x := by induction x; simp [*]
 
 instance _root_.list.tencodable : tencodable (list α) :=
 { encode := λ l, equiv_list.symm (l.map encode),

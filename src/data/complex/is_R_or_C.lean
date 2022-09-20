@@ -557,7 +557,8 @@ begin
 end
 
 lemma re_eq_self_of_le {a : K} (h : abs a ≤ re a) : (re a : K) = a :=
-by { rw ← re_add_im a, simp only [im_eq_zero_of_le h, add_zero, zero_mul, algebra_map.coe_zero] with is_R_or_C_simps, }
+by { rw ← re_add_im a, simp only [im_eq_zero_of_le h, add_zero, zero_mul, algebra_map.coe_zero]
+  with is_R_or_C_simps, }
 
 lemma abs_add (z w : K) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)

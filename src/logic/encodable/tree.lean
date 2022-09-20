@@ -241,3 +241,82 @@ lemma encode_fin {n} (x : fin n) : encode x = encode (x : ℕ) := rfl
 end subtype
 
 end tencodable
+
+namespace unit_tree
+
+def to_nat : unit_tree → ℕ
+| nil := 0
+| (node x y) := nat.mkpair (to_nat x) (to_nat y) + 1
+
+def of_nat : ℕ → unit_tree
+| 0 := nil
+| (n + 1) :=
+  have wf₁ : (nat.unpair n).1 < n + 1 := nat.lt_succ_of_le n.unpair_left_le,
+  have wf₂ : (nat.unpair n).2 < n + 1 := nat.lt_succ_of_le n.unpair_right_le,
+  node (of_nat (nat.unpair n).1) (of_nat (nat.unpair n).2)
+
+@[simp] lemma to_nat_of_nat (x : unit_tree) : of_nat x.to_nat = x :=
+by induction x with l r ihl ihr; simp [of_nat, to_nat, *]
+
+@[simp] lemma of_nat_to_nat (n : ℕ) : (of_nat n).to_nat = n :=
+begin
+  induction n using nat.case_strong_induction_on with n ih,
+  { simp [of_nat, to_nat], },
+  simp [of_nat, to_nat, ih _ n.unpair_left_le, ih _ n.unpair_right_le],
+end
+
+def equiv_nat : unit_tree ≃ ℕ :=
+{ to_fun := to_nat,
+  inv_fun := of_nat,
+  left_inv := to_nat_of_nat,
+  right_inv := of_nat_to_nat }
+
+def rotate : unit_tree → unit_tree
+| nil := nil
+| (node a nil) := node a nil
+| (node a (node b c)) := node (node a b) c
+
+@[simp] lemma rotate_nodes (x : unit_tree) : x.rotate.nodes = x.nodes :=
+by { cases x with a b, { refl, }, cases b, { refl, }, simp [rotate], ac_refl, }
+
+@[simp] lemma rotate_iterate_nodes (x : unit_tree) (n : ℕ) : (rotate^[n] x).nodes = x.nodes :=
+by { induction n; simp [function.iterate_succ', *], }
+
+@[simp] lemma nodes_eq_zero_iff {x : unit_tree} : x.nodes = 0 ↔ x = nil :=
+by { cases x; simp, }
+
+@[simp] lemma left_nodes {x : unit_tree} (hx : x.right = nil) : x.left.nodes = x.nodes - 1 :=
+by { cases x, { simp, }, simpa using hx, }
+
+lemma rotate_iterate {x₁ x₂ : unit_tree} {n : ℕ} (hn : x₂.height ≤ n) :
+  (rotate^[n] (node x₁ x₂)).right = nil :=
+begin
+  induction x₂ with l r _ ih generalizing n x₁,
+  { rw function.iterate_fixed; refl, },
+  cases n, { exfalso, simpa using hn, },
+  have : r.height ≤ n, { simp [height, nat.succ_eq_add_one] at hn, tauto, },
+  simp [rotate, ih this],
+end
+
+lemma rotate_iterate_left_nodes {x : unit_tree} {n : ℕ} (hn : x.height ≤ n + 1) :
+  (rotate^[n] x).left.nodes = x.nodes - 1 :=
+begin
+  cases x, { rw function.iterate_fixed; refl, },
+  rw left_nodes, { simp, },
+  rw rotate_iterate, simp at hn, tauto,
+end
+
+end unit_tree
+
+namespace tencodable
+
+@[simps]
+instance : encodable unit_tree :=
+{ encode := unit_tree.to_nat,
+  decode := λ x, some (unit_tree.of_nat x),
+  encodek := by simp }
+
+def to_encodable (α : Type*) [tencodable α] : encodable α :=
+encodable.of_left_injection encode (decode α) encodek
+
+end tencodable

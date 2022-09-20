@@ -8,10 +8,6 @@ import combinatorics.catalan
 
 namespace unit_tree
 
-@[simp] def height : unit_tree → ℕ
-| nil := 0
-| (node x y) := max (height x) (height y) + 1
-
 @[simp] lemma height_eq_zero_iff {x : unit_tree} : x.height = 0 ↔ x = nil :=
 by cases x; simp [height]
 
@@ -60,14 +56,14 @@ end
 def nodes_eq_finset (n : ℕ) : finset unit_tree :=
 (height_le_finset n).filter (λ x, x.nodes = n)
 
-lemma mem_nodes_le_finset {n : ℕ} {x : unit_tree} :
+@[simp] lemma mem_nodes_le_finset {n : ℕ} {x : unit_tree} :
   x ∈ nodes_eq_finset n ↔ x.nodes = n :=
 ⟨by simp [nodes_eq_finset], λ h, by simpa [nodes_eq_finset, ← h] using x.height_le_nodes⟩
 
 lemma nodes_eq_succ (n : ℕ) :
   nodes_eq_finset (n + 1) = (finset.nat.antidiagonal n).bUnion
     (λ ij, pairwise_node (nodes_eq_finset ij.1) (nodes_eq_finset ij.2)) :=
-by { ext x, cases x with l r; simp [mem_nodes_le_finset, n.succ_ne_zero.symm], }
+by { ext x, cases x with l r; simp [n.succ_ne_zero.symm], }
 
 open_locale big_operators
 open finset
@@ -103,7 +99,7 @@ begin
     (∃ (l r : unit_tree), (l.nodes = x₁ ∧ r.nodes = x₂) ∧ l.node r = a) ∧
     (∃ (l r : unit_tree), (l.nodes = y₁ ∧ r.nodes = y₂) ∧ l.node r = a),
   { refl, },
-  simpa [mem_nodes_le_finset] using ha,
+  simpa using ha,
 end
 
 end unit_tree

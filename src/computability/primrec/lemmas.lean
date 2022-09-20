@@ -249,9 +249,6 @@ by { delta list.head', delta id_rhs, primrec, }
 @[primrec] lemma tail : primrec (@list.tail α) :=
 by { delta list.tail, delta id_rhs, primrec, }
 
-lemma congr_singleton {f : α → β} : primrec f ↔ primrec (λ x, [f x]) :=
-⟨λ hf, by primrec, λ hf, congr_some.mpr (head'.comp hf)⟩
-
 end list
 
 section nat
@@ -440,7 +437,7 @@ end
   primrec (λ x, (f x).filter (P x)) :=
 begin
   primrec using λ x, (f x).foldr (λ hd acc, if P x hd then hd :: acc else acc) [],
-  induction f x with hd, { simp, }, by_cases P x hd; simp [*],
+  induction f x with hd, { simp, }, simp [*, list.filter],
 end
 
 instance {α : Type} [primcodable α] : primcodable (list α) :=
@@ -636,6 +633,22 @@ by simpa using (primrec'.to_primrec hf).comp (show primrec (λ n, n ::ᵥ vector
 
 namespace primrec'
 
+theorem of_eq {n} {f g : vector ℕ n → ℕ}
+  (hf : primrec' f) (H : ∀ i, f i = g i) : primrec' g :=
+(funext H : f = g) ▸ hf
+
+theorem const {n} : ∀ m, @primrec' n (λ v, m)
+| 0     := zero.comp fin.elim0 (λ i, i.elim0)
+| (m+1) := succ.comp _ (λ i, const m)
+
+theorem head {n : ℕ} : @primrec' n.succ head :=
+(nth 0).of_eq $ λ v, by simp [nth_zero]
+
+theorem tail {n f} (hf : @primrec' n f) : @primrec' n.succ (λ v, f v.tail) :=
+(hf.comp _ (λ i, @nth _ i.succ)).of_eq $
+λ v, by rw [← of_fn_nth v.tail]; congr; funext i; simp
+
+-- TODO: Finish this section
 
 end primrec'
 

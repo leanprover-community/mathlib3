@@ -142,4 +142,9 @@ by { induction x, { exact nat.zero_lt_one, }, apply nat.lt_add_left, assumption,
 | nil := nil
 | (node l r) := r
 
+
+@[simp] def height : unit_tree → ℕ
+| nil := 0
+| (node x y) := max (height x) (height y) + 1
+
 end unit_tree

@@ -208,7 +208,7 @@ begin
     { rw [pow_succ, zero_mul, sym_empty, sum_empty] } },
   intro n,
   simp_rw [sum_insert ha, add_pow, sum_range, ih, mul_sum, sum_mul, sum_sigma'],
-  refine (finset.sum_bij' (λ m _, sym.filter_ne a m) (λ m hm, mem_sigma.2 ⟨mem_univ _, _⟩)
+  refine (sum_bij' (λ m _, sym.filter_ne a m) (λ m hm, mem_sigma.2 ⟨mem_univ _, _⟩)
     (λ m hm, _) (λ m _, m.2.fill a m.1) _ (λ m _, m.fill_filter_ne a) (λ m hm, _)).symm,
   { convert sym_filter_ne_mem a hm, rw erase_insert ha },
   { rw [m.1.multinomial_filter_ne a],

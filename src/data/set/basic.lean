@@ -822,43 +822,64 @@ eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
-theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
-⟨xs, px⟩
+section sep
+variables {p q : α → Prop} {x : α}
 
-@[simp] theorem sep_mem_eq {s t : set α} : {x ∈ s | x ∈ t} = s ∩ t := rfl
+theorem mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} := ⟨xs, px⟩
 
-@[simp] theorem mem_sep_eq {s : set α} {p : α → Prop} {x : α} :
-  x ∈ {x ∈ s | p x} = (x ∈ s ∧ p x) := rfl
+theorem sep_mem_eq : {x ∈ s | x ∈ t} = s ∩ t := rfl
 
-theorem mem_sep_iff {s : set α} {p : α → Prop} {x : α} : x ∈ {x ∈ s | p x} ↔ x ∈ s ∧ p x :=
-iff.rfl
+theorem mem_sep_iff : x ∈ {x ∈ s | p x} ↔ x ∈ s ∧ p x := iff.rfl
 
-theorem eq_sep_of_subset {s t : set α} (h : s ⊆ t) : s = {x ∈ t | x ∈ s} :=
+@[simp] theorem mem_sep_eq : x ∈ {x ∈ s | p x} = (x ∈ s ∧ p x) := rfl
+
+theorem sep_ext_iff : {x ∈ s | p x} = {x ∈ s | q x} ↔ ∀ x ∈ s, (p x ↔ q x) :=
+by simp_rw [ext_iff, mem_sep_iff, and.congr_right_iff]
+
+@[ext] theorem sep_ext (H : ∀ x ∈ s, (p x ↔ q x)) : {x ∈ s | p x} = {x ∈ s | q x} :=
+by rwa sep_ext_iff
+
+theorem eq_sep_of_subset (h : s ⊆ t) : s = {x ∈ t | x ∈ s} :=
 (inter_eq_self_of_subset_right h).symm
 
 @[simp] theorem sep_subset (s : set α) (p : α → Prop) : {x ∈ s | p x} ⊆ s := λ x, and.left
 
+@[simp] lemma sep_eq_self_iff_mem_true : {x ∈ s | p x} = s ↔ ∀ x ∈ s, p x :=
+by simp_rw [ext_iff, mem_sep_iff, and_iff_left_iff_imp]
+
+lemma sep_eq_self_of_mem_true (H : ∀ x ∈ s, p x) : {x ∈ s | p x} = s :=
+sep_eq_self_iff_mem_true.2 H
+
+@[simp] lemma sep_true : {x ∈ s | true} = s :=
+sep_eq_self_of_mem_true $ λ _ _, trivial
+
+@[simp] lemma sep_eq_empty_iff_mem_false : {x ∈ s | p x} = ∅ ↔ ∀ x ∈ s, ¬ p x :=
+by simp_rw [ext_iff, mem_sep_iff, mem_empty_eq, iff_false, not_and]
+
+lemma sep_eq_self_of_mem_false (H : ∀ x ∈ s, ¬ p x) : {x ∈ s | p x} = ∅ :=
+sep_eq_empty_iff_mem_false.2 H
+
+@[simp] lemma sep_false : {x ∈ s | false} = ∅ :=
+sep_eq_self_of_mem_false $ λ _ _, not_false
+
 @[simp] lemma sep_empty (p : α → Prop) : {x ∈ (∅ : set α) | p x} = ∅ :=
-by { ext, exact false_and _ }
+sep_eq_self_of_mem_false $ λ _ H _, not_mem_empty _ H
 
-theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p x} = ∅)
-  (x) : x ∈ s → ¬ p x := not_and.1 (eq_empty_iff_forall_not_mem.1 H x : _)
+@[simp] lemma sep_univ : {x ∈ (univ : set α) | p x} = {x | p x} := univ_inter _
 
-@[simp] lemma sep_univ {α} {p : α → Prop} : {a ∈ (univ : set α) | p a} = {a | p a} := univ_inter _
+@[simp] lemma union_sep : {x ∈ s ∪ t | p x} = {x ∈ s | p x} ∪ {x ∈ t | p x} :=
+ext $ λ _, or_and_distrib_right
 
-@[simp] lemma sep_true : {a ∈ s | true} = s :=
-by { ext, simp }
+@[simp] lemma inter_sep : {x ∈ s ∩ t | p x} = {x ∈ s | p x} ∩ {x ∈ t | p x} :=
+ext $ λ _, and_and_distrib_right _ _ _
 
-@[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
-by { ext, simp }
+@[simp] lemma sep_inter : {x ∈ s | p x ∧ q x} ={x ∈ s | p x} ∩ {x ∈ s | q x}  :=
+by { ext, rw mem_inter_iff, simp_rw mem_sep_iff, rw ← and_and_distrib_left }
 
-lemma sep_inter_sep {p q : α → Prop} :
-  {x ∈ s | p x} ∩ {x ∈ s | q x} = {x ∈ s | p x ∧ q x} :=
-begin
-  ext,
-  simp_rw [mem_inter_iff, mem_sep_iff],
-  rw [and_and_and_comm, and_self],
-end
+@[simp] lemma sep_union : {x ∈ s | p x} ∪ {x ∈ s | q x} = {x ∈ s | p x ∨ q x} :=
+by { ext, rw mem_union, simp_rw mem_sep_iff, rw and_or_distrib_left }
+
+end sep
 
 @[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
 iff.rfl

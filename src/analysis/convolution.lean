@@ -437,6 +437,14 @@ begin
   { exact (h $ sub_add_cancel x t).elim }
 end
 
+section
+variables [has_measurable_add₂ G] [has_measurable_neg G] [sigma_finite μ] [is_add_right_invariant μ]
+
+lemma measure_theory.integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⋆[L, μ] g) μ :=
+(hf.convolution_integrand L hg).integral_prod_left
+end
+
 variables [topological_space G]
 variables [topological_add_group G]
 
@@ -499,12 +507,6 @@ lemma has_compact_support.continuous_convolution_right_of_integrable
     continuous (f ⋆[L, μ] g) :=
 (hg.norm.bdd_above_range_of_has_compact_support hcg.norm).continuous_convolution_right_of_integrable
   L hf hg
-
-variables [sigma_finite μ] [is_add_right_invariant μ]
-
-lemma measure_theory.integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
-  integrable (f ⋆[L, μ] g) μ :=
-(hf.convolution_integrand L hg).integral_prod_left
 
 end group
 

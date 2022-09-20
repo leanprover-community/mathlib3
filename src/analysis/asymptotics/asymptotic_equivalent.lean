@@ -147,11 +147,14 @@ end
 lemma is_equivalent.tendsto_nhds_iff {c : β} (huv : u ~[l] v) :
   tendsto u l (𝓝 c) ↔ tendsto v l (𝓝 c) := ⟨huv.tendsto_nhds, huv.symm.tendsto_nhds⟩
 
-lemma is_equivalent.add_is_o (huv : u ~[l] v) (hwv : w =o[l] v) : (w + u) ~[l] v :=
-by simpa only [is_equivalent, pi.sub_apply, add_sub] using hwv.add huv
+lemma is_equivalent.add_is_o (huv : u ~[l] v) (hwv : w =o[l] v) : (u + w) ~[l] v :=
+by simpa only [is_equivalent, add_sub_right_comm] using huv.add hwv
+
+lemma is_equivalent.sub_is_o (huv : u ~[l] v) (hwv : w =o[l] v) : (u - w) ~[l] v :=
+by simpa only [sub_eq_add_neg] using huv.add_is_o hwv.neg_left
 
 lemma is_o.add_is_equivalent (hu : u =o[l] w) (hv : v ~[l] w) : (u + v) ~[l] w :=
-add_comm u v ▸ hv.add_is_o hu
+add_comm v u ▸ hv.add_is_o hu
 
 lemma is_o.is_equivalent (huv : (u - v) =o[l] v) : u ~[l] v := huv
 

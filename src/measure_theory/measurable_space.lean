@@ -697,6 +697,15 @@ begin
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
 end
 
+instance measurable_singleton_class.pi [countable δ] [Π a, measurable_singleton_class (π a)] :
+  measurable_singleton_class (Π a, π a) :=
+⟨λ f, begin
+  convert measurable_set.univ_pi
+    (show ∀ t, measurable_set {f t}, from λ t, measurable_set_singleton (f t)),
+  ext g,
+  simp only [function.funext_iff, mem_singleton_iff, mem_univ_pi],
+end⟩
+
 variable (π)
 
 @[measurability]

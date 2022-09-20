@@ -632,8 +632,8 @@ instance distrib_smul (α : Type*) (n : ℕ) {K : Type u} [field K]
   end, }
 
 instance polynomial.is_scalar_tower (R₁ R₂ : Type*) {K : Type u}
-  [has_smul R₁ R₂] [field K] [has_smul R₁ K] [has_smul R₂ K] [distrib_smul R₂ K] [distrib_smul R₁ K]
-  [is_scalar_tower R₁ K K] [is_scalar_tower R₂ K K] [is_scalar_tower R₁ R₂ K] :
+  [has_smul R₁ R₂] [field K] [has_smul R₁ K] [has_smul R₂ K]
+  [distrib_smul R₂ K] [distrib_smul R₁ K] [is_scalar_tower R₁ R₂ K] :
   is_scalar_tower R₁ R₂ K[X] :=
 ⟨λ a b x, by { ext, simp [polynomial.coeff_smul'] }⟩
 

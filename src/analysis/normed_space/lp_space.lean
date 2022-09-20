@@ -539,26 +539,18 @@ normed_add_comm_group.of_core _
     classical,
     rcases or.assoc.mpr p.trichotomy with _ | h_pos,
     { simp only [norm_zero_top_eq_standard_norm h],
-      replace h : p = 0,
-      sorry,
-
+      replace h : p = 0 := by {simp only [*, or_false, ne_of_lt (H.trans ennreal.one_lt_top)] at *},
       subst h,
-      simp only [norm_eq_card_dsupport],
-      simp,
-      let X := (lp.mem_ℓp (f+g)).finite_dsupport.to_finset,
-      let S := (lp.mem_ℓp f).finite_dsupport.to_finset,
-      let T := (lp.mem_ℓp g).finite_dsupport.to_finset,
-      have temp : X = S ∪ T, sorry,
-      -- sorry,
-      have := finset.card_union_le S T,
-      rwa [← temp, ← @nat.cast_le ℝ _ _, nat.cast_add] at this,
-      -- exact
-      -- convert this,
-      -- rw nat.cast_add,
-      -- have := dfinsupp.support_add,
-
-
-     },
+      simp only [norm_eq_card_dsupport, coe_fn_add, pi.add_apply, ne.def],
+      have : (lp.mem_ℓp (f+g)).finite_dsupport.to_finset ⊆
+        (lp.mem_ℓp f).finite_dsupport.to_finset ∪ (lp.mem_ℓp g).finite_dsupport.to_finset,
+      { intros i hi,
+        simp only [finset.mem_union, set.finite.mem_to_finset, coe_fn_add, pi.add_apply, ne.def,
+          set.mem_set_of_eq, ← decidable.not_and_iff_or_not] at ⊢ hi,
+        contrapose! hi,
+        simp only [hi, add_zero] },
+      replace this := (finset.card_le_of_subset this).trans (finset.card_union_le _ _),
+      rwa [← @nat.cast_le ℝ _ _, nat.cast_add] at this},
     { have this := not_or_distrib.mp ((not_iff_not.mpr p.to_real_eq_zero_iff).mp (ne_of_gt h_pos)),
       simp only [norm_eq_pow_standard_norm this.1 this.2],
       have h₀ : 0 ≤ p.to_real := by {simp only [ennreal.to_real_nonneg]},
@@ -586,8 +578,6 @@ normed_add_comm_group.of_core _
 
 end p_le_one
 
-
-#exit
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.

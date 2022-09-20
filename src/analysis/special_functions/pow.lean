@@ -1268,7 +1268,7 @@ begin
 end
 
 lemma lt_neg_rpow_iff {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : c < 0) :
-  a < b^(c) ↔ b < a^(c⁻¹) :=
+  a < b^c ↔ b < a^c⁻¹ :=
 begin
   have hc' : 0 < -c⁻¹ := by rwa [lt_neg, neg_zero', inv_lt_zero],
   have hac : 0 < a^(-c⁻¹) := real.rpow_pos_of_pos ha _,

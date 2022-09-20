@@ -726,6 +726,7 @@ noncomputable def of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂)
   ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=
 by { ext, refl }
 
+/-- If a linear isometry has an inverse, it is a linear isometric equivalence. -/
 def of_linear_isometry (f : E →ₛₗᵢ[σ₁₂] E₂) (g : E₂ →ₛₗ[σ₂₁] E)
   (h₁ : f.to_linear_map.comp g = linear_map.id) (h₂ : g.comp f.to_linear_map = linear_map.id) :
   E ≃ₛₗᵢ[σ₁₂] E₂ :=

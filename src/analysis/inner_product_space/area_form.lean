@@ -152,7 +152,7 @@ begin
   { simp }
 end
 
-/- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
+/-- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
 oriented real inner product space of dimension 2. -/
 def right_angle_rotation_aux₁ : E →ₗ[ℝ] E :=
 let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
@@ -172,7 +172,7 @@ begin
   simp [o.area_form_swap y x],
 end
 
-/- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
+/-- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
 oriented real inner product space of dimension 2. -/
 def right_angle_rotation_aux₂ : E →ₗᵢ[ℝ] E :=
 { norm_map' := λ x, begin
@@ -265,7 +265,7 @@ by simp
   linear_isometry_equiv.trans J J = linear_isometry_equiv.neg ℝ :=
 by ext; simp
 
-@[simp] lemma right_angle_rotation_neg_orientation (x : E) :
+lemma right_angle_rotation_neg_orientation (x : E) :
   (-o).right_angle_rotation x = - o.right_angle_rotation x :=
 begin
   apply ext_inner_right ℝ,

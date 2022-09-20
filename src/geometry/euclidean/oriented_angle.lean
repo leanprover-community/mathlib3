@@ -566,15 +566,35 @@ rfl
 
 attribute [irreducible] rotation
 
+lemma rotation_eq_matrix_to_lin (θ : real.angle) {x : V} (hx : x ≠ 0) :
+  (o.rotation θ).to_linear_map
+  = matrix.to_lin
+      (o.basis_almost_complex x hx) (o.basis_almost_complex x hx) !![θ.cos, -θ.sin; θ.sin, θ.cos] :=
+begin
+  apply (o.basis_almost_complex x hx).ext,
+  intros i,
+  fin_cases i,
+  { rw matrix.to_lin_self,
+    simp [rotation_apply, fin.sum_univ_succ] },
+  { rw matrix.to_lin_self,
+    simp [rotation_apply, fin.sum_univ_succ, add_comm] },
+end
+
 /-- The determinant of `rotation` (as a linear map) is equal to `1`. -/
 @[simp] lemma det_rotation (θ : real.angle) :
-  ((o.rotation θ).to_linear_equiv : V →ₗ[ℝ] V).det = 1 :=
-sorry -- should be a general theorem for linear isometries
+  (o.rotation θ).to_linear_map.det = 1 :=
+begin
+  haveI : nontrivial V :=
+    finite_dimensional.nontrivial_of_finrank_eq_succ (fact.out (finrank ℝ V = 2)),
+  obtain ⟨x, hx⟩ : ∃ x, x ≠ (0:V) := exists_ne (0:V),
+  rw o.rotation_eq_matrix_to_lin θ hx,
+  simpa [sq] using θ.cos_sq_add_sin_sq,
+end
 
 /-- The determinant of `rotation` (as a linear equiv) is equal to `1`. -/
 @[simp] lemma linear_equiv_det_rotation (θ : real.angle) :
   (o.rotation θ).to_linear_equiv.det = 1 :=
-sorry -- should be a general theorem for linear isometries
+units.ext $ o.det_rotation θ
 
 /-- The inverse of `rotation` is rotation by the negation of the angle. -/
 @[simp] lemma rotation_symm (θ : real.angle) : (o.rotation θ).symm = o.rotation (-θ) :=

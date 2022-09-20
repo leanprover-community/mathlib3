@@ -40,9 +40,14 @@ def inclusion : C(Top.of (subtype A_filter), X) := ⟨subtype.restrict A_filter 
 structure retraction (r : C(X, Top.of (subtype A_filter))) : Prop :=
 (id_of_retraction_of_inclusion : r ∘ inclusion = id)
 
-theorem split_mono_of_inclusion_retraction : is_split_mono (πₘ (@inclusion X A_filter)) :=
-begin
-  sorry
-end
+theorem split_mono_of_inclusion_retraction
+  {r : C(X, Top.of (subtype A_filter))}
+  {h_retraction : retraction r} :
+  is_split_mono (πₘ (@inclusion X A_filter)) :=
+{
+  exists_split_mono := ⟨{
+    retraction := πₘ r,
+  }⟩,
+}
 
 end retraction

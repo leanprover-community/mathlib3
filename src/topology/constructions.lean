@@ -1086,7 +1086,8 @@ begin
     exact assume s hs, generate_open.basic _ ⟨update (λa, univ) a s, {a}, by simp [hs]⟩ }
 end
 
-lemma pi_generate_from_eq_finite {g : Πa, set (set (π a))} [finite ι] (hg : ∀a, ⋃₀ g a = univ) :
+lemma pi_generate_from_eq_finite {π : ι → Type*} {g : Πa, set (set (π a))} [finite ι]
+  (hg : ∀a, ⋃₀ g a = univ) :
   @Pi.topological_space ι π (λa, generate_from (g a)) =
   generate_from {t | ∃(s:Πa, set (π a)), (∀a, s a ∈ g a) ∧ t = pi univ s} :=
 begin

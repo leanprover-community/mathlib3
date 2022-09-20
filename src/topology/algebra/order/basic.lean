@@ -1122,13 +1122,9 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_topology.t3_space : t3_space α :=
-begin
-  refine ⟨λ s a hs ha, _⟩,
-  have : sᶜ ∈ 𝓝 a, from hs.is_open_compl.mem_nhds ha,
-  rcases exists_Icc_mem_subset_of_mem_nhds this with ⟨b, c, -, hmem, hsub⟩,
-  refine ⟨(Icc b c)ᶜ, is_closed_Icc.is_open_compl, subset_compl_comm.2 hsub, _⟩,
-  rwa [nhds_within, inf_principal_eq_bot, compl_compl]
-end
+{ to_regular_space := regular_space.of_exists_mem_nhds_is_closed_subset $
+    λ a s hs, let ⟨b, c, ha, hmem, hs⟩ := exists_Icc_mem_subset_of_mem_nhds hs
+      in ⟨Icc b c, hmem, is_closed_Icc, hs⟩ }
 
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/

@@ -306,10 +306,7 @@ lemma oangle_eq_zero_iff_same_ray {x y : V} : o.oangle x y = 0 ↔ same_ray ℝ 
 begin
   rw [oangle, kahler_apply_apply, complex.arg_coe_angle_eq_iff_eq_to_real, real.angle.to_real_zero,
     complex.arg_eq_zero_iff],
-  simp,
-  sorry, -- 0 ≤ ⟪x, y⟫ ∧ ω x y = 0 ↔ same_ray ℝ x y
-
-  --  [←linear_isometry_equiv.coe_to_linear_equiv, same_ray_map_iff, same_ray_comm]
+  simpa using o.nonneg_inner_and_area_form_eq_zero_iff_same_ray x y,
 end
 
 /-- The oriented angle between two vectors is `π` if and only if the angle with the vectors

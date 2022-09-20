@@ -334,6 +334,38 @@ end
 lemma inner_mul_area_form_sub (a x y : E) : ⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y :=
 congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_area_form_sub' a x)
 
+lemma nonneg_inner_and_area_form_eq_zero_iff_same_ray (x y : E) :
+  0 ≤ ⟪x, y⟫ ∧ ω x y = 0 ↔ same_ray ℝ x y :=
+begin
+  by_cases hx : x = 0,
+  { simp [hx] },
+  split,
+  { let a : ℝ := (o.basis_almost_complex x hx).repr y 0,
+    let b : ℝ := (o.basis_almost_complex x hx).repr y 1,
+    suffices : 0 ≤ a * ∥x∥ ^ 2 ∧ b * ∥x∥ ^ 2 = 0 → same_ray ℝ x (a • x + b • J x),
+    { -- TODO trace the `dsimp` lemmas in this block to make a single `simp only`
+      rw ← (o.basis_almost_complex x hx).sum_repr y,
+      simp only [fin.sum_univ_succ, coe_basis_almost_complex],
+      dsimp,
+      simp only [o.area_form_apply_self, map_smul, map_add, map_zero, inner_smul_left,
+        inner_smul_right, inner_add_left, inner_add_right, inner_zero_right, linear_map.add_apply,
+        matrix.cons_val_one],
+      dsimp,
+      simp only [o.area_form_almost_complex_right, mul_zero, add_zero, zero_add, neg_zero,
+        o.inner_almost_complex_right, o.area_form_apply_self, real_inner_self_eq_norm_sq],
+      exact this },
+    rintros ⟨ha, hb⟩,
+    have hx' : 0 < ∥x∥ := by simpa using hx,
+    have ha' : 0 ≤ a := nonneg_of_mul_nonneg_left ha (by positivity),
+    have hb' : b = 0 := eq_zero_of_ne_zero_of_mul_right_eq_zero (pow_ne_zero 2 hx'.ne') hb,
+    simpa [hb'] using same_ray_nonneg_smul_right x ha' },
+  { intros h,
+    obtain ⟨r, hr, rfl⟩ := h.exists_nonneg_left hx,
+    simp only [inner_smul_right, real_inner_self_eq_norm_sq, linear_map.map_smulₛₗ,
+      area_form_apply_self, algebra.id.smul_eq_mul, mul_zero, eq_self_iff_true, and_true],
+    positivity },
+end
+
 /-- A complex-valued real-bilinear map on an oriented real inner product space of dimension 2. Its
 real part is the inner product and its imaginary part is `orientation.area_form`. -/
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=

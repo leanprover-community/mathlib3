@@ -210,8 +210,6 @@ lemma set_of_bijective : bijective (set_of : (α → Prop) → set α) := biject
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} :
   {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
 
-@[simp] lemma sep_set_of {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} := rfl
-
 lemma set_of_and {p q : α → Prop} : {a | p a ∧ q a} = {a | p a} ∩ {a | q a} := rfl
 
 lemma set_of_or {p q : α → Prop} : {a | p a ∨ q a} = {a | p a} ∪ {a | q a} := rfl
@@ -827,7 +825,7 @@ variables {p q : α → Prop} {x : α}
 
 theorem mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} := ⟨xs, px⟩
 
-theorem sep_mem_eq : {x ∈ s | x ∈ t} = s ∩ t := rfl
+@[simp] theorem sep_mem_eq : {x ∈ s | x ∈ t} = s ∩ t := rfl
 
 theorem mem_sep_iff : x ∈ {x ∈ s | p x} ↔ x ∈ s ∧ p x := iff.rfl
 
@@ -836,48 +834,38 @@ theorem mem_sep_iff : x ∈ {x ∈ s | p x} ↔ x ∈ s ∧ p x := iff.rfl
 theorem sep_ext_iff : {x ∈ s | p x} = {x ∈ s | q x} ↔ ∀ x ∈ s, (p x ↔ q x) :=
 by simp_rw [ext_iff, mem_sep_iff, and.congr_right_iff]
 
-@[ext] theorem sep_ext (H : ∀ x ∈ s, (p x ↔ q x)) : {x ∈ s | p x} = {x ∈ s | q x} :=
-by rwa sep_ext_iff
-
-theorem eq_sep_of_subset (h : s ⊆ t) : s = {x ∈ t | x ∈ s} :=
-(inter_eq_self_of_subset_right h).symm
+theorem eq_sep_of_subset (h : s ⊆ t) : {x ∈ t | x ∈ s} = s :=
+inter_eq_self_of_subset_right h
 
 @[simp] theorem sep_subset (s : set α) (p : α → Prop) : {x ∈ s | p x} ⊆ s := λ x, and.left
 
 @[simp] lemma sep_eq_self_iff_mem_true : {x ∈ s | p x} = s ↔ ∀ x ∈ s, p x :=
 by simp_rw [ext_iff, mem_sep_iff, and_iff_left_iff_imp]
 
-lemma sep_eq_self_of_mem_true (H : ∀ x ∈ s, p x) : {x ∈ s | p x} = s :=
-sep_eq_self_iff_mem_true.2 H
-
-@[simp] lemma sep_true : {x ∈ s | true} = s :=
-sep_eq_self_of_mem_true $ λ _ _, trivial
-
 @[simp] lemma sep_eq_empty_iff_mem_false : {x ∈ s | p x} = ∅ ↔ ∀ x ∈ s, ¬ p x :=
 by simp_rw [ext_iff, mem_sep_iff, mem_empty_eq, iff_false, not_and]
 
-lemma sep_eq_self_of_mem_false (H : ∀ x ∈ s, ¬ p x) : {x ∈ s | p x} = ∅ :=
-sep_eq_empty_iff_mem_false.2 H
+@[simp] lemma sep_true : {x ∈ s | true} = s := inter_univ s
 
-@[simp] lemma sep_false : {x ∈ s | false} = ∅ :=
-sep_eq_self_of_mem_false $ λ _ _, not_false
+@[simp] lemma sep_false : {x ∈ s | false} = ∅ := inter_empty _
 
-@[simp] lemma sep_empty (p : α → Prop) : {x ∈ (∅ : set α) | p x} = ∅ :=
-sep_eq_self_of_mem_false $ λ _ H _, not_mem_empty _ H
+@[simp] lemma sep_empty (p : α → Prop) : {x ∈ (∅ : set α) | p x} = ∅ := empty_inter _
 
 @[simp] lemma sep_univ : {x ∈ (univ : set α) | p x} = {x | p x} := univ_inter _
 
 @[simp] lemma union_sep : {x ∈ s ∪ t | p x} = {x ∈ s | p x} ∪ {x ∈ t | p x} :=
-ext $ λ _, or_and_distrib_right
+union_inter_distrib_right
 
 @[simp] lemma inter_sep : {x ∈ s ∩ t | p x} = {x ∈ s | p x} ∩ {x ∈ t | p x} :=
-ext $ λ _, and_and_distrib_right _ _ _
+inter_inter_distrib_right _ _ _
 
-@[simp] lemma sep_inter : {x ∈ s | p x ∧ q x} ={x ∈ s | p x} ∩ {x ∈ s | q x}  :=
-by { ext, rw mem_inter_iff, simp_rw mem_sep_iff, rw ← and_and_distrib_left }
+@[simp] lemma sep_inter : {x ∈ s | p x ∧ q x} = {x ∈ s | p x} ∩ {x ∈ s | q x} :=
+inter_inter_distrib_left _ _ _
 
-@[simp] lemma sep_union : {x ∈ s | p x} ∪ {x ∈ s | q x} = {x ∈ s | p x ∨ q x} :=
-by { ext, rw mem_union, simp_rw mem_sep_iff, rw and_or_distrib_left }
+@[simp] lemma sep_union : {x ∈ s | p x ∨ q x} = {x ∈ s | p x} ∪ {x ∈ s | q x} :=
+inter_union_distrib_left
+
+@[simp] lemma sep_sep : {x ∈ {y | p y} | q x} = {x | p x ∧ q x} := rfl
 
 end sep
 

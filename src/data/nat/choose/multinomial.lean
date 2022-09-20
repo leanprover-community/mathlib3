@@ -190,6 +190,7 @@ namespace nat
 
 variables {α : Type*} (s : finset α)
 
+open finset
 /--
   The multinomial theorem
 
@@ -199,52 +200,25 @@ theorem multinomial_theorem [decidable_eq α] {R : Type*} [comm_semiring R] (x :
   ∀ n, (s.sum x) ^ n = ∑ k in s.sym n, k.val.multinomial * (k.val.map x).prod :=
 begin
   induction s using finset.induction with a s ha ih,
-  { rw finset.sum_empty,
+  { rw sum_empty,
     rintro (_ | n),
-    { rw [pow_zero, finset.sum_unique_nonempty],
+    { rw [pow_zero, sum_unique_nonempty],
       { convert (one_mul _).symm, apply nat.cast_one },
-      { apply finset.univ_nonempty } },
-    { rw [pow_succ, zero_mul, finset.sym_empty, finset.sum_empty] } },
+      { apply univ_nonempty } },
+    { rw [pow_succ, zero_mul, sym_empty, sum_empty] } },
   intro n,
-  rw [finset.sum_insert ha, add_pow, finset.sum_range],
-  simp_rw [ih, finset.mul_sum, finset.sum_mul, finset.sum_sigma'],
-  refine (finset.sum_bij (λ m _, sym.filter_ne a m)
-    (λ m hm, _) (λ m hm, _) (λ m₁ m₂ h₁ h₂ he, _) (λ m hm, _)).symm,
-  { rw finset.mem_sigma,
-    rw finset.mem_sym_iff at hm ⊢,
-    dsimp only [sym.filter_ne, sym.mem_mk],
-    refine ⟨finset.mem_univ _, λ a', _⟩,
-    rw multiset.mem_filter,
-    exact λ h, finset.mem_of_mem_insert_of_ne (hm a' h.1) h.2.symm },
+  simp_rw [sum_insert ha, add_pow, sum_range, ih, mul_sum, sum_mul, sum_sigma'],
+  refine (finset.sum_bij' (λ m _, sym.filter_ne a m) (λ m hm, mem_sigma.2 ⟨mem_univ _, _⟩)
+    (λ m hm, _) (λ m _, m.2.fill a m.1) _ (λ m _, m.fill_filter_ne a) (λ m hm, _)).symm,
+  { convert sym_filter_ne_mem a hm, rw erase_insert ha },
   { rw [m.1.multinomial_filter_ne a],
     dsimp only [sym.filter_ne, fin.coe_mk],
     conv in (m.1.map _) { rw [← m.1.filter_add_not ((=) a), multiset.map_add] },
     rw [multiset.prod_add, m.1.filter_eq, multiset.map_repeat, multiset.prod_repeat, m.2],
     rw [nat.cast_mul, mul_assoc, mul_comm],
     congr' 1, apply mul_left_comm },
-  { replace he := sigma.subtype_ext_iff.1 he,
-    dsimp only [sym.filter_ne, subtype.coe_mk] at he,
-    simp only [fin.mk.inj_iff] at he,
-    ext a', obtain rfl | h := eq_or_ne a a', { exact he.1 },
-    erw [← multiset.count_filter_of_pos h, he.2, multiset.count_filter_of_pos h], refl },
-  { rw [finset.mem_sigma, finset.mem_sym_iff] at hm,
-    refine ⟨sym.fill a m.1 m.2, finset.mem_sym_iff.2 (λ a' h', finset.mem_insert.2 _), _⟩,
-    { cases (sym.mem_fill_iff a' a m.1 m.2).mp h',
-      { left, exact h.2, },
-      { right, exact hm.2 a' h, }, },
-    apply sym.sigma_sub_ext, ext1 a',
-    dsimp only [sym.filter_ne, sym.fill],
-    simp only [multiset.count_filter, subtype.val_eq_coe, sym.coe_cast, sym.coe_append,
-      multiset.filter_add, sym.mk_coe, multiset.count_add, ite_not],
-    split_ifs,
-    { simp only [h.symm, multiset.count_eq_zero, sym.mem_coe],
-      by_contradiction H,
-      exact ha (hm.2 a H)},
-    { simp only [self_eq_add_right, multiset.count_eq_zero, sym.mem_coe,
-        sym.mem_repeat, ne.def, not_and],
-      intro _,
-      by_contradiction H,
-      exact h H.symm } },
+  { exact λ m hm, sym_fill_mem a (mem_sigma.1 hm).2 },
+  { exact sym.filter_ne_fill a m (mt (mem_sym_iff.1 (mem_sigma.1 hm).2 a) ha) },
 end
 
 end nat

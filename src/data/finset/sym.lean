@@ -155,11 +155,11 @@ by { ext m, simp only [mem_inter, mem_sym_iff, imp_and_distrib, forall_and_distr
 @[simp] lemma sym_union (s t : finset α) (n : ℕ) : s.sym n ∪ t.sym n ⊆ (s ∪ t).sym n :=
 union_subset (sym_mono (subset_union_left s t) n) (sym_mono (subset_union_right s t) n)
 
-lemma fill_mem (a : α) {i : fin (n + 1)} {m : sym α (n - i)} (h : m ∈ s.sym (n - i)) :
+lemma sym_fill_mem (a : α) {i : fin (n + 1)} {m : sym α (n - i)} (h : m ∈ s.sym (n - i)) :
   m.fill a i ∈ (insert a s).sym n :=
 mem_sym_iff.2 $ λ b hb, mem_insert.2 $ (sym.mem_fill_iff.1 hb).imp and.right $ mem_sym_iff.1 h b
 
-lemma filter_ne_mem (a : α) (h : m ∈ s.sym n) :
+lemma sym_filter_ne_mem (a : α) (h : m ∈ s.sym n) :
   (m.filter_ne a).2 ∈ (s.erase a).sym (n - (m.filter_ne a).1) :=
 mem_sym_iff.2 $ λ b H, mem_erase.2 $ (multiset.mem_filter.1 H).symm.imp ne.symm $ mem_sym_iff.1 h b
 

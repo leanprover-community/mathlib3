@@ -94,7 +94,7 @@ lemma nodes_eq_card_catalan (n : ℕ) :
 begin
   induction n using nat.case_strong_induction_on with n ih,
   { simp, refl, },
-  rw [nodes_eq_succ, finset.card_bUnion, catalan_succ'], dsimp only at ih,
+  rw [nodes_eq_succ, finset.card_bUnion, catalan_succ'],
   { apply sum_congr rfl, rintros ⟨i, j⟩ H,
     simp [ih i (nat.antidiagonal.fst_le H), ih j (nat.antidiagonal.snd_le H)], },
   rintros ⟨x₁, x₂⟩ hx ⟨y₁, y₂⟩ hy hne a ha,

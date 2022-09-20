@@ -33,7 +33,15 @@ open_locale unit_interval
 section retraction
 
 -- We automatically get the subspace topology for A via `subtype.topological_space`
-variables {X : Type*} {p : X → Prop} {A : subtype p}
+variables {X : Top} {A : X → Prop}
 variables [topological_space X]
+
+def inclusion : C(subtype A, X) := ⟨subtype.restrict A id⟩
+
+structure retraction (r : C(X, subtype A)) : Prop :=
+(id_of_retraction_of_inclusion : r ∘ inclusion = id)
+
+theorem split_mono_of_inclusion_retraction :
+  is_split_mono (πₘ inclusion) := sorry
 
 end retraction

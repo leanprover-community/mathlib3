@@ -57,8 +57,26 @@ begin
   apply_instance,
 end
 
-#check continuous_const_smul
-#check continuous.continuous_at
+/-- Every Cauchy sequence over `ℕ` is totally bounded. -/
+lemma totally_bounded_of_cauchy_seq {s : ℕ → E} (hs : cauchy_seq s): totally_bounded (set.range s) :=
+begin
+  rw totally_bounded_iff_subset,
+  intros a ha,
+  rw cauchy_seq_iff at hs,
+  cases hs a ha with n hn,
+  use s '' {k | k ≤ n},
+  simp only [set.image_subset_iff, set.preimage_range, set.subset_univ, set.mem_image,
+    set.mem_set_of_eq, set.Union_exists, set.bUnion_and', set.Union_Union_eq_right, true_and],
+  refine ⟨{k : ℕ | k ≤ n}.to_finite.image _, _⟩,
+  intros x hx,
+  simp only [set.mem_Union, set.mem_set_of_eq, exists_prop],
+  cases hx with m hm,
+  rw ←hm,
+  by_cases m ≤ n,
+  { exact ⟨m, h, refl_mem_uniformity ha⟩ },
+  push_neg at h,
+  exact ⟨n, rfl.le, hn m h.le n rfl.le⟩,
+end
 
 lemma foo (f : E →ₗ[𝕜] F)
   (hf : ∀ {s : set E} (hs : is_vonN_bounded 𝕜 s), is_vonN_bounded 𝕜 (f '' s)) :
@@ -74,22 +92,19 @@ begin
   by_contradiction,
   -- We use the a decreasing balanced basis for 0 : E and a balanced basis for 0 : F
   -- and reformulate non-continuity in terms of these bases
-  --cases (𝓝 (0 : E)).exists_antitone_basis with b bE,
-  -- filter.has_basis.exists_antitone_subbasis
-  -- nhds_basis_balanced
   rcases (nhds_basis_balanced 𝕜 E).exists_antitone_subbasis with ⟨b, bE1, bE⟩,
   simp only [id.def] at bE,
-  have bE' : (𝓝 (0 : E)).has_basis (λ (_x : ℕ), true) (λ n : ℕ, (n + 1 : 𝕜)⁻¹ • b (n + 1)) :=
+  have bE' : (𝓝 (0 : E)).has_basis (λ (x : ℕ), x ≠ 0) (λ n : ℕ, (n : 𝕜)⁻¹ • b n) :=
   begin
     refine bE.1.to_has_basis _ _,
     {
       intros n _,
-      use n,
-      simp only [true_and],
+      use n+1,
+      simp only [ne.def, nat.succ_ne_zero, not_false_iff, nat.cast_add, nat.cast_one, true_and],
       have h : b (n + 1) ⊆ b n := bE.2 (by simp),
       refine subset_trans _ h,
       rintros y ⟨x, hx, hy⟩,
-      -- Here, we need that the basis is balanced
+      -- Here we need that the basis is balanced
       rw ←hy,
       refine (bE1 (n+1)).2.smul_mem  _ hx,
       rw norm_inv,
@@ -102,50 +117,49 @@ begin
       exact norm_pos_iff.mpr (hn _),
       apply_instance,
     },
-    intros n _,
-    have hcont : continuous_at (λ (x : E), (n + 1 : 𝕜) • x) 0 :=
-      (continuous_const_smul (n + 1 : 𝕜)).continuous_at,
+    intros n hn,
+    have hcont : continuous_at (λ (x : E), (n : 𝕜) • x) 0 :=
+      (continuous_const_smul (n : 𝕜)).continuous_at,
     simp only [continuous_at, map_zero, smul_zero] at hcont,
     rw bE.1.tendsto_left_iff at hcont,
-    rcases hcont (b (n+1)) (bE1 (n+1)).1 with ⟨i, _, hi⟩,
+    rcases hcont (b n) (bE1 n).1 with ⟨i, _, hi⟩,
     use i,
     simp only [true_and],
     intros x hx,
     specialize hi hx,
     rw set.mem_smul_set,
-    refine ⟨((n + 1): 𝕜) • x, hi, _⟩,
+    refine ⟨(n : 𝕜) • x, hi, _⟩,
     rw ←mul_smul,
-    simp [hn n],
+    simp [hn],
   end,
-  admit { rw [continuous_at, map_zero, bE'.tendsto_iff (nhds_basis_balanced 𝕜 F)] at h,
+  rw [continuous_at, map_zero, bE'.tendsto_iff (nhds_basis_balanced 𝕜 F)] at h,
   push_neg at h,
   rcases h with ⟨V, ⟨hV, hV'⟩, h⟩,
   simp only [id.def, forall_true_left] at h,
   -- There exists `u : ℕ → E` such that for all `x : ℕ` we have `u x ∈ b x` and `f (u x) ∉ V`
-  cases classical.skolem.mp h with u hu,
-  have hu' : tendsto (λ n : ℕ, (n : 𝕜) • u n) at_top (𝓝 (0 : E)) :=
+  choose! u hu hu' using h,
+  -- The sequence `(λ n, n • u n)` converges to `0`
+  have h_tendsto : tendsto (λ n : ℕ, (n : 𝕜) • u n) at_top (𝓝 (0 : E)) :=
   begin
     apply bE.tendsto,
     intros n,
     by_cases h : n = 0,
     { rw [h, nat.cast_zero, zero_smul],
       refine mem_of_mem_nhds (bE.1.mem_of_mem $ by triv) },
-    specialize hu n,
+    specialize hu n h,
     --cases hu with hu1 hu2,
     rw set.mem_smul_set at hu,
-    rcases hu with ⟨⟨y, hy, hu1⟩, hu2⟩,
+    rcases hu with ⟨y, hy, hu1⟩,
     convert hy,
     rw ←hu1,
     rw ←mul_smul,
     simp only [h, mul_inv_cancel, ne.def, nat.cast_eq_zero, not_false_iff, one_smul],
   end,
-  have hu'' : is_vonN_bounded 𝕜 (set.range (λ n : ℕ, (n : 𝕜) • u n)) :=
-  begin
-    refine totally_bounded.is_vonN_bounded 𝕜 _,
-    sorry,
-  end,
+  -- The image `(λ n, n • u n)` is totally bounded:
+  have h_bounded : is_vonN_bounded 𝕜 (set.range (λ n : ℕ, (n : 𝕜) • u n)) :=
+  (totally_bounded_of_cauchy_seq (filter.tendsto.cauchy_seq h_tendsto)).is_vonN_bounded 𝕜,
   -- Since `range u` is bounded it absorbs `V`
-  rcases hf hu'' hV with ⟨r, hr, h'⟩,
+  rcases hf h_bounded hV with ⟨r, hr, h'⟩,
   cases exists_nat_gt r with n hn,
   have hn' : (n : 𝕜) ≠ 0 :=
   begin
@@ -155,7 +169,6 @@ begin
     simp only [norm_pos_iff, ne.def, nat.cast_eq_zero],
     exact ne_of_gt this,
   end,
-  cases hu n with hu1 hu2,
   have h1 : r ≤ ∥n • (1 : 𝕜)∥ :=
   begin
     rw norm_nsmul,
@@ -170,5 +183,6 @@ begin
   apply_fun (λ y : F, (n : 𝕜)⁻¹ • y) at h',
   simp only [hn', inv_smul_smul₀, ne.def, not_false_iff] at h',
   rw h' at hy,
-  exact hu2 hy, }
+  norm_cast at hn',
+  refine hu' n hn' hy,
 end

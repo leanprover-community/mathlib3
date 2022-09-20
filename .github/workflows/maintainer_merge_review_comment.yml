@@ -24,8 +24,9 @@ jobs:
 
             > ${{ github.event.pull_request.title }}
 
-      - name: Add reaction
+      - name: Add comment to PR
         uses: GrantBirki/comment@v2.0.1
         with:
-          comment-id: ${{ github.event.comment.id }}
-          reactions: rocket
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            🚀 Pull request has been placed on the maintainer queue by ${{ github.event.comment.user.login }}.

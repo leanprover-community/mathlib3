@@ -858,7 +858,7 @@ lemma eq_root_multiplicity_map {p : A[X]} {f : A →+* B} (hf : function.injecti
   (a : A) : root_multiplicity a p = root_multiplicity (f a) (p.map f) :=
 begin
   by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, polynomial.map_zero], },
-  apply le_antisymm (le_root_multiplicity_map ((polynomial.map_ne_zero_iff f hf).mpr hp0) a),
+  apply le_antisymm (le_root_multiplicity_map ((polynomial.map_ne_zero_iff hf).mpr hp0) a),
   rw [le_root_multiplicity_iff hp0, ← map_dvd_map f hf ((monic_X_sub_C a).pow _),
     polynomial.map_pow, polynomial.map_sub, map_X, map_C],
   apply pow_root_multiplicity_dvd,
@@ -884,7 +884,7 @@ begin
   by_cases hp0 : p = 0,
   { simp only [hp0, roots_zero, multiset.map_zero,
       multiset.count_zero, polynomial.map_zero, root_multiplicity_zero] },
-  { exact count_map_roots ((polynomial.map_ne_zero_iff f hf).mpr hp0) b },
+  { exact count_map_roots ((polynomial.map_ne_zero_iff hf).mpr hp0) b },
 end
 
 lemma map_roots_le [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B} (h : p.map f ≠ 0) :
@@ -896,7 +896,7 @@ lemma map_roots_le_of_injective [is_domain A] [is_domain B] (p : A[X])
   p.roots.map f ≤ (p.map f).roots :=
 begin
   by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
-  exact map_roots_le ((polynomial.map_ne_zero_iff f hf).mpr hp0),
+  exact map_roots_le ((polynomial.map_ne_zero_iff hf).mpr hp0),
 end
 
 lemma card_roots_le_map [is_domain A] [is_domain B] (p : A[X]) {f : A →+* B} (h : p.map f ≠ 0) :

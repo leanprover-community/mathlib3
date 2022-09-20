@@ -697,9 +697,8 @@ lemma realize_equiv_sentence_symm (φ : L[[α]].sentence) (v : α → M) :
   (equiv_sentence.symm φ).realize v ↔ @sentence.realize _ M
     (@language.with_constants_Structure L M _ α (constants_on.Structure v)) φ :=
 begin
-  haveI := constants_on.Structure v,
-  haveI : L[[α]].Structure M := L.with_constants_Structure M,
-  rw ← realize_equiv_sentence_symm_con,
+  letI := constants_on.Structure v,
+  exact realize_equiv_sentence_symm_con M φ,
 end
 
 end formula

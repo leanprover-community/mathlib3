@@ -51,12 +51,14 @@ namespace complete_type
 
 /-! ### In terms of `L[[α]].sentence` -/
 
-instance : set_like (T.complete_type α) (L[[α]].sentence) :=
-⟨λ p, p.to_Theory, λ p q h, begin
-  cases p,
-  cases q,
-  congr',
-end⟩
+instance : has_coe (T.complete_type α) (L[[α]].Theory) := ⟨to_Theory⟩
+
+lemma coe_Theory_injective :
+  function.injective (coe : T.complete_type α → L[[α]].Theory) :=
+begin
+  rintros ⟨_, _, _⟩ ⟨_, _, _⟩ ⟨rfl, _, _⟩,
+  refl,
+end
 
 lemma is_maximal (p : T.complete_type α) : is_maximal (p : L[[α]].Theory) :=
 p.is_maximal'
@@ -65,31 +67,10 @@ lemma subset (p : T.complete_type α) :
   (L.Lhom_with_constants α).on_Theory T ⊆ (p : L[[α]].Theory) :=
 p.subset'
 
-lemma mem_or_not_mem (p : T.complete_type α) (φ : L[[α]].sentence) : φ ∈ p ∨ φ.not ∈ p :=
-p.is_maximal.mem_or_not_mem φ
-
-lemma mem_of_models (p : T.complete_type α) {φ : L[[α]].sentence}
-  (h : (L.Lhom_with_constants α).on_Theory T ⊨ φ) :
-  φ ∈ p :=
-(p.mem_or_not_mem φ).resolve_right (λ con, ((models_iff_not_satisfiable _).1 h)
-  (p.is_maximal.1.mono (union_subset p.subset (singleton_subset_iff.2 con))))
-
-lemma not_mem_iff (p : T.complete_type α) (φ : L[[α]].sentence) :
-  φ.not ∈ p ↔ ¬ φ ∈ p :=
-⟨λ hf ht, begin
-  have h : ¬ is_satisfiable ({φ, φ.not} : L[[α]].Theory),
-  { rintros ⟨⟨_, _, h, _⟩⟩,
-    simp only [model_iff, mem_insert_iff, mem_singleton_iff, forall_eq_or_imp,
-      forall_eq] at h,
-    exact h.2 h.1 },
-  refine h (p.is_maximal.1.mono _),
-  rw [insert_subset, singleton_subset_iff],
-  exact ⟨ht, hf⟩,
-end, (p.mem_or_not_mem φ).resolve_left⟩
-
 @[simp] lemma compl_set_of_mem {φ : L[[α]].sentence} :
-  {p : T.complete_type α | φ ∈ p}ᶜ = {p : T.complete_type α | φ.not ∈ p} :=
-ext (λ _, (not_mem_iff _ _).symm)
+  {p : T.complete_type α | φ ∈ (p : L[[α]].Theory)}ᶜ =
+    {p : T.complete_type α | φ.not ∈ (p : L[[α]].Theory)} :=
+ext (λ p, (p.is_maximal.not_mem_iff φ).symm)
 
 lemma set_of_subset_eq_empty_iff (S : L[[α]].Theory) :
   {p : T.complete_type α | S ⊆ ↑p} = ∅ ↔
@@ -104,18 +85,19 @@ begin
 end
 
 lemma set_of_mem_eq_univ_iff (φ : L[[α]].sentence) :
-  {p : T.complete_type α | φ ∈ p} = univ ↔ (L.Lhom_with_constants α).on_Theory T ⊨ φ :=
+  {p : T.complete_type α | φ ∈ (p : L[[α]].Theory)} = univ ↔
+    (L.Lhom_with_constants α).on_Theory T ⊨ φ :=
 begin
   rw [models_iff_not_satisfiable, ← compl_empty_iff, compl_set_of_mem,
     ← set_of_subset_eq_empty_iff],
-  simp,
+  simp only [singleton_subset_iff],
 end
 
 lemma set_of_subset_eq_univ_iff (S : L[[α]].Theory) :
   {p : T.complete_type α | S ⊆ ↑p} = univ ↔
     (∀ φ, φ ∈ S → (L.Lhom_with_constants α).on_Theory T ⊨ φ) :=
 begin
-  have h : {p : T.complete_type α | S ⊆ ↑p} = ⋂₀ ((λ φ, {p | φ ∈ p}) '' S),
+  have h : {p : T.complete_type α | S ⊆ ↑p} = ⋂₀ ((λ φ, {p | φ ∈ (p : L[[α]].Theory)}) '' S),
   { ext,
     simp [subset_def] },
   simp_rw [h, sInter_eq_univ, ← set_of_mem_eq_univ_iff],
@@ -144,9 +126,9 @@ begin
 end
 
 lemma to_list_foldr_inf_mem {p : T.complete_type α} {t : finset (L[[α]]).sentence} :
-  t.to_list.foldr (⊓) ⊤ ∈ p ↔ (t : L[[α]].Theory) ⊆ ↑p :=
+  t.to_list.foldr (⊓) ⊤ ∈ (p : L[[α]].Theory) ↔ (t : L[[α]].Theory) ⊆ ↑p :=
 begin
-  simp_rw [subset_def, ← set_like.mem_coe, p.is_maximal.mem_iff_models, models_sentence_iff,
+  simp_rw [subset_def, p.is_maximal.mem_iff_models, models_sentence_iff,
     sentence.realize, formula.realize, bounded_formula.realize_foldr_inf, finset.mem_to_list],
   exact ⟨λ h φ hφ M, h _ _ hφ, λ h M φ hφ, h _ hφ _⟩,
 end
@@ -154,17 +136,22 @@ end
 /-! ### In terms of `L.formula α` -/
 
 instance : set_like (T.complete_type α) (L.formula α) :=
-{ coe := λ p φ, formula.equiv_sentence φ ∈ p,
-  coe_injective' := λ p q h, set_like.ext (λ φ, begin
+{ coe := λ p φ, formula.equiv_sentence φ ∈ (p : L[[α]].Theory),
+  coe_injective' := λ p q h, coe_Theory_injective (set.ext (λ φ, begin
     have h' := function.funext_iff.1 h (formula.equiv_sentence.symm φ),
     simp only [_root_.equiv.apply_symm_apply, eq_iff_iff] at h',
     exact h',
-  end) }
+  end)) }
+
+lemma formula_mem_iff (φ : L.formula α) (p : T.complete_type α) :
+  φ ∈ p ↔ formula.equiv_sentence φ ∈ (p : L[[α]].Theory) :=
+iff.rfl
 
 end complete_type
 
 variables {M : Type w'} [L.Structure M] [nonempty M] [M ⊨ T] (T)
 
+/-- The set of all formulas true at a tuple in a structure forms a complete type. -/
 def type_of (v : α → M) : T.complete_type α :=
 begin
   haveI : (constants_on α).Structure M := constants_on.Structure v,
@@ -173,9 +160,33 @@ begin
     is_maximal' := complete_theory.is_maximal _ _ },
 end
 
+variables {T} {v : α → M}
+
+@[simp] lemma formula_mem_type_of {φ : L.formula α} : φ ∈ T.type_of v ↔ φ.realize v :=
+begin
+  letI : (constants_on α).Structure M := constants_on.Structure v,
+  exact mem_complete_theory.trans (formula.realize_equiv_sentence _ _),
+end
+
 namespace complete_type
 
+/-- A complete type `p` is realized in a particular structure when there is some
+  tuple `v` whose type is `p`. -/
+def is_realized_in (p : T.complete_type α) (M : Type w') [L.Structure M] [nonempty M] [M ⊨ T] :
+  Prop :=
+∃ v : α → M, T.type_of v = p
 
+theorem exists_Model_is_realized_in (p : T.complete_type α) :
+  ∃ (M : Theory.Model.{u v (max u v w)} T), p.is_realized_in M :=
+begin
+  obtain ⟨M⟩ := p.is_maximal.1,
+  refine ⟨(M.subtheory_Model p.subset).reduct (L.Lhom_with_constants α), (λ a, (L.con a : M)), _⟩,
+  refine set_like.ext (λ φ : L.formula α, _),
+  simp only [formula_mem_type_of],
+  rw [← formula.realize_equiv_sentence, formula_mem_iff, p.is_maximal.mem_iff_models,
+    ← p.is_maximal.is_complete.realize_sentence_iff (formula.equiv_sentence φ) M],
+  refl,
+end
 
 end complete_type
 

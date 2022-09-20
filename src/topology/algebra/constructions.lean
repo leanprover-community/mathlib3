@@ -86,7 +86,8 @@ continuous_induced_dom
 
 @[to_additive] protected lemma continuous_iff {f : X → Mˣ} :
   continuous f ↔ continuous (coe ∘ f : X → M) ∧ continuous (λ x, ↑(f x)⁻¹ : X → M) :=
-by simp only [continuous_induced_rng, embed_product_apply, (∘), continuous_prod_mk, unop_op]
+by simp only [inducing_embed_product.continuous_iff, embed_product_apply, (∘), continuous_prod_mk,
+  op_homeomorph.symm.inducing.continuous_iff, op_homeomorph_symm_apply, unop_op]
 
 @[to_additive] lemma continuous_coe_inv : continuous (λ u, ↑u⁻¹ : Mˣ → M) :=
 (units.continuous_iff.1 continuous_id).2

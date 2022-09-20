@@ -687,15 +687,6 @@ open_embedding_of_embedding_open (hf.1.prod_mk hg.1)
 lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λ x, (x, f x)) :=
 embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embedding_id
 
-lemma map_mem_closure₂ {f : α → β → γ} {a : α} {b : β} {s : set α} {t : set β} {u : set γ}
-  (hf : continuous (uncurry f)) (ha : a ∈ closure s) (hb : b ∈ closure t)
-  (h : ∀ (a ∈ s) (b ∈ t), f a b ∈ u) :
-  f a b ∈ closure u :=
-have H₁ : (a, b) ∈ closure (s ×ˢ t),
-  by simpa only [closure_prod_eq] using mk_mem_prod ha hb,
-have H₂ : maps_to (uncurry f) (s ×ˢ t) u, from forall_prod_set.2 h,
-H₂.closure hf H₁
-
 end prod
 
 section sum
@@ -1252,13 +1243,13 @@ by simp only [embedding_iff, injective.sigma_map, inducing_sigma_map h₁, foral
 
 end sigma
 
-namespace ulift
+section ulift
 
-@[continuity] lemma continuous_down [topological_space α] :
+@[continuity] lemma continuous_ulift_down [topological_space α] :
   continuous (ulift.down : ulift.{v u} α → α) :=
 continuous_induced_dom
 
-@[continuity] lemma continuous_up [topological_space α] :
+@[continuity] lemma continuous_ulift_up [topological_space α] :
   continuous (ulift.up : α → ulift.{v u} α) :=
 continuous_induced_rng.2 continuous_id
 

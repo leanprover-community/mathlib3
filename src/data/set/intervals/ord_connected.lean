@@ -171,7 +171,7 @@ dual_ord_connected_iff.2 ‹_›
 end preorder
 
 section linear_order
-variables {α : Type*} [linear_order α] {s : set α} {x y z : α}
+variables {α : Type*} [linear_order α] {s : set α} {x : α}
 
 @[instance] lemma ord_connected_interval {a b : α} : ord_connected [a, b] := ord_connected_Icc
 @[instance] lemma ord_connected_interval_oc {a b : α} : ord_connected (Ι a b) := ord_connected_Ioc

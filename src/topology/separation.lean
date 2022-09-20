@@ -1454,11 +1454,11 @@ instance t3_space.t2_5_space [t3_space α] : t2_5_space α :=
 begin
   haveI : t2_space α,
   { refine t2_space_iff_disjoint_nhds.mpr (λ x y hne, _),
-    have : x ∉ closure {y} ∨ y ∉ closure {x},
+    have aux : x ∉ closure {y} ∨ y ∉ closure {x},
       from (t0_space_iff_or_not_mem_closure α).mp infer_instance x y hne,
-    wlog H : x ∉ closure {y} := this using [x y, y x] tactic.skip,
-    { rwa [← disjoint_nhds_nhds_set, nhds_set_singleton] at H },
-    { exact λ h, (this h.symm).symm } },
+    wlog H : x ∉ closure {y} generalizing x y,
+    { refine (this y x aux.symm hne.symm (aux.resolve_left H)).symm },
+    { rwa [← disjoint_nhds_nhds_set, nhds_set_singleton] at H } },
   -- TODO: reformulate `t2_5_space` in terms of `(𝓝 x).lift' closure`
   refine ⟨λ x y hne, _⟩,
   rcases ((closed_nhds_basis x).disjoint_iff (closed_nhds_basis y)).1

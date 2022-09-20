@@ -471,14 +471,6 @@ def carrier.as_ideal : ideal A :=
   add_mem' := λ a b, carrier.add_mem q,
   smul_mem' := carrier.smul_mem hm q }
 
-lemma carrier.as_ideal.ne_top : (carrier.as_ideal hm q) ≠ ⊤ :=
-λ rid, q.2.ne_top $ (ideal.eq_top_iff_one _).mpr
-begin
-  convert (ideal.eq_top_iff_one _).mp rid 0,
-  simpa only [subtype.ext_iff, degree_zero_part.coe_one, subtype.coe_mk,
-    proj_apply, decompose_of_mem_same 𝒜 one_mem, one_pow, pow_zero, ← mk_self 1],
-end
-
 lemma carrier.as_ideal.homogeneous : (carrier.as_ideal hm q).is_homogeneous 𝒜 :=
 λ i a ha j, (em (i = j)).elim
   (λ h, h ▸ by simpa only [proj_apply, decompose_coe, of_eq_same] using ha _)
@@ -501,6 +493,9 @@ end
 
 lemma carrier.relevant : ¬ homogeneous_ideal.irrelevant 𝒜 ≤ carrier.as_homogeneous_ideal hm q :=
 λ rid, carrier.denom_not_mem hm q $ rid $ direct_sum.decompose_of_mem_ne 𝒜 f_deg hm.ne'
+
+lemma carrier.as_ideal.ne_top : (carrier.as_ideal hm q) ≠ ⊤ :=
+λ rid, carrier.denom_not_mem hm q (rid.symm ▸ submodule.mem_top)
 
 lemma carrier.as_ideal.prime : (carrier.as_ideal hm q).is_prime :=
 (carrier.as_ideal.homogeneous hm q).is_prime_of_homogeneous_mem_or_mem

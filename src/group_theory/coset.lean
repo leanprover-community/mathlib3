@@ -518,7 +518,7 @@ lemma quotient_subgroup_of_map_of_le_apply_mk (H : subgroup α) (h : s ≤ t) (g
   quotient_subgroup_of_map_of_le H h (quotient_group.mk g) = quotient_group.mk g :=
 rfl
 
-/-- There is an embedding `H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H`. -/
+/-- The natural embedding `H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H`. -/
 @[to_additive "There is an embedding
   `H ⧸ (⨅ i, f i).add_subgroup_of H) ↪ Π i, H ⧸ (f i).add_subgroup_of H`."]
 def quotient_infi_embedding {ι : Type*} (f : ι → subgroup α) (H : subgroup α) :

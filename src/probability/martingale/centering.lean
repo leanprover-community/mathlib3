@@ -64,7 +64,7 @@ def martingale_part {m0 : measurable_space Ω}
   (ℱ : filtration ℕ m0) (μ : measure Ω) (f : ℕ → Ω → E) : ℕ → Ω → E :=
 λ n, f n - predictable_part ℱ μ f n
 
-lemma martingale_part_add_predictable_part (f : ℕ → Ω → E) :
+lemma martingale_part_add_predictable_part (ℱ : filtration ℕ m0) (μ : measure Ω) (f : ℕ → Ω → E) :
   martingale_part ℱ μ f + predictable_part ℱ μ f = f :=
 sub_add_cancel _ _
 
@@ -135,5 +135,30 @@ begin
   simp only [finset.sum_const_zero, pi.zero_apply],
   refl,
 end
+
+section difference
+
+lemma predictable_part_bdd_difference {R : ℝ≥0} {f : ℕ → Ω → ℝ}
+  (ℱ : filtration ℕ m0) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
+  ∀ᵐ ω ∂μ, ∀ i, |predictable_part ℱ μ f (i + 1) ω - predictable_part ℱ μ f i ω| ≤ R :=
+begin
+  simp_rw [predictable_part, finset.sum_apply, finset.sum_range_succ_sub_sum],
+  exact ae_all_iff.2 (λ i, ae_bdd_condexp_of_ae_bdd $ ae_all_iff.1 hbdd i),
+end
+
+lemma martingale_part_bdd_difference {R : ℝ≥0} {f : ℕ → Ω → ℝ}
+  (ℱ : filtration ℕ m0) (hbdd : ∀ᵐ ω ∂μ, ∀ i, |f (i + 1) ω - f i ω| ≤ R) :
+  ∀ᵐ ω ∂μ, ∀ i, |martingale_part ℱ μ f (i + 1) ω - martingale_part ℱ μ f i ω| ≤ ↑(2 * R) :=
+begin
+  filter_upwards [hbdd, predictable_part_bdd_difference ℱ hbdd] with ω hω₁ hω₂ i,
+  simp only [two_mul, martingale_part, pi.sub_apply],
+  have : |f (i + 1) ω - predictable_part ℱ μ f (i + 1) ω - (f i ω - predictable_part ℱ μ f i ω)| =
+    |(f (i + 1) ω - f i ω) - (predictable_part ℱ μ f (i + 1) ω - predictable_part ℱ μ f i ω)|,
+  { ring_nf }, -- `ring` suggests `ring_nf` despite proving the goal
+  rw this,
+  exact (abs_sub _ _).trans (add_le_add (hω₁ i) (hω₂ i)),
+end
+
+end difference
 
 end measure_theory

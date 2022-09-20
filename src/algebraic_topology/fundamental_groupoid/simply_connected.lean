@@ -86,3 +86,27 @@ begin
   convert simply_connected_iff_paths_homotopic,
   simp [path.homotopic.quotient, setoid.eq_top_iff], refl,
 end
+
+section test
+
+variables {𝕜 : Type*} {E : Type*} {X : set E}
+variables [ordered_semiring 𝕜]
+variables [topological_space E] [add_comm_monoid E] [has_smul 𝕜 E]
+
+instance contractible_of_convex (h_convex : convex 𝕜 X) : contractible_space X :=
+sorry
+
+end test
+/-
+TODO:
+No retraction theorem
+[ ] circle not simply_connected
+[ ] disk is simply_connected
+[ ] induced map of a retraction is surjective
+[ ] assume retraction disk -> circle exists
+[ ] then we have induced surjective map (not_unit) → unit --> contradiction.
+
+
+
+Implement
+-/

@@ -15,31 +15,6 @@ open finite_dimensional
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
-section foo
-variables {R R₂ E E₂ : Type*} [semiring R] [semiring R₂]
-  {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
-  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂]
-
-def linear_isometry_equiv.of_linear_isometry (f : E →ₛₗᵢ[σ₁₂] E₂) (g : E₂ →ₛₗ[σ₂₁] E)
-  (h₁ : f.to_linear_map.comp g = linear_map.id) (h₂ : g.comp f.to_linear_map = linear_map.id) :
-  E ≃ₛₗᵢ[σ₁₂] E₂ :=
-{ norm_map' := λ x, f.norm_map x,
-  .. linear_equiv.of_linear f.to_linear_map g h₁ h₂ }
-
-@[simp] lemma linear_isometry_equiv.coe_of_linear_isometry (f : E →ₛₗᵢ[σ₁₂] E₂) (g : E₂ →ₛₗ[σ₂₁] E)
-  (h₁ : f.to_linear_map.comp g = linear_map.id) (h₂ : g.comp f.to_linear_map = linear_map.id) :
-  (linear_isometry_equiv.of_linear_isometry f g h₁ h₂ : E → E₂) = (f : E → E₂) :=
-rfl
-
-@[simp] lemma linear_isometry_equiv.coe_of_linear_isometry_symm (f : E →ₛₗᵢ[σ₁₂] E₂)
-  (g : E₂ →ₛₗ[σ₂₁] E) (h₁ : f.to_linear_map.comp g = linear_map.id)
-  (h₂ : g.comp f.to_linear_map = linear_map.id) :
-  ((linear_isometry_equiv.of_linear_isometry f g h₁ h₂).symm : E₂ → E) = (g : E₂ → E) :=
-rfl
-
-end foo
-
 variables {E : Type*} [inner_product_space ℝ E] [fact (finrank ℝ E = 2)]
   (o : orientation ℝ E (fin 2))
 

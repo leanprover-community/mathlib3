@@ -32,11 +32,11 @@ universes u v w w'
 open cardinal set
 open_locale cardinal first_order classical
 
+variables {L : first_order.language.{u v}} (T : L.Theory) (α : Type w)
+
 namespace first_order
 namespace language
 namespace Theory
-
-variables {L : language.{u v}} (T : L.Theory) (α : Type w)
 
 /-- A complete type over a given theory in a certain type of variables is a maximally
   consistent (with the theory) set of formulas in that type. -/
@@ -48,6 +48,8 @@ structure complete_type :=
 variables {T α}
 
 namespace complete_type
+
+/-! ### In terms of `L[[α]].sentence` -/
 
 instance : set_like (T.complete_type α) (L[[α]].sentence) :=
 ⟨λ p, p.to_Theory, λ p q h, begin
@@ -148,6 +150,32 @@ begin
     sentence.realize, formula.realize, bounded_formula.realize_foldr_inf, finset.mem_to_list],
   exact ⟨λ h φ hφ M, h _ _ hφ, λ h M φ hφ, h _ hφ _⟩,
 end
+
+/-! ### In terms of `L.formula α` -/
+
+instance : set_like (T.complete_type α) (L.formula α) :=
+{ coe := λ p φ, formula.equiv_sentence φ ∈ p,
+  coe_injective' := λ p q h, set_like.ext (λ φ, begin
+    have h' := function.funext_iff.1 h (formula.equiv_sentence.symm φ),
+    simp only [_root_.equiv.apply_symm_apply, eq_iff_iff] at h',
+    exact h',
+  end) }
+
+end complete_type
+
+variables {M : Type w'} [L.Structure M] [nonempty M] [M ⊨ T] (T)
+
+def type_of (v : α → M) : T.complete_type α :=
+begin
+  haveI : (constants_on α).Structure M := constants_on.Structure v,
+  exact { to_Theory := L[[α]].complete_theory M,
+    subset' := model_iff_subset_complete_theory.1 ((Lhom.on_Theory_model _ T).2 infer_instance),
+    is_maximal' := complete_theory.is_maximal _ _ },
+end
+
+namespace complete_type
+
+
 
 end complete_type
 

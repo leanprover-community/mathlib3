@@ -346,15 +346,29 @@ T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)
 
 namespace is_complete
 
+lemma models_not_iff (h : T.is_complete) (φ : L.sentence)  :
+  T ⊨ φ.not ↔ ¬ T ⊨ φ :=
+begin
+  cases h.2 φ with hφ hφn,
+  { simp only [hφ, not_true, iff_false],
+    rw [models_sentence_iff, not_forall],
+    refine ⟨h.1.some, _⟩,
+    simp only [sentence.realize_not, not_not],
+    exact models_sentence_iff.1 hφ _ },
+  { simp only [hφn, true_iff],
+    intro hφ,
+    rw models_sentence_iff at *,
+    exact hφn h.1.some (hφ _) }
+end
+
 lemma realize_sentence_iff (h : T.is_complete) (φ : L.sentence)
   (M : Type*) [L.Structure M] [M ⊨ T] [nonempty M] :
   M ⊨ φ ↔ T ⊨ φ :=
 begin
-  cases h.2 φ with hφ hφ,
-  { simp [hφ],
-    refine models_sentence_iff.1 hφ M,
-
-  },
+  cases h.2 φ with hφ hφn,
+  { exact iff_of_true (hφ.realize_sentence M) hφ },
+  { exact iff_of_false ((sentence.realize_not M).1 (hφn.realize_sentence M))
+      ((h.models_not_iff φ).1 hφn), }
 end
 
 end is_complete
@@ -391,16 +405,7 @@ lemma mem_iff_models (h : T.is_maximal) (φ : L.sentence) :
 
 lemma not_mem_iff (h : T.is_maximal) (φ : L.sentence)  :
   φ.not ∈ T ↔ ¬ φ ∈ T :=
-⟨λ hf ht, begin
-  have hn : ¬ is_satisfiable ({φ, φ.not} : L.Theory),
-  { rintros ⟨⟨_, _, h, _⟩⟩,
-    simp only [model_iff, set.mem_insert_iff, set.mem_singleton_iff, forall_eq_or_imp, forall_eq,
-      sentence.realize_not, and_not_self] at h,
-    exact h, },
-  refine hn (h.1.mono _),
-  rw [set.insert_subset, set.singleton_subset_iff],
-  exact ⟨ht, hf⟩,
-end, (h.mem_or_not_mem φ).resolve_left⟩
+by rw [h.mem_iff_models, h.is_complete.models_not_iff, h.mem_iff_models]
 
 end is_maximal
 

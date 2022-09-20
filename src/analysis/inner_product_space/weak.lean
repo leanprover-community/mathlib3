@@ -69,14 +69,18 @@ begin
   { ext x y,
     exact (inner_conj_sym _ _).symm },
   rw this,
-  refine inducing.comp _ (weak_space.inducing_swap_inner 𝕜 E),
-  have : (((∘) conj) ∘ ((∘) conj : (E_σ → 𝕜) → E_σ → 𝕜)) = id,
-  { ext x y,
-    exact is_R_or_C.conj_conj _ },
-  have key := @inducing_id (E_σ → 𝕜) _,
-  rw ← this at key,
-  refine inducing_of_inducing_compose _ _ key;
-  exact continuous_pi (λ x, is_R_or_C.continuous_conj.comp (continuous_apply x))
+  let conjₜ : 𝕜 ≃ₜ 𝕜 :=
+  { continuous_to_fun := is_R_or_C.continuous_conj,
+    continuous_inv_fun := is_R_or_C.continuous_conj,
+    ..star_involutive.to_perm _ },
+  let comp_conjₜ := homeomorph.Pi_congr_right (λ (_ : E_σ), conjₜ),
+  exact comp_conjₜ.inducing.comp (weak_space.inducing_swap_inner 𝕜 E)
+end
+
+lemma goal [complete_space E] [has_smul ℝ E] {s : set E} (hs₁ : is_closed s) (hs₂ : convex ℝ s) :
+  is_closed (s : set E_σ) :=
+begin
+  sorry
 end
 
 end weak_space

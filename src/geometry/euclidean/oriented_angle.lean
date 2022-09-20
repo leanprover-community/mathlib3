@@ -46,7 +46,7 @@ variables [hd2 : fact (finrank ℝ V = 2)] (o : orientation ℝ V (fin 2))
 include hd2 o
 
 local notation `ω` := o.area_form
-local notation `J` := o.almost_complex
+local notation `J` := o.right_angle_rotation
 
 /-- The oriented angle from `x` to `y`, modulo `2 * π`. If either vector is 0, this is 0.
 See `inner_product_geometry.angle` for the corresponding unoriented angle definition. -/
@@ -504,7 +504,7 @@ linear_isometry_equiv.of_linear_isometry
   begin
     ext x,
     convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
-    { simp only [o.almost_complex_almost_complex, o.rotation_aux_apply, function.comp_app, id.def,
+    { simp only [o.right_angle_rotation_right_angle_rotation, o.rotation_aux_apply, function.comp_app, id.def,
         linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
         linear_isometry_equiv.coe_to_linear_equiv, map_smul, map_sub, linear_map.coe_comp,
         linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, ← mul_smul, add_smul,
@@ -515,7 +515,7 @@ linear_isometry_equiv.of_linear_isometry
   begin
     ext x,
     convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
-    { simp only [o.almost_complex_almost_complex, o.rotation_aux_apply, function.comp_app, id.def,
+    { simp only [o.right_angle_rotation_right_angle_rotation, o.rotation_aux_apply, function.comp_app, id.def,
         linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
         linear_isometry_equiv.coe_to_linear_equiv, map_add, map_smul, linear_map.coe_comp,
         linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, add_smul, ← mul_smul,
@@ -537,9 +537,9 @@ attribute [irreducible] rotation
 lemma rotation_eq_matrix_to_lin (θ : real.angle) {x : V} (hx : x ≠ 0) :
   (o.rotation θ).to_linear_map
   = matrix.to_lin
-      (o.basis_almost_complex x hx) (o.basis_almost_complex x hx) !![θ.cos, -θ.sin; θ.sin, θ.cos] :=
+      (o.basis_right_angle_rotation x hx) (o.basis_right_angle_rotation x hx) !![θ.cos, -θ.sin; θ.sin, θ.cos] :=
 begin
-  apply (o.basis_almost_complex x hx).ext,
+  apply (o.basis_right_angle_rotation x hx).ext,
   intros i,
   fin_cases i,
   { rw matrix.to_lin_self,
@@ -586,7 +586,7 @@ begin
   ext x,
   simp only [o.rotation_apply, ←mul_smul, real.angle.cos_add, real.angle.sin_add, add_smul,
     sub_smul, linear_isometry_equiv.trans_apply, smul_add, linear_isometry_equiv.map_add,
-    linear_isometry_equiv.map_smul, almost_complex_almost_complex, smul_neg],
+    linear_isometry_equiv.map_smul, right_angle_rotation_right_angle_rotation, smul_neg],
   ring_nf,
   abel,
 end
@@ -596,7 +596,7 @@ end
   o.kahler (o.rotation θ x) y = conj (θ.exp_map_circle : ℂ) * o.kahler x y :=
 begin
   simp only [o.rotation_apply, map_add, map_mul, linear_map.map_smulₛₗ, ring_hom.id_apply,
-    linear_map.add_apply, linear_map.smul_apply, real_smul, kahler_almost_complex_left,
+    linear_map.add_apply, linear_map.smul_apply, real_smul, kahler_right_angle_rotation_left,
     real.angle.coe_exp_map_circle, is_R_or_C.conj_of_real, conj_I],
   ring,
 end
@@ -612,7 +612,7 @@ by simpa [coe_inv_circle_eq_conj, -kahler_rotation_left] using o.kahler_rotation
   o.kahler x (o.rotation θ y) = θ.exp_map_circle * o.kahler x y :=
 begin
   simp only [o.rotation_apply, map_add, linear_map.map_smulₛₗ, ring_hom.id_apply, real_smul,
-    kahler_almost_complex_right, real.angle.coe_exp_map_circle],
+    kahler_right_angle_rotation_right, real.angle.coe_exp_map_circle],
   ring,
 end
 
@@ -787,14 +787,14 @@ begin
   use o.oangle x (f x),
   apply linear_isometry_equiv.to_linear_equiv_injective,
   apply linear_equiv.to_linear_map_injective,
-  apply (o.basis_almost_complex x hx).ext,
+  apply (o.basis_right_angle_rotation x hx).ext,
   intros i,
   symmetry,
   fin_cases i,
   { simp },
   have : o.oangle (J x) (f (J x)) = o.oangle x (f x),
-  { simp only [oangle, o.linear_isometry_equiv_comp_almost_complex f hd,
-      o.kahler_comp_almost_complex] },
+  { simp only [oangle, o.linear_isometry_equiv_comp_right_angle_rotation f hd,
+      o.kahler_comp_right_angle_rotation] },
   simp [← this],
 end
 

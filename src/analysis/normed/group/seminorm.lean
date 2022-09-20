@@ -169,6 +169,8 @@ variables [group E] [group F] [group G] {p q : group_seminorm E}
 `fun_like.has_coe_to_fun`. "]
 instance : has_coe_to_fun (group_seminorm E) (λ _, E → ℝ) := ⟨to_fun⟩
 
+@[simp, to_additive] lemma to_fun_eq_coe : p.to_fun = p := rfl
+
 @[ext, to_additive] lemma ext : (∀ x, p x = q x) → p = q := fun_like.ext p q
 
 @[to_additive] instance : partial_order (group_seminorm E) :=
@@ -206,7 +208,7 @@ variables (p q) (f : F →* E)
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
-@[to_additive] noncomputable instance : has_sup (group_seminorm E) :=
+@[to_additive] instance : has_sup (group_seminorm E) :=
 ⟨λ p q,
   { to_fun := p ⊔ q,
     map_one' :=
@@ -219,7 +221,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
-@[to_additive] noncomputable instance : semilattice_sup (group_seminorm E) :=
+@[to_additive] instance : semilattice_sup (group_seminorm E) :=
 fun_like.coe_injective.semilattice_sup _ coe_sup
 
 /-- Composition of a group seminorm with a monoid homomorphism as a group seminorm. -/
@@ -408,6 +410,8 @@ directly. -/
 `fun_like.has_coe_to_fun` directly. "]
 instance : has_coe_to_fun (group_norm E) (λ _, E → ℝ) := fun_like.has_coe_to_fun
 
+@[simp, to_additive] lemma to_fun_eq_coe : p.to_fun = p := rfl
+
 @[ext, to_additive] lemma ext : (∀ x, p x = q x) → p = q := fun_like.ext p q
 
 @[to_additive] instance : partial_order (group_norm E) :=
@@ -430,7 +434,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma add_apply (x : E) : (p + q) x = p x + q x := rfl
 
 -- TODO: define `has_Sup`
-@[to_additive] noncomputable instance : has_sup (group_norm E) :=
+@[to_additive] instance : has_sup (group_norm E) :=
 ⟨λ p q,
   { eq_one_of_map_eq_zero' := λ x hx, of_not_not $ λ h, hx.not_gt $
       lt_sup_iff.2 $ or.inl $ map_pos_of_ne_one p h,
@@ -439,7 +443,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
-@[to_additive] noncomputable instance : semilattice_sup (group_norm E) :=
+@[to_additive] instance : semilattice_sup (group_norm E) :=
 fun_like.coe_injective.semilattice_sup _ coe_sup
 
 end group

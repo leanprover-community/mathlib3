@@ -194,7 +194,7 @@ instance [semiring R] [module R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
-noncomputable instance : has_sup (seminorm 𝕜 E) :=
+instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
     smul' := λ x v, (congr_arg2 max (map_smul_eq_mul p x v) (map_smul_eq_mul q x v)).trans $
@@ -218,7 +218,7 @@ instance : partial_order (seminorm 𝕜 E) :=
 lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
-noncomputable instance : semilattice_sup (seminorm 𝕜 E) :=
+instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 
 end has_smul

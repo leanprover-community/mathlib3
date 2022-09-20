@@ -1157,7 +1157,7 @@ begin
 end
 
 /--
-If `⟪T x, x⟫_ℂ = 0` for all x, then T = 0.
+A linear map `T` is zero, if and only if the identity `⟪T x, x⟫_ℂ = 0` holds for all `x`.
 -/
 lemma inner_map_self_eq_zero (T : V →ₗ[ℂ] V) :
   (∀ (x : V), ⟪T x, x⟫_ℂ = 0) ↔ T = 0 :=
@@ -1169,6 +1169,18 @@ begin
     norm_num },
   { rintro rfl x,
     simp only [linear_map.zero_apply, inner_zero_left] }
+end
+
+/--
+Two linear maps `S` and `T` are equal, if and only if the identity `⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ` holds
+for all `x`.
+-/
+lemma ext_inner_map (S T : V →ₗ[ℂ] V) :
+  (∀ (x : V), ⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ) ↔ S = T :=
+begin
+  rw [←sub_eq_zero, ←inner_map_self_eq_zero],
+  refine forall_congr (λ x, _),
+  rw [linear_map.sub_apply, inner_sub_left, sub_eq_zero],
 end
 
 end complex

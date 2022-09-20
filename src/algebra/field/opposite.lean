@@ -14,8 +14,14 @@ variables (α : Type*)
 
 namespace mul_opposite
 
+instance [division_semiring α] : division_semiring αᵐᵒᵖ :=
+{ .. mul_opposite.group_with_zero α, .. mul_opposite.semiring α }
+
 instance [division_ring α] : division_ring αᵐᵒᵖ :=
 { .. mul_opposite.group_with_zero α, .. mul_opposite.ring α }
+
+instance [semifield α] : semifield αᵐᵒᵖ :=
+{ .. mul_opposite.division_semiring α, .. mul_opposite.comm_semiring α }
 
 instance [field α] : field αᵐᵒᵖ :=
 { .. mul_opposite.division_ring α, .. mul_opposite.comm_ring α }

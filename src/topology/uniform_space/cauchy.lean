@@ -560,6 +560,28 @@ lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : is_compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
 
+/-- Every Cauchy sequence over `ℕ` is totally bounded. -/
+lemma totally_bounded_of_cauchy_seq {s : ℕ → α} (hs : cauchy_seq s) :
+  totally_bounded (set.range s) :=
+begin
+  rw totally_bounded_iff_subset,
+  intros a ha,
+  rw cauchy_seq_iff at hs,
+  cases hs a ha with n hn,
+  use s '' {k | k ≤ n},
+  simp only [set.image_subset_iff, set.preimage_range, set.subset_univ, set.mem_image,
+    set.mem_set_of_eq, set.Union_exists, set.bUnion_and', set.Union_Union_eq_right, true_and],
+  refine ⟨{k : ℕ | k ≤ n}.to_finite.image _, _⟩,
+  intros x hx,
+  simp only [set.mem_Union, set.mem_set_of_eq, exists_prop],
+  cases hx with m hm,
+  rw ←hm,
+  by_cases h : m ≤ n,
+  { exact ⟨m, h, refl_mem_uniformity ha⟩ },
+  push_neg at h,
+  exact ⟨n, rfl.le, hn m h.le n rfl.le⟩,
+end
+
 /-!
 ### Sequentially complete space
 

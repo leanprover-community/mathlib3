@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.euclidean_domain
-import algebra.order.field
+import algebra.order.nonneg.field
 import data.int.cast
 import data.nat.gcd
 import data.rat.defs
@@ -27,14 +27,13 @@ was defined in `data.rat.defs`.
 We have to define the field structure in a separate file to avoid cyclic imports:
 the `field` class contains a map from `ℚ` (see `field`'s docstring for the rationale),
 so we have a dependency `rat.field → field → rat` that is reflected in the import
-hierarchy `data.rat.field → algebra.field.basic → data.rat.nnrat → data.rat.order → data.rat.basic`.
+hierarchy `data.rat.field → algebra.order.field → algebra.field.basic → data.rat.nnrat →
+data.rat.order → data.rat.basic`.
 
 ## Tags
 
 rat, rationals, field, ℚ, numerator, denominator, num, denom
 -/
-
-namespace rat
 
 instance : field ℚ :=
 { zero             := 0,
@@ -43,8 +42,13 @@ instance : field ℚ :=
   one              := 1,
   mul              := (*),
   inv              := has_inv.inv,
+  nnrat_cast       := subtype.val,
+  nnrat_cast_eq    := λ q, begin
+    rw [nnrat.num, ←int.cast_coe_nat, int.nat_abs_of_nonneg (rat.num_nonneg_iff_zero_le.2 q.prop)],
+    exact (rat.num_div_denom q).symm,
+  end,
   rat_cast         := id,
-  rat_cast_mk      := λ a b h1 h2, (num_div_denom _).symm,
+  rat_cast_mk      := λ a b h1 h2, (rat.num_div_denom _).symm,
   qsmul            := (*),
   .. rat.comm_ring,
   .. rat.comm_group_with_zero}
@@ -59,7 +63,7 @@ instance : linear_ordered_field ℚ :=
   ..rat.linear_order,
   ..rat.semiring }
 
+attribute [derive [canonically_linear_ordered_semifield]] nnrat -- archimedean
+
 /- Extra instances to short-circuit type class resolution -/
 instance : division_ring ℚ      := by apply_instance
-
-end rat

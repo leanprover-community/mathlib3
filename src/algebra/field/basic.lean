@@ -75,6 +75,18 @@ Type class for the canonical homomorphism `ℚ → K`.
 class has_rat_cast (K : Type u) :=
 (rat_cast : ℚ → K)
 
+/-- Construct the canonical injection from `ℚ≥0` into an arbitrary division semiring. If the
+semifield has positive characteristic `p`, we define `1 / p = 1 / 0 = 0` for consistency with our
+division by zero convention. -/
+@[priority 900] -- see Note [coercion into rings]
+instance nnrat.cast_coe [has_nnrat_cast K] : has_coe_t ℚ≥0 K :=⟨has_nnrat_cast.nnrat_cast⟩
+
+/-- Construct the canonical injection from `ℚ` into an arbitrary division ring. If the field has
+positive characteristic `p`, we define `1 / p = 1 / 0 = 0` for consistency with our division by zero
+convention. -/
+@[priority 900] -- see Note [coercion into rings]
+instance rat.cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K := ⟨has_rat_cast.rat_cast⟩
+
 /-- The default definition of the scalar multiplication `(a : ℚ≥0) • (x : K)` for a division
 semiring `K` is given by `a • x = (↑ a) * x`.
 Use `(a : ℚ≥0) • (x : K)` instead of `qsmul_rec` for better definitional behaviour. -/
@@ -91,9 +103,9 @@ coe a * x
 @[protect_proj, ancestor semiring group_with_zero]
 class division_semiring (α : Type u) extends semiring α, group_with_zero α, has_nnrat_cast α :=
 (nnrat_cast := nnrat.cast_rec)
-(nnrat_cast_eq : ∀ q, nnrat_cast q = q.num * q.denom⁻¹ . try_refl_tac)
+(nnrat_cast_eq : ∀ q, nnrat_cast q = q.num / q.denom . try_refl_tac)
 (nnqsmul : ℚ≥0 → α → α := nnqsmul_rec nnrat_cast)
-(nnqsmul_eq_mul' : ∀ a x, nnqsmul a x = nnrat_cast a * x . try_refl_tac)
+(nnqsmul_eq_mul : ∀ a x, nnqsmul a x = nnrat_cast a * x . try_refl_tac)
 
 /-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements.
 
@@ -111,9 +123,9 @@ class division_ring (K : Type u)
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
 (nnrat_cast := nnrat.cast_rec)
-(nnrat_cast_eq : ∀ q, nnrat_cast q = q.num * q.denom⁻¹ . try_refl_tac)
+(nnrat_cast_eq : ∀ q, nnrat_cast q = q.num / q.denom . try_refl_tac)
 (nnqsmul : ℚ≥0 → K → K := nnqsmul_rec nnrat_cast)
-(nnqsmul_eq_mul' : ∀ a x, nnqsmul a x = nnrat_cast a * x . try_refl_tac)
+(nnqsmul_eq_mul : ∀ a x, nnqsmul a x = nnrat_cast a * x . try_refl_tac)
 (rat_cast := rat.cast_rec)
 (rat_cast_mk : ∀ (a : ℤ) (b : ℕ) h1 h2, rat_cast ⟨a, b, h1, h2⟩ = a * b⁻¹ . try_refl_tac)
 (qsmul : ℚ → K → K := qsmul_rec rat_cast)
@@ -150,6 +162,17 @@ class field (K : Type u) extends comm_ring K, division_ring K
 
 section division_semiring
 variables [division_semiring α] {a b c : α}
+
+namespace nnrat
+
+lemma cast_def : ∀ q : ℚ≥0, (q : α) = q.num / q.denom := division_semiring.nnrat_cast_eq
+
+@[priority 100]
+instance division_semiring.to_has_nnqsmul : has_smul ℚ≥0 α := ⟨division_semiring.nnqsmul⟩
+
+lemma smul_def : ∀ (q : ℚ≥0) (a : α), q • a = ↑q * a := division_semiring.nnqsmul_eq_mul
+
+end nnrat
 
 lemma add_div (a b c : α) : (a + b) / c = a / c + b / c := by simp_rw [div_eq_mul_inv, add_mul]
 
@@ -222,14 +245,6 @@ section division_ring
 variables [division_ring K] {a b : K}
 
 namespace rat
-
-/-- Construct the canonical injection from `ℚ` into an arbitrary
-  division ring. If the field has positive characteristic `p`,
-  we define `1 / p = 1 / 0 = 0` for consistency with our
-  division by zero convention. -/
--- see Note [coercion into rings]
-@[priority 900] instance cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K :=
-⟨has_rat_cast.rat_cast⟩
 
 theorem cast_mk' (a b h1 h2) : ((⟨a, b, h1, h2⟩ : ℚ) : K) = a * b⁻¹ :=
 division_ring.rat_cast_mk _ _ _ _
@@ -419,16 +434,20 @@ end noncomputable_defs
 /-- Pullback a `division_semiring` along an injective function. -/
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.division_semiring [division_semiring β] [has_zero α] [has_mul α]
-  [has_add α] [has_one α] [has_inv α] [has_div α] [has_smul ℕ α] [has_pow α ℕ] [has_pow α ℤ]
-  [has_nat_cast α]
+  [has_add α] [has_one α] [has_inv α] [has_div α] [has_smul ℕ α] [has_smul ℚ≥0 α] [has_pow α ℕ]
+  [has_pow α ℤ] [has_nat_cast α] [has_nnrat_cast α]
   (f : α → β) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (nnqsmul : ∀ x (n : ℚ≥0), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (nnrat_cast : ∀ n : ℚ≥0, f n = n) :
   division_semiring α :=
-{ .. hf.group_with_zero f zero one mul inv div npow zpow,
+{ nnrat_cast := coe,
+  nnrat_cast_eq := λ q, hf $ by erw [nnrat_cast, nnrat.cast_def, div, nat_cast, nat_cast],
+  nnqsmul := (•),
+  nnqsmul_eq_mul := λ a x, hf $ by erw [nnqsmul, mul, nnrat_cast, nnrat.smul_def],
+  .. hf.group_with_zero f zero one mul inv div npow zpow,
   .. hf.semiring f zero one add mul nsmul npow nat_cast }
 
 /-- Pullback a `division_ring` along an injective function.
@@ -436,38 +455,39 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.division_ring [division_ring K] {K'}
   [has_zero K'] [has_one K'] [has_add K'] [has_mul K'] [has_neg K'] [has_sub K'] [has_inv K']
-  [has_div K'] [has_smul ℕ K'] [has_smul ℤ K'] [has_smul ℚ K'] [has_pow K' ℕ] [has_pow K' ℤ]
-  [has_nat_cast K'] [has_int_cast K'] [has_rat_cast K']
+  [has_div K'] [has_smul ℕ K'] [has_smul ℤ K'] [has_smul ℚ≥0 K'] [has_smul ℚ K'] [has_pow K' ℕ]
+  [has_pow K' ℤ] [has_nat_cast K'] [has_int_cast K'] [has_nnrat_cast K'] [has_rat_cast K']
   (f : K' → K) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
+  (nnqsmul : ∀ x (n : ℚ≥0), f (n • x) = n • f x) (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (rat_cast : ∀ n : ℚ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (nnrat_cast : ∀ n : ℚ≥0, f n = n)
+  (rat_cast : ∀ n : ℚ, f n = n) :
   division_ring K' :=
 { rat_cast := coe,
   rat_cast_mk := λ a b h1 h2, hf (by erw [rat_cast, mul, inv, int_cast, nat_cast];
                                      exact division_ring.rat_cast_mk a b h1 h2),
   qsmul := (•),
   qsmul_eq_mul' := λ a x, hf (by erw [qsmul, mul, rat.smul_def, rat_cast]),
-  .. hf.group_with_zero f zero one mul inv div npow zpow,
+  .. hf.division_semiring f zero one add mul inv div nsmul nnqsmul npow zpow nat_cast nnrat_cast,
   .. hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
 /-- Pullback a `field` along an injective function. -/
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.semifield [semifield β] [has_zero α] [has_mul α] [has_add α]
-  [has_one α] [has_inv α] [has_div α] [has_smul ℕ α] [has_pow α ℕ] [has_pow α ℤ]
-  [has_nat_cast α]
+  [has_one α] [has_inv α] [has_div α] [has_smul ℕ α] [has_smul ℚ≥0 α] [has_pow α ℕ] [has_pow α ℤ]
+  [has_nat_cast α] [has_nnrat_cast α]
   (f : α → β) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (nnqsmul : ∀ x (n : ℚ≥0), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (nnrat_cast : ∀ n : ℚ≥0, f n = n) :
   semifield α :=
-{ .. hf.comm_group_with_zero f zero one mul inv div npow zpow,
+{ .. hf.division_semiring f zero one add mul inv div nsmul nnqsmul npow zpow nat_cast nnrat_cast,
   .. hf.comm_semiring f zero one add mul nsmul npow nat_cast }
 
 /-- Pullback a `field` along an injective function.
@@ -475,23 +495,24 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.field [field K] {K'}
   [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
-  [has_div K'] [has_smul ℕ K'] [has_smul ℤ K'] [has_smul ℚ K'] [has_pow K' ℕ] [has_pow K' ℤ]
-  [has_nat_cast K'] [has_int_cast K'] [has_rat_cast K']
+  [has_div K'] [has_smul ℕ K'] [has_smul ℤ K'] [has_smul ℚ≥0 K'] [has_smul ℚ K'] [has_pow K' ℕ]
+  [has_pow K' ℤ] [has_nat_cast K'] [has_int_cast K'] [has_nnrat_cast K'] [has_rat_cast K']
   (f : K' → K) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
+  (nnqsmul : ∀ x (n : ℚ≥0), f (n • x) = n • f x) (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (rat_cast : ∀ n : ℚ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (nnrat_cast : ∀ n : ℚ≥0, f n = n)
+  (rat_cast : ∀ n : ℚ, f n = n) :
   field K' :=
 { rat_cast := coe,
   rat_cast_mk := λ a b h1 h2, hf (by erw [rat_cast, mul, inv, int_cast, nat_cast];
                                      exact division_ring.rat_cast_mk a b h1 h2),
   qsmul := (•),
   qsmul_eq_mul' := λ a x, hf (by erw [qsmul, mul, rat.smul_def, rat_cast]),
-  .. hf.comm_group_with_zero f zero one mul inv div npow zpow,
+  .. hf.division_semiring f zero one add mul inv div nsmul nnqsmul npow zpow nat_cast nnrat_cast,
   .. hf.comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
 /-! ### Order dual -/

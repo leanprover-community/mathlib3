@@ -182,9 +182,14 @@ instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 protected lemma coe_pow [ordered_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
   ((a ^ n: {x : α // 0 ≤ x}) : α) = a ^ n := rfl
 
+@[simp, norm_cast]
+protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n := rfl
+
 @[simp] lemma mk_pow [ordered_semiring α] {x : α} (hx : 0 ≤ x) (n : ℕ) :
-  (⟨x, hx⟩ : {x : α // 0 ≤ x}) ^ n = ⟨x ^ n, pow_nonneg hx n⟩ :=
-rfl
+  (⟨x, hx⟩ : {x : α // 0 ≤ x}) ^ n = ⟨x ^ n, pow_nonneg hx n⟩ := rfl
+
+@[simp] lemma mk_nat_cast [ordered_semiring α] (n : ℕ) :
+  (⟨n, n.cast_nonneg⟩ : {x : α // 0 ≤ x}) = n := rfl
 
 instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_semiring _
@@ -222,10 +227,6 @@ instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
 /-- Coercion `{x : α // 0 ≤ x} → α` as a `ring_hom`. -/
 def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 ⟨coe, nonneg.coe_one, nonneg.coe_mul, nonneg.coe_zero, nonneg.coe_add⟩
-
-@[simp, norm_cast]
-protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
-map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
 
 instance canonically_ordered_add_monoid [ordered_ring α] :
   canonically_ordered_add_monoid {x : α // 0 ≤ x} :=

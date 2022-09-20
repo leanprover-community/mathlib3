@@ -24,9 +24,17 @@ casting lemmas showing the well-behavedness of this injection.
 rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, casting
 -/
 
-open_locale big_operators
+open_locale big_operators nnrat
 
 variables {F ι α β : Type*}
+
+namespace nnrat
+variable [division_semiring α]
+
+@[simp, norm_cast] lemma cast_coe_nat (n : ℕ) : ((n : ℚ≥0) : α) = n :=
+by simpa only [coe_nat_num, coe_nat_denom, nat.cast_one, div_one] using @nnrat.cast_def α _ n
+
+end nnrat
 
 namespace rat
 open_locale rat
@@ -34,20 +42,17 @@ open_locale rat
 section with_div_ring
 variable [division_ring α]
 
-@[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
-(cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
-
 @[simp, norm_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
-by rw [coe_int_eq_of_int, cast_of_int]
+(cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
 @[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n :=
 by rw [← int.cast_coe_nat, cast_coe_int, int.cast_coe_nat]
 
-@[simp, norm_cast] theorem cast_zero : ((0 : ℚ) : α) = 0 :=
-(cast_of_int _).trans int.cast_zero
+@[simp, norm_cast] lemma cast_coe_nnrat (q : ℚ≥0) : ((q : ℚ) : α) = q :=
+by rw [nnrat.cast_def, nnrat.cast_def, cast_coe_int, int.cast_coe_nat]
 
-@[simp, norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1 :=
-(cast_of_int _).trans int.cast_one
+@[simp, norm_cast] lemma cast_zero : ((0 : ℚ) : α) = 0 := (cast_coe_int _).trans int.cast_zero
+@[simp, norm_cast] lemma cast_one : ((1 : ℚ) : α) = 1 := (cast_coe_int _).trans int.cast_one
 
 theorem cast_commute (r : ℚ) (a : α) : commute ↑r a :=
 by simpa only [cast_def] using (r.1.cast_commute a).div_left (r.2.cast_commute a)
@@ -338,6 +343,18 @@ instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ 
 ⟨ring_hom.ext_rat⟩
 
 namespace mul_opposite
+section division_semiring
+variables [division_semiring α]
+
+@[simp, norm_cast] lemma op_nnrat_cast (r : ℚ≥0) : op (r : α) = (↑r : αᵐᵒᵖ) :=
+by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
+    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
+
+@[simp, norm_cast] lemma unop_nnrat_cast (r : ℚ≥0) : unop (r : αᵐᵒᵖ) = r :=
+by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
+    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
+
+end division_semiring
 
 variables [division_ring α]
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Joseph Myers
+Authors: Joseph Myers, Heather Macbeth
 -/
 import analysis.complex.arg
 import analysis.inner_product_space.area_form
@@ -26,11 +26,6 @@ angles modulo `π` are more convenient, because results are true for such angles
 configuration dependence. Results that are only equalities modulo `π` can be represented
 modulo `2 * π` as equalities of `(2 : ℤ) • θ`.
 
-Definitions and results in the `orthonormal` namespace, with respect to a particular choice
-of orthonormal basis, are mainly for use in setting up the API and proving that certain
-definitions do not depend on the choice of basis for a given orientation. Applications should
-generally use the definitions and results in the `orientation` namespace instead.
-
 ## References
 
 * Evan Chen, Euclidean Geometry in Mathematical Olympiads.
@@ -41,33 +36,6 @@ noncomputable theory
 
 open finite_dimensional complex
 open_locale real real_inner_product_space complex_conjugate
-
--- move this to `analysis.special_functions.trigonometric.angle`
-namespace real.angle
-
-lemma sin_add (θ₁ θ₂ : real.angle) :
-  sin (θ₁ + θ₂) = sin θ₁ * cos θ₂ + cos θ₁ * sin θ₂ :=
-begin
-  induction θ₁ using real.angle.induction_on,
-  induction θ₂ using real.angle.induction_on,
-  exact real.sin_add θ₁ θ₂
-end
-
-lemma cos_add (θ₁ θ₂ : real.angle) :
-  cos (θ₁ + θ₂) = cos θ₁ * cos θ₂ - sin θ₁ * sin θ₂ :=
-begin
-  induction θ₂ using real.angle.induction_on,
-  induction θ₁ using real.angle.induction_on,
-  exact real.cos_add θ₁ θ₂,
-end
-
-@[simp] lemma cos_sq_add_sin_sq (θ : real.angle) : cos θ ^ 2 + sin θ ^ 2 = 1 :=
-begin
-  induction θ using real.angle.induction_on,
-  exact real.cos_sq_add_sin_sq θ,
-end
-
-end real.angle
 
 namespace orientation
 

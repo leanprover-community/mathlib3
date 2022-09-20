@@ -15,13 +15,30 @@ meta def is_tencodable (e : expr) : tactic bool :=
    (cache', s) ← instance_cache.get cache ``tencodable,
    return tt) <|> (return ff)
 
+-- meta def get_num_params (s : expr) : tactic ℕ :=
+-- -- TODO: This should be based on the type of `s`, not the fact that `s` is a lambda function
+-- do  guard s.is_lambda <|> fail "Not a lambda function",
+--     mv ← mk_meta_var s.binding_domain,
+--     e ←  instantiate_mvars (s.instantiate_lambdas [mv]),
+--     f ← mfilter is_tencodable e.get_app_args,
+--     return f.length
+
+meta def get_num_params_aux : expr → list expr → tactic ℕ
+| tp (x :: xs) :=
+do tp' ← whnf tp reducible,
+  (do guard tp'.is_arrow,
+    to_expr ``(tencodable %%tp'.binding_domain) >>= mk_instance,
+    (+1) <$> get_num_params_aux tp'.binding_body xs
+  ) <|> (guard tp'.is_pi >> get_num_params_aux (tp'.instantiate_pis [x]) xs)
+| tp [] := pure 0
+
 meta def get_num_params (s : expr) : tactic ℕ :=
--- TODO: This should be based on the type of `s`, not the fact that `s` is a lambda function
-do  guard s.is_lambda <|> fail "Not a lambda function",
-    mv ← mk_meta_var s.binding_domain,
-    e ←  instantiate_mvars (s.instantiate_lambdas [mv]),
-    f ← mfilter is_tencodable e.get_app_args,
-    return f.length
+do guard s.is_lambda <|> fail "Not a lambda function",
+   mv ← mk_meta_var s.binding_domain,
+   e ←  instantiate_mvars (s.instantiate_lambdas [mv]),
+   let args := e.get_app_args,
+   tp ← infer_type e.get_app_fn,
+   get_num_params_aux tp args
 
 meta def get_goal_uncurry_base_fun : tactic (expr × option expr × expr) :=
 (do `(@primrec _ _ _ %%dm_enc %%out_enc (@function.has_uncurry_base _ _) %%e) ← target,

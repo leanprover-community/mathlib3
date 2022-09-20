@@ -109,3 +109,12 @@ variables {α β : Type} {γ : Type*} (base : α → β) (pre : γ → list γ �
 | (x :: xs) a := post (stack_rec xs (pre x xs a)) x xs a
 
 end list
+
+namespace nat
+variables {α β : Type} (base : α → β) (pre : ℕ → α → α) (post : β → ℕ → α → β)
+
+@[simp] def stack_rec : ℕ → α → β
+| 0 x := base x
+| (n+1) x := post (stack_rec n (pre n x)) n x
+
+end nat

@@ -61,6 +61,12 @@ of_left_injection f (some ∘ finv) (λ b, congr_arg some (linv b))
 def of_equiv {β} (α) [tencodable α] (e : β ≃ α) : tencodable β :=
 of_left_inverse e e.symm e.left_inv
 
+lemma of_equiv_encode {α β} [tencodable α] {e : β ≃ α} (x : β) :
+  @@encode (of_equiv α e) x = encode (e x) := rfl
+
+lemma of_equiv_decode {α β} [tencodable α] {e : β ≃ α} (x : unit_tree) :
+  @@decode β (of_equiv α e) x = (decode α x).map e.symm := rfl
+
 instance _root_.unit_tree.tencodable : tencodable unit_tree :=
 { encode := id,
   decode := some,
@@ -210,5 +216,28 @@ instance : tencodable (α ⊕ β) :=
   encodek := λ x, by cases x; simp }
 
 end sum
+
+section subtype
+
+instance subtype (P : α → Prop) [decidable_pred P] : tencodable {x // P x} :=
+{ encode := λ x, encode (x : α),
+  decode := λ y, (decode α y).bind $ λ y', if h : P y' then some ⟨y', h⟩ else none,
+  encodek := λ x, by simpa [imp_false] using x.prop }
+
+lemma encode_subtype (P : α → Prop) [decidable_pred P] (x : {a // P a}) :
+  encode x = encode (x : α) := rfl
+
+lemma decode_subtype (P : α → Prop) [decidable_pred P] (x : unit_tree) :
+  decode {a // P a} x = (decode α x).bind (λ x', if h : P x' then some ⟨x', h⟩ else none) := rfl
+
+instance {n} : tencodable (vector α n) := tencodable.subtype _
+
+lemma encode_vector {n} (x : vector α n) : encode x = encode x.to_list := rfl
+
+instance {n} : tencodable (fin n) := of_equiv {x : ℕ // x < n} fin.equiv_subtype
+
+lemma encode_fin {n} (x : fin n) : encode x = encode (x : ℕ) := rfl
+
+end subtype
 
 end tencodable

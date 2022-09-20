@@ -19,6 +19,10 @@ open function
 variables {α β γ δ ε : Type} [tencodable α]
   [tencodable β] [tencodable γ] [tencodable δ] [tencodable ε]
 
+/-- TODO: Move -/
+@[simp] lemma _root_.function.has_uncurry.base_eq_self {α β : Type*} (f : α → β) :
+  ↿f = f := rfl
+
 namespace primrec
 
 @[primrec] lemma prod_mk : primrec (@prod.mk α β) := primrec.id
@@ -34,6 +38,14 @@ attribute [primrec] primcodable.prim
 @[primrec] lemma prod_rec {f : α → β × γ} {g : α → β → γ → δ} (hf : primrec f) (hg : primrec g) :
   @primrec α δ (α → δ) _ _ _ (λ x, @prod.rec β γ (λ _, δ) (g x) (f x)) :=
 by { primrec using (λ x, g x (f x).1 (f x).2), cases f x; refl, }
+
+lemma of_equiv {α β} [tencodable α] (e : β ≃ α) :
+  @primrec β α _ (tencodable.of_equiv α e) _ _ ⇑e :=
+⟨_, unit_tree.primrec.id, λ _, rfl⟩
+
+lemma of_equiv_symm {α β} [tencodable α] (e : β ≃ α) :
+  @primrec α β _ _ (tencodable.of_equiv α e) _ ⇑e.symm :=
+⟨_, unit_tree.primrec.id, λ _, by simp [tencodable.of_equiv_encode]⟩
 
 section unit_tree
 
@@ -62,11 +74,11 @@ by { primrec using (λ b₁ b₂, if b₁ then b₂ else ff), cases b₁; simp, 
 @[primrec] protected lemma bnot : primrec bnot :=
 by { primrec using (λ b, if b then ff else tt), cases b; refl, }
 
-@[primrec] lemma and {P₁ P₂ : α → Prop} (h₁ : primrec_pred P₁) (h₂ : primrec_pred P₂) :
+@[primrec] protected lemma and {P₁ P₂ : α → Prop} (h₁ : primrec_pred P₁) (h₂ : primrec_pred P₂) :
   primrec_pred (λ x, (P₁ x) ∧ (P₂ x)) :=
 by { classical, simp_rw [← primrec1_iff_primrec_pred', bool.to_bool_and], primrec, }
 
-@[primrec] lemma not {P : α → Prop} (h : primrec_pred P) : primrec_pred (λ x, ¬(P x)) :=
+@[primrec] protected lemma not {P : α → Prop} (h : primrec_pred P) : primrec_pred (λ x, ¬(P x)) :=
 by { classical, simp_rw [← primrec1_iff_primrec_pred', bool.to_bool_not], primrec, }
 
 lemma eq_const_aux : ∀ (x : unit_tree), primrec_pred (=x)
@@ -80,6 +92,8 @@ end
 
 end bool
 
+section finite_branching
+
 @[primrec] lemma eq_const {f : α → β} (hf : primrec f) (y : β) :
   primrec_pred (λ x, (f x) = y) :=
 by simpa using (eq_const_aux (encode y)).comp hf
@@ -91,6 +105,47 @@ begin
   primrec using (λ x, if f x = unit_tree.nil then g x else h x (f x).left (f x).right),
   cases f x; simp,
 end
+
+lemma of_fin_cases [nonempty γ] (S : finset α)
+  {f : α → β → γ} (hf : ∀ {x}, x ∈ S → primrec (f x)) :
+  ∃ f' : α → β → γ, primrec f' ∧ ∀ {x}, x ∈ S → f x = f' x :=
+begin
+  classical, inhabit γ,
+  induction S using finset.induction with x xs x_nmem ih,
+  { refine ⟨λ _ _, default, by primrec, _⟩, simp, },
+  rcases ih (λ _ h, hf (finset.mem_insert.mpr (or.inr h))) with ⟨f', pf, hf'⟩,
+  set g := f x, have : primrec g := by { apply hf, simp, },
+  refine ⟨λ x' y, if x' = x then g y else f' x' y, by primrec, _⟩,
+  intro x', split_ifs with H, { simp [H], }, { simpa [H] using hf', },
+end
+
+@[primrec] lemma of_to_empty [H : is_empty β] (f : α → β) : primrec f :=
+⟨_, unit_tree.primrec.const default, λ x, H.elim' (f x)⟩
+
+lemma of_from_fintype [fintype α] {f : α → β → γ} (hf : ∀ x, primrec (f x)) : primrec f :=
+begin
+  casesI is_empty_or_nonempty γ, { apply of_to_empty, },
+  obtain ⟨f', pf, hf'⟩ := of_fin_cases (@finset.univ α _) (λ x _, hf x),
+  convert pf, apply funext, simpa using @hf',
+end
+
+lemma iff_fintype [fintype α] {f : α → β → γ} :
+  primrec f ↔ ∀ x, primrec (f x) :=
+⟨λ h x, (comp₂ h (primrec.const x) id'), of_from_fintype⟩
+
+lemma of_from_fintype' [fintype α] (f : α → β) : primrec f :=
+let H : primrec (λ x (_ : unit), f x) := of_from_fintype (λ x, primrec.const _)
+ in comp₂ H primrec.id (primrec.const ())
+
+lemma iff_fintype' {δ : Type} [fintype α] [has_uncurry δ β γ] {f : α → δ} :
+  primrec f ↔ ∀ x, primrec (f x) := @iff_fintype _ _ _ _ _ _ _ (λ a b, ↿(f a) b)
+
+@[primrec] protected lemma bor : primrec bor := of_from_fintype' _
+@[primrec] protected lemma or {P Q : α → Prop} (hP : primrec_pred P) (hQ : primrec_pred Q) :
+  primrec_pred (λ x, (P x) ∨ (Q x)) :=
+by { classical, simp_rw [← primrec1_iff_primrec_pred', bool.to_bool_or], primrec, }
+
+end finite_branching
 
 section option
 
@@ -114,6 +169,9 @@ attribute [primrec] primrec.some
 lemma congr_some {f : α → β} : primrec f ↔ primrec (λ x, some (f x)) :=
 ⟨λ hf, by primrec, λ ⟨f', pf, hf⟩, ⟨_, unit_tree.primrec.right.comp pf, λ _, by { simp [hf], refl, }⟩⟩
 
+lemma congr_some' {γ : Type} [has_uncurry γ α β] {f : γ} :
+  primrec f ↔ primrec (λ x, some (↿f x)) := congr_some
+
 @[primrec] lemma option_bind {f : α → option β} {g : α → β → option γ} (hf : primrec f)
   (hg : primrec g) : primrec (λ x, (f x).bind (g x)) :=
 by { delta option.bind, delta id_rhs, primrec, }
@@ -125,10 +183,6 @@ by { delta option.map, primrec, }
 end option
 
 section sum
-
-/-- TODO: Move -/
-@[simp] lemma _root_.function.has_uncurry.base_eq_self {α β : Type*} (f : α → β) :
-  ↿f = f := rfl
 
 @[primrec] lemma sum_elim {f : α → β ⊕ γ} {g : α → β → δ} {h : α → γ → δ} :
   primrec f → primrec g → primrec h → primrec (λ x, (f x).elim (g x) (h x)) :=
@@ -169,6 +223,10 @@ instance : primcodable (α' × β') :=
 instance : primcodable (α' ⊕ β') :=
 { prim := by { simp only [decode], delta tencodable.to_sum, primrec, } }
 
+def primcodable.of_equiv {β} (α) [primcodable α] (e : β ≃ α) : primcodable β :=
+{ prim := by { apply (primcodable.prim α).option_map; primrec, exact of_equiv_symm _, },
+  ..tencodable.of_equiv α e, }
+
 end primcodable
 
 section list
@@ -186,6 +244,9 @@ end
 
 @[primrec] lemma head' : primrec (@list.head' α) :=
 by { delta list.head', delta id_rhs, primrec, }
+
+@[primrec] lemma tail : primrec (@list.tail α) :=
+by { delta list.tail, delta id_rhs, primrec, }
 
 end list
 
@@ -224,14 +285,28 @@ by simpa using iterate_aux' primrec.id
     (show primrec (λ _ : unit_tree, nat.succ), by primrec)
     (primrec.const 0)
 
+instance : primcodable ℕ :=
+{ prim := primrec.some.comp nodes, }
+
 @[primrec] lemma add : primrec ((+) : ℕ → ℕ → ℕ) :=
 by { primrec using (λ x y, nat.succ^[y] x), simp, }
 
 @[primrec] lemma mul : primrec ((*) : ℕ → ℕ → ℕ) :=
-by { primrec using (λ x y, (+x)^[y] 0), induction y; simp [function.iterate_succ', nat.mul_succ, *], }
+by { primrec using (λ x y, (+x)^[y] 0), induction y; simp [iterate_succ', nat.mul_succ, *], }
 
 @[primrec] lemma pred : primrec nat.pred :=
 ⟨_, unit_tree.primrec.right, λ n, by cases n; refl⟩
+
+@[primrec] lemma tsub : primrec (@has_sub.sub ℕ _) :=
+begin
+  primrec using (λ x y, nat.pred^[y] x),
+  induction y with y ih, { simp, },
+  cases x, { simpa using ih, },
+  simp [iterate_succ', -nat.succ_sub_succ_eq_sub, ih], refl,
+end
+
+@[primrec] lemma nat_le : primrec_pred ((≤) : ℕ → ℕ → Prop) :=
+by { primrec using (λ x y, x - y = 0), simp, }
 
 end nat
 
@@ -244,7 +319,7 @@ variables {base : γ → α → β} {pre₁ pre₂ : γ → unit_tree → unit_t
   (hb : primrec base) (hp₁ : primrec pre₁) (hp₂ : primrec pre₂)
   (hp : primrec post) (hs : primrec start) :
    primrec (λ x : γ, unit_tree.stack_step (base x) (pre₁ x) (pre₂ x) (post x) (start x)) :=
-by { delta unit_tree.stack_step, delta id_rhs, sorry { primrec, }, }
+by { delta unit_tree.stack_step, delta id_rhs, primrec, }
 
 @[primrec] lemma tree_stack_rec {start : γ → unit_tree} {arg : γ → α}
   (hb : primrec base) (hp₁ : primrec pre₁) (hp₂ : primrec pre₂)
@@ -273,9 +348,15 @@ by { have := ptree_eq, primrec using (λ x y, encode x = encode y), simp, }
 
 end stack_recursion
 
+@[primrec] lemma nat_lt : primrec_pred ((<) : ℕ → ℕ → Prop) :=
+by { primrec using (λ x y, x ≤ y ∧ x ≠ y), rw lt_iff_le_and_ne, }
+
 section list
 
-@[primrec] lemma ptree_equiv_list : primrec ⇑tencodable.equiv_list :=
+@[primrec] lemma equiv_list : primrec ⇑tencodable.equiv_list :=
+⟨_, unit_tree.primrec.id, by simp⟩
+
+@[primrec] lemma equiv_list_symm : primrec ⇑tencodable.equiv_list.symm :=
 ⟨_, unit_tree.primrec.id, by simp⟩
 
 @[primrec] lemma list_rec {base : δ → α → β} {pre : δ → γ → list γ → α → α}
@@ -345,6 +426,150 @@ begin
   generalize : start x = y, induction (ls x) generalizing y; simp [*],
 end
 
+instance {α : Type} [primcodable α] : primcodable (list α) :=
+{ prim := by { simp only [decode], primrec, } }
+
 end list
 
+section subtype
+
+@[primrec] lemma subtype_coe {P : α → Prop} [decidable_pred P] : primrec (coe : {x // P x} → α) :=
+⟨_, unit_tree.primrec.id, λ _, rfl⟩
+
+lemma of_subtype_coe {P : α → Prop} [decidable_pred P] {f : β → {x // P x}} :
+  primrec f ↔ primrec (λ x, (f x : α)) := iff.rfl
+
+@[primrec] lemma subtype_mk {f : α → β} {P : β → Prop} [decidable_pred P] (hP : ∀ x, P (f x))
+  (hf : primrec f) : primrec (λ x, subtype.mk (f x) (hP x)) := hf
+
+@[primrec] protected lemma dite {P : α → Prop} [decidable_pred P] {f : ∀ (x : α), P x → β}
+  {g : ∀ (x : α), ¬P x → β} : primrec_pred P → primrec (λ x : {a // P a}, f x x.prop) →
+  primrec (λ x : {a // ¬P a}, g x x.prop) → primrec (λ x, if H : P x then f x H else g x H)
+| ⟨P', pP, hP⟩ ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ :=
+⟨λ x, if P' x = encode tt then f' x else g' x, by { rw tree.primrec.iff_primrec at *, primrec, },
+begin
+  intro x,
+  simp only [hP, function.has_uncurry.base_eq_self, tencodable.encode_inj, to_bool_iff],
+  split_ifs with H,
+  { simp [encode] at hf, simp [hf, H], },
+  { simp [encode] at hg, simp [hg, H], }
+end⟩
+
+def subtype_primcodable {α : Type} [primcodable α] {P : α → Prop} [decidable_pred P]
+  (hP : primrec_pred P) : primcodable {x // P x} :=
+{ prim := by { simp only [decode], primrec, } }
+
+section vector
+
+instance {n} {α : Type} [primcodable α] : primcodable (vector α n) :=
+subtype_primcodable (by primrec)
+
+@[primrec] lemma vector_mk {n} {f : α → list β} (P : ∀ x, (f x).length = n) (hf : primrec f) :
+  primrec (λ x, (⟨f x, P x⟩ : vector β n)) := subtype_mk P hf
+
+@[primrec] lemma vector_to_list {n} : primrec (@vector.to_list α n) := subtype_coe
+
+end vector
+
+section fin
+
+instance {n} : primcodable (fin n) :=
+@@primcodable.of_equiv _ (subtype_primcodable (by primrec)) fin.equiv_subtype
+
+@[primrec] lemma fin_mk {n} {f : α → ℕ} (P : ∀ x, f x < n) (hf : primrec f) :
+  primrec (λ x, (⟨f x, P x⟩ : fin n)) := hf
+
+@[primrec] lemma fin_coe {n} : primrec (coe : fin n → ℕ) :=
+⟨_, unit_tree.primrec.id, λ _, rfl⟩
+
+@[primrec] lemma vector_nth {n} : primrec (@vector.nth α n) :=
+begin
+  rw congr_some',
+  primrec using (λ xn, xn.1.to_list.nth xn.2),
+  cases xn with x m,
+  simp [has_uncurry.uncurry, vector.nth_eq_nth_le, list.some_nth_le_eq],
+end
+
+@[primrec] lemma vector_map {n} {l : α → vector β n} {f : α → β → γ}
+  (hl : primrec l) (hf : primrec f) : primrec (λ x, (l x).map (f x)) :=
+by { primrec using λ x, subtype.mk ((l x).to_list.map (f x)) (by simp), cases l x, refl, }
+
+lemma of_fn {n : ℕ} {f : fin n → α → β} (hf : ∀ i, primrec (f i)) :
+  primrec (λ x, vector.of_fn (λ i, f i x)) :=
+begin
+  have hf' : primrec f := of_from_fintype hf,
+  primrec using λ x, (vector.of_fn id).map (λ i, f i x),
+  ext, simp,
+end
+
+@[primrec] lemma vector_head {n} : primrec (@vector.head α n) :=
+by { rw congr_some, simp_rw ← vector.head'_to_list, primrec, }
+
+@[primrec] lemma vector_tail {n} : primrec (@vector.tail α n) :=
+by { primrec using λ l, subtype.mk l.to_list.tail (by simp), rcases l with ⟨_|_, _⟩; refl, }
+
+@[primrec] lemma vector_cons {n} : primrec (@vector.cons α n) :=
+by { primrec using λ x v, ⟨x :: v.to_list, by simp⟩, cases v, refl, }
+
+end fin
+
+end subtype
+
+section nat_rec
+
+@[primrec] lemma repeat : primrec (@list.repeat α) :=
+by { primrec using λ x n, (list.cons x)^[n] [], induction n; simp [iterate_succ', *], }
+
+def _root_.nat.elim {C : Sort*} : C → (ℕ → C → C) → ℕ → C := @nat.rec (λ _, C)
+
+@[primrec] lemma nat_stack_rec {n : γ → ℕ} {base : γ → α → β} {pre : γ → ℕ → α → α} {post : γ → β → ℕ → α → β}
+  {arg : γ → α}  (hn : primrec n) (hb : primrec base) (hpr : primrec pre) (hpo : primrec post)
+  (harg : primrec arg) : primrec (λ x, (n x).stack_rec (base x) (pre x) (post x) (arg x)) :=
+begin
+  primrec using λ x, (list.repeat () $ n x).stack_rec (base x) (λ _ tl y, pre x tl.length y)
+    (λ ih _ tl y, post x ih tl.length y) (arg x),
+  generalize : arg x = y, induction n x with n ih generalizing y,
+  { simp, }, { simp [ih], }
+end
+
+@[primrec] lemma nat_elim {n : γ → ℕ} {base : γ → β} {ih : γ → ℕ → β → β} (hn : primrec n)
+  (hb : primrec base) (hih : primrec ih) : primrec (λ x, (n x).elim (base x) (ih x)) :=
+begin
+  primrec using λ x, (n x).stack_rec (λ _ : unit, base x) (λ _, id) (λ ih' n' _, ih x n' ih') (),
+  induction n x with n ih, { refl, }, { simp [ih], refl, }
+end
+
+end nat_rec
+
 end primrec
+
+namespace nat
+open vector
+
+local attribute [primrec] primrec.of_fn
+
+inductive primrec' : ∀ {n}, (vector ℕ n → ℕ) → Prop
+| zero : @primrec' 0 (λ _, 0)
+| succ : @primrec' 1 (λ v, succ v.head)
+| nth {n} (i : fin n) : primrec' (λ v, v.nth i)
+| comp {m n f} (g : fin n → vector ℕ m → ℕ) :
+  primrec' f → (∀ i, primrec' (g i)) →
+  primrec' (λ a, f (of_fn (λ i, g i a)))
+| prec {n f g} : @primrec' n f → @primrec' (n+2) g →
+  primrec' (λ v : vector ℕ (n+1),
+    v.head.elim (f v.tail) (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)))
+
+lemma primrec'.to_primrec {n} {f : vector ℕ n → ℕ} (hf : primrec' f) : primrec f :=
+by induction hf; primrec
+
+protected def primrec (f : ℕ → ℕ) : Prop := primrec' (λ x : vector ℕ 1, f x.head)
+
+lemma nat.primrec.to_primrec {f : ℕ → ℕ} (hf : nat.primrec f) : primrec f :=
+by simpa using (primrec'.to_primrec hf).comp (show primrec (λ n, n ::ᵥ vector.nil), by primrec)
+
+namespace primrec'
+
+
+end primrec'
+
+end nat

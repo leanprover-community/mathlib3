@@ -504,8 +504,8 @@ linear_isometry_equiv.of_linear_isometry
   begin
     ext x,
     convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
-    { simp only [o.right_angle_rotation_right_angle_rotation, o.rotation_aux_apply, function.comp_app, id.def,
-        linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
+    { simp only [o.right_angle_rotation_right_angle_rotation, o.rotation_aux_apply,
+        function.comp_app, id.def, linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
         linear_isometry_equiv.coe_to_linear_equiv, map_smul, map_sub, linear_map.coe_comp,
         linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, ← mul_smul, add_smul,
         smul_add, smul_neg, smul_sub, mul_comm, sq],
@@ -515,8 +515,8 @@ linear_isometry_equiv.of_linear_isometry
   begin
     ext x,
     convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
-    { simp only [o.right_angle_rotation_right_angle_rotation, o.rotation_aux_apply, function.comp_app, id.def,
-        linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
+    { simp only [o.right_angle_rotation_right_angle_rotation, o.rotation_aux_apply,
+        function.comp_app, id.def, linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
         linear_isometry_equiv.coe_to_linear_equiv, map_add, map_smul, linear_map.coe_comp,
         linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, add_smul, ← mul_smul,
         mul_comm, smul_add, smul_neg, sq],
@@ -537,7 +537,8 @@ attribute [irreducible] rotation
 lemma rotation_eq_matrix_to_lin (θ : real.angle) {x : V} (hx : x ≠ 0) :
   (o.rotation θ).to_linear_map
   = matrix.to_lin
-      (o.basis_right_angle_rotation x hx) (o.basis_right_angle_rotation x hx) !![θ.cos, -θ.sin; θ.sin, θ.cos] :=
+      (o.basis_right_angle_rotation x hx) (o.basis_right_angle_rotation x hx)
+      !![θ.cos, -θ.sin; θ.sin, θ.cos] :=
 begin
   apply (o.basis_right_angle_rotation x hx).ext,
   intros i,

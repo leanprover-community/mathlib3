@@ -5,8 +5,46 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.orientation
-import tactic.polyrith
+import tactic.linear_combination
 
+/-!
+# Oriented two-dimensional real inner product spaces
+
+This file defines constructions specific to the geometry of an oriented two-dimensional real inner
+product space `E`.
+
+## Main declarations
+
+* `orientation.area_form`: an antisymmetric bilinear form `E →ₗ[ℝ] E →ₗ[ℝ] ℝ` (usual notation `ω`).
+  Morally, when `ω` is evaluated on two vectors, it gives the oriented area of the parallelogram
+  they span. (But mathlib does not yet have a construction of oriented area, and in fact the
+  construction of oriented area should pass through `ω`.)
+
+* `orientation.right_angle_rotation`: an isometric automorphism `E ≃ₗᵢ[ℝ] E` (usual notation `J`).
+  This automorphism squares to -1.  In a later file, rotations (`orientation.rotation`) are defined,
+  in such a way that this automorphism is equal to rotation by 90 degrees.
+
+* `orientation.basis_right_angle_rotation`: for a nonzero vector `x` in `E`, the basis `![x, J x]`
+  for `E`.
+
+* `orientation.kahler`: an antisymmetric complex-valued real-bilinear map `E →ₗ[ℝ] E →ₗ[ℝ] ℂ`. Its
+  real part is the inner product and its imaginary part is `orientation.area_form`.  For vectors `x`
+  and `y` in `E`, the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. In a later file, oriented
+  angles (`orientation.oangle`) are defined, in such a way that the argument of `o.kahler x y` is
+  the oriented angle from `x` to `y`.
+
+## Implementation notes
+
+Notation `ω` for `orientation.area_form` and `J` for `orientation.right_angle_rotation` should be
+defined locally in each file which uses them, since otherwise one needs a more cumbersome notation
+which mentions the orientation explicitly (something like `ω[o]`).  Write
+
+```
+local notation `ω` := o.area_form
+local notation `J` := o.right_angle_rotation
+```
+
+-/
 
 noncomputable theory
 
@@ -22,9 +60,9 @@ include o
 
 namespace orientation
 
-/-- An antisymmetric bilinear form `E →ₗ[ℝ] E →ₗ[ℝ] ℝ` on an oriented real inner product space of
-dimension 2 (usual notation `ω`).  When evaluated on two vectors, it gives the oriented area of the
-parallelogram they span. -/
+/-- An antisymmetric bilinear form on an oriented real inner product space of dimension 2 (usual
+notation `ω`).  When evaluated on two vectors, it gives the oriented area of the parallelogram they
+span. -/
 def area_form : E →ₗ[ℝ] E →ₗ[ℝ] ℝ :=
 begin
   let z : alternating_map ℝ E ℝ (fin 0) ≃ₗ[ℝ] ℝ :=
@@ -121,19 +159,21 @@ let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
   (inner_product_space.to_dual ℝ E).to_linear_equiv ≪≫ₗ linear_map.to_continuous_linear_map.symm in
 ↑to_dual.symm ∘ₗ ω
 
-@[simp] lemma inner_right_angle_rotation_aux₁_left (x y : E) : ⟪o.right_angle_rotation_aux₁ x, y⟫ = ω x y :=
+@[simp] lemma inner_right_angle_rotation_aux₁_left (x y : E) :
+  ⟪o.right_angle_rotation_aux₁ x, y⟫ = ω x y :=
 by simp [right_angle_rotation_aux₁]
 
 attribute [irreducible] right_angle_rotation_aux₁
 
-@[simp] lemma inner_right_angle_rotation_aux₁_right (x y : E) : ⟪x, o.right_angle_rotation_aux₁ y⟫ = - ω x y :=
+@[simp] lemma inner_right_angle_rotation_aux₁_right (x y : E) :
+  ⟪x, o.right_angle_rotation_aux₁ y⟫ = - ω x y :=
 begin
   rw real_inner_comm,
   simp [o.area_form_swap y x],
 end
 
-/- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an oriented
-real inner product space of dimension 2. -/
+/- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
+oriented real inner product space of dimension 2. -/
 def right_angle_rotation_aux₂ : E →ₗᵢ[ℝ] E :=
 { norm_map' := λ x, begin
     dsimp,
@@ -171,7 +211,8 @@ begin
   intros y,
   have : ⟪o.right_angle_rotation_aux₁ y, o.right_angle_rotation_aux₁ x⟫ = ⟪y, x⟫ :=
     linear_isometry.inner_map_map o.right_angle_rotation_aux₂ y x,
-  rw [o.inner_right_angle_rotation_aux₁_right, ← o.inner_right_angle_rotation_aux₁_left, this, inner_neg_right],
+  rw [o.inner_right_angle_rotation_aux₁_right, ← o.inner_right_angle_rotation_aux₁_left, this,
+    inner_neg_right],
 end
 
 /-- An isometric automorphism of an oriented real inner product space of dimension 2 (usual notation
@@ -239,7 +280,8 @@ linear_isometry_equiv.ext $ o.right_angle_rotation_neg_orientation
 
 lemma right_angle_rotation_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) (x : F) :
-  (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation x = φ (o.right_angle_rotation (φ.symm x)) :=
+  (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation x
+  = φ (o.right_angle_rotation (φ.symm x)) :=
 begin
   apply ext_inner_right ℝ,
   intros y,
@@ -303,13 +345,13 @@ begin
   intros i,
   fin_cases i,
   { simp only [real_inner_self_eq_norm_sq, algebra.id.smul_eq_mul, innerₛₗ_apply,
-      linear_map.smul_apply, linear_map.add_apply, matrix.cons_val_zero, o.coe_basis_right_angle_rotation,
-      o.area_form_apply_self, real_inner_comm],
+      linear_map.smul_apply, linear_map.add_apply, matrix.cons_val_zero,
+      o.coe_basis_right_angle_rotation, o.area_form_apply_self, real_inner_comm],
     ring },
   { simp only [real_inner_self_eq_norm_sq, algebra.id.smul_eq_mul, innerₛₗ_apply,
       linear_map.smul_apply, neg_inj, linear_map.add_apply, matrix.cons_val_one, matrix.head_cons,
-      o.coe_basis_right_angle_rotation, o.area_form_right_angle_rotation_right, o.area_form_apply_self,
-      o.inner_right_angle_rotation_right],
+      o.coe_basis_right_angle_rotation, o.area_form_right_angle_rotation_right,
+      o.area_form_apply_self, o.inner_right_angle_rotation_right],
     rw o.area_form_swap,
     ring, }
 end
@@ -333,10 +375,10 @@ begin
       real_inner_self_eq_norm_sq, algebra.id.smul_eq_mul, innerₛₗ_apply, linear_map.sub_apply,
       linear_map.smul_apply, matrix.cons_val_zero],
     ring },
-  { simp only [o.area_form_right_angle_rotation_right, o.area_form_apply_self, o.coe_basis_right_angle_rotation,
-      o.inner_right_angle_rotation_right, real_inner_self_eq_norm_sq, real_inner_comm,
-      algebra.id.smul_eq_mul, innerₛₗ_apply, linear_map.smul_apply, linear_map.sub_apply,
-      matrix.cons_val_one, matrix.head_cons],
+  { simp only [o.area_form_right_angle_rotation_right, o.area_form_apply_self,
+      o.coe_basis_right_angle_rotation, o.inner_right_angle_rotation_right,
+      real_inner_self_eq_norm_sq, real_inner_comm, algebra.id.smul_eq_mul, innerₛₗ_apply,
+      linear_map.smul_apply, linear_map.sub_apply, matrix.cons_val_one, matrix.head_cons],
   ring},
 end
 
@@ -396,15 +438,16 @@ by simp [kahler_apply_apply, real_inner_self_eq_norm_sq]
 @[simp] lemma kahler_right_angle_rotation_left (x y : E) :
   o.kahler (J x) y = - complex.I * o.kahler x y :=
 begin
-  simp only [o.area_form_right_angle_rotation_left, o.inner_right_angle_rotation_left, o.kahler_apply_apply,
-    complex.of_real_neg, complex.real_smul],
+  simp only [o.area_form_right_angle_rotation_left, o.inner_right_angle_rotation_left,
+    o.kahler_apply_apply, complex.of_real_neg, complex.real_smul],
   linear_combination ω x y * complex.I_sq,
 end
 
-@[simp] lemma kahler_right_angle_rotation_right (x y : E) : o.kahler x (J y) = complex.I * o.kahler x y :=
+@[simp] lemma kahler_right_angle_rotation_right (x y : E) :
+  o.kahler x (J y) = complex.I * o.kahler x y :=
 begin
-  simp only [o.area_form_right_angle_rotation_right, o.inner_right_angle_rotation_right, o.kahler_apply_apply,
-    complex.of_real_neg, complex.real_smul],
+  simp only [o.area_form_right_angle_rotation_right, o.inner_right_angle_rotation_right,
+    o.kahler_apply_apply, complex.of_real_neg, complex.real_smul],
   linear_combination - ω x y * complex.I_sq,
 end
 

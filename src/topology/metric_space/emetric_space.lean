@@ -422,9 +422,6 @@ lemma ulift.edist_eq (x y : ulift α) : edist x y = edist x.down y.down := rfl
 
 end ulift
 
-instance : semilattice_sup ℝ≥0∞ := with_top.semilattice_sup
-instance : order_bot ℝ≥0∞ := with_top.order_bot
-
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/

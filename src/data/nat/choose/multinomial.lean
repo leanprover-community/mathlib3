@@ -34,7 +34,7 @@ open_locale big_operators
 
 namespace nat
 
-variables {α : Type*} (s : finset α) (f : α → ℕ) {a b : α} (n : ℕ )
+variables {α : Type*} (s : finset α) (f : α → ℕ) {a b : α} (n : ℕ)
 
 /-- The multinomial coefficient. Gives the number of strings consisting of symbols
 from `s`, where `c ∈ s` appears with multiplicity `f c`.
@@ -101,9 +101,9 @@ by simpa [finset.sum_pair hab, finset.prod_pair hab] using multinomial_spec {a, 
 by simp [multinomial_insert_one {b} f (finset.not_mem_singleton.mpr h) h₁]
 
 lemma binomial_succ_succ [decidable_eq α] (h : a ≠ b) :
-  multinomial {a, b} (function.update (function.update f a (f a).succ) b (f b).succ) =
-  multinomial {a, b} (function.update f a (f a).succ) +
-  multinomial {a, b} (function.update f b (f b).succ) :=
+  multinomial {a, b} ((f.update a (f a).succ).update b (f b).succ) =
+  multinomial {a, b} (f.update a (f a).succ) +
+  multinomial {a, b} (f.update b (f b).succ) :=
 begin
   simp only [binomial_eq_choose, function.update_apply, function.update_noteq,
     succ_add, add_succ, choose_succ_succ, h, ne.def, not_false_iff, function.update_same],
@@ -113,7 +113,7 @@ end
 
 lemma succ_mul_binomial [decidable_eq α] (h : a ≠ b) :
   (f a + f b).succ * multinomial {a, b} f =
-  (f a).succ * multinomial {a, b} (function.update f a (f a).succ) :=
+  (f a).succ * multinomial {a, b} (f.update a (f a).succ) :=
 begin
   rw [binomial_eq_choose _ h, binomial_eq_choose _ h, mul_comm (f a).succ,
     function.update_same, function.update_noteq (ne_comm.mp h)],
@@ -153,8 +153,8 @@ begin
   by_cases a ∈ f.support,
   { rw [← finset.insert_erase h, nat.multinomial_insert _ f (finset.not_mem_erase a _),
       finset.add_sum_erase _ f h, support_update_zero], congr' 1,
-    exact nat.multinomial_congr _ (λ _ h, (function.update_noteq
-      (finset.mem_erase.1 h).1 0 f).symm) },
+    exact nat.multinomial_congr _
+      (λ _ h, (function.update_noteq (finset.mem_erase.1 h).1 0 f).symm) },
   rw not_mem_support_iff at h,
   rw [h, nat.choose_zero_right, one_mul, ← h, update_self],
 end

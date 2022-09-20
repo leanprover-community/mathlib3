@@ -17,8 +17,9 @@ open metric set filter
 
 namespace rat
 
-noncomputable instance : metric_space ℚ :=
-metric_space.induced coe rat.cast_injective real.metric_space
+-- without the `by exact` this is noncomputable
+instance : metric_space ℚ :=
+metric_space.induced coe (by exact rat.cast_injective) real.metric_space
 
 theorem dist_eq (x y : ℚ) : dist x y = |x - y| := rfl
 

@@ -110,11 +110,12 @@ instance : normed_add_comm_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-noncomputable instance : normed_add_comm_group ℝ :=
-{ norm := λ x, |x|,
-  dist_eq := assume x y, rfl }
+instance : has_norm ℝ := { norm := λ x, |x| }
 
 @[simp] lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
+
+instance : normed_add_comm_group ℝ :=
+{ dist_eq := assume x y, rfl }
 
 section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group F] [seminormed_add_comm_group G]

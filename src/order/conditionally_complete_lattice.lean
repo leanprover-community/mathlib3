@@ -235,11 +235,33 @@ instance (α : Type*) [conditionally_complete_linear_order α] :
 
 end order_dual
 
-def conditionally_complete_lattice_of_Sup (α : Type*) [H1 : lattice α]
+#where
+
+def conditionally_complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   [H2 : has_Sup α]
+  (bdd_above_pair : ∀ a b : α, bdd_above ({a, b} : set α))
+  (bdd_below_pair : ∀ a b : α, bdd_below ({a, b} : set α))
   (is_lub_Sup : ∀ s : set α, bdd_above s → s.nonempty → is_lub s (Sup s)) :
   conditionally_complete_lattice α :=
-{ Inf := λ s, Sup (lower_bounds s),
+{ sup := λ a b, Sup {a, b},
+  le_sup_left := λ a b, (is_lub_Sup {a, b} (bdd_above_pair a b)
+    (insert_nonempty _ _)).1 (mem_insert _ _),
+  le_sup_right := λ a b, (is_lub_Sup {a, b} (bdd_above_pair a b)
+    (insert_nonempty _ _)).1 (mem_insert_of_mem _ (mem_singleton _)),
+  sup_le := λ a b c hac hbc, (is_lub_Sup {a, b} (bdd_above_pair a b)
+    (insert_nonempty _ _)).2 (forall_insert_of_forall (forall_eq.mpr hbc) hac),
+  inf := λ a b, Sup (lower_bounds {a, b}),
+  inf_le_left := λ a b, (is_lub_Sup (lower_bounds {a, b})
+    (nonempty.bdd_above_lower_bounds ⟨a, mem_insert _ _⟩) (bdd_below_pair a b)).2
+    (λ c hc, hc $ mem_insert _ _),
+  inf_le_right := λ a b, (is_lub_Sup (lower_bounds {a, b})
+    (nonempty.bdd_above_lower_bounds ⟨a, mem_insert _ _⟩)
+    (bdd_below_pair a b)).2 (λ c hc, hc $ mem_insert_of_mem _ (mem_singleton _)),
+  le_inf := λ c a b hca hcb, (is_lub_Sup (lower_bounds {a, b})
+    (nonempty.bdd_above_lower_bounds ⟨a, mem_insert _ _⟩)
+    ⟨c, forall_insert_of_forall (forall_eq.mpr hcb) hca⟩).1
+    (forall_insert_of_forall (forall_eq.mpr hcb) hca),
+  Inf := λ s, Sup (lower_bounds s),
   cSup_le := λ s a hs ha, (is_lub_Sup s ⟨a, ha⟩ hs).2 ha,
   le_cSup := λ s a hs ha, (is_lub_Sup s hs ⟨a, ha⟩).1 ha,
   cInf_le := λ s a hs ha, (is_lub_Sup (lower_bounds s)
@@ -247,17 +269,39 @@ def conditionally_complete_lattice_of_Sup (α : Type*) [H1 : lattice α]
   le_cInf := λ s a hs ha, (is_lub_Sup (lower_bounds s) hs.bdd_above_lower_bounds ⟨a, ha⟩).1 ha,
   .. H1, .. H2 }
 
-def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : lattice α]
+def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   [H2 : has_Inf α]
+  (bdd_above_pair : ∀ a b : α, bdd_above ({a, b} : set α))
+  (bdd_below_pair : ∀ a b : α, bdd_below ({a, b} : set α))
   (is_glb_Inf : ∀ s : set α, bdd_below s → s.nonempty → is_glb s (Inf s)) :
   conditionally_complete_lattice α :=
-{ Sup := λ s, Inf (upper_bounds s),
+{ inf := λ a b, Inf {a, b},
+  inf_le_left := λ a b, (is_glb_Inf {a, b} (bdd_below_pair a b)
+    (insert_nonempty _ _)).1 (mem_insert _ _),
+  inf_le_right := λ a b, (is_glb_Inf {a, b} (bdd_below_pair a b)
+    (insert_nonempty _ _)).1 (mem_insert_of_mem _ (mem_singleton _)),
+  le_inf := λ c a b hca hcb, (is_glb_Inf {a, b} (bdd_below_pair a b)
+    (insert_nonempty _ _)).2 (forall_insert_of_forall (forall_eq.mpr hcb) hca),
+  sup := λ a b, Inf (upper_bounds {a, b}),
+  le_sup_left := λ a b, (is_glb_Inf (upper_bounds {a, b})
+    (nonempty.bdd_below_upper_bounds ⟨a, mem_insert _ _⟩) (bdd_above_pair a b)).2
+    (λ c hc, hc $ mem_insert _ _),
+  le_sup_right := λ a b, (is_glb_Inf (upper_bounds {a, b})
+    (nonempty.bdd_below_upper_bounds ⟨a, mem_insert _ _⟩)
+    (bdd_above_pair a b)).2 (λ c hc, hc $ mem_insert_of_mem _ (mem_singleton _)),
+  sup_le := λ a b c hac hbc, (is_glb_Inf (upper_bounds {a, b})
+    (nonempty.bdd_below_upper_bounds ⟨a, mem_insert _ _⟩)
+    ⟨c, forall_insert_of_forall (forall_eq.mpr hbc) hac⟩).1
+    (forall_insert_of_forall (forall_eq.mpr hbc) hac),
+  Sup := λ s, Inf (upper_bounds s),
   le_cInf := λ s a hs ha, (is_glb_Inf s ⟨a, ha⟩ hs).2 ha,
   cInf_le := λ s a hs ha, (is_glb_Inf s hs ⟨a, ha⟩).1 ha,
   le_cSup := λ s a hs ha, (is_glb_Inf (upper_bounds s)
     (nonempty.bdd_below_upper_bounds ⟨a, ha⟩) hs).2 (λ b hb, hb ha),
   cSup_le := λ s a hs ha, (is_glb_Inf (upper_bounds s) hs.bdd_below_upper_bounds ⟨a, ha⟩).1 ha,
   .. H1, .. H2 }
+
+#exit
 
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}

@@ -47,6 +47,9 @@ include o
 
 namespace orientation
 
+/-- An antisymmetric bilinear form `E →ₗ[ℝ] E →ₗ[ℝ] ℝ` on an oriented real inner product space of
+dimension 2 (usual notation `ω`).  When evaluated on two vectors, it gives the oriented area of the
+parallelogram they span. -/
 def area_form : E →ₗ[ℝ] E →ₗ[ℝ] ℝ :=
 begin
   let z : alternating_map ℝ E ℝ (fin 0) ≃ₗ[ℝ] ℝ :=
@@ -86,6 +89,15 @@ begin
   simp [area_form_to_volume_form]
 end
 
+/-- Continuous linear map version of `orientation.area_form`, useful for calculus. -/
+def area_form' : E →L[ℝ] (E →L[ℝ] ℝ) :=
+((↑(linear_map.to_continuous_linear_map : (E →ₗ[ℝ] ℝ) ≃ₗ[ℝ] (E →L[ℝ] ℝ)))
+  ∘ₗ o.area_form).to_continuous_linear_map
+
+@[simp] lemma area_form'_apply (x : E) :
+  o.area_form' x = (o.area_form x).to_continuous_linear_map :=
+rfl
+
 lemma abs_area_form_le (x y : E) : |ω x y| ≤ ∥x∥ * ∥y∥ :=
 by simpa [area_form_to_volume_form, fin.prod_univ_succ] using o.abs_volume_form_apply_le ![x, y]
 
@@ -104,6 +116,8 @@ begin
   { simpa }
 end
 
+/- Auxiliary construction for `orientation.almost_complex`, rotation by 90 degrees in an oriented
+real inner product space of dimension 2. -/
 def almost_complex_aux₁ : E →ₗ[ℝ] E :=
 let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
   (inner_product_space.to_dual ℝ E).to_linear_equiv ≪≫ₗ linear_map.to_continuous_linear_map.symm in
@@ -120,6 +134,8 @@ begin
   simp [o.area_form_swap y x],
 end
 
+/- Auxiliary construction for `orientation.almost_complex`, rotation by 90 degrees in an oriented
+real inner product space of dimension 2. -/
 def almost_complex_aux₂ : E →ₗᵢ[ℝ] E :=
 { norm_map' := λ x, begin
     dsimp,
@@ -160,6 +176,9 @@ begin
   rw [o.inner_almost_complex_aux₁_right, ← o.inner_almost_complex_aux₁_left, this, inner_neg_right],
 end
 
+/-- An isometric automorphism of an oriented real inner product space of dimension 2 (usual notation
+`J`). This automorphism squares to -1.  We will define rotations in such a way that this
+automorphism is equal to rotation by 90 degrees. -/
 def almost_complex : E ≃ₗᵢ[ℝ] E :=
 linear_isometry_equiv.of_linear_isometry
   o.almost_complex_aux₂
@@ -217,8 +236,8 @@ end
   (-o).almost_complex = o.almost_complex.trans (linear_isometry_equiv.neg ℝ) :=
 linear_isometry_equiv.ext $ o.almost_complex_neg_orientation
 
-/-- For a nonzero vector `x` in an oriented two-dimensional inner product space `E`, `![x, J x]`
-forms an (orthogonal) basis for `E`. -/
+/-- For a nonzero vector `x` in an oriented two-dimensional real inner product space `E`,
+`![x, J x]` forms an (orthogonal) basis for `E`. -/
 def basis_almost_complex (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
 @basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _ _ _ ![x, J x]
 (linear_independent_of_ne_zero_of_inner_eq_zero (λ i, by { fin_cases i; simp [hx] })
@@ -285,6 +304,8 @@ end
 lemma inner_mul_area_form_sub (a x y : E) : ⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y :=
 congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_area_form_sub' a x)
 
+/-- A complex-valued real-bilinear map on an oriented real inner product space of dimension 2. Its
+real part is the inner product and its imaginary part is `orientation.area_form`. -/
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=
 (linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ (@innerₛₗ ℝ E _ _)
 + (linear_map.llcomp ℝ E ℝ ℂ ((linear_map.lsmul ℝ ℂ).flip complex.I)) ∘ₗ ω

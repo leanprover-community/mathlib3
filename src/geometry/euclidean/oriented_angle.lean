@@ -92,11 +92,8 @@ lemma continuous_at_oangle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
 begin
   refine (complex.continuous_at_arg_coe_angle _).comp _,
   { exact o.kahler_ne_zero hx1 hx2 },
-  apply (continuous_of_real.comp continuous_inner).continuous_at.add,
-  dsimp,
-  refine (continuous.mul _ continuous_const).continuous_at,
-  refine continuous_of_real.comp _,
-  sorry -- continuity of `ω`
+  exact ((continuous_of_real.comp continuous_inner).add
+    ((continuous_of_real.comp o.area_form'.continuous₂).mul continuous_const)).continuous_at,
 end
 
 /-- If the first vector passed to `oangle` is 0, the result is 0. -/
@@ -554,7 +551,7 @@ linear_isometry_equiv.of_linear_isometry
   begin
     ext x,
     convert congr_arg (λ t : ℝ, t • x) θ.cos_sq_add_sin_sq using 1,
-    { simp [o.almost_complex_almost_complex, o.rotation_aux_apply, function.comp_app, id.def,
+    { simp only [o.almost_complex_almost_complex, o.rotation_aux_apply, function.comp_app, id.def,
         linear_equiv.coe_coe, linear_isometry.coe_to_linear_map,
         linear_isometry_equiv.coe_to_linear_equiv, map_add, map_smul, linear_map.coe_comp,
         linear_map.id_coe, linear_map.smul_apply, linear_map.sub_apply, add_smul, ← mul_smul,

@@ -179,10 +179,10 @@ begin
   classical,
   rw coe_mul_apply_eq_dfinsupp_sum,
   apply (dfinsupp.sum_single_index _).trans, swap,
-  { simp_rw [add_submonoid_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
+  { simp_rw [zero_mem_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
   simp_rw [dfinsupp.sum, H, finset.sum_ite_eq'],
   split_ifs, refl,
-  rw [dfinsupp.not_mem_support_iff.mp h, add_submonoid_class.coe_zero, mul_zero],
+  rw [dfinsupp.not_mem_support_iff.mp h, zero_mem_class.coe_zero, mul_zero],
 end
 
 lemma coe_mul_of_apply_aux [add_monoid ι] [set_like.graded_monoid A]
@@ -192,10 +192,10 @@ begin
   classical,
   rw [coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
   apply (dfinsupp.sum_single_index _).trans, swap,
-  { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
+  { simp_rw [zero_mem_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
   simp_rw [dfinsupp.sum, H, finset.sum_ite_eq'],
   split_ifs, refl,
-  rw [dfinsupp.not_mem_support_iff.mp h, add_submonoid_class.coe_zero, zero_mul],
+  rw [dfinsupp.not_mem_support_iff.mp h, zero_mem_class.coe_zero, zero_mul],
 end
 
 lemma coe_of_mul_apply_add [add_left_cancel_monoid ι] [set_like.graded_monoid A]
@@ -222,7 +222,7 @@ begin
   classical,
   rw coe_mul_apply_eq_dfinsupp_sum,
   apply (dfinsupp.sum_single_index _).trans, swap,
-  { simp_rw [add_submonoid_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
+  { simp_rw [zero_mem_class.coe_zero, zero_mul, if_t_t], exact dfinsupp.sum_zero },
   { rw [dfinsupp.sum, finset.sum_ite_of_false _ _ (λ x _ H, _), finset.sum_const_zero],
     exact h ((self_le_add_right i x).trans_eq H) },
 end
@@ -234,7 +234,7 @@ begin
   classical,
   rw [coe_mul_apply_eq_dfinsupp_sum, dfinsupp.sum_comm],
   apply (dfinsupp.sum_single_index _).trans, swap,
-  { simp_rw [add_submonoid_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
+  { simp_rw [zero_mem_class.coe_zero, mul_zero, if_t_t], exact dfinsupp.sum_zero },
   { rw [dfinsupp.sum, finset.sum_ite_of_false _ _ (λ x _ H, _), finset.sum_const_zero],
     exact h ((self_le_add_left i x).trans_eq H) },
 end

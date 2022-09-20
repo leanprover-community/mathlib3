@@ -134,11 +134,10 @@ end
 /-- The sorted versions of a tuple `f` and any permutation of it agree. -/
 lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
-  let τ := σ⁻¹ * (sort f),
-  have h' : (f ∘ σ) ∘ τ = f ∘ sort f,
-  { ext, simp only [equiv.perm.coe_mul, function.comp_app, equiv.perm.apply_inv_self] },
-  have hm : monotone ((f ∘ σ) ∘ τ) := by { rw [h'], exact monotone_sort _, },
-  exact (sort_unique hm).symm.trans h',
+  rw [function.comp.assoc, ← equiv.perm.coe_mul],
+  refine sort_unique _,
+  rw [equiv.perm.coe_mul, ← function.comp.assoc],
+  exact monotone_sort _,
 end
 
 /-- If a permutation `f ∘ σ` of the tuple `f` is not the same as `f ∘ sort f`, then `f ∘ σ`

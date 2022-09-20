@@ -301,8 +301,6 @@ def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   cSup_le := λ s a hs ha, (is_glb_Inf (upper_bounds s) hs.bdd_below_upper_bounds ⟨a, ha⟩).1 ha,
   .. H1, .. H2 }
 
-#exit
-
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}
 

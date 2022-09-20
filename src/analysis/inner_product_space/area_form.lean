@@ -27,11 +27,11 @@ product space `E`.
 * `orientation.basis_right_angle_rotation`: for a nonzero vector `x` in `E`, the basis `![x, J x]`
   for `E`.
 
-* `orientation.kahler`: an antisymmetric complex-valued real-bilinear map `E →ₗ[ℝ] E →ₗ[ℝ] ℂ`. Its
-  real part is the inner product and its imaginary part is `orientation.area_form`.  For vectors `x`
-  and `y` in `E`, the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. In a later file, oriented
-  angles (`orientation.oangle`) are defined, in such a way that the argument of `o.kahler x y` is
-  the oriented angle from `x` to `y`.
+* `orientation.kahler`: a complex-valued real-bilinear map `E →ₗ[ℝ] E →ₗ[ℝ] ℂ`. Its real part is the
+  inner product and its imaginary part is `orientation.area_form`.  For vectors `x` and `y` in `E`,
+  the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. In a later file, oriented angles
+  (`orientation.oangle`) are defined, in such a way that the argument of `o.kahler x y` is the
+  oriented angle from `x` to `y`.
 
 ## Implementation notes
 
@@ -152,8 +152,8 @@ begin
   { simp }
 end
 
-/- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an oriented
-real inner product space of dimension 2. -/
+/- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
+oriented real inner product space of dimension 2. -/
 def right_angle_rotation_aux₁ : E →ₗ[ℝ] E :=
 let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
   (inner_product_space.to_dual ℝ E).to_linear_equiv ≪≫ₗ linear_map.to_continuous_linear_map.symm in

@@ -63,8 +63,8 @@ begin
   simp [e.det_to_matrix_orthonormal_basis_of_same_orientation f h],
 end
 
-/-- Two orthonormal bases with opposite orientations determine opposite "determinant" top-dimensional
-forms on `E`. -/
+/-- Two orthonormal bases with opposite orientations determine opposite "determinant"
+top-dimensional forms on `E`. -/
 lemma det_eq_det_of_opposite_orientation
   (h : e.to_basis.orientation ≠ f.to_basis.orientation) :
   e.to_basis.det = -f.to_basis.det :=
@@ -254,7 +254,8 @@ lemma volume_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ
   (orientation.map (fin n.succ) φ.to_linear_equiv ω).volume_form x = ω.volume_form (φ.symm ∘ x) :=
 begin
   let e : orthonormal_basis (fin n.succ) ℝ E := ω.fin_orthonormal_basis n.succ_pos (fact.out _),
-  have he : e.to_basis.orientation = ω := (ω.fin_orthonormal_basis_orientation n.succ_pos (fact.out _)),
+  have he : e.to_basis.orientation = ω :=
+    (ω.fin_orthonormal_basis_orientation n.succ_pos (fact.out _)),
   have heφ : (e.map φ).to_basis.orientation = orientation.map (fin n.succ) φ.to_linear_equiv ω,
   { rw ← he,
     exact (e.to_basis.orientation_map φ.to_linear_equiv) },

@@ -43,9 +43,7 @@ begin
   { intro σ, simp only [POf, φ', function.comp_app], congr' 1, },
   rw [hf₁],
   refine @well_founded.induction_bot Of _
-    (@set.finite.well_founded_on _ (<) _ _ (set.finite_range φ)) (φ' 1) _ POf _ (λ g hg₁ hg₂, _),
-  { simp only [POf, φ', φ, function.comp_app],
-    rwa [set.coe_cod_restrict_apply, of_lex_to_lex, equiv.perm.coe_one, function.comp.right_id], },
+    (@set.finite.well_founded_on _ (<) _ _ (set.finite_range φ)) (φ' 1) _ POf (λ g hg₁ hg₂, _) _,
   { obtain ⟨σ, hσ⟩ := set.mem_range.mp (subtype.mem g),
     have hg₁' : (g : lex (fin n → α)) ≠ φ (sort f),
     { rw [← hφ],
@@ -62,7 +60,9 @@ begin
       simp only [inv_image, φ', ←hσ, φ, set.coe_cod_restrict_apply, equiv.perm.coe_mul], },
     { simp only [← hf₁, equiv.perm.coe_mul],
       rw [← function.comp.assoc],
-      exact h σ i j hij₁ hij₂ ((hf₁ σ).mpr hσ'), } }
+      exact h σ i j hij₁ hij₂ ((hf₁ σ).mpr hσ'), } },
+  { simp only [POf, φ', φ, function.comp_app],
+    rwa [set.coe_cod_restrict_apply, of_lex_to_lex, equiv.perm.coe_one, function.comp.right_id] }
 end
 
 /-- *Bubble sort induction*: Prove that the sorted version of `f` has some property `P`

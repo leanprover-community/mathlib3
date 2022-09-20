@@ -13,14 +13,13 @@ variables (M : Type u) (G : Type v) (X : Type w)
 class has_isometric_vadd [pseudo_emetric_space X] [has_vadd M X] : Prop :=
 (isometry_vadd : ∀ c : M, isometry ((+ᵥ) c : X → X))
 
-@[to_additive]
-class has_isometric_smul [pseudo_emetric_space X] [has_scalar M X] : Prop :=
+@[to_additive] class has_isometric_smul [pseudo_emetric_space X] [has_smul M X] : Prop :=
 (isometry_smul: ∀ c : M, isometry ((•) c : X → X))
 
 export has_isometric_vadd (isometry_vadd) has_isometric_smul (isometry_smul)
 
 @[priority 100, to_additive]
-instance has_isometric_smul.to_has_continuous_const_smul [pseudo_emetric_space X] [has_scalar M X]
+instance has_isometric_smul.to_has_continuous_const_smul [pseudo_emetric_space X] [has_smul M X]
   [has_isometric_smul M X] : has_continuous_const_smul M X :=
 ⟨λ c, (isometry_smul c).continuous⟩
 
@@ -30,7 +29,7 @@ section emetric
 
 variables [pseudo_emetric_space X] [group G] [mul_action G X] [has_isometric_smul G X]
 
-@[simp, to_additive] lemma edist_smul_cancel_left [has_scalar M X] [has_isometric_smul M X]
+@[simp, to_additive] lemma edist_smul_cancel_left [has_smul M X] [has_isometric_smul M X]
   (c : M) (x y : X) :
   edist (c • x) (c • y) = edist x y :=
 isometry_smul c x y
@@ -145,12 +144,12 @@ end emetric
 end emetric
 
 @[simp, to_additive]
-lemma dist_smul [pseudo_metric_space X] [has_scalar M X] [has_isometric_smul M X]
+lemma dist_smul [pseudo_metric_space X] [has_smul M X] [has_isometric_smul M X]
   (c : M) (x y : X) : dist (c • x) (c • y) = dist x y :=
 (isometry_smul c).dist_eq x y
 
 @[simp, to_additive]
-lemma nndist_smul [pseudo_metric_space X] [has_scalar M X] [has_isometric_smul M X]
+lemma nndist_smul [pseudo_metric_space X] [has_smul M X] [has_isometric_smul M X]
   (c : M) (x y : X) : nndist (c • x) (c • y) = nndist x y :=
 (isometry_smul c).nndist_eq x y
 

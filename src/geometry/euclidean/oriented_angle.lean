@@ -40,8 +40,7 @@ generally use the definitions and results in the `orientation` namespace instead
 noncomputable theory
 
 open finite_dimensional complex
-open_locale real
-open_locale real_inner_product_space
+open_locale real real_inner_product_space complex_conjugate
 
 -- move this to `analysis.special_functions.trigonometric.angle`
 namespace real.angle
@@ -606,25 +605,26 @@ end
 
 /-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos θ - sin θ * I`. -/
 @[simp] lemma kahler_rotation_left (x y : V) (θ : real.angle) :
-  o.kahler (o.rotation θ x) y = (↑(θ.cos) - ↑(θ.sin) * I) * o.kahler x y :=
+  o.kahler (o.rotation θ x) y = conj (θ.exp_map_circle : ℂ) * o.kahler x y :=
 begin
-  simp only [o.rotation_apply, map_add, linear_map.map_smulₛₗ, ring_hom.id_apply,
-    linear_map.add_apply, linear_map.smul_apply, real_smul, kahler_almost_complex_left],
+  simp only [o.rotation_apply, map_add, map_mul, linear_map.map_smulₛₗ, ring_hom.id_apply,
+    linear_map.add_apply, linear_map.smul_apply, real_smul, kahler_almost_complex_left,
+    real.angle.coe_exp_map_circle, is_R_or_C.conj_of_real, conj_I],
   ring,
 end
 
 /-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos (-θ) + sin (-θ) * I`.
 -/
 lemma kahler_rotation_left' (x y : V) (θ : real.angle) :
-  o.kahler (o.rotation θ x) y = (↑((-θ).cos) + ↑((-θ).sin) * I) * o.kahler x y :=
-by simpa [sub_eq_add_neg, -kahler_rotation_left] using o.kahler_rotation_left x y θ
+  o.kahler (o.rotation θ x) y = (-θ).exp_map_circle * o.kahler x y :=
+by simpa [coe_inv_circle_eq_conj, -kahler_rotation_left] using o.kahler_rotation_left x y θ
 
 /-- Rotating the second of two vectors by `θ` scales their Kahler form by `cos θ + sin θ * I`. -/
 @[simp] lemma kahler_rotation_right (x y : V) (θ : real.angle) :
-  o.kahler x (o.rotation θ y) = (↑(θ.cos) + ↑(θ.sin) * I) * o.kahler x y :=
+  o.kahler x (o.rotation θ y) = θ.exp_map_circle * o.kahler x y :=
 begin
   simp only [o.rotation_apply, map_add, linear_map.map_smulₛₗ, ring_hom.id_apply, real_smul,
-    kahler_almost_complex_right],
+    kahler_almost_complex_right, real.angle.coe_exp_map_circle],
   ring,
 end
 
@@ -633,9 +633,9 @@ end
   o.oangle (o.rotation θ x) y = o.oangle x y - θ :=
 begin
   simp only [oangle, o.kahler_rotation_left'],
-  rw [complex.arg_mul_coe_angle, arg_cos_add_sin_mul_I_coe_angle],
+  rw [complex.arg_mul_coe_angle, real.angle.arg_exp_map_circle],
   { abel },
-  { sorry }, -- nonzeroness of `cos (-θ) + sin (-θ) * I`
+  { exact ne_zero_of_mem_circle _ },
   { exact o.kahler_ne_zero hx hy },
 end
 
@@ -644,9 +644,9 @@ end
   o.oangle x (o.rotation θ y) = o.oangle x y + θ :=
 begin
   simp only [oangle, o.kahler_rotation_right],
-  rw [complex.arg_mul_coe_angle, arg_cos_add_sin_mul_I_coe_angle],
+  rw [complex.arg_mul_coe_angle, real.angle.arg_exp_map_circle],
   { abel },
-  { sorry }, -- nonzeroness of `cos θ + sin θ * I`
+  { exact ne_zero_of_mem_circle _ },
   { exact o.kahler_ne_zero hx hy },
 end
 

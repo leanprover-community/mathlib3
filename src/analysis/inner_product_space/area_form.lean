@@ -116,6 +116,16 @@ begin
   { simpa }
 end
 
+lemma area_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).area_form x y = o.area_form (φ.symm x) (φ.symm y) :=
+begin
+  have : φ.symm ∘ ![x, y] = ![φ.symm x, φ.symm y],
+  { ext i,
+    fin_cases i; refl },
+  simp [area_form_to_volume_form, volume_form_map, this],
+end
+
 /- Auxiliary construction for `orientation.almost_complex`, rotation by 90 degrees in an oriented
 real inner product space of dimension 2. -/
 def almost_complex_aux₁ : E →ₗ[ℝ] E :=
@@ -235,6 +245,26 @@ end
 @[simp] lemma almost_complex_trans_neg_orientation :
   (-o).almost_complex = o.almost_complex.trans (linear_isometry_equiv.neg ℝ) :=
 linear_isometry_equiv.ext $ o.almost_complex_neg_orientation
+
+lemma almost_complex_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x : F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).almost_complex x = φ (o.almost_complex (φ.symm x)) :=
+begin
+  apply ext_inner_right ℝ,
+  intros y,
+  rw inner_almost_complex_left,
+  transitivity ⟪J (φ.symm x), φ.symm y⟫,
+  { simp [o.area_form_map] },
+  transitivity ⟪φ (J (φ.symm x)), φ (φ.symm y)⟫,
+  { rw φ.inner_map_map },
+  { simp },
+end
+
+lemma almost_complex_map' {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).almost_complex
+  = (φ.symm.trans o.almost_complex).trans φ :=
+linear_isometry_equiv.ext $ o.almost_complex_map φ
 
 /-- For a nonzero vector `x` in an oriented two-dimensional real inner product space `E`,
 `![x, J x]` forms an (orthogonal) basis for `E`. -/
@@ -400,13 +430,9 @@ begin
   simp,
 end
 
-section orthonormal_basis
-
-lemma area_form_apply_orthonormal_basis (b : orthonormal_basis (fin 2) ℝ E)
-  (h : b.to_basis.orientation = o) (x y : E) :
-  ω x y = ⟪x, b 0⟫ * ⟪y, b 1⟫ - ⟪x, b 1⟫ * ⟪y, b 0⟫ :=
-sorry
-
-end orthonormal_basis
+lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
+by simp [kahler_apply_apply, area_form_map]
 
 end orientation

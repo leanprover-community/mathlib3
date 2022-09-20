@@ -872,8 +872,7 @@ with a linear isometric equivalence, equals the angle between those two vectors,
 the inverse of that equivalence, with respect to the original orientation. -/
 @[simp] lemma oangle_map (x y : V) (f : V ≃ₗᵢ[ℝ] V) :
   (orientation.map (fin 2) f.to_linear_equiv o).oangle x y = o.oangle (f.symm x) (f.symm y) :=
--- by simp [oangle]
-sorry
+by simp [oangle, o.kahler_map]
 
 /-- Negating the orientation negates the value of `oangle`. -/
 lemma oangle_neg_orientation_eq_neg (x y : V) : (-o).oangle x y = -(o.oangle x y) :=

@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Praneeth Kolichala
 -/
 import computability.computability_tactic2
 import computability.primrec.stack_recursion
+import computability.primrec.catalan
 
 /-!
 # Lemmas about primitive recursive functions
@@ -248,6 +249,9 @@ by { delta list.head', delta id_rhs, primrec, }
 @[primrec] lemma tail : primrec (@list.tail α) :=
 by { delta list.tail, delta id_rhs, primrec, }
 
+lemma congr_singleton {f : α → β} : primrec f ↔ primrec (λ x, [f x]) :=
+⟨λ hf, by primrec, λ hf, congr_some.mpr (head'.comp hf)⟩
+
 end list
 
 section nat
@@ -276,9 +280,7 @@ end
   (hf : primrec f) (hg : primrec g) : primrec (λ x, (f x)^[n x] (g x)) :=
 by simpa using iterate_aux' (primrec.encode.comp hn) hf hg
 
-/- TODO: Move -/
-@[simp] lemma _root_.nat.succ_iterate (n m : ℕ) : nat.succ^[m] n = n + m :=
-by induction m; simp [nat.add_succ, function.iterate_succ', *]
+local attribute [simp] nat.succ_iterate nat.pred_iterate
 
 @[primrec] lemma nodes : primrec unit_tree.nodes :=
 by simpa using iterate_aux' primrec.id
@@ -298,12 +300,7 @@ by { primrec using (λ x y, (+x)^[y] 0), induction y; simp [iterate_succ', nat.m
 ⟨_, unit_tree.primrec.right, λ n, by cases n; refl⟩
 
 @[primrec] lemma tsub : primrec (@has_sub.sub ℕ _) :=
-begin
-  primrec using (λ x y, nat.pred^[y] x),
-  induction y with y ih, { simp, },
-  cases x, { simpa using ih, },
-  simp [iterate_succ', -nat.succ_sub_succ_eq_sub, ih], refl,
-end
+by { primrec using (λ x y, nat.pred^[y] x), simp, }
 
 @[primrec] lemma nat_le : primrec_pred ((≤) : ℕ → ℕ → Prop) :=
 by { primrec using (λ x y, x - y = 0), simp, }
@@ -426,6 +423,26 @@ begin
   generalize : start x = y, induction (ls x) generalizing y; simp [*],
 end
 
+@[primrec] lemma list_join : primrec (@list.join α) :=
+by { primrec using λ l, l.foldr (++) [], induction l; simp [*], }
+
+@[primrec] lemma list_product : primrec (@list.product α β) :=
+by { delta list.product, delta list.bind, primrec, }
+
+@[primrec] lemma reduce_option : primrec (@list.reduce_option α) :=
+begin
+  primrec using λ l, l.foldr (λ hd acc, hd.elim acc (λ hd', hd' :: acc)) [],
+  induction l with hd, { simp, }, cases hd; simp [*],
+end
+
+@[primrec] lemma filter {f : α → list β} {P : α → β → Prop} [∀ x, decidable_pred (P x)]
+  (hf : primrec f) (hP : primrec_pred P) :
+  primrec (λ x, (f x).filter (P x)) :=
+begin
+  primrec using λ x, (f x).foldr (λ hd acc, if P x hd then hd :: acc else acc) [],
+  induction f x with hd, { simp, }, by_cases P x hd; simp [*],
+end
+
 instance {α : Type} [primcodable α] : primcodable (list α) :=
 { prim := by { simp only [decode], primrec, } }
 
@@ -521,6 +538,10 @@ section nat_rec
 by { primrec using λ x n, (list.cons x)^[n] [], induction n; simp [iterate_succ', *], }
 
 def _root_.nat.elim {C : Sort*} : C → (ℕ → C → C) → ℕ → C := @nat.rec (λ _, C)
+@[simp] lemma _root_.nat.elim_zero {C : Sort*} (base : C) (ih : ℕ → C → C) :
+  nat.elim base ih 0 = base := rfl
+@[simp] lemma _root_.nat.elim_succ {C : Sort*} (base : C) (ih : ℕ → C → C) (n : ℕ) :
+  nat.elim base ih (n + 1) = ih n (nat.elim base ih n) := rfl
 
 @[primrec] lemma nat_stack_rec {n : γ → ℕ} {base : γ → α → β} {pre : γ → ℕ → α → α} {post : γ → β → ℕ → α → β}
   {arg : γ → α}  (hn : primrec n) (hb : primrec base) (hpr : primrec pre) (hpo : primrec post)
@@ -536,7 +557,53 @@ end
   (hb : primrec base) (hih : primrec ih) : primrec (λ x, (n x).elim (base x) (ih x)) :=
 begin
   primrec using λ x, (n x).stack_rec (λ _ : unit, base x) (λ _, id) (λ ih' n' _, ih x n' ih') (),
-  induction n x with n ih, { refl, }, { simp [ih], refl, }
+  induction n x with n ih; simp [*],
+end
+
+@[primrec] lemma height_le_list : primrec unit_tree.height_le_list :=
+begin
+  primrec using λ n, n.elim [unit_tree.nil]
+   (λ n ih, unit_tree.nil :: ((ih ×ˢ ih).map $ λ x, x.1.node x.2)),
+  induction n; simp [*, unit_tree.height_le_list],
+end
+
+def _root_.tencodable.height_le (α : Type) [tencodable α] (n : ℕ) : list α :=
+((unit_tree.height_le_list n).map (decode α)).reduce_option
+
+@[primrec] lemma height_le {α : Type} [primcodable α] : primrec (tencodable.height_le α) :=
+by { delta tencodable.height_le, primrec, }
+
+lemma _root_.tencodable.mem_height_le {n : ℕ} {x : α}
+  (h : (encode x).height ≤ n) : x ∈ tencodable.height_le α n :=
+begin
+  simp [tencodable.height_le, list.reduce_option],
+  exact ⟨encode x, h, tencodable.encodek _⟩,
+end
+
+lemma filter_eq_eq_repeat_count {α : Type*} [decidable_eq α] (l : list α) (y : α) :
+  l.filter (=y) = list.repeat y (l.count y) :=
+begin
+  induction l with hd tl ih, { refl, },
+  by_cases H : hd = y,
+  { simpa [H], }, { simpa [H, list.count_cons_of_ne (ne.symm H)], }
+end
+
+lemma _root_.list.repeat_head' {α : Type*} (x : α) (n : ℕ) (hn : n ≠ 0) :
+  (list.repeat x n).head' = some x :=
+by { cases n, { contradiction, }, refl, }
+
+/-- A function is primitive recursive if its graph is and if the output is
+  bounded by a primitive recursive function -/
+lemma primrec_of_primrec_graph {β : Type} [primcodable β] {f : α → β}
+  (hf : primrec_pred (λ x y, y = f x)) (g : α → ℕ) (hg : primrec g)
+  (hfg : ∀ x, (encode (f x)).height ≤ g x) : primrec f :=
+begin
+  classical,
+  rw congr_some,
+  primrec using λ x, ((tencodable.height_le β (g x)).filter (λ y, y = (f x))).head',
+  rw [filter_eq_eq_repeat_count _ (f x), list.repeat_head'],
+  rw ← pos_iff_ne_zero,
+  simpa using (tencodable.mem_height_le (hfg x)),
 end
 
 end nat_rec

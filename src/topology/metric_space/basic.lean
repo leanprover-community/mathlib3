@@ -1537,8 +1537,9 @@ instance prod.pseudo_metric_space_max :
 (pseudo_emetric_space.to_pseudo_metric_space_of_dist
   (λ x y : α × β, (dist x.1 y.1) ⊔ (dist x.2 y.2))
   (λ x y, (max_lt (edist_lt_top _ _) (edist_lt_top _ _)).ne)
-  (λ x y, by simp only [sup_eq_max, dist_edist, ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _),
-    prod.edist_eq])).replace_bornology $
+  (λ x y, by simp only [sup_eq_max, dist_edist,
+    ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _), prod.edist_eq]))
+    .replace_bornology $
   λ s, by { simp only [← is_bounded_image_fst_and_snd, is_bounded_iff_eventually, ball_image_iff,
     ← eventually_and, ← forall_and_distrib, ← max_le_iff], refl }
 

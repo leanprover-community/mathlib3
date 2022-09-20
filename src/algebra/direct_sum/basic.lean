@@ -36,7 +36,8 @@ def direct_sum [Π i, add_comm_monoid (β i)] : Type* := Π₀ i, β i
 instance [Π i, add_comm_monoid (β i)] : has_coe_to_fun (direct_sum ι β) (λ _, Π i : ι, β i) :=
 dfinsupp.has_coe_to_fun
 
-localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
+localized "notation (name := direct_sum)
+  `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 
 namespace direct_sum
 
@@ -263,7 +264,7 @@ lemma coe_of_apply {M S : Type*} [decidable_eq ι] [add_comm_monoid M]
 begin
   obtain rfl | h := decidable.eq_or_ne i j,
   { rw [direct_sum.of_eq_same, if_pos rfl], },
-  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid_class.coe_zero], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, zero_mem_class.coe_zero], },
 end
 
 /-- The `direct_sum` formed by a collection of additive submonoids (or subgroups, or submodules) of

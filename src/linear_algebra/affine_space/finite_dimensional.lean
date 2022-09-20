@@ -39,13 +39,13 @@ span_of_finite k $ h.vsub h
 
 /-- The `vector_span` of a family indexed by a `fintype` is
 finite-dimensional. -/
-instance finite_dimensional_vector_span_of_fintype [fintype ι] (p : ι → P) :
+instance finite_dimensional_vector_span_range [_root_.finite ι] (p : ι → P) :
   finite_dimensional k (vector_span k (set.range p)) :=
 finite_dimensional_vector_span_of_finite k (set.finite_range _)
 
 /-- The `vector_span` of a subset of a family indexed by a `fintype`
 is finite-dimensional. -/
-instance finite_dimensional_vector_span_image_of_fintype [fintype ι] (p : ι → P)
+instance finite_dimensional_vector_span_image_of_finite [_root_.finite ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (vector_span k (p '' s)) :=
 finite_dimensional_vector_span_of_finite k (set.to_finite _)
 
@@ -57,13 +57,13 @@ lemma finite_dimensional_direction_affine_span_of_finite {s : set P} (h : set.fi
 
 /-- The direction of the affine span of a family indexed by a
 `fintype` is finite-dimensional. -/
-instance finite_dimensional_direction_affine_span_of_fintype [fintype ι] (p : ι → P) :
+instance finite_dimensional_direction_affine_span_range [_root_.finite ι] (p : ι → P) :
   finite_dimensional k (affine_span k (set.range p)).direction :=
 finite_dimensional_direction_affine_span_of_finite k (set.finite_range _)
 
 /-- The direction of the affine span of a subset of a family indexed
 by a `fintype` is finite-dimensional. -/
-instance finite_dimensional_direction_affine_span_image_of_fintype [fintype ι] (p : ι → P)
+instance finite_dimensional_direction_affine_span_image_of_finite [_root_.finite ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (affine_span k (p '' s)).direction :=
 finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
@@ -265,7 +265,41 @@ begin
     exact hi.affine_span_eq_of_le_of_card_eq_finrank_add_one le_top hc, },
 end
 
+/-- The `vector_span` of adding a point to a finite-dimensional subspace is finite-dimensional. -/
+instance finite_dimensional_vector_span_insert (s : affine_subspace k P)
+  [finite_dimensional k s.direction] (p : P) :
+  finite_dimensional k (vector_span k (insert p (s : set P))) :=
+begin
+  rw [←direction_affine_span, ←affine_span_insert_affine_span],
+  rcases (s : set P).eq_empty_or_nonempty with hs | ⟨p₀, hp₀⟩,
+  { rw coe_eq_bot_iff at hs,
+    rw [hs, bot_coe, span_empty, bot_coe, direction_affine_span],
+    convert finite_dimensional_bot _ _;
+      simp },
+  { rw [affine_span_coe, direction_affine_span_insert hp₀],
+    apply_instance }
+end
+
+/-- The direction of the affine span of adding a point to a finite-dimensional subspace is
+finite-dimensional. -/
+instance finite_dimensional_direction_affine_span_insert (s : affine_subspace k P)
+  [finite_dimensional k s.direction] (p : P) :
+  finite_dimensional k (affine_span k (insert p (s : set P))).direction :=
+(direction_affine_span k (insert p (s : set P))).symm ▸ finite_dimensional_vector_span_insert s p
+
 variables (k)
+
+/-- The `vector_span` of adding a point to a set with a finite-dimensional `vector_span` is
+finite-dimensional. -/
+instance finite_dimensional_vector_span_insert_set (s : set P)
+  [finite_dimensional k (vector_span k s)] (p : P) :
+  finite_dimensional k (vector_span k (insert p s)) :=
+begin
+  haveI : finite_dimensional k (affine_span k s).direction :=
+    (direction_affine_span k s).symm ▸ infer_instance,
+  rw [←direction_affine_span, ←affine_span_insert_affine_span, direction_affine_span],
+  exact finite_dimensional_vector_span_insert (affine_span k s) p
+end
 
 /-- A set of points is collinear if their `vector_span` has dimension
 at most `1`. -/
@@ -384,3 +418,60 @@ by rw [collinear_iff_finrank_le_one,
        finrank_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]
 
 end affine_space'
+
+section field
+
+variables {k : Type*} {V : Type*} {P : Type*}
+include V
+
+open affine_subspace finite_dimensional module
+
+variables [field k] [add_comm_group V] [module k V] [affine_space V P]
+
+/-- Adding a point to a finite-dimensional subspace increases the dimension by at most one. -/
+lemma finrank_vector_span_insert_le (s : affine_subspace k P) (p : P) :
+  finrank k (vector_span k (insert p (s : set P))) ≤ finrank k s.direction + 1 :=
+begin
+  by_cases hf : finite_dimensional k s.direction, swap,
+  { have hf' : ¬finite_dimensional k (vector_span k (insert p (s : set P))),
+    { intro h,
+      have h' : s.direction ≤ vector_span k (insert p (s : set P)),
+      { conv_lhs { rw [←affine_span_coe s, direction_affine_span] },
+        exact vector_span_mono k (set.subset_insert _ _) },
+      exactI hf (submodule.finite_dimensional_of_le h') },
+    rw [finrank_of_infinite_dimensional hf, finrank_of_infinite_dimensional hf', zero_add],
+    exact zero_le_one },
+  haveI := hf,
+  rw [←direction_affine_span, ←affine_span_insert_affine_span],
+  rcases (s : set P).eq_empty_or_nonempty with hs | ⟨p₀, hp₀⟩,
+  { rw coe_eq_bot_iff at hs,
+    rw [hs, bot_coe, span_empty, bot_coe, direction_affine_span, direction_bot, finrank_bot,
+        zero_add],
+    convert zero_le_one' ℕ,
+    rw ←finrank_bot k V,
+    convert rfl;
+      simp },
+  { rw [affine_span_coe, direction_affine_span_insert hp₀, add_comm],
+    refine (submodule.dim_add_le_dim_add_dim _ _).trans (add_le_add_right _ _),
+    refine finrank_le_one ⟨p -ᵥ p₀, submodule.mem_span_singleton_self _⟩ (λ v, _),
+    have h := v.property,
+    rw submodule.mem_span_singleton at h,
+    rcases h with ⟨c, hc⟩,
+    refine ⟨c, _⟩,
+    ext,
+    exact hc }
+end
+
+variables (k)
+
+/-- Adding a point to a set with a finite-dimensional span increases the dimension by at most
+one. -/
+lemma finrank_vector_span_insert_le_set (s : set P) (p : P) :
+  finrank k (vector_span k (insert p s)) ≤ finrank k (vector_span k s) + 1 :=
+begin
+  rw [←direction_affine_span, ←affine_span_insert_affine_span, direction_affine_span],
+  refine (finrank_vector_span_insert_le _ _).trans (add_le_add_right _ _),
+  rw direction_affine_span
+end
+
+end field

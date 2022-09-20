@@ -94,13 +94,13 @@ local notation `Proj| ` U := Proj .restrict (opens.open_embedding (U : opens Pro
 local notation `Proj.T| ` U :=
   (Proj .restrict (opens.open_embedding (U : opens Proj.T))).to_SheafedSpace.to_PresheafedSpace.1
 -- the underlying topological space of `Proj` restricted to some open set
-local notation `pbo` x := projective_spectrum.basic_open 𝒜 x
+local notation `pbo ` x := projective_spectrum.basic_open 𝒜 x
 -- basic open sets in `Proj`
-local notation `sbo` f := prime_spectrum.basic_open f
+local notation `sbo ` f := prime_spectrum.basic_open f
 -- basic open sets in `Spec`
-local notation `Spec` ring := Spec.LocallyRingedSpace_obj (CommRing.of ring)
+local notation `Spec ` ring := Spec.LocallyRingedSpace_obj (CommRing.of ring)
 -- `Spec` as a locally ringed space
-local notation `Spec.T` ring :=
+local notation `Spec.T ` ring :=
   (Spec.LocallyRingedSpace_obj (CommRing.of ring)).to_SheafedSpace.to_PresheafedSpace.1
 -- the underlying topological space of `Spec`
 
@@ -136,7 +136,7 @@ def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f)
 
 end
 
-local notation `A⁰_` f_deg := degree_zero_part f_deg
+local notation `A⁰_ ` f_deg := degree_zero_part f_deg
 
 section
 

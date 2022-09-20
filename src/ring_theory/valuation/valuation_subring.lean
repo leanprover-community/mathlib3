@@ -5,13 +5,14 @@ Authors: Adam Topaz, Junyan Xu, Jack McKoen
 -/
 import ring_theory.valuation.valuation_ring
 import ring_theory.localization.as_subring
+import ring_theory.subring.pointwise
 import algebraic_geometry.prime_spectrum.basic
 
 /-!
 
 # Valuation subrings of a field
 
-# Projects
+## Projects
 
 The order structure on `valuation_subring K`.
 
@@ -48,6 +49,9 @@ lemma mul_mem (x y : K) : x ∈ A → y ∈ A → x * y ∈ A := A.to_subring.mu
 lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
+
+lemma to_subring_injective : function.injective (to_subring : valuation_subring K → subring K) :=
+λ x y h, by { cases x, cases y, congr' }
 
 instance : comm_ring A := show comm_ring A.to_subring, by apply_instance
 instance : is_domain A := show is_domain A.to_subring, by apply_instance
@@ -96,7 +100,7 @@ instance : is_fraction_ring A K :=
   eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c, h⟩,
     congr_arg coe ((mul_eq_mul_right_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
 
-/-- The value group of the valuation associated to `A`. -/
+/-- The value group of the valuation associated to `A`. Note: it is actually a group with zero. -/
 @[derive linear_ordered_comm_group_with_zero]
 def value_group := valuation_ring.value_group A K
 
@@ -367,7 +371,7 @@ section unit_group
 def unit_group : subgroup Kˣ :=
 (A.valuation.to_monoid_with_zero_hom.to_monoid_hom.comp (units.coe_hom K)).ker
 
-lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.rfl
+@[simp] lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.rfl
 
 /-- For a valuation subring `A`, `A.unit_group` agrees with the units of `A`. -/
 def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
@@ -388,7 +392,6 @@ lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
 @[simp]
 lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
   (A.unit_group_mul_equiv.symm a : K) = a := rfl
-
 
 lemma unit_group_le_unit_group {A B : valuation_subring K} :
   A.unit_group ≤ B.unit_group ↔ A ≤ B :=
@@ -616,7 +619,7 @@ the units of the residue field of `A`. -/
 def units_mod_principal_units_equiv_residue_field_units :
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
   (local_ring.residue_field A)ˣ :=
-mul_equiv.trans (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units.symm)
+(quotient_group.quotient_mul_equiv_of_eq A.ker_unit_group_to_residue_field_units.symm).trans
   (quotient_group.quotient_ker_equiv_of_surjective _ A.surjective_unit_group_to_residue_field_units)
 
 @[simp]
@@ -632,4 +635,94 @@ lemma units_mod_principal_units_equiv_residue_field_units_comp_quotient_group_mk
 
 end principal_unit_group
 
+/-! ### Pointwise actions
+
+This transfers the action from `subring.pointwise_mul_action`, noting that it only applies when
+the action is by a group. Notably this provides an instances when `G` is `K ≃+* K`.
+
+These instances are in the `pointwise` locale.
+
+The lemmas in this section are copied from `ring_theory/subring/pointwise.lean`; try to keep these
+in sync.
+-/
+section pointwise_actions
+open_locale pointwise
+
+variables {G : Type*} [group G] [mul_semiring_action G K]
+
+/-- The action on a valuation subring corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale. -/
+def pointwise_has_smul : has_smul G (valuation_subring K) :=
+{ smul := λ g S,
+  -- TODO: if we add `valuation_subring.map` at a later date, we should use it here
+  { mem_or_inv_mem' := λ x, (mem_or_inv_mem S (g⁻¹ • x)).imp
+      (subring.mem_pointwise_smul_iff_inv_smul_mem.mpr)
+      (λ h, subring.mem_pointwise_smul_iff_inv_smul_mem.mpr $ by rwa smul_inv''),
+    .. g • S.to_subring } }
+
+localized "attribute [instance] valuation_subring.pointwise_has_smul" in pointwise
+open_locale pointwise
+
+@[simp] lemma coe_pointwise_smul (g : G) (S : valuation_subring K) : ↑(g • S) = g • (S : set K) :=
+rfl
+
+@[simp] lemma pointwise_smul_to_subring (g : G) (S : valuation_subring K) :
+  (g • S).to_subring = g • S.to_subring := rfl
+
+/-- The action on a valuation subring corresponding to applying the action to every element.
+
+This is available as an instance in the `pointwise` locale.
+
+This is a stronger version of `valuation_subring.pointwise_has_smul`. -/
+def pointwise_mul_action : mul_action G (valuation_subring K) :=
+to_subring_injective.mul_action to_subring pointwise_smul_to_subring
+
+localized "attribute [instance] valuation_subring.pointwise_mul_action" in pointwise
+open_locale pointwise
+
+lemma smul_mem_pointwise_smul (g : G) (x : K) (S : valuation_subring K) : x ∈ S → g • x ∈ g • S :=
+(set.smul_mem_smul_set : _ → _ ∈ g • (S : set K))
+
+lemma mem_smul_pointwise_iff_exists (g : G) (x : K) (S : valuation_subring K) :
+  x ∈ g • S ↔ ∃ (s : K), s ∈ S ∧ g • s = x :=
+(set.mem_smul_set : x ∈ g • (S : set K) ↔ _)
+
+instance pointwise_central_scalar [mul_semiring_action Gᵐᵒᵖ K] [is_central_scalar G K] :
+  is_central_scalar G (valuation_subring K) :=
+⟨λ g S, to_subring_injective $ by exact op_smul_eq_smul g S.to_subring⟩
+
+@[simp] lemma smul_mem_pointwise_smul_iff {g : G} {S : valuation_subring K} {x : K} :
+  g • x ∈ g • S ↔ x ∈ S :=
+set.smul_mem_smul_set_iff
+
+lemma mem_pointwise_smul_iff_inv_smul_mem {g : G} {S : valuation_subring K} {x : K} :
+  x ∈ g • S ↔ g⁻¹ • x ∈ S :=
+set.mem_smul_set_iff_inv_smul_mem
+
+lemma mem_inv_pointwise_smul_iff {g : G} {S : valuation_subring K} {x : K} :
+  x ∈ g⁻¹ • S ↔ g • x ∈ S :=
+set.mem_inv_smul_set_iff
+
+@[simp] lemma pointwise_smul_le_pointwise_smul_iff {g : G} {S T : valuation_subring K} :
+  g • S ≤ g • T ↔ S ≤ T :=
+set.set_smul_subset_set_smul_iff
+
+lemma pointwise_smul_subset_iff {g : G} {S T : valuation_subring K} : g • S ≤ T ↔ S ≤ g⁻¹ • T :=
+set.set_smul_subset_iff
+
+lemma subset_pointwise_smul_iff {g : G} {S T : valuation_subring K} : S ≤ g • T ↔ g⁻¹ • S ≤ T :=
+set.subset_set_smul_iff
+
+end pointwise_actions
+
 end valuation_subring
+
+namespace valuation
+
+variables {Γ : Type*} [linear_ordered_comm_group_with_zero Γ] (v : valuation K Γ) (x : Kˣ)
+
+@[simp] lemma mem_unit_group_iff : x ∈ v.valuation_subring.unit_group ↔ v x = 1 :=
+(valuation.is_equiv_iff_val_eq_one _ _).mp (valuation.is_equiv_valuation_valuation_subring _).symm
+
+end valuation

@@ -800,6 +800,17 @@ begin
   exact hs _ (dist_mem_uniformity ε_pos),
 end
 
+/-- Expressing uniform convergence using `dist` -/
+lemma tendsto_uniformly_on_filter_iff {ι : Type*}
+  {F : ι → β → α} {f : β → α} {p : filter ι} {p' : filter β} :
+  tendsto_uniformly_on_filter F f p p' ↔
+  ∀ ε > 0, ∀ᶠ (n : ι × β) in (p ×ᶠ p'), dist (f n.snd) (F n.fst n.snd) < ε :=
+begin
+  refine ⟨λ H ε hε, H _ (dist_mem_uniformity hε), λ H u hu, _⟩,
+  rcases mem_uniformity_dist.1 hu with ⟨ε, εpos, hε⟩,
+  refine (H ε εpos).mono (λ n hn, hε hn),
+end
+
 /-- Expressing locally uniform convergence on a set using `dist`. -/
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
@@ -1373,9 +1384,8 @@ theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
 begin
   rcases metric.cauchy_seq_iff'.1 hu 1 zero_lt_one with ⟨N, hN⟩,
-  suffices : ∃ R > 0, ∀ n, dist (u n) (u N) < R,
-  { rcases this with ⟨R, R0, H⟩,
-    exact ⟨_, add_pos R0 R0, λ m n,
+  rsuffices ⟨R, R0, H⟩ : ∃ R > 0, ∀ n, dist (u n) (u N) < R,
+  { exact ⟨_, add_pos R0 R0, λ m n,
       lt_of_le_of_lt (dist_triangle_right _ _ _) (add_lt_add (H m) (H n))⟩ },
   let R := finset.sup (finset.range N) (λ n, nndist (u n) (u N)),
   refine ⟨↑R + 1, add_pos_of_nonneg_of_pos R.2 zero_lt_one, λ n, _⟩,
@@ -1598,8 +1608,14 @@ lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (𝓝 a)) ↔ (tendsto (λb, dist (f b) a) x (𝓝 0)) :=
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
+lemma continuous_iff_continuous_dist [topological_space β] {f : β → α} :
+  continuous f ↔ continuous (λ x : β × β, dist (f x.1) (f x.2)) :=
+⟨λ h, (h.comp continuous_fst).dist (h.comp continuous_snd), λ h, continuous_iff_continuous_at.2 $
+  λ x, tendsto_iff_dist_tendsto_zero.2 $
+    (h.comp (continuous_id.prod_mk continuous_const)).tendsto' _ _ $ dist_self _⟩
+
 lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
-uniform_continuous_subtype_mk uniform_continuous_dist _
+uniform_continuous_dist.subtype_mk _
 
 lemma uniform_continuous.nndist [uniform_space β] {f g : β → α} (hf : uniform_continuous f)
   (hg : uniform_continuous g) :
@@ -1683,7 +1699,7 @@ lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : i
 begin
   classical,
   rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
-  { haveI : encodable (∅ : set α) := fintype.to_encodable ↥∅, exact encodable.to_separable_space },
+  { apply_instance },
   rcases hs with ⟨c, hc, h'c⟩,
   haveI : encodable c := hc.to_encodable,
   obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧
@@ -2112,8 +2128,7 @@ end
 
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in
-⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb
-$ ball_mem_comm.mp h⟩
+⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure₂ continuous_dist ha hb h⟩
 
 alias bounded_closure_of_bounded ← bounded.closure
 

@@ -28,7 +28,8 @@ constructive analogue of countability. (For the most part, theorems about
 -/
 protected def countable (s : set α) : Prop := nonempty (encodable s)
 
-@[simp] lemma countable_coe_iff {s : set α} : countable s ↔ s.countable := nonempty_encodable.symm
+@[simp] lemma countable_coe_iff {s : set α} : countable s ↔ s.countable :=
+encodable.nonempty_encodable.symm
 
 /-- Prove `set.countable` from a `countable` instance on the subtype. -/
 lemma to_countable (s : set α) [countable s] : s.countable := countable_coe_iff.mp ‹_›

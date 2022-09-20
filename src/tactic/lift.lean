@@ -3,7 +3,9 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+
 import tactic.rcases
+
 /-!
 # lift tactic
 
@@ -55,23 +57,6 @@ instance subtype.can_lift {α : Sort*} (p : α → Prop) : can_lift α {x // p x
 
 open tactic
 
-/--
-A user attribute used internally by the `lift` tactic.
-This should not be applied by hand.
--/
-@[user_attribute]
-meta def can_lift_attr : user_attribute (list name) :=
-{ name := "_can_lift",
-  descr := "internal attribute used by the lift tactic",
-  parser := failed,
-  cache_cfg :=
-  { mk_cache := λ _,
-      do { ls ← attribute.get_instances `instance,
-          ls.mfilter $ λ l,
-          do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
-          return $ t.is_app_of `can_lift } },
-    dependencies := [`instance] } }
-
 namespace tactic
 
 /--
@@ -81,8 +66,7 @@ Construct the proof of `cond x` in the lift tactic.
 *  `s` and `to_unfold` contain the information of the simp set used to simplify.
 
 If the proof was specified, we check whether it has the correct type.
-If it doesn't have the correct type, we display an error message
-(but first call dsimp on the expression in the message).
+If it doesn't have the correct type, we display an error message.
 
 If the proof was not specified, we create assert it as a local constant.
 (The name of this local constant doesn't matter, since `lift` will remove it from the context.)
@@ -118,6 +102,9 @@ do
   inst ← mk_instance inst_type <|>
     pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}"
     >>= fail,
+  inst ← instantiate_mvars inst,
+  coe ← instantiate_mvars coe,
+  P ← instantiate_mvars P,
   (prf_cond, b) ← get_lift_prf h e P,
   let prf_nm := if prf_cond.is_local_constant then some prf_cond.local_pp_name else none,
   /- We use mk_mapp to apply `can_lift.prf` to all but one argument, and then just use expr.app
@@ -136,6 +123,7 @@ do
   /- We add the proof of the existential statement to the context -/
   temp_nm ← get_unused_name,
   temp_e ← note temp_nm none prf_ex,
+  dsimp_hyp temp_e none [] { fail_if_unchanged := ff },
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
   rcases none (pexpr.of_expr temp_e) $ rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
   /- If the lifted variable is not a local constant,
@@ -169,9 +157,10 @@ Lift an expression to another type.
     (here `P` is some term of type `ℤ → Prop`).
 * The argument `using hn` is optional, the tactic `lift n to ℕ` does the same, but also creates a
   new subgoal that `n ≥ 0` (where `n` is the old variable).
+  This subgoal will be placed at the top of the goal list.
   + So for example the tactic `lift n to ℕ` transforms the goal
     `n : ℤ, h : P n ⊢ n = 3` to two goals
-    `n : ℕ, h : P ↑n ⊢ ↑n = 3` and `n : ℤ, h : P n ⊢ n ≥ 0`.
+    `n : ℤ, h : P n ⊢ n ≥ 0` and `n : ℕ, h : P ↑n ⊢ ↑n = 3`.
 * You can also use `lift n to ℕ using e` where `e` is any expression of type `n ≥ 0`.
 * Use `lift n to ℕ with k` to specify the name of the new variable.
 * Use `lift n to ℕ with k hk` to also specify the name of the equality `↑k = n`. In this case, `n`

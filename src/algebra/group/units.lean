@@ -353,10 +353,8 @@ lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
 
 attribute [nontriviality] is_add_unit_of_subsingleton
 
-@[to_additive] instance [monoid M] : can_lift M Mˣ :=
-{ coe := coe,
-  cond := is_unit,
-  prf := λ _, id }
+@[to_additive] instance [monoid M] : can_lift M Mˣ coe is_unit :=
+{ prf := λ _, id }
 
 @[to_additive] instance [monoid M] [subsingleton M] : unique Mˣ :=
 { default := 1,

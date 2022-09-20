@@ -809,80 +809,26 @@ begin
       simp [hx, hy] } }
 end
 
--- /-- Complex conjugation as a linear isometric equivalence in `V`. Note that this definition
--- depends on the choice of basis, not just on its orientation; for most geometrical purposes,
--- the `reflection` definitions should be preferred instead. -/
--- def conj_lie : V ≃ₗᵢ[ℝ] V :=
--- ((complex.isometry_of_orthonormal b).symm.trans complex.conj_lie).trans
---   (complex.isometry_of_orthonormal b)
-
--- /-- The determinant of `conj_lie` (as a linear map) is equal to `-1`. -/
--- @[simp] lemma det_conj_lie : (o.conj_lie.to_linear_equiv : V →ₗ[ℝ] V).det = -1 :=
--- by simp [conj_lie, ←linear_isometry_equiv.to_linear_equiv_symm, ←linear_equiv.comp_coe]
-
--- /-- The determinant of `conj_lie` (as a linear equiv) is equal to `-1`. -/
--- @[simp] lemma linear_equiv_det_conj_lie : o.conj_lie.to_linear_equiv.det = -1 :=
--- by simp [conj_lie, ←linear_isometry_equiv.to_linear_equiv_symm]
-
--- /-- `conj_lie` is its own inverse. -/
--- @[simp] lemma conj_lie_symm : o.conj_lie.symm = o.conj_lie :=
--- rfl
-
--- /-- Applying `conj_lie` to both vectors negates the angle between those vectors. -/
--- @[simp] lemma oangle_conj_lie (x y : V) :
---   o.oangle (o.conj_lie x) (o.conj_lie y) = -o.oangle x y :=
--- by simp only [orthonormal_basis.conj_lie, linear_isometry_equiv.symm_apply_apply,
---   orthonormal_basis.oangle, eq_self_iff_true, function.comp_app, complex.arg_coe_angle_eq_iff,
---   linear_isometry_equiv.coe_trans, neg_inj, complex.conj_lie_apply, complex.arg_conj_coe_angle,
---   ← map_div₀ (star_ring_end ℂ)]
-
--- /-- Any linear isometric equivalence in `V` is `rotation` or `conj_lie` composed with
--- `rotation`. -/
--- lemma exists_linear_isometry_equiv_eq (f : V ≃ₗᵢ[ℝ] V) :
---   ∃ θ : real.angle, f = o.rotation θ ∨ f = o.conj_lie.trans (o.rotation θ) :=
--- begin
---   cases linear_isometry_complex (((complex.isometry_of_orthonormal b).trans f).trans
---     (complex.isometry_of_orthonormal b).symm) with a ha,
---   use complex.arg a,
---   rcases ha with (ha|ha),
---   { left,
---     simp only [rotation, ←ha, linear_isometry_equiv.trans_assoc, linear_isometry_equiv.refl_trans,
---                linear_isometry_equiv.symm_trans_self, real.angle.exp_map_circle_coe,
---                exp_map_circle_arg],
---     simp [←linear_isometry_equiv.trans_assoc] },
---   { right,
---     simp only [rotation, conj_lie, linear_isometry_equiv.trans_assoc,
---                real.angle.exp_map_circle_coe, exp_map_circle_arg],
---     simp only [←linear_isometry_equiv.trans_assoc, linear_isometry_equiv.self_trans_symm,
---                linear_isometry_equiv.trans_refl],
---     simp_rw [linear_isometry_equiv.trans_assoc complex.conj_lie, ←ha],
---     simp only [linear_isometry_equiv.trans_assoc, linear_isometry_equiv.refl_trans,
---                linear_isometry_equiv.symm_trans_self],
---     simp [←linear_isometry_equiv.trans_assoc] }
--- end
-
 /-- Any linear isometric equivalence in `V` with positive determinant is `rotation`. -/
 lemma exists_linear_isometry_equiv_eq_of_det_pos {f : V ≃ₗᵢ[ℝ] V}
   (hd : 0 < (f.to_linear_equiv : V →ₗ[ℝ] V).det) : ∃ θ : real.angle, f = o.rotation θ :=
 begin
-  sorry,
-  -- rcases o.exists_linear_isometry_equiv_eq f with ⟨θ, (hf|hf)⟩,
-  -- { exact ⟨θ, hf⟩ },
-  -- { simp [hf, ←linear_equiv.coe_det] at hd,
-  --   norm_num at hd }
+  haveI : nontrivial V :=
+    finite_dimensional.nontrivial_of_finrank_eq_succ (fact.out (finrank ℝ V = 2)),
+  obtain ⟨x, hx⟩ : ∃ x, x ≠ (0:V) := exists_ne (0:V),
+  use o.oangle x (f x),
+  apply linear_isometry_equiv.to_linear_equiv_injective,
+  apply linear_equiv.to_linear_map_injective,
+  apply (o.basis_almost_complex x hx).ext,
+  intros i,
+  symmetry,
+  fin_cases i,
+  { simp },
+  have : o.oangle (J x) (f (J x)) = o.oangle x (f x),
+  { simp only [oangle, o.linear_isometry_equiv_comp_almost_complex f hd,
+      o.kahler_comp_almost_complex] },
+  simp [← this],
 end
-
--- /-- Any linear isometric equivalence in `V` with negative determinant is `conj_lie` composed
--- with `rotation`. -/
--- lemma exists_linear_isometry_equiv_eq_of_det_neg {f : V ≃ₗᵢ[ℝ] V}
---   (hd : (f.to_linear_equiv : V →ₗ[ℝ] V).det < 0) :
---   ∃ θ : real.angle, f = o.conj_lie.trans (o.rotation θ) :=
--- begin
---   rcases o.exists_linear_isometry_equiv_eq f with ⟨θ, (hf|hf)⟩,
---   { simp [hf, ←linear_equiv.coe_det] at hd,
---     norm_num at hd },
---   { exact ⟨θ, hf⟩ }
--- end
 
 /-- The angle between two vectors, with respect to an orientation given by `orientation.map`
 with a linear isometric equivalence, equals the angle between those two vectors, transformed by

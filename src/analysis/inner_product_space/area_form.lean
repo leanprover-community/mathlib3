@@ -126,6 +126,19 @@ begin
   simp [area_form_to_volume_form, volume_form_map, this],
 end
 
+/-- The area form is invariant under pullback by a positively-oriented isometric automorphism. -/
+lemma area_form_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x y : E) :
+  o.area_form (φ x) (φ y) = o.area_form x y :=
+begin
+  convert o.area_form_map φ (φ x) (φ y),
+  { symmetry,
+    rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
+    rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
+  { simp },
+  { simp }
+end
+
 /- Auxiliary construction for `orientation.almost_complex`, rotation by 90 degrees in an oriented
 real inner product space of dimension 2. -/
 def almost_complex_aux₁ : E →ₗ[ℝ] E :=
@@ -229,6 +242,9 @@ by rw [← o.inner_comp_almost_complex, o.inner_almost_complex_right, neg_neg]
 @[simp] lemma area_form_almost_complex_right (x y : E) : ω x (J y) = ⟪x, y⟫ :=
 by rw [← o.inner_almost_complex_left, o.inner_comp_almost_complex]
 
+@[simp] lemma area_form_comp_almost_complex (x y : E) : ω (J x) (J y) = ω x y :=
+by simp
+
 @[simp] lemma almost_complex_trans_almost_complex :
   linear_isometry_equiv.trans J J = linear_isometry_equiv.neg ℝ :=
 by ext; simp
@@ -260,11 +276,29 @@ begin
   { simp },
 end
 
+/-- `J` commutes with any positively-oriented isometric automorphism. -/
+lemma linear_isometry_equiv_comp_almost_complex (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x : E) :
+  φ (J x) = J (φ x) :=
+begin
+  convert (o.almost_complex_map φ (φ x)).symm,
+  { simp },
+  { symmetry,
+    rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
+    rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
+end
+
 lemma almost_complex_map' {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
   (φ : E ≃ₗᵢ[ℝ] F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).almost_complex
   = (φ.symm.trans o.almost_complex).trans φ :=
 linear_isometry_equiv.ext $ o.almost_complex_map φ
+
+/-- `J` commutes with any positively-oriented isometric automorphism. -/
+lemma linear_isometry_equiv_comp_almost_complex' (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) :
+  linear_isometry_equiv.trans J φ = φ.trans J :=
+linear_isometry_equiv.ext $ o.linear_isometry_equiv_comp_almost_complex φ hφ
 
 /-- For a nonzero vector `x` in an oriented two-dimensional real inner product space `E`,
 `![x, J x]` forms an (orthogonal) basis for `E`. -/
@@ -397,6 +431,12 @@ begin
   simp only [o.area_form_almost_complex_right, o.inner_almost_complex_right, o.kahler_apply_apply,
     complex.of_real_neg, complex.real_smul],
   linear_combination - ω x y * complex.I_sq,
+end
+
+@[simp] lemma kahler_comp_almost_complex (x y : E) : o.kahler (J x) (J y) = o.kahler x y :=
+begin
+  simp only [kahler_almost_complex_left, kahler_almost_complex_right],
+  linear_combination - o.kahler x y * complex.I_sq,
 end
 
 @[simp] lemma kahler_neg_orientation (x y : E) : (-o).kahler x y = conj (o.kahler x y) :=

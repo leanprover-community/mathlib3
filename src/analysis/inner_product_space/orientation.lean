@@ -263,6 +263,19 @@ begin
   simp,
 end
 
+/-- The volume form is invariant under pullback by a positively-oriented isometric automorphism. -/
+lemma volume_form_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x : fin n.succ → E) :
+  ω.volume_form (φ ∘ x) = ω.volume_form x :=
+begin
+  convert ω.volume_form_map φ (φ ∘ x),
+  { symmetry,
+    rwa ← ω.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
+    rw [fact.out (finrank ℝ E = n + 1), fintype.card_fin] },
+  { ext,
+    simp }
+end
+
 end volume_form
 
 end orientation

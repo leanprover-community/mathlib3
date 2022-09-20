@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import order.succ_pred.basic
-import data.set.lattice
+import data.set.pairwise
 
 /-!
 # Intervals `Ixx (f x) (f (order.succ x))`

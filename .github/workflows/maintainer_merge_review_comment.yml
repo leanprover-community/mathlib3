@@ -24,7 +24,7 @@ jobs:
           api-key: ${{ secrets.ZULIP_API_KEY }}
           email: 'github-bot@leanprover.zulipchat.com'
           organization-url: 'https://leanprover.zulipchat.com'
-          to: 'mathlib maintainers'
+          to: 'mathlib reviewers'
           type: 'stream'
           topic: 'maintainer merge'
           content: |

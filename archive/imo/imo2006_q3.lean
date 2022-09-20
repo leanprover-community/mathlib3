@@ -89,7 +89,7 @@ le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
 theorem subst_proof₁ (x y z s : ℝ) (hxyz : x + y + z = 0) :
   |x * y * z * s| ≤ sqrt 2 / 32 * (x^2 + y^2 + z^2 + s^2)^2 :=
 begin
-  doneif h' : 0 ≤ x * y generalizing x y z,
+  wlog h' : 0 ≤ x * y generalizing x y z, swap,
   { rw [div_mul_eq_mul_div, le_div_iff' zero_lt_32],
     exact subst_wlog h' hxyz },
   cases (mul_nonneg_of_three x y z).resolve_left h' with h h,

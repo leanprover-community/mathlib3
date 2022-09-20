@@ -10,19 +10,6 @@ section wlog
 example {x y : ℕ} : true :=
 begin
   suffices : false, trivial,
-  doneif h : x ≤ y,
-  { guard_hyp h : x ≤ y,
-    guard_target false,
-    admit },
-  { guard_hyp h : ¬x ≤ y,
-    guard_hyp this : ∀ {x y : ℕ}, x ≤ y → false, -- `doneif` generalizes by default
-    guard_target false,
-    admit }
-end
-
-example {x y : ℕ} : true :=
-begin
-  suffices : false, trivial,
   wlog h : x ≤ y,
   { guard_hyp h : ¬x ≤ y,
     guard_hyp this : ∀ {x y : ℕ}, x ≤ y → false, -- `wlog` generalizes by default
@@ -31,19 +18,6 @@ begin
   { guard_hyp h : x ≤ y,
     guard_target false,
     admit },
-end
-
-example {x y : ℕ} : true :=
-begin
-  suffices : false, trivial,
-  doneif h : x ≤ y generalizing x,
-  { guard_hyp h : x ≤ y,
-    guard_target false,
-    admit },
-  { guard_hyp h : ¬x ≤ y,
-    guard_hyp this : ∀ {x : ℕ}, x ≤ y → false, -- only `x` was generalized
-    guard_target false,
-    admit }
 end
 
 example {x y : ℕ} : true :=

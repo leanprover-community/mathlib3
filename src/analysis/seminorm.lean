@@ -321,10 +321,7 @@ begin
 end
 
 lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ∥p x - p y∥ ≤ p (x - y) :=
-begin
-  rw real.norm_eq_abs,
-  exact abs_sub_map_le_sub p x y
-end
+abs_sub_map_le_sub p x y
 
 end module
 end semi_normed_ring

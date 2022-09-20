@@ -123,12 +123,10 @@ lemma eq_comp_sort_iff_monotone : f ∘ sort f = f ↔ monotone f :=
 /-- If a permutation of a tuple `f` is monotone, then it is equal to `f ∘ sort f`. -/
 lemma sort_unique {σ : equiv.perm (fin n)} (h : monotone (f ∘ σ)) : f ∘ σ = f ∘ sort f :=
 begin
-  let σ' := (sort f)⁻¹ * σ,
-  have h' : f ∘ σ = (f ∘ sort f) ∘ σ',
-  { ext, simp only [function.comp_app, equiv.perm.coe_mul, equiv.perm.apply_inv_self], },
+  have h' : f ∘ σ = (f ∘ sort f) ∘ coe_fn ((sort f)⁻¹ * σ) :=
+  by rw [function.comp.assoc _ (sort f), ← equiv.perm.coe_mul, ← mul_assoc, mul_inv_self, one_mul],
   rw [h'],
-  refine unique_monotone (monotone_sort f) _,
-  rwa [← h'],
+  exact unique_monotone (monotone_sort f) (h' ▸ h),
 end
 
 /-- The sorted versions of a tuple `f` and any permutation of it agree. -/

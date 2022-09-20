@@ -47,6 +47,7 @@ theorem split_mono_of_inclusion_retraction
 {
   exists_split_mono := ⟨{
     retraction := πₘ r,
+    id' := sorry,
   }⟩,
 }
 

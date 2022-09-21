@@ -9,7 +9,7 @@ import tactic.positivity
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
 
-open_locale ennreal nnrat nnreal
+open_locale ennreal nnreal
 
 /- ## Numeric goals -/
 

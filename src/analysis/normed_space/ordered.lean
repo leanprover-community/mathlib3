@@ -41,7 +41,6 @@ extends linear_ordered_field α, has_norm α, metric_space α :=
 [normed_linear_ordered_field α] : normed_linear_ordered_group α :=
 ⟨normed_linear_ordered_field.dist_eq⟩
 
-noncomputable
 instance : normed_linear_ordered_field ℚ :=
 ⟨dist_eq_norm, norm_mul⟩
 

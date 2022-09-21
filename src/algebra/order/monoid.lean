@@ -564,23 +564,26 @@ end canonically_linear_ordered_monoid
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
 in which addition is cancellative and monotone. -/
-@[protect_proj, ancestor add_cancel_comm_monoid partial_order]
-class ordered_cancel_add_comm_monoid (α : Type u)
-      extends add_cancel_comm_monoid α, partial_order α :=
+@[protect_proj, ancestor add_comm_monoid partial_order]
+class ordered_cancel_add_comm_monoid (α : Type u) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (le_of_add_le_add_left : ∀ a b c : α, a + b ≤ a + c → b ≤ c)
 
 /-- An ordered cancellative commutative monoid
 is a commutative monoid with a partial order,
 in which multiplication is cancellative and monotone. -/
-@[protect_proj, ancestor cancel_comm_monoid partial_order, to_additive]
-class ordered_cancel_comm_monoid (α : Type u)
-      extends cancel_comm_monoid α, partial_order α :=
+@[protect_proj, ancestor comm_monoid partial_order, to_additive]
+class ordered_cancel_comm_monoid (α : Type u) extends comm_monoid α, partial_order α :=
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (le_of_mul_le_mul_left : ∀ a b c : α, a * b ≤ a * c → b ≤ c)
 
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
+
+@[priority 200, to_additive] -- see Note [lower instance priority]
+instance ordered_cancel_comm_monoid.to_contravariant_class_le_left :
+  contravariant_class α α (*) (≤) :=
+⟨ordered_cancel_comm_monoid.le_of_mul_le_mul_left⟩
 
 @[to_additive]
 lemma ordered_cancel_comm_monoid.lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c :=
@@ -608,6 +611,12 @@ contravariant_swap_mul_lt_of_contravariant_mul_lt M
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid : ordered_comm_monoid α :=
 { ..‹ordered_cancel_comm_monoid α› }
 
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance ordered_cancel_comm_monoid.to_cancel_comm_monoid : cancel_comm_monoid α :=
+{ mul_left_cancel := λ a b c h,
+    (le_of_mul_le_mul_left' h.le).antisymm $ le_of_mul_le_mul_left' h.ge,
+  ..‹ordered_cancel_comm_monoid α› }
+
 /-- Pullback an `ordered_cancel_comm_monoid` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.ordered_cancel_add_comm_monoid
@@ -619,7 +628,6 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
   ordered_cancel_comm_monoid β :=
 { le_of_mul_le_mul_left := λ a b c (bc : f (a * b) ≤ f (a * c)),
     (mul_le_mul_iff_left (f a)).mp (by rwa [← mul, ← mul]),
-  ..hf.left_cancel_semigroup f mul,
   ..hf.ordered_comm_monoid f one mul npow }
 
 end ordered_cancel_comm_monoid
@@ -832,7 +840,7 @@ instance [ordered_comm_monoid α] [ordered_comm_monoid β] : ordered_comm_monoid
 instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
   ordered_cancel_comm_monoid (M × N) :=
 { le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
-  .. prod.cancel_comm_monoid, .. prod.ordered_comm_monoid }
+  .. prod.ordered_comm_monoid }
 
 @[to_additive] instance [has_le α] [has_le β] [has_mul α] [has_mul β] [has_exists_mul_of_le α]
   [has_exists_mul_of_le β] : has_exists_mul_of_le (α × β) :=
@@ -1342,12 +1350,10 @@ instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_comm_monoid (multiplicative α) :=
 { le_of_mul_le_mul_left := @ordered_cancel_add_comm_monoid.le_of_add_le_add_left α _,
-  ..multiplicative.left_cancel_semigroup,
   ..multiplicative.ordered_comm_monoid }
 
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (additive α) :=
 { le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
-  ..additive.add_left_cancel_semigroup,
   ..additive.ordered_add_comm_monoid }
 
 instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multiplicative α) :=

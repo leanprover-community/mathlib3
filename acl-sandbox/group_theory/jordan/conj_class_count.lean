@@ -756,12 +756,23 @@ def equiv.perm.subtype_perm_of_support (c : equiv.perm α) : equiv.perm c.suppor
 
 
 /-- Support of a cycle is nonempty -/
-lemma equiv.perm.support_of_cycle_nonempty (g : equiv.perm α) (hg : g.is_cycle) :
+lemma equiv.perm.support_of_cycle_nonempty {g : equiv.perm α} (hg : g.is_cycle) :
   g.support.nonempty :=
 begin
   rw ←  finset.card_pos,
   apply lt_of_lt_of_le _ (equiv.perm.is_cycle.two_le_card_support hg),
   norm_num,
+end
+
+
+example (g : equiv.perm α) :
+∃ (a : g.cycle_factors_finset → α), ∀ c : g.cycle_factors_finset, a c ∈ (c : equiv.perm α).support :=
+begin
+  have : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.nonempty,
+  { intro c,
+    exact equiv.perm.support_of_cycle_nonempty
+      (equiv.perm.mem_cycle_factors_finset_iff.mp c.prop).1, },
+   exact ⟨λ c, (this c).some, λ c, (this c).some_spec⟩,
 end
 
 /-- Centralizer of a cycle is powers of that cycle on the cycle -/
@@ -778,7 +789,7 @@ begin
       rw [← hgc, equiv.perm.mul_apply],
       exact (equiv.apply_eq_iff_eq g).symm, },
     use hgc',
-    obtain ⟨a, ha⟩ := equiv.perm.support_of_cycle_nonempty c hc,
+    obtain ⟨a, ha⟩ := equiv.perm.support_of_cycle_nonempty hc,
     have : equiv.perm.same_cycle c a (g a),
       apply equiv.perm.is_cycle.same_cycle hc (equiv.perm.mem_support.mp ha),
       exact equiv.perm.mem_support.mp ((hgc' a).mp ha),
@@ -851,7 +862,7 @@ begin
     exact ⟨hc', H'⟩, },
 end
 
--- The axiom of choice…
+/- -- The axiom of choice…
 example (ι : Type*) (α : Π (i : ι), Type*) (f : Π i, set (α i))
   (h :∀ i, (f i).nonempty)  : ∃ (a : Π i, α i), (∀ i, a i ∈ f i) :=
 begin
@@ -869,13 +880,8 @@ begin
   exact h i,
 end
 
-
-example {α β : Type*} : ↥(∅ : set α) → β :=
-begin
-  refine is_empty_elim,
-end
-
-example (ι : Type*) (α : Π (i : ι), Type*) (f : Π (i : ι), set (α i))
+-- Finite choices
+example (ι : Type*) (α : Π (i : ι), Type*) (f : Π (i : ι), finset (α i))
   (h :∀  i, (f i).nonempty) (s : finset ι) : ∃ (a : Π (i : s), α i), (∀ i : s, a i ∈ f i) :=
 begin
   apply finset.induction_on s,
@@ -895,28 +901,155 @@ begin
 
     sorry, },
 end
+ -/
 
-example (g : equiv.perm α) (τ : equiv.perm (g.cycle_factors_finset)) :
+lemma function.extend_apply_first {α β γ : Type*} (f : α → β) (g : α → γ) (e' : β → γ)
+  (hf : ∀ {a b : α}, f a = f b → g a = g b) (a : α) :
+  function.extend f g e' (f a) = g a :=
+begin
+  simp only [function.extend_def, dif_pos, exists_apply_eq_apply],
+  exact hf (classical.some_spec (exists_apply_eq_apply f a)),
+end
+
+
+lemma equiv.perm.zpow_mod_card_support_cycle_of_self_apply [fintype α] (f : equiv.perm α) (n : ℤ) (x : α) :
+  (f ^ (n % (f.cycle_of x).support.card)) x = (f ^ n) x :=
+begin
+  by_cases hx : f x = x,
+  { rw [equiv.perm.zpow_apply_eq_self_of_apply_eq_self hx, equiv.perm.zpow_apply_eq_self_of_apply_eq_self hx] },
+  { rw [←equiv.perm.cycle_of_zpow_apply_self, ←equiv.perm.cycle_of_zpow_apply_self f,
+        ←equiv.perm.order_of_is_cycle (equiv.perm.is_cycle_cycle_of f hx)],
+    rw [←zpow_eq_mod_order_of] },
+end
+
+example (n : ℤ) (hn : 0 ≤ n) : ∃ (nn : ℕ), n = nn :=
+begin
+exact int.eq_coe_of_zero_le hn,
+end
+
+
+lemma equiv.perm.cycle_zpow_mem_support_iff {g : equiv.perm α} (hg : g.is_cycle)
+  {n : ℤ} {x : α} (hx : g x ≠ x) : (g ^ n) x = x ↔ n % g.support.card = 0 :=
+begin
+  let q := n / g.support.card, let r := n % g.support.card,
+  change _ ↔ r = 0,
+  have div_euc : r + (g.support.card)* q = n ∧ 0 ≤ r ∧ r < g.support.card,
+  { rw ← int.div_mod_unique _,
+    split, refl, refl,
+    simp only [int.coe_nat_pos],
+    apply lt_of_lt_of_le _ (equiv.perm.is_cycle.two_le_card_support hg), norm_num, },
+  simp only [← equiv.perm.order_of_is_cycle hg] at div_euc,
+
+  obtain ⟨m, hm⟩ := int.eq_coe_of_zero_le div_euc.2.1,
+  simp only [hm, nat.cast_nonneg, nat.cast_lt, true_and] at div_euc,
+  simp only [hm, nat.cast_eq_zero],
+  rw [← div_euc.1, zpow_add g, zpow_mul, zpow_coe_nat],
+  simp only [pow_order_of_eq_one, zpow_coe_nat, one_zpow, mul_one],
+  have : (g ^ m) x = x ↔ g ^ m = 1,
+  { split,
+    { intro hgm,
+      simp [equiv.perm.is_cycle.pow_eq_one_iff hg],
+      use x,
+      exact ⟨hx, hgm⟩, },
+    { intro hgm, rw hgm, simp only [equiv.perm.coe_one, id.def], }, },
+  rw this,
+  cases dec_em (m = 0) with hm hm,
+  simp only [hm, pow_zero, eq_self_iff_true],
+  simp only [hm, iff_false],
+    exact pow_ne_one_of_lt_order_of' hm div_euc.2,
+end
+
+lemma equiv.perm.zpow_eq_zpow_on_iff (g : equiv.perm α) (m n : ℤ) (x : α) (hx : g x ≠ x):
+   (g ^ m) x = (g ^ n) x ↔ m % (g.cycle_of x).support.card = n % (g.cycle_of x).support.card  :=
+begin
+  rw int.mod_eq_mod_iff_mod_sub_eq_zero,
+  conv_lhs { rw [← int.sub_add_cancel m n, int.add_comm, zpow_add], },
+  simp only [equiv.perm.coe_mul, embedding_like.apply_eq_iff_eq],
+  rw ← equiv.perm.cycle_of_zpow_apply_self g x,
+  rw ← equiv.perm.cycle_zpow_mem_support_iff,
+  { exact g.is_cycle_cycle_of hx, },
+  { simp only [equiv.perm.mem_support, equiv.perm.cycle_of_apply_self], exact hx, },
+end
+
+example (g : equiv.perm α) (τ : equiv.perm (g.cycle_factors_finset))
+  (H : ∀ c : g.cycle_factors_finset,
+    (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card) :
   ∃ (k : equiv.perm α), (g * k = k * g) ∧ (∀ (c : g.cycle_factors_finset),
     k • (c : equiv.perm α).support = (τ c : equiv.perm α).support) :=
 begin
+  have : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.nonempty,
+  { intro c,
+    exact equiv.perm.support_of_cycle_nonempty
+      (equiv.perm.mem_cycle_factors_finset_iff.mp c.prop).1, },
+  let a : g.cycle_factors_finset → α := λc, (this c).some,
+  let ha' : ∀ (c : g.cycle_factors_finset), g.cycle_of (a c) = (c : equiv.perm α) :=
+  λ c,  (equiv.perm.cycle_is_cycle_of (this c).some_spec c.prop).symm,
+  have ha : ∀ c : g.cycle_factors_finset, g (a c) ≠ (a c),
+  { intro c,
+    rw ← equiv.perm.mem_support,
+    rw ← equiv.perm.cycle_of_mem_cycle_factors_finset_iff ,
+    rw ha' c, exact c.prop, },
 
-  have this : ∀(c : g.cycle_factors_finset), ∃ (a : α), a ∈ (c : equiv.perm α).support,
-  sorry,
-  have : ∃ (a : g.cycle_factors_finset → α),
-  ∀ (c : g.cycle_factors_finset), (a c) ∈ (c : equiv.perm α).support,
+  /- Construire k pour que
+    1) k (a c) = a (k • c)
+    2) k ((g ^ i) (a c)) = (g ^ i) (a (τ c)) -/
 
-
-  let p : Π (c : g.cycle_factors_finset), (c : equiv.perm α).support → g.cycle_factors_finset :=
-    λ c hc, c,
-
-  have : ∃ (a : g.cycle_factors_finset → α),
-    ∀ c :g.cycle_factors_finset, a c ∈ (c : equiv.perm α).support,
-  sorry,
+  -- function.extend
+  let kf : (g.cycle_factors_finset) × ℤ → α := λ⟨c, i⟩, (g ^ i) (a c),
+  let kg : (g.cycle_factors_finset) × ℤ → α := λ⟨c, i⟩, (g ^ i) (a (τ c)),
+  let ke : α → α := id,
+  let k := function.extend kf kg ke,
+  have k_apply : ∀ (c : g.cycle_factors_finset) (i : ℤ), k ((g ^ i) (a c)) = (g ^ i) (a (τ c)),
+  { simp only [k],
+    intros c i,
+    simp only [function.extend_def, dif_pos, exists_apply_eq_apply],
+    suffices : ∀ dj, kf dj = (g ^ i) (a c) → kg dj = (g ^ i) (a (τ c)),
+    { split_ifs with hg he,
+      { -- premier cas : (g ^ j) (a d) = (g ^ i) (a c)
+        apply this _ (classical.some_spec hg), },
+      { -- deuxième cas : n'arrive pas
+        exfalso, apply hg, use ⟨c, i⟩, refl, }, },
+    { rintro ⟨d, j⟩,
+      intro Hdjci, change (g ^ j) (a d) = (g ^ i) (a c) at Hdjci,
+      change (g ^ j) (a (τ d)) = (g ^ i) (a (τ c)),
+      suffices hdc : d = c,
+      rw hdc at Hdjci ⊢,
+      rw [equiv.perm.zpow_eq_zpow_on_iff, ha'] at Hdjci,
+      rw [equiv.perm.zpow_eq_zpow_on_iff, ha', ←(H c)],
+      exact Hdjci,
+      { exact ha (τ c), },
+      { exact ha c,  },
+      { -- d = c
+        have : ∀ (c : g.cycle_factors_finset) (i : ℤ), g.cycle_of ((g ^ i) (a c)) = c,
+        { intros c i, rw equiv.perm.cycle_of_self_apply_zpow, rw ha', },
+        rw [← subtype.coe_inj, ← this c i, ← this d j],
+        rw Hdjci, }, }, },
+  have k_apply' : ∀ (x : α), x ∉ g.support → k x = x,
+  { intros x hx,
+    simp only [k],
+    rw function.extend_apply',
+    simp only [ke, id.def],
+    rintro ⟨⟨c, i⟩, rfl⟩,
+    apply hx,
+    change (g ^ i) (a c) ∈ g.support,
+    rw equiv.perm.zpow_apply_mem_support ,
+    rw equiv.perm.mem_support,
+    exact ha c, },
 
   sorry,
 end
 
+example (g : equiv.perm α) (i j : ℤ) (x : α) : (g ^ i) x = (g ^ j) x ↔ (g ^ (j - i)) x = x :=
+begin
+conv_lhs { rw [← sub_add_cancel j i, add_comm, zpow_add, equiv.perm.mul_apply], },
+simp only [embedding_like.apply_eq_iff_eq],
+exact comm,
+end
+
+example {a b : α} : a = b ↔ b = a :=
+begin
+library_search
+end
 
 
 

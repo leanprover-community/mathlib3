@@ -2109,6 +2109,16 @@ omit 𝕜
 instance inner_product_space.complex_to_real [inner_product_space ℂ G] : inner_product_space ℝ G :=
 inner_product_space.is_R_or_C_to_real ℂ G
 
+@[simp] protected lemma complex.inner_one_left (z : ℂ) : ⟪1, z⟫_ℝ = z.re := rfl
+
+@[simp] protected lemma complex.inner_I_left (z : ℂ) : ⟪I, z⟫_ℝ = z.im := rfl
+
+@[simp] protected lemma complex.inner_one_right (z : ℂ) : ⟪z, 1⟫_ℝ = z.re := rfl
+
+@[simp] protected lemma complex.inner_I_right (z : ℂ) : ⟪z, I⟫_ℝ = z.im := rfl
+
+@[simp] protected lemma complex.inner (w z : ℂ) : ⟪w, z⟫_ℝ = (conj w * z).re := rfl
+
 end is_R_or_C_to_real
 
 section continuous

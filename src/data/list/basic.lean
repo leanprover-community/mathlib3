@@ -3098,15 +3098,15 @@ by rw [←mem_iff_nth, ←mem_iff_nth, reduce_option_mem_iff]
 
 section all_some
 
-@[simp] lemma list.nil_all_some {α : Type*} : (@list.nil $ option α).all_some = some [] := rfl
+@[simp] lemma all_some_nil {α : Type*} : (@list.nil $ option α).all_some = some [] := rfl
 
-@[simp] lemma list.none_cons_all_some {α} (x : list (option α)) :
+@[simp] lemma all_some_cons_none {α} (x : list (option α)) :
   (none :: x).all_some = none := rfl
 
-@[simp] lemma list.some_cons_all_some {α} (x : list (option α)) (y) :
+@[simp] lemma all_some_cons_some {α} (x : list (option α)) (y) :
   (some y :: x).all_some = x.all_some.map (list.cons y) := rfl
 
-@[simp] theorem list.map_some_all_some {α} (x : list α) :
+@[simp] theorem all_some_of_map_some {α} (x : list α) :
   (x.map some).all_some = some x :=
 by induction x; simp [*]
 

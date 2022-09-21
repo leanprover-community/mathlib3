@@ -41,9 +41,9 @@ namespace orientation
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
-variables {V : Type*} [inner_product_space ℝ V]
-variables [hd2 : fact (finrank ℝ V = 2)] (o : orientation ℝ V (fin 2))
-include hd2 o
+variables {V V' : Type*} [inner_product_space ℝ V] [inner_product_space ℝ V']
+variables [fact (finrank ℝ V = 2)] [fact (finrank ℝ V' = 2)] (o : orientation ℝ V (fin 2))
+-- include o
 
 local notation `ω` := o.area_form
 local notation `J` := o.right_angle_rotation

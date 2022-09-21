@@ -56,9 +56,9 @@ local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 variables {E : Type*} [inner_product_space ℝ E] [fact (finrank ℝ E = 2)]
   (o : orientation ℝ E (fin 2))
 
-include o
-
 namespace orientation
+
+include o
 
 /-- An antisymmetric bilinear form on an oriented real inner product space of dimension 2 (usual
 notation `ω`).  When evaluated on two vectors, it gives the oriented area of the parallelogram they
@@ -72,6 +72,8 @@ begin
       alternating_map.curry_left_linear_map,
   exact y ∘ₗ (alternating_map.curry_left_linear_map o.volume_form),
 end
+
+omit o
 
 local notation `ω` := o.area_form
 
@@ -524,5 +526,166 @@ lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
 by simp [kahler_apply_apply, area_form_map]
+
+section orthonormal_basis
+
+/-- The area form on an oriented real inner product space of dimension 2 can be evaluated as the
+determinant of the matrix of inner products with any orthonormal basis. -/
+lemma area_form_orthonormal_basis (b : orthonormal_basis (fin 2) ℝ E)
+  (hb : b.to_basis.orientation = o) (x y : E) :
+  o.area_form x y = ⟪b 0, x⟫ * ⟪b 1, y⟫ - ⟪b 0, y⟫ * ⟪b 1, x⟫ :=
+by simp [o.area_form_to_volume_form, o.volume_form_robust b hb, basis.det_apply, matrix.det_fin_two,
+  basis.to_matrix_apply, b.repr_apply_apply]
+
+/-- The automorphism `J` on an oriented real inner product space of dimension 2 can be evaluated in
+terms of the inner products with elements of an orthnonormal basis. -/
+lemma right_angle_rotation_orthonormal_basis_apply (b : orthonormal_basis (fin 2) ℝ E)
+  (hb : b.to_basis.orientation = o) (x : E) :
+  J x = - ⟪b 1, x⟫ • b 0 + ⟪b 0, x⟫ • b 1  :=
+begin
+  apply @ext_inner_left ℝ,
+  intros y,
+  simp only [o.area_form_orthonormal_basis b hb, real_inner_comm, inner_add_right, inner_smul_right,
+    inner_right_angle_rotation_right, neg_sub, neg_smul, inner_neg_right],
+  ring,
+end
+
+/-- The automorphism `J` on an oriented real inner product space of dimension 2 sends the zero-th
+element of an oriented orthonormal basis to the first. -/
+@[simp] lemma right_angle_rotation_orthonormal_basis_apply_zero (b : orthonormal_basis (fin 2) ℝ E)
+  (hb : b.to_basis.orientation = o) :
+  J (b 0) = b 1 :=
+begin
+  have hb₀ : ∥b 0∥ = 1 := b.orthonormal.1 0,
+  have hb₁₀ : ⟪b 1, b 0⟫ = 0 := b.orthonormal.2 (by norm_num),
+  simp [o.right_angle_rotation_orthonormal_basis_apply b hb, real_inner_self_eq_norm_sq, hb₀, hb₁₀],
+end
+
+/-- The automorphism `J` on an oriented real inner product space of dimension 2 sends the first
+element of an oriented orthonormal basis to the negation of the zero-th. -/
+@[simp] lemma right_angle_rotation_orthonormal_basis_apply_one (b : orthonormal_basis (fin 2) ℝ E)
+  (hb : b.to_basis.orientation = o) :
+  J (b 1) = - b 0 :=
+begin
+  have hb₁ : ∥b 1∥ = 1 := b.orthonormal.1 1,
+  have hb₀₁ : ⟪b 0, b 1⟫ = 0 := b.orthonormal.2 (by norm_num),
+  simp [o.right_angle_rotation_orthonormal_basis_apply b hb, real_inner_self_eq_norm_sq, hb₁, hb₀₁],
+end
+
+/-- The automorphism `J` on an oriented real inner product space of dimension 2 has the matrix
+representation ` !![0, -1; 1, 0]` with respect to any oriented orthonormal basis. -/
+lemma right_angle_rotation_orthonormal_basis (b : orthonormal_basis (fin 2) ℝ E)
+  (hb : b.to_basis.orientation = o) :
+  (J : E ≃ₗᵢ[ℝ] E).to_linear_map
+  = matrix.to_lin b.to_basis b.to_basis !![0, -1; 1, 0] :=
+begin
+  ext x,
+  convert o.right_angle_rotation_orthonormal_basis_apply b hb x,
+  rw matrix.to_lin_apply,
+  simp [b.repr_apply_apply],
+end
+
+end orthonormal_basis
+
+end orientation
+
+namespace complex
+
+local attribute [instance] complex.finrank_real_complex_fact
+
+@[simp] protected lemma inner_one_left (z : ℂ) : ⟪1, z⟫ = z.re :=
+by simpa [orthonormal_basis.repr_apply_apply]
+  using congr_fun (complex.orthonormal_basis_one_I_repr_apply z) 0
+
+@[simp] protected lemma inner_I_left (z : ℂ) : ⟪I, z⟫ = z.im :=
+by simpa [orthonormal_basis.repr_apply_apply]
+  using congr_fun (complex.orthonormal_basis_one_I_repr_apply z) 1
+
+@[simp] protected lemma inner_one_right (z : ℂ) : ⟪z, 1⟫ = z.re :=
+by simpa [real_inner_comm] using z.inner_one_left
+
+@[simp] protected lemma inner_I_right (z : ℂ) : ⟪z, I⟫ = z.im :=
+by simpa only [real_inner_comm] using z.inner_I_left
+
+@[simp] protected lemma inner (w z : ℂ) : ⟪w, z⟫ = (conj w * z).re :=
+begin
+  rw ← complex.orthonormal_basis_one_I.sum_inner_mul_inner,
+  simp [fin.sum_univ_succ],
+end
+
+/-- The standard orientation on `ℂ`. -/
+protected def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
+
+@[simp] protected lemma area_form (w z : ℂ) : complex.orientation.area_form w z = (conj w * z).im :=
+begin
+  let o := complex.orientation,
+  rw o.area_form_orthonormal_basis complex.orthonormal_basis_one_I rfl,
+  simp only [coe_orthonormal_basis_one_I, is_R_or_C.I_to_complex, matrix.cons_val_zero,
+    complex.inner_one_left, matrix.cons_val_one, matrix.head_cons, complex.inner_I_left, mul_im,
+    conj_re, conj_im],
+  ring,
+end
+
+@[simp] protected lemma right_angle_rotation (z : ℂ) :
+  complex.orientation.right_angle_rotation z = I * z :=
+begin
+  apply ext_inner_right ℝ,
+  intros w,
+  rw orientation.inner_right_angle_rotation_left,
+  simp only [complex.area_form, complex.inner, mul_re, mul_im, conj_re, conj_im, map_mul, conj_I,
+    neg_re, neg_im, I_re, I_im],
+  ring,
+end
+
+@[simp] protected lemma kahler (w z : ℂ) :
+  complex.orientation.kahler w z = conj w * z :=
+begin
+  rw orientation.kahler_apply_apply,
+  ext1; simp,
+end
+
+end complex
+
+namespace orientation
+
+local notation `ω` := o.area_form
+local notation `J` := o.right_angle_rotation
+
+open complex
+
+/-- The inner product on an inner product space of dimension 2 can be evaluated in terms
+of a complex-number representation of the space. -/
+lemma _root_.inner_map_complex (f : E ≃ₗᵢ[ℝ] ℂ) (x y : E) : ⟪x, y⟫ = (conj (f x) * f y).re :=
+by rw [← complex.inner, f.inner_map_map]
+
+/-- The area form on an oriented real inner product space of dimension 2 can be evaluated in terms
+of a complex-number representation of the space. -/
+lemma area_form_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
+  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x y : E) :
+  ω x y = (conj (f x) * f y).im :=
+begin
+  rw [← complex.area_form, ← hf, o.area_form_map],
+  simp,
+end
+
+/-- The rotation by 90 degrees on an oriented real inner product space of dimension 2 can be
+evaluated in terms of a complex-number representation of the space. -/
+lemma right_angle_rotation_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
+  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x : E) :
+  f (J x) = I * f x :=
+begin
+  rw [← complex.right_angle_rotation, ← hf, o.right_angle_rotation_map],
+  simp,
+end
+
+/-- The Kahler form on an oriented real inner product space of dimension 2 can be evaluated in terms
+of a complex-number representation of the space. -/
+lemma kahler_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
+  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x y : E) :
+  o.kahler x y = conj (f x) * f y :=
+begin
+  rw [← complex.kahler, ← hf, o.kahler_map],
+  simp,
+end
 
 end orientation

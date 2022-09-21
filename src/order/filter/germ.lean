@@ -456,30 +456,29 @@ instance module' [semiring R] [add_comm_monoid M] [module R M] :
 end module
 
 instance [has_le β] : has_le (germ l β) := ⟨lift_rel (≤)⟩
-instance [has_lt β] : has_lt (germ l β) := ⟨lift_rel (<)⟩
 
 lemma le_def [has_le β] : ((≤) : germ l β → germ l β → Prop) = lift_rel (≤) := rfl
-lemma lt_def [has_lt β] : ((<) : germ l β → germ l β → Prop) = lift_rel (<) := rfl
 
 @[simp] lemma coe_le [has_le β] : (f : germ l β) ≤ g ↔ f ≤ᶠ[l] g := iff.rfl
-@[simp] lemma coe_lt [has_lt β] : (f : germ l β) < g ↔ ∀ᶠ x in l, f x < g x := iff.rfl
 
 lemma coe_nonneg [has_le β] [has_zero β] {f : α → β} : 0 ≤ (f : germ l β) ↔ ∀ᶠ x in l, 0 ≤ f x :=
 iff.rfl
 
-lemma coe_pos [has_lt β] [has_zero β] {f : α → β} : 0 < (f : germ l β) ↔ ∀ᶠ x in l, 0 < f x :=
-iff.rfl
-
 lemma const_le [has_le β] {x y : β} : x ≤ y → (↑x : germ l β) ≤ ↑y := lift_rel_const
-lemma const_lt [has_lt β] {x y : β} : x < y → (↑x : germ l β) < ↑y := lift_rel_const
 
 @[simp, norm_cast]
 lemma const_le_iff [has_le β] [ne_bot l] {x y : β} : (↑x : germ l β) ≤ ↑y ↔ x ≤ y :=
 lift_rel_const_iff
 
-@[simp, norm_cast]
-lemma const_lt_iff [has_lt β] [ne_bot l] {x y : β} : (↑x : germ l β) < ↑y ↔ x < y :=
-lift_rel_const_iff
+instance [preorder β] : preorder (germ l β) :=
+{ le := (≤),
+  le_refl := λ f, induction_on f $ eventually_le.refl l,
+  le_trans := λ f₁ f₂ f₃, induction_on₃ f₁ f₂ f₃ $ λ f₁ f₂ f₃, eventually_le.trans }
+
+instance [partial_order β] : partial_order (germ l β) :=
+{ le := (≤),
+  le_antisymm := λ f g, induction_on₂ f g $ λ f g h₁ h₂, (eventually_le.antisymm h₁ h₂).germ_eq,
+  .. germ.preorder }
 
 instance [has_bot β] : has_bot (germ l β) := ⟨↑(⊥ : β)⟩
 instance [has_top β] : has_top (germ l β) := ⟨↑(⊤ : β)⟩

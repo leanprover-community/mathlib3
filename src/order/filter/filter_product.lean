@@ -42,17 +42,13 @@ instance [division_ring β] : division_ring β* := { ..germ.ring, ..germ.divisio
 instance [semifield β] : semifield β* := { ..germ.comm_semiring, ..germ.division_semiring }
 instance [field β] : field β* := { ..germ.comm_ring, ..germ.division_ring }
 
-instance [preorder β] : preorder β* :=
-{ le := (≤),
-  lt := (<),
-  le_refl := λ f, induction_on f $ eventually_le.refl _,
-  le_trans := λ f₁ f₂ f₃, induction_on₃ f₁ f₂ f₃ $ λ f₁ f₂ f₃, eventually_le.trans,
-  lt_iff_le_not_le := λ f₁ f₂, induction_on₂ f₁ f₂ $ λ f₁ f₂,
-    by simp_rw [coe_le, coe_lt, eventually_le, lt_iff_le_not_le, eventually_and, eventually_not] }
+lemma coe_lt [preorder β] {f g : α → β} : (f : β*) < g ↔ ∀* x, f x < g x :=
+by simp only [lt_iff_le_not_le, eventually_and, coe_le, eventually_not, eventually_le]
 
-instance [partial_order β] : partial_order β* :=
-{ le_antisymm := λ f g, induction_on₂ f g $ λ f g h₁ h₂, (eventually_le.antisymm h₁ h₂).germ_eq,
-  .. germ.preorder }
+lemma coe_pos [preorder β] [has_zero β] {f : α → β} : 0 < (f : β*) ↔ ∀* x, 0 < f x := coe_lt
+
+lemma const_lt [preorder β] {x y : β} : (↑x : β*) < ↑y ↔ x < y :=
+coe_lt.trans lift_rel_const_iff
 
 instance [has_sup β] : has_sup β* := ⟨map₂ (⊔)⟩
 instance [has_inf β] : has_inf β* := ⟨map₂ (⊓)⟩
@@ -133,10 +129,10 @@ instance [ordered_comm_ring β] : ordered_comm_ring β* :=
 { ..germ.ordered_ring, ..germ.ordered_comm_semiring }
 
 instance [strict_ordered_semiring β] : strict_ordered_semiring β* :=
-{ mul_lt_mul_of_pos_left := λ x y z, induction_on₃ x y z $ λ f g h hfg hh, hh.mp $ hfg.mono $ λ a,
-    mul_lt_mul_of_pos_left,
-  mul_lt_mul_of_pos_right := λ x y z, induction_on₃ x y z $ λ f g h hfg hh, hh.mp $ hfg.mono $ λ a,
-    mul_lt_mul_of_pos_right,
+{ mul_lt_mul_of_pos_left := λ x y z, induction_on₃ x y z $ λ f g h hfg hh, coe_lt.2 $
+   (coe_lt.1 hh).mp $ (coe_lt.1 hfg).mono $ λ a, mul_lt_mul_of_pos_left,
+  mul_lt_mul_of_pos_right := λ x y z, induction_on₃ x y z $ λ f g h hfg hh, coe_lt.2 $
+   (coe_lt.1 hh).mp $ (coe_lt.1 hfg).mono $ λ a, mul_lt_mul_of_pos_right,
   .. germ.ordered_semiring, ..germ.ordered_cancel_add_comm_monoid }
 
 instance [strict_ordered_comm_semiring β] : strict_ordered_comm_semiring β* :=

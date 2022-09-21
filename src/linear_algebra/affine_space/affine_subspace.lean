@@ -1404,7 +1404,7 @@ begin
       coe_refl_to_affine_map, map_id]
 end
 
-lemma parallel_symm {s₁ s₂ : affine_subspace k P} : s₁ ‖ s₂ ↔ s₂ ‖ s₁ :=
+lemma parallel_comm {s₁ s₂ : affine_subspace k P} : s₁ ‖ s₂ ↔ s₂ ‖ s₁ :=
 ⟨parallel.symm, parallel.symm⟩
 
 @[refl] lemma parallel.refl (s : affine_subspace k P) : s ‖ s :=
@@ -1436,7 +1436,7 @@ end
 
 @[simp] lemma bot_parallel_iff_eq_bot {s : affine_subspace k P} :
   ⊥ ‖ s ↔ s = ⊥ :=
-by rw [parallel_symm, parallel_bot_iff_eq_bot]
+by rw [parallel_comm, parallel_bot_iff_eq_bot]
 
 lemma parallel_iff_direction_eq_and_eq_bot_iff_eq_bot {s₁ s₂ : affine_subspace k P} :
   s₁ ‖ s₂ ↔ s₁.direction = s₂.direction ∧ (s₁ = ⊥ ↔ s₂ = ⊥) :=

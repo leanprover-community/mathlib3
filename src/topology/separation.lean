@@ -1456,8 +1456,8 @@ begin
   { refine t2_space_iff_disjoint_nhds.mpr (λ x y hne, _),
     have aux : x ∉ closure {y} ∨ y ∉ closure {x},
       from (t0_space_iff_or_not_mem_closure α).mp infer_instance x y hne,
-    wlog H : x ∉ closure {y} generalizing x y,
-    { refine (this y x aux.symm hne.symm (aux.resolve_left H)).symm },
+    wlog H : x ∉ closure ({y} : set α),
+    { refine (this y x hne.symm aux.symm (aux.resolve_left H)).symm },
     { rwa [← disjoint_nhds_nhds_set, nhds_set_singleton] at H } },
   -- TODO: reformulate `t2_5_space` in terms of `(𝓝 x).lift' closure`
   refine ⟨λ x y hne, _⟩,

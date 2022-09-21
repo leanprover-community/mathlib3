@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import computability.primrec.basic
 import data.nat.psub
 import data.pfun
-import data.nat.part_enat
+import computability.rfind
 
 /-!
 # The partial recursive functions
@@ -35,8 +35,8 @@ inductive partrec : (unit_tree →. unit_tree) → Prop
 | comp {f g} : partrec f → partrec g → partrec (f.comp g)
 | prec {n f} : partrec n → partrec f →
   partrec (λ x, (n x).bind $ λ n', (flip bind f)^[n'.nodes] (some x))
-| find {f : unit_tree → unit_tree} : partrec f →
-   partrec (λ x, (part_enat.find (λ n, f (x.node $ encode n) = unit_tree.nil)).map encode)
+| rfind {f : unit_tree →. unit_tree} : partrec f →
+   partrec (λ x, (nat.rfind (λ n, (f (x.node $ encode n)).map (=unit_tree.nil))).map encode)
 
 namespace partrec
 
@@ -63,26 +63,103 @@ begin
       simp [flip, iterate_succ'], } }
 end
 
+protected lemma some : partrec part.some := of_primrec primrec.id
+
 end partrec
 
 end unit_tree
 
-variables {α β : Type} [tencodable α] [tencodable β]
+variables {α β γ δ ε η θ : Type} [tencodable α] [tencodable β]
 
-def partrec (f : α →. β) : Prop :=
+def partrec1 (f : α →. β) : Prop :=
 ∃ f', unit_tree.partrec f' ∧ ∀ x : α, f' (encode x) = (f x).map encode
 
-def computable1 {α β : Type} [tencodable α] [tencodable β] (f : α → β) : Prop :=
-partrec (f : α →. β)
+def partrec [has_uncurry γ α (part β)] (f : γ) : Prop :=
+partrec1 ↿f
 
-def computable {γ : Type} [has_uncurry γ α β] (f : γ) : Prop :=
+instance _root_.function.has_uncurry_base_pfun {α β : Type*} :
+  has_uncurry (α →. β) α (part β) := function.has_uncurry_base
+
+def computable1 (f : α → β) : Prop :=
+partrec1 (f : α →. β)
+
+def computable [has_uncurry γ α β] (f : γ) : Prop :=
 computable1 ↿f
 
-lemma primrec.to_partrec {α β γ : Type} [tencodable α] [tencodable β] [has_uncurry γ α β]
-  {f : γ} : primrec f → computable f
+def computable_pred [has_uncurry γ α Prop] (f : γ) : Prop :=
+computable1 (λ x, @to_bool (↿f x) (classical.dec _))
+
+lemma primrec.to_partrec [has_uncurry γ α β] {f : γ} :
+  primrec f → computable f
 | ⟨f', pf, hf⟩ := ⟨_, unit_tree.partrec.of_primrec pf, by simpa⟩
 
+namespace partrec
 
+@[simp] lemma _root_.part.map_id {α : Type*} (x : part α) : x.map (λ y, y) = x := by cases x; refl
+
+protected lemma rfind {f : α → ℕ →. bool} :
+  partrec f → partrec (λ x, nat.rfind (f x))
+| ⟨f', pf, hf⟩ := ⟨_, pf.rfind, λ x, begin
+  simp only [encode_prod, prod.forall] at hf,
+  simp [hf, has_uncurry.uncurry, part.map_map, comp, encode_bool_eq_nil],
+end⟩
+
+section comp
+variables [tencodable γ] [tencodable δ] [tencodable ε]
+
+lemma comp {f : α →. β} {g : γ → α} : partrec f → computable g → partrec (λ x, f (g x))
+| ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ :=
+⟨_, pf.comp pg, λ x, by simp [hf, hg, has_uncurry.uncurry]⟩
+
+lemma _root_.computable.comp {f : α → β} {g : γ → α} (hf : computable f) (hg : computable g) :
+  computable (λ x, f (g x)) := @id _ (comp hf hg)
+
+lemma _root_.computable.pair {f : α → β} {g : α → γ} :
+  computable f → computable g → computable (λ x, (f x, g x))
+| ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ := ⟨_, pf.pair pg, λ x, by { simp [hf, hg], refl, }⟩
+
+lemma _root_.computable.to_partrec {f : α → β} (hf : computable f) : partrec (f : α →. β) := hf
+lemma part_some {f : α → β} (hf : computable f) : partrec (λ x, part.some (f x)) := hf
+
+lemma bind {f : α →. β} {g : α → β →. γ} : partrec f → partrec g → partrec (λ x, (f x).bind (g x))
+| ⟨f', pf, hf⟩ ⟨g', pg, hg⟩ := ⟨_, pg.comp (unit_tree.partrec.some.pair pf), λ x, begin
+  simp only [encode_prod, prod.forall] at hg,
+  simp [hf, hg, has_uncurry.uncurry, part.bind_some, bind_some_eq_map],
+end⟩
+
+lemma map {f : α →. β} {g : α → β → γ} (hf : partrec f) (hg : computable g) :
+  partrec (λ x, (f x).map (g x)) :=
+by { simp_rw ← bind_some_eq_map, apply hf.bind, exact hg, }
+
+lemma comp₂ {f : α → β →. γ} {g₁ : δ → α} {g₂ : δ → β} (hf : partrec f) (hg₁ : computable g₁)
+  (hg₂ : computable g₂) : partrec (λ x, f (g₁ x) (g₂ x)) := hf.comp $ hg₁.pair hg₂
+
+lemma comp₃ {f : α → β → γ →. δ} {g₁ : ε → α} {g₂ : ε → β} {g₃ : ε → γ} (hf : partrec f)
+  (hg₁ : computable g₁) (hg₂ : computable g₂) (hg₃ : computable g₃) :
+  partrec (λ x, f (g₁ x) (g₂ x) (g₃ x)) := hf.comp $ hg₁.pair $ hg₂.pair hg₃
+
+lemma _root_.computable.comp₂ {f : α → β → γ} {g₁ : δ → α} {g₂ : δ → β} (hf : computable f)
+  (hg₁ : computable g₁) (hg₂ : computable g₂) : computable (λ x, f (g₁ x) (g₂ x)) :=
+hf.comp $ hg₁.pair hg₂
+
+lemma _root_.computable.comp₃ {f : α → β → γ → δ} {g₁ : ε → α} {g₂ : ε → β} {g₃ : ε → γ}
+  (hf : computable f) (hg₁ : computable g₁) (hg₂ : computable g₂) (hg₃ : computable g₃) :
+  computable (λ x, f (g₁ x) (g₂ x) (g₃ x)) := hf.comp $ hg₁.pair $ hg₂.pair hg₃
+
+lemma _root_.computable_pred.comp {f : α → Prop} {g : β → α} (hf : computable_pred f)
+  (hg : computable g) : computable_pred (λ x, f (g x)) := computable.comp hf hg
+
+lemma _root_.computable_pred.comp₂ {f : α → β → Prop} {g₁ : γ → α} {g₂ : γ → β}
+  (hf : computable_pred f) (hg₁ : computable g₁) (hg₂ : computable g₂) :
+  computable_pred (λ x, f (g₁ x) (g₂ x)) := hf.comp $ hg₁.pair hg₂
+
+lemma _root_.computable_pred.comp₃ {f : α → β → γ → Prop} {g₁ : δ → α} {g₂ : δ → β} {g₃ : δ → γ}
+  (hf : computable_pred f) (hg₁ : computable g₁) (hg₂ : computable g₂) (hg₃ : computable g₃) :
+  computable_pred (λ x, f (g₁ x) (g₂ x) (g₃ x)) := hf.comp $ hg₁.pair $ hg₂.pair hg₃
+
+end comp
+
+end partrec
 
 #exit
 open encodable denumerable part

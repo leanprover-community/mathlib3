@@ -106,6 +106,9 @@ instance _root_.bool.tencodable : tencodable bool :=
 lemma encode_tt : encode tt = nil := rfl
 lemma encode_ff : encode ff = non_nil := rfl
 
+lemma encode_bool_eq_nil {b : bool} : encode b = unit_tree.nil ↔ b = tt :=
+by cases b; simp [encode]
+
 end bool
 
 section list

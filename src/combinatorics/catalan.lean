@@ -7,6 +7,7 @@ import data.nat.choose.central
 import algebra.big_operators.fin
 import tactic.field_simp
 import tactic.linear_combination
+import data.tree
 
 /-!
 # Catalan numbers
@@ -39,7 +40,15 @@ https://math.stackexchange.com/questions/3304415/catalan-numbers-algebraic-proof
 -/
 
 open_locale big_operators
-open finset
+open finset finset.nat.antidiagonal (fst_le snd_le)
+
+
+@[to_additive]
+lemma prod_bij_of_inj_of_card_le {α β γ : Type*} [comm_monoid β] {s : finset α} {t : finset γ}
+  {f : α → β} {g : γ → β} (i : Π a ∈ s, γ) (hi : ∀ a ha, i a ha ∈ t) (h : ∀ a ha, f a = g (i a ha))
+  (i_inj : ∀ a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (card_le : t.card ≤ s.card) :
+  (∏ x in s, f x) = (∏ x in t, g x) :=
+prod_bij i hi h i_inj (surj_on_of_inj_on_of_card_le i hi i_inj card_le)
 
 /-- The recursive definition of the sequence of Catalan numbers:
 `catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i)` -/
@@ -52,6 +61,15 @@ def catalan : ℕ → ℕ
 
 lemma catalan_succ (n : ℕ) : catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i) :=
 by rw catalan
+
+lemma catalan_succ' (n : ℕ) :
+  catalan (n + 1) = ∑ ij in nat.antidiagonal n, catalan ij.1 * catalan ij.2 :=
+begin
+  rw [catalan_succ, ← sum_range (λ i, catalan i * catalan (n - i))], symmetry,
+  exact sum_bij_of_inj_of_card_le (λ (ij : ℕ × ℕ) _, ij.1)
+    (λ _ h, by simpa [nat.lt_succ_iff] using fst_le h) (by tidy)
+    (λ _ _ h₁ h₂, (nat.antidiagonal_congr h₁ h₂).mpr) (by simp),
+end
 
 @[simp] lemma catalan_one : catalan 1 = 1 := by simp [catalan_succ]
 
@@ -128,3 +146,46 @@ by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]
 
 lemma catalan_three : catalan 3 = 5 :=
 by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]
+
+namespace unit_tree
+
+/-- Given two finsets, find all trees that can be formed with
+  left child in `a` and right child in `b` -/
+@[simp] def pairwise_node (a : finset unit_tree) (b : finset unit_tree) : finset unit_tree :=
+  (a ×ˢ b).map ⟨λ x, x.1.node x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by { simp, tauto, }⟩
+
+/-- A finset of all trees with `n` nodes. See `mem_trees_of_nodes_eq` -/
+def trees_of_nodes_eq : ℕ → finset unit_tree
+| 0 := {nil}
+| (n+1) := (finset.nat.antidiagonal n).attach.bUnion $ λ ijh,
+  have _ := nat.lt_succ_iff.mpr (fst_le ijh.2),
+  have _ := nat.lt_succ_iff.mpr (snd_le ijh.2),
+  pairwise_node (trees_of_nodes_eq ijh.1.1) (trees_of_nodes_eq ijh.1.2)
+
+@[simp] lemma trees_of_nodes_eq_zero : trees_of_nodes_eq 0 = {nil} := by rw [trees_of_nodes_eq]
+
+lemma trees_of_nodes_eq_succ (n : ℕ) : trees_of_nodes_eq (n + 1) =
+  (nat.antidiagonal n).bUnion (λ ij, pairwise_node (trees_of_nodes_eq ij.1)
+    (trees_of_nodes_eq ij.2)) :=
+by { rw trees_of_nodes_eq, ext, simp [-pairwise_node], }
+
+@[simp] theorem mem_trees_of_nodes_eq {x : unit_tree} {n : ℕ} :
+  x ∈ trees_of_nodes_eq n ↔ x.nodes = n :=
+begin
+  induction x generalizing n;
+  cases n;
+  simp [trees_of_nodes_eq_succ, nat.succ_eq_add_one, *],
+  trivial,
+end
+
+lemma trees_of_nodes_eq_card_eq_catalan (n : ℕ) :
+  (trees_of_nodes_eq n).card = catalan n :=
+begin
+  induction n using nat.case_strong_induction_on with n ih,
+  { simp, },
+  rw [trees_of_nodes_eq_succ, card_bUnion, catalan_succ'],
+  { apply sum_congr rfl, rintro ⟨i, j⟩ H, simp [ih _ (fst_le H), ih _ (snd_le H)], },
+  { rintros ⟨i, j⟩ H ⟨i', j'⟩ H' hne a ha, clear_except ha hne, tidy, },
+end
+
+end unit_tree

@@ -670,6 +670,31 @@ begin
     exact (mul_le_mul_of_nonneg_right op_norm_lsmul_le hε).trans_eq (one_mul ε) }
 end
 
+open_locale filter
+lemma convolution_tendsto_right' {ι} {l : filter ι} {φ : ι → G → ℝ}
+  (hnφ : ∀ i x, 0 ≤ φ i x)
+  (hiφ : ∀ i, ∫ s, φ i s ∂μ = 1)
+  (hcφ : ∀ i, has_compact_support (φ i))
+  (hφ : tendsto (λ n, support (φ n)) l (𝓝 0).small_sets)
+  (hmg : ae_strongly_measurable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
+  tendsto (λ p : ι × G, (φ p.1 ⋆[lsmul ℝ ℝ, μ] g : G → E') p.2) (l ×ᶠ 𝓝 x₀) (𝓝 (g x₀)) :=
+begin
+  have := hcg,
+  simp_rw [tendsto_small_sets_iff] at hφ,
+  rw [metric.continuous_at_iff] at hcg,
+  rw [metric.tendsto_nhds],
+  intros ε hε,
+  rcases hcg (ε / 2) (half_pos hε) with ⟨δ, hδ, hgδ⟩,
+  -- have := (hφ (ball (0 : G) δ) (ball_mem_nhds _ hδ)).prod_mk _,
+  refine ((hφ (ball (0 : G) δ) $ ball_mem_nhds _ hδ).prod_mk $ ball_mem_nhds _ hδ).mono _,
+  rintro ⟨i, x⟩ ⟨hi, hx⟩,
+  dsimp only at hi hx ⊢,
+  -- have := (hcφ i).continuous_convolution_right (lsmul ℝ ℝ),
+  have := dist_convolution_le (half_pos hε).le hi (hnφ i) (hiφ i) hmg (λ x hx, (hgδ hx.out).le),
+  exact (dist_convolution_le (half_pos hε).le hi (hnφ i) (hiφ i) hmg (λ x hx, (hgδ hx.out).le))
+    .trans_lt (half_lt_self hε)
+end
+
 /-- `(φ i ⋆ g) x₀` tends to `g x₀` if `φ` is a sequence of nonnegative functions with integral 1
 whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
 

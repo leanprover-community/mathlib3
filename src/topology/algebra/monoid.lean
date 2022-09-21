@@ -460,7 +460,7 @@ instance is_scalar_tower.has_continuous_const_smul {R A : Type*} [monoid A] [has
 implies continuous scalar multiplication by constants.
 
 Notably, this instances applies when `R = Aᵐᵒᵖ` -/
-@[priority 100]
+@[priority 100, to_additive]
 instance smul_comm_class.has_continuous_const_smul {R A : Type*} [monoid A] [has_smul R A]
   [smul_comm_class R A A] [topological_space A] [has_continuous_mul A] :
   has_continuous_const_smul R A :=

@@ -16,10 +16,6 @@ open add_subgroup
 
 variables {a : ℝ}
 
-instance : has_continuous_const_vadd (zmultiples a).opposite ℝ :=
-sorry
--- follows by `to_additive` of `smul_comm_class.has_continuous_const_smul`
-
 /-- The action on `ℝ` by right multiplication of its the subgroup `zmultiples a` (the multiples of
 `a:ℝ`) is properly discontinuous. -/
 instance : properly_discontinuous_vadd (zmultiples a).opposite ℝ :=

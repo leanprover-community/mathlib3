@@ -5,6 +5,7 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.order.field_defs
 import algebra.order.with_zero
+import algebra.parity
 
 /-!
 # Linear ordered (semi)fields
@@ -669,10 +670,20 @@ div_neg_iff.2 $ or.inl ⟨ha, hb⟩
 lemma zpow_bit0_nonneg (a : α) (n : ℤ) : 0 ≤ a ^ bit0 n :=
 (mul_self_nonneg _).trans_eq $ (zpow_bit0 _ _).symm
 
+protected lemma even.zpow_nonneg : even n → ∀ a : α, 0 ≤ a ^ n :=
+by { rintro ⟨n, rfl⟩ a, exact zpow_bit0_nonneg _ _ }
+
+lemma zpow_neg_bit0_nonneg (a : α) (n : ℤ) : 0 ≤ a ^ -bit0 n := (even_bit0 n).neg.zpow_nonneg _
+
 lemma zpow_two_nonneg (a : α) : 0 ≤ a ^ (2 : ℤ) := zpow_bit0_nonneg _ _
 
 lemma zpow_bit0_pos (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
 (zpow_bit0_nonneg a n).lt_of_ne (zpow_ne_zero _ h).symm
+
+lemma even.zpow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
+by obtain ⟨n, rfl⟩ := hn; exact zpow_bit0_pos ha _
+
+lemma zpow_neg_bit0_pos (h : a ≠ 0) (n : ℤ) : 0 < a ^ -bit0 n :=  (even_bit0 n).neg.zpow_pos h
 
 lemma zpow_two_pos_of_ne_zero (h : a ≠ 0) : 0 < a ^ (2 : ℤ) := zpow_bit0_pos h _
 
@@ -688,6 +699,26 @@ by rw [le_iff_lt_or_eq, le_iff_lt_or_eq, zpow_bit1_neg_iff, zpow_eq_zero_iff (in
 
 @[simp] lemma zpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le zpow_bit1_nonpos_iff
+
+lemma odd.zpow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff
+
+protected lemma odd.zpow_nonneg_iff (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonneg_iff
+
+lemma odd.zpow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonpos_iff
+
+lemma odd.zpow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_pos_iff
+
+alias odd.zpow_neg_iff ↔ _ odd.zpow_neg
+alias odd.zpow_nonpos_iff ↔ _ odd.zpow_nonpos
+
+lemma even.zpow_abs {p : ℤ} (hp : even p) (a : α) : |a| ^ p = a ^ p :=
+by cases abs_choice a with h h; simp only [h, hp.neg_zpow _]
+
+@[simp] lemma zpow_bit0_abs (a : α) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p := (even_bit0 _).zpow_abs _
 
 /-! ### Relating one division with another term -/
 
@@ -934,14 +965,7 @@ eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := map_inv₀ (abs_hom : α →*₀ α) a
 lemma abs_div (a b : α) : |a / b| = |a| / |b| := map_div₀ (abs_hom : α →*₀ α) a b
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| := by rw [abs_div, abs_one]
-
-lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
-begin
-  simp only [inv_nonneg, zpow_neg],
-  change 0 ≤ a ^ ((2 : ℕ) : ℤ),
-  rw zpow_coe_nat,
-  apply sq_nonneg,
-end
+@[simp] lemma abs_zpow (a : α) (n : ℤ) : |a ^ n| = |a| ^ n := map_zpow₀ (abs_hom : α →*₀ α) a n
 
 /-- Bernoulli's inequality reformulated to estimate `(n : α)`. -/
 lemma nat.cast_le_pow_sub_div_sub (H : 1 < a)  (n : ℕ) : (n : α) ≤ (a ^ n - 1) / (a - 1) :=

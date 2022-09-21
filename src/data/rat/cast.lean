@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.field
-import data.rat.order
 import data.int.char_zero
 import algebra.field.opposite
 
@@ -48,9 +47,6 @@ variable [division_ring α]
 
 @[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n :=
 by rw [← int.cast_coe_nat, cast_coe_int, int.cast_coe_nat]
-
-@[simp, norm_cast] lemma cast_coe_nnrat (q : ℚ≥0) : ((q : ℚ) : α) = q :=
-by rw [nnrat.cast_def, nnrat.cast_def, cast_div, cast_coe_int, int.cast_coe_nat]
 
 @[simp, norm_cast] lemma cast_zero : ((0 : ℚ) : α) = 0 := (cast_coe_int _).trans int.cast_zero
 @[simp, norm_cast] lemma cast_one : ((1 : ℚ) : α) = 1 := (cast_coe_int _).trans int.cast_one
@@ -231,6 +227,9 @@ map_sum (rat.cast_hom α) _ _
 
 @[simp, norm_cast] lemma cast_list_prod (s : list ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
 map_list_prod (rat.cast_hom α) _
+
+@[simp, norm_cast] lemma cast_coe_nnrat (q : ℚ≥0) : ((q : ℚ) : α) = q :=
+by rw [nnrat.cast_def, nnrat.cast_def, cast_div, cast_coe_nat, cast_coe_nat]
 
 end with_div_ring
 

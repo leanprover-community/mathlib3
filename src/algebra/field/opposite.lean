@@ -34,7 +34,7 @@ lemma unop_rat_cast [has_rat_cast α] (q : ℚ) : unop (q : αᵐᵒᵖ) = q := 
 instance [division_semiring α] : division_semiring αᵐᵒᵖ :=
 { nnrat_cast := λ q, op q,
   nnrat_cast_eq := λ q, by { rw [nnrat.cast_def, op_div, op_nat_cast, op_nat_cast, div_eq_mul_inv],
-    exact commute.cast_nat_right _ _ },
+    exact nat.commute_cast _ _ },
   .. mul_opposite.group_with_zero α, .. mul_opposite.semiring α }
 
 instance [division_ring α] : division_ring αᵐᵒᵖ :=
@@ -55,11 +55,11 @@ namespace add_opposite
 
 instance [division_semiring α] : division_semiring αᵃᵒᵖ :=
 { nnrat_cast := λ q, op q,
-  nnrat_cast_eq := λ q, by { rw [nnrat.cast_def, op_div, op_nat_cast, op_nat_cast], convert rfl, },
+  nnrat_cast_eq := λ q, by { rw [nnrat.cast_def, op_div, op_nat_cast, op_nat_cast] },
   ..add_opposite.group_with_zero α, ..add_opposite.semiring α, ..add_opposite.has_nnrat_cast _ }
 
 instance [division_ring α] : division_ring αᵃᵒᵖ :=
-{ ..add_opposite.group_with_zero α, ..add_opposite.ring α }
+{ ..add_opposite.division_semiring α, ..add_opposite.ring α }
 
 instance [semifield α] : semifield αᵃᵒᵖ :=
 { ..add_opposite.division_semiring α, ..add_opposite.comm_semiring α }

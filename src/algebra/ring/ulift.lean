@@ -16,6 +16,8 @@ This file defines instances for ring, semiring and related structures on `ulift`
 We also provide `ulift.ring_equiv : ulift R ≃+* R`.
 -/
 
+open_locale nnrat
+
 universes u v
 variables {α : Type u} {x y : ulift.{v} α}
 
@@ -103,25 +105,18 @@ instance comm_ring [comm_ring α] : comm_ring (ulift α) :=
 by refine_struct { .. ulift.ring };
 tactic.pi_instance_derive_field
 
-instance [has_rat_cast α] : has_rat_cast (ulift α) :=
-⟨λ a, ulift.up (coe a)⟩
+instance [has_nnrat_cast α] : has_nnrat_cast (ulift α) := ⟨λ a, up a⟩
+instance [has_rat_cast α] : has_rat_cast (ulift α) := ⟨λ a, up a⟩
 
-@[simp] lemma rat_cast_down [has_rat_cast α] (n : ℚ) : ulift.down (n : ulift α) = n :=
+@[simp, norm_cast] lemma up_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : up (q : α) = q := rfl
+@[simp, norm_cast] lemma up_rat_cast [has_rat_cast α] (q : ℚ) : up (q : α) = q := rfl
+@[simp, norm_cast] lemma down_nnrat_cast [has_nnrat_cast α] (q : ℚ≥0) : down (q : ulift α) = q :=
 rfl
+@[simp, norm_cast] lemma down_rat_cast [has_rat_cast α] (q : ℚ) : down (q : ulift α) = q := rfl
 
 instance field [field α] : field (ulift α) :=
-begin
-  have of_rat_mk : ∀ a b h1 h2, ((⟨a, b, h1, h2⟩ : ℚ) : ulift α) = ↑a * (↑b)⁻¹,
-  { intros a b h1 h2,
-    ext,
-    rw [rat_cast_down, mul_down, inv_down, nat_cast_down, int_cast_down],
-    exact field.rat_cast_mk a b h1 h2 },
-  refine_struct { zero := (0 : ulift α), inv := has_inv.inv, div := has_div.div,
-  zpow := λ n a, ulift.up (a.down ^ n), rat_cast := coe, rat_cast_mk := of_rat_mk, qsmul := (•),
-  .. @ulift.nontrivial α _, .. ulift.comm_ring }; tactic.pi_instance_derive_field,
-  -- `mul_inv_cancel` requires special attention: it leaves the goal `∀ {a}, a ≠ 0 → a * a⁻¹ = 1`.
-  cases a,
-  tauto
-end
+down_injective.field _ rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _, rfl) (λ _, rfl) (λ _, rfl) (λ _, rfl)
 
 end ulift

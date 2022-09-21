@@ -2168,6 +2168,23 @@ optimal_parameter_strict_anti.lt_iff_lt
 lemma optimal_parameter_le_iff {l m : ℕ} : optimal_parameter l ≤ optimal_parameter m ↔ m ≼ l :=
 optimal_parameter_strict_anti.le_iff_le
 
+lemma doesnt_have_earlier_cycle {l m : ℕ} (hl : l ≠ 0) (h : l ≺ m) :
+  ∀ x ∈ Icc (0 : ℝ) 1, minimal_period (tent_map (optimal_parameter m)) x ≠ l :=
+begin
+  intros x hx hl',
+  obtain ⟨O, hO, hx, hO', hO''⟩ := exists_cycle_of_minimal_period
+    (tent_map_maps_to' (optimal_parameter_mem _).1 (optimal_parameter_mem _).2) hx hl hl',
+  have : (O : set ℝ) ⊆ Ico 0 (optimal_parameter m),
+  { refine has_other_cycle _ hO _,
+    intro h',
+    have : l ≠ m := h.ne,
+    apply this,
+    rw [←hO', ←(hO _ h').2, has_cycle_at],
+    exact sharkovsky.ne_zero_of_ge_ne_zero h.le hl },
+  refine ((has_cycle_iff hl (optimal_parameter_mem _).2).2 ⟨O, hO, hO', this⟩).not_lt _,
+  exact optimal_parameter_lt h,
+end
+
 noncomputable def optimal_parameter_infty : ℝ := supr (λ i : ℕ, optimal_parameter (2 ^ i))
 
 lemma optimal_parameter_infty_gt (i : ℕ) : optimal_parameter (2 ^ i) < optimal_parameter_infty :=
@@ -2289,10 +2306,20 @@ begin
     simp only [mem_Ici, le_bot_iff, sharkovsky.of_nat_eq_bot_iff] at hs,
     simp only [mem_Ici, sharkovsky.to_nat_of_nat, mem_image, sharkovsky.of_nat_inj,
       exists_eq_right, mem_minimal_periods_on],
+    split,
+    { intro h,
+      exact ⟨(sharkovsky.ne_zero_of_ge_ne_zero h hs).bot_lt, has_later_cycle hs h⟩ },
+    rintro ⟨hm, x, hx, hx'⟩,
+    by_contra',
+    exact doesnt_have_earlier_cycle hm.ne' this _ hx hx' },
+  { refine ⟨tent_map optimal_parameter_infty, tent_map_continuous.continuous_on, _, _⟩,
+    { exact tent_map_maps_to' optimal_parameter_infty_mem_Icc.1 optimal_parameter_infty_mem_Icc.2 },
+    ext m,
+    split,
+    {
 
-
-
-  }
+    },
+  },
 end
 
 theorem sharkovsky_compact {s : set sharkovsky} (hs : sharkovsky.of_nat 0 ∉ s)

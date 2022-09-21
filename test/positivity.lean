@@ -1,5 +1,6 @@
 import algebra.order.smul
 import analysis.normed.group.basic
+import data.complex.exponential
 import data.real.sqrt
 import tactic.positivity
 
@@ -95,6 +96,8 @@ example : 0 ≤ max (-3 : ℤ) 5 := by positivity
 
 example {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [smul_with_zero α β]
   [ordered_smul α β] {a : α} (ha : 0 < a) {b : β} (hb : 0 < b) : 0 ≤ a • b := by positivity
+
+example {r : ℝ} : 0 < real.exp r := by positivity
 
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 

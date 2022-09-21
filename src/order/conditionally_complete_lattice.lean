@@ -235,8 +235,6 @@ instance (α : Type*) [conditionally_complete_linear_order α] :
 
 end order_dual
 
-#where
-
 def conditionally_complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   [H2 : has_Sup α]
   (bdd_above_pair : ∀ a b : α, bdd_above ({a, b} : set α))
@@ -300,6 +298,24 @@ def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
     (nonempty.bdd_below_upper_bounds ⟨a, ha⟩) hs).2 (λ b hb, hb ha),
   cSup_le := λ s a hs ha, (is_glb_Inf (upper_bounds s) hs.bdd_below_upper_bounds ⟨a, ha⟩).1 ha,
   .. H1, .. H2 }
+
+def conditionally_complete_lattice_of_lattice_of_Sup (α : Type*) [H1 : lattice α]
+  [H2 : has_Sup α]
+  (is_lub_Sup : ∀ s : set α, bdd_above s → s.nonempty → is_lub s (Sup s)) :
+  conditionally_complete_lattice α :=
+conditionally_complete_lattice_of_Sup α
+  (λ a b, ⟨a ⊔ b, forall_insert_of_forall (forall_eq.mpr le_sup_right) le_sup_left⟩)
+  (λ a b, ⟨a ⊓ b, forall_insert_of_forall (forall_eq.mpr inf_le_right) inf_le_left⟩)
+  is_lub_Sup
+
+def conditionally_complete_lattice_of_lattice_of_Inf (α : Type*) [H1 : lattice α]
+  [H2 : has_Inf α]
+  (is_glb_Inf : ∀ s : set α, bdd_below s → s.nonempty → is_glb s (Inf s)) :
+  conditionally_complete_lattice α :=
+conditionally_complete_lattice_of_Inf α
+  (λ a b, ⟨a ⊔ b, forall_insert_of_forall (forall_eq.mpr le_sup_right) le_sup_left⟩)
+  (λ a b, ⟨a ⊓ b, forall_insert_of_forall (forall_eq.mpr inf_le_right) inf_le_left⟩)
+  is_glb_Inf
 
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}

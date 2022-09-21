@@ -19,7 +19,7 @@ TODO: the `encoding`'s used in `src/computability` should be to trees.
 
 ## Main declarations
 
-* `encodable α`: States that there exists an explicit encoding function `encode : α → unit_tree`
+* `tencodable α`: States that there exists an explicit encoding function `encode : α → unit_tree`
    with a partial inverse `decode : unit_tree → option α`.
 
 -/

@@ -125,6 +125,11 @@ abbreviation non_nil : unit_tree := node nil nil
 | nil := 1
 | (node a b) := a.leaves + b.leaves
 
+/-- The height - length of the longest path - of a binary tree -/
+@[simp] def height : unit_tree → ℕ
+| nil := 0
+| (node a b) := max a.height b.height + 1
+
 lemma leaves_eq_internal_nodes_succ (x : unit_tree) :
   x.leaves = x.nodes + 1 :=
 by { induction x; simp [*, nat.add_comm, nat.add_assoc, nat.add_right_comm], }

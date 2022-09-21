@@ -158,7 +158,7 @@ circle. -/
 lemma finrank_real_complex_fact : fact (finrank ℝ ℂ = 2) := ⟨finrank_real_complex⟩
 
 /-- The standard orientation on `ℂ`. -/
-protected def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
+protected noncomputable def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
 
 end complex
 

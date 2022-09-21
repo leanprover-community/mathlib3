@@ -34,7 +34,7 @@ eq_univ_of_forall e.surjective
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ λ x, mem_image_iff_of_inverse e.left_inv e.right_inv
 
-lemma _root_.set.mem_image_equiv {α β} {S : set α} {f : α ≃ β} {x : β} :
+lemma _root_.set.mem_imageuiv {α β} {S : set α} {f : α ≃ β} {x : β} :
   x ∈ f '' S ↔ f.symm x ∈ S :=
 set.ext_iff.mp (f.image_eq_preimage S) x
 

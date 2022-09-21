@@ -1271,7 +1271,7 @@ lemma smul_mem_smul_set_iff : a • x ∈ a • s ↔ x ∈ s := (mul_action.inj
 
 @[to_additive]
 lemma mem_smul_set_iff_inv_smul_mem : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
-show x ∈ mul_action.to_perm a '' A ↔ _, from mem_image_equiv
+show x ∈ mul_action.to_perm a '' A ↔ _, from mem_imageuiv
 
 @[to_additive]
 lemma mem_inv_smul_set_iff : x ∈ a⁻¹ • A ↔ a • x ∈ A :=

@@ -603,7 +603,7 @@ le_antisymm (closure_le.2 h₁) h₂
 
 lemma mem_map_equiv {f : R ≃+* S} {K : subsemiring R} {x : S} :
   x ∈ K.map (f : R →+* S) ↔ f.symm x ∈ K :=
-@set.mem_image_equiv _ _ ↑K f.to_equiv x
+@set.mem_imageuiv _ _ ↑K f.to_equiv x
 
 lemma map_equiv_eq_comap_symm (f : R ≃+* S) (K : subsemiring R) :
   K.map (f : R →+* S) = K.comap f.symm :=

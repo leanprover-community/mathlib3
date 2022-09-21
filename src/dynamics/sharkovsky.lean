@@ -1056,8 +1056,8 @@ begin
       linarith },
     have hk' : k ≠ 0, by linarith,
     have : k < n + 1,
-    { refine zero_lt.lt_of_mul_lt_mul_left' _ two_pos,
-      rwa ←hk },
+    { have : 2 * k < 2 * (n + 1), by rwa ←hk,
+      refine lt_of_mul_lt_mul_left' this },
     obtain ⟨u', hu'₁, hu'₂⟩ := (ih (n + 1 - k) (nat.sub_pos_of_lt ‹_›).ne' (nat.sub_le _ _)).2,
     have : u' ∈ Icc (f^[2 * k] c) (f^[2 * k] d),
     { rw [hd₅ (2 * k) (by simp [hk']) (by simp), hk.is_periodic_pt.eq],
@@ -1815,7 +1815,7 @@ begin
   rw [tent_map_periodic_pt_in hk _ (Ico_subset_Icc_self h'), h],
 end
 
-noncomputable def tent_map_periodic_pts_rat (n : ℕ) : finset ℚ :=
+def tent_map_periodic_pts_rat (n : ℕ) : finset ℚ :=
 (finset.range (2 ^ n)).image (λ k, if even k then k / (2 ^ n - 1) else (k + 1) / (2 ^ n + 1))
 
 lemma mem_tent_map_periodic_pts_rat_iff {n : ℕ} {x : ℚ} :
@@ -1895,7 +1895,7 @@ begin
   exact hq.1
 end
 
-noncomputable def tent_map_periodic_pts (n : ℕ) : finset ℝ :=
+def tent_map_periodic_pts (n : ℕ) : finset ℝ :=
 (tent_map_periodic_pts_rat n).map ⟨(coe : ℚ → ℝ), rat.cast_injective⟩
 
 lemma tent_map_periodic_pts_subset {n : ℕ} : ↑(tent_map_periodic_pts n) ⊆ Icc (0 : ℝ) 1 :=

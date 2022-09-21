@@ -894,7 +894,7 @@ lemma compl_set_of {α} (p : α → Prop) : {a | p a}ᶜ = { a | ¬ p a } := rfl
 
 theorem not_mem_of_mem_compl {s : set α} {x : α} (h : x ∈ sᶜ) : x ∉ s := h
 
-@[simp] theorem mem_compl_iff (s : set α) (x : α) : x ∈ sᶜ = (x ∉ s) := rfl
+@[simp] theorem mem_compl_iff (s : set α) (x : α) : x ∈ sᶜ ↔ (x ∉ s) := iff.rfl
 
 lemma not_mem_compl_iff {x : α} : x ∉ sᶜ ↔ x ∈ s := not_not
 

@@ -864,8 +864,7 @@ begin
   apply pow_root_multiplicity_dvd,
 end
 
-lemma count_map_roots [is_domain A] {p : A[X]} {f : A →+* B}
-  (hmap : map f p ≠ 0) (b : B) :
+lemma count_map_roots [is_domain A] {p : A[X]} {f : A →+* B} (hmap : map f p ≠ 0) (b : B) :
   (p.roots.map f).count b ≤ root_multiplicity b (p.map f) :=
 begin
   rw [le_root_multiplicity_iff hmap, ← multiset.prod_repeat, ← multiset.map_repeat (λ a, X - C a)],
@@ -899,11 +898,11 @@ begin
   exact map_roots_le ((polynomial.map_ne_zero_iff hf).mpr hp0),
 end
 
-lemma card_roots_le_map [is_domain A] [is_domain B] (p : A[X]) {f : A →+* B} (h : p.map f ≠ 0) :
+lemma card_roots_le_map [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B} (h : p.map f ≠ 0) :
   p.roots.card ≤ (p.map f).roots.card :=
 by { rw ← p.roots.card_map f, exact multiset.card_le_of_le (map_roots_le h) }
 
-lemma roots_map_of_injective_card_eq_total_degree [is_domain A] [is_domain B] {p : A[X]}
+lemma roots_map_of_injective_of_card_eq_nat_degree [is_domain A] [is_domain B] {p : A[X]}
   {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :
   p.roots.map f = (p.map f).roots :=
 begin

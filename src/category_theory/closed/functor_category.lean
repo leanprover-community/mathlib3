@@ -17,19 +17,19 @@ noncomputable theory
 open category_theory
 open category_theory.monoidal_category
 
-namespace category_theory.monoidal_closed
+namespace category_theory.functor
 
 variables {C D : Type*} [groupoid D] [category C] [monoidal_category C] [monoidal_closed C]
 
 /-- Auxiliary definition for `category_theory.monoidal_closed.functor_closed`.
 The internal hom functor `F ⟶[C] -` -/
-@[simps] def functor_closed_ihom (F : D ⥤ C) : (D ⥤ C) ⥤ (D ⥤ C) :=
+@[simps] def closed_ihom (F : D ⥤ C) : (D ⥤ C) ⥤ (D ⥤ C) :=
 ((whiskering_right₂ D Cᵒᵖ C C).obj internal_hom).obj (groupoid.inv_functor D ⋙ F.op)
 
 /-- Auxiliary definition for `category_theory.monoidal_closed.functor_closed`.
 The unit for the adjunction `(tensor_left F) ⊣ (ihom F)`. -/
 @[simps]
-def functor_closed_unit (F : D ⥤ C) : 𝟭 (D ⥤ C) ⟶ (tensor_left F) ⋙ (functor_closed_ihom F) :=
+def closed_unit (F : D ⥤ C) : 𝟭 (D ⥤ C) ⟶ (tensor_left F) ⋙ (functor_closed_ihom F) :=
 { app := λ G,
   { app := λ X, (ihom.coev (F.obj X)).app (G.obj X),
     naturality' := begin
@@ -44,7 +44,7 @@ def functor_closed_unit (F : D ⥤ C) : 𝟭 (D ⥤ C) ⟶ (tensor_left F) ⋙ (
 /-- Auxiliary definition for `category_theory.monoidal_closed.functor_closed`.
 The counit for the adjunction `(tensor_left F) ⊣ (ihom F)`. -/
 @[simps]
-def functor_closed_counit (F : D ⥤ C) : (functor_closed_ihom F) ⋙ (tensor_left F) ⟶ 𝟭 (D ⥤ C) :=
+def closed_counit (F : D ⥤ C) : (functor_closed_ihom F) ⋙ (tensor_left F) ⟶ 𝟭 (D ⥤ C) :=
 { app := λ G,
   { app := λ X, (ihom.ev (F.obj X)).app (G.obj X),
     naturality' := begin
@@ -57,7 +57,7 @@ def functor_closed_counit (F : D ⥤ C) : (functor_closed_ihom F) ⋙ (tensor_le
 
 /-- If `C` is a monoidal closed category and `D` is groupoid, then every functor `F : D ⥤ C` is
 closed in the functor category `F : D ⥤ C` with the pointwise monoidal structure. -/
-@[simps] instance functor_closed (F : D ⥤ C) : closed F :=
+@[simps] instance closed (F : D ⥤ C) : closed F :=
 { is_adj :=
   { right := functor_closed_ihom F,
     adj := adjunction.mk_of_unit_counit
@@ -66,7 +66,7 @@ closed in the functor category `F : D ⥤ C` with the pointwise monoidal structu
 
 /-- If `C` is a monoidal closed category and `D` is groupoid, then the functor category `D ⥤ C`,
 with the pointwise monoidal structure, is monoidal closed. -/
-@[simps] instance functor_category : monoidal_closed (D ⥤ C) :=
+@[simps] instance monoidal_closed : monoidal_closed (D ⥤ C) :=
 { closed' := by apply_instance }
 
 end category_theory.monoidal_closed

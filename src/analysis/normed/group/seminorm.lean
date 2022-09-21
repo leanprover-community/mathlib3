@@ -128,6 +128,12 @@ by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 @[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
 by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
 
+@[to_additive] lemma abs_sub_map_le_div : |f x - f y| ≤ f (x / y) :=
+begin
+  rw [abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
+  exact ⟨le_map_add_map_div _ _ _, le_map_add_map_div' _ _ _⟩
+end
+
 end group_seminorm_class
 
 @[to_additive, priority 100] -- See note [lower instance priority]

@@ -2109,15 +2109,13 @@ omit 𝕜
 instance inner_product_space.complex_to_real [inner_product_space ℂ G] : inner_product_space ℝ G :=
 inner_product_space.is_R_or_C_to_real ℂ G
 
-@[simp] protected lemma complex.inner_one_left (z : ℂ) : ⟪1, z⟫_ℝ = z.re := rfl
-
-@[simp] protected lemma complex.inner_I_left (z : ℂ) : ⟪I, z⟫_ℝ = z.im := rfl
-
-@[simp] protected lemma complex.inner_one_right (z : ℂ) : ⟪z, 1⟫_ℝ = z.re := rfl
-
-@[simp] protected lemma complex.inner_I_right (z : ℂ) : ⟪z, I⟫_ℝ = z.im := rfl
-
 @[simp] protected lemma complex.inner (w z : ℂ) : ⟪w, z⟫_ℝ = (conj w * z).re := rfl
+
+/-- The inner product on an inner product space of dimension 2 can be evaluated in terms
+of a complex-number representation of the space. -/
+lemma inner_map_complex [inner_product_space ℂ G] (f : G ≃ₗᵢ[ℝ] ℂ) (x y : E) :
+  ⟪x, y⟫ = (conj (f x) * f y).re :=
+by rw [← complex.inner, f.inner_map_map]
 
 end is_R_or_C_to_real
 

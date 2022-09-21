@@ -441,6 +441,18 @@ calc α ≃ Σ L : α ⧸ s, {x : α // (x : α ⧸ s) = L} :
 
 variables {t : subgroup α}
 
+/-- If two subgroups `M` and `N` of `G` are equal, their quotients are in bijection. -/
+@[to_additive "If two subgroups `M` and `N` of `G` are equal, their quotients are in bijection."]
+def quotient_equiv_of_eq (h : s = t) : α ⧸ s ≃ α ⧸ t :=
+{ to_fun := quotient.map' id (λ a b h', h ▸ h'),
+  inv_fun := quotient.map' id (λ a b h', h.symm ▸ h'),
+  left_inv := λ q, induction_on' q (λ g, rfl),
+  right_inv := λ q, induction_on' q (λ g, rfl) }
+
+lemma quotient_equiv_of_eq_mk (h : s = t) (a : α) :
+  quotient_equiv_of_eq h (quotient_group.mk a) = (quotient_group.mk a) :=
+rfl
+
 /-- If `H ≤ K`, then `G/H ≃ G/K × K/H` constructively, using the provided right inverse
 of the quotient map `G → G/K`. The classical version is `quotient_equiv_prod_of_le`. -/
 @[to_additive "If `H ≤ K`, then `G/H ≃ G/K × K/H` constructively, using the provided right inverse
@@ -485,10 +497,8 @@ quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
 def quotient_subgroup_of_embedding_of_le (H : subgroup α) (h : s ≤ t) :
   s ⧸ H.subgroup_of s ↪ t ⧸ H.subgroup_of t :=
 { to_fun := quotient.map' (inclusion h) (λ a b, by { simp_rw left_rel_eq, exact id }),
-  inj' := quotient.ind₂' begin
-    intros a b h,
-    simpa only [quotient.map'_mk', quotient_group.eq'] using h,
-  end }
+  inj' := quotient.ind₂' $ by
+  { intros a b h, simpa only [quotient.map'_mk', quotient_group.eq'] using h } }
 
 @[simp, to_additive]
 lemma quotient_subgroup_of_embedding_of_le_apply_mk (H : subgroup α) (h : s ≤ t) (g : s) :
@@ -496,31 +506,26 @@ lemma quotient_subgroup_of_embedding_of_le_apply_mk (H : subgroup α) (h : s ≤
     quotient_group.mk (inclusion h g) :=
 rfl
 
-/-- If `s ≤ t`, then there is an map `H ⧸ s.subgroup_of H ↪ H ⧸ t.subgroup_of H`. -/
+/-- If `s ≤ t`, then there is a map `H ⧸ s.subgroup_of H → H ⧸ t.subgroup_of H`. -/
 @[to_additive "If `s ≤ t`, then there is an map
-  `H ⧸ s.add_subgroup_of H ↪ H ⧸ t.add_subgroup_of H`."]
+  `H ⧸ s.add_subgroup_of H → H ⧸ t.add_subgroup_of H`."]
 def quotient_subgroup_of_map_of_le (H : subgroup α) (h : s ≤ t) :
   H ⧸ s.subgroup_of H → H ⧸ t.subgroup_of H :=
-quotient.map' id (λ a b, by { simp_rw left_rel_eq, apply h })
+quotient.map' id (λ a b, by { simp_rw [left_rel_eq], apply h })
 
 @[simp, to_additive]
 lemma quotient_subgroup_of_map_of_le_apply_mk (H : subgroup α) (h : s ≤ t) (g : H) :
   quotient_subgroup_of_map_of_le H h (quotient_group.mk g) = quotient_group.mk g :=
 rfl
 
-/-- There is an embedding `H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H`. -/
+/-- The natural embedding `H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H`. -/
 @[to_additive "There is an embedding
   `H ⧸ (⨅ i, f i).add_subgroup_of H) ↪ Π i, H ⧸ (f i).add_subgroup_of H`."]
 def quotient_infi_embedding {ι : Type*} (f : ι → subgroup α) (H : subgroup α) :
   H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H :=
 { to_fun := λ q i, quotient_subgroup_of_map_of_le H (infi_le f i) q,
-  inj' := quotient.ind₂' begin
-    intros a b h,
-    rw [quotient_group.eq', mem_subgroup_of, mem_infi],
-    intro i,
-    replace h := congr_fun h i,
-    rwa [←mem_subgroup_of, ←quotient_group.eq'],
-  end }
+  inj' := quotient.ind₂' $ by simp_rw [funext_iff, quotient_subgroup_of_map_of_le_apply_mk,
+    quotient_group.eq', mem_subgroup_of, mem_infi, imp_self, forall_const] }
 
 @[simp, to_additive] lemma quotient_infi_embedding_apply_mk
   {ι : Type*} (f : ι → subgroup α) (H : subgroup α) (g : H) (i : ι) :

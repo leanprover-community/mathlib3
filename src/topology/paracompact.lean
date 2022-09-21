@@ -34,7 +34,7 @@ We also prove the following facts.
   the instance graph.
 
 * Every `emetric_space` is a paracompact space, see instance `emetric_space.paracompact_space` in
-  `topology/metric_space/emetric_space`.
+  `topology/metric_space/emetric_paracompact`.
 
 ## TODO
 

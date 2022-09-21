@@ -443,6 +443,7 @@ variables [has_measurable_add₂ G] [has_measurable_neg G] [sigma_finite μ] [is
 lemma measure_theory.integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
   integrable (f ⋆[L, μ] g) μ :=
 (hf.convolution_integrand L hg).integral_prod_left
+
 end
 
 variables [topological_space G]
@@ -780,9 +781,23 @@ variables {k : G → E''}
 variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
 variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
 variables (L₄ : E' →L[𝕜] E'' →L[𝕜] F'')
-variables [add_group G] [has_measurable_add G]
+variables [add_group G]
 variables [sigma_finite μ]
-variables {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
+
+lemma integral_convolution
+  [has_measurable_add₂ G] [has_measurable_neg G] [is_add_right_invariant μ]
+  [normed_space ℝ E] [normed_space ℝ E']
+  [complete_space E] [complete_space E']
+  (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ x, (f ⋆[L, μ] g) x ∂μ = L (∫ x, f x ∂μ) (∫ x, g x ∂μ) :=
+begin
+  refine (integral_integral_swap (by apply hf.convolution_integrand L hg)).trans _,
+  simp_rw [integral_comp_comm _ (hg.comp_sub_right _), integral_sub_right_eq_self],
+  exact (L.flip (∫ x, g x ∂μ)).integral_comp_comm hf,
+end
+
+variables [has_measurable_add G] {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
+
 
 /-- Convolution is associative.
 To do: prove that `hi` follows from simpler conditions. -/

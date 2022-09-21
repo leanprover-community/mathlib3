@@ -673,8 +673,7 @@ begin
   exact @preconnected_space.trivial_of_discrete _ _ (subtype.preconnected_space h.2) _
 end
 
-@[priority 5]
-instance connected_space.infinite [connected_space α] [nontrivial α] [t1_space α] : infinite α :=
+lemma connected_space.infinite [connected_space α] [nontrivial α] [t1_space α] : infinite α :=
 infinite_univ_iff.mp $ is_connected_univ.infinite_of_nontrivial nontrivial_univ
 
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]

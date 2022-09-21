@@ -29,10 +29,10 @@ namespace interactive
 setup_tactic_parser
 
 /-- `wlog h : P` will add an assumption `h : P` to the main goal,
-and add a new goal that requires showing that the case `h : ¬ P` can be reduced to the case
+and add a side goal that requires showing that the case `h : ¬ P` can be reduced to the case
 where `P` holds (typically by symmetry).
 
-The new goal will be at the top of the stack. In the new goal, there will be two assumptions:
+The side goal will be at the top of the stack. In this side goal, there will be two assumptions:
 - `h : ¬ P`: the assumption that `P` does not hold
 - `this`: which is the statement that in the old context `P` suffices to prove the goal.
   By default, the name `this` is used, but the idiom `with H` can be added to specify the name:
@@ -48,11 +48,13 @@ meta def wlog (H : parse ident) (t : parse (tk ":" *> texpr))
   (revert : parse ((tk "generalizing" *> ((none <$ tk "*") <|> some <$> ident*)) <|> pure none))
   (h : parse (tk "with" *> ident)?) :
   tactic unit := do
-  -- if there is no `with` clause, use the `this` as default name
+  -- if there is no `with` clause, use `this` as default name
   let h := h.get_or_else `this,
   t ← i_to_expr ``(%%t : Sort*),
+  -- compute which constants must be reverted (by default: everything)
   (num_generalized, goal, rctx) ← retrieve (do
     assert_core H t, swap,
+    -- use `revert_lst'` to ensure that the order of local constants in the context is preserved
     num_generalized ← match revert with
     | none := revert_all
     | some revert := prod.fst <$> (revert.mmap tactic.get_local >>= revert_lst')
@@ -66,6 +68,7 @@ meta def wlog (H : parse ident) (t : parse (tk ":" *> texpr))
   (take_pi_args num_generalized goal).reverse.mmap' $ λ h,
     try (tactic.get_local h >>= tactic.clear),
   intron (num_generalized + 1),
+  -- prove the easy branch of the side goal
   swap,
   tactic.by_cases t H,
   H ← tactic.get_local H,

@@ -40,10 +40,10 @@ open_locale real real_inner_product_space complex_conjugate
 namespace orientation
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
+local attribute [instance] complex.finrank_real_complex_fact
 
 variables {V V' : Type*} [inner_product_space ℝ V] [inner_product_space ℝ V']
 variables [fact (finrank ℝ V = 2)] [fact (finrank ℝ V' = 2)] (o : orientation ℝ V (fin 2))
--- include o
 
 local notation `ω` := o.area_form
 local notation `J` := o.right_angle_rotation
@@ -574,10 +574,17 @@ by ext; simp [o.rotation_apply, o.rotation_symm_apply, sub_eq_add_neg]
 by ext; simp [rotation]
 
 /-- Rotation by π is negation. -/
-lemma rotation_pi : o.rotation π = linear_isometry_equiv.neg ℝ :=
+@[simp] lemma rotation_pi : o.rotation π = linear_isometry_equiv.neg ℝ :=
 begin
   ext x,
   simp [rotation]
+end
+
+/-- Rotation by π / 2 is the "right-angle-rotation" map `J`. -/
+lemma rotation_pi_div_two : o.rotation (π / 2 : ℝ) = J :=
+begin
+  ext x,
+  simp [rotation],
 end
 
 /-- Rotating twice is equivalent to rotating by the sum of the angles. -/
@@ -802,13 +809,50 @@ end
 /-- The angle between two vectors, with respect to an orientation given by `orientation.map`
 with a linear isometric equivalence, equals the angle between those two vectors, transformed by
 the inverse of that equivalence, with respect to the original orientation. -/
-@[simp] lemma oangle_map (x y : V) (f : V ≃ₗᵢ[ℝ] V) :
+@[simp] lemma oangle_map (x y : V') (f : V ≃ₗᵢ[ℝ] V') :
   (orientation.map (fin 2) f.to_linear_equiv o).oangle x y = o.oangle (f.symm x) (f.symm y) :=
 by simp [oangle, o.kahler_map]
+
+@[simp] protected lemma _root_.complex.oangle (w z : ℂ) :
+  complex.orientation.oangle w z = complex.arg (conj w * z) :=
+by simp [oangle]
+
+/-- The oriented angle on an oriented real inner product space of dimension 2 can be evaluated in
+terms of a complex-number representation of the space. -/
+lemma oangle_map_complex (f : V ≃ₗᵢ[ℝ] ℂ)
+  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x y : V) :
+  o.oangle x y = complex.arg (conj (f x) * f y) :=
+begin
+  rw [← complex.oangle, ← hf, o.oangle_map],
+  simp,
+end
 
 /-- Negating the orientation negates the value of `oangle`. -/
 lemma oangle_neg_orientation_eq_neg (x y : V) : (-o).oangle x y = -(o.oangle x y) :=
 by simp [oangle]
+
+lemma rotation_map (θ : real.angle) (f : V ≃ₗᵢ[ℝ] V') (x : V') :
+  (orientation.map (fin 2) f.to_linear_equiv o).rotation θ x
+  = f (o.rotation θ (f.symm x)) :=
+by simp [rotation_apply, o.right_angle_rotation_map]
+
+@[simp] protected lemma _root_.complex.rotation (θ : real.angle) (z : ℂ) :
+  complex.orientation.rotation θ z = θ.exp_map_circle * z :=
+begin
+  simp only [rotation_apply, complex.right_angle_rotation, real.angle.coe_exp_map_circle,
+    real_smul],
+  ring
+end
+
+/-- Rotation in an oriented real inner product space of dimension 2 can be evaluated in terms of a
+complex-number representation of the space. -/
+lemma rotation_map_complex (θ : real.angle) (f : V ≃ₗᵢ[ℝ] ℂ)
+  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x : V) :
+  f (o.rotation θ x) = θ.exp_map_circle * f x :=
+begin
+  rw [← complex.rotation, ← hf, o.rotation_map],
+  simp,
+end
 
 /-- Negating the orientation negates the angle in `rotation`. -/
 lemma rotation_neg_orientation_eq_neg (θ : real.angle) :

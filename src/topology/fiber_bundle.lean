@@ -1015,8 +1015,8 @@ begin
   { ext x, simp only [mem_local_triv_as_local_equiv_target] with mfld_simps, refl, },
   { rintros ⟨x, v⟩ hx,
     simp only [triv_change, local_triv_as_local_equiv, local_equiv.symm, true_and, prod.mk.inj_iff,
-      prod_mk_mem_set_prod_eq, local_equiv.trans_source, mem_inter_iff, and_true, mem_preimage, proj,
-      mem_univ, local_equiv.coe_mk, eq_self_iff_true, local_equiv.coe_trans,
+      prod_mk_mem_set_prod_eq, local_equiv.trans_source, mem_inter_iff, and_true, mem_preimage,
+      proj, mem_univ, local_equiv.coe_mk, eq_self_iff_true, local_equiv.coe_trans,
       total_space.proj] at hx ⊢,
     simp only [Z.coord_change_comp, hx, mem_inter_iff, and_self, mem_base_set_at], }
 end

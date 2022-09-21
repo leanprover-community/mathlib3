@@ -72,7 +72,7 @@ end ordered_comm_semiring
 
 section ordered_comm_ring
 
-variables {R : Type*} [ordered_comm_ring R]
+variables {R : Type*} [strict_ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 
 namespace basis

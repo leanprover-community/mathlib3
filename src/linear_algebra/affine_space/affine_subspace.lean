@@ -23,6 +23,8 @@ This file defines affine subspaces (over modules) and the affine span of a set o
   various lemmas relating to the set of vectors in the `direction`,
   and relating the lattice structure on affine subspaces to that on
   their directions.
+* `affine_subspace.parallel`, notation `‖`, gives the property of two affine subspaces being
+  parallel (one being a translate of the other).
 * `affine_span` gives the affine subspace spanned by a set of points,
   with `vector_span` giving its direction.  `affine_span` is defined
   in terms of `span_points`, which gives an explicit description of

@@ -425,7 +425,7 @@ noncomputable instance : has_Sup (seminorm 𝕜 E) :=
 
 protected lemma coe_Sup_eq' {s : set $ seminorm 𝕜 E} (hs : bdd_above (coe_fn '' s : set (E → ℝ))) :
   coe_fn (Sup s) = ⨆ p : s, p :=
-by rw seminorm.has_Sup; unfold_projs; simp [hs]; refl
+by rw seminorm.has_Sup; unfold_projs; simp_rw [dif_pos hs]; refl
 
 protected lemma bdd_above_iff {s : set $ seminorm 𝕜 E} :
   bdd_above s ↔ bdd_above (coe_fn '' s : set (E → ℝ)) :=

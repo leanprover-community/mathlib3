@@ -426,7 +426,7 @@ end ulift
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
 instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
-{ edist := λ x y, (edist x.1 y.1) ⊔ (edist x.2 y.2),
+{ edist := λ x y, edist x.1 y.1 ⊔ edist x.2 y.2,
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
   edist_triangle := λ x y z, max_le

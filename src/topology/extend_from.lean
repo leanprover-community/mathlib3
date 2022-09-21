@@ -54,7 +54,7 @@ lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuou
 
 /-- If `f` is a function to a T₃ space `Y` which has a limit within `A` at any
 point of a set `B ⊆ closure A`, then `extend_from A f` is continuous on `B`. -/
-lemma continuous_on_extend_from [t3_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
+lemma continuous_on_extend_from [regular_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
   (hf : ∀ x ∈ B, ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : continuous_on (extend_from A f) B :=
 begin
   set φ := extend_from A f,
@@ -79,7 +79,7 @@ end
 
 /-- If a function `f` to a T₃ space `Y` has a limit within a
 dense set `A` for any `x`, then `extend_from A f` is continuous. -/
-lemma continuous_extend_from [t3_space Y] {f : X → Y} {A : set X} (hA : dense A)
+lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : dense A)
   (hf : ∀ x, ∃ y, tendsto f (𝓝[A] x) (𝓝 y)) : continuous (extend_from A f) :=
 begin
   rw continuous_iff_continuous_on_univ,

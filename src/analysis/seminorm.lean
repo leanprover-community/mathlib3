@@ -194,7 +194,7 @@ instance [semiring R] [module R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
-noncomputable instance : has_sup (seminorm 𝕜 E) :=
+instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
     smul' := λ x v, (congr_arg2 max (map_smul_eq_mul p x v) (map_smul_eq_mul q x v)).trans $
@@ -218,7 +218,7 @@ instance : partial_order (seminorm 𝕜 E) :=
 lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
-noncomputable instance : semilattice_sup (seminorm 𝕜 E) :=
+instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 
 end has_smul
@@ -321,10 +321,7 @@ begin
 end
 
 lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ∥p x - p y∥ ≤ p (x - y) :=
-begin
-  rw real.norm_eq_abs,
-  exact abs_sub_map_le_sub p x y
-end
+abs_sub_map_le_sub p x y
 
 end module
 end semi_normed_ring
@@ -347,7 +344,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {p q : seminorm
 
 /-- Auxiliary lemma to show that the infimum of seminorms is well-defined. -/
 lemma bdd_below_range_add : bdd_below (range $ λ u, p u + q (x - u)) :=
-⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg p _) (map_nonneg q _) }⟩
+⟨0, by { rintro _ ⟨x, rfl⟩, dsimp, positivity }⟩
 
 noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
@@ -357,8 +354,7 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       intros a x,
       obtain rfl | ha := eq_or_ne a 0,
       { rw [norm_zero, zero_mul, zero_smul],
-        refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-          (λ i, add_nonneg (map_nonneg p _) (map_nonneg q _))
+        refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt (λ i, by positivity)
           (λ x hx, ⟨0, by rwa [map_zero, sub_zero, map_zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←map_smul_eq_mul p,
         ←map_smul_eq_mul q, smul_sub],
@@ -572,7 +568,7 @@ protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E
 begin
   rw absorbent_iff_nonneg_lt,
   rintro x,
-  have hxr : 0 ≤ p x/r := div_nonneg (map_nonneg p _) hr.le,
+  have hxr : 0 ≤ p x / r := by positivity,
   refine ⟨p x/r, hxr, λ a ha, _⟩,
   have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
   refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,

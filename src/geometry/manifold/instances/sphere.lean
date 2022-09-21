@@ -132,7 +132,9 @@ end
 lemma has_fderiv_at_stereo_inv_fun_aux (v : E) :
   has_fderiv_at (stereo_inv_fun_aux v) (continuous_linear_map.id ℝ E) 0 :=
 begin
-  have h₀ : has_fderiv_at (λ w : E, ∥w∥ ^ 2) (0 : E →L[ℝ] ℝ) 0 := has_fderiv_at_norm_sq,
+  have h₀ : has_fderiv_at (λ w : E, ∥w∥ ^ 2) (0 : E →L[ℝ] ℝ) 0,
+  { convert (has_strict_fderiv_at_norm_sq _).has_fderiv_at,
+    simp },
   have h₁ : has_fderiv_at (λ w : E, (∥w∥ ^ 2 + 4)⁻¹) (0 : E →L[ℝ] ℝ) 0,
   { convert (has_fderiv_at_inv _).comp _ (h₀.add (has_fderiv_at_const 4 0)); simp },
   have h₂ : has_fderiv_at (λ w, (4:ℝ) • w + (∥w∥ ^ 2 - 4) • v)

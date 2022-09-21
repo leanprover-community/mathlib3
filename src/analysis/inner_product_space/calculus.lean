@@ -251,15 +251,6 @@ lemma differentiable_on.dist (hf : differentiable_on ℝ f s) (hg : differentiab
   differentiable_on ℝ (λ y, dist (f y) (g y)) s :=
 λ x hx, (hf x hx).dist (hg x hx) (hne x hx)
 
-lemma has_fderiv_at_norm_sq : has_fderiv_at (λ (x : E), ∥x∥ ^ 2) (0 : E →L[ℝ] ℝ) 0 :=
-begin
-  simp only [sq, ← inner_self_eq_norm_mul_norm],
-  convert (is_R_or_C.re_clm : 𝕜 →L[ℝ] ℝ).has_fderiv_at.comp _
-    ((has_fderiv_at_id (0:E)).inner (has_fderiv_at_id (0:E))),
-  ext x,
-  simp,
-end
-
 end deriv_inner
 
 section pi_like

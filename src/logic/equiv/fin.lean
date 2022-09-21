@@ -176,7 +176,7 @@ fin_succ_equiv_symm_some m
 lemma fin_succ_equiv'_zero {n : ℕ} :
   fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv n := rfl
 
-@[simp] lemma fin_succ_equiv'_last_apply {n : ℕ} {i : fin (n + 1)} (h : i ≠ fin.last n) :
+lemma fin_succ_equiv'_last_apply {n : ℕ} {i : fin (n + 1)} (h : i ≠ fin.last n) :
   fin_succ_equiv' (fin.last n) i =
     fin.cast_lt i (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h) : ↑i < n) :=
 begin
@@ -187,7 +187,7 @@ begin
   exact h'
 end
 
-@[simp] lemma fin_succ_equiv'_ne_last_apply {i j : fin (n + 1)} (hi : i ≠ fin.last n)
+lemma fin_succ_equiv'_ne_last_apply {i j : fin (n + 1)} (hi : i ≠ fin.last n)
   (hj : j ≠ i) :
   fin_succ_equiv' i j = (i.cast_lt (lt_of_le_of_ne (fin.le_last _)
                                      (fin.coe_injective.ne_iff.2 hi) : ↑i < n)).pred_above j :=
@@ -210,11 +210,11 @@ def fin_succ_above_equiv (p : fin (n + 1)) : fin n ≃o {x : fin (n + 1) // x �
 { map_rel_iff' := λ _ _, p.succ_above.map_rel_iff',
   ..equiv.option_subtype p ⟨(fin_succ_equiv' p).symm, rfl⟩ }
 
-@[simp] lemma fin_succ_above_equiv_apply (p : fin (n + 1)) (i : fin n) :
+lemma fin_succ_above_equiv_apply (p : fin (n + 1)) (i : fin n) :
   fin_succ_above_equiv p i = ⟨p.succ_above i, p.succ_above_ne i⟩ :=
 rfl
 
-@[simp] lemma fin_succ_above_equiv_symm_apply_last (x : {x : fin (n + 1) // x ≠ fin.last n}) :
+lemma fin_succ_above_equiv_symm_apply_last (x : {x : fin (n + 1) // x ≠ fin.last n}) :
   (fin_succ_above_equiv (fin.last n)).symm x =
     fin.cast_lt (x : fin (n + 1))
                 (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 x.property)) :=
@@ -223,7 +223,7 @@ begin
   simpa [fin_succ_above_equiv, order_iso.symm] using fin_succ_equiv'_last_apply x.property,
 end
 
-@[simp] lemma fin_succ_above_equiv_symm_apply_ne_last {p : fin (n + 1)} (h : p ≠ fin.last n)
+lemma fin_succ_above_equiv_symm_apply_ne_last {p : fin (n + 1)} (h : p ≠ fin.last n)
   (x : {x : fin (n + 1) // x ≠ p}) : (fin_succ_above_equiv p).symm x =
     (p.cast_lt (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h))).pred_above x :=
 begin

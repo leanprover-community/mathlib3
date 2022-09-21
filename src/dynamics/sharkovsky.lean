@@ -332,10 +332,10 @@ namespace sharkovsky
 
 lemma of_nat_iff {n m : ℕ} : n ≼ m ↔ soa (to_pair n) (to_pair m) := iff.rfl
 
-@[simp] lemma le_one (n : ℕ) : n ≼ 1 :=
+lemma le_one (n : ℕ) : n ≼ 1 :=
 by { rw [of_nat_iff, to_pair_one], exact soa_one_right (to_pair n) }
 
-@[simp] lemma zero_le (n : ℕ) : 0 ≼ n :=
+lemma zero_le (n : ℕ) : 0 ≼ n :=
 by { rw [of_nat_iff, to_pair_zero], exact soa.zero_le }
 
 instance : bounded_order sharkovsky :=
@@ -351,9 +351,8 @@ instance : bounded_order sharkovsky :=
 @[simp] lemma of_nat_eq_top_iff {n : ℕ} : of_nat n = ⊤ ↔ n = 1 := iff.rfl
 @[simp] lemma of_nat_eq_bot_iff {n : ℕ} : of_nat n = ⊥ ↔ n = 0 := iff.rfl
 
-@[simp] lemma le_zero_iff (n : ℕ) : n ≼ 0 ↔ n = 0 := le_bot_iff
-
-@[simp] lemma one_le_iff (n : ℕ) : 1 ≼ n ↔ n = 1 := top_le_iff
+lemma le_zero_iff (n : ℕ) : n ≼ 0 ↔ n = 0 := le_bot_iff
+lemma one_le_iff (n : ℕ) : 1 ≼ n ↔ n = 1 := top_le_iff
 
 lemma eq_one_or_three_le_of_odd : ∀ {n : ℕ}, odd n → n = 1 ∨ 3 ≤ n
 | _ ⟨0, rfl⟩ := or.inl rfl
@@ -2120,7 +2119,7 @@ begin
   { exact hO.2.1.symm },
 end
 
-lemma has_other_cycle {m : ℕ} (O : finset ℝ)
+lemma has_other_cycle {m : ℕ} {O : finset ℝ}
   (hO : O.is_cycle (tent_map (optimal_parameter m))) (hO' : optimal_parameter m ∉ O) :
   ↑O ⊆ Ico 0 (optimal_parameter m) :=
 begin
@@ -2130,6 +2129,16 @@ begin
     exact ⟨(hO'' hx).1, (this _ hx).lt_of_ne (ne_of_mem_of_not_mem hx hO')⟩ },
   intros x hx,
   exact (tent_map_cycle_subset' hO hx).2,
+end
+
+lemma has_other_cycle' {m : ℕ} (hm : m ≠ 0) {O : finset ℝ}
+  (hO : O.is_cycle (tent_map (optimal_parameter m))) (hO' : O.card ≠ m) :
+  ↑O ⊆ Ico 0 (optimal_parameter m) :=
+begin
+  refine has_other_cycle hO _,
+  intros hm,
+  apply hO',
+  rwa [←(hO _ hm).2, has_cycle_at],
 end
 
 lemma has_later_cycle {l m : ℕ} (hm : m ≠ 0) (hlm : m ≼ l) :
@@ -2153,10 +2162,23 @@ begin
   rw has_cycle_iff hl (optimal_parameter_mem _).2,
   obtain ⟨O, hO, hO', hO'', hO'''⟩ := exists_cycle_of_minimal_period
     (tent_map_maps_to' (optimal_parameter_mem _).1 (optimal_parameter_mem _).2) hx hl hx',
-  refine ⟨O, hO, hO'', has_other_cycle O hO _⟩,
+  refine ⟨O, hO, hO'', has_other_cycle hO _⟩,
   intro h,
   apply this,
   rw [←hO'', ←(hO _ h).2, has_cycle_at hm],
+end
+
+lemma doesnt_have_earlier_cycle {l m : ℕ} (hl : l ≠ 0) (hlm : l ≺ m) :
+  ∀ x ∈ Icc (0 : ℝ) 1, minimal_period (tent_map (optimal_parameter m)) x ≠ l :=
+begin
+  intros x hx hl',
+  obtain ⟨O, hO, hO', hO'', hO'''⟩ := exists_cycle_of_minimal_period
+    (tent_map_maps_to' (optimal_parameter_mem _).1 (optimal_parameter_mem _).2) hx hl hl',
+  refine (optimal_parameter_lt hlm).not_lt _,
+  refine (has_cycle_iff hl (optimal_parameter_mem _).2).2 ⟨O, hO, hO'', _⟩,
+  refine has_other_cycle' (sharkovsky.ne_zero_of_ge_ne_zero hlm.le hl) hO _,
+  rw [hO''],
+  exact hlm.ne,
 end
 
 lemma optimal_parameter_strict_anti : strict_anti (optimal_parameter ∘ sharkovsky.to_nat) :=
@@ -2236,6 +2258,27 @@ begin
   exact (has_cycle_iff (by simpa using hm₀) optimal_parameter_infty_mem_Icc.2).2 ⟨_, hP, hP₃, h'⟩
 end
 
+lemma sharkovsky_lt_iff {n m : ℕ} (hn : n ≠ 0) (hm : m ≠ 0) : n ≺ m ↔
+  ∃ f : ℝ → ℝ,
+    continuous_on f (Icc 0 1) ∧
+    maps_to f (Icc 0 1) (Icc 0 1) ∧
+    (∃ x ∈ Icc (0 : ℝ) 1, minimal_period f x = m) ∧
+    ∀ x ∈ Icc (0 : ℝ) 1, minimal_period f x ≠ n :=
+begin
+  split,
+  {
+    intro h,
+    refine ⟨tent_map (optimal_parameter m), tent_map_continuous.continuous_on, _, _⟩,
+    { exact tent_map_maps_to' (optimal_parameter_mem _).1 (optimal_parameter_mem _).2 },
+    { refine ⟨⟨optimal_parameter m, optimal_parameter_mem _, has_cycle_at hm⟩, _⟩,
+      exact doesnt_have_earlier_cycle hn h } },
+  rintro ⟨f, hf, hf', hf'', hf'''⟩,
+  apply lt_of_not_le,
+  intro t,
+  obtain ⟨x, hx, hx'⟩ := sharkovsky_forcing hf hf' t hm hf'',
+  exact hf''' x hx hx',
+end
+
 def minimal_periods_on {α : Type*} (f : α → α) (s : set α) : set ℕ :=
 {n | 0 < n ∧ ∃ x ∈ s, minimal_period f x = n}
 
@@ -2256,11 +2299,7 @@ begin
     exact ⟨_, hk'.minimal_period_pos hk, hx, rfl⟩ }
 end
 
-
--- def minimal_periods_on {α : Type*} (f : α → α) (s : set α) : set ℕ :=
--- {n | 0 < n ∧ ∃ x ∈ s, minimal_period f x = n}
-
-theorem sharkovsky_compact_unit {s : set sharkovsky} (hs : ⊥ ∉ s) :
+theorem sharkovsky_unit_interval {s : set sharkovsky} (hs : ⊥ ∉ s) :
   (∃ f : ℝ → ℝ, continuous_on f (Icc 0 1) ∧ maps_to f (Icc 0 1) (Icc 0 1)
     ∧ s = sharkovsky.of_nat '' minimal_periods_on f (Icc 0 1)) ↔
   is_upper_set s ∧ s.nonempty :=
@@ -2289,18 +2328,177 @@ begin
     simp only [mem_Ici, le_bot_iff, sharkovsky.of_nat_eq_bot_iff] at hs,
     simp only [mem_Ici, sharkovsky.to_nat_of_nat, mem_image, sharkovsky.of_nat_inj,
       exists_eq_right, mem_minimal_periods_on],
-
-
-
-  }
+    split,
+    { intro h,
+      exact ⟨(sharkovsky.ne_zero_of_ge_ne_zero h hs).bot_lt, has_later_cycle hs h⟩ },
+    rintro ⟨hm, x, hx, hx'⟩,
+    by_contra' h',
+    exact doesnt_have_earlier_cycle hm.ne' h' x hx hx' },
+  refine ⟨tent_map optimal_parameter_infty, tent_map_continuous.continuous_on, _, _⟩,
+  { exact tent_map_maps_to' optimal_parameter_infty_mem_Icc.1 optimal_parameter_infty_mem_Icc.2 },
+  ext m,
+  induction m using sharkovsky.rec,
+  simp only [mem_range, sharkovsky.of_nat_inj, mem_image, exists_eq_right, mem_minimal_periods_on,
+    exists_prop],
+  split,
+  { rintro ⟨m, rfl⟩,
+    have h' : 0 < 2 ^ m := pow_pos two_pos _,
+    refine ⟨h', _⟩,
+    obtain ⟨O, hO, hO', hO''⟩ := (has_cycle_iff h'.ne'
+      optimal_parameter_infty_mem_Icc.2).1 (optimal_parameter_infty_gt m),
+    have : O.nonempty, { rwa [←finset.card_pos, hO'] },
+    obtain ⟨x, hx⟩ := this,
+    refine ⟨x, _, _⟩,
+    { exact ⟨(hO'' hx).1, (hO'' hx).2.le.trans  optimal_parameter_infty_mem_Icc.2⟩ },
+    rwa [(hO _ hx).2] },
+  rintro ⟨hm, x, hx, hx'⟩,
+  by_contra' hm',
+  exact optimal_parameter_infty' hm' hm.ne' x hx',
 end
+
+section intervals
+
+variables {α : Type*}
+
+lemma not_bdd_above_Ioi (a : α) [preorder α] [no_max_order α] : ¬ bdd_above (Ioi a) :=
+λ ⟨b, hb⟩, let ⟨c, hc⟩ := exists_gt a, ⟨d, hd⟩ := exists_gt b in
+hd.not_le (hb ((hc.trans_le (hb hc)).trans hd))
+
+lemma not_bdd_above_Ici (a : α) [preorder α] [no_max_order α] : ¬ bdd_above (Ici a) :=
+λ h, not_bdd_above_Ioi a (h.mono Ioi_subset_Ici_self)
+
+lemma not_compact_Ioi {a : α} [linear_order α] [topological_space α] [order_closed_topology α]
+  [no_max_order α] : ¬ is_compact (Ioi a) :=
+λ h, let h' : nonempty α := ⟨a⟩ in by exactI (not_bdd_above_Ioi _) h.bdd_above
+
+lemma not_compact_Ici {a : α} [linear_order α] [topological_space α] [order_closed_topology α]
+  [no_max_order α] : ¬ is_compact (Ici a) :=
+λ h, let h' : nonempty α := ⟨a⟩ in by exactI (not_bdd_above_Ici _) h.bdd_above
+
+lemma not_bdd_below_Iio (a : α) [preorder α] [no_min_order α] : ¬ bdd_below (Iio a) :=
+@not_bdd_above_Ioi αᵒᵈ _ _ _
+
+lemma not_bdd_below_Iic (a : α) [preorder α] [no_min_order α] : ¬ bdd_below (Iic a) :=
+@not_bdd_above_Ici αᵒᵈ _ _ _
+
+lemma not_compact_Iio {a : α} [linear_order α] [topological_space α] [order_closed_topology α]
+  [no_min_order α] : ¬ is_compact (Iio a) :=
+@not_compact_Ioi αᵒᵈ _ _ _ _ _
+
+lemma not_compact_Iic {a : α} [linear_order α] [topological_space α] [order_closed_topology α]
+  [no_min_order α] : ¬ is_compact (Iic a) :=
+@not_compact_Ici αᵒᵈ _ _ _ _ _
+
+variables [conditionally_complete_linear_order α] [topological_space α]
+  [order_topology α] [densely_ordered α]
+
+lemma not_closed_Ico {a b : α} (h : a < b) : ¬ is_closed (Ico a b) :=
+by { rw [←closure_eq_iff_is_closed, closure_Ico h.ne, ←Ico_insert_right h.le], simp }
+lemma not_closed_Ioc {a b : α} (h : a < b) : ¬ is_closed (Ioc a b) :=
+by { rw [←closure_eq_iff_is_closed, closure_Ioc h.ne, ←Ioc_insert_left h.le], simp }
+lemma not_closed_Ioo {a b : α} (h : a < b) : ¬ is_closed (Ioo a b) :=
+begin
+  rw [←closure_eq_iff_is_closed, closure_Ioo h.ne],
+  exact ne_of_mem_of_not_mem' (left_mem_Icc.2 h.le) (by simp),
+end
+
+lemma not_closed_Ioi' {a : α} (h : (Ioi a).nonempty) : ¬ is_closed (Ioi a) :=
+by { rw [←closure_eq_iff_is_closed, closure_Ioi' h, ←Ioi_insert, insert_eq_self], simp }
+lemma not_closed_Iio' {a : α} (h : (Iio a).nonempty) : ¬ is_closed (Iio a) :=
+by { rw [←closure_eq_iff_is_closed, closure_Iio' h, ←Iio_insert, insert_eq_self], simp }
+
+lemma not_closed_Ioi {a : α} [no_max_order α] : ¬ is_closed (Ioi a) := not_closed_Ioi' nonempty_Ioi
+lemma not_closed_Iio {a : α} [no_min_order α] : ¬ is_closed (Iio a) := not_closed_Iio' nonempty_Iio
+
+lemma not_compact_Ico {a b : α} (h : a < b) : ¬ is_compact (Ico a b) :=
+λ h, not_closed_Ico ‹a < b› (is_compact.is_closed h)
+lemma not_compact_Ioc {a b : α} (h : a < b) : ¬ is_compact (Ioc a b) :=
+λ h, not_closed_Ioc ‹a < b› (is_compact.is_closed h)
+lemma not_compact_Ioo {a b : α} (h : a < b) : ¬ is_compact (Ioo a b) :=
+λ h, not_closed_Ioo ‹a < b› (is_compact.is_closed h)
+
+lemma ord_connected_compact {α : Type*} [conditionally_complete_linear_order α]
+  [topological_space α] [order_topology α] [densely_ordered α]
+  {I : set α} [I.ord_connected] (hI : is_compact I) (hI' : I.nonempty) :
+  ∃ a b, a ≤ b ∧ I = set.Icc a b :=
+begin
+  rcases (by apply_instance : I.ord_connected).is_preconnected.mem_intervals with
+    (h | h | h | h | h | _),
+  { rw [h, nonempty_Icc] at hI',
+    exact ⟨_, _, hI', h⟩ },
+  { rw h at hI,
+    rw [h, nonempty_Ico] at hI',
+    cases not_compact_Ico hI' hI },
+  { rw h at hI,
+    rw [h, nonempty_Ioc] at hI',
+    cases not_compact_Ioc hI' hI },
+  { rw h at hI,
+    rw [h, nonempty_Ioo] at hI',
+    cases not_compact_Ioo hI' hI },
+  { rw h at hI,
+    rw h at hI',
+    casesI top_order_or_no_top_order α,
+    { refine ⟨Inf I, ⊤, le_top, _⟩,
+      rwa [Icc_top] },
+    have : no_max_order α,
+    { library_search,
+
+    },
+    -- have : no_max_order
+    -- by_cases ∃ x : α, is_max x,
+    -- {
+
+    -- },
+    -- simp only [nonempty_Ici] at hI',
+    have := not_compact_Ici hI,
+
+  },
+end
+
+-- lemma ord_connected_compact {α : Type*} [conditionally_complete_linear_order α]
+--   [topological_space α] [order_topology α] [densely_ordered α]
+--   {I : set α} [I.ord_connected] (hI : is_compact I) (hI' : I.nonempty) :
+--   ∃ a b, a ≤ b ∧ I = set.Icc a b :=
+-- begin
+--   rcases (by apply_instance : I.ord_connected).is_preconnected.mem_intervals with
+--     (h | h | h | h | h | _),
+--   { rw [h, nonempty_Icc] at hI',
+--     exact ⟨_, _, hI', h⟩ },
+--   { rw h at hI,
+--     rw [h, nonempty_Ico] at hI',
+--     cases not_compact_Ico hI' hI },
+--   { rw h at hI,
+--     rw [h, nonempty_Ioc] at hI',
+--     cases not_compact_Ioc hI' hI },
+--   { rw h at hI,
+--     rw [h, nonempty_Ioo] at hI',
+--     cases not_compact_Ioo hI' hI },
+--   { rw h at hI,
+--     rw h at hI',
+
+--     -- simp only [nonempty_Ici] at hI',
+--     -- have := not_compact_Ici hI,
+
+--   },
+-- end
+
+end intervals
+
+#exit
 
 theorem sharkovsky_compact {s : set sharkovsky} (hs : sharkovsky.of_nat 0 ∉ s)
   {I : set ℝ} [I.ord_connected] (hI : is_compact I) :
   ∃ f : ℝ → ℝ, continuous_on f I ∧ maps_to f I I ∧ s = minimal_periods_on f I ↔
     is_upper_set s ∧ s.nonempty :=
 begin
-  sorry
+  have : ¬ is_compact (Ico (0 : ℝ) 1),
+  { rw metric.compact_iff_closed_bounded,
+    simp only [not_and],
+    have := is_closed_Icc,
+    -- simp only [is_closed_discrete, true_and],
+
+  },
+  -- have : ∃ a b,
 end
 
 theorem sharkovsky_non_compact {s : set sharkovsky} (hs : sharkovsky.of_nat 0 ∉ s)

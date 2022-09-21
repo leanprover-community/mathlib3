@@ -905,6 +905,9 @@ lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b := ha.is_unit.div_div_can
 lemma div_helper (b : G₀) (h : a ≠ 0) : 1 / (a * b) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]
 
+lemma div_mul_eq_mul_div₀ (a b c : G₀) : (a / c) * b = a * b / c :=
+by simp_rw [div_eq_mul_inv, mul_assoc, mul_comm c⁻¹]
+
 end comm_group_with_zero
 
 namespace semiconj_by

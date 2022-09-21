@@ -207,15 +207,15 @@ begin
   { exact ⟨t, ho, rfl⟩ }
 end
 
-lemma wbtw_symm {x y z : P} : wbtw R x y z ↔ wbtw R z y x :=
+lemma wbtw_comm {x y z : P} : wbtw R x y z ↔ wbtw R z y x :=
 by rw [wbtw, wbtw, affine_segment_symm]
 
-alias wbtw_symm ↔ wbtw.symm _
+alias wbtw_comm ↔ wbtw.symm _
 
-lemma sbtw_symm {x y z : P} : sbtw R x y z ↔ sbtw R z y x :=
-by rw [sbtw, sbtw, wbtw_symm, ←and_assoc, ←and_assoc, and.right_comm]
+lemma sbtw_comm {x y z : P} : sbtw R x y z ↔ sbtw R z y x :=
+by rw [sbtw, sbtw, wbtw_comm, ←and_assoc, ←and_assoc, and.right_comm]
 
-alias sbtw_symm ↔ sbtw.symm _
+alias sbtw_comm ↔ sbtw.symm _
 
 variables (R)
 
@@ -292,15 +292,15 @@ end
 lemma wbtw_swap_right_iff [no_zero_smul_divisors R V] (x : P) {y z : P} :
   (wbtw R x y z ∧ wbtw R x z y) ↔ y = z :=
 begin
-  nth_rewrite 0 wbtw_symm,
-  nth_rewrite 1 wbtw_symm,
+  nth_rewrite 0 wbtw_comm,
+  nth_rewrite 1 wbtw_comm,
   rw eq_comm,
   exact wbtw_swap_left_iff R x
 end
 
 lemma wbtw_rotate_iff [no_zero_smul_divisors R V] (x : P) {y z : P} :
   (wbtw R x y z ∧ wbtw R z x y) ↔ x = y :=
-by rw [wbtw_symm, wbtw_swap_right_iff, eq_comm]
+by rw [wbtw_comm, wbtw_swap_right_iff, eq_comm]
 
 variables {R}
 
@@ -338,7 +338,7 @@ end
 
 lemma wbtw.trans_right {w x y z : P} (h₁ : wbtw R w x z) (h₂ : wbtw R x y z) : wbtw R w y z :=
 begin
-  rw wbtw_symm at *,
+  rw wbtw_comm at *,
   exact h₁.trans_left h₂
 end
 
@@ -353,8 +353,8 @@ end
 lemma wbtw.trans_sbtw_right [no_zero_smul_divisors R V] {w x y z : P} (h₁ : wbtw R w x z)
   (h₂ : sbtw R x y z) : sbtw R w y z :=
 begin
-  rw wbtw_symm at *,
-  rw sbtw_symm at *,
+  rw wbtw_comm at *,
+  rw sbtw_comm at *,
   exact h₁.trans_sbtw_left h₂
 end
 
@@ -419,7 +419,7 @@ end
 lemma wbtw_smul_vadd_smul_vadd_of_nonneg_of_nonpos (x : P) (v : V) {r₁ r₂ : R} (hr₁ : 0 ≤ r₁)
   (hr₂ : r₂ ≤ 0) : wbtw R (r₁ • v +ᵥ x) x (r₂ • v +ᵥ x) :=
 begin
-  rw wbtw_symm,
+  rw wbtw_comm,
   exact wbtw_smul_vadd_smul_vadd_of_nonpos_of_nonneg x v hr₂ hr₁
 end
 
@@ -448,7 +448,7 @@ end
 
 lemma wbtw.trans_right_left {w x y z : P} (h₁ : wbtw R w x z) (h₂ : wbtw R x y z) : wbtw R w x y :=
 begin
-  rw wbtw_symm at *,
+  rw wbtw_comm at *,
   exact h₁.trans_left_right h₂
 end
 
@@ -483,7 +483,7 @@ begin
   rcases hz with ⟨tz, rfl⟩,
   rcases lt_trichotomy ty 0 with hy0|rfl|hy0,
   { rcases lt_trichotomy tz 0 with hz0|rfl|hz0,
-    { nth_rewrite 1 wbtw_symm,
+    { nth_rewrite 1 wbtw_comm,
       rw ←or_assoc,
       exact or.inl (wbtw_or_wbtw_smul_vadd_of_nonpos _ _ hy0.le hz0.le) },
     { simp },
@@ -492,7 +492,7 @@ begin
   { rcases lt_trichotomy tz 0 with hz0|rfl|hz0,
     { refine or.inr (or.inr (wbtw_smul_vadd_smul_vadd_of_nonpos_of_nonneg _ _ hz0.le hy0.le)) },
     { simp },
-    { nth_rewrite 1 wbtw_symm,
+    { nth_rewrite 1 wbtw_comm,
       rw ←or_assoc,
       exact or.inl (wbtw_or_wbtw_smul_vadd_of_nonneg _ _ hy0.le hz0.le) } }
 end

@@ -33,7 +33,7 @@ end
 
 example {x y z : ℕ} : true :=
 begin
-  wlog h : x ≤ y + z using H,
+  wlog h : x ≤ y + z with H,
   { guard_hyp h : ¬ x ≤ y + z,
     guard_hyp H : ∀ {x y z : ℕ}, x ≤ y + z → true, -- wlog-claim is named `H` instead of `this`
     guard_target true,

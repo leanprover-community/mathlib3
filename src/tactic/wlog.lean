@@ -35,8 +35,8 @@ where `P` holds (typically by symmetry).
 The new goal will be at the top of the stack. In the new goal, there will be two assumptions:
 - `h : ¬ P`: the assumption that `P` does not hold
 - `this`: which is the statement that in the old context `P` suffices to prove the goal.
-  By default, the name `this` is used, but the idiom `using H` can be added to specify the name:
-  `wlog h : P using H`.
+  By default, the name `this` is used, but the idiom `with H` can be added to specify the name:
+  `wlog h : P with H`.
 
 Typically, it is useful to use the variant `wlog h : P generalizing x y`,
 to revert certain parts of the context before creating the new goal.
@@ -46,8 +46,9 @@ In this way, the wlog-claim `this` can be applied to `x` and `y` in different or
 By default, the entire context is reverted. -/
 meta def wlog (H : parse ident) (t : parse (tk ":" *> texpr))
   (revert : parse ((tk "generalizing" *> ((none <$ tk "*") <|> some <$> ident*)) <|> pure none))
-  (h : parse (tk "using" *> ident)?) :
+  (h : parse (tk "with" *> ident)?) :
   tactic unit := do
+  -- if there is no `with` clause, use the `this` as default name
   let h := h.get_or_else `this,
   t ← i_to_expr ``(%%t : Sort*),
   (num_generalized, goal, rctx) ← retrieve (do

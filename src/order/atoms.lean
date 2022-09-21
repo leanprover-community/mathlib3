@@ -7,7 +7,7 @@ Authors: Aaron Anderson
 import order.complete_boolean_algebra
 import order.cover
 import order.modular_lattice
-import data.fintype.basic
+import data.set.finite
 
 /-!
 # Atoms, Coatoms, and Simple Lattices

@@ -42,14 +42,6 @@ https://math.stackexchange.com/questions/3304415/catalan-numbers-algebraic-proof
 open_locale big_operators
 open finset finset.nat.antidiagonal (fst_le snd_le)
 
-
-@[to_additive]
-lemma prod_bij_of_inj_of_card_le {α β γ : Type*} [comm_monoid β] {s : finset α} {t : finset γ}
-  {f : α → β} {g : γ → β} (i : Π a ∈ s, γ) (hi : ∀ a ha, i a ha ∈ t) (h : ∀ a ha, f a = g (i a ha))
-  (i_inj : ∀ a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (card_le : t.card ≤ s.card) :
-  (∏ x in s, f x) = (∏ x in t, g x) :=
-prod_bij i hi h i_inj (surj_on_of_inj_on_of_card_le i hi i_inj card_le)
-
 /-- The recursive definition of the sequence of Catalan numbers:
 `catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i)` -/
 def catalan : ℕ → ℕ

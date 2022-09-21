@@ -445,16 +445,20 @@ protected lemma coe_supr_eq {ι : Type*} {p : ι → seminorm 𝕜 E} (hp : bdd_
   coe_fn (⨆ i, p i) = ⨆ i, p i :=
 by rw [← Sup_range, seminorm.coe_Sup_eq hp]; exact supr_range' (coe_fn : seminorm 𝕜 E → E → ℝ) p
 
-noncomputable instance : conditionally_complete_lattice (seminorm 𝕜 E) :=
-conditionally_complete_lattice_of_Sup (seminorm 𝕜 E)
+private lemma seminorm.is_lub_Sup (s : set (seminorm 𝕜 E)) (hs₁ : bdd_above s) (hs₂ : s.nonempty) :
+  is_lub s (Sup s) :=
 begin
-  refine (λ s hs₁ hs₂, ⟨λ p hp x, _, λ p hp x, _⟩);
+  refine ⟨λ p hp x, _, λ p hp x, _⟩;
   haveI : nonempty ↥s := nonempty_coe_sort.mpr hs₂;
   rw [seminorm.coe_Sup_eq hs₁, supr_apply],
   { rcases hs₁ with ⟨q, hq⟩,
     exact le_csupr ⟨q x, forall_range_iff.mpr $ λ i : s, hq i.2 x⟩ ⟨p, hp⟩ },
   { exact csupr_le (λ q, hp q.2 x) }
 end
+
+noncomputable instance : conditionally_complete_lattice (seminorm 𝕜 E) :=
+{ ..seminorm.lattice,
+  ..conditionally_complete_lattice_of_lattice_of_Sup (seminorm 𝕜 E) seminorm.is_lub_Sup }
 
 end classical
 

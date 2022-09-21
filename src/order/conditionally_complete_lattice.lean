@@ -235,6 +235,21 @@ instance (α : Type*) [conditionally_complete_linear_order α] :
 
 end order_dual
 
+/-- Create a `conditionally_complete_lattice` from a `partial_order` and `Sup` function
+that returns the least upper bound of a nonempty set which is bounded above. Usually this
+constructor provides poor definitional equalities.  If other fields are known explicitly, they
+should be provided; for example, if `inf` is known explicitly, construct the
+`conditionally_complete_lattice` instance as
+```
+instance : conditionally_complete_lattice my_T :=
+{ inf := better_inf,
+  le_inf := ...,
+  inf_le_right := ...,
+  inf_le_left := ...
+  -- don't care to fix sup, Inf, bot, top
+  ..conditionally_complete_lattice_of_Sup my_T _ }
+```
+-/
 def conditionally_complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   [H2 : has_Sup α]
   (bdd_above_pair : ∀ a b : α, bdd_above ({a, b} : set α))
@@ -267,6 +282,21 @@ def conditionally_complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   le_cInf := λ s a hs ha, (is_lub_Sup (lower_bounds s) hs.bdd_above_lower_bounds ⟨a, ha⟩).1 ha,
   .. H1, .. H2 }
 
+/-- Create a `conditionally_complete_lattice_of_Inf` from a `partial_order` and `Inf` function
+that returns the greatest lower bound of a nonempty set which is bounded below. Usually this
+constructor provides poor definitional equalities.  If other fields are known explicitly, they
+should be provided; for example, if `inf` is known explicitly, construct the
+`conditionally_complete_lattice` instance as
+```
+instance : conditionally_complete_lattice my_T :=
+{ inf := better_inf,
+  le_inf := ...,
+  inf_le_right := ...,
+  inf_le_left := ...
+  -- don't care to fix sup, Sup, bot, top
+  ..conditionally_complete_lattice_of_Inf my_T _ }
+```
+-/
 def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   [H2 : has_Inf α]
   (bdd_above_pair : ∀ a b : α, bdd_above ({a, b} : set α))
@@ -299,6 +329,12 @@ def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   cSup_le := λ s a hs ha, (is_glb_Inf (upper_bounds s) hs.bdd_below_upper_bounds ⟨a, ha⟩).1 ha,
   .. H1, .. H2 }
 
+/--
+A version of `conditionally_complete_lattice_of_Sup` when we already know that `α` is a lattice.
+
+Note that this construction has bad definitional properties:
+see the doc-string on `conditionally_complete_lattice_of_Sup`.
+-/
 def conditionally_complete_lattice_of_lattice_of_Sup (α : Type*) [H1 : lattice α]
   [H2 : has_Sup α]
   (is_lub_Sup : ∀ s : set α, bdd_above s → s.nonempty → is_lub s (Sup s)) :
@@ -308,6 +344,12 @@ conditionally_complete_lattice_of_Sup α
   (λ a b, ⟨a ⊓ b, forall_insert_of_forall (forall_eq.mpr inf_le_right) inf_le_left⟩)
   is_lub_Sup
 
+/--
+A version of `conditionally_complete_lattice_of_Inf` when we already know that `α` is a lattice.
+
+Note that this construction has bad definitional properties:
+see the doc-string on `conditionally_complete_lattice_of_Inf`.
+-/
 def conditionally_complete_lattice_of_lattice_of_Inf (α : Type*) [H1 : lattice α]
   [H2 : has_Inf α]
   (is_glb_Inf : ∀ s : set α, bdd_below s → s.nonempty → is_glb s (Inf s)) :

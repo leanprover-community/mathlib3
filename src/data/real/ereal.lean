@@ -530,7 +530,6 @@ lemma to_real_mul : ∀ {x y : ereal}, to_real (x * y) = to_real x * to_real y
 end ereal
 
 namespace tactic
-
 open positivity
 
 private lemma ereal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ereal) := ereal.coe_nonneg.2

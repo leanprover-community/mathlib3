@@ -394,18 +394,20 @@ meta def positivity_abs : expr → tactic strictness
   nonnegative <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
 | _ := failed
 
-private alias nat.cast_pos ↔ _ nat_cast_pos
+private lemma nat_cast_pos [ordered_semiring α] [nontrivial α] {n : ℕ} : 0 < n → 0 < (n : α) :=
+nat.cast_pos.2
 
 private lemma int_coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := n.cast_nonneg
 private lemma int_coe_nat_pos {n : ℕ} : 0 < n → 0 < (n : ℤ) := nat.cast_pos.2
 
 private lemma int_cast_nonneg [ordered_ring α] {n : ℤ} (hn : 0 ≤ n) : 0 ≤ (n : α) :=
 by { rw ←int.cast_zero, exact int.cast_mono hn }
-
 private lemma int_cast_pos [ordered_ring α] [nontrivial α] {n : ℤ} : 0 < n → 0 < (n : α) :=
 int.cast_pos.2
 
-private alias int.cast_pos ↔ _ int_cast_pos
+private lemma rat_cast_nonneg [linear_ordered_field α] {q : ℚ} : 0 ≤ q → 0 ≤ (q : α) :=
+rat.cast_nonneg.2
+private lemma rat_cast_pos [linear_ordered_field α] {q : ℚ} : 0 < q → 0 < (q : α) := rat.cast_pos.2
 
 private alias rat.cast_nonneg ↔ _ rat_cast_nonneg
 private alias rat.cast_pos ↔ _ rat_cast_pos
@@ -414,6 +416,11 @@ private alias rat.cast_pos ↔ _ rat_cast_pos
 @[positivity]
 meta def positivity_coe : expr → tactic strictness
 | `(@coe _ %%typ %%inst %%a) := do
+  -- TODO: Using `match` here might turn out too strict since we really want the instance to *unify*
+  -- with one of the instances below rather than being equal on the nose.
+  -- If this turns out to indeed be a problem, we should figure out the right way to pattern match
+  -- up to defeq rather than equality of expressions.
+  -- See also "Reflexive tactics for algebra, revisited" by Kazuhiko Sakaguchi at ITP 2022.
   match inst with
   | `(@coe_to_lift _ _ %%inst) := do
     strictness_a ← core a,
@@ -423,8 +430,8 @@ meta def positivity_coe : expr → tactic strictness
     | `(int.cast_coe), positive p := positive <$> mk_mapp ``int_cast_pos [typ, none, none, none, p]
     | `(int.cast_coe), nonnegative p := nonnegative <$>
                                           mk_mapp ``int_cast_nonneg [typ, none, none, p]
-    | `(rat.cast_coe), positive p := positive <$> mk_app ``rat_cast_pos [p]
-    | `(rat.cast_coe), nonnegative p := nonnegative <$> mk_app ``rat_cast_nonneg [p]
+    | `(rat.cast_coe), positive p := positive <$> mk_mapp ``rat_cast_pos [typ, none, p]
+    | `(rat.cast_coe), nonnegative p := nonnegative <$> mk_mapp ``rat_cast_nonneg [typ, none, p]
     | `(@coe_base _ _ int.has_coe), positive p := positive <$> mk_app ``int_coe_nat_pos [p]
     | `(@coe_base _ _ int.has_coe), _ := nonnegative <$> mk_app ``int_coe_nat_nonneg [a]
     | _, _ := failed

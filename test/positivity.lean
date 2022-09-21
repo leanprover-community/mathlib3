@@ -1,7 +1,6 @@
 import algebra.order.smul
-import analysis.normed.group.basic
-import data.rat.nnrat
 import data.real.ereal
+import data.real.hyperreal
 import data.real.sqrt
 import tactic.positivity
 
@@ -128,6 +127,8 @@ example {r : ℝ≥0} (hr : 0 < r) : (0 : ℝ≥0∞) < r := by positivity
 -- example {r : ℝ≥0} (hr : 0 < r) : (0 : ereal) < r := by positivity
 example {r : ℝ} (hr : 0 ≤ r) : (0 : ereal) ≤ r := by positivity
 example {r : ℝ} (hr : 0 < r) : (0 : ereal) < r := by positivity
+example {r : ℝ} (hr : 0 ≤ r) : (0 : hyperreal) ≤ r := by positivity
+example {r : ℝ} (hr : 0 < r) : (0 : hyperreal) < r := by positivity
 example {r : ℝ≥0∞} : (0 : ereal) ≤ r := by positivity
 example {r : ℝ≥0∞} (hr : 0 < r) : (0 : ereal) < r := by positivity
 

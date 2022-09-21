@@ -989,41 +989,102 @@ begin
     rw ← equiv.perm.mem_support,
     rw ← equiv.perm.cycle_of_mem_cycle_factors_finset_iff ,
     rw ha' c, exact c.prop, },
+  have ha'': ∀ (c : g.cycle_factors_finset) (i : ℤ), g.cycle_of ((g ^ i) (a c)) = c,
+  { intros c i, rw equiv.perm.cycle_of_self_apply_zpow, rw ha', },
 
   /- Construire k pour que
     1) k (a c) = a (k • c)
     2) k ((g ^ i) (a c)) = (g ^ i) (a (τ c)) -/
 
   -- function.extend
+  let Kf : equiv.perm (g.cycle_factors_finset) → (g.cycle_factors_finset) × ℤ → α :=
+    λ e ⟨c, i⟩, (g ^ i) (a (e c)),
+  let k := function.extend (Kf 1) (Kf τ) id,
+  have hkfg : ∀ (e e' : equiv.perm (g.cycle_factors_finset))
+    (Hee' : ∀ (c : g.cycle_factors_finset), (e' c : equiv.perm α).support.card = (e c : equiv.perm α).support.card)
+    (ci dj : (g.cycle_factors_finset) × ℤ),
+    Kf e ci = Kf e dj → Kf e' ci = Kf e' dj,
+  { rintros e e' Hee' ⟨c, i⟩ ⟨d, j⟩ He,
+    change (g ^ i) (a (e c)) = (g ^ j) (a (e d)) at He,
+    change (g ^ i) (a (e' c)) = (g ^ j) (a (e' d)),
+    suffices hcd : c = d,
+    { rw hcd at He ⊢,
+      rw [g.zpow_eq_zpow_on_iff i j, ha'] at He,
+      rw [g.zpow_eq_zpow_on_iff, ha', Hee' d],
+      exact He,
+      { exact ha (e' d), },
+      { exact ha (e d), }, },
+    { -- d = c
+        apply equiv.injective e,
+        rw [← subtype.coe_inj, ← ha'' (e c) i, ← ha'' (e d) j, He], }, },
+  have k_apply :
+  ∀ (c : g.cycle_factors_finset) (i : ℤ), k ((g ^ i) (a c)) = (g ^ i) (a (τ c)),
+  { simp only [k],
+    intros c i,
+    change k(Kf 1 ⟨c, i⟩) = Kf τ ⟨c, i⟩,
+    simp only [k, function.extend_def, dif_pos, exists_apply_eq_apply],
+    { apply hkfg 1 τ,
+      { intro c, rw ← H c, simp only [equiv.perm.coe_one, id.def], },
+      have hci : ∃ a, Kf 1 a = Kf 1 ⟨c, i⟩, use ⟨c,i⟩,
+
+      use classical.some_spec hci, }, },
+  have k_apply' : ∀ (x : α), x ∉ g.support → k x = x,
+  { intros x hx,
+    simp only [k],
+    rw function.extend_apply',
+    simp only [id.def],
+    intro hyp,
+    obtain ⟨⟨c, i⟩, rfl⟩ := hyp,
+    apply hx,
+    change (g ^ i) (a c) ∈ g.support,
+    rw equiv.perm.zpow_apply_mem_support ,
+    rw equiv.perm.mem_support,
+    exact ha c, },
+
+  /-
   let kf : (g.cycle_factors_finset) × ℤ → α := λ⟨c, i⟩, (g ^ i) (a c),
   let kg : (g.cycle_factors_finset) × ℤ → α := λ⟨c, i⟩, (g ^ i) (a (τ c)),
   let ke : α → α := id,
   let k := function.extend kf kg ke,
+  have hkfg : ∀ {ci dj : g.cycle_factors_finset × ℤ}, kf ci = kf dj ↔ kg ci = kg dj,
+  { suffices : ∀ ci dj, kf ci = kf dj → kg ci = kg dj,
+    { rintros ⟨c, i⟩ ⟨d, j⟩,
+      split, apply this,
+      intro Hcidj,
+      simp only [kf],
+      change (g ^ i) (a (τ c)) = (g ^ j) (a (τ d)) at Hcidj,
+      change kf ⟨τ c, i⟩ = kf ⟨τ d, j⟩ at Hcidj,
+      change (g ^ i) (a c) = (g ^ j) (a d),
+      rw ← equiv.apply_symm_apply τ c, rw ← equiv.apply_symm_apply τ d,
+      change kg ⟨τ.symm c, i⟩ = kg ⟨τ.symm d, j⟩,
+      apply this,
+
+    },
+    -- implication
+    rintros ⟨c,i⟩ ⟨d, j⟩,
+    intro Hcidj, change (g ^ i) (a c) = (g ^ j) (a d) at Hcidj,
+    change (g ^ i) (a (τ c)) = (g ^ j) (a (τ d)),
+    suffices hcd : c = d,
+    rw hcd at Hcidj ⊢,
+    rw [g.zpow_eq_zpow_on_iff i j, ha'] at Hcidj,
+    rw [g.zpow_eq_zpow_on_iff, ha', ←(H d)],
+    exact Hcidj,
+    { exact ha (τ d), },
+    { exact ha d,  },
+    { -- d = c
+        rw [← subtype.coe_inj, ← ha'' c i, ← ha'' d j, Hcidj], }, },
+
+
   have k_apply : ∀ (c : g.cycle_factors_finset) (i : ℤ), k ((g ^ i) (a c)) = (g ^ i) (a (τ c)),
   { simp only [k],
     intros c i,
-    simp only [function.extend_def, dif_pos, exists_apply_eq_apply],
-    suffices : ∀ dj, kf dj = (g ^ i) (a c) → kg dj = (g ^ i) (a (τ c)),
-    { split_ifs with hg he,
-      { -- premier cas : (g ^ j) (a d) = (g ^ i) (a c)
-        apply this _ (classical.some_spec hg), },
-      { -- deuxième cas : n'arrive pas
-        exfalso, apply hg, use ⟨c, i⟩, refl, }, },
-    { rintro ⟨d, j⟩,
-      intro Hdjci, change (g ^ j) (a d) = (g ^ i) (a c) at Hdjci,
-      change (g ^ j) (a (τ d)) = (g ^ i) (a (τ c)),
-      suffices hdc : d = c,
-      rw hdc at Hdjci ⊢,
-      rw [equiv.perm.zpow_eq_zpow_on_iff, ha'] at Hdjci,
-      rw [equiv.perm.zpow_eq_zpow_on_iff, ha', ←(H c)],
-      exact Hdjci,
-      { exact ha (τ c), },
-      { exact ha c,  },
-      { -- d = c
-        have : ∀ (c : g.cycle_factors_finset) (i : ℤ), g.cycle_of ((g ^ i) (a c)) = c,
-        { intros c i, rw equiv.perm.cycle_of_self_apply_zpow, rw ha', },
-        rw [← subtype.coe_inj, ← this c i, ← this d j],
-        rw Hdjci, }, }, },
+    change k(kf ⟨c, i⟩) = kg ⟨c, i⟩,
+
+    simp only [k, function.extend_def, dif_pos, exists_apply_eq_apply],
+    -- suffices : ∀ dj, kf dj = (g ^ i) (a c) → kg dj = (g ^ i) (a (τ c)),
+    { apply hkfg,
+      have hci : ∃ a, kf a= kf ⟨c, i⟩, use ⟨c,i⟩,
+      use classical.some_spec hci, }, },
   have k_apply' : ∀ (x : α), x ∉ g.support → k x = x,
   { intros x hx,
     simp only [k],
@@ -1034,9 +1095,31 @@ begin
     change (g ^ i) (a c) ∈ g.support,
     rw equiv.perm.zpow_apply_mem_support ,
     rw equiv.perm.mem_support,
-    exact ha c, },
+    exact ha c, }, -/
 
-  sorry,
+  have hk_bij : function.bijective k,
+  { rw fintype.bijective_iff_injective_and_card,
+    refine and.intro _ rfl,
+    intros x y hxy,
+    by_cases hx : ∃ (a : (g.cycle_factors_finset) × ℤ), kf a = x,
+    obtain ⟨⟨c, i⟩, rfl⟩ := hx,
+    by_cases hy : ∃ (b : (g.cycle_factors_finset) × ℤ), kf b = y,
+    { -- x = kf a, y = kf b
+      obtain ⟨⟨d, j⟩, rfl⟩ := hy,
+      change k ((g ^ i) (a c)) = k ((g ^ j) (a d)) at hxy,
+      simp only [k_apply] at hxy,
+
+      sorry, },
+    { -- x = kf a, y non
+      sorry, },
+    by_cases hy : ∃ (b : (g.cycle_factors_finset) × ℤ), kf b = y,
+    { -- x pas kfa, -- y = kf b,
+      obtain ⟨⟨d, j⟩, rfl⟩ := hy,
+      sorry,},
+    { -- x pas kf a, y non plus
+      sorry }, },
+    sorry,
+
 end
 
 example (g : equiv.perm α) (i j : ℤ) (x : α) : (g ^ i) x = (g ^ j) x ↔ (g ^ (j - i)) x = x :=

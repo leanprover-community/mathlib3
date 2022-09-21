@@ -853,16 +853,16 @@ by simp_rw [ext_iff, mem_sep_iff, mem_empty_eq, iff_false, not_and]
 
 @[simp] lemma sep_univ : {x ∈ (univ : set α) | p x} = {x | p x} := univ_inter p
 
-@[simp] lemma union_sep : {x ∈ s ∪ t | p x} = {x ∈ s | p x} ∪ {x ∈ t | p x} :=
+@[simp] lemma sep_union : {x ∈ s ∪ t | p x} = {x ∈ s | p x} ∪ {x ∈ t | p x} :=
 union_inter_distrib_right
 
-@[simp] lemma inter_sep : {x ∈ s ∩ t | p x} = {x ∈ s | p x} ∩ {x ∈ t | p x} :=
+@[simp] lemma sep_inter : {x ∈ s ∩ t | p x} = {x ∈ s | p x} ∩ {x ∈ t | p x} :=
 inter_inter_distrib_right s t p
 
-@[simp] lemma sep_inter : {x ∈ s | p x ∧ q x} = {x ∈ s | p x} ∩ {x ∈ s | q x} :=
+@[simp] lemma sep_and : {x ∈ s | p x ∧ q x} = {x ∈ s | p x} ∩ {x ∈ s | q x} :=
 inter_inter_distrib_left s p q
 
-@[simp] lemma sep_union : {x ∈ s | p x ∨ q x} = {x ∈ s | p x} ∪ {x ∈ s | q x} :=
+@[simp] lemma sep_or : {x ∈ s | p x ∨ q x} = {x ∈ s | p x} ∪ {x ∈ s | q x} :=
 inter_union_distrib_left
 
 @[simp] lemma sep_set_of : {x ∈ {y | p y} | q x} = {x | p x ∧ q x} := rfl

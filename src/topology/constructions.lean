@@ -1237,10 +1237,15 @@ lemma inducing_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} 
 by simp only [inducing_iff_nhds, sigma.forall, sigma.nhds_mk, sigma.map, ← map_sigma_mk_comap h₁,
   map_inj sigma_mk_injective]
 
-lemma embedding_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (h₁ : injective f₁) :
+lemma embedding_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (h : injective f₁) :
   embedding (sigma.map f₁ f₂) ↔ ∀ i, embedding (f₂ i) :=
-by simp only [embedding_iff, injective.sigma_map, inducing_sigma_map h₁, forall_and_distrib,
-  h₁.sigma_map_iff]
+by simp only [embedding_iff, injective.sigma_map, inducing_sigma_map h, forall_and_distrib,
+  h.sigma_map_iff]
+
+lemma open_embedding_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (h : injective f₁) :
+  open_embedding (sigma.map f₁ f₂) ↔ ∀ i, open_embedding (f₂ i) :=
+by simp only [open_embedding_iff_embedding_open, is_open_map_sigma_map, embedding_sigma_map h,
+  forall_and_distrib]
 
 end sigma
 

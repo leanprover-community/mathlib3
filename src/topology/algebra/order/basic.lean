@@ -1120,12 +1120,6 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
   dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
 ⟨λ h a b hab, h.exists_between hab, dense_of_exists_between⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance order_topology.t3_space : t3_space α :=
-{ to_regular_space := regular_space.of_exists_mem_nhds_is_closed_subset $
-    λ a s hs, let ⟨b, c, ha, hmem, hs⟩ := exists_Icc_mem_subset_of_mem_nhds hs
-      in ⟨Icc b c, hmem, is_closed_Icc, hs⟩ }
-
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/
 lemma mem_nhds_iff_exists_Ioo_subset' {a : α} {s : set α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :

@@ -100,7 +100,7 @@ begin
   rcases hg with ⟨θ, hθ⟩,
   refine ⟨φ ⊔ θ, _⟩,
   ext,
-  rw [hφ, hθ, mem_set_of_eq, formula.realize_sup, mem_union_iff, mem_set_of_eq,
+  rw [hφ, hθ, mem_set_of_eq, formula.realize_sup, mem_union, mem_set_of_eq,
     mem_set_of_eq],
 end
 

@@ -122,7 +122,7 @@ begin
   { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero heq,
     rw [hk, add_comm, ← sub_le_iff_le_add],
     have := not_mem_of_lt_hitting (hk.symm ▸ k.lt_succ_self : k < least_ge f r i ω) (zero_le _),
-    simp only [set.mem_union_iff, set.mem_Iic, set.mem_Ici, not_or_distrib, not_le] at this,
+    simp only [set.mem_union, set.mem_Iic, set.mem_Ici, not_or_distrib, not_le] at this,
     exact (sub_lt_sub_left this _).le.trans ((le_abs_self _).trans (hbddω _)) }
 end
 

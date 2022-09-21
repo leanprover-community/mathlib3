@@ -687,7 +687,7 @@ assume p hp, prod.fst_mul_snd p ▸ mul_mem
 @[to_additive]
 lemma mem_map_equiv {f : M ≃* N} {K : submonoid M} {x : N} :
   x ∈ K.map f.to_monoid_hom ↔ f.symm x ∈ K :=
-@set.mem_imageuiv _ _ ↑K f.to_equiv x
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
 
 @[to_additive]
 lemma map_equiv_eq_comap_symm (f : M ≃* N) (K : submonoid M) :

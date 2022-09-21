@@ -739,7 +739,7 @@ instance have_lebesgue_decomposition_of_sigma_finite
           exact hj₂ (this ▸ hi₂) },
         { intros x hx,
           simp only [mem_Union, sup_eq_union, mem_inter_iff,
-                    mem_union_iff, mem_compl_iff, or_iff_not_imp_left],
+                    mem_union, mem_compl_iff, or_iff_not_imp_left],
           intro h, push_neg at h,
           rw [top_eq_univ, ← S.spanning, mem_Union] at hx,
           obtain ⟨i, hi⟩ := hx,

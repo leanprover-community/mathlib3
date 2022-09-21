@@ -719,7 +719,7 @@ lemma model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
 lemma model.union {T' : L.Theory} (h : M ⊨ T) (h' : M ⊨ T') :
   M ⊨ T ∪ T' :=
 begin
-  simp only [model_iff, set.mem_union_iff] at *,
+  simp only [model_iff, set.mem_union] at *,
   exact λ φ hφ, hφ.elim (h _) (h' _),
 end
 

@@ -57,7 +57,7 @@ by simp [convex_join]
 
 @[simp] lemma convex_join_union_left (s₁ s₂ t : set E) :
   convex_join 𝕜 (s₁ ∪ s₂) t = convex_join 𝕜 s₁ t ∪ convex_join 𝕜 s₂ t :=
-by simp_rw [convex_join, mem_union_iff, Union_or, Union_union_distrib]
+by simp_rw [convex_join, mem_union, Union_or, Union_union_distrib]
 
 @[simp] lemma convex_join_union_right (s t₁ t₂ : set E) :
   convex_join 𝕜 s (t₁ ∪ t₂) = convex_join 𝕜 s t₁ ∪ convex_join 𝕜 s t₂ :=

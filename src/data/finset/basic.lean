@@ -2183,7 +2183,7 @@ begin
   exact hf heq ▸ hy,
 end
 
-lemma filter_mem_image_image (f : α → β) (s : finset α) (t : finset β) (h : ∀ x ∈ s, f x ∈ t) :
+lemma filter_mem_image_eq_image (f : α → β) (s : finset α) (t : finset β) (h : ∀ x ∈ s, f x ∈ t) :
   t.filter (λ y, y ∈ s.image f) = s.image f :=
 by { ext, rw [mem_filter, mem_image],
      simp only [and_imp, exists_prop, and_iff_right_iff_imp, exists_imp_distrib],

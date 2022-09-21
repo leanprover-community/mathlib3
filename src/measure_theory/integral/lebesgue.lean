@@ -2453,7 +2453,7 @@ begin
     have A : s ⊆ t ∪ {x | f x = 0},
     { assume x hx,
       rcases eq_or_ne (f x) 0 with fx|fx,
-      { simp only [fx, mem_union_iff, mem_set_of_eq, eq_self_iff_true, or_true] },
+      { simp only [fx, mem_union, mem_set_of_eq, eq_self_iff_true, or_true] },
       { left,
         apply subset_to_measurable _ _,
         exact ⟨fx, hx⟩ } },

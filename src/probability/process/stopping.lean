@@ -535,7 +535,7 @@ protected lemma measurable_set_ge' [topological_space ι] [order_topology ι]
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | i < τ ω},
   { ext1 ω,
-    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_iff],
+    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union],
     rw [@eq_comm _ i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq' i).union (hτ.measurable_set_gt' i),
@@ -573,7 +573,7 @@ protected lemma measurable_set_ge_of_countable_range'
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | i < τ ω},
   { ext1 ω,
-    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_iff],
+    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union],
     rw [@eq_comm _ i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq_of_countable_range' h_countable i).union (hτ.measurable_set_gt' i),

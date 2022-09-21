@@ -513,7 +513,7 @@ open mul_hom
 @[to_additive]
 lemma mem_map_equiv {f : M ≃* N} {K : subsemigroup M} {x : N} :
   x ∈ K.map f.to_mul_hom ↔ f.symm x ∈ K :=
-@set.mem_imageuiv _ _ ↑K f.to_equiv x
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
 
 @[to_additive]
 lemma map_equiv_eq_comap_symm (f : M ≃* N) (K : subsemigroup M) :

@@ -654,6 +654,29 @@ begin
   exact (set.to_finite _).is_closed
 end
 
+lemma preconnected_space.trivial_of_discrete [preconnected_space α] [discrete_topology α] :
+  subsingleton α :=
+begin
+  rw ←not_nontrivial_iff_subsingleton,
+  rintro ⟨x, y, hxy⟩,
+  obtain h | h := is_clopen_iff.mp (is_clopen_discrete ({y} : set α)),
+  { exact (singleton_nonempty y).ne_empty h },
+  { rw [ne.def, ←mem_singleton_iff, h] at hxy,
+    exact hxy (mem_univ x) }
+end
+
+lemma is_connected.infinite_of_nontrivial [t1_space α] {s : set α} (h : is_connected s)
+  (hs : s.nontrivial) : s.infinite :=
+begin
+  refine mt (λ hf, (subsingleton_coe s).mp _) (not_subsingleton_iff.mpr hs),
+  haveI := @discrete_of_t1_of_finite s _ _ hf.to_subtype,
+  exact @preconnected_space.trivial_of_discrete _ _ (subtype.preconnected_space h.2) _
+end
+
+@[priority 5]
+instance connected_space.infinite [connected_space α] [nontrivial α] [t1_space α] : infinite α :=
+infinite_univ_iff.mp $ is_connected_univ.infinite_of_nontrivial nontrivial_univ
+
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]
   {x : α} (hx : x ∈ s) :
   {x} ∈ 𝓝[s] x :=

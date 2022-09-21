@@ -46,9 +46,9 @@ example {a : ℤ} (ha : 3 < a) : 0 < a + a := by positivity
 
 example {a b : ℚ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
 
--- TODO: this fails because `div_nonneg` doesn't apply directly to `ℤ` -- it requires a linearly
--- ordered field
--- example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
+example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
+
+example {a : ℤ} (ha : 0 < a) : 0 < a / a := by positivity
 
 example {a : ℕ} : 0 < a ^ 0 := by positivity
 
@@ -99,6 +99,9 @@ example {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [smul
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 
 example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
+
+example {E : Type*} [add_group E] {p : add_group_seminorm E} {x : E} : 0 ≤ p x := by positivity
+example {E : Type*} [group E] {p : group_seminorm E} {x : E} : 0 ≤ p x := by positivity
 
 /- ## Tests that the tactic is agnostic on reversed inequalities -/
 

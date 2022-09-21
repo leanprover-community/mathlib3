@@ -125,7 +125,7 @@ abbreviation non_nil : unit_tree := node nil nil
 | nil := 1
 | (node a b) := a.leaves + b.leaves
 
-/-- The height - length of the longest path - of a binary tree -/
+/-- The height - length of the longest path from the root - of a binary tree -/
 @[simp] def height : unit_tree → ℕ
 | nil := 0
 | (node a b) := max a.height b.height + 1

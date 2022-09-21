@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import computability.primrec.basic
 import data.nat.psub
 import data.pfun
+import data.nat.part_enat
 
 /-!
 # The partial recursive functions
@@ -21,6 +22,68 @@ using the `part` monad, and there is an additional operation, called
 -/
 
 -- TODO: Refactor this file
+open tencodable part function
+
+namespace unit_tree
+
+inductive partrec : (unit_tree →. unit_tree) → Prop
+| nil : partrec (λ _, some unit_tree.nil)
+| left : partrec (λ x, some x.left)
+| right : partrec (λ x, some x.right)
+| pair {f₁ f₂} : partrec f₁ → partrec f₂ →
+    partrec (λ x, (f₁ x).bind $ λ r₁, (f₂ x).bind $ λ r₂, some (r₁.node r₂))
+| comp {f g} : partrec f → partrec g → partrec (f.comp g)
+| prec {n f} : partrec n → partrec f →
+  partrec (λ x, (n x).bind $ λ n', (flip bind f)^[n'.nodes] (some x))
+| find {f : unit_tree → unit_tree} : partrec f →
+   partrec (λ x, (part_enat.find (λ n, f (x.node $ encode n) = unit_tree.nil)).map encode)
+
+namespace partrec
+
+theorem of_eq {f g : unit_tree →. unit_tree} (hf : partrec f) (H : ∀ n, f n = g n) : partrec g :=
+(funext H : f = g) ▸ hf
+
+theorem of_eq_tot {f : unit_tree →. unit_tree} {g : unit_tree → unit_tree}
+  (hf : partrec f) (H : ∀ n, g n ∈ f n) : partrec g :=
+hf.of_eq (λ n, eq_some_iff.2 (H n))
+
+theorem of_primrec {f : unit_tree → unit_tree} (hf : primrec f) : partrec f :=
+begin
+  induction hf,
+  { exact nil, }, { exact left, }, { exact right, },
+  case primrec.pair : _ _ _ _ ihf₁ ihf₂
+  { exact (ihf₁.pair ihf₂).of_eq (by simp), },
+  case primrec.comp : _ _ _ _ ihf₁ ihf₂
+  { refine (ihf₁.comp ihf₂).of_eq (by simp), },
+  case primrec.prec : n f _ _ ihn ihf
+  { refine (ihn.prec ihf).of_eq _, intro x,
+    simp only [pfun.coe_val, bind_some],
+    induction (n x).nodes with n ih, { simp, },
+    { rw [iterate_succ', comp_apply, ih],
+      simp [flip, iterate_succ'], } }
+end
+
+end partrec
+
+end unit_tree
+
+variables {α β : Type} [tencodable α] [tencodable β]
+
+def partrec (f : α →. β) : Prop :=
+∃ f', unit_tree.partrec f' ∧ ∀ x : α, f' (encode x) = (f x).map encode
+
+def computable1 {α β : Type} [tencodable α] [tencodable β] (f : α → β) : Prop :=
+partrec (f : α →. β)
+
+def computable {γ : Type} [has_uncurry γ α β] (f : γ) : Prop :=
+computable1 ↿f
+
+lemma primrec.to_partrec {α β γ : Type} [tencodable α] [tencodable β] [has_uncurry γ α β]
+  {f : γ} : primrec f → computable f
+| ⟨f', pf, hf⟩ := ⟨_, unit_tree.partrec.of_primrec pf, by simpa⟩
+
+
+
 #exit
 open encodable denumerable part
 

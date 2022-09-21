@@ -7,6 +7,8 @@ import order.upper_lower
 import data.finset.n_ary
 import data.finset.lattice
 import data.fintype.basic
+import tactic.field_simp
+import tactic.ring
 
 /-!
 # The Ahlswede-Zhang identity
@@ -53,6 +55,9 @@ instance (s : finset α) [@decidable_rel α (≤)] : decidable_pred (nontriv_z (
 instance (s : finset α) [@decidable_rel α (≤)] : decidable_pred (nontriv_z_star (s : set α)) :=
 λ _, finset.decidable_dexists_finset
 
+instance decidable_pred_nontriv_z_star_singleton [@decidable_rel α (≤)] :
+  decidable_pred (nontriv_z_star ({a} : set α)) := sorry
+
 lemma nontriv_z_union_iff : nontriv_z (s ∪ t) a ↔ nontriv_z s a ∨ nontriv_z t a :=
 by simp [nontriv_z, or_and_distrib_right, exists_or_distrib]
 
@@ -63,7 +68,7 @@ by simp [nontriv_z_star, or_and_distrib_right, exists_or_distrib]
 end
 
 section
-variables [semilattice_sup α] {s t : set α} {a : α}
+variables [semilattice_sup α] {s t : set α} {a b : α}
 
 lemma nontriv_z_image2_sup_iff : nontriv_z (set.image2 (⊔) s t) a ↔ nontriv_z s a ∧ nontriv_z t a :=
 begin
@@ -94,7 +99,7 @@ end
 end
 
 section
-variables [semilattice_sup α] [bounded_order α] [@decidable_rel α (≤)] {s t : finset α} {a : α}
+variables [semilattice_sup α] [bounded_order α] [@decidable_rel α (≤)] {s t : finset α} {a b : α}
 
 /-- The infimum of the elements of `s` less than `a` if there are some, otherwise `⊥`. -/
 def truncated_sup (s : finset α) (a : α) : α :=
@@ -210,7 +215,6 @@ def sum_truncated_inf_div_card_mul_choose (𝒜 : finset (finset α)) : ℚ :=
 def sum_trancated_sup_div_sub_card_mul_choose (𝒜 : finset (finset α)) : ℚ :=
 ∑ s, (truncated_sup 𝒜 s).card / ((card α - s.card) * (card α).choose s.card)
 
--- def Φ (n : nat) : ℚ := n * ∑ k in Ico 1 n, k⁻¹ -- `n * ∑ k in range n, k⁻¹`?
 def mul_sum_range_inv (n : nat) : ℚ := n * ∑ k in range n, k⁻¹
 
 lemma truncated_sup_union_eq_of_not_nontriv_of_nontriv
@@ -306,7 +310,7 @@ begin
   cases decidable.em (nontriv_z_star (ℬ : set (finset α)) s) with hb hb,
   { rw [truncated_sup_union ha hb,
         truncated_sup_image2_inf_eq_inter_z_star_of_nontriv ha hb],
-    apply card_union_add_card_inter },
+    refine card_union_add_card_inter _ _, },
   { rw [truncated_sup_union_eq_of_nontriv_of_not_nontriv ha hb,
         truncated_sup_of_not_nontriv_z_star hb,
         truncated_sup_image2_inf_of_not_nontriv_right hb], },
@@ -325,7 +329,7 @@ lemma sum_truncated_inf_div_card_mul_choose_union_eq (𝒜 ℬ : finset (finset 
   sum_trancated_sup_div_sub_card_mul_choose 𝒜 + sum_trancated_sup_div_sub_card_mul_choose ℬ -
   sum_trancated_sup_div_sub_card_mul_choose (image₂ (⊓) 𝒜 ℬ) :=
 begin
-  apply eq_sub_of_add_eq,
+  refine eq_sub_of_add_eq _,
   dunfold sum_trancated_sup_div_sub_card_mul_choose,
   rw [←sum_add_distrib, ←sum_add_distrib],
   congr,
@@ -338,16 +342,41 @@ begin
 end
 
 lemma sum_div_sub_card_mul_choose_card_eq_mul_sum_range_inv_add_one [nonempty α] :
-  ∑ i : finset (finset α), (card α / ((card α - i.card) * (card α).choose i.card) : ℚ) =
+  ∑ i : finset α, (card α / ((card α - i.card) * (card α).choose i.card) : ℚ) =
   mul_sum_range_inv (card α) + 1 :=
 begin
-  have := finset.powerset_univ,
-  have : (univ : finset (finset α)) = univ := rfl,
-  have := set.powerset_univ,
-  rw powerset_card_bUnion,
+  rw [←powerset_univ, powerset_card_bUnion, sum_bUnion sorry],
+  have : ∀ {x : ℕ} (i ∈ powerset_len x (univ : finset α)),
+    (card α / ((card α - (finset.card i)) * ((card α).choose (finset.card i))) : ℚ) =
+    card α / ((card α - x) * ((card α).choose x)),
+  { intros,
+    rw mem_powerset_len_univ_iff.mp H, },
+  simp_rw [sum_congr rfl this, sum_const, card_powerset_len, card_univ],
+  simp,
+  simp_rw [mul_div, mul_comm, ←mul_div],
+  unfold mul_sum_range_inv,
+  rw [←mul_sum, ←mul_inv_cancel (cast_ne_zero.mpr card_ne_zero : (card α : ℚ) ≠ 0), ←mul_add,
+      add_comm _ ((card α)⁻¹ : ℚ),
+      ←(@sum_insert _ _ _ _ (λ x : ℕ, (x⁻¹ : ℚ)) _ _ not_mem_range_self), ←range_succ],
+  have : ∀ x ∈ range (card α + 1),
+    (((card α).choose x) / (((card α).choose x) * (card α - x)) : ℚ) = (card α - x)⁻¹,
+  { intros,
+    rw div_mul_right,
+    { simp, },
+    { exact cast_ne_zero.mpr (ne_of_gt (choose_pos (mem_range_succ_iff.mp H))), } },
+  rw sum_congr rfl this,
+  simp,
+  left,
+  exact sum_bij (λ n _, card α - n)
+    (λ a ha, mem_range_succ_iff.mpr tsub_le_self)
+    (λ a ha, by rw cast_sub (mem_range_succ_iff.mp ha))
+    (λ a₁ a₂ ha₁ ha₂ heq,
+      (tsub_right_inj (mem_range_succ_iff.mp ha₁) (mem_range_succ_iff.mp ha₂)).mp heq)
+    (λ b hb, ⟨card α - b, mem_range_succ_iff.mpr tsub_le_self,
+      (tsub_tsub_cancel_of_le (mem_range_succ_iff.mp hb)).symm⟩),
 end
 
-lemma finset.map_compl {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
+/- lemma finset.map_compl {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
   (s : finset α) (f : α → β) (hbij : function.bijective f) :
   (sᶜ).map ⟨f, hbij.1⟩ = (s.map ⟨f, hbij.1⟩)ᶜ :=
 begin
@@ -356,40 +385,46 @@ begin
   { simp,
     intros y hy hfy truncated_inf hz hfz,
     subst hfz,
-    exact hy ((hbij.1 hfy).symm ▸ hz) },
+    exact hy ((hbij.1 hfy).symm ▸ hz), },
   { simp,
     rintro h,
     cases hbij.2 x with y hy,
     subst hy,
-    exact ⟨y, λ contra, h _ contra rfl, rfl⟩ }
-end
+    exact ⟨y, λ contra, h _ contra rfl, rfl⟩, }
+end -/
 
-lemma Γ_add_delta_eq_Φ_add_one (hα : α ≠ ∅) (𝒜 : finset ( finset α)) :
-  Γ (𝒜.map ⟨compl, compl_injective⟩) + Δ 𝒜 = Φ α.card + 1 :=
+lemma sum_truncated_inf_div_card_mul_choose_add_sum_trancated_sup_div_sub_card_mul_choose_eq_mul_sum_range_inv_add_one
+  [nonempty α] (𝒜 : finset ( finset α)) :
+  sum_truncated_inf_div_card_mul_choose (𝒜.map ⟨compl, compl_injective⟩)
+  + sum_trancated_sup_div_sub_card_mul_choose 𝒜 = mul_sum_range_inv (card α) + 1 :=
 begin
-  dunfold Γ,
-  dunfold Δ,
-  have := finset.map_compl ({univ} : finset (finset α)) compl compl_bijective,
-  simp [compl_α] at this,
-  rw ←this,
-  simp [sum_add_distrib.symm],
-  simp_rw [(fintype.card_coe α).symm,
-            card_compl,
-            nat.cast_sub (card_le_univ _),
-            nat.choose_symm (card_le_univ _) ],
-  have := λ {x},  compl_truncated_inf_eq_z_star_compl 𝒜 xᶜ,
-  simp at this,
-  simp_rw [ this.symm,
-            div_add_div_same,
-            card_compl,
-            nat.cast_sub (card_le_univ _) ],
+  dunfold sum_truncated_inf_div_card_mul_choose,
+  dunfold sum_trancated_sup_div_sub_card_mul_choose,
+  rw ←@map_univ_of_surjective _ _ _ _ ⟨compl, compl_injective⟩ compl_surjective,
+  rw sum_map,
   simp,
-  simp_rw div_eq_mul_inv,
-  apply sum_div_sub_card_mul_choose_card_eq_Φ_add_one hα,
+  -- simp_rw ←compl_truncated_sup, -- why does simp_rw not work when conv does?
+  conv
+  begin
+    to_lhs,
+    congr,
+    { congr,
+      { skip, },
+      { funext,
+        rw ←compl_truncated_sup, }, },
+    { skip, },
+  end,
+  rw ←sum_add_distrib,
+  simp_rw card_compl,
+  simp_rw cast_sub (card_le_univ _),
+  simp_rw choose_symm (card_le_univ _),
+  simp_rw div_add_div_same,
+  simp,
+  exact sum_div_sub_card_mul_choose_card_eq_mul_sum_range_inv_add_one,
 end
 
-lemma binomial_sum_eq (n m : ℕ) (h : n < m) :
-  (range (n+1)).sum (λ (i : ℕ), ((n.choose i) * (n - m) * (m - i)⁻¹ * (m.choose i)⁻¹ : ℚ)) = -1 :=
+lemma binomial_sum_eq {n m : ℕ} (h : n < m) :
+  ∑ i in range (n+1), ((n.choose i) * (n - m) * (m - i)⁻¹ * (m.choose i)⁻¹ : ℚ) = -1 :=
 begin
   let f : ℕ → ℚ := λ i, n.choose i * (m.choose i)⁻¹,
   have : ∀ (i ∈ range (n+1)), f (i + 1) - f i = (n.choose i) * (n - m) * (m - i)⁻¹ * (m.choose i)⁻¹,
@@ -400,7 +435,7 @@ begin
     have h₃ := le_of_lt h₂,
     simp [f],
     have hi₄ : (i + 1 : ℚ) ≠ 0,
-    { have := (@nat.cast_ne_zero ℚ _ _ _ _).mpr (nat.succ_ne_zero i),
+    { have := (@nat.cast_ne_zero ℚ _ _ _).mpr (nat.succ_ne_zero i),
       push_cast at this,
       exact this },
     have := congr_arg (coe : ℕ → ℚ) (nat.choose_succ_right_eq m i),
@@ -417,87 +452,50 @@ begin
   rw ←sum_congr rfl this,
   rw sum_range_sub,
   simp [f],
-  simp [nat.choose_self, nat.choose_zero_right, nat.choose_eq_zero_of_lt h]
+  simp [nat.choose_self, nat.choose_zero_right, nat.choose_eq_zero_of_lt h],
 end
 
-lemma filter_subset_compl_α_eq_union_powerset_len {y : finset α} (hy : y ≠ univ) :
-  (filter (λ (s : finset α), x ⊆ y) {univ}ᶜ) = (range α.card).bUnion (λ k, powerset_len k y) :=
-begin
-  ext x,
-  simp,
-  split;
-  intro h,
-  { use x.card,
-    have := lt_of_le_of_ne (card_le_univ _) (h.1 ∘ (card_eq_iff_eq_univ _).mp),
-    simp at this,
-    exact ⟨this, mem_powerset_len.mpr ⟨h.2, rfl⟩⟩ },
-  { rcases h with ⟨n, hn, hx⟩,
-    cases mem_powerset_len.mp hx with hxy hcard,
-    subst hcard,
-    split,
-    { intro contra,
-      rw contra at hn,
-      simp at hn,
-      exact hn },
-    { exact hxy } }
-end
+lemma filter_subset_univ_eq_powerset (s : finset α) : filter (λ t, t ⊆ s) univ = powerset s :=
+ext (λ a, ⟨λ h, mem_powerset.mpr (mem_filter.mp h).2,
+           λ h, mem_filter.mpr ⟨mem_univ _, mem_powerset.mp h⟩⟩)
 
-lemma Γ_singleton_eq_Φ (hα : α ≠ ∅) {y : finset α} (hy : y ≠ univ) : Γ {y} = Φ α.card :=
+lemma sum_trancated_sup_div_sub_card_mul_choose_singleton_eq_mul_sum_range_inv
+  [nonempty α] [decidable_eq α] {s : finset α} (hs : s ≠ univ) :
+ sum_trancated_sup_div_sub_card_mul_choose ({s} : finset (finset α)) = mul_sum_range_inv (card α) :=
 begin
-  rw ←sub_eq_of_eq_add (sum_div_sub_card_mul_choose_card_eq_Φ_add_one hα),
-  dunfold Γ,
+  rw ←sub_eq_of_eq_add sum_div_sub_card_mul_choose_card_eq_mul_sum_range_inv_add_one,
+  dunfold sum_trancated_sup_div_sub_card_mul_choose,
+  simp [truncated_sup, nontriv_z_star, filter_singleton],
   rw sub_eq_add_neg,
-  apply eq_add_of_sub_eq',
+  refine eq_add_of_sub_eq' _,
   rw ←sum_sub_distrib,
   simp_rw div_sub_div_same,
-  rw ←sum_filter_add_sum_filter_not _ (λ x, x ⊆ y),
-  have : ∀ (x ∈ filter (λ x, ¬x ⊆ y) {univ}ᶜ),
-    ((((z_star {y} x).card) - α.card) / ((α.card - x.card) * (α.card.choose x.card)) : ℚ) = 0,
+  rw ←sum_filter_add_sum_filter_not _ (λ x, x ⊆ s),
+  rw add_comm,
+  rw sum_congr rfl,
+  swap,
   { intros x hx,
-    simp at hx,
-    dunfold truncated_sup nontriv_z_star,
-    simp [if_neg hx.2] },
-  rw sum_congr rfl this,
-  simp,
-  have : ∀ (x ∈ filter (λ x, x ⊆ y) {univ}ᶜ),
-    ((((z_star {y} x).card) - α.card) / ((α.card - x.card) * (α.card.choose x.card)) : ℚ) =
-    (y.card - α.card) / ((α.card - x.card) * (α.card.choose x.card)),
+    rw if_neg (mem_filter.mp hx).2, },
+  have : (⊤ : finset α) = univ := rfl,
+  simp_rw [this, ←finset.card_univ, sub_self, zero_div, sum_const_zero, zero_add],
+  rw filter_subset_univ_eq_powerset,
+  rw (sum_congr rfl _).trans _,
+  swap,
   { intros x hx,
-    simp at hx,
-    dunfold truncated_sup nontriv_z_star,
-    simp [filter_singleton, if_pos hx.2] },
-  rw sum_congr rfl this,
-  rw filter_subset_compl_α_eq_union_powerset_len hy,
-  rw sum_bUnion (pairwise_disjoint_powerset_len _),
-  have : ∀ (x : ℕ) (i ∈ powerset_len x y),
-    ((y.card - α.card) / ((α.card - i.card) * (α.card.choose i.card)) : ℚ) =
-    (y.card - α.card) * (α.card - x)⁻¹ * (α.card.choose x)⁻¹,
-  { intros x i hi,
-    rw [(mem_powerset_len.mp hi).2, div_eq_mul_inv, mul_inv, mul_assoc] },
-  simp_rw [sum_congr rfl (this _), sum_const, card_powerset_len],
-  simp,
-  simp_rw ←mul_assoc,
-  have h_card_y : y.card + 1 ≤ α.card,
-  { cases lt_or_eq_of_le (card_le_univ y),
-    { simp at h,
-      exact nat.succ_le_of_lt h, },
-    { cases hy (eq_univ_of_card _ h) } },
-  have := Ico_union_Ico_eq_Ico (zero_le (y.card+1)) h_card_y,
-  simp at this,
-  rw [←this, range_eq_Ico, sum_union (Ico_disjoint_Ico_consecutive _ _ _)],
-  have : ∀ (i ∈ Ico (y.card + 1) α.card),
-    ((y.card.choose i) * (y.card - α.card) * (α.card - i)⁻¹ * (α.card.choose i)⁻¹ : ℚ) = 0,
+    simp [if_pos (mem_powerset.mp hx)], },
+  rw [powerset_card_bUnion, sum_bUnion sorry],
+  rw ←binomial_sum_eq ((card_lt_iff_ne_univ _).mpr hs),
+  refine sum_congr rfl _,
+  intros x hx,
+  refine (sum_congr rfl _).trans _,
+  swap,
   { intros i hi,
-    simp at hi,
-    rw nat.choose_eq_zero_iff.mpr (nat.lt_of_succ_le hi.1),
-    simp, },
-  rw [sum_congr rfl this],
-  simp,
-  apply binomial_sum_eq,
-  cases lt_or_eq_of_le (card_le_univ y),
-  { simp at h,
-    exact h },
-  { cases hy (eq_univ_of_card _ h) }
+    rw (mem_powerset_len.mp hi).2, },
+  simp [sum_const],
+  rw card_univ,
+  field_simp,
+  apply_instance, -- why do i need this?
+  apply_instance,
 end
 
 -- should i prove 𝒜 right version of this even if i don't use it?
@@ -506,31 +504,33 @@ lemma finset.left_eq_univ_of_inter_eq_univ {α : Type*} [fintype α] [decidable_
   s ∩ t = univ → s = univ
 := λ h, eq_univ_of_forall (λ x, (mem_inter.mp (eq_univ_iff_forall.mp h x)).1)
 
-theorem Γ_eq_Φ (𝒜 : finset (finset α)) (hα : α ≠ ∅) (ha : 𝒜 ≠ ∅ ∧ univ ∉ 𝒜) : Γ 𝒜 = Φ α.card :=
+theorem Γ_eq_Φ [nonempty α] (𝒜 : finset (finset α)) (ha : 𝒜 ≠ ∅ ∧ univ ∉ 𝒜) :
+  sum_trancated_sup_div_sub_card_mul_choose 𝒜 = mul_sum_range_inv (fintype.card α) :=
 begin
   cases exists.intro 𝒜.card rfl with m' hcard,
   revert hcard 𝒜,
-  apply nat.strong_induction_on m',
+  refine nat.strong_induction_on m' _,
   intros m ih 𝒜 ha hcard,
-  have ih : ∀ (a' : finset (finset α)), a'.card < m → a' ≠ ∅ → univ ∉ a' → Γ a' = Φ α.card
+  have ih : ∀ (a' : finset (finset α)), a'.card < m → a' ≠ ∅ → univ ∉ a' →
+    sum_trancated_sup_div_sub_card_mul_choose a' = mul_sum_range_inv (fintype.card α)
     := λ a' hcard ha'₁ ha'₂, ih a'.card hcard a' ⟨ha'₁, ha'₂⟩ rfl,
   rcases m with (_ | (_ | _)),
-  { cases ha.1 (card_eq_zero.mp hcard) },
+  { cases ha.1 (finset.card_eq_zero.mp hcard), },
   { cases card_eq_one.mp hcard,
     subst h,
     simp at ha,
-    apply Γ_singleton_eq_Φ hα (ne.symm ha) },
+    refine sum_trancated_sup_div_sub_card_mul_choose_singleton_eq_mul_sum_range_inv (ne.symm ha), },
   rcases card_eq_succ.mp hcard with ⟨hd, tl, h_hd_tl, h_insert, h_card_tl⟩,
   subst h_insert,
   rw insert_eq,
-  rw Γ_union_eq,
+  rw sum_truncated_inf_div_card_mul_choose_union_eq,
   rw [ih, ih, ih],
   simp,
-  { apply @nat.lt_of_le_of_lt _ tl.card _,
-    { rw [←@card_map _ _ tl, singleton_product],
-      apply card_image_le },
+  { refine @nat.lt_of_le_of_lt _ tl.card _ _ _,
+    { simp,
+      exact card_image_le, },
     { rw h_card_tl,
-      apply lt_add_one } },
+      exact lt_add_one _, } },
   { intro contra,
     cases product_eq_empty.mp (image_eq_empty.mp contra),
     { exact singleton_ne_empty _ h, },
@@ -545,7 +545,7 @@ begin
     exact (not_or_distrib.mp (ha.2 ∘ mem_insert.mpr)).1
           (finset.left_eq_univ_of_inter_eq_univ hxy).symm },
   { rw h_card_tl,
-    apply lt_add_one },
+    exact lt_add_one _, },
   { intro contra,
     subst contra,
     simp at h_card_tl,
@@ -554,5 +554,5 @@ begin
   { simp },
   { simp },
   { simp,
-    exact (not_or_distrib.mp (ha.2 ∘ mem_insert.mpr)).1 }
+    exact (not_or_distrib.mp (ha.2 ∘ mem_insert.mpr)).1 },
 end

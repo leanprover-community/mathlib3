@@ -54,13 +54,6 @@ instance [partial_order β] : partial_order β* :=
 { le_antisymm := λ f g, induction_on₂ f g $ λ f g h₁ h₂, (eventually_le.antisymm h₁ h₂).germ_eq,
   .. germ.preorder }
 
-/-- If `φ` is an ultrafilter then the ultraproduct is a linear order. -/
-noncomputable instance [linear_order β] : linear_order β* :=
-{ le_total := λ f g, induction_on₂ f g $ λ f g, eventually_or.1 $ eventually_of_forall $
-    λ x, le_total _ _,
-  decidable_le := by apply_instance,
-  .. germ.partial_order }
-
 instance [has_sup β] : has_sup β* := ⟨map₂ (⊔)⟩
 instance [has_inf β] : has_inf β* := ⟨map₂ (⊓)⟩
 
@@ -93,6 +86,12 @@ instance [lattice β] : lattice β* :=
 instance [distrib_lattice β] : distrib_lattice β* :=
 { le_sup_inf := λ f g h, induction_on₃ f g h $ λ f g h, eventually_of_forall $ λ _, le_sup_inf,
   .. germ.semilattice_sup, .. germ.semilattice_inf }
+
+instance [has_le β] [is_total β (≤)] : is_total β* (≤) :=
+⟨λ f g, induction_on₂ f g $ λ f g, eventually_or.1 $ eventually_of_forall $ λ x, total_of _ _ _⟩
+
+/-- If `φ` is an ultrafilter then the ultraproduct is a linear order. -/
+noncomputable instance [linear_order β] : linear_order β* := lattice.to_linear_order _
 
 @[to_additive]
 instance [ordered_comm_monoid β] : ordered_comm_monoid β* :=
@@ -189,10 +188,6 @@ by rw [min_def, map₂_const]
 @[simp] lemma const_abs [linear_ordered_add_comm_group β] (x : β) :
   (↑(|x|) : β*) = |↑x| :=
 by rw [abs_def, map_const]
-
-lemma linear_order.to_lattice_eq_filter_germ_lattice [linear_order β] :
-  (@linear_order.to_lattice (filter.germ ↑φ β) filter.germ.linear_order) = filter.germ.lattice :=
-lattice.ext (λ x y, iff.rfl)
 
 end germ
 

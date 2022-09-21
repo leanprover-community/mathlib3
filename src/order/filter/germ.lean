@@ -301,8 +301,14 @@ instance [has_vadd M G] : has_vadd M (germ l G) := ⟨λ n, map ((+ᵥ) n)⟩
 @[simp, norm_cast, to_additive]
 lemma coe_smul [has_smul M G] (n : M) (f : α → G) : ↑(n • f) = (n • f : germ l G) := rfl
 
+@[simp, norm_cast, to_additive]
+lemma const_smul [has_smul M G] (n : M) (a : G) : (↑(n • a) : germ l G) = n • ↑a := rfl
+
 @[simp, norm_cast, to_additive coe_smul]
 lemma coe_pow [has_pow G M] (f : α → G) (n : M) : ↑(f ^ n) = (f ^ n : germ l G) := rfl
+
+@[simp, norm_cast, to_additive const_smul]
+lemma const_pow [has_pow G M] (a : G) (n : M) : (↑(a ^ n) : germ l G) = ↑a ^ n := rfl
 
 @[to_additive]
 instance [monoid M] : monoid (germ l M) :=
@@ -333,11 +339,17 @@ instance [has_inv G] : has_inv (germ l G) := ⟨map has_inv.inv⟩
 @[simp, norm_cast, to_additive]
 lemma coe_inv [has_inv G] (f : α → G) : ↑f⁻¹ = (f⁻¹ : germ l G) := rfl
 
+@[simp, norm_cast, to_additive]
+lemma const_inv [has_inv G] (a : G) : (↑a⁻¹ : germ l G) = (↑a)⁻¹ := rfl
+
 @[to_additive]
 instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
 
 @[simp, norm_cast, to_additive]
 lemma coe_div [has_div M] (f g : α → M) : ↑(f / g) = (f / g : germ l M) := rfl
+
+@[simp, norm_cast, to_additive]
+lemma const_div [has_div M] (a b : M) : (↑(a / b) : germ l M) = ↑a / ↑b := rfl
 
 @[to_additive sub_neg_monoid]
 instance [div_inv_monoid G] : div_inv_monoid (germ l G) :=

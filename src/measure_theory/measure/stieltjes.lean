@@ -64,7 +64,7 @@ at `x` is a Stieltjes function, i.e., it is monotone and right-continuous. -/
 noncomputable def _root_.monotone.stieltjes_function {f : ℝ → ℝ} (hf : monotone f) :
   stieltjes_function :=
 { to_fun := right_lim f,
-  mono' := λ x y hxy, hf.right_lim_le_right_lim hxy,
+  mono' := λ x y hxy, hf.right_lim hxy,
   right_continuous' :=
   begin
     assume x s hs,
@@ -76,7 +76,7 @@ noncomputable def _root_.monotone.stieltjes_function {f : ℝ → ℝ} (hf : mon
     change ∀ᶠ y in 𝓝[≥] x, right_lim f y ∈ s,
     filter_upwards [Ico_mem_nhds_within_Ici ⟨le_refl x, xy⟩] with z hz,
     apply lus,
-    refine ⟨hlu.1.trans_le (hf.right_lim_le_right_lim hz.1), _⟩,
+    refine ⟨hlu.1.trans_le (hf.right_lim hz.1), _⟩,
     obtain ⟨a, za, ay⟩ : ∃ (a : ℝ), z < a ∧ a < y := exists_between hz.2,
     calc right_lim f z ≤ f a : hf.right_lim_le za
                    ... < u   : (h'y ⟨hz.1.trans_lt za, ay.le⟩).2,
@@ -346,7 +346,7 @@ begin
   rcases le_or_lt b a with hab|hab,
   { simp only [hab, measure_empty, Ico_eq_empty, not_lt],
     symmetry,
-    simp [ennreal.of_real_eq_zero, f.mono.left_lim_le_left_lim hab] },
+    simp [ennreal.of_real_eq_zero, f.mono.left_lim hab] },
   { have A : disjoint {a} (Ioo a b) := by simp,
     simp [← Icc_union_Ioo_eq_Ico le_rfl hab, -singleton_union, hab.ne, f.mono.left_lim_le,
       measure_union A measurable_set_Ioo, f.mono.le_left_lim hab, ← ennreal.of_real_add] }

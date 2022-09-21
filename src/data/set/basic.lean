@@ -358,7 +358,7 @@ nonempty_subtype.mp ‹_›
 
 theorem empty_def : (∅ : set α) = {x | false} := rfl
 
-@[simp] theorem mem_empty_iff_fal (x : α) : x ∈ (∅ : set α) ↔ false := iff.rfl
+@[simp] theorem mem_empty_iff_false (x : α) : x ∈ (∅ : set α) ↔ false := iff.rfl
 
 @[simp] theorem set_of_false : {a : α | false} = ∅ := rfl
 

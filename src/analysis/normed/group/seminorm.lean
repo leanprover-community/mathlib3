@@ -264,13 +264,12 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
 
 @[to_additive] lemma mul_bdd_below_range_add {p q : group_seminorm E} {x : E} :
   bdd_below (range $ λ y, p y + q (x / y)) :=
-⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg p _) (map_nonneg q _) }⟩
+⟨0, by { rintro _ ⟨x, rfl⟩, dsimp, positivity }⟩
 
 @[to_additive] noncomputable instance : has_inf (group_seminorm E) :=
 ⟨λ p q,
   { to_fun := λ x, ⨅ y, p y + q (x / y),
-    map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-        (λ x, add_nonneg (map_nonneg p _) (map_nonneg q _))
+    map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt (λ x, by positivity)
         (λ r hr, ⟨1, by rwa [div_one, map_one_eq_zero p, map_one_eq_zero q, add_zero]⟩),
     mul_le' := λ x y, le_cinfi_add_cinfi $ λ u v, begin
       refine cinfi_le_of_le mul_bdd_below_range_add (u * v) _,

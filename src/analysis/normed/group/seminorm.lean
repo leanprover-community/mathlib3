@@ -128,6 +128,12 @@ by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 @[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
 by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
 
+@[to_additive] lemma abs_sub_map_le_div : |f x - f y| ≤ f (x / y) :=
+begin
+  rw [abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
+  exact ⟨le_map_add_map_div _ _ _, le_map_add_map_div' _ _ _⟩
+end
+
 end group_seminorm_class
 
 @[to_additive, priority 100] -- See note [lower instance priority]
@@ -208,7 +214,7 @@ variables (p q) (f : F →* E)
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
-@[to_additive] noncomputable instance : has_sup (group_seminorm E) :=
+@[to_additive] instance : has_sup (group_seminorm E) :=
 ⟨λ p q,
   { to_fun := p ⊔ q,
     map_one' :=
@@ -221,7 +227,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
-@[to_additive] noncomputable instance : semilattice_sup (group_seminorm E) :=
+@[to_additive] instance : semilattice_sup (group_seminorm E) :=
 fun_like.coe_injective.semilattice_sup _ coe_sup
 
 /-- Composition of a group seminorm with a monoid homomorphism as a group seminorm. -/
@@ -434,7 +440,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma add_apply (x : E) : (p + q) x = p x + q x := rfl
 
 -- TODO: define `has_Sup`
-@[to_additive] noncomputable instance : has_sup (group_norm E) :=
+@[to_additive] instance : has_sup (group_norm E) :=
 ⟨λ p q,
   { eq_one_of_map_eq_zero' := λ x hx, of_not_not $ λ h, hx.not_gt $
       lt_sup_iff.2 $ or.inl $ map_pos_of_ne_one p h,
@@ -443,7 +449,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
-@[to_additive] noncomputable instance : semilattice_sup (group_norm E) :=
+@[to_additive] instance : semilattice_sup (group_norm E) :=
 fun_like.coe_injective.semilattice_sup _ coe_sup
 
 end group

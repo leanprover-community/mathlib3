@@ -619,7 +619,7 @@ the units of the residue field of `A`. -/
 def units_mod_principal_units_equiv_residue_field_units :
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
   (local_ring.residue_field A)ˣ :=
-mul_equiv.trans (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units.symm)
+(quotient_group.quotient_mul_equiv_of_eq A.ker_unit_group_to_residue_field_units.symm).trans
   (quotient_group.quotient_ker_equiv_of_surjective _ A.surjective_unit_group_to_residue_field_units)
 
 @[simp]

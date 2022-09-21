@@ -33,8 +33,20 @@ The disadvantage is that we have to duplicate some instances about `set.Ici` to 
 -/
 
 open set
+open_locale nnrat
 
 variables {α : Type*}
+
+section linear_ordered_semifield
+variables [linear_ordered_semifield α] {a : α}
+
+lemma nnrat.cast_nonneg (q : ℚ≥0) : (0 : α) ≤ q :=
+by { rw nnrat.cast_def, exact div_nonneg q.num.cast_nonneg q.denom.cast_nonneg }
+
+lemma nnqsmul_nonneg (ha : 0 ≤ a) (q : ℚ≥0) : 0 ≤ q • a :=
+by { rw nnrat.smul_def, exact mul_nonneg q.cast_nonneg ha }
+
+end linear_ordered_semifield
 
 namespace nonneg
 
@@ -64,10 +76,25 @@ instance has_zpow : has_pow {x : α // 0 ≤ x} ℤ := ⟨λ a n, ⟨a ^ n, zpow
 @[simp] lemma mk_zpow (hx : 0 ≤ x) (n : ℤ) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) ^ n = ⟨x ^ n, zpow_nonneg hx n⟩ := rfl
 
+instance : has_nnrat_cast {x : α // 0 ≤ x} := ⟨λ q, ⟨q, q.cast_nonneg⟩⟩
+
+@[simp, norm_cast] protected lemma coe_nnrat_cast (q : ℚ≥0) : ((q : {x : α // 0 ≤ x}) : α) = q :=
+rfl
+
+@[simp] lemma mk_nnrat_cast (q : ℚ≥0) : (⟨q, q.cast_nonneg⟩ : {x : α // 0 ≤ x}) = q := rfl
+
+instance has_nnqsmul : has_smul ℚ≥0 {x : α // 0 ≤ x} := ⟨λ q a, ⟨q • a, nnqsmul_nonneg a.2 _⟩⟩
+
+@[simp, norm_cast] protected lemma coe_nnqsmul (q : ℚ≥0) (a : {x : α // 0 ≤ x}) :
+  (↑(q • a) : α) = q • a := rfl
+
+@[simp] lemma nnqsmul_mk (q : ℚ≥0) (hx : 0 ≤ x) :
+  (q • ⟨x, hx⟩ : {x : α // 0 ≤ x}) = ⟨q • x, nnqsmul_nonneg hx _⟩ := rfl
+
 instance linear_ordered_semifield : linear_ordered_semifield {x : α // 0 ≤ x} :=
 subtype.coe_injective.linear_ordered_semifield _ nonneg.coe_zero nonneg.coe_one nonneg.coe_add
-    nonneg.coe_mul nonneg.coe_inv nonneg.coe_div (λ _ _, rfl) nonneg.coe_pow nonneg.coe_zpow
-    nonneg.coe_nat_cast (λ _ _, rfl) (λ _ _, rfl)
+    nonneg.coe_mul nonneg.coe_inv nonneg.coe_div (λ _ _, rfl) (λ _ _, rfl) nonneg.coe_pow nonneg.coe_zpow
+    nonneg.coe_nat_cast nonneg.coe_nnrat_cast (λ _ _, rfl) (λ _ _, rfl)
 
 end linear_ordered_semifield
 

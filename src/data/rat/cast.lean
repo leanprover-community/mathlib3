@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
+import data.rat.field
 import data.rat.order
 import data.int.char_zero
 import algebra.field.opposite
@@ -32,7 +33,7 @@ namespace nnrat
 variable [division_semiring α]
 
 @[simp, norm_cast] lemma cast_coe_nat (n : ℕ) : ((n : ℚ≥0) : α) = n :=
-by simpa only [coe_nat_num, coe_nat_denom, nat.cast_one, div_one] using @nnrat.cast_def α _ n
+by simpa only [num_coe_nat, denom_coe_nat, nat.cast_one, div_one] using @nnrat.cast_def α _ n
 
 end nnrat
 
@@ -49,7 +50,7 @@ variable [division_ring α]
 by rw [← int.cast_coe_nat, cast_coe_int, int.cast_coe_nat]
 
 @[simp, norm_cast] lemma cast_coe_nnrat (q : ℚ≥0) : ((q : ℚ) : α) = q :=
-by rw [nnrat.cast_def, nnrat.cast_def, cast_coe_int, int.cast_coe_nat]
+by rw [nnrat.cast_def, nnrat.cast_def, cast_div, cast_coe_int, int.cast_coe_nat]
 
 @[simp, norm_cast] lemma cast_zero : ((0 : ℚ) : α) = 0 := (cast_coe_int _).trans int.cast_zero
 @[simp, norm_cast] lemma cast_one : ((1 : ℚ) : α) = 1 := (cast_coe_int _).trans int.cast_one
@@ -341,29 +342,3 @@ monoid_with_zero_hom.ext_rat' $ ring_hom.congr_fun $
 
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
 ⟨ring_hom.ext_rat⟩
-
-namespace mul_opposite
-section division_semiring
-variables [division_semiring α]
-
-@[simp, norm_cast] lemma op_nnrat_cast (r : ℚ≥0) : op (r : α) = (↑r : αᵐᵒᵖ) :=
-by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
-    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
-
-@[simp, norm_cast] lemma unop_nnrat_cast (r : ℚ≥0) : unop (r : αᵐᵒᵖ) = r :=
-by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
-    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
-
-end division_semiring
-
-variables [division_ring α]
-
-@[simp, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
-by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
-    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
-
-@[simp, norm_cast] lemma unop_rat_cast (r : ℚ) : unop (r : αᵐᵒᵖ) = r :=
-by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
-    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
-
-end mul_opposite

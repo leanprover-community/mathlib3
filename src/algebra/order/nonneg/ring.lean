@@ -180,7 +180,7 @@ instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 
 @[simp, norm_cast]
 protected lemma coe_pow [ordered_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
-  ((a ^ n: {x : α // 0 ≤ x}) : α) = a ^ n := rfl
+  ((a ^ n : {x : α // 0 ≤ x}) : α) = a ^ n := rfl
 
 @[simp, norm_cast]
 protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n := rfl

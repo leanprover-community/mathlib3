@@ -286,8 +286,8 @@ ext $ rat.ext ((int.nat_abs_inj_of_nonneg_of_nonneg
 lemma ext_num_denom_iff : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
 ⟨by { rintro rfl, exact ⟨rfl, rfl⟩ }, λ h, ext_num_denom h.1 h.2⟩
 
-@[simp, norm_cast] lemma coe_nat_num (n : ℕ) : (n : ℚ≥0).num = n := by simp [num]
-@[simp, norm_cast] lemma coe_nat_denom (n : ℕ) : (n : ℚ≥0).denom = 1 := by simp [denom]
+@[simp, norm_cast] lemma num_coe_nat (n : ℕ) : (n : ℚ≥0).num = n := by simp [num]
+@[simp, norm_cast] lemma denom_coe_nat (n : ℕ) : (n : ℚ≥0).denom = 1 := by simp [denom]
 
 -- @[simp] lemma num_div_denom (q : ℚ≥0) : (q.num : ℚ≥0) / q.denom = q :=
 -- begin

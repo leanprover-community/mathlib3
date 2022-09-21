@@ -50,7 +50,8 @@ class add_group_with_one (R : Type u)
 
 /-- An `add_comm_group_with_one` is an `add_group_with_one` satisfying `a + b = b + a`. -/
 @[protect_proj]
-class add_comm_group_with_one (R : Type u) extends add_comm_group R, add_group_with_one R
+class add_comm_group_with_one (R : Type u)
+  extends add_comm_group R, add_group_with_one R, add_comm_monoid_with_one R
 
 /-- Canonical homomorphism from the integers to any ring(-like) structure `R` -/
 protected def int.cast {R : Type u} [has_int_cast R] (i : ℤ) : R := has_int_cast.int_cast i

@@ -978,7 +978,7 @@ meta def positivity_zpow : expr → tactic strictness
     positive <$> mk_app ``zpow_zero_pos [a]
   else positivity.orelse'
     (do -- even powers are nonnegative
-      match n with
+      match n with -- TODO: Decision procedure for parity
       | `(bit0 %% n) := nonnegative <$> mk_app ``zpow_bit0_nonneg [a, n]
       | _ := failed
       end) $

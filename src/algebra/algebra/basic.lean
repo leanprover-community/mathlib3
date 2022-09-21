@@ -126,10 +126,10 @@ algebra.to_ring_hom
 
 namespace algebra_map
 
-def has_lift_t (R A : Type*) [comm_semiring R] [semiring A] [algebra R A] :
-  has_lift_t R A := ⟨λ r, algebra_map R A r⟩
+def has_coe_t (R A : Type*) [comm_semiring R] [semiring A] [algebra R A] :
+  has_coe_t R A := ⟨λ r, algebra_map R A r⟩
 
-attribute [instance, priority 37] algebra_map.has_lift_t
+attribute [instance, priority 37] algebra_map.has_coe_t
 
 section comm_semiring_semiring
 

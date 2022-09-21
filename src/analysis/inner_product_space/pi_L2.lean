@@ -469,9 +469,11 @@ by { classical,
 
 end orthonormal_basis
 
+namespace complex
+
 /-- `![1, I]` is an orthonormal basis for `ℂ` considered as a real inner product space. -/
-def complex.orthonormal_basis_one_I : orthonormal_basis (fin 2) ℝ ℂ :=
-(complex.basis_one_I.to_orthonormal_basis
+def orthonormal_basis_one_I : orthonormal_basis (fin 2) ℝ ℂ :=
+(basis_one_I.to_orthonormal_basis
 begin
   rw orthonormal_iff_ite,
   intros i, fin_cases i;
@@ -479,42 +481,64 @@ begin
   simp [real_inner_eq_re_inner]
 end)
 
-@[simp] lemma complex.orthonormal_basis_one_I_repr_apply (z : ℂ) :
-  complex.orthonormal_basis_one_I.repr z =  ![z.re, z.im] :=
+@[simp] lemma orthonormal_basis_one_I_repr_apply (z : ℂ) :
+  orthonormal_basis_one_I.repr z =  ![z.re, z.im] :=
 rfl
 
-@[simp] lemma complex.orthonormal_basis_one_I_repr_symm_apply (x : euclidean_space ℝ (fin 2)) :
-  complex.orthonormal_basis_one_I.repr.symm x = (x 0) + (x 1) * I :=
+@[simp] lemma orthonormal_basis_one_I_repr_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  orthonormal_basis_one_I.repr.symm x = (x 0) + (x 1) * I :=
 rfl
 
-@[simp] lemma complex.to_basis_orthonormal_basis_one_I :
-  complex.orthonormal_basis_one_I.to_basis = complex.basis_one_I :=
+@[simp] lemma to_basis_orthonormal_basis_one_I :
+  orthonormal_basis_one_I.to_basis = basis_one_I :=
 basis.to_basis_to_orthonormal_basis _ _
 
-@[simp] lemma complex.coe_orthonormal_basis_one_I :
-  (complex.orthonormal_basis_one_I : (fin 2) → ℂ) = ![1, I] :=
-by simp [complex.orthonormal_basis_one_I]
+@[simp] lemma coe_orthonormal_basis_one_I :
+  (orthonormal_basis_one_I : (fin 2) → ℂ) = ![1, I] :=
+by simp [orthonormal_basis_one_I]
+
+@[simp] protected lemma inner_one_left (z : ℂ) : ⟪1, z⟫_ℝ = z.re :=
+by simpa [orthonormal_basis.repr_apply_apply]
+  using congr_fun (orthonormal_basis_one_I_repr_apply z) 0
+
+@[simp] protected lemma inner_I_left (z : ℂ) : ⟪I, z⟫_ℝ = z.im :=
+by simpa [orthonormal_basis.repr_apply_apply]
+  using congr_fun (orthonormal_basis_one_I_repr_apply z) 1
+
+@[simp] protected lemma inner_one_right (z : ℂ) : ⟪z, 1⟫_ℝ = z.re :=
+by simpa [real_inner_comm] using z.inner_one_left
+
+@[simp] protected lemma inner_I_right (z : ℂ) : ⟪z, I⟫_ℝ = z.im :=
+by simpa only [real_inner_comm] using z.inner_I_left
+
+@[simp] protected lemma inner (w z : ℂ) : ⟪w, z⟫_ℝ = (conj w * z).re :=
+begin
+  rw ← orthonormal_basis_one_I.sum_inner_mul_inner,
+  simp [fin.sum_univ_succ],
+end
 
 /-- The isometry between `ℂ` and a two-dimensional real inner product space given by a basis. -/
-def complex.isometry_of_orthonormal (v : orthonormal_basis (fin 2) ℝ F) : ℂ ≃ₗᵢ[ℝ] F :=
-complex.orthonormal_basis_one_I.repr.trans v.repr.symm
+protected def isometry_of_orthonormal (v : orthonormal_basis (fin 2) ℝ F) : ℂ ≃ₗᵢ[ℝ] F :=
+orthonormal_basis_one_I.repr.trans v.repr.symm
 
-@[simp] lemma complex.map_isometry_of_orthonormal (v : orthonormal_basis (fin 2) ℝ F)
+@[simp] protected lemma map_isometry_of_orthonormal (v : orthonormal_basis (fin 2) ℝ F)
   (f : F ≃ₗᵢ[ℝ] F') :
   complex.isometry_of_orthonormal (v.map f) =
     (complex.isometry_of_orthonormal v).trans f :=
 by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc, orthonormal_basis.map]
 
-lemma complex.isometry_of_orthonormal_symm_apply
+protected lemma isometry_of_orthonormal_symm_apply
   (v : orthonormal_basis (fin 2) ℝ F) (f : F) :
   (complex.isometry_of_orthonormal v).symm f
   = (v.to_basis.coord 0 f : ℂ) + (v.to_basis.coord 1 f : ℂ) * I :=
 by simp [complex.isometry_of_orthonormal]
 
-lemma complex.isometry_of_orthonormal_apply
+protected lemma isometry_of_orthonormal_apply
   (v : orthonormal_basis (fin 2) ℝ F) (z : ℂ) :
   complex.isometry_of_orthonormal v z = z.re • v 0 + z.im • v 1 :=
 by simp [complex.isometry_of_orthonormal, ← v.sum_repr_symm]
+
+end complex
 
 open finite_dimensional
 

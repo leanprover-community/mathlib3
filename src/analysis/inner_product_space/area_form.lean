@@ -593,29 +593,6 @@ namespace complex
 
 local attribute [instance] complex.finrank_real_complex_fact
 
-@[simp] protected lemma inner_one_left (z : ℂ) : ⟪1, z⟫ = z.re :=
-by simpa [orthonormal_basis.repr_apply_apply]
-  using congr_fun (complex.orthonormal_basis_one_I_repr_apply z) 0
-
-@[simp] protected lemma inner_I_left (z : ℂ) : ⟪I, z⟫ = z.im :=
-by simpa [orthonormal_basis.repr_apply_apply]
-  using congr_fun (complex.orthonormal_basis_one_I_repr_apply z) 1
-
-@[simp] protected lemma inner_one_right (z : ℂ) : ⟪z, 1⟫ = z.re :=
-by simpa [real_inner_comm] using z.inner_one_left
-
-@[simp] protected lemma inner_I_right (z : ℂ) : ⟪z, I⟫ = z.im :=
-by simpa only [real_inner_comm] using z.inner_I_left
-
-@[simp] protected lemma inner (w z : ℂ) : ⟪w, z⟫ = (conj w * z).re :=
-begin
-  rw ← complex.orthonormal_basis_one_I.sum_inner_mul_inner,
-  simp [fin.sum_univ_succ],
-end
-
-/-- The standard orientation on `ℂ`. -/
-protected def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
-
 @[simp] protected lemma area_form (w z : ℂ) : complex.orientation.area_form w z = (conj w * z).im :=
 begin
   let o := complex.orientation,

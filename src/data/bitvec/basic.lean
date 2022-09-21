@@ -47,7 +47,7 @@ begin
     transitivity 2 * list.foldr (λ (x : bool) (y : ℕ), add_lsb y x) 0 ys_tl + 2 * 1,
     { ac_mono, rw two_mul, mono, cases ys_hd; simp },
     { rw ← left_distrib, ac_mono,
-      apply ys_ih, refl, norm_num, norm_num } },
+      exact ys_ih rfl, norm_num } }
 end
 
 lemma add_lsb_div_two {x b} : add_lsb x b / 2 = x :=

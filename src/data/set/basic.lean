@@ -468,7 +468,7 @@ theorem mem_union.elim {x : α} {a b : set α} {P : Prop}
     (H₁ : x ∈ a ∪ b) (H₂ : x ∈ a → P) (H₃ : x ∈ b → P) : P :=
 or.elim H₁ H₂ H₃
 
-@[simp] theorem mem_union_iff (x : α) (a b : set α) : x ∈ a ∪ b ↔  (x ∈ a ∨ x ∈ b) := iff.rfl
+@[simp] theorem mem_union (x : α) (a b : set α) : x ∈ a ∪ b ↔ (x ∈ a ∨ x ∈ b) := iff.rfl
 
 @[simp] theorem union_self (a : set α) : a ∪ a = a := ext $ λ x, or_self _
 
@@ -1266,7 +1266,7 @@ ite_same t (s ∩ s') ▸ ite_mono _ (inter_subset_left _ _) (inter_subset_right
 
 lemma ite_inter_inter (t s₁ s₂ s₁' s₂' : set α) :
   t.ite (s₁ ∩ s₂) (s₁' ∩ s₂') = t.ite s₁ s₁' ∩ t.ite s₂ s₂' :=
-by { ext x, simp only [set.ite, set.mem_inter_iff, set.mem_diff, set.mem_union_iff], itauto }
+by { ext x, simp only [set.ite, set.mem_inter_iff, set.mem_diff, set.mem_union], itauto }
 
 lemma ite_inter (t s₁ s₂ s : set α) :
   t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=
@@ -2222,8 +2222,8 @@ lemma range_ite_subset {p : α → Prop} [decidable_pred p] {f g : α → β} :
   range (λ x, if p x then f x else g x) ⊆ range f ∪ range g :=
 begin
   rw range_subset_iff, intro x, by_cases h : p x,
-  simp [if_pos h, mem_union_iff, mem_range_self],
-  simp [if_neg h, mem_union_iff, mem_range_self]
+  simp [if_pos h, mem_union, mem_range_self],
+  simp [if_neg h, mem_union, mem_range_self]
 end
 
 @[simp] lemma preimage_range (f : α → β) : f ⁻¹' (range f) = univ :=
@@ -2624,7 +2624,7 @@ begin
   ext c, split,
   { rintros ⟨a, b, h1a|h2a, hb, rfl⟩;[left, right]; exact ⟨_, _, ‹_›, ‹_›, rfl⟩ },
   { rintro (⟨_, _, _, _, rfl⟩|⟨_, _, _, _, rfl⟩); refine ⟨_, _, _, ‹_›, rfl⟩;
-    simp [mem_union_iff, *] }
+    simp [mem_union, *] }
 end
 
 lemma image2_union_right : image2 f s (t ∪ t') = image2 f s t ∪ image2 f s t' :=
@@ -2632,7 +2632,7 @@ begin
   ext c, split,
   { rintros ⟨a, b, ha, h1b|h2b, rfl⟩;[left, right]; exact ⟨_, _, ‹_›, ‹_›, rfl⟩ },
   { rintro (⟨_, _, _, _, rfl⟩|⟨_, _, _, _, rfl⟩); refine ⟨_, _, ‹_›, _, rfl⟩;
-    simp [mem_union_iff, *] }
+    simp [mem_union, *] }
 end
 
 @[simp] lemma image2_empty_left : image2 f ∅ t = ∅ := ext $ by simp

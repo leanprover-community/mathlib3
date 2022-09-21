@@ -149,7 +149,7 @@ rfl
 
 @[to_additive support_prod_mk] lemma mul_support_prod_mk (f : α → M) (g : α → N) :
   mul_support (λ x, (f x, g x)) = mul_support f ∪ mul_support g :=
-set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union_iff, mem_set_of_eq,
+set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union, mem_set_of_eq,
   prod.mk_eq_one, ne.def]
 
 @[to_additive support_prod_mk'] lemma mul_support_prod_mk' (f : α → M × N) :

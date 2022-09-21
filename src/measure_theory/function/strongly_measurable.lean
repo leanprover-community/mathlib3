@@ -730,7 +730,7 @@ begin
         ((ht.subtype_image
         ((hd.approx n).measurable_set_fiber x)).diff hs),
       ext1 y,
-      simp only [mem_union_iff, mem_preimage, mem_singleton_iff, mem_image, set_coe.exists,
+      simp only [mem_union, mem_preimage, mem_singleton_iff, mem_image, set_coe.exists,
         subtype.coe_mk, exists_and_distrib_right, exists_eq_right, mem_diff],
       by_cases hy : y ∈ s,
       { rw dif_pos hy,

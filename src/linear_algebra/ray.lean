@@ -299,9 +299,9 @@ end module.ray
 
 end strict_ordered_comm_semiring
 
-section ordered_comm_ring
+section strict_ordered_comm_ring
 
-variables {R : Type*} [ordered_comm_ring R]
+variables {R : Type*} [strict_ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N] {x y : M}
 
 /-- `same_ray.neg` as an `iff`. -/
@@ -399,7 +399,7 @@ end
 
 end module.ray
 
-end ordered_comm_ring
+end strict_ordered_comm_ring
 
 section linear_ordered_comm_ring
 

@@ -82,7 +82,7 @@ meta def norm_num.positivity (e : expr) : tactic strictness := do
     pure (nonnegative p')
   else failed
 
-/-- Third base case of the `positivity` tactic: Any element of a canonically ordered additive
+/-- Second base case of the `positivity` tactic: Any element of a canonically ordered additive
 monoid is nonnegative. -/
 meta def positivity_canon : expr → tactic strictness
 | `(%%a) := nonnegative <$> mk_app ``zero_le [a]
@@ -105,7 +105,7 @@ meta def orelse' (tac1 tac2 : tactic strictness) : tactic strictness := do
 
 /-! ### Core logic of the `positivity` tactic -/
 
-/-- Second base case of the `positivity` tactic.  Prove an expression `e` is positive/nonnegative by
+/-- Third base case of the `positivity` tactic.  Prove an expression `e` is positive/nonnegative by
 finding a hypothesis of the form `a < e` or `a ≤ e` in which `a` can be proved positive/nonnegative
 by `norm_num`. -/
 meta def compare_hyp (e p₂ : expr) : tactic strictness := do

@@ -959,35 +959,3 @@ variables [canonically_linear_ordered_semifield α] [has_sub α] [has_ordered_su
 lemma tsub_div (a b c : α) : (a - b) / c = a / c - b / c := by simp_rw [div_eq_mul_inv, tsub_mul]
 
 end canonically_linear_ordered_semifield
-
-namespace tactic
-open positivity
-
-private lemma zpow_zero_pos [linear_ordered_semifield α] (a : α) : 0 < a ^ (0 : ℤ) :=
-zero_lt_one.trans_le (zpow_zero a).ge
-
-/-- Extension for the `positivity` tactic: raising a number `a` to an integer power `n` is positive
-if `n = 0` (since `a ^ 0 = 1`) or if `0 < a`, and is known to be nonnegative if
-`n = 2` (squares are nonnegative) or if `0 ≤ a`. -/
-@[positivity]
-meta def positivity_zpow : expr → tactic strictness
-| `(%%a ^ %%n) := do
-  n_typ ← infer_type n,
-  unify n_typ `(ℤ),
-  if n = `(0 : ℤ) then
-    positive <$> mk_app ``zpow_zero_pos [a]
-  else positivity.orelse'
-    (do -- even powers are nonnegative
-      match n with -- TODO: Decision procedure for parity
-      | `(bit0 %% n) := nonnegative <$> mk_app ``zpow_bit0_nonneg [a, n]
-      | _ := failed
-      end) $
-    do -- `a ^ n` is positive if `a` is, and nonnegative if `a` is
-      strictness_a ← core a,
-      match strictness_a with
-      | positive p := positive <$> mk_app ``zpow_pos_of_pos [p, n]
-      | nonnegative p := nonnegative <$> mk_app ``zpow_nonneg [p, n]
-      end
-| _ := failed
-
-end tactic

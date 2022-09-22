@@ -796,7 +796,7 @@ open positivity
 private lemma hyperreal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ℝ*) := hyperreal.coe_nonneg.2
 private lemma hyperreal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ℝ*) := hyperreal.coe_pos.2
 
-/-- Extension for the `positivity` tactic: cast from `ℝ≥` to `ℝ*`. -/
+/-- Extension for the `positivity` tactic: cast from `ℝ` to `ℝ*`. -/
 @[positivity]
 meta def positivity_coe_real_hyperreal : expr → tactic strictness
 | `(@coe _ _ %%inst %%a) := do
@@ -804,9 +804,8 @@ meta def positivity_coe_real_hyperreal : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``hyperreal_coe_pos [p]
-  | nonnegative p := nonnegative <$> mk_app `hyperreal_coe_nonneg [p]
+  | nonnegative p := nonnegative <$> mk_app ``hyperreal_coe_nonneg [p]
   end
-| e := pp e >>= fail ∘ format.bracket "The expression "
-         " is not of the form `(r : hyperreal)` for `r : ℝ`"
+| e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `(r : ℝ*)` for `r : ℝ`"
 
 end tactic

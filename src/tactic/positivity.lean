@@ -409,9 +409,6 @@ private lemma rat_cast_nonneg [linear_ordered_field α] {q : ℚ} : 0 ≤ q → 
 rat.cast_nonneg.2
 private lemma rat_cast_pos [linear_ordered_field α] {q : ℚ} : 0 < q → 0 < (q : α) := rat.cast_pos.2
 
-private alias rat.cast_nonneg ↔ _ rat_cast_nonneg
-private alias rat.cast_pos ↔ _ rat_cast_pos
-
 /-- Extension for the `positivity` tactic: casts from `ℕ`, `ℤ`, `ℚ`. -/
 @[positivity]
 meta def positivity_coe : expr → tactic strictness
@@ -430,8 +427,9 @@ meta def positivity_coe : expr → tactic strictness
     | `(int.cast_coe), positive p := positive <$> mk_mapp ``int_cast_pos [typ, none, none, none, p]
     | `(int.cast_coe), nonnegative p := nonnegative <$>
                                           mk_mapp ``int_cast_nonneg [typ, none, none, p]
-    | `(rat.cast_coe), positive p := positive <$> mk_mapp ``rat_cast_pos [typ, none, p]
-    | `(rat.cast_coe), nonnegative p := nonnegative <$> mk_mapp ``rat_cast_nonneg [typ, none, p]
+    | `(rat.cast_coe), positive p := positive <$> mk_mapp ``rat_cast_pos [typ, none, none, p]
+    | `(rat.cast_coe), nonnegative p := nonnegative <$>
+                                          mk_mapp ``rat_cast_nonneg [typ, none, none, p]
     | `(@coe_base _ _ int.has_coe), positive p := positive <$> mk_app ``int_coe_nat_pos [p]
     | `(@coe_base _ _ int.has_coe), _ := nonnegative <$> mk_app ``int_coe_nat_nonneg [a]
     | _, _ := failed

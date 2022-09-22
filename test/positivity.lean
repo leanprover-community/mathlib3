@@ -1,6 +1,7 @@
 import algebra.order.smul
 import analysis.normed.group.basic
 import data.complex.exponential
+import data.rat.nnrat
 import data.real.ereal
 import data.real.hyperreal
 import data.real.sqrt
@@ -11,7 +12,7 @@ import tactic.positivity
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
 
-open_locale ennreal nnreal
+open_locale ennreal nnrat nnreal
 
 /- ## Numeric goals -/
 
@@ -119,14 +120,12 @@ example {a : ℝ≥0∞} : 0 ≤ a := by positivity
 
 /- ### Coercions -/
 
-set_option pp.all true
-
 example {a : ℕ} : (0 : ℤ) ≤ a := by positivity
-example {a : ℕ} (hn : 0 < a) : (0 : ℤ) < a := by positivity
-example {a : ℤ} (hn : 0 ≤ a) : (0 : ℚ) ≤ a := by positivity
-example {a : ℤ} (hn : 0 < a) : (0 : ℚ) < a := by positivity
-example {a : ℚ} (hn : 0 ≤ a) : (0 : ℝ) ≤ a := by positivity
-example {a : ℚ} (hn : 0 < a) : (0 : ℝ) < a := by positivity
+example {a : ℕ} (ha : 0 < a) : (0 : ℤ) < a := by positivity
+example {a : ℤ} (ha : 0 ≤ a) : (0 : ℚ) ≤ a := by positivity
+example {a : ℤ} (ha : 0 < a) : (0 : ℚ) < a := by positivity
+example {a : ℚ} (ha : 0 ≤ a) : (0 : ℝ) ≤ a := by positivity
+example {a : ℚ} (ha : 0 < a) : (0 : ℝ) < a := by positivity
 example {r : ℝ≥0} : (0 : ℝ) ≤ r := by positivity
 example {r : ℝ≥0} (hr : 0 < r) : (0 : ℝ) < r := by positivity
 example {r : ℝ≥0} (hr : 0 < r) : (0 : ℝ≥0∞) < r := by positivity

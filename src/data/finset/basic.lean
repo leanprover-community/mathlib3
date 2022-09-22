@@ -1425,6 +1425,15 @@ lemma sdiff_eq_self_of_disjoint (h : disjoint s t) : s \ t = s := sdiff_eq_self_
 
 end sdiff
 
+/-! ### Symmetric difference -/
+
+lemma mem_symm_diff : a ∈ s ∆ t ↔ a ∈ s ∧ a ∉ t ∨ a ∈ t ∧ a ∉ s :=
+by simp_rw [symm_diff, sup_eq_union, mem_union, mem_sdiff]
+
+@[simp, norm_cast] lemma coe_symm_diff : (↑(s ∆ t) : set α) = s ∆ t := set.ext $ λ _, mem_symm_diff
+
+end decidable_eq
+
 /-! ### attach -/
 
 /-- `attach s` takes the elements of `s` and forms a new set of elements of the subtype

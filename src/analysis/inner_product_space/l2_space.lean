@@ -485,6 +485,16 @@ end
   (b.to_orthonormal_basis : ι → E) = b :=
 orthonormal_basis.coe_mk _ _
 
+lemma finite_spans_dense (b : hilbert_basis ι 𝕜 E) :
+  (⨆ J : finset ι, span 𝕜 (J.image b : set E)).topological_closure = ⊤ :=
+eq_top_iff.mpr $ b.dense_span.ge.trans
+begin
+  simp_rw [← submodule.span_Union],
+  exact topological_closure_mono (span_mono $ set.range_subset_iff.mpr $
+    λ i, set.mem_Union_of_mem {i} $ finset.mem_coe.mpr $ finset.mem_image_of_mem _ $
+    finset.mem_singleton_self i)
+end
+
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 

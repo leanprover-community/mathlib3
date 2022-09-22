@@ -6,8 +6,11 @@ Authors: Amelia Livingston
 
 import algebraic_topology.alternating_face_map_complex
 import algebraic_topology.cech_nerve
+import algebraic_topology.extra_degeneracy
+import category_theory.abelian.exact
 import representation_theory.basic
 import representation_theory.Rep
+import representation_theory.homology_lemmas
 
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`
@@ -298,6 +301,119 @@ def cech_nerve_iso : cech_nerve (arrow G) ≅ classifying_space_universal_cover 
     limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.is_limit G m)],
   refl,
 end) (by ext)).symm
+
+variables (k G)
+def resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
+  (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
+
+def forget_resn := ((forget₂ (Rep k G) (Module.{u} k)).map_homological_complex _).obj
+(resolution k G)
+
+def to_Module := (Rep.linearization k G).1.1 ⋙ forget₂ (Rep k G) (Module.{u} k)
+def to_Module2 := forget (Action (Type u) $ Mon.of G) ⋙ Module.free k
+
+def split_epi_aux : split_epi (arrow G).hom.hom :=
+{ section_ := λ x, (1 : G),
+  id' := by ext }
+
+def split_epi : split_epi ((to_Module k G).map_arrow.obj (arrow G)).hom :=
+{ section_ := (split_epi.map (split_epi_aux G) ((forget _) ⋙ Module.free k)).1,
+  id' := (split_epi.map (split_epi_aux G) ((forget _) ⋙ Module.free k)).2 }
+
+def aug_nerve := ((to_Module k G).map_arrow.obj $ arrow G).augmented_cech_nerve
+
+def cech_nerve_extra_degen :
+  simplicial_object.augmented.extra_degeneracy (aug_nerve k G) :=
+augmented_cech_nerve.extra_degeneracy _ (split_epi k G)
+
+def homotopy_equiv := simplicial_object.augmented.extra_degeneracy.preadditive.homotopy_equivalence
+  (cech_nerve_extra_degen k G)
+
+def nerve_complex := (algebraic_topology.alternating_face_map_complex.obj
+  (simplicial_object.augmented.drop.obj (aug_nerve k G)))
+
+theorem nerve_complex_exact (n : ℕ) :
+  exact ((nerve_complex k G).d (n + 2) (n + 1)) ((nerve_complex k G).d (n + 1) n) :=
+(preadditive.exact_iff_homology_zero _ _).2 ⟨(nerve_complex k G).d_comp_d _ _ _,
+  ⟨(chain_complex.succth _ _).symm.trans ((homology_obj_iso_of_homotopy_equiv
+  (homotopy_equiv k G) _).trans homology_zero_zero)⟩⟩
+
+def aux (n : simplex_categoryᵒᵖ) :
+  (wide_pullback_shape.wide_cospan ((to_Module k G).obj (arrow G).right)
+    (λ (i : fin ((opposite.unop n).len + 1)), (to_Module k G).obj (arrow G).left)
+    (λ (i : fin ((opposite.unop n).len + 1)), (to_Module k G).map (arrow G).hom))
+  ≅ (wide_pullback_shape.wide_cospan (arrow G).right (λ (i : fin ((opposite.unop n).len + 1)),
+   (arrow G).left) (λ (i : fin ((opposite.unop n).len + 1)), (arrow G).hom) ⋙ to_Module k G) :=
+nat_iso.of_components (λ m, option.rec_on m (iso.refl _) (λ i, iso.refl _)) $ λ i j f,
+begin
+  cases f,
+  { cases i,
+    all_goals
+    { ext a b,
+      show finsupp.single a (1 : k) _ = finsupp.map_domain _ _ _,
+      dsimp,
+      rw finsupp.map_domain_single,
+      congr }},
+  { refl },
+end
+
+instance hmmm (n : simplex_categoryᵒᵖ) : preserves_limit (wide_pullback_shape.wide_cospan
+  (arrow G).right (λ (i : fin ((opposite.unop n).len + 1)),
+  (arrow G).left) (λ (i : fin ((opposite.unop n).len + 1)), (arrow G).hom))
+    (to_Module2 k G) :=
+preserves_limit_of_preserves_limit_cone (wide_cospan.is_limit G n) $
+sorry
+
+def nerve_complex_iso_aux (n : simplex_categoryᵒᵖ) :
+  ((to_Module k G).map_arrow.obj $ arrow G).cech_nerve.obj n ≅
+  (((simplicial_object.whiskering _ _).obj (to_Module k G)).obj
+  (arrow G).cech_nerve).obj n :=
+(has_limit.iso_of_nat_iso (aux k G n)).trans (@preserves_limit_iso _ _ _
+    _ _ _ _ (wide_pullback_shape.wide_cospan _ _ _)
+    (classifying_space_universal_cover.hmmm _ _ _) _ _).symm
+
+def nerve_complex_iso :
+  nerve_complex k G ≅ forget_resn k G :=
+homological_complex.hom.iso_of_components (λ i,
+(nerve_complex_iso_aux k G (opposite.op $ simplex_category.mk i)).trans ((to_Module k G).map_iso
+(cech_nerve_obj_iso G (opposite.op $ simplex_category.mk i)))) $
+begin
+  intros i j hij,
+  cases hij,
+  dsimp at *,
+  sorry,
+end
+
+variables {k G}
+
+lemma ffs2 {k : Type u} [comm_ring k] {C D : chain_complex (Module.{u} k) ℕ}
+  (H : C ≅ D) {i j : ℕ} (hij : (complex_shape.down ℕ).rel i j) :
+  H.2.1 i ≫ C.d i j ≫ H.1.1 j = D.d i j :=
+begin
+  rw [←category.assoc, H.2.2 i j hij, category.assoc, ←homological_complex.comp_f,
+    homological_complex.congr_hom H.4 j, homological_complex.id_f, category.comp_id],
+end
+
+instance ffs1 {k : Type u} [comm_ring k] (C D : chain_complex (Module.{u} k) ℕ)
+  (H : C ≅ D) (i : ℕ) : is_iso (H.1.1 i) :=
+⟨⟨H.2.1 i, homological_complex.congr_hom H.3 i, homological_complex.congr_hom H.4 i⟩⟩
+
+instance ffs4  {k : Type u} [comm_ring k] (C D : chain_complex (Module.{u} k) ℕ)
+  (H : C ≅ D) (i : ℕ) : is_iso (H.2.1 i) :=
+⟨⟨H.1.1 i, homological_complex.congr_hom H.4 i, homological_complex.congr_hom H.3 i⟩⟩
+
+lemma yeugh {k : Type u} [comm_ring k] {C D : chain_complex (Module.{u} k) ℕ}
+  (H : C ≅ D) (i j l : ℕ) (hij : (complex_shape.down ℕ).rel i j) (hjl : (complex_shape.down ℕ).rel j l) :
+  exact (C.d i j) (C.d j l) ↔ exact (D.d i j) (D.d j l) :=
+begin
+  rw [←ffs2 H hij, ←ffs2 H hjl, exact_iso_comp, ←category.assoc, exact_comp_iso],
+  exact (exact_comp_hom_inv_comp_iff (homological_complex.hom.iso_app H j)).symm,
+end
+
+theorem noice (n : ℕ) :
+  exact ((resolution k G).d (n + 2) (n + 1)) ((resolution k G).d (n + 1) n) :=
+functor.exact_of_exact_map (forget₂ (Rep k G) (Module.{u} k)) ((yeugh (nerve_complex_iso _ _).symm
+  (n + 2) (n + 1) n (by simp) (by simp)).2 (nerve_complex_exact _ _ _))
 
 end classifying_space_universal_cover
 namespace group_cohomology.resolution

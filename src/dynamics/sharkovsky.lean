@@ -497,6 +497,9 @@ end
 @[simp] lemma bit0_le_bit1_iff {n m : ℕ} : bit0 n ≼ bit1 m ↔ n = 0 ∨ m = 0 :=
 by rw [←not_iff_not, not_or_distrib, ←bit1_le_bit0_iff, not_le, lt_iff_le_and_ne]; simp [and_comm]
 
+example : list.chain' (≼) [3, 5, 7, 9, 6, 10, 14, 12, 20, 28, 16, 8, 4, 2, 1] :=
+by simp
+
 -- an upper set of sharkovsky is empty, Ici, or powers of two
 lemma upper_set_iff {s : set sharkovsky} :
   is_upper_set s ↔
@@ -789,19 +792,13 @@ end
 lemma part_a_one (hP : P.is_cycle f) (hP₂ : 2 ≤ P.card) (hPI : ↑P ⊆ I) (hf : continuous_on f I)
   (hf' : maps_to f I I) [ord_connected I] :
   (∃ c ∈ I, is_fixed_pt f c) :=
-begin
-  obtain ⟨_, z, hz, _, hz', _⟩ := part_a_first_aux hP hP₂ hPI hf hf',
-  exact ⟨z, hz, hz'⟩,
-end
+let ⟨_, z, hz, _, hz', _⟩ := part_a_first_aux hP hP₂ hPI hf hf' in ⟨z, hz, hz'⟩
 
 lemma part_a_two (hP : P.is_cycle f) (hP₂ : 3 ≤ P.card) (hPI : ↑P ⊆ I) (hf : continuous_on f I)
   (hf' : maps_to f I I) [ord_connected I] :
   (∃ c ∈ I, minimal_period f c = 2) :=
-begin
-  obtain ⟨_, _, _, _, _, _, h⟩ := part_a_first_aux hP (by linarith) hPI hf hf',
-  obtain ⟨_, _, y, hy, _, hy', _⟩ := h hP₂,
-  exact ⟨y, hy, hy'⟩
-end
+let ⟨_, _, _, _, _, _, h⟩ := part_a_first_aux hP (by linarith) hPI hf hf',
+    ⟨_, _, y, hy, _, hy', _⟩ := h hP₂ in ⟨y, hy, hy'⟩
 
 lemma odd_of_dvd_odd {k n : ℕ} (hn : odd n) (hk : k ∣ n) : odd k :=
 begin

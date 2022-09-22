@@ -529,7 +529,7 @@ section topological_properties
 
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι] [countable ι]
 variables {p : seminorm_family 𝕜 E ι}
-variables [uniform_space E] [uniform_add_group E]
+variables [uniform_space E]
 
 lemma with_seminorms.has_countable_basis (hp : with_seminorms p) :
   (𝓝 (0 : E)).has_countable_basis (λ _, true)
@@ -551,7 +551,7 @@ end
 
 /-- If the topology of a space is induced by a countable family of seminorms, then the topology
 is first countable. -/
-lemma with_seminorms.first_countable (hp : with_seminorms p) :
+lemma with_seminorms.first_countable (hp : with_seminorms p) [uniform_add_group E] :
   topological_space.first_countable_topology E :=
 begin
   haveI : (𝓝 (0 : E)).is_countably_generated := hp.has_countable_basis.is_countably_generated,

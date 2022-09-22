@@ -115,7 +115,7 @@ begin
   suffices : {x : α | ε ≤ dist (f n x) (g x)} ⊆ t, from (measure_mono this).trans ht,
   rw ← set.compl_subset_compl,
   intros x hx,
-  rw [set.mem_compl_iff, set.nmem_set_of_iff_not, dist_comm, not_le],
+  rw [set.mem_compl_iff, set.nmem_set_of_iff, dist_comm, not_le],
   exact hN n hn x hx,
 end
 

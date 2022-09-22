@@ -274,7 +274,7 @@ begin
   refine set_integral_congr h_meas.compl (λ x hx, _),
   dsimp only,
   rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
-  rw [set.mem_compl_iff, set.nmem_set_of_iff_not] at hx,
+  rw [set.mem_compl_iff, set.nmem_set_of_iff] at hx,
   linarith,
 end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :

@@ -745,7 +745,7 @@ begin
     rw mem_compl_iff at hxs,
     have hx' : x ∉ {a : α | ¬0 ≤ simple_func.to_simple_func f a},
       from λ h, hxs (subset_to_measurable μ _ h),
-    rwa [set.nmem_set_of_iff_not, not_not] at hx', },
+    rwa [set.nmem_set_of_iff, not_not] at hx', },
   let f' := simple_func.piecewise s (measurable_set_to_measurable μ _).compl
     (simple_func.to_simple_func f) (simple_func.const α (0 : G)),
   refine ⟨f', λ x, _, _⟩,

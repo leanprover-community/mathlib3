@@ -328,12 +328,6 @@ def group_cohomology.resolution := (algebraic_topology.alternating_face_map_comp
 
 namespace group_cohomology.resolution
 
-/- Leaving this here for now - not sure it should exist or where it should go. Everything I tried
-to avoid this lemma was messy or gave me weird errors. -/
-lemma int_cast_smul {k V : Type*} [comm_ring k] [add_comm_group V] [module k V] (r : ℤ) (x : V) :
-  (r : k) • x = r • x :=
-algebra_map_smul k r x
-
 /-- The `n`th object of the standard resolution of `k` is definitionally isomorphic to `k[Gⁿ⁺¹]`
 equipped with the representation induced by the diagonal action of `G`. -/
 def X_iso (n : ℕ) :

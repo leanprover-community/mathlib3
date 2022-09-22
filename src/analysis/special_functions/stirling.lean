@@ -61,12 +61,8 @@ We have the expression
 lemma log_stirling_seq_formula (n : ℕ) : log (stirling_seq n.succ) =
   log n.succ!- 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
-  have h1 : (0 : ℝ) < n.succ!:= cast_pos.mpr n.succ.factorial_pos,
-  have h2 : (0 : ℝ) < (2 * n.succ) := mul_pos two_pos (cast_pos.mpr (succ_pos n)),
-  have h3 := real.sqrt_pos.mpr h2,
-  have h4 := pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) n.succ,
-  have h5 := mul_pos h3 h4,
-  rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow]; linarith,
+  rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow, tsub_tsub],
+  any_goals { apply ne_of_gt }; positivity,
 end
 
 /--
@@ -97,12 +93,8 @@ end
 
 /-- The sequence `log ∘ stirling_seq ∘ succ` is monotone decreasing -/
 lemma log_stirling_seq'_antitone : antitone (log ∘ stirling_seq ∘ succ) :=
-begin
-  have : ∀ {k : ℕ}, 0 < (1 : ℝ) / (2 * k.succ + 1) :=
-  λ k, one_div_pos.mpr (add_pos (mul_pos two_pos (cast_pos.mpr k.succ_pos)) one_pos),
-  exact antitone_nat_of_succ_le (λ n, sub_nonneg.mp ((log_stirling_seq_diff_has_sum n).nonneg
-    (λ m, (mul_pos this (pow_pos (pow_pos this 2) m.succ)).le))),
-end
+antitone_nat_of_succ_le $ λ n, sub_nonneg.mp $ (log_stirling_seq_diff_has_sum n).nonneg $ λ m,
+  by positivity
 
 /--
 We have a bound for successive elements in the sequence `log (stirling_seq k)`.
@@ -116,13 +108,12 @@ begin
     ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)),
   { refine (has_sum_geometric_of_lt_1 h_nonneg _).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
     rw [one_div, inv_pow],
-    refine inv_lt_one (one_lt_pow ((lt_add_iff_pos_left 1).mpr
-      (mul_pos two_pos (cast_pos.mpr n.succ_pos))) two_ne_zero) },
+    exact inv_lt_one (one_lt_pow ((lt_add_iff_pos_left 1).mpr $ by positivity) two_ne_zero) },
   have hab : ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ ≤
     ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ,
   { refine λ k, mul_le_of_le_one_left (pow_nonneg h_nonneg k.succ) _,
     rw one_div,
-    exact inv_le_one (le_add_of_nonneg_left $ mul_nonneg (by positivity) $ cast_nonneg _) },
+    exact inv_le_one (le_add_of_nonneg_left $ by positivity) },
   exact has_sum_le hab (log_stirling_seq_diff_has_sum n) g,
 end
 
@@ -132,8 +123,8 @@ We have the bound  `log (stirling_seq n) - log (stirling_seq (n+1))` ≤ 1/(4 n^
 lemma log_stirling_seq_sub_log_stirling_seq_succ (n : ℕ) :
   log (stirling_seq n.succ) - log (stirling_seq n.succ.succ) ≤ 1 / (4 * n.succ ^ 2) :=
 begin
-  have h₁ : 0 < 4 * ((n : ℝ) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
-  have h₃ : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
+  have h₁ : 0 < 4 * ((n : ℝ) + 1) ^ 2 := by positivity,
+  have h₃ : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 := by positivity,
   have h₂ : 0 < 1 - (1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2,
   { rw ← mul_lt_mul_right h₃,
     have H : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 - 1 := by nlinarith [@cast_nonneg ℝ _ n],

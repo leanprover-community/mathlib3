@@ -186,27 +186,6 @@ odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
  λ h, nat.mul_div_cancel_left' (even_iff_two_dvd.mp h)
 
-theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
-⟨λ h, n.mod_two_eq_zero_or_one.elim (dvd_iff_mod_eq_zero _ _).2
-  (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, pow_one] at h; exact (h1 h).elim),
-  λ ⟨m, hm⟩, by rw [neg_one_pow_eq_pow_mod_two, hm]; simp⟩
-
-@[simp] theorem neg_one_sq : (-1 : R) ^ 2 = 1 := by simp
-
-alias nat.neg_one_sq ← nat.neg_one_pow_two
-
-theorem neg_one_pow_of_even : even n → (-1 : R) ^ n = 1 :=
-by { rintro ⟨c, rfl⟩, simp [pow_mul] }
-
-theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
-by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
-
-theorem even.neg_pow (h : even n) (x : R) : (-x) ^ n = x ^ n :=
-by rw [neg_pow, neg_one_pow_of_even h, one_mul]
-
-theorem odd.neg_pow (h : odd n) (x : R) : (-x) ^ n = -x ^ n :=
-by rw [neg_pow, neg_one_pow_of_odd h, neg_one_mul]
-
 lemma two_mul_div_two_add_one_of_odd (h : odd n) : 2 * (n / 2) + 1 = n :=
 by { rw mul_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 

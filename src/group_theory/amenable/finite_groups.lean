@@ -105,7 +105,7 @@ lemma avg_map_smul'
         : by simp
   ... = (finset.card setG :ℝ)⁻¹
             * ( r *  ∑ x in setG,  f x)
-        : by simp [sum_scalar r]
+        : by simp [finset.mul_sum]
   ... = r * ((finset.card setG :ℝ)⁻¹
             *  ∑ x in setG,  f x)
         : by ring
@@ -115,7 +115,7 @@ lemma avg_map_smul'
         : by simp,
 end
 
--- The averaging map is a linear map
+/-- The averaging map is a linear map-/
 noncomputable def avg_linmap
   : (bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ
 := linear_map.mk (avg_map G_fin)

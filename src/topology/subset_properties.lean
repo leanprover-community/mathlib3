@@ -211,10 +211,10 @@ lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : i
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
 let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) (λ i, (hZc i).is_open_compl)
   (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-    exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
+    exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using hsZ)
     in
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-    exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
+    exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using ht⟩
 
 /-- If `s` is a compact set in a topological space `α` and `f : ι → set α` is a locally finite
 family of sets, then `f i ∩ s` is nonempty only for a finitely many `i`. -/
@@ -333,10 +333,10 @@ is_compact_of_finite_subfamily_closed $
   assume ι Z hZc hsZ,
   let ⟨t, ht⟩ := h (λ i, (Z i)ᶜ) (assume i, is_open_compl_iff.mpr $ hZc i)
     (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-      exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
+      exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using hsZ)
       in
   ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-      exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
+      exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using ht⟩
 
 /-- A set `s` is compact if and only if
 for every open cover of `s`, there exists a finite subcover. -/
@@ -455,7 +455,7 @@ begin
       (λ i, (hV_cpct i).inter_right W_op.is_closed_compl)
       (λ i, (hV_closed i).inter W_op.is_closed_compl),
     rcases hV i j with ⟨k, hki, hkj⟩,
-    refine ⟨k, ⟨λ x, _, λ x, _⟩⟩ ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto },
+    refine ⟨k, ⟨λ x, _, λ x, _⟩⟩ ; simp only [and_imp, mem_inter_iff, mem_compl_iff] ; tauto },
   have : ¬ (⋂ (i : ι), V i) ⊆ W, by simpa [← Inter_inter, inter_compl_nonempty_iff],
   contradiction
 end
@@ -951,7 +951,7 @@ begin
     rw compl_subset_comm at ⊢ hAt hBt',
     refine subset.trans _ (set.prod_mono hAt hBt'),
     intros x,
-    simp only [compl_union, mem_inter_eq, mem_prod, mem_preimage, mem_compl_eq],
+    simp only [compl_union, mem_inter_iff, mem_prod, mem_preimage, mem_compl_iff],
     tauto },
   { rintros ⟨t, ht, htS⟩,
     refine ⟨⟨(prod.fst '' t)ᶜ, _, _⟩, ⟨(prod.snd '' t)ᶜ, _, _⟩⟩,
@@ -1176,7 +1176,7 @@ begin
       { convert_to (⋂(U : {U // U ∈ c}), U.1ᶜ).nonempty,
         { ext,
           simp only [not_exists, exists_prop, not_and, set.mem_Inter, subtype.forall, mem_set_of_eq,
-            mem_compl_eq, mem_sUnion] },
+            mem_compl_iff, mem_sUnion] },
         apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
         { rintros ⟨U, hU⟩ ⟨U', hU'⟩,
           obtain ⟨V, hVc, hVU, hVU'⟩ := hz.directed_on U hU U' hU',

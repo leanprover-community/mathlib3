@@ -332,7 +332,7 @@ end
 
 lemma mem_compl_zero_locus_iff_not_mem {f : R} {I : prime_spectrum R} :
   I ∈ (zero_locus {f} : set (prime_spectrum R))ᶜ ↔ f ∉ I.as_ideal :=
-by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
+by rw [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]; refl
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
@@ -659,7 +659,7 @@ lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : R) :
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
-set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+set.ext $ λ x, by simpa only [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open (1 : R) = ⊤ :=
 topological_space.opens.ext $ by simp
@@ -692,7 +692,7 @@ begin
   { rintros _ ⟨r, rfl⟩,
     exact is_open_basic_open },
   { rintros p U hp ⟨s, hs⟩,
-    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    rw [← compl_compl U, set.mem_compl_iff, ← hs, mem_zero_locus, set.not_subset] at hp,
     obtain ⟨f, hfs, hfp⟩ := hp,
     refine ⟨basic_open f, ⟨f, rfl⟩, hfp, _⟩,
     rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],
@@ -747,7 +747,7 @@ begin
   rw localization_comap_range S (submonoid.powers r),
   ext,
   simp only [mem_zero_locus, basic_open_eq_zero_locus_compl, set_like.mem_coe, set.mem_set_of_eq,
-    set.singleton_subset_iff, set.mem_compl_eq],
+    set.singleton_subset_iff, set.mem_compl_iff],
   split,
   { intros h₁ h₂,
     exact h₁ ⟨submonoid.mem_powers r, h₂⟩ },

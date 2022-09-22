@@ -366,7 +366,7 @@ begin
     rw [abs_mul, abs_pow, abs_inv, nat.abs_cast],
     mono* with [0 ≤ (n! : ℝ)⁻¹],
     any_goals { positivity },
-    { linarith [hx.1, hyx] } },
+    linarith [hx.1, hyx] },
   -- Apply the mean value theorem for vector valued functions:
   have A : ∀ t ∈ Icc a x, has_deriv_within_at (λ y, taylor_within_eval f n (Icc a b) y x)
     (((↑n!)⁻¹ * (x - t) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) t) (Icc a x) t,

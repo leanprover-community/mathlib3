@@ -9,6 +9,7 @@ import algebra.group.basic
 import data.real.basic
 import topology.continuous_function.bounded
 import topology.category.Top
+import topology.algebra.group
 import algebra.group.defs
 
 /-!
@@ -46,10 +47,10 @@ mean
 open classical
 open bounded_continuous_function
 
-variables (G:Type*) [group G]
+variables (G:Type*) [uniform_space G] [group G] [topological_group G]
 
-instance topspaceG : topological_space G := ⊥
-instance discrtopG : discrete_topology G := ⟨rfl⟩
+--instance topspaceG : topological_space G := ⊥
+--instance discrtopG : discrete_topology G := ⟨rfl⟩
 
 
 /-- A mean on a group-/
@@ -268,8 +269,9 @@ by composing with `π`.
 -/
 
 
-variables {H : Type* } [group H]
+variables {H : Type* } [uniform_space H] [group H] [topological_group H]
 (π: G → H)
+(π_cont: continuous π)
 
 variable {G}
 
@@ -306,47 +308,54 @@ def bcont_precomp_discrete
 def comp_bcont
   (f: bounded_continuous_function H ℝ)
   : bounded_continuous_function G ℝ
-:= bcont_precomp_discrete π f
+:= bcont_precomp (continuous_map.mk π π_cont) f
+
 
 @[simp]
 lemma comp_bcont_eval
   (π : G → H)
+  (π_cont: continuous π)
   (f: bounded_continuous_function H ℝ)
   (g :G)
-  : comp_bcont π f g = f (π g)
+  : comp_bcont π π_cont f g = f (π g)
 := by refl
 
 @[simp]
 def pull_bcont
   (π : G → H)
+  (π_cont: continuous π)
   : (bounded_continuous_function H ℝ) →ₗ[ℝ] (bounded_continuous_function G ℝ)
-:= linear_map.mk (λ f, comp_bcont π f)
+:= linear_map.mk (λ f, comp_bcont π π_cont f)
               (by tauto) (by tauto)
+
+
 
 include π
 
 @[simp]
 noncomputable def mean_pushforward_linmap
-  (π : G → H)
+  {π : G → H}
+  (π_cont: continuous π)
   (m : mean G)
   : (bounded_continuous_function H ℝ) →ₗ[ℝ] ℝ
-:= linear_map.comp m.lin_map (pull_bcont π)
+:= linear_map.comp m.lin_map (pull_bcont π π_cont)
 
 lemma mean_pushforward_norm
-  (π : G → H)
+  {π : G → H}
+  (π_cont: continuous π)
   (m : mean G)
-  : (mean_pushforward_linmap π m) (bounded_continuous_function.const H (1:ℝ)) = 1
+  : (mean_pushforward_linmap π_cont m) (bounded_continuous_function.const H (1:ℝ)) = 1
 := begin
   -- the pushforward of the 1-function is the 1-function
   have  pull_of_one
-        : (pull_bcont π) (bounded_continuous_function.const H (1:ℝ))
+        : (pull_bcont π π_cont) (bounded_continuous_function.const H (1:ℝ))
         = bounded_continuous_function.const G (1:ℝ),
   {
     ext (x:G),
     simp,
   },
-  calc  (mean_pushforward_linmap π m) (bounded_continuous_function.const H (1:ℝ))
-      = m.lin_map (pull_bcont π (bounded_continuous_function.const H (1:ℝ)))
+  calc  (mean_pushforward_linmap π_cont m) (bounded_continuous_function.const H (1:ℝ))
+      = m.lin_map (pull_bcont π π_cont (bounded_continuous_function.const H (1:ℝ)))
         : by tauto
   ... = m.lin_map (bounded_continuous_function.const G (1:ℝ))
         : by rw pull_of_one
@@ -355,16 +364,17 @@ lemma mean_pushforward_norm
 end
 
 lemma mean_pushforward_pos
-  (π : G → H)
+  {π : G → H}
+  (π_cont: continuous π )
   (m : mean G)
   : ∀ (f : bounded_continuous_function H ℝ),
-                    (∀ (x:H), f(x) ≥ 0) → (mean_pushforward_linmap π m) f ≥ 0
+                    (∀ (x:H), f(x) ≥ 0) → (mean_pushforward_linmap π_cont m) f ≥ 0
 := begin
   assume f fnonneg,
 
   apply m.positivity,
   -- key step: pull_bcont π f is also nonneg
-  change ∀(x:G), (pull_bcont π f) x ≥ 0,
+  change ∀(x:G), (pull_bcont π π_cont f) x ≥ 0,
 
   assume (x:G),
   specialize fnonneg (π x),
@@ -375,11 +385,12 @@ end
 @[simp]
 noncomputable def mean_pushforward
   (π : G → H)
+  (π_cont: continuous π)
   (m : mean G)
   : mean H
-:= mean.mk (mean_pushforward_linmap π m)
-           (mean_pushforward_norm π m)
-           (mean_pushforward_pos π m)
+:= mean.mk (mean_pushforward_linmap π_cont m)
+           (mean_pushforward_norm π_cont m)
+           (mean_pushforward_pos π_cont m)
 
 
 end pushforward_mean

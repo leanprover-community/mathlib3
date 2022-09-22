@@ -647,6 +647,29 @@ end
 
 end module
 end convex
+
+section restrict_scalars
+
+variables (𝕜) {𝕜' : Type*} [normed_field 𝕜] [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+  [norm_one_class 𝕜'] [add_comm_group E] [module 𝕜' E] [has_smul 𝕜 E] [is_scalar_tower 𝕜 𝕜' E]
+
+/-- Reinterpret a seminorm over a field `𝕜'` as a seminorm over a smaller field `𝕜`. This will
+typically be used with `is_R_or_C 𝕜'` and `𝕜 = ℝ`. -/
+protected def restrict_scalars (p : seminorm 𝕜' E) :
+  seminorm 𝕜 E :=
+{ smul' := λ a x, by rw [← smul_one_smul 𝕜' a x, p.smul', norm_smul, norm_one, mul_one],
+  ..p }
+
+@[simp] lemma coe_restrict_scalars (p : seminorm 𝕜' E) :
+  (p.restrict_scalars 𝕜 : E → ℝ) = p :=
+rfl
+
+@[simp] lemma restrict_scalars_ball (p : seminorm 𝕜' E) :
+  (p.restrict_scalars 𝕜).ball = p.ball :=
+rfl
+
+end restrict_scalars
+
 end seminorm
 
 /-! ### The norm as a seminorm -/

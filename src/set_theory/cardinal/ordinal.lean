@@ -284,7 +284,7 @@ lemma aleph_0_lt_aleph_one : ℵ₀ < aleph 1 :=
 by { rw ←succ_aleph_0, apply lt_succ }
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : s.countable ↔ #s < aleph 1 :=
-by rw [←succ_aleph_0, lt_succ_iff, mk_set_le_aleph_0]
+by rw [←succ_aleph_0, lt_succ_iff, le_aleph_0_iff_set_countable]
 
 /-- Ordinals that are cardinals are unbounded. -/
 theorem ord_card_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
@@ -404,7 +404,7 @@ begin
     quotient.induction_on c $ λ α IH ol, _) h,
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
-  letI := linear_order_of_STO' r,
+  letI := linear_order_of_STO r,
   haveI : is_well_order α (<) := wo,
   -- Define an order `s` on `α × α` by writing `(a, b) < (c, d)` if `max a b < max c d`, or
   -- the max are equal and `a < c`, or the max are equal and `a = c` and `b < d`.
@@ -888,11 +888,12 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} [infinite α] {s t : set α} (h
   (ht : #t < #α) : #(sᶜ : set α) = #(tᶜ : set α) :=
 by { rw [mk_compl_of_infinite s hs, mk_compl_of_infinite t ht] }
 
-lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [fintype α]
+lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [finite α]
   {s : set α} {t : set β} (h1 : lift.{max v w} (#α) = lift.{max u w} (#β))
   (h2 : lift.{max v w} (#s) = lift.{max u w} (#t)) :
   lift.{max v w} (#(sᶜ : set α)) = lift.{max u w} (#(tᶜ : set β)) :=
 begin
+  casesI nonempty_fintype α,
   rcases lift_mk_eq.1 h1 with ⟨e⟩, letI : fintype β := fintype.of_equiv α e,
   replace h1 : fintype.card α = fintype.card β := (fintype.of_equiv_card _).symm,
   classical,
@@ -903,11 +904,11 @@ begin
     lift_nat_cast, nat.cast_inj, h1, h2]
 end
 
-lemma mk_compl_eq_mk_compl_finite {α β : Type u} [fintype α] {s : set α} {t : set β}
+lemma mk_compl_eq_mk_compl_finite {α β : Type u} [finite α] {s : set α} {t : set β}
   (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
 by { rw ← lift_inj, apply mk_compl_eq_mk_compl_finite_lift; rwa [lift_inj] }
 
-lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [fintype α] {s t : set α}
+lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [finite α] {s t : set α}
   (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
 mk_compl_eq_mk_compl_finite rfl h
 
@@ -924,7 +925,7 @@ begin
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end
 
-theorem extend_function_finite {α β : Type*} [fintype α] {s : set α} (f : s ↪ β)
+theorem extend_function_finite {α β : Type*} [finite α] {s : set α} (f : s ↪ β)
   (h : nonempty (α ≃ β)) : ∃ (g : α ≃ β), ∀ x : s, g x = f x :=
 begin
   apply extend_function f,

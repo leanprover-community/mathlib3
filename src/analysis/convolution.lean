@@ -356,11 +356,13 @@ noncomputable def convolution [has_sub G] (f : G → E) (g : G → E') (L : E �
   (μ : measure G . volume_tac) : G → F :=
 λ x, ∫ t, L (f t) (g (x - t)) ∂μ
 
-localized "notation f ` ⋆[`:67 L:67 `, ` μ:67 `] `:0 g:66 := convolution f g L μ" in convolution
-localized "notation f ` ⋆[`:67 L:67 `]`:0 g:66 := convolution f g L
-  measure_theory.measure_space.volume" in convolution
-localized "notation f ` ⋆ `:67 g:66 := convolution f g (continuous_linear_map.lsmul ℝ ℝ)
-  measure_theory.measure_space.volume" in convolution
+localized "notation (name := convolution) f ` ⋆[`:67 L:67 `, ` μ:67 `] `:0 g:66 :=
+  convolution f g L μ" in convolution
+localized "notation (name := convolution.volume) f ` ⋆[`:67 L:67 `]`:0 g:66 :=
+  convolution f g L measure_theory.measure_space.volume" in convolution
+localized "notation (name := convolution.lsmul) f ` ⋆ `:67 g:66 :=
+  convolution f g (continuous_linear_map.lsmul ℝ ℝ) measure_theory.measure_space.volume"
+  in convolution
 
 lemma convolution_def [has_sub G] : (f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - t)) ∂μ := rfl
 
@@ -435,6 +437,15 @@ begin
   { exact (h $ sub_add_cancel x t).elim }
 end
 
+section
+variables [has_measurable_add₂ G] [has_measurable_neg G] [sigma_finite μ] [is_add_right_invariant μ]
+
+lemma measure_theory.integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⋆[L, μ] g) μ :=
+(hf.convolution_integrand L hg).integral_prod_left
+
+end
+
 variables [topological_space G]
 variables [topological_add_group G]
 
@@ -498,12 +509,6 @@ lemma has_compact_support.continuous_convolution_right_of_integrable
 (hg.norm.bdd_above_range_of_has_compact_support hcg.norm).continuous_convolution_right_of_integrable
   L hf hg
 
-variables [sigma_finite μ] [is_add_right_invariant μ]
-
-lemma measure_theory.integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
-  integrable (f ⋆[L, μ] g) μ :=
-(hf.convolution_integrand L hg).integral_prod_left
-
 end group
 
 section comm_group
@@ -513,10 +518,11 @@ variables [add_comm_group G]
 lemma support_convolution_subset : support (f ⋆[L, μ] g) ⊆ support f + support g :=
 (support_convolution_subset_swap L).trans (add_comm _ _).subset
 
-variables [topological_space G]
-variables [topological_add_group G]
-variables [borel_space G]
-variables [is_add_left_invariant μ]  [is_neg_invariant μ]
+variables [is_add_left_invariant μ] [is_neg_invariant μ]
+
+section measurable
+variables [has_measurable_neg G]
+variables [has_measurable_add G]
 
 variable (L)
 /-- Commutativity of convolution -/
@@ -542,6 +548,11 @@ lemma convolution_lmul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G
   (f ⋆[lmul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
 convolution_eq_swap _
 
+end measurable
+
+variables [topological_space G]
+variables [topological_add_group G]
+variables [borel_space G]
 variables [second_countable_topology G]
 
 lemma has_compact_support.continuous_convolution_left [locally_compact_space G] [t2_space G]
@@ -684,7 +695,7 @@ end normed_add_comm_group
 
 namespace cont_diff_bump_of_inner
 
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [normed_space ℝ E']
 variables [inner_product_space ℝ G]
 variables [complete_space E']
@@ -758,7 +769,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space 𝕜 E'']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [complete_space F]
 variables [measurable_space G] {μ : measure G}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
@@ -770,9 +781,23 @@ variables {k : G → E''}
 variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
 variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
 variables (L₄ : E' →L[𝕜] E'' →L[𝕜] F'')
-variables [add_group G] [has_measurable_add G]
+variables [add_group G]
 variables [sigma_finite μ]
-variables {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
+
+lemma integral_convolution
+  [has_measurable_add₂ G] [has_measurable_neg G] [is_add_right_invariant μ]
+  [normed_space ℝ E] [normed_space ℝ E']
+  [complete_space E] [complete_space E']
+  (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ x, (f ⋆[L, μ] g) x ∂μ = L (∫ x, f x ∂μ) (∫ x, g x ∂μ) :=
+begin
+  refine (integral_integral_swap (by apply hf.convolution_integrand L hg)).trans _,
+  simp_rw [integral_comp_comm _ (hg.comp_sub_right _), integral_sub_right_eq_self],
+  exact (L.flip (∫ x, g x ∂μ)).integral_comp_comm hf,
+end
+
+variables [has_measurable_add G] {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
+
 
 /-- Convolution is associative.
 To do: prove that `hi` follows from simpler conditions. -/
@@ -854,7 +879,7 @@ lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 begin
-  induction n using with_top.nat_induction with n ih ih generalizing g,
+  induction n using enat.nat_induction with n ih ih generalizing g,
   { rw [cont_diff_zero] at hg ⊢,
     exact hcg.continuous_convolution_right L hf hg },
   { have h : ∀ x, has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x) x :=
@@ -888,7 +913,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
 variables {f₀ : 𝕜 → E} {g₀ : 𝕜 → E'}
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 variables [complete_space F]
 variables {μ : measure 𝕜}

@@ -186,8 +186,8 @@ def copy (G' : subgraph G)
   subgraph G :=
 { verts := V'',
   adj := adj',
-  adj_sub := hadj.symm ▸ G'.adj_sub,
-  edge_vert := hV.symm ▸ hadj.symm ▸ G'.edge_vert,
+  adj_sub := λ _ _, hadj.symm ▸ G'.adj_sub,
+  edge_vert := λ _ _, hV.symm ▸ hadj.symm ▸ G'.edge_vert,
   symm := hadj.symm ▸ G'.symm }
 
 lemma copy_eq (G' : subgraph G)

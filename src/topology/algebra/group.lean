@@ -1035,8 +1035,9 @@ end
 
 /-- A discrete subgroup of a topological group `G` acts on `G` properly discontinuously on the left.
 -/
-@[to_additive]
-def subgroup.properly_discontinuous_smul_of_tendsto_cofinite
+@[to_additive "A discrete subgroup of an additive topological group `G` acts on `G` properly
+discontinuously on the left."]
+lemma subgroup.properly_discontinuous_smul_of_tendsto_cofinite
   (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
   properly_discontinuous_smul S G :=
 { finite_disjoint_inter_image := begin
@@ -1063,8 +1064,12 @@ right.
 
 If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_smul_of_t2_space`
 to show that the quotient group `G ⧸ S` is Hausdorff. -/
-@[to_additive]
-def subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
+@[to_additive "A discrete subgroup of an additive topological group `G` acts on `G` properly
+discontinuously on the right.
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_vadd_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff."]
+lemma subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
   (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
   properly_discontinuous_smul S.opposite G :=
 { finite_disjoint_inter_image := begin

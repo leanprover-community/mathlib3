@@ -374,7 +374,7 @@ begin
     exact (has_deriv_within_taylor_within_eval_at_Icc x h (I ht) hf.of_succ hf').mono I },
   have := norm_image_sub_le_of_norm_deriv_le_segment' A h' x (right_mem_Icc.2 hx.1),
   simp only [taylor_within_eval_self] at this,
-  refine this.trans (le_of_eq _),
+  refine this.trans_eq _,
   -- The rest is a trivial calculation
   rw [abs_of_nonneg (sub_nonneg.mpr hx.1)],
   ring_exp,

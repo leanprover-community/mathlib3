@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
 import order.filter.pointwise
+import tactic.congrm
 import topology.algebra.monoid
 import topology.compact_open
 import topology.sets.compacts
@@ -749,6 +750,47 @@ instance topological_group_quotient [N.normal] : topological_group (G ⧸ N) :=
   end,
   continuous_inv := by convert (@continuous_inv G _ _ _).quotient_map' _ }
 
+/-- Neighborhoods in the quotient are precisely the map of neighborhoods in the prequotient. -/
+@[to_additive "Neighborhoods in the quotient are precisely the map of neighborhoods in
+the prequotient."]
+lemma quotient_group.nhds_eq (x : G) : 𝓝 (x : G ⧸ N) = map coe (𝓝 x) :=
+le_antisymm ((quotient_group.is_open_map_coe N).nhds_le x) continuous_quot_mk.continuous_at
+
+variables (G) [first_countable_topology G]
+
+/-- Any first countable topological group has an antitone neighborhood basis `u : ℕ → set G` for
+which `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is a key tool for
+`quotient_group.complete_space` -/
+@[to_additive "Any first countable topological additive group has an antitone neighborhood basis
+`u : ℕ → set G` for which `u (n + 1) + u (n + 1) ⊆ u n`. The existence of such a neighborhood basis
+is a key tool for `quotient_add_group.complete_space`"]
+lemma topological_group.exists_antitone_basis_nhds_one :
+  ∃ (u : ℕ → set G), (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) :=
+begin
+  rcases (𝓝 (1 : G)).exists_antitone_basis with ⟨u, hu, u_anti⟩,
+  have := ((hu.prod_nhds hu).tendsto_iff hu).mp
+    (by simpa only [mul_one] using continuous_mul.tendsto ((1, 1) : G × G)),
+  simp only [and_self, mem_prod, and_imp, prod.forall, exists_true_left, prod.exists,
+    forall_true_left] at this,
+  have event_mul : ∀ n : ℕ, ∀ᶠ m in at_top, u m * u m ⊆ u n,
+  { intros n,
+    rcases this n with ⟨j, k, h⟩,
+    refine at_top_basis.eventually_iff.mpr ⟨max j k, true.intro, λ m hm, _⟩,
+    rintro - ⟨a, b, ha, hb, rfl⟩,
+    exact h a b (u_anti ((le_max_left _ _).trans hm) ha) (u_anti ((le_max_right _ _).trans hm) hb)},
+  obtain ⟨φ, -, hφ, φ_anti_basis⟩ := has_antitone_basis.subbasis_with_rel ⟨hu, u_anti⟩ event_mul,
+  exact ⟨u ∘ φ, φ_anti_basis, λ n, hφ n.lt_succ_self⟩,
+end
+
+include n
+
+/-- In a first countable topological group `G` with normal subgroup `N`, `1 : G ⧸ N` has a
+countable neighborhood basis. -/
+@[to_additive "In a first countable topological additive group `G` with normal additive subgroup
+`N`, `0 : G ⧸ N` has a countable neighborhood basis."]
+instance quotient_group.nhds_one_is_countably_generated : (𝓝 (1 : G ⧸ N)).is_countably_generated :=
+(quotient_group.nhds_eq N 1).symm ▸ map.is_countably_generated _ _
+
 end quotient_topological_group
 
 /-- A typeclass saying that `λ p : G × G, p.1 - p.2` is a continuous function. This property
@@ -990,6 +1032,64 @@ begin
   rw ← quotient_group.ker_mk S at hS,
   exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
 end
+
+/-- A discrete subgroup of a topological group `G` acts on `G` properly discontinuously on the left.
+-/
+@[to_additive "A discrete subgroup of an additive topological group `G` acts on `G` properly
+discontinuously on the left."]
+lemma subgroup.properly_discontinuous_smul_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have H : set.finite _ := hS ((hL.prod hK).image continuous_div').compl_mem_cocompact,
+    convert H,
+    ext x,
+    obtain ⟨x, hx⟩ := x,
+    dsimp,
+    simp_rw [set.ext_iff, prod.exists],
+    calc ¬(∀ l, (∃ k, k ∈ K ∧ x * k = l) ∧ l ∈ L ↔ false)
+        ↔ ¬¬∃ l k, (l ∈ L ∧ k ∈ K) ∧ x * k = l : by tidy
+    ... ↔ ¬¬∃ l k, (l ∈ L ∧ k ∈ K) ∧ l / k = x :
+            begin
+              congrm ¬¬∃ l k, _ ∧ _,
+              rw [div_eq_iff_eq_mul, @comm G (=)],
+            end
+  end }
+
+local attribute [semireducible] mul_opposite
+
+/-- A discrete subgroup of a topological group `G` acts on `G` properly discontinuously on the
+right.
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_smul_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff. -/
+@[to_additive "A discrete subgroup of an additive topological group `G` acts on `G` properly
+discontinuously on the right.
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_vadd_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff."]
+lemma subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S.opposite G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have : continuous (λ p : G × G, (p.1⁻¹, p.2)) := continuous_inv.prod_map continuous_id,
+    have H : set.finite _ :=
+      hS ((hK.prod hL).image (continuous_mul.comp this)).compl_mem_cocompact,
+    convert H using 1,
+    ext x,
+    obtain ⟨x, hx⟩ := x,
+    dsimp,
+    simp_rw [set.ext_iff, prod.exists],
+    calc (¬∀ (l : G), (∃ (k : G), k ∈ K ∧ k * x = l) ∧ l ∈ L ↔ false)
+        ↔ ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ k * x = l : by tidy
+    ... ↔ ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ k⁻¹ * l = x :
+            begin
+              congrm ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ _,
+              rw [inv_mul_eq_iff_eq_mul, @comm G (=)]
+            end
+  end }
 
 end
 

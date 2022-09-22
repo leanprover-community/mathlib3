@@ -756,7 +756,6 @@ begin
       subtype.coe_mk] },
 end
 
-
 /-! ### Lattice structure -/
 
 /-- `s ∪ t` is the set such that `a ∈ s ∪ t` iff `a ∈ s` or `a ∈ t`. -/

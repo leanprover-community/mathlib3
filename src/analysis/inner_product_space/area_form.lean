@@ -536,8 +536,10 @@ local attribute [instance] complex.finrank_real_complex_fact
 @[simp] protected lemma area_form (w z : ℂ) : complex.orientation.area_form w z = (conj w * z).im :=
 begin
   let o := complex.orientation,
-  rw [← o.inner_right_angle_rotation_left, complex.inner],
-  simp,
+  simp only [o.area_form_to_volume_form, o.volume_form_robust complex.orthonormal_basis_one_I rfl,
+    basis.det_apply, matrix.det_fin_two, basis.to_matrix_apply,to_basis_orthonormal_basis_one_I,
+    matrix.cons_val_zero, coe_basis_one_I_repr, matrix.cons_val_one, matrix.head_cons, mul_im,
+    conj_re, conj_im],
   ring,
 end
 

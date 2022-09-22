@@ -905,7 +905,7 @@ begin
       { suffices : (g_seq_s n) ⁻¹' {x} ∩ sᶜ = ∅, by { rw this, exact measurable_set.empty, },
         ext1 y,
         simp only [mem_inter_iff, mem_preimage, mem_singleton_iff, mem_compl_iff,
-        mem_empty_iff_false, iff_false, not_and, not_not_mem],
+          mem_empty_iff_false, iff_false, not_and, not_not_mem],
         refine imp_of_not_imp_not _ _ (λ hys, _),
         rw hg_seq_zero y hys n,
         exact ne.symm hx, },

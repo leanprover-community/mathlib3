@@ -10,8 +10,8 @@ import .mean
 # Amenable Groups
 
 We introduce the concept of amenable groups.
-A group is called `amenable` if there exists a left-invariant mean,
-i.e. a mean (a positive, normalised linear function L^∞ (G, ℝ) → ℝ )
+A (topological) group is called `amenable` if there exists a left-invariant mean,
+i.e. a mean (a positive, normalised linear function bounded_continuous_function G ℝ → ℝ )
 that is invariant under left translation of the argument.
 
 
@@ -29,12 +29,8 @@ the same notion of amenability
 ## Implementation Notes
 
 The notion of a mean is already defined in the file `mean.lean`. This
-file defines the left translate of a function and
-
-This file defines amenability by regarding all groups with their discrete topology,
-thus enabling us to use `bounded_continuous_function`.
-If you want to consider amenability on (non-discrete)
-topological groups, one needs to change some definitions.
+file defines the left translate of a function and uses this to define
+amenability.
 
 ## References
 * [C. Löh, *Geometric Group Theory*, Definition 9.1.1][loeh17]

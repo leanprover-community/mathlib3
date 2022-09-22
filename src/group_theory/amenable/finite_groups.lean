@@ -19,6 +19,7 @@ import .aux_lemmas_sums
 # Finite groups are amenable
 
 In this file, we show that finite groups are amenable.
+We view finite groups with the discrete topology.
 We do this via an explicit construction of a left invariant mean.
 
 ## Main Definitions
@@ -56,6 +57,9 @@ namespace amenable_finite
 variables
 {G:Type*}
 [group G]
+[uniform_space G]
+[discrete_topology G]
+[topological_group G]
 (G_fin: fintype G)
 
 include G_fin
@@ -272,8 +276,9 @@ omit G_fin
 theorem amenable_of_finite
 (G:Type*)
 [group G]
-[topological_space G]
+[uniform_space G]
 [discrete_topology G]
+[topological_group G]
 (G_fin: fintype G)
 : amenable G
 := amenable_of_invmean (inv_mean_of_fin G_fin)

@@ -1082,13 +1082,18 @@ calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
 lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀ x, (∀ U ∈ 𝓝 x, (U ∩ s).nonempty) → x ∈ s :=
 by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 
+lemma is_closed.interior_union {s t : set α} (h : is_closed s) :
+  interior (s ∪ t) ⊆ s ∪ interior t :=
+λ a ⟨u, ⟨⟨hu₁, hu₂⟩, ha⟩⟩, (classical.em (a ∈ s)).imp id $ λ h, mem_interior.mpr
+  ⟨u ∩ sᶜ, λ x hx, (hu₂ hx.1).resolve_left hx.2, is_open.inter hu₁ is_closed.is_open_compl, ⟨ha, h⟩⟩
+
+lemma is_closed.interior_union' {s t : set α} (h : is_closed t) :
+  interior (s ∪ t) ⊆ interior s ∪ t :=
+by simpa only [union_comm] using h.interior_union
+
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
-begin
-  rintro a ⟨hs, ht⟩,
-  have : s ∈ 𝓝 a := is_open.mem_nhds h hs,
-  rw mem_closure_iff_nhds_ne_bot at ht ⊢,
-  rwa [← inf_principal, ← inf_assoc, inf_eq_left.2 (le_principal_iff.2 this)],
-end
+compl_subset_compl.mp $
+  by simpa only [← interior_compl, compl_inter] using is_closed.interior_union h.is_closed_compl
 
 lemma closure_inter_open' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
 by simpa only [inter_comm] using closure_inter_open h

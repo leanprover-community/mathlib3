@@ -407,6 +407,25 @@ rfl
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
 
+/-- Embedding of an affine subspace to the ambient space, as an affine map. -/
+protected def subtype (s : affine_subspace k P) [nonempty s] : s →ᵃ[k] P :=
+{ to_fun := coe,
+  linear := s.direction.subtype,
+  map_vadd' := λ p v, rfl }
+
+@[simp] lemma subtype_linear (s : affine_subspace k P) [nonempty s] :
+  s.subtype.linear = s.direction.subtype :=
+rfl
+
+lemma subtype_apply (s : affine_subspace k P) [nonempty s] (p : s) : s.subtype p = p :=
+rfl
+
+@[simp] lemma coe_subtype (s : affine_subspace k P) [nonempty s] : (s.subtype : s → P) = coe :=
+rfl
+
+lemma injective_subtype (s : affine_subspace k P) [nonempty s] : function.injective s.subtype :=
+subtype.coe_injective
+
 /-- Two affine subspaces with nonempty intersection are equal if and
 only if their directions are equal. -/
 lemma eq_iff_direction_eq_of_mem {s₁ s₂ : affine_subspace k P} {p : P} (h₁ : p ∈ s₁)

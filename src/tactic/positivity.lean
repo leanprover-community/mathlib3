@@ -82,7 +82,7 @@ meta def norm_num.positivity (e : expr) : tactic strictness := do
     pure (nonnegative p')
   else failed
 
-/-- Second base case of the `positivity` tactic: Any element of a canonically ordered additive
+/-- Third base case of the `positivity` tactic: Any element of a canonically ordered additive
 monoid is nonnegative. -/
 meta def positivity_canon : expr → tactic strictness
 | `(%%a) := nonnegative <$> mk_app ``zero_le [a]

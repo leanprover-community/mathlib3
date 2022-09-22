@@ -248,7 +248,7 @@ end nontrivially_normed_field
 
 section is_R_or_C
 
-open filter topological_space bornology
+open topological_space bornology
 
 variables [first_countable_topology E]
 variables [is_R_or_C 𝕜] [module 𝕜 E] [has_continuous_smul 𝕜 E]

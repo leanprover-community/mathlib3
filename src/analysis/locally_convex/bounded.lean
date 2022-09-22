@@ -200,10 +200,11 @@ end uniform_add_group
 section continuous_linear_map
 
 variables [add_comm_group E] [uniform_space E] [uniform_add_group E]
-variables [add_comm_group F] [uniform_space F] [uniform_add_group F]
+variables [add_comm_group F] [uniform_space F]
 
 section nontrivially_normed_field
 
+variables [uniform_add_group F]
 variables [nontrivially_normed_field 𝕜] [module 𝕜 E] [module 𝕜 F] [has_continuous_smul 𝕜 E]
 
 /-- Construct a continuous linear map from a linear map `f : E →ₗ[𝕜] F` and the existence of a
@@ -339,7 +340,7 @@ begin
 end
 
 /-- If `E` is first countable, then every locally bounded linear map `E →ₛₗ[σ] F` is continuous. -/
-lemma linear_map.continuous_of_locally_bounded (f : E →ₛₗ[σ] F)
+lemma linear_map.continuous_of_locally_bounded [uniform_add_group F] (f : E →ₛₗ[σ] F)
   (hf : ∀ (s : set E) (hs : is_vonN_bounded 𝕜 s), is_vonN_bounded 𝕜' (f '' s)) :
   continuous f :=
 (uniform_continuous_of_continuous_at_zero f $ f.continuous_at_zero_of_locally_bounded hf).continuous

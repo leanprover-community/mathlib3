@@ -1177,12 +1177,58 @@ meta def prove_nat_succ (ic : instance_cache) : expr → tactic (instance_cache 
   p ← mk_eq_refl e,
   return (ic, n, e, p)
 
-/-- Evaluates `nat.succ`. -/
-meta def eval_nat_succ_ext : expr → tactic (expr × expr)
+theorem int_to_nat_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
+  a.to_nat = b := by rw ← h; simp
+theorem int_to_nat_neg (a : ℤ) (h : 0 < a) : (-a).to_nat = 0 :=
+by simp only [int.to_nat_of_nonpos, h.le, neg_nonpos]
+
+theorem nat_abs_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
+  a.nat_abs = b := by rw ← h; simp
+theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
+  (-a).nat_abs = b := by rw ← h; simp
+
+theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
+  (h₂ : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
+  -[1+ a] = -c := by rw [← h₂, ← h₁]; refl
+
+/-- Evaluates `nat.succ`, `int.to_nat`, `int.nat_abs`, `int.neg_succ_of_nat`. -/
+meta def eval_nat_int : expr → tactic (expr × expr)
 | e@`(nat.succ _) := do
   ic ← mk_instance_cache `(ℕ),
   (_, _, ep) ← prove_nat_succ ic e,
   return ep
+| `(int.to_nat %%a) := do
+  n ← a.to_int,
+  ic ← mk_instance_cache `(ℤ),
+  if n ≥ 0 then do
+    nc ← mk_instance_cache `(ℕ),
+    (_, _, b, p) ← prove_nat_uncast ic nc a,
+    pure (b, `(int_to_nat_pos).mk_app [a, b, p])
+  else do
+    a ← match_neg a,
+    (_, p) ← prove_pos ic a,
+    pure (`(0), `(int_to_nat_neg).mk_app [a, p])
+| `(int.nat_abs %%a) := do
+  n ← a.to_int,
+  ic ← mk_instance_cache `(ℤ),
+  nc ← mk_instance_cache `(ℕ),
+  if n ≥ 0 then do
+    (_, _, b, p) ← prove_nat_uncast ic nc a,
+    pure (b, `(nat_abs_pos).mk_app [a, b, p])
+  else do
+    a ← match_neg a,
+    (_, _, b, p) ← prove_nat_uncast ic nc a,
+    pure (b, `(nat_abs_neg).mk_app [a, b, p])
+| `(int.neg_succ_of_nat %%a) := do
+  na ← a.to_nat,
+  ic ← mk_instance_cache `(ℤ),
+  nc ← mk_instance_cache `(ℕ),
+  let nb := na + 1,
+  (nc, b) ← nc.of_nat nb,
+  (nc, p₁) ← prove_add_nat nc a `(1) b,
+  (ic, c) ← ic.of_nat nb,
+  (_, _, _, p₂) ← prove_nat_uncast ic nc c,
+  pure (`(-%%c : ℤ), `(neg_succ_of_nat).mk_app [a, b, c, p₁, p₂])
 | _ := failed
 
 theorem int_to_nat_cast (a : ℕ) (b : ℤ)
@@ -1228,7 +1274,7 @@ meta def eval_cast : expr → tactic (expr × expr)
 
 /-- This version of `derive` does not fail when the input is already a numeral -/
 meta def derive.step (e : expr) : tactic (expr × expr) :=
-eval_field e <|> eval_pow e <|> eval_ineq e <|> eval_cast e <|> eval_nat_succ_ext e
+eval_field e <|> eval_pow e <|> eval_ineq e <|> eval_cast e <|> eval_nat_int e
 
 /-- An attribute for adding additional extensions to `norm_num`. To use this attribute, put
 `@[norm_num]` on a tactic of type `expr → tactic (expr × expr)`; the tactic will be called on
@@ -1570,20 +1616,6 @@ theorem dvd_eq_nat (a b c : ℕ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (
 theorem dvd_eq_int (a b c : ℤ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (a ∣ b) = p :=
 (propext $ by rw [← h₁, int.dvd_iff_mod_eq_zero]).trans h₂
 
-theorem int_to_nat_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
-  a.to_nat = b := by rw ← h; simp
-theorem int_to_nat_neg (a : ℤ) (h : 0 < a) : (-a).to_nat = 0 :=
-by simp only [int.to_nat_of_nonpos, h.le, neg_nonpos]
-
-theorem nat_abs_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
-  a.nat_abs = b := by rw ← h; simp
-theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
-  (-a).nat_abs = b := by rw ← h; simp
-
-theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
-  (h₂ : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
-  -[1+ a] = -c := by rw [← h₂, ← h₁]; refl
-
 /-- Evaluates some extra numeric operations on `nat` and `int`, specifically
 `/` and `%`, and `∣` (divisibility). -/
 @[norm_num] meta def eval_nat_int_ext : expr → tactic (expr × expr)
@@ -1602,38 +1634,6 @@ theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
   (ic, z) ← ic.mk_app ``has_zero.zero [],
   (e', p₂) ← mk_app ``eq [c, z] >>= eval_ineq,
   return (e', th.mk_app [a, b, c, e', p₁, p₂])
-| `(int.to_nat %%a) := do
-  n ← a.to_int,
-  ic ← mk_instance_cache `(ℤ),
-  if n ≥ 0 then do
-    nc ← mk_instance_cache `(ℕ),
-    (_, _, b, p) ← prove_nat_uncast ic nc a,
-    pure (b, `(int_to_nat_pos).mk_app [a, b, p])
-  else do
-    a ← match_neg a,
-    (_, p) ← prove_pos ic a,
-    pure (`(0), `(int_to_nat_neg).mk_app [a, p])
-| `(int.nat_abs %%a) := do
-  n ← a.to_int,
-  ic ← mk_instance_cache `(ℤ),
-  nc ← mk_instance_cache `(ℕ),
-  if n ≥ 0 then do
-    (_, _, b, p) ← prove_nat_uncast ic nc a,
-    pure (b, `(nat_abs_pos).mk_app [a, b, p])
-  else do
-    a ← match_neg a,
-    (_, _, b, p) ← prove_nat_uncast ic nc a,
-    pure (b, `(nat_abs_neg).mk_app [a, b, p])
-| `(int.neg_succ_of_nat %%a) := do
-  na ← a.to_nat,
-  ic ← mk_instance_cache `(ℤ),
-  nc ← mk_instance_cache `(ℕ),
-  let nb := na + 1,
-  (nc, b) ← nc.of_nat nb,
-  (nc, p₁) ← prove_add_nat nc a `(1) b,
-  (ic, c) ← ic.of_nat nb,
-  (_, _, _, p₂) ← prove_nat_uncast ic nc c,
-  pure (`(-%%c : ℤ), `(neg_succ_of_nat).mk_app [a, b, c, p₁, p₂])
 | _ := failed
 
 end elementary_number_theory

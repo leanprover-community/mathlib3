@@ -49,7 +49,7 @@ introduce these operations.
 
 ## TODO
 
-Implement extensions for other operations (raising to non-numeral powers, `exp`, `log`).
+Implement extensions for other operations (raising to non-numeral powers, `log`).
 -/
 
 namespace tactic

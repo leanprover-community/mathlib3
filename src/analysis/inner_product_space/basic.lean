@@ -2113,8 +2113,8 @@ inner_product_space.is_R_or_C_to_real ℂ G
 
 /-- The inner product on an inner product space of dimension 2 can be evaluated in terms
 of a complex-number representation of the space. -/
-lemma inner_map_complex [inner_product_space ℂ G] (f : G ≃ₗᵢ[ℝ] ℂ) (x y : E) :
-  ⟪x, y⟫ = (conj (f x) * f y).re :=
+lemma inner_map_complex [inner_product_space ℝ G] (f : G ≃ₗᵢ[ℝ] ℂ) (x y : G) :
+  ⟪x, y⟫_ℝ = (conj (f x) * f y).re :=
 by rw [← complex.inner, f.inner_map_map]
 
 end is_R_or_C_to_real

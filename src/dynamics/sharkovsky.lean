@@ -1055,8 +1055,9 @@ begin
       linarith },
     have hk' : k ≠ 0, by linarith,
     have : k < n + 1,
-    { refine zero_lt.lt_of_mul_lt_mul_left' _ two_pos,
-      rwa ←hk },
+    { have : 2 * k < 2 * (n + 1),
+      { rwa ←hk },
+      exact lt_of_mul_lt_mul_left' this },
     obtain ⟨u', hu'₁, hu'₂⟩ := (ih (n + 1 - k) (nat.sub_pos_of_lt ‹_›).ne' (nat.sub_le _ _)).2,
     have : u' ∈ Icc (f^[2 * k] c) (f^[2 * k] d),
     { rw [hd₅ (2 * k) (by simp [hk']) (by simp), hk.is_periodic_pt.eq],
@@ -1814,7 +1815,7 @@ begin
   rw [tent_map_periodic_pt_in hk _ (Ico_subset_Icc_self h'), h],
 end
 
-noncomputable def tent_map_periodic_pts_rat (n : ℕ) : finset ℚ :=
+def tent_map_periodic_pts_rat (n : ℕ) : finset ℚ :=
 (finset.range (2 ^ n)).image (λ k, if even k then k / (2 ^ n - 1) else (k + 1) / (2 ^ n + 1))
 
 lemma mem_tent_map_periodic_pts_rat_iff {n : ℕ} {x : ℚ} :
@@ -1894,7 +1895,7 @@ begin
   exact hq.1
 end
 
-noncomputable def tent_map_periodic_pts (n : ℕ) : finset ℝ :=
+def tent_map_periodic_pts (n : ℕ) : finset ℝ :=
 (tent_map_periodic_pts_rat n).map ⟨(coe : ℚ → ℝ), rat.cast_injective⟩
 
 lemma tent_map_periodic_pts_subset {n : ℕ} : ↑(tent_map_periodic_pts n) ⊆ Icc (0 : ℝ) 1 :=
@@ -2360,13 +2361,6 @@ section intervals
 
 variables {α : Type*}
 
-lemma not_bdd_above_Ioi (a : α) [preorder α] [no_max_order α] : ¬ bdd_above (Ioi a) :=
-λ ⟨b, hb⟩, let ⟨c, hc⟩ := exists_gt a, ⟨d, hd⟩ := exists_gt b in
-hd.not_le (hb ((hc.trans_le (hb hc)).trans hd))
-
-lemma not_bdd_above_Ici (a : α) [preorder α] [no_max_order α] : ¬ bdd_above (Ici a) :=
-λ h, not_bdd_above_Ioi a (h.mono Ioi_subset_Ici_self)
-
 lemma not_compact_Ioi {a : α} [linear_order α] [topological_space α] [order_closed_topology α]
   [no_max_order α] : ¬ is_compact (Ioi a) :=
 λ h, let h' : nonempty α := ⟨a⟩ in by exactI (not_bdd_above_Ioi _) h.bdd_above
@@ -2374,12 +2368,6 @@ lemma not_compact_Ioi {a : α} [linear_order α] [topological_space α] [order_c
 lemma not_compact_Ici {a : α} [linear_order α] [topological_space α] [order_closed_topology α]
   [no_max_order α] : ¬ is_compact (Ici a) :=
 λ h, let h' : nonempty α := ⟨a⟩ in by exactI (not_bdd_above_Ici _) h.bdd_above
-
-lemma not_bdd_below_Iio (a : α) [preorder α] [no_min_order α] : ¬ bdd_below (Iio a) :=
-@not_bdd_above_Ioi αᵒᵈ _ _ _
-
-lemma not_bdd_below_Iic (a : α) [preorder α] [no_min_order α] : ¬ bdd_below (Iic a) :=
-@not_bdd_above_Ici αᵒᵈ _ _ _
 
 lemma not_compact_Iio {a : α} [linear_order α] [topological_space α] [order_closed_topology α]
   [no_min_order α] : ¬ is_compact (Iio a) :=
@@ -2417,87 +2405,41 @@ lemma not_compact_Ioc {a b : α} (h : a < b) : ¬ is_compact (Ioc a b) :=
 lemma not_compact_Ioo {a b : α} (h : a < b) : ¬ is_compact (Ioo a b) :=
 λ h, not_closed_Ioo ‹a < b› (is_compact.is_closed h)
 
+lemma ord_connected_compact_aux {α : Type*} [conditionally_complete_linear_order α]
+  [topological_space α] [order_topology α] [densely_ordered α] [no_max_order α] :
+  noncompact_space α :=
+⟨λ h, not_bdd_above_univ h.bdd_above⟩
+
 lemma ord_connected_compact {α : Type*} [conditionally_complete_linear_order α]
   [topological_space α] [order_topology α] [densely_ordered α]
   {I : set α} [I.ord_connected] (hI : is_compact I) (hI' : I.nonempty) :
   ∃ a b, a ≤ b ∧ I = set.Icc a b :=
 begin
-  rcases (by apply_instance : I.ord_connected).is_preconnected.mem_intervals with
-    (h | h | h | h | h | _),
-  { rw [h, nonempty_Icc] at hI',
-    exact ⟨_, _, hI', h⟩ },
-  { rw h at hI,
-    rw [h, nonempty_Ico] at hI',
-    cases not_compact_Ico hI' hI },
-  { rw h at hI,
-    rw [h, nonempty_Ioc] at hI',
-    cases not_compact_Ioc hI' hI },
-  { rw h at hI,
-    rw [h, nonempty_Ioo] at hI',
-    cases not_compact_Ioo hI' hI },
-  { rw h at hI,
-    rw h at hI',
-    casesI top_order_or_no_top_order α,
-    { refine ⟨Inf I, ⊤, le_top, _⟩,
-      rwa [Icc_top] },
-    have : no_max_order α,
-    { library_search,
-
-    },
-    -- have : no_max_order
-    -- by_cases ∃ x : α, is_max x,
-    -- {
-
-    -- },
-    -- simp only [nonempty_Ici] at hI',
-    have := not_compact_Ici hI,
-
-  },
+  have : Inf I ≤ Sup I,
+  { rcases hI' with ⟨x, hx⟩,
+    exact (cInf_le hI.bdd_below hx).trans (le_cSup hI.bdd_above hx) },
+  refine ⟨Inf I, Sup I, this, set.subset.antisymm (λ x hx, _) _⟩,
+  { simp [mem_Icc, cInf_le hI.bdd_below hx, le_cSup hI.bdd_above hx] },
+  exact I.Icc_subset (hI.is_closed.cInf_mem hI' hI.bdd_below)
+      (hI.is_closed.cSup_mem hI' hI.bdd_above),
 end
 
--- lemma ord_connected_compact {α : Type*} [conditionally_complete_linear_order α]
---   [topological_space α] [order_topology α] [densely_ordered α]
---   {I : set α} [I.ord_connected] (hI : is_compact I) (hI' : I.nonempty) :
---   ∃ a b, a ≤ b ∧ I = set.Icc a b :=
--- begin
---   rcases (by apply_instance : I.ord_connected).is_preconnected.mem_intervals with
---     (h | h | h | h | h | _),
---   { rw [h, nonempty_Icc] at hI',
---     exact ⟨_, _, hI', h⟩ },
---   { rw h at hI,
---     rw [h, nonempty_Ico] at hI',
---     cases not_compact_Ico hI' hI },
---   { rw h at hI,
---     rw [h, nonempty_Ioc] at hI',
---     cases not_compact_Ioc hI' hI },
---   { rw h at hI,
---     rw [h, nonempty_Ioo] at hI',
---     cases not_compact_Ioo hI' hI },
---   { rw h at hI,
---     rw h at hI',
-
---     -- simp only [nonempty_Ici] at hI',
---     -- have := not_compact_Ici hI,
-
---   },
--- end
-
 end intervals
-
-#exit
 
 theorem sharkovsky_compact {s : set sharkovsky} (hs : sharkovsky.of_nat 0 ∉ s)
   {I : set ℝ} [I.ord_connected] (hI : is_compact I) :
   ∃ f : ℝ → ℝ, continuous_on f I ∧ maps_to f I I ∧ s = minimal_periods_on f I ↔
     is_upper_set s ∧ s.nonempty :=
 begin
-  have : ¬ is_compact (Ico (0 : ℝ) 1),
-  { rw metric.compact_iff_closed_bounded,
-    simp only [not_and],
-    have := is_closed_Icc,
-    -- simp only [is_closed_discrete, true_and],
+  -- have := ord_connected_compact hI,
 
-  },
+  -- have : ¬ is_compact (Ico (0 : ℝ) 1),
+  -- { rw metric.compact_iff_closed_bounded,
+  --   simp only [not_and],
+  --   have := is_closed_Icc,
+  --   -- simp only [is_closed_discrete, true_and],
+
+  -- },
   -- have : ∃ a b,
 end
 

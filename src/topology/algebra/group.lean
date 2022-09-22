@@ -1427,10 +1427,9 @@ Inf {b : group_topology β | (topological_space.coinduced f t) ≤ b.to_topologi
 lemma coinduced_continuous {α β : Type*} [t : topological_space α] [group β]
   (f : α → β) : cont t (coinduced f).to_topological_space f :=
 begin
-  rw continuous_iff_coinduced_le,
-  refine le_Inf _,
+  rw [continuous_Inf_rng],
   rintros _ ⟨t', ht', rfl⟩,
-  exact ht',
+  exact continuous_iff_coinduced_le.2 ht'
 end
 
 end group_topology

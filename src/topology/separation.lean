@@ -665,16 +665,16 @@ begin
     exact hxy (mem_univ x) }
 end
 
-lemma is_connected.infinite_of_nontrivial [t1_space α] {s : set α} (h : is_connected s)
+lemma is_preconnected.infinite_of_nontrivial [t1_space α] {s : set α} (h : is_preconnected s)
   (hs : s.nontrivial) : s.infinite :=
 begin
   refine mt (λ hf, (subsingleton_coe s).mp _) (not_subsingleton_iff.mpr hs),
   haveI := @discrete_of_t1_of_finite s _ _ hf.to_subtype,
-  exact @preconnected_space.trivial_of_discrete _ _ (subtype.preconnected_space h.2) _
+  exact @preconnected_space.trivial_of_discrete _ _ (subtype.preconnected_space h) _
 end
 
 lemma connected_space.infinite [connected_space α] [nontrivial α] [t1_space α] : infinite α :=
-infinite_univ_iff.mp $ is_connected_univ.infinite_of_nontrivial nontrivial_univ
+infinite_univ_iff.mp $ is_preconnected_univ.infinite_of_nontrivial nontrivial_univ
 
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]
   {x : α} (hx : x ∈ s) :

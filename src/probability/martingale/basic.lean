@@ -503,7 +503,7 @@ begin
       condexp_of_strongly_measurable (𝒢.le _) (hfadp _) $ hfmgle.integrable _) }
 end
 
-/-- A predictable submartingale is a.e. less equal than its initial state. -/
+/-- A predictable supermartingale is a.e. less equal than its initial state. -/
 lemma supermartingale.le_zero_of_predictable [preorder E] [sigma_finite_filtration μ 𝒢]
   {f : ℕ → Ω → E} (hfmgle : supermartingale f 𝒢 μ) (hfadp : adapted 𝒢 (λ n, f (n + 1))) (n : ℕ) :
   f n ≤ᵐ[μ] f 0 :=

@@ -136,7 +136,7 @@ begin
   refl,
 end
 
--- The following two lemma demonstrates the essential uniqueness of the decomposition
+-- The following two lemmas demonstrate the essential uniqueness of the decomposition
 lemma martingale_part_add_ae_eq [sigma_finite_filtration μ ℱ] {f g : ℕ → Ω → E}
   (hf : martingale f ℱ μ) (hg : adapted ℱ (λ n, g (n + 1))) (hg0 : g 0 = 0)
   (hgint : ∀ n, integrable (g n) μ) (n : ℕ) :

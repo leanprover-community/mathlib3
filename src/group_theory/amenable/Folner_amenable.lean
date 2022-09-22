@@ -457,6 +457,37 @@ lemma mean_of_Folner_seq_simp
   : mean_of_Folner_seq F f =  mean_fct_of_Folner_seq  F f
 := by refl
 
+
+/--additional lemma on the absolute value of differences-/
+lemma abs_le_symm_diff_of_diff_sum
+  {α : Type*} [decidable_eq α]
+  {S T:finset α}
+  {f: α → ℝ}
+  : |∑ x in S, f x - ∑ x in T, f x|
+  ≤ ∑ x in symm_diff S T, |f x|
+:= begin
+  calc  |∑ x in S, f x - ∑ x in T, f x|
+      = |∑ x in S \ T, f x - ∑ x in T \ S, f x|
+        : by rw  finset.sum_sdiff_sub_sum_sdiff
+  ... ≤ |∑ x in S \ T, f x| + |∑ x in T \ S, f x|
+        : abs_sub _ _
+  ... ≤ ∑ x in S \ T, |f x| + ∑ x in T \ S, |f x|
+        : by {
+          apply add_le_add; exact finset.abs_sum_le_sum_abs _ _,
+        }
+  ... = ∑ x in symm_diff S T, |f x|
+        : by {
+          dsimp[symm_diff],
+          exact eq.symm (finset.sum_union (begin
+            unfold disjoint,
+            assume x xininters,
+            finish,
+          end)),
+        },
+end
+
+
+
 /--This mean is left-invariant
   (this basically is a long technical calculation, the
   main reason is that the Folner condition holds)-/

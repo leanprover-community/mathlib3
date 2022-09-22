@@ -67,7 +67,7 @@ fun_like.has_coe_to_fun
 @[simp] lemma to_fun_eq_coe {μ : young_diagram} {T : ssyt μ} : T.entry = (T : ℕ → ℕ → ℕ) := rfl
 
 @[ext] theorem ext {μ : young_diagram} {T T' : ssyt μ} (h : ∀ i j, T i j = T' i j) : T = T' :=
-  fun_like.ext T T' (λ x, by { funext, apply h })
+fun_like.ext T T' (λ x, by { funext, apply h })
 
 /-- Copy of an `ssyt μ` with a new `entry` equal to the old one. Useful to fix definitional
 equalities. -/

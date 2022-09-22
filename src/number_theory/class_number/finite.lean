@@ -111,7 +111,7 @@ begin
   have y'_nonneg : 0 ≤ y' := le_trans (abv.nonneg _) (hy' i),
   apply (int.cast_le.mpr (norm_le abv bS a hy')).trans_lt,
   simp only [int.cast_mul, int.cast_pow],
-  apply mul_lt_mul' le_rfl,
+  refine mul_lt_mul' le_rfl _ _ _,
   { exact pow_lt_pow_of_lt_left this
       (int.cast_nonneg.mpr y'_nonneg)
       (fintype.card_pos_iff.mpr ⟨i⟩) },

@@ -120,6 +120,10 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
+@[priority 100] -- see Note [lower instance priority]
+instance ordered_semiring.zero_le_one_class : zero_le_one_class α :=
+{ ..‹ordered_semiring α› }
+
 @[priority 200] -- see Note [lower instance priority]
 instance ordered_semiring.pos_mul_strict_mono : pos_mul_strict_mono α :=
 ⟨λ x a b h, ordered_semiring.mul_lt_mul_of_pos_left _ _ _ h x.prop⟩
@@ -127,10 +131,6 @@ instance ordered_semiring.pos_mul_strict_mono : pos_mul_strict_mono α :=
 @[priority 200] -- see Note [lower instance priority]
 instance ordered_semiring.mul_pos_strict_mono : mul_pos_strict_mono α :=
 ⟨λ x a b h, ordered_semiring.mul_lt_mul_of_pos_right _ _ _ h x.prop⟩
-
-@[priority 100] -- see Note [lower instance priority]
-instance ordered_semiring.zero_le_one_class : zero_le_one_class α :=
-{ ..‹ordered_semiring α› }
 
 section nontrivial
 
@@ -231,18 +231,12 @@ calc
   a * b < c * b : mul_lt_mul_of_pos_right hac pos_b
     ... ≤ c * d : decidable.mul_le_mul_of_nonneg_left hbd nn_c
 
-lemma mul_lt_mul : a < c → b ≤ d → 0 < b → 0 ≤ c → a * b < c * d :=
-by classical; exact decidable.mul_lt_mul
-
 -- See Note [decidable namespace]
 protected lemma decidable.mul_lt_mul' [@decidable_rel α (≤)]
   (h1 : a ≤ c) (h2 : b < d) (h3 : 0 ≤ b) (h4 : 0 < c) : a * b < c * d :=
 calc
    a * b ≤ c * b : decidable.mul_le_mul_of_nonneg_right h1 h3
      ... < c * d : mul_lt_mul_of_pos_left h2 h4
-
-lemma mul_lt_mul' : a ≤ c → b < d → 0 ≤ b → 0 < c → a * b < c * d :=
-by classical; exact decidable.mul_lt_mul'
 
 @[simp] theorem pow_pos (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := by { nontriviality, rw pow_zero, exact zero_lt_one }
@@ -279,9 +273,6 @@ h4.lt_or_eq_dec.elim
   (λ b0, decidable.mul_lt_mul h1 h2.le b0 $ h3.trans h1.le)
   (λ b0, by rw [← b0, mul_zero]; exact
     mul_pos (h3.trans_lt h1) (h4.trans_lt h2))
-
-lemma mul_lt_mul'' : a < c → b < d → 0 ≤ a → 0 ≤ b → a * b < c * d :=
-by classical; exact decidable.mul_lt_mul''
 
 -- See Note [decidable namespace]
 protected lemma decidable.le_mul_of_one_le_right [@decidable_rel α (≤)]
@@ -639,12 +630,6 @@ le_of_not_gt $ λ ha, (mul_neg_of_neg_of_pos ha hb).not_le h
 
 lemma nonneg_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : 0 < a) : 0 ≤ b :=
 le_of_not_gt $ λ hb, (mul_neg_of_pos_of_neg ha hb).not_le h
-
-lemma neg_of_mul_neg_left (h : a * b < 0) (hb : 0 ≤ b) : a < 0 :=
-lt_of_not_ge $ λ ha, (decidable.mul_nonneg ha hb).not_lt h
-
-lemma neg_of_mul_neg_right (h : a * b < 0) (ha : 0 ≤ a) : b < 0 :=
-lt_of_not_ge $ λ hb, (decidable.mul_nonneg ha hb).not_lt h
 
 lemma nonpos_of_mul_nonpos_left (h : a * b ≤ 0) (hb : 0 < b) : a ≤ 0 :=
 le_of_not_gt (assume ha : a > 0, (mul_pos ha hb).not_le h)

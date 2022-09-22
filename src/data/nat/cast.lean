@@ -71,8 +71,7 @@ variable [nontrivial α]
 lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
 zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
 
-lemma cast_pos_of_pos {n : ℕ} (hn : 0 < n) : (0 : α) < n :=
-by { cases n, { cases hn.false }, { rw cast_succ, exact cast_add_one_pos _ } }
+@[simp] lemma cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n := by cases n; simp [cast_add_one_pos]
 
 end ordered_semiring
 
@@ -85,9 +84,6 @@ strict_mono_cast.le_iff_le
 
 @[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
-
-@[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
-by rw [← cast_zero, cast_lt]
 
 @[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
 by rw [← cast_one, cast_lt]

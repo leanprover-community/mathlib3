@@ -1255,6 +1255,24 @@ lemma rpow_le_rpow_of_exponent_ge {x : ℝ≥0} {y z : ℝ} (hx0 : 0 < x) (hx1 :
   x^y ≤ x^z :=
 real.rpow_le_rpow_of_exponent_ge hx0 hx1 hyz
 
+lemma le_rpow_inv_iff_of_pos {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 < c) :
+  a ≤ b^c⁻¹ ↔ a^c ≤ b :=
+by rw [←real.rpow_le_rpow_iff ha (real.rpow_nonneg_of_nonneg hb _) hc, ←real.rpow_mul hb,
+    inv_mul_cancel (ne_of_gt hc), real.rpow_one]
+
+lemma lt_rpow_inv_iff_of_pos {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 < c) :
+  a < b^c⁻¹ ↔ a^c < b :=
+by rw [←real.rpow_lt_rpow_iff ha (real.rpow_nonneg_of_nonneg hb _) hc, ←real.rpow_mul hb,
+    inv_mul_cancel (ne_of_gt hc), real.rpow_one]
+
+lemma rpow_inv_le_iff_of_pos {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 < c) :
+  a^c⁻¹ ≤ b ↔ a ≤ b^c :=
+by rw [←le_rpow_inv_iff_of_pos ha hb (_root_.inv_pos.mpr hc), inv_inv]
+
+lemma rpow_inv_lt_iff_of_pos {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 < c) :
+  a^c⁻¹ < b ↔ a < b^c :=
+by rw [←lt_rpow_inv_iff_of_pos ha hb (_root_.inv_pos.mpr hc), inv_inv]
+
 lemma le_rpow_inv_iff_of_neg {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : c < 0) :
   a ≤ b^c⁻¹ ↔ b ≤ a^c :=
 begin

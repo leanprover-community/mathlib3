@@ -186,7 +186,7 @@ begin
     set.image_singleton, (show _ = _, from hx)],
   apply set.image_injective.mpr hf.inj,
   ext z,
-  simp only [set.image_preimage_eq_inter_range, set.mem_inter_eq, and.congr_left_iff],
+  simp only [set.image_preimage_eq_inter_range, set.mem_inter_iff, and.congr_left_iff],
   exact λ hy, ⟨λ h, hT.closure_eq ▸ closure_mono (set.inter_subset_left _ _) h,
     λ h, subset_closure ⟨h, hy⟩⟩
 end

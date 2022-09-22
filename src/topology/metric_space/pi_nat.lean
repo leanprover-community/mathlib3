@@ -393,7 +393,7 @@ begin
       { simp only [le_infi_iff, le_principal_iff],
         assume n,
         refine mem_infi_of_mem ((1/2)^n) _,
-        refine mem_infi_of_mem (by norm_num) _,
+        refine mem_infi_of_mem (by positivity) _,
         simp only [mem_principal, set_of_subset_set_of, prod.forall],
         assume x y hxy,
         exact apply_eq_of_dist_lt hxy le_rfl }
@@ -669,7 +669,7 @@ begin
   { assume x,
     apply subtype.coe_injective.eq_iff.1,
     simpa only using fs x.val x.property },
-  exact ⟨cod_restrict f s A, B, λ x, ⟨x, B x⟩, continuous_subtype_mk _ f_cont⟩,
+  exact ⟨cod_restrict f s A, B, λ x, ⟨x, B x⟩, f_cont.subtype_mk _⟩,
 end
 
 end pi_nat

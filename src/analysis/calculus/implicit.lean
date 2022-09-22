@@ -312,7 +312,7 @@ lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
     f'.ker.subtypeL 0 :=
 by convert (implicit_function_data_of_complemented f f' hf hf'
   hker).implicit_function_has_strict_fderiv_at f'.ker.subtypeL _ _;
-    [skip, ext, ext]; simp [classical.some_spec hker]
+    simp only [implicit_function_data_of_complemented]; ext; simp [classical.some_spec hker]
 
 end complemented
 

@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
+import algebra.algebra.basic
 import data.polynomial.field_division
 import linear_algebra.finite_dimensional
 import ring_theory.adjoin.basic
@@ -102,12 +103,24 @@ lemma algebra_map_eq' [comm_semiring S] [algebra S R] :
 
 variables {S}
 
+lemma finite_type : algebra.finite_type R (adjoin_root f) :=
+(algebra.finite_type.polynomial R).of_surjective _ (ideal.quotient.mkₐ_surjective R _)
+
+lemma finite_presentation : algebra.finite_presentation R (adjoin_root f) :=
+(algebra.finite_presentation.polynomial R).quotient (submodule.fg_span_singleton f)
+
 /-- The adjoined root. -/
 def root : adjoin_root f := mk f X
 
 variables {f}
 
 instance has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
+
+/-- Two `R`-`alg_hom` from `adjoin_root f` to the same `R`-algebra are the same iff
+    they agree on `root f`. -/
+@[ext] lemma alg_hom_ext [semiring S] [algebra R S] {g₁ g₂ : adjoin_root f →ₐ[R] S}
+  (h : g₁ (root f) = g₂ (root f)) : g₁ = g₂ :=
+ideal.quotient.alg_hom_ext R $ polynomial.alg_hom_ext h
 
 @[simp] lemma mk_eq_mk {g h : R[X]} : mk f g = mk f h ↔ f ∣ g - h :=
 ideal.quotient.eq.trans ideal.mem_span_singleton
@@ -199,6 +212,20 @@ lift_root hfx
 
 @[simp] lemma lift_hom_of {x : R} : lift_hom f a hfx (of f x) = algebra_map _ _ x :=
 lift_of hfx
+
+section adjoin_inv
+
+@[simp] lemma root_is_inv (r : R) : of _ r * root (C r * X - 1) = 1 :=
+by convert sub_eq_zero.1 ((eval₂_sub _).symm.trans $ eval₂_root $ C r * X - 1);
+  simp only [eval₂_mul, eval₂_C, eval₂_X, eval₂_one]
+
+lemma alg_hom_subsingleton {S : Type*} [comm_ring S] [algebra R S] {r : R} :
+  subsingleton (adjoin_root (C r * X - 1) →ₐ[R] S) :=
+⟨λ f g, alg_hom_ext (@inv_unique _ _ (algebra_map R S r) _ _
+  (by rw [← f.commutes, ← f.map_mul, algebra_map_eq, root_is_inv, map_one])
+  (by rw [← g.commutes, ← g.map_mul, algebra_map_eq, root_is_inv, map_one]))⟩
+
+end adjoin_inv
 
 end comm_ring
 
@@ -534,8 +561,7 @@ lemma quot_map_of_equiv_quot_map_C_map_span_mk_symm_mk (x : adjoin_root f) :
   (quot_map_of_equiv_quot_map_C_map_span_mk I f).symm
   (ideal.quotient.mk ((I.map (C : R →+* R[X])).map (span {f})^.quotient.mk) x) =
     ideal.quotient.mk (I.map (of f)) x :=
-by rw [quot_map_of_equiv_quot_map_C_map_span_mk, ideal.quot_equiv_of_eq_symm,
-    ideal.quot_equiv_of_eq_mk ]
+by rw [quot_map_of_equiv_quot_map_C_map_span_mk, ideal.quot_equiv_of_eq_symm, quot_equiv_of_eq_mk]
 
 /-- The natural isomorphism `R[α]/((I[x] ⊔ (f)) / (f)) ≅ (R[x]/I[x])/((f) ⊔ I[x] / I[x])`
   for `α` a root of `f : polynomial R` and `I : ideal R`-/
@@ -573,7 +599,7 @@ lemma polynomial.quot_quot_equiv_comm_mk (p : R[X]) :
   (polynomial.quot_quot_equiv_comm I f) (ideal.quotient.mk  _ (p.map I^.quotient.mk)) =
   (ideal.quotient.mk _ (ideal.quotient.mk _ p)) :=
 by simp only [polynomial.quot_quot_equiv_comm, quotient_equiv_mk,
-  polynomial_quotient_equiv_quotient_polynomial_map_mk ]
+  polynomial_quotient_equiv_quotient_polynomial_map_mk]
 
 @[simp]
 lemma polynomial.quot_quot_equiv_comm_symm_mk_mk (p : R[X]) :
@@ -583,7 +609,7 @@ by simp only [polynomial.quot_quot_equiv_comm, quotient_equiv_symm_mk,
   polynomial_quotient_equiv_quotient_polynomial_symm_mk]
 
 /-- The natural isomorphism `R[α]/I[α] ≅ (R/I)[X]/(f mod I)` for `α` a root of `f : polynomial R`
-  and `I : ideal R`-/
+  and `I : ideal R`.-/
 def quot_adjoin_root_equiv_quot_polynomial_quot : (adjoin_root f) ⧸ (I.map (of f)) ≃+*
   polynomial (R ⧸ I) ⧸ (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I)))) :=
 (quot_map_of_equiv_quot_map_C_map_span_mk I f).trans
@@ -616,6 +642,80 @@ by rw [quot_adjoin_root_equiv_quot_polynomial_quot, ring_equiv.symm_trans_apply,
     quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk_symm_quot_quot_mk,
     quot_map_of_equiv_quot_map_C_map_span_mk_symm_mk]
 
+/-- Promote `adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot` to an alg_equiv.  -/
+@[simps apply symm_apply]
+noncomputable def quot_equiv_quot_map (f : R[X]) (I : ideal R) :
+  ((adjoin_root f) ⧸ (ideal.map (of f) I)) ≃ₐ[R]
+     ((R ⧸ I) [X]) ⧸ (ideal.span ({polynomial.map I^.quotient.mk f} : set ((R ⧸ I) [X]))) :=
+alg_equiv.of_ring_equiv (show ∀ x, (quot_adjoin_root_equiv_quot_polynomial_quot I f)
+  (algebra_map R _ x) = algebra_map R _ x, from λ x, begin
+    have : algebra_map R ((adjoin_root f) ⧸ (ideal.map (of f) I)) x = ideal.quotient.mk
+      (ideal.map (adjoin_root.of f) I) ((mk f) (C x)) := rfl,
+    simpa only [this, quot_adjoin_root_equiv_quot_polynomial_quot_mk_of, map_C]
+  end)
+
+@[simp]
+lemma quot_equiv_quot_map_apply_mk (f g : polynomial R) (I : ideal R)  :
+  adjoin_root.quot_equiv_quot_map f I (ideal.quotient.mk _ (adjoin_root.mk f g)) =
+    ideal.quotient.mk _ (g.map I^.quotient.mk) :=
+by rw [adjoin_root.quot_equiv_quot_map_apply,
+    adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of]
+
+@[simp]
+lemma quot_equiv_quot_map_symm_apply_mk (f g : polynomial R) (I : ideal R)  :
+  (adjoin_root.quot_equiv_quot_map f I).symm (ideal.quotient.mk _ (map (ideal.quotient.mk I) g)) =
+    ideal.quotient.mk _ (adjoin_root.mk f g) :=
+by rw [adjoin_root.quot_equiv_quot_map_symm_apply,
+    adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_symm_mk_mk]
+
 end
 
 end adjoin_root
+
+namespace power_basis
+
+open adjoin_root alg_equiv
+
+variables [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] [algebra R S]
+
+/-- Let `α` have minimal polynomial `f` over `R` and `I` be an ideal of `R`,
+then `R[α] / (I) = (R[x] / (f)) / pS = (R/p)[x] / (f mod p)`. -/
+@[simps apply symm_apply]
+noncomputable def quotient_equiv_quotient_minpoly_map (pb : power_basis R S)
+  (I : ideal R) :
+  (S ⧸ I.map (algebra_map R S)) ≃ₐ[R] (polynomial (R ⧸ I)) ⧸
+    (ideal.span ({(minpoly R pb.gen).map I^.quotient.mk} : set (polynomial (R ⧸ I)))) :=
+(of_ring_equiv
+  (show ∀ x, (ideal.quotient_equiv _ (ideal.map (adjoin_root.of (minpoly R pb.gen)) I)
+    (adjoin_root.equiv' (minpoly R pb.gen) pb
+    (by rw [adjoin_root.aeval_eq, adjoin_root.mk_self])
+    (minpoly.aeval _ _)).symm.to_ring_equiv
+    (by rw [ideal.map_map, alg_equiv.to_ring_equiv_eq_coe, ← alg_equiv.coe_ring_hom_commutes,
+          ← adjoin_root.algebra_map_eq, alg_hom.comp_algebra_map]))
+    (algebra_map R (S ⧸ I.map (algebra_map R S)) x) = algebra_map R _ x, from
+  (λ x, by rw [← ideal.quotient.mk_algebra_map, ideal.quotient_equiv_apply,
+    ring_hom.to_fun_eq_coe, ideal.quotient_map_mk, alg_equiv.to_ring_equiv_eq_coe,
+    ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv, alg_equiv.commutes,
+    quotient.mk_algebra_map]))).trans (adjoin_root.quot_equiv_quot_map _ _)
+
+@[simp]
+lemma quotient_equiv_quotient_minpoly_map_apply_mk (pb : power_basis R S) (I : ideal R)
+  (g : polynomial R) : pb.quotient_equiv_quotient_minpoly_map I
+  (ideal.quotient.mk _ (aeval pb.gen g)) = ideal.quotient.mk _ (g.map I^.quotient.mk) :=
+by rw [power_basis.quotient_equiv_quotient_minpoly_map, alg_equiv.trans_apply,
+    alg_equiv.of_ring_equiv_apply, quotient_equiv_mk, alg_equiv.coe_ring_equiv',
+    adjoin_root.equiv'_symm_apply, power_basis.lift_aeval,
+    adjoin_root.aeval_eq, adjoin_root.quot_equiv_quot_map_apply_mk]
+
+@[simp]
+lemma quotient_equiv_quotient_minpoly_map_symm_apply_mk (pb : power_basis R S) (I : ideal R)
+  (g : polynomial R) : (pb.quotient_equiv_quotient_minpoly_map I).symm
+  (ideal.quotient.mk _ (g.map I^.quotient.mk)) = (ideal.quotient.mk _ (aeval pb.gen g)) :=
+begin simp only [quotient_equiv_quotient_minpoly_map, to_ring_equiv_eq_coe, symm_trans_apply,
+    quot_equiv_quot_map_symm_apply_mk, of_ring_equiv_symm_apply, quotient_equiv_symm_mk,
+    to_ring_equiv_symm, ring_equiv.symm_symm, adjoin_root.equiv'_apply, coe_ring_equiv,
+    lift_hom_mk, symm_to_ring_equiv],
+
+end
+
+end power_basis

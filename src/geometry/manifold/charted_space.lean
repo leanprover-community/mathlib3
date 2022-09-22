@@ -118,14 +118,10 @@ variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
 `local_homeomorph.trans` and `local_equiv.trans`.
 Note that, as is usual for equivs, the composition is from left to right, hence the direction of
 the arrow. -/
-localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
-localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
-
-/- `simp` looks for subsingleton instances at every call. This turns out to be very
-inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
-Disable two such instances to speed up things.
-NB: this is just a hack. TODO: fix `simp` properly. -/
-localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
+localized "infixr (name := local_homeomorph.trans)
+  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
+localized "infixr (name := local_equiv.trans)
+  ` ≫ `:100 := local_equiv.trans" in manifold
 
 open set local_homeomorph
 
@@ -266,7 +262,7 @@ instance : order_bot (structure_groupoid H) :=
       apply u.id_mem },
     { apply u.locality,
       assume x hx,
-      rw [hf, mem_empty_eq] at hx,
+      rw [hf, mem_empty_iff_false] at hx,
       exact hx.elim }
   end }
 
@@ -780,7 +776,7 @@ has_groupoid.compatible G he he'
 
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid M G₂ :=
-⟨ λ e e' he he', hle ((h.compatible : _) he he') ⟩
+⟨λ e e' he he', hle (h.compatible he he')⟩
 
 lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M

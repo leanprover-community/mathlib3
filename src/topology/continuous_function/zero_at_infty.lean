@@ -39,9 +39,10 @@ structure zero_at_infty_continuous_map (α : Type u) (β : Type v)
   Type (max u v) :=
 (zero_at_infty' : tendsto to_fun (cocompact α) (𝓝 0))
 
-localized "notation [priority 2000] `C₀(` α `, ` β `)` := zero_at_infty_continuous_map α β"
-  in zero_at_infty
-localized "notation α ` →C₀ ` β := zero_at_infty_continuous_map α β" in zero_at_infty
+localized "notation [priority 2000] (name := zero_at_infty_continuous_map)
+  `C₀(` α `, ` β `)` := zero_at_infty_continuous_map α β" in zero_at_infty
+localized "notation (name := zero_at_infty_continuous_map.arrow)
+  α ` →C₀ ` β := zero_at_infty_continuous_map α β" in zero_at_infty
 
 /-- `zero_at_infty_continuous_map_class F α β` states that `F` is a type of continuous maps which
 vanish at infinity.

@@ -166,9 +166,9 @@ protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 
 /-- Homeomorphism given an embedding. -/
 noncomputable def of_embedding (f : α → β) (hf : embedding f) : α ≃ₜ (set.range f) :=
-{ continuous_to_fun := continuous_subtype_mk _ hf.continuous,
+{ continuous_to_fun := hf.continuous.subtype_mk _,
   continuous_inv_fun := by simp [hf.continuous_iff, continuous_subtype_coe],
-  .. equiv.of_injective f hf.inj }
+  to_equiv := equiv.of_injective f hf.inj }
 
 protected lemma second_countable_topology [topological_space.second_countable_topology β]
   (h : α ≃ₜ β) :
@@ -322,8 +322,8 @@ end
 
 /-- If two sets are equal, then they are homeomorphic. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
-{ continuous_to_fun := continuous_subtype_mk _ continuous_subtype_val,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_subtype_val,
+{ continuous_to_fun := continuous_inclusion h.subset,
+  continuous_inv_fun := continuous_inclusion h.symm.subset,
   to_equiv := equiv.set_congr h }
 
 /-- Sum of two homeomorphisms. -/
@@ -379,7 +379,25 @@ def punit_prod : punit × α ≃ₜ α :=
 
 @[simp] lemma coe_punit_prod : ⇑(punit_prod α) = prod.snd := rfl
 
+/-- If both `α` and `β` have a unique element, then `α ≃ₜ β`. -/
+@[simps] def _root_.homeomorph.homeomorph_of_unique [unique α] [unique β] : α ≃ₜ β :=
+{ continuous_to_fun := @continuous_const α β _ _ default,
+  continuous_inv_fun := @continuous_const β α _ _ default,
+  .. equiv.equiv_of_unique α β }
+
 end
+
+/-- If each `β₁ i` is homeomorphic to `β₂ i`, then `Π i, β₁ i` is homeomorphic to `Π i, β₂ i`. -/
+@[simps apply to_equiv] def Pi_congr_right {ι : Type*} {β₁ β₂ : ι → Type*}
+  [Π i, topological_space (β₁ i)] [Π i, topological_space (β₂ i)] (F : Π i, β₁ i ≃ₜ β₂ i) :
+  (Π i, β₁ i) ≃ₜ (Π i, β₂ i) :=
+{ continuous_to_fun := continuous_pi (λ i, (F i).continuous.comp $ continuous_apply i),
+  continuous_inv_fun := continuous_pi (λ i, (F i).symm.continuous.comp $ continuous_apply i),
+  to_equiv := equiv.Pi_congr_right (λ i, (F i).to_equiv) }
+
+@[simp] lemma Pi_congr_right_symm {ι : Type*} {β₁ β₂ : ι → Type*} [Π i, topological_space (β₁ i)]
+  [Π i, topological_space (β₂ i)] (F : Π i, β₁ i ≃ₜ β₂ i) :
+  (Pi_congr_right F).symm = Pi_congr_right (λ i, (F i).symm) := rfl
 
 /-- `ulift α` is homeomorphic to `α`. -/
 def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
@@ -393,8 +411,7 @@ section distrib
 def sum_prod_distrib : (α ⊕ β) × γ ≃ₜ α × γ ⊕ β × γ :=
 homeomorph.symm $ homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm
   ((continuous_inl.prod_map continuous_id).sum_elim (continuous_inr.prod_map continuous_id)) $
-  is_open_map_sum (open_embedding_inl.is_open_map.prod is_open_map.id)
-    (open_embedding_inr.is_open_map.prod is_open_map.id)
+  (is_open_map_inl.prod is_open_map.id).sum_elim (is_open_map_inr.prod is_open_map.id)
 
 /-- `α × (β ⊕ γ)` is homeomorphic to `α × β ⊕ α × γ`. -/
 def prod_sum_distrib : α × (β ⊕ γ) ≃ₜ α × β ⊕ α × γ :=
@@ -406,12 +423,9 @@ variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
 /-- `(Σ i, σ i) × β` is homeomorphic to `Σ i, (σ i × β)`. -/
 def sigma_prod_distrib : ((Σ i, σ i) × β) ≃ₜ (Σ i, (σ i × β)) :=
-homeomorph.symm $
-homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
-  (continuous_sigma $ λ i,
-    (continuous_sigma_mk.comp continuous_fst).prod_mk continuous_snd)
-  (is_open_map_sigma $ λ i,
-    (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
+homeomorph.symm $ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
+  (continuous_sigma $ λ i, continuous_sigma_mk.fst'.prod_mk continuous_snd)
+  (is_open_map_sigma.2 $ λ i, is_open_map_sigma_mk.prod is_open_map.id)
 
 end distrib
 
@@ -446,16 +460,15 @@ A subset of a topological space is homeomorphic to its image under a homeomorphi
 def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
 { to_equiv := equiv.set.univ α,
   continuous_to_fun := continuous_subtype_coe,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_id }
+  continuous_inv_fun := continuous_id.subtype_mk _ }
 
 /-- `s ×ˢ t` is homeomorphic to `s × t`. -/
 @[simps] def set.prod (s : set α) (t : set β) : ↥(s ×ˢ t) ≃ₜ s × t :=
 { to_equiv := equiv.set.prod s t,
-  continuous_to_fun := continuous.prod_mk
-    (continuous_subtype_mk _ (continuous_fst.comp continuous_induced_dom))
-    (continuous_subtype_mk _ (continuous_snd.comp continuous_induced_dom)),
-  continuous_inv_fun := continuous_subtype_mk _ (continuous.prod_mk
-    (continuous_induced_dom.comp continuous_fst) (continuous_induced_dom.comp continuous_snd)) }
+  continuous_to_fun := (continuous_subtype_coe.fst.subtype_mk _).prod_mk
+    (continuous_subtype_coe.snd.subtype_mk _),
+  continuous_inv_fun := (continuous_subtype_coe.fst'.prod_mk
+    continuous_subtype_coe.snd').subtype_mk _ }
 
 end homeomorph
 

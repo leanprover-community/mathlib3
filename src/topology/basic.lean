@@ -1084,7 +1084,7 @@ by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 
 lemma is_closed.interior_union {s t : set α} (h : is_closed s) :
   interior (s ∪ t) ⊆ s ∪ interior t :=
-λ a ⟨u, ⟨⟨hu₁, hu₂⟩, ha⟩⟩, (classical.em (a ∈ s)).imp id $ λ h, mem_interior.mpr
+λ a ⟨u, ⟨⟨hu₁, hu₂⟩, ha⟩⟩, (classical.em (a ∈ s)).imp_right $ λ h, mem_interior.mpr
   ⟨u ∩ sᶜ, λ x hx, (hu₂ hx.1).resolve_left hx.2, is_open.inter hu₁ is_closed.is_open_compl, ⟨ha, h⟩⟩
 
 lemma is_closed.interior_union' {s t : set α} (h : is_closed t) :

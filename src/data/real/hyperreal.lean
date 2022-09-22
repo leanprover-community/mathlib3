@@ -61,24 +61,18 @@ noncomputable def omega : ℝ* := of_seq coe
 localized "notation (name := hyperreal.epsilon) `ε` := hyperreal.epsilon" in hyperreal
 localized "notation (name := hyperreal.omega) `ω` := hyperreal.omega" in hyperreal
 
-lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
+@[simp] lemma inv_omega : ε = ω⁻¹ := rfl
+@[simp] lemma inv_epsilon : ε⁻¹ = ω := @inv_inv _ _ ω
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv _ _ ω
-
-lemma epsilon_pos : 0 < ε :=
-suffices ∀ᶠ i in hyperfilter ℕ, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def,
-have h0' : {n : ℕ | ¬ 0 < n} = {0} :=
-by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact le_bot_iff,
-begin
-  simp only [inv_pos, nat.cast_pos],
-  exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
+lemma omega_pos : 0 < ω := germ.coe_pos.2 $ mem_hyperfilter_of_finite_compl $ begin
+  convert set.finite_singleton 0,
+  simp [set.eq_singleton_iff_unique_mem],
 end
 
-lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
+lemma epsilon_pos : 0 < ε := inv_pos_of_pos omega_pos
 
-lemma omega_pos : 0 < ω := by rw ←inv_epsilon_eq_omega; exact inv_pos.2 epsilon_pos
-
-lemma omega_ne_zero : ω ≠ 0 := ne_of_gt omega_pos
+lemma epsilon_ne_zero : ε ≠ 0 := epsilon_pos.ne'
+lemma omega_ne_zero : ω ≠ 0 := omega_pos.ne'
 
 theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 

@@ -11,6 +11,14 @@ begin
   exact H h
 end
 
+example (x : ℤ) (h : x = 1) : 1 = 1 :=
+begin
+  revert h,
+  refine (λ h, _),
+  apply_fun (λ p, p) at h,
+  refl,
+end
+
 example (f : ℕ → ℕ) (a b : ℕ) (monof : monotone f) (h : a ≤ b) : f a ≤ f b :=
 begin
   apply_fun f at h,

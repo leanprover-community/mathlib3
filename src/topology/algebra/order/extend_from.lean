@@ -74,7 +74,7 @@ lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
   (hb : tendsto f (𝓝[<] b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Ioc a b) :=
 begin
-  have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ f _ _ _ hab,
+  have := @continuous_on_Ico_extend_from_Ioo αᵒᵈ _ _ _ _ _ _ _ f _ _ _ hab,
   erw [dual_Ico, dual_Ioi, dual_Ioo] at this,
   exact this hf hb
 end

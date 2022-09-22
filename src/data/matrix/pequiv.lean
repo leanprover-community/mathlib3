@@ -119,7 +119,7 @@ lemma to_matrix_swap [decidable_eq n] [ring α] (i j : n) :
 begin
   ext,
   dsimp [to_matrix, single, equiv.swap_apply_def, equiv.to_pequiv, one_apply],
-  split_ifs; simp * at *
+  split_ifs; {simp * at *} <|> { exfalso, assumption },
 end
 
 @[simp] lemma single_mul_single [fintype n] [decidable_eq k] [decidable_eq m] [decidable_eq n]

@@ -6,7 +6,7 @@ Authors: Johan Commelin, Bhavik Mehta
 import category_theory.structured_arrow
 import category_theory.punit
 import category_theory.functor.reflects_isomorphisms
-import category_theory.epi_mono
+import category_theory.functor.epi_mono
 
 /-!
 # Over and under categories
@@ -31,7 +31,7 @@ variables {T : Type u₁} [category.{v₁} T]
 The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
 triangles.
 
-See https://stacks.math.columbia.edu/tag/001G.
+See <https://stacks.math.columbia.edu/tag/001G>.
 -/
 @[derive category]
 def over (X : T) := costructured_arrow (𝟭 T) X
@@ -50,7 +50,7 @@ variables {X : T}
   (h : f.left = g.left) : f = g :=
 by tidy
 
-@[simp] lemma over_right (U : over X) : U.right = punit.star := by tidy
+@[simp] lemma over_right (U : over X) : U.right = ⟨⟨⟩⟩ := by tidy
 
 @[simp] lemma id_left (U : over X) : comma_morphism.left (𝟙 U) = 𝟙 U.left := rfl
 @[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
@@ -60,7 +60,7 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the over category, it suffices to give a morphism with codomain `X`. -/
-@[simps]
+@[simps left hom]
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
 costructured_arrow.mk f
 
@@ -96,7 +96,7 @@ variable (X)
 /--
 The forgetful functor mapping an arrow to its domain.
 
-See https://stacks.math.columbia.edu/tag/001G.
+See <https://stacks.math.columbia.edu/tag/001G>.
 -/
 def forget : over X ⥤ T := comma.fst _ _
 
@@ -112,7 +112,7 @@ end
 /--
 A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way.
 
-See https://stacks.math.columbia.edu/tag/001G.
+See <https://stacks.math.columbia.edu/tag/001G>.
 -/
 def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ discrete.nat_trans (λ _, f)
 
@@ -143,11 +143,12 @@ instance forget_faithful : faithful (forget X) := {}.
 /--
 If `k.left` is an epimorphism, then `k` is an epimorphism. In other words, `over.forget X` reflects
 epimorphisms.
-The converse does not hold without additional assumptions on the underlying category.
+The converse does not hold without additional assumptions on the underlying category, see
+`category_theory.over.epi_left_of_epi`.
 -/
--- TODO: Show the converse holds if `T` has binary products or pushouts.
+-- TODO: Show the converse holds if `T` has binary products.
 lemma epi_of_epi_left {f g : over X} (k : f ⟶ g) [hk : epi k.left] : epi k :=
-faithful_reflects_epi (forget X) hk
+(forget X).epi_of_epi_map hk
 
 /--
 If `k.left` is a monomorphism, then `k` is a monomorphism. In other words, `over.forget X` reflects
@@ -157,7 +158,7 @@ The converse of `category_theory.over.mono_left_of_mono`.
 This lemma is not an instance, to avoid loops in type class inference.
 -/
 lemma mono_of_mono_left {f g : over X} (k : f ⟶ g) [hk : mono k.left] : mono k :=
-faithful_reflects_mono (forget X) hk
+(forget X).mono_of_mono_map hk
 
 /--
 If `k` is a monomorphism, then `k.left` is a monomorphism. In other words, `over.forget X` preserves
@@ -248,7 +249,7 @@ variables {X : T}
   (h : f.right = g.right) : f = g :=
 by tidy
 
-@[simp] lemma under_left (U : under X) : U.left = punit.star := by tidy
+@[simp] lemma under_left (U : under X) : U.left = ⟨⟨⟩⟩ := by tidy
 
 @[simp] lemma id_right (U : under X) : comma_morphism.right (𝟙 U) = 𝟙 U.right := rfl
 @[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
@@ -258,7 +259,7 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/
-@[simps]
+@[simps right hom]
 def mk {X Y : T} (f : X ⟶ Y) : under X :=
 structured_arrow.mk f
 
@@ -323,6 +324,43 @@ instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
     by tidy⟩⟩ }
 
 instance forget_faithful : faithful (forget X) := {}.
+
+/--
+If `k.right` is a monomorphism, then `k` is a monomorphism. In other words, `under.forget X`
+reflects epimorphisms.
+The converse does not hold without additional assumptions on the underlying category, see
+`category_theory.under.mono_right_of_mono`.
+-/
+-- TODO: Show the converse holds if `T` has binary coproducts.
+lemma mono_of_mono_right {f g : under X} (k : f ⟶ g) [hk : mono k.right] : mono k :=
+(forget X).mono_of_mono_map hk
+
+/--
+If `k.right` is a epimorphism, then `k` is a epimorphism. In other words, `under.forget X` reflects
+epimorphisms.
+The converse of `category_theory.under.epi_right_of_epi`.
+
+This lemma is not an instance, to avoid loops in type class inference.
+-/
+lemma epi_of_epi_right {f g : under X} (k : f ⟶ g) [hk : epi k.right] : epi k :=
+(forget X).epi_of_epi_map hk
+
+/--
+If `k` is a epimorphism, then `k.right` is a epimorphism. In other words, `under.forget X` preserves
+epimorphisms.
+The converse of `category_theory.under.epi_of_epi_right`.
+-/
+instance epi_right_of_epi {f g : under X} (k : f ⟶ g) [epi k] : epi k.right :=
+begin
+  refine ⟨λ (Y : T) l m a, _⟩,
+  let l' : g ⟶ mk (g.hom ≫ m) := hom_mk l
+    (by { dsimp, rw [←under.w k, category.assoc, a, category.assoc] }),
+  suffices : l' = hom_mk m,
+  { apply congr_arg comma_morphism.right this },
+  rw ← cancel_epi k,
+  ext,
+  apply a,
+end
 
 section
 variables {D : Type u₂} [category.{v₂} D]

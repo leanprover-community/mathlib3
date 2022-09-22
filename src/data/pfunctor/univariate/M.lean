@@ -170,7 +170,7 @@ lemma M.default_consistent [inhabited F.A] :
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
 instance M.inhabited [inhabited F.A] : inhabited (M F) :=
-⟨ { approx := λ n, default,
+⟨ { approx := default,
     consistent := M.default_consistent _ } ⟩
 
 instance M_intl.inhabited [inhabited F.A] : inhabited (M_intl F) :=
@@ -384,23 +384,22 @@ inductive is_path : path F → M F → Prop
   is_path xs (f i) →
   is_path (⟨a,i⟩ :: xs) x
 
-lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'}
-  (h : is_path (⟨a',i⟩ :: xs) (M.mk ⟨a,f⟩)) :
-  a = a' :=
+lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'} :
+  is_path (⟨a',i⟩ :: xs) (M.mk ⟨a,f⟩) → a = a' :=
 begin
-  revert h, generalize h : (M.mk ⟨a,f⟩) = x,
-  intros h', cases h', subst x,
-  cases mk_inj ‹_›, refl,
+  generalize h : (M.mk ⟨a,f⟩) = x,
+  rintro (_ | ⟨_, _, _, _, _, rfl, _⟩),
+  cases mk_inj h,
+  refl
 end
 
-lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a}
-  (h : is_path (⟨a,i⟩ :: xs) (M.mk ⟨a,f⟩)) :
-  is_path xs (f i) :=
+lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a} :
+  is_path (⟨a,i⟩ :: xs) (M.mk ⟨a,f⟩) → is_path xs (f i) :=
 begin
-  revert h, generalize h : (M.mk ⟨a,f⟩) = x,
-  intros h', cases h', subst x,
-  have := mk_inj ‹_›, cases this, cases this,
-  assumption,
+  generalize h : (M.mk ⟨a,f⟩) = x,
+  rintro (_ | ⟨_, _, _, _, _, rfl, hp⟩),
+  cases mk_inj h,
+  exact hp
 end
 
 /-- follow a path through a value of `M F` and return the subtree
@@ -555,20 +554,20 @@ begin
   intros h₀ hh,
   induction s₁ using pfunctor.M.cases_on' with a f,
   induction s₂ using pfunctor.M.cases_on' with a' f',
-  have : a = a' := bisim.head h₀, subst a',
+  obtain rfl : a = a' := bisim.head h₀,
   induction ps with i ps generalizing a f f',
   { existsi [rfl,a,f,f',rfl,rfl],
     apply bisim.tail h₀ },
   cases i with a' i,
-  have : a = a',
+  obtain rfl : a = a',
   { cases hh; cases is_path_cons hh; refl },
-  subst a', dsimp only [iselect] at ps_ih ⊢,
+  dsimp only [iselect] at ps_ih ⊢,
   have h₁ := bisim.tail h₀ i,
   induction h : (f i) using pfunctor.M.cases_on' with a₀ f₀,
   induction h' : (f' i) using pfunctor.M.cases_on' with a₁ f₁,
   simp only [h,h',isubtree_cons] at ps_ih ⊢,
   rw [h,h'] at h₁,
-  have : a₀ = a₁ := bisim.head h₁, subst a₁,
+  obtain rfl : a₀ = a₁ := bisim.head h₁,
   apply (ps_ih _ _ _ h₁),
   rw [← h,← h'], apply or_of_or_of_imp_of_imp hh is_path_cons' is_path_cons'
 end

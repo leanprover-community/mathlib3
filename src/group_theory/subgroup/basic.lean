@@ -2038,7 +2038,7 @@ lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g
 @[to_additive]
 lemma coe_comp_range_restrict (f : G →* N) :
   (coe : f.range → N) ∘ (⇑(f.range_restrict) : G → f.range) = f :=
-funext $ f.coe_range_restrict
+rfl
 
 @[to_additive]
 lemma subtype_comp_range_restrict (f : G →* N) : f.range.subtype.comp (f.range_restrict) = f :=

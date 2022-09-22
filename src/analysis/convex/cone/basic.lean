@@ -388,8 +388,8 @@ instance : add_zero_class (convex_cone 𝕜 E) :=
 
 instance : add_comm_semigroup (convex_cone 𝕜 E) :=
 { add := has_add.add,
-  add_assoc := λ _ _ _, set_like.coe_injective $ by apply set.add_comm_semigroup.add_assoc,
-  add_comm := λ _ _, set_like.coe_injective $ by apply set.add_comm_semigroup.add_comm }
+  add_assoc := λ _ _ _, set_like.coe_injective $ set.add_comm_semigroup.add_assoc _ _ _,
+  add_comm := λ _ _, set_like.coe_injective $ set.add_comm_semigroup.add_comm _ _ }
 
 end module
 end ordered_semiring

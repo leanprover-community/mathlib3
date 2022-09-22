@@ -61,7 +61,7 @@ noncomputable def omega : ℝ* := of_seq coe
 localized "notation (name := hyperreal.epsilon) `ε` := hyperreal.epsilon" in hyperreal
 localized "notation (name := hyperreal.omega) `ω` := hyperreal.omega" in hyperreal
 
-@[simp] lemma inv_omega : ε = ω⁻¹ := rfl
+@[simp] lemma inv_omega : ω⁻¹ = ε := rfl
 @[simp] lemma inv_epsilon : ε⁻¹ = ω := @inv_inv _ _ ω
 
 lemma omega_pos : 0 < ω := germ.coe_pos.2 $ mem_hyperfilter_of_finite_compl $ begin
@@ -775,7 +775,7 @@ lemma infinite_mul_of_not_infinitesimal_infinite {x y : ℝ*} :
   ¬ infinitesimal x → infinite y → infinite (x * y) :=
 λ hx hy, by rw [mul_comm]; exact infinite_mul_of_infinite_not_infinitesimal hy hx
 
-lemma infinite_mul_infinite {x y : ℝ*} : infinite x → infinite y → infinite (x * y) :=
+lemma infinite.mul {x y : ℝ*} : infinite x → infinite y → infinite (x * y) :=
 λ hx hy, infinite_mul_of_infinite_not_infinitesimal hx (not_infinitesimal_of_infinite hy)
 
 end hyperreal

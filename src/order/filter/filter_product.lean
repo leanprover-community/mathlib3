@@ -52,7 +52,8 @@ lemma const_lt [preorder β] {x y : β} : x ≤ y → (↑x : β*) ≤ ↑y := l
 lemma const_lt_iff [preorder β] {x y : β} : (↑x : β*) < ↑y ↔ x < y :=
 coe_lt.trans lift_rel_const_iff
 
-lemma lt_def [preorder β] : ((<) : β* → β* → Prop) = lift_rel (<) := by { ext ⟨f⟩ ⟨g⟩, exact coe_lt }
+lemma lt_def [preorder β] : ((<) : β* → β* → Prop) = lift_rel (<) :=
+by { ext ⟨f⟩ ⟨g⟩, exact coe_lt }
 
 instance [has_sup β] : has_sup β* := ⟨map₂ (⊔)⟩
 instance [has_inf β] : has_inf β* := ⟨map₂ (⊓)⟩

@@ -428,8 +428,8 @@ instance strict_ordered_semiring.to_mul_pos_strict_mono : mul_pos_strict_mono α
 
 /-- A choice-free version of `strict_ordered_semiring.to_ordered_semiring` to avoid using choice in
 basic `nat` lemmas. -/
-@[reducible] def strict_ordered_semiring.to_ordered_semiring' [@decidable_rel α (≤)] :
-  ordered_semiring α :=
+@[reducible] -- See note [reducible non-instances]
+def strict_ordered_semiring.to_ordered_semiring' [@decidable_rel α (≤)] : ordered_semiring α :=
 { mul_le_mul_of_nonneg_left := λ a b c hab hc, begin
     obtain rfl | hab := decidable.eq_or_lt_of_le hab,
     { refl },
@@ -594,7 +594,8 @@ variables [strict_ordered_comm_semiring α]
 
 /-- A choice-free version of `strict_ordered_comm_semiring.to_ordered_comm_semiring` to avoid using
 choice in basic `nat` lemmas. -/
-@[reducible] def strict_ordered_comm_semiring.to_ordered_comm_semiring' [@decidable_rel α (≤)] :
+@[reducible] -- See note [reducible non-instances]
+def strict_ordered_comm_semiring.to_ordered_comm_semiring' [@decidable_rel α (≤)] :
   ordered_comm_semiring α :=
 { ..‹strict_ordered_comm_semiring α›, ..strict_ordered_semiring.to_ordered_semiring' }
 
@@ -618,6 +619,7 @@ instance strict_ordered_ring.to_strict_ordered_semiring : strict_ordered_semirin
 
 /-- A choice-free version of `strict_ordered_ring.to_ordered_ring` to avoid using choice in basic
 `int` lemmas. -/
+@[reducible] -- See note [reducible non-instances]
 def strict_ordered_ring.to_ordered_ring' [@decidable_rel α (≤)] : ordered_ring α :=
 { mul_nonneg := λ a b ha hb, begin
     cases decidable.eq_or_lt_of_le ha with ha ha,
@@ -675,6 +677,7 @@ variables [strict_ordered_comm_ring α]
 
 /-- A choice-free version of `strict_ordered_comm_ring.to_ordered_comm_semiring'` to avoid using
 choice in basic `int` lemmas. -/
+@[reducible] -- See note [reducible non-instances]
 def strict_ordered_comm_ring.to_ordered_comm_ring' [@decidable_rel α (≤)] : ordered_comm_ring α :=
 { ..‹strict_ordered_comm_ring α›, ..strict_ordered_ring.to_ordered_ring' }
 

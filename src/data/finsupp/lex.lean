@@ -23,7 +23,7 @@ variables [has_zero N]
 /-- `finsupp.lex r s` is the lexicographic relation on `α →₀ N`, where `α` is ordered by `r`,
 and `N` is ordered by `s`.
 
-The type synonym `_root_.lex (α →₀ N)` has an order given by `finsupp.lex (<) (<)`.
+The type synonym `lex (α →₀ N)` has an order given by `finsupp.lex (<) (<)`.
 -/
 protected def lex (r : α → α → Prop) (s : N → N → Prop) (x y : α →₀ N) : Prop :=
 pi.lex r (λ _, s) x y
@@ -53,13 +53,12 @@ partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_li
 
 variable [linear_order N]
 
-/-- Auxiliary helper to case split computably. There is no need for this to be public, as it
-can be written with `or.by_cases` on `lt_trichotomy` once the instances below are constructed. -/
-private def lt_trichotomy_rec {P : lex (α →₀ N) → lex (α →₀ N) → Sort*}
+/-- Auxiliary helper to case split computably. -/
+def lt_trichotomy_rec {P : lex (α →₀ N) → lex (α →₀ N) → Sort*}
   (h_lt : Π {f g}, to_lex f < to_lex g → P (to_lex f) (to_lex g))
   (h_eq : Π {f g}, to_lex f = to_lex g → P (to_lex f) (to_lex g))
   (h_gt : Π {f g}, to_lex g < to_lex f → P (to_lex f) (to_lex g)) :
-    ∀ f g, P f g  :=
+  Π f g, P f g :=
 lex.rec $ λ f, lex.rec $ λ g,
   match _, rfl : ∀ y, (f.ne_locus g).min = y → _ with
   | ⊤, h := h_eq (finsupp.ne_locus_eq_empty.mp (finset.min_eq_top.mp h))

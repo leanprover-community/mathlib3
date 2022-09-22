@@ -1091,12 +1091,12 @@ begin
 end
 
 lemma is_open.closure_inter' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
-by simpa only [inter_comm] using is_open.closure_inter h
+by simpa only [inter_comm] using h.closure_inter
 
 lemma dense.open_subset_closure_inter {s t : set α} (hs : dense s) (ht : is_open t) :
   t ⊆ closure (t ∩ s) :=
 calc t = t ∩ closure s   : by rw [hs.closure_eq, inter_univ]
-   ... ⊆ closure (t ∩ s) : is_open.closure_inter ht
+   ... ⊆ closure (t ∩ s) : ht.closure_inter
 
 lemma mem_closure_of_mem_closure_union {s₁ s₂ : set α} {x : α} (h : x ∈ closure (s₁ ∪ s₂))
   (h₁ : s₁ᶜ ∈ 𝓝 x) : x ∈ closure s₂ :=

@@ -171,6 +171,20 @@ lemma map_nonpos (ha : a ≤ 0) : f a ≤ 0 := by { rw ←map_zero f, exact orde
 
 end ordered_add_comm_monoid
 
+section ordered_add_comm_group
+variables [ordered_add_comm_group α] [ordered_add_comm_monoid β] [add_monoid_hom_class F α β]
+  {f : F}
+
+lemma monotone_iff_map_nonneg : monotone (f : α → β) ↔ ∀ a, 0 ≤ a → 0 ≤ f a :=
+⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
+  by { rw [←sub_add_cancel b a, map_add f], exact le_add_of_nonneg_left (h _ $ sub_nonneg.2 hl) }⟩
+
+lemma monotone_iff_map_nonpos : monotone (f : α → β) ↔ ∀ a ≤ 0, f a ≤ 0 :=
+⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
+  by { rw [←sub_add_cancel a b, map_add f], exact add_le_of_nonpos_left (h _ $ sub_nonpos.2 hl) }⟩
+
+end ordered_add_comm_group
+
 namespace order_monoid_hom
 section preorder
 variables [preorder α] [preorder β] [preorder γ] [preorder δ] [mul_one_class α]

@@ -272,7 +272,7 @@ begin
   simp only [taylor_within_eval_self] at h,
   rw [mul_comm, ←div_left_inj' (g'_ne y hy), mul_div_cancel _ (g'_ne y hy)] at h,
   rw ←h,
-  field_simp [g'_ne y hy, nat.factorial_ne_zero n],
+  field_simp [g'_ne y hy, n.factorial_ne_zero],
   ring,
 end
 
@@ -307,7 +307,7 @@ begin
   use [y, hy],
   simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, mul_neg] at h,
   rw [h, neg_div, ←div_neg, neg_mul, neg_neg],
-  field_simp [nat.cast_add_one_ne_zero n, nat.factorial_ne_zero n, xy_ne y hy],
+  field_simp [n.cast_add_one_ne_zero, n.factorial_ne_zero, xy_ne y hy],
   ring,
 end
 
@@ -331,7 +331,7 @@ begin
   rcases taylor_mean_remainder hx hf hf' gcont gdiff (λ _ _, by simp) with ⟨y, hy, h⟩,
   use [y, hy],
   rw h,
-  field_simp [nat.factorial_ne_zero n],
+  field_simp [n.factorial_ne_zero],
   ring,
 end
 
@@ -352,8 +352,6 @@ begin
   have hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc a b)) (Icc a b) :=
   hf.differentiable_on_iterated_deriv_within (with_top.coe_lt_coe.mpr n.lt_succ_self)
     (unique_diff_on_Icc h),
-  -- natural numbers are non-negative
-  have fac_nonneg : 0 ≤ (n! : ℝ) := n!.cast_nonneg,
   -- We can uniformly bound the derivative of the Taylor polynomial
   have h' : ∀ (y : ℝ) (hy : y ∈ Ico a x),
     ∥((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y∥
@@ -376,7 +374,7 @@ begin
     exact (has_deriv_within_taylor_within_eval_at_Icc x h (I ht) hf.of_succ hf').mono I },
   have := norm_image_sub_le_of_norm_deriv_le_segment' A h' x (right_mem_Icc.2 hx.1),
   simp only [taylor_within_eval_self] at this,
-  refine le_trans this (le_of_eq _),
+  refine this.trans (le_of_eq _),
   -- The rest is a trivial calculation
   rw [abs_of_nonneg (sub_nonneg.mpr hx.1)],
   ring_exp,

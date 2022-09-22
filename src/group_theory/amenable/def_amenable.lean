@@ -50,17 +50,20 @@ open mean
 open classical
 open bounded_continuous_function
 
-variables (G:Type*) [group G]
+variables {G:Type*} [uniform_space G] [group G] [topological_group G]
+
 
 /-- left-translate of a function by translating the argument -/
-def left_translate {G:Type*} [group G]
+def left_translate
   (g : G)
   (f : bounded_continuous_function G ℝ)
   : bounded_continuous_function G ℝ
-:= bcont_precomp_discrete (λ h, g⁻¹*h) f
+:= bcont_precomp (continuous_map.mk (λ h, g⁻¹*h) (continuous_mul_left g⁻¹)) f
+
+
 
 @[simp]
-lemma left_translate_eval {G:Type*} [group G]
+lemma left_translate_eval
   {g : G}
   {f : bounded_continuous_function G ℝ}
 : ∀(x:G), left_translate g f x = f(g⁻¹*x)
@@ -68,7 +71,7 @@ lemma left_translate_eval {G:Type*} [group G]
 
 
 
-instance left_translate_action {G:Type*} [group G]
+instance left_translate_action
   : mul_action G (bounded_continuous_function G ℝ)
 := @mul_action.mk G  (bounded_continuous_function G ℝ) _
     (has_smul.mk (λ g f, left_translate g f))
@@ -93,14 +96,14 @@ lemma left_translate_smul_simp {g:G} {f:bounded_continuous_function G ℝ}
 
 
 /-- right-translate of a function by translating the argument -/
-def right_translate {G:Type*} [group G]
+def right_translate
   (g : G)
   (f : bounded_continuous_function G ℝ)
   : bounded_continuous_function G ℝ
-:= bcont_precomp_discrete (λ h, h*g) f
+:= bcont_precomp (continuous_map.mk (λ h, h*g) (continuous_mul_right g)) f
 
 @[simp]
-lemma right_translate_eval {G:Type*} [group G]
+lemma right_translate_eval
   {g : G}
   {f : bounded_continuous_function G ℝ}
 : ∀(x:G), right_translate g f x = f(x*g)
@@ -110,7 +113,6 @@ lemma right_translate_eval {G:Type*} [group G]
 
 /--It is an easy (but important) fact that left and right-translation commute-/
 lemma left_right_translate_commute
-  {G:Type*} [group G]
   {g h: G}
   {f : bounded_continuous_function G ℝ}
   : right_translate h (left_translate g f) = left_translate g (right_translate h f)
@@ -131,8 +133,10 @@ We will defines structures for left-, right- and bi-invariant means.
 
 -/
 
+variable (G)
+
 /--Left invariant means are means that are left invariant-/
-structure left_invariant_mean (G:Type*) [group G]
+structure left_invariant_mean
   extends mean G
 := mk ::
   (left_invariance:
@@ -150,7 +154,7 @@ lemma left_invariant_mean_eval
 := by refl
 
 /--Right invariant means are means that are right invariant-/
-structure right_invariant_mean (G:Type*) [group G]
+structure right_invariant_mean
   extends mean G
 := mk ::
   (right_invariance:
@@ -161,7 +165,7 @@ instance right_inv_mean_coe : has_coe (right_invariant_mean G) (mean G)
       := {coe := right_invariant_mean.to_mean}
 
 /--Bi-invariant means are means that are left and right invariant-/
-structure bi_invariant_mean (G:Type*) [group G]
+structure bi_invariant_mean
   extends left_invariant_mean G
 := mk ::
   (right_invariance:
@@ -176,9 +180,7 @@ end invariance_structures
 
 /-- A group is amenable if there exists a left-invariant mean-/
 @[simp]
-def amenable (G:Type*) [group G]
-  [topological_space G]
-  [discrete_topology G]
+def amenable (G:Type*)  [uniform_space G] [group G] [topological_group G]
  : Prop
 := nonempty (left_invariant_mean G)
 
@@ -186,14 +188,15 @@ def amenable (G:Type*) [group G]
 /-- For amenable groups, we can pick a left-invariant mean.
 This is a noncomputable process.
 -/
-noncomputable def invmean_of_amenable {G:Type*} [group G]
+noncomputable def invmean_of_amenable {G:Type*}
+   [uniform_space G] [group G] [topological_group G]
   (G_am : amenable G)
  : left_invariant_mean G
 := classical.some (classical.exists_true_of_nonempty G_am)
 
 /--If we can exhibit a mean, the group is amenable-/
 lemma amenable_of_invmean
-  {G:Type*} [group G]
+  {G:Type*}  [uniform_space G] [group G] [topological_group G]
   (m : left_invariant_mean G)
   : amenable G
 := nonempty.intro m

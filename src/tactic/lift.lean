@@ -109,7 +109,8 @@ meta def get_lift_prf (h : option pexpr) (old_tp new_tp inst e : expr)
   The list `n` is used for the two newly generated names, and to specify whether `h` should
   remain in the local context. See the doc string of `tactic.interactive.lift` for more information.
   -/
-meta def lift (v_back : bool) (p : pexpr) (t : pexpr) (h : option pexpr) (n : list name) : tactic unit :=
+meta def lift (v_back : bool) (p : pexpr) (t : pexpr) (h : option pexpr) (n : list name) :
+  tactic unit :=
 do
   propositional_goal <|>
     fail "lift tactic failed. Tactic is only applicable when the target is a proposition.",
@@ -144,7 +145,8 @@ do
   temp_e ← note temp_nm none prf_ex,
   dsimp_hyp temp_e s to_unfold {},
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
-  rcases v_back none (pexpr.of_expr temp_e) $ rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
+  rcases v_back none (pexpr.of_expr temp_e) $
+    rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
   /- If the lifted variable is not a local constant,
     try to rewrite it away using the new equality. -/
   when (¬ e.is_local_constant) (get_local eq_nm >>=
@@ -202,7 +204,8 @@ integer `z` (in the supertype) to `ℕ` (the subtype), given a proof that `z ≥
 propositions concerning `z` will still be over `ℤ`. `zify` changes propositions about `ℕ` (the
 subtype) to propositions about `ℤ` (the supertype), without changing the type of any variable.
 -/
-meta def lift (v_back : parse (tk ">")?) (p : parse texpr) (t : parse to_texpr) (h : parse using_texpr)
+meta def lift (v_back : parse (tk ">")?)
+  (p : parse texpr) (t : parse to_texpr) (h : parse using_texpr)
   (n : parse with_ident_list) : tactic unit :=
 tactic.lift v_back.is_none p t h n
 

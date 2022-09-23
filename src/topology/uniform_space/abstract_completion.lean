@@ -223,8 +223,6 @@ begin
   refl
 end
 
-instance : uniform_space pkg.space := pkg.uniform_struct
-
 /-- The uniform bijection between two completions of the same uniform space. -/
 def compare_equiv : pkg.space ≃ᵤ pkg'.space :=
 { to_fun := pkg.compare pkg',
@@ -240,7 +238,7 @@ pkg.uniform_continuous_compare pkg'
 lemma uniform_continuous_compare_equiv_symm : uniform_continuous (pkg.compare_equiv pkg').symm :=
 pkg'.uniform_continuous_compare pkg
 
-/-- the completion of a complete space is uniform-equivalent to itself -/
+/-- The uniform bijection between a complete space and its abstract completion. -/
 def complete_equiv_self {α : Type*} [uniform_space α]
 [separated_space α] [complete_space α] (pkg : abstract_completion α) :
 pkg.space ≃ᵤ α :=

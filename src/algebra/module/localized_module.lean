@@ -415,14 +415,9 @@ noncomputable def from_localized_module : localized_module S M →ₗ[R] M' :=
     erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, smul_add, ←h2.unit⁻¹.1.map_smul,
       ←h3.unit⁻¹.1.map_smul, map_add],
     congr' 1,
-    { erw [module.End_algebra_map_is_unit_inv_apply_eq_iff'],
-      dsimp,
-      erw [mul_smul, f.map_smul],
-      refl, },
-    { erw [module.End_algebra_map_is_unit_inv_apply_eq_iff'],
-      dsimp,
-      erw [mul_comm, f.map_smul, mul_smul],
-      refl, },
+    all_goals { erw [module.End_algebra_map_is_unit_inv_apply_eq_iff'] },
+    { dsimp, erw [mul_smul, f.map_smul], refl, },
+    { dsimp, erw [mul_comm, f.map_smul, mul_smul], refl, },
   end,
   map_smul' := λ r x,
   begin
@@ -435,7 +430,8 @@ noncomputable def from_localized_module : localized_module S M →ₗ[R] M' :=
   end }
 
 lemma from_localized_module.inj : function.injective $ from_localized_module S f :=
-λ x y eq1, begin
+λ x y eq1,
+begin
   induction x using localized_module.induction_on with a b,
   induction y using localized_module.induction_on with a' b',
   simp only [from_localized_module, linear_map.coe_mk, localized_module.lift_on_mk] at eq1,

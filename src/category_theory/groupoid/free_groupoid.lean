@@ -96,7 +96,8 @@ def red_step {c  d : V} (p : word c d) (q : word c d) : Prop :=
      p = q₀ ≫* (letter_n f) ≫* (letter_p f) ≫* q₁ ∧ q = q₀ ≫* q₁)
 
 @[simp]
-lemma red_step.reverse {c d : V} (p₀ p₁ : word c d) : red_step p₀.reverse p₁.reverse ↔ red_step p₀ p₁ :=
+lemma red_step.reverse {c d : V} (p₀ p₁ : word c d) :
+  red_step p₀.reverse p₁.reverse ↔ red_step p₀ p₁ :=
 begin
   suffices : ∀ c d (p₀ p₁ : word c d),  red_step p₀ p₁ → red_step p₀.reverse p₁.reverse,
   { split, rotate, exact this c d p₀ p₁,
@@ -365,12 +366,14 @@ begin
     { rintro x, convert functor.map_id Φ x, },
     { rintro x y z p w IHw,
       rw [quot_cons_p],
-      have : Φ.map (quot_comp (quot.mk red_step  $ letter_p p ) (quot.mk red_step w)) = Φ.map ((quot.mk red_step  $ letter_p p ) ≫  (quot.mk red_step w)), by refl,
+      have : Φ.map (quot_comp (quot.mk red_step  $ letter_p p ) (quot.mk red_step w)) =
+             Φ.map ((quot.mk red_step  $ letter_p p ) ≫  (quot.mk red_step w)), by refl,
       simp only [this, functor.map_comp, IHw],
       congr, },
     { rintro x y z p w IHw,
       rw [quot_cons_n],
-      have : Φ.map (quot_comp (quot.mk red_step  $ letter_n p ) (quot.mk red_step w)) = Φ.map ((quot.mk red_step $ letter_n p ) ≫  (quot.mk red_step w)), by refl,
+      have : Φ.map (quot_comp (quot.mk red_step  $ letter_n p ) (quot.mk red_step w)) =
+             Φ.map ((quot.mk red_step $ letter_n p ) ≫  (quot.mk red_step w)), by refl,
       simp only [this, functor.map_comp, IHw, functor.map_comp],
       apply congr_arg2,
       { dsimp [lift,ι], rw ←word.reverse_letter_p,

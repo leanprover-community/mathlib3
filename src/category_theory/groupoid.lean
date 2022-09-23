@@ -115,10 +115,10 @@ calc G.inv (𝟙 v)
 @[simp] lemma groupoid.inv_of_comp {V : Type*} [G : groupoid V]
   {u v w : V} (f : u ⟶ v) (g : v ⟶ w) : G.inv (f ≫ g) = (G.inv g) ≫ (G.inv f) :=
 ( calc (G.inv g) ≫ (G.inv f)
-     = (G.inv g) ≫ (G.inv f) ≫ (𝟙 _) : by simp
-  ...= (G.inv g) ≫ (G.inv f) ≫ (f ≫ g) ≫ (G.inv $ f ≫ g) : by simp
-  ...= (G.inv g) ≫ g ≫ (G.inv $ f ≫ g) : by {rw category.assoc, nth_rewrite 1 ←category.assoc, simp,}
-  ...= G.inv (f ≫ g) : by {rw ←category.assoc, simp, }
+     = (G.inv g) ≫ (G.inv f) ≫ (f ≫ g) ≫ (G.inv $ f ≫ g) : by simp
+  ...= (G.inv g) ≫ g ≫ (G.inv $ f ≫ g) : by { rw category.assoc, nth_rewrite 1 ←category.assoc,
+                                               simp, }
+  ...= G.inv (f ≫ g) : by { rw ←category.assoc, simp, }
 ).symm
 
 @[simp] lemma groupoid.inv_inv {V : Type*} [G : groupoid V] (u v : V) (f : u ⟶ v) :
@@ -135,12 +135,8 @@ lemma groupoid.functor_map_inv  {C D : Type*} [G : groupoid C] [H : groupoid D] 
   {c d : C} (f : c ⟶ d) :
   φ.map (G.inv f) = H.inv (φ.map f) :=
 calc φ.map (G.inv f)
-   = (φ.map $ G.inv f) ≫ (𝟙 $ φ.obj c) : by rw [category.comp_id]
-...= (φ.map $ G.inv f) ≫ ((φ.map f) ≫ (H.inv $ φ.map f)) : by rw [groupoid.comp_inv]
-...= ((φ.map $ G.inv f) ≫ (φ.map f)) ≫ (H.inv $ φ.map f) : by rw [category.assoc]
-...= (φ.map $ G.inv f ≫ f) ≫ (H.inv $ φ.map f) : by rw [functor.map_comp']
-...= (H.inv $ φ.map f) : by rw [groupoid.inv_comp,functor.map_id,category.id_comp]
-
+   = ((φ.map $ G.inv f) ≫ (φ.map f)) ≫ (H.inv $ φ.map f) : by simp
+...= (H.inv $ φ.map f) : by simp [←functor.map_comp']
 
 end
 

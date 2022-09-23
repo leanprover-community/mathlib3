@@ -490,7 +490,8 @@ a call to `linear_combination`.
 -/
 meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_out : json) :
   tactic format := focus1 $ do
-  some (power, coeffs_as_poly) ← convert_sage_output sage_out | fail!"internal error: No output available",
+  some (power, coeffs_as_poly) ← convert_sage_output sage_out
+    | fail!"internal error: No output available",
   coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
   let eq_names_pexpr := eq_names.map to_pexpr,
   coeffs_as_expr ← coeffs_as_pexpr.mmap $ λ e, to_expr ``(%%e : %%R),
@@ -499,7 +500,8 @@ meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_
     $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
   expr_string ← components_to_lc_format components,
   let lc_exp : format := if power = 1 then "" else format!" with {{exponent := {power}}}",
-  let lc_fmt : format := "linear_combination " ++ format.nest 2 (format.group expr_string ++ lc_exp),
+  let lc_fmt : format := "linear_combination " ++
+    format.nest 2 (format.group expr_string ++ lc_exp),
   done <|>
     fail!"polyrith found the following certificate, but it failed to close the goal:\n{lc_fmt}",
   return lc_fmt

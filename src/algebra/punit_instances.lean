@@ -80,6 +80,11 @@ instance : linear_ordered_cancel_add_comm_monoid punit :=
 { le_of_add_le_add_left := λ _ _ _ _, trivial,
   .. punit.canonically_ordered_add_monoid, ..punit.linear_order }
 
+instance : linear_ordered_add_comm_monoid_with_top punit :=
+{ top_add' := λ _, rfl,
+  ..punit.complete_boolean_algebra,
+  ..punit.linear_ordered_cancel_add_comm_monoid }
+
 instance : has_smul R punit :=
 { smul := λ _ _, star }
 

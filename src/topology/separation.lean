@@ -659,10 +659,9 @@ lemma preconnected_space.trivial_of_discrete [preconnected_space α] [discrete_t
 begin
   rw ←not_nontrivial_iff_subsingleton,
   rintro ⟨x, y, hxy⟩,
-  obtain h | h := is_clopen_iff.mp (is_clopen_discrete ({y} : set α)),
-  { exact (singleton_nonempty y).ne_empty h },
-  { rw [ne.def, ←mem_singleton_iff, h] at hxy,
-    exact hxy (mem_univ x) }
+  rw [ne.def, ←mem_singleton_iff,
+      eq_univ_of_nonempty_clopen (singleton_nonempty y) (is_clopen_discrete _)] at hxy,
+  exact hxy (mem_univ x)
 end
 
 lemma is_preconnected.infinite_of_nontrivial [t1_space α] {s : set α} (h : is_preconnected s)

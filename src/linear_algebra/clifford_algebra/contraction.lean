@@ -284,9 +284,9 @@ begin
   induction x using clifford_algebra.left_induction with r x y hx hy m x hx,
   { simp_rw [change_form_algebra_map] },
   { rw [map_add, map_add, map_add, hx, hy] },
-  { rw [change_form_ι_mul, map_sub, change_form_ι_mul, change_form_ι_mul, hx, sub_sub, map_add, linear_map.add_apply,
-    map_add, linear_map.add_apply, change_form_contract_left, hx, add_comm (_ : clifford_algebra Q'')] }
-
+  { rw [change_form_ι_mul, map_sub, change_form_ι_mul, change_form_ι_mul, hx, sub_sub, map_add,
+    linear_map.add_apply, map_add, linear_map.add_apply, change_form_contract_left, hx,
+    add_comm (_ : clifford_algebra Q'')] }
 end
 
 /-- Any two algebras whose quadratic forms differ by a bilinear form are isomorphic as modules.
@@ -297,8 +297,10 @@ def change_form_equiv : clifford_algebra Q ≃ₗ[R] clifford_algebra Q' :=
 { to_fun := change_form h,
   inv_fun := change_form (show (-B).to_quadratic_form = Q - Q',
     from (congr_arg has_neg.neg h).trans $ neg_sub _ _ : (-B).to_quadratic_form = Q - Q'),
-  left_inv := λ x, (change_form_change_form _ _ x).trans $ by simp_rw [add_right_neg, change_form_zero],
-  right_inv := λ x, (change_form_change_form _ _ x).trans $ by simp_rw [add_left_neg, change_form_zero],
+  left_inv := λ x, (change_form_change_form _ _ x).trans $
+    by simp_rw [add_right_neg, change_form_zero],
+  right_inv := λ x, (change_form_change_form _ _ x).trans $
+    by simp_rw [add_left_neg, change_form_zero],
   ..change_form h }
 
 @[simp] lemma bilin_form.to_quadratic_form_neg (B : bilin_form R M) :

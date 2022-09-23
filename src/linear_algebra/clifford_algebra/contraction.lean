@@ -74,7 +74,7 @@ end
 
 variables {Q}
 
-/-- Contract an element of the exterior algebra with an element `d : module.dual R M` from the left.
+/-- Contract an element of the clifford algebra with an element `d : module.dual R M` from the left.
 
 Note that $v ⌋ x$ is spelt `contract_left (Q.associated v) x`.
 
@@ -100,7 +100,7 @@ def contract_left : module.dual R M →ₗ[R] clifford_algebra Q →ₗ[R] cliff
       rw [linear_map.smul_apply, smul_assoc, mul_smul_comm, smul_sub], }
   end }
 
-/-- Contract an element of the exterior algebra with an element `d : module.dual R M` from the
+/-- Contract an element of the clifford algebra with an element `d : module.dual R M` from the
 right.
 
 Note that $x ⌊ v$ is spelt `contract_right x (Q.associated v)`.
@@ -233,7 +233,7 @@ variables (h : B.to_quadratic_form = Q' - Q) (h' : B'.to_quadratic_form = Q'' - 
 /-- Convert between two algebras of different quadratic form, sending vector to vectors, scalars to
 scalars, and adjusting products by a contraction term.
 
-This is $\lambda_B$ from [bourbaki2007] $9 Lemma 2. -/
+This is $\lambda_B$ from [bourbaki2007][] $9 Lemma 2. -/
 def change_form (h : B.to_quadratic_form = Q' - Q) :
   clifford_algebra Q →ₗ[R] clifford_algebra Q' :=
 foldr Q (change_form_aux Q' B) (λ m x, (change_form_aux_change_form_aux Q' B m x).trans $
@@ -242,9 +242,14 @@ foldr Q (change_form_aux Q' B) (λ m x, (change_form_aux_change_form_aux Q' B m 
     rw [h, quadratic_form.sub_apply, sub_sub_cancel],
   end) 1
 
+@[simp]
 lemma change_form_algebra_map (r : R) : change_form h (algebra_map R _ r) = algebra_map R _ r :=
 (foldr_algebra_map _ _ _ _ _).trans $ eq.symm $ algebra.algebra_map_eq_smul_one r
 
+@[simp] lemma change_form_one : change_form h (1 : clifford_algebra Q) = 1 :=
+by simpa using change_form_algebra_map h (1 : R)
+
+@[simp]
 lemma change_form_ι (m : M) : change_form h (ι _ m) = ι _ m :=
 (foldr_ι _ _ _ _ _).trans $ eq.symm $
   by rw [change_form_aux_apply_apply, mul_one, contract_left_one, sub_zero]
@@ -253,7 +258,11 @@ lemma change_form_ι_mul (m : M) (x : clifford_algebra Q) :
   change_form h (ι _ m * x) = ι _ m * change_form h x - bilin_form.to_lin B m ⌋ change_form h x :=
 (foldr_mul _ _ _ _ _ _).trans $ begin rw foldr_ι, refl, end
 
-/-- Theorem 23 -/
+lemma change_form_ι_mul_ι (m₁ m₂ : M) :
+  change_form h (ι _ m₁ * ι _ m₂) = ι _ m₁ * ι _ m₂ - algebra_map _ _ (B m₁ m₂) :=
+by rw [change_form_ι_mul, change_form_ι, contract_left_ι, bilin_form.to_lin_apply]
+
+/-- Theorem 23 of [grinberg_clifford_2016][] -/
 lemma change_form_contract_left (d : module.dual R M) (x : clifford_algebra Q) :
   change_form h (d ⌋ x) = d ⌋ change_form h x :=
 begin
@@ -265,8 +274,9 @@ begin
 end
 
 @[simp]
-lemma change_form_zero (x : clifford_algebra Q)
-  (h : (0 : bilin_form R M).to_quadratic_form = Q - Q := (sub_self _).symm) :
+lemma change_form_self_apply
+  (h : (0 : bilin_form R M).to_quadratic_form = Q - Q := (sub_self _).symm)
+  (x : clifford_algebra Q) :
   change_form h x = x :=
 begin
   induction x using clifford_algebra.left_induction with r x y hx hy m x hx,
@@ -275,6 +285,11 @@ begin
   { rw [change_form_ι_mul, hx, map_zero, linear_map.zero_apply, map_zero, linear_map.zero_apply,
         sub_zero] }
 end
+
+@[simp]
+lemma change_form_self (h : (0 : bilin_form R M).to_quadratic_form = Q - Q := (sub_self _).symm) :
+  change_form h = linear_map.id :=
+linear_map.ext $ change_form_self_apply _
 
 lemma change_form_change_form (x : clifford_algebra Q) :
   change_form h' (change_form h x) = change_form (
@@ -289,22 +304,25 @@ begin
     add_comm (_ : clifford_algebra Q'')] }
 end
 
+lemma change_form_comp_change_form :
+  (change_form h').comp (change_form h) = change_form (
+    show (B + B').to_quadratic_form = _,
+    from (congr_arg2 (+) h h').trans $ sub_add_sub_cancel' _ _ _) :=
+linear_map.ext $ change_form_change_form _ _
+
 /-- Any two algebras whose quadratic forms differ by a bilinear form are isomorphic as modules.
 
-This is $\bar \lambda_B$ from [bourbaki2007] $9 Proposition 3. -/
+This is $\bar \lambda_B$ from [bourbaki2007][] $9 Proposition 3. -/
 @[simps apply]
 def change_form_equiv : clifford_algebra Q ≃ₗ[R] clifford_algebra Q' :=
 { to_fun := change_form h,
   inv_fun := change_form (show (-B).to_quadratic_form = Q - Q',
     from (congr_arg has_neg.neg h).trans $ neg_sub _ _ : (-B).to_quadratic_form = Q - Q'),
   left_inv := λ x, (change_form_change_form _ _ x).trans $
-    by simp_rw [add_right_neg, change_form_zero],
+    by simp_rw [add_right_neg, change_form_self_apply],
   right_inv := λ x, (change_form_change_form _ _ x).trans $
-    by simp_rw [add_left_neg, change_form_zero],
+    by simp_rw [add_left_neg, change_form_self_apply],
   ..change_form h }
-
-@[simp] lemma bilin_form.to_quadratic_form_neg (B : bilin_form R M) :
-  (-B).to_quadratic_form = -B.to_quadratic_form := rfl
 
 variables (Q)
 
@@ -312,6 +330,7 @@ variables (Q)
 
 Note that this holds more generally when `Q` is divisible by two, rather than requiring `1` is
 divisible by two. -/
+@[simp]
 def equiv_exterior [invertible (2 : R)] : clifford_algebra Q ≃ₗ[R] exterior_algebra R M :=
 (change_form_equiv $
   show (-Q).associated.to_quadratic_form = 0 - Q,

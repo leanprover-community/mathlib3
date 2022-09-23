@@ -5,6 +5,7 @@ Authors: Chris Hughes, Yakov Pechersky
 -/
 import data.list.perm
 import data.list.range
+import tactic.nth_rewrite
 
 /-!
 # List rotation
@@ -26,10 +27,46 @@ variables {α : Type u}
 
 open nat
 
-@[simp] lemma int.mod_nat_mod (x y : ℤ) : (x % y).nat_mod (y : ℤ) = x.nat_mod (y : ℤ) :=
+@[simp] lemma int.mod_nat_mod (x y : ℤ) : (x % y).nat_mod y = x.nat_mod y :=
 begin
   unfold int.nat_mod,
   simp,
+end
+
+@[simp] lemma int.nat_mod_mod (x : ℤ) (y : ℕ) : ((x.nat_mod (y : ℤ)) % y) = x.nat_mod (y : ℤ) :=
+begin
+  unfold int.nat_mod,
+  -- push_cast,
+  sorry,
+end
+
+@[simp] lemma int.nat_mod_cast (x y : ℕ) : (x : ℤ).nat_mod (y : ℤ) = x % y :=
+begin
+  unfold int.nat_mod,
+  rw ←int.coe_nat_mod,
+  -- simp, -- This is the stupidest shit I've ever seen
+  simp [-int.coe_nat_mod],
+end
+
+-- @[simp] lemma int.nat_mod_cast_ (x : ℤ) (y : ℕ) : x.nat_mod (y : ℤ) = (x % (y : ℤ)).to_nat :=
+-- begin
+--   unfold int.nat_mod,
+--   rw ←int.coe_nat_mod,
+--   -- simp, -- This is the stupidest shit I've ever seen
+--   simp [-int.coe_nat_mod],
+-- end
+
+lemma int.cast_to_nat (z : ℤ) (h : 0 ≤ z) : (z.to_nat : ℤ) = z :=
+begin
+  exact int.to_nat_of_nonneg h,
+end
+
+lemma int.nat_mod_le (x : ℤ) (y : ℕ) (h : y ≠ 0) : x.nat_mod y ≤ y :=
+begin
+  unfold int.nat_mod,
+  rw int.to_nat_le,
+  -- simp,
+  -- library_search,
 end
 
 @[simp] lemma int.zero_nat_mod (y : ℤ) : int.nat_mod (0) (y) = 0 :=
@@ -39,10 +76,15 @@ begin
   simp,
 end
 
+def int.mod_by_nat (x : ℤ) (y : ℕ) : ℕ := x.nat_mod y
+
+-- lemma int.mod_by_nat
+
 namespace list
 
 section rotatel
 
+-- TODO simp?
 lemma rotatel_mod (l : list α) (n : ℕ) : l.rotatel (n % l.length) = l.rotatel n :=
 by simp [rotatel]
 
@@ -107,7 +149,6 @@ else by
 lemma rotatel_cons_one (l : list α) (a : α) (n : ℤ) :
   (a :: l : list α).rotatel 1 = l ++ [a] :=
 begin
-  -- simp [rotatel],
   cases l,
   { simp [rotatel, int.nat_mod, int.mod_self], },
   { congr', },
@@ -157,6 +198,12 @@ by rw [rotatel_eq_rotatel', rotatel'_length]
 
 @[simp] lemma rotatel_length_mul (l : list α) (n : ℕ) : l.rotatel (l.length * n) = l :=
 by rw [rotatel_eq_rotatel', rotatel'_length_mul]
+
+lemma rotatel_dvd_length (l : list α) (n : ℕ) (h : l.length ∣ n) : l.rotatel n = l :=
+begin
+  rcases h with ⟨b, rfl⟩,
+  apply list.rotatel_length_mul,
+end
 
 lemma prod_rotatel_eq_one_of_prod_eq_one [group α] : ∀ {l : list α} (hl : l.prod = 1) (n : ℕ),
   (l.rotatel n).prod = 1
@@ -299,6 +346,33 @@ begin
       exact (nat.mod_lt _ hl).le } }
 end
 
+lemma rotatel_eq_of_mod_eq {l : list α} {n n' : ℕ} (h : n % l.length = n' % l.length) :
+  l.rotatel n = l.rotatel n' :=
+begin
+  by_cases hl : l.length = 0,
+  {
+    have : l = nil, exact length_eq_zero.mp hl,
+    simp [this],
+  },
+  {
+  rw [rotatel_eq_iff, rotatel_rotatel],
+  simp,
+  rw h,
+  symmetry,
+  apply rotatel_dvd_length,
+  rw ←nat.add_sub_assoc,
+  rw add_comm,
+  rw nat.add_sub_assoc,
+  simp,
+  nth_rewrite 0 ←nat.div_add_mod n' l.length,
+  simp,
+  exact mod_le n' (length l),
+  apply le_of_lt,
+  refine n'.mod_lt _,
+  exact zero_lt_iff.mpr hl,
+  }
+end
+
 lemma reverse_rotatel (l : list α) (n : ℕ) :
   (l.rotatel n).reverse = l.reverse.rotatel (l.length - (n % l.length)) :=
 begin
@@ -372,70 +446,117 @@ end rotatel
 
 section rotate
 
-
 lemma rotate_mod (l : list α) (n : ℤ) : l.rotate (n % l.length) = l.rotate n :=
 by simp [rotate]
 
-@[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by simp [rotate]
+@[simp] lemma rotate_nil (n : ℤ) : ([] : list α).rotate n = [] := by simp [rotate]
 
 @[simp] lemma rotate_zero (l : list α) : l.rotate 0 = l := by simp [rotate]
-
-lemma rotate_eq_rotatel_mod (l : list α) (n : ℤ) :
-  l.rotate n = l.rotatel (int.nat_mod n l.length) :=
-begin
--- tidy
-  sorry,
-end
 
 lemma rotate_cons_one (l : list α) (a : α) (n : ℤ) :
   (a :: l : list α).rotate 1 = l ++ [a] :=
 begin
-  -- simp [rotate],
+  simp [rotate],
   cases l,
-  { simp [rotate, int.nat_mod, int.mod_self], },
-  { congr', },
+  simp,
+  simp,
+  sorry,
 end
 
 lemma rotate_cons_succ (l : list α) (a : α) (n : ℤ) :
   (a :: l : list α).rotate n.succ = (l ++ [a]).rotate n :=
-by { simp [rotate], sorry }
+by {
+  simp [rotate], rw ←rotatel_cons_succ, apply rotatel_eq_of_mod_eq,
+  simp,
+  sorry,
+  }
 
-@[simp] lemma mem_rotate : ∀ {l : list α} {a : α} {n : ℤ}, a ∈ l.rotate n ↔ a ∈ l
-| []     _ n     := by simp
-| (a::l) _ 0     := by simp
-| (a::l) _ (n+1) := by simp [rotate_cons_succ, mem_rotate, or.comm]
+@[simp] lemma mem_rotate {l : list α} {a : α} {n : ℤ} : a ∈ l.rotate n ↔ a ∈ l :=
+begin
+  rw rotate,
+  exact mem_rotatel,
+end
 
-@[simp] lemma length_rotate (l : list α) (n : ℕ) : (l.rotate n).length = l.length :=
-by rw [rotate_eq_rotate', length_rotate']
+@[simp] lemma length_rotate (l : list α) (n : ℤ) : (l.rotate n).length = l.length :=
+by rw [rotate, length_rotatel]
 
 lemma rotate_eq_drop_append_take {l : list α} {n : ℕ} : n ≤ l.length →
   l.rotate n = l.drop n ++ l.take n :=
-by rw rotate_eq_rotate'; exact rotate'_eq_drop_append_take
+by {
+  unfold rotate,
+  intro hn,
+  rw ←rotatel_eq_drop_append_take hn,
+  simp,
+  rw rotatel_mod,
+}
 
-lemma rotate_eq_drop_append_take_mod {l : list α} {n : ℕ} :
-  l.rotate n = l.drop (n % l.length) ++ l.take (n % l.length) :=
+lemma rotate_eq_drop_append_take_mod {l : list α} {n : ℤ} :
+  l.rotate n = l.drop (n.nat_mod l.length) ++ l.take (n.nat_mod l.length) :=
 begin
-  cases l.length.zero_le.eq_or_lt with hl hl,
-  { simp [eq_nil_of_length_eq_zero hl.symm ] },
-  rw [←rotate_eq_drop_append_take (n.mod_lt hl).le, rotate_mod]
+  by_cases l.length = 0,
+  {
+    have : l = nil, exact length_eq_zero.mp h,
+    simp [this],
+  },
+  rw ←rotate_eq_drop_append_take,
+  rw ←l.rotate_mod n,
+  congr,
+  unfold int.nat_mod,
+  rw int.to_nat_of_nonneg,
+  apply int.mod_nonneg,
+  simp [h],
+  unfold int.nat_mod,
+  simp,
+  -- apply int.mod_le,
+  -- rw int.nat_mod_cast,
+
+  -- tidy,
+  -- -- rw to_nat_cast
+  -- simp,
+  -- rw int.coe_nat_mod,
+  -- simp,
+  -- cases l.length.zero_le.eq_or_lt with hl hl,
+  -- { simp [eq_nil_of_length_eq_zero hl.symm ] },
+  -- rw [←rotate_eq_drop_append_take (n.mod_lt hl).le, rotate_mod]
 end
 
 @[simp] lemma rotate_append_length_eq (l l' : list α) : (l ++ l').rotate l.length = l' ++ l :=
 begin
-  rw rotate_eq_rotate',
-  induction l generalizing l',
-  { simp, },
-  { simp [rotate', l_ih] },
+  by_cases l'.length = 0,
+  {
+    have : l' = nil, exact length_eq_zero.mp h,
+    simp [this],
+    rw rotate,
+    rw int.nat_mod,
+    rw int.mod_self,
+    simp,
+  },
+  rw rotate,
+  convert @rotatel_append_length_eq _ l l',
+  rw int.nat_mod,
+  rw ←int.coe_nat_mod,
+  simp only [list.length_append, int.to_nat_coe_nat],
+  apply nat.mod_eq_of_lt,
+  simp,
+  exact zero_lt_iff.mpr h,
 end
 
-lemma rotate_rotate (l : list α) (n m : ℕ) : (l.rotate n).rotate m = l.rotate (n + m) :=
-by rw [rotate_eq_rotate', rotate_eq_rotate', rotate_eq_rotate', rotate'_rotate']
+lemma rotate_rotate (l : list α) (n m : ℤ) : (l.rotate n).rotate m = l.rotate (n + m) :=
+begin
+  simp_rw [rotate, rotatel_rotatel],
+  simp only [list.length_rotatel],
+  apply rotatel_eq_of_mod_eq,
+  simp,
+  simp only [int.nat_mod_cast, int.nat_mod_mod, nat.add_mod_mod, nat.mod_add_mod],
+  rw ←cast_add,
+  rw int.nat_mod_cast,
+end
 
 @[simp] lemma rotate_length (l : list α) : rotate l l.length = l :=
-by rw [rotate_eq_rotate', rotate'_length]
+by simp [rotate]
 
 @[simp] lemma rotate_length_mul (l : list α) (n : ℕ) : l.rotate (l.length * n) = l :=
-by rw [rotate_eq_rotate', rotate'_length_mul]
+by {simp [rotate], }
 
 lemma prod_rotate_eq_one_of_prod_eq_one [group α] : ∀ {l : list α} (hl : l.prod = 1) (n : ℕ),
   (l.rotate n).prod = 1

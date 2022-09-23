@@ -1446,6 +1446,9 @@ variables {f}
 lemma function.surjective.dense_range (hf : function.surjective f) : dense_range f :=
 λ x, by simp [hf.range_eq]
 
+lemma dense_range_id : dense_range (id : α → α) :=
+function.surjective.dense_range function.surjective_id
+
 lemma dense_range_iff_closure_range : dense_range f ↔ closure (range f) = univ :=
 dense_iff_closure_eq
 

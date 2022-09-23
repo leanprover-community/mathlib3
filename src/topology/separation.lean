@@ -659,8 +659,7 @@ lemma preconnected_space.trivial_of_discrete [preconnected_space α] [discrete_t
 begin
   rw ←not_nontrivial_iff_subsingleton,
   rintro ⟨x, y, hxy⟩,
-  rw [ne.def, ←mem_singleton_iff,
-      eq_univ_of_nonempty_clopen (singleton_nonempty y) (is_clopen_discrete _)] at hxy,
+  rw [ne.def, ←mem_singleton_iff, (is_clopen_discrete _).eq_univ $ singleton_nonempty y] at hxy,
   exact hxy (mem_univ x)
 end
 

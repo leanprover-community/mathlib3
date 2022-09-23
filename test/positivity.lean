@@ -96,8 +96,8 @@ example {a : ℚ} (ha : a ≠ 0) : a⁻¹ ≠ 0 := by positivity
 example {a : ℚ} (n : ℕ) (ha : 0 < a) : 0 < a ^ n := by positivity
 example {a : ℚ} (n : ℕ) (ha : 0 ≤ a) : 0 ≤ a ^ n := by positivity
 example {a : ℚ} (n : ℕ) (ha : a ≠ 0) : a ^ n ≠ 0 := by positivity
-example {a : ℚ} (n : ℕ) : 0 ≤ a ^ (bit0 n) := by positivity
-example {a : ℚ} (n : ℕ) (ha : a ≠ 0) : 0 < a ^ (bit0 n) := by positivity
+example {a : ℚ} (n : ℕ) : 0 ≤ a ^ bit0 n := by positivity
+example {a : ℚ} (n : ℕ) (ha : a ≠ 0) : 0 < a ^ bit0 n := by positivity
 
 example {a : ℚ} (ha : 0 < a) : 0 < |a| := by positivity
 example {a : ℚ} (ha : a ≠ 0) : 0 < |a| := by positivity
@@ -192,8 +192,10 @@ example {a : ℝ≥0∞} : 0 ≤ a := by positivity
 
 example {a : ℕ} : (0 : ℤ) ≤ a := by positivity
 example {a : ℕ} (ha : 0 < a) : (0 : ℤ) < a := by positivity
+example {a : ℤ} (ha : a ≠ 0) : (a : ℚ) ≠ 0 := by positivity
 example {a : ℤ} (ha : 0 ≤ a) : (0 : ℚ) ≤ a := by positivity
 example {a : ℤ} (ha : 0 < a) : (0 : ℚ) < a := by positivity
+example {a : ℚ} (ha : a ≠ 0) : (a : ℝ) ≠ 0 := by positivity
 example {a : ℚ} (ha : 0 ≤ a) : (0 : ℝ) ≤ a := by positivity
 example {a : ℚ} (ha : 0 < a) : (0 : ℝ) < a := by positivity
 example {r : ℝ≥0} : (0 : ℝ) ≤ r := by positivity
@@ -211,4 +213,3 @@ example {r : ℝ≥0∞} (hr : 0 < r) : (0 : ereal) < r := by positivity
 example {α : Type*} [ordered_ring α] {n : ℤ} : 0 ≤ ((n ^ 2 : ℤ) : α) := by positivity
 example {r : ℝ≥0} : 0 ≤ ((r : ℝ) : ereal) := by positivity
 example {r : ℝ≥0} : 0 < ((r + 1 : ℝ) : ereal) := by positivity
-

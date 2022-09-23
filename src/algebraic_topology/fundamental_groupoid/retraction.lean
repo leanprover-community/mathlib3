@@ -37,7 +37,7 @@ open_locale unit_interval
 def top_hom_of_continuous_map {X Y : Top.{u}} (f : C(X, Y)) : X ⟶ Y := f
 
 
-section retraction
+section unbundled
 
 /-- We define `A ⊆ X` to be a topological subspace by defining the property `A_filter` picking
 elements of `A` out of `X`. This inherits the topology on `X` via `subtype.topological_space`. -/
@@ -45,30 +45,52 @@ variables {X : Top} {A_filter : X → Prop}
 
 def inclusion : C(Top.of (subtype A_filter), X) := ⟨subtype.restrict A_filter id⟩
 
-structure is_retraction (r : C(X, Top.of (subtype A_filter))) : Prop :=
+structure is_top_retraction (r : X → subtype A_filter) extends continuous r : Prop :=
 (id_of_retraction_of_inclusion : r ∘ inclusion = id)
+
+lemma is_top_retraction.continuous {r : X → subtype A_filter} (hr : is_top_retraction r) :
+  continuous r :=
+hr.to_continuous
+
+end unbundled
+
+structure top_retraction (X : Top) (A_filter : X → Prop) :=
+(to_fun : X → subtype A_filter)
+(top_retraction' : is_top_retraction to_fun)
+
+namespace top_retraction
+
+variables {X : Top} {A_filter : X → Prop}
+
+def to_continuous_map (r : @top_retraction X A_filter) : C(X, Top.of (subtype A_filter)) :=
+{ to_fun := r.to_fun,
+  continuous_to_fun :=  is_top_retraction.continuous r.top_retraction'}
+
+instance top_retraction.continuous_map_class :
+  continuous_map_class (top_retraction X A_filter) X (subtype A_filter) :=
+{ coe := top_retraction.to_fun,
+  coe_injective' := λr s h, by { cases r, cases s, congr' },
+  map_continuous := λr, is_top_retraction.continuous r.top_retraction', }
 
 /-- We show that if a topological retraction `r : X → A` exists, then the inclusion map `i : A → X`
 is a split monomorphism in the category Top. -/
-def split_mono_of_top_inclusion
-  {r : C(X, Top.of(subtype A_filter))} (h_retraction: is_retraction r) :
-  split_mono (top_hom_of_continuous_map (@inclusion X A_filter)) :=
-{ retraction := r,
+def split_mono_of_top_inclusion {r : top_retraction X A_filter} :
+  split_mono (top_hom_of_continuous_map inclusion) :=
+{ retraction := r.to_continuous_map,
   id' := begin
     rw top_hom_of_continuous_map,
     ext,
     rw [Top.id_app,
         Top.comp_app,
         ← continuous_map.comp_apply,
-        continuous_map.coe_comp,
+        continuous_map.coe_comp, -- TODO: fix rws in here
         h_retraction.id_of_retraction_of_inclusion,
         id.def],
   end, }
 
 /-- We show that a topological retraction `r : X → A` is a split epimorphism in the category Top. -/
-def split_epi_of_top_retraction
-  {r : C(X, Top.of (subtype A_filter))} (h_retraction : is_retraction r) :
-  split_epi (top_hom_of_continuous_map r) :=
+def split_epi_of_top_retraction {r : top_retraction X A_filter} :
+  split_epi (top_hom_of_continuous_map r.to_continuous_map) :=
 { section_ := inclusion,
   id' := begin
     rw top_hom_of_continuous_map,
@@ -76,7 +98,7 @@ def split_epi_of_top_retraction
     rw [Top.id_app,
         Top.comp_app,
         ← continuous_map.comp_apply,
-        continuous_map.coe_comp,
+        continuous_map.coe_comp, -- TODO: fix rws in here
         h_retraction.id_of_retraction_of_inclusion,
         id.def],
   end, }
@@ -103,4 +125,4 @@ def fundamental_groupoid_epi_of_top_retraction
   epi (πₘ r) :=
 split_epi.epi (@fundamental_groupoid_split_epi_of_top_retraction X A_filter r h_retraction)
 
-end retraction
+end top_retraction

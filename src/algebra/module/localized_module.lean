@@ -447,13 +447,9 @@ lemma from_localized_module.inj : function.injective $ from_localized_module S f
 end
 
 lemma from_localized_module.surj : function.surjective $ from_localized_module S f :=
-λ x, begin
-  rcases is_localized_module.surj S f x with ⟨⟨m, s⟩, eq1⟩,
-  refine ⟨localized_module.mk m s, _⟩,
-  rw [from_localized_module, linear_map.coe_mk, localized_module.lift_on_mk,
-    module.End_algebra_map_is_unit_inv_apply_eq_iff, ←eq1],
-  refl,
-end
+λ x, let ⟨⟨m, s⟩, eq1⟩ := is_localized_module.surj S f x in ⟨localized_module.mk m s,
+by { rw [from_localized_module, linear_map.coe_mk, localized_module.lift_on_mk,
+    module.End_algebra_map_is_unit_inv_apply_eq_iff, ←eq1], refl }⟩
 
 lemma from_localized_module.bij : function.bijective $ from_localized_module S f :=
 ⟨from_localized_module.inj _ _, from_localized_module.surj _ _⟩

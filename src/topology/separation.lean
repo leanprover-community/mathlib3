@@ -654,6 +654,26 @@ begin
   exact (set.to_finite _).is_closed
 end
 
+lemma preconnected_space.trivial_of_discrete [preconnected_space α] [discrete_topology α] :
+  subsingleton α :=
+begin
+  rw ←not_nontrivial_iff_subsingleton,
+  rintro ⟨x, y, hxy⟩,
+  rw [ne.def, ←mem_singleton_iff, (is_clopen_discrete _).eq_univ $ singleton_nonempty y] at hxy,
+  exact hxy (mem_univ x)
+end
+
+lemma is_preconnected.infinite_of_nontrivial [t1_space α] {s : set α} (h : is_preconnected s)
+  (hs : s.nontrivial) : s.infinite :=
+begin
+  refine mt (λ hf, (subsingleton_coe s).mp _) (not_subsingleton_iff.mpr hs),
+  haveI := @discrete_of_t1_of_finite s _ _ hf.to_subtype,
+  exact @preconnected_space.trivial_of_discrete _ _ (subtype.preconnected_space h) _
+end
+
+lemma connected_space.infinite [connected_space α] [nontrivial α] [t1_space α] : infinite α :=
+infinite_univ_iff.mp $ is_preconnected_univ.infinite_of_nontrivial nontrivial_univ
+
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]
   {x : α} (hx : x ∈ s) :
   {x} ∈ 𝓝[s] x :=
@@ -1269,7 +1289,7 @@ begin
     compact_closure_of_subset_compact hV interior_subset⟩,
 end
 
-lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
+lemma is_preirreducible_iff_subsingleton [t2_space α] {S : set α} :
   is_preirreducible S ↔ S.subsingleton :=
 begin
   refine ⟨λ h x hx y hy, _, set.subsingleton.is_preirreducible⟩,
@@ -1278,10 +1298,18 @@ begin
   exact ((h U V hU hV ⟨x, hx, hxU⟩ ⟨y, hy, hyV⟩).mono $ inter_subset_right _ _).not_disjoint h',
 end
 
-lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
+alias is_preirreducible_iff_subsingleton ↔ is_preirreducible.subsingleton _
+attribute [protected] is_preirreducible.subsingleton
+
+lemma is_irreducible_iff_singleton [t2_space α] {S : set α} :
   is_irreducible S ↔ ∃ x, S = {x} :=
 by rw [is_irreducible, is_preirreducible_iff_subsingleton,
   exists_eq_singleton_iff_nonempty_subsingleton]
+
+/-- There does not exist a nontrivial preirreducible T₂ space. -/
+lemma not_preirreducible_nontrivial_t2 (α) [topological_space α] [preirreducible_space α]
+  [nontrivial α] [t2_space α] : false :=
+(preirreducible_space.is_preirreducible_univ α).subsingleton.not_nontrivial nontrivial_univ
 
 end separation
 

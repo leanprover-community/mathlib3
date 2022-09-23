@@ -53,8 +53,7 @@ is a split monomorphism in the category Top. -/
 def split_mono_of_top_inclusion
   {r : C(X, Top.of(subtype A_filter))} (h_retraction: is_retraction r) :
   split_mono (top_hom_of_continuous_map (@inclusion X A_filter)) :=
-{
-  retraction := r,
+{ retraction := r,
   id' := begin
     rw top_hom_of_continuous_map,
     ext,
@@ -64,15 +63,13 @@ def split_mono_of_top_inclusion
         continuous_map.coe_comp,
         h_retraction.id_of_retraction_of_inclusion,
         id.def],
-  end,
-}
+  end, }
 
 /-- We show that a topological retraction `r : X → A` is a split epimorphism in the category Top. -/
 def split_epi_of_top_retraction
   {r : C(X, Top.of (subtype A_filter))} (h_retraction : is_retraction r) :
   split_epi (top_hom_of_continuous_map r) :=
-{
-  section_ := inclusion,
+{ section_ := inclusion,
   id' := begin
     rw top_hom_of_continuous_map,
     ext,
@@ -82,8 +79,7 @@ def split_epi_of_top_retraction
         continuous_map.coe_comp,
         h_retraction.id_of_retraction_of_inclusion,
         id.def],
-  end,
-}
+  end, }
 
 /-- We show that if a topological retraction `r : X → A` exists, then the induced arrow between
 fundamental groupoids of the inclusion map `i : A → X` is split monomorphism in the category

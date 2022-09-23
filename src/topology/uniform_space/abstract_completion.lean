@@ -225,7 +225,7 @@ end
 
 instance : uniform_space pkg.space := pkg.uniform_struct
 
-/-- The bijection between two completions of the same uniform space. -/
+/-- The uniform bijection between two completions of the same uniform space. -/
 def compare_equiv : pkg.space ≃ᵤ pkg'.space :=
 { to_fun := pkg.compare pkg',
   inv_fun := pkg'.compare pkg,

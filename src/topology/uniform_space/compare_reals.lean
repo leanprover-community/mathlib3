@@ -104,7 +104,7 @@ instance bourbaki.uniform_space: uniform_space Bourbakiℝ := completion.uniform
 def Bourbaki_pkg : abstract_completion Q := completion.cpkg
 
 /-- The equivalence between Bourbaki and Cauchy reals-/
-noncomputable def compare_equiv : Bourbakiℝ ≃ ℝ :=
+noncomputable def compare_equiv : Bourbakiℝ ≃ᵤ ℝ :=
 Bourbaki_pkg.compare_equiv rational_cau_seq_pkg
 
 lemma compare_uc : uniform_continuous (compare_equiv) :=

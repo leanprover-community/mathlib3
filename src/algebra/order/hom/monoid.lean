@@ -172,16 +172,39 @@ lemma map_nonpos (ha : a ≤ 0) : f a ≤ 0 := by { rw ←map_zero f, exact orde
 end ordered_add_comm_monoid
 
 section ordered_add_comm_group
-variables [ordered_add_comm_group α] [ordered_add_comm_monoid β] [add_monoid_hom_class F α β]
-  {f : F}
+variables [ordered_add_comm_group α]
+
+section
+variables [ordered_add_comm_monoid β] [add_monoid_hom_class F α β] (f : F)
 
 lemma monotone_iff_map_nonneg : monotone (f : α → β) ↔ ∀ a, 0 ≤ a → 0 ≤ f a :=
 ⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
   by { rw [←sub_add_cancel b a, map_add f], exact le_add_of_nonneg_left (h _ $ sub_nonneg.2 hl) }⟩
 
+lemma antitone_iff_map_nonpos : antitone (f : α → β) ↔ ∀ a, 0 ≤ a → f a ≤ 0 :=
+by { rw ←monotone_to_dual_comp_iff, apply monotone_iff_map_nonneg }
+lemma antitone_iff_map_nonneg : antitone (f : α → β) ↔ ∀ a ≤ 0, 0 ≤ f a :=
+by { rw ←monotone_comp_of_dual_iff, apply monotone_iff_map_nonneg }
 lemma monotone_iff_map_nonpos : monotone (f : α → β) ↔ ∀ a ≤ 0, f a ≤ 0 :=
+by { rw ←antitone_comp_of_dual_iff, apply antitone_iff_map_nonpos }
+
+end
+
+section
+variables [ordered_cancel_add_comm_monoid β] [add_monoid_hom_class F α β] (f : F)
+
+lemma strict_mono_iff_map_pos : strict_mono (f : α → β) ↔ ∀ a, 0 < a → 0 < f a :=
 ⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
-  by { rw [←sub_add_cancel a b, map_add f], exact add_le_of_nonpos_left (h _ $ sub_nonpos.2 hl) }⟩
+  by { rw [←sub_add_cancel b a, map_add f], exact lt_add_of_pos_left _ (h _ $ sub_pos.2 hl) }⟩
+
+lemma strict_anti_iff_map_neg : strict_anti (f : α → β) ↔ ∀ a, 0 < a → f a < 0 :=
+by { rw ←strict_mono_to_dual_comp_iff, apply strict_mono_iff_map_pos }
+lemma strict_anti_iff_map_pos : strict_anti (f : α → β) ↔ ∀ a < 0, 0 < f a :=
+by { rw ←strict_mono_comp_of_dual_iff, apply strict_mono_iff_map_pos }
+lemma strict_mono_iff_map_neg : strict_mono (f : α → β) ↔ ∀ a < 0, f a < 0 :=
+by { rw ←strict_anti_comp_of_dual_iff, apply strict_anti_iff_map_neg }
+
+end
 
 end ordered_add_comm_group
 

@@ -316,7 +316,7 @@ section real
 variables {R S : Type*} [ordered_ring R] [linear_ordered_ring S]
 
 lemma ring_hom_monotone (hR : ∀ r : R, 0 ≤ r → ∃ s : R, s^2 = r) (f : R →+* S) : monotone f :=
-monotone_iff_map_nonneg.2 $ λ r h, by { obtain ⟨s, rfl⟩ := hR r h, rw map_pow, apply sq_nonneg }
+(monotone_iff_map_nonneg f).2 $ λ r h, by { obtain ⟨s, rfl⟩ := hR r h, rw map_pow, apply sq_nonneg }
 
 /-- There exists no nontrivial ring homomorphism `ℝ →+* ℝ`. -/
 instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=

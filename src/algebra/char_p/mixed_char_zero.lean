@@ -59,8 +59,8 @@ variables (R : Type*) [comm_ring R]
 A ring of characteristic zero is of "mixed characteristic `(0, p)`" if there exists an ideal
 such that the quotient `R ⧸ I` has caracteristic `p`.
 
-**Remark:** For `p = 0`, `mixed_char R 0` is a meaningless definition as `R ⧸ ⊥ ≅ R` has by definition
-always characteristic zero.
+**Remark:** For `p = 0`, `mixed_char R 0` is a meaningless definition as `R ⧸ ⊥ ≅ R` has by
+definition always characteristic zero.
 One could require `(I ≠ ⊥)` in the definition, but then `mixed_char R 0` would mean something
 like `ℤ`-algebra of extension degree `≥ 1` and would be completely independent from
 whether something is a `ℚ`-algebra or not (e.g. `ℚ[X]` would satisfy it but `ℚ` wouldn't).

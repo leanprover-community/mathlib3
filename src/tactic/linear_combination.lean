@@ -274,11 +274,9 @@ If an exponent `n` is provided, changes the goal from `t = 0` to `t^n = 0`.
 
 * Output: N/A
 -/
-meta def raise_goal_to_power (exponent : ℕ) : tactic unit :=
-match exponent with
+meta def raise_goal_to_power : ℕ → tactic unit
 | 1 := skip
 | n := refine ``(@pow_eq_zero _ _ _ _ %%`(n) _)
-end
 
 /--
 This tactic attempts to prove the goal by normalizing the target if the

@@ -60,7 +60,7 @@ Vitali families are provided by covering theorems such as the Besicovitch coveri
 Vitali covering theorem. They make it possible to formulate general versions of theorems on
 differentiations of measure that apply in both contexts.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure vitali_family {m : measurable_space α} (μ : measure α) :=
 (sets_at : Π (x : α), set (set α))
 (measurable_set' : ∀ (x : α), ∀ (a : set α), a ∈ sets_at x → measurable_set a)
@@ -134,7 +134,7 @@ lemma covering_mem_family {x : α} (hx : x ∈ h.index) : h.covering x ∈ v.set
 lemma measure_diff_bUnion : μ (s \ ⋃ x ∈ h.index, h.covering x) = 0 :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.2.2.2
 
-lemma index_countable [second_countable_topology α] : countable h.index :=
+lemma index_countable [second_countable_topology α] : h.index.countable :=
 h.covering_disjoint.countable_of_nonempty_interior
   (λ x hx, v.nonempty_interior _ _ (h.covering_mem_family hx))
 
@@ -172,7 +172,7 @@ lemma mem_filter_at_iff {x : α} {s : set (set α)} :
 begin
   simp only [filter_at, exists_prop, gt_iff_lt],
   rw mem_binfi_of_directed,
-  { simp only [subset_def, and_imp, exists_prop, mem_sep_eq, mem_Ioi, mem_principal] },
+  { simp only [subset_def, and_imp, exists_prop, mem_sep_iff, mem_Ioi, mem_principal] },
   { simp only [directed_on, exists_prop, ge_iff_le, le_principal_iff, mem_Ioi, order.preimage,
       mem_principal],
     assume x hx y hy,
@@ -185,7 +185,7 @@ end
 instance filter_at_ne_bot (x : α) : (v.filter_at x).ne_bot :=
 begin
   simp only [ne_bot_iff, ←empty_mem_iff_bot, mem_filter_at_iff, not_exists, exists_prop,
-    mem_empty_eq, and_true, gt_iff_lt, not_and, ne.def, not_false_iff, not_forall],
+    mem_empty_iff_false, and_true, gt_iff_lt, not_and, ne.def, not_false_iff, not_forall],
   assume ε εpos,
   obtain ⟨w, w_sets, hw⟩ : ∃ (w ∈ v.sets_at x), w ⊆ closed_ball x ε := v.nontrivial x ε εpos,
   exact ⟨w, w_sets, hw⟩

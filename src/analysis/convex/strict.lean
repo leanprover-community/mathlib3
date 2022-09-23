@@ -28,8 +28,8 @@ variables [ordered_semiring 𝕜] [topological_space E] [topological_space F]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 F] (s : set E)
 
 /-- A set is strictly convex if the open segment between any two distinct points lies is in its
 interior. This basically means "convex and not flat on the boundary". -/
@@ -88,7 +88,7 @@ begin
   exact (directed_on_iff_directed.1 hdir).strict_convex_Union (λ s, hS _ s.2),
 end
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}
@@ -144,7 +144,7 @@ variables [topological_space β] [linear_ordered_cancel_add_comm_monoid β] [ord
 lemma strict_convex_Iic (r : β) : strict_convex 𝕜 (Iic r) :=
 begin
   rintro x (hx : x ≤ r) y (hy : y ≤ r) hxy a b ha hb hab,
-  refine (subset_interior_iff_subset_of_open is_open_Iio).2 Iio_subset_Iic_self _,
+  refine is_open_Iio.subset_interior_iff.2 Iio_subset_Iic_self _,
   rw ←convex.combo_self hab r,
   obtain rfl | hx := hx.eq_or_lt,
   { exact add_lt_add_left (smul_lt_smul_of_pos (hy.lt_of_ne hxy.symm) hb) _ },

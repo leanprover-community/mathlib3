@@ -48,7 +48,7 @@ def lsmul : A →ₐ[R] module.End R M :=
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
 lemma lmul_algebra_map (x : R) :
-  lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
+  algebra.lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
 eq.symm $ linear_map.ext $ smul_def x
 
 end algebra
@@ -58,7 +58,7 @@ namespace is_scalar_tower
 section module
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [has_scalar R M] [mul_action A M] [is_scalar_tower R A M]
+variables [has_smul R M] [mul_action A M] [is_scalar_tower R A M]
 
 variables {R} (A) {M}
 theorem algebra_map_smul (r : R) (x : M) : algebra_map R A r • x = r • x :=
@@ -142,7 +142,7 @@ of_algebra_map_eq $ λ x, rfl
 @[nolint instance_priority]
 instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B]
   [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
-  @is_scalar_tower R A B _ (f.to_ring_hom.to_algebra.to_has_scalar) _ :=
+  @is_scalar_tower R A B _ (f.to_ring_hom.to_algebra.to_has_smul) _ :=
 by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
 
 end semiring
@@ -212,8 +212,8 @@ variables (R) {S A B} [comm_semiring R] [comm_semiring S] [semiring A] [semiring
 variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
-/-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
-`R`-subalgebra. -/
+/-- Given a tower `A / ↥U / S / R` of algebras, where `U` is an `S`-subalgebra of `A`, reinterpret
+`U` as an `R`-subalgebra of `A`. -/
 def restrict_scalars (U : subalgebra S A) : subalgebra R A :=
 { algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
   .. U }

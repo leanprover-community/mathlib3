@@ -55,8 +55,14 @@ end topological_algebra
 section topological_algebra
 variables {R : Type*} [comm_semiring R]
 variables {A : Type u} [topological_space A]
-variables [semiring A]
-variables [algebra R A] [topological_semiring A]
+variables [semiring A] [algebra R A]
+
+instance subalgebra.has_continuous_smul [topological_space R] [has_continuous_smul R A]
+  (s : subalgebra R A) :
+  has_continuous_smul R s :=
+s.to_submodule.has_continuous_smul
+
+variables [topological_semiring A]
 
 /-- The closure of a subalgebra in a topological algebra as a subalgebra. -/
 def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
@@ -68,14 +74,8 @@ def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
   (s.topological_closure : set A) = closure (s : set A) :=
 rfl
 
-instance subalgebra.topological_closure_topological_semiring (s : subalgebra R A) :
-  topological_semiring (s.topological_closure) :=
-s.to_subsemiring.topological_closure_topological_semiring
-
-instance subalgebra.topological_closure_topological_algebra
-  [topological_space R] [has_continuous_smul R A] (s : subalgebra R A) :
-  has_continuous_smul R (s.topological_closure) :=
-s.to_submodule.topological_closure_has_continuous_smul
+instance subalgebra.topological_semiring (s : subalgebra R A) : topological_semiring s :=
+s.to_subsemiring.topological_semiring
 
 lemma subalgebra.subalgebra_topological_closure (s : subalgebra R A) :
   s ≤ s.topological_closure :=
@@ -102,11 +102,11 @@ but we don't have those, so we use the clunky approach of talking about
 an algebra homomorphism, and a separate homeomorphism,
 along with a witness that as functions they are the same.
 -/
-lemma subalgebra.topological_closure_comap'_homeomorph
+lemma subalgebra.topological_closure_comap_homeomorph
   (s : subalgebra R A)
   {B : Type*} [topological_space B] [ring B] [topological_ring B] [algebra R B]
   (f : B →ₐ[R] A) (f' : B ≃ₜ A) (w : (f : B → A) = f') :
-  s.topological_closure.comap' f = (s.comap' f).topological_closure :=
+  s.topological_closure.comap f = (s.comap f).topological_closure :=
 begin
   apply set_like.ext',
   simp only [subalgebra.topological_closure_coe],
@@ -157,6 +157,6 @@ section division_ring
 instance division_ring.has_continuous_const_smul_rat
   {A} [division_ring A] [topological_space A] [has_continuous_mul A] [char_zero A] :
   has_continuous_const_smul ℚ A :=
-⟨λ r, continuous_const.mul continuous_id⟩
+⟨λ r, by { simpa only [algebra.smul_def] using continuous_const.mul continuous_id }⟩
 
 end division_ring

@@ -75,7 +75,7 @@ def initial_colimit_cocone : limits.colimit_cocone (functor.empty (Type u)) :=
     ι := by tidy, },
   is_colimit := by tidy, }
 
-/-- The initial object in `Type u` is `punit`. -/
+/-- The initial object in `Type u` is `pempty`. -/
 noncomputable def initial_iso : ⊥_ (Type u) ≅ pempty :=
 colimit.iso_colimit_cocone initial_colimit_cocone
 
@@ -388,7 +388,7 @@ variables (f : X ⟶ Z) (g : Y ⟶ Z)
 The usual explicit pullback in the category of types, as a subtype of the product.
 The full `limit_cone` data is bundled as `pullback_limit_cone f g`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 abbreviation pullback_obj : Type u := { p : X × Y // f p.1 = g p.2 }
 
 -- `pullback_obj f g` comes with a coercion to the product type `X × Y`.

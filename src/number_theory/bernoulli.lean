@@ -149,7 +149,7 @@ begin
   field_simp [mul_comm _ (bernoulli' i), mul_assoc, add_choose],
   rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
   rw [cast_mul, cast_mul, mul_div_mul_right, cast_div_char_zero, cast_mul],
-  assumption',
+  assumption, rwa nat.cast_succ,
 end
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
@@ -250,11 +250,11 @@ begin
   rw [←map_zero (algebra_map ℚ A), ←zero_div (n.succ! : ℚ), ←hite2, ← bernoulli_spec', sum_div],
   refine congr_arg (algebra_map ℚ A) (sum_congr rfl $ λ x h, eq_div_of_mul_eq (hfact n.succ) _),
   rw mem_antidiagonal at h,
-  have hj : (x.2.succ : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero _,
-  field_simp [← h, mul_ne_zero hj (hfact x.2), hfact x.1, mul_comm _ (bernoulli x.1), mul_assoc],
-  rw_mod_cast [mul_comm (x.2 + 1), mul_div_assoc, ← mul_assoc],
-  rw [cast_mul, cast_mul, mul_div_mul_right _ _ hj, add_choose, cast_div_char_zero],
-  apply factorial_mul_factorial_dvd_factorial_add,
+  have hj : (x.2 + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero _,
+  field_simp [← h, mul_ne_zero hj (hfact x.2), hfact x.1, mul_comm _ (bernoulli x.1), mul_assoc,
+    add_choose, cast_div_char_zero (factorial_mul_factorial_dvd_factorial_add _ _),
+    nat.factorial_ne_zero, hj],
+  cc,
 end
 
 section faulhaber
@@ -323,6 +323,7 @@ theorem sum_Ico_pow (n p : ℕ) :
   ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p =
     ∑ i in range (p + 1), bernoulli' i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin
+  rw ← nat.cast_succ,
   -- dispose of the trivial case
   cases p, { simp },
   let f := λ i, bernoulli i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
@@ -351,7 +352,8 @@ begin
   ... = ∑ i in range p, f i.succ.succ + (f 1 + n ^ p.succ) + f 0 : by ring
   ... = ∑ i in range p, f i.succ.succ + 1 / 2 * n ^ p.succ + f 0 : by rw h2
         -- convert from `bernoulli` to `bernoulli'`
-  ... = ∑ i in range p, f' i.succ.succ + f' 1 + f' 0 : by { simp only [f, f'], simpa [h1] }
+  ... = ∑ i in range p, f' i.succ.succ + f' 1 + f' 0 :
+        by { simp only [f, f'], simpa [h1, λ i, show i + 2 = i + 1 + 1, from rfl] }
         -- rejoin the first two terms of the sum
   ... = ∑ i in range p.succ.succ, f' i : by simp_rw [sum_range_succ'],
 end

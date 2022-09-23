@@ -99,8 +99,6 @@ The order of arguments in multiplication agrees with
 -/
 def Aut (X : C) := X ≅ X
 
-attribute [ext Aut] iso.ext
-
 namespace Aut
 
 instance inhabited : inhabited (Aut X) := ⟨iso.refl X⟩

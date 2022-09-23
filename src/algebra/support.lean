@@ -56,7 +56,7 @@ forall_congr $ λ x, not_imp_comm
 
 @[to_additive] lemma mul_support_disjoint_iff {f : α → M} {s : set α} :
   disjoint (mul_support f) s ↔ eq_on f 1 s :=
-by simp_rw [disjoint_iff_subset_compl_right, mul_support_subset_iff', not_mem_compl_iff, eq_on,
+by simp_rw [←subset_compl_iff_disjoint_right, mul_support_subset_iff', not_mem_compl_iff, eq_on,
   pi.one_apply]
 
 @[to_additive] lemma disjoint_mul_support_iff {f : α → M} {s : set α} :
@@ -149,7 +149,7 @@ rfl
 
 @[to_additive support_prod_mk] lemma mul_support_prod_mk (f : α → M) (g : α → N) :
   mul_support (λ x, (f x, g x)) = mul_support f ∪ mul_support g :=
-set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union_eq, mem_set_of_eq,
+set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union, mem_set_of_eq,
   prod.mk_eq_one, ne.def]
 
 @[to_additive support_prod_mk'] lemma mul_support_prod_mk' (f : α → M × N) :
@@ -200,7 +200,7 @@ end division_monoid
 
 @[simp] lemma support_mul [mul_zero_class R] [no_zero_divisors R] (f g : α → R) :
   support (λ x, f x * g x) = support f ∩ support g :=
-set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_eq, not_or_distrib]
+set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_iff, not_or_distrib]
 
 @[simp] lemma support_mul_subset_left [mul_zero_class R] (f g : α → R) :
   support (λ x, f x * g x) ⊆ support f :=
@@ -215,8 +215,8 @@ lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B 
   support (b • f) ⊆ support f :=
 λ x hbf hf, hbf $ by rw [pi.smul_apply, hf, smul_zero]
 
-lemma support_smul_subset_left [semiring R] [add_comm_monoid M] [module R M]
-  (f : α → R) (g : α → M) :
+lemma support_smul_subset_left [has_zero M] [has_zero β] [smul_with_zero M β]
+  (f : α → M) (g : α → β) :
   support (f • g) ⊆ support f :=
 λ x hfg hf, hfg $ by rw [pi.smul_apply', hf, zero_smul]
 

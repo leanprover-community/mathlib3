@@ -15,11 +15,11 @@ Shows that products in the over category can be derived from wide pullbacks in t
 The main result is `over_product_of_wide_pullback`, which says that if `C` has `J`-indexed wide
 pullbacks, then `over B` has `J`-indexed products.
 -/
-universes v u -- morphism levels before object levels. See note [category_theory universes].
+universes w v u -- morphism levels before object levels. See note [category_theory universes].
 
 open category_theory category_theory.limits
 
-variables {J : Type v}
+variables {J : Type w}
 variables {C : Type u} [category.{v} C]
 variable {X : C}
 
@@ -33,13 +33,13 @@ Given a product diagram in `C/B`, construct the corresponding wide pullback diag
 in `C`.
 -/
 @[reducible]
-def wide_pullback_diagram_of_diagram_over (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+def wide_pullback_diagram_of_diagram_over (B : C) {J : Type w} (F : discrete J ⥤ over B) :
   wide_pullback_shape J ⥤ C :=
 wide_pullback_shape.wide_cospan B (λ j, (F.obj ⟨j⟩).left) (λ j, (F.obj ⟨j⟩).hom)
 
 /-- (Impl) A preliminary definition to avoid timeouts. -/
 @[simps]
-def cones_equiv_inverse_obj (B : C) {J : Type v} (F : discrete J ⥤ over B) (c : cone F) :
+def cones_equiv_inverse_obj (B : C) {J : Type w} (F : discrete J ⥤ over B) (c : cone F) :
   cone (wide_pullback_diagram_of_diagram_over B F) :=
 { X := c.X.left,
   π :=
@@ -55,7 +55,7 @@ def cones_equiv_inverse_obj (B : C) {J : Type v} (F : discrete J ⥤ over B) (c 
 
 /-- (Impl) A preliminary definition to avoid timeouts. -/
 @[simps]
-def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+def cones_equiv_inverse (B : C) {J : Type w} (F : discrete J ⥤ over B) :
   cone F ⥤ cone (wide_pullback_diagram_of_diagram_over B F) :=
 { obj := cones_equiv_inverse_obj B F,
   map := λ c₁ c₂ f,
@@ -73,7 +73,7 @@ local attribute [tidy] tactic.discrete_cases
 
 /-- (Impl) A preliminary definition to avoid timeouts. -/
 @[simps]
-def cones_equiv_functor (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+def cones_equiv_functor (B : C) {J : Type w} (F : discrete J ⥤ over B) :
   cone (wide_pullback_diagram_of_diagram_over B F) ⥤ cone F :=
 { obj := λ c,
   { X := over.mk (c.π.app none),
@@ -132,8 +132,8 @@ lemma over_binary_product_of_pullback [has_pullbacks C] {B : C} :
 over_product_of_wide_pullback
 
 /-- Given all wide pullbacks in `C`, construct products in `C/B`. -/
-lemma over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
-  has_products (over B) :=
+lemma over_products_of_wide_pullbacks [has_wide_pullbacks.{w} C] {B : C} :
+  has_products.{w} (over B) :=
 λ J, over_product_of_wide_pullback
 
 /-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/

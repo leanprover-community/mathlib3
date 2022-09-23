@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.solvable
 import algebra.lie.quotient
+import algebra.lie.centralizer
 import linear_algebra.eigenspace
 import ring_theory.nilpotent
 
@@ -45,7 +46,7 @@ expression of the fact that the terms of the Lie submodule's lower central serie
 submodules of the enclosing Lie module.
 
 See also `lie_module.lower_central_series_eq_lcs_comap` and
-`lie_module.lower_central_series_map_eq_lcs` below. -/
+`lie_module.lower_central_series_map_eq_lcs` below, as well as `lie_submodule.ucs`. -/
 def lcs : lie_submodule R L M → lie_submodule R L M := (λ N, ⁅(⊤ : lie_ideal R L), N⁆)^[k]
 
 @[simp] lemma lcs_zero (N : lie_submodule R L M) : N.lcs 0 = N := rfl
@@ -170,6 +171,24 @@ end
 steps). -/
 class is_nilpotent : Prop :=
 (nilpotent : ∃ k, lower_central_series R L M k = ⊥)
+
+/-- See also `lie_module.is_nilpotent_iff_exists_ucs_eq_top`. -/
+lemma is_nilpotent_iff :
+  is_nilpotent R L M ↔ ∃ k, lower_central_series R L M k = ⊥ :=
+⟨λ h, h.nilpotent, λ h, ⟨h⟩⟩
+
+variables {R L M}
+
+lemma _root_.lie_submodule.is_nilpotent_iff_exists_lcs_eq_bot (N : lie_submodule R L M) :
+  lie_module.is_nilpotent R L N ↔ ∃ k, N.lcs k = ⊥ :=
+begin
+  rw is_nilpotent_iff,
+  refine exists_congr (λ k, _),
+  rw [N.lower_central_series_eq_lcs_comap k, lie_submodule.comap_incl_eq_bot,
+    inf_eq_right.mpr (N.lcs_le_self k)],
+end
+
+variables (R L M)
 
 @[priority 100]
 instance trivial_is_nilpotent [is_trivial L M] : is_nilpotent R L M :=
@@ -323,6 +342,81 @@ end
 
 end lie_module
 
+namespace lie_submodule
+
+variables {N₁ N₂ : lie_submodule R L M}
+
+/-- The upper (aka ascending) central series.
+
+See also `lie_submodule.lcs`. -/
+def ucs (k : ℕ) : lie_submodule R L M → lie_submodule R L M :=
+centralizer^[k]
+
+@[simp] lemma ucs_zero : N.ucs 0 = N := rfl
+
+@[simp] lemma ucs_succ (k : ℕ) :
+  N.ucs (k + 1) = (N.ucs k).centralizer :=
+function.iterate_succ_apply' centralizer k N
+
+lemma ucs_add (k l : ℕ) :
+  N.ucs (k + l) = (N.ucs l).ucs k :=
+function.iterate_add_apply centralizer k l N
+
+@[mono] lemma ucs_mono (k : ℕ) (h : N₁ ≤ N₂) :
+  N₁.ucs k ≤ N₂.ucs k :=
+begin
+  induction k with k ih, { simpa, },
+  simp only [ucs_succ],
+  mono,
+end
+
+lemma ucs_eq_self_of_centralizer_eq_self (h : N₁.centralizer = N₁) (k : ℕ) :
+  N₁.ucs k = N₁ :=
+by { induction k with k ih, { simp, }, { rwa [ucs_succ, ih], }, }
+
+/-- If a Lie module `M` contains a self-centralizing Lie submodule `N`, then all terms of the upper
+central series of `M` are contained in `N`.
+
+An important instance of this situation arises from a Cartan subalgebra `H ⊆ L` with the roles of
+`L`, `M`, `N` played by `H`, `L`, `H`, respectively. -/
+lemma ucs_le_of_centralizer_eq_self (h : N₁.centralizer = N₁) (k : ℕ) :
+  (⊥ : lie_submodule R L M).ucs k ≤ N₁ :=
+by { rw ← ucs_eq_self_of_centralizer_eq_self h k, mono, simp, }
+
+lemma lcs_add_le_iff (l k : ℕ) :
+  N₁.lcs (l + k) ≤ N₂ ↔ N₁.lcs l ≤ N₂.ucs k :=
+begin
+  revert l,
+  induction k with k ih, { simp, },
+  intros l,
+  rw [(by abel : l + (k + 1) = l + 1 + k), ih, ucs_succ, lcs_succ, top_lie_le_iff_le_centralizer],
+end
+
+lemma lcs_le_iff (k : ℕ) :
+  N₁.lcs k ≤ N₂ ↔ N₁ ≤ N₂.ucs k :=
+by { convert lcs_add_le_iff 0 k, rw zero_add, }
+
+lemma gc_lcs_ucs (k : ℕ):
+  galois_connection (λ (N : lie_submodule R L M), N.lcs k) (λ (N : lie_submodule R L M), N.ucs k) :=
+λ N₁ N₂, lcs_le_iff k
+
+lemma ucs_eq_top_iff (k : ℕ) : N.ucs k = ⊤ ↔ lie_module.lower_central_series R L M k ≤ N :=
+by { rw [eq_top_iff, ← lcs_le_iff], refl, }
+
+lemma _root_.lie_module.is_nilpotent_iff_exists_ucs_eq_top :
+  lie_module.is_nilpotent R L M ↔ ∃ k, (⊥ : lie_submodule R L M).ucs k = ⊤ :=
+by { rw lie_module.is_nilpotent_iff, exact exists_congr (λ k, by simp [ucs_eq_top_iff]), }
+
+lemma ucs_comap_incl (k : ℕ) :
+  ((⊥ : lie_submodule R L M).ucs k).comap N.incl = (⊥ : lie_submodule R L N).ucs k :=
+by { induction k with k ih, { exact N.ker_incl, }, { simp [← ih], }, }
+
+lemma is_nilpotent_iff_exists_self_le_ucs :
+  lie_module.is_nilpotent R L N ↔ ∃ k, N ≤ (⊥ : lie_submodule R L M).ucs k :=
+by simp_rw [lie_module.is_nilpotent_iff_exists_ucs_eq_top, ← ucs_comap_incl, comap_incl_eq_top]
+
+end lie_submodule
+
 section morphisms
 
 open lie_module function
@@ -441,10 +535,10 @@ begin
     split,
     { rintros ⟨⟨y, -⟩, ⟨z, hz⟩, rfl : ⁅y, z⁆ = x⟩,
       erw [← lie_submodule.mem_coe_submodule, ih, lie_submodule.mem_coe_submodule] at hz,
-      exact ⟨⟨lie_submodule.quotient.mk y, submodule.mem_top⟩, ⟨z, hz⟩, rfl⟩, },
+      exact ⟨⟨lie_submodule.quotient.mk y, lie_submodule.mem_top _⟩, ⟨z, hz⟩, rfl⟩, },
     { rintros ⟨⟨⟨y⟩, -⟩, ⟨z, hz⟩, rfl : ⁅y, z⁆ = x⟩,
       erw [← lie_submodule.mem_coe_submodule, ← ih, lie_submodule.mem_coe_submodule] at hz,
-      exact ⟨⟨y, submodule.mem_top⟩, ⟨z, hz⟩, rfl⟩, }, },
+      exact ⟨⟨y, lie_submodule.mem_top _⟩, ⟨z, hz⟩, rfl⟩, }, },
 end
 
 /-- Note that the below inequality can be strict. For example the ideal of strictly-upper-triangular
@@ -457,7 +551,7 @@ begin
   { simp only [lie_module.lower_central_series_succ, lie_submodule.lie_ideal_oper_eq_linear_span],
     apply submodule.span_mono,
     rintros x ⟨⟨y, -⟩, ⟨z, hz⟩, rfl : ⁅y, z⁆ = x⟩,
-    exact ⟨⟨y.val, submodule.mem_top⟩, ⟨z, ih hz⟩, rfl⟩, },
+    exact ⟨⟨y.val, lie_submodule.mem_top _⟩, ⟨z, ih hz⟩, rfl⟩, },
 end
 
 /-- A central extension of nilpotent Lie algebras is nilpotent. -/
@@ -577,7 +671,7 @@ begin
   { simp, },
   { simp_rw [lower_central_series_succ, lcs_succ, lie_submodule.lie_ideal_oper_eq_linear_span',
       ← (I.lcs M k).mem_coe_submodule, ih, lie_submodule.mem_coe_submodule,
-      lie_submodule.mem_top, exists_true_left, lie_subalgebra.coe_bracket_of_module],
+      lie_submodule.mem_top, exists_true_left, (I : lie_subalgebra R L).coe_bracket_of_module],
     congr,
     ext m,
     split,
@@ -597,9 +691,12 @@ lemma lie_algebra.ad_nilpotent_of_nilpotent {a : A} (h : is_nilpotent a) :
   is_nilpotent (lie_algebra.ad R A a) :=
 begin
   rw lie_algebra.ad_eq_lmul_left_sub_lmul_right,
-  have hl : is_nilpotent (algebra.lmul_left R a), { rwa algebra.is_nilpotent_lmul_left_iff, },
-  have hr : is_nilpotent (algebra.lmul_right R a), { rwa algebra.is_nilpotent_lmul_right_iff, },
-  exact (algebra.commute_lmul_left_right R a a).is_nilpotent_sub hl hr,
+  have hl : is_nilpotent (linear_map.mul_left R a),
+  { rwa linear_map.is_nilpotent_mul_left_iff, },
+  have hr : is_nilpotent (linear_map.mul_right R a),
+  { rwa linear_map.is_nilpotent_mul_right_iff, },
+  have := @linear_map.commute_mul_left_right R A _ _ _ _ _ a a,
+  exact this.is_nilpotent_sub hl hr,
 end
 
 variables {R}

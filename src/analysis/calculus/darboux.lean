@@ -40,7 +40,7 @@ begin
   { cases eq_or_lt_of_le cmem.1 with hac hac,
     -- Show that `c` can't be equal to `a`
     { subst c,
-      refine absurd (sub_nonneg.1 $ nonneg_of_mul_nonneg_left _ (sub_pos.2 hab'))
+      refine absurd (sub_nonneg.1 $ nonneg_of_mul_nonneg_right _ (sub_pos.2 hab'))
         (not_le_of_lt hma),
       have : b - a ∈ pos_tangent_cone_at (Icc a b) a,
         from mem_pos_tangent_cone_at_of_segment_subset (segment_eq_Icc hab ▸ subset.refl _),

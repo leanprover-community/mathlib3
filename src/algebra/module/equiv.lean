@@ -45,13 +45,12 @@ section
 set_option old_structure_cmd true
 
 /-- A linear equivalence is an invertible linear map. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure linear_equiv {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
   {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
   (M : Type*) (M₂ : Type*)
   [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
   extends linear_map σ M M₂, M ≃+ M₂
-end
 
 attribute [nolint doc_blame] linear_equiv.to_linear_map
 attribute [nolint doc_blame] linear_equiv.to_add_equiv
@@ -59,6 +58,49 @@ attribute [nolint doc_blame] linear_equiv.to_add_equiv
 notation M ` ≃ₛₗ[`:50 σ `] ` M₂ := linear_equiv σ M M₂
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv (ring_hom.id R) M M₂
 notation M ` ≃ₗ⋆[`:50 R `] ` M₂ := linear_equiv (star_ring_end R) M M₂
+
+/-- `semilinear_equiv_class F σ M M₂` asserts `F` is a type of bundled `σ`-semilinear equivs
+`M → M₂`.
+
+See also `linear_equiv_class F R M M₂` for the case where `σ` is the identity map on `R`.
+
+A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ : R →+* S`
+is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
+`f (c • x) = (σ c) • f x`. -/
+class semilinear_equiv_class (F : Type*) {R S : out_param Type*} [semiring R] [semiring S]
+  (σ : out_param $ R →+* S) {σ' : out_param $ S →+* R}
+  [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ] (M M₂ : out_param Type*)
+  [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
+  extends add_equiv_class F M M₂ :=
+(map_smulₛₗ : ∀ (f : F) (r : R) (x : M), f (r • x) = (σ r) • f x)
+
+-- `R, S, σ, σ'` become metavars, but it's OK since they are outparams.
+attribute [nolint dangerous_instance] semilinear_equiv_class.to_add_equiv_class
+
+/-- `linear_equiv_class F R M M₂` asserts `F` is a type of bundled `R`-linear equivs `M → M₂`.
+This is an abbreviation for `semilinear_equiv_class F (ring_hom.id R) M M₂`.
+-/
+abbreviation linear_equiv_class (F : Type*) (R M M₂ : out_param Type*)
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂] :=
+semilinear_equiv_class F (ring_hom.id R) M M₂
+
+end
+
+namespace semilinear_equiv_class
+
+variables (F : Type*) [semiring R] [semiring S]
+variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
+variables [module R M] [module S M₂] {σ : R →+* S} {σ' : S →+* R}
+
+-- `σ'` becomes a metavariable, but it's OK since it's an outparam
+@[priority 100, nolint dangerous_instance]
+instance [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ] [s : semilinear_equiv_class F σ M M₂] :
+  semilinear_map_class F σ M M₂ :=
+{ coe := (coe : F → M → M₂),
+  coe_injective' := @fun_like.coe_injective F _ _ _,
+  ..s }
+
+end semilinear_equiv_class
 
 namespace linear_equiv
 
@@ -101,9 +143,12 @@ lemma to_linear_map_injective :
   (e₁ : M →ₛₗ[σ] M₂) = e₂ ↔ e₁ = e₂ :=
 to_linear_map_injective.eq_iff
 
-instance : semilinear_map_class (M ≃ₛₗ[σ] M₂) σ M M₂ :=
+instance : semilinear_equiv_class (M ≃ₛₗ[σ] M₂) σ M M₂ :=
 { coe := linear_equiv.to_fun,
-  coe_injective' := λ f g h, to_linear_map_injective (fun_like.coe_injective h),
+  inv := linear_equiv.inv_fun,
+  coe_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
+  left_inv := linear_equiv.left_inv,
+  right_inv := linear_equiv.right_inv,
   map_add := map_add',
   map_smulₛₗ := map_smul' }
 
@@ -367,30 +412,6 @@ e.to_equiv.image_eq_preimage s
 protected lemma image_symm_eq_preimage (s : set M₂) : e.symm '' s = e ⁻¹' s :=
 e.to_equiv.symm.image_eq_preimage s
 
-section pointwise
-open_locale pointwise
-
-@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
-  e '' (c • s) = (σ c) • e '' s :=
-linear_map.image_smul_setₛₗ e.to_linear_map c s
-
-@[simp] lemma preimage_smul_setₛₗ (c : S) (s : set M₂) :
-  e ⁻¹' (c • s) = σ' c • e ⁻¹' s :=
-by rw [← linear_equiv.image_symm_eq_preimage, ← linear_equiv.image_symm_eq_preimage,
-  image_smul_setₛₗ]
-
-include module_M₁ module_N₁
-
-@[simp] lemma image_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set M₁) :
-  e '' (c • s) = c • e '' s :=
-linear_map.image_smul_set e.to_linear_map c s
-
-@[simp] lemma preimage_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set N₁) :
-  e ⁻¹' (c • s) = c • e ⁻¹' s :=
-e.preimage_smul_setₛₗ c s
-
-end pointwise
-
 end
 
 /-- Interpret a `ring_equiv` `f` as an `f`-semilinear equiv. -/
@@ -481,7 +502,7 @@ instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
   f • a = f a := rfl
 
 /-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
-instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+instance apply_has_faithful_smul : has_faithful_smul (M ≃ₗ[R] M) M :=
 ⟨λ _ _, linear_equiv.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=

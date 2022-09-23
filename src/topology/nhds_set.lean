@@ -54,7 +54,7 @@ lemma has_basis_nhds_set (s : set α) : (𝓝ˢ s).has_basis (λ U, is_open U �
 ⟨λ t, by simp [mem_nhds_set_iff_exists, and_assoc]⟩
 
 lemma is_open.mem_nhds_set (hU : is_open s) : s ∈ 𝓝ˢ t ↔ t ⊆ s :=
-by rw [← subset_interior_iff_mem_nhds_set, interior_eq_iff_open.mpr hU]
+by rw [← subset_interior_iff_mem_nhds_set, interior_eq_iff_is_open.mpr hU]
 
 lemma principal_le_nhds_set : 𝓟 s ≤ 𝓝ˢ s :=
 λ s hs, (subset_interior_iff_mem_nhds_set.mpr hs).trans interior_subset

@@ -69,7 +69,7 @@ instance : has_bot ereal := ⟨some ⊥⟩
 instance : has_coe ℝ ereal := ⟨real.to_ereal⟩
 
 lemma coe_strict_mono : strict_mono (coe : ℝ → ereal) :=
-with_bot.coe_strict_mono.comp with_top.coe_strict_mono
+with_top.coe_strict_mono.comp with_bot.coe_strict_mono
 
 lemma coe_injective : injective (coe : ℝ → ereal) := coe_strict_mono.injective
 

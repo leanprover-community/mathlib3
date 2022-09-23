@@ -153,7 +153,7 @@ by cases le_total a b; simp [interval_oc, *]
 
 lemma forall_interval_oc_iff  {P : α → Prop} :
   (∀ x ∈ Ι a b, P x) ↔ (∀ x ∈ Ioc a b, P x) ∧ (∀ x ∈ Ioc b a, P x) :=
-by simp only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, forall_and_distrib]
+by simp only [interval_oc_eq_union, mem_union, or_imp_distrib, forall_and_distrib]
 
 lemma interval_oc_subset_interval_oc_of_interval_subset_interval {a b c d : α}
   (h : [a, b] ⊆ [c, d]) : Ι a b ⊆ Ι c d :=

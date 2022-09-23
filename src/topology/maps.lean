@@ -365,7 +365,7 @@ lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f :
 
 lemma is_open_map_iff_interior [topological_space α] [topological_space β] {f : α → β} :
   is_open_map f ↔ ∀ s, f '' (interior s) ⊆ interior (f '' s) :=
-⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_open.mp $
+⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_is_open.mp $
   calc f '' u = f '' (interior u) : by rw hu.interior_eq
           ... ⊆ interior (f '' u) : hs u⟩
 

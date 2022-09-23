@@ -3,12 +3,10 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.big_operators.ring
-import data.real.pointwise
-import algebra.indicator_function
 import algebra.algebra.basic
-import algebra.order.module
 import algebra.order.nonneg
+import data.real.pointwise
+import tactic.positivity
 
 /-!
 # Nonnegative real numbers
@@ -840,3 +838,23 @@ lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
 by { ext, rw [nnreal.coe_nat_cast, int.cast_nat_abs, real.coe_nnabs] }
 
 end real
+
+namespace tactic
+open positivity
+
+private lemma nnreal_coe_pos {r : ℝ≥0} : 0 < r → 0 < (r : ℝ) := nnreal.coe_pos.2
+
+/-- Extension for the `positivity` tactic: cast from `ℝ≥0` to `ℝ`. -/
+@[positivity]
+meta def positivity_coe_nnreal_real : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  unify inst `(@coe_to_lift _ _ $ @coe_base _ _ nnreal.real.has_coe),
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
+  | nonnegative _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
+  end
+| e := pp e >>= fail ∘ format.bracket "The expression "
+         " is not of the form `(r : ℝ)` for `r : ℝ≥0`"
+
+end tactic

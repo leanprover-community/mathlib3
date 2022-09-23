@@ -423,12 +423,9 @@ variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
 /-- `(Σ i, σ i) × β` is homeomorphic to `Σ i, (σ i × β)`. -/
 def sigma_prod_distrib : ((Σ i, σ i) × β) ≃ₜ (Σ i, (σ i × β)) :=
-homeomorph.symm $
-homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
-  (continuous_sigma $ λ i,
-    (continuous_sigma_mk.comp continuous_fst).prod_mk continuous_snd)
-  (is_open_map_sigma $ λ i,
-    (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
+homeomorph.symm $ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
+  (continuous_sigma $ λ i, continuous_sigma_mk.fst'.prod_mk continuous_snd)
+  (is_open_map_sigma.2 $ λ i, is_open_map_sigma_mk.prod is_open_map.id)
 
 end distrib
 

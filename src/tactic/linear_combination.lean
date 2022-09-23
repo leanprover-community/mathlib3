@@ -73,6 +73,7 @@ checking if the weighted sum is equivalent to the goal (when `normalize` is `tt`
 meta structure linear_combination_config : Type :=
 (normalize : bool := tt)
 (normalization_tactic : tactic unit := `[ring_nf SOP])
+(exponent : ℕ := 1)
 
 
 /-! ### Part 1: Multiplying Equations by Constants and Adding Them Together -/
@@ -273,11 +274,9 @@ If an exponent `n` is provided, changes the goal from `t = 0` to `t^n = 0`.
 
 * Output: N/A
 -/
-meta def raise_goal_to_power (exponent : ℕ) : tactic unit :=
-match exponent with
+meta def raise_goal_to_power : ℕ → tactic unit
 | 1 := skip
 | n := refine ``(@pow_eq_zero _ _ _ _ %%`(n) _)
-end
 
 /--
 This tactic attempts to prove the goal by normalizing the target if the
@@ -320,14 +319,14 @@ Note: The left and right sides of all the equalities should have the same
 * Output: N/A
 -/
 meta def linear_combination (h_eqs_names : list pexpr) (coeffs : list pexpr)
-  (exponent : option ℕ := none) (config : linear_combination_config := {}) : tactic unit :=
+  (config : linear_combination_config := {}) : tactic unit :=
 do
   `(@eq %%ext _ _) ← target | fail "linear_combination can only be used to prove equality goals",
   h_eqs ← h_eqs_names.mmap to_expr,
   hsum ← make_sum_of_hyps ext h_eqs coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
-  raise_goal_to_power (exponent.get_or_else 1),
+  raise_goal_to_power config.exponent,
   set_goal_to_hleft_sub_tleft hsum_on_left,
   normalize_if_desired config
 
@@ -435,16 +434,10 @@ by linear_combination 3 * h a b + hqc
 meta def _root_.tactic.interactive.linear_combination
   (input : parse (as_linear_combo ff [] <$> texpr)?)
   (_ : parse (tk "with")?)
-  (exponent : parse (prod.mk <$> ident <*> small_nat)?)
   (config : linear_combination_config := {})
   : tactic unit := do
-  exponent ← match exponent with
-  | none := return none
-  | some (`exponent, n) := return $ some n
-  | some (id, _) := fail!"linear_combination does not support the modifier {id}"
-  end,
 let (h_eqs_names, coeffs) := list.unzip (input.get_or_else []) in
-linear_combination h_eqs_names coeffs exponent config
+linear_combination h_eqs_names coeffs config
 
 add_tactic_doc
 { name := "linear_combination",

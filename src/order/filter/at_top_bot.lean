@@ -1654,7 +1654,7 @@ begin
   have hms_freq : ∀ (n : ℕ), x (y (ms n)) ∉ s, from λ n, hy_freq (ms n),
   have h_empty : (λ (n : ℕ), x (y (ms n))) ⁻¹' s = ∅,
   { ext1 n,
-    simp only [set.mem_preimage, set.mem_empty_eq, iff_false],
+    simp only [set.mem_preimage, set.mem_empty_iff_false, iff_false],
     exact hms_freq n, },
   rw h_empty at hms_tendsto,
   exact empty_not_mem at_top hms_tendsto,

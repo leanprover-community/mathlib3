@@ -542,7 +542,7 @@ def std_simplex : set (ι → 𝕜) :=
 
 lemma std_simplex_eq_inter :
   std_simplex 𝕜 ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
-by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
+by { ext f, simp only [std_simplex, set.mem_inter_iff, set.mem_Inter, set.mem_set_of_eq] }
 
 lemma convex_std_simplex : convex 𝕜 (std_simplex 𝕜 ι) :=
 begin

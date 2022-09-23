@@ -137,7 +137,7 @@ def nil_fun {α : typevec 0} {β : typevec 0} : α ⟹ β :=
 theorem eq_of_drop_last_eq {α β : typevec (n+1)} {f g : α ⟹ β}
   (h₀ : drop_fun f = drop_fun g) (h₁ : last_fun f = last_fun g) : f = g :=
 by replace h₀ := congr_fun h₀;
-   ext1 (ieq | ⟨j, ieq⟩); apply_assumption
+   ext1 ⟨⟩; apply_assumption
 
 @[simp] theorem drop_fun_split_fun {α α' : typevec (n+1)}
   (f : drop α ⟹ drop α') (g : last α → last α') :

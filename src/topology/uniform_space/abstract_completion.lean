@@ -240,6 +240,13 @@ pkg.uniform_continuous_compare pkg'
 lemma uniform_continuous_compare_equiv_symm : uniform_continuous (pkg.compare_equiv pkg').symm :=
 pkg'.uniform_continuous_compare pkg
 
+/-- the completion of a complete space is uniform-equivalent to itself -/
+def abstract_completion.complete_equiv_self {α : Type*} [uniform_space α]
+[separated_space α] [complete_space α] (pkg : abstract_completion α) :
+pkg.space ≃ᵤ α :=
+abstract_completion.compare_equiv pkg (abstract_completion.mk α id
+  (by apply_instance) (by apply_instance) (by apply_instance) uniform_inducing_id dense_range_id)
+
 end compare
 
 section prod

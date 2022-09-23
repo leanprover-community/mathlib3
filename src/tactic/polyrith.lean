@@ -494,11 +494,11 @@ meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_
   coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
   let eq_names_pexpr := eq_names.map to_pexpr,
   coeffs_as_expr ← coeffs_as_pexpr.mmap $ λ e, to_expr ``(%%e : %%R),
-  linear_combo.linear_combination eq_names_pexpr coeffs_as_pexpr (some power),
+  linear_combo.linear_combination eq_names_pexpr coeffs_as_pexpr {exponent := power},
   let components := (eq_names.zip coeffs_as_expr).filter
     $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
   expr_string ← components_to_lc_format components,
-  let lc_exp : format := if power = 1 then "" else format!" with exponent {power}",
+  let lc_exp : format := if power = 1 then "" else format!" with {{exponent := {power}}}",
   let lc_fmt : format := "linear_combination " ++ format.nest 2 (format.group expr_string ++ lc_exp),
   done <|>
     fail!"polyrith found the following certificate, but it failed to close the goal:\n{lc_fmt}",

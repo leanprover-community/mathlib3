@@ -53,6 +53,10 @@ lemma set.subsingleton.is_chain (hs : s.subsingleton) : is_chain r s := hs.pairw
 
 lemma is_chain.mono : s ⊆ t → is_chain r t → is_chain r s := set.pairwise.mono
 
+lemma is_chain.mono_rel {r' : α → α → Prop} (h : is_chain r s)
+  (h_imp : ∀ x y, r x y → r' x y) : is_chain r' s :=
+h.mono' $ λ x y, or.imp (h_imp x y) (h_imp y x)
+
 /-- This can be used to turn `is_chain (≥)` into `is_chain (≤)` and vice-versa. -/
 lemma is_chain.symm (h : is_chain r s) : is_chain (flip r) s := h.mono' $ λ _ _, or.symm
 
@@ -91,6 +95,17 @@ protected lemma is_chain.directed {f : β → α} {c : set β} (h : is_chain (f 
   (λ hab : a = b, by simp only [hab, exists_prop, and_self, subtype.exists];
     exact ⟨b, hb, refl _⟩) $
   λ hab, (h ha hb hab).elim (λ h, ⟨⟨b, hb⟩, h, refl _⟩) $ λ h, ⟨⟨a, ha⟩, refl _, h⟩
+
+lemma is_chain.exists3 (hchain : is_chain r s) [is_trans α r] {a b c}
+  (mem1 : a ∈ s) (mem2 : b ∈ s) (mem3 : c ∈ s) :
+  ∃ (z) (mem4 : z ∈ s), r a z ∧ r b z ∧ r c z :=
+begin
+  rcases directed_on_iff_directed.mpr (is_chain.directed hchain) a mem1 b mem2 with
+    ⟨z, mem4, H1, H2⟩,
+  rcases directed_on_iff_directed.mpr (is_chain.directed hchain) z mem4 c mem3 with
+    ⟨z', mem5, H3, H4⟩,
+  exact ⟨z', mem5, trans H1 H3, trans H2 H3, H4⟩,
+end
 
 end total
 

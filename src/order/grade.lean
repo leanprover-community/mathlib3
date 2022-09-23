@@ -14,7 +14,7 @@ This file defines graded orders, also known as ranked orders.
 
 A `𝕆`-graded order is an order `α` equipped with a distinguished "grade" function `α → 𝕆` which
 should be understood as giving the "height" of the elements. Usual graded orders are `ℕ`-graded,
-cograded orders are `order_dual ℕ`-graded, but we can also grade by `ℤ`, and polytopes are naturally
+cograded orders are `ℕᵒᵈ`-graded, but we can also grade by `ℤ`, and polytopes are naturally
 `fin n`-graded.
 
 Visually, `grade ℕ a` is the height of `a` in the Hasse diagram of `α`.
@@ -178,26 +178,26 @@ instance preorder.to_grade_bounded_order : grade_bounded_order α α :=
 
 /-! #### Dual -/
 
-instance [grade_order 𝕆 α] : grade_order (order_dual 𝕆) (order_dual α) :=
+instance [grade_order 𝕆 α] : grade_order 𝕆ᵒᵈ αᵒᵈ :=
 { grade := to_dual ∘ grade 𝕆 ∘ of_dual,
   grade_strict_mono := grade_strict_mono.dual,
   covby_grade := λ a b h, (h.of_dual.grade _).to_dual }
 
-instance [grade_max_order 𝕆 α] : grade_min_order (order_dual 𝕆) (order_dual α) :=
+instance [grade_max_order 𝕆 α] : grade_min_order 𝕆ᵒᵈ αᵒᵈ :=
 { is_min_grade := λ _, is_max.grade _,
   ..order_dual.grade_order }
 
-instance [grade_min_order 𝕆 α] : grade_max_order (order_dual 𝕆) (order_dual α) :=
+instance [grade_min_order 𝕆 α] : grade_max_order 𝕆ᵒᵈ αᵒᵈ :=
 { is_max_grade := λ _, is_min.grade _,
   ..order_dual.grade_order }
 
-instance [grade_bounded_order 𝕆 α] : grade_bounded_order (order_dual 𝕆) (order_dual α) :=
+instance [grade_bounded_order 𝕆 α] : grade_bounded_order 𝕆ᵒᵈ αᵒᵈ :=
 { ..order_dual.grade_min_order, ..order_dual.grade_max_order }
 
 @[simp] lemma grade_to_dual [grade_order 𝕆 α] (a : α) :
-  grade (order_dual 𝕆) (to_dual a) = to_dual (grade 𝕆 a) := rfl
-@[simp] lemma grade_of_dual [grade_order 𝕆 α] (a : order_dual α) :
-  grade 𝕆 (of_dual a) = of_dual (grade (order_dual 𝕆) a) := rfl
+  grade 𝕆ᵒᵈ (to_dual a) = to_dual (grade 𝕆 a) := rfl
+@[simp] lemma grade_of_dual [grade_order 𝕆 α] (a : αᵒᵈ) :
+  grade 𝕆 (of_dual a) = of_dual (grade 𝕆ᵒᵈ a) := rfl
 
 /-! #### Lifting a graded order -/
 

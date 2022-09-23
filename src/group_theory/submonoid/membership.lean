@@ -285,14 +285,17 @@ lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s →
 by rw [mrange_eq_map, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
   free_monoid.lift_comp_of, subtype.range_coe]
 
+@[to_additive] lemma closure_eq_image_prod (s : set M) :
+  (closure s : set M) = list.prod '' {l : list M | ∀ x ∈ l, x ∈ s} :=
+begin
+  rw [closure_eq_mrange, coe_mrange, ← list.range_map_coe, ← set.range_comp],
+  refl
+end
+
 @[to_additive]
 lemma exists_list_of_mem_closure {s : set M} {x : M} (hx : x ∈ closure s) :
   ∃ (l : list M) (hl : ∀ y ∈ l, y ∈ s), l.prod = x :=
-begin
-  rw [closure_eq_mrange, mem_mrange] at hx,
-  rcases hx with ⟨l, hx⟩,
-  exact ⟨list.map coe l, λ y hy, let ⟨z, hz, hy⟩ := list.mem_map.1 hy in hy ▸ z.2, hx⟩
-end
+by rwa [← set_like.mem_coe, closure_eq_image_prod, set.mem_image_iff_bex] at hx
 
 @[to_additive]
 lemma exists_multiset_of_mem_closure {M : Type*} [comm_monoid M] {s : set M}
@@ -373,9 +376,9 @@ lemma log_mul [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ 
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
 (pow_log_equiv (int.pow_right_injective h)).symm_apply_apply _
 
-@[simp] lemma map_powers {N : Type*} [monoid N] (f : M →* N) (m : M) :
-  (powers m).map f = powers (f m) :=
-by simp only [powers_eq_closure, f.map_mclosure, set.image_singleton]
+@[simp] lemma map_powers {N : Type*} {F : Type*} [monoid N] [monoid_hom_class F M N]
+  (f : F) (m : M) : (powers m).map f = powers (f m) :=
+by simp only [powers_eq_closure, map_mclosure f, set.image_singleton]
 
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 @[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive
@@ -457,12 +460,13 @@ attribute [to_additive add_submonoid.multiples_subset] submonoid.powers_subset
 
 end add_submonoid
 
-/-! Lemmas about additive closures of `submonoid`. -/
-namespace submonoid
+/-! Lemmas about additive closures of `subsemigroup`. -/
+namespace mul_mem_class
 
-variables {R : Type*} [non_assoc_semiring R] (S : submonoid R) {a b : R}
+variables {R : Type*} [non_unital_non_assoc_semiring R] [set_like M R] [mul_mem_class M R]
+  {S : M} {a b : R}
 
-/-- The product of an element of the additive closure of a multiplicative submonoid `M`
+/-- The product of an element of the additive closure of a multiplicative subsemigroup `M`
 and an element of `M` is contained in the additive closure of `M`. -/
 lemma mul_right_mem_add_closure
   (ha : a ∈ add_submonoid.closure (S : set R)) (hb : b ∈ S) :
@@ -470,7 +474,7 @@ lemma mul_right_mem_add_closure
 begin
   revert b,
   refine add_submonoid.closure_induction ha _ _ _; clear ha a,
-  { exact λ r hr b hb, add_submonoid.mem_closure.mpr (λ y hy, hy (S.mul_mem hr hb)) },
+  { exact λ r hr b hb, add_submonoid.mem_closure.mpr (λ y hy, hy (mul_mem hr hb)) },
   { exact λ b hb, by simp only [zero_mul, (add_submonoid.closure (S : set R)).zero_mem] },
   { simp_rw add_mul,
     exact λ r s hr hs b hb, (add_submonoid.closure (S : set R)).add_mem (hr hb) (hs hb) }
@@ -484,7 +488,7 @@ lemma mul_mem_add_closure
 begin
   revert a,
   refine add_submonoid.closure_induction hb _ _ _; clear hb b,
-  { exact λ r hr b hb, S.mul_right_mem_add_closure hb hr },
+  { exact λ r hr b hb, mul_mem_class.mul_right_mem_add_closure hb hr },
   { exact λ b hb, by simp only [mul_zero, (add_submonoid.closure (S : set R)).zero_mem] },
   { simp_rw mul_add,
     exact λ r s hr hs b hb, (add_submonoid.closure (S : set R)).add_mem (hr hb) (hs hb) }
@@ -494,7 +498,11 @@ end
 submonoid `S` is contained in the additive closure of `S`. -/
 lemma mul_left_mem_add_closure (ha : a ∈ S) (hb : b ∈ add_submonoid.closure (S : set R)) :
   a * b ∈ add_submonoid.closure (S : set R) :=
-S.mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
+mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
+
+end mul_mem_class
+
+namespace submonoid
 
 /-- An element is in the closure of a two-element set if it is a linear combination of those two
 elements. -/

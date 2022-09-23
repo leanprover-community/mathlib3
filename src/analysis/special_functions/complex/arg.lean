@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import algebra.order.to_interval_mod
 import analysis.special_functions.trigonometric.angle
 import analysis.special_functions.trigonometric.inverse
 
@@ -69,15 +70,17 @@ end
   (abs x * (cos (arg x) + sin (arg x) * I) : ℂ) = x :=
 by rw [← exp_mul_I, abs_mul_exp_arg_mul_I]
 
-@[simp] lemma range_exp_mul_I : range (λ x : ℝ, exp (x * I)) = metric.sphere 0 1 :=
+lemma abs_eq_one_iff (z : ℂ) : abs z = 1 ↔ ∃ θ : ℝ, exp (θ * I) = z :=
 begin
-  simp only [metric.sphere, dist_eq, sub_zero],
-  refine (range_subset_iff.2 $ λ x, _).antisymm (λ z (hz : abs z = 1), _),
-  { exact abs_exp_of_real_mul_I _ },
-  { refine ⟨arg z, _⟩,
-    calc exp (arg z * I) = abs z * exp (arg z * I) : by rw [hz, of_real_one, one_mul]
-    ... = z : abs_mul_exp_arg_mul_I z }
+  refine ⟨λ hz, ⟨arg z, _⟩, _⟩,
+  { calc exp (arg z * I) = abs z * exp (arg z * I) : by rw [hz, of_real_one, one_mul]
+    ... = z : abs_mul_exp_arg_mul_I z },
+  { rintro ⟨θ, rfl⟩,
+    exact complex.abs_exp_of_real_mul_I θ },
 end
+
+@[simp] lemma range_exp_mul_I : range (λ x : ℝ, exp (x * I)) = metric.sphere 0 1 :=
+by { ext x, simp only [mem_sphere_zero_iff_norm, norm_eq_abs, abs_eq_one_iff, mem_range] }
 
 lemma arg_mul_cos_add_sin_mul_I {r : ℝ} (hr : 0 < r) {θ : ℝ} (hθ : θ ∈ Ioc (-π) π) :
   arg (r * (cos θ + sin θ * I)) = θ :=
@@ -135,6 +138,8 @@ lemma arg_le_pi (x : ℂ) : arg x ≤ π :=
 
 lemma neg_pi_lt_arg (x : ℂ) : -π < arg x :=
 (arg_mem_Ioc x).1
+
+lemma abs_arg_le_pi (z : ℂ) : |arg z| ≤ π := abs_le.2 ⟨(neg_pi_lt_arg z).le, arg_le_pi z⟩
 
 @[simp] lemma arg_nonneg_iff {z : ℂ} : 0 ≤ arg z ↔ 0 ≤ z.im :=
 begin
@@ -205,6 +210,9 @@ begin
   { cases z with x y, rintro ⟨h : x < 0, rfl : y = 0⟩,
     rw [← arg_neg_one, ← arg_real_mul (-1) (neg_pos.2 h)], simp [← of_real_def] }
 end
+
+lemma arg_lt_pi_iff {z : ℂ} : arg z < π ↔ 0 ≤ z.re ∨ z.im ≠ 0 :=
+by rw [(arg_le_pi z).lt_iff_ne, not_iff_comm, not_or_distrib, not_le, not_not, arg_eq_pi_iff]
 
 lemma arg_of_real_of_neg {x : ℝ} (hx : x < 0) : arg x = π :=
 arg_eq_pi_iff.2 ⟨hx, rfl⟩
@@ -278,6 +286,41 @@ begin
   { exact arg_real_mul (conj x) (by simp [hx]) }
 end
 
+lemma arg_le_pi_div_two_iff {z : ℂ} : arg z ≤ π / 2 ↔ 0 ≤ re z ∨ im z < 0 :=
+begin
+  cases le_or_lt 0 (re z) with hre hre,
+  { simp only [hre, arg_of_re_nonneg hre, real.arcsin_le_pi_div_two, true_or] },
+  simp only [hre.not_le, false_or],
+  cases le_or_lt 0 (im z) with him him,
+  { simp only [him.not_lt],
+    rw [iff_false, not_le, arg_of_re_neg_of_im_nonneg hre him, ← sub_lt_iff_lt_add, half_sub,
+      real.neg_pi_div_two_lt_arcsin, neg_im, neg_div, neg_lt_neg_iff, div_lt_one, ←
+      _root_.abs_of_nonneg him, abs_im_lt_abs],
+    exacts [hre.ne, abs_pos.2 $ ne_of_apply_ne re hre.ne] },
+  { simp only [him],
+    rw [iff_true, arg_of_re_neg_of_im_neg hre him],
+    exact (sub_le_self _ real.pi_pos.le).trans (real.arcsin_le_pi_div_two _) }
+end
+
+lemma neg_pi_div_two_le_arg_iff {z : ℂ} : -(π / 2) ≤ arg z ↔ 0 ≤ re z ∨ 0 ≤ im z :=
+begin
+  cases le_or_lt 0 (re z) with hre hre,
+  { simp only [hre, arg_of_re_nonneg hre, real.neg_pi_div_two_le_arcsin, true_or] },
+  simp only [hre.not_le, false_or],
+  cases le_or_lt 0 (im z) with him him,
+  { simp only [him],
+    rw [iff_true, arg_of_re_neg_of_im_nonneg hre him],
+    exact (real.neg_pi_div_two_le_arcsin _).trans (le_add_of_nonneg_right real.pi_pos.le) },
+  { simp only [him.not_le],
+    rw [iff_false, not_le, arg_of_re_neg_of_im_neg hre him, sub_lt_iff_lt_add', ← sub_eq_add_neg,
+      sub_half, real.arcsin_lt_pi_div_two, div_lt_one, neg_im, ← abs_of_neg him, abs_im_lt_abs],
+    exacts [hre.ne, abs_pos.2 $ ne_of_apply_ne re hre.ne] }
+end
+
+@[simp] lemma abs_arg_le_pi_div_two_iff {z : ℂ} : |arg z| ≤ π / 2 ↔ 0 ≤ re z :=
+by rw [abs_le, arg_le_pi_div_two_iff, neg_pi_div_two_le_arg_iff, ← or_and_distrib_left, ← not_le,
+  and_not_self, or_false]
+
 @[simp] lemma arg_conj_coe_angle (x : ℂ) : (arg (conj x) : real.angle) = -arg x :=
 begin
   by_cases h : arg x = π;
@@ -349,34 +392,26 @@ begin
         real.angle.sub_coe_pi_eq_add_coe_pi] }
 end
 
-lemma arg_mul_cos_add_sin_mul_I_eq_mul_fract {r : ℝ} (hr : 0 < r) (θ : ℝ) :
-  arg (r * (cos θ + sin θ * I)) = π - 2 * π * int.fract ((π - θ) / (2 * π)) :=
+lemma arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod {r : ℝ} (hr : 0 < r) (θ : ℝ) :
+  arg (r * (cos θ + sin θ * I)) = to_Ioc_mod (-π) real.two_pi_pos θ :=
 begin
-  have hi : π - 2 * π * int.fract ((π - θ) / (2 * π)) ∈ Ioc (-π) π,
-  { rw [←mem_preimage, preimage_const_sub_Ioc, ←mem_preimage,
-        preimage_const_mul_Ico _ _ real.two_pi_pos, sub_self, zero_div, sub_neg_eq_add,
-        ←two_mul, div_self real.two_pi_pos.ne.symm],
-    refine set.mem_of_mem_of_subset (set.mem_range_self _) _,
-    rw [←image_univ, int.image_fract],
-    simp },
-  have hs : π - 2 * π * int.fract ((π - θ) / (2 * π)) = 2 * π * ⌊(π - θ) / (2 * π)⌋ + θ,
-  { rw [int.fract, mul_sub, mul_div_cancel' _ real.two_pi_pos.ne.symm],
-    abel },
+  have hi : to_Ioc_mod (-π) real.two_pi_pos θ ∈ Ioc (-π) π,
+  { convert to_Ioc_mod_mem_Ioc _ real.two_pi_pos _,
+    ring },
   convert arg_mul_cos_add_sin_mul_I hr hi using 3,
-  simp_rw [hs, mul_comm (2 * π), add_comm _ θ, ←of_real_cos, ←of_real_sin,
-           real.cos_add_int_mul_two_pi, real.sin_add_int_mul_two_pi]
+  simp [to_Ioc_mod, cos_add_int_mul_two_pi, sin_add_int_mul_two_pi]
 end
 
-lemma arg_cos_add_sin_mul_I_eq_mul_fract (θ : ℝ) :
-  arg (cos θ + sin θ * I) = π - 2 * π * int.fract ((π - θ) / (2 * π)) :=
-by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_eq_mul_fract zero_lt_one]
+lemma arg_cos_add_sin_mul_I_eq_to_Ioc_mod (θ : ℝ) :
+  arg (cos θ + sin θ * I) = to_Ioc_mod (-π) real.two_pi_pos θ :=
+by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod zero_lt_one]
 
 lemma arg_mul_cos_add_sin_mul_I_sub {r : ℝ} (hr : 0 < r) (θ : ℝ) :
   arg (r * (cos θ + sin θ * I)) - θ = 2 * π * ⌊(π - θ) / (2 * π)⌋ :=
 begin
-  rw [arg_mul_cos_add_sin_mul_I_eq_mul_fract hr, int.fract, mul_sub,
-      mul_div_cancel' _ real.two_pi_pos.ne.symm],
-  abel
+  rw [arg_mul_cos_add_sin_mul_I_eq_to_Ioc_mod hr, to_Ioc_mod_sub_self, to_Ioc_div_eq_floor,
+      zsmul_eq_mul],
+  ring_nf
 end
 
 lemma arg_cos_add_sin_mul_I_sub (θ : ℝ) :
@@ -411,27 +446,18 @@ lemma arg_div_coe_angle {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :
   (arg (x / y) : real.angle) = arg x - arg y :=
 by rw [div_eq_mul_inv, arg_mul_coe_angle hx (inv_ne_zero hy), arg_inv_coe_angle, sub_eq_add_neg]
 
-@[simp] lemma arg_coe_angle_eq_iff {x y : ℂ} : (arg x : real.angle) = arg y ↔ arg x = arg y :=
+@[simp] lemma arg_coe_angle_to_real_eq_arg (z : ℂ) : (arg z : real.angle).to_real = arg z :=
 begin
-  split,
-  { intro h,
-    rw real.angle.angle_eq_iff_two_pi_dvd_sub at h,
-    rcases h with ⟨k, hk⟩,
-    rw ←sub_eq_zero,
-    have ha : -(2 * π) < arg x - arg y,
-    { linarith only [neg_pi_lt_arg x, arg_le_pi y] },
-    have hb : arg x - arg y < 2 * π,
-    { linarith only [arg_le_pi x, neg_pi_lt_arg y] },
-    rw [hk, neg_lt, neg_mul_eq_mul_neg, mul_lt_iff_lt_one_right real.two_pi_pos, neg_lt,
-        ←int.cast_one, ←int.cast_neg, int.cast_lt] at ha,
-    rw [hk, mul_lt_iff_lt_one_right real.two_pi_pos, ←int.cast_one, int.cast_lt] at hb,
-    have hk' : k = 0,
-    { linarith only [ha, hb] },
-    rw hk' at hk,
-    simpa using hk },
-  { intro h,
-    rw h }
+  rw real.angle.to_real_coe_eq_self_iff_mem_Ioc,
+  exact arg_mem_Ioc _
 end
+
+lemma arg_coe_angle_eq_iff_eq_to_real {z : ℂ} {θ : real.angle} :
+  (arg z : real.angle) = θ ↔ arg z = θ.to_real :=
+by rw [←real.angle.to_real_inj, arg_coe_angle_to_real_eq_arg]
+
+@[simp] lemma arg_coe_angle_eq_iff {x y : ℂ} : (arg x : real.angle) = arg y ↔ arg x = arg y :=
+by simp_rw [←real.angle.to_real_inj, arg_coe_angle_to_real_eq_arg]
 
 section continuity
 
@@ -519,6 +545,28 @@ lemma tendsto_arg_nhds_within_im_nonneg_of_re_neg_of_im_zero
   tendsto arg (𝓝[{z : ℂ | 0 ≤ z.im}] z) (𝓝 π) :=
 by simpa only [arg_eq_pi_iff.2 ⟨hre, him⟩]
   using (continuous_within_at_arg_of_re_neg_of_im_zero hre him).tendsto
+
+lemma continuous_at_arg_coe_angle (h : x ≠ 0) : continuous_at (coe ∘ arg : ℂ → real.angle) x :=
+begin
+  by_cases hs : 0 < x.re ∨ x.im ≠ 0,
+  { exact real.angle.continuous_coe.continuous_at.comp (continuous_at_arg hs) },
+  { rw [←function.comp.right_id (coe ∘ arg),
+        (function.funext_iff.2 (λ _, (neg_neg _).symm) :
+          (id : ℂ → ℂ) = has_neg.neg ∘ has_neg.neg), ←function.comp.assoc],
+    refine continuous_at.comp _ continuous_neg.continuous_at,
+    suffices : continuous_at (function.update ((coe ∘ arg) ∘ has_neg.neg : ℂ → real.angle) 0 π)
+      (-x), by rwa continuous_at_update_of_ne (neg_ne_zero.2 h) at this,
+    have ha : function.update ((coe ∘ arg) ∘ has_neg.neg : ℂ → real.angle) 0 π =
+      λ z, (arg z : real.angle) + π,
+    { rw function.update_eq_iff,
+      exact ⟨by simp, λ z hz, arg_neg_coe_angle hz⟩ },
+    rw ha,
+    push_neg at hs,
+    refine (real.angle.continuous_coe.continuous_at.comp (continuous_at_arg (or.inl _))).add
+      continuous_at_const,
+    rw [neg_re, neg_pos],
+    exact hs.1.lt_of_ne (λ h0, h (ext_iff.2 ⟨h0, hs.2⟩)) }
+end
 
 end continuity
 

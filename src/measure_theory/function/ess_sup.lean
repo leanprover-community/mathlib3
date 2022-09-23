@@ -46,7 +46,7 @@ lemma ess_sup_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) : ess_sup f μ = e
 limsup_congr hfg
 
 lemma ess_inf_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) :  ess_inf f μ = ess_inf g μ :=
-@ess_sup_congr_ae α (order_dual β) _ _ _ _ _ hfg
+@ess_sup_congr_ae α βᵒᵈ _ _ _ _ _ hfg
 
 end conditionally_complete_lattice
 
@@ -73,7 +73,7 @@ le_bot_iff.mp (Inf_le (by simp [set.mem_set_of_eq, eventually_le, ae_iff]))
 
 @[simp] lemma ess_inf_measure_zero {m : measurable_space α} {f : α → β} :
   ess_inf f (0 : measure α) = ⊤ :=
-@ess_sup_measure_zero α (order_dual β) _ _ _
+@ess_sup_measure_zero α βᵒᵈ _ _ _
 
 lemma ess_sup_mono_ae {f g : α → β} (hfg : f ≤ᵐ[μ] g) : ess_sup f μ ≤ ess_sup g μ :=
 limsup_le_limsup hfg
@@ -96,10 +96,10 @@ begin
 end
 
 lemma ess_inf_const (c : β) (hμ : μ ≠ 0) : ess_inf (λ x : α, c) μ = c :=
-@ess_sup_const α (order_dual β) _ _ _ _ hμ
+@ess_sup_const α βᵒᵈ _ _ _ _ hμ
 
 lemma le_ess_inf_of_ae_le {f : α → β} (c : β) (hf : (λ _, c) ≤ᵐ[μ] f) : c ≤ ess_inf f μ :=
-@ess_sup_le_of_ae_le α (order_dual β) _ _ _ _ c hf
+@ess_sup_le_of_ae_le α βᵒᵈ _ _ _ _ c hf
 
 lemma ess_sup_const_bot : ess_sup (λ x : α, (⊥ : β)) μ = (⊥ : β) :=
 limsup_const_bot
@@ -118,7 +118,7 @@ end
 lemma order_iso.ess_inf_apply {m : measurable_space α} {γ} [complete_lattice γ]
   (f : α → β) (μ : measure α) (g : β ≃o γ) :
   g (ess_inf f μ) = ess_inf (λ x, g (f x)) μ :=
-@order_iso.ess_sup_apply α (order_dual β) _ _  (order_dual γ) _ _ _ g.dual
+@order_iso.ess_sup_apply α βᵒᵈ _ _  γᵒᵈ _ _ _ g.dual
 
 lemma ess_sup_mono_measure {f : α → β} (hμν : ν ≪ μ) : ess_sup f ν ≤ ess_sup f μ :=
 begin
@@ -207,7 +207,7 @@ lemma ae_lt_of_ess_sup_lt {f : α → β} {x : β} (hf : ess_sup f μ < x) : ∀
 filter.eventually_lt_of_limsup_lt hf
 
 lemma ae_lt_of_lt_ess_inf {f : α → β} {x : β} (hf : x < ess_inf f μ) : ∀ᵐ y ∂μ, x < f y :=
-@ae_lt_of_ess_sup_lt α (order_dual β) _ _ _ _ _ hf
+@ae_lt_of_ess_sup_lt α βᵒᵈ _ _ _ _ _ hf
 
 lemma ess_sup_indicator_eq_ess_sup_restrict [has_zero β] {s : set α}
   {f : α → β} (hf : 0 ≤ᵐ[μ.restrict s] f) (hs : measurable_set s) (hs_not_null : μ s ≠ 0) :
@@ -219,7 +219,7 @@ begin
   rw eventually_map at h_restrict_le ⊢,
   rw ae_restrict_iff' hs at h_restrict_le,
   have hc : 0 ≤ c,
-  { suffices : ∃ x, 0 ≤ f x ∧ f x ≤ c, by { obtain ⟨x, hx⟩ := this, exact hx.1.trans hx.2, },
+  { rsuffices ⟨x, hx⟩ : ∃ x, 0 ≤ f x ∧ f x ≤ c, from hx.1.trans hx.2,
     refine frequently.exists _,
     { exact μ.ae, },
     rw [eventually_le, ae_restrict_iff' hs] at hf,
@@ -252,10 +252,13 @@ limsup_eq_zero_iff
 lemma ess_sup_const_mul {a : ℝ≥0∞} : ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
 limsup_const_mul
 
+lemma ess_sup_mul_le (f g : α → ℝ≥0∞) : ess_sup (f * g) μ ≤ ess_sup f μ * ess_sup g μ :=
+limsup_mul_le f g
+
 lemma ess_sup_add_le (f g : α → ℝ≥0∞) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
 limsup_add_le f g
 
-lemma ess_sup_liminf_le {ι} [encodable ι] [linear_order ι] (f : ι → α → ℝ≥0∞) :
+lemma ess_sup_liminf_le {ι} [countable ι] [linear_order ι] (f : ι → α → ℝ≥0∞) :
   ess_sup (λ x, at_top.liminf (λ n, f n x)) μ ≤ at_top.liminf (λ n, ess_sup (λ x, f n x) μ) :=
 by { simp_rw ess_sup, exact ennreal.limsup_liminf_le_liminf_limsup (λ a b, f b a), }
 

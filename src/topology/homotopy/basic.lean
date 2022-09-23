@@ -141,24 +141,24 @@ lemma extend_apply_of_le_zero (F : homotopy f₀ f₁) {t : ℝ} (ht : t ≤ 0) 
   F.extend t x = f₀ x :=
 begin
   rw [←F.apply_zero],
-  exact continuous_map.congr_fun (set.Icc_extend_of_le_left (@zero_le_one ℝ _) F.curry ht) x,
+  exact continuous_map.congr_fun (set.Icc_extend_of_le_left (zero_le_one' ℝ) F.curry ht) x,
 end
 
 lemma extend_apply_of_one_le (F : homotopy f₀ f₁) {t : ℝ} (ht : 1 ≤ t) (x : X) :
   F.extend t x = f₁ x :=
 begin
   rw [←F.apply_one],
-  exact continuous_map.congr_fun (set.Icc_extend_of_right_le (@zero_le_one ℝ _) F.curry ht) x,
+  exact continuous_map.congr_fun (set.Icc_extend_of_right_le (zero_le_one' ℝ) F.curry ht) x,
 end
 
 @[simp]
 lemma extend_apply_coe (F : homotopy f₀ f₁) (t : I) (x : X) : F.extend t x = F (t, x) :=
-continuous_map.congr_fun (set.Icc_extend_coe (@zero_le_one ℝ _) F.curry t) x
+continuous_map.congr_fun (set.Icc_extend_coe (zero_le_one' ℝ) F.curry t) x
 
 @[simp]
 lemma extend_apply_of_mem_I (F : homotopy f₀ f₁) {t : ℝ} (ht : t ∈ I) (x : X) :
   F.extend t x = F (⟨t, ht⟩, x) :=
-continuous_map.congr_fun (set.Icc_extend_of_mem (@zero_le_one ℝ _) F.curry ht) x
+continuous_map.congr_fun (set.Icc_extend_of_mem (zero_le_one' ℝ) F.curry ht) x
 
 lemma congr_fun {F G : homotopy f₀ f₁} (h : F = G) (x : I × X) : F x = G x :=
 continuous_map.congr_fun (congr_arg _ h) x

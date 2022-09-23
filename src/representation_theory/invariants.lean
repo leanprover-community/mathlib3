@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
 import representation_theory.basic
+import representation_theory.Rep
 
 /-!
 # Subspace of invariants a group representation
@@ -32,8 +33,6 @@ The average of all elements of the group `G`, considered as an element of `monoi
 noncomputable def average : monoid_algebra k G :=
   ⅟(fintype.card G : k) • ∑ g : G, of k G g
 
-lemma average_def : average k G = ⅟(fintype.card G : k) • ∑ g : G, of k G g := rfl
-
 /--
 `average k G` is invariant under left multiplication by elements of `G`.
 -/
@@ -41,7 +40,7 @@ lemma average_def : average k G = ⅟(fintype.card G : k) • ∑ g : G, of k G 
 theorem mul_average_left (g : G) :
   (finsupp.single g 1 * average k G : monoid_algebra k G) = average k G :=
 begin
-  simp only [mul_one, finset.mul_sum, algebra.mul_smul_comm, average_def, monoid_algebra.of_apply,
+  simp only [mul_one, finset.mul_sum, algebra.mul_smul_comm, average, monoid_algebra.of_apply,
     finset.sum_congr, monoid_algebra.single_mul_single],
   set f : G → monoid_algebra k G := λ x, finsupp.single x 1,
   show ⅟ ↑(fintype.card G) • ∑ (x : G), f (g * x) = ⅟ ↑(fintype.card G) • ∑ (x : G), f x,
@@ -55,7 +54,7 @@ end
 theorem mul_average_right (g : G) :
   average k G * finsupp.single g 1 = average k G :=
 begin
-  simp only [mul_one, finset.sum_mul, algebra.smul_mul_assoc, average_def, monoid_algebra.of_apply,
+  simp only [mul_one, finset.sum_mul, algebra.smul_mul_assoc, average, monoid_algebra.of_apply,
     finset.sum_congr, monoid_algebra.single_mul_single],
   set f : G → monoid_algebra k G := λ x, finsupp.single x 1,
   show ⅟ ↑(fintype.card G) • ∑ (x : G), f (x * g) = ⅟ ↑(fintype.card G) • ∑ (x : G), f x,
@@ -65,6 +64,8 @@ end
 end group_algebra
 
 namespace representation
+
+section invariants
 
 open group_algebra
 
@@ -99,8 +100,8 @@ noncomputable def average_map : V →ₗ[k] V := as_algebra_hom ρ (average k G)
 The `average_map` sends elements of `V` to the subspace of invariants.
 -/
 theorem average_map_invariant (v : V) : average_map ρ v ∈ invariants ρ :=
-λ g, by rw [average_map, ←as_algebra_hom_single, ←linear_map.mul_apply, ←map_mul (as_algebra_hom ρ),
-            mul_average_left]
+λ g, by rw [average_map, ←as_algebra_hom_single_one, ←linear_map.mul_apply,
+  ←map_mul (as_algebra_hom ρ), mul_average_left]
 
 /--
 The `average_map` acts as the identity on the subspace of invariants.
@@ -108,7 +109,42 @@ The `average_map` acts as the identity on the subspace of invariants.
 theorem average_map_id (v : V) (hv : v ∈ invariants ρ) : average_map ρ v = v :=
 begin
   rw mem_invariants at hv,
-  simp [average_def, map_sum, hv, finset.card_univ, nsmul_eq_smul_cast k _ v, smul_smul],
+  simp [average, map_sum, hv, finset.card_univ, nsmul_eq_smul_cast k _ v, smul_smul],
 end
+
+theorem is_proj_average_map : linear_map.is_proj ρ.invariants ρ.average_map :=
+⟨ρ.average_map_invariant, ρ.average_map_id⟩
+
+end invariants
+
+namespace lin_hom
+
+universes u
+
+open category_theory Action
+
+variables {k : Type u} [comm_ring k] {G : Group.{u}}
+
+lemma mem_invariants_iff_comm {X Y : Rep k G} (f : X.V →ₗ[k] Y.V) (g : G) :
+  (lin_hom X.ρ Y.ρ) g f = f ↔ f.comp (X.ρ g) = (Y.ρ g).comp f :=
+begin
+  dsimp,
+  erw [←ρ_Aut_apply_inv],
+  rw [←linear_map.comp_assoc, ←Module.comp_def, ←Module.comp_def, iso.inv_comp_eq, ρ_Aut_apply_hom],
+  exact comm,
+end
+
+/-- The invariants of the representation `lin_hom X.ρ Y.ρ` correspond to the the representation
+homomorphisms from `X` to `Y` -/
+@[simps]
+def invariants_equiv_Rep_hom (X Y : Rep k G) : (lin_hom X.ρ Y.ρ).invariants ≃ₗ[k] (X ⟶ Y) :=
+{ to_fun := λ f, ⟨f.val, λ g, (mem_invariants_iff_comm _ g).1 (f.property g)⟩,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
+  inv_fun := λ f, ⟨f.hom, λ g, (mem_invariants_iff_comm _ g).2 (f.comm g)⟩,
+  left_inv := λ _, by { ext, refl },
+  right_inv := λ _, by { ext, refl } }
+
+end lin_hom
 
 end representation

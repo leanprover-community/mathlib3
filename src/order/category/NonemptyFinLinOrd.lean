@@ -28,21 +28,15 @@ instance nonempty_fin_lin_ord.to_bounded_order (α : Type*) [nonempty_fin_lin_or
   bounded_order α :=
 fintype.to_bounded_order α
 
-instance punit.nonempty_fin_lin_ord : nonempty_fin_lin_ord punit :=
-{ .. punit.linear_ordered_cancel_add_comm_monoid,
-  .. punit.fintype }
+instance punit.nonempty_fin_lin_ord : nonempty_fin_lin_ord punit := { }
 
-instance fin.nonempty_fin_lin_ord (n : ℕ) : nonempty_fin_lin_ord (fin (n+1)) :=
-{ .. fin.fintype _,
-  .. fin.linear_order }
+instance fin.nonempty_fin_lin_ord (n : ℕ) : nonempty_fin_lin_ord (fin (n+1)) := { }
 
 instance ulift.nonempty_fin_lin_ord (α : Type u) [nonempty_fin_lin_ord α] :
   nonempty_fin_lin_ord (ulift.{v} α) :=
-{ nonempty := ⟨ulift.up ⊥⟩,
-  .. linear_order.lift equiv.ulift (equiv.injective _),
-  .. ulift.fintype _ }
+{ .. linear_order.lift' equiv.ulift (equiv.injective _) }
 
-instance (α : Type*) [nonempty_fin_lin_ord α] : nonempty_fin_lin_ord (order_dual α) :=
+instance (α : Type*) [nonempty_fin_lin_ord α] : nonempty_fin_lin_ord αᵒᵈ :=
 { ..order_dual.fintype α }
 
 /-- The category of nonempty finite linear orders. -/
@@ -78,7 +72,7 @@ between them. -/
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=

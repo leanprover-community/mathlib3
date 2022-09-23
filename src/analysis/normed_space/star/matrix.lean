@@ -18,22 +18,6 @@ open_locale big_operators matrix
 
 variables {𝕜 m n E : Type*}
 
-namespace matrix
-variables [fintype m] [fintype n] [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
-
-local attribute [instance] matrix.semi_normed_group
-
-@[simp] lemma norm_conj_transpose (M : matrix m n E) : ∥Mᴴ∥ = ∥M∥ :=
-(norm_map_eq _ _ norm_star).trans M.norm_transpose
-
-@[simp] lemma nnnorm_conj_transpose (M : matrix m n E) : ∥Mᴴ∥₊ = ∥M∥₊ :=
-subtype.ext M.norm_conj_transpose
-
-instance : normed_star_group (matrix n n E) :=
-⟨matrix.norm_conj_transpose⟩
-
-end matrix
-
 section entrywise_sup_norm
 variables [is_R_or_C 𝕜] [fintype n] [decidable_eq n]
 
@@ -69,7 +53,7 @@ begin
   exact norm_sum,
 end
 
-local attribute [instance] matrix.normed_group
+local attribute [instance] matrix.normed_add_comm_group
 
 /-- The entrywise sup norm of a unitary matrix is at most 1. -/
 lemma entrywise_sup_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) :

@@ -65,7 +65,7 @@ lemma zero_lt_32 : (0 : ℝ) < 32 := by norm_num
 
 theorem subst_wlog {x y z s : ℝ} (hxy : 0 ≤ x * y) (hxyz : x + y + z = 0) :
   32 * |x * y * z * s| ≤ sqrt 2 * (x^2 + y^2 + z^2 + s^2)^2 :=
-have hz : (x + y)^2 = z^2 := neg_eq_of_add_eq_zero hxyz ▸ (neg_sq _).symm,
+have hz : (x + y)^2 = z^2 := neg_eq_of_add_eq_zero_right hxyz ▸ (neg_sq _).symm,
 have hs : 0 ≤ 2 * s ^ 2 := mul_nonneg zero_le_two (sq_nonneg s),
 have this : _ :=
   calc  (2 * s^2) * (16 * x^2 * y^2 * (x + y)^2)
@@ -82,9 +82,8 @@ le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
   ... ≤ 32 * ((2 * (x^2 + y^2 + (x + y)^2) + 2 * s^2)^4 / 4^4) :
           mul_le_mul_of_nonneg_left this zero_lt_32.le
   ... = (sqrt 2 * (x^2 + y^2 + z^2 + s^2)^2)^2 :
-          by rw [← div_mul_eq_mul_div_comm, mul_pow, sq_sqrt zero_le_two,
-            hz, ← pow_mul, ← mul_add, mul_pow, ← mul_assoc];
-            exact congr (congr_arg _ $ by norm_num) rfl
+          by rw [mul_pow, sq_sqrt zero_le_two, hz, ←pow_mul, ←mul_add, mul_pow, ←mul_comm_div,
+            ←mul_assoc, show 32 / 4 ^ 4 * 2 ^ 4 = (2 : ℝ), by norm_num, show 2 * 2 = 4, by refl]
 
 /-- Proof that `M = 9 * sqrt 2 / 32` works with the substitution. -/
 theorem subst_proof₁ (x y z s : ℝ) (hxyz : x + y + z = 0) :

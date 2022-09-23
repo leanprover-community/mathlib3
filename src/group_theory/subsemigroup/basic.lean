@@ -118,7 +118,7 @@ theorem ext {S T : subsemigroup M}
 it."]
 protected def copy (S : subsemigroup M) (s : set M) (hs : s = S) : subsemigroup M :=
 { carrier := s,
-  mul_mem' := hs.symm ▸ S.mul_mem' }
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem' }
 
 variable {S : subsemigroup M}
 
@@ -359,7 +359,7 @@ end subsemigroup
 
 namespace mul_hom
 
-variables [mul_one_class N]
+variables [has_mul N]
 
 open subsemigroup
 

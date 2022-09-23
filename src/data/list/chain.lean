@@ -68,6 +68,16 @@ simp only [*, nil_append, cons_append, chain.nil, chain_cons, and_true, and_asso
   chain R a (l₁ ++ b :: c :: l₂) ↔ chain R a (l₁ ++ [b]) ∧ R b c ∧ chain R c l₂ :=
 by rw [chain_split, chain_cons]
 
+theorem chain_iff_forall₂ :
+  ∀ {a : α} {l : list α}, chain R a l ↔ l = [] ∨ forall₂ R (a :: init l) l
+| a [] := by simp
+| a [b] := by simp [init]
+| a (b :: c :: l) := by simp [@chain_iff_forall₂ b]
+
+theorem chain_append_singleton_iff_forall₂ :
+  chain R a (l ++ [b]) ↔ forall₂ R (a :: l) (l ++ [b]) :=
+by simp [chain_iff_forall₂, init]
+
 theorem chain_map (f : β → α) {b : β} {l : list β} :
   chain R (f b) (map f l) ↔ chain (λ a b : β, R (f a) (f b)) b l :=
 by induction l generalizing b; simp only [map, chain.nil, chain_cons, *]
@@ -113,23 +123,23 @@ begin
   exact chain_cons.2 ⟨r.1, IH r'⟩
 end
 
-protected lemma chain.pairwise (tr : transitive R) :
+protected lemma chain.pairwise [is_trans α R] :
   ∀ {a : α} {l : list α}, chain R a l → pairwise R (a :: l)
 | a [] chain.nil := pairwise_singleton _ _
 | a _ (@chain.cons _ _ _ b l h hb) := hb.pairwise.cons begin
     simp only [mem_cons_iff, forall_eq_or_imp, h, true_and],
-    exact λ c hc, tr h (rel_of_pairwise_cons hb.pairwise hc),
+    exact λ c hc, trans h (rel_of_pairwise_cons hb.pairwise hc),
   end
 
-theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
+theorem chain_iff_pairwise [is_trans α R] {a : α} {l : list α} :
   chain R a l ↔ pairwise R (a :: l) :=
-⟨chain.pairwise tr, pairwise.chain⟩
+⟨chain.pairwise, pairwise.chain⟩
 
 protected lemma chain.sublist [is_trans α R] (hl : l₂.chain R a) (h : l₁ <+ l₂) : l₁.chain R a :=
-by { rw chain_iff_pairwise (transitive_of_trans R) at ⊢ hl, exact hl.sublist (h.cons_cons a) }
+by { rw chain_iff_pairwise at ⊢ hl, exact hl.sublist (h.cons_cons a) }
 
 protected lemma chain.rel [is_trans α R] (hl : l.chain R a) (hb : b ∈ l) : R a b :=
-by { rw chain_iff_pairwise (transitive_of_trans R) at hl, exact rel_of_pairwise_cons hl hb }
+by { rw chain_iff_pairwise at hl, exact rel_of_pairwise_cons hl hb }
 
 theorem chain_iff_nth_le {R} : ∀ {a : α} {l : list α},
   chain R a l ↔ (∀ h : 0 < length l, R a (nth_le l 0 h)) ∧ (∀ i (h : i < length l - 1),
@@ -204,13 +214,13 @@ theorem pairwise.chain' : ∀ {l : list α}, pairwise R l → chain' R l
 | []       _ := trivial
 | (a :: l) h := pairwise.chain h
 
-theorem chain'_iff_pairwise (tr : transitive R) : ∀ {l : list α},
+theorem chain'_iff_pairwise [is_trans α R] : ∀ {l : list α},
   chain' R l ↔ pairwise R l
 | []       := (iff_true_intro pairwise.nil).symm
-| (a :: l) := chain_iff_pairwise tr
+| (a :: l) := chain_iff_pairwise
 
 protected lemma chain'.sublist [is_trans α R] (hl : l₂.chain' R) (h : l₁ <+ l₂) : l₁.chain' R :=
-by { rw chain'_iff_pairwise (transitive_of_trans R) at ⊢ hl, exact hl.sublist h }
+by { rw chain'_iff_pairwise at ⊢ hl, exact hl.sublist h }
 
 theorem chain'.cons {x y l} (h₁ : R x y) (h₂ : chain' R (y :: l)) :
   chain' R (x :: y :: l) :=

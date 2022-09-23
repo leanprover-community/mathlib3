@@ -64,7 +64,7 @@ instance has_forget_to_Fintype : has_forget₂ FinPartialOrder Fintype :=
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : FinPartialOrder ⥤ FinPartialOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : FinPartialOrder ≌ FinPartialOrder :=

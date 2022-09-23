@@ -141,6 +141,23 @@ begin
   { simpa only [inter_empty, not_nonempty_empty, inter_compl_self] using hs }
 end
 
+lemma apply_eq_of_preconnected_space [preconnected_space X]
+  {f : X → Y} (hf : is_locally_constant f) (x y : X) :
+  f x = f y :=
+hf.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial
+
+lemma eq_const [preconnected_space X] {f : X → Y} (hf : is_locally_constant f) (x : X) :
+  f = function.const X (f x) :=
+funext $ λ y, hf.apply_eq_of_preconnected_space y x
+
+lemma exists_eq_const [preconnected_space X] [nonempty Y] {f : X → Y} (hf : is_locally_constant f) :
+  ∃ y, f = function.const X y :=
+begin
+  casesI is_empty_or_nonempty X,
+  { exact ⟨classical.arbitrary Y, funext $ h.elim⟩ },
+  { exact ⟨f (classical.arbitrary X), hf.eq_const _⟩ },
+end
+
 lemma iff_is_const [preconnected_space X] {f : X → Y} :
   is_locally_constant f ↔ ∀ x y, f x = f y :=
 ⟨λ h x y, h.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial, of_constant _⟩
@@ -184,6 +201,20 @@ begin
   rw this,
   apply h,
 end
+
+lemma of_constant_on_connected_components [locally_connected_space X] {f : X → Y}
+  (h : ∀ x, ∀ y ∈ connected_component x, f y = f x) :
+  is_locally_constant f :=
+begin
+  rw iff_exists_open,
+  exact λ x, ⟨connected_component x, is_open_connected_component, mem_connected_component, h x⟩,
+end
+
+lemma of_constant_on_preconnected_clopens [locally_connected_space X] {f : X → Y}
+  (h : ∀ U : set X, is_preconnected U → is_clopen U → ∀ x ∈ U, ∀ y ∈ U, f y = f x) :
+  is_locally_constant f :=
+of_constant_on_connected_components (λ x, h (connected_component x)
+  is_preconnected_connected_component is_clopen_connected_component x mem_connected_component)
 
 end is_locally_constant
 
@@ -286,7 +317,7 @@ begin
   ext,
   simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff, coe_mk,
     fin.zero_eq_one_iff, mem_preimage, ite_eq_right_iff,
-    mem_compl_eq],
+    mem_compl_iff],
   tauto,
 end
 
@@ -426,4 +457,47 @@ lemma coe_desc {X α β : Type*} [topological_space X] (f : X → α) (g : α �
 
 end desc
 
+section indicator
+variables {R : Type*} [has_one R] {U : set X} (f : locally_constant X R)
+open_locale classical
+
+/-- Given a clopen set `U` and a locally constant function `f`, `locally_constant.mul_indicator`
+  returns the locally constant function that is `f` on `U` and `1` otherwise. -/
+@[to_additive /-" Given a clopen set `U` and a locally constant function `f`,
+  `locally_constant.indicator` returns the locally constant function that is `f` on `U` and `0`
+  otherwise. "-/, simps]
+noncomputable def mul_indicator (hU : is_clopen U) :
+  locally_constant X R :=
+{ to_fun := set.mul_indicator U f,
+  is_locally_constant :=
+    begin
+      rw is_locally_constant.iff_exists_open, rintros x,
+      obtain ⟨V, hV, hx, h'⟩ := (is_locally_constant.iff_exists_open _).1 f.is_locally_constant x,
+      by_cases x ∈ U,
+      { refine ⟨U ∩ V, is_open.inter hU.1 hV, set.mem_inter h hx, _⟩, rintros y hy,
+        rw set.mem_inter_iff at hy, rw [set.mul_indicator_of_mem hy.1, set.mul_indicator_of_mem h],
+        apply h' y hy.2, },
+      { rw ←set.mem_compl_iff at h, refine ⟨Uᶜ, (is_clopen.compl hU).1, h, _⟩,
+        rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy,
+        simp [h, hy], },
+    end, }
+
+variables (a : X)
+
+@[to_additive]
+theorem mul_indicator_apply_eq_if (hU : is_clopen U) :
+  mul_indicator f hU a = if a ∈ U then f a else 1 :=
+set.mul_indicator_apply U f a
+
+variables {a}
+
+@[to_additive]
+theorem mul_indicator_of_mem (hU : is_clopen U) (h : a ∈ U) : f.mul_indicator hU a = f a :=
+by{ rw mul_indicator_apply, apply set.mul_indicator_of_mem h, }
+
+@[to_additive]
+theorem mul_indicator_of_not_mem (hU : is_clopen U) (h : a ∉ U) : f.mul_indicator hU a = 1 :=
+by{ rw mul_indicator_apply, apply set.mul_indicator_of_not_mem h, }
+
+end indicator
 end locally_constant

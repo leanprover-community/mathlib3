@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.hom.group_instances
-import data.pi
+import data.pi.algebra
 import data.set.function
 import data.set.pairwise
 import tactic.pi_instances
@@ -43,20 +43,28 @@ instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, (x i) ^ n };
 tactic.pi_instance_derive_field
 
--- the attributes are intentionally out of order. `smul_apply` proves `nsmul_apply`.
-@[to_additive, simp]
-lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n := rfl
-
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow };
 tactic.pi_instance_derive_field
 
-@[to_additive]
-instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
-  div_inv_monoid (Π i : I, f i) :=
+@[to_additive pi.sub_neg_monoid]
+instance [Π i, div_inv_monoid $ f i] : div_inv_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
   npow := monoid.npow, zpow := λ z x i, (x i) ^ z }; tactic.pi_instance_derive_field
+
+@[to_additive]
+instance [Π i, has_involutive_inv $ f i] : has_involutive_inv (Π i, f i) :=
+by refine_struct { inv := has_inv.inv }; tactic.pi_instance_derive_field
+
+@[to_additive pi.subtraction_monoid]
+instance [Π i, division_monoid $ f i] : division_monoid (Π i, f i) :=
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
+  npow := monoid.npow, zpow := λ z x i, (x i) ^ z }; tactic.pi_instance_derive_field
+
+@[to_additive pi.subtraction_comm_monoid]
+instance [Π i, division_comm_monoid $ f i] : division_comm_monoid (Π i, f i) :=
+{ ..pi.division_monoid, ..pi.comm_semigroup }
 
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
@@ -128,6 +136,46 @@ namespace mul_hom
 @[to_additive] lemma coe_mul {M N} {mM : has_mul M} {mN : comm_semigroup N}
   (f g : M →ₙ* N) :
   (f * g : M → N) = λ x, f x * g x := rfl
+
+end mul_hom
+
+section mul_hom
+
+variables (f) [Π i, has_mul (f i)]
+
+/-- Evaluation of functions into an indexed collection of semigroups at a point is a semigroup
+homomorphism.
+This is `function.eval i` as a `mul_hom`. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive semigroups at a
+point is an additive semigroup homomorphism.
+This is `function.eval i` as an `add_hom`.", simps]
+def pi.eval_mul_hom (i : I) : (Π i, f i) →ₙ* f i :=
+{ to_fun := λ g, g i,
+  map_mul' := λ x y, pi.mul_apply _ _ i, }
+
+/-- `function.const` as a `mul_hom`. -/
+@[to_additive "`function.const` as an `add_hom`.", simps]
+def pi.const_mul_hom (α β : Type*) [has_mul β] : β →ₙ* (α → β) :=
+{ to_fun := function.const α,
+  map_mul' := λ _ _, rfl }
+
+/-- Coercion of a `mul_hom` into a function is itself a `mul_hom`.
+See also `mul_hom.eval`. -/
+@[to_additive "Coercion of an `add_hom` into a function is itself a `add_hom`.
+See also `add_hom.eval`. ", simps]
+def mul_hom.coe_fn (α β : Type*) [has_mul α] [comm_semigroup β] : (α →ₙ* β) →ₙ* (α → β) :=
+{ to_fun := λ g, g,
+  map_mul' := λ x y, rfl, }
+
+/-- Semigroup homomorphism between the function spaces `I → α` and `I → β`, induced by a semigroup
+homomorphism `f` between `α` and `β`. -/
+@[to_additive "Additive semigroup homomorphism between the function spaces `I → α` and `I → β`,
+induced by an additive semigroup homomorphism `f` between `α` and `β`", simps]
+protected def mul_hom.comp_left {α β : Type*} [has_mul α] [has_mul β] (f : α →ₙ* β)
+  (I : Type*) :
+  (I → α) →ₙ* (I → β) :=
+{ to_fun := λ h, f ∘ h,
+  map_mul' := λ _ _, by ext; simp }
 
 end mul_hom
 
@@ -277,6 +325,39 @@ begin
   rcases eq_or_ne i j with rfl|h,
   { simp },
   { simp [function.update_noteq h.symm, h] }
+end
+
+@[to_additive pi.single_add_single_eq_single_add_single]
+lemma pi.mul_single_mul_mul_single_eq_mul_single_mul_mul_single
+  {M : Type*} [comm_monoid M] {k l m n : I} {u v : M} (hu : u ≠ 1) (hv : v ≠ 1) :
+  mul_single k u * mul_single l v = mul_single m u * mul_single n v ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u * v = 1 ∧ k = l ∧ m = n) :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hk := congr_fun h k,
+    have hl := congr_fun h l,
+    have hm := (congr_fun h m).symm,
+    have hn := (congr_fun h n).symm,
+    simp only [mul_apply, mul_single_apply, if_pos rfl] at hk hl hm hn,
+    rcases eq_or_ne k m with rfl | hkm,
+    { refine or.inl ⟨rfl, not_ne_iff.mp (λ hln, (hv _).elim)⟩,
+      rcases eq_or_ne k l with rfl | hkl,
+      { rwa [if_neg hln.symm, if_neg hln.symm, one_mul, one_mul] at hn },
+      { rwa [if_neg hkl.symm, if_neg hln, one_mul, one_mul] at hl } },
+    { rcases eq_or_ne m n with rfl | hmn,
+      { rcases eq_or_ne k l with rfl | hkl,
+        { rw [if_neg hkm.symm, if_neg hkm.symm, one_mul, if_pos rfl] at hm,
+          exact or.inr (or.inr ⟨hm, rfl, rfl⟩) },
+        { simpa only [if_neg hkm, if_neg hkl, mul_one] using hk } },
+      { rw [if_neg hkm.symm, if_neg hmn, one_mul, mul_one] at hm,
+        obtain rfl := (ite_ne_right_iff.mp (ne_of_eq_of_ne hm.symm hu)).1,
+        rw [if_neg hkm, if_neg hkm, one_mul, mul_one] at hk,
+        obtain rfl := (ite_ne_right_iff.mp (ne_of_eq_of_ne hk.symm hu)).1,
+        exact or.inr (or.inl ⟨hk.trans (if_pos rfl), rfl, rfl⟩) } } },
+  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨h, rfl, rfl⟩),
+    { refl },
+    { apply mul_comm },
+    { simp_rw [←pi.mul_single_mul, h, mul_single_one] } },
 end
 
 end single

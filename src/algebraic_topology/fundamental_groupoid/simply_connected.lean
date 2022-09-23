@@ -86,9 +86,3 @@ begin
   convert simply_connected_iff_paths_homotopic,
   simp [path.homotopic.quotient, setoid.eq_top_iff], refl,
 end
-
-section test
-
-variables {𝕜 : Type*} {E : Type*} {X : set E}
-variables [ordered_semiring 𝕜]
-variables [topological_space E] [add_comm_monoid E] [has_smul 𝕜 E]

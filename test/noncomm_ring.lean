@@ -1,6 +1,6 @@
 import tactic.noncomm_ring
 
-local notation (name := commutator) `⁅`a`,` b`⁆` := a * b - b * a
+local notation (name := commutator) `⁅`a`, `b`⁆` := a * b - b * a
 local infix (name := op) ` ⚬ `:70 := λ a b, a * b + b * a
 
 variables {R : Type*} [ring R]

@@ -149,6 +149,13 @@ instance {M} [monoid M] [distrib_mul_action M α] [has_uniform_continuous_const_
 lemma continuous_to_compl : continuous (to_compl : α → completion α) :=
 continuous_coe α
 
+variable (α)
+
+lemma dense_inducing_to_compl : dense_inducing (to_compl : α → completion α) :=
+dense_inducing_coe
+
+variable {α}
+
 end uniform_add_group
 
 section uniform_add_comm_group

@@ -965,6 +965,10 @@ calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
 lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
+/-- A set `s` is open iff for every point `x` in `s` and every `y` close to `x`, `y` is in `s`. -/
+lemma is_open_iff_eventually {s : set α} : is_open s ↔ ∀ x, x ∈ s → ∀ᶠ y in 𝓝 x, y ∈ s :=
+is_open_iff_mem_nhds
+
 theorem is_open_iff_ultrafilter {s : set α} :
   is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
 by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
@@ -986,6 +990,15 @@ by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl
 
 alias mem_closure_iff_frequently ↔ _ filter.frequently.mem_closure
+
+/-- A set `s` is closed iff for every point `x`, if there is a point `y` close to `x` that belongs
+to `s` then `x` is in `s`. -/
+lemma is_closed_iff_frequently {s : set α} : is_closed s ↔ ∀ x, (∃ᶠ y in 𝓝 x, y ∈ s) → x ∈ s :=
+begin
+  rw ← closure_subset_iff_is_closed,
+  apply forall_congr (λ x, _),
+  rw mem_closure_iff_frequently
+end
 
 /-- The set of cluster points of a filter is closed. In particular, the set of limit points
 of a sequence is closed. -/
@@ -1054,7 +1067,7 @@ theorem mem_closure_iff_nhds_basis {a : α} {p : ι → Prop} {s : ι → set α
   {t : set α} :
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=
 (mem_closure_iff_nhds_basis' h).trans $
-  by simp only [set.nonempty, mem_inter_eq, exists_prop, and_comm]
+  by simp only [set.nonempty, mem_inter_iff, exists_prop, and_comm]
 
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter
   supported on `s` converges to `x`. -/
@@ -1249,7 +1262,7 @@ h ht
 
 lemma eventually_eq_zero_nhds {M₀} [has_zero M₀] {a : α} {f : α → M₀} :
   f =ᶠ[𝓝 a] 0 ↔ a ∉ closure (function.support f) :=
-by rw [← mem_compl_eq, ← interior_compl, mem_interior_iff_mem_nhds, function.compl_support]; refl
+by rw [← mem_compl_iff, ← interior_compl, mem_interior_iff_mem_nhds, function.compl_support]; refl
 
 lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt x la)
   {f : α → β} (hfc : continuous_at f x) (hf : tendsto f la lb) :
@@ -1409,8 +1422,13 @@ lemma closure_subset_preimage_closure_image {f : α → β} {s : set α} (h : co
 by { rw ← set.image_subset_iff, exact image_closure_subset_closure_image h }
 
 lemma map_mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
-  (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
-set.maps_to.closure ht hf ha
+  (hf : continuous f) (ha : a ∈ closure s) (ht : maps_to f s t) : f a ∈ closure t :=
+ht.closure hf ha
+
+/-- If a continuous map `f` maps `s` to a closed set `t`, then it maps `closure s` to `t`. -/
+lemma set.maps_to.closure_left {s : set α} {t : set β} {f : α → β} (h : maps_to f s t)
+  (hc : continuous f) (ht : is_closed t) : maps_to f (closure s) t :=
+ht.closure_eq ▸ h.closure hc
 
 /-!
 ### Function with dense range

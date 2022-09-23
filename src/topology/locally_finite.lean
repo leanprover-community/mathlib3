@@ -92,7 +92,7 @@ begin
   have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
     from inter_mem h_nhds ((bInter_mem h_fin).2 (λ i _, ha i)),
   filter_upwards [this],
-  simp only [mem_inter_eq, mem_Inter],
+  simp only [mem_inter_iff, mem_Inter],
   rintros b ⟨hbt, hn⟩ i hfb,
   exact hn i ⟨b, hfb, hbt⟩ hfb,
 end
@@ -129,7 +129,7 @@ begin
   replace hN : ∀ x (n > N x) (y ∈ U x), f (n + 1) y = f n y,
     from λ x n hn y hy, by_contra (λ hne, hn.lt.not_le $ hN x ⟨y, hne, hy⟩),
   replace hN : ∀ x (n ≥ N x + 1) (y ∈ U x), f n y = f (N x + 1) y,
-    from λ x n hn y hy, nat.le_induction rfl (λ k hle, (hN x _ hle _ hy).trans) n hn, 
+    from λ x n hn y hy, nat.le_induction rfl (λ k hle, (hN x _ hle _ hy).trans) n hn,
   refine ⟨λ x, f (N x + 1) x, λ x, _⟩,
   filter_upwards [filter.prod_mem_prod (eventually_gt_at_top (N x)) (hUx x)],
   rintro ⟨n, y⟩ ⟨hn : N x < n, hy : y ∈ U x⟩,

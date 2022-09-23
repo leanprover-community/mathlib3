@@ -11,6 +11,14 @@ open set
 
 variables {E : Type*} [pseudo_emetric_space E]
 
+/-- The (extended real valued) variation of a function `f` on a set `s` is the supremum of the
+sum of `edist (f (u (i+1))) (f (u i))` over all finite increasing sequences `u` in `s`. -/
+noncomputable def evariation_on (f : ℝ → E) (s : set ℝ) : ℝ≥0∞ :=
+⨆ (p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s}),
+  ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))
+
+namespace evariation_on
+
 lemma nonempty_monotone_mem {s : set ℝ} (hs : s.nonempty) :
   nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ s} :=
 begin
@@ -18,14 +26,8 @@ begin
   exact ⟨⟨λ i, x, λ i j hij, le_rfl, λ i, hx⟩⟩,
 end
 
-/-- The (extended real valued) variation of a function `f` on a set `s` is the supremum of the
-sum of `edist (f (u (i+1))) (f (u i))` over all finite increasing sequences `u` in `s`. -/
-noncomputable def evariation_on (f : ℝ → E) (s : set ℝ) : ℝ≥0∞ :=
-⨆ (p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s}),
-  ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))
-
-lemma sum_le_evariation_on
-  (f : ℝ → E) {s : set ℝ} (n : ℕ) (u : ℕ → ℝ) (hu : monotone u) (us : ∀ i, u i ∈ s) :
+lemma sum_le
+  (f : ℝ → E) {s : set ℝ} (n : ℕ) {u : ℕ → ℝ} (hu : monotone u) (us : ∀ i, u i ∈ s) :
   ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
 begin
   let p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, us⟩),
@@ -35,8 +37,8 @@ begin
     ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))) _,
 end
 
-lemma sum_le_evariation_on'
-  (f : ℝ → E) {s : set ℝ} (n : ℕ) (u : ℕ → ℝ) (hu : monotone_on u (Iic n))
+lemma sum_le_of_monotone_on_Iic
+  (f : ℝ → E) {s : set ℝ} {n : ℕ} {u : ℕ → ℝ} (hu : monotone_on u (Iic n))
   (us : ∀ i ≤ n, u i ∈ s) :
   ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
 begin
@@ -59,7 +61,7 @@ begin
     { have A : ¬(i ≤ n), by linarith,
       have B : ¬(i + 1 ≤ n), by linarith,
       simp [A, B] } },
-  convert sum_le_evariation_on f n v hv vs using 1,
+  convert sum_le f n hv vs using 1,
   apply finset.sum_congr rfl (λ i hi, _),
   simp only [finset.mem_range] at hi,
   have : i + 1 ≤ n, by linarith,
@@ -67,15 +69,40 @@ begin
   simp [this, hi.le],
 end
 
-lemma evariation_on.mono (f : ℝ → E) {s t : set ℝ} (hst : t ⊆ s) :
+
+lemma sum_le_of_monotone_on_Icc
+  (f : ℝ → E) {s : set ℝ} (m n : ℕ) (u : ℕ → ℝ) (hu : monotone_on u (Icc m n))
+  (us : ∀ i ∈ Icc m n, u i ∈ s) :
+  ∑ i in finset.Ico m n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
+begin
+  rcases le_or_lt n m with hnm|hmn,
+  { simp only [finset.Ico_eq_empty_of_le hnm, finset.sum_empty, zero_le'] },
+  let v := λ i, u (m + i),
+  have hv : monotone_on v (Iic (n - m)),
+  { assume a ha b hb hab,
+    simp only [le_tsub_iff_left hmn.le, mem_Iic] at ha hb,
+    exact hu ⟨le_add_right le_rfl, ha⟩ ⟨le_add_right le_rfl, hb⟩ (add_le_add le_rfl hab) },
+  have vs : ∀ i ∈ Iic (n - m), v i ∈ s,
+  { assume i hi,
+    simp only [le_tsub_iff_left hmn.le, mem_Iic] at hi,
+    exact us _ ⟨le_add_right le_rfl, hi⟩ },
+  calc ∑ i in finset.Ico m n, edist (f (u (i + 1))) (f (u i))
+      = ∑ i in finset.range (n - m), edist (f (u (m + i + 1))) (f (u (m + i))) : sorry
+  ... = ∑ i in finset.range (n - m), edist (f (v (i + 1))) (f (v i)) : sorry
+  ... ≤ evariation_on f s : sum_le_of_monotone_on_Iic f hv vs,
+end
+
+#exit
+
+lemma mono (f : ℝ → E) {s t : set ℝ} (hst : t ⊆ s) :
   evariation_on f t ≤ evariation_on f s :=
 begin
   apply supr_le _,
   rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  exact sum_le_evariation_on f n u hu (λ i, hst (ut i)),
+  exact sum_le f n u hu (λ i, hst (ut i)),
 end
 
-@[simp] lemma evariation_on.subsingleton (f : ℝ → E) {s : set ℝ} (hs : s.subsingleton) :
+@[simp] protected lemma subsingleton (f : ℝ → E) {s : set ℝ} (hs : s.subsingleton) :
   evariation_on f s = 0 :=
 begin
   apply le_antisymm _ (zero_le _),
@@ -88,7 +115,7 @@ end
 /-- Consider a monotone function `u` parameterizing some points of a set `s`. Given `x ∈ s`, then
 one can find another monotone function `v` parameterizing the same points as `u`, with `x` added.
 In particular, the variation of a function along `u` is bounded by its variation along `v`. -/
-lemma evariation_on.add_point (f : ℝ → E) {s : set ℝ} {x : ℝ} (hx : x ∈ s)
+lemma add_point (f : ℝ → E) {s : set ℝ} {x : ℝ} (hx : x ∈ s)
   (u : ℕ → ℝ) (hu : monotone u) (us : ∀ i, u i ∈ s) (n : ℕ) :
   ∃ (v : ℕ → ℝ) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s) ∧ x ∈ v '' (Iio m) ∧
     ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤
@@ -255,7 +282,7 @@ end
 
 /-- The variation on the union of two sets `s` and `t`, with `s` to the left of `t`, bounds the sum
 of the variations along `s` and `t`. -/
-lemma evariation_on.add_le_union (f : ℝ → E) {s t : set ℝ} (h : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
+lemma add_le_union (f : ℝ → E) {s t : set ℝ} (h : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
   evariation_on f s + evariation_on f t ≤ evariation_on f (s ∪ t) :=
 begin
   by_cases hs : s = ∅,
@@ -327,7 +354,7 @@ begin
         simp only [finset.mem_Ico, finset.mem_range] at hi h'i,
         linarith [h'i.1] }
     end
-  ... ≤ evariation_on f (s ∪ t) : sum_le_evariation_on f _ _ hw wst
+  ... ≤ evariation_on f (s ∪ t) : sum_le f _ _ hw wst
 end
 
 lemma evariation_on.union (f : ℝ → E) {s t : set ℝ} {x : ℝ}

@@ -7,7 +7,6 @@ Authors: ACL
 import tactic
 import logic.equiv.basic
 import .mul_action_finset
-import group_theory.subsemigroup.operations
 
 variables {α β γ : Type*} [decidable_eq α] [decidable_eq β] [decidable_eq γ]
 

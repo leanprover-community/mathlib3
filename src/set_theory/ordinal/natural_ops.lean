@@ -66,6 +66,7 @@ variables {a b c : nat_ordinal.{u}}
 @[simp] theorem to_ordinal_to_nat_ordinal (a : nat_ordinal) : a.to_ordinal.to_nat_ordinal = a := rfl
 
 theorem lt_wf : @well_founded nat_ordinal (<) := ordinal.lt_wf
+instance : well_founded_lt nat_ordinal := ordinal.well_founded_lt
 instance : is_well_order nat_ordinal (<) := ordinal.has_lt.lt.is_well_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
@@ -119,7 +120,7 @@ noncomputable def nadd : ordinal → ordinal → ordinal
   (blsub.{u u} b $ λ b' h, nadd a b')
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-localized "infix ` ♯ `:65 := ordinal.nadd" in natural_ops
+localized "infix (name := ordinal.nadd) ` ♯ `:65 := ordinal.nadd" in natural_ops
 
 theorem nadd_def (a b : ordinal) : a ♯ b = max
   (blsub.{u u} a $ λ a' h, a' ♯ b)
@@ -260,7 +261,6 @@ instance add_contravariant_class_le :
 instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 { add := (+),
   add_assoc := nadd_assoc,
-  add_left_cancel := λ a b c, add_left_cancel'',
   add_le_add_left := λ a b, add_le_add_left,
   le_of_add_le_add_left := λ a b c, le_of_add_le_add_left,
   zero := 0,

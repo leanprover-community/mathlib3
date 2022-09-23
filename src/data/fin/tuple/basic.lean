@@ -569,7 +569,7 @@ set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
 lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
   (hx : x ∉ Icc (q₁ i) (q₂ i)) :
   i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
-set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_iff_false]
 
 end insert_nth
 
@@ -689,5 +689,22 @@ lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
 mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
+
+/-- To show two sigma pairs of tuples agree, it to show the second elements are related via
+`fin.cast`. -/
+lemma sigma_eq_of_eq_comp_cast {α : Type*} :
+  ∀ {a b : Σ ii, fin ii → α} (h : a.fst = b.fst), a.snd = b.snd ∘ fin.cast h → a = b
+| ⟨ai, a⟩ ⟨bi, b⟩ hi h :=
+begin
+  dsimp only at hi,
+  subst hi,
+  simpa using h,
+end
+
+/-- `fin.sigma_eq_of_eq_comp_cast` as an `iff`. -/
+lemma sigma_eq_iff_eq_comp_cast {α : Type*} {a b : Σ ii, fin ii → α} :
+  a = b ↔ ∃ (h : a.fst = b.fst), a.snd = b.snd ∘ fin.cast h :=
+⟨λ h, h ▸ ⟨rfl, funext $ fin.rec $ by exact λ i hi, rfl⟩,
+ λ ⟨h, h'⟩, sigma_eq_of_eq_comp_cast _ h'⟩
 
 end fin

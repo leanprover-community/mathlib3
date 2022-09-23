@@ -19,9 +19,10 @@ by a sequence of simple functions.
 
 ## Main results
 
-* `tendsto_approx_on_univ_Lp` (Lᵖ convergence): If `E` is a `normed_group` and `f` is measurable
-  and `mem_ℒp` (for `p < ∞`), then the simple functions `simple_func.approx_on f hf s 0 h₀ n` may
-  be considered as elements of `Lp E p μ`, and they tend in Lᵖ to `f`.
+* `tendsto_approx_on_univ_Lp` (Lᵖ convergence): If `E` is a `normed_add_comm_group` and `f` is
+  measurable and `mem_ℒp` (for `p < ∞`), then the simple functions
+  `simple_func.approx_on f hf s 0 h₀ n` may be considered as elements of `Lp E p μ`, and they tend
+  in Lᵖ to `f`.
 * `Lp.simple_func.dense_embedding`: the embedding `coe_to_Lp` of the `Lp` simple functions into
   `Lp` is dense.
 * `Lp.simple_func.induction`, `Lp.induction`, `mem_ℒp.induction`, `integrable.induction`: to prove
@@ -52,8 +53,8 @@ namespace simple_func
 /-! ### Lp approximation by simple functions -/
 
 section Lp
-variables [measurable_space β]
-variables [measurable_space E] [normed_group E] [normed_group F] {q : ℝ} {p : ℝ≥0∞}
+variables [measurable_space β] [measurable_space E] [normed_add_comm_group E]
+  [normed_add_comm_group F] {q : ℝ} {p : ℝ≥0∞}
 
 lemma nnnorm_approx_on_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
@@ -191,7 +192,7 @@ end Lp
 
 section integrable
 variables [measurable_space β]
-variables [measurable_space E] [normed_group E]
+variables [measurable_space E] [normed_add_comm_group E]
 
 lemma tendsto_approx_on_L1_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
@@ -235,7 +236,7 @@ end integrable
 section simple_func_properties
 
 variables [measurable_space α]
-variables [normed_group E] [normed_group F]
+variables [normed_add_comm_group E] [normed_add_comm_group F]
 variables {μ : measure α} {p : ℝ≥0∞}
 
 /-!
@@ -277,7 +278,7 @@ begin
   { suffices h_empty : f ⁻¹' {y} = ∅,
       by { rw [h_empty, measure_empty], exact ennreal.coe_lt_top, },
     ext1 x,
-    rw [set.mem_preimage, set.mem_singleton_iff, mem_empty_eq, iff_false],
+    rw [set.mem_preimage, set.mem_singleton_iff, mem_empty_iff_false, iff_false],
     refine λ hxy, hyf _,
     rw [mem_range, set.mem_range],
     exact ⟨x, hxy⟩, },
@@ -383,7 +384,8 @@ namespace Lp
 
 open ae_eq_fun
 
-variables [measurable_space α] [normed_group E] [normed_group F] (p : ℝ≥0∞) (μ : measure α)
+variables [measurable_space α] [normed_add_comm_group E] [normed_add_comm_group F] (p : ℝ≥0∞)
+  (μ : measure α)
 
 variables (E)
 
@@ -743,7 +745,7 @@ begin
     rw mem_compl_iff at hxs,
     have hx' : x ∉ {a : α | ¬0 ≤ simple_func.to_simple_func f a},
       from λ h, hxs (subset_to_measurable μ _ h),
-    rwa [set.nmem_set_of_eq, not_not] at hx', },
+    rwa [set.nmem_set_of_iff, not_not] at hx', },
   let f' := simple_func.piecewise s (measurable_set_to_measurable μ _).compl
     (simple_func.to_simple_func f) (simple_func.const α (0 : G)),
   refine ⟨f', λ x, _, _⟩,
@@ -776,7 +778,7 @@ begin
   rw mem_closure_iff_seq_limit,
   have hg_mem_ℒp : mem_ℒp g p μ := Lp.mem_ℒp g,
   have zero_mem : (0 : G) ∈ (range g ∪ {0} : set G) ∩ {y | 0 ≤ y}, by simp only [union_singleton,
-    mem_inter_eq, mem_insert_iff, eq_self_iff_true, true_or, mem_set_of_eq, le_refl, and_self],
+    mem_inter_iff, mem_insert_iff, eq_self_iff_true, true_or, mem_set_of_eq, le_refl, and_self],
   haveI : separable_space (((range g ∪ {0}) ∩ {y | 0 ≤ y}) : set G),
   { apply is_separable.separable_space,
     apply is_separable.mono _ (set.inter_subset_left _ _),
@@ -829,7 +831,7 @@ end simple_func
 
 end Lp
 
-variables [measurable_space α] [normed_group E] {f : α → E} {p : ℝ≥0∞} {μ : measure α}
+variables [measurable_space α] [normed_add_comm_group E] {f : α → E} {p : ℝ≥0∞} {μ : measure α}
 
 /-- To prove something for an arbitrary `Lp` function in a second countable Borel normed group, it
 suffices to show that

@@ -111,7 +111,7 @@ begin
   { rintros ⟨S, Scount, hS⟩,
     cases eq_empty_or_nonempty ↑N with h h,
     { exact or.intro_left _ h },
-    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_surjective
+    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_eq_range
       (singleton_nonempty h.some).inr,
     refine or.intro_right _ ⟨f, _⟩,
     rw [← h', closure_union, hS, sup_eq_left, closure_le],
@@ -156,10 +156,10 @@ begin
   exact hom.map_le_range h'
 end
 
-theorem cg_iff_countable [L.countable_functions] {s : L.substructure M} :
-  s.cg ↔ nonempty (encodable s) :=
+theorem cg_iff_countable [countable (Σl, L.functions l)] {s : L.substructure M} :
+  s.cg ↔ countable s :=
 begin
-  refine ⟨_, λ h, ⟨s, h, s.closure_eq⟩⟩,
+  refine ⟨_, λ h, ⟨s, h.to_set, s.closure_eq⟩⟩,
   rintro ⟨s, h, rfl⟩,
   exact h.substructure_closure L
 end
@@ -224,10 +224,8 @@ begin
   exact h.range f,
 end
 
-lemma cg_iff_countable [L.countable_functions] :
-  cg L M ↔ nonempty (encodable M) :=
-by rw [cg_def, cg_iff_countable, cardinal.encodable_iff, cardinal.encodable_iff,
-  top_equiv.to_equiv.cardinal_eq]
+lemma cg_iff_countable [countable (Σl, L.functions l)] : cg L M ↔ countable M :=
+by rw [cg_def, cg_iff_countable, top_equiv.to_equiv.countable_iff]
 
 lemma fg.cg (h : fg L M) : cg L M :=
 cg_def.2 (fg_def.1 h).cg

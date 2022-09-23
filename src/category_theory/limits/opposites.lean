@@ -228,8 +228,7 @@ local attribute [instance] has_limits_of_shape_op_of_has_colimits_of_shape
 /--
 If `C` has colimits, we can construct limits for `Cᵒᵖ`.
 -/
-lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := ⟨infer_instance⟩
-
+instance has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := ⟨infer_instance⟩
 
 /--
 If `F.left_op : Jᵒᵖ ⥤ C` has a limit, we can construct a colimit for `F : J ⥤ Cᵒᵖ`.
@@ -251,13 +250,13 @@ local attribute [instance] has_colimits_of_shape_op_of_has_limits_of_shape
 /--
 If `C` has limits, we can construct colimits for `Cᵒᵖ`.
 -/
-lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := ⟨infer_instance⟩
+instance has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := ⟨infer_instance⟩
 
 variables (X : Type v₁)
 /--
 If `C` has products indexed by `X`, then `Cᵒᵖ` has coproducts indexed by `X`.
 -/
-lemma has_coproducts_opposite [has_products_of_shape X C] :
+instance has_coproducts_opposite [has_products_of_shape X C] :
   has_coproducts_of_shape X Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape (discrete X)ᵒᵖ C :=
@@ -268,7 +267,7 @@ end
 /--
 If `C` has coproducts indexed by `X`, then `Cᵒᵖ` has products indexed by `X`.
 -/
-lemma has_products_opposite [has_coproducts_of_shape X C] :
+instance has_products_opposite [has_coproducts_of_shape X C] :
   has_products_of_shape X Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape (discrete X)ᵒᵖ C :=
@@ -276,7 +275,7 @@ begin
   apply_instance
 end
 
-lemma has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
+instance has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
 { out := λ J 𝒟, begin
     resetI,
     haveI : has_limits_of_shape (discrete J)ᵒᵖ C :=
@@ -284,7 +283,7 @@ lemma has_finite_coproducts_opposite [has_finite_products C] : has_finite_coprod
     apply_instance,
   end }
 
-lemma has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
+instance has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
 { out := λ J 𝒟, begin
     resetI,
     haveI : has_colimits_of_shape (discrete J)ᵒᵖ C :=
@@ -292,36 +291,36 @@ lemma has_finite_products_opposite [has_finite_coproducts C] : has_finite_produc
     apply_instance,
   end }
 
-lemma has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
+instance has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape walking_parallel_pairᵒᵖ C :=
     has_colimits_of_shape_of_equivalence walking_parallel_pair_op_equiv,
   apply_instance
 end
 
-lemma has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
+instance has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape walking_parallel_pairᵒᵖ C :=
     has_limits_of_shape_of_equivalence walking_parallel_pair_op_equiv,
   apply_instance
 end
 
-lemma has_finite_colimits_opposite [has_finite_limits C] :
+instance has_finite_colimits_opposite [has_finite_limits C] :
   has_finite_colimits Cᵒᵖ :=
 { out := λ J 𝒟 𝒥, by { resetI, apply_instance, }, }
 
-lemma has_finite_limits_opposite [has_finite_colimits C] :
+instance has_finite_limits_opposite [has_finite_colimits C] :
   has_finite_limits Cᵒᵖ :=
 { out := λ J 𝒟 𝒥, by { resetI, apply_instance, }, }
 
-lemma has_pullbacks_opposite [has_pushouts C] : has_pullbacks Cᵒᵖ :=
+instance has_pullbacks_opposite [has_pushouts C] : has_pullbacks Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape walking_cospanᵒᵖ C :=
     has_colimits_of_shape_of_equivalence walking_cospan_op_equiv.symm,
   apply has_limits_of_shape_op_of_has_colimits_of_shape,
 end
 
-lemma has_pushouts_opposite [has_pullbacks C] : has_pushouts Cᵒᵖ :=
+instance has_pushouts_opposite [has_pullbacks C] : has_pushouts Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape walking_spanᵒᵖ C :=
     has_limits_of_shape_of_equivalence walking_span_op_equiv.symm,
@@ -368,7 +367,7 @@ calc (span f g).op ≅ 𝟭 _ ⋙ (span f g).op : by refl
 namespace pushout_cocone
 
 /-- The obvious map `pushout_cocone f g → pullback_cone f.unop g.unop` -/
-@[simps]
+@[simps (lemmas_only)]
 def unop {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   pullback_cone f.unop g.unop :=
 cocone.unop ((cocones.precompose (op_cospan f.unop g.unop).hom).obj
@@ -377,15 +376,17 @@ cocone.unop ((cocones.precompose (op_cospan f.unop g.unop).hom).obj
 @[simp]
 lemma unop_fst {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   c.unop.fst = c.inl.unop :=
-by { change (_ : limits.cone _).π.app _ = _, tidy, }
+by { change (_ : limits.cone _).π.app _ = _,
+  simp only [pushout_cocone.ι_app_left, pushout_cocone.unop_π_app], tidy }
 
 @[simp]
 lemma unop_snd {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   c.unop.snd = c.inr.unop :=
-by { change (_ : limits.cone _).π.app _ = _, tidy, }
+by { change (_ : limits.cone _).π.app _ = _,
+  simp only [pushout_cocone.unop_π_app, pushout_cocone.ι_app_right], tidy, }
 
 /-- The obvious map `pushout_cocone f.op g.op → pullback_cone f g` -/
-@[simps]
+@[simps (lemmas_only)]
 def op {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   pullback_cone f.op g.op :=
 (cones.postcompose ((cospan_op f g).symm).hom).obj
@@ -406,7 +407,7 @@ end pushout_cocone
 namespace pullback_cone
 
 /-- The obvious map `pullback_cone f g → pushout_cocone f.unop g.unop` -/
-@[simps]
+@[simps (lemmas_only)]
 def unop {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
   pushout_cocone f.unop g.unop :=
 cone.unop ((cones.postcompose (op_span f.unop g.unop).symm.hom).obj
@@ -427,12 +428,12 @@ lemma unop_inr {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone 
 begin
   change ((_ : limits.cocone _).ι.app _) = _,
   apply quiver.hom.op_inj,
-  dsimp, simp, dsimp, simp,
+  simp [unop_ι_app], dsimp, simp,
   apply category.comp_id,
 end
 
 /-- The obvious map `pullback_cone f g → pushout_cocone f.op g.op` -/
-@[simps]
+@[simps (lemmas_only)]
 def op {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
   pushout_cocone f.op g.op :=
 (cocones.precompose (span_op f g).hom).obj
@@ -519,5 +520,99 @@ def is_limit_equiv_is_colimit_unop  {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z
 (is_limit.equiv_iso_limit c.unop_op).symm.trans c.unop.is_colimit_equiv_is_limit_op.symm
 
 end pullback_cone
+
+section pullback
+
+open opposite
+
+/-- The pullback of `f` and `g` in `C` is isomorphic to the pushout of
+`f.op` and `g.op` in `Cᵒᵖ`. -/
+noncomputable
+def pullback_iso_unop_pushout {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_pullback f g] [has_pushout f.op g.op] : pullback f g ≅ unop (pushout f.op g.op) :=
+is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
+  ((pushout_cocone.is_colimit_equiv_is_limit_unop _) (colimit.is_colimit (span f.op g.op)))
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_pullback f g] [has_pushout f.op g.op] :
+  (pullback_iso_unop_pushout f g).inv ≫ pullback.fst =
+    (pushout.inl : _ ⟶ pushout f.op g.op).unop :=
+(is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simp)
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_inv_snd {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  (pullback_iso_unop_pushout f g).inv ≫ pullback.snd =
+    (pushout.inr : _ ⟶ pushout f.op g.op).unop :=
+(is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simp)
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_hom_inl {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  pushout.inl ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.fst.op :=
+begin
+  apply quiver.hom.unop_inj,
+  dsimp,
+  rw [← pullback_iso_unop_pushout_inv_fst, iso.hom_inv_id_assoc],
+end
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_hom_inr {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  pushout.inr ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.snd.op :=
+begin
+  apply quiver.hom.unop_inj,
+  dsimp,
+  rw [← pullback_iso_unop_pushout_inv_snd, iso.hom_inv_id_assoc],
+end
+
+end pullback
+
+section pushout
+
+/-- The pushout of `f` and `g` in `C` is isomorphic to the pullback of
+ `f.op` and `g.op` in `Cᵒᵖ`. -/
+noncomputable
+def pushout_iso_unop_pullback {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] : pushout f g ≅ unop (pullback f.op g.op) :=
+is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
+  ((pullback_cone.is_limit_equiv_is_colimit_unop _) (limit.is_limit (cospan f.op g.op)))
+.
+@[simp, reassoc]
+lemma pushout_iso_unop_pullback_inl_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  pushout.inl ≫ (pushout_iso_unop_pullback f g).hom =
+    (pullback.fst : pullback f.op g.op ⟶ _).unop :=
+(is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simp)
+
+@[simp, reassoc]
+lemma pushout_iso_unop_pullback_inr_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  pushout.inr ≫ (pushout_iso_unop_pullback f g).hom =
+    (pullback.snd : pullback f.op g.op ⟶ _).unop :=
+(is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simp)
+
+@[simp]
+lemma pushout_iso_unop_pullback_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  (pushout_iso_unop_pullback f g).inv.op ≫ pullback.fst = pushout.inl.op :=
+begin
+  apply quiver.hom.unop_inj,
+  dsimp,
+  rw [← pushout_iso_unop_pullback_inl_hom, category.assoc, iso.hom_inv_id, category.comp_id],
+end
+
+@[simp]
+lemma pushout_iso_unop_pullback_inv_snd {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  (pushout_iso_unop_pullback f g).inv.op ≫ pullback.snd = pushout.inr.op :=
+begin
+  apply quiver.hom.unop_inj,
+  dsimp,
+  rw [← pushout_iso_unop_pullback_inr_hom, category.assoc, iso.hom_inv_id, category.comp_id],
+end
+
+end pushout
 
 end category_theory.limits

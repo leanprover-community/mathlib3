@@ -188,6 +188,19 @@ begin
     exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
 end
 
+/-- If `α` has a basis consisting of compact opens, then an open set in `α` is compact open iff
+  it is a finite union of some elements in the basis -/
+lemma is_compact_open_iff_eq_finite_Union_of_is_basis
+  {ι : Type*} (b : ι → opens α) (hb : opens.is_basis (set.range b))
+  (hb' : ∀ i, is_compact (b i : set α)) (U : set α) :
+  is_compact U ∧ is_open U ↔ ∃ (s : set ι), s.finite ∧ U = ⋃ i ∈ s, b i :=
+begin
+  apply is_compact_open_iff_eq_finite_Union_of_is_topological_basis
+    (λ i : ι, (b i).1),
+  { convert hb, ext, simp },
+  { exact hb' }
+end
+
 @[simp] lemma is_compact_element_iff (s : opens α) :
   complete_lattice.is_compact_element s ↔ is_compact (s : set α) :=
 begin
@@ -253,5 +266,7 @@ def open_nhds_of (x : α) : Type* := { s : set α // is_open s ∧ x ∈ s }
 
 instance open_nhds_of.inhabited {α : Type*} [topological_space α] (x : α) :
   inhabited (open_nhds_of x) := ⟨⟨set.univ, is_open_univ, set.mem_univ _⟩⟩
+
+instance [finite α] : finite (opens α) := subtype.finite
 
 end topological_space

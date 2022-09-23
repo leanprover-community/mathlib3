@@ -22,14 +22,11 @@ lemma surj_on_Ioo_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a b : α) :
   surj_on f (Ioo a b) (Ioo (f a) (f b)) :=
 begin
-  classical,
   intros p hp,
   rcases h_surj p with ⟨x, rfl⟩,
   refine ⟨x, mem_Ioo.2 _, rfl⟩,
-  by_contra h,
-  cases not_and_distrib.mp h with ha hb,
-  { exact has_lt.lt.false (lt_of_lt_of_le hp.1 (h_mono (not_lt.mp ha))) },
-  { exact has_lt.lt.false (lt_of_le_of_lt (h_mono (not_lt.mp hb)) hp.2) }
+  contrapose! hp,
+  exact λ h, h.2.not_le (h_mono $ hp $ h_mono.reflect_lt h.1)
 end
 
 lemma surj_on_Ico_of_monotone_surjective
@@ -38,12 +35,10 @@ lemma surj_on_Ico_of_monotone_surjective
 begin
   obtain hab | hab := lt_or_le a b,
   { intros p hp,
-    rcases mem_Ioo_or_eq_left_of_mem_Ico hp with hp'|hp',
-    { rw hp',
-      exact ⟨a, left_mem_Ico.mpr hab, rfl⟩ },
+    rcases eq_left_or_mem_Ioo_of_mem_Ico hp with rfl|hp',
+    { exact mem_image_of_mem f (left_mem_Ico.mpr hab) },
     { have := surj_on_Ioo_of_monotone_surjective h_mono h_surj a b hp',
-      cases this with x hx,
-      exact ⟨x, Ioo_subset_Ico_self hx.1, hx.2⟩ } },
+      exact image_subset f Ioo_subset_Ico_self this } },
   { rw Ico_eq_empty (h_mono hab).not_lt,
     exact surj_on_empty f _ }
 end
@@ -58,32 +53,21 @@ lemma surj_on_Icc_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) {a b : α} (hab : a ≤ b) :
   surj_on f (Icc a b) (Icc (f a) (f b)) :=
 begin
-  rcases lt_or_eq_of_le hab with hab|hab,
-  { intros p hp,
-    rcases mem_Ioo_or_eq_endpoints_of_mem_Icc hp with hp'|⟨hp'|hp'⟩,
-    { rw hp',
-      refine ⟨a, left_mem_Icc.mpr (le_of_lt hab), rfl⟩ },
-    { rw hp',
-      refine ⟨b, right_mem_Icc.mpr (le_of_lt hab), rfl⟩ },
-    { have := surj_on_Ioo_of_monotone_surjective h_mono h_surj a b hp',
-      cases this with x hx,
-      exact ⟨x, Ioo_subset_Icc_self hx.1, hx.2⟩ } },
-  { simp only [hab, Icc_self],
-    intros _ hp,
-    exact ⟨b, mem_singleton _, (mem_singleton_iff.mp hp).symm⟩ }
+  intros p hp,
+  rcases eq_endpoints_or_mem_Ioo_of_mem_Icc hp with (rfl|rfl|hp'),
+  { exact ⟨a, left_mem_Icc.mpr hab, rfl⟩ },
+  { exact ⟨b, right_mem_Icc.mpr hab, rfl⟩ },
+  { have := surj_on_Ioo_of_monotone_surjective h_mono h_surj a b hp',
+    exact image_subset f Ioo_subset_Icc_self this }
 end
 
 lemma surj_on_Ioi_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a : α) :
   surj_on f (Ioi a) (Ioi (f a)) :=
 begin
-  classical,
-  intros p hp,
-  rcases h_surj p with ⟨x, rfl⟩,
-  refine ⟨x, _, rfl⟩,
-  simp only [mem_Ioi],
-  by_contra h,
-  exact has_lt.lt.false (lt_of_lt_of_le hp (h_mono (not_lt.mp h)))
+  rw [← compl_Iic, ← compl_compl (Ioi (f a))],
+  refine maps_to.surj_on_compl _ h_surj,
+  exact λ x hx, (h_mono hx).not_lt
 end
 
 lemma surj_on_Iio_of_monotone_surjective
@@ -95,13 +79,9 @@ lemma surj_on_Ici_of_monotone_surjective
   (h_mono : monotone f) (h_surj : function.surjective f) (a : α) :
   surj_on f (Ici a) (Ici (f a)) :=
 begin
-  intros p hp,
-  rw [mem_Ici, le_iff_lt_or_eq] at hp,
-  rcases hp with hp'|hp',
-  { cases (surj_on_Ioi_of_monotone_surjective h_mono h_surj a hp') with x hx,
-    exact ⟨x, Ioi_subset_Ici_self hx.1, hx.2⟩ },
-  { rw ← hp',
-    refine ⟨a, left_mem_Ici, rfl⟩ }
+  rw [← Ioi_union_left, ← Ioi_union_left],
+  exact (surj_on_Ioi_of_monotone_surjective h_mono h_surj a).union_union
+    (@image_singleton _ _ f a ▸ surj_on_image _ _)
 end
 
 lemma surj_on_Iic_of_monotone_surjective

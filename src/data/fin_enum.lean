@@ -59,7 +59,7 @@ open function
 by simp [to_list]; existsi equiv α x; simp
 
 @[simp] lemma nodup_to_list [fin_enum α] : list.nodup (to_list α) :=
-by simp [to_list]; apply list.nodup_map; [apply equiv.injective, apply list.nodup_fin_range]
+by simp [to_list]; apply list.nodup.map; [apply equiv.injective, apply list.nodup_fin_range]
 
 /-- create a `fin_enum` instance using a surjection -/
 def of_surjective {β} (f : β → α) [decidable_eq α] [fin_enum β] (h : surjective f) : fin_enum α :=
@@ -86,7 +86,7 @@ instance punit : fin_enum punit :=
 of_list [punit.star] (λ x, by cases x; simp)
 
 instance prod {β} [fin_enum α] [fin_enum β] : fin_enum (α × β) :=
-of_list ( (to_list α).product (to_list β) ) (λ x, by cases x; simp)
+of_list (to_list α ×ˢ to_list β) (λ x, by cases x; simp)
 
 instance sum {β} [fin_enum α] [fin_enum β] : fin_enum (α ⊕ β) :=
 of_list ( (to_list α).map sum.inl ++ (to_list β).map sum.inr ) (λ x, by cases x; simp)
@@ -126,7 +126,7 @@ begin
         eq_self_iff_true], },
     { left, symmetry, simp only [sdiff_eq_self],
       intro a, simp only [and_imp, mem_inter, mem_singleton, not_mem_empty],
-      intros h₀ h₁, subst a, apply h h₀, } }
+      rintro h₀ rfl, apply h h₀, } }
 end
 
 instance finset.fin_enum [fin_enum α] : fin_enum (finset α) :=

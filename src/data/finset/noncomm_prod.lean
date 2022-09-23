@@ -163,7 +163,7 @@ begin
         simp [hy] } } }
 end
 
-@[to_additive, protected]
+@[protected, to_additive]
 lemma nocomm_prod_map_aux (s : multiset α)
   (comm : ∀ (x ∈ s) (y ∈ s), commute x y)
   {F : Type*} [monoid_hom_class F α β] (f : F) :
@@ -199,14 +199,14 @@ begin
   simp
 end
 
-@[to_additive]
+@[to_additive noncomm_sum_add_commute]
 lemma noncomm_prod_commute (s : multiset α)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y)
   (y : α) (h : ∀ (x : α), x ∈ s → commute y x) : commute y (s.noncomm_prod comm) :=
 begin
   induction s using quotient.induction_on,
   simp only [quot_mk_to_coe, noncomm_prod_coe],
-  exact list.prod_commute _ _ h,
+  exact commute.list_prod_right _ _ h,
 end
 
 end multiset
@@ -262,7 +262,7 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
 @[simp, to_additive] lemma noncomm_prod_singleton (a : α) (f : α → β) :
   noncomm_prod ({a} : finset α) f
     (λ x hx y hy, by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
-by simp [noncomm_prod, multiset.singleton_eq_cons]
+by simp [noncomm_prod, ←multiset.cons_zero]
 
 @[to_additive]
 lemma noncomm_prod_map (s : finset α) (f : α → β)
@@ -282,7 +282,7 @@ begin
   simpa using h,
 end
 
-@[to_additive]
+@[to_additive noncomm_sum_add_commute]
 lemma noncomm_prod_commute (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (y : β) (h : ∀ (x : α), x ∈ s → commute y (f x)) : commute y (s.noncomm_prod f comm) :=
@@ -318,7 +318,7 @@ begin
   obtain ⟨tl, tl', rfl⟩ := exists_list_nodup_eq t,
   rw list.disjoint_to_finset_iff_disjoint at h,
   simp [sl', tl', noncomm_prod_to_finset, ←list.prod_append, ←list.to_finset_append,
-        list.nodup_append_of_nodup sl' tl' h]
+    sl'.append tl' h]
 end
 
 @[protected, to_additive]

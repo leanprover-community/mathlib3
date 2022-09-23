@@ -35,9 +35,9 @@ by rw [Ioc, finset.val_eq_zero, finset.Ioc_eq_empty_iff]
 @[simp] lemma Ioo_eq_zero_iff [densely_ordered α] : Ioo a b = 0 ↔ ¬a < b :=
 by rw [Ioo, finset.val_eq_zero, finset.Ioo_eq_empty_iff]
 
-alias Icc_eq_zero_iff ↔ _ multiset.Icc_eq_zero
-alias Ico_eq_zero_iff ↔ _ multiset.Ico_eq_zero
-alias Ioc_eq_zero_iff ↔ _ multiset.Ioc_eq_zero
+alias Icc_eq_zero_iff ↔ _ Icc_eq_zero
+alias Ico_eq_zero_iff ↔ _ Ico_eq_zero
+alias Ioc_eq_zero_iff ↔ _ Ioc_eq_zero
 
 @[simp] lemma Ioo_eq_zero (h : ¬a < b) : Ioo a b = 0 :=
 eq_zero_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
@@ -163,19 +163,19 @@ variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [locally
 
 lemma map_add_left_Icc (a b c : α) : (Icc a b).map ((+) c) = Icc (c + a) (c + b) :=
 by { classical, rw [Icc, Icc, ←finset.image_add_left_Icc, finset.image_val,
-    (multiset.nodup_map (add_right_injective c) $ finset.nodup _).dedup] }
+    ((finset.nodup _).map $ add_right_injective c).dedup] }
 
 lemma map_add_left_Ico (a b c : α) : (Ico a b).map ((+) c) = Ico (c + a) (c + b) :=
 by { classical, rw [Ico, Ico, ←finset.image_add_left_Ico, finset.image_val,
-    (multiset.nodup_map (add_right_injective c) $ finset.nodup _).dedup] }
+    ((finset.nodup _).map $ add_right_injective c).dedup] }
 
 lemma map_add_left_Ioc (a b c : α) : (Ioc a b).map ((+) c) = Ioc (c + a) (c + b) :=
 by { classical, rw [Ioc, Ioc, ←finset.image_add_left_Ioc, finset.image_val,
-    (multiset.nodup_map (add_right_injective c) $ finset.nodup _).dedup] }
+    ((finset.nodup _).map $ add_right_injective c).dedup] }
 
 lemma map_add_left_Ioo (a b c : α) : (Ioo a b).map ((+) c) = Ioo (c + a) (c + b) :=
 by { classical, rw [Ioo, Ioo, ←finset.image_add_left_Ioo, finset.image_val,
-    (multiset.nodup_map (add_right_injective c) $ finset.nodup _).dedup] }
+    ((finset.nodup _).map $ add_right_injective c).dedup] }
 
 lemma map_add_right_Icc (a b c : α) : (Icc a b).map (λ x, x + c) = Icc (a + c) (b + c) :=
 by { simp_rw add_comm _ c, exact map_add_left_Icc _ _ _ }

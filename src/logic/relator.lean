@@ -26,7 +26,7 @@ variables (R : α → β → Prop) (S : γ → δ → Prop)
 def lift_fun (f : α → γ) (g : β → δ) : Prop :=
 ∀⦃a b⦄, R a b → S (f a) (g b)
 
-infixr ⇒ := lift_fun
+infixr ` ⇒ ` := lift_fun
 
 end
 
@@ -92,9 +92,6 @@ lemma rel_iff : ((↔) ⇒ (↔) ⇒ (↔)) (↔) (↔) :=
 assume a b h₁ c d h₂, iff_congr h₁ h₂
 
 lemma rel_eq {r : α → β → Prop} (hr : bi_unique r) : (r ⇒ r ⇒ (↔)) (=) (=) :=
-assume a b h₁ c d h₂,
-iff.intro
-  begin intro h, subst h, exact hr.right h₁ h₂ end
-  begin intro h, subst h, exact hr.left h₁ h₂ end
+λ a b h₁ c d h₂, ⟨λ h, hr.right h₁ $ h.symm ▸ h₂, λ h, hr.left h₁ $ h.symm ▸ h₂⟩
 
 end relator

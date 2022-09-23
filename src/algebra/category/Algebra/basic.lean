@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra.basic
 import algebra.free_algebra
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import algebra.category.Module.basic
 
 /-!
@@ -61,6 +61,10 @@ def of (X : Type v) [ring X] [algebra R X] : Algebra.{v} R := ⟨X⟩
 /-- Typecheck a `alg_hom` as a morphism in `Algebra R`. -/
 def of_hom {R : Type u} [comm_ring R] {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y]
   (f : X →ₐ[R] Y) : of R X ⟶ of R Y := f
+
+@[simp] lemma of_hom_apply {R : Type u} [comm_ring R]
+  {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y] (f : X →ₐ[R] Y) (x : X) :
+  of_hom f x = f x := rfl
 
 instance : inhabited (Algebra R) := ⟨of R R⟩
 

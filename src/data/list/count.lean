@@ -10,7 +10,7 @@ import data.list.big_operators
 
 This file proves basic properties of `list.countp` and `list.count`, which count the number of
 elements of a list satisfying a predicate and equal to a given element respectively. Their
-definitions can be found in [`data.list.defs`](./data/list/defs).
+definitions can be found in [`data.list.defs`](./defs).
 -/
 
 open nat
@@ -29,6 +29,9 @@ if_pos pa
 
 @[simp] lemma countp_cons_of_neg {a : α} (l) (pa : ¬ p a) : countp p (a::l) = countp p l :=
 if_neg pa
+
+lemma countp_cons (a : α) (l) : countp p (a :: l) = countp p l + ite (p a) 1 0 :=
+by { by_cases h : p a; simp [h] }
 
 lemma length_eq_countp_add_countp (l) : length l = countp p l + countp (λ a, ¬p a) l :=
 by induction l with x h ih; [refl, by_cases p x];
@@ -49,6 +52,9 @@ by simp only [countp_eq_length_filter, filter_append, length_append]
 
 lemma countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
 by simp only [countp_eq_length_filter, length_pos_iff_exists_mem, mem_filter, exists_prop]
+
+theorem countp_eq_zero {l} : countp p l = 0 ↔ ∀ a ∈ l, ¬ p a :=
+by { rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero, countp_pos], simp }
 
 lemma countp_eq_length {l} : countp p l = l.length ↔ ∀ a ∈ l, p a :=
 by rw [countp_eq_length_filter, filter_length_eq_length]
@@ -125,6 +131,9 @@ decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', (count_pos.2 h').ne' h
 
+lemma count_eq_zero {a : α} {l} : count a l = 0 ↔ a ∉ l :=
+⟨not_mem_of_count_eq_zero, count_eq_zero_of_not_mem⟩
+
 lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
 by rw [count, countp_eq_length]
 
@@ -197,6 +206,24 @@ begin
   { rw [count_cons', h, if_neg ab], simp },
   { rw [count_cons', count_cons', count_erase_of_ne] }
 end
+
+@[to_additive]
+lemma prod_map_eq_pow_single [monoid β] {l : list α} (a : α) (f : α → β)
+  (hf : ∀ a' ≠ a, a' ∈ l → f a' = 1) : (l.map f).prod = (f a) ^ (l.count a) :=
+begin
+  induction l with a' as h generalizing a,
+  { rw [map_nil, prod_nil, count_nil, pow_zero] },
+  { specialize h a (λ a' ha' hfa', hf a' ha' (mem_cons_of_mem _ hfa')),
+    rw [list.map_cons, list.prod_cons, count_cons, h],
+    split_ifs with ha',
+    { rw [ha', pow_succ] },
+    { rw [hf a' (ne.symm ha') (list.mem_cons_self a' as), one_mul] } }
+end
+
+@[to_additive]
+lemma prod_eq_pow_single [monoid α] {l : list α} (a : α)
+  (h : ∀ a' ≠ a, a' ∈ l → a' = 1) : l.prod = a ^ (l.count a) :=
+trans (by rw [map_id'']) (prod_map_eq_pow_single a id h)
 
 end count
 

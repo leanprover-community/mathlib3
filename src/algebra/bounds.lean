@@ -3,8 +3,8 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.set.pointwise
 import order.conditionally_complete_lattice
-import algebra.pointwise
 
 /-!
 # Upper/lower bounds in ordered monoids and groups
@@ -69,11 +69,11 @@ image2_subset_iff.2 $ λ x hx y hy, mul_mem_upper_bounds_mul hx hy
 
 @[to_additive] lemma mul_mem_lower_bounds_mul {s t : set M} {a b : M} (ha : a ∈ lower_bounds s)
   (hb : b ∈ lower_bounds t) : a * b ∈ lower_bounds (s * t) :=
-@mul_mem_upper_bounds_mul (order_dual M) _ _ _ _ _ _ _ _ ha hb
+@mul_mem_upper_bounds_mul Mᵒᵈ _ _ _ _ _ _ _ _ ha hb
 
 @[to_additive] lemma subset_lower_bounds_mul (s t : set M) :
   lower_bounds s * lower_bounds t ⊆ lower_bounds (s * t) :=
-@subset_upper_bounds_mul (order_dual M) _ _ _ _ _ _
+@subset_upper_bounds_mul Mᵒᵈ _ _ _ _ _ _
 
 @[to_additive] lemma bdd_above.mul {s t : set M} (hs : bdd_above s) (ht : bdd_above t) :
   bdd_above (s * t) :=

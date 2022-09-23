@@ -101,6 +101,11 @@ monoid.fg_iff_add_fg.1 ‹_›
 instance monoid.fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicative N) :=
 add_monoid.fg_iff_mul_fg.1 ‹_›
 
+@[to_additive, priority 100]
+instance monoid.fg_of_finite [finite M] : monoid.fg M :=
+by { casesI nonempty_fintype M,
+  exact ⟨⟨finset.univ, by rw finset.coe_univ; exact submonoid.closure_univ⟩⟩ }
+
 end monoid
 
 @[to_additive]
@@ -236,6 +241,10 @@ lemma group.fg_iff : group.fg G ↔
   ∃ S : set G, subgroup.closure S = (⊤ : subgroup G) ∧ S.finite :=
 ⟨λ h, (subgroup.fg_iff ⊤).1 h.out, λ h, ⟨(subgroup.fg_iff ⊤).2 h⟩⟩
 
+@[to_additive] lemma group.fg_iff' :
+  group.fg G ↔ ∃ n (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
+group.fg_def.trans ⟨λ ⟨S, hS⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨S, hS⟩⟩
+
 /-- A group is finitely generated if and only if it is finitely generated as a monoid. -/
 @[to_additive add_group.fg_iff_add_monoid.fg "An additive group is finitely generated if and only
 if it is finitely generated as an additive monoid."]
@@ -255,6 +264,11 @@ group_fg.iff_add_fg.1 ‹_›
 instance group.fg_of_mul_group_fg [add_group.fg H] : group.fg (multiplicative H) :=
 add_group.fg_iff_mul_fg.1 ‹_›
 
+@[to_additive, priority 100]
+instance group.fg_of_finite [finite G] : group.fg G :=
+by { casesI nonempty_fintype G,
+  exact ⟨⟨finset.univ, by rw finset.coe_univ; exact subgroup.closure_univ⟩⟩ }
+
 @[to_additive]
 lemma group.fg_of_surjective {G' : Type*} [group G'] [hG : group.fg G] {f : G →* G'}
   (hf : function.surjective f) : group.fg G' :=
@@ -263,6 +277,43 @@ group.fg_iff_monoid.fg.mpr $ @monoid.fg_of_surjective G _ G' _ (group.fg_iff_mon
 @[to_additive]
 instance group.fg_range {G' : Type*} [group G'] [group.fg G] (f : G →* G') : group.fg f.range :=
 group.fg_of_surjective f.range_restrict_surjective
+
+variables (G)
+
+/-- The minimum number of generators of a group. -/
+@[to_additive "The minimum number of generators of an additive group"]
+noncomputable def group.rank [h : group.fg G] :=
+@nat.find _ (classical.dec_pred _) (group.fg_iff'.mp h)
+
+@[to_additive] lemma group.rank_spec [h : group.fg G] :
+  ∃ S : finset G, S.card = group.rank G ∧ subgroup.closure (S : set G) = ⊤ :=
+@nat.find_spec _ (classical.dec_pred _) (group.fg_iff'.mp h)
+
+@[to_additive] lemma group.rank_le [h : group.fg G]
+  {S : finset G} (hS : subgroup.closure (S : set G) = ⊤) : group.rank G ≤ S.card :=
+@nat.find_le _ _ (classical.dec_pred _) (group.fg_iff'.mp h) ⟨S, rfl, hS⟩
+
+variables {G} {G' : Type*} [group G']
+
+@[to_additive] lemma group.rank_le_of_surjective [group.fg G] [group.fg G'] (f : G →* G')
+  (hf : function.surjective f) : group.rank G' ≤ group.rank G :=
+begin
+  classical,
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  transitivity (S.image f).card,
+  { apply group.rank_le,
+    rw [finset.coe_image, ←monoid_hom.map_closure, hS2, subgroup.map_top_of_surjective f hf] },
+  { exact finset.card_image_le.trans_eq hS1 },
+end
+
+@[to_additive] lemma group.rank_range_le [group.fg G] {f : G →* G'} :
+  group.rank f.range ≤ group.rank G :=
+group.rank_le_of_surjective f.range_restrict f.range_restrict_surjective
+
+@[to_additive] lemma group.rank_congr [group.fg G] [group.fg G'] (f : G ≃* G') :
+  group.rank G = group.rank G' :=
+le_antisymm (group.rank_le_of_surjective f.symm f.symm.surjective)
+  (group.rank_le_of_surjective f f.surjective)
 
 end group
 

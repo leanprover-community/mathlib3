@@ -3,12 +3,12 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.metric_space.metric_separated
+import analysis.special_functions.pow
+import logic.equiv.list
 import measure_theory.constructions.borel_space
 import measure_theory.measure.lebesgue
-import analysis.special_functions.pow
 import topology.metric_space.holder
-import data.equiv.list
+import topology.metric_space.metric_separated
 
 /-!
 # Hausdorff measure and metric (outer) measures
@@ -163,7 +163,7 @@ begin
   rw [borel_eq_generate_from_is_closed],
   refine measurable_space.generate_from_le (λ t ht, μ.is_caratheodory_iff_le.2 $ λ s, _),
   set S : ℕ → set X := λ n, {x ∈ s | (↑n)⁻¹ ≤ inf_edist x t},
-  have n0 : ∀ {n : ℕ}, (n⁻¹ : ℝ≥0∞) ≠ 0, from λ n, ennreal.inv_ne_zero.2 ennreal.coe_nat_ne_top,
+  have n0 : ∀ {n : ℕ}, (n⁻¹ : ℝ≥0∞) ≠ 0, from λ n, ennreal.inv_ne_zero.2 (ennreal.nat_ne_top _),
   have Ssep : ∀ n, is_metric_separated (S n) t,
     from λ n, ⟨n⁻¹, n0, λ x hx y hy, hx.2.trans $ inf_edist_le_edist_of_mem hy⟩,
   have Ssep' : ∀ n, is_metric_separated (S n) (s ∩ t),
@@ -370,7 +370,7 @@ lemma isometry_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf
   comap f (mk_metric m) = mk_metric m :=
 begin
   simp only [mk_metric, mk_metric', mk_metric'.pre, induced_outer_measure, comap_supr],
-  refine supr_congr id surjective_id (λ ε, supr_congr id surjective_id $ λ hε, _),
+  refine surjective_id.supr_congr id (λ ε, surjective_id.supr_congr id $ λ hε, _),
   rw comap_bounded_by _ (H.imp (λ h_mono, _) id),
   { congr' with s : 1,
     apply extend_congr,
@@ -408,7 +408,7 @@ end
 lemma le_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (μ : outer_measure X)
   (r : ℝ≥0∞) (h0 : 0 < r) (hr : ∀ s, diam s ≤ r → μ s ≤ m (diam s)) :
   μ ≤ mk_metric m :=
-le_bsupr_of_le r h0 $ mk_metric'.le_pre.2 $ λ s hs, hr _ hs
+le_supr₂_of_le r h0 $ mk_metric'.le_pre.2 $ λ s hs, hr _ hs
 
 end outer_measure
 
@@ -483,8 +483,9 @@ begin
   simp only [← outer_measure.coe_mk_metric, outer_measure.mk_metric, outer_measure.mk_metric',
     outer_measure.supr_apply, outer_measure.mk_metric'.pre, outer_measure.bounded_by_apply,
     extend],
-  refine supr_congr (λ r, r) surjective_id (λ r, supr_congr_Prop iff.rfl $ λ hr,
-    infi_congr _ surjective_id $ λ t, infi_congr_Prop iff.rfl $ λ ht, _),
+  refine surjective_id.supr_congr (λ r, r) (λ r, supr_congr_Prop iff.rfl $ λ hr,
+    surjective_id.infi_congr _ $ λ t, infi_congr_Prop iff.rfl $ λ ht, _),
+  dsimp,
   by_cases htr : ∀ n, diam (t n) ≤ r,
   { rw [infi_eq_if, if_pos htr],
     congr' 1 with n : 1,
@@ -508,23 +509,24 @@ end
 
 /-- To bound the Hausdorff measure (or, more generally, for a measure defined using
 `measure_theory.measure.mk_metric`) of a set, one may use coverings with maximum diameter tending to
-`0`, indexed by any sequence of encodable types. -/
-lemma mk_metric_le_liminf_tsum {β : Type*} {ι : β → Type*} [∀ n, encodable (ι n)] (s : set X)
+`0`, indexed by any sequence of countable types. -/
+lemma mk_metric_le_liminf_tsum {β : Type*} {ι : β → Type*} [∀ n, countable (ι n)] (s : set X)
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i)
   (m : ℝ≥0∞ → ℝ≥0∞) :
   mk_metric m s ≤ liminf l (λ n, ∑' i, m (diam (t n i))) :=
 begin
+  haveI : Π n, encodable (ι n) := λ n, encodable.of_countable _,
   simp only [mk_metric_apply],
-  refine bsupr_le (λ ε hε, _),
+  refine supr₂_le (λ ε hε, _),
   refine le_of_forall_le_of_dense (λ c hc, _),
   rcases ((frequently_lt_of_liminf_lt (by apply_auto_param) hc).and_eventually
     ((hr.eventually (gt_mem_nhds hε)).and (ht.and hst))).exists with ⟨n, hn, hrn, htn, hstn⟩,
   set u : ℕ → set X := λ j, ⋃ b ∈ decode₂ (ι n) j, t n b,
-  refine binfi_le_of_le u (by rwa Union_decode₂) _,
+  refine infi₂_le_of_le u (by rwa Union_decode₂) _,
   refine infi_le_of_le (λ j, _) _,
   { rw emetric.diam_Union_mem_option,
-    exact bsupr_le (λ _ _, (htn _).trans hrn.le) },
+    exact supr₂_le (λ _ _, (htn _).trans hrn.le) },
   { calc (∑' (j : ℕ), ⨆ (h : (u j).nonempty), m (diam (u j))) = _ :
               tsum_Union_decode₂ (λ t : set X, ⨆ (h : t.nonempty), m (diam t)) (by simp) _
     ... ≤ ∑' (i : ι n), m (diam (t n i)) :
@@ -540,10 +542,7 @@ lemma mk_metric_le_liminf_sum {β : Type*} {ι : β → Type*} [hι : ∀ n, fin
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i)
   (m : ℝ≥0∞ → ℝ≥0∞) :
   mk_metric m s ≤ liminf l (λ n, ∑ i, m (diam (t n i))) :=
-begin
-  haveI : ∀ n, encodable (ι n), from λ n, fintype.encodable _,
-  simpa only [tsum_fintype] using mk_metric_le_liminf_tsum s r hr t ht hst m,
-end
+by simpa only [tsum_fintype] using mk_metric_le_liminf_tsum s r hr t ht hst m
 
 /-!
 ### Hausdorff measure and Hausdorff dimension
@@ -552,7 +551,8 @@ end
 /-- Hausdorff measure on an (e)metric space. -/
 def hausdorff_measure (d : ℝ) : measure X := mk_metric (λ r, r ^ d)
 
-localized "notation `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in measure_theory
+localized "notation (name := hausdorff_measure)
+  `μH[` d `]` := measure_theory.measure.hausdorff_measure d" in measure_theory
 
 lemma le_hausdorff_measure (d : ℝ) (μ : measure X) (ε : ℝ≥0∞) (h₀ : 0 < ε)
   (h : ∀ s : set X, diam s ≤ ε → μ s ≤ diam s ^ d) :
@@ -566,8 +566,8 @@ lemma hausdorff_measure_apply (d : ℝ) (s : set X) :
 mk_metric_apply _ _
 
 /-- To bound the Hausdorff measure of a set, one may use coverings with maximum diameter tending
-to `0`, indexed by any sequence of encodable types. -/
-lemma hausdorff_measure_le_liminf_tsum {β : Type*}  {ι : β → Type*} [hι : ∀ n, encodable (ι n)]
+to `0`, indexed by any sequence of countable types. -/
+lemma hausdorff_measure_le_liminf_tsum {β : Type*}  {ι : β → Type*} [hι : ∀ n, countable (ι n)]
   (d : ℝ) (s : set X)
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i) :
@@ -629,7 +629,7 @@ lemma no_atoms_hausdorff {d : ℝ} (hd : 0 < d) : has_no_atoms (hausdorff_measur
 begin
   refine ⟨λ x, _⟩,
   rw [← nonpos_iff_eq_zero, hausdorff_measure_apply],
-  refine bsupr_le (λ ε ε0, binfi_le_of_le (λ n, {x}) _ (infi_le_of_le (λ n, _) _)),
+  refine supr₂_le (λ ε ε0, infi₂_le_of_le (λ n, {x}) _ $ infi_le_of_le (λ n, _) _),
   { exact subset_Union (λ n, {x} : ℕ → set X) 0 },
   { simp only [emetric.diam_singleton, zero_le] },
   { simp [hd] }
@@ -649,7 +649,7 @@ begin
     suffices : (1 : ℝ≥0∞) ≤ ⨅ (t : ℕ → set X) (hts : {x} ⊆ ⋃ n, t n)
       (ht : ∀ n, diam (t n) ≤ 1), ∑' n, ⨆ (h : (t n).nonempty), (diam (t n)) ^ (0 : ℝ),
     { apply le_trans this _,
-      convert le_bsupr (1 : ℝ≥0∞) (ennreal.zero_lt_one),
+      convert le_supr₂ (1 : ℝ≥0∞) (ennreal.zero_lt_one),
       refl },
     simp only [ennreal.rpow_zero, le_infi_iff],
     assume t hst h't,
@@ -828,11 +828,10 @@ begin
       from ennreal.tendsto_const_mul_rpow_nhds_zero_of_pos ennreal.coe_ne_top hr,
     rcases ennreal.nhds_zero_basis_Iic.eventually_iff.1 (this.eventually (gt_mem_nhds hR))
       with ⟨δ, δ0, H⟩,
-    refine le_supr_of_le δ (le_supr_of_le δ0 $ le_binfi $ λ t hst, le_infi $ λ htδ, _),
-    refine binfi_le_of_le (λ n, f '' (t n ∩ s)) _ (infi_le_of_le (λ n, _) _),
+    refine le_supr₂_of_le δ δ0 (infi₂_mono' $ λ t hst, ⟨λ n, f '' (t n ∩ s), _, infi_mono' $ λ htδ,
+      ⟨λ n, (h.ediam_image_inter_le (t n)).trans (H (htδ n)).le, _⟩⟩),
     { rw [← image_Union, ← Union_inter],
       exact image_subset _ (subset_inter hst subset.rfl) },
-    { exact (h.ediam_image_inter_le (t n)).trans (H (htδ n)).le },
     { apply ennreal.tsum_le_tsum (λ n, _),
       simp only [supr_le_iff, nonempty_image_iff],
       assume hft,
@@ -883,7 +882,7 @@ begin
     { simp only [hs, measure_empty, zero_le], },
     have : f ⁻¹' s = {x},
     { haveI : subsingleton X := hf.subsingleton,
-      have : (f ⁻¹' s).subsingleton, from subsingleton_univ.mono (subset_univ _),
+      have : (f ⁻¹' s).subsingleton, from subsingleton_univ.anti (subset_univ _),
       exact (subsingleton_iff_singleton hx).1 this },
     rw this,
     rcases eq_or_lt_of_le hd with rfl|h'd,
@@ -896,11 +895,11 @@ begin
   have hKd : (K : ℝ≥0∞) ^ d ≠ ∞, by simp [hd],
   simp only [hausdorff_measure_apply, ennreal.mul_supr, ennreal.mul_infi_of_ne hKd0 hKd,
     ← ennreal.tsum_mul_left],
-  refine bsupr_le (λ ε ε0, _),
-  refine le_bsupr_of_le (ε / K) (by simp [ε0.ne']) _,
-  refine le_binfi (λ t hst, le_infi $ λ htε, _),
+  refine supr₂_le (λ ε ε0, _),
+  refine le_supr₂_of_le (ε / K) (by simp [ε0.ne']) _,
+  refine le_infi₂ (λ t hst, le_infi $ λ htε, _),
   replace hst : f ⁻¹' s ⊆ _ := preimage_mono hst, rw preimage_Union at hst,
-  refine binfi_le_of_le _ hst (infi_le_of_le (λ n, _) _),
+  refine infi₂_le_of_le _ hst (infi_le_of_le (λ n, _) _),
   { exact (hf.ediam_preimage_le _).trans (ennreal.mul_le_of_le_div' $ htε n) },
   { refine ennreal.tsum_le_tsum (λ n, supr_le_iff.2 (λ hft, _)),
     simp only [nonempty_of_nonempty_preimage hft, csupr_pos],

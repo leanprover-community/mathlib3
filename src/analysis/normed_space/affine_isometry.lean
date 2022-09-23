@@ -17,7 +17,7 @@ We also prove basic lemmas and provide convenience constructors.  The choice of 
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
 Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
-`semi_normed_group` and specialize to `normed_group` only when needed.
+`seminormed_add_comm_group` and specialize to `normed_add_comm_group` only when needed.
 
 ## Notation
 
@@ -31,9 +31,9 @@ algebra-homomorphisms.)
 open function set
 
 variables (𝕜 : Type*) {V V₁ V₂ V₃ V₄ : Type*} {P₁ : Type*} (P P₂ : Type*) {P₃ P₄ : Type*}
-    [normed_field 𝕜]
-  [semi_normed_group V] [semi_normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
-    [semi_normed_group V₄]
+  [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₁]
+  [seminormed_add_comm_group V₂] [seminormed_add_comm_group V₃]
+    [seminormed_add_comm_group V₄]
   [normed_space 𝕜 V] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [normed_space 𝕜 V₃]
     [normed_space 𝕜 V₄]
   [pseudo_metric_space P] [metric_space P₁] [pseudo_metric_space P₂] [pseudo_metric_space P₃]

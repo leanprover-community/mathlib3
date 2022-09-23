@@ -15,7 +15,8 @@ import linear_algebra.finsupp
 
 # Ideals over a ring
 
-This file defines `ideal R`, the type of ideals over a commutative ring `R`.
+This file defines `ideal R`, the type of (left) ideals over a ring `R`.
+Note that over commutative rings, left ideals and two-sided ideals are equivalent.
 
 ## Implementation notes
 
@@ -23,7 +24,7 @@ This file defines `ideal R`, the type of ideals over a commutative ring `R`.
 
 ## TODO
 
-Support one-sided ideals, and ideals over non-commutative rings.
+Support right ideals, and two-sided ideals over non-commutative rings.
 -/
 
 universes u v w
@@ -126,6 +127,11 @@ lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := sub
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 :=
 submodule.span_singleton_eq_bot
 
+lemma span_singleton_ne_top {α : Type*} [comm_semiring α] {x : α} (hx : ¬ is_unit x) :
+  ideal.span ({x} : set α) ≠ ⊤ :=
+(ideal.ne_top_iff_one _).mpr $ λ h1, let ⟨y, hy⟩ := ideal.mem_span_singleton'.mp h1 in
+  hx ⟨⟨x, y, mul_comm y x ▸ hy, hy⟩, rfl⟩
+
 @[simp] lemma span_zero : span (0 : set α) = ⊥ := by rw [←set.singleton_zero, span_singleton_eq_bot]
 
 @[simp] lemma span_one : span (1 : set α) = ⊤ := by rw [←set.singleton_one, span_singleton_one]
@@ -150,12 +156,12 @@ class is_prime (I : ideal α) : Prop :=
 
 theorem is_prime_iff {I : ideal α} :
   is_prime I ↔ I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+⟨λ h, ⟨h.1, λ _ _, h.2⟩, λ h, ⟨h.1, λ _ _, h.2⟩⟩
 
 theorem is_prime.ne_top {I : ideal α} (hI : I.is_prime) : I ≠ ⊤ := hI.1
 
-theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
-  ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
+theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) {x y : α} :
+  x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
 
 theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
@@ -232,7 +238,7 @@ end
 
 /-- If P is not properly contained in any maximal ideal then it is not properly contained
   in any proper ideal -/
-lemma maximal_of_no_maximal {R : Type u} [comm_semiring R] {P : ideal R}
+lemma maximal_of_no_maximal {R : Type u} [semiring R] {P : ideal R}
 (hmax : ∀ m : ideal R, P < m → ¬is_maximal m) (J : ideal R) (hPJ : P < J) : J = ⊤ :=
 begin
   by_contradiction hnonmax,
@@ -469,13 +475,10 @@ namespace ideal
 
 variables [ring α] (I : ideal α) {a b : α}
 
-lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
-
-lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
-
-lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
-
-protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
+protected lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := neg_mem_iff
+protected lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
+protected lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
+protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := sub_mem
 
 lemma mem_span_insert' {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃a, x + a * y ∈ span s := submodule.mem_span_insert'

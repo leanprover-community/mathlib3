@@ -39,9 +39,8 @@ integrable function
 open_locale measure_theory topological_space interval nnreal ennreal
 open measure_theory topological_space set filter asymptotics interval_integral
 
-variables {E F : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E] [normed_group F]
-  [measurable_space F] [borel_space F]
+variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [second_countable_topology E]
+[complete_space E] [normed_add_comm_group F]
 
 /-- If `f` is eventually differentiable along a nontrivial filter `l : filter ℝ` that is generated
 by convex sets, the norm of `f` tends to infinity along `l`, and `f' = O(g)` along `l`, where `f'`
@@ -50,7 +49,7 @@ is the derivative of `f`, then `g` is not integrable on any interval `a..b` such
 lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_filter {f : ℝ → E} {g : ℝ → F}
   {a b : ℝ} (l : filter ℝ) [ne_bot l] [tendsto_Ixx_class Icc l l] (hl : [a, b] ∈ l)
   (hd : ∀ᶠ x in l, differentiable_at ℝ f x) (hf : tendsto (λ x, ∥f x∥) l at_top)
-  (hfg : is_O (deriv f) g l) :
+  (hfg : deriv f =O[l] g) :
   ¬interval_integrable g volume a b :=
 begin
   intro hgi,
@@ -61,7 +60,7 @@ begin
   { rcases hfg.exists_nonneg with ⟨C, C₀, hC⟩,
     have h : ∀ᶠ x : ℝ × ℝ in l.prod l, ∀ y ∈ [x.1, x.2], (differentiable_at ℝ f y ∧
       ∥deriv f y∥ ≤ C * ∥g y∥) ∧ y ∈ [a, b],
-      from (tendsto_fst.interval tendsto_snd).eventually ((hd.and hC.bound).and hl).lift'_powerset,
+      from (tendsto_fst.interval tendsto_snd).eventually ((hd.and hC.bound).and hl).small_sets,
     rcases mem_prod_self_iff.1 h with ⟨s, hsl, hs⟩,
     simp only [prod_subset_iff, mem_set_of_eq] at hs,
     exact ⟨C, C₀, s, hsl, λ x hx y hy z hz, (hs x hx y hy z hz).2,
@@ -79,7 +78,7 @@ begin
   have hsub' : Ι c d ⊆ Ι a b,
     from interval_oc_subset_interval_oc_of_interval_subset_interval hsub,
   have hfi : interval_integrable (deriv f) volume c d,
-    from (hgi.mono_set hsub).mono_fun' (ae_measurable_deriv _ _) hg_ae,
+    from (hgi.mono_set hsub).mono_fun' (ae_strongly_measurable_deriv _ _) hg_ae,
   refine hlt.not_le (sub_le_iff_le_add'.1 _),
   calc ∥f d∥ - ∥f c∥ ≤ ∥f d - f c∥ : norm_sub_norm_le _ _
   ... = ∥∫ x in c..d, deriv f x∥ : congr_arg _ (integral_deriv_eq_sub hfd hfi).symm
@@ -100,7 +99,7 @@ lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_within_diff_s
   {f : ℝ → E} {g : ℝ → F} {a b c : ℝ} (hne : a ≠ b) (hc : c ∈ [a, b])
   (h_deriv : ∀ᶠ x in 𝓝[[a, b] \ {c}] c, differentiable_at ℝ f x)
   (h_infty : tendsto (λ x, ∥f x∥) (𝓝[[a, b] \ {c}] c) at_top)
-  (hg : is_O (deriv f) g (𝓝[[a, b] \ {c}] c)) :
+  (hg : deriv f =O[𝓝[[a, b] \ {c}] c] g) :
   ¬interval_integrable g volume a b :=
 begin
   obtain ⟨l, hl, hl', hle, hmem⟩ : ∃ l : filter ℝ, tendsto_Ixx_class Icc l l ∧ l.ne_bot ∧
@@ -125,7 +124,7 @@ of `f`, then `g` is not interval integrable on any nontrivial interval `a..b` su
 `c ∈ [a, b]`. -/
 lemma not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_punctured {f : ℝ → E} {g : ℝ → F}
   {a b c : ℝ} (h_deriv : ∀ᶠ x in 𝓝[≠] c, differentiable_at ℝ f x)
-  (h_infty : tendsto (λ x, ∥f x∥) (𝓝[≠] c) at_top) (hg : is_O (deriv f) g (𝓝[≠] c))
+  (h_infty : tendsto (λ x, ∥f x∥) (𝓝[≠] c) at_top) (hg : deriv f =O[𝓝[≠] c] g)
   (hne : a ≠ b) (hc : c ∈ [a, b]) :
   ¬interval_integrable g volume a b :=
 have 𝓝[[a, b] \ {c}] c ≤ 𝓝[≠] c, from nhds_within_mono _ (inter_subset_right _ _),
@@ -135,7 +134,7 @@ not_interval_integrable_of_tendsto_norm_at_top_of_deriv_is_O_within_diff_singlet
 /-- If `f` grows in the punctured neighborhood of `c : ℝ` at least as fast as `1 / (x - c)`,
 then it is not interval integrable on any nontrivial interval `a..b`, `c ∈ [a, b]`. -/
 lemma not_interval_integrable_of_sub_inv_is_O_punctured {f : ℝ → F} {a b c : ℝ}
-  (hf : is_O (λ x, (x - c)⁻¹) f (𝓝[≠] c)) (hne : a ≠ b) (hc : c ∈ [a, b]) :
+  (hf : (λ x, (x - c)⁻¹) =O[𝓝[≠] c] f) (hne : a ≠ b) (hc : c ∈ [a, b]) :
   ¬interval_integrable f volume a b :=
 begin
   have A : ∀ᶠ x in 𝓝[≠] c, has_deriv_at (λ x, real.log (x - c)) (x - c)⁻¹ x,

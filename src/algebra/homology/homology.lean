@@ -33,18 +33,12 @@ noncomputable theory
 
 namespace homological_complex
 
-variables [has_zero_object V]
-
 section cycles
 variables [has_kernels V]
 
 /-- The cycles at index `i`, as a subobject. -/
-def cycles (i : ι) : subobject (C.X i) :=
+abbreviation cycles (i : ι) : subobject (C.X i) :=
 kernel_subobject (C.d_from i)
-
-@[simp, reassoc]
-lemma cycles_arrow_d_from (i : ι) : (C.cycles i).arrow ≫ C.d_from i = 0 :=
-by { dsimp [cycles], simp, }
 
 lemma cycles_eq_kernel_subobject {i j : ι} (r : c.rel i j) :
   C.cycles i = kernel_subobject (C.d i j) :=
@@ -59,7 +53,7 @@ def cycles_iso_kernel {i j : ι} (r : c.rel i j) :
 subobject.iso_of_eq _ _ (C.cycles_eq_kernel_subobject r) ≪≫
   kernel_subobject_iso (C.d i j)
 
-lemma cycles_eq_top {i} (h : c.next i = none) : C.cycles i = ⊤ :=
+lemma cycles_eq_top {i} (h : ¬c.rel i (c.next i)) : C.cycles i = ⊤ :=
 begin
   rw eq_top_iff,
   apply le_kernel_subobject,
@@ -88,7 +82,8 @@ def boundaries_iso_image [has_equalizers V] {i j : ι} (r : c.rel i j) :
 subobject.iso_of_eq _ _ (C.boundaries_eq_image_subobject r) ≪≫
   image_subobject_iso (C.d i j)
 
-lemma boundaries_eq_bot {j} (h : c.prev j = none) : C.boundaries j = ⊥ :=
+lemma boundaries_eq_bot [has_zero_object V] {j} (h : ¬c.rel (c.prev j) j) :
+  C.boundaries j = ⊥ :=
 begin
   rw eq_bot_iff,
   refine image_subobject_le _ 0 _,
@@ -116,11 +111,6 @@ image_to_kernel _ _ (C.d_to_comp_d_from i)
   (C.boundaries i).of_le (C.cycles i) h = C.boundaries_to_cycles i :=
 rfl
 
-@[simp, reassoc]
-lemma boundaries_to_cycles_arrow (C : homological_complex V c) (i : ι) :
-  C.boundaries_to_cycles i ≫ (C.cycles i).arrow = (C.boundaries i).arrow :=
-by { dsimp [cycles], simp, }
-
 variables [has_cokernels V]
 
 /--
@@ -137,7 +127,7 @@ open homological_complex
 
 /-! Computing the cycles is functorial. -/
 section
-variables [has_zero_object V] [has_kernels V]
+variables [has_kernels V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 /--
@@ -146,7 +136,8 @@ The morphism between cycles induced by a chain map.
 abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
 subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
 
-@[simp] lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
+@[simp, reassoc, elementwise]
+lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
   (cycles_map f i) ≫ (C₂.cycles i).arrow = (C₁.cycles i).arrow ≫ f.f i :=
 by { simp, }
 
@@ -169,7 +160,7 @@ end
 
 /-! Computing the boundaries is functorial. -/
 section
-variables [has_zero_object V] [has_images V] [has_image_maps V]
+variables [has_images V] [has_image_maps V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 /--
@@ -191,7 +182,7 @@ end
 section
 
 /-! The `boundaries_to_cycles` morphisms are natural. -/
-variables [has_zero_object V] [has_equalizers V] [has_images V] [has_image_maps V]
+variables [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 @[simp, reassoc]

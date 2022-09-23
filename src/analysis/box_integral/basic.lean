@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.filter
 import analysis.box_integral.partition.measure
-import topology.uniform_space.compact_separated
+import topology.uniform_space.compact
 
 /-!
 # Integrals of Riemann, Henstock-Kurzweil, and McShane
@@ -57,8 +57,8 @@ namespace box_integral
 
 universes u v w
 
-variables {ι : Type u} {E : Type v} {F : Type w} [normed_group E] [normed_space ℝ E]
-  [normed_group F] [normed_space ℝ F] {I J : box ι} {π : tagged_prepartition I}
+variables {ι : Type u} {E : Type v} {F : Type w} [normed_add_comm_group E] [normed_space ℝ E]
+  [normed_add_comm_group F] [normed_space ℝ F] {I J : box ι} {π : tagged_prepartition I}
 
 open tagged_prepartition
 

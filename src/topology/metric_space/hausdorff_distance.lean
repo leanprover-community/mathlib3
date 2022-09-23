@@ -990,7 +990,7 @@ end
 
 lemma thickening_subset_interior_cthickening (δ : ℝ) (E : set α) :
   thickening δ E ⊆ interior (cthickening δ E) :=
-(subset_interior_iff_open.mpr (is_open_thickening)).trans
+(subset_interior_iff_is_open.mpr (is_open_thickening)).trans
   (interior_mono (thickening_subset_cthickening δ E))
 
 lemma closure_thickening_subset_cthickening (δ : ℝ) (E : set α) :

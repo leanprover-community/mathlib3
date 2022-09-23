@@ -57,11 +57,16 @@ variables (R : Type*) [comm_ring R]
 
 /--
 A ring of characteristic zero is of "mixed characteristic `(0, p)`" if there exists an ideal
-such that the quotient `R ⧸ I` has caracteristic `p > 0`.
+such that the quotient `R ⧸ I` has caracteristic `p`.
+
+**Remark:** For `p = 0`, `mixed_char R 0` is a meaningless definition as `R ⧸ ⊥ ≅ R` has by definition
+always characteristic zero.
+One could require `(I ≠ ⊥)` in the definition, but then `mixed_char R 0` would mean something
+like `ℤ`-algebra of extension degree `≥ 1` and would be completely independent from
+whether something is a `ℚ`-algebra or not (e.g. `ℚ[X]` would satisfy it but `ℚ` wouldn't).
 -/
 class mixed_char_zero (p : ℕ) : Prop :=
 [to_char_zero : char_zero R]
-(p_pos : p ≠ 0)
 (char_p_quotient : ∃ (I : ideal R), (I ≠ ⊤) ∧ char_p (R ⧸ I) p)
 
 namespace mixed_char_zero
@@ -71,13 +76,13 @@ Reduction to `p` prime: When proving any statement `P` about mixed characteristi
 can always assume that `p` is prime.
 -/
 lemma reduce_to_p_prime {P : Prop} :
-  (∀ (p : ℕ), (mixed_char_zero R p → P)) ↔
+  (∀ p > 0, (mixed_char_zero R p → P)) ↔
   (∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) :=
 begin
   split,
   { intros h q q_prime q_mixed_char,
-    exact h q q_mixed_char },
-  { intros h q q_mixed_char,
+    exact h q (nat.prime.pos q_prime) q_mixed_char },
+  { intros h q q_pos q_mixed_char,
     rcases q_mixed_char.char_p_quotient with ⟨I, ⟨hI_ne_top, hI_char⟩⟩,
 
     -- Krull's Thm: There exists a prime ideal `P` such that `I ≤ P`
@@ -89,7 +94,7 @@ begin
     begin
       have q_zero := congr_arg (ideal.quotient.factor I M h_IM) (char_p.cast_eq_zero (R ⧸ I) q),
       simp only [map_nat_cast, map_zero] at q_zero,
-      apply ne_zero_of_dvd_ne_zero (nat.prime.ne_zero q_prime),
+      apply ne_zero_of_dvd_ne_zero (ne_of_gt q_pos),
       exact (char_p.cast_eq_zero_iff (R ⧸ M) r q).mp q_zero
     end,
     have r_prime : nat.prime r :=
@@ -97,13 +102,12 @@ begin
     apply h r r_prime,
     haveI : char_zero R := q_mixed_char.to_char_zero,
     exact
-    ⟨ r_pos,
-      begin
-        use M,
-        split,
-        exact hM_max.ne_top,
-        refine ring_char.of_eq rfl
-      end⟩ }
+    ⟨begin
+      use M,
+      split,
+      exact hM_max.ne_top,
+      refine ring_char.of_eq rfl
+    end⟩ }
 end
 
 /--
@@ -294,7 +298,7 @@ end equal_char_zero
 /--
 Not mixed characteristic implies equal characteristic.
 -/
-lemma not_mixed_char_to_equal_char_zero [char_zero R] (h : ¬(∃ p, mixed_char_zero R p)) :
+lemma not_mixed_char_to_equal_char_zero [char_zero R] (h : ¬(∃ p > 0, mixed_char_zero R p)) :
   ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I) :=
 begin
   push_neg at h,
@@ -303,23 +307,28 @@ begin
   cases char_p.exists (R ⧸ I) with p hp,
   cases p,
   { exact hp },
-  { have h_mixed : mixed_char_zero R p.succ := ⟨p.succ_ne_zero, ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
-    exact absurd h_mixed (h p.succ) }
+  { have h_mixed : mixed_char_zero R p.succ := ⟨⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
+    exact absurd h_mixed (h p.succ p.succ_pos) }
 end
+
+example (n : ℕ) (h : 0<n) : n ≠ 0 := ne_of_gt h
 
 /--
 Equal characteristic implies not mixed characteristic.
 -/
 lemma equal_char_zero_to_not_mixed_char (h : ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) :
-  ¬(∃ p, mixed_char_zero R p) :=
+  ¬(∃ p > 0, mixed_char_zero R p) :=
 begin
   push_neg,
   intro p,
   by_contradiction hp,
-  rcases hp.char_p_quotient with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
+  push_neg at hp,
+  let hp_pos := hp.1,
+  let hp_mixed_char := hp.2,
+  rcases hp_mixed_char.char_p_quotient with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
   haveI hI_zero : char_zero (R ⧸ I) := (h I hI_ne_top),
   replace hI_zero : char_p (R ⧸ I) 0 := char_p.of_char_zero _,
-  exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) hp.p_pos,
+  exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) (ne_of_gt hp_pos),
 end
 
 /--
@@ -327,7 +336,7 @@ A ring of characteristic zero has equal characteristic iff it does not
 have mixed characteristic for any `p`.
 -/
 lemma equal_char_zero_iff_not_mixed_char [char_zero R] :
-  (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) ↔ (¬(∃ p, mixed_char_zero R p)) :=
+  (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) ↔ (¬(∃ p > 0, mixed_char_zero R p)) :=
 iff.intro (equal_char_zero_to_not_mixed_char R) (not_mixed_char_to_equal_char_zero R)
 
 /--
@@ -349,7 +358,7 @@ end
 A ring of characteristic zero is not a `ℚ`-algebra iff it has mixed characteristic for some `p`.
 -/
 theorem not_Q_algebra_iff_not_equal_char_zero [char_zero R] :
-  is_empty (algebra ℚ R) ↔ (∃ p, mixed_char_zero R p) :=
+  is_empty (algebra ℚ R) ↔ (∃ p > 0, mixed_char_zero R p) :=
 begin
   rw [←not_iff_not, not_is_empty_iff, ←equal_char_zero_iff_not_mixed_char],
   apply Q_algebra_iff_equal_char_zero,
@@ -375,11 +384,10 @@ theorem split_equal_mixed_char [char_zero R]
   (h_equal : algebra ℚ R → P)
   (h_mixed : ∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=
 begin
-  by_cases h : ∃ (p : ℕ), mixed_char_zero R p,
-  { cases h with p hp,
+  by_cases h : ∃ p > 0, mixed_char_zero R p,
+  { rcases h with ⟨p, ⟨H, hp⟩⟩,
     rw ←mixed_char_zero.reduce_to_p_prime at h_mixed,
-    apply h_mixed p,
-    exact hp },
+    exact h_mixed p H hp },
   { apply h_equal,
     rw [←not_Q_algebra_iff_not_equal_char_zero, not_is_empty_iff] at h,
     exact h.some },

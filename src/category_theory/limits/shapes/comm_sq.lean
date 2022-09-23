@@ -126,7 +126,7 @@ structure is_pushout {Z X Y P : C} (f : Z ⟶ X) (g : Z ⟶ Y) (inl : X ⟶ P) (
 section
 set_option old_structure_cmd true
 
-/-- The proposition that a square
+/-- A *bicartesian* square is a commutative square
 ```
   W ---f---> X
   |          |
@@ -136,7 +136,7 @@ set_option old_structure_cmd true
   Y ---i---> Z
 
 ```
-is both a pullback square and a pushout square.
+that is both a pullback square and a pushout square.
 -/
 structure bicartesian_sq {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y ⟶ Z)
   extends is_pullback f g h i, is_pushout f g h i : Prop

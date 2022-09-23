@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.order
+import topology.nhds_set
 
 /-!
 # Specific classes of maps between topological spaces
@@ -76,6 +77,10 @@ lemma inducing_iff_nhds {f : α → β} : inducing f ↔ ∀ a, 𝓝 a = comap f
 lemma inducing.nhds_eq_comap {f : α → β} (hf : inducing f) :
   ∀ (a : α), 𝓝 a = comap f (𝓝 $ f a) :=
 inducing_iff_nhds.1 hf
+
+lemma inducing.nhds_set_eq_comap {f : α → β} (hf : inducing f) (s : set α) :
+  𝓝ˢ s = comap f (𝓝ˢ (f '' s)) :=
+by simp only [nhds_set, Sup_image, comap_supr, hf.nhds_eq_comap, supr_image]
 
 lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) :
   (𝓝 a).map f = 𝓝[range f] (f a) :=
@@ -360,7 +365,7 @@ lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f :
 
 lemma is_open_map_iff_interior [topological_space α] [topological_space β] {f : α → β} :
   is_open_map f ↔ ∀ s, f '' (interior s) ⊆ interior (f '' s) :=
-⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_open.mp $
+⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_is_open.mp $
   calc f '' u = f '' (interior u) : by rw hu.interior_eq
           ... ⊆ interior (f '' u) : hs u⟩
 

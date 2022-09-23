@@ -1052,7 +1052,7 @@ by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
   pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
 begin
   ext x,
-  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  simp only [mem_pi, mem_inter_iff, ← forall_and_distrib],
   refine forall_congr (λ i, _),
   by_cases hi : i ∈ s'; simp *
 end

@@ -254,6 +254,10 @@ lemma change_form.add_proof : (B + B').to_quadratic_form = Q'' - Q :=
 lemma change_form.neg_proof : (-B).to_quadratic_form = Q - Q' :=
 (congr_arg has_neg.neg h).trans $ neg_sub _ _
 
+lemma change_form.associated_neg_proof [invertible (2 : R)] :
+  (-Q).associated.to_quadratic_form = 0 - Q :=
+by simp [quadratic_form.to_quadratic_form_associated]
+
 @[simp]
 lemma change_form_algebra_map (r : R) : change_form h (algebra_map R _ r) = algebra_map R _ r :=
 (foldr_algebra_map _ _ _ _ _).trans $ eq.symm $ algebra.algebra_map_eq_smul_one r
@@ -285,10 +289,7 @@ begin
     rw [←hx, contract_left_comm, ←sub_add, sub_neg_eq_add, ←hx] }
 end
 
-
-@[simp]
-lemma change_form_self_apply
-  (x : clifford_algebra Q) :
+lemma change_form_self_apply (x : clifford_algebra Q) :
   change_form (change_form.zero_proof) x = x :=
 begin
   induction x using clifford_algebra.left_induction with r x y hx hy m x hx,
@@ -341,12 +342,10 @@ variables (Q)
 
 /-- The module isomorphism to the exterior algebra.
 
-Note that this holds more generally when `Q` is divisible by two, rather than requiring `1` is
-divisible by two. -/
+Note that this holds more generally when `Q` is divisible by two, rather than only when `1` is
+divisible by two; but that would be more awkward to use. -/
 @[simp]
 def equiv_exterior [invertible (2 : R)] : clifford_algebra Q ≃ₗ[R] exterior_algebra R M :=
-(change_form_equiv $
-  show (-Q).associated.to_quadratic_form = 0 - Q,
-  by simp [quadratic_form.to_quadratic_form_associated])
+change_form_equiv change_form.associated_neg_proof
 
 end clifford_algebra

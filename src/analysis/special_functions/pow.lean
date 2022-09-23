@@ -428,7 +428,9 @@ begin
   rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w).le, rw map_zero],
   rcases eq_or_ne w 0 with rfl|hw, { simp },
   rw [zero_cpow hw, map_zero],
-  exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).leend
+  exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le
+end
+
 section
 
 variables {α : Type*} {l : filter α} {f g : α → ℂ}

@@ -6,6 +6,7 @@ Authors: Moritz Doll, Anatole Dedecker
 
 import analysis.seminorm
 import analysis.locally_convex.bounded
+import topology.algebra.equicontinuity
 
 /-!
 # Topology induced by a family of seminorms
@@ -33,7 +34,7 @@ seminorm, locally convex
 -/
 
 open normed_field set seminorm topological_space
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topological_space uniformity
 
 variables {𝕜 E F G ι ι' : Type*}
 
@@ -297,6 +298,8 @@ lemma seminorm_family.with_seminorms_of_has_basis (p : seminorm_family 𝕜 E ι
 p.with_seminorms_of_nhds $ filter.has_basis.eq_of_same_basis h
   p.add_group_filter_basis.to_filter_basis.has_basis
 
+#check seminorm_family.filter_eq_infi
+
 lemma seminorm_family.with_seminorms_iff_nhds_eq_infi (p : seminorm_family 𝕜 E ι) :
   with_seminorms p ↔ (𝓝 0 : filter E) = ⨅ i, (𝓝 0).comap (p i) :=
 begin
@@ -394,6 +397,31 @@ namespace seminorm
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 variables [nonempty ι] [nonempty ι']
+
+-- Should I merge hf₁ and hf₂ ?
+
+lemma uniform_equicontinuous_from_bounded {κ : Type*} {q : seminorm_family 𝕜 F ι'}
+  [uniform_space E] [uniform_add_group E]
+  [uniform_space F] [uniform_add_group F] (hq : with_seminorms q)
+  (f : κ → E →ₗ[𝕜] F) (hf₁ : ∀ i, bdd_above (range $ λ k, (q i).comp (f k)))
+  (hf₂ : ∀ i, continuous (⨆ k, (q i).comp (f k))) : uniform_equicontinuous (coe_fn ∘ f) :=
+begin
+  refine uniform_equicontinuous_of_equicontinuous_at_zero f _,
+  rw [equicontinuous_at],
+  intros U hU,
+  rw [uniformity_eq_comap_nhds_zero, q.with_seminorms_iff_nhds_eq_infi.mp hq,
+      filter.comap_infi] at hU,
+  rcases hU with ⟨V, hV : V ∈ q.basis_sets, hU⟩,
+  rcases q.basis_sets_iff.mp hV with ⟨s₂, r, hr, hV⟩,
+  rw hV at hU,
+  rw [p.add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff],
+  rcases (seminorm.is_bounded_sup hf s₂) with ⟨C, s₁, hC, hf⟩,
+  refine ⟨(s₁.sup p).ball 0 (r/C), p.basis_sets_mem _ (div_pos hr (nnreal.coe_pos.mpr hC)), _⟩,
+  refine subset.trans _ (preimage_mono hU),
+  simp_rw [←linear_map.map_zero f, ←ball_comp],
+  refine subset.trans _ (ball_antitone hf),
+  rw ball_smul (s₁.sup p) hC,
+end
 
 lemma continuous_from_bounded {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
   [uniform_space E] [uniform_add_group E] (hp : with_seminorms p)

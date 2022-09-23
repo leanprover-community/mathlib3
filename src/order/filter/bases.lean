@@ -606,6 +606,15 @@ by simp only [← principal_singleton, disjoint_principal_principal, disjoint_si
   (diagonal α)ᶜ ∈ l₁ ×ᶠ l₂ ↔ disjoint l₁ l₂ :=
 by simp only [mem_prod_iff, filter.disjoint_iff, prod_subset_compl_diagonal_iff_disjoint]
 
+lemma has_basis.disjoint_iff_left (h : l.has_basis p s) :
+  disjoint l l' ↔ ∃ i (hi : p i), (s i)ᶜ ∈ l' :=
+by simp only [h.disjoint_iff l'.basis_sets, exists_prop, id, ← disjoint_principal_left,
+  (has_basis_principal _).disjoint_iff l'.basis_sets, unique.exists_iff]
+
+lemma has_basis.disjoint_iff_right (h : l.has_basis p s) :
+  disjoint l' l ↔ ∃ i (hi : p i), (s i)ᶜ ∈ l' :=
+disjoint.comm.trans h.disjoint_iff_left
+
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
 forall₂_congr $ λ _ _, mem_iff_inf_principal_compl
@@ -953,6 +962,11 @@ begin
   exact has_countable_basis.is_countably_generated
     ⟨hs.to_has_basis.inf ht.to_has_basis, set.to_countable _⟩
 end
+
+instance map.is_countably_generated (l : filter α) [l.is_countably_generated] (f : α → β) :
+  (map f l).is_countably_generated :=
+let ⟨x, hxl⟩ := l.exists_antitone_basis in
+has_countable_basis.is_countably_generated ⟨hxl.map.to_has_basis, to_countable _⟩
 
 instance comap.is_countably_generated (l : filter β) [l.is_countably_generated] (f : α → β) :
   (comap f l).is_countably_generated :=

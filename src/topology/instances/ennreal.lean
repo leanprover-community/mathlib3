@@ -1361,7 +1361,7 @@ is_closed_le (continuous_id.edist continuous_const) continuous_const
 begin
   refine le_antisymm (diam_le $ λ x hx y hy, _) (diam_mono subset_closure),
   have : edist x y ∈ closure (Iic (diam s)),
-    from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
+    from map_mem_closure₂ continuous_edist hx hy (λ x hx y hy, edist_le_diam_of_mem hx hy),
   rwa closure_Iic at this
 end
 
@@ -1435,6 +1435,18 @@ le_antisymm (ediam_Icc a b ▸ diam_mono Ico_subset_Icc_self)
   emetric.diam (Ioc a b) = ennreal.of_real (b - a) :=
 le_antisymm (ediam_Icc a b ▸ diam_mono Ioc_subset_Icc_self)
   (ediam_Ioo a b ▸ diam_mono Ioo_subset_Ioc_self)
+
+lemma diam_Icc {a b : ℝ} (h : a ≤ b) : metric.diam (Icc a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ico {a b : ℝ} (h : a ≤ b) : metric.diam (Ico a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ioc {a b : ℝ} (h : a ≤ b) : metric.diam (Ioc a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ioo {a b : ℝ} (h : a ≤ b) : metric.diam (Ioo a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
 
 end real
 

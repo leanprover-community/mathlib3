@@ -49,10 +49,11 @@ also do some limits stuff (liminf/limsup etc).
 See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 -/
 
+open function
 open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [has_top, comm_monoid_with_zero,
+@[derive [has_top, comm_monoid_with_zero, nontrivial,
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
@@ -65,16 +66,20 @@ namespace ereal
 -- TODO: Provide explicitly, otherwise it is inferred noncomputably from `complete_linear_order`
 instance : has_bot ereal := ⟨some ⊥⟩
 
-@[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
-@[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
-
 instance : has_coe ℝ ereal := ⟨real.to_ereal⟩
+
+lemma coe_strict_mono : strict_mono (coe : ℝ → ereal) :=
+with_bot.coe_strict_mono.comp with_top.coe_strict_mono
+
+lemma coe_injective : injective (coe : ℝ → ereal) := coe_strict_mono.injective
+
 @[simp, norm_cast] protected lemma coe_le_coe_iff {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
-by { unfold_coes, simp [real.to_ereal] }
+coe_strict_mono.le_iff_le
 @[simp, norm_cast] protected lemma coe_lt_coe_iff {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
-by { unfold_coes, simp [real.to_ereal] }
+coe_strict_mono.lt_iff_lt
 @[simp, norm_cast] protected lemma coe_eq_coe_iff {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
-by { unfold_coes, simp [real.to_ereal, option.some_inj] }
+coe_injective.eq_iff
+protected lemma coe_ne_coe_iff {x y : ℝ} : (x : ereal) ≠ (y : ereal) ↔ x ≠ y := coe_injective.ne_iff
 
 /-- The canonical map from nonnegative extended reals to extended reals -/
 def _root_.ennreal.to_ereal : ℝ≥0∞ → ereal
@@ -155,6 +160,8 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 rfl
 
 @[simp, norm_cast] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
+@[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ereal) = 0 ↔ x = 0 := ereal.coe_eq_coe_iff
+lemma coe_ne_zero {x : ℝ} : (x : ereal) ≠ 0 ↔ x ≠ 0 := ereal.coe_ne_coe_iff
 
 @[simp, norm_cast] protected lemma coe_nonneg {x : ℝ} : (0 : ereal) ≤ x ↔ 0 ≤ x :=
 ereal.coe_le_coe_iff
@@ -237,25 +244,34 @@ lemma coe_nnreal_ne_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) ≠ ⊤ := de
 
 @[simp] lemma coe_nnreal_lt_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) < ⊤ := dec_trivial
 
-@[simp, norm_cast] lemma coe_ennreal_le_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
-  (x : ereal) ≤ (y : ereal) ↔ x ≤ y
-| x ⊤ := by simp
-| ⊤ (some y) := by simp
-| (some x) (some y) := by simp [coe_nnreal_eq_coe_real]
-
-@[simp, norm_cast] lemma coe_ennreal_lt_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
-  (x : ereal) < (y : ereal) ↔ x < y
+lemma coe_ennreal_strict_mono : strict_mono (coe : ℝ≥0∞ → ereal)
 | ⊤ ⊤ := by simp
 | (some x) ⊤ := by simp
 | ⊤ (some y) := by simp
 | (some x) (some y) := by simp [coe_nnreal_eq_coe_real]
 
-@[simp, norm_cast] lemma coe_ennreal_eq_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
-  (x : ereal) = (y : ereal) ↔ x = y
-| ⊤ ⊤ := by simp
-| (some x) ⊤ := by simp
-| ⊤ (some y) := by simp [(coe_nnreal_lt_top y).ne']
-| (some x) (some y) := by simp [coe_nnreal_eq_coe_real]
+lemma coe_ennreal_injective : injective (coe : ℝ≥0∞ → ereal) := coe_ennreal_strict_mono.injective
+
+@[simp, norm_cast] lemma coe_ennreal_le_coe_ennreal_iff {x y : ℝ≥0∞} :
+  (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
+coe_ennreal_strict_mono.le_iff_le
+
+@[simp, norm_cast] lemma coe_ennreal_lt_coe_ennreal_iff {x y : ℝ≥0∞} :
+  (x : ereal) < (y : ereal) ↔ x < y :=
+coe_ennreal_strict_mono.lt_iff_lt
+
+@[simp, norm_cast] lemma coe_ennreal_eq_coe_ennreal_iff {x y : ℝ≥0∞} :
+  (x : ereal) = (y : ereal) ↔ x = y :=
+coe_ennreal_injective.eq_iff
+
+lemma coe_ennreal_ne_coe_ennreal_iff {x y : ℝ≥0∞} : (x : ereal) ≠ (y : ereal) ↔ x ≠ y :=
+coe_ennreal_injective.ne_iff
+
+@[simp, norm_cast] lemma coe_ennreal_eq_zero {x : ℝ≥0∞} : (x : ereal) = 0 ↔ x = 0 :=
+by rw [←coe_ennreal_eq_coe_ennreal_iff, coe_ennreal_zero]
+
+@[simp, norm_cast] lemma coe_ennreal_ne_zero {x : ℝ≥0∞} : (x : ereal) ≠ 0 ↔ x ≠ 0 :=
+coe_ennreal_eq_zero.not
 
 lemma coe_ennreal_nonneg (x : ℝ≥0∞) : (0 : ereal) ≤ x :=
 coe_ennreal_le_coe_ennreal_iff.2 (zero_le x)

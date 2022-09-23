@@ -285,7 +285,7 @@ begin
   rintros ⟨K₁, V₁⟩ ⟨hK₁, hV₁⟩ ⟨K₂, V₂⟩ ⟨hK₂, hV₂⟩,
   refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
   simp only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
-      ← forall_and_distrib, mem_inter_eq, mem_union_eq],
+      ← forall_and_distrib, mem_inter_iff, mem_union],
   exact λ f g, forall_imp (λ x, by tauto!),
 end
 

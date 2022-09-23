@@ -273,6 +273,12 @@ by rw [←coe_ennreal_eq_coe_ennreal_iff, coe_ennreal_zero]
 @[simp, norm_cast] lemma coe_ennreal_ne_zero {x : ℝ≥0∞} : (x : ereal) ≠ 0 ↔ x ≠ 0 :=
 coe_ennreal_eq_zero.not
 
+@[simp, norm_cast] lemma coe_ennreal_eq_one {x : ℝ≥0∞} : (x : ereal) = 1 ↔ x = 1 :=
+by rw [←coe_ennreal_eq_coe_ennreal_iff, coe_ennreal_one]
+
+@[simp, norm_cast] lemma coe_ennreal_ne_one {x : ℝ≥0∞} : (x : ereal) ≠ 1 ↔ x ≠ 1 :=
+coe_ennreal_eq_one.not
+
 lemma coe_ennreal_nonneg (x : ℝ≥0∞) : (0 : ereal) ≤ x :=
 coe_ennreal_le_coe_ennreal_iff.2 (zero_le x)
 
@@ -518,6 +524,8 @@ end
 /-! ### Multiplication -/
 
 @[simp] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
+@[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ereal) = 1 ↔ x = 1 := ereal.coe_eq_coe_iff
+lemma coe_ne_one {x : ℝ} : (x : ereal) ≠ 1 ↔ x ≠ 1 := ereal.coe_ne_coe_iff
 
 @[simp, norm_cast] lemma coe_mul (x y : ℝ) : ((x * y : ℝ) : ereal) = (x : ereal) * (y : ereal) :=
 eq.trans (with_bot.coe_eq_coe.mpr with_bot.coe_mul) with_top.coe_mul

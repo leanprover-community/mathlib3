@@ -904,11 +904,12 @@ end
  -/
 
 lemma function.extend_apply_first {α β γ : Type*} (f : α → β) (g : α → γ) (e' : β → γ)
-  (hf : ∀ {a b : α}, f a = f b → g a = g b) (a : α) :
+  (hf : ∀ (a b : α), f a = f b → g a = g b) (a : α) :
   function.extend f g e' (f a) = g a :=
 begin
   simp only [function.extend_def, dif_pos, exists_apply_eq_apply],
-  exact hf (classical.some_spec (exists_apply_eq_apply f a)),
+  apply hf,
+  exact (classical.some_spec (exists_apply_eq_apply f a)),
 end
 
 
@@ -971,11 +972,35 @@ begin
   { simp only [equiv.perm.mem_support, equiv.perm.cycle_of_apply_self], exact hx, },
 end
 
-example (g : equiv.perm α) (τ : equiv.perm (g.cycle_factors_finset))
+example (p q : Prop) : p ∧ q → p := and.left
+
+example (g c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset)
+  (x y : α) (hx : x ∈ c.support) :
+  g.same_cycle x y ↔ y ∈ c.support :=
+begin
+
+  have hx' : g.cycle_of x = c := (equiv.perm.cycle_is_cycle_of hx hc).symm,
+  have hx'' : x ∈ g.support,
+  { apply (equiv.perm.support_cycle_of_le g x),
+    rw hx', exact hx, },
+  split,
+  { intro hxy,
+    rw ← hx',
+    rw equiv.perm.mem_support_cycle_of_iff,
+    exact ⟨hxy, hx''⟩, },
+  {
+    intro hy,
+
+    apply and.left,
+    rw ← equiv.perm.mem_support_cycle_of_iff,
+    rw hx', exact hy, },
+end
+
+lemma is_surjective_aux (g : equiv.perm α) (τ : equiv.perm (g.cycle_factors_finset))
   (H : ∀ c : g.cycle_factors_finset,
     (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card) :
   ∃ (k : equiv.perm α), (g * k = k * g) ∧ (∀ (c : g.cycle_factors_finset),
-    k • (c : equiv.perm α).support = (τ c : equiv.perm α).support) :=
+    (conj_act.to_conj_act k) • (c : equiv.perm α) = τ c) :=
 begin
   have : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.nonempty,
   { intro c,
@@ -992,19 +1017,67 @@ begin
   have ha'': ∀ (c : g.cycle_factors_finset) (i : ℤ), g.cycle_of ((g ^ i) (a c)) = c,
   { intros c i, rw equiv.perm.cycle_of_self_apply_zpow, rw ha', },
 
-  /- Construire k pour que
-    1) k (a c) = a (k • c)
-    2) k ((g ^ i) (a c)) = (g ^ i) (a (τ c)) -/
-
-  -- function.extend
   let Kf : equiv.perm (g.cycle_factors_finset) → (g.cycle_factors_finset) × ℤ → α :=
     λ e ⟨c, i⟩, (g ^ i) (a (e c)),
+  have Kf_apply : ∀ {e : equiv.perm (g.cycle_factors_finset)} {c : g.cycle_factors_finset} {i : ℤ},
+    Kf e ⟨c, i⟩ = (g ^ i) (a (e c)) := λ e c i, rfl,
   let k := function.extend (Kf 1) (Kf τ) id,
+
+  have haK : ∀ (e : equiv.perm (g.cycle_factors_finset)) (c : g.cycle_factors_finset) (i : ℤ),
+  g.cycle_of (Kf e ⟨c, i⟩) = (e c : equiv.perm α),
+  { intros e c i, rw Kf_apply,
+    rw equiv.perm.cycle_of_self_apply_zpow, rw ha', },
+  have ha2 : ∀ (e : equiv.perm (g.cycle_factors_finset)) (c : g.cycle_factors_finset) (i : ℤ),
+   g (Kf e ⟨c,i⟩) = Kf e ⟨c, i + 1⟩,
+  { intros e c i,
+    simp only [Kf_apply],
+    rw ← equiv.perm.mul_apply, rw ← zpow_one_add, rw add_comm 1 i, },
+  have ha3 :  ∀ (e : equiv.perm (g.cycle_factors_finset)) (c d : g.cycle_factors_finset) (i : ℤ),
+   (d = e c) → (d : equiv.perm α) (Kf e ⟨c,i⟩) = Kf e ⟨c, i + 1⟩,
+-- Kf e ⟨c, i⟩ = (g ^ i) (a (e c)) appartient au cycle de e c
+  { intros e c d i h,
+    rw h,
+    rw ← haK e c i,
+    rw equiv.perm.cycle_of_apply_self,
+    apply ha2, },
+  have ha4 : ∀ (e : equiv.perm (g.cycle_factors_finset)) (c d : g.cycle_factors_finset) (i : ℤ),
+   (d ≠ e c) → (d : equiv.perm α) (Kf e ⟨c,i⟩) = Kf e ⟨c, i⟩,
+  { intros e c d i h,
+    suffices hdc : (d : equiv.perm α).disjoint (e c : equiv.perm α),
+    { apply or.resolve_right (equiv.perm.disjoint_iff_eq_or_eq.mp hdc (Kf e ⟨c, i⟩)),
+      -- intro hd,
+      rw ← haK e c i,
+      rw equiv.perm.cycle_of_apply_self ,
+      rw ← equiv.perm.cycle_of_eq_one_iff,
+      rw haK e c i,
+      apply equiv.perm.is_cycle.ne_one ,
+      refine (equiv.perm.mem_cycle_factors_finset_iff.mp _).1,
+      exact g,
+      exact (e c).prop, },
+    apply g.cycle_factors_finset_pairwise_disjoint d d.prop (e c) (e c).prop,
+    rw function.injective.ne_iff (subtype.coe_injective), exact h, },
+  have ha5 : ∀ (x : α) (hx : ¬ (∃ (cj : g.cycle_factors_finset × ℤ), Kf 1 cj = x)),
+    k x = x,
+  { intros x hx,
+    simp only [k, function.extend_apply' _ _ _ hx, id.def], },
+  have ha6 : ∀ (x : α) (hx : ¬ (∃ (cj : g.cycle_factors_finset × ℤ), Kf 1 cj = x))
+    (c : g.cycle_factors_finset), (c : equiv.perm α) x = x,
+  { intros x hx c,
+    by_contradiction, apply hx,
+    rw [← ne.def, ← equiv.perm.mem_support] at h,
+    suffices : g.same_cycle (a c) x,
+    { obtain ⟨i, hi⟩ := this,
+      use ⟨c, i⟩,
+      rw [Kf_apply, ← hi, equiv.perm.coe_one, id.def], },
+
+    apply and.left,
+    rw ← equiv.perm.mem_support_cycle_of_iff,
+    rw ha' c, exact h, },
   have hkfg : ∀ (e e' : equiv.perm (g.cycle_factors_finset))
-    (Hee' : ∀ (c : g.cycle_factors_finset), (e' c : equiv.perm α).support.card = (e c : equiv.perm α).support.card)
     (ci dj : (g.cycle_factors_finset) × ℤ),
-    Kf e ci = Kf e dj → Kf e' ci = Kf e' dj,
-  { rintros e e' Hee' ⟨c, i⟩ ⟨d, j⟩ He,
+    (∀ (c : g.cycle_factors_finset), (e' c : equiv.perm α).support.card = (e c : equiv.perm α).support.card)
+    →  Kf e ci = Kf e dj → Kf e' ci = Kf e' dj,
+  { rintros e e' ⟨c, i⟩ ⟨d, j⟩ Hee' He,
     change (g ^ i) (a (e c)) = (g ^ j) (a (e d)) at He,
     change (g ^ i) (a (e' c)) = (g ^ j) (a (e' d)),
     suffices hcd : c = d,
@@ -1017,17 +1090,13 @@ begin
     { -- d = c
         apply equiv.injective e,
         rw [← subtype.coe_inj, ← ha'' (e c) i, ← ha'' (e d) j, He], }, },
-  have k_apply :
-  ∀ (c : g.cycle_factors_finset) (i : ℤ), k ((g ^ i) (a c)) = (g ^ i) (a (τ c)),
-  { simp only [k],
-    intros c i,
-    change k(Kf 1 ⟨c, i⟩) = Kf τ ⟨c, i⟩,
-    simp only [k, function.extend_def, dif_pos, exists_apply_eq_apply],
-    { apply hkfg 1 τ,
-      { intro c, rw ← H c, simp only [equiv.perm.coe_one, id.def], },
-      have hci : ∃ a, Kf 1 a = Kf 1 ⟨c, i⟩, use ⟨c,i⟩,
-
-      use classical.some_spec hci, }, },
+  have k_apply : ∀ (c : g.cycle_factors_finset) (i : ℤ), k (Kf 1 ⟨c,i⟩) = Kf τ ⟨c,i⟩,
+--  ∀ (c : g.cycle_factors_finset) (i : ℤ), k ((g ^ i) (a c)) = (g ^ i) (a (τ c)),
+  { intros c i,
+    simp only [k],
+    rw function.extend_apply_first (Kf 1) (Kf τ) id _ ⟨c,i⟩,
+    { intros a b hk, apply hkfg 1 τ a b _ hk,
+      exact (λ c, begin rw ← H c, simp only [equiv.perm.coe_one, id.def], end), }, },
   have k_apply' : ∀ (x : α), x ∉ g.support → k x = x,
   { intros x hx,
     simp only [k],
@@ -1040,86 +1109,76 @@ begin
     rw equiv.perm.zpow_apply_mem_support ,
     rw equiv.perm.mem_support,
     exact ha c, },
-
-  /-
-  let kf : (g.cycle_factors_finset) × ℤ → α := λ⟨c, i⟩, (g ^ i) (a c),
-  let kg : (g.cycle_factors_finset) × ℤ → α := λ⟨c, i⟩, (g ^ i) (a (τ c)),
-  let ke : α → α := id,
-  let k := function.extend kf kg ke,
-  have hkfg : ∀ {ci dj : g.cycle_factors_finset × ℤ}, kf ci = kf dj ↔ kg ci = kg dj,
-  { suffices : ∀ ci dj, kf ci = kf dj → kg ci = kg dj,
-    { rintros ⟨c, i⟩ ⟨d, j⟩,
-      split, apply this,
-      intro Hcidj,
-      simp only [kf],
-      change (g ^ i) (a (τ c)) = (g ^ j) (a (τ d)) at Hcidj,
-      change kf ⟨τ c, i⟩ = kf ⟨τ d, j⟩ at Hcidj,
-      change (g ^ i) (a c) = (g ^ j) (a d),
-      rw ← equiv.apply_symm_apply τ c, rw ← equiv.apply_symm_apply τ d,
-      change kg ⟨τ.symm c, i⟩ = kg ⟨τ.symm d, j⟩,
-      apply this,
-
-    },
-    -- implication
-    rintros ⟨c,i⟩ ⟨d, j⟩,
-    intro Hcidj, change (g ^ i) (a c) = (g ^ j) (a d) at Hcidj,
-    change (g ^ i) (a (τ c)) = (g ^ j) (a (τ d)),
-    suffices hcd : c = d,
-    rw hcd at Hcidj ⊢,
-    rw [g.zpow_eq_zpow_on_iff i j, ha'] at Hcidj,
-    rw [g.zpow_eq_zpow_on_iff, ha', ←(H d)],
-    exact Hcidj,
-    { exact ha (τ d), },
-    { exact ha d,  },
-    { -- d = c
-        rw [← subtype.coe_inj, ← ha'' c i, ← ha'' d j, Hcidj], }, },
-
-
-  have k_apply : ∀ (c : g.cycle_factors_finset) (i : ℤ), k ((g ^ i) (a c)) = (g ^ i) (a (τ c)),
-  { simp only [k],
-    intros c i,
-    change k(kf ⟨c, i⟩) = kg ⟨c, i⟩,
-
-    simp only [k, function.extend_def, dif_pos, exists_apply_eq_apply],
-    -- suffices : ∀ dj, kf dj = (g ^ i) (a c) → kg dj = (g ^ i) (a (τ c)),
-    { apply hkfg,
-      have hci : ∃ a, kf a= kf ⟨c, i⟩, use ⟨c,i⟩,
-      use classical.some_spec hci, }, },
-  have k_apply' : ∀ (x : α), x ∉ g.support → k x = x,
-  { intros x hx,
-    simp only [k],
-    rw function.extend_apply',
-    simp only [ke, id.def],
-    rintro ⟨⟨c, i⟩, rfl⟩,
-    apply hx,
-    change (g ^ i) (a c) ∈ g.support,
-    rw equiv.perm.zpow_apply_mem_support ,
-    rw equiv.perm.mem_support,
-    exact ha c, }, -/
-
   have hk_bij : function.bijective k,
   { rw fintype.bijective_iff_injective_and_card,
     refine and.intro _ rfl,
     intros x y hxy,
-    by_cases hx : ∃ (a : (g.cycle_factors_finset) × ℤ), kf a = x,
-    obtain ⟨⟨c, i⟩, rfl⟩ := hx,
-    by_cases hy : ∃ (b : (g.cycle_factors_finset) × ℤ), kf b = y,
-    { -- x = kf a, y = kf b
-      obtain ⟨⟨d, j⟩, rfl⟩ := hy,
-      change k ((g ^ i) (a c)) = k ((g ^ j) (a d)) at hxy,
+    by_cases hx : ∃ (a : (g.cycle_factors_finset) × ℤ), Kf 1 a = x,
+    { obtain ⟨⟨c, i⟩, rfl⟩ := hx,
       simp only [k_apply] at hxy,
+      by_cases hy : ∃ (b : (g.cycle_factors_finset) × ℤ), Kf 1 b = y,
+      { -- x = Kf 1 a, y = Kf 1 b
+        obtain ⟨⟨d, j⟩, rfl⟩ := hy,
+        simp only [k_apply] at hxy,
+        refine hkfg τ 1 ⟨c,i⟩ ⟨d,j⟩ _ hxy,
+        { intros c, simp only [equiv.perm.coe_one, id.def], exact (H c), }, },
+      { -- x = kf a, y non
+        exfalso, apply hy,
+        rw ha5 y hy at hxy,
+        use (⟨τ c, i⟩ : g.cycle_factors_finset × ℤ),
+        rw ← hxy, refl, }, },
+    { rw ha5 x hx at hxy,
+      by_cases hy : ∃ (b : (g.cycle_factors_finset) × ℤ), Kf 1 b = y,
+      { -- x pas kfa, -- y = kf b,
+        obtain ⟨⟨d, j⟩, rfl⟩ := hy,
+        exfalso, apply hx,
+        simp only [k_apply] at hxy,
+        use ⟨τ d, j⟩, rw hxy, refl, },
+      { -- x pas kf a, y non plus
+        rw ha5 y hy at hxy,
+        exact hxy, }, }, },
+    use equiv.of_bijective k hk_bij,
+    split,
+    { -- commutation
+      ext x,
+      simp only [equiv.perm.coe_mul, function.comp_app, equiv.of_bijective_apply],
+      by_cases hx : ∃ (a : (g.cycle_factors_finset) × ℤ), Kf 1 a = x,
+      { obtain ⟨⟨c, i⟩, rfl⟩ := hx,
+        simp only [ha2, k_apply], },
+      { have hx' : ¬ (∃ dj : (g.cycle_factors_finset) × ℤ, Kf 1 dj = g x),
+        { intro hx', apply hx,
+          obtain ⟨⟨d, j⟩, hx'⟩ := hx',
+          use ⟨d, j-1⟩,
+          apply equiv.injective g,
+          simp only [← hx', ha2, sub_add_cancel], },
+        rw ha5 x hx, rw ha5 _ hx', }, },
+    { -- action on g.cycle_factors_finset
+      intro c,
+      rw conj_act.smul_def,
+      rw mul_inv_eq_iff_eq_mul,
+      simp only [conj_act.of_conj_act_to_conj_act],
+      ext x,
+      simp,
+      by_cases hx : ∃ (a : (g.cycle_factors_finset) × ℤ), Kf 1 a = x,
+      { obtain ⟨⟨d, j⟩, rfl⟩ := hx,
+        by_cases hcd : d = c,
+        { -- d = c
+          rw hcd,
+          rw ha3, simp only [k_apply],
+          rw ha3,
+          exact rfl,
+          simp only [equiv.perm.coe_one, id.def], },
+        { -- d ≠ c
+          rw ha4, simp only [k_apply], rw ha4,
+          rw function.injective.ne_iff (equiv.injective τ), exact ne.symm hcd,
+          simp only [equiv.perm.coe_one, id.def, ne.def], exact ne.symm hcd, }, },
+      { simp only [ha5 x hx, ha6 x hx], }, },
+end
 
-      sorry, },
-    { -- x = kf a, y non
-      sorry, },
-    by_cases hy : ∃ (b : (g.cycle_factors_finset) × ℤ), kf b = y,
-    { -- x pas kfa, -- y = kf b,
-      obtain ⟨⟨d, j⟩, rfl⟩ := hy,
-      sorry,},
-    { -- x pas kf a, y non plus
-      sorry }, },
-    sorry,
 
+example (j : ℤ) : j = 1 + (j - 1) :=
+begin
+exact eq_add_of_sub_eq' rfl
 end
 
 example (g : equiv.perm α) (i j : ℤ) (x : α) : (g ^ i) x = (g ^ j) x ↔ (g ^ (j - i)) x = x :=
@@ -1131,7 +1190,7 @@ end
 
 example {a b : α} : a = b ↔ b = a :=
 begin
-library_search
+exact comm
 end
 
 
@@ -1187,98 +1246,16 @@ begin
       rw conj_act.smul_def,
       rw equiv.perm.card_support_conj, },
     { intro hk,
-
-      let Tac := { ac : α × (equiv.perm α) // ac.1 ∈ ac.2.support ∧ ac.2 ∈ g.cycle_factors_finset },
-      let hf' : Tac → α := λ ⟨⟨a, c⟩, ⟨hac, hc⟩⟩, a,
-      /- !!! ICI CA NE SUFFIT PAS !!!s
-       IL FAUT AJUSTER LES ÉQUIVALENCES  (e c) : c ≃ k • c SI ON VEUT QUE L'ENSEMBLE COMMUTE À g !
-        x ∈ c : g x ∈ c
-        h x = (e c) x ∈ k • c,
-        g h x = g ((e c) x)
-        h g x = (e c) (g x)
-        on veut donc que g ∘ (e c) = (e c) ∘ g : c → (k • c)
-        a ∈ c, (e c) a = b
-        x = (g ^ i) a, (e c) x = (e c) (g ^ i) a = (g ^ i) (e c) a = (g ^ i) b
-
-
-        -/
-      let hg' : Tac → α := λ ⟨⟨a, c⟩, ⟨hac, hc⟩⟩, (finset.equiv_of_card_eq (hk ⟨c, hc⟩).symm) ⟨a, hac⟩,
-      let hh := function.extend hf' hg' id,
-      have hf'_inj : function.injective hf',
-      { rintros ⟨⟨a, c⟩, ⟨hac, hc⟩⟩ ⟨⟨b, d⟩, ⟨hbd, hd⟩⟩ hab,
-        simp only [prod.mk.inj_iff], apply and.intro hab,
-        by_contradiction hcd,
-        have := (g.cycle_factors_finset_pairwise_disjoint c hc d hd hcd),
-        rw [equiv.perm.disjoint_iff_disjoint_support, finset.disjoint_iff_ne] at this,
-        exact this a hac b hbd hab, },
-      have hh_1 : ∀ (x : α) (c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset) (hxc : x ∈ c.support),
-        hh x = (finset.equiv_of_card_eq (hk ⟨c, hc⟩).symm) ⟨x, hxc⟩,
-      { intros x c hc hxc,
-        simp only [hh],
-        have x_eq : x = hf' (⟨⟨x,c⟩, ⟨hxc, hc⟩⟩ : Tac), refl,
-        conv_lhs { rw x_eq },
-        rw function.extend_apply hf'_inj hg' id (⟨⟨x,c⟩, ⟨hxc, hc⟩⟩ : Tac), },
-      have hh_1' : ∀ (x : α) (c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset) (hxc : x ∈ c.support),
-        hh x ∈ ((k ⟨c, hc⟩) : equiv.perm α).support,
-      { intros x c hc hxc, rw hh_1 x c hc hxc,
-        apply finset.coe_mem, },
-
-      have hh_2 : ∀ (x : α),
-        ¬ (∃ (c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset), x ∈ c.support) →
-        hh x = x,
-      { intros x hx,
-        simp only [hh],
-        suffices hx' : ¬ (∃ ac : Tac, hf' ac = x),
-        rw function.extend_apply' hg' id x hx',
-        simp only [id.def],
-        { rintro ⟨⟨⟨a,c⟩ , ⟨hac, hc⟩⟩, hacx⟩,
-          apply hx, use c, use hc, rw ← hacx, exact hac, } },
-      have hh_bij : function.bijective hh,
-      { apply function.injective.bijective_of_finite,
-        intros x y hxy,
-        by_cases hx : ∃ (c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset), x ∈ c.support,
-        { obtain ⟨c, hc, hxc⟩ := hx,
-          by_cases hy : ∃ (d : equiv.perm α) (hc : d ∈ g.cycle_factors_finset), y ∈ d.support,
-          { -- hx et hy
-            obtain ⟨d, hd, hyd⟩ := hy,
-            have hcd : c = d,
-            { rw [← subtype.coe_mk c hc, ← subtype.coe_mk d hd, subtype.coe_inj],
-              apply equiv.injective k,
-              by_contradiction hcd,
-              let kc := k ⟨c, hc⟩, let kd := k ⟨d, hd⟩,
-              have hcd' : ↑kc ≠ ↑kd := function.injective.ne (subtype.coe_injective) hcd,
-              have := g.cycle_factors_finset_pairwise_disjoint ↑kc kc.prop ↑kd kd.prop hcd',
-              rw [equiv.perm.disjoint_iff_disjoint_support, finset.disjoint_iff_ne] at this,
-              specialize this (hh x) (hh_1' x c hc hxc) (hh y) (hh_1' y d hd hyd),
-              exact this hxy, },
-            have hyc : y ∈ c.support, { rw hcd, exact hyd, },
-            rw [hh_1 x c hc hxc, hh_1 y c hc hyc, subtype.coe_inj,
-              function.injective.eq_iff (equiv.injective _), subtype.mk_eq_mk] at hxy,
-            exact hxy, },
-          { -- hx mais pas hy
-            rw [hh_2 y hy] at hxy,
-            exfalso, apply hy,
-            let hz1 := hh_1' x c hc hxc,
-            rw hxy at hz1,
-            use ↑(k ⟨c, hc⟩), use (k ⟨c, hc⟩).prop, exact hz1, }, },
-        { by_cases hy : ∃ (d : equiv.perm α) (hc : d ∈ g.cycle_factors_finset), y ∈ d.support,
-          { -- pas hx, mais hy
-            obtain ⟨d, hd, hyd⟩ := hy,
-            rw [hh_2 x hx] at hxy, exfalso, apply hx,
-            let hz1 := hh_1' y d hd hyd, rw ← hxy at hz1,
-            use ↑(k ⟨d, hd⟩), use (k ⟨d, hd⟩).prop, exact hz1, },
-          { -- ni hx ni hy
-            rw ← hh_2 x hx, rw ← hh_2 y hy, exact hxy, }, }, },
-      let he :=  equiv.of_bijective hh hh_bij,
-      use he,
-      { -- he ∈ K
+      obtain ⟨k1, hk1, hk2⟩ := is_surjective_aux g k (λ c, (hk c).symm),
+      use k1,
+      { -- mem_stabilizer
         simp only [K, mul_action.mem_stabilizer_iff],
-
-
-        sorry },
-      { -- to_perm he = k
-        sorry, }, },
-  },
+        simp only [has_smul.smul],
+        change k1 * g * k1⁻¹ = g,
+        simp only [← hk1, mul_inv_cancel_right], },
+      { ext ⟨c, hc⟩ x,
+        rw [φ_eq, ← hk2 ⟨c, hc⟩],
+        refl, }, }, },
   -- noyau : un groupe symétrique x produit de groupes cycliques
   have lemma_mem_ker : ∀ (z : equiv.perm α),
     conj_act.to_conj_act z ∈ subgroup.map K.subtype φ.ker ↔
@@ -1476,7 +1453,7 @@ example (g : equiv.perm α) (s : finset α) (hs : ∀ (x : α), x ∈ s ↔ g x 
   ∀ (x : α), x ∈ s ↔ (g ^ i) x ∈ s :=
 begin
   intro x,
-  library_search,
+--  library_search,
 sorry
 end
 
@@ -1486,7 +1463,7 @@ example (s : finset α) : s → α := coe
 
 example {α β : Type*} (a b : α) (e : α ≃ β) : a = b ↔ e a = e b :=
 begin
-  library_search,
+  refine (equiv.apply_eq_iff_eq e).symm,
 end
 
 #check equiv.perm.cycle_factors_finset_pairwise_disjoint,
@@ -1599,6 +1576,8 @@ end
 def S4 := equiv.perm (fin 4)
 def A4 := alternating_group (fin 4)
 def K4 := commutator A4
+
+
 
 variable (α)
 def equiv.perm_with_cycle_type_card_eq (c : multiset ℕ) :=

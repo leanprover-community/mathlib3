@@ -133,6 +133,12 @@ meta def name : rcases_patt → option name
 | (alts [p]) := p.name
 | _ := none
 
+/-- Returns true if this pattern is equivalent to doing nothing -/
+meta def is_default : rcases_patt → bool
+| (one `_) := true
+| (explicit p) := p.is_default
+| _ := false
+
 /-- Interpret an rcases pattern as a tuple, where `p` becomes `⟨p⟩`
 if `p` is not already a tuple. -/
 meta def as_tuple : rcases_patt → bool × listΠ rcases_patt
@@ -245,7 +251,7 @@ meta def rcases.process_constructor (v_back : bool) :
 | _        []      ps := pure ([], [])
 | explicit (bi::l) ps := do
   let skip := !explicit && (bi ≠ binder_info.default),
-  skip ← if skip && v_back && !ps.empty then do
+  skip ← if skip && v_back && !ps.all rcases_patt.is_default then do
     pos ← get_trace_msg_pos,
     n ← tactic.decl_name,
     p ← pp ps.head,

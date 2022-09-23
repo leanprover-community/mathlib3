@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Praneeth Kolichala. All rights reserved.
+Copyright (c) 2022 Mark Lavrentyev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Praneeth Kolichala
+Authors: Mark Lavrentyev
 -/
 import topology.homotopy.equiv
 import category_theory.equivalence
@@ -12,13 +12,14 @@ import algebraic_topology.fundamental_groupoid.product
 
 ## Main definitions
 
-  - `retraction X A` A retraction from topological space X to a subspace A is a continuous
-    map `f : C(X, A)` such that the restriction of f to A is the identity
+  - `is_retraction r` A continuous map `r : X → A` (where `A` is a subtype of `X`) is a retraction
+    when the restriction of r to A is the identity. Equivalently, composing r with the inclusion
+    `i : A → X` is just the identity map on A.
 
-  - `split_mono_of_inclusion` The induced map on `fundamental_groupoid X` of the inclusion
-    `i : A → X` is a split mono in the category of groupoids.
-  - `split_epi_of_retraction` The induced map on `fundamental_groupoid X` of the retraction
-    `r : X → A`
+  - `fundamental_groupoid_split_mono_of_top_inclusion` The induced map on `fundamental_groupoid X`
+    of the inclusion `i : A → X` is a split mono in the category Groupoid.
+  - `fundamental_groupoid_split_epi_of_top_retraction` The induced map on `fundamental_groupoid X`
+    of the retraction `r : X → A` is a split epi in the category Groupoid.
 -/
 
 noncomputable theory
@@ -34,9 +35,6 @@ open_locale unit_interval
 
 
 def top_hom_of_continuous_map {X Y : Top.{u}} (f : C(X, Y)) : X ⟶ Y := f
-
-def test {X Y Z : Top.{u}} (f : C(X, Y)) (g : C(Y, Z)) : (top_hom_of_continuous_map f) ≫ (top_hom_of_continuous_map g) =  top_hom_of_continuous_map ⟨g ∘ f⟩ :=
-by obviously
 
 
 section retraction

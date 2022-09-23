@@ -223,7 +223,7 @@ instance t2_space.quasi_sober [t2_space α] : quasi_sober α :=
 begin
   constructor,
   rintro S h -,
-  obtain ⟨x, rfl⟩ := (is_irreducible_iff_singleton S).mp h,
+  obtain ⟨x, rfl⟩ := is_irreducible_iff_singleton.mp h,
   exact ⟨x, closure_singleton⟩
 end
 

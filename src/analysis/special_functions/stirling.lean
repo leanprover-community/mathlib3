@@ -60,10 +60,8 @@ We have the expression
 -/
 lemma log_stirling_seq_formula (n : ℕ) : log (stirling_seq n.succ) =
   log n.succ!- 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
-begin
-  rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow, tsub_tsub],
-  any_goals { apply ne_of_gt }; positivity,
-end
+by rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow, tsub_tsub];
+  try { apply ne_of_gt }; positivity -- TODO: Make `positivity` handle `≠ 0` goals
 
 /--
 The sequence `log (stirling_seq (m + 1)) - log (stirling_seq (m + 2))` has the series expansion
@@ -150,11 +148,8 @@ begin
   have h₁ : ∀ k, log_stirling_seq' k - log_stirling_seq' (k + 1) ≤ 1 / 4 * (1 / k.succ ^ 2) :=
   by { intro k, convert log_stirling_seq_sub_log_stirling_seq_succ k using 1, field_simp, },
   have h₂ : ∑ (k : ℕ) in range n, (1 : ℝ) / (k.succ) ^ 2 ≤ d := by
-  { refine sum_le_tsum (range n) (λ k _, _)
-      ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
-    apply le_of_lt,
-    rw [one_div_pos, sq_pos_iff],
-    exact nonzero_of_invertible (succ k), },
+  { exact sum_le_tsum (range n) (λ k _, by positivity)
+      ((summable_nat_add_iff 1).mpr $ real.summable_one_div_nat_pow.mpr one_lt_two) },
   calc
   log (stirling_seq 1) - log (stirling_seq n.succ) = log_stirling_seq' 0 - log_stirling_seq' n : rfl
   ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) : by
@@ -172,9 +167,7 @@ begin
 end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
-lemma stirling_seq'_pos (n : ℕ) : 0 < stirling_seq n.succ :=
-div_pos (cast_pos.mpr n.succ.factorial_pos) (mul_pos (real.sqrt_pos.mpr (mul_pos two_pos
-  (cast_pos.mpr n.succ_pos))) (pow_pos (div_pos (cast_pos.mpr n.succ_pos) (exp_pos 1)) n.succ))
+lemma stirling_seq'_pos (n : ℕ) : 0 < stirling_seq n.succ := by { unfold stirling_seq, positivity }
 
 /--
 The sequence `stirling_seq` has a positive lower bound.
@@ -220,16 +213,11 @@ begin
   { rw [w, prod_range_zero, cast_zero, mul_zero, pow_zero, one_mul, mul_zero, factorial_zero,
         cast_one, one_pow, one_pow, one_mul, mul_zero, zero_add, div_one] },
   rw [w, prod_range_succ, ←ih, w, _root_.div_mul_div_comm, _root_.div_mul_div_comm],
-  refine (div_eq_div_iff (ne_of_gt _) (ne_of_gt _)).mpr _,
-  { exact mul_pos (pow_pos (cast_pos.mpr (2 * n.succ).factorial_pos) 2)
-      (add_pos (mul_pos two_pos (cast_pos.mpr n.succ_pos)) one_pos) },
-  { have h : 0 < 2 * (n : ℝ) + 1 :=
-    add_pos_of_nonneg_of_pos (mul_nonneg zero_le_two n.cast_nonneg) one_pos,
-    exact mul_pos (mul_pos (pow_pos (cast_pos.mpr (2 * n).factorial_pos) 2) h)
-      (mul_pos h (add_pos_of_nonneg_of_pos (mul_nonneg zero_le_two n.cast_nonneg) three_pos)) },
-  { simp_rw [nat.mul_succ, factorial_succ, succ_eq_add_one, pow_succ],
-    push_cast,
-    ring_nf },
+  refine (div_eq_div_iff _ _).mpr _,
+  any_goals { exact ne_of_gt (by positivity) },
+  simp_rw [nat.mul_succ, factorial_succ, pow_succ],
+  push_cast,
+  ring_nf,
 end
 
 /-- The sequence `n / (2 * n + 1)` tends to `1/2` -/
@@ -250,8 +238,8 @@ lemma stirling_seq_pow_four_div_stirling_seq_pow_two_eq (n : ℕ) (hn : n ≠ 0)
 begin
   rw [bit0_eq_two_mul, stirling_seq, pow_mul, stirling_seq, w],
   simp_rw [div_pow, mul_pow],
-  rw [sq_sqrt (mul_nonneg two_pos.le n.cast_nonneg),
-      sq_sqrt (mul_nonneg two_pos.le (2 * n).cast_nonneg)],
+  rw [sq_sqrt, sq_sqrt],
+  any_goals { positivity },
   have : (n : ℝ) ≠ 0, from cast_ne_zero.mpr hn,
   have : (exp 1) ≠ 0, from exp_ne_zero 1,
   have : ((2 * n)!: ℝ) ≠ 0, from cast_ne_zero.mpr (factorial_ne_zero (2 * n)),

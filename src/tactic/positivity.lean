@@ -438,6 +438,17 @@ meta def positivity_coe : expr → tactic strictness
   end
 | _ := failed
 
+namespace tactic
+open positivity real
+
+/-- Extension for the `positivity` tactic: `nat.succ` is always positive. -/
+@[positivity]
+meta def positivity_succ : expr → tactic strictness
+| `(nat.succ %%a) := positive <$> mk_app `nat.succ_pos [a]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `nat.succ n`"
+
+end tactic
+
 /-- Extension for the `positivity` tactic: `nat.factorial` is always positive. -/
 @[positivity]
 meta def positivity_factorial : expr → tactic strictness

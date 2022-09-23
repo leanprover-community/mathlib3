@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.uniform_space.uniform_embedding
+import topology.uniform_space.equiv
 
 /-!
 # Abstract theory of Hausdorff completions of uniform spaces
@@ -222,12 +223,16 @@ begin
   refl
 end
 
+instance : uniform_space pkg.space := pkg.uniform_struct
+
 /-- The bijection between two completions of the same uniform space. -/
-def compare_equiv : pkg.space ≃ pkg'.space :=
+def compare_equiv : pkg.space ≃ᵤ pkg'.space :=
 { to_fun := pkg.compare pkg',
   inv_fun := pkg'.compare pkg,
   left_inv := congr_fun (pkg'.inverse_compare pkg),
-  right_inv := congr_fun (pkg.inverse_compare pkg') }
+  right_inv := congr_fun (pkg.inverse_compare pkg'),
+  uniform_continuous_to_fun := uniform_continuous_compare _ _,
+  uniform_continuous_inv_fun := uniform_continuous_compare _ _, }
 
 lemma uniform_continuous_compare_equiv : uniform_continuous (pkg.compare_equiv pkg') :=
 pkg.uniform_continuous_compare pkg'

@@ -407,6 +407,12 @@ lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 { dense := dense_range_coe,
   ..(uniform_inducing_coe α).inducing }
 
+/-- the uniform completion of a complete space is uniform-equivalent to itself -/
+def uniform_completion.complete_equiv_self {α : Type*} [uniform_space α]
+[complete_space α] [separated_space α]:
+completion α ≃ᵤ α :=
+abstract_completion.complete_equiv_self completion.cpkg
+
 open topological_space
 
 instance separable_space_completion [separable_space α] : separable_space (completion α) :=

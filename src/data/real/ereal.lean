@@ -91,6 +91,21 @@ instance has_coe_ennreal : has_coe ℝ≥0∞ ereal := ⟨ennreal.to_ereal⟩
 instance : has_zero ereal := ⟨(0 : ℝ)⟩
 instance : inhabited ereal := ⟨0⟩
 
+/-- Negation on `ereal` -/
+protected def neg : ereal → ereal
+| ⊥       := ⊤
+| ⊤       := ⊥
+| (x : ℝ) := (-x : ℝ)
+
+instance : has_neg ereal := ⟨ereal.neg⟩
+
+/-- Subtraction on `ereal`, defined by `x - y = x + (-y)`. Since addition is badly behaved at some
+points, so is subtraction. There is no standard algebraic typeclass involving subtraction that is
+registered on `ereal` because of this bad behavior. -/
+protected noncomputable def sub (x y : ereal) : ereal := x + (-y)
+
+noncomputable instance : has_sub ereal := ⟨ereal.sub⟩
+
 /-- A recursor for `ereal` in terms of the coercion.
 
 A typical invocation looks like `induction x using ereal.rec`. Note that using `induction`
@@ -156,12 +171,25 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 
 @[simp] lemma top_ne_zero : (⊤ : ereal) ≠ 0 := (coe_ne_top 0).symm
 
-@[simp, norm_cast] lemma coe_add (x y : ℝ) : ((x + y : ℝ) : ereal) = (x : ereal) + (y : ereal) :=
-rfl
-
 @[simp, norm_cast] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
+@[simp, norm_cast] lemma coe_neg (x : ℝ) : (↑(-x) : ereal) = -x := rfl
+@[simp, norm_cast] lemma coe_add (x y : ℝ) : (↑(x + y) : ereal) = x + y := rfl
+@[simp, norm_cast] lemma coe_sub (x y : ℝ) : (↑(x - y) : ereal) = x - y := rfl
+@[simp, norm_cast] lemma coe_mul (x y : ℝ) : (↑(x * y) : ereal) = x * y :=
+(with_top.coe_eq_coe.2 with_bot.coe_mul).trans with_top.coe_mul
+@[norm_cast] lemma coe_nsmul (n : ℕ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
+map_nsmul (⟨coe, coe_zero, coe_add⟩ : ℝ →+ ereal) _ _
+@[simp, norm_cast] lemma coe_pow (x : ℝ) (n : ℕ) : (↑(x ^ n) : ereal) = x ^ n :=
+map_pow (⟨coe, coe_one, coe_mul⟩ : ℝ →* ereal) _ _
+
+@[simp, norm_cast] lemma coe_bit0 (x : ℝ) : (↑(bit0 x) : ereal) = bit0 x := rfl
+@[simp, norm_cast] lemma coe_bit1 (x : ℝ) : (↑(bit1 x) : ereal) = bit1 x := rfl
+
 @[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ereal) = 0 ↔ x = 0 := ereal.coe_eq_coe_iff
+@[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ereal) = 1 ↔ x = 1 := ereal.coe_eq_coe_iff
 lemma coe_ne_zero {x : ℝ} : (x : ereal) ≠ 0 ↔ x ≠ 0 := ereal.coe_ne_coe_iff
+lemma coe_ne_one {x : ℝ} : (x : ereal) ≠ 1 ↔ x ≠ 1 := ereal.coe_ne_coe_iff
 
 @[simp, norm_cast] protected lemma coe_nonneg {x : ℝ} : (0 : ereal) ≤ x ↔ 0 ≤ x :=
 ereal.coe_le_coe_iff
@@ -234,6 +262,7 @@ end
 lemma coe_nnreal_eq_coe_real (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) = (x : ℝ) := rfl
 
 @[simp, norm_cast] lemma coe_ennreal_zero : ((0 : ℝ≥0∞) : ereal) = 0 := rfl
+@[simp, norm_cast] lemma coe_ennreal_one : ((1 : ℝ≥0∞) : ereal) = 1 := rfl
 @[simp, norm_cast] lemma coe_ennreal_top : ((⊤ : ℝ≥0∞) : ereal) = ⊤ := rfl
 
 @[simp] lemma coe_ennreal_eq_top_iff : ∀ {x : ℝ≥0∞}, (x : ereal) = ⊤ ↔ x = ⊤
@@ -270,14 +299,13 @@ coe_ennreal_injective.ne_iff
 @[simp, norm_cast] lemma coe_ennreal_eq_zero {x : ℝ≥0∞} : (x : ereal) = 0 ↔ x = 0 :=
 by rw [←coe_ennreal_eq_coe_ennreal_iff, coe_ennreal_zero]
 
-@[simp, norm_cast] lemma coe_ennreal_ne_zero {x : ℝ≥0∞} : (x : ereal) ≠ 0 ↔ x ≠ 0 :=
-coe_ennreal_eq_zero.not
-
 @[simp, norm_cast] lemma coe_ennreal_eq_one {x : ℝ≥0∞} : (x : ereal) = 1 ↔ x = 1 :=
 by rw [←coe_ennreal_eq_coe_ennreal_iff, coe_ennreal_one]
 
-@[simp, norm_cast] lemma coe_ennreal_ne_one {x : ℝ≥0∞} : (x : ereal) ≠ 1 ↔ x ≠ 1 :=
-coe_ennreal_eq_one.not
+@[norm_cast] lemma coe_ennreal_ne_zero {x : ℝ≥0∞} : (x : ereal) ≠ 0 ↔ x ≠ 0 :=
+coe_ennreal_eq_zero.not
+
+@[norm_cast] lemma coe_ennreal_ne_one {x : ℝ≥0∞} : (x : ereal) ≠ 1 ↔ x ≠ 1 := coe_ennreal_eq_one.not
 
 lemma coe_ennreal_nonneg (x : ℝ≥0∞) : (0 : ereal) ≤ x :=
 coe_ennreal_le_coe_ennreal_iff.2 (zero_le x)
@@ -295,6 +323,21 @@ by rw [←coe_ennreal_zero, coe_ennreal_lt_coe_ennreal_iff]
 | x ⊤ := by simp
 | (some x) (some y) := rfl
 
+@[simp, norm_cast] lemma coe_ennreal_mul : ∀ (x y : ℝ≥0∞), ((x * y : ℝ≥0∞) : ereal) = x * y
+| ⊤ y := by { rw ennreal.top_mul, split_ifs; simp [h] }
+| x ⊤ := by { rw ennreal.mul_top, split_ifs; simp [h] }
+| (some x) (some y) := by simp [←ennreal.coe_mul, coe_nnreal_eq_coe_real]
+
+@[norm_cast] lemma coe_ennreal_nsmul (n : ℕ) (x : ℝ≥0∞) : (↑(n • x) : ereal) = n • x :=
+map_nsmul (⟨coe, coe_ennreal_zero, coe_ennreal_add⟩ : ℝ≥0∞ →+ ereal) _ _
+
+@[simp, norm_cast] lemma coe_ennreal_pow (x : ℝ≥0∞) (n : ℕ) : (↑(x ^ n) : ereal) = x ^ n :=
+map_pow (⟨coe, coe_ennreal_one, coe_ennreal_mul⟩ : ℝ≥0∞ →* ereal) _ _
+
+@[simp, norm_cast] lemma coe_ennreal_bit0 (x : ℝ≥0∞) : (↑(bit0 x) : ereal) = bit0 x :=
+coe_ennreal_add _ _
+@[simp, norm_cast] lemma coe_ennreal_bit1 (x : ℝ≥0∞) : (↑(bit1 x) : ereal) = bit1 x :=
+by simp_rw [bit1, coe_ennreal_add, coe_ennreal_bit0, coe_ennreal_one]
 
 /-! ### Order -/
 
@@ -392,14 +435,6 @@ by simp [lt_top_iff_ne_top, not_or_distrib]
 
 /-! ### Negation -/
 
-/-- negation on `ereal` -/
-protected def neg : ereal → ereal
-| ⊥       := ⊤
-| ⊤       := ⊥
-| (x : ℝ) := (-x : ℝ)
-
-instance : has_neg ereal := ⟨ereal.neg⟩
-
 @[norm_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
 
 @[simp] lemma neg_top : - (⊤ : ereal) = ⊥ := rfl
@@ -448,8 +483,6 @@ by rwa [←neg_neg b, ereal.neg_le, neg_neg]
 @[simp] lemma neg_le_neg_iff {a b : ereal} : - a ≤ - b ↔ b ≤ a :=
 by conv_lhs { rw [ereal.neg_le, neg_neg] }
 
-@[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
-
 /-- Negation as an order reversing isomorphism on `ereal`. -/
 def neg_order_iso : ereal ≃o erealᵒᵈ :=
 { to_fun := λ x, order_dual.to_dual (-x),
@@ -469,13 +502,6 @@ lemma neg_lt_iff_neg_lt {a b : ereal} : -a < b ↔ -b < a :=
 ⟨λ h, ereal.neg_lt_of_neg_lt h, λ h, ereal.neg_lt_of_neg_lt h⟩
 
 /-! ### Subtraction -/
-
-/-- Subtraction on `ereal`, defined by `x - y = x + (-y)`. Since addition is badly behaved at some
-points, so is subtraction. There is no standard algebraic typeclass involving subtraction that is
-registered on `ereal` because of this bad behavior. -/
-protected noncomputable def sub (x y : ereal) : ereal := x + (-y)
-
-noncomputable instance : has_sub ereal := ⟨ereal.sub⟩
 
 @[simp] lemma top_sub (x : ereal) : ⊤ - x = ⊤ := top_add x
 @[simp] lemma sub_bot (x : ereal) : x - ⊥ = ⊤ := add_top x
@@ -522,13 +548,6 @@ begin
 end
 
 /-! ### Multiplication -/
-
-@[simp] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
-@[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ereal) = 1 ↔ x = 1 := ereal.coe_eq_coe_iff
-lemma coe_ne_one {x : ℝ} : (x : ereal) ≠ 1 ↔ x ≠ 1 := ereal.coe_ne_coe_iff
-
-@[simp, norm_cast] lemma coe_mul (x y : ℝ) : ((x * y : ℝ) : ereal) = (x : ereal) * (y : ereal) :=
-eq.trans (with_bot.coe_eq_coe.mpr with_bot.coe_mul) with_top.coe_mul
 
 @[simp] lemma mul_top (x : ereal) (h : x ≠ 0) : x * ⊤ = ⊤ := with_top.mul_top h
 @[simp] lemma top_mul (x : ereal) (h : x ≠ 0) : ⊤ * x = ⊤ := with_top.top_mul h

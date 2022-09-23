@@ -6,6 +6,8 @@ Authors: Reid Barton, Scott Morrison, David Wärn
 import category_theory.full_subcategory
 import category_theory.products.basic
 import category_theory.pi.basic
+import category_theory.category.basic
+import tactic.nth_rewrite
 
 /-!
 # Groupoids
@@ -103,6 +105,42 @@ instance groupoid_pi {I : Type u} {J : I → Type u₂} [∀ i, groupoid.{v} (J 
 instance groupoid_prod {α : Type u} {β : Type v} [groupoid.{u₂} α] [groupoid.{v₂} β] :
   groupoid.{max u₂ v₂} (α × β) :=
 { inv := λ (x y : α × β) (f : x ⟶ y), (groupoid.inv f.1, groupoid.inv f.2) }
+
+@[simp] lemma groupoid.inv_id {V : Type*} [G : groupoid V] (v : V) :
+  G.inv (𝟙 v) = 𝟙 v :=
+calc G.inv (𝟙 v)
+   = (G.inv (𝟙 v)) ≫ (𝟙 v) : (category.comp_id (G.inv (𝟙 v))).symm
+...= 𝟙 v                   : groupoid.inv_comp' (𝟙 v)
+
+@[simp] lemma groupoid.inv_of_comp {V : Type*} [G : groupoid V]
+  {u v w : V} (f : u ⟶ v) (g : v ⟶ w) : G.inv (f ≫ g) = (G.inv g) ≫ (G.inv f) :=
+( calc (G.inv g) ≫ (G.inv f)
+     = (G.inv g) ≫ (G.inv f) ≫ (𝟙 _) : by simp
+  ...= (G.inv g) ≫ (G.inv f) ≫ (f ≫ g) ≫ (G.inv $ f ≫ g) : by simp
+  ...= (G.inv g) ≫ g ≫ (G.inv $ f ≫ g) : by {rw category.assoc, nth_rewrite 1 ←category.assoc, simp,}
+  ...= G.inv (f ≫ g) : by {rw ←category.assoc, simp, }
+).symm
+
+@[simp] lemma groupoid.inv_inv {V : Type*} [G : groupoid V] (u v : V) (f : u ⟶ v) :
+  G.inv (G.inv f) = f :=
+calc G.inv (G.inv f)
+   = (G.inv (G.inv f)) ≫ (𝟙 v) : by rw category.comp_id
+...= (G.inv (G.inv f)) ≫ (G.inv f ≫ f) : by rw ←groupoid.inv_comp
+...= (G.inv (G.inv f) ≫ G.inv f) ≫ f : by rw ←category.assoc
+...= (𝟙 u) ≫ f : by rw groupoid.inv_comp
+...= f : by rw category.id_comp
+
+@[simp]
+lemma groupoid.functor_map_inv  {C D : Type*} [G : groupoid C] [H : groupoid D] (φ : C ⥤ D)
+  {c d : C} (f : c ⟶ d) :
+  φ.map (G.inv f) = H.inv (φ.map f) :=
+calc φ.map (G.inv f)
+   = (φ.map $ G.inv f) ≫ (𝟙 $ φ.obj c) : by rw [category.comp_id]
+...= (φ.map $ G.inv f) ≫ ((φ.map f) ≫ (H.inv $ φ.map f)) : by rw [groupoid.comp_inv]
+...= ((φ.map $ G.inv f) ≫ (φ.map f)) ≫ (H.inv $ φ.map f) : by rw [category.assoc]
+...= (φ.map $ G.inv f ≫ f) ≫ (H.inv $ φ.map f) : by rw [functor.map_comp']
+...= (H.inv $ φ.map f) : by rw [groupoid.inv_comp,functor.map_id,category.id_comp]
+
 
 end
 

@@ -277,19 +277,6 @@ begin
   { simp only [u_ih, word.cons_n_append, lift_word_cons_n, category.assoc], },
 end
 
---mathlib
-@[simp] lemma _root_.category_theory.groupoid.inv_id {V : Type*} [G : groupoid V] (v : V) : G.inv (𝟙 v) = 𝟙 v := sorry
-@[simp] lemma _root_.category_theory.groupoid.inv_comp'' {V : Type*} [G : groupoid V]
-  {u v w : V} (f : u ⟶ v) (g : v ⟶ w) : G.inv (f ≫ g) = (G.inv g) ≫ (G.inv f) := sorry
-@[simp] lemma _root_.category_theory.groupoid.inv_inv {V : Type*} [G : groupoid V] (u v : V) (f : u ⟶ v) : G.inv (G.inv f) = f :=
-  calc G.inv (G.inv f) = (G.inv (G.inv f)) ≫ (𝟙 v) : by rw category.comp_id
-                  ... = (G.inv (G.inv f)) ≫ (G.inv f ≫ f) : by rw ←groupoid.inv_comp
-                  ... = (G.inv (G.inv f) ≫ G.inv f) ≫ f : by rw ←category.assoc
-                  ... = (𝟙 u) ≫ f : by rw groupoid.inv_comp
-                  ... = f : by rw category.id_comp
-
-
-
 @[simp]
 lemma lift_word_reverse {V' : Type u'} [G' : groupoid V'] (φ : prefunctor V V')
   {x y : V} (u : word x y) : lift_word φ (u.reverse) = G'.inv (lift_word φ u) :=
@@ -297,9 +284,9 @@ begin
   induction u,
   { simp only [word.reverse_nil, lift_word_nil, inv_id], },
   { simp only [u_ih, word.reverse_cons_p, lift_word_append, lift_word_letter_n,
-               lift_word_cons_p, inv_comp''], },
+               lift_word_cons_p, inv_of_comp], },
   { simp only [u_ih, word.reverse_cons_n, lift_word_append, lift_word_letter_p,
-               lift_word_cons_n, inv_comp'', inv_inv], },
+               lift_word_cons_n, inv_of_comp, inv_inv], },
 end
 
 lemma lift_word_congr {V' : Type u'} [G' : groupoid V']
@@ -343,7 +330,8 @@ begin
 end
 
 --mathlib (stolen from functor.ext),
-@[ext] lemma ext {V : Type u} [Q : quiver.{v+1} V] {V' : Type u'} [Q' : quiver.{v'+1} V']
+@[ext]
+lemma ext {V : Type u} [Q : quiver.{v+1} V] {V' : Type u'} [Q' : quiver.{v'+1} V']
   {F G : prefunctor V V'}
   (h_obj : ∀ X, F.obj X = G.obj X)
   (h_map : ∀ (X Y : V) (f : X ⟶ Y), F.map f = by {rw [h_obj X, h_obj Y], exact G.map f}) : F = G :=
@@ -363,18 +351,6 @@ begin
   { rintro x, dsimp only, refl, },
   { subst_vars, apply lift_word_letter_p, },
 end
-
--- mathlib?
-@[simp]
-lemma _root_.category_theory.functor.groupoid_map_inv  {C D : Type*} [G : groupoid C] [H : groupoid D] (φ : C ⥤ D)
-  {c d : C} (f : c ⟶ d) :
-  φ.map (G.inv f) = H.inv (φ.map f) :=
-calc φ.map (G.inv f) = (φ.map $ G.inv f) ≫ (𝟙 $ φ.obj c) : by rw [category.comp_id]
-                 ... = (φ.map $ G.inv f) ≫ ((φ.map f) ≫ (H.inv $ φ.map f)) : by rw [comp_inv]
-                 ... = ((φ.map $ G.inv f) ≫ (φ.map f)) ≫ (H.inv $ φ.map f) : by rw [category.assoc]
-                 ... = (φ.map $ G.inv f ≫ f) ≫ (H.inv $ φ.map f) : by rw [functor.map_comp']
-                 ... = (H.inv $ φ.map f) : by rw [inv_comp,functor.map_id,category.id_comp]
-
 
 lemma lift_unique (V' : Type u') [G' : groupoid V']
   (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V') : (ι.comp Φ.to_prefunctor) = φ → Φ = (lift φ) :=
@@ -398,9 +374,8 @@ begin
       simp only [this, functor.map_comp, IHw, functor.map_comp],
       apply congr_arg2,
       { dsimp [lift,ι], rw ←word.reverse_letter_p,
-        convert functor.groupoid_map_inv Φ (quot.mk red_step  $ letter_p p ) , },
+        convert groupoid.functor_map_inv Φ (quot.mk red_step  $ letter_p p ) , },
       { refl, }, }, },
-
 end
 
 end free

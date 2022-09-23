@@ -1,5 +1,9 @@
 import algebra.order.smul
 import analysis.normed.group.basic
+import data.complex.exponential
+import data.rat.nnrat
+import data.real.ereal
+import data.real.hyperreal
 import data.real.sqrt
 import tactic.positivity
 
@@ -7,6 +11,8 @@ import tactic.positivity
 
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
+
+open_locale ennreal nnrat nnreal
 
 /- ## Numeric goals -/
 
@@ -166,6 +172,43 @@ example : 0 ≤ max (-3 : ℤ) 5 := by positivity
 example {α β : Type*} [ordered_semiring α] [ordered_add_comm_monoid β] [smul_with_zero α β]
   [ordered_smul α β] {a : α} (ha : 0 < a) {b : β} (hb : 0 < b) : 0 ≤ a • b := by positivity
 
+example {r : ℝ} : 0 < real.exp r := by positivity
+
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 
 example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
+
+example {E : Type*} [add_group E] {p : add_group_seminorm E} {x : E} : 0 ≤ p x := by positivity
+example {E : Type*} [group E] {p : group_seminorm E} {x : E} : 0 ≤ p x := by positivity
+
+/- ### Canonical orders -/
+
+example {a : ℕ} : 0 ≤ a := by positivity
+example {a : ℚ≥0} : 0 ≤ a := by positivity
+example {a : ℝ≥0} : 0 ≤ a := by positivity
+example {a : ℝ≥0∞} : 0 ≤ a := by positivity
+
+/- ### Coercions -/
+
+example {a : ℕ} : (0 : ℤ) ≤ a := by positivity
+example {a : ℕ} (ha : 0 < a) : (0 : ℤ) < a := by positivity
+example {a : ℤ} (ha : 0 ≤ a) : (0 : ℚ) ≤ a := by positivity
+example {a : ℤ} (ha : 0 < a) : (0 : ℚ) < a := by positivity
+example {a : ℚ} (ha : 0 ≤ a) : (0 : ℝ) ≤ a := by positivity
+example {a : ℚ} (ha : 0 < a) : (0 : ℝ) < a := by positivity
+example {r : ℝ≥0} : (0 : ℝ) ≤ r := by positivity
+example {r : ℝ≥0} (hr : 0 < r) : (0 : ℝ) < r := by positivity
+example {r : ℝ≥0} (hr : 0 < r) : (0 : ℝ≥0∞) < r := by positivity
+-- example {r : ℝ≥0} : (0 : ereal) ≤ r := by positivity -- TODO: Handle `coe_trans`
+-- example {r : ℝ≥0} (hr : 0 < r) : (0 : ereal) < r := by positivity
+example {r : ℝ} (hr : 0 ≤ r) : (0 : ereal) ≤ r := by positivity
+example {r : ℝ} (hr : 0 < r) : (0 : ereal) < r := by positivity
+example {r : ℝ} (hr : 0 ≤ r) : (0 : hyperreal) ≤ r := by positivity
+example {r : ℝ} (hr : 0 < r) : (0 : hyperreal) < r := by positivity
+example {r : ℝ≥0∞} : (0 : ereal) ≤ r := by positivity
+example {r : ℝ≥0∞} (hr : 0 < r) : (0 : ereal) < r := by positivity
+
+example {α : Type*} [ordered_ring α] {n : ℤ} : 0 ≤ ((n ^ 2 : ℤ) : α) := by positivity
+example {r : ℝ≥0} : 0 ≤ ((r : ℝ) : ereal) := by positivity
+example {r : ℝ≥0} : 0 < ((r + 1 : ℝ) : ereal) := by positivity
+

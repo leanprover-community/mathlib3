@@ -173,7 +173,7 @@ begin
     obtain ⟨k, rfl⟩ := add_subgroup.mem_zmultiples_iff.mp hx,
     rw [mem_preimage, mem_ball_zero_iff, add_subgroup.coe_mk, mem_singleton_iff,
       subtype.ext_iff, add_subgroup.coe_mk, add_subgroup.coe_zero, norm_zsmul ℚ k e,
-      int.norm_cast_rat, int.norm_eq_abs, ← int.cast_abs, zero_lt.mul_lt_iff_lt_one_left
+      int.norm_cast_rat, int.norm_eq_abs, ← int.cast_abs, mul_lt_iff_lt_one_left
       (norm_pos_iff.mpr he), ← @int.cast_one ℝ _, int.cast_lt, int.abs_lt_one_iff, smul_eq_zero,
       or_iff_left he], },
 end

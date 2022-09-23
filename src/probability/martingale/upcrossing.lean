@@ -3,7 +3,6 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import probability.hitting_time
 import probability.martingale.basic
 
 /-!

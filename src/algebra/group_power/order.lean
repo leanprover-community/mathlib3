@@ -222,23 +222,6 @@ begin
       by { rw [pow_succ _ n], exact mul_le_mul_of_nonneg_left (ih (nat.succ_ne_zero k)) h2 }
 end
 
-theorem pow_lt_pow_of_lt_left (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
-  x ^ n < y ^ n :=
-begin
-  cases lt_or_eq_of_le Hxpos,
-  { rw ← tsub_add_cancel_of_le (nat.succ_le_of_lt Hnpos),
-    induction (n - 1), { simpa only [pow_one] },
-    rw [pow_add, pow_add, nat.succ_eq_add_one, pow_one, pow_one],
-    apply mul_lt_mul ih (le_of_lt Hxy) h (le_of_lt (pow_pos (lt_trans h Hxy) _)) },
-  { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
-end
-
-lemma pow_lt_one (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) : a ^ n < 1 :=
-(one_pow n).subst (pow_lt_pow_of_lt_left h₁ h₀ (nat.pos_of_ne_zero hn))
-
-theorem strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
-λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
-
 theorem one_le_pow_of_one_le (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | 0     := by rw [pow_zero]
 | (n+1) := by { rw pow_succ, simpa only [mul_one] using mul_le_mul H (one_le_pow_of_one_le n)
@@ -283,12 +266,23 @@ lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : 
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab) }
 
+lemma pow_lt_pow_of_lt_left (h : x < y) (hx : 0 ≤ x) : ∀ {n : ℕ}, 0 < n → x ^ n < y ^ n
+| 0 hn := hn.false.elim
+| (n + 1) _ := by simpa only [pow_succ'] using
+    mul_lt_mul' (pow_le_pow_of_le_left hx h.le _) h hx (pow_pos (hx.trans_lt h) _)
+
+lemma pow_lt_one (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) : a ^ n < 1 :=
+(one_pow n).subst (pow_lt_pow_of_lt_left h₁ h₀ (nat.pos_of_ne_zero hn))
+
 lemma one_lt_pow (ha : 1 < a) {n : ℕ} (hn : n ≠ 0) : 1 < a ^ n :=
 pow_zero a ▸ pow_lt_pow ha (pos_iff_ne_zero.2 hn)
 
 lemma pow_le_one : ∀ (n : ℕ) (h₀ : 0 ≤ a) (h₁ : a ≤ 1), a ^ n ≤ 1
 | 0       h₀ h₁ := (pow_zero a).le
 | (n + 1) h₀ h₁ := (pow_succ' a n).le.trans (mul_le_one (pow_le_one n h₀ h₁) h₀ h₁)
+
+lemma strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
+λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
 
 lemma sq_pos_of_pos (ha : 0 < a) : 0 < a ^ 2 := by { rw sq, exact mul_pos ha ha }
 

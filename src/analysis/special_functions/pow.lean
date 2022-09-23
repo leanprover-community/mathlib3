@@ -444,7 +444,7 @@ begin
   refine real.is_Theta_exp_comp_one.2 ⟨π * b, _⟩,
   rw eventually_map at hb ⊢,
   refine hb.mono (λ x hx, _),
-  rw [map_mul],
+  erw [map_mul complex.abs],
   exact mul_le_mul (abs_arg_le_pi _) hx (complex.abs.nonneg _) real.pi_pos.le
 end
 

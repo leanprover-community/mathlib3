@@ -820,7 +820,7 @@ eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩
 section sep
 variables {p : α → Prop} {x : α}
 
-theorem mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=⟨xs, px⟩
+theorem mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} := ⟨xs, px⟩
 
 @[simp] theorem sep_mem_eq {s t : set α} : {x ∈ s | x ∈ t} = s ∩ t := rfl
 

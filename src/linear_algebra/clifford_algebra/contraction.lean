@@ -242,6 +242,18 @@ foldr Q (change_form_aux Q' B) (λ m x, (change_form_aux_change_form_aux Q' B m 
     rw [h, quadratic_form.sub_apply, sub_sub_cancel],
   end) 1
 
+/-- Auxiliary lemma used as an argument to `clifford_algebra.change_form` -/
+lemma change_form.zero_proof : (0 : bilin_form R M).to_quadratic_form = Q - Q :=
+(sub_self _).symm
+
+/-- Auxiliary lemma used as an argument to `clifford_algebra.change_form` -/
+lemma change_form.add_proof : (B + B').to_quadratic_form = Q'' - Q :=
+(congr_arg2 (+) h h').trans $ sub_add_sub_cancel' _ _ _
+
+/-- Auxiliary lemma used as an argument to `clifford_algebra.change_form` -/
+lemma change_form.neg_proof : (-B).to_quadratic_form = Q - Q' :=
+(congr_arg has_neg.neg h).trans $ neg_sub _ _
+
 @[simp]
 lemma change_form_algebra_map (r : R) : change_form h (algebra_map R _ r) = algebra_map R _ r :=
 (foldr_algebra_map _ _ _ _ _).trans $ eq.symm $ algebra.algebra_map_eq_smul_one r
@@ -273,11 +285,11 @@ begin
     rw [←hx, contract_left_comm, ←sub_add, sub_neg_eq_add, ←hx] }
 end
 
+
 @[simp]
 lemma change_form_self_apply
-  (h : (0 : bilin_form R M).to_quadratic_form = Q - Q := (sub_self _).symm)
   (x : clifford_algebra Q) :
-  change_form h x = x :=
+  change_form (change_form.zero_proof) x = x :=
 begin
   induction x using clifford_algebra.left_induction with r x y hx hy m x hx,
   { simp_rw [change_form_algebra_map] },
@@ -287,14 +299,13 @@ begin
 end
 
 @[simp]
-lemma change_form_self (h : (0 : bilin_form R M).to_quadratic_form = Q - Q := (sub_self _).symm) :
-  change_form h = linear_map.id :=
-linear_map.ext $ change_form_self_apply _
+lemma change_form_self  :
+  change_form change_form.zero_proof = (linear_map.id : clifford_algebra Q →ₗ[R] _) :=
+linear_map.ext $ change_form_self_apply
 
+/-- This is [bourbaki2007][] $9 Lemma 3. -/
 lemma change_form_change_form (x : clifford_algebra Q) :
-  change_form h' (change_form h x) = change_form (
-    show (B + B').to_quadratic_form = _,
-    from (congr_arg2 (+) h h').trans $ sub_add_sub_cancel' _ _ _) x :=
+  change_form h' (change_form h x) = change_form (change_form.add_proof h h') x :=
 begin
   induction x using clifford_algebra.left_induction with r x y hx hy m x hx,
   { simp_rw [change_form_algebra_map] },
@@ -305,9 +316,7 @@ begin
 end
 
 lemma change_form_comp_change_form :
-  (change_form h').comp (change_form h) = change_form (
-    show (B + B').to_quadratic_form = _,
-    from (congr_arg2 (+) h h').trans $ sub_add_sub_cancel' _ _ _) :=
+  (change_form h').comp (change_form h) = change_form (change_form.add_proof h h') :=
 linear_map.ext $ change_form_change_form _ _
 
 /-- Any two algebras whose quadratic forms differ by a bilinear form are isomorphic as modules.
@@ -316,13 +325,17 @@ This is $\bar \lambda_B$ from [bourbaki2007][] $9 Proposition 3. -/
 @[simps apply]
 def change_form_equiv : clifford_algebra Q ≃ₗ[R] clifford_algebra Q' :=
 { to_fun := change_form h,
-  inv_fun := change_form (show (-B).to_quadratic_form = Q - Q',
-    from (congr_arg has_neg.neg h).trans $ neg_sub _ _ : (-B).to_quadratic_form = Q - Q'),
+  inv_fun := change_form (change_form.neg_proof h),
   left_inv := λ x, (change_form_change_form _ _ x).trans $
     by simp_rw [add_right_neg, change_form_self_apply],
   right_inv := λ x, (change_form_change_form _ _ x).trans $
     by simp_rw [add_left_neg, change_form_self_apply],
   ..change_form h }
+
+@[simp]
+lemma change_form_equiv_symm :
+  (change_form_equiv h).symm = change_form_equiv (change_form.neg_proof h) :=
+linear_equiv.ext $ λ x, (rfl : change_form _ x = change_form _ x)
 
 variables (Q)
 

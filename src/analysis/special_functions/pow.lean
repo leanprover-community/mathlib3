@@ -2103,3 +2103,59 @@ prove_rpow' ``ennrpow_pos ``ennrpow_neg ``ennreal.rpow_zero `(ℝ≥0∞) `(ℝ)
 | _ := tactic.failed
 
 end norm_num
+
+namespace tactic
+namespace positivity
+
+/-- Auxiliary definition for the `positivity` tactic to handle real powers of reals. -/
+meta def prove_rpow (a b : expr) : tactic strictness :=
+do
+  strictness_a ← core a,
+  match strictness_a with
+  | nonnegative p := nonnegative <$> mk_app ``real.rpow_nonneg_of_nonneg [p, b]
+  | positive p := positive <$> mk_app ``real.rpow_pos_of_pos [p, b]
+  end
+
+private lemma nnrpow_pos {a : ℝ≥0} (ha : 0 < a) (b : ℝ) : 0 < a ^ b := nnreal.rpow_pos ha
+
+/-- Auxiliary definition for the `positivity` tactic to handle real powers of nonnegative reals. -/
+meta def prove_nnrpow (a b : expr) : tactic strictness :=
+do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``nnrpow_pos [p, b]
+  | _ := failed -- We already know `0 ≤ x` for all `x : ℝ≥0`
+  end
+
+private lemma ennrpow_pos {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 < b) : 0 < a ^ b :=
+ennreal.rpow_pos_of_nonneg ha hb.le
+
+/-- Auxiliary definition for the `positivity` tactic to handle real powers of extended nonnegative
+reals. -/
+meta def prove_ennrpow (a b : expr) : tactic strictness :=
+do
+  strictness_a ← core a,
+  strictness_b ← core b,
+  match strictness_a, strictness_b with
+  | positive pa, positive pb := positive <$> mk_app ``ennrpow_pos [pa, pb]
+  | positive pa, nonnegative pb := positive <$> mk_app ``ennreal.rpow_pos_of_nonneg [pa, pb]
+  | _, _ := failed -- We already know `0 ≤ x` for all `x : ℝ≥0∞`
+  end
+
+end positivity
+
+open positivity
+
+/-- Extension for the `positivity` tactic: exponentiation by a real number is nonnegative when the
+base is nonnegative and positive when the base is positive. -/
+@[positivity]
+meta def positivity_rpow : expr → tactic strictness
+| `(@has_pow.pow _ _ real.has_pow %%a %%b) := prove_rpow a b
+| `(real.rpow %%a %%b) := prove_rpow a b
+| `(@has_pow.pow _ _ nnreal.real.has_pow %%a %%b) := prove_nnrpow a b
+| `(nnreal.rpow %%a %%b) := prove_nnrpow a b
+| `(@has_pow.pow _ _ ennreal.real.has_pow %%a %%b) := prove_ennrpow a b
+| `(ennreal.rpow %%a %%b) := prove_ennrpow a b
+| _ := failed
+
+end tactic

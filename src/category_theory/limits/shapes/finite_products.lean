@@ -33,9 +33,9 @@ class has_finite_products : Prop :=
 (out (J : Type) [fintype J] : has_limits_of_shape (discrete J) C)
 
 instance has_limits_of_shape_discrete
-  (J : Type) [fintype J] [has_finite_products C] :
+  (J : Type) [finite J] [has_finite_products C] :
   has_limits_of_shape (discrete J) C :=
-by { haveI := @has_finite_products.out C _ _ J, apply_instance }
+by { casesI nonempty_fintype J, haveI := @has_finite_products.out C _ _ J, apply_instance }
 
 /-- If `C` has finite limits then it has finite products. -/
 @[priority 10]
@@ -43,8 +43,9 @@ instance has_finite_products_of_has_finite_limits [has_finite_limits C] :
   has_finite_products C :=
 ⟨λ J 𝒥, by { resetI, apply_instance }⟩
 
-instance has_fintype_products [has_finite_products C] (ι : Type w) [fintype ι] :
+instance has_fintype_products [has_finite_products C] (ι : Type w) [finite ι] :
   has_limits_of_shape (discrete ι) C :=
+by casesI nonempty_fintype ι; exact
 has_limits_of_shape_of_equivalence
   (discrete.equivalence
     (equiv.ulift.{0}.trans
@@ -69,9 +70,9 @@ class has_finite_coproducts : Prop :=
 attribute [class] has_finite_coproducts
 
 instance has_colimits_of_shape_discrete
-  (J : Type) [fintype J] [has_finite_coproducts C] :
+  (J : Type) [finite J] [has_finite_coproducts C] :
   has_colimits_of_shape (discrete J) C :=
-by { haveI := @has_finite_coproducts.out C _ _ J, apply_instance }
+by { casesI nonempty_fintype J, haveI := @has_finite_coproducts.out C _ _ J, apply_instance }
 
 /-- If `C` has finite colimits then it has finite coproducts. -/
 @[priority 10]
@@ -81,6 +82,7 @@ instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] :
 
 instance has_fintype_coproducts [has_finite_coproducts C] (ι : Type w) [fintype ι] :
   has_colimits_of_shape (discrete ι) C :=
+by casesI nonempty_fintype ι; exact
 has_colimits_of_shape_of_equivalence
   (discrete.equivalence
     (equiv.ulift.{0}.trans

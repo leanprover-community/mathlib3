@@ -164,7 +164,7 @@ begin
   /- Prove that ̀`⋂ n : ℕ, K n` is inside `U ∩ ⋂ n : ℕ, (f n)`. -/
   have hK_subset : (⋂ n, K n : set α) ⊆ U ∩ (⋂ n, f n),
   { intros x hx,
-    simp only [mem_inter_eq, mem_Inter] at hx ⊢,
+    simp only [mem_inter_iff, mem_Inter] at hx ⊢,
     exact ⟨hK₀ $ hx 0, λ n, (hK_decreasing n (hx (n + 1))).1⟩ },
   /- Prove that `⋂ n : ℕ, K n` is not empty, as an intersection of a decreasing sequence
   of nonempty compact subsets.-/

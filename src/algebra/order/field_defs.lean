@@ -36,7 +36,7 @@ variables {α : Type*}
 
 /-- A linear ordered semifield is a field with a linear order respecting the operations. -/
 @[protect_proj] class linear_ordered_semifield (α : Type*)
-  extends linear_ordered_semiring α, semifield α
+  extends linear_ordered_comm_semiring α, semifield α
 
 /-- A linear ordered field is a field with a linear order respecting the operations. -/
 @[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
@@ -56,3 +56,8 @@ instance canonically_linear_ordered_semifield.to_linear_ordered_comm_group_with_
   [canonically_linear_ordered_semifield α] : linear_ordered_comm_group_with_zero α :=
 { mul_le_mul_left := λ a b h c, mul_le_mul_of_nonneg_left h $ zero_le _,
   ..‹canonically_linear_ordered_semifield α› }
+
+@[priority 100] -- See note [lower instance priority]
+instance canonically_linear_ordered_semifield.to_canonically_linear_ordered_add_monoid
+  [canonically_linear_ordered_semifield α] : canonically_linear_ordered_add_monoid α :=
+{ ..‹canonically_linear_ordered_semifield α› }

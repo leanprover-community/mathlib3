@@ -49,9 +49,7 @@ introduce these operations.
 
 ## TODO
 
-Implement extensions for other operations (raising to non-numeral powers, `exp`, `log`, coercions
-from `ℕ` and `ℝ≥0`).
-
+Implement extensions for other operations (raising to non-numeral powers, `log`).
 -/
 
 namespace tactic
@@ -84,6 +82,11 @@ meta def norm_num.positivity (e : expr) : tactic strictness := do
     pure (nonnegative p')
   else failed
 
+/-- Second base case of the `positivity` tactic: Any element of a canonically ordered additive
+monoid is nonnegative. -/
+meta def positivity_canon : expr → tactic strictness
+| `(%%a) := nonnegative <$> mk_app ``zero_le [a]
+
 namespace positivity
 
 /-- Given two tactics whose result is `strictness`, report a `strictness`:
@@ -102,7 +105,7 @@ meta def orelse' (tac1 tac2 : tactic strictness) : tactic strictness := do
 
 /-! ### Core logic of the `positivity` tactic -/
 
-/-- Second base case of the `positivity` tactic.  Prove an expression `e` is positive/nonnegative by
+/-- Third base case of the `positivity` tactic.  Prove an expression `e` is positive/nonnegative by
 finding a hypothesis of the form `a < e` or `a ≤ e` in which `a` can be proved positive/nonnegative
 by `norm_num`. -/
 meta def compare_hyp (e p₂ : expr) : tactic strictness := do
@@ -140,9 +143,10 @@ meta def attr : user_attribute (expr → tactic strictness) unit :=
         (λ _, failed),
       pure $ λ e, orelse'
         (t e) $ orelse' -- run all the extensions on `e`
-          (norm_num.positivity e) $ -- directly try `norm_num` on `e`
-          -- loop over hypotheses and try to compare with `e`
-          local_context >>= list.foldl (λ tac h, orelse' tac (compare_hyp e h)) failed  },
+          (norm_num.positivity e) $ orelse' -- directly try `norm_num` on `e`
+            (positivity_canon e) $ -- try showing nonnegativity from canonicity of the order
+            -- loop over hypotheses and try to compare with `e`
+            local_context >>= list.foldl (λ tac h, orelse' tac (compare_hyp e h)) failed },
     dependencies := [] } }
 
 /-- Look for a proof of positivity/nonnegativity of an expression `e`; if found, return the proof
@@ -200,7 +204,7 @@ add_tactic_doc
 
 end interactive
 
-variables {R : Type*}
+variables {α R : Type*}
 
 /-! ### `positivity` extensions for particular arithmetic operations -/
 
@@ -297,18 +301,45 @@ private lemma div_nonneg_of_nonneg_of_pos [linear_ordered_field R] {a b : R} (ha
   0 ≤ a / b :=
 div_nonneg ha hb.le
 
+private lemma int_div_self_pos {a : ℤ} (ha : 0 < a) : 0 < a / a :=
+by { rw int.div_self ha.ne', exact zero_lt_one }
+
+private lemma int_div_nonneg_of_pos_of_nonneg {a b : ℤ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a / b :=
+int.div_nonneg ha.le hb
+
+private lemma int_div_nonneg_of_nonneg_of_pos {a b : ℤ} (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a / b :=
+int.div_nonneg ha hb.le
+
+private lemma int_div_nonneg_of_pos_of_pos {a b : ℤ} (ha : 0 < a) (hb : 0 < b) : 0 ≤ a / b :=
+int.div_nonneg ha.le hb.le
+
 /-- Extension for the `positivity` tactic: division is nonnegative if both numerator and denominator
 are nonnegative, and strictly positive if both numerator and denominator are. -/
 @[positivity]
 meta def positivity_div : expr → tactic strictness
-| `(%%a / %%b) := do -- TODO handle eg `int.div_nonneg`
+| `(@has_div.div int _ %%a %%b) := do
   strictness_a ← core a,
   strictness_b ← core b,
   match strictness_a, strictness_b with
-  | (positive pa), (positive pb) := positive <$> mk_app ``div_pos [pa, pb]
-  | (positive pa), (nonnegative pb) := nonnegative <$> mk_app ``div_nonneg_of_pos_of_nonneg [pa, pb]
-  | (nonnegative pa), (positive pb) := nonnegative <$> mk_app ``div_nonneg_of_nonneg_of_pos [pa, pb]
-  | (nonnegative pa), (nonnegative pb) := nonnegative <$> mk_app ``div_nonneg [pa, pb]
+  | positive pa, positive pb :=
+      if a = b then -- Only attempts to prove `0 < a / a`, otherwise falls back to `0 ≤ a / b`
+        positive <$> mk_app ``int_div_self_pos [pa]
+      else
+       nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_pos [pa, pb]
+  | positive pa, nonnegative pb :=
+    nonnegative <$> mk_app ``int_div_nonneg_of_pos_of_nonneg [pa, pb]
+  | nonnegative pa, positive pb :=
+    nonnegative <$> mk_app ``int_div_nonneg_of_nonneg_of_pos [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``int.div_nonneg [pa, pb]
+  end
+| `(%%a / %%b) := do
+  strictness_a ← core a,
+  strictness_b ← core b,
+  match strictness_a, strictness_b with
+  | positive pa, positive pb := positive <$> mk_app ``div_pos [pa, pb]
+  | positive pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg_of_pos_of_nonneg [pa, pb]
+  | nonnegative pa, positive pb := nonnegative <$> mk_app ``div_nonneg_of_nonneg_of_pos [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``div_nonneg [pa, pb]
   end
 | _ := failed
 
@@ -361,6 +392,50 @@ meta def positivity_abs : expr → tactic strictness
     positive pa ← core a,
     positive <$> mk_app ``abs_pos_of_pos [pa]) <|>
   nonnegative <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
+| _ := failed
+
+private lemma nat_cast_pos [ordered_semiring α] [nontrivial α] {n : ℕ} : 0 < n → 0 < (n : α) :=
+nat.cast_pos.2
+
+private lemma int_coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := n.cast_nonneg
+private lemma int_coe_nat_pos {n : ℕ} : 0 < n → 0 < (n : ℤ) := nat.cast_pos.2
+
+private lemma int_cast_nonneg [ordered_ring α] {n : ℤ} (hn : 0 ≤ n) : 0 ≤ (n : α) :=
+by { rw ←int.cast_zero, exact int.cast_mono hn }
+private lemma int_cast_pos [ordered_ring α] [nontrivial α] {n : ℤ} : 0 < n → 0 < (n : α) :=
+int.cast_pos.2
+
+private lemma rat_cast_nonneg [linear_ordered_field α] {q : ℚ} : 0 ≤ q → 0 ≤ (q : α) :=
+rat.cast_nonneg.2
+private lemma rat_cast_pos [linear_ordered_field α] {q : ℚ} : 0 < q → 0 < (q : α) := rat.cast_pos.2
+
+/-- Extension for the `positivity` tactic: casts from `ℕ`, `ℤ`, `ℚ`. -/
+@[positivity]
+meta def positivity_coe : expr → tactic strictness
+| `(@coe _ %%typ %%inst %%a) := do
+  -- TODO: Using `match` here might turn out too strict since we really want the instance to *unify*
+  -- with one of the instances below rather than being equal on the nose.
+  -- If this turns out to indeed be a problem, we should figure out the right way to pattern match
+  -- up to defeq rather than equality of expressions.
+  -- See also "Reflexive tactics for algebra, revisited" by Kazuhiko Sakaguchi at ITP 2022.
+  match inst with
+  | `(@coe_to_lift _ _ %%inst) := do
+    strictness_a ← core a,
+    match inst, strictness_a with -- `mk_mapp` is necessary in some places. Why?
+    | `(nat.cast_coe), positive p := positive <$> mk_app ``nat_cast_pos [p]
+    | `(nat.cast_coe), _ := nonnegative <$> mk_mapp ``nat.cast_nonneg [typ, none, a]
+    | `(int.cast_coe), positive p := positive <$> mk_mapp ``int_cast_pos [typ, none, none, none, p]
+    | `(int.cast_coe), nonnegative p := nonnegative <$>
+                                          mk_mapp ``int_cast_nonneg [typ, none, none, p]
+    | `(rat.cast_coe), positive p := positive <$> mk_mapp ``rat_cast_pos [typ, none, none, p]
+    | `(rat.cast_coe), nonnegative p := nonnegative <$>
+                                          mk_mapp ``rat_cast_nonneg [typ, none, none, p]
+    | `(@coe_base _ _ int.has_coe), positive p := positive <$> mk_app ``int_coe_nat_pos [p]
+    | `(@coe_base _ _ int.has_coe), _ := nonnegative <$> mk_app ``int_coe_nat_nonneg [a]
+    | _, _ := failed
+    end
+  | _  := failed
+  end
 | _ := failed
 
 end tactic

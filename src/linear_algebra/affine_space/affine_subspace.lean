@@ -407,6 +407,25 @@ rfl
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
 
+/-- Embedding of an affine subspace to the ambient space, as an affine map. -/
+protected def subtype (s : affine_subspace k P) [nonempty s] : s →ᵃ[k] P :=
+{ to_fun := coe,
+  linear := s.direction.subtype,
+  map_vadd' := λ p v, rfl }
+
+@[simp] lemma subtype_linear (s : affine_subspace k P) [nonempty s] :
+  s.subtype.linear = s.direction.subtype :=
+rfl
+
+lemma subtype_apply (s : affine_subspace k P) [nonempty s] (p : s) : s.subtype p = p :=
+rfl
+
+@[simp] lemma coe_subtype (s : affine_subspace k P) [nonempty s] : (s.subtype : s → P) = coe :=
+rfl
+
+lemma injective_subtype (s : affine_subspace k P) [nonempty s] : function.injective s.subtype :=
+subtype.coe_injective
+
 /-- Two affine subspaces with nonempty intersection are equal if and
 only if their directions are equal. -/
 lemma eq_iff_direction_eq_of_mem {s₁ s₂ : affine_subspace k P} {p : P} (h₁ : p ∈ s₁)
@@ -1251,6 +1270,13 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
 
 @[simp] lemma mem_map {f : P₁ →ᵃ[k] P₂} {x : P₂} {s : affine_subspace k P₁} :
   x ∈ s.map f ↔ ∃ y ∈ s, f y = x := mem_image_iff_bex
+
+lemma mem_map_of_mem {x : P₁} {s : affine_subspace k P₁} (h : x ∈ s) : f x ∈ s.map f :=
+set.mem_image_of_mem _ h
+
+lemma mem_map_iff_mem_of_injective {f : P₁ →ᵃ[k] P₂} {x : P₁} {s : affine_subspace k P₁}
+  (hf : function.injective f) : f x ∈ s.map f ↔ x ∈ s :=
+hf.mem_set_image
 
 @[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
 coe_injective $ image_empty f

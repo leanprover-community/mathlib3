@@ -57,7 +57,13 @@ def split_mono_of_top_inclusion
   retraction := r,
   id' := begin
     rw top_hom_of_continuous_map,
-    sorry,
+    ext,
+    rw [Top.id_app,
+        Top.comp_app,
+        ← continuous_map.comp_apply,
+        continuous_map.coe_comp,
+        h_retraction.id_of_retraction_of_inclusion,
+        id.def],
   end,
 }
 
@@ -69,7 +75,13 @@ def split_epi_of_top_retraction
   section_ := inclusion,
   id' := begin
     rw top_hom_of_continuous_map,
-    sorry,
+    ext,
+    rw [Top.id_app,
+        Top.comp_app,
+        ← continuous_map.comp_apply,
+        continuous_map.coe_comp,
+        h_retraction.id_of_retraction_of_inclusion,
+        id.def],
   end,
 }
 

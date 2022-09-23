@@ -6,6 +6,7 @@ Authors: Yaël Dillies
 import algebra.hom.group
 import algebra.order.with_zero
 import order.hom.basic
+import tactic.positivity
 
 /-!
 # Algebraic order homomorphism classes
@@ -58,3 +59,14 @@ attribute [simp] map_nonneg
 @[to_additive] lemma le_map_add_map_div [group α] [add_comm_semigroup β] [has_le β]
   [mul_le_add_hom_class F α β] (f : F) (a b : α) : f a ≤ f b + f (a / b) :=
 by simpa only [add_comm, div_mul_cancel'] using map_mul_le_add f (a / b) b
+
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: nonnegative maps take nonnegative values. -/
+@[positivity]
+meta def positivity_map : expr → tactic strictness
+| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
+| _ := failed
+
+end tactic

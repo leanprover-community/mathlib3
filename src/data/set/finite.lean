@@ -141,6 +141,10 @@ by rw [← finset.coe_sort_coe _, h.coe_to_finset]
 @[simp] lemma finite_empty_to_finset (h : (∅ : set α).finite) : h.to_finset = ∅ :=
 by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
 
+@[simp] lemma finite_univ_to_finset [fintype α] (h : (set.univ : set α).finite) :
+  h.to_finset = finset.univ :=
+finset.ext $ by simp
+
 @[simp] lemma finite.to_finset_inj {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset = ht.to_finset ↔ s = t :=
 by simp only [←finset.coe_inj, finite.coe_to_finset]

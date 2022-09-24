@@ -506,7 +506,7 @@ lemma ring.eq_self_iff_eq_zero_of_char_ne_two {R : Type*} [non_assoc_ring R] [no
   -a = a ↔ a = 0 :=
 ⟨λ h, (mul_eq_zero.mp $ (two_mul a).trans $ neg_eq_iff_add_eq_zero.mp h).resolve_left
          (ring.two_ne_zero hR),
- λ h, ((congr_arg (λ x, - x) h).trans $ @neg_zero _ _ _ _).trans h.symm⟩
+ λ h, ((congr_arg (λ x, - x) h).trans neg_zero).trans h.symm⟩
 
 end
 

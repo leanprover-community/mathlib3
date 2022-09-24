@@ -491,7 +491,7 @@ set.subset.antisymm
       (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $
         show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
         (λ hx, monoid.subset_closure $ or.inl hx))
-      ((@inv_one G _ _ _).symm ▸ is_submonoid.one_mem (monoid.closure.is_submonoid _))
+      ((@inv_one G _).symm ▸ is_submonoid.one_mem (monoid.closure.is_submonoid _))
       (λ x y hx hy ihx ihy,
         (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem (monoid.closure.is_submonoid _) ihy ihx) }
     (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))

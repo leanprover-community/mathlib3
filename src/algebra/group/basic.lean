@@ -242,8 +242,10 @@ by simp only [mul_assoc, div_eq_mul_inv]
 @[to_additive] lemma div_eq_mul_one_div (a b : G) : a / b = a * (1 / b) :=
 by rw [div_eq_mul_inv, one_div]
 
-section inv_one_class
-variables [inv_one_class G]
+end div_inv_monoid
+
+section div_inv_one_monoid
+variables [div_inv_one_monoid G]
 
 @[simp, to_additive] lemma div_one (a : G) : a / 1 = a :=
 by simp [div_eq_mul_inv]
@@ -251,9 +253,7 @@ by simp [div_eq_mul_inv]
 @[to_additive] lemma one_div_one : (1 : G) / 1 = 1 :=
 div_one _
 
-end inv_one_class
-
-end div_inv_monoid
+end div_inv_one_monoid
 
 section division_monoid
 variables [division_monoid α] {a b c : α}
@@ -288,8 +288,10 @@ variables (a b c)
 @[simp, to_additive] lemma one_div_div : 1 / (a / b) = b / a := by simp
 @[to_additive] lemma one_div_one_div : 1 / (1 / a) = a := by simp
 
-@[priority 100, to_additive] instance division_monoid.to_inv_one_class : inv_one_class α :=
-{ inv_one := by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm }
+@[priority 100, to_additive] instance division_monoid.to_div_inv_one_monoid :
+  div_inv_one_monoid α :=
+{ inv_one := by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm,
+  ..division_monoid.to_div_inv_monoid α }
 
 variables {a b c}
 

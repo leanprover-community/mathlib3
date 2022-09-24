@@ -1296,14 +1296,14 @@ by simp_rw [to_measure_of_zero_le, measure.of_measurable_apply _ hj₁, to_measu
 provides the measure, mapping measurable sets `j` to `-s (i ∩ j)`. -/
 def to_measure_of_le_zero (s : signed_measure α) (i : set α) (hi₁ : measurable_set i)
   (hi₂ : s ≤[i] 0) : measure α :=
-to_measure_of_zero_le (-s) i hi₁ $ (@neg_zero (vector_measure α ℝ) _ _ _) ▸ neg_le_neg _ _ hi₁ hi₂
+to_measure_of_zero_le (-s) i hi₁ $ (@neg_zero (vector_measure α ℝ) _) ▸ neg_le_neg _ _ hi₁ hi₂
 
 lemma to_measure_of_le_zero_apply (hi : s ≤[i] 0)
   (hi₁ : measurable_set i) (hj₁ : measurable_set j) :
   s.to_measure_of_le_zero i hi₁ hi j =
   @coe ℝ≥0 ℝ≥0∞ _ ⟨-s (i ∩ j), neg_apply s (i ∩ j) ▸ nonneg_of_zero_le_restrict _
     (zero_le_restrict_subset _ hi₁ (set.inter_subset_left _ _)
-    ((@neg_zero (vector_measure α ℝ) _ _ _) ▸ neg_le_neg _ _ hi₁ hi))⟩ :=
+    ((@neg_zero (vector_measure α ℝ) _) ▸ neg_le_neg _ _ hi₁ hi))⟩ :=
 begin
   erw [to_measure_of_zero_le_apply],
   { simp },

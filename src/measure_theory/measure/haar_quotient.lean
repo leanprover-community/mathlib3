@@ -32,7 +32,7 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 -/
 
 open set measure_theory topological_space measure_theory.measure
-open_locale pointwise
+open_locale pointwise nnreal
 
 variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   [topological_group G] [borel_space G]
@@ -161,10 +161,13 @@ end
 
 -- maybe make a special case version of all this for `K` the `set.univ`, compact quotient
 
+@[to_additive measure_preserving_quotient_add_group.mk']
 lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
   [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]
-  (h𝓕_finite : μ 𝓕 < ⊤) (h : μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K) = 1) :
-  measure_preserving (quotient_group.mk' Γ) (μ.restrict 𝓕) (measure_theory.measure.haar_measure K) :=
-sorry
-
--- LOOKS EASY - pull stuff from `periodic` file
+  (h𝓕_finite : μ 𝓕 < ⊤) (c : ℝ≥0) (h : μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K) = c) :
+  measure_preserving
+    (quotient_group.mk' Γ)
+    (μ.restrict 𝓕)
+    (c • (measure_theory.measure.haar_measure K)) :=
+{ measurable := continuous_quotient_mk.measurable,
+  map_eq := by rw [h𝓕.map_restrict_quotient K h𝓕_finite, h]; refl }

@@ -21,7 +21,9 @@ measurable) function periodic function with period `T`.
 -/
 
 open set function measure_theory measure_theory.measure topological_space
-open_locale measure_theory
+open_locale measure_theory nnreal
+
+local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
 
 lemma is_add_fundamental_domain_Ioc {T : ℝ} (hT : 0 < T) (t : ℝ) (μ : measure ℝ . volume_tac) :
   is_add_fundamental_domain (add_subgroup.zmultiples T) (Ioc t (t + T)) μ :=
@@ -35,19 +37,32 @@ end
 
 section newstuff ---- NEW STUFF
 
+lemma is_add_fundamental_domain_Ioc' {T : ℝ} (hT : 0 < T) (t : ℝ) (μ : measure ℝ . volume_tac) :
+  is_add_fundamental_domain (add_subgroup.zmultiples T).opposite (Ioc t (t + T)) μ :=
+sorry
+
 open add_subgroup
 
 variables {T : ℝ} [fact (0 < T)]
 
-instance : measure_space (ℝ ⧸ zmultiples T) := sorry -- haar measure with total size a
+noncomputable instance : measure_space (ℝ ⧸ zmultiples T) :=
+{ volume := (id ⟨T, le_of_lt (fact.out _)⟩ : ℝ≥0) • add_haar_measure ⊤,
+  .. real_mod_zmultiples.measurable_space }
+
+instance : second_countable_topology (ℝ ⧸ zmultiples T) := sorry
 
 local notation `π` := quotient_add_group.mk' (zmultiples T)
 
-lemma foo  {T : ℝ} (hT : 0 < T) (t : ℝ) :
-  measure.map π  (volume.restrict (Ioc t (t + T))) = volume :=
-sorry
-
-lemma foo' : measure_preserving π (volume.restrict (Ioc t (t + T))) volume := sorry
+lemma foo (t : ℝ) : measure_preserving π (volume.restrict (Ioc t (t + T))) volume :=
+measure_preserving_quotient_add_group.mk'
+  (is_add_fundamental_domain_Ioc' (fact.out (0 < T)) t)
+  ⊤
+  (by simp)
+  ⟨T, le_of_lt (fact.out _)⟩
+  begin
+    rw ← ennreal.of_real_coe_nnreal,
+    simp,
+  end
 
 end newstuff
 

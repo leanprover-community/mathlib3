@@ -250,8 +250,6 @@ lemma continuous_on.circle_integrable {f : ℂ → E} {c : ℂ} {R : ℝ} (hR : 
   circle_integrable f c R :=
 continuous_on.circle_integrable' $ (_root_.abs_of_nonneg hR).symm ▸ hf
 
-.
-
 /-- The function `λ z, (z - w) ^ n`, `n : ℤ`, is circle integrable on the circle with center `c` and
 radius `|R|` if and only if `R = 0` or `0 ≤ n`, or `w` does not belong to this circle. -/
 @[simp] lemma circle_integrable_sub_zpow_iff {c w : ℂ} {R : ℝ} {n : ℤ} :

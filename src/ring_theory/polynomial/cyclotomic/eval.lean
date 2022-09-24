@@ -224,7 +224,6 @@ begin
              eval_X, eval_sub, nnnorm_prod, units.mk0_prod],
   convert finset.prod_lt_prod' _ _,
   swap, { exact λ _, units.mk0 (real.to_nnreal (q - 1)) (by simp [hq']) },
-  -- simp only [hq', ne.def, real.to_nnreal_eq_zero, sub_nonpos, not_le]
   { simp only [complex.card_primitive_roots, prod_const, card_attach] },
   { simp only [subtype.coe_mk, finset.mem_attach, forall_true_left, subtype.forall,
       ←units.coe_le_coe, ← nnreal.coe_le_coe, complex.abs.nonneg, hq'.le, units.coe_mk0,

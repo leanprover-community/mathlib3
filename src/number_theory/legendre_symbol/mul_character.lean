@@ -15,6 +15,18 @@ that sends non-units to zero.
 
 We use the namespace `mul_char` for the definitions and results.
 
+## Main results
+
+We show that the multiplicative characters form a group (if `R'` is commutative);
+see `mul_char.comm_group`. We also provide an equivalence with the
+homomorphisms `Rˣ →* R'ˣ`; see `mul_char.equiv_to_unit_hom`.
+
+We define a multiplicative character to be *quadratic* if its values
+are among `0`, `1` and `-1`, and we prove some properties of quadratic characters.
+
+Finally, we show that the sum of all values of a nontrivial multiplicative
+character vanishes; see `mul_char.is_nontrivial.sum_eq_zero`.
+
 ## Tags
 
 multiplicative character
@@ -221,6 +233,11 @@ lemma map_zero {R : Type u} [comm_monoid_with_zero R] [nontrivial R] (χ : mul_c
   χ (0 : R) = 0 :=
 by rw [map_nonunit χ not_is_unit_zero]
 
+/-- If the domain is a ring `R`, then `χ (ring_char R) = 0`. -/
+lemma map_ring_char {R : Type u} [comm_ring R] [nontrivial R] (χ : mul_char R R') :
+  χ (ring_char R) = 0 :=
+by rw [ring_char.nat.cast_ring_char, χ.map_zero]
+
 noncomputable
 instance has_one : has_one (mul_char R R') := ⟨trivial R R'⟩
 
@@ -266,12 +283,14 @@ lemma inv_apply_eq_inv (χ : mul_char R R') (a : R) :
   χ⁻¹ a = ring.inverse (χ a) :=
 eq.refl $ inv χ a
 
-/-- Variant when the target is a field -/
+/-- The inverse of a multiplicative character `χ`, applied to `a`, is the inverse of `χ a`.
+Variant when the target is a field -/
 lemma inv_apply_eq_inv' {R' : Type v} [field R'] (χ : mul_char R R') (a : R) :
   χ⁻¹ a = (χ a)⁻¹ :=
 (inv_apply_eq_inv χ a).trans $ ring.inverse_eq_inv (χ a)
 
-/-- When the domain has a zero, we can as well take the inverse first. -/
+/-- When the domain has a zero, then the inverse of a multiplicative character `χ`,
+applied to `a`, is `χ` applied to the inverse of `a`. -/
 lemma inv_apply {R : Type u} [comm_monoid_with_zero R] (χ : mul_char R R') (a : R) :
   χ⁻¹ a = χ (ring.inverse a) :=
 begin
@@ -284,7 +303,8 @@ begin
     rw [map_nonunit _ ha, ring.inverse_non_unit a ha, mul_char.map_zero χ], },
 end
 
-/-- When the domain is a field, we can use the field inverse instead. -/
+/-- When the domain has a zero, then the inverse of a multiplicative character `χ`,
+applied to `a`, is `χ` applied to the inverse of `a`. -/
 lemma inv_apply' {R : Type u} [field R] (χ : mul_char R R') (a : R) : χ⁻¹ a = χ a⁻¹ :=
 (inv_apply χ a).trans $ congr_arg _ (ring.inverse_eq_inv a)
 
@@ -297,7 +317,7 @@ begin
       ring.inverse_mul_cancel _ (is_unit.map _ x.is_unit), one_apply_coe],
 end
 
-/-- Finally, the commutative group structure on `mul_char R R'`. -/
+/-- The commutative group structure on `mul_char R R'`. -/
 noncomputable
 instance comm_group : comm_group (mul_char R R') :=
 { one := 1,
@@ -359,6 +379,14 @@ by simp only [is_nontrivial, ne.def, ext_iff, not_forall, one_apply_coe]
 
 /-- A multiplicative character is *quadratic* if it takes only the values `0`, `1`, `-1`. -/
 def is_quadratic (χ : mul_char R R') : Prop := ∀ a, χ a = 0 ∨ χ a = 1 ∨ χ a = -1
+
+/-- If two values of quadratic characters with target `ℤ` agree after coercion into a ring
+of characteristic not `2`, then they agree in `ℤ`. -/
+lemma is_quadratic.eq_of_eq_coe {χ : mul_char R ℤ} (hχ : is_quadratic χ)
+  {χ' : mul_char R' ℤ} (hχ' : is_quadratic χ') [nontrivial R''] (hR'' : ring_char R'' ≠ 2)
+  {a : R} {a' : R'} (h : (χ a : R'') = χ' a') :
+  χ a = χ' a' :=
+int.cast_inj_on_of_ring_char_ne_two hR'' (hχ a) (hχ' a') h
 
 /-- We can post-compose a multiplicative character with a ring homomorphism. -/
 @[simps]

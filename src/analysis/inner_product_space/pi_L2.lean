@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Sébastien Gouëzel, Heather Macbeth
 -/
 import analysis.inner_product_space.projection
-import linear_algebra.finite_dimensional
 import analysis.normed_space.pi_Lp
+import linear_algebra.finite_dimensional
+import linear_algebra.unitary_group
 
 /-!
 # `L²` inner product space structure on finite products of inner product spaces
@@ -70,15 +71,8 @@ we use instead `pi_Lp 2 f` for the product space, which is endowed with the `L^2
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 f) :=
 { inner := λ x y, ∑ i, inner (x i) (y i),
-  norm_sq_eq_inner :=
-  begin
-    intro x,
-    have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ) :=
-      finset.sum_nonneg (λ j hj, rpow_nonneg_of_nonneg (norm_nonneg (x j)) 2),
-    simp only [norm, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
-    rw [← rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2, ← rpow_mul h₂],
-    norm_num,
-  end,
+  norm_sq_eq_inner := λ x,
+    by simp only [pi_Lp.norm_sq_eq_of_L2, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
   conj_sym :=
   begin
     intros x y,
@@ -106,13 +100,13 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
-lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=
-pi_Lp.norm_eq_of_L2 x
-
 lemma euclidean_space.nnnorm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x : euclidean_space 𝕜 n) : ∥x∥₊ = nnreal.sqrt (∑ i, ∥x i∥₊ ^ 2) :=
 pi_Lp.nnnorm_eq_of_L2 x
+
+lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=
+by simpa only [real.coe_sqrt, nnreal.coe_sum] using congr_arg (coe : ℝ≥0 → ℝ) x.nnnorm_eq
 
 lemma euclidean_space.dist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x y : euclidean_space 𝕜 n) : dist x y = (∑ i, dist (x i) (y i) ^ 2).sqrt :=
@@ -386,12 +380,12 @@ calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_ba
 variable {v : ι → E}
 
 /-- A finite orthonormal set that spans is an orthonormal basis -/
-protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
+protected def mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span 𝕜 (set.range v)):
   orthonormal_basis ι 𝕜 E :=
 (basis.mk (orthonormal.linear_independent hon) hsp).to_orthonormal_basis (by rwa basis.coe_mk)
 
 @[simp]
-protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
+protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span 𝕜 (set.range v)) :
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
@@ -405,7 +399,7 @@ let
       convert orthonormal_span (h.comp (coe : s → ι') subtype.coe_injective),
       ext,
       simp [e₀', basis.span_apply],
-    end e₀'.span_eq,
+    end e₀'.span_eq.ge,
   φ : span 𝕜 (s.image v' : set E) ≃ₗᵢ[𝕜] span 𝕜 (range (v' ∘ (coe : s → ι'))) :=
     linear_isometry_equiv.of_eq _ _
     begin
@@ -429,6 +423,7 @@ protected def mk_of_orthogonal_eq_bot (hon : orthonormal 𝕜 v) (hsp : (span �
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk hon
 begin
+  refine eq.ge _,
   haveI : finite_dimensional 𝕜 (span 𝕜 (range v)) :=
     finite_dimensional.span_of_finite 𝕜 (finite_range v),
   haveI : complete_space (span 𝕜 (range v)) := finite_dimensional.complete 𝕜 _,
@@ -531,6 +526,59 @@ lemma complex.isometry_of_orthonormal_apply
 by simp [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1})]
 
 open finite_dimensional
+
+/-! ### Matrix representation of an orthonormal basis with respect to another -/
+
+section to_matrix
+variables [decidable_eq ι]
+
+section
+variables (a b : orthonormal_basis ι 𝕜 E)
+
+/-- The change-of-basis matrix between two orthonormal bases `a`, `b` is a unitary matrix. -/
+lemma orthonormal_basis.to_matrix_orthonormal_basis_mem_unitary :
+  a.to_basis.to_matrix b ∈ matrix.unitary_group ι 𝕜 :=
+begin
+  rw matrix.mem_unitary_group_iff',
+  ext i j,
+  convert a.repr.inner_map_map (b i) (b j),
+  rw orthonormal_iff_ite.mp b.orthonormal i j,
+  refl,
+end
+
+/-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` has
+unit length. -/
+@[simp] lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
+  ∥a.to_basis.det b∥ = 1 :=
+begin
+  have : (norm_sq (a.to_basis.det b) : 𝕜) = 1,
+  { simpa [is_R_or_C.mul_conj]
+      using (matrix.det_of_mem_unitary (a.to_matrix_orthonormal_basis_mem_unitary b)).2 },
+  norm_cast at this,
+  rwa [← sqrt_norm_sq_eq_norm, sqrt_eq_one],
+end
+
+end
+
+section real
+variables (a b : orthonormal_basis ι ℝ F)
+
+/-- The change-of-basis matrix between two orthonormal bases `a`, `b` is an orthogonal matrix. -/
+lemma orthonormal_basis.to_matrix_orthonormal_basis_mem_orthogonal :
+  a.to_basis.to_matrix b ∈ matrix.orthogonal_group ι ℝ :=
+a.to_matrix_orthonormal_basis_mem_unitary b
+
+/-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` is ±1. -/
+lemma orthonormal_basis.det_to_matrix_orthonormal_basis_real :
+  a.to_basis.det b = 1 ∨ a.to_basis.det b = -1 :=
+begin
+  rw ← sq_eq_one_iff,
+  simpa [unitary, sq] using matrix.det_of_mem_unitary (a.to_matrix_orthonormal_basis_mem_unitary b)
+end
+
+end real
+
+end to_matrix
 
 /-! ### Existence of orthonormal basis, etc. -/
 
@@ -708,7 +756,8 @@ begin
       linear_isometry.coe_to_linear_map]},
     -- Mx_decomp is the orthogonal decomposition of M x
     have Mx_orth : ⟪ L (p1 x), L3 (p2 x) ⟫ = 0,
-    { have Lp1x : L (p1 x) ∈ L.to_linear_map.range := L.to_linear_map.mem_range_self (p1 x),
+    { have Lp1x : L (p1 x) ∈ L.to_linear_map.range :=
+        linear_map.mem_range_self L.to_linear_map (p1 x),
       have Lp2x : L3 (p2 x) ∈ (L.to_linear_map.range)ᗮ,
       { simp only [L3, linear_isometry.coe_comp, function.comp_app, submodule.coe_subtypeₗᵢ,
           ← submodule.range_subtype (LSᗮ)],

@@ -159,27 +159,27 @@ ideal.ext $ λ _, is_nilpotent_iff_eq_zero
 
 end comm_semiring
 
-namespace algebra
+namespace linear_map
 
 variables (R) {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
 
-@[simp] lemma is_nilpotent_lmul_left_iff (a : A) :
-  is_nilpotent (lmul_left R a) ↔ is_nilpotent a :=
+@[simp] lemma is_nilpotent_mul_left_iff (a : A) :
+  is_nilpotent (mul_left R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_left_eq_zero_iff, pow_lmul_left] at ⊢ hn;
+  simp only [mul_left_eq_zero_iff, pow_mul_left] at ⊢ hn;
   exact hn,
 end
 
-@[simp] lemma is_nilpotent_lmul_right_iff (a : A) :
-  is_nilpotent (lmul_right R a) ↔ is_nilpotent a :=
+@[simp] lemma is_nilpotent_mul_right_iff (a : A) :
+  is_nilpotent (mul_right R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_right_eq_zero_iff, pow_lmul_right] at ⊢ hn;
+  simp only [mul_right_eq_zero_iff, pow_mul_right] at ⊢ hn;
   exact hn,
 end
 
-end algebra
+end linear_map
 
 namespace module.End
 
@@ -195,13 +195,13 @@ end
 
 end module.End
 
-namespace ideal
+section ideal
 
 variables [comm_semiring R] [comm_ring S] [algebra R S] (I : ideal S)
 
 /-- Let `P` be a property on ideals. If `P` holds for square-zero ideals, and if
   `P I → P (J ⧸ I) → P J`, then `P` holds for all nilpotent ideals. -/
-lemma is_nilpotent.induction_on
+lemma ideal.is_nilpotent.induction_on
   (hI : is_nilpotent I)
   {P : ∀ ⦃S : Type*⦄ [comm_ring S], by exactI ∀ I : ideal S, Prop}
   (h₁ : ∀ ⦃S : Type*⦄ [comm_ring S], by exactI ∀ I : ideal S, I ^ 2 = ⊥ → P I)
@@ -228,6 +228,31 @@ begin
       exact ideal.pow_le_pow (by linarith) },
     { exact le_refl n.succ.succ } },
   { apply h₁, rw [← ideal.map_pow, ideal.map_quotient_self] },
+end
+
+lemma is_nilpotent.is_unit_quotient_mk_iff {R : Type*} [comm_ring R] {I : ideal R}
+  (hI : is_nilpotent I) {x : R} : is_unit (ideal.quotient.mk I x) ↔ is_unit x :=
+begin
+  refine ⟨_, λ h, h.map I^.quotient.mk⟩,
+  revert x,
+  apply ideal.is_nilpotent.induction_on I hI; clear hI I,
+  swap,
+  { introv e h₁ h₂ h₃,
+    apply h₁,
+    apply h₂,
+    exactI h₃.map ((double_quot.quot_quot_equiv_quot_sup I J).trans
+      (ideal.quot_equiv_of_eq (sup_eq_right.mpr e))).symm.to_ring_hom },
+  { introv e H,
+    resetI,
+    obtain ⟨y, hy⟩ := ideal.quotient.mk_surjective (↑(H.unit⁻¹) : S ⧸ I),
+    have : ideal.quotient.mk I (x * y) = ideal.quotient.mk I 1,
+    { rw [map_one, _root_.map_mul, hy, is_unit.mul_coe_inv] },
+    rw ideal.quotient.eq at this,
+    have : (x * y - 1) ^ 2 = 0,
+    { rw [← ideal.mem_bot, ← e], exact ideal.pow_mem_pow this _ },
+    have : x * (y * (2 - x * y)) = 1,
+    { rw [eq_comm, ← sub_eq_zero, ← this], ring },
+    exact is_unit_of_mul_eq_one _ _ this }
 end
 
 end ideal

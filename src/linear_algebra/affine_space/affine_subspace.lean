@@ -276,6 +276,16 @@ lemma vadd_mem_iff_mem_direction {s : affine_subspace k P} (v : V) {p : P} (hp :
   v +ᵥ p ∈ s ↔ v ∈ s.direction :=
 ⟨λ h, by simpa using vsub_mem_direction h hp, λ h, vadd_mem_of_mem_direction h hp⟩
 
+/-- Adding a vector in the direction to a point produces a point in the subspace if and only if
+the original point is in the subspace. -/
+lemma vadd_mem_iff_mem_of_mem_direction {s : affine_subspace k P} {v : V} (hv : v ∈ s.direction)
+  {p : P} : v +ᵥ p ∈ s ↔ p ∈ s :=
+begin
+  refine ⟨λ h, _, λ h, vadd_mem_of_mem_direction hv h⟩,
+  convert vadd_mem_of_mem_direction (submodule.neg_mem _ hv) h,
+  simp
+end
+
 /-- Given a point in an affine subspace, the set of vectors in its
 direction equals the set of vectors subtracting that point on the
 right. -/
@@ -376,7 +386,9 @@ begin
     exact vsub_mem_direction hp hq2 }
 end
 
-instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
+/-- This is not an instance because it loops with `add_torsor.nonempty`. -/
+@[reducible] -- See note [reducible non instances]
+def to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
 { vadd := λ a b, ⟨(a:V) +ᵥ (b:P), vadd_mem_of_mem_direction a.2 b.2⟩,
   zero_vadd := by simp,
   add_vadd := λ a b c, by { ext, apply add_vadd },
@@ -385,6 +397,8 @@ instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.dir
   vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
   vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
 
+local attribute [instance] to_add_torsor
+
 @[simp, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
   ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
 rfl
@@ -392,6 +406,25 @@ rfl
 @[simp, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
+
+/-- Embedding of an affine subspace to the ambient space, as an affine map. -/
+protected def subtype (s : affine_subspace k P) [nonempty s] : s →ᵃ[k] P :=
+{ to_fun := coe,
+  linear := s.direction.subtype,
+  map_vadd' := λ p v, rfl }
+
+@[simp] lemma subtype_linear (s : affine_subspace k P) [nonempty s] :
+  s.subtype.linear = s.direction.subtype :=
+rfl
+
+lemma subtype_apply (s : affine_subspace k P) [nonempty s] (p : s) : s.subtype p = p :=
+rfl
+
+@[simp] lemma coe_subtype (s : affine_subspace k P) [nonempty s] : (s.subtype : s → P) = coe :=
+rfl
+
+lemma injective_subtype (s : affine_subspace k P) [nonempty s] : function.injective s.subtype :=
+subtype.coe_injective
 
 /-- Two affine subspaces with nonempty intersection are equal if and
 only if their directions are equal. -/
@@ -1238,8 +1271,22 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
 @[simp] lemma mem_map {f : P₁ →ᵃ[k] P₂} {x : P₂} {s : affine_subspace k P₁} :
   x ∈ s.map f ↔ ∃ y ∈ s, f y = x := mem_image_iff_bex
 
+lemma mem_map_of_mem {x : P₁} {s : affine_subspace k P₁} (h : x ∈ s) : f x ∈ s.map f :=
+set.mem_image_of_mem _ h
+
+lemma mem_map_iff_mem_of_injective {f : P₁ →ᵃ[k] P₂} {x : P₁} {s : affine_subspace k P₁}
+  (hf : function.injective f) : f x ∈ s.map f ↔ x ∈ s :=
+hf.mem_set_image
+
 @[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
 coe_injective $ image_empty f
+
+@[simp] lemma map_eq_bot_iff {s : affine_subspace k P₁} : s.map f = ⊥ ↔ s = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [←coe_eq_bot_iff, coe_map, image_eq_empty, coe_eq_bot_iff] at h },
+  { rw [h, map_bot] }
+end
 
 omit V₂
 

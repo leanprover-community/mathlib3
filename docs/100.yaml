@@ -17,11 +17,13 @@
 5:
   title  : Prime Number Theorem
 6:
-  title  : Godel’s Incompleteness Theorem
+  title  : Gödel’s Incompleteness Theorem
 7:
   title  : Law of Quadratic Reciprocity
-  decl   : zmod.quadratic_reciprocity
-  author : Chris Hughes
+  decls  :
+    - legendre_sym.quadratic_reciprocity
+    - jacobi_sym.quadratic_reciprocity
+  author : Chris Hughes (first) and Michael Stoll (second)
 8:
   title  : The Impossibility of Trisecting the Angle and Doubling the Cube
 9:
@@ -127,6 +129,10 @@
   author : Anatole Dedecker, Yury Kudryashov
 35:
   title  : Taylor’s Theorem
+  decls  :
+    - taylor_mean_remainder_lagrange
+    - taylor_mean_remainder_cauchy
+  author : Moritz Doll
 36:
   title  : Brouwer Fixed Point Theorem
 37:
@@ -186,7 +192,10 @@
 53:
   title  : Pi is Transcendental
 54:
-  title  : Konigsberg Bridges Problem
+  title  : Königsberg Bridges Problem
+  links:
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/54_konigsberg.lean
+  author : Kyle Miller
 55:
   title  : Product of Segments of Chords
   decl   : euclidean_geometry.mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi
@@ -359,6 +368,9 @@
   author : Chris Hughes
 90:
   title  : Stirling’s Formula
+  decls  :
+    - stirling.tendsto_stirling_seq_sqrt_pi
+  author : mathlib (Moritz Firsching, Fabian Kruse, Nikolas Kuhn, Heather Macbeth)
 91:
   title  : The Triangle Inequality
   decl   : norm_add_le
@@ -367,7 +379,6 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
-  decl   : fintype.card_embedding_eq
   links  :
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/93_birthday_problem.lean
   author : Eric Rodriguez
@@ -390,6 +401,8 @@
   author : Anne Baanen
 98:
   title  : Bertrand’s Postulate
+  decl   : nat.bertrand
+  author : Bolton Bailey, Patrick Stevens
 99:
   title  : Buffon Needle Problem
 100:

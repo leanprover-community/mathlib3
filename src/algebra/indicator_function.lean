@@ -96,7 +96,7 @@ mul_indicator_eq_one
 
 @[to_additive] lemma mul_indicator_apply_ne_one {a : α} :
   s.mul_indicator f a ≠ 1 ↔ a ∈ s ∩ mul_support f :=
-by simp only [ne.def, mul_indicator_apply_eq_one, not_imp, mem_inter_eq, mem_mul_support]
+by simp only [ne.def, mul_indicator_apply_eq_one, not_imp, mem_inter_iff, mem_mul_support]
 
 @[simp, to_additive] lemma mul_support_mul_indicator :
   function.mul_support (s.mul_indicator f) = s ∩ function.mul_support f :=
@@ -413,7 +413,7 @@ begin
   rw [finset.prod_insert haI, finset.set_bUnion_insert, mul_indicator_union_of_not_mem_inter, ih _],
   { assume i hi j hj hij,
     exact hI i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj) hij },
-  simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and],
+  simp only [not_exists, exists_prop, mem_Union, mem_inter_iff, not_and],
   assume hx a' ha',
   refine disjoint_left.1 (hI a (finset.mem_insert_self _ _) a' (finset.mem_insert_of_mem ha') _) hx,
   exact (ne_of_mem_of_not_mem ha' haI).symm
@@ -457,12 +457,8 @@ lemma inter_indicator_one {s t : set α} :
 funext (λ _, by simpa only [← inter_indicator_mul, pi.mul_apply, pi.one_apply, one_mul])
 
 lemma indicator_prod_one {s : set α} {t : set β} {x : α} {y : β} :
-  (s ×ˢ t : set _).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
-begin
-  letI := classical.dec_pred (∈ s),
-  letI := classical.dec_pred (∈ t),
-  simp [indicator_apply, ← ite_and],
-end
+  (s ×ˢ t).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
+by { classical, simp [indicator_apply, ←ite_and] }
 
 variables (M) [nontrivial M]
 

@@ -123,8 +123,7 @@ lemma aux_calc (n : ℕ) {m : ℝ} (hm : 2 ≤ m) :
 calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
   -- the second factors coincide (and are non-negative),
   -- the first factors, satisfy the inequality `sub_one_div_inv_le_two`
-  mul_mono_nonneg (one_div_nonneg.mpr (pow_nonneg (zero_le_two.trans hm) _))
-    (sub_one_div_inv_le_two hm)
+  mul_le_mul_of_nonneg_right (sub_one_div_inv_le_two hm) (by positivity)
 ... = 2 / m ^ (n + 1)! : mul_one_div 2 _
 ... = 2 / m ^ (n! * (n + 1)) : congr_arg ((/) 2) (congr_arg (pow m) (mul_comm _ _))
 ... ≤ 1 / m ^ (n! * n) :
@@ -135,7 +134,7 @@ calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
     apply (div_le_div_iff _ _).mpr,
     conv_rhs { rw [one_mul, mul_add, pow_add, mul_one, pow_mul, mul_comm, ← pow_mul] },
     -- the second factors coincide, so we prove the inequality of the first factors*
-    apply (mul_le_mul_right _).mpr,
+    refine (mul_le_mul_right _).mpr _,
     -- solve all the inequalities `0 < m ^ ??`
     any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ },
     -- `2 ≤ m ^ n!` is a consequence of monotonicity of exponentiation at `2 ≤ m`.

@@ -69,9 +69,9 @@ local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
 /-- If `α` is complete, then it is an abstract completion of itself -/
-def eq_itself_of_complete [separated_space α] [complete_space α] : abstract_completion α :=
-(mk α id (by apply_instance) (by apply_instance) (by apply_instance) uniform_inducing_id
-  dense_range_id)
+def of_complete [separated_space α] [complete_space α] : abstract_completion α :=
+mk α id (by apply_instance) (by apply_instance) (by apply_instance) uniform_inducing_id
+  dense_range_id
 
 lemma closure_range : closure (range ι) = univ :=
 pkg.dense.closure_range

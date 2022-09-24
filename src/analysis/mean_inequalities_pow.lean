@@ -5,6 +5,7 @@ Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import analysis.convex.specific_functions
 import tactic.positivity
+import analysis.test
 
 /-!
 # Mean value inequalities
@@ -151,25 +152,28 @@ begin
 end
 
 lemma rpow_add_rpow_le_add {p : ℝ} (a b : ℝ≥0) (hp1 : 1 ≤ p) :
-  (a ^ p + b ^ p) ^ (1/p) ≤ a + b :=
+  (a ^ p + b ^ p) ^ p⁻¹ ≤ a + b :=
 begin
-  rw ←@nnreal.le_rpow_one_div_iff _ _ (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1]),
-  rw one_div_one_div,
+  have hp2 : 0 < p⁻¹ :=
+  by { rw [_root_.inv_pos], exact lt_of_lt_of_le zero_lt_one hp1 },
+  rw ←nnreal.le_rpow_inv_iff_of_pos _ _ hp2,
+  rw inv_inv,
   exact add_rpow_le_rpow_add _ _ hp1,
 end
 
 theorem rpow_add_rpow_le {p q : ℝ} (a b : ℝ≥0) (hp_pos : 0 < p) (hpq : p ≤ q) :
-  (a ^ q + b ^ q) ^ (1/q) ≤ (a ^ p + b ^ p) ^ (1/p) :=
+  (a ^ q + b ^ q) ^ q⁻¹ ≤ (a ^ p + b ^ p) ^ p⁻¹ :=
 begin
-  have h_rpow : ∀ a : ℝ≥0, a^q = (a^p)^(q/p),
-    from λ a, by rw [←nnreal.rpow_mul, div_eq_inv_mul, ←mul_assoc,
+  have h_rpow : ∀ a : ℝ≥0, a^q = (a^p)^(p⁻¹ * q),
+    from λ a, by rw [←nnreal.rpow_mul, ←mul_assoc,
       _root_.mul_inv_cancel hp_pos.ne.symm, one_mul],
-  have h_rpow_add_rpow_le_add : ((a^p)^(q/p) + (b^p)^(q/p)) ^ (1/(q/p)) ≤ a^p + b^p,
-  { refine rpow_add_rpow_le_add (a^p) (b^p) _,
-    rwa one_le_div hp_pos, },
-  rw [h_rpow a, h_rpow b, nnreal.le_rpow_one_div_iff hp_pos, ←nnreal.rpow_mul, mul_comm,
-    mul_one_div],
-  rwa one_div_div at h_rpow_add_rpow_le_add,
+  have h_exp : 1 ≤ p⁻¹ * q :=
+  by { rw ←inv_mul_cancel (ne_of_gt hp_pos),
+    exact (mul_le_mul_left $ _root_.inv_pos.mpr hp_pos).mpr hpq },
+  have h_rpow_add_rpow_le_add : ((a^p)^(p⁻¹ * q) + (b^p)^(p⁻¹ * q)) ^ (p⁻¹ * q)⁻¹ ≤ a^p + b^p :=
+  rpow_add_rpow_le_add (a^p) (b^p) h_exp,
+  rw [h_rpow a, h_rpow b, nnreal.le_rpow_inv_iff_of_pos _ _ hp_pos, ←nnreal.rpow_mul],
+  rwa [mul_inv_rev, inv_inv] at h_rpow_add_rpow_le_add,
 end
 
 lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0) (hp : 0 ≤ p) (hp1 : p ≤ 1) :
@@ -178,9 +182,8 @@ begin
   rcases hp.eq_or_lt with rfl|hp_pos,
   { simp },
   have h := rpow_add_rpow_le a b hp_pos hp1,
-  rw one_div_one at h,
-  repeat { rw nnreal.rpow_one at h },
-  exact (nnreal.le_rpow_one_div_iff hp_pos).mp h
+  simp only [rpow_one, inv_one] at h,
+  exact (nnreal.le_rpow_inv_iff_of_pos _ _ hp_pos).mp h
 end
 
 end nnreal

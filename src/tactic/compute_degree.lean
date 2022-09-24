@@ -129,18 +129,16 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
 | e              := eval_expr' ℕ e <|> pure n
 
-/--  A simple check: `check_target_changes t` fails if `t` unifies with one of the current
-goals. We use it to make sure that the tactics are actually making progress, by feeding the target
-`t`, stored before applying them. -/
-meta def check_target_changes (tac : tactic α) : tactic α :=
-do
+/--  A simple check: `check_target_changes tac` fails if the main target before applying the
+tactic `tac`, unifies with one of the goals produced by the application of `tac`.
+Useful to make sure that the tactic `tac` is actually making progress. -/
+meta def check_target_changes {α} (tac : tactic α) : tactic α :=
+focus1 $ do
   t ← target,
   x ← tac,
   gs ← get_goals >>= list.mmap infer_type,
   (success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
   pure x
-do gs ← get_goals >>= list.mmap infer_type,
-  (success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change"
 
 /--  A general description of `compute_degree_le_aux` is in the doc-string of `compute_degree`.
 The difference betweem the two is that `compute_degree_le_aux` makes no effort to close side-goals,
@@ -187,9 +185,7 @@ by compute_degree_le
 ```
 -/
 meta def compute_degree_le : tactic unit :=
-focus1 $ do t ← target,
-  compute_degree_le_aux,
-  check_target_changes t,
+focus1 $ do check_target_changes compute_degree_le_aux,
   try $ any_goals' norm_assum
 
 add_tactic_doc

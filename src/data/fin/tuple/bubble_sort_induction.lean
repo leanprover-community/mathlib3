@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
 import data.fin.tuple.sort
-import order.well_founded_set
+import order.well_founded
 
 /-!
 # "Bubble sort" induction

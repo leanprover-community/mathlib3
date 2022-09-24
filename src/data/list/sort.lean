@@ -109,8 +109,7 @@ lemma monotone_iff_of_fn_sorted {n : ℕ} {α : Type uu} [preorder α] {f : fin 
   monotone f ↔ (of_fn f).sorted (≤) :=
 begin
   simp_rw [sorted, pairwise_iff_nth_le, length_of_fn, nth_le_of_fn', monotone_iff_forall_lt],
-  refine ⟨λ h i j hj hij, h _, λ h ⟨i, _⟩ ⟨j, hj⟩ hij, h i j hj hij⟩,
-  exact hij,
+  exact ⟨λ h i j hj hij, h $ fin.mk_lt_mk.mpr hij, λ h ⟨i, _⟩ ⟨j, hj⟩ hij, h i j hj hij⟩,
 end
 
 /-- The list obtained from a monotone tuple is sorted. -/

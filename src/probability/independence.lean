@@ -752,7 +752,7 @@ begin
   have h_Inter_inter : (⋂ i ∈ S, (f i) ⁻¹' (sets_s' i)) ∩ (⋂ i ∈ T, (f i) ⁻¹' (sets_t' i))
     = ⋂ i ∈ (S ∪ T), (f i) ⁻¹' (sets_s' i ∩ sets_t' i),
   { ext1 x,
-    simp only [set.mem_inter_eq, set.mem_Inter, set.mem_preimage, finset.mem_union],
+    simp only [set.mem_inter_iff, set.mem_Inter, set.mem_preimage, finset.mem_union],
     split; intro h,
     { intros i hi,
       cases hi,
@@ -894,7 +894,7 @@ lemma tail_le_supr [h : nonempty ι] (s : ι → α) : tail s ≤ ⨆ i, s i :=
 lemma supr_eq_supr_supr_lt {ι} [linear_order ι] [no_top_order ι] (s : ι → α) :
   (⨆ n, s n) = ⨆ n, ⨆ i < n, s i :=
 begin
-  haveI : no_max_order ι := no_top_order.no_max_order ι,
+  haveI : no_max_order ι := no_top_order.to_no_max_order ι,
   refine le_antisymm (supr_le (λ i, _)) (supr_le (λ i, supr₂_le_supr (λ n, n < i) (λ n, s n))),
   obtain ⟨n, hin⟩ : ∃ n, i < n := exists_gt i,
   exact (le_supr₂ i hin).trans (le_supr (λ i, (⨆ j < i, s j)) n),

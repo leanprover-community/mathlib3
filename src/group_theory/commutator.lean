@@ -40,6 +40,9 @@ variables (g₁ g₂ g₃ g)
 @[simp] lemma commutator_element_one_left : ⁅(1 : G), g⁆ = 1 :=
 (commute.one_left g).commutator_eq
 
+@[simp] lemma commutator_element_self : ⁅g, g⁆ = 1 :=
+(commute.refl g).commutator_eq
+
 @[simp] lemma commutator_element_inv : ⁅g₁, g₂⁆⁻¹ = ⁅g₂, g₁⁆ :=
 by simp_rw [commutator_element_def, mul_inv_rev, inv_inv, mul_assoc]
 

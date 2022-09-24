@@ -41,6 +41,12 @@ instance topological_space_unbundled (x : Top) : topological_space x := x.str
 @[simp] lemma comp_app {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g : X → Z) x = g (f x) := rfl
 
+lemma comp {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g : X → Z) = g.comp f := rfl
+
+lemma id (X : Top.{u}) :
+  (𝟙 X : X → X) = id := rfl
+
 /-- Construct a bundled `Top` from the underlying type and the typeclass. -/
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 

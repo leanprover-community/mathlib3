@@ -109,10 +109,11 @@ begin
   { simpa only [equiv.swap_apply_left], }
 end
 
-/-- If a tuple `f` and a permutation of `f` are both monotone, then they are equal. -/
-lemma unique_monotone [partial_order α] {f : fin n → α} {σ : equiv.perm (fin n)} (hf : monotone f)
-  (hfσ : monotone (f ∘ σ)) : f ∘ σ = f :=
-of_fn_injective $ eq_of_perm_of_sorted (σ.of_fn_comp_perm f) hfσ.of_fn_sorted hf.of_fn_sorted
+/-- If two permutations of a tuple `f` are both monotone, then they are equal. -/
+lemma unique_monotone [partial_order α] {f : fin n → α} {σ τ : equiv.perm (fin n)}
+  (hfσ : monotone (f ∘ σ)) (hfτ : monotone (f ∘ τ)) : f ∘ σ = f ∘ τ :=
+of_fn_injective $ eq_of_perm_of_sorted
+  ((σ.of_fn_comp_perm f).trans (τ.of_fn_comp_perm f).symm) hfσ.of_fn_sorted hfτ.of_fn_sorted
 
 variables [linear_order α] {f : fin n → α}
 

@@ -235,6 +235,19 @@ lemma acc.induction_bot {α} {r : α → α → Prop} {a bot : α} (ha : acc r a
   {C : α → Prop} (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C a → C bot :=
 ha.induction_bot' ih
 
+/-- Let `r` be a well-founded relation on `α`, let `f : α → β` be a function,
+and let `C : β → Prop` be a property that elements of `β` can have.
+This induction principle that shows that `C (f bot)` holds, given that
+* some `a : α` satisfies `C`, and
+* for each `b : α` such that `f b ≠ f bot` and `C (f b)` holds, there is `c : α`
+  satisfying `r c b` and `C (f c)`.
+
+The naming is inspired by the fact that when `r` is transitive, it follows that `bot` is
+the smallest element w.r.t. `r` suc that `C ( bot)` holds. -/
+lemma well_founded.induction_bot' {α β} {r : α → α → Prop} (hwf : well_founded r) {a bot : α}
+  {C : β → Prop} {f : α → β} (ih : ∀ b, f b ≠ f bot → C (f b) → ∃ c, r c b ∧ C (f c)) :
+  C (f a) → C (f bot) := (hwf.apply a).induction_bot' ih
+
 /-- Let `r` be a well-founded relation on `α`, let `bot : α`, and let `C : α → Prop`
 be some property that elements of `α` can have.
 This induction principle that shows that `C bot` holds, given that

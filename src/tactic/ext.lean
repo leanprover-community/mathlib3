@@ -368,7 +368,7 @@ meta structure ext_state : Type :=
 
 /-- Helper function for `try_intros`. Additionally populates the `trace_msg` field
   of `ext_state`. -/
-private meta def try_intros_core (v_back : bool) : state_t ext_state tactic unit :=
+private meta def try_intros_core : state_t ext_state tactic unit :=
 do ⟨patts, trace_msg, fuel⟩ ← get,
    match patts with
    | [] := do { es ← state_t.lift intros, when (es.length > 0) $ do
@@ -378,7 +378,7 @@ do ⟨patts, trace_msg, fuel⟩ ← get,
    | (x::xs) :=
      do tgt ← state_t.lift (target >>= whnf),
         when tgt.is_pi $
-          do state_t.lift (rintro v_back [x]),
+          do state_t.lift (rintro [x]),
              msg ← state_t.lift (((++) "rintro ") <$> format.to_string <$> x.format ff),
              modify (λ ⟨_, trace_msg, fuel⟩, ⟨xs, trace_msg ++ [msg], fuel⟩),
              try_intros_core
@@ -386,13 +386,13 @@ do ⟨patts, trace_msg, fuel⟩ ← get,
 
 /-- Try to introduce as many arguments as possible, using the given patterns to destruct the
   introduced variables. Returns the unused patterns. -/
-meta def try_intros (v_back : bool) (patts : list rcases_patt) : tactic (list rcases_patt) :=
+meta def try_intros (patts : list rcases_patt) : tactic (list rcases_patt) :=
 let σ := ext_state.mk patts [] none in
-  (ext_state.patts ∘ prod.snd) <$> state_t.run (try_intros_core v_back) σ
+  (ext_state.patts ∘ prod.snd) <$> state_t.run try_intros_core σ
 
 /-- Apply one extensionality lemma, and destruct the arguments using the patterns
   in the ext_state. -/
-meta def ext1_core (v_back : bool) (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
+meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do ⟨patts, trace_msg, _⟩ ← get,
    (new_msgs) ← state_t.lift $ focus1 $
    do { m ← get_ext_lemmas,
@@ -417,31 +417,31 @@ do ⟨patts, trace_msg, _⟩ ← get,
                (fail format!"no applicable extensionality rule found for {subject}"),
          pure new_trace_msg },
     modify (λ ⟨patts, trace_msg, fuel⟩, ⟨patts, trace_msg ++ new_msgs, fuel⟩),
-    try_intros_core v_back
+    try_intros_core
 
 /-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns. -/
-meta def ext_core (v_back : bool) (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
+meta def ext_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do acc@⟨_, _, fuel⟩ ← get,
    match fuel with
    | (some 0) := pure ()
-   | n        := do { ext1_core v_back cfg,
+   | n        := do { ext1_core cfg,
                       modify (λ ⟨patts, lemmas, _⟩, ⟨patts, lemmas, nat.pred <$> n⟩),
                       ext_core <|> pure () }
    end
 
 /-- Apply one extensionality lemma, and destruct the arguments using the given patterns.
   Returns the unused patterns. -/
-meta def ext1 (v_back : bool) (xs : list rcases_patt) (cfg : apply_cfg := {})
+meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {})
   (trace : bool := ff) : tactic (list rcases_patt) :=
-do ⟨_, σ⟩ ← state_t.run (ext1_core v_back cfg) {patts := xs},
+do ⟨_, σ⟩ ← state_t.run (ext1_core cfg) {patts := xs},
    when trace $ tactic.trace $ "Try this: " ++  ", ".intercalate σ.trace_msg,
    pure σ.patts
 
 /-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns.
   `ext ps (some n)` applies at most `n` extensionality lemmas. Returns the unused patterns. -/
-meta def ext (v_back : bool) (xs : list rcases_patt) (fuel : option ℕ) (cfg : apply_cfg := {})
+meta def ext (xs : list rcases_patt) (fuel : option ℕ) (cfg : apply_cfg := {})
   (trace : bool := ff) : tactic (list rcases_patt) :=
-do ⟨_, σ⟩ ← state_t.run (ext_core v_back cfg) {patts := xs, fuel := fuel},
+do ⟨_, σ⟩ ← state_t.run (ext_core cfg) {patts := xs, fuel := fuel},
    when trace $ tactic.trace $ "Try this: " ++  ", ".intercalate σ.trace_msg,
    pure σ.patts
 
@@ -456,9 +456,9 @@ named automatically, as per `intro`. Placing a `?` after `ext1`
  (e.g. `ext1? i ⟨a,b⟩ : 3`) will display a sequence of tactic
 applications that can replace the call to `ext1`.
 -/
-meta def interactive.ext1 (v_back : parse (tk ">")?) (trace : parse (tk "?")?)
+meta def interactive.ext1 (trace : parse (tk "?")?)
   (xs : parse rcases_patt_parse_hi*) : tactic unit :=
-ext1 v_back.is_none xs {} trace.is_some $> ()
+ext1 xs {} trace.is_some $> ()
 
 /--
 - `ext` applies as many extensionality lemmas as possible;
@@ -520,11 +520,11 @@ Try this: apply funext, rintro ⟨a, b⟩
 
 A maximum depth can be provided with `ext x y z : 3`.
 -/
-meta def interactive.ext (v_back : parse (tk ">")?) :
+meta def interactive.ext :
   (parse $ (tk "?")?) → parse rintro_patt_parse_hi* → parse (tk ":" *> small_nat)? → tactic unit
- | trace [] (some n)  := iterate_range 1 n (ext1 v_back.is_none [] {} trace.is_some $> ())
- | trace [] none      := repeat1 (ext1 v_back.is_none [] {} trace.is_some $> ())
- | trace xs n         := ext v_back.is_none xs.join n {} trace.is_some $> ()
+ | trace [] (some n)  := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
+ | trace [] none      := repeat1 (ext1 [] {} trace.is_some $> ())
+ | trace xs n         := ext xs.join n {} trace.is_some $> ()
 
 /--
 * `ext1 id` selects and apply one extensionality lemma (with

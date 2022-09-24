@@ -29,7 +29,7 @@ do names ← attribute.get_instances `tidy,
 @[hint_tactic]
 meta def ext1_wrapper : tactic string :=
 do ng ← num_goals,
-   ext1 tt [] {apply_cfg . new_goals := new_goals.all},
+   ext1 [] {apply_cfg . new_goals := new_goals.all},
    ng' ← num_goals,
    return $ if ng' > ng then
      "tactic.ext1 [] {new_goals := tactic.new_goals.all}"

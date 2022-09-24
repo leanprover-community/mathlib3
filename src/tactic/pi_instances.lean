@@ -24,7 +24,7 @@ do b ← target >>= is_prop,
      hs ← intros <|> pure [],
      reset_instance_cache,
      xn ← get_unused_name,
-     try (() <$ ext1 ff [rcases_patt.one xn] <|> () <$ intro xn),
+     try (() <$ ext1 [rcases_patt.one xn] <|> () <$ intro xn),
      xv ← option.iget <$> try_core (get_local xn),
      applyc field,
      hs.mmap (λ h, try $

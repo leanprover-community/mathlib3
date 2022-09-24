@@ -88,12 +88,11 @@ the depth of recursive applications.
   For example, if the goal is `⊢ f '' s = g '' s` then `congr' with x` generates the goal
   `x : α ⊢ f x = g x`.
 -/
-meta def congr' (v_back : parse (tk ">")?) (n : parse (with_desc "n" small_nat)?) :
+meta def congr' (n : parse (with_desc "n" small_nat)?) :
   parse (tk "with" *> prod.mk <$> rintro_patt_parse_hi* <*> (tk ":" *> small_nat)?)? →
   tactic unit
 | none         := tactic.congr' n
-| (some ⟨p, m⟩) :=
-  focus1 (tactic.congr' n >> all_goals' (tactic.ext v_back.is_none p.join m $> ()))
+| (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (tactic.ext p.join m $> ()))
 
 /--
 Repeatedly and apply `congr'` and `ext`, using the given patterns as arguments for `ext`.
@@ -122,11 +121,10 @@ and `congr' with x` (or `congr', ext x`) would produce
 x : α ⊢ f x + 3 = g x + 3
 ```
 -/
-meta def rcongr (v_back : parse (tk ">")?) :
-  parse (list.join <$> rintro_patt_parse_hi*) → tactic unit
+meta def rcongr : parse (list.join <$> rintro_patt_parse_hi*) → tactic unit
 | ps := do
   t ← target,
-  qs ← try_core (tactic.ext v_back.is_none ps none),
+  qs ← try_core (tactic.ext ps none),
   some () ← try_core (tactic.congr' none >>
     (done <|> do s ← target, guard $ ¬ s =ₐ t)) | skip,
   done <|> rcongr (qs.get_or_else ps)

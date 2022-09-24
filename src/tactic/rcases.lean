@@ -133,12 +133,6 @@ meta def name : rcases_patt → option name
 | (alts [p]) := p.name
 | _ := none
 
-/-- Returns true if this pattern is equivalent to doing nothing -/
-meta def is_default : rcases_patt → bool
-| (one `_) := true
-| (explicit p) := p.is_default
-| _ := false
-
 /-- Interpret an rcases pattern as a tuple, where `p` becomes `⟨p⟩`
 if `p` is not already a tuple. -/
 meta def as_tuple : rcases_patt → bool × listΠ rcases_patt
@@ -246,33 +240,25 @@ end rcases_patt
 constructor. The `name` is the name which will be used in the top-level `cases` tactic, and the
 `rcases_patt` is the pattern which the field will be matched against by subsequent `cases`
 tactics. -/
-meta def rcases.process_constructor (v_back : bool) :
-  bool → list binder_info → listΠ rcases_patt → tactic (listΠ name × listΠ rcases_patt)
-| _        []      ps := pure ([], [])
-| explicit (bi::l) ps := do
-  let skip := !explicit && (bi ≠ binder_info.default),
-  skip ← if skip && v_back && !ps.all rcases_patt.is_default then do
-    pos ← get_trace_msg_pos,
-    n ← tactic.decl_name,
-    p ← pp ps.head,
-    trace format!"at {n}:{pos.line}:{pos.column}: warning: remove argument {p}",
-    pure ff
-  else pure skip,
-  if skip then do
-    (ns, tl) ← rcases.process_constructor explicit l ps,
-    pure (`_ :: ns, default :: tl)
+meta def rcases.process_constructor :
+  bool → list binder_info → listΠ rcases_patt → listΠ name × listΠ rcases_patt
+| _        []      ps := ([], [])
+| explicit (bi::l) ps :=
+  if !explicit && (bi ≠ binder_info.default) then
+    let (ns, tl) := rcases.process_constructor explicit l ps in
+    (`_ :: ns, default :: tl)
   else
     match l, ps with
-    | [], []  := pure ([`_], [default])
-    | [], [p] := pure ([p.name.get_or_else `_], [p])
+    | [], []  := ([`_], [default])
+    | [], [p] := ([p.name.get_or_else `_], [p])
     -- The interesting case: we matched the last field against multiple
     -- patterns, so split off the remaining patterns into a subsequent
     -- match. This handles matching `α × β × γ` against `⟨a, b, c⟩`.
-    | [],   ps  := pure
+    | [],   ps  :=
       ([`_], [cond explicit (rcases_patt.tuple ps).explicit (rcases_patt.tuple ps)])
-    | l, ps  := do
-      let hd := ps.head, (ns, tl) ← rcases.process_constructor explicit l ps.tail,
-      pure (hd.name.get_or_else `_ :: ns, hd :: tl)
+    | l, ps  :=
+      let hd := ps.head, (ns, tl) := rcases.process_constructor explicit l ps.tail in
+      (hd.name.get_or_else `_ :: ns, hd :: tl)
     end
 
 private meta def get_pi_arity_list_aux : expr → tactic (list binder_info)
@@ -296,7 +282,7 @@ infer_type fn >>= get_pi_arity_list
 pattern against its constructor. It returns the list of names that will be passed to `cases`,
 and the list of `(constructor name, patterns)` for each constructor, where `patterns` is the
 (conjunctive) list of patterns to apply to each constructor argument. -/
-meta def rcases.process_constructors (v_back : bool) (params : nat) :
+meta def rcases.process_constructors (params : nat) :
   listΣ name → listΣ rcases_patt →
   tactic (dlist name × listΣ (name × listΠ rcases_patt))
 | []      ps := pure (dlist.empty, [])
@@ -309,7 +295,7 @@ meta def rcases.process_constructors (v_back : bool) (params : nat) :
   | [], _::_ := ((ff, [rcases_patt.alts ps]), [])
   | _, _ := (ps.head.as_tuple, ps.tail)
   end : _),
-  (ns, ps) ← rcases.process_constructor v_back explicit (l.drop params) h,
+  let (ns, ps) := rcases.process_constructor explicit (l.drop params) h,
   (l, r) ← rcases.process_constructors cs t,
   pure (dlist.of_list ns ++ l, (c, ps) :: r)
 
@@ -339,7 +325,7 @@ private meta def get_local_and_type (e : expr) : tactic (expr × expr) :=
   involve matching later arguments multiple times given earlier arguments, for example
   `⟨a | b, ⟨c, d⟩⟩` performs the `⟨c, d⟩` match twice, once on the `a` branch and once on `b`.
 -/
-meta mutual def rcases_core, rcases.continue (v_back : bool)
+meta mutual def rcases_core, rcases.continue
 with rcases_core : rcases_patt → expr → tactic (list uncleared_goal)
 | (rcases_patt.one `rfl) e := do
   (t, e) ← get_local_and_type e,
@@ -373,11 +359,11 @@ with rcases_core : rcases_patt → expr → tactic (list uncleared_goal)
       fail format!"rcases tactic failed: {e} : {I} is not an inductive datatype",
     let params := env.inductive_num_params I,
     let c := env.constructors_of I,
-    (ids, r) ← rcases.process_constructors v_back params c pat,
+    (ids, r) ← rcases.process_constructors params c pat,
     l ← cases_core e ids.to_list,
     pure (ids, r, l)
   else do
-    (ids, r) ← rcases.process_constructors v_back 2 [`quot.mk] pat,
+    (ids, r) ← rcases.process_constructors 2 [`quot.mk] pat,
     [(_, d)] ← induction e ids.to_list `quot.induction_on |
       fail format!"quotient induction on {e} failed. Maybe goal is not in Prop?",
     -- the result from `induction` is missing the information that the original constructor was
@@ -416,8 +402,7 @@ meta def clear_goals (ugs : list uncleared_goal) : tactic unit := do
 name the arising new variables and assumptions. If `h` is `some` name,
 a new assumption `h : e = pat` will relate the expression `e` with the
 current pattern. See the module comment for the syntax of `pat`. -/
-meta def rcases (v_back : bool)
-    (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit := do
+meta def rcases (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit := do
   let p := match pat with
   | rcases_patt.typed _ ty := ``(%%p : %%ty)
   | _ := p
@@ -435,8 +420,8 @@ meta def rcases (v_back : bool)
       n ← revert e,
       e ← intro x,
       intron (n - 1),
-      focus1 (rcases_core v_back pat e >>= clear_goals)
-    | none := focus1 (rcases_core v_back pat e >>= clear_goals)
+      focus1 (rcases_core pat e >>= clear_goals)
+    | none := focus1 (rcases_core pat e >>= clear_goals)
     end
   else do
     x ← pat.name.elim mk_fresh_name pure,
@@ -447,13 +432,13 @@ meta def rcases (v_back : bool)
       get_local x >>= tactic.revert,
       pure ()),
     h ← tactic.intro1,
-    focus1 (rcases_core v_back pat h >>= clear_goals)
+    focus1 (rcases_core pat h >>= clear_goals)
 
 /-- `rcases_many es pats` performs case distinction on the `es` using `pat` to
 name the arising new variables and assumptions.
 See the module comment for the syntax of `pat`. -/
-meta def rcases_many (v_back : bool) (ps : listΠ pexpr) (pat : rcases_patt) : tactic unit := do
-  (_, pats) ← rcases.process_constructor v_back ff (ps.map (λ _, default)) pat.as_tuple.2,
+meta def rcases_many (ps : listΠ pexpr) (pat : rcases_patt) : tactic unit := do
+  let (_, pats) := rcases.process_constructor ff (ps.map (λ _, default)) pat.as_tuple.2,
   pes ← (ps.zip pats).mmap (λ ⟨p, pat⟩, do
     let p := match pat with
     | rcases_patt.typed _ ty := ``(%%p : %%ty)
@@ -478,15 +463,15 @@ meta def rcases_many (v_back : bool) (ps : listΠ pexpr) (pat : rcases_patt) : t
         get_local x >>= tactic.revert,
         pure ()),
       prod.mk pat <$> tactic.intro1),
-  focus1 (rcases.continue v_back pes >>= clear_goals)
+  focus1 (rcases.continue pes >>= clear_goals)
 
 /-- `rintro pat₁ pat₂ ... patₙ` introduces `n` arguments, then pattern matches on the `patᵢ` using
 the same syntax as `rcases`. -/
-meta def rintro (v_back : bool) (ids : listΠ rcases_patt) : tactic unit :=
+meta def rintro (ids : listΠ rcases_patt) : tactic unit :=
 do l ← ids.mmap (λ id, do
     e ← intro $ id.name.get_or_else `_,
     pure (id, e)),
-  focus1 (rcases.continue v_back l >>= clear_goals)
+  focus1 (rcases.continue l >>= clear_goals)
 
 /-- Like `zip_with`, but if the lists don't match in length, the excess elements will be put at the
 end of the result. -/
@@ -880,9 +865,9 @@ but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
 but this can be modified with `rcases? e : n`.
 -/
-meta def rcases (v_back : parse (tk ">")?) : parse rcases_parse → tactic unit
-| (rcases_args.rcases h p ids) := tactic.rcases v_back.is_none h p ids
-| (rcases_args.rcases_many ps ids) := tactic.rcases_many v_back.is_none ps ids
+meta def rcases : parse rcases_parse → tactic unit
+| (rcases_args.rcases h p ids) := tactic.rcases h p ids
+| (rcases_args.rcases_many ps ids) := tactic.rcases_many ps ids
 | (rcases_args.hint p depth) := do
   (pe, patt) ← match p with
   | sum.inl p := prod.mk <$> pp p <*> rcases_hint p depth
@@ -917,9 +902,9 @@ depth of splitting; the default is 5.
 
 `rintros` is an alias for `rintro`.
 -/
-meta def rintro (v_back : parse (tk ">")?) : parse rintro_parse → tactic unit
+meta def rintro : parse rintro_parse → tactic unit
 | (sum.inl []) := intros []
-| (sum.inl l)  := tactic.rintro v_back.is_none l
+| (sum.inl l)  := tactic.rintro l
 | (sum.inr depth) := do
   ps ← tactic.rintro_hint depth,
   fs ← ps.mmap (λ p, do
@@ -977,19 +962,19 @@ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
 
 If `type` is omitted, `:= proof` is required.
 -/
-meta def obtain (v_back : parse (tk ">")?) : parse obtain_parse → tactic unit
+meta def obtain : parse obtain_parse → tactic unit
 | ((pat, _), some (sum.inr val)) :=
-  tactic.rcases_many v_back.is_none val (pat.get_or_else default)
+  tactic.rcases_many val (pat.get_or_else default)
 | ((pat, none), some (sum.inl val)) :=
-  tactic.rcases v_back.is_none none val (pat.get_or_else default)
+  tactic.rcases none val (pat.get_or_else default)
 | ((pat, some tp), some (sum.inl val)) :=
-  tactic.rcases v_back.is_none none val $ (pat.get_or_else default).typed tp
+  tactic.rcases none val $ (pat.get_or_else default).typed tp
 | ((pat, some tp), none) := do
   nm ← mk_fresh_name,
   e ← to_expr tp >>= assert nm,
   (g :: gs) ← get_goals,
   set_goals gs,
-  tactic.rcases v_back.is_none none ``(%%e) (pat.get_or_else (rcases_patt.one `this)),
+  tactic.rcases none ``(%%e) (pat.get_or_else (rcases_patt.one `this)),
   gs ← get_goals,
   set_goals (g::gs)
 | ((pat, none), none) :=
@@ -1007,8 +992,8 @@ The `rsuffices` tactic is an alternative version of `suffices`, that allows the 
 of any syntax that would be valid in an `obtain` block. This tactic just calls `obtain`
 on the expression, and then `rotate 1`.
 -/
-meta def rsuffices (v_back : parse (tk ">")?) (h : parse obtain_parse) : tactic unit :=
-focus1 $ obtain v_back h >> tactic.rotate 1
+meta def rsuffices (h : parse obtain_parse) : tactic unit :=
+focus1 $ obtain h >> tactic.rotate 1
 
 add_tactic_doc
 { name       := "rsuffices",
@@ -1021,8 +1006,8 @@ The `rsufficesI` tactic is an instance-cache aware version of `rsuffices`; it re
 cache on the resulting goals.
 -/
 
-meta def rsufficesI (v_back : parse (tk ">")?) (h : parse obtain_parse) : tactic unit :=
-rsuffices v_back h; resetI
+meta def rsufficesI (h : parse obtain_parse) : tactic unit :=
+rsuffices h ; resetI
 
 add_tactic_doc
 { name       := "rsufficesI",

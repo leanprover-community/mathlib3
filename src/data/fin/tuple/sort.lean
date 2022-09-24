@@ -122,7 +122,7 @@ lemma comp_sort_eq_comp_iff_monotone {σ : equiv.perm (fin n)} :
   f ∘ σ = f ∘ sort f ↔ monotone (f ∘ σ) :=
 ⟨λ h, h.symm ▸ monotone_sort f, λ h, unique_monotone h (monotone_sort f)⟩
 
-/-- The sorted versions of a tuple `f` and any permutation of it agree. -/
+/-- The sorted versions of a tuple `f` and of any permutation of it agree. -/
 lemma comp_perm_comp_sort_eq_comp_sort {σ : equiv.perm (fin n)} :
   (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin

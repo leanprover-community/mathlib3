@@ -1,8 +1,39 @@
+/-
+Copyright (c) 2022 Rémi Bottinelli. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Rémi Bottinelli
+-/
 import category_theory.category.basic
 import category_theory.functor.basic
 import category_theory.groupoid
 import logic.relation
 import tactic.nth_rewrite
+
+/-!
+# Free groupoid on a quiver
+
+This file defines the free groupoid on a quiver, the lifting of a prefunctor to its unique
+extension as a functor from the free groupoid, and proves uniqueness of this extension.
+
+## Main results
+
+Given the type `V` and a quiver instance on `V`:
+
+- `free_groupoid V`: a type synonym for `V`.
+- `free_groupoid_groupoid`: the `groupoid` instance on `free_groupoid V`.
+- `lift`: the lifting of a prefunctor from `V` to `V'` where `V'` is a groupoid, to a functor.
+  `free_groupoid V ⥤ V'`.
+- `lift_spec` and `lift_unique`: the proofs that, respectively, `lift` indeed is a lifting
+  and is the unique one.
+
+
+## Implementation notes
+
+The definition of the free groupoid in terms of "words" on the base quiver, up to reduction,
+is mostly copied from `group_theory/free_group.lean`.
+
+-/
+
 
 open set classical function relation
 local attribute [instance] prop_decidable
@@ -181,7 +212,7 @@ instance free_groupoid_category : category (free_groupoid V)  :=
 /-- Inversion of arrows is reversal of words -/
 def quot_inv {c d : free_groupoid V} (p : c ⟶ d) : d  ⟶ c :=
 quot.lift_on p
-  (λ pp, quot.mk (@red_step V (_inst_1) d c) pp.reverse)
+  (λ pp, quot.mk (@red_step V _ d c) pp.reverse)
   (λ p₀ p₁ redp , quot.sound $ by {simp only [red_step.reverse], exact redp })
 
 lemma quot_inv_inv {c d : free_groupoid V} (p : c ⟶ d) : (quot_inv $ quot_inv p) = p :=
@@ -226,7 +257,7 @@ begin
 end
 
 /-- The free groupoid instance on `free_groupoid V`. -/
-instance : groupoid (free_groupoid V) :=
+instance free_groupoid_groupoid : groupoid (free_groupoid V) :=
 { to_category := free.free_groupoid_category
 , inv := λ a b, quot_inv
 , inv_comp' := λ a b, quot_comp_inv
@@ -394,4 +425,3 @@ end universal_property
 end free
 end groupoid
 end category_theory
-#lint

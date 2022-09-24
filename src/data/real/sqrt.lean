@@ -42,10 +42,7 @@ variables {x y : ℝ≥0}
 
 /-- Square root of a nonnegative real number. -/
 @[pp_nodot] noncomputable def sqrt : ℝ≥0 ≃o ℝ≥0 :=
-order_iso.symm $ strict_mono.order_iso_of_surjective (λ x, x * x)
-  (λ x y h, mul_self_lt_mul_self x.2 h) $
-  (continuous_id.mul continuous_id).surjective tendsto_mul_self_at_top $
-    by simp [order_bot.at_bot_eq]
+order_iso.symm $ pow_order_iso 2 two_ne_zero
 
 lemma sqrt_le_sqrt_iff : sqrt x ≤ sqrt y ↔ x ≤ y :=
 sqrt.le_iff_le
@@ -53,42 +50,34 @@ sqrt.le_iff_le
 lemma sqrt_lt_sqrt_iff : sqrt x < sqrt y ↔ x < y :=
 sqrt.lt_iff_lt
 
-lemma sqrt_eq_iff_sq_eq : sqrt x = y ↔ y * y = x :=
+lemma sqrt_eq_iff_sq_eq : sqrt x = y ↔ y ^ 2 = x :=
 sqrt.to_equiv.apply_eq_iff_eq_symm_apply.trans eq_comm
 
-lemma sqrt_le_iff : sqrt x ≤ y ↔ x ≤ y * y :=
+lemma sqrt_le_iff : sqrt x ≤ y ↔ x ≤ y ^ 2 :=
 sqrt.to_galois_connection _ _
 
-lemma le_sqrt_iff : x ≤ sqrt y ↔ x * x ≤ y :=
+lemma le_sqrt_iff : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
 (sqrt.symm.to_galois_connection _ _).symm
 
 @[simp] lemma sqrt_eq_zero : sqrt x = 0 ↔ x = 0 :=
-sqrt_eq_iff_sq_eq.trans $ by rw [eq_comm, zero_mul]
+sqrt_eq_iff_sq_eq.trans $ by rw [eq_comm, sq, zero_mul]
 
 @[simp] lemma sqrt_zero : sqrt 0 = 0 := sqrt_eq_zero.2 rfl
-
-@[simp] lemma sqrt_one : sqrt 1 = 1 := sqrt_eq_iff_sq_eq.2 $ mul_one 1
-
-@[simp] lemma mul_self_sqrt (x : ℝ≥0) : sqrt x * sqrt x = x :=
-sqrt.symm_apply_apply x
-
-@[simp] lemma sqrt_mul_self (x : ℝ≥0) : sqrt (x * x) = x := sqrt.apply_symm_apply x
-
-@[simp] lemma sq_sqrt (x : ℝ≥0) : (sqrt x)^2 = x :=
-by rw [sq, mul_self_sqrt x]
-
-@[simp] lemma sqrt_sq (x : ℝ≥0) : sqrt (x^2) = x :=
-by rw [sq, sqrt_mul_self x]
+@[simp] lemma sqrt_one : sqrt 1 = 1 := sqrt_eq_iff_sq_eq.2 $ one_pow _
+@[simp] lemma sq_sqrt (x : ℝ≥0) : (sqrt x)^2 = x := sqrt.symm_apply_apply x
+@[simp] lemma mul_self_sqrt (x : ℝ≥0) : sqrt x * sqrt x = x := by rw [← sq, sq_sqrt]
+@[simp] lemma sqrt_sq (x : ℝ≥0) : sqrt (x^2) = x := sqrt.apply_symm_apply x
+@[simp] lemma sqrt_mul_self (x : ℝ≥0) : sqrt (x * x) = x := by rw [← sq, sqrt_sq x]
 
 lemma sqrt_mul (x y : ℝ≥0) : sqrt (x * y) = sqrt x * sqrt y :=
-by rw [sqrt_eq_iff_sq_eq, mul_mul_mul_comm, mul_self_sqrt, mul_self_sqrt]
+by rw [sqrt_eq_iff_sq_eq, mul_pow, sq_sqrt, sq_sqrt]
 
 /-- `nnreal.sqrt` as a `monoid_with_zero_hom`. -/
 noncomputable def sqrt_hom : ℝ≥0 →*₀ ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
 
-lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv x
+lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := map_inv₀ sqrt_hom x
 
-lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := sqrt_hom.map_div x y
+lemma sqrt_div (x y : ℝ≥0) : sqrt (x / y) = sqrt x / sqrt y := map_div₀ sqrt_hom x y
 
 lemma continuous_sqrt : continuous sqrt := sqrt.continuous
 
@@ -116,9 +105,8 @@ begin
   { exact this.imp (λ h e, ⟨x, x0, hx, e⟩) },
   apply of_near,
 
-  suffices : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
-  { rcases this with ⟨δ, δ0, hδ⟩,
-    intros }
+  rsuffices ⟨δ, δ0, hδ⟩ : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
+  { intros }
 end -/
 
 /-- The square root of a real number. This returns 0 for negative inputs. -/
@@ -214,7 +202,7 @@ theorem sqrt_lt_sqrt (hx : 0 ≤ x) (h : x < y) : sqrt x < sqrt y :=
 (sqrt_lt_sqrt_iff hx).2 h
 
 theorem sqrt_le_left (hy : 0 ≤ y) : sqrt x ≤ y ↔ x ≤ y ^ 2 :=
-by rw [sqrt, ← real.le_to_nnreal_iff_coe_le hy, nnreal.sqrt_le_iff, ← real.to_nnreal_mul hy,
+by rw [sqrt, ← real.le_to_nnreal_iff_coe_le hy, nnreal.sqrt_le_iff, sq, ← real.to_nnreal_mul hy,
   real.to_nnreal_le_to_nnreal_iff (mul_self_nonneg y), sq]
 
 theorem sqrt_le_iff : sqrt x ≤ y ↔ 0 ≤ y ∧ x ≤ y ^ 2 :=

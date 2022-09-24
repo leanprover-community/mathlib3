@@ -27,6 +27,7 @@ make the notation available.
 
 universe u
 open_locale pointwise
+open order_dual (to_dual of_dual)
 
 namespace set
 
@@ -37,7 +38,9 @@ variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c x : α}
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included. -/
 def interval (a b : α) := Icc (min a b) (max a b)
 
-localized "notation `[`a `, ` b `]` := set.interval a b" in interval
+localized "notation (name := set.interval) `[`a `, ` b `]` := set.interval a b" in interval
+
+@[simp] lemma dual_interval (a b : α) : [to_dual a, to_dual b] = of_dual ⁻¹' [a, b] := dual_Icc
 
 @[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
 by rw [interval, min_eq_left h, max_eq_right h]
@@ -150,7 +153,7 @@ by cases le_total a b; simp [interval_oc, *]
 
 lemma forall_interval_oc_iff  {P : α → Prop} :
   (∀ x ∈ Ι a b, P x) ↔ (∀ x ∈ Ioc a b, P x) ∧ (∀ x ∈ Ioc b a, P x) :=
-by simp only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, forall_and_distrib]
+by simp only [interval_oc_eq_union, mem_union, or_imp_distrib, forall_and_distrib]
 
 lemma interval_oc_subset_interval_oc_of_interval_subset_interval {a b c d : α}
   (h : [a, b] ⊆ [c, d]) : Ι a b ⊆ Ι c d :=

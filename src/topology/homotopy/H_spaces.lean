@@ -90,14 +90,6 @@ lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological
 
 end topological_group
 
--- -- `FAE` The following lemma is being moved to `unit_interval.lean` through #16507
--- namespace unit_interval
-
--- lemma add_pos {t : I} {x : ℝ} (hx : 0 < x) : 0 < (x + t : ℝ) :=
---   add_pos_of_pos_of_nonneg hx $ nonneg _
-
--- end unit_interval
-
 open unit_interval
 
 variables {X : Type u} [topological_space X]

@@ -28,14 +28,14 @@ lemma _root_.is_smul_regular.pi {α : Type*} [Π i, has_smul α $ f i] {k : α}
 instance smul_with_zero (α) [has_zero α]
   [Π i, has_zero (f i)] [Π i, smul_with_zero α (f i)] :
   smul_with_zero α (Π i, f i) :=
-{ smul_zero := λ _, funext $ λ _, smul_zero' (f _) _,
+{ smul_zero := λ _, funext $ λ _, smul_zero _,
   zero_smul := λ _, funext $ λ _, zero_smul _ _,
   ..pi.has_smul }
 
 instance smul_with_zero' {g : I → Type*} [Π i, has_zero (g i)]
   [Π i, has_zero (f i)] [Π i, smul_with_zero (g i) (f i)] :
   smul_with_zero (Π i, g i) (Π i, f i) :=
-{ smul_zero := λ _, funext $ λ _, smul_zero' (f _) _,
+{ smul_zero := λ _, funext $ λ _, smul_zero _,
   zero_smul := λ _, funext $ λ _, zero_smul _ _,
   ..pi.has_smul' }
 

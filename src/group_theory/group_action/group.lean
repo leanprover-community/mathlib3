@@ -199,10 +199,10 @@ section gwz
 variables [group_with_zero α] [add_monoid β] [distrib_mul_action α β]
 
 theorem smul_eq_zero_iff_eq' {a : α} (ha : a ≠ 0) {x : β} : a • x = 0 ↔ x = 0 :=
-smul_eq_zero_iff_eq (units.mk0 a ha)
+show units.mk0 a ha • x = 0 ↔ x = 0, from smul_eq_zero_iff_eq _
 
 theorem smul_ne_zero_iff_ne' {a : α} (ha : a ≠ 0) {x : β} : a • x ≠ 0 ↔ x ≠ 0 :=
-smul_ne_zero_iff_ne (units.mk0 a ha)
+show units.mk0 a ha • x ≠ 0 ↔ x ≠ 0, from smul_ne_zero_iff_ne _
 
 end gwz
 
@@ -279,7 +279,7 @@ variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 
 @[simp] theorem smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
   u • x = 0 ↔ x = 0 :=
-exists.elim hu $ λ u hu, hu ▸ smul_eq_zero_iff_eq u
+exists.elim hu $ λ u hu, hu ▸ show u • x = 0 ↔ x = 0, from smul_eq_zero_iff_eq u
 
 end distrib_mul_action
 

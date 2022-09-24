@@ -63,7 +63,7 @@ bounded_filter_subalgebra at_im_infty
 
 lemma prod_of_bounded_is_bounded {f g : ℍ → ℂ} (hf : is_bounded_at_im_infty f)
   (hg : is_bounded_at_im_infty g) : is_bounded_at_im_infty (f * g) :=
-by simpa only [pi.one_apply, mul_one, norm_eq_abs, complex.abs_mul] using hf.mul hg
+by simpa only [pi.one_apply, mul_one, norm_eq_abs] using hf.mul hg
 
 @[simp] lemma bounded_mem (f : ℍ → ℂ) :
   is_bounded_at_im_infty f ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M :=

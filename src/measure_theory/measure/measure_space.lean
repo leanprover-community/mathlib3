@@ -106,7 +106,7 @@ instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
 /-- See also `measure_theory.ae_restrict_interval_oc_iff`. -/
 lemma ae_interval_oc_iff [linear_order α] {a b : α} {P : α → Prop} :
   (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔ (∀ᵐ x ∂μ, x ∈ Ioc a b → P x) ∧ (∀ᵐ x ∂μ, x ∈ Ioc b a → P x) :=
-by simp only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, eventually_and]
+by simp only [interval_oc_eq_union, mem_union, or_imp_distrib, eventually_and]
 
 lemma measure_union (hd : disjoint s₁ s₂) (h : measurable_set s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=

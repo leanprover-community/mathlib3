@@ -100,9 +100,9 @@ by { cases eq_or_lt_of_le hi, subst h, exact le_of_lt (T.col_strict h cell) }
 /-- The "highest weight" SSYT of a given shape is has all i's in row i, for each i. --/
 def highest_weight (μ : young_diagram) : ssyt μ :=
 { entry := λ i j, if (i, j) ∈ μ then i else 0,
-  row_weak := λ i j1 j2 hj hcell,
+  row_weak' := λ i j1 j2 hj hcell,
     by rw [if_pos hcell, if_pos (μ.up_left_mem (by refl) (le_of_lt hj) hcell)],
-  col_strict := λ i1 i2 j hi hcell,
+  col_strict' := λ i1 i2 j hi hcell,
     by rwa [if_pos hcell, if_pos (μ.up_left_mem (le_of_lt hi) (by refl) hcell)],
   zeros' := λ i j not_cell, if_neg not_cell }
 

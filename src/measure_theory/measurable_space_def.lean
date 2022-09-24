@@ -376,6 +376,12 @@ begin
   { exact measurable_set_generate_from ht, },
 end
 
+@[simp] lemma generate_from_singleton_empty : generate_from {∅} = (⊥ : measurable_space α) :=
+by { rw [eq_bot_iff, generate_from_le_iff], simp, }
+
+@[simp] lemma generate_from_singleton_univ : generate_from {set.univ} = (⊥ : measurable_space α) :=
+by { rw [eq_bot_iff, generate_from_le_iff], simp, }
+
 lemma measurable_set_bot_iff {s : set α} : @measurable_set α ⊥ s ↔ (s = ∅ ∨ s = univ) :=
 let b : measurable_space α :=
 { measurable_set'      := λ s, s = ∅ ∨ s = univ,

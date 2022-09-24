@@ -155,6 +155,16 @@ lemma indep_bot_left (m' : measurable_space Ω) {m : measurable_space Ω}
   indep ⊥ m' μ :=
 (indep_bot_right m').symm
 
+lemma indep_set_empty_right {m : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
+  (s : set Ω) :
+  indep_set s ∅ μ :=
+by { simp only [indep_set, generate_from_singleton_empty], exact indep_bot_right _, }
+
+lemma indep_set_empty_left {m : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
+  (s : set Ω) :
+  indep_set ∅ s μ :=
+(indep_set_empty_right s).symm
+
 lemma indep_sets_of_indep_sets_of_le_left {s₁ s₂ s₃: set (set Ω)} [measurable_space Ω]
   {μ : measure Ω} (h_indep : indep_sets s₁ s₂ μ) (h31 : s₃ ⊆ s₁) :
   indep_sets s₃ s₂ μ :=

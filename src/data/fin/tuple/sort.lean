@@ -135,26 +135,18 @@ end
 lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
   rw [function.comp.assoc, ← equiv.perm.coe_mul],
-  refine sort_unique _,
-  rw [equiv.perm.coe_mul, ← function.comp.assoc],
-  exact monotone_sort _,
+  exact unique_monotone (monotone_sort (f ∘ σ)) (monotone_sort f),
 end
 
 /-- If a permutation `f ∘ σ` of the tuple `f` is not the same as `f ∘ sort f`, then `f ∘ σ`
 has a pair of strictly decreasing entries. -/
 lemma antitone_pair_of_not_sorted' {σ : equiv.perm (fin n)} (h : f ∘ σ ≠ f ∘ sort f) :
   ∃ i j, i < j ∧ (f ∘ σ) j < (f ∘ σ) i :=
-begin
-  by_contra' hf,
-  exact h (sort_unique $ monotone_iff_forall_lt.mpr hf),
-end
+by { contrapose! h, exact comp_sort_eq_comp_iff_monotone.mpr (monotone_iff_forall_lt.mpr h) }
 
 /-- If the tuple `f` is not the same as `f ∘ sort f`, then it has a pair of strictly decreasing
 entries. -/
 lemma antitone_pair_of_not_sorted (h : f ≠ f ∘ sort f) : ∃ i j, i < j ∧ f j < f i :=
-begin
-  by_contra' hf,
-  exact h.symm (eq_comp_sort_iff_monotone.mpr $ monotone_iff_forall_lt.mpr hf),
-end
+antitone_pair_of_not_sorted' (id h : f ∘ equiv.refl _ ≠ _)
 
 end tuple

@@ -105,18 +105,36 @@ instance mul_action' {g : I → Type*} {m : Π i, monoid (f i)} [Π i, mul_actio
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul _ _ }
 
+instance smul_zero_class (α) {n : ∀ i, has_zero $ f i}
+  [∀ i, smul_zero_class α $ f i] :
+  @smul_zero_class α (Π i : I, f i) (@pi.has_zero I f n) :=
+{ smul_zero := λ c, funext $ λ i, smul_zero _ }
+
+instance smul_zero_class' {g : I → Type*} {n : Π i, has_zero $ g i}
+  [Π i, smul_zero_class (f i) (g i)] :
+  @smul_zero_class (Π i, f i) (Π i : I, g i) (@pi.has_zero I g n) :=
+{ smul_zero := by { intros, ext x, apply smul_zero } }
+
+instance distrib_smul (α) {n : ∀ i, add_zero_class $ f i} [∀ i, distrib_smul α $ f i] :
+  @distrib_smul α (Π i : I, f i) (@pi.add_zero_class I f n) :=
+{ smul_add := λ c f g, funext $ λ i, smul_add _ _ _ }
+
+instance distrib_smul' {g : I → Type*} {n : Π i, add_zero_class $ g i}
+  [Π i, distrib_smul (f i) (g i)] :
+  @distrib_smul (Π i, f i) (Π i : I, g i) (@pi.add_zero_class I g n) :=
+{ smul_add := by { intros, ext x, apply smul_add } }
+
 instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i}
   [∀ i, distrib_mul_action α $ f i] :
   @distrib_mul_action α (Π i : I, f i) m (@pi.add_monoid I f n) :=
-{ smul_zero := λ c, funext $ λ i, smul_zero _,
-  smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
-  ..pi.mul_action _ }
+{ ..pi.mul_action _,
+  ..pi.distrib_smul _ }
 
 instance distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π i, add_monoid $ g i}
   [Π i, distrib_mul_action (f i) (g i)] :
   @distrib_mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) (@pi.add_monoid I g n) :=
-{ smul_add := by { intros, ext x, apply smul_add },
-  smul_zero := by { intros, ext x, apply smul_zero } }
+{ .. pi.mul_action',
+  .. pi.distrib_smul' }
 
 lemma single_smul {α} [monoid α] [Π i, add_monoid $ f i]
   [Π i, distrib_mul_action α $ f i] [decidable_eq I] (i : I) (r : α) (x : f i) :

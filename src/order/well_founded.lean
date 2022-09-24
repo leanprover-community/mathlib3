@@ -215,17 +215,34 @@ end function
 
 section induction
 
-lemma acc.induction_bot {α} {r : α → α → Prop} {a bot : α} (hwf : acc r a)
-  {C : α → Prop} (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C a → C bot :=
-@acc.rec_on _ _ (λ x, C x → C bot) _ hwf $
-  λ x ac ih' hC, or.elim (eq_or_ne x bot) (λ h, h ▸ hC)
-                         (λ h, let ⟨y, hy₁, hy₂⟩ := ih x h hC in ih' y hy₁ hy₂)
+/-- Let `r` be a relation on `α`, let `f : α → β` be a function, and let `C : β → Prop`
+be a property that elements of `β` can have.
+This induction principle that shows that `C (f bot)` holds, given that
+* some `a : α` that is accessible by `r` satisfies `C (f a)`, and
+* for each `b : α` such that `f b ≠ f bot` and `C (f b)` holds, there is `c : α`
+  satisfying `r c b` and `C (f c)`. -/
+lemma acc.induction_bot' {α β} {r : α → α → Prop} {a bot : α} (ha : acc r a) {C : β → Prop}
+  {f : α → β} (ih : ∀ b, f b ≠ f bot → C (f b) → ∃ c, r c b ∧ C (f c)) : C (f a) → C (f bot) :=
+@acc.rec_on _ _ (λ x, C (f x) → C (f bot)) _ ha $ λ x ac ih' hC,
+  (eq_or_ne (f x) (f bot)).elim (λ h, h ▸ hC)
+    (λ h, let ⟨y, hy₁, hy₂⟩ := ih x h hC in ih' y hy₁ hy₂)
 
-/-- Let `r` be a well-founded relation on `α` and let `bot : α`.
-This induction principle that shows that `P bot` holds, given that some `a : α` satisfies `P`
-and for each `b` that satisfies `P`, there is `c` satisfying `P` such that `r c b` holds.
+/-- Let `r` be a relation on `α` and let `C : α → Prop` be a property that elements of `α`
+can have. This induction principle that shows that `C bot` holds, given that
+* some `a : α` that is accessible by `r` satisfies `C a`, and
+* for each `b ≠ bot` such that `C b` holds, there is `c : α` satisfying `r c b` and `C c`. -/
+lemma acc.induction_bot {α} {r : α → α → Prop} {a bot : α} (ha : acc r a)
+  {C : α → Prop} (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C a → C bot :=
+ha.induction_bot' ih
+
+/-- Let `r` be a well-founded relation on `α`, let `bot : α`, and let `C : α → Prop`
+be some property that elements of `α` can have.
+This induction principle that shows that `C bot` holds, given that
+* some `a : α` satisfies `C`, and
+* for each `b : α` that satisfies `P`, there is `c` satisfying `P` such that `r c b` holds.
+
 The naming is inspired by the fact that when `r` is transitive, it follows that `bot` is
-the smallest element w.r.t. `r` that satisfies `P`. -/
+the smallest element w.r.t. `r` that satisfies `C`. -/
 lemma well_founded.induction_bot {α} {r : α → α → Prop} (hwf : well_founded r) {a bot : α}
   {C : α → Prop} (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C a → C bot :=
 (hwf.apply a).induction_bot ih

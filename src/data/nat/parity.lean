@@ -186,6 +186,9 @@ odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
  λ h, nat.mul_div_cancel_left' (even_iff_two_dvd.mp h)
 
+lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := --nat.div_mul_cancel
+ λ h, nat.div_mul_cancel (even_iff_two_dvd.mp h)
+
 lemma two_mul_div_two_add_one_of_odd (h : odd n) : 2 * (n / 2) + 1 = n :=
 by { rw mul_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 

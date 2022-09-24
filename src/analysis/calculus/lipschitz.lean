@@ -69,9 +69,8 @@ begin
   simp [this, hi.le],
 end
 
-
 lemma sum_le_of_monotone_on_Icc
-  (f : ℝ → E) {s : set ℝ} (m n : ℕ) (u : ℕ → ℝ) (hu : monotone_on u (Icc m n))
+  (f : ℝ → E) {s : set ℝ} {m n : ℕ} {u : ℕ → ℝ} (hu : monotone_on u (Icc m n))
   (us : ∀ i ∈ Icc m n, u i ∈ s) :
   ∑ i in finset.Ico m n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
 begin
@@ -87,19 +86,27 @@ begin
     simp only [le_tsub_iff_left hmn.le, mem_Iic] at hi,
     exact us _ ⟨le_add_right le_rfl, hi⟩ },
   calc ∑ i in finset.Ico m n, edist (f (u (i + 1))) (f (u i))
-      = ∑ i in finset.range (n - m), edist (f (u (m + i + 1))) (f (u (m + i))) : sorry
-  ... = ∑ i in finset.range (n - m), edist (f (v (i + 1))) (f (v i)) : sorry
+      = ∑ i in finset.range (n - m), edist (f (u (m + i + 1))) (f (u (m + i))) :
+    begin
+      rw [finset.range_eq_Ico],
+      convert (finset.sum_Ico_add (λ i, edist (f (u (i + 1))) (f (u i))) 0 (n - m) m).symm,
+      { rw [zero_add] },
+      { rw tsub_add_cancel_of_le hmn.le }
+    end
+  ... = ∑ i in finset.range (n - m), edist (f (v (i + 1))) (f (v i)) :
+    begin
+      apply finset.sum_congr rfl (λ i hi, _),
+      simp only [v, add_assoc],
+    end
   ... ≤ evariation_on f s : sum_le_of_monotone_on_Iic f hv vs,
 end
-
-#exit
 
 lemma mono (f : ℝ → E) {s t : set ℝ} (hst : t ⊆ s) :
   evariation_on f t ≤ evariation_on f s :=
 begin
   apply supr_le _,
   rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  exact sum_le f n u hu (λ i, hst (ut i)),
+  exact sum_le f n hu (λ i, hst (ut i)),
 end
 
 @[simp] protected lemma subsingleton (f : ℝ → E) {s : set ℝ} (hs : s.subsingleton) :
@@ -354,9 +361,11 @@ begin
         simp only [finset.mem_Ico, finset.mem_range] at hi h'i,
         linarith [h'i.1] }
     end
-  ... ≤ evariation_on f (s ∪ t) : sum_le f _ _ hw wst
+  ... ≤ evariation_on f (s ∪ t) : sum_le f _ hw wst
 end
 
+/-- If a set `s` is to the left of a set `t`, and both contain the boundary point `x`, then
+the variation of `f` along `s ∪ t` is the sum of the variations. -/
 lemma evariation_on.union (f : ℝ → E) {s t : set ℝ} {x : ℝ}
   (hs : s ⊆ Iic x) (h's : x ∈ s) (ht : t ⊆ Ici x) (h't : x ∈ t) :
   evariation_on f (s ∪ t) = evariation_on f s + evariation_on f t :=
@@ -369,7 +378,33 @@ begin
     x ∈ v '' (Iio m) ∧ ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤
                         ∑ j in finset.range m, edist (f (v (j+1))) (f (v j)),
     from evariation_on.add_point f (mem_union_left t h's) u hu ust n,
-  apply huv.trans,
+  obtain ⟨N, hN, Nx⟩ : ∃ N, N < m ∧ v N = x, from xv,
+  calc  ∑ j in finset.range n, edist (f (u (j + 1))) (f (u j))
+      ≤ ∑ j in finset.range m, edist (f (v (j + 1))) (f (v j)) : huv
+  ... = ∑ j in finset.Ico 0 N , edist (f (v (j + 1))) (f (v j))
+        + ∑ j in finset.Ico N m , edist (f (v (j + 1))) (f (v j)) :
+    by rw [finset.range_eq_Ico, finset.sum_Ico_consecutive _ (zero_le _) hN.le]
+  ... ≤ evariation_on f s + evariation_on f t :
+  begin
+    refine add_le_add _ _,
+    { apply sum_le_of_monotone_on_Icc _ (hv.monotone_on _) (λ i hi, _),
+      rcases vst i with h|h, { exact h },
+      have : v i = x,
+      { apply le_antisymm,
+        { rw ← Nx, exact hv hi.2 },
+        { exact ht h } },
+      rw this,
+      exact h's },
+    { apply sum_le_of_monotone_on_Icc _ (hv.monotone_on _) (λ i hi, _),
+      rcases vst i with h|h, swap, { exact h },
+      have : v i = x,
+      { apply le_antisymm,
+        { exact hs h },
+        { rw ← Nx, exact hv hi.1 },
+          },
+      rw this,
+      exact h't }
+  end
 end
 
 

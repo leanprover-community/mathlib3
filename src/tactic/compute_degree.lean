@@ -130,9 +130,15 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | e              := eval_expr' ℕ e <|> pure n
 
 /--  A simple check: `check_target_changes t` fails if `t` unifies with one of the current
-goals.  I use it to make sure that the tactics are actually making progress, by feeding the target
+goals. We use it to make sure that the tactics are actually making progress, by feeding the target
 `t`, stored before applying them. -/
-meta def check_target_changes (t : expr) : tactic unit :=
+meta def check_target_changes (tac : tactic α) : tactic α :=
+do
+  t ← target,
+  x ← tac,
+  gs ← get_goals >>= list.mmap infer_type,
+  (success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
+  pure x
 do gs ← get_goals >>= list.mmap infer_type,
   (success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change"
 

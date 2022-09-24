@@ -34,35 +34,12 @@ lemma bubble_sort_induction' {n : ℕ} {α : Type*} [linear_order α] {f : fin n
               i < j → (f ∘ σ) j < (f ∘ σ) i → P (f ∘ σ) → P (f ∘ σ ∘ equiv.swap i j)) :
   P (f ∘ sort f) :=
 begin
-  let φ : equiv.perm (fin n) → lex (fin n → α) := λ σ, to_lex (f ∘ σ),
-  let Of := set.range φ,
-  let φ' := set.cod_restrict φ Of set.mem_range_self,
-  have hφ : ∀ σ, (φ' σ : lex (fin n → α)) = φ σ := set.coe_cod_restrict_apply φ Of _,
-  let POf : Of → Prop := λ g, P (of_lex (g : lex (fin n → α))),
-  have hf₁ : ∀ σ : equiv.perm (fin n),  P (f ∘ σ) ↔ POf (φ' σ),
-  { intro σ, simp only [POf, φ', function.comp_app], congr' 1, },
-  rw [hf₁],
-  refine @well_founded.induction_bot Of _
-    (@set.finite.well_founded_on _ (<) _ _ (set.finite_range φ)) (φ' 1) _ POf (λ g hg₁ hg₂, _) _,
-  { obtain ⟨σ, hσ⟩ := set.mem_range.mp (subtype.mem g),
-    have hg₁' : (g : lex (fin n → α)) ≠ φ (sort f),
-    { rw [← hφ],
-      by_contra' hf,
-      exact hg₁ (subtype.coe_injective hf), },
-    rw [← hσ, ne.def, to_lex_inj, ← ne.def] at hg₁',
-    obtain ⟨i, j, hij₁, hij₂⟩ := antitone_pair_of_not_sorted' hg₁',
-    have hσ': POf (φ' σ),
-    { convert hg₂,
-      apply_fun (coe : Of → lex (fin n → α)) using subtype.coe_injective,
-      rwa hφ, },
-    refine ⟨φ' (σ * (equiv.swap i j)), _, _⟩,
-    { convert lex_desc hij₁ hij₂,
-      simp only [inv_image, φ', ←hσ, φ, set.coe_cod_restrict_apply, equiv.perm.coe_mul], },
-    { simp only [← hf₁, equiv.perm.coe_mul],
-      rw [← function.comp.assoc],
-      exact h σ i j hij₁ hij₂ ((hf₁ σ).mpr hσ'), } },
-  { simp only [POf, φ', φ, function.comp_app],
-    rwa [set.coe_cod_restrict_apply, of_lex_to_lex, equiv.perm.coe_one, function.comp.right_id] }
+  letI := @preorder.lift _ (lex (fin n → α)) _ (λ σ : equiv.perm (fin n), to_lex (f ∘ σ)),
+  refine @well_founded.induction_bot' _ _ _
+    (@finite.preorder.well_founded_lt (equiv.perm (fin n)) _ _)
+    (equiv.refl _) (sort f) P (λ σ, f ∘ σ) (λ σ hσ hfσ, _) hf,
+  obtain ⟨i, j, hij₁, hij₂⟩ := antitone_pair_of_not_sorted' hσ,
+  exact ⟨σ * equiv.swap i j, lex_desc hij₁ hij₂, h σ i j hij₁ hij₂ hfσ⟩,
 end
 
 /-- *Bubble sort induction*: Prove that the sorted version of `f` has some property `P`

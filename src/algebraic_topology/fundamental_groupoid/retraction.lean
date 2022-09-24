@@ -78,7 +78,7 @@ instance top_retraction.continuous_map_class :
 
 /-- We show that if a topological retraction `r : X → A` exists, then the inclusion map `i : A → X`
 is a split monomorphism in the category Top. -/
-def split_mono_of_top_inclusion {r : top_retraction X A_filter} :
+def split_mono_of_inclusion {r : top_retraction X A_filter} :
   split_mono (top_hom_of_continuous_map inclusion) :=
 { retraction := r.to_continuous_map,
   id' := begin
@@ -87,7 +87,7 @@ def split_mono_of_top_inclusion {r : top_retraction X A_filter} :
   end, }
 
 /-- We show that a topological retraction `r : X → A` is a split epimorphism in the category Top. -/
-def split_epi_of_top_retraction {r : top_retraction X A_filter} :
+def split_epi_of_retraction {r : top_retraction X A_filter} :
   split_epi (top_hom_of_continuous_map r.to_continuous_map) :=
 { section_ := inclusion,
   id' := begin
@@ -95,23 +95,28 @@ def split_epi_of_top_retraction {r : top_retraction X A_filter} :
     apply r.top_retraction'.id_of_retraction_of_inclusion,
   end, }
 
+#check top_hom_of_continuous_map inclusion
+#check fundamental_groupoid_functor.map
+#check fundamental_groupoid_functor.map (top_hom_of_continuous_map inclusion)
+
+-- TODO: I think the issue here is top_retraction is Type → Type but we need Top → Top
 /-- We show that if a topological retraction `r : X → A` exists, then the induced arrow between
 fundamental groupoids of the inclusion map `i : A → X` is split monomorphism in the category
 Groupoid. -/
-def fundamental_groupoid_split_mono_of_top_inclusion {r : top_retraction X A_filter} :
-  split_mono (πₘ (@inclusion X A_filter)) :=
-split_mono.map (@split_mono_of_top_inclusion X A_filter r r.top_retraction') fundamental_groupoid_functor
+def fundamental_groupoid_split_mono {r : top_retraction X A_filter} :
+  split_mono (fundamental_groupoid_functor.map (top_hom_of_continuous_map inclusion)) :=
+split_mono.map split_mono fundamental_groupoid_functor
 
 /-- We show that the induced arrow between fundamental groupoids of the topological retraction
 `r : X → A` is a split epimorphism in the category Groupoid. -/
-def fundamental_groupoid_split_epi_of_top_retraction {r : top_retraction X A_filter} :
-  split_epi (πₘ r) :=
+def fundamental_groupoid_split_epi {r : top_retraction X A_filter} :
+  split_epi (πₘ (top_hom_of_continuous_map r.to_continuous_map)) :=
 split_epi.map (@split_epi_of_top_retraction X A_filter r r.top_retraction') fundamental_groupoid_functor
 
 /-- We show that the induced arrow of the topological retraction `r : X → A` in the fundamental
 groupoid is an epimorphism. -/
 def fundamental_groupoid_epi_of_top_retraction {r : top_retraction X A_filter} :
-  epi (πₘ r) :=
-split_epi.epi (@fundamental_groupoid_split_epi_of_top_retraction X A_filter r r.top_retraction')
+  epi (πₘ (top_hom_of_continuous_map r.to_continuous_map)) :=
+split_epi.epi (@fundamental_groupoid_split_epi X A_filter r r.top_retraction')
 
 end top_retraction

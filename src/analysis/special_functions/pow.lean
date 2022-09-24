@@ -444,8 +444,8 @@ begin
   refine real.is_Theta_exp_comp_one.2 ⟨π * b, _⟩,
   rw eventually_map at hb ⊢,
   refine hb.mono (λ x hx, _),
-  erw [map_mul complex.abs],
-  exact mul_le_mul (abs_arg_le_pi _) hx (complex.abs.nonneg _) real.pi_pos.le
+  erw [abs_mul],
+  exact mul_le_mul (abs_arg_le_pi _) hx (abs_nonneg _) real.pi_pos.le
 end
 
 lemma is_O_cpow_rpow (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :

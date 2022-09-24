@@ -659,6 +659,10 @@ alias div_eq_mul_inv ← division_def
 
 end div_inv_monoid
 
+section inv_one_class
+
+set_option extends_priority 50
+
 /-- Typeclass for expressing that `-0 = 0`. -/
 class neg_zero_class (G : Type*) extends has_zero G, has_neg G :=
 (neg_zero : -(0 : G) = 0)
@@ -681,7 +685,6 @@ class div_inv_one_monoid (G : Type*) extends div_inv_monoid G, inv_one_class G
 attribute [to_additive sub_neg_zero_monoid.to_sub_neg_monoid] div_inv_one_monoid.to_div_inv_monoid
 attribute [to_additive sub_neg_zero_monoid.to_neg_zero_class] div_inv_one_monoid.to_inv_one_class
 
-section inv_one_class
 variables [inv_one_class G]
 
 @[simp, to_additive] lemma inv_one : (1 : G)⁻¹ = 1 := inv_one_class.inv_one

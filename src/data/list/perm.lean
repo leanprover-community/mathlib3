@@ -1411,5 +1411,5 @@ lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (σ : equiv.perm (fin 
   of_fn (f ∘ σ) ~ of_fn f :=
 begin
   rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
-  exact perm.map f (equiv.perm.map_fin_range_perm σ),
+  exact σ.map_fin_range_perm.map f,
 end

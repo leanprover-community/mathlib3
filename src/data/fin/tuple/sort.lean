@@ -117,9 +117,10 @@ of_fn_injective $ eq_of_perm_of_sorted
 
 variables [linear_order α] {f : fin n → α}
 
-/-- A tuple `f` equals its sorted version if and only if it is monotone. -/
-lemma eq_comp_sort_iff_monotone : f ∘ sort f = f ↔ monotone f :=
-⟨λ h, h ▸ monotone_sort f, λ h, unique_monotone h $ monotone_sort f⟩
+/-- A permutation of a tuple `f` is `f` sorted if and only if it is monotone. -/
+lemma comp_sort_eq_comp_iff_monotone {σ : equiv.perm (fin n)} :
+  f ∘ σ = f ∘ sort f ↔ monotone (f ∘ σ) :=
+⟨λ h, h.symm ▸ monotone_sort f, λ h, unique_monotone h (monotone_sort f)⟩
 
 /-- If a permutation of a tuple `f` is monotone, then it is equal to `f ∘ sort f`. -/
 lemma sort_unique {σ : equiv.perm (fin n)} (h : monotone (f ∘ σ)) : f ∘ σ = f ∘ sort f :=

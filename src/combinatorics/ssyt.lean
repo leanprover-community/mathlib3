@@ -49,8 +49,8 @@ Here, an SSYT is represented as an unrestricted function `ℕ → ℕ → ℕ` t
 is required to vanish outside `μ`. --/
 structure ssyt (μ : young_diagram) :=
 (entry : ℕ → ℕ → ℕ)
-(row_weak : ∀ {i j1 j2 : ℕ}, j1 < j2 → (i, j2) ∈ μ → entry i j1 ≤ entry i j2)
-(col_strict : ∀ {i1 i2 j : ℕ}, i1 < i2 → (i2, j) ∈ μ → entry i1 j < entry i2 j)
+(row_weak' : ∀ {i j1 j2 : ℕ}, j1 < j2 → (i, j2) ∈ μ → entry i j1 ≤ entry i j2)
+(col_strict' : ∀ {i1 i2 j : ℕ}, i1 < i2 → (i2, j) ∈ μ → entry i1 j < entry i2 j)
 (zeros' : ∀ {i j}, (i, j) ∉ μ → entry i j = 0)
 
 namespace ssyt
@@ -74,9 +74,17 @@ equalities. -/
 protected def copy {μ : young_diagram} {T : ssyt μ} (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
 ssyt μ :=
 { entry := entry',
-  row_weak := h.symm ▸ T.row_weak,
-  col_strict := h.symm ▸ T.col_strict,
+  row_weak' := h.symm ▸ T.row_weak',
+  col_strict' := h.symm ▸ T.col_strict',
   zeros' := h.symm ▸ T.zeros' }
+
+lemma row_weak {μ : young_diagram} (T : ssyt μ) {i j1 j2 : ℕ}
+  (hj : j1 < j2) (hcell : (i, j2) ∈ μ) : T i j1 ≤ T i j2 :=
+T.row_weak' hj hcell
+
+lemma col_strict {μ : young_diagram} (T : ssyt μ) {i1 i2 j : ℕ}
+  (hi : i1 < i2) (hcell : (i2, j) ∈ μ) : T i1 j < T i2 j :=
+T.col_strict' hi hcell
 
 lemma zeros {μ : young_diagram} (T : ssyt μ)
   {i j : ℕ} (not_cell : (i, j) ∉ μ) : T i j = 0 := T.zeros' not_cell
@@ -97,6 +105,9 @@ def highest_weight (μ : young_diagram) : ssyt μ :=
   col_strict := λ i1 i2 j hi hcell,
     by rwa [if_pos hcell, if_pos (μ.up_left_mem (le_of_lt hi) (by refl) hcell)],
   zeros' := λ i j not_cell, if_neg not_cell }
+
+@[simp] lemma highest_weight_apply {μ : young_diagram} {i j : ℕ} :
+  highest_weight μ i j = if (i, j) ∈ μ then i else 0 := rfl
 
 instance {μ : young_diagram} : inhabited (ssyt μ) := ⟨ssyt.highest_weight μ⟩
 

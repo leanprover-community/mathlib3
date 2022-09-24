@@ -10,6 +10,7 @@ import data.nat.fib
 import data.nat.prime
 import data.nat.sqrt_norm_num
 import analysis.special_functions.pow
+import number_theory.legendre_symbol.norm_num
 
 /-!
 # Tests for `norm_num` extensions
@@ -301,3 +302,25 @@ example : ∏ i in {1, 4, 9, 16}, nat.sqrt i = 24 := by norm_num
 example : ∑ i : fin 2, ∑ j : fin 2, ![![0, 1], ![2, 3]] i j = 6 := by norm_num
 
 end big_operators
+
+section jacobi
+
+-- Jacobi and Legendre symbols
+
+open_locale number_theory_symbols
+
+example : J(123 | 335) = -1 := by norm_num
+example : J(-2345 | 6789) = -1 := by norm_num
+example : J(-1 | 1655801) = 1 := by norm_num
+example : J(-102334155 | 165580141) = -1 := by norm_num
+
+example : J(58378362899022564339483801989973056405585914719065 |
+            53974350278769849773003214636618718468638750007307) = -1 := by norm_num
+
+example : J(3 + 4 | 3 * 5) = -1 := by norm_num
+example : J(J(-1 | 7) | 11) = -1 := by norm_num
+
+instance prime_1000003 : fact (nat.prime 1000003) := ⟨by norm_num⟩
+example : legendre_sym 1000003 7 = -1 := by norm_num
+
+end jacobi

@@ -58,7 +58,7 @@ def curry (f : filter α) (g : filter β) : filter (α × β) :=
   end,
   inter_sets := begin
     intros x y hx hy,
-    simp only [set.mem_set_of_eq, set.mem_inter_eq] at hx hy ⊢,
+    simp only [set.mem_set_of_eq, set.mem_inter_iff] at hx hy ⊢,
     exact (hx.and hy).mono (λ a ha, (ha.1.and ha.2).mono (λ b hb, hb)),
   end, }
 

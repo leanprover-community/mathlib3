@@ -428,7 +428,6 @@ instance : ordered_cancel_add_comm_monoid (multiset α) :=
     congr_arg coe $ append_assoc l₁ l₂ l₃,
   zero_add              := λ s, quot.induction_on s $ λ l, rfl,
   add_zero              := λ s, quotient.induction_on s $ λ l, congr_arg coe $ append_nil l,
-  add_left_cancel       := λ a b c, add_left_cancel'',
   add_le_add_left       := λ s₁ s₂, add_le_add_left,
   le_of_add_le_add_left := λ s₁ s₂ s₃, le_of_add_le_add_left,
   ..@multiset.partial_order α }
@@ -1104,6 +1103,9 @@ lemma attach_cons (a : α) (m : multiset α) :
   (a ::ₘ m).attach = ⟨a, mem_cons_self a m⟩ ::ₘ (m.attach.map $ λp, ⟨p.1, mem_cons_of_mem p.2⟩) :=
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
   by rw [list.map_pmap]; exact list.pmap_congr _ (λ _ _ _ _, subtype.eq rfl)
+
+@[simp]
+lemma attach_map_coe (m : multiset α) : multiset.map (coe : _ → α) m.attach = m := m.attach_map_val
 
 section decidable_pi_exists
 variables {m : multiset α}
@@ -1866,6 +1868,13 @@ begin
     rw hf hkx at *,
     contradiction }
 end
+
+@[simp]
+lemma attach_count_eq_count_coe (m : multiset α) (a) : m.attach.count a = m.count (a : α) :=
+calc m.attach.count a
+    = (m.attach.map (coe : _ → α)).count (a : α) :
+  (multiset.count_map_eq_count' _ _ subtype.coe_injective _).symm
+... = m.count (a : α) : congr_arg _ m.attach_map_coe
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
 begin

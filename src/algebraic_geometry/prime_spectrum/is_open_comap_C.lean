@@ -49,7 +49,7 @@ lemma image_of_Df_eq_comap_C_compl_zero_locus :
   image_of_Df f = prime_spectrum.comap (C : R →+* R[X]) '' (zero_locus {f})ᶜ :=
 begin
   refine ext (λ x, ⟨λ hx, ⟨⟨map C x.val, (is_prime_map_C_of_is_prime x.property)⟩, ⟨_, _⟩⟩, _⟩),
-  { rw [mem_compl_eq, mem_zero_locus, singleton_subset_iff],
+  { rw [mem_compl_iff, mem_zero_locus, singleton_subset_iff],
     cases hx with i hi,
     exact λ a, hi (mem_map_C_iff.mp a i) },
   { refine subtype.ext (ext (λ x, ⟨λ h, _, λ h, subset_span (mem_image_of_mem C.1 h)⟩)),

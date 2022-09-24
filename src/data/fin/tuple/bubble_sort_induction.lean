@@ -12,7 +12,7 @@ import order.well_founded_set
 We implement the following induction principle `tuple.bubble_sort_induction`
 on tuples with values in a linear order `α`.
 
-Let `f : fin n  → α` and let `P` be a predicate on `fin n → α`. Then we can show that
+Let `f : fin n → α` and let `P` be a predicate on `fin n → α`. Then we can show that
 `f ∘ sort f` satisfies `P` if `f` satisfies `P`, and whenever some `g : fin n → α`
 satisfies `P` and `g i > g j` for some `i < j`, then `g ∘ swap i j` also satisfies `P`.
 

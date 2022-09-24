@@ -43,7 +43,7 @@ variables {Ω E : Type*} {m0 : measurable_space Ω} {μ : measure Ω}
 process. This is the predictable process. See `martingale_part` for the martingale. -/
 noncomputable
 def predictable_part {m0 : measurable_space Ω}
-  (f : ℕ → Ω → E) (ℱ : filtration ℕ m0) (μ : measure Ω. volume_tac) : ℕ → Ω → E :=
+  (f : ℕ → Ω → E) (ℱ : filtration ℕ m0) (μ : measure Ω . volume_tac) : ℕ → Ω → E :=
 λ n, ∑ i in finset.range n, μ[f (i+1) - f i | ℱ i]
 
 @[simp] lemma predictable_part_zero : predictable_part f ℱ μ 0 = 0 :=

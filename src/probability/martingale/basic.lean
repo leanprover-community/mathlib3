@@ -47,20 +47,20 @@ variables {Ω E ι : Type*} [preorder ι]
 
 /-- A family of functions `f : ι → Ω → E` is a martingale with respect to a filtration `ℱ` if `f`
 is adapted with respect to `ℱ` and for all `i ≤ j`, `μ[f j | ℱ i] =ᵐ[μ] f i`. -/
-def martingale (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω. volume_tac) : Prop :=
+def martingale (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω . volume_tac) : Prop :=
 adapted ℱ f ∧ ∀ i j, i ≤ j → μ[f j | ℱ i] =ᵐ[μ] f i
 
 /-- A family of integrable functions `f : ι → Ω → E` is a supermartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. -/
-def supermartingale [has_le E] (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω. volume_tac) :
+def supermartingale [has_le E] (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω . volume_tac) :
   Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → μ[f j | ℱ i] ≤ᵐ[μ] f i) ∧ ∀ i, integrable (f i) μ
 
 /-- A family of integrable functions `f : ι → Ω → E` is a submartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`. -/
-def submartingale [has_le E] (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω. volume_tac) :
+def submartingale [has_le E] (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω . volume_tac) :
   Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ i, integrable (f i) μ
 

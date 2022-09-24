@@ -862,36 +862,8 @@ In this section, we prove that any event in the tail σ-algebra has probability 
 
 section lattice
 
-variables {α : Type*} [preorder ι] {n m : ι} {x : α}
-
-/-- TODO: rename, or find existing equivalent definition -/
-def tail [has_Sup α] [has_Inf α] (s : ι → α) : α := ⨅ n, ⨆ i ≥ n, s i
-
-variables [complete_lattice α]
-
-lemma tail_le_supr_ge (s : ι → α) (n : ι) : tail s ≤ ⨆ i ≥ n, s i :=
-infi_le (λ n, ⨆ i ≥ n, s i) n
-
-@[simp] lemma tail_empty [is_empty ι] {s : ι → α} : tail s = ⊤ :=
-by simp_rw [tail, supr_of_empty, infi_of_empty]
-
-lemma tail_le [h : nonempty ι] {s : ι → α} (h_le : ∀ n, s n ≤ x) : tail s ≤ x :=
-(tail_le_supr_ge s h.some).trans (supr₂_le (λ i hi, h_le i))
-
-@[simp] lemma tail_of_has_top {ι} [partial_order ι] [order_top ι] {s : ι → α} : tail s = s ⊤ :=
-begin
-  refine le_antisymm _ (le_infi (λ i, le_supr₂_of_le ⊤ le_top le_rfl)),
-  refine (infi_le _ ⊤).trans _,
-  simp only [ge_iff_le, supr₂_le_iff],
-  intros i hi,
-  rw top_le_iff at hi,
-  rw hi,
-end
-
-lemma tail_le_supr [h : nonempty ι] (s : ι → α) : tail s ≤ ⨆ i, s i :=
-(tail_le_supr_ge s h.some).trans (supr₂_le_supr _ s)
-
-lemma supr_eq_supr_supr_lt {ι} [linear_order ι] [no_top_order ι] (s : ι → α) :
+lemma supr_eq_supr_supr_lt {α ι : Type*} [complete_lattice α] [linear_order ι] [no_top_order ι]
+  (s : ι → α) :
   (⨆ n, s n) = ⨆ n, ⨆ i < n, s i :=
 begin
   haveI : no_max_order ι := no_top_order.to_no_max_order ι,
@@ -927,46 +899,78 @@ begin
   simpa [measure_ne_top μ] using h_0_1_top,
 end
 
-variables [is_probability_measure μ] [linear_order ι] {s : ι → measurable_space Ω}
+variables [is_probability_measure μ] {s : ι → measurable_space Ω}
 
-lemma supr_lt_indep_supr_ge (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (N : ι) :
-  indep (⨆ n < N, s n) (⨆ i ≥ N, s i) μ :=
+open filter
+
+lemma bsupr_indep_bsupr_compl (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι) :
+  indep (⨆ n ∈ t, s n) (⨆ n ∈ tᶜ, s n) μ :=
+indep_supr_of_disjoint h_le h_indep disjoint_compl_right
+
+lemma bsupr_indep_limsup_cofinite (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι)
+  (ht : t.finite) :
+  indep (⨆ n ∈ t, s n) (limsup cofinite s) μ :=
 begin
-  have h_disj : disjoint {n | n < N} {n | n ≥ N},
-  { intros n,
-    simp only [ge_iff_le, set.inf_eq_inter, set.mem_inter_iff, set.mem_set_of_eq, set.bot_eq_empty,
-      set.mem_empty_iff_false, and_imp],
-    intros h_lt h_ge,
-    rw ← not_le at h_lt,
-    exact h_lt h_ge, },
-  exact indep_supr_of_disjoint h_le h_indep h_disj,
+  refine indep_of_indep_of_le_right (bsupr_indep_bsupr_compl h_le h_indep t) _,
+  refine Limsup_le_of_le (by is_bounded_default) _,
+  simp only [set.mem_compl_iff, eventually_map, eventually_cofinite],
+  refine set.finite.subset ht (set.compl_subset_compl.mp (λ x hxt, _)),
+  simp only [set.mem_compl_iff, set.mem_set_of_eq, not_not],
+  exact le_supr₂ x hxt,
 end
 
-lemma supr_lt_indep_tail (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (n : ι) :
-  indep (⨆ i < n, s i) (tail s) μ :=
-indep_of_indep_of_le_right (supr_lt_indep_supr_ge h_le h_indep n) (tail_le_supr_ge s n)
-
-lemma supr_indep_tail [no_top_order ι] [nonempty ι]
-  (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
-  indep (⨆ n, s n) (tail s) μ :=
+lemma bsupr_indep_limsup_at_top_of_bdd_above [semilattice_sup ι] [no_max_order ι] [nonempty ι]
+  (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι) (ht : bdd_above t) :
+  indep (⨆ n ∈ t, s n) (limsup at_top s) μ :=
 begin
+  refine indep_of_indep_of_le_right (bsupr_indep_bsupr_compl h_le h_indep t) _,
+  refine Limsup_le_of_le (by is_bounded_default) _,
+  simp only [set.mem_compl_iff, eventually_map, eventually_at_top],
+  obtain ⟨a, ha⟩ : ∃ a, a ∈ upper_bounds t := ht,
+  obtain ⟨b, hb⟩ : ∃ b, a < b := exists_gt a,
+  refine ⟨b, λ c hc, _⟩,
+  suffices : c ∉ t, from le_supr₂ c this,
+  intros hct,
+  suffices : ∀ i ∈ t, i < c, from lt_irrefl c (this c hct),
+  intros i hi,
+  rw mem_upper_bounds at ha,
+  exact (ha i hi).trans_lt (hb.trans_le hc),
+end
+
+variables [linear_order ι] [no_top_order ι] [hι : nonempty ι]
+include hι
+
+lemma supr_indep_limsup_at_top
+  (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
+  indep (⨆ n, s n) (limsup at_top s) μ :=
+begin
+  haveI : no_max_order ι := no_top_order.to_no_max_order ι,
   rw supr_eq_supr_supr_lt,
-  refine indep_supr_of_monotone (supr_lt_indep_tail h_le h_indep)
-    (λ n, supr₂_le (λ i hi, h_le i)) (tail_le h_le) _,
-  exact λ n m hnm, bsupr_mono (λ i hi, hi.trans_le hnm),
+  refine indep_supr_of_monotone (λ n, bsupr_indep_limsup_at_top_of_bdd_above h_le h_indep _ _)
+    (λ n, supr₂_le (λ i hi, h_le i)) _ _,
+  { exact ⟨n, λ x hx, le_of_lt hx⟩, },
+  { refine Limsup_le_of_le (by is_bounded_default) _,
+    simp only [eventually_map, eventually_at_top, ge_iff_le],
+    exact ⟨hι.some, λ _ _, h_le _⟩, },
+  { exact λ n m hnm, bsupr_mono (λ i hi, hi.trans_le hnm), },
 end
 
-lemma tail_indep_tail [no_top_order ι] [nonempty ι]
+lemma limsup_at_top_indep_self
   (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
-  indep (tail s) (tail s) μ :=
-indep_of_indep_of_le_left (supr_indep_tail h_le h_indep) (tail_le_supr s)
+  indep (limsup at_top s) (limsup at_top s) μ :=
+begin
+  refine indep_of_indep_of_le_left (supr_indep_limsup_at_top h_le h_indep) _,
+  refine Limsup_le_of_le (by is_bounded_default) _,
+  simp only [eventually_map, eventually_at_top, ge_iff_le],
+  exact ⟨hι.some, λ a ha, le_supr s a⟩,
+end
 
 /-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra has probability 0 or 1 -/
-theorem measure_zero_or_one_of_measurable_set_tail [no_top_order ι] [nonempty ι]
+theorem measure_zero_or_one_of_measurable_set_limsup_at_top
   (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
-  {t : set Ω} (h_t_tail : measurable_set[tail s] t) :
+  {t : set Ω} (ht_tail : measurable_set[limsup at_top s] t) :
   μ t = 0 ∨ μ t = 1 :=
-measure_eq_zero_or_one_of_indep_self (tail_indep_tail h_le h_indep) h_t_tail
+measure_eq_zero_or_one_of_indep_self (limsup_at_top_indep_self h_le h_indep) ht_tail
 
 end zero_one_law
 

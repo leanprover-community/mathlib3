@@ -2378,7 +2378,7 @@ theorem tr_eval (k) (L : list (Γ k)) {L₁ L₂}
 begin
   obtain ⟨c₁, h₁, rfl⟩ := (part.mem_map_iff _).1 H₁,
   obtain ⟨c₂, h₂, rfl⟩ := (part.mem_map_iff _).1 H₂,
-  obtain> ⟨_, ⟨L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
+  obtain ⟨_, ⟨L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
   cases part.mem_unique h₁ h₃,
   exact ⟨_, L', by simp only [tape.mk'_right₀], hT, rfl⟩
 end

@@ -108,7 +108,7 @@ theorem iff_pid_with_one_nonzero_prime (R : Type u) [comm_ring R] [is_domain R] 
 begin
   split,
   { intro RDVR,
-    rcases> id RDVR with ⟨Rlocal⟩,
+    rcases id RDVR with ⟨Rlocal⟩,
     split, assumption,
     resetI,
     use local_ring.maximal_ideal R,

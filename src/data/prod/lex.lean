@@ -68,7 +68,7 @@ instance preorder (α β : Type*) [preorder α] [preorder β] : preorder (α ×�
   lt_iff_le_not_le := λ x₁ x₂, match x₁, x₂ with
   | to_lex (a₁, b₁), to_lex (a₂, b₂) := begin
       split,
-      { rintro> (⟨_, _, hlt⟩ | ⟨_, hlt⟩),
+      { rintro (⟨_, _, hlt⟩ | ⟨_, hlt⟩),
         { split,
           { left, assumption },
           { rintro ⟨⟩,

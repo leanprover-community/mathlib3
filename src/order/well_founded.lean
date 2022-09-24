@@ -259,6 +259,6 @@ The naming is inspired by the fact that when `r` is transitive, it follows that 
 the smallest element w.r.t. `r` that satisfies `C`. -/
 lemma well_founded.induction_bot {α} {r : α → α → Prop} (hwf : well_founded r) {a bot : α}
   {C : α → Prop} (ih : ∀ b, b ≠ bot → C b → ∃ c, r c b ∧ C c) : C a → C bot :=
-(hwf.apply a).induction_bot ih
+hwf.induction_bot' ih
 
 end induction

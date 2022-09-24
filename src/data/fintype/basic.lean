@@ -123,6 +123,8 @@ instance : order_top (finset α) :=
 { top := univ,
   le_top := subset_univ }
 
+lemma top_eq_univ : (⊤ : finset α) = univ := rfl
+
 section boolean_algebra
 variables [decidable_eq α] {a : α}
 
@@ -139,7 +141,13 @@ lemma not_mem_compl : a ∉ sᶜ ↔ a ∈ s := by rw [mem_compl, not_not]
 @[simp, norm_cast] lemma coe_compl (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
-@[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
+lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
+
+lemma compl_univ : (univ : finset α)ᶜ = ∅ := compl_top
+
+@[simp] lemma compl_eq_empty_iff (s : finset α) : sᶜ = ∅ ↔ s = univ := compl_eq_bot
+
+@[simp] lemma compl_eq_univ_iff (s : finset α) : sᶜ = univ ↔ s = ∅ := compl_eq_top
 
 @[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = univ := sup_compl_eq_top
 

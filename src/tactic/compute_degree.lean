@@ -130,7 +130,7 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | e              := eval_expr' ℕ e <|> pure n
 
 /--  A general description of `compute_degree_le_aux` is in the doc-string of `compute_degree`.
-The difference betweem the two is that `compute_degree_le_aux` makes no effort to close side-goals,
+The difference between the two is that `compute_degree_le_aux` makes no effort to close side-goals,
 nor fails if the goal does not change. -/
 meta def compute_degree_le_aux : tactic unit := do
 try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),

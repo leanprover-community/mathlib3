@@ -293,13 +293,7 @@ variables [algebra S R] [algebra S A'] [algebra S B']
 /-- Version of `aeval` for defining algebra homs out of `polynomial R` over a smaller base ring
   than `R`. -/
 def aeval_tower (f : R →ₐ[S] A') (x : A') : R[X] →ₐ[S] A' :=
-{ commutes' := λ r, by {
-    simp,
-    change eval₂ _ _ _ = _,
---    simp [← algebra_map_apply],
---    rw eval₂_C,
-    sorry,
-  },
+{ commutes' := λ r, by simp [algebra_map_apply],
   ..eval₂_ring_hom ↑f x }
 
 variables (g : R →ₐ[S] A') (y : A')

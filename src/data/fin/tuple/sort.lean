@@ -115,16 +115,15 @@ lemma unique_monotone [partial_order α] {f : fin n → α} {σ τ : equiv.perm 
 of_fn_injective $ eq_of_perm_of_sorted
   ((σ.of_fn_comp_perm f).trans (τ.of_fn_comp_perm f).symm) hfσ.of_fn_sorted hfτ.of_fn_sorted
 
-variables [linear_order α] {f : fin n → α}
+variables [linear_order α] {f : fin n → α} {σ : equiv.perm (fin n)}
 
 /-- A permutation of a tuple `f` is `f` sorted if and only if it is monotone. -/
-lemma comp_sort_eq_comp_iff_monotone {σ : equiv.perm (fin n)} :
+lemma comp_sort_eq_comp_iff_monotone :
   f ∘ σ = f ∘ sort f ↔ monotone (f ∘ σ) :=
 ⟨λ h, h.symm ▸ monotone_sort f, λ h, unique_monotone h (monotone_sort f)⟩
 
 /-- The sorted versions of a tuple `f` and of any permutation of it agree. -/
-lemma comp_perm_comp_sort_eq_comp_sort {σ : equiv.perm (fin n)} :
-  (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
+lemma comp_perm_comp_sort_eq_comp_sort : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
   rw [function.comp.assoc, ← equiv.perm.coe_mul],
   exact unique_monotone (monotone_sort (f ∘ σ)) (monotone_sort f),
@@ -132,7 +131,7 @@ end
 
 /-- If a permutation `f ∘ σ` of the tuple `f` is not the same as `f ∘ sort f`, then `f ∘ σ`
 has a pair of strictly decreasing entries. -/
-lemma antitone_pair_of_not_sorted' {σ : equiv.perm (fin n)} (h : f ∘ σ ≠ f ∘ sort f) :
+lemma antitone_pair_of_not_sorted' (h : f ∘ σ ≠ f ∘ sort f) :
   ∃ i j, i < j ∧ (f ∘ σ) j < (f ∘ σ) i :=
 by { contrapose! h, exact comp_sort_eq_comp_iff_monotone.mpr (monotone_iff_forall_lt.mpr h) }
 

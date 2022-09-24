@@ -19,8 +19,8 @@ satisfies `P` and `g i > g j` for some `i < j`, then `g ∘ swap i j` also satis
 We deduce it from a stronger variant `tuple.bubble_sort_induction'`, which
 requires the assumption only for `g` that are permutations of `f`.
 
-The latter is proved by well-founded induction with respect to the lexicographic ordering
-on the finite set of all permutations of `f`.
+The latter is proved by well-founded induction via `well_founded.induction_bot'`
+with respect to the lexicographic ordering on the finite set of all permutations of `f`.
 -/
 
 namespace tuple

@@ -53,7 +53,7 @@ lemma sq_dvd_add_pow_sub_sub (p x : R) (n : ℕ) :
   p ^ 2 ∣ (x + p) ^ n - x ^ (n - 1) * p * n - x ^ n :=
 begin
   cases n,
-  { simp only [pow_zero, nat.cast_zero, mul_zero, sub_self, dvd_zero, zero_add] },
+  { simp only [pow_zero, nat.cast_zero, mul_zero, sub_zero, sub_self, dvd_zero]},
   { simp only [nat.succ_sub_succ_eq_sub, tsub_zero, nat.cast_succ, add_pow,
       finset.sum_range_succ, nat.choose_self, nat.succ_sub _, tsub_self, pow_one,
       nat.choose_succ_self_right, pow_zero, mul_one, nat.cast_zero, zero_add, nat.succ_eq_add_one],
@@ -81,7 +81,7 @@ begin
   { intro i,
     calc ↑p ^ 2 ∣ (↑p * b) ^ 2 : by simp only [mul_pow, dvd_mul_right]
     ... ∣ (a + ↑p * b) ^ i - (a ^ (i - 1) * (↑p * b) * ↑i + a ^ i) :
-      sq_dvd_add_mul_pow_sub (↑p * b) a i },
+      by simp only [sq_dvd_add_pow_sub_sub (↑p * b) a i, ← sub_sub] },
   simp_rw [← mem_span_singleton, ← ideal.quotient.eq] at *,
   calc ideal.quotient.mk (span {↑p ^ 2}) (∑ i in range p, (a + ↑p * b) ^ i * a ^ (p - 1 - i))
       = ∑ (i : ℕ) in finset.range p, mk (span {↑p ^ 2})
@@ -144,7 +144,7 @@ begin
   rw ← nat.cast_one,
   refine multiplicity.eq_coe_iff.2 ⟨_, _⟩,
   { rw pow_one,
-    exact dvd_geom_sum₂ hxy },
+    exact dvd_geom_sum₂_self hxy },
   rw dvd_iff_dvd_of_dvd_sub hxy at hx,
   cases hxy with k hk,
   rw [one_add_one_eq_two, eq_add_of_sub_eq' hk],

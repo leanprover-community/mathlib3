@@ -1435,7 +1435,7 @@ begin
   { intros h j hj,
     by_cases heq : j = i,
     { subst heq, simpa using h hj, },
-    { simp [heq, one_mem], }, }
+    { simpa [heq] using one_mem _ }, }
 end
 
 @[to_additive]

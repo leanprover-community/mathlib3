@@ -45,11 +45,12 @@ end
 lemma dvd_geom_sum₂_iff_of_dvd_sub' {x y p : R} (h : p ∣ x - y) :
   p ∣ ∑ i in range n, x ^ i * y ^ (n - 1 - i) ↔ p ∣ n * x ^ (n - 1) :=
 by rw [geom_sum₂_comm, dvd_geom_sum₂_iff_of_dvd_sub]; simpa using (dvd_neg _ _).mpr h
-lemma dvd_geom_sum₂ {x y : R} (h : ↑n ∣ x - y) : ↑n ∣ ∑ i in range n, x ^ i * y ^ (n - 1 - i):=
+
+lemma dvd_geom_sum₂_self {x y : R} (h : ↑n ∣ x - y) : ↑n ∣ ∑ i in range n, x ^ i * y ^ (n - 1 - i):=
 (dvd_geom_sum₂_iff_of_dvd_sub h).mpr (dvd_mul_right _ _)
 
-lemma sq_dvd_add_mul_pow_sub (p x : R) (n : ℕ) :
-  p ^ 2 ∣ (x + p) ^ n - (x ^ (n - 1) * p * n + x ^ n) :=
+lemma sq_dvd_add_pow_sub_sub (p x : R) (n : ℕ) :
+  p ^ 2 ∣ (x + p) ^ n - x ^ (n - 1) * p * n - x ^ n :=
 begin
   cases n,
   { simp only [pow_zero, nat.cast_zero, mul_zero, sub_self, dvd_zero, zero_add] },
@@ -229,19 +230,17 @@ end lifting_the_exponent
 end multiplicity
 end comm_ring
 
-namespace multiplicity
-
-lemma  _root_.pow_two_pow_sub_pow_two_pow [comm_ring R] {x y : R} (n : ℕ) :
+lemma  pow_two_pow_sub_pow_two_pow [comm_ring R] {x y : R} (n : ℕ) :
   x ^ (2 ^ n) - y ^ (2 ^ n) = (∏ i in finset.range n, (x ^ (2 ^ i) + y ^ (2 ^ i))) * (x - y) :=
 begin
   induction n with d hd,
   { simp only [pow_zero, pow_one, finset.range_zero, finset.prod_empty, one_mul] },
   { suffices : x ^ 2 ^ d.succ - y ^ 2 ^ d.succ = (x ^ 2 ^ d + y ^ 2 ^ d) * (x ^ 2 ^ d - y ^ 2 ^ d),
     { rw [this, hd, finset.prod_range_succ, ← mul_assoc, mul_comm (x ^ 2 ^ d + y ^ 2 ^ d)] },
-    { ring_exp_eq }}
+    { ring_exp_eq } }
 end
 
-lemma _root_.int.sq_mod_four_eq_one_of_odd {x : ℤ} : odd x → x ^ 2 % 4 = 1 :=
+lemma int.sq_mod_four_eq_one_of_odd {x : ℤ} : odd x → x ^ 2 % 4 = 1 :=
 begin
   intro hx,
   -- Replace `x : ℤ` with `y : zmod 4`
@@ -257,6 +256,8 @@ begin
   fin_cases y using hy;
     rw hy at ⊢ hx; revert hx; dec_trivial
 end
+
+namespace multiplicity
 
 lemma int.two_pow_two_pow_add_two_pow_two_pow {x y : ℤ}
   (hx : ¬ 2 ∣ x) (hxy : 4 ∣ (x - y))
@@ -280,6 +281,7 @@ begin
   intros x hx,
   rw [pow_succ, mul_comm, pow_mul, int.sq_mod_four_eq_one_of_odd hx.pow]
 end
+
 lemma int.two_pow_two_pow_sub_pow_two_pow {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x - y) (hx : ¬ 2 ∣ x) :
   multiplicity 2 (x ^ (2 ^ n) - y ^ (2 ^ n)) = multiplicity 2 (x - y) + n :=
 by simp only [pow_two_pow_sub_pow_two_pow  n, multiplicity.mul int.prime_two,
@@ -311,7 +313,7 @@ end
 
 /-- **Lifting the exponent lemma** for `p = 2` -/
 lemma int.two_pow_sub_pow {x y : ℤ} {n : ℕ} (hxy : 2 ∣ x - y) (hx : ¬ 2 ∣ x) (hn : even n) :
-  multiplicity 2 (x ^ n  - y ^ n) + 1 = multiplicity 2 (x + y) + multiplicity 2 (x - y) +
+  multiplicity 2 (x ^ n - y ^ n) + 1 = multiplicity 2 (x + y) + multiplicity 2 (x - y) +
     multiplicity (2 : ℤ) n :=
 begin
   have hy : odd y,
@@ -367,7 +369,8 @@ namespace padic_val_nat
 variables {x y : ℕ}
 
 lemma pow_two_sub_pow (hyx : y < x) (hxy : 2 ∣ x - y) (hx : ¬ 2 ∣ x) {n : ℕ} (hn : 0 < n)
-  (hneven : even n) : padic_val_nat 2 (x ^ n - y ^ n) + 1 =
+  (hneven : even n) :
+  padic_val_nat 2 (x ^ n - y ^ n) + 1 =
     padic_val_nat 2 (x + y) + padic_val_nat 2 (x - y) + padic_val_nat 2 n :=
 begin
   simp only [←part_enat.coe_inj, nat.cast_add],

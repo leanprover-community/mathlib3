@@ -68,6 +68,11 @@ variables {α : Type*} [uniform_space α] (pkg : abstract_completion α)
 local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
+/-- If `α` is complete, then it is an abstract completion of itself -/
+def eq_itself_of_complete [separated_space α] [complete_space α] : abstract_completion α :=
+(mk α id (by apply_instance) (by apply_instance) (by apply_instance) uniform_inducing_id
+  dense_range_id)
+
 lemma closure_range : closure (range ι) = univ :=
 pkg.dense.closure_range
 
@@ -238,13 +243,6 @@ pkg.uniform_continuous_compare pkg'
 lemma uniform_continuous_compare_equiv_symm : uniform_continuous (pkg.compare_equiv pkg').symm :=
 pkg'.uniform_continuous_compare pkg
 
-/-- The uniform bijection between a complete space and its abstract completion. -/
-def complete_equiv_self {α : Type*} [uniform_space α]
-[separated_space α] [complete_space α] (pkg : abstract_completion α) :
-pkg.space ≃ᵤ α :=
-compare_equiv pkg (mk α id(by apply_instance) (by apply_instance) (by apply_instance)
-  uniform_inducing_id dense_range_id)
-
 end compare
 
 section prod
@@ -262,8 +260,6 @@ protected def prod : abstract_completion (α × β) :=
   uniform_inducing := uniform_inducing.prod pkg.uniform_inducing pkg'.uniform_inducing,
   dense := pkg.dense.prod_map pkg'.dense }
 end prod
-
-
 
 section extension₂
 variables (pkg' : abstract_completion β)

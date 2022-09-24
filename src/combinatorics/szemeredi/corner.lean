@@ -370,7 +370,7 @@ begin
       apply h (c₁ - x) (c₂ - y) k ⟨xy.2.2.2, xky.2.2.2, xyk.2.2.2⟩ } },
   refine nc (hn₀ _ ((nat.le_succ _).trans hn) A' (hA'.trans hA) (le_trans _ this)),
   rw [←mul_pow, ←div_pow],
-  refine pow_le_pow_of_le_left (mul_nonneg (by linarith) (nat.cast_nonneg _)) _ _,
+  refine pow_le_pow_of_le_left (by positivity) _ _,
   rw le_div_iff,
   { exact (le_of_eq (by ring)).trans hAcard },
   exact mul_pos zero_lt_two (nat.cast_pos.2 (nat.succ_pos'.trans_le hn)),

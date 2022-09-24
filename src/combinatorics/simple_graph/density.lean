@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.basic
 import order.partition.finpartition
+import tactic.positivity
 
 /-!
 # Edge density
@@ -19,6 +20,22 @@ Between two finsets of vertices,
 * `simple_graph.interedges`: Finset of edges of a graph.
 * `simple_graph.edge_density`: Edge density of a graph.
 -/
+
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: `finset.card s` is positive if `s` is nonempty. -/
+@[positivity]
+meta def positivity_finset_card : expr → tactic strictness
+| `(finset.card %%s) := do -- TODO: Partial decision procedure for `finset.nonempty`
+                          p ← to_expr ``(finset.nonempty %%s) >>= find_assumption,
+                          positive <$> mk_app ``finset.nonempty.card_pos [p]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` isn't of the form `rel.edge_density r s t` nor `simple_graph.edge_density G s t`"
+
+example {α : Type*} (s : finset α) (hs : s.nonempty) : 0 < s.card := by positivity
+
+end tactic
 
 open finset
 open_locale big_operators
@@ -163,7 +180,7 @@ begin
   refine (sub_le_sub_left (mul_edge_density_le_edge_density r hs ht hs₂ ht₂) _).trans _,
   refine le_trans _ (mul_le_of_le_one_right _ (edge_density_le_one r s₂ t₂)),
   { rw [sub_mul, one_mul] },
-  refine sub_nonneg_of_le (mul_le_one _ (div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) _);
+  refine sub_nonneg_of_le (mul_le_one _ (by positivity) _);
   exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset ‹_›)) (nat.cast_nonneg _),
 end
 
@@ -204,10 +221,10 @@ begin
   refine (rat.cast_le.2 $
     abs_edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂' ht₂').trans _,
   push_cast,
-  apply sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hs₂) ((le_div_iff _).2 ht₂) hδ₁.le _),
-  { exact_mod_cast (hs₂'.mono hs).card_pos },
-  { exact_mod_cast (ht₂'.mono ht).card_pos },
-  { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) }
+  have := hs₂'.mono hs,
+  have := ht₂'.mono ht,
+  refine sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hs₂) ((le_div_iff _).2 ht₂) hδ₁.le _) _;
+  positivity,
 end
 
 /-- If `s₂ ⊆ s₁`, `t₂ ⊆ t₁` and they take up all but a `δ`-proportion, then the difference in edge
@@ -325,7 +342,7 @@ lemma edge_density_add_edge_density_compl (hs : s.nonempty) (ht : t.nonempty) (h
 begin
   rw [edge_density_def, edge_density_def, div_add_div_same, div_eq_one_iff_eq],
   { exact_mod_cast card_interedges_add_card_interedges_compl _ h },
-  { exact_mod_cast (mul_pos hs.card_pos ht.card_pos).ne' }
+  { exact ne_of_gt (by positivity) }
 end
 
 end decidable_eq
@@ -353,3 +370,18 @@ lemma edge_density_comm (s t : finset α) : G.edge_density s t = G.edge_density 
 edge_density_comm G.symm s t
 
 end simple_graph
+
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: `rel.edge_density` and `simple_graph.edge_density` are
+always nonnegative. -/
+@[positivity]
+meta def positivity_edge_density : expr → tactic strictness
+| `(rel.edge_density %%r %%s %%t) := nonnegative <$> mk_app `rel.edge_density_nonneg [r, s, t]
+| `(simple_graph.edge_density %%G %%s %%t) := nonnegative <$>
+                                                mk_app `simple_graph.edge_density_nonneg [G, s, t]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` isn't of the form `rel.edge_density r s t` nor `simple_graph.edge_density G s t`"
+
+end tactic

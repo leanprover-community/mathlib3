@@ -441,7 +441,7 @@ meta def positivity_coe : expr → tactic strictness
   | `(@coe_to_lift _ _ %%inst) := do
     strictness_a ← core a,
     match inst, strictness_a with -- `mk_mapp` is necessary in some places. Why?
-    | `(nat.cast_coe), positive p := positive <$> mk_app ``nat_cast_pos [p]
+    | `(nat.cast_coe), positive p := positive <$> mk_mapp ``nat_cast_pos [typ, none, none, none, p]
     | `(nat.cast_coe), _ := nonnegative <$> mk_mapp ``nat.cast_nonneg [typ, none, a]
     | `(int.cast_coe), positive p := positive <$> mk_mapp ``int_cast_pos [typ, none, none, none, p]
     | `(int.cast_coe), nonnegative p := nonnegative <$>

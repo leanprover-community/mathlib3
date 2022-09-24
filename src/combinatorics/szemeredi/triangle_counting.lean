@@ -56,7 +56,7 @@ lemma edge_density_bad_vertices (hε : 0 ≤ ε) (dXY : 2 * ε ≤ G.edge_densit
 begin
   rw edge_density_def,
   push_cast,
-  refine div_le_of_nonneg_of_le_mul (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) _ _,
+  refine div_le_of_nonneg_of_le_mul (by positivity) _ _,
   { apply sub_nonneg_of_le,
     linarith },
   { rw mul_comm,
@@ -116,10 +116,9 @@ begin
     linarith },
   rw [edge_density_def] at this,
   push_cast at this,
-  refine le_trans _ (mul_le_of_nonneg_of_le_div (nat.cast_nonneg _)
-    (by exact_mod_cast (nat.zero_le _)) this),
-  refine eq.trans_le _ (mul_le_mul_of_nonneg_left
-    (mul_le_mul hY hZ (mul_nonneg (nat.cast_nonneg _) hε) (nat.cast_nonneg _)) hε),
+  refine le_trans _ (mul_le_of_nonneg_of_le_div (nat.cast_nonneg _) (by positivity) this),
+  refine eq.trans_le _ (mul_le_mul_of_nonneg_left (mul_le_mul hY hZ (by positivity) $
+    by positivity) hε),
   ring,
 end
 
@@ -150,9 +149,8 @@ begin
         mul_assoc, mul_comm ε, two_mul],
       refine (nat.cast_le.2 (card_union_le _ _)).trans _,
       rw nat.cast_add,
-      refine add_le_add h₁ h₂ },
-    refine le_trans (le_of_eq (by ring)) (mul_le_mul_of_nonneg_right hX' _),
-    exact mul_nonneg (mul_nonneg (pow_nonneg hε₀.le _) (nat.cast_nonneg _)) (nat.cast_nonneg _) },
+      exact add_le_add h₁ h₂ },
+    exact eq.trans_le (by ring) (mul_le_mul_of_nonneg_right hX' $ by positivity) },
   rintro x hx y hy t,
   rw disjoint_left,
   simp only [prod.forall, mem_image, not_exists, exists_prop, mem_filter, prod.mk.inj_iff,
@@ -172,13 +170,12 @@ begin
   cases le_or_lt ε 0 with hε₀ hε₀,
   { apply le_trans _ (nat.cast_nonneg _),
     rw [mul_assoc, mul_assoc],
-    refine mul_nonpos_of_nonpos_of_nonneg _ (by exact_mod_cast (nat.zero_le _)),
+    refine mul_nonpos_of_nonpos_of_nonneg _ (by positivity),
     exact mul_nonpos_of_nonneg_of_nonpos (by linarith) (pow_bit1_nonpos_iff.2 hε₀) },
   cases lt_or_le 1 ε with hε₁ hε₁,
   { apply le_trans _ (nat.cast_nonneg _),
     rw [mul_assoc, mul_assoc, mul_assoc],
-    exact mul_nonpos_of_nonpos_of_nonneg (by linarith)
-      (mul_nonneg (pow_nonneg hε₀.le _) (by exact_mod_cast (nat.zero_le _))) },
+    exact mul_nonpos_of_nonpos_of_nonneg (by linarith) (by positivity) },
   apply (G.triangle_counting hε₀ hε₁ dXY uXY dXZ uXZ dYZ uYZ).trans _,
   rw nat.cast_le,
   refine card_le_card_of_inj_on (λ xyz, {xyz.1, xyz.2.1, xyz.2.2}) _ _,
@@ -298,7 +295,7 @@ begin
   have i : (_ : ℝ) ≠ 0 := nat.cast_ne_zero.2 (P.parts_nonempty $
     univ_nonempty.ne_empty).card_pos.ne',
   rw [mul_div_assoc, div_add_same i, nat.cast_mul, nat.cast_add_one],
-  refine mul_le_mul _ _ (nat.cast_add_one_pos _).le (nat.cast_nonneg _),
+  refine mul_le_mul _ _ (by positivity) (by positivity),
   { rw [nat.cast_le, mul_comm],
     exact nat.div_mul_le_self _ _ },
   exact add_le_add_right nat.cast_div_le _,
@@ -323,8 +320,7 @@ begin
     exact mul_pos (nat.cast_pos.2 (P.nonempty_of_mem_parts hU).card_pos)
       (nat.cast_pos.2 (P.nonempty_of_mem_parts hV).card_pos) },
   apply (sum_le_sum this).trans,
-  refine (sum_le_sum_of_subset_of_nonneg (filter_subset _ _) $ λ i hi _, _).trans _,
-  { exact mul_nonneg hε (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) },
+  refine (sum_le_sum_of_subset_of_nonneg (filter_subset _ _) $ λ i hi _, by positivity).trans _,
   rw ←mul_sum,
   apply mul_le_mul_of_nonneg_left _ hε,
   refine (sum_le_card_nsmul P.parts.off_diag (λ i, (i.1.card * i.2.card : ℝ))
@@ -372,7 +368,7 @@ begin
   suffices : ε * ((card α) + P.parts.card)^2 ≤ ε * (card α + card α)^2,
   { exact this.trans (le_of_eq (by ring)) },
   apply mul_le_mul_of_nonneg_left _ hε.le,
-  refine pow_le_pow_of_le_left (by exact_mod_cast (nat.zero_le _)) _ _,
+  refine pow_le_pow_of_le_left (by positivity) _ _,
   exact add_le_add_left (nat.cast_le.2 P.card_parts_le_card) _,
 end
 
@@ -383,9 +379,9 @@ lemma sum_sparse {ε : ℝ} (hε : 0 ≤ ε) (P : finpartition univ) (hP : P.is_
 begin
   refine (sparse_card hP hε).trans _,
   suffices : ε * ((card α) + P.parts.card)^2 ≤ ε * (card α + card α)^2,
-  { exact this.trans (le_of_eq (by ring)) },
-  apply mul_le_mul_of_nonneg_left _ hε,
-  refine pow_le_pow_of_le_left (by exact_mod_cast (nat.zero_le _)) _ _,
+  { exact this.trans_eq (by ring) },
+  refine mul_le_mul_of_nonneg_left _ hε,
+  refine pow_le_pow_of_le_left (by positivity) _ _,
   exact add_le_add_left (nat.cast_le.2 P.card_parts_le_card) _,
 end
 
@@ -399,15 +395,15 @@ begin
   { rw two_mul,
     apply add_le_add_left,
     exact nat.cast_le.2 P.card_parts_le_card },
-  apply (mul_le_mul_of_nonneg_left this (nat.cast_nonneg _)).trans,
+  refine (mul_le_mul_of_nonneg_left this $ by positivity).trans _,
   suffices : 1 ≤ (ε/4) * P.parts.card,
   { rw [mul_left_comm, ←sq],
     convert mul_le_mul_of_nonneg_left this (mul_nonneg zero_le_two (sq_nonneg (card α))) using 1;
     ring },
+  have := P.parts_nonempty univ_nonempty.ne_empty,
   rwa [←div_le_iff', one_div_div],
   { linarith },
-  rw nat.cast_pos,
-  exact (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
+  { positivity }
 end
 
 end simple_graph

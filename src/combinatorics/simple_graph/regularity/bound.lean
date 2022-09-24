@@ -147,3 +147,21 @@ lemma le_bound : l ≤ bound ε l := (le_initial_bound ε l).trans $ initial_bou
 lemma bound_pos : 0 < bound ε l := (initial_bound_pos ε l).trans_le $ initial_bound_le_bound ε l
 
 end szemeredi_regularity
+
+namespace tactic
+open positivity szemeredi_regularity
+
+private lemma eps_pos {ε : ℝ} {n : ℕ} (h : 100 ≤ 4 ^ n * ε^5) : 0 < ε :=
+pow_bit1_pos_iff.1 $ pos_of_mul_pos_right (h.trans_lt' $ by norm_num) $ by positivity
+
+/-- Local extension for the `positivity` tactic: A few facts that are needed many times for the
+proof of Szemerédi's regularity lemma. -/
+meta def positivity_szemeredi_regularity : expr → tactic strictness
+| ε := do
+    typ ← infer_type ε,
+    unify typ `(ℝ),
+    e ← to_expr ``(100 ≤ 4 ^ _ * %%ε ^ 5),
+    p ← find_assumption e,
+    positive <$> mk_app ``eps_pos [p]
+
+end tactic

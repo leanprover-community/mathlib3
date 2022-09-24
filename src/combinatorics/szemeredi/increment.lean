@@ -150,13 +150,13 @@ begin
       ←pow_succ, div_eq_mul_one_div (ε^5), ←mul_sub_left_distrib],
     rw [mul_left_comm, mul_left_comm _ (ε^5), sq, mul_assoc, nat.cast_mul, mul_assoc],
     apply add_le_add_left,
-    apply mul_le_mul_of_nonneg_left _ (eps_pow_five_pos hPε).le,
+    apply mul_le_mul_of_nonneg_left _ (by positivity),
     refine mul_le_mul_of_nonneg_left _ (nat.cast_nonneg _),
     rw [nat.cast_sub (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos, mul_sub_right_distrib,
       nat.cast_one, one_mul, le_sub, ←mul_sub_left_distrib,
       ←div_le_iff (show (0:ℝ) < 1/3 - 1/25 - 1/4, by norm_num)],
-    refine le_trans (show _ ≤ (7:ℝ), by norm_num) (by exact_mod_cast hP₇) },
-  exact div_nonneg (pow_bit0_nonneg _ _) (by norm_num),
+    exact le_trans (show _ ≤ (7:ℝ), by norm_num) (by exact_mod_cast hP₇) },
+  positivity,
 end
 
 lemma energy_increment [nonempty α] (hP : P.is_equipartition) (hP₇ : 7 ≤ P.parts.card)

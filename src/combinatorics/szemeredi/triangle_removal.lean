@@ -41,7 +41,7 @@ lemma triangle_removal_bound_mul_cube_lt {ε : ℝ} (hε : 0 < ε) :
   (triangle_removal_bound ε) * ⌈4/ε⌉₊^3 < 1 :=
 begin
   have : triangle_removal_bound ε ≤ _ := min_le_left _ _,
-  apply (mul_le_mul_of_nonneg_right this (pow_nonneg (nat.cast_nonneg _) _)).trans_lt,
+  refine (mul_le_mul_of_nonneg_right this $ by positivity).trans_lt _,
   rw [←div_div, div_mul_cancel],
   { norm_num },
   apply ne_of_gt (pow_pos _ _),
@@ -82,23 +82,14 @@ begin
   have i := triangle_counting2 G (by rwa this) uXY dXY (by rwa this) uXZ dXZ (by rwa this) uYZ dYZ,
   apply le_trans _ i,
   rw [this, triangle_removal_bound],
-  refine (mul_le_mul_of_nonneg_right (min_le_right (_:ℝ) _) (pow_nonneg _ _)).trans _,
-  apply nat.cast_nonneg,
+  refine (mul_le_mul_of_nonneg_right (min_le_right (_:ℝ) _) $ by positivity).trans _,
   rw [mul_assoc, ←mul_pow, div_mul_eq_mul_div, (show (16:ℝ) = 8 * 2, by norm_num), mul_assoc (8:ℝ),
     ←div_mul_div_comm, mul_pow, ←mul_assoc],
   suffices : ((card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊)) ^ 3 ≤ X.card * Y.card * Z.card,
-  { refine (mul_le_mul_of_nonneg_left this (mul_nonneg _ _)).trans _,
-    { linarith },
-    { apply pow_nonneg,
-      apply div_nonneg hε.le,
-      norm_num },
-    apply le_of_eq,
-    ring },
+  { exact (mul_le_mul_of_nonneg_left this $ by positivity).trans_eq (by ring) },
   rw [pow_succ, sq, mul_assoc],
-  refine mul_le_mul (card_bound hP₁ hP₃ hX) _ (mul_nonneg _ _) (nat.cast_nonneg _),
-  refine mul_le_mul (card_bound hP₁ hP₃ hY) (card_bound hP₁ hP₃ hZ) _ (nat.cast_nonneg _),
-  all_goals
-  { exact div_nonneg (nat.cast_nonneg _) (mul_nonneg (by norm_num) $ nat.cast_nonneg _) }
+  refine mul_le_mul (card_bound hP₁ hP₃ hX) _ (by positivity) (by positivity),
+  exact mul_le_mul (card_bound hP₁ hP₃ hY) (card_bound hP₁ hP₃ hZ) (by positivity) (by positivity),
 end
 
 lemma reduced_edges_card_aux [nonempty α] {ε : ℝ} {P : finpartition (univ : finset α)} (hε : 0 < ε)

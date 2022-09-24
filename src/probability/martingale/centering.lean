@@ -12,20 +12,20 @@ import probability.martingale.basic
 Any `ℕ`-indexed stochastic process which is adapted and integrable can be written as the sum of a
 martingale and a predictable process. This result is also known as **Doob's decomposition theorem**.
 From a process `f`, a filtration `ℱ` and a measure `μ`, we define two processes
-`martingale_part ℱ μ f` and `predictable_part ℱ μ f`.
+`martingale_part f ℱ μ` and `predictable_part f ℱ μ`.
 
 ## Main definitions
 
-* `measure_theory.predictable_part ℱ μ f`: a predictable process such that
-  `f = predictable_part ℱ μ f + martingale_part ℱ μ f`
-* `measure_theory.martingale_part ℱ μ f`: a martingale such that
-  `f = predictable_part ℱ μ f + martingale_part ℱ μ f`
+* `measure_theory.predictable_part f ℱ μ`: a predictable process such that
+  `f = predictable_part f ℱ μ + martingale_part f ℱ μ`
+* `measure_theory.martingale_part f ℱ μ`: a martingale such that
+  `f = predictable_part f ℱ μ + martingale_part f ℱ μ`
 
 ## Main statements
 
-* `measure_theory.adapted_predictable_part`: `(λ n, predictable_part ℱ μ f (n+1))` is adapted. That
+* `measure_theory.adapted_predictable_part`: `(λ n, predictable_part f ℱ μ (n+1))` is adapted. That
   is, `predictable_part` is predictable.
-* `measure_theory.martingale_martingale_part`: `martingale_part ℱ μ f` is a martingale.
+* `measure_theory.martingale_martingale_part`: `martingale_part f ℱ μ` is a martingale.
 
 -/
 

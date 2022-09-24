@@ -211,10 +211,10 @@ lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : i
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
 let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) (λ i, (hZc i).is_open_compl)
   (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-    exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
+    exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using hsZ)
     in
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-    exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
+    exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using ht⟩
 
 /-- If `s` is a compact set in a topological space `α` and `f : ι → set α` is a locally finite
 family of sets, then `f i ∩ s` is nonempty only for a finitely many `i`. -/
@@ -333,10 +333,10 @@ is_compact_of_finite_subfamily_closed $
   assume ι Z hZc hsZ,
   let ⟨t, ht⟩ := h (λ i, (Z i)ᶜ) (assume i, is_open_compl_iff.mpr $ hZc i)
     (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-      exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
+      exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using hsZ)
       in
   ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-      exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
+      exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using ht⟩
 
 /-- A set `s` is compact if and only if
 for every open cover of `s`, there exists a finite subcover. -/
@@ -455,7 +455,7 @@ begin
       (λ i, (hV_cpct i).inter_right W_op.is_closed_compl)
       (λ i, (hV_closed i).inter W_op.is_closed_compl),
     rcases hV i j with ⟨k, hki, hkj⟩,
-    refine ⟨k, ⟨λ x, _, λ x, _⟩⟩ ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto },
+    refine ⟨k, ⟨λ x, _, λ x, _⟩⟩ ; simp only [and_imp, mem_inter_iff, mem_compl_iff] ; tauto },
   have : ¬ (⋂ (i : ι), V i) ⊆ W, by simpa [← Inter_inter, inter_compl_nonempty_iff],
   contradiction
 end
@@ -803,6 +803,9 @@ lemma is_compact_range [compact_space α] {f : α → β} (hf : continuous f) :
   is_compact (range f) :=
 by rw ← image_univ; exact compact_univ.image hf
 
+lemma is_compact_diagonal [compact_space α] : is_compact (diagonal α) :=
+@range_diag α ▸ is_compact_range (continuous_id.prod_mk continuous_id)
+
 /-- If X is is_compact then pr₂ : X × Y → Y is a closed map -/
 theorem is_closed_proj_of_is_compact
   {X : Type*} [topological_space X] [compact_space X]
@@ -948,7 +951,7 @@ begin
     rw compl_subset_comm at ⊢ hAt hBt',
     refine subset.trans _ (set.prod_mono hAt hBt'),
     intros x,
-    simp only [compl_union, mem_inter_eq, mem_prod, mem_preimage, mem_compl_eq],
+    simp only [compl_union, mem_inter_iff, mem_prod, mem_preimage, mem_compl_iff],
     tauto },
   { rintros ⟨t, ht, htS⟩,
     refine ⟨⟨(prod.fst '' t)ᶜ, _, _⟩, ⟨(prod.snd '' t)ᶜ, _, _⟩⟩,
@@ -1173,7 +1176,7 @@ begin
       { convert_to (⋂(U : {U // U ∈ c}), U.1ᶜ).nonempty,
         { ext,
           simp only [not_exists, exists_prop, not_and, set.mem_Inter, subtype.forall, mem_set_of_eq,
-            mem_compl_eq, mem_sUnion] },
+            mem_compl_iff, mem_sUnion] },
         apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
         { rintros ⟨U, hU⟩ ⟨U', hU'⟩,
           obtain ⟨V, hVc, hVU, hVU'⟩ := hz.directed_on U hU U' hU',
@@ -1387,7 +1390,7 @@ protected lemma is_clopen.is_closed (hs : is_clopen s) : is_closed s := hs.2
 
 lemma is_clopen_iff_frontier_eq_empty {s : set α} : is_clopen s ↔ frontier s = ∅ :=
 begin
-  rw [is_clopen, ← closure_eq_iff_is_closed, ← interior_eq_iff_open, frontier, diff_eq_empty],
+  rw [is_clopen, ← closure_eq_iff_is_closed, ← interior_eq_iff_is_open, frontier, diff_eq_empty],
   refine ⟨λ h, (h.2.trans h.1.symm).subset, λ h, _⟩,
   exact ⟨interior_subset.antisymm (subset_closure.trans h),
     (h.trans interior_subset).antisymm subset_closure⟩
@@ -1587,6 +1590,11 @@ theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
 by simpa only [univ_inter, univ_subset_iff] using
   @preirreducible_space.is_preirreducible_univ α _ _ s t
 
+/-- In a (pre)irreducible space, a nonempty open set is dense. -/
+protected theorem is_open.dense [preirreducible_space α] {s : set α} (ho : is_open s)
+  (hne : s.nonempty) : dense s :=
+dense_iff_inter_open.2 $ λ t hto htne, nonempty_preirreducible_inter hto ho htne hne
+
 theorem is_preirreducible.image {s : set α} (H : is_preirreducible s)
   (f : α → β) (hf : continuous_on f s) : is_preirreducible (f '' s) :=
 begin
@@ -1608,7 +1616,7 @@ end
 
 theorem is_irreducible.image {s : set α} (H : is_irreducible s)
   (f : α → β) (hf : continuous_on f s) : is_irreducible (f '' s) :=
-⟨nonempty_image_iff.mpr H.nonempty, H.is_preirreducible.image f hf⟩
+⟨H.nonempty.image _, H.is_preirreducible.image f hf⟩
 
 lemma subtype.preirreducible_space {s : set α} (h : is_preirreducible s) :
   preirreducible_space s :=
@@ -1629,6 +1637,17 @@ lemma subtype.irreducible_space {s : set α} (h : is_irreducible s) :
 { is_preirreducible_univ :=
   (subtype.preirreducible_space h.is_preirreducible).is_preirreducible_univ,
   to_nonempty := h.nonempty.to_subtype }
+
+/-- An infinite type with cofinite topology is an irreducible topological space. -/
+@[priority 100] instance {α} [infinite α] : irreducible_space (cofinite_topology α) :=
+{ is_preirreducible_univ := λ u v,
+    begin
+      haveI : infinite (cofinite_topology α) := ‹_›,
+      simp only [cofinite_topology.is_open_iff, univ_inter],
+      intros hu hv hu' hv',
+      simpa only [compl_union, compl_compl] using ((hu hu').union (hv hv')).infinite_compl.nonempty
+    end,
+  to_nonempty := (infer_instance : nonempty α) }
 
 /-- A set `s` is irreducible if and only if
 for every finite collection of open sets all of whose members intersect `s`,

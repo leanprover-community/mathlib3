@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Anne Baanen
 -/
 import algebra.order.field
+import algebra.order.hom.basic
 
 /-!
 # Absolute values
@@ -39,12 +40,26 @@ section semiring
 
 variables {R S : Type*} [semiring R] [ordered_semiring S] (abv : absolute_value R S)
 
-instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
+instance zero_hom_class : zero_hom_class (absolute_value R S) R S :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
-  map_mul := λ f, f.map_mul' }
+  map_zero := λ f, (f.eq_zero' _).2 rfl }
 
-instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_fun⟩
+instance mul_hom_class : mul_hom_class (absolute_value R S) R S :=
+{ map_mul := λ f, f.map_mul'
+  ..absolute_value.zero_hom_class }
+
+instance nonneg_hom_class : nonneg_hom_class (absolute_value R S) R S :=
+{ map_nonneg := λ f, f.nonneg',
+  ..absolute_value.zero_hom_class }
+
+instance subadditive_hom_class : subadditive_hom_class (absolute_value R S) R S :=
+{ map_add_le_add := λ f, f.add_le',
+  ..absolute_value.zero_hom_class }
+
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := fun_like.has_coe_to_fun
 
 @[simp] lemma coe_to_mul_hom : ⇑abv.to_mul_hom = abv := rfl
 

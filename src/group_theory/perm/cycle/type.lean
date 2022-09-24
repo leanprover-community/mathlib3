@@ -225,7 +225,7 @@ lemma is_cycle_of_prime_order {σ : perm α} (h1 : (order_of σ).prime)
 begin
   obtain ⟨n, hn⟩ := cycle_type_prime_order h1,
   rw [←σ.sum_cycle_type, hn, multiset.sum_repeat, nsmul_eq_mul, nat.cast_id, mul_lt_mul_right
-      (order_of_pos σ), nat.succ_lt_succ_iff, nat.lt_succ_iff, nat.le_zero_iff] at h2,
+      (order_of_pos σ), nat.succ_lt_succ_iff, nat.lt_succ_iff, le_zero_iff] at h2,
   rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 
@@ -302,6 +302,9 @@ begin
   { intros σ τ hd hc hσ hτ,
     rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
 end
+
+lemma cycle_type_of_subtype {p : α → Prop} [decidable_pred p] {g : perm (subtype p)}:
+  cycle_type (g.of_subtype) = cycle_type g := cycle_type_extend_domain (equiv.refl (subtype p))
 
 lemma mem_cycle_type_iff {n : ℕ} {σ : perm α} :
   n ∈ cycle_type σ ↔ ∃ c τ : perm α, σ = c * τ ∧ disjoint c τ ∧ is_cycle c ∧ c.support.card = n :=

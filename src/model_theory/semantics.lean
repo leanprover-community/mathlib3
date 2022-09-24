@@ -652,7 +652,8 @@ variable (M)
 def sentence.realize (φ : L.sentence) : Prop :=
 φ.realize (default : _ → M)
 
-infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := sentence.realize) ` ⊨ `:51 := sentence.realize
 
 @[simp] lemma sentence.realize_not {φ : L.sentence} :
   M ⊨ φ.not ↔ ¬ M ⊨ φ :=
@@ -673,8 +674,8 @@ variable (N)
 /-- Two structures are elementarily equivalent when they satisfy the same sentences. -/
 def elementarily_equivalent : Prop := L.complete_theory M = L.complete_theory N
 
-localized "notation A ` ≅[`:25 L `] ` B:50 := first_order.language.elementarily_equivalent L A B"
-  in first_order
+localized "notation (name := elementarily_equivalent) A ` ≅[`:25 L `] ` B:50 :=
+  first_order.language.elementarily_equivalent L A B" in first_order
 
 variables {L} {M} {N}
 
@@ -689,7 +690,8 @@ variables (M)
 class Theory.model (T : L.Theory) : Prop :=
 (realize_of_mem : ∀ φ ∈ T, M ⊨ φ)
 
-infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \models
+-- input using \|= or \vDash, but not using \models
+infix (name := Theory.model) ` ⊨ `:51 := Theory.model
 
 variables {M} (T : L.Theory)
 
@@ -717,7 +719,7 @@ lemma model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
 lemma model.union {T' : L.Theory} (h : M ⊨ T) (h' : M ⊨ T') :
   M ⊨ T ∪ T' :=
 begin
-  simp only [model_iff, set.mem_union_eq] at *,
+  simp only [model_iff, set.mem_union] at *,
   exact λ φ hφ, hφ.elim (h _) (h' _),
 end
 
@@ -732,6 +734,9 @@ by simp
 theorem model_iff_subset_complete_theory :
   M ⊨ T ↔ T ⊆ L.complete_theory M :=
 T.model_iff
+
+theorem complete_theory.subset [MT : M ⊨ T] : T ⊆ L.complete_theory M :=
+model_iff_subset_complete_theory.1 MT
 
 end Theory
 
@@ -927,7 +932,7 @@ lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : se
   M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
 begin
   simp only [distinct_constants_theory, Theory.model_iff, set.mem_image,
-    set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
+    set.mem_inter_iff, set.mem_prod, set.mem_compl_iff, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,
     have h' := h _ a b as bs ab rfl,

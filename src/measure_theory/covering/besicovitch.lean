@@ -602,7 +602,7 @@ begin
     { apply measurable_set.inter _ omeas,
       haveI : encodable (u i) := (u_count i).to_encodable,
       exact measurable_set.Union
-        (λ b, measurable_set.Union_Prop (λ hb, measurable_set_closed_ball)) },
+        (λ b, measurable_set.Union (λ hb, measurable_set_closed_ball)) },
     calc
     μ o = 1/(N+1) * μ s + N/(N+1) * μ s :
       by { rw [μo, ← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simp }

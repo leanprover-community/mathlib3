@@ -123,13 +123,14 @@ end
 
 variables [t2_space M] {v : vector_measure α M} {f : ℕ → set α}
 
-lemma has_sum_of_disjoint_Union [encodable β] {f : β → set α}
+lemma has_sum_of_disjoint_Union [countable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   has_sum (λ i, v (f i)) (v (⋃ i, f i)) :=
 begin
+  casesI nonempty_encodable β,
   set g := λ i : ℕ, ⋃ (b : β) (H : b ∈ encodable.decode₂ β i), f b with hg,
   have hg₁ : ∀ i, measurable_set (g i),
-  { exact λ _, measurable_set.Union (λ b, measurable_set.Union_Prop $ λ _, hf₁ b) },
+  { exact λ _, measurable_set.Union (λ b, measurable_set.Union $ λ _, hf₁ b) },
   have hg₂ : pairwise (disjoint on g),
   { exact encodable.Union_decode₂_disjoint_on hf₂ },
   have := v.of_disjoint_Union_nat hg₁ hg₂,
@@ -157,7 +158,7 @@ begin
       exact false.elim ((hx i) ((encodable.decode₂_is_partial_inv _ _).1 hi)) } }
 end
 
-lemma of_disjoint_Union [encodable β] {f : β → set α}
+lemma of_disjoint_Union [countable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   v (⋃ i, f i) = ∑' i, v (f i) :=
 (has_sum_of_disjoint_Union hf₁ hf₂).tsum_eq.symm
@@ -775,9 +776,9 @@ end
 
 end
 
-localized "notation v ` ≤[`:50 i:50 `] `:0 w:50 :=
-measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
-in measure_theory
+localized "notation (name := vector_measure.restrict) v ` ≤[`:50 i:50 `] `:0 w:50 :=
+  measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
+  in measure_theory
 
 section
 
@@ -882,10 +883,11 @@ begin
   { exact λ n, ha₁.inter (measurable_set.disjointed hf₁ n) }
 end
 
-lemma restrict_le_restrict_encodable_Union [encodable β] {f : β → set α}
+lemma restrict_le_restrict_countable_Union [countable β] {f : β → set α}
   (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v ≤[f b] w) :
   v ≤[⋃ b, f b] w :=
 begin
+  casesI nonempty_encodable β,
   rw ← encodable.Union_decode₂,
   refine restrict_le_restrict_Union v w _ _,
   { intro n, measurability },
@@ -901,7 +903,7 @@ lemma restrict_le_restrict_union
   v ≤[i ∪ j] w :=
 begin
   rw union_eq_Union,
-  refine restrict_le_restrict_encodable_Union v w _ _,
+  refine restrict_le_restrict_countable_Union v w _ _,
   { measurability },
   { rintro (_ | _); simpa }
 end
@@ -1007,7 +1009,8 @@ def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
 ∀ ⦃s : set α⦄, w s = 0 → v s = 0
 
 
-localized "infix ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
+localized "infix (name := vector_measure.absolutely_continuous)
+  ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
   in measure_theory
 
 open_locale measure_theory
@@ -1099,7 +1102,8 @@ to use. This is equivalent to the definition which requires measurability. To pr
 def mutually_singular (v : vector_measure α M) (w : vector_measure α N) : Prop :=
 ∃ (s : set α), measurable_set s ∧ (∀ t ⊆ s, v t = 0) ∧ (∀ t ⊆ sᶜ, w t = 0)
 
-localized "infix ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
+localized "infix (name := vector_measure.mutually_singular)
+  ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
 
 namespace mutually_singular
 

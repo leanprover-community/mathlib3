@@ -17,7 +17,6 @@ definitions.
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
-noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
@@ -185,7 +184,7 @@ instance : non_unital_semi_normed_ring (ulift α) :=
 
 /-- Non-unital seminormed ring structure on the product of two non-unital seminormed rings,
   using the sup norm. -/
-instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
+noncomputable instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
   non_unital_semi_normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
@@ -202,7 +201,7 @@ instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
 
 /-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
 rings, using the sup norm. -/
-instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
+noncomputable instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
   [Π i, non_unital_semi_normed_ring (π i)] :
   non_unital_semi_normed_ring (Π i, π i) :=
 { norm_mul := λ x y, nnreal.coe_mono $
@@ -315,14 +314,15 @@ instance : semi_normed_ring (ulift α) :=
 
 /-- Seminormed ring structure on the product of two seminormed rings,
   using the sup norm. -/
-instance prod.semi_normed_ring [semi_normed_ring β] :
+noncomputable instance prod.semi_normed_ring [semi_normed_ring β] :
   semi_normed_ring (α × β) :=
 { ..prod.non_unital_semi_normed_ring,
   ..prod.seminormed_add_comm_group, }
 
 /-- Seminormed ring structure on the product of finitely many seminormed rings,
   using the sup norm. -/
-instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
+noncomputable instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, semi_normed_ring (π i)] :
   semi_normed_ring (Π i, π i) :=
 { ..pi.non_unital_semi_normed_ring,
   ..pi.seminormed_add_comm_group, }
@@ -338,13 +338,15 @@ instance : non_unital_normed_ring (ulift α) :=
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
-instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_normed_ring (α × β) :=
+noncomputable instance prod.non_unital_normed_ring [non_unital_normed_ring β] :
+  non_unital_normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.seminormed_add_comm_group }
 
 /-- Normed ring structure on the product of finitely many non-unital normed rings, using the sup
 norm. -/
-instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_unital_normed_ring (π i)] :
+noncomputable instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, non_unital_normed_ring (π i)] :
   non_unital_normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
@@ -366,12 +368,12 @@ instance : normed_ring (ulift α) :=
   .. ulift.normed_add_comm_group }
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
-instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
+noncomputable instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.normed_add_comm_group }
 
 /-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
-instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
+noncomputable instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
@@ -479,6 +481,23 @@ begin
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
   refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
   simp,
+end
+
+lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
+  ∥x∥ = 1 :=
+begin
+  rw ( _ :  ∥x∥ = 1 ↔ ∥x∥₊ = 1),
+  apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
+  { rw [← nnnorm_pow, one_pow, h, nnnorm_one], },
+  { exact subtype.mk_eq_mk.symm, },
+end
+
+lemma norm_map_one_of_pow_eq_one [comm_monoid β] (φ : β →* α) {x : β} {k : ℕ+}
+  (h : x ^ (k : ℕ) = 1) :
+  ∥φ x∥ = 1 :=
+begin
+  have : (φ x) ^ (k : ℕ) = 1 := by rw [← monoid_hom.map_pow, h, monoid_hom.map_one],
+  exact norm_one_of_pow_eq_one this,
 end
 
 end normed_division_ring
@@ -599,11 +618,16 @@ end densely
 
 end normed_field
 
-instance : normed_field ℝ :=
+instance : normed_comm_ring ℝ :=
+{ norm_mul := λ x y, (abs_mul x y).le,
+  .. real.normed_add_comm_group,
+  .. real.comm_ring }
+
+noncomputable instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_add_comm_group }
 
-instance : densely_normed_field ℝ :=
+noncomputable instance : densely_normed_field ℝ :=
 { lt_norm_lt := λ _ _ h₀ hr, let ⟨x, h⟩ := exists_between hr in
     ⟨x, by rwa [real.norm_eq_abs, abs_of_nonneg (h₀.trans h.1.le)]⟩ }
 

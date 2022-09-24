@@ -335,7 +335,7 @@ begin
   { rw [ht1_eq, ht2_eq],
     simp_rw [← set.inf_eq_inter, g],
     ext1 x,
-    simp only [inf_eq_inter, mem_inter_eq, mem_Inter, finset.mem_union],
+    simp only [inf_eq_inter, mem_inter_iff, mem_Inter, finset.mem_union],
     refine ⟨λ h i hi_mem_union, _, λ h, ⟨λ i hi1, _, λ i hi2, _⟩⟩,
     { split_ifs,
       exacts [⟨h.1 i h_1, h.2 i h_2⟩, ⟨h.1 i h_1, set.mem_univ _⟩,
@@ -471,9 +471,9 @@ lemma has_compl_iff {a} : d.has aᶜ ↔ d.has a :=
 lemma has_univ : d.has univ :=
 by simpa using d.has_compl d.has_empty
 
-theorem has_Union {β} [encodable β] {f : β → set α}
-  (hd : pairwise (disjoint on f)) (h : ∀ i, d.has (f i)) : d.has (⋃ i, f i) :=
-by { rw ← encodable.Union_decode₂, exact
+lemma has_Union {β} [countable β] {f : β → set α} (hd : pairwise (disjoint on f))
+  (h : ∀ i, d.has (f i)) : d.has (⋃ i, f i) :=
+by { casesI nonempty_encodable β, rw ← encodable.Union_decode₂, exact
   d.has_Union_nat (encodable.Union_decode₂_disjoint_on hd)
     (λ n, encodable.Union_decode₂_cases d.has_empty h) }
 

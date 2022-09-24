@@ -1036,7 +1036,7 @@ end
 lemma injective_piecewise_iff {f g : α → β} :
   injective (s.piecewise f g) ↔ inj_on f s ∧ inj_on g sᶜ ∧ (∀ (x ∈ s) (y ∉ s), f x ≠ g y) :=
 begin
-  rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ s _),
+  rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ _ s),
     (piecewise_eq_on s f g).inj_on_iff, (piecewise_eq_on_compl s f g).inj_on_iff],
   refine and_congr iff.rfl (and_congr iff.rfl $ forall₄_congr $ λ x hx y hy, _),
   rw [piecewise_eq_of_mem s f g hx, piecewise_eq_of_not_mem s f g hy]
@@ -1052,7 +1052,7 @@ by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
   pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
 begin
   ext x,
-  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  simp only [mem_pi, mem_inter_iff, ← forall_and_distrib],
   refine forall_congr (λ i, _),
   by_cases hi : i ∈ s'; simp *
 end

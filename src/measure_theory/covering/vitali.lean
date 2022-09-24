@@ -373,7 +373,7 @@ begin
     have k_closed : is_closed k :=
       is_closed_bUnion w.finite_to_set (λ i hi, h't _ (ut (vu i.2))),
     have z_notmem_k : z ∉ k,
-    { simp only [not_exists, exists_prop, mem_Union, mem_sep_eq, forall_exists_index,
+    { simp only [not_exists, exists_prop, mem_Union, mem_sep_iff, forall_exists_index,
         set_coe.exists, not_and, exists_and_distrib_right, subtype.coe_mk],
       assume b hbv h'b h'z,
       have : z ∈ (s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ (⋃ (a : set α) (H : a ∈ u), a) :=

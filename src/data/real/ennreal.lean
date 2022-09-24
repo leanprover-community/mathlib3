@@ -81,8 +81,8 @@ variables {α : Type*} {β : Type*}
   linear_ordered_add_comm_monoid_with_top]]
 def ennreal := with_top ℝ≥0
 
-localized "notation `ℝ≥0∞` := ennreal" in ennreal
-localized "notation `∞` := (⊤ : ennreal)" in ennreal
+localized "notation (name := ennreal) `ℝ≥0∞` := ennreal" in ennreal
+localized "notation (name := ennreal.top) `∞` := (⊤ : ennreal)" in ennreal
 
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
@@ -211,7 +211,7 @@ lemma coe_mono : monotone (coe : ℝ≥0 → ℝ≥0∞) := λ _ _, coe_le_coe.2
 @[simp, norm_cast] lemma zero_eq_coe : 0 = (↑r : ℝ≥0∞) ↔ 0 = r := coe_eq_coe
 @[simp, norm_cast] lemma coe_eq_one : (↑r : ℝ≥0∞) = 1 ↔ r = 1 := coe_eq_coe
 @[simp, norm_cast] lemma one_eq_coe : 1 = (↑r : ℝ≥0∞) ↔ 1 = r := coe_eq_coe
-@[simp, norm_cast] lemma coe_nonneg : 0 ≤ (↑r : ℝ≥0∞) ↔ 0 ≤ r := coe_le_coe
+@[simp] lemma coe_nonneg : 0 ≤ (↑r : ℝ≥0∞) := coe_le_coe.2 $ zero_le _
 @[simp, norm_cast] lemma coe_pos : 0 < (↑r : ℝ≥0∞) ↔ 0 < r := coe_lt_coe
 lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
 
@@ -1549,6 +1549,18 @@ lemma to_real_max (hr : a ≠ ∞) (hp : b ≠ ∞) :
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, max_eq_right])
   (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, max_eq_left])
 
+lemma to_real_min {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞) :
+  ennreal.to_real (min a b) = min (ennreal.to_real a) (ennreal.to_real b) :=
+(le_total a b).elim
+  (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, min_eq_left])
+  (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, min_eq_right])
+
+lemma to_real_sup {a b : ℝ≥0∞}
+  : a ≠ ∞ → b ≠ ∞ → (a ⊔ b).to_real = a.to_real ⊔ b.to_real := to_real_max
+
+lemma to_real_inf {a b : ℝ≥0∞}
+  : a ≠ ∞ → b ≠ ∞ → (a ⊓ b).to_real = a.to_real ⊓ b.to_real := to_real_min
+
 lemma to_nnreal_pos_iff : 0 < a.to_nnreal ↔ (0 < a ∧ a < ∞) :=
 by { induction a using with_top.rec_top_coe; simp }
 
@@ -1919,3 +1931,20 @@ by simpa only [image_image] using h.image_real_to_nnreal.image_coe_nnreal_ennrea
 
 end ord_connected
 end set
+
+namespace tactic
+open positivity
+
+private lemma nnreal_coe_pos {r : ℝ≥0} : 0 < r → 0 < (r : ℝ≥0∞) := ennreal.coe_pos.2
+
+/-- Extension for the `positivity` tactic: cast from `ℝ≥0` to `ℝ≥0∞`. -/
+@[positivity]
+meta def positivity_coe_nnreal_ennreal : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  unify inst `(@coe_to_lift _ _ $ @coe_base _ _ ennreal.has_coe),
+  positive p ← core a, -- We already know `0 ≤ r` for all `r : ℝ≥0∞`
+  positive <$> mk_app ``nnreal_coe_pos [p]
+| e := pp e >>= fail ∘ format.bracket "The expression "
+         " is not of the form `(r : ℝ≥0∞)` for `r : ℝ≥0`"
+
+end tactic

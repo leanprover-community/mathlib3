@@ -42,7 +42,7 @@ end
 
 /-- Let `f : α → β` be a function from a linear order `α` to a topological_space `β`, and
 let `a : α`. The limit strictly to the right of `f` at `a`, denoted with `right_lim f a`, is defined
-by using the order topology on `α`. If `a` is isolated to its left or the function has no right
+by using the order topology on `α`. If `a` is isolated to its right or the function has no right
 limit, , we use `f a` instead to guarantee a good behavior in most cases. -/
 noncomputable def function.right_lim (f : α → β) (a : α) : β :=
 @function.left_lim αᵒᵈ β  _ _ f a
@@ -214,8 +214,6 @@ begin
   reached by `f`. This gives a family of disjoint open intervals in `β`. Such a family can only
   be countable as `β` is second-countable. -/
   nontriviality α,
-  inhabit α,
-  haveI : nonempty β := ⟨f default⟩,
   let s := {x | ¬(continuous_within_at f (Ioi x) x)},
   have : ∀ x, x ∈ s → ∃ z, f x < z ∧ ∀ y, x < y → z ≤ f y,
   { rintros x (hx : ¬(continuous_within_at f (Ioi x) x)),

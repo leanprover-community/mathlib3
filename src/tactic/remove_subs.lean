@@ -77,7 +77,7 @@ swap,
 -- on the branch where `∃ c, a = b + c`...
   get_local exis >>= λ x, cases x [var, ide],
   -- either substitute `a = b + c` or rewrite `a`, after which simplify the subtraction `b + c - b`
-  get_local ide >>= (λ x, subst x <|> rw_at lo x),
+  get_local ide >>= λ x, subst x <|> rw_at lo x,
   vare ← get_local var,
   to_expr ``(add_tsub_cancel_left %%b %%vare) >>= rw_at lo,
 swap

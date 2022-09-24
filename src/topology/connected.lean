@@ -745,7 +745,7 @@ lemma connected_space_iff_connected_component :
   connected_space α ↔ ∃ x : α, connected_component x = univ :=
 begin
   split,
-  { rintros ⟨h, ⟨x⟩⟩,
+  { rintro> ⟨⟨x⟩⟩,
     exactI ⟨x, eq_univ_of_univ_subset $
       is_preconnected_univ.subset_connected_component (mem_univ x)⟩ },
   { rintros ⟨x, h⟩,

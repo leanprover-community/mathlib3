@@ -122,7 +122,7 @@ lemma comp_sort_eq_comp_iff_monotone :
   f ∘ σ = f ∘ sort f ↔ monotone (f ∘ σ) :=
 ⟨λ h, h.symm ▸ monotone_sort f, λ h, unique_monotone h (monotone_sort f)⟩
 
-/-- The sorted versions of a tuple `f` and of any permutation of it agree. -/
+/-- The sorted versions of a tuple `f` and of any permutation of `f` agree. -/
 lemma comp_perm_comp_sort_eq_comp_sort : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
   rw [function.comp.assoc, ← equiv.perm.coe_mul],
@@ -135,7 +135,7 @@ lemma antitone_pair_of_not_sorted' (h : f ∘ σ ≠ f ∘ sort f) :
   ∃ i j, i < j ∧ (f ∘ σ) j < (f ∘ σ) i :=
 by { contrapose! h, exact comp_sort_eq_comp_iff_monotone.mpr (monotone_iff_forall_lt.mpr h) }
 
-/-- If the tuple `f` is not the same as `f ∘ sort f`, then it has a pair of strictly decreasing
+/-- If the tuple `f` is not the same as `f ∘ sort f`, then `f` has a pair of strictly decreasing
 entries. -/
 lemma antitone_pair_of_not_sorted (h : f ≠ f ∘ sort f) : ∃ i j, i < j ∧ f j < f i :=
 antitone_pair_of_not_sorted' (id h : f ∘ equiv.refl _ ≠ _)

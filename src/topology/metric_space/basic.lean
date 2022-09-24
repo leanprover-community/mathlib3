@@ -1809,7 +1809,28 @@ local attribute [-instance] Pi.uniform_space
 local attribute [instance] uniform_convergence.topological_space
 
 /-- For a family of functions between (pseudo) metric spaces, a convenient way to prove
-uniform equicontinuity is to show that all of the functions share a common continuity
+equicontinuity at a point is to show that all of the functions share a common *local* continuity
+modulus. -/
+lemma equicontinuous_at_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] {x₀ : α}
+  (b : α → ℝ)
+  (b_lim : tendsto b (𝓝 x₀) (𝓝 0))
+  (F : ι → α → β)
+  (H : ∀(x:α) i, dist (F i x₀) (F i x) ≤ b x) :
+  equicontinuous_at F x₀ :=
+begin
+  rw metric.equicontinuous_at_iff,
+  intros ε ε0,
+  rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
+  refine ⟨δ, δ0, λ x hx i, _⟩,
+  calc
+    dist (F i x₀) (F i x) ≤ b x : H x i
+    ... ≤ |b x| : le_abs_self _
+    ... = dist (b x) 0 : by simp [real.dist_eq]
+    ... < ε : hδ (by simpa only [real.dist_eq, tsub_zero, abs_dist] using hx)
+end
+
+/-- For a family of functions between (pseudo) metric spaces, a convenient way to prove
+uniform equicontinuity is to show that all of the functions share a common *global* continuity
 modulus. -/
 lemma uniform_equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
   (b_lim : tendsto b (𝓝 0) (𝓝 0))
@@ -1829,7 +1850,7 @@ begin
 end
 
 /-- For a family of functions between (pseudo) metric spaces, a convenient way to prove
-equicontinuity is to show that all of the functions share a common continuity modulus. -/
+equicontinuity is to show that all of the functions share a common *global* continuity modulus. -/
 lemma equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
   (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (F : ι → α → β)

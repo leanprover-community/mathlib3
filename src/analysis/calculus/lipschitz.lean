@@ -9,7 +9,7 @@ import analysis.calculus.deriv
 open_locale big_operators nnreal ennreal
 open set
 
-variables {E : Type*} [pseudo_emetric_space E]
+variables {E : Type*} [pseudo_emetric_space E] {F : Type*} [pseudo_metric_space F]
 
 /-- The (extended real valued) variation of a function `f` on a set `s` is the supremum of the
 sum of `edist (f (u (i+1))) (f (u i))` over all finite increasing sequences `u` in `s`. -/
@@ -117,6 +117,46 @@ begin
   rintros ⟨n, ⟨u, hu, ut⟩⟩,
   have : ∀ i, u i = u 0, from λ i, hs (ut _) (ut _),
   simp [subtype.coe_mk, le_zero_iff, finset.sum_eq_zero_iff, finset.mem_range, this],
+end
+
+lemma edist_le (f : ℝ → E) {s : set ℝ} {x y : ℝ} (hx : x ∈ s) (hy : y ∈ s) :
+  edist (f x) (f y) ≤ evariation_on f s :=
+begin
+  wlog hxy : x ≤ y := le_total x y using [x y, y x] tactic.skip, swap,
+  { assume hx hy,
+    rw edist_comm,
+    exact this hy hx },
+  let u : ℕ → ℝ := λ n, if n = 0 then x else y,
+  have hu : monotone u,
+  { assume m n hmn,
+    dsimp only [u],
+    split_ifs,
+    exacts [le_rfl, hxy, by linarith [pos_iff_ne_zero.2 h], le_rfl] },
+  have us : ∀ i, u i ∈ s,
+  { assume i,
+    dsimp only [u],
+    split_ifs,
+    exacts [hx, hy] },
+  convert sum_le f 1 hu us,
+  simp [u, edist_comm],
+end
+
+lemma dist_le (f : ℝ → F) {s : set ℝ} {x y : ℝ} (hx : x ∈ s) (hy : y ∈ s)
+  (h : evariation_on f s ≠ ∞):
+  dist (f x) (f y) ≤ (evariation_on f s).to_real :=
+begin
+  rw [← ennreal.of_real_le_of_real_iff ennreal.to_real_nonneg, ennreal.of_real_to_real h,
+      ← edist_dist],
+  exact edist_le f hx hy
+end
+
+lemma sub_le (f : ℝ → ℝ) {s : set ℝ} {x y : ℝ} (hx : x ∈ s) (hy : y ∈ s)
+  (h : evariation_on f s ≠ ∞):
+  f x - f y ≤ (evariation_on f s).to_real :=
+begin
+  apply (le_abs_self _).trans,
+  rw ← real.dist_eq,
+  exact dist_le f hx hy h
 end
 
 /-- Consider a monotone function `u` parameterizing some points of a set `s`. Given `x ∈ s`, then
@@ -366,7 +406,7 @@ end
 
 /-- If a set `s` is to the left of a set `t`, and both contain the boundary point `x`, then
 the variation of `f` along `s ∪ t` is the sum of the variations. -/
-lemma evariation_on.union (f : ℝ → E) {s t : set ℝ} {x : ℝ}
+lemma union (f : ℝ → E) {s t : set ℝ} {x : ℝ}
   (hs : s ⊆ Iic x) (h's : x ∈ s) (ht : t ⊆ Ici x) (h't : x ∈ t) :
   evariation_on f (s ∪ t) = evariation_on f s + evariation_on f t :=
 begin
@@ -407,8 +447,55 @@ begin
   end
 end
 
+lemma Icc_add_Icc (f : ℝ → E) {s : set ℝ} {a b c : ℝ}
+  (hab : a ≤ b) (hbc : b ≤ c) (hb : b ∈ s) :
+  evariation_on f (s ∩ Icc a b) + evariation_on f (s ∩ Icc b c) = evariation_on f (s ∩ Icc a c) :=
+begin
+  have A : s ∩ Icc a b ⊆ Iic b, from (inter_subset_right _ _).trans (Icc_subset_Iic_self),
+  have B : s ∩ Icc b c ⊆ Ici b, from (inter_subset_right _ _).trans (Icc_subset_Ici_self),
+  rw [← evariation_on.union f A ⟨hb, hab, le_rfl⟩ B ⟨hb, le_rfl, hbc⟩, ← inter_union_distrib_left,
+      Icc_union_Icc_eq_Icc hab hbc]
+end
+
+lemma exists_monotone_sub_monotone (f : ℝ → ℝ) {s : set ℝ}
+  (h : ∀ a b, evariation_on f (s ∩ (Icc a b)) ≠ ∞) :
+  ∃ (p q : ℝ → ℝ), monotone_on p s ∧ monotone_on q s ∧ ∀ x, f x = p x - q x :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|hs,
+  { exact ⟨f, 0, subsingleton_empty.monotone_on _, subsingleton_empty.monotone_on _,
+            λ x, by simp only [pi.zero_apply, tsub_zero]⟩ },
+  rcases hs with ⟨c, cs⟩,
+  let p := λ x, if c ≤ x then (evariation_on f (s ∩ Icc c x)).to_real
+    else -(evariation_on f (s ∩ Icc x c)).to_real,
+  have hp : monotone_on p s,
+  sorry { assume x hx y hy hxy,
+    dsimp only [p],
+    split_ifs with hcx hcy hw,
+    { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
+        = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy hx,
+      rw [← this, ennreal.to_real_add (h c x) (h x y)],
+      exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg },
+    { linarith },
+    { exact (neg_nonpos.2 ennreal.to_real_nonneg).trans ennreal.to_real_nonneg },
+    { simp only [neg_le_neg_iff],
+      have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
+        = evariation_on f (s ∩ Icc x c), from Icc_add_Icc f hxy (not_le.1 hw).le hy,
+      rw [← this, ennreal.to_real_add (h x y) (h y c), add_comm],
+      exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg } },
+  have hq : monotone_on (λ x, p x - f x) s,
+  { assume x hx y hy hxy,
+    dsimp only [p],
+    split_ifs with hcx hcy hw,
+    { simp only [tsub_le_iff_right],
+      have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
+        = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy hx,
+      rw [← this, ennreal.to_real_add (h c x) (h x y)],
+      suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
+      exact sub_le f ⟨hy, hxy, le_rfl⟩ ⟨hx, le_rfl, hxy⟩ (h x y) }
 
 
+  }
+end
 
 
 

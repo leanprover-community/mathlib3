@@ -123,7 +123,8 @@ lemma comp_sort_eq_comp_iff_monotone {σ : equiv.perm (fin n)} :
 ⟨λ h, h.symm ▸ monotone_sort f, λ h, unique_monotone h (monotone_sort f)⟩
 
 /-- The sorted versions of a tuple `f` and any permutation of it agree. -/
-lemma sort_absorb {σ : equiv.perm (fin n)} : (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
+lemma comp_perm_comp_sort_eq_comp_sort {σ : equiv.perm (fin n)} :
+  (f ∘ σ) ∘ (sort (f ∘ σ)) = f ∘ sort f :=
 begin
   rw [function.comp.assoc, ← equiv.perm.coe_mul],
   exact unique_monotone (monotone_sort (f ∘ σ)) (monotone_sort f),

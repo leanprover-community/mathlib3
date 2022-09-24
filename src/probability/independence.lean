@@ -587,7 +587,8 @@ begin
     { exact λ f hf, measurable_set.Union hf, },},
 end
 
-lemma indep_iff_forall_indep_set {m₁ m₂ m0 : measurable_space Ω} {μ : measure Ω} :
+lemma indep_iff_forall_indep_set (m₁ m₂ : measurable_space Ω) {m0 : measurable_space Ω}
+  (μ : measure Ω) :
   indep m₁ m₂ μ ↔ ∀ s t, measurable_set[m₁] s → measurable_set[m₂] t → indep_set s t μ :=
 ⟨λ h, λ s t hs ht, h.indep_set_of_measurable_set hs ht,
   λ h s t hs ht, h s t hs ht s t (measurable_set_generate_from (set.mem_singleton s))

@@ -106,14 +106,20 @@ instance groupoid_prod {α : Type u} {β : Type v} [groupoid.{u₂} α] [groupoi
   groupoid.{max u₂ v₂} (α × β) :=
 { inv := λ (x y : α × β) (f : x ⟶ y), (groupoid.inv f.1, groupoid.inv f.2) }
 
-@[simp] lemma groupoid.inv_id {V : Type*} [G : groupoid V] (v : V) :
-  G.inv (𝟙 v) = 𝟙 v :=
-calc G.inv (𝟙 v)
-   = (G.inv (𝟙 v)) ≫ (𝟙 v) : (category.comp_id (G.inv (𝟙 v))).symm
-...= 𝟙 v                   : groupoid.inv_comp' (𝟙 v)
+end
 
-@[simp] lemma groupoid.inv_of_comp {V : Type*} [G : groupoid V]
-  {u v w : V} (f : u ⟶ v) (g : v ⟶ w) : G.inv (f ≫ g) = (G.inv g) ≫ (G.inv f) :=
+section
+
+variables {C : Type u}
+
+@[simp] lemma groupoid.inv_id  [G : groupoid.{v} C] (X : C) :
+  G.inv (𝟙 X) = 𝟙 X :=
+calc G.inv (𝟙 X)
+   = (G.inv (𝟙 X)) ≫ (𝟙 X) : (category.comp_id (G.inv (𝟙 _))).symm
+...= 𝟙 X                   : groupoid.inv_comp' (𝟙 _)
+
+@[simp] lemma groupoid.inv_of_comp  [G : groupoid.{v} C]
+  {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : G.inv (f ≫ g) = (G.inv g) ≫ (G.inv f) :=
 ( calc (G.inv g) ≫ (G.inv f)
      = (G.inv g) ≫ (G.inv f) ≫ (f ≫ g) ≫ (G.inv $ f ≫ g) : by simp
   ...= (G.inv g) ≫ g ≫ (G.inv $ f ≫ g) : by { rw category.assoc, nth_rewrite 1 ←category.assoc,
@@ -121,18 +127,18 @@ calc G.inv (𝟙 v)
   ...= G.inv (f ≫ g) : by { rw ←category.assoc, simp, }
 ).symm
 
-@[simp] lemma groupoid.inv_inv {V : Type*} [G : groupoid V] (u v : V) (f : u ⟶ v) :
+@[simp] lemma groupoid.inv_inv  [G : groupoid.{v} C] (X Y : C) (f : X ⟶ Y) :
   G.inv (G.inv f) = f :=
 calc G.inv (G.inv f)
-   = (G.inv (G.inv f)) ≫ (𝟙 v) : by rw category.comp_id
+   = (G.inv (G.inv f)) ≫ (𝟙 _) : by rw category.comp_id
 ...= (G.inv (G.inv f)) ≫ (G.inv f ≫ f) : by rw ←groupoid.inv_comp
 ...= (G.inv (G.inv f) ≫ G.inv f) ≫ f : by rw ←category.assoc
-...= (𝟙 u) ≫ f : by rw groupoid.inv_comp
+...= (𝟙 _) ≫ f : by rw groupoid.inv_comp
 ...= f : by rw category.id_comp
 
 @[simp]
-lemma groupoid.functor_map_inv  {C D : Type*} [G : groupoid C] [H : groupoid D] (φ : C ⥤ D)
-  {c d : C} (f : c ⟶ d) :
+lemma groupoid.functor_map_inv  [G : groupoid.{v} C] {D : Type u₂} [H : groupoid.{v₂} D]
+  (φ : C ⥤ D) {c d : C} (f : c ⟶ d) :
   φ.map (G.inv f) = H.inv (φ.map f) :=
 calc φ.map (G.inv f)
    = ((φ.map $ G.inv f) ≫ (φ.map f)) ≫ (H.inv $ φ.map f) : by simp

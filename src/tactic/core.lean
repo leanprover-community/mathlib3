@@ -1219,6 +1219,17 @@ do r ← decorate_ex "iterate1 failed: tactic did not succeed" t,
    L ← iterate t,
    return (r :: L)
 
+/--  A simple check: `check_target_changes tac` applies tactic `tac` and fails if the main target
+before applying the tactic `tac` unifies with one of the goals produced by the tactic itself.
+Useful to make sure that the tactic `tac` is actually making progress. -/
+meta def check_target_changes (tac : tactic α) : tactic α :=
+focus1 $ do
+  t ← target,
+  x ← tac,
+  gs ← get_goals >>= list.mmap infer_type,
+  (success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
+  pure x
+
 /-- Introduces one or more variables and returns the new local constants.
 Fails if `intro` cannot be applied. -/
 meta def intros1 : tactic (list expr) :=

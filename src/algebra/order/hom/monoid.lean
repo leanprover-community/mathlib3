@@ -172,10 +172,9 @@ lemma map_nonpos (ha : a ≤ 0) : f a ≤ 0 := by { rw ←map_zero f, exact orde
 end ordered_add_comm_monoid
 
 section ordered_add_comm_group
-variables [ordered_add_comm_group α]
 
-section
-variables [ordered_add_comm_monoid β] [add_monoid_hom_class F α β] (f : F)
+variables [ordered_add_comm_group α]
+  [ordered_add_comm_monoid β] [add_monoid_hom_class F α β] (f : F)
 
 lemma monotone_iff_map_nonneg : monotone (f : α → β) ↔ ∀ a, 0 ≤ a → 0 ≤ f a :=
 ⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
@@ -188,10 +187,7 @@ antitone_comp_of_dual_iff.symm.trans $ antitone_iff_map_nonpos _
 lemma antitone_iff_map_nonneg : antitone (f : α → β) ↔ ∀ a ≤ 0, 0 ≤ f a :=
 monotone_comp_of_dual_iff.symm.trans $ monotone_iff_map_nonneg _
 
-end
-
-section
-variables [ordered_cancel_add_comm_monoid β] [add_monoid_hom_class F α β] (f : F)
+variable [covariant_class β β (+) (<)]
 
 lemma strict_mono_iff_map_pos : strict_mono (f : α → β) ↔ ∀ a, 0 < a → 0 < f a :=
 ⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
@@ -203,8 +199,6 @@ lemma strict_mono_iff_map_neg : strict_mono (f : α → β) ↔ ∀ a < 0, f a <
 strict_anti_comp_of_dual_iff.symm.trans $ strict_anti_iff_map_neg _
 lemma strict_anti_iff_map_pos : strict_anti (f : α → β) ↔ ∀ a < 0, 0 < f a :=
 strict_mono_comp_of_dual_iff.symm.trans $ strict_mono_iff_map_pos _
-
-end
 
 end ordered_add_comm_group
 

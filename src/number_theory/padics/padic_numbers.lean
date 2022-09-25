@@ -669,7 +669,7 @@ instance : has_dist ℚ_[p] := ⟨λ x y, padic_norm_e (x - y)⟩
 instance : metric_space ℚ_[p] :=
 { dist_self := by simp [dist],
   dist := dist,
-  dist_comm := λ x y, by unfold dist; rw ← padic_norm_e.neg (x - y); simp,
+  dist_comm := λ x y, by simp [dist, ←padic_norm_e.map_neg (x - y)],
   dist_triangle :=
     begin
       intros, unfold dist,

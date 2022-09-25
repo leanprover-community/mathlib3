@@ -118,42 +118,4 @@ instance groupoid_prod {α : Type u} {β : Type v} [groupoid.{u₂} α] [groupoi
 
 end
 
-section
-
-variables {C : Type u}
-
-@[simp] lemma groupoid.inv_id  [G : groupoid.{v} C] (X : C) :
-  G.inv (𝟙 X) = 𝟙 X :=
-calc G.inv (𝟙 X)
-   = (G.inv (𝟙 X)) ≫ (𝟙 X) : (category.comp_id (G.inv (𝟙 _))).symm
-...= 𝟙 X                   : groupoid.inv_comp' (𝟙 _)
-
-@[simp] lemma groupoid.inv_of_comp  [G : groupoid.{v} C]
-  {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : G.inv (f ≫ g) = (G.inv g) ≫ (G.inv f) :=
-( calc (G.inv g) ≫ (G.inv f)
-     = (G.inv g) ≫ (G.inv f) ≫ (f ≫ g) ≫ (G.inv $ f ≫ g) : by simp
-  ...= (G.inv g) ≫ g ≫ (G.inv $ f ≫ g) : by { rw category.assoc, nth_rewrite 1 ←category.assoc,
-                                               simp, }
-  ...= G.inv (f ≫ g) : by { rw ←category.assoc, simp, }
-).symm
-
-@[simp] lemma groupoid.inv_inv  [G : groupoid.{v} C] (X Y : C) (f : X ⟶ Y) :
-  G.inv (G.inv f) = f :=
-calc G.inv (G.inv f)
-   = (G.inv (G.inv f)) ≫ (𝟙 _) : by rw category.comp_id
-...= (G.inv (G.inv f)) ≫ (G.inv f ≫ f) : by rw ←groupoid.inv_comp
-...= (G.inv (G.inv f) ≫ G.inv f) ≫ f : by rw ←category.assoc
-...= (𝟙 _) ≫ f : by rw groupoid.inv_comp
-...= f : by rw category.id_comp
-
-@[simp]
-lemma groupoid.functor_map_inv  [G : groupoid.{v} C] {D : Type u₂} [H : groupoid.{v₂} D]
-  (φ : C ⥤ D) {c d : C} (f : c ⟶ d) :
-  φ.map (G.inv f) = H.inv (φ.map f) :=
-calc φ.map (G.inv f)
-   = ((φ.map $ G.inv f) ≫ (φ.map f)) ≫ (H.inv $ φ.map f) : by simp
-...= (H.inv $ φ.map f) : by simp [←functor.map_comp']
-
-end
-
 end category_theory

@@ -289,7 +289,7 @@ begin
   rw normed_space.is_vonN_bounded_iff',
   split; rintro ⟨r, h⟩; use r; intros x hx,
   { exact h (f x) (mem_image_of_mem f hx) },
-  rw mem_image at hx,
+  rw set.mem_image at hx,
   rcases hx with ⟨y, hy, hx⟩,
   rw ←hx,
   exact h y hy,

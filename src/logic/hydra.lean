@@ -6,6 +6,7 @@ Authors: Junyan Xu
 import data.multiset.basic
 import order.game_add
 import order.well_founded
+import data.dfinsupp.lex
 
 /-!
 # Termination of a hydra game
@@ -34,10 +35,8 @@ hydras, and prove their well-foundedness.
 
 namespace relation
 
-variables {α β : Type*}
-
 section fibration
-variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
+variables {α β : Type*} (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
 
 /-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
   `a : α` and `b : β`, whenever `b : β` and `f a` are related by `rβ`, `b` is the image
@@ -61,6 +60,53 @@ lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → b ∈ set.r
 ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
 
 end fibration
+
+namespace dfinsupp
+
+variables {ι : Type*} {α : ι → Type*} [Π i, has_zero (α i)]
+
+/-- Merge two finitely supported functions `x y : Π₀ i, α i`; at every coordinate `a : α`, use the
+  predicate `p` to decide whether to take the value of `x` or the value of `y`. -/
+noncomputable def merge (p : ι → Prop) (x y : Π₀ i, α i) : Π₀ i, α i :=
+by classical; exactI dfinsupp.mk (x.support ∪ y.support) (λ i, if p i then x i else y i)
+
+lemma merge_apply (p : ι → Prop) (x y : Π₀ i, α i) (i : ι) :
+  merge p x y i = if p i then x i else y i :=
+dfinsupp.mk_apply.trans begin
+  split_ifs with h h' h', refl, refl,
+  all_goals { rw [eq_comm, ←dfinsupp.not_mem_support_iff], rw finset.not_mem_union at h },
+  exacts [h.1, h.2],
+end
+
+open prod
+variables (r : ι → ι → Prop) (s : Π i, α i → α i → Prop)
+
+lemma lex_fibration : fibration
+  (inv_image (game_add (dfinsupp.lex r s) (dfinsupp.lex r s)) snd)
+  (dfinsupp.lex r s)
+  (λ x, merge x.1 x.2.1 x.2.2) :=
+begin
+  rintro ⟨p, x₁, x₂⟩ x ⟨i, hr, hs⟩,
+  simp_rw [merge_apply] at hs hr,
+  split_ifs at hs, classical,
+  work_on_goal 1 { refine
+    ⟨⟨λ j, r j i → p j ∨ i = j, merge (λ j, r j i → i = j) x x₁, x₂⟩, game_add.fst ⟨i, _⟩, _⟩ },
+  work_on_goal 3 { refine
+    ⟨⟨λ j, p j ∧ i ≠ j ∧ r j i, x₁, merge (λ j, r j i → i = j) x x₂⟩, game_add.snd ⟨i, _⟩, _⟩ },
+
+  swap 3, iterate 2
+  { simp_rw [merge_apply], rw if_pos (λ _, rfl), -- to_bool_tt (or.inr rfl), ← or_assoc],
+    refine ⟨λ j, _, hs⟩,
+    refine ⟨hs, λ b, or_iff_not_imp_left.2 $ λ hb, (to_bool_ff hb).symm ▸ rfl⟩ },
+  all_goals { ext b, dsimp only [merge_to_fun], by_cases h : r b a ∨ b = a },
+  { rw [to_bool_tt h, bor_tt], refl }, swap,
+  { rw [to_bool_tt h, bnot, band_ff], refl },
+  all_goals { rw to_bool_ff h, replace hr := (hr b).resolve_left h, cases p b; exact hr.symm },
+end
+
+
+
+end dfinsupp
 
 section hydra
 open multiset prod

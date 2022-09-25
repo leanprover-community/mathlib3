@@ -9,6 +9,8 @@ import data.dfinsupp.order
 /-!
 # Lexicographic order on finitely supported dependent functions
 This file defines the lexicographic order on `dfinsupp`.
+
+TODO: port `finsupp.ne_locus` and `finsupp.lex.linear_order` to `dfinsupp`.
 -/
 
 variables {ι : Type*} {α : ι → Type*}
@@ -34,9 +36,6 @@ instance lex.is_strict_order [linear_order ι] [Π i, partial_order (α i)] :
 let i : is_strict_order (lex (Π i, α i)) (<) := pi.lex.is_strict_order in
 { irrefl := to_lex.surjective.forall.2 $ λ a, @irrefl _ _ i.to_is_irrefl a,
   trans := to_lex.surjective.forall₃.2 $ λ a b c, @trans _ _ i.to_is_trans a b c }
-
-variable [Π i, linear_order (α i)]
-
 
 end has_zero
 

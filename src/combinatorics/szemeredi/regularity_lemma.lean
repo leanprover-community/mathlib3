@@ -69,9 +69,8 @@ begin
     exact hP₃.trans (le_step_bound _) },
   replace hP₄ := hP₄.resolve_left huniform,
   have hεl' : 100 < 4 ^ P.parts.card * ε ^ 5,
-  { apply (hundred_lt_pow_initial_bound_mul hε l).trans_le,
-    rw mul_le_mul_right (pow_pos hε 5),
-    refine pow_le_pow (by norm_num) hP₂ },
+  { exact (hundred_lt_pow_initial_bound_mul hε l).trans_le
+      (mul_le_mul_of_nonneg_right (pow_le_pow (by norm_num) hP₂) $ by positivity) },
   have hi : (i : ℝ) ≤ 4 / ε^5,
   { have hi : ε ^ 5 / 4 * ↑i ≤ 1 := hP₄.trans (by exact_mod_cast P.energy_le_one G),
     rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 4, by norm_num)] at hi,
@@ -82,8 +81,8 @@ begin
   have hPα : P.parts.card * 16^P.parts.card ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨increment hP₁ G ε, increment_is_equipartition hP₁ G ε, _, _,
-    or.inr (le_trans _ (energy_increment hP₁ ((seven_le_initial_bound ε l).trans hP₂)
-      hεl' hPα huniform hε₁))⟩,
+    or.inr $ le_trans _ $ energy_increment hP₁ ((seven_le_initial_bound ε l).trans hP₂)
+      hεl' hPα huniform hε₁⟩,
   { rw card_increment hPα huniform,
     exact hP₂.trans (le_step_bound _) },
   { rw [card_increment hPα huniform, function.iterate_succ_apply'],

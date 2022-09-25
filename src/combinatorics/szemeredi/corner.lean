@@ -291,12 +291,11 @@ begin
   rw [nat.cast_mul, mul_pow, nat.cast_pow, ←mul_assoc] at i,
   norm_num at i,
   have : triangle_removal_bound (ε / 16) * 64 * n ≤ 1,
-  { apply le_of_mul_le_mul_right _ (sq_pos_of_ne_zero (n : ℝ) (nat.cast_ne_zero.2 n_pos.ne')),
+  { refine le_of_mul_le_mul_right _ (sq_pos_of_ne_zero (n : ℝ) (nat.cast_ne_zero.2 n_pos.ne')),
     rwa [one_mul, mul_assoc, ←pow_succ] },
-  have po : 0 < triangle_removal_bound (ε / 16) * 64 :=
-    mul_pos (triangle_removal_bound_pos (by linarith) (by linarith)) (by norm_num),
   apply not_lt_of_le this,
-  rwa [nat.floor_lt (one_div_nonneg.2 po.le), div_lt_iff' po] at hn,
+  have : ε / 16 ≤ 1 := by linarith,
+  rwa [nat.floor_lt, div_lt_iff'] at hn; positivity,
 end
 
 lemma alt_set (c : ℕ × ℕ) (s : finset (ℕ × ℕ)) :
@@ -317,10 +316,9 @@ begin
     simpa [eq_comm] using h₁ },
   simp only [and_imp, exists_prop, prod.forall, mem_filter, exists_and_distrib_right,
     prod.mk.inj_iff, exists_eq_right_right, exists_eq_right, prod.exists, mem_product],
-  intros x y xy hx hy t,
-  refine ⟨_, _, ⟨xy, t⟩, _, _⟩,
+  refine λ x y xy hx hy t, ⟨_, _, ⟨xy, t⟩, _, _⟩,
   { rw [←nat.add_sub_assoc hx, nat.add_sub_cancel_left] },
-  { rw [←nat.add_sub_assoc hy, nat.add_sub_cancel_left] },
+  { rw [←nat.add_sub_assoc hy, nat.add_sub_cancel_left] }
 end
 
 lemma correlate {n : ℕ} (hn : 0 < n) (s : finset (ℕ × ℕ)) (hA : s ⊆ (range n).product (range n)) :
@@ -339,10 +337,9 @@ begin
     exact ⟨add_lt_add i.1.1 i.2.1, add_lt_add i.1.2 i.2.2⟩ },
   refine exists_le_card_fiber_of_nsmul_le_card_of_maps_to this _ _,
   { simp [hn.ne'] },
-  { simp only [card_product, card_range, nsmul_eq_mul, nat.cast_pow, nat.cast_two,
-      nat.cast_mul, ←sq],
-    rw [mul_div_assoc', mul_div_cancel_left],
-    simp [hn.ne'] }
+  simp only [card_product, card_range, nsmul_eq_mul, nat.cast_pow, nat.cast_two, nat.cast_mul, ←sq],
+  rw [mul_div_assoc', mul_div_cancel_left],
+  simp [hn.ne']
 end
 
 lemma corners_theorem {ε : ℝ} (hε : 0 < ε) :
@@ -350,9 +347,7 @@ lemma corners_theorem {ε : ℝ} (hε : 0 < ε) :
     ∀ s ⊆ (range n).product (range n), ε * n^2 ≤ s.card →
       ∃ x y h, 0 < h ∧ is_corner s x y h :=
 begin
-  let ε' : ℝ := (ε/2)^2,
-  have hε' : 0 < ε' := pow_pos (by linarith) _,
-  obtain ⟨n₀, hn₀⟩ := weak_corners_theorem hε',
+  obtain ⟨n₀, hn₀⟩ := weak_corners_theorem (by positivity : 0 < (ε / 2) ^ 2),
   refine ⟨n₀ + 1, λ n hn s hA hAcard, _⟩,
   obtain ⟨⟨c₁, c₂⟩, -, hA'card⟩ := correlate (nat.succ_pos'.trans_le hn) s hA,
   let A' : finset (ℕ × ℕ) := s.filter (λ xy, xy.1 ≤ c₁ ∧ xy.2 ≤ c₂ ∧ (c₁ - xy.1, c₂ - xy.2) ∈ s),
@@ -380,9 +375,7 @@ lemma roth (δ : ℝ) (hδ : 0 < δ) :
   ∃ n₀ : ℕ, ∀ n, n₀ ≤ n →
     ∀ s ⊆ range n, δ * n ≤ s.card → ∃ a d, 0 < d ∧ a ∈ s ∧ a + d ∈ s ∧ a + 2 * d ∈ s :=
 begin
-  let δ' : ℝ := δ/4,
-  have hδ' : 0 < δ' := div_pos hδ (by norm_num),
-  obtain ⟨n₀, hn₀⟩ := corners_theorem hδ',
+  obtain ⟨n₀, hn₀⟩ := corners_theorem (by positivity : 0 < δ/4),
   refine ⟨n₀, λ n hn s hA hAcard, _⟩,
   let B : finset (ℕ × ℕ) :=
     ((range (2 * n)).product (range (2 * n))).filter (λ xy, xy.1 ≤ xy.2 ∧ xy.2 - xy.1 ∈ s),
@@ -397,7 +390,7 @@ begin
     simp only [and_imp, prod.forall, mem_range, prod.mk.inj_iff, mem_product],
     rintro i a₁ hi ha₁ _ a₂ - ha₂ rfl,
     simp },
-  have : δ' * ↑(2 * n) ^ 2 ≤ ↑(B.card),
+  have : δ/4 * ↑(2 * n) ^ 2 ≤ ↑(B.card),
   { refine le_trans _ (nat.cast_le.2 this),
     rw [nat.cast_mul, nat.cast_two, mul_pow, ←mul_assoc, nat.cast_mul],
     norm_num,

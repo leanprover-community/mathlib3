@@ -209,3 +209,21 @@ begin
 end
 
 end simple_graph
+
+namespace tactic
+open positivity simple_graph
+
+/-- Extension for the `positivity` tactic: `simple_graph.triangle_removal_bound ε` is positive if
+`0 < ε ≤ 1`. Note this looks for `ε ≤ 1` in the context. -/
+@[positivity]
+meta def positivity_triangle_removal_bound : expr → tactic strictness
+| `(triangle_removal_bound %%ε) := do
+  positive p₀ ← core ε,
+  p₁ ← to_expr ``(%%ε ≤ 1) >>= find_assumption,
+  positive <$> mk_app ``triangle_removal_bound_pos [p₀, p₁]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+         "` isn't of the form `simple_graph.triangle_removal_bound ε`"
+
+example (ε : ℝ) (hε₀ : 0 < ε) (hε₁ : ε ≤ 1) : 0 < triangle_removal_bound ε := by positivity
+
+end tactic

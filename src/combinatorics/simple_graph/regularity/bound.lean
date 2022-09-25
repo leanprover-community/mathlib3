@@ -33,8 +33,7 @@ lemma le_step_bound : id ≤ step_bound := λ n, nat.le_mul_of_pos_right $ pow_p
 lemma step_bound_mono : monotone step_bound :=
 λ a b h, nat.mul_le_mul h $ nat.pow_le_pow_of_le_right (by norm_num) h
 
-lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n :=
-zero_lt_mul_right $ pow_pos (by norm_num) _
+lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n := zero_lt_mul_right $ by positivity
 
 alias step_bound_pos_iff ↔ _ step_bound_pos
 

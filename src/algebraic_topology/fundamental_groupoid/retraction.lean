@@ -33,12 +33,7 @@ open fundamental_groupoid_functor
 open_locale fundamental_groupoid
 open_locale unit_interval
 
-example (X Y : Type*) (f g : X → Y) : (∀(x : X), f x = g x) → f = g :=
-begin
-  refine funext,
-end
-
-
+/-- Helper to convert a continuous map to an arrow in the category Top. -/
 def top_hom_of_continuous_map
   {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) : Top.of X ⟶ Top.of Y := f
 
@@ -52,9 +47,12 @@ variables {X : Type*} {A_filter : X → Prop} [topological_space X]
 def inclusion (X : Type*) (A_filter : X → Prop) [topological_space X] :
   C(subtype A_filter, X) := ⟨subtype.restrict A_filter id⟩
 
+/-- A continuous map `r : X → A` for `A ⊆ X` is a topological retraction when it is the identity
+when restricted to A. -/
 structure is_top_retraction (r : X → subtype A_filter) extends continuous r : Prop :=
 (id_of_retraction_of_inclusion : r ∘ (inclusion X A_filter) = id)
 
+/-- A topological retraction is continuous by definition. -/
 lemma is_top_retraction.continuous {r : X → subtype A_filter} (hr : is_top_retraction r) :
   continuous r :=
 hr.to_continuous
@@ -62,6 +60,7 @@ hr.to_continuous
 end unbundled
 
 
+/-- The bundled form of `is_top_retraction`. -/
 structure top_retraction (X : Type*) (A_filter : X → Prop) [topological_space X] :=
 (to_fun : X → subtype A_filter)
 (top_retraction' : is_top_retraction to_fun)
@@ -71,22 +70,23 @@ namespace top_retraction
 
 variables {X : Type*} {A_filter : X → Prop} [topological_space X]
 
+/-- Helper to coerce a topological retraction to a continuous map. -/
 def to_continuous_map (r : top_retraction X A_filter) : C(X, subtype A_filter) :=
 { to_fun := r.to_fun,
   continuous_to_fun :=  is_top_retraction.continuous r.top_retraction' }
 
+/-- Coercing a topological retraction `to_fun` is the same as coercing it to a continuous map
+and then to a function. -/
 lemma coe_continuous_map_eq_to_fun (r : top_retraction X A_filter) :
   ⇑r.to_continuous_map = r.to_fun := by refl
 
+/-- A topological retraction is a continuous map. -/
 @[priority 100]
 instance top_retraction.continuous_map_class :
   continuous_map_class (top_retraction X A_filter) X (subtype A_filter) :=
 { coe := top_retraction.to_fun,
   coe_injective' := λr s h, by { cases r, cases s, congr' },
   map_continuous := λr, is_top_retraction.continuous r.top_retraction' }
-
-
-set_option trace.simplify.rewrite true
 
 /-- We show that if a topological retraction `r : X → A` exists, then the inclusion map `i : A → X`
 is a split monomorphism in the category Top. -/

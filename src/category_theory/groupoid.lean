@@ -8,6 +8,7 @@ import category_theory.products.basic
 import category_theory.pi.basic
 import category_theory.category.basic
 import tactic.nth_rewrite
+import combinatorics.quiver.connected_component
 
 /-!
 # Groupoids
@@ -69,6 +70,8 @@ is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
   inv_fun := groupoid.inv,
   left_inv := λ f, by simp,
   right_inv := λ f, by simp }
+
+instance groupoid_has_reverse : quiver.has_reverse C := ⟨λ X Y f, groupoid.inv f⟩
 
 variables (X Y)
 

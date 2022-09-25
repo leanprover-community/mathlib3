@@ -52,6 +52,21 @@ def of : prefunctor V (paths V) :=
 
 local attribute [ext] functor.ext
 
+/-- Any prefunctor from `V` lifts to a functor from `paths V` -/
+def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
+{ obj := φ.obj
+, map := λ X Y f, @quiver.path.rec V _ X (λ Y f, φ.obj X ⟶ φ.obj Y) (𝟙 $ φ.obj X)
+                  (λ Y Z p f ihp, ihp ≫ (φ.map f)) Y f
+, map_id' := λ X, by { refl, }
+, map_comp' := λ X Y Z f g, by
+  { induction g,
+    { rw category.comp_id, refl, },
+    { have : f ≫ g_ᾰ.cons g_ᾰ_1 = (f ≫ g_ᾰ).cons g_ᾰ_1, by apply quiver.path.comp_cons,
+      rw this, simp only, rw [g_ih, category.assoc], }} }
+
+@[simp] lemma lift_to_path {C} [category C] (φ : prefunctor V C) {X Y : V} (f : X ⟶ Y) :
+  (lift φ).map f.to_path = φ.map f := by {dsimp [quiver.hom.to_path,lift], simp, }
+
 /-- Two functors out of a path category are equal when they agree on singleton paths. -/
 @[ext]
 lemma ext_functor {C} [category C]

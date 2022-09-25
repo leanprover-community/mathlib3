@@ -48,6 +48,56 @@ def path.reverse [has_reverse V] {a : V} : Π {b}, path a b → path b a
 | a path.nil := path.nil
 | b (path.cons p e) := (reverse e).to_path.comp p.reverse
 
+/- The inclusion of a quiver in its symmetrification -/
+def ι : prefunctor V (symmetrify V) :=
+{ obj := id
+, map := λ X Y f, sum.inl f }
+
+lemma symmetrify.has_involutive_reverse :
+  ∀ ( X Y : symmetrify V) (f : X ⟶ Y), reverse (reverse f) = f :=
+begin
+  rintros X Y f, induction f, refl, refl,
+end
+
+/-- Given a quiver `V'` with reversible arrows, a prefunctor to `V'` can be lifted to one from
+    `symmetrify V` to `V'` -/
+def symmetrify.lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
+  prefunctor (symmetrify V) V' :=
+{ obj := φ.obj
+, map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
+
+lemma symmetrify.lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
+  ι.comp (symmetrify.lift φ) = φ :=
+begin
+  fapply prefunctor.ext,
+  { rintro X, refl, },
+  { rintros X Y f, refl, },
+end
+
+@[simp] lemma symmetrify.lift_reverse  (V' : Type*) [quiver V'] [rV : has_reverse V']
+  (inv : ∀ (X Y : V') (f : X ⟶ Y), quiver.reverse (quiver.reverse f) = f)
+  (φ : prefunctor V V')
+  {X Y : symmetrify V} (f : X ⟶ Y) :
+  (symmetrify.lift φ).map (quiver.reverse f) = quiver.reverse ((symmetrify.lift φ).map f) :=
+begin
+  dsimp [symmetrify.lift], cases f,
+  { simp only, refl, },
+  { simp only, rw inv, refl, }
+end
+
+/- that's wrong -/
+/-lemma lift_spec_unique (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V')
+  (Φ : prefunctor (symmetrify V) V') (hΦ : ι.comp Φ = φ) : Φ = symmetrify.lift φ :=
+begin
+  subst_vars,
+  fapply prefunctor.ext,
+  { rintro X, refl, },
+  { rintros X Y f,
+    cases f,
+    { refl, },
+    { dsimp [lift,ι], } }
+end-/
+
 variables (V)
 
 /-- Two vertices are related in the zigzag setoid if there is a

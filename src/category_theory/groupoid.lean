@@ -71,7 +71,9 @@ is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
   left_inv := λ f, by simp,
   right_inv := λ f, by simp }
 
-instance groupoid_has_reverse : quiver.has_reverse C := ⟨λ X Y f, groupoid.inv f⟩
+instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
+{ reverse' := λ X Y f, groupoid.inv f
+, inv' := λ X Y f, by simp }
 
 variables (X Y)
 

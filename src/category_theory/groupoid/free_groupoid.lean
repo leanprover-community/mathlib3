@@ -69,7 +69,6 @@ def red_step : hom_rel $ paths $ quiver.symmetrify V :=
 λ X Y p q, ∃ (h : Y = X) (Z) (f : (quiver.symmetrify_quiver V).hom X Z),
   (h.rec_on p = 𝟙 X) ∧ (h.rec_on q = f.to_path ≫ (quiver.reverse f).to_path)
 
-@[reducible]
 def free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
 
 @[simp] lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
@@ -112,13 +111,21 @@ begin
     fapply quiver.symmetrify.lift,
     exact φ, },
   { rintros X Y f₀ f₁ ⟨rfl,Z,c,h₁,h₂⟩,
-    simp at h₁ h₂,
+    simp only at h₁ h₂,
     subst_vars,
-    simp only [functor.map_id, functor.map_comp, paths.lift_to_path],
-    rw quiver.symmetrify.lift_reverse,
-    { symmetry, apply groupoid.comp_inv, },
-    { rintros X Y f, apply groupoid.inv_inv, }, }
+    simp only [functor.map_id, functor.map_comp, paths.lift_to_path,quiver.symmetrify.lift_reverse],
+    symmetry, apply groupoid.comp_inv, }
 end
+
+lemma lift_spec (φ : prefunctor V V') : ι.comp (lift φ).to_prefunctor = φ :=
+begin
+  ext, rotate,
+  { rintro X, refl, },
+  { rcases φ with ⟨φo,φm⟩, sorry, }
+end
+
+lemma lift_unique_spec  (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V')
+  (hΦ : ι.comp Φ.to_prefunctor = φ) : Φ = (lift φ) := sorry
 
 end universal_property
 

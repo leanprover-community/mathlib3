@@ -36,7 +36,15 @@ variables (V : Type u) [quiver.{v+1} V]
 class has_reverse :=
 (reverse' : Π {a b : V}, (a ⟶ b) → (b ⟶ a))
 
+/-- A quiver `has_involutive_reverse` if reversing twice is the identity.`-/
+class has_involutive_reverse extends has_reverse V :=
+(inv' : Π {a b : V} (f : a ⟶ b), reverse' (reverse' f) = f)
+
+
 instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
+instance : has_involutive_reverse (symmetrify V) :=
+{ to_has_reverse := ⟨λ a b e, e.swap⟩,
+  inv' := λ a b e, congr_fun sum.swap_swap_eq e }
 
 variables {V}
 
@@ -49,15 +57,9 @@ def path.reverse [has_reverse V] {a : V} : Π {b}, path a b → path b a
 | b (path.cons p e) := (reverse e).to_path.comp p.reverse
 
 /- The inclusion of a quiver in its symmetrification -/
-def ι : prefunctor V (symmetrify V) :=
+def symmetrify.ι : prefunctor V (symmetrify V) :=
 { obj := id
 , map := λ X Y f, sum.inl f }
-
-lemma symmetrify.has_involutive_reverse :
-  ∀ ( X Y : symmetrify V) (f : X ⟶ Y), reverse (reverse f) = f :=
-begin
-  rintros X Y f, induction f, refl, refl,
-end
 
 /-- Given a quiver `V'` with reversible arrows, a prefunctor to `V'` can be lifted to one from
     `symmetrify V` to `V'` -/
@@ -67,27 +69,27 @@ def symmetrify.lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : prefunctor V
 , map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
 
 lemma symmetrify.lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
-  ι.comp (symmetrify.lift φ) = φ :=
+  symmetrify.ι.comp (symmetrify.lift φ) = φ :=
 begin
   fapply prefunctor.ext,
   { rintro X, refl, },
   { rintros X Y f, refl, },
 end
 
-@[simp] lemma symmetrify.lift_reverse  (V' : Type*) [quiver V'] [rV : has_reverse V']
-  (inv : ∀ (X Y : V') (f : X ⟶ Y), quiver.reverse (quiver.reverse f) = f)
+@[simp] lemma symmetrify.lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reverse V']
   (φ : prefunctor V V')
   {X Y : symmetrify V} (f : X ⟶ Y) :
   (symmetrify.lift φ).map (quiver.reverse f) = quiver.reverse ((symmetrify.lift φ).map f) :=
 begin
   dsimp [symmetrify.lift], cases f,
   { simp only, refl, },
-  { simp only, rw inv, refl, }
+  { simp only, dsimp [reverse], rw h.inv', refl, }
 end
 
-/- that's wrong -/
-/-lemma lift_spec_unique (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V')
-  (Φ : prefunctor (symmetrify V) V') (hΦ : ι.comp Φ = φ) : Φ = symmetrify.lift φ :=
+lemma lift_spec_unique (V' : Type*) [quiver V'] [has_involutive_reverse V'] (φ : prefunctor V V')
+  (Φ : prefunctor (symmetrify V) V')
+  (hΦ : symmetrify.ι.comp Φ = φ)
+  (hΦinv : ∀ {X Y : V} (f : X ⟶ Y), Φ.map (reverse f) = reverse (Φ.map f)): Φ = symmetrify.lift φ :=
 begin
   subst_vars,
   fapply prefunctor.ext,
@@ -95,8 +97,9 @@ begin
   { rintros X Y f,
     cases f,
     { refl, },
-    { dsimp [lift,ι], } }
-end-/
+    { dsimp [symmetrify.lift,symmetrify.ι],
+      convert hΦinv (sum.inl f), }, },
+end
 
 variables (V)
 

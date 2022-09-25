@@ -506,8 +506,6 @@ section embedding
 open padic_seq
 variables {p : ℕ} [fact p.prime]
 
-@[simp] lemma _root_.absolute_value.coe_mk {R S} [semiring R] [ordered_semiring S] (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
-
 lemma defn (f : padic_seq p) {ε : ℚ} (hε : 0 < ε) : ∃ N, ∀ i ≥ N, padic_norm_e (⟦f⟧ - f i) < ε :=
 begin
   dsimp [padic_norm_e],

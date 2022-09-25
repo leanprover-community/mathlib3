@@ -86,6 +86,17 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
 { obj := λ X, G.obj (F.obj X),
   map := λ X Y f, G.map (F.map f), }
 
+@[simp]
+lemma comp_assoc
+  {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W] {Z : Type*} [quiver Z]
+  (F : prefunctor U V) (G : prefunctor V W) (H : prefunctor W Z) :
+  (F.comp G).comp H = F.comp (G.comp H) :=
+begin
+  apply prefunctor.ext, rotate,
+  { rintro X, refl, },
+  { rintro X Y Z, refl, }
+end
+
 end prefunctor
 
 namespace quiver

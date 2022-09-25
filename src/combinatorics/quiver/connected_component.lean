@@ -86,10 +86,12 @@ begin
   { simp only, dsimp [reverse], rw h.inv', refl, }
 end
 
-lemma lift_spec_unique (V' : Type*) [quiver V'] [has_involutive_reverse V'] (φ : prefunctor V V')
+
+lemma symmetrify.lift_spec_unique (V' : Type*) [quiver V'] [has_involutive_reverse V'] (φ : prefunctor V V')
   (Φ : prefunctor (symmetrify V) V')
   (hΦ : symmetrify.ι.comp Φ = φ)
-  (hΦinv : ∀ {X Y : V} (f : X ⟶ Y), Φ.map (reverse f) = reverse (Φ.map f)): Φ = symmetrify.lift φ :=
+  (hΦinv : ∀ {X Y : V} (f : X ⟶ Y), Φ.map (reverse f) = reverse (Φ.map f)) :
+  Φ = symmetrify.lift φ :=
 begin
   subst_vars,
   fapply prefunctor.ext,

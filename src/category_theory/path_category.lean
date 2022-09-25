@@ -70,7 +70,7 @@ def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
 lemma lift_spec {C} [category C] (φ : prefunctor V C) :
   of.comp (lift φ).to_prefunctor = φ := sorry
 
-lemma lift_unique  {C} [category C] (φ : prefunctor V C) (Φ : paths V ⥤ C)
+lemma lift_spec_unique  {C} [category C] (φ : prefunctor V C) (Φ : paths V ⥤ C)
   (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = lift φ := sorry
 
 /-- Two functors out of a path category are equal when they agree on singleton paths. -/

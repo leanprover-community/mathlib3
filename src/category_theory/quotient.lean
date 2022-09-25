@@ -130,6 +130,11 @@ def lift : quotient r ⥤ D :=
   map_id' := λ a, F.map_id a.as,
   map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp f g, } }
 
+lemma lift_spec : (functor r) ⋙ lift r F H = F := sorry
+lemma lift_spec_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H := sorry
+
+lemma
+
 /-- The original functor factors through the induced functor. -/
 def lift.is_lift : (functor r) ⋙ lift r F H ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)

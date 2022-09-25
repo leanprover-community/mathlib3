@@ -88,16 +88,29 @@ end
   quotient.comp_closure red_step (p ≫ (paths.reverse p)) (𝟙 X) := sorry
 
 instance : category (free_groupoid V) := quotient.category red_step
+
+def quot_inv {X Y : free_groupoid V} (f : X ⟶ Y) : Y ⟶ X :=
+quot.lift_on f
+            (λ pp, quot.mk _ $ (paths.reverse pp))
+            (λ pp qq con, quot.sound $ congr_reverse pp qq con)
+
 instance : groupoid (free_groupoid V) :=
-{ inv := λ X Y p, quot.lift_on p
-                    (λ pp, quot.mk _ $ (paths.reverse pp))
-                    (λ pp qq con, quot.sound $ congr_reverse pp qq con)
+{ inv := λ X Y f, quot_inv f
 , inv_comp' := λ X Y p, quot.induction_on p $ λ pp, quot.sound $ congr_reverse_comp pp
 , comp_inv' := λ X Y p, quot.induction_on p $ λ pp, quot.sound $ congr_comp_reverse pp }
 
 def ι : prefunctor V (free_groupoid V) :=
 { obj := λ X, ⟨X⟩
 , map := λ X Y f, quot.mk _ f.to_pos_path}
+
+lemma ι_eq : ι =
+  ((quiver.symmetrify.ι).comp
+    paths.of).comp (quotient.functor $ @red_step V _).to_prefunctor :=
+begin
+  apply prefunctor.ext, rotate,
+  { rintro X, refl, },
+  { rintro X Y f, refl, }
+end
 
 section universal_property
 
@@ -117,15 +130,31 @@ begin
     symmetry, apply groupoid.comp_inv, }
 end
 
+@[simp] lemma _root_.category_theory.functor.to_prefunctor_comp
+  {C D E : Type*} [category C] [category D] [category E] (F : C ⥤ D) (G : D ⥤ E) :
+  F.to_prefunctor.comp G.to_prefunctor = (F ⋙ G).to_prefunctor := sorry
+
 lemma lift_spec (φ : prefunctor V V') : ι.comp (lift φ).to_prefunctor = φ :=
 begin
-  ext, rotate,
-  { rintro X, refl, },
-  { rcases φ with ⟨φo,φm⟩, sorry, }
+  rw [ι_eq, prefunctor.comp_assoc, prefunctor.comp_assoc, functor.to_prefunctor_comp],
+  dsimp [lift],
+  rw [quotient.lift_spec, paths.lift_spec, quiver.symmetrify.lift_spec],
 end
 
 lemma lift_unique_spec  (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V')
-  (hΦ : ι.comp Φ.to_prefunctor = φ) : Φ = (lift φ) := sorry
+  (hΦ : ι.comp Φ.to_prefunctor = φ) : Φ = (lift φ) :=
+begin
+  apply quotient.lift_spec_unique,
+  apply paths.lift_spec_unique,
+  apply quiver.symmetrify.lift_spec_unique,
+  { rw ←functor.to_prefunctor_comp, exact hΦ, },
+  { rintros X Y f,
+    rw [←functor.to_prefunctor_comp,prefunctor.comp_map, prefunctor.comp_map, paths.of_map],
+    change Φ.map (inv ((quotient.functor red_step).to_prefunctor.map f.to_path)) =
+    inv (Φ.map ((quotient.functor red_step).to_prefunctor.map f.to_path)),
+    convert functor.map_inv Φ ((quotient.functor red_step).to_prefunctor.map f.to_path);
+    simp only [inv_eq_inv], }
+end
 
 end universal_property
 

@@ -380,4 +380,35 @@ seminorm_family.to_locally_convex_space (schwartz_with_seminorms ℝ E F)
 
 end topology
 
+section distribution
+
+
+variables (𝕜 F)
+
+def delta_aux (x₀ : E) : 𝓢(E, F) →ₗ[𝕜] F :=
+{ to_fun := λ f, f x₀,
+  map_add' := λ f g, by simp,
+  map_smul' := λ a f, by simp }
+
+lemma delta_aux_apply (x₀ : E) (f : 𝓢(E, F)) : delta_aux 𝕜 F x₀ f = f x₀ := rfl
+
+def delta (x₀ : E) : 𝓢(E, F) →L[𝕜] F :=
+{ cont :=
+  begin
+    refine (delta_aux 𝕜 F x₀).continuous_of_locally_bounded (λ s hs, _),
+    rw bornology.is_vonN_bounded_iff_seminorm_bounded (schwartz_with_seminorms 𝕜 E F) at hs,
+    rcases hs (0,0) with ⟨r, hr, hs⟩,
+    rw [schwartz_seminorm_family_apply] at hs,
+    rw normed_space.image_is_vonN_bounded_iff,
+    use r,
+    intros f hf,
+    rw [delta_aux_apply, ←norm_fderiv_zero],
+    exact (norm_iterated_fderiv_le_seminorm 𝕜 f 0 x₀).trans (hs f hf).le,
+  end,
+  .. delta_aux 𝕜 F x₀ }
+
+lemma delta_aux_apply (x₀ : E) (f : 𝓢(E, F)) : delta_aux 𝕜 F x₀ f = f x₀ := rfl
+
+end distribution
+
 end schwartz_map

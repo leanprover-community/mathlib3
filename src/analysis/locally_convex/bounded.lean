@@ -31,7 +31,7 @@ von Neumann-bounded sets.
 
 -/
 
-variables {𝕜 E F ι : Type*}
+variables {𝕜 E E' F ι : Type*}
 
 open filter
 open_locale topological_space pointwise
@@ -269,6 +269,30 @@ begin
         ball_norm_seminorm, mul_one] at hρball,
     exact ⟨∥a∥, hρball.trans metric.ball_subset_closed_ball⟩ },
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
+end
+
+lemma is_vonN_bounded_iff' (s : set E) :
+  bornology.is_vonN_bounded 𝕜 s ↔ ∃ r : ℝ, ∀ (x : E) (hx : x ∈ s), ∥x∥ ≤ r :=
+begin
+  rw [normed_space.is_vonN_bounded_iff, ←metric.bounded_iff_is_bounded,
+    metric.bounded_iff_subset_ball (0 : E)],
+  split; rintro ⟨r, h⟩; use r; intros x hx,
+  { specialize h hx,
+    rwa mem_closed_ball_zero_iff at h },
+  rw mem_closed_ball_zero_iff,
+  exact h x hx,
+end
+
+lemma image_is_vonN_bounded_iff (f : E' → E) (s : set E') :
+  bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∃ r : ℝ, ∀ (x : E') (hx : x ∈ s), ∥f x∥ ≤ r :=
+begin
+  rw normed_space.is_vonN_bounded_iff',
+  split; rintro ⟨r, h⟩; use r; intros x hx,
+  { exact h (f x) (mem_image_of_mem f hx) },
+  rw mem_image at hx,
+  rcases hx with ⟨y, hy, hx⟩,
+  rw ←hx,
+  exact h y hy,
 end
 
 /-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the

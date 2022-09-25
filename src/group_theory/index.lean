@@ -143,6 +143,19 @@ cardinal.to_nat_congr (quotient_group.quotient_bot.to_equiv)
 @[to_additive] lemma index_bot_eq_card [fintype G] : (⊥ : subgroup G).index = fintype.card G :=
 index_bot.trans nat.card_eq_fintype_card
 
+/-- A subgroup has index two if and only if there exists `a` such that for all `b`, exactly one
+of `b * a` and `b` belong to `H`. -/
+@[to_additive] lemma index_eq_two_iff : H.index = 2 ↔ ∃ a, ∀ b, b * a ∈ H ↔ b ∉ H :=
+begin
+  simp only [index, nat.card_eq_two_iff' ((1 : G) : G ⧸ H), exists_unique, inv_mem_iff,
+    quotient_group.exists_coe, quotient_group.forall_coe, ne.def, quotient_group.eq, mul_one],
+  refine exists_congr (λ a, ⟨λ ha b, ⟨λ hba hb, _, λ hb, _⟩, λ ha, ⟨_, λ b hb, _⟩⟩),
+  { exact ha.1 ((mul_mem_cancel_left hb).1 hba) },
+  { exact inv_inv b ▸ ha.2 _ (mt inv_mem_iff.1 hb) },
+  { rw [← inv_mem_iff, ← ha, inv_mul_self], exact one_mem _ },
+  { rwa [ha, inv_mem_iff] }
+end
+
 @[simp, to_additive] lemma relindex_top_left : (⊤ : subgroup G).relindex H = 1 :=
 index_top
 

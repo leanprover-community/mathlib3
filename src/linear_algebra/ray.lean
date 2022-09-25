@@ -601,14 +601,6 @@ begin
     exact (exists_pos_left_iff_same_ray hx hy).2 hxy }
 end
 
-lemma exists_pos_right_iff_same_ray (hx : x ≠ 0) (hy : y ≠ 0) :
-  (∃ r : R, 0 < r ∧ x = r • y) ↔ same_ray R x y :=
-by simpa only [same_ray_comm, eq_comm] using exists_pos_left_iff_same_ray hy hx
-
-lemma exists_pos_right_iff_same_ray_and_ne_zero (hy : y ≠ 0) :
-  (∃ r : R, 0 < r ∧ x = r • y) ↔ (same_ray R x y ∧ x ≠ 0) :=
-by simpa only [same_ray_comm, eq_comm] using exists_pos_left_iff_same_ray_and_ne_zero hy
-
 lemma exists_nonneg_left_iff_same_ray (hx : x ≠ 0) :
   (∃ r : R, 0 ≤ r ∧ r • x = y) ↔ same_ray R x y :=
 begin
@@ -616,6 +608,14 @@ begin
   rcases h with ⟨r, hr, rfl⟩,
   exact same_ray_nonneg_smul_right x hr
 end
+
+lemma exists_pos_right_iff_same_ray (hx : x ≠ 0) (hy : y ≠ 0) :
+  (∃ r : R, 0 < r ∧ x = r • y) ↔ same_ray R x y :=
+by simpa only [same_ray_comm, eq_comm] using exists_pos_left_iff_same_ray hy hx
+
+lemma exists_pos_right_iff_same_ray_and_ne_zero (hy : y ≠ 0) :
+  (∃ r : R, 0 < r ∧ x = r • y) ↔ (same_ray R x y ∧ x ≠ 0) :=
+by simpa only [same_ray_comm, eq_comm] using exists_pos_left_iff_same_ray_and_ne_zero hy
 
 lemma exists_nonneg_right_iff_same_ray (hy : y ≠ 0) :
   (∃ r : R, 0 ≤ r ∧ x = r • y) ↔ same_ray R x y :=

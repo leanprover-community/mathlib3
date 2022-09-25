@@ -532,3 +532,20 @@ meta def linter.explicit_vars_of_iff : linter :=
   auto_decls := ff,
   no_errors_found := "No explicit variables on both sides of iff",
   errors_found := "EXPLICIT VARIABLES ON BOTH SIDES OF IFF" }
+
+
+
+
+meta def find_bad (d : declaration) : tactic (option string) :=
+try_core (do
+  l ← get_decl d.to_name.components.ilast,
+  guard (d.to_name.components.length > 1),
+  pro ← is_protected_decl d.to_name,
+  guard ¬pro,
+  return "bad")
+
+meta def linter.non_protected : linter :=
+{ test := find_bad,
+  auto_decls := ff,
+  no_errors_found := "",
+  errors_found := "NOT PROTECTED" }

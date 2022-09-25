@@ -143,6 +143,16 @@ cardinal.to_nat_congr (quotient_group.quotient_bot.to_equiv)
 @[to_additive] lemma index_bot_eq_card [fintype G] : (⊥ : subgroup G).index = fintype.card G :=
 index_bot.trans nat.card_eq_fintype_card
 
+lemma index_eq_two_iff : H.index = 2 ↔ ∃ a, ∀ b, a * b ∈ H ↔ b ∉ H :=
+begin
+  classical,
+  split,
+  { sorry },
+  { rintro ⟨a, ha⟩,
+
+ }
+end
+
 @[simp, to_additive] lemma relindex_top_left : (⊤ : subgroup G).relindex H = 1 :=
 index_top
 

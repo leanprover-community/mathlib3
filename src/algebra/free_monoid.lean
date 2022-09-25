@@ -54,6 +54,8 @@ lemma of_def (x : α) : of x = [x] := rfl
 lemma of_injective : function.injective (@of α) :=
 λ a b, list.head_eq_of_cons_eq
 
+@[to_additive] lemma of_mul_eq_cons (x : α) (l : free_monoid α) : of x * l = x :: l := rfl
+
 /-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
 @[elab_as_eliminator, to_additive
   "Recursor for `free_add_monoid` using `0` and `of x + xs` instead of `[]` and `x :: xs`."]

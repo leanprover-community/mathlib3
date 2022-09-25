@@ -50,7 +50,7 @@ end from_Bhavik
 
 lemma mem_zmod_2 (a : zmod 2) : a = 0 ∨ a = 1 :=
 begin
-  rcases a with ⟨_ | _ | _ | _ | a_val, _ | ⟨_, _ | ⟨_, ⟨⟩⟩⟩⟩,
+  rcases a with ⟨_|_, _|_|_|_⟩,
   { exact or.inl rfl },
   { exact or.inr rfl },
 end

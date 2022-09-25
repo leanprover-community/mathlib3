@@ -99,7 +99,7 @@ return ()
 private meta def match_rule_head  (p : expr)
 : list expr → expr → expr → tactic expr
  | vs e t :=
-(unify t p >> mmap' unify_with_instance vs >> instantiate_mvars e)
+(unify t p >> mmap' unify_with_instance vs.reverse >> instantiate_mvars e)
 <|>
 do (expr.pi _ _ d b) ← return t | failed,
    v ← mk_meta_var d,

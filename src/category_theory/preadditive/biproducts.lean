@@ -134,7 +134,10 @@ lemma biprod.of_components_eq (f : X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂) :
   biprod.of_components (biprod.inl ≫ f ≫ biprod.fst) (biprod.inl ≫ f ≫ biprod.snd)
     (biprod.inr ≫ f ≫ biprod.fst) (biprod.inr ≫ f ≫ biprod.snd) = f :=
 begin
-  ext; simp,
+  ext;
+  simp only [category.comp_id, biprod.inr_fst, biprod.inr_snd, biprod.inl_snd, add_zero, zero_add,
+    biprod.inl_of_components, biprod.inr_of_components, eq_self_iff_true, category.assoc, comp_zero,
+    biprod.inl_fst, preadditive.add_comp],
 end
 
 @[simp]
@@ -270,11 +273,12 @@ end
 variables [preadditive.{v} C]
 
 lemma biproduct.column_nonzero_of_iso'
-  {σ τ : Type} [fintype τ]
+  {σ τ : Type} [finite τ]
   {S : σ → C} [has_biproduct S] {T : τ → C} [has_biproduct T]
   (s : σ) (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   (∀ t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t = 0) → 𝟙 (S s) = 0 :=
 begin
+  casesI nonempty_fintype τ,
   intro z,
   set x := biproduct.ι S s ≫ f ≫ inv f ≫ biproduct.π S s,
   have h₁ : x = 𝟙 (S s), by simp [x],

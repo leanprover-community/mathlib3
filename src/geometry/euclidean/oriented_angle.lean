@@ -333,7 +333,7 @@ begin
     by_cases hx : x = 0, { simp [hx] },
     rcases lt_trichotomy r 0 with hr|hr|hr,
     { rw ←neg_smul,
-      exact or.inr ⟨hx, smul_ne_zero.2 ⟨hr.ne, hx⟩,
+      exact or.inr ⟨hx, smul_ne_zero hr.ne hx,
                     same_ray_pos_smul_right x (left.neg_pos_iff.2 hr)⟩ },
     { simp [hr] },
     { exact or.inl (same_ray_pos_smul_right x hr) } }
@@ -869,7 +869,7 @@ begin
   by_cases hx : x = 0, { simp [hx] },
   by_cases hy : y = 0, { simp [hy] },
   rw [oangle, real.angle.cos_coe, complex.cos_arg], swap, { simp [hx, hy] },
-  simp_rw [complex.abs_div, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map, complex.div_re,
+  simp_rw [map_div₀, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map, complex.div_re,
            ←complex.sq_abs, ←complex.norm_eq_abs, linear_isometry_equiv.norm_map,
            complex.isometry_of_orthonormal_symm_apply, complex.add_re, complex.add_im,
            is_R_or_C.I, complex.mul_I_re, complex.mul_I_im, complex.of_real_re,
@@ -879,7 +879,7 @@ begin
            star_ring_end_apply, star_trivial],
   rw [finset.sum_insert (dec_trivial : (0 : fin 2) ∉ ({1} : finset (fin 2))),
       finset.sum_singleton],
-  field_simp [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy],
+  field_simp only [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy, ne.def, not_false_iff],
   ring
 end
 

@@ -27,7 +27,7 @@ by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];
 
 lemma not_mem_nil : a ∉ (vector.nil : vector α 0).to_list := id
 
-@[simp] lemma not_mem_zero (v : vector α 0) : a ∉ v.to_list :=
+lemma not_mem_zero (v : vector α 0) : a ∉ v.to_list :=
 (vector.eq_nil v).symm ▸ (not_mem_nil a)
 
 lemma mem_cons_iff (v : vector α n) :

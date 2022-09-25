@@ -255,33 +255,33 @@ instance module_pi : module (R ⧸ I) ((ι → R) ⧸ I.pi ι) :=
   end,
   one_smul := begin
     rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact one_mul (a i),
   end,
   mul_smul := begin
     rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     simp only [(•)],
     congr' with i, exact mul_assoc a b (c i),
   end,
   smul_add := begin
     rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact mul_add a (b i) (c i),
   end,
   smul_zero := begin
     rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact mul_zero a,
   end,
   add_smul := begin
     rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact add_mul a b (c i),
   end,
   zero_smul := begin
     rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact zero_mul (a i),
   end, }
 

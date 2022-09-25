@@ -58,7 +58,7 @@ def pfun (α β : Type*) := α → part β
 infixr ` →. `:25 := pfun
 
 namespace pfun
-variables {α β γ δ : Type*}
+variables {α β γ δ ε ι : Type*}
 
 instance : inhabited (α →. β) := ⟨λ a, part.none⟩
 
@@ -453,5 +453,59 @@ ext $ λ _ _, by simp only [comp_apply, part.bind_comp]
 -- This can't be `simp`
 lemma coe_comp (g : β → γ) (f : α → β) : ((g ∘ f : α → γ) : α →. γ) = (g : β →. γ).comp f :=
 ext $ λ _ _, by simp only [coe_val, comp_apply, part.bind_some]
+
+/-- Product of partial functions. -/
+def prod_lift (f : α →. β) (g : α →. γ) : α →. β × γ :=
+λ x, ⟨(f x).dom ∧ (g x).dom, λ h, ((f x).get h.1, (g x).get h.2)⟩
+
+@[simp] lemma dom_prod_lift (f : α →. β) (g : α →. γ) :
+  (f.prod_lift g).dom = {x | (f x).dom ∧ (g x).dom} := rfl
+
+lemma get_prod_lift (f : α →. β) (g : α →. γ) (x : α) (h) :
+  (f.prod_lift g x).get h = ((f x).get h.1, (g x).get h.2) := rfl
+
+@[simp] lemma prod_lift_apply (f : α →. β) (g : α →. γ) (x : α) :
+  f.prod_lift g x = ⟨(f x).dom ∧ (g x).dom, λ h, ((f x).get h.1, (g x).get h.2)⟩ := rfl
+
+lemma mem_prod_lift {f : α →. β} {g : α →. γ} {x : α} {y : β × γ} :
+  y ∈ f.prod_lift g x ↔ y.1 ∈ f x ∧ y.2 ∈ g x :=
+begin
+  transitivity ∃ hp hq, (f x).get hp = y.1 ∧ (g x).get hq = y.2,
+  { simp only [prod_lift, part.mem_mk_iff, and.exists, prod.ext_iff] },
+  { simpa only [exists_and_distrib_left, exists_and_distrib_right] }
+end
+
+/-- Product of partial functions. -/
+def prod_map (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
+λ x, ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩
+
+@[simp] lemma dom_prod_map (f : α →. γ) (g : β →. δ) :
+  (f.prod_map g).dom = {x | (f x.1).dom ∧ (g x.2).dom} := rfl
+
+lemma get_prod_map (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
+  (f.prod_map g x).get h = ((f x.1).get h.1, (g x.2).get h.2) := rfl
+
+@[simp] lemma prod_map_apply (f : α →. γ) (g : β →. δ) (x : α × β) :
+  f.prod_map g x = ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩ := rfl
+
+lemma mem_prod_map {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
+  y ∈ f.prod_map g x ↔ y.1 ∈ f x.1 ∧ y.2 ∈ g x.2 :=
+begin
+  transitivity ∃ hp hq, (f x.1).get hp = y.1 ∧ (g x.2).get hq = y.2,
+  { simp only [prod_map, part.mem_mk_iff, and.exists, prod.ext_iff] },
+  { simpa only [exists_and_distrib_left, exists_and_distrib_right] }
+end
+
+@[simp] lemma prod_lift_fst_comp_snd_comp (f : α →. γ) (g : β →. δ) :
+  prod_lift (f.comp ((prod.fst : α × β → α) : α × β →. α))
+    (g.comp ((prod.snd : α × β → β) : α × β →. β)) = prod_map f g :=
+ext $ λ a, by simp
+
+@[simp] lemma prod_map_id_id : (pfun.id α).prod_map (pfun.id β) = pfun.id _ :=
+ext $ λ _ _, by simp [eq_comm]
+
+@[simp] lemma prod_map_comp_comp (f₁ : α →. β) (f₂ : β →. γ) (g₁ : δ →. ε) (g₂ : ε →. ι) :
+  (f₂.comp f₁).prod_map (g₂.comp g₁) = (f₂.prod_map g₂).comp (f₁.prod_map g₁) :=
+ext $ λ _ _, by tidy
 
 end pfun

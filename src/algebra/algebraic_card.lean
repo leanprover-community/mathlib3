@@ -73,7 +73,7 @@ variable [encodable R]
 
 @[simp] theorem countable_of_encodable : set.countable {x : A | is_algebraic R x} :=
 begin
-  rw [←mk_set_le_aleph_0, ←lift_le],
+  rw [←le_aleph_0_iff_set_countable, ←lift_le],
   apply (cardinal_mk_lift_le_max R A).trans,
   simp
 end

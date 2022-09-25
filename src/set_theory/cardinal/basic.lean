@@ -11,6 +11,7 @@ import logic.small
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
+import tactic.positivity
 
 /-!
 # Cardinal Numbers
@@ -517,6 +518,8 @@ end
 
 theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
 induction_on₃ a b c $ λ α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
+
+theorem power_pos {a : cardinal} (b) (ha : 0 < a) : 0 < a ^ b := (power_ne_zero _ ha.ne').bot_lt
 
 end order_properties
 
@@ -1580,3 +1583,19 @@ begin
 end
 
 end cardinal
+
+namespace tactic
+open cardinal positivity
+
+/-- Extension for the `positivity` tactic: The cardinal power of a positive cardinal is positive. -/
+@[positivity]
+meta def positivity_cardinal_pow : expr → tactic strictness
+| `(@has_pow.pow _ _ %%inst %%a %%b) := do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``power_pos [b, p]
+  | _ := failed -- We already know that `0 ≤ x` for all `x : cardinal`
+  end
+| _ := failed
+
+end tactic

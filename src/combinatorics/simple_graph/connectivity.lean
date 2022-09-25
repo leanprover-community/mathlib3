@@ -1327,7 +1327,7 @@ lemma set_walk_length_zero_eq_of_ne {u v : V} (h : u ≠ v) :
   {p : G.walk u v | p.length = 0} = ∅ :=
 begin
   ext p,
-  simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+  simp only [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
   exact λ h', absurd (walk.eq_of_length_eq_zero h') h,
 end
 

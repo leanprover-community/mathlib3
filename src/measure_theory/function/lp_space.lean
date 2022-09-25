@@ -1817,8 +1817,8 @@ lemma snorm_ess_sup_indicator_const_le (s : set α) (c : G) :
   snorm_ess_sup (s.indicator (λ x : α , c)) μ ≤ ∥c∥₊ :=
 begin
   by_cases hμ0 : μ = 0,
-  { rw [hμ0, snorm_ess_sup_measure_zero, ennreal.coe_nonneg],
-    exact zero_le', },
+  { rw [hμ0, snorm_ess_sup_measure_zero],
+    exact ennreal.coe_nonneg },
   { exact (snorm_ess_sup_indicator_le s (λ x, c)).trans (snorm_ess_sup_const c hμ0).le, },
 end
 

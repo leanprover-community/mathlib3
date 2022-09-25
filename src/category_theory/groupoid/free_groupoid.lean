@@ -26,7 +26,6 @@ Given the type `V` and a quiver instance on `V`:
 - `lift_spec` and `lift_unique`: the proofs that, respectively, `lift` indeed is a lifting
   and is the unique one.
 
-
 ## Implementation notes
 
 The definition of the free groupoid in terms of "words" on the base quiver, up to reduction,

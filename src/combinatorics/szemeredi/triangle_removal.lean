@@ -90,8 +90,7 @@ by { have : ε / 4 < 1 := by linarith, unfold triangle_removal_bound, positivity
 
 lemma triangle_removal_bound_mul_cube_lt (hε : 0 < ε) : triangle_removal_bound ε * ⌈4/ε⌉₊^3 < 1 :=
 begin
-  have : triangle_removal_bound ε ≤ _ := min_le_left _ _,
-  refine (mul_le_mul_of_nonneg_right this $ by positivity).trans_lt _,
+  refine (mul_le_mul_of_nonneg_right (min_le_left _ _) $ by positivity).trans_lt _,
   rw [←div_div, div_mul_cancel],
   { norm_num },
   exact ne_of_gt (by positivity),

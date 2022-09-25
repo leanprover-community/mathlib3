@@ -77,11 +77,9 @@ local attribute [positivity] tactic.positivity_szemeredi_regularity
 
 namespace szemeredi_regularity
 
-lemma m_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : 0 < m :=
-nat.div_pos ((nat.mul_le_mul_left _ $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα) $
-  step_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
+lemma m_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : 0 < m := by positivity
 
-lemma coe_m_add_one_pos : 0 < (m : ℝ) + 1 := nat.cast_add_one_pos _
+lemma coe_m_add_one_pos : 0 < (m : ℝ) + 1 := by positivity
 
 lemma one_le_m_coe [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : (1 : ℝ) ≤ m :=
 nat.one_le_cast.2 $ m_pos hPα
@@ -163,8 +161,7 @@ noncomputable def bound : ℕ :=
 (step_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l) * 16 ^ (step_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l)
 
 lemma initial_bound_le_bound : initial_bound ε l ≤ bound ε l :=
-(id_le_iterate_of_id_le le_step_bound _ _).trans $ nat.le_mul_of_pos_right $ pow_pos (by norm_num) _
-
+(id_le_iterate_of_id_le le_step_bound _ _).trans $ nat.le_mul_of_pos_right $ by positivity
 lemma le_bound : l ≤ bound ε l := (le_initial_bound ε l).trans $ initial_bound_le_bound ε l
 lemma bound_pos : 0 < bound ε l := (initial_bound_pos ε l).trans_le $ initial_bound_le_bound ε l
 

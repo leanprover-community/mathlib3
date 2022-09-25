@@ -498,8 +498,7 @@ def padic_norm_e {p : ℕ} [hp : fact p.prime] : absolute_value ℚ_[p] ℚ :=
     exact (quotient.induction_on₂ q r $ padic_seq.norm_nonarchimedean),
     refine max_le_add_of_nonneg (quotient.induction_on q $ padic_seq.norm_nonneg) _,
     exact (quotient.induction_on r $ padic_seq.norm_nonneg)
-  end
- }
+  end }
 
 namespace padic_norm_e
 section embedding

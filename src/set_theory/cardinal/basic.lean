@@ -1514,7 +1514,7 @@ by rw [← nat.cast_two, nat_succ, succ_le_iff, nat.cast_one, one_lt_iff_nontriv
 lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃y : α, y ≠ x :=
 by rw [two_le_iff, ← nontrivial_iff, nontrivial_iff_exists_ne x]
 
-lemma mk_eq_two_iff {α : Type*} : #α = 2 ↔ ∃ x y : α, x ≠ y ∧ ({x, y} : set α) = univ :=
+lemma mk_eq_two_iff : #α = 2 ↔ ∃ x y : α, x ≠ y ∧ ({x, y} : set α) = univ :=
 begin
   simp only [← @nat.cast_two cardinal, mk_eq_nat_iff_finset, finset.card_eq_two],
   split,
@@ -1522,6 +1522,17 @@ begin
     exact ⟨x, y, hne, by simpa using ht⟩ },
   { rintro ⟨x, y, hne, h⟩,
     exact ⟨{x, y}, by simpa using h, x, y, hne, rfl⟩ }
+end
+
+lemma mk_eq_two_iff' (x : α) : #α = 2 ↔ ∃! y, y ≠ x :=
+begin
+  rw [mk_eq_two_iff], split,
+  { rintro ⟨a, b, hne, h⟩,
+    simp only [eq_univ_iff_forall, mem_insert_iff, mem_singleton_iff] at h,
+    rcases h x with rfl|rfl,
+    exacts [⟨b, hne.symm, λ z, (h z).resolve_left⟩, ⟨a, hne, λ z, (h z).resolve_right⟩] },
+  { rintro ⟨y, hne, hy⟩,
+    exact ⟨x, y, hne.symm, eq_univ_of_forall $ λ z, or_iff_not_imp_left.2 (hy z)⟩ }
 end
 
 lemma exists_not_mem_of_length_lt {α : Type*} (l : list α) (h : ↑l.length < # α) :

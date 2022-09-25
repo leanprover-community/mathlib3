@@ -52,7 +52,7 @@ Those depending on analysis or topology are defined elsewhere; see
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 open set
 
@@ -1032,7 +1032,8 @@ end
 /-- The `vector_span` is the span of the pairwise subtractions with a
 given point on the right, excluding the subtraction of that point from
 itself. -/
-lemma vector_span_eq_span_vsub_finset_right_ne {s : finset P} {p : P} (hp : p ∈ s) :
+lemma vector_span_eq_span_vsub_finset_right_ne [decidable_eq P] [decidable_eq V] {s : finset P}
+  {p : P} (hp : p ∈ s) :
   vector_span k (s : set P) = submodule.span k ((s.erase p).image (-ᵥ p)) :=
 by simp [vector_span_eq_span_vsub_set_right_ne _ (finset.mem_coe.mpr hp)]
 

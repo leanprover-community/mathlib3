@@ -226,7 +226,7 @@ end coheyting_algebra
 section heyting_algebra
 variables [heyting_algebra α] (a : α)
 
-@[simp] lemma bihimp_bot : a ⇔ ⊥= aᶜ := by simp [bihimp]
+@[simp] lemma bihimp_bot : a ⇔ ⊥ = aᶜ := by simp [bihimp]
 @[simp] lemma bot_bihimp : ⊥ ⇔ a = aᶜ := by simp [bihimp]
 
 @[simp] lemma compl_bihimp_self : aᶜ ⇔ a = ⊥ := @hnot_symm_diff_self αᵒᵈ _ _
@@ -398,7 +398,7 @@ by simp_rw [bihimp_assoc, bihimp_left_comm]
 @[simp] lemma bihimp_bihimp_cancel_left : a ⇔ (a ⇔ b) = b := by simp [←bihimp_assoc]
 @[simp] lemma bihimp_bihimp_cancel_right : b ⇔ a ⇔ a = b := by simp [bihimp_assoc]
 
-@[simp] lemma bihimp_bihimp_self : a ⇔ b ⇔ a = b := by rw [bihimp_comm,bihimp_bihimp_cancel_left]
+@[simp] lemma bihimp_bihimp_self : a ⇔ b ⇔ a = b := by rw [bihimp_comm, bihimp_bihimp_cancel_left]
 
 lemma bihimp_left_involutive (a : α) : involutive (⇔ a) := bihimp_bihimp_cancel_right _
 lemma bihimp_right_involutive (a : α) : involutive ((⇔) a) := bihimp_bihimp_cancel_left _
@@ -512,4 +512,3 @@ lemma bihimp_def [Π i, generalized_heyting_algebra (π i)] (a b : Π i, π i) :
   (a ⇔ b) i = a i ⇔ b i := rfl
 
 end pi
-

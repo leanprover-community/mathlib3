@@ -521,7 +521,7 @@ variables [has_zero R] [has_zero M] [smul_with_zero R M] [no_zero_smul_divisors 
 
 @[simp] lemma smul_eq_zero : c • x = 0 ↔ c = 0 ∨ x = 0 :=
 ⟨eq_zero_or_eq_zero_of_smul_eq_zero,
- λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero' _ c)⟩
+  λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
 
 lemma smul_ne_zero_iff : c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 := by rw [ne.def, smul_eq_zero, not_or_distrib]
 

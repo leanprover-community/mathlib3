@@ -512,19 +512,23 @@ instance no_zero_divisors.to_no_zero_smul_divisors [has_zero R] [has_mul R] [no_
   no_zero_smul_divisors R R :=
 ⟨λ c x, eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
-section module
+lemma smul_ne_zero [has_zero R] [has_zero M] [has_smul R M] [no_zero_smul_divisors R M] {c : R}
+  {x : M} (hc : c ≠ 0) (hx : x ≠ 0) : c • x ≠ 0 :=
+λ h, (eq_zero_or_eq_zero_of_smul_eq_zero h).elim hc hx
 
-variables [semiring R] [add_comm_monoid M] [module R M]
+section smul_with_zero
+variables [has_zero R] [has_zero M] [smul_with_zero R M] [no_zero_smul_divisors R M] {c : R} {x : M}
 
-@[simp]
-theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
-  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+@[simp] lemma smul_eq_zero : c • x = 0 ↔ c = 0 ∨ x = 0 :=
 ⟨eq_zero_or_eq_zero_of_smul_eq_zero,
- λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
+  λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
 
-theorem smul_ne_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
-  c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 :=
-by simp only [ne.def, smul_eq_zero, not_or_distrib]
+lemma smul_ne_zero_iff : c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 := by rw [ne.def, smul_eq_zero, not_or_distrib]
+
+end smul_with_zero
+
+section module
+variables [semiring R] [add_comm_monoid M] [module R M]
 
 section nat
 

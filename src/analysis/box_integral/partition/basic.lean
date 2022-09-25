@@ -434,7 +434,7 @@ begin
   refine (eq_of_boxes_subset_Union_superset (λ J₁ h₁, _) _).symm,
   { refine (mem_restrict _).2 ⟨J₁, π.mem_bUnion.2 ⟨J, hJ, h₁⟩, (inf_of_le_right _).symm⟩,
     exact with_bot.coe_le_coe.2 (le_of_mem _ h₁) },
-  { simp only [Union_restrict, Union_bUnion, set.subset_def, set.mem_inter_eq, set.mem_Union],
+  { simp only [Union_restrict, Union_bUnion, set.subset_def, set.mem_inter_iff, set.mem_Union],
     rintro x ⟨hxJ, J₁, h₁, hx⟩,
     obtain rfl : J = J₁, from π.eq_of_mem_of_mem hJ h₁ hxJ (Union_subset _ hx),
     exact hx }

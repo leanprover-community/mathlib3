@@ -216,4 +216,13 @@ begin
   { exact strongly_measurable_const, },
 end
 
+-- this dot notation will make more sense once we have a more general definition for predictable
+lemma predictable.adapted {f : filtration ℕ m} {u : ℕ → Ω → β}
+  (hu : adapted f (λ n, u (n + 1))) (hu0 : strongly_measurable[f 0] (u 0)) :
+  adapted f u :=
+λ n, match n with
+  | 0 := hu0
+  | n + 1 := (hu n).mono (f.mono n.le_succ)
+end
+
 end measure_theory

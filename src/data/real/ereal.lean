@@ -154,7 +154,19 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 @[simp, norm_cast] lemma coe_add (x y : ℝ) : ((x + y : ℝ) : ereal) = (x : ereal) + (y : ereal) :=
 rfl
 
-@[simp] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
+
+@[simp, norm_cast] protected lemma coe_nonneg {x : ℝ} : (0 : ereal) ≤ x ↔ 0 ≤ x :=
+ereal.coe_le_coe_iff
+
+@[simp, norm_cast] protected lemma coe_nonpos {x : ℝ} : (x : ereal) ≤ 0 ↔ x ≤ 0 :=
+ereal.coe_le_coe_iff
+
+@[simp, norm_cast] protected lemma coe_pos {x : ℝ} : (0 : ereal) < x ↔ 0 < x :=
+ereal.coe_lt_coe_iff
+
+@[simp, norm_cast] protected lemma coe_neg' {x : ℝ} : (x : ereal) < 0 ↔ x < 0 :=
+ereal.coe_lt_coe_iff
 
 lemma to_real_le_to_real {x y : ereal} (h : x ≤ y) (hx : x ≠ ⊥) (hy : y ≠ ⊤) :
   x.to_real ≤ y.to_real :=
@@ -214,7 +226,8 @@ end
 
 lemma coe_nnreal_eq_coe_real (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) = (x : ℝ) := rfl
 
-@[simp] lemma coe_ennreal_top : ((⊤ : ℝ≥0∞) : ereal) = ⊤ := rfl
+@[simp, norm_cast] lemma coe_ennreal_zero : ((0 : ℝ≥0∞) : ereal) = 0 := rfl
+@[simp, norm_cast] lemma coe_ennreal_top : ((⊤ : ℝ≥0∞) : ereal) = ⊤ := rfl
 
 @[simp] lemma coe_ennreal_eq_top_iff : ∀ {x : ℝ≥0∞}, (x : ereal) = ⊤ ↔ x = ⊤
 | ⊤ := by simp
@@ -247,6 +260,9 @@ lemma coe_nnreal_ne_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) ≠ ⊤ := de
 lemma coe_ennreal_nonneg (x : ℝ≥0∞) : (0 : ereal) ≤ x :=
 coe_ennreal_le_coe_ennreal_iff.2 (zero_le x)
 
+@[simp, norm_cast] lemma coe_ennreal_pos {x : ℝ≥0∞} : (0 : ereal) < x ↔ 0 < x :=
+by rw [←coe_ennreal_zero, coe_ennreal_lt_coe_ennreal_iff]
+
 @[simp] lemma bot_lt_coe_ennreal (x : ℝ≥0∞) : (⊥ : ereal) < x :=
 (bot_lt_coe 0).trans_le (coe_ennreal_nonneg _)
 
@@ -256,8 +272,6 @@ coe_ennreal_le_coe_ennreal_iff.2 (zero_le x)
 | ⊤ y := rfl
 | x ⊤ := by simp
 | (some x) (some y) := rfl
-
-@[simp] lemma coe_ennreal_zero : ((0 : ℝ≥0∞) : ereal) = 0 := rfl
 
 
 /-! ### Order -/
@@ -514,3 +528,38 @@ lemma to_real_mul : ∀ {x y : ereal}, to_real (x * y) = to_real x * to_real y
 | ⊥ ⊥ := by simp
 
 end ereal
+
+namespace tactic
+open positivity
+
+private lemma ereal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ereal) := ereal.coe_nonneg.2
+private lemma ereal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ereal) := ereal.coe_pos.2
+private lemma ereal_coe_ennreal_pos {r : ℝ≥0∞} : 0 < r → 0 < (r : ereal) := ereal.coe_ennreal_pos.2
+
+/-- Extension for the `positivity` tactic: cast from `ℝ` to `ereal`. -/
+@[positivity]
+meta def positivity_coe_real_ereal : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  unify inst `(@coe_to_lift _ _ $ @coe_base _ _ ereal.has_coe),
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``ereal_coe_pos [p]
+  | nonnegative p := nonnegative <$> mk_mapp ``ereal_coe_nonneg [a, p]
+  end
+| e := pp e >>= fail ∘ format.bracket "The expression "
+         " is not of the form `(r : ereal)` for `r : ℝ`"
+
+/-- Extension for the `positivity` tactic: cast from `ℝ≥0∞` to `ereal`. -/
+@[positivity]
+meta def positivity_coe_ennreal_ereal : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  unify inst `(@coe_to_lift _ _ $ @coe_base _ _ ereal.has_coe_ennreal),
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``ereal_coe_ennreal_pos [p]
+  | nonnegative _ := nonnegative <$> mk_mapp `ereal.coe_ennreal_nonneg [a]
+  end
+| e := pp e >>= fail ∘ format.bracket "The expression "
+         " is not of the form `(r : ereal)` for `r : ℝ≥0∞`"
+
+end tactic

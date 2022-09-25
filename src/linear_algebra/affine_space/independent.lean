@@ -534,7 +534,7 @@ begin
       rw [set.image_insert_eq, ← set.image_comp],
       simp, },
     { use p,
-      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_eq, coe_affine_span],
+      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_iff, coe_affine_span],
       exact ⟨mem_span_points k _ _ (set.mem_insert p _), mem_span_points k _ _ hp⟩, }, },
 end
 

@@ -62,11 +62,9 @@ instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f :=
 @[simp] lemma groupoid.inv_eq_inv (f : X ⟶ Y) : groupoid.inv f = inv f :=
 is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
 
+/-- `groupoid.inv` is involutive. -/
 @[simps] def groupoid.inv_equiv : (X ⟶ Y) ≃ (Y ⟶ X) :=
-{ to_fun := groupoid.inv,
-  inv_fun := groupoid.inv,
-  left_inv := λ f, by simp,
-  right_inv := λ f, by simp }
+⟨groupoid.inv, groupoid.inv, λ f, by simp, λ f, by simp⟩
 
 variables (X Y)
 

@@ -33,7 +33,10 @@ open fundamental_groupoid_functor
 open_locale fundamental_groupoid
 open_locale unit_interval
 
-example :
+example (X Y : Type*) (f g : X → Y) : (∀(x : X), f x = g x) → f = g :=
+begin
+  refine funext,
+end
 
 
 def top_hom_of_continuous_map
@@ -72,6 +75,9 @@ def to_continuous_map (r : top_retraction X A_filter) : C(X, subtype A_filter) :
 { to_fun := r.to_fun,
   continuous_to_fun :=  is_top_retraction.continuous r.top_retraction' }
 
+lemma coe_continuous_map_eq_to_fun (r : top_retraction X A_filter) :
+  ⇑r.to_continuous_map = r.to_fun := by refl
+
 @[priority 100]
 instance top_retraction.continuous_map_class :
   continuous_map_class (top_retraction X A_filter) X (subtype A_filter) :=
@@ -79,14 +85,20 @@ instance top_retraction.continuous_map_class :
   coe_injective' := λr s h, by { cases r, cases s, congr' },
   map_continuous := λr, is_top_retraction.continuous r.top_retraction' }
 
+
+set_option trace.simplify.rewrite true
+
 /-- We show that if a topological retraction `r : X → A` exists, then the inclusion map `i : A → X`
 is a split monomorphism in the category Top. -/
 def split_mono_of_inclusion (r : top_retraction X A_filter) :
   split_mono (top_hom_of_continuous_map (inclusion X A_filter)) :=
 { retraction := r.to_continuous_map,
   id' := begin
-    rw [top_hom_of_continuous_map, types_comp, types_id],
-    apply r.top_retraction'.id_of_retraction_of_inclusion,
+    apply fun_like.ext,
+    rw [top_hom_of_continuous_map, Top.top_comp, Top.top_id,
+        continuous_map.coe_mk, continuous_map.coe_mk, coe_continuous_map_eq_to_fun,
+        r.top_retraction'.id_of_retraction_of_inclusion],
+    intro x, refl,
   end, }
 
 /-- We show that a topological retraction `r : X → A` is a split epimorphism in the category Top. -/
@@ -94,8 +106,11 @@ def split_epi_of_retraction (r : top_retraction X A_filter) :
   split_epi (top_hom_of_continuous_map r.to_continuous_map) :=
 { section_ := inclusion X A_filter,
   id' := begin
-    rw [top_hom_of_continuous_map, _, types_id],
-    apply r.top_retraction'.id_of_retraction_of_inclusion,
+    apply fun_like.ext,
+    rw [top_hom_of_continuous_map, Top.top_comp, Top.top_id,
+        continuous_map.coe_mk, continuous_map.coe_mk, coe_continuous_map_eq_to_fun,
+        r.top_retraction'.id_of_retraction_of_inclusion],
+    intro x, refl,
   end, }
 
 /-- We show that if a topological retraction `r : X → A` exists, then the induced arrow between

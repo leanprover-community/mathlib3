@@ -77,13 +77,8 @@ by exactI has_colimits_of_has_coequalizers_and_coproducts
 
 lemma has_products_of_finite_and_cofiltered [has_finite_products C]
   [has_cofiltered_limits_of_size.{w w} C] : has_products.{w} C :=
-begin
-  haveI : has_finite_coproducts Cᵒᵖ := has_finite_coproducts_opposite,
-  haveI : has_filtered_colimits_of_size.{w w} Cᵒᵖ :=
-    has_filtered_colimits_op_of_has_cofiltered_limits,
-  haveI : has_coproducts.{w} Cᵒᵖ := has_coproducts_of_finite_and_filtered,
-  exact has_products_of_opposite
-end
+have has_coproducts.{w} Cᵒᵖ, from has_coproducts_of_finite_and_filtered,
+by exactI has_products_of_opposite
 
 lemma has_limits_of_finite_and_cofiltered [has_finite_limits C]
   [has_cofiltered_limits_of_size.{w w} C] : has_limits_of_size.{w w} C :=

@@ -275,8 +275,6 @@ lemma has_colimits_of_shape_of_has_limits_of_shape_op [has_limits_of_shape Jᵒ�
   has_colimits_of_shape J C :=
 { has_colimit := λ F, has_colimit_of_has_limit_op F }
 
-local attribute [instance] has_colimits_of_shape_op_of_has_limits_of_shape
-
 /--
 If `C` has limits, we can construct colimits for `Cᵒᵖ`.
 -/
@@ -287,7 +285,7 @@ lemma has_colimits_of_has_limits_op [has_limits Cᵒᵖ] : has_colimits C :=
 
 instance has_filtered_colimits_op_of_has_cofiltered_limits
   [has_cofiltered_limits_of_size.{v₂ u₂} C] : has_filtered_colimits_of_size.{v₂ u₂} Cᵒᵖ :=
-{ has_colimits_of_shape := λ I hI₁ hI₂, by exactI has_colimits_of_shape_op_of_has_limits_of_shape }
+{ has_colimits_of_shape := λ I hI₁ hI₂, by exactI infer_instance }
 
 lemma has_filtered_colimits_of_has_cofiltered_limits_op
   [has_cofiltered_limits_of_size.{v₂ u₂} Cᵒᵖ] : has_filtered_colimits_of_size.{v₂ u₂} C :=
@@ -333,25 +331,25 @@ begin
 end
 
 instance has_products_opposite [has_coproducts.{v₂} C] : has_products.{v₂} Cᵒᵖ :=
-λ X, has_products_of_shape_opposite X
+λ X, infer_instance
 
 lemma has_products_of_opposite [has_coproducts.{v₂} Cᵒᵖ] : has_products.{v₂} C :=
 λ X, has_products_of_shape_of_opposite X
 
 instance has_coproducts_opposite [has_products.{v₂} C] : has_coproducts.{v₂} Cᵒᵖ :=
-λ X, has_coproducts_of_shape_opposite X
+λ X, infer_instance
 
 lemma has_coproducts_of_opposite [has_products.{v₂} Cᵒᵖ] : has_coproducts.{v₂} C :=
 λ X, has_coproducts_of_shape_of_opposite X
 
 instance has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
-{ out := λ J _, by exactI has_coproducts_of_shape_opposite J }
+{ out := λ J _, by exactI infer_instance }
 
 lemma has_finite_coproducts_of_opposite [has_finite_products Cᵒᵖ] : has_finite_coproducts C :=
 { out := λ J _, by exactI has_coproducts_of_shape_of_opposite J }
 
 instance has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
-{ out := λ J _, by exactI has_products_of_shape_opposite J }
+{ out := λ J _, by exactI infer_instance }
 
 lemma has_finite_products_of_opposite [has_finite_coproducts Cᵒᵖ] : has_finite_products C :=
 { out := λ J _, by exactI has_products_of_shape_of_opposite J }
@@ -389,7 +387,7 @@ instance has_pushouts_opposite [has_pullbacks C] : has_pushouts Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape walking_spanᵒᵖ C :=
     has_limits_of_shape_of_equivalence walking_span_op_equiv.symm,
-  apply has_colimits_of_shape_op_of_has_limits_of_shape,
+  apply_instance
 end
 
 /-- The canonical isomorphism relating `span f.op g.op` and `(cospan f g).op` -/

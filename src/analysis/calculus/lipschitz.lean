@@ -457,8 +457,8 @@ begin
       Icc_union_Icc_eq_Icc hab hbc]
 end
 
-lemma exists_monotone_sub_monotone (f : ℝ → ℝ) {s : set ℝ}
-  (h : ∀ a b, evariation_on f (s ∩ (Icc a b)) ≠ ∞) :
+lemma exists_monotone_on_sub_monotone_on (f : ℝ → ℝ) {s : set ℝ}
+  (h : ∀ a b, a ∈ s → b ∈ s → a ≤ b → evariation_on f (s ∩ (Icc a b)) ≠ ∞) :
   ∃ (p q : ℝ → ℝ), monotone_on p s ∧ monotone_on q s ∧ ∀ x, f x = p x - q x :=
 begin
   rcases eq_empty_or_nonempty s with rfl|hs,
@@ -468,172 +468,154 @@ begin
   let p := λ x, if c ≤ x then (evariation_on f (s ∩ Icc c x)).to_real
     else -(evariation_on f (s ∩ Icc x c)).to_real,
   have hp : monotone_on p s,
-  sorry { assume x hx y hy hxy,
+  { assume x xs y ys hxy,
     dsimp only [p],
-    split_ifs with hcx hcy hw,
+    split_ifs with hcx hcy hcy,
     { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy hx,
-      rw [← this, ennreal.to_real_add (h c x) (h x y)],
+        = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy xs,
+      rw [← this, ennreal.to_real_add (h c x cs xs hcx) (h x y xs ys hxy)],
       exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg },
     { linarith },
     { exact (neg_nonpos.2 ennreal.to_real_nonneg).trans ennreal.to_real_nonneg },
     { simp only [neg_le_neg_iff],
       have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from Icc_add_Icc f hxy (not_le.1 hw).le hy,
-      rw [← this, ennreal.to_real_add (h x y) (h y c), add_comm],
+        = evariation_on f (s ∩ Icc x c), from Icc_add_Icc f hxy (not_le.1 hcy).le ys,
+      rw [← this, ennreal.to_real_add (h x y xs ys hxy) (h y c ys cs (not_le.1 hcy).le), add_comm],
       exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg } },
   have hq : monotone_on (λ x, p x - f x) s,
-  { assume x hx y hy hxy,
+  { assume x xs y ys hxy,
     dsimp only [p],
-    split_ifs with hcx hcy hw,
-    { simp only [tsub_le_iff_right],
-      have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy hx,
-      rw [← this, ennreal.to_real_add (h c x) (h x y)],
+    split_ifs with hcx hcy hcy,
+    { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
+        = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy xs,
+      rw [← this, ennreal.to_real_add (h c x cs xs hcx) (h x y xs ys hxy)],
       suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
-      exact sub_le f ⟨hy, hxy, le_rfl⟩ ⟨hx, le_rfl, hxy⟩ (h x y) }
-
-
-  }
+      exact sub_le f ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ (h x y xs ys hxy) },
+    { linarith },
+    { suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x c)).to_real
+        + (evariation_on f (s ∩ Icc c y)).to_real, by linarith,
+      rw [← ennreal.to_real_add (h x c xs cs (not_le.1 hcx).le) (h c y cs ys hcy),
+          Icc_add_Icc f (not_le.1 hcx).le hcy cs],
+      exact sub_le f ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ (h x y xs ys hxy) },
+    { have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
+        = evariation_on f (s ∩ Icc x c), from Icc_add_Icc f hxy (not_le.1 hcy).le ys,
+      rw [← this, ennreal.to_real_add (h x y xs ys hxy) (h y c ys cs (not_le.1 hcy).le)],
+      suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
+      exact sub_le f ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ (h x y xs ys hxy) } },
+  refine ⟨p, λ x, p x - f x, hp, hq, λ x, by abel⟩,
 end
 
+lemma exists_monotone_sub_monotone (f : ℝ → ℝ)
+  (h : ∀ a b, a ≤ b → evariation_on f (Icc a b) ≠ ∞) :
+  ∃ (p q : ℝ → ℝ), monotone p ∧ monotone q ∧ ∀ x, f x = p x - q x :=
+by simpa [monotone_on_univ] using
+  @exists_monotone_on_sub_monotone_on f univ (λ a b ha hb hab, by simpa using h a b hab)
 
+end evariation_on
 
+lemma lipschitz_on.evariation_on_le {f : ℝ → E} {s : set ℝ} {C : ℝ≥0}
+  (h : lipschitz_on_with C f s) (a b : ℝ) :
+  evariation_on f (s ∩ Icc a b) ≤ C * ennreal.of_real (b - a) :=
+begin
+  apply supr_le _,
+  rintros ⟨n, ⟨u, hu, us⟩⟩,
+  calc
+  ∑ i in finset.range n, edist (f (u (i+1))) (f (u i))
+      ≤ ∑ i in finset.range n, C * ennreal.of_real (u (i + 1) - u i) :
+    begin
+      apply finset.sum_le_sum (λ i hi, _),
+      simp only [finset.mem_range] at hi,
+      convert h (us (i+1)).1 (us i).1,
+      rw [edist_dist, real.dist_eq, abs_of_nonneg (sub_nonneg_of_le (hu (nat.le_succ _)))],
+    end
+  ... = C * ennreal.of_real (∑ i in finset.range n, (u (i + 1) - u i)) :
+    begin
+      rw [← finset.mul_sum, ennreal.of_real_sum_of_nonneg],
+      assume i hi,
+      exact sub_nonneg_of_le (hu (nat.le_succ _))
+    end
+  ... = C * ennreal.of_real (u n - u 0) : by rw finset.sum_range_sub
+  ... ≤ C * ennreal.of_real (b - a) :
+    begin
+      refine mul_le_mul_left' _ _,
+      apply ennreal.of_real_le_of_real,
+      exact sub_le_sub (us n).2.2 (us 0).2.1,
+    end
+end
 
-
-
+lemma monotone_on.exists_monotone {α : Type*} [linear_order α]
+  {f : α → ℝ} {s : set α} {a b : α} (h : monotone_on f s)
+  (as : a ∈ s) (bs : b ∈ s) (hab : s ⊆ Icc a b) :
+  ∃ g : α → ℝ, monotone g ∧ eq_on f g s :=
+begin
+  have aleb : a ≤ b := (hab as).2,
+  have H : ∀ x ∈ s, f x = Sup (f '' (Icc a x ∩ s)),
+  { assume x xs,
+    have xmem : x ∈ Icc a x ∩ s := ⟨⟨(hab xs).1, le_rfl⟩, xs⟩,
+    have H : ∀ z, z ∈ f '' (Icc a x ∩ s) → z ≤ f x,
+    { rintros _ ⟨z, ⟨⟨az, zx⟩, zs⟩, rfl⟩,
+      exact h zs xs zx },
+    apply le_antisymm,
+    { exact le_cSup ⟨f x, H⟩ (mem_image_of_mem _ xmem) },
+    { exact cSup_le (nonempty_image_iff.2 ⟨x, xmem⟩) H } },
+  let g := λ x, if x ≤ a then f a else if b ≤ x then f b else Sup (f '' (Icc a x ∩ s)),
+  have hfg : eq_on f g s,
+  { assume x xs,
+    dsimp only [g],
+    by_cases hxa : x ≤ a,
+    { have : x = a, from le_antisymm hxa (hab xs).1,
+      simp only [if_true, this, le_refl] },
+    by_cases hbx : b ≤ x,
+    { simp only [if_true, hxa, hbx, if_false],
+      have : x = b, from le_antisymm (hab xs).2 hbx,
+      simp only [this] },
+    rw [if_neg hxa, if_neg hbx],
+    exact H x xs,  },
+  have M1 : monotone_on g (Iic a),
+  sorry { rintros x (hx : x ≤ a) y (hy : y ≤ a) hxy,
+    dsimp only [g],
+    simp only [hx, hy, if_true] },
+  have M2 : monotone_on g (Ici b),
+  sorry { rintros x (hx : b ≤ x) y (hy : b ≤ y) hxy,
+    dsimp only [g],
+    simp only [hx, hy, if_true],
+    by_cases hxa : x ≤ a,
+    { have : b = a, from le_antisymm (hx.trans hxa) aleb,
+      simp only [this, if_t_t] },
+    { have : ¬(y ≤ a) := λ hy, hxa (hxy.trans hy),
+      simp only [hxa, this] } },
+  have g_eq : ∀ x ∈ Icc a b, g x = Sup (f '' (Icc a x ∩ s)),
+  sorry { rintros x ⟨ax, xb⟩,
+    dsimp only [g],
+    by_cases hxa : x ≤ a,
+    { have : x = a := le_antisymm hxa ax,
+      simp_rw [hxa, if_true, H a as, this] },
+    by_cases hbx : b ≤ x,
+    { have : x = b := le_antisymm xb hbx,
+      simp_rw [hxa, if_false, hbx, if_true, H b bs, this] },
+    simp only [hxa, hbx, if_false] },
+  have M3 : monotone_on g (Icc a b),
+  sorry { rintros x ⟨ax, xb⟩ y ⟨ay, yb⟩ hxy,
+    rw [g_eq x ⟨ax, xb⟩, g_eq y ⟨ay, yb⟩],
+    apply cSup_le_cSup,
+    { refine ⟨f b, _⟩,
+      rintros _ ⟨z, ⟨⟨az, zy⟩, zs⟩, rfl⟩,
+      exact h zs bs (zy.trans yb) },
+    { exact ⟨f a, mem_image_of_mem _ ⟨⟨le_rfl, ax⟩, as⟩⟩ },
+    { apply image_subset,
+      apply inter_subset_inter_left,
+      exact Icc_subset_Icc le_rfl hxy } },
+  have Z := monotone_on.union,
+end
 
 #exit
 
-def has_bounded_variation_on (f : ℝ → E) (s : set ℝ) :=
-  bdd_above (range (λ (p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, dist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))))
 
-lemma has_bounded_variation_on.mono (f : ℝ → E) {s t : set ℝ} (hst : t ⊆ s)
-  (h : has_bounded_variation_on f s) : has_bounded_variation_on f t :=
-begin
-  rcases h with ⟨C, hC⟩,
-  refine ⟨C, _⟩,
-  rintros _ ⟨⟨n, ⟨u, hu, ut⟩⟩, rfl⟩,
-  apply hC,
-  have us : ∀ i, u i ∈ s := λ i, (hst (ut i)),
-  exact mem_range_self (⟨n, ⟨u, hu, us⟩⟩ : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s})
-end
-
-noncomputable def variation_on (f : ℝ → E) (s : set ℝ) :=
-⨆ (p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s}),
-  ∑ i in finset.range p.1, dist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))
-
-lemma has_bounded_variation.le_variation_on
-  {f : ℝ → E} {s : set ℝ} (hf : has_bounded_variation_on f s)
-  (n : ℕ) (u : ℕ → ℝ) (hu : monotone u) (us : ∀ i, u i ∈ s) :
-  ∑ i in finset.range n, dist (f (u (i+1))) (f (u i)) ≤ variation_on f s :=
-begin
-  let p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, us⟩),
-  change ∑ i in finset.range p.1, dist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))
-    ≤ variation_on f s,
-  exact le_csupr hf _,
-end
+/- lemma ae_differentiable_at_Icc (f : ℝ → ℝ) {x y : ℝ} (h : evariation_on f (Icc x y) ≠ ∞) :
+  ∀ᵐ x ∂(volume.restrict (Icc x y)), differentiable_at ℝ f x :=
+-/
 
 
-#exit
-
-@[simp] lemma variation_on_empty (f : ℝ → E) :
-  variation_on f ∅ = 0 :=
-begin
-  rw [variation_on, supr],
-  convert real.Sup_empty,
-  simp,
-end
-
-lemma nonempty_monotone_mem {s : set ℝ} (hs : s.nonempty) :
-  nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ s} :=
-begin
-  obtain ⟨x, hx⟩ := hs,
-  exact ⟨⟨λ i, x, λ i j hij, le_rfl, λ i, hx⟩⟩,
-end
-
-lemma variation_on_nonneg (f : ℝ → E) (s : set ℝ) :
-  0 ≤ variation_on f s :=
-begin
-  by_cases h : bdd_above (range (λ (p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, dist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i)))),
-  swap,
-  { apply ge_of_eq, exact real.supr_of_not_bdd_above h },
-  by_cases h' : s = ∅,
-  { rw [h', variation_on_empty] },
-  apply le_cSup h,
-  obtain ⟨x, hx⟩ : s.nonempty, from ne_empty_iff_nonempty.1 h',
-  let p : ℕ × {u // monotone u ∧ ∀ (i : ℕ), u i ∈ s} := (0, ⟨λ i, x, λ i j hij, le_rfl, λ i, hx⟩),
-  have : ∑ i in finset.range p.1, dist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i)) = 0,
-    by simp [p],
-  rw ← this,
-  exact mem_range_self p,
-end
-
-lemma variation_on.mono {f : ℝ → E} {s t : set ℝ} (hf : has_bounded_variation_on f s)
-  (hst : t ⊆ s) :
-  variation_on f t ≤ variation_on f s :=
-begin
-  rcases eq_empty_or_nonempty t with rfl|ht,
-  { simpa using variation_on_nonneg f s },
-  haveI := nonempty_monotone_mem ht,
-  apply csupr_le,
-  rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  let p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, λ i, hst (ut i)⟩),
-  change ∑ i in finset.range p.1, dist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))
-    ≤ variation_on f s,
-  apply le_csupr hf,
-end
-
-lemma variation_on.union (f : ℝ → E) (s t : set ℝ) (hst : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
-  variation_on f (s ∪ t) ≤ variation_on f s + variation_on f t :=
-begin
-  by_cases h : s = ∅, { simp [h] },
-  have : (s ∪ t).nonempty := sorry,
-  haveI := nonempty_monotone_mem this,
-  apply csupr_le,
-  rintros ⟨n, ⟨u, hu, ust⟩⟩,
-  by_cases H : ∀ i, u i ∈ s,
-  { let p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, H⟩),
-    change ∑ i in finset.range p.1, dist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))
-      ≤ variation_on f s + variation_on f t,
-
-
-  },
-end
-
-
-#exit
-
-
-noncomputable def extend_right (f : ℝ → ℝ) (x : ℝ) : ℝ :=
-⨆ (p : Σ (n : ℕ), {u : ℕ → ℝ // monotone u ∧ u 0 = 0 ∧ u n = x}),
-  ∑ i in finset.range p.1, |f ((p.2 : ℕ → ℝ) (i+1)) - f ((p.2 : ℕ → ℝ) i)|
-
-lemma extend_right_non_empty (f : ℝ → ℝ) {x : ℝ} (hx : 0 ≤ x) :
-  nonempty (Σ (n : ℕ), {u // monotone u ∧ u 0 = 0 ∧ u n = x}) :=
-begin
-  let u : {u : ℕ → ℝ // monotone u ∧ u 0 = 0 ∧ u 1 = x},
-  { refine ⟨λ i, if i = 0 then 0 else x, _, by simp, by simp⟩,
-    refine monotone_nat_of_le_succ (λ i, _),
-    by_cases hi : i = 0; simp [hi, hx] },
-  exact ⟨⟨1, u⟩⟩
-end
-
-
-
-lemma extend_right_zero (f : ℝ → ℝ) : extend_right f 0 = 0 :=
-begin
-  apply le_antisymm,
-  haveI := extend_right_non_empty f (le_refl (0 : ℝ)),
-  apply csupr_le,
-  rintros ⟨n, ⟨u, hu, u0, un⟩⟩,
-
-
-end
-
-#exit
 
 
 variables {f : ℝ → ℝ} {C : ℝ≥0} (hf : lipschitz_with C f)

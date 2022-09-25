@@ -577,3 +577,62 @@ lemma exists_eq_smul (h : same_ray R v₁ v₂) :
 ⟨v₁ + v₂, h.exists_eq_smul_add⟩
 
 end same_ray
+
+section linear_ordered_field
+
+variables {R : Type*} [linear_ordered_field R]
+variables {M : Type*} [add_comm_group M] [module R M] {x y v₁ v₂ : M}
+
+lemma exists_pos_left_iff_same_ray (hx : x ≠ 0) (hy : y ≠ 0) :
+  (∃ r : R, 0 < r ∧ r • x = y) ↔ same_ray R x y :=
+begin
+  refine ⟨λ h, _, λ h, h.exists_pos_left hx hy⟩,
+  rcases h with ⟨r, hr, rfl⟩,
+  exact same_ray_pos_smul_right x hr
+end
+
+lemma exists_pos_left_iff_same_ray_and_ne_zero (hx : x ≠ 0) :
+  (∃ r : R, 0 < r ∧ r • x = y) ↔ (same_ray R x y ∧ y ≠ 0) :=
+begin
+  split,
+  { rintro ⟨r, hr, rfl⟩,
+    simp [hx, hr.le, hr.ne'] },
+  { rintro ⟨hxy, hy⟩,
+    exact (exists_pos_left_iff_same_ray hx hy).2 hxy }
+end
+
+lemma exists_pos_right_iff_same_ray (hx : x ≠ 0) (hy : y ≠ 0) :
+  (∃ r : R, 0 < r ∧ x = r • y) ↔ same_ray R x y :=
+begin
+  refine ⟨λ h, _, λ h, h.exists_pos_right hx hy⟩,
+  rcases h with ⟨r, hr, rfl⟩,
+  exact same_ray_pos_smul_left y hr
+end
+
+lemma exists_pos_right_iff_same_ray_and_ne_zero (hy : y ≠ 0) :
+  (∃ r : R, 0 < r ∧ x = r • y) ↔ (same_ray R x y ∧ x ≠ 0) :=
+begin
+  split,
+  { rintro ⟨r, hr, rfl⟩,
+    simp [hy, hr.le, hr.ne'] },
+  { rintro ⟨hxy, hx⟩,
+    exact (exists_pos_right_iff_same_ray hx hy).2 hxy }
+end
+
+lemma exists_nonneg_left_iff_same_ray (hx : x ≠ 0) :
+  (∃ r : R, 0 ≤ r ∧ r • x = y) ↔ same_ray R x y :=
+begin
+  refine ⟨λ h, _, λ h, h.exists_nonneg_left hx⟩,
+  rcases h with ⟨r, hr, rfl⟩,
+  exact same_ray_nonneg_smul_right x hr
+end
+
+lemma exists_nonneg_right_iff_same_ray (hy : y ≠ 0) :
+  (∃ r : R, 0 ≤ r ∧ x = r • y) ↔ same_ray R x y :=
+begin
+  refine ⟨λ h, _, λ h, h.exists_nonneg_right hy⟩,
+  rcases h with ⟨r, hr, rfl⟩,
+  exact same_ray_nonneg_smul_left y hr
+end
+
+end linear_ordered_field

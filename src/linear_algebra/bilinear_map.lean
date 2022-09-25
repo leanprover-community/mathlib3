@@ -329,7 +329,7 @@ b₁.ext $ λ i, b₂.ext $ λ j, h i j
 
 /-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis.
 
-Version for semi-bilinear maps.-/
+Version for semi-bilinear maps, see `sum_repr_mul_repr_mul` for the bilinear version. -/
 lemma sum_repr_mul_repr_mulₛₗ {B : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} (x y) :
   (b₁.repr x).sum (λ i xi, (b₂.repr y).sum (λ j yj, (ρ₁₂ xi) • (σ₁₂ yj) • B (b₁ i) (b₂ j))) =
   B x y :=
@@ -341,7 +341,7 @@ end
 
 /-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis.
 
-Version for bilinear maps.-/
+Version for bilinear maps, see `sum_repr_mul_repr_mulₛₗ` for the semi-bilinear version. -/
 lemma sum_repr_mul_repr_mul {B : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ} (x y) :
   (b₁'.repr x).sum (λ i xi, (b₂'.repr y).sum (λ j yj, xi • yj • B (b₁' i) (b₂' j))) =
   B x y :=

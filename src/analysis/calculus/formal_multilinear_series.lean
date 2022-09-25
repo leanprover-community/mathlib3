@@ -292,6 +292,9 @@ end formal_multilinear_series
 
 section const
 
+/-- The formal multilinear series where all terms of positive degree are equal to zero, and the term
+of degree zero is `c`. It is the power series expansion of the constant function equal to `c`
+everywhere. -/
 def const_formal_multilinear_series (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [has_continuous_const_smul 𝕜 E]
   [topological_add_group E] {F : Type*} [normed_add_comm_group F] [topological_add_group F]

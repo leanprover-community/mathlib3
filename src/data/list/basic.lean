@@ -832,8 +832,9 @@ theorem surjective_head [inhabited α] : surjective (@head α _) := λ x, ⟨[x]
 
 theorem surjective_head' : surjective (@head' α) := option.forall.2 ⟨⟨[], rfl⟩, λ x, ⟨[x], rfl⟩⟩
 
-theorem surjective_tail : surjective (@tail α) :=
-by { rintro (_|⟨a, l⟩), exacts [⟨[], rfl⟩, ⟨a::a::l, rfl⟩] }
+theorem surjective_tail : surjective (@tail α)
+| [] := ⟨[], rfl⟩
+| (a :: l) := ⟨a :: a :: l, rfl⟩
 
 lemma eq_cons_of_mem_head' {x : α} : ∀ {l : list α}, x ∈ l.head' → l = x::tail l
 | [] h := (option.not_mem_none _ h).elim

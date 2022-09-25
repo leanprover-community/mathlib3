@@ -581,7 +581,7 @@ end same_ray
 section linear_ordered_field
 
 variables {R : Type*} [linear_ordered_field R]
-variables {M : Type*} [add_comm_group M] [module R M] {x y v₁ v₂ : M}
+variables {M : Type*} [add_comm_group M] [module R M] {x y : M}
 
 lemma exists_pos_left_iff_same_ray (hx : x ≠ 0) (hy : y ≠ 0) :
   (∃ r : R, 0 < r ∧ r • x = y) ↔ same_ray R x y :=

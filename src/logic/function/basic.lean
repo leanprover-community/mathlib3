@@ -662,6 +662,8 @@ def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
 funext_iff.symm
 
+lemma _root_.bool.involutive_bnot : involutive bnot := bnot_bnot
+
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)
 include h

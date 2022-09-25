@@ -182,11 +182,11 @@ lemma monotone_iff_map_nonneg : monotone (f : α → β) ↔ ∀ a, 0 ≤ a → 
   by { rw [←sub_add_cancel b a, map_add f], exact le_add_of_nonneg_left (h _ $ sub_nonneg.2 hl) }⟩
 
 lemma antitone_iff_map_nonpos : antitone (f : α → β) ↔ ∀ a, 0 ≤ a → f a ≤ 0 :=
-by { rw ←monotone_to_dual_comp_iff, apply monotone_iff_map_nonneg }
-lemma antitone_iff_map_nonneg : antitone (f : α → β) ↔ ∀ a ≤ 0, 0 ≤ f a :=
-by { rw ←monotone_comp_of_dual_iff, apply monotone_iff_map_nonneg }
+monotone_to_dual_comp_iff.symm.trans $ monotone_iff_map_nonneg _
 lemma monotone_iff_map_nonpos : monotone (f : α → β) ↔ ∀ a ≤ 0, f a ≤ 0 :=
-by { rw ←antitone_comp_of_dual_iff, apply antitone_iff_map_nonpos }
+antitone_comp_of_dual_iff.symm.trans $ antitone_iff_map_nonpos _
+lemma antitone_iff_map_nonneg : antitone (f : α → β) ↔ ∀ a ≤ 0, 0 ≤ f a :=
+monotone_comp_of_dual_iff.symm.trans $ monotone_iff_map_nonneg _
 
 end
 
@@ -198,11 +198,11 @@ lemma strict_mono_iff_map_pos : strict_mono (f : α → β) ↔ ∀ a, 0 < a →
   by { rw [←sub_add_cancel b a, map_add f], exact lt_add_of_pos_left _ (h _ $ sub_pos.2 hl) }⟩
 
 lemma strict_anti_iff_map_neg : strict_anti (f : α → β) ↔ ∀ a, 0 < a → f a < 0 :=
-by { rw ←strict_mono_to_dual_comp_iff, apply strict_mono_iff_map_pos }
-lemma strict_anti_iff_map_pos : strict_anti (f : α → β) ↔ ∀ a < 0, 0 < f a :=
-by { rw ←strict_mono_comp_of_dual_iff, apply strict_mono_iff_map_pos }
+strict_mono_to_dual_comp_iff.symm.trans $ strict_mono_iff_map_pos _
 lemma strict_mono_iff_map_neg : strict_mono (f : α → β) ↔ ∀ a < 0, f a < 0 :=
-by { rw ←strict_anti_comp_of_dual_iff, apply strict_anti_iff_map_neg }
+strict_anti_comp_of_dual_iff.symm.trans $ strict_anti_iff_map_neg _
+lemma strict_anti_iff_map_pos : strict_anti (f : α → β) ↔ ∀ a < 0, 0 < f a :=
+strict_mono_comp_of_dual_iff.symm.trans $ strict_mono_iff_map_pos _
 
 end
 

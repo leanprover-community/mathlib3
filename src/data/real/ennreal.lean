@@ -1603,7 +1603,7 @@ eq_comm.trans of_real_eq_zero
 
 alias of_real_eq_zero ↔ _ of_real_of_nonpos
 
-lemma of_real_sub (p : ℝ) (hq : 0 ≤ q) :
+lemma of_real_sub (p : ℝ) {q : ℝ} (hq : 0 ≤ q) :
   ennreal.of_real (p - q) = ennreal.of_real p - ennreal.of_real q :=
 begin
   obtain h | h := le_total p q,

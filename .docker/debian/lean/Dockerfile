@@ -26,8 +26,9 @@ RUN python3 -m pip install --user mathlibtools
 # now install `pyinstaller`, and run it on the installed copy of `leanproject`
 RUN python3 -m pip install --user pyinstaller
 WORKDIR /home/lean/.local/bin
-# If mathlibtools added an explicit `import _cffi_backend` or `import cffi`
-# we wouldn't need the `--hidden-import` flag here.
+# We need the `--hidden-import` flag here due to PyInstaller not knowing the dependencies
+# of PyNaCl (https://github.com/pyinstaller/pyinstaller/issues/3525), which is itself a transitive
+# dependency of mathlibtools via PyGithub.
 RUN pyinstaller --onefile --noconfirm --hidden-import _cffi_backend leanproject
 # this has created `/home/lean/.local/bin/dist/leanproject`,
 # which we'll now copy to a fresh container

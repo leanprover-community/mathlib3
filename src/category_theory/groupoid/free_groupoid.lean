@@ -6,6 +6,7 @@ Authors: Rémi Bottinelli
 import category_theory.category.basic
 import category_theory.functor.basic
 import category_theory.groupoid
+import combinatorics.quiver.basic
 import logic.relation
 import tactic.nth_rewrite
 
@@ -279,6 +280,9 @@ lemma quot_cons_n {c d e : V} (f : d ⟶ c) (w : word d e) :
   (quot.mk (@red_step V _ c e) (word.cons_n f w)) =
   quot_comp (quot.mk (@red_step V _ c d) (letter_n f )) (quot.mk (@red_step V _ d e) w) := rfl
 
+lemma quot_reverse {c d : V} (w : word c d) :
+  (quot.mk (@red_step V _ d c) w.reverse) = quot_inv (quot.mk (@red_step V _ c d) w) := rfl
+
 /-- Given the prefunctor `φ : V → V'`, send a word in `V` to its associated value via `φ` -/
 def lift_word : Π {x y : V} (w : word x y), (φ.obj x) ⟶ (φ.obj y)
 | x _ (word.nil) := 𝟙 (φ.obj x)
@@ -323,11 +327,11 @@ end
 lemma lift_word_reverse {x y : V} (u : word x y) : lift_word φ (u.reverse) = inv (lift_word φ u) :=
 begin
   induction u,
-  { simp only [word.reverse_nil, lift_word_nil, inv_id], },
-  { simp only [u_ih, word.reverse_cons_p, lift_word_append, lift_word_letter_n,
-               lift_word_cons_p, inv_of_comp], },
-  { simp only [u_ih, word.reverse_cons_n, lift_word_append, lift_word_letter_p,
-               lift_word_cons_n, inv_of_comp, inv_inv], },
+  { simp only [word.reverse_nil, lift_word_nil, inv_eq_inv, is_iso.inv_id], },
+  { simp only [u_ih, word.reverse_cons_p, lift_word_append, lift_word_letter_n, lift_word_cons_p,
+               inv_eq_inv, is_iso.inv_comp], },
+  { simp only [u_ih, word.reverse_cons_n, lift_word_append, lift_word_letter_p, lift_word_cons_n,
+               inv_eq_inv, is_iso.inv_comp, is_iso.inv_inv], },
 end
 
 lemma lift_word_congr {x y : V} (w₀ w₁ : word x y) (redw : red_step w₀ w₁) :
@@ -395,10 +399,10 @@ end
 lemma lift_unique (Φ : free_groupoid V ⥤ V') : (ι.comp Φ.to_prefunctor) = φ → Φ = (lift φ) :=
 begin
   rintro h, subst h,
-  fapply functor.ext',
+  fapply functor.hext,
   { rintro x, dsimp [lift,ι], refl, },
   { rintro X Y f,
-    simp only [eq_mpr_eq_cast, cast_eq],
+    simp only [heq_iff_eq],
     refine quot.induction_on f _,
     refine word.rec _ _ _,
     { rintro x, convert functor.map_id Φ x, },
@@ -414,8 +418,11 @@ begin
              Φ.map ((quot.mk red_step $ letter_n p ) ≫  (quot.mk red_step w)), by refl,
       simp only [this, functor.map_comp, IHw, functor.map_comp],
       apply congr_arg2,
-      { dsimp only [lift,ι], rw ←word.reverse_letter_p,
-        convert groupoid.functor_map_inv Φ (quot.mk red_step  $ letter_p p ) , },
+      { rw [←word.reverse_letter_p,quot_reverse],
+        change Φ.map (inv (quot.mk red_step (letter_p p))) = inv ((ι.comp Φ.to_prefunctor).map p),
+        convert functor.map_inv Φ (quot.mk red_step  $ letter_p p ),
+        { simp only [inv_eq_inv], },
+        { simp only [prefunctor.comp_map, inv_eq_inv], apply congr_arg, refl, }, },
       { refl, }, }, },
 end
 

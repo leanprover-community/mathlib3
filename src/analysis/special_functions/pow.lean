@@ -404,32 +404,31 @@ begin
   { rcases eq_or_ne y 0 with rfl|hy; simp * },
   have hne : (x : ℂ) ≠ 0, from of_real_ne_zero.mpr hlt.ne,
   rw [cpow_def_of_ne_zero hne, cpow_def_of_ne_zero (neg_ne_zero.2 hne), ← exp_add, ← add_mul,
-    log, log, abs_neg, arg_of_real_of_neg hlt, ← of_real_neg,
-    arg_of_real_of_nonneg (neg_nonneg.2 hx), of_real_zero, zero_mul, add_zero]
+      log, log, abs.map_neg, arg_of_real_of_neg hlt, ← of_real_neg,
+      arg_of_real_of_nonneg (neg_nonneg.2 hx), of_real_zero, zero_mul, add_zero]
 end
 
 lemma abs_cpow_of_ne_zero {z : ℂ} (hz : z ≠ 0) (w : ℂ) :
   abs (z ^ w) = abs z ^ w.re / real.exp (arg z * im w) :=
 by rw [cpow_def_of_ne_zero hz, abs_exp, mul_re, log_re, log_im, real.exp_sub,
-  real.rpow_def_of_pos (abs_pos.2 hz)]
+  real.rpow_def_of_pos (abs.pos hz)]
 
 lemma abs_cpow_of_imp {z w : ℂ} (h : z = 0 → w.re = 0 → w = 0) :
   abs (z ^ w) = abs z ^ w.re / real.exp (arg z * im w) :=
 begin
-  rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w), rw abs_zero],
+  rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w), rw map_zero],
   cases eq_or_ne w.re 0 with hw hw,
   { simp [hw, h rfl hw] },
-  { rw [real.zero_rpow hw, zero_div, zero_cpow, abs_zero],
+  { rw [real.zero_rpow hw, zero_div, zero_cpow, map_zero],
     exact ne_of_apply_ne re hw }
 end
 
 lemma abs_cpow_le (z w : ℂ) : abs (z ^ w) ≤ abs z ^ w.re / real.exp (arg z * im w) :=
 begin
-  by_cases h : z = 0 → w.re = 0 → w = 0,
-  { exact (abs_cpow_of_imp h).le },
-  { push_neg at h,
-    rw [h.1, zero_cpow h.2.2, abs_zero],
-    exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le },
+  rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w).le, rw map_zero],
+  rcases eq_or_ne w 0 with rfl|hw, { simp },
+  rw [zero_cpow hw, map_zero],
+  exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le
 end
 
 section
@@ -445,8 +444,8 @@ begin
   refine real.is_Theta_exp_comp_one.2 ⟨π * b, _⟩,
   rw eventually_map at hb ⊢,
   refine hb.mono (λ x hx, _),
-  rw [_root_.abs_mul],
-  exact mul_le_mul (abs_arg_le_pi _) hx (_root_.abs_nonneg _) real.pi_pos.le
+  erw [abs_mul],
+  exact mul_le_mul (abs_arg_le_pi _) hx (abs_nonneg _) real.pi_pos.le
 end
 
 lemma is_O_cpow_rpow (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
@@ -488,7 +487,7 @@ lemma abs_cpow_eq_rpow_re_of_nonneg {x : ℝ} (hx : 0 ≤ x) {y : ℂ} (hy : re 
   abs (x ^ y) = x ^ re y :=
 begin
   rcases hx.eq_or_lt with rfl|hlt,
-  { rw [of_real_zero, zero_cpow, abs_zero, real.zero_rpow hy],
+  { rw [of_real_zero, zero_cpow, map_zero, real.zero_rpow hy],
     exact ne_of_apply_ne re hy },
   { exact abs_cpow_eq_rpow_re_of_pos hlt y }
 end
@@ -2103,3 +2102,59 @@ prove_rpow' ``ennrpow_pos ``ennrpow_neg ``ennreal.rpow_zero `(ℝ≥0∞) `(ℝ)
 | _ := tactic.failed
 
 end norm_num
+
+namespace tactic
+namespace positivity
+
+/-- Auxiliary definition for the `positivity` tactic to handle real powers of reals. -/
+meta def prove_rpow (a b : expr) : tactic strictness :=
+do
+  strictness_a ← core a,
+  match strictness_a with
+  | nonnegative p := nonnegative <$> mk_app ``real.rpow_nonneg_of_nonneg [p, b]
+  | positive p := positive <$> mk_app ``real.rpow_pos_of_pos [p, b]
+  end
+
+private lemma nnrpow_pos {a : ℝ≥0} (ha : 0 < a) (b : ℝ) : 0 < a ^ b := nnreal.rpow_pos ha
+
+/-- Auxiliary definition for the `positivity` tactic to handle real powers of nonnegative reals. -/
+meta def prove_nnrpow (a b : expr) : tactic strictness :=
+do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``nnrpow_pos [p, b]
+  | _ := failed -- We already know `0 ≤ x` for all `x : ℝ≥0`
+  end
+
+private lemma ennrpow_pos {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 < b) : 0 < a ^ b :=
+ennreal.rpow_pos_of_nonneg ha hb.le
+
+/-- Auxiliary definition for the `positivity` tactic to handle real powers of extended nonnegative
+reals. -/
+meta def prove_ennrpow (a b : expr) : tactic strictness :=
+do
+  strictness_a ← core a,
+  strictness_b ← core b,
+  match strictness_a, strictness_b with
+  | positive pa, positive pb := positive <$> mk_app ``ennrpow_pos [pa, pb]
+  | positive pa, nonnegative pb := positive <$> mk_app ``ennreal.rpow_pos_of_nonneg [pa, pb]
+  | _, _ := failed -- We already know `0 ≤ x` for all `x : ℝ≥0∞`
+  end
+
+end positivity
+
+open positivity
+
+/-- Extension for the `positivity` tactic: exponentiation by a real number is nonnegative when the
+base is nonnegative and positive when the base is positive. -/
+@[positivity]
+meta def positivity_rpow : expr → tactic strictness
+| `(@has_pow.pow _ _ real.has_pow %%a %%b) := prove_rpow a b
+| `(real.rpow %%a %%b) := prove_rpow a b
+| `(@has_pow.pow _ _ nnreal.real.has_pow %%a %%b) := prove_nnrpow a b
+| `(nnreal.rpow %%a %%b) := prove_nnrpow a b
+| `(@has_pow.pow _ _ ennreal.real.has_pow %%a %%b) := prove_ennrpow a b
+| `(ennreal.rpow %%a %%b) := prove_ennrpow a b
+| _ := failed
+
+end tactic

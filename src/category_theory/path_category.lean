@@ -67,6 +67,12 @@ def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
 @[simp] lemma lift_to_path {C} [category C] (φ : prefunctor V C) {X Y : V} (f : X ⟶ Y) :
   (lift φ).map f.to_path = φ.map f := by {dsimp [quiver.hom.to_path,lift], simp, }
 
+lemma lift_spec {C} [category C] (φ : prefunctor V C) :
+  of.comp (lift φ).to_prefunctor = φ := sorry
+
+lemma lift_unique  {C} [category C] (φ : prefunctor V C) (Φ : paths V ⥤ C)
+  (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = lift φ := sorry
+
 /-- Two functors out of a path category are equal when they agree on singleton paths. -/
 @[ext]
 lemma ext_functor {C} [category C]

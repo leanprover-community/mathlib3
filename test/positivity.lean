@@ -44,6 +44,10 @@ example {a b : ℤ} (h : 0 ≤ a + b) : 0 ≤ a + b := by positivity
 
 /- ## Tests of the @[positivity] plugin tactics (addition, multiplication, division) -/
 
+example {a b : ℕ} (h : b < a) : 0 < a - b := by positivity
+example {a b : ℤ} (h : b < a) : 0 < a - b := by positivity
+example {a b : ℤ} (h : b ≤ a) : 0 ≤ a - b := by positivity
+
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a + a := by positivity
 
 example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 ≤ 3 + a + b + b + 14 := by positivity

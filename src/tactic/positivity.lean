@@ -266,6 +266,19 @@ meta def positivity_add : expr → tactic strictness
   end
 | _ := failed
 
+/-- Extension for the `positivity` tactic: `a - b` is positive if `b < a` and nonnegative if
+`b ≤ a`. Note, this only tries to find the appropriate assumption in context. -/
+@[positivity]
+meta def positivity_sub : expr → tactic strictness
+| `(%%a - %%b) :=
+  (do
+    p ← to_expr ``(%%b < %%a) >>= find_assumption,
+    positive <$> mk_app ``tsub_pos_of_lt [p] <|> positive <$> mk_app ``sub_pos_of_lt [p]) <|>
+  do
+    p ← to_expr ``(%%b ≤ %%a) >>= find_assumption,
+    nonnegative <$> mk_app ``sub_nonneg_of_le [p]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `a - b`"
+
 private lemma mul_nonneg_of_pos_of_nonneg [linear_ordered_semiring R] (a b : R) (ha : 0 < a)
   (hb : 0 ≤ b) :
   0 ≤ a * b :=

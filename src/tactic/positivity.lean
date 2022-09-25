@@ -457,4 +457,12 @@ meta def positivity_coe : expr → tactic strictness
   end
 | _ := failed
 
+/-- Extension for the `positivity` tactic: `finset.card s` is positive if `s` is nonempty. -/
+@[positivity]
+meta def positivity_finset_card : expr → tactic strictness
+| `(finset.card %%s) := do -- TODO: Partial decision procedure for `finset.nonempty`
+                          p ← to_expr ``(finset.nonempty %%s) >>= find_assumption,
+                          positive <$> mk_app ``finset.nonempty.card_pos [p]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `finset.card s`"
+
 end tactic

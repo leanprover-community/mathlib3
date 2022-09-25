@@ -378,6 +378,9 @@ instance : uniform_add_group 𝓢(E, F) :=
 instance : locally_convex_space ℝ 𝓢(E, F) :=
 seminorm_family.to_locally_convex_space (schwartz_with_seminorms ℝ E F)
 
+instance : topological_space.first_countable_topology (𝓢(E, F)) :=
+(schwartz_with_seminorms ℝ E F).first_countable
+
 end topology
 
 section distribution

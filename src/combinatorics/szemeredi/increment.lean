@@ -158,7 +158,7 @@ begin
       nat.cast_one, one_mul, le_sub, ←mul_sub_left_distrib,
       ←div_le_iff (show (0:ℝ) < 1/3 - 1/25 - 1/4, by norm_num)],
     exact le_trans (show _ ≤ (7:ℝ), by norm_num) (by exact_mod_cast hP₇) },
-  positivity,
+  positivity -- fails, but if you change the `apply` on line `218` to a `refine`, it works
 end
 
 lemma energy_increment [nonempty α] (hP : P.is_equipartition) (hP₇ : 7 ≤ P.parts.card)
@@ -171,9 +171,7 @@ begin
   rw energy,
   push_cast,
   exact h.trans (by exact_mod_cast off_diag_pairs_le_increment_energy),
-  refine (sq_pos_of_ne_zero _ $ _).ne',
-  norm_cast,
-  linarith,
+  exact ne_of_gt (by positivity),
 end
 
 end szemeredi_regularity

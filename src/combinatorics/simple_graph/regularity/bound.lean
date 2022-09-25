@@ -68,9 +68,7 @@ meta def positivity_szemeredi_regularity : expr → tactic strictness
 | ε := do
     typ ← infer_type ε,
     unify typ `(ℝ),
-    trace "hi",
     p ← to_expr ``(100 ≤ 4 ^ _ * %%ε ^ 5) >>= find_assumption,
-    trace "hello",
     positive <$> mk_app ``eps_pos [p]
 
 end tactic

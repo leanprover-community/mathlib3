@@ -12,12 +12,72 @@ import .triangle_counting
 In this file, we prove the triangle removal lemma.
 -/
 
+namespace tactic
+open positivity
+
+variables {α : Type*}
+
+private lemma int_floor_nonneg [linear_ordered_ring α] [floor_ring α] {a : α} (ha : 0 ≤ a) :
+  0 ≤ ⌊a⌋ := int.floor_nonneg.2 ha
+private lemma int_floor_nonneg_of_pos [linear_ordered_ring α] [floor_ring α] {a : α} (ha : 0 < a) :
+  0 ≤ ⌊a⌋ := int_floor_nonneg ha.le
+
+/-- Extension for the `positivity` tactic: `int.floor` is nonnegative if its input is. -/
+@[positivity]
+meta def positivity_floor : expr → tactic strictness
+| `(⌊%%a⌋) := do
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := nonnegative <$> mk_app ``int_floor_nonneg_of_pos [p]
+      | nonnegative p := nonnegative <$> mk_app ``int_floor_nonneg [p]
+      end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌊a⌋`"
+
+private lemma nat_ceil_pos [linear_ordered_semiring α] [floor_semiring α] {a : α} :
+  0 < a → 0 < ⌈a⌉₊ := nat.ceil_pos.2
+private lemma int_ceil_pos [linear_ordered_ring α] [floor_ring α] {a : α} : 0 < a → 0 < ⌈a⌉ :=
+int.ceil_pos.2
+
+/-- Extension for the `positivity` tactic: `nat.ceil` and `int.ceil` are positive/nonnegative if
+their input is. -/
+@[positivity]
+meta def positivity_ceil : expr → tactic strictness
+| `(⌈%%a⌉₊) := do
+      positive p ← core a, -- We already know `0 ≤ n` for all `n : ℕ`
+      positive <$> mk_app ``nat_ceil_pos [p]
+| `(⌈%%a⌉) := do
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := positive <$> mk_app ``int_ceil_pos [p]
+      | nonnegative p := nonnegative <$> mk_app ``int.ceil_nonneg [p]
+      end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌈a⌉₊` nor `⌈a⌉`"
+
+/-- Extension for the `positivity` tactic: `a - b` is positive if `b < a` and nonnegative if
+`b ≤ a`. Note, this only tries to find the appropriate assumption in context. -/
+@[positivity]
+meta def positivity_sub : expr → tactic strictness
+| `(%%a - %%b) :=
+  (do
+    p ← to_expr ``(%%b < %%a) >>= find_assumption,
+    positive <$> mk_app ``tsub_pos_of_lt [p] <|> positive <$> mk_app ``sub_pos_of_lt [p]) <|>
+  do
+    p ← to_expr ``(%%b ≤ %%a) >>= find_assumption,
+    nonnegative <$> mk_app ``sub_nonneg_of_le [p]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `a - b`"
+
+example {a b : ℕ} (h : b < a) : 0 < a - b := by positivity
+example {a b : ℤ} (h : b < a) : 0 < a - b := by positivity
+example {a b : ℤ} (h : b ≤ a) : 0 ≤ a - b := by positivity
+
+end tactic
+
 local attribute [protected] nat.div_mul_div_comm
 
 open finset fintype nat szemeredi_regularity
 open_locale classical
 
-variables {α : Type*} [fintype α] {G : simple_graph α}
+variables {α : Type*} [fintype α] {G : simple_graph α} {ε : ℝ}
 
 namespace simple_graph
 
@@ -25,20 +85,10 @@ namespace simple_graph
 noncomputable def triangle_removal_bound (ε : ℝ) : ℝ :=
 min (1 / (2 * ⌈4/ε⌉₊^3)) ((1 - ε/4) * (ε/(16 * bound (ε/8) ⌈4/ε⌉₊))^3)
 
-lemma triangle_removal_bound_pos {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) :
-  0 < triangle_removal_bound ε :=
-begin
-  apply lt_min,
-  { rw one_div_pos,
-    refine mul_pos zero_lt_two (pow_pos _ _),
-    rw [nat.cast_pos, nat.lt_ceil, nat.cast_zero],
-    exact div_pos zero_lt_four hε },
-  { exact mul_pos (by linarith) (pow_pos (div_pos hε $ mul_pos (by norm_num) $ nat.cast_pos.2 $
-      bound_pos _ _) _) }
-end
+lemma triangle_removal_bound_pos (hε : 0 < ε) (hε₁ : ε ≤ 1) : 0 < triangle_removal_bound ε :=
+by { have : ε / 4 < 1 := by linarith, unfold triangle_removal_bound, positivity }
 
-lemma triangle_removal_bound_mul_cube_lt {ε : ℝ} (hε : 0 < ε) :
-  (triangle_removal_bound ε) * ⌈4/ε⌉₊^3 < 1 :=
+lemma triangle_removal_bound_mul_cube_lt (hε : 0 < ε) : triangle_removal_bound ε * ⌈4/ε⌉₊^3 < 1 :=
 begin
   have : triangle_removal_bound ε ≤ _ := min_le_left _ _,
   refine (mul_le_mul_of_nonneg_right this $ by positivity).trans_lt _,
@@ -46,7 +96,7 @@ begin
   { norm_num },
   apply ne_of_gt (pow_pos _ _),
   rw [nat.cast_pos, nat.lt_ceil, nat.cast_zero],
-  exact div_pos zero_lt_four hε
+  positivity,
 end
 
 lemma card_bound [nonempty α] {ε : ℝ} {X : finset α} {P : finpartition (univ : finset α)}
@@ -80,13 +130,15 @@ begin
   have dYZ := P.disjoint hY hZ nYZ,
   have : 2 * (ε/8) = ε/4, by ring,
   have i := triangle_counting2 G (by rwa this) uXY dXY (by rwa this) uXZ dXZ (by rwa this) uYZ dYZ,
-  apply le_trans _ i,
+  refine le_trans _ i,
   rw [this, triangle_removal_bound],
   refine (mul_le_mul_of_nonneg_right (min_le_right (_:ℝ) _) $ by positivity).trans _,
   rw [mul_assoc, ←mul_pow, div_mul_eq_mul_div, (show (16:ℝ) = 8 * 2, by norm_num), mul_assoc (8:ℝ),
     ←div_mul_div_comm, mul_pow, ←mul_assoc],
   suffices : ((card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊)) ^ 3 ≤ X.card * Y.card * Z.card,
-  { exact (mul_le_mul_of_nonneg_left this $ by positivity).trans_eq (by ring) },
+  { refine (mul_le_mul_of_nonneg_left this $ _).trans_eq (by ring),
+    have : ε / 4 ≤ 1 := ‹ε / 4 ≤ _›.trans (by exact_mod_cast G.edge_density_le_one _ _),
+    positivity },
   rw [pow_succ, sq, mul_assoc],
   refine mul_le_mul (card_bound hP₁ hP₃ hX) _ (by positivity) (by positivity),
   exact mul_le_mul (card_bound hP₁ hP₃ hY) (card_bound hP₁ hP₃ hZ) (by positivity) (by positivity),
@@ -115,9 +167,8 @@ begin
   rw add_right_comm,
   refine (add_le_add_left (internal_killed_card' hε hP hP') _).trans_lt _,
   rw add_assoc,
-  have h₂ : 0 < ε/8, linarith,
-  refine (add_lt_add_right (sum_irreg_pairs_le_of_uniform' h₂ P hP hPε) _).trans_le _,
-  apply le_of_eq,
+  have h₂ : 0 < ε/8 := by positivity,
+  refine (add_lt_add_right (sum_irreg_pairs_le_of_uniform' h₂ P hP hPε) _).trans_eq _,
   ring,
 end
 
@@ -126,9 +177,8 @@ lemma triangle_removal_2 {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) (hG : G.f
 begin
   let l : ℕ := nat.ceil (4/ε),
   have hl : 4/ε ≤ l := nat.le_ceil (4/ε),
-  let ε' : ℝ := ε/8,
-  have hε' : 0 < ε/8 := by linarith,
-  casesI is_empty_or_nonempty α with i i,
+  have h₂ : 0 < ε/8 := by positivity,
+  casesI is_empty_or_nonempty α,
   { simp [fintype.card_eq_zero] },
   cases lt_or_le (card α) l with hl' hl',
   { have : (card α : ℝ)^3 < l^3 :=
@@ -137,7 +187,7 @@ begin
     apply (triangle_removal_bound_mul_cube_lt hε).le.trans,
     simp only [nat.one_le_cast],
     exact (hG.clique_finset_nonempty hε).card_pos },
-  obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := szemeredi_regularity G l hε' hl',
+  obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := szemeredi_regularity G l (by positivity : 0 < ε / 8) hl',
   have : 4/ε ≤ P.parts.card := hl.trans (nat.cast_le.2 hP₂),
   have k := reduced_edges_card_aux hε hP₁ hP₄ this,
   rw mul_assoc at k,

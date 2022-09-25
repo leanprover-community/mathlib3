@@ -12,10 +12,10 @@ import .mathlib
 # Chunk of `increment`
 -/
 
-local attribute [positivity] tactic.positivity_szemeredi_regularity
-
 open finpartition finset fintype rel nat
 open_locale big_operators classical
+
+local attribute [positivity] tactic.positivity_szemeredi_regularity
 
 namespace szemeredi_regularity
 variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
@@ -87,7 +87,7 @@ lemma one_sub_eps_mul_card_nonuniform_witness_le_card_star (hV : V ∈ P.parts) 
 begin
   have hP₁ : 0 < P.parts.card := finset.card_pos.2 ⟨_, hU⟩,
   have : (2^P.parts.card : ℝ) * m/(U.card * ε) ≤ ε/10,
-  { rw [←div_div, div_le_iff' (eps_pos hPε)],
+  { rw [←div_div, div_le_iff'], swap, positivity,
     refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two P.parts.card),
     calc
       2^P.parts.card * ((2^P.parts.card * m : ℝ)/U.card)
@@ -103,7 +103,7 @@ begin
                 = 100 : by norm_num
                 ... ≤ 4^P.parts.card * ε^5 : hPε
                 ... ≤ 4^P.parts.card * ε^4
-                    : mul_le_mul_of_nonneg_left (pow_le_pow_of_le_one (eps_pos hPε).le hε₁ $
+                    : mul_le_mul_of_nonneg_left (pow_le_pow_of_le_one (by positivity) hε₁ $
                         le_succ _) (by positivity)
                 ... = (2^2)^P.parts.card * ε ^ (2 * 2) : by norm_num,
             end
@@ -119,11 +119,12 @@ begin
           refine sub_le_sub_left _ _,
           have : (2 : ℝ)^P.parts.card = 2^(P.parts.card - 1) * 2,
           { rw [←pow_succ', tsub_add_cancel_of_le (succ_le_iff.2 hP₁)] },
-          rw [←mul_div_right_comm, this, mul_right_comm _ (2 : ℝ), mul_assoc, le_div_iff
-            (mul_pos (cast_pos.2 (P.nonempty_of_mem_parts hU).card_pos) (eps_pos hPε))],
+          rw [←mul_div_right_comm, this, mul_right_comm _ (2 : ℝ), mul_assoc, le_div_iff],
           refine mul_le_mul_of_nonneg_left _ (by positivity),
           exact (G.le_card_nonuniform_witness hunif).trans
             (le_mul_of_one_le_left (cast_nonneg _) one_le_two),
+          have := P.nonempty_of_mem_parts hU,
+          positivity,
         end
     ... ≤ ((star hP G ε hU V).bUnion id).card
         : begin
@@ -204,7 +205,7 @@ lemma m_add_one_div_m_le_one_add [nonempty α] (hPα : P.parts.card * 16^P.parts
   (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1) :
   ((m + 1 : ℝ)/m)^2 ≤ 1 + ε^5/49 :=
 begin
-  rw same_add_div (m_coe_pos hPα).ne',
+  rw same_add_div, swap, exact ne_of_gt (by positivity),
   have : 1 + 1/(m:ℝ) ≤ 1 + ε^5/100,
   { rw [add_le_add_iff_left, ←one_div_div (100:ℝ)],
     exact one_div_le_one_div_of_le (by positivity) (hundred_div_ε_pow_five_le_m hPα hPε) },
@@ -214,7 +215,7 @@ begin
     div_eq_mul_one_div _ (49:ℝ), mul_div_left_comm (2:ℝ), ←mul_sub_left_distrib, div_pow,
     div_le_iff (show (0:ℝ) < 100^2, by norm_num), mul_assoc, sq],
   refine mul_le_mul_of_nonneg_left _ (by positivity),
-  exact (pow_le_one 5 (eps_pos hPε).le hε₁).trans (by norm_num),
+  exact (pow_le_one 5 (by positivity) hε₁).trans (by norm_num),
 end
 
 lemma density_sub_eps_le_sum_density_div_card [nonempty α]
@@ -263,7 +264,6 @@ begin
   have : (1 + ε^5/49) * G.edge_density (A.bUnion id) (B.bUnion id) ≤
             G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49,
   { rw [add_mul, one_mul, add_le_add_iff_left],
-    have := eps_pow_five_pos hPε,
     refine mul_le_of_le_one_right (by positivity) _,
     exact_mod_cast G.edge_density_le_one _ _ },
   refine le_trans _ this,
@@ -443,8 +443,8 @@ begin
     simp_rw [←sup_eq_bUnion, sup_parts, card_chunk (m_pos hPα).ne', cast_pow] at this,
     norm_num at this,
     exact this },
-  have hε : 0 < ε := eps_pos hPε,
-  have hε' : ε^5 ≤ ε := by simpa using pow_le_pow_of_le_one hε.le hε₁ (show 1 ≤ 5, by norm_num),
+  have hε' : ε^5 ≤ ε := by simpa using pow_le_pow_of_le_one (by positivity) hε₁
+    (show 1 ≤ 5, by norm_num),
   have hpr' : |p - r| ≤ ε/49 := hpr.trans (div_le_div_of_le_of_nonneg hε' $ by norm_num),
   have hqt' : |q - t| ≤ ε/49 := hqt.trans (div_le_div_of_le_of_nonneg hε' $ by norm_num),
   rw abs_sub_le_iff at hrs hpr' hqt',
@@ -490,7 +490,7 @@ calc
       have t : (star hP G ε hU V).product (star hP G ε hV U) ⊆
         (chunk hP G ε hU).parts.product (chunk hP G ε hV).parts :=
           product_subset_product star_subset_chunk star_subset_chunk,
-      have hε : 0 ≤ ε := (eps_pos hPε).le,
+      have hε : 0 ≤ ε := (by positivity),
       have := lemma_B_ineq t (λ x, (G.edge_density x.1 x.2 : ℝ)) (G.edge_density U V^2 - ε^5/25)
         (show 0 ≤ 3/4 * ε, by linarith) _ _,
       { simp_rw [card_product, card_chunk (m_pos hPα).ne', ←mul_pow, cast_pow,

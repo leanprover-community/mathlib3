@@ -292,8 +292,7 @@ begin
     refine nat.mul_le_mul ((nat.sub_le_sub_right this 1).trans _) this,
     simp only [nat.add_succ_sub_one, add_zero, card_univ] },
   refine (nat.cast_le.2 this).trans _,
-  have i : (_ : ℝ) ≠ 0 := nat.cast_ne_zero.2 (P.parts_nonempty $
-    univ_nonempty.ne_empty).card_pos.ne',
+  have i : (_ : ℝ) ≠ 0 := nat.cast_ne_zero.2 (P.parts_nonempty univ_nonempty.ne_empty).card_pos.ne',
   rw [mul_div_assoc, div_add_same i, nat.cast_mul, nat.cast_add_one],
   refine mul_le_mul _ _ (by positivity) (by positivity),
   { rw [nat.cast_le, mul_comm],
@@ -317,12 +316,14 @@ begin
     push_cast at e,
     apply le_of_lt,
     rwa ←div_lt_iff,
-    exact mul_pos (nat.cast_pos.2 (P.nonempty_of_mem_parts hU).card_pos)
-      (nat.cast_pos.2 (P.nonempty_of_mem_parts hV).card_pos) },
+    have := P.nonempty_of_mem_parts hU,
+    have := P.nonempty_of_mem_parts hV,
+    positivity },
   apply (sum_le_sum this).trans,
-  refine (sum_le_sum_of_subset_of_nonneg (filter_subset _ _) $ λ i hi _, by positivity).trans _,
+  refine (sum_le_sum_of_subset_of_nonneg (filter_subset _ _) $ λ i hi _, _).trans _,
+  { positivity },
   rw ←mul_sum,
-  apply mul_le_mul_of_nonneg_left _ hε,
+  refine mul_le_mul_of_nonneg_left _ hε,
   refine (sum_le_card_nsmul P.parts.off_diag (λ i, (i.1.card * i.2.card : ℝ))
     ((card α / P.parts.card + 1)^2 : ℕ) _).trans _,
   { simp only [prod.forall, finpartition.mk_mem_non_uniforms_iff, and_imp, mem_off_diag],
@@ -389,8 +390,9 @@ lemma internal_killed_card' [nonempty α] {ε : ℝ} (hε : 0 < ε)
   {P : finpartition (univ : finset α)} (hP : P.is_equipartition) (hP' : 4 / ε ≤ P.parts.card) :
   ((P.parts.bUnion (λ U, U.off_diag)).card : ℝ) ≤ ε / 2 * (card α)^2 :=
 begin
+  have := P.parts_nonempty univ_nonempty.ne_empty,
   apply (internal_killed_card hP).trans,
-  rw div_le_iff,
+  rw div_le_iff (by positivity : 0 < (P.parts.card : ℝ)),
   have : (card α : ℝ) + P.parts.card ≤ 2 * card α,
   { rw two_mul,
     apply add_le_add_left,
@@ -400,10 +402,8 @@ begin
   { rw [mul_left_comm, ←sq],
     convert mul_le_mul_of_nonneg_left this (mul_nonneg zero_le_two (sq_nonneg (card α))) using 1;
     ring },
-  have := P.parts_nonempty univ_nonempty.ne_empty,
   rwa [←div_le_iff', one_div_div],
-  { linarith },
-  { positivity }
+  positivity,
 end
 
 end simple_graph

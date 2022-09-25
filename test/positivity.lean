@@ -63,12 +63,12 @@ example {a : ℤ} (ha : 0 < a) : 0 < a / a := by positivity
 /-! ### Exponentiation -/
 
 example [ordered_semiring α] [nontrivial α] (a : α) : 0 < a ^ 0 := by positivity
-example [linear_ordered_ring α] (a : α) (n : ℕ) : 0 ≤ a ^ (bit0 n) := by positivity
+example [linear_ordered_ring α] (a : α) (n : ℕ) : 0 ≤ a ^ bit0 n := by positivity
 example [ordered_semiring α] {a : α} {n : ℕ} (ha : 0 ≤ a) : 0 ≤ a ^ n := by positivity
-example [ordered_semiring α] {a : α} {n : ℕ} (ha : 0 < a) : 0 < a ^ n := by positivity
+example [strict_ordered_semiring α] {a : α} {n : ℕ} (ha : 0 < a) : 0 < a ^ n := by positivity
 
 example [linear_ordered_semifield α] (a : α) : 0 < a ^ (0 : ℤ) := by positivity
-example [linear_ordered_field α] (a : α) (n : ℤ) : 0 ≤ a ^ (bit0 n) := by positivity
+example [linear_ordered_field α] (a : α) (n : ℤ) : 0 ≤ a ^ bit0 n := by positivity
 example [linear_ordered_semifield α] {a : α} {n : ℤ} (ha : 0 ≤ a) : 0 ≤ a ^ n := by positivity
 example [linear_ordered_semifield α] {a : α} {n : ℤ} (ha : 0 < a) : 0 < a ^ n := by positivity
 

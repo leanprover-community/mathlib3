@@ -44,6 +44,14 @@ lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in 𝓝[s] a, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
 eventually_inf_principal
 
+lemma frequently_nhds_within_iff {z : α} {p : α → Prop} :
+  (∃ᶠ x in 𝓝[≠] z, p x) ↔ (∃ᶠ x in 𝓝 z, p x ∧ x ≠ z) :=
+iff.not (by simp [eventually_nhds_within_iff, not_imp_not])
+
+lemma mem_closure_ne_iff_frequently_within {z : α} {s : set α} :
+  z ∈ closure (s \ {z}) ↔ ∃ᶠ x in 𝓝[≠] z, x ∈ s :=
+by simp [mem_closure_iff_frequently, frequently_nhds_within_iff]
+
 @[simp] lemma eventually_nhds_within_nhds_within {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ y in 𝓝[s] a, ∀ᶠ x in 𝓝[s] y, p x) ↔ ∀ᶠ x in 𝓝[s] a, p x :=
 begin

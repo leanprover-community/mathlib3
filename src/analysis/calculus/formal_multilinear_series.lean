@@ -289,3 +289,20 @@ by induction k with k ih generalizing p; refl <|> simpa [ih]
 end fslope
 
 end formal_multilinear_series
+
+section const
+
+def const_formal_multilinear_series (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [has_continuous_const_smul 𝕜 E]
+  [topological_add_group E] {F : Type*} [normed_add_comm_group F] [topological_add_group F]
+  [normed_space 𝕜 F]  [has_continuous_const_smul 𝕜 F] (c : F) : formal_multilinear_series 𝕜 E F
+| 0 := continuous_multilinear_map.curry0 _ _ c
+| _ := 0
+
+@[simp] lemma const_formal_multilinear_series_apply [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜 F]
+  {c : F} {n : ℕ} (hn : n ≠ 0) :
+  const_formal_multilinear_series 𝕜 E c n = 0 :=
+nat.cases_on n (λ hn, (hn rfl).elim) (λ _ _, rfl) hn
+
+end const

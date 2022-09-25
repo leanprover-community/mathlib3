@@ -560,6 +560,13 @@ instance : has_Inf (subring R) :=
 
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
+@[simp, norm_cast] lemma coe_infi {ι : Sort*} {S : ι → subring R} :
+  (↑(⨅ i, S i) : set R) = ⋂ i, S i :=
+by simp only [infi, coe_Inf, set.bInter_range]
+
+lemma mem_infi {ι : Sort*} {S : ι → subring R} {x : R} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
+by simp only [infi, mem_Inf, set.forall_range_iff]
+
 @[simp] lemma Inf_to_submonoid (s : set (subring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
 

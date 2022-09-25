@@ -110,7 +110,6 @@ end
 instance : has_colimits AffineScheme.{u} :=
 begin
   haveI := adjunction.has_limits_of_equivalence.{u} Γ.{u},
-  haveI : has_colimits AffineScheme.{u} ᵒᵖᵒᵖ := has_colimits_op_of_has_limits,
   exactI adjunction.has_colimits_of_equivalence.{u} (op_op_equivalence AffineScheme.{u}).inverse
 end
 

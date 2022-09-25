@@ -238,12 +238,12 @@ local attribute [instance] has_limits_of_shape_op_of_has_colimits_of_shape
 /--
 If `C` has colimits, we can construct limits for `Cᵒᵖ`.
 -/
-lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := ⟨infer_instance⟩
+instance has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := ⟨infer_instance⟩
 
 lemma has_limits_of_has_colimits_op [has_colimits Cᵒᵖ] : has_limits C :=
 { has_limits_of_shape := λ J hJ, by exactI has_limits_of_shape_of_has_colimits_of_shape_op }
 
-lemma has_cofiltered_limits_op_of_has_filtered_colimits
+instance has_cofiltered_limits_op_of_has_filtered_colimits
   [has_filtered_colimits_of_size.{v₂ u₂} C] : has_cofiltered_limits_of_size.{v₂ u₂} Cᵒᵖ :=
 { has_limits_of_shape := λ I hI₁ hI₂, by exactI has_limits_of_shape_op_of_has_colimits_of_shape }
 
@@ -267,7 +267,7 @@ has_colimit.mk
 /--
 If `C` has colimits of shape `Jᵒᵖ`, we can construct limits in `Cᵒᵖ` of shape `J`.
 -/
-lemma has_colimits_of_shape_op_of_has_limits_of_shape [has_limits_of_shape Jᵒᵖ C] :
+instance has_colimits_of_shape_op_of_has_limits_of_shape [has_limits_of_shape Jᵒᵖ C] :
   has_colimits_of_shape J Cᵒᵖ :=
 { has_colimit := λ F, has_colimit_of_has_limit_left_op F }
 
@@ -280,12 +280,12 @@ local attribute [instance] has_colimits_of_shape_op_of_has_limits_of_shape
 /--
 If `C` has limits, we can construct colimits for `Cᵒᵖ`.
 -/
-lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := ⟨infer_instance⟩
+instance has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := ⟨infer_instance⟩
 
 lemma has_colimits_of_has_limits_op [has_limits Cᵒᵖ] : has_colimits C :=
 { has_colimits_of_shape := λ J hJ, by exactI has_colimits_of_shape_of_has_limits_of_shape_op }
 
-lemma has_filtered_colimits_op_of_has_cofiltered_limits
+instance has_filtered_colimits_op_of_has_cofiltered_limits
   [has_cofiltered_limits_of_size.{v₂ u₂} C] : has_filtered_colimits_of_size.{v₂ u₂} Cᵒᵖ :=
 { has_colimits_of_shape := λ I hI₁ hI₂, by exactI has_colimits_of_shape_op_of_has_limits_of_shape }
 
@@ -297,7 +297,7 @@ variables (X : Type v₂)
 /--
 If `C` has products indexed by `X`, then `Cᵒᵖ` has coproducts indexed by `X`.
 -/
-lemma has_coproducts_of_shape_opposite [has_products_of_shape X C] :
+instance has_coproducts_of_shape_opposite [has_products_of_shape X C] :
   has_coproducts_of_shape X Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape (discrete X)ᵒᵖ C :=
@@ -316,7 +316,7 @@ end
 /--
 If `C` has coproducts indexed by `X`, then `Cᵒᵖ` has products indexed by `X`.
 -/
-lemma has_products_of_shape_opposite [has_coproducts_of_shape X C] :
+instance has_products_of_shape_opposite [has_coproducts_of_shape X C] :
   has_products_of_shape X Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape (discrete X)ᵒᵖ C :=
@@ -332,60 +332,60 @@ begin
   exact has_limits_of_shape_of_has_colimits_of_shape_op
 end
 
-lemma has_products_opposite [has_coproducts.{v₂} C] : has_products.{v₂} Cᵒᵖ :=
+instance has_products_opposite [has_coproducts.{v₂} C] : has_products.{v₂} Cᵒᵖ :=
 λ X, has_products_of_shape_opposite X
 
 lemma has_products_of_opposite [has_coproducts.{v₂} Cᵒᵖ] : has_products.{v₂} C :=
 λ X, has_products_of_shape_of_opposite X
 
-lemma has_coproducts_opposite [has_products.{v₂} C] : has_coproducts.{v₂} Cᵒᵖ :=
+instance has_coproducts_opposite [has_products.{v₂} C] : has_coproducts.{v₂} Cᵒᵖ :=
 λ X, has_coproducts_of_shape_opposite X
 
 lemma has_coproducts_of_opposite [has_products.{v₂} Cᵒᵖ] : has_coproducts.{v₂} C :=
 λ X, has_coproducts_of_shape_of_opposite X
 
-lemma has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
+instance has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
 { out := λ J _, by exactI has_coproducts_of_shape_opposite J }
 
 lemma has_finite_coproducts_of_opposite [has_finite_products Cᵒᵖ] : has_finite_coproducts C :=
 { out := λ J _, by exactI has_coproducts_of_shape_of_opposite J }
 
-lemma has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
+instance has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
 { out := λ J _, by exactI has_products_of_shape_opposite J }
 
 lemma has_finite_products_of_opposite [has_finite_coproducts Cᵒᵖ] : has_finite_products C :=
 { out := λ J _, by exactI has_products_of_shape_of_opposite J }
 
-lemma has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
+instance has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape walking_parallel_pairᵒᵖ C :=
     has_colimits_of_shape_of_equivalence walking_parallel_pair_op_equiv,
   apply_instance
 end
 
-lemma has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
+instance has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape walking_parallel_pairᵒᵖ C :=
     has_limits_of_shape_of_equivalence walking_parallel_pair_op_equiv,
   apply_instance
 end
 
-lemma has_finite_colimits_opposite [has_finite_limits C] :
+instance has_finite_colimits_opposite [has_finite_limits C] :
   has_finite_colimits Cᵒᵖ :=
 { out := λ J 𝒟 𝒥, by { resetI, apply_instance, }, }
 
-lemma has_finite_limits_opposite [has_finite_colimits C] :
+instance has_finite_limits_opposite [has_finite_colimits C] :
   has_finite_limits Cᵒᵖ :=
 { out := λ J 𝒟 𝒥, by { resetI, apply_instance, }, }
 
-lemma has_pullbacks_opposite [has_pushouts C] : has_pullbacks Cᵒᵖ :=
+instance has_pullbacks_opposite [has_pushouts C] : has_pullbacks Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape walking_cospanᵒᵖ C :=
     has_colimits_of_shape_of_equivalence walking_cospan_op_equiv.symm,
   apply has_limits_of_shape_op_of_has_colimits_of_shape,
 end
 
-lemma has_pushouts_opposite [has_pullbacks C] : has_pushouts Cᵒᵖ :=
+instance has_pushouts_opposite [has_pullbacks C] : has_pushouts Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape walking_spanᵒᵖ C :=
     has_limits_of_shape_of_equivalence walking_span_op_equiv.symm,

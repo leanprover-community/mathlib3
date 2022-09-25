@@ -407,6 +407,11 @@ begin
       (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
 end
 
+@[simp] lemma _root_.affine_isometry.angle_map {V₂ P₂ : Type*} [inner_product_space ℝ V₂]
+  [metric_space P₂] [normed_add_torsor V₂ P₂] (f : P →ᵃⁱ[ℝ] P₂) (p₁ p₂ p₃ : P) :
+  ∠ (f p₁) (f p₂) (f p₃) = ∠ p₁ p₂ p₃ :=
+by simp_rw [angle, ←affine_isometry.map_vsub, linear_isometry.angle_map]
+
 /-- The angle at a point does not depend on the order of the other two
 points. -/
 lemma angle_comm (p1 p2 p3 : P) : ∠ p1 p2 p3 = ∠ p3 p2 p1 :=

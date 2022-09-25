@@ -700,7 +700,7 @@ because `0 * ⊥ ≠ 0`.
 
 lemma ne_bot.smul_zero_nonneg (hf : f.ne_bot) : 0 ≤ f • (0 : filter β) :=
 le_smul_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨a, ha⟩ := hf.nonempty_of_mem h₁ in
-  ⟨_, _, ha, h₂, smul_zero' _ _⟩
+  ⟨_, _, ha, h₂, smul_zero _⟩
 
 lemma ne_bot.zero_smul_nonneg (hg : g.ne_bot) : 0 ≤ (0 : filter α) • g :=
 le_smul_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨b, hb⟩ := hg.nonempty_of_mem h₂ in ⟨_, _, h₁, hb, zero_smul _ _⟩

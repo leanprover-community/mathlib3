@@ -500,6 +500,10 @@ protected lemma lt_tsub_iff_left_of_le (hc : add_le_cancellable c) (h : c ≤ b)
   a < b - c ↔ c + a < b :=
 by { rw [add_comm], exact hc.lt_tsub_iff_right_of_le h }
 
+protected lemma tsub_inj_right (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a) (h₂ : c ≤ a)
+  (h₃ : a - b = a - c) : b = c :=
+by { rw ← hab.inj, rw [tsub_add_cancel_of_le h₁, h₃, tsub_add_cancel_of_le h₂] }
+
 protected lemma lt_of_tsub_lt_tsub_left_of_le [contravariant_class α α (+) (<)]
   (hb : add_le_cancellable b) (hca : c ≤ a) (h : a - b < a - c) : c < b :=
 begin
@@ -507,22 +511,18 @@ begin
   exact lt_of_add_lt_add_left (hb.lt_add_of_tsub_lt_right h),
 end
 
+protected lemma tsub_lt_tsub_left_of_le (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a)
+  (h : c < b) : a - b < a - c :=
+(tsub_le_tsub_left h.le _).lt_of_ne $ λ h', h.ne' $ hab.tsub_inj_right h₁ (h.le.trans h₁) h'
+
 protected lemma tsub_lt_tsub_right_of_le (hc : add_le_cancellable c) (h : c ≤ a) (h2 : a < b) :
   a - c < b - c :=
 by { apply hc.lt_tsub_of_add_lt_left, rwa [add_tsub_cancel_of_le h] }
 
-protected lemma tsub_inj_right (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a) (h₂ : c ≤ a)
-  (h₃ : a - b = a - c) : b = c :=
-by { rw ← hab.inj, rw [tsub_add_cancel_of_le h₁, h₃, tsub_add_cancel_of_le h₂] }
-
 protected lemma tsub_lt_tsub_iff_left_of_le_of_le [contravariant_class α α (+) (<)]
   (hb : add_le_cancellable b) (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a) (h₂ : c ≤ a) :
   a - b < a - c ↔ c < b :=
-begin
-  refine ⟨hb.lt_of_tsub_lt_tsub_left_of_le h₂, _⟩,
-  intro h, refine (tsub_le_tsub_left h.le _).lt_of_ne _,
-  rintro h2, exact h.ne' (hab.tsub_inj_right h₁ h₂ h2)
-end
+⟨hb.lt_of_tsub_lt_tsub_left_of_le h₂, hab.tsub_lt_tsub_left_of_le h₁⟩
 
 @[simp] protected lemma add_tsub_tsub_cancel (hac : add_le_cancellable (a - c)) (h : c ≤ a) :
   (a + b) - (a - c) = b + c :=
@@ -587,6 +587,9 @@ contravariant.add_le_cancellable.lt_tsub_iff_left_of_le h
 lemma lt_of_tsub_lt_tsub_left_of_le  [contravariant_class α α (+) (<)]
   (hca : c ≤ a) (h : a - b < a - c) : c < b :=
 contravariant.add_le_cancellable.lt_of_tsub_lt_tsub_left_of_le hca h
+
+lemma tsub_lt_tsub_left_of_le : b ≤ a → c < b → a - b < a - c :=
+contravariant.add_le_cancellable.tsub_lt_tsub_left_of_le
 
 lemma tsub_lt_tsub_right_of_le (h : c ≤ a) (h2 : a < b) : a - c < b - c :=
 contravariant.add_le_cancellable.tsub_lt_tsub_right_of_le h h2

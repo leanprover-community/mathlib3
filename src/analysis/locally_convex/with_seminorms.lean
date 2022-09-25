@@ -406,7 +406,8 @@ lemma uniform_equicontinuous_from_bounded {κ : Type*} {q : seminorm_family 𝕜
   (f : κ → E →ₗ[𝕜] F) (hf₁ : ∀ i, bdd_above (range $ λ k, (q i).comp (f k)))
   (hf₂ : ∀ i, continuous (⨆ k, (q i).comp (f k))) : uniform_equicontinuous (coe_fn ∘ f) :=
 begin
-  refine uniform_equicontinuous_of_equicontinuous_at_zero f _,
+  refine uniform_equicontinuous_of_equicontinuous_at_zero f
+    (metric.equicontinuous_at_of_continuity_modulus _ _ _ _),
   rw [equicontinuous_at],
   intros U hU,
   rw [uniformity_eq_comap_nhds_zero, q.with_seminorms_iff_nhds_eq_infi.mp hq,

@@ -217,6 +217,31 @@ lemma uniform_equicontinuous_iff_uniform_continuous {F : ι → β → α} :
   uniform_equicontinuous F ↔ uniform_continuous (function.swap F) :=
 by rw [uniform_continuous, (uniform_convergence.has_basis_uniformity ι α).tendsto_right_iff]; refl
 
+lemma equicontinuous_at_infi_rng {α' : Type*} [u : κ → uniform_space α'] {F : ι → X → α'}
+  {x₀ : X} :
+  @equicontinuous_at _ _ _ _ (⨅ k, u k) F x₀ ↔
+  ∀ k, @equicontinuous_at _ _ _ _ (u k) F x₀ :=
+begin
+  simp_rw [equicontinuous_at_iff_continuous_at, continuous_at],
+  rw [uniform_convergence.topological_space, uniform_convergence.infi_eq,
+      to_topological_space_infi, nhds_infi, tendsto_infi]
+end
+
+lemma equicontinuous_infi_rng {α' : Type*} [u : κ → uniform_space α'] {F : ι → X → α'} :
+  @equicontinuous _ _ _ _ (⨅ k, u k) F ↔ ∀ k, @equicontinuous _ _ _ _ (u k) F :=
+begin
+  simp_rw [equicontinuous_iff_continuous],
+  rw [uniform_convergence.topological_space, uniform_convergence.infi_eq,
+      to_topological_space_infi, continuous_infi_rng]
+end
+
+lemma uniform_equicontinuous_infi_rng {α' : Type*} [u : κ → uniform_space α'] {F : ι → β → α'} :
+  @uniform_equicontinuous _ _ _ (⨅ k, u k) _ F ↔ ∀ k, @uniform_equicontinuous _ _ _ (u k) _ F :=
+begin
+  simp_rw [uniform_equicontinuous_iff_uniform_continuous],
+  rw [uniform_convergence.infi_eq, uniform_continuous_infi_rng],
+end
+
 lemma filter.has_basis.equicontinuous_at_iff_left {κ : Type*} {p : κ → Prop} {s : κ → set X}
   {F : ι → X → α} {x₀ : X} (hX : (𝓝 x₀).has_basis p s) : equicontinuous_at F x₀ ↔
   ∀ U ∈ 𝓤 α, ∃ k (_ : p k), ∀ x ∈ s k, ∀ i, (F i x₀, F i x) ∈ U :=

@@ -44,6 +44,7 @@ section unbundled
 elements of `A` out of `X`. This inherits the topology on `X` via `subtype.topological_space`. -/
 variables {X : Type*} {A : set X} [topological_space X]
 
+/-- The inclusion map `i : A → X` for `A ⊆ X` is just the restriction of `id X` to A. -/
 def inclusion (X : Type*) (A : set X) [topological_space X] :
   C(A, X) := ⟨set.restrict A id⟩
 
@@ -127,7 +128,7 @@ split_epi.map (split_epi_of_retraction r) fundamental_groupoid_functor
 
 /-- We show that the induced arrow of the topological retraction `r : X → A` in the fundamental
 groupoid is an epimorphism. -/
-def fundamental_groupoid_epi_of_top_retraction (r : top_retraction X A) :
+lemma fundamental_groupoid_epi_of_top_retraction (r : top_retraction X A) :
   epi (πₘ (top_hom_of_continuous_map r.to_continuous_map)) :=
 split_epi.epi (fundamental_groupoid_split_epi r)
 

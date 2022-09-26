@@ -259,7 +259,7 @@ variables (K : Type*) [field K] [number_field K]
 variables (A : Type*) [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
 
 lemma finite_of_norm_le (B : ℝ) :
-  {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥ φ x ∥  ≤ B}.finite :=
+  {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
 begin
   classical,
   let S := finset.bUnion
@@ -285,7 +285,7 @@ begin
     { refine le_of_eq_of_le
         (intermediate_field.adjoin.finrank (is_integral_of_is_scalar_tower _ hx.1)).symm _,
       exact ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le, },
-    have h_roots_bdd_minpoly : ∀ z ∈ (map (algebra_map ℚ A) (minpoly ℚ x)).roots, ∥ z ∥  ≤ B,
+    have h_roots_bdd_minpoly : ∀ z ∈ (map (algebra_map ℚ A) (minpoly ℚ x)).roots, ∥z∥ ≤ B,
     { intros z hz,
       suffices : ∃ (φ : K →+* A), φ x = z,
       { obtain ⟨φ, rfl⟩ := this, exact (hx.2 φ), },
@@ -341,7 +341,7 @@ begin
 end
 
 lemma pow_eq_one_of_norm_eq_one {x : K}
-  (hxi : is_integral ℤ x)  (hx : ∀ φ : K →+* A, ∥ φ x ∥ = 1) :
+  (hxi : is_integral ℤ x)  (hx : ∀ φ : K →+* A, ∥φ x∥ = 1) :
   ∃ (n : ℕ) (hn : 0 < n), x ^ n = 1 :=
 begin
   obtain ⟨a, -, b, -, habne, h⟩ := @set.infinite.exists_ne_map_eq_of_maps_to _ _ _ _

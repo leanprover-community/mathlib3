@@ -57,7 +57,7 @@ def path.reverse [has_reverse V] {a : V} : Π {b}, path a b → path b a
 | b (path.cons p e) := (reverse e).to_path.comp p.reverse
 
 /- The inclusion of a quiver in its symmetrification -/
-def symmetrify.ι : prefunctor V (symmetrify V) :=
+def symmetrify.of : prefunctor V (symmetrify V) :=
 { obj := id
 , map := λ X Y f, sum.inl f }
 
@@ -69,14 +69,14 @@ def symmetrify.lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : prefunctor V
 , map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
 
 lemma symmetrify.lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
-  symmetrify.ι.comp (symmetrify.lift φ) = φ :=
+  symmetrify.of.comp (symmetrify.lift φ) = φ :=
 begin
   fapply prefunctor.ext,
   { rintro X, refl, },
   { rintros X Y f, refl, },
 end
 
-@[simp] lemma symmetrify.lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reverse V']
+lemma symmetrify.lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reverse V']
   (φ : prefunctor V V')
   {X Y : symmetrify V} (f : X ⟶ Y) :
   (symmetrify.lift φ).map (quiver.reverse f) = quiver.reverse ((symmetrify.lift φ).map f) :=
@@ -86,10 +86,11 @@ begin
   { simp only, dsimp [reverse], rw h.inv', refl, }
 end
 
-
-lemma symmetrify.lift_spec_unique (V' : Type*) [quiver V'] [has_involutive_reverse V'] (φ : prefunctor V V')
+/-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/
+lemma symmetrify.lift_spec_unique (V' : Type*) [quiver V'] [has_reverse V']
+  (φ : prefunctor V V')
   (Φ : prefunctor (symmetrify V) V')
-  (hΦ : symmetrify.ι.comp Φ = φ)
+  (hΦ : symmetrify.of.comp Φ = φ)
   (hΦinv : ∀ {X Y : V} (f : X ⟶ Y), Φ.map (reverse f) = reverse (Φ.map f)) :
   Φ = symmetrify.lift φ :=
 begin
@@ -99,7 +100,7 @@ begin
   { rintros X Y f,
     cases f,
     { refl, },
-    { dsimp [symmetrify.lift,symmetrify.ι],
+    { dsimp [symmetrify.lift,symmetrify.of],
       convert hΦinv (sum.inl f), }, },
 end
 

@@ -99,12 +99,12 @@ instance : groupoid (free_groupoid V) :=
 , inv_comp' := λ X Y p, quot.induction_on p $ λ pp, quot.sound $ congr_reverse_comp pp
 , comp_inv' := λ X Y p, quot.induction_on p $ λ pp, quot.sound $ congr_comp_reverse pp }
 
-def ι : prefunctor V (free_groupoid V) :=
+def of : prefunctor V (free_groupoid V) :=
 { obj := λ X, ⟨X⟩
 , map := λ X Y f, quot.mk _ f.to_pos_path}
 
-lemma ι_eq : ι =
-  ((quiver.symmetrify.ι).comp
+lemma of_eq : of =
+  ((quiver.symmetrify.of).comp
     paths.of).comp (quotient.functor $ @red_step V _).to_prefunctor :=
 begin
   apply prefunctor.ext, rotate,
@@ -130,19 +130,16 @@ begin
     symmetry, apply groupoid.comp_inv, }
 end
 
-@[simp] lemma _root_.category_theory.functor.to_prefunctor_comp
-  {C D E : Type*} [category C] [category D] [category E] (F : C ⥤ D) (G : D ⥤ E) :
-  F.to_prefunctor.comp G.to_prefunctor = (F ⋙ G).to_prefunctor := sorry
 
-lemma lift_spec (φ : prefunctor V V') : ι.comp (lift φ).to_prefunctor = φ :=
+lemma lift_spec (φ : prefunctor V V') : of.comp (lift φ).to_prefunctor = φ :=
 begin
-  rw [ι_eq, prefunctor.comp_assoc, prefunctor.comp_assoc, functor.to_prefunctor_comp],
+  rw [of_eq, prefunctor.comp_assoc, prefunctor.comp_assoc, functor.to_prefunctor_comp],
   dsimp [lift],
   rw [quotient.lift_spec, paths.lift_spec, quiver.symmetrify.lift_spec],
 end
 
 lemma lift_unique_spec  (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V')
-  (hΦ : ι.comp Φ.to_prefunctor = φ) : Φ = (lift φ) :=
+  (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = (lift φ) :=
 begin
   apply quotient.lift_spec_unique,
   apply paths.lift_spec_unique,

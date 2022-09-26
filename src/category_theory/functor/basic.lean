@@ -104,6 +104,16 @@ protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
   F.map (if h : P then f h else g h) = if h : P then F.map (f h) else F.map (g h) :=
 by { split_ifs; refl, }
 
+@[simp] lemma to_prefunctor_obj (F : C ⥤ D) (X : C) :
+  F.to_prefunctor.obj X = F.obj X := rfl
+
+@[simp] lemma to_prefunctor_map (F : C ⥤ D)
+  {X Y : C} (f : X ⟶ Y) : F.to_prefunctor.map f = F.map f := rfl
+
+@[simp] lemma to_prefunctor_comp (F : C ⥤ D) (G : D ⥤ E) :
+  F.to_prefunctor.comp G.to_prefunctor = (F ⋙ G).to_prefunctor := rfl
+
+
 end
 
 end functor

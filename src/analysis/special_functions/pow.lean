@@ -1280,11 +1280,17 @@ real.rpow_lt_rpow_iff x.2 y.2 hz
 lemma rpow_le_rpow_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
 real.rpow_le_rpow_iff x.2 y.2 hz
 
-lemma le_rpow_one_div_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
-by rw [← rpow_le_rpow_iff hz, rpow_self_rpow_inv hz.ne']
+lemma le_rpow_inv_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ z⁻¹ ↔ x ^ z ≤ y :=
+by rw [← rpow_le_rpow_iff hz, ← rpow_mul, inv_mul_cancel hz.ne', rpow_one]
 
-lemma rpow_one_div_le_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ^ (1 / z) ≤ y ↔ x ≤ y ^ z :=
-by rw [← rpow_le_rpow_iff hz, rpow_self_rpow_inv hz.ne']
+lemma lt_rpow_inv_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x < y ^ z⁻¹ ↔ x ^ z < y :=
+by rw [← rpow_lt_rpow_iff hz, ← rpow_mul, inv_mul_cancel hz.ne', rpow_one]
+
+lemma rpow_inv_le_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ^ z⁻¹ ≤ y ↔ x ≤ y ^ z :=
+by rw [← rpow_le_rpow_iff hz, ← rpow_mul, inv_mul_cancel hz.ne', rpow_one]
+
+lemma rpow_inv_lt_iff {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) :  x ^ z⁻¹ < y ↔ x < y ^ z :=
+by rw [← rpow_lt_rpow_iff hz, ← rpow_mul, inv_mul_cancel hz.ne', rpow_one]
 
 lemma rpow_lt_rpow_of_exponent_lt {x : ℝ≥0} {y z : ℝ} (hx : 1 < x) (hyz : y < z) : x^y < x^z :=
 real.rpow_lt_rpow_of_exponent_lt hx hyz
@@ -1730,26 +1736,17 @@ lemma rpow_le_rpow_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ^
 lemma rpow_lt_rpow_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) :  x ^ z < y ^ z ↔ x < y :=
 (strict_mono_rpow_of_pos hz).lt_iff_lt
 
-lemma le_rpow_one_div_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ (1 / z) ↔ x ^ z ≤ y :=
-begin
-  nth_rewrite 0 ←rpow_one x,
-  nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z  hz.ne',
-  rw [rpow_mul, ←one_div, @rpow_le_rpow_iff _ _ (1/z) (by simp [hz])],
-end
+lemma le_rpow_inv_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) :  x ≤ y ^ z⁻¹ ↔ x ^ z ≤ y :=
+by rw [← rpow_le_rpow_iff hz, ← rpow_mul, _root_.inv_mul_cancel hz.ne', rpow_one]
 
-lemma lt_rpow_one_div_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) : x < y ^ (1 / z) ↔ x ^ z < y :=
-begin
-  nth_rewrite 0 ←rpow_one x,
-  nth_rewrite 0 ←@_root_.mul_inv_cancel _ _ z (ne_of_lt hz).symm,
-  rw [rpow_mul, ←one_div, @rpow_lt_rpow_iff _ _ (1/z) (by simp [hz])],
-end
+lemma lt_rpow_inv_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) :  x < y ^ z⁻¹ ↔ x ^ z < y :=
+by rw [← rpow_lt_rpow_iff hz, ← rpow_mul, _root_.inv_mul_cancel hz.ne', rpow_one]
 
-lemma rpow_one_div_le_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) : x ^ (1 / z) ≤ y ↔ x ≤ y ^ z :=
-begin
-  nth_rewrite 0 ← ennreal.rpow_one y,
-  nth_rewrite 1 ← @_root_.mul_inv_cancel _ _ z hz.ne.symm,
-  rw [ennreal.rpow_mul, ← one_div, ennreal.rpow_le_rpow_iff (one_div_pos.2 hz)],
-end
+lemma rpow_inv_le_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) :  x ^ z⁻¹ ≤ y ↔ x ≤ y ^ z :=
+by rw [← rpow_le_rpow_iff hz, ← rpow_mul, _root_.inv_mul_cancel hz.ne', rpow_one]
+
+lemma rpow_inv_lt_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) :  x ^ z⁻¹ < y ↔ x < y ^ z :=
+by rw [← rpow_lt_rpow_iff hz, ← rpow_mul, _root_.inv_mul_cancel hz.ne', rpow_one]
 
 lemma rpow_lt_rpow_of_exponent_lt {x : ℝ≥0∞} {y z : ℝ} (hx : 1 < x) (hx' : x ≠ ⊤) (hyz : y < z) :
   x^y < x^z :=

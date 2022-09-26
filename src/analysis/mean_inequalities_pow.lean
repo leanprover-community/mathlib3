@@ -5,7 +5,6 @@ Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import analysis.convex.specific_functions
 import tactic.positivity
-import analysis.test
 
 /-!
 # Mean value inequalities

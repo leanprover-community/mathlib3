@@ -6,21 +6,33 @@ Authors: Sébastien Gouëzel
 
 import analysis.calculus.deriv
 import data.set.intervals.monotone
+import measure_theory.measure.lebesgue
+
+
+/-!
+# Functions of bounded variation
+
+We study functions of bounded variation. In particular, we show that a bounded variation function
+is differentiable almost everywhere. This implies that Lipschitz functions are differentiable
+almost everywhere.
+-/
+
 
 open_locale big_operators nnreal ennreal
 open set
 
-variables {E : Type*} [pseudo_emetric_space E] {F : Type*} [pseudo_metric_space F]
+variables {α : Type*} [linear_order α]
+{E : Type*} [pseudo_emetric_space E] {F : Type*} [pseudo_metric_space F]
 
 /-- The (extended real valued) variation of a function `f` on a set `s` is the supremum of the
 sum of `edist (f (u (i+1))) (f (u i))` over all finite increasing sequences `u` in `s`. -/
-noncomputable def evariation_on (f : ℝ → E) (s : set ℝ) : ℝ≥0∞ :=
-⨆ (p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s}),
-  ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))
+noncomputable def evariation_on (f : α → E) (s : set α) : ℝ≥0∞ :=
+⨆ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
+  ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))
 
 namespace evariation_on
 
-lemma nonempty_monotone_mem {s : set ℝ} (hs : s.nonempty) :
+lemma nonempty_monotone_mem {s : set α} (hs : s.nonempty) :
   nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ s} :=
 begin
   obtain ⟨x, hx⟩ := hs,
@@ -28,18 +40,18 @@ begin
 end
 
 lemma sum_le
-  (f : ℝ → E) {s : set ℝ} (n : ℕ) {u : ℕ → ℝ} (hu : monotone u) (us : ∀ i, u i ∈ s) :
+  (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, u i ∈ s) :
   ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
 begin
-  let p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, us⟩),
-  change ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))
+  let p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, us⟩),
+  change ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))
     ≤ evariation_on f s,
-  exact le_supr (λ (p : ℕ × {u : ℕ → ℝ // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → ℝ) (i+1))) (f ((p.2 : ℕ → ℝ) i))) _,
+  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
+    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))) _,
 end
 
 lemma sum_le_of_monotone_on_Iic
-  (f : ℝ → E) {s : set ℝ} {n : ℕ} {u : ℕ → ℝ} (hu : monotone_on u (Iic n))
+  (f : α → E) {s : set α} {n : ℕ} {u : ℕ → α} (hu : monotone_on u (Iic n))
   (us : ∀ i ≤ n, u i ∈ s) :
   ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
 begin
@@ -71,7 +83,7 @@ begin
 end
 
 lemma sum_le_of_monotone_on_Icc
-  (f : ℝ → E) {s : set ℝ} {m n : ℕ} {u : ℕ → ℝ} (hu : monotone_on u (Icc m n))
+  (f : α → E) {s : set α} {m n : ℕ} {u : ℕ → α} (hu : monotone_on u (Icc m n))
   (us : ∀ i ∈ Icc m n, u i ∈ s) :
   ∑ i in finset.Ico m n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
 begin
@@ -102,7 +114,7 @@ begin
   ... ≤ evariation_on f s : sum_le_of_monotone_on_Iic f hv vs,
 end
 
-lemma mono (f : ℝ → E) {s t : set ℝ} (hst : t ⊆ s) :
+lemma mono (f : α → E) {s t : set α} (hst : t ⊆ s) :
   evariation_on f t ≤ evariation_on f s :=
 begin
   apply supr_le _,
@@ -110,7 +122,7 @@ begin
   exact sum_le f n hu (λ i, hst (ut i)),
 end
 
-@[simp] protected lemma subsingleton (f : ℝ → E) {s : set ℝ} (hs : s.subsingleton) :
+@[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
   evariation_on f s = 0 :=
 begin
   apply le_antisymm _ (zero_le _),
@@ -120,14 +132,14 @@ begin
   simp [subtype.coe_mk, le_zero_iff, finset.sum_eq_zero_iff, finset.mem_range, this],
 end
 
-lemma edist_le (f : ℝ → E) {s : set ℝ} {x y : ℝ} (hx : x ∈ s) (hy : y ∈ s) :
+lemma edist_le (f : α → E) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   edist (f x) (f y) ≤ evariation_on f s :=
 begin
   wlog hxy : x ≤ y := le_total x y using [x y, y x] tactic.skip, swap,
   { assume hx hy,
     rw edist_comm,
     exact this hy hx },
-  let u : ℕ → ℝ := λ n, if n = 0 then x else y,
+  let u : ℕ → α := λ n, if n = 0 then x else y,
   have hu : monotone u,
   { assume m n hmn,
     dsimp only [u],
@@ -142,7 +154,7 @@ begin
   simp [u, edist_comm],
 end
 
-lemma dist_le (f : ℝ → F) {s : set ℝ} {x y : ℝ} (hx : x ∈ s) (hy : y ∈ s)
+lemma dist_le (f : α → F) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s)
   (h : evariation_on f s ≠ ∞):
   dist (f x) (f y) ≤ (evariation_on f s).to_real :=
 begin
@@ -151,7 +163,7 @@ begin
   exact edist_le f hx hy
 end
 
-lemma sub_le (f : ℝ → ℝ) {s : set ℝ} {x y : ℝ} (hx : x ∈ s) (hy : y ∈ s)
+lemma sub_le (f : α → ℝ) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s)
   (h : evariation_on f s ≠ ∞):
   f x - f y ≤ (evariation_on f s).to_real :=
 begin
@@ -163,9 +175,9 @@ end
 /-- Consider a monotone function `u` parameterizing some points of a set `s`. Given `x ∈ s`, then
 one can find another monotone function `v` parameterizing the same points as `u`, with `x` added.
 In particular, the variation of a function along `u` is bounded by its variation along `v`. -/
-lemma add_point (f : ℝ → E) {s : set ℝ} {x : ℝ} (hx : x ∈ s)
-  (u : ℕ → ℝ) (hu : monotone u) (us : ∀ i, u i ∈ s) (n : ℕ) :
-  ∃ (v : ℕ → ℝ) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s) ∧ x ∈ v '' (Iio m) ∧
+lemma add_point (f : α → E) {s : set α} {x : α} (hx : x ∈ s)
+  (u : ℕ → α) (hu : monotone u) (us : ∀ i, u i ∈ s) (n : ℕ) :
+  ∃ (v : ℕ → α) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s) ∧ x ∈ v '' (Iio m) ∧
     ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤
       ∑ j in finset.range m, edist (f (v (j+1))) (f (v j)) :=
 begin
@@ -208,7 +220,7 @@ begin
   have exists_N : ∃ N, N ≤ n ∧ x < u N, from ⟨n, le_rfl, h⟩,
   let N := nat.find exists_N,
   have hN : N ≤ n ∧ x < u N := nat.find_spec exists_N,
-  let w : ℕ → ℝ := λ i, if i < N then u i else if i = N then x else u (i - 1),
+  let w : ℕ → α := λ i, if i < N then u i else if i = N then x else u (i - 1),
   have ws : ∀ i, w i ∈ s,
   { dsimp only [w],
     assume i,
@@ -243,8 +255,8 @@ begin
       begin
         apply finset.sum_congr rfl (λ i hi, _),
         dsimp only [w],
-        simp only [← Npos, nat.not_lt_zero, nat.add_succ_sub_one, add_zero, if_false, add_eq_zero_iff,
-          nat.one_ne_zero, false_and, nat.succ_add_sub_one, zero_add],
+        simp only [← Npos, nat.not_lt_zero, nat.add_succ_sub_one, add_zero, if_false,
+          add_eq_zero_iff, nat.one_ne_zero, false_and, nat.succ_add_sub_one, zero_add],
         rw add_comm 1 i,
       end
     ... = ∑ i in finset.Ico 1 (n + 1), edist (f (w (i + 1))) (f (w i)) :
@@ -330,7 +342,7 @@ end
 
 /-- The variation on the union of two sets `s` and `t`, with `s` to the left of `t`, bounds the sum
 of the variations along `s` and `t`. -/
-lemma add_le_union (f : ℝ → E) {s t : set ℝ} (h : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
+lemma add_le_union (f : α → E) {s t : set α} (h : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
   evariation_on f s + evariation_on f t ≤ evariation_on f (s ∪ t) :=
 begin
   by_cases hs : s = ∅,
@@ -407,7 +419,7 @@ end
 
 /-- If a set `s` is to the left of a set `t`, and both contain the boundary point `x`, then
 the variation of `f` along `s ∪ t` is the sum of the variations. -/
-lemma union (f : ℝ → E) {s t : set ℝ} {x : ℝ}
+lemma union (f : α → E) {s t : set α} {x : α}
   (hs : s ⊆ Iic x) (h's : x ∈ s) (ht : t ⊆ Ici x) (h't : x ∈ t) :
   evariation_on f (s ∪ t) = evariation_on f s + evariation_on f t :=
 begin
@@ -415,7 +427,7 @@ begin
   apply le_antisymm _ (evariation_on.add_le_union f (λ a ha b hb, le_trans (hs ha) (ht hb))),
   apply supr_le _,
   rintros ⟨n, ⟨u, hu, ust⟩⟩,
-  obtain ⟨v, m, hv, vst, xv, huv⟩ : ∃ (v : ℕ → ℝ) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s ∪ t) ∧
+  obtain ⟨v, m, hv, vst, xv, huv⟩ : ∃ (v : ℕ → α) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s ∪ t) ∧
     x ∈ v '' (Iio m) ∧ ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤
                         ∑ j in finset.range m, edist (f (v (j+1))) (f (v j)),
     from evariation_on.add_point f (mem_union_left t h's) u hu ust n,
@@ -448,7 +460,7 @@ begin
   end
 end
 
-lemma Icc_add_Icc (f : ℝ → E) {s : set ℝ} {a b c : ℝ}
+lemma Icc_add_Icc (f : α → E) {s : set α} {a b c : α}
   (hab : a ≤ b) (hbc : b ≤ c) (hb : b ∈ s) :
   evariation_on f (s ∩ Icc a b) + evariation_on f (s ∩ Icc b c) = evariation_on f (s ∩ Icc a c) :=
 begin
@@ -458,9 +470,9 @@ begin
       Icc_union_Icc_eq_Icc hab hbc]
 end
 
-lemma exists_monotone_on_sub_monotone_on (f : ℝ → ℝ) {s : set ℝ}
+lemma exists_monotone_on_sub_monotone_on {f : α → ℝ} {s : set α}
   (h : ∀ a b, a ∈ s → b ∈ s → a ≤ b → evariation_on f (s ∩ (Icc a b)) ≠ ∞) :
-  ∃ (p q : ℝ → ℝ), monotone_on p s ∧ monotone_on q s ∧ ∀ x, f x = p x - q x :=
+  ∃ (p q : α → ℝ), monotone_on p s ∧ monotone_on q s ∧ ∀ x, f x = p x - q x :=
 begin
   rcases eq_empty_or_nonempty s with rfl|hs,
   { exact ⟨f, 0, subsingleton_empty.monotone_on _, subsingleton_empty.monotone_on _,
@@ -476,7 +488,7 @@ begin
         = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy xs,
       rw [← this, ennreal.to_real_add (h c x cs xs hcx) (h x y xs ys hxy)],
       exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg },
-    { linarith },
+    { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
     { exact (neg_nonpos.2 ennreal.to_real_nonneg).trans ennreal.to_real_nonneg },
     { simp only [neg_le_neg_iff],
       have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
@@ -492,7 +504,7 @@ begin
       rw [← this, ennreal.to_real_add (h c x cs xs hcx) (h x y xs ys hxy)],
       suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
       exact sub_le f ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ (h x y xs ys hxy) },
-    { linarith },
+    { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
     { suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x c)).to_real
         + (evariation_on f (s ∩ Icc c y)).to_real, by linarith,
       rw [← ennreal.to_real_add (h x c xs cs (not_le.1 hcx).le) (h c y cs ys hcy),
@@ -506,11 +518,26 @@ begin
   refine ⟨p, λ x, p x - f x, hp, hq, λ x, by abel⟩,
 end
 
-lemma exists_monotone_sub_monotone (f : ℝ → ℝ)
+lemma exists_monotone_sub_monotone' (f : α → ℝ) {s : set α} {a b : α}
+  (h : evariation_on f s ≠ ∞) (as : a ∈ s) (bs : b ∈ s) (hs : s ⊆ Icc a b) :
+  ∃ (p q : α → ℝ), monotone p ∧ monotone q ∧ eq_on f (p - q) s :=
+begin
+  obtain ⟨p', q', hp', hq', H⟩ :
+    ∃ (p' q' : α → ℝ), monotone_on p' s ∧ monotone_on q' s ∧ ∀ x, f x = p' x - q' x,
+  { apply exists_monotone_on_sub_monotone_on,
+    assume c d hc hd hcd,
+    apply ne_of_lt (lt_of_le_of_lt _ h.lt_top),
+    exact evariation_on.mono _ (inter_subset_left _ _) },
+  obtain ⟨p, hp, h'p⟩ : ∃ p, monotone p ∧ eq_on p' p s, from hp'.exists_monotone_extension as bs hs,
+  obtain ⟨q, hq, h'q⟩ : ∃ q, monotone q ∧ eq_on q' q s, from hq'.exists_monotone_extension as bs hs,
+  exact ⟨p, q, hp, hq, λ x hx, by simp [H x, h'q hx, h'p hx]⟩,
+end
+
+lemma exists_monotone_sub_monotone (f : α → ℝ)
   (h : ∀ a b, a ≤ b → evariation_on f (Icc a b) ≠ ∞) :
-  ∃ (p q : ℝ → ℝ), monotone p ∧ monotone q ∧ ∀ x, f x = p x - q x :=
+  ∃ (p q : α → ℝ), monotone p ∧ monotone q ∧ ∀ x, f x = p x - q x :=
 by simpa [monotone_on_univ] using
-  @exists_monotone_on_sub_monotone_on f univ (λ a b ha hb hab, by simpa using h a b hab)
+  @exists_monotone_on_sub_monotone_on _ _ f univ (λ a b ha hb hab, by simpa using h a b hab)
 
 end evariation_on
 
@@ -544,7 +571,9 @@ begin
     end
 end
 
-
+lemma zougzoug (s : set ℝ) (p : ℝ → Prop)
+  (h : ∀ a b, a ∈ s → b ∈ s → ∀ᵐ x ∂(volume.restrict (s ∩ Ioo a b), p x) :
+  ∀ᵐ x ∂(volume.restrict s), p x
 
 #exit
 

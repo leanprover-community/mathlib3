@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import analysis.calculus.deriv
+import data.set.intervals.monotone
 
 open_locale big_operators nnreal ennreal
 open set
@@ -543,11 +544,21 @@ begin
     end
 end
 
-lemma monotone_on.exists_monotone {α : Type*} [linear_order α]
-  {f : α → ℝ} {s : set α} {a b : α} (h : monotone_on f s)
+
+
+#exit
+
+
+/-- If a function is monotone on a set `s`, then it admits a monotone extension to the whole space
+provided `s` has a lower point `a` and an upper point `b`. -/
+lemma monotone_on.exists_monotone_extension {α β : Type*}
+  [linear_order α] [conditionally_complete_linear_order β]
+  {f : α → β} {s : set α} (h : monotone_on f s) {a b : α}
   (as : a ∈ s) (bs : b ∈ s) (hab : s ⊆ Icc a b) :
-  ∃ g : α → ℝ, monotone g ∧ eq_on f g s :=
+  ∃ g : α → β, monotone g ∧ eq_on f g s :=
 begin
+  /- The extension is defined by `f a` to the left of `f a`, and `f b` to the right of `b`, and
+  the supremum of the values of `f` to the left of `x` between `a` and -/
   have aleb : a ≤ b := (hab as).2,
   have H : ∀ x ∈ s, f x = Sup (f '' (Icc a x ∩ s)),
   { assume x xs,
@@ -572,20 +583,11 @@ begin
     rw [if_neg hxa, if_neg hbx],
     exact H x xs,  },
   have M1 : monotone_on g (Iic a),
-  sorry { rintros x (hx : x ≤ a) y (hy : y ≤ a) hxy,
+  { rintros x (hx : x ≤ a) y (hy : y ≤ a) hxy,
     dsimp only [g],
     simp only [hx, hy, if_true] },
-  have M2 : monotone_on g (Ici b),
-  sorry { rintros x (hx : b ≤ x) y (hy : b ≤ y) hxy,
-    dsimp only [g],
-    simp only [hx, hy, if_true],
-    by_cases hxa : x ≤ a,
-    { have : b = a, from le_antisymm (hx.trans hxa) aleb,
-      simp only [this, if_t_t] },
-    { have : ¬(y ≤ a) := λ hy, hxa (hxy.trans hy),
-      simp only [hxa, this] } },
   have g_eq : ∀ x ∈ Icc a b, g x = Sup (f '' (Icc a x ∩ s)),
-  sorry { rintros x ⟨ax, xb⟩,
+  { rintros x ⟨ax, xb⟩,
     dsimp only [g],
     by_cases hxa : x ≤ a,
     { have : x = a := le_antisymm hxa ax,
@@ -594,8 +596,8 @@ begin
     { have : x = b := le_antisymm xb hbx,
       simp_rw [hxa, if_false, hbx, if_true, H b bs, this] },
     simp only [hxa, hbx, if_false] },
-  have M3 : monotone_on g (Icc a b),
-  sorry { rintros x ⟨ax, xb⟩ y ⟨ay, yb⟩ hxy,
+  have M2 : monotone_on g (Icc a b),
+  { rintros x ⟨ax, xb⟩ y ⟨ay, yb⟩ hxy,
     rw [g_eq x ⟨ax, xb⟩, g_eq y ⟨ay, yb⟩],
     apply cSup_le_cSup,
     { refine ⟨f b, _⟩,
@@ -605,7 +607,19 @@ begin
     { apply image_subset,
       apply inter_subset_inter_left,
       exact Icc_subset_Icc le_rfl hxy } },
-  have Z := monotone_on.union,
+  have M3 : monotone_on g (Iic b),
+  { have := M1.union' M2 subset.rfl Icc_subset_Ici_self le_rfl ⟨le_rfl, aleb⟩,
+    rwa Iic_union_Icc_eq_Iic aleb at this },
+  have M4 : monotone_on g (Ici b),
+  { rintros x (hx : b ≤ x) y (hy : b ≤ y) hxy,
+    dsimp only [g],
+    simp only [hx, hy, if_true],
+    by_cases hxa : x ≤ a,
+    { have : b = a, from le_antisymm (hx.trans hxa) aleb,
+      simp only [this, if_t_t] },
+    { have : ¬(y ≤ a) := λ hy, hxa (hxy.trans hy),
+      simp only [hxa, this] } },
+  refine ⟨g, M3.Iic_union_Ici M4, hfg⟩,
 end
 
 #exit

@@ -622,7 +622,7 @@ def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
 f (g a b)
 
 -- Suggested local notation:
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) := rfl

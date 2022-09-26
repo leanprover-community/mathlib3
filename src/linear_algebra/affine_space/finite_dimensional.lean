@@ -20,7 +20,7 @@ subspaces of affine spaces.
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 section affine_space'
 
@@ -39,13 +39,13 @@ span_of_finite k $ h.vsub h
 
 /-- The `vector_span` of a family indexed by a `fintype` is
 finite-dimensional. -/
-instance finite_dimensional_vector_span_of_fintype [fintype ι] (p : ι → P) :
+instance finite_dimensional_vector_span_range [_root_.finite ι] (p : ι → P) :
   finite_dimensional k (vector_span k (set.range p)) :=
 finite_dimensional_vector_span_of_finite k (set.finite_range _)
 
 /-- The `vector_span` of a subset of a family indexed by a `fintype`
 is finite-dimensional. -/
-instance finite_dimensional_vector_span_image_of_fintype [fintype ι] (p : ι → P)
+instance finite_dimensional_vector_span_image_of_finite [_root_.finite ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (vector_span k (p '' s)) :=
 finite_dimensional_vector_span_of_finite k (set.to_finite _)
 
@@ -57,20 +57,20 @@ lemma finite_dimensional_direction_affine_span_of_finite {s : set P} (h : set.fi
 
 /-- The direction of the affine span of a family indexed by a
 `fintype` is finite-dimensional. -/
-instance finite_dimensional_direction_affine_span_of_fintype [fintype ι] (p : ι → P) :
+instance finite_dimensional_direction_affine_span_range [_root_.finite ι] (p : ι → P) :
   finite_dimensional k (affine_span k (set.range p)).direction :=
 finite_dimensional_direction_affine_span_of_finite k (set.finite_range _)
 
 /-- The direction of the affine span of a subset of a family indexed
 by a `fintype` is finite-dimensional. -/
-instance finite_dimensional_direction_affine_span_image_of_fintype [fintype ι] (p : ι → P)
+instance finite_dimensional_direction_affine_span_image_of_finite [_root_.finite ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (affine_span k (p '' s)).direction :=
 finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
 noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
   {p : ι → P} (hi : affine_independent k p) : fintype ι :=
-if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
+by classical; exact if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
 begin
   let q := (not_is_empty_iff.mp hι).some,
   rw affine_independent_iff_linear_independent_vsub k p q at hi,
@@ -266,7 +266,7 @@ begin
 end
 
 /-- The `vector_span` of adding a point to a finite-dimensional subspace is finite-dimensional. -/
-lemma finite_dimensional_vector_span_insert (s : affine_subspace k P)
+instance finite_dimensional_vector_span_insert (s : affine_subspace k P)
   [finite_dimensional k s.direction] (p : P) :
   finite_dimensional k (vector_span k (insert p (s : set P))) :=
 begin
@@ -282,7 +282,7 @@ end
 
 /-- The direction of the affine span of adding a point to a finite-dimensional subspace is
 finite-dimensional. -/
-lemma finite_dimensional_direction_affine_span_insert (s : affine_subspace k P)
+instance finite_dimensional_direction_affine_span_insert (s : affine_subspace k P)
   [finite_dimensional k s.direction] (p : P) :
   finite_dimensional k (affine_span k (insert p (s : set P))).direction :=
 (direction_affine_span k (insert p (s : set P))).symm ▸ finite_dimensional_vector_span_insert s p
@@ -291,7 +291,7 @@ variables (k)
 
 /-- The `vector_span` of adding a point to a set with a finite-dimensional `vector_span` is
 finite-dimensional. -/
-lemma finite_dimensional_vector_span_insert_set (s : set P)
+instance finite_dimensional_vector_span_insert_set (s : set P)
   [finite_dimensional k (vector_span k s)] (p : P) :
   finite_dimensional k (vector_span k (insert p s)) :=
 begin

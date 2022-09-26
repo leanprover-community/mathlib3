@@ -956,8 +956,7 @@ end
 variables [linear_order ι] [no_top_order ι] [hι : nonempty ι]
 include hι
 
-lemma supr_indep_limsup_at_top
-  (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
+lemma supr_indep_limsup_at_top (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (⨆ n, s n) (limsup at_top s) μ :=
 begin
   haveI : no_max_order ι := no_top_order.to_no_max_order ι,
@@ -971,8 +970,7 @@ begin
   { exact λ n m hnm, bsupr_mono (λ i hi, hi.trans_le hnm), },
 end
 
-lemma limsup_at_top_indep_self
-  (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
+lemma limsup_at_top_indep_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (limsup at_top s) (limsup at_top s) μ :=
 begin
   refine indep_of_indep_of_le_left (supr_indep_limsup_at_top h_le h_indep) _,
@@ -984,9 +982,8 @@ end
 /-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra of an independent sequence of
 sub-σ-algebras has probability 0 or 1.
 The tail σ-algebra `limsup at_top s` is the same as `⋂ n, ⋃ i ≥ n, s i`. -/
-theorem measure_zero_or_one_of_measurable_set_limsup_at_top
-  (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
-  {t : set Ω} (ht_tail : measurable_set[limsup at_top s] t) :
+theorem measure_zero_or_one_of_measurable_set_limsup_at_top (h_le : ∀ n, s n ≤ m0)
+  (h_indep : Indep s μ) {t : set Ω} (ht_tail : measurable_set[limsup at_top s] t) :
   μ t = 0 ∨ μ t = 1 :=
 measure_eq_zero_or_one_of_indep_set_self
   ((limsup_at_top_indep_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)

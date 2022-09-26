@@ -68,7 +68,7 @@ variables {α : Type*} [uniform_space α] (pkg : abstract_completion α)
 local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
-/-- If `α` is complete, then it is an abstract completion of itself -/
+/-- If `α` is complete, then it is an abstract completion of itself. -/
 def of_complete [separated_space α] [complete_space α] : abstract_completion α :=
 mk α id (by apply_instance) (by apply_instance) (by apply_instance) uniform_inducing_id
   dense_range_id

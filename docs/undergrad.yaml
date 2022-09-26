@@ -536,7 +536,7 @@ Probability Theory:
     independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'
     independent sigma-algebra: 'probability_theory.Indep'
-    $0$-$1$ law: ''
+    $0$-$1$ law: 'probability_theory.measure_zero_or_one_of_measurable_set_limsup_at_top'
     Borel-Cantelli lemma (easy direction): 'measure_theory.measure_limsup_eq_zero'
     Borel-Cantelli lemma (difficult direction): ''
     conditional probability: 'probability_theory.cond'

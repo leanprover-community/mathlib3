@@ -624,6 +624,12 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
+/-- Many `fintype` instances for sets are defined using an extensionally equal `finset`.
+Rewriting `s.to_finset` with `set.to_finset_of_finset` replaces the term with such a `finset`. -/
+theorem to_finset_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
+  @set.to_finset _ p (fintype.of_finset s H) = s :=
+finset.ext (λ x, by rw [mem_to_finset, H])
+
 /-- Membership of a set with a `fintype` instance is decidable.
 
 Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability

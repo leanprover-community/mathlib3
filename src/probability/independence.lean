@@ -950,7 +950,7 @@ variables {α : Type*} {p : set ι → Prop} {f : filter ι} {ns : α → set ι
 for which we can define the following two functions:
 * `p : set ι → Prop` such that for a set `t`, `p t → tᶜ ∈ f`,
 * `ns : α → set ι` a directed sequence of sets which all verify `p` and such that
-`⋃ a, ns a = set.univ`.
+  `⋃ a, ns a = set.univ`.
 
 For the example of `f = at_top`, we can take `p = bdd_above` and `ns : ι → set ι := λ i, set.Iic i`.
 -/

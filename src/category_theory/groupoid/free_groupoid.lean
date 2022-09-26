@@ -49,29 +49,36 @@ universes u v u' v'
 
 variables {V : Type u} [quiver.{v+1} V]
 
+/-- Shorthand for the "forward" arrow corresponding to `f` in `symmetrify V` -/
 abbreviation quiver.hom.to_pos {X Y : V} (f : X ⟶ Y) :
   (quiver.symmetrify_quiver V).hom X Y := sum.inl f
 
+/-- Shorthand for the "backward" arrow corresponding to `f` in `symmetrify V` -/
 abbreviation quiver.hom.to_neg {X Y : V} (f : X ⟶ Y) :
   (quiver.symmetrify_quiver V).hom Y X := sum.inr f
 
+/-- Shorthand for the "forward" arrow corresponding to `f` in `paths $ symmetrify V` -/
 abbreviation quiver.hom.to_pos_path {X Y : V} (f : X ⟶ Y) :
   ((category_theory.paths.category_paths $ quiver.symmetrify V).hom X Y) := f.to_pos.to_path
 
+/-- Shorthand for the "forward" arrow corresponding to `f` in `paths $ symmetrify V` -/
 abbreviation quiver.hom.to_neg_path {X Y : V} (f : X ⟶ Y) :
   ((category_theory.paths.category_paths $ quiver.symmetrify V).hom Y X) := f.to_neg.to_path
 
-@[simp] def paths.reverse {X Y : paths $ quiver.symmetrify V} :
+/-- Reversal of paths in the path category -/
+@[simp,reducible] def paths.reverse {X Y : paths $ quiver.symmetrify V} :
   (category_theory.paths.category_paths $ quiver.symmetrify V).hom X Y →
   (category_theory.paths.category_paths $ quiver.symmetrify V).hom Y X := λ p, p.reverse
 
+/-- `p` and `q` are related if `p` is and `𝟙 X` and `q` is a back & forth -/
 def red_step : hom_rel $ paths $ quiver.symmetrify V :=
 λ X Y p q, ∃ (h : Y = X) (Z) (f : (quiver.symmetrify_quiver V).hom X Z),
   (h.rec_on p = 𝟙 X) ∧ (h.rec_on q = f.to_path ≫ (quiver.reverse f).to_path)
 
+/-- The underlying vertices of the free groupoid -/
 def free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
 
-@[simp] lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
+lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
   quotient.comp_closure red_step (paths.reverse p) (paths.reverse q)  :=
 begin
@@ -98,7 +105,7 @@ begin
   simp only [eq_self_iff_true, and_self],
 end
 
-@[simp] lemma congr_comp_reverse {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
+lemma congr_comp_reverse {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
   quot.mk (@quotient.comp_closure _ _ red_step _ _) (p ≫ (paths.reverse p)) =
   quot.mk (@quotient.comp_closure _ _ red_step _ _) (𝟙 X) :=
 begin
@@ -116,7 +123,7 @@ begin
     { exact ih }, },
 end
 
-@[simp] lemma congr_reverse_comp {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
+lemma congr_reverse_comp {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
   quot.mk (@quotient.comp_closure _ _ red_step _ _) ((paths.reverse p) ≫ p) =
   quot.mk (@quotient.comp_closure _ _ red_step _ _) (𝟙 Y) :=
 begin
@@ -127,6 +134,7 @@ end
 
 instance : category (free_groupoid V) := quotient.category red_step
 
+/-- The inverse of an arrow in the free groupoid -/
 def quot_inv {X Y : free_groupoid V} (f : X ⟶ Y) : Y ⟶ X :=
 quot.lift_on f
             (λ pp, quot.mk _ $ (paths.reverse pp))
@@ -137,6 +145,7 @@ instance : groupoid (free_groupoid V) :=
 , inv_comp' := λ X Y p, quot.induction_on p $ λ pp, congr_reverse_comp pp
 , comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse pp }
 
+/-- The inclusion of the quiver on `V` to the underlying quiver on `free_groupoid V`-/
 def of : prefunctor V (free_groupoid V) :=
 { obj := λ X, ⟨X⟩
 , map := λ X Y f, quot.mk _ f.to_pos_path}
@@ -154,6 +163,7 @@ section universal_property
 
 variables {V' : Type u'} [groupoid V'] (φ : prefunctor V V')
 
+/-- The lift of a prefunctor to a groupoid, to a functor from `free_groupoid V` -/
 def lift (φ : prefunctor V V') : free_groupoid V ⥤ V' :=
 begin
   dsimp only [free_groupoid],
@@ -167,7 +177,6 @@ begin
     simp only [functor.map_id, functor.map_comp, paths.lift_to_path,quiver.symmetrify.lift_reverse],
     symmetry, apply groupoid.comp_inv, }
 end
-
 
 lemma lift_spec (φ : prefunctor V V') : of.comp (lift φ).to_prefunctor = φ :=
 begin
@@ -193,7 +202,7 @@ end
 
 end universal_property
 
-
 end free
 end groupoid
 end category_theory
+#lint

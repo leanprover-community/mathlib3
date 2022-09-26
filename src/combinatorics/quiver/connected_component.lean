@@ -69,7 +69,10 @@ instance : has_involutive_reverse (symmetrify V) :=
 
 @[simp] lemma path.reverse_reverse [h : has_involutive_reverse V] {a b : V} (p : path a b) :
   p.reverse.reverse = p := by
-{ induction p, { simp, }, { simp, rw [p_ih, h.inv'], refl, }, }
+{ induction p,
+  { simp, },
+  { simp only [path.reverse, path.reverse_comp, path.reverse_to_path, reverse_reverse, p_ih],
+    refl, }, }
 
 /- The inclusion of a quiver in its symmetrification -/
 def symmetrify.of : prefunctor V (symmetrify V) :=

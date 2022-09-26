@@ -305,40 +305,66 @@ begin
     exact index_inf_le.trans (mul_le_mul_left' (h (t ∘ some)) (t none).index) },
 end
 
-lemma stabilizer_eq_centralizer (g : G) :
+section for_mathlib
+
+lemma stabilizer_conj_act_eq_centralizer (g : G) :
   mul_action.stabilizer (conj_act G) g = (zpowers g).centralizer :=
 le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
   (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm)
 
-section
+open quotient_group
 
-open quotient quotient_group
-
-end
-
-noncomputable def key_inclusion (g : G) :
+noncomputable def quotient_centralizer_embedding_commutators (g : G) :
   G ⧸ centralizer (zpowers (g : G)) ↪ {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
 ((mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g).trans
-  (quotient_equiv_of_eq (stabilizer_eq_centralizer g))).symm.to_embedding.trans
+  (quotient_equiv_of_eq (stabilizer_conj_act_eq_centralizer g))).symm.to_embedding.trans
   ⟨λ x, ⟨x * g⁻¹, let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩,
   λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp⟩
 
-lemma key_inclusion_apply (g : G) (x : G) : ↑(key_inclusion g x) = ⁅x, g⁆ :=
+lemma quotient_centralizer_embedding_commutators_apply (g : G) (x : G) :
+  quotient_centralizer_embedding_commutators g x = ⟨⁅x, g⁆, x, g, rfl⟩ :=
 rfl
 
-def quotient_infi_embedding {ι : Type*} (f : ι → subgroup G) :
-  (G ⧸ ⨅ i, f i) ↪ Π i, G ⧸ f i :=
-sorry
+variables {α : Type*} [group α] {s t : subgroup α}
+
+/-- If `s ≤ t`, then there is a map `α ⧸ s → α ⧸ t`. -/
+@[to_additive "If `s ≤ t`, then there is an map `α ⧸ s → α ⧸ t`."]
+def quotient_map_of_le (h : s ≤ t) : α ⧸ s → α ⧸ t :=
+quotient.map' id (λ a b, by { simp_rw [quotient_group.left_rel_eq], apply h })
+
+@[simp, to_additive]
+lemma quotient_map_of_le_apply_mk (h : s ≤ t) (g : α) :
+  quotient_map_of_le h (quotient_group.mk g) = quotient_group.mk g :=
+rfl
+
+/-- The natural embedding `H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H`. -/
+@[to_additive "There is an embedding
+  `H ⧸ (⨅ i, f i).add_subgroup_of H) ↪ Π i, H ⧸ (f i).add_subgroup_of H`."]
+def quotient_infi_embedding' {ι : Type*} (f : ι → subgroup α) : α ⧸ (⨅ i, f i) ↪ Π i, α ⧸ (f i) :=
+{ to_fun := λ q i, quotient_map_of_le (infi_le f i) q,
+  inj' := quotient.ind₂' $ by simp_rw [function.funext_iff, quotient_map_of_le_apply_mk,
+    quotient_group.eq', mem_infi, imp_self, forall_const] }
+
+@[simp, to_additive] lemma quotient_infi_embedding'_apply_mk
+  {ι : Type*} (f : ι → subgroup α) (g : α) (i : ι) :
+  quotient_infi_embedding' f (quotient_group.mk g) i = quotient_group.mk g :=
+rfl
 
 noncomputable def key_inclusio (S : finset G) (hS : closure (S : set G) = ⊤) :
   G ⧸ center G ↪ S → {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
 begin
   refine ((quotient_equiv_of_eq _).to_embedding.trans
-    (quotient_infi_embedding (λ g : S, centralizer (zpowers (g : G))))).trans
-    (function.embedding.Pi_congr_right (λ g : S, key_inclusion (g : G))),
+    (quotient_infi_embedding' (λ g : S, centralizer (zpowers (g : G))))).trans
+    (function.embedding.Pi_congr_right (λ g : S, quotient_centralizer_embedding_commutators (g : G))),
   rw [←centralizer_top, ←hS, centralizer_closure, ←infi_subtype''],
   refl,
 end
+
+lemma key_inclusio_apply (S : finset G) (hS : closure (S : set G) = ⊤) (g : G) (s : S) :
+  key_inclusio S hS g s = ⟨⁅g, s⁆, g, s, rfl⟩ :=
+rfl
+
+end for_mathlib
 
 variables (G)
 
@@ -359,7 +385,7 @@ begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype'', ←hS1, ←fintype.card_coe],
   exact (index_infi_le _).trans (finset.prod_le_pow_card _ _ _
-    (λ g _, finite.card_le_of_injective _ (key_inclusion (g : G)).injective)),
+    (λ g _, finite.card_le_of_injective _ (quotient_centralizer_embedding_commutators (g : G)).injective)),
 end
 
 lemma nat.card_pos {α : Type*} [finite α] [nonempty α] : 0 < nat.card α :=

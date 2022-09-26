@@ -252,8 +252,7 @@ For any `R`-module X, there is a natural `R`-linear map from `X` to `X ⨂ S` by
 @[simps] def unit.map {X} : X ⟶ (extend_scalars f ⋙ restrict_scalars f).obj X :=
 { to_fun := λ x, (1 : S) ⊗ₜ[R, f] x,
   map_add' := λ x x', by { rw tensor_product.tmul_add, },
-  map_smul' := λ r x,
-  by { letI m1 : module R S := module.comp_hom S f, tidy } }
+  map_smul' := λ r x, by { letI m1 : module R S := module.comp_hom S f, tidy } }
 
 /--
 The natural transformation from identity functor on `R`-module to the composition of extension and
@@ -293,7 +292,15 @@ identity functor on `S`-module.
 @[simps] def counit : (restrict_scalars f ⋙ extend_scalars f) ⟶ (𝟭 (Module S)) :=
 { app := λ _, counit.map f,
   naturality' := λ Y Y' g,
-    by { ext z, induction z using tensor_product.induction_on; simp [map_add, *] } }
+    begin
+      ext z, induction z using tensor_product.induction_on,
+      { simp only [map_zero] },
+      { simp only [category_theory.functor.comp_map, Module.coe_comp, function.comp_app,
+          extend_scalars.map_tmul, restrict_scalars.map_apply, counit.map_apply, lift.tmul,
+          linear_map.coe_mk, category_theory.functor.id_map, linear_map.map_smulₛₗ,
+          ring_hom.id_apply] },
+      { simp only [map_add, *] },
+    end }
 
 end extend_restrict_scalars_adj
 
@@ -308,7 +315,15 @@ def extend_restrict_scalars_adj {R : Type u₁} {S : Type u₂} [comm_ring R] [c
   counit := extend_restrict_scalars_adj.counit f,
   hom_equiv_unit' := λ X Y g, linear_map.ext $ λ x, by simp,
   hom_equiv_counit' := λ X Y g, linear_map.ext $ λ x,
-    by induction x using tensor_product.induction_on; simp [map_add, *] }
+    begin
+      induction x using tensor_product.induction_on,
+      { simp only [map_zero]},
+      { simp only [extend_restrict_scalars_adj.hom_equiv_symm_apply, linear_map.coe_mk,
+        extend_restrict_scalars_adj.hom_equiv.from_extend_scalars_apply, tensor_product.lift.tmul,
+        extend_restrict_scalars_adj.counit_app, Module.coe_comp, function.comp_app,
+        extend_scalars.map_tmul, extend_restrict_scalars_adj.counit.map_apply] },
+      { simp only [map_add, *], }
+    end }
 
 instance {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S) :
   category_theory.is_left_adjoint (extend_scalars f) := ⟨_, extend_restrict_scalars_adj f⟩

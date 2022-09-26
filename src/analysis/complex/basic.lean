@@ -41,8 +41,8 @@ instance : has_norm ℂ := ⟨abs⟩
 instance : normed_add_comm_group ℂ :=
 add_group_norm.to_normed_add_comm_group
 { map_zero' := map_zero abs,
-  neg' := map_neg abs,
-  eq_zero_of_map_eq_zero' := λ z, abs_eq_zero.1,
+  neg' := abs.map_neg,
+  eq_zero_of_map_eq_zero' := λ _, abs.eq_zero.1,
   ..abs }
 
 instance : normed_field ℂ :=

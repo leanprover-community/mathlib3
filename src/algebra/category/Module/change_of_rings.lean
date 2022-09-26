@@ -180,12 +180,13 @@ local notation `Hom` M := (restrict_scalars f).obj ⟨S⟩ →ₗ[R] M
  -/
 instance has_smul : has_smul S $ Hom M :=
 { smul := λ s g,
-  { to_fun := λ (s' : S), g (s' • s : S),
-    map_add' := λ (x y : S), by simp [add_smul, map_add],
+  { to_fun := λ (s' : S), g (s' * s : S),
+    map_add' := λ (x y : S), by simp [add_mul, map_add],
     map_smul' := λ r (t : S), by rw [ring_hom.id_apply, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩,
-      ←linear_map.map_smul, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_assoc] } }
+      ←linear_map.map_smul, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_eq_mul, smul_eq_mul,
+      mul_assoc] } }
 
-@[simp] lemma smul_apply (s : S) (g : Hom M) (s' : S) :
+@[simp] lemma smul_apply' (s : S) (g : Hom M) (s' : S) :
   @has_smul.smul _ _ (coextend_scalars.has_smul f _) s g s' = g (s' * s : S) := rfl
 
 instance mul_action : mul_action S $ Hom M :=
@@ -238,5 +239,17 @@ def coextend_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R �
   map := λ _ _, coextend_scalars.map' f,
   map_id' := λ M, linear_map.ext $ λ h, linear_map.ext $ λ x, rfl,
   map_comp' := λ _ _ _ g h, linear_map.ext $ λ h, linear_map.ext $ λ x, rfl }
+
+namespace coextend_scalars
+
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+
+instance (M : Module R) : has_coe_to_fun ((coextend_scalars f).obj M) (λ g, S → M) :=
+(infer_instance : has_coe_to_fun (coextend_scalars.obj' f M) _)
+
+@[simp] lemma smul_apply (M : Module R) (g : (coextend_scalars f).obj M) (s s' : S) :
+  (s • g) s' = g (s' * s) := rfl
+
+end coextend_scalars
 
 end category_theory.Module

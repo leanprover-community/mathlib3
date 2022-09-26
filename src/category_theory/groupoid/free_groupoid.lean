@@ -32,8 +32,8 @@ Given the type `V` and a quiver instance on `V`:
 
 ## Implementation notes
 
-The definition of the free groupoid in terms of "words" on the base quiver, up to reduction,
-is mostly copied from `group_theory/free_group.lean`.
+The free groupoid is first defined by symmetrifying the quiver, taking the induced path category
+and finally quotienting by the reducibility relation.
 
 -/
 
@@ -75,8 +75,20 @@ def free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
   quotient.comp_closure red_step p q →
   quotient.comp_closure red_step (paths.reverse p) (paths.reverse q) :=
 begin
-  rintro ⟨_,W,XW,pp,qq,WY,⟨rfl,Z,f,epp,eqq⟩⟩,
-  simp at epp eqq, subst_vars,
+  rintros ⟨_,W,XW,pp,qq,WY,⟨rfl,Z,f,epp,eqq⟩⟩,
+  simp only at epp eqq,
+  rw [epp,eqq],
+  simp only [category.id_comp, category.assoc],
+  change quotient.comp_closure red_step (paths.reverse (XW ≫ WY))
+  (paths.reverse (XW ≫ (f.to_path ≫ (quiver.reverse f).to_path ≫ WY))),
+
+  have : paths.reverse (XW ≫ WY)
+       = (paths.reverse WY) ≫ (𝟙 _) ≫ (paths.reverse XW), by sorry,
+  rw this,
+  have : paths.reverse (XW ≫ f.to_path ≫ (quiver.reverse f).to_path ≫ WY)
+       = (paths.reverse WY) ≫ ((paths.reverse (quiver.reverse f).to_path) ≫ (paths.reverse f.to_path)) ≫ (paths.reverse XW), by sorry,
+  rw this,
+  apply quotient.comp_closure.intro,
   simp,
   sorry
 end

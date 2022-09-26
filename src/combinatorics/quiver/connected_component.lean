@@ -36,25 +36,36 @@ variables (V : Type u) [quiver.{v+1} V]
 class has_reverse :=
 (reverse' : Π {a b : V}, (a ⟶ b) → (b ⟶ a))
 
+/-- Reverse the direction of an arrow. -/
+def reverse {V} [quiver.{v+1} V] [has_reverse V] {a b : V} : (a ⟶ b) → (b ⟶ a) :=
+  has_reverse.reverse'
+
 /-- A quiver `has_involutive_reverse` if reversing twice is the identity.`-/
 class has_involutive_reverse extends has_reverse V :=
-(inv' : Π {a b : V} (f : a ⟶ b), reverse' (reverse' f) = f)
+(inv' : Π {a b : V} (f : a ⟶ b), reverse (reverse f) = f)
 
+variables {V}
 
 instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
 instance : has_involutive_reverse (symmetrify V) :=
 { to_has_reverse := ⟨λ a b e, e.swap⟩,
   inv' := λ a b e, congr_fun sum.swap_swap_eq e }
 
-variables {V}
-
-/-- Reverse the direction of an arrow. -/
-def reverse [has_reverse V] {a b : V} : (a ⟶ b) → (b ⟶ a) := has_reverse.reverse'
-
 /-- Reverse the direction of a path. -/
-def path.reverse [has_reverse V] {a : V} : Π {b}, path a b → path b a
+@[simp] def path.reverse [has_reverse V] {a : V} : Π {b}, path a b → path b a
 | a path.nil := path.nil
 | b (path.cons p e) := (reverse e).to_path.comp p.reverse
+
+@[simp] lemma path.reverse_to_path [has_reverse V] {a b : V} (f : a ⟶ b) :
+  f.to_path.reverse = (reverse f).to_path := rfl
+
+@[simp] lemma path.reverse_comp [has_reverse V] {a b c : V} (p : path a b) (q : path b c) :
+  (p.comp q).reverse = q.reverse.comp p.reverse := by
+{ induction q, { simp, }, { simp [q_ih], }, }
+
+@[simp] lemma path.reverse_reverse [h : has_involutive_reverse V] {a b : V} (p : path a b) :
+  p.reverse.reverse = p := by
+{ induction p, { simp, }, { simp, rw [p_ih, h.inv'], refl, }, }
 
 /- The inclusion of a quiver in its symmetrification -/
 def symmetrify.of : prefunctor V (symmetrify V) :=
@@ -83,7 +94,7 @@ lemma symmetrify.lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reve
 begin
   dsimp [symmetrify.lift], cases f,
   { simp only, refl, },
-  { simp only, dsimp [reverse], rw h.inv', refl, }
+  { simp only, rw h.inv', refl, }
 end
 
 /-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/

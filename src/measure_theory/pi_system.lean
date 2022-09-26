@@ -113,7 +113,7 @@ begin
   simpa using hst,
 end
 
-lemma is_pi_system_Union_of_directed_le {α ι} [preorder ι] (p : ι → set (set α))
+lemma is_pi_system_Union_of_directed_le {α ι} (p : ι → set (set α))
   (hp_pi : ∀ n, is_pi_system (p n)) (hp_directed : directed (≤) p) :
   is_pi_system (⋃ n, p n) :=
 begin

@@ -70,10 +70,11 @@ theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ) (hw : ∀ i ∈ s,
 
 theorem arith_mean_le_rpow_mean (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) {p : ℝ} (hp : 1 ≤ p) :
-  ∑ i in s, w i * z i ≤ (∑ i in s, (w i * z i ^ p)) ^ (1 / p) :=
+  ∑ i in s, w i * z i ≤ (∑ i in s, (w i * z i ^ p)) ^ p⁻¹ :=
 begin
   have : 0 < p := by positivity,
-  rw [← rpow_le_rpow_iff _ _ this, ← rpow_mul, one_div_mul_cancel (ne_of_gt this), rpow_one],
+  rw [← rpow_le_rpow_iff_of_pos _ _ this, ← rpow_mul, inv_mul_cancel (ne_of_gt this),
+    rpow_one],
   exact rpow_arith_mean_le_arith_mean_rpow s w z hw hw' hz hp,
   all_goals { apply_rules [sum_nonneg, rpow_nonneg_of_nonneg],
     intros i hi,
@@ -113,7 +114,7 @@ end
 functions and real exponents. -/
 theorem arith_mean_le_rpow_mean (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) {p : ℝ}
   (hp : 1 ≤ p) :
-  ∑ i in s, w i * z i ≤ (∑ i in s, (w i * z i ^ p)) ^ (1 / p) :=
+  ∑ i in s, w i * z i ≤ (∑ i in s, (w i * z i ^ p)) ^ p⁻¹ :=
 by exact_mod_cast real.arith_mean_le_rpow_mean s _ _ (λ i _, (w i).coe_nonneg)
   (by exact_mod_cast hw') (λ i _, (z i).coe_nonneg) hp
 
@@ -155,7 +156,7 @@ lemma rpow_add_rpow_le_add {p : ℝ} (a b : ℝ≥0) (hp1 : 1 ≤ p) :
 begin
   have hp2 : 0 < p⁻¹ :=
   by { rw [_root_.inv_pos], exact lt_of_lt_of_le zero_lt_one hp1 },
-  rw ←nnreal.le_rpow_inv_iff_of_pos _ _ hp2,
+  rw ←nnreal.le_rpow_inv_iff_of_pos hp2,
   rw inv_inv,
   exact add_rpow_le_rpow_add _ _ hp1,
 end
@@ -171,7 +172,7 @@ begin
     exact (mul_le_mul_left $ _root_.inv_pos.mpr hp_pos).mpr hpq },
   have h_rpow_add_rpow_le_add : ((a^p)^(p⁻¹ * q) + (b^p)^(p⁻¹ * q)) ^ (p⁻¹ * q)⁻¹ ≤ a^p + b^p :=
   rpow_add_rpow_le_add (a^p) (b^p) h_exp,
-  rw [h_rpow a, h_rpow b, nnreal.le_rpow_inv_iff_of_pos _ _ hp_pos, ←nnreal.rpow_mul],
+  rw [h_rpow a, h_rpow b, nnreal.le_rpow_inv_iff_of_pos hp_pos, ←nnreal.rpow_mul],
   rwa [mul_inv_rev, inv_inv] at h_rpow_add_rpow_le_add,
 end
 
@@ -182,7 +183,7 @@ begin
   { simp },
   have h := rpow_add_rpow_le a b hp_pos hp1,
   simp only [rpow_one, inv_one] at h,
-  exact (nnreal.le_rpow_inv_iff_of_pos _ _ hp_pos).mp h
+  exact (nnreal.le_rpow_inv_iff_of_pos hp_pos).mp h
 end
 
 end nnreal
@@ -270,20 +271,25 @@ begin
 end
 
 lemma rpow_add_rpow_le_add {p : ℝ} (a b : ℝ≥0∞) (hp1 : 1 ≤ p) :
-  (a ^ p + b ^ p) ^ (1/p) ≤ a + b :=
+  (a ^ p + b ^ p) ^ p⁻¹ ≤ a + b :=
 begin
-  rw ←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1]),
-  rw one_div_one_div,
+  have hp : 0 < p⁻¹ := by simp [lt_of_lt_of_le zero_lt_one hp1],
+  rw ←ennreal.le_rpow_inv_iff_of_pos hp,
+  rw inv_inv,
   exact add_rpow_le_rpow_add _ _ hp1,
 end
 
 theorem rpow_add_rpow_le {p q : ℝ} (a b : ℝ≥0∞) (hp_pos : 0 < p) (hpq : p ≤ q) :
-  (a ^ q + b ^ q) ^ (1/q) ≤ (a ^ p + b ^ p) ^ (1/p) :=
+  (a ^ q + b ^ q) ^ q⁻¹ ≤ (a ^ p + b ^ p) ^ p⁻¹ :=
 begin
-  have h_rpow : ∀ a : ℝ≥0∞, a^q = (a^p)^(q/p),
-    from λ a, by rw [← ennreal.rpow_mul, _root_.mul_div_cancel' _ hp_pos.ne'],
-  have h_rpow_add_rpow_le_add : ((a^p)^(q/p) + (b^p)^(q/p)) ^ (1/(q/p)) ≤ a^p + b^p,
+  have h_rpow : ∀ a : ℝ≥0∞, a^q = (a^p)^(p⁻¹ * q),
+  { intros a,
+    rw [←ennreal.rpow_mul, mul_inv_cancel_left₀ hp_pos.ne'] },
+  have h_rpow_add_rpow_le_add : ((a^p)^(p⁻¹ * q) + (b^p)^(p⁻¹ * q)) ^ (p⁻¹ * q)⁻¹ ≤ a^p + b^p,
   { refine rpow_add_rpow_le_add (a^p) (b^p) _,
+    rw ←one_le_div hp_pos at hpq,
+    rw le_inv_mul_iff₀,
+    rw one_le_inv_mul,
     rwa one_le_div hp_pos, },
   rw [h_rpow a, h_rpow b, ennreal.le_rpow_one_div_iff hp_pos, ←ennreal.rpow_mul, mul_comm,
     mul_one_div],
@@ -299,9 +305,8 @@ begin
     norm_cast,
     norm_num },
   have h := rpow_add_rpow_le a b hp_pos hp1,
-  rw one_div_one at h,
-  repeat { rw ennreal.rpow_one at h },
-  exact (ennreal.le_rpow_one_div_iff hp_pos).mp h,
+  simp only [rpow_one, _root_.inv_one] at h,
+  exact (ennreal.le_rpow_inv_iff_of_pos hp_pos).mp h,
 end
 
 end ennreal

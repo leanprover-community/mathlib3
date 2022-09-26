@@ -265,7 +265,7 @@ begin
       ← ennreal.rpow_one (ennreal.of_real ε)],
   conv_rhs { rw ← mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm },
   rw [ennreal.rpow_mul,
-      ennreal.rpow_le_rpow_iff (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
+      ennreal.rpow_le_rpow_iff_of_pos (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
       ennreal.of_real_rpow_of_pos hε],
   convert hM,
   ext1 x,
@@ -273,7 +273,7 @@ begin
       nnnorm_indicator_eq_indicator_nnnorm, nnnorm_indicator_eq_indicator_nnnorm],
   have hiff : M ^ (1 / p.to_real) ≤ ∥f x∥₊ ↔ M ≤ ∥∥f x∥ ^ p.to_real∥₊,
   { rw [coe_nnnorm, coe_nnnorm, real.norm_rpow_of_nonneg (norm_nonneg _), norm_norm,
-        ← real.rpow_le_rpow_iff hM' (real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
+        ← real.rpow_le_rpow_iff_of_pos hM' (real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
         (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
         ← real.rpow_mul (norm_nonneg _),
         mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm, real.rpow_one] },
@@ -329,7 +329,8 @@ begin
   { rw [← one_div, ennreal.rpow_one_div_le_iff (ennreal.to_real_pos hp hp_top)],
     refine le_trans hμ _,
     rw [← ennreal.of_real_rpow_of_pos (div_pos hε hM),
-      ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp hp_top), ennreal.of_real_div_of_pos hM],
+      ennreal.rpow_le_rpow_iff_of_pos (ennreal.to_real_pos hp hp_top),
+      ennreal.of_real_div_of_pos hM],
     exact le_rfl },
   { simpa only [ennreal.of_real_eq_zero, not_le, ne.def] },
 end

@@ -449,7 +449,7 @@ begin
   rw [←nnreal.mul_rpow, @finset.sum_comm _ n m, finset.sum_mul_sum, finset.sum_product],
   refine nnreal.rpow_le_rpow _ one_half_pos.le,
   refine finset.sum_le_sum (λ i hi, finset.sum_le_sum $ λ j hj, _),
-  rw [← nnreal.rpow_le_rpow_iff one_half_pos, ← nnreal.rpow_mul,
+  rw [← nnreal.rpow_le_rpow_iff_of_pos one_half_pos, ← nnreal.rpow_mul,
     mul_div_cancel' (1 : ℝ) two_ne_zero, nnreal.rpow_one, nnreal.mul_rpow],
   dsimp only,
   have := @nnnorm_inner_le_nnnorm α _ _ _

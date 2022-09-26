@@ -1064,7 +1064,7 @@ lemma mul_meas_ge_le_pow_snorm' {f : α → E}
 begin
   convert mul_meas_ge_le_pow_snorm μ hp_ne_zero hp_ne_top hf (ε ^ p.to_real),
   ext x,
-  rw ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp_ne_zero hp_ne_top),
+  rw ennreal.rpow_le_rpow_iff_of_pos (ennreal.to_real_pos hp_ne_zero hp_ne_top),
 end
 
 lemma meas_ge_le_mul_pow_snorm {f : α → E} (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)

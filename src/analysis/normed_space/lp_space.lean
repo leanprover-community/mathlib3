@@ -478,7 +478,7 @@ normed_add_comm_group.of_core _
       obtain ⟨C, hC₁, hC₂, hCfg⟩ :=
         real.Lp_add_le_has_sum_of_nonneg hp' hf₁ hg₁ (norm_nonneg' _) (norm_nonneg' _) hf₂ hg₂,
       refine le_trans _ hC₂,
-      rw ← real.rpow_le_rpow_iff (norm_nonneg' (f + g)) hC₁ hp'',
+      rw ← real.rpow_le_rpow_iff_of_pos (norm_nonneg' (f + g)) hC₁ hp'',
       refine has_sum_le _ (lp.has_sum_norm hp'' (f + g)) hCfg,
       intros i,
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
@@ -522,7 +522,7 @@ begin
   have hp'' : 0 < p.to_real := ennreal.to_real_pos hp hp',
   have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real,
   { exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
-  rw ← real.rpow_le_rpow_iff (norm_nonneg _) (norm_nonneg' _) hp'',
+  rw ← real.rpow_le_rpow_iff_of_pos (norm_nonneg _) (norm_nonneg' _) hp'',
   convert le_has_sum (has_sum_norm hp'' f) i (λ i hi, this i),
 end
 
@@ -554,7 +554,7 @@ lemma norm_le_of_tsum_le (hp : 0 < p.to_real) {C : ℝ} (hC : 0 ≤ C) {f : lp E
   (hf : ∑' i, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real) :
   ∥f∥ ≤ C :=
 begin
-  rw [← real.rpow_le_rpow_iff (norm_nonneg' _) hC hp, norm_rpow_eq_tsum hp],
+  rw [← real.rpow_le_rpow_iff_of_pos (norm_nonneg' _) hC hp, norm_rpow_eq_tsum hp],
   exact hf,
 end
 

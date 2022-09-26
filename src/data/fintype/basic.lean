@@ -141,9 +141,9 @@ lemma not_mem_compl : a ∉ sᶜ ↔ a ∈ s := by rw [mem_compl, not_not]
 @[simp, norm_cast] lemma coe_compl (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
-lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
+@[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
 
-lemma compl_univ : (univ : finset α)ᶜ = ∅ := compl_top
+@[simp] lemma compl_univ : (univ : finset α)ᶜ = ∅ := compl_top
 
 @[simp] lemma compl_eq_empty_iff (s : finset α) : sᶜ = ∅ ↔ s = univ := compl_eq_bot
 

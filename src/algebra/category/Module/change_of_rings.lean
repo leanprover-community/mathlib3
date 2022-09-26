@@ -20,7 +20,7 @@ import ring_theory.tensor_product
   module structure is defined by `s • (s' ⊗ m) := (s * s') ⊗ m` and `R`-linear map `l : M ⟶ M'`
   is sent to `S`-linear map `s ⊗ m ↦ s ⊗ l m : S ⨂ M ⟶ S ⨂ M'`.
 
-* `category_theory.Module.coextend_scalars`: given rings `R, S` and a ring homomorphism `R ⟶ S`m
+* `category_theory.Module.coextend_scalars`: given rings `R, S` and a ring homomorphism `R ⟶ S`
   then `coextend_scalars : Module R ⥤ Module S` is defined by `M ↦ (S →ₗ[R] M)` where `S` is seen as
   `R-module` by restriction of scalars and `l ↦ l ∘ _`.
 
@@ -164,7 +164,6 @@ variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →
 
 end extend_scalars
 
-
 namespace coextend_scalars
 
 variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
@@ -187,7 +186,7 @@ instance has_smul : has_smul S $ Hom M :=
       ←linear_map.map_smul, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_assoc] } }
 
 @[simp] lemma smul_apply (s : S) (g : Hom M) (s' : S) :
-  @has_smul.smul _ _ (coextend_scalars.has_smul f _) s g s' = g (s' • s : S) := rfl
+  @has_smul.smul _ _ (coextend_scalars.has_smul f _) s g s' = g (s' * s : S) := rfl
 
 instance mul_action : mul_action S $ Hom M :=
 { one_smul := λ g, linear_map.ext $ λ (s : S), by simp,
@@ -231,7 +230,7 @@ end coextend_scalars
 /--
 For any rings `R, S` and a ring homomorphism `f : R →+* S`, there is a functor from `R`-module to
 `S`-module defined by `M ↦ (S →ₗ[R] M)` where `S` is considered as an `R`-module via restriction of
-scalar and `g : M ⟶ M'` is sent to `h ↦ g ∘ h`.
+scalars and `g : M ⟶ M'` is sent to `h ↦ g ∘ h`.
 -/
 def coextend_scalars {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S) :
   Module R ⥤ Module S :=

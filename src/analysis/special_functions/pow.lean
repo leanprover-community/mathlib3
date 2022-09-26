@@ -627,7 +627,7 @@ begin
   rw [exp_log (rpow_pos_of_pos hx y), ← exp_log hx, mul_comm, rpow_def_of_pos (exp_pos (log x)) y],
 end
 
-lemma rpow_lt_rpow_of_pos (hx : 0 ≤ x) (hxy : x < y) (hz : 0 < z) : x^z < y^z :=
+lemma rpow_lt_rpow (hx : 0 ≤ x) (hxy : x < y) (hz : 0 < z) : x^z < y^z :=
 begin
   rw le_iff_eq_or_lt at hx, cases hx,
   { rw [← hx, zero_rpow (ne_of_gt hz)], exact rpow_pos_of_pos (by rwa ← hx at hxy) _ },
@@ -635,7 +635,7 @@ begin
   exact mul_lt_mul_of_pos_right (log_lt_log hx hxy) hz
 end
 
-lemma rpow_le_rpow_of_nonneg {x y z: ℝ} (h : 0 ≤ x) (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
+lemma rpow_le_rpow {x y z: ℝ} (h : 0 ≤ x) (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 begin
   rcases eq_or_lt_of_le h₁ with rfl|h₁', { refl },
   rcases eq_or_lt_of_le h₂ with rfl|h₂', { simp },
@@ -646,7 +646,7 @@ lemma rpow_lt_rpow_iff_of_pos (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z
 ⟨lt_imp_lt_of_le_imp_le $ λ h, rpow_le_rpow hy h (le_of_lt hz), λ h, rpow_lt_rpow hx h hz⟩
 
 lemma rpow_le_rpow_iff_of_pos (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
-le_iff_le_iff_lt_iff_lt.2 $ rpow_lt_rpow_iff hy hx hz
+le_iff_le_iff_lt_iff_lt.2 $ rpow_lt_rpow_iff_of_pos hy hx hz
 
 lemma le_rpow_inv_iff_of_pos (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :
   x ≤ y ^ z⁻¹ ↔ x ^ z ≤ y :=
@@ -1288,11 +1288,11 @@ by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 lemma mul_rpow {x y : ℝ≥0} {z : ℝ}  : (x*y)^z = x^z * y^z :=
 nnreal.eq $ real.mul_rpow x.2 y.2
 
-lemma rpow_le_rpow_of_nonneg {x y : ℝ≥0} {z: ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
-real.rpow_le_rpow_of_nonneg x.2 h₁ h₂
+lemma rpow_le_rpow {x y : ℝ≥0} {z: ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
+real.rpow_le_rpow x.2 h₁ h₂
 
-lemma rpow_lt_rpow_of_pos {x y : ℝ≥0} {z: ℝ} (h₁ : x < y) (h₂ : 0 < z) : x^z < y^z :=
-real.rpow_lt_rpow_of_pos x.2 h₁ h₂
+lemma rpow_lt_rpow {x y : ℝ≥0} {z: ℝ} (h₁ : x < y) (h₂ : 0 < z) : x^z < y^z :=
+real.rpow_lt_rpow x.2 h₁ h₂
 
 lemma rpow_lt_rpow_iff_of_pos {x y : ℝ≥0} {z : ℝ} (hz : 0 < z) : x ^ z < y ^ z ↔ x < y :=
 real.rpow_lt_rpow_iff_of_pos x.2 y.2 hz
@@ -1744,10 +1744,10 @@ lemma order_iso_rpow_symm_apply (y : ℝ) (hy : 0 < y) :
   (order_iso_rpow y hy).symm = order_iso_rpow (1 / y) (one_div_pos.2 hy) :=
 by { simp only [order_iso_rpow, one_div_one_div], refl }
 
-lemma rpow_le_rpow_of_nonneg {x y : ℝ≥0∞} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
+lemma rpow_le_rpow {x y : ℝ≥0∞} {z : ℝ} (h₁ : x ≤ y) (h₂ : 0 ≤ z) : x^z ≤ y^z :=
 monotone_rpow_of_nonneg h₂ h₁
 
-lemma rpow_lt_rpow_of_pos {x y : ℝ≥0∞} {z : ℝ} (h₁ : x < y) (h₂ : 0 < z) : x^z < y^z :=
+lemma rpow_lt_rpow {x y : ℝ≥0∞} {z : ℝ} (h₁ : x < y) (h₂ : 0 < z) : x^z < y^z :=
 strict_mono_rpow_of_pos h₂ h₁
 
 lemma rpow_le_rpow_iff_of_pos {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=

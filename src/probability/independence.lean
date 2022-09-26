@@ -448,6 +448,12 @@ lemma indep_supr_of_monotone [semilattice_sup ι] {Ω} {m : ι → measurable_sp
   indep (⨆ i, m i) m' μ :=
 indep_supr_of_directed_le h_indep h_le h_le' (monotone.directed_le hm)
 
+lemma indep_supr_of_antitone [semilattice_inf ι] {Ω} {m : ι → measurable_space Ω}
+  {m' m0 : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
+  (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : antitone m) :
+  indep (⨆ i, m i) m' μ :=
+indep_supr_of_directed_le h_indep h_le h_le' (directed_of_inf hm)
+
 lemma Indep_sets.pi_Union_Inter_singleton {π : ι → set (set Ω)} {a : ι} {S : finset ι}
   (hp_ind : Indep_sets π μ) (haS : a ∉ S) :
   indep_sets (pi_Union_Inter π {S}) (π a) μ :=
@@ -895,6 +901,17 @@ begin
   exact (le_supr₂ i hin).trans (le_supr (λ i, (⨆ j < i, s j)) n),
 end
 
+lemma supr_eq_supr_supr_gt {α ι : Type*} [complete_lattice α] [preorder ι] [no_min_order ι]
+  (s : ι → α) :
+  (⨆ n, s n) = ⨆ n, ⨆ i (hi : n < i), s i :=
+begin
+  refine le_antisymm (supr_le (λ i, _)) (supr_le (λ i, supr₂_le_supr (λ n, i < n) (λ n, s n))),
+  obtain ⟨n, hin⟩ : ∃ n, n < i := exists_lt i,
+  refine (le_supr₂ i hin).trans _,
+  rw le_supr_iff,
+  exact λ j h, h _,
+end
+
 end lattice
 
 section zero_one_law
@@ -942,47 +959,99 @@ begin
   exact le_supr₂ x hxt,
 end
 
-variables [semilattice_sup ι] [no_max_order ι] [hι : nonempty ι]
-include hι
+lemma _root_.filter.limsup_le_supr {α} [complete_lattice α] (f : filter ι) (s : ι → α) :
+  limsup f s ≤ ⨆ n, s n :=
+begin
+  refine Limsup_le_of_le (by is_bounded_default) _,
+  simp only [eventually_map],
+  refine eventually_of_forall (le_supr s),
+end
 
-lemma bsupr_indep_limsup_at_top (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι)
-  (ht : bdd_above t) :
-  indep (⨆ n ∈ t, s n) (limsup at_top s) μ :=
+section abstract
+variables {α : Type*} {p : set ι → Prop} {f : filter ι} {ns : α → set ι}
+
+/-! We prove a version of Kolmogorov's 0-1 law for the σ-algebra `limsup f s` where `f` is a filter
+for which we can define the following two functions:
+* `p : set ι → Prop` such that for a set `t`, `p t → tᶜ ∈ f`,
+* `ns : α → set ι` a directed sequence of sets which all verify `p` and such that
+`⋃ a, ns a = set.univ`.
+
+For the example of `f = at_top`, we can take `p = bdd_above` and `ns : ι → set ι := λ i, set.Iic i`.
+-/
+
+lemma bsupr_indep_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
+  (hf : ∀ t, p t → tᶜ ∈ f) {t : set ι} (ht : p t) :
+  indep (⨆ n ∈ t, s n) (limsup f s) μ :=
 begin
   refine indep_of_indep_of_le_right (bsupr_indep_bsupr_compl h_le h_indep t) _,
   refine Limsup_le_of_le (by is_bounded_default) _,
-  simp only [set.mem_compl_iff, eventually_map, eventually_at_top],
-  obtain ⟨a, ha⟩ : ∃ a, a ∈ upper_bounds t := ht,
-  obtain ⟨b, hb⟩ : ∃ b, a < b := exists_gt a,
-  refine ⟨b, λ c hc, _⟩,
-  suffices : c ∉ t, from le_supr₂ c this,
-  intros hct,
-  suffices : ∀ i ∈ t, i < c, from lt_irrefl c (this c hct),
-  intros i hi,
-  rw mem_upper_bounds at ha,
-  exact (ha i hi).trans_lt (hb.trans_le hc),
+  simp only [set.mem_compl_iff, eventually_map],
+  exact eventually_of_mem (hf t ht) le_supr₂,
 end
 
-lemma supr_indep_limsup_at_top (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
-  indep (⨆ n, s n) (limsup at_top s) μ :=
+lemma supr_directed_indep_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
+  (hf : ∀ t, p t → tᶜ ∈ f) (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) :
+  indep (⨆ a, ⨆ n ∈ (ns a), s n) (limsup f s) μ :=
 begin
-  rw supr_eq_supr_supr_lt,
-  refine indep_supr_of_monotone (λ n, bsupr_indep_limsup_at_top h_le h_indep _ _)
-    (λ n, supr₂_le (λ i hi, h_le i)) _ _,
-  { exact ⟨n, λ x hx, le_of_lt hx⟩, },
-  { refine Limsup_le_of_le (by is_bounded_default) _,
-    simp only [eventually_map, eventually_at_top, ge_iff_le],
-    exact ⟨hι.some, λ _ _, h_le _⟩, },
-  { exact λ n m hnm, bsupr_mono (λ i hi, hi.trans_le hnm), },
+  refine indep_supr_of_directed_le _ _ _ _,
+  { exact λ a, bsupr_indep_limsup h_le h_indep hf (hnsp a), },
+  { exact λ a, supr₂_le (λ n hn, h_le n), },
+  { exact (f.limsup_le_supr s).trans (supr_le h_le), },
+  { intros a b,
+    obtain ⟨c, hc⟩ := hns a b,
+    refine ⟨c, _, _⟩; refine supr_mono (λ n, supr_mono' (λ hn, ⟨_, le_rfl⟩)),
+    { exact hc.1 hn, },
+    { exact hc.2 hn, }, },
 end
+
+lemma supr_indep_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
+  (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) (hns_univ : ∀ n, ∃ a, n ∈ ns a) :
+  indep (⨆ n, s n) (limsup f s) μ :=
+begin
+  suffices : (⨆ a, ⨆ n ∈ (ns a), s n) = ⨆ n, s n,
+  { rw ← this,
+    exact supr_directed_indep_limsup h_le h_indep hf hns hnsp, },
+  rw supr_comm,
+  refine supr_congr (λ n, _),
+  have : (⨆ (i : α) (H : n ∈ ns i), s n) = (⨆ (h : ∃ i, n ∈ ns i), s n), by rw supr_exists,
+  haveI : nonempty (∃ (i : α), n ∈ ns i) := ⟨hns_univ n⟩,
+  rw [this, supr_const],
+end
+
+lemma limsup_indep_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
+  (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) (hns_univ : ∀ n, ∃ a, n ∈ ns a) :
+  indep (limsup f s) (limsup f s) μ :=
+indep_of_indep_of_le_left (supr_indep_limsup h_le h_indep hf hns hnsp hns_univ)
+  (f.limsup_le_supr s)
+
+theorem measure_zero_or_one_of_measurable_set_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
+  (hf : ∀ t, p t → tᶜ ∈ f) (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a))
+  (hns_univ : ∀ n, ∃ a, n ∈ ns a) {t : set Ω} (ht_tail : measurable_set[limsup f s] t) :
+  μ t = 0 ∨ μ t = 1 :=
+measure_eq_zero_or_one_of_indep_set_self
+  ((limsup_indep_self h_le h_indep hf hns hnsp hns_univ).indep_set_of_measurable_set
+    ht_tail ht_tail)
+
+end abstract
+
+section at_top
+variables [semilattice_sup ι] [no_max_order ι] [nonempty ι]
 
 lemma limsup_at_top_indep_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (limsup at_top s) (limsup at_top s) μ :=
 begin
-  refine indep_of_indep_of_le_left (supr_indep_limsup_at_top h_le h_indep) _,
-  refine Limsup_le_of_le (by is_bounded_default) _,
-  simp only [eventually_map, eventually_at_top, ge_iff_le],
-  exact ⟨hι.some, λ a ha, le_supr s a⟩,
+  let ns : ι → set ι := set.Iic,
+  have hnsp : ∀ i, bdd_above (ns i) := λ i, bdd_above_Iic,
+  refine limsup_indep_self h_le h_indep _ _ hnsp _,
+  { simp only [mem_at_top_sets, ge_iff_le, set.mem_compl_iff, bdd_above, upper_bounds,
+      set.nonempty],
+    rintros t ⟨a, ha⟩,
+    obtain ⟨b, hb⟩ : ∃ b, a < b := exists_gt a,
+    refine ⟨b, λ c hc hct, _⟩,
+    suffices : ∀ i ∈ t, i < c, from lt_irrefl c (this c hct),
+    exact λ i hi, (ha hi).trans_lt (hb.trans_le hc), },
+  { exact monotone.directed_le (λ i j hij k hki, le_trans hki hij), },
+  { exact λ n, ⟨n, le_rfl⟩, },
 end
 
 /-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra of an independent sequence of
@@ -994,6 +1063,37 @@ theorem measure_zero_or_one_of_measurable_set_limsup_at_top (h_le : ∀ n, s n �
 measure_eq_zero_or_one_of_indep_set_self
   ((limsup_at_top_indep_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)
 
+end at_top
+
+section at_bot
+variables [semilattice_inf ι] [no_min_order ι] [nonempty ι]
+
+lemma limsup_at_bot_indep_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
+  indep (limsup at_bot s) (limsup at_bot s) μ :=
+begin
+  let ns : ι → set ι := set.Ici,
+  have hnsp : ∀ i, bdd_below (ns i) := λ i, bdd_below_Ici,
+  refine limsup_indep_self h_le h_indep _ _ hnsp _,
+  { simp only [mem_at_bot_sets, ge_iff_le, set.mem_compl_iff, bdd_below, lower_bounds,
+      set.nonempty],
+    rintros t ⟨a, ha⟩,
+    obtain ⟨b, hb⟩ : ∃ b, b < a := exists_lt a,
+    refine ⟨b, λ c hc hct, _⟩,
+    suffices : ∀ i ∈ t, c < i, from lt_irrefl c (this c hct),
+    exact λ i hi, hc.trans_lt (hb.trans_le (ha hi)), },
+  { exact directed_of_inf (λ i j hij k hki, hij.trans hki), },
+  { exact λ n, ⟨n, le_rfl⟩, },
+end
+
+/-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra of an independent sequence of
+sub-σ-algebras has probability 0 or 1. -/
+theorem measure_zero_or_one_of_measurable_set_limsup_at_bot (h_le : ∀ n, s n ≤ m0)
+  (h_indep : Indep s μ) {t : set Ω} (ht_tail : measurable_set[limsup at_bot s] t) :
+  μ t = 0 ∨ μ t = 1 :=
+measure_eq_zero_or_one_of_indep_set_self
+  ((limsup_at_bot_indep_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)
+
+end at_bot
 end zero_one_law
 
 end probability_theory

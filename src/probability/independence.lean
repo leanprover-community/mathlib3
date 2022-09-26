@@ -418,17 +418,17 @@ begin
     exact λ i his j hjt, set.disjoint_iff_forall_ne.mp hST i (hs his) j (ht hjt), },
 end
 
-lemma indep_supr_of_monotone [linear_order ι] {Ω} {m : ι → measurable_space Ω}
+lemma indep_supr_of_directed_le {Ω} {m : ι → measurable_space Ω}
   {m' m0 : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
-  (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :
+  (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0)
+  (hm : directed (≤) m) :
   indep (⨆ i, m i) m' μ :=
 begin
   let p : ι → set (set Ω) := λ n, {t | measurable_set[m n] t},
   have hp : ∀ n, is_pi_system (p n) := λ n, @is_pi_system_measurable_set Ω (m n),
   have h_gen_n : ∀ n, m n = generate_from (p n),
     from λ n, (@generate_from_measurable_set Ω (m n)).symm,
-  have hp_mono : ∀ n m, n ≤ m → p n ⊆ p m := λ n m hnm, hm hnm,
-  have hp_supr_pi : is_pi_system (⋃ n, p n) := is_pi_system_Union_of_monotone p hp hp_mono,
+  have hp_supr_pi : is_pi_system (⋃ n, p n) := is_pi_system_Union_of_directed_le p hp hm,
   let p' := {t : set Ω | measurable_set[m'] t},
   have hp'_pi : is_pi_system p' := @is_pi_system_measurable_set Ω m',
   have h_gen' : m' = generate_from p' := (@generate_from_measurable_set Ω m').symm,
@@ -441,6 +441,12 @@ begin
   refine indep_sets.indep (supr_le h_le) h_le' hp_supr_pi hp'_pi _ h_gen' h_pi_system_indep,
   exact (generate_from_Union_measurable_set _).symm,
 end
+
+lemma indep_supr_of_monotone [semilattice_sup ι] {Ω} {m : ι → measurable_space Ω}
+  {m' m0 : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
+  (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :
+  indep (⨆ i, m i) m' μ :=
+indep_supr_of_directed_le h_indep h_le h_le' (monotone.directed_le hm)
 
 lemma Indep_sets.pi_Union_Inter_singleton {π : ι → set (set Ω)} {a : ι} {S : finset ι}
   (hp_ind : Indep_sets π μ) (haS : a ∉ S) :
@@ -880,11 +886,10 @@ is measurable with respect to the tail σ-algebra `limsup at_top s` has probabil
 
 section lattice
 
-lemma supr_eq_supr_supr_lt {α ι : Type*} [complete_lattice α] [linear_order ι] [no_top_order ι]
+lemma supr_eq_supr_supr_lt {α ι : Type*} [complete_lattice α] [preorder ι] [no_max_order ι]
   (s : ι → α) :
   (⨆ n, s n) = ⨆ n, ⨆ i < n, s i :=
 begin
-  haveI : no_max_order ι := no_top_order.to_no_max_order ι,
   refine le_antisymm (supr_le (λ i, _)) (supr_le (λ i, supr₂_le_supr (λ n, n < i) (λ n, s n))),
   obtain ⟨n, hin⟩ : ∃ n, i < n := exists_gt i,
   exact (le_supr₂ i hin).trans (le_supr (λ i, (⨆ j < i, s j)) n),
@@ -937,8 +942,11 @@ begin
   exact le_supr₂ x hxt,
 end
 
-lemma bsupr_indep_limsup_at_top [semilattice_sup ι] [no_max_order ι] [nonempty ι]
-  (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι) (ht : bdd_above t) :
+variables [semilattice_sup ι] [no_max_order ι] [hι : nonempty ι]
+include hι
+
+lemma bsupr_indep_limsup_at_top (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι)
+  (ht : bdd_above t) :
   indep (⨆ n ∈ t, s n) (limsup at_top s) μ :=
 begin
   refine indep_of_indep_of_le_right (bsupr_indep_bsupr_compl h_le h_indep t) _,
@@ -955,13 +963,9 @@ begin
   exact (ha i hi).trans_lt (hb.trans_le hc),
 end
 
-variables [linear_order ι] [no_top_order ι] [hι : nonempty ι]
-include hι
-
 lemma supr_indep_limsup_at_top (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (⨆ n, s n) (limsup at_top s) μ :=
 begin
-  haveI : no_max_order ι := no_top_order.to_no_max_order ι,
   rw supr_eq_supr_supr_lt,
   refine indep_supr_of_monotone (λ n, bsupr_indep_limsup_at_top h_le h_indep _ _)
     (λ n, supr₂_le (λ i hi, h_le i)) _ _,

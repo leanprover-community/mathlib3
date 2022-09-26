@@ -176,7 +176,8 @@ quotient.lift _
     { rintros X Y f₀ f₁ ⟨rfl,Z,c,h₁,h₂⟩,
       simp only at h₁ h₂,
       subst_vars,
-      simp only [functor.map_id, functor.map_comp, paths.lift_to_path,quiver.symmetrify.lift_reverse],
+      simp only [functor.map_id, functor.map_comp, paths.lift_to_path,
+                 quiver.symmetrify.lift_reverse],
       symmetry, apply groupoid.comp_inv, })
 
 lemma lift_spec (φ : prefunctor V V') : of.comp (lift φ).to_prefunctor = φ :=

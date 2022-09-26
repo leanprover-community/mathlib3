@@ -61,14 +61,6 @@ section topological_space
 
 variables {α β : Type*} [topological_space α] [linear_order α] [topological_space β]
 
-lemma nhds_left'_le_nhds_ne (a : α) :
-  𝓝[<] a ≤ 𝓝[≠] a :=
-nhds_within_mono a (λ y hy, ne_of_lt hy)
-
-lemma nhds_right'_le_nhds_ne (a : α) :
-  𝓝[>] a ≤ 𝓝[≠] a :=
-nhds_within_mono a (λ y hy, ne_of_gt hy)
-
 lemma nhds_left_sup_nhds_right (a : α) :
   𝓝[≤] a ⊔ 𝓝[≥] a = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ici, nhds_within_univ]

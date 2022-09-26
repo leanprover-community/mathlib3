@@ -14,6 +14,16 @@ import tactic.positivity
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
 
+/-  Test for instantiating meta-variables.  Reported on
+Stream: metaprogramming/tactics
+Topic: New tactic: `positivity`
+Date: Sept 25th, 2022.   -/
+example : 0 ≤ 1 :=
+begin
+  apply le_trans _ (le_rfl : 1 ≤ 1),
+  positivity,
+end
+
 open_locale ennreal nnrat nnreal
 
 universe u

@@ -23,6 +23,9 @@ variables (L : C ⥤ D) (W : morphism_property C)
 
 namespace functor
 
+/-- The predicate expressing that, up to equivalence, a functor `L : C ⥤ D`
+identifies the category `D` with the localized category of `C` with respect
+to `W : morphism_property C`. -/
 class is_localization : Prop :=
 (inverts : W.is_inverted_by L)
 (nonempty_is_equivalence : nonempty (is_equivalence (localization.construction.lift L inverts)))

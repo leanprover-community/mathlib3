@@ -1390,24 +1390,23 @@ lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
   univ.map e = univ :=
 by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
 
-/-- There exists a bijection between two types of the same finite cardinality, which extends a given
-bijection on a given finset. -/
-lemma finset.exists_equiv_extend_of_card_eq [fintype α] [decidable_eq β] {t : finset β}
+/-- Any injection from a finset `s` in a fintype `α` to a finset `t` of the same cardinality as `α`
+can be extended to a bijection between `α` and `t`. -/
+lemma finset.exists_equiv_extend_of_card_eq [fintype α] {t : finset β}
   (hαt : fintype.card α = t.card) {s : finset α} :
   ∀ {f : α → β} (hfst : s.image f ⊆ t) (hfs : set.inj_on f s),
     ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
 begin
   classical,
-  apply @finset.induction α
-    (λ s, ∀ f (hfst : s.image f ⊆ t) (hfs : set.inj_on f s), ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i),
+  induction s using finset.induction with a s has H,
   { intros f hfst hfs,
-    have : nonempty (α ≃ ↥t) := by rwa [← fintype.card_eq, fintype.card_coe],
-    use this.some,
-    simp }, clear s,
-  intros a s has H f hfst hfs,
+    obtain ⟨e⟩ : nonempty (α ≃ ↥t) := by rwa [← fintype.card_eq, fintype.card_coe],
+    use e,
+    simp },
+  intros f hfst hfs,
   have hfst' : finset.image f s ⊆ t := (finset.image_mono _ (s.subset_insert a)).trans hfst,
   have hfs' : set.inj_on f s := hfs.mono (s.subset_insert a),
-  obtain ⟨g', hg'⟩ := H f hfst' hfs',
+  obtain ⟨g', hg'⟩ := H hfst' hfs',
   have hfat : f a ∈ t := hfst (finset.mem_image_of_mem _ (s.mem_insert_self a)),
   use g'.trans (equiv.swap (⟨f a, hfat⟩ : t) (g' a)),
   intros i hi,
@@ -1422,8 +1421,8 @@ begin
     rw ← hfs (finset.mem_coe.mpr hi) (s.mem_insert_self a) h',
     exact his },
   { apply g'.injective.ne,
-    rintros rfl,
-    contradiction }
+    apply ne_of_apply_ne (λ p, p ∈ s),
+    tauto }
 end
 
 /-- There exists a bijection between two types of the same finite cardinality, which extends a given

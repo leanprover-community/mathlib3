@@ -74,7 +74,7 @@ instance : has_involutive_reverse (symmetrify V) :=
   { simp only [path.reverse, path.reverse_comp, path.reverse_to_path, reverse_reverse, p_ih],
     refl, }, }
 
-/- The inclusion of a quiver in its symmetrification -/
+/-- The inclusion of a quiver in its symmetrification -/
 def symmetrify.of : prefunctor V (symmetrify V) :=
 { obj := id
 , map := λ X Y f, sum.inl f }

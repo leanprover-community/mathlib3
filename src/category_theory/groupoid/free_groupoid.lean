@@ -78,6 +78,8 @@ def red_step : hom_rel $ paths $ quiver.symmetrify V :=
 /-- The underlying vertices of the free groupoid -/
 def free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
 
+instance {V} [Q : quiver.{v+1} V] [h : nonempty V] : nonempty (free_groupoid V) := ⟨⟨h.some⟩⟩
+
 lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
   quotient.comp_closure red_step (paths.reverse p) (paths.reverse q)  :=

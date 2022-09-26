@@ -55,8 +55,6 @@ introduce these operations.
 Implement extensions for other operations (raising to non-numeral powers, `log`).
 -/
 
-local infixl ` +++ `:65 := format.compose
-
 namespace tactic
 
 /-- Inductive type recording either `positive` and an expression (typically a proof of a fact
@@ -161,12 +159,12 @@ do
   a' ← pp a,
   b' ← pp b,
   let f : strictness → format → format := λ p c, match p with
-  | positive _ := "0 < " +++ c
-  | nonnegative _ := "0 ≤ " +++ c
-  | nonzero _ := c +++ " ≠ 0"
+  | positive _ := "0 < " ++ c
+  | nonnegative _ := "0 ≤ " ++ c
+  | nonzero _ := c ++ " ≠ 0"
   end,
-  fail ("`positivity` can't say anything about `" +++ e' +++ "` knowing only `" +++ f pa a' +++
-    "` and `" +++ f pb b' +++ "`")
+  fail (↑"`positivity` can't say anything about `" ++ e' ++ "` knowing only `" ++ f pa a' ++
+    "` and `" ++ f pb b' ++ "`")
 
 /-! ### Core logic of the `positivity` tactic -/
 
@@ -183,7 +181,7 @@ meta def compare_hyp_le (e a b p₂ : expr) : tactic strictness := do
   | _ := do
           e' ← pp e,
           p₂' ← pp p₂,
-          fail ("`norm_num` can't prove nonnegativity of " +++ e' +++ " using " +++ p₂')
+          fail (↑"`norm_num` can't prove nonnegativity of " ++ e' ++ " using " ++ p₂')
   end
 
 /-- Calls `norm_num` on `a` to prove positivity/nonnegativity of `e` assuming `b` is defeq to `e`
@@ -197,7 +195,7 @@ meta def compare_hyp_lt (e a b p₂ : expr) : tactic strictness := do
   | _ := do
           e' ← pp e,
           p₂' ← pp p₂,
-          fail ("`norm_num` can't prove positivity of " +++ e' +++ " using " +++ p₂')
+          fail (↑"`norm_num` can't prove positivity of " ++ e' ++ " using " ++ p₂')
   end
 
 /-- Calls `norm_num` on `a` to prove positivity/nonnegativity/nonzeroness of `e` assuming `b` is
@@ -223,8 +221,8 @@ meta def compare_hyp_ne (e a b p₂ : expr) : tactic strictness := do
     e' ← pp e,
     p₂' ← pp p₂,
     a' ← pp a,
-    fail ("`norm_num` can't prove non-zeroness of " +++ e' +++ " using " +++ p₂' +++ " because "
-      +++ a' +++ " is non-zero")
+    fail (↑"`norm_num` can't prove non-zeroness of " ++ e' ++ " using " ++ p₂' ++ " because "
+      ++ a' ++ " is non-zero")
 
 /-- Third base case of the `positivity` tactic.  Prove an expression `e` is
 positive/nonnegative/nonzero by finding a hypothesis of the form `a < e`, `a ≤ e` or `a = e` in
@@ -244,7 +242,7 @@ meta def compare_hyp (e p₂ : expr) : tactic strictness := do
                         compare_hyp_ne e hi lo p₂'
   | e@_ := do
              p₂' ← pp p₂,
-             fail (p₂' +++ "is not of the form `a ≤ b`, `a < b`, `a = b` or `a ≠ b`")
+             fail (p₂' ++ "is not of the form `a ≤ b`, `a < b`, `a = b` or `a ≠ b`")
   end
 
 /-- Attribute allowing a user to tag a tactic as an extension for `tactic.interactive.positivity`.
@@ -330,11 +328,11 @@ meta def positivity : tactic unit := focus1 $ do
     "possible to prove nonzeroness if desired")
   | order_rel.ne, positive p := to_expr ``(ne_of_gt %%p)
   | order_rel.ne, nonnegative _ := fail ("failed to prove nonzeroness, but it would be " ++
-    "to prove nonnegativity if desired")
+    "possible to prove nonnegativity if desired")
   | order_rel.ne, nonzero p := pure p
   | order_rel.ne', positive p := to_expr ``(ne_of_lt %%p)
   | order_rel.ne', nonnegative _ := fail ("failed to prove nonzeroness, but it would be " ++
-    "to prove nonnegativity if desired")
+    "possible to prove nonnegativity if desired")
   | order_rel.ne', nonzero p := to_expr ``(ne.symm %%p)
   end >>= tactic.exact
 
@@ -564,7 +562,7 @@ meta def positivity_pow : expr → tactic strictness
       | `(bit0 %%n) := nonnegative <$> mk_app ``pow_bit0_nonneg [a, n]
       | _ := do
                 e' ← pp e,
-                fail (e' +++ "is not an even power so positivity can't prove it's nonnegative")
+                fail (e' ++ "is not an even power so positivity can't prove it's nonnegative")
       end ≤|≥
     do -- `a ^ n` is positive/nonnegative/nonzero if `a` is
       strictness_a ← core a,

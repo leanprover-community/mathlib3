@@ -9,6 +9,7 @@ import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.sesquilinear_form
+import linear_algebra.finsupp_vector_space
 
 /-!
 # Sesquilinear form

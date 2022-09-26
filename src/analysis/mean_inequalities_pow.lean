@@ -287,13 +287,9 @@ begin
     rw [←ennreal.rpow_mul, mul_inv_cancel_left₀ hp_pos.ne'] },
   have h_rpow_add_rpow_le_add : ((a^p)^(p⁻¹ * q) + (b^p)^(p⁻¹ * q)) ^ (p⁻¹ * q)⁻¹ ≤ a^p + b^p,
   { refine rpow_add_rpow_le_add (a^p) (b^p) _,
-    rw ←one_le_div hp_pos at hpq,
-    rw le_inv_mul_iff₀,
-    rw one_le_inv_mul,
-    rwa one_le_div hp_pos, },
-  rw [h_rpow a, h_rpow b, ennreal.le_rpow_one_div_iff hp_pos, ←ennreal.rpow_mul, mul_comm,
-    mul_one_div],
-  rwa one_div_div at h_rpow_add_rpow_le_add,
+    rwa [mul_comm, ←div_eq_mul_inv, one_le_div hp_pos], },
+  rw [h_rpow a, h_rpow b, ennreal.le_rpow_inv_iff_of_pos hp_pos, ←ennreal.rpow_mul],
+  rwa [mul_inv_rev, inv_inv] at h_rpow_add_rpow_le_add,
 end
 
 lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp : 0 ≤ p) (hp1 : p ≤ 1) :

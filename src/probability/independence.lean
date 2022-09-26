@@ -955,7 +955,7 @@ begin
   exact le_supr₂ x hxt,
 end
 
-lemma bsupr_indep_limsup_at_top_of_bdd_above [semilattice_sup ι] [no_max_order ι] [nonempty ι]
+lemma bsupr_indep_limsup_at_top [semilattice_sup ι] [no_max_order ι] [nonempty ι]
   (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι) (ht : bdd_above t) :
   indep (⨆ n ∈ t, s n) (limsup at_top s) μ :=
 begin
@@ -982,7 +982,7 @@ lemma supr_indep_limsup_at_top
 begin
   haveI : no_max_order ι := no_top_order.to_no_max_order ι,
   rw supr_eq_supr_supr_lt,
-  refine indep_supr_of_monotone (λ n, bsupr_indep_limsup_at_top_of_bdd_above h_le h_indep _ _)
+  refine indep_supr_of_monotone (λ n, bsupr_indep_limsup_at_top h_le h_indep _ _)
     (λ n, supr₂_le (λ i hi, h_le i)) _ _,
   { exact ⟨n, λ x hx, le_of_lt hx⟩, },
   { refine Limsup_le_of_le (by is_bounded_default) _,

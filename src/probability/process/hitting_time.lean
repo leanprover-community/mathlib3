@@ -3,7 +3,7 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying, Rémy Degenne
 -/
-import probability.stopping
+import probability.process.stopping
 
 /-!
 # Hitting time
@@ -59,7 +59,7 @@ begin
   { push_neg,
     intro j,
     rw set.Icc_eq_empty_of_lt h,
-    simp only [set.mem_empty_eq, is_empty.forall_iff], },
+    simp only [set.mem_empty_iff_false, is_empty.forall_iff], },
   simp only [h_not, if_false],
 end
 
@@ -283,8 +283,8 @@ begin
     simp [← exists_or_distrib, ← or_and_distrib_right, le_or_lt] },
   have h₂ : (⋃ i > n, {x | τ x = i} ∩ {x | hitting u s i N x ≤ n}) = ∅,
   { ext x,
-    simp only [gt_iff_lt, set.mem_Union, set.mem_inter_eq, set.mem_set_of_eq,
-      exists_prop, set.mem_empty_eq, iff_false, not_exists, not_and, not_le],
+    simp only [gt_iff_lt, set.mem_Union, set.mem_inter_iff, set.mem_set_of_eq,
+      exists_prop, set.mem_empty_iff_false, iff_false, not_exists, not_and, not_le],
     rintro m hm rfl,
     exact lt_of_lt_of_le hm (le_hitting (hτbdd _) _) },
   rw [h₁, h₂, set.union_empty],

@@ -52,7 +52,7 @@ Those depending on analysis or topology are defined elsewhere; see
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 open set
 
@@ -406,6 +406,25 @@ rfl
 @[simp, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
+
+/-- Embedding of an affine subspace to the ambient space, as an affine map. -/
+protected def subtype (s : affine_subspace k P) [nonempty s] : s →ᵃ[k] P :=
+{ to_fun := coe,
+  linear := s.direction.subtype,
+  map_vadd' := λ p v, rfl }
+
+@[simp] lemma subtype_linear (s : affine_subspace k P) [nonempty s] :
+  s.subtype.linear = s.direction.subtype :=
+rfl
+
+lemma subtype_apply (s : affine_subspace k P) [nonempty s] (p : s) : s.subtype p = p :=
+rfl
+
+@[simp] lemma coe_subtype (s : affine_subspace k P) [nonempty s] : (s.subtype : s → P) = coe :=
+rfl
+
+lemma injective_subtype (s : affine_subspace k P) [nonempty s] : function.injective s.subtype :=
+subtype.coe_injective
 
 /-- Two affine subspaces with nonempty intersection are equal if and
 only if their directions are equal. -/
@@ -1013,7 +1032,8 @@ end
 /-- The `vector_span` is the span of the pairwise subtractions with a
 given point on the right, excluding the subtraction of that point from
 itself. -/
-lemma vector_span_eq_span_vsub_finset_right_ne {s : finset P} {p : P} (hp : p ∈ s) :
+lemma vector_span_eq_span_vsub_finset_right_ne [decidable_eq P] [decidable_eq V] {s : finset P}
+  {p : P} (hp : p ∈ s) :
   vector_span k (s : set P) = submodule.span k ((s.erase p).image (-ᵥ p)) :=
 by simp [vector_span_eq_span_vsub_set_right_ne _ (finset.mem_coe.mpr hp)]
 

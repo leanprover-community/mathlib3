@@ -1696,7 +1696,7 @@ by simpa using h.preimage f
 lemma preimage_eq_empty_iff {s : set β} : f ⁻¹' s = ∅ ↔ disjoint s (range f) :=
 ⟨λ h, begin
     simp only [eq_empty_iff_forall_not_mem, disjoint_iff_inter_eq_empty, not_exists,
-      mem_inter_eq, not_and, mem_range, mem_preimage] at h ⊢,
+      mem_inter_iff, not_and, mem_range, mem_preimage] at h ⊢,
     assume y hy x hx,
     rw ← hx at hy,
     exact h x hy,

@@ -152,26 +152,6 @@ funext $ λ i, (finsupp.single_eq_pi_single i a).symm
 
 end linear_map
 
-namespace basis
-
-variables {R M n : Type*}
-variables [decidable_eq n] [fintype n]
-variables [semiring R] [add_comm_monoid M] [module R M]
-
-@[simp] lemma equiv_fun_symm_std_basis (b : basis n R M) (i : n) :
-  b.equiv_fun.symm (linear_map.std_basis R (λ _, R) i 1) = b i :=
-begin
-  rw [b.equiv_fun_symm_apply, finset.sum_eq_single i],
-  { rw [linear_map.std_basis_same, one_smul] },
-  { rintros j - hj,
-    rw [linear_map.std_basis_ne _ _ _ _ hj, zero_smul] },
-  { intro,
-    have := finset.mem_univ i,
-    contradiction }
-end
-
-end basis
-
 namespace pi
 open linear_map
 open set

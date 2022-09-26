@@ -203,3 +203,19 @@ begin
 end
 
 end module
+
+namespace basis
+
+variables {R M n : Type*}
+variables [decidable_eq n] [fintype n]
+variables [semiring R] [add_comm_monoid M] [module R M]
+
+@[simp] lemma equiv_fun_symm_std_basis (b : basis n R M) (i : n) :
+  b.equiv_fun.symm (linear_map.std_basis R (λ _, R) i 1) = b i :=
+begin
+  apply_fun b.repr,
+  { simp },
+  exact equiv_like.injective b.repr,
+end
+
+end basis

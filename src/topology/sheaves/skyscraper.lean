@@ -144,7 +144,8 @@ let h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
   end }
 
 /--
-If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is isomorphic to a terminal object.
+If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is isomorphic to a
+terminal object.
 -/
 @[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_not_specializes [has_colimits C]

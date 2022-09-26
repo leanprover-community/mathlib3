@@ -417,7 +417,7 @@ begin
   have h1p : (0 : ℝ) < 1 / p := one_div_pos.2 (nat.cast_pos.2 hp.1.pos),
   rw ← ring_hom.map_mul, rw ← ring_hom.map_pow at hx hy,
   rw ← v_p_lt_val hv at hx hy ⊢,
-  rw [ring_hom.map_pow, v.map_pow, ← rpow_lt_rpow_iff h1p, ← rpow_nat_cast, ← rpow_mul,
+  rw [ring_hom.map_pow, v.map_pow, ← rpow_lt_rpow_iff_of_pos h1p, ← rpow_nat_cast, ← rpow_mul,
       mul_one_div_cancel (nat.cast_ne_zero.2 hp.1.ne_zero : (p : ℝ) ≠ 0), rpow_one] at hx hy,
   rw [ring_hom.map_mul, v.map_mul], refine lt_of_le_of_lt _ (mul_lt_mul₀ hx hy),
   by_cases hvp : v p = 0, { rw hvp, exact zero_le _ }, replace hvp := zero_lt_iff.2 hvp,

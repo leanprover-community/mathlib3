@@ -352,26 +352,14 @@ variables {m0 : measurable_space Ω} {μ : measure Ω}
 by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
 
 -- todo move
-lemma mem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+@[simp] lemma mem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
   x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
 by split_ifs; simp [h]
 
 -- todo move
-lemma mem_ite_univ_left {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+@[simp] lemma mem_ite_univ_left {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
   x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
 by split_ifs; simp [h]
-
--- todo rename (and move?)
-lemma aux_t1_inter_t2 {α} (p1 p2 : ι → Prop) [decidable_pred p1] [decidable_pred p2]
-  (f1 f2 : ι → set α) :
-  ((⋂ i (hi : p1 i), f1 i) ∩ ⋂ i (hi : p2 i), f2 i)
-    = ⋂ i (hi : p1 i ∨ p2 i), (ite (p1 i) (f1 i) set.univ ∩ ite (p2 i) (f2 i) set.univ) :=
-begin
-  ext1 x,
-  simp only [mem_ite_univ_right, set.mem_inter_iff, set.mem_Inter],
-  exact ⟨λ h i _, ⟨h.1 i, h.2 i⟩,
-    λ h, ⟨λ i hi, (h i (or.inl hi)).1 hi, λ i hi, (h i (or.inr hi)).2 hi⟩⟩,
-end
 
 lemma indep_sets_pi_Union_Inter_of_disjoint [decidable_eq ι] [is_probability_measure μ]
   {s : ι → set (set Ω)} {S T : set (finset ι)}
@@ -391,15 +379,18 @@ begin
       { have hi1 : i ∉ p1 := finset.disjoint_right.mp (hST p1 p2 hp1 hp2) hi2,
         simp_rw [g, if_neg hi1, if_pos hi2, set.univ_inter],
         exact ht2_m i hi2, }, },
-    rw [ht1_eq, ht2_eq, aux_t1_inter_t2 _ _ f1 f2, ← h_indep _ hgm],
-    simp_rw finset.mem_union, },
+    have h_p1_inter_p2 : ((⋂ x ∈ p1, f1 x) ∩ ⋂ x ∈ p2, f2 x)
+      = ⋂ i ∈ p1 ∪ p2, (ite (i ∈ p1) (f1 i) set.univ ∩ ite (i ∈ p2) (f2 i) set.univ),
+    { ext1 x,
+      simp only [mem_ite_univ_right, set.mem_inter_iff, set.mem_Inter, finset.mem_union],
+      exact ⟨λ h i _, ⟨h.1 i, h.2 i⟩,
+        λ h, ⟨λ i hi, (h i (or.inl hi)).1 hi, λ i hi, (h i (or.inr hi)).2 hi⟩⟩, },
+    rw [ht1_eq, ht2_eq, h_p1_inter_p2, ← h_indep _ hgm], },
   have h_μg : ∀ n, μ (g n) = (ite (n ∈ p1) (μ (f1 n)) 1) * (ite (n ∈ p2) (μ (f2 n)) 1),
   { intro n,
     simp_rw g,
     split_ifs,
-    { have h_disj := hST p1 p2 hp1 hp2,
-      rw finset.disjoint_iff_ne at h_disj,
-      exact absurd rfl (h_disj n h n h_1), },
+    { exact absurd rfl (finset.disjoint_iff_ne.mp (hST p1 p2 hp1 hp2) n h n h_1), },
     all_goals { simp only [measure_univ, one_mul, mul_one, set.inter_univ, set.univ_inter], }, },
   simp_rw [h_P_inter, h_μg, finset.prod_mul_distrib, prod_ite_mem (p1 ∪ p2) p1 (λ x, μ (f1 x)),
     finset.union_inter_cancel_left, prod_ite_mem (p1 ∪ p2) p2 (λ x, μ (f2 x)),

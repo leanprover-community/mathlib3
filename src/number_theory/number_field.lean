@@ -236,13 +236,12 @@ begin
     exact (adjoin_root.lift_root hK).symm, },
 end
 
-variables (K A : Type*) [field K] [number_field K] [field A] [algebra ℚ A] [is_alg_closed A] (x : K)
+variables (K A : Type*) [field K] [number_field K] [field A] [char_zero A] [is_alg_closed A] (x : K)
 
 /-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K` a number field.
 The images of `x` by the embeddings of `K` in `A` are exactly the roots in `A` of
 the minimal polynomial of `x` over `ℚ` -/
-lemma rat_range_eq_roots :
-range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
+lemma rat_range_eq_roots : range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
 begin
   convert range_eq_roots ℚ K A x using 1,
   ext a,
@@ -274,9 +273,7 @@ begin
     (⋃ (f : polynomial ℤ)
        (hf : f.nat_degree ≤ finrank ℚ K ∧ ∀ i, |f.coeff i| ≤ C),
        ((f.map (algebra_map ℤ K)).roots.to_finset : set K)).finite,
-  { refine this.subset _,
-    clear this,
-    intros x hx,
+  { refine this.subset (λ x hx, _),
     have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
     have h_same_deg_minpoly : (minpoly ℚ x).nat_degree = (minpoly ℤ x).nat_degree,
     { rw h_map_rat_minpoly, convert nat_degree_map_eq_of_injective _ _,
@@ -289,8 +286,9 @@ begin
     { intros z hz,
       suffices : ∃ (φ : K →+* A), φ x = z,
       { obtain ⟨φ, rfl⟩ := this, exact (hx.2 φ), },
+      letI : char_zero A := char_zero_of_injective_algebra_map ((algebra_map ℚ _).injective),
       rw [← set.mem_range, rat_range_eq_roots, mem_root_set_iff, aeval_def],
-      refine (mem_roots_map _).mp hz,
+      convert (mem_roots_map _).mp hz,
       repeat { exact monic.ne_zero (minpoly.monic (is_integral_of_is_scalar_tower _ hx.1)), }},
     rw mem_Union,
     use minpoly ℤ x,
@@ -335,9 +333,9 @@ begin
       by_cases n < finrank ℚ K + 1,
       { simpa using congr_fun hxy ⟨n, h⟩, },
       { rw [coeff_eq_zero_of_nat_degree_lt, coeff_eq_zero_of_nat_degree_lt],
-        { rcases hy with ⟨ _, _⟩, linarith, },
-        { rcases hx with ⟨ _, _⟩, linarith, }}},
-    { exact λ p _, polynomial.root_set_finite p K, }},
+        { rcases hy with ⟨ _, _⟩, linarith },
+        { rcases hx with ⟨ _, _⟩, linarith }}},
+    { exact λ p _, polynomial.root_set_finite p K }},
 end
 
 lemma pow_eq_one_of_norm_eq_one {x : K}

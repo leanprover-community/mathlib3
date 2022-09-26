@@ -218,11 +218,16 @@ linear part. -/
 def to_const_prod_continuous_linear_map : (V →A[𝕜] W) ≃ₗᵢ[𝕜] W × (V →L[𝕜] W) :=
 { to_fun    := λ f, ⟨f 0, f.cont_linear⟩,
   inv_fun   := λ p, p.2.to_continuous_affine_map + const 𝕜 V p.1,
-  left_inv  := λ f, by { ext, rw f.decomp, simp, },
-  right_inv := by { rintros ⟨v, f⟩, ext; simp, },
-  map_add'  := by simp,
-  map_smul' := by simp,
-  norm_map' := λ f, by simp [prod.norm_def, norm_def], }
+  left_inv  := λ f, by { ext, rw f.decomp, simp only [coe_add,
+    continuous_linear_map.coe_to_continuous_affine_map, coe_const], },
+  right_inv := by { rintros ⟨v, f⟩, ext, simp only [coe_add, coe_const, map_zero, zero_add,
+    continuous_linear_map.coe_to_continuous_affine_map, pi.add_apply],
+    simp only [add_cont_linear, to_affine_map_cont_linear, const_cont_linear, add_zero], },
+  map_add'  := by simp only [coe_add, pi.add_apply, add_cont_linear, prod.mk_add_mk,
+    eq_self_iff_true, forall_const],
+  map_smul' := by simp only [coe_smul, pi.smul_apply, smul_cont_linear, ring_hom.id_apply,
+    prod.smul_mk, eq_self_iff_true, forall_const],
+  norm_map' := λ f, by { simp only [prod.norm_def, norm_def, linear_equiv.coe_mk] }, }
 
 @[simp] lemma to_const_prod_continuous_linear_map_fst (f : V →A[𝕜] W) :
   (to_const_prod_continuous_linear_map 𝕜 V W f).fst = f 0 :=

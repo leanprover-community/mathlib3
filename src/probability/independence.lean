@@ -559,7 +559,6 @@ end
 end from_pi_systems_to_measurable_spaces
 
 section indep_set
-
 /-! ### Independence of measurable sets
 
 We prove the following equivalences on `indep_set`, for measurable sets `s, t`.

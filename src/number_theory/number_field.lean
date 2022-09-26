@@ -297,8 +297,8 @@ begin
       finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
 end
 
-/-- Let `B` be a real number. The number of algebraic integers in `K` whose all conjugates
-are smaller in norm than `B` is finite. -/
+/-- Let `B` be a real number. The number of algebraic integers in `K` whose conjugates are all
+smaller in norm than `B` is finite. -/
 lemma finite_of_norm_le (B : ℝ) :
   {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
 begin

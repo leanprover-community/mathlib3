@@ -61,7 +61,7 @@ abbreviation quiver.hom.to_pos_path {X Y : V} (f : X ⟶ Y) :
 abbreviation quiver.hom.to_neg_path {X Y : V} (f : X ⟶ Y) :
   ((category_theory.paths.category_paths $ quiver.symmetrify V).hom Y X) := f.to_neg.to_path
 
-def paths.reverse {X Y : paths $ quiver.symmetrify V} :
+@[simp] def paths.reverse {X Y : paths $ quiver.symmetrify V} :
   (category_theory.paths.category_paths $ quiver.symmetrify V).hom X Y →
   (category_theory.paths.category_paths $ quiver.symmetrify V).hom Y X := λ p, p.reverse
 
@@ -73,31 +73,57 @@ def free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
 
 @[simp] lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
-  quotient.comp_closure red_step (paths.reverse p) (paths.reverse q) :=
+  quotient.comp_closure red_step (paths.reverse p) (paths.reverse q)  :=
 begin
   rintros ⟨_,W,XW,pp,qq,WY,⟨rfl,Z,f,epp,eqq⟩⟩,
   simp only at epp eqq,
-  rw [epp,eqq],
-  simp only [category.id_comp, category.assoc],
-  change quotient.comp_closure red_step (paths.reverse (XW ≫ WY))
+  simp only [epp,eqq,category.id_comp, category.assoc],
+
+  change quotient.comp_closure red_step  (paths.reverse (XW ≫ WY))
   (paths.reverse (XW ≫ (f.to_path ≫ (quiver.reverse f).to_path ≫ WY))),
 
   have : paths.reverse (XW ≫ WY)
-       = (paths.reverse WY) ≫ (𝟙 _) ≫ (paths.reverse XW), by sorry,
+       = (paths.reverse WY) ≫ (𝟙 _) ≫ (paths.reverse XW), by
+  { simp only [paths.reverse, category.id_comp], apply quiver.path.reverse_comp, },
   rw this,
   have : paths.reverse (XW ≫ f.to_path ≫ (quiver.reverse f).to_path ≫ WY)
-       = (paths.reverse WY) ≫ ((paths.reverse (quiver.reverse f).to_path) ≫ (paths.reverse f.to_path)) ≫ (paths.reverse XW), by sorry,
+       = (paths.reverse WY) ≫ ((paths.reverse (quiver.reverse f).to_path)
+         ≫ (paths.reverse f.to_path)) ≫ (paths.reverse XW), by
+  { sorry, -- pffh
+     },
   rw this,
   apply quotient.comp_closure.intro,
-  simp,
-  sorry
+  simp only [paths.reverse, quiver.path.reverse_to_path, quiver.reverse_reverse],
+  use [eq.refl _,Z,f],
+  simp only [eq_self_iff_true, and_self],
+end
+
+@[simp] lemma congr_comp_reverse {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
+  quot.mk (@quotient.comp_closure _ _ red_step _ _) (p ≫ (paths.reverse p)) =
+  quot.mk (@quotient.comp_closure _ _ red_step _ _) (𝟙 X) :=
+begin
+  apply quot.eqv_gen_sound,
+  induction p with _ _ q f ih,
+  { apply eqv_gen.refl, },
+  { simp only [paths.reverse, quiver.path.reverse],
+    fapply eqv_gen.trans,
+    { exact q ≫ (paths.reverse q), },
+    { change eqv_gen (@quotient.comp_closure _ _ red_step _ _)
+                     ((q ≫ f.to_path) ≫ ((quiver.reverse f).to_path ≫ q.reverse))
+                     (q ≫ paths.reverse q),
+      --have : q ≫ (paths.reverse q) = q ≫ (𝟙 _) ≫ (paths.reverse q), by { }
+      apply eqv_gen.rel, apply quotient.comp_closure.intro, },
+    { exact ih }, },
 end
 
 @[simp] lemma congr_reverse_comp {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
-  quotient.comp_closure red_step ((paths.reverse p) ≫ p)  (𝟙 Y) := sorry
-
-@[simp] lemma congr_comp_reverse {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
-  quotient.comp_closure red_step (p ≫ (paths.reverse p)) (𝟙 X) := sorry
+  quot.mk (@quotient.comp_closure _ _ red_step _ _) ((paths.reverse p) ≫ p) =
+  quot.mk (@quotient.comp_closure _ _ red_step _ _) (𝟙 Y) :=
+begin
+  dsimp [paths.reverse],
+  nth_rewrite 1 ←quiver.path.reverse_reverse p,
+  apply congr_comp_reverse,
+end
 
 instance : category (free_groupoid V) := quotient.category red_step
 
@@ -108,8 +134,8 @@ quot.lift_on f
 
 instance : groupoid (free_groupoid V) :=
 { inv := λ X Y f, quot_inv f
-, inv_comp' := λ X Y p, quot.induction_on p $ λ pp, quot.sound $ congr_reverse_comp pp
-, comp_inv' := λ X Y p, quot.induction_on p $ λ pp, quot.sound $ congr_comp_reverse pp }
+, inv_comp' := λ X Y p, quot.induction_on p $ λ pp, congr_reverse_comp pp
+, comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse pp }
 
 def of : prefunctor V (free_groupoid V) :=
 { obj := λ X, ⟨X⟩

@@ -44,12 +44,16 @@ def reverse {V} [quiver.{v+1} V] [has_reverse V] {a b : V} : (a ⟶ b) → (b �
 class has_involutive_reverse extends has_reverse V :=
 (inv' : Π {a b : V} (f : a ⟶ b), reverse (reverse f) = f)
 
+@[simp] lemma reverse_reverse {V} [quiver.{v+1} V] [h : has_involutive_reverse V]
+  {a b : V} (f : a ⟶ b) : reverse (reverse f) = f := by apply h.inv'
+
 variables {V}
 
 instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
 instance : has_involutive_reverse (symmetrify V) :=
 { to_has_reverse := ⟨λ a b e, e.swap⟩,
   inv' := λ a b e, congr_fun sum.swap_swap_eq e }
+
 
 /-- Reverse the direction of a path. -/
 @[simp] def path.reverse [has_reverse V] {a : V} : Π {b}, path a b → path b a

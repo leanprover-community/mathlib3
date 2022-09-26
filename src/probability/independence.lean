@@ -923,18 +923,6 @@ lemma bsupr_indep_bsupr_compl (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) 
   indep (⨆ n ∈ t, s n) (⨆ n ∈ tᶜ, s n) μ :=
 indep_supr_of_disjoint h_le h_indep disjoint_compl_right
 
-lemma bsupr_indep_limsup_cofinite (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι)
-  (ht : t.finite) :
-  indep (⨆ n ∈ t, s n) (limsup cofinite s) μ :=
-begin
-  refine indep_of_indep_of_le_right (bsupr_indep_bsupr_compl h_le h_indep t) _,
-  refine Limsup_le_of_le (by is_bounded_default) _,
-  simp only [set.mem_compl_iff, eventually_map, eventually_cofinite],
-  refine set.finite.subset ht (set.compl_subset_compl.mp (λ x hxt, _)),
-  simp only [set.mem_compl_iff, set.mem_set_of_eq, not_not],
-  exact le_supr₂ x hxt,
-end
-
 lemma _root_.filter.limsup_le_supr {α} [complete_lattice α] (f : filter ι) (s : ι → α) :
   limsup f s ≤ ⨆ n, s n :=
 begin
@@ -1070,6 +1058,7 @@ measure_eq_zero_or_one_of_indep_set_self
   ((limsup_at_bot_indep_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)
 
 end at_bot
+
 end zero_one_law
 
 end probability_theory

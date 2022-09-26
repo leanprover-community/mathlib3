@@ -31,6 +31,7 @@ This file defines the predicate `separated`, and common separation axioms
 * `normal_space`: A T₄ space (sometimes referred to as normal, but authors vary on
   whether this includes T₂; `mathlib` does), is one where given two disjoint closed sets,
   we can find two open sets that separate them. In `mathlib`, T₄ implies T₃.
+* `t5_space`: A T₅ space, also known as a *completely normal Hausdorff space*
 
 ## Main results
 
@@ -105,6 +106,11 @@ def separated : set α → set α → Prop :=
   λ (s t : set α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (s ⊆ U) ∧ (t ⊆ V) ∧ disjoint U V
 
+lemma separated_iff_disjoint {s t : set α} :
+  separated s t ↔ disjoint (𝓝ˢ s) (𝓝ˢ t) :=
+by simp only [(has_basis_nhds_set s).disjoint_iff (has_basis_nhds_set t), separated, exists_prop,
+  ← exists_and_distrib_left, and.assoc, and.comm, and.left_comm]
+
 namespace separated
 
 open separated
@@ -142,11 +148,7 @@ lemma mono {s₁ s₂ t₁ t₂ : set α} (h : separated s₂ t₂) (hs : s₁ �
 let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h in ⟨U, V, hU, hV, hs.trans hsU, ht.trans htV, hd⟩
 
 lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
-λ ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
-  ⟨U ∪ W, V ∩ X, is_open.union oU oW, is_open.inter oV oX,
-    union_subset_union aU aW, subset_inter bV bX, set.disjoint_union_left.mpr
-    ⟨disjoint_of_subset_right (inter_subset_left _ _) UV,
-      disjoint_of_subset_right (inter_subset_right _ _) WX⟩⟩
+by simpa only [separated_iff_disjoint, nhds_set_union, disjoint_sup_left] using and.intro
 
 lemma union_right {a b c : set α} (ab : separated a b) (ac : separated a c) :
   separated a (b ∪ c) :=
@@ -178,8 +180,14 @@ t0_space_iff_inseparable α
 lemma nhds_injective [t0_space α] : injective (𝓝 : α → filter α) :=
 (t0_space_iff_nhds_injective α).1 ‹_›
 
+lemma inseparable_iff_eq [t0_space α] {x y : α} : inseparable x y ↔ x = y :=
+nhds_injective.eq_iff
+
 @[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 nhds_injective.eq_iff
+
+@[simp] lemma inseparable_eq_eq [t0_space α] : inseparable = @eq α :=
+funext₂ $ λ x y, propext inseparable_iff_eq
 
 lemma t0_space_iff_exists_is_open_xor_mem (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
@@ -438,8 +446,17 @@ t1_space_iff_disjoint_nhds_pure.mp ‹_› h
 lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
 t1_space_iff_specializes_imp_eq.1 ‹_› h
 
-@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
+lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
 ⟨specializes.eq, λ h, h ▸ specializes_rfl⟩
+
+@[simp] lemma specializes_eq_eq [t1_space α] : (⤳) = @eq α :=
+funext₂ $ λ x y, propext specializes_iff_eq
+
+@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
+specializes_iff_pure.symm.trans specializes_iff_eq
+
+@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+specializes_iff_eq
 
 instance {α : Type*} : t1_space (cofinite_topology α) :=
 t1_space_iff_continuous_cofinite_of.mpr continuous_id
@@ -532,17 +549,6 @@ begin
   rcases h.mem_iff.1 (compl_singleton_mem_nhds hy.symm) with ⟨i, hi, hsub⟩,
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
-
-@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
-begin
-  refine ⟨λ h, _, λ h, h ▸ pure_le_nhds a⟩,
-  by_contra hab,
-  simpa only [mem_pure, mem_compl_iff, mem_singleton, not_true] using
-    h (compl_singleton_mem_nhds $ ne.symm hab)
-end
-
-@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
-⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
 
 @[simp] lemma compl_singleton_mem_nhds_set_iff [t1_space α] {x : α} {s : set α} :
   {x}ᶜ ∈ 𝓝ˢ s ↔ x ∉ s :=
@@ -1479,6 +1485,42 @@ begin
 end
 
 end normality
+
+section completely_normal
+
+/-- A topological space `α` is a *completely normal Hausdorff space* if each subspace `s : set α` is
+a normal Hausdorff space. Equivalently, `α` is a `T₁` space and for any two sets `s`, `t` such that
+`closure s` is disjoint with `t` and `s` is disjoint with `closure t`, there exist disjoint
+neighbourhoods of `s` and `t`. -/
+class t5_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
+(completely_normal : ∀ ⦃s t : set α⦄, disjoint (closure s) t → disjoint s (closure t) →
+  disjoint (𝓝ˢ s) (𝓝ˢ t))
+
+export t5_space (completely_normal)
+
+lemma embedding.t5_space [topological_space β] [t5_space β] {e : α → β} (he : embedding e) :
+  t5_space α :=
+begin
+  haveI := he.t1_space,
+  refine ⟨λ s t hd₁ hd₂, _⟩,
+  simp only [he.to_inducing.nhds_set_eq_comap],
+  refine disjoint_comap (completely_normal _ _),
+  { rwa [← subset_compl_iff_disjoint_left, image_subset_iff, preimage_compl,
+      ← he.closure_eq_preimage_closure_image, subset_compl_iff_disjoint_left] },
+  { rwa [← subset_compl_iff_disjoint_right, image_subset_iff, preimage_compl,
+      ← he.closure_eq_preimage_closure_image, subset_compl_iff_disjoint_right] }
+end
+
+/-- A subspace of a `T₅` space is a `T₅` space. -/
+instance [t5_space α] {p : α → Prop} : t5_space {x // p x} := embedding_subtype_coe.t5_space
+
+/-- A `T₅` space is a `T₄` space. -/
+@[priority 100] -- see Note [lower instance priority]
+instance t5_space.to_normal_space [t5_space α] : normal_space α :=
+⟨λ s t hs ht hd, separated_iff_disjoint.2 $
+  completely_normal (by rwa [hs.closure_eq]) (by rwa [ht.closure_eq])⟩
+
+end completely_normal
 
 /-- In a compact t2 space, the connected component of a point equals the intersection of all
 its clopen neighbourhoods. -/

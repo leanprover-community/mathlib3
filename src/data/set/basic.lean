@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import order.boolean_algebra
+import order.symm_diff
 
 /-!
 # Basic properties of sets
@@ -77,7 +77,7 @@ universes u v w x
 
 namespace set
 
-variable {α : Type*}
+variables {α : Type*} {s t : set α}
 
 instance : has_le (set α) := ⟨λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t⟩
 instance : has_subset (set α) := ⟨(≤)⟩
@@ -103,6 +103,12 @@ instance : has_inter (set α) := ⟨(⊓)⟩
 @[simp] lemma inf_eq_inter : ((⊓) : set α → set α → set α) = (∩) := rfl
 @[simp] lemma le_eq_subset : ((≤) : set α → set α → Prop) = (⊆) := rfl
 @[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
+
+lemma le_iff_subset : s ≤ t ↔ s ⊆ t := iff.rfl
+lemma lt_iff_ssubset : s ≤ t ↔ s ⊆ t := iff.rfl
+
+alias le_iff_subset ↔ _root_.has_le.le.subset _root_.has_subset.subset.le
+alias lt_iff_ssubset ↔ _root_.has_lt.lt.ssubset _root_.has_ssubset.ssubset.lt
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type u} : has_coe_to_sort (set α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
@@ -1177,6 +1183,18 @@ mem_diff_singleton.trans $ iff.rfl.and ne_empty_iff_nonempty
 lemma union_eq_diff_union_diff_union_inter (s t : set α) :
   s ∪ t = (s \ t) ∪ (t \ s) ∪ (s ∩ t) :=
 sup_eq_sdiff_sup_sdiff_sup_inf
+
+/-! ### Symmetric difference -/
+
+lemma mem_symm_diff : a ∈ s ∆ t ↔ a ∈ s ∧ a ∉ t ∨ a ∈ t ∧ a ∉ s := iff.rfl
+
+lemma symm_diff_subset_union : s ∆ t ⊆ s ∪ t := @symm_diff_le_sup (set α) _ _ _
+
+lemma inter_symm_diff_distrib_left (s t u : set α) : s ∩ t ∆ u = (s ∩ t) ∆ (s ∩ u) :=
+inf_symm_diff_distrib_left _ _ _
+
+lemma inter_symm_diff_distrib_right (s t u : set α) : s ∆ t ∩ u = (s ∩ u) ∆ (t ∩ u) :=
+inf_symm_diff_distrib_right _ _ _
 
 /-! ### Powerset -/
 

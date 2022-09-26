@@ -13,17 +13,17 @@ import topology.metric_space.cau_seq_filter
 
 This file defines the `p`-adic integers `ℤ_[p]` as the subtype of `ℚ_[p]` with norm `≤ 1`.
 We show that `ℤ_[p]`
-* is complete
-* is nonarchimedean
-* is a normed ring
-* is a local ring
-* is a discrete valuation ring
+* is complete,
+* is nonarchimedean,
+* is a normed ring,
+* is a local ring, and
+* is a discrete valuation ring.
 
 The relation between `ℤ_[p]` and `zmod p` is established in another file.
 
 ## Important definitions
 
-* `padic_int` : the type of `p`-adic numbers
+* `padic_int` : the type of `p`-adic integers
 
 ## Notation
 

@@ -18,7 +18,7 @@ and that `ℚ_[p]` is Cauchy complete.
 
 * `padic` : the type of `p`-adic numbers
 * `padic_norm_e` : the rational valued `p`-adic norm on `ℚ_[p]`
-* `padic.add_valuation` : the additive `p`-adic valuation on `ℚ_[p]`, with values in `with_top ℤ`.
+* `padic.add_valuation` : the additive `p`-adic valuation on `ℚ_[p]`, with values in `with_top ℤ`
 
 ## Notation
 

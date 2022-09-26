@@ -571,34 +571,6 @@ begin
     end
 end
 
-open measure_theory topological_space
-
-lemma zougzoug (s : set ℝ) (p : ℝ → Prop)
-  (h : ∀ a b, a ∈ s → b ∈ s → ∀ᵐ x ∂(volume.restrict (s ∩ Ioo a b)), p x) :
-  ∀ᵐ x ∂(volume.restrict s), p x :=
-begin
-  let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
-  let u := ⋃ (i : ↥s × ↥s), T i,
-  have hfinite : (s \ u).finite,
-  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra' h,
-    apply hy.2,
-    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩) ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
-  obtain ⟨A, A_count, hA⟩ :
-    ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
-    is_open_Union_countable _ (λ p, is_open_Ioo),
-  have : s ⊆ (s \ u) ∪ (⋃ (p ∈ A), s ∩ T p),
-  { assume x hx,
-    by_cases h'x : x ∈ ⋃ (i : ↥s × ↥s), T i,
-    { rw ← hA at h'x,
-      obtain ⟨p, pA, xp⟩ : ∃ (p : ↥s × ↥s), p ∈ A ∧ x ∈ T p,
-        by simpa only [mem_Union, exists_prop, set_coe.exists, exists_and_distrib_right] using h'x,
-      right,
-      exact mem_bUnion pA ⟨hx, xp⟩ },
-    { exact or.inl ⟨hx, h'x⟩ } },
-  apply ae_restrict_of_ae_restrict_of_subset this,
-end
-
 
 #exit
 

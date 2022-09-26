@@ -54,12 +54,7 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
   map := λ U V i, if h : p₀ ∈ unop V
     then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
     else ((if_neg h).symm.rec terminal_is_terminal).from _,
-  map_id' := λ U,
-  begin
-    split_ifs,
-    { apply eq_to_hom_refl },
-    { exact ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _ },
-  end,
+  map_id' := λ U, ⟨eq_to_hom_refl, ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _⟩
   map_comp' := λ U V W iVU iWV,
   begin
     by_cases hW : p₀ ∈ unop W,
@@ -149,7 +144,7 @@ let h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
   end }
 
 /--
-If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is `*`
+If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is isomorphic to a terminal object.
 -/
 @[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_not_specializes [has_colimits C]

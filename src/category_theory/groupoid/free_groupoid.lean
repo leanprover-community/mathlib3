@@ -89,20 +89,17 @@ begin
   change quotient.comp_closure red_step  (paths.reverse (XW ≫ WY))
   (paths.reverse (XW ≫ (f.to_path ≫ (quiver.reverse f).to_path ≫ WY))),
 
-  have : paths.reverse (XW ≫ WY)
-       = (paths.reverse WY) ≫ (𝟙 _) ≫ (paths.reverse XW), by
-  { simp only [paths.reverse, category.id_comp], apply quiver.path.reverse_comp, },
-  rw this,
-  have : paths.reverse (XW ≫ f.to_path ≫ (quiver.reverse f).to_path ≫ WY)
-       = (paths.reverse WY) ≫ ((paths.reverse (quiver.reverse f).to_path)
-         ≫ (paths.reverse f.to_path)) ≫ (paths.reverse XW), by
-  { sorry, -- pffh
-     },
-  rw this,
-  apply quotient.comp_closure.intro,
-  simp only [paths.reverse, quiver.path.reverse_to_path, quiver.reverse_reverse],
-  use [eq.refl _,Z,f],
-  simp only [eq_self_iff_true, and_self],
+  have : quotient.comp_closure red_step ((paths.reverse WY) ≫ 𝟙 _ ≫  (paths.reverse XW))
+    ((paths.reverse WY) ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ (paths.reverse XW)), by
+  { apply quotient.comp_closure.intro,
+    use [eq.refl _, Z, f],
+    simp only [eq_self_iff_true, and_self], },
+  simp only [paths.reverse, category.id_comp, category.assoc] at this ⊢,
+  dsimp [category_struct.comp] at this ⊢,
+  simp only [quiver.path.reverse_comp, quiver.path.reverse_to_path, quiver.reverse_reverse,
+             quiver.path.comp_assoc] at this ⊢,
+  exact this,
+
 end
 
 lemma congr_comp_reverse {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
@@ -118,8 +115,14 @@ begin
     { change eqv_gen (@quotient.comp_closure _ _ red_step _ _)
                      ((q ≫ f.to_path) ≫ ((quiver.reverse f).to_path ≫ q.reverse))
                      (q ≫ paths.reverse q),
-      --have : q ≫ (paths.reverse q) = q ≫ (𝟙 _) ≫ (paths.reverse q), by { }
-      apply eqv_gen.rel, apply quotient.comp_closure.intro, },
+      apply eqv_gen.symm, apply eqv_gen.rel,
+      have : quotient.comp_closure
+               red_step (q ≫ (𝟙 _) ≫  paths.reverse q)
+               (q ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ paths.reverse q), by
+      { apply quotient.comp_closure.intro, use [eq.refl _, p_c,f],
+      simp only [eq_self_iff_true, and_self], },
+      simp only [paths.reverse, category.assoc, category.id_comp] at this ⊢,
+      exact this,  },
     { exact ih }, },
 end
 
@@ -205,4 +208,3 @@ end universal_property
 end free
 end groupoid
 end category_theory
-#lint

@@ -609,7 +609,7 @@ begin
 end
 
 lemma lt_rpow_inv_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
-  x < b ^ z⁻¹ ↔ b < x ^ z :=
+  x < y ^ z⁻¹ ↔ y < x ^ z :=
 begin
   have hz' : 0 < -z := by rwa [lt_neg, neg_zero'],
   have hxz : 0 < x ^ (-z) := real.rpow_pos_of_pos hx _,
@@ -623,7 +623,7 @@ end
 lemma rpow_inv_lt_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
   x ^ z⁻¹ < y ↔ y ^ z < x :=
 begin
-  convert lt_rpow_inv_iff_of_neg (real.rpow_pos_of_pos hx _) (real.rpow_pos_of_pos hb _) hz;
+  convert lt_rpow_inv_iff_of_neg (real.rpow_pos_of_pos hx _) (real.rpow_pos_of_pos hy _) hz;
   simp [←real.rpow_mul hx.le, ←real.rpow_mul hy.le, ne_of_lt hz],
 end
 

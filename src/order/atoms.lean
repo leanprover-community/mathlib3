@@ -565,6 +565,89 @@ is_simple_order_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
 
 end set
 
+namespace galois_insertion
+
+variables {β : Type*}
+
+lemma is_atom_of_u_bot [partial_order α] [order_bot α] [partial_order β]
+  [order_bot β] {l : α → β} {u : β → α} (gi : galois_insertion l u) (hbot : u ⊥ = ⊥)
+  {b : β} (hb : is_atom (u b)) : is_atom b :=
+let ⟨hb₁, hb₂⟩ := hb in
+  ⟨λ hb, hb₁ $ hbot ▸ congr_arg u hb,
+   λ b' hb', gi.gc.l_bot ▸ gi.l_u_eq b' ▸ congr_arg l (hb₂ (u b') (gi.strict_mono_u hb'))⟩
+
+lemma is_atom_iff [partial_order α] [order_bot α] [is_atomic α] [partial_order β]
+  [order_bot β] {l : α → β} {u : β → α} (gi : galois_insertion l u) (hbot : u ⊥ = ⊥)
+  (h_atom : ∀ a, is_atom a → u (l a) = a) (a : α) : is_atom (l a) ↔ is_atom a :=
+begin
+  refine ⟨λ hla, _, λ ha, gi.is_atom_of_u_bot hbot ((h_atom a ha).symm ▸ ha)⟩,
+  obtain ⟨a', ha', hab'⟩ := (eq_bot_or_exists_atom_le (u (l a))).resolve_left
+    (hbot ▸ λ h, hla.1 (gi.u_injective h)),
+  have := (hla.le_iff.mp $ (gi.l_u_eq (l a) ▸ gi.gc.monotone_l hab' : l a' ≤ l a)).resolve_left
+    (λ h, ha'.1 (hbot ▸ (h_atom a' ha') ▸ congr_arg u h)),
+  have haa' : a = a' := (ha'.le_iff.mp $
+    (gi.gc.le_u_l a).trans_eq (h_atom a' ha' ▸ congr_arg u this.symm)).resolve_left
+    (mt (congr_arg l) (gi.gc.l_bot.symm ▸ hla.1)),
+  exact haa'.symm ▸ ha'
+end
+
+lemma is_atom_iff' [partial_order α] [order_bot α] [is_atomic α] [partial_order β]
+  [order_bot β] {l : α → β} {u : β → α} (gi : galois_insertion l u) (hbot : u ⊥ = ⊥)
+  (h_atom : ∀ a, is_atom a → u (l a) = a) (b : β) : is_atom (u b) ↔ is_atom b :=
+by rw [←gi.is_atom_iff hbot h_atom, gi.l_u_eq]
+
+lemma is_coatom_of_l_top [partial_order α] [order_top α] [partial_order β] [order_top β]
+  {l : α → β} {u : β → α} (gi : galois_insertion l u) (htop : l ⊤ = ⊤) {b : β}
+  (hb : is_coatom (u b)) : is_coatom b :=
+let ⟨hb₁, hb₂⟩ := hb in
+  ⟨mt (congr_arg u) (gi.gc.u_top.symm ▸ hb₁),
+   λ b' hb', htop ▸ gi.l_u_eq b' ▸ congr_arg l (hb₂ _ (gi.strict_mono_u hb'))⟩
+
+lemma is_coatom_iff [partial_order α] [order_top α] [is_coatomic α] [partial_order β] [order_top β]
+  {l : α → β} {u : β → α} (gi : galois_insertion l u) (htop : l ⊤ = ⊤)
+  (h_coatom : ∀ a, is_coatom a → u (l a) = a) (b : β) : is_coatom (u b) ↔ is_coatom b :=
+begin
+  refine ⟨λ hb, gi.is_coatom_of_l_top htop hb, λ hb, _⟩,
+  obtain ⟨a, ha, hab⟩ := (eq_top_or_exists_le_coatom (u b)).resolve_left
+    (λ h, hb.1 $ htop ▸ gi.l_u_eq b ▸ congr_arg l h),
+  have : l a = b := (hb.le_iff.mp ((gi.l_u_eq b ▸ gi.gc.monotone_l hab) : b ≤ l a)).resolve_left
+    (λ hla, ha.1 (gi.gc.u_top ▸ h_coatom a ha ▸ congr_arg u hla)),
+  exact this ▸ (h_coatom a ha).symm ▸ ha,
+end
+
+end galois_insertion
+
+namespace galois_coinsertion
+
+variables {β : Type*}
+
+lemma is_coatom_of_l_top [partial_order α] [order_top α] [partial_order β] [order_top β]
+  {l : α → β} {u : β → α} (gi : galois_coinsertion l u) (hbot : l ⊤ = ⊤) {a : α}
+  (hb : is_coatom (l a)) : is_coatom a :=
+gi.dual.is_atom_of_u_bot hbot hb.dual
+
+lemma is_coatom_iff [partial_order α] [order_top α] [partial_order β] [order_top β] [is_coatomic β]
+  {l : α → β} {u : β → α} (gi : galois_coinsertion l u) (htop : l ⊤ = ⊤)
+  (h_coatom : ∀ b, is_coatom b → l (u b) = b) (b : β) : is_coatom (u b) ↔ is_coatom b :=
+gi.dual.is_atom_iff htop h_coatom b
+
+lemma is_coatom_iff' [partial_order α] [order_top α] [partial_order β] [order_top β] [is_coatomic β]
+  {l : α → β} {u : β → α} (gi : galois_coinsertion l u) (htop : l ⊤ = ⊤)
+  (h_coatom : ∀ b, is_coatom b → l (u b) = b) (a : α) : is_coatom (l a) ↔ is_coatom a :=
+gi.dual.is_atom_iff' htop h_coatom a
+
+lemma is_atom_of_u_bot [partial_order α] [order_bot α] [partial_order β] [order_bot β]
+  {l : α → β} {u : β → α} (gi : galois_coinsertion l u) (hbot : u ⊥ = ⊥) {a : α}
+  (hb : is_atom (l a)) : is_atom a :=
+gi.dual.is_coatom_of_l_top hbot hb.dual
+
+lemma is_atom_iff [partial_order α] [order_bot α]  [partial_order β] [order_bot β] [is_atomic β]
+  {l : α → β} {u : β → α} (gi : galois_coinsertion l u) (hbot : u ⊥ = ⊥)
+  (h_atom : ∀ b, is_atom b → l (u b) = b) (a : α) : is_atom (l a) ↔ is_atom a :=
+gi.dual.is_coatom_iff hbot h_atom a
+
+end galois_coinsertion
+
 namespace order_iso
 
 variables {β : Type*}
@@ -572,14 +655,8 @@ variables {β : Type*}
 @[simp] lemma is_atom_iff [partial_order α] [order_bot α] [partial_order β] [order_bot β]
   (f : α ≃o β) (a : α) :
   is_atom (f a) ↔ is_atom a :=
-and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bot ▸ (congr rfl h)⟩)
-  ⟨λ h b hb, f.injective ((h (f b) ((f : α ↪o β).lt_iff_lt.2 hb)).trans f.map_bot.symm),
-  λ h b hb, f.symm.injective begin
-    rw f.symm.map_bot,
-    apply h,
-    rw [← f.symm_apply_apply a],
-    exact (f.symm : β ↪o α).lt_iff_lt.2 hb,
-  end⟩
+⟨f.to_galois_coinsertion.is_atom_of_u_bot (map_bot f.symm),
+ λ ha, f.to_galois_insertion.is_atom_of_u_bot (map_bot f.symm) $ (f.symm_apply_apply a).symm ▸ ha⟩
 
 @[simp] lemma is_coatom_iff [partial_order α] [order_top α] [partial_order β] [order_top β]
   (f : α ≃o β) (a : α) :

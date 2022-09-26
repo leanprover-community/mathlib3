@@ -103,7 +103,7 @@ instance bourbaki.uniform_space: uniform_space Bourbakiℝ := completion.uniform
 /-- Bourbaki reals packaged as a completion of Q using the general theory. -/
 def Bourbaki_pkg : abstract_completion Q := completion.cpkg
 
-/-- The uniform bijection between Bourbaki and Cauchy reals-/
+/-- The uniform bijection between Bourbaki and Cauchy reals. -/
 noncomputable def compare_equiv : Bourbakiℝ ≃ᵤ ℝ :=
 Bourbaki_pkg.compare_equiv rational_cau_seq_pkg
 

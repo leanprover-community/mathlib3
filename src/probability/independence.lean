@@ -438,20 +438,20 @@ begin
     exact λ i his j hjt, hST i (hs his) j (ht hjt), },
 end
 
-lemma indep_supr_of_monotone [linear_order ι] {α} {m : ι → measurable_space α}
-  {m' m0 : measurable_space α} {μ : measure α} [is_probability_measure μ]
+lemma indep_supr_of_monotone [linear_order ι] {Ω} {m : ι → measurable_space Ω}
+  {m' m0 : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
   (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :
   indep (⨆ i, m i) m' μ :=
 begin
-  let p : ι → set (set α) := λ n, {t | measurable_set[m n] t},
-  have hp : ∀ n, is_pi_system (p n) := λ n, @is_pi_system_measurable_set α (m n),
+  let p : ι → set (set Ω) := λ n, {t | measurable_set[m n] t},
+  have hp : ∀ n, is_pi_system (p n) := λ n, @is_pi_system_measurable_set Ω (m n),
   have h_gen_n : ∀ n, m n = generate_from (p n),
-    from λ n, (@generate_from_measurable_set α (m n)).symm,
+    from λ n, (@generate_from_measurable_set Ω (m n)).symm,
   have hp_mono : ∀ n m, n ≤ m → p n ⊆ p m := λ n m hnm, hm hnm,
   have hp_supr_pi : is_pi_system (⋃ n, p n) := is_pi_system_Union_of_monotone p hp hp_mono,
-  let p' := {t : set α | measurable_set[m'] t},
-  have hp'_pi : is_pi_system p' := @is_pi_system_measurable_set α m',
-  have h_gen' : m' = generate_from p' := (@generate_from_measurable_set α m').symm,
+  let p' := {t : set Ω | measurable_set[m'] t},
+  have hp'_pi : is_pi_system p' := @is_pi_system_measurable_set Ω m',
+  have h_gen' : m' = generate_from p' := (@generate_from_measurable_set Ω m').symm,
   -- the π-systems defined are independent
   have h_indep_n : ∀ n, indep_sets (p n) p' μ,
   { intro n,
@@ -892,7 +892,8 @@ end indep_fun
 
 /-! ### Kolmogorov's 0-1 law
 
-In this section, we prove that any event in the tail σ-algebra has probability 0 or 1.
+Let `s : ι → measurable_space Ω` be an independent sequence of sub-σ-algebras. Then any set which
+is measurable with respect to the tail σ-algebra `limsup at_top s` has probability 0 or 1.
 -/
 
 section lattice
@@ -1000,8 +1001,9 @@ begin
   exact ⟨hι.some, λ a ha, le_supr s a⟩,
 end
 
-/-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra has probability 0 or 1.
-`limsup at_top s` is the same as `⋂ n, ⋃ i ≥ n, s i`. -/
+/-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra of an independent sequence of
+sub-σ-algebras has probability 0 or 1.
+The tail σ-algebra `limsup at_top s` is the same as `⋂ n, ⋃ i ≥ n, s i`. -/
 theorem measure_zero_or_one_of_measurable_set_limsup_at_top
   (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   {t : set Ω} (ht_tail : measurable_set[limsup at_top s] t) :

@@ -88,6 +88,8 @@ theorem map_injective {f : α → β} (Hf : function.injective f) : function.inj
 | none      none      H := rfl
 | (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
 
+@[simp] theorem map_comp_some (f : α → β) : option.map f ∘ some = some ∘ f := rfl
+
 @[ext] theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
 | (some a) o        H := ((H _).1 rfl).symm
@@ -179,11 +181,20 @@ by { cases x; simp only [map_none, map_some, eq_self_iff_true] }
   x.map f = none ↔ x = none :=
 by { cases x; simp only [map_none', map_some', eq_self_iff_true] }
 
+/-- `option.map` as a function between functions is injective. -/
+theorem map_injective' : function.injective (@option.map α β) :=
+λ f g h, funext $ λ x, some_injective _ $ by simp only [← map_some', h]
+
+@[simp] theorem map_inj {f g : α → β} : option.map f = option.map g ↔ f = g :=
+map_injective'.eq_iff
+
 lemma map_congr {f g : α → β} {x : option α} (h : ∀ a ∈ x, f a = g a) :
   option.map f x = option.map g x :=
 by { cases x; simp only [map_none', map_some', h, mem_def] }
 
-@[simp] theorem map_id' : option.map (@id α) = id := map_id
+attribute [simp] map_id
+
+@[simp] theorem map_eq_id {f : α → α} : option.map f = id ↔ f = id := map_injective'.eq_iff' map_id
 
 @[simp] lemma map_map (h : β → γ) (g : α → β) (x : option α) :
   option.map h (option.map g x) = option.map (h ∘ g) x :=

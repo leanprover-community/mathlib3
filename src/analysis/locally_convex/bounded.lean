@@ -285,15 +285,7 @@ end
 
 lemma image_is_vonN_bounded_iff (f : E' → E) (s : set E') :
   bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∃ r : ℝ, ∀ (x : E') (hx : x ∈ s), ∥f x∥ ≤ r :=
-begin
-  rw normed_space.is_vonN_bounded_iff',
-  split; rintro ⟨r, h⟩; use r; intros x hx,
-  { exact h (f x) (mem_image_of_mem f hx) },
-  rw set.mem_image at hx,
-  rcases hx with ⟨y, hy, hx⟩,
-  rw ←hx,
-  exact h y hy,
-end
+by simp_rw [is_vonN_bounded_iff', set.ball_image_iff]
 
 /-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the
 metric bornology. -/

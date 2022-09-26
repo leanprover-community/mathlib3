@@ -69,7 +69,7 @@ open order_dual (of_dual to_dual)
 
 /-- The galois coinsertion between sets and opens. -/
 def gi : galois_coinsertion subtype.val (@interior α _) :=
-{ choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
+{ choice := λ s hs, ⟨s, interior_eq_iff_is_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc,
   u_l_le := λ _, interior_subset,
   choice_eq := λ s hs, le_antisymm hs interior_subset }

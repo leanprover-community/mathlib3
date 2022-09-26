@@ -274,9 +274,7 @@ begin
     (⋃ (f : polynomial ℤ)
        (hf : f.nat_degree ≤ finrank ℚ K ∧ ∀ i, |f.coeff i| ≤ C),
        ((f.map (algebra_map ℤ K)).roots.to_finset : set K)).finite,
-  { refine this.subset _,
-    clear this,
-    intros x hx,
+  { refine this.subset (λ x hx, _),
     have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
     have h_same_deg_minpoly : (minpoly ℚ x).nat_degree = (minpoly ℤ x).nat_degree,
     { rw h_map_rat_minpoly, convert nat_degree_map_eq_of_injective _ _,

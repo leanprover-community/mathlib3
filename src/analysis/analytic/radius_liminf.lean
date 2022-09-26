@@ -36,7 +36,7 @@ begin
     conv_lhs {rw [one_div, ennreal.le_inv_iff_mul_le, ← ennreal.coe_mul,
       ennreal.coe_le_one_iff, one_div, ← nnreal.rpow_one r, ← mul_inv_cancel this.ne',
       nnreal.rpow_mul, ← nnreal.mul_rpow, ← nnreal.one_rpow (n⁻¹),
-      nnreal.rpow_le_rpow_iff (inv_pos.2 this), mul_comm, nnreal.rpow_nat_cast] } },
+      nnreal.rpow_le_rpow_iff_of_pos (inv_pos.2 this), mul_comm, nnreal.rpow_nat_cast] } },
   apply le_antisymm; refine ennreal.le_of_forall_nnreal_lt (λ r hr, _),
   { rcases ((tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 1 7).1 (p.is_o_of_lt_radius hr)
       with ⟨a, ha, H⟩,

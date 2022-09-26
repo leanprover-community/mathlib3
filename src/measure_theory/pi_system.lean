@@ -125,7 +125,7 @@ begin
   exact ⟨k, hp_pi k t1 (hpnk ht1) t2 (hpmk ht2) h⟩,
 end
 
-lemma is_pi_system_Union_of_monotone {α ι} [linear_order ι] (p : ι → set (set α))
+lemma is_pi_system_Union_of_monotone {α ι} [semilattice_sup ι] (p : ι → set (set α))
   (hp_pi : ∀ n, is_pi_system (p n)) (hp_mono : monotone p) :
   is_pi_system (⋃ n, p n) :=
 is_pi_system_Union_of_directed_le p hp_pi (monotone.directed_le hp_mono)

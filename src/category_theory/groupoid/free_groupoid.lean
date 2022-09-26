@@ -170,18 +170,14 @@ variables {V' : Type u'} [groupoid V'] (φ : prefunctor V V')
 
 /-- The lift of a prefunctor to a groupoid, to a functor from `free_groupoid V` -/
 def lift (φ : prefunctor V V') : free_groupoid V ⥤ V' :=
-begin
-  dsimp only [free_groupoid],
-  fapply quotient.lift,
-  { fapply paths.lift,
-    fapply quiver.symmetrify.lift,
-    exact φ, },
-  { rintros X Y f₀ f₁ ⟨rfl,Z,c,h₁,h₂⟩,
-    simp only at h₁ h₂,
-    subst_vars,
-    simp only [functor.map_id, functor.map_comp, paths.lift_to_path,quiver.symmetrify.lift_reverse],
-    symmetry, apply groupoid.comp_inv, }
-end
+quotient.lift _
+  (paths.lift $ quiver.symmetrify.lift φ)
+  (by
+    { rintros X Y f₀ f₁ ⟨rfl,Z,c,h₁,h₂⟩,
+      simp only at h₁ h₂,
+      subst_vars,
+      simp only [functor.map_id, functor.map_comp, paths.lift_to_path,quiver.symmetrify.lift_reverse],
+      symmetry, apply groupoid.comp_inv, })
 
 lemma lift_spec (φ : prefunctor V V') : of.comp (lift φ).to_prefunctor = φ :=
 begin
@@ -198,11 +194,11 @@ begin
   apply quiver.symmetrify.lift_spec_unique,
   { rw ←functor.to_prefunctor_comp, exact hΦ, },
   { rintros X Y f,
-    rw [←functor.to_prefunctor_comp,prefunctor.comp_map, prefunctor.comp_map, paths.of_map],
+    simp [←functor.to_prefunctor_comp,prefunctor.comp_map, paths.of_map, inv_eq_inv],
     change Φ.map (inv ((quotient.functor red_step).to_prefunctor.map f.to_path)) =
-    inv (Φ.map ((quotient.functor red_step).to_prefunctor.map f.to_path)),
-    convert functor.map_inv Φ ((quotient.functor red_step).to_prefunctor.map f.to_path);
-    simp only [inv_eq_inv], }
+           inv (Φ.map ((quotient.functor red_step).to_prefunctor.map f.to_path)),
+    have := functor.map_inv Φ ((quotient.functor red_step).to_prefunctor.map f.to_path),
+    convert this; simp only [inv_eq_inv], },
 end
 
 end universal_property

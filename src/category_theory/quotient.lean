@@ -140,7 +140,7 @@ end
 lemma lift_spec_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
 begin
   subst_vars,
-  apply functor.hext, --rotate,
+  apply functor.hext,
   { rintro X, dsimp [lift, functor], congr, ext, refl, },
   { rintro X Y f,
     dsimp [lift, functor],

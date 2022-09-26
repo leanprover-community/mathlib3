@@ -890,30 +890,6 @@ Let `s : ι → measurable_space Ω` be an independent sequence of sub-σ-algebr
 is measurable with respect to the tail σ-algebra `limsup at_top s` has probability 0 or 1.
 -/
 
-section lattice
-
-lemma supr_eq_supr_supr_lt {α ι : Type*} [complete_lattice α] [preorder ι] [no_max_order ι]
-  (s : ι → α) :
-  (⨆ n, s n) = ⨆ n, ⨆ i < n, s i :=
-begin
-  refine le_antisymm (supr_le (λ i, _)) (supr_le (λ i, supr₂_le_supr (λ n, n < i) (λ n, s n))),
-  obtain ⟨n, hin⟩ : ∃ n, i < n := exists_gt i,
-  exact (le_supr₂ i hin).trans (le_supr (λ i, (⨆ j < i, s j)) n),
-end
-
-lemma supr_eq_supr_supr_gt {α ι : Type*} [complete_lattice α] [preorder ι] [no_min_order ι]
-  (s : ι → α) :
-  (⨆ n, s n) = ⨆ n, ⨆ i (hi : n < i), s i :=
-begin
-  refine le_antisymm (supr_le (λ i, _)) (supr_le (λ i, supr₂_le_supr (λ n, i < n) (λ n, s n))),
-  obtain ⟨n, hin⟩ : ∃ n, n < i := exists_lt i,
-  refine (le_supr₂ i hin).trans _,
-  rw le_supr_iff,
-  exact λ j h, h _,
-end
-
-end lattice
-
 section zero_one_law
 
 variables {m m0 : measurable_space Ω} {μ : measure Ω}

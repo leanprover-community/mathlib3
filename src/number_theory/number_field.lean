@@ -201,7 +201,7 @@ open set polynomial
 
 /-- Let `A` an algebraically closed field and let `x ∈ K`, with `K` a number field. For `F`,
 subfield of `K`, the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
-the roots in `A` of the minimal polynomial of `x` over `F` -/
+the roots in `A` of the minimal polynomial of `x` over `F`. -/
 lemma range_eq_roots (F K A : Type*) [field F] [number_field F] [field K] [number_field K]
   [field A] [is_alg_closed A] [algebra F K] [algebra F A] (x : K) :
   range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
@@ -240,7 +240,7 @@ variables (K A : Type*) [field K] [number_field K] [field A] [char_zero A] [is_a
 
 /-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K` a number field.
 The images of `x` by the embeddings of `K` in `A` are exactly the roots in `A` of
-the minimal polynomial of `x` over `ℚ` -/
+the minimal polynomial of `x` over `ℚ`. -/
 lemma rat_range_eq_roots : range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
 begin
   convert range_eq_roots ℚ K A x using 1,
@@ -257,18 +257,52 @@ open finite_dimensional polynomial set
 variables (K : Type*) [field K] [number_field K]
 variables (A : Type*) [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
 
-lemma finite_of_norm_le (B : ℝ) :
-  {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
+lemma bdd_coeff_of_norm_le (B : ℝ) :
+  ∃ (C : ℤ), ∀ x : K, (∀ φ : K →+* A, ∥φ x∥ ≤ B) → ∀ i, |(minpoly ℚ x).coeff i| ≤ C :=
 begin
-  classical,
   let S := finset.bUnion
     (finset.product (finset.range (finrank ℚ K + 1)) (finset.range (finrank ℚ K + 1)))
     (λ x, ( { B ^ (x.1 - x.2) * (x.1.choose x.2) } : finset ℝ)),
   let C := nat.ceil (S.max' _),
-  swap,
+  use C,
+  intros x hφ,
+  have hx : is_integral ℚ x := is_separable.is_integral _ _,
+  have h_roots_bdd_minpoly : ∀ z ∈ (map (algebra_map ℚ A) (minpoly ℚ x)).roots, ∥z∥ ≤ B,
+  { intros z hz,
+    rsuffices ⟨φ, rfl⟩ : ∃ (φ : K →+* A), φ x = z, {exact hφ φ },
+    letI : char_zero A := char_zero_of_injective_algebra_map ((algebra_map ℚ _).injective),
+    rw [← set.mem_range, rat_range_eq_roots, mem_root_set_iff, aeval_def],
+    convert (mem_roots_map _).mp hz,
+    repeat { exact monic.ne_zero (minpoly.monic hx), }},
+  have h_bdd_degree : (minpoly ℚ x).nat_degree ≤ finrank ℚ K,
+  { refine le_of_eq_of_le (intermediate_field.adjoin.finrank hx).symm _,
+    exact ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le, },
+  intro i,
+  by_cases hi : i < finrank ℚ K + 1,
+  { suffices : B ^ ((minpoly ℚ x).nat_degree - i) * ((minpoly ℚ x).nat_degree.choose i) ≤ C,
+    { rw ← @rat.cast_le ℝ,
+      apply le_trans _ this,
+      convert coeff_le_of_roots_le i _ _ h_roots_bdd_minpoly using 1,
+      { rw [rat.cast_abs, coeff_map, norm_algebra_map', ← rat.norm_cast_real, real.norm_eq_abs], },
+      exacts [minpoly.monic hx, is_alg_closed.splits_codomain _], },
+    { apply le_trans _ (nat.le_ceil (S.max' _)),
+      refine finset.le_max' S _ _,
+      exact finset.mem_bUnion.mpr ⟨⟨(minpoly ℚ x).nat_degree, i⟩, finset.mem_product.mpr
+        ⟨finset.mem_range_succ_iff.mpr h_bdd_degree, finset.mem_range.mpr hi⟩,
+          finset.mem_singleton.mpr rfl⟩, }},
+  { rw [coeff_eq_zero_of_nat_degree_lt, _root_.abs_zero],
+    exact nat.cast_nonneg _, linarith, },
   { exact finset.bUnion_nonempty.mpr
     ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
       finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
+end
+
+/-- Let `B` be a real number. The number of algebraic integers in `K` whose all conjugates
+are smaller in norm than `B` is finite. -/
+lemma finite_of_norm_le (B : ℝ) :
+  {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
+begin
+  obtain ⟨C, h⟩ := bdd_coeff_of_norm_le K A B,
   suffices :
     (⋃ (f : polynomial ℤ)
        (hf : f.nat_degree ≤ finrank ℚ K ∧ ∀ i, |f.coeff i| ≤ C),
@@ -282,38 +316,15 @@ begin
     { refine le_of_eq_of_le
         (intermediate_field.adjoin.finrank (is_integral_of_is_scalar_tower _ hx.1)).symm _,
       exact ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le, },
-    have h_roots_bdd_minpoly : ∀ z ∈ (map (algebra_map ℚ A) (minpoly ℚ x)).roots, ∥z∥ ≤ B,
-    { intros z hz,
-      suffices : ∃ (φ : K →+* A), φ x = z,
-      { obtain ⟨φ, rfl⟩ := this, exact (hx.2 φ), },
-      letI : char_zero A := char_zero_of_injective_algebra_map ((algebra_map ℚ _).injective),
-      rw [← set.mem_range, rat_range_eq_roots, mem_root_set_iff, aeval_def],
-      convert (mem_roots_map _).mp hz,
-      repeat { exact monic.ne_zero (minpoly.monic (is_integral_of_is_scalar_tower _ hx.1)), }},
     rw mem_Union,
     use minpoly ℤ x,
     rw [mem_Union, exists_prop, finset.mem_coe, multiset.mem_to_finset],
     refine ⟨⟨_, _⟩, _⟩,
-    { rw ← h_same_deg_minpoly,
-      exact h_bdd_degree, },
+    { rwa ← h_same_deg_minpoly, },
     { intro i,
-      by_cases hi : i < finrank ℚ K + 1,
-      { suffices : B ^ ((minpoly ℚ x).nat_degree - i) * ((minpoly ℚ x).nat_degree.choose i) ≤ C,
-        { rw ← @int.cast_le ℝ _ _ _ _,
-          apply le_trans _ this,
-          convert coeff_le_of_roots_le i _ _ h_roots_bdd_minpoly using 1,
-          { simp_rw [h_map_rat_minpoly, coeff_map, norm_algebra_map', eq_int_cast,
-              int.norm_cast_rat, int.norm_eq_abs], norm_cast, },
-          exacts [minpoly.monic (is_integral_of_is_scalar_tower _ hx.1),
-            is_alg_closed.splits_codomain _], },
-        { apply le_trans _ (nat.le_ceil (S.max' _)),
-          refine finset.le_max' S _ _,
-          exact finset.mem_bUnion.mpr ⟨⟨(minpoly ℚ x).nat_degree, i⟩,
-            finset.mem_product.mpr
-            ⟨finset.mem_range_succ_iff.mpr h_bdd_degree, finset.mem_range.mpr hi⟩,
-            finset.mem_singleton.mpr rfl⟩, }},
-      { rw [coeff_eq_zero_of_nat_degree_lt, _root_.abs_zero],
-        exact nat.cast_nonneg _, linarith, }},
+      rw ← @int.cast_le ℚ,
+      convert h x hx.2 i,
+      simp only [h_map_rat_minpoly, int.cast_abs, coeff_map, eq_int_cast], },
     { rw [mem_roots, is_root.def, ← eval₂_eq_eval_map, ← aeval_def],
       { exact minpoly.aeval ℤ x, },
       { exact monic.ne_zero (monic.map (algebra_map ℤ K) (minpoly.monic hx.1)), }}},
@@ -338,6 +349,7 @@ begin
     { exact λ p _, polynomial.root_set_finite p K }},
 end
 
+/-- An algebraic integer whose conjugates are all of norm one is a root of unity. -/
 lemma pow_eq_one_of_norm_eq_one {x : K}
   (hxi : is_integral ℤ x)  (hx : ∀ φ : K →+* A, ∥φ x∥ = 1) :
   ∃ (n : ℕ) (hn : 0 < n), x ^ n = 1 :=

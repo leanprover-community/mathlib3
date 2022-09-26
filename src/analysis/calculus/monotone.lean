@@ -207,7 +207,7 @@ begin
   filter_upwards [hf.stieltjes_function.has_deriv_at,
     hf.countable_not_continuous_at.ae_not_mem volume] with x hx h'x,
   have A : hf.stieltjes_function x = f x,
-  { rw [not_not, ← hf.left_lim_eq_right_lim_iff_continuous_at] at h'x,
+  { rw [not_not, hf.continuous_at_iff_left_lim_eq_right_lim] at h'x,
     apply le_antisymm _ (hf.le_right_lim (le_refl _)),
     rw ← h'x,
     exact hf.left_lim_le (le_refl _) },

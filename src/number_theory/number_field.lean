@@ -335,9 +335,9 @@ begin
       by_cases n < finrank ℚ K + 1,
       { simpa using congr_fun hxy ⟨n, h⟩, },
       { rw [coeff_eq_zero_of_nat_degree_lt, coeff_eq_zero_of_nat_degree_lt],
-        { rcases hy with ⟨ _, _⟩, linarith, },
-        { rcases hx with ⟨ _, _⟩, linarith, }}},
-    { exact λ p _, polynomial.root_set_finite p K, }},
+        { rcases hy with ⟨ _, _⟩, linarith },
+        { rcases hx with ⟨ _, _⟩, linarith }}},
+    { exact λ p _, polynomial.root_set_finite p K }},
 end
 
 lemma pow_eq_one_of_norm_eq_one {x : K}

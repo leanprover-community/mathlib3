@@ -273,15 +273,7 @@ end
 
 lemma is_vonN_bounded_iff' (s : set E) :
   bornology.is_vonN_bounded 𝕜 s ↔ ∃ r : ℝ, ∀ (x : E) (hx : x ∈ s), ∥x∥ ≤ r :=
-begin
-  rw [normed_space.is_vonN_bounded_iff, ←metric.bounded_iff_is_bounded,
-    metric.bounded_iff_subset_ball (0 : E)],
-  split; rintro ⟨r, h⟩; use r; intros x hx,
-  { specialize h hx,
-    rwa mem_closed_ball_zero_iff at h },
-  rw mem_closed_ball_zero_iff,
-  exact h x hx,
-end
+by rw [normed_space.is_vonN_bounded_iff, ←metric.bounded_iff_is_bounded, bounded_iff_forall_norm_le]
 
 lemma image_is_vonN_bounded_iff (f : E' → E) (s : set E') :
   bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∃ r : ℝ, ∀ (x : E') (hx : x ∈ s), ∥f x∥ ≤ r :=

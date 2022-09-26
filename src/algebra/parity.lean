@@ -3,12 +3,7 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-
-import algebra.ring.basic
-import algebra.algebra.basic
-import algebra.group_power.basic
-import algebra.field_power
-import algebra.opposites
+import algebra.associated
 
 /-!  # Squares, even and odd elements
 

@@ -259,6 +259,8 @@ end
 -- `p → q → r ↔ q → p → r`
 lemma himp_left_comm (a b c : α) : a ⇨ b ⇨ c = b ⇨ a ⇨ c := by simp_rw [himp_himp, inf_comm]
 
+@[simp] lemma himp_idem : b ⇨ b ⇨ a = b ⇨ a := by rw [himp_himp, inf_idem]
+
 lemma himp_inf_distrib (a b c : α) : a ⇨ b ⊓ c = (a ⇨ b) ⊓ (a ⇨ c) :=
 eq_of_forall_le_iff $ λ d, by simp_rw [le_himp_iff, le_inf_iff, le_himp_iff]
 

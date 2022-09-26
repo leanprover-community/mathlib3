@@ -193,8 +193,6 @@ begin
     refine hpn ⟨c, _⟩,
     rwa [pow_succ', mul_assoc] }
 end
-
-
 lemma int.pow_add_pow {x y : ℤ} (hxy : ↑p ∣ x + y) (hx : ¬↑p ∣ x) {n : ℕ} (hn : odd n) :
   multiplicity ↑p (x ^ n + y ^ n) = multiplicity ↑p (x + y) + multiplicity p n :=
 begin

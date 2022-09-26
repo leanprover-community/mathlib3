@@ -54,7 +54,8 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
   map := λ U V i, if h : p₀ ∈ unop V
     then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
     else ((if_neg h).symm.rec terminal_is_terminal).from _,
-  map_id' := λ U, ⟨eq_to_hom_refl, ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _⟩
+  map_id' := λ U, (em (p₀ ∈ U.unop)).elim (λ h, dif_pos h)
+    (λ h, ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _),
   map_comp' := λ U V W iVU iWV,
   begin
     by_cases hW : p₀ ∈ unop W,
@@ -106,7 +107,6 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes
 /--
 If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is `A`.
 -/
-@[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_specializes [has_colimits C]
   {y : X} (h : p₀ ⤳ y) : (skyscraper_presheaf p₀ A).stalk y ≅ A :=
 colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_specializes p₀ A h⟩
@@ -147,7 +147,6 @@ let h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
 If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is isomorphic to a
 terminal object.
 -/
-@[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_not_specializes [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : (skyscraper_presheaf p₀ A).stalk y ≅ terminal C :=
 colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_not_specializes _ A h⟩

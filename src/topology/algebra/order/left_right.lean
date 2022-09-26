@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import topology.continuous_on
-import topology.algebra.order.basic
 
 /-!
 # Left and right continuity

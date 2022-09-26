@@ -587,7 +587,7 @@ quotient.induction_on q $ λ q',
 
 open classical
 
-private lemma div_nat_pos (n : ℕ) : 0 < (1 / ((n + 1): ℚ)) :=
+private lemma div_nat_pos (n : ℕ) : 0 < 1 / (n + 1 : ℚ) :=
 div_pos zero_lt_one (by exact_mod_cast succ_pos _)
 
 /-- `lim_seq f`, for `f` a Cauchy sequence of `p`-adic numbers, is a sequence of rationals with the

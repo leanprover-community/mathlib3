@@ -66,7 +66,7 @@ variables {p : ℕ}
 /-- `padic_val_nat p 1` is `0` for any `p`. -/
 @[simp] protected lemma one : padic_val_nat p 1 = 0 := by { unfold padic_val_nat, split_ifs, simp }
 
-/-- For `p ≠ 0`, `p ≠ 1`, `padic_val_rat p p` is `1`. -/
+/-- If `p ≠ 0` and `p ≠ 1`, then `padic_val_rat p p` is `1`. -/
 @[simp] lemma self (hp : 1 < p) : padic_val_nat p p = 1 :=
 begin
   have neq_one : (¬ p = 1) ↔ true,
@@ -108,7 +108,7 @@ end
 /-- The `p`-adic value of a natural is its `p`-adic value as an integer. -/
 @[simp] lemma of_nat {n : ℕ} : padic_val_int p n = padic_val_nat p n := by simp [padic_val_int]
 
-/-- For `p ≠ 0`, `p ≠ 1`, `padic_val_int p p` is `1`. -/
+/-- If `p ≠ 0` and `p ≠ 1`, then `padic_val_int p p` is `1`. -/
 lemma self (hp : 1 < p) : padic_val_int p p = 1 := by simp [padic_val_nat.self hp]
 
 lemma eq_zero_of_not_dvd {z : ℤ} (h : ¬ (p : ℤ) ∣ z) : padic_val_int p z = 0 :=
@@ -160,7 +160,7 @@ end
 /-- The `p`-adic value of an integer `z ≠ 0` is its `p`-adic value as a rational. -/
 @[simp] lemma of_nat {n : ℕ} : padic_val_rat p n = padic_val_nat p n := by simp [padic_val_rat]
 
-/-- For `p ≠ 0`, `p ≠ 1`, `padic_val_rat p p` is `1`. -/
+/-- If `p ≠ 0` and `p ≠ 1`, then `padic_val_rat p p` is `1`. -/
 lemma self (hp : 1 < p) : padic_val_rat p p = 1 := by simp [hp]
 
 end padic_val_rat

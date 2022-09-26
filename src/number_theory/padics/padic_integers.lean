@@ -68,7 +68,7 @@ lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext
 
 variables (p)
 
-/-- The `p`-adic integers as a subring of the `p`-adics. -/
+/-- The `p`-adic integers as a subring of `ℚ_[p]`. -/
 def subring : subring (ℚ_[p]) :=
 { carrier := {x : ℚ_[p] | ∥x∥ ≤ 1},
   zero_mem' := by norm_num,
@@ -131,7 +131,7 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p] := (subring p).subtype
 /-- The inverse of a `p`-adic integer with norm equal to `1` is also a `p`-adic integer.
 Otherwise, the inverse is defined to be `0`. -/
 def inv : ℤ_[p] → ℤ_[p]
-| ⟨k, _⟩ := if h : ∥k∥ = 1 then ⟨1 / k, by simp [h]⟩ else 0
+| ⟨k, _⟩ := if h : ∥k∥ = 1 then ⟨k⁻¹, by simp [h]⟩ else 0
 
 instance : char_zero ℤ_[p] :=
 { cast_injective :=

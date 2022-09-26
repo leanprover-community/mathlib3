@@ -67,16 +67,16 @@ else
 /-- The `p`-adic norm of `1` is `1`. -/
 @[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
 
-/-- The `p`-adic norm of `p` is `1/p` if `p > 1`.
+/-- The `p`-adic norm of `p` is `p⁻¹` if `p > 1`.
 
 See also `padic_norm.padic_norm_p_of_prime` for a version assuming `p` is prime. -/
-lemma padic_norm_p (hp : 1 < p) : padic_norm p p = 1 / p :=
+lemma padic_norm_p (hp : 1 < p) : padic_norm p p = p⁻¹ :=
 by simp [padic_norm, (pos_of_gt hp).ne', padic_val_nat.self hp]
 
-/-- The `p`-adic norm of `p` is `1/p` if `p` is prime.
+/-- The `p`-adic norm of `p` is `p⁻¹` if `p` is prime.
 
 See also `padic_norm.padic_norm_p` for a version assuming `1 < p`. -/
-@[simp] lemma padic_norm_p_of_prime [fact p.prime] : padic_norm p p = 1 / p :=
+@[simp] lemma padic_norm_p_of_prime [fact p.prime] : padic_norm p p = p⁻¹ :=
 padic_norm_p $ nat.prime.one_lt (fact.out _)
 
 /-- The `p`-adic norm of `q` is `1` if `q` is prime and not equal to `p`. -/
@@ -93,9 +93,8 @@ end
 See also `padic_norm.padic_norm_p_lt_one_of_prime` for a version assuming `p` is prime. -/
 lemma padic_norm_p_lt_one (hp : 1 < p) : padic_norm p p < 1 :=
 begin
-  rw [padic_norm_p hp, div_lt_iff, one_mul],
-  { exact_mod_cast hp },
-  { exact_mod_cast zero_lt_one.trans hp },
+  rw [padic_norm_p hp, inv_lt_one_iff],
+  exact_mod_cast (or.inr hp)
 end
 
 /-- The `p`-adic norm of `p` is less than `1` if `p` is prime.

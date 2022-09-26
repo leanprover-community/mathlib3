@@ -1914,6 +1914,9 @@ by simp_rw [set.subsingleton, set.nontrivial, not_forall]
 @[simp] lemma not_nontrivial_iff : ¬ s.nontrivial ↔ s.subsingleton :=
 iff.not_left not_subsingleton_iff.symm
 
+alias not_nontrivial_iff ↔ _ subsingleton.not_nontrivial
+alias not_subsingleton_iff ↔ _ nontrivial.not_subsingleton
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 

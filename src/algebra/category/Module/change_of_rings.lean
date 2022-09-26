@@ -224,7 +224,7 @@ instance : has_coe_to_fun (obj' f M) (λ g, S → M) :=
 @[simps] def map' {M M' : Module R} (g : M ⟶ M') : obj' f M ⟶ obj' f M' :=
 { to_fun := λ h, g.comp h,
   map_add' := λ _ _, linear_map.comp_add _ _ _,
-  map_smul' := λ s h, linear_map.ext $ λ (t : S), by simpa only [smul_apply] }
+  map_smul' := λ s h, linear_map.ext $ λ (t : S), by simpa only [smul_apply'] }
 
 end coextend_scalars
 

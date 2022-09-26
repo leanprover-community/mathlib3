@@ -465,10 +465,7 @@ begin
     simpa only [hiS, finset.coe_singleton, set.singleton_subset_iff, finset.mem_singleton,
       eq_self_iff_true, and_self, csupr_pos] using hm', },
   { simp only [hiS, supr_false, supr₂_eq_bot, and_imp],
-    intros t htS hit,
-    suffices hiS' : i ∈ S, from absurd hiS' hiS,
-    rw ← finset.mem_coe at hit,
-    exact htS hit, },
+    exact λ t htS hit, absurd (htS hit) hiS, },
 end
 
 end Union_Inter

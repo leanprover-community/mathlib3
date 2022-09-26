@@ -345,19 +345,23 @@ end
 
 variables {m0 : measurable_space Ω} {μ : measure Ω}
 
+-- todo move
 @[to_additive] lemma prod_ite_mem {α ι} [decidable_eq ι] [comm_monoid α]
   (s t : finset ι) (f : ι → α) :
   ∏ i in s, ite (i ∈ t) (f i) 1 = ∏ i in (s ∩ t), f i :=
 by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
 
+-- todo move
 lemma mem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
   x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
 by split_ifs; simp [h]
 
+-- todo move
 lemma mem_ite_univ_left {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
   x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
 by split_ifs; simp [h]
 
+-- todo rename (and move?)
 lemma aux_t1_inter_t2 {α} (p1 p2 : ι → Prop) [decidable_pred p1] [decidable_pred p2]
   (f1 f2 : ι → set α) :
   ((⋂ i (hi : p1 i), f1 i) ∩ ⋂ i (hi : p2 i), f2 i)
@@ -370,8 +374,8 @@ begin
 end
 
 lemma indep_sets_pi_Union_Inter_of_disjoint [decidable_eq ι] [is_probability_measure μ]
-  {s : ι → set (set Ω)}
-  (h_indep : Indep_sets s μ) {S T : set (finset ι)} (hST : ∀ u v, u ∈ S → v ∈ T → disjoint u v) :
+  {s : ι → set (set Ω)} {S T : set (finset ι)}
+  (h_indep : Indep_sets s μ) (hST : ∀ u v, u ∈ S → v ∈ T → disjoint u v) :
   indep_sets (pi_Union_Inter s S) (pi_Union_Inter s T) μ :=
 begin
   rintros t1 t2 ⟨p1, hp1, f1, ht1_m, ht1_eq⟩ ⟨p2, hp2, f2, ht2_m, ht2_eq⟩,
@@ -406,15 +410,9 @@ lemma indep_supr_of_disjoint [is_probability_measure μ] {m : ι → measurable_
   (h_le : ∀ i, m i ≤ m0) (h_indep : Indep m μ) {S T : set ι} (hST : disjoint S T) :
   indep (⨆ i ∈ S, m i) (⨆ i ∈ T, m i) μ :=
 begin
-  have hS : generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) {t : finset ι| ↑t ⊆ S})
-    = ⨆ i ∈ S, m i := generate_from_pi_Union_Inter_subsets m S,
-  have hT : generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) {t : finset ι| ↑t ⊆ T})
-    = ⨆ i ∈ T, m i := generate_from_pi_Union_Inter_subsets m T,
-  refine indep_sets.indep _ _ _ _ hS.symm hT.symm _,
-  { rw supr₂_le_iff,
-    exact λ i _, h_le i, },
-  { rw supr₂_le_iff,
-    exact λ i _, h_le i, },
+  refine indep_sets.indep (supr₂_le (λ i _, h_le i)) (supr₂_le (λ i _, h_le i)) _ _
+    (generate_from_pi_Union_Inter_subsets m S).symm
+    (generate_from_pi_Union_Inter_subsets m T).symm _,
   { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,
     intros s t hs ht,
     simp only [finset.sup_eq_union, set.mem_set_of_eq, finset.coe_union, set.union_subset_iff],
@@ -426,8 +424,7 @@ begin
   { classical,
     refine indep_sets_pi_Union_Inter_of_disjoint h_indep (λ s t hs ht, _),
     rw finset.disjoint_iff_ne,
-    rw set.disjoint_iff_forall_ne at hST,
-    exact λ i his j hjt, hST i (hs his) j (ht hjt), },
+    exact λ i his j hjt, set.disjoint_iff_forall_ne.mp hST i (hs his) j (ht hjt), },
 end
 
 lemma indep_supr_of_monotone [linear_order ι] {Ω} {m : ι → measurable_space Ω}
@@ -445,16 +442,13 @@ begin
   have hp'_pi : is_pi_system p' := @is_pi_system_measurable_set Ω m',
   have h_gen' : m' = generate_from p' := (@generate_from_measurable_set Ω m').symm,
   -- the π-systems defined are independent
-  have h_indep_n : ∀ n, indep_sets (p n) p' μ,
-  { intro n,
-    specialize h_indep n,
-    rw [h_gen_n n, h_gen'] at h_indep,
-    exact indep.indep_sets h_indep, },
-  have h_pi_system_indep : indep_sets (⋃ n, p n) p' μ, from indep_sets.Union h_indep_n,
+  have h_pi_system_indep : indep_sets (⋃ n, p n) p' μ,
+  { refine indep_sets.Union _,
+    simp_rw [h_gen_n, h_gen'] at h_indep,
+    exact λ n, (h_indep n).indep_sets, },
   -- now go from π-systems to σ-algebras
-  refine indep_sets.indep (supr_le h_le) h_le' hp_supr_pi hp'_pi
-    _ h_gen' h_pi_system_indep,
-  rw generate_from_Union_measurable_set,
+  refine indep_sets.indep (supr_le h_le) h_le' hp_supr_pi hp'_pi _ h_gen' h_pi_system_indep,
+  exact (generate_from_Union_measurable_set _).symm,
 end
 
 lemma Indep_sets.pi_Union_Inter_singleton {π : ι → set (set Ω)} {a : ι} {S : finset ι}

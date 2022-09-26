@@ -71,6 +71,105 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
     { rw [dif_neg hW], apply ((if_neg hW).symm.rec terminal_is_terminal).hom_ext }
   end }
 
+section
+
+instance (U : opens $ Top.of punit) : decidable $ punit.star ∈ U :=
+classical.dec _
+
+lemma opens_on_single_point_eq_of_mem {U V : opens $ Top.of punit}
+  (m1 : punit.star ∈ U) (m2 : punit.star ∈ V) : U = V :=
+by { ext, rcases x, split, exact λ _, m2, exact λ _, m1, }
+
+@[simps] def presheaf_on_single_point :
+  presheaf C (Top.of punit) :=
+{ obj := λ U, if punit.star ∈ U.unop then A else (terminal C),
+  map := λ U V i, if h : punit.star ∈ V.unop
+    then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
+    else ((if_neg h).symm.rec terminal_is_terminal).from _,
+  map_id' := λ U,
+  begin
+    split_ifs,
+    { apply eq_to_hom_refl },
+    { exact ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _ },
+  end,
+  map_comp' := λ U V W iVU iWV,
+  begin
+    by_cases hW : punit.star ∈ unop W,
+    { have hV : punit.star ∈ unop V := le_of_hom iWV.unop hW,
+      simp only [dif_pos hW, dif_pos hV, eq_to_hom_trans] },
+    { rw [dif_neg hW], apply ((if_neg hW).symm.rec terminal_is_terminal).hom_ext }
+  end }
+
+lemma presheaf_on_single_point_is_sheaf : (presheaf_on_single_point A).is_sheaf :=
+(presheaf.is_sheaf_iff_is_sheaf_opens_le_cover _).mpr $ λ ι U, nonempty.intro $
+{ lift := λ s, (if h : punit.star ∈ supr U
+    then s.π.app (op ⟨U (opens.mem_supr.mp h).some, ⟨_, le_refl _⟩⟩) ≫
+      eq_to_hom (by { dsimp, rw [if_pos h, if_pos (opens.mem_supr.mp h).some_spec] })
+    else ((if_neg h).symm.rec terminal_is_terminal).from _ :
+      s.X ⟶ if punit.star ∈ supr U then A else terminal C),
+  fac' := λ s V,
+  begin
+    dsimp, split_ifs,
+    { have : punit.star ∈ supr U := V.unop.2.some_spec.trans (le_supr _ _) h,
+      split_ifs, rw [category.assoc, eq_to_hom_trans, ←s.w (_ : _ ⟶ V)], swap,
+      exact op ⟨U (opens.mem_supr.mp this).some, ⟨_, le_refl _⟩⟩, swap,
+      { refine (quiver.hom.op (hom_of_le (V.unop.2.some_spec.trans _)) : op _ ⟶ op V.unop),
+        convert le_refl _ using 1,
+        exact opens_on_single_point_eq_of_mem (opens.mem_supr.mp this).some_spec
+          (V.unop.2.some_spec h) },
+      congr' 1, dsimp, split_ifs; refl, },
+    { exact ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _ },
+  end,
+  uniq' := λ s α EQ,
+  begin
+    dsimp [presheaf.sheaf_condition.opens_le_cover_cocone] at α,
+    split_ifs,
+    { rw ←EQ, dsimp, generalize_proofs h1 h2,
+      have h3 : punit.star ∈ U h1.some := h1.some_spec, split_ifs;
+      rw [category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id], },
+    { exact ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _ }
+  end }
+
+def skyscraper_presheaf_iso_pullback :
+  skyscraper_presheaf p₀ A ≅
+  { to_fun := λ _, p₀, continuous_to_fun := by continuity } _* presheaf_on_single_point A :=
+{ hom :=
+  { app := λ U, if h : p₀ ∈ U.unop
+      then eq_to_hom $ by { dsimp, rw [if_pos h, if_pos], exact h }
+      else ((if_neg h).symm.rec terminal_is_terminal).from _,
+    naturality' := λ U V i,
+    begin
+      dsimp, by_cases hV : p₀ ∈ V.unop,
+      { have hU : p₀ ∈ U.unop := le_of_hom i.unop hV, split_ifs,
+        rw [eq_to_hom_trans, eq_to_hom_trans], },
+      { exact ((if_neg hV).symm.rec terminal_is_terminal).hom_ext _ _, },
+    end },
+  inv :=
+  { app := λ U, if h : p₀ ∈ U.unop
+      then eq_to_hom $ by { dsimp, rw [if_pos h, if_pos], exact h }
+      else ((if_neg h).symm.rec terminal_is_terminal).from _,
+    naturality' := λ U V i,
+    begin
+      dsimp, by_cases hV : p₀ ∈ V.unop,
+      { have hU : p₀ ∈ U.unop := le_of_hom i.unop hV, split_ifs;
+        rw [eq_to_hom_trans, eq_to_hom_trans], },
+      { exact ((if_neg hV).symm.rec terminal_is_terminal).hom_ext _ _, },
+    end },
+  hom_inv_id' :=
+  begin
+    ext, dsimp, split_ifs,
+    { rw [eq_to_hom_trans, eq_to_hom_refl], },
+    { exact ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _, },
+  end,
+  inv_hom_id' :=
+  begin
+    ext, dsimp, split_ifs,
+    { rw [eq_to_hom_trans, eq_to_hom_refl], },
+    { exact ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _, },
+  end }
+
+end
+
 end
 
 section
@@ -165,5 +264,12 @@ If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y`
 def skyscraper_presheaf_stalk_of_not_specializes_is_terminal
   [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ A).stalk y) :=
 is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_specializes _ _ h).symm
+
+lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
+(presheaf.is_sheaf_iso_iff (skyscraper_presheaf_iso_pullback p₀ A)).mpr $
+  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf_on_single_point_is_sheaf A
+
+def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
+⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩
 
 end

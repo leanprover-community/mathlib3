@@ -1052,39 +1052,3 @@ end
 end char_p
 
 end polynomial
-
-section cyclotomic₂
-
-open polynomial
-
-def cyclotomic₂ (n : ℕ) (R : Type*) [ring R] [has_div R] : R → R → R :=
-λ a b, b ^ (nat.totient n) * (polynomial.cyclotomic n R).eval (a / b)
-
-lemma cyclotomic₂_div_prod_eq (n : ℕ) (R : Type*) [field R] (a b : R) (hn : 0 < n)
-  (hbne: b ≠ 0) : ∏ d in nat.divisors n, cyclotomic₂ d R a b = a ^ n - b ^ n :=
-begin
-  simp_rw [cyclotomic₂, finset.prod_mul_distrib, ← eval_prod, prod_cyclotomic_eq_X_pow_sub_one hn,
-   finset.prod_pow_eq_pow_sum, nat.sum_totient, eval_sub, eval_pow, eval_X, eval_one],
-  field_simp [hbne, mul_comm]
-end
-
-lemma proposition_1 (n p : ℕ) (R : Type*) [field R] (a b : R)
-  (hp: nat.prime p) (hpn: p ∣ n) :
-  cyclotomic₂ (n * p) R a b = cyclotomic₂ n R (a ^ p) (b ^ p) :=
-by simp_rw [cyclotomic₂, ← cyclotomic_expand_eq_cyclotomic hp hpn, expand_eval, div_pow,
-   mul_comm n p, nat.totient_mul_of_prime_of_dvd hp hpn, pow_mul]
-
-lemma proposition_2 (n p : ℕ) (R : Type*) [field R] (a b : R)
-  (hp: nat.prime p) (hpn: ¬ p ∣ n) :
-  cyclotomic₂ (n * p) R a b * cyclotomic₂ n R a b = cyclotomic₂ n R (a ^ p) (b ^ p) :=
-calc
-  cyclotomic₂ (n * p) R a b * cyclotomic₂ n R a b =
-    b ^ (nat.totient (n * p) + nat.totient n) * (expand R p (cyclotomic n R)).eval (a / b) :
-  by { simp only [cyclotomic₂, cyclotomic_expand_eq_cyclotomic_mul hp hpn, eval_mul]; ring_exp_eq }
-  ... = cyclotomic₂ n R (a ^ p) (b ^ p) : by { simp only [cyclotomic₂, expand_eval, div_pow,
-   mul_comm n p, nat.totient_mul_of_prime_of_not_dvd hp hpn, ← pow_mul, mul_eq_mul_right_iff],
-  left, conv_rhs {rw [← nat.sub_add_cancel (show 1 ≤ p, by linarith [nat.prime.two_le hp])]},
-  ring_nf }
-
-
-end cyclotomic₂

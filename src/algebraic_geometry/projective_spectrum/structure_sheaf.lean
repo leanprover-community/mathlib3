@@ -56,7 +56,7 @@ variables {R A: Type*}
 variables [comm_ring R] [comm_ring A] [algebra R A]
 variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 
-local notation `at ` x := homogeneous_localization 𝒜 x.as_homogeneous_ideal.to_ideal
+local notation `at ` x := homogeneous_localization.at_prime 𝒜 x.as_homogeneous_ideal.to_ideal
 
 namespace projective_spectrum.structure_sheaf
 
@@ -120,7 +120,7 @@ begin
     obtain ⟨nin2, hy2⟩ := (wb (opens.inf_le_right Va Vb y)),
     dsimp only at hy1 hy2,
     erw [hy1, hy2],
-    simpa only [val_mk', add_mk, ← subtype.val_eq_coe, add_comm], }
+    simpa only [val_mk', add_mk, ← subtype.val_eq_coe, add_comm, mul_comm sa sb], }
 end
 
 lemma neg_mem' (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ)
@@ -271,10 +271,7 @@ by { cases x, exact stalk_to_fiber_ring_hom_germ' 𝒜 U _ _ _ }
 
 lemma homogeneous_localization.mem_basic_open (x : projective_spectrum.Top 𝒜) (f : at x) :
   x ∈ projective_spectrum.basic_open 𝒜 f.denom :=
-begin
-  rw projective_spectrum.mem_basic_open,
-  exact homogeneous_localization.denom_not_mem _,
-end
+by { rw projective_spectrum.mem_basic_open, exact f.denom_wd }
 
 variable (𝒜)
 

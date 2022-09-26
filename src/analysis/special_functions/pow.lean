@@ -648,6 +648,22 @@ lemma rpow_lt_rpow_iff (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z < y ^ 
 lemma rpow_le_rpow_iff (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
 le_iff_le_iff_lt_iff_lt.2 $ rpow_lt_rpow_iff hy hx hz
 
+lemma le_rpow_inv_iff (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :  x ≤ y ^ z⁻¹ ↔ x ^ z ≤ y :=
+by rw [← rpow_le_rpow_iff hx (rpow_nonneg_of_nonneg hy z⁻¹) hz, ← rpow_mul hy,
+  inv_mul_cancel hz.ne', rpow_one]
+
+lemma lt_rpow_inv_iff (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :  x < y ^ z⁻¹ ↔ x ^ z < y :=
+by rw [← rpow_lt_rpow_iff hx (rpow_nonneg_of_nonneg hy z⁻¹) hz, ← rpow_mul hy,
+  inv_mul_cancel hz.ne', rpow_one]
+
+lemma rpow_inv_le_iff (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :  x ^ z⁻¹ ≤ y ↔ x ≤ y ^ z :=
+by rw [← rpow_le_rpow_iff (rpow_nonneg_of_nonneg hx z⁻¹) hy hz, ← rpow_mul hx,
+  inv_mul_cancel hz.ne', rpow_one]
+
+lemma rpow_inv_lt_iff (hx : 0 ≤ x) (hy : 0 ≤ y) {z : ℝ} (hz : 0 < z) :  x ^ z⁻¹ < y ↔ x < y ^ z :=
+by rw [← rpow_lt_rpow_iff (rpow_nonneg_of_nonneg hx z⁻¹) hy hz, ← rpow_mul hx,
+  inv_mul_cancel hz.ne', rpow_one]
+
 lemma rpow_lt_rpow_of_exponent_lt (hx : 1 < x) (hyz : y < z) : x^y < x^z :=
 begin
   repeat {rw [rpow_def_of_pos (lt_trans zero_lt_one hx)]},

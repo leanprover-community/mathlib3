@@ -197,9 +197,3 @@ add_tactic_doc
 
 end interactive
 end tactic
-
-example (n : ℤ) (hn : 0 ≤ n) : true :=
-begin
-  lift n to ℕ, by assumption,
-  trivial
-end

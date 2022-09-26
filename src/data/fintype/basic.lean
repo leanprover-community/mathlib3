@@ -123,7 +123,7 @@ instance : order_top (finset α) :=
 { top := univ,
   le_top := subset_univ }
 
-lemma top_eq_univ : (⊤ : finset α) = univ := rfl
+@[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
 
 section boolean_algebra
 variables [decidable_eq α] {a : α}

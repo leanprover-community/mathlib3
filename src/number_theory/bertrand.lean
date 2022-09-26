@@ -79,7 +79,8 @@ begin
   { have : sqrt (2 * 512) = 32,
     { exact (sqrt_eq_iff_mul_self_eq_of_pos (by norm_num1)).mpr (by norm_num1) },
     rw [hf, log_nonpos_iff (hf' _ _), this, div_le_one (rpow_pos_of_pos four_pos _),
-      ← rpow_le_rpow_iff _ (rpow_pos_of_pos four_pos _).le three_pos, ← rpow_mul]; norm_num1 },
+      ← rpow_le_rpow_iff_of_pos _ (rpow_pos_of_pos four_pos _).le three_pos, ← rpow_mul];
+    norm_num1 },
 end
 
 end bertrand

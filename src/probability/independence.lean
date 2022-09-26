@@ -580,30 +580,6 @@ end from_pi_systems_to_measurable_spaces
 
 section indep_set
 
-lemma indep.indep_set_of_measurable_set {m₁ m₂ m0 : measurable_space Ω} {μ : measure Ω}
-  (h_indep : indep m₁ m₂ μ) {s t : set Ω} (hs : measurable_set[m₁] s) (ht : measurable_set[m₂] t) :
-  indep_set s t μ :=
-begin
-  refine λ s' t' hs' ht', h_indep s' t' _ _,
-  { refine generate_from_induction (λ u, measurable_set[m₁] u) {s} _ _ _ _ hs',
-    { simp only [hs, set.mem_singleton_iff, set.mem_set_of_eq, forall_eq], },
-    { exact @measurable_set.empty _ m₁, },
-    { exact λ u hu, hu.compl, },
-    { exact λ f hf, measurable_set.Union hf, }, },
-  { refine generate_from_induction (λ u, measurable_set[m₂] u) {t} _ _ _ _ ht',
-    { simp only [ht, set.mem_singleton_iff, set.mem_set_of_eq, forall_eq], },
-    { exact @measurable_set.empty _ m₂, },
-    { exact λ u hu, hu.compl, },
-    { exact λ f hf, measurable_set.Union hf, },},
-end
-
-lemma indep_iff_forall_indep_set (m₁ m₂ : measurable_space Ω) {m0 : measurable_space Ω}
-  (μ : measure Ω) :
-  indep m₁ m₂ μ ↔ ∀ s t, measurable_set[m₁] s → measurable_set[m₂] t → indep_set s t μ :=
-⟨λ h, λ s t hs ht, h.indep_set_of_measurable_set hs ht,
-  λ h s t hs ht, h s t hs ht s t (measurable_set_generate_from (set.mem_singleton s))
-    (measurable_set_generate_from (set.mem_singleton t))⟩
-
 /-! ### Independence of measurable sets
 
 We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
@@ -631,6 +607,30 @@ lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measu
   (h_indep : indep_sets S T μ) :
   indep_set s t μ :=
 (indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
+
+lemma indep.indep_set_of_measurable_set {m₁ m₂ m0 : measurable_space Ω} {μ : measure Ω}
+  (h_indep : indep m₁ m₂ μ) {s t : set Ω} (hs : measurable_set[m₁] s) (ht : measurable_set[m₂] t) :
+  indep_set s t μ :=
+begin
+  refine λ s' t' hs' ht', h_indep s' t' _ _,
+  { refine generate_from_induction (λ u, measurable_set[m₁] u) {s} _ _ _ _ hs',
+    { simp only [hs, set.mem_singleton_iff, set.mem_set_of_eq, forall_eq], },
+    { exact @measurable_set.empty _ m₁, },
+    { exact λ u hu, hu.compl, },
+    { exact λ f hf, measurable_set.Union hf, }, },
+  { refine generate_from_induction (λ u, measurable_set[m₂] u) {t} _ _ _ _ ht',
+    { simp only [ht, set.mem_singleton_iff, set.mem_set_of_eq, forall_eq], },
+    { exact @measurable_set.empty _ m₂, },
+    { exact λ u hu, hu.compl, },
+    { exact λ f hf, measurable_set.Union hf, },},
+end
+
+lemma indep_iff_forall_indep_set (m₁ m₂ : measurable_space Ω) {m0 : measurable_space Ω}
+  (μ : measure Ω) :
+  indep m₁ m₂ μ ↔ ∀ s t, measurable_set[m₁] s → measurable_set[m₂] t → indep_set s t μ :=
+⟨λ h, λ s t hs ht, h.indep_set_of_measurable_set hs ht,
+  λ h s t hs ht, h s t hs ht s t (measurable_set_generate_from (set.mem_singleton s))
+    (measurable_set_generate_from (set.mem_singleton t))⟩
 
 end indep_set
 

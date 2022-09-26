@@ -596,6 +596,44 @@ lemma rpow_lt_rpow_iff (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z < y ^ 
 lemma rpow_le_rpow_iff (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
 le_iff_le_iff_lt_iff_lt.2 $ rpow_lt_rpow_iff hy hx hz
 
+lemma le_rpow_inv_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
+  x ≤ y ^ z⁻¹ ↔ y ≤ x ^ z :=
+begin
+  have hz' : 0 < -z := by rwa [lt_neg, neg_zero'],
+  have hxz : 0 < x ^ (-z) := real.rpow_pos_of_pos hx _,
+  have hyz : 0 < y ^ z⁻¹ := real.rpow_pos_of_pos hy _,
+  rw [←real.rpow_le_rpow_iff hx.le hyz.le hz', ←real.rpow_mul hy.le],
+  simp only [ne_of_lt hz, real.rpow_neg_one, mul_neg, inv_mul_cancel, ne.def, not_false_iff],
+  rw [le_inv hxz hy, ←real.rpow_neg_one, ←real.rpow_mul hx.le],
+  simp,
+end
+
+lemma lt_rpow_inv_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
+  x < b ^ z⁻¹ ↔ b < x ^ z :=
+begin
+  have hz' : 0 < -z := by rwa [lt_neg, neg_zero'],
+  have hxz : 0 < x ^ (-z) := real.rpow_pos_of_pos hx _,
+  have hyz : 0 < y ^ z⁻¹ := real.rpow_pos_of_pos hy _,
+  rw [←real.rpow_lt_rpow_iff hx.le hyz.le hz', ←real.rpow_mul hy.le],
+  simp only [ne_of_lt hz, real.rpow_neg_one, mul_neg, inv_mul_cancel, ne.def, not_false_iff],
+  rw [lt_inv hxz hy, ←real.rpow_neg_one, ←real.rpow_mul hx.le],
+  simp,
+end
+
+lemma rpow_inv_lt_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
+  x ^ z⁻¹ < y ↔ y ^ z < x :=
+begin
+  convert lt_rpow_inv_iff_of_neg (real.rpow_pos_of_pos hx _) (real.rpow_pos_of_pos hb _) hz;
+  simp [←real.rpow_mul hx.le, ←real.rpow_mul hy.le, ne_of_lt hz],
+end
+
+lemma rpow_inv_le_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
+  x ^ z⁻¹ ≤ y ↔ y ^ z ≤ x :=
+begin
+  convert le_rpow_inv_iff_of_neg (real.rpow_pos_of_pos hx _) (real.rpow_pos_of_pos hy _) hz;
+  simp [←real.rpow_mul hx.le, ←real.rpow_mul hy.le, ne_of_lt hz],
+end
+
 lemma rpow_lt_rpow_of_exponent_lt (hx : 1 < x) (hyz : y < z) : x^y < x^z :=
 begin
   repeat {rw [rpow_def_of_pos (lt_trans zero_lt_one hx)]},
@@ -1254,62 +1292,6 @@ real.rpow_lt_rpow_of_exponent_gt hx0 hx1 hyz
 lemma rpow_le_rpow_of_exponent_ge {x : ℝ≥0} {y z : ℝ} (hx0 : 0 < x) (hx1 : x ≤ 1) (hyz : z ≤ y) :
   x^y ≤ x^z :=
 real.rpow_le_rpow_of_exponent_ge hx0 hx1 hyz
-
-lemma le_rpow_inv_iff_of_pos {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 < c) :
-  a ≤ b^c⁻¹ ↔ a^c ≤ b :=
-by rw [←real.rpow_le_rpow_iff ha (real.rpow_nonneg_of_nonneg hb _) hc, ←real.rpow_mul hb,
-    inv_mul_cancel (ne_of_gt hc), real.rpow_one]
-
-lemma lt_rpow_inv_iff_of_pos {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 < c) :
-  a < b^c⁻¹ ↔ a^c < b :=
-by rw [←real.rpow_lt_rpow_iff ha (real.rpow_nonneg_of_nonneg hb _) hc, ←real.rpow_mul hb,
-    inv_mul_cancel (ne_of_gt hc), real.rpow_one]
-
-lemma rpow_inv_le_iff_of_pos {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 < c) :
-  a^c⁻¹ ≤ b ↔ a ≤ b^c :=
-by rw [←le_rpow_inv_iff_of_pos ha hb (_root_.inv_pos.mpr hc), inv_inv]
-
-lemma rpow_inv_lt_iff_of_pos {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 < c) :
-  a^c⁻¹ < b ↔ a < b^c :=
-by rw [←lt_rpow_inv_iff_of_pos ha hb (_root_.inv_pos.mpr hc), inv_inv]
-
-lemma le_rpow_inv_iff_of_neg {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : c < 0) :
-  a ≤ b^c⁻¹ ↔ b ≤ a^c :=
-begin
-  have hc' : 0 < -c := by rwa [lt_neg, neg_zero'],
-  have hac : 0 < a^(-c) := real.rpow_pos_of_pos ha _,
-  have hbc : 0 < b^c⁻¹ := real.rpow_pos_of_pos hb _,
-  rw [←real.rpow_le_rpow_iff ha.le hbc.le hc', ←real.rpow_mul hb.le],
-  simp only [ne_of_lt hc, real.rpow_neg_one, mul_neg, inv_mul_cancel, ne.def, not_false_iff],
-  rw [le_inv hac hb, ←real.rpow_neg_one, ←real.rpow_mul ha.le],
-  simp,
-end
-
-lemma lt_rpow_inv_iff_of_neg {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : c < 0) :
-  a < b^c⁻¹ ↔ b < a^c :=
-begin
-  have hc' : 0 < -c := by rwa [lt_neg, neg_zero'],
-  have hac : 0 < a^(-c) := real.rpow_pos_of_pos ha _,
-  have hbc : 0 < b^c⁻¹ := real.rpow_pos_of_pos hb _,
-  rw [←real.rpow_lt_rpow_iff ha.le hbc.le hc', ←real.rpow_mul hb.le],
-  simp only [ne_of_lt hc, real.rpow_neg_one, mul_neg, inv_mul_cancel, ne.def, not_false_iff],
-  rw [lt_inv hac hb, ←real.rpow_neg_one, ←real.rpow_mul ha.le],
-  simp,
-end
-
-lemma rpow_inv_lt_iff_of_neg {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : c < 0) :
-  a^c⁻¹ < b ↔ b^c < a :=
-begin
-  convert lt_rpow_inv_iff_of_neg (real.rpow_pos_of_pos ha _) (real.rpow_pos_of_pos hb _) hc;
-  simp [←real.rpow_mul ha.le, ←real.rpow_mul hb.le, ne_of_lt hc],
-end
-
-lemma rpow_inv_le_iff_of_neg {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : c < 0) :
-  a^c⁻¹ ≤ b ↔ b^c ≤ a :=
-begin
-  convert le_rpow_inv_iff_of_neg (real.rpow_pos_of_pos ha _) (real.rpow_pos_of_pos hb _) hc;
-  simp [←real.rpow_mul ha.le, ←real.rpow_mul hb.le, ne_of_lt hc],
-end
 
 lemma rpow_pos {p : ℝ} {x : ℝ≥0} (hx_pos : 0 < x) : 0 < x^p :=
 begin

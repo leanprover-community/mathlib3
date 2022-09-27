@@ -148,8 +148,15 @@ by simp only [count, countp_pos, exists_prop, exists_eq_right']
 @[simp] lemma one_le_count_iff_mem {a : α} {l : list α} : 1 ≤ count a l ↔ a ∈ l :=
 count_pos
 
+@[simp, priority 980]
+lemma count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
+decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
+
+lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
+λ h', (count_pos.2 h').ne' h
+
 @[simp] lemma count_eq_zero {a : α} {l} : count a l = 0 ↔ a ∉ l :=
-(countp_eq_zero _).trans $ iff.trans (forall_congr $ λ _, imp_not_comm) forall_eq'
+⟨not_mem_of_count_eq_zero, count_eq_zero_of_not_mem⟩
 
 @[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b := countp_eq_length _
 

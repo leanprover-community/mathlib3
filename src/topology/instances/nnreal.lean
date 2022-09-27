@@ -77,10 +77,9 @@ continuous_subtype_val
 @[simps { fully_applied := ff }] def _root_.continuous_map.coe_nnreal_real : C(ℝ≥0, ℝ) :=
 ⟨coe, continuous_coe⟩
 
-instance {X : Type*} [topological_space X] : can_lift C(X, ℝ) C(X, ℝ≥0) :=
-{ coe := continuous_map.coe_nnreal_real.comp,
-  cond := λ f, ∀ x, 0 ≤ f x,
-  prf := λ f hf, ⟨⟨λ x, ⟨f x, hf x⟩, f.2.subtype_mk _⟩, fun_like.ext' rfl⟩ }
+instance continuous_map.can_lift {X : Type*} [topological_space X] :
+  can_lift C(X, ℝ) C(X, ℝ≥0) continuous_map.coe_nnreal_real.comp (λ f, ∀ x, 0 ≤ f x) :=
+{ prf := λ f hf, ⟨⟨λ x, ⟨f x, hf x⟩, f.2.subtype_mk _⟩, fun_like.ext' rfl⟩ }
 
 @[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
   tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x) :=

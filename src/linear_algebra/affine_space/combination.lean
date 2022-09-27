@@ -40,7 +40,7 @@ These definitions are for sums over a `finset`; versions for a
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 namespace finset
 
@@ -122,7 +122,7 @@ end
 
 /-- The weighted sum is unaffected by removing the base point, if
 present, from the set of points. -/
-@[simp] lemma weighted_vsub_of_point_erase (w : ι → k) (p : ι → P) (i : ι) :
+@[simp] lemma weighted_vsub_of_point_erase [decidable_eq ι] (w : ι → k) (p : ι → P) (i : ι) :
   (s.erase i).weighted_vsub_of_point p (p i) w = s.weighted_vsub_of_point p (p i) w :=
 begin
   rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply],
@@ -298,7 +298,7 @@ lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
   s.affine_combination p w₁ -ᵥ s.affine_combination p w₂ = s.weighted_vsub p (w₁ - w₂) :=
 by rw [←affine_map.linear_map_vsub, affine_combination_linear, vsub_eq_sub]
 
-lemma attach_affine_combination_of_injective
+lemma attach_affine_combination_of_injective [decidable_eq P]
   (s : finset P) (w : P → k) (f : s → P) (hf : function.injective f) :
   s.attach.affine_combination f (w ∘ f) = (image f univ).affine_combination id w :=
 begin
@@ -314,7 +314,7 @@ end
 
 lemma attach_affine_combination_coe (s : finset P) (w : P → k) :
   s.attach.affine_combination (coe : s → P) (w ∘ coe) = s.affine_combination id w :=
-by rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_injective,
+by classical; rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_injective,
   univ_eq_attach, attach_image_coe]
 
 omit S
@@ -406,6 +406,7 @@ lemma eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype {v 
   ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = x),
     v = fs.weighted_vsub_of_point (λ (i : s), p i) b w :=
 begin
+  classical,
   simp_rw weighted_vsub_of_point_apply,
   split,
   { rintros ⟨fs, hfs, w, rfl, rfl⟩,
@@ -538,7 +539,7 @@ by simp [centroid_def, affine_combination_apply]
 
 /-- The centroid of two points, expressed directly as adding a vector
 to a point. -/
-lemma centroid_pair [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
+lemma centroid_pair [decidable_eq ι] [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
   ({i₁, i₂} : finset ι).centroid k p = (2 ⁻¹ : k) • (p i₂ -ᵥ p i₁) +ᵥ p i₁ :=
 begin
   by_cases h : i₁ = i₂,
@@ -662,8 +663,8 @@ have the same centroid. -/
 lemma centroid_eq_of_inj_on_of_image_eq {p : ι → P} (hi : ∀ i j ∈ s, p i = p j → i = j)
   {p₂ : ι₂ → P} (hi₂ : ∀ i j ∈ s₂, p₂ i = p₂ j → i = j) (he : p '' ↑s = p₂ '' ↑s₂) :
   s.centroid k p = s₂.centroid k p₂ :=
-by rw [s.centroid_eq_centroid_image_of_inj_on k hi rfl,
-       s₂.centroid_eq_centroid_image_of_inj_on k hi₂ he]
+by classical; rw [s.centroid_eq_centroid_image_of_inj_on k hi rfl,
+                  s₂.centroid_eq_centroid_image_of_inj_on k hi₂ he]
 
 end finset
 
@@ -680,6 +681,7 @@ lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
     (h : ∑ i in s, w i = 0) (p : ι → P) :
     s.weighted_vsub p w ∈ vector_span k (set.range p) :=
 begin
+  classical,
   rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩,
   { resetI, simp [finset.eq_empty_of_is_empty s] },
   { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
@@ -703,6 +705,7 @@ lemma affine_combination_mem_affine_span [nontrivial k] {s : finset ι} {w : ι 
     (h : ∑ i in s, w i = 1) (p : ι → P) :
   s.affine_combination p w ∈ affine_span k (set.range p) :=
 begin
+  classical,
   have hnz : ∑ i in s, w i ≠ 0 := h.symm ▸ one_ne_zero,
   have hn : s.nonempty := finset.nonempty_of_sum_ne_zero hnz,
   cases hn with i1 hi1,
@@ -728,6 +731,7 @@ lemma mem_vector_span_iff_eq_weighted_vsub {v : V} {p : ι → P} :
   v ∈ vector_span k (set.range p) ↔
     ∃ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), v = s.weighted_vsub p w :=
 begin
+  classical,
   split,
   { rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩, swap,
     { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
@@ -772,6 +776,7 @@ lemma eq_affine_combination_of_mem_affine_span {p1 : P} {p : ι → P}
     (h : p1 ∈ affine_span k (set.range p)) :
   ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination p w :=
 begin
+  classical,
   have hn : ((affine_span k (set.range p)) : set P).nonempty := ⟨p1, h⟩,
   rw [affine_span_nonempty, set.range_nonempty_iff_nonempty] at hn,
   cases hn with i0,
@@ -805,6 +810,7 @@ lemma eq_affine_combination_of_mem_affine_span_of_fintype [fintype ι] {p1 : P} 
   (h : p1 ∈ affine_span k (set.range p)) :
   ∃ (w : ι → k) (hw : ∑ i, w i = 1), p1 = finset.univ.affine_combination p w :=
 begin
+  classical,
   obtain ⟨s, w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span h,
   refine ⟨(s : set ι).indicator w, _, finset.affine_combination_indicator_subset w p s.subset_univ⟩,
   simp only [finset.mem_coe, set.indicator_apply, ← hw],

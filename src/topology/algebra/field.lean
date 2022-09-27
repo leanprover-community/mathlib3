@@ -63,7 +63,21 @@ instance top_monoid_units [topological_semiring R] [induced_units R] :
 end⟩
 end topological_ring
 
-variables (K : Type*) [division_ring K] [topological_space K]
+variables {K : Type*} [division_ring K] [topological_space K]
+
+/-- Left-multiplication by a nonzero element of a topological division ring is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_left₀ [has_continuous_mul K] {a : K} (ha : a ≠ 0) :
+  filter.tendsto (λ x : K, a * x) (filter.cocompact K) (filter.cocompact K) :=
+filter.tendsto_cocompact_mul_left (inv_mul_cancel ha)
+
+/-- Right-multiplication by a nonzero element of a topological division ring is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_right₀ [has_continuous_mul K] {a : K} (ha : a ≠ 0) :
+  filter.tendsto (λ x : K, x * a) (filter.cocompact K) (filter.cocompact K) :=
+filter.tendsto_cocompact_mul_right (mul_inv_cancel ha)
+
+variables (K)
 
 /-- A topological division ring is a division ring with a topology where all operations are
     continuous, including inversion. -/

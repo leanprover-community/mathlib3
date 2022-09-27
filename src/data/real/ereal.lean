@@ -101,10 +101,8 @@ protected def rec {C : ereal → Sort*} (h_bot : C ⊥) (h_real : Π a : ℝ, C 
 
 /-! ### Real coercion -/
 
-instance : can_lift ereal ℝ :=
-{ coe := coe,
-  cond := λ r, r ≠ ⊤ ∧ r ≠ ⊥,
-  prf := λ x hx,
+instance can_lift : can_lift ereal ℝ coe (λ r, r ≠ ⊤ ∧ r ≠ ⊥) :=
+{ prf := λ x hx,
   begin
     induction x using ereal.rec,
     { simpa using hx },
@@ -172,10 +170,10 @@ lemma to_real_le_to_real {x y : ereal} (h : x ≤ y) (hx : x ≠ ⊥) (hy : y �
   x.to_real ≤ y.to_real :=
 begin
   lift x to ℝ,
-  lift y to ℝ,
-  { simpa using h },
-  { simp [hy, ((bot_lt_iff_ne_bot.2 hx).trans_le h).ne'] },
   { simp [hx, (h.trans_lt (lt_top_iff_ne_top.2 hy)).ne], },
+  lift y to ℝ,
+  { simp [hy, ((bot_lt_iff_ne_bot.2 hx).trans_le h).ne'] },
+  simpa using h
 end
 
 lemma coe_to_real {x : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) : (x.to_real : ereal) = x :=
@@ -301,8 +299,8 @@ def ne_top_bot_equiv_real : ({⊥, ⊤}ᶜ : set ereal) ≃ ℝ :=
   inv_fun := λ x, ⟨x, by simp⟩,
   left_inv := λ ⟨x, hx⟩, subtype.eq $ begin
     lift x to ℝ,
+    { simpa [not_or_distrib, and_comm] using hx },
     { simp },
-    { simpa [not_or_distrib, and_comm] using hx }
   end,
   right_inv := λ x, by simp }
 

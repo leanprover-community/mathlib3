@@ -175,10 +175,8 @@ lemma ext (f g : α →o β) (h : (f : α → β) = g) : f = g := fun_like.coe_i
 lemma coe_eq (f : α →o β) : coe f = f := by ext ; refl
 
 /-- One can lift an unbundled monotone function to a bundled one. -/
-instance : can_lift (α → β) (α →o β) :=
-{ coe := coe_fn,
-  cond := monotone,
-  prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
+instance : can_lift (α → β) (α →o β) coe_fn monotone :=
+{ prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
 
 /-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/

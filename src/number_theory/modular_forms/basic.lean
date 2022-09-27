@@ -46,10 +46,8 @@ namespace modular_forms
 
 local notation f `∣[`:73 k:0, A `]`  :72 := slash_action.map ℂ k A f
 
-@[simp]
 lemma slash_action_eq_slash (k : ℤ) (A : Γ) (f : ℍ → ℂ) : f ∣[k, A] = slash k A f := rfl
 
-@[simp]
 lemma slash_action_eq_slash' (k : ℤ) (A : SL(2, ℤ)) (f : ℍ → ℂ) : f ∣[k, A] = slash k A f := rfl
 
 /-- The space of functions that are weakly modular. -/
@@ -63,7 +61,7 @@ def weakly_modular_submodule (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ
     rw (hf γ) at this,
     apply this,} }
 
-lemma wmodular_mem (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
+lemma weakly_modular_mem (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
   f ∈ (weakly_modular_submodule k Γ) ↔ ∀ (γ : Γ), (f ∣[k, γ]) = f := iff.rfl
 
 lemma slash_mul (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
@@ -74,10 +72,12 @@ begin
    ←mul_assoc],
   have h1 : ((((↑ₘ A).det) : ℝ)^(k1 + k2 - 1) : ℂ) =
   (((↑ₘ A).det) : ℝ) * (((↑ₘ A).det) : ℝ)^(k1 - 1) * (((↑ₘ A).det) : ℝ)^(k2 - 1),
-  by {simp only [mul_assoc, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
-  rw [←zpow_add₀, ←zpow_one_add₀],
-  ring_exp,
-  all_goals { norm_cast, apply (matrix.GL_pos.det_ne_zero A), }, },
+    begin simp only [mul_assoc, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
+      coe_coe],
+    rw [←zpow_add₀, ←zpow_one_add₀],
+    ring_exp,
+    all_goals { norm_cast, apply (matrix.GL_pos.det_ne_zero A)},
+    end,
   have h22 : (upper_half_plane.denom A x)^(-(k1+k2)) = (upper_half_plane.denom A x)^(-k1) *
     (upper_half_plane.denom A x)^(-k2),
   by { rw [int.neg_add, zpow_add₀], exact upper_half_plane.denom_ne_zero A x, },
@@ -113,11 +113,11 @@ end
 /-- A function `f : ℍ → ℂ` is weakly modular, of weight `k ∈ ℤ` and level `Γ`, if for every matrix .
  `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`, and it acts on `ℍ`
  via Moebius trainsformations. -/
-lemma wmodular_mem' (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
+lemma weakly_modular_mem' (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
   f ∈ (weakly_modular_submodule k Γ) ↔ ∀ γ : Γ, ∀ z : ℍ,
   f (γ • z) = ((↑ₘγ 1 0 : ℝ) * z +(↑ₘγ 1 1 : ℝ))^k * f z :=
 begin
-  simp only [wmodular_mem],
+  simp only [weakly_modular_mem],
   split,
   { intros h1 γ z,
   have h3 : (f ∣[k, γ]) z = f z , by {simp_rw (h1 γ)},
@@ -153,7 +153,7 @@ lemma mul_modular (k_1 k_2 : ℤ) (Γ : subgroup SL(2,ℤ)) (f g : ℍ → ℂ)
   (hf : f ∈ weakly_modular_submodule k_1 Γ) (hg : g ∈ weakly_modular_submodule k_2 Γ) :
   f * g ∈ weakly_modular_submodule (k_1 + k_2) Γ :=
 begin
-  simp only [wmodular_mem', pi.mul_apply, coe_coe] at *,
+  simp only [weakly_modular_mem', pi.mul_apply, coe_coe] at *,
   intros γ z,
   rw [(hf γ z), (hg γ z)],
   have pown := zpow_add₀ (upper_half_plane.denom_ne_zero (γ : GL(2, ℝ)⁺) z) k_1 k_2,

@@ -529,7 +529,8 @@ volume_region_between_eq_integral' f_int g_int hs
 end region_between
 
 /-- Consider a real set `s`. If a property is true almost everywhere in `s ∩ (a, b)` for
-all `a, b ∈ s`, then it is true almost everywhere in `s`. -/
+all `a, b ∈ s`, then it is true almost everywhere in `s`. Formulated with `μ.restrict`.
+See also `ae_of_mem_of_ae_of_mem_inter_Ioo`. -/
 lemma ae_restrict_of_ae_restrict_inter_Ioo
   {μ : measure ℝ} [has_no_atoms μ] {s : set ℝ} {p : ℝ → Prop}
   (h : ∀ a b, a ∈ s → b ∈ s → a < b → ∀ᵐ x ∂(μ.restrict (s ∩ Ioo a b)), p x) :
@@ -567,4 +568,44 @@ begin
     rcases le_or_lt b a with hba|hab,
     { simp only [Ioo_eq_empty_of_le hba, inter_empty, restrict_empty, ae_zero] },
     { exact h a b as bs hab } }
+end
+
+/-- Consider a real set `s`. If a property is true almost everywhere in `s ∩ (a, b)` for
+all `a, b ∈ s`, then it is true almost everywhere in `s`. Formulated with bare membership.
+See also `ae_restrict_of_ae_restrict_inter_Ioo`. -/
+lemma ae_of_mem_of_ae_of_mem_inter_Ioo
+  {μ : measure ℝ} [has_no_atoms μ] {s : set ℝ} {p : ℝ → Prop}
+  (h : ∀ a b, a ∈ s → b ∈ s → a < b → ∀ᵐ x ∂μ, x ∈ s ∩ Ioo a b → p x) :
+  ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  /- By second-countability, we cover `s` by countably many intervals `(a, b)` (except maybe for
+  two endpoints, which don't matter since `μ` does not have any atom). -/
+  let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
+  let u := ⋃ (i : ↥s × ↥s), T i,
+  have hfinite : (s \ u).finite,
+  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
+    by_contra' h,
+    apply hy.2,
+    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩)
+      ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
+  obtain ⟨A, A_count, hA⟩ :
+    ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
+    is_open_Union_countable _ (λ p, is_open_Ioo),
+  have M : ∀ᵐ x ∂μ, x ∉ s \ u, from hfinite.countable.ae_not_mem _,
+  have M' : ∀ᵐ x ∂μ, ∀ (i : ↥s × ↥s) (H : i ∈ A), x ∈ s ∩ T i → p x,
+  { rw ae_ball_iff A_count,
+    rintros ⟨⟨a, as⟩, ⟨b, bs⟩⟩ -,
+    change ∀ᵐ (x : ℝ) ∂μ, x ∈ s ∩ Ioo a b → p x,
+    rcases le_or_lt b a with hba|hab,
+    { simp only [Ioo_eq_empty_of_le hba, inter_empty, mem_empty_eq, is_empty.forall_iff,
+        eventually_true], },
+    { exact h a b as bs hab } },
+  filter_upwards [M, M'] with x hx h'x,
+  assume xs,
+  by_cases Hx : x ∈ ⋃ (i : ↥s × ↥s), T i,
+  { rw ← hA at Hx,
+    obtain ⟨p, pA, xp⟩ : ∃ (p : ↥s × ↥s), p ∈ A ∧ x ∈ T p,
+      by simpa only [mem_Union, exists_prop, set_coe.exists, exists_and_distrib_right] using Hx,
+    apply h'x p pA ⟨xs, xp⟩ },
+  { exact false.elim (hx ⟨xs, Hx⟩) }
 end

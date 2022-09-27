@@ -12,7 +12,8 @@ import measure_theory.covering.vitali
 # Differentiability of monotone functions
 
 We show that a monotone function `f : ℝ → ℝ` is differentiable almost everywhere, in
-`monotone.ae_differentiable_at`.
+`monotone.ae_differentiable_at`. (We also give a version for a function monotone on a set, in
+`monotone_on.ae_differentiable_within_at`.)
 
 If the function `f` is continuous, this follows directly from general differentiation of measure
 theorems. Let `μ` be the Stieltjes measure associated to `f`. Then, almost everywhere,
@@ -282,14 +283,35 @@ theorem monotone.ae_differentiable_at {f : ℝ → ℝ} (hf : monotone f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 by filter_upwards [hf.ae_has_deriv_at] with x hx using hx.differentiable_at
 
-theorem monotone_on.ae_differentiable_within_at {f : ℝ → ℝ} {s : set ℝ} (hf : monotone_on f s) :
-  ∀ᵐ x ∂(volume.restrict s), differentiable_within_at ℝ f s x :=
+/-- A real function which is monotone on a set is differentiable Lebesgue-almost everywhere on
+this set. This version does not assume that `s` is measurable. For a formulation with
+`volume.restrict s` assuming that `s` is measurable, see `monotone_on.ae_differentiable_within_at`.
+-/
+theorem monotone_on.ae_differentiable_within_at_of_mem
+  {f : ℝ → ℝ} {s : set ℝ} (hf : monotone_on f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
 begin
-  apply ae_restrict_of_ae_restrict_inter_Ioo,
+  apply ae_of_mem_of_ae_of_mem_inter_Ioo,
   assume a b as bs hab,
   obtain ⟨g, hg, gf⟩ : ∃ (g : ℝ → ℝ), monotone g ∧ eq_on f g (s ∩ Icc a b) :=
     monotone_on.exists_monotone_extension (hf.mono (inter_subset_left s (Icc a b)))
       ⟨as, ⟨le_rfl, hab.le⟩⟩ ⟨bs, ⟨hab.le, le_rfl⟩⟩ (inter_subset_right _ _),
-  filter_upwards [ae_restrict_of_ae (hg.ae_differentiable_at)] with x hx,
-  have Z := hx.differentiable_within_at.congr_of_eventually_eq,
+  filter_upwards [hg.ae_differentiable_at] with x hx,
+  assume h'x,
+  apply hx.differentiable_within_at.congr_of_eventually_eq _ (gf ⟨h'x.1, h'x.2.1.le, h'x.2.2.le⟩),
+  have : Ioo a b ∈ 𝓝[s] x, from nhds_within_le_nhds (Ioo_mem_nhds h'x.2.1 h'x.2.2),
+  filter_upwards [self_mem_nhds_within, this] with y hy h'y,
+  exact gf ⟨hy, h'y.1.le, h'y.2.le⟩,
+end
+
+/-- A real function which is monotone on a set is differentiable Lebesgue-almost everywhere on
+this set. This version assumes that `s` is measurable and uses `volume.restrict s`.
+For a formulation without measurability assumption,
+see `monotone_on.ae_differentiable_within_at_of_mem`. -/
+theorem monotone_on.ae_differentiable_within_at
+  {f : ℝ → ℝ} {s : set ℝ} (hf : monotone_on f s) (hs : measurable_set s) :
+  ∀ᵐ x ∂(volume.restrict s), differentiable_within_at ℝ f s x :=
+begin
+  rw ae_restrict_iff' hs,
+  exact hf.ae_differentiable_within_at_of_mem
 end

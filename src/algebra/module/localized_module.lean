@@ -351,7 +351,7 @@ end
 
 end localized_module
 
-section is_localized_module
+namespace is_localized_module
 
 universes u v
 
@@ -482,23 +482,28 @@ begin
     mul_comm, mul_smul, eq1],
 end
 
-noncomputable def lift' {g : M →ₗ[R] M''} (hg : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) :
+/--
+If `g` is a linear map `M → M''` such that all scalar multiplication by `s : S` is invertible, then
+there is a linear map `localized_module S M → M''`.
+-/
+noncomputable def lift' (g : M →ₗ[R] M'')
+  (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) :
   (localized_module S M) →ₗ[R] M'' :=
-{ to_fun := λ m, m.lift_on (λ p, (hg $ p.2).unit⁻¹ $ g p.1) $ λ ⟨m, s⟩ ⟨m', s'⟩ ⟨c, eq1⟩,
+{ to_fun := λ m, m.lift_on (λ p, (h $ p.2).unit⁻¹ $ g p.1) $ λ ⟨m, s⟩ ⟨m', s'⟩ ⟨c, eq1⟩,
   begin
     generalize_proofs h1 h2,
     erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←h2.unit⁻¹.1.map_smul], symmetry,
     erw [module.End_algebra_map_is_unit_inv_apply_eq_iff], dsimp,
     have : c • s • g m' = c • s' • g m,
     { erw [←g.map_smul, ←g.map_smul, ←g.map_smul, ←g.map_smul, eq1], refl, },
-    have : function.injective (hg c).unit.inv,
-    { rw function.injective_iff_has_left_inverse, refine ⟨(hg c).unit, _⟩,
+    have : function.injective (h c).unit.inv,
+    { rw function.injective_iff_has_left_inverse, refine ⟨(h c).unit, _⟩,
       intros x,
-      change ((hg c).unit.1 * (hg c).unit.inv) x = x,
+      change ((h c).unit.1 * (h c).unit.inv) x = x,
       simp only [units.inv_eq_coe_inv, is_unit.mul_coe_inv, linear_map.one_apply], },
-    apply_fun (hg c).unit.inv,
+    apply_fun (h c).unit.inv,
     erw [units.inv_eq_coe_inv, module.End_algebra_map_is_unit_inv_apply_eq_iff,
-      ←(hg c).unit⁻¹.1.map_smul], symmetry,
+      ←(h c).unit⁻¹.1.map_smul], symmetry,
     erw [module.End_algebra_map_is_unit_inv_apply_eq_iff,
       ←g.map_smul, ←g.map_smul, ←g.map_smul, ←g.map_smul, eq1], refl,
   end,
@@ -522,6 +527,58 @@ noncomputable def lift' {g : M →ₗ[R] M''} (hg : ∀ (x : S), is_unit ((algeb
       ←h1.unit⁻¹.1.map_smul], dsimp, symmetry,
     erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, map_smul],
   end }
+
+lemma lift'_mk (g : M →ₗ[R] M'')
+  (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x))
+  (m : M) (s : S) :
+  lift' S g h (localized_module.mk m s) = (h s).unit⁻¹.1 (g m) := rfl
+
+lemma lift'_comp (g : M →ₗ[R] M'')
+  (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) :
+  (lift' S g h).comp (localized_module.mk_linear_map S M) = g :=
+begin
+  ext x, dsimp, rw lift'_mk,
+  erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, one_smul],
+end
+
+lemma lift'_unique (g : M →ₗ[R] M'')
+  (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x))
+  (l : localized_module S M →ₗ[R] M'')
+  (hl : l.comp (localized_module.mk_linear_map S M) = g) :
+  lift' S g h = l :=
+begin
+  ext x, induction x using localized_module.induction_on with m s,
+  rw [lift'_mk],
+  erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←hl, linear_map.coe_comp, function.comp_app,
+    localized_module.mk_linear_map_apply, ←l.map_smul, localized_module.smul'_mk],
+  congr' 1, rw localized_module.mk_eq,
+  refine ⟨1, _⟩, simp only [one_smul], refl,
+end
+
+/--
+If `M'` is a localized module and `g` is a linear map `M' → M''` such that all scalar multiplication
+by `s : S` is invertible, then there is a linear map `M' → M''`.
+-/
+noncomputable def lift [is_localized_module S f] (g : M →ₗ[R] M'')
+  (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) :
+  M' →ₗ[R] M'' :=
+(lift' S g h).comp (iso S f).symm.to_linear_map
+
+lemma lift_unique [is_localized_module S f] (g : M →ₗ[R] M'')
+  (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x))
+  (l : M' →ₗ[R] M'') (hl : l.comp f = g) :
+  lift S f g h = l :=
+begin
+  dunfold is_localized_module.lift,
+  rw [lift'_unique S g h (l.comp (iso S f).to_linear_map), linear_map.comp_assoc,
+    show (iso S f).to_linear_map.comp (iso S f).symm.to_linear_map = linear_map.id, from _,
+    linear_map.comp_id],
+  { rw [linear_equiv.comp_to_linear_map_symm_eq, linear_map.id_comp], },
+  { rw [linear_map.comp_assoc, ←hl], congr' 1,
+    ext x, rw [linear_map.comp_apply], dsimp,
+    rw localized_module.lift_on_mk,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, one_smul],  },
+end
 
 /--
 If `(M', f)` and `(M'', g)` both satisfy universal property of localized module, then `M', M''`

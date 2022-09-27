@@ -49,7 +49,7 @@ begin
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
-      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm } }
+      exact aeval_algebra_map_of_tower K (adjoin K {x}) S ⟨x, _⟩ _ } }
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,

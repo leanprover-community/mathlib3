@@ -316,7 +316,7 @@ end
 lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field K] [comm_ring R]
   [algebra A K] [algebra A R] [algebra K R] [is_scalar_tower A K R] (x : R) :
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
-by { refine minpoly.dvd K x _, rw [← is_scalar_tower.aeval_apply, minpoly.aeval] }
+by { refine minpoly.dvd K x _, rw [← aeval_apply_of_tower, minpoly.aeval] }
 
 /-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
 lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
@@ -324,7 +324,7 @@ lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field 
   [comm_semiring U] [algebra K U] [algebra R U] [is_scalar_tower R K U]
   (x : T) (y : U)
   (hy : polynomial.aeval y (minpoly K x) = 0) : polynomial.aeval y (minpoly R x) = 0 :=
-by { rw is_scalar_tower.aeval_apply R K,
+by { rw aeval_apply_of_tower R K,
      exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U) y
         (minpoly.dvd_map_of_is_scalar_tower R K x) hy }
 
@@ -361,9 +361,9 @@ lemma eq_of_algebra_map_eq {K S T : Type*} [field K] [comm_ring S] [comm_ring T]
   {x : S} {y : T} (hx : is_integral K x) (h : y = algebra_map S T x) :
   minpoly K x = minpoly K y :=
 minpoly.unique _ _ (minpoly.monic hx)
-  (by rw [h, ← is_scalar_tower.algebra_map_aeval, minpoly.aeval, ring_hom.map_zero])
+  (by rw [h, aeval_algebra_map_of_tower, minpoly.aeval, ring_hom.map_zero])
   (λ q q_monic root_q, minpoly.min _ _ q_monic
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
+    (aeval_eq_zero_of_aeval_algebra_map_eq_zero_of_injective K S T hST
       (h ▸ root_q : polynomial.aeval (algebra_map S T x) q = 0)))
 
 lemma add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}

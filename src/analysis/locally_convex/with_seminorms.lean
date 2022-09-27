@@ -279,8 +279,10 @@ end topology
 section topological_add_group
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-variables [topological_space E] [topological_add_group E]
+variables [t : topological_space E] [topological_add_group E]
 variables [nonempty ι]
+
+include t
 
 lemma seminorm_family.with_seminorms_of_nhds (p : seminorm_family 𝕜 E ι)
   (h : 𝓝 (0 : E) = p.module_filter_basis.to_filter_basis.filter) :
@@ -298,8 +300,6 @@ lemma seminorm_family.with_seminorms_of_has_basis (p : seminorm_family 𝕜 E ι
 p.with_seminorms_of_nhds $ filter.has_basis.eq_of_same_basis h
   p.add_group_filter_basis.to_filter_basis.has_basis
 
-#check seminorm_family.filter_eq_infi
-
 lemma seminorm_family.with_seminorms_iff_nhds_eq_infi (p : seminorm_family 𝕜 E ι) :
   with_seminorms p ↔ (𝓝 0 : filter E) = ⨅ i, (𝓝 0).comap (p i) :=
 begin
@@ -307,6 +307,24 @@ begin
   refine ⟨λ h, _, p.with_seminorms_of_nhds⟩,
   rw h.topology_eq_with_seminorms,
   exact add_group_filter_basis.nhds_zero_eq _,
+end
+
+lemma seminorm_family.with_seminorms_iff_eq_infi (p : seminorm_family 𝕜 E ι) :
+  with_seminorms p ↔ t = ⨅ i, (p i).to_add_group_seminorm.to_seminormed_add_comm_group
+    .to_uniform_space.to_topological_space :=
+begin
+  rw p.with_seminorms_iff_nhds_eq_infi,
+  split,
+  { refine λ h, topological_add_group.ext infer_instance
+      (topological_add_group_infi $ λ i, infer_instance) _,
+    rw [nhds_infi, h],
+    congrm (⨅ i, _),
+    exact @comap_norm_nhds_zero E ((p i).to_add_group_seminorm.to_seminormed_add_comm_group) },
+  { intro h,
+    rw [h, nhds_infi],
+    congrm (⨅ i, _),
+    symmetry,
+    exact @comap_norm_nhds_zero E ((p i).to_add_group_seminorm.to_seminormed_add_comm_group) }
 end
 
 end topological_add_group

@@ -407,6 +407,11 @@ lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 { dense := dense_range_coe,
   ..(uniform_inducing_coe α).inducing }
 
+/-- The uniform bijection between a complete space and its uniform completion. -/
+def uniform_completion.complete_equiv_self [complete_space α] [separated_space α]:
+  completion α ≃ᵤ α :=
+abstract_completion.compare_equiv completion.cpkg abstract_completion.of_complete
+
 open topological_space
 
 instance separable_space_completion [separable_space α] : separable_space (completion α) :=

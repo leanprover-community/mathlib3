@@ -74,9 +74,9 @@ equalities. -/
 protected def copy {μ : young_diagram} {T : ssyt μ} (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
 ssyt μ :=
 { entry := entry',
-  row_weak' := h.symm ▸ T.row_weak',
-  col_strict' := h.symm ▸ T.col_strict',
-  zeros' := h.symm ▸ T.zeros' }
+  row_weak' := λ _ _ _, h.symm ▸ T.row_weak',
+  col_strict' := λ _ _ _, h.symm ▸ T.col_strict',
+  zeros' := λ _ _, h.symm ▸ T.zeros' }
 
 lemma row_weak {μ : young_diagram} (T : ssyt μ) {i j1 j2 : ℕ}
   (hj : j1 < j2) (hcell : (i, j2) ∈ μ) : T i j1 ≤ T i j2 :=

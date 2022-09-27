@@ -31,8 +31,7 @@ variables [is_scalar_tower R S A]
 variables {B}
 theorem aeval_apply (x : σ → A) (p : mv_polynomial σ R) : aeval x p =
   aeval x (map (algebra_map R S) p) :=
-by rw [mv_polynomial.aeval_def, mv_polynomial.aeval_def, mv_polynomial.eval₂_map,
-  is_scalar_tower.algebra_map_eq R S A]
+by rw [aeval_def, aeval_def, eval₂_map, is_scalar_tower.algebra_map_eq R S A]
 
 end semiring
 
@@ -42,8 +41,8 @@ variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
 
 lemma algebra_map_aeval (x : σ → A) (p : mv_polynomial σ R) :
   algebra_map A B (mv_polynomial.aeval x p) = aeval (algebra_map A B ∘ x) p :=
-by rw [mv_polynomial.aeval_def, mv_polynomial.aeval_def, ← mv_polynomial.coe_eval₂_hom,
-  mv_polynomial.map_eval₂_hom, ←is_scalar_tower.algebra_map_eq, mv_polynomial.coe_eval₂_hom]
+by rw [aeval_def, aeval_def, ← coe_eval₂_hom, map_eval₂_hom, ←is_scalar_tower.algebra_map_eq,
+  coe_eval₂_hom]
 
 lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero {x : σ → A} {p : mv_polynomial σ R}
   (h : function.injective (algebra_map A B))

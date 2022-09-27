@@ -1447,11 +1447,11 @@ lemma mfderiv_surjective {x : M} (hx : x ∈ e.source) :
 (he.mfderiv hx).surjective
 
 lemma ker_mfderiv_eq_bot {x : M} (hx : x ∈ e.source) :
-  (mfderiv I I' e x).ker = ⊥ :=
+  linear_map.ker (mfderiv I I' e x) = ⊥ :=
 (he.mfderiv hx).to_linear_equiv.ker
 
 lemma range_mfderiv_eq_top {x : M} (hx : x ∈ e.source) :
-  (mfderiv I I' e x).range = ⊤ :=
+  linear_map.range (mfderiv I I' e x) = ⊤ :=
 (he.mfderiv hx).to_linear_equiv.range
 
 lemma range_mfderiv_eq_univ {x : M} (hx : x ∈ e.source) :

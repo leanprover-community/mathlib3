@@ -14,7 +14,7 @@ This file contains the Banach open mapping theorem, i.e., the fact that a biject
 bounded linear map between Banach spaces has a bounded inverse.
 -/
 
-open function metric set filter finset
+open function metric set filter finset linear_map (range ker)
 open_locale classical topological_space big_operators nnreal
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
@@ -266,8 +266,8 @@ lemma frontier_preimage (hsurj : surjective f) (s : set F) :
   frontier (f ⁻¹' s) = f ⁻¹' (frontier s) :=
 ((f.is_open_map hsurj).preimage_frontier_eq_frontier_preimage f.continuous s).symm
 
-lemma exists_nonlinear_right_inverse_of_surjective (f : E →L[𝕜] F) (hsurj : f.range = ⊤) :
-  ∃ (fsymm : nonlinear_right_inverse f), 0 < fsymm.nnnorm :=
+lemma exists_nonlinear_right_inverse_of_surjective (f : E →L[𝕜] F)
+  (hsurj : linear_map.range f = ⊤) : ∃ (fsymm : nonlinear_right_inverse f), 0 < fsymm.nnnorm :=
 begin
   choose C hC fsymm h using exists_preimage_norm_le _ (linear_map.range_eq_top.mp hsurj),
   use { to_fun := fsymm,
@@ -282,11 +282,11 @@ controlled right inverse. In general, it is not possible to ensure that such a r
 is linear (take for instance the map from `E` to `E/F` where `F` is a closed subspace of `E`
 without a closed complement. Then it doesn't have a continuous linear right inverse.) -/
 @[irreducible] noncomputable def nonlinear_right_inverse_of_surjective
-  (f : E →L[𝕜] F) (hsurj : f.range = ⊤) : nonlinear_right_inverse f :=
+  (f : E →L[𝕜] F) (hsurj : linear_map.range f = ⊤) : nonlinear_right_inverse f :=
 classical.some (exists_nonlinear_right_inverse_of_surjective f hsurj)
 
-lemma nonlinear_right_inverse_of_surjective_nnnorm_pos (f : E →L[𝕜] F) (hsurj : f.range = ⊤) :
-  0 < (nonlinear_right_inverse_of_surjective f hsurj).nnnorm :=
+lemma nonlinear_right_inverse_of_surjective_nnnorm_pos (f : E →L[𝕜] F)
+  (hsurj : linear_map.range f = ⊤) : 0 < (nonlinear_right_inverse_of_surjective f hsurj).nnnorm :=
 begin
   rw nonlinear_right_inverse_of_surjective,
   exact classical.some_spec (exists_nonlinear_right_inverse_of_surjective f hsurj)
@@ -334,24 +334,24 @@ variables [complete_space E]
 
 /-- Convert a bijective continuous linear map `f : E →L[𝕜] F` from a Banach space to a normed space
 to a continuous linear equivalence. -/
-noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
-  E ≃L[𝕜] F :=
+noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : ker f = ⊥)
+  (hsurj : linear_map.range f = ⊤) : E ≃L[𝕜] F :=
 (linear_equiv.of_bijective ↑f (linear_map.ker_eq_bot.mp hinj) (linear_map.range_eq_top.mp hsurj))
 .to_continuous_linear_equiv_of_continuous f.continuous
 
-@[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
-  ⇑(of_bijective f hinj hsurj) = f := rfl
+@[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : ker f = ⊥)
+  (hsurj : linear_map.range f = ⊤) : ⇑(of_bijective f hinj hsurj) = f := rfl
 
-lemma coe_of_bijective (f : E →L[𝕜] F) (hinj : f.ker = ⊥) (hsurj : f.range = ⊤) :
+lemma coe_of_bijective (f : E →L[𝕜] F) (hinj : ker f = ⊥) (hsurj : linear_map.range f = ⊤) :
   ↑(of_bijective f hinj hsurj) = f := by { ext, refl }
 
-@[simp] lemma of_bijective_symm_apply_apply (f : E →L[𝕜] F) (hinj : f.ker = ⊥)
-  (hsurj : f.range = ⊤) (x : E) :
+@[simp] lemma of_bijective_symm_apply_apply (f : E →L[𝕜] F) (hinj : ker f = ⊥)
+  (hsurj : linear_map.range f = ⊤) (x : E) :
   (of_bijective f hinj hsurj).symm (f x) = x :=
 (of_bijective f hinj hsurj).symm_apply_apply x
 
-@[simp] lemma of_bijective_apply_symm_apply (f : E →L[𝕜] F) (hinj : f.ker = ⊥)
-  (hsurj : f.range = ⊤) (y : F) :
+@[simp] lemma of_bijective_apply_symm_apply (f : E →L[𝕜] F) (hinj : ker f = ⊥)
+  (hsurj : linear_map.range f = ⊤) (y : F) :
   f ((of_bijective f hinj hsurj).symm y) = y :=
 (of_bijective f hinj hsurj).apply_symm_apply y
 
@@ -367,7 +367,7 @@ variables [complete_space E]
 This is `f.coprod G.subtypeL` as an `continuous_linear_equiv`. -/
 noncomputable def coprod_subtypeL_equiv_of_is_compl
   (f : E →L[𝕜] F) {G : submodule 𝕜 F}
-  (h : is_compl f.range G) [complete_space G] (hker : f.ker = ⊥) : (E × G) ≃L[𝕜] F :=
+  (h : is_compl (linear_map.range f) G) [complete_space G] (hker : ker f = ⊥) : (E × G) ≃L[𝕜] F :=
 continuous_linear_equiv.of_bijective (f.coprod G.subtypeL)
   (begin
     rw ker_coprod_of_disjoint_range,
@@ -379,18 +379,20 @@ continuous_linear_equiv.of_bijective (f.coprod G.subtypeL)
 
 lemma range_eq_map_coprod_subtypeL_equiv_of_is_compl
   (f : E →L[𝕜] F) {G : submodule 𝕜 F}
-  (h : is_compl f.range G) [complete_space G] (hker : f.ker = ⊥) :
-    f.range = ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)).map
+  (h : is_compl (linear_map.range f) G) [complete_space G] (hker : ker f = ⊥) :
+    linear_map.range f = ((⊤ : submodule 𝕜 E).prod (⊥ : submodule 𝕜 G)).map
       (f.coprod_subtypeL_equiv_of_is_compl h hker : E × G →ₗ[𝕜] F) :=
-by rw [coprod_subtypeL_equiv_of_is_compl, _root_.coe_coe, continuous_linear_equiv.coe_of_bijective,
-    coe_coprod, linear_map.coprod_map_prod, submodule.map_bot, sup_bot_eq, submodule.map_top,
-    range]
+begin
+  rw [coprod_subtypeL_equiv_of_is_compl, _root_.coe_coe, continuous_linear_equiv.coe_of_bijective,
+         coe_coprod, linear_map.coprod_map_prod, submodule.map_bot, sup_bot_eq, submodule.map_top],
+  refl
+end
 
 /- TODO: remove the assumption `f.ker = ⊥` in the next lemma, by using the map induced by `f` on
 `E / f.ker`, once we have quotient normed spaces. -/
 lemma closed_complemented_range_of_is_compl_of_ker_eq_bot (f : E →L[𝕜] F) (G : submodule 𝕜 F)
-  (h : is_compl f.range G) (hG : is_closed (G : set F)) (hker : f.ker = ⊥) :
-  is_closed (f.range : set F) :=
+  (h : is_compl (linear_map.range f) G) (hG : is_closed (G : set F)) (hker : ker f = ⊥) :
+  is_closed (linear_map.range f : set F) :=
 begin
   haveI : complete_space G := hG.complete_space_coe,
   let g := coprod_subtypeL_equiv_of_is_compl f h hker,

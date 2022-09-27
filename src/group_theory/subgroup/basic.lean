@@ -1787,6 +1787,8 @@ def centralizer : subgroup G :=
   inv_mem' := λ g, set.inv_mem_centralizer,
   .. submonoid.centralizer ↑H }
 
+variables {H}
+
 @[to_additive] lemma mem_centralizer_iff {g : G} : g ∈ H.centralizer ↔ ∀ h ∈ H, h * g = g * h :=
 iff.rfl
 
@@ -1796,6 +1798,12 @@ by simp only [mem_centralizer_iff, mul_inv_eq_iff_eq_mul, one_mul]
 
 @[to_additive] lemma centralizer_top : centralizer ⊤ = center G :=
 set_like.ext' (set.centralizer_univ G)
+
+@[to_additive] lemma le_centralizer_iff : H ≤ K.centralizer ↔ K ≤ H.centralizer :=
+⟨λ h x hx y hy, (h hy x hx).symm, λ h x hx y hy, (h hy x hx).symm⟩
+
+@[to_additive] lemma centralizer_le (h : H ≤ K) : centralizer K ≤ centralizer H :=
+submonoid.centralizer_le h
 
 @[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :
   H.centralizer.characteristic :=
@@ -2699,6 +2707,12 @@ by rw [eq_bot_iff, zpowers_le, mem_bot]
    subgroup.zpowers (1 : G) = ⊥ :=
 subgroup.zpowers_eq_bot.mpr rfl
 
+@[to_additive] lemma centralizer_closure (S : set G) :
+  (closure S).centralizer = ⨅ g ∈ S, (zpowers g).centralizer :=
+le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ subset_closure hg)
+  $ le_centralizer_iff.1 $ (closure_le _).2
+  $ λ g, set_like.mem_coe.2 ∘ zpowers_le.1 ∘ le_centralizer_iff.1 ∘ infi_le_of_le g ∘ infi_le _
+
 end subgroup
 
 namespace monoid_hom
@@ -2975,8 +2989,7 @@ instance sup_normal (H K : subgroup G) [hH : H.normal] [hK : K.normal] : (H ⊔ 
 
 @[to_additive] instance normal_inf_normal (H K : subgroup G) [hH : H.normal] [hK : K.normal] :
   (H ⊓ K).normal :=
-{ conj_mem := λ n hmem g,
-  by { rw mem_inf at *, exact ⟨hH.conj_mem n hmem.1 g, hK.conj_mem n hmem.2 g⟩ } }
+⟨λ n hmem g, ⟨hH.conj_mem n hmem.1 g, hK.conj_mem n hmem.2 g⟩⟩
 
 @[to_additive] lemma subgroup_of_sup (A A' B : subgroup G) (hA : A ≤ B) (hA' : A' ≤ B) :
   (A ⊔ A').subgroup_of B = A.subgroup_of B ⊔ A'.subgroup_of B :=

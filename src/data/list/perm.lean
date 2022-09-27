@@ -457,8 +457,8 @@ end
 
 section
 variables {op : α → α → α} [is_associative α op] [is_commutative α op]
-local notation (name := op) a * b := op a b
-local notation (name := foldl) l <*> a := foldl op a l
+local notation (name := op) a ` * ` b := op a b
+local notation (name := foldl) l ` <*> ` a := foldl op a l
 
 lemma perm.fold_op_eq {l₁ l₂ : list α} {a : α} (h : l₁ ~ l₂) : l₁ <*> a = l₂ <*> a :=
 h.foldl_eq (right_comm _ is_commutative.comm is_associative.assoc) _

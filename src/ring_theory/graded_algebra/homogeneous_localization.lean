@@ -389,6 +389,17 @@ instance homogenous_localization_comm_ring : comm_ring (homogeneous_localization
 (homogeneous_localization.val_injective x).comm_ring _ zero_val one_val add_val mul_val neg_val
   sub_val (λ z n, smul_val x z n) (λ z n, smul_val x z n) pow_val nat_cast_val int_cast_val
 
+instance homogeneous_localization_algebra :
+  algebra (homogeneous_localization 𝒜 x) (localization x) :=
+{ smul := λ p q, p.val * q,
+  to_fun := val,
+  map_one' := one_val,
+  map_mul' := mul_val,
+  map_zero' := zero_val,
+  map_add' := add_val,
+  commutes' := λ p q, mul_comm _ _,
+  smul_def' := λ p q, rfl }
+
 end homogeneous_localization
 
 namespace homogeneous_localization

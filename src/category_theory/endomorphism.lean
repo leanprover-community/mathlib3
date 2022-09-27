@@ -117,6 +117,8 @@ simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, 
 
 lemma Aut_mul_def (f g : Aut X) : f * g = g.trans f := rfl
 
+lemma Aut_inv_def (f : Aut X) : f ⁻¹ = f.symm := rfl
+
 /--
 Units in the monoid of endomorphisms of an object
 are (multiplicatively) equivalent to automorphisms of that object.

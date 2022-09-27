@@ -410,10 +410,6 @@ end has_sum
 section tsum
 variables [add_comm_monoid α] [topological_space α]
 
-lemma tsum_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
-  ∑' (x : s), f x = ∑' (x : t), f x :=
-by rw h
-
 lemma tsum_zero' (hz : is_closed ({0} : set α)) : ∑' b : β, (0 : α) = 0 :=
 begin
   classical,
@@ -455,14 +451,6 @@ lemma tsum_fintype [fintype β] (f : β → α) : ∑'b, f b = ∑ b, f b :=
 
 lemma tsum_bool (f : bool → α) : ∑' i : bool, f i = f false + f true :=
 by { rw [tsum_fintype, finset.sum_eq_add]; simp }
-
-@[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
-  ∑' x : {x // x ∈ s}, f x = ∑ x in s, f x :=
-(s.has_sum f).tsum_eq
-
-@[simp] lemma finset.tsum_subtype' (s : finset β) (f : β → α) :
-  ∑' x : (s : set β), f x = ∑ x in s, f x :=
-s.tsum_subtype f
 
 lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   ∑'b, f b = f b :=
@@ -516,10 +504,6 @@ lemma tsum_eq_tsum_of_ne_zero_bij {g : γ → α} (i : support g → β)
   ∑' x, f x  = ∑' y, g y :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_iff_has_sum_of_ne_zero_bij i hi hf hfg
 
-lemma tsum_subtype (s : set β) (f : β → α) :
-  ∑' x:s, f x = ∑' x, s.indicator f x :=
-tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_subtype_iff_indicator
-
 lemma tsum_op : ∑' x, mul_opposite.op (f x) = mul_opposite.op (∑' x, f x) :=
 begin
   by_cases h : summable f,
@@ -530,6 +514,39 @@ end
 
 lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
 mul_opposite.op_injective tsum_op.symm
+
+/-! Some lemmas about `tsum` on subsets of the domain. -/
+
+@[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
+  ∑' x : {x // x ∈ s}, f x = ∑ x in s, f x :=
+(s.has_sum f).tsum_eq
+
+@[simp] lemma finset.tsum_subtype' (s : finset β) (f : β → α) :
+  ∑' x : (s : set β), f x = ∑ x in s, f x :=
+s.tsum_subtype f
+
+lemma tsum_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
+  ∑' (x : s), f x = ∑' (x : t), f x :=
+by rw h
+
+lemma tsum_subtype (s : set β) (f : β → α) :
+  ∑' x : s, f x = ∑' x, s.indicator f x :=
+tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_subtype_iff_indicator
+
+lemma tsum_subtype_eq_of_support_subset {f : β → α} {s : set β} (hs : support f ⊆ s) :
+  ∑' x : s, f x = ∑' x, f x :=
+tsum_eq_tsum_of_has_sum_iff_has_sum $ λ x, has_sum_subtype_iff_of_support_subset hs
+
+lemma tsum_univ (f : β → α) : ∑' x : (set.univ : set β), f x = ∑' x, f x :=
+tsum_subtype_eq_of_support_subset $ set.subset_univ _
+
+lemma tsum_image {g : γ → β} (f : β → α) {s : set γ} (hg : set.inj_on g s) :
+  ∑' x : g '' s, f x = ∑' x : s, f (g x) :=
+((equiv.set.image_of_inj_on _ _ hg).tsum_eq (λ x, f x)).symm
+
+lemma tsum_range {g : γ → β} (f : β → α) (hg : injective g) :
+  ∑' x : set.range g, f x = ∑' x, f (g x) :=
+by rw [← set.image_univ, tsum_image f (hg.inj_on _), tsum_univ (f ∘ g)]
 
 section has_continuous_add
 variable [has_continuous_add α]

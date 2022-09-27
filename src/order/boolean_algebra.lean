@@ -542,8 +542,13 @@ instance : boolean_algebra αᵒᵈ :=
 @[simp] lemma sup_inf_inf_compl : (x ⊓ y) ⊔ (x ⊓ yᶜ) = x :=
 by rw [← sdiff_eq, sup_inf_sdiff _ _]
 
-@[simp] lemma compl_sdiff : (x \ y)ᶜ = xᶜ ⊔ y :=
-by rw [sdiff_eq, compl_inf, compl_compl]
+@[simp] lemma compl_sdiff : (x \ y)ᶜ = x ⇨ y :=
+by rw [sdiff_eq, himp_eq, compl_inf, compl_compl, sup_comm]
+
+@[simp] lemma compl_himp : (x ⇨ y)ᶜ = x \ y := @compl_sdiff αᵒᵈ _ _ _
+
+@[simp] lemma compl_sdiff_compl : xᶜ \ yᶜ = y \ x := by rw [sdiff_compl, sdiff_eq, inf_comm]
+@[simp] lemma compl_himp_compl : xᶜ ⇨ yᶜ = y ⇨ x := @compl_sdiff_compl αᵒᵈ _ _ _
 
 lemma disjoint_compl_left_iff : disjoint xᶜ y ↔ y ≤ x :=
 by rw [←le_compl_iff_disjoint_left, compl_compl]

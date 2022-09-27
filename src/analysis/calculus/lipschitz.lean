@@ -20,16 +20,24 @@ almost everywhere.
 
 
 open_locale big_operators nnreal ennreal
-open set
+open set measure_theory
 
-variables {α : Type*} [linear_order α]
-{E : Type*} [pseudo_emetric_space E] {F : Type*} [pseudo_metric_space F]
+variables {α : Type*} [linear_order α] {E : Type*} [pseudo_emetric_space E]
 
 /-- The (extended real valued) variation of a function `f` on a set `s` is the supremum of the
 sum of `edist (f (u (i+1))) (f (u i))` over all finite increasing sequences `u` in `s`. -/
 noncomputable def evariation_on (f : α → E) (s : set α) : ℝ≥0∞ :=
 ⨆ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
   ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))
+
+/-- A function has bounded variation on a set `s` if its total variation there is finite. -/
+def has_bounded_variation_on (f : α → E) (s : set α) :=
+evariation_on f s ≠ ∞
+
+/-- A function has locally bounded variation on a set `s` if, given any interval `[a, b]` with
+endpoints in `s`, then the function has finite variation on `s ∩ [a, b]`. -/
+def has_locally_bounded_variation_on (f : α → E) (s : set α) :=
+∀ a b, a ∈ s → b ∈ s → has_bounded_variation_on f (s ∩ Icc a b)
 
 namespace evariation_on
 
@@ -155,8 +163,8 @@ begin
   simp [u, edist_comm],
 end
 
-lemma dist_le (f : α → F) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s)
-  (h : evariation_on f s ≠ ∞):
+lemma _root_.has_bounded_variation_on.dist_le {E : Type*} [pseudo_metric_space E]
+  {f : α → E} {s : set α} (h : has_bounded_variation_on f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   dist (f x) (f y) ≤ (evariation_on f s).to_real :=
 begin
   rw [← ennreal.of_real_le_of_real_iff ennreal.to_real_nonneg, ennreal.of_real_to_real h,
@@ -164,13 +172,13 @@ begin
   exact edist_le f hx hy
 end
 
-lemma sub_le (f : α → ℝ) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s)
-  (h : evariation_on f s ≠ ∞):
+lemma _root_.has_bounded_variation_on.sub_le
+  {f : α → ℝ} {s : set α} (h : has_bounded_variation_on f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   f x - f y ≤ (evariation_on f s).to_real :=
 begin
   apply (le_abs_self _).trans,
   rw ← real.dist_eq,
-  exact dist_le f hx hy h
+  exact h.dist_le hx hy
 end
 
 /-- Consider a monotone function `u` parameterizing some points of a set `s`. Given `x ∈ s`, then
@@ -471,8 +479,94 @@ begin
       Icc_union_Icc_eq_Icc hab hbc]
 end
 
+end evariation_on
+
+
+
+lemma monotone_on.has_locally_bounded_variation_on {f : α → ℝ} {s : set α} (hf : monotone_on f s) :
+  has_locally_bounded_variation_on f s
+
+/-! ## Composition with Lipschitz functions preserves bounded variation -/
+
+lemma lipschitz_on_with.comp_evariation_on_le {f : ℝ → E} {C : ℝ≥0} {t : set ℝ}
+  (h : lipschitz_on_with C f t) {g : α → ℝ} {s : set α} (hg : maps_to g s t) :
+  evariation_on (f ∘ g) s ≤ C * evariation_on g s :=
+begin
+  apply supr_le _,
+  rintros ⟨n, ⟨u, hu, us⟩⟩,
+  calc
+  ∑ i in finset.range n, edist (f (g (u (i+1)))) (f (g (u i)))
+      ≤ ∑ i in finset.range n, C * edist (g (u (i+1))) (g (u i)) :
+    finset.sum_le_sum (λ i hi, h (hg (us _)) (hg (us _)))
+  ... = C * ∑ i in finset.range n, edist (g (u (i+1))) (g (u i)) : by rw finset.mul_sum
+  ... ≤ C * evariation_on g s : mul_le_mul_left' (evariation_on.sum_le _ _ hu us) _
+end
+
+lemma lipschitz_on_with.comp_has_bounded_variation_on {f : ℝ → E} {C : ℝ≥0} {t : set ℝ}
+  (hf : lipschitz_on_with C f t) {g : α → ℝ} {s : set α} (hg : maps_to g s t)
+  (h : has_bounded_variation_on g s) :
+  has_bounded_variation_on (f ∘ g) s :=
+begin
+  dsimp [has_bounded_variation_on] at h,
+  apply ne_of_lt,
+  apply (hf.comp_evariation_on_le hg).trans_lt,
+  simp [lt_top_iff_ne_top, h],
+end
+
+lemma lipschitz_on_with.comp_has_locally_bounded_variation_on {f : ℝ → E} {C : ℝ≥0} {t : set ℝ}
+  (hf : lipschitz_on_with C f t) {g : α → ℝ} {s : set α} (hg : maps_to g s t)
+  (h : has_locally_bounded_variation_on g s) :
+  has_locally_bounded_variation_on (f ∘ g) s :=
+λ x y xs ys, hf.comp_has_bounded_variation_on (hg.mono_left (inter_subset_left _ _)) (h x y xs ys)
+
+lemma lipschitz_with.comp_has_bounded_variation_on {f : ℝ → E} {C : ℝ≥0}
+  (hf : lipschitz_with C f) {g : α → ℝ} {s : set α} (h : has_bounded_variation_on g s) :
+  has_bounded_variation_on (f ∘ g) s :=
+(hf.lipschitz_on_with univ).comp_has_bounded_variation_on (maps_to_univ _ _) h
+
+lemma lipschitz_with.comp_has_locally_bounded_variation_on {f : ℝ → E} {C : ℝ≥0}
+  (hf : lipschitz_with C f) {g : α → ℝ} {s : set α} (h : has_locally_bounded_variation_on g s) :
+  has_locally_bounded_variation_on (f ∘ g) s :=
+(hf.lipschitz_on_with univ).comp_has_locally_bounded_variation_on (maps_to_univ _ _) h
+
+
+#exit
+
+lemma lipschitz_on.evariation_on_le {f : ℝ → E} {s : set ℝ} {C : ℝ≥0}
+  (h : lipschitz_on_with C f s) (a b : ℝ) :
+  evariation_on f (s ∩ Icc a b) ≤ C * ennreal.of_real (b - a) :=
+begin
+  apply supr_le _,
+  rintros ⟨n, ⟨u, hu, us⟩⟩,
+  calc
+  ∑ i in finset.range n, edist (f (u (i+1))) (f (u i))
+      ≤ ∑ i in finset.range n, C * ennreal.of_real (u (i + 1) - u i) :
+    begin
+      apply finset.sum_le_sum (λ i hi, _),
+      simp only [finset.mem_range] at hi,
+      convert h (us (i+1)).1 (us i).1,
+      rw [edist_dist, real.dist_eq, abs_of_nonneg (sub_nonneg_of_le (hu (nat.le_succ _)))],
+    end
+  ... = C * ennreal.of_real (∑ i in finset.range n, (u (i + 1) - u i)) :
+    begin
+      rw [← finset.mul_sum, ennreal.of_real_sum_of_nonneg],
+      assume i hi,
+      exact sub_nonneg_of_le (hu (nat.le_succ _))
+    end
+  ... = C * ennreal.of_real (u n - u 0) : by rw finset.sum_range_sub
+  ... ≤ C * ennreal.of_real (b - a) :
+    begin
+      refine mul_le_mul_left' _ _,
+      apply ennreal.of_real_le_of_real,
+      exact sub_le_sub (us n).2.2 (us 0).2.1,
+    end
+end
+
+
+namespace has_locally_bounded_variation_on
+
 lemma exists_monotone_on_sub_monotone_on {f : α → ℝ} {s : set α}
-  (h : ∀ a b, a ∈ s → b ∈ s → a ≤ b → evariation_on f (s ∩ (Icc a b)) ≠ ∞) :
+  (h : has_locally_bounded_variation_on f s) :
   ∃ (p q : α → ℝ), monotone_on p s ∧ monotone_on q s ∧ ∀ x, f x = p x - q x :=
 begin
   rcases eq_empty_or_nonempty s with rfl|hs,
@@ -486,61 +580,96 @@ begin
     dsimp only [p],
     split_ifs with hcx hcy hcy,
     { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy xs,
-      rw [← this, ennreal.to_real_add (h c x cs xs hcx) (h x y xs ys hxy)],
+        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc f hcx hxy xs,
+      rw [← this, ennreal.to_real_add (h c x cs xs) (h x y xs ys)],
       exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg },
     { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
     { exact (neg_nonpos.2 ennreal.to_real_nonneg).trans ennreal.to_real_nonneg },
     { simp only [neg_le_neg_iff],
       have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from Icc_add_Icc f hxy (not_le.1 hcy).le ys,
-      rw [← this, ennreal.to_real_add (h x y xs ys hxy) (h y c ys cs (not_le.1 hcy).le), add_comm],
+        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc f hxy (not_le.1 hcy).le ys,
+      rw [← this, ennreal.to_real_add (h x y xs ys) (h y c ys cs), add_comm],
       exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg } },
   have hq : monotone_on (λ x, p x - f x) s,
   { assume x xs y ys hxy,
     dsimp only [p],
     split_ifs with hcx hcy hcy,
     { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from Icc_add_Icc f hcx hxy xs,
-      rw [← this, ennreal.to_real_add (h c x cs xs hcx) (h x y xs ys hxy)],
+        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc f hcx hxy xs,
+      rw [← this, ennreal.to_real_add (h c x cs xs) (h x y xs ys)],
       suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
-      exact sub_le f ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ (h x y xs ys hxy) },
+      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ },
     { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
     { suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x c)).to_real
         + (evariation_on f (s ∩ Icc c y)).to_real, by linarith,
-      rw [← ennreal.to_real_add (h x c xs cs (not_le.1 hcx).le) (h c y cs ys hcy),
-          Icc_add_Icc f (not_le.1 hcx).le hcy cs],
-      exact sub_le f ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ (h x y xs ys hxy) },
+      rw [← ennreal.to_real_add (h x c xs cs) (h c y cs ys),
+          evariation_on.Icc_add_Icc f (not_le.1 hcx).le hcy cs],
+      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ },
     { have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from Icc_add_Icc f hxy (not_le.1 hcy).le ys,
-      rw [← this, ennreal.to_real_add (h x y xs ys hxy) (h y c ys cs (not_le.1 hcy).le)],
+        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc f hxy (not_le.1 hcy).le ys,
+      rw [← this, ennreal.to_real_add (h x y xs ys) (h y c ys cs)],
       suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
-      exact sub_le f ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ (h x y xs ys hxy) } },
+      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ } },
   refine ⟨p, λ x, p x - f x, hp, hq, λ x, by abel⟩,
 end
 
-lemma exists_monotone_sub_monotone' (f : α → ℝ) {s : set α} {a b : α}
-  (h : evariation_on f s ≠ ∞) (as : a ∈ s) (bs : b ∈ s) (hs : s ⊆ Icc a b) :
-  ∃ (p q : α → ℝ), monotone p ∧ monotone q ∧ eq_on f (p - q) s :=
+/-- A bounded variation function into `ℝ` is differentiable almost everywhere. Superseded by
+`ae_differentiable_within_at_of_mem`. -/
+theorem ae_differentiable_within_at_of_mem_real
+  {f : ℝ → ℝ} {s : set ℝ} (h : has_locally_bounded_variation_on f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
 begin
-  obtain ⟨p', q', hp', hq', H⟩ :
-    ∃ (p' q' : α → ℝ), monotone_on p' s ∧ monotone_on q' s ∧ ∀ x, f x = p' x - q' x,
-  { apply exists_monotone_on_sub_monotone_on,
-    assume c d hc hd hcd,
-    apply ne_of_lt (lt_of_le_of_lt _ h.lt_top),
-    exact evariation_on.mono _ (inter_subset_left _ _) },
-  obtain ⟨p, hp, h'p⟩ : ∃ p, monotone p ∧ eq_on p' p s, from hp'.exists_monotone_extension as bs hs,
-  obtain ⟨q, hq, h'q⟩ : ∃ q, monotone q ∧ eq_on q' q s, from hq'.exists_monotone_extension as bs hs,
-  exact ⟨p, q, hp, hq, λ x hx, by simp [H x, h'q hx, h'p hx]⟩,
+  obtain ⟨p, q, hp, hq, fpq⟩ : ∃ p q, monotone_on p s ∧ monotone_on q s ∧ ∀ x, f x = p x - q x,
+    from h.exists_monotone_on_sub_monotone_on,
+  filter_upwards [hp.ae_differentiable_within_at_of_mem, hq.ae_differentiable_within_at_of_mem]
+    with x hxp hxq xs,
+  exact ((hxp xs).sub (hxq xs)).congr (λ y hy, fpq y) (fpq x),
 end
 
-lemma exists_monotone_sub_monotone (f : α → ℝ)
-  (h : ∀ a b, a ≤ b → evariation_on f (Icc a b) ≠ ∞) :
-  ∃ (p q : α → ℝ), monotone p ∧ monotone q ∧ ∀ x, f x = p x - q x :=
-by simpa [monotone_on_univ] using
-  @exists_monotone_on_sub_monotone_on _ _ f univ (λ a b ha hb hab, by simpa using h a b hab)
+/-- A bounded variation function into a finite dimensional product vector space is differentiable
+almost everywhere. Superseded by `ae_differentiable_within_at_of_mem`. -/
+theorem ae_differentiable_within_at_of_mem_pi {ι : Type*} [fintype ι]
+  {f : ℝ → (ι → ℝ)} {s : set ℝ} (h : has_locally_bounded_variation_on f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
+begin
+  have : ∀ (i : ι), ∀ᵐ x, x ∈ s → differentiable_within_at ℝ (λ (x : ℝ), f x i) s x, sorry,
+  filter_upwards [ae_all_iff.2 this] with x hx xs,
+  exact differentiable_within_at_pi.2 (λ i, hx i xs),
+end
 
-end evariation_on
+/-- A bounded variation function into a finite dimensional real vector space is differentiable
+almost everywhere. -/
+theorem ae_differentiable_within_at_of_mem
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  {f : ℝ → E} {s : set ℝ} (h : has_locally_bounded_variation_on f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
+begin
+  let ι : Type* := basis.of_vector_space_index ℝ E,
+  let A := (basis.of_vector_space ℝ E).equiv_fun.to_continuous_linear_equiv,
+  suffices H : ∀ᵐ x, x ∈ s → differentiable_within_at ℝ (A ∘ f) s x,
+  { filter_upwards [H] with x hx xs,
+    have : f = (A.symm ∘ A) ∘ f,
+      by simp only [continuous_linear_equiv.symm_comp_self, function.comp.left_id],
+    rw this,
+    exact A.symm.differentiable_at.comp_differentiable_within_at x (hx xs) },
+  apply ae_differentiable_within_at_of_mem_pi,
+end
+
+#exit
+
+differentiable_within_at_pi
+
+theorem ae_differentiable_within_at
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  {f : ℝ → E} {s : set ℝ} (h : has_locally_bounded_variation_on f s) (hs : measurable_set s) :
+  ∀ᵐ x ∂(volume.restrict s), differentiable_within_at ℝ f s x :=
+begin
+  rw ae_restrict_iff' hs,
+  exact h.ae_differentiable_within_at_of_mem
+end
+
+
+end has_locally_bounded_variation_on
 
 lemma lipschitz_on.evariation_on_le {f : ℝ → E} {s : set ℝ} {C : ℝ≥0}
   (h : lipschitz_on_with C f s) (a b : ℝ) :

@@ -250,6 +250,42 @@ end
 
 end roots
 
+section topo
+
+variables {F K : Type*} [field F] [normed_field K]
+
+open polynomial
+
+open_locale polynomial
+
+lemma coeff_bdd_of_roots_le (B : ℝ) (d : ℕ) (f : F →+* K) :
+  ∃ C, ∀ p : F[X], p.monic → splits f p → p.nat_degree ≤ d → (∀ z ∈ (map f p).roots, ∥z∥ ≤ B) →
+  ∀ i, ∥(map f p).coeff i∥ ≤ C :=
+begin
+  let S := finset.bUnion
+    (finset.product (finset.range (d + 1)) (finset.range (d + 1)))
+    (λ x, ( { B ^ (x.1 - x.2) * (x.1.choose x.2) } : finset ℝ)),
+  let C := (S.max' _),
+  { use max C 0,
+    intros p h_monic h_splits h_degree h_roots i,
+    by_cases hi : i < d + 1,
+    { apply le_trans _ (le_max_left _ _),
+      apply le_trans (coeff_le_of_roots_le i h_monic h_splits h_roots) _,
+      refine finset.le_max' S _ _,
+      exact finset.mem_bUnion.mpr ⟨⟨p.nat_degree, i⟩, finset.mem_product.mpr
+        ⟨finset.mem_range_succ_iff.mpr h_degree, finset.mem_range.mpr hi⟩,
+          finset.mem_singleton.mpr rfl⟩,
+    },
+    { rw coeff_eq_zero_of_nat_degree_lt,
+      { rw norm_zero, exact le_max_right _ _, },
+      { rw nat_degree_map, linarith, }}},
+  { exact finset.bUnion_nonempty.mpr
+    ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
+      finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
+end
+
+end topo
+
 section bounded
 
 open finite_dimensional polynomial set
@@ -257,96 +293,86 @@ open finite_dimensional polynomial set
 variables (K : Type*) [field K] [number_field K]
 variables (A : Type*) [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
 
-lemma bdd_coeff_of_norm_le (B : ℝ) :
-  ∃ (C : ℤ), ∀ x : K, (∀ φ : K →+* A, ∥φ x∥ ≤ B) → ∀ i, |(minpoly ℚ x).coeff i| ≤ C :=
+lemma coeff_bdd_of_norm_le (B : ℝ) :
+  ∃ C, ∀ x : K, (∀ φ : K →+* A, ∥φ x∥ ≤ B) → ∀ i, ∥(minpoly ℚ x).coeff i∥ ≤ C :=
 begin
-  let S := finset.bUnion
-    (finset.product (finset.range (finrank ℚ K + 1)) (finset.range (finrank ℚ K + 1)))
-    (λ x, ( { B ^ (x.1 - x.2) * (x.1.choose x.2) } : finset ℝ)),
-  let C := nat.ceil (S.max' _),
+  obtain ⟨C, hC⟩ := coeff_bdd_of_roots_le B (finrank ℚ K) (algebra_map ℚ A),
   use C,
   intros x hφ,
   have hx : is_integral ℚ x := is_separable.is_integral _ _,
-  have h_roots_bdd_minpoly : ∀ z ∈ (map (algebra_map ℚ A) (minpoly ℚ x)).roots, ∥z∥ ≤ B,
-  { intros z hz,
-    rsuffices ⟨φ, rfl⟩ : ∃ (φ : K →+* A), φ x = z, {exact hφ φ },
-    letI : char_zero A := char_zero_of_injective_algebra_map ((algebra_map ℚ _).injective),
-    rw [← set.mem_range, rat_range_eq_roots, mem_root_set_iff, aeval_def],
-    convert (mem_roots_map _).mp hz,
-    repeat { exact monic.ne_zero (minpoly.monic hx), }},
-  have h_bdd_degree : (minpoly ℚ x).nat_degree ≤ finrank ℚ K,
+  have : ∀ (i : ℕ), ∥(minpoly ℚ x).coeff i∥ = ∥(map (algebra_map ℚ A) (minpoly ℚ x)).coeff i∥,
+  { intro i, rw [coeff_map, norm_algebra_map'], },
+  simp_rw this,
+  apply hC (minpoly ℚ x),
+  { exact minpoly.monic hx, },
+  { exact is_alg_closed.splits_codomain _, },
   { refine le_of_eq_of_le (intermediate_field.adjoin.finrank hx).symm _,
     exact ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le, },
-  intro i,
-  by_cases hi : i < finrank ℚ K + 1,
-  { suffices : B ^ ((minpoly ℚ x).nat_degree - i) * ((minpoly ℚ x).nat_degree.choose i) ≤ C,
-    { rw ← @rat.cast_le ℝ,
-      apply le_trans _ this,
-      convert coeff_le_of_roots_le i _ _ h_roots_bdd_minpoly using 1,
-      { rw [rat.cast_abs, coeff_map, norm_algebra_map', ← rat.norm_cast_real, real.norm_eq_abs], },
-      exacts [minpoly.monic hx, is_alg_closed.splits_codomain _], },
-    { apply le_trans _ (nat.le_ceil (S.max' _)),
-      refine finset.le_max' S _ _,
-      exact finset.mem_bUnion.mpr ⟨⟨(minpoly ℚ x).nat_degree, i⟩, finset.mem_product.mpr
-        ⟨finset.mem_range_succ_iff.mpr h_bdd_degree, finset.mem_range.mpr hi⟩,
-          finset.mem_singleton.mpr rfl⟩, }},
-  { rw [coeff_eq_zero_of_nat_degree_lt, _root_.abs_zero],
-    exact nat.cast_nonneg _, linarith, },
-  { exact finset.bUnion_nonempty.mpr
-    ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
-      finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
+  intros z hz,
+  rsuffices ⟨φ, rfl⟩ : ∃ (φ : K →+* A), φ x = z, {exact hφ φ },
+  letI : char_zero A := char_zero_of_injective_algebra_map (algebra_map ℚ _).injective,
+  rw [← set.mem_range, rat_range_eq_roots, mem_root_set_iff, aeval_def],
+  convert (mem_roots_map _).mp hz,
+  repeat { exact monic.ne_zero (minpoly.monic hx), },
 end
 
-/-- Let `B` be a real number. The number of algebraic integers in `K` whose conjugates are all
+lemma zap {F : Type*} [comm_ring F] (d : ℕ) {f g : polynomial F} (hf : f.nat_degree ≤ d)
+  (hg : g.nat_degree ≤ d) (h : ∀ i, i ≤ d → f.coeff i = g.coeff i) :
+  f = g :=
+begin
+  ext,
+  by_cases hn : n ≤ d,
+  { exact h n hn, },
+  { rw [coeff_eq_zero_of_nat_degree_lt, coeff_eq_zero_of_nat_degree_lt],
+    linarith, linarith, },
+end
+
+lemma toto (F : Type*) [comm_ring F] [is_domain F] (d: ℕ) (C : ℝ) :
+  (⋃ (f : polynomial ℤ) (hf : f.nat_degree ≤ d ∧ ∀ i, ∥f.coeff i∥ ≤ C),
+      ((f.map (algebra_map ℤ F)).roots.to_finset : set F)).finite :=
+begin
+  refine finite.bUnion _ _,
+  have : inj_on (λ g : polynomial ℤ, λ e : fin (d+1), g.coeff e)
+    {f | f.nat_degree ≤ d ∧ ∀ (i : ℕ), ∥f.coeff i∥ ≤ C},
+  { intros x hx y hy hxy,
+    refine zap d hx.1 hy.1 _,
+    exact_mod_cast λ i hi, congr_fun hxy ⟨i, nat.lt_succ_iff.mpr hi⟩, },
+  refine finite.of_finite_image _ this,
+  { let D := int.ceil C,
+    have : (set.pi univ (λ e : fin (d+1), Icc (-D) D)).finite := finite.pi (λ d, finite_Icc _ _),
+    refine finite.subset this _,
+    rw [pi_univ_Icc, image_subset_iff],
+    intros f hf,
+    rw [mem_preimage, mem_Icc, pi.le_def, pi.le_def, forall_and_distrib.symm],
+    exact_mod_cast λ i : fin (d+1), abs_le.mp (le_trans (hf.right i) (int.le_ceil C)), },
+  { exact λ p _, polynomial.root_set_finite p F, },
+end
+
+/-- Let `B` be a real number. The set of algebraic integers in `K` whose conjugates are all
 smaller in norm than `B` is finite. -/
 lemma finite_of_norm_le (B : ℝ) :
   {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
 begin
-  obtain ⟨C, h⟩ := bdd_coeff_of_norm_le K A B,
-  suffices :
-    (⋃ (f : polynomial ℤ)
-       (hf : f.nat_degree ≤ finrank ℚ K ∧ ∀ i, |f.coeff i| ≤ C),
-       ((f.map (algebra_map ℤ K)).roots.to_finset : set K)).finite,
-  { refine this.subset (λ x hx, _),
-    have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
-    have h_same_deg_minpoly : (minpoly ℚ x).nat_degree = (minpoly ℤ x).nat_degree,
-    { rw h_map_rat_minpoly, convert nat_degree_map_eq_of_injective _ _,
-      exact (algebra_map ℤ ℚ).injective_int, },
-    have h_bdd_degree : (minpoly ℚ x).nat_degree ≤ finrank ℚ K,
-    { refine le_of_eq_of_le
-        (intermediate_field.adjoin.finrank (is_integral_of_is_scalar_tower _ hx.1)).symm _,
-      exact ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le, },
-    rw mem_Union,
-    use minpoly ℤ x,
-    rw [mem_Union, exists_prop, finset.mem_coe, multiset.mem_to_finset],
-    refine ⟨⟨_, _⟩, _⟩,
-    { rwa ← h_same_deg_minpoly, },
-    { intro i,
-      rw ← @int.cast_le ℚ,
-      convert h x hx.2 i,
-      simp only [h_map_rat_minpoly, int.cast_abs, coeff_map, eq_int_cast], },
-    { rw [mem_roots, is_root.def, ← eval₂_eq_eval_map, ← aeval_def],
-      { exact minpoly.aeval ℤ x, },
-      { exact monic.ne_zero (monic.map (algebra_map ℤ K) (minpoly.monic hx.1)), }}},
-  { refine finite.bUnion _ _,
-    suffices : inj_on (λ g : polynomial ℤ, λ d : fin (finrank ℚ K + 1), g.coeff d)
-      { f | f.nat_degree ≤ finrank ℚ K ∧ ∀ (i : ℕ), |f.coeff i| ≤ C},
-    { refine finite.of_finite_image _ this,
-      have hfin : (set.pi univ (λ d : fin (finrank ℚ K + 1), Icc (- C : ℤ) C )).finite
-        := finite.pi (λ d, finite_Icc _ _),
-      refine finite.subset hfin _,
-      rw [pi_univ_Icc, image_subset_iff],
-      intros f hf,
-      rw [mem_preimage, mem_Icc, pi.le_def, pi.le_def, forall_and_distrib.symm],
-      exact λ i, abs_le.mp (hf.right i), },
-    { intros x hx y hy hxy,
-      ext,
-      by_cases n < finrank ℚ K + 1,
-      { simpa using congr_fun hxy ⟨n, h⟩, },
-      { rw [coeff_eq_zero_of_nat_degree_lt, coeff_eq_zero_of_nat_degree_lt],
-        { rcases hy with ⟨ _, _⟩, linarith },
-        { rcases hx with ⟨ _, _⟩, linarith }}},
-    { exact λ p _, polynomial.root_set_finite p K }},
+  obtain ⟨C', h⟩ := coeff_bdd_of_norm_le K A B,
+  have := toto K (finrank ℚ K) (int.ceil C'),
+  refine this.subset (λ x hx, _),
+  have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
+  rw mem_Union,
+  use minpoly ℤ x,
+  rw [mem_Union, exists_prop],
+  refine ⟨⟨_, _⟩, _⟩,
+  { rw [← nat_degree_map_eq_of_injective (algebra_map ℤ ℚ).injective_int _, ← h_map_rat_minpoly],
+    apply le_trans _ ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le,
+    apply le_of_eq,
+    exact (intermediate_field.adjoin.finrank (is_integral_of_is_scalar_tower _ hx.1)).symm, },
+  { intro i,
+    apply le_trans _ (int.le_ceil C'),
+    convert (h x hx.2 i) using 1,
+    simp only [h_map_rat_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat], },
+  { rw [finset.mem_coe, multiset.mem_to_finset, mem_roots, is_root.def, ← eval₂_eq_eval_map,
+      ← aeval_def],
+    { exact minpoly.aeval ℤ x, },
+    { exact monic.ne_zero (monic.map (algebra_map ℤ K) (minpoly.monic hx.1)), }},
 end
 
 /-- An algebraic integer whose conjugates are all of norm one is a root of unity. -/

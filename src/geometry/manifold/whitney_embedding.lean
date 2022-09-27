@@ -91,7 +91,7 @@ begin
 end
 
 lemma embedding_pi_tangent_ker_mfderiv (x : M) (hx : x ∈ s) :
-  (mfderiv I 𝓘(ℝ, ι → (E × ℝ)) f.embedding_pi_tangent x).ker = ⊥ :=
+  linear_map.ker (mfderiv I 𝓘(ℝ, ι → (E × ℝ)) f.embedding_pi_tangent x) = ⊥ :=
 begin
   apply bot_unique,
   rw [← (mdifferentiable_chart I (f.c (f.ind x hx))).ker_mfderiv_eq_bot

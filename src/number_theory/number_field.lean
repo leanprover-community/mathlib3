@@ -280,34 +280,13 @@ begin
   repeat { exact monic.ne_zero (minpoly.monic hx), },
 end
 
-lemma toto (F : Type*) [comm_ring F] [is_domain F] (d: ℕ) (C : ℝ) :
-  (⋃ (f : polynomial ℤ) (hf : f.nat_degree ≤ d ∧ ∀ i, ∥f.coeff i∥ ≤ C),
-      ((f.map (algebra_map ℤ F)).roots.to_finset : set F)).finite :=
-begin
-  refine finite.bUnion _ _,
-  have : inj_on (λ g : polynomial ℤ, λ e : fin (d+1), g.coeff e)
-    {f | f.nat_degree ≤ d ∧ ∀ (i : ℕ), ∥f.coeff i∥ ≤ C},
-  { intros x hx y hy hxy,
-    apply (nat_degree_le_max hx.1 hy.1).mp,
-    exact_mod_cast λ i hi, congr_fun hxy ⟨i, nat.lt_succ_iff.mpr hi⟩, },
-  refine finite.of_finite_image _ this,
-  { let D := int.ceil C,
-    have : (set.pi univ (λ e : fin (d+1), Icc (-D) D)).finite := finite.pi (λ d, finite_Icc _ _),
-    refine finite.subset this _,
-    rw [pi_univ_Icc, image_subset_iff],
-    intros f hf,
-    rw [mem_preimage, mem_Icc, pi.le_def, pi.le_def, forall_and_distrib.symm],
-    exact_mod_cast λ i : fin (d+1), abs_le.mp (le_trans (hf.right i) (int.le_ceil C)), },
-  { exact λ p _, polynomial.root_set_finite p F, },
-end
-
 /-- Let `B` be a real number. The set of algebraic integers in `K` whose conjugates are all
 smaller in norm than `B` is finite. -/
 lemma finite_of_norm_le (B : ℝ) :
   {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
 begin
   obtain ⟨C', h⟩ := coeff_bdd_of_norm_le K A B,
-  have := toto K (finrank ℚ K) (int.ceil C'),
+  have := bUnion_roots_finite K (finrank ℚ K) (nat.ceil C'),
   refine this.subset (λ x hx, _),
   have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
   rw mem_Union,
@@ -318,9 +297,11 @@ begin
     apply le_trans _ ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le,
     apply le_of_eq,
     exact (intermediate_field.adjoin.finrank (is_integral_of_is_scalar_tower _ hx.1)).symm, },
-  { apply le_trans _ (int.le_ceil C'),
+  { rw ← @int.cast_le ℝ,
+    apply le_trans _ (nat.le_ceil C'),
     convert (h x hx.2 i) using 1,
-    simp only [h_map_rat_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat], },
+    simp only [h_map_rat_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat, int.norm_eq_abs,
+      int.cast_abs], },
   { rw [finset.mem_coe, multiset.mem_to_finset, mem_roots, is_root.def, ← eval₂_eq_eval_map,
       ← aeval_def],
     { exact minpoly.aeval ℤ x, },

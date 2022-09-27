@@ -529,7 +529,7 @@ rfl
 
 /-- The natural embedding `H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H`. -/
 @[to_additive "The natural embedding
-  `H ⧸ (⨅ i, f i).add_subgroup_of H) ↪ Π i, H ⧸ (f i).add_subgroup_of H`."]
+  `H ⧸ (⨅ i, f i).add_subgroup_of H) ↪ Π i, H ⧸ (f i).add_subgroup_of H`.", simps]
 def quotient_infi_subgroup_of_embedding {ι : Type*} (f : ι → subgroup α) (H : subgroup α) :
   H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H :=
 { to_fun := λ q i, quotient_subgroup_of_map_of_le H (infi_le f i) q,
@@ -542,7 +542,7 @@ def quotient_infi_subgroup_of_embedding {ι : Type*} (f : ι → subgroup α) (H
 rfl
 
 /-- The natural embedding `α ⧸ (⨅ i, f i) ↪ Π i, α ⧸ f i`. -/
-@[to_additive "The natural embedding `α ⧸ (⨅ i, f i) ↪ Π i, α ⧸ f i`."]
+@[to_additive "The natural embedding `α ⧸ (⨅ i, f i) ↪ Π i, α ⧸ f i`.", simps]
 def quotient_infi_embedding {ι : Type*} (f : ι → subgroup α) : α ⧸ (⨅ i, f i) ↪ Π i, α ⧸ f i :=
 { to_fun := λ q i, quotient_map_of_le (infi_le f i) q,
   inj' := quotient.ind₂' $ by simp_rw [funext_iff, quotient_map_of_le_apply_mk,

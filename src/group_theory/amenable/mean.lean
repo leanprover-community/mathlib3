@@ -54,24 +54,21 @@ variables (G:Type*) [uniform_space G] [group G] [topological_group G]
 
 
 /-- A mean on a group-/
-structure mean
-:= mk ::
+structure mean := mk ::
   (lin_map : (bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ)
   (normality : lin_map (bounded_continuous_function.const G (1:ℝ)) = 1)
   (positivity: ∀ {f : bounded_continuous_function G ℝ},
                           (∀ (x:G), f x ≥ 0) → lin_map f ≥ 0)
 
 
-instance : has_coe (mean G) ((bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ)
-      := {coe := mean.lin_map}
+instance : has_coe (mean G) ((bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ) :=
+  {coe := mean.lin_map}
 
 
 /--Equality of means can be checked by evaluation -/
 @[ext]
-theorem ext {m n : mean G}
-  (h: ∀ f, m f = n f)
-  : m = n
-:= begin
+theorem ext {m n : mean G} (h: ∀ f, m f = n f) : m = n :=
+begin
   cases m,
   cases n,
   simp,
@@ -92,11 +89,8 @@ We collect some elementary facts about means
 -/
 
 @[simp]
-lemma mean_of_neg
-  (m : mean G)
-  {f: bounded_continuous_function G ℝ}
-  : m (-f) = - m f
-:= begin
+lemma mean_of_neg (m : mean G) {f: bounded_continuous_function G ℝ} : m (-f) = - m f :=
+begin
   have : m (-f) + m f = 0,
   {
     calc   m (-f) + m f
@@ -115,13 +109,9 @@ lemma mean_of_neg
 end
 
 
-lemma mean_bounded
-  (m : mean G)
-  {f: bounded_continuous_function G ℝ}
-  {M : ℝ}
-  (fbound : ∀ (x:G), f x ≤ M)
-  : m f ≤ M
-:= begin
+lemma mean_bounded (m : mean G) {f: bounded_continuous_function G ℝ} {M : ℝ}
+  (fbound : ∀ (x:G), f x ≤ M) : m f ≤ M :=
+begin
   -- strategy of proof : (M-f) is a positive function
   let diff : bounded_continuous_function G ℝ
       := bounded_continuous_function.const G M  - f,
@@ -171,13 +161,9 @@ end
 
 
 /--Essentially: W.r.t. the sup-norm, m has norm ≤ 1-/
-lemma mean_bounded_abs
-  (m : mean G)
-  {f: bounded_continuous_function G ℝ}
-  {M : ℝ}
-  (fbound : ∀ (x:G), |f x| ≤ M)
-  : |m f| ≤ M
-:= begin
+lemma mean_bounded_abs (m : mean G) {f: bounded_continuous_function G ℝ}
+  {M : ℝ} (fbound : ∀ (x:G), |f x| ≤ M) : |m f| ≤ M :=
+begin
   have bound_le : m f ≤ M,
   {
     have fbound' :  ∀ (x:G), f x ≤ M
@@ -205,30 +191,21 @@ end
 
 
 @[simp]
-lemma mean_add
-  {m : mean G}
-  {f g: bounded_continuous_function G ℝ}
-  : m (f+g) = m f + m g
-:= m.lin_map.map_add' f g
+lemma mean_add {m : mean G} {f g: bounded_continuous_function G ℝ} : m (f+g) = m f + m g :=
+m.lin_map.map_add' f g
 
 
 
 @[simp]
-lemma mean_smul
-  {m : mean G}
-  {f: bounded_continuous_function G ℝ}
-  {r :ℝ}
-  : m (r•f) =r •  (m f)
-:= m.lin_map.map_smul' r f
+lemma mean_smul {m : mean G} {f: bounded_continuous_function G ℝ} {r :ℝ} :
+  m (r•f) = r • (m f) :=
+m.lin_map.map_smul' r f
 
 
 /--Means are monotone functions-/
-lemma mean_monotone
-  {m : mean G}
-  {f g: bounded_continuous_function G ℝ}
-  (f_le_g : f ≤ g)
-  : m f ≤ m g
-:= begin
+lemma mean_monotone {m : mean G} {f g: bounded_continuous_function G ℝ}
+  (f_le_g : f ≤ g) : m f ≤ m g :=
+begin
   have diff_pos: ∀ (x:G), (g-f) x ≥ 0,
   {
     assume x:G,
@@ -275,77 +252,41 @@ variables {H : Type* } [uniform_space H] [group H] [topological_group H]
 
 variable {G}
 
-/-- Precomposition of a bounded_continuous_map with a continuous map-/
-def bcont_precomp
-  {X Y: Type*}
-  [topological_space X]
-  [topological_space Y]
-  (h : C(X,Y))
-  (f : bounded_continuous_function Y ℝ)
-  : bounded_continuous_function X ℝ
-:= bounded_continuous_function.mk
-      (continuous_map.comp f.to_continuous_map h)
-      (by {
-        rcases f.map_bounded' with ⟨C, hf⟩,
-        use C,
-        assume x y : X,
-        specialize hf (h x) (h y),
-        exact hf,
-      })
 
-/-- even easier: with discrete topology-/
-def bcont_precomp_discrete
-  {X Y: Type*}
-  [topological_space X] [discrete_topology X]
-  [topological_space Y]
-  (h : X → Y)
-  (f : bounded_continuous_function Y ℝ)
-  : bounded_continuous_function X ℝ
-:= bcont_precomp (continuous_map.mk h continuous_of_discrete_topology) f
+/-- Precomposition with a map, when we have discrete topology-/
+def bcont_precomp_discrete  {X Y: Type*}  [topological_space X] [discrete_topology X]
+  [topological_space Y] (h : X → Y) (f : bounded_continuous_function Y ℝ) :
+  bounded_continuous_function X ℝ :=
+f.comp_continuous (continuous_map.mk h continuous_of_discrete_topology)
 
 
 
-def comp_bcont
-  (f: bounded_continuous_function H ℝ)
-  : bounded_continuous_function G ℝ
-:= bcont_precomp (continuous_map.mk π π_cont) f
+def comp_bcont (f: bounded_continuous_function H ℝ) : bounded_continuous_function G ℝ :=
+f.comp_continuous (continuous_map.mk π π_cont)
 
 
 @[simp]
-lemma comp_bcont_eval
-  (π : G → H)
-  (π_cont: continuous π)
-  (f: bounded_continuous_function H ℝ)
-  (g :G)
-  : comp_bcont π π_cont f g = f (π g)
-:= by refl
+lemma comp_bcont_eval (π : G → H) (π_cont: continuous π) (f: bounded_continuous_function H ℝ)
+  (g :G) : comp_bcont π π_cont f g = f (π g) :=
+by refl
 
 @[simp]
-def pull_bcont
-  (π : G → H)
-  (π_cont: continuous π)
-  : (bounded_continuous_function H ℝ) →ₗ[ℝ] (bounded_continuous_function G ℝ)
-:= linear_map.mk (λ f, comp_bcont π π_cont f)
-              (by tauto) (by tauto)
+def pull_bcont (π : G → H) (π_cont: continuous π) :
+  (bounded_continuous_function H ℝ) →ₗ[ℝ] (bounded_continuous_function G ℝ) :=
+linear_map.mk (λ f, comp_bcont π π_cont f) (by tauto) (by tauto)
 
 
 
 include π
 
 @[simp]
-noncomputable def mean_pushforward_linmap
-  {π : G → H}
-  (π_cont: continuous π)
-  (m : mean G)
-  : (bounded_continuous_function H ℝ) →ₗ[ℝ] ℝ
-:= linear_map.comp m.lin_map (pull_bcont π π_cont)
+noncomputable def mean_pushforward_linmap {π : G → H} (π_cont: continuous π)
+  (m : mean G) : (bounded_continuous_function H ℝ) →ₗ[ℝ] ℝ :=
+linear_map.comp m.lin_map (pull_bcont π π_cont)
 
-lemma mean_pushforward_norm
-  {π : G → H}
-  (π_cont: continuous π)
-  (m : mean G)
-  : (mean_pushforward_linmap π_cont m) (bounded_continuous_function.const H (1:ℝ)) = 1
-:= begin
+lemma mean_pushforward_norm {π : G → H} (π_cont: continuous π) (m : mean G) :
+  (mean_pushforward_linmap π_cont m) (bounded_continuous_function.const H (1:ℝ)) = 1 :=
+begin
   -- the pushforward of the 1-function is the 1-function
   have  pull_of_one
         : (pull_bcont π π_cont) (bounded_continuous_function.const H (1:ℝ))
@@ -363,13 +304,10 @@ lemma mean_pushforward_norm
         : m.normality,
 end
 
-lemma mean_pushforward_pos
-  {π : G → H}
-  (π_cont: continuous π )
-  (m : mean G)
-  : ∀ (f : bounded_continuous_function H ℝ),
-                    (∀ (x:H), f(x) ≥ 0) → (mean_pushforward_linmap π_cont m) f ≥ 0
-:= begin
+lemma mean_pushforward_pos {π : G → H} (π_cont: continuous π ) (m : mean G) :
+  ∀ (f : bounded_continuous_function H ℝ),
+  (∀ (x:H), f(x) ≥ 0) → (mean_pushforward_linmap π_cont m) f ≥ 0 :=
+begin
   assume f fnonneg,
 
   apply m.positivity,
@@ -383,14 +321,10 @@ end
 
 /-- The mean on H, induced by the mean on G-/
 @[simp]
-noncomputable def mean_pushforward
-  (π : G → H)
-  (π_cont: continuous π)
-  (m : mean G)
-  : mean H
-:= mean.mk (mean_pushforward_linmap π_cont m)
-           (mean_pushforward_norm π_cont m)
-           (mean_pushforward_pos π_cont m)
+noncomputable def mean_pushforward (π : G → H) (π_cont: continuous π) (m : mean G) :
+  mean H :=
+mean.mk (mean_pushforward_linmap π_cont m) (mean_pushforward_norm π_cont m)
+  (mean_pushforward_pos π_cont m)
 
 
 end pushforward_mean

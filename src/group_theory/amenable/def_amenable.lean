@@ -50,26 +50,20 @@ variables {G:Type*} [uniform_space G] [group G] [topological_group G]
 
 
 /-- left-translate of a function by translating the argument -/
-def left_translate
-  (g : G)
-  (f : bounded_continuous_function G ℝ)
-  : bounded_continuous_function G ℝ
-:= bcont_precomp (continuous_map.mk (λ h, g⁻¹*h) (continuous_mul_left g⁻¹)) f
+def left_translate (g : G) (f : bounded_continuous_function G ℝ) :
+  bounded_continuous_function G ℝ :=
+f.comp_continuous (continuous_map.mk (λ h, g⁻¹*h) (continuous_mul_left g⁻¹))
 
 
 
 @[simp]
-lemma left_translate_eval
-  {g : G}
-  {f : bounded_continuous_function G ℝ}
-: ∀(x:G), left_translate g f x = f(g⁻¹*x)
-:= by tauto
+lemma left_translate_eval {g : G} {f : bounded_continuous_function G ℝ} :
+  ∀(x:G), left_translate g f x = f(g⁻¹*x) := by tauto
 
 
 
-instance left_translate_action
-  : mul_action G (bounded_continuous_function G ℝ)
-:= @mul_action.mk G  (bounded_continuous_function G ℝ) _
+instance left_translate_action  : mul_action G (bounded_continuous_function G ℝ) :=
+@mul_action.mk G  (bounded_continuous_function G ℝ) _
     (has_smul.mk (λ g f, left_translate g f))
     (begin
       assume f : bounded_continuous_function G ℝ,
@@ -86,33 +80,27 @@ instance left_translate_action
     end )
 
 @[simp]
-lemma left_translate_smul_simp {g:G} {f:bounded_continuous_function G ℝ}
-  : g•f = left_translate g f
-:= by refl
+lemma left_translate_smul_simp {g:G} {f:bounded_continuous_function G ℝ} :
+  g•f = left_translate g f :=
+by refl
 
 
 /-- right-translate of a function by translating the argument -/
-def right_translate
-  (g : G)
-  (f : bounded_continuous_function G ℝ)
-  : bounded_continuous_function G ℝ
-:= bcont_precomp (continuous_map.mk (λ h, h*g) (continuous_mul_right g)) f
+def right_translate (g : G) (f : bounded_continuous_function G ℝ) :
+  bounded_continuous_function G ℝ :=
+f.comp_continuous (continuous_map.mk (λ h, h*g) (continuous_mul_right g))
 
 @[simp]
-lemma right_translate_eval
-  {g : G}
-  {f : bounded_continuous_function G ℝ}
-: ∀(x:G), right_translate g f x = f(x*g)
-:= by tauto
+lemma right_translate_eval {g : G} {f : bounded_continuous_function G ℝ} :
+  ∀(x:G), right_translate g f x = f(x*g) :=
+by tauto
 
 
 
 /--It is an easy (but important) fact that left and right-translation commute-/
-lemma left_right_translate_commute
-  {g h: G}
-  {f : bounded_continuous_function G ℝ}
-  : right_translate h (left_translate g f) = left_translate g (right_translate h f)
-:= begin
+lemma left_right_translate_commute {g h: G} {f : bounded_continuous_function G ℝ} :
+  right_translate h (left_translate g f) = left_translate g (right_translate h f) :=
+begin
   ext x,
   simp,
   congr' 1,
@@ -132,67 +120,50 @@ We will defines structures for left-, right- and bi-invariant means.
 variable (G)
 
 /--Left invariant means are means that are left invariant-/
-structure left_invariant_mean
-  extends mean G
-:= mk ::
-  (left_invariance:
-    ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
-      lin_map (g•f) = lin_map f)
+structure left_invariant_mean extends mean G := mk ::
+  (left_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ), lin_map (g•f) = lin_map f)
 
-instance : has_coe (left_invariant_mean G) (mean G)
-      := {coe := left_invariant_mean.to_mean}
+instance : has_coe (left_invariant_mean G) (mean G) :=
+  {coe := left_invariant_mean.to_mean}
 
 @[simp]
-lemma left_invariant_mean_eval
-  {m: left_invariant_mean G}
-  {f: bounded_continuous_function G ℝ}
-  : m f = m.to_mean f
-:= by refl
+lemma left_invariant_mean_eval {m: left_invariant_mean G}
+  {f: bounded_continuous_function G ℝ} : m f = m.to_mean f :=
+by refl
 
 /--Right invariant means are means that are right invariant-/
-structure right_invariant_mean
-  extends mean G
-:= mk ::
-  (right_invariance:
-    ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
+structure right_invariant_mean extends mean G := mk ::
+  (right_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
       lin_map (right_translate g f) = lin_map f)
 
-instance right_inv_mean_coe : has_coe (right_invariant_mean G) (mean G)
-      := {coe := right_invariant_mean.to_mean}
+instance right_inv_mean_coe : has_coe (right_invariant_mean G) (mean G) :=
+  {coe := right_invariant_mean.to_mean}
 
 /--Bi-invariant means are means that are left and right invariant-/
-structure bi_invariant_mean
-  extends left_invariant_mean G
-:= mk ::
-  (right_invariance:
-    ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
+structure bi_invariant_mean extends left_invariant_mean G := mk ::
+  (right_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
       lin_map (right_translate g f) = lin_map f)
 
-instance : has_coe (bi_invariant_mean G) (left_invariant_mean G)
-    := {coe := bi_invariant_mean.to_left_invariant_mean}
-
-
+instance : has_coe (bi_invariant_mean G) (left_invariant_mean G) :=
+  {coe := bi_invariant_mean.to_left_invariant_mean}
 end invariance_structures
 
 /-- A group is amenable if there exists a left-invariant mean-/
 @[simp]
-def amenable (G:Type*)  [uniform_space G] [group G] [topological_group G]
- : Prop
-:= nonempty (left_invariant_mean G)
+def amenable (G:Type*)  [uniform_space G] [group G] [topological_group G] : Prop :=
+nonempty (left_invariant_mean G)
 
 
 /-- For amenable groups, we can pick a left-invariant mean.
 This is a noncomputable process.
 -/
 noncomputable def invmean_of_amenable {G:Type*}
-   [uniform_space G] [group G] [topological_group G]
-  (G_am : amenable G)
- : left_invariant_mean G
-:= classical.some (classical.exists_true_of_nonempty G_am)
+  [uniform_space G] [group G] [topological_group G]
+  (G_am : amenable G) : left_invariant_mean G :=
+classical.some (classical.exists_true_of_nonempty G_am)
 
 /--If we can exhibit a mean, the group is amenable-/
 lemma amenable_of_invmean
   {G:Type*}  [uniform_space G] [group G] [topological_group G]
-  (m : left_invariant_mean G)
-  : amenable G
-:= nonempty.intro m
+  (m : left_invariant_mean G) : amenable G :=
+nonempty.intro m

@@ -139,6 +139,7 @@ end top_retraction
 
 section surjection
 
+/-- We show that there is no surjective homomorphism from the trivial group to ℤ. -/
 lemma not_surj_hom_of_unit_to_int (f : unit →* (multiplicative ℤ)) : ¬function.surjective f :=
 not_surjective_finite_infinite f
 

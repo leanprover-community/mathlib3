@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebraic_geometry.sheafed_space
-import topology.sheaves.sheaf_condition.opens_le_cover
+import topology.sheaves.punit
 import topology.sheaves.stalks
 import category_theory.preadditive.injective
 
@@ -68,7 +68,7 @@ section
 
 variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U)]
 
-def skyscraper_presheaf_iso_pullback  :
+def skyscraper_presheaf_iso_pullback :
   skyscraper_presheaf p₀ A ≅
   { to_fun := λ _, p₀, continuous_to_fun := by continuity } _*
     (skyscraper_presheaf punit.star A : presheaf C (Top.of (punit : Type u))) :=
@@ -209,8 +209,11 @@ variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U
 
 lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
 (presheaf.is_sheaf_iso_iff (skyscraper_presheaf_iso_pullback p₀ A)).mpr $
-  sheaf.pushforward_sheaf_of_sheaf _ $
-  _
+  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf_on_unit_is_sheaf_of_is_terminal _
+  begin
+    dsimp, rw if_neg, exact terminal_is_terminal,
+    exact set.not_mem_empty punit.star,
+  end
 
 def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
 ⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩

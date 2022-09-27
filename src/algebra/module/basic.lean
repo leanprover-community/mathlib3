@@ -617,7 +617,7 @@ end module
 
 section division_ring
 
-variables [division_ring R] [add_comm_group M] [module R M]
+variables [division_ring R] [add_comm_monoid M] [module R M]
 
 @[priority 100] -- see note [lower instance priority]
 instance division_ring.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=

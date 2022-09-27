@@ -55,7 +55,7 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
     then eq_to_hom $ by erw [if_pos h, if_pos (le_of_hom i.unop h)]
     else ((if_neg h).symm.rec terminal_is_terminal).from _,
   map_id' := λ U, (em (p₀ ∈ U.unop)).elim (λ h, dif_pos h)
-     (λ h, ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _),
+    (λ h, ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _),
   map_comp' := λ U V W iVU iWV,
   begin
     by_cases hW : p₀ ∈ unop W,

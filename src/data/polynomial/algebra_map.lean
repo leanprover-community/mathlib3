@@ -230,6 +230,10 @@ theorem aeval_alg_equiv_apply (f : A ≃ₐ[R] B) (x : A) (p : R[X]) :
   aeval (f x) p = f (aeval x p) :=
 aeval_alg_hom_apply (f : A →ₐ[R] B) x p
 
+lemma aeval_algebra_map_apply_eq_algebra_map_eval (x : R) (p : R[X]) :
+  aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
+aeval_alg_hom_apply (algebra.of_id R A) x p
+
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : R[X] → R) = eval r := rfl
 

@@ -49,7 +49,7 @@ begin
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
-      exact aeval_algebra_map_apply (adjoin K {x}) ⟨x, _⟩ _ } }
+      exact aeval_algebra_map_apply S (⟨x, _⟩ : adjoin K {x}) _, } }
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,

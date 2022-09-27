@@ -10,18 +10,21 @@ import algebra.category.Group.basic
 import algebra.category.Group.epi_mono
 
 /-!
-# Homotopic maps induce naturally isomorphic functors
+# A retraction from a space to a subspace is a split epimorphism
 
 ## Main definitions
 
-  - `is_retraction r` A continuous map `r : X → A` (where `A` is a subtype of `X`) is a retraction
+  - `is_retraction r` A continuous map `r : X → A` (where `A` is a subspace of `X`) is a retraction
     when the restriction of r to A is the identity. Equivalently, composing r with the inclusion
     `i : A → X` is just the identity map on A.
+  - `top_retraction X A` is the bundled version of `is_retraction`.
 
-  - `fundamental_groupoid_split_mono_of_top_inclusion` The induced map on `fundamental_groupoid X`
+  - `fundamental_groupoid_split_mono` The induced map on `fundamental_groupoid X`
     of the inclusion `i : A → X` is a split mono in the category Groupoid.
-  - `fundamental_groupoid_split_epi_of_top_retraction` The induced map on `fundamental_groupoid X`
+  - `fundamental_groupoid_split_epi` The induced map on `fundamental_groupoid X`
     of the retraction `r : X → A` is a split epi in the category Groupoid.
+
+  - `not_epi_of_unit_to_int f` The group homomorphism `unit → ℤ` is not an epimorphism in Group.
 -/
 
 noncomputable theory

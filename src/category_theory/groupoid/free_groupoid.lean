@@ -65,11 +65,6 @@ abbreviation quiver.hom.to_pos_path {X Y : V} (f : X ⟶ Y) :
 abbreviation quiver.hom.to_neg_path {X Y : V} (f : X ⟶ Y) :
   ((category_theory.paths.category_paths $ quiver.symmetrify V).hom Y X) := f.to_neg.to_path
 
-/-- Reversal of paths in the path category -/
-@[simp,reducible] def paths.reverse {X Y : paths $ quiver.symmetrify V} :
-  (category_theory.paths.category_paths $ quiver.symmetrify V).hom X Y →
-  (category_theory.paths.category_paths $ quiver.symmetrify V).hom Y X := λ p, p.reverse
-
 /-- `p` and `q` are related if `p` is and `𝟙 X` and `q` is a back & forth -/
 def red_step : hom_rel $ paths $ quiver.symmetrify V :=
 λ X Y p q, ∃ (h : Y = X) (Z) (f : (quiver.symmetrify_quiver V).hom X Z),
@@ -82,57 +77,50 @@ instance {V} [Q : quiver.{v+1} V] [h : nonempty V] : nonempty (free_groupoid V) 
 
 lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
-  quotient.comp_closure red_step (paths.reverse p) (paths.reverse q)  :=
+  quotient.comp_closure red_step (p.reverse) (q.reverse)  :=
 begin
   rintros ⟨_,W,XW,pp,qq,WY,⟨rfl,Z,f,epp,eqq⟩⟩,
   simp only at epp eqq,
   simp only [epp,eqq,category.id_comp, category.assoc],
 
-  change quotient.comp_closure red_step  (paths.reverse (XW ≫ WY))
-  (paths.reverse (XW ≫ (f.to_path ≫ (quiver.reverse f).to_path ≫ WY))),
-
-  have : quotient.comp_closure red_step ((paths.reverse WY) ≫ 𝟙 _ ≫  (paths.reverse XW))
-    ((paths.reverse WY) ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ (paths.reverse XW)), by
+  have : quotient.comp_closure red_step (WY.reverse ≫ 𝟙 _ ≫  XW.reverse)
+    (WY.reverse ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ XW.reverse), by
   { apply quotient.comp_closure.intro,
     use [eq.refl _, Z, f],
     simp only [eq_self_iff_true, and_self], },
-  simp only [paths.reverse, category.id_comp, category.assoc] at this ⊢,
-  dsimp [category_struct.comp] at this ⊢,
-  simp only [quiver.path.reverse_comp, quiver.path.reverse_to_path, quiver.reverse_reverse,
-             quiver.path.comp_assoc] at this ⊢,
+  simp only [category.id_comp, category.assoc] at this ⊢,
+  simp only [category_struct.comp, quiver.path.reverse_comp, quiver.path.reverse_to_path,
+             quiver.reverse_reverse, quiver.path.comp_assoc] at this ⊢,
   exact this,
-
 end
 
 lemma congr_comp_reverse {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
-  quot.mk (@quotient.comp_closure _ _ red_step _ _) (p ≫ (paths.reverse p)) =
+  quot.mk (@quotient.comp_closure _ _ red_step _ _) (p ≫ p.reverse) =
   quot.mk (@quotient.comp_closure _ _ red_step _ _) (𝟙 X) :=
 begin
   apply quot.eqv_gen_sound,
   induction p with _ _ q f ih,
   { apply eqv_gen.refl, },
-  { simp only [paths.reverse, quiver.path.reverse],
+  { simp only [quiver.path.reverse],
     fapply eqv_gen.trans,
-    { exact q ≫ (paths.reverse q), },
-    { change eqv_gen (@quotient.comp_closure _ _ red_step _ _)
-                     ((q ≫ f.to_path) ≫ ((quiver.reverse f).to_path ≫ q.reverse))
-                     (q ≫ paths.reverse q),
-      apply eqv_gen.symm, apply eqv_gen.rel,
+    { exact q ≫ q.reverse, },
+    { apply eqv_gen.symm, apply eqv_gen.rel,
       have : quotient.comp_closure
-               red_step (q ≫ (𝟙 _) ≫  paths.reverse q)
-               (q ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ paths.reverse q), by
+               red_step (q ≫ (𝟙 _) ≫ q.reverse)
+               (q ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ q.reverse), by
       { apply quotient.comp_closure.intro, use [eq.refl _, p_c,f],
-      simp only [eq_self_iff_true, and_self], },
-      simp only [paths.reverse, category.assoc, category.id_comp] at this ⊢,
+        simp only [eq_self_iff_true, and_self], },
+      have that : q.cons f = q.comp f.to_path, by refl, rw that,
+      simp only [category.assoc, category.id_comp] at this ⊢,
+      simp only [category_struct.comp, quiver.path.comp_assoc] at this ⊢,
       exact this,  },
     { exact ih }, },
 end
 
 lemma congr_reverse_comp {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :
-  quot.mk (@quotient.comp_closure _ _ red_step _ _) ((paths.reverse p) ≫ p) =
+  quot.mk (@quotient.comp_closure _ _ red_step _ _) (p.reverse ≫ p) =
   quot.mk (@quotient.comp_closure _ _ red_step _ _) (𝟙 Y) :=
 begin
-  dsimp [paths.reverse],
   nth_rewrite 1 ←quiver.path.reverse_reverse p,
   apply congr_comp_reverse,
 end
@@ -142,7 +130,7 @@ instance : category (free_groupoid V) := quotient.category red_step
 /-- The inverse of an arrow in the free groupoid -/
 def quot_inv {X Y : free_groupoid V} (f : X ⟶ Y) : Y ⟶ X :=
 quot.lift_on f
-            (λ pp, quot.mk _ $ (paths.reverse pp))
+            (λ pp, quot.mk _ $ pp.reverse)
             (λ pp qq con, quot.sound $ congr_reverse pp qq con)
 
 instance : groupoid (free_groupoid V) :=
@@ -207,3 +195,4 @@ end universal_property
 end free
 end groupoid
 end category_theory
+

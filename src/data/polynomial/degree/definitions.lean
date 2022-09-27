@@ -253,6 +253,16 @@ begin
   { rwa [degree_eq_nat_degree hp, with_bot.coe_lt_coe] }
 end
 
+lemma nat_degree_le_max {p q : R[X]} {n : ℕ} (pn : p.nat_degree ≤ n) (qn : q.nat_degree ≤ n) :
+  (∀ i ≤ n, p.coeff i = q.coeff i) ↔ p = q :=
+begin
+  refine iff.trans _ polynomial.ext_iff.symm,
+  refine forall_congr (λ i, ⟨λ h, _, λ h _, h⟩),
+  refine (le_or_lt i n).elim h (λ k, _),
+  refine (coeff_eq_zero_of_nat_degree_lt (pn.trans_lt k)).trans
+    (coeff_eq_zero_of_nat_degree_lt (qn.trans_lt k)).symm,
+end
+
 @[simp] lemma coeff_nat_degree_succ_eq_zero {p : R[X]} : p.coeff (p.nat_degree + 1) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (lt_add_one _)
 

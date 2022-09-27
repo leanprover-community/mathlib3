@@ -701,11 +701,7 @@ begin
 end
 
 lemma is_coatom_iff (s : set α) : is_coatom s ↔ ∃ x, s = {x}ᶜ :=
-begin
-  rw [(is_compl_compl : is_compl s sᶜ).is_coatom_iff_is_atom, is_atom_iff],
-  exact ⟨λ h, let ⟨x, hx⟩ := h in ⟨x, compl_compl s ▸ congr_arg (λ t, tᶜ) hx⟩,
-    by { rintro ⟨x, rfl⟩, exact ⟨x, compl_compl {x}⟩ }⟩,
-end
+by simp_rw [is_compl_compl.is_coatom_iff_is_atom, is_atom_iff, @eq_comm _ s, compl_eq_comm]
 
 lemma is_coatom_singleton_compl (x : α) : is_coatom ({x}ᶜ : set α) :=
 (is_coatom_iff {x}ᶜ).mpr ⟨x, rfl⟩

@@ -537,6 +537,9 @@ by rw [mem_sphere', mem_sphere]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
+lemma closed_ball_eq_bInter_ball : closed_ball x ε = ⋂ δ > ε, ball x δ :=
+by ext y; rw [mem_closed_ball, ← forall_lt_iff_le', mem_Inter₂]; refl
+
 lemma ball_subset_ball' (h : ε₁ + dist x y ≤ ε₂) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z hz, calc
   dist z y ≤ dist z x + dist x y : dist_triangle _ _ _

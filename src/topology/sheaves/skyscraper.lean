@@ -34,10 +34,7 @@ TODO: generalize universe level when calculating stalks, after generalizing univ
 
 noncomputable theory
 
-open topological_space
-open category_theory category_theory.limits
-open Top
-open opposite
+open topological_space category_theory category_theory.limits Top opposite
 
 universes u v w
 

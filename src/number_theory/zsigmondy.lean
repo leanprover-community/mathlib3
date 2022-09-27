@@ -176,7 +176,16 @@ lemma least_div_pow_dvd {p n : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑
 begin
   rcases nat.eq_zero_or_pos n with rfl | hzero,
   { simp only [pow_zero, sub_self, dvd_zero, forall_true_left] },
-  { sorry },
+  { intro hpab,
+    rw [← int.modeq_iff_dvd, ←char_p.int_coe_eq_int_coe_iff (zmod p) p] at hpab,
+    simp at hpab,
+    haveI : fact (nat.prime p) := fact_iff.mpr hp,
+    have : field (zmod p) := zmod.field p,
+    have : ∀ k : ℤ, (k  : zmod p) = 0 ↔ ↑p ∣ k := λ k, zmod.int_coe_zmod_eq_zero_iff_dvd k p,
+    have hbzero : (b : zmod p) ≠ 0,
+    { simp only [ne.def, zmod.int_coe_zmod_eq_zero_iff_dvd, hpb, not_false_iff] },
+    replace hpab := (div_eq_one_iff_eq (pow_ne_zero n hbzero)).mpr (hpab.symm),
+    sorry   }},
 end
 
 lemma proposition_10 {p : ℕ} {a b : ℤ} (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) (hpge: 3 ≤ p)

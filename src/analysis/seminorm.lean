@@ -412,6 +412,7 @@ variables {x y : E} {r : ℝ}
 @[simp] lemma mem_closed_ball : y ∈ closed_ball p x r ↔ p (y - x) ≤ r := iff.rfl
 
 lemma mem_ball_self (hr : 0 < r) : x ∈ ball p x r := by simp [hr]
+lemma mem_closed_ball_self (hr : 0 ≤ r) : x ∈ closed_ball p x r := by simp [hr]
 
 lemma mem_ball_zero : y ∈ ball p 0 r ↔ p y < r := by rw [mem_ball, sub_zero]
 lemma mem_closed_ball_zero : y ∈ closed_ball p 0 r ↔ p y ≤ r := by rw [mem_closed_ball, sub_zero]
@@ -461,8 +462,8 @@ begin
   { rw [finset.sup'_cons hs, finset.inf'_cons hs, ball_sup, inf_eq_inter, ih] },
 end
 
-lemma closed_ball_finset_sup' (p : ι → seminorm 𝕜 E) (s : finset ι) (H : s.nonempty) (e : E) (r : ℝ) :
-  closed_ball (s.sup' H p) e r = s.inf' H (λ i, closed_ball (p i) e r) :=
+lemma closed_ball_finset_sup' (p : ι → seminorm 𝕜 E) (s : finset ι) (H : s.nonempty) (e : E)
+  (r : ℝ) : closed_ball (s.sup' H p) e r = s.inf' H (λ i, closed_ball (p i) e r) :=
 begin
   induction H using finset.nonempty.cons_induction with a a s ha hs ih,
   { classical, simp },
@@ -499,6 +500,14 @@ begin
   exact (p.add_le _ _).trans (add_le_add hy₁ hy₂)
 end
 
+lemma closed_ball_add_closed_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
+  p.closed_ball (x₁ : E) r₁ + p.closed_ball (x₂ : E) r₂ ⊆ p.closed_ball (x₁ + x₂) (r₁ + r₂) :=
+begin
+  rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+  rw [mem_closed_ball, add_sub_add_comm],
+  exact (map_add_le_add p _ _).trans (add_le_add hy₁ hy₂)
+end
+
 end has_smul
 
 section module
@@ -526,14 +535,15 @@ lemma preimage_metric_ball {r : ℝ} :
   p ⁻¹' (metric.ball 0 r) = {x | p x < r} :=
 begin
   ext x,
-  simp only [mem_set_of, mem_preimage, mem_ball_zero_iff, real.norm_of_nonneg (p.nonneg _)]
+  simp only [mem_set_of, mem_preimage, mem_ball_zero_iff, real.norm_of_nonneg (map_nonneg p _)]
 end
 
 lemma preimage_metric_closed_ball {r : ℝ} :
   p ⁻¹' (metric.closed_ball 0 r) = {x | p x ≤ r} :=
 begin
   ext x,
-  simp only [mem_set_of, mem_preimage, mem_closed_ball_zero_iff, real.norm_of_nonneg (p.nonneg _)]
+  simp only [mem_set_of, mem_preimage, mem_closed_ball_zero_iff,
+    real.norm_of_nonneg (map_nonneg p _)]
 end
 
 lemma ball_zero_eq_preimage_ball {r : ℝ} :
@@ -552,14 +562,6 @@ ball_zero' x hr
   closed_ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
 closed_ball_zero' x hr
 
-lemma balanced_preimage {s : set ℝ} (hs : balanced ℝ s) : balanced 𝕜 (p ⁻¹' s) :=
-begin
-  rintro a ha x ⟨y, hy, rfl⟩,
-  change p _ ∈ _,
-  rw [p.smul, ← smul_eq_mul],
-  exact hs (∥a∥) ((norm_norm a).symm ▸ ha) (smul_mem_smul_set hy),
-end
-
 /-- Seminorm-balls at the origin are balanced. -/
 lemma balanced_ball_zero (r : ℝ) : balanced 𝕜 (ball p 0 r) :=
 begin
@@ -572,6 +574,15 @@ lemma balanced_closed_ball_zero (r : ℝ) : balanced 𝕜 (closed_ball p 0 r) :=
 begin
   rw p.closed_ball_zero_eq_preimage_closed_ball,
   refine p.balanced_preimage (balanced_closed_ball_zero r),
+end
+
+/-- Closed seminorm-balls at the origin are balanced. -/
+lemma balanced_closed_ball_zero (r : ℝ) : balanced 𝕜 (closed_ball p 0 r) :=
+begin
+  rintro a ha x ⟨y, hy, hx⟩,
+  rw [mem_closed_ball_zero, ←hx, map_smul_eq_mul],
+  calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg p _) ha
+  ...    ≤ r   : by rwa mem_closed_ball_zero at hy
 end
 
 lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ} (hr : 0 < r) :
@@ -623,9 +634,9 @@ begin
   intros x hx,
   rw set.mem_smul at hx,
   rcases hx with ⟨a, y, ha, hy, hx⟩,
-  rw [←hx, mem_closed_ball_zero, seminorm.smul],
+  rw [←hx, mem_closed_ball_zero, map_smul_eq_mul],
   rw mem_closed_ball_zero_iff at ha,
-  exact mul_le_mul ha (p.mem_closed_ball_zero.mp hy) (p.nonneg y) ((norm_nonneg a).trans ha)
+  exact mul_le_mul ha (p.mem_closed_ball_zero.mp hy) (map_nonneg _ y) ((norm_nonneg a).trans ha)
 end
 
 @[simp] lemma ball_eq_emptyset (p : seminorm 𝕜 E) {x : E} {r : ℝ} (hr : r ≤ 0) : p.ball x r = ∅ :=
@@ -639,8 +650,8 @@ end
   p.closed_ball x r = ∅ :=
 begin
   ext,
-  rw [seminorm.mem_closed_ball, set.mem_empty_eq, iff_false, not_le],
-  exact hr.trans_le (p.nonneg _),
+  rw [seminorm.mem_closed_ball, set.mem_empty_iff_false, iff_false, not_le],
+  exact hr.trans_le (map_nonneg _ _),
 end
 
 end module
@@ -685,21 +696,6 @@ begin
   exact hx.trans (lt_of_le_of_lt ha ((mul_lt_mul_left ha').mpr hr')),
 end
 
-/-- Preimage by a seminorm of an absorbent set is absorbent -/
-protected lemma absorbent_preimage {s : set ℝ} (hs : absorbent ℝ s) :
-  absorbent 𝕜 (p ⁻¹' s) :=
-begin
-  rw absorbent_iff_nonneg_lt at *,
-  rintro x,
-  rcases hs (p x) with ⟨r, hr, hrx⟩,
-  refine ⟨r, hr, λ a ha, _⟩,
-  have ha₀ : 0 < ∥a∥ := hr.trans_lt ha,
-  rw [mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.1 ha₀), mem_preimage, p.smul,
-      norm_inv, ← smul_eq_mul, ← mem_smul_set_iff_inv_smul_mem₀ ha₀.ne.symm],
-  refine hrx _,
-  rwa norm_norm
-end
-
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
 begin
@@ -714,6 +710,10 @@ begin
   exact p.absorbent_preimage (real.absorbent_Iic hr)
 end
 
+/-- Closed seminorm-balls at the origin are absorbent. -/
+protected lemma absorbent_closed_ball_zero (hr : 0 < r) : absorbent 𝕜 (closed_ball p (0 : E) r) :=
+(p.absorbent_ball_zero hr).subset (p.ball_subset_closed_ball _ _)
+
 /-- Seminorm-balls containing the origin are absorbent. -/
 protected lemma absorbent_ball (hpr : p x < r) : absorbent 𝕜 (ball p x r) :=
 begin
@@ -727,7 +727,7 @@ protected lemma absorbent_closed_ball (hpr : p x < r) : absorbent 𝕜 (closed_b
 begin
   refine (p.absorbent_closed_ball_zero $ sub_pos.2 hpr).subset (λ y hy, _),
   rw p.mem_closed_ball_zero at hy,
-  exact p.mem_closed_ball.2 ((p.sub_le _ _).trans $ add_le_of_le_sub_right hy),
+  exact p.mem_closed_ball.2 ((map_sub_le_add p _ _).trans $ add_le_of_le_sub_right hy),
 end
 
 lemma symmetric_ball_zero (r : ℝ) (hx : x ∈ ball p 0 r) : -x ∈ ball p 0 r :=

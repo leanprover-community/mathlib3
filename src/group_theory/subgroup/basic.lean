@@ -2036,6 +2036,15 @@ cod_restrict f _ $ λ x, ⟨x, rfl⟩
 lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g := rfl
 
 @[to_additive]
+lemma coe_comp_range_restrict (f : G →* N) :
+  (coe : f.range → N) ∘ (⇑(f.range_restrict) : G → f.range) = f :=
+rfl
+
+@[to_additive]
+lemma subtype_comp_range_restrict (f : G →* N) : f.range.subtype.comp (f.range_restrict) = f :=
+ext $ f.coe_range_restrict
+
+@[to_additive]
 lemma range_restrict_surjective (f : G →* N) : function.surjective f.range_restrict :=
 λ ⟨_, g, rfl⟩, ⟨g, rfl⟩
 

@@ -573,7 +573,7 @@ lemma injective_nhds_set [t1_space α] : function.injective (𝓝ˢ : set α →
 lemma strict_mono_nhds_set [t1_space α] : strict_mono (𝓝ˢ : set α → filter α) :=
 monotone_nhds_set.strict_mono_of_injective injective_nhds_set
 
-@[simp] lemma nhds_le_nhds_set [t1_space α] {s : set α} {x : α} : 𝓝 x ≤ 𝓝ˢ s ↔ x ∈ s :=
+@[simp] lemma nhds_le_nhds_set_iff [t1_space α] {s : set α} {x : α} : 𝓝 x ≤ 𝓝ˢ s ↔ x ∈ s :=
 by rw [← nhds_set_singleton, nhds_set_le_iff, singleton_subset_iff]
 
 /-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/

@@ -488,11 +488,8 @@ begin
     (μ.restrict s).prod volume (region_between (ae_measurable.mk f hf) (ae_measurable.mk g hg) s),
   { apply measure_congr,
     apply eventually_eq.rfl.inter,
-    exact
-      ((ae_eq_comp' measurable_fst.ae_measurable
-        hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _ eventually_eq.rfl).inter
-      (eventually_eq.rfl.comp₂ _ (ae_eq_comp' measurable_fst.ae_measurable
-        hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
+    exact ((quasi_measure_preserving_fst.ae_eq_comp hf.ae_eq_mk).comp₂ _ eventually_eq.rfl).inter
+      (eventually_eq.rfl.comp₂ _ $ quasi_measure_preserving_fst.ae_eq_comp hg.ae_eq_mk) },
   rw [lintegral_congr_ae h₁,
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,

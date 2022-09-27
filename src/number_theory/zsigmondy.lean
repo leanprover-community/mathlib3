@@ -11,6 +11,10 @@ open polynomial
 def cyclotomic₂' (n : ℕ) (R : Type*) [ring R] [has_div R] : R → R → R :=
 λ a b, b ^ (nat.totient n) * (polynomial.cyclotomic n R).eval (a / b)
 
+@[simp] lemma cyclotomic₂'_zero (R : Type*) [ring R] [has_div R] (a b : R) :
+  cyclotomic₂' 0 R a b = 1 :=
+by simp only [cyclotomic₂', nat.totient_zero, pow_zero, cyclotomic_zero, eval_one, mul_one]
+
 lemma cyclotomic₂'_div_prod_eq {n : ℕ} (R : Type*) [field R] (a b : R) (hn : 0 < n)
   (hbne: b ≠ 0) : ∏ d in nat.divisors n, cyclotomic₂' d R a b = a ^ n - b ^ n :=
 begin
@@ -98,6 +102,15 @@ begin
   simp only [←complex.of_real_inj, this, cyclotomic₂_def n a b, complex.of_real_int_cast],
 end
 
+lemma cyclotomic₂_def_int (n : ℕ) (a b : ℤ) :
+  cyclotomic₂' n ℤ a b = cyclotomic₂ n a b :=
+begin
+  sorry
+end
+
+@[simp] lemma cyclotomic₂_zero (a b : ℤ) : cyclotomic₂ 0 a b = 1 :=
+  by simp only [←(@ int.cast_inj) ℝ, ←cyclotomic₂_def', cyclotomic₂'_zero, int.cast_one]
+
 lemma proposition_6 {n : ℕ} {a b : ℤ} (hn : 2 ≤ n) (hab : b < a) (hb : 0 < b) :
   (a - b) ^ (nat.totient n) < cyclotomic₂ n a b :=
 by simp only [← @int.cast_lt ℝ, ← cyclotomic₂_def', int.cast_pow, int.cast_sub,
@@ -113,6 +126,16 @@ lemma cyclotomic₂_div_prod_eq {n : ℕ} (a b : ℤ) (hn : 0 < n) (hbne: b ≠ 
 by simp only [← @int.cast_inj ℝ, int.cast_prod, int.cast_sub, int.cast_pow, ← cyclotomic₂_def',
     cyclotomic₂'_div_prod_eq ℝ ↑a ↑b hn (show (b : ℝ) ≠ 0, by norm_num [hbne])]
 
+lemma cyclotomic₂_dvd_pow_sub (n : ℕ) (a b : ℤ) (hb : b ≠ 0):
+  cyclotomic₂ n a b ∣ a ^ n - b ^ n :=
+begin
+  rcases nat.eq_zero_or_pos n with rfl | hnzero,
+  { simp only [cyclotomic₂_zero, is_unit.dvd, is_unit_one] },
+  { simp only [← cyclotomic₂_div_prod_eq a b hnzero hb,
+    nat.divisors_eq_proper_divisors_insert_self_of_pos hnzero,
+    finset.prod_insert (@nat.proper_divisors.not_self_mem n), dvd_mul_right] }
+end
+
 lemma proposition_8 {n p : ℕ} (a b : ℤ) (hp: nat.prime p) (hpn: p ∣ n) :
   cyclotomic₂ (n * p) a b = cyclotomic₂ n (a ^ p) (b ^ p) :=
 by simp only [← @int.cast_inj ℝ, ← cyclotomic₂_def', int.cast_pow, proposition_1 ℝ ↑a ↑b hp hpn]
@@ -121,5 +144,62 @@ lemma proposition_9 {n p : ℕ} (a b : ℤ) (hp: nat.prime p) (hpn: ¬ p ∣ n) 
   cyclotomic₂ (n * p) a b * cyclotomic₂ n a b = cyclotomic₂ n (a ^ p) (b ^ p) :=
 by simp only [← @int.cast_inj ℝ, ← cyclotomic₂_def', int.cast_pow, int.cast_mul,
   proposition_2 ℝ ↑a ↑b hp hpn]
+
+lemma prime_div_pow_sub {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
+  ↑p ∣ a ^ (p - 1) - b ^ (p - 1) :=
+by exact int.modeq.dvd (int.modeq.trans (int.modeq.pow_card_sub_one_eq_one hp
+    ((prime.coprime_iff_not_dvd (nat.prime_iff_prime_int.mp hp)).mpr hpb).symm)
+    ((int.modeq.pow_card_sub_one_eq_one hp ((prime.coprime_iff_not_dvd
+    (nat.prime_iff_prime_int.mp hp)).mpr hpa).symm)).symm)
+
+def least_div_pow {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :=
+  nat.find (show ∃ k : ℕ, ↑p ∣ a ^ k - b ^ k ∧ 0 < k,
+    by refine ⟨p -1, (prime_div_pow_sub hp hpa hpb), by norm_num [nat.prime.one_lt hp]⟩)
+
+lemma least_div_pow_pos {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
+  0 < least_div_pow hp hpa hpb :=
+  by simp only [least_div_pow, nat.find_pos, nat.not_lt_zero,
+  and_false, not_false_iff]
+
+lemma least_div_pow_min {p k : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb : ¬ ↑p ∣ b)
+  (hk : 0 < k) :
+  k < least_div_pow hp hpa hpb → ¬ ↑p ∣ a ^ k - b ^ k :=
+begin
+ rw [least_div_pow],
+ intro h,
+ have := nat.find_min _ h,
+ simpa [not_and, not_lt, le_zero_iff, ne_of_gt hk]
+end
+
+lemma least_div_pow_dvd {p n : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
+  ↑p ∣ a ^ n - b ^ n → least_div_pow hp hpa hpb ∣ n :=
+begin
+  rcases nat.eq_zero_or_pos n with rfl | hzero,
+  { simp only [pow_zero, sub_self, dvd_zero, forall_true_left] },
+  { sorry },
+end
+
+lemma proposition_10 {p : ℕ} {a b : ℤ} (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) (hpge: 3 ≤ p)
+  (hp : nat.prime p) :
+  multiplicity ↑p (cyclotomic₂ (least_div_pow hp hpa hpb) a b) =
+  multiplicity ↑p (a ^ (least_div_pow hp hpa hpb) - b ^ (least_div_pow hp hpa hpb)) :=
+begin
+  have hbne : b ≠ 0,
+  { rintro rfl; simp only [dvd_zero, not_true] at hpb; exact hpb },
+    rw [← cyclotomic₂_div_prod_eq a b (least_div_pow_pos hp hpa hpb) hbne,
+      multiplicity.finset.prod (nat.prime_iff_prime_int.mp hp),
+      nat.divisors_eq_proper_divisors_insert_self_of_pos (least_div_pow_pos hp hpa hpb),
+      finset.sum_insert (@nat.proper_divisors.not_self_mem _)],
+  have : ∀ x ∈ (least_div_pow hp hpa hpb).proper_divisors, multiplicity ↑p (cyclotomic₂ x a b) = 0,
+  { intros x hx,
+    rcases nat.eq_zero_or_pos x with rfl | hxzero,
+    { simp only [cyclotomic₂_zero, multiplicity.one_right (show ¬ is_unit (p : ℤ),
+      by simp only [int.of_nat_is_unit, nat.is_unit_iff, nat.prime.ne_one hp, not_false_iff])] },
+    { rw multiplicity.multiplicity_eq_zero_of_not_dvd,
+      have := least_div_pow_min hp hpa hpb hxzero ((nat.mem_proper_divisors.mp hx).2),
+      contrapose! this,
+      exact dvd_trans this (cyclotomic₂_dvd_pow_sub x a b hbne) }},
+  simp only [finset.sum_congr rfl this, finset.sum_const_zero, add_zero]
+end
 
 end cyclotomic₂

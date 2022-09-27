@@ -250,42 +250,6 @@ end
 
 end roots
 
-section topo
-
-variables {F K : Type*} [field F] [normed_field K]
-
-open polynomial
-
-open_locale polynomial
-
-lemma coeff_bdd_of_roots_le (B : ℝ) (d : ℕ) (f : F →+* K) :
-  ∃ C, ∀ p : F[X], p.monic → splits f p → p.nat_degree ≤ d → (∀ z ∈ (map f p).roots, ∥z∥ ≤ B) →
-  ∀ i, ∥(map f p).coeff i∥ ≤ C :=
-begin
-  let S := finset.bUnion
-    (finset.product (finset.range (d + 1)) (finset.range (d + 1)))
-    (λ x, ( { B ^ (x.1 - x.2) * (x.1.choose x.2) } : finset ℝ)),
-  let C := (S.max' _),
-  { use max C 0,
-    intros p h_monic h_splits h_degree h_roots i,
-    by_cases hi : i < d + 1,
-    { apply le_trans _ (le_max_left _ _),
-      apply le_trans (coeff_le_of_roots_le i h_monic h_splits h_roots) _,
-      refine finset.le_max' S _ _,
-      exact finset.mem_bUnion.mpr ⟨⟨p.nat_degree, i⟩, finset.mem_product.mpr
-        ⟨finset.mem_range_succ_iff.mpr h_degree, finset.mem_range.mpr hi⟩,
-          finset.mem_singleton.mpr rfl⟩,
-    },
-    { rw coeff_eq_zero_of_nat_degree_lt,
-      { rw norm_zero, exact le_max_right _ _, },
-      { rw nat_degree_map, linarith, }}},
-  { exact finset.bUnion_nonempty.mpr
-    ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
-      finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
-end
-
-end topo
-
 section bounded
 
 open finite_dimensional polynomial set
@@ -316,17 +280,6 @@ begin
   repeat { exact monic.ne_zero (minpoly.monic hx), },
 end
 
-lemma zap {F : Type*} [comm_ring F] (d : ℕ) {f g : polynomial F} (hf : f.nat_degree ≤ d)
-  (hg : g.nat_degree ≤ d) (h : ∀ i, i ≤ d → f.coeff i = g.coeff i) :
-  f = g :=
-begin
-  ext,
-  by_cases hn : n ≤ d,
-  { exact h n hn, },
-  { rw [coeff_eq_zero_of_nat_degree_lt, coeff_eq_zero_of_nat_degree_lt],
-    linarith, linarith, },
-end
-
 lemma toto (F : Type*) [comm_ring F] [is_domain F] (d: ℕ) (C : ℝ) :
   (⋃ (f : polynomial ℤ) (hf : f.nat_degree ≤ d ∧ ∀ i, ∥f.coeff i∥ ≤ C),
       ((f.map (algebra_map ℤ F)).roots.to_finset : set F)).finite :=
@@ -335,7 +288,7 @@ begin
   have : inj_on (λ g : polynomial ℤ, λ e : fin (d+1), g.coeff e)
     {f | f.nat_degree ≤ d ∧ ∀ (i : ℕ), ∥f.coeff i∥ ≤ C},
   { intros x hx y hy hxy,
-    refine zap d hx.1 hy.1 _,
+    apply (nat_degree_le_max hx.1 hy.1).mp,
     exact_mod_cast λ i hi, congr_fun hxy ⟨i, nat.lt_succ_iff.mpr hi⟩, },
   refine finite.of_finite_image _ this,
   { let D := int.ceil C,
@@ -360,13 +313,12 @@ begin
   rw mem_Union,
   use minpoly ℤ x,
   rw [mem_Union, exists_prop],
-  refine ⟨⟨_, _⟩, _⟩,
+  refine ⟨⟨_, λ i, _⟩, _⟩,
   { rw [← nat_degree_map_eq_of_injective (algebra_map ℤ ℚ).injective_int _, ← h_map_rat_minpoly],
     apply le_trans _ ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le,
     apply le_of_eq,
     exact (intermediate_field.adjoin.finrank (is_integral_of_is_scalar_tower _ hx.1)).symm, },
-  { intro i,
-    apply le_trans _ (int.le_ceil C'),
+  { apply le_trans _ (int.le_ceil C'),
     convert (h x hx.2 i) using 1,
     simp only [h_map_rat_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat], },
   { rw [finset.mem_coe, multiset.mem_to_finset, mem_roots, is_root.def, ← eval₂_eq_eval_map,

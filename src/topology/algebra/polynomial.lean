@@ -209,7 +209,11 @@ lemma coeff_bdd_of_roots_le (B : ℝ) (d : ℕ) (f : F →+* K) :
 begin
   let S := finset.bUnion (finset.product (finset.range (d + 1)) (finset.range (d + 1)))
     (λ x, ( { B ^ (x.1 - x.2) * (x.1.choose x.2) } : finset ℝ)),
-  let C := (S.max' _),
+  have hS : S.nonempty,
+  { exact finset.bUnion_nonempty.mpr
+      ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
+        finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
+  let C := (S.max' hS),
   { use max C 0,
     intros p h_monic h_splits h_degree h_roots i,
     by_cases hi : i < d + 1,
@@ -222,9 +226,6 @@ begin
     { rw coeff_eq_zero_of_nat_degree_lt,
       { rw norm_zero, exact le_max_right _ _, },
       { rw nat_degree_map, linarith, }}},
-  { exact finset.bUnion_nonempty.mpr
-    ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
-      finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
 end
 
 end roots

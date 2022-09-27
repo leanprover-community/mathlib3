@@ -517,7 +517,7 @@ end
 @[simp] lemma ball_eq_emptyset (p : seminorm 𝕜 E) {x : E} {r : ℝ} (hr : r ≤ 0) : p.ball x r = ∅ :=
 begin
   ext,
-  rw [seminorm.mem_ball, set.mem_empty_eq, iff_false, not_lt],
+  rw [seminorm.mem_ball, set.mem_empty_iff_false, iff_false, not_lt],
   exact hr.trans (map_nonneg p _),
 end
 

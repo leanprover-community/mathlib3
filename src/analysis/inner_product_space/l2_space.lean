@@ -80,7 +80,7 @@ Hilbert space, Hilbert sum, l2, Hilbert basis, unitary equivalence, isometric is
 -/
 
 open is_R_or_C submodule filter
-open_locale big_operators nnreal ennreal classical complex_conjugate
+open_locale big_operators nnreal ennreal classical complex_conjugate topological_space
 
 noncomputable theory
 
@@ -484,6 +484,12 @@ end
 @[simp] lemma coe_to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   (b.to_orthonormal_basis : ι → E) = b :=
 orthonormal_basis.coe_mk _ _
+
+protected lemma has_sum_orthogonal_projection {U : submodule 𝕜 E}
+  [complete_space U] (b : hilbert_basis ι 𝕜 U) (x : E) :
+  has_sum (λ i, ⟪(b i : E), x⟫ • b i) (orthogonal_projection U x) :=
+by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
+  using b.has_sum_repr (orthogonal_projection U x)
 
 lemma finite_spans_dense (b : hilbert_basis ι 𝕜 E) :
   (⨆ J : finset ι, span 𝕜 (J.image b : set E)).topological_closure = ⊤ :=

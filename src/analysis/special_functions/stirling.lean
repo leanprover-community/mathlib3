@@ -42,7 +42,7 @@ namespace stirling
 -/
 
 /--
-Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
+Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}(\frac{n}{e})^n}$.
 Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
 noncomputable def stirling_seq (n : ℕ) : ℝ :=
@@ -61,7 +61,7 @@ We have the expression
 lemma log_stirling_seq_formula (n : ℕ) : log (stirling_seq n.succ) =
   log n.succ!- 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
-  have h1 : (0 : ℝ) < n.succ!:= cast_pos.mpr n.succ.factorial_pos,
+  have h1 : (0 : ℝ) < n.succ! := cast_pos.mpr n.succ.factorial_pos,
   have h2 : (0 : ℝ) < (2 * n.succ) := mul_pos two_pos (cast_pos.mpr (succ_pos n)),
   have h3 := real.sqrt_pos.mpr h2,
   have h4 := pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) n.succ,
@@ -132,8 +132,8 @@ We have the bound  `log (stirling_seq n) - log (stirling_seq (n+1))` ≤ 1/(4 n^
 lemma log_stirling_seq_sub_log_stirling_seq_succ (n : ℕ) :
   log (stirling_seq n.succ) - log (stirling_seq n.succ.succ) ≤ 1 / (4 * n.succ ^ 2) :=
 begin
-  have h₁ : 0 < 4 * ((n : ℝ) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
-  have h₃ : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
+  have h₁ : 0 < 4 * ((n : ℝ) + 1) ^ 2 := by positivity,
+  have h₃ : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 := by positivity,
   have h₂ : 0 < 1 - (1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2,
   { rw ← mul_lt_mul_right h₃,
     have H : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 - 1 := by nlinarith [@cast_nonneg ℝ _ n],

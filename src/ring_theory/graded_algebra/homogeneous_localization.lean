@@ -76,7 +76,7 @@ namespace homogeneous_localization
 
 section
 /--
-Let `x` be a prime ideal, then `num_denom_same_deg 𝒜 x` is a structure with a numerator and a
+Let `x` be a submonoid of `A`, then `num_denom_same_deg 𝒜 x` is a structure with a numerator and a
 denominator with same grading such that the denominator is not contained in `x`.
 -/
 @[nolint has_nonempty_instance]
@@ -456,6 +456,7 @@ section
 
 variables (𝒜) (𝔭 : ideal A) [ideal.is_prime 𝔭]
 
+/--Localizing a ring homogeneously at a prime ideal-/
 abbreviation at_prime  :=
   homogeneous_localization 𝒜 𝔭.prime_compl
 

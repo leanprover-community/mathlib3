@@ -482,6 +482,47 @@ begin
     mul_comm, mul_smul, eq1],
 end
 
+def lift {g : M →ₗ[R] M''} (hg : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) :
+  (localized_module S M) →ₗ[R] M'' :=
+{ to_fun := λ m, m.lift_on (λ p, (hg $ p.2).unit⁻¹ $ g p.1) $ λ ⟨m, s⟩ ⟨m', s'⟩ ⟨c, eq1⟩,
+  begin
+    generalize_proofs h1 h2,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←h2.unit⁻¹.1.map_smul], symmetry,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff], dsimp,
+    have : c • s • g m' = c • s' • g m,
+    { erw [←g.map_smul, ←g.map_smul, ←g.map_smul, ←g.map_smul, eq1], refl, },
+    have : function.injective (hg c).unit.inv,
+    { rw function.injective_iff_has_left_inverse, refine ⟨(hg c).unit, _⟩,
+      intros x,
+      change ((hg c).unit.1 * (hg c).unit.inv) x = x,
+      simp only [units.inv_eq_coe_inv, is_unit.mul_coe_inv, linear_map.one_apply], },
+    apply_fun (hg c).unit.inv,
+    erw [units.inv_eq_coe_inv, module.End_algebra_map_is_unit_inv_apply_eq_iff,
+      ←(hg c).unit⁻¹.1.map_smul], symmetry,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff,
+      ←g.map_smul, ←g.map_smul, ←g.map_smul, ←g.map_smul, eq1], refl,
+  end,
+  map_add' := λ x y, begin
+    induction x using localized_module.induction_on with a b,
+    induction y using localized_module.induction_on with a' b',
+    erw [localized_module.lift_on_mk, localized_module.lift_on_mk, localized_module.lift_on_mk],
+    dsimp, generalize_proofs h1 h2 h3,
+    erw [map_add, module.End_algebra_map_is_unit_inv_apply_eq_iff,
+      smul_add, ←h2.unit⁻¹.1.map_smul, ←h3.unit⁻¹.1.map_smul],
+    congr' 1; symmetry,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, mul_smul, ←map_smul], refl,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, mul_comm, mul_smul, ←map_smul], refl,
+  end,
+  map_smul' := λ r x, begin
+    induction x using localized_module.induction_on with a b,
+    rw [localized_module.smul'_mk, ring_hom.id_apply, localized_module.lift_on_mk,
+      localized_module.lift_on_mk],
+    generalize_proofs h1 h2,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←h1.unit⁻¹.1.map_smul,
+      ←h1.unit⁻¹.1.map_smul], dsimp, symmetry,
+    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, map_smul],
+  end }
+
 /--
 If `(M', f)` and `(M'', g)` both satisfy universal property of localized module, then `M', M''`
 are isomorphic as `R`-module

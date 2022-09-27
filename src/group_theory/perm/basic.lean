@@ -29,6 +29,22 @@ instance perm_group : group (perm α) :=
   mul_one := refl_trans,
   mul_left_inv := self_trans_symm }
 
+/-- The permutation of a type is equivalent to the units group of the endomorphisms monoid of this
+type. -/
+@[simps] def equiv_units_End : perm α ≃* units (function.End α) :=
+{ to_fun := λ e, ⟨e, e.symm, e.self_comp_symm, e.symm_comp_self⟩,
+  inv_fun := λ u, ⟨(u : function.End α), (↑u⁻¹ : function.End α), congr_fun u.inv_val,
+    congr_fun u.val_inv⟩,
+  left_inv := λ e, ext $ λ x, rfl,
+  right_inv := λ u, units.ext rfl,
+  map_mul' := λ e₁ e₂, rfl }
+
+/-- Lift a monoid homomorphism `f : G →* function.End α` to a monoid homomorphism
+`f : G →* equiv.perm α`. -/
+@[simps] def _root_.monoid_hom.to_hom_perm {G : Type*} [group G] (f : G →* function.End α) :
+  G →* perm α :=
+equiv_units_End.symm.to_monoid_hom.comp f.to_hom_units
+
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 

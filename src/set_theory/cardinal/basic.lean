@@ -908,13 +908,20 @@ instance : char_zero cardinal := ⟨strict_mono.injective $ λ m n, nat_cast_lt.
 
 theorem nat_cast_inj {m n : ℕ} : (m : cardinal) = n ↔ m = n := nat.cast_inj
 
-lemma nat_cast_injective : injective (coe : ℕ → cardinal) :=
-nat.cast_injective
+lemma nat_cast_injective : injective (coe : ℕ → cardinal) := nat.cast_injective
 
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
 (add_one_le_succ _).antisymm (succ_le_of_lt $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
 @[simp] theorem succ_zero : succ (0 : cardinal) = 1 := by norm_cast
+
+lemma mk_set_lt [finite α] {x : α} {s : set α} (h : x ∉ s) : #s < #α :=
+begin
+  casesI nonempty_fintype α,
+  lift s to finset α using s.to_finite,
+  rw [finset.coe_sort_coe, mk_coe_finset, mk_fintype, nat_cast_lt],
+  exact finset.card_lt_univ_of_not_mem h
+end
 
 theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) : # α ≤ n :=
 begin
@@ -1088,8 +1095,10 @@ lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀
 ⟨λ ⟨h⟩, mk_congr ((@denumerable.eqv α h).trans equiv.ulift.symm),
  λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
 
-@[simp] lemma mk_denumerable (α : Type u) [denumerable α] : #α = ℵ₀ :=
-denumerable_iff.1 ⟨‹_›⟩
+@[simp] lemma mk_eq_aleph_0 (α : Type u) [countable α] [infinite α] : #α = ℵ₀ :=
+mk_le_aleph_0.antisymm (aleph_0_le_mk _)
+
+lemma mk_denumerable (α : Type u) [denumerable α] : #α = ℵ₀ := mk_eq_aleph_0 α
 
 @[simp] lemma aleph_0_add_aleph_0 : ℵ₀ + ℵ₀ = ℵ₀ := mk_denumerable _
 

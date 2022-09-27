@@ -482,7 +482,7 @@ begin
     mul_comm, mul_smul, eq1],
 end
 
-def lift {g : M →ₗ[R] M''} (hg : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) :
+noncomputable def lift' {g : M →ₗ[R] M''} (hg : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) :
   (localized_module S M) →ₗ[R] M'' :=
 { to_fun := λ m, m.lift_on (λ p, (hg $ p.2).unit⁻¹ $ g p.1) $ λ ⟨m, s⟩ ⟨m', s'⟩ ⟨c, eq1⟩,
   begin

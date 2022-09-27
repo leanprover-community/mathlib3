@@ -30,7 +30,7 @@ variables [comm_semiring R] [comm_semiring S] [semiring A]
 variables [algebra R S] [algebra S A] [algebra R A]
 variables [is_scalar_tower R S A]
 
-variables (R S A) {B}
+variables {B}
 theorem aeval_apply (x : A) (p : R[X]) : polynomial.aeval x p =
   polynomial.aeval x (polynomial.map (algebra_map R S) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R S A]
@@ -70,10 +70,9 @@ open is_scalar_tower
 
 section comm_semiring
 
-variables (R) {S A} [comm_semiring R] [comm_semiring S] [comm_semiring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+variables {R A} [comm_semiring R] [comm_semiring S] [comm_semiring A] [algebra R A]
 
-@[simp] lemma aeval_coe {S : subalgebra R A} {x : S} {p : R[X]} :
+@[simp] lemma aeval_coe (S : subalgebra R A) (x : S) (p : R[X]) :
   polynomial.aeval (x : A) p = polynomial.aeval x p :=
 (algebra_map_aeval R S A x p).symm
 

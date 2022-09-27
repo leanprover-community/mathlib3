@@ -638,6 +638,12 @@ eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
 
 @[to_additive]
+lemma topological_group.ext_iff {G : Type*} [group G] {t t' : topological_space G}
+  (tg : @topological_group G t _) (tg' : @topological_group G t' _) :
+  t = t' ↔ @nhds G t 1 = @nhds G t' 1 :=
+⟨λ h, h ▸ rfl, tg.ext tg'⟩
+
+@[to_additive]
 lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]
   (hinv : tendsto (λ (x : G), x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ (x₀ : G), 𝓝 x₀ = map (λ (x : G), x₀ * x) (𝓝 1))

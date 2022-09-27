@@ -5,8 +5,6 @@ Authors: Johan Commelin
 -/
 import topology.algebra.infinite_sum
 import topology.algebra.group_with_zero
-import topology.order.lattice
-import algebra.order.lattice_group
 
 /-!
 # Topology on `ℝ≥0`
@@ -24,7 +22,6 @@ Instances for the following typeclasses are defined:
 * `has_continuous_sub ℝ≥0`
 * `has_continuous_inv₀ ℝ≥0` (continuity of `x⁻¹` away from `0`)
 * `has_continuous_smul ℝ≥0 ℝ`
-* `topological_lattice ℝ≥0`
 
 Everything is inherited from the corresponding structures on the reals.
 
@@ -123,12 +120,6 @@ instance : has_continuous_inv₀ ℝ≥0 :=
 instance : has_continuous_smul ℝ≥0 ℝ :=
 { continuous_smul := real.continuous_mul.comp $
     (continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd }
-
-instance : topological_lattice ℝ≥0 :=
-{ continuous_sup := continuous_induced_rng.mpr
-    (by continuity : continuous (λ x : ℝ≥0 × ℝ≥0, (x.fst : ℝ) ⊔ (x.snd : ℝ))),
-  continuous_inf := continuous_induced_rng.mpr
-    (by continuity : continuous (λ x : ℝ≥0 × ℝ≥0, (x.fst : ℝ) ⊓ (x.snd : ℝ))), }
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=

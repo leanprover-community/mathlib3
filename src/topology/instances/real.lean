@@ -13,6 +13,8 @@ import group_theory.archimedean
 import algebra.periodic
 import order.filter.archimedean
 import topology.instances.int
+import topology.order.lattice
+import algebra.order.lattice_group
 
 /-!
 # Topological properties of ℝ
@@ -126,6 +128,20 @@ tendsto_of_uniform_continuous_subtype
 
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
+
+instance : topological_lattice ℝ :=
+{ continuous_sup :=
+  begin
+    convert (by continuity : continuous (λ p : ℝ × ℝ, (p.1 + p.2 + |p.2 - p.1|) / 2)),
+    funext,
+    field_simp [←lattice_ordered_comm_group.two_sup_eq_add_add_abs_sub, mul_comm],
+  end,
+  continuous_inf :=
+  begin
+    convert (by continuity : continuous (λ p : ℝ × ℝ, (p.1 + p.2 - |p.2 - p.1|) / 2)),
+    funext,
+    field_simp [←lattice_ordered_comm_group.two_inf_eq_add_sub_abs_sub, mul_comm],
+  end }
 
 instance : complete_space ℝ :=
 begin

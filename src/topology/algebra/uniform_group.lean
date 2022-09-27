@@ -209,6 +209,21 @@ end
   𝓤 α = comap (λx:α×α, x.1 / x.2) (𝓝 (1:α)) :=
 by { rw [← comap_swap_uniformity, uniformity_eq_comap_nhds_one, comap_comap, (∘)], refl }
 
+@[to_additive] lemma uniform_group.ext {G : Type*} [group G] {u v : uniform_space G}
+  (hu : @uniform_group G u _) (hv : @uniform_group G v _)
+  (h : @nhds _ u.to_topological_space 1 = @nhds _ v.to_topological_space 1) :
+  u = v :=
+begin
+  refine uniform_space_eq _,
+  change @uniformity _ u = @uniformity _ v,
+  rw [@uniformity_eq_comap_nhds_one _ u _ hu, @uniformity_eq_comap_nhds_one _ v _ hv, h]
+end
+
+@[to_additive] lemma uniform_group.ext_iff {G : Type*} [group G] {u v : uniform_space G}
+  (hu : @uniform_group G u _) (hv : @uniform_group G v _) :
+  u = v ↔ @nhds _ u.to_topological_space 1 = @nhds _ v.to_topological_space 1 :=
+⟨λ h, h ▸ rfl, hu.ext hv⟩
+
 variables {α}
 
 @[to_additive] theorem uniform_group.uniformity_countably_generated

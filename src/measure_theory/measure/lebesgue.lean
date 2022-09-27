@@ -532,7 +532,7 @@ end region_between
 all `a, b ∈ s`, then it is true almost everywhere in `s`. -/
 lemma ae_restrict_of_ae_restrict_inter_Ioo
   {μ : measure ℝ} [has_no_atoms μ] {s : set ℝ} {p : ℝ → Prop}
-  (h : ∀ a b, a ∈ s → b ∈ s → ∀ᵐ x ∂(μ.restrict (s ∩ Ioo a b)), p x) :
+  (h : ∀ a b, a ∈ s → b ∈ s → a < b → ∀ᵐ x ∂(μ.restrict (s ∩ Ioo a b)), p x) :
   ∀ᵐ x ∂(μ.restrict s), p x :=
 begin
   /- By second-countability, we cover `s` by countably many intervals `(a, b)` (except maybe for
@@ -543,7 +543,8 @@ begin
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
     by_contra' h,
     apply hy.2,
-    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩) ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
+    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩)
+      ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
   obtain ⟨A, A_count, hA⟩ :
     ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
     is_open_Union_countable _ (λ p, is_open_Ioo),
@@ -562,5 +563,8 @@ begin
   { have : μ.restrict (s \ u) = 0, by simp only [restrict_eq_zero, hfinite.measure_zero],
     simp only [this, ae_zero] },
   { rintros ⟨⟨a, as⟩, ⟨b, bs⟩⟩ -,
-    exact h a b as bs }
+    dsimp [T],
+    rcases le_or_lt b a with hba|hab,
+    { simp only [Ioo_eq_empty_of_le hba, inter_empty, restrict_empty, ae_zero] },
+    { exact h a b as bs hab } }
 end

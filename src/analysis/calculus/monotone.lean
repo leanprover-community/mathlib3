@@ -281,3 +281,15 @@ end
 theorem monotone.ae_differentiable_at {f : ℝ → ℝ} (hf : monotone f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 by filter_upwards [hf.ae_has_deriv_at] with x hx using hx.differentiable_at
+
+theorem monotone_on.ae_differentiable_within_at {f : ℝ → ℝ} {s : set ℝ} (hf : monotone_on f s) :
+  ∀ᵐ x ∂(volume.restrict s), differentiable_within_at ℝ f s x :=
+begin
+  apply ae_restrict_of_ae_restrict_inter_Ioo,
+  assume a b as bs hab,
+  obtain ⟨g, hg, gf⟩ : ∃ (g : ℝ → ℝ), monotone g ∧ eq_on f g (s ∩ Icc a b) :=
+    monotone_on.exists_monotone_extension (hf.mono (inter_subset_left s (Icc a b)))
+      ⟨as, ⟨le_rfl, hab.le⟩⟩ ⟨bs, ⟨hab.le, le_rfl⟩⟩ (inter_subset_right _ _),
+  filter_upwards [ae_restrict_of_ae (hg.ae_differentiable_at)] with x hx,
+  have Z := hx.differentiable_within_at.congr_of_eventually_eq,
+end

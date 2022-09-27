@@ -7,17 +7,31 @@ import algebra.field.basic
 import algebra.ring.opposite
 
 /-!
-# Field structure on the multiplicative opposite
+# Field structure on the multiplicative/additive opposite
 -/
 
 variables (α : Type*)
 
-namespace mul_opposite
+instance [division_semiring α] : division_semiring αᵐᵒᵖ :=
+{ .. mul_opposite.group_with_zero α, .. mul_opposite.semiring α }
 
 instance [division_ring α] : division_ring αᵐᵒᵖ :=
 { .. mul_opposite.group_with_zero α, .. mul_opposite.ring α }
 
+instance [semifield α] : semifield αᵐᵒᵖ :=
+{ .. mul_opposite.division_semiring α, .. mul_opposite.comm_semiring α }
+
 instance [field α] : field αᵐᵒᵖ :=
 { .. mul_opposite.division_ring α, .. mul_opposite.comm_ring α }
 
-end mul_opposite
+instance [division_semiring α] : division_semiring αᵃᵒᵖ :=
+{ ..add_opposite.group_with_zero α, ..add_opposite.semiring α }
+
+instance [division_ring α] : division_ring αᵃᵒᵖ :=
+{ ..add_opposite.group_with_zero α, ..add_opposite.ring α }
+
+instance [semifield α] : semifield αᵃᵒᵖ :=
+{ ..add_opposite.division_semiring α, ..add_opposite.comm_semiring α }
+
+instance [field α] : field αᵃᵒᵖ :=
+{ ..add_opposite.division_ring α, ..add_opposite.comm_ring α }

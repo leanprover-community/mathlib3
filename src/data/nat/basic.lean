@@ -53,9 +53,8 @@ instance : comm_semiring ℕ :=
   nsmul_succ'    := λ n x,
     by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul] }
 
-instance : linear_ordered_semiring nat :=
-{ add_left_cancel            := @nat.add_left_cancel,
-  lt                         := nat.lt,
+instance : linear_ordered_comm_semiring ℕ :=
+{ lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
   le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
   zero_le_one                := nat.le_of_lt (nat.zero_lt_succ 0),
@@ -65,30 +64,25 @@ instance : linear_ordered_semiring nat :=
   exists_pair_ne             := ⟨0, 1, ne_of_lt nat.zero_lt_one⟩,
   ..nat.comm_semiring, ..nat.linear_order }
 
--- all the fields are already included in the linear_ordered_semiring instance
-instance : linear_ordered_cancel_add_comm_monoid ℕ :=
-{ add_left_cancel := @nat.add_left_cancel,
-  ..nat.linear_ordered_semiring }
-
 instance : linear_ordered_comm_monoid_with_zero ℕ :=
 { mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
-  ..nat.linear_ordered_semiring,
+  ..nat.linear_ordered_comm_semiring,
   ..(infer_instance : comm_monoid_with_zero ℕ)}
 
-instance : ordered_comm_semiring ℕ := { .. nat.comm_semiring, .. nat.linear_ordered_semiring }
-
 /-! Extra instances to short-circuit type class resolution -/
-instance : add_comm_monoid nat    := by apply_instance
-instance : add_monoid nat         := by apply_instance
-instance : monoid nat             := by apply_instance
-instance : comm_monoid nat        := by apply_instance
-instance : comm_semigroup nat     := by apply_instance
-instance : semigroup nat          := by apply_instance
-instance : add_comm_semigroup nat := by apply_instance
-instance : add_semigroup nat      := by apply_instance
-instance : distrib nat            := by apply_instance
-instance : semiring nat           := by apply_instance
-instance : ordered_semiring nat   := by apply_instance
+instance : add_comm_monoid ℕ       := infer_instance
+instance : add_monoid ℕ            := infer_instance
+instance : monoid ℕ                := infer_instance
+instance : comm_monoid ℕ           := infer_instance
+instance : comm_semigroup ℕ        := infer_instance
+instance : semigroup ℕ             := infer_instance
+instance : add_comm_semigroup ℕ    := infer_instance
+instance : add_semigroup ℕ         := infer_instance
+instance : distrib ℕ               := infer_instance
+instance : semiring ℕ              := infer_instance
+instance : ordered_semiring ℕ      := infer_instance
+instance : ordered_comm_semiring ℕ := infer_instance
+instance : linear_ordered_cancel_add_comm_monoid ℕ := infer_instance
 
 instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
@@ -137,19 +131,6 @@ attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.zero_ne_bit1 nat.bit1_ne_zero
   nat.bit0_ne_one nat.one_ne_bit0
   nat.bit0_ne_bit1 nat.bit1_ne_bit0
-
-/-!
-Inject some simple facts into the type class system.
-This `fact` should not be confused with the factorial function `nat.fact`!
--/
-section facts
-
-instance succ_pos'' (n : ℕ) : fact (0 < n.succ) := ⟨n.succ_pos⟩
-
-instance pos_of_one_lt (n : ℕ) [h : fact (1 < n)] : fact (0 < n) :=
-⟨lt_trans zero_lt_one h.1⟩
-
-end facts
 
 variables {m n k : ℕ}
 namespace nat
@@ -646,7 +627,7 @@ def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}
 
 theorem le_rec_on_self {C : ℕ → Sort u} {n} {h : n ≤ n} {next} (x : C n) :
   (le_rec_on h next x : C n) = x :=
-by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self, dif_pos rfl]
+by cases n; unfold le_rec_on or.by_cases; rw [dif_neg n.not_succ_le_self]
 
 theorem le_rec_on_succ {C : ℕ → Sort u} {n m} (h1 : n ≤ m) {h2 : n ≤ m+1} {next} (x : C n) :
   (le_rec_on h2 @next x : C (m+1)) = next (le_rec_on h1 @next x : C m) :=
@@ -1639,9 +1620,9 @@ by { convert bit1_lt_bit0_iff, refl, }
 | ff := bit0_le_bit1_iff
 | tt := bit1_le_bit1
 
-@[simp] lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
+lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
 
-@[simp] lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
+lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
 
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }

@@ -426,6 +426,28 @@ lemma is_preconnected_Ioo : is_preconnected (Ioo a b) := ord_connected_Ioo.is_pr
 lemma is_preconnected_Ioc : is_preconnected (Ioc a b) := ord_connected_Ioc.is_preconnected
 lemma is_preconnected_Ico : is_preconnected (Ico a b) := ord_connected_Ico.is_preconnected
 
+lemma is_connected_Ici : is_connected (Ici a) := ⟨nonempty_Ici, is_preconnected_Ici⟩
+
+lemma is_connected_Iic : is_connected (Iic a) := ⟨nonempty_Iic, is_preconnected_Iic⟩
+
+lemma is_connected_Ioi [no_max_order α] : is_connected (Ioi a) :=
+⟨nonempty_Ioi, is_preconnected_Ioi⟩
+
+lemma is_connected_Iio [no_min_order α] : is_connected (Iio a) :=
+⟨nonempty_Iio, is_preconnected_Iio⟩
+
+lemma is_connected_Icc (h : a ≤ b) : is_connected (Icc a b) :=
+⟨nonempty_Icc.2 h, is_preconnected_Icc⟩
+
+lemma is_connected_Ioo (h : a < b) : is_connected (Ioo a b) :=
+⟨nonempty_Ioo.2 h, is_preconnected_Ioo⟩
+
+lemma is_connected_Ioc (h : a < b) : is_connected (Ioc a b) :=
+⟨nonempty_Ioc.2 h, is_preconnected_Ioc⟩
+
+lemma is_connected_Ico (h : a < b) : is_connected (Ico a b) :=
+⟨nonempty_Ico.2 h, is_preconnected_Ico⟩
+
 @[priority 100]
 instance ordered_connected_space : preconnected_space α :=
 ⟨ord_connected_univ.is_preconnected⟩

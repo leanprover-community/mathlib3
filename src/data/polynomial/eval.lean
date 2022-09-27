@@ -538,7 +538,7 @@ end
 @[simp] protected lemma map_mul : (p * q).map f = p.map f * q.map f :=
 by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 
-@[simp] lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
+@[simp] protected lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
 /-- `polynomial.map` as a `ring_hom`. -/
@@ -560,6 +560,12 @@ def map_ring_hom (f : R →+* S) : R[X] →+* S[X] :=
 -- This is protected to not clash with the global `map_nat_cast`.
 @[simp] protected theorem map_nat_cast (n : ℕ) : (n : R[X]).map f = n :=
 map_nat_cast (map_ring_hom f) n
+
+@[simp] protected lemma map_bit0 : (bit0 p).map f = bit0 (p.map f) :=
+map_bit0 (map_ring_hom f) p
+
+@[simp] protected lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
+map_bit1 (map_ring_hom f) p
 
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
@@ -612,6 +618,12 @@ lemma nat_degree_map_le (p : R[X]) : nat_degree (p.map f) ≤ nat_degree p :=
 nat_degree_le_nat_degree (degree_map_le f p)
 
 variables {f}
+
+protected lemma map_eq_zero_iff (hf : function.injective f) : p.map f = 0 ↔ p = 0 :=
+map_eq_zero_iff (map_ring_hom f) (map_injective f hf)
+
+protected lemma map_ne_zero_iff (hf : function.injective f) : p.map f ≠ 0 ↔ p ≠ 0 :=
+(polynomial.map_eq_zero_iff hf).not
 
 lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
 ⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp only [mul_one, hp.leading_coeff, f.map_one]

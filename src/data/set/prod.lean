@@ -32,7 +32,7 @@ variables {α β γ δ : Type*} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a
 def prod (s : set α) (t : set β) : set (α × β) := {p | p.1 ∈ s ∧ p.2 ∈ t}
 
 /- This notation binds more strongly than (pre)images, unions and intersections. -/
-infixr ` ×ˢ `:82 := set.prod
+infixr (name := set.prod) ` ×ˢ `:82 := set.prod
 
 lemma prod_eq (s : set α) (t : set β) : s ×ˢ t = prod.fst ⁻¹' s ∩ prod.snd ⁻¹' t := rfl
 
@@ -355,13 +355,13 @@ lemma pi_mono (h : ∀ i ∈ s, t₁ i ⊆ t₂ i) : pi s t₁ ⊆ pi s t₂ :=
 λ x hx i hi, (h i hi $ hx i hi)
 
 lemma pi_inter_distrib : s.pi (λ i, t i ∩ t₁ i) = s.pi t ∩ s.pi t₁ :=
-ext $ λ x, by simp only [forall_and_distrib, mem_pi, mem_inter_eq]
+ext $ λ x, by simp only [forall_and_distrib, mem_pi, mem_inter_iff]
 
 lemma pi_congr (h : s₁ = s₂) (h' : ∀ i ∈ s₁, t₁ i = t₂ i) : s₁.pi t₁ = s₂.pi t₂ :=
 h ▸ (ext $ λ x, forall₂_congr $ λ i hi, h' i hi ▸ iff.rfl)
 
 lemma pi_eq_empty (hs : i ∈ s) (ht : t i = ∅) : s.pi t = ∅ :=
-by { ext f, simp only [mem_empty_eq, not_forall, iff_false, mem_pi, not_imp],
+by { ext f, simp only [mem_empty_iff_false, not_forall, iff_false, mem_pi, not_imp],
      exact ⟨i, hs, by simp [ht]⟩ }
 
 lemma univ_pi_eq_empty (ht : t i = ∅) : pi univ t = ∅ := pi_eq_empty (mem_univ i) ht

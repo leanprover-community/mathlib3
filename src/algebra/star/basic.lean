@@ -3,13 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.apply_fun
-import algebra.field.opposite
-import algebra.field_power
 import algebra.ring.aut
-import group_theory.group_action.units
-import group_theory.group_action.opposite
 import algebra.ring.comp_typeclasses
+import data.rat.cast
+import group_theory.group_action.opposite
 
 /-!
 # Star monoids, rings, and modules
@@ -284,7 +281,7 @@ case for `(↑star_ring_aut : R →* R)`. -/
 def star_ring_end [comm_semiring R] [star_ring R] : R →+* R := @star_ring_aut R _ _
 variables {R}
 
-localized "notation `conj` := star_ring_end _" in complex_conjugate
+localized "notation (name := star_ring_end) `conj` := star_ring_end hole!" in complex_conjugate
 
 /-- This is not a simp lemma, since we usually want simp to keep `star_ring_end` bundled.
  For example, for complex conjugation, we don't want simp to turn `conj x`

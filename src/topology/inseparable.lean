@@ -121,6 +121,11 @@ lemma specializes_iff_closure_subset :
 
 alias specializes_iff_closure_subset ↔ specializes.closure_subset _
 
+lemma filter.has_basis.specializes_iff {ι} {p : ι → Prop} {s : ι → set X}
+  (h : (𝓝 y).has_basis p s) :
+  x ⤳ y ↔ ∀ i, p i → x ∈ s i :=
+specializes_iff_pure.trans h.ge_iff
+
 lemma specializes_rfl : x ⤳ x := le_rfl
 
 @[refl] lemma specializes_refl (x : X) : x ⤳ x := specializes_rfl

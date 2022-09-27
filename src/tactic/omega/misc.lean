@@ -31,7 +31,7 @@ lemma pred_mono_2' {c : Prop → Prop → Prop} {a1 a2 b1 b2 : Prop} :
 def update (m : nat) (a : α) (v : nat → α) : nat → α
 | n := if n = m then a else v n
 
-localized "notation v ` ⟨` m ` ↦ ` a `⟩` := omega.update m a v" in omega
+localized "notation (name := omega.update) v ` ⟨`m` ↦ `a`⟩` := omega.update m a v" in omega
 
 lemma update_eq (m : nat) (a : α) (v : nat → α) : (v ⟨m ↦ a⟩) m = a :=
 by simp only [update, if_pos rfl]

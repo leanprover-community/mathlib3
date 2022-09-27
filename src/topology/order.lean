@@ -41,7 +41,7 @@ finer, coarser, induced topology, coinduced topology
 
 -/
 
-open set filter classical
+open function set filter
 open_locale classical topological_space filter
 
 universes u v w
@@ -114,6 +114,21 @@ begin
     exact mem_of_superset h₁ h₀ },
   { rcases (@mem_nhds_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
     exact (n a).sets_of_superset (ht _ hat) hts },
+end
+
+lemma nhds_mk_of_nhds_single [decidable_eq α] {a₀ : α} {l : filter α} (h : pure a₀ ≤ l) (b : α) :
+  @nhds α (topological_space.mk_of_nhds $ update pure a₀ l) b =
+    (update pure a₀ l : α → filter α) b :=
+begin
+  refine nhds_mk_of_nhds _ _ (le_update_iff.mpr ⟨h, λ _ _, le_rfl⟩) (λ a s hs, _),
+  rcases eq_or_ne a a₀ with rfl|ha,
+  { refine ⟨s, hs, subset.rfl, λ b hb, _⟩,
+    rcases eq_or_ne b a with rfl|hb,
+    { exact hs },
+    { rwa [update_noteq hb] } },
+  { have hs' := hs,
+    rw [update_noteq ha] at hs ⊢,
+    exact ⟨{a}, rfl, singleton_subset_iff.mpr hs, forall_eq.2 hs'⟩ }
 end
 
 lemma nhds_mk_of_nhds_filter_basis (B : α → filter_basis α) (a : α) (h₀ : ∀ x (n ∈ B x), x ∈ n)
@@ -189,16 +204,14 @@ lemma generate_from_set_of_is_open (t : topological_space α) :
 (gi_generate_from α).l_u_eq t
 
 lemma left_inverse_generate_from :
-  function.left_inverse topological_space.generate_from
-    (λ t : topological_space α, {s | t.is_open s}) :=
+  left_inverse topological_space.generate_from (λ t : topological_space α, {s | t.is_open s}) :=
 (gi_generate_from α).left_inverse_l_u
 
 lemma generate_from_surjective :
-  function.surjective (topological_space.generate_from : set (set α) → topological_space α) :=
+  surjective (topological_space.generate_from : set (set α) → topological_space α) :=
 (gi_generate_from α).l_surjective
 
-lemma set_of_is_open_injective :
-  function.injective (λ t : topological_space α, {s | t.is_open s}) :=
+lemma set_of_is_open_injective : injective (λ t : topological_space α, {s | t.is_open s}) :=
 (gi_generate_from α).u_injective
 
 /-- The "temporary" order `tmp_order` on `topological_space α`, i.e. the inclusion order, is a
@@ -212,6 +225,13 @@ instance : has_le (topological_space α) :=
 
 protected lemma topological_space.le_def {α} {t s : topological_space α} :
   t ≤ s ↔ s.is_open ≤ t.is_open := iff.rfl
+
+lemma is_open.mono {α} {t₁ t₂ : topological_space α} {s : set α} (hs : @is_open α t₂ s)
+  (h : t₁ ≤ t₂) : @is_open α t₁ s := h s hs
+
+lemma is_closed.mono {α} {t₁ t₂ : topological_space α} {s : set α} (hs : @is_closed α t₂ s)
+  (h : t₁ ≤ t₂) : @is_closed α t₁ s :=
+(@is_open_compl_iff α t₁ s).mp $ hs.is_open_compl.mono h
 
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
@@ -738,7 +758,7 @@ tβ = tα.induced f ↔ ∀ b, 𝓝 b = comap f (𝓝 $ f b) :=
 ⟨λ h a, h.symm ▸ nhds_induced f a, λ h, eq_of_nhds_eq_nhds $ λ x, by rw [h, nhds_induced]⟩
 
 theorem map_nhds_induced_of_surjective [T : topological_space α]
-    {f : β → α} (hf : function.surjective f) (a : β) :
+    {f : β → α} (hf : surjective f) (a : β) :
   map f (@nhds β (topological_space.induced f T) a) = 𝓝 (f a) :=
 by rw [nhds_induced, map_comap_of_surjective hf]
 

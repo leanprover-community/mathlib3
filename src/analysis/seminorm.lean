@@ -554,26 +554,22 @@ ball_zero' x hr
   closed_ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
 closed_ball_zero' x hr
 
-lemma balanced_preimage {s : set ℝ} (hs : balanced ℝ s) : balanced 𝕜 (p ⁻¹' s) :=
-begin
-  rintro a ha x ⟨y, hy, rfl⟩,
-  change p _ ∈ _,
-  rw [map_smul_eq_mul, ← smul_eq_mul],
-  exact hs (∥a∥) ((norm_norm a).symm ▸ ha) (smul_mem_smul_set hy),
-end
-
 /-- Seminorm-balls at the origin are balanced. -/
 lemma balanced_ball_zero (r : ℝ) : balanced 𝕜 (ball p 0 r) :=
 begin
-  rw p.ball_zero_eq_preimage_ball,
-  refine p.balanced_preimage (normed_space.balanced_ball_zero r),
+  rintro a ha x ⟨y, hy, hx⟩,
+  rw [mem_ball_zero, ←hx, map_smul_eq_mul],
+  calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg p _) ha
+  ...    < r   : by rwa mem_ball_zero at hy,
 end
 
 /-- Closed seminorm-balls at the origin are balanced. -/
 lemma balanced_closed_ball_zero (r : ℝ) : balanced 𝕜 (closed_ball p 0 r) :=
 begin
-  rw p.closed_ball_zero_eq_preimage_closed_ball,
-  refine p.balanced_preimage (normed_space.balanced_closed_ball_zero r),
+  rintro a ha x ⟨y, hy, hx⟩,
+  rw [mem_closed_ball_zero, ←hx, map_smul_eq_mul],
+  calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg p _) ha
+  ...    ≤ r   : by rwa mem_closed_ball_zero at hy
 end
 
 lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ} (hr : 0 < r) :
@@ -687,34 +683,21 @@ begin
   exact hx.trans (lt_of_le_of_lt ha ((mul_lt_mul_left ha').mpr hr')),
 end
 
-/-- Preimage by a seminorm of an absorbent set is absorbent -/
-protected lemma absorbent_preimage {s : set ℝ} (hs : absorbent ℝ s) :
-  absorbent 𝕜 (p ⁻¹' s) :=
-begin
-  rw absorbent_iff_nonneg_lt at *,
-  rintro x,
-  rcases hs (p x) with ⟨r, hr, hrx⟩,
-  refine ⟨r, hr, λ a ha, _⟩,
-  have ha₀ : 0 < ∥a∥ := hr.trans_lt ha,
-  rw [mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.1 ha₀), mem_preimage, map_smul_eq_mul,
-      norm_inv, ← smul_eq_mul, ← mem_smul_set_iff_inv_smul_mem₀ ha₀.ne.symm],
-  refine hrx _,
-  rwa norm_norm
-end
-
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
 begin
-  rw p.ball_zero_eq,
-  exact p.absorbent_preimage (real.absorbent_Iio hr)
+  rw absorbent_iff_nonneg_lt,
+  rintro x,
+  have hxr : 0 ≤ p x / r := by positivity,
+  refine ⟨p x/r, hxr, λ a ha, _⟩,
+  have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
+  refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
+  rwa [mem_ball_zero, map_smul_eq_mul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
 end
 
 /-- Closed seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_closed_ball_zero (hr : 0 < r) : absorbent 𝕜 (closed_ball p (0 : E) r) :=
-begin
-  rw p.closed_ball_zero_eq,
-  exact p.absorbent_preimage (real.absorbent_Iic hr)
-end
+(p.absorbent_ball_zero hr).subset (p.ball_subset_closed_ball _ _)
 
 /-- Seminorm-balls containing the origin are absorbent. -/
 protected lemma absorbent_ball (hpr : p x < r) : absorbent 𝕜 (ball p x r) :=

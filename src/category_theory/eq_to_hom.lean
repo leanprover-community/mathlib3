@@ -45,12 +45,12 @@ def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
   eq_to_hom p ≫ eq_to_hom q = eq_to_hom (p.trans q) :=
 by { cases p, cases q, simp, }
 
-lemma eq_comp_eq_to_hom {X Y Y' : C} (p : Y = Y') (f : X ⟶ Y) (g : X ⟶ Y') :
+lemma comp_eq_to_hom_iff {X Y Y' : C} (p : Y = Y') (f : X ⟶ Y) (g : X ⟶ Y') :
   f ≫ eq_to_hom p = g ↔ f = g ≫ eq_to_hom p.symm :=
 { mp := λ h, h ▸ by simp,
   mpr := λ h, by simp [eq_whisker h (eq_to_hom p)] }
 
-lemma eq_eq_to_hom_comp {X X' Y : C} (p : X = X') (f : X ⟶ Y) (g : X' ⟶ Y) :
+lemma eq_to_hom_comp_iff {X X' Y : C} (p : X = X') (f : X ⟶ Y) (g : X' ⟶ Y) :
   eq_to_hom p ≫ g = f ↔ g = eq_to_hom p.symm ≫ f :=
 { mp := λ h, h ▸ by simp,
   mpr := λ h, h ▸ by simp [whisker_eq _ h] }

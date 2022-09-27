@@ -828,7 +828,7 @@ theorem mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} := ⟨xs, px�
 theorem sep_ext_iff : {x ∈ s | p x} = {x ∈ s | q x} ↔ ∀ x ∈ s, (p x ↔ q x) :=
 by simp_rw [ext_iff, mem_sep_iff, and.congr_right_iff]
 
-theorem eq_sep_of_subset (h : s ⊆ t) : {x ∈ t | x ∈ s} = s :=
+theorem sep_eq_of_subset (h : s ⊆ t) : {x ∈ t | x ∈ s} = s :=
 inter_eq_self_of_subset_right h
 
 @[simp] theorem sep_subset (s : set α) (p : α → Prop) : {x ∈ s | p x} ⊆ s := λ x, and.left

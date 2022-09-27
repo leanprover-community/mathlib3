@@ -494,7 +494,7 @@ is_separable_iff.2 $ λ x, begin
   refine (is_separable_iff.1 h (algebra_map K E x)).imp
     is_integral_tower_bot_of_is_integral_field (λ hs, _),
   obtain ⟨q, hq⟩ := minpoly.dvd F x
-    ((aeval_algebra_map_eq_zero_iff _ _).mp (minpoly.aeval F ((algebra_map K E) x))),
+    ((aeval_algebra_map_eq_zero_iff _ _ _).mp (minpoly.aeval F ((algebra_map K E) x))),
   rw hq at hs,
   exact hs.of_mul_left
 end

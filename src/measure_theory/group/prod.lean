@@ -185,16 +185,14 @@ lemma measure_mul_right_ne_zero
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null μ y)).mpr h2E
 
+/-- A *left*-invariant is quasi-preserved by *right*-multiplication.
+This should not be confused with `(measure_preserving_mul_right μ g).quasi_measure_preserving`. -/
 @[to_additive] lemma quasi_measure_preserving_mul_right (g : G) :
   quasi_measure_preserving (λ h : G, h * g) μ μ :=
 begin
   refine ⟨measurable_mul_const g, absolutely_continuous.mk $ λ s hs, _⟩,
   rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id,
 end
-
-@[to_additive]
-lemma map_mul_right_absolutely_continuous (g : G) : map (* g) μ ≪ μ :=
-(quasi_measure_preserving_mul_right μ g).absolutely_continuous
 
 @[to_additive]
 lemma absolutely_continuous_map_mul_right (g : G) : μ ≪ map (* g) μ :=
@@ -210,10 +208,6 @@ begin
   exact (measure_preserving_mul_left μ g).quasi_measure_preserving.comp
     (quasi_measure_preserving_inv μ)
 end
-
-@[to_additive]
-lemma map_div_left_absolutely_continuous (g : G) : map (λ h, g / h) μ ≪ μ :=
-(quasi_measure_preserving_div_left μ g).absolutely_continuous
 
 @[to_additive]
 lemma absolutely_continuous_map_div_left (g : G) : μ ≪ map (λ h, g / h) μ :=

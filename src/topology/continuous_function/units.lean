@@ -63,10 +63,9 @@ noncomputable def units_of_forall_is_unit {f : C(X, R)} (h : ∀ x, is_unit (f x
 { to_fun := λ x, (h x).unit,
   continuous_to_fun :=  normed_ring.is_unit_unit_continuous h }
 
-instance : can_lift C(X, R) C(X, Rˣ) :=
-{ coe := λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩,
-  cond := λ f, ∀ x, is_unit (f x),
-  prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
+instance can_lift : can_lift C(X, R) C(X, Rˣ)
+  (λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩) (λ f, ∀ x, is_unit (f x)) :=
+{ prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
 
 lemma is_unit_iff_forall_is_unit (f : C(X, R)) :
   is_unit f ↔ ∀ x, is_unit (f x) :=

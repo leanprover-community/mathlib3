@@ -629,10 +629,9 @@ abbreviation associated' : quadratic_form R M →ₗ[ℤ] bilin_form R M :=
 associated_hom ℤ
 
 /-- Symmetric bilinear forms can be lifted to quadratic forms -/
-instance : can_lift (bilin_form R M) (quadratic_form R M) :=
-{ coe := associated_hom ℕ,
-  cond := bilin_form.is_symm,
-  prf := λ B hB, ⟨B.to_quadratic_form, associated_left_inverse _ hB⟩ }
+instance can_lift :
+  can_lift (bilin_form R M) (quadratic_form R M) (associated_hom ℕ) bilin_form.is_symm :=
+{ prf := λ B hB, ⟨B.to_quadratic_form, associated_left_inverse _ hB⟩ }
 
 /-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
 bilinear form is non-zero, i.e. there exists `x` such that `Q x ≠ 0`. -/

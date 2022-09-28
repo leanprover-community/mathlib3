@@ -212,10 +212,9 @@ begin
   -- The set S is the set of bounds on coeff. provided by `coeff_le_of_roots_le`.
   let S := finset.bUnion (finset.product (finset.range (d + 1)) (finset.range (d + 1)))
     (λ x, ( { B ^ (x.1 - x.2) * (x.1.choose x.2) } : finset ℝ)),
-  have hS : S.nonempty,
-  { exact finset.bUnion_nonempty.mpr
-      ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
-        finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
+  have hS : S.nonempty := finset.bUnion_nonempty.mpr
+    ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
+      finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩,
   -- The bound `C` is then the max of `S`
   let C := (S.max' hS),
   use max C 0,

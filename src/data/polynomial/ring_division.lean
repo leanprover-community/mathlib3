@@ -666,20 +666,19 @@ lemma root_set_finite (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
 set.to_finite _
 
-lemma bUnion_roots_finite (S : Type*) [comm_ring S] [is_domain S] (d: ℕ) (C : ℕ) :
+lemma bUnion_roots_finite (S : Type*) [comm_ring S] [is_domain S] (d : ℕ) (C : ℕ) :
   (⋃ (f : ℤ[X]) (hf : f.nat_degree ≤ d ∧ ∀ i, |f.coeff i| ≤ C),
       ((f.map (algebra_map ℤ S)).roots.to_finset : set S)).finite :=
 begin
-  refine set.finite.bUnion _ _,
-  have : set.inj_on (λ g : polynomial ℤ, λ e : fin (d+1), g.coeff e)
+  have h_inj : set.inj_on (λ g : polynomial ℤ, λ e : fin (d+1), g.coeff e)
     {f | f.nat_degree ≤ d ∧ ∀ (i : ℕ), |f.coeff i| ≤ C},
   { intros x hx y hy hxy,
-    apply (nat_degree_le_max hx.1 hy.1).mp,
+    apply (ext_iff_nat_degree_le hx.1 hy.1).mpr,
     exact_mod_cast λ i hi, congr_fun hxy ⟨i, nat.lt_succ_iff.mpr hi⟩, },
-  refine set.finite.of_finite_image _ this,
-  { have : (set.pi set.univ (λ e : fin (d+1), set.Icc (-C : ℤ) C)).finite :=
+  refine set.finite.bUnion (set.finite.of_finite_image _ h_inj) _,
+  { have h_fin : (set.pi set.univ (λ e : fin (d+1), set.Icc (-C : ℤ) C)).finite :=
       set.finite.pi (λ d, set.finite_Icc _ _),
-    refine set.finite.subset this _,
+    refine set.finite.subset h_fin _,
     rw [set.pi_univ_Icc, set.image_subset_iff],
     intros f hf,
     rw [set.mem_preimage, set.mem_Icc, pi.le_def, pi.le_def, forall_and_distrib.symm],

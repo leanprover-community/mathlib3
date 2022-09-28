@@ -6,7 +6,6 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker, Johan Co
 import data.polynomial.algebra_map
 import data.polynomial.degree.lemmas
 import data.polynomial.div
-import data.set.intervals.pi
 import ring_theory.localization.fraction_ring
 import algebra.polynomial.big_operators
 
@@ -666,24 +665,35 @@ lemma root_set_finite (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
 set.to_finite _
 
-lemma bUnion_roots_finite (S : Type*) [comm_ring S] [is_domain S] (d : ℕ) (C : ℕ) :
-  (⋃ (f : ℤ[X]) (hf : f.nat_degree ≤ d ∧ ∀ i, |f.coeff i| ≤ C),
-      ((f.map (algebra_map ℤ S)).roots.to_finset : set S)).finite :=
+/-- The set of roots of all polynomials of bounded degree and having coefficients in a finite set
+is finite. -/
+lemma bUnion_roots_finite (R S : Type*) [semiring R] [comm_ring S] [is_domain S]
+(m : R →+* S) (d : ℕ) (U : set R) (h : U.finite) :
+  (⋃ (f : R[X]) (hf : f.nat_degree ≤ d ∧ ∀ i, (f.coeff i) ∈ U),
+    ((f.map m).roots.to_finset : set S)).finite :=
 begin
-  have h_inj : set.inj_on (λ g : polynomial ℤ, λ e : fin (d+1), g.coeff e)
-    {f | f.nat_degree ≤ d ∧ ∀ (i : ℕ), |f.coeff i| ≤ C},
-  { intros x hx y hy hxy,
-    apply (ext_iff_nat_degree_le hx.1 hy.1).mpr,
-    exact_mod_cast λ i hi, congr_fun hxy ⟨i, nat.lt_succ_iff.mpr hi⟩, },
-  refine set.finite.bUnion (set.finite.of_finite_image _ h_inj) _,
-  { have h_fin : (set.pi set.univ (λ e : fin (d+1), set.Icc (-C : ℤ) C)).finite :=
-      set.finite.pi (λ d, set.finite_Icc _ _),
-    refine set.finite.subset h_fin _,
-    rw [set.pi_univ_Icc, set.image_subset_iff],
-    intros f hf,
-    rw [set.mem_preimage, set.mem_Icc, pi.le_def, pi.le_def, forall_and_distrib.symm],
-    exact_mod_cast λ i : fin (d+1), abs_le.mp (hf.right i), },
-  { exact λ p _, polynomial.root_set_finite p S, },
+  refine set.finite.bUnion _ _,
+  { set π := λ (c : fin (d+1) → U),
+      (finset.range (d+1)).sum (λ i : ℕ, (monomial (i : ℕ)) (c i : R)),
+    -- We prove that the domain of π is a finite set.
+    haveI : finite (fin (d+1) → U),
+    { haveI : fintype (fin(d+1)) := fin.fintype _,
+      haveI : fintype U := set.finite.fintype h,
+      exact fintype.finite pi.fintype, },
+    -- We prove that the set of polynomials under consideration is a subset of the range of π
+    -- and thus it is finite.
+    refine set.finite.subset (set.finite_range π) (λ f hf, _),
+    use (λ i : fin (d+1), ⟨f.coeff i, hf.2 i⟩),
+    dsimp only [π, coeff],
+    convert (polynomial.as_sum_range' f (d+1) _).symm using 1,
+    ext,
+    simp_rw [finset_sum_coeff, coeff_monomial, subtype.coe_mk, fin.coe_of_nat_eq_mod],
+    apply finset.sum_congr rfl (λ j hj, _),
+    rw nat.mod_eq_of_lt (finset.mem_range.mp hj),
+    exact nat.lt_succ_iff.mpr hf.1, },
+  { intros p _ ,
+    convert root_set_finite (p.map m) S,
+    simp only [algebra.id.map_eq_id, map_id], },
 end
 
 theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]

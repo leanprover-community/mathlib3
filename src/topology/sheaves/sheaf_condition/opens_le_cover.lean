@@ -315,6 +315,22 @@ begin
     rw ← (is_limit_opens_le_equiv_generate₂ F S hS).nonempty_congr, apply h },
 end
 
+lemma is_sheaf_iff_is_terminal_of_indiscrete (hind : X.str = ⊤) :
+  F.is_sheaf ↔ nonempty (is_terminal $ F.obj $ op ∅) :=
+--⟨λ h, Top.sheaf.is_terminal_of_empty ⟨F, h⟩, _⟩.
+(is_sheaf_iff_is_sheaf_opens_le_cover F).trans $ begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { obtain ⟨⟨l, f, u⟩⟩ := h pempty.elim,
+    refine ⟨⟨λ s, l ⟨s.X, is_empty.elim _, is_empty.elim _⟩ ≫ eq_to_hom _, λ s x, x.1.elim, _⟩⟩,
+    iterate 2 { exact ⟨λ V, V.unop.2.some.elim⟩ },
+    { change F.obj (op $ supr _) = _, rw supr_of_empty, refl },
+    { dsimp, apply pempty.rec },
+    let := l ⟨s.X, he.elim, he.elim⟩, },
+end .
+
+    /-have he : is_empty (full_subcategory $ λ V : opens X, ∃ i : pempty, V ≤ i.elim)ᵒᵖ :=
+      ⟨λ V, V.unop.2.some.elim⟩,-/
+
 end
 
 end presheaf

@@ -287,7 +287,7 @@ lemma finite_of_norm_le (B : ℝ) :
 begin
   obtain ⟨C', h⟩ := coeff_bdd_of_norm_le K A B,
   let C := nat.ceil C',
-  have := bUnion_roots_finite ℤ K (algebra_map ℤ K) (finrank ℚ K) (Icc (-C) C) (finite_Icc _ _),
+  have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (Icc (-C) C) (finite_Icc _ _),
   refine this.subset (λ x hx, _),
   have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
   rw mem_Union,

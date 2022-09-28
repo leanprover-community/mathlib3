@@ -40,14 +40,14 @@ instance : has_norm ℂ := ⟨abs⟩
 
 instance : normed_add_comm_group ℂ :=
 normed_add_comm_group.of_core ℂ
-{ norm_eq_zero_iff := λ z, abs_eq_zero,
-  triangle := abs_add,
-  norm_neg := abs_neg }
+{ norm_eq_zero_iff := λ x, abs.eq_zero,
+  triangle := abs.add_le,
+  norm_neg := abs.map_neg }
 
 instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
-  norm_mul' := abs_mul,
+  norm_mul' := map_mul abs,
   .. complex.field, .. complex.normed_add_comm_group }
 
 instance : densely_normed_field ℂ :=
@@ -57,8 +57,8 @@ instance : densely_normed_field ℂ :=
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
 { norm_smul_le := λ r x, begin
-    rw [norm_eq_abs, norm_eq_abs, ←algebra_map_smul ℝ r x, algebra.smul_def, abs_mul,
-      ←norm_algebra_map' ℝ r, coe_algebra_map, abs_of_real],
+    rw [norm_eq_abs, norm_eq_abs, ←algebra_map_smul ℝ r x, algebra.smul_def, map_mul,
+        ←norm_algebra_map' ℝ r, coe_algebra_map, abs_of_real],
     refl,
   end,
   to_algebra := complex.algebra }

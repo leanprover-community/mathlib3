@@ -62,6 +62,16 @@ begin
   simpa [cond_count, cond, measure.count_apply_infinite hs'] using h,
 end
 
+lemma cond_count_univ [fintype Ω] {s : set Ω} :
+  cond_count set.univ s = measure.count s / fintype.card Ω :=
+begin
+  rw [cond_count, cond_apply _ measurable_set.univ, ←ennreal.div_eq_inv_mul, set.univ_inter],
+  congr',
+  rw [←finset.coe_univ, measure.count_apply, finset.univ.tsum_subtype' (λ _, (1 : ennreal))],
+  { simp [finset.card_univ] },
+  { exact (@finset.coe_univ Ω _).symm ▸ measurable_set.univ }
+end
+
 variables [measurable_singleton_class Ω]
 
 lemma cond_count_is_probability_measure {s : set Ω} (hs : s.finite) (hs' : s.nonempty) :
@@ -126,7 +136,7 @@ lemma cond_count_eq_zero_iff (hs : s.finite) :
 by simp [cond_count, cond_apply _ hs.measurable_set, measure.count_apply_eq_top,
     set.not_infinite.2 hs, measure.count_apply_finite _ (hs.inter_of_left _)]
 
-lemma cond_count_univ (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_of_univ (hs : s.finite) (hs' : s.nonempty) :
   cond_count s set.univ = 1 :=
 cond_count_eq_one_of hs hs' s.subset_univ
 

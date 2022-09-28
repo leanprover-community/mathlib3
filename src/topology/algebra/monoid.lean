@@ -251,12 +251,8 @@ variables [topological_space M] [monoid M] [has_continuous_mul M]
 @[to_additive]
 lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
   closure (s : set M) * closure s ⊆ closure s :=
-calc
-closure (s : set M) * closure s
-    = (λ p : M × M, p.1 * p.2) '' closure (s ×ˢ s) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' s ×ˢ s) :
-  image_closure_subset_closure_image continuous_mul
-... = closure s : by simp [s.coe_mul_self_eq]
+image2_subset_iff.2 $ λ x hx y hy, map_mem_closure₂ continuous_mul hx hy $
+  λ a ha b hb, s.mul_mem ha hb
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
@@ -420,6 +416,28 @@ hf.pow n
 lemma continuous_on.pow {f : X → M} {s : set X} (hf : continuous_on f s) (n : ℕ) :
   continuous_on (λ x, f x ^ n) s :=
 λ x hx, (hf x hx).pow n
+
+/-- Left-multiplication by a left-invertible element of a topological monoid is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_left {a b : M} (ha : b * a = 1) :
+  filter.tendsto (λ x : M, a * x) (filter.cocompact M) (filter.cocompact M) :=
+begin
+  refine filter.tendsto.of_tendsto_comp _ (filter.comap_cocompact_le (continuous_mul_left b)),
+  convert filter.tendsto_id,
+  ext x,
+  simp [ha],
+end
+
+/-- Right-multiplication by a right-invertible element of a topological monoid is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_right {a b : M} (ha : a * b = 1) :
+  filter.tendsto (λ x : M, x * a) (filter.cocompact M) (filter.cocompact M) :=
+begin
+  refine filter.tendsto.of_tendsto_comp _ (filter.comap_cocompact_le (continuous_mul_right b)),
+  convert filter.tendsto_id,
+  ext x,
+  simp [ha],
+end
 
 /-- If `R` acts on `A` via `A`, then continuous multiplication implies continuous scalar
 multiplication by constants.

@@ -1657,10 +1657,8 @@ lemma of_bijective_apply_symm_apply (f : α → β) (hf : bijective f) (x : β) 
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
 
-instance : can_lift (α → β) (α ≃ β) :=
-{ coe := coe_fn,
-  cond := bijective,
-  prf := λ f hf, ⟨of_bijective f hf, rfl⟩ }
+instance : can_lift (α → β) (α ≃ β) coe_fn bijective :=
+{ prf := λ f hf, ⟨of_bijective f hf, rfl⟩ }
 
 section
 

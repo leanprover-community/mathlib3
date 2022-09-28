@@ -2363,3 +2363,20 @@ begin
 end
 
 end ordinal
+
+namespace tactic
+open ordinal positivity
+
+/-- Extension for the `positivity` tactic: `ordinal.opow` takes positive values on positive inputs.
+-/
+@[positivity]
+meta def positivity_opow : expr → tactic strictness
+| `(@has_pow.pow _ _ %%inst %%a %%b) := do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``opow_pos [b, p]
+  | _ := failed -- We already know that `0 ≤ x` for all `x : ordinal`
+  end
+| _ := failed
+
+end tactic

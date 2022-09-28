@@ -35,13 +35,13 @@ instances for `Prop` and `fun`.
   Typical examples include `Prop` and `set α`.
 -/
 
-open order_dual
+open function order_dual
 
 set_option old_structure_cmd true
 
 universes u v
 
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {γ δ : Type*}
 
 /-! ### Top, bottom element -/
 
@@ -355,8 +355,7 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
   inf_le_left  := @and.left,
   inf_le_right := @and.right,
   le_inf       := λ a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
-  le_sup_inf   := λ a b c H, or_iff_not_imp_left.2 $
-    λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
+  le_sup_inf   := λ a b c, or_and_distrib_left.2,
   ..Prop.partial_order }
 
 /-- Propositions form a bounded order. -/
@@ -548,6 +547,9 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 
 instance : inhabited (with_bot α) := ⟨⊥⟩
 
+lemma coe_injective : injective (coe : α → with_bot α) := option.some_injective _
+@[norm_cast] lemma coe_inj : (a : with_bot α) = b ↔ a = b := option.some_inj
+
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
@@ -580,6 +582,10 @@ def map (f : α → β) : with_bot α → with_bot β := option.map f
 @[simp] lemma map_bot (f : α → β) : map f ⊥ = ⊥ := rfl
 @[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
 
+lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
+  map g₁ (map f₁ a) = map g₂ (map f₂ a) :=
+option.map_comm h _
+
 lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x := option.ne_none_iff_exists
 
 /-- Deconstruct a `x : with_bot α` to the underlying value in `α`, given a proof that `x ≠ ⊥`. -/
@@ -593,10 +599,8 @@ by { cases x, simpa using h, refl, }
 @[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot) :
   (x : with_bot α).unbot h = x := rfl
 
-instance : can_lift (with_bot α) α :=
-{ coe := coe,
-  cond := λ r, r ≠ ⊥,
-  prf := λ x h, ⟨x.unbot h, coe_unbot _ _⟩ }
+instance can_lift : can_lift (with_bot α) α coe (λ r, r ≠ ⊥) :=
+{ prf := λ x h, ⟨x.unbot h, coe_unbot _ _⟩ }
 
 section has_le
 variables [has_le α]
@@ -753,6 +757,20 @@ lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_bot α) =
 
 instance [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
+
+instance [distrib_lattice α] : distrib_lattice (with_bot α) :=
+{ le_sup_inf := λ o₁ o₂ o₃,
+  match o₁, o₂, o₃ with
+  | ⊥, ⊥, ⊥ := le_rfl
+  | ⊥, ⊥, (a₁ : α) := le_rfl
+  | ⊥, (a₁ : α), ⊥ := le_rfl
+  | ⊥, (a₁ : α), (a₃ : α) := le_rfl
+  | (a₁ : α), ⊥, ⊥ := inf_le_left
+  | (a₁ : α), ⊥, (a₃ : α) := inf_le_left
+  | (a₁ : α), (a₂ : α), ⊥ := inf_le_right
+  | (a₁ : α), (a₂ : α), (a₃ : α) := coe_le_coe.mpr le_sup_inf
+  end,
+  ..with_bot.lattice }
 
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
 | none x := is_true $ λ a h, option.no_confusion h
@@ -917,6 +935,10 @@ def map (f : α → β) : with_top α → with_top β := option.map f
 @[simp] lemma map_top (f : α → β) : map f ⊤ = ⊤ := rfl
 @[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
 
+lemma map_comm {f₁ : α → β} {f₂ : α → γ} {g₁ : β → δ} {g₂ : γ → δ} (h : g₁ ∘ f₁ = g₂ ∘ f₂) (a : α) :
+  map g₁ (map f₁ a) = map g₂ (map f₂ a) :=
+option.map_comm h _
+
 lemma map_to_dual (f : αᵒᵈ → βᵒᵈ) (a : with_bot α) :
   map f (with_bot.to_dual a) = a.map (to_dual ∘ f) := rfl
 lemma map_of_dual (f : α → β) (a : with_bot αᵒᵈ) :
@@ -939,10 +961,8 @@ with_bot.coe_unbot x h
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl
 
-instance : can_lift (with_top α) α :=
-{ coe := coe,
-  cond := λ r, r ≠ ⊤,
-  prf := λ x h, ⟨x.untop h, coe_untop _ _⟩ }
+instance can_lift : can_lift (with_top α) α coe (λ r, r ≠ ⊤) :=
+{ prf := λ x h, ⟨x.untop h, coe_untop _ _⟩ }
 
 section has_le
 variables [has_le α]
@@ -1184,6 +1204,17 @@ lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) =
 
 instance [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
+
+instance [distrib_lattice α] : distrib_lattice (with_top α) :=
+{ le_sup_inf := λ o₁ o₂ o₃,
+  match o₁, o₂, o₃ with
+  | ⊤, o₂, o₃ := le_rfl
+  | (a₁ : α), ⊤, ⊤ := le_rfl
+  | (a₁ : α), ⊤, (a₃ : α) := le_rfl
+  | (a₁ : α), (a₂ : α), ⊤ := le_rfl
+  | (a₁ : α), (a₂ : α), (a₃ : α) := coe_le_coe.mpr le_sup_inf
+  end,
+  ..with_top.lattice }
 
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
 λ _ _, decidable_of_decidable_of_iff (with_bot.decidable_le _ _) (to_dual_le_to_dual_iff)
@@ -1624,6 +1655,9 @@ section is_compl
 @[protect_proj] structure is_compl [lattice α] [bounded_order α] (x y : α) : Prop :=
 (disjoint : disjoint x y)
 (codisjoint : codisjoint x y)
+
+lemma is_compl_iff [lattice α] [bounded_order α] {a b : α} :
+  is_compl a b ↔ disjoint a b ∧ codisjoint a b := ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
 namespace is_compl
 

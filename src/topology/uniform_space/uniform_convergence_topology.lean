@@ -222,7 +222,7 @@ protected def uniform_space : uniform_space (α → β) :=
 uniform_space.of_core (uniform_convergence.uniform_core α β)
 
 local attribute [instance] uniform_convergence.uniform_space
-local notation `𝒰(` α `,` β `,` u `)` := @uniform_convergence.uniform_space α β u
+local notation `𝒰(`α`, `β`, `u`)` := @uniform_convergence.uniform_space α β u
 
 /-- By definition, the uniformity of `α → β` endowed with the structure of uniform convergence on
 `α` admits the family `{(f, g) | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓤 β` as a filter basis. -/
@@ -472,7 +472,7 @@ namespace uniform_convergence_on
 variables (α β : Type*) {γ ι : Type*} [uniform_space β] (𝔖 : set (set α))
 variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
 
-local notation `𝒰(` α `,` β `,` u `)` := @uniform_convergence.uniform_space α β u
+local notation `𝒰(`α`, `β`, `u`)` := @uniform_convergence.uniform_space α β u
 
 /-- Uniform structure of `𝔖`-convergence, i.e uniform convergence on the elements of `𝔖`.
 It is defined as the infimum, for `S ∈ 𝔖`, of the pullback of `𝒰 S β` by `S.restrict`, the
@@ -482,7 +482,7 @@ protected def uniform_space : uniform_space (α → β) :=
 ⨅ (s : set α) (hs : s ∈ 𝔖), uniform_space.comap s.restrict
   (𝒰(s, β, _))
 
-local notation `𝒱(` α `,` β `,` 𝔖 `,` u `)` := @uniform_convergence_on.uniform_space α β u 𝔖
+local notation `𝒱(`α`, `β`, `𝔖`, `u`)` := @uniform_convergence_on.uniform_space α β u 𝔖
 
 /-- Topology of `𝔖`-convergence, i.e uniform convergence on the elements of `𝔖`. -/
 protected def topological_space : topological_space (α → β) :=

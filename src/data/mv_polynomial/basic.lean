@@ -1110,6 +1110,12 @@ theorem aeval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
   φ = aeval (φ ∘ X) :=
 by { ext i, simp }
 
+lemma aeval_X_left : aeval X = alg_hom.id R (mv_polynomial σ R) :=
+(aeval_unique (alg_hom.id R _)).symm
+
+lemma aeval_X_left_apply (p : mv_polynomial σ R) : aeval X p = p :=
+alg_hom.congr_fun aeval_X_left p
+
 lemma comp_aeval {B : Type*} [comm_semiring B] [algebra R B]
   (φ : S₁ →ₐ[R] B) :
   φ.comp (aeval f) = aeval (λ i, φ (f i)) :=

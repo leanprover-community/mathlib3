@@ -91,6 +91,10 @@ by rw [angle, angle, real_inner_smul_left, inner_smul_right, norm_smul, norm_smu
   angle (f u) (f v) = angle u v :=
 by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
 
+@[simp, norm_cast] lemma _root_.submodule.angle_coe {s : submodule ℝ V} (x y : s) :
+  angle (x : V) (y : V) = angle x y :=
+s.subtypeₗᵢ.angle_map x y
+
 lemma is_conformal_map.preserves_angle {E F : Type*}
   [inner_product_space ℝ E] [inner_product_space ℝ F]
   {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
@@ -406,6 +410,16 @@ begin
     ((continuous_fst.vsub continuous_snd.fst).prod_mk
       (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
 end
+
+@[simp] lemma _root_.affine_isometry.angle_map {V₂ P₂ : Type*} [inner_product_space ℝ V₂]
+  [metric_space P₂] [normed_add_torsor V₂ P₂] (f : P →ᵃⁱ[ℝ] P₂) (p₁ p₂ p₃ : P) :
+  ∠ (f p₁) (f p₂) (f p₃) = ∠ p₁ p₂ p₃ :=
+by simp_rw [angle, ←affine_isometry.map_vsub, linear_isometry.angle_map]
+
+@[simp, norm_cast] lemma _root_.affine_subspace.angle_coe {s : affine_subspace ℝ P}
+  (p₁ p₂ p₃ : s) :
+  by haveI : nonempty s := ⟨p₁⟩; exact ∠ (p₁ : P) (p₂ : P) (p₃ : P) = ∠ p₁ p₂ p₃ :=
+by haveI : nonempty s := ⟨p₁⟩; exact s.subtypeₐᵢ.angle_map p₁ p₂ p₃
 
 /-- The angle at a point does not depend on the order of the other two
 points. -/
@@ -782,6 +796,8 @@ lemma orthogonal_projection_fn_vsub_mem_direction_orthogonal {s : affine_subspac
   orthogonal_projection_fn s p -ᵥ p ∈ s.directionᗮ :=
 direction_mk' p s.directionᗮ ▸
   vsub_mem_direction (orthogonal_projection_fn_mem_orthogonal p) (self_mem_mk' _ _)
+
+local attribute [instance] affine_subspace.to_add_torsor
 
 /-- The orthogonal projection of a point onto a nonempty affine
 subspace, whose direction is complete. The corresponding linear map

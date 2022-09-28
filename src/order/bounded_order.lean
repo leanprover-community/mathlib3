@@ -599,10 +599,8 @@ by { cases x, simpa using h, refl, }
 @[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot) :
   (x : with_bot α).unbot h = x := rfl
 
-instance : can_lift (with_bot α) α :=
-{ coe := coe,
-  cond := λ r, r ≠ ⊥,
-  prf := λ x h, ⟨x.unbot h, coe_unbot _ _⟩ }
+instance can_lift : can_lift (with_bot α) α coe (λ r, r ≠ ⊥) :=
+{ prf := λ x h, ⟨x.unbot h, coe_unbot _ _⟩ }
 
 section has_le
 variables [has_le α]
@@ -963,10 +961,8 @@ with_bot.coe_unbot x h
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl
 
-instance : can_lift (with_top α) α :=
-{ coe := coe,
-  cond := λ r, r ≠ ⊤,
-  prf := λ x h, ⟨x.untop h, coe_untop _ _⟩ }
+instance can_lift : can_lift (with_top α) α coe (λ r, r ≠ ⊤) :=
+{ prf := λ x h, ⟨x.untop h, coe_untop _ _⟩ }
 
 section has_le
 variables [has_le α]

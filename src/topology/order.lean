@@ -226,6 +226,13 @@ instance : has_le (topological_space α) :=
 protected lemma topological_space.le_def {α} {t s : topological_space α} :
   t ≤ s ↔ s.is_open ≤ t.is_open := iff.rfl
 
+lemma is_open.mono {α} {t₁ t₂ : topological_space α} {s : set α} (hs : @is_open α t₂ s)
+  (h : t₁ ≤ t₂) : @is_open α t₁ s := h s hs
+
+lemma is_closed.mono {α} {t₁ t₂ : topological_space α} {s : set α} (hs : @is_closed α t₂ s)
+  (h : t₁ ≤ t₂) : @is_closed α t₁ s :=
+(@is_open_compl_iff α t₁ s).mp $ hs.is_open_compl.mono h
+
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=

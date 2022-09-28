@@ -28,7 +28,7 @@ variables [is_scalar_tower R A B]
 
 variables {R B}
 
-@[simp] theorem aeval_apply_algebra_map (x : B) (p : R[X]) :
+@[simp] theorem aeval_map_algebra_map (x : B) (p : R[X]) :
   aeval x (map (algebra_map R A) p) = aeval x p :=
 by rw [aeval_def, aeval_def, eval₂_map, is_scalar_tower.algebra_map_eq R A B]
 

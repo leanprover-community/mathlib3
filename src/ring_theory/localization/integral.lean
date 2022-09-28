@@ -152,7 +152,7 @@ begin
   { refine ⟨p.map (algebra_map A K), λ h, hp (polynomial.ext (λ i, _)), _⟩,
     { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
       exact to_map_eq_zero_iff.mp this },
-    { exact (polynomial.aeval_apply_algebra_map K _ _).trans px, } },
+    { exact (polynomial.aeval_map_algebra_map K _ _).trans px, } },
   { exact ⟨integer_normalization _ p,
            mt integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero _ p px⟩ },

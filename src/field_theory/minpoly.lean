@@ -316,7 +316,7 @@ end
 lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field K] [comm_ring R]
   [algebra A K] [algebra A R] [algebra K R] [is_scalar_tower A K R] (x : R) :
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
-by { refine minpoly.dvd K x _, rw [aeval_apply_algebra_map, minpoly.aeval] }
+by { refine minpoly.dvd K x _, rw [aeval_map_algebra_map, minpoly.aeval] }
 
 /-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
 lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
@@ -324,7 +324,7 @@ lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field 
   [comm_semiring U] [algebra K U] [algebra R U] [is_scalar_tower R K U]
   (x : T) (y : U)
   (hy : polynomial.aeval y (minpoly K x) = 0) : polynomial.aeval y (minpoly R x) = 0 :=
-aeval_apply_algebra_map K y (minpoly R x) ▸ eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U)
+aeval_map_algebra_map K y (minpoly R x) ▸ eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U)
                                               y (minpoly.dvd_map_of_is_scalar_tower R K x) hy
 
 variables {A x}
@@ -441,8 +441,7 @@ begin
   refine (eq_of_irreducible_of_monic _ _ _).symm,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
       (polynomial.monic.is_primitive (monic hs))).1 (irreducible hs) },
-   { rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
-      eval_map, ← aeval_def, aeval, map_zero] },
+   { rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval, map_zero] },
   { exact (monic hs).map _ }
 end
 
@@ -476,8 +475,7 @@ begin
   have hy : is_integral R y := hs.algebra_map,
   rw [← gcd_domain_eq_field_fractions K L hs],
   refine dvd _ _ _,
-  rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
-    eval_map, ← aeval_def, aeval_prim_part_eq_zero hP hroot, map_zero]
+  rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval_prim_part_eq_zero hP hroot, map_zero]
 end
 
 /-- If an element `x` is a root of a nonzero polynomial `p`, then the degree of `p` is at least the

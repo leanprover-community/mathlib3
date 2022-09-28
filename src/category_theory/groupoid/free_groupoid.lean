@@ -79,15 +79,14 @@ lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
   quotient.comp_closure red_step (p.reverse) (q.reverse)  :=
 begin
-  rintros ⟨_,W,XW,pp,qq,WY,⟨_,Z,f⟩⟩,
+  rintros ⟨U, W, XW, pp, qq, WY, ⟨_, Z, f⟩⟩,
   have : quotient.comp_closure red_step (WY.reverse ≫ 𝟙 _ ≫  XW.reverse)
-    (WY.reverse ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ XW.reverse), by
+    (WY.reverse ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ XW.reverse),
   { apply quotient.comp_closure.intro,
     apply red_step.step, },
-  simp only [category_struct.comp, category_struct.id, quiver.path.reverse, quiver.path.nil_comp,
-             quiver.path.reverse_comp, quiver.reverse_reverse, quiver.path.reverse_to_path,
-             quiver.path.comp_assoc] at this ⊢,
-  exact this,
+  simpa only [category_struct.comp, category_struct.id, quiver.path.reverse, quiver.path.nil_comp,
+    quiver.path.reverse_comp, quiver.reverse_reverse, quiver.path.reverse_to_path,
+    quiver.path.comp_assoc] using this,
 end
 
 lemma congr_comp_reverse {X Y : paths $ quiver.symmetrify V} (p : X ⟶ Y) :

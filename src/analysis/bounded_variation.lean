@@ -490,8 +490,7 @@ begin
       have : v i = x,
       { apply le_antisymm,
         { exact hs h },
-        { rw ← Nx, exact hv hi.1 },
-          },
+        { rw ← Nx, exact hv hi.1 } },
       rw this,
       exact h't }
   end

@@ -1029,7 +1029,7 @@ lemma eventually_Sup {p : α → Prop} {fs : set (filter α)} :
 iff.rfl
 
 @[simp]
-lemma eventually_supr {p : α → Prop} {fs : β → filter α} :
+lemma eventually_supr {p : α → Prop} {fs : ι → filter α} :
   (∀ᶠ x in (⨆ b, fs b), p x) ↔ (∀ b, ∀ᶠ x in fs b, p x) :=
 mem_supr
 
@@ -1324,7 +1324,7 @@ eventually_eq_set.trans $ by simp
 
 lemma inter_eventually_eq_left {s t : set α} {l : filter α} :
   (s ∩ t : set α) =ᶠ[l] s ↔ ∀ᶠ x in l, x ∈ s → x ∈ t :=
-by simp only [eventually_eq_set, mem_inter_eq, and_iff_left_iff_imp]
+by simp only [eventually_eq_set, mem_inter_iff, and_iff_left_iff_imp]
 
 lemma inter_eventually_eq_right {s t : set α} {l : filter α} :
   (s ∩ t : set α) =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ t → x ∈ s :=
@@ -1546,12 +1546,12 @@ end map
 
 section comap
 
-/-- The inverse map of a filter. A set `s` belongs to `filter.comap f l` if either of the following
+/-- The inverse map of a filter. A set `s` belongs to `filter.comap m f` if either of the following
 equivalent conditions hold.
 
-1. There exists a set `t ∈ l` such that `f ⁻¹' t ⊆ s`. This is used as a definition.
-2. The set `{y | ∀ x, f x = y → x ∈ s}` belongs to `l`, see `filter.mem_comap'`.
-3. The set `(f '' sᶜ)ᶜ` belongs to `l`, see `filter.mem_comap_iff_compl` and
+1. There exists a set `t ∈ f` such that `m ⁻¹' t ⊆ s`. This is used as a definition.
+2. The set `{y | ∀ x, m x = y → x ∈ s}` belongs to `f`, see `filter.mem_comap'`.
+3. The set `(m '' sᶜ)ᶜ` belongs to `f`, see `filter.mem_comap_iff_compl` and
 `filter.compl_mem_comap`. -/
 def comap (m : α → β) (f : filter β) : filter α :=
 { sets             := { s | ∃ t ∈ f, m ⁻¹' t ⊆ s },
@@ -1799,10 +1799,9 @@ end
 lemma map_comap_of_mem {f : filter β} {m : α → β} (hf : range m ∈ f) : (f.comap m).map m = f :=
 by rw [map_comap, inf_eq_left.2 (le_principal_iff.2 hf)]
 
-instance [can_lift α β] : can_lift (filter α) (filter β) :=
-{ coe := map can_lift.coe,
-  cond := λ f, ∀ᶠ x : α in f, can_lift.cond β x,
-  prf := λ f hf, ⟨comap can_lift.coe f, map_comap_of_mem $ hf.mono can_lift.prf⟩ }
+instance can_lift (c) (p) [can_lift α β c p] :
+  can_lift (filter α) (filter β) (map c) (λ f, ∀ᶠ x : α in f, p x) :=
+{ prf := λ f hf, ⟨comap c f, map_comap_of_mem $ hf.mono can_lift.prf⟩ }
 
 lemma comap_le_comap_iff {f g : filter β} {m : α → β} (hf : range m ∈ f) :
   comap m f ≤ comap m g ↔ f ≤ g :=
@@ -2035,18 +2034,14 @@ lemma disjoint_map {m : α → β} (hm : injective m) {f₁ f₂ : filter α} :
   disjoint (map m f₁) (map m f₂) ↔ disjoint f₁ f₂ :=
 by simp only [disjoint_iff, ← map_inf hm, map_eq_bot_iff]
 
-lemma map_eq_comap_of_inverse {f : filter α} {m : α → β} {n : β → α}
-  (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = comap n f :=
-le_antisymm
-  (λ b ⟨a, ha, (h : preimage n a ⊆ b)⟩, f.sets_of_superset ha $
-    calc a = preimage (n ∘ m) a : by simp only [h₂, preimage_id, eq_self_iff_true]
-      ... ⊆ preimage m b : preimage_mono h)
-  (λ b (hb : preimage m b ∈ f),
-    ⟨preimage m b, hb, show preimage (m ∘ n) b ⊆ b, by simp only [h₁]; apply subset.refl⟩)
-
 lemma map_equiv_symm (e : α ≃ β) (f : filter β) :
   map e.symm f = comap e f :=
-map_eq_comap_of_inverse e.symm_comp_self e.self_comp_symm
+map_injective e.injective $ by rw [map_map, e.self_comp_symm, map_id,
+  map_comap_of_surjective e.surjective]
+
+lemma map_eq_comap_of_inverse {f : filter α} {m : α → β} {n : β → α}
+  (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = comap n f :=
+map_equiv_symm ⟨n, m, congr_fun h₁, congr_fun h₂⟩ f
 
 lemma comap_equiv_symm (e : α ≃ β) (f : filter α) :
   comap e.symm f = map e f :=

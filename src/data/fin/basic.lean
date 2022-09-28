@@ -270,6 +270,13 @@ begin
   { right, exact ⟨⟨j, nat.lt_of_succ_lt_succ h⟩, rfl⟩, }
 end
 
+lemma eq_succ_of_ne_zero {n : ℕ} {i : fin (n + 1)} (hi : i ≠ 0) : ∃ j : fin n, i = j.succ :=
+begin
+  cases eq_zero_or_eq_succ i,
+  { exfalso, exact hi h, },
+  { exact h, },
+end
+
 /-- The greatest value of `fin (n+1)` -/
 def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
 
@@ -1569,6 +1576,14 @@ begin
   simp [cast_pred, pred_above, this]
 end
 
+lemma coe_cast_pred {n : ℕ} (a : fin (n + 2)) (hx : a < fin.last _) :
+  (a.cast_pred : ℕ) = a :=
+begin
+  rcases a with ⟨a, ha⟩,
+  rw cast_pred_mk,
+  exacts [rfl, hx],
+end
+
 lemma pred_above_below (p : fin (n + 1)) (i : fin (n + 2)) (h : i ≤ p.cast_succ) :
   p.pred_above i = i.cast_pred :=
 begin
@@ -1644,6 +1659,32 @@ begin
     have : (b.pred hb).succ = b.succ.pred (fin.succ_ne_zero _), by rw [succ_pred, pred_succ],
     { rwa [this, fin.pred_inj, fin.succ_above_above] },
     { rwa [cast_succ_pred_eq_pred_cast_succ , fin.pred_le_pred_iff] } }
+end
+
+/-- `succ` commutes with `pred_above`. -/
+@[simp]
+lemma succ_pred_above_succ (a : fin n) (b : fin (n+1)) :
+  a.succ.pred_above b.succ = (a.pred_above b).succ :=
+begin
+  obtain h₁ | h₂ := lt_or_le a.cast_succ b,
+  { rw [fin.pred_above_above _ _ h₁, fin.succ_pred,
+      fin.pred_above_above, fin.pred_succ],
+    simpa only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ,
+      fin.coe_succ, add_lt_add_iff_right] using h₁, },
+  { cases n,
+    { exfalso,
+      exact not_lt_zero' a.is_lt, },
+    { rw [fin.pred_above_below a b h₂, fin.pred_above_below a.succ b.succ
+        (by simpa only [le_iff_coe_le_coe, coe_succ, coe_cast_succ,
+          add_le_add_iff_right] using h₂)],
+      ext,
+      have h₀ : (b : ℕ) < n+1,
+      { simp only [le_iff_coe_le_coe, coe_cast_succ] at h₂,
+        simpa only [lt_succ_iff] using h₂.trans a.is_le, },
+      have h₁ : (b.succ : ℕ) < n+2,
+      { rw ← nat.succ_lt_succ_iff at h₀,
+        simpa only [coe_succ] using h₀, },
+      simp only [coe_cast_pred b h₀, coe_cast_pred b.succ h₁, coe_succ], }, },
 end
 
 @[simp] theorem cast_pred_cast_succ (i : fin (n + 1)) :

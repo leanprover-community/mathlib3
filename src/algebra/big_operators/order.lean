@@ -106,13 +106,7 @@ equal to the corresponding factor `g i` of another finite product, then
 `∏ i in s, f i ≤ ∏ i in s, g i`. -/
 @[to_additive sum_le_sum]
 lemma prod_le_prod'' (h : ∀ i ∈ s, f i ≤ g i) : ∏ i in s, f i ≤ ∏ i in s, g i :=
-begin
-  classical,
-  induction s using finset.induction_on with i s hi ihs h,
-  { refl },
-  { simp only [prod_insert hi],
-    exact mul_le_mul' (h _ (mem_insert_self _ _)) (ihs $ λ j hj, h j (mem_insert_of_mem hj)) }
-end
+multiset.prod_map_le_prod_map f g h
 
 /-- In an ordered additive commutative monoid, if each summand `f i` of one finite sum is less than
 or equal to the corresponding summand `g i` of another finite sum, then

@@ -675,12 +675,12 @@ begin
   refine set.finite.bUnion _ _,
   { set π := λ (c : fin (d+1) → U),
       (finset.range (d+1)).sum (λ i : ℕ, (monomial (i : ℕ)) (c i : R)),
-    -- We prove that the domain of π is a finite set.
+    -- We prove that the domain of `π` is a finite set.
     haveI : finite (fin (d+1) → U),
     { haveI : fintype (fin(d+1)) := fin.fintype _,
       haveI : fintype U := set.finite.fintype h,
       exact fintype.finite pi.fintype, },
-    -- We prove that the set of polynomials under consideration is a subset of the range of π
+    -- We prove that the set of polynomials under consideration is a subset of the range of `π`
     -- and thus it is finite.
     refine set.finite.subset (set.finite_range π) (λ f hf, _),
     use (λ i : fin (d+1), ⟨f.coeff i, hf.2 i⟩),

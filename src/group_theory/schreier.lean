@@ -158,11 +158,11 @@ begin
   have h1 := relindex_dvd_index_of_normal (center G) (commutator G),
   -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n)`
   refine mul_dvd_mul _ h1,
-  -- We have `h2 : rk (Z(G) ∩ G') ≤ [G' : Z(G) ∩ G'] * rk G'` by Schreier's lemma
+  -- We have `h2 : rank (Z(G) ∩ G') ≤ [G' : Z(G) ∩ G'] * rank G'` by Schreier's lemma
   have h2 := rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h1),
-  -- We have `h3 : [G' : Z(G) ∩ G'] * rk G' ≤ [G : Z(G)] * n` by `h1` and `rk G' ≤ n`
+  -- We have `h3 : [G' : Z(G) ∩ G'] * rank G' ≤ [G : Z(G)] * n` by `h1` and `rank G' ≤ n`
   have h3 := nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h1) (rank_commutator_le_card G),
-  -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ rk (Z(G) ∩ G')`
+  -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ rank (Z(G) ∩ G')`
   refine dvd_trans _ (pow_dvd_pow (center G).index (h2.trans h3)),
   -- `Z(G) ∩ G'` is abelian, so it enough to prove that `g ^ [G : Z(G)] = 1` for `g ∈ Z(G) ∩ G'`
   apply card_dvd_exponent_pow_rank' _ (λ g, _),

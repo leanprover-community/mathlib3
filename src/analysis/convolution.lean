@@ -687,52 +687,44 @@ begin
 end
 
 open_locale filter
+/-- `(φ i ⋆ g) x` tends to `g x₀` as `(i,x)` tends to `(∞, x₀)`.
+Here `φ` is a sequence of nonnegative functions with integral 1
+whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
+
+See also `convolution_tendsto_right`. -/
 lemma convolution_tendsto_right' [sigma_compact_space G]
   {ι} {l : filter ι} {φ : ι → G → ℝ}
   (hnφ : ∀ i x, 0 ≤ φ i x)
-  -- (hiφ : ∀ i, integrable (φ i) μ) -- todo: add
-  (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1) -- todo: remove
+  (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1)
   (hφ : tendsto (λ n, support (φ n)) l (𝓝 0).small_sets)
   (hig : locally_integrable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
   tendsto (λ p : ι × G, (φ p.1 ⋆[lsmul ℝ ℝ, μ] g : G → E') p.2) (l ×ᶠ 𝓝 x₀) (𝓝 (g x₀)) :=
 begin
-  have hmg : ae_strongly_measurable g μ := hig.ae_strongly_measurable,
-  -- todo: rewrite using filters
   simp_rw [tendsto_small_sets_iff] at hφ,
   rw [metric.continuous_at_iff] at hcg,
   rw [metric.tendsto_nhds],
   intros ε hε,
-  rcases hcg (ε / 3) (div_pos hε $ by norm_num) with ⟨δ, hδ, hgδ⟩,
+  have h2ε : 0 < ε / 3 := div_pos hε (by norm_num),
+  rcases hcg (ε / 3) h2ε with ⟨δ, hδ, hgδ⟩,
   refine ((hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)).prod_mk $
     ball_mem_nhds _ (half_pos hδ)).mono _,
   rintro ⟨i, x⟩ ⟨hi, hx⟩,
   dsimp only at hi hx ⊢,
   have hgx : dist (g x) (g x₀) < ε / 3 := hgδ (hx.trans $ half_lt_self hδ),
-  have : ∀ x' ∈ ball x (δ / 2), dist (g x') (g x) ≤ ε / 3 + ε / 3,
+  have h1 : ∀ x' ∈ ball x (δ / 2), dist (g x') (g x) ≤ ε / 3 + ε / 3,
   { intros x' hx',
     refine (dist_triangle_right _ _ _).trans (add_le_add (hgδ _).le hgx.le),
     exact ((dist_triangle _ _ _).trans_lt (add_lt_add hx'.out hx)).trans_eq (add_halves δ) },
-  have := dist_convolution_le _ hi (hnφ i) (hiφ i) hmg this,
-  refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgx)).trans_le _,
-  { field_simp, ring_nf },
-  { linarith },
+  have := dist_convolution_le (add_pos h2ε h2ε).le hi (hnφ i) (hiφ i) hig.ae_strongly_measurable h1,
+  refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgx)).trans_eq _,
+  field_simp, ring_nf
 end
 
-/-
-/- Checking 55 declarations (plus 36 automatically generated ones) in the current file with 26 linters -/
-
-/- The `unused_arguments` linter reports: -/
-/- UNUSED ARGUMENTS. -/
-#check @convolution_tendsto_right' /- argument 15: [_inst_22 : t2_space G], argument 16: [_inst_23 : μ.is_neg_invariant], argument 22: (hcφ : ∀ (i : ι), has_compact_support (φ i)), argument 23: (hcontφ : ∀ (i : ι), continuous (φ i)) -/
-
-
--/
-
--- #lint
 /-- `(φ i ⋆ g) x₀` tends to `g x₀` if `φ` is a sequence of nonnegative functions with integral 1
 whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
 
-See also `cont_diff_bump_of_inner.convolution_tendsto_right'`. -/
+See also `cont_diff_bump_of_inner.convolution_tendsto_right' and convolution_tendsto_right'`. -/
+-- we don't use the above result, so that we don't have to add `[sigma_compact_space G]`
 lemma convolution_tendsto_right {ι} {l : filter ι} {φ : ι → G → ℝ}
   (hnφ : ∀ i x, 0 ≤ φ i x)
   (hiφ : ∀ i, ∫ s, φ i s ∂μ = 1)

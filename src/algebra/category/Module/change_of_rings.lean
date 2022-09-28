@@ -247,7 +247,7 @@ variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 instance (M : Module R) : has_coe_to_fun ((coextend_scalars f).obj M) (λ g, S → M) :=
 (infer_instance : has_coe_to_fun (coextend_scalars.obj' f M) _)
 
-@[simp] lemma smul_apply (M : Module R) (g : (coextend_scalars f).obj M) (s s' : S) :
+lemma smul_apply (M : Module R) (g : (coextend_scalars f).obj M) (s s' : S) :
   (s • g) s' = g (s' * s) := rfl
 
 end coextend_scalars

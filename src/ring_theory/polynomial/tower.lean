@@ -28,7 +28,7 @@ variables [is_scalar_tower R A B]
 
 variables {R B}
 
-theorem aeval_apply_algebra_map (x : B) (p : R[X]) :
+@[simp] theorem aeval_apply_algebra_map (x : B) (p : R[X]) :
   aeval x (map (algebra_map R A) p) = aeval x p :=
 by rw [aeval_def, aeval_def, eval₂_map, is_scalar_tower.algebra_map_eq R A B]
 
@@ -44,7 +44,7 @@ lemma aeval_algebra_map_apply (x : A) (p : R[X]) :
   aeval (algebra_map A B x) p = algebra_map A B (aeval x p) :=
 by rw [aeval_def, aeval_def, hom_eval₂, ←is_scalar_tower.algebra_map_eq]
 
-lemma aeval_algebra_map_eq_zero_iff [no_zero_smul_divisors A B] [nontrivial B]
+@[simp] lemma aeval_algebra_map_eq_zero_iff [no_zero_smul_divisors A B] [nontrivial B]
   (x : A) (p : R[X]) :
   aeval (algebra_map A B x) p = 0 ↔ aeval x p = 0 :=
 by rw [aeval_algebra_map_apply, algebra.algebra_map_eq_smul_one, smul_eq_zero,

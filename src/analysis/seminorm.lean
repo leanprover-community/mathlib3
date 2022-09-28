@@ -385,6 +385,84 @@ begin
     smul_eq_mul, real.mul_infi_of_nonneg (subtype.prop _), mul_add],
 end
 
+section classical
+
+open_locale classical
+
+noncomputable instance : has_Sup (seminorm 𝕜 E) :=
+{ Sup := λ s, if h : bdd_above (coe_fn '' s : set (E → ℝ)) then
+  { to_fun := ⨆ p : s, ((p : seminorm 𝕜 E) : E → ℝ),
+    map_zero' :=
+    begin
+      rw [supr_apply, ← @real.csupr_const_zero s],
+      congrm ⨆ i, _,
+      exact map_zero i.1
+    end,
+    add_le' := λ x y,
+    begin
+      rcases h with ⟨q, hq⟩,
+      obtain rfl | h := s.eq_empty_or_nonempty,
+      { simp [real.csupr_empty] },
+      haveI : nonempty ↥s := nonempty_coe_sort.mpr h,
+      simp only [supr_apply],
+      refine csupr_le (λ i, ((i : seminorm 𝕜 E).add_le' x y).trans $
+        add_le_add (le_csupr ⟨q x, _⟩ i) (le_csupr ⟨q y, _⟩ i));
+      rw [mem_upper_bounds, forall_range_iff];
+      exact λ j, hq (mem_image_of_mem _ j.2) _,
+    end,
+    neg' := λ x,
+    begin
+      simp only [supr_apply],
+      congrm ⨆ i, _,
+      exact i.1.neg' _
+    end,
+    smul' := λ a x,
+    begin
+      simp only [supr_apply],
+      rw [← smul_eq_mul, real.smul_supr_of_nonneg (norm_nonneg a) (λ i : s, (i : seminorm 𝕜 E) x)],
+      congrm ⨆ i, _,
+      exact i.1.smul' a x
+    end }
+  else ⊥ }
+
+protected lemma coe_Sup_eq' {s : set $ seminorm 𝕜 E} (hs : bdd_above (coe_fn '' s : set (E → ℝ))) :
+  coe_fn (Sup s) = ⨆ p : s, p :=
+congr_arg _ (dif_pos hs)
+
+protected lemma bdd_above_iff {s : set $ seminorm 𝕜 E} :
+  bdd_above s ↔ bdd_above (coe_fn '' s : set (E → ℝ)) :=
+⟨λ ⟨q, hq⟩, ⟨q, ball_image_of_ball $ λ p hp, hq hp⟩,
+  λ H, ⟨Sup s, λ p hp x,
+  begin
+    rw [seminorm.coe_Sup_eq' H, supr_apply],
+    rcases H with ⟨q, hq⟩,
+    exact le_csupr ⟨q x, forall_range_iff.mpr $ λ i : s, hq (mem_image_of_mem _ i.2) x⟩ ⟨p, hp⟩
+  end ⟩⟩
+
+protected lemma coe_Sup_eq {s : set $ seminorm 𝕜 E} (hs : bdd_above s) :
+  coe_fn (Sup s) = ⨆ p : s, p :=
+seminorm.coe_Sup_eq' (seminorm.bdd_above_iff.mp hs)
+
+protected lemma coe_supr_eq {ι : Type*} {p : ι → seminorm 𝕜 E} (hp : bdd_above (range p)) :
+  coe_fn (⨆ i, p i) = ⨆ i, p i :=
+by rw [← Sup_range, seminorm.coe_Sup_eq hp]; exact supr_range' (coe_fn : seminorm 𝕜 E → E → ℝ) p
+
+private lemma seminorm.is_lub_Sup (s : set (seminorm 𝕜 E)) (hs₁ : bdd_above s) (hs₂ : s.nonempty) :
+  is_lub s (Sup s) :=
+begin
+  refine ⟨λ p hp x, _, λ p hp x, _⟩;
+  haveI : nonempty ↥s := nonempty_coe_sort.mpr hs₂;
+  rw [seminorm.coe_Sup_eq hs₁, supr_apply],
+  { rcases hs₁ with ⟨q, hq⟩,
+    exact le_csupr ⟨q x, forall_range_iff.mpr $ λ i : s, hq i.2 x⟩ ⟨p, hp⟩ },
+  { exact csupr_le (λ q, hp q.2 x) }
+end
+
+noncomputable instance : conditionally_complete_lattice (seminorm 𝕜 E) :=
+conditionally_complete_lattice_of_lattice_of_Sup (seminorm 𝕜 E) seminorm.is_lub_Sup
+
+end classical
+
 end normed_field
 
 /-! ### Seminorm ball -/

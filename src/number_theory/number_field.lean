@@ -286,7 +286,8 @@ lemma finite_of_norm_le (B : ℝ) :
   {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
 begin
   obtain ⟨C', h⟩ := coeff_bdd_of_norm_le K A B,
-  have := bUnion_roots_finite K (finrank ℚ K) (nat.ceil C'),
+  let C := nat.ceil C',
+  have := bUnion_roots_finite ℤ K (algebra_map ℤ K) (finrank ℚ K) (Icc (-C) C) (finite_Icc _ _),
   refine this.subset (λ x hx, _),
   have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
   rw mem_Union,
@@ -297,7 +298,7 @@ begin
     apply le_trans _ ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le,
     apply le_of_eq,
     exact (intermediate_field.adjoin.finrank (is_integral_of_is_scalar_tower _ hx.1)).symm, },
-  { rw ← @int.cast_le ℝ,
+  { rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
     apply le_trans _ (nat.le_ceil C'),
     convert (h x hx.2 i) using 1,
     simp only [h_map_rat_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat, int.norm_eq_abs,

@@ -53,7 +53,7 @@ def of : prefunctor V (paths V) :=
 local attribute [ext] functor.ext
 
 /-- Any prefunctor from `V` lifts to a functor from `paths V` -/
-@[simps] def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
+def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
 { obj := φ.obj
 , map := λ X Y f, @quiver.path.rec V _ X (λ Y f, φ.obj X ⟶ φ.obj Y) (𝟙 $ φ.obj X)
                   (λ Y Z p f ihp, ihp ≫ (φ.map f)) Y f
@@ -63,6 +63,13 @@ local attribute [ext] functor.ext
     { rw category.comp_id, refl, },
     { have : f ≫ g'.cons p = (f ≫ g').cons p, by apply quiver.path.comp_cons,
       rw this, simp only, rw [ih, category.assoc], }} }
+
+@[simp] lemma lift_nil  {C} [category C] (φ : prefunctor V C) (X : V) :
+  (lift φ).map (quiver.path.nil) = 𝟙 (φ.obj X) := rfl
+
+@[simp] lemma lift_cons  {C} [category C] (φ : prefunctor V C) {X Y Z: V}
+  (p : quiver.path X Y) (f : Y ⟶ Z) :
+  (lift φ).map (p.cons f) = (lift φ).map p ≫ (φ.map f) := rfl
 
 @[simp] lemma lift_to_path {C} [category C] (φ : prefunctor V C) {X Y : V} (f : X ⟶ Y) :
   (lift φ).map f.to_path = φ.map f := by {dsimp [quiver.hom.to_path,lift], simp, }

@@ -65,10 +65,9 @@ abbreviation quiver.hom.to_pos_path {X Y : V} (f : X ⟶ Y) :
 abbreviation quiver.hom.to_neg_path {X Y : V} (f : X ⟶ Y) :
   ((category_theory.paths.category_paths $ quiver.symmetrify V).hom Y X) := f.to_neg.to_path
 
-/-- `p` and `q` are related if `p` is and `𝟙 X` and `q` is a back & forth -/
-def red_step : hom_rel $ paths $ quiver.symmetrify V :=
-λ X Y p q, ∃ (h : Y = X) (Z) (f : (quiver.symmetrify_quiver V).hom X Z),
-  (h.rec_on p = 𝟙 X) ∧ (h.rec_on q = f.to_path ≫ (quiver.reverse f).to_path)
+inductive red_step : hom_rel (paths (quiver.symmetrify V))
+| step (X Z : quiver.symmetrify V) (f : X ⟶ Z) :
+    red_step (𝟙 X) (f.to_path ≫ (quiver.reverse f).to_path)
 
 /-- The underlying vertices of the free groupoid -/
 def free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
@@ -79,18 +78,17 @@ lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
   quotient.comp_closure red_step (p.reverse) (q.reverse)  :=
 begin
-  rintros ⟨_,W,XW,pp,qq,WY,⟨rfl,Z,f,epp,eqq⟩⟩,
-  simp only at epp eqq,
-  simp only [epp,eqq,category.id_comp, category.assoc],
+  rintros a,
+  rcases a with ⟨_,W,XW,pp,qq,WY,rs⟩,
+  rcases rs with ⟨_,Z,f⟩,
 
   have : quotient.comp_closure red_step (WY.reverse ≫ 𝟙 _ ≫  XW.reverse)
     (WY.reverse ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ XW.reverse), by
   { apply quotient.comp_closure.intro,
-    use [eq.refl _, Z, f],
-    simp only [eq_self_iff_true, and_self], },
-  simp only [category.id_comp, category.assoc] at this ⊢,
-  simp only [category_struct.comp, quiver.path.reverse_comp, quiver.path.reverse_to_path,
-             quiver.reverse_reverse, quiver.path.comp_assoc] at this ⊢,
+    apply red_step.step, },
+  simp only [category_struct.comp, category_struct.id, quiver.path.reverse, quiver.path.nil_comp,
+             quiver.path.reverse_comp, quiver.reverse_reverse, quiver.path.reverse_to_path,
+             quiver.path.comp_assoc] at this ⊢,
   exact this,
 end
 
@@ -108,8 +106,7 @@ begin
       have : quotient.comp_closure
                red_step (q ≫ (𝟙 _) ≫ q.reverse)
                (q ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ q.reverse), by
-      { apply quotient.comp_closure.intro, use [eq.refl _, p_c,f],
-        simp only [eq_self_iff_true, and_self], },
+      { apply quotient.comp_closure.intro, apply red_step.step, },
       have that : q.cons f = q.comp f.to_path, by refl, rw that,
       simp only [category.assoc, category.id_comp] at this ⊢,
       simp only [category_struct.comp, quiver.path.comp_assoc] at this ⊢,
@@ -161,12 +158,11 @@ def lift (φ : prefunctor V V') : free_groupoid V ⥤ V' :=
 quotient.lift _
   (paths.lift $ quiver.symmetrify.lift φ)
   (by
-    { rintros X Y f₀ f₁ ⟨rfl,Z,c,h₁,h₂⟩,
-      simp only at h₁ h₂,
-      subst_vars,
-      simp only [functor.map_id, functor.map_comp, paths.lift_to_path,
-                 quiver.symmetrify.lift_reverse],
-      symmetry, apply groupoid.comp_inv, })
+    { rintros _ _ _ _ ⟨X,Y,f⟩,
+      simp only [quiver.symmetrify.lift_reverse, paths.lift_nil, quiver.path.comp_nil,
+                 paths.lift_cons, paths.lift_to_path],
+      symmetry,
+      apply groupoid.comp_inv, })
 
 lemma lift_spec (φ : prefunctor V V') : of.comp (lift φ).to_prefunctor = φ :=
 begin
@@ -195,4 +191,3 @@ end universal_property
 end free
 end groupoid
 end category_theory
-

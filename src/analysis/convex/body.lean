@@ -84,24 +84,37 @@ instance : add_comm_monoid (convex_body V) :=
 { add_comm := λ K L, by { ext, simp only [coe_add, add_comm] },
   .. convex_body.add_monoid }
 
-instance : has_smul ℝ≥0 (convex_body V) :=
+noncomputable example : has_smul ℝ V := infer_instance
+example : topological_space V := infer_instance
+example : has_continuous_const_smul ℝ≥0 V := @nnreal.has_continuous_const_smul V _ _ _
+
+instance : has_smul ℝ (convex_body V) :=
 { smul := λ c K, ⟨c • (K : set V), K.convex.smul _, K.is_compact.smul _, K.nonempty.smul_set⟩ }
 
 @[simp]
-lemma coe_smul (c : ℝ≥0) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
+lemma coe_smul (c : ℝ) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
 
-instance : distrib_mul_action ℝ≥0 (convex_body V) :=
+-- @[simp]
+-- lemma coe_smul' (c: ℝ≥0) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := sorry
+
+instance : distrib_mul_action ℝ (convex_body V) :=
 { to_has_smul := convex_body.has_smul,
   one_smul := λ K, by { ext, simp only [coe_smul, one_smul] },
   mul_smul := λ c d K, by { ext, simp only [coe_smul, mul_smul] },
   smul_add := λ c K L, by { ext, simp only [coe_smul, coe_add, smul_add] },
   smul_zero := λ c, by { ext, simp only [coe_smul, coe_zero, smul_zero] } }
 
+instance has_smul' : has_smul ℝ≥0 (convex_body V) :=
+nnreal.distrib_mul_action.to_has_smul
+
+@[simp]
+lemma coe_smul' (c : ℝ) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
+
 /--
 The convex bodies in a fixed space $V$ form a module over the nonnegative reals.
 -/
 instance : module ℝ≥0 (convex_body V) :=
-{ to_distrib_mul_action := convex_body.distrib_mul_action,
+{ to_distrib_mul_action := infer_instance,
   add_smul := λ c d K,
   begin
     ext1,

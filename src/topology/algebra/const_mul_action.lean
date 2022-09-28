@@ -115,12 +115,12 @@ instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π 
   [∀ i, has_continuous_const_smul M (γ i)] : has_continuous_const_smul M (Π i, γ i) :=
 ⟨λ _, continuous_pi $ λ i, (continuous_apply i).const_smul _⟩
 
-lemma is_compact.smul {α β: Type} [has_smul α β] [topological_space β]
+lemma is_compact.smul {α β} [has_smul α β] [topological_space β]
   [has_continuous_const_smul α β] (a : α) {s : set β}
   (hs : is_compact s) : is_compact (a • s) := hs.image (continuous_id'.const_smul a)
 
 instance nnreal.has_continuous_const_smul
-  {α : Type} [mul_action ℝ α] [topological_space α]
+  {α} [mul_action ℝ α] [topological_space α]
   [has_continuous_const_smul ℝ α] : has_continuous_const_smul nnreal α :=
 { continuous_const_smul := λ c,
   begin

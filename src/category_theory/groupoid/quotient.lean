@@ -163,21 +163,22 @@ noncomputable instance groupoid : groupoid (quot_v S Sn) :=
     refine quot.induction_on f (λ f, quot.sound _),
     dsimp only [conj_setoid],
     rcases f with ⟨⟨a,rfl⟩,⟨b,rfl⟩,f⟩,
-    simp only [inv_eq_inv],
     have : (S.arrws b b).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn b,
     let sS := this.some_mem,
     let s := this.some,
-    have : S.conj (f ≫ s ≫ inv f) (𝟙 (quot.mk setoid.r a).out), by
-    { let t := f ≫ s ≫ inv f,
-      let tS : t ∈ S.arrws a a := Sn.conj' f s sS,
-      let G := (quotient.exact $ quot.out_eq (quot.mk setoid.r a)),
-      show S.conj t (𝟙 (quot.mk setoid.r a).out),
-      use [inv G.some, S.inv' G.some_mem, (G.some ≫ t), S.mul' G.some_mem tS], simp, },
-    convert this, simp, } }
+    let t := f ≫ s ≫ inv f,
+    let tS : t ∈ S.arrws a a := Sn.conj' f s sS,
+    let G := (quotient.exact $ quot.out_eq (quot.mk setoid.r a)),
+    use [inv G.some, S.inv' G.some_mem, (G.some ≫ t), S.mul' G.some_mem tS],
+    simp only [inv_eq_inv, category.id_comp, is_iso.inv_hom_id_assoc] at *,
+    rw ←inv_eq_inv, refl,
+  } }
 
 end quotient
 
 section ump
+
+open subgroupoid
 
 def of : C ⥤ quot_v S Sn :=
 { obj := λ v, quot_v_mk S Sn v,
@@ -185,8 +186,14 @@ def of : C ⥤ quot_v S Sn :=
   map_id' := λ a, by { apply quot.sound, sorry},
   map_comp' := sorry }
 
-def quot_lift' {D : Type*} [groupoid D] {S} {Sn} (φ : C ⥤ D)
-  (hφ : Sn ≤ ker φ) : (quot_v S) ⥤ D := sorry
+def lift {D : Type v} [groupoid D] {S} {Sn} (φ : C ⥤ D)
+  (hφ : S ≤ ker φ) : (quot_v S Sn) ⥤ D := sorry
+
+lemma lift_spec {D : Type v} [groupoid D] {S} {Sn} (φ : C ⥤ D) -- strange: can't write `lift φ hφ`
+  (hφ : S ≤ ker φ) : (of S Sn) ⋙ (lift φ sorry) = φ := sorry
+
+lemma lift_spec_unique {D : Type v} [groupoid D] {S} {Sn} (φ : C ⥤ D) (hφ : S ≤ ker φ)
+  (Φ : (quot_v S Sn) ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) : Φ = (lift φ sorry) := sorry
 
 end ump
 

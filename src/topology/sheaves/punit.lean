@@ -10,7 +10,7 @@ universes u v w
 variables {C : Type u} [category.{v} C]
 variables [Π (U : opens (Top.of (punit : Type w))), decidable (punit.star ∈ U)]
 
-lemma presheaf_on_unit_is_sheaf_of_is_terminal (F : presheaf C (Top.of (punit : Type w)))
+lemma presheaf_on_punit_is_sheaf_of_is_terminal (F : presheaf C (Top.of (punit : Type w)))
   (it : is_terminal $ F.obj $ op ⊥) : F.is_sheaf := λ c U s hs,
 begin
   by_cases h : punit.star ∈ U,
@@ -28,5 +28,12 @@ begin
     split; intros H; contrapose! H, exact λ r, h (le_of_hom i r),
     exact set.not_mem_empty punit.star, },
 end
+
+lemma presheaf_on_punit_is_sheaf_iff_is_terminal (F : presheaf C (Top.of (punit : Type w))) :
+  F.is_sheaf ↔ nonempty (is_terminal (F.obj (op ⊥))) :=
+⟨λ h, nonempty.intro begin
+  convert Sheaf.is_terminal_of_bot_cover ⟨F, h⟩ ⊥ _,
+  rintros ⟨⟩ h, contrapose! h, exact set.not_mem_empty punit.star,
+end, λ ⟨it⟩, presheaf_on_punit_is_sheaf_of_is_terminal F it⟩
 
 end category_theory

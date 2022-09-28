@@ -161,7 +161,7 @@ let h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
   end }
 
 /--
-If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is isomorphic to a		 If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is `*`
+If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is isomorphic to a
 terminal object.
 -/
 @[reducible]
@@ -180,7 +180,7 @@ variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U
 
 lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
 (presheaf.is_sheaf_iso_iff (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr $
-  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf_on_unit_is_sheaf_of_is_terminal _ $
+  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf_on_punit_is_sheaf_of_is_terminal _ $
     by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star }
 
 def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=

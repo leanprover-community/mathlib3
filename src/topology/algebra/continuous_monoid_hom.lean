@@ -243,30 +243,23 @@ let hi := is_inducing A E, hc := hi.continuous in
 
 @[to_additive] lemma continuous_comp [locally_compact_space B] :
   continuous (λ f : continuous_monoid_hom A B × continuous_monoid_hom B C, f.2.comp f.1) :=
-begin
-  rw (is_inducing A C).continuous_iff,
-  exact continuous_map.continuous_comp'.comp
-    ((is_inducing A B).prod_mk (is_inducing B C)).continuous,
-end
+(is_inducing A C).continuous_iff.2 $ (continuous_map.continuous_comp'.comp
+    ((is_inducing A B).prod_mk (is_inducing B C)).continuous)
 
 @[to_additive] lemma continuous_comp_left (f : continuous_monoid_hom A B) :
   continuous (λ g : continuous_monoid_hom B C, g.comp f) :=
-begin
-  rw (is_inducing A C).continuous_iff,
-  exact f.to_continuous_map.continuous_comp_left.comp (is_inducing B C).continuous,
-end
+(is_inducing A C).continuous_iff.2 $ f.to_continuous_map.continuous_comp_left.comp
+  (is_inducing B C).continuous
 
 @[to_additive] lemma continuous_comp_right (f : continuous_monoid_hom B C) :
   continuous (λ g : continuous_monoid_hom A B, f.comp g) :=
-begin
-  rw (is_inducing A C).continuous_iff,
-  exact f.to_continuous_map.continuous_comp.comp (is_inducing A B).continuous,
-end
+(is_inducing A C).continuous_iff.2 $ f.to_continuous_map.continuous_comp.comp
+  (is_inducing A B).continuous
 
 variables (E)
 
-/-- `continuous_add_monoid_hom _ f` is a functor. -/
-@[to_additive "`continuous_monoid_hom _ f` is a functor."]
+/-- `continuous_monoid_hom _ f` is a functor. -/
+@[to_additive "`continuous_add_monoid_hom _ f` is a functor."]
 def comp_left (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (continuous_monoid_hom B E) (continuous_monoid_hom A E) :=
 { to_fun := λ g, g.comp f,
@@ -276,8 +269,8 @@ def comp_left (f : continuous_monoid_hom A B) :
 
 variables (A) {E}
 
-/-- `continuous_add_monoid_hom f _` is a functor. -/
-@[to_additive "`continuous_monoid_hom f _` is a functor."]
+/-- `continuous_monoid_hom f _` is a functor. -/
+@[to_additive "`continuous_add_monoid_hom f _` is a functor."]
 def comp_right {B : Type*} [comm_group B] [topological_space B]
   [topological_group B] (f : continuous_monoid_hom B E) :
   continuous_monoid_hom (continuous_monoid_hom A B) (continuous_monoid_hom A E) :=
@@ -299,22 +292,22 @@ continuous_monoid_hom.continuous_monoid_hom_class
 namespace continuous_monoid_hom
 
 /-- `pontryagin_dual` is a functor. -/
-noncomputable def dual (f : continuous_monoid_hom A B) :
+protected noncomputable def dual (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (pontryagin_dual B) (pontryagin_dual A) :=
 f.comp_left circle
 
 @[simp] lemma dual_apply (f : continuous_monoid_hom A B) (x : pontryagin_dual B) (y : A) :
-  dual f x y = x (f y) :=
+  f.dual x y = x (f y) :=
 rfl
 
-@[simp] lemma dual_one : dual (one A B) = one (pontryagin_dual B) (pontryagin_dual A) :=
+@[simp] lemma dual_one : (one A B).dual = one (pontryagin_dual B) (pontryagin_dual A) :=
 ext (λ x, ext (λ y, map_one x))
 
 @[simp] lemma dual_comp (g : continuous_monoid_hom B C) (f : continuous_monoid_hom A B) :
-  dual (comp g f) = comp (dual f) (dual g) :=
+  (comp g f).dual = comp f.dual g.dual :=
 ext (λ x, ext (λ y, rfl))
 
-@[simp] lemma dual_mul (f g : continuous_monoid_hom A E) : dual (f * g) = dual f * dual g :=
+@[simp] lemma dual_mul (f g : continuous_monoid_hom A E) : (f * g).dual = f.dual * g.dual :=
 ext (λ x, ext (λ y, map_mul x (f y) (g y)))
 
 variables (A B C D E)
@@ -323,7 +316,7 @@ variables (A B C D E)
 noncomputable def dual_hom [locally_compact_space E] :
   continuous_monoid_hom (continuous_monoid_hom A E)
     (continuous_monoid_hom (pontryagin_dual E) (pontryagin_dual A)) :=
-{ to_fun := dual,
+{ to_fun := continuous_monoid_hom.dual,
   map_one' := dual_one,
   map_mul' := dual_mul,
   continuous_to_fun := (is_inducing _ _).continuous_iff.mpr

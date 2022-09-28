@@ -203,29 +203,33 @@ begin
     rw [←hcd, noroots, card_zero], },
 end
 
+/-- The coefficients of the monic polynomials of bounded degree with bounded roots are
+uniformely bounded. -/
 lemma coeff_bdd_of_roots_le (B : ℝ) (d : ℕ) (f : F →+* K) :
-  ∃ C, ∀ p : F[X], p.monic → splits f p → p.nat_degree ≤ d → (∀ z ∈ (map f p).roots, ∥z∥ ≤ B) →
-  ∀ i, ∥(map f p).coeff i∥ ≤ C :=
+   ∃ C, ∀ p : F[X], p.monic → splits f p → p.nat_degree ≤ d → (∀ z ∈ (map f p).roots, ∥z∥ ≤ B) →
+   ∀ i, ∥(map f p).coeff i∥ ≤ C :=
 begin
+  -- The set S is the set of bounds on coeff. provided by `coeff_le_of_roots_le`.
   let S := finset.bUnion (finset.product (finset.range (d + 1)) (finset.range (d + 1)))
     (λ x, ( { B ^ (x.1 - x.2) * (x.1.choose x.2) } : finset ℝ)),
   have hS : S.nonempty,
   { exact finset.bUnion_nonempty.mpr
       ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
         finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
+  -- The bound `C` is then the max of `S`
   let C := (S.max' hS),
-  { use max C 0,
-    intros p h_monic h_splits h_degree h_roots i,
-    by_cases hi : i < d + 1,
-    { apply le_trans _ (le_max_left _ _),
-      apply le_trans (coeff_le_of_roots_le i h_monic h_splits h_roots) _,
-      refine finset.le_max' S _ _,
+  use max C 0,
+  intros p h_monic h_splits h_degree h_roots i,
+  by_cases hi : i < d + 1,
+  { apply le_trans _ (le_max_left _ _),
+    apply le_trans (coeff_le_of_roots_le i h_monic h_splits h_roots) _,
+    refine finset.le_max' S _ _,
       exact finset.mem_bUnion.mpr ⟨⟨p.nat_degree, i⟩, finset.mem_product.mpr
         ⟨finset.mem_range_succ_iff.mpr h_degree, finset.mem_range.mpr hi⟩,
           finset.mem_singleton.mpr rfl⟩, },
-    { rw coeff_eq_zero_of_nat_degree_lt,
-      { rw norm_zero, exact le_max_right _ _, },
-      { rw nat_degree_map, linarith, }}},
+  { rw coeff_eq_zero_of_nat_degree_lt,
+    { rw norm_zero, exact le_max_right _ _, },
+    { rw nat_degree_map, linarith, }},
 end
 
 end roots

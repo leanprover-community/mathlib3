@@ -133,11 +133,6 @@ begin
     exact not_mem_ideal_of_set.mpr ⟨x, hx', hfx⟩ (h hf) },
 end
 
-theorem nnnorm_lt_iff {α E : Type*} [topological_space α] [compact_space α]
-  [normed_add_comm_group E] (f : C(α, E)) {M : ℝ≥0} (M0 : 0 < M) :
-∥f∥₊ < M ↔ ∀ (x : α), ∥f x∥₊ < M :=
-f.norm_lt_iff M0
-
 end topological_ring
 
 section is_R_or_C

@@ -185,9 +185,16 @@ lemma norm_le_of_nonempty [nonempty α] {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥
 lemma norm_lt_iff {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_compact _ _ _ _ _ (mk_of_compact f) _ M0
 
+theorem nnnorm_lt_iff {M : ℝ≥0} (M0 : 0 < M) : ∥f∥₊ < M ↔ ∀ (x : α), ∥f x∥₊ < M :=
+f.norm_lt_iff M0
+
 lemma norm_lt_iff_of_nonempty [nonempty α] {M : ℝ} :
   ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _ (mk_of_compact f) _
+
+lemma nnnorm_lt_iff_of_nonempty [nonempty α] {M : ℝ≥0} :
+  ∥f∥₊ < M ↔ ∀ x, ∥f x∥₊ < M :=
+f.norm_lt_iff_of_nonempty
 
 lemma apply_le_norm (f : C(α, ℝ)) (x : α) : f x ≤ ∥f∥ :=
 le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)

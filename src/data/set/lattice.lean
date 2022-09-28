@@ -1377,7 +1377,7 @@ begin
   { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
 end
 
-lemma prod_sInter_prod_subseteq (f₁ : set (set α)) (f₂ : set (set β)) :
+lemma sInter_prod_sInter_subseteq (f₁ : set (set α)) (f₂ : set (set β)) :
   ⋂₀f₁ ×ˢ ⋂₀f₂ ⊆ ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
 begin
   rintro ⟨x, y⟩,
@@ -1392,11 +1392,12 @@ begin
     exact hs, },
 end
 
-lemma prod_sInter_prod (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty) (h₂ : f₂.nonempty) :
-  ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) = ⋂₀f₁ ×ˢ ⋂₀f₂ :=
+lemma sInter_prod_sInter (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty) (h₂ : f₂.nonempty) :
+  ⋂₀f₁ ×ˢ ⋂₀f₂ = ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
 begin
   rw subset_antisymm_iff,
   split,
+  { apply sInter_prod_sInter_subseteq, },
   { rintro ⟨x, y⟩,
     intro h,
     rw [image_prod, mem_sInter] at h,
@@ -1436,7 +1437,6 @@ begin
       end,
       rw prod_mk_mem_set_prod_eq at e1,
       exact e1.2, }, },
-  { apply prod_sInter_prod_subseteq, },
 end
 
 end prod

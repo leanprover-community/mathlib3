@@ -1,5 +1,16 @@
+/-
+Copyright (c) 2022 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
 import topology.sheaves.sheaf
 import topology.sheaves.sheaf_condition.opens_le_cover
+
+/-!
+# Presheaves on punit
+
+Presheaves on punit satisfy sheaf condition iff its value at empty set is a terminal object.
+-/
 
 namespace category_theory
 

@@ -145,12 +145,6 @@ end
 open_locale big_operators
 
 -- PRed
-lemma card_dvd_exponent_pow_rank' {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1) :
-  nat.card G ∣ n ^ group.rank G :=
-(card_dvd_exponent_pow_rank G).trans
-    (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
-
--- PRed
 instance (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.fg (commutator G) :=
 begin
@@ -180,7 +174,7 @@ begin
   refine mul_dvd_mul (dvd_trans _
     (pow_dvd_pow (center G).index ((rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h)).trans
     (nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h) (rank_commutator_le_card G))))) h,
-  apply card_dvd_exponent_pow_rank' (λ g, _),
+  apply card_dvd_exponent_pow_rank' _ (λ g, _),
   have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow' hG) g.1.2,
   simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,
 end

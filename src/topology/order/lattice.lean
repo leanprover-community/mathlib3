@@ -25,8 +25,6 @@ topological, lattice
 open filter
 open_locale topological_space
 
-universe u
-
 /--
 Let `L` be a topological space and let `L×L` be equipped with the product topology and let
 `⊓:L×L → L` be an infimum. Then `L` is said to have *(jointly) continuous infimum* if the map
@@ -66,28 +64,9 @@ instance order_dual.topological_lattice
   topological_lattice Lᵒᵈ := {}
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_order.topological_lattice {L : Type u} [topological_space L] [linear_order L]
+instance linear_order.topological_lattice {L : Type*} [topological_space L] [linear_order L]
   [order_closed_topology L] : topological_lattice L :=
-{ continuous_inf :=
-  begin
-    set s := {x : L × L | x.fst ≤ x.snd},
-    convert continuous_fst.piecewise (λ x (hx : x ∈ frontier s), frontier_le_subset_eq
-      continuous_fst continuous_snd hx) continuous_snd,
-    funext x,
-    by_cases h : x.fst ≤ x.snd,
-    { simp only [set.piecewise, if_pos (show x ∈ s, from h), inf_eq_left.mpr h], },
-    { simp only [set.piecewise, if_neg (show x ∉ s, from h), inf_eq_right.mpr (not_le.mp h).le], }
-  end,
-  continuous_sup :=
-  begin
-    set s := {x : L × L | x.fst ≤ x.snd},
-    convert continuous_snd.piecewise (λ x (hx : x ∈ frontier s),
-      (frontier_le_subset_eq continuous_fst continuous_snd hx).symm) continuous_fst,
-    funext x,
-    by_cases h : x.fst ≤ x.snd,
-    { simp only [set.piecewise, if_pos (show x ∈ s, from h), sup_eq_right.mpr h], },
-    { simp only [set.piecewise, if_neg (show x ∉ s, from h), sup_eq_left.mpr (not_le.mp h).le], }
-  end }
+{ continuous_inf := continuous_min, continuous_sup := continuous_max }
 
 variables {L : Type*} [topological_space L]
 variables {X : Type*} [topological_space X]

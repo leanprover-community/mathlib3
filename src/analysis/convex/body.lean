@@ -31,16 +31,13 @@ convex, convex body
 open_locale pointwise
 open_locale nnreal
 
-variables {V : Type}
-[seminormed_add_comm_group V]
-[normed_space ℝ V]
+variables (V : Type*) [seminormed_add_comm_group V] [normed_space ℝ V]
 
 /--
 Let `V` be a normed space. A subset of `V` is a convex body if and only if
 it is convex, compact, and nonempty.
 -/
-structure convex_body
-  (V : Type) [seminormed_add_comm_group V] [normed_space ℝ V] :=
+structure convex_body :=
 (carrier : set V)
 (convex' : convex ℝ carrier)
 (is_compact' : is_compact carrier)
@@ -93,13 +90,10 @@ instance : has_smul ℝ≥0 (convex_body V) :=
 @[simp]
 lemma coe_smul (c : ℝ≥0) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
 
-instance : mul_action ℝ≥0 (convex_body V) :=
+instance : distrib_mul_action ℝ≥0 (convex_body V) :=
 { to_has_smul := convex_body.has_smul,
   one_smul := λ K, by { ext, simp only [coe_smul, one_smul] },
-  mul_smul := λ c d K, by { ext, simp only [coe_smul, mul_smul] } }
-
-instance : distrib_mul_action ℝ≥0 (convex_body V) :=
-{ to_mul_action := convex_body.mul_action,
+  mul_smul := λ c d K, by { ext, simp only [coe_smul, mul_smul] },
   smul_add := λ c K L, by { ext, simp only [coe_smul, coe_add, smul_add] },
   smul_zero := λ c, by { ext, simp only [coe_smul, coe_zero, smul_zero] } }
 

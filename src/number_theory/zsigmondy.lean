@@ -1,4 +1,5 @@
 import ring_theory.polynomial.cyclotomic.eval
+import number_theory.multiplicity
 
 noncomputable theory
 
@@ -152,63 +153,194 @@ by exact int.modeq.dvd (int.modeq.trans (int.modeq.pow_card_sub_one_eq_one hp
     ((int.modeq.pow_card_sub_one_eq_one hp ((prime.coprime_iff_not_dvd
     (nat.prime_iff_prime_int.mp hp)).mpr hpa).symm)).symm)
 
-def least_div_pow {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :=
+def least_dvd_pow {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :=
   nat.find (show ∃ k : ℕ, ↑p ∣ a ^ k - b ^ k ∧ 0 < k,
-    by refine ⟨p -1, (prime_div_pow_sub hp hpa hpb), by norm_num [nat.prime.one_lt hp]⟩)
+    by refine ⟨p - 1, (prime_div_pow_sub hp hpa hpb), by norm_num [nat.prime.one_lt hp]⟩)
 
-lemma least_div_pow_pos {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
-  0 < least_div_pow hp hpa hpb :=
-  by simp only [least_div_pow, nat.find_pos, nat.not_lt_zero,
+def least_dvd_pow_def {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
+  ↑p ∣ a ^ (least_dvd_pow hp hpa hpb) - b ^ (least_dvd_pow hp hpa hpb) :=
+by simp only [least_dvd_pow, (nat.find_spec (show ∃ k : ℕ, ↑p ∣ a ^ k - b ^ k ∧ 0 < k,
+    by refine ⟨p - 1, (prime_div_pow_sub hp hpa hpb), by norm_num [nat.prime.one_lt hp]⟩)).1]
+
+lemma least_dvd_pow_pos {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
+  0 < least_dvd_pow hp hpa hpb :=
+  by simp only [least_dvd_pow, nat.find_pos, nat.not_lt_zero,
   and_false, not_false_iff]
 
-lemma least_div_pow_min {p k : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb : ¬ ↑p ∣ b)
+lemma least_dvd_pow_min {p k : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb : ¬ ↑p ∣ b)
   (hk : 0 < k) :
-  k < least_div_pow hp hpa hpb → ¬ ↑p ∣ a ^ k - b ^ k :=
+  k < least_dvd_pow hp hpa hpb → ¬ ↑p ∣ a ^ k - b ^ k :=
 begin
- rw [least_div_pow],
+ rw [least_dvd_pow],
  intro h,
  have := nat.find_min _ h,
  simpa [not_and, not_lt, le_zero_iff, ne_of_gt hk]
 end
 
-lemma least_div_pow_dvd {p n : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
-  ↑p ∣ a ^ n - b ^ n → least_div_pow hp hpa hpb ∣ n :=
+lemma least_dvd_pow_min' {p k : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb : ¬ ↑p ∣ b)
+  (hk : 0 < k) : ↑p ∣ a ^ k - b ^ k → least_dvd_pow hp hpa hpb ≤ k :=
+by contrapose!; exact least_dvd_pow_min _ _ _ hk
+
+lemma order_of_div_pow_sub {p : ℕ} {a b : ℤ} [fact (nat.prime p)] (hpb : ¬ ↑p ∣ b) :
+  ↑p ∣ a ^ order_of ((a / b) : zmod p) - b ^ (order_of ((a / b) : zmod p)) :=
 begin
+  have hbzero : (b : zmod p) ≠ 0,
+  { simp only [ne.def, zmod.int_coe_zmod_eq_zero_iff_dvd, hpb, not_false_iff] },
+  rw [← dvd_neg, neg_sub, ←int.modeq_iff_dvd, ←char_p.int_coe_eq_int_coe_iff (zmod p) p,
+    int.cast_pow, int.cast_pow, ← (div_eq_one_iff_eq (pow_ne_zero _ hbzero)),
+    ← div_pow, pow_order_of_eq_one],
+end
+
+lemma least_dvd_pow_zmod_pow_eq {p : ℕ} {a b : ℤ} [hp: fact (nat.prime p)]
+  (hpa : ¬ ↑p ∣ a) (hpb : ¬ ↑p ∣ b) :
+  ((a / b) : zmod p) ^ (least_dvd_pow (fact.elim hp) hpa hpb) = 1 :=
+begin
+  have hbzero : (b : zmod p) ≠ 0 :=
+    by simp only [ne.def, zmod.int_coe_zmod_eq_zero_iff_dvd, hpb, not_false_iff],
+    simp_rw [div_pow, div_eq_one_iff_eq (pow_ne_zero _ hbzero), ← int.cast_pow],
+    simp only [char_p.int_coe_eq_int_coe_iff (zmod p) p, int.modeq_iff_dvd, ← dvd_neg,
+    neg_sub, least_dvd_pow_def (fact.elim hp) hpa hpb],
+end
+
+lemma least_dvd_pow_eq_order {p : ℕ} {a b : ℤ} [hp: fact (nat.prime p)] (hpa : ¬ ↑p ∣ a)
+  (hpb : ¬ ↑p ∣ b) :
+  least_dvd_pow (fact.elim hp) hpa hpb = order_of ((a / b) : zmod p) :=
+begin
+  apply le_antisymm _ (order_of_le_of_pow_eq_one (least_dvd_pow_pos (fact.elim hp) hpa hpb)
+    (least_dvd_pow_zmod_pow_eq hpa hpb)),
+  { have habpos : 0 < order_of ((a / b) : zmod p),
+    { rw [order_of_pos_iff, is_of_fin_order_iff_pow_eq_one],
+      refine ⟨p - 1, by norm_num [nat.prime.one_lt (fact.elim hp)], _⟩,
+      simp only [div_pow, zmod.pow_card_sub_one_eq_one
+        (show (b : zmod p) ≠ 0, by simpa [zmod.int_coe_zmod_eq_zero_iff_dvd]),
+        zmod.pow_card_sub_one_eq_one (show (a : zmod p) ≠ 0,
+        by simpa [zmod.int_coe_zmod_eq_zero_iff_dvd]), one_div_one] },
+    exact least_dvd_pow_min' (fact.elim hp) hpa hpb habpos (order_of_div_pow_sub hpb) }
+end
+
+lemma least_dvd_pow_dvd {p n : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
+  ↑p ∣ a ^ n - b ^ n → least_dvd_pow hp hpa hpb ∣ n :=
+begin
+  have hbzero : (b : zmod p) ≠ 0 :=
+    by simp only [ne.def, zmod.int_coe_zmod_eq_zero_iff_dvd, hpb, not_false_iff],
   rcases nat.eq_zero_or_pos n with rfl | hzero,
   { simp only [pow_zero, sub_self, dvd_zero, forall_true_left] },
   { intro hpab,
-    rw [← int.modeq_iff_dvd, ←char_p.int_coe_eq_int_coe_iff (zmod p) p] at hpab,
-    simp at hpab,
     haveI : fact (nat.prime p) := fact_iff.mpr hp,
-    have : field (zmod p) := zmod.field p,
-    have : ∀ k : ℤ, (k  : zmod p) = 0 ↔ ↑p ∣ k := λ k, zmod.int_coe_zmod_eq_zero_iff_dvd k p,
-    have hbzero : (b : zmod p) ≠ 0,
-    { simp only [ne.def, zmod.int_coe_zmod_eq_zero_iff_dvd, hpb, not_false_iff] },
-    replace hpab := (div_eq_one_iff_eq (pow_ne_zero n hbzero)).mpr (hpab.symm),
-    sorry   }},
+    simp_rw [least_dvd_pow_eq_order hpa hpb, order_of_dvd_iff_pow_eq_one, div_pow,
+      div_eq_one_iff_eq (pow_ne_zero _ hbzero), ← int.cast_pow],
+    rwa [char_p.int_coe_eq_int_coe_iff (zmod p) p, int.modeq_iff_dvd, ← dvd_neg, neg_sub] }
 end
 
-lemma proposition_10 {p : ℕ} {a b : ℤ} (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) (hpge: 3 ≤ p)
+lemma multiplicity_proper_divisors_eq_zero {p x : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a)
+  (hpb: ¬ ↑p ∣ b) (hb : b ≠ 0) (hx: x ∈ (least_dvd_pow hp hpa hpb).proper_divisors) :
+  multiplicity ↑p (cyclotomic₂ x a b) = 0 :=
+begin
+  rcases nat.eq_zero_or_pos x with rfl | hxzero,
+  { simp only [cyclotomic₂_zero, multiplicity.one_right (show ¬ is_unit (p : ℤ),
+    by simp only [int.of_nat_is_unit, nat.is_unit_iff, nat.prime.ne_one hp, not_false_iff])] },
+  { rw multiplicity.multiplicity_eq_zero_of_not_dvd,
+    have := least_dvd_pow_min hp hpa hpb hxzero ((nat.mem_proper_divisors.mp hx).2),
+    contrapose! this,
+    exact dvd_trans this (cyclotomic₂_dvd_pow_sub x a b hb) }
+end
+
+lemma proposition_10 {p : ℕ} {a b : ℤ} (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b)
   (hp : nat.prime p) :
-  multiplicity ↑p (cyclotomic₂ (least_div_pow hp hpa hpb) a b) =
-  multiplicity ↑p (a ^ (least_div_pow hp hpa hpb) - b ^ (least_div_pow hp hpa hpb)) :=
+  multiplicity ↑p (cyclotomic₂ (least_dvd_pow hp hpa hpb) a b) =
+  multiplicity ↑p (a ^ (least_dvd_pow hp hpa hpb) - b ^ (least_dvd_pow hp hpa hpb)) :=
 begin
   have hbne : b ≠ 0,
   { rintro rfl; simp only [dvd_zero, not_true] at hpb; exact hpb },
-    rw [← cyclotomic₂_div_prod_eq a b (least_div_pow_pos hp hpa hpb) hbne,
+    rw [← cyclotomic₂_div_prod_eq a b (least_dvd_pow_pos hp hpa hpb) hbne,
       multiplicity.finset.prod (nat.prime_iff_prime_int.mp hp),
-      nat.divisors_eq_proper_divisors_insert_self_of_pos (least_div_pow_pos hp hpa hpb),
+      nat.divisors_eq_proper_divisors_insert_self_of_pos (least_dvd_pow_pos hp hpa hpb),
       finset.sum_insert (@nat.proper_divisors.not_self_mem _)],
-  have : ∀ x ∈ (least_div_pow hp hpa hpb).proper_divisors, multiplicity ↑p (cyclotomic₂ x a b) = 0,
-  { intros x hx,
-    rcases nat.eq_zero_or_pos x with rfl | hxzero,
-    { simp only [cyclotomic₂_zero, multiplicity.one_right (show ¬ is_unit (p : ℤ),
-      by simp only [int.of_nat_is_unit, nat.is_unit_iff, nat.prime.ne_one hp, not_false_iff])] },
-    { rw multiplicity.multiplicity_eq_zero_of_not_dvd,
-      have := least_div_pow_min hp hpa hpb hxzero ((nat.mem_proper_divisors.mp hx).2),
-      contrapose! this,
-      exact dvd_trans this (cyclotomic₂_dvd_pow_sub x a b hbne) }},
+  have : ∀ x ∈ (least_dvd_pow hp hpa hpb).proper_divisors, multiplicity ↑p (cyclotomic₂ x a b) = 0 :=
+    λ x hx, multiplicity_proper_divisors_eq_zero hp hpa hpb hbne hx,
   simp only [finset.sum_congr rfl this, finset.sum_const_zero, add_zero]
+end
+
+lemma lte_version_1 {p β : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b)
+  (hpodd : odd p) (hβ : 1 ≤ β) (hb : b ≠ 0) :
+  multiplicity ↑p (a ^ (least_dvd_pow hp hpa hpb) - b ^ (least_dvd_pow hp hpa hpb)) + β =
+  multiplicity ↑p (a ^ (p ^ β * least_dvd_pow hp hpa hpb) - b ^ (p ^ β * least_dvd_pow hp hpa hpb)) :=
+begin
+  have : ¬↑p ∣ a ^ (least_dvd_pow hp hpa hpb) :=
+  by { intro h; apply hpa; exact prime.dvd_of_dvd_pow (nat.prime_iff_prime_int.mp hp) h },
+  simp only [← multiplicity.multiplicity_pow_self (nat.prime.ne_zero hp)
+    (prime.not_unit (nat.prime_iff.mp hp)), ← multiplicity.int.pow_sub_pow hp hpodd
+    (least_dvd_pow_def hp hpa hpb) this (p ^ β), mul_comm, pow_mul]
+end
+
+lemma proposition_11 {p β : ℕ} {a b : ℤ} (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) (hpodd : odd p) (hβ : 1 ≤ β)
+  (hp : nat.prime p) (hb : b ≠ 0):
+  multiplicity ↑p (a ^ (p ^ β * least_dvd_pow hp hpa hpb) - b ^ (p ^ β * least_dvd_pow hp hpa hpb)) =
+  ∑ i in finset.range (β + 1), multiplicity ↑p (cyclotomic₂ (p ^ i * (least_dvd_pow hp hpa hpb)) a b) :=
+begin
+  rw [← cyclotomic₂_div_prod_eq _ _
+    (mul_pos (pow_pos (nat.prime.pos hp) _) (least_dvd_pow_pos hp hpa hpb)) hb,
+    multiplicity.finset.prod (nat.prime_iff_prime_int.mp hp)],
+  have : ∑ (i : ℕ) in finset.range (β + 1), multiplicity ↑p (cyclotomic₂ (p ^ i * least_dvd_pow hp hpa hpb) a b) =
+    ∑ (x : ℕ) in (finset.image (λ i, p ^ i * least_dvd_pow hp hpa hpb) (finset.range (β + 1))), multiplicity ↑p (cyclotomic₂ x a b),
+  { simp only [finset.sum_image, mul_right_cancel_iff_of_pos (least_dvd_pow_pos hp hpa hpb),
+    function.injective.eq_iff (nat.pow_right_injective (nat.prime.two_le hp)),
+    imp_self, implies_true_iff] },
+  rw this,
+  have hsub : finset.image (λ (i : ℕ), p ^ i * least_dvd_pow hp hpa hpb) (finset.range (β + 1)) ⊆
+    (p ^ β * least_dvd_pow hp hpa hpb).divisors,
+  { intros i hi,
+    simp only [finset.mem_image, finset.mem_range, exists_prop] at hi,
+    cases hi with a hia,
+    rw [nat.mem_divisors, ← hia.2, mul_dvd_mul_iff_right (ne_of_gt (least_dvd_pow_pos hp hpa hpb))],
+    refine ⟨pow_dvd_pow p (nat.le_of_lt_succ hia.1),
+      mul_ne_zero (pow_ne_zero β (hp.ne_zero)) (ne_of_gt (least_dvd_pow_pos hp hpa hpb))⟩},
+  rw ← finset.sum_sdiff hsub,
+  suffices : ∀ x ∈ (p ^ β * least_dvd_pow hp hpa hpb).divisors \ finset.image (λ (i : ℕ),
+    p ^ i * least_dvd_pow hp hpa hpb) (finset.range (β + 1)),
+    multiplicity ↑p (cyclotomic₂ x a b) = 0,
+  { simp only [finset.sum_congr rfl this, finset.sum_const_zero, zero_add] },
+  { intros x hx,
+    have h : ¬ least_dvd_pow hp hpa hpb ∣ x,
+    { intro h,
+      cases h with d hd,
+      subst hd,
+      simp only [mul_ne_zero (pow_ne_zero β hp.ne_zero) (ne_of_gt (least_dvd_pow_pos hp hpa hpb)),
+       ne.def, not_false_iff, and_true, finset.mem_sdiff, nat.mem_divisors, finset.mem_image,
+       finset.mem_range, not_and, mul_comm _ d,
+       mul_dvd_mul_iff_right (ne_of_gt (least_dvd_pow_pos hp hpa hpb)),
+       mul_right_cancel_iff_of_pos (least_dvd_pow_pos hp hpa hpb), nat.dvd_prime_pow hp,
+       nat.lt_succ_iff, @eq_comm _ d _] at hx,
+      exact hx.2 hx.1 },
+    rw multiplicity.multiplicity_eq_zero_of_not_dvd,
+    contrapose! h,
+    replace h := dvd_trans h (cyclotomic₂_dvd_pow_sub x a b hb),
+    exact least_dvd_pow_dvd hp hpa hpb h }
+end
+
+lemma proposition_12 {p β : ℕ} {a b : ℤ} (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) (hpodd : odd p) (hβ : 1 ≤ β)
+  (hp : nat.prime p) (hb : b ≠ 0) (hab : b.nat_abs ≠ a.nat_abs) :
+  multiplicity ↑p (cyclotomic₂ (p ^ β * least_dvd_pow hp hpa hpb) a b) = 1 :=
+begin
+  revert hβ,
+  apply nat.le_induction,
+  { have := lte_version_1 hp hpa hpb hpodd (show 1 ≤ 1, by exact rfl.ge) hb,
+    rw proposition_11 hpa hpb hpodd (rfl.ge) hp hb at this,
+    simp only [nat.cast_one, finset.sum_range_succ, finset.sum_range_zero, zero_add, pow_zero,
+    one_mul, pow_one, proposition_10 hpa hpb hp] at this,
+    rw [pow_one, (part_enat.add_left_cancel_iff _).mp (this.symm)],
+    rw ← multiplicity.int.nat_abs, rw multiplicity.ne_top_iff_finite, rw multiplicity.finite_nat_iff,
+    refine ⟨hp.ne_one, _⟩,
+    apply int.nat_abs_pos_of_ne_zero,
+    rw sub_ne_zero,
+    rw ne.def,
+    contrapose! hab,
+    replace hab : a.nat_abs ^ least_dvd_pow hp hpa hpb = b.nat_abs ^ least_dvd_pow hp hpa hpb,
+    { simp_rw [← int.nat_abs_pow, hab] },
+    rw [nat.pow_left_injective (nat.one_le_of_lt (least_dvd_pow_pos hp hpa hpb)) hab] },
+  { intros k hk hind,
+    -- switch to strong induction
+    sorry }
 end
 
 end cyclotomic₂

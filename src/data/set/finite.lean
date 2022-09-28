@@ -104,10 +104,8 @@ theorem finite.exists_finset_coe {s : set α} (h : s.finite) :
 by { casesI h, exact ⟨s.to_finset, s.coe_to_finset⟩ }
 
 /-- Finite sets can be lifted to finsets. -/
-instance : can_lift (set α) (finset α) :=
-{ coe := coe,
-  cond := set.finite,
-  prf := λ s hs, hs.exists_finset_coe }
+instance : can_lift (set α) (finset α) coe set.finite :=
+{ prf := λ s hs, hs.exists_finset_coe }
 
 /-- A set is infinite if it is not finite.
 
@@ -140,6 +138,10 @@ by rw [← finset.coe_sort_coe _, h.coe_to_finset]
 
 @[simp] lemma finite_empty_to_finset (h : (∅ : set α).finite) : h.to_finset = ∅ :=
 by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
+
+@[simp] lemma finite_univ_to_finset [fintype α] (h : (set.univ : set α).finite) :
+  h.to_finset = finset.univ :=
+finset.ext $ by simp
 
 @[simp] lemma finite.to_finset_inj {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset = ht.to_finset ↔ s = t :=
@@ -853,10 +855,9 @@ theorem infinite_univ [h : infinite α] : (@univ α).infinite :=
 infinite_univ_iff.2 h
 
 theorem infinite_coe_iff {s : set α} : infinite s ↔ s.infinite :=
-⟨λ ⟨h₁⟩ h₂, h₁ h₂.fintype, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
+not_finite_iff_infinite.symm.trans finite_coe_iff.not
 
-theorem infinite.to_subtype {s : set α} (h : s.infinite) : infinite s :=
-infinite_coe_iff.2 h
+alias infinite_coe_iff ↔ _ infinite.to_subtype
 
 /-- Embedding of `ℕ` into an infinite set. -/
 noncomputable def infinite.nat_embedding (s : set α) (h : s.infinite) : ℕ ↪ s :=

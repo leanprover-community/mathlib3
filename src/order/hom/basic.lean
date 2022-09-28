@@ -175,10 +175,8 @@ lemma ext (f g : α →o β) (h : (f : α → β) = g) : f = g := fun_like.coe_i
 lemma coe_eq (f : α →o β) : coe f = f := by ext ; refl
 
 /-- One can lift an unbundled monotone function to a bundled one. -/
-instance : can_lift (α → β) (α →o β) :=
-{ coe := coe_fn,
-  cond := monotone,
-  prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
+instance : can_lift (α → β) (α →o β) coe_fn monotone :=
+{ prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
 
 /-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
@@ -807,7 +805,8 @@ lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o �
   f (x ⊓ y) = f x ⊓ f y :=
 begin
   refine (f.to_order_embedding.map_inf_le x y).antisymm _,
-  simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
+  apply f.symm.le_iff_le.1,
+  simpa using f.symm.to_order_embedding.map_inf_le (f x) (f y),
 end
 
 lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :

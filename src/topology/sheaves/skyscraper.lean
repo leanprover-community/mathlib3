@@ -64,6 +64,9 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
     { rw [dif_neg hW], apply ((if_neg hW).symm.rec terminal_is_terminal).hom_ext }
   end }
 
+/--
+Taking skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor
+-/
 @[simps] def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
 { obj := skyscraper_presheaf p₀,
   map := λ a b f,

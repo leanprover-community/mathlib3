@@ -2038,7 +2038,7 @@ lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g
 @[to_additive]
 lemma coe_comp_range_restrict (f : G →* N) :
   (coe : f.range → N) ∘ (⇑(f.range_restrict) : G → f.range) = f :=
-funext $ f.coe_range_restrict
+rfl
 
 @[to_additive]
 lemma subtype_comp_range_restrict (f : G →* N) : f.range.subtype.comp (f.range_restrict) = f :=
@@ -2385,6 +2385,16 @@ lemma map_injective_of_ker_le
 begin
   apply_fun comap f at hf,
   rwa [comap_map_eq, comap_map_eq, sup_of_le_left hH, sup_of_le_left hK] at hf,
+end
+
+@[to_additive] lemma closure_preimage_eq_top (s : set G) :
+  closure ((closure s).subtype ⁻¹' s) = ⊤ :=
+begin
+  apply map_injective (show function.injective (closure s).subtype, from subtype.coe_injective),
+  rwa [monoid_hom.map_closure, ←monoid_hom.range_eq_map, subtype_range,
+    set.image_preimage_eq_of_subset],
+  rw [coe_subtype, subtype.range_coe_subtype],
+  exact subset_closure,
 end
 
 @[to_additive] lemma comap_sup_eq_of_le_range
@@ -2998,8 +3008,7 @@ instance sup_normal (H K : subgroup G) [hH : H.normal] [hK : K.normal] : (H ⊔ 
 
 @[to_additive] instance normal_inf_normal (H K : subgroup G) [hH : H.normal] [hK : K.normal] :
   (H ⊓ K).normal :=
-{ conj_mem := λ n hmem g,
-  by { rw mem_inf at *, exact ⟨hH.conj_mem n hmem.1 g, hK.conj_mem n hmem.2 g⟩ } }
+⟨λ n hmem g, ⟨hH.conj_mem n hmem.1 g, hK.conj_mem n hmem.2 g⟩⟩
 
 @[to_additive] lemma subgroup_of_sup (A A' B : subgroup G) (hA : A ≤ B) (hA' : A' ≤ B) :
   (A ⊔ A').subgroup_of B = A.subgroup_of B ⊔ A'.subgroup_of B :=

@@ -490,7 +490,8 @@ lemma End_is_unit_inv_apply_apply_of_is_unit {f : module.End R M} (h : is_unit f
 lemma End_is_unit_iff (f : module.End R M) :
   is_unit f ↔ function.bijective f :=
 ⟨λ h, function.bijective_iff_has_inverse.mpr $
-  ⟨h.unit.inv, ⟨End_is_unit_inv_apply_apply_of_is_unit h, End_is_unit_apply_inv_apply_of_is_unit h⟩⟩,
+  ⟨h.unit.inv, ⟨End_is_unit_inv_apply_apply_of_is_unit h,
+    End_is_unit_apply_inv_apply_of_is_unit h⟩⟩,
  λ H, let e : M ≃ₗ[R] M := { ..f, ..(equiv.of_bijective f H)} in
   ⟨⟨_, e.symm, linear_map.ext e.right_inv, linear_map.ext e.left_inv⟩, rfl⟩⟩
 

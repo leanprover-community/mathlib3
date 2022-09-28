@@ -667,7 +667,7 @@ set.to_finite _
 
 /-- The set of roots of all polynomials of bounded degree and having coefficients in a finite set
 is finite. -/
-lemma bUnion_roots_finite (R S : Type*) [semiring R] [comm_ring S] [is_domain S]
+lemma bUnion_roots_finite {R S : Type*} [semiring R] [comm_ring S] [is_domain S]
 (m : R →+* S) (d : ℕ) (U : set R) (h : U.finite) :
   (⋃ (f : R[X]) (hf : f.nat_degree ≤ d ∧ ∀ i, (f.coeff i) ∈ U),
     ((f.map m).roots.to_finset : set S)).finite :=

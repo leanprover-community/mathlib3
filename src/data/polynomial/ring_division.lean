@@ -691,7 +691,7 @@ begin
     apply finset.sum_congr rfl (λ j hj, _),
     rw nat.mod_eq_of_lt (finset.mem_range.mp hj),
     exact nat.lt_succ_iff.mpr hf.1, },
-  { intros p _ ,
+  { intros p _,
     convert root_set_finite (p.map m) S,
     simp only [algebra.id.map_eq_id, map_id], },
 end

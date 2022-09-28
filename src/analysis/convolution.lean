@@ -607,24 +607,24 @@ variables [is_add_left_invariant μ] [sigma_finite μ]
 
 We can simplify the second argument of `dist` further if we add some extra type-classes on `E`
 and `𝕜`. -/
-lemma dist_convolution_le' {x₀ : G} {R ε : ℝ}
+lemma dist_convolution_le' {x₀ : G} {R ε : ℝ} {z₀ : E'}
   (hε : 0 ≤ ε)
   (hif : integrable f μ)
   (hf : support f ⊆ ball (0 : G) R)
   (hmg : ae_strongly_measurable g μ)
-  (hg : ∀ x ∈ ball x₀ R, dist (g x) (g x₀) ≤ ε) :
-  dist ((f ⋆[L, μ] g : G → F) x₀) (∫ t, L (f t) (g x₀) ∂μ) ≤ ∥L∥ * ∫ x, ∥f x∥ ∂μ * ε :=
+  (hg : ∀ x ∈ ball x₀ R, dist (g x) z₀ ≤ ε) :
+  dist ((f ⋆[L, μ] g : G → F) x₀) (∫ t, L (f t) z₀ ∂μ) ≤ ∥L∥ * ∫ x, ∥f x∥ ∂μ * ε :=
 begin
   have hfg : convolution_exists_at f g x₀ L μ,
   { refine bdd_above.convolution_exists_at L _ metric.is_open_ball.measurable_set
     (subset_trans _ hf) hif.integrable_on hif.ae_strongly_measurable hmg,
     swap, { refine λ t, mt (λ ht : f t = 0, _), simp_rw [ht, L.map_zero₂] },
     rw [bdd_above_def],
-    refine ⟨∥g x₀∥ + ε, _⟩,
+    refine ⟨∥z₀∥ + ε, _⟩,
     rintro _ ⟨x, hx, rfl⟩,
     refine norm_le_norm_add_const_of_dist_le (hg x _),
     rwa [mem_ball_iff_norm, norm_sub_rev, ← mem_ball_zero_iff] },
-  have h2 : ∀ t, dist (L (f t) (g (x₀ - t))) (L (f t) (g x₀)) ≤ ∥L (f t)∥ * ε,
+  have h2 : ∀ t, dist (L (f t) (g (x₀ - t))) (L (f t) z₀) ≤ ∥L (f t)∥ * ε,
   { intro t, by_cases ht : t ∈ support f,
     { have h2t := hf ht,
       rw [mem_ball_zero_iff] at h2t,
@@ -636,7 +636,7 @@ begin
       simp_rw [ht, L.map_zero₂, L.map_zero, norm_zero, zero_mul, dist_self] } },
   simp_rw [convolution_def],
   simp_rw [dist_eq_norm] at h2 ⊢,
-  rw [← integral_sub hfg.integrable], swap, { exact (L.flip (g x₀)).integrable_comp hif },
+  rw [← integral_sub hfg.integrable], swap, { exact (L.flip z₀).integrable_comp hif },
   refine (norm_integral_le_of_norm_le ((L.integrable_comp hif).norm.mul_const ε)
     (eventually_of_forall h2)).trans _,
   rw [integral_mul_right],
@@ -669,14 +669,14 @@ on a ball with the same radius around `x₀`.
 
 This is a special case of `dist_convolution_le'` where `L` is `(•)`, `f` has integral 1 and `f` is
 nonnegative. -/
-lemma dist_convolution_le {f : G → ℝ} {x₀ : G} {R ε : ℝ}
+lemma dist_convolution_le {f : G → ℝ} {x₀ : G} {R ε : ℝ} {z₀ : E'}
   (hε : 0 ≤ ε)
   (hf : support f ⊆ ball (0 : G) R)
   (hnf : ∀ x, 0 ≤ f x)
   (hintf : ∫ x, f x ∂μ = 1)
   (hmg : ae_strongly_measurable g μ)
-  (hg : ∀ x ∈ ball x₀ R, dist (g x) (g x₀) ≤ ε) :
-  dist ((f ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) (g x₀) ≤ ε :=
+  (hg : ∀ x ∈ ball x₀ R, dist (g x) z₀ ≤ ε) :
+  dist ((f ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) z₀ ≤ ε :=
 begin
   have hif : integrable f μ,
   { by_contra hif, exact zero_ne_one ((integral_undef hif).symm.trans hintf) },
@@ -716,6 +716,104 @@ begin
     exact ((dist_triangle _ _ _).trans_lt (add_lt_add hx'.out hx)).trans_eq (add_halves δ) },
   have := dist_convolution_le (add_pos h2ε h2ε).le hi (hnφ i) (hiφ i) hig.ae_strongly_measurable h1,
   refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgx)).trans_eq _,
+  field_simp, ring_nf
+end
+
+lemma eventually_eventually_prod_nhds {ι X} [topological_space X] {l : filter ι} {x : X}
+  {p : ι × X → Prop} :
+  (∀ᶠ (x : ι × X) in l ×ᶠ 𝓝 x, ∀ᶠ z in 𝓝 x.2, p (x.1, z)) ↔ (∀ᶠ x in l ×ᶠ 𝓝 x, p x) :=
+sorry
+
+lemma eventually_exists_imp {ι α} {l : filter ι} --[metric_space ι] (i₀ : ι) (hl : l = 𝓝 i₀)
+  {p q : ι → α → Prop} {r : α → Prop} (h1 : ∀ᶠ i in l, ∃ x (_ : r x), p i x)
+    (h2 : ∀ x, r x → ∀ᶠ j in l, q j x) :
+    ∀ᶠ i in l, ∃ x (_ : r x), p i x ∧ q i x :=
+begin
+  sorry --false
+end
+
+lemma convolution_tendsto_right'' [sigma_compact_space G]
+  {ι} {g : ι → G → E'} {z : E'} {l : filter ι} {lE: filter E} {lG : filter G} {z₀ : E'}
+  {φ : ι → G → ℝ} {k : ι → G}
+  (hnφ : ∀ i x, 0 ≤ φ i x)
+  (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1)
+  (hφ : tendsto (λ n, support (φ n)) l (𝓝 0).small_sets)
+  (hig : ∀ j, locally_integrable (g j) μ) {x₀ : G}
+  (hcg : tendsto (uncurry g) (l ×ᶠ 𝓝 x₀) (𝓝 z₀))
+  (hk : tendsto k l (𝓝 x₀)) :
+  tendsto (λ i : ι, (φ i ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) l (𝓝 z₀) :=
+begin
+  simp_rw [tendsto_small_sets_iff] at hφ,
+  rw [metric.tendsto_nhds] at hcg ⊢,
+  intros ε hε,
+  have h2ε : 0 < ε / 3 := div_pos hε (by norm_num),
+  have h2g : ∀ᶠ (i : ι) in l, ∃ δ > 0, (∀ x, dist x (k i) < δ → dist (g i x) z₀ < ε / 3) ∧
+    support (φ i) ⊆ ball 0 (δ / 2),
+  { have := hcg _ h2ε,
+    simp only [← eventually_eventually_prod_nhds] at this {single_pass := tt},
+    simp_rw [metric.eventually_nhds_iff] at this,
+    have h1 := (tendsto_id.prod_mk hk).eventually this, dsimp only [uncurry, id_def] at h1,
+    have hφ' : ∀ δ > 0, ∀ᶠ (x : ι) in l, support (φ x) ⊆ ball (0 : G) (δ / 2) :=
+    λ δ hδ, hφ _ (ball_mem_nhds _ $ half_pos hδ),
+    exact eventually_exists_imp h1 hφ' },
+  have h1 := (tendsto_id.prod_mk hk).eventually (hcg _ h2ε),
+  dsimp only [id_def] at h1,
+  -- have h2 := (hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)),
+  refine h2g.mono (λ i, _),
+  rintro ⟨δ, hδ, hgδ, hi⟩,
+  -- rcases hcg (ε / 3) h2ε with ⟨δ, hδ, hgδ⟩,
+  -- refine ((hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)).prod_mk $
+  --   ball_mem_nhds _ (half_pos hδ)).mono _,
+  -- rintro ⟨i, x⟩ ⟨hi, hx⟩,
+  -- dsimp only at hi hx ⊢,
+  have hgx : dist (g i (k i)) z₀ < ε / 3 := hgδ _ (mem_ball_self hδ),
+  have h1 : ∀ x' ∈ ball (k i) (δ / 2), dist (g i x') (g i (k i)) ≤ ε / 3 + ε / 3,
+  { intros x' hx',
+    refine (dist_triangle_right _ _ _).trans (add_le_add (hgδ _ _).le hgx.le),
+    exact ball_subset_ball (half_lt_self hδ).le hx' },
+  have := dist_convolution_le (add_pos h2ε h2ε).le hi (hnφ i) (hiφ i)
+    (hig i).ae_strongly_measurable h1,
+  refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgx)).trans_eq _,
+  field_simp, ring_nf
+end
+
+-- help! how to generalize `𝓝 i₀` in this?
+lemma convolution_tendsto_right''' [sigma_compact_space G]
+  {ι} {g : ι → G → E'} {z : E'} {l : filter ι} {lE: filter E} {lG : filter G} {z₀ : E'} {i₀ : ι}
+  [metric_space ι]
+  {φ : ι → G → ℝ} {k : ι → G}
+  (hnφ : ∀ i x, 0 ≤ φ i x)
+  (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1)
+  -- todo: generalize `(𝓝 i₀)` to a filter so that it at least also works for `(at_top : filter ℕ)`
+  (hφ : tendsto (λ n, support (φ n)) (𝓝 i₀) (𝓝 0).small_sets)
+  (hig : ∀ j, locally_integrable (g j) μ) {x₀ : G}
+  (hcg : continuous_at (uncurry g) (i₀, k i₀))
+  (hk : continuous_at k i₀) :
+  tendsto (λ i : ι, (φ i ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) (𝓝 i₀) (𝓝 (g i₀ (k i₀))) :=
+begin
+  have h2cg := hcg,
+  simp_rw [tendsto_small_sets_iff] at hφ,
+  rw [metric.continuous_at_iff] at hcg,
+  rw [metric.tendsto_nhds] at ⊢,
+  intros ε hε,
+  have h2ε : 0 < ε / 3 := div_pos hε (by norm_num),
+  obtain ⟨δ, hδ, hgδ⟩ := hcg _ h2ε,
+  dsimp only [uncurry] at hgδ,
+  have h1 := (continuous_at_id.prod hk),
+  rw [continuous_at, metric.tendsto_nhds] at h1,
+  have h2φ := (hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)),
+  filter_upwards [h1 _ (half_pos hδ), h2φ],
+  intros i hki hφi,
+  have hgi : dist (g i (k i)) (g i₀ (k i₀)) < ε / 3 := hgδ (hki.trans $ half_lt_self hδ),
+  have h1 : ∀ x' ∈ ball (k i) (δ / 2), dist (g i x') (g i (k i)) ≤ ε / 3 + ε / 3,
+  { intros x' hx',
+    refine (dist_triangle_right _ _ _).trans (add_le_add (@hgδ (i, x') _).le hgi.le),
+    simp_rw [prod.dist_eq, max_lt_iff] at hki ⊢,
+    refine ⟨hki.1.trans $ half_lt_self hδ, _⟩,
+    exact ((dist_triangle _ _ _).trans_lt (add_lt_add hx'.out hki.2)).trans_eq (add_halves δ) },
+  have := dist_convolution_le (add_pos h2ε h2ε).le hφi (hnφ i) (hiφ i)
+    (hig i).ae_strongly_measurable h1,
+  refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgi)).trans_eq _,
   field_simp, ring_nf
 end
 

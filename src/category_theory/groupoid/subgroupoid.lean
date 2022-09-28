@@ -159,6 +159,10 @@ structure is_normal : Prop :=
   (wide : ∀ c, (𝟙 c) ∈ (S.arrws c c))
   (conj : ∀ {c d} (p : c ⟶ d) (γ : c ⟶ c) (hs : γ ∈ S.arrws c c),
                 ((inv p) ≫ γ ≫ p) ∈ (S.arrws d d))
+  (conj' : ∀ {c d} (p : d ⟶ c) (γ : c ⟶ c) (hs : γ ∈ S.arrws c c),
+                (p ≫ γ ≫ (inv p)) ∈ (S.arrws d d)
+         := λ c d p γ hs, by { convert conj (inv p) γ hs, simp, })
+
 
 lemma is_normal.conjugation_eq (Sn : is_normal S) {c d} (p : c ⟶ d) :
   set.bij_on (λ γ : c ⟶ c, (inv p) ≫ γ ≫ p) (S.arrws c c) (S.arrws d d) :=
@@ -180,22 +184,19 @@ begin
 end
 
 lemma top_is_normal : is_normal (⊤ : subgroupoid C) :=
-begin
-  split,
-  { rintro c, trivial },
-  { rintro c d p γ hγ, trivial,}
-end
+{ wide := (λ c, trivial)
+, conj := (λ a b c d e, trivial) }
+
 
 lemma Inf_is_normal (s : set $ subgroupoid C) (sn : ∀ S ∈ s, is_normal S) : is_normal (Inf s) :=
-begin
-  split,
+{ wide := by
   { rintro c _ ⟨⟨S,Ss⟩,rfl⟩,
     exact (sn S Ss).wide c, },
+  conj := by
   { rintros c d p γ hγ _ ⟨⟨S,Ss⟩,rfl⟩,
     apply (sn S Ss).conj p γ,
     apply hγ,
-    use ⟨S,Ss⟩, },
-end
+    use ⟨S,Ss⟩, } }
 
 lemma is_normal.vertex_subgroup (Sn : is_normal S) (c : C) (cS : c ∈ S.carrier) :
   (S.vertex_subgroup c cS).normal :=

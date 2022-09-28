@@ -510,5 +510,3 @@ begin
   { rw hI, exact bot_is_principal },
   exact (class_group.mk0_eq_one_iff (mem_non_zero_divisors_iff_ne_zero.mpr hI)).mp (eq_one _),
 end
-
-#lint

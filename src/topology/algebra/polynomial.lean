@@ -223,9 +223,9 @@ begin
   { apply le_trans _ (le_max_left _ _),
     apply le_trans (coeff_le_of_roots_le i h_monic h_splits h_roots) _,
     refine finset.le_max' S _ _,
-      exact finset.mem_bUnion.mpr ⟨⟨p.nat_degree, i⟩, finset.mem_product.mpr
-        ⟨finset.mem_range_succ_iff.mpr h_degree, finset.mem_range.mpr hi⟩,
-          finset.mem_singleton.mpr rfl⟩, },
+    exact finset.mem_bUnion.mpr ⟨⟨p.nat_degree, i⟩, finset.mem_product.mpr
+      ⟨finset.mem_range_succ_iff.mpr h_degree, finset.mem_range.mpr hi⟩,
+        finset.mem_singleton_self _⟩, },
   { rw coeff_eq_zero_of_nat_degree_lt,
     { rw norm_zero, exact le_max_right _ _, },
     { rw nat_degree_map, linarith, }},

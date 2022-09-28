@@ -1392,8 +1392,8 @@ begin
     exact hs, },
 end
 
-lemma sInter_prod_sInter (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty) (h₂ : f₂.nonempty) :
-  ⋂₀f₁ ×ˢ ⋂₀f₂ = ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
+lemma sInter_prod_sInter (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty) (h₂ : f₂.nonempty)
+  : ⋂₀f₁ ×ˢ ⋂₀f₂ = ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
 begin
   rw subset_antisymm_iff,
   split,

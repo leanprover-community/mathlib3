@@ -60,7 +60,7 @@ lemma zero_cpow_eq_iff {x : ℂ} {a : ℂ} : 0 ^ x = a ↔ (x ≠ 0 ∧ a = 0) �
 begin
   split,
   { intros hyp,
-    simp [cpow_def] at hyp,
+    simp only [cpow_def, eq_self_iff_true, if_true] at hyp,
     by_cases x = 0,
     { subst h, simp only [if_true, eq_self_iff_true] at hyp, right, exact ⟨rfl, hyp.symm⟩},
     { rw if_neg h at hyp, left, exact ⟨h, hyp.symm⟩, }, },
@@ -80,7 +80,7 @@ else by rw [cpow_def, if_neg (one_ne_zero : (1 : ℂ) ≠ 0), if_neg hx, mul_one
 by rw cpow_def; split_ifs; simp [one_ne_zero, *] at *
 
 lemma cpow_add {x : ℂ} (y z : ℂ) (hx : x ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
-by simp [cpow_def]; simp [*, exp_add, mul_add] at *
+by simp only [cpow_def, ite_mul, boole_mul, mul_ite, mul_boole]; simp [*, exp_add, mul_add] at *
 
 lemma cpow_mul {x y : ℂ} (z : ℂ) (h₁ : -π < (log x * y).im) (h₂ : (log x * y).im ≤ π) :
   x ^ (y * z) = (x ^ y) ^ z :=
@@ -91,7 +91,7 @@ begin
 end
 
 lemma cpow_neg (x y : ℂ) : x ^ -y = (x ^ y)⁻¹ :=
-by simp [cpow_def]; split_ifs; simp [exp_neg]
+by simp only [cpow_def, neg_eq_zero, mul_neg]; split_ifs; simp [exp_neg]
 
 lemma cpow_sub {x : ℂ} (y z : ℂ) (hx : x ≠ 0) : x ^ (y - z) = x ^ y / x ^ z :=
 by rw [sub_eq_add_neg, cpow_add _ _ hx, cpow_neg, div_eq_mul_inv]
@@ -335,7 +335,7 @@ lemma zero_rpow_eq_iff {x : ℝ} {a : ℝ} : 0 ^ x = a ↔ (x ≠ 0 ∧ a = 0) �
 begin
   split,
   { intros hyp,
-    simp [rpow_def] at hyp,
+    simp only [rpow_def, complex.of_real_zero] at hyp,
     by_cases x = 0,
     { subst h,
       simp only [complex.one_re, complex.of_real_zero, complex.cpow_zero] at hyp,
@@ -395,7 +395,8 @@ end real
 namespace complex
 
 lemma of_real_cpow {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : ((x ^ y : ℝ) : ℂ) = (x : ℂ) ^ (y : ℂ) :=
-by simp [real.rpow_def_of_nonneg hx, complex.cpow_def]; split_ifs; simp [complex.of_real_log hx]
+by simp only [real.rpow_def_of_nonneg hx, complex.cpow_def, of_real_eq_zero]; split_ifs;
+  simp [complex.of_real_log hx]
 
 lemma of_real_cpow_of_nonpos {x : ℝ} (hx : x ≤ 0) (y : ℂ) :
   (x : ℂ) ^ y = ((-x) : ℂ) ^ y * exp (π * I * y) :=
@@ -1383,7 +1384,7 @@ begin
   rw this,
   refine continuous_real_to_nnreal.continuous_at.comp (continuous_at.comp _ _),
   { apply real.continuous_at_rpow,
-    simp at h,
+    simp only [ne.def] at h,
     rw ← (nnreal.coe_eq_zero x) at h,
     exact h },
   { exact ((continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd).continuous_at }
@@ -1545,7 +1546,7 @@ begin
   cases x,
   { exact dif_pos zero_lt_one },
   { change ite _ _ _ = _,
-    simp,
+    simp only [nnreal.rpow_one, some_eq_coe, ite_eq_right_iff, top_ne_coe, and_imp],
     exact λ _, zero_le_one.not_lt }
 end
 
@@ -1775,7 +1776,7 @@ lemma rpow_lt_rpow_of_exponent_gt {x : ℝ≥0∞} {y z : ℝ} (hx0 : 0 < x) (hx
   x^y < x^z :=
 begin
   lift x to ℝ≥0 using ne_of_lt (lt_of_lt_of_le hx1 le_top),
-  simp at hx0 hx1,
+  simp only [coe_lt_one_iff, coe_pos] at hx0 hx1,
   simp [coe_rpow_of_ne_zero (ne_of_gt hx0), nnreal.rpow_lt_rpow_of_exponent_gt hx0 hx1 hyz]
 end
 
@@ -1788,7 +1789,7 @@ begin
     rcases lt_trichotomy z 0 with Hz|Hz|Hz;
     simp [Hy, Hz, h, zero_rpow_of_neg, zero_rpow_of_pos, le_refl];
     linarith },
-  { simp at hx1,
+  { rw [coe_le_one_iff] at hx1,
     simp [coe_rpow_of_ne_zero h,
           nnreal.rpow_le_rpow_of_exponent_ge (bot_lt_iff_ne_bot.mpr h) hx1 hyz] }
 end
@@ -1819,7 +1820,7 @@ begin
   cases lt_or_le 0 p with hp_pos hp_nonpos,
   { exact rpow_pos_of_nonneg hx_pos (le_of_lt hp_pos), },
   { rw [←neg_neg p, rpow_neg, inv_pos],
-    exact rpow_ne_top_of_nonneg (by simp [hp_nonpos]) hx_ne_top, },
+    exact rpow_ne_top_of_nonneg (right.nonneg_neg_iff.mpr hp_nonpos) hx_ne_top, },
 end
 
 lemma rpow_lt_one {x : ℝ≥0∞} {z : ℝ} (hx : x < 1) (hz : 0 < z) : x^z < 1 :=
@@ -1978,7 +1979,7 @@ begin
   apply continuous_iff_continuous_at.2 (λ x, _),
   rcases lt_trichotomy 0 y with hy|rfl|hy,
   { exact continuous_at_rpow_const_of_pos hy },
-  { simp, exact continuous_at_const },
+  { simp only [rpow_zero], exact continuous_at_const },
   { obtain ⟨z, hz⟩ : ∃ z, y = -z := ⟨-y, (neg_neg _).symm⟩,
     have z_pos : 0 < z, by simpa [hz] using hy,
     simp_rw [hz, rpow_neg],

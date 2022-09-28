@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Filippo A. E. Nuccio Mortarino Majno di Capriglio. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Filippo A. E. Nuccio and Junyan Xu
+Authors: Filippo A. E. Nuccio, Junyan Xu
 -/
 import topology.compact_open
 import topology.homotopy.path

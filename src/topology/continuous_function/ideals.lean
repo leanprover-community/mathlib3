@@ -11,31 +11,56 @@ import data.complex.is_R_or_C
 /-!
 # Ideals of continuous functions
 
+For a topological ring `R` and a topological space `X` there is a Galois connection between
+`ideal C(X, R)` and `set X` given by sending each `I : ideal C(X, R)` to
+`{x : X | ∀ f ∈ I, f x = 0}ᶜ` and mapping `s : set X` to the ideal with carrier
+`{f : C(X, R) | ∀ x ∈ sᶜ, f x = 0}`, and we call these maps `continuous_map.set_of_ideal` and
+`continuous_map.ideal_of_set`. As long as `R` is Hausdorff, `continuous_map.set_of_ideal I` is open,
+and if, in addition, `X` is locally compact, then `continuous_map.set_of_ideal s` is closed.
+
+When `R = 𝕜` with `is_R_or_C 𝕜` and `X` is compact Hausdorff, then this Galois connection can be
+improved to a true Galois correspondence (i.e., order isomorphism) between the type `opens X` and
+the subtype of closed ideals of `C(X, R)`.
+
 ## Main definitions
 
-* `continuous_map.ideal_of_set`
-* `continuous_map.set_of_ideal`
+* `continuous_map.ideal_of_set`: ideal of functions which vanish on the complement of a set.
+* `continuous_map.set_of_ideal`: complement of the set on which all functions in the ideal vanish.
+* `continuous_map.opens_of_ideal`: `continuous_map.set_of_ideal` as a term of `opens X`.
+* `continuous_map.ideal_opens_gi`: The Galois insertion `continuous_map.opens_of_ideal` and
+  `λ s, continuous_map.ideal_of_set ↑s`.
 
 ## Main statements
 
-* ``
+* `ideal_of_set_of_ideal_eq_closure`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`,
+  `ideal_of_set 𝕜 (set_of_ideal I) = I.closure` for any ideal `I : ideal C(X, 𝕜)`.
+* `set_of_ideal_of_set_eq_interior`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`,
+  `set_of_ideal (ideal_of_set 𝕜 s) = interior s` for any `s : set X`.
 
 ## Implementation details
 
+Because there does not currently exist a bundled type of closed ideals, we don't provide the actual
+order isomorphism described above, and instead we only consider the Galois insertion
+`continuous_map.ideal_opens_gi`.
 
+## TODO
 
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
+* Show that maximal ideals in `C(X, 𝕜)` correspond to (complements of) singletons.
 
 ## Tags
 
-Foobars, barfoos
+ideal, continuous function, compact, Hausdorff
 -/
+
 
 open_locale nnreal
 
 namespace continuous_map
+
+open topological_space
+
+section topological_ring
+
 variables {X R : Type*} [topological_space X] [ring R] [topological_space R] [topological_ring R]
 
 variable (R)
@@ -45,8 +70,16 @@ which vanish on the complement of `s`. -/
 def ideal_of_set (s : set X) : ideal C(X, R) :=
 { carrier := {f : C(X, R) | ∀ x ∈ sᶜ, f x = 0},
   add_mem' := λ f g hf hg x hx, by simp only [hf x hx, hg x hx, coe_add, pi.add_apply, add_zero],
-  zero_mem' := by simp only [set.mem_set_of_eq, coe_zero, pi.zero_apply, eq_self_iff_true, implies_true_iff],
+  zero_mem' := λ _ _, rfl,
   smul_mem' := λ c f hf x hx, mul_zero (c x) ▸ congr_arg (λ y, c x * y) (hf x hx), }
+
+lemma ideal_of_set_closed [locally_compact_space X] [t2_space R] (s : set X) :
+  is_closed (ideal_of_set R s : set C(X, R) ) :=
+begin
+  simp only [ideal_of_set, submodule.coe_set_mk, set.set_of_forall],
+  exact is_closed_Inter (λ x, is_closed_Inter $
+    λ hx, is_closed_eq (continuous_eval_const' x) continuous_const),
+end
 
 variable {R}
 
@@ -56,14 +89,6 @@ lemma mem_ideal_of_set {s : set X} {f : C(X, R)} :
 lemma not_mem_ideal_of_set {s : set X} {f : C(X, R)} :
   f ∉ ideal_of_set R s ↔ ∃ x ∈ sᶜ, f x ≠ 0 :=
 by { simp_rw [mem_ideal_of_set, exists_prop], push_neg }
-
-lemma ideal_of_set_closed [locally_compact_space X] [t2_space R] (s : set X) :
-  is_closed (ideal_of_set R s : set C(X, R) ) :=
-begin
-  simp only [ideal_of_set, submodule.coe_set_mk, set.set_of_forall],
-  exact is_closed_Inter (λ x, is_closed_Inter $
-    λ hx, is_closed_eq (continuous_eval_const' x) continuous_const),
-end
 
 /-- Given an ideal `I` of `C(X, R)`, construct the set of points for which every function in the
 ideal vanishes on the complement. -/
@@ -85,8 +110,19 @@ begin
     λ hf, is_closed_eq (map_continuous f) continuous_const)
 end
 
+/-- The open set `set_of_ideal I` realized as a term of `opens X`. -/
+@[simps] def opens_of_ideal [t2_space R] (I : ideal C(X, R)) : opens X :=
+⟨set_of_ideal I, set_of_ideal_open I⟩
+
+@[simp] lemma set_of_top_eq_univ [nontrivial R] : (set_of_ideal (⊤ : ideal C(X, R))) = set.univ :=
+set.univ_subset_iff.mp $ λ x hx, mem_set_of_ideal.mpr ⟨1, submodule.mem_top, one_ne_zero⟩
+
+@[simp] lemma ideal_of_empty_eq_bot : (ideal_of_set R (∅ : set X)) = ⊥ :=
+ideal.ext (λ f, by simpa only [mem_ideal_of_set, set.compl_empty, set.mem_univ, forall_true_left,
+  ideal.mem_bot, fun_like.ext_iff] using iff.rfl)
+
 variables (X R)
-lemma gc : galois_connection (set_of_ideal : ideal C(X, R) → set X) (ideal_of_set R) :=
+lemma ideal_gc : galois_connection (set_of_ideal : ideal C(X, R) → set X) (ideal_of_set R) :=
 begin
   refine λ I s, ⟨λ h f hf, _, λ h x hx, _⟩,
   { by_contra h',
@@ -102,37 +138,39 @@ theorem nnnorm_lt_iff {α E : Type*} [topological_space α] [compact_space α]
 ∥f∥₊ < M ↔ ∀ (x : α), ∥f x∥₊ < M :=
 f.norm_lt_iff M0
 
-end continuous_map
+end topological_ring
 
-namespace continuous_map
-
-variables {X 𝕜 A : Type*} [is_R_or_C 𝕜] [topological_space X] [normed_ring A] [star_ring A]
-variables [cstar_ring A] [normed_algebra 𝕜 A] [h𝕜A : star_module 𝕜 A]
+section is_R_or_C
 open is_R_or_C
 
-lemma main_lemma_aux (f : C(X, ℝ≥0)) {c : ℝ≥0} (hc : 0 < c) :
-  ∃ g : C(X, ℝ≥0), (∀ x : X, (g * f) x ≤ 1) ∧ {x : X | c ≤ f x}.eq_on (g * f) 1 :=
-begin
-  refine ⟨⟨(f ⊔ (const X c))⁻¹, continuous.inv₀ ((map_continuous f).sup $ map_continuous _)
-    (λ x, (hc.trans_le le_sup_right).ne')⟩, λ x, _, _⟩,
-  exact (inv_mul_le_iff (hc.trans_le le_sup_right)).mpr ((mul_one (f x ⊔ c)).symm ▸ le_sup_left),
-  intros x hx,
-  simpa only [coe_const, coe_mk, pi.mul_apply, pi.inv_apply, pi.sup_apply, function.const_apply,
-    pi.one_apply, sup_eq_left.mpr (set.mem_set_of.mp hx)]
-  using inv_mul_cancel (hc.trans_le hx).ne',
-end
+variables {X 𝕜 : Type*} [is_R_or_C 𝕜] [topological_space X]
 
-lemma ideal_of_set_of_le_closure [compact_space X] (I : ideal C(X, 𝕜)) :
-  ideal_of_set 𝕜 (set_of_ideal I) ≤ I.closure :=
+/-- An auxiliary lemma used in the proof of `ideal_of_set_of_ideal_eq_closure` which may be useful
+on its own. -/
+lemma exists_mul_le_one_eq_on_ge (f : C(X, ℝ≥0)) {c : ℝ≥0} (hc : 0 < c) :
+  ∃ g : C(X, ℝ≥0), (∀ x : X, (g * f) x ≤ 1) ∧ {x : X | c ≤ f x}.eq_on (g * f) 1 :=
+⟨{ to_fun := (f ⊔ (const X c))⁻¹,
+   continuous_to_fun := ((map_continuous f).sup $ map_continuous _).inv₀
+     (λ _, (hc.trans_le le_sup_right).ne')},
+ λ x, (inv_mul_le_iff (hc.trans_le le_sup_right)).mpr ((mul_one (f x ⊔ c)).symm ▸ le_sup_left),
+ λ x hx, by simpa only [coe_const, coe_mk, pi.mul_apply, pi.inv_apply, pi.sup_apply,
+   function.const_apply, pi.one_apply, sup_eq_left.mpr (set.mem_set_of.mp hx)]
+   using inv_mul_cancel (hc.trans_le hx).ne'⟩
+
+@[simp] lemma ideal_of_set_of_ideal_eq_closure [compact_space X] [t2_space X] (I : ideal C(X, 𝕜)) :
+  ideal_of_set 𝕜 (set_of_ideal I) = I.closure :=
 begin
-  /- given `f ∈ ideal_of_set 𝕜 (set_of_ideal I)` and `(ε : ℝ≥0) > 0` it suffices to show that
-  `f` is within `ε` of `I`. Let `t := {x : X | ε / 2 ≤ ∥f x∥₊}}` which is closed and disjoint from
-  `set_of_ideal I`. -/
-  refine λ f hf, metric.mem_closure_iff.mpr (λ ε hε, _),
+  /- Since `ideal_of_set 𝕜 (set_of_ideal I)` is closed and contains `I`, it contains `I.closure`.
+  For the reverse inclusion, given `f ∈ ideal_of_set 𝕜 (set_of_ideal I)` and `(ε : ℝ≥0) > 0` it
+  suffices to show that `f` is within `ε` of `I`.-/
+  refine le_antisymm (λ f hf, metric.mem_closure_iff.mpr (λ ε hε, _))
+    ((ideal_of_set_closed 𝕜 $ set_of_ideal I).closure_subset_iff.mpr $
+    λ f hf x hx, not_mem_set_of_ideal.mp hx hf),
   lift ε to ℝ≥0 using hε.lt.le,
   replace hε := (show (0 : ℝ≥0) < ε, from hε),
   simp_rw dist_nndist,
   norm_cast,
+  -- Let `t := {x : X | ε / 2 ≤ ∥f x∥₊}}` which is closed and disjoint from `set_of_ideal I`.
   set t := {x : X | ε / 2 ≤ ∥f x∥₊},
   have ht : is_closed t := is_closed_le continuous_const (map_continuous f).nnnorm,
   have htI : disjoint t (set_of_ideal I)ᶜ,
@@ -208,24 +246,27 @@ begin
   t.eq_empty_or_nonempty.elim (λ ht', ⟨1, zero_lt_one, λ y hy, false.elim (by rwa ht' at hy)⟩)
     (λ ht', let ⟨x, hx, hx'⟩ := ht.is_compact.exists_forall_le ht' (map_continuous g').continuous_on
       in ⟨g' x, hgt' x hx, hx'⟩),
-  obtain ⟨g, hg, hgc⟩ := main_lemma_aux g' hc,
+  obtain ⟨g, hg, hgc⟩ := exists_mul_le_one_eq_on_ge g' hc,
   refine ⟨g * g', _, hg, hgc.mono hgc'⟩,
   convert I.mul_mem_left (of_nnreal_cm.comp g) hI',
   ext,
   simp only [of_nnreal_cm_coe, comp_apply, coe_mul, pi.mul_apply, map_mul],
 end
 
-@[simp] lemma ideal_of_set_of_is_closed [compact_space X] {I : ideal C(X, 𝕜)}
+lemma ideal_of_set_of_ideal_is_closed [compact_space X] [t2_space X] {I : ideal C(X, 𝕜)}
   (hI : is_closed (I : set C(X, 𝕜))) : ideal_of_set 𝕜 (set_of_ideal I) = I :=
-le_antisymm ((ideal_of_set_of_le_closure I).trans $ closure_subset_iff_is_closed.mpr hI)
-  ((gc X 𝕜).le_u_l I)
+(ideal_of_set_of_ideal_eq_closure I).trans (ideal.ext $ set.ext_iff.mp hI.closure_eq)
 
-lemma interior_subset_of_ideal_of_set [compact_space X] [t2_space X] (s : set X) :
-  interior s ⊆ set_of_ideal (ideal_of_set 𝕜 s) :=
+variable (𝕜)
+
+@[simp] lemma set_of_ideal_of_set_eq_interior [compact_space X] [t2_space X] (s : set X) :
+  set_of_ideal (ideal_of_set 𝕜 s) = interior s:=
 begin
+  refine set.subset.antisymm ((set_of_ideal_open (ideal_of_set 𝕜 s)).subset_interior_iff.mpr
+    (λ x hx, let ⟨f, hf, hfx⟩ := mem_set_of_ideal.mp hx
+    in set.not_mem_compl_iff.mp (mt (@hf x) hfx))) (λ x hx, _),
   /- If `x ∉ closure sᶜ`, we must produce `f : C(X, 𝕜)` which is zero on `sᶜ` and `f x ≠ 0`. -/
-  rw [←compl_compl (interior s), ←closure_compl],
-  intros x hx,
+  rw [←compl_compl (interior s), ←closure_compl] at hx,
   simp_rw [mem_set_of_ideal, mem_ideal_of_set],
   haveI : normal_space X := normal_of_compact_t2,
   /- Apply Urysohn's lemma to get `g : C(X, ℝ)` which is zero on `sᶜ` and `g x ≠ 0`, then compose
@@ -238,9 +279,22 @@ begin
       using one_ne_zero⟩,
 end
 
-@[simp] lemma set_of_ideal_of_is_open [compact_space X] [t2_space X] {s : set X} (hs : is_open s) :
-  set_of_ideal (ideal_of_set 𝕜 s) = s :=
-le_antisymm ((gc X 𝕜).l_u_le s)
-  (by simpa only [hs.interior_eq] using (interior_subset_of_ideal_of_set s))
+lemma set_of_ideal_of_set_of_is_open [compact_space X] [t2_space X] {s : set X}
+  (hs : is_open s) : set_of_ideal (ideal_of_set 𝕜 s) = s :=
+(set_of_ideal_of_set_eq_interior 𝕜 s).trans hs.interior_eq
+
+variable (X)
+
+/-- The Galois insertion `continuous_map.opens_of_ideal : ideal C(X, 𝕜) → opens X` and
+`λ s, continuous_map.ideal_of_set ↑s`. -/
+@[simps] def ideal_opens_gi [compact_space X] [t2_space X] :
+  galois_insertion (opens_of_ideal : ideal C(X, 𝕜) → opens X) (λ s, ideal_of_set 𝕜 s) :=
+{ choice := λ I hI, opens_of_ideal I.closure,
+  gc := λ I s, ideal_gc X 𝕜 I s,
+  le_l_u := λ s, (set_of_ideal_of_set_of_is_open 𝕜 s.prop).ge,
+  choice_eq := λ I hI, congr_arg _ $ ideal.ext (set.ext_iff.mp (is_closed_of_closure_subset $
+    (ideal_of_set_of_ideal_eq_closure I ▸ hI : I.closure ≤ I)).closure_eq) }
+
+end is_R_or_C
 
 end continuous_map

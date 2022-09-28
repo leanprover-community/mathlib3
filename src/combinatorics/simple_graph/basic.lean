@@ -317,6 +317,28 @@ instance decidable_mem_edge_set [decidable_rel G.adj] :
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
 
+section from_edge_set
+
+variable (s : set (sym2 V))
+
+/- `from_edge_set` constructs a `simple_graph` from a set of edges, without loops. -/
+def from_edge_set : simple_graph V :=
+{ adj := λ v w, v ≠ w ∧ ⟦(v, w)⟧ ∈ s,
+  symm := λ v w h, ⟨h.1.symm, by {rw sym2.eq_swap, exact h.2}⟩ }
+
+@[simp] lemma adj_from_edge_set : (from_edge_set s).adj v w ↔ v ≠ w ∧ ⟦(v, w)⟧ ∈ s := iff.rfl
+
+@[simp] lemma from_edge_set_eq : from_edge_set (G.edge_set) = G :=
+  by { ext v w, exact ⟨λ h, h.2, λ h, ⟨G.ne_of_adj h, h⟩⟩ }
+
+@[simp] lemma from_edge_set_empty : from_edge_set (∅ : set (sym2 V)) = ⊥ :=
+  by { ext v w, simp only [adj_from_edge_set, set.mem_empty_iff_false, and_false, bot_adj] }
+
+@[simp] lemma from_edge_set_univ : from_edge_set (set.univ : set (sym2 V)) = ⊤ :=
+  by { ext v w, simp only [adj_from_edge_set, set.mem_univ, and_true, top_adj] }
+
+end from_edge_set
+
 /-! ## Darts -/
 
 /-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices.
@@ -479,6 +501,26 @@ set.to_finset_card _
 @[simp] lemma edge_set_univ_card [fintype G.edge_set] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
+
+section from_edge_finset
+
+variable (s : finset (sym2 V))
+
+/- `from_edge_finset` constructs a `simple_graph` from a finset of edges, without loops. -/
+def from_edge_finset : simple_graph V := from_edge_set (s : set (sym2 V))
+
+@[simp] lemma adj_from_edge_finset : (from_edge_finset s).adj v w ↔ v ≠ w ∧ ⟦(v, w)⟧ ∈ s := iff.rfl
+
+@[simp] lemma from_edge_finset_eq [fintype G.edge_set] : from_edge_finset (G.edge_finset) = G :=
+  by simp only [from_edge_finset, coe_edge_finset, from_edge_set_eq]
+
+@[simp] lemma from_edge_finset_empty : from_edge_finset (∅ : finset (sym2 V)) = ⊥ :=
+  by simp only [from_edge_finset, coe_empty, from_edge_set_empty]
+
+@[simp] lemma from_edge_finset_univ [fintype V] : from_edge_finset (univ : finset (sym2 V)) = ⊤ :=
+  by simp only [from_edge_finset, coe_univ, from_edge_set_univ]
+
+end from_edge_finset
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl

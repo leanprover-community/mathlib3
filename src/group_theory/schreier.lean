@@ -144,19 +144,30 @@ end
 
 variables (G)
 
+/-- If `G` has `n` commutators `[g₁, g₂]`, then `|G'| ≤ [G : Z(G)] ^ ([G : Z(G)] * n + 1)`. -/
 lemma card_commutator_dvd_index_center_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   nat.card (commutator G) ∣
     (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
 begin
   classical,
+  -- First handle the case when `Z(G)` has infinite index and `[G : Z(G)]` is defined to be `0`
   by_cases hG : (center G).index = 0,
   { simp_rw [hG, zero_mul, zero_add, pow_one, dvd_zero] },
+  -- Rewrite as `|Z(G) ∩ G'| * [G' : Z(G) ∩ G'] ∣ [G : Z(G)] ^ ([G : Z(G)] * n) * [G : Z(G)]`
   rw [←((center G).subgroup_of (commutator G)).card_mul_index, pow_succ'],
-  have h := relindex_dvd_index_of_normal (center G) (commutator G),
-  refine mul_dvd_mul (dvd_trans _
-    (pow_dvd_pow (center G).index ((rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h)).trans
-    (nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h) (rank_commutator_le_card G))))) h,
+  -- h1 : `[G' : Z(G) ∩ G'] ∣ [G : Z(G)]`
+  have h1 := relindex_dvd_index_of_normal (center G) (commutator G),
+  -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n)`
+  refine mul_dvd_mul _ h1,
+  -- h2 : `rk (Z(G) ∩ G') ≤ [G' : Z(G) ∩ G'] * rk G'` by Schreier's lemma
+  have h2 := rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h1),
+  -- h3 : `[G' : Z(G) ∩ G'] * rk G' ≤ [G : Z(G)] * n`
+  have h3 := nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h1) (rank_commutator_le_card G),
+  -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ rk (Z(G) ∩ G')`
+  refine dvd_trans _ (pow_dvd_pow (center G).index (h2.trans h3)),
+  -- But `Z(G) ∩ G'` is abelian, so it is enough to prove that `g ^ [G : Z(G)] = 1` for `g ∈ Z(G)`
   apply card_dvd_exponent_pow_rank' _ (λ g, _),
+  -- This follows from the theory of the transfer homomorphism
   have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow' hG) g.1.2,
   simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,
 end

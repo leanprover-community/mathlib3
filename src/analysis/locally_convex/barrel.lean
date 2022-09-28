@@ -64,11 +64,27 @@ lemma seminorm.continuous_of_lower_semicontinuous {𝕜 E} [semi_normed_ring �
 sorry
 
 #lint
+#check seminorm.closed_ball_zero'
 
---lemma is_barrel.eq_closed_ball {𝕜 E : Type*} [normed_field 𝕜] [normed_space ℝ 𝕜]
---  [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
---  {s : set E} (hs : is_barrel 𝕜 s) :
---  ∃ p : seminorm 𝕜 E, lower_semicontinuous p ∧ s = p.closed_ball 0 1 :=
---begin
---  let p₀ : E → ℝ := ⨆ (u : E →L[𝕜] 𝕜) (hu : ∀ x ∈ s, ∥u x∥ ≤ 1), norm ∘ u,
---end
+lemma is_barrel.eq_closed_ball {𝕜 E : Type*} [normed_field 𝕜] [normed_space ℝ 𝕜]
+  [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
+  {s : set E} (hs : is_barrel 𝕜 s) :
+  ∃ p : seminorm 𝕜 E, lower_semicontinuous p ∧ s = p.closed_ball 0 1 :=
+begin
+  let ι := {u : E →L[𝕜] 𝕜 // ∀ x ∈ s, ∥u x∥ ≤ 1},
+  haveI : nonempty ι := ⟨⟨0, λ x hx, by simp⟩⟩,
+  let p : seminorm 𝕜 E := ⨆ u : ι, (norm_seminorm 𝕜 𝕜).comp u,
+  have : (p : E → ℝ) = ⨆ u : ι, norm ∘ u,
+  { sorry }, --should be easy
+  use p,
+  split,
+  { rw this,
+    --refine lower_semicontinuous_supr _,
+    sorry },
+  { refine subset_antisymm (λ x hx, p.mem_closed_ball_zero.mpr _) _,
+    { rw [this, supr_apply],
+      exact csupr_le (λ u, u.2 x hx) },
+    { refine λ x, not_imp_not.mp (λ hx, _),
+      --hard part
+      sorry } }
+end

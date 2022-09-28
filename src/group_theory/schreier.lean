@@ -144,12 +144,11 @@ end
 
 variables (G)
 
-/-- If `G` has `n` commutators `[g₁, g₂]`, then `|G'| ≤ [G : Z(G)] ^ ([G : Z(G)] * n + 1)`. -/
+/-- If `G` has `n` commutators `[g₁, g₂]`, then `|G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n + 1)`. -/
 lemma card_commutator_dvd_index_center_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   nat.card (commutator G) ∣
     (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
 begin
-  classical,
   -- First handle the case when `Z(G)` has infinite index and `[G : Z(G)]` is defined to be `0`
   by_cases hG : (center G).index = 0,
   { simp_rw [hG, zero_mul, zero_add, pow_one, dvd_zero] },
@@ -167,8 +166,9 @@ begin
   refine dvd_trans _ (pow_dvd_pow (center G).index (h2.trans h3)),
   -- `Z(G) ∩ G'` is abelian, so it enough to prove that `g ^ [G : Z(G)] = 1` for `g ∈ Z(G) ∩ G'`
   apply card_dvd_exponent_pow_rank' _ (λ g, _),
-  -- This follows from the theory of the transfer homomorphism
+  -- `Z(G)` is abelian, so `Z(G) ∩ G' ≤ G' ≤ ker (transfer : G → Z(G))`
   have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow' hG) g.1.2,
+  -- `transfer g` is defeq to `g ^ [G : Z(G)]`, so we are done
   simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,
 end
 

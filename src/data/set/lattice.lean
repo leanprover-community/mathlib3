@@ -1377,7 +1377,7 @@ begin
   { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
 end
 
-lemma finite_prod_inter1 (f₁ : set (set α)) (f₂ : set (set β)) :
+lemma prod_sInter_prod_subseteq (f₁ : set (set α)) (f₂ : set (set β)) :
   ⋂₀f₁ ×ˢ ⋂₀f₂ ⊆ ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
 begin
   rintro ⟨x, y⟩,
@@ -1395,10 +1395,12 @@ begin
 end
 
 -- If one of f₁ or f₂ is empty then LHS = univ, but right hand side = ⋂₀f₁ ×ˢ univ or univ ×ˢ ⋂₀f₂
-lemma finite_prod_inter2 (f₁ : set (set α)) (f₂ : set (set β)) [h₁ : f₁.nonempty] [h₂ : f₂.nonempty] :
-  ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) ⊆ ⋂₀f₁ ×ˢ ⋂₀f₂ :=
+lemma prod_sInter_prod (f₁ : set (set α)) (f₂ : set (set β)) [h₁ : f₁.nonempty] [h₂ : f₂.nonempty] :
+  ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) = ⋂₀f₁ ×ˢ ⋂₀f₂ :=
 begin
-  rintro ⟨x, y⟩,
+  rw subset_antisymm_iff,
+  split,
+    rintro ⟨x, y⟩,
   intro h,
   rw image_prod at h,
   rw  mem_sInter at h,
@@ -1444,17 +1446,8 @@ begin
     rw prod_mk_mem_set_prod_eq at e1,
     exact e1.2,
   },
+  { apply prod_sInter_prod_subseteq, },
 end
-
-lemma prod_sInter_prod (f₁ : set (set α)) (f₂ : set (set β)) [h₁ : f₁.nonempty] [h₂ : f₂.nonempty] :
-  ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) = ⋂₀f₁ ×ˢ ⋂₀f₂ :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { apply finite_prod_inter2 _ _ , exact h₁, exact h₂ },
-  { apply finite_prod_inter1, },
-end
-
 
 end prod
 

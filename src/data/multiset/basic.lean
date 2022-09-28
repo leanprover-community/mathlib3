@@ -1104,6 +1104,9 @@ lemma attach_cons (a : α) (m : multiset α) :
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
   by rw [list.map_pmap]; exact list.pmap_congr _ (λ _ _ _ _, subtype.eq rfl)
 
+@[simp]
+lemma attach_map_coe (m : multiset α) : multiset.map (coe : _ → α) m.attach = m := m.attach_map_val
+
 section decidable_pi_exists
 variables {m : multiset α}
 
@@ -1865,6 +1868,13 @@ begin
     rw hf hkx at *,
     contradiction }
 end
+
+@[simp]
+lemma attach_count_eq_count_coe (m : multiset α) (a) : m.attach.count a = m.count (a : α) :=
+calc m.attach.count a
+    = (m.attach.map (coe : _ → α)).count (a : α) :
+  (multiset.count_map_eq_count' _ _ subtype.coe_injective _).symm
+... = m.count (a : α) : congr_arg _ m.attach_map_coe
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
 begin

@@ -149,13 +149,15 @@ used. -/
 protected meta def pseudo_metric_space.edist_dist_tac : tactic unit :=
 tactic.intros >> `[exact (ennreal.of_real_eq_coe_nnreal _).symm <|> control_laws_tac]
 
-/-- Metric space
+/-- Pseudo metric and Metric spaces
 
-Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
-This is enforced in the type class definition, by extending the `uniform_space` structure. When
-instantiating a `metric_space` structure, the uniformity fields are not necessary, they will be
-filled in by default. In the same way, each metric space induces an emetric space structure.
-It is included in the structure, but filled in by default.
+A pseudo metric space is endowed with a distance for which the requirement `d(x,y)=0 → x = y` might
+not hold. A metric space is a pseudo metric space such that `d(x,y)=0 → x = y`.
+Each pseudo metric space induces a canonical `uniform_space` and hence a canonical
+`topological_space` This is enforced in the type class definition, by extending the `uniform_space`
+structure. When instantiating a `pseudo_metric_space` structure, the uniformity fields are not
+necessary, they will be filled in by default. In the same way, each (pseudo) metric space induces a
+(pseudo) emetric space structure. It is included in the structure, but filled in by default.
 -/
 class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
@@ -1191,7 +1193,7 @@ emetric.complete_of_cauchy_seq_tendsto
 section real
 
 /-- Instantiate the reals as a pseudometric space. -/
-noncomputable instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
+instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
 { dist               := λx y, |x - y|,
   dist_self          := by simp [abs_zero],
   dist_comm          := assume x y, abs_sub_comm _ _,
@@ -1485,7 +1487,7 @@ end mul_opposite
 
 section nnreal
 
-noncomputable instance : pseudo_metric_space ℝ≥0 := subtype.pseudo_metric_space
+instance : pseudo_metric_space ℝ≥0 := subtype.pseudo_metric_space
 
 lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 
@@ -1607,6 +1609,12 @@ by simp only [@nhds_eq_comap_uniformity α, metric.uniformity_eq_comap_nhds_zero
 lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
   (tendsto f x (𝓝 a)) ↔ (tendsto (λb, dist (f b) a) x (𝓝 0)) :=
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
+
+lemma continuous_iff_continuous_dist [topological_space β] {f : β → α} :
+  continuous f ↔ continuous (λ x : β × β, dist (f x.1) (f x.2)) :=
+⟨λ h, (h.comp continuous_fst).dist (h.comp continuous_snd), λ h, continuous_iff_continuous_at.2 $
+  λ x, tendsto_iff_dist_tendsto_zero.2 $
+    (h.comp (continuous_id.prod_mk continuous_const)).tendsto' _ _ $ dist_self _⟩
 
 lemma uniform_continuous_nndist : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
 uniform_continuous_dist.subtype_mk _
@@ -2122,8 +2130,7 @@ end
 
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in
-⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb
-$ ball_mem_comm.mp h⟩
+⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure₂ continuous_dist ha hb h⟩
 
 alias bounded_closure_of_bounded ← bounded.closure
 
@@ -2743,7 +2750,7 @@ instance : metric_space punit.{u + 1} :=
 section real
 
 /-- Instantiate the reals as a metric space. -/
-noncomputable instance real.metric_space : metric_space ℝ :=
+instance real.metric_space : metric_space ℝ :=
 { eq_of_dist_eq_zero := λ x y h, by simpa [dist, sub_eq_zero] using h,
   ..real.pseudo_metric_space }
 
@@ -2751,7 +2758,7 @@ end real
 
 section nnreal
 
-noncomputable instance : metric_space ℝ≥0 := subtype.metric_space
+instance : metric_space ℝ≥0 := subtype.metric_space
 
 end nnreal
 

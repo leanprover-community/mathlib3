@@ -194,7 +194,7 @@ instance [semiring R] [module R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
-noncomputable instance : has_sup (seminorm 𝕜 E) :=
+instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
     smul' := λ x v, (congr_arg2 max (map_smul_eq_mul p x v) (map_smul_eq_mul q x v)).trans $
@@ -218,7 +218,7 @@ instance : partial_order (seminorm 𝕜 E) :=
 lemma le_def (p q : seminorm 𝕜 E) : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 lemma lt_def (p q : seminorm 𝕜 E) : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
-noncomputable instance : semilattice_sup (seminorm 𝕜 E) :=
+instance : semilattice_sup (seminorm 𝕜 E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 
 end has_smul
@@ -320,6 +320,9 @@ begin
   { exact nnreal.coe_pos.mpr ha },
 end
 
+lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ∥p x - p y∥ ≤ p (x - y) :=
+abs_sub_map_le_sub p x y
+
 end module
 end semi_normed_ring
 
@@ -341,7 +344,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {p q : seminorm
 
 /-- Auxiliary lemma to show that the infimum of seminorms is well-defined. -/
 lemma bdd_below_range_add : bdd_below (range $ λ u, p u + q (x - u)) :=
-⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg p _) (map_nonneg q _) }⟩
+⟨0, by { rintro _ ⟨x, rfl⟩, dsimp, positivity }⟩
 
 noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
@@ -351,8 +354,7 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       intros a x,
       obtain rfl | ha := eq_or_ne a 0,
       { rw [norm_zero, zero_mul, zero_smul],
-        refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-          (λ i, add_nonneg (map_nonneg p _) (map_nonneg q _))
+        refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt (λ i, by positivity)
           (λ x hx, ⟨0, by rwa [map_zero, sub_zero, map_zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←map_smul_eq_mul p,
         ←map_smul_eq_mul q, smul_sub],
@@ -403,6 +405,8 @@ def ball (x : E) (r : ℝ) := { y : E | p (y - x) < r }
 variables {x y : E} {r : ℝ}
 
 @[simp] lemma mem_ball : y ∈ ball p x r ↔ p (y - x) < r := iff.rfl
+
+lemma mem_ball_self (hr : 0 < r) : x ∈ ball p x r := by simp [hr]
 
 lemma mem_ball_zero : y ∈ ball p 0 r ↔ p y < r := by rw [mem_ball, sub_zero]
 
@@ -564,7 +568,7 @@ protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E
 begin
   rw absorbent_iff_nonneg_lt,
   rintro x,
-  have hxr : 0 ≤ p x/r := div_nonneg (map_nonneg p _) hr.le,
+  have hxr : 0 ≤ p x / r := by positivity,
   refine ⟨p x/r, hxr, λ a ha, _⟩,
   have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
   refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
@@ -651,6 +655,75 @@ rfl
 rfl
 
 end restrict_scalars
+
+/-! ### Continuity criterions for seminorms -/
+
+section continuity
+
+variables [semi_normed_ring 𝕜] [add_comm_group E]
+  [module 𝕜 E]
+
+lemma continuous_at_zero [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] [topological_space E] [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E}
+  (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
+  continuous_at p 0 :=
+begin
+  change continuous_at (p.restrict_scalars ℝ) 0,
+  rw ← p.restrict_scalars_ball ℝ at hp,
+  refine metric.nhds_basis_ball.tendsto_right_iff.mpr _,
+  intros ε hε,
+  rw map_zero,
+  suffices : (p.restrict_scalars ℝ).ball 0 ε ∈ (𝓝 0 : filter E),
+  { rwa seminorm.ball_zero_eq_preimage_ball at this },
+  have := (set_smul_mem_nhds_zero_iff hε.ne.symm).mpr hp,
+  rwa [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
+      real.norm_of_nonneg hε.le, mul_one] at this
+end
+
+protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
+  {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
+  uniform_continuous p :=
+begin
+  have hp : filter.tendsto p (𝓝 0) (𝓝 0) := map_zero p ▸ hp,
+  rw [uniform_continuous, uniformity_eq_comap_nhds_zero_swapped,
+      metric.uniformity_eq_comap_nhds_zero, filter.tendsto_comap_iff],
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (hp.comp filter.tendsto_comap) (λ xy, dist_nonneg) (λ xy, p.norm_sub_map_le_sub _ _)
+end
+
+protected lemma continuous_of_continuous_at_zero [topological_space E] [topological_add_group E]
+  {p : seminorm 𝕜 E} (hp : continuous_at p 0) :
+  continuous p :=
+begin
+  letI := topological_add_group.to_uniform_space E,
+  haveI : uniform_add_group E := topological_add_comm_group_is_uniform,
+  exact (seminorm.uniform_continuous_of_continuous_at_zero hp).continuous
+end
+
+protected lemma uniform_continuous [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] [uniform_space E] [uniform_add_group E] [has_continuous_const_smul ℝ E]
+  {p : seminorm 𝕜 E} (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
+  uniform_continuous p :=
+seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero hp)
+
+protected lemma continuous [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] [topological_space E] [topological_add_group E]
+  [has_continuous_const_smul ℝ E] {p : seminorm 𝕜 E} (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
+  continuous p :=
+seminorm.continuous_of_continuous_at_zero (continuous_at_zero hp)
+
+lemma continuous_of_le [norm_one_class 𝕜] [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] [topological_space E] [topological_add_group E]
+  [has_continuous_const_smul ℝ E] {p q : seminorm 𝕜 E} (hq : continuous q) (hpq : p ≤ q) :
+  continuous p :=
+begin
+  refine seminorm.continuous (filter.mem_of_superset
+    (is_open.mem_nhds _ $ q.mem_ball_self zero_lt_one) (ball_antitone hpq)),
+  rw ball_zero_eq,
+  exact is_open_lt hq continuous_const
+end
+
+end continuity
 
 end seminorm
 

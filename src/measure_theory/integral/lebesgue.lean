@@ -1227,6 +1227,27 @@ lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measu
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
 by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
 
+lemma lintegral_to_real_le_lintegral_nnnorm (f : α → ℝ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ∥f x∥₊ ∂μ :=
+begin
+  simp_rw ← of_real_norm_eq_coe_nnnorm,
+  refine lintegral_mono (λ x, ennreal.of_real_le_of_real _),
+  rw real.norm_eq_abs,
+  exact le_abs_self (f x),
+end
+
+lemma lintegral_nnnorm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
+  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+begin
+  apply lintegral_congr_ae,
+  filter_upwards [h_nonneg] with x hx,
+  rw [real.nnnorm_of_nonneg hx, ennreal.of_real_eq_coe_nnreal hx],
+end
+
+lemma lintegral_nnnorm_eq_of_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ f) :
+  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+lintegral_nnnorm_eq_of_ae_nonneg (filter.eventually_of_forall h_nonneg)
+
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
 See `lintegral_supr_directed` for a more general form. -/

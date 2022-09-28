@@ -191,7 +191,7 @@ cofan.mk (Top.of (Σ i, α i)) (sigma_ι α)
 /-- The constructed cofan is indeed a colimit -/
 def sigma_cofan_is_colimit {ι : Type v} (α : ι → Top.{max v u}) : is_colimit (sigma_cofan α) :=
 { desc := λ S, { to_fun := λ s, S.ι.app ⟨s.1⟩ s.2,
-    continuous_to_fun := by { continuity, dsimp only, continuity } },
+    continuous_to_fun := continuous_sigma $ λ i, map_continuous (S.ι.app ⟨i⟩) },
   uniq' := by { intros S m h,  ext ⟨i, x⟩, simp [← h ⟨i⟩] },
   fac' := λ s j, by { cases j, tidy, }, }
 

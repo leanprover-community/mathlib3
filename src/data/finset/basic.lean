@@ -1339,6 +1339,13 @@ sup_eq_sdiff_sup_sdiff_sup_inf
 lemma erase_eq_empty_iff (s : finset α) (a : α) : s.erase a = ∅ ↔ s = ∅ ∨ s = {a} :=
 by rw [←sdiff_singleton_eq_erase, sdiff_eq_empty_iff_subset, subset_singleton_iff]
 
+/-! ### Symmetric difference -/
+
+lemma mem_symm_diff : a ∈ s ∆ t ↔ a ∈ s ∧ a ∉ t ∨ a ∈ t ∧ a ∉ s :=
+by simp_rw [symm_diff, sup_eq_union, mem_union, mem_sdiff]
+
+@[simp, norm_cast] lemma coe_symm_diff : (↑(s ∆ t) : set α) = s ∆ t := set.ext $ λ _, mem_symm_diff
+
 end decidable_eq
 
 /-! ### attach -/

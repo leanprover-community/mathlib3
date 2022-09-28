@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
-import topology.uniform_space.compact_separated
+import topology.uniform_space.compact
 import topology.algebra.group
 import tactic.abel
 

@@ -760,6 +760,20 @@ lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_bot α) =
 instance [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 
+instance [distrib_lattice α] : distrib_lattice (with_bot α) :=
+{ le_sup_inf := λ o₁ o₂ o₃,
+  match o₁, o₂, o₃ with
+  | ⊥, ⊥, ⊥ := le_rfl
+  | ⊥, ⊥, (a₁ : α) := le_rfl
+  | ⊥, (a₁ : α), ⊥ := le_rfl
+  | ⊥, (a₁ : α), (a₃ : α) := le_rfl
+  | (a₁ : α), ⊥, ⊥ := inf_le_left
+  | (a₁ : α), ⊥, (a₃ : α) := inf_le_left
+  | (a₁ : α), (a₂ : α), ⊥ := inf_le_right
+  | (a₁ : α), (a₂ : α), (a₃ : α) := coe_le_coe.mpr le_sup_inf
+  end,
+  ..with_bot.lattice }
+
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
 | none x := is_true $ λ a h, option.no_confusion h
 | (some x) (some y) :=
@@ -1194,6 +1208,17 @@ lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) =
 
 instance [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
+
+instance [distrib_lattice α] : distrib_lattice (with_top α) :=
+{ le_sup_inf := λ o₁ o₂ o₃,
+  match o₁, o₂, o₃ with
+  | ⊤, o₂, o₃ := le_rfl
+  | (a₁ : α), ⊤, ⊤ := le_rfl
+  | (a₁ : α), ⊤, (a₃ : α) := le_rfl
+  | (a₁ : α), (a₂ : α), ⊤ := le_rfl
+  | (a₁ : α), (a₂ : α), (a₃ : α) := coe_le_coe.mpr le_sup_inf
+  end,
+  ..with_top.lattice }
 
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
 λ _ _, decidable_of_decidable_of_iff (with_bot.decidable_le _ _) (to_dual_le_to_dual_iff)

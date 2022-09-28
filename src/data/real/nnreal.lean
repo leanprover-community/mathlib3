@@ -54,7 +54,8 @@ open_locale classical big_operators
 @[derive [
   ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
   floor_semiring, comm_semiring, semiring,
-  semilattice_inf, densely_ordered, order_bot,
+  semilattice_inf, semilattice_sup,
+  distrib_lattice, densely_ordered, order_bot,
   canonically_linear_ordered_semifield, linear_ordered_comm_group_with_zero, archimedean,
   linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
   has_sub, has_ordered_sub, has_div, inhabited]]
@@ -269,15 +270,15 @@ noncomputable def gi : galois_insertion real.to_nnreal coe :=
 galois_insertion.monotone_intro nnreal.coe_mono real.to_nnreal_mono
   real.le_coe_to_nnreal (λ _, real.to_nnreal_coe)
 
--- note that anything involving the (decidability of the) linear order, including `⊔`/`⊓` (min, max)
+-- note that anything involving the (decidability of the) linear order,
 -- will be noncomputable, everything else should not be.
 example : order_bot ℝ≥0 := by apply_instance
 example : partial_order ℝ≥0 := by apply_instance
 noncomputable example : canonically_linear_ordered_add_monoid ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_instance
-noncomputable example : distrib_lattice ℝ≥0 := by apply_instance
-noncomputable example : semilattice_inf ℝ≥0 := by apply_instance
-noncomputable example : semilattice_sup ℝ≥0 := by apply_instance
+example : distrib_lattice ℝ≥0 := by apply_instance
+example : semilattice_inf ℝ≥0 := by apply_instance
+example : semilattice_sup ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_semiring ℝ≥0 := by apply_instance
 example : ordered_comm_semiring ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance
@@ -819,7 +820,7 @@ end set
 namespace real
 
 /-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
-@[pp_nodot] noncomputable def nnabs : ℝ →*₀ ℝ≥0 :=
+@[pp_nodot] def nnabs : ℝ →*₀ ℝ≥0 :=
 { to_fun := λ x, ⟨|x|, abs_nonneg x⟩,
   map_zero' := by { ext, simp },
   map_one' := by { ext, simp },

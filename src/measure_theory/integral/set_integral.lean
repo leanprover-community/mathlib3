@@ -396,6 +396,30 @@ begin
   exact hfi.ae_strongly_measurable.ae_measurable.null_measurable (measurable_set_singleton 0).compl
 end
 
+lemma set_integral_gt_gt {R : ℝ} {f : α → ℝ} (hR : 0 ≤ R) (hfm : measurable f)
+  (hfint : integrable_on f {x | ↑R < f x} μ) (hμ : μ {x | ↑R < f x} ≠ 0):
+  (μ {x | ↑R < f x}).to_real * R < ∫ x in {x | ↑R < f x}, f x ∂μ :=
+begin
+  have : integrable_on (λ x, R) {x | ↑R < f x} μ,
+  { refine ⟨ae_strongly_measurable_const, lt_of_le_of_lt _ hfint.2⟩,
+    refine set_lintegral_mono (measurable.nnnorm _).coe_nnreal_ennreal
+      hfm.nnnorm.coe_nnreal_ennreal (λ x hx, _),
+    { exact measurable_const },
+    { simp only [ennreal.coe_le_coe, real.nnnorm_of_nonneg hR,
+        real.nnnorm_of_nonneg (hR.trans $ le_of_lt hx), subtype.mk_le_mk],
+      exact le_of_lt hx } },
+  rw [← sub_pos, ← smul_eq_mul, ← set_integral_const, ← integral_sub hfint this,
+    set_integral_pos_iff_support_of_nonneg_ae],
+  { rw ← zero_lt_iff at hμ,
+    rwa set.inter_eq_self_of_subset_right,
+    exact λ x hx, ne.symm (ne_of_lt $ sub_pos.2 hx) },
+  { change ∀ᵐ x ∂(μ.restrict _), _,
+    rw ae_restrict_iff,
+    { exact eventually_of_forall (λ x hx, sub_nonneg.2 $ le_of_lt hx) },
+    { exact measurable_set_le measurable_zero (hfm.sub measurable_const) } },
+  { exact integrable.sub hfint this },
+end
+
 lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
   (hf_meas : strongly_measurable[m] f) {s : set α} (hs : measurable_set[m] s) :
   ∫ x in s, f x ∂μ = ∫ x in s, f x ∂(μ.trim hm) :=

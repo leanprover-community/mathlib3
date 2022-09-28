@@ -1546,12 +1546,12 @@ end map
 
 section comap
 
-/-- The inverse map of a filter. A set `s` belongs to `filter.comap f l` if either of the following
+/-- The inverse map of a filter. A set `s` belongs to `filter.comap m f` if either of the following
 equivalent conditions hold.
 
-1. There exists a set `t ∈ l` such that `f ⁻¹' t ⊆ s`. This is used as a definition.
-2. The set `{y | ∀ x, f x = y → x ∈ s}` belongs to `l`, see `filter.mem_comap'`.
-3. The set `(f '' sᶜ)ᶜ` belongs to `l`, see `filter.mem_comap_iff_compl` and
+1. There exists a set `t ∈ f` such that `m ⁻¹' t ⊆ s`. This is used as a definition.
+2. The set `{y | ∀ x, m x = y → x ∈ s}` belongs to `f`, see `filter.mem_comap'`.
+3. The set `(m '' sᶜ)ᶜ` belongs to `f`, see `filter.mem_comap_iff_compl` and
 `filter.compl_mem_comap`. -/
 def comap (m : α → β) (f : filter β) : filter α :=
 { sets             := { s | ∃ t ∈ f, m ⁻¹' t ⊆ s },

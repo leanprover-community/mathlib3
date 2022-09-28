@@ -41,6 +41,9 @@ by { rw [nhds_set, ← range_diag, ← range_comp], refl }
 lemma mem_nhds_set_iff_forall : s ∈ 𝓝ˢ t ↔ ∀ (x : α), x ∈ t → s ∈ 𝓝 x :=
 by simp_rw [nhds_set, filter.mem_Sup, ball_image_iff]
 
+lemma bUnion_mem_nhds_set {t : α → set α} (h : ∀ x ∈ s, t x ∈ 𝓝 x) : (⋃ x ∈ s, t x) ∈ 𝓝ˢ s :=
+mem_nhds_set_iff_forall.2 $ λ x hx, mem_of_superset (h x hx) (subset_Union₂ x hx)
+
 lemma subset_interior_iff_mem_nhds_set : s ⊆ interior t ↔ t ∈ 𝓝ˢ s :=
 by simp_rw [mem_nhds_set_iff_forall, subset_interior_iff_nhds]
 

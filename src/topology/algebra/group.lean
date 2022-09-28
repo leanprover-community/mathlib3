@@ -558,9 +558,8 @@ lemma subgroup.is_normal_topological_closure {G : Type*} [topological_space G] [
   (subgroup.topological_closure N).normal :=
 { conj_mem := λ n hn g,
   begin
-    apply mem_closure_of_continuous (topological_group.continuous_conj g) hn,
-    intros m hm,
-    exact subset_closure (subgroup.normal.conj_mem infer_instance m hm g),
+    apply map_mem_closure (topological_group.continuous_conj g) hn,
+    exact λ m hm, subgroup.normal.conj_mem infer_instance m hm g
   end }
 
 @[to_additive] lemma mul_mem_connected_component_one {G : Type*} [topological_space G]
@@ -998,28 +997,27 @@ variables (G) [topological_space G] [group G] [topological_group G]
 lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 ⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
 
+@[priority 100, to_additive]
+instance topological_group.regular_space : regular_space G :=
+begin
+  refine regular_space.of_exists_mem_nhds_is_closed_subset (λ a s hs, _),
+  have : tendsto (λ p : G × G, p.1 * p.2) (𝓝 (a, 1)) (𝓝 a),
+    from continuous_mul.tendsto' _ _ (mul_one a),
+  rcases mem_nhds_prod_iff.mp (this hs) with ⟨U, hU, V, hV, hUV⟩,
+  rw [← image_subset_iff, image_prod] at hUV,
+  refine ⟨closure U, mem_of_superset hU subset_closure, is_closed_closure, _⟩,
+  calc closure U ⊆ closure U * interior V : subset_mul_left _ (mem_interior_iff_mem_nhds.2 hV)
+             ... = U * interior V         : is_open_interior.closure_mul U
+             ... ⊆ U * V                  : mul_subset_mul_left interior_subset
+             ... ⊆ s                      : hUV
+end
+
 @[to_additive]
-lemma topological_group.t3_space [t1_space G] : t3_space G :=
-⟨assume s a hs ha,
- let f := λ p : G × G, p.1 * (p.2)⁻¹ in
- have hf : continuous f := continuous_fst.mul continuous_snd.inv,
- -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
- -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
- let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=
-   is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
- begin
-   use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
-   rw [nhds_within, inf_principal_eq_bot, mem_nhds_iff],
-   refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
-   rintros x hx ⟨y, z, hy, hz, yz⟩,
-   have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
-   have : x * z⁻¹ ∈ s, rw ← yz, simpa,
-   contradiction
- end⟩
+lemma topological_group.t3_space [t1_space G] : t3_space G := ⟨⟩
 
 @[to_additive]
 lemma topological_group.t2_space [t1_space G] : t2_space G :=
-@t3_space.t2_space G _ (topological_group.t3_space G)
+by { haveI := topological_group.t3_space G, apply_instance }
 
 variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 

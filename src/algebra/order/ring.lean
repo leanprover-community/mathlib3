@@ -34,6 +34,8 @@ For short,
   `*` respects `<`.
 * `linear_ordered_semiring`: Semiring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
+* `linear_ordered_comm_semiring`: Commutative semiring with a linear order such that `+` respects
+  `≤` and `*` respects `<`.
 * `linear_ordered_ring`: Ring with a linear order such that `+` respects `≤` and `*` respects `<`.
 * `linear_ordered_comm_ring`: Commutative ring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
@@ -66,6 +68,9 @@ immediate predecessors and what conditions are added to each of them.
   - `comm_ring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `linear_ordered_semiring`
   - `ordered_semiring` & totality of the order & nontriviality
+* `linear_ordered_comm_semiring`
+  - `ordered_comm_semiring` & totality of the order & nontriviality
+  - `linear_ordered_semiring` & commutativity of multiplication
   - `linear_ordered_add_comm_monoid` & multiplication & nontriviality & `*` respects `<`
 * `linear_ordered_ring`
   - `ordered_ring` & totality of the order & nontriviality
@@ -75,6 +80,7 @@ immediate predecessors and what conditions are added to each of them.
 * `linear_ordered_comm_ring`
   - `ordered_comm_ring` & totality of the order & nontriviality
   - `linear_ordered_ring` & commutativity of multiplication
+  - `linear_ordered_comm_semiring` & additive inverses
   - `is_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
   - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
@@ -83,10 +89,11 @@ immediate predecessors and what conditions are added to each of them.
 ## TODO
 
 We're still missing some typeclasses, like
-* `linear_ordered_comm_semiring`
 * `canonically_ordered_semiring`
 They have yet to come up in practice.
 -/
+
+open function
 
 set_option old_structure_cmd true
 
@@ -582,7 +589,7 @@ class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semi
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Type*}
-  [add_monoid_with_one β] [has_mul β] [has_pow β ℕ]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -781,6 +788,31 @@ lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b
 (monotone_mul_right_of_nonneg hc).map_min
 
 end linear_ordered_semiring
+
+/-- A `linear_ordered_comm_semiring` is a nontrivial commutative semiring with a linear order such
+that addition is monotone and multiplication by a positive number is strictly monotone. -/
+@[protect_proj, ancestor ordered_comm_semiring linear_ordered_semiring]
+class linear_ordered_comm_semiring (α : Type*)
+  extends ordered_comm_semiring α, linear_ordered_semiring α
+
+@[priority 100] -- See note [lower instance priority]
+instance linear_ordered_comm_semiring.to_linear_ordered_cancel_add_comm_monoid
+  [linear_ordered_comm_semiring α] : linear_ordered_cancel_add_comm_monoid α :=
+{ ..‹linear_ordered_comm_semiring α› }
+
+/-- Pullback a `linear_ordered_semiring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
+def function.injective.linear_ordered_comm_semiring [linear_ordered_comm_semiring α] {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β]
+  [has_sup β] [has_inf β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
+  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
+  linear_ordered_comm_semiring β :=
+{ ..hf.linear_ordered_semiring f zero one add mul nsmul npow nat_cast hsup hinf,
+  ..hf.ordered_comm_semiring f zero one add mul nsmul npow nat_cast }
 
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
 addition is monotone and multiplication by a positive number is strictly monotone. -/
@@ -1237,8 +1269,8 @@ instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_
 { ..d }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
-   linear_ordered_semiring α :=
+instance linear_ordered_comm_ring.to_linear_ordered_comm_semiring [d : linear_ordered_comm_ring α] :
+   linear_ordered_comm_semiring α :=
 { .. d, ..linear_ordered_ring.to_linear_ordered_semiring }
 
 section linear_ordered_comm_ring

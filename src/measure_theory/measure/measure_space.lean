@@ -2337,6 +2337,10 @@ begin
   exact ne_of_lt (measure_lt_top _ _)
 end
 
+instance [finite α] [measurable_space α] : is_finite_measure (measure.count : measure α) :=
+⟨by { casesI nonempty_fintype α,
+      simpa [measure.count_apply, tsum_fintype] using (ennreal.nat_ne_top _).lt_top }⟩
+
 end is_finite_measure
 
 section is_probability_measure

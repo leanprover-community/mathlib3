@@ -20,7 +20,7 @@ We also prove basic properties of these functions.
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal filter big_operators
+open_locale classical real topological_space nnreal ennreal filter big_operators asymptotics
 open filter finset set
 
 namespace complex
@@ -109,7 +109,7 @@ by simpa using cpow_neg x 1
 by { rw ← cpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 
 @[simp, norm_cast] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
-| (n : ℕ) := by simp; refl
+| (n : ℕ) := by simp
 | -[1+ n] := by rw zpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
@@ -413,12 +413,64 @@ lemma abs_cpow_of_ne_zero {z : ℂ} (hz : z ≠ 0) (w : ℂ) :
 by rw [cpow_def_of_ne_zero hz, abs_exp, mul_re, log_re, log_im, real.exp_sub,
   real.rpow_def_of_pos (abs_pos.2 hz)]
 
+lemma abs_cpow_of_imp {z w : ℂ} (h : z = 0 → w.re = 0 → w = 0) :
+  abs (z ^ w) = abs z ^ w.re / real.exp (arg z * im w) :=
+begin
+  rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w), rw abs_zero],
+  cases eq_or_ne w.re 0 with hw hw,
+  { simp [hw, h rfl hw] },
+  { rw [real.zero_rpow hw, zero_div, zero_cpow, abs_zero],
+    exact ne_of_apply_ne re hw }
+end
+
 lemma abs_cpow_le (z w : ℂ) : abs (z ^ w) ≤ abs z ^ w.re / real.exp (arg z * im w) :=
 begin
-  rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w).le, rw abs_zero],
-  rcases eq_or_ne w 0 with rfl|hw, { simp },
-  rw [zero_cpow hw, abs_zero],
-  exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le
+  by_cases h : z = 0 → w.re = 0 → w = 0,
+  { exact (abs_cpow_of_imp h).le },
+  { push_neg at h,
+    rw [h.1, zero_cpow h.2.2, abs_zero],
+    exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le },
+end
+
+section
+
+variables {α : Type*} {l : filter α} {f g : α → ℂ}
+
+open asymptotics
+
+lemma is_Theta_exp_arg_mul_im (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
+  (λ x, real.exp (arg (f x) * im (g x))) =Θ[l] (λ x, (1 : ℝ)) :=
+begin
+  rcases hl with ⟨b, hb⟩,
+  refine real.is_Theta_exp_comp_one.2 ⟨π * b, _⟩,
+  rw eventually_map at hb ⊢,
+  refine hb.mono (λ x hx, _),
+  rw [_root_.abs_mul],
+  exact mul_le_mul (abs_arg_le_pi _) hx (_root_.abs_nonneg _) real.pi_pos.le
+end
+
+lemma is_O_cpow_rpow (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
+  (λ x, f x ^ g x) =O[l] (λ x, abs (f x) ^ (g x).re) :=
+calc (λ x, f x ^ g x) =O[l] (λ x, abs (f x) ^ (g x).re / real.exp (arg (f x) * im (g x))) :
+  is_O_of_le _ $ λ x, (abs_cpow_le _ _).trans (le_abs_self _)
+... =Θ[l] (λ x, abs (f x) ^ (g x).re / (1 : ℝ)) :
+  (is_Theta_refl _ _).div (is_Theta_exp_arg_mul_im hl)
+... =ᶠ[l] (λ x, abs (f x) ^ (g x).re) : by simp only [of_real_one, div_one]
+
+lemma is_Theta_cpow_rpow (hl_im : is_bounded_under (≤) l (λ x, |(g x).im|))
+  (hl : ∀ᶠ x in l, f x = 0 → re (g x) = 0 → g x = 0):
+  (λ x, f x ^ g x) =Θ[l] (λ x, abs (f x) ^ (g x).re) :=
+calc (λ x, f x ^ g x) =Θ[l] (λ x, abs (f x) ^ (g x).re / real.exp (arg (f x) * im (g x))) :
+  is_Theta_of_norm_eventually_eq' $ hl.mono $ λ x, abs_cpow_of_imp
+... =Θ[l] (λ x, abs (f x) ^ (g x).re / (1 : ℝ)) :
+  (is_Theta_refl _ _).div (is_Theta_exp_arg_mul_im hl_im)
+... =ᶠ[l] (λ x, abs (f x) ^ (g x).re) : by simp only [of_real_one, div_one]
+
+lemma is_Theta_cpow_const_rpow {b : ℂ} (hl : b.re = 0 → b ≠ 0 → ∀ᶠ x in l, f x ≠ 0) :
+  (λ x, f x ^ b) =Θ[l] (λ x, abs (f x) ^ b.re) :=
+is_Theta_cpow_rpow is_bounded_under_const $ by simpa only [eventually_imp_distrib_right, ne.def,
+  ← not_frequently, not_imp_not, imp.swap] using hl
+
 end
 
 @[simp] lemma abs_cpow_real (x : ℂ) (y : ℝ) : abs (x ^ (y : ℂ)) = x.abs ^ y :=

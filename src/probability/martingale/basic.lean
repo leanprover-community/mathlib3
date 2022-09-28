@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
 import probability.notation
-import probability.hitting_time
+import probability.process.hitting_time
 
 /-!
 # Martingales
@@ -65,6 +65,16 @@ adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ 
 lemma martingale_const (ℱ : filtration ι m0) (μ : measure Ω) [is_finite_measure μ] (x : E) :
   martingale (λ _ _, x) ℱ μ :=
 ⟨adapted_const ℱ _, λ i j hij, by rw condexp_const (ℱ.le _)⟩
+
+lemma martingale_const_fun [order_bot ι]
+  (ℱ : filtration ι m0) (μ : measure Ω) [is_finite_measure μ]
+  {f : Ω → E} (hf : strongly_measurable[ℱ ⊥] f) (hfint : integrable f μ) :
+  martingale (λ _, f) ℱ μ :=
+begin
+  refine ⟨λ i, hf.mono $ ℱ.mono bot_le, λ i j hij, _⟩,
+  rw condexp_of_strongly_measurable (ℱ.le _) (hf.mono $ ℱ.mono bot_le) hfint,
+  apply_instance,
+end
 
 variables (E)
 lemma martingale_zero (ℱ : filtration ι m0) (μ : measure Ω) :

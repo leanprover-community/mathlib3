@@ -735,6 +735,9 @@ theorem model_iff_subset_complete_theory :
   M ⊨ T ↔ T ⊆ L.complete_theory M :=
 T.model_iff
 
+theorem complete_theory.subset [MT : M ⊨ T] : T ⊆ L.complete_theory M :=
+model_iff_subset_complete_theory.1 MT
+
 end Theory
 
 instance model_complete_theory : M ⊨ L.complete_theory M :=

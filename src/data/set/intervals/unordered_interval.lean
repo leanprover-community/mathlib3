@@ -27,6 +27,7 @@ make the notation available.
 
 universe u
 open_locale pointwise
+open order_dual (to_dual of_dual)
 
 namespace set
 
@@ -38,6 +39,8 @@ variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c x : α}
 def interval (a b : α) := Icc (min a b) (max a b)
 
 localized "notation (name := set.interval) `[`a `, ` b `]` := set.interval a b" in interval
+
+@[simp] lemma dual_interval (a b : α) : [to_dual a, to_dual b] = of_dual ⁻¹' [a, b] := dual_Icc
 
 @[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
 by rw [interval, min_eq_left h, max_eq_right h]

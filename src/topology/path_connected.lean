@@ -1028,7 +1028,7 @@ begin
   { introI hX,
     rw path_connected_space_iff_eq,
     use (classical.arbitrary X),
-    refine eq_univ_of_nonempty_clopen (by simp) ⟨_, _⟩,
+    refine is_clopen.eq_univ ⟨_, _⟩ (by simp),
     { rw is_open_iff_mem_nhds,
       intros y y_in,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,

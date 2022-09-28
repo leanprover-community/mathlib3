@@ -65,6 +65,7 @@ abbreviation quiver.hom.to_pos_path {X Y : V} (f : X ⟶ Y) :
 abbreviation quiver.hom.to_neg_path {X Y : V} (f : X ⟶ Y) :
   ((category_theory.paths.category_paths $ quiver.symmetrify V).hom Y X) := f.to_neg.to_path
 
+/-- The "reduction" relation -/
 inductive red_step : hom_rel (paths (quiver.symmetrify V))
 | step (X Z : quiver.symmetrify V) (f : X ⟶ Z) :
     red_step (𝟙 X) (f.to_path ≫ (quiver.reverse f).to_path)
@@ -78,10 +79,7 @@ lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
   quotient.comp_closure red_step (p.reverse) (q.reverse)  :=
 begin
-  rintros a,
-  rcases a with ⟨_,W,XW,pp,qq,WY,rs⟩,
-  rcases rs with ⟨_,Z,f⟩,
-
+  rintros ⟨_,W,XW,pp,qq,WY,⟨_,Z,f⟩⟩,
   have : quotient.comp_closure red_step (WY.reverse ≫ 𝟙 _ ≫  XW.reverse)
     (WY.reverse ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ XW.reverse), by
   { apply quotient.comp_closure.intro,
@@ -110,7 +108,7 @@ begin
       have that : q.cons f = q.comp f.to_path, by refl, rw that,
       simp only [category.assoc, category.id_comp] at this ⊢,
       simp only [category_struct.comp, quiver.path.comp_assoc] at this ⊢,
-      exact this,  },
+      exact this, },
     { exact ih }, },
 end
 

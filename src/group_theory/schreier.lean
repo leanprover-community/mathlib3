@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import data.finset.pointwise
-import group_theory.complement
-import group_theory.finiteness
-import group_theory.index
-import tactic.group
+import group_theory.abelianization
+import group_theory.exponent
+import group_theory.transfer
 
 /-!
 # Schreier's Lemma
@@ -142,6 +140,25 @@ begin
   calc group.rank H ≤ T.card : group.rank_le H hT
   ... ≤ H.index * S.card : hT₀
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,
+end
+
+variables (G)
+
+lemma card_commutator_dvd_index_center_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+  nat.card (commutator G) ∣
+    (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
+begin
+  classical,
+  by_cases hG : (center G).index = 0,
+  { simp_rw [hG, zero_mul, zero_add, pow_one, dvd_zero] },
+  rw [←((center G).subgroup_of (commutator G)).card_mul_index, pow_succ'],
+  have h := relindex_dvd_index_of_normal (center G) (commutator G),
+  refine mul_dvd_mul (dvd_trans _
+    (pow_dvd_pow (center G).index ((rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h)).trans
+    (nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h) (rank_commutator_le_card G))))) h,
+  apply card_dvd_exponent_pow_rank' _ (λ g, _),
+  have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow' hG) g.1.2,
+  simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,
 end
 
 end subgroup

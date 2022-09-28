@@ -39,7 +39,7 @@ def affine_segment (x y : P) := line_map x y '' (set.Icc (0 : R) 1)
 lemma affine_segment_eq_segment (x y : V) : affine_segment R x y = segment R x y :=
 by rw [segment_eq_image_line_map, affine_segment]
 
-lemma affine_segment_symm (x y : P) : affine_segment R x y = affine_segment R y x :=
+lemma affine_segment_comm (x y : P) : affine_segment R x y = affine_segment R y x :=
 begin
   refine set.ext (λ z, _),
   split;
@@ -208,7 +208,7 @@ begin
 end
 
 lemma wbtw_comm {x y z : P} : wbtw R x y z ↔ wbtw R z y x :=
-by rw [wbtw, wbtw, affine_segment_symm]
+by rw [wbtw, wbtw, affine_segment_comm]
 
 alias wbtw_comm ↔ wbtw.symm _
 

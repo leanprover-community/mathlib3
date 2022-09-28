@@ -391,50 +391,65 @@ section
 
 variable [is_localized_module S f]
 
+noncomputable def from_localized_module' : localized_module S M → M' :=
+λ p, p.lift_on (λ x, (is_localized_module.map_units f x.2).unit⁻¹ (f x.1))
+begin
+  rintros ⟨a, b⟩ ⟨a', b'⟩ ⟨c, eq1⟩,
+  dsimp,
+  generalize_proofs h1 h2,
+  erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←h2.unit⁻¹.1.map_smul,
+    module.End_algebra_map_is_unit_inv_apply_eq_iff', ←linear_map.map_smul, ←linear_map.map_smul],
+  exact ((is_localized_module.eq_iff_exists S f).mpr ⟨c, eq1⟩).symm,
+end
+
+@[simp] lemma from_localized_module'_mk (m : M) (s : S) :
+  from_localized_module' S f (localized_module.mk m s) =
+  (is_localized_module.map_units f s).unit⁻¹ (f m) :=
+rfl
+
+lemma from_localized_module'_add (x y : localized_module S M) :
+  from_localized_module' S f (x + y) =
+  from_localized_module' S f x + from_localized_module' S f y :=
+localized_module.induction_on₂ begin
+  intros a a' b b',
+  simp only [localized_module.mk_add_mk, from_localized_module'_mk],
+  generalize_proofs h1 h2 h3,
+  erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, smul_add, ←h2.unit⁻¹.1.map_smul,
+    ←h3.unit⁻¹.1.map_smul, map_add],
+  congr' 1,
+  all_goals { erw [module.End_algebra_map_is_unit_inv_apply_eq_iff'] },
+  { dsimp, erw [mul_smul, f.map_smul], refl, },
+  { dsimp, erw [mul_comm, f.map_smul, mul_smul], refl, },
+end x y
+
+lemma from_localized_module'_smul (r : R) (x : localized_module S M) :
+  r • from_localized_module' S f x = from_localized_module' S f (r • x) :=
+localized_module.induction_on begin
+  intros a b,
+  rw [from_localized_module'_mk, localized_module.smul'_mk, from_localized_module'_mk],
+  generalize_proofs h1, erw [f.map_smul, h1.unit⁻¹.1.map_smul], refl,
+end x
+
 /--
 If `(M', f : M ⟶ M')` satisfies universal property of localized module, there is a canonical map
 `localized_module S M ⟶ M'`.
 -/
-@[simps]
 noncomputable def from_localized_module : localized_module S M →ₗ[R] M' :=
-{ to_fun := λ p, p.lift_on (λ x, (is_localized_module.map_units f x.2).unit⁻¹ (f x.1))
-  begin
-    rintros ⟨a, b⟩ ⟨a', b'⟩ ⟨c, eq1⟩,
-    dsimp,
-    generalize_proofs h1 h2,
-    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←h2.unit⁻¹.1.map_smul,
-      module.End_algebra_map_is_unit_inv_apply_eq_iff', ←linear_map.map_smul, ←linear_map.map_smul],
-    exact ((is_localized_module.eq_iff_exists S f).mpr ⟨c, eq1⟩).symm,
-  end,
-  map_add' := λ x y,
-  begin
-    induction x using localized_module.induction_on with a b,
-    induction y using localized_module.induction_on with a' b',
-    simp only [localized_module.mk_add_mk, localized_module.lift_on_mk],
-    generalize_proofs h1 h2 h3,
-    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, smul_add, ←h2.unit⁻¹.1.map_smul,
-      ←h3.unit⁻¹.1.map_smul, map_add],
-    congr' 1,
-    all_goals { erw [module.End_algebra_map_is_unit_inv_apply_eq_iff'] },
-    { dsimp, erw [mul_smul, f.map_smul], refl, },
-    { dsimp, erw [mul_comm, f.map_smul, mul_smul], refl, },
-  end,
-  map_smul' := λ r x,
-  begin
-    induction x using localized_module.induction_on with a b,
-    erw [localized_module.lift_on_mk, localized_module.lift_on_mk, one_mul],
-    generalize_proofs h1,
-    dsimp,
-    erw [f.map_smul, h1.unit⁻¹.1.map_smul],
-    congr,
-  end }
+{ to_fun := from_localized_module' S f,
+  map_add' := from_localized_module'_add S f,
+  map_smul' := λ r x, by rw [from_localized_module'_smul, ring_hom.id_apply] }
+
+lemma from_localized_module_mk (m : M) (s : S) :
+  from_localized_module S f (localized_module.mk m s) =
+  (is_localized_module.map_units f s).unit⁻¹ (f m) :=
+rfl
 
 lemma from_localized_module.inj : function.injective $ from_localized_module S f :=
 λ x y eq1,
 begin
   induction x using localized_module.induction_on with a b,
   induction y using localized_module.induction_on with a' b',
-  simp only [from_localized_module, linear_map.coe_mk, localized_module.lift_on_mk] at eq1,
+  simp only [from_localized_module_mk] at eq1,
   generalize_proofs h1 h2 at eq1,
   erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←linear_map.map_smul,
     module.End_algebra_map_is_unit_inv_apply_eq_iff'] at eq1,
@@ -444,8 +459,7 @@ end
 
 lemma from_localized_module.surj : function.surjective $ from_localized_module S f :=
 λ x, let ⟨⟨m, s⟩, eq1⟩ := is_localized_module.surj S f x in ⟨localized_module.mk m s,
-by { rw [from_localized_module, linear_map.coe_mk, localized_module.lift_on_mk,
-    module.End_algebra_map_is_unit_inv_apply_eq_iff, ←eq1], refl }⟩
+by { rw [from_localized_module_mk, module.End_algebra_map_is_unit_inv_apply_eq_iff, ←eq1], refl }⟩
 
 lemma from_localized_module.bij : function.bijective $ from_localized_module S f :=
 ⟨from_localized_module.inj _ _, from_localized_module.surj _ _⟩
@@ -462,15 +476,15 @@ lemma iso_apply_mk (m : M) (s : S) :
   iso S f (localized_module.mk m s) = (is_localized_module.map_units f s).unit⁻¹ (f m) :=
 rfl
 
-private lemma iso_symm_apply_aux (m : M') :
+lemma iso_symm_apply_aux (m : M') :
   (iso S f).symm m = localized_module.mk (is_localized_module.surj S f m).some.1
     (is_localized_module.surj S f m).some.2 :=
 begin
   generalize_proofs _ h2,
   apply_fun (iso S f) using linear_equiv.injective _,
   rw [linear_equiv.apply_symm_apply],
-  simp only [iso_apply, linear_map.to_fun_eq_coe, from_localized_module_apply],
-  erw [localized_module.lift_on_mk, module.End_algebra_map_is_unit_inv_apply_eq_iff', h2.some_spec],
+  simp only [iso_apply, linear_map.to_fun_eq_coe, from_localized_module_mk],
+  erw [module.End_algebra_map_is_unit_inv_apply_eq_iff', h2.some_spec],
 end
 
 lemma iso_symm_apply' (m : M') (a : M) (b : S) (eq1 : b • m = f a) :
@@ -480,6 +494,12 @@ begin
   generalize_proofs h1,
   erw [←is_localized_module.eq_iff_exists S f, f.map_smul, f.map_smul, ←h1.some_spec, ←mul_smul,
     mul_comm, mul_smul, eq1],
+end
+
+lemma iso_symm_comp : (iso S f).symm.to_linear_map.comp f = localized_module.mk_linear_map S M :=
+begin
+  ext m, rw [linear_map.comp_apply, localized_module.mk_linear_map_apply],
+  change (iso S f).symm _ = _, rw [iso_symm_apply'], exact one_smul _ _,
 end
 
 /--
@@ -564,6 +584,16 @@ noncomputable def lift [is_localized_module S f] (g : M →ₗ[R] M'')
   M' →ₗ[R] M'' :=
 (lift' S g h).comp (iso S f).symm.to_linear_map
 
+lemma lift_comp [is_localized_module S f] (g : M →ₗ[R] M'')
+  (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) :
+  (lift S f g h).comp f = g :=
+begin
+  dunfold is_localized_module.lift,
+  rw [linear_map.comp_assoc],
+  convert lift'_comp S g h,
+  exact iso_symm_comp _ _,
+end
+
 lemma lift_unique [is_localized_module S f] (g : M →ₗ[R] M'')
   (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x))
   (l : M' →ₗ[R] M'') (hl : l.comp f = g) :
@@ -574,10 +604,8 @@ begin
     show (iso S f).to_linear_map.comp (iso S f).symm.to_linear_map = linear_map.id, from _,
     linear_map.comp_id],
   { rw [linear_equiv.comp_to_linear_map_symm_eq, linear_map.id_comp], },
-  { rw [linear_map.comp_assoc, ←hl], congr' 1,
-    ext x, rw [linear_map.comp_apply], dsimp,
-    rw localized_module.lift_on_mk,
-    erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, one_smul],  },
+  { rw [linear_map.comp_assoc, ←hl], congr' 1, ext x,
+    erw [from_localized_module_mk, module.End_algebra_map_is_unit_inv_apply_eq_iff, one_smul], },
 end
 
 /--

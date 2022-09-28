@@ -1377,6 +1377,85 @@ begin
   { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
 end
 
+lemma finite_prod_inter1 (f₁ : set (set α)) (f₂ : set (set β)) :
+  ⋂₀f₁ ×ˢ ⋂₀f₂ ⊆ ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
+begin
+  rintro ⟨x, y⟩,
+  simp [and_assoc, and.left_comm],
+  --ext ⟨x, y⟩,
+  intros h1 h2 p r hr s hs ep,
+  rw ← ep,
+  simp,
+  --rw prod_mk_mem_set_prod_eq],
+    split,
+    { apply h1,
+      exact hr, },
+    { apply h2,
+      exact hs, },
+end
+
+-- If one of f₁ or f₂ is empty then LHS = univ, but right hand side = ⋂₀f₁ ×ˢ univ or univ ×ˢ ⋂₀f₂
+lemma finite_prod_inter2 (f₁ : set (set α)) (f₂ : set (set β)) [h₁ : f₁.nonempty] [h₂ : f₂.nonempty] :
+  ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) ⊆ ⋂₀f₁ ×ˢ ⋂₀f₂ :=
+begin
+  rintro ⟨x, y⟩,
+  intro h,
+  rw image_prod at h,
+  rw  mem_sInter at h,
+  rw prod_mk_mem_set_prod_eq,
+  rw nonempty_def at h₁,
+  rw nonempty_def at h₂,
+  cases h₁ with s₀ hs₀,
+  cases h₂ with t₀ ht₀,
+  split,
+  {
+    rw  mem_sInter,
+    rintro s₁ hs₁,
+    have e1 : (x,y) ∈ s₁ ×ˢ t₀ :=
+    begin
+      apply h,
+      rw mem_image2,
+      use s₁,
+      use t₀,
+      split,
+      exact hs₁,
+      split,
+      exact ht₀,
+      simp only [eq_self_iff_true],
+    end,
+    rw prod_mk_mem_set_prod_eq at e1,
+    exact e1.1,
+  },
+  {
+    rw  mem_sInter,
+    rintro t₁ ht₁,
+    have e1 : (x,y) ∈ s₀ ×ˢ t₁ :=
+    begin
+      apply h,
+      rw mem_image2,
+      use s₀,
+      use t₁,
+      split,
+      exact hs₀,
+      split,
+      exact ht₁,
+      simp only [eq_self_iff_true],
+    end,
+    rw prod_mk_mem_set_prod_eq at e1,
+    exact e1.2,
+  },
+end
+
+lemma prod_sInter_prod (f₁ : set (set α)) (f₂ : set (set β)) [h₁ : f₁.nonempty] [h₂ : f₂.nonempty] :
+  ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) = ⋂₀f₁ ×ˢ ⋂₀f₂ :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { apply finite_prod_inter2 _ _ , exact h₁, exact h₂ },
+  { apply finite_prod_inter1, },
+end
+
+
 end prod
 
 section image2

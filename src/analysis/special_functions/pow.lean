@@ -945,9 +945,9 @@ begin
     rw [sqrt_eq_zero_of_nonpos h.le, rpow_def_of_neg h, this, cos_pi_div_two, mul_zero] }
 end
 
-lemma rpow_div_two_eq_sqrt {x : ℝ} (r : ℝ) (hx : 0 ≤ x) : x^(r/2) = x.sqrt^r :=
+lemma rpow_div_two_eq_sqrt {x : ℝ} (r : ℝ) (hx : 0 ≤ x) : x ^ (r/2) = (sqrt x) ^ r :=
 begin
-  rw [sqrt_eq_rpow, ←rpow_mul hx],
+  rw [sqrt_eq_rpow, ← rpow_mul hx],
   congr,
   ring,
 end

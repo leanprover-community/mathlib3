@@ -106,8 +106,8 @@ def mk : Type u → cardinal := quotient.mk
 
 localized "prefix (name := cardinal.mk) `#` := cardinal.mk" in cardinal
 
-instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
-⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
+instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) mk (λ _, true) :=
+⟨λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
 
 @[elab_as_eliminator]
 lemma induction_on {p : cardinal → Prop} (c : cardinal) (h : ∀ α, p (#α)) : p c :=
@@ -1005,8 +1005,8 @@ alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
   #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
 le_aleph_0_iff_set_countable
 
-instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
-⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
+instance can_lift_cardinal_nat : can_lift cardinal ℕ coe (λ x, x < ℵ₀) :=
+⟨λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
 
 theorem add_lt_aleph_0 {a b : cardinal} (ha : a < ℵ₀) (hb : b < ℵ₀) : a + b < ℵ₀ :=
 match a, b, lt_aleph_0.1 ha, lt_aleph_0.1 hb with

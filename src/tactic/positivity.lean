@@ -179,7 +179,7 @@ example {b : ℤ} : 0 ≤ max (-3) (b ^ 2) := by positivity
 ```
 -/
 meta def positivity : tactic unit := focus1 $ do
-  t ← target,
+  t ← target >>= instantiate_mvars,
   (rel_desired, a) ← match t with
   | `(0 ≤ %%e₂) := pure (ff, e₂)
   | `(%%e₂ ≥ 0) := pure (ff, e₂)

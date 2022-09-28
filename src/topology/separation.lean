@@ -11,12 +11,13 @@ import topology.inseparable
 /-!
 # Separation properties of topological spaces.
 
-This file defines the predicate `separated`, and common separation axioms
+This file defines the predicate `separated_nhds`, and common separation axioms
 (under the Kolmogorov classification).
 
 ## Main definitions
 
-* `separated`: Two `set`s are separated if they are contained in disjoint open sets.
+* `separated_nhds`: Two `set`s are separated by neighbourhoods if they are contained in disjoint
+  open sets.
 * `t0_space`: A T₀/Kolmogorov space is a space where, for every two points `x ≠ y`,
   there is an open set that contains one, but not the other.
 * `t1_space`: A T₁/Fréchet space is a space where every singleton set is closed.
@@ -52,7 +53,7 @@ This file defines the predicate `separated`, and common separation axioms
 * `t2_iff_nhds`: A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter.
 * `t2_iff_is_closed_diagonal`: A space is T₂ iff the `diagonal` of `α` (that is, the set of all
   points of the form `(a, a) : α × α`) is closed under the product topology.
-* `finset_disjoint_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
+* `finset_disjoint_finset_opens_of_t2`: Any two disjoint finsets are `separated_nhds`.
 * Most topological constructions preserve Hausdorffness;
   these results are part of the typeclass inference system (e.g. `embedding.t2_space`)
 * `set.eq_on.closure`: If two functions are equal on some set `s`, they are equal on its closure.
@@ -99,62 +100,60 @@ variables {α : Type u} {β : Type v} [topological_space α]
 section separation
 
 /--
-`separated` is a predicate on pairs of sub`set`s of a topological space.  It holds if the two
+`separated_nhds` is a predicate on pairs of sub`set`s of a topological space.  It holds if the two
 sub`set`s are contained in disjoint open sets.
 -/
-def separated : set α → set α → Prop :=
+def separated_nhds : set α → set α → Prop :=
   λ (s t : set α), ∃ U V : (set α), (is_open U) ∧ is_open V ∧
   (s ⊆ U) ∧ (t ⊆ V) ∧ disjoint U V
 
-lemma separated_iff_disjoint {s t : set α} :
-  separated s t ↔ disjoint (𝓝ˢ s) (𝓝ˢ t) :=
-by simp only [(has_basis_nhds_set s).disjoint_iff (has_basis_nhds_set t), separated, exists_prop,
-  ← exists_and_distrib_left, and.assoc, and.comm, and.left_comm]
+lemma separated_nhds_iff_disjoint {s t : set α} :
+  separated_nhds s t ↔ disjoint (𝓝ˢ s) (𝓝ˢ t) :=
+by simp only [(has_basis_nhds_set s).disjoint_iff (has_basis_nhds_set t), separated_nhds,
+  exists_prop, ← exists_and_distrib_left, and.assoc, and.comm, and.left_comm]
 
-namespace separated
+namespace separated_nhds
 
-open separated
+variables {s s₁ s₂ t t₁ t₂ u : set α}
 
-@[symm] lemma symm {s t : set α} : separated s t → separated t s :=
+@[symm] lemma symm : separated_nhds s t → separated_nhds t s :=
 λ ⟨U, V, oU, oV, aU, bV, UV⟩, ⟨V, U, oV, oU, bV, aU, disjoint.symm UV⟩
 
-lemma comm (s t : set α) : separated s t ↔ separated t s :=
-⟨symm, symm⟩
+lemma comm (s t : set α) : separated_nhds s t ↔ separated_nhds t s := ⟨symm, symm⟩
 
-lemma preimage [topological_space β] {f : α → β} {s t : set β} (h : separated s t)
-  (hf : continuous f) : separated (f ⁻¹' s) (f ⁻¹' t) :=
+lemma preimage [topological_space β] {f : α → β} {s t : set β} (h : separated_nhds s t)
+  (hf : continuous f) : separated_nhds (f ⁻¹' s) (f ⁻¹' t) :=
 let ⟨U, V, oU, oV, sU, tV, UV⟩ := h in
 ⟨f ⁻¹' U, f ⁻¹' V, oU.preimage hf, oV.preimage hf, preimage_mono sU, preimage_mono tV,
   UV.preimage f⟩
 
-protected lemma disjoint {s t : set α} (h : separated s t) : disjoint s t :=
+protected lemma disjoint (h : separated_nhds s t) : disjoint s t :=
 let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h in hd.mono hsU htV
 
-lemma disjoint_closure_left {s t : set α} (h : separated s t) : disjoint (closure s) t :=
+lemma disjoint_closure_left (h : separated_nhds s t) : disjoint (closure s) t :=
 let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h
 in (hd.closure_left hV).mono (closure_mono hsU) htV
 
-lemma disjoint_closure_right {s t : set α} (h : separated s t) : disjoint s (closure t) :=
+lemma disjoint_closure_right (h : separated_nhds s t) : disjoint s (closure t) :=
 h.symm.disjoint_closure_left.symm
 
-lemma empty_right (a : set α) : separated a ∅ :=
+lemma empty_right (s : set α) : separated_nhds s ∅ :=
 ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
-lemma empty_left (a : set α) : separated ∅ a :=
+lemma empty_left (s : set α) : separated_nhds ∅ s :=
 (empty_right _).symm
 
-lemma mono {s₁ s₂ t₁ t₂ : set α} (h : separated s₂ t₂) (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
-  separated s₁ t₁ :=
+lemma mono (h : separated_nhds s₂ t₂) (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : separated_nhds s₁ t₁ :=
 let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h in ⟨U, V, hU, hV, hs.trans hsU, ht.trans htV, hd⟩
 
-lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
-by simpa only [separated_iff_disjoint, nhds_set_union, disjoint_sup_left] using and.intro
+lemma union_left : separated_nhds s u → separated_nhds t u → separated_nhds (s ∪ t) u :=
+by simpa only [separated_nhds_iff_disjoint, nhds_set_union, disjoint_sup_left] using and.intro
 
-lemma union_right {a b c : set α} (ab : separated a b) (ac : separated a c) :
-  separated a (b ∪ c) :=
-(ab.symm.union_left ac.symm).symm
+lemma union_right (ht : separated_nhds s t) (hu : separated_nhds s u) :
+  separated_nhds s (t ∪ u) :=
+(ht.symm.union_left hu.symm).symm
 
-end separated
+end separated_nhds
 
 /-- A T₀ space, also known as a Kolmogorov space, is a topological space such that for every pair
 `x ≠ y`, there is an open set containing one but not the other. We formulate the definition in terms
@@ -573,7 +572,7 @@ lemma injective_nhds_set [t1_space α] : function.injective (𝓝ˢ : set α →
 lemma strict_mono_nhds_set [t1_space α] : strict_mono (𝓝ˢ : set α → filter α) :=
 monotone_nhds_set.strict_mono_of_injective injective_nhds_set
 
-@[simp] lemma nhds_le_nhds_set [t1_space α] {s : set α} {x : α} : 𝓝 x ≤ 𝓝ˢ s ↔ x ∈ s :=
+@[simp] lemma nhds_le_nhds_set_iff [t1_space α] {s : set α} {x : α} : 𝓝 x ≤ 𝓝ˢ s ↔ x ∈ s :=
 by rw [← nhds_set_singleton, nhds_set_le_iff, singleton_subset_iff]
 
 /-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
@@ -873,10 +872,10 @@ t2_iff_is_closed_diagonal.mp ‹_›
 
 section separated
 
-open separated finset
+open separated_nhds finset
 
 lemma finset_disjoint_finset_opens_of_t2 [t2_space α] :
-  ∀ (s t : finset α), disjoint s t → separated (s : set α) t :=
+  ∀ (s t : finset α), disjoint s t → separated_nhds (s : set α) t :=
 begin
   refine induction_on_union _ (λ a b hi d, (hi d.symm).symm) (λ a d, empty_right a) (λ a b ab, _) _,
   { obtain ⟨U, V, oU, oV, aU, bV, UV⟩ := t2_separation (finset.disjoint_singleton.1 ab),
@@ -888,7 +887,7 @@ begin
 end
 
 lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
-  separated ({x} : set α) s :=
+  separated_nhds ({x} : set α) s :=
 by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (finset.disjoint_singleton_left.mpr h)
 
 end separated
@@ -1135,8 +1134,8 @@ lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : 
 
 lemma compact_compact_separated [t2_space α] {s t : set α}
   (hs : is_compact s) (ht : is_compact t) (hst : disjoint s t) :
-  ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
-by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
+  separated_nhds s t :=
+by simp only [separated_nhds, prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal.is_open_compl hst
 
 /-- In a `t2_space`, every compact set is closed. -/
@@ -1526,12 +1525,11 @@ section normality
   omits T₂), is one in which for every pair of disjoint closed sets `C` and `D`,
   there exist disjoint open sets containing `C` and `D` respectively. -/
 class normal_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
-(normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
-  ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
+(normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t → separated_nhds s t)
 
 theorem normal_separation [normal_space α] {s t : set α}
   (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :
-  ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
+  separated_nhds s t :=
 normal_space.normal s t H1 H2 H3
 
 theorem normal_exists_closure_subset [normal_space α] {s t : set α} (hs : is_closed s)
@@ -1562,11 +1560,10 @@ protected lemma closed_embedding.normal_space [topological_space β] [normal_spa
   normal :=
   begin
     intros s t hs ht hst,
-    rcases normal_space.normal (f '' s) (f '' t) (hf.is_closed_map s hs) (hf.is_closed_map t ht)
-      (disjoint_image_of_injective hf.inj hst) with ⟨u, v, hu, hv, hsu, htv, huv⟩,
-    rw image_subset_iff at hsu htv,
-    exact ⟨f ⁻¹' u, f ⁻¹' v, hu.preimage hf.continuous, hv.preimage hf.continuous,
-            hsu, htv, huv.preimage f⟩
+    have H : separated_nhds (f '' s) (f '' t),
+      from normal_space.normal (f '' s) (f '' t) (hf.is_closed_map s hs) (hf.is_closed_map t ht)
+        (disjoint_image_of_injective hf.inj hst),
+    exact (H.preimage hf.continuous).mono (subset_preimage_image _ _) (subset_preimage_image _ _)
   end }
 
 variable (α)
@@ -1652,7 +1649,7 @@ instance [t5_space α] {p : α → Prop} : t5_space {x // p x} := embedding_subt
 /-- A `T₅` space is a `T₄` space. -/
 @[priority 100] -- see Note [lower instance priority]
 instance t5_space.to_normal_space [t5_space α] : normal_space α :=
-⟨λ s t hs ht hd, separated_iff_disjoint.2 $
+⟨λ s t hs ht hd, separated_nhds_iff_disjoint.2 $
   completely_normal (by rwa [hs.closure_eq]) (by rwa [ht.closure_eq])⟩
 
 end completely_normal

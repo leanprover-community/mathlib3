@@ -110,6 +110,20 @@ by rw [norm_star_mul_self, norm_star]
 lemma nnnorm_star_mul_self {x : E} : ∥x⋆ * x∥₊ = ∥x∥₊ * ∥x∥₊ :=
 subtype.ext norm_star_mul_self
 
+@[simp]
+lemma star_mul_self_eq_zero_iff (x : E) : star x * x = 0 ↔ x = 0 :=
+by { rw [←norm_eq_zero, norm_star_mul_self], exact mul_self_eq_zero.trans norm_eq_zero }
+
+lemma star_mul_self_ne_zero_iff (x : E) : star x * x ≠ 0 ↔ x ≠ 0 :=
+by simp only [ne.def, star_mul_self_eq_zero_iff]
+
+@[simp]
+lemma mul_star_self_eq_zero_iff (x : E) : x * star x = 0 ↔ x = 0 :=
+by simpa only [star_eq_zero, star_star] using @star_mul_self_eq_zero_iff _ _ _ _ (star x)
+
+lemma mul_star_self_ne_zero_iff (x : E) : x * star x ≠ 0 ↔ x ≠ 0 :=
+by simp only [ne.def, mul_star_self_eq_zero_iff]
+
 end non_unital
 
 section prod_pi

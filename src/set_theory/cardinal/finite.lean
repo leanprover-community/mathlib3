@@ -19,6 +19,7 @@ import set_theory.cardinal.basic
 
 open cardinal
 noncomputable theory
+open_locale big_operators
 
 variables {α β : Type*}
 
@@ -76,6 +77,9 @@ card_congr equiv.ulift
 
 @[simp] lemma card_plift (α : Type*) : nat.card (plift α) = nat.card α :=
 card_congr equiv.plift
+
+lemma card_pi {β : α → Type*} [fintype α] : nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
+by simp_rw [nat.card, mk_pi, prod_eq_of_fintype, to_nat_lift, to_nat_finset_prod]
 
 @[simp] lemma card_zmod (n : ℕ) : nat.card (zmod n) = n :=
 begin

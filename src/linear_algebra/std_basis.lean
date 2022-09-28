@@ -113,13 +113,12 @@ begin
   exact le_rfl
 end
 
-lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis R φ i)) = ⊤ :=
-have (set.univ : set ι) ⊆ ↑(finset.univ : finset ι) ∪ ∅ := by rw [finset.coe_univ, set.union_empty],
+lemma supr_range_std_basis [finite ι] : (⨆ i, range (std_basis R φ i)) = ⊤ :=
 begin
-  apply top_unique,
-  convert (infi_ker_proj_le_supr_range_std_basis R φ this),
-  exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, range (std_basis R φ i)) $ finset.mem_univ i).symm)
+  casesI nonempty_fintype ι,
+  convert top_unique (infi_emptyset.ge.trans $ infi_ker_proj_le_supr_range_std_basis R φ _),
+  { exact funext (λ i, (@supr_pos _ _ _ (λ h, range $ std_basis R φ i) $ finset.mem_univ i).symm) },
+  { rw [finset.coe_univ, set.union_empty] }
 end
 
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :

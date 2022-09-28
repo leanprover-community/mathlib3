@@ -163,11 +163,9 @@ noncomputable instance groupoid : groupoid (quot_v S Sn) :=
     refine quot.induction_on f (λ f, quot.sound _),
     dsimp only [conj_setoid],
     rcases f with ⟨⟨a,rfl⟩,⟨b,rfl⟩,f⟩,
-    have : (S.arrws b b).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn b,
-    let sS := this.some_mem,
-    let s := this.some,
-    let t := f ≫ s ≫ inv f,
-    let tS : t ∈ S.arrws a a := Sn.conj' f s sS,
+    have ss : (S.arrws b b).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn b,
+    let t := f ≫ ss.some ≫ inv f,
+    let tS : t ∈ S.arrws a a := Sn.conj' f ss.some ss.some_mem,
     let G := (quotient.exact $ quot.out_eq (quot.mk setoid.r a)),
     use [inv G.some, S.inv' G.some_mem, (G.some ≫ t), S.mul' G.some_mem tS],
     simp only [inv_eq_inv, category.id_comp, is_iso.inv_hom_id_assoc] at *,
@@ -183,8 +181,21 @@ open subgroupoid
 def of : C ⥤ quot_v S Sn :=
 { obj := λ v, quot_v_mk S Sn v,
   map := λ a b f, quot.mk _ $ by { use [a,rfl,b,rfl,f], },
-  map_id' := λ a, by { apply quot.sound, sorry},
-  map_comp' := sorry }
+  map_id' := λ a, by
+  { letI := Sn.arrws_nonempty_setoid,
+    apply quot.sound,
+    let h := quotient.exact (quot.out_eq (quot_v_mk S Sn a)),
+    use [inv h.some, S.inv' h.some_mem, h.some, h.some_mem],
+    simp only [inv_eq_inv, category.id_comp, is_iso.inv_hom_id],
+  },
+  map_comp' := λ a b c f g, by
+  { letI := Sn.arrws_nonempty_setoid,
+    dsimp [category_struct.comp, quot_comp],
+    apply quotient.sound, simp, dsimp,
+    have h : (S.arrws b b).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn b,
+    symmetry,
+    use [f ≫ h.some ≫ inv f, Sn.conj' f h.some h.some_mem, 𝟙 c, Sn.wide c],
+    simp only [inv_eq_inv, category.assoc, category.comp_id, is_iso.inv_hom_id_assoc], refl, } }
 
 def lift {D : Type v} [groupoid D] {S} {Sn} (φ : C ⥤ D)
   (hφ : S ≤ ker φ) : (quot_v S Sn) ⥤ D := sorry

@@ -78,7 +78,7 @@ The following notations are localized in the locale `convolution`:
 
 open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
-open_locale pointwise topological_space nnreal
+open_locale pointwise topological_space nnreal filter
 
 variables {𝕜 G E E' E'' F F' F'' : Type*}
 variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
@@ -686,12 +686,11 @@ begin
     exact (mul_le_mul_of_nonneg_right op_norm_lsmul_le hε).trans_eq (one_mul ε) }
 end
 
-open_locale filter
-/-- `(φ i ⋆ g) x` tends to `g x₀` as `(i,x)` tends to `(∞, x₀)`.
+/-- `(φ i ⋆ g) x` tends to `g x₀` as `(i, x)` tends to `(∞, x₀)`.
 Here `φ` is a sequence of nonnegative functions with integral 1
 whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
 
-See also `convolution_tendsto_right`. -/
+This requires a little stronger conditions on `G` and `g` than `convolution_tendsto_right`. -/
 lemma convolution_tendsto_right' [sigma_compact_space G]
   {ι} {l : filter ι} {φ : ι → G → ℝ}
   (hnφ : ∀ i x, 0 ≤ φ i x)
@@ -723,8 +722,7 @@ end
 /-- `(φ i ⋆ g) x₀` tends to `g x₀` if `φ` is a sequence of nonnegative functions with integral 1
 whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
 
-See also `cont_diff_bump_of_inner.convolution_tendsto_right' and convolution_tendsto_right'`. -/
--- we don't use the above result, so that we don't have to add `[sigma_compact_space G]`
+See also `cont_diff_bump_of_inner.convolution_tendsto_right'` and `convolution_tendsto_right`. -/
 lemma convolution_tendsto_right {ι} {l : filter ι} {φ : ι → G → ℝ}
   (hnφ : ∀ i x, 0 ≤ φ i x)
   (hiφ : ∀ i, ∫ s, φ i s ∂μ = 1)
@@ -778,31 +776,32 @@ lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
 dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self φ.R_pos)])
   φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
 
+/-- If `φ i` is a sequence of normed bump function, `(φ i ⋆ g) x` tends to `g x₀` if `((φ i).R, x)`
+tends to `(0, x₀)` and `g` is continuous at `x₀`. -/
+lemma convolution_tendsto_right'
+  {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
+  {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
+  (hig : locally_integrable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
+  tendsto (λ p : ι × G, ((λ x, (φ p.1).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') p.2)
+    (l ×ᶠ 𝓝 x₀) (𝓝 (g x₀)) :=
+convolution_tendsto_right' (λ i, (φ i).nonneg_normed) (λ i, (φ i).integral_normed)
+  (tendsto_support_normed_small_sets hφ) hig hcg
+
 /-- If `φ i` is a sequence of normed bump function, `(φ i ⋆ g) x₀` tends to `g x₀` if `(φ i).R`
 tends to `0` and `g` is continuous at `x₀`. -/
-lemma convolution_tendsto_right' {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
+lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hmg : ae_strongly_measurable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
   tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
-begin
-  refine convolution_tendsto_right (λ i, (φ i).nonneg_normed) (λ i, (φ i).integral_normed)
-    _ hmg hcg,
-  rw [normed_add_comm_group.tendsto_nhds_zero] at hφ,
-  rw [tendsto_small_sets_iff],
-  intros t ht,
-  rcases metric.mem_nhds_iff.mp ht with ⟨ε, hε, ht⟩,
-  refine (hφ ε hε).mono (λ i hi, subset_trans _ ht),
-  simp_rw [(φ i).support_normed_eq],
-  rw [real.norm_eq_abs, abs_eq_self.mpr (φ i).R_pos.le] at hi,
-  exact ball_subset_ball hi.le
-end
+convolution_tendsto_right (λ i, (φ i).nonneg_normed) (λ i, (φ i).integral_normed)
+  (tendsto_support_normed_small_sets hφ) hmg hcg
 
-/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right'` where `g` is continuous. -/
-lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
+/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous. -/
+lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hg : continuous g) (x₀ : G) :
   tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
-convolution_tendsto_right' hφ hg.ae_strongly_measurable hg.continuous_at
+convolution_tendsto_right hφ hg.ae_strongly_measurable hg.continuous_at
 
 end cont_diff_bump_of_inner
 

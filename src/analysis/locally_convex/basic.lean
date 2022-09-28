@@ -127,32 +127,6 @@ begin
   exact hv.absorbs_Union.mpr (λ _ _, hs.absorbs),
 end
 
-lemma normed_field.absorbent_ball_zero {𝕜' : Type*} [normed_field 𝕜'] {r : ℝ} (hr : 0 < r) :
-  absorbent 𝕜' (metric.ball (0 : 𝕜') r) :=
-begin
-  rw absorbent_iff_nonneg_lt,
-  intro x,
-  refine ⟨∥x∥/r, div_nonneg (norm_nonneg _) hr.le, λ a ha, _⟩,
-  have ha₀ : 0 < ∥a∥ := (div_nonneg (norm_nonneg _) hr.le).trans_lt ha,
-  rwa [mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp ha₀), mem_ball_zero_iff,
-      norm_smul, norm_inv, inv_mul_eq_div, div_lt_iff ha₀, mul_comm, ← div_lt_iff hr]
-end
-
-lemma real.absorbent_Ioo {r : ℝ} (hr : 0 < r) : absorbent ℝ (Ioo (-r) r) :=
-begin
-  rw [real.Ioo_eq_ball, sub_neg_eq_add, add_self_div_two, neg_add_self, zero_div],
-  exact normed_field.absorbent_ball_zero hr
-end
-
-lemma real.absorbent_Icc {r : ℝ} (hr : 0 < r) : absorbent ℝ (Icc (-r) r) :=
-(real.absorbent_Ioo hr).subset Ioo_subset_Icc_self
-
-lemma real.absorbent_Iio {r : ℝ} (hr : 0 < r) : absorbent ℝ (Iio r) :=
-(real.absorbent_Ioo hr).subset Ioo_subset_Iio_self
-
-lemma real.absorbent_Iic {r : ℝ} (hr : 0 < r) : absorbent ℝ (Iic r) :=
-(real.absorbent_Icc hr).subset Icc_subset_Iic_self
-
 variables (𝕜)
 
 /-- A set `A` is balanced if `a • A` is contained in `A` whenever `a` has norm at most `1`. -/
@@ -189,24 +163,6 @@ lemma balanced_Inter {f : ι → set E} (h : ∀ i, balanced 𝕜 (f i)) : balan
 lemma balanced_Inter₂ {f : Π i, κ i → set E} (h : ∀ i j, balanced 𝕜 (f i j)) :
   balanced 𝕜 (⋂ i j, f i j) :=
 balanced_Inter $ λ _, balanced_Inter $ h _
-
-lemma normed_field.balanced_ball_zero {𝕜' : Type*} [normed_field 𝕜'] (r : ℝ) :
-  balanced 𝕜' (metric.ball (0 : 𝕜') r) :=
-begin
-  rw balanced_iff_smul_mem,
-  intros a ha x hx,
-  rw [mem_ball_zero_iff, norm_smul] at *,
-  exact (mul_le_of_le_one_left (norm_nonneg _) ha).trans_lt hx,
-end
-
-lemma normed_field.balanced_closed_ball_zero {𝕜' : Type*} [normed_field 𝕜'] (r : ℝ) :
-  balanced 𝕜' (metric.closed_ball (0 : 𝕜') r) :=
-begin
-  rw balanced_iff_smul_mem,
-  intros a ha x hx,
-  rw [mem_closed_ball_zero_iff, norm_smul] at *,
-  exact (mul_le_of_le_one_left (norm_nonneg _) ha).trans hx,
-end
 
 variables [has_smul 𝕝 E] [smul_comm_class 𝕜 𝕝 E]
 

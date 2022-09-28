@@ -165,7 +165,7 @@ begin
   have h3 := nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h1) (rank_commutator_le_card G),
   -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ rk (Z(G) ∩ G')`
   refine dvd_trans _ (pow_dvd_pow (center G).index (h2.trans h3)),
-  -- But `Z(G) ∩ G'` is abelian, so it is enough to prove that `g ^ [G : Z(G)] = 1` for `g ∈ Z(G)`
+  -- `Z(G) ∩ G'` is abelian, so it enough to prove that `g ^ [G : Z(G)] = 1` for `g ∈ Z(G) ∩ G'`
   apply card_dvd_exponent_pow_rank' _ (λ g, _),
   -- This follows from the theory of the transfer homomorphism
   have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow' hG) g.1.2,

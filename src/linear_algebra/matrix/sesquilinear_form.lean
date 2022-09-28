@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying, Moritz Doll
 -/
 
+import linear_algebra.finsupp_vector_space
 import linear_algebra.matrix.basis
 import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.sesquilinear_form
-import linear_algebra.finsupp_vector_space
 
 /-!
 # Sesquilinear form
@@ -144,7 +144,8 @@ variables {σ₁ : R₁ →+* R} {σ₂ : R₂ →+* R}
 
 /-- The linear equivalence between sesquilinear forms and `n × m` matrices -/
 def linear_map.to_matrixₛₗ₂' : ((n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) ≃ₗ[R] matrix n m R :=
-{ inv_fun := matrix.to_linear_map₂'_aux σ₁ σ₂,
+{ to_fun := linear_map.to_matrix₂_aux (λ i, std_basis R₁ (λ _, R₁) i 1) (λ j, std_basis R₂ (λ _, R₂) j 1),
+  inv_fun := matrix.to_linear_map₂'_aux σ₁ σ₂,
   left_inv := linear_map.to_linear_map₂'_aux_to_matrix₂_aux,
   right_inv := matrix.to_matrix₂_aux_to_linear_map₂'_aux,
   ..linear_map.to_matrix₂_aux (λ i, std_basis R₁ (λ _, R₁) i 1) (λ j, std_basis R₂ (λ _, R₂) j 1) }

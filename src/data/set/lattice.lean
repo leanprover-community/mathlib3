@@ -1395,7 +1395,7 @@ begin
 end
 
 -- If one of f₁ or f₂ is empty then LHS = univ, but right hand side = ⋂₀f₁ ×ˢ univ or univ ×ˢ ⋂₀f₂
-lemma prod_sInter_prod (f₁ : set (set α)) (f₂ : set (set β)) [h₁ : f₁.nonempty] [h₂ : f₂.nonempty] :
+lemma prod_sInter_prod (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty) (h₂ : f₂.nonempty) :
   ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) = ⋂₀f₁ ×ˢ ⋂₀f₂ :=
 begin
   rw subset_antisymm_iff,
@@ -1410,8 +1410,7 @@ begin
   cases h₁ with s₀ hs₀,
   cases h₂ with t₀ ht₀,
   split,
-  {
-    rw  mem_sInter,
+  { rw  mem_sInter,
     rintro s₁ hs₁,
     have e1 : (x,y) ∈ s₁ ×ˢ t₀ :=
     begin
@@ -1426,10 +1425,8 @@ begin
       simp only [eq_self_iff_true],
     end,
     rw prod_mk_mem_set_prod_eq at e1,
-    exact e1.1,
-  },
-  {
-    rw  mem_sInter,
+    exact e1.1, },
+  { rw  mem_sInter,
     rintro t₁ ht₁,
     have e1 : (x,y) ∈ s₀ ×ˢ t₁ :=
     begin
@@ -1444,8 +1441,7 @@ begin
       simp only [eq_self_iff_true],
     end,
     rw prod_mk_mem_set_prod_eq at e1,
-    exact e1.2,
-  },
+    exact e1.2, },
   { apply prod_sInter_prod_subseteq, },
 end
 

@@ -508,26 +508,6 @@ begin
     exact hN _ le_rfl _ hi }
 end
 
-protected lemma nonneg (q : ℚ_[p]) : 0 ≤ padic_norm_e q :=
-quotient.induction_on q $ norm_nonneg
-
-lemma zero_def : (0 : ℚ_[p]) = ⟦0⟧ := rfl
-
-lemma zero_iff (q : ℚ_[p]) : padic_norm_e q = 0 ↔ q = 0 :=
-quotient.induction_on q $
-  by simpa only [zero_def, quotient.eq] using norm_zero_iff
-
-@[simp] protected lemma zero : padic_norm_e (0 : ℚ_[p]) = 0 :=
-(zero_iff _).2 rfl
-
-/-- Theorems about `padic_norm_e` are named with a `'` so the names do not conflict with the
-equivalent theorems about `norm` (`∥ ∥`). -/
-@[simp] protected lemma one' : padic_norm_e (1 : ℚ_[p]) = 1 :=
-norm_one
-
-@[simp] protected lemma neg (q : ℚ_[p]) : padic_norm_e (-q) = padic_norm_e q :=
-quotient.induction_on q $ norm_neg
-
 /-- Theorems about `padic_norm_e` are named with a `'` so the names do not conflict with the
 equivalent theorems about `norm` (`∥ ∥`). -/
 theorem nonarchimedean' (q r : ℚ_[p]) :
@@ -540,13 +520,6 @@ theorem add_eq_max_of_ne' {q r : ℚ_[p]} :
   padic_norm_e q ≠ padic_norm_e r → padic_norm_e (q + r) = max (padic_norm_e q) (padic_norm_e r) :=
 quotient.induction_on₂ q r $ λ _ _, padic_seq.add_eq_max_of_ne
 
-lemma triangle_ineq (x y z : ℚ_[p]) :
-  padic_norm_e (x - z) ≤ padic_norm_e (x - y) + padic_norm_e (y - z) :=
-calc padic_norm_e (x - z) = padic_norm_e ((x - y) + (y - z)) : by rw sub_add_sub_cancel
-  ... ≤ max (padic_norm_e (x - y)) (padic_norm_e (y - z)) : padic_norm_e.nonarchimedean' _ _
-  ... ≤ padic_norm_e (x - y) + padic_norm_e (y - z) :
-    max_le_add_of_nonneg (padic_norm_e.nonneg _) (padic_norm_e.nonneg _)
-
 @[simp] lemma eq_padic_norm' (q : ℚ) : padic_norm_e (q : ℚ_[p]) = padic_norm p q :=
 norm_const _
 
@@ -554,9 +527,6 @@ protected theorem image' {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, padic_norm_e q
 quotient.induction_on q $ λ f hf,
   have ¬ f ≈ 0, from (ne_zero_iff_nequiv_zero f).1 hf,
   norm_values_discrete f this
-
-lemma sub_rev (q r : ℚ_[p]) : padic_norm_e (q - r) = padic_norm_e (r - q) :=
-by rw ←(padic_norm_e.neg); simp
 
 end embedding
 end padic_norm_e
@@ -679,11 +649,11 @@ instance : metric_space ℚ_[p] :=
 { dist_self := by simp [dist],
   dist := dist,
   dist_comm := λ x y, by simp [dist, ←padic_norm_e.map_neg (x - y)],
-  dist_triangle :=
-    begin
-      intros, unfold dist,
-      exact_mod_cast padic_norm_e.triangle_ineq _ _ _,
-    end,
+  dist_triangle := λ x y z,
+  begin
+    unfold dist,
+    exact_mod_cast padic_norm_e.sub_le _ _ _,
+  end,
   eq_of_dist_eq_zero :=
     begin
       unfold dist, intros _ _ h,

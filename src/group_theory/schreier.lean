@@ -145,25 +145,6 @@ end
 open_locale big_operators
 
 -- PRed
-lemma card_dvd_exponent_pow_rank (G : Type*) [comm_group G] [group.fg G] :
-  nat.card G ∣ monoid.exponent G ^ group.rank G :=
-begin
-  classical,
-  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
-  rw [←hS1, ←fintype.card_coe, ←finset.card_univ, ←finset.prod_const],
-  let f : (Π g : S, zpowers (g : G)) →* G :=
-  noncomm_pi_coprod (λ s t h x y hx hy, mul_comm x y),
-  have hf : function.surjective f,
-  { rw [←monoid_hom.range_top_iff_surjective, eq_top_iff, ←hS2, closure_le],
-    exact λ g hg, ⟨pi.mul_single ⟨g, hg⟩ ⟨g, mem_zpowers g⟩, noncomm_pi_coprod_mul_single _ _⟩ },
-  replace hf := nat_card_dvd_of_surjective f hf,
-  rw nat.card_pi at hf,
-  refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
-  rw ← order_eq_card_zpowers',
-  exact monoid.order_dvd_exponent (g : G),
-end
-
--- PRed
 lemma card_dvd_exponent_pow_rank' {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1) :
   nat.card G ∣ n ^ group.rank G :=
 (card_dvd_exponent_pow_rank G).trans

@@ -305,11 +305,11 @@ end
 at most `1`. -/
 def collinear (s : set P) : Prop := module.rank k (vector_span k s) ≤ 1
 
-variables {k}
-
 /-- The definition of `collinear`. -/
-lemma collinear_iff_dim_le_one {s : set P} : collinear k s ↔ module.rank k (vector_span k s) ≤ 1 :=
+lemma collinear_iff_dim_le_one (s : set P) : collinear k s ↔ module.rank k (vector_span k s) ≤ 1 :=
 iff.rfl
+
+variables {k}
 
 /-- A set of points, whose `vector_span` is finite-dimensional, is
 collinear if and only if their `vector_span` has dimension at most
@@ -317,7 +317,7 @@ collinear if and only if their `vector_span` has dimension at most
 lemma collinear_iff_finrank_le_one {s : set P} [finite_dimensional k (vector_span k s)] :
   collinear k s ↔ finrank k (vector_span k s) ≤ 1 :=
 begin
-  have h : collinear k s ↔ module.rank k (vector_span k s) ≤ 1 := collinear_iff_dim_le_one,
+  have h := collinear_iff_dim_le_one k s,
   rw ←finrank_eq_dim at h,
   exact_mod_cast h
 end

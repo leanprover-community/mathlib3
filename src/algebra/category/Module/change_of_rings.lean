@@ -197,10 +197,8 @@ Given `R`-module X and `S`-module Y and a map `X ⟶ (restrict_scalars f).obj Y`
 -/
 @[simps] def hom_equiv.from_extend_scalars {X Y} (g : X ⟶ (restrict_scalars f).obj Y) :
   (extend_scalars f).obj X ⟶ Y :=
-let m1 : module R S := module.comp_hom S f, m2 : module R Y := module.comp_hom Y f in
 begin
-  letI m1 : module R S := module.comp_hom S f,
-  letI m2 : module R Y := module.comp_hom Y f,
+  letI m1 : module R S := module.comp_hom S f, letI m2 : module R Y := module.comp_hom Y f,
   refine ⟨λ z, tensor_product.lift ⟨λ s, ⟨_, _, _⟩, _, _⟩ z, _, _⟩,
   { exact λ x, s • g x },
   { intros, rw [map_add, smul_add], },

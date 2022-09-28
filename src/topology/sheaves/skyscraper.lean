@@ -42,7 +42,7 @@ variables {X : Top.{u}} (p₀ : X) [Π (U : opens X), decidable (p₀ ∈ U)]
 
 section
 
-variables {C : Type v} [category.{w} C] (A : C) [has_terminal C]
+variables {C : Type v} [category.{w} C] [has_terminal C] (A : C)
 
 /--
 A skyscraper presheaf is a presheaf supported at a single point: if `p₀ ∈ X` is a specified
@@ -62,6 +62,33 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
     { have hV : p₀ ∈ unop V := le_of_hom iWV.unop hW,
       simp only [dif_pos hW, dif_pos hV, eq_to_hom_trans] },
     { rw [dif_neg hW], apply ((if_neg hW).symm.rec terminal_is_terminal).hom_ext }
+  end }
+
+@[simps] def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
+{ obj := skyscraper_presheaf p₀,
+  map := λ a b f,
+  { app := λ U, if h : p₀ ∈ U.unop
+      then eq_to_hom begin dsimp, rw if_pos h end ≫ f ≫ eq_to_hom begin dsimp, rw if_pos h end
+      else ((if_neg h).symm.rec terminal_is_terminal).from _,
+    naturality' := λ U V i,
+    begin
+      dsimp, by_cases hV : p₀ ∈ V.unop,
+      { have hU : p₀ ∈ U.unop := le_of_hom i.unop hV, split_ifs,
+        rw [category.assoc, category.assoc, eq_to_hom_trans, ←category.assoc, eq_to_hom_trans], },
+      { rw [dif_neg hV], apply ((if_neg hV).symm.rec terminal_is_terminal).hom_ext },
+    end },
+  map_id' := λ a, begin
+    ext U, dsimp, split_ifs,
+    { simp only [category.id_comp, category.comp_id, eq_to_hom_trans, eq_to_hom_refl], },
+    { apply ((if_neg h).symm.rec terminal_is_terminal).hom_ext, },
+  end,
+  map_comp' := λ a b c f g, begin
+    ext U, dsimp,  split_ifs,
+    { rw [eq_to_hom_comp_iff, comp_eq_to_hom_iff, category.assoc, category.assoc, category.assoc,
+        category.assoc, category.assoc, category.assoc, eq_to_hom_trans, eq_to_hom_refl,
+        category.comp_id, ←category.assoc _ _ g, eq_to_hom_trans, eq_to_hom_refl, category.id_comp,
+        ←category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.id_comp], },
+    { apply ((if_neg h).symm.rec terminal_is_terminal).hom_ext, },
   end }
 
 end

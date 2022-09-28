@@ -151,104 +151,38 @@ lemma card_dvd_exponent_pow_rank' {G : Type*} [comm_group G] [group.fg G] {n : �
     (pow_dvd_pow_of_dvd (monoid.exponent_dvd_of_forall_pow_eq_one G n hG) (group.rank G))
 
 -- PRed
-@[to_additive]
-lemma closure_preimage_eq_top {G : Type*} [group G] (s : set G) :
-  closure ((closure s).subtype ⁻¹' s) = ⊤ :=
-begin
-  apply map_injective (show function.injective (closure s).subtype, from subtype.coe_injective),
-  rwa [monoid_hom.map_closure, ←monoid_hom.range_eq_map, subtype_range,
-    set.image_preimage_eq_of_subset],
-  rw [coe_subtype, subtype.range_coe_subtype],
-  exact subset_closure,
-end
-
--- PRed
-@[to_additive]
-instance closure_finset_fg {G : Type*} [group G] (s : finset G) : group.fg (closure (s : set G)) :=
-begin
-  refine ⟨⟨s.preimage coe (subtype.coe_injective.inj_on _), _⟩⟩,
-  rw finset.coe_preimage,
-  exact closure_preimage_eq_top s,
-end
-
--- PRed
-@[to_additive]
-instance closure_finite_fg {G : Type*} [group G] (s : set G) [finite s] : group.fg (closure s) :=
-begin
-  haveI := fintype.of_finite s,
-  exact s.coe_to_finset ▸ subgroup.closure_finset_fg s.to_finset,
-end
-
--- PRed
-@[to_additive] lemma rank_closure_finset_le_card {G : Type*} [group G] (s : finset G) :
-  group.rank (closure (s : set G)) ≤ s.card :=
-begin
-  classical,
-  let t : finset (closure (s : set G)) := s.preimage coe (subtype.coe_injective.inj_on _),
-  have ht : closure (t : set (closure (s : set G))) = ⊤,
-  { rw finset.coe_preimage,
-    exact closure_preimage_eq_top s },
-  apply (group.rank_le (closure (s : set G)) ht).trans,
-  rw [←finset.card_image_of_inj_on, finset.image_preimage],
-  { apply finset.card_filter_le },
-  { apply subtype.coe_injective.inj_on },
-end
-
--- PRed
-lemma rank_closure_finite_le_nat_card {G : Type*} [group G] (s : set G) [finite s] :
-  group.rank (closure s) ≤ nat.card s :=
-begin
-  classical,
-  haveI := fintype.of_finite s,
-  rw [nat.card_eq_fintype_card, ←set.to_finset_card],
-  let t : finset (closure s) := s.to_finset.preimage coe (subtype.coe_injective.inj_on _),
-  have ht : closure (t : set (closure s)) = ⊤,
-  { rw [finset.coe_preimage, s.coe_to_finset],
-    exact closure_preimage_eq_top s },
-  apply (group.rank_le (closure s) ht).trans,
-  rw [←finset.card_image_of_inj_on, finset.image_preimage],
-  { apply finset.card_filter_le },
-  { apply subtype.coe_injective.inj_on },
-end
-
--- PR ready
 instance (G : Type*) [group G] [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.fg (commutator G) :=
 begin
-  haveI : finite {g | ∃ g₁ g₂ ∈ (⊤ : subgroup G), ⁅g₁, g₂⁆ = g},
-  { simpa only [mem_top, exists_true_left] },
-  apply subgroup.closure_finite_fg,
+  rw commutator_eq_closure,
+  apply group.closure_finite_fg,
 end
 
 variables (G)
 
--- PR ready
+-- PRed
 lemma rank_commutator_le_card [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.rank (commutator G) ≤ nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 begin
-  haveI : finite {g | ∃ g₁ g₂ ∈ (⊤ : subgroup G), ⁅g₁, g₂⁆ = g},
-  { simpa only [mem_top, exists_true_left] },
-  apply (subgroup.rank_closure_finite_le_nat_card _).trans,
-  simp only [mem_top, exists_true_left],
+  rw subgroup.rank_congr (commutator_eq_closure G),
+  apply subgroup.rank_closure_finite_le_nat_card,
 end
 
--- PR ready
+-- PRed
 lemma card_commutator_dvd_index_center_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   nat.card (commutator G) ∣ (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
 begin
   classical,
   by_cases hG : (center G).index = 0,
-  { simp only [hG, zero_mul, zero_add, pow_one, dvd_zero] },
-  let H := (center G).subgroup_of (commutator G),
-  rw [←H.card_mul_index, pow_succ'],
+  { simp_rw [hG, zero_mul, zero_add, pow_one, dvd_zero] },
+  rw [←((center G).subgroup_of (commutator G)).card_mul_index, pow_succ'],
   have h := relindex_dvd_index_of_normal (center G) (commutator G),
   refine mul_dvd_mul (dvd_trans _
     (pow_dvd_pow (center G).index ((rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h)).trans
     (nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h) (rank_commutator_le_card G))))) h,
   apply card_dvd_exponent_pow_rank' (λ g, _),
-  have := subtype.ext_iff.mp (abelianization.commutator_subset_ker
-    (monoid_hom.transfer_center_pow' hG) g.1.2),
-  exact subtype.ext (subtype.ext this),
+  have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow' hG) g.1.2,
+  simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,
 end
 
 variables {G}

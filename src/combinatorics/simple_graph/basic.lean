@@ -447,7 +447,7 @@ by rwa [←mk_mem_incidence_set_left_iff,
 lemma incidence_set_inter_incidence_set_of_not_adj (h : ¬ G.adj a b) (hn : a ≠ b) :
   G.incidence_set a ∩ G.incidence_set b = ∅ :=
 begin
-  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_eq, not_and],
+  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_iff, not_and],
   intros u ha hb,
   exact h (G.adj_of_mem_incidence_set hn ha hb),
 end
@@ -493,7 +493,7 @@ lemma adj_incidence_set_inter {v : V} {e : sym2 V} (he : e ∈ G.edge_set) (h : 
   G.incidence_set v ∩ G.incidence_set h.other = {e} :=
 begin
   ext e',
-  simp only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
+  simp only [incidence_set, set.mem_sep_iff, set.mem_inter_iff, set.mem_singleton_iff],
   refine ⟨λ h', _, _⟩,
   { rw ←sym2.other_spec h,
     exact (sym2.mem_and_mem_iff (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩ },
@@ -515,7 +515,7 @@ lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
 begin
   ext w,
   have h := @ne_of_adj _ G,
-  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_eq, set.mem_singleton_iff],
+  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_iff, set.mem_singleton_iff],
   tauto,
 end
 

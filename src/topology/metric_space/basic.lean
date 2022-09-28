@@ -149,13 +149,15 @@ used. -/
 protected meta def pseudo_metric_space.edist_dist_tac : tactic unit :=
 tactic.intros >> `[exact (ennreal.of_real_eq_coe_nnreal _).symm <|> control_laws_tac]
 
-/-- Metric space
+/-- Pseudo metric and Metric spaces
 
-Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
-This is enforced in the type class definition, by extending the `uniform_space` structure. When
-instantiating a `metric_space` structure, the uniformity fields are not necessary, they will be
-filled in by default. In the same way, each metric space induces an emetric space structure.
-It is included in the structure, but filled in by default.
+A pseudo metric space is endowed with a distance for which the requirement `d(x,y)=0 → x = y` might
+not hold. A metric space is a pseudo metric space such that `d(x,y)=0 → x = y`.
+Each pseudo metric space induces a canonical `uniform_space` and hence a canonical
+`topological_space` This is enforced in the type class definition, by extending the `uniform_space`
+structure. When instantiating a `pseudo_metric_space` structure, the uniformity fields are not
+necessary, they will be filled in by default. In the same way, each (pseudo) metric space induces a
+(pseudo) emetric space structure. It is included in the structure, but filled in by default.
 -/
 class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
@@ -1191,7 +1193,7 @@ emetric.complete_of_cauchy_seq_tendsto
 section real
 
 /-- Instantiate the reals as a pseudometric space. -/
-noncomputable instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
+instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
 { dist               := λx y, |x - y|,
   dist_self          := by simp [abs_zero],
   dist_comm          := assume x y, abs_sub_comm _ _,
@@ -1485,7 +1487,7 @@ end mul_opposite
 
 section nnreal
 
-noncomputable instance : pseudo_metric_space ℝ≥0 := subtype.pseudo_metric_space
+instance : pseudo_metric_space ℝ≥0 := subtype.pseudo_metric_space
 
 lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 
@@ -1684,7 +1686,7 @@ subset.antisymm
 
 lemma dense_iff {s : set α} :
   dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
-forall_congr $ λ x, by simp only [mem_closure_iff, set.nonempty, exists_prop, mem_inter_eq,
+forall_congr $ λ x, by simp only [mem_closure_iff, set.nonempty, exists_prop, mem_inter_iff,
   mem_ball', and_comm]
 
 lemma dense_range_iff {f : β → α} :
@@ -2487,20 +2489,6 @@ lemma tendsto_cocompact_of_tendsto_dist_comp_at_top {f : β → α} {l : filter 
   (h : tendsto (λ y, dist (f y) x) l at_top) : tendsto f l (cocompact α) :=
 by { refine tendsto.mono_right _ (comap_dist_right_at_top_le_cocompact x), rwa tendsto_comap_iff }
 
-namespace int
-open metric
-
-/-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
-lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
-begin
-  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
-  simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
-  change ∀ r : ℝ, (coe ⁻¹' (ball (0 : ℝ) r)).finite,
-  simp [real.ball_eq_Ioo, set.finite_Ioo],
-end
-
-end int
-
 /-- We now define `metric_space`, extending `pseudo_metric_space`. -/
 class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
@@ -2762,7 +2750,7 @@ instance : metric_space punit.{u + 1} :=
 section real
 
 /-- Instantiate the reals as a metric space. -/
-noncomputable instance real.metric_space : metric_space ℝ :=
+instance real.metric_space : metric_space ℝ :=
 { eq_of_dist_eq_zero := λ x y h, by simpa [dist, sub_eq_zero] using h,
   ..real.pseudo_metric_space }
 
@@ -2770,7 +2758,7 @@ end real
 
 section nnreal
 
-noncomputable instance : metric_space ℝ≥0 := subtype.metric_space
+instance : metric_space ℝ≥0 := subtype.metric_space
 
 end nnreal
 

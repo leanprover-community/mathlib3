@@ -728,6 +728,18 @@ protected lemma inf_eq_left {a b : cau_seq α abs} (h : a ≤ b) :
   a ⊓ b ≈ a :=
 by simpa only [cau_seq.inf_comm] using cau_seq.inf_eq_right h
 
+protected lemma le_sup_left {a b : cau_seq α abs} : a ≤ a ⊔ b :=
+le_of_exists ⟨0, λ j hj, le_sup_left⟩
+
+protected lemma inf_le_left {a b : cau_seq α abs} : a ⊓ b ≤ a :=
+le_of_exists ⟨0, λ j hj, inf_le_left⟩
+
+protected lemma le_sup_right {a b : cau_seq α abs} : b ≤ a ⊔ b :=
+le_of_exists ⟨0, λ j hj, le_sup_right⟩
+
+protected lemma inf_le_right {a b : cau_seq α abs} : a ⊓ b ≤ b :=
+le_of_exists ⟨0, λ j hj, inf_le_right⟩
+
 protected lemma sup_le {a b c : cau_seq α abs} (ha : a ≤ c) (hb : b ≤ c) : a ⊔ b ≤ c :=
 begin
   cases ha with ha ha,
@@ -755,6 +767,12 @@ begin
 end
 
 /-! Note that `distrib_lattice (cau_seq α abs)` is not true because there is no `partial_order`. -/
+
+protected lemma sup_inf_distrib_left (a b c : cau_seq α abs) : a ⊔ (b ⊓ c) = (a ⊔ b) ⊓ (a ⊔ c) :=
+subtype.ext $ funext $ λ i, max_min_distrib_left
+
+protected lemma sup_inf_distrib_right (a b c : cau_seq α abs) : (a ⊓ b) ⊔ c = (a ⊔ c) ⊓ (b ⊔ c) :=
+subtype.ext $ funext $ λ i, max_min_distrib_right
 
 end abs
 

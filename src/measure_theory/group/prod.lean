@@ -187,7 +187,9 @@ lemma measure_mul_right_ne_zero
 
 /-- A *left*-invariant is quasi-preserved by *right*-multiplication.
 This should not be confused with `(measure_preserving_mul_right μ g).quasi_measure_preserving`. -/
-@[to_additive] lemma quasi_measure_preserving_mul_right (g : G) :
+@[to_additive /-"A *left*-invariant is quasi-preserved by *right*-addition.
+This should not be confused with `(measure_preserving_add_right μ g).quasi_measure_preserving`. "-/]
+lemma quasi_measure_preserving_mul_right (g : G) :
   quasi_measure_preserving (λ h : G, h * g) μ μ :=
 begin
   refine ⟨measurable_mul_const g, absolutely_continuous.mk $ λ s hs, _⟩,

@@ -619,6 +619,7 @@ section group_with_zero
 
 variables [group_with_zero R] [add_monoid M] [distrib_mul_action R M]
 
+/-- This instance applies to `division_semiring`s, in particular `nnreal` and `nnrat`. -/
 @[priority 100] -- see note [lower instance priority]
 instance group_with_zero.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
 ⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩

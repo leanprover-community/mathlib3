@@ -68,44 +68,15 @@ section
 
 variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U)]
 
-def skyscraper_presheaf_iso_pullback :
-  skyscraper_presheaf p₀ A ≅
-  { to_fun := λ _, p₀, continuous_to_fun := by continuity } _*
-    (skyscraper_presheaf punit.star A : presheaf C (Top.of (punit : Type u))) :=
-{ hom :=
-  { app := λ U, if h : p₀ ∈ U.unop
-      then eq_to_hom $ by { dsimp, rw [if_pos h, if_pos], exact h }
-      else ((if_neg h).symm.rec terminal_is_terminal).from _,
-    naturality' := λ U V i,
-    begin
-      dsimp, by_cases hV : p₀ ∈ V.unop,
-      { have hU : p₀ ∈ U.unop := le_of_hom i.unop hV, split_ifs,
-        rw [eq_to_hom_trans, eq_to_hom_trans], },
-      { exact ((if_neg hV).symm.rec terminal_is_terminal).hom_ext _ _, },
-    end },
-  inv :=
-  { app := λ U, if h : p₀ ∈ U.unop
-      then eq_to_hom $ by { dsimp, rw [if_pos h, if_pos], exact h }
-      else ((if_neg h).symm.rec terminal_is_terminal).from _,
-    naturality' := λ U V i,
-    begin
-      dsimp, by_cases hV : p₀ ∈ V.unop,
-      { have hU : p₀ ∈ U.unop := le_of_hom i.unop hV, split_ifs;
-        rw [eq_to_hom_trans, eq_to_hom_trans], },
-      { exact ((if_neg hV).symm.rec terminal_is_terminal).hom_ext _ _, },
-    end },
-  hom_inv_id' :=
-  begin
-    ext, dsimp, split_ifs,
-    { rw [eq_to_hom_trans, eq_to_hom_refl], },
-    { exact ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _, },
-  end,
-  inv_hom_id' :=
-  begin
-    ext, dsimp, split_ifs,
-    { rw [eq_to_hom_trans, eq_to_hom_refl], },
-    { exact ((if_neg h).symm.rec terminal_is_terminal).hom_ext _ _, },
-  end }
+lemma skyscraper_presheaf_eq_pushforward :
+  skyscraper_presheaf p₀ A =
+  continuous_map.const (Top.of (punit : Type u)) p₀ _* skyscraper_presheaf punit.star A :=
+begin
+  convert_to @skyscraper_presheaf X p₀ (λ _, classical.dec _) C _ A _ =
+    continuous_map.const _ p₀ _*
+      (@skyscraper_presheaf (Top.of _) punit.star (λ _, classical.dec _) C _ A _);
+  congr <|> refl,
+end
 
 end
 
@@ -208,12 +179,9 @@ is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_spec
 variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U)]
 
 lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
-(presheaf.is_sheaf_iso_iff (skyscraper_presheaf_iso_pullback p₀ A)).mpr $
-  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf_on_unit_is_sheaf_of_is_terminal _
-  begin
-    dsimp, rw if_neg, exact terminal_is_terminal,
-    exact set.not_mem_empty punit.star,
-  end
+(presheaf.is_sheaf_iso_iff (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr $
+  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf_on_unit_is_sheaf_of_is_terminal _ $
+    by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star }
 
 def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
 ⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩

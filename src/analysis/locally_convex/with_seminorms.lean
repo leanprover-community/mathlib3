@@ -14,9 +14,11 @@ import analysis.locally_convex.bounded
 
 * `seminorm_family.basis_sets`: The set of open seminorm balls for a family of seminorms.
 * `seminorm_family.module_filter_basis`: A module filter basis formed by the open balls.
+* `seminorm.is_bounded`: A linear map `f : E →ₗ[𝕜] F` is bounded iff every seminorm in `F` can be
+bounded by a finite number of seminorms in `E`.
 
 ## Main statements
-
+* `continuous_from_bounded`: A bounded linear map `f : E →ₗ[𝕜] F` is continuous.
 * `seminorm_family.to_locally_convex_space`: A space equipped with a family of seminorms is locally
 convex.
 

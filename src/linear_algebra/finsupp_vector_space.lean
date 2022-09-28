@@ -210,7 +210,7 @@ variables {R M n : Type*}
 variables [decidable_eq n] [fintype n]
 variables [semiring R] [add_comm_monoid M] [module R M]
 
-lemma finset_sum_single_ite (a : R) (i : n) :
+lemma _root_.finset.sum_single_ite (a : R) (i : n) :
   finset.univ.sum (λ (x : n), finsupp.single x (ite (i = x) a 0)) = finsupp.single i a :=
 begin
   rw finset.sum_congr_set {i} (λ (x : n), finsupp.single x (ite (i = x) a 0))
@@ -235,7 +235,7 @@ begin
   apply_fun b.repr,
   simp only [equiv_fun_symm_apply, std_basis_apply', linear_equiv.map_sum,
     linear_equiv.map_smulₛₗ, ring_hom.id_apply, repr_self, finsupp.smul_single', boole_mul],
-  exact finset_sum_single_ite 1 i,
+  exact finset.sum_single_ite 1 i,
 end
 
 end basis

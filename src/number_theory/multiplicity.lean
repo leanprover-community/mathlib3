@@ -57,13 +57,14 @@ begin
   { simp only [nat.succ_sub_succ_eq_sub, tsub_zero, nat.cast_succ, add_pow,
       finset.sum_range_succ, nat.choose_self, nat.succ_sub _, tsub_self, pow_one,
       nat.choose_succ_self_right, pow_zero, mul_one, nat.cast_zero, zero_add, nat.succ_eq_add_one],
-    abel,
-    apply finset.dvd_sum,
-    intros y hy,
-    calc p ^ 2 ∣ p ^ (n + 1 - y) : pow_dvd_pow p (le_tsub_of_add_le_left
-      (by linarith [finset.mem_range.mp hy]))
-    ... ∣ x ^ y * p ^ (n + 1 - y) * ↑((n + 1).choose y) : dvd_mul_of_dvd_left (dvd_mul_left _ _)
-      ((n + 1).choose y) },
+    suffices : p ^ 2 ∣ ∑ (i : ℕ) in range n, x ^ i * p ^ (n + 1 - i) * ↑((n + 1).choose i),
+    { convert this; abel },
+    { apply finset.dvd_sum,
+      intros y hy,
+      calc p ^ 2 ∣ p ^ (n + 1 - y) : pow_dvd_pow p (le_tsub_of_add_le_left
+        (by linarith [finset.mem_range.mp hy]))
+      ... ∣ x ^ y * p ^ (n + 1 - y) * ↑((n + 1).choose y) : dvd_mul_of_dvd_left (dvd_mul_left _ _)
+        ((n + 1).choose y) }}
 end
 
 lemma not_dvd_geom_sum₂ {p : R} (hp : prime p)

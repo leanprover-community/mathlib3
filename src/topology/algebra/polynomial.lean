@@ -203,16 +203,20 @@ begin
     rw [←hcd, noroots, card_zero], },
 end
 
+/-- The coefficients of the monic polynomials of bounded degree with bounded roots are
+uniformely bounded. -/
 lemma coeff_bdd_of_roots_le (B : ℝ) (d : ℕ) (f : F →+* K) :
    ∃ C, ∀ p : F[X], p.monic → splits f p → p.nat_degree ≤ d → (∀ z ∈ (map f p).roots, ∥z∥ ≤ B) →
    ∀ i, ∥(map f p).coeff i∥ ≤ C :=
 begin
+  -- The set S is the set of bounds on coeff. provided by `coeff_le_of_roots_le`.
   let S := finset.bUnion (finset.product (finset.range (d + 1)) (finset.range (d + 1)))
     (λ x, ( { B ^ (x.1 - x.2) * (x.1.choose x.2) } : finset ℝ)),
   have hS : S.nonempty,
   { exact finset.bUnion_nonempty.mpr
       ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
         finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩, },
+  -- The bound `C` is then the max of `S`
   let C := (S.max' hS),
   use max C 0,
   intros p h_monic h_splits h_degree h_roots i,

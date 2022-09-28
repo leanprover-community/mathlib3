@@ -199,7 +199,8 @@ Given `R`-module X and `S`-module Y and a map `X ⟶ (restrict_scalars f).obj Y`
   (extend_scalars f).obj X ⟶ Y :=
 let m1 : module R S := module.comp_hom S f, m2 : module R Y := module.comp_hom Y f in
 begin
-  resetI,
+  letI m1 : module R S := module.comp_hom S f,
+  letI m2 : module R Y := module.comp_hom Y f,
   refine ⟨λ z, tensor_product.lift ⟨λ s, ⟨_, _, _⟩, _, _⟩ z, _, _⟩,
   { exact λ x, s • g x },
   { intros, rw [map_add, smul_add], },
@@ -215,9 +216,7 @@ begin
     induction z using tensor_product.induction_on with x y x y ih1 ih2,
     { simp only [smul_zero, map_zero], },
     { simp only [linear_map.coe_mk, extend_scalars.smul_tmul, lift.tmul, ←mul_smul], },
-    { simp only [smul_add, map_add],
-      dsimp only at ih1 ih2,
-      rw [ih1, ih2], }, },
+    { rw [smul_add, map_add, ih1, ih2, map_add, smul_add], }, },
 end
 
 /--

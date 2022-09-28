@@ -6,6 +6,8 @@ Authors: Scott Morrison
 import algebra.algebra.subalgebra.basic
 import topology.algebra.module.basic
 import topology.algebra.field
+import topology.algebra.star
+import algebra.star.subalgebra
 
 /-!
 # Topological (sub)algebras
@@ -160,3 +162,93 @@ instance division_ring.has_continuous_const_smul_rat
 ⟨λ r, by { simpa only [algebra.smul_def] using continuous_const.mul continuous_id }⟩
 
 end division_ring
+
+namespace star_subalgebra
+
+variables {R : Type*} [comm_semiring R] [star_ring R]
+variables {A : Type u} [semiring A] [star_ring A]
+variables [algebra R A] [star_module R A]
+
+instance : subsemiring_class (star_subalgebra R A) A :=
+{ mul_mem := mul_mem',
+  one_mem := one_mem',
+  add_mem := add_mem',
+  zero_mem := zero_mem' }
+
+@[simp] lemma mem_to_subalgebra {s : star_subalgebra R A} {x : A} : x ∈ s.to_subalgebra ↔ x ∈ s :=
+iff.rfl
+
+@[simp] lemma coe_to_subalgebra (s : star_subalgebra R A) : (s.to_subalgebra : set A) = s := rfl
+
+
+
+end star_subalgebra
+
+/-
+section topological_star_algebra
+variables {R : Type*} [comm_semiring R] [star_ring R]
+variables {A : Type u} [topological_space A] [semiring A] [star_ring A]
+variables [algebra R A] [star_module R A]
+
+
+#exit
+instance star_subalgebra.has_continuous_smul [topological_space R] [has_continuous_smul R A]
+  (s : star_subalgebra R A) :
+  has_continuous_smul R s :=
+s.to_submodule.has_continuous_smul
+
+variables [topological_semiring A]
+
+/-- The closure of a subalgebra in a topological algebra as a subalgebra. -/
+def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
+{ carrier := closure (s : set A),
+  algebra_map_mem' := λ r, s.to_subsemiring.subring_topological_closure (s.algebra_map_mem r),
+  .. s.to_subsemiring.topological_closure }
+
+@[simp] lemma subalgebra.topological_closure_coe (s : subalgebra R A) :
+  (s.topological_closure : set A) = closure (s : set A) :=
+rfl
+
+instance subalgebra.topological_semiring (s : subalgebra R A) : topological_semiring s :=
+s.to_subsemiring.topological_semiring
+
+lemma subalgebra.subalgebra_topological_closure (s : subalgebra R A) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma subalgebra.is_closed_topological_closure (s : subalgebra R A) :
+  is_closed (s.topological_closure : set A) :=
+by convert is_closed_closure
+
+lemma subalgebra.topological_closure_minimal
+  (s : subalgebra R A) {t : subalgebra R A} (h : s ≤ t) (ht : is_closed (t : set A)) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
+
+/-- If a subalgebra of a topological algebra is commutative, then so is its topological closure. -/
+def subalgebra.comm_semiring_topological_closure [t2_space A] (s : subalgebra R A)
+  (hs : ∀ (x y : s), x * y = y * x) : comm_semiring s.topological_closure :=
+{ ..s.topological_closure.to_semiring,
+  ..s.to_submonoid.comm_monoid_topological_closure hs }
+
+/--
+This is really a statement about topological algebra isomorphisms,
+but we don't have those, so we use the clunky approach of talking about
+an algebra homomorphism, and a separate homeomorphism,
+along with a witness that as functions they are the same.
+-/
+lemma subalgebra.topological_closure_comap_homeomorph
+  (s : subalgebra R A)
+  {B : Type*} [topological_space B] [ring B] [topological_ring B] [algebra R B]
+  (f : B →ₐ[R] A) (f' : B ≃ₜ A) (w : (f : B → A) = f') :
+  s.topological_closure.comap f = (s.comap f).topological_closure :=
+begin
+  apply set_like.ext',
+  simp only [subalgebra.topological_closure_coe],
+  simp only [subalgebra.coe_comap, subsemiring.coe_comap, alg_hom.coe_to_ring_hom],
+  rw [w],
+  exact f'.preimage_closure _,
+end
+
+end topological_algebra
+-/

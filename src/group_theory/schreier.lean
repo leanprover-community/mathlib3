@@ -154,19 +154,19 @@ begin
   { simp_rw [hG, zero_mul, zero_add, pow_one, dvd_zero] },
   -- Rewrite as `|Z(G) ∩ G'| * [G' : Z(G) ∩ G'] ∣ [G : Z(G)] ^ ([G : Z(G)] * n) * [G : Z(G)]`
   rw [←((center G).subgroup_of (commutator G)).card_mul_index, pow_succ'],
-  -- h1 : `[G' : Z(G) ∩ G'] ∣ [G : Z(G)]`
+  -- We have `h1 : [G' : Z(G) ∩ G'] ∣ [G : Z(G)]`
   have h1 := relindex_dvd_index_of_normal (center G) (commutator G),
   -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n)`
   refine mul_dvd_mul _ h1,
-  -- h2 : `rk (Z(G) ∩ G') ≤ [G' : Z(G) ∩ G'] * rk G'` by Schreier's lemma
+  -- We have `h2 : rk (Z(G) ∩ G') ≤ [G' : Z(G) ∩ G'] * rk G'` by Schreier's lemma
   have h2 := rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h1),
-  -- h3 : `[G' : Z(G) ∩ G'] * rk G' ≤ [G : Z(G)] * n`
+  -- We have `h3 : [G' : Z(G) ∩ G'] * rk G' ≤ [G : Z(G)] * n` by `h1` and `rk G' ≤ n`
   have h3 := nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h1) (rank_commutator_le_card G),
   -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ rk (Z(G) ∩ G')`
   refine dvd_trans _ (pow_dvd_pow (center G).index (h2.trans h3)),
   -- `Z(G) ∩ G'` is abelian, so it enough to prove that `g ^ [G : Z(G)] = 1` for `g ∈ Z(G) ∩ G'`
   apply card_dvd_exponent_pow_rank' _ (λ g, _),
-  -- `Z(G)` is abelian, so `Z(G) ∩ G' ≤ G' ≤ ker (transfer : G → Z(G))`
+  -- `Z(G)` is abelian, so `g ∈ Z(G) ∩ G' ≤ G' ≤ ker (transfer : G → Z(G))`
   have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow' hG) g.1.2,
   -- `transfer g` is defeq to `g ^ [G : Z(G)]`, so we are done
   simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,

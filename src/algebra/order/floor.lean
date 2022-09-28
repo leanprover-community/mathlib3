@@ -596,7 +596,7 @@ end
 lemma preimage_fract (s : set α) : fract ⁻¹' s = ⋃ m : ℤ, (λ x, x - m) ⁻¹' (s ∩ Ico (0 : α) 1) :=
 begin
   ext x,
-  simp only [mem_preimage, mem_Union, mem_inter_eq],
+  simp only [mem_preimage, mem_Union, mem_inter_iff],
   refine ⟨λ h, ⟨⌊x⌋, h, fract_nonneg x, fract_lt_one x⟩, _⟩,
   rintro ⟨m, hms, hm0, hm1⟩,
   obtain rfl : ⌊x⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 hm0, sub_lt_iff_lt_add'.1 hm1⟩,
@@ -606,7 +606,7 @@ end
 lemma image_fract (s : set α) : fract '' s = ⋃ m : ℤ, (λ x, x - m) '' s ∩ Ico 0 1 :=
 begin
   ext x,
-  simp only [mem_image, mem_inter_eq, mem_Union], split,
+  simp only [mem_image, mem_inter_iff, mem_Union], split,
   { rintro ⟨y, hy, rfl⟩,
     exact ⟨⌊y⌋, ⟨y, hy, rfl⟩, fract_nonneg y, fract_lt_one y⟩ },
   { rintro ⟨m, ⟨y, hys, rfl⟩, h0, h1⟩,

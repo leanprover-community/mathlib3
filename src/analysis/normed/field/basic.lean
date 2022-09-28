@@ -618,6 +618,11 @@ end densely
 
 end normed_field
 
+instance : normed_comm_ring ℝ :=
+{ norm_mul := λ x y, (abs_mul x y).le,
+  .. real.normed_add_comm_group,
+  .. real.comm_ring }
+
 noncomputable instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_add_comm_group }
@@ -700,7 +705,7 @@ lemma normed_add_comm_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=
 (at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
 
-noncomputable instance : normed_comm_ring ℤ :=
+instance : normed_comm_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
   dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub],
@@ -726,12 +731,12 @@ end
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩
 
-noncomputable instance : normed_field ℚ :=
+instance : normed_field ℚ :=
 { norm := λ r, ∥(r : ℝ)∥,
   norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
   dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
 
-noncomputable instance : densely_normed_field ℚ :=
+instance : densely_normed_field ℚ :=
 { lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨q, h⟩ := exists_rat_btwn hr in
     ⟨q, by { unfold norm, rwa abs_of_pos (h₀.trans_lt h.1) } ⟩ }
 

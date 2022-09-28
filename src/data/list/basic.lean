@@ -208,10 +208,9 @@ by rw [range_map, subtype.range_coe]
 
 /-- If each element of a list can be lifted to some type, then the whole list can be lifted to this
 type. -/
-instance [h : can_lift α β] : can_lift (list α) (list β) :=
-{ coe := list.map h.coe,
-  cond := λ l, ∀ x ∈ l, can_lift.cond β x,
-  prf  := λ l H,
+instance can_lift (c) (p) [can_lift α β c p] :
+  can_lift (list α) (list β) (list.map c) (λ l, ∀ x ∈ l, p x) :=
+{ prf  := λ l H,
     begin
       rw [← set.mem_range, range_map],
       exact λ a ha, can_lift.prf a (H a ha),
@@ -828,9 +827,20 @@ by { cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
 theorem head_eq_head' [inhabited α] (l : list α) : head l = (head' l).iget :=
 by cases l; refl
 
-theorem mem_of_mem_head' {x : α} : ∀ {l : list α}, x ∈ l.head' → x ∈ l
+theorem surjective_head [inhabited α] : surjective (@head α _) := λ x, ⟨[x], rfl⟩
+
+theorem surjective_head' : surjective (@head' α) := option.forall.2 ⟨⟨[], rfl⟩, λ x, ⟨[x], rfl⟩⟩
+
+theorem surjective_tail : surjective (@tail α)
+| [] := ⟨[], rfl⟩
+| (a :: l) := ⟨a :: a :: l, rfl⟩
+
+lemma eq_cons_of_mem_head' {x : α} : ∀ {l : list α}, x ∈ l.head' → l = x::tail l
 | [] h := (option.not_mem_none _ h).elim
-| (a::l) h := by { simp only [head', option.mem_def] at h, exact h ▸ or.inl rfl }
+| (a::l) h := by { simp only [head', option.mem_def] at h, exact h ▸ rfl }
+
+theorem mem_of_mem_head' {x : α} {l : list α} (h : x ∈ l.head') : x ∈ l :=
+(eq_cons_of_mem_head' h).symm ▸ mem_cons_self _ _
 
 @[simp] theorem head_cons [inhabited α] (a : α) (l : list α) : head (a::l) = a := rfl
 

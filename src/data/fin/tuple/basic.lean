@@ -569,7 +569,7 @@ set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
 lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
   (hx : x ∉ Icc (q₁ i) (q₂ i)) :
   i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
-set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_iff_false]
 
 end insert_nth
 

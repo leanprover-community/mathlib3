@@ -343,9 +343,10 @@ end
 lemma norm_pow_mul_le_seminorm (f : 𝓢(E, F)) (k : ℕ) (x₀ : E):
   ∥x₀∥^k * ∥f x₀∥ ≤ (schwartz_map.seminorm 𝕜 k 0) f :=
 begin
-  rw ←norm_fderiv_zero,
-  exact schwartz_map.le_seminorm 𝕜 k 0 f x₀,
+  have := schwartz_map.le_seminorm 𝕜 k 0 f x₀,
+  rwa norm_iterated_fderiv_zero at this,
 end
+
 end seminorms
 
 section topology

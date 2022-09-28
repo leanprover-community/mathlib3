@@ -216,7 +216,7 @@ begin
     ⟨⟨0 , 0⟩, finset.mem_product.mpr ⟨finset.mem_range_succ_iff.mpr (zero_le _),
       finset.mem_range_succ_iff.mpr (zero_le _)⟩, finset.singleton_nonempty _⟩,
   -- The bound `C` is then the max of `S`
-  let C := (S.max' hS),
+  let C := S.max' hS,
   use max C 0,
   intros p h_monic h_splits h_degree h_roots i,
   by_cases hi : i < d + 1,

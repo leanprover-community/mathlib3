@@ -422,11 +422,11 @@ end pnat
 
 section can_lift
 
-instance nat.can_lift_pnat : can_lift ℕ ℕ+ :=
-⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' n, pnat.to_pnat'_coe hn⟩⟩
+instance nat.can_lift_pnat : can_lift ℕ ℕ+ coe ((<) 0) :=
+⟨λ n hn, ⟨nat.to_pnat' n, pnat.to_pnat'_coe hn⟩⟩
 
-instance int.can_lift_pnat : can_lift ℤ ℕ+ :=
-⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' (int.nat_abs n),
+instance int.can_lift_pnat : can_lift ℤ ℕ+ coe ((<) 0) :=
+⟨λ n hn, ⟨nat.to_pnat' (int.nat_abs n),
   by rw [coe_coe, nat.to_pnat'_coe, if_pos (int.nat_abs_pos_of_ne_zero hn.ne'),
     int.nat_abs_of_nonneg hn.le]⟩⟩
 

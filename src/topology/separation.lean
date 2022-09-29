@@ -333,6 +333,17 @@ begin
   exact mem_nhds_within_of_mem_nhds (is_open_ne.mem_nhds h)
 end
 
+lemma is_open_set_of_eventually_nhds_within [t1_space α] {p : α → Prop} :
+  is_open {x | ∀ᶠ y in 𝓝[≠] x, p y} :=
+begin
+  refine is_open_iff_mem_nhds.mpr (λ a ha, _),
+  filter_upwards [eventually_nhds_nhds_within.mpr ha] with b hb,
+  by_cases a = b,
+  { subst h, exact hb },
+  { rw (ne.symm h).nhds_within_compl_singleton at hb,
+    exact hb.filter_mono nhds_within_le_nhds }
+end
+
 protected lemma set.finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
   is_closed s :=
 begin

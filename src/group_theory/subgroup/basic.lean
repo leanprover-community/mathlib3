@@ -1855,6 +1855,9 @@ end⟩⟩
   (H.subgroup_of K).is_commutative :=
 H.comap_injective_is_commutative subtype.coe_injective
 
+@[to_additive] lemma le_centralizer [h : H.is_commutative] : H ≤ H.centralizer :=
+λ x hx y hy, subtype.ext_iff.mp (h.1.1 ⟨y, hy⟩ ⟨x, hx⟩)
+
 end subgroup
 
 namespace group

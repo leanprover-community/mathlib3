@@ -869,7 +869,7 @@ mem_nhds_iff
 
 /-- A version of `filter.eventually_prod_iff` where the second filter consists of neighborhoods
 in a pseudo-metric space.-/
-lemma metric.eventually_prod_nhds_iff {f : filter ι} {x₀ : α} {p : ι × α → Prop}:
+lemma eventually_prod_nhds_iff {f : filter ι} {x₀ : α} {p : ι × α → Prop}:
   (∀ᶠ x in f ×ᶠ 𝓝 x₀, p x) ↔ ∃ (pa : ι → Prop) (ha : ∀ᶠ i in f, pa i) (ε > 0),
     ∀ {i}, pa i → ∀ {x}, dist x x₀ < ε → p (i, x) :=
 begin
@@ -882,7 +882,7 @@ end
 
 /-- A version of `filter.eventually_prod_iff` where the first filter consists of neighborhoods
 in a pseudo-metric space.-/
-lemma metric.eventually_nhds_prod_iff {ι α} [pseudo_metric_space α] {f : filter ι} {x₀ : α}
+lemma eventually_nhds_prod_iff {ι α} [pseudo_metric_space α] {f : filter ι} {x₀ : α}
   {p : α × ι → Prop}:
   (∀ᶠ x in 𝓝 x₀ ×ᶠ f, p x) ↔ ∃ (ε > (0 : ℝ)) (pa : ι → Prop) (ha : ∀ᶠ i in f, pa i) ,
     ∀ {x}, dist x x₀ < ε → ∀ {i}, pa i → p (x, i) :=

@@ -110,7 +110,7 @@ instance : inhabited unit_tree := ⟨nil⟩
 @[simp] lemma of_tree_to_tree (x : unit_tree) : of_tree x.to_tree = x :=
 by induction x; simp [*]
 
-/-- A non-nil ptree; useful when we want an arbitrary value other than `nil` -/
+/-- A non-nil `unit_tree`; useful when we want an arbitrary value other than `nil` -/
 abbreviation non_nil : unit_tree := node nil nil
 
 @[simp] lemma non_nil_ne : non_nil ≠ nil := by trivial
@@ -130,12 +130,11 @@ abbreviation non_nil : unit_tree := node nil nil
 | nil := 0
 | (node a b) := max a.height b.height + 1
 
-lemma leaves_eq_internal_nodes_succ (x : unit_tree) :
-  x.leaves = x.nodes + 1 :=
+lemma leaves_eq_nodes_succ (x : unit_tree) : x.leaves = x.nodes + 1 :=
 by { induction x; simp [*, nat.add_comm, nat.add_assoc, nat.add_right_comm], }
 
 lemma leaves_pos (x : unit_tree) : 0 < x.leaves :=
-by { induction x, { exact nat.zero_lt_one, }, apply nat.lt_add_left, assumption, }
+by { rw leaves_eq_nodes_succ, exact nat.zero_lt_succ _, }
 
 lemma height_le_nodes : ∀ (x : unit_tree), x.height ≤ x.nodes
 | nil := le_refl _

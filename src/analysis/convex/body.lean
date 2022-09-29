@@ -108,7 +108,7 @@ instance has_smul' : has_smul ℝ≥0 (convex_body V) :=
 nnreal.distrib_mul_action.to_has_smul
 
 @[simp]
-lemma coe_smul' (c : ℝ) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
+lemma coe_smul' (c : ℝ≥0) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
 
 /--
 The convex bodies in a fixed space $V$ form a module over the nonnegative reals.

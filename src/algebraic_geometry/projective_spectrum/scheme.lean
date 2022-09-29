@@ -103,83 +103,7 @@ local notation `Spec ` ring := Spec.LocallyRingedSpace_obj (CommRing.of ring)
 local notation `Spec.T ` ring :=
   (Spec.LocallyRingedSpace_obj (CommRing.of ring)).to_SheafedSpace.to_PresheafedSpace.1
 -- the underlying topological space of `Spec`
-
--- section
--- variable {𝒜}
--- /--
--- The degree zero part of the localized ring `Aₓ` is the subring of elements of the form `a/x^n` such
--- that `a` and `x^n` have the same degree.
--- -/
--- def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f) :=
--- { carrier := { y | ∃ (n : ℕ) (a : 𝒜 (m * n)), y = mk a ⟨f^n, ⟨n, rfl⟩⟩ },
---   mul_mem' := λ _ _ ⟨n, ⟨a, h⟩⟩ ⟨n', ⟨b, h'⟩⟩, h.symm ▸ h'.symm ▸
---     ⟨n+n', ⟨⟨a.1 * b.1, (mul_add m n n').symm ▸ mul_mem a.2 b.2⟩,
---     by {rw mk_mul, congr' 1, simp only [pow_add], refl }⟩⟩,
---   one_mem' := ⟨0, ⟨1, (mul_zero m).symm ▸ one_mem⟩,
---     by { symmetry, rw subtype.coe_mk, convert ← mk_self 1, simp only [pow_zero], refl, }⟩,
---   add_mem' := λ _ _ ⟨n, ⟨a, h⟩⟩ ⟨n', ⟨b, h'⟩⟩, h.symm ▸ h'.symm ▸
---     ⟨n+n', ⟨⟨f ^ n * b.1 + f ^ n' * a.1, (mul_add m n n').symm ▸
---       add_mem (mul_mem (by { rw mul_comm, exact set_like.pow_mem_graded n f_deg }) b.2)
---         begin
---           rw add_comm,
---           refine mul_mem _ a.2,
---           rw mul_comm,
---           exact set_like.pow_mem_graded _ f_deg
---         end⟩, begin
---           rw add_mk,
---           congr' 1,
---           simp only [pow_add],
---           refl,
---         end⟩⟩,
---   zero_mem' := ⟨0, ⟨0, (mk_zero _).symm⟩⟩,
---   neg_mem' := λ x ⟨n, ⟨a, h⟩⟩, h.symm ▸ ⟨n, ⟨-a, neg_mk _ _⟩⟩ }
-
--- end
-
--- local notation `A⁰_ ` f_deg := degree_zero_part f_deg
 local notation `A⁰_ ` f := homogeneous_localization.away 𝒜 f
-
--- section
-
--- variable {𝒜}
-
--- instance (f : A) {m : ℕ} (f_deg : f ∈ 𝒜 m) : comm_ring (A⁰_ f) :=
--- infer_instance
-
--- -- /--
--- -- Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
--- -- `degree_zero_part.deg` picks this natural number `n`
--- -- -/
--- -- def degree_zero_part.deg {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) : ℕ :=
--- -- x.2.some
-
--- -- /--
--- -- Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
--- -- `degree_zero_part.deg` picks the numerator `a`
--- -- -/
--- -- def degree_zero_part.num {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) : A :=
--- -- x.2.some_spec.some.1
-
--- -- lemma degree_zero_part.num_mem {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) :
--- --   degree_zero_part.num x ∈ 𝒜 (m * degree_zero_part.deg x) :=
--- -- x.2.some_spec.some.2
-
--- -- lemma degree_zero_part.eq {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) :
--- --   (x : away f) = mk (degree_zero_part.num x) ⟨f^(degree_zero_part.deg x), ⟨_, rfl⟩⟩ :=
--- -- x.2.some_spec.some_spec
-
--- -- lemma degree_zero_part.coe_mul {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A⁰_ f_deg) :
--- --   (↑(x * y) : away f) = x * y := rfl
-
--- -- lemma degree_zero_part.coe_one {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) :
--- --   (↑(1 : A⁰_ f_deg) : away f) = 1 := rfl
-
--- -- lemma degree_zero_part.coe_sum {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) {ι : Type*}
--- --   (s : finset ι) (g : ι → A⁰_ f_deg) :
--- --   (↑(∑ i in s, g i) : away f) = ∑ i in s, (g i : away f) :=
--- -- by { classical, induction s using finset.induction_on with i s hi ih; simp }
-
--- end
 
 namespace Proj_iso_Spec_Top_component
 
@@ -327,12 +251,10 @@ The preimage of basic open set `D(a/f^n)` in `Spec A⁰_f` under the forward map
 `Spec A⁰_f` is the basic open set `D(a) ∩ D(f)` in  `Proj A`. This lemma is used to prove that the
 forward map is continuous.
 -/
-lemma preimage_eq (a : A) (n : ℕ) (a_mem : a ∈ 𝒜 (n * m))
-  -- (a_mem_degree_zero : (mk a ⟨f ^ n, ⟨n, rfl⟩⟩ : away f) ∈ A⁰_ f)
-  :
-  to_fun 𝒜 f ⁻¹'
+lemma preimage_eq' (a b : A) (k : ℕ) (a_mem : a ∈ 𝒜 k) (b_mem1 : b ∈ 𝒜 k)
+  (b_mem2 : b ∈ submonoid.powers f) : to_fun 𝒜 f ⁻¹'
     ((@prime_spectrum.basic_open (A⁰_ f) _
-      (quotient.mk' ⟨n * m, ⟨a, a_mem⟩, ⟨f^n, set_like.pow_mem_graded _ f_deg⟩, ⟨n, rfl⟩⟩)) :
+      (quotient.mk' ⟨k, ⟨a, a_mem⟩, ⟨b, b_mem1⟩, b_mem2⟩)) :
         set (prime_spectrum (homogeneous_localization.away 𝒜 f)))
   = {x | x.1 ∈ (pbo f) ⊓ (pbo a)} :=
 begin
@@ -344,9 +266,9 @@ begin
     intro a_mem_y,
     apply hy,
     rw [to_fun, mem_carrier_iff, homogeneous_localization.val_mk', subtype.coe_mk],
-    dsimp,
-    simp only [show (mk a ⟨f^n, ⟨_, rfl⟩⟩ : away f) = mk 1 ⟨f^n, ⟨_, rfl⟩⟩ * mk a 1,
-      by rw [mk_mul, one_mul, mul_one]],
+    dsimp, rcases b_mem2 with ⟨k, hk⟩,
+    simp only [show (mk a ⟨b, ⟨k, hk⟩⟩ : away f) = mk 1 ⟨f^k, ⟨_, rfl⟩⟩ * mk a 1,
+      by { rw [mk_mul, one_mul, mul_one], congr, rw hk }],
     exact ideal.mul_mem_left _ _ (ideal.subset_span ⟨_, a_mem_y, rfl⟩), },
   { change y.1 ∈ _ at hy,
     rcases hy with ⟨hy1, hy2⟩,
@@ -386,11 +308,8 @@ def to_Spec {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
 { to_fun := to_Spec.to_fun 𝒜 f,
   continuous_to_fun := begin
     apply is_topological_basis.continuous (prime_spectrum.is_topological_basis_basic_opens),
-    rintros _ ⟨⟨g, hg⟩, rfl⟩,
-    induction g using localization.induction_on with data,
-    obtain ⟨a, ⟨_, ⟨n, rfl⟩⟩⟩ := data,
-
-    erw to_Spec.preimage_eq,
+    rintros _ ⟨⟨k, ⟨a, ha⟩, ⟨b, hb1⟩, ⟨k', hb2⟩⟩, rfl⟩, dsimp,
+    erw to_Spec.preimage_eq' f a b k ha hb1 ⟨k', hb2⟩,
     refine is_open_induced_iff.mpr ⟨(pbo f).1 ⊓ (pbo a).1, is_open.inter (pbo f).2 (pbo a).2, _⟩,
     ext z, split; intros hz; simpa [set.mem_preimage],
   end }
@@ -401,13 +320,15 @@ namespace from_Spec
 
 open graded_algebra set_like finset (hiding mk_zero)
 
-variables {𝒜} {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m}
+variables {𝒜} {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m)
 
 private meta def mem_tac : tactic unit :=
 let b : tactic unit :=
-  `[exact pow_mem_graded _ (submodule.coe_mem _) <|> exact nat_cast_mem_graded _ _] in
+  `[exact pow_mem_graded _ (submodule.coe_mem _) <|> exact nat_cast_mem_graded _ _ <|>
+    exact pow_mem_graded _ f_deg] in
 b <|> `[by repeat { all_goals { apply graded_monoid.mul_mem } }; b]
 
+include f_deg
 /--The function from `Spec A⁰_f` to `Proj|D(f)` is defined by `q ↦ {a | aᵢᵐ/fⁱ ∈ q}`, i.e. sending
 `q` a prime ideal in `A⁰_f` to the homogeneous prime relevant ideal containing only and all the
 elements `a : A` such that for every `i`, the degree 0 element formed by dividing the `m`-th power
@@ -420,16 +341,19 @@ The set `{a | aᵢᵐ/fⁱ ∈ q}`
 * is prime, as proved in `carrier.as_ideal.prime`;
 * is relevant, as proved in `carrier.relevant`.
 -/
-def carrier (q : Spec.T (A⁰_ f_deg)) : set A :=
-{a | ∀ i, (⟨mk (proj 𝒜 i a ^ m) ⟨_, _, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩ : A⁰_ f_deg) ∈ q.1}
-
-lemma mem_carrier_iff (q : Spec.T (A⁰_ f_deg)) (a : A) :
-  a ∈ carrier q ↔
-  ∀ i, (⟨mk (proj 𝒜 i a ^ m) ⟨_, _, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩ : A⁰_ f_deg) ∈ q.1 :=
+def carrier (q : Spec.T (A⁰_ f)) : set A :=
+{a | ∀ i, (quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ m, by mem_tac⟩,
+  ⟨f^i, by rw mul_comm; mem_tac⟩, ⟨_, rfl⟩⟩ : A⁰_ f) ∈ q.1}
+-- mk (proj 𝒜 i a ^ m) ⟨_, _, rfl⟩, i, ⟨_, by mem_tac⟩, rfl
+lemma mem_carrier_iff (q : Spec.T (A⁰_ f)) (a : A) :
+  a ∈ carrier f_deg q ↔
+  ∀ i, (quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ m, by mem_tac⟩, ⟨f^i, by rw mul_comm; mem_tac⟩, ⟨_, rfl⟩⟩
+    : A⁰_ f) ∈ q.1 :=
 iff.rfl
 
-lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A} (ha : a ∈ carrier q) (hb : b ∈ carrier q) :
-  a + b ∈ carrier q :=
+lemma carrier.add_mem (q : Spec.T (A⁰_ f)) {a b : A} (ha : a ∈ carrier f_deg q)
+  (hb : b ∈ carrier f_deg q) :
+  a + b ∈ carrier f_deg q :=
 begin
   refine λ i, (q.2.mem_or_mem _).elim id id,
   change subtype.mk (localization.mk _ _ * mk _ _) _ ∈ q.1,
@@ -456,77 +380,93 @@ begin
   { rw [← mul_assoc, ← pow_add, nat.add_sub_of_le (le_of_not_le h1)] },
 end
 
-variables (hm : 0 < m) (q : Spec.T (A⁰_ f_deg))
+variables (hm : 0 < m) (q : Spec.T (A⁰_ f))
 include hm
 
-lemma carrier.zero_mem : (0 : A) ∈ carrier q :=
-λ i, by simpa only [linear_map.map_zero, zero_pow hm, mk_zero] using submodule.zero_mem _
+lemma carrier.zero_mem : (0 : A) ∈ carrier f_deg q := λ i, begin
+  convert submodule.zero_mem q.1 using 1,
+  rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk',
+    homogeneous_localization.zero_val],
+  simp_rw [map_zero, zero_pow hm],
+  convert localization.mk_zero _ using 1,
+end
 
-lemma carrier.smul_mem (c x : A) (hx : x ∈ carrier q) : c • x ∈ carrier q :=
+
+lemma carrier.smul_mem (c x : A) (hx : x ∈ carrier f_deg q) : c • x ∈ carrier f_deg q :=
 begin
   revert c,
   refine direct_sum.decomposition.induction_on 𝒜 _ _ _,
-  { rw zero_smul, exact carrier.zero_mem hm _ },
+  { rw zero_smul, exact carrier.zero_mem f_deg hm _ },
   { rintros n ⟨a, ha⟩ i,
     simp_rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_of_left_mem 𝒜 i ha],
     split_ifs,
-    { convert_to (⟨mk _ ⟨_, n, rfl⟩, n, ⟨_, pow_mem_graded m ha⟩, rfl⟩ : A⁰_ f_deg) *
-        ⟨mk _ ⟨_, i - n, rfl⟩, _, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, rfl⟩ ∈ q.1,
-      { erw [subtype.ext_iff, subring.coe_mul, mk_mul, subtype.coe_mk, mul_pow],
+    { convert_to (quotient.mk' ⟨_, ⟨a^m, pow_mem_graded m ha⟩, ⟨_, _⟩, ⟨n, rfl⟩⟩ : A⁰_ f) *
+        quotient.mk' ⟨_, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, ⟨_, _⟩, ⟨i - n, rfl⟩⟩ ∈ q.1,
+      { rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk',
+          homogeneous_localization.mul_val, homogeneous_localization.val_mk',
+          homogeneous_localization.val_mk', subtype.coe_mk],
+        simp_rw [mul_pow, subtype.coe_mk],
+        rw [localization.mk_mul],
         congr, erw [← pow_add, nat.add_sub_of_le h] },
-      { exact ideal.mul_mem_left _ _ (hx _) } },
-    { simp_rw [zero_pow hm, mk_zero], exact q.1.zero_mem } },
-  { simp_rw add_smul, exact λ _ _, carrier.add_mem q },
+      { exact ideal.mul_mem_left _ _ (hx _), rw [smul_eq_mul, mul_comm], mem_tac, } },
+    { simp_rw [zero_pow hm], convert carrier.zero_mem f_deg hm q i, rw [map_zero, zero_pow hm], } },
+  { simp_rw add_smul, exact λ _ _, carrier.add_mem f_deg q },
 end
 
 /--
 For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as an ideal.
 -/
 def carrier.as_ideal : ideal A :=
-{ carrier := carrier q,
-  zero_mem' := carrier.zero_mem hm q,
-  add_mem' := λ a b, carrier.add_mem q,
-  smul_mem' := carrier.smul_mem hm q }
+{ carrier := carrier f_deg q,
+  zero_mem' := carrier.zero_mem f_deg hm q,
+  add_mem' := λ a b, carrier.add_mem f_deg q,
+  smul_mem' := carrier.smul_mem f_deg hm q }
 
-lemma carrier.as_ideal.homogeneous : (carrier.as_ideal hm q).is_homogeneous 𝒜 :=
+lemma carrier.as_ideal.homogeneous : (carrier.as_ideal f_deg hm q).is_homogeneous 𝒜 :=
 λ i a ha j, (em (i = j)).elim
   (λ h, h ▸ by simpa only [proj_apply, decompose_coe, of_eq_same] using ha _)
-  (λ h, by simpa only [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem (decompose 𝒜 a i)) h,
-      zero_pow hm, mk_zero] using submodule.zero_mem _)
+  (λ h, begin
+    simp only [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem (decompose 𝒜 a i)) h,
+      zero_pow hm], convert carrier.zero_mem f_deg hm q j, rw [map_zero, zero_pow hm],
+  end)
 
 /--
 For a prime ideal `q` in `A⁰_f`, the set `{a | aᵢᵐ/fⁱ ∈ q}` as a homogeneous ideal.
 -/
 def carrier.as_homogeneous_ideal : homogeneous_ideal 𝒜 :=
-⟨carrier.as_ideal hm q, carrier.as_ideal.homogeneous hm q⟩
+⟨carrier.as_ideal f_deg hm q, carrier.as_ideal.homogeneous f_deg hm q⟩
 
-lemma carrier.denom_not_mem : f ∉ carrier.as_ideal hm q :=
+lemma carrier.denom_not_mem : f ∉ carrier.as_ideal f_deg hm q :=
 λ rid, q.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr
 begin
   convert rid m,
-  simpa only [subtype.ext_iff, degree_zero_part.coe_one, subtype.coe_mk, proj_apply,
-    decompose_of_mem_same _ f_deg] using (mk_self (⟨_, m, rfl⟩ : submonoid.powers f)).symm,
+  simpa only [homogeneous_localization.ext_iff_val, homogeneous_localization.one_val, proj_apply,
+    decompose_of_mem_same _ f_deg, homogeneous_localization.val_mk'] using
+    (mk_self (⟨_, m, rfl⟩ : submonoid.powers f)).symm,
 end
 
-lemma carrier.relevant : ¬ homogeneous_ideal.irrelevant 𝒜 ≤ carrier.as_homogeneous_ideal hm q :=
-λ rid, carrier.denom_not_mem hm q $ rid $ direct_sum.decompose_of_mem_ne 𝒜 f_deg hm.ne'
+lemma carrier.relevant :
+  ¬homogeneous_ideal.irrelevant 𝒜 ≤ carrier.as_homogeneous_ideal f_deg hm q :=
+λ rid, carrier.denom_not_mem f_deg hm q $ rid $ direct_sum.decompose_of_mem_ne 𝒜 f_deg hm.ne'
 
-lemma carrier.as_ideal.ne_top : (carrier.as_ideal hm q) ≠ ⊤ :=
-λ rid, carrier.denom_not_mem hm q (rid.symm ▸ submodule.mem_top)
+lemma carrier.as_ideal.ne_top : (carrier.as_ideal f_deg hm q) ≠ ⊤ :=
+λ rid, carrier.denom_not_mem f_deg hm q (rid.symm ▸ submodule.mem_top)
 
-lemma carrier.as_ideal.prime : (carrier.as_ideal hm q).is_prime :=
-(carrier.as_ideal.homogeneous hm q).is_prime_of_homogeneous_mem_or_mem
-  (carrier.as_ideal.ne_top hm q) $ λ x y ⟨nx, hnx⟩ ⟨ny, hny⟩ hxy, show (∀ i, _ ∈ _) ∨ ∀ i, _ ∈ _,
-begin
+lemma carrier.as_ideal.prime : (carrier.as_ideal f_deg hm q).is_prime :=
+(carrier.as_ideal.homogeneous f_deg hm q).is_prime_of_homogeneous_mem_or_mem
+  (carrier.as_ideal.ne_top f_deg hm q) $ λ x y ⟨nx, hnx⟩ ⟨ny, hny⟩ hxy,
+show (∀ i, _ ∈ _) ∨ ∀ i, _ ∈ _, begin
   rw [← and_forall_ne nx, and_iff_left, ← and_forall_ne ny, and_iff_left],
   { apply q.2.mem_or_mem, convert hxy (nx + ny) using 1,
     simp_rw [proj_apply, decompose_of_mem_same 𝒜 hnx, decompose_of_mem_same 𝒜 hny,
       decompose_of_mem_same 𝒜 (mul_mem hnx hny), mul_pow, pow_add],
-    exact subtype.ext (mk_mul _ _ _ _) },
+    simp only [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk',
+      homogeneous_localization.mul_val, mk_mul], refl, },
   all_goals { intros n hn,
-    convert q.1.zero_mem using 2,
-    rw [proj_apply, decompose_of_mem_ne 𝒜 _ hn.symm],
-    { rw [zero_pow hm, mk_zero] },
+    convert q.1.zero_mem using 1,
+    rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk',
+      homogeneous_localization.zero_val], simp_rw [proj_apply, subtype.coe_mk],
+    convert mk_zero _, rw [decompose_of_mem_ne 𝒜 _ hn.symm, zero_pow hm],
     { exact hnx <|> exact hny } },
 end
 
@@ -534,9 +474,10 @@ variable (f_deg)
 /--
 The function `Spec A⁰_f → Proj|D(f)` by sending `q` to `{a | aᵢᵐ/fⁱ ∈ q}`.
 -/
-def to_fun : (Spec.T (A⁰_ f_deg)) → (Proj.T| (pbo f)) :=
-λ q, ⟨⟨carrier.as_homogeneous_ideal hm q, carrier.as_ideal.prime hm q, carrier.relevant hm q⟩,
-  (projective_spectrum.mem_basic_open _ f _).mp $ carrier.denom_not_mem hm q⟩
+def to_fun : (Spec.T (A⁰_ f)) → (Proj.T| (pbo f)) :=
+λ q, ⟨⟨carrier.as_homogeneous_ideal f_deg hm q, carrier.as_ideal.prime f_deg hm q,
+  carrier.relevant f_deg hm q⟩,
+  (projective_spectrum.mem_basic_open _ f _).mp $ carrier.denom_not_mem f_deg hm q⟩
 
 end from_Spec
 

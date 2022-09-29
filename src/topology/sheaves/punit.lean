@@ -27,7 +27,7 @@ begin
   by_cases h : punit.star ∈ U,
   { convert presieve.is_sheaf_for_top_sieve _, rw ←sieve.id_mem_iff_eq_top,
     refine s.downward_closed (hs punit.star h).some_spec.some_spec.1 (eq_to_hom _),
-    ext, rcases x, rw [opens.mem_coe, opens.mem_coe],
+    ext, rcases x, simp_rw opens.mem_coe,
     exact ⟨λ _, (hs punit.star h).some_spec.some_spec.2, λ _, h⟩, },
   { intros α hα,
     have it' : is_terminal (F.obj $ op U),

@@ -66,17 +66,12 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
 
 section
 
-variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U)]
-
-lemma skyscraper_presheaf_eq_pushforward :
+lemma skyscraper_presheaf_eq_pushforward
+  [hd : Π (U : opens (Top.of punit.{u+1})), decidable (punit.star ∈ U)] :
   skyscraper_presheaf p₀ A =
-  continuous_map.const (Top.of (punit : Type u)) p₀ _* skyscraper_presheaf punit.star A :=
-begin
-  convert_to @skyscraper_presheaf X p₀ (λ _, classical.dec _) C _ A _ =
-    continuous_map.const _ p₀ _*
-      (@skyscraper_presheaf (Top.of _) punit.star (λ _, classical.dec _) C _ A _);
-  congr <|> refl,
-end
+  continuous_map.const (Top.of punit) p₀ _* skyscraper_presheaf punit.star A :=
+by convert_to @skyscraper_presheaf X p₀ 
+  (λ U, hd $ (opens.map $ continuous_map.const _ p₀).obj U) C _ A _ = _; congr <|> refl
 
 end
 

@@ -896,47 +896,4 @@ end
 
 end linear_maps
 
-section nnreal
-open_locale nnreal
-
-/- The natural coercion from `ℝ≥0` to `K` as an `ℝ≥0`-algebra map. -/
-noncomputable def of_nnreal_am : ℝ≥0 →ₐ[ℝ≥0] K := algebra.of_id ℝ≥0 K
-
-/-- This is not registered as a `simp` lemma because the reason `is_R_or_C.of_nnreal_am` exists
-is to go directly from `ℝ≥0` to `K` with nice properties without first passing through `ℝ`. -/
-lemma of_nnreal_am_coe : (of_nnreal_am : ℝ≥0 → K) = coe := funext $ λ x, rfl
-
-/-- The natural coercion from `ℝ≥0` to `K` as a continuous `ℝ≥0`-linear map. -/
-noncomputable def of_nnreal_clm : ℝ≥0 →L[ℝ≥0] K :=
-{ to_fun := of_nnreal_am,
-  cont := by simpa only [←(funext (λ x, rfl) : (coe : ℝ → K) ∘ coe = of_nnreal_am)]
-    using is_R_or_C.continuous_of_real.comp continuous_induced_dom,
-  .. of_nnreal_am.to_linear_map }
-
-@[simp] lemma of_nnreal_clm_coe : (of_nnreal_clm : ℝ≥0 → K) = of_nnreal_am := rfl
-
-@[continuity] lemma continuous_of_nnreal : continuous (coe : ℝ≥0 → K) :=
-map_continuous (of_nnreal_clm : ℝ≥0 →L[ℝ≥0] K)
-
-/-- The natural coercion from `ℝ≥0` to `K` as a continuous map. -/
-noncomputable def of_nnreal_cm : C(ℝ≥0, K) :=
-{ to_fun := of_nnreal_am, continuous_to_fun := continuous_of_nnreal }
-
-@[simp] lemma of_nnreal_cm_coe : (of_nnreal_cm : ℝ≥0 → K) = of_nnreal_am :=
-rfl
-
-@[simp] lemma nnnorm_of_nnreal (x : ℝ≥0) : ∥((x : ℝ) : K)∥₊ = x :=
-subtype.ext $ by simp only [coe_nnnorm, is_R_or_C.norm_of_real, real.norm_of_nonneg x.prop]
-
-@[simp] lemma norm_of_nnreal (x : ℝ≥0) : ∥((x : ℝ) : K)∥ = x :=
-congr_arg coe (nnnorm_of_nnreal x)
-
-@[simp] lemma nnnorm_of_nnreal_am (x : ℝ≥0) : ∥(of_nnreal_am x : K)∥₊ = x :=
-nnnorm_of_nnreal x
-
-@[simp] lemma norm_of_nnreal_am (x : ℝ≥0) : ∥(of_nnreal_am x : K)∥ = x :=
-norm_of_nnreal x
-
-end nnreal
-
 end is_R_or_C

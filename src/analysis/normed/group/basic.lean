@@ -110,11 +110,12 @@ instance : normed_add_comm_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-noncomputable instance : normed_add_comm_group ℝ :=
-{ norm := λ x, |x|,
-  dist_eq := assume x y, rfl }
+instance : has_norm ℝ := { norm := λ x, |x| }
 
 @[simp] lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
+
+instance : normed_add_comm_group ℝ :=
+{ dist_eq := assume x y, rfl }
 
 section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group F] [seminormed_add_comm_group G]
@@ -234,6 +235,10 @@ lemma ne_zero_of_norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { r
 
 @[nontriviality] lemma norm_of_subsingleton [subsingleton E] (x : E) : ∥x∥ = 0 :=
 by rw [subsingleton.elim x 0, norm_zero]
+
+lemma norm_multiset_sum_le (m : multiset E) :
+  ∥m.sum∥ ≤ (m.map (λ x, ∥x∥)).sum :=
+m.le_sum_of_subadditive norm norm_zero norm_add_le
 
 lemma norm_sum_le (s : finset ι) (f : ι → E) : ∥∑ i in s, f i∥ ≤ ∑ i in s, ∥f i∥ :=
 s.le_sum_of_subadditive norm norm_zero norm_add_le f
@@ -479,6 +484,42 @@ begin
   simp [dist_eq_norm]
 end
 
+section tendsto_uniformly
+/-- The results in this section do not require `E'` to any particular structure -/
+variables {E' : Type*} {f : ι → E' → G} {s : set E'} {l : filter ι}
+
+lemma normed_add_comm_group.tendsto_uniformly_on_zero :
+  tendsto_uniformly_on f 0 l s ↔ ∀ ε > 0, ∀ᶠ (N : ι) in l, ∀ x : E', x ∈ s → ∥f N x∥ < ε :=
+by simp_rw [tendsto_uniformly_on_iff, pi.zero_apply, dist_zero_left]
+
+lemma normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero
+  {l' : filter E'} : uniform_cauchy_seq_on_filter f l l' ↔
+  tendsto_uniformly_on_filter (λ n : ι × ι, λ z : E', f n.fst z - f n.snd z) 0 (l.prod l) l' :=
+begin
+  split,
+  { intros hf u hu,
+    obtain ⟨ε, hε, H⟩ := uniformity_basis_dist.mem_uniformity_iff.mp hu,
+    refine (hf {p : G × G | dist p.fst p.snd < ε} $ dist_mem_uniformity hε).mono (λ x hx,
+      H 0 (f x.fst.fst x.snd - f x.fst.snd x.snd) _),
+    simpa [dist_eq_norm, norm_sub_rev] using hx, },
+  { intros hf u hu,
+    obtain ⟨ε, hε, H⟩ := uniformity_basis_dist.mem_uniformity_iff.mp hu,
+    refine (hf {p : G × G | dist p.fst p.snd < ε} $ dist_mem_uniformity hε).mono (λ x hx,
+      H (f x.fst.fst x.snd) (f x.fst.snd x.snd) _),
+    simpa [dist_eq_norm, norm_sub_rev] using hx, },
+end
+
+lemma normed_add_comm_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero :
+  uniform_cauchy_seq_on f l s ↔
+  tendsto_uniformly_on (λ n : ι × ι, λ z : E', f n.fst z - f n.snd z) 0 (l.prod l) s :=
+begin
+  rw tendsto_uniformly_on_iff_tendsto_uniformly_on_filter,
+  rw uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
+  exact normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
+end
+
+end tendsto_uniformly
+
 open finset
 
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
@@ -671,6 +712,10 @@ by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
 
 @[simp] lemma edist_sub_right (g₁ g₂ h : E) : edist (g₁ - h) (g₂ - h) = edist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using edist_add_right _ _ _
+
+lemma nnnorm_multiset_sum_le (m : multiset E) :
+  ∥m.sum∥₊ ≤ (m.map (λ x, ∥x∥₊)).sum :=
+m.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
 
 lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
@@ -1155,6 +1200,16 @@ norm_sub_eq_zero_iff.1 h
 by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
 
 lemma nnnorm_ne_zero_iff {g : E} : ∥g∥₊ ≠ 0 ↔ g ≠ 0 := not_congr nnnorm_eq_zero
+
+variables (E)
+
+/-- The norm of a normed group as an additive group norm. -/
+def norm_add_group_norm : add_group_norm E := ⟨norm, norm_zero, norm_add_le, norm_neg,
+  λ {g : E}, norm_eq_zero.mp⟩
+
+@[simp] lemma coe_norm_add_group_norm : ⇑(norm_add_group_norm E) = norm := rfl
+
+variables {E}
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_add_comm_group` induces a
 `normed_add_comm_group` structure on the domain.

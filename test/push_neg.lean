@@ -89,3 +89,23 @@ begin
       guard (ht = h1t) ),
   exact hf
 end
+
+/-! Test the option `trace.push_neg.use_distrib` for changing the normal form of `¬(P ∧ Q)`. -/
+
+section
+
+example (a b : ℤ) (h : ¬ (∃ x, (a < x ∧ x < b))) : ∀ x, a < x → b ≤ x :=
+begin
+  push_neg at h,
+  exact h,
+end
+
+set_option trace.push_neg.use_distrib true
+
+example (a b : ℤ) (h : ¬ (∃ x, (a < x ∧ x < b))) : ∀ x, x ≤ a ∨ b ≤ x :=
+begin
+  push_neg at h,
+  exact h,
+end
+
+end

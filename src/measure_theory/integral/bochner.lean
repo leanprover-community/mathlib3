@@ -1611,4 +1611,65 @@ lemma ae_le_trim_iff
 
 end integral_trim
 
+section snorm_bound
+
+variables {m0 : measurable_space α} {μ : measure α}
+
+lemma snorm_one_le_of_le {r : ℝ≥0} {f : α → ℝ}
+  (hfint : integrable f μ) (hfint' : 0 ≤ ∫ x, f x ∂μ) (hf : ∀ᵐ ω ∂μ, f ω ≤ r) :
+  snorm f 1 μ ≤ 2 * μ set.univ * r :=
+begin
+  by_cases hr : r = 0,
+  { suffices : f =ᵐ[μ] 0,
+    { rw [snorm_congr_ae this, snorm_zero, hr, ennreal.coe_zero, mul_zero],
+      exact le_rfl },
+    rw [hr, nonneg.coe_zero] at hf,
+    have hnegf : ∫ x, -f x ∂μ = 0,
+    { rw [integral_neg, neg_eq_zero],
+      exact le_antisymm (integral_nonpos_of_ae hf) hfint' },
+    have := (integral_eq_zero_iff_of_nonneg_ae _ hfint.neg).1 hnegf,
+    { filter_upwards [this] with ω hω,
+      rwa [pi.neg_apply, pi.zero_apply, neg_eq_zero] at hω },
+    { filter_upwards [hf] with ω hω,
+      rwa [pi.zero_apply, pi.neg_apply, right.nonneg_neg_iff] } },
+  by_cases hμ : is_finite_measure μ,
+  swap,
+  { have : μ set.univ = ∞,
+    { by_contra hμ',
+      exact hμ (is_finite_measure.mk $ lt_top_iff_ne_top.2 hμ') },
+    rw [this, ennreal.mul_top, if_neg, ennreal.top_mul, if_neg],
+    { exact le_top },
+    { simp [hr] },
+    { norm_num } },
+  haveI := hμ,
+  rw [integral_eq_integral_pos_part_sub_integral_neg_part hfint, sub_nonneg] at hfint',
+  have hposbdd : ∫ ω, max (f ω) 0 ∂μ ≤ (μ set.univ).to_real • r,
+  { rw ← integral_const,
+    refine integral_mono_ae hfint.real_to_nnreal (integrable_const r) _,
+    filter_upwards [hf] with ω hω using real.to_nnreal_le_iff_le_coe.2 hω },
+  rw [mem_ℒp.snorm_eq_integral_rpow_norm one_ne_zero ennreal.one_ne_top
+      (mem_ℒp_one_iff_integrable.2 hfint),
+    ennreal.of_real_le_iff_le_to_real (ennreal.mul_ne_top
+      (ennreal.mul_ne_top ennreal.two_ne_top $ @measure_ne_top _ _ _ hμ _) ennreal.coe_ne_top)],
+  simp_rw [ennreal.one_to_real, _root_.inv_one, real.rpow_one, real.norm_eq_abs,
+    ← max_zero_add_max_neg_zero_eq_abs_self, ← real.coe_to_nnreal'],
+  rw integral_add hfint.real_to_nnreal,
+  { simp only [real.coe_to_nnreal', ennreal.to_real_mul, ennreal.to_real_bit0,
+    ennreal.one_to_real, ennreal.coe_to_real] at hfint' ⊢,
+    refine (add_le_add_left hfint' _).trans _,
+    rwa [← two_mul, mul_assoc, mul_le_mul_left (two_pos : (0 : ℝ) < 2)] },
+  { exact hfint.neg.sup (integrable_zero _ _ μ) }
+end
+
+lemma snorm_one_le_of_le' {r : ℝ} {f : α → ℝ}
+  (hfint : integrable f μ) (hfint' : 0 ≤ ∫ x, f x ∂μ) (hf : ∀ᵐ ω ∂μ, f ω ≤ r) :
+  snorm f 1 μ ≤ 2 * μ set.univ * ennreal.of_real r :=
+begin
+  refine snorm_one_le_of_le hfint hfint' _,
+  simp only [real.coe_to_nnreal', le_max_iff],
+  filter_upwards [hf] with ω hω using or.inl hω,
+end
+
+end snorm_bound
+
 end measure_theory

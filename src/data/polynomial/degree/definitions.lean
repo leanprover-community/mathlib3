@@ -254,7 +254,7 @@ begin
 end
 
 lemma ext_iff_nat_degree_le {p q : R[X]} {n : ℕ} (hp : p.nat_degree ≤ n) (hq : q.nat_degree ≤ n) :
-  p = q ↔ (∀ i ≤ n, p.coeff i = q.coeff i)  :=
+  p = q ↔ (∀ i ≤ n, p.coeff i = q.coeff i) :=
 begin
   refine iff.trans polynomial.ext_iff _,
   refine forall_congr (λ i, ⟨λ h _, h, λ h, _⟩),

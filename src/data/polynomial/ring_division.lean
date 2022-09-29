@@ -668,31 +668,26 @@ set.to_finite _
 /-- The set of roots of all polynomials of bounded degree and having coefficients in a finite set
 is finite. -/
 lemma bUnion_roots_finite {R S : Type*} [semiring R] [comm_ring S] [is_domain S]
-(m : R →+* S) (d : ℕ) (U : set R) (h : U.finite) :
+  (m : R →+* S) (d : ℕ) {U : set R} (h : U.finite) :
   (⋃ (f : R[X]) (hf : f.nat_degree ≤ d ∧ ∀ i, (f.coeff i) ∈ U),
     ((f.map m).roots.to_finset : set S)).finite :=
 begin
   refine set.finite.bUnion _ _,
-  { set π := λ (c : fin (d+1) → U),
-      (finset.range (d+1)).sum (λ i : ℕ, (monomial (i : ℕ)) (c i : R)),
-    -- We prove that the domain of `π` is a finite set.
-    haveI : finite (fin (d+1) → U),
-    { haveI : fintype (fin(d+1)) := fin.fintype _,
-      haveI : fintype U := set.finite.fintype h,
-      exact fintype.finite pi.fintype, },
-    -- We prove that the set of polynomials under consideration is a subset of the range of `π`
-    -- and thus it is finite.
-    refine set.finite.subset (set.finite_range π) (λ f hf, _),
-    use (λ i : fin (d+1), ⟨f.coeff i, hf.2 i⟩),
-    dsimp only [π, coeff],
-    convert (polynomial.as_sum_range' f (d+1) _).symm using 1,
-    ext,
-    simp_rw [finset_sum_coeff, coeff_monomial, subtype.coe_mk, fin.coe_of_nat_eq_mod],
-    apply finset.sum_congr rfl (λ j hj, _),
-    rw nat.mod_eq_of_lt (finset.mem_range.mp hj),
-    exact nat.lt_succ_iff.mpr hf.1, },
-  { intros p _ ,
-    convert root_set_finite (p.map m) S,
+  { -- We prove that the set of polynomials under consideration is finite because its
+    -- image by the injective map `π` is finite
+    let π : R[X] → finset.range (d+1) → R := λ f : R[X], λ i : finset.range (d+1), f.coeff i,
+    have h_inj : set.inj_on π  {f : R[X] | f.nat_degree ≤ d ∧ ∀ (i : ℕ), f.coeff i ∈ U},
+    { intros x hx y hy hxy,
+      rw ext_iff_nat_degree_le hx.1 hy.1,
+      exact_mod_cast λ i hi, congr_fun hxy ⟨i, finset.mem_range_succ_iff.mpr hi⟩, },
+    have h_fin : (set.pi set.univ (λ e : finset.range (d+1), U)).finite := set.finite.pi (λ e, h),
+    refine set.finite.of_finite_image (set.finite.subset h_fin _) h_inj,
+    rw set.image_subset_iff,
+    intros f hf,
+    rw [set.mem_preimage, set.mem_univ_pi],
+    exact λ i, hf.2 i, },
+  { intros i hi,
+    convert root_set_finite (i.map m) S,
     simp only [algebra.id.map_eq_id, map_id], },
 end
 

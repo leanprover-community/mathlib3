@@ -223,10 +223,10 @@ by { rw [←smul_le_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 lemma inv_smul_lt_iff (h : 0 < c) : c⁻¹ • a < b ↔ a < c • b :=
 by { rw [←smul_lt_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
-lemma smul_inv_le_iff (h : 0 < c) : a ≤ c⁻¹ • b ↔ c • a ≤ b :=
+lemma le_inv_smul_iff (h : 0 < c) : a ≤ c⁻¹ • b ↔ c • a ≤ b :=
 by { rw [←smul_le_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
-lemma smul_inv_lt_iff (h : 0 < c) : a < c⁻¹ • b ↔ c • a < b :=
+lemma lt_inv_smul_iff (h : 0 < c) : a < c⁻¹ • b ↔ c • a < b :=
 by { rw [←smul_lt_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
 variables (M)

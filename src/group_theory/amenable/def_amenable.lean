@@ -64,20 +64,20 @@ lemma left_translate_eval {g : G} {f : bounded_continuous_function G ℝ} :
 
 instance left_translate_action  : mul_action G (bounded_continuous_function G ℝ) :=
 @mul_action.mk G  (bounded_continuous_function G ℝ) _
-    (has_smul.mk (λ g f, left_translate g f))
-    (begin
-      assume f : bounded_continuous_function G ℝ,
-      simp,
-      ext x,
-      by simp,
-    end)
-    (begin
-      assume g h f,
-      ext x,
-      simp,
-      congr' 1,
-      by simp [mul_assoc],
-    end )
+  (has_smul.mk (λ g f, left_translate g f))
+  (begin
+    assume f : bounded_continuous_function G ℝ,
+    simp,
+    ext x,
+    by simp,
+  end)
+  (begin
+    assume g h f,
+    ext x,
+    simp,
+    congr' 1,
+    by simp [mul_assoc],
+  end )
 
 @[simp]
 lemma left_translate_smul_simp {g:G} {f:bounded_continuous_function G ℝ} :
@@ -121,7 +121,7 @@ variable (G)
 
 /--Left invariant means are means that are left invariant-/
 structure left_invariant_mean extends mean G := mk ::
-  (left_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ), lin_map (g•f) = lin_map f)
+(left_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ), lin_map (g•f) = lin_map f)
 
 instance : has_coe (left_invariant_mean G) (mean G) :=
   {coe := left_invariant_mean.to_mean}
@@ -133,16 +133,16 @@ by refl
 
 /--Right invariant means are means that are right invariant-/
 structure right_invariant_mean extends mean G := mk ::
-  (right_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
-      lin_map (right_translate g f) = lin_map f)
+(right_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
+  lin_map (right_translate g f) = lin_map f)
 
 instance right_inv_mean_coe : has_coe (right_invariant_mean G) (mean G) :=
   {coe := right_invariant_mean.to_mean}
 
 /--Bi-invariant means are means that are left and right invariant-/
 structure bi_invariant_mean extends left_invariant_mean G := mk ::
-  (right_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
-      lin_map (right_translate g f) = lin_map f)
+(right_invariance: ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
+  lin_map (right_translate g f) = lin_map f)
 
 instance : has_coe (bi_invariant_mean G) (left_invariant_mean G) :=
   {coe := bi_invariant_mean.to_left_invariant_mean}

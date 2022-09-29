@@ -49,15 +49,12 @@ open bounded_continuous_function
 
 variables (G:Type*) [uniform_space G] [group G] [topological_group G]
 
---instance topspaceG : topological_space G := ⊥
---instance discrtopG : discrete_topology G := ⟨rfl⟩
-
 
 /-- A mean on a group-/
 structure mean := mk ::
-  (lin_map : (bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ)
-  (normality : lin_map (bounded_continuous_function.const G (1:ℝ)) = 1)
-  (positivity: ∀ {f : bounded_continuous_function G ℝ},
+(lin_map : (bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ)
+(normality : lin_map (bounded_continuous_function.const G (1:ℝ)) = 1)
+(positivity: ∀ {f : bounded_continuous_function G ℝ},
                           (∀ (x:G), f x ≥ 0) → lin_map f ≥ 0)
 
 
@@ -92,8 +89,7 @@ We collect some elementary facts about means
 lemma mean_of_neg (m : mean G) {f: bounded_continuous_function G ℝ} : m (-f) = - m f :=
 begin
   have : m (-f) + m f = 0,
-  {
-    calc   m (-f) + m f
+  {calc   m (-f) + m f
         = m ((-f) +f )
          : by exact (m.lin_map.map_add' (-f) f).symm
     ... = m 0
@@ -103,8 +99,7 @@ begin
     ... = (ring_hom.id ℝ) 0 • m 0
           : by exact m.lin_map.map_smul' 0 0
     ... = 0
-          : by simp,
-  },
+          : by simp, },
   linarith,
 end
 
@@ -113,38 +108,32 @@ lemma mean_bounded (m : mean G) {f: bounded_continuous_function G ℝ} {M : ℝ}
   (fbound : ∀ (x:G), f x ≤ M) : m f ≤ M :=
 begin
   -- strategy of proof : (M-f) is a positive function
-  let diff : bounded_continuous_function G ℝ
-      := bounded_continuous_function.const G M  - f,
+  let diff : bounded_continuous_function G ℝ := bounded_continuous_function.const G M  - f,
 
   have diffpos : ∀ (x:G), diff x ≥ 0,
-  {
-    assume (x:G),
+  { assume (x:G),
     dsimp[diff],
-    by linarith only [fbound x],
-  },
+    by linarith only [fbound x], },
 
-  have mdiffpos : m diff ≥ 0
-      := m.positivity diffpos,
+  have mdiffpos : m diff ≥ 0 := m.positivity diffpos,
 
   have mean_const : m (bounded_continuous_function.const G M) = M,
-  {
-    calc   m (bounded_continuous_function.const G M)
+  {calc   m (bounded_continuous_function.const G M)
         = m (M • bounded_continuous_function.const G 1)
-          : by congr'; begin
-            ext (x:G),
-            simp,
-          end
+          : by congr';
+              begin
+                ext (x:G),
+                simp,
+              end
     ... = M • m (bounded_continuous_function.const G 1)
           : by exact m.lin_map.map_smul' M _
     ... = M • 1
           : by congr'; exact m.normality
     ... = M
-          : by simp,
-  },
+          : by simp,},
 
 
-  have : m f + m diff = M
-  := by
+  have : m f + m diff = M := by
   calc  m f + m diff
       = m (f + diff)
         : by exact (m.lin_map.map_add' f diff).symm
@@ -165,27 +154,17 @@ lemma mean_bounded_abs (m : mean G) {f: bounded_continuous_function G ℝ}
   {M : ℝ} (fbound : ∀ (x:G), |f x| ≤ M) : |m f| ≤ M :=
 begin
   have bound_le : m f ≤ M,
-  {
-    have fbound' :  ∀ (x:G), f x ≤ M
-      := (λ x, (abs_le.mp (fbound x)).2),
-    exact mean_bounded G m fbound',
-  },
+  { have fbound' :  ∀ (x:G), f x ≤ M := (λ x, (abs_le.mp (fbound x)).2),
+    exact mean_bounded G m fbound',},
 
   have bound_ge : m f ≥ -M,
-  {
-    have negfbound' :  ∀ (x:G), (-f) x ≤ M,
-    {
-      assume x:G,
+  { have negfbound' :  ∀ (x:G), (-f) x ≤ M,
+    { assume x:G,
       simp,
-      by linarith[(abs_le.mp (fbound x)).1],
-    },
-    have : m (-f) ≤ M
-            := mean_bounded G m negfbound',
-    have : m (-f) = - m f
-            := mean_of_neg G m,
-    by linarith,
-  },
-
+      by linarith[(abs_le.mp (fbound x)).1], },
+    have : m (-f) ≤ M := mean_bounded G m negfbound',
+    have : m (-f) = - m f := mean_of_neg G m,
+    by linarith, },
   exact abs_le.mpr (and.intro bound_ge bound_le),
 end
 
@@ -207,14 +186,12 @@ lemma mean_monotone {m : mean G} {f g: bounded_continuous_function G ℝ}
   (f_le_g : f ≤ g) : m f ≤ m g :=
 begin
   have diff_pos: ∀ (x:G), (g-f) x ≥ 0,
-  {
-    assume x:G,
+  { assume x:G,
     have : (g-f) x = g x - f x
       := by refl,
     rw this,
     simp,
-    exact f_le_g x,
-  },
+    exact f_le_g x, },
   calc  m f
       = m f + 0
         : by ring
@@ -223,7 +200,7 @@ begin
   ... = m (f+(g-f))
         : by rw mean_add
   ... = m g
-        : by congr';ring,
+        : by congr'; ring,
 end
 
 
@@ -291,10 +268,7 @@ begin
   have  pull_of_one
         : (pull_bcont π π_cont) (bounded_continuous_function.const H (1:ℝ))
         = bounded_continuous_function.const G (1:ℝ),
-  {
-    ext (x:G),
-    simp,
-  },
+  {ext (x:G), simp,},
   calc  (mean_pushforward_linmap π_cont m) (bounded_continuous_function.const H (1:ℝ))
       = m.lin_map (pull_bcont π π_cont (bounded_continuous_function.const H (1:ℝ)))
         : by tauto

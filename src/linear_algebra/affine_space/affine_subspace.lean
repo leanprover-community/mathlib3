@@ -23,6 +23,8 @@ This file defines affine subspaces (over modules) and the affine span of a set o
   various lemmas relating to the set of vectors in the `direction`,
   and relating the lattice structure on affine subspaces to that on
   their directions.
+* `affine_subspace.parallel`, notation `‖`, gives the property of two affine subspaces being
+  parallel (one being a translate of the other).
 * `affine_span` gives the affine subspace spanned by a set of points,
   with `vector_span` giving its direction.  `affine_span` is defined
   in terms of `span_points`, which gives an explicit description of
@@ -52,7 +54,7 @@ Those depending on analysis or topology are defined elsewhere; see
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 open set
 
@@ -1032,7 +1034,8 @@ end
 /-- The `vector_span` is the span of the pairwise subtractions with a
 given point on the right, excluding the subtraction of that point from
 itself. -/
-lemma vector_span_eq_span_vsub_finset_right_ne {s : finset P} {p : P} (hp : p ∈ s) :
+lemma vector_span_eq_span_vsub_finset_right_ne [decidable_eq P] [decidable_eq V] {s : finset P}
+  {p : P} (hp : p ∈ s) :
   vector_span k (s : set P) = submodule.span k ((s.erase p).image (-ᵥ p)) :=
 by simp [vector_span_eq_span_vsub_set_right_ne _ (finset.mem_coe.mpr hp)]
 
@@ -1417,3 +1420,85 @@ lemma comap_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subsp
 end affine_subspace
 
 end map_comap
+
+namespace affine_subspace
+
+open affine_equiv
+
+variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
+variables [affine_space V P]
+include V
+
+/-- Two affine subspaces are parallel if one is related to the other by adding the same vector
+to all points. -/
+def parallel (s₁ s₂ : affine_subspace k P) : Prop :=
+∃ v : V, s₂ = s₁.map (const_vadd k P v)
+
+/- The notation should logically be U+2225 PARALLEL TO, but that is used globally for norms at
+present, and norms and parallelism are both widely used in geometry, so use U+2016 DOUBLE
+VERTICAL LINE (which is logically more appropriate for norms) instead here to avoid conflict. -/
+localized "infix (name := affine_subspace.parallel) ` ‖ `:50 := affine_subspace.parallel" in affine
+
+@[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ‖ s₂) : s₂ ‖ s₁ :=
+begin
+  rcases h with ⟨v, rfl⟩,
+  refine ⟨-v, _⟩,
+  rw [map_map, ←coe_trans_to_affine_map, ←const_vadd_add, neg_add_self, const_vadd_zero,
+      coe_refl_to_affine_map, map_id]
+end
+
+lemma parallel_comm {s₁ s₂ : affine_subspace k P} : s₁ ‖ s₂ ↔ s₂ ‖ s₁ :=
+⟨parallel.symm, parallel.symm⟩
+
+@[refl] lemma parallel.refl (s : affine_subspace k P) : s ‖ s :=
+⟨0, by simp⟩
+
+@[trans] lemma parallel.trans {s₁ s₂ s₃ : affine_subspace k P} (h₁₂ : s₁ ‖ s₂) (h₂₃ : s₂ ‖ s₃) :
+  s₁ ‖ s₃ :=
+begin
+  rcases h₁₂ with ⟨v₁₂, rfl⟩,
+  rcases h₂₃ with ⟨v₂₃, rfl⟩,
+  refine ⟨v₂₃ + v₁₂, _⟩,
+  rw [map_map, ←coe_trans_to_affine_map, ←const_vadd_add]
+end
+
+lemma parallel.direction_eq {s₁ s₂ : affine_subspace k P} (h : s₁ ‖ s₂) :
+  s₁.direction = s₂.direction :=
+begin
+  rcases h with ⟨v, rfl⟩,
+  simp
+end
+
+@[simp] lemma parallel_bot_iff_eq_bot {s : affine_subspace k P} :
+  s ‖ ⊥ ↔ s = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h, h ▸ parallel.refl _⟩,
+  rcases h with ⟨v, h⟩,
+  rwa [eq_comm, map_eq_bot_iff] at h
+end
+
+@[simp] lemma bot_parallel_iff_eq_bot {s : affine_subspace k P} :
+  ⊥ ‖ s ↔ s = ⊥ :=
+by rw [parallel_comm, parallel_bot_iff_eq_bot]
+
+lemma parallel_iff_direction_eq_and_eq_bot_iff_eq_bot {s₁ s₂ : affine_subspace k P} :
+  s₁ ‖ s₂ ↔ s₁.direction = s₂.direction ∧ (s₁ = ⊥ ↔ s₂ = ⊥) :=
+begin
+  refine ⟨λ h, ⟨h.direction_eq, _, _⟩, λ h, _⟩,
+  { rintro rfl, exact bot_parallel_iff_eq_bot.1 h },
+  { rintro rfl, exact parallel_bot_iff_eq_bot.1 h },
+  { rcases h with ⟨hd, hb⟩,
+    by_cases hs₁ : s₁ = ⊥,
+    { rw [hs₁, bot_parallel_iff_eq_bot],
+      exact hb.1 hs₁ },
+    { have hs₂ : s₂ ≠ ⊥ := hb.not.1 hs₁,
+      rcases (nonempty_iff_ne_bot s₁).2 hs₁ with ⟨p₁, hp₁⟩,
+      rcases (nonempty_iff_ne_bot s₂).2 hs₂ with ⟨p₂, hp₂⟩,
+      refine ⟨p₂ -ᵥ p₁, (eq_iff_direction_eq_of_mem hp₂ _).2 _⟩,
+      { rw mem_map,
+        refine ⟨p₁, hp₁, _⟩,
+        simp },
+      { simpa using hd.symm } } }
+end
+
+end affine_subspace

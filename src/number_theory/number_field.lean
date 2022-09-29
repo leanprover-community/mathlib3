@@ -260,14 +260,14 @@ variables (A : Type*) [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
 lemma coeff_bdd_of_norm_le (B : ℝ) :
   ∃ C, ∀ x : K, (∀ φ : K →+* A, ∥φ x∥ ≤ B) → ∀ i, ∥(minpoly ℚ x).coeff i∥ ≤ C :=
 begin
-  obtain ⟨C, hC⟩ := coeff_bdd_of_roots_le B (finrank ℚ K) (algebra_map ℚ A),
-  use C,
+  use (max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2),
   intros x hφ,
   have hx : is_integral ℚ x := is_separable.is_integral _ _,
   have : ∀ (i : ℕ), ∥(minpoly ℚ x).coeff i∥ = ∥(map (algebra_map ℚ A) (minpoly ℚ x)).coeff i∥,
   { intro i, rw [coeff_map, norm_algebra_map'], },
   simp_rw this,
-  apply hC (minpoly ℚ x),
+  intro i,
+  refine coeff_bdd_of_roots_le _ _ _ _ _ i,
   { exact minpoly.monic hx, },
   { exact is_alg_closed.splits_codomain _, },
   { refine le_of_eq_of_le (intermediate_field.adjoin.finrank hx).symm _,
@@ -287,7 +287,7 @@ lemma finite_of_norm_le (B : ℝ) :
 begin
   obtain ⟨C', h⟩ := coeff_bdd_of_norm_le K A B,
   let C := nat.ceil C',
-  have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (Icc (-C) C) (finite_Icc _ _),
+  have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
   refine this.subset (λ x hx, _),
   have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
   rw mem_Union,

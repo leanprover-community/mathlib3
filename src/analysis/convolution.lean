@@ -606,7 +606,7 @@ variables [is_add_left_invariant μ] [sigma_finite μ]
 `g x₀` on a ball with the same radius around `x₀`. See `dist_convolution_le` for a special case.
 
 We can simplify the second argument of `dist` further if we add some extra type-classes on `E`
-and `𝕜`. -/
+and `𝕜` or if `L` is scalar multiplication. -/
 lemma dist_convolution_le' {x₀ : G} {R ε : ℝ} {z₀ : E'}
   (hε : 0 ≤ ε)
   (hif : integrable f μ)
@@ -645,22 +645,6 @@ begin
   refine (integral_mono (L.integrable_comp hif).norm (hif.norm.const_mul _) h3).trans_eq _,
   rw [integral_mul_left]
 end
-
--- /-- Approximate `(f ⋆ g) x₀` if the support of the `f` is bounded within a ball, and `g` is near
--- `g x₀` on a ball with the same radius around `x₀`. See `dist_convolution_le` for a special case.
-
--- We can simplify the second argument of `dist` further if we add some extra type-classes on `E`. -/
--- lemma dist_convolution_le'' [normed_space ℝ E] [complete_space E] {x₀ : G} {R ε : ℝ}
---   (hε : 0 ≤ ε)
---   (hif : integrable f μ)
---   (hf : support f ⊆ ball (0 : G) R)
---   (hmg : ae_strongly_measurable g μ)
---   (hg : ∀ x ∈ ball x₀ R, dist (g x) (g x₀) ≤ ε) :
---   dist ((f ⋆[L, μ] g : G → F) x₀) (L (∫ t, f t ∂μ) (g x₀)) ≤ ∥L∥ * ∫ x, ∥f x∥ ∂μ * ε :=
--- begin
---   convert dist_convolution_le' L hε hif hf hmg hg,
---   have := (L.flip (g x₀)).integral_comp_comm hf, -- need is_R_or_C
--- end
 
 variables [normed_space ℝ E] [normed_space ℝ E'] [complete_space E']
 

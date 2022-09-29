@@ -466,7 +466,7 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 
 alias inj_on_iff_injective ↔ inj_on.injective _
 
-lemma set.maps_to.restrict_inj (h : maps_to f s t) : injective (h.restrict f s t) ↔ inj_on f s :=
+lemma maps_to.restrict_inj (h : maps_to f s t) : injective (h.restrict f s t) ↔ inj_on f s :=
 by rw [h.restrict_eq_cod_restrict, injective_cod_restrict, inj_on_iff_injective]
 
 lemma exists_inj_on_iff_injective [nonempty β] :

@@ -14,6 +14,15 @@ import tactic.positivity
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
 
+/-  Test for instantiating meta-variables.  Reported on
+https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/New.20tactic.3A.20.60positivity.60/near/300639970
+-/
+example : 0 ≤ 0 :=
+begin
+  apply le_trans _ le_rfl,
+  positivity,
+end
+
 open_locale ennreal nnrat nnreal
 
 universe u
@@ -81,6 +90,13 @@ example {a b : ℝ} (ha : 0 < a) : 0 < a ^ b := by positivity
 example {a : ℝ≥0} {b : ℝ} (ha : 0 < a) : 0 < a ^ b := by positivity
 example {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 ≤ b) : 0 < a ^ b := by positivity
 example {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 < b) : 0 < a ^ b := by positivity
+
+example {a : ℝ} (ha : 0 < a) : 0 ≤ ⌊a⌋ := by positivity
+example {a : ℝ} (ha : 0 ≤ a) : 0 ≤ ⌊a⌋ := by positivity
+
+example {a : ℝ} (ha : 0 < a) : 0 < ⌈a⌉₊ := by positivity
+example {a : ℝ} (ha : 0 < a) : 0 < ⌈a⌉ := by positivity
+example {a : ℝ} (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 2 + a := by positivity
 

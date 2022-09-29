@@ -146,16 +146,11 @@ by simpa only [dist_eq_norm] using dist_comm g h
 @[simp] lemma norm_neg (g : E) : ∥-g∥ = ∥g∥ :=
 by simpa using norm_sub_rev 0 g
 
-@[priority 900]
-instance semi_normed_group.has_isometric_vadd : has_isometric_vadd E E :=
+@[priority 900] instance semi_normed_group.has_isometric_vadd : has_isometric_vadd E E :=
 ⟨λ c x y, by simp [edist_dist, dist_eq_norm]⟩
 
-@[priority 900]
-instance semi_normed_group.has_isometric_vadd_op : has_isometric_vadd Eᵃᵒᵖ E :=
+@[priority 900] instance semi_normed_group.has_isometric_vadd_op : has_isometric_vadd Eᵃᵒᵖ E :=
 ⟨add_opposite.op_surjective.forall.2 $ λ c x y, by simp [edist_dist, dist_eq_norm]⟩
-
-lemma dist_neg (x y : E) : dist (-x) y = dist x (-y) :=
-by simp_rw [dist_eq_norm, ←norm_neg (-x - y), neg_sub, sub_neg_eq_add, add_comm]
 
 @[simp] theorem dist_self_add_right (g h : E) : dist g (g + h) = ∥h∥ :=
 by rw [← dist_zero_left, ← dist_add_left g 0 h, add_zero]
@@ -632,21 +627,6 @@ nnreal.coe_le_coe.1 $ dist_add_add_le g₁ g₂ h₁ h₂
 lemma edist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
 by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
-
-@[simp] lemma edist_add_left (g h₁ h₂ : E) : edist (g + h₁) (g + h₂) = edist h₁ h₂ :=
-by simp [edist_dist]
-
-@[simp] lemma edist_add_right (g₁ g₂ h : E) : edist (g₁ + h) (g₂ + h) = edist g₁ g₂ :=
-by simp [edist_dist]
-
-lemma edist_neg (x y : E) : edist (-x) y = edist x (-y) := by simp_rw [edist_dist, dist_neg]
-@[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y := by rw [edist_neg, neg_neg]
-
-@[simp] lemma edist_sub_left (g h₁ h₂ : E) : edist (g - h₁) (g - h₂) = edist h₁ h₂ :=
-by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
-
-@[simp] lemma edist_sub_right (g₁ g₂ h : E) : edist (g₁ - h) (g₂ - h) = edist g₁ g₂ :=
-by simpa only [sub_eq_add_neg] using edist_add_right _ _ _
 
 lemma nnnorm_multiset_sum_le (m : multiset E) :
   ∥m.sum∥₊ ≤ (m.map (λ x, ∥x∥₊)).sum :=

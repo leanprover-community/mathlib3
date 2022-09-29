@@ -84,17 +84,6 @@ addition/subtraction of `x : P`. -/
 { to_equiv := equiv.vadd_const x,
   isometry_to_fun := isometry.of_dist_eq $ λ _ _, dist_vadd_cancel_right _ _ _ }
 
-section
-
-variable (P)
-
-/-- Self-isometry of a (semi)normed add torsor given by addition of a constant vector `x`. -/
-@[simps] def isometric.const_vadd (x : V) : P ≃ᵢ P :=
-{ to_equiv := equiv.const_vadd P x,
-  isometry_to_fun := isometry.of_dist_eq $ λ _ _, dist_vadd_cancel_left _ _ _ }
-
-end
-
 @[simp] lemma dist_vsub_cancel_left (x y z : P) : dist (x -ᵥ y) (x -ᵥ z) = dist y z :=
 by rw [dist_eq_norm, vsub_sub_vsub_cancel_left, dist_comm, dist_eq_norm_vsub V]
 

@@ -236,4 +236,26 @@ by rw [preimage_smul, smul_closed_ball]
   ((•) c) ⁻¹' sphere x r = sphere (c⁻¹ • x) r :=
 by rw [preimage_smul, smul_sphere]
 
+variables [pseudo_metric_space G]
+
+@[simp, to_additive]
+lemma preimage_mul_left_ball [has_isometric_smul G G] (a b : G) (r : ℝ) :
+  ((*) a) ⁻¹' ball b r = ball (a⁻¹ * b) r :=
+preimage_smul_ball a b r
+
+@[simp, to_additive]
+lemma preimage_mul_right_ball [has_isometric_smul Gᵐᵒᵖ G] (a b : G) (r : ℝ) :
+  (λ x, x * a) ⁻¹' ball b r = ball (b / a) r :=
+by { rw div_eq_mul_inv, exact preimage_smul_ball (mul_opposite.op a) b r }
+
+@[simp, to_additive]
+lemma preimage_mul_left_closed_ball [has_isometric_smul G G] (a b : G) (r : ℝ) :
+  ((*) a) ⁻¹' closed_ball b r = closed_ball (a⁻¹ * b) r :=
+preimage_smul_closed_ball a b r
+
+@[simp, to_additive]
+lemma preimage_mul_right_closed_ball [has_isometric_smul Gᵐᵒᵖ G] (a b : G) (r : ℝ) :
+  (λ x, x * a) ⁻¹' closed_ball b r = closed_ball (b / a) r :=
+by { rw div_eq_mul_inv, exact preimage_smul_closed_ball (mul_opposite.op a) b r }
+
 end metric

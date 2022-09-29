@@ -290,8 +290,7 @@ begin
     { exact y.2 (y.1.is_prime.mem_of_pow_mem M H3), },
     { rw [mul_comm _ (f^N), eq1],
       refine mul_mem_right _ _ (mul_mem_right _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
-      generalize_proofs h,
-      exact (classical.some_spec h).1, }, },
+      generalize_proofs h, exact (classical.some_spec h).1, }, },
 end
 
 end to_Spec
@@ -303,8 +302,7 @@ variable {𝒜}
 /--The continuous function between the basic open set `D(f)` in `Proj` to the corresponding basic
 open set in `Spec A⁰_f`.
 -/
-def to_Spec {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
-  (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f)) :=
+def to_Spec {f : A} : (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f)) :=
 { to_fun := to_Spec.to_fun 𝒜 f,
   continuous_to_fun := begin
     apply is_topological_basis.continuous (prime_spectrum.is_topological_basis_basic_opens),
@@ -344,40 +342,57 @@ The set `{a | aᵢᵐ/fⁱ ∈ q}`
 def carrier (q : Spec.T (A⁰_ f)) : set A :=
 {a | ∀ i, (quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ m, by mem_tac⟩,
   ⟨f^i, by rw mul_comm; mem_tac⟩, ⟨_, rfl⟩⟩ : A⁰_ f) ∈ q.1}
--- mk (proj 𝒜 i a ^ m) ⟨_, _, rfl⟩, i, ⟨_, by mem_tac⟩, rfl
+
 lemma mem_carrier_iff (q : Spec.T (A⁰_ f)) (a : A) :
   a ∈ carrier f_deg q ↔
   ∀ i, (quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ m, by mem_tac⟩, ⟨f^i, by rw mul_comm; mem_tac⟩, ⟨_, rfl⟩⟩
     : A⁰_ f) ∈ q.1 :=
 iff.rfl
 
+lemma mem_carrier_iff' (q : Spec.T (A⁰_ f)) (a : A) :
+  a ∈ carrier f_deg q ↔
+  ∀ i, (localization.mk (proj 𝒜 i a ^ m) ⟨f^i, ⟨i, rfl⟩⟩ : localization.away f) ∈
+    (algebra_map (homogeneous_localization.away 𝒜 f) (localization.away f)) '' q.1.1 :=
+(mem_carrier_iff f_deg q a).trans begin
+  split; intros h i; specialize h i,
+  { rw set.mem_image, refine ⟨_, h, rfl⟩, },
+  { rw set.mem_image at h, rcases h with ⟨x, h, hx⟩,
+    convert h, rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk'],
+    dsimp only [subtype.coe_mk], rw ←hx, refl, },
+end
+
 lemma carrier.add_mem (q : Spec.T (A⁰_ f)) {a b : A} (ha : a ∈ carrier f_deg q)
   (hb : b ∈ carrier f_deg q) :
   a + b ∈ carrier f_deg q :=
 begin
   refine λ i, (q.2.mem_or_mem _).elim id id,
-  change subtype.mk (localization.mk _ _ * mk _ _) _ ∈ q.1,
-  simp_rw [mk_mul, ← pow_add, map_add, add_pow, mk_sum, mul_comm, ← nsmul_eq_mul, ← smul_mk],
-  let g : ℕ → A⁰_ f_deg := λ j, (m + m).choose j • if h2 : m + m < j then 0 else if h1 : j ≤ m
-    then ⟨mk (proj 𝒜 i a ^ j * proj 𝒜 i b ^ (m - j)) ⟨_, i, rfl⟩, i, ⟨_, _⟩, rfl⟩ *
-      ⟨mk (proj 𝒜 i b ^ m) ⟨_, i, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩
-    else ⟨mk (proj 𝒜 i a ^ m) ⟨_, i, rfl⟩, i, ⟨_, by mem_tac⟩, rfl⟩ *
-      ⟨mk (proj 𝒜 i a ^ (j - m) * proj 𝒜 i b ^ (m + m - j)) ⟨_, i, rfl⟩, i, ⟨_, _⟩, rfl⟩,
+  change (quotient.mk' ⟨_, _, _, _⟩ : A⁰_ f) ∈ q.1, dsimp only [subtype.coe_mk],
+  simp_rw [←pow_add, map_add, add_pow, mul_comm, ← nsmul_eq_mul],
+  let g : ℕ → A⁰_ f := λ j, (m + m).choose j • if h2 : m + m < j then 0 else if h1 : j ≤ m
+    then quotient.mk' ⟨m * i, ⟨proj 𝒜 i a^j * proj 𝒜 i b ^ (m - j), _⟩,
+      ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩ *
+      quotient.mk' ⟨m * i, ⟨proj 𝒜 i b ^ m, by mem_tac⟩, ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩
+    else quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ m, by mem_tac⟩, ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩ *
+      quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ (j - m) * proj 𝒜 i b ^ (m + m - j), _⟩,
+      ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩,
   rotate,
-  { rw (_ : m * i = _), mem_tac, rw [← add_smul, nat.add_sub_of_le h1], refl },
-  { rw (_ : m * i = _), mem_tac, rw ← add_smul, congr,
-    zify [le_of_not_lt h2, le_of_not_le h1], abel },
+  { rw (_ : m*i = _), mem_tac, rw [← add_smul, nat.add_sub_of_le h1], refl },
+  { rw (_ : m*i = _), mem_tac, rw ←add_smul, congr, zify [le_of_not_lt h2, le_of_not_le h1], abel },
   convert_to ∑ i in range (m + m + 1), g i ∈ q.1, swap,
   { refine q.1.sum_mem (λ j hj, nsmul_mem _ _), split_ifs,
     exacts [q.1.zero_mem, q.1.mul_mem_left _ (hb i), q.1.mul_mem_right _ (ha i)] },
-  apply subtype.ext,
-  rw [degree_zero_part.coe_sum, subtype.coe_mk],
+  rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk'],
+  change _ = (algebra_map (homogeneous_localization.away 𝒜 f) (localization.away f)) _,
+  dsimp only [subtype.coe_mk], rw [map_sum, mk_sum],
   apply finset.sum_congr rfl (λ j hj, _),
-  congr' 1, split_ifs with h2 h1,
+  change _ = homogeneous_localization.val _,
+  rw [homogeneous_localization.smul_val],
+  split_ifs with h2 h1,
   { exact ((finset.mem_range.1 hj).not_le h2).elim },
-  all_goals { simp only [subtype.val_eq_coe, degree_zero_part.coe_mul, subtype.coe_mk, mk_mul] },
-  { rw [mul_assoc, ← pow_add, add_comm (m - j), nat.add_sub_assoc h1] },
-  { rw [← mul_assoc, ← pow_add, nat.add_sub_of_le (le_of_not_le h1)] },
+  all_goals { simp only [homogeneous_localization.mul_val, homogeneous_localization.zero_val,
+    homogeneous_localization.val_mk', subtype.coe_mk, mk_mul, ←smul_mk], congr' 2 },
+  { rw [mul_assoc, ←pow_add, add_comm (m-j), nat.add_sub_assoc h1] }, { simp_rw [pow_add], refl },
+  { rw [← mul_assoc, ←pow_add, nat.add_sub_of_le (le_of_not_le h1)] }, { simp_rw [pow_add], refl },
 end
 
 variables (hm : 0 < m) (q : Spec.T (A⁰_ f))

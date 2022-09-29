@@ -271,11 +271,7 @@ begin
 end
 
 lemma eq_succ_of_ne_zero {n : ℕ} {i : fin (n + 1)} (hi : i ≠ 0) : ∃ j : fin n, i = j.succ :=
-begin
-  cases eq_zero_or_eq_succ i,
-  { exfalso, exact hi h, },
-  { exact h, },
-end
+(eq_zero_or_eq_succ i).resolve_left hi
 
 /-- The greatest value of `fin (n+1)` -/
 def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
@@ -1083,7 +1079,7 @@ lemma forall_fin_succ {P : fin (n+1) → Prop} :
 lemma exists_fin_succ {P : fin (n+1) → Prop} :
   (∃ i, P i) ↔ P 0 ∨ (∃i:fin n, P i.succ) :=
 ⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
-  λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
+  λ h, h.elim (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
 
 lemma forall_fin_one {p : fin 1 → Prop} : (∀ i, p i) ↔ p 0 := @unique.forall_iff (fin 1) _ p
 lemma exists_fin_one {p : fin 1 → Prop} : (∃ i, p i) ↔ p 0 := @unique.exists_iff (fin 1) _ p
@@ -1459,6 +1455,12 @@ end
 /-- The range of `p.succ_above` is everything except `p`. -/
 @[simp] lemma range_succ_above (p : fin (n + 1)) : set.range (p.succ_above) = {p}ᶜ :=
 set.ext $ λ _, exists_succ_above_eq_iff
+
+@[simp] lemma range_succ (n : ℕ) : set.range (fin.succ : fin n → fin (n + 1)) = {0}ᶜ :=
+range_succ_above 0
+
+@[simp] lemma exists_succ_eq_iff {x : fin (n + 1)} : (∃ y, fin.succ y = x) ↔ x ≠ 0 :=
+@exists_succ_above_eq_iff n 0 x
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
 lemma succ_above_right_injective {x : fin (n + 1)} : injective (succ_above x) :=

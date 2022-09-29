@@ -9,6 +9,7 @@ import analysis.calculus.fderiv_analytic
 import analysis.calculus.formal_multilinear_series
 import analysis.complex.basic
 import topology.algebra.infinite_sum
+import analysis.analytic.uniqueness
 
 /-!
 # Principle of isolated zeros
@@ -151,44 +152,41 @@ namespace analytic_on
 
 variables {U : set 𝕜} {w : 𝕜}
 
-theorem eq_on_of_preconnected_of_frequently_eq (hf : analytic_on 𝕜 f U) (hU : is_preconnected U)
+/-- The *principle of isolated zeros* for an analytic function, global version: if a function is
+analytic on a connected set `U` and vanishes in arbitrary neighborhoods of a point `z₀ ∈ U`, then
+it is identically zero in `U`.
+For higher-dimensional versions requiring that the function vanishes in a neighborhood of `z₀`,
+see `eq_on_zero_of_preconnected_of_eventually_eq_zero`. -/
+theorem eq_on_zero_of_preconnected_of_frequently_eq_zero
+  (hf : analytic_on 𝕜 f U) (hU : is_preconnected U)
   (hw : w ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] w, f z = 0) :
   eq_on f 0 U :=
-begin
-  by_contra,
-  simp only [eq_on, not_forall] at h,
-  obtain ⟨x, hx1, hx2⟩ := h,
-  let u := {z | f =ᶠ[𝓝 z] 0},
-  have hu : is_open u := is_open_set_of_eventually_nhds,
-  have hu' : (U ∩ u).nonempty := ⟨w, hw, (hf w hw).frequently_zero_iff_eventually_zero.mp hfw⟩,
-  let v := {z | ∀ᶠ w in 𝓝[≠] z, f w ≠ 0},
-  have hv : is_open v := by apply is_open_set_of_eventually_nhds_within,
-  have hv' : (U ∩ v).nonempty,
-    from ⟨x, hx1, ((hf x hx1).continuous_at.eventually_ne hx2).filter_mono nhds_within_le_nhds⟩,
-  have huv : U ⊆ u ∪ v := λ z hz, (hf z hz).eventually_eq_zero_or_eventually_ne_zero,
-  have huv' : u ∩ v = ∅,
-    by { ext z,
-      simp only [mem_inter_iff, mem_empty_iff_false, iff_false, not_and],
-      exact λ h, (h.filter_mono nhds_within_le_nhds).frequently },
-  simpa [huv'] using hU u v hu hv huv hu' hv'
-end
+hf.eq_on_zero_of_preconnected_of_eventually_eq_zero hU hw
+  ((hf w hw).frequently_zero_iff_eventually_zero.1 hfw)
 
-theorem eq_on_of_preconnected_of_mem_closure (hf : analytic_on 𝕜 f U) (hU : is_preconnected U)
+theorem eq_on_zero_of_preconnected_of_mem_closure (hf : analytic_on 𝕜 f U) (hU : is_preconnected U)
   (hw : w ∈ U) (hfw : w ∈ closure ({z | f z = 0} \ {w})) :
   eq_on f 0 U :=
-hf.eq_on_of_preconnected_of_frequently_eq hU hw (mem_closure_ne_iff_frequently_within.mp hfw)
+hf.eq_on_zero_of_preconnected_of_frequently_eq_zero hU hw
+  (mem_closure_ne_iff_frequently_within.mp hfw)
 
-theorem eq_on_of_preconnected_of_frequently_eq' (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
+/-- The *identity principle* for analytic functions, global version: if two functions are
+analytic on a connected set `U` and coincide at points which accumulate to a point `z₀ ∈ U`, then
+they coincide globally in `U`.
+For higher-dimensional versions requiring that the functions coincide in a neighborhood of `z₀`,
+see `eq_on_of_preconnected_of_eventually_eq`. -/
+theorem eq_on_of_preconnected_of_frequently_eq (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
   (hU : is_preconnected U) (hw : w ∈ U) (hfg : ∃ᶠ z in 𝓝[≠] w, f z = g z) :
   eq_on f g U :=
 begin
   have hfg' : ∃ᶠ z in 𝓝[≠] w, (f - g) z = 0 := hfg.mono (λ z h, by rw [pi.sub_apply, h, sub_self]),
-  simpa [sub_eq_zero] using λ z hz, (hf.sub hg).eq_on_of_preconnected_of_frequently_eq hU hw hfg' hz
+  simpa [sub_eq_zero] using
+    λ z hz, (hf.sub hg).eq_on_zero_of_preconnected_of_frequently_eq_zero hU hw hfg' hz
 end
 
-theorem eq_on_of_preconnected_of_mem_closure' (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
+theorem eq_on_of_preconnected_of_mem_closure (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
   (hU : is_preconnected U) (hw : w ∈ U) (hfw : w ∈ closure ({z | f z = g z} \ {w})) :
   eq_on f g U :=
-hf.eq_on_of_preconnected_of_frequently_eq' hg hU hw (mem_closure_ne_iff_frequently_within.mp hfw)
+hf.eq_on_of_preconnected_of_frequently_eq hg hU hw (mem_closure_ne_iff_frequently_within.mp hfw)
 
 end analytic_on

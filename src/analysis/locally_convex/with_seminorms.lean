@@ -128,12 +128,12 @@ lemma basis_sets_smul_right (v : E) (U : set E)
 begin
   rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, hU⟩,
   rw [hU, filter.eventually_iff],
-  simp_rw [(s.sup p).mem_ball_zero, (s.sup p).smul],
+  simp_rw [(s.sup p).mem_ball_zero, map_smul_eq_mul],
   by_cases h : 0 < (s.sup p) v,
   { simp_rw (lt_div_iff h).symm,
     rw ←_root_.ball_zero_eq,
     exact metric.ball_mem_nhds 0 (div_pos hr h) },
-  simp_rw [le_antisymm (not_lt.mp h) ((s.sup p).nonneg v), mul_zero, hr],
+  simp_rw [le_antisymm (not_lt.mp h) (map_nonneg _ v), mul_zero, hr],
   exact is_open.mem_nhds is_open_univ (mem_univ 0),
 end
 
@@ -228,11 +228,8 @@ lemma is_bounded_sup {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
   ∃ (C : ℝ≥0) (s : finset ι), 0 < C ∧ (s'.sup q).comp f ≤ C • (s.sup p) :=
 begin
   classical,
-  by_cases hs' : ¬s'.nonempty,
-  { refine ⟨1, ∅, zero_lt_one, _⟩,
-    rw [finset.not_nonempty_iff_eq_empty.mp hs', finset.sup_empty, seminorm.bot_eq_zero, zero_comp],
-    exact seminorm.nonneg _ },
-  rw not_not at hs',
+  obtain rfl | hs' := s'.eq_empty_or_nonempty,
+  { exact ⟨1, ∅, zero_lt_one, by simp [seminorm.bot_eq_zero]⟩ },
   choose fₛ fC hf using hf,
   use [s'.card • s'.sup fC, finset.bUnion s' fₛ],
   split,

@@ -563,7 +563,7 @@ Note that the slash is `\textfractionsolidus`.
 @[derive [add_comm_group, module R, module S, module (S ⊗[R] S)]]
 def kaehler_differential : Type* := (kaehler_differential.ideal R S).cotangent
 
-notation `Ω[ `:100 S ` ⁄ `:0 R ` ]`:0 := kaehler_differential R S
+notation `Ω[`:100 S `⁄`:0 R `]`:0 := kaehler_differential R S
 
 instance : nonempty Ω[S⁄R] := ⟨0⟩
 

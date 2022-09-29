@@ -27,7 +27,7 @@ universe u
 namespace eckmann_hilton
 variables {X : Type u}
 
-local notation a `<`m`>` b := m a b
+local notation a ` <`m`> ` b := m a b
 
 /-- `is_unital m e` expresses that `e : X` is a left and right unit
 for the binary operation `m : X → X → X`. -/

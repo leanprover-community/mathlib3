@@ -317,6 +317,7 @@ end
 namespace from_Spec
 
 open graded_algebra set_like finset (hiding mk_zero)
+open _root_.homogeneous_localization
 
 variables {𝒜} {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m)
 
@@ -357,8 +358,7 @@ lemma mem_carrier_iff' (q : Spec.T (A⁰_ f)) (a : A) :
   split; intros h i; specialize h i,
   { rw set.mem_image, refine ⟨_, h, rfl⟩, },
   { rw set.mem_image at h, rcases h with ⟨x, h, hx⟩,
-    convert h, rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk'],
-    dsimp only [subtype.coe_mk], rw ←hx, refl, },
+    convert h, rw [ext_iff_val, val_mk'], dsimp only [subtype.coe_mk], rw ←hx, refl, },
 end
 
 lemma carrier.add_mem (q : Spec.T (A⁰_ f)) {a b : A} (ha : a ∈ carrier f_deg q)
@@ -381,7 +381,7 @@ begin
   convert_to ∑ i in range (m + m + 1), g i ∈ q.1, swap,
   { refine q.1.sum_mem (λ j hj, nsmul_mem _ _), split_ifs,
     exacts [q.1.zero_mem, q.1.mul_mem_left _ (hb i), q.1.mul_mem_right _ (ha i)] },
-  rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk'],
+  rw [ext_iff_val, val_mk'],
   change _ = (algebra_map (homogeneous_localization.away 𝒜 f) (localization.away f)) _,
   dsimp only [subtype.coe_mk], rw [map_sum, mk_sum],
   apply finset.sum_congr rfl (λ j hj, _),
@@ -389,8 +389,7 @@ begin
   rw [homogeneous_localization.smul_val],
   split_ifs with h2 h1,
   { exact ((finset.mem_range.1 hj).not_le h2).elim },
-  all_goals { simp only [homogeneous_localization.mul_val, homogeneous_localization.zero_val,
-    homogeneous_localization.val_mk', subtype.coe_mk, mk_mul, ←smul_mk], congr' 2 },
+  all_goals { simp only [mul_val, zero_val, val_mk', subtype.coe_mk, mk_mul, ←smul_mk], congr' 2 },
   { rw [mul_assoc, ←pow_add, add_comm (m-j), nat.add_sub_assoc h1] }, { simp_rw [pow_add], refl },
   { rw [← mul_assoc, ←pow_add, nat.add_sub_of_le (le_of_not_le h1)] }, { simp_rw [pow_add], refl },
 end
@@ -400,9 +399,7 @@ include hm
 
 lemma carrier.zero_mem : (0 : A) ∈ carrier f_deg q := λ i, begin
   convert submodule.zero_mem q.1 using 1,
-  rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk',
-    homogeneous_localization.zero_val],
-  simp_rw [map_zero, zero_pow hm],
+  rw [ext_iff_val, val_mk', zero_val], simp_rw [map_zero, zero_pow hm],
   convert localization.mk_zero _ using 1,
 end
 
@@ -417,9 +414,7 @@ begin
     split_ifs,
     { convert_to (quotient.mk' ⟨_, ⟨a^m, pow_mem_graded m ha⟩, ⟨_, _⟩, ⟨n, rfl⟩⟩ : A⁰_ f) *
         quotient.mk' ⟨_, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, ⟨_, _⟩, ⟨i - n, rfl⟩⟩ ∈ q.1,
-      { rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk',
-          homogeneous_localization.mul_val, homogeneous_localization.val_mk',
-          homogeneous_localization.val_mk', subtype.coe_mk],
+      { rw [ext_iff_val, val_mk', mul_val, val_mk', val_mk', subtype.coe_mk],
         simp_rw [mul_pow, subtype.coe_mk],
         rw [localization.mk_mul],
         congr, erw [← pow_add, nat.add_sub_of_le h] },
@@ -455,8 +450,7 @@ lemma carrier.denom_not_mem : f ∉ carrier.as_ideal f_deg hm q :=
 λ rid, q.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr
 begin
   convert rid m,
-  simpa only [homogeneous_localization.ext_iff_val, homogeneous_localization.one_val, proj_apply,
-    decompose_of_mem_same _ f_deg, homogeneous_localization.val_mk'] using
+  simpa only [ext_iff_val, one_val, proj_apply, decompose_of_mem_same _ f_deg, val_mk'] using
     (mk_self (⟨_, m, rfl⟩ : submonoid.powers f)).symm,
 end
 
@@ -475,12 +469,9 @@ show (∀ i, _ ∈ _) ∨ ∀ i, _ ∈ _, begin
   { apply q.2.mem_or_mem, convert hxy (nx + ny) using 1,
     simp_rw [proj_apply, decompose_of_mem_same 𝒜 hnx, decompose_of_mem_same 𝒜 hny,
       decompose_of_mem_same 𝒜 (mul_mem hnx hny), mul_pow, pow_add],
-    simp only [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk',
-      homogeneous_localization.mul_val, mk_mul], refl, },
-  all_goals { intros n hn,
-    convert q.1.zero_mem using 1,
-    rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk',
-      homogeneous_localization.zero_val], simp_rw [proj_apply, subtype.coe_mk],
+    simpa only [ext_iff_val, val_mk', mul_val, mk_mul], },
+  all_goals { intros n hn, convert q.1.zero_mem using 1,
+    rw [ext_iff_val, val_mk', zero_val], simp_rw [proj_apply, subtype.coe_mk],
     convert mk_zero _, rw [decompose_of_mem_ne 𝒜 _ hn.symm, zero_pow hm],
     { exact hnx <|> exact hny } },
 end

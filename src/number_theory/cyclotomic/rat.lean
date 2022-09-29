@@ -13,7 +13,7 @@ We gather results about cyclotomic extensions of `ℚ`. In particular, we comput
 integers of a `p ^ n`-th cyclotomic extension of `ℚ`.
 
 ## Main results
-* `is_cyclotomic_extension.rat.is_integral_closure_adjoing_singleton_of_prime_pow`: if `K` is a
+* `is_cyclotomic_extension.rat.is_integral_closure_adjoin_singleton_of_prime_pow`: if `K` is a
   `p ^ k`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the integral closure of
   `ℤ` in `K`.
 * `is_cyclotomic_extension.rat.cyclotomic_ring_is_integral_closure_of_prime_pow`: the integral
@@ -75,7 +75,7 @@ end
 
 /-- If `K` is a `p ^ k`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the
 integral closure of `ℤ` in `K`. -/
-lemma is_integral_closure_adjoing_singleton_of_prime_pow
+lemma is_integral_closure_adjoin_singleton_of_prime_pow
   [hcycl : is_cyclotomic_extension {p ^ k} ℚ K] (hζ : is_primitive_root ζ ↑(p ^ k)) :
   is_integral_closure (adjoin ℤ ({ζ} : set K)) ℤ K :=
 begin
@@ -121,16 +121,15 @@ begin
     exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) }
 end
 
-lemma is_integral_closure_adjoing_singleton_of_prime [hcycl : is_cyclotomic_extension {p} ℚ K]
+lemma is_integral_closure_adjoin_singleton_of_prime [hcycl : is_cyclotomic_extension {p} ℚ K]
   (hζ : is_primitive_root ζ ↑p) :
   is_integral_closure (adjoin ℤ ({ζ} : set K)) ℤ K :=
 begin
   rw [← pow_one p] at hζ hcycl,
-  exactI is_integral_closure_adjoing_singleton_of_prime_pow hζ,
+  exactI is_integral_closure_adjoin_singleton_of_prime_pow hζ,
 end
 
 local attribute [-instance] cyclotomic_field.algebra
-local attribute [instance] algebra_rat_subsingleton
 
 /-- The integral closure of `ℤ` inside `cyclotomic_field (p ^ k) ℚ` is
 `cyclotomic_ring (p ^ k) ℤ ℚ`. -/
@@ -144,7 +143,7 @@ begin
     { exact ne_zero.char_zero } },
   have hζ := zeta_spec (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
   refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
-  { have := (is_integral_closure_adjoing_singleton_of_prime_pow hζ).is_integral_iff,
+  { have := (is_integral_closure_adjoin_singleton_of_prime_pow hζ).is_integral_iff,
     obtain ⟨y, rfl⟩ := this.1 h,
     convert adjoin_mono _ y.2,
     { simp only [eq_iff_true_of_subsingleton] },
@@ -179,7 +178,7 @@ unity and `K` is a `p ^ k`-th cyclotomic extension of `ℚ`. -/
 @[simps] noncomputable def _root_.is_primitive_root.adjoin_equiv_ring_of_integers
   [hcycl : is_cyclotomic_extension {p ^ k} ℚ K] (hζ : is_primitive_root ζ ↑(p ^ k)) :
   adjoin ℤ ({ζ} : set K) ≃ₐ[ℤ] (𝓞 K) :=
-let _ := is_integral_closure_adjoing_singleton_of_prime_pow hζ in
+let _ := is_integral_closure_adjoin_singleton_of_prime_pow hζ in
   by exactI (is_integral_closure.equiv ℤ (adjoin ℤ ({ζ} : set K)) K (𝓞 K))
 
 /-- The integral `power_basis` of `𝓞 K` given by a primitive root of unity, where `K` is a `p ^ k`

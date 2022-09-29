@@ -681,8 +681,7 @@ end
 
 end continuous_map
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
+instance continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
   (R : Type*) [comm_semiring R] [topological_space R] [topological_semiring R]
   [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
 begin

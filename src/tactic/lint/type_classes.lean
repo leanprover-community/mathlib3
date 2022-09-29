@@ -262,7 +262,7 @@ Some instances take quite some time to fail, and we seem to run against the cach
 https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/odd.20repeated.20type.20class.20search
 -/
 @[linter] meta def linter.fails_quickly : linter :=
-{ test := fails_quickly 20000,
+{ test := fails_quickly 30000,
   auto_decls := tt,
   no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.

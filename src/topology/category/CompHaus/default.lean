@@ -216,7 +216,7 @@ begin
     haveI : t2_space (ulift.{u} $ set.Icc (0:ℝ) 1) := homeomorph.ulift.symm.t2_space,
     let Z := of (ulift.{u} $ set.Icc (0:ℝ) 1),
     let g : Y ⟶ Z := ⟨λ y', ⟨⟨φ y', hφ01 y'⟩⟩,
-      continuous_ulift_up.comp (continuous_subtype_mk (λ y', hφ01 y') φ.continuous)⟩,
+      continuous_ulift_up.comp (φ.continuous.subtype_mk (λ y', hφ01 y'))⟩,
     let h : Y ⟶ Z := ⟨λ _, ⟨⟨0, set.left_mem_Icc.mpr zero_le_one⟩⟩, continuous_const⟩,
     have H : h = g,
     { rw ← cancel_epi f,

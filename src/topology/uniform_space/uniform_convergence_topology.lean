@@ -222,7 +222,7 @@ protected def uniform_space : uniform_space (α → β) :=
 uniform_space.of_core (uniform_convergence.uniform_core α β)
 
 local attribute [instance] uniform_convergence.uniform_space
-local notation `𝒰(` α `,` β `,` u `)` := @uniform_convergence.uniform_space α β u
+local notation `𝒰(`α`, `β`, `u`)` := @uniform_convergence.uniform_space α β u
 
 /-- By definition, the uniformity of `α → β` endowed with the structure of uniform convergence on
 `α` admits the family `{(f, g) | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓤 β` as a filter basis. -/
@@ -488,7 +488,45 @@ namespace uniform_convergence_on
 variables {α β : Type*} {γ ι : Type*}
 variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
 
-local notation `𝒰(` α `,` β `,` u `)` := @uniform_convergence.uniform_space α β u
+local notation `𝒰(`α`, `β`, `u`)` := @uniform_convergence.uniform_space α β u
+
+/-- Basis sets for the uniformity of `𝔖`-convergence: for `S : set α` and `V : set (β × β)`,
+`gen S V` is the set of pairs `(f, g)` of functions `α → β` such that `∀ x ∈ S, (f x, g x) ∈ V`. -/
+protected def gen (S : set α) (V : set (β × β)) : set ((α → β) × (α → β)) :=
+  {uv : (α → β) × (α → β) | ∀ x ∈ S, (uv.1 x, uv.2 x) ∈ V}
+
+/-- For `S : set α` and `V : set (β × β)`, we have
+`uniform_convergence_on.gen S V = (S.restrict × S.restrict) ⁻¹' (uniform_convergence.gen S β V)`.
+This is the crucial fact for proving that the family `uniform_convergence_on.gen S V` for
+`S ∈ 𝔖` and `V ∈ 𝓤 β` is indeed a basis for the uniformity `α → β` endowed with `𝒱(α, β, 𝔖, uβ)`
+the uniform structure of `𝔖`-convergence, as defined in `uniform_convergence_on.uniform_space`. -/
+protected lemma gen_eq_preimage_restrict (S : set α) (V : set (β × β)) :
+  uniform_convergence_on.gen S V =
+  (prod.map S.restrict S.restrict) ⁻¹' (uniform_convergence.gen S β V) :=
+begin
+  ext uv,
+  exact ⟨λ h ⟨x, hx⟩, h x hx, λ h x hx, h ⟨x, hx⟩⟩
+end
+
+/-- `uniform_convergence_on.gen` is antitone in the first argument and monotone in the second. -/
+protected lemma gen_mono {S S' : set α} {V V' : set (β × β)} (hS : S' ⊆ S) (hV : V ⊆ V') :
+  uniform_convergence_on.gen S V ⊆ uniform_convergence_on.gen S' V' :=
+λ uv h x hx, hV (h x $ hS hx)
+
+/-- If `𝔖 : set (set α)` is nonempty and directed and `𝓑` is a filter basis on `β × β`, then the
+family `uniform_convergence_on.gen S V` for `S ∈ 𝔖` and `V ∈ 𝓑` is a filter basis.
+We will show in `has_basis_uniformity_of_basis` that, if `𝓑` is a basis for `𝓤 β`, then the
+corresponding filter is the uniformity of `(α → β, 𝒱(α, β, 𝔖, uβ))`. -/
+protected lemma is_basis_gen (𝔖 : set (set α)) (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖)
+  (𝓑 : filter_basis $ β × β) :
+  is_basis (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓑)
+    (λ SV, uniform_convergence_on.gen SV.1 SV.2) :=
+⟨h.prod 𝓑.nonempty, λ U₁V₁ U₂V₂ h₁ h₂,
+  let ⟨U₃, hU₃, hU₁₃, hU₂₃⟩ := h' U₁V₁.1 h₁.1 U₂V₂.1 h₂.1 in
+  let ⟨V₃, hV₃, hV₁₂₃⟩ := 𝓑.inter_sets h₁.2 h₂.2 in ⟨⟨U₃, V₃⟩, ⟨⟨hU₃, hV₃⟩, λ uv huv,
+    ⟨(λ x hx, (hV₁₂₃ $ huv x $ hU₁₃ hx).1), (λ x hx, (hV₁₂₃ $ huv x $ hU₂₃ hx).2)⟩⟩⟩⟩
+
+variables (α β) [uniform_space β] (𝔖 : set (set α))
 
 /-- Basis sets for the uniformity of `𝔖`-convergence: for `S : set α` and `V : set (β × β)`,
 `gen S V` is the set of pairs `(f, g)` of functions `α → β` such that `∀ x ∈ S, (f x, g x) ∈ V`. -/
@@ -536,7 +574,7 @@ protected def uniform_space : uniform_space (α → β) :=
 ⨅ (s : set α) (hs : s ∈ 𝔖), uniform_space.comap s.restrict
   (𝒰(s, β, _))
 
-local notation `𝒱(` α `,` β `,` 𝔖 `,` u `)` := @uniform_convergence_on.uniform_space α β u 𝔖
+local notation `𝒱(`α`, `β`, `𝔖`, `u`)` := @uniform_convergence_on.uniform_space α β u 𝔖
 
 /-- Topology of `𝔖`-convergence, i.e uniform convergence on the elements of `𝔖`. -/
 protected def topological_space : topological_space (α → β) :=
@@ -553,7 +591,7 @@ begin
   refl
 end
 
-private lemma has_basis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι → set (β × β)}
+protected lemma has_basis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι → set (β × β)}
   (hb : has_basis (𝓤 β) p s) (S : set α) :
   (@uniformity (α → β) ((uniform_convergence.uniform_space S β).comap S.restrict)).has_basis
   p (λ i, uniform_convergence_on.gen S (s i)) :=
@@ -562,13 +600,13 @@ begin
   exact (uniform_convergence.has_basis_uniformity_of_basis S β hb).comap _
 end
 
-private lemma has_basis_uniformity_of_basis_aux₂ (h : directed_on (⊆) 𝔖) {p : ι → Prop}
+protected lemma has_basis_uniformity_of_basis_aux₂ (h : directed_on (⊆) 𝔖) {p : ι → Prop}
   {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
   directed_on ((λ s : set α, (uniform_convergence.uniform_space s β).comap
     (s.restrict : (α → β) → s → β)) ⁻¹'o ge) 𝔖 :=
 h.mono $ λ s t hst,
-  ((has_basis_uniformity_of_basis_aux₁ α β hb _).le_basis_iff
-    (has_basis_uniformity_of_basis_aux₁ α β hb _)).mpr
+  ((uniform_convergence_on.has_basis_uniformity_of_basis_aux₁ α β hb _).le_basis_iff
+    (uniform_convergence_on.has_basis_uniformity_of_basis_aux₁ α β hb _)).mpr
   (λ V hV, ⟨V, hV, uniform_convergence_on.gen_mono hst subset_rfl⟩)
 
 /-- If `𝔖 : set (set α)` is nonempty and directed and `𝓑` is a filter basis of `𝓤 β`, then the
@@ -582,8 +620,8 @@ protected lemma has_basis_uniformity_of_basis (h : 𝔖.nonempty) (h' : directed
 begin
   simp only [infi_uniformity'],
   exact has_basis_binfi_of_directed h (λ S, (@uniform_convergence_on.gen α β S) ∘ s) _
-    (λ S hS, has_basis_uniformity_of_basis_aux₁ α β hb S)
-    (has_basis_uniformity_of_basis_aux₂ α β 𝔖 h' hb)
+    (λ S hS, uniform_convergence_on.has_basis_uniformity_of_basis_aux₁ α β hb S)
+    (uniform_convergence_on.has_basis_uniformity_of_basis_aux₂ α β 𝔖 h' hb)
 end
 
 /-- If `𝔖 : set (set α)` is nonempty and directed, then the uniformity of

@@ -54,28 +54,13 @@ instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group 
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] :
   ordered_cancel_comm_monoid α :=
-{ mul_left_cancel       := λ a b c, (mul_right_inj a).mp,
-  le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
+{ le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
 
-@[priority 100, to_additive]
-instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
-  [ordered_comm_group α] :
-  has_exists_mul_of_le α :=
-⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance group.has_exists_mul_of_le (α : Type u) [group α] [has_le α] : has_exists_mul_of_le α :=
+⟨λ a b hab, ⟨a⁻¹ * b, (mul_inv_cancel_left _ _).symm⟩⟩
 
-@[to_additive] instance [h : has_inv α] : has_inv αᵒᵈ := h
-@[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
-@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
-@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_monoid]
-instance [h : division_monoid α] : division_monoid αᵒᵈ := h
-@[to_additive order_dual.subtraction_comm_monoid]
-instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : group α] : group αᵒᵈ := h
-@[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
-instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
-instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
@@ -87,13 +72,13 @@ section typeclasses_left_le
 variables [has_le α] [covariant_class α α (*) (≤)] {a b c d : α}
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_nonpos_iff]
+@[simp, to_additive left.neg_nonpos_iff "Uses `left` co(ntra)variant."]
 lemma left.inv_le_one_iff :
   a⁻¹ ≤ 1 ↔ 1 ≤ a :=
 by { rw [← mul_le_mul_iff_left a], simp }
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.nonneg_neg_iff]
+@[simp, to_additive left.nonneg_neg_iff "Uses `left` co(ntra)variant."]
 lemma left.one_le_inv_iff :
   1 ≤ a⁻¹ ↔ a ≤ 1 :=
 by { rw [← mul_le_mul_iff_left a], simp }
@@ -128,13 +113,13 @@ section typeclasses_left_lt
 variables [has_lt α] [covariant_class α α (*) (<)] {a b c : α}
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_pos_iff]
+@[simp, to_additive left.neg_pos_iff "Uses `left` co(ntra)variant."]
 lemma left.one_lt_inv_iff :
   1 < a⁻¹ ↔ a < 1 :=
 by rw [← mul_lt_mul_iff_left a, mul_inv_self, mul_one]
 
 /--  Uses `left` co(ntra)variant. -/
-@[simp, to_additive left.neg_neg_iff]
+@[simp, to_additive left.neg_neg_iff "Uses `left` co(ntra)variant."]
 lemma left.inv_lt_one_iff :
   a⁻¹ < 1 ↔ 1 < a :=
 by rw [← mul_lt_mul_iff_left a, mul_inv_self, mul_one]
@@ -169,13 +154,13 @@ section typeclasses_right_le
 variables [has_le α] [covariant_class α α (swap (*)) (≤)] {a b c : α}
 
 /--  Uses `right` co(ntra)variant. -/
-@[simp, to_additive right.neg_nonpos_iff]
+@[simp, to_additive right.neg_nonpos_iff "Uses `right` co(ntra)variant."]
 lemma right.inv_le_one_iff :
   a⁻¹ ≤ 1 ↔ 1 ≤ a :=
 by { rw [← mul_le_mul_iff_right a], simp }
 
 /--  Uses `right` co(ntra)variant. -/
-@[simp, to_additive right.nonneg_neg_iff]
+@[simp, to_additive right.nonneg_neg_iff "Uses `right` co(ntra)variant."]
 lemma right.one_le_inv_iff :
   1 ≤ a⁻¹ ↔ a ≤ 1 :=
 by { rw [← mul_le_mul_iff_right a], simp }
@@ -780,7 +765,13 @@ end preorder
 end comm_group
 
 section linear_order
-variables [group α] [linear_order α] [covariant_class α α (*) (≤)]
+variables [group α] [linear_order α]
+
+@[simp, to_additive cmp_sub_zero]
+lemma cmp_div_one' [covariant_class α α (swap (*)) (≤)] (a b : α) : cmp (a / b) 1 = cmp a b :=
+by rw [← cmp_mul_right' _ _ b, one_mul, div_mul_cancel']
+
+variables [covariant_class α α (*) (≤)]
 
 section variable_names
 variables {a b c : α}
@@ -825,14 +816,8 @@ section densely_ordered
 variables [densely_ordered α] {a b c : α}
 
 @[to_additive]
-lemma le_of_forall_one_lt_le_mul (h : ∀ ε : α, 1 < ε → a ≤ b * ε) : a ≤ b :=
-le_of_forall_le_of_dense $ λ c hc,
-calc a ≤ b * (b⁻¹ * c) : h _ (lt_inv_mul_iff_lt.mpr hc)
-   ... = c             : mul_inv_cancel_left b c
-
-@[to_additive]
 lemma le_of_forall_lt_one_mul_le (h : ∀ ε < 1, a * ε ≤ b) : a ≤ b :=
-@le_of_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _ h
+@le_of_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _ _ _ h
 
 @[to_additive]
 lemma le_of_forall_one_lt_div_le (h : ∀ ε : α, 1 < ε → a / ε ≤ b) : a ≤ b :=
@@ -886,7 +871,6 @@ variables [linear_ordered_comm_group α] {a b c : α}
 instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   linear_ordered_cancel_comm_monoid α :=
 { le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
-  mul_left_cancel := λ x y z, mul_left_cancel,
   ..‹linear_ordered_comm_group α› }
 
 /-- Pullback a `linear_ordered_comm_group` under an injective map.
@@ -1188,10 +1172,30 @@ begin
   rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb]
 end
 
-lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : |b| ≤ max (|a|) (|c|) :=
+lemma abs_le_max_abs_abs (hab : a ≤ b) (hbc : b ≤ c) : |b| ≤ max (|a|) (|c|) :=
 abs_le'.2
   ⟨by simp [hbc.trans (le_abs_self c)],
    by simp [(neg_le_neg_iff.mpr hab).trans (neg_le_abs_self a)]⟩
+
+lemma min_abs_abs_le_abs_max : min (|a|) (|b|) ≤ |max a b| :=
+(le_total a b).elim
+  (λ h, (min_le_right _ _).trans_eq $ congr_arg _ (max_eq_right h).symm)
+  (λ h, (min_le_left _ _).trans_eq $ congr_arg _ (max_eq_left h).symm)
+
+lemma min_abs_abs_le_abs_min : min (|a|) (|b|) ≤ |min a b| :=
+(le_total a b).elim
+  (λ h, (min_le_left _ _).trans_eq $ congr_arg _ (min_eq_left h).symm)
+  (λ h, (min_le_right _ _).trans_eq $ congr_arg _ (min_eq_right h).symm)
+
+lemma abs_max_le_max_abs_abs : |max a b| ≤ max (|a|) (|b|) :=
+(le_total a b).elim
+  (λ h, (congr_arg _ $ max_eq_right h).trans_le $ le_max_right _ _)
+  (λ h, (congr_arg _ $ max_eq_left h).trans_le $ le_max_left _ _)
+
+lemma abs_min_le_max_abs_abs : |min a b| ≤ max (|a|) (|b|) :=
+(le_total a b).elim
+  (λ h, (congr_arg _ $ min_eq_left h).trans_le $ le_max_left _ _)
+  (λ h, (congr_arg _ $ min_eq_right h).trans_le $ le_max_right _ _)
 
 lemma eq_of_abs_sub_eq_zero {a b : α} (h : |a - b| = 0) : a = b :=
 sub_eq_zero.1 $ abs_eq_zero.1 h

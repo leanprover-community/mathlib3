@@ -45,7 +45,7 @@ which are lattices with only two elements, and related ideas.
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
   * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
-  * `fintype.to_is_atomic`, `fintype.to_is_coatomic`: Finite partial orders with bottom resp. top
+  * `finite.to_is_atomic`, `finite.to_is_coatomic`: Finite partial orders with bottom resp. top
     are atomic resp. coatomic.
 
 -/
@@ -636,9 +636,10 @@ lemma is_coatom_iff_is_atom : is_coatom a ↔ is_atom b := hc.symm.is_atom_iff_i
 
 end is_compl
 
-variables [is_complemented α]
+variables [complemented_lattice α]
 
-lemma is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] : is_coatomic α :=
+lemma is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular [is_atomic α] :
+  is_coatomic α :=
 ⟨λ x, begin
   rcases exists_is_compl x with ⟨y, xy⟩,
   apply (eq_bot_or_exists_atom_le y).imp _ _,
@@ -651,12 +652,13 @@ lemma is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] :
     apply ha.Iic }
 end⟩
 
-lemma is_atomic_of_is_coatomic_of_is_complemented_of_is_modular [is_coatomic α] : is_atomic α :=
-is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_is_complemented_of_is_modular
+lemma is_atomic_of_is_coatomic_of_complemented_lattice_of_is_modular [is_coatomic α] :
+  is_atomic α :=
+is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular
 
 theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
-⟨λ h, @is_coatomic_of_is_atomic_of_is_complemented_of_is_modular _ _ _ _ _ h,
-  λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ _ h⟩
+⟨λ h, @is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular _ _ _ _ _ h,
+  λ h, @is_atomic_of_is_coatomic_of_complemented_lattice_of_is_modular _ _ _ _ _ h⟩
 
 end is_modular_lattice
 
@@ -665,7 +667,7 @@ section fintype
 open finset
 
 @[priority 100]  -- see Note [lower instance priority]
-instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] : is_coatomic α :=
+instance finite.to_is_coatomic [partial_order α] [order_top α] [finite α] : is_coatomic α :=
 begin
   refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
   obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
@@ -677,7 +679,41 @@ begin
 end
 
 @[priority 100]  -- see Note [lower instance priority]
-instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
-is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
+instance finite.to_is_atomic [partial_order α] [order_bot α] [finite α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.mp finite.to_is_coatomic
 
 end fintype
+
+namespace set
+
+lemma is_atom_singleton (x : α) : is_atom ({x} : set α) :=
+⟨(singleton_nonempty x).ne_empty, λ s hs, ssubset_singleton_iff.mp hs⟩
+
+lemma is_atom_iff (s : set α) : is_atom s ↔ ∃ x, s = {x} :=
+begin
+  refine ⟨_, by { rintro ⟨x, rfl⟩, exact is_atom_singleton x }⟩,
+  rintro ⟨hs₁, hs₂⟩,
+  obtain ⟨x, hx⟩ := ne_empty_iff_nonempty.mp hs₁,
+  have := singleton_subset_iff.mpr hx,
+  refine ⟨x, subset.antisymm _ this⟩,
+  by_contra h,
+  exact (singleton_nonempty x).ne_empty (hs₂ {x} (ssubset_of_subset_not_subset this h)),
+end
+
+lemma is_coatom_iff (s : set α) : is_coatom s ↔ ∃ x, s = {x}ᶜ :=
+by simp_rw [is_compl_compl.is_coatom_iff_is_atom, is_atom_iff, @eq_comm _ s, compl_eq_comm]
+
+lemma is_coatom_singleton_compl (x : α) : is_coatom ({x}ᶜ : set α) :=
+(is_coatom_iff {x}ᶜ).mpr ⟨x, rfl⟩
+
+instance : is_atomistic (set α) :=
+{ eq_Sup_atoms := λ s, ⟨(λ x, {x}) '' s,
+    by rw [Sup_eq_sUnion, sUnion_image, bUnion_of_singleton],
+    by { rintro - ⟨x, hx, rfl⟩, exact is_atom_singleton x }⟩ }
+
+instance : is_coatomistic (set α) :=
+{ eq_Inf_coatoms := λ s, ⟨(λ x, {x}ᶜ) '' sᶜ,
+    by rw [Inf_eq_sInter, sInter_image, ←compl_Union₂, bUnion_of_singleton, compl_compl],
+    by { rintro - ⟨x, hx, rfl⟩, exact is_coatom_singleton_compl x }⟩ }
+
+end set

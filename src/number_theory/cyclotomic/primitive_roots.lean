@@ -188,19 +188,22 @@ section norm
 
 namespace is_primitive_root
 
-variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
+section comm_ring
+
+variables [comm_ring L] {ζ : L} (hζ : is_primitive_root ζ n)
 variables {K} [field K] [algebra K L]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
-lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
-by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp,
-  algebra.norm_algebra_map]
+lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) [is_domain L] :
+  norm K ζ = (-1) ^ finrank K L :=
+by rw [hζ.eq_neg_one_of_two_right, show -1 = algebra_map K L (-1), by simp,
+       algebra.norm_algebra_map]
 
 include hζ
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), the norm of a primitive root is
 `1` if `n ≠ 2`. -/
-lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
+lemma norm_eq_one [is_domain L] [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
 begin
   haveI := is_cyclotomic_extension.ne_zero' n K L,
@@ -225,7 +228,7 @@ begin
   exact strict_mono.injective hodd.strict_mono_pow hz
 end
 
-lemma norm_of_cyclotomic_irreducible [is_cyclotomic_extension {n} K L]
+lemma norm_of_cyclotomic_irreducible [is_domain L] [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = ite (n = 2) (-1) 1 :=
 begin
   split_ifs with hn,
@@ -235,6 +238,15 @@ begin
     all_goals { apply_instance } },
   { exact hζ.norm_eq_one hn hirr }
 end
+
+end comm_ring
+
+section field
+
+variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
+variables {K} [field K] [algebra K L]
+
+include hζ
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
 `ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
@@ -259,8 +271,8 @@ begin
     simp },
   haveI : ne_zero ((n : ℕ) : E) := (ne_zero.of_no_zero_smul_divisors K _ (n : ℕ)),
   rw [this, cyclotomic', ← cyclotomic_eq_prod_X_sub_primitive_roots (is_root_cyclotomic_iff.1 hz),
-      ← map_cyclotomic_int, (algebra_map K E).map_int_cast, ←int.cast_one, eval_int_cast_map,
-      ring_hom.eq_int_cast, int.cast_id]
+    ← map_cyclotomic_int, _root_.map_int_cast, ←int.cast_one, eval_int_cast_map, eq_int_cast,
+    int.cast_id]
 end
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
@@ -457,6 +469,8 @@ begin
       ← pow_succ] },
   { exact hζ.pow_sub_one_norm_prime_pow_ne_two hirr hs htwo }
 end
+
+end field
 
 end is_primitive_root
 

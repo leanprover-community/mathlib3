@@ -181,11 +181,11 @@ by { cases x; simp only [map_none, map_some, eq_self_iff_true] }
   x.map f = none ↔ x = none :=
 by { cases x; simp only [map_none', map_some', eq_self_iff_true] }
 
-/-- `option.map` is an injective function. -/
+/-- `option.map` as a function between functions is injective. -/
 theorem map_injective' : function.injective (@option.map α β) :=
 λ f g h, funext $ λ x, some_injective _ $ by simp only [← map_some', h]
 
-@[simp] theorem map_eq_map' {f g : α → β} : option.map f = option.map g ↔ f = g :=
+@[simp] theorem map_inj {f g : α → β} : option.map f = option.map g ↔ f = g :=
 map_injective'.eq_iff
 
 lemma map_congr {f g : α → β} {x : option α} (h : ∀ a ∈ x, f a = g a) :

@@ -139,7 +139,7 @@ lemma is_o_cpow_exp (hl : is_exp_cmp_filter l) (a : ℂ) {b : ℝ} (hb : 0 < b) 
   (λ z, z ^ a) =o[l] (λ z, exp (b * z)) :=
 calc (λ z, z ^ a) =Θ[l] λ z, abs z ^ re a : is_Theta_cpow_const_rpow $ λ _ _, hl.eventually_ne
 ... =ᶠ[l] λ z, real.exp (re a * real.log (abs z)) : hl.eventually_ne.mono $
-  λ z hz, by simp only [real.rpow_def_of_pos (abs_pos.2 hz), mul_comm]
+  λ z hz, by simp only [real.rpow_def_of_pos, abs.pos hz, mul_comm]
 ... =o[l] λ z, exp (b * z) : is_o.of_norm_right $
   begin
     simp only [norm_eq_abs, abs_exp, of_real_mul_re, real.is_o_exp_comp_exp_comp],

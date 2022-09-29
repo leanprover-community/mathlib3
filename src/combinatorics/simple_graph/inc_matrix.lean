@@ -70,7 +70,7 @@ lemma inc_matrix_apply_mul_inc_matrix_apply :
 begin
   classical,
   simp only [inc_matrix, set.indicator_apply, ←ite_and_mul_zero,
-    pi.one_apply, mul_one, set.mem_inter_eq],
+    pi.one_apply, mul_one, set.mem_inter_iff],
 end
 
 lemma inc_matrix_apply_mul_inc_matrix_apply_of_not_adj (hab : a ≠ b) (h : ¬ G.adj a b) :

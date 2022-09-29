@@ -7,6 +7,7 @@ Authors: Jireh Loreaux
 import topology.continuous_function.compact
 import topology.urysohns_lemma
 import data.complex.is_R_or_C
+import analysis.normed_space.units
 
 /-!
 # Ideals of continuous functions
@@ -20,7 +21,8 @@ and if, in addition, `X` is locally compact, then `continuous_map.set_of_ideal s
 
 When `R = 𝕜` with `is_R_or_C 𝕜` and `X` is compact Hausdorff, then this Galois connection can be
 improved to a true Galois correspondence (i.e., order isomorphism) between the type `opens X` and
-the subtype of closed ideals of `C(X, R)`.
+the subtype of closed ideals of `C(X, 𝕜)`. Consequently, the maximal ideals of `C(X, 𝕜)` are
+precisely those ideals corresponding to (complements of) singletons in `X`.
 
 ## Main definitions
 
@@ -32,20 +34,18 @@ the subtype of closed ideals of `C(X, R)`.
 
 ## Main statements
 
-* `ideal_of_set_of_ideal_eq_closure`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`,
-  `ideal_of_set 𝕜 (set_of_ideal I) = I.closure` for any ideal `I : ideal C(X, 𝕜)`.
-* `set_of_ideal_of_set_eq_interior`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`,
+* `continuous_map.ideal_of_set_of_ideal_eq_closure`: when `X` is compact Hausdorff and
+  `is_R_or_C 𝕜`, `ideal_of_set 𝕜 (set_of_ideal I) = I.closure` for any ideal `I : ideal C(X, 𝕜)`.
+* `continuous_map.set_of_ideal_of_set_eq_interior`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`,
   `set_of_ideal (ideal_of_set 𝕜 s) = interior s` for any `s : set X`.
+* `continuous_map.ideal_is_maximal_iff`: when `X` is compact Hausdorff and `is_R_or_C 𝕜`, a closed
+  ideal of `C(X, 𝕜)` is maximal if and only if it is `ideal_of_set 𝕜 {x}ᶜ` for some `x : X`.
 
 ## Implementation details
 
 Because there does not currently exist a bundled type of closed ideals, we don't provide the actual
 order isomorphism described above, and instead we only consider the Galois insertion
 `continuous_map.ideal_opens_gi`.
-
-## TODO
-
-* Show that maximal ideals in `C(X, 𝕜)` correspond to (complements of) singletons.
 
 ## Tags
 
@@ -291,5 +291,71 @@ variable (X)
     (ideal_of_set_of_ideal_eq_closure I ▸ hI : I.closure ≤ I)).closure_eq) }
 
 end is_R_or_C
+
+end continuous_map
+
+namespace topological_space
+namespace opens
+
+variables {X : Type*} [topological_space X]
+open set
+
+/-- The term of `opens X` corresponding to the complement of a singleton. -/
+@[simps] def singleton_compl [t1_space X] (x : X) : opens X :=
+⟨{x}ᶜ, is_closed_singleton.is_open_compl⟩
+
+lemma is_coatom_iff [t1_space X] (s : opens X) : is_coatom (s : set X) ↔ is_coatom s :=
+begin
+  refine galois_coinsertion.is_coatom_iff' opens.gi rfl (λ s hs, _) s,
+  obtain ⟨x, rfl⟩ := s.is_coatom_iff.mp hs,
+  simp only [interior, interior_compl, closure_singleton, subtype.coe_mk],
+end
+
+end opens
+end topological_space
+
+namespace continuous_map
+
+open is_R_or_C topological_space
+
+variables {X 𝕜 : Type*} [is_R_or_C 𝕜] [topological_space X] [compact_space X] [t2_space X]
+
+lemma ideal_of_set_is_maximal_iff (s : opens X) :
+  (ideal_of_set 𝕜 (s : set X)).is_maximal ↔ is_coatom s :=
+begin
+  rw ideal.is_maximal_def,
+  refine (ideal_opens_gi X 𝕜).is_coatom_iff (subtype.ext
+    (by simp only [opens_of_ideal_coe, set_of_top_eq_univ, opens.coe_top])) (λ I hI, _) s,
+  rw ←ideal.is_maximal_def at hI,
+  resetI,
+  exact ideal_of_set_of_ideal_is_closed infer_instance,
+end
+
+lemma ideal_of_singleton_is_maximal (x : X) : (ideal_of_set 𝕜 ({x}ᶜ : set X)).is_maximal :=
+(ideal_of_set_is_maximal_iff (opens.singleton_compl x)).mpr ((opens.is_coatom_iff _).mp $
+  (set.is_coatom_iff _).mpr ⟨x, rfl⟩)
+
+lemma set_of_ideal_eq_singleton_compl (I : ideal C(X, 𝕜)) [hI : I.is_maximal] :
+  ∃ x : X, set_of_ideal I = {x}ᶜ :=
+begin
+  have hI' : (ideal_of_set 𝕜 (set_of_ideal I)).is_maximal, from
+    (ideal_of_set_of_ideal_is_closed (infer_instance : is_closed (I : set C(X, 𝕜)))).symm ▸ hI,
+  exact (set_of_ideal I).is_coatom_iff.mp ((opens_of_ideal I).is_coatom_iff.mpr $
+    (ideal_of_set_is_maximal_iff (opens_of_ideal I)).mp hI'),
+end
+
+@[simp] lemma _root_.ideal.closure_eq_of_is_closed {R : Type*} [topological_space R] [ring R]
+  [topological_ring R] (I : ideal R) [hI : is_closed (I : set R)] : I.closure = I :=
+ideal.ext $ set.ext_iff.mp hI.closure_eq
+
+lemma ideal_is_maximal_iff (I : ideal C(X, 𝕜)) [hI : is_closed (I : set C(X, 𝕜))] :
+  I.is_maximal ↔ ∃ x : X, ideal_of_set 𝕜 {x}ᶜ = I :=
+begin
+  refine ⟨_, λ h, let ⟨x, hx⟩ := h in hx ▸ ideal_of_singleton_is_maximal x⟩,
+  introI hI',
+  obtain ⟨x, hx⟩ := set_of_ideal_eq_singleton_compl I,
+  refine ⟨x, by simpa only [ideal_of_set_of_ideal_eq_closure, ideal.closure_eq_of_is_closed]
+    using congr_arg (ideal_of_set 𝕜) hx.symm⟩,
+end
 
 end continuous_map

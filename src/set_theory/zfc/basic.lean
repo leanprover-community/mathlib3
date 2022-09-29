@@ -222,6 +222,21 @@ def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
 
 @[simp] theorem mem_to_set (a u : pSet.{u}) : a ∈ u.to_set ↔ a ∈ u := iff.rfl
 
+/-- A nonempty set is one that contains some element. -/
+protected def nonempty (u : pSet) : Prop := u.to_set.nonempty
+
+theorem nonempty_def (u : pSet) : u.nonempty ↔ ∃ x, x ∈ u := iff.rfl
+
+theorem nonempty_of_mem {x u : pSet} (h : x ∈ u) : u.nonempty := ⟨x, h⟩
+
+@[simp] theorem nonempty_to_set_iff {u : pSet} : u.to_set.nonempty ↔ u.nonempty := iff.rfl
+
+theorem nonempty_type_iff_nonempty {x : pSet} : nonempty x.type ↔ pSet.nonempty x :=
+⟨λ ⟨i⟩, ⟨_, func_mem _ i⟩, λ ⟨i, j, h⟩, ⟨j⟩⟩
+
+theorem nonempty_of_nonempty_type (x : pSet) [h : nonempty x.type] : pSet.nonempty x :=
+nonempty_type_iff_nonempty.1 h
+
 /-- Two pre-sets are equivalent iff they have the same members. -/
 theorem equiv.eq {x y : pSet} : equiv x y ↔ to_set x = to_set y :=
 equiv_iff_mem.trans set.ext_iff.symm
@@ -242,6 +257,8 @@ instance : is_empty (type (∅)) := pempty.is_empty
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
 @[simp] theorem empty_subset (x : pSet.{u}) : (∅ : pSet) ⊆ x := λ x, x.elim
+
+@[simp] theorem not_nonempty_empty : ¬ pSet.nonempty ∅ := by simp [pSet.nonempty]
 
 protected theorem equiv_empty (x : pSet) [is_empty x.type] : equiv x ∅ :=
 pSet.equiv_of_is_empty x _
@@ -465,6 +482,15 @@ quotient.induction_on x $ λ a, begin
   exact ⟨i, subtype.coe_injective (quotient.sound h.symm)⟩
 end
 
+/-- A nonempty set is one that contains some element. -/
+protected def nonempty (u : Set) : Prop := u.to_set.nonempty
+
+theorem nonempty_def (u : Set) : u.nonempty ↔ ∃ x, x ∈ u := iff.rfl
+
+theorem nonempty_of_mem {x u : Set} (h : x ∈ u) : u.nonempty := ⟨x, h⟩
+
+@[simp] theorem nonempty_to_set_iff {u : Set} : u.to_set.nonempty ↔ u.nonempty := iff.rfl
+
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/
 protected def subset (x y : Set.{u}) :=
 ∀ ⦃z⦄, z ∈ x → z ∈ y
@@ -509,6 +535,16 @@ quotient.induction_on x pSet.mem_empty
 
 @[simp] theorem empty_subset (x : Set.{u}) : (∅ : Set) ⊆ x :=
 quotient.induction_on x $ λ y, subset_iff.2 $ pSet.empty_subset y
+
+@[simp] theorem not_nonempty_empty : ¬ Set.nonempty ∅ := by simp [Set.nonempty]
+
+@[simp] theorem nonempty_mk_iff {x : pSet} : (mk x).nonempty ↔ x.nonempty :=
+begin
+  refine ⟨_, λ ⟨a, h⟩, ⟨mk a, h⟩⟩,
+  rintro ⟨a, h⟩,
+  induction a using quotient.induction_on,
+  exact ⟨a, h⟩
+end
 
 theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 ⟨λ h y, (h.symm ▸ mem_empty y),

@@ -151,6 +151,14 @@ by simp only [specializes_iff_mem_closure, hf.closure_eq_preimage_closure_image,
 lemma subtype_specializes_iff {p : X → Prop} (x y : subtype p) : x ⤳ y ↔ (x : X) ⤳ y :=
 inducing_coe.specializes_iff.symm
 
+lemma not_specializes_iff_exists_open : ¬ x ⤳ y ↔ ∃ (S : set X), is_open S ∧ y ∈ S ∧ x ∉ S :=
+⟨λ h, by { contrapose! h, rwa specializes_iff_forall_open, },
+ λ h, by { contrapose! h, rwa ←specializes_iff_forall_open, }⟩
+
+lemma not_specializes_iff_exists_closed : ¬ x ⤳ y ↔ ∃ (S : set X), is_closed S ∧ x ∈ S ∧ y ∉ S :=
+⟨λ h, by { contrapose! h, rwa specializes_iff_forall_closed, },
+ λ h, by { contrapose! h, rwa ←specializes_iff_forall_closed, }⟩
+
 variable (X)
 
 /-- Specialization forms a preorder on the topological space. -/

@@ -734,7 +734,7 @@ by { rw [mem_canonical_equiv_apply, canonical_equiv, map_equiv_symm, map_equiv,
          ring_equiv.coe_mk, mem_map],
     exact ⟨λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩, λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩⟩ }
 
-@[simp] lemma canonical_equiv_flip (I) :
+lemma canonical_equiv_flip (I) :
   canonical_equiv S P P' (canonical_equiv S P' P I) = I :=
 by rw [←canonical_equiv_symm, ring_equiv.symm_apply_apply]
 

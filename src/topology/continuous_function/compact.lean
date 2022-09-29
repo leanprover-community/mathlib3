@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.continuous_function.bounded
-import topology.uniform_space.compact_separated
+import topology.uniform_space.compact
 import topology.compact_open
 import topology.sets.compacts
 

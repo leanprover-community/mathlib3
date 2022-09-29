@@ -2446,14 +2446,14 @@ begin
     simp only [pi.zero_apply, mem_set_of_eq, filter.mem_mk] at A,
     convert A,
     ext x,
-    simp only [and_comm, exists_prop, mem_inter_eq, iff_self, mem_set_of_eq, mem_compl_eq,
+    simp only [and_comm, exists_prop, mem_inter_iff, iff_self, mem_set_of_eq, mem_compl_iff,
                not_forall] },
   { assume hs,
     let t := to_measurable μ ({x | f x ≠ 0} ∩ s),
     have A : s ⊆ t ∪ {x | f x = 0},
     { assume x hx,
       rcases eq_or_ne (f x) 0 with fx|fx,
-      { simp only [fx, mem_union_eq, mem_set_of_eq, eq_self_iff_true, or_true] },
+      { simp only [fx, mem_union, mem_set_of_eq, eq_self_iff_true, or_true] },
       { left,
         apply subset_to_measurable _ _,
         exact ⟨fx, hx⟩ } },
@@ -2472,7 +2472,7 @@ begin
   rw [ae_iff, ae_iff, with_density_apply_eq_zero hf],
   congr',
   ext x,
-  simp only [exists_prop, mem_inter_eq, iff_self, mem_set_of_eq, not_forall],
+  simp only [exists_prop, mem_inter_iff, iff_self, mem_set_of_eq, not_forall],
 end
 
 lemma ae_with_density_iff_ae_restrict {p : α → Prop} {f : α → ℝ≥0∞} (hf : measurable f) :
@@ -2501,7 +2501,7 @@ begin
       rw ha this },
     { filter_upwards [ae_restrict_mem A.compl],
       assume x hx,
-      simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+      simp only [not_not, mem_set_of_eq, mem_compl_iff] at hx,
       simp [hx] } },
   { rintros ⟨g', g'meas, hg'⟩,
     refine ⟨λ x, (f x : ℝ)⁻¹ • g' x, hf.coe_nnreal_real.inv.smul g'meas, _⟩,
@@ -2530,7 +2530,7 @@ begin
       rw ha this },
     { filter_upwards [ae_restrict_mem A.compl],
       assume x hx,
-      simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+      simp only [not_not, mem_set_of_eq, mem_compl_iff] at hx,
       simp [hx] } },
   { rintros ⟨g', g'meas, hg'⟩,
     refine ⟨λ x, (f x)⁻¹ * g' x, hf.coe_nnreal_ennreal.inv.smul g'meas, _⟩,
@@ -2631,7 +2631,7 @@ begin
           (hf.measurable_mk (measurable_set_singleton 0).compl).compl,
         filter_upwards [ae_restrict_mem M],
         assume x hx,
-        simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+        simp only [not_not, mem_set_of_eq, mem_compl_iff] at hx,
         simp only [hx, zero_mul, pi.mul_apply] }
     end
   ... = ∫⁻ (a : α), (f * g) a ∂μ :

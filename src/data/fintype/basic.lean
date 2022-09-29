@@ -624,6 +624,12 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
+/-- Many `fintype` instances for sets are defined using an extensionally equal `finset`.
+Rewriting `s.to_finset` with `set.to_finset_of_finset` replaces the term with such a `finset`. -/
+theorem to_finset_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
+  @set.to_finset _ p (fintype.of_finset s H) = s :=
+finset.ext (λ x, by rw [mem_to_finset, H])
+
 /-- Membership of a set with a `fintype` instance is decidable.
 
 Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability
@@ -1293,7 +1299,7 @@ instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fin
 fintype.subtype (univ.filter p) (by simp)
 
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
-by simp only [ext_iff, set.ext_iff, set.mem_to_finset, not_mem_empty, set.mem_empty_eq]
+by simp only [ext_iff, set.ext_iff, set.mem_to_finset, not_mem_empty, set.mem_empty_iff_false]
 
 @[simp] lemma set.to_finset_empty : (∅ : set α).to_finset = ∅ :=
 set.to_finset_eq_empty_iff.mpr rfl
@@ -1564,7 +1570,7 @@ begin
   classical,
   rw [fintype.card_of_subtype (set.to_finset pᶜ), set.to_finset_compl p, finset.card_compl,
       fintype.card_of_subtype (set.to_finset p)];
-  intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
+  intro; simp only [set.mem_to_finset, set.mem_compl_iff]; refl,
 end
 
 theorem fintype.card_subtype_mono (p q : α → Prop) (h : p ≤ q)

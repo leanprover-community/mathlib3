@@ -38,25 +38,17 @@ variables {n m : ℕ}
 /- In order for Lean to understand that we can take probabilities in `fin 23 → fin 365`, we must
 tell Lean that there is a `measurable_space` structure on the space. Note that this instance
 is only for `fin m` - Lean automatically figures out that the function space `fin n → fin m`
-is _also_ measurable, by using `measurable_space.pi` -/
-
+is _also_ measurable, by using `measurable_space.pi`, and furthermore that all sets are measurable,
+from `measurable_singleton_class.pi`. -/
 instance : measurable_space (fin m) := ⊤
+instance : measurable_singleton_class (fin m) := ⟨λ _, trivial⟩
 
 /- We then endow the space with a canonical measure, which is called ℙ.
 We define this to be the conditional counting measure. -/
 noncomputable instance : measure_space (fin n → fin m) := ⟨cond_count set.univ⟩
 
--- Singletons are measurable; therefore, as `fin n → fin m` is finite, all sets are measurable.
-instance : measurable_singleton_class (fin n → fin m) :=
-⟨λ f, begin
-  convert measurable_set.pi set.finite_univ.countable
-    (show ∀ i, i ∈ set.univ → measurable_set ({f i} : set (fin m)), from λ _ _, trivial),
-  ext g,
-  simp only [function.funext_iff, set.mem_singleton_iff, set.mem_univ_pi],
-end⟩
-
 /- The canonical measure on `fin n → fin m` is a probability measure (except on an empty space). -/
-example : is_probability_measure (ℙ : measure (fin n → fin (m + 1))) :=
+instance : is_probability_measure (ℙ : measure (fin n → fin (m + 1))) :=
 cond_count_is_probability_measure set.finite_univ set.univ_nonempty
 
 lemma fin_fin.measure_apply {s : set $ fin n → fin m} :

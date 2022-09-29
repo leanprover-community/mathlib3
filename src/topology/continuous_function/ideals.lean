@@ -183,17 +183,6 @@ open is_R_or_C
 
 variables {X 𝕜 : Type*} [is_R_or_C 𝕜] [topological_space X]
 
-example (x : ℝ≥0) (hx : x ≤ 1) : (1 : 𝕜) - (algebra_map ℝ≥0 𝕜 x) = ((1 - x : ℝ≥0) : 𝕜) :=
-begin
-  simpa only [nnreal.coe_sub hx, coe_coe, nonneg.coe_one, of_real_sub, of_real_one],
-end
-
-example (x : ℝ≥0) (hx : x ≤ 1) : (1 : 𝕜) - (algebra_map ℝ≥0 𝕜 x) = algebra_map ℝ≥0 𝕜 (1 - x) :=
-begin
-  simp only [algebra.algebra_map_eq_smul_one, nnreal.smul_def, nnreal.coe_sub hx, sub_smul, nonneg.coe_one, one_smul],
-end
-
-
 /-- An auxiliary lemma used in the proof of `ideal_of_set_of_ideal_eq_closure` which may be useful
 on its own. -/
 lemma exists_mul_le_one_eq_on_ge (f : C(X, ℝ≥0)) {c : ℝ≥0} (hc : 0 < c) :
@@ -230,7 +219,8 @@ begin
   `t` such that when composed with the natural embedding of `ℝ≥0` into `𝕜` lies in the ideal `I`.
   Indeed, then `∥f - f * ↑g∥ ≤ ∥f * (1 - ↑g)∥ ≤ ⨆ ∥f * (1 - ↑g) x∥`. When `x ∉ t`, `∥f x∥ < ε / 2`
   and `∥(1 - ↑g) x∥ ≤ 1`, and when `x ∈ t`, `(1 - ↑g) x = 0`, and clearly `f * ↑g ∈ I`. -/
-  suffices : ∃ g : C(X, ℝ≥0), (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g ∈ I ∧ (∀ x, g x ≤ 1) ∧ t.eq_on g 1,
+  suffices : ∃ g : C(X, ℝ≥0),
+    (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g ∈ I ∧ (∀ x, g x ≤ 1) ∧ t.eq_on g 1,
   { obtain ⟨g, hgI, hg, hgt⟩ := this,
     refine ⟨f * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g, I.mul_mem_left f hgI, _⟩,
     rw nndist_eq_nnnorm,
@@ -262,19 +252,20 @@ begin
   neighborhood of `y`. Moreover, `(∥(star fₓ * fₓ) y∥₊ : 𝕜) = (star fₓ * fₓ) y`, so composition of
   this map with the natural embedding is just `star fₓ * fₓ ∈ I`. -/
   have : ∃ g' : C(X, ℝ≥0), (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g' ∈ I ∧ (∀ x ∈ t, 0 < g' x),
-  { refine @is_compact.induction_on _ _ _ ht.is_compact
-      (λ s, ∃ g' : C(X, ℝ≥0), (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g' ∈ I ∧ (∀ x ∈ s, 0 < g' x)) _ _ _ _,
+  { refine @is_compact.induction_on _ _ _ ht.is_compact (λ s, ∃ g' : C(X, ℝ≥0),
+      (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g' ∈ I ∧ (∀ x ∈ s, 0 < g' x)) _ _ _ _,
     { refine ⟨0, _, λ x hx, false.elim hx⟩,
       convert I.zero_mem,
       ext,
-      simp only [coe_zero, pi.zero_apply, continuous_map.coe_coe, continuous_map.coe_comp, map_zero, pi.comp_zero]
-     },
+      simp only [coe_zero, pi.zero_apply, continuous_map.coe_coe, continuous_map.coe_comp,
+        map_zero, pi.comp_zero] },
     { rintro s₁ s₂ hs ⟨g, hI, hgt⟩, exact ⟨g, hI, λ x hx, hgt x (hs hx)⟩, },
     { rintro s₁ s₂ ⟨g₁, hI₁, hgt₁⟩ ⟨g₂, hI₂, hgt₂⟩,
       refine ⟨g₁ + g₂, _, λ x hx, _⟩,
       { convert I.add_mem hI₁ hI₂,
         ext y,
-        simp only [coe_add, pi.add_apply, map_add, coe_comp, function.comp_app, continuous_map.coe_coe]},
+        simp only [coe_add, pi.add_apply, map_add, coe_comp, function.comp_app,
+          continuous_map.coe_coe]},
       { rcases hx with (hx | hx),
         simpa only [zero_add] using add_lt_add_of_lt_of_le (hgt₁ x hx) zero_le',
         simpa only [zero_add] using add_lt_add_of_le_of_lt zero_le' (hgt₂ x hx), } },
@@ -304,7 +295,8 @@ begin
   refine ⟨g * g', _, hg, hgc.mono hgc'⟩,
   convert I.mul_mem_left ((algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) hI',
   ext,
-  simp only [algebra_map_clm_coe, continuous_map.coe_coe, comp_apply, coe_mul, pi.mul_apply, map_mul],
+  simp only [algebra_map_clm_coe, continuous_map.coe_coe, comp_apply, coe_mul, pi.mul_apply,
+    map_mul],
 end
 
 lemma ideal_of_set_of_ideal_is_closed [compact_space X] [t2_space X] {I : ideal C(X, 𝕜)}

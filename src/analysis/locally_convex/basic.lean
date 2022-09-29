@@ -351,7 +351,7 @@ begin
   { rw balanced_iff_smul_mem at hs ⊢,
     refine λ a ha x hx, convex_hull_min _ this hx a ha,
     exact λ y hy a ha, subset_convex_hull ℝ s (hs ha hy) },
-  intros x y hx hy u v hu hv huv a ha,
+  intros x hx y hy u v hu hv huv a ha,
   simp only [smul_add, ← smul_comm],
   exact convex_convex_hull ℝ s (hx a ha) (hy a ha) hu hv huv
 end

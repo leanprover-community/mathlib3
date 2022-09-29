@@ -91,6 +91,14 @@ instance top_retraction.continuous_map_class :
   coe_injective' := λr s h, by { cases r, cases s, congr' },
   map_continuous := λr, is_top_retraction.continuous r.top_retraction' }
 
+/-- The identity function, interpreted as a top_retraction. -/
+protected def id : top_retraction X set.univ :=
+{ to_fun := λx, sorry,
+  top_retraction' := sorry }
+
+/-- There is always a top_retraction from a space to itself, namely `id`. -/
+instance : inhabited (top_retraction X set.univ) := ⟨top_retraction.id⟩
+
 /-- We show that if a topological retraction `r : X → A` exists, then the inclusion map `i : A → X`
 is a split monomorphism in the category Top. -/
 def split_mono_of_inclusion (r : top_retraction X A) :

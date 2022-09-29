@@ -158,7 +158,8 @@ lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a �
 @[simp] lemma count_eq_zero {a : α} {l} : count a l = 0 ↔ a ∉ l :=
 ⟨not_mem_of_count_eq_zero, count_eq_zero_of_not_mem⟩
 
-@[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b := countp_eq_length _
+@[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
+countp_eq_length _
 
 @[simp] lemma count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];

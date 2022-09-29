@@ -686,54 +686,16 @@ begin
     exact (mul_le_mul_of_nonneg_right op_norm_lsmul_le hε).trans_eq (one_mul ε) }
 end
 
-/-- `(φ i ⋆ g) x` tends to `g x₀` as `(i, x)` tends to `(∞, x₀)`.
-Here `φ` is a sequence of nonnegative functions with integral 1
-whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
+/-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
+* `φ` is a sequence of nonnegative functions with integral 1
+  whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
+* `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`
+* `k i` tends to `x₀`
 
-This requires a little stronger conditions on `G` and `g` than `convolution_tendsto_right`. -/
+This requires that `g` is locally integrable, which is a bit stronger than the condition in
+`convolution_tendsto_right`. -/
 lemma convolution_tendsto_right' [sigma_compact_space G]
-  {ι} {l : filter ι} {φ : ι → G → ℝ}
-  (hnφ : ∀ i x, 0 ≤ φ i x)
-  (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1)
-  (hφ : tendsto (λ n, support (φ n)) l (𝓝 0).small_sets)
-  (hig : locally_integrable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
-  tendsto (λ p : ι × G, (φ p.1 ⋆[lsmul ℝ ℝ, μ] g : G → E') p.2) (l ×ᶠ 𝓝 x₀) (𝓝 (g x₀)) :=
-begin
-  simp_rw [tendsto_small_sets_iff] at hφ,
-  rw [metric.continuous_at_iff] at hcg,
-  rw [metric.tendsto_nhds],
-  intros ε hε,
-  have h2ε : 0 < ε / 3 := div_pos hε (by norm_num),
-  rcases hcg (ε / 3) h2ε with ⟨δ, hδ, hgδ⟩,
-  refine ((hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)).prod_mk $
-    ball_mem_nhds _ (half_pos hδ)).mono _,
-  rintro ⟨i, x⟩ ⟨hi, hx⟩,
-  dsimp only at hi hx ⊢,
-  have hgx : dist (g x) (g x₀) < ε / 3 := hgδ (hx.trans $ half_lt_self hδ),
-  have h1 : ∀ x' ∈ ball x (δ / 2), dist (g x') (g x) ≤ ε / 3 + ε / 3,
-  { intros x' hx',
-    refine (dist_triangle_right _ _ _).trans (add_le_add (hgδ _).le hgx.le),
-    exact ((dist_triangle _ _ _).trans_lt (add_lt_add hx'.out hx)).trans_eq (add_halves δ) },
-  have := dist_convolution_le (add_pos h2ε h2ε).le hi (hnφ i) (hiφ i) hig.ae_strongly_measurable h1,
-  refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgx)).trans_eq _,
-  field_simp, ring_nf
-end
-
-lemma eventually_eventually_prod_nhds {ι X} [topological_space X] {l : filter ι} {x : X}
-  {p : ι × X → Prop} :
-  (∀ᶠ (x : ι × X) in l ×ᶠ 𝓝 x, ∀ᶠ z in 𝓝 x.2, p (x.1, z)) ↔ (∀ᶠ x in l ×ᶠ 𝓝 x, p x) :=
-sorry
-
-lemma eventually_exists_imp {ι α} {l : filter ι} --[metric_space ι] (i₀ : ι) (hl : l = 𝓝 i₀)
-  {p q : ι → α → Prop} {r : α → Prop} (h1 : ∀ᶠ i in l, ∃ x (_ : r x), p i x)
-    (h2 : ∀ x, r x → ∀ᶠ j in l, q j x) :
-    ∀ᶠ i in l, ∃ x (_ : r x), p i x ∧ q i x :=
-begin
-  sorry --false
-end
-
-lemma convolution_tendsto_right'' [sigma_compact_space G]
-  {ι} {g : ι → G → E'} {z : E'} {l : filter ι} {lE: filter E} {lG : filter G} {z₀ : E'}
+  {ι} {g : ι → G → E'} {l : filter ι} {z₀ : E'}
   {φ : ι → G → ℝ} {k : ι → G}
   (hnφ : ∀ i x, 0 ≤ φ i x)
   (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1)
@@ -745,72 +707,19 @@ lemma convolution_tendsto_right'' [sigma_compact_space G]
 begin
   simp_rw [tendsto_small_sets_iff] at hφ,
   rw [metric.tendsto_nhds] at hcg ⊢,
+  simp_rw [metric.eventually_prod_nhds_iff] at hcg,
   intros ε hε,
   have h2ε : 0 < ε / 3 := div_pos hε (by norm_num),
-  have h2g : ∀ᶠ (i : ι) in l, ∃ δ > 0, (∀ x, dist x (k i) < δ → dist (g i x) z₀ < ε / 3) ∧
-    support (φ i) ⊆ ball 0 (δ / 2),
-  { have := hcg _ h2ε,
-    simp only [← eventually_eventually_prod_nhds] at this {single_pass := tt},
-    simp_rw [metric.eventually_nhds_iff] at this,
-    have h1 := (tendsto_id.prod_mk hk).eventually this, dsimp only [uncurry, id_def] at h1,
-    have hφ' : ∀ δ > 0, ∀ᶠ (x : ι) in l, support (φ x) ⊆ ball (0 : G) (δ / 2) :=
-    λ δ hδ, hφ _ (ball_mem_nhds _ $ half_pos hδ),
-    exact eventually_exists_imp h1 hφ' },
-  have h1 := (tendsto_id.prod_mk hk).eventually (hcg _ h2ε),
-  dsimp only [id_def] at h1,
-  -- have h2 := (hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)),
-  refine h2g.mono (λ i, _),
-  rintro ⟨δ, hδ, hgδ, hi⟩,
-  -- rcases hcg (ε / 3) h2ε with ⟨δ, hδ, hgδ⟩,
-  -- refine ((hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)).prod_mk $
-  --   ball_mem_nhds _ (half_pos hδ)).mono _,
-  -- rintro ⟨i, x⟩ ⟨hi, hx⟩,
-  -- dsimp only at hi hx ⊢,
-  have hgx : dist (g i (k i)) z₀ < ε / 3 := hgδ _ (mem_ball_self hδ),
-  have h1 : ∀ x' ∈ ball (k i) (δ / 2), dist (g i x') (g i (k i)) ≤ ε / 3 + ε / 3,
-  { intros x' hx',
-    refine (dist_triangle_right _ _ _).trans (add_le_add (hgδ _ _).le hgx.le),
-    exact ball_subset_ball (half_lt_self hδ).le hx' },
-  have := dist_convolution_le (add_pos h2ε h2ε).le hi (hnφ i) (hiφ i)
-    (hig i).ae_strongly_measurable h1,
-  refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgx)).trans_eq _,
-  field_simp, ring_nf
-end
-
--- help! how to generalize `𝓝 i₀` in this?
-lemma convolution_tendsto_right''' [sigma_compact_space G]
-  {ι} {g : ι → G → E'} {z : E'} {l : filter ι} {lE: filter E} {lG : filter G} {z₀ : E'} {i₀ : ι}
-  [metric_space ι]
-  {φ : ι → G → ℝ} {k : ι → G}
-  (hnφ : ∀ i x, 0 ≤ φ i x)
-  (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1)
-  -- todo: generalize `(𝓝 i₀)` to a filter so that it at least also works for `(at_top : filter ℕ)`
-  (hφ : tendsto (λ n, support (φ n)) (𝓝 i₀) (𝓝 0).small_sets)
-  (hig : ∀ j, locally_integrable (g j) μ) {x₀ : G}
-  (hcg : continuous_at (uncurry g) (i₀, k i₀))
-  (hk : continuous_at k i₀) :
-  tendsto (λ i : ι, (φ i ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) (𝓝 i₀) (𝓝 (g i₀ (k i₀))) :=
-begin
-  have h2cg := hcg,
-  simp_rw [tendsto_small_sets_iff] at hφ,
-  rw [metric.continuous_at_iff] at hcg,
-  rw [metric.tendsto_nhds] at ⊢,
-  intros ε hε,
-  have h2ε : 0 < ε / 3 := div_pos hε (by norm_num),
-  obtain ⟨δ, hδ, hgδ⟩ := hcg _ h2ε,
+  obtain ⟨p, hp, δ, hδ, hgδ⟩ := hcg _ h2ε,
   dsimp only [uncurry] at hgδ,
-  have h1 := (continuous_at_id.prod hk),
-  rw [continuous_at, metric.tendsto_nhds] at h1,
+  have h2k := hk.eventually (ball_mem_nhds x₀ $ half_pos hδ),
   have h2φ := (hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)),
-  filter_upwards [h1 _ (half_pos hδ), h2φ],
-  intros i hki hφi,
-  have hgi : dist (g i (k i)) (g i₀ (k i₀)) < ε / 3 := hgδ (hki.trans $ half_lt_self hδ),
+  filter_upwards [hp, h2k, h2φ] with i hpi hki hφi,
+  have hgi : dist (g i (k i)) z₀ < ε / 3 := hgδ hpi (hki.trans $ half_lt_self hδ),
   have h1 : ∀ x' ∈ ball (k i) (δ / 2), dist (g i x') (g i (k i)) ≤ ε / 3 + ε / 3,
   { intros x' hx',
-    refine (dist_triangle_right _ _ _).trans (add_le_add (@hgδ (i, x') _).le hgi.le),
-    simp_rw [prod.dist_eq, max_lt_iff] at hki ⊢,
-    refine ⟨hki.1.trans $ half_lt_self hδ, _⟩,
-    exact ((dist_triangle _ _ _).trans_lt (add_lt_add hx'.out hki.2)).trans_eq (add_halves δ) },
+    refine (dist_triangle_right _ _ _).trans (add_le_add (hgδ hpi _).le hgi.le),
+    exact ((dist_triangle _ _ _).trans_lt (add_lt_add hx'.out hki)).trans_eq (add_halves δ) },
   have := dist_convolution_le (add_pos h2ε h2ε).le hφi (hnφ i) (hiφ i)
     (hig i).ae_strongly_measurable h1,
   refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgi)).trans_eq _,

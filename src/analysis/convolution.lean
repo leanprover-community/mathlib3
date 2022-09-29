@@ -687,8 +687,8 @@ begin
 end
 
 /-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
-* `φ` is a sequence of nonnegative functions with integral 1
-  whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
+* `φ` is a sequence of nonnegative functions with integral `1`
+  whose support tends to small neighborhoods around `(0 : G)` as `i` tends to `l`.
 * `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`
 * `k i` tends to `x₀`
 
@@ -783,8 +783,13 @@ lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
 dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self φ.R_pos)])
   φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
 
-/-- If `φ i` is a sequence of normed bump function, `(φ i ⋆ g) x` tends to `g x₀` if `((φ i).R, x)`
-tends to `(0, x₀)` and `g` is continuous at `x₀`. -/
+/-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
+* `φ` is a sequence of normed bump functions such that `(φ i).R` tends to `0` as `i` tends to `l`.
+* `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`
+* `k i` tends to `x₀`
+
+This requires that `g` is locally integrable, which is a bit stronger than the condition in
+`cont_diff_bump_of_inner.convolution_tendsto_right`. -/
 lemma convolution_tendsto_right' {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
   (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))

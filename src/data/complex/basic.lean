@@ -66,10 +66,8 @@ lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 theorem of_real_injective : function.injective (coe : ℝ → ℂ) :=
 λ z w, congr_arg re
 
-instance : can_lift ℂ ℝ :=
-{ cond := λ z, z.im = 0,
-  coe := coe,
-  prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
+instance can_lift : can_lift ℂ ℝ coe (λ z, z.im = 0) :=
+{ prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
 
 /-- The product of a set on the real axis and a set on the imaginary axis of the complex plane,
 denoted by `s ×ℂ t`. -/

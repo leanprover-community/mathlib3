@@ -82,6 +82,13 @@ example {a : ℝ≥0} {b : ℝ} (ha : 0 < a) : 0 < a ^ b := by positivity
 example {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 ≤ b) : 0 < a ^ b := by positivity
 example {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 < b) : 0 < a ^ b := by positivity
 
+example {a : ℝ} (ha : 0 < a) : 0 ≤ ⌊a⌋ := by positivity
+example {a : ℝ} (ha : 0 ≤ a) : 0 ≤ ⌊a⌋ := by positivity
+
+example {a : ℝ} (ha : 0 < a) : 0 < ⌈a⌉₊ := by positivity
+example {a : ℝ} (ha : 0 < a) : 0 < ⌈a⌉ := by positivity
+example {a : ℝ} (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ := by positivity
+
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 2 + a := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 3 + a := by positivity
@@ -184,3 +191,12 @@ example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity
 example {a : ℤ} (ha : 0 < a) : a ≥ 0 := by positivity
 
 example {a : ℤ} (ha : a > 0) : a ≥ 0 := by positivity
+
+/-
+## Test for meta-variable instantiation
+
+Reported on
+https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/New.20tactic.3A.20.60positivity.60/near/300639970
+-/
+
+example : 0 ≤ 0 := by { apply le_trans _ le_rfl, positivity }

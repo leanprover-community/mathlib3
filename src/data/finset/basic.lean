@@ -212,18 +212,15 @@ instance {α : Type u} : has_coe_to_sort (finset α) (Type u) := ⟨λ s, {x // 
 
 instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
   (s : finset ι) :
-can_lift (Π i : s, α i) (Π i, α i) :=
-{ coe := λ f i, f i,
-  .. pi_subtype.can_lift ι α (∈ s) }
+  can_lift (Π i : s, α i) (Π i, α i) (λ f i, f i) (λ _, true) :=
+pi_subtype.can_lift ι α (∈ s)
 
 instance pi_finset_coe.can_lift' (ι α : Type*) [ne : nonempty α] (s : finset ι) :
-  can_lift (s → α) (ι → α) :=
+  can_lift (s → α) (ι → α) (λ f i, f i) (λ _, true) :=
 pi_finset_coe.can_lift ι (λ _, α) s
 
-instance finset_coe.can_lift (s : finset α) : can_lift α s :=
-{ coe := coe,
-  cond := λ a, a ∈ s,
-  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
+instance finset_coe.can_lift (s : finset α) : can_lift α s coe (λ a, a ∈ s) :=
+{ prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
 
 @[simp, norm_cast] lemma coe_sort_coe (s : finset α) :
   ((s : set α) : Sort*) = s := rfl
@@ -2269,10 +2266,9 @@ by { rw mem_image, simp only [exists_prop, const_apply, exists_and_distrib_right
 lemma mem_image_const_self : b ∈ s.image (const α b) ↔ s.nonempty :=
 mem_image_const.trans $ and_iff_left rfl
 
-instance [can_lift β α] : can_lift (finset β) (finset α) :=
-{ cond := λ s, ∀ x ∈ s, can_lift.cond α x,
-  coe := image can_lift.coe,
-  prf :=
+instance can_lift (c) (p) [can_lift β α c p] :
+  can_lift (finset β) (finset α) (image c) (λ s, ∀ x ∈ s, p x) :=
+{ prf :=
     begin
       rintro ⟨⟨l⟩, hd : l.nodup⟩ hl,
       lift l to list α using hl,
@@ -2562,7 +2558,7 @@ begin
   split, swap,
   { rintro ⟨t, ht, rfl⟩, rw [coe_image], exact set.image_subset f ht },
   intro h,
-  letI : can_lift β s := ⟨f ∘ coe, λ y, y ∈ f '' s, λ y ⟨x, hxt, hy⟩, ⟨⟨x, hxt⟩, hy⟩⟩,
+  letI : can_lift β s (f ∘ coe) (λ y, y ∈ f '' s) := ⟨λ y ⟨x, hxt, hy⟩, ⟨⟨x, hxt⟩, hy⟩⟩,
   lift t to finset s using h,
   refine ⟨t.map (embedding.subtype _), map_subtype_subset _, _⟩,
   ext y, simp

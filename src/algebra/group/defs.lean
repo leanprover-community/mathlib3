@@ -659,6 +659,38 @@ alias div_eq_mul_inv ← division_def
 
 end div_inv_monoid
 
+section inv_one_class
+
+set_option extends_priority 50
+
+/-- Typeclass for expressing that `-0 = 0`. -/
+class neg_zero_class (G : Type*) extends has_zero G, has_neg G :=
+(neg_zero : -(0 : G) = 0)
+
+/-- A `sub_neg_monoid` where `-0 = 0`. -/
+class sub_neg_zero_monoid (G : Type*) extends sub_neg_monoid G, neg_zero_class G
+
+/-- Typeclass for expressing that `1⁻¹ = 1`. -/
+@[to_additive]
+class inv_one_class (G : Type*) extends has_one G, has_inv G :=
+(inv_one : (1 : G)⁻¹ = 1)
+
+attribute [to_additive neg_zero_class.to_has_neg] inv_one_class.to_has_inv
+attribute [to_additive neg_zero_class.to_has_zero] inv_one_class.to_has_one
+
+/-- A `div_inv_monoid` where `1⁻¹ = 1`. -/
+@[to_additive sub_neg_zero_monoid]
+class div_inv_one_monoid (G : Type*) extends div_inv_monoid G, inv_one_class G
+
+attribute [to_additive sub_neg_zero_monoid.to_sub_neg_monoid] div_inv_one_monoid.to_div_inv_monoid
+attribute [to_additive sub_neg_zero_monoid.to_neg_zero_class] div_inv_one_monoid.to_inv_one_class
+
+variables [inv_one_class G]
+
+@[simp, to_additive] lemma inv_one : (1 : G)⁻¹ = 1 := inv_one_class.inv_one
+
+end inv_one_class
+
 /-- A `subtraction_monoid` is a `sub_neg_monoid` with involutive negation and such that
 `-(a + b) = -b + -a` and `a + b = 0 → -a = b`. -/
 @[protect_proj, ancestor sub_neg_monoid has_involutive_neg]

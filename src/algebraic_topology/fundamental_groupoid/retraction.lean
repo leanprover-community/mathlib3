@@ -93,7 +93,7 @@ instance top_retraction.continuous_map_class :
 
 /-- The identity function, interpreted as a top_retraction. -/
 protected def id : top_retraction X set.univ :=
-{ to_fun := set.cod_restrict id set.univ (λx, set.mem_univ _),
+{ to_fun := set.cod_restrict id set.univ (λx, set.mem_univ x),
   top_retraction' := by obviously }
 
 /-- There is always a top_retraction from a space to itself, namely `id`. -/
@@ -144,14 +144,3 @@ lemma fundamental_groupoid_epi_of_top_retraction (r : top_retraction X A) :
 split_epi.epi (fundamental_groupoid_split_epi r)
 
 end top_retraction
-
-section test
-
-variables {X Y : Type*}
-
-set_option trace.simplify.rewrite true
-
-def temp (f : X → Y) : X → @set.univ Y :=
-set.cod_restrict f set.univ (λx, set.mem_univ _)
-
-end test

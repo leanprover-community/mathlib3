@@ -516,11 +516,11 @@ def map_equiv (h : M ≃* N) : Mˣ ≃* Nˣ :=
   .. map h.to_monoid_hom }
 
 @[simp]
-lemma units.map_equiv_symm (h : M ≃* N) : (map_equiv h).symm = map_equiv h.symm :=
+lemma map_equiv_symm (h : M ≃* N) : (map_equiv h).symm = map_equiv h.symm :=
 rfl
 
 @[simp]
-lemma units.coe_map_equiv (h : M ≃* N) (x : Mˣ) : (map_equiv h x : N) = h x :=
+lemma coe_map_equiv (h : M ≃* N) (x : Mˣ) : (map_equiv h x : N) = h x :=
 rfl
 
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/

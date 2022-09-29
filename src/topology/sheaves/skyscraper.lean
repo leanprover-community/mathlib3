@@ -118,7 +118,6 @@ noncomputable def skyscraper_presheaf_cocone_is_colimit_of_specializes
 /--
 If `y ∈ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is `A`.
 -/
-@[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_specializes [has_colimits C]
   {y : X} (h : p₀ ⤳ y) : (skyscraper_presheaf p₀ A).stalk y ≅ A :=
 colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_specializes p₀ A h⟩
@@ -159,7 +158,6 @@ let h1 : ∃ (U : open_nhds y), p₀ ∉ U.1 :=
 If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y` is isomorphic to a
 terminal object.
 -/
-@[reducible]
 noncomputable def skyscraper_presheaf_stalk_of_not_specializes [has_colimits C]
   {y : X} (h : ¬p₀ ⤳ y) : (skyscraper_presheaf p₀ A).stalk y ≅ terminal C :=
 colimit.iso_colimit_cocone ⟨_, skyscraper_presheaf_cocone_is_colimit_of_not_specializes _ A h⟩
@@ -178,6 +176,9 @@ lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p
   sheaf.pushforward_sheaf_of_sheaf _ $ presheaf_on_punit_is_sheaf_of_is_terminal _ $
     by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star }
 
+/--
+A skyscraper presheaf is a sheaf
+-/
 def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
 ⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩
 

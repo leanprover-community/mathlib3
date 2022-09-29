@@ -410,6 +410,10 @@ end has_sum
 section tsum
 variables [add_comm_monoid α] [topological_space α]
 
+lemma tsum_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
+  ∑' (x : s), f x = ∑' (x : t), f x :=
+by rw h
+
 lemma tsum_zero' (hz : is_closed ({0} : set α)) : ∑' b : β, (0 : α) = 0 :=
 begin
   classical,
@@ -524,10 +528,6 @@ mul_opposite.op_injective tsum_op.symm
 @[simp] lemma finset.tsum_subtype' (s : finset β) (f : β → α) :
   ∑' x : (s : set β), f x = ∑ x in s, f x :=
 s.tsum_subtype f
-
-lemma tsum_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
-  ∑' (x : s), f x = ∑' (x : t), f x :=
-by rw h
 
 lemma tsum_subtype (s : set β) (f : β → α) :
   ∑' x : s, f x = ∑' x, s.indicator f x :=

@@ -261,8 +261,13 @@ subtype.map f h
 @[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
   (h.restrict f s t x : β) = f x := rfl
 
-lemma cod_restrict_restrict (h : maps_to f s t) :
-  cod_restrict (s.restrict f) t (λ x, h x.2) = h.restrict f s t := rfl
+/-- Restricting the domain and then the codomain is the same as `maps_to.restrict`. -/
+@[simp] lemma cod_restrict_restrict (h : ∀ x : s, f x ∈ t) :
+  cod_restrict (s.restrict f) t h = maps_to.restrict f s t (λ x hx, h ⟨x, hx⟩) := rfl
+
+/-- Reverse of `set.cod_restrict_restrict`. -/
+lemma maps_to.restrict_eq_cod_restrict (h : maps_to f s t) :
+  h.restrict f s t = cod_restrict (s.restrict f) t (λ x, h x.2) := rfl
 
 lemma maps_to.coe_restrict (h : set.maps_to f s t) :
   coe ∘ h.restrict f s t = s.restrict f := rfl
@@ -462,7 +467,7 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 alias inj_on_iff_injective ↔ inj_on.injective _
 
 lemma set.maps_to.restrict_inj (h : maps_to f s t) : injective (h.restrict f s t) ↔ inj_on f s :=
-by rw [← cod_restrict_restrict, injective_cod_restrict, inj_on_iff_injective]
+by rw [h.restrict_eq_cod_restrict, injective_cod_restrict, inj_on_iff_injective]
 
 lemma exists_inj_on_iff_injective [nonempty β] :
   (∃ f : α → β, inj_on f s) ↔ ∃ f : s → β, injective f :=

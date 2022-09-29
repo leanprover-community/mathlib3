@@ -204,6 +204,27 @@ let ⟨t, ht⟩ := hs.elim_nhds_subcover' (λ x _, U x) hU
 in ⟨t.image coe, λ x hx, let ⟨y, hyt, hyx⟩ := finset.mem_image.1 hx in hyx ▸ y.2,
   by rwa finset.set_bUnion_finset_image⟩
 
+/-- The neighborhood filter of a compact set is disjoint with a filter `l` if and only if the
+neighborhood filter of each point of this set is disjoint with `l`. -/
+lemma is_compact.disjoint_nhds_set_left {l : filter α} (hs : is_compact s) :
+  disjoint (𝓝ˢ s) l ↔ ∀ x ∈ s, disjoint (𝓝 x) l :=
+begin
+  refine ⟨λ h x hx, h.mono_left $ nhds_le_nhds_set hx, λ H, _⟩,
+  choose! U hxU hUl using λ x hx, (nhds_basis_opens x).disjoint_iff_left.1 (H x hx),
+  choose hxU hUo using hxU,
+  rcases hs.elim_nhds_subcover U (λ x hx, (hUo x hx).mem_nhds (hxU x hx)) with ⟨t, hts, hst⟩,
+  refine (has_basis_nhds_set _).disjoint_iff_left.2
+    ⟨⋃ x ∈ t, U x, ⟨is_open_bUnion $ λ x hx, hUo x (hts x hx), hst⟩, _⟩,
+  rw [compl_Union₂, bInter_finset_mem],
+  exact λ x hx, hUl x (hts x hx)
+end
+
+/-- A filter `l` is disjoint with the neighborhood filter of a compact set if and only if it is
+disjoint with the neighborhood filter of each point of this set. -/
+lemma is_compact.disjoint_nhds_set_right {l : filter α} (hs : is_compact s) :
+  disjoint l (𝓝ˢ s) ↔ ∀ x ∈ s, disjoint l (𝓝 x) :=
+by simpa only [disjoint.comm] using hs.disjoint_nhds_set_left
+
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
 lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : is_compact s)

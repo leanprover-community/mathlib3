@@ -220,9 +220,9 @@ def to_const_prod_continuous_linear_map : (V →A[𝕜] W) ≃ₗᵢ[𝕜] W × 
   inv_fun   := λ p, p.2.to_continuous_affine_map + const 𝕜 V p.1,
   left_inv  := λ f, by { ext, rw f.decomp, simp, },
   right_inv := by { rintros ⟨v, f⟩, ext; simp, },
-  map_add'  := by simp,
-  map_smul' := by simp,
-  norm_map' := λ f, by simp [prod.norm_def, norm_def], }
+  map_add'  := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
+  norm_map' := λ f, rfl }
 
 @[simp] lemma to_const_prod_continuous_linear_map_fst (f : V →A[𝕜] W) :
   (to_const_prod_continuous_linear_map 𝕜 V W f).fst = f 0 :=

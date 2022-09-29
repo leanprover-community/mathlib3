@@ -110,11 +110,12 @@ instance : normed_add_comm_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-noncomputable instance : normed_add_comm_group ℝ :=
-{ norm := λ x, |x|,
-  dist_eq := assume x y, rfl }
+instance : has_norm ℝ := { norm := λ x, |x| }
 
 @[simp] lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
+
+instance : normed_add_comm_group ℝ :=
+{ dist_eq := assume x y, rfl }
 
 section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group F] [seminormed_add_comm_group G]
@@ -1199,6 +1200,16 @@ norm_sub_eq_zero_iff.1 h
 by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
 
 lemma nnnorm_ne_zero_iff {g : E} : ∥g∥₊ ≠ 0 ↔ g ≠ 0 := not_congr nnnorm_eq_zero
+
+variables (E)
+
+/-- The norm of a normed group as an additive group norm. -/
+def norm_add_group_norm : add_group_norm E := ⟨norm, norm_zero, norm_add_le, norm_neg,
+  λ {g : E}, norm_eq_zero.mp⟩
+
+@[simp] lemma coe_norm_add_group_norm : ⇑(norm_add_group_norm E) = norm := rfl
+
+variables {E}
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_add_comm_group` induces a
 `normed_add_comm_group` structure on the domain.

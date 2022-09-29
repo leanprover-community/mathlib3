@@ -1157,7 +1157,7 @@ begin
 end
 
 /--
-If `⟪T x, x⟫_ℂ = 0` for all x, then T = 0.
+A linear map `T` is zero, if and only if the identity `⟪T x, x⟫_ℂ = 0` holds for all `x`.
 -/
 lemma inner_map_self_eq_zero (T : V →ₗ[ℂ] V) :
   (∀ (x : V), ⟪T x, x⟫_ℂ = 0) ↔ T = 0 :=
@@ -1169,6 +1169,18 @@ begin
     norm_num },
   { rintro rfl x,
     simp only [linear_map.zero_apply, inner_zero_left] }
+end
+
+/--
+Two linear maps `S` and `T` are equal, if and only if the identity `⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ` holds
+for all `x`.
+-/
+lemma ext_inner_map (S T : V →ₗ[ℂ] V) :
+  (∀ (x : V), ⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ) ↔ S = T :=
+begin
+  rw [←sub_eq_zero, ←inner_map_self_eq_zero],
+  refine forall_congr (λ x, _),
+  rw [linear_map.sub_apply, inner_sub_left, sub_eq_zero],
 end
 
 end complex
@@ -2233,7 +2245,7 @@ by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (innerSL (v:E)).ker :=
+lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, linear_map.ker (innerSL (v:E) : E →L[𝕜] 𝕜) :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,
@@ -2248,8 +2260,9 @@ end
 lemma submodule.is_closed_orthogonal : is_closed (Kᗮ : set E) :=
 begin
   rw orthogonal_eq_inter K,
-  convert is_closed_Inter (λ v : K, (innerSL (v:E)).is_closed_ker),
-  simp
+  have := λ v : K, continuous_linear_map.is_closed_ker (innerSL (v:E) : E →L[𝕜] 𝕜),
+  convert is_closed_Inter this,
+  simp only [submodule.infi_coe],
 end
 
 /-- In a complete space, the orthogonal complement of any submodule `K` is complete. -/

@@ -127,7 +127,7 @@ General algebra:
   Number theory:
     sum of two squares: 'nat.prime.sq_add_sq'
     sum of four squares: 'nat.sum_four_squares'
-    quadratic reciprocity: 'zmod.quadratic_reciprocity'
+    quadratic reciprocity: 'legendre_sym.quadratic_reciprocity'
     "solutions to Pell's equation": 'pell.pell'
     "Matiyasevič's theorem": 'pell.matiyasevic'
     arithmetic functions: 'nat.arithmetic_function'
@@ -282,6 +282,7 @@ Analysis:
     derivative of the inverse of a function: 'has_fderiv_at.of_local_left_inverse'
     Rolle's theorem: 'exists_deriv_eq_zero'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
+    Taylor's theorem: 'analysis/calculus/taylor.html'
     $C^k$ function: 'cont_diff'
     Leibniz formula: 'fderiv_mul'
     local extrema: 'is_local_min.fderiv_eq_zero'

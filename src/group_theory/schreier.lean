@@ -181,6 +181,7 @@ end
 
 variables {G}
 
+-- PRed
 lemma index_infi_ne_zero {ι : Type*} [fintype ι] (f : ι → subgroup G) (hf : ∀ i, (f i).index ≠ 0) :
   (⨅ i, f i).index ≠ 0 :=
 begin

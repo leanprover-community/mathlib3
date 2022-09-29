@@ -23,8 +23,11 @@ section quotient
 
 open subgroupoid
 
+
 -- The vertices of the quotient of G by S
 @[reducible] def quot_v := quotient Sn.arrws_nonempty_setoid
+
+instance : setoid C := Sn.arrws_nonempty_setoid -- I want to be able to drop all the `letI` but can't figure out how
 
 def quot_v_mk (c : C) : quot_v S Sn := quotient.mk' c
 
@@ -146,29 +149,21 @@ noncomputable instance groupoid : groupoid (quot_v S Sn) :=
     dsimp only [conj_setoid],
     rcases f with ⟨⟨a,rfl⟩,⟨b,rfl⟩,f⟩,
     simp only [inv_eq_inv],
-    have : (S.arrws a a).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn a,
-    let sS := this.some_mem,
-    let s := this.some,
-    have : S.conj (inv f ≫ s ≫ f) (𝟙 (quot.mk setoid.r b).out), by
-    { let t := inv f ≫ s ≫ f,
-      let tS : t ∈ S.arrws b b := Sn.conj f s sS,
-      let G := setoid.symm (quotient.exact $ quot.out_eq (quot.mk setoid.r a)),
-      show S.conj t (𝟙 (quot.mk setoid.r b).out),
-      sorry, --use [inv G.some],-- G.some_mem, (G.some ≫ t), S.mul' G.some_mem tS], --S.inv' G.some_mem, (G.some ≫ t), S.mul' G.some_mem tS], simp, },
-      },
-    convert this, simp, }
+    have s : (S.arrws a a).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn a,
+    let G := (quotient.exact $ quot.out_eq (quot.mk setoid.r b)),
+    refine ⟨_, S.inv' G.some_mem, _, S.mul' G.some_mem (Sn.conj f s.some s.some_mem), _⟩,
+    simp only [inv_eq_inv, category.id_comp, is_iso.inv_hom_id_assoc],
+    rw ←inv_eq_inv, refl, }
 , comp_inv' := by
   { letI := Sn.arrws_nonempty_setoid,
     rintros,
     refine quot.induction_on f (λ f, quot.sound _),
     dsimp only [conj_setoid],
     rcases f with ⟨⟨a,rfl⟩,⟨b,rfl⟩,f⟩,
-    have ss : (S.arrws b b).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn b,
-    let t := f ≫ ss.some ≫ inv f,
-    let tS : t ∈ S.arrws a a := Sn.conj' f ss.some ss.some_mem,
+    have s : (S.arrws b b).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn b,
     let G := (quotient.exact $ quot.out_eq (quot.mk setoid.r a)),
-    use [inv G.some, S.inv' G.some_mem, (G.some ≫ t), S.mul' G.some_mem tS],
-    simp only [inv_eq_inv, category.id_comp, is_iso.inv_hom_id_assoc] at *,
+    refine ⟨_, S.inv' G.some_mem, _, S.mul' G.some_mem (Sn.conj' f s.some s.some_mem), _⟩,
+    simp only [inv_eq_inv, category.id_comp, is_iso.inv_hom_id_assoc],
     rw ←inv_eq_inv, refl,
   } }
 
@@ -180,25 +175,43 @@ open subgroupoid
 
 def of : C ⥤ quot_v S Sn :=
 { obj := λ v, quot_v_mk S Sn v,
-  map := λ a b f, quot.mk _ $ by { use [a,rfl,b,rfl,f], },
+  map := λ a b f, quot.mk _ ⟨⟨a,rfl⟩,⟨b,rfl⟩,f⟩,
   map_id' := λ a, by
   { letI := Sn.arrws_nonempty_setoid,
     apply quot.sound,
     let h := quotient.exact (quot.out_eq (quot_v_mk S Sn a)),
-    use [inv h.some, S.inv' h.some_mem, h.some, h.some_mem],
+    refine ⟨inv h.some, S.inv' h.some_mem, h.some, h.some_mem, _⟩,
     simp only [inv_eq_inv, category.id_comp, is_iso.inv_hom_id],
   },
   map_comp' := λ a b c f g, by
   { letI := Sn.arrws_nonempty_setoid,
-    dsimp [category_struct.comp, quot_comp],
-    apply quotient.sound, simp, dsimp,
+    apply quotient.sound,
     have h : (S.arrws b b).nonempty := subgroupoid.is_normal.arrws_nonempty_refl Sn b,
     symmetry,
-    use [f ≫ h.some ≫ inv f, Sn.conj' f h.some h.some_mem, 𝟙 c, Sn.wide c],
-    simp only [inv_eq_inv, category.assoc, category.comp_id, is_iso.inv_hom_id_assoc], refl, } }
+    refine ⟨f ≫ h.some ≫ inv f, Sn.conj' f h.some h.some_mem, 𝟙 c, Sn.wide c, _⟩,
+    simp only [inv_eq_inv, category.assoc, category.comp_id, is_iso.inv_hom_id_assoc],
+    refl, } }
 
-def lift {D : Type v} [groupoid D] {S} {Sn} (φ : C ⥤ D)
-  (hφ : S ≤ ker φ) : (quot_v S Sn) ⥤ D := sorry
+def lift {D : Type v} [groupoid D] {S} {Sn} (φ : C ⥤ D) (hφ : S ≤ ker φ) : (quot_v S Sn) ⥤ D :=
+{ obj := quot.lift φ.obj (λ c d r, by
+  { letI := Sn.arrws_nonempty_setoid,
+    let h := hφ r.some_spec,
+    rw mem_ker_iff at h,
+    exact h.some, })
+, map := λ c d, by
+  { letI := Sn.arrws_nonempty_setoid,
+    refine quot.lift (λ f, _) (λ f₁ f₂ h, _),
+    { rcases f with ⟨⟨a,ac⟩,⟨b,bd⟩,f⟩,
+      subst_vars,
+      exact φ.map f,},
+    { rcases f₁ with ⟨⟨a₁,ac₁⟩,⟨b₁,bd₁⟩,f₁⟩,
+      rcases f₂ with ⟨⟨a₂,ac₂⟩,⟨b₂,bd₂⟩,f₂⟩,
+      subst_vars,
+      dsimp, dsimp at h, sorry, }
+
+  }
+, map_id' := sorry
+, map_comp' := sorry }
 
 lemma lift_spec {D : Type v} [groupoid D] {S} {Sn} (φ : C ⥤ D) -- strange: can't write `lift φ hφ`
   (hφ : S ≤ ker φ) : (of S Sn) ⋙ (lift φ sorry) = φ := sorry

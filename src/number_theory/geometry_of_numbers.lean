@@ -5,8 +5,7 @@ Authors: Alex J. Best
 -/
 import algebra.module.pointwise_pi
 import measure_theory.group.fundamental_domain
-import measure_theory.measure.haar
-import measure_theory.measure.lebesgue
+import analysis.convex.measure
 
 /-!
 # Geometry of numbers
@@ -456,15 +455,18 @@ open ennreal fintype
 
 -- TODO version for any real vector space in terms of dimension
 lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume {L : add_subgroup (ι → ℝ)}
-  [encodable L] {F S : set (ι → ℝ)} (fund : is_add_fundamental_domain L F) (hS : measurable_set S)
-  (h : volume F * 2 ^ (card ι) < volume S) (h_symm : ∀ x ∈ S, -x ∈ S) (h_conv : convex ℝ S) :
-  ∃ (x : L) (h : x ≠ 0), (x : ι → ℝ) ∈ S :=
+  [encodable L] {F T : set (ι → ℝ)} (fund : is_add_fundamental_domain L F)
+  (h : volume F * 2 ^ (card ι) < volume T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
+  ∃ (x : L) (h : x ≠ 0), (x : ι → ℝ) ∈ T :=
 begin
+  have hS : measurable_set (interior T) := measurable_set_interior,
+  rw ← measure_interior_of_null_frontier (h_conv.add_haar_frontier measure_space.volume) at *,
+  set S := interior T,
   have mhalf : measurable_set ((1/2 : ℝ) • S),
   { convert measurable_const_smul (2 : ℝ) hS,
     ext x,
     simp only [one_div, set.mem_preimage],
-    exact mem_inv_smul_set_iff₀ two_ne_zero S x },
+    exact mem_inv_smul_set_iff₀ two_ne_zero _ x },
   have : volume ((1/2 : ℝ) • S) * 2 ^ (card ι) = volume S,
   { suffices : volume ((1/2 : ℝ) • S) = (1 / 2) ^ (card ι) * volume S,
     { rw [this, mul_comm _ (volume S), mul_assoc, ←mul_pow, one_div,
@@ -486,11 +488,12 @@ begin
   have h2 : volume F < volume ((1/2 : ℝ) • S),
   { rw ←ennreal.mul_lt_mul_right (pow_ne_zero (card ι) two_ne_zero') (pow_ne_top two_ne_top),
     convert h },
-  rw [←one_smul ℝ S, ←_root_.add_halves (1 : ℝ), h_conv.add_smul one_half_pos.le one_half_pos.le],
+  rw [←one_smul ℝ T, ←_root_.add_halves (1 : ℝ), h_conv.add_smul one_half_pos.le one_half_pos.le],
   obtain ⟨x, y, hx, hy, hne, hsub⟩ :=
     exists_add_neg_mem_lattice_of_volume_lt_volume' L mhalf fund h2,
-  refine ⟨⟨y - x, hsub⟩, subtype.ne_of_val_ne $ sub_ne_zero.2 hne.symm, y, -x, hy, _, rfl⟩,
+  refine ⟨⟨y - x, hsub⟩, subtype.ne_of_val_ne $ sub_ne_zero.2 hne.symm, y, -x,
+    smul_set_mono interior_subset hy, _, rfl⟩,
   obtain ⟨x, hx, rfl⟩ := hx,
   rw ←smul_neg,
-  exact smul_mem_smul_set (h_symm _ hx),
+  exact smul_mem_smul_set (h_symm ⟨x, interior_subset hx, rfl⟩),
 end

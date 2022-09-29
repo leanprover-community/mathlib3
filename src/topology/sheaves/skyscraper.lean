@@ -70,7 +70,7 @@ lemma skyscraper_presheaf_eq_pushforward
   [hd : Π (U : opens (Top.of punit.{u+1})), decidable (punit.star ∈ U)] :
   skyscraper_presheaf p₀ A =
   continuous_map.const (Top.of punit) p₀ _* skyscraper_presheaf punit.star A :=
-by convert_to @skyscraper_presheaf X p₀ 
+by convert_to @skyscraper_presheaf X p₀
   (λ U, hd $ (opens.map $ continuous_map.const _ p₀).obj U) C _ A _ = _; congr <|> refl
 
 end
@@ -173,7 +173,7 @@ variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U
 
 lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
 (presheaf.is_sheaf_iso_iff (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr $
-  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf_on_punit_is_sheaf_of_is_terminal _ $
+  sheaf.pushforward_sheaf_of_sheaf _ $ is_sheaf_on_punit_of_is_terminal _ $
     by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star }
 
 /--

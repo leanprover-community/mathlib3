@@ -31,18 +31,53 @@ open_locale big_operators measure_theory probability_theory ennreal nnreal
 namespace probability_theory
 
 def evariance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ≥0∞ :=
-∫⁻ ω, ennreal.of_real ((f ω - μ[f])^2) ∂μ
+∫⁻ ω, ∥f ω - μ[f]∥₊^2 ∂μ
 
 /-- The variance of a random variable is `𝔼[X^2] - 𝔼[X]^2` or, equivalently, `𝔼[(X - 𝔼[X])^2]`. We
 use the latter as the definition, to ensure better behavior even in garbage situations. -/
 def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ :=
 (evariance f μ).to_real
 
+section move
+
+lemma real.to_nnreal_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ⟨r, hr⟩ :=
+by simp_rw [real.to_nnreal, max_eq_left hr]
+
+lemma real.to_nnreal_nonneg_eq_nnnorm {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
+begin
+  rw real.to_nnreal_of_nonneg hr,
+  congr,
+  rw [real.norm_eq_abs, abs_of_nonneg hr],
+end
+
+lemma real.to_nnreal_mul_nnnorm {r : ℝ} (s : ℝ) (hr : 0 ≤ r) : r.to_nnreal * ∥s∥₊ = ∥r * s∥₊ :=
+begin
+  rw real.to_nnreal_of_nonneg hr,
+  simp only [nnnorm_mul, mul_eq_mul_right_iff],
+  refine or.inl (nnreal.eq _),
+  simp only [subtype.coe_mk, coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hr]
+end
+
+end move
+
+lemma evariance_eq_lintegral_of_real {Ω : Type*} {m : measurable_space Ω}
+  (f : Ω → ℝ) (μ : measure Ω) :
+  evariance f μ = ∫⁻ ω, ennreal.of_real ((f ω - μ[f])^2) ∂μ :=
+begin
+  rw evariance,
+  congr,
+  ext1 ω,
+  rw [pow_two, ← ennreal.coe_mul, ← nnnorm_mul, ← pow_two],
+  congr,
+  exact (real.to_nnreal_nonneg_eq_nnnorm $ sq_nonneg _).symm,
+end
+
 lemma variance_eq_of_integral_eq_zero {Ω : Type*} {m : measurable_space Ω}
   {f : Ω → ℝ} {μ : measure Ω} (hf : mem_ℒp f 2 μ) (hfint : μ[f] = 0) :
   variance f μ = μ[f^2] :=
 begin
-  rw [variance, evariance, ← of_real_integral_eq_lintegral_of_real, ennreal.to_real_of_real];
+  rw [variance, evariance_eq_lintegral_of_real, ← of_real_integral_eq_lintegral_of_real,
+    ennreal.to_real_of_real];
   simp_rw [hfint, sub_zero],
   { refl },
   { exact integral_nonneg (λ ω, pow_two_nonneg _) },
@@ -57,7 +92,8 @@ lemma variance_eq {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ} {μ : 
   [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
   variance f μ = μ[(f - (λ ω, μ[f]))^2] :=
 begin
-  rw [variance, evariance, ← of_real_integral_eq_lintegral_of_real, ennreal.to_real_of_real],
+  rw [variance, evariance_eq_lintegral_of_real, ← of_real_integral_eq_lintegral_of_real,
+    ennreal.to_real_of_real],
   { refl },
   { exact integral_nonneg (λ ω, pow_two_nonneg _) },
   { convert (hf.sub $ mem_ℒp_const (μ[f])).integrable_norm_rpow
@@ -78,9 +114,9 @@ lemma evariance_eq_zero_iff {Ω : Type*} {m : measurable_space Ω}
 begin
   rw [evariance, lintegral_eq_zero_iff'],
   split; intro hf; filter_upwards [hf] with ω hω,
-  { simp_rw [pi.zero_apply, ennreal.of_real_eq_zero] at hω,
-    have hω' := le_antisymm hω (sq_nonneg _),
-    rwa [sq_eq_zero_iff, sub_eq_zero] at hω' },
+  { simp only [pi.zero_apply, pow_eq_zero_iff, nat.succ_pos', ennreal.coe_eq_zero,
+      nnnorm_eq_zero, sub_eq_zero] at hω,
+    exact hω },
   { rw hω,
     simp },
   { measurability }
@@ -94,11 +130,13 @@ lemma evariance_mul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω →
   evariance (λ ω, c * f ω) μ = ennreal.of_real (c^2) * evariance f μ :=
 begin
   rw [evariance, evariance, ← lintegral_const_mul' _ _ ennreal.of_real_lt_top.ne],
-  simp_rw ← ennreal.of_real_mul (sq_nonneg _),
   congr,
   ext1 ω,
+  rw [ennreal.of_real, ← ennreal.coe_pow, ← ennreal.coe_pow, ← ennreal.coe_mul],
   congr,
-  rw [← mul_pow, mul_sub],
+  rw [← sq_abs, ← real.rpow_two, real.to_nnreal_rpow_of_nonneg (abs_nonneg _), nnreal.rpow_two,
+    ← mul_pow, real.to_nnreal_mul_nnnorm _ (abs_nonneg _)],
+  conv_rhs { rw [← nnnorm_norm, norm_mul, norm_abs_eq_norm, ← norm_mul, nnnorm_norm, mul_sub] },
   congr,
   rw mul_comm,
   simp_rw [← smul_eq_mul, ← integral_smul_const, smul_eq_mul, mul_comm],
@@ -109,33 +147,22 @@ localized "notation (name := probability_theory.variance) `eVar[` X `]` :=
 
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (volume : measure Ω)]
 
-theorem meas_ge_le_variance_div_sq {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ≥0} :
+theorem meas_ge_le_evariance_div_sq {X : Ω → ℝ}
+  (hX : ae_strongly_measurable X ℙ) {c : ℝ≥0} (hc : c ≠ 0) :
   ℙ {ω | ↑c ≤ |X ω - 𝔼[X]|} ≤ eVar[X] / c ^ 2 :=
 begin
-  sorry,
-  have A : (ennreal.of_real c : ℝ≥0∞) ≠ 0,
-    by simp only [hc, ne.def, ennreal.of_real_eq_zero, not_le],
+  have A : (c : ℝ≥0∞) ≠ 0, { rwa [ne.def, ennreal.coe_eq_zero] },
   have B : ae_strongly_measurable (λ (ω : Ω), 𝔼[X]) ℙ := ae_strongly_measurable_const,
-  convert meas_ge_le_mul_pow_snorm ℙ ennreal.two_ne_zero ennreal.two_ne_top
-    (hX.ae_strongly_measurable.sub B) A,
+  convert meas_ge_le_mul_pow_snorm ℙ ennreal.two_ne_zero ennreal.two_ne_top (hX.sub B) A,
   { ext ω,
-    set d : ℝ≥0 := ⟨c, hc.le⟩ with hd,
-    have cd : c = d, by simp only [subtype.coe_mk],
     simp only [pi.sub_apply, ennreal.coe_le_coe, ← real.norm_eq_abs, ← coe_nnnorm,
-      nnreal.coe_le_coe, cd, ennreal.of_real_coe_nnreal] },
-  { rw (hX.sub (mem_ℒp_const _)).snorm_eq_integral_rpow_norm
-      ennreal.two_ne_zero ennreal.two_ne_top,
-    simp only [pi.sub_apply, ennreal.to_real_bit0, ennreal.one_to_real],
-    rw ennreal.of_real_rpow_of_nonneg _ zero_le_two, rotate,
-    { apply real.rpow_nonneg_of_nonneg,
-      exact integral_nonneg (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
-    rw [variance, ← real.rpow_mul, inv_mul_cancel], rotate,
-    { exact two_ne_zero },
-    { exact integral_nonneg (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
-    simp only [pi.pow_apply, pi.sub_apply, real.rpow_two, real.rpow_one, real.norm_eq_abs,
-      pow_bit0_abs, ennreal.of_real_inv_of_pos hc, ennreal.rpow_two],
-    rw [← ennreal.of_real_pow (inv_nonneg.2 hc.le), ← ennreal.of_real_mul (sq_nonneg _),
-      div_eq_inv_mul, inv_pow] }
+      nnreal.coe_le_coe, ennreal.of_real_coe_nnreal] },
+  { rw snorm_eq_lintegral_rpow_nnnorm ennreal.two_ne_zero ennreal.two_ne_top,
+    simp only [ennreal.to_real_bit0, ennreal.one_to_real, pi.sub_apply, one_div],
+    rw [div_eq_mul_inv, ennreal.inv_pow, mul_comm, ennreal.rpow_two],
+    congr,
+    simp_rw [← ennreal.rpow_mul, inv_mul_cancel (two_ne_zero : (2 : ℝ) ≠ 0), ennreal.rpow_two,
+      ennreal.rpow_one, evariance] }
 end
 
 

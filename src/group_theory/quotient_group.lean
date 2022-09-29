@@ -185,6 +185,7 @@ lift_mk' _ _ x
   map N M f h (mk' _ x) = ↑(f x) :=
 quotient_group.lift_mk' _ _ x
 
+@[to_additive]
 lemma map_id_apply (h : N ≤ subgroup.comap (monoid_hom.id _) N := (subgroup.comap_id N).le) (x) :
   map N N (monoid_hom.id _) h x = x :=
 begin
@@ -192,11 +193,13 @@ begin
   simp only [map_coe, monoid_hom.id_apply]
 end
 
-@[simp] lemma map_id (h : N ≤ subgroup.comap (monoid_hom.id _) N := (subgroup.comap_id N).le) :
+@[simp, to_additive]
+lemma map_id (h : N ≤ subgroup.comap (monoid_hom.id _) N := (subgroup.comap_id N).le) :
   map N N (monoid_hom.id _) h = monoid_hom.id _ :=
 monoid_hom.ext (map_id_apply N h)
 
-@[simp] lemma map_map {I : Type*} [group I] (M : subgroup H) (O : subgroup I)
+@[simp, to_additive]
+lemma map_map {I : Type*} [group I] (M : subgroup H) (O : subgroup I)
   [M.normal] [O.normal]
   (f : G →* H) (g : H →* I) (hf : N ≤ subgroup.comap f M) (hg : M ≤ subgroup.comap g O)
   (hgf : N ≤ subgroup.comap (g.comp f) O :=
@@ -207,7 +210,8 @@ begin
   simp only [map_coe, monoid_hom.comp_apply]
 end
 
-@[simp] lemma map_comp_map {I : Type*} [group I] (M : subgroup H) (O : subgroup I)
+@[simp, to_additive]
+lemma map_comp_map {I : Type*} [group I] (M : subgroup H) (O : subgroup I)
   [M.normal] [O.normal]
   (f : G →* H) (g : H →* I) (hf : N ≤ subgroup.comap f M) (hg : M ≤ subgroup.comap g O)
   (hgf : N ≤ subgroup.comap (g.comp f) O :=

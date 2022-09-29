@@ -455,25 +455,6 @@ begin
   rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map'],
 end
 
-/-- The inclusion of the base field in a normed algebra as a continuous linear map. -/
-@[simps]
-def algebra_map_clm : 𝕜 →L[𝕜] 𝕜' :=
-{ to_fun := algebra_map 𝕜 𝕜',
-  map_add' := (algebra_map 𝕜 𝕜').map_add,
-  map_smul' := λ r x, by rw [algebra.id.smul_eq_mul, map_mul, ring_hom.id_apply, algebra.smul_def],
-  cont :=
-    have lipschitz_with ∥(1 : 𝕜')∥₊ (algebra_map 𝕜 𝕜') := λ x y, begin
-      rw [edist_eq_coe_nnnorm_sub, edist_eq_coe_nnnorm_sub, ←map_sub, ←ennreal.coe_mul,
-        ennreal.coe_le_coe, mul_comm],
-      exact (nnnorm_algebra_map _ _).le,
-    end, this.continuous }
-
-lemma algebra_map_clm_coe :
-  (algebra_map_clm 𝕜 𝕜' : 𝕜 → 𝕜') = (algebra_map 𝕜 𝕜' : 𝕜 → 𝕜') := rfl
-
-lemma algebra_map_clm_to_linear_map :
-  (algebra_map_clm 𝕜 𝕜').to_linear_map = algebra.linear_map 𝕜 𝕜' := rfl
-
 instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
 { .. normed_field.to_normed_space,
   .. algebra.id 𝕜}

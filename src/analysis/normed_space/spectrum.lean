@@ -71,7 +71,7 @@ not_not.mp $ λ hn, h.not_le $ le_supr₂ k hn
 variable [complete_space A]
 
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
-units.is_open.preimage ((algebra_map_clm 𝕜 A).continuous.sub continuous_const)
+units.is_open.preimage ((continuous_algebra_map 𝕜 A).sub continuous_const)
 
 lemma is_closed (a : A) : is_closed (σ a) :=
 (is_open_resolvent_set a).is_closed_compl

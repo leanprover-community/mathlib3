@@ -375,7 +375,7 @@ lemma off_diag_union (h : disjoint s t) :
 begin
   rw [off_diag_eq_sep_prod, union_prod, prod_union, prod_union, union_comm _ (t ×ˢ t), union_assoc,
     union_left_comm (s ×ˢ t), ←union_assoc, sep_union, sep_union, ←off_diag_eq_sep_prod,
-    ←off_diag_eq_sep_prod, sep_true_of_mem, ←union_assoc],
+    ←off_diag_eq_sep_prod, sep_eq_self_iff_mem_true.2, ←union_assoc],
   simp only [mem_union, mem_prod, ne.def, prod.forall],
   rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩) rfl; exact h ⟨‹_›, ‹_›⟩,
 end

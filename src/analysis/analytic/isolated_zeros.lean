@@ -159,7 +159,7 @@ begin
   simp only [eq_on, not_forall] at h,
   obtain ⟨x, hx1, hx2⟩ := h,
 
-  let u := { z | f =ᶠ[𝓝 z] 0 },
+  let u := {z | f =ᶠ[𝓝 z] 0},
   have hu : is_open u := is_open_set_of_eventually_nhds,
   have hu' : (U ∩ u).nonempty := ⟨w, hw, (hf w hw).frequently_zero_iff_eventually_zero.mp hfw⟩,
 

@@ -695,12 +695,12 @@ end
 This requires that `g` is locally integrable, which is a bit stronger than the condition in
 `convolution_tendsto_right`. -/
 lemma convolution_tendsto_right' [sigma_compact_space G]
-  {ι} {g : ι → G → E'} {l : filter ι} {z₀ : E'}
+  {ι} {g : ι → G → E'} {l : filter ι} {x₀ : G} {z₀ : E'}
   {φ : ι → G → ℝ} {k : ι → G}
   (hnφ : ∀ i x, 0 ≤ φ i x)
   (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1)
   (hφ : tendsto (λ n, support (φ n)) l (𝓝 0).small_sets)
-  (hig : ∀ j, locally_integrable (g j) μ) {x₀ : G}
+  (hig : ∀ j, locally_integrable (g j) μ)
   (hcg : tendsto (uncurry g) (l ×ᶠ 𝓝 x₀) (𝓝 z₀))
   (hk : tendsto k l (𝓝 x₀)) :
   tendsto (λ i : ι, (φ i ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) l (𝓝 z₀) :=
@@ -785,14 +785,15 @@ dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self 
 
 /-- If `φ i` is a sequence of normed bump function, `(φ i ⋆ g) x` tends to `g x₀` if `((φ i).R, x)`
 tends to `(0, x₀)` and `g` is continuous at `x₀`. -/
-lemma convolution_tendsto_right'
-  {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
-  {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
-  (hig : locally_integrable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
-  tendsto (λ p : ι × G, ((λ x, (φ p.1).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') p.2)
-    (l ×ᶠ 𝓝 x₀) (𝓝 (g x₀)) :=
+lemma convolution_tendsto_right' {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
+  {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
+  (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
+  (hig : ∀ j, locally_integrable (g j) μ)
+  (hcg : tendsto (uncurry g) (l ×ᶠ 𝓝 x₀) (𝓝 z₀))
+  (hk : tendsto k l (𝓝 x₀)) :
+  tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) l (𝓝 z₀) :=
 convolution_tendsto_right' (λ i, (φ i).nonneg_normed) (λ i, (φ i).integral_normed)
-  (tendsto_support_normed_small_sets hφ) hig hcg
+  (tendsto_support_normed_small_sets hφ) hig hcg hk
 
 /-- If `φ i` is a sequence of normed bump function, `(φ i ⋆ g) x₀` tends to `g x₀` if `(φ i).R`
 tends to `0` and `g` is continuous at `x₀`. -/

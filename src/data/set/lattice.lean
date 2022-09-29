@@ -1392,6 +1392,55 @@ begin
     exact hs, },
 end
 
+lemma sInter_prod_set (f₁ : set (set α)) (h₁ : f₁.nonempty) (T : set β)
+  : ⋂₀f₁ ×ˢ T  = ⋂₀((λ (C : set α), C ×ˢ T) '' (f₁)) :=
+begin
+  ext ⟨x,y⟩,
+  rw [prod_mk_mem_set_prod_eq, mem_sInter, sInter_image, mem_Inter],
+  simp only [mem_Inter, prod_mk_mem_set_prod_eq],
+  split,
+  { intros h S hS,
+    split,
+    { apply h.1, exact hS, },
+    { exact h.2, }, },
+  { intros h,
+    split,
+    { intros S hS,
+      exact mem_of_mem_inter_left (h S hS),},
+       { cases h₁ with S hS,
+      have e1: x∈ S ∧ y∈ T :=
+      begin
+        apply h,
+        exact hS,
+      end,
+      exact e1.2, },
+    },
+end
+
+lemma set_prod_sInter (f₂ : set (set β)) (h₁ : f₂.nonempty) (S : set α)
+  : S ×ˢ ⋂₀f₂ = ⋂₀((λ (C : set β), S ×ˢ C) '' (f₂)) :=
+begin
+  ext ⟨x,y⟩,
+  rw [prod_mk_mem_set_prod_eq, mem_sInter, sInter_image, mem_Inter],
+  simp only [mem_Inter, prod_mk_mem_set_prod_eq],
+  split,
+  { intros h S hS,
+  split,
+  { exact h.1, },
+  { apply h.2, exact hS, }, },
+  { intros h,
+    split,
+       { cases h₁ with T hT,
+      have e1: x∈ S ∧ y ∈ T :=
+      begin
+        apply h,
+        exact hT,
+      end,
+      exact e1.1, },
+    { intros S hS,
+    exact mem_of_mem_inter_right (h S hS), }, },
+end
+
 lemma sInter_prod_sInter (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty) (h₂ : f₂.nonempty)
   : ⋂₀f₁ ×ˢ ⋂₀f₂ = ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
 begin
@@ -1438,6 +1487,17 @@ begin
       rw prod_mk_mem_set_prod_eq at e1,
       exact e1.2, }, },
 end
+
+lemma sInter_prod_sInter_empty (f₁ : set (set α)) (h₁ : f₁.nonempty)
+  : ⋂₀f₁ ×ˢ ⋂₀(∅ : set (set β))  = ⋂₀((λ (C : set α), C ×ˢ univ) '' (f₁)) :=
+by rw [sInter_empty, (sInter_prod_set _ h₁)]
+
+lemma sInter__empty_prod_sInter (f₂ : set (set β)) (h₂ : f₂.nonempty)
+  : ⋂₀(∅ : set (set α)) ×ˢ ⋂₀f₂    = ⋂₀((λ (C : set β), univ ×ˢ C) '' (f₂)) :=
+by rw [sInter_empty, (set_prod_sInter _ h₂)]
+
+lemma sInter__empty_prod_sInter_empty : ⋂₀(∅ : set (set α)) ×ˢ ⋂₀(∅ : set (set β)) = univ ×ˢ univ :=
+by rw [sInter_empty, sInter_empty]
 
 end prod
 

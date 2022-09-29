@@ -413,7 +413,8 @@ begin
 end
 
 @[continuity]
-lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) := continuous_fst.path_trans continuous_snd
+lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
+  continuous_fst.path_trans continuous_snd
 
 /-! #### Product of paths -/
 section prod

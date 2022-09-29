@@ -899,7 +899,7 @@ end linear_maps
 section nnreal
 open_locale nnreal
 
-/-- The natural coercion from `ℝ≥0` to `K` as an `ℝ≥0`-algebra map. -/
+/- The natural coercion from `ℝ≥0` to `K` as an `ℝ≥0`-algebra map. -/
 noncomputable def of_nnreal_am : ℝ≥0 →ₐ[ℝ≥0] K := algebra.of_id ℝ≥0 K
 
 /-- This is not registered as a `simp` lemma because the reason `is_R_or_C.of_nnreal_am` exists

@@ -351,7 +351,7 @@ begin
   have hdom : (multiplicity ↑p (cyclotomic₂ (p ^ d * least_dvd_pow hp hpa hpb) a b)).dom,
   { rw [← multiplicity.int.nat_abs, ← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     refine ⟨hp.ne_one, int.nat_abs_pos_of_ne_zero _⟩,
-    -- extract separate proof here
+    -- maybe extract separate proof here
     simp only [ne.def, ←(@int.cast_inj) ℝ, ←cyclotomic₂_def', int.cast_zero, cyclotomic₂'],
     have h2le: 2 < p ^ d * least_dvd_pow hp hpa hpb,
     { have hple : p ≤ p ^ d,
@@ -367,6 +367,24 @@ begin
    part_enat.coe_coe_hom, part_enat.coe_inj, add_comm, ← (nat.sub_eq_iff_eq_add
    (@tsub_le_self _ _ _ _ d 1)), nat.sub_sub_self h1d] at this,
   rw [← part_enat.coe_get hdom, ← this, nat.cast_one]
+end
+
+lemma proposition_13 {p n : ℕ} {a b : ℤ} (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) (hb : b ≠ 0)
+  (hp : nat.prime p) (hn : n ∉ {y | ∃ (β : ℕ), p ^ β = y}) :
+  multiplicity ↑p (cyclotomic₂ (n * least_dvd_pow hp hpa hpb) a b) = 0 :=
+begin
+  rcases eq_or_ne n 0 with rfl | hnzero,
+  { rw [zero_mul, cyclotomic₂_zero,
+     multiplicity.one_right (prime.not_unit (nat.prime_iff_prime_int.mp hp))] },
+  { simp only [set.mem_set_of_eq, not_exists] at hn,
+    rcases nat.exists_eq_pow_mul_and_not_dvd hnzero p (hp.ne_one) with ⟨β, m, hpm, hmβ⟩,
+    subst hmβ,
+    have hm : 2 ≤ m,
+    { rw nat.two_le_iff,
+      refine ⟨(mul_ne_zero_iff.mp hnzero).2, _⟩,
+      contrapose! hn,
+      refine ⟨β, by rw [hn, mul_one]⟩ },
+    },
 end
 
 end cyclotomic₂

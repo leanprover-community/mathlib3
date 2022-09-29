@@ -102,7 +102,7 @@ begin
 end
 
 @[simp] lemma gauge_empty : gauge (∅ : set E) = 0 :=
-by { ext, simp only [gauge_def', real.Inf_empty, mem_empty_eq, pi.zero_apply, sep_false] }
+by { ext, simp only [gauge_def', real.Inf_empty, mem_empty_iff_false, pi.zero_apply, sep_false] }
 
 lemma gauge_of_subset_zero (h : s ⊆ 0) : gauge s = 0 :=
 by { obtain rfl | rfl := subset_singleton_iff_eq.1 h, exacts [gauge_empty, gauge_zero'] }
@@ -221,7 +221,7 @@ begin
   rw [gauge_def', gauge_def', ←real.Inf_smul_of_nonneg ha],
   congr' 1,
   ext r,
-  simp_rw [set.mem_smul_set, set.mem_sep_eq],
+  simp_rw [set.mem_smul_set, set.mem_sep_iff],
   split,
   { rintro ⟨hr, hx⟩,
     simp_rw mem_Ioi at ⊢ hr,
@@ -249,7 +249,7 @@ begin
   rw [gauge_def', pi.smul_apply, gauge_def', ←real.Inf_smul_of_nonneg (inv_nonneg.2 ha)],
   congr' 1,
   ext r,
-  simp_rw [set.mem_smul_set, set.mem_sep_eq],
+  simp_rw [set.mem_smul_set, set.mem_sep_iff],
   split,
   { rintro ⟨hr, y, hy, h⟩,
     simp_rw [mem_Ioi] at ⊢ hr,

@@ -310,7 +310,7 @@ begin
   ext,
   split,
   { rintros ⟨y, rfl⟩,
-    simp only [set.mem_preimage, set.mem_range, set.mem_inter_eq, ←comp_apply],
+    simp only [set.mem_preimage, set.mem_range, set.mem_inter_iff, ←comp_apply],
     simp only [limits.prod.map_fst, limits.prod.map_snd,
       exists_apply_eq_apply, comp_apply, and_self] },
   { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩⟩,

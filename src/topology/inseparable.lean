@@ -162,6 +162,12 @@ specializes_prod.2 ⟨hx, hy⟩
 @[simp] lemma specializes_pi {f g : Π i, π i} : f ⤳ g ↔ ∀ i, f i ⤳ g i :=
 by simp only [specializes, nhds_pi, pi_le_pi]
 
+lemma not_specializes_iff_exists_open : ¬ x ⤳ y ↔ ∃ (S : set X), is_open S ∧ y ∈ S ∧ x ∉ S :=
+by { rw [specializes_iff_forall_open], push_neg, refl }
+
+lemma not_specializes_iff_exists_closed : ¬ x ⤳ y ↔ ∃ (S : set X), is_closed S ∧ x ∈ S ∧ y ∉ S :=
+by { rw [specializes_iff_forall_closed], push_neg, refl }
+
 variable (X)
 
 /-- Specialization forms a preorder on the topological space. -/

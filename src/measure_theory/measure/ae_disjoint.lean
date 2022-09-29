@@ -38,7 +38,7 @@ begin
   { simp only [pairwise, disjoint_left, on_fun, mem_diff, not_and, and_imp, not_not],
     intros i j hne x hi hU hj,
     replace hU : x ∉ s i ∩ ⋃ j ≠ i, s j := λ h, hU (subset_to_measurable _ _ h),
-    simp only [mem_inter_eq, mem_Union, not_and, not_exists] at hU,
+    simp only [mem_inter_iff, mem_Union, not_and, not_exists] at hU,
     exact (hU hi j hne.symm hj).elim }
 end
 

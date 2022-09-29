@@ -523,4 +523,14 @@ end
 
 end
 
+section
+
+variables (𝒜) (f : A)
+
+/--localising away from powers of `f` homogenously.
+-/
+abbreviation away := homogeneous_localization 𝒜 (submonoid.powers f)
+
+end
+
 end homogeneous_localization

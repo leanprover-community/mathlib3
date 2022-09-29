@@ -161,7 +161,7 @@ begin
   let u := {z | f =ᶠ[𝓝 z] 0},
   have hu : is_open u := is_open_set_of_eventually_nhds,
   have hu' : (U ∩ u).nonempty := ⟨w, hw, (hf w hw).frequently_zero_iff_eventually_zero.mp hfw⟩,
-  let v := { z | ∀ᶠ w in 𝓝[≠] z, f w ≠ 0 },
+  let v := {z | ∀ᶠ w in 𝓝[≠] z, f w ≠ 0},
   have hv : is_open v := by apply is_open_set_of_eventually_nhds_within,
   have hv' : (U ∩ v).nonempty,
     from ⟨x, hx1, ((hf x hx1).continuous_at.eventually_ne hx2).filter_mono nhds_within_le_nhds⟩,

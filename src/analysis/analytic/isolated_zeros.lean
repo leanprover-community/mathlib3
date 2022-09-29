@@ -158,22 +158,18 @@ begin
   by_contra,
   simp only [eq_on, not_forall] at h,
   obtain ⟨x, hx1, hx2⟩ := h,
-
   let u := {z | f =ᶠ[𝓝 z] 0},
   have hu : is_open u := is_open_set_of_eventually_nhds,
   have hu' : (U ∩ u).nonempty := ⟨w, hw, (hf w hw).frequently_zero_iff_eventually_zero.mp hfw⟩,
-
   let v := { z | ∀ᶠ w in 𝓝[≠] z, f w ≠ 0 },
   have hv : is_open v := by apply is_open_set_of_eventually_nhds_within,
   have hv' : (U ∩ v).nonempty,
     from ⟨x, hx1, ((hf x hx1).continuous_at.eventually_ne hx2).filter_mono nhds_within_le_nhds⟩,
-
   have huv : U ⊆ u ∪ v := λ z hz, (hf z hz).eventually_eq_zero_or_eventually_ne_zero,
   have huv' : u ∩ v = ∅,
     by { ext z,
       simp only [mem_inter_iff, mem_empty_iff_false, iff_false, not_and],
       exact λ h, (h.filter_mono nhds_within_le_nhds).frequently },
-
   simpa [huv'] using hU u v hu hv huv hu' hv'
 end
 

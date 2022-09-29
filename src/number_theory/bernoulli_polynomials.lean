@@ -213,14 +213,10 @@ begin
   simp only [ring_hom.map_sub, tsub_self, constant_coeff_one, constant_coeff_exp,
     coeff_zero_eq_constant_coeff, mul_zero, sub_self, add_zero],
   -- Let's multiply both sides by (n+1)! (OK because it's a unit)
-  set u : units ℚ := ⟨(n+1)!, (n+1)!⁻¹,
-    mul_inv_cancel (by exact_mod_cast factorial_ne_zero (n+1)),
-      inv_mul_cancel (by exact_mod_cast factorial_ne_zero (n+1))⟩ with hu,
-  rw ←units.mul_right_inj (units.map (algebra_map ℚ A).to_monoid_hom u),
-  -- now tidy up unit mess and generally do trivial rearrangements
-  -- to make RHS (n+1)*t^n
-  rw [units.coe_map, mul_left_comm, ring_hom.to_monoid_hom_eq_coe,
-      ring_hom.coe_monoid_hom, ←ring_hom.map_mul, hu, units.coe_mk],
+  have hnp1 : is_unit ((n+1)! : ℚ) := is_unit.mk0 _ (by exact_mod_cast factorial_ne_zero (n+1)),
+  rw ←(hnp1.map (algebra_map ℚ A)).mul_right_inj,
+  -- do trivial rearrangements to make RHS (n+1)*t^n
+  rw [mul_left_comm, ←ring_hom.map_mul],
   change _ = t^n * algebra_map ℚ A (((n+1)*n! : ℕ)*(1/n!)),
   rw [cast_mul, mul_assoc, mul_one_div_cancel
     (show (n! : ℚ) ≠ 0, from cast_ne_zero.2 (factorial_ne_zero n)), mul_one, mul_comm (t^n),
@@ -235,7 +231,7 @@ begin
   -- deal with coefficients of e^X-1
   simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, power_series.coeff_one,
-    units.coe_mk, coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
+    coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
     mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one,
     ← polynomial.C_eq_algebra_map, polynomial.aeval_mul, polynomial.aeval_C],
   -- finally cancel the Bernoulli polynomial and the algebra_map

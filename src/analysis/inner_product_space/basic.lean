@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.convex.uniform
+import analysis.normed_space.completion
 import analysis.normed_space.bounded_linear_maps
 import analysis.normed_space.banach
 import linear_algebra.bilinear_form
@@ -85,8 +86,10 @@ notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ _ _ x y
 
 section notations
 
-localized "notation `⟪`x`, `y`⟫` := @inner ℝ _ _ x y" in real_inner_product_space
-localized "notation `⟪`x`, `y`⟫` := @inner ℂ _ _ x y" in complex_inner_product_space
+localized "notation (name := inner.real)
+  `⟪`x`, `y`⟫` := @inner ℝ _ _ x y" in real_inner_product_space
+localized "notation (name := inner.complex)
+  `⟪`x`, `y`⟫` := @inner ℂ _ _ x y" in complex_inner_product_space
 
 end notations
 
@@ -275,7 +278,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, inner_conj_sym, hT, ring_hom.map_div, h₁, h₃]
+                  : by field_simp [-mul_re, inner_conj_sym, hT, map_div₀, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
@@ -647,7 +650,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, hT, ring_hom.map_div, h₁, h₃, inner_conj_sym]
+                  : by field_simp [-mul_re, hT, map_div₀, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
@@ -1154,7 +1157,7 @@ begin
 end
 
 /--
-If `⟪T x, x⟫_ℂ = 0` for all x, then T = 0.
+A linear map `T` is zero, if and only if the identity `⟪T x, x⟫_ℂ = 0` holds for all `x`.
 -/
 lemma inner_map_self_eq_zero (T : V →ₗ[ℂ] V) :
   (∀ (x : V), ⟪T x, x⟫_ℂ = 0) ↔ T = 0 :=
@@ -1166,6 +1169,18 @@ begin
     norm_num },
   { rintro rfl x,
     simp only [linear_map.zero_apply, inner_zero_left] }
+end
+
+/--
+Two linear maps `S` and `T` are equal, if and only if the identity `⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ` holds
+for all `x`.
+-/
+lemma ext_inner_map (S T : V →ₗ[ℂ] V) :
+  (∀ (x : V), ⟪S x, x⟫_ℂ = ⟪T x, x⟫_ℂ) ↔ S = T :=
+begin
+  rw [←sub_eq_zero, ←inner_map_self_eq_zero],
+  refine forall_congr (λ x, _),
+  rw [linear_map.sub_apply, inner_sub_left, sub_eq_zero],
 end
 
 end complex
@@ -1684,7 +1699,8 @@ linear_map.mk_continuous₂ innerₛₗ 1
 `inner_product_space.dual` as `to_dual_map`.  -/
 @[simp] lemma innerSL_apply_norm {x : E} : ∥(innerSL x : E →L[𝕜] 𝕜)∥ = ∥x∥ :=
 begin
-  refine le_antisymm ((innerSL x).op_norm_le_bound (norm_nonneg _) (λ y, norm_inner_le_norm _ _)) _,
+  refine le_antisymm ((innerSL x : E →L[𝕜] 𝕜).op_norm_le_bound (norm_nonneg _)
+    (λ y, norm_inner_le_norm _ _)) _,
   cases eq_or_lt_of_le (norm_nonneg x) with h h,
   { have : x = 0 := norm_eq_zero.mp (eq.symm h),
     simp [this] },
@@ -1693,7 +1709,7 @@ begin
     ... = re ⟪x, x⟫ : norm_sq_eq_inner _
     ... ≤ abs ⟪x, x⟫ : re_le_abs _
     ... = ∥innerSL x x∥ : by { rw [←is_R_or_C.norm_eq_abs], refl }
-    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x).le_op_norm _ }
+    ... ≤ ∥innerSL x∥ * ∥x∥ : (innerSL x : E →L[𝕜] 𝕜).le_op_norm _ }
 end
 
 /-- The inner product as a continuous sesquilinear map, with the two arguments flipped. -/
@@ -2132,6 +2148,7 @@ lemma continuous_on.inner (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λ t, ⟪f t, g t⟫) s :=
 λ x hx, (hf x hx).inner (hg x hx)
 
+@[continuity]
 lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ t, ⟪f t, g t⟫) :=
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
 
@@ -2228,7 +2245,7 @@ by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
-lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, (innerSL (v:E)).ker :=
+lemma orthogonal_eq_inter : Kᗮ = ⨅ v : K, linear_map.ker (innerSL (v:E) : E →L[𝕜] 𝕜) :=
 begin
   apply le_antisymm,
   { rw le_infi_iff,
@@ -2243,8 +2260,9 @@ end
 lemma submodule.is_closed_orthogonal : is_closed (Kᗮ : set E) :=
 begin
   rw orthogonal_eq_inter K,
-  convert is_closed_Inter (λ v : K, (innerSL (v:E)).is_closed_ker),
-  simp
+  have := λ v : K, continuous_linear_map.is_closed_ker (innerSL (v:E) : E →L[𝕜] 𝕜),
+  convert is_closed_Inter this,
+  simp only [submodule.infi_coe],
 end
 
 /-- In a complete space, the orthogonal complement of any submodule `K` is complete. -/
@@ -2311,4 +2329,71 @@ begin
   rwa [h, inf_comm, top_inf_eq] at this
 end
 
+lemma submodule.orthogonal_family_self :
+  @orthogonal_family 𝕜 E _ _ _ (λ b, ((cond b K Kᗮ : submodule 𝕜 E) : Type*)) _
+  (λ b, (cond b K Kᗮ).subtypeₗᵢ)
+| tt tt := absurd rfl
+| tt ff := λ _ x y, submodule.inner_right_of_mem_orthogonal x.prop y.prop
+| ff tt := λ _ x y, submodule.inner_left_of_mem_orthogonal y.prop x.prop
+| ff ff := absurd rfl
+
 end orthogonal
+
+namespace uniform_space.completion
+
+open uniform_space function
+
+instance {𝕜' E' : Type*} [topological_space 𝕜'] [uniform_space E'] [has_inner 𝕜' E'] :
+  has_inner 𝕜' (completion E') :=
+{ inner := curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (uncurry inner) }
+
+@[simp] lemma inner_coe (a b : E) :
+  inner (a : completion E) (b : completion E) = (inner a b : 𝕜) :=
+(dense_inducing_coe.prod dense_inducing_coe).extend_eq
+  (continuous_inner : continuous (uncurry inner : E × E → 𝕜)) (a, b)
+
+protected lemma continuous_inner :
+  continuous (uncurry inner : completion E × completion E → 𝕜) :=
+begin
+  let inner' : E →+ E →+ 𝕜 :=
+  { to_fun := λ x, (innerₛₗ x).to_add_monoid_hom,
+    map_zero' := by ext x; exact inner_zero_left,
+    map_add' := λ x y, by ext z; exact inner_add_left },
+  have : continuous (λ p : E × E, inner' p.1 p.2) := continuous_inner,
+  rw [completion.has_inner, uncurry_curry _],
+  change continuous (((dense_inducing_to_compl E).prod (dense_inducing_to_compl E)).extend
+    (λ p : E × E, inner' p.1 p.2)),
+  exact (dense_inducing_to_compl E).extend_Z_bilin (dense_inducing_to_compl E) this,
+end
+
+protected lemma continuous.inner {α : Type*} [topological_space α]
+  {f g : α → completion E} (hf : continuous f) (hg : continuous g) :
+  continuous (λ x : α, inner (f x) (g x) : α → 𝕜) :=
+uniform_space.completion.continuous_inner.comp (hf.prod_mk hg : _)
+
+instance : inner_product_space 𝕜 (completion E) :=
+{ norm_sq_eq_inner := λ x, completion.induction_on x
+    (is_closed_eq
+      (continuous_norm.pow 2)
+      (continuous_re.comp (continuous.inner continuous_id' continuous_id')))
+    (λ a, by simp only [norm_coe, inner_coe, inner_self_eq_norm_sq]),
+  conj_sym := λ x y, completion.induction_on₂ x y
+    (is_closed_eq
+      (continuous_conj.comp (continuous.inner continuous_snd continuous_fst))
+      (continuous.inner continuous_fst continuous_snd))
+    (λ a b, by simp only [inner_coe, inner_conj_sym]),
+  add_left := λ x y z, completion.induction_on₃ x y z
+    (is_closed_eq
+      (continuous.inner (continuous_fst.add (continuous_fst.comp continuous_snd))
+        (continuous_snd.comp continuous_snd))
+      ((continuous.inner continuous_fst (continuous_snd.comp continuous_snd)).add
+        (continuous.inner (continuous_fst.comp continuous_snd)
+          (continuous_snd.comp continuous_snd))))
+    (λ a b c, by simp only [← coe_add, inner_coe, inner_add_left]),
+  smul_left := λ x y c, completion.induction_on₂ x y
+    (is_closed_eq
+      (continuous.inner (continuous_fst.const_smul c) continuous_snd)
+      ((continuous_mul_left _).comp (continuous.inner continuous_fst continuous_snd)))
+    (λ a b, by simp only [← coe_smul c a, inner_coe, inner_smul_left]) }
+
+end uniform_space.completion

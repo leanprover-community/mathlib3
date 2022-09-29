@@ -688,7 +688,7 @@ begin
   have n_spec := λ (p : ι × ι), (exists_power p.fst p.snd).some_spec,
   -- We need one power `(h i * h j) ^ N` that works for *all* pairs `(i,j)`
   -- Since there are only finitely many indices involved, we can pick the supremum.
-  let N := (t.product t).sup n,
+  let N := (t ×ˢ t).sup n,
   have basic_opens_eq : ∀ i : ι, basic_open ((h i) ^ (N+1)) = basic_open (h i) :=
     λ i, basic_open_pow _ _ (by linarith),
   -- Expanding the fraction `a i / h i` by the power `(h i) ^ N` gives the desired normalization

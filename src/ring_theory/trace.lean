@@ -127,13 +127,14 @@ begin
   { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
 
-lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ]
+lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι] [finite κ]
   (b : basis ι R S) (c : basis κ S T) (x : T) :
   trace R S (trace S T x) = trace R T x :=
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq κ,
+  casesI nonempty_fintype ι,
+  casesI nonempty_fintype κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
       matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
@@ -143,9 +144,8 @@ begin
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end
 
-lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ]
-  (b : basis ι R S) (c : basis κ S T) :
+lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι]
+  [fintype κ] (b : basis ι R S) (c : basis κ S T) :
   (trace R S).comp ((trace S T).restrict_scalars R) = trace R T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace_of_basis b c] }
 
@@ -232,7 +232,7 @@ begin
   contrapose! hx,
   obtain ⟨s, ⟨b⟩⟩ := hx,
   refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
-  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_finset_basis b) },
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_fintype_basis b) },
   { exact subset_adjoin K _ (set.mem_singleton x) }
 end
 
@@ -491,7 +491,7 @@ lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans [fintype κ]
   (e : κ ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
-  transpose_minor, ← minor_mul_transpose_minor, ← equiv.coe_refl, equiv.refl_symm]
+  transpose_submatrix, ← submatrix_mul_transpose_submatrix, ← equiv.coe_refl, equiv.refl_symm]
 
 end field
 

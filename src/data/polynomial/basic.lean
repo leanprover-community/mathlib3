@@ -56,8 +56,9 @@ The embedding from `R` is called `C`. -/
 structure polynomial (R : Type*) [semiring R] := of_finsupp ::
 (to_finsupp : add_monoid_algebra R ℕ)
 
-localized "notation R`[X]`:9000 := polynomial R" in polynomial
-open finsupp add_monoid_algebra
+localized "notation (name := polynomial) R`[X]`:9000 := polynomial R" in polynomial
+
+open add_monoid_algebra finsupp function
 open_locale big_operators polynomial
 
 namespace polynomial
@@ -428,6 +429,11 @@ by rw [X_pow_mul, monomial_mul_X_pow]
 @[simp] def coeff : R[X] → ℕ → R
 | ⟨p⟩ := p
 
+lemma coeff_injective : injective (coeff : R[X] → ℕ → R) :=
+by { rintro ⟨p⟩ ⟨q⟩, simp only [coeff, fun_like.coe_fn_eq, imp_self] }
+
+@[simp] lemma coeff_inj : p.coeff = q.coeff ↔ p = q := coeff_injective.eq_iff
+
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { simp only [←of_finsupp_single, coeff, linear_map.coe_mk], rw finsupp.single_apply }
 
@@ -479,6 +485,15 @@ lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 @[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 :=
 calc C a = 0 ↔ C a = C 0 : by rw C_0
          ... ↔ a = 0 : C_inj
+
+lemma subsingleton_iff_subsingleton :
+  subsingleton R[X] ↔ subsingleton R :=
+⟨λ h, subsingleton_iff.mpr (λ a b, C_inj.mp (subsingleton_iff.mp h _ _)),
+  by { introI, apply_instance } ⟩
+
+lemma forall_eq_iff_forall_eq :
+  (∀ f g : R[X], f = g) ↔ (∀ a b : R, a = b) :=
+by simpa only [← subsingleton_iff] using subsingleton_iff_subsingleton
 
 theorem ext_iff {p q : R[X]} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
@@ -666,6 +681,12 @@ begin
   simpa [sum, support, coeff] using finsupp.sum_smul_index hf,
 end
 
+lemma sum_monomial_eq : ∀ p : R[X], p.sum (λ n a, monomial n a) = p
+| ⟨p⟩ := (of_finsupp_sum _ _).symm.trans (congr_arg _ $ finsupp.sum_single _)
+
+lemma sum_C_mul_X_eq (p : R[X]) : p.sum (λn a, C a * X^n) = p :=
+by simp_rw [←monomial_eq_C_mul_X, sum_monomial_eq]
+
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : R[X] → R[X]
 | ⟨p⟩ := ⟨p.erase n⟩
@@ -792,9 +813,7 @@ by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_righ
 @[simp] lemma support_neg {p : R[X]} : (-p).support = p.support :=
 by { rcases p, rw [←of_finsupp_neg, support, support, finsupp.support_neg] }
 
-@[simp]
-lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
-(C : R →+* _).map_int_cast n
+@[simp] lemma C_eq_int_cast (n : ℤ) : C (n : R) = n := map_int_cast C n
 
 end ring
 

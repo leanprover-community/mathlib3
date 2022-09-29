@@ -281,7 +281,7 @@ instance : has_le pgame := ⟨λ x y, (le_lf x y).1⟩
 If `0 ⧏ x`, then Left can win `x` as the first player. -/
 def lf (x y : pgame) : Prop := (le_lf x y).2
 
-localized "infix ` ⧏ `:50 := pgame.lf" in pgame
+localized "infix (name := pgame.lf) ` ⧏ `:50 := pgame.lf" in pgame
 
 /-- Definition of `x ≤ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
@@ -510,7 +510,7 @@ classical.some_spec $ (zero_le.1 h) j
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
-localized "infix ` ≈ ` := pgame.equiv" in pgame
+localized "infix (name := pgame.equiv) ` ≈ ` := pgame.equiv" in pgame
 
 instance : is_equiv _ (≈) :=
 { refl := λ x, ⟨le_rfl, le_rfl⟩,
@@ -608,7 +608,7 @@ end
 If `x ∥ 0`, then the first player can always win `x`. -/
 def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
 
-localized "infix ` ∥ `:50 := pgame.fuzzy" in pgame
+localized "infix (name := pgame.fuzzy) ` ∥ `:50 := pgame.fuzzy" in pgame
 
 @[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
 instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
@@ -674,29 +674,6 @@ end
 
 /-! ### Relabellings -/
 
-/-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
-     and Right always has no more moves in `y` than in `x` -/
-inductive restricted : pgame.{u} → pgame.{u} → Type (u+1)
-| mk : Π {x y : pgame} (L : x.left_moves → y.left_moves) (R : y.right_moves → x.right_moves),
-         (∀ i, restricted (x.move_left i) (y.move_left (L i))) →
-         (∀ j, restricted (x.move_right (R j)) (y.move_right j)) → restricted x y
-
-/-- The identity restriction. -/
-@[refl] def restricted.refl : Π (x : pgame), restricted x x
-| x := ⟨_, _, λ i, restricted.refl _, λ j, restricted.refl _⟩
-using_well_founded { dec_tac := pgame_wf_tac }
-
-instance (x : pgame) : inhabited (restricted x x) := ⟨restricted.refl _⟩
-
-/-- Transitivity of restriction. -/
-def restricted.trans : Π {x y z : pgame} (r : restricted x y) (s : restricted y z), restricted x z
-| x y z ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
-⟨_, _, λ i, (hL₁ i).trans (hL₂ _), λ j, (hR₁ _).trans (hR₂ j)⟩
-
-theorem restricted.le : Π {x y : pgame} (r : restricted x y), x ≤ y
-| x y ⟨L, R, hL, hR⟩ :=
-le_def.2 ⟨λ i, or.inl ⟨L i, (hL i).le⟩, λ i, or.inr ⟨R i, (hR i).le⟩⟩
-
 /--
 `relabelling x y` says that `x` and `y` are really the same game, just dressed up differently.
 Specifically, there is a bijection between the moves for Left in `x` and in `y`, and similarly
@@ -708,7 +685,7 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
          (∀ j, relabelling (x.move_right j) (y.move_right (R j))) →
        relabelling x y
 
-localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
+localized "infix (name := pgame.relabelling) ` ≡r `:50 := pgame.relabelling" in pgame
 
 namespace relabelling
 variables {x y : pgame.{u}}
@@ -757,14 +734,6 @@ def move_right_symm : ∀ (r : x ≡r y) (i : y.right_moves),
   x.move_right (r.right_moves_equiv.symm i) ≡r y.move_right i
 | ⟨L, R, hL, hR⟩ i := by simpa using hR (R.symm i)
 
-/-- If `x` is a relabelling of `y`, then `x` is a restriction of `y`. -/
-def restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
-| x y r := ⟨_, _, λ i, (r.move_left i).restricted, λ j, (r.move_right_symm j).restricted⟩
-using_well_founded { dec_tac := pgame_wf_tac }
-
-/-! It's not the case that `restricted x y → restricted y x → x ≡r y`, but if we insisted that the
-maps in a restriction were injective, then one could use Schröder-Bernstein for do this. -/
-
 /-- The identity relabelling. -/
 @[refl] def refl : Π (x : pgame), x ≡r x
 | x := ⟨equiv.refl _, equiv.refl _, λ i, refl _, λ j, refl _⟩
@@ -776,8 +745,11 @@ instance (x : pgame) : inhabited (x ≡r x) := ⟨refl _⟩
 @[symm] def symm : Π {x y : pgame}, x ≡r y → y ≡r x
 | x y ⟨L, R, hL, hR⟩ := mk' L R (λ i, (hL i).symm) (λ j, (hR j).symm)
 
-theorem le (r : x ≡r y) : x ≤ y := r.restricted.le
-theorem ge (r : x ≡r y) : y ≤ x := r.symm.restricted.le
+theorem le : ∀ {x y : pgame} (r : x ≡r y), x ≤ y
+| x y r := le_def.2 ⟨λ i, or.inl ⟨_, (r.move_left i).le⟩, λ j, or.inr ⟨_, (r.move_right_symm j).le⟩⟩
+using_well_founded { dec_tac := pgame_wf_tac }
+
+theorem ge {x y : pgame} (r : x ≡r y) : y ≤ x := r.symm.le
 
 /-- A relabelling lets us prove equivalence of games. -/
 theorem equiv (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩

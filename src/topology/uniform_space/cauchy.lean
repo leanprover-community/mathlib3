@@ -365,10 +365,8 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
     let ⟨x1, hx1⟩ := complete_space.complete $ hf.map uniform_continuous_fst in
     let ⟨x2, hx2⟩ := complete_space.complete $ hf.map uniform_continuous_snd in
     ⟨(x1, x2), by rw [nhds_prod_eq, filter.prod_def];
-      from filter.le_lift (λ s hs, filter.le_lift' $ λ t ht,
-        have H1 : prod.fst ⁻¹' s ∈ f.sets := hx1 hs,
-        have H2 : prod.snd ⁻¹' t ∈ f.sets := hx2 ht,
-        filter.inter_mem H1 H2)⟩ }
+      from filter.le_lift.2 (λ s hs, filter.le_lift'.2 $ λ t ht,
+        inter_mem (hx1 hs) (hx2 ht))⟩ }
 
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=

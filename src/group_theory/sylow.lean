@@ -32,6 +32,8 @@ The Sylow theorems are the following results for every finite group `G` and ever
   there exists a subgroup of `G` of order `pⁿ`.
 * `is_p_group.exists_le_sylow`: A generalization of Sylow's first theorem:
   Every `p`-subgroup is contained in a Sylow `p`-subgroup.
+* `sylow.card_eq_multiplicity`: The cardinality of a Sylow group is `p ^ n`
+ where `n` is the multiplicity of `p` in the group order.
 * `sylow_conjugate`: A generalization of Sylow's second theorem:
   If the number of Sylow `p`-subgroups is finite, then all Sylow `p`-subgroups are conjugate.
 * `card_sylow_modeq_one`: A generalization of Sylow's third theorem:

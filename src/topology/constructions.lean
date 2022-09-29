@@ -676,7 +676,7 @@ begin
   rw [is_open_map_iff_nhds_le],
   rintros ⟨a, b⟩,
   rw [nhds_prod_eq, nhds_prod_eq, ← filter.prod_map_map_eq],
-  exact filter.prod_mono (is_open_map_iff_nhds_le.1 hf a) (is_open_map_iff_nhds_le.1 hg b)
+  exact filter.prod_mono (hf.nhds_le a) (hg.nhds_le b)
 end
 
 protected lemma open_embedding.prod {f : α → β} {g : γ → δ}
@@ -1137,7 +1137,8 @@ end)
 end pi
 
 section sigma
-variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
+variables {ι κ : Type*} {σ : ι → Type*} {τ : κ → Type*}
+  [Π i, topological_space (σ i)] [Π k, topological_space (τ k)] [topological_space α]
 
 @[continuity]
 lemma continuous_sigma_mk {i : ι} : continuous (@sigma.mk ι σ i) :=
@@ -1154,13 +1155,10 @@ begin
   intros s hs,
   rw is_open_sigma_iff,
   intro j,
-  rcases eq_or_ne i j with (rfl|hne),
+  rcases eq_or_ne j i with (rfl|hne),
   { rwa set.preimage_image_eq _ sigma_mk_injective },
-  { convert is_open_empty,
-    apply set.eq_empty_of_subset_empty,
-    rintro x ⟨y, _, hy⟩,
-    have : i = j, by cc,
-    contradiction }
+  { rw [preimage_image_sigma_mk_of_ne hne],
+    exact is_open_empty }
 end
 
 lemma is_open_range_sigma_mk {i : ι} : is_open (set.range (@sigma.mk ι σ i)) :=
@@ -1171,17 +1169,14 @@ begin
   intros s hs,
   rw is_closed_sigma_iff,
   intro j,
-  rcases eq_or_ne i j with (rfl|hne),
+  rcases eq_or_ne j i with (rfl|hne),
   { rwa set.preimage_image_eq _ sigma_mk_injective },
-  { convert is_closed_empty,
-    apply set.eq_empty_of_subset_empty,
-    rintro x ⟨y, _, hy⟩,
-    have : i = j, by cc,
-    contradiction }
+  { rw [preimage_image_sigma_mk_of_ne hne],
+    exact is_closed_empty }
 end
 
-lemma is_closed_sigma_mk {i : ι} : is_closed (set.range (@sigma.mk ι σ i)) :=
-by { rw ←set.image_univ, exact is_closed_map_sigma_mk _ is_closed_univ }
+lemma is_closed_range_sigma_mk {i : ι} : is_closed (set.range (@sigma.mk ι σ i)) :=
+is_closed_map_sigma_mk.closed_range
 
 lemma open_embedding_sigma_mk {i : ι} : open_embedding (@sigma.mk ι σ i) :=
 open_embedding_of_continuous_injective_open
@@ -1194,6 +1189,15 @@ closed_embedding_of_continuous_injective_closed
 lemma embedding_sigma_mk {i : ι} : embedding (@sigma.mk ι σ i) :=
 closed_embedding_sigma_mk.1
 
+lemma sigma.nhds_mk (i : ι) (x : σ i) : 𝓝 (⟨i, x⟩ : sigma σ) = map (sigma.mk i) (𝓝 x) :=
+(open_embedding_sigma_mk.map_nhds_eq x).symm
+
+lemma sigma.nhds_eq (x : sigma σ) : 𝓝 x = map (sigma.mk x.1) (𝓝 x.2) :=
+by { cases x, apply sigma.nhds_mk }
+
+lemma comap_sigma_mk_nhds (i : ι) (x : σ i) : comap (sigma.mk i) (𝓝 ⟨i, x⟩) = 𝓝 x :=
+(embedding_sigma_mk.to_inducing.nhds_eq_comap _).symm
+
 lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
 begin
   rw [← bUnion_of_singleton s, preimage_Union₂],
@@ -1201,65 +1205,47 @@ begin
   exact is_open_bUnion (λ _ _, is_open_range_sigma_mk)
 end
 
+/-- A map out of a sum type is continuous iff its restriction to each summand is. -/
+@[simp] lemma continuous_sigma_iff {f : sigma σ → α} :
+  continuous f ↔ ∀ i, continuous (λ a, f ⟨i, a⟩) :=
+by simp only [continuous_supr_dom, continuous_coinduced_dom]
+
 /-- A map out of a sum type is continuous if its restriction to each summand is. -/
-@[continuity]
-lemma continuous_sigma [topological_space β] {f : sigma σ → β}
-  (h : ∀ i, continuous (λ a, f ⟨i, a⟩)) : continuous f :=
-continuous_supr_dom.2 (λ i, continuous_coinduced_dom.2 (h i))
+@[continuity] lemma continuous_sigma {f : sigma σ → α} (hf : ∀ i, continuous (λ a, f ⟨i, a⟩)) :
+  continuous f :=
+continuous_sigma_iff.2 hf
 
-@[continuity]
-lemma continuous_sigma_map {κ : Type*} {τ : κ → Type*} [Π k, topological_space (τ k)]
-  {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (hf : ∀ i, continuous (f₂ i)) :
+@[simp] lemma continuous_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} :
+  continuous (sigma.map f₁ f₂) ↔ ∀ i, continuous (f₂ i) :=
+continuous_sigma_iff.trans $ by simp only [sigma.map, embedding_sigma_mk.continuous_iff]
+
+@[continuity] lemma continuous.sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)}
+  (hf : ∀ i, continuous (f₂ i)) :
   continuous (sigma.map f₁ f₂) :=
-continuous_sigma $ λ i,
-  show continuous (λ a, sigma.mk (f₁ i) (f₂ i a)),
-  from continuous_sigma_mk.comp (hf i)
+continuous_sigma_map.2 hf
 
-lemma is_open_map_sigma [topological_space β] {f : sigma σ → β}
-  (h : ∀ i, is_open_map (λ a, f ⟨i, a⟩)) : is_open_map f :=
-begin
-  intros s hs,
-  rw is_open_sigma_iff at hs,
-  rw [← Union_image_preimage_sigma_mk_eq_self s, image_Union],
-  apply is_open_Union,
-  intro i,
-  rw [image_image],
-  exact h i _ (hs i)
-end
+lemma is_open_map_sigma {f : sigma σ → α} : is_open_map f ↔ ∀ i, is_open_map (λ a, f ⟨i, a⟩) :=
+by simp only [is_open_map_iff_nhds_le, sigma.forall, sigma.nhds_eq, map_map]
 
-/-- The sum of embeddings is an embedding. -/
-lemma embedding_sigma_map {τ : ι → Type*} [Π i, topological_space (τ i)]
-  {f : Π i, σ i → τ i} (hf : ∀ i, embedding (f i)) : embedding (sigma.map id f) :=
-begin
-  refine ⟨⟨_⟩, function.injective_id.sigma_map (λ i, (hf i).inj)⟩,
-  refine le_antisymm
-    (continuous_iff_le_induced.mp (continuous_sigma_map (λ i, (hf i).continuous))) _,
-  intros s hs,
-  replace hs := is_open_sigma_iff.mp hs,
-  have : ∀ i, ∃ t, is_open t ∧ f i ⁻¹' t = sigma.mk i ⁻¹' s,
-  { intro i,
-    apply is_open_induced_iff.mp,
-    convert hs i,
-    exact (hf i).induced.symm },
-  choose t ht using this,
-  apply is_open_induced_iff.mpr,
-  refine ⟨⋃ i, sigma.mk i '' t i, is_open_Union (λ i, is_open_map_sigma_mk _ (ht i).1), _⟩,
-  ext ⟨i, x⟩,
-  change (sigma.mk i (f i x) ∈ ⋃ (i : ι), sigma.mk i '' t i) ↔ x ∈ sigma.mk i ⁻¹' s,
-  rw [←(ht i).2, mem_Union],
-  split,
-  { rintro ⟨j, hj⟩,
-    rw mem_image at hj,
-    rcases hj with ⟨y, hy₁, hy₂⟩,
-    rcases sigma.mk.inj_iff.mp hy₂ with ⟨rfl, hy⟩,
-    replace hy := eq_of_heq hy,
-    subst y,
-    exact hy₁ },
-  { intro hx,
-    use i,
-    rw mem_image,
-    exact ⟨f i x, hx, rfl⟩ }
-end
+lemma is_open_map_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} :
+  is_open_map (sigma.map f₁ f₂) ↔ ∀ i, is_open_map (f₂ i) :=
+is_open_map_sigma.trans $ forall_congr $
+  λ i, (@open_embedding_sigma_mk _ _ _ (f₁ i)).is_open_map_iff.symm
+
+lemma inducing_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (h₁ : injective f₁) :
+  inducing (sigma.map f₁ f₂) ↔ ∀ i, inducing (f₂ i) :=
+by simp only [inducing_iff_nhds, sigma.forall, sigma.nhds_mk, sigma.map, ← map_sigma_mk_comap h₁,
+  map_inj sigma_mk_injective]
+
+lemma embedding_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (h : injective f₁) :
+  embedding (sigma.map f₁ f₂) ↔ ∀ i, embedding (f₂ i) :=
+by simp only [embedding_iff, injective.sigma_map, inducing_sigma_map h, forall_and_distrib,
+  h.sigma_map_iff]
+
+lemma open_embedding_sigma_map {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (h : injective f₁) :
+  open_embedding (sigma.map f₁ f₂) ↔ ∀ i, open_embedding (f₂ i) :=
+by simp only [open_embedding_iff_embedding_open, is_open_map_sigma_map, embedding_sigma_map h,
+  forall_and_distrib]
 
 end sigma
 

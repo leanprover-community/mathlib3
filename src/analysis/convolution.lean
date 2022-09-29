@@ -437,6 +437,15 @@ begin
   { exact (h $ sub_add_cancel x t).elim }
 end
 
+section
+variables [has_measurable_add₂ G] [has_measurable_neg G] [sigma_finite μ] [is_add_right_invariant μ]
+
+lemma measure_theory.integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⋆[L, μ] g) μ :=
+(hf.convolution_integrand L hg).integral_prod_left
+
+end
+
 variables [topological_space G]
 variables [topological_add_group G]
 
@@ -500,12 +509,6 @@ lemma has_compact_support.continuous_convolution_right_of_integrable
 (hg.norm.bdd_above_range_of_has_compact_support hcg.norm).continuous_convolution_right_of_integrable
   L hf hg
 
-variables [sigma_finite μ] [is_add_right_invariant μ]
-
-lemma measure_theory.integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
-  integrable (f ⋆[L, μ] g) μ :=
-(hf.convolution_integrand L hg).integral_prod_left
-
 end group
 
 section comm_group
@@ -515,10 +518,11 @@ variables [add_comm_group G]
 lemma support_convolution_subset : support (f ⋆[L, μ] g) ⊆ support f + support g :=
 (support_convolution_subset_swap L).trans (add_comm _ _).subset
 
-variables [topological_space G]
-variables [topological_add_group G]
-variables [borel_space G]
-variables [is_add_left_invariant μ]  [is_neg_invariant μ]
+variables [is_add_left_invariant μ] [is_neg_invariant μ]
+
+section measurable
+variables [has_measurable_neg G]
+variables [has_measurable_add G]
 
 variable (L)
 /-- Commutativity of convolution -/
@@ -544,6 +548,11 @@ lemma convolution_lmul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G
   (f ⋆[lmul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
 convolution_eq_swap _
 
+end measurable
+
+variables [topological_space G]
+variables [topological_add_group G]
+variables [borel_space G]
 variables [second_countable_topology G]
 
 lemma has_compact_support.continuous_convolution_left [locally_compact_space G] [t2_space G]
@@ -772,9 +781,23 @@ variables {k : G → E''}
 variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
 variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
 variables (L₄ : E' →L[𝕜] E'' →L[𝕜] F'')
-variables [add_group G] [has_measurable_add G]
+variables [add_group G]
 variables [sigma_finite μ]
-variables {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
+
+lemma integral_convolution
+  [has_measurable_add₂ G] [has_measurable_neg G] [is_add_right_invariant μ]
+  [normed_space ℝ E] [normed_space ℝ E']
+  [complete_space E] [complete_space E']
+  (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ x, (f ⋆[L, μ] g) x ∂μ = L (∫ x, f x ∂μ) (∫ x, g x ∂μ) :=
+begin
+  refine (integral_integral_swap (by apply hf.convolution_integrand L hg)).trans _,
+  simp_rw [integral_comp_comm _ (hg.comp_sub_right _), integral_sub_right_eq_self],
+  exact (L.flip (∫ x, g x ∂μ)).integral_comp_comm hf,
+end
+
+variables [has_measurable_add G] {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
+
 
 /-- Convolution is associative.
 To do: prove that `hi` follows from simpler conditions. -/

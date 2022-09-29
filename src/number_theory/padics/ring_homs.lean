@@ -172,7 +172,7 @@ variable (x : ℤ_[p])
 lemma exists_mem_range : ∃ n : ℕ, n < p ∧ (x - n ∈ maximal_ideal ℤ_[p]) :=
 begin
   simp only [maximal_ideal_eq_span_p, ideal.mem_span_singleton, ← norm_lt_one_iff_dvd],
-  obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
+  obtain ⟨r, hr⟩ := rat_dense p (x : ℚ_[p]) zero_lt_one,
   have H : ∥(r : ℚ_[p])∥ ≤ 1,
   { rw norm_sub_rev at hr,
     calc _ = ∥(r : ℚ_[p]) - x + x∥ : by ring_nf

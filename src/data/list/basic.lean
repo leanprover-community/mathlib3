@@ -53,6 +53,13 @@ assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 theorem cons_inj (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
 cons_injective.eq_iff
 
+@[simp] theorem cons_eq_cons {a b : α} {l l' : list α} : a::l = b::l' ↔ a = b ∧ l = l' :=
+⟨list.cons.inj, λ h, h.1 ▸ h.2 ▸ rfl⟩
+
+lemma singleton_injective : injective (λ a : α, [a]) := λ a b h, (cons_eq_cons.1 h).1
+
+lemma singleton_inj {a b : α} : [a] = [b] ↔ a = b := singleton_injective.eq_iff
+
 theorem exists_cons_of_ne_nil {l : list α} (h : l ≠ nil) : ∃ b L, l = b :: L :=
 by { induction l with c l',  contradiction,  use [c,l'], }
 

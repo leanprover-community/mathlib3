@@ -2,12 +2,13 @@ import analysis.special_functions.log.basic
 import topology.algebra.order.intermediate_value
 import group_theory.perm.fibered
 import group_theory.free_group
+import data.bool.count
 
 /-!
 -/
 
 noncomputable theory
-open list set function real cardinal
+open list set function cardinal
 open_locale cardinal
 
 namespace grigorchuk_group
@@ -207,27 +208,35 @@ monoid_hom.mrange_top_iff_surjective.1 mrange_of_word
 instance : countable G :=
 by { haveI : countable (free_monoid (fin 4)) := list.countable, exact surjective_of_word.countable }
 
-/-- `to_free_monoid g` is the shortest list that represents `g`. -/
-def to_free_monoid (g : G) : free_monoid (fin 4) :=
+/-- `to_word g` is the shortest list that represents `g`. -/
+def to_word (g : G) : free_monoid (fin 4) :=
 argmin_on length nat.well_founded_lt.1 (of_word ⁻¹' {g}) (surjective_of_word g)
 
-lemma of_word_to_free_monoid (g : G) : of_word (to_free_monoid g) = g :=
+lemma of_word_to_word (g : G) : of_word (to_word g) = g :=
 argmin_on_mem length _ (of_word ⁻¹' {g}) _
 
 def is_minimal (g : free_monoid (fin 4)) : Prop :=
 ∀ g', of_word g = of_word g' → length g ≤ length g'
 
+lemma is_minimal.length_eq {g₁ g₂ : free_monoid (fin 4)} (h₁ : is_minimal g₁) (h₂ : is_minimal g₂)
+  (h : of_word g₁ = of_word g₂) : length g₁ = length g₂ :=
+(h₁ g₂ h).antisymm (h₂ g₁ h.symm)
+
+lemma is_minimal.length_lt {g₁ g₂ : free_monoid (fin 4)} (h₁ : is_minimal g₁) (h₂ : ¬is_minimal g₂)
+  (h : of_word g₁ = of_word g₂) : length g₁ < length g₂ :=
+(h₁ g₂ h).lt_of_ne $ λ h', h₂ $ λ g hg, h' ▸ h₁ _ (h.trans hg)
+
 @[simp] lemma is_minimal_nil : is_minimal [] := λ _ _, zero_le _
 
-lemma is_minimal_to_free_monoid (g : G) : is_minimal (to_free_monoid g) :=
-λ g' hg', argmin_on_le _ _ _ $ hg'.symm.trans $ of_word_to_free_monoid g
+lemma is_minimal_to_word (g : G) : is_minimal (to_word g) :=
+λ g' hg', argmin_on_le _ _ _ $ hg'.symm.trans $ of_word_to_word g
 
 lemma exists_is_minimal_of_word_eq (g : G) : ∃ g', is_minimal g' ∧ of_word g' = g :=
-⟨to_free_monoid g, is_minimal_to_free_monoid g, of_word_to_free_monoid g⟩
+⟨to_word g, is_minimal_to_word g, of_word_to_word g⟩
 
-lemma length_to_free_monoid_of_word_le (g : free_monoid (fin 4)) :
-  length (to_free_monoid (of_word g)) ≤ length g :=
-is_minimal_to_free_monoid _ _ $ of_word_to_free_monoid _
+lemma length_to_word_of_word_le (g : free_monoid (fin 4)) :
+  length (to_word (of_word g)) ≤ length g :=
+is_minimal_to_word _ _ $ of_word_to_word _
 
 lemma is_minimal.to_infix {g₁ g₂ : free_monoid (fin 4)} (h₁ : is_minimal g₁) (h₂ : g₂ <:+: g₁) :
   is_minimal g₂ :=
@@ -400,6 +409,9 @@ lemma mk'_cons (a : bool × fin 3) (l : free_monoid (bool × fin 3)) :
   mk' (a :: l) = atom' a.1 a.2 * mk' l :=
 by simp only [mk', ← free_monoid.of_mul_eq_cons, map_mul, free_monoid.lift_eval_of, uncurry]
 
+lemma mk'_singleton (a : bool × fin 3) : mk' [a] = atom' a.1 a.2 :=
+free_monoid.lift_eval_of _ _
+
 lemma mk_cons (a : bool × fin 3) (l : free_monoid (bool × fin 3)) :
   mk (a :: l) = atom a.1 a.2 * mk l :=
 by simp only [mk, ← free_monoid.of_mul_eq_cons, map_mul, free_monoid.lift_eval_of, uncurry]
@@ -420,26 +432,24 @@ begin
   { exact hl.chain'_ne.tail.tail.rel_head rfl }
 end
 
+lemma _root_.grigorchuk_group.is_minimal.chain'_ne_map_fst {l : free_monoid (bool × fin 3)}
+  (hl : is_minimal (mk' l)) : (map prod.fst l).chain' (≠) :=
+(chain'_map _).2 hl.chain'_ne_fst
+
 lemma length_mk' (g : free_monoid (bool × fin 3)) :
-  length (mk' g) = length g + 2 * countp (λ x : bool × fin 3, x.1 = tt) g :=
+  length (mk' g) = length g + 2 * count tt (map prod.fst g) :=
 begin
   induction g with x g ihg, { refl },
-  erw [mk'_cons, length_append, ihg, countp_cons, length_atom'],
-  rcases x with ⟨(_|_), _⟩; simp; ring
+  rw [mk'_cons, free_monoid.mul_def, length_append, ihg, count, map_cons, countp_cons,
+    length_atom'],
+  rcases x with ⟨(_|_), _⟩; simp only [cond, if_pos rfl, if_false, length_cons]; ring
 end
 
-lemma two_mul_sub_one_le_length_mk'_aux {g : free_monoid (bool × fin 3)}
-  (hmin : is_minimal (mk' g)) :
-  2 * length g - 1 ≤ length (mk' g) ∧
-    ∀ x : bool × fin 3, x ∈ g.head' → x.1 → 2 * length g ≤ length (mk' g) :=
-begin
-  induction g with x g ihg,
-  { simp only [length, mul_zero, zero_le, implies_true_iff, and_self] },
-  { simp only [head', option.mem_some_iff, forall_eq', length, mul_add, mul_one, mk'_cons,
-      free_monoid.mul_def, length_append],
-    
-}
-end
+lemma le_length_mk' (g : free_monoid (bool × fin 3)) : length g ≤ length (mk' g) :=
+(length_mk' g).symm ▸ le_add_right le_rfl
+
+@[simp] lemma even_length_mk' {g} : even (length (mk' g)) ↔ even (length g) :=
+by simp only [length_mk', nat.even_add, even_two_mul, true_or, iff_true]
 
 lemma exists_mk'_eq : ∀ {g : free_monoid (fin 4)}, is_minimal g → of_word g ∈ H →
   ∃ l, mk' l = g
@@ -597,6 +607,85 @@ begin
     exact count_le_length _ _ }
 end
 
+lemma length_mk_restr'_le (x : bool) (g : free_monoid (bool × fin 3)) :
+  length (mk_restr' x g) ≤ length g :=
+(length_mk_restr' x g).trans_le tsub_le_self
+
+lemma length_mk_restr'_le_length_mk' (x : bool) (g : free_monoid (bool × fin 3)) :
+  length (mk_restr' x g) ≤ length (mk' g) :=
+(length_mk_restr'_le x g).trans (le_length_mk' _)
+
+lemma length_mk_restr'_lt_length_mk' {x : bool} {g : free_monoid (bool × fin 3)} :
+  length (mk_restr' x g) < length (mk' g) ↔
+    tt ∈ map prod.fst g ∨ @has_mem.mem _ (list _) _ (x, (1 : fin 3)) g :=
+by rw [length_mk_restr', length_mk', tsub_lt_iff_right (count_le_length _ _), add_assoc,
+  lt_add_iff_pos_right, add_pos_iff, count_pos, two_mul, add_pos_iff, or_self, count_pos]
+
+lemma forall_length_mk_restr'_lt_length_mk' {g : free_monoid (bool × fin 3)}
+  (hg : is_minimal (mk' g)) :
+  (∀ x, length (mk_restr' x g) < length (mk' g)) ↔ g ≠ [] ∧ ∀ n, g ≠ [(ff, n)] :=
+begin
+  simp only [length_mk_restr'_lt_length_mk'],
+  refine ⟨λ h, _, λ h x, _⟩,
+  { simp only [ne.def, ← not_exists, ← not_or_distrib],
+    rintro (rfl|⟨n, rfl⟩); simpa using h tt },
+  { rcases exists_cons_of_ne_nil h.1 with ⟨y, g, rfl⟩,
+    left,
+    cases g with z g,
+    { rw [map_singleton, list.mem_singleton, eq_comm],
+      rcases y with ⟨_|_, n⟩,
+      exacts [(h.2 n rfl).elim, rfl] },
+    { rw [map_cons, map_cons, mem_cons_iff, mem_cons_iff, ← or_assoc],
+      left,
+      have : y.1 ≠ z.1 := hg.chain'_ne_fst.rel_head,
+      cases z.1,
+      { left, symmetry, simpa using this },
+      { exact or.inr rfl } } }
+end
+
+lemma two_mul_length_mk_restr'_le_length_mk'_succ {x : bool} {g : free_monoid (bool × fin 3)}
+  (hmin : is_minimal (mk' g)) :
+  2 * length (mk_restr' x g) ≤ length (mk' g) + 1 :=
+begin
+  rw [length_mk_restr', length_mk', mul_tsub, tsub_le_iff_right, add_assoc, add_assoc, two_mul,
+    add_le_add_iff_left, ← tsub_le_iff_right],
+  refine le_trans _ (hmin.chain'_ne_map_fst.length_sub_one_le_two_mul_count_bool _),
+  rw [length_map],
+  exact tsub_le_tsub_left (le_add_right le_rfl) _
+end
+
+lemma two_mul_length_mk_restr'_le_length_mk' {x : bool} {g : free_monoid (bool × fin 3)}
+  (hmin : is_minimal (mk' g)) (he : even (length g)) :
+  2 * length (mk_restr' x g) ≤ length (mk' g) :=
+begin
+  refine nat.lt_succ_iff.1
+    (lt_of_le_of_ne (two_mul_length_mk_restr'_le_length_mk'_succ hmin) $ λ h, _),
+  rw [← @not_not (even _), ← even_length_mk', ← nat.even_add_one, ← nat.succ_eq_add_one, ← h] at he,
+  exact he (even_two_mul _)
+end
+
+lemma two_mul_length_mk_restr'_lt_length_mk' {x : bool} {g : free_monoid (bool × fin 3)}
+  (hmin : is_minimal (mk' g)) (he : even (length g)) :
+  2 * length (mk_restr' x g) < length (mk' g) ↔ @has_mem.mem _ (list (bool × fin 3)) _ (x, 1) g :=
+begin
+  rw [length_mk_restr', length_mk', mul_tsub,
+    tsub_lt_iff_right (mul_le_mul_left' (count_le_length _ _) _), add_assoc, two_mul,
+    add_lt_add_iff_left, hmin.chain'_ne_map_fst.two_mul_count_bool_of_even, length_map,
+    lt_add_iff_pos_right, two_mul, add_pos_iff, or_self, count_pos],
+  rwa [length_map]
+end
+
+lemma restr_injective' {g₁ g₂} (h : ∀ x, restr x g₁ = restr x g₂) : g₁ = g₂ :=
+begin
+  refine subtype.ext (fun_like.ext _ _ $ λ l, _),
+  cases l with hd tl, { simp only [apply_nil] },
+  erw [← cons_tail_apply g₁.coe_prop, ← cons_tail_apply g₂.coe_prop, ← restr_apply, h,
+    ← restr_apply]
+end
+
+lemma restr_injective : injective (λ g, (restr ff g, restr tt g)) :=
+λ g₁ g₂ h, restr_injective' $ bool.forall_bool.2 (prod.mk.inj_iff.1 h)
+
 end head_preserving
 
 section head_preserving
@@ -608,18 +697,67 @@ instance : infinite G :=
 
 instance : infinite H := infinite_iff.mpr $ (aleph_0_le_mk G).trans_eq card_eq'.symm
 
-lemma injective_head_preserving_restr : injective (λ g, (restr ff g, restr tt g)) :=
+lemma of_word_pow_two_pow_length (g : free_monoid (fin 4)) : of_word g ^ (2 ^ length g) = 1 :=
 begin
-  refine λ g₁ g₂ h, subtype.ext (fun_like.ext _ _ $ λ l, _),
-  have : ∀ b, restr b g₁ = restr b g₂, by simpa only [prod.mk.inj_iff, bool.forall_bool] using h,
-  cases l with hd tl, { simp only [apply_nil] },
-  erw [← cons_tail_apply g₁.coe_prop, ← cons_tail_apply g₂.coe_prop, ← restr_apply, this,
-    ← restr_apply]
+  have Hle : ∀ {g} {k l : ℕ}, k ≤ l → of_word g ^ 2 ^ k = 1 → of_word g ^ 2 ^ l = 1,
+  { intros g k l hle h1,
+    rw [← add_tsub_cancel_of_le hle, pow_add, pow_mul, h1, one_pow] },
+  induction hN : length g using nat.strong_induction_on with N ihN generalizing g,
+  replace ihN : ∀ g' : free_monoid (fin 4), length g' < N → of_word g' ^ 2 ^ length g' = 1,
+    from λ g' hg', ihN _ hg' _ rfl,
+  revert g, -- TODO: use the new `wlog`
+  suffices : ∀ g : free_monoid (fin 4), length g = N → is_minimal g → of_word g ^ 2 ^ N = 1,
+  { rintro g rfl,
+    rcases exists_is_minimal_of_word_eq (of_word g) with ⟨g', hmin, hg'⟩,
+    cases (hmin g hg').eq_or_lt with hlen hlt,
+    { rw [← hg', this g' hlen hmin] },
+    { rw [← hg', Hle hlt.le (ihN _ hlt)] } },
+  have hH : ∀ g : free_monoid (fin 4), length g = N → is_minimal g → of_word g ∈ H →
+    of_word g ^ 2 ^ N = 1,
+  { rintro g rfl hmin hmem,
+    rcases exists_mk_eq ⟨of_word g, hmem⟩ with ⟨l, hlg, hl⟩,
+    rw [← subtype.coe_inj, subtype.coe_mk, ← of_word_mk'] at hlg,
+    rw [hmin.length_eq hl hlg.symm] at ihN ⊢,
+    rw [← hlg],
+    clear hlg hmin hmem g,
+    by_cases hlt : ∀ x, length (mk_restr' x l) < length (mk' l),
+    { suffices : mk l ^ 2 ^ length (mk' l) = 1,
+        by rw [of_word_mk', ← subgroup.coe_pow, this, subgroup.coe_one],
+      refine restr_injective' (λ x, _),
+      rw [map_pow, map_one, ← of_word_mk_restr', Hle (hlt _).le (ihN _ (hlt _))] },
+    { rw [forall_length_mk_restr'_lt_length_mk' hl, ne.def, ← not_exists, ← not_or_distrib, not_not]
+        at hlt,
+      rcases hlt with rfl|⟨n, rfl⟩,
+      { refl },
+      { rw [mk'_singleton, of_word_atom', cond, length_atom', cond, pow_one, sq,
+          bcd_mul_self] } } },
+  have hnomin : ∀ g : free_monoid (fin 4), length g = N → is_minimal g → ¬is_minimal (g ^ 2) →
+    of_word g ^ 2 ^ N = 1,
+  { rintro g rfl hmin hmin₂,
+    rcases exists_mk_eq ⟨of_word g^2, sq_mem _⟩ with ⟨g', h', hmin'⟩,
+    have hlt : length (mk' g') < 2 * length g,
+  },
+
+
+  -- induction; WLOG, `g` is a minimal word
+  -- suffices : ∀ g, is_minimal g →
+  --   (∀ g' : free_monoid (fin 4), length g' < length g → of_word g' ^ (2 ^ length g') = 1) →
+  --   of_word g ^ (2 ^ length g) = 1,
+  -- { induction hn : length g using nat.strong_induction_on with n' ihn generalizing g, subst n',
+  --   exact ihn _ (hg'.trans_le (length_to_word_of_word_le _)) _ rfl },
+  -- clear g, intros g hmin ihg,
+  -- -- Trivial cases `g = []` and `g = [_]`
+  -- cases lt_or_le (length g) 2 with h₂ h₂,
+  -- { cases g with n g, { exact one_pow _ },
+  --   cases g with m g, { rw [length_singleton, pow_one, of_word_singleton, sq, abcd_mul_self] },
+  --   exact absurd h₂ (by simp [bit0]) },
+  
 end
 
 lemma exists_pow_two_pow_eq_one (g : G) : ∃ k : ℕ, g ^ (2 ^ k) = 1 :=
 begin
   
+
 end
 
 end head_preserving

@@ -1413,8 +1413,7 @@ begin
         apply h,
         exact hS,
       end,
-      exact e1.2, },
-    },
+      exact e1.2, }, },
 end
 
 lemma set_prod_sInter (f₂ : set (set β)) (h₁ : f₂.nonempty) (S : set α)

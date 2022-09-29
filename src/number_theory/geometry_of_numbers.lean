@@ -413,11 +413,11 @@ begin
     simpa [subgroup.smul_def] using hleft }
 end
 
-open measure_theory measure_theory.measure topological_space set
+open measure_theory measure_theory.measure topological_space set fintype
 
 lemma rescale (ι : Type*) [fintype ι] {r : ℝ} (hr : 0 < r) :
   measure.comap ((•) r) (volume : measure (ι → ℝ)) =
-  (ennreal.of_real r) ^ (fintype.card ι) • (volume : measure (ι → ℝ)) :=
+  ennreal.of_real r ^ card ι • (volume : measure (ι → ℝ)) :=
 begin
   have hrzero : ennreal.of_real r ≠ 0,
   { intro h,
@@ -451,12 +451,12 @@ begin
   { exact measurable_set.univ_pi hS }
 end
 
-open ennreal fintype
+open ennreal
 
 -- TODO version for any real vector space in terms of dimension
 lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume {L : add_subgroup (ι → ℝ)}
   [encodable L] {F T : set (ι → ℝ)} (fund : is_add_fundamental_domain L F)
-  (h : volume F * 2 ^ (card ι) < volume T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
+  (h : volume F * 2 ^ card ι < volume T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
   ∃ (x : L) (h : x ≠ 0), (x : ι → ℝ) ∈ T :=
 begin
   have hS : measurable_set (interior T) := measurable_set_interior,
@@ -467,13 +467,13 @@ begin
     ext x,
     simp only [one_div, set.mem_preimage],
     exact mem_inv_smul_set_iff₀ two_ne_zero _ x },
-  have : volume ((1/2 : ℝ) • S) * 2 ^ (card ι) = volume S,
-  { suffices : volume ((1/2 : ℝ) • S) = (1 / 2) ^ (card ι) * volume S,
+  have : volume ((1/2 : ℝ) • S) * 2 ^ card ι = volume S,
+  { suffices : volume ((1/2 : ℝ) • S) = (1 / 2) ^ card ι * volume S,
     { rw [this, mul_comm _ (volume S), mul_assoc, ←mul_pow, one_div,
         ennreal.inv_mul_cancel two_ne_zero two_ne_top, one_pow, mul_one] },
     have := rescale ι (half_pos zero_lt_one),
     simp only [one_div, fintype.card_fin] at this ⊢,
-    rw ←ennreal.of_real_inv_of_pos (by norm_num : 0 < (2 : ℝ)) at this,
+    rw ←ennreal.of_real_inv_of_pos (two_pos : 0 < (2 : ℝ)) at this,
     simp only [zero_le_one, of_real_one, of_real_bit0] at this,
     rw [←smul_eq_mul, ←measure.smul_apply, ←this, comap_apply _ _ _ _ hS],
     { simp },

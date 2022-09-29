@@ -1258,9 +1258,6 @@ begin
   simpa only [hf, hx, mul_le_mul_right] using f.le_op_norm x,
 end
 
-lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-homothety_norm _ (to_span_singleton_homothety 𝕜 x)
-
 variable (f)
 
 theorem uniform_embedding_of_bound {K : ℝ≥0} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :

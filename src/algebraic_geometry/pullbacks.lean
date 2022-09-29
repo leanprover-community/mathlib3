@@ -514,8 +514,6 @@ end
 
 lemma has_pullback_of_cover : has_pullback f g := ⟨⟨⟨_, glued_is_limit 𝒰 f g⟩⟩⟩
 
-instance : has_limits CommRingᵒᵖ := has_limits_op_of_has_colimits
-
 instance affine_has_pullback {A B C : CommRing}
   (f : Spec.obj (opposite.op A) ⟶ Spec.obj (opposite.op C))
   (g : Spec.obj (opposite.op B) ⟶ Spec.obj (opposite.op C)) : has_pullback f g :=

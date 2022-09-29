@@ -956,7 +956,7 @@ section basis
 
 open alternating_map
 
-variables {ι₁ : Type*} [fintype ι]
+variables {ι₁ : Type*} [finite ι]
 variables {R' : Type*} {N₁ N₂ : Type*} [comm_semiring R'] [add_comm_monoid N₁] [add_comm_monoid N₂]
 variables [module R' N₁] [module R' N₂]
 

@@ -212,7 +212,7 @@ begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     refine (hf.finite_dsupport.union hg.finite_dsupport).subset (λ i, _),
-    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+    simp only [pi.add_apply, ne.def, set.mem_union, set.mem_set_of_eq],
     contrapose!,
     rintros ⟨hf', hg'⟩,
     simp [hf', hg'] },

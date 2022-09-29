@@ -604,6 +604,15 @@ begin
     apply multiset.prod_dvd_prod_of_le }
 end
 
+lemma associated_iff_normalized_factors_eq_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  x ~ᵤ y ↔ normalized_factors x = normalized_factors y :=
+begin
+  refine ⟨λ h, _,
+    λ h, (normalized_factors_prod hx).symm.trans (trans (by rw h) (normalized_factors_prod hy))⟩,
+  apply le_antisymm; rw [← dvd_iff_normalized_factors_le_normalized_factors],
+  all_goals { simp [*, h.dvd, h.symm.dvd], },
+end
+
 theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
   normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
@@ -1672,10 +1681,8 @@ by { ext, simp [factorization] }
 lemma associated_of_factorization_eq (a b: α) (ha: a ≠ 0) (hb: b ≠ 0)
   (h: factorization a = factorization b) : associated a b :=
 begin
-  simp only [factorization, add_equiv.apply_eq_iff_eq] at h,
-  have ha' := normalized_factors_prod ha,
-  rw h at ha',
-  exact associated.trans ha'.symm (normalized_factors_prod hb),
+  simp_rw [factorization, add_equiv.apply_eq_iff_eq] at h,
+  rwa [associated_iff_normalized_factors_eq_normalized_factors ha hb],
 end
 
 end finsupp

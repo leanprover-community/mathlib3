@@ -116,7 +116,7 @@ universes u v w u' v' w'
 open set filter function
 open_locale manifold filter topological_space
 
-localized "notation `∞` := (⊤ : ℕ∞)" in manifold
+localized "notation (name := with_top.nat.top) `∞` := (⊤ : ℕ∞)" in manifold
 
 /-! ### Models with corners. -/
 
@@ -144,9 +144,11 @@ def model_with_corners_self (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   continuous_to_fun  := continuous_id,
   continuous_inv_fun := continuous_id }
 
-localized "notation `𝓘(` 𝕜 `, ` E `)` := model_with_corners_self 𝕜 E" in manifold
+localized "notation (name := model_with_corners_self) `𝓘(` 𝕜 `, ` E `)` :=
+  model_with_corners_self 𝕜 E" in manifold
 
-localized "notation `𝓘(` 𝕜 `)` := model_with_corners_self 𝕜 𝕜" in manifold
+localized "notation (name := model_with_corners_self.self) `𝓘(` 𝕜 `)` :=
+  model_with_corners_self 𝕜 𝕜" in manifold
 
 section
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]

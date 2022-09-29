@@ -1790,7 +1790,7 @@ end
 instance : has_pow ordinal ordinal :=
 ⟨λ a b, if a = 0 then 1 - b else limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b)⟩
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 
 theorem opow_def (a b : ordinal) :
   a ^ b = if a = 0 then 1 - b else limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b) :=
@@ -2351,7 +2351,7 @@ begin
   { exact (mul_is_normal ho).apply_omega }
 end
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 theorem sup_opow_nat {o : ordinal} (ho : 0 < o) : sup (λ n : ℕ, o ^ n) = o ^ ω :=
 begin
   rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
@@ -2363,3 +2363,20 @@ begin
 end
 
 end ordinal
+
+namespace tactic
+open ordinal positivity
+
+/-- Extension for the `positivity` tactic: `ordinal.opow` takes positive values on positive inputs.
+-/
+@[positivity]
+meta def positivity_opow : expr → tactic strictness
+| `(@has_pow.pow _ _ %%inst %%a %%b) := do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``opow_pos [b, p]
+  | _ := failed -- We already know that `0 ≤ x` for all `x : ordinal`
+  end
+| _ := failed
+
+end tactic

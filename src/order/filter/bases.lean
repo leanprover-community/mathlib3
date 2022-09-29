@@ -543,6 +543,10 @@ lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
 ⟨λ t, by simp only [mem_inf_principal, hl.mem_iff, subset_def, mem_set_of_eq,
   mem_inter_iff, and_imp]⟩
 
+lemma has_basis.principal_inf (hl : l.has_basis p s) (s' : set α) :
+  (𝓟 s' ⊓ l).has_basis p (λ i, s' ∩ s i) :=
+by simpa only [inf_comm, inter_comm] using hl.inf_principal s'
+
 lemma has_basis.inf_basis_ne_bot_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   ne_bot (l ⊓ l') ↔ ∀ ⦃i⦄ (hi : p i) ⦃i'⦄ (hi' : p' i'), (s i ∩ s' i').nonempty :=
 (hl.inf' hl').ne_bot_iff.trans $ by simp [@forall_swap _ ι']
@@ -601,6 +605,15 @@ by simp only [← principal_singleton, disjoint_principal_principal, disjoint_si
 @[simp] lemma compl_diagonal_mem_prod {l₁ l₂ : filter α} :
   (diagonal α)ᶜ ∈ l₁ ×ᶠ l₂ ↔ disjoint l₁ l₂ :=
 by simp only [mem_prod_iff, filter.disjoint_iff, prod_subset_compl_diagonal_iff_disjoint]
+
+lemma has_basis.disjoint_iff_left (h : l.has_basis p s) :
+  disjoint l l' ↔ ∃ i (hi : p i), (s i)ᶜ ∈ l' :=
+by simp only [h.disjoint_iff l'.basis_sets, exists_prop, id, ← disjoint_principal_left,
+  (has_basis_principal _).disjoint_iff l'.basis_sets, unique.exists_iff]
+
+lemma has_basis.disjoint_iff_right (h : l.has_basis p s) :
+  disjoint l' l ↔ ∃ i (hi : p i), (s i)ᶜ ∈ l' :=
+disjoint.comm.trans h.disjoint_iff_left
 
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
@@ -886,9 +899,19 @@ countable_binfi_eq_infi_seq' Bcbl 𝓟 principal_univ
 
 section is_countably_generated
 
+protected lemma has_antitone_basis.mem_iff [preorder ι] {l : filter α} {s : ι → set α}
+  (hs : l.has_antitone_basis s) {t : set α} : t ∈ l ↔ ∃ i, s i ⊆ t :=
+hs.to_has_basis.mem_iff.trans $ by simp only [exists_prop, true_and]
+
 protected lemma has_antitone_basis.mem [preorder ι] {l : filter α} {s : ι → set α}
   (hs : l.has_antitone_basis s) (i : ι) : s i ∈ l :=
 hs.to_has_basis.mem_of_mem trivial
+
+lemma has_antitone_basis.has_basis_ge [preorder ι] [is_directed ι (≤)] {l : filter α}
+  {s : ι → set α} (hs : l.has_antitone_basis s) (i : ι) :
+  l.has_basis (λ j, i ≤ j) s :=
+hs.1.to_has_basis (λ j _, (exists_ge_ge i j).imp $ λ k hk, ⟨hk.1, hs.2 hk.2⟩)
+  (λ j hj, ⟨j, trivial, subset.rfl⟩)
 
 /-- If `f` is countably generated and `f.has_basis p s`, then `f` admits a decreasing basis
 enumerated by natural numbers such that all sets have the form `s i`. More precisely, there is a
@@ -940,6 +963,11 @@ begin
     ⟨hs.to_has_basis.inf ht.to_has_basis, set.to_countable _⟩
 end
 
+instance map.is_countably_generated (l : filter α) [l.is_countably_generated] (f : α → β) :
+  (map f l).is_countably_generated :=
+let ⟨x, hxl⟩ := l.exists_antitone_basis in
+has_countable_basis.is_countably_generated ⟨hxl.map.to_has_basis, to_countable _⟩
+
 instance comap.is_countably_generated (l : filter β) [l.is_countably_generated] (f : α → β) :
   (comap f l).is_countably_generated :=
 let ⟨x, hxl⟩ := l.exists_antitone_basis in
@@ -965,7 +993,7 @@ filter.sup.is_countably_generated _ _
 
 end is_countably_generated
 
-lemma is_countably_generated_seq [encodable β] (x : β → set α) :
+lemma is_countably_generated_seq [countable β] (x : β → set α) :
   is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
   use [range x, countable_range x],
@@ -1009,7 +1037,6 @@ begin
   rw [← plift.down_surjective.infi_comp],
   refine has_countable_basis.is_countably_generated
     ⟨has_basis_infi (λ n, (hs _).to_has_basis), _⟩,
-  haveI := encodable.of_countable (plift ι),
   refine (countable_range $ sigma.map (coe : finset (plift ι) → set (plift ι)) (λ _, id)).mono _,
   rintro ⟨I, f⟩ ⟨hI, -⟩,
   lift I to finset (plift ι) using hI,

@@ -275,17 +275,14 @@ quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec
 isomorphic. -/
 @[to_additive "If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
 isomorphic."]
-def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
+def quotient_mul_equiv_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   G ⧸ M ≃* G ⧸ N :=
-{ to_fun := (lift M (mk' N) (λ m hm, quotient_group.eq.mpr (by simpa [← h] using M.inv_mem hm))),
-  inv_fun := (lift N (mk' M) (λ n hn, quotient_group.eq.mpr (by simpa [← h] using N.inv_mem hn))),
-  left_inv := λ x, x.induction_on' $ by { intro, refl },
-  right_inv := λ x, x.induction_on' $ by { intro, refl },
-  map_mul' := λ x y, by rw monoid_hom.map_mul }
+{ map_mul' := λ q r, quotient.induction_on₂' q r (λ g h, rfl),
+  .. subgroup.quotient_equiv_of_eq h }
 
 @[simp, to_additive]
-lemma equiv_quotient_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :
-  quotient_group.equiv_quotient_of_eq h (quotient_group.mk x) = (quotient_group.mk x) :=
+lemma quotient_mul_equiv_of_eq_mk {M N : subgroup G} [M.normal] [N.normal] (h : M = N) (x : G) :
+  quotient_group.quotient_mul_equiv_of_eq h (quotient_group.mk x) = (quotient_group.mk x) :=
 rfl
 
 /-- Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
@@ -405,7 +402,7 @@ have φ_surjective : function.surjective φ := λ x, x.induction_on' $
     change h⁻¹ * (h * n) ∈ N,
     rwa [←mul_assoc, inv_mul_self, one_mul],
   end,
-(equiv_quotient_of_eq (by simp [comap_comap, ←comap_ker])).trans
+(quotient_mul_equiv_of_eq (by simp [comap_comap, ←comap_ker])).trans
   (quotient_ker_equiv_of_surjective φ φ_surjective)
 
 end snd_isomorphism_thm

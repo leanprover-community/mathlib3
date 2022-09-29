@@ -553,7 +553,7 @@ begin
   refl
 end
 
-private lemma has_basis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι → set (β × β)}
+protected lemma has_basis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι → set (β × β)}
   (hb : has_basis (𝓤 β) p s) (S : set α) :
   (@uniformity (α → β) ((uniform_convergence.uniform_space S β).comap S.restrict)).has_basis
   p (λ i, uniform_convergence_on.gen S (s i)) :=
@@ -562,13 +562,13 @@ begin
   exact (uniform_convergence.has_basis_uniformity_of_basis S β hb).comap _
 end
 
-private lemma has_basis_uniformity_of_basis_aux₂ (h : directed_on (⊆) 𝔖) {p : ι → Prop}
+protected lemma has_basis_uniformity_of_basis_aux₂ (h : directed_on (⊆) 𝔖) {p : ι → Prop}
   {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
   directed_on ((λ s : set α, (uniform_convergence.uniform_space s β).comap
     (s.restrict : (α → β) → s → β)) ⁻¹'o ge) 𝔖 :=
 h.mono $ λ s t hst,
-  ((has_basis_uniformity_of_basis_aux₁ α β hb _).le_basis_iff
-    (has_basis_uniformity_of_basis_aux₁ α β hb _)).mpr
+  ((uniform_convergence_on.has_basis_uniformity_of_basis_aux₁ α β hb _).le_basis_iff
+    (uniform_convergence_on.has_basis_uniformity_of_basis_aux₁ α β hb _)).mpr
   (λ V hV, ⟨V, hV, uniform_convergence_on.gen_mono hst subset_rfl⟩)
 
 /-- If `𝔖 : set (set α)` is nonempty and directed and `𝓑` is a filter basis of `𝓤 β`, then the
@@ -582,8 +582,8 @@ protected lemma has_basis_uniformity_of_basis (h : 𝔖.nonempty) (h' : directed
 begin
   simp only [infi_uniformity'],
   exact has_basis_binfi_of_directed h (λ S, (@uniform_convergence_on.gen α β S) ∘ s) _
-    (λ S hS, has_basis_uniformity_of_basis_aux₁ α β hb S)
-    (has_basis_uniformity_of_basis_aux₂ α β 𝔖 h' hb)
+    (λ S hS, uniform_convergence_on.has_basis_uniformity_of_basis_aux₁ α β hb S)
+    (uniform_convergence_on.has_basis_uniformity_of_basis_aux₂ α β 𝔖 h' hb)
 end
 
 /-- If `𝔖 : set (set α)` is nonempty and directed, then the uniformity of

@@ -403,15 +403,7 @@ begin
 end
 
 @[continuity]
-lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
-continuous_uncurry_iff.mp begin
-  apply trans_continuous_family;
-  refine (continuous.comp _ continuous_fst).path_eval continuous_snd,
-  exacts [continuous_fst, continuous_snd],
-end
-
-@[continuity]
-lemma _root_.continuous.path_trans (f : Y → path x y) (g : Y → path y z) : continuous f →
+lemma _root_.continuous.path_trans {f : Y → path x y} {g : Y → path y z} : continuous f →
   continuous g → continuous (λ t, (f t).trans (g t)) :=
 begin
   intros hf hg,
@@ -419,6 +411,9 @@ begin
   exact trans_continuous_family _ (continuous_uncurry_iff.mpr hf)
     _ (continuous_uncurry_iff.mpr hg),
 end
+
+@[continuity]
+lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) := continuous_fst.path_trans continuous_snd
 
 /-! #### Product of paths -/
 section prod

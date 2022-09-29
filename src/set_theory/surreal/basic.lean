@@ -169,7 +169,29 @@ theorem numeric_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves]
 numeric.mk (λ _, is_empty_elim) H is_empty_elim
 
 theorem numeric_zero : numeric 0 := numeric_of_is_empty 0
-theorem numeric_one : numeric 1 := numeric_of_is_empty_right_moves 1 $ λ _, numeric_zero
+
+theorem numeric.of_left {x} (ox : numeric x) : numeric P{x |} :=
+numeric_of_is_empty_right_moves _ $ λ _, ox
+
+theorem numeric.of_right {x} (ox : numeric x) : numeric P{| x} :=
+numeric_of_is_empty_left_moves _ $ λ _, ox
+
+theorem numeric_of_of_lt {x y} (ox : numeric x) (oy : numeric y) (h : x < y) : numeric P{x | y} :=
+by { rw numeric_def, simp [ox, oy, h] }
+
+theorem numeric.lt_of_left {x} (ox : numeric x) : x < P{x |} :=
+lt_of_lf (lf_of_left x) ox ox.of_left
+
+theorem numeric.of_right_lt {x} (ox : numeric x) : P{| x} < x :=
+lt_of_lf (of_right_lf x) ox.of_right ox
+
+theorem lt_of {x y} (h : numeric P{x | y}) : x < P{x | y} :=
+lt_of_lf (lf_of x y) (h.move_left default) h
+
+theorem of_lt {x y} (h : numeric P{x | y}) : P{x | y} < y :=
+lt_of_lf (of_lf x y) h (h.move_right default)
+
+theorem numeric_one : numeric 1 := numeric_zero.of_left
 
 theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
 | ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_neg_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩

@@ -397,21 +397,34 @@ begin
      ← cyclotomic₂_div_prod_eq _ _ hpowpos1 hb, ← cyclotomic₂_div_prod_eq _ _ hpowpos2 hb,
      multiplicity.finset.prod (nat.prime_iff_prime_int.mp hp), ← finset.sum_sdiff
      (nat.divisors_subset_of_dvd (ne_of_gt hpowpos2) (dvd_mul_right _ _))] at this,
-    suffices : ∑ (x : ℕ) in (p ^ β * least_dvd_pow hp hpa hpb * m).divisors \
+    suffices hsum : ∑ (x : ℕ) in (p ^ β * least_dvd_pow hp hpa hpb * m).divisors \
      (p ^ β * least_dvd_pow hp hpa hpb).divisors, multiplicity ↑p (cyclotomic₂ x a b) = 0,
-    { sorry },
+    { simp_rw finset.sum_eq_zero_iff at hsum,
+      apply hsum,
+      simp only [finset.mem_sdiff, mul_assoc, mul_comm m, nat.mem_divisors_self _
+       (show p ^ β * (least_dvd_pow hp hpa hpb * m) ≠ 0, by linarith), true_and],
+      simp only [nat.mem_divisors, not_and],
+      intro hdvd,
+      exfalso,
+      have hlt : p ^ β * least_dvd_pow hp hpa hpb < p ^ β * least_dvd_pow hp hpa hpb * m :=
+       by exact (lt_mul_iff_one_lt_right hpowpos1).mpr (nat.lt_of_succ_le hm),
+      apply nat.not_dvd_of_pos_of_lt hpowpos1 hlt,
+      simp only [mul_assoc],
+      -- exact hdvd, fails here too
+      sorry },
     { have hnetop : ∑ (x : ℕ) in (p ^ β * least_dvd_pow hp hpa hpb).divisors, multiplicity ↑p (cyclotomic₂ x a b) ≠ ⊤,
       { rw [← multiplicity.finset.prod (nat.prime_iff_prime_int.mp hp),
          cyclotomic₂_div_prod_eq _ _ hpowpos1 hb, ← multiplicity.int.nat_abs,
          multiplicity.ne_top_iff_finite, multiplicity.finite_nat_iff],
         refine ⟨hp.ne_one, int.nat_abs_pos_of_ne_zero _⟩,
         rw [sub_ne_zero, ne.def],
-        contrapose! hab,
-        replace hab : a.nat_abs ^ (p ^ β * least_dvd_pow hp hpa hpb) = b.nat_abs ^ (p ^ β * least_dvd_pow hp hpa hpb),
-        { simp_rw [← int.nat_abs_pow, hab] },
-        apply nat.pow_left_injective (nat.one_le_of_lt hpowpos1),
+        intro hpow,
+        apply hab,
+        have honelepow : 1 ≤ p ^ β * least_dvd_pow hp hpa hpb := by linarith [hpowpos1],
+        sorry
+        -- apply nat.pow_left_injective honelepow,
         -- simp only [hab] fails but should close it
-        sorry },
+        },
       simp only [← part_enat.add_right_cancel_iff hnetop, zero_add, this] }},
 end
 

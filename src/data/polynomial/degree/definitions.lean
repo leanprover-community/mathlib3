@@ -403,7 +403,7 @@ by unfold degree; rw support_neg
 by simp [nat_degree]
 
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : R[X]) = 0 :=
-by simp only [←C_eq_int_cast, nat_degree_C]
+by rw [←C_eq_int_cast, nat_degree_C]
 
 @[simp] lemma leading_coeff_neg (p : R[X]) : (-p).leading_coeff = -p.leading_coeff :=
 by rw [leading_coeff, leading_coeff, nat_degree_neg, coeff_neg]
@@ -648,7 +648,7 @@ lemma monic.ne_zero_of_ne (h : (0:R) ≠ 1) {p : R[X]} (hp : p.monic) :
   p ≠ 0 :=
 by { nontriviality R, exact hp.ne_zero }
 
-lemma monic_of_nat_degree_le_of_coeff_eq_one (pn : p.nat_degree ≤ n) (p1 : p.coeff n = 1) :
+lemma monic_of_nat_degree_le_of_coeff_eq_one (n : ℕ) (pn : p.nat_degree ≤ n) (p1 : p.coeff n = 1) :
   monic p :=
 begin
   nontriviality,
@@ -656,9 +656,9 @@ begin
   exact ne_of_eq_of_ne p1 one_ne_zero,
 end
 
-lemma monic_of_degree_le_of_coeff_eq_one (pn : p.degree ≤ n) (p1 : p.coeff n = 1) :
+lemma monic_of_degree_le_of_coeff_eq_one (n : ℕ) (pn : p.degree ≤ n) (p1 : p.coeff n = 1) :
   monic p :=
-monic_of_nat_degree_le_of_coeff_eq_one (nat_degree_le_of_degree_le pn) p1
+monic_of_nat_degree_le_of_coeff_eq_one n (nat_degree_le_of_degree_le pn) p1
 
 lemma monic.ne_zero_of_polynomial_ne {r} (hp : monic p) (hne : q ≠ r) : p ≠ 0 :=
 by { haveI := nontrivial.of_polynomial_ne hne, exact hp.ne_zero }
@@ -838,12 +838,6 @@ begin
     { rw [←nat_degree_pow' hp1, ←leading_coeff_pow' hp1],
       exact coeff_mul_degree_add_degree _ _ } }
 end
-
-lemma subsingleton_of_monic_zero (h : monic (0 : R[X])) :
-  (∀ p q : R[X], p = q) ∧ (∀ a b : R, a = b) :=
-by rw [monic.def, leading_coeff_zero] at h;
-  exact ⟨λ p q, by rw [← mul_one p, ← mul_one q, ← C_1, ← h, C_0, mul_zero, mul_zero],
-    λ a b, by rw [← mul_one a, ← mul_one b, ← h, mul_zero, mul_zero]⟩
 
 lemma zero_le_degree_iff {p : R[X]} : 0 ≤ degree p ↔ p ≠ 0 :=
 by rw [ne.def, ← degree_eq_bot];
@@ -1053,10 +1047,11 @@ calc degree (p - q) = degree (erase (nat_degree q) p + -erase (nat_degree q) q) 
   : degree_neg (erase (nat_degree q) q) ▸ degree_add_le _ _
 ... < degree p : max_lt_iff.2 ⟨hd' ▸ degree_erase_lt hp0, hd.symm ▸ degree_erase_lt hq0⟩
 
+lemma degree_X_sub_C_le (r : R) : (X - C r).degree ≤ 1 :=
+(degree_sub_le _ _).trans (max_le degree_X_le (degree_C_le.trans zero_le_one))
 
-lemma nat_degree_X_sub_C_le {r : R} : (X - C r).nat_degree ≤ 1 :=
-nat_degree_le_iff_degree_le.2 $ le_trans (degree_sub_le _ _) $ max_le degree_X_le $
-le_trans degree_C_le $ with_bot.coe_le_coe.2 zero_le_one
+lemma nat_degree_X_sub_C_le (r : R) : (X - C r).nat_degree ≤ 1 :=
+nat_degree_le_iff_degree_le.2 $ degree_X_sub_C_le r
 
 lemma degree_sub_eq_left_of_degree_lt (h : degree q < degree p) : degree (p - q) = degree p :=
 by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_left_of_degree_lt h] }

@@ -44,6 +44,14 @@ lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in 𝓝[s] a, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
 eventually_inf_principal
 
+lemma frequently_nhds_within_iff {z : α} {p : α → Prop} :
+  (∃ᶠ x in 𝓝[≠] z, p x) ↔ (∃ᶠ x in 𝓝 z, p x ∧ x ≠ z) :=
+iff.not (by simp [eventually_nhds_within_iff, not_imp_not])
+
+lemma mem_closure_ne_iff_frequently_within {z : α} {s : set α} :
+  z ∈ closure (s \ {z}) ↔ ∃ᶠ x in 𝓝[≠] z, x ∈ s :=
+by simp [mem_closure_iff_frequently, frequently_nhds_within_iff]
+
 @[simp] lemma eventually_nhds_within_nhds_within {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ y in 𝓝[s] a, ∀ᶠ x in 𝓝[s] y, p x) ↔ ∀ᶠ x in 𝓝[s] a, p x :=
 begin
@@ -283,7 +291,7 @@ begin
   simp only [infi_inf_eq]
 end
 
-lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [fintype ι] [Π i, topological_space (α i)]
+lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [finite ι] [Π i, topological_space (α i)]
   (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi univ s] x = ⨅ i, comap (λ x, x i) 𝓝[s i] (x i) :=
 by simpa [nhds_within] using nhds_within_pi_eq finite_univ s x

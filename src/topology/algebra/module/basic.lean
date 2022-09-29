@@ -26,7 +26,7 @@ Plain linear maps are denoted by `M →L[R] M₂` and star-linear maps by `M →
 The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M₂` and `M ≃L⋆[R] M₂`.
 -/
 
-open filter
+open filter linear_map (ker range)
 open_locale topological_space big_operators filter
 
 universes u v w u'
@@ -173,13 +173,12 @@ variables {R : Type u} {M : Type v}
 [module R M] [has_continuous_smul R M]
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-  ⊆ closure (s : set M) :=
+  (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) ⊆ closure s :=
 calc
-(λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-    = (λ p : R × M, p.1 • p.2) '' (closure ((set.univ : set R) ×ˢ (s : set M))) :
+(λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s)
+    = (λ p : R × M, p.1 • p.2) '' closure (set.univ ×ˢ s) :
   by simp [closure_prod_eq]
-... ⊆ closure ((λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ (s : set M))) :
+... ⊆ closure ((λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ s)) :
   image_closure_subset_closure_image continuous_smul
 ... = closure s : begin
   congr,
@@ -190,10 +189,8 @@ calc
 end
 
 lemma submodule.closure_smul_self_eq (s : submodule R M) :
-  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R) ×ˢ closure (s : set M))
-  = closure (s : set M) :=
-set.subset.antisymm s.closure_smul_self_subset
-  (λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩)
+  (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) = closure s :=
+s.closure_smul_self_subset.antisymm $ λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩
 
 variables [has_continuous_add M]
 
@@ -235,6 +232,11 @@ le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_cl
 lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
   dense (s : set M) ↔ s.topological_closure = ⊤ :=
 by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
+
+instance {M' : Type*} [add_comm_monoid M'] [module R M'] [uniform_space M']
+  [has_continuous_add M'] [has_continuous_smul R M'] [complete_space M'] (U : submodule R M') :
+  complete_space U.topological_closure :=
+is_closed_closure.complete_space_coe
 
 end closure
 
@@ -778,6 +780,8 @@ def inr [module R₁ M₂] : M₂ →L[R₁] M₁ × M₂ := (0 : M₂ →L[R₁
 
 end
 
+variables {F : Type*}
+
 @[simp] lemma inl_apply [module R₁ M₂] (x : M₁) : inl R₁ M₁ M₂ x = (x, 0) := rfl
 @[simp] lemma inr_apply [module R₁ M₂] (x : M₂) : inr R₁ M₁ M₂ x = (0, x) := rfl
 
@@ -786,52 +790,29 @@ end
 @[simp, norm_cast] lemma coe_inr [module R₁ M₂] :
   (inr R₁ M₁ M₂ : M₂ →ₗ[R₁] M₁ × M₂) = linear_map.inr R₁ M₁ M₂ := rfl
 
-/-- Kernel of a continuous linear map. -/
-def ker (f : M₁ →SL[σ₁₂] M₂) : submodule R₁ M₁ := (f : M₁ →ₛₗ[σ₁₂] M₂).ker
-
-@[norm_cast] lemma ker_coe (f : M₁ →SL[σ₁₂] M₂) : (f : M₁ →ₛₗ[σ₁₂] M₂).ker = f.ker := rfl
-
-@[simp] lemma mem_ker {f : M₁ →SL[σ₁₂] M₂} {x} : x ∈ f.ker ↔ f x = 0 := linear_map.mem_ker
-
-lemma is_closed_ker [t1_space M₂] (f : M₁ →SL[σ₁₂] M₂) : is_closed (f.ker : set M₁) :=
-continuous_iff_is_closed.1 f.cont _ is_closed_singleton
-
-@[simp] lemma apply_ker (f : M₁ →SL[σ₁₂] M₂) (x : f.ker) : f x = 0 := mem_ker.1 x.2
+lemma is_closed_ker [t1_space M₂] [continuous_semilinear_map_class F σ₁₂ M₁ M₂]
+  (f : F) : is_closed (ker f : set M₁) :=
+continuous_iff_is_closed.1 (map_continuous f) _ is_closed_singleton
 
 lemma is_complete_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
-  [module R₁ M'] [t1_space M₂] (f : M' →SL[σ₁₂] M₂) :
-  is_complete (f.ker : set M') :=
-f.is_closed_ker.is_complete
+  [module R₁ M'] [t1_space M₂] [continuous_semilinear_map_class F σ₁₂ M' M₂]
+  (f : F) : is_complete (ker f : set M') :=
+(is_closed_ker f).is_complete
 
+@[priority 100]
 instance complete_space_ker {M' : Type*} [uniform_space M'] [complete_space M'] [add_comm_monoid M']
-  [module R₁ M'] [t1_space M₂] (f : M' →SL[σ₁₂] M₂) :
-  complete_space f.ker :=
-f.is_closed_ker.complete_space_coe
+  [module R₁ M'] [t1_space M₂] [continuous_semilinear_map_class F σ₁₂ M' M₂]
+  (f : F) : complete_space (ker f) :=
+(is_closed_ker f).complete_space_coe
 
 @[simp] lemma ker_prod [module R₁ M₂] [module R₁ M₃] (f : M₁ →L[R₁] M₂) (g : M₁ →L[R₁] M₃) :
   ker (f.prod g) = ker f ⊓ ker g :=
 linear_map.ker_prod f g
 
-/-- Range of a continuous linear map. -/
-def range [ring_hom_surjective σ₁₂] (f : M₁ →SL[σ₁₂] M₂) : submodule R₂ M₂ :=
-(f : M₁ →ₛₗ[σ₁₂] M₂).range
-
-lemma range_coe [ring_hom_surjective σ₁₂] (f : M₁ →SL[σ₁₂] M₂) : (f.range : set M₂) = set.range f :=
-linear_map.range_coe _
-lemma mem_range [ring_hom_surjective σ₁₂] {f : M₁ →SL[σ₁₂] M₂} {y} : y ∈ f.range ↔ ∃ x, f x = y :=
-linear_map.mem_range
-
-lemma mem_range_self [ring_hom_surjective σ₁₂] (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : f x ∈ f.range :=
-mem_range.2 ⟨x, rfl⟩
-
-lemma range_prod_le [module R₁ M₂] [module R₁ M₃] (f : M₁ →L[R₁] M₂) (g : M₁ →L[R₁] M₃) :
-  range (f.prod g) ≤ (range f).prod (range g) :=
-(f : M₁ →ₗ[R₁] M₂).range_prod_le g
-
 /-- Restrict codomain of a continuous linear map. -/
 def cod_restrict (f : M₁ →SL[σ₁₂] M₂) (p : submodule R₂ M₂) (h : ∀ x, f x ∈ p) :
   M₁ →SL[σ₁₂] p :=
-{ cont := continuous_subtype_mk h f.continuous,
+{ cont := f.continuous.subtype_mk _,
   to_linear_map := (f : M₁ →ₛₗ[σ₁₂] M₂).cod_restrict p h}
 
 @[norm_cast] lemma coe_cod_restrict (f : M₁ →SL[σ₁₂] M₂) (p : submodule R₂ M₂) (h : ∀ x, f x ∈ p) :
@@ -864,10 +845,12 @@ rfl
   p.subtypeL x = x :=
 rfl
 
-@[simp] lemma _root_.submodule.range_subtypeL (p : submodule R₁ M₁) : p.subtypeL.range = p :=
+@[simp] lemma _root_.submodule.range_subtypeL (p : submodule R₁ M₁) :
+  range p.subtypeL = p :=
 submodule.range_subtype _
 
-@[simp] lemma _root_.submodule.ker_subtypeL (p : submodule R₁ M₁) : p.subtypeL.ker = ⊥ :=
+@[simp] lemma _root_.submodule.ker_subtypeL (p : submodule R₁ M₁) :
+  ker p.subtypeL = ⊥ :=
 submodule.ker_subtype _
 
 variables (R₁ M₁ M₂)
@@ -933,7 +916,7 @@ rfl
 
 lemma range_coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃] (f₁ : M₁ →L[R₁] M₃)
   (f₂ : M₂ →L[R₁] M₃) :
-  (f₁.coprod f₂).range = f₁.range ⊔ f₂.range :=
+  range (f₁.coprod f₂) = range f₁ ⊔ range f₂ :=
 linear_map.range_coprod _ _
 
 section
@@ -1010,7 +993,8 @@ def proj (i : ι) : (Πi, φ i) →L[R] φ i :=
 lemma proj_pi (f : Πi, M₂ →L[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
 ext $ assume c, rfl
 
-lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
+lemma infi_ker_proj : (⨅i, ker (proj i : (Πi, φ i) →L[R] φ i) :
+  submodule R (Πi, φ i)) = ⊥ :=
 linear_map.infi_ker_proj
 
 variables (R φ)
@@ -1019,16 +1003,18 @@ variables (R φ)
 of `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
-  (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
-⟨ linear_map.infi_ker_proj_equiv R φ hd hu,
-  continuous_pi (λ i, begin
-    have := @continuous_subtype_coe _ _ (λ x, x ∈ (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i))),
+  (⨅i ∈ J, ker (proj i : (Πi, φ i) →L[R] φ i) :
+    submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
+{ to_linear_equiv := linear_map.infi_ker_proj_equiv R φ hd hu,
+  continuous_to_fun := continuous_pi (λ i, begin
+    have := @continuous_subtype_coe _ _
+      (λ x, x ∈ (⨅i ∈ J, ker (proj i :  (Πi, φ i) →L[R] φ i) : submodule R (Πi, φ i))),
     have := continuous.comp (by exact continuous_apply i) this,
     exact this
   end),
-  continuous_subtype_mk _ (continuous_pi (λ i, begin
+  continuous_inv_fun := continuous.subtype_mk (continuous_pi (λ i, begin
     dsimp, split_ifs; [apply continuous_apply, exact continuous_zero]
-  end)) ⟩
+  end)) _ }
 
 end pi
 
@@ -1054,18 +1040,19 @@ end
 section
 variables [module R M₂] [module R M₃] [module R M₄]
 
-lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+lemma range_prod_eq {f : M →L[R] M₂} {g : M →L[R] M₃}
+  (h : ker f ⊔ ker g = ⊤) :
   range (f.prod g) = (range f).prod (range g) :=
 linear_map.range_prod_eq h
 
 lemma ker_prod_ker_le_ker_coprod [has_continuous_add M₃]
   (f : M →L[R] M₃) (g : M₂ →L[R] M₃) :
-  (ker f).prod (ker g) ≤ ker (f.coprod g) :=
+  (linear_map.ker f).prod (linear_map.ker g) ≤ linear_map.ker (f.coprod g) :=
 linear_map.ker_prod_ker_le_ker_coprod f.to_linear_map g.to_linear_map
 
 lemma ker_coprod_of_disjoint_range [has_continuous_add M₃]
-  (f : M →L[R] M₃) (g : M₂ →L[R] M₃) (hd : disjoint f.range g.range) :
-  ker (f.coprod g) = (ker f).prod (ker g) :=
+  (f : M →L[R] M₃) (g : M₂ →L[R] M₃) (hd : disjoint (range f) (range g)) :
+  linear_map.ker (f.coprod g) = (linear_map.ker f).prod (linear_map.ker g) :=
 linear_map.ker_coprod_of_disjoint_range f.to_linear_map g.to_linear_map hd
 end
 
@@ -1142,8 +1129,8 @@ variables {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
 `proj_ker_of_right_inverse f₁ f₂ h` is the projection `M →L[R] f₁.ker` along `f₂.range`. -/
 def proj_ker_of_right_inverse [topological_add_group M] (f₁ : M →SL[σ₁₂] M₂) (f₂ : M₂ →SL[σ₂₁] M)
   (h : function.right_inverse f₂ f₁) :
-  M →L[R] f₁.ker :=
-(id R M - f₂.comp f₁).cod_restrict f₁.ker $ λ x, by simp [h (f₁ x)]
+  M →L[R] (linear_map.ker f₁) :=
+(id R M - f₂.comp f₁).cod_restrict (linear_map.ker f₁) $ λ x, by simp [h (f₁ x)]
 
 @[simp] lemma coe_proj_ker_of_right_inverse_apply [topological_add_group M]
   (f₁ : M →SL[σ₁₂] M₂) (f₂ : M₂ →SL[σ₂₁] M) (h : function.right_inverse f₂ f₁) (x : M) :
@@ -1151,8 +1138,8 @@ def proj_ker_of_right_inverse [topological_add_group M] (f₁ : M →SL[σ₁₂
 rfl
 
 @[simp] lemma proj_ker_of_right_inverse_apply_idem [topological_add_group M]
-  (f₁ : M →SL[σ₁₂] M₂) (f₂ : M₂ →SL[σ₂₁] M) (h : function.right_inverse f₂ f₁) (x : f₁.ker) :
-  f₁.proj_ker_of_right_inverse f₂ h x = x :=
+  (f₁ : M →SL[σ₁₂] M₂) (f₂ : M₂ →SL[σ₂₁] M) (h : function.right_inverse f₂ f₁)
+  (x : linear_map.ker f₁) : f₁.proj_ker_of_right_inverse f₂ h x = x :=
 subtype.ext_iff_val.2 $ by simp
 
 @[simp] lemma proj_ker_of_right_inverse_comp_inv [topological_add_group M]
@@ -1859,14 +1846,15 @@ end
 
 variables [module R M₂] [topological_add_group M]
 
-open _root_.continuous_linear_map (id fst snd mem_ker)
+open _root_.continuous_linear_map (id fst snd)
+open _root_.linear_map (mem_ker)
 
 /-- A pair of continuous linear maps such that `f₁ ∘ f₂ = id` generates a continuous
 linear equivalence `e` between `M` and `M₂ × f₁.ker` such that `(e x).2 = x` for `x ∈ f₁.ker`,
 `(e x).1 = f₁ x`, and `(e (f₂ y)).2 = 0`. The map is given by `e x = (f₁ x, x - f₂ (f₁ x))`. -/
 def equiv_of_right_inverse (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M) (h : function.right_inverse f₂ f₁) :
-  M ≃L[R] M₂ × f₁.ker :=
-equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod f₁.ker.subtypeL)
+  M ≃L[R] M₂ × ker f₁:=
+equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.coprod (ker f₁).subtypeL)
   (λ x, by simp)
   (λ ⟨x, y⟩, by simp [h x])
 
@@ -1879,7 +1867,7 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
   ((equiv_of_right_inverse f₁ f₂ h x).2 : M) = x - f₂ (f₁ x) := rfl
 
 @[simp] lemma equiv_of_right_inverse_symm_apply (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
-  (h : function.right_inverse f₂ f₁) (y : M₂ × f₁.ker) :
+  (h : function.right_inverse f₂ f₁) (y : M₂ × ker f₁) :
   (equiv_of_right_inverse f₁ f₂ h).symm y = f₂ y.1 + y.2 := rfl
 
 end ring
@@ -2017,7 +2005,7 @@ def closed_complemented (p : submodule R M) : Prop := ∃ f : M →L[R] p, ∀ x
 lemma closed_complemented.has_closed_complement {p : submodule R M} [t1_space p]
   (h : closed_complemented p) :
   ∃ (q : submodule R M) (hq : is_closed (q : set M)), is_compl p q :=
-exists.elim h $ λ f hf, ⟨f.ker, f.is_closed_ker, linear_map.is_compl_of_proj hf⟩
+exists.elim h $ λ f hf, ⟨ker f, f.is_closed_ker, linear_map.is_compl_of_proj hf⟩
 
 protected lemma closed_complemented.is_closed [topological_add_group M] [t1_space M]
   {p : submodule R M} (h : closed_complemented p) :
@@ -2041,7 +2029,7 @@ lemma continuous_linear_map.closed_complemented_ker_of_right_inverse {R : Type*}
   {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M] [module R M₂]
   [topological_add_group M] (f₁ : M →L[R] M₂) (f₂ : M₂ →L[R] M)
   (h : function.right_inverse f₂ f₁) :
-  f₁.ker.closed_complemented :=
+  (ker f₁).closed_complemented :=
 ⟨f₁.proj_ker_of_right_inverse f₂ h, f₁.proj_ker_of_right_inverse_apply_idem f₂ h⟩
 
 section quotient

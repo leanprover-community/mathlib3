@@ -127,7 +127,7 @@ General algebra:
   Number theory:
     sum of two squares: 'nat.prime.sq_add_sq'
     sum of four squares: 'nat.sum_four_squares'
-    quadratic reciprocity: 'zmod.quadratic_reciprocity'
+    quadratic reciprocity: 'legendre_sym.quadratic_reciprocity'
     "solutions to Pell's equation": 'pell.pell'
     "Matiyasevič's theorem": 'pell.matiyasevic'
     arithmetic functions: 'nat.arithmetic_function'
@@ -183,7 +183,7 @@ Linear algebra:
     polar form of a quadratic: 'quadratic_form.polar'
   Finite-dimensional inner product spaces (see also Hilbert spaces, below):
     existence of orthonormal basis: 'orthonormal_basis'
-    diagonalization of self-adjoint endomorphisms: 'inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply'
+    diagonalization of self-adjoint endomorphisms: 'linear_map.is_symmetric.diagonalization_basis_apply_self_apply'
 
 Topology:
   General topology:
@@ -267,12 +267,12 @@ Analysis:
   Hilbert spaces:
     Inner product space, over $R$ or $C$: 'inner_product_space'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
-    self-adjoint endomorphism: 'inner_product_space.is_self_adjoint'
+    self-adjoint operator: 'is_self_adjoint'
     orthogonal projection: 'orthogonal_projection'
     reflection: 'reflection'
     orthogonal complement: 'submodule.orthogonal'
     existence of Hilbert basis: 'exists_hilbert_basis'
-    eigenvalues from Rayleigh quotient: 'inner_product_space.is_self_adjoint.has_eigenvector_of_is_local_extr_on'
+    eigenvalues from Rayleigh quotient: 'is_self_adjoint.has_eigenvector_of_is_local_extr_on'
     Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
     Lax-Milgram theorem: 'is_coercive.continuous_linear_equiv_of_bilin'
 
@@ -282,6 +282,7 @@ Analysis:
     derivative of the inverse of a function: 'has_fderiv_at.of_local_left_inverse'
     Rolle's theorem: 'exists_deriv_eq_zero'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
+    Taylor's theorem: 'analysis/calculus/taylor.html'
     $C^k$ function: 'cont_diff'
     Leibniz formula: 'fderiv_mul'
     local extrema: 'is_local_min.fderiv_eq_zero'
@@ -342,6 +343,9 @@ Analysis:
     removable singularity: 'complex.differentiable_on_update_lim_insert_of_is_o'
     Phragmen-Lindelöf principle: 'phragmen_lindelof.horizontal_strip'
     fundamental theorem of algebra: 'complex.is_alg_closed'
+
+  Distribution theory:
+    Schwartz space: 'schwartz_map'
 
 Probability Theory:
   Definitions in probability theory:
@@ -405,7 +409,7 @@ Combinatorics:
     adjacency matrix: 'simple_graph.adj_matrix'
   Pigeonhole principles:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'
-    infinite: 'fintype.exists_infinite_fiber'
+    infinite: 'finite.exists_infinite_fiber'
     strong pigeonhole principle: 'fintype.exists_lt_card_fiber_of_mul_lt_card'
   Transversals:
     Hall's marriage theorem: 'finset.all_card_le_bUnion_card_iff_exists_injective'

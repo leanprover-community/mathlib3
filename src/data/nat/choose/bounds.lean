@@ -23,7 +23,7 @@ bounds `n^r/r^r ≤ n.choose r ≤ e^r n^r/r^r` in the future.
 
 open_locale nat
 
-variables {α : Type*} [linear_ordered_field α]
+variables {α : Type*} [linear_ordered_semifield α]
 
 namespace nat
 

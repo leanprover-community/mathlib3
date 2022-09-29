@@ -293,7 +293,7 @@ lemma R_pos {c : E} (f : cont_diff_bump_of_inner c) : 0 < f.R := f.r_pos.trans f
 instance (c : E) : inhabited (cont_diff_bump_of_inner c) := ⟨⟨1, 2, zero_lt_one, one_lt_two⟩⟩
 
 variables [inner_product_space ℝ E] [normed_add_comm_group X] [normed_space ℝ X]
-variables {c : E} (f : cont_diff_bump_of_inner c) {x : E} {n : with_top ℕ}
+variables {c : E} (f : cont_diff_bump_of_inner c) {x : E} {n : ℕ∞}
 
 /-- The function defined by `f : cont_diff_bump_of_inner c`. Use automatic coercion to
 function instead. -/
@@ -406,7 +406,7 @@ rfl
 lemma nonneg_normed (x : E) : 0 ≤ f.normed μ x :=
 div_nonneg f.nonneg $ integral_nonneg f.nonneg'
 
-lemma cont_diff_normed {n : with_top ℕ} : cont_diff ℝ n (f.normed μ) :=
+lemma cont_diff_normed {n : ℕ∞} : cont_diff ℝ n (f.normed μ) :=
 f.cont_diff.div_const
 
 lemma continuous_normed : continuous (f.normed μ) :=

@@ -212,7 +212,7 @@ begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     refine (hf.finite_dsupport.union hg.finite_dsupport).subset (λ i, _),
-    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+    simp only [pi.add_apply, ne.def, set.mem_union, set.mem_set_of_eq],
     contrapose!,
     rintros ⟨hf', hg'⟩,
     simp [hf', hg'] },
@@ -462,7 +462,7 @@ normed_add_comm_group.of_core _
 { norm_eq_zero_iff := norm_eq_zero_iff,
   triangle := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
-    { cases is_empty_or_nonempty α; resetI,
+    { casesI is_empty_or_nonempty α,
       { simp [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
       rintros x ⟨i, rfl⟩,

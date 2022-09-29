@@ -151,6 +151,9 @@ include β
 
 @[simp] lemma map_compl (a : α) : f aᶜ = (f a)ᶜ := by rw [←himp_bot, ←himp_bot, map_himp, map_bot]
 
+@[simp] lemma map_bihimp (a b : α) : f (a ⇔ b) = f a ⇔ f b :=
+by simp_rw [bihimp, map_inf, map_himp]
+
 -- TODO: `map_bihimp`
 
 end heyting_algebra
@@ -163,7 +166,7 @@ include β
 by rw [←top_sdiff', ←top_sdiff', map_sdiff, map_top]
 
 @[simp] lemma map_symm_diff (a b : α) : f (a ∆ b) = f a ∆ f b :=
-by rw [symm_diff, symm_diff, map_sup, map_sdiff, map_sdiff]
+by simp_rw [symm_diff, map_sup, map_sdiff]
 
 end coheyting_algebra
 

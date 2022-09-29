@@ -457,8 +457,7 @@ section
 variables (𝒜) (𝔭 : ideal A) [ideal.is_prime 𝔭]
 
 /--Localizing a ring homogeneously at a prime ideal-/
-abbreviation at_prime  :=
-  homogeneous_localization 𝒜 𝔭.prime_compl
+abbreviation at_prime  := homogeneous_localization 𝒜 𝔭.prime_compl
 
 lemma is_unit_iff_is_unit_val (f : homogeneous_localization.at_prime 𝒜 𝔭) :
   is_unit f.val ↔ is_unit f :=

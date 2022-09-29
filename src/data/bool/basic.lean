@@ -98,6 +98,8 @@ by by_cases p; simp *
 @[simp] theorem cond_bnot {α} (b : bool) (t e : α) : cond (!b) t e = cond b e t :=
 by cases b; refl
 
+theorem bnot_ne_id : bnot ≠ id := λ h, ff_ne_tt $ congr_fun h tt
+
 theorem coe_bool_iff : ∀ {a b : bool}, (a ↔ b) ↔ a = b := dec_trivial
 
 theorem eq_tt_of_ne_ff : ∀ {a : bool}, a ≠ ff → a = tt := dec_trivial

@@ -364,7 +364,7 @@ The characteristic predicate for localized module.
 `is_localized_module S f` describes that `f : M ⟶ M'` is the localization map identifying `M'` as
 `localized_module S M`.
 -/
-class is_localized_module : Prop :=
+class _root_.is_localized_module : Prop :=
 (map_units [] : ∀ (x : S), is_unit (algebra_map R (module.End R M') x))
 (surj [] : ∀ y : M', ∃ (x : M × S), x.2 • y = f x.1)
 (eq_iff_exists [] : ∀ {x₁ x₂}, f x₁ = f x₂ ↔ ∃ c : S, c • x₂ = c • x₁)

@@ -395,6 +395,27 @@ namespace seminorm
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 variables [nonempty ι] [nonempty ι']
 
+lemma continuous_of_continuous_comp {q : seminorm_family 𝕜 F ι'}
+  [uniform_space E] [uniform_add_group E]
+  [uniform_space F] [uniform_add_group F] (hq : with_seminorms q)
+  (f : E →ₗ[𝕜] F) (hf : ∀ i, continuous ((q i).comp f)) : continuous f :=
+begin
+  refine continuous_of_continuous_at_zero f _,
+  rw [continuous_at_def, f.map_zero, hp.1],
+  intros U hU,
+  rw [hq.1, add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
+  rcases hU with ⟨V, hV : V ∈ q.basis_sets, hU⟩,
+  rcases q.basis_sets_iff.mp hV with ⟨s₂, r, hr, hV⟩,
+  rw hV at hU,
+  rw [p.add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff],
+  rcases (seminorm.is_bounded_sup hf s₂) with ⟨C, s₁, hC, hf⟩,
+  refine ⟨(s₁.sup p).ball 0 (r/C), p.basis_sets_mem _ (div_pos hr (nnreal.coe_pos.mpr hC)), _⟩,
+  refine subset.trans _ (preimage_mono hU),
+  simp_rw [←linear_map.map_zero f, ←ball_comp],
+  refine subset.trans _ (ball_antitone hf),
+  rw ball_smul (s₁.sup p) hC,
+end
+
 lemma continuous_from_bounded {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
   [uniform_space E] [uniform_add_group E] (hp : with_seminorms p)
   [uniform_space F] [uniform_add_group F] (hq : with_seminorms q)

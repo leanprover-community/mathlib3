@@ -160,7 +160,7 @@ This is a noncomputable process.
 noncomputable def invmean_of_amenable {G:Type*}
   [uniform_space G] [group G] [topological_group G]
   (G_am : amenable G) : left_invariant_mean G :=
-classical.some (classical.exists_true_of_nonempty G_am)
+classical.choice G_am
 
 /--If we can exhibit a mean, the group is amenable-/
 lemma amenable_of_invmean

@@ -19,7 +19,6 @@ open Top topological_space category_theory.limits opposite
 universes u v w
 
 variables {C : Type u} [category.{v} C]
-variables [Π (U : opens (Top.of (punit : Type w))), decidable (punit.star ∈ U)]
 
 lemma presheaf_on_punit_is_sheaf_of_is_terminal (F : presheaf C (Top.of (punit : Type w)))
   (it : is_terminal $ F.obj $ op ⊥) : F.is_sheaf := λ c U s hs,

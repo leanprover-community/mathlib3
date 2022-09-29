@@ -321,7 +321,9 @@ section from_edge_set
 
 variable (s : set (sym2 V))
 
-/- `from_edge_set` constructs a `simple_graph` from a set of edges, without loops. -/
+/--
+`from_edge_set` constructs a `simple_graph` from a set of edges, without loops.
+-/
 def from_edge_set : simple_graph V :=
 { adj := λ v w, v ≠ w ∧ ⟦(v, w)⟧ ∈ s,
   symm := λ v w h, ⟨h.1.symm, by {rw sym2.eq_swap, exact h.2}⟩ }
@@ -506,7 +508,9 @@ section from_edge_finset
 
 variable (s : finset (sym2 V))
 
-/- `from_edge_finset` constructs a `simple_graph` from a finset of edges, without loops. -/
+/--
+`from_edge_finset` constructs a `simple_graph` from a finset of edges, without loops.
+-/
 def from_edge_finset : simple_graph V := from_edge_set (s : set (sym2 V))
 
 @[simp] lemma adj_from_edge_finset : (from_edge_finset s).adj v w ↔ v ≠ w ∧ ⟦(v, w)⟧ ∈ s := iff.rfl

@@ -63,21 +63,23 @@ lemma left_translate_eval {g : G} {f : bounded_continuous_function G ℝ} :
 
 
 instance left_translate_action  : mul_action G (bounded_continuous_function G ℝ) :=
-@mul_action.mk G  (bounded_continuous_function G ℝ) _
-  (has_smul.mk (λ g f, left_translate g f))
-  (begin
-    assume f : bounded_continuous_function G ℝ,
-    simp,
-    ext x,
-    by simp,
-  end)
-  (begin
-    assume g h f,
-    ext x,
-    simp,
-    congr' 1,
-    by simp [mul_assoc],
-  end )
+{ to_has_smul := {smul := (λ g f, left_translate g f)},
+  one_smul    :=
+                  (begin
+                    assume f : bounded_continuous_function G ℝ,
+                    simp,
+                    ext x,
+                    by simp,
+                  end),
+  mul_smul    :=
+                  (begin
+                    assume g h f,
+                    ext x,
+                    simp,
+                    congr' 1,
+                    by simp [mul_assoc],
+                  end )  }
+
 
 @[simp]
 lemma left_translate_smul_simp {g:G} {f:bounded_continuous_function G ℝ} :

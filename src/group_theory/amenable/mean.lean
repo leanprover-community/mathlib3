@@ -250,7 +250,9 @@ by refl
 @[simp]
 def pull_bcont (π : G → H) (π_cont: continuous π) :
   (bounded_continuous_function H ℝ) →ₗ[ℝ] (bounded_continuous_function G ℝ) :=
-linear_map.mk (λ f, comp_bcont π π_cont f) (by tauto) (by tauto)
+{ to_fun    := (λ f, comp_bcont π π_cont f),
+  map_add'  := by tauto,
+  map_smul' := by tauto }
 
 
 
@@ -297,8 +299,9 @@ end
 @[simp]
 noncomputable def mean_pushforward (π : G → H) (π_cont: continuous π) (m : mean G) :
   mean H :=
-mean.mk (mean_pushforward_linmap π_cont m) (mean_pushforward_norm π_cont m)
-  (mean_pushforward_pos π_cont m)
+{ lin_map     := mean_pushforward_linmap π_cont m,
+  normality   := mean_pushforward_norm π_cont m,
+  positivity  := mean_pushforward_pos π_cont m }
 
 
 end pushforward_mean

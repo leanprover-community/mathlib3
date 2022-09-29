@@ -515,6 +515,14 @@ def map_equiv (h : M ≃* N) : Mˣ ≃* Nˣ :=
   right_inv := λ u, ext $ h.right_inv u,
   .. map h.to_monoid_hom }
 
+@[simp]
+lemma units.map_equiv_symm (h : M ≃* N) : (map_equiv h).symm = map_equiv h.symm :=
+rfl
+
+@[simp]
+lemma units.coe_map_equiv (h : M ≃* N) (x : Mˣ) : (map_equiv h x : N) = h x :=
+rfl
+
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
 @[to_additive "Left addition of an additive unit is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]

@@ -1305,6 +1305,16 @@ def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_monoid_hom M N] : M 
   .. one_hom.coe M N,
   .. mul_hom.coe M N }
 
+@[simp, to_additive]
+lemma coe_inv [group G] [division_monoid H] [has_lift_t G H] [coe_monoid_hom G H]
+  (a : G) : ↑(a⁻¹) = (↑a : H)⁻¹ :=
+map_inv (monoid_hom.coe G H) a
+
+@[simp, to_additive]
+lemma coe_div [group G] [division_monoid H] [has_lift_t G H] [coe_monoid_hom G H]
+  (a b : G) : ↑(a / b) = (↑a : H) / ↑b :=
+map_div (monoid_hom.coe G H) a b
+
 /-- `coe_monoid_with-zero_hom M N` is a class stating that the coercion map `↑ : M → N`
 (a.k.a. `coe`) is a monoid with zero homomorphism.
 -/

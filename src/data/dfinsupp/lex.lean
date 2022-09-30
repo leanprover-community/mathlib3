@@ -57,6 +57,13 @@ mk_apply.trans begin
   exacts [h.1, h.2],
 end
 
+lemma merge_single_erase (x : Π₀ i, α i) (i : ι) :
+  merge (λ j, j = i) (single i (x i)) (x.erase i) = x :=
+begin
+  ext j, rw merge_apply, split_ifs,
+  { rw [h, single_eq_same] }, { exact erase_ne h },
+end
+
 open relation prod
 variables (r : ι → ι → Prop) (s : Π i, α i → α i → Prop)
 
@@ -87,12 +94,7 @@ begin
   { refl },
 end
 
-lemma merge_single_erase (x : Π₀ i, α i) (i : ι) :
-  merge (λ j, j = i) (single i (x i)) (x.erase i) = x :=
-begin
-  ext j, rw merge_apply, split_ifs,
-  { rw [h, single_eq_same] }, { exact erase_ne h },
-end
+variables {r s}
 
 lemma lex.acc_of_single_erase {x : Π₀ i, α i} (i : ι)
   (hs : acc (dfinsupp.lex r s) (single i (x i)))
@@ -114,8 +116,8 @@ lemma lex.acc_of_single (x : Π₀ i, α i) :
 begin
   generalize ht : x.support = t, revert x, classical,
   induction t using finset.induction with b t hb ih,
-  { intros x ht, rw support_eq_empty.1 ht, exact λ _, lex.acc_zero r s hbot },
-  refine λ x ht h, lex.acc_of_single_erase r s b (h b $ t.mem_insert_self b) _,
+  { intros x ht, rw support_eq_empty.1 ht, exact λ _, lex.acc_zero hbot },
+  refine λ x ht h, lex.acc_of_single_erase b (h b $ t.mem_insert_self b) _,
   refine ih _ (by rw [support_erase, ht, finset.erase_insert hb]) (λ a ha, _),
   rw [erase_ne (ha.ne_of_not_mem hb)],
   exact h a (finset.mem_insert_of_mem ha),
@@ -134,23 +136,23 @@ begin
   rw single_apply at hs,
   split_ifs at hs with hik,
   swap, { exact (hbot hs).elim }, subst hik,
-  refine lex.acc_of_single r s hbot x (λ j hj, _),
+  refine lex.acc_of_single hbot x (λ j hj, _),
   obtain rfl | hij := eq_or_ne i j, { exact ha _ hs },
   by_cases r j i,
-  { rw [hr j h, single_eq_of_ne hij, single_zero], exact lex.acc_zero r s hbot },
+  { rw [hr j h, single_eq_of_ne hij, single_zero], exact lex.acc_zero hbot },
   { exact ih _ ⟨h, hij.symm⟩ _ },
 end
 
 lemma lex.acc (x : Π₀ i, α i)
   (h : ∀ i ∈ x.support, acc (rᶜ ⊓ (≠)) i) : acc (dfinsupp.lex r s) x :=
-lex.acc_of_single r s hbot x $ λ i hi, lex.acc_single r s hbot hs _ (h i hi)
+lex.acc_of_single hbot x $ λ i hi, lex.acc_single hbot hs _ (h i hi)
 
 theorem lex.well_founded (hr : well_founded $ rᶜ ⊓ (≠)) : well_founded (dfinsupp.lex r s) :=
-⟨λ x, lex.acc r s hbot hs x $ λ i _, hr.apply i⟩
+⟨λ x, lex.acc hbot hs x $ λ i _, hr.apply i⟩
 
 theorem lex.well_founded' [is_trichotomous ι r]
   (hr : well_founded r.swap) : well_founded (dfinsupp.lex r s) :=
-lex.well_founded r s hbot hs $ subrelation.wf
+lex.well_founded hbot hs $ subrelation.wf
   (λ i j h, ((@is_trichotomous.trichotomous ι r _ i j).resolve_left h.1).resolve_left h.2) hr
 
 omit hz hbot hs
@@ -158,7 +160,7 @@ omit hz hbot hs
 instance lex.well_founded_lt [has_lt ι] [is_trichotomous ι (<)] [hι : well_founded_gt ι]
   [Π i, canonically_ordered_add_monoid (α i)]
   [hα : ∀ i, well_founded_lt (α i)] : well_founded_lt (lex (Π₀ i, α i)) :=
-⟨lex.well_founded' (<) (λ i, (<)) (λ i a, (zero_le a).not_lt) (λ i, (hα i).wf) hι.wf⟩
+⟨lex.well_founded' (λ i a, (zero_le a).not_lt) (λ i, (hα i).wf) hι.wf⟩
 
 /- instance vs. general -/
 /- pi.lex (finite linear(?)) vs. finsupp.lex -/
@@ -172,3 +174,26 @@ end well_founded
 -- Future work: relation.cut_expand -> multiset.lex? Reorganize directory, hydra -> well_founded / lex
 
 end dfinsupp
+
+open dfinsupp
+
+variables {r : ι → ι → Prop} {s : Π i, α i → α i → Prop}
+
+theorem pi.well_founded_lex [is_strict_total_order ι r] [finite ι]
+  (hs : ∀ i, well_founded (s i)) : well_founded (pi.lex r s) :=
+begin
+  by_cases is_empty (Π i, α i),
+  { convert empty_wf, ext1 x, exact (h.1 x).elim },
+  simp_rw [is_empty_pi, not_exists, not_is_empty_iff, set.nonempty_iff_univ_nonempty] at h,
+  letI : Π i, has_zero (α i) := λ i, ⟨(hs i).min ⊤ (h i)⟩,
+  haveI := is_trans.swap r, haveI := is_irrefl.swap r, haveI := fintype.of_finite ι,
+  refine inv_image.wf equiv_fun_on_fintype.symm (lex.well_founded' (λ i a, _) hs _),
+  exacts [(hs i).not_lt_min ⊤ _ trivial, finite.well_founded_of_trans_of_irrefl r.swap],
+end
+
+instance pi.lex.well_founded_lt [linear_order ι] [finite ι] [Π i, has_lt (α i)]
+  [hwf : ∀ i, well_founded_lt (α i)] : well_founded_lt (lex (Π i, α i)) :=
+⟨pi.well_founded_lex (λ i, (hwf i).1)⟩
+
+instance pi.lex.well_founded_lt' {α} [linear_order ι] [finite ι] [has_lt α] [well_founded_lt α] :
+  well_founded_lt (lex (ι → α)) := pi.lex.well_founded_lt

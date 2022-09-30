@@ -149,7 +149,7 @@ end covariants
 
 section well_founded
 
-variables [hz : has_zero N] (r : α → α → Prop) (s : N → N → Prop)
+variables [hz : has_zero N] {r : α → α → Prop} {s : N → N → Prop}
   (hbot : ∀ ⦃n⦄, ¬ s n 0) (hs : well_founded s)
 include hbot hs
 
@@ -161,7 +161,7 @@ begin
 end
 
 theorem lex.well_founded (hr : well_founded $ rᶜ ⊓ (≠)) : well_founded (finsupp.lex r s) :=
-⟨λ x, lex.acc r s hbot hs x $ λ a _, hr.apply a⟩
+⟨λ x, lex.acc hbot hs x $ λ a _, hr.apply a⟩
 
 theorem lex.well_founded' [is_trichotomous α r]
   (hr : well_founded r.swap) : well_founded (finsupp.lex r s) :=
@@ -172,7 +172,7 @@ omit hbot hs
 
 instance lex.well_founded_lt [has_lt α] [is_trichotomous α (<)] [hα : well_founded_gt α]
   [canonically_ordered_add_monoid N] [hN : well_founded_lt N] : well_founded_lt (lex (α →₀ N)) :=
-⟨lex.well_founded' (<) (<) (λ n, (zero_le n).not_lt) hN.wf hα.wf⟩
+⟨lex.well_founded' (λ n, (zero_le n).not_lt) hN.wf hα.wf⟩
 
 /- product order -/
 

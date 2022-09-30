@@ -400,6 +400,11 @@ instance homogeneous_localization_algebra :
   commutes' := λ p q, mul_comm _ _,
   smul_def' := λ p q, rfl }
 
+@[simp] lemma sum_val {j : Type*} (s : finset j) (f : j → homogeneous_localization 𝒜 x) :
+  (∑ i in s, f i : homogeneous_localization 𝒜 x).val = ∑ i in s, (f i).val :=
+show (algebra_map (homogeneous_localization 𝒜 x) (localization x) (∑ i in s, f i)) =
+  ∑ i in s, algebra_map (homogeneous_localization 𝒜 x) (localization x) (f i), from map_sum _ _ _
+
 end homogeneous_localization
 
 namespace homogeneous_localization

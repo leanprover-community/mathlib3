@@ -374,7 +374,8 @@ variables (X : Type*) [topological_space X] [compact_space X] [t2_space X]
 
 section kernel
 
-variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜] [has_continuous_const_smul 𝕜 𝕜]
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜]
+  [has_continuous_add 𝕜] [has_continuous_const_smul 𝕜 𝕜]
 variables {A : Type*} [ring A] [topological_space A] [algebra 𝕜 A]
 
 example : ring_hom_class (character_space 𝕜 A) A 𝕜 := infer_instance
@@ -423,7 +424,8 @@ begin
   intros hxy,
   haveI := @normal_of_compact_t2 X _ _ _,
   rcases exists_continuous_zero_one_of_closed (is_closed_singleton : _root_.is_closed {x})
-    (is_closed_singleton : _root_.is_closed {y}) (set.disjoint_singleton.mpr hxy) with ⟨f, fx, fy, -⟩,
+    (is_closed_singleton : _root_.is_closed {y}) (set.disjoint_singleton.mpr hxy)
+    with ⟨f, fx, fy, -⟩,
   rw [←ne.def, fun_like.ne_iff],
   use (⟨coe, is_R_or_C.continuous_of_real⟩ : C(ℝ, ℂ)).comp f,
   simpa only [continuous_map_eval_apply_apply, continuous_map.comp_apply,

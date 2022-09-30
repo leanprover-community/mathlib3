@@ -1311,7 +1311,7 @@ def rel_iso_of_bijective : ideal S ≃o ideal R :=
   left_inv := (rel_iso_of_surjective f hf.right).left_inv,
   right_inv := λ J, subtype.ext_iff.1
     ((rel_iso_of_surjective f hf.right).right_inv ⟨J, comap_bot_le_of_injective f hf.left⟩),
-  map_rel_iff' := (rel_iso_of_surjective f hf.right).map_rel_iff' }
+  map_rel_iff' := λ _ _, (rel_iso_of_surjective f hf.right).map_rel_iff' }
 
 lemma comap_le_iff_le_map {I : ideal R} {K : ideal S} : comap f K ≤ I ↔ K ≤ map f I :=
 ⟨λ h, le_map_of_comap_le_of_surjective f hf.right h,
@@ -1530,6 +1530,7 @@ by { rw [set_like.ext'_iff, ker_eq, set.ext_iff], exact injective_iff_map_eq_zer
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
 by { rw [← injective_iff_map_eq_zero f, injective_iff_ker_eq_bot] }
+
 omit rc
 
 @[simp] lemma ker_coe_equiv (f : R ≃+* S) :
@@ -1677,6 +1678,11 @@ begin
       abel },
     exact (H.mem_or_mem this).imp (λ h, ha ▸ mem_map_of_mem f h) (λ h, hb ▸ mem_map_of_mem f h) }
 end
+
+lemma map_eq_bot_iff_of_injective {I : ideal R} {f : F} (hf : function.injective f) :
+  I.map f = ⊥ ↔ I = ⊥ :=
+by rw [map_eq_bot_iff_le_ker, (ring_hom.injective_iff_ker_eq_bot f).mp hf, le_bot_iff]
+
 omit rc
 
 theorem map_is_prime_of_equiv {F' : Type*} [ring_equiv_class F' R S]
@@ -2109,7 +2115,11 @@ end ring_hom
 
 namespace double_quot
 open ideal
-variables {R : Type u} [comm_ring R] (I J : ideal R)
+variable {R : Type u}
+
+section
+
+variables [comm_ring R] (I J : ideal R)
 
 /-- The obvious ring hom `R/I → R/(I ⊔ J)` -/
 def quot_left_to_quot_sup : R ⧸ I →+* R ⧸ (I ⊔ J) :=
@@ -2177,5 +2187,27 @@ ring_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
 lemma quot_quot_equiv_comm_symm :
   (quot_quot_equiv_comm I J).symm = quot_quot_equiv_comm J I :=
 rfl
+
+end
+
+section algebra
+
+@[simp]
+lemma quot_quot_equiv_comm_mk_mk [comm_ring R] (I J : ideal R) (x : R) :
+  quot_quot_equiv_comm I J (ideal.quotient.mk _ (ideal.quotient.mk _ x)) =
+    algebra_map R _ x := rfl
+
+variables [comm_semiring R] {A : Type v} [comm_ring A] [algebra R A] (I J : ideal A)
+
+@[simp]
+lemma quot_quot_equiv_quot_sup_quot_quot_algebra_map (x : R) :
+  double_quot.quot_quot_equiv_quot_sup I J (algebra_map R _ x) = algebra_map _ _ x :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_comm_algebra_map (x : R) :
+  quot_quot_equiv_comm I J (algebra_map R _ x) = algebra_map _ _ x := rfl
+
+end algebra
 
 end double_quot

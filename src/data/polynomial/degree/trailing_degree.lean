@@ -242,6 +242,13 @@ begin
     exact mem_support_iff.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
 end
 
+lemma le_nat_trailing_degree (hp : p ≠ 0) (hn : ∀ m < n, p.coeff m = 0) :
+  n ≤ p.nat_trailing_degree :=
+begin
+  rw nat_trailing_degree_eq_support_min' hp,
+  exact finset.le_min' _ _ _ (λ m hm, not_lt.1 $ λ hmn, mem_support_iff.1 hm $ hn _ hmn),
+end
+
 lemma nat_trailing_degree_le_nat_degree (p : R[X]) :
   p.nat_trailing_degree ≤ p.nat_degree :=
 begin

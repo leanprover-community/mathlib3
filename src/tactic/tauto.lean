@@ -238,7 +238,7 @@ meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
        repeat (first basic_tauto_tacs); cfg.closer, done
 
 namespace interactive
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 setup_tactic_parser
 
 /--

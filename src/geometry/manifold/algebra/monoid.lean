@@ -156,10 +156,10 @@ names. -/
 def smooth_right_mul : C^∞⟮I, G; I, G⟯ := ⟨(right_mul g), smooth_mul_right⟩
 
 /- Left multiplication. The abbreviation is `MIL`. -/
-localized "notation `𝑳` := smooth_left_mul" in lie_group
+localized "notation (name := smooth_left_mul) `𝑳` := smooth_left_mul" in lie_group
 
 /- Right multiplication. The abbreviation is `MIR`. -/
-localized "notation `𝑹` := smooth_right_mul" in lie_group
+localized "notation (name := smooth_right_mul) `𝑹` := smooth_right_mul" in lie_group
 
 open_locale lie_group
 

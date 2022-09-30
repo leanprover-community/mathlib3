@@ -66,9 +66,8 @@ begin
   { simp only [algebra.smul_def, map_pow], }
 end
 
-localized
-"notation `Var[` X `]` := probability_theory.variance X measure_theory.measure_space.volume"
-in probability_theory
+localized "notation (name := probability_theory.variance) `Var[` X `]` :=
+  probability_theory.variance X measure_theory.measure_space.volume" in probability_theory
 
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (volume : measure Ω)]
 

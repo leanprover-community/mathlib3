@@ -257,7 +257,7 @@ map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
 by ext x; refine induction_on' x (λ x', _); simp
 
 @[simp] lemma congr_symm (e : G ≃* H) (he : G'.map ↑e = H') :
-  (congr G' H' e he).symm = congr H' G' e.symm (subgroup.map_symm_eq_iff_map_eq.mpr he) :=
+  (congr G' H' e he).symm = congr H' G' e.symm ((subgroup.map_symm_eq_iff_map_eq _).mpr he) :=
 rfl
 
 end congr

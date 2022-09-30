@@ -36,15 +36,12 @@ open function
 
 
 
-variables
-{G:Type*}
-[group G]
-
-{H:Type*}
-[group H]
+variables {G:Type*} [topological_space G] [group G] [topological_group G]
+          {H:Type*} [topological_space H] [group H] [topological_group H]
 
 (π: G →* H)
 (pi_surj : surjective π)
+(pi_cont : continuous π)
 
 
 namespace amenable_quotient
@@ -54,11 +51,11 @@ open mean
 /--The pushforward mean is left-invariant if the
 map is surjective-/
 lemma mean_pushforward_leftinv
-  (m : left_invariant_mean G)
   (pi_surj : surjective π)
+  (m : left_invariant_mean G)
   : ∀(h:H), ∀(f: bounded_continuous_function H ℝ),
-        (mean_pushforward π m) (left_translate h f)
-      = (mean_pushforward π m) f
+        (mean_pushforward π pi_cont m) (left_translate h f)
+      = (mean_pushforward π pi_cont m) f
 := begin
   assume h : H,
   assume f : bounded_continuous_function H ℝ,
@@ -71,10 +68,10 @@ lemma mean_pushforward_leftinv
   --main step: The pullback of (left_translate h f)
   -- is the left_translate of (via g) the pullback of f
   have translate_pullback:
-      pull_bcont π (left_translate h f) = left_translate g (pull_bcont π f),
+      pull_bcont π pi_cont (left_translate h f) = left_translate g (pull_bcont π pi_cont f),
   {
     ext (x:G),
-    calc  pull_bcont π (left_translate h f) x
+    calc  pull_bcont π pi_cont (left_translate h f) x
         = (left_translate h f) (π x)
           : by tauto
     ... = f (h⁻¹*(π x))
@@ -85,31 +82,31 @@ lemma mean_pushforward_leftinv
           : by norm_num
     ... = f (π (g⁻¹ * x))
           : by simp[mul_hom.map_mul]
-    ... = (pull_bcont π f) (g⁻¹ * x)
+    ... = (pull_bcont π pi_cont f) (g⁻¹ * x)
           : by tauto
-    ... = (left_translate g (pull_bcont π f)) x
+    ... = (left_translate g (pull_bcont π pi_cont f)) x
           : by tauto,
   },
 
-  calc  (mean_pushforward π m) (left_translate h f)
-      = m (pull_bcont π (left_translate h f))
+  calc  (mean_pushforward π pi_cont m) (left_translate h f)
+      = m (pull_bcont π pi_cont (left_translate h f))
         : by tauto
-  ... = m (left_translate g (pull_bcont π f))
+  ... = m (left_translate g (pull_bcont π pi_cont f))
         : by rw translate_pullback
-  ... = m (pull_bcont π f)
+  ... = m (pull_bcont π pi_cont f)
         : by exact m.left_invariance _ _
-  ... = (mean_pushforward π m) f
+  ... = (mean_pushforward π pi_cont m) f
         : by tauto,
 end
 
 /-- pushforward invariant mean-/
 @[simp]
 noncomputable def inv_mean_pushforward
-  (m : left_invariant_mean G)
   (pi_surj : surjective π)
+  (m : left_invariant_mean G)
   : left_invariant_mean H
-:= left_invariant_mean.mk (mean_pushforward π m)
-                  (mean_pushforward_leftinv π  m pi_surj)
+:= left_invariant_mean.mk (mean_pushforward π pi_cont  m)
+                  (mean_pushforward_leftinv π pi_cont pi_surj m)
 
 
 end amenable_quotient
@@ -120,15 +117,15 @@ theorem amenable_of_quotient'
   (pi_surj : surjective π)
   (G_am: amenable G)
   : amenable H
-:= amenable_of_invmean (amenable_quotient.inv_mean_pushforward π (invmean_of_amenable G_am) pi_surj)
+:= amenable_of_invmean (amenable_quotient.inv_mean_pushforward π pi_cont pi_surj(invmean_of_amenable G_am) )
 
-/--Formulation with quotients-/
+
+/--Formulation with quotients, using the quotient topology on G⧸N-/
 theorem amenable_of_quotient
-  {N : subgroup G}
-  (nN : N.normal)
+  {N : subgroup G} (nN : N.normal)
   (G_am: amenable G)
-  : amenable (G⧸N)
-:= amenable_of_quotient' _ (quotient_group.mk'_surjective N) G_am
+  : amenable (G ⧸ N)
+:= amenable_of_quotient' _ (by exact continuous_coinduced_rng) (quotient_group.mk'_surjective N) G_am
 
 
 
@@ -163,8 +160,9 @@ lemma monoidhom_of_mulhom_to_fun
 
 /--Amenability is preserved under (multiplicative) isomorphisms-/
 theorem amenable_of_iso
-  {H : Type*} [group H]
+  {H:Type*} [topological_space H] [group H] [topological_group H]
   (i : G ≃* H)
+  (i_cont : continuous i.to_mul_hom)
   (G_am : amenable G)
   : amenable H
 := begin
@@ -177,5 +175,5 @@ theorem amenable_of_iso
     rw monoidhom_of_mulhom_to_fun,
     exact mul_equiv.surjective i,
   },
-  exact amenable_of_quotient' p p_surj G_am,
+  exact amenable_of_quotient' p i_cont p_surj G_am,
 end

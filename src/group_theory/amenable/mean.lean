@@ -47,7 +47,7 @@ mean
 open classical
 open bounded_continuous_function
 
-variables (G:Type*) [uniform_space G] [group G] [topological_group G]
+variables (G:Type*) [topological_space G] [group G] [topological_group G]
 
 
 /-- A mean on a group-/
@@ -223,7 +223,7 @@ by composing with `π`.
 -/
 
 
-variables {H : Type* } [uniform_space H] [group H] [topological_group H]
+variables {H : Type* } [topological_space H] [group H] [topological_group H]
 (π: G → H)
 (π_cont: continuous π)
 

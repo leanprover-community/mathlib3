@@ -106,7 +106,7 @@ instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
 /-- See also `measure_theory.ae_restrict_interval_oc_iff`. -/
 lemma ae_interval_oc_iff [linear_order α] {a b : α} {P : α → Prop} :
   (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔ (∀ᵐ x ∂μ, x ∈ Ioc a b → P x) ∧ (∀ᵐ x ∂μ, x ∈ Ioc b a → P x) :=
-by simp only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, eventually_and]
+by simp only [interval_oc_eq_union, mem_union, or_imp_distrib, eventually_and]
 
 lemma measure_union (hd : disjoint s₁ s₂) (h : measurable_set s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
@@ -1994,6 +1994,23 @@ lemma ae_restrict_bUnion_finset_eq (s : ι → set α) (t : finset ι) :
   (μ.restrict (⋃ i ∈ t, s i)).ae = ⨆ i ∈ t, (μ.restrict (s i)).ae :=
 ae_restrict_bUnion_eq s t.countable_to_set
 
+lemma ae_restrict_Union_iff [countable ι] (s : ι → set α) (p : α → Prop) :
+  (∀ᵐ x ∂ (μ.restrict (⋃ i, s i)), p x) ↔ (∀ i, (∀ᵐ x ∂ (μ.restrict (s i)), p x)) :=
+by simp
+
+lemma ae_restrict_union_iff (s t : set α) (p : α → Prop) :
+  (∀ᵐ x ∂ (μ.restrict (s ∪ t)), p x) ↔
+    ((∀ᵐ x ∂ (μ.restrict s), p x) ∧ (∀ᵐ x ∂ (μ.restrict t), p x)) :=
+by simp
+
+lemma ae_restrict_bUnion_iff (s : ι → set α) {t : set ι} (ht : t.countable) (p : α → Prop) :
+  (∀ᵐ x ∂(μ.restrict (⋃ i ∈ t, s i)), p x) ↔ ∀ i ∈ t, ∀ᵐ x ∂(μ.restrict (s i)), p x :=
+by simp_rw [filter.eventually, ae_restrict_bUnion_eq s ht, mem_supr]
+
+@[simp] lemma ae_restrict_bUnion_finset_iff (s : ι → set α) (t : finset ι) (p : α → Prop) :
+  (∀ᵐ x ∂(μ.restrict (⋃ i ∈ t, s i)), p x) ↔ ∀ i ∈ t, ∀ᵐ x ∂(μ.restrict (s i)), p x :=
+by simp_rw [filter.eventually, ae_restrict_bUnion_finset_eq s, mem_supr]
+
 lemma ae_eq_restrict_Union_iff [countable ι] (s : ι → set α) (f g : α → δ) :
   f =ᵐ[μ.restrict (⋃ i, s i)] g ↔ ∀ i, f =ᵐ[μ.restrict (s i)] g :=
 by simp_rw [eventually_eq, ae_restrict_Union_eq, eventually_supr]
@@ -2219,6 +2236,13 @@ include m0
 /-- A measure `μ` is called finite if `μ univ < ∞`. -/
 class is_finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
 
+lemma not_is_finite_measure_iff : ¬ is_finite_measure μ ↔ μ set.univ = ∞ :=
+begin
+  refine ⟨λ h, _, λ h, λ h', h'.measure_univ_lt_top.ne h⟩,
+  by_contra h',
+  exact h ⟨lt_top_iff_ne_top.mpr h'⟩,
+end
+
 instance restrict.is_finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
   is_finite_measure (μ.restrict s) :=
 ⟨by simp [hs.elim]⟩
@@ -2329,6 +2353,10 @@ begin
   rw ← measure_theory.measure_Union hf₂ hf₁,
   exact ne_of_lt (measure_lt_top _ _)
 end
+
+instance [finite α] [measurable_space α] : is_finite_measure (measure.count : measure α) :=
+⟨by { casesI nonempty_fintype α,
+      simpa [measure.count_apply, tsum_fintype] using (ennreal.nat_ne_top _).lt_top }⟩
 
 end is_finite_measure
 
@@ -2753,13 +2781,34 @@ lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
 
 end measure
 
-include m0
-
 /-- Every finite measure is σ-finite. -/
 @[priority 100]
-instance is_finite_measure.to_sigma_finite (μ : measure α) [is_finite_measure μ] :
+instance is_finite_measure.to_sigma_finite {m0 : measurable_space α} (μ : measure α)
+  [is_finite_measure μ] :
   sigma_finite μ :=
 ⟨⟨⟨λ _, univ, λ _, trivial, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
+
+lemma sigma_finite_bot_iff (μ : @measure α ⊥) : sigma_finite μ ↔ is_finite_measure μ :=
+begin
+  refine ⟨λ h, ⟨_⟩, λ h, by { haveI := h, apply_instance, }⟩,
+  haveI : sigma_finite μ := h,
+  let s := spanning_sets μ,
+  have hs_univ : (⋃ i, s i) = set.univ := Union_spanning_sets μ,
+  have hs_meas : ∀ i, measurable_set[⊥] (s i) := measurable_spanning_sets μ,
+  simp_rw measurable_space.measurable_set_bot_iff at hs_meas,
+  by_cases h_univ_empty : set.univ = ∅,
+  { rw [h_univ_empty, measure_empty], exact ennreal.zero_ne_top.lt_top, },
+  obtain ⟨i, hsi⟩ : ∃ i, s i = set.univ,
+  { by_contra h_not_univ,
+    push_neg at h_not_univ,
+    have h_empty : ∀ i, s i = ∅, by simpa [h_not_univ] using hs_meas,
+    simp [h_empty] at hs_univ,
+    exact h_univ_empty hs_univ.symm, },
+  rw ← hsi,
+  exact measure_spanning_sets_lt_top μ i,
+end
+
+include m0
 
 instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
   sigma_finite (μ.restrict s) :=
@@ -3312,6 +3361,14 @@ begin
     ... = (μ.trim (hm₂.trans hm)) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
       by rw @trim_trim _ _ μ _ _ hm₂ hm
     ... < ∞ : measure_spanning_sets_lt_top _ _, },
+end
+
+lemma sigma_finite_trim_bot_iff : sigma_finite (μ.trim bot_le) ↔ is_finite_measure μ :=
+begin
+  rw sigma_finite_bot_iff,
+  refine ⟨λ h, ⟨_⟩, λ h, ⟨_⟩⟩; have h_univ := h.measure_univ_lt_top,
+  { rwa trim_measurable_set_eq bot_le measurable_set.univ at h_univ, },
+  { rwa trim_measurable_set_eq bot_le measurable_set.univ, },
 end
 
 end trim

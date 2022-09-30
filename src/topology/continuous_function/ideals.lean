@@ -56,48 +56,6 @@ ideal, continuous function, compact, Hausdorff
 
 open_locale nnreal
 
-section prereqs
-
-instance nnreal.has_continuous_smul {𝕜 : Type*} [topological_space 𝕜] [mul_action ℝ 𝕜]
-  [has_continuous_smul ℝ 𝕜] : has_continuous_smul ℝ≥0 𝕜 :=
-{ continuous_smul := (continuous_induced_dom.comp continuous_fst).smul continuous_snd }
-
-namespace continuous_map
-
-variables {α β F : Type*} [topological_space α] [topological_space β] [continuous_map_class F α β]
-
-@[protected, simp, norm_cast] lemma coe_coe (f : F) : ⇑(f : C(α, β)) = f := rfl
-
-end continuous_map
-
-section nnreal
-
-variables (𝕜' : Type*) [semi_normed_ring 𝕜'] [norm_one_class 𝕜'] [normed_algebra ℝ 𝕜']
-
-@[simp] lemma norm_algebra_map_nnreal (x : ℝ≥0) : ∥algebra_map ℝ≥0 𝕜' x∥ = x :=
-(norm_algebra_map' 𝕜' (x : ℝ)).symm ▸ real.norm_of_nonneg x.prop
-
-@[simp] lemma nnnorm_algebra_map_nnreal (x : ℝ≥0) : ∥algebra_map ℝ≥0 𝕜' x∥₊ = x :=
-subtype.ext $ norm_algebra_map_nnreal 𝕜' x
-
-end nnreal
-
-namespace is_R_or_C
-
-variables {𝕜 : Type*} [is_R_or_C 𝕜]
-
-lemma algebra_map_eq_of_nnreal : ⇑(algebra_map ℝ≥0 𝕜) = coe := rfl
-
-@[simp] lemma norm_coe_nnreal' (x : ℝ≥0) : ∥((x : ℝ) : 𝕜)∥ = x :=
-norm_algebra_map_nnreal 𝕜 x
-
-@[simp] lemma nnnorm_coe_nnreal (x : ℝ≥0) : ∥((x : ℝ) : 𝕜)∥₊ = x :=
-nnnorm_algebra_map_nnreal 𝕜 x
-
-end is_R_or_C
-
-end prereqs
-
 namespace continuous_map
 
 open topological_space
@@ -281,8 +239,7 @@ begin
       ext,
       simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, coe_mul, coe_star,
         pi.mul_apply, pi.star_apply, star_def, continuous_map.coe_coe],
-      simpa only [norm_sq_eq_def', conj_mul_eq_norm_sq_left,
-        of_real_pow, algebra_map_eq_of_nnreal], }, },
+      simpa only [norm_sq_eq_def', conj_mul_eq_norm_sq_left, of_real_pow], }, },
   /- Get the function `g'` which is guaranteed to exist above. By the extreme value theorem and
   compactness of `t`, there is some `0 < c` such that `c ≤ g' x` for all `x ∈ t`. Then by
   `main_lemma_aux` there is some `g` for which `g * g'` is the desired function. -/

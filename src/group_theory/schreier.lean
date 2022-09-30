@@ -144,7 +144,8 @@ end
 
 variables (G)
 
-/-- If `G` has `n` commutators `[g₁, g₂]`, then `|G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n + 1)`. -/
+/-- If `G` has `n` commutators `[g₁, g₂]`, then `|G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n + 1)`,
+where `G'` denotes the commutator of `G`. -/
 lemma card_commutator_dvd_index_center_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   nat.card (commutator G) ∣
     (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=

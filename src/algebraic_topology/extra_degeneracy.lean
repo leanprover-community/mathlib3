@@ -35,7 +35,7 @@ TODO @joelriou:
 on the alternating face map complex of `X` is a homotopy equivalence of chain
 complexes.
 
-2) extra degeneracy for the cech nerve of a split epi. In particular the
+2) extra degeneracy for the Čech nerve of a split epi. In particular the
 universal cover EG of the classifying space of a group G has an extra
 degeneracy.
 

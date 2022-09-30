@@ -1306,6 +1306,16 @@ protected def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_monoid_hom
   .. mul_hom.coe M N }
 
 @[simp, to_additive]
+lemma coe_pow [monoid M] [monoid N] [has_lift_t M N] [coe_monoid_hom M N]
+  (a : M) (n : ℕ) : ↑(a ^ n) = (↑a : N) ^ n :=
+map_pow (monoid_hom.coe M N) a n
+
+@[simp, to_additive]
+lemma coe_zpow [group M] [group N] [has_lift_t M N] [coe_monoid_hom M N]
+  (a : M) (n : ℤ) : ↑(a ^ n) = (↑a : N) ^ n :=
+map_zpow (monoid_hom.coe M N) a n
+
+@[simp, to_additive]
 lemma coe_inv [group G] [division_monoid H] [has_lift_t G H] [coe_monoid_hom G H]
   (a : G) : ↑(a⁻¹) = (↑a : H)⁻¹ :=
 map_inv (monoid_hom.coe G H) a

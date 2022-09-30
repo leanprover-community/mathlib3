@@ -65,34 +65,53 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
   end }
 
 /--
-Taking skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor
+Taking skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor by
+sending every `f : a ⟶ b` to the natural transformation `α` defined as: `α(U) = f : a ⟶ b` if
+`p₀ ∈ U` and the unique morphism to a terminal object in `C` if `p₀ ∉ U`.
+-/
+@[simps] def skyscraper_presheaf_functor.map' {a b : C} (f : a ⟶ b) :
+  skyscraper_presheaf p₀ a ⟶ skyscraper_presheaf p₀ b :=
+{ app := λ U, if h : p₀ ∈ U.unop
+    then eq_to_hom (by { dsimp, rw if_pos h }) ≫ f ≫ eq_to_hom (by { dsimp, rw if_pos h })
+    else ((if_neg h).symm.rec terminal_is_terminal).from _,
+  naturality' := λ U V i,
+  begin
+    dsimp, by_cases hV : p₀ ∈ V.unop,
+    { have hU : p₀ ∈ U.unop := le_of_hom i.unop hV, split_ifs,
+      rw [category.assoc, category.assoc, eq_to_hom_trans, ←category.assoc, eq_to_hom_trans], },
+    { rw [dif_neg hV], apply ((if_neg hV).symm.rec terminal_is_terminal).hom_ext },
+  end }
+
+lemma skyscraper_presheaf_functor.map'_id {a : C} :
+  skyscraper_presheaf_functor.map' p₀ (𝟙 a) = 𝟙 _ :=
+begin
+  ext U, dsimp, split_ifs,
+  { simp only [category.id_comp, category.comp_id, eq_to_hom_trans, eq_to_hom_refl], },
+  { apply ((if_neg h).symm.rec terminal_is_terminal).hom_ext, },
+end
+
+lemma skyscraper_presheaf_functor.map'_comp {a b c : C} (f : a ⟶ b) (g : b ⟶ c) :
+  skyscraper_presheaf_functor.map' p₀ (f ≫ g) =
+  skyscraper_presheaf_functor.map' p₀ f ≫ skyscraper_presheaf_functor.map' p₀ g :=
+begin
+  ext U, dsimp,  split_ifs,
+  { rw [eq_to_hom_comp_iff, comp_eq_to_hom_iff, category.assoc, category.assoc, category.assoc,
+      category.assoc, category.assoc, category.assoc, eq_to_hom_trans, eq_to_hom_refl,
+      category.comp_id, ←category.assoc _ _ g, eq_to_hom_trans, eq_to_hom_refl, category.id_comp,
+      ←category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.id_comp], },
+  { apply ((if_neg h).symm.rec terminal_is_terminal).hom_ext, },
+end
+
+/--
+Taking skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor by
+sending every `f : a ⟶ b` to the natural transformation `α` defined as: `α(U) = f : a ⟶ b` if
+`p₀ ∈ U` and the unique morphism to a terminal object in `C` if `p₀ ∉ U`.
 -/
 @[simps] def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
 { obj := skyscraper_presheaf p₀,
-  map := λ a b f,
-  { app := λ U, if h : p₀ ∈ U.unop
-      then eq_to_hom begin dsimp, rw if_pos h end ≫ f ≫ eq_to_hom begin dsimp, rw if_pos h end
-      else ((if_neg h).symm.rec terminal_is_terminal).from _,
-    naturality' := λ U V i,
-    begin
-      dsimp, by_cases hV : p₀ ∈ V.unop,
-      { have hU : p₀ ∈ U.unop := le_of_hom i.unop hV, split_ifs,
-        rw [category.assoc, category.assoc, eq_to_hom_trans, ←category.assoc, eq_to_hom_trans], },
-      { rw [dif_neg hV], apply ((if_neg hV).symm.rec terminal_is_terminal).hom_ext },
-    end },
-  map_id' := λ a, begin
-    ext U, dsimp, split_ifs,
-    { simp only [category.id_comp, category.comp_id, eq_to_hom_trans, eq_to_hom_refl], },
-    { apply ((if_neg h).symm.rec terminal_is_terminal).hom_ext, },
-  end,
-  map_comp' := λ a b c f g, begin
-    ext U, dsimp,  split_ifs,
-    { rw [eq_to_hom_comp_iff, comp_eq_to_hom_iff, category.assoc, category.assoc, category.assoc,
-        category.assoc, category.assoc, category.assoc, eq_to_hom_trans, eq_to_hom_refl,
-        category.comp_id, ←category.assoc _ _ g, eq_to_hom_trans, eq_to_hom_refl, category.id_comp,
-        ←category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.id_comp], },
-    { apply ((if_neg h).symm.rec terminal_is_terminal).hom_ext, },
-  end }
+  map := λ _ _, skyscraper_presheaf_functor.map' p₀,
+  map_id' := λ _, skyscraper_presheaf_functor.map'_id p₀,
+  map_comp' := λ _ _ _, skyscraper_presheaf_functor.map'_comp p₀ }
 
 end
 

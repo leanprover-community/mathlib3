@@ -671,20 +671,21 @@ begin
 end
 
 /-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
-* `φ` is a sequence of nonnegative functions with integral `1`
-  whose support tends to small neighborhoods around `(0 : G)` as `i` tends to `l`.
+* `φ` is a sequence of nonnegative functions with integral `1` as `i` tends to `l`
+* The support of `φ` tends to small neighborhoods around `(0 : G)` as `i` tends to `l`.
+* `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`
 * `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`
-* `k i` tends to `x₀`
+* `k i` tends to `x₀`.
 
-This requires that `g` is locally integrable, which is a bit stronger than the condition in
-`convolution_tendsto_right`. -/
-lemma convolution_tendsto_right' [sigma_compact_space G]
+See also `cont_diff_bump_of_inner.convolution_tendsto_right`
+-/
+lemma convolution_tendsto_right
   {ι} {g : ι → G → E'} {l : filter ι} {x₀ : G} {z₀ : E'}
   {φ : ι → G → ℝ} {k : ι → G}
-  (hnφ : ∀ i x, 0 ≤ φ i x)
-  (hiφ : ∀ i, ∫ x, φ i x ∂μ = 1)
+  (hnφ : ∀ᶠ i in l, ∀ x, 0 ≤ φ i x)
+  (hiφ : ∀ᶠ i in l, ∫ x, φ i x ∂μ = 1) -- todo: we could weaken this to "the integral tends to 1"
   (hφ : tendsto (λ n, support (φ n)) l (𝓝 0).small_sets)
-  (hig : ∀ j, locally_integrable (g j) μ)
+  (hmg : ∀ᶠ i in l, ae_strongly_measurable (g i) μ)
   (hcg : tendsto (uncurry g) (l ×ᶠ 𝓝 x₀) (𝓝 z₀))
   (hk : tendsto k l (𝓝 x₀)) :
   tendsto (λ i : ι, (φ i ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) l (𝓝 z₀) :=
@@ -698,37 +699,15 @@ begin
   dsimp only [uncurry] at hgδ,
   have h2k := hk.eventually (ball_mem_nhds x₀ $ half_pos hδ),
   have h2φ := (hφ (ball (0 : G) _) $ ball_mem_nhds _ (half_pos hδ)),
-  filter_upwards [hp, h2k, h2φ] with i hpi hki hφi,
+  filter_upwards [hp, h2k, h2φ, hnφ, hiφ, hmg] with i hpi hki hφi hnφi hiφi hmgi,
   have hgi : dist (g i (k i)) z₀ < ε / 3 := hgδ hpi (hki.trans $ half_lt_self hδ),
   have h1 : ∀ x' ∈ ball (k i) (δ / 2), dist (g i x') (g i (k i)) ≤ ε / 3 + ε / 3,
   { intros x' hx',
     refine (dist_triangle_right _ _ _).trans (add_le_add (hgδ hpi _).le hgi.le),
     exact ((dist_triangle _ _ _).trans_lt (add_lt_add hx'.out hki)).trans_eq (add_halves δ) },
-  have := dist_convolution_le (add_pos h2ε h2ε).le hφi (hnφ i) (hiφ i)
-    (hig i).ae_strongly_measurable h1,
+  have := dist_convolution_le (add_pos h2ε h2ε).le hφi hnφi hiφi hmgi h1,
   refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgi)).trans_eq _,
   field_simp, ring_nf
-end
-
-/-- `(φ i ⋆ g) x₀` tends to `g x₀` if `φ` is a sequence of nonnegative functions with integral 1
-whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
-
-See also `cont_diff_bump_of_inner.convolution_tendsto_right'` and `convolution_tendsto_right`. -/
-lemma convolution_tendsto_right {ι} {l : filter ι} {φ : ι → G → ℝ}
-  (hnφ : ∀ i x, 0 ≤ φ i x)
-  (hiφ : ∀ i, ∫ s, φ i s ∂μ = 1)
-  (hφ : tendsto (λ n, support (φ n)) l (𝓝 0).small_sets)
-  (hmg : ae_strongly_measurable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
-  tendsto (λ i, (φ i ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
-begin
-  simp_rw [tendsto_small_sets_iff] at hφ,
-  rw [metric.continuous_at_iff] at hcg,
-  rw [metric.tendsto_nhds],
-  intros ε hε,
-  rcases hcg (ε / 2) (half_pos hε) with ⟨δ, hδ, hgδ⟩,
-  refine (hφ (ball (0 : G) δ) $ ball_mem_nhds _ hδ).mono (λ i hi, _),
-  exact (dist_convolution_le (half_pos hε).le hi (hnφ i) (hiφ i) hmg (λ x hx, (hgδ hx.out).le))
-    .trans_lt (half_lt_self hε)
 end
 
 end normed_add_comm_group
@@ -769,36 +748,30 @@ dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self 
 
 /-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
 * `φ` is a sequence of normed bump functions such that `(φ i).R` tends to `0` as `i` tends to `l`.
+* `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`
 * `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`
-* `k i` tends to `x₀`
+* `k i` tends to `x₀`.
 
 This requires that `g` is locally integrable, which is a bit stronger than the condition in
 `cont_diff_bump_of_inner.convolution_tendsto_right`. -/
-lemma convolution_tendsto_right' {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
+lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
   (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
-  (hig : ∀ j, locally_integrable (g j) μ)
+  (hig : ∀ᶠ i in l, ae_strongly_measurable (g i) μ)
   (hcg : tendsto (uncurry g) (l ×ᶠ 𝓝 x₀) (𝓝 z₀))
   (hk : tendsto k l (𝓝 x₀)) :
   tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) l (𝓝 z₀) :=
-convolution_tendsto_right' (λ i, (φ i).nonneg_normed) (λ i, (φ i).integral_normed)
+convolution_tendsto_right (eventually_of_forall $ λ i, (φ i).nonneg_normed)
+  (eventually_of_forall $ λ i, (φ i).integral_normed)
   (tendsto_support_normed_small_sets hφ) hig hcg hk
-
-/-- If `φ i` is a sequence of normed bump function, `(φ i ⋆ g) x₀` tends to `g x₀` if `(φ i).R`
-tends to `0` and `g` is continuous at `x₀`. -/
-lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
-  {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
-  (hmg : ae_strongly_measurable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
-  tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
-convolution_tendsto_right (λ i, (φ i).nonneg_normed) (λ i, (φ i).integral_normed)
-  (tendsto_support_normed_small_sets hφ) hmg hcg
 
 /-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous. -/
 lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hg : continuous g) (x₀ : G) :
   tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
-convolution_tendsto_right hφ hg.ae_strongly_measurable hg.continuous_at
+convolution_tendsto_right hφ (eventually_of_forall $ λ _, hg.ae_strongly_measurable)
+  ((hg.tendsto x₀).comp tendsto_snd) tendsto_const_nhds
 
 end cont_diff_bump_of_inner
 

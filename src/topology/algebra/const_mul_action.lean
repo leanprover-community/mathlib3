@@ -119,15 +119,6 @@ lemma is_compact.smul {α β} [has_smul α β] [topological_space β]
   [has_continuous_const_smul α β] (a : α) {s : set β}
   (hs : is_compact s) : is_compact (a • s) := hs.image (continuous_id'.const_smul a)
 
-instance nnreal.has_continuous_const_smul
-  {α} [mul_action ℝ α] [topological_space α]
-  [has_continuous_const_smul ℝ α] : has_continuous_const_smul nnreal α :=
-{ continuous_const_smul := λ c,
-  begin
-    convert continuous_id'.const_smul (↑c : ℝ),
-    apply_instance
-  end }
-
 end has_smul
 
 section monoid

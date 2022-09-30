@@ -84,10 +84,6 @@ instance : add_comm_monoid (convex_body V) :=
 { add_comm := λ K L, by { ext, simp only [coe_add, add_comm] },
   .. convex_body.add_monoid }
 
-noncomputable example : has_smul ℝ V := infer_instance
-example : topological_space V := infer_instance
-example : has_continuous_const_smul ℝ≥0 V := @nnreal.has_continuous_const_smul V _ _ _
-
 instance : has_smul ℝ (convex_body V) :=
 { smul := λ c K, ⟨c • (K : set V), K.convex.smul _, K.is_compact.smul _, K.nonempty.smul_set⟩ }
 

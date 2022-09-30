@@ -230,7 +230,7 @@ include hSG
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an additive subgroup of `add_group` `G` to `G`."]
-def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
+def subtype : H →* G := monoid_hom.coe H G
 
 @[simp, to_additive] theorem coe_subtype : (subtype H : H → G) = coe := rfl
 

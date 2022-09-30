@@ -399,7 +399,12 @@ include hA
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S' := ⟨⟨1, one_mem_class.one_mem S'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M₁) = 1 := rfl
+@[to_additive] instance : coe_one_hom S' M₁ := { coe_one := rfl }
+
+-- even though there is a generic `coe_one`, this can still be useful as a `dsimp` lemma,
+-- so keep it `@[simp]`
+@[simp, to_additive, priority 900]
+protected lemma coe_one : ((1 : S') : M₁) = 1 := rfl
 
 variables {S'}
 @[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M₁) = 1 ↔ x = 1 :=
@@ -500,9 +505,14 @@ subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (�
 
 include hA
 
+@[to_additive]
+instance : coe_monoid_hom S' M :=
+{ .. mul_mem_class.coe_mul_hom S',
+  .. one_mem_class.coe_one_hom S' }
+
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
-def subtype : S' →* M := ⟨coe, rfl, λ _ _, rfl⟩
+def subtype : S' →* M := monoid_hom.coe S' M
 
 @[simp, to_additive] theorem coe_subtype : (submonoid_class.subtype S' : S' → M) = coe := rfl
 
@@ -518,8 +528,8 @@ instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
+@[to_additive] protected lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
+@[to_additive] protected lemma coe_one : ((1 : S) : M) = 1 := rfl
 
 @[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S) (hy : y ∈ S) :
   (⟨x, hx⟩ : S) * ⟨y, hy⟩ = ⟨x * y, S.mul_mem hx hy⟩ := rfl

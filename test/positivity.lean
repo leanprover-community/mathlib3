@@ -137,6 +137,9 @@ example (n : ℕ) : 0 < n.succ := by positivity
 example (n : ℕ) : 0 < n! := by positivity
 example (n k : ℕ) : 0 < n.asc_factorial k := by positivity
 
+example {α : Type*} (s : finset α) (hs : s.nonempty) : 0 < s.card := by positivity
+example {α : Type*} [fintype α] [nonempty α] : 0 < fintype.card α := by positivity
+
 example {r : ℝ} : 0 < real.exp r := by positivity
 
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
 import data.dfinsupp.order
+import order.game_add
 
 /-!
 # Lexicographic order on finitely supported dependent functions
@@ -26,10 +27,6 @@ The type synonym `lex (Π₀ i, α i)` has an order given by `dfinsupp.lex (<) (
 -/
 protected def lex (r : ι → ι → Prop) (s : Π i, α i → α i → Prop) (x y : Π₀ i, α i) : Prop :=
 pi.lex r s x y
-
-lemma _root_.finsupp.lex_eq_inv_image_dfinsupp_lex {α} [has_zero α]
-  (r : ι → ι → Prop) (s : α → α → Prop) :
-  finsupp.lex r s = inv_image (dfinsupp.lex r $ λ i, s) finsupp.to_dfinsupp := rfl
 
 instance [has_lt ι] [Π i, has_lt (α i)] : has_lt (lex (Π₀ i, α i)) :=
 ⟨λ f g, dfinsupp.lex (<) (λ i, (<)) (of_lex f) (of_lex g)⟩

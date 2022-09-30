@@ -3,11 +3,10 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.pi.lex
 import data.finsupp.order
 import data.finsupp.ne_locus
 import data.dfinsupp.lex
--- import data.finsupp.to_dfinsupp
+import data.finsupp.to_dfinsupp
 
 /-!
 # Lexicographic order on finitely supported functions
@@ -33,6 +32,9 @@ pi.lex r (λ _, s) x y
 lemma _root_.pi.lex_eq_finsupp_lex {r : α → α → Prop} {s : N → N → Prop} (a b : α →₀ N) :
   pi.lex r (λ _, s) (a : α → N) (b : α → N) = finsupp.lex r s a b :=
 rfl
+
+lemma lex_eq_inv_image_dfinsupp_lex (r : α → α → Prop) (s : N → N → Prop) :
+  finsupp.lex r s = inv_image (dfinsupp.lex r $ λ a, s) to_dfinsupp := rfl
 
 lemma lex_def {r : α → α → Prop} {s : N → N → Prop} {a b : α →₀ N} :
   finsupp.lex r s a b ↔ ∃ j, (∀ d, r d j → a d = b d) ∧ s (a j) (b j) := iff.rfl
@@ -168,7 +170,7 @@ theorem lex.well_founded' [is_trichotomous α r]
 
 omit hbot hs
 
-instance lex.well_founded_lt [has_lt α] [is_trichotomous α (<)] [hι : well_founded_gt ι]
+instance lex.well_founded_lt [has_lt α] [is_trichotomous α (<)] [hα : well_founded_gt α]
   [canonically_ordered_add_monoid N] [hN : well_founded_lt N] : well_founded_lt (lex (α →₀ N)) :=
 ⟨lex.well_founded' (<) (<) (λ n, (zero_le n).not_lt) hN.wf hα.wf⟩
 

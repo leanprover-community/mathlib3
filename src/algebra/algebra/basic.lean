@@ -481,7 +481,7 @@ variables {R M}
 
 lemma End_is_unit_apply_inv_apply_of_is_unit {f : module.End R M} (h : is_unit f) (x : M) :
   f (h.unit.inv x) = x :=
-(by simp : (f * h.unit.inv) x = x)
+show (f * h.unit.inv) x = x, by simp
 
 lemma End_is_unit_inv_apply_apply_of_is_unit {f : module.End R M} (h : is_unit f) (x : M) :
   h.unit.inv (f x) = x :=

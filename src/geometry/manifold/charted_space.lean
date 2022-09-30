@@ -262,7 +262,7 @@ instance : order_bot (structure_groupoid H) :=
       apply u.id_mem },
     { apply u.locality,
       assume x hx,
-      rw [hf, mem_empty_eq] at hx,
+      rw [hf, mem_empty_iff_false] at hx,
       exact hx.elim }
   end }
 

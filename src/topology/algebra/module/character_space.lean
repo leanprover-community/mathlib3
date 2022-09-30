@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 
 import topology.algebra.module.weak_dual
 import algebra.algebra.spectrum
+import topology.continuous_function.algebra
 
 /-!
 # Character space of a topological algebra
@@ -165,5 +166,29 @@ alg_hom.apply_mem_spectrum φ a
 end ring
 
 end character_space
+
+section gelfand_transform
+
+open continuous_map
+
+variables (𝕜 A) [comm_ring 𝕜] [no_zero_divisors 𝕜] [topological_space 𝕜]
+  [topological_ring 𝕜] [topological_space A] [semiring A] [algebra 𝕜 A]
+
+/-- The **Gelfand transform** is an algebra homomorphism (over `𝕜`) from a topological `𝕜`-algebra
+`A` into the `𝕜`-algebra of continuous `𝕜`-valued functions on the `character_space 𝕜 A`.
+The character space itself consists of all algebra homomorphisms from `A` to `𝕜`.  -/
+@[simps] def gelfand_transform : A →ₐ[𝕜] C(character_space 𝕜 A, 𝕜) :=
+{ to_fun := λ a,
+  { to_fun := λ φ, φ a,
+    continuous_to_fun := (eval_continuous a).comp continuous_induced_dom },
+    map_one' := by {ext, simp only [coe_mk, coe_one, pi.one_apply, map_one a] },
+    map_mul' := λ a b, by {ext, simp only [map_mul, coe_mk, coe_mul, pi.mul_apply] },
+    map_zero' := by {ext, simp only [map_zero, coe_mk, coe_mul, coe_zero, pi.zero_apply], },
+    map_add' :=  λ a b, by {ext, simp only [map_add, coe_mk, coe_add, pi.add_apply] },
+    commutes' := λ k, by {ext, simp only [alg_hom_class.commutes, algebra.id.map_eq_id,
+      ring_hom.id_apply, coe_mk, algebra_map_apply, algebra.id.smul_eq_mul, mul_one] } }
+
+end gelfand_transform
+
 
 end weak_dual

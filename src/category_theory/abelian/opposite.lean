@@ -23,7 +23,6 @@ variables (C : Type*) [category C] [abelian C]
 local attribute [instance]
   has_finite_limits_of_has_equalizers_and_finite_products
   has_finite_colimits_of_has_coequalizers_and_finite_coproducts
-  has_finite_limits_opposite has_finite_colimits_opposite has_finite_products_opposite
 
 instance : abelian Cᵒᵖ :=
 { normal_mono_of_mono := λ X Y f m, by exactI

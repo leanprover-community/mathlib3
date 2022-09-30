@@ -675,12 +675,12 @@ begin
       have : (F p).2 ((E p) x) ((E p) y) = floor (ε⁻¹ * dist x y),
         by simp only [F, (E p).symm_apply_apply],
       have Ap : (F p).2 ⟨i, hip⟩ ⟨j, hjp⟩ = floor (ε⁻¹ * dist x y),
-        by { rw ← this, congr; apply (fin.ext_iff _ _).2; refl },
+        by { rw ← this, congr; apply fin.ext_iff.2; refl },
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
       have : (F q).2 ((E q) (Ψ x)) ((E q) (Ψ y)) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
         by simp only [F, (E q).symm_apply_apply],
       have Aq : (F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩ = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
-        by { rw ← this, congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] },
+        by { rw ← this, congr; apply fin.ext_iff.2; [exact i', exact j'] },
       -- use the equality between `F p` and `F q` to deduce that the distances have equal
       -- integer parts
       have : (F p).2 ⟨i, hip⟩ ⟨j, hjp⟩ = (F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩,
@@ -763,7 +763,7 @@ begin
   refine ⟨_, _, (λ p, F p), _⟩, apply_instance,
   -- It remains to show that if `F p = F q`, then `p` and `q` are `ε`-close
   rintros ⟨p, pt⟩ ⟨q, qt⟩ hpq,
-  have Npq : N p = N q := (fin.ext_iff _ _).1 (sigma.mk.inj_iff.1 hpq).1,
+  have Npq : N p = N q := fin.ext_iff.1 (sigma.mk.inj_iff.1 hpq).1,
   let Ψ : s p → s q := λ x, (E q).symm (fin.cast Npq ((E p) x)),
   let Φ : s p → q.rep := λ x, Ψ x,
   have main : GH_dist p.rep (q.rep) ≤ ε + ε/2 + ε,
@@ -817,7 +817,7 @@ begin
       -- Express `dist x y` in terms of `F p`
       have Ap : ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ⌊ε⁻¹ * dist x y⌋₊ := calc
         ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ((F p).2 ((E p) x) ((E p) y)).1 :
-          by { congr; apply (fin.ext_iff _ _).2; refl }
+          by { congr; apply fin.ext_iff.2; refl }
         ... = min M ⌊ε⁻¹ * dist x y⌋₊ :
           by simp only [F, (E p).symm_apply_apply]
         ... = ⌊ε⁻¹ * dist x y⌋₊ :
@@ -831,7 +831,7 @@ begin
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
       have Aq : ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ := calc
         ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ((F q).2 ((E q) (Ψ x)) ((E q) (Ψ y))).1 :
-          by { congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] }
+          by { congr; apply fin.ext_iff.2; [exact i', exact j'] }
         ... = min M ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ :
           by simp only [F, (E q).symm_apply_apply]
         ... = ⌊ε⁻¹ * dist (Ψ x) (Ψ y)⌋₊ :

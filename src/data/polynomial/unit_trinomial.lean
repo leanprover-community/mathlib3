@@ -341,7 +341,7 @@ begin
     replace hp := hp.leading_coeff_is_unit,
     rw leading_coeff_mul at hp,
     replace hp := is_unit_of_mul_is_unit_left hp,
-    rw [not_lt, nat.le_zero_iff] at this,
+    rw [not_lt, le_zero_iff] at this,
     rwa [eq_C_of_nat_degree_eq_zero this, is_unit_C, ←this] },
   intro hq'',
   rw nat_degree_pos_iff_degree_pos at hq'',

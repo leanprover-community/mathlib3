@@ -176,10 +176,10 @@ variables [add_comm_group E] [module 𝕜 E] {s s₁ s₂ t t₁ t₂ : set E}
 
 lemma absorbs.neg : absorbs 𝕜 s t → absorbs 𝕜 (-s) (-t) :=
 Exists.imp $ λ r, and.imp_right $ forall₂_imp $ λ _ _ h,
-  (neg_subset_neg.2 h).trans set.smul_set_neg.superset
+  (neg_subset_neg.2 h).trans (smul_set_neg _ _).superset
 
 lemma balanced.neg : balanced 𝕜 s → balanced 𝕜 (-s) :=
-forall₂_imp $ λ _ _ h, smul_set_neg.subset.trans $ neg_subset_neg.2 h
+forall₂_imp $ λ _ _ h, (smul_set_neg _ _).subset.trans $ neg_subset_neg.2 h
 
 lemma absorbs.add : absorbs 𝕜 s₁ t₁ → absorbs 𝕜 s₂ t₂ → absorbs 𝕜 (s₁ + s₂) (t₁ + t₂) :=
 λ ⟨r₁, hr₁, h₁⟩ ⟨r₂, hr₂, h₂⟩, ⟨max r₁ r₂, lt_max_of_lt_left hr₁, λ a ha, (add_subset_add

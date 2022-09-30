@@ -86,25 +86,6 @@ class mul_action (α : Type*) (β : Type*) [monoid α] extends has_smul α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
-instance additive.add_action [monoid α] [mul_action α β] : add_action (additive α) β :=
-{ vadd := (•) ∘ additive.to_mul,
-  zero_vadd := mul_action.one_smul,
-  add_vadd := mul_action.mul_smul }
-
-@[simp] lemma additive.of_mul_vadd [monoid α] [mul_action α β] (a : α) (b : β) :
-  additive.of_mul a +ᵥ b = a • b :=
-rfl
-
-instance multiplicative.mul_action [add_monoid α] [add_action α β] :
-  mul_action (multiplicative α) β :=
-{ smul := (+ᵥ) ∘ multiplicative.to_add,
-  one_smul := add_action.zero_vadd,
-  mul_smul := add_action.add_vadd }
-
-@[simp] lemma multiplicative.of_add_smul [add_monoid α] [add_action α β] (a : α) (b : β) :
-  multiplicative.of_add a • b = a +ᵥ b :=
-rfl
-
 /-!
 ### (Pre)transitive action
 
@@ -509,20 +490,44 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_smul M N]
 
 end compatible_scalar
 
+/-- Typeclass for scalar multiplication that preserves `0` on the right. -/
+class smul_zero_class (M A : Type*) [has_zero A] extends has_smul M A :=
+(smul_zero : ∀ (a : M), a • (0 : A) = 0)
+
+@[simp] theorem smul_zero [has_zero A] [smul_zero_class M A] (a : M) : a • (0 : A) = 0 :=
+smul_zero_class.smul_zero _
+
+/-- Typeclass for scalar multiplication that preserves `0` and `+` on the right.
+
+This is exactly `distrib_mul_action` without the `mul_action` part.
+-/
+@[ext] class distrib_smul (M A : Type*) [add_zero_class A]
+  extends smul_zero_class M A :=
+(smul_add : ∀ (a : M) (x y : A), a • (x + y) = a • x + a • y)
+
+theorem smul_add [add_zero_class A] [distrib_smul M A] (a : M) (b₁ b₂ : A) :
+  a • (b₁ + b₂) = a • b₁ + a • b₂ :=
+distrib_smul.smul_add _ _ _
+
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-@[ext] class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
+@[ext] class distrib_mul_action (M A : Type*) [monoid M] [add_monoid A]
   extends mul_action M A :=
-(smul_add : ∀(r : M) (x y : A), r • (x + y) = r • x + r • y)
-(smul_zero : ∀(r : M), r • (0 : A) = 0)
+(smul_zero : ∀ (a : M), a • (0 : A) = 0)
+(smul_add : ∀ (a : M) (x y : A), a • (x + y) = a • x + a • y)
 
 section
+
 variables [monoid M] [add_monoid A] [distrib_mul_action M A]
 
-theorem smul_add (a : M) (b₁ b₂ : A) : a • (b₁ + b₂) = a • b₁ + a • b₂ :=
-distrib_mul_action.smul_add _ _ _
+@[priority 100] -- See note [lower instance priority]
+instance distrib_mul_action.to_distrib_smul : distrib_smul M A :=
+{ ..‹distrib_mul_action M A› }
 
-@[simp] theorem smul_zero (a : M) : a • (0 : A) = 0 :=
-distrib_mul_action.smul_zero _
+/-! Since Lean 3 does not have definitional eta for structures, we have to make sure
+that the definition of `distrib_mul_action.to_distrib_smul` was done correctly,
+and the two paths from `distrib_mul_action` to `has_smul` are indeed definitionally equal. -/
+example : (distrib_mul_action.to_mul_action.to_has_smul : has_smul M A) =
+  distrib_mul_action.to_distrib_smul.to_has_smul := rfl
 
 /-- Pullback a distributive multiplicative action along an injective additive monoid
 homomorphism.
@@ -797,3 +802,45 @@ See note [reducible non-instances]. -/
 @[reducible]
 def add_action.of_End_hom [add_monoid M] (f : M →+ additive (function.End α)) : add_action M α :=
 add_action.comp_hom α f
+
+/-! ### `additive`, `multiplicative` -/
+
+section
+
+open additive multiplicative
+
+instance additive.has_vadd [has_smul α β] : has_vadd (additive α) β := ⟨λ a, (•) (to_mul a)⟩
+instance multiplicative.has_smul [has_vadd α β] : has_smul (multiplicative α) β :=
+⟨λ a, (+ᵥ) (to_add a)⟩
+
+@[simp] lemma to_mul_smul [has_smul α β] (a) (b : β) : (to_mul a : α) • b = a +ᵥ b := rfl
+@[simp] lemma of_mul_vadd [has_smul α β] (a : α) (b : β) : of_mul a +ᵥ b = a • b := rfl
+@[simp] lemma to_add_vadd [has_vadd α β] (a) (b : β) : (to_add a : α) +ᵥ b = a • b := rfl
+@[simp] lemma of_add_smul [has_vadd α β] (a : α) (b : β) : of_add a • b = a +ᵥ b := rfl
+
+instance additive.add_action [monoid α] [mul_action α β] : add_action (additive α) β :=
+{ zero_vadd := mul_action.one_smul,
+  add_vadd := mul_action.mul_smul }
+
+instance multiplicative.mul_action [add_monoid α] [add_action α β] :
+  mul_action (multiplicative α) β :=
+{ one_smul := add_action.zero_vadd,
+  mul_smul := add_action.add_vadd }
+
+instance additive.add_action_is_pretransitive [monoid α] [mul_action α β]
+  [mul_action.is_pretransitive α β] : add_action.is_pretransitive (additive α) β :=
+⟨@mul_action.exists_smul_eq α _ _ _⟩
+
+instance multiplicative.add_action_is_pretransitive [add_monoid α] [add_action α β]
+  [add_action.is_pretransitive α β] : mul_action.is_pretransitive (multiplicative α) β :=
+⟨@add_action.exists_vadd_eq α _ _ _⟩
+
+instance additive.vadd_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
+  vadd_comm_class (additive α) (additive β) γ :=
+⟨@smul_comm α β _ _ _ _⟩
+
+instance multiplicative.smul_comm_class [has_vadd α γ] [has_vadd β γ] [vadd_comm_class α β γ] :
+  smul_comm_class (multiplicative α) (multiplicative β) γ :=
+⟨@vadd_comm α β _ _ _ _⟩
+
+end

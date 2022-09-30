@@ -729,7 +729,7 @@ begin
   refine this _ _,
   intros m,
   simp only [continuous_multilinear_map.mk_pi_algebra_fin_apply, one_mul, list.of_fn_eq_map,
-    fin.univ_def, finset.fin_range, finset.prod, multiset.coe_map, multiset.coe_prod],
+    fin.prod_univ_def, multiset.coe_map, multiset.coe_prod],
   refine (list.norm_prod_le' _).trans_eq _,
   { rw [ne.def, list.map_eq_nil, list.fin_range_eq_nil],
     exact nat.succ_ne_zero _, },
@@ -788,6 +788,22 @@ to_multilinear_map_inj f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 @[simp] lemma norm_mk_pi_field (z : G) : ∥continuous_multilinear_map.mk_pi_field 𝕜 ι z∥ = ∥z∥ :=
 (multilinear_map.mk_continuous_norm_le _ (norm_nonneg z) _).antisymm $
   by simpa using (continuous_multilinear_map.mk_pi_field 𝕜 ι z).le_op_norm (λ _, 1)
+
+lemma mk_pi_field_eq_iff {z₁ z₂ : G} :
+  continuous_multilinear_map.mk_pi_field 𝕜 ι z₁ = continuous_multilinear_map.mk_pi_field 𝕜 ι z₂ ↔
+  z₁ = z₂ :=
+begin
+  rw [← to_multilinear_map_inj.eq_iff],
+  exact multilinear_map.mk_pi_ring_eq_iff
+end
+
+lemma mk_pi_field_zero :
+  continuous_multilinear_map.mk_pi_field 𝕜 ι (0 : G) = 0 :=
+by ext; rw [mk_pi_field_apply, smul_zero, continuous_multilinear_map.zero_apply]
+
+lemma mk_pi_field_eq_zero_iff (z : G) :
+  continuous_multilinear_map.mk_pi_field 𝕜 ι z = 0 ↔ z = 0 :=
+by rw [← mk_pi_field_zero, mk_pi_field_eq_iff]
 
 variables (𝕜 ι G)
 

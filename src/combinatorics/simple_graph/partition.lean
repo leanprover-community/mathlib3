@@ -118,7 +118,8 @@ def coloring.to_partition {α : Type v} (C : G.coloring α) : G.partition :=
     apply C.color_classes_independent,
   end }
 
-instance : inhabited (partition G) := ⟨G.self_coloring.to_partition⟩
+/-- The partition where every vertex is in its own part. -/
+@[simps] instance : inhabited (partition G) := ⟨G.self_coloring.to_partition⟩
 
 lemma partitionable_iff_colorable {n : ℕ} :
   G.partitionable n ↔ G.colorable n :=

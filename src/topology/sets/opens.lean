@@ -69,7 +69,7 @@ open order_dual (of_dual to_dual)
 
 /-- The galois coinsertion between sets and opens. -/
 def gi : galois_coinsertion subtype.val (@interior α _) :=
-{ choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
+{ choice := λ s hs, ⟨s, interior_eq_iff_is_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc,
   u_l_le := λ _, interior_subset,
   choice_eq := λ s hs, le_antisymm hs interior_subset }
@@ -266,5 +266,7 @@ def open_nhds_of (x : α) : Type* := { s : set α // is_open s ∧ x ∈ s }
 
 instance open_nhds_of.inhabited {α : Type*} [topological_space α] (x : α) :
   inhabited (open_nhds_of x) := ⟨⟨set.univ, is_open_univ, set.mem_univ _⟩⟩
+
+instance [finite α] : finite (opens α) := subtype.finite
 
 end topological_space

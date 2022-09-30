@@ -254,6 +254,11 @@ to isomorphisms in `D`. -/
 def is_inverted_by (P : morphism_property C) (F : C ⥤ D) : Prop :=
 ∀ ⦃X Y : C⦄ (f : X ⟶ Y) (hf : P f), is_iso (F.map f)
 
+lemma is_inverted_by.of_comp {C₁ C₂ C₃ : Type*} [category C₁] [category C₂] [category C₃]
+  (W : morphism_property C₁) (F : C₁ ⥤ C₂) (hF : W.is_inverted_by F) (G : C₂ ⥤ C₃) :
+  W.is_inverted_by (F ⋙ G) :=
+λ X Y f hf, by { haveI := hF f hf, dsimp, apply_instance, }
+
 /-- Given `app : Π X, F₁.obj X ⟶ F₂.obj X` where `F₁` and `F₂` are two functors,
 this is the `morphism_property C` satisfied by the morphisms in `C` with respect
 to whom `app` is natural. -/
@@ -356,6 +361,15 @@ lemma stable_under_composition.epimorphisms : stable_under_composition (epimorph
   haveI := hg,
   apply epi_comp,
 end
+
+/-- The full subcategory of `C ⥤ D` consisting of functors inverting morphisms in `W` -/
+@[derive category, nolint has_nonempty_instance]
+def functors_inverting (W : morphism_property C) (D : Type*) [category D] :=
+full_subcategory (λ (F : C ⥤ D), W.is_inverted_by F)
+
+/-- A constructor for `W.functors_inverting D` -/
+def functors_inverting.mk {W : morphism_property C} {D : Type*} [category D]
+(F : C ⥤ D) (hF : W.is_inverted_by F) : W.functors_inverting D := ⟨F, hF⟩
 
 end morphism_property
 

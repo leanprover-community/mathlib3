@@ -104,7 +104,7 @@ def id : morph_components X n (X _[n+1]) :=
 { a := P_infty.f (n+1),
   b := λ i, X.σ i, }
 
-lemma id_φ : (id X n).φ = 𝟙 _ :=
+@[simp] lemma id_φ : (id X n).φ = 𝟙 _ :=
 begin
   simp only [← P_add_Q_f (n+1) (n+1), φ],
   congr' 1,

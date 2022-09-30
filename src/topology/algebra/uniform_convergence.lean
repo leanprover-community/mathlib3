@@ -51,6 +51,7 @@ section group
 variables {α G : Type*} [group G] [uniform_space G] [uniform_group G] {𝔖 : set $ set α}
 
 local attribute [-instance] Pi.uniform_space
+local attribute [-instance] Pi.topological_space
 
 /-- If `G` is a uniform group, then the uniform structure of uniform convergence makes `α → G`
 a uniform group as well. -/
@@ -73,7 +74,8 @@ end
 @[to_additive]
 protected lemma uniform_convergence.has_basis_nhds_one_of_basis {ι : Type*} {p : ι → Prop}
   {b : ι → set G} (h : (𝓝 1 : filter G).has_basis p b) :
-  (𝓝 1 : filter (α → G)).has_basis p (λ i, {f : α → G | ∀ x, f x ∈ b i}) :=
+  (@nhds (α → G) (uniform_convergence.topological_space α G) 1).has_basis p
+    (λ i, {f : α → G | ∀ x, f x ∈ b i}) :=
 begin
   have := h.comap (λ p : G × G, p.2 / p.1),
   rw ← uniformity_eq_comap_nhds_one at this,
@@ -84,7 +86,7 @@ end
 
 @[to_additive]
 protected lemma uniform_convergence.has_basis_nhds_one :
-  (𝓝 1 : filter (α → G)).has_basis
+  (@nhds (α → G) (uniform_convergence.topological_space α G) 1).has_basis
     (λ V : set G, V ∈ (𝓝 1 : filter G))
     (λ V, {f : α → G | ∀ x, f x ∈ V}) :=
 uniform_convergence.has_basis_nhds_one_of_basis (basis_sets _)

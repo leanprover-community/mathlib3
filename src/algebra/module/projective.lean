@@ -62,6 +62,8 @@ projective module
 
 universes u v
 
+open linear_map finsupp
+
 /- The actual implementation we choose: `P` is projective if the natural surjection
    from the free `R`-module on `P` to `P` splits. -/
 /-- An R-module is projective if it is a direct summand of a free module, or equivalently
@@ -77,6 +79,12 @@ lemma projective_def {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_mo
   [module R P] : projective R P ↔
   (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+theorem module.projective_def' {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P]
+  [module R P] : projective R P ↔
+  (∃ s : P →ₗ[R] (P →₀ R), (finsupp.total P P R id) ∘ₗ s = id) :=
+by simp_rw [module.projective_def, fun_like.ext_iff, function.left_inverse, coe_comp, id_coe,
+  id.def]
 
 section semiring
 
@@ -129,6 +137,26 @@ begin
   { intro p,
     use finsupp.single p 1,
     simp },
+end
+
+variables (Q : Type (max u v)) [add_comm_monoid Q] [module R Q]
+
+instance [hP : projective R P] [hQ : projective R Q] : projective R (P × Q) :=
+begin
+  rw module.projective_def',
+  cases hP.out with sP hsP,
+  cases hQ.out with sQ hsQ,
+  use coprod (lmap_domain R R (inl R P Q)) (lmap_domain R R (inr R P Q)) ∘ₗ sP.prod_map sQ,
+  ext;
+  simp only [coe_inl, coe_inr, coe_comp, function.comp_app, prod_map_apply, map_zero, coprod_apply,
+  lmap_domain_apply, map_domain_zero, add_zero, zero_add, id_comp,
+  total_map_domain R _ (prod.mk.inj_right (0 : Q)),
+  total_map_domain R _ (prod.mk.inj_left (0 : P))],
+
+  { rw [←fst_apply _, apply_total R], exact hsP x, },
+  { rw [←snd_apply _, apply_total R], exact finsupp.total_zero_apply _ (sP x), },
+  { rw [←fst_apply _, apply_total R], exact finsupp.total_zero_apply _ (sQ x), },
+  { rw [←snd_apply _, apply_total R], exact hsQ x, },
 end
 
 end semiring

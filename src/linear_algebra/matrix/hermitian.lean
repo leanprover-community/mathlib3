@@ -142,6 +142,7 @@ variables [ring α] [star_ring α] [ring β] [star_ring β]
 end ring
 
 section is_R_or_C
+open is_R_or_C
 
 variables [is_R_or_C α] [is_R_or_C β]
 

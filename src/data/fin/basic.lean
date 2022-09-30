@@ -280,8 +280,8 @@ def rev {n : ℕ} (i : fin n) : fin n :=
   { simpa only [nat.succ_sub_succ_eq_sub n i, nat.lt_succ_iff] using tsub_le_self, },
 end⟩
 
-lemma rev_eq {n a : ℕ} (i : fin (n+1)) (h : n=a+i) : i.rev =
-  ⟨a, nat.lt_succ_iff.mpr (nat.le.intro (h.symm))⟩ :=
+lemma rev_eq {n a : ℕ} (i : fin (n+1)) (h : n=a+i) :
+  i.rev = ⟨a, nat.lt_succ_iff.mpr (nat.le.intro (h.symm))⟩ :=
 begin
   ext,
   dsimp [fin.rev],

@@ -6,8 +6,9 @@ Authors: Jireh Loreaux
 
 import topology.continuous_function.compact
 import topology.urysohns_lemma
-import data.complex.is_R_or_C
 import analysis.normed_space.units
+import topology.algebra.module.character_space
+import analysis.complex.basic
 
 /-!
 # Ideals of continuous functions
@@ -120,6 +121,10 @@ set.univ_subset_iff.mp $ λ x hx, mem_set_of_ideal.mpr ⟨1, submodule.mem_top, 
 @[simp] lemma ideal_of_empty_eq_bot : (ideal_of_set R (∅ : set X)) = ⊥ :=
 ideal.ext (λ f, by simpa only [mem_ideal_of_set, set.compl_empty, set.mem_univ, forall_true_left,
   ideal.mem_bot, fun_like.ext_iff] using iff.rfl)
+
+@[simp] lemma mem_ideal_of_set_singleton_compl (x : X) (f : C(X, R)) :
+  f ∈ ideal_of_set R ({x}ᶜ : set X) ↔ f x = 0 :=
+by simp only [mem_ideal_of_set, compl_compl, set.mem_singleton_iff, forall_eq]
 
 variables (X R)
 lemma ideal_gc : galois_connection (set_of_ideal : ideal C(X, R) → set X) (ideal_of_set R) :=
@@ -359,3 +364,82 @@ begin
 end
 
 end continuous_map
+
+section characters
+
+open weak_dual function continuous_map
+
+variables (X : Type*) [topological_space X] [compact_space X] [t2_space X]
+
+section kernel
+
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜] [has_continuous_const_smul 𝕜 𝕜]
+variables {A : Type*} [ring A] [topological_space A] [algebra 𝕜 A]
+
+example : ring_hom_class (character_space 𝕜 A) A 𝕜 := infer_instance
+
+/-- The `ring_hom.ker` of `φ : character_space 𝕜 A` is maximal. -/
+instance weak_dual.character_space.ker_is_maximal (φ : character_space 𝕜 A) :
+  (ring_hom.ker φ).is_maximal :=
+ring_hom.ker_is_maximal_of_surjective φ $ λ z, ⟨algebra_map 𝕜 A z,
+  by simp only [alg_hom_class.commutes, algebra.id.map_eq_id, ring_hom.id_apply]⟩
+
+lemma weak_dual.character_space.ext_ker {φ ψ : character_space 𝕜 A}
+  (h : ring_hom.ker φ = ring_hom.ker ψ) : φ = ψ :=
+begin
+  ext,
+  simp only [character_space.coe_coe],
+  have : x - algebra_map 𝕜 A (ψ x) ∈ ring_hom.ker φ,
+  { simpa only [h, ring_hom.mem_ker, map_sub, alg_hom_class.commutes] using sub_self (ψ x) },
+  { rwa [ring_hom.mem_ker, map_sub, alg_hom_class.commutes, sub_eq_zero] at this, }
+end
+
+
+end kernel
+
+section continuous_map_eval
+
+variables (𝕜 : Type*) [comm_ring 𝕜] [topological_space 𝕜] [topological_semiring 𝕜]
+variables [nontrivial 𝕜] [no_zero_divisors 𝕜]
+
+/-- The natural continuous map -/
+def weak_dual.character_space.continuous_map_eval :
+  C(X, character_space 𝕜 C(X, 𝕜)) :=
+{ to_fun := λ x, ⟨{ to_fun := λ f, f x, map_add' := λ f g, rfl, map_smul' := λ z f, rfl,
+                    cont := continuous_eval_const' x },
+                  by { rw character_space.eq_set_map_one_map_mul, exact ⟨rfl, λ f g, rfl⟩ }⟩,
+  continuous_to_fun := continuous.subtype_mk (continuous_of_continuous_eval map_continuous) _ }
+
+@[simp] lemma weak_dual.character_space.continuous_map_eval_apply_apply (x : X) (f : C(X, 𝕜)) :
+  weak_dual.character_space.continuous_map_eval X 𝕜 x f = f x := rfl
+
+end continuous_map_eval
+
+lemma weak_dual.character_space.continuous_map_eval_injective :
+  injective (weak_dual.character_space.continuous_map_eval X ℂ) :=
+begin
+  intros x y,
+  contrapose!,
+  intros hxy,
+  haveI := @normal_of_compact_t2 X _ _ _,
+  rcases exists_continuous_zero_one_of_closed (is_closed_singleton : is_closed {x})
+    (is_closed_singleton : is_closed {y}) (set.disjoint_singleton.mpr hxy) with ⟨f, fx, fy, -⟩,
+  rw [←ne.def, fun_like.ne_iff],
+  use (⟨coe, is_R_or_C.continuous_of_real⟩ : C(ℝ, ℂ)).comp f,
+  simpa only [weak_dual.character_space.continuous_map_eval_apply_apply, continuous_map.comp_apply,
+    continuous_map.coe_mk, ne.def, complex.of_real_inj] using
+    ((fx (set.mem_singleton x)).symm ▸ (fy (set.mem_singleton y)).symm ▸ zero_ne_one : f x ≠ f y),
+end
+
+lemma weak_dual.character_space.continuous_map_eval_surjective :
+  surjective (weak_dual.character_space.continuous_map_eval X ℂ) :=
+begin
+  intros φ,
+  obtain ⟨x, hx⟩ := (ideal_is_maximal_iff (ring_hom.ker φ)).mp infer_instance,
+  refine ⟨x, weak_dual.character_space.ext_ker _⟩,
+  ext f,
+  simpa only [ring_hom.mem_ker, weak_dual.character_space.continuous_map_eval_apply_apply,
+    mem_ideal_of_set_singleton_compl, ring_hom.mem_ker] using set_like.ext_iff.mp hx f,
+end
+
+end characters

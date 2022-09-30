@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.cone.basic
 import analysis.convex.gauge
+import analysis.locally_convex.with_seminorms
 
 /-!
 # Separation Hahn-Banach theorem
@@ -51,8 +52,7 @@ begin
     (λ c hc, gauge_smul_of_nonneg hc.le)
     (gauge_add_le hs₁ $ absorbent_nhds_zero $ hs₂.mem_nhds hs₀) _,
   { refine ⟨⟨φ, _⟩, _, _⟩,
-    { suffices : continuous ((norm_seminorm ℝ ℝ).comp φ),
-      { sorry },
+    { refine seminorm.continuous_of_continuous_comp (norm_with_seminorms ℝ ℝ) _ (λ _, _),
       sorry },
     { dsimp,
       rw [←submodule.coe_mk x₀ (submodule.mem_span_singleton_self _), hφ₁,

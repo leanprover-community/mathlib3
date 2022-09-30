@@ -156,7 +156,7 @@ include hbot hs
 lemma lex.acc (x : α →₀ N) (h : ∀ a ∈ x.support, acc (rᶜ ⊓ (≠)) a) : acc (finsupp.lex r s) x :=
 begin
   rw lex_eq_inv_image_dfinsupp_lex,
-  refine inv_image.accessible finsupp.to_dfinsupp (dfinsupp.lex.acc r _ (λ a, hbot) (λ a, hs) _ _),
+  refine inv_image.accessible finsupp.to_dfinsupp (dfinsupp.lex.acc (λ a, hbot) (λ a, hs) _ _),
   simpa only [to_dfinsupp_support] using h,
 end
 
@@ -166,7 +166,7 @@ theorem lex.well_founded (hr : well_founded $ rᶜ ⊓ (≠)) : well_founded (fi
 theorem lex.well_founded' [is_trichotomous α r]
   (hr : well_founded r.swap) : well_founded (finsupp.lex r s) :=
 (lex_eq_inv_image_dfinsupp_lex r s).symm ▸
-  inv_image.wf _ (dfinsupp.lex.well_founded' r _ (λ a, hbot) (λ a, hs) hr)
+  inv_image.wf _ (dfinsupp.lex.well_founded' (λ a, hbot) (λ a, hs) hr)
 
 omit hbot hs
 

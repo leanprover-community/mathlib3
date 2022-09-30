@@ -678,11 +678,11 @@ begin
   refl
 end
 
-lemma minpoly.nat_degree_le {x : L} [finite_dimensional K L] (hx : is_integral K x) :
+lemma _root_.minpoly.nat_degree_le {x : L} [finite_dimensional K L] (hx : is_integral K x) :
   (minpoly K x).nat_degree ≤ finrank K L :=
 le_of_eq_of_le (intermediate_field.adjoin.finrank hx).symm K⟮x⟯.to_subalgebra.to_submodule.finrank_le
 
-lemma minpoly.degree_le {x : L} [finite_dimensional K L] (hx : is_integral K x) :
+lemma _root_.minpoly.degree_le {x : L} [finite_dimensional K L] (hx : is_integral K x) :
   (minpoly K x).degree ≤ finrank K L :=
 degree_le_of_nat_degree_le (minpoly.nat_degree_le hx)
 

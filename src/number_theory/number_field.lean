@@ -264,7 +264,7 @@ begin
   rw (by rw [coeff_map, norm_algebra_map'] :
     ∥(minpoly ℚ x).coeff i∥ = ∥(map (algebra_map ℚ A) (minpoly ℚ x)).coeff i∥),
   refine coeff_bdd_of_roots_le _ (minpoly.monic hx) (is_alg_closed.splits_codomain _)
-    (intermediate_field.minpoly.nat_degree_le hx) _ i,
+    (minpoly.nat_degree_le hx) _ i,
   intros z hz,
   rsuffices ⟨φ, rfl⟩ : ∃ (φ : K →+* A), φ x = z, {exact h φ },
   letI : char_zero A := char_zero_of_injective_algebra_map (algebra_map ℚ _).injective,
@@ -296,7 +296,7 @@ begin
   rw [mem_Union, exists_prop],
   refine ⟨⟨_, λ i, _⟩, _⟩,
   { rw [← nat_degree_map_eq_of_injective (algebra_map ℤ ℚ).injective_int _, ← h_map_rat_minpoly],
-    exact intermediate_field.minpoly.nat_degree_le (is_integral_of_is_scalar_tower _ hx.1), },
+    exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower _ hx.1), },
   { rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
     apply le_trans _ (nat.le_ceil _),
     convert coeff_bdd_of_norm_le hx.2 i,

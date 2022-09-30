@@ -13,95 +13,164 @@ open_locale cardinal
 
 namespace grigorchuk_group
 
-namespace pre
+inductive generator
+| a : generator
+| bcd : fin 3 → generator
 
-def a : equiv.perm (list bool) :=
-involutive.to_perm (λ l, list.cases_on l [] (λ b l, !b::l)) $ by rintro (_|⟨a, l⟩); simp
+namespace generator
 
-@[simp] lemma a_a (l : list bool) : a (a l) = l :=
-involutive.to_perm_involutive _ l
-
-@[simp] lemma length_a (l : list bool) : (a l).length = l.length :=
-by induction l; simp only [*, a, involutive.coe_to_perm, length_cons]
-
-@[simp] lemma head'_a (l : list bool) : (a l).head' = l.head'.map bnot := by cases l; refl
-
-def bcd : fin 3 → list bool → list bool
+def to_fun : generator → list bool → list bool
 | _ [] := []
-| n (ff :: l) := ff :: (if n = 1 then l else a l)
-| n (tt :: l) := tt :: bcd (n + 1) l
+| a (x::xs) := (!x::xs)
+| (bcd n) (ff :: l) := ff :: (if n = 0 then l else to_fun a l)
+| (bcd n) (tt :: l) := tt :: to_fun (bcd (n + 1)) l
 
-@[simp] lemma head'_bcd (n : fin 3) (l : list bool) : (bcd n l).head' = l.head' :=
-by rcases l with _|⟨(_|_), _⟩; refl
+instance : has_coe_to_fun generator (λ _, list bool → list bool) := ⟨to_fun⟩
 
-@[simp] lemma length_bcd (n : fin 3) (l : list bool) : (bcd n l).length = l.length :=
-begin
-  induction l with hd tl ihl generalizing n; [refl, cases hd],
-  { rw [bcd], split_ifs; simp only [length_cons, length_a] },
-  { rw [bcd, length_cons, length_cons, ihl] }
-end
+@[simp] lemma to_fun_eq_coe : to_fun = coe_fn := rfl
 
-lemma involutive_bcd (n : fin 3) : involutive (bcd n) :=
-begin
-  intro l,
-  induction l with b l ihl generalizing n, { refl },
-  cases b,
-  { fin_cases n; norm_num [bcd] },
-  { simp [bcd, ihl] }
-end
-
-lemma bcd_apply_succ (n : fin 3) (l : list bool) :
-  bcd n (bcd (n + 1) l) = bcd (n + 2) l :=
-begin
-  induction l with b l ihl generalizing n, { refl },
-  cases b,
-  { fin_cases n; norm_num [bcd] },
-  { simp [bcd, ihl, add_right_comm] }
-end
-
-lemma bcd_apply_add_two (n : fin 3) (l : list bool) :
-  bcd n (bcd (n + 2) l) = bcd (n + 1) l :=
-(involutive_bcd n).injective $ by simp_rw [involutive_bcd n _, bit0, ← add_assoc,
-  bcd_apply_succ n l, add_assoc, show (1 + 1 : fin 3) = 2, from rfl]
-
-lemma bcd_apply_of_ne {m n : fin 3} (h : m ≠ n) (l : list bool) :
-  bcd m (bcd n l) = bcd (-m - n) l :=
-begin
-  rcases add_left_surjective m n with ⟨k, rfl⟩,
-  rw [ne.def, self_eq_add_right] at h,
-  fin_cases k,
-  { exact absurd rfl h },
-  { rw [bcd_apply_succ, ← sub_sub, sub_eq_add_neg, sub_eq_add_neg, ← two_mul,
-      show (2 : fin 3) = -1, from rfl, neg_one_mul, neg_neg] },
-  { rw [bcd_apply_add_two, ← sub_sub, sub_eq_add_neg, sub_eq_add_neg, ← two_mul,
-       show (2 : fin 3) = -1, from rfl, neg_one_mul, neg_neg, neg_neg] }
-end
-
-def bcd' : fin 3 → equiv.perm (list bool) := λ n, (involutive_bcd n).to_perm _
-
-end pre
-
-def _root_.grigorchuk_group : subgroup (equiv.perm (list bool)) :=
-subgroup.closure (range (matrix.vec_cons pre.a pre.bcd'))
-
-local notation `G` := grigorchuk_group
-
-def abcd (n : fin 4) : G := ⟨_, subgroup.subset_closure $ mem_range_self n⟩
-
-def bcd : fin 3 → G := fin.tail abcd
-
-@[simp] lemma abcd_succ (n : fin 3) : abcd n.succ = bcd n := rfl
-@[simp] lemma tail_abcd : fin.tail abcd = bcd := rfl
-
-def a : G := abcd 0
-def b : G := bcd 0
-def c : G := bcd 1
-def d : G := bcd 2
-
-@[simp] lemma abcd_zero : abcd 0 = a := rfl
+def b := bcd 0
+def c := bcd 1
+def d := bcd 2
 
 @[simp] lemma range_bcd : range bcd = {b, c, d} :=
 by { simp only [fin.range_fin_succ, range_unique], refl }
+
+@[simp] lemma apply_nil (x : generator) : x [] = [] := by cases x; refl
+
+@[simp] lemma a_cons (x : bool) (l : list bool) : a (x :: l) = !x :: l := rfl
+
+lemma bcd_cons_ff (n : fin 3) (l : list bool) : bcd n (ff :: l) = ff :: if n = 0 then l else a l :=
+rfl
+
+@[simp] lemma bcd_cons_tt (n : fin 3) (l : list bool) : bcd n (tt :: l) = tt :: bcd (n + 1) l := rfl
+
+@[simp] lemma length_apply : ∀ (x : generator) (l : list bool),
+  length (x l) = length l
+| _ [] := by rw [apply_nil]
+| a (y::l) := rfl
+| (bcd n) (tt::l) := by rw [bcd_cons_tt, length_cons, length_apply, length_cons]
+| (bcd n) (ff::l) :=
+  by { rw [bcd_cons_ff], split_ifs, { refl }, { rw [length_cons, length_apply, length_cons] } }
+
+protected lemma involutive : ∀ x : generator, involutive x
+| _ [] := by rw [apply_nil, apply_nil]
+| a (x::l) := by rw [a_cons, a_cons, bnot_bnot]
+| (bcd n) (tt::l) := by rw [bcd_cons_tt, bcd_cons_tt, involutive]
+| (bcd n) (ff::l) := by { rw [bcd_cons_ff, bcd_cons_ff], split_ifs; simp [involutive a l] }
+
+@[simp] lemma apply_apply (x : generator) (l : list bool) : x (x l) = l := x.involutive l
+@[simp] lemma comp_self (x : generator) : x ∘ x = id := x.involutive.comp_self
+
+protected lemma bijective (x : generator) : bijective x := x.involutive.bijective
+protected lemma injective (x : generator) : injective x := x.involutive.injective
+protected lemma surjective (x : generator) : surjective x := x.involutive.surjective
+
+@[simp] lemma apply_eq_iff (x : generator) {l₁ l₂ : list bool} : x l₁ = x l₂ ↔ l₁ = l₂ :=
+x.injective.eq_iff
+
+lemma bcd_apply_bcd_of_ne {m n : fin 3} (h : m ≠ n) (l : list bool) :
+  bcd m (bcd n l) = bcd (-m - n) l :=
+begin
+  induction l with x l ihl generalizing m n, { refl },
+  cases x,
+  { simp only [bcd_cons_ff], refine ⟨rfl, _⟩,
+    have h2 : (2 : fin 3) = -1 := rfl,
+    fin_cases n; fin_cases m; try { exact absurd rfl h }; simp only [h2, if_pos rfl, neg_eq_zero,
+      neg_neg, if_neg one_ne_zero, sub_zero, sub_self, neg_zero, zero_sub, apply_apply] },
+  { replace h : m + 1 ≠ n + 1 := mt add_right_cancel h,
+    have h2 : (-1 - 1 : fin 3) = 1 := rfl,
+    simp only [bcd_cons_tt, ihl h, neg_add, add_sub_add_comm, h2, eq_self_iff_true, true_and] }
+end
+
+lemma bcd_comp_bcd_of_ne {m n : fin 3} (h : m ≠ n) : bcd m ∘ bcd n = bcd (-m -n) :=
+funext $ bcd_apply_bcd_of_ne h
+
+@[simp] lemma b_apply_c (l : list bool) : b (c l) = d l := bcd_apply_bcd_of_ne dec_trivial l
+@[simp] lemma c_apply_b (l : list bool) : c (b l) = d l := bcd_apply_bcd_of_ne dec_trivial l
+@[simp] lemma b_apply_d (l : list bool) : b (d l) = c l := bcd_apply_bcd_of_ne dec_trivial l
+@[simp] lemma d_apply_b (l : list bool) : d (b l) = c l := bcd_apply_bcd_of_ne dec_trivial l
+@[simp] lemma c_apply_d (l : list bool) : c (d l) = b l := bcd_apply_bcd_of_ne dec_trivial l
+@[simp] lemma d_apply_c (l : list bool) : d (c l) = b l := bcd_apply_bcd_of_ne dec_trivial l
+
+@[simp] lemma b_comp_c : b ∘ c = d := bcd_comp_bcd_of_ne dec_trivial
+@[simp] lemma c_comp_b : c ∘ b = d := bcd_comp_bcd_of_ne dec_trivial
+@[simp] lemma b_comp_d : b ∘ d = c := bcd_comp_bcd_of_ne dec_trivial
+@[simp] lemma d_comp_b : d ∘ b = c := bcd_comp_bcd_of_ne dec_trivial
+@[simp] lemma c_comp_d : c ∘ d = b := bcd_comp_bcd_of_ne dec_trivial
+@[simp] lemma d_comp_c : d ∘ c = b := bcd_comp_bcd_of_ne dec_trivial
+
+@[simp] lemma head'_a : ∀ l : list bool, head' (a l) = (head' l).map bnot
+| [] := rfl
+| (x :: l) := rfl
+
+@[simp] lemma head'_bcd (n : fin 3) : ∀ l : list bool, head' (bcd n l) = head' l
+| [] := rfl
+| (ff::l) := rfl
+| (tt::l) := rfl
+
+lemma coe_ne_id : ∀ x : generator, ⇑x ≠ id
+| a := ne_iff.2 ⟨[ff], dec_trivial⟩
+| (bcd ⟨0, _⟩) := ne_iff.2 ⟨[tt, ff, tt], dec_trivial⟩
+| (bcd ⟨k + 1, _⟩) := ne_iff.2 ⟨[ff, tt], dec_trivial⟩
+
+lemma to_fun_a_ne_bcd (n : fin 3) : ⇑a ≠ bcd n :=
+λ h, absurd (congr_fun h [tt]) $ by simp
+
+lemma to_fun_injective : injective to_fun :=
+begin
+  rintro (_|m) (_|n) h,
+  { refl },
+  { exact absurd h (to_fun_a_ne_bcd _) },
+  { exact absurd h.symm (to_fun_a_ne_bcd _) },
+  { rw [to_fun_eq_coe] at h, simp only,
+    refine by_contra (λ hne, coe_ne_id (bcd (-m - n)) _),
+    rw [← bcd_comp_bcd_of_ne hne, h, comp_self] }
+end
+
+instance equiv_like : equiv_like generator (list bool) (list bool) :=
+{ coe := to_fun,
+  inv := to_fun,
+  left_inv := apply_apply,
+  right_inv := apply_apply,
+  coe_injective' := λ x y h₁ h₂, to_fun_injective h₁ }
+
+end generator
+
+open generator
+
+def cancel_aux (n : fin 3) : free_monoid generator → free_monoid generator
+| [] := [bcd n]
+| (a :: l) := bcd n :: a :: l
+| (bcd m :: l) := if m = n then l else bcd (-n - m) :: l
+
+lemma length_cancel_aux_le (n : fin 3) : ∀ l : free_monoid generator,
+  length (cancel_aux n l) ≤ length l + 1
+| [] := le_rfl
+| (a :: l) := le_rfl
+| (bcd m :: l) := by { rw [cancel_aux], split_ifs,
+  exacts [nat.le_succ_of_le $ nat.le_succ _, nat.le_succ _] }
+
+def cancel : free_monoid generator → free_monoid generator
+| [] := []
+| [a] := [a]
+| (a :: a :: l) := cancel l
+| (a :: bcd n :: l) := a :: cancel (bcd n :: l)
+| (bcd n :: l) := cancel_aux n l
+
+lemma length_cancel_le : ∀ l : free_monoid generator, length (cancel l) ≤ length l
+| [] := le_rfl
+| [a] := le_rfl
+| (a :: a :: l) := nat.le_succ_of_le $ nat.le_succ_of_le $ length_cancel_le l
+| (a :: bcd n :: l) := nat.succ_le_succ $ length_cancel_le _
+| (bcd n :: l) := length_cancel_aux_le n _
+
+def _root_.grigorchuk_group : subgroup (equiv.perm (list bool)) :=
+subgroup.closure (range (coe : generator → equiv.perm (list bool)))
+
+local notation `G` := grigorchuk_group
+
+@[simp] lemma abcd_zero : abcd 0 = a := rfl
 
 @[simp] lemma range_abcd : range abcd = {a, b, c, d} :=
 by rw [fin.range_fin_succ, a, ← bcd, range_bcd]
@@ -254,6 +323,11 @@ h.to_infix (tail_suffix g).is_infix
 protected lemma is_minimal.chain' {g : free_monoid (fin 4)} (h : is_minimal g) :
   g.chain' (λ m n, is_minimal [m, n]) :=
 (chain'_is_infix g).imp $ λ m n, h.to_infix
+
+def cancel : free_monoid (fin 4) → free_monoid (fin 4)
+| [] := []
+| [x] := [x]
+| 
 
 lemma is_minimal.ne {m n : fin 4} (h : is_minimal [m, n]) : m ≠ n :=
 begin

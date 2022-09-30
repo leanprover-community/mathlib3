@@ -6,6 +6,8 @@ Authors: Damiano Testa
 import data.pi.lex
 import data.finsupp.order
 import data.finsupp.ne_locus
+import data.dfinsupp.lex
+-- import data.finsupp.to_dfinsupp
 
 /-!
 # Lexicographic order on finitely supported functions
@@ -142,5 +144,36 @@ has_add.to_covariant_class_right _
 end right
 
 end covariants
+
+section well_founded
+
+variables {ι α : Type*} [hz : has_zero α] (r : ι → ι → Prop) (s : α → α → Prop)
+  (hbot : ∀ ⦃a⦄, ¬ s a 0) (hs : well_founded s)
+include hbot hs
+
+lemma lex.acc (x : ι →₀ α) (h : ∀ i ∈ x.support, acc (rᶜ ⊓ (≠)) i) : acc (finsupp.lex r s) x :=
+begin
+  rw lex_eq_inv_image_dfinsupp_lex,
+  refine inv_image.accessible finsupp.to_dfinsupp (dfinsupp.lex.acc r _ (λ i, hbot) (λ i, hs) _ _),
+  simpa only [to_dfinsupp_support] using h,
+end
+
+theorem lex.well_founded (hr : well_founded $ rᶜ ⊓ (≠)) : well_founded (finsupp.lex r s) :=
+⟨λ x, lex.acc r s hbot hs x $ λ i _, hr.apply i⟩
+
+theorem lex.well_founded' [is_trichotomous ι r]
+  (hr : well_founded r.swap) : well_founded (finsupp.lex r s) :=
+(lex_eq_inv_image_dfinsupp_lex r s).symm ▸
+  inv_image.wf _ (dfinsupp.lex.well_founded' r _ (λ i, hbot) (λ i, hs) hr)
+
+omit hbot hs
+
+instance lex.well_founded_lt [has_lt ι] [is_trichotomous ι (<)] [hι : well_founded_gt ι]
+  [canonically_ordered_add_monoid α] [hα : well_founded_lt α] : well_founded_lt (lex (ι →₀ α)) :=
+⟨lex.well_founded' (<) (<) (λ a, (zero_le a).not_lt) hα.wf hι.wf⟩
+
+/- product order -/
+
+end well_founded
 
 end finsupp

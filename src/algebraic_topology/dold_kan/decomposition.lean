@@ -134,7 +134,7 @@ def pre_comp : morph_components X' n Z :=
 { a := g.app (op [n+1]) ≫ f.a,
   b := λ i, g.app (op [n]) ≫ f.b i }
 
-lemma pre_comp_φ : (f.pre_comp g).φ = g.app (op [n+1]) ≫ f.φ :=
+@[simp] lemma pre_comp_φ : (f.pre_comp g).φ = g.app (op [n+1]) ≫ f.φ :=
 begin
   unfold φ pre_comp,
   simp only [P_infty_f, comp_add],

@@ -566,8 +566,8 @@ class coe_non_unital_ring_hom [non_unital_non_assoc_semiring R] [non_unital_non_
 /-- `non_unital_ring_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a non-unital ring homomorphism. -/
 @[simps { fully_applied := ff }]
-def non_unital_ring_hom.coe [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
-  [coe_non_unital_ring_hom R S] : R →ₙ+* S :=
+protected def non_unital_ring_hom.coe [non_unital_non_assoc_semiring R]
+  [non_unital_non_assoc_semiring S] [coe_non_unital_ring_hom R S] : R →ₙ+* S :=
 { to_fun := coe,
   .. mul_hom.coe R S,
   .. add_monoid_hom.coe R S }
@@ -585,7 +585,8 @@ instance coe_ring_hom.to_coe_non_unital_ring_hom [non_assoc_semiring R] [non_ass
 /-- `ring_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a ring homomorphism. -/
 @[simps { fully_applied := ff }]
-def ring_hom.coe [non_assoc_semiring R] [non_assoc_semiring S] [coe_ring_hom R S] : R →+* S :=
+protected def ring_hom.coe [non_assoc_semiring R] [non_assoc_semiring S] [coe_ring_hom R S] :
+  R →+* S :=
 { to_fun := coe,
   .. monoid_hom.coe R S,
   .. add_monoid_hom.coe R S }

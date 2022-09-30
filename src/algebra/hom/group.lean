@@ -1248,7 +1248,7 @@ attribute [simp] coe_one
 bundled as a one-preserving homomorphism. -/
 @[to_additive "`zero_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a zero-preserving homomorphism.", simps { fully_applied := ff }]
-def one_hom.coe [has_one M] [has_one N] [coe_one_hom M N] : one_hom M N :=
+protected def one_hom.coe [has_one M] [has_one N] [coe_one_hom M N] : one_hom M N :=
 { to_fun := coe,
   map_one' := coe_one }
 
@@ -1275,7 +1275,7 @@ attribute [simp] coe_mul
 bundled as a multiplicative homomorphism. -/
 @[to_additive "`add_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as an additive homomorphism.", simps { fully_applied := ff }]
-def mul_hom.coe [has_mul M] [has_mul N] [coe_mul_hom M N] : mul_hom M N :=
+protected def mul_hom.coe [has_mul M] [has_mul N] [coe_mul_hom M N] : mul_hom M N :=
 { to_fun := coe,
   map_mul' := coe_mul }
 
@@ -1300,7 +1300,7 @@ attribute [to_additive coe_add_monoid_hom.to_coe_add_hom] coe_monoid_hom.to_coe_
 bundled as a monoid homomorphism. -/
 @[to_additive "`add_monoid_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as an additive monoid homomorphism.", simps { fully_applied := ff }]
-def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_monoid_hom M N] : M →* N :=
+protected def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_monoid_hom M N] : M →* N :=
 { to_fun := coe,
   .. one_hom.coe M N,
   .. mul_hom.coe M N }
@@ -1324,7 +1324,7 @@ class coe_monoid_with_zero_hom [monoid_with_zero M] [monoid_with_zero N]
 /-- `monoid_with_zero_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a monoid with zero homomorphism. -/
 @[simps { fully_applied := ff }]
-def monoid_with_zero_hom.coe [monoid_with_zero M] [monoid_with_zero N]
+protected def monoid_with_zero_hom.coe [monoid_with_zero M] [monoid_with_zero N]
   [coe_monoid_with_zero_hom M N] : M →*₀ N :=
 { to_fun := coe,
   .. monoid_hom.coe M N,

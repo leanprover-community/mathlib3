@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Kexing Ying
 -/
 import probability.notation
 import probability.integration
@@ -12,14 +12,23 @@ import probability.integration
 We define the variance of a real-valued random variable as `Var[X] = 𝔼[(X - 𝔼[X])^2]` (in the
 `probability_theory` locale).
 
-We prove the basic properties of the variance:
-* `variance_le_expectation_sq`: the inequality `Var[X] ≤ 𝔼[X^2]`.
-* `meas_ge_le_variance_div_sq`: Chebyshev's inequality, i.e.,
+## Main definitions
+
+* `probability_theory.evariance`: the variance of a real-valued random variable as a extended
+  non-negative real.
+* `probability_theory.variance`: the variance of a real-valued random variable as a real number.
+
+## Main results
+
+* `probability_theory.variance_le_expectation_sq`: the inequality `Var[X] ≤ 𝔼[X^2]`.
+* `probability_theory.meas_ge_le_variance_div_sq`: Chebyshev's inequality, i.e.,
       `ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2)`.
-* `indep_fun.variance_add`: the variance of the sum of two independent random variables is the sum
-  of the variances.
-* `indep_fun.variance_sum`: the variance of a finite sum of pairwise independent random variables is
-  the sum of the variances.
+* `probability_theory.meas_ge_le_evariance_div_sq`: Chebyshev's inequality formulated with
+  `evariance` without requiring the random variables to be L².
+* `probability_theory.indep_fun.variance_add`: the variance of the sum of two independent
+  random variables is the sum of the variances.
+* `probability_theory.indep_fun.variance_sum`: the variance of a finite sum of pairwise
+  independent random variables is the sum of the variances.
 -/
 
 open measure_theory filter finset
@@ -30,11 +39,12 @@ open_locale big_operators measure_theory probability_theory ennreal nnreal
 
 namespace probability_theory
 
+/-- The `ℝ≥0∞`-valued variance of a real-valued random variable defined as a lintegral.-/
 def evariance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ≥0∞ :=
 ∫⁻ ω, ∥f ω - μ[f]∥₊^2 ∂μ
 
-/-- The variance of a random variable is `𝔼[X^2] - 𝔼[X]^2` or, equivalently, `𝔼[(X - 𝔼[X])^2]`. We
-use the latter as the definition, to ensure better behavior even in garbage situations. -/
+/-- The `ℝ`-valued variance of a real-valued random variable defined by applying `ennreal.to_real`
+to `evariance`. -/
 def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ :=
 (evariance f μ).to_real
 
@@ -172,7 +182,7 @@ begin
   { measurability }
 end
 
-@[simp] lemma evariance_nonneg {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
+lemma evariance_nonneg {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
   0 ≤ evariance 0 μ :=
 zero_le _
 
@@ -228,9 +238,8 @@ end
 localized "notation (name := probability_theory.variance) `Var[` X `]` :=
   probability_theory.variance X measure_theory.measure_space.volume" in probability_theory
 
-variables [is_probability_measure (volume : measure Ω)]
-
-lemma variance_def' {X : Ω → ℝ} (hX : mem_ℒp X 2) :
+lemma variance_def' [is_probability_measure (volume : measure Ω)]
+  {X : Ω → ℝ} (hX : mem_ℒp X 2) :
   Var[X] = 𝔼[X^2] - 𝔼[X]^2 :=
 begin
   rw [hX.variance_eq, sub_sq', integral_sub', integral_add'], rotate,
@@ -247,7 +256,8 @@ begin
   ring,
 end
 
-lemma variance_le_expectation_sq {X : Ω → ℝ} (hm : ae_strongly_measurable X ℙ) :
+lemma variance_le_expectation_sq [is_probability_measure (volume : measure Ω)]
+  {X : Ω → ℝ} (hm : ae_strongly_measurable X ℙ) :
   Var[X] ≤ 𝔼[X^2] :=
 begin
   by_cases hX : mem_ℒp X 2,
@@ -269,7 +279,8 @@ begin
   { exact (ae_measurable.pow_const (hm.ae_measurable.sub_const _) _).ae_strongly_measurable },
 end
 
-lemma evariance_def' {X : Ω → ℝ} (hX : ae_strongly_measurable X ℙ) :
+lemma evariance_def' [is_probability_measure (volume : measure Ω)]
+  {X : Ω → ℝ} (hX : ae_strongly_measurable X ℙ) :
   eVar[X] = (∫⁻ ω, ∥X ω∥₊^2) - ennreal.of_real (𝔼[X]^2) :=
 begin
   by_cases hℒ : mem_ℒp X 2,
@@ -314,19 +325,20 @@ end
 
 /-- *Chebyshev's inequality* : one can control the deviation probability of a real random variable
 from its expectation in terms of the variance. -/
-theorem meas_ge_le_variance_div_sq {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ} (hc : 0 < c) :
+theorem meas_ge_le_variance_div_sq [is_finite_measure (volume : measure Ω)]
+  {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ} (hc : 0 < c) :
   ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2) :=
 begin
   rw [ennreal.of_real_div_of_pos (sq_pos_of_ne_zero _ hc.ne.symm), hX.of_real_variance_eq],
-  convert @meas_ge_le_evariance_div_sq _ _ _ _ hX.1 (c.to_nnreal) (by simp [hc]),
+  convert @meas_ge_le_evariance_div_sq _ _ _ hX.1 (c.to_nnreal) (by simp [hc]),
   { simp only [real.coe_to_nnreal', max_le_iff, abs_nonneg, and_true] },
   { rw ennreal.of_real_pow hc.le,
     refl }
 end
 
 /-- The variance of the sum of two independent random variables is the sum of the variances. -/
-theorem indep_fun.variance_add {X Y : Ω → ℝ}
-  (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
+theorem indep_fun.variance_add [is_probability_measure (volume : measure Ω)]
+  {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
   Var[X + Y] = Var[X] + Var[Y] :=
 calc
 Var[X + Y] = 𝔼[λ a, (X a)^2 + (Y a)^2 + 2 * X a * Y a] - 𝔼[X+Y]^2 :
@@ -354,7 +366,8 @@ end
 
 /-- The variance of a finite sum of pairwise independent random variables is the sum of the
 variances. -/
-theorem indep_fun.variance_sum {ι : Type*} {X : ι → Ω → ℝ} {s : finset ι}
+theorem indep_fun.variance_sum [is_probability_measure (volume : measure Ω)]
+  {ι : Type*} {X : ι → Ω → ℝ} {s : finset ι}
   (hs : ∀ i ∈ s, mem_ℒp (X i) 2) (h : set.pairwise ↑s (λ i j, indep_fun (X i) (X j))) :
   Var[∑ i in s, X i] = ∑ i in s, Var[X i] :=
 begin

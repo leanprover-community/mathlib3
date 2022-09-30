@@ -39,14 +39,14 @@ variables {𝕜 E : Type*}
 /-- Given a set `s` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
 a continuous linear functional `f` separating `x₀` and `s`, in the sense that it sends `x₀` to 1 and
 all of `s` to values strictly below `1`. -/
-lemma separate_convex_open_set' [topological_space E] [add_comm_group E] [topological_add_group E]
+lemma separate_convex_open_set [topological_space E] [add_comm_group E] [topological_add_group E]
   [module ℝ E] [has_continuous_smul ℝ E] [locally_convex_space ℝ E] {s : set E}
   (hs₀ : (0 : E) ∈ s) (hs₁ : convex ℝ s) (hs₂ : is_open s) {x₀ : E} (hx₀ : x₀ ∉ s) :
   ∃ f : E →L[ℝ] ℝ, f x₀ = 1 ∧ ∀ x ∈ s, f x < 1 :=
 begin
   let f : E →ₗ.[ℝ] ℝ :=
     linear_pmap.mk_span_singleton x₀ 1 (ne_of_mem_of_not_mem hs₀ hx₀).symm,
-  obtain ⟨r, ⟨hr0, hropen, hrbalanced, hrconvex⟩, hrs⟩ :=
+  obtain ⟨r, ⟨hr₀, hr₁, hr₂, hr₃⟩, hrs⟩ :=
     (nhds_basis_abs_convex_open ℝ E).mem_iff.1
     (filter.inter_mem (hs₂.mem_nhds hs₀) $ hs₂.neg.mem_nhds $ by rwa [mem_neg, neg_zero]),
   obtain ⟨φ, hφ₁, hφ₂⟩ := exists_extension_of_le_sublinear f (gauge s)
@@ -54,7 +54,21 @@ begin
     (gauge_add_le hs₁ $ absorbent_nhds_zero $ hs₂.mem_nhds hs₀) _,
   { refine ⟨⟨φ, _⟩, _, _⟩,
     { refine seminorm.continuous_of_continuous_comp (norm_with_seminorms ℝ ℝ) _ (λ _, _),
-      sorry },
+      have : (norm_seminorm ℝ ℝ).comp φ ≤ gauge_seminorm hr₂ hr₃
+        (absorbent_nhds_zero $ hr₁.mem_nhds hr₀),
+      { intro x,
+        change |φ x| ≤ gauge r x,
+        rw [abs_le', ← map_neg],
+        split;
+        refine (hφ₂ _).trans _,
+        { exact gauge_mono (absorbent_nhds_zero $ hr₁.mem_nhds hr₀)
+            (hrs.trans $ inter_subset_left _ _) x },
+        { rw ← gauge_neg_set_eq_gauge_neg,
+          exact gauge_mono (absorbent_nhds_zero $ hr₁.mem_nhds hr₀)
+            (hrs.trans $ inter_subset_right _ _) x } },
+      refine seminorm.continuous_of_le (seminorm.continuous _) this,
+      rw gauge_seminorm_ball_one hr₁,
+      exact hr₁.mem_nhds hr₀ },
     { dsimp,
       rw [←submodule.coe_mk x₀ (submodule.mem_span_singleton_self _), hφ₁,
         linear_pmap.mk_span_singleton'_apply_self] },
@@ -67,50 +81,15 @@ begin
   { exact h.trans (gauge_nonneg _) },
   { rw [gauge_smul_of_nonneg h.le, smul_eq_mul, le_mul_iff_one_le_right h],
     exact one_le_gauge_of_not_mem (hs₁.star_convex hs₀)
-      ((absorbent_nhds_zero $ hropen.mem_nhds hr0).subset $
+      ((absorbent_nhds_zero $ hr₁.mem_nhds hr₀).subset $
         hrs.trans $ inter_subset_left _ _).absorbs hx₀,
     apply_instance }
 end
 
-/-- Given a set `s` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
-a continuous linear functional `f` separating `x₀` and `s`, in the sense that it sends `x₀` to 1 and
-all of `s` to values strictly below `1`. -/
-lemma separate_convex_open_set [seminormed_add_comm_group E] [normed_space ℝ E] {s : set E}
-  (hs₀ : (0 : E) ∈ s) (hs₁ : convex ℝ s) (hs₂ : is_open s) {x₀ : E} (hx₀ : x₀ ∉ s) :
-  ∃ f : E →L[ℝ] ℝ, f x₀ = 1 ∧ ∀ x ∈ s, f x < 1 :=
-begin
-  let f : E →ₗ.[ℝ] ℝ :=
-    linear_pmap.mk_span_singleton x₀ 1 (ne_of_mem_of_not_mem hs₀ hx₀).symm,
-  obtain ⟨r, hr, hrs⟩ := metric.mem_nhds_iff.1
-    (filter.inter_mem (hs₂.mem_nhds hs₀) $ hs₂.neg.mem_nhds $ by rwa [mem_neg, neg_zero]),
-  obtain ⟨φ, hφ₁, hφ₂⟩ := exists_extension_of_le_sublinear f (gauge s)
-    (λ c hc, gauge_smul_of_nonneg hc.le)
-    (gauge_add_le hs₁ $ absorbent_nhds_zero $ hs₂.mem_nhds hs₀) _,
-  { refine ⟨φ.mk_continuous (r⁻¹) $ λ x, _, _, _⟩,
-    { rw [real.norm_eq_abs, abs_le, neg_le, ←linear_map.map_neg],
-      nth_rewrite 0 ←norm_neg x,
-      suffices : ∀ x, φ x ≤ r⁻¹ * ∥x∥,
-      { exact ⟨this _, this _⟩ },
-      refine λ x, (hφ₂ _).trans _,
-      rw [←div_eq_inv_mul, ←gauge_ball hr],
-      exact gauge_mono (absorbent_ball_zero hr) (hrs.trans $ inter_subset_left _ _) x },
-    { dsimp,
-      rw [←submodule.coe_mk x₀ (submodule.mem_span_singleton_self _), hφ₁,
-        linear_pmap.mk_span_singleton'_apply_self] },
-    { exact λ x hx, (hφ₂ x).trans_lt (gauge_lt_one_of_mem_of_open hs₁ hs₀ hs₂ hx) } },
-  rintro ⟨x, hx⟩,
-  obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,
-  rw linear_pmap.mk_span_singleton'_apply,
-  simp only [mul_one, algebra.id.smul_eq_mul, submodule.coe_mk],
-  obtain h | h := le_or_lt y 0,
-  { exact h.trans (gauge_nonneg _) },
-  { rw [gauge_smul_of_nonneg h.le, smul_eq_mul, le_mul_iff_one_le_right h],
-    exact one_le_gauge_of_not_mem (hs₁.star_convex hs₀)
-      ((absorbent_ball_zero hr).subset $ hrs.trans $ inter_subset_left _ _).absorbs hx₀,
-    apply_instance }
-end
+section TVS
 
-variables [normed_add_comm_group E] [normed_space ℝ E] {s t : set E} {x y : E}
+variables [topological_space E] [add_comm_group E] [topological_add_group E] [module ℝ E]
+  [has_continuous_smul ℝ E] [locally_convex_space ℝ E] {s t : set E} {x y : E}
 
 /-- A version of the **Hahn-Banach theorem**: given disjoint convex sets `s`, `t` where `s` is open,
 there is a continuous linear functional which separates them. -/
@@ -177,6 +156,12 @@ begin
   exact (hf₁ _ ha₀).not_le (hf₂ _ hb₀),
 end
 
+end TVS
+
+section normed
+
+variables [normed_add_comm_group E] [normed_space ℝ E] {s t : set E} {x y : E}
+
 /-- A version of the **Hahn-Banach theorem**: given disjoint convex sets `s`, `t` where `s` is
 compact and `t` is closed, there is a continuous linear functional which strongly separates them. -/
 theorem geometric_hahn_banach_compact_closed (hs₁ : convex ℝ s) (hs₂ : is_compact s)
@@ -216,7 +201,8 @@ let ⟨f, s, t, ha, hst, hb⟩ := geometric_hahn_banach_closed_compact hs₁ hs�
   in ⟨f, s, ha, hst.trans $ hb x $ mem_singleton _⟩
 
 /-- Special case of `normed_space.eq_iff_forall_dual_eq`. -/
-theorem geometric_hahn_banach_point_point (hxy : x ≠ y) : ∃ (f : E →L[ℝ] ℝ), f x < f y :=
+theorem geometric_hahn_banach_point_point [t1_space E] (hxy : x ≠ y) :
+  ∃ (f : E →L[ℝ] ℝ), f x < f y :=
 begin
   obtain ⟨f, s, t, hs, st, ht⟩ :=
     geometric_hahn_banach_compact_closed (convex_singleton x) is_compact_singleton
@@ -235,3 +221,5 @@ begin
   obtain ⟨y, hy, hxy⟩ := hx l,
   exact ((hxy.trans_lt (hlA y hy)).trans hl).not_le le_rfl,
 end
+
+end normed

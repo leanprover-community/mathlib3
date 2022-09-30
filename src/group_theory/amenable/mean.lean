@@ -11,6 +11,7 @@ import topology.continuous_function.bounded
 import topology.category.Top
 import topology.algebra.group
 import algebra.group.defs
+import algebra.order.hom.monoid
 
 /-!
 # Means on Groups
@@ -54,8 +55,7 @@ variables (G:Type*) [uniform_space G] [group G] [topological_group G]
 structure mean := mk ::
 (lin_map : (bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ)
 (normality : lin_map (bounded_continuous_function.const G (1:ℝ)) = 1)
-(positivity: ∀ {f : bounded_continuous_function G ℝ},
-                          (∀ (x:G), f x ≥ 0) → lin_map f ≥ 0)
+(monotonicity: monotone lin_map)
 
 
 instance : has_coe (mean G) ((bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ) :=
@@ -103,48 +103,30 @@ begin
   linarith,
 end
 
-
-lemma mean_bounded (m : mean G) {f: bounded_continuous_function G ℝ} {M : ℝ}
-  (fbound : ∀ (x:G), f x ≤ M) : m f ≤ M :=
+lemma mean_const {m : mean G} {M : ℝ} : m (bounded_continuous_function.const G M) = M :=
 begin
-  -- strategy of proof : (M-f) is a positive function
-  let diff : bounded_continuous_function G ℝ := bounded_continuous_function.const G M  - f,
-
-  have diffpos : ∀ (x:G), diff x ≥ 0,
-  { assume (x:G),
-    dsimp[diff],
-    by linarith only [fbound x], },
-
-  have mdiffpos : m diff ≥ 0 := m.positivity diffpos,
-
-  have mean_const : m (bounded_continuous_function.const G M) = M,
-  {calc   m (bounded_continuous_function.const G M)
-        = m (M • bounded_continuous_function.const G 1)
-          : by congr';
+  calc  m (bounded_continuous_function.const G M)
+      = m (M• bounded_continuous_function.const G (1:ℝ))
+        : by congr';
               begin
                 ext (x:G),
                 simp,
               end
-    ... = M • m (bounded_continuous_function.const G 1)
-          : by exact m.lin_map.map_smul' M _
-    ... = M • 1
-          : by congr'; exact m.normality
-    ... = M
-          : by simp,},
-
-
-  have : m f + m diff = M := by
-  calc  m f + m diff
-      = m (f + diff)
-        : by exact (m.lin_map.map_add' f diff).symm
-  ... = m (f + bounded_continuous_function.const G M - f)
-        : by simp[diff]
-  ... = m (bounded_continuous_function.const G M )
-        : by simp
+  ... = M • m (bounded_continuous_function.const G (1:ℝ))
+        : by exact m.lin_map.map_smul _ _
+  ... = M • 1
+        : by {congr' 1, exact m.normality}
   ... = M
-        : by simp [mean_const],
+        : by simp,
+end
 
-  by linarith only [this, mdiffpos],
+lemma mean_bounded (m : mean G) {f: bounded_continuous_function G ℝ} {M : ℝ}
+  (fbound : ∀ (x:G), f x ≤ M) : m f ≤ M :=
+begin
+  have fle  : f ≤ bounded_continuous_function.const G M := by {intro x,simp[fbound x],},
+  calc  m f
+      ≤ m (bounded_continuous_function.const G M) : by simp [m.monotonicity _]
+  ... = M                                         : mean_const _,
 end
 
 
@@ -179,34 +161,6 @@ m.lin_map.map_add' f g
 lemma mean_smul {m : mean G} {f: bounded_continuous_function G ℝ} {r :ℝ} :
   m (r•f) = r • (m f) :=
 m.lin_map.map_smul' r f
-
-
-/--Means are monotone functions-/
-lemma mean_monotone {m : mean G} {f g: bounded_continuous_function G ℝ}
-  (f_le_g : f ≤ g) : m f ≤ m g :=
-begin
-  have diff_pos: ∀ (x:G), (g-f) x ≥ 0,
-  { assume x:G,
-    have : (g-f) x = g x - f x
-      := by refl,
-    rw this,
-    simp,
-    exact f_le_g x, },
-  calc  m f
-      = m f + 0
-        : by ring
-  ... ≤  m f + m (g-f)
-        : by {simp, exact m.positivity diff_pos,}
-  ... = m (f+(g-f))
-        : by rw mean_add
-  ... = m g
-        : by congr'; ring,
-end
-
-
-
-
-
 end el_facts
 
 
@@ -286,7 +240,7 @@ lemma mean_pushforward_pos {π : G → H} (π_cont: continuous π ) (m : mean G)
 begin
   assume f fnonneg,
 
-  apply m.positivity,
+  apply monotone_iff_map_nonneg.mp m.monotonicity,
   -- key step: pull_bcont π f is also nonneg
   change ∀(x:G), (pull_bcont π π_cont f) x ≥ 0,
 

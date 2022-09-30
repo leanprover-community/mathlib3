@@ -143,10 +143,7 @@ subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _
 include hSR
 
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
-def subtype (s : S) : s →+* R :=
-{ to_fun := coe,
- .. submonoid_class.subtype s,
- .. add_subgroup_class.subtype s }
+def subtype (s : S) : s →+* R := ring_hom.coe s R
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
 @[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n := map_nat_cast (subtype s) n

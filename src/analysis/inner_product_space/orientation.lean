@@ -28,7 +28,7 @@ section adjust_to_orientation
 variables {ι : Type*} [fintype ι] [decidable_eq ι] [nonempty ι] (e : orthonormal_basis ι ℝ E)
   (x : orientation ℝ E ι)
 
-/-- `basis.adjust_to_orientation`, applied to an orthonormal basis, produces an orthonormal
+/-- `orthonormal_basis.adjust_to_orientation`, applied to an orthonormal basis, produces an orthonormal
 basis. -/
 lemma orthonormal_basis.orthonormal_adjust_to_orientation :
   orthonormal ℝ (e.to_basis.adjust_to_orientation x) :=

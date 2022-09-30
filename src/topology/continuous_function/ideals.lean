@@ -365,9 +365,10 @@ end
 
 end continuous_map
 
-section characters
+namespace weak_dual
+namespace character_space
 
-open weak_dual function continuous_map
+open function continuous_map
 
 variables (X : Type*) [topological_space X] [compact_space X] [t2_space X]
 
@@ -379,13 +380,11 @@ variables {A : Type*} [ring A] [topological_space A] [algebra 𝕜 A]
 example : ring_hom_class (character_space 𝕜 A) A 𝕜 := infer_instance
 
 /-- The `ring_hom.ker` of `φ : character_space 𝕜 A` is maximal. -/
-instance weak_dual.character_space.ker_is_maximal (φ : character_space 𝕜 A) :
-  (ring_hom.ker φ).is_maximal :=
+instance ker_is_maximal (φ : character_space 𝕜 A) : (ring_hom.ker φ).is_maximal :=
 ring_hom.ker_is_maximal_of_surjective φ $ λ z, ⟨algebra_map 𝕜 A z,
   by simp only [alg_hom_class.commutes, algebra.id.map_eq_id, ring_hom.id_apply]⟩
 
-lemma weak_dual.character_space.ext_ker {φ ψ : character_space 𝕜 A}
-  (h : ring_hom.ker φ = ring_hom.ker ψ) : φ = ψ :=
+lemma ext_ker {φ ψ : character_space 𝕜 A} (h : ring_hom.ker φ = ring_hom.ker ψ) : φ = ψ :=
 begin
   ext,
   simp only [character_space.coe_coe],
@@ -403,43 +402,93 @@ variables (𝕜 : Type*) [comm_ring 𝕜] [topological_space 𝕜] [topological_
 variables [nontrivial 𝕜] [no_zero_divisors 𝕜]
 
 /-- The natural continuous map -/
-def weak_dual.character_space.continuous_map_eval :
+def continuous_map_eval :
   C(X, character_space 𝕜 C(X, 𝕜)) :=
 { to_fun := λ x, ⟨{ to_fun := λ f, f x, map_add' := λ f g, rfl, map_smul' := λ z f, rfl,
                     cont := continuous_eval_const' x },
                   by { rw character_space.eq_set_map_one_map_mul, exact ⟨rfl, λ f g, rfl⟩ }⟩,
   continuous_to_fun := continuous.subtype_mk (continuous_of_continuous_eval map_continuous) _ }
 
-@[simp] lemma weak_dual.character_space.continuous_map_eval_apply_apply (x : X) (f : C(X, 𝕜)) :
-  weak_dual.character_space.continuous_map_eval X 𝕜 x f = f x := rfl
+@[simp] lemma continuous_map_eval_apply_apply (x : X) (f : C(X, 𝕜)) :
+  continuous_map_eval X 𝕜 x f = f x := rfl
 
 end continuous_map_eval
 
-lemma weak_dual.character_space.continuous_map_eval_injective :
-  injective (weak_dual.character_space.continuous_map_eval X ℂ) :=
+
+-- this works for `ℝ`
+lemma continuous_map_eval_injective : injective (continuous_map_eval X ℂ) :=
 begin
   intros x y,
   contrapose!,
   intros hxy,
   haveI := @normal_of_compact_t2 X _ _ _,
-  rcases exists_continuous_zero_one_of_closed (is_closed_singleton : is_closed {x})
-    (is_closed_singleton : is_closed {y}) (set.disjoint_singleton.mpr hxy) with ⟨f, fx, fy, -⟩,
+  rcases exists_continuous_zero_one_of_closed (is_closed_singleton : _root_.is_closed {x})
+    (is_closed_singleton : _root_.is_closed {y}) (set.disjoint_singleton.mpr hxy) with ⟨f, fx, fy, -⟩,
   rw [←ne.def, fun_like.ne_iff],
   use (⟨coe, is_R_or_C.continuous_of_real⟩ : C(ℝ, ℂ)).comp f,
-  simpa only [weak_dual.character_space.continuous_map_eval_apply_apply, continuous_map.comp_apply,
+  simpa only [continuous_map_eval_apply_apply, continuous_map.comp_apply,
     continuous_map.coe_mk, ne.def, complex.of_real_inj] using
     ((fx (set.mem_singleton x)).symm ▸ (fy (set.mem_singleton y)).symm ▸ zero_ne_one : f x ≠ f y),
 end
 
-lemma weak_dual.character_space.continuous_map_eval_surjective :
-  surjective (weak_dual.character_space.continuous_map_eval X ℂ) :=
+-- this also works for `ℝ`
+lemma continuous_map_eval_surjective : surjective (continuous_map_eval X ℂ) :=
 begin
   intros φ,
   obtain ⟨x, hx⟩ := (ideal_is_maximal_iff (ring_hom.ker φ)).mp infer_instance,
-  refine ⟨x, weak_dual.character_space.ext_ker _⟩,
+  refine ⟨x, ext_ker _⟩,
   ext f,
-  simpa only [ring_hom.mem_ker, weak_dual.character_space.continuous_map_eval_apply_apply,
+  simpa only [ring_hom.mem_ker, continuous_map_eval_apply_apply,
     mem_ideal_of_set_singleton_compl, ring_hom.mem_ker] using set_like.ext_iff.mp hx f,
 end
 
-end characters
+lemma continuous_map_eval_bijective : bijective (continuous_map_eval X ℂ) :=
+⟨continuous_map_eval_injective X,
+ continuous_map_eval_surjective X⟩
+.
+
+-- there is a way more general theorem here. It should certainly hold for the weak dual.
+-- All I used is function extensionality for `this` and that evaluation is continuous.
+instance : t2_space (character_space ℂ C(X, ℂ)) :=
+begin
+  refine t2_iff_is_closed_diagonal.mpr _,
+  have : set.diagonal (character_space ℂ C(X, ℂ)) = { φ | ∀ f : C(X, ℂ), φ.1 f = φ.2 f },
+  from set.subset.antisymm (λ φ hφ f, fun_like.congr_fun (set.mem_diagonal_iff.mp hφ) f)
+    (λ φ hφ, set.mem_diagonal_iff.mpr $ fun_like.ext φ.fst φ.snd hφ),
+  rw [this, set.set_of_forall],
+  exact is_closed_Inter (λ f, is_closed_eq
+    ((map_continuous $ gelfand_transform ℂ C(X, ℂ) f).comp continuous_fst)
+    ((map_continuous $ gelfand_transform ℂ C(X, ℂ) f).comp continuous_snd)),
+end
+
+/-- This is the natural homeomorphism between a compact Hausdorff space `X` and the
+`character_space ℂ C(X, ℂ)`. -/
+noncomputable def homeo_eval : X ≃ₜ character_space ℂ C(X, ℂ) :=
+@continuous.homeo_of_equiv_compact_to_t2 _ _ _ _ _ _
+{ to_fun := (continuous_map_eval X ℂ),
+  .. equiv.of_bijective _ (continuous_map_eval_bijective X) }
+(map_continuous (continuous_map_eval X ℂ))
+
+end character_space
+end weak_dual
+
+
+/-
+
+We claim that the functors `X ↦ C(X, ℂ)` and `A ↦ character_space ℂ A` form a contravariant
+equivalence of categories. In particular, let `ηX` denote the homeomorphism `homeo_eval`
+given above. Given a `f : C(X, Y)` there is a functorially induced map `f* : C(Y, ℂ) → C(Y, ℂ)`
+given by precomposition. Moreover, given unital C⋆-algebras `A` and `B`, and `φ : A →⋆ₐ[ℂ] B`,
+there is a functorially induced map `φ* : character_space ℂ B → character_space ℂ A` also given
+by precomposition.
+
+So, we claim that `ηY ∘ f = f** ∘ ηX` where these are maps from `X → character_space ℂ C(Y, ℂ)`.
+Take any `x : X`, then
+`(f** ∘ ηX) x = f** (ηX x) = (ηX x) ∘ f*` which has type `character_space ℂ C(Y, ℂ)`.
+We want to show this is equal to `ηY (f x)`. So take any `φ : character_space ℂ C(Y, ℂ)`.
+Then
+`ηY (f x) φ = φ (f x) = (φ ∘ f) x = ηX x (φ ∘ f)` and
+`(ηX x ∘ f*) φ = ηX x (f* φ) = ηX x (φ ∘ f)`.
+This shows that `ηX : X → character_space ℂ C(Y, ℂ)` is a natural transformation.
+
+-/

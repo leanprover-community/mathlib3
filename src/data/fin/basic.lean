@@ -271,7 +271,7 @@ begin
   { right, exact ⟨⟨j, nat.lt_of_succ_lt_succ h⟩, rfl⟩, }
 end
 
-/-- The decreasing involution `fin n → fin n`. -/
+/-- The antitone involution `fin n → fin n` given by `i ↦ n-(i+1)`. -/
 def rev {n : ℕ} (i : fin n) : fin n :=
 ⟨n-(i+1), begin
   cases n,

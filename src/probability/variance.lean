@@ -120,8 +120,9 @@ begin
   exact (real.to_nnreal_nonneg_eq_nnnorm $ sq_nonneg _).symm,
 end
 
-lemma variance_eq_of_integral_eq_zero {Ω : Type*} {m : measurable_space Ω}
-  {f : Ω → ℝ} {μ : measure Ω} (hf : mem_ℒp f 2 μ) (hfint : μ[f] = 0) :
+lemma _root_.measure_theory.mem_ℒp.variance_eq_of_integral_eq_zero
+  {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ} {μ : measure Ω}
+  (hf : mem_ℒp f 2 μ) (hfint : μ[f] = 0) :
   variance f μ = μ[f^2] :=
 begin
   rw [variance, evariance_eq_lintegral_of_real, ← of_real_integral_eq_lintegral_of_real,
@@ -136,8 +137,9 @@ begin
   { exact ae_of_all _ (λ ω, pow_two_nonneg _) }
 end
 
-lemma variance_eq {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ} {μ : measure Ω}
-  [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
+lemma _root_.measure_theory.mem_ℒp.variance_eq
+  {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ} {μ : measure Ω} [is_finite_measure μ]
+  (hf : mem_ℒp f 2 μ) :
   variance f μ = μ[(f - (λ ω, μ[f]))^2] :=
 begin
   rw [variance, evariance_eq_lintegral_of_real, ← of_real_integral_eq_lintegral_of_real,
@@ -231,7 +233,7 @@ variables [is_probability_measure (volume : measure Ω)]
 lemma variance_def' {X : Ω → ℝ} (hX : mem_ℒp X 2) :
   Var[X] = 𝔼[X^2] - 𝔼[X]^2 :=
 begin
-  rw [variance_eq hX, sub_sq', integral_sub', integral_add'], rotate,
+  rw [hX.variance_eq, sub_sq', integral_sub', integral_add'], rotate,
   { exact hX.integrable_sq },
   { convert integrable_const (𝔼[X] ^ 2),
     apply_instance },
@@ -253,7 +255,7 @@ begin
     simp only [sq_nonneg, sub_le_self_iff] },
   rw [variance, evariance_eq_lintegral_of_real, ← integral_eq_lintegral_of_nonneg_ae],
   by_cases hint : integrable X, swap,
-  { simp only [variance_eq, integral_undef hint, pi.pow_apply, pi.sub_apply, sub_zero] },
+  { simp only [integral_undef hint, pi.pow_apply, pi.sub_apply, sub_zero] },
   { rw integral_undef,
     { exact integral_nonneg (λ a, sq_nonneg _) },
     { intro h,

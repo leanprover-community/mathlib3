@@ -84,7 +84,12 @@ begin
     rw integral_undef this, },
 end
 
-@[simp] lemma central_moment_two_eq_variance : central_moment X 2 μ = variance X μ := rfl
+lemma central_moment_two_eq_variance [is_finite_measure μ] (hX : mem_ℒp X 2 μ) :
+  central_moment X 2 μ = variance X μ :=
+begin
+  rw hX.variance_eq,
+  refl,
+end
 
 section moment_generating_function
 

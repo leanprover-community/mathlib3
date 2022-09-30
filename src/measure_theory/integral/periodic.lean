@@ -39,7 +39,13 @@ section newstuff ---- NEW STUFF
 
 lemma is_add_fundamental_domain_Ioc' {T : ℝ} (hT : 0 < T) (t : ℝ) (μ : measure ℝ . volume_tac) :
   is_add_fundamental_domain (add_subgroup.zmultiples T).opposite (Ioc t (t + T)) μ :=
-sorry
+begin
+  refine is_add_fundamental_domain.mk' measurable_set_Ioc.null_measurable_set (λ x, _),
+  have : bijective (cod_restrict (λ n : ℤ, n • T) (add_subgroup.zmultiples T) _),
+    from (equiv.of_injective (λ n : ℤ, n • T) (zsmul_strict_mono_left hT).injective).bijective,
+  refine this.exists_unique_iff.2 _,
+  simpa using exists_unique_add_zsmul_mem_Ioc hT x t,
+end
 
 open add_subgroup
 
@@ -48,8 +54,6 @@ variables {T : ℝ} [fact (0 < T)]
 noncomputable instance : measure_space (ℝ ⧸ zmultiples T) :=
 { volume := (id ⟨T, le_of_lt (fact.out _)⟩ : ℝ≥0) • add_haar_measure ⊤,
   .. real_mod_zmultiples.measurable_space }
-
-instance : second_countable_topology (ℝ ⧸ zmultiples T) := sorry
 
 local notation `π` := quotient_add_group.mk' (zmultiples T)
 

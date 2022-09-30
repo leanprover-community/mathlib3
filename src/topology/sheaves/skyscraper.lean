@@ -65,7 +65,7 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
   end }
 
 /--
-Taking skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor
+Taking the skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor.
 -/
 @[simps] def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
 { obj := skyscraper_presheaf p₀,

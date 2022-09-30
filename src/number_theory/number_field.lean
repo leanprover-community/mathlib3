@@ -254,39 +254,40 @@ section bounded
 
 open finite_dimensional polynomial set
 
-variables (K : Type*) [field K] [number_field K]
-variables (A : Type*) [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
+variables {K : Type*} [field K] [number_field K]
+variables {A : Type*} [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
 
-lemma coeff_bdd_of_norm_le (B : ℝ) :
-  ∃ C, ∀ x : K, (∀ φ : K →+* A, ∥φ x∥ ≤ B) → ∀ i, ∥(minpoly ℚ x).coeff i∥ ≤ C :=
+lemma coeff_bdd_of_norm_le {B : ℝ} {x : K} (h : ∀ φ : K →+* A, ∥φ x∥ ≤ B) (i : ℕ):
+  ∥(minpoly ℚ x).coeff i∥ ≤ (max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2) :=
 begin
-  use (max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2),
-  intros x hφ,
   have hx : is_integral ℚ x := is_separable.is_integral _ _,
-  have : ∀ (i : ℕ), ∥(minpoly ℚ x).coeff i∥ = ∥(map (algebra_map ℚ A) (minpoly ℚ x)).coeff i∥,
-  { intro i, rw [coeff_map, norm_algebra_map'], },
-  simp_rw this,
-  intro i,
-  refine coeff_bdd_of_roots_le _ _ _ _ _ i,
-  { exact minpoly.monic hx, },
-  { exact is_alg_closed.splits_codomain _, },
-  { refine le_of_eq_of_le (intermediate_field.adjoin.finrank hx).symm _,
-    exact ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le, },
+  rw (by rw [coeff_map, norm_algebra_map'] :
+    ∥(minpoly ℚ x).coeff i∥ = ∥(map (algebra_map ℚ A) (minpoly ℚ x)).coeff i∥),
+  refine coeff_bdd_of_roots_le _ (minpoly.monic hx) (is_alg_closed.splits_codomain _)
+    (intermediate_field.minpoly.nat_degree_le hx) _ i,
   intros z hz,
-  rsuffices ⟨φ, rfl⟩ : ∃ (φ : K →+* A), φ x = z, {exact hφ φ },
+  rsuffices ⟨φ, rfl⟩ : ∃ (φ : K →+* A), φ x = z, {exact h φ },
   letI : char_zero A := char_zero_of_injective_algebra_map (algebra_map ℚ _).injective,
   rw [← set.mem_range, rat_range_eq_roots, mem_root_set_iff, aeval_def],
   convert (mem_roots_map _).mp hz,
   repeat { exact monic.ne_zero (minpoly.monic hx), },
 end
 
+end bounded
+
+section finite
+
+open finite_dimensional polynomial set
+
+variables (K : Type*) [field K] [number_field K]
+variables (A : Type*) [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
+
 /-- Let `B` be a real number. The set of algebraic integers in `K` whose conjugates are all
 smaller in norm than `B` is finite. -/
 lemma finite_of_norm_le (B : ℝ) :
   {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
 begin
-  obtain ⟨C', h⟩ := coeff_bdd_of_norm_le K A B,
-  let C := nat.ceil C',
+ let C := nat.ceil ((max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2)),
   have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
   refine this.subset (λ x hx, _),
   have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
@@ -295,12 +296,10 @@ begin
   rw [mem_Union, exists_prop],
   refine ⟨⟨_, λ i, _⟩, _⟩,
   { rw [← nat_degree_map_eq_of_injective (algebra_map ℤ ℚ).injective_int _, ← h_map_rat_minpoly],
-    apply le_trans _ ℚ⟮x⟯.to_subalgebra.to_submodule.finrank_le,
-    apply le_of_eq,
-    exact (intermediate_field.adjoin.finrank (is_integral_of_is_scalar_tower _ hx.1)).symm, },
+    exact intermediate_field.minpoly.nat_degree_le (is_integral_of_is_scalar_tower _ hx.1), },
   { rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
-    apply le_trans _ (nat.le_ceil C'),
-    convert (h x hx.2 i) using 1,
+    apply le_trans _ (nat.le_ceil _),
+    convert coeff_bdd_of_norm_le hx.2 i,
     simp only [h_map_rat_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat, int.norm_eq_abs,
       int.cast_abs], },
   { rw [finset.mem_coe, multiset.mem_to_finset, mem_roots, is_root.def, ← eval₂_eq_eval_map,
@@ -328,6 +327,6 @@ begin
     exact λ a, ⟨hxi.pow a, λ φ, by simp [hx φ, norm_pow, one_pow]⟩, },
 end
 
-end bounded
+end finite
 
 end number_field.embeddings

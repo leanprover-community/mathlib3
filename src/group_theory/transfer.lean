@@ -165,6 +165,7 @@ rfl
 
 section burnside_transfer
 
+-- PRed
 lemma sylow.subtype_injective {G : Type*} [group G] {p : ℕ} {P Q : sylow p G} {H : subgroup G}
   {hP : ↑P ≤ H} {hQ : ↑Q ≤ H} (h : P.subtype hP = Q.subtype hQ) : P = Q :=
 begin
@@ -172,6 +173,7 @@ begin
   exact λ g, (em (g ∈ H)).elim (λ hg, h ⟨g, hg⟩) (λ h, iff_of_false (mt (@hP g) h) (mt (@hQ g) h)),
 end
 
+-- PR ready
 lemma _root_.sylow.conj_eq_normalizer_conj {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [fintype (sylow p G)]
   (P : sylow p G)
   {x : G} (hx : x ∈ (P : subgroup G).centralizer) (hy : g⁻¹ * x * g ∈ (P : subgroup G).centralizer) :
@@ -193,12 +195,15 @@ begin
     inv_mul_cancel_right],
 end
 
+-- PRed
 @[to_additive] lemma le_centralizer_iff_is_commutative : H ≤ H.centralizer ↔ H.is_commutative :=
 ⟨λ h, ⟨⟨λ x y, subtype.ext (h y.2 x x.2)⟩⟩, λ h x hx y hy, _root_.congr_arg coe (h.1.1 ⟨y, hy⟩ ⟨x, hx⟩)⟩
 
+-- PRed
 @[to_additive] lemma le_centralizer (H : subgroup G) [h : H.is_commutative] : H ≤ H.centralizer :=
 le_centralizer_iff_is_commutative.mpr h
 
+-- PR ready
 lemma sylow.conj_eq_normalizer_conj' {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G)
   [fintype (sylow p G)] (P : sylow p G) [hP : (P : subgroup G).is_commutative]
   {x : G} (hx : x ∈ P) (hy : g⁻¹ * x * g ∈ P) :

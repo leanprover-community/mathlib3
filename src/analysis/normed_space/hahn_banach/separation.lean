@@ -5,7 +5,7 @@ Authors: Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.cone.basic
 import analysis.convex.gauge
-import analysis.locally_convex.disk
+import analysis.locally_convex.abs_convex
 
 /-!
 # Separation Hahn-Banach theorem

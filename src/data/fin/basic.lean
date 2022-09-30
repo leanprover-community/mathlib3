@@ -71,7 +71,7 @@ This file expands on the development in the core library.
 ### Misc definitions
 
 * `fin.last n` : The greatest value of `fin (n+1)`.
-* `fin.rev : fin n → fin n` : the decreasing involution
+* `fin.rev : fin n → fin n` : the antitone involution given by `i ↦ n-(i+1)`
 
 -/
 

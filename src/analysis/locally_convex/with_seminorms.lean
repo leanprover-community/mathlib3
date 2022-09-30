@@ -23,10 +23,6 @@ bounded by a finite number of seminorms in `E`.
 * `seminorm_family.to_locally_convex_space`: A space equipped with a family of seminorms is locally
 convex.
 
-## TODO
-
-Show that for any locally convex space there exist seminorms that induce the topology.
-
 ## Tags
 
 seminorm, locally convex

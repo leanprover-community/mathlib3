@@ -93,9 +93,8 @@ namespace morph_components
 
 variables {X} {n : ℕ} {Z Z' : C} (f : morph_components X n Z) (g : X' ⟶ X) (h : Z ⟶ Z')
 /-- The morphism `X _[n+1] ⟶ Z ` associated to `f : morph_components X n Z`. -/
-def φ {Z : C} (f : morph_components X n Z) :
-  X _[n+1] ⟶ Z := P_infty.f (n+1) ≫ f.a +
-    ∑ (i : fin (n+1)), (P i).f (n+1) ≫ X.δ i.rev.succ ≫ f.b i.rev
+def φ {Z : C} (f : morph_components X n Z) : X _[n+1] ⟶ Z :=
+P_infty.f (n+1) ≫ f.a + ∑ (i : fin (n+1)), (P i).f (n+1) ≫ X.δ i.rev.succ ≫ f.b i.rev
 
 variables (X n)
 /-- the canonical `morph_components` whose associated morphism is the identity

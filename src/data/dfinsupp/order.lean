@@ -15,9 +15,6 @@ This file lifts order structures on the `α i` to `Π₀ i, α i`.
 * `dfinsupp.order_embedding_to_fun`: The order embedding from finitely supported dependent functions
   to functions.
 
-## TODO
-
-Add `is_well_order (Π₀ i, α i) (<)`.
 -/
 
 open_locale big_operators

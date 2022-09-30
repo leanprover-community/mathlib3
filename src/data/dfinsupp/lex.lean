@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Junyan Xu. All rights reserved.
+Copyright (c) 2022 Damiano Testa and Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Junyan Xu
+Authors: Damiano Testa, Junyan Xu
 -/
 import data.dfinsupp.order
 import order.game_add

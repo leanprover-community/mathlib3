@@ -217,6 +217,26 @@ lemma not_bdd_below_Iio : ¬ bdd_below (Iio a) := (is_lower_set_Iio _).not_bdd_b
 end no_min_order
 end preorder
 
+section partial_order
+variables [partial_order α] {s : set α}
+
+lemma is_upper_set_iff_forall_lt : is_upper_set s ↔ ∀ ⦃a b : α⦄, a < b → a ∈ s → b ∈ s :=
+forall_congr $ λ a, by simp [le_iff_eq_or_lt, or_imp_distrib, forall_and_distrib]
+
+lemma is_lower_set_iff_forall_lt : is_lower_set s ↔ ∀ ⦃a b : α⦄, b < a → a ∈ s → b ∈ s :=
+forall_congr $ λ a, by simp [le_iff_eq_or_lt, or_imp_distrib, forall_and_distrib]
+
+lemma is_upper_set_iff_Ioi_subset : is_upper_set s ↔ ∀ ⦃a⦄, a ∈ s → Ioi a ⊆ s :=
+by simp [is_upper_set_iff_forall_lt, subset_def, @forall_swap (_ ∈ s)]
+
+lemma is_lower_set_iff_Iio_subset : is_lower_set s ↔ ∀ ⦃a⦄, a ∈ s → Iio a ⊆ s :=
+by simp [is_lower_set_iff_forall_lt, subset_def, @forall_swap (_ ∈ s)]
+
+alias is_upper_set_iff_Ioi_subset ↔ is_upper_set.Ioi_subset _
+alias is_lower_set_iff_Iio_subset ↔ is_lower_set.Iio_subset _
+
+end partial_order
+
 /-! ### Bundled upper/lower sets -/
 
 section has_le

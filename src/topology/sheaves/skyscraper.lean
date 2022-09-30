@@ -169,7 +169,6 @@ def skyscraper_presheaf_stalk_of_not_specializes_is_terminal
   [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ A).stalk y) :=
 is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_specializes _ _ h).symm
 
-variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U)]
 
 lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
 (presheaf.is_sheaf_iso_iff (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr $

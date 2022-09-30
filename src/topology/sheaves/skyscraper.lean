@@ -173,7 +173,7 @@ variables [Π (U : opens (Top.of (punit : Type u))), decidable (punit.star ∈ U
 
 lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
 (presheaf.is_sheaf_iso_iff (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr $
-  sheaf.pushforward_sheaf_of_sheaf _ $ is_sheaf_on_punit_of_is_terminal _ $
+  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf.is_sheaf_on_punit_of_is_terminal _ $
     by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star }
 
 /--

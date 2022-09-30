@@ -297,7 +297,7 @@ end
 
 /-- The mean on H, induced by the mean on G-/
 @[simp]
-def mean_pushforward (π : G → H) (π_cont: continuous π) (m : mean G) :
+noncomputable def mean_pushforward (π : G → H) (π_cont: continuous π) (m : mean G) :
   mean H :=
 { lin_map     := mean_pushforward_linmap π_cont m,
   normality   := mean_pushforward_norm π_cont m,

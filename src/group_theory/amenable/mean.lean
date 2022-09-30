@@ -125,7 +125,7 @@ lemma mean_bounded (m : mean G) {f: bounded_continuous_function G ℝ} {M : ℝ}
 begin
   have fle  : f ≤ bounded_continuous_function.const G M := by {intro x,simp[fbound x],},
   calc  m f
-      ≤ m (bounded_continuous_function.const G M) : by simp [m.monotonicity _]
+      ≤ m (bounded_continuous_function.const G M) : by exact m.monotonicity fle
   ... = M                                         : mean_const _,
 end
 
@@ -234,19 +234,16 @@ begin
         : m.normality,
 end
 
-lemma mean_pushforward_pos {π : G → H} (π_cont: continuous π ) (m : mean G) :
-  ∀ (f : bounded_continuous_function H ℝ),
-  (∀ (x:H), f(x) ≥ 0) → (mean_pushforward_linmap π_cont m) f ≥ 0 :=
+
+lemma mean_pushforward_mon {π : G → H} (π_cont: continuous π ) (m : mean G) :
+  monotone (mean_pushforward_linmap π_cont m) :=
 begin
-  assume f fnonneg,
-
-  apply monotone_iff_map_nonneg.mp m.monotonicity,
-  -- key step: pull_bcont π f is also nonneg
-  change ∀(x:G), (pull_bcont π π_cont f) x ≥ 0,
-
-  assume (x:G),
-  specialize fnonneg (π x),
-  by tauto,
+  assume f g fleg,
+  simp,
+  apply m.monotonicity,
+  intro x,
+  simp,
+  exact fleg _,
 end
 
 /-- The mean on H, induced by the mean on G-/
@@ -255,7 +252,7 @@ noncomputable def mean_pushforward (π : G → H) (π_cont: continuous π) (m : 
   mean H :=
 { lin_map     := mean_pushforward_linmap π_cont m,
   normality   := mean_pushforward_norm π_cont m,
-  positivity  := mean_pushforward_pos π_cont m }
+  monotonicity:= mean_pushforward_mon π_cont m }
 
 
 end pushforward_mean

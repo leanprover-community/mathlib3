@@ -557,9 +557,6 @@ section coe
 
 variables (R S : Type*) [has_lift_t R S]
 
-#print non_unital_ring_hom
-#print ring_hom
-
 /-- `coe_non_unital_ring_hom R S` is a class stating that the coercion map `↑ : R → S`
 (a.k.a. `coe`) is a non-unital ring homomorphism.
 -/

@@ -43,14 +43,23 @@ section cast
   ((ite P m n : ℤ) : α) = ite P m n :=
 apply_ite _ _ _ _
 
+instance (α : Type*) [add_group_with_one α] : coe_add_monoid_hom ℤ α :=
+{ coe_zero := cast_zero,
+  coe_add := cast_add }
+
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
-def cast_add_hom (α : Type*) [add_group_with_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩
+def cast_add_hom (α : Type*) [add_group_with_one α] : ℤ →+ α := add_monoid_hom.coe ℤ α
 
 @[simp] lemma coe_cast_add_hom [add_group_with_one α] : ⇑(cast_add_hom α) = coe := rfl
 
+instance (α : Type*) [non_assoc_ring α] : coe_ring_hom ℤ α :=
+{ coe_mul := cast_mul,
+  coe_one := cast_one,
+  .. int.coe_add_monoid_hom α }
+
 /-- `coe : ℤ → α` as a `ring_hom`. -/
 def cast_ring_hom (α : Type*) [non_assoc_ring α] : ℤ →+* α :=
-⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
+ring_hom.coe ℤ α
 
 @[simp] lemma coe_cast_ring_hom [non_assoc_ring α] : ⇑(cast_ring_hom α) = coe := rfl
 

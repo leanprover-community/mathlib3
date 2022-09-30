@@ -22,13 +22,13 @@ We prove the basic properties of the variance:
   the sum of the variances.
 -/
 
-open filter finset
+open measure_theory filter finset
 
 noncomputable theory
 
 open_locale big_operators measure_theory probability_theory ennreal nnreal
 
-namespace measure_theory
+namespace probability_theory
 
 def evariance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ≥0∞ :=
 ∫⁻ ω, ∥f ω - μ[f]∥₊^2 ∂μ
@@ -38,8 +38,8 @@ use the latter as the definition, to ensure better behavior even in garbage situ
 def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ :=
 (evariance f μ).to_real
 
-lemma mem_ℒp.evariance_lt_top {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ}
-  {μ : measure Ω} [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
+lemma _root_.measure_theory.mem_ℒp.evariance_lt_top {Ω : Type*} {m : measurable_space Ω}
+  {f : Ω → ℝ} {μ : measure Ω} [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
   evariance f μ < ∞ :=
 begin
   have := ennreal.pow_lt_top (hf.sub $ mem_ℒp_const $ μ[f]).2 2,
@@ -72,14 +72,14 @@ lemma evariance_lt_top_iff_mem_ℒp {Ω : Type*} {m : measurable_space Ω} {f : 
   {μ : measure Ω} [is_finite_measure μ] (hf : ae_strongly_measurable f μ) :
   evariance f μ < ∞ ↔ mem_ℒp f 2 μ :=
 begin
-  refine ⟨_, _root_.measure_theory.mem_ℒp.evariance_lt_top⟩,
+  refine ⟨_, measure_theory.mem_ℒp.evariance_lt_top⟩,
   contrapose,
   rw [not_lt, top_le_iff],
   exact evariance_eq_top hf
 end
 
-lemma mem_ℒp.of_real_variance_eq {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ}
-  {μ : measure Ω} [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
+lemma _root_.measure_theory.mem_ℒp.of_real_variance_eq {Ω : Type*} {m : measurable_space Ω}
+  {f : Ω → ℝ} {μ : measure Ω} [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
   ennreal.of_real (variance f μ) = evariance f μ :=
 begin
   rw [variance, ennreal.of_real_to_real],
@@ -190,8 +190,8 @@ begin
   simp_rw [← smul_eq_mul, ← integral_smul_const, smul_eq_mul, mul_comm],
 end
 
-localized "notation (name := measure_theory.evariance) `eVar[` X `]` :=
-  measure_theory.evariance X measure_theory.measure_space.volume" in probability_theory
+localized "notation (name := probability_theory.evariance) `eVar[` X `]` :=
+  probability_theory.evariance X measure_theory.measure_space.volume" in probability_theory
 
 variables {Ω : Type*} [measure_space Ω]
 
@@ -223,8 +223,8 @@ begin
   { simp only [algebra.smul_def, map_pow], }
 end
 
-localized "notation (name := measure_theory.variance) `Var[` X `]` :=
-  measure_theory.variance X measure_theory.measure_space.volume" in probability_theory
+localized "notation (name := probability_theory.variance) `Var[` X `]` :=
+  probability_theory.variance X measure_theory.measure_space.volume" in probability_theory
 
 variables [is_probability_measure (volume : measure Ω)]
 
@@ -321,8 +321,6 @@ begin
   { rw ennreal.of_real_pow hc.le,
     refl }
 end
-
-#exit
 
 /-- The variance of the sum of two independent random variables is the sum of the variances. -/
 theorem indep_fun.variance_add {X Y : Ω → ℝ}
@@ -421,4 +419,4 @@ begin
       (h.mono (by simp only [coe_insert, set.subset_insert]))
 end
 
-end measure_theory
+end probability_theory

@@ -182,14 +182,12 @@ ideal.span { z | ∃ ⦃s F : A⦄ (hs : s ∈ x.1.as_homogeneous_ideal) (n : �
 lemma carrier_eq_carrier' :
   carrier 𝒜 x = carrier' f_deg x :=
 begin
-  classical,
-  ext z, split; intros hz,
+  classical, ext z, split; intros hz,
   { rw mem_carrier_iff at hz,
     change z ∈ ideal.span _,
     let k : ℕ := z.denom_wd.some, have hk : f^k = z.denom := z.denom_wd.some_spec,
     erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hz,
-    obtain ⟨c, eq1⟩ := hz,
-    erw [finsupp.total_apply, finsupp.sum] at eq1,
+    obtain ⟨c, eq1⟩ := hz, erw [finsupp.total_apply, finsupp.sum] at eq1,
 
     suffices mem1 : z.num ∈ x.1.as_homogeneous_ideal,
     { apply ideal.subset_span _,
@@ -260,26 +258,18 @@ begin
       (x.1.is_prime.mem_of_pow_mem _ H2)), false.elim
       ((projective_spectrum.mem_basic_open 𝒜 _ _).mp x.2 (x.1.is_prime.mem_of_pow_mem _ H3))], },
 
-  { change z ∈ ideal.span _ at hz,
-    rw mem_carrier_iff,
-
+  { change z ∈ ideal.span _ at hz, rw mem_carrier_iff,
     erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hz,
-    obtain ⟨c, eq1⟩ := hz,
-    erw [finsupp.total_apply, finsupp.sum] at eq1,
-
-    erw [←eq1, homogeneous_localization.sum_val],
-    convert submodule.sum_mem _ _,
-    rintros j hj, rw [smul_eq_mul, homogeneous_localization.mul_val],
-    convert ideal.mul_mem_left _ _ _,
+    obtain ⟨c, eq1⟩ := hz, erw [finsupp.total_apply, finsupp.sum] at eq1,
+    erw [←eq1, homogeneous_localization.sum_val], convert submodule.sum_mem _ (λ j hj, _),
+    rw [smul_eq_mul, mul_val],
     obtain ⟨s, _, hs, n, s_mem, F_mem1, ⟨l, rfl⟩, hj2⟩ := j.2,
-    rw [←subtype.val_eq_coe, hj2, homogeneous_localization.val_mk'], dsimp only [subtype.coe_mk],
-    have eq2 : (localization.mk s ⟨f ^ l, ⟨_, rfl⟩⟩ : localization.away f) =
-      localization.mk 1 ⟨f^l, ⟨_, rfl⟩⟩ * localization.mk s 1,
-    { rw [localization.mk_mul, one_mul, mul_one], },
-    erw eq2,
     convert ideal.mul_mem_left _ _ _,
-    apply ideal.subset_span,
-    refine ⟨s, hs, rfl⟩, },
+    rw [←subtype.val_eq_coe, hj2, val_mk'],
+    erw show (mk s ⟨f ^ l, ⟨_, rfl⟩⟩ : localization.away f) = mk 1 ⟨f^l, ⟨_, rfl⟩⟩ * mk s 1,
+    { rw [mk_mul, one_mul, mul_one], },
+    convert ideal.mul_mem_left _ _ _,
+    apply ideal.subset_span, exact ⟨s, hs, rfl⟩, },
 end
 
 end carrier'

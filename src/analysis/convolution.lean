@@ -671,13 +671,13 @@ begin
 end
 
 /-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
-* `φ` is a sequence of nonnegative functions with integral `1` as `i` tends to `l`
-* The support of `φ` tends to small neighborhoods around `(0 : G)` as `i` tends to `l`.
-* `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`
-* `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`
+* `φ` is a sequence of nonnegative functions with integral `1` as `i` tends to `l`;
+* The support of `φ` tends to small neighborhoods around `(0 : G)` as `i` tends to `l`;
+* `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`;
+* `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
 * `k i` tends to `x₀`.
 
-See also `cont_diff_bump_of_inner.convolution_tendsto_right`
+See also `cont_diff_bump_of_inner.convolution_tendsto_right`.
 -/
 lemma convolution_tendsto_right
   {ι} {g : ι → G → E'} {l : filter ι} {x₀ : G} {z₀ : E'}
@@ -747,13 +747,10 @@ dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self 
   φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
 
 /-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
-* `φ` is a sequence of normed bump functions such that `(φ i).R` tends to `0` as `i` tends to `l`.
-* `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`
-* `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`
-* `k i` tends to `x₀`.
-
-This requires that `g` is locally integrable, which is a bit stronger than the condition in
-`cont_diff_bump_of_inner.convolution_tendsto_right`. -/
+* `φ` is a sequence of normed bump functions such that `(φ i).R` tends to `0` as `i` tends to `l`;
+* `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`;
+* `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
+* `k i` tends to `x₀`. -/
 lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
   (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
@@ -765,7 +762,8 @@ convolution_tendsto_right (eventually_of_forall $ λ i, (φ i).nonneg_normed)
   (eventually_of_forall $ λ i, (φ i).integral_normed)
   (tendsto_support_normed_small_sets hφ) hig hcg hk
 
-/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous. -/
+/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous,
+  and the limit is taken only in the first function. -/
 lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hg : continuous g) (x₀ : G) :

@@ -122,7 +122,7 @@ def post_comp : morph_components X n Z' :=
 { a := f.a ≫ h,
   b := λ i, f.b i ≫ h }
 
-lemma post_comp_φ : (f.post_comp h).φ = f.φ ≫ h :=
+@[simp] lemma post_comp_φ : (f.post_comp h).φ = f.φ ≫ h :=
 begin
   unfold φ post_comp,
   simp only [add_comp, sum_comp, assoc],

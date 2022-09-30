@@ -177,7 +177,8 @@ lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p
     by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star }
 
 /--
-The skyscraper presheaf supported at `p₀` with value `A` is the sheaf that assigns `A` to all opens `U` that contain `p₀` and assigns `*` otherwise.
+The skyscraper presheaf supported at `p₀` with value `A` is the sheaf that assigns `A` to all opens
+`U` that contain `p₀` and assigns `*` otherwise.
 -/
 def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
 ⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩

@@ -13,8 +13,12 @@ This file defines covering maps.
 
 ## Main definitions
 
-* `is_covering_map`: A covering map is a continuous function `f : E → X` with discrete
-  fibers such that each point of `X` has an evenly covered neighborhood.
+* `is_evenly_covered f x I`: A point `x` is evenly coverd by `f : E → X` with fiber `I` if `I` is
+  discrete and there is a `trivialization` of `f` at `x` with fiber `I`.
+* `is_covering_map f`: A function `f : E → X` is a covering map if every point `x` is evenly
+  covered by `f` with fiber `f ⁻¹' {x}`. The fibers `f ⁻¹' {x}` must be discrete, but if `X` is
+  not connected, then the fibers `f ⁻¹' {x}` are not necessarily isomorphic. Also, `f` is not
+  assumed to be surjective, so the fibers are even allowed to be empty.
 -/
 
 variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X)

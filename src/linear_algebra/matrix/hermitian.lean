@@ -147,12 +147,14 @@ open is_R_or_C
 variables [is_R_or_C α] [is_R_or_C β]
 
 /-- The diagonal elements of a complex hermitian matrix are real. -/
-lemma complex_hermitian_real_diagonal {A : matrix n n α} (h : A.is_hermitian) :
-  ∀ i, ∃ (r : ℝ), (A i i) = r :=
-begin
-  intro i, rw ←is_R_or_C.eq_conj_iff_real, unfold is_hermitian at h, nth_rewrite 0 ←h,
-  rw [matrix.conj_transpose_apply, is_R_or_C.star_def, star_ring_end_self_apply],
-end
+lemma is_hermitian.coe_re_apply_self {A : matrix n n α} (h : A.is_hermitian) (i : n) :
+  (re (A i i) : α) = A i i :=
+by rw [←eq_conj_iff_re, ←star_def, ←conj_transpose_apply, h.eq]
+
+/-- The diagonal elements of a complex hermitian matrix are real. -/
+lemma is_hermitian.coe_re_diag {A : matrix n n α} (h : A.is_hermitian) :
+  (λ i, (re (A.diag i) : α)) = A.diag :=
+funext h.coe_re_apply_self
 
 /-- A matrix is hermitian iff the corresponding linear map is self adjoint. -/
 lemma is_hermitian_iff_is_symmetric [fintype n] [decidable_eq n] {A : matrix n n α} :

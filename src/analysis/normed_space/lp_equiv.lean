@@ -12,9 +12,21 @@ import topology.continuous_function.bounded
 
 In this file we collect a variety of equivalences among various $$L^p$$ spaces.  In particular,
 when `α` is a `fintype`, given `E : α → Type u` and `p : ℝ≥0∞`, there is a natural linear isometric
-equivalence `lp_pi_Lpₗᵢ : lp E p ≃ₗᵢ pi_Lp p E`.
+equivalence `lp_pi_Lpₗᵢ : lp E p ≃ₗᵢ pi_Lp p E`. In addition, when `α` is a discrete topological
+space, the bounded continuous functions `α →ᵇ β` correspond exactly to `lp (λ _, β) ∞`. Here there
+can be more structure, including ring and algebra structures, and we implement these equivalences
+accordingly as well.
 
 We keep this as a separate file so that the various $$L^p$$ space files don't import the others.
+
+Recall that `pi_Lp` is just a type synonym for `Π i, E i` but given a different metric and norm
+structure, although the topological, uniform and bornological structures coincide definitionally.
+These structures are only defined on `pi_Lp` for `fintype α`, so there are no issues of convergence
+to consider.
+
+While `lp` is also a type synonym for `Π i, E i`, it allows for infinite index types. There is a
+predicate `mem_ℓp` which says that the relevant `p`-norm is finite and `lp` is the subtype of those
+elements with finite `lp` norm.
 
 ## TODO
 
@@ -47,9 +59,8 @@ def equiv.lp_pi_Lp : lp E p ≃ pi_Lp p E :=
   left_inv := λ f, lp.ext $ funext $ λ x, rfl,
   right_inv := λ f, funext $ λ x, rfl }
 
-@[simp] lemma coe_equiv_lp_pi_Lp (f : lp E p) : equiv.lp_pi_Lp f = f := rfl
-@[simp] lemma coe_equiv_lp_pi_Lp_symm (f : pi_Lp p E) :
-  (equiv.lp_pi_Lp.symm f : Π i, E i) = f :=  rfl
+lemma coe_equiv_lp_pi_Lp (f : lp E p) : equiv.lp_pi_Lp f = f := rfl
+lemma coe_equiv_lp_pi_Lp_symm (f : pi_Lp p E) : (equiv.lp_pi_Lp.symm f : Π i, E i) = f :=  rfl
 
 lemma equiv_lp_pi_Lp_norm (f : lp E p) : ∥equiv.lp_pi_Lp f∥ = ∥f∥ :=
 begin
@@ -73,8 +84,8 @@ def add_equiv.lp_pi_Lp [fact (1 ≤ p)] : lp E p ≃+ pi_Lp p E :=
 section equivₗᵢ
 variables (𝕜 : Type*) [nontrivially_normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
-/-- The canonical `add_equiv` between `lp E p` and `pi_Lp p E` when `E : α → Type u` with
-`[fintype α]` and `[fact (1 ≤ p)]`. -/
+/-- The canonical `linear_isometry_equiv` between `lp E p` and `pi_Lp p E` when `E : α → Type u`
+with `[fintype α]` and `[fact (1 ≤ p)]`. -/
 noncomputable def lp_pi_Lpₗᵢ [fact (1 ≤ p)] : lp E p ≃ₗᵢ[𝕜] pi_Lp p E :=
 { map_smul' := λ k f, rfl,
   norm_map' := equiv_lp_pi_Lp_norm,
@@ -143,6 +154,7 @@ variables {R}
   ((ring_equiv.lp_bcf R).symm f : α → R) = f := rfl
 
 variables (α) -- even `α` needs to be explicit here for elaboration
+
 -- the `norm_one_class A` shouldn't really be necessary, but currently it is for
 -- `one_mem_ℓp_infty` to get the `ring` instance on `lp`.
 /-- The canonical map between `lp (λ (_ : α), A) ∞` and `α →ᵇ A` as an `alg_equiv`. -/

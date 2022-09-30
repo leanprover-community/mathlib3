@@ -142,6 +142,9 @@ example : 0 ≤ max (-3 : ℤ) 5 := by positivity
 example [ordered_semiring α] [ordered_add_comm_monoid β] [smul_with_zero α β]
   [ordered_smul α β] {a : α} (ha : 0 < a) {b : β} (hb : 0 < b) : 0 ≤ a • b := by positivity
 
+example {α : Type*} (s : finset α) (hs : s.nonempty) : 0 < s.card := by positivity
+example {α : Type*} [fintype α] [nonempty α] : 0 < fintype.card α := by positivity
+
 example {r : ℝ} : 0 < real.exp r := by positivity
 
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity

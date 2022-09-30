@@ -675,8 +675,8 @@ begin
   refine set.finite.bUnion _ _,
   { -- We prove that the set of polynomials under consideration is finite because its
     -- image by the injective map `π` is finite
-    let π : R[X] → finset.range (d+1) → R := λ f : R[X], λ i : finset.range (d+1), f.coeff i,
-    have h_inj : set.inj_on π  {f : R[X] | f.nat_degree ≤ d ∧ ∀ (i : ℕ), f.coeff i ∈ U},
+    let π : R[X] → finset.range (d+1) → R := λ f i, f.coeff i,
+    have h_inj : set.inj_on π {f : R[X] | f.nat_degree ≤ d ∧ ∀ (i : ℕ), f.coeff i ∈ U},
     { intros x hx y hy hxy,
       rw ext_iff_nat_degree_le hx.1 hy.1,
       exact_mod_cast λ i hi, congr_fun hxy ⟨i, finset.mem_range_succ_iff.mpr hi⟩, },

@@ -112,6 +112,17 @@ instance : inhabited (opens α) := ⟨∅⟩
 @[simp] lemma union_eq (U V : opens α) : U ∪ V = U ⊔ V := rfl
 @[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
+/-- The term of `opens X` corresponding to the complement of a singleton. -/
+@[simps] def singleton_compl [t1_space α] (x : α) : opens α :=
+⟨{x}ᶜ, is_closed_singleton.is_open_compl⟩
+
+lemma is_coatom_iff [t1_space α] (s : opens α) : is_coatom (s : set α) ↔ is_coatom s :=
+begin
+  refine galois_coinsertion.is_coatom_iff' opens.gi rfl (λ s hs, _) s,
+  obtain ⟨x, rfl⟩ := s.is_coatom_iff.mp hs,
+  simp only [interior, interior_compl, closure_singleton, subtype.coe_mk],
+end
+
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, coe_Sup, bUnion_range], refl }
 

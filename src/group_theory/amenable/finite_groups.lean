@@ -49,16 +49,9 @@ open_locale big_operators -- to enable ∑ notation
 open classical
 
 
-
-
 namespace amenable_finite
 
-variables
-{G:Type*}
-[group G]
-[uniform_space G]
-[discrete_topology G]
-[topological_group G]
+variables {G:Type*} [group G] [topological_space G] [topological_group G]
 (G_fin: fintype G)
 
 include G_fin
@@ -68,18 +61,16 @@ local notation `setG` := (@finset.univ G G_fin)
 
 /--The averaging map, given by summing all values of f,
 then dividing by the cardinality of G-/
-noncomputable def avg_map
-  : (bounded_continuous_function G ℝ) → ℝ
-:= (λ f, (finset.card setG:ℝ)⁻¹ * ∑ x in setG, f x)
+noncomputable def avg_map : (bounded_continuous_function G ℝ) → ℝ :=
+  (λ f, (finset.card setG:ℝ)⁻¹ * ∑ x in setG, f x)
 
-lemma avg_map_add'
-  : ∀ f g, (avg_map G_fin) (f+g) = (avg_map G_fin) f + (avg_map G_fin) g
-:= begin
+lemma avg_map_add' : ∀ f g, (avg_map G_fin) (f+g) = (avg_map G_fin) f + (avg_map G_fin) g :=
+begin
   assume f g,
   calc  (avg_map G_fin) (f+g)
       = (finset.card setG :ℝ)⁻¹
             * ∑ x in setG, (f+g) x
-        : by simp[avg_map]
+        : by simp [avg_map]
   ... = (finset.card setG :ℝ)⁻¹
             * ∑ x in setG, (f x + g x)
         : by {
@@ -95,9 +86,8 @@ lemma avg_map_add'
         : by simp[avg_map],
 end
 
-lemma avg_map_smul'
-  : ∀ (r:ℝ) f, (avg_map G_fin) (r•f) = r•((avg_map G_fin) f)
-:= begin
+lemma avg_map_smul' : ∀ (r:ℝ) f, (avg_map G_fin) (r•f) = r•((avg_map G_fin) f) :=
+begin
   assume r f,
   calc  (avg_map G_fin) (r•f)
       = (finset.card setG :ℝ)⁻¹
@@ -119,29 +109,25 @@ lemma avg_map_smul'
 end
 
 /-- The averaging map is a linear map-/
-noncomputable def avg_linmap
-  : (bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ
-:= linear_map.mk (avg_map G_fin)
-      (avg_map_add' G_fin) (avg_map_smul' G_fin)
+noncomputable def avg_linmap : (bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ :=
+{ to_fun   := avg_map G_fin,
+  map_add' := avg_map_add' G_fin,
+  map_smul':= avg_map_smul' G_fin }
 
-lemma avg_map_norm
-  : (avg_linmap G_fin) ((bounded_continuous_function.const G (1:ℝ))) = 1
-:= begin
+lemma avg_map_norm : (avg_linmap G_fin) ((bounded_continuous_function.const G (1:ℝ))) = 1 :=
+begin
   -- later, we need that |G| ≠ 0
   have card_neq0 : finset.card setG ≠ 0,
-  {
-    have : setG ≠ ∅,
+  { have : setG ≠ ∅,
     { -- this is not the most straightforward way
       let x0 : G  := classical.choice has_one.nonempty,
       have : x0 ∈ setG := finset.mem_univ x0,
-      exact finset.ne_empty_of_mem this,
-    },
-    finish,
-  },
+      exact finset.ne_empty_of_mem this,},
+    finish,},
 
   calc  (avg_linmap G_fin) ((bounded_continuous_function.const G (1:ℝ)))
       = (finset.card setG :ℝ)⁻¹ * ∑ x in setG,
-                      ((bounded_continuous_function.const G (1:ℝ)) x)
+          ((bounded_continuous_function.const G (1:ℝ)) x)
         : by simp[avg_linmap, avg_map]
   ... = (finset.card setG :ℝ)⁻¹ * ∑ x in setG, 1
         : by simp
@@ -153,29 +139,24 @@ lemma avg_map_norm
         : by simp [nat.cast_ne_zero.mpr card_neq0],
 end
 
-lemma avg_map_pos
-  : ∀ (f : bounded_continuous_function G ℝ),
-                    (∀ (x:G), f x ≥ 0) → (avg_linmap G_fin) f ≥ 0
-:= begin
+lemma avg_map_pos : ∀ (f : bounded_continuous_function G ℝ),
+  (∀ (x:G), f x ≥ 0) → (avg_linmap G_fin) f ≥ 0 :=
+begin
   assume f :bounded_continuous_function G ℝ,
   assume f_nonneg:  ∀ (x:G), f x ≥ 0,
 
-  have : ∀ x ∈ setG, f x ≥ 0
-    := by tauto,
+  have : ∀ x ∈ setG, f x ≥ 0 := by tauto,
 
   have sum_nonneg:  ∑ x in setG, f x ≥ 0,
-  {
-    calc (0:ℝ)
+  { calc (0:ℝ)
         = ∑ x in setG, (0:ℝ)
             : by simp
     ... ≤ ∑ x in setG, f x
-            : finset.sum_le_sum this,
-  },
+            : finset.sum_le_sum this, },
 
-  have card_nonneg : (finset.card setG:ℝ)⁻¹ ≥ 0
-            := by simp[zero_le (finset.card setG)],
+  have card_nonneg : (finset.card setG:ℝ)⁻¹ ≥ 0 := by simp[zero_le (finset.card setG)],
 
-  calc (avg_linmap G_fin) f
+  calc  (avg_linmap G_fin) f
       = (finset.card setG :ℝ)⁻¹ * ∑ x in setG, f x
         : by simp[avg_linmap, avg_map]
   ... ≥ 0
@@ -184,48 +165,16 @@ end
 
 
 /--The excplicit mean on a finite group-/
-noncomputable def mean_fin
-  : mean G
-:= mean.mk (avg_linmap G_fin) (avg_map_norm _) (avg_map_pos _)
+noncomputable def mean_fin : mean G := mean.mk (avg_linmap G_fin) (avg_map_norm _) (avg_map_pos _)
 
 omit G_fin
 
-lemma perm_left_inverse {G:Type*} [group G]
-  (g: G)
-  : function.left_inverse (left_mul g⁻¹) (left_mul g)
-:= begin
-  unfold function.left_inverse,
-  assume x:G,
-  calc  left_mul g⁻¹ (left_mul g x)
-      = left_mul g⁻¹ (g*x)
-        : by simp [left_mul]
-  ... = g⁻¹ * (g*x)
-        : by simp [left_mul]
-  ... = x
-        :by group,
-end
-
-lemma perm_right_inverse {G:Type*} [group G]
-  (g: G)
-  : function.right_inverse (left_mul g⁻¹) (left_mul g)
-:= begin
-  unfold function.right_inverse,
-  assume x:G,
-  calc  left_mul g (left_mul g⁻¹ x)
-      = left_mul g (g⁻¹*x)
-        : by simp [left_mul]
-  ... = g * (g⁻¹*x)
-        : by simp [left_mul]
-  ... = x
-        :by group,
-end
-
-
-def left_mul_perm {G:Type*} [group G]
-  (g: G)
-  : equiv.perm G
-:= equiv.mk (left_mul g) (left_mul g⁻¹)
-          (perm_left_inverse g) (perm_right_inverse g)
+/-Multiplying by g is a permutation-/
+def left_mul_perm {G:Type*} [group G] (g: G) : equiv.perm G :=
+{ to_fun      := left_mul g,
+  inv_fun     := left_mul g⁻¹,
+  left_inv    := by {intro;simp[left_mul];group},
+  right_inv    := by {intro;simp[left_mul];group} }
 
 
 
@@ -235,20 +184,15 @@ include G_fin
 
 
 /--This given mean is left invariant-/
-lemma avg_map_left_inv
-  : ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
-      (avg_linmap G_fin) (left_translate g f) = (avg_linmap G_fin) f
-:= begin
+lemma avg_map_left_inv : ∀(g:G), ∀(f: bounded_continuous_function G ℝ),
+  (avg_linmap G_fin) (left_translate g f) = (avg_linmap G_fin) f :=
+begin
 	assume g : G,
 	assume f,
 
 	-- we first prove that the sums are equal
-	have sums_eq: ∑ x in setG, f (g⁻¹*x)
-							= ∑ x in setG, f x,
-	{
-		let σ : equiv.perm G := left_mul_perm g⁻¹,
-		exact equiv.perm.sum_comp σ  setG _ (by norm_num),
-	},
+	have sums_eq: ∑ x in setG, f (g⁻¹*x) = ∑ x in setG, f x :=
+    equiv.perm.sum_comp (left_mul_perm g⁻¹)  setG _ (by norm_num),
 
 	calc  (avg_linmap G_fin) (left_translate g f)
 	    = (finset.card setG :ℝ)⁻¹ * ∑ x in setG, (left_translate g f) x
@@ -264,22 +208,14 @@ end
 
 
 /--The explicit left invariant mean on a finite group-/
-noncomputable def inv_mean_of_fin
-  : left_invariant_mean G
-:= left_invariant_mean.mk (mean_fin G_fin) (avg_map_left_inv G_fin)
+noncomputable def inv_mean_of_fin : left_invariant_mean G :=
+left_invariant_mean.mk (mean_fin G_fin) (avg_map_left_inv G_fin)
 
 omit G_fin
 
 
 /--Finite groups are amenable-/
-theorem amenable_of_finite
-(G:Type*)
-[group G]
-[uniform_space G]
-[discrete_topology G]
-[topological_group G]
-(G_fin: fintype G)
-: amenable G
-:= amenable_of_invmean (inv_mean_of_fin G_fin)
+theorem amenable_of_finite (G:Type*) [group G] [topological_space G] [topological_group G]
+(G_fin: fintype G) : amenable G := amenable_of_invmean (inv_mean_of_fin G_fin)
 
 end amenable_finite

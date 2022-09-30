@@ -47,7 +47,7 @@ mean
 open classical
 open bounded_continuous_function
 
-variables (G:Type*) [uniform_space G] [group G] [topological_group G]
+variables (G:Type*) [topological_space G] [group G] [topological_group G]
 
 
 /-- A mean on a group-/
@@ -223,7 +223,7 @@ by composing with `π`.
 -/
 
 
-variables {H : Type* } [uniform_space H] [group H] [topological_group H]
+variables {H : Type* } [topological_space H] [group H] [topological_group H]
 (π: G → H)
 (π_cont: continuous π)
 
@@ -297,7 +297,7 @@ end
 
 /-- The mean on H, induced by the mean on G-/
 @[simp]
-noncomputable def mean_pushforward (π : G → H) (π_cont: continuous π) (m : mean G) :
+def mean_pushforward (π : G → H) (π_cont: continuous π) (m : mean G) :
   mean H :=
 { lin_map     := mean_pushforward_linmap π_cont m,
   normality   := mean_pushforward_norm π_cont m,

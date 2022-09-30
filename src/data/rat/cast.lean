@@ -191,8 +191,14 @@ by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 variables (α) [char_zero α]
 
+instance : coe_ring_hom ℚ α :=
+{ coe_one := cast_one,
+  coe_mul := cast_mul,
+  coe_zero := cast_zero,
+  coe_add := cast_add }
+
 /-- Coercion `ℚ → α` as a `ring_hom`. -/
-def cast_hom : ℚ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
+def cast_hom : ℚ →+* α := ring_hom.coe ℚ α
 
 variable {α}
 

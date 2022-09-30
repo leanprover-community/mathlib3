@@ -48,7 +48,7 @@ namespace upper_half_plane
 
 instance : inhabited ℍ := ⟨⟨complex.I, by simp⟩⟩
 
-instance : can_lift ℂ ℍ := subtype.can_lift (λ z, 0 < z.im)
+instance can_lift : can_lift ℂ ℍ coe (λ z, 0 < z.im) := subtype.can_lift (λ z, 0 < z.im)
 
 /-- Imaginary part -/
 def im (z : ℍ) := (z : ℂ).im

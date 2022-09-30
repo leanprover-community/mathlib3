@@ -208,7 +208,7 @@ begin
     simp only [mem_preimage] at h2g₀,
     simp only [mem_Union], use g₀, split,
     { simp only [finset.mem_filter, h1g₀, true_and], use g,
-      simp only [hg, h2g₀, mem_inter_eq, mem_preimage, and_self] },
+      simp only [hg, h2g₀, mem_inter_iff, mem_preimage, and_self] },
     exact h2g₀ },
   refine le_trans (add_le_add (this K₁.1 $ subset.trans (subset_union_left _ _) h1s)
     (this K₂.1 $ subset.trans (subset_union_right _ _) h1s)) _,
@@ -432,7 +432,7 @@ begin
   let V := V₁ ∩ V₂,
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀
     ⟨V⁻¹, (is_open.inter h2V₁ h2V₂).preimage continuous_inv,
-    by simp only [mem_inv, inv_one, h3V₁, h3V₂, V, mem_inter_eq, true_and]⟩),
+    by simp only [mem_inv, inv_one, h3V₁, h3V₂, V, mem_inter_iff, true_and]⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
     simp only [mem_preimage, eval, sub_eq_zero, mem_singleton_iff], rw [eq_comm],
@@ -595,7 +595,7 @@ theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_inva
   (K₀ : positive_compacts G) : μ = μ K₀ • haar_measure K₀ :=
 (measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
   (measure_pos_of_nonempty_interior _ K₀.interior_nonempty).ne'
-  K₀.compact.measure_lt_top.ne).trans (by rw [haar_measure_self, ennreal.div_one])
+  K₀.compact.measure_lt_top.ne).trans (by rw [haar_measure_self, div_one])
 
 example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
   μ = μ K₀.1 • haar_measure K₀ :=

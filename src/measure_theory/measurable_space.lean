@@ -625,7 +625,7 @@ begin
   { have B : x ∈ t (nat.find (P x)) ∪ (⋃ k, t k)ᶜ := nat.find_spec (P x),
     have B' : (∀ (i : ℕ), x ∉ t i) ↔ false,
     { simp only [iff_false, not_forall, not_not_mem], exact ⟨n, hx⟩ },
-    simpa only [B', mem_union_eq, mem_Inter, or_false, compl_Union, mem_compl_eq] using B },
+    simpa only [B', mem_union, mem_Inter, or_false, compl_Union, mem_compl_iff] using B },
   congr,
   by_contra h,
   exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩

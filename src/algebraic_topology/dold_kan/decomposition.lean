@@ -86,7 +86,8 @@ construct a morphism `X _[n+1] ⟶ Z` (see `φ`) using the decomposition of the
 identity given by `decomposition_Q n (n+1)`. -/
 @[ext, nolint has_nonempty_instance]
 structure morph_components (n : ℕ) (Z : C) :=
-(a : X _[n+1] ⟶ Z) (b : fin (n+1) → (X _[n] ⟶ Z))
+(a : X _[n+1] ⟶ Z)
+(b : fin (n+1) → (X _[n] ⟶ Z))
 
 namespace morph_components
 

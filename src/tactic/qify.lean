@@ -146,22 +146,6 @@ replace_at (tactic.qify sl) locs l.include_goal >>= guardb
 
 end
 
-section tests
-
-example (a b c : ℕ) (h : a - b = c) (hab : b ≤ a) : a = c + b :=
-begin
-  qify [hab] at h ⊢, -- `zify` does the same thing here.
-  exact (sub_eq_iff_eq_add).1 h,
-end
-
-example (a b c : ℤ) (h : a / b = c) (hab : b ∣ a) (hb : b ≠ 0) : a = c * b :=
-begin
-  qify [hab] at h hb ⊢,
-  exact (div_eq_iff hb).1 h,
-end
-
-end tests
-
 add_tactic_doc
 { name := "qify",
   category := doc_category.attr,

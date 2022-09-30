@@ -1200,6 +1200,7 @@ lemma comap_equiv_eq_map_symm (f : N ≃* G) (K : subgroup G) :
   K.comap f.to_monoid_hom = K.map f.symm.to_monoid_hom :=
 (map_equiv_eq_comap_symm f.symm K).symm
 
+@[to_additive]
 lemma map_symm_eq_iff_map_eq {H : subgroup N} {e : G ≃* N} :
   H.map ↑e.symm = K ↔ K.map ↑e = H :=
 begin

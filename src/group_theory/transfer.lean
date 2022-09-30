@@ -169,10 +169,7 @@ lemma sylow.subtype_injective {G : Type*} [group G] {p : ℕ} {P Q : sylow p G} 
   {hP : ↑P ≤ H} {hQ : ↑Q ≤ H} (h : P.subtype hP = Q.subtype hQ) : P = Q :=
 begin
   rw set_like.ext_iff at h ⊢,
-  intro g,
-  by_cases hg : g ∈ H,
-  { exact h ⟨g, hg⟩ },
-  { exact iff_of_false (λ h, hg $ hP h) (λ h, hg $ hQ h) },
+  exact λ g, (em (g ∈ H)).elim (λ hg, h ⟨g, hg⟩) (λ h, iff_of_false (mt (@hP g) h) (mt (@hQ g) h)),
 end
 
 lemma _root_.sylow.conj_eq_normalizer_conj {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [fintype (sylow p G)]
@@ -196,15 +193,17 @@ begin
     inv_mul_cancel_right],
 end
 
-lemma _root_.subgroup.is_commutative.le_centralizer {G : Type*} [group G] {H : subgroup G}
-  (h : H.is_commutative) : H ≤ H.centralizer :=
-λ x hx y hy, subtype.ext_iff.mp (h.1.1 ⟨y, hy⟩ ⟨x, hx⟩)
+@[to_additive] lemma le_centralizer_iff_is_commutative : H ≤ H.centralizer ↔ H.is_commutative :=
+⟨λ h, ⟨⟨λ x y, subtype.ext (h y.2 x x.2)⟩⟩, λ h x hx y hy, _root_.congr_arg coe (h.1.1 ⟨y, hy⟩ ⟨x, hx⟩)⟩
+
+@[to_additive] lemma le_centralizer (H : subgroup G) [h : H.is_commutative] : H ≤ H.centralizer :=
+le_centralizer_iff_is_commutative.mpr h
 
 lemma sylow.conj_eq_normalizer_conj' {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G)
-  [fintype (sylow p G)] (P : sylow p G) (hP : (P : subgroup G).is_commutative)
+  [fintype (sylow p G)] (P : sylow p G) [hP : (P : subgroup G).is_commutative]
   {x : G} (hx : x ∈ P) (hy : g⁻¹ * x * g ∈ P) :
   ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
-P.conj_eq_normalizer_conj g (hP.le_centralizer hx) (hP.le_centralizer hy)
+P.conj_eq_normalizer_conj g (le_centralizer P hx) (le_centralizer P hy)
 
 noncomputable def burnside_transfer {p : ℕ} (P : sylow p G) [fintype (G ⧸ (P : subgroup G))]
   (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer) : G →* (P : subgroup G) :=
@@ -216,8 +215,8 @@ lemma burnside_transfer_eq_pow_aux {p : ℕ} [fact p.prime] {G : Type*} [group G
   [fintype (sylow p G)] (P : sylow p G) (hP : P.1.normalizer ≤ P.1.centralizer)
   (g : G) (hg : g ∈ P) (k : ℕ) (g₀ : G) (h : g₀⁻¹ * g ^ k * g₀ ∈ P) : g₀⁻¹ * g ^ k * g₀ = g ^ k :=
 begin
-  obtain ⟨n, hn, key⟩ := sylow.conj_eq_normalizer_conj' g₀ P ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩
-    (P.1.pow_mem hg k) h,
+  haveI : (P : subgroup G).is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
+  obtain ⟨n, hn, key⟩ := sylow.conj_eq_normalizer_conj' g₀ P (P.1.pow_mem hg k) h,
   rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg k), inv_mul_cancel_left],
 end
 

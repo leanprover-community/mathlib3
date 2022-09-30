@@ -199,7 +199,7 @@ begin
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) ζ,
     { convert lt_norm_sub_of_not_same_ray this;
-      simp [abs_of_nonneg hq.le, hζ.norm'_eq_one hn.ne'] },
+      simp only [hζ.norm'_eq_one hn.ne', real.norm_of_nonneg hq.le, complex.norm_real] },
     rw complex.same_ray_iff,
     push_neg,
     refine ⟨by exact_mod_cast hq.ne', hζ.ne_zero hn.ne', _⟩,

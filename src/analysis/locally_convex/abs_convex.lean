@@ -5,23 +5,24 @@ Authors: Moritz Doll
 -/
 import analysis.locally_convex.balanced_core_hull
 import analysis.locally_convex.with_seminorms
-import analysis.convex.combination
 import analysis.convex.gauge
 
 /-!
 # Absolutely convex sets
 
 A set is called absolutely convex or disked if it is convex and balanced.
+The importance of absolutely convex sets comes from the fact that every locally convex
+topological vector space has a basis consisting of absolutely convex sets.
 
 ## Main definitions
 
-* `maximal_seminorm_family`: the seminorm family induced by all open absolutely convex neighborhoods
+* `gauge_seminorm_family`: the seminorm family induced by all open absolutely convex neighborhoods
 of zero.
 
 ## Main statements
 
-* `with_maximal_seminorm_family`: the topology of a locally convex space is induced by the family
-`maximal_seminorm_family`.
+* `with_gauge_seminorm_family`: the topology of a locally convex space is induced by the family
+`gauge_seminorm_family`.
 
 ## Todo
 
@@ -40,28 +41,10 @@ variables {𝕜 E F G ι : Type*}
 
 section nontrivially_normed_field
 
-variables {s : set E}
+variables (𝕜 E) {s : set E}
 
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [module ℝ E] [smul_comm_class ℝ 𝕜 E]
-
-lemma balanced_convex_hull_of_balanced (hs : balanced 𝕜 s) : balanced 𝕜 (convex_hull ℝ s) :=
-begin
-  rw balanced_iff_smul_mem,
-  intros a ha x hx,
-  rw convex_hull_eq at hx ⊢,
-  simp only [exists_prop, exists_and_distrib_left, mem_set_of_eq] at hx ⊢,
-  rcases hx with ⟨ι, t, f, f', h, hsum, hpos, hx⟩,
-  use [ι, t, f, a • f'],
-  refine ⟨λ i hi, hs.smul_mem ha (h _ hi), hsum, hpos, _⟩,
-  rw ←hx,
-  simp_rw [finset.center_mass, finset.smul_sum],
-  refine finset.sum_congr rfl (λ y hy, _),
-  simp_rw [pi.smul_apply, ←mul_smul, smul_comm],
-end
-
-variables (𝕜 E)
-
 variables [topological_space E] [locally_convex_space ℝ E] [has_continuous_smul 𝕜 E]
 
 lemma nhds_basis_abs_convex : (𝓝 (0 : E)).has_basis
@@ -159,7 +142,7 @@ section
 variables [topological_add_group E] [has_continuous_smul 𝕜 E]
 variables [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E]
 
-/-- The topology of a locally convex space is induced by the maximal seminorm family. -/
+/-- The topology of a locally convex space is induced by the gauge seminorm family. -/
 lemma with_gauge_seminorm_family : with_seminorms (gauge_seminorm_family 𝕜 E) :=
 begin
   refine seminorm_family.with_seminorms_of_has_basis _ _,
@@ -190,84 +173,4 @@ begin
   exact abs_convex_open_sets.coe_is_open _,
 end
 
-end
-
-def seminorm.restrict_real (p : seminorm 𝕜 E) : seminorm ℝ E :=
-{ to_fun := p,
-  smul' := λ a x,
-  begin
-    convert p.smul' (a : 𝕜) x,
-    { exact is_R_or_C.real_smul_eq_coe_smul a x },
-    { simp }
-  end,
-  ..p }
-
-@[simp] lemma seminorm.restrict_real_ball (p : seminorm 𝕜 E) :
-  p.restrict_real.ball = p.ball :=
-rfl
-
-lemma seminorm.continuous_at_zero {p : seminorm 𝕜 E} (hp : is_open $ p.ball 0 1) :
-  continuous_at p 0 :=
-begin
-  change continuous_at p.restrict_real 0,
-  rw ← p.restrict_real_ball at hp,
-  refine metric.nhds_basis_ball.tendsto_right_iff.mpr _,
-  intros ε hε,
-  rw p.restrict_real.map_zero,
-  suffices : p.restrict_real.ball 0 ε ∈ (𝓝 0 : filter E),
-  { rwa seminorm.ball_zero_eq_preimage_ball at this },
-  have := hp.smul₀ hε.ne.symm,
-  rw [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
-      real.norm_of_nonneg hε.le, mul_one] at this,
-  exact this.mem_nhds (show (0 : E) ∈ p.ball 0 ε, by simp [hε]),
-end
-
-lemma seminorm.norm_sub_le (p : seminorm 𝕜 E) {x y : E} : ∥p x - p y∥ ≤ p (x - y) :=
-begin
-  rw [real.norm_eq_abs, abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
-  exact ⟨p.le_insert' _ _, p.le_insert _ _⟩
-end
-
-lemma seminorm.uniform_continuous {E' : Type*} [add_comm_group E']
-  [module 𝕜 E'] [module ℝ E'] [is_scalar_tower ℝ 𝕜 E'] {p : seminorm 𝕜 E'} [uniform_space E']
-  [uniform_add_group E'] [has_continuous_smul ℝ E'] (hp : is_open $ p.ball 0 1) :
-  uniform_continuous p :=
-begin
-  have hp : filter.tendsto p (𝓝 0) (𝓝 0) := p.map_zero ▸ (seminorm.continuous_at_zero hp).tendsto,
-  rw [uniform_continuous, uniformity_eq_comap_nhds_zero_swapped,
-      metric.uniformity_eq_comap_nhds_zero, filter.tendsto_comap_iff],
-  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
-    (hp.comp filter.tendsto_comap) (λ xy, dist_nonneg) (λ xy, p.norm_sub_le)
-end
-
-variables (𝕜 E)
-
-def cont_seminorms : Type* := subtype (continuous ∘ coe_fn : seminorm 𝕜 E → Prop)
-
-instance cont_seminorms.has_coe : has_coe (cont_seminorms 𝕜 E) (seminorm 𝕜 E) := ⟨subtype.val⟩
-
-instance : nonempty (cont_seminorms 𝕜 E) := ⟨⟨0, by exact continuous_zero⟩⟩
-
-def maximal_seminorm_family : seminorm_family 𝕜 E (cont_seminorms 𝕜 E) := coe
-
-variables {𝕜 E}
-
-lemma with_maximal_seminorm_family [topological_add_group E] [has_continuous_smul 𝕜 E]
-  [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E] :
-  with_seminorms (maximal_seminorm_family 𝕜 E) :=
-begin
-  letI := topological_add_group.to_uniform_space E,
-  haveI : uniform_add_group E := topological_add_group_is_uniform,
-  rw seminorm_family.with_seminorms_iff_nhds_eq_infi,
-  refine le_antisymm (le_infi $ λ i, filter.map_le_iff_le_comap.mp $ i.1.map_zero ▸ i.2.tendsto 0)
-    ((nhds_basis_abs_convex_open 𝕜 E).ge_iff.mpr $ λ t ht,
-    filter.mem_infi_of_mem
-      ⟨gauge_seminorm ht.2.2.1 ht.2.2.2 (absorbent_nhds_zero $ ht.2.1.mem_nhds ht.1), _⟩ $
-    filter.mem_comap.mpr ⟨metric.ball 0 1, metric.ball_mem_nhds _ zero_lt_one, _⟩),
-  { refine (seminorm.uniform_continuous _).continuous,
-    rw gauge_seminorm_family_ball },
-  change gauge_seminorm _ _ _ ⁻¹' metric.ball 0 1 ⊆ t,
-  rw [← seminorm.ball_zero_eq_preimage_ball, seminorm.ball_zero_eq],
-  simp_rw gauge_seminorm_to_fun,
-  exact subset_of_eq (gauge_lt_one_eq_self_of_open ht.2.2.2 ht.1 ht.2.1)
 end

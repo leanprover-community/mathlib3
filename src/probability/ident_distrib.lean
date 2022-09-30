@@ -280,12 +280,19 @@ lemma const_div [has_div γ] [has_measurable_div γ] (h : ident_distrib f g μ �
   ident_distrib (λ x, c / f x) (λ x, c / g x) μ ν :=
 h.comp (has_measurable_div.measurable_const_div c)
 
+lemma evariance_eq {f : α → ℝ} {g : β → ℝ} (h : ident_distrib f g μ ν) :
+  evariance f μ = evariance g ν :=
+begin
+  convert (h.sub_const (∫ x, f x ∂μ)).nnnorm.coe_nnreal_ennreal.sq.lintegral_eq,
+  rw h.integral_eq,
+  refl
+end
+
 lemma variance_eq {f : α → ℝ} {g : β → ℝ} (h : ident_distrib f g μ ν) :
   variance f μ = variance g ν :=
 begin
-  convert (h.sub_const (∫ x, f x ∂μ)).sq.integral_eq,
-  rw h.integral_eq,
-  refl
+  rw [variance, h.evariance_eq],
+  refl,
 end
 
 end ident_distrib

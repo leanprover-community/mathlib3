@@ -306,6 +306,15 @@ begin
   exact add_group_filter_basis.nhds_zero_eq _,
 end
 
+lemma with_seminorms.continuous_seminorm [module ℝ E] [normed_algebra ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E]
+  [has_continuous_const_smul ℝ E] {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p)
+  (i : ι) : continuous (p i) :=
+begin
+  refine seminorm.continuous _,
+  rw [p.with_seminorms_iff_nhds_eq_infi.mp hp, ball_zero_eq_preimage_ball],
+  exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
+end
+
 end topological_add_group
 
 section normed_space
@@ -407,6 +416,13 @@ begin
   convert (hf i).continuous_at,
   exact (map_zero _).symm
 end
+
+lemma continuous_iff_continuous_comp [normed_algebra ℝ 𝕜] [module ℝ F] [is_scalar_tower ℝ 𝕜 F]
+  {q : seminorm_family 𝕜 F ι'} [topological_space E] [topological_add_group E]
+  [topological_space F] [topological_add_group F] [has_continuous_const_smul ℝ F]
+  (hq : with_seminorms q) (f : E →ₗ[𝕜] F) :
+  continuous f ↔ ∀ i, continuous ((q i).comp f) :=
+⟨λ h i, continuous.comp (hq.continuous_seminorm i) h, continuous_of_continuous_comp hq f⟩
 
 lemma continuous_from_bounded {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
   [topological_space E] [topological_add_group E] (hp : with_seminorms p)

@@ -1129,9 +1129,7 @@ begin
 end
 
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (λ a s has ih,
-by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
+(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_repeat b s.card
 
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
@@ -1139,8 +1137,7 @@ lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
 @[to_additive]
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
+multiset.prod_map_pow
 
 @[to_additive]
 lemma prod_flip {n : ℕ} (f : ℕ → β) :

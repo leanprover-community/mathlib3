@@ -43,6 +43,10 @@ lemma one_def : (1 : free_monoid α) = [] := rfl
 lemma mul_def (xs ys : list α) : (xs * ys : free_monoid α) = (xs ++ ys : list α) :=
 rfl
 
+@[to_additive]
+lemma prod_eq_join (xs : list (free_monoid α)) : xs.prod = xs.join :=
+by induction xs; simp [*, mul_def, list.join, one_def]
+
 /-- Embeds an element of `α` into `free_monoid α` as a singleton list. -/
 @[to_additive "Embeds an element of `α` into `free_add_monoid α` as a singleton list." ]
 def of (x : α) : free_monoid α := [x]
@@ -53,6 +57,8 @@ lemma of_def (x : α) : of x = [x] := rfl
 @[to_additive]
 lemma of_injective : function.injective (@of α) :=
 λ a b, list.head_eq_of_cons_eq
+
+@[to_additive] lemma of_mul_eq_cons (x : α) (l : free_monoid α) : of x * l = x :: l := rfl
 
 /-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
 @[elab_as_eliminator, to_additive

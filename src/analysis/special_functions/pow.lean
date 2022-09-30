@@ -648,6 +648,44 @@ lemma rpow_lt_rpow_iff (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z < y ^ 
 lemma rpow_le_rpow_iff (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 < z) : x ^ z ≤ y ^ z ↔ x ≤ y :=
 le_iff_le_iff_lt_iff_lt.2 $ rpow_lt_rpow_iff hy hx hz
 
+lemma le_rpow_inv_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
+  x ≤ y ^ z⁻¹ ↔ y ≤ x ^ z :=
+begin
+  have hz' : 0 < -z := by rwa [lt_neg, neg_zero],
+  have hxz : 0 < x ^ (-z) := real.rpow_pos_of_pos hx _,
+  have hyz : 0 < y ^ z⁻¹ := real.rpow_pos_of_pos hy _,
+  rw [←real.rpow_le_rpow_iff hx.le hyz.le hz', ←real.rpow_mul hy.le],
+  simp only [ne_of_lt hz, real.rpow_neg_one, mul_neg, inv_mul_cancel, ne.def, not_false_iff],
+  rw [le_inv hxz hy, ←real.rpow_neg_one, ←real.rpow_mul hx.le],
+  simp,
+end
+
+lemma lt_rpow_inv_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
+  x < y ^ z⁻¹ ↔ y < x ^ z :=
+begin
+  have hz' : 0 < -z := by rwa [lt_neg, neg_zero],
+  have hxz : 0 < x ^ (-z) := real.rpow_pos_of_pos hx _,
+  have hyz : 0 < y ^ z⁻¹ := real.rpow_pos_of_pos hy _,
+  rw [←real.rpow_lt_rpow_iff hx.le hyz.le hz', ←real.rpow_mul hy.le],
+  simp only [ne_of_lt hz, real.rpow_neg_one, mul_neg, inv_mul_cancel, ne.def, not_false_iff],
+  rw [lt_inv hxz hy, ←real.rpow_neg_one, ←real.rpow_mul hx.le],
+  simp,
+end
+
+lemma rpow_inv_lt_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
+  x ^ z⁻¹ < y ↔ y ^ z < x :=
+begin
+  convert lt_rpow_inv_iff_of_neg (real.rpow_pos_of_pos hx _) (real.rpow_pos_of_pos hy _) hz;
+  simp [←real.rpow_mul hx.le, ←real.rpow_mul hy.le, ne_of_lt hz],
+end
+
+lemma rpow_inv_le_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
+  x ^ z⁻¹ ≤ y ↔ y ^ z ≤ x :=
+begin
+  convert le_rpow_inv_iff_of_neg (real.rpow_pos_of_pos hx _) (real.rpow_pos_of_pos hy _) hz;
+  simp [←real.rpow_mul hx.le, ←real.rpow_mul hy.le, ne_of_lt hz],
+end
+
 lemma rpow_lt_rpow_of_exponent_lt (hx : 1 < x) (hyz : y < z) : x^y < x^z :=
 begin
   repeat {rw [rpow_def_of_pos (lt_trans zero_lt_one hx)]},
@@ -957,6 +995,13 @@ begin
     norm_num },
   { have : 1 / (2:ℝ) * π = π / (2:ℝ), ring,
     rw [sqrt_eq_zero_of_nonpos h.le, rpow_def_of_neg h, this, cos_pi_div_two, mul_zero] }
+end
+
+lemma rpow_div_two_eq_sqrt {x : ℝ} (r : ℝ) (hx : 0 ≤ x) : x ^ (r/2) = (sqrt x) ^ r :=
+begin
+  rw [sqrt_eq_rpow, ← rpow_mul hx],
+  congr,
+  ring,
 end
 
 end sqrt

@@ -1134,6 +1134,10 @@ lemma comap_comap (K : subgroup P) (g : N →* P) (f : G →* N) :
   (K.comap g).comap f = K.comap (g.comp f) :=
 rfl
 
+@[simp, to_additive] lemma comap_id (K : subgroup N) :
+  K.comap (monoid_hom.id _) = K :=
+by { ext, refl }
+
 /-- The image of a subgroup along a monoid homomorphism is a subgroup. -/
 @[to_additive "The image of an `add_subgroup` along an `add_monoid` homomorphism
 is an `add_subgroup`."]
@@ -2036,6 +2040,15 @@ cod_restrict f _ $ λ x, ⟨x, rfl⟩
 lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g := rfl
 
 @[to_additive]
+lemma coe_comp_range_restrict (f : G →* N) :
+  (coe : f.range → N) ∘ (⇑(f.range_restrict) : G → f.range) = f :=
+rfl
+
+@[to_additive]
+lemma subtype_comp_range_restrict (f : G →* N) : f.range.subtype.comp (f.range_restrict) = f :=
+ext $ f.coe_range_restrict
+
+@[to_additive]
 lemma range_restrict_surjective (f : G →* N) : function.surjective f.range_restrict :=
 λ ⟨_, g, rfl⟩, ⟨g, rfl⟩
 
@@ -2376,6 +2389,16 @@ lemma map_injective_of_ker_le
 begin
   apply_fun comap f at hf,
   rwa [comap_map_eq, comap_map_eq, sup_of_le_left hH, sup_of_le_left hK] at hf,
+end
+
+@[to_additive] lemma closure_preimage_eq_top (s : set G) :
+  closure ((closure s).subtype ⁻¹' s) = ⊤ :=
+begin
+  apply map_injective (show function.injective (closure s).subtype, from subtype.coe_injective),
+  rwa [monoid_hom.map_closure, ←monoid_hom.range_eq_map, subtype_range,
+    set.image_preimage_eq_of_subset],
+  rw [coe_subtype, subtype.range_coe_subtype],
+  exact subset_closure,
 end
 
 @[to_additive] lemma comap_sup_eq_of_le_range

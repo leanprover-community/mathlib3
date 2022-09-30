@@ -1437,6 +1437,13 @@ variable {𝕜}
 lemma iterated_fderiv_zero_eq_comp :
   iterated_fderiv 𝕜 0 f = (continuous_multilinear_curry_fin0 𝕜 E F).symm ∘ f := rfl
 
+lemma norm_iterated_fderiv_zero :
+  ∥iterated_fderiv 𝕜 0 f x∥ = ∥f x∥ :=
+begin
+  rw [←continuous_multilinear_map.fin0_apply_norm, iterated_fderiv_zero_apply],
+  exact fin.elim0',
+end
+
 lemma iterated_fderiv_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
   (iterated_fderiv 𝕜 (n + 1) f x : (fin (n + 1) → E) → F) m
   = (fderiv 𝕜 (iterated_fderiv 𝕜 n f) x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) := rfl

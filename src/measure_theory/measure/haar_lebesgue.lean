@@ -459,6 +459,15 @@ lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
 by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
 
+lemma add_haar_closed_ball_eq_add_haar_ball [nontrivial E] (x : E) (r : ℝ) :
+  μ (closed_ball x r) = μ (ball x r) :=
+begin
+  by_cases h : r < 0,
+  { rw [metric.closed_ball_eq_empty.mpr h, metric.ball_eq_empty.mpr h.le] },
+  push_neg at h,
+  rw [add_haar_closed_ball μ x h, add_haar_ball μ x h],
+end
+
 lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=
 begin
@@ -469,6 +478,21 @@ begin
         add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self];
     apply_instance }
 end
+
+section finite_dim
+
+variable [finite_dimensional ℝ E]
+
+lemma add_haar_closed_ball_lt_top (x : E) (r : ℝ): μ (closed_ball x r) < ∞ :=
+(is_compact_closed_ball _ _).measure_lt_top
+
+lemma add_haar_ball_lt_top [nontrivial E] (x : E) (r : ℝ) : μ (ball x r) < ∞ :=
+begin
+  rw ←add_haar_closed_ball_eq_add_haar_ball,
+  exact add_haar_closed_ball_lt_top _ _ _,
+end
+
+end finite_dim
 
 lemma add_haar_sphere [nontrivial E] (x : E) (r : ℝ) :
   μ (sphere x r) = 0 :=

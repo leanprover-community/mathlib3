@@ -346,7 +346,7 @@ protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one
 
 lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
 
-@[simp] lemma coe_monoid_hom_refl : (ring_equiv.refl R : R →* R) = monoid_hom.id R := rfl
+lemma coe_monoid_hom_refl : (ring_equiv.refl R : R →* R) = monoid_hom.id R := rfl
 @[simp] lemma coe_add_monoid_hom_refl : (ring_equiv.refl R : R →+ R) = add_monoid_hom.id R := rfl
 /-! `ring_equiv.coe_mul_equiv_refl` and `ring_equiv.coe_add_equiv_refl` are proved above
 in higher generality -/

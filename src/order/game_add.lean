@@ -51,6 +51,33 @@ lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ relation.trans_gen (g
   exact relation.trans_gen.tail (relation.trans_gen.single $ game_add.fst hα) (game_add.snd hβ),
 end
 
+/-- The relation `game_add r r a b ∨ game_add r r a.swap b`, which is well-founded when `r` is. -/
+def game_add_swap (r : α → α → Prop) (a b : α × α) : Prop :=
+game_add r r a b ∨ game_add r r a.swap b
+
+variables {rα rβ}
+
+lemma game_add_swap_swap : ∀ (a b : α × β),
+  game_add rβ rα a.swap b.swap ↔ game_add rα rβ a b :=
+λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, begin
+  split;
+  { rintro (⟨_, _, _, rb⟩ | ⟨_, _, _, ra⟩),
+    exacts [game_add.snd rb, game_add.fst ra] }
+end
+
+lemma game_add_swap_iff (a : α × β) (b : β × α) :
+  game_add rα rβ a b.swap ↔ game_add rβ rα a.swap b :=
+by rw [← game_add_swap_swap, b.swap_swap]
+
+lemma game_add_swap_fibration (r : α → α → Prop) : relation.fibration
+  (inv_image (game_add r r) prod.snd) (game_add_swap r) (λ b, bool.rec b.2 b.2.swap b.1) :=
+begin
+  rintro ⟨⟨x⟩, a⟩ b (h|h),
+  exacts [⟨⟨ff, b⟩, h, rfl⟩, ⟨⟨tt, b.swap⟩, h, b.swap_swap⟩,
+    ⟨⟨tt, b.swap⟩, (game_add_swap_iff _ _).1 h, b.swap_swap⟩,
+    ⟨⟨ff, b⟩, (game_add_swap_swap _ _).1 h, rfl⟩],
+end
+
 end prod
 
 variables {rα rβ}
@@ -70,3 +97,12 @@ end
 /-- The sum of two well-founded games is well-founded. -/
 lemma well_founded.prod_game_add (hα : well_founded rα) (hβ : well_founded rβ) :
   well_founded (prod.game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).prod_game_add (hβ.apply b)⟩
+
+lemma _root_.acc.game_add_swap {r : α → α → Prop} {a b} (ha : acc r a) (hb : acc r b) :
+  acc (prod.game_add_swap r) (a, b) :=
+(inv_image.accessible prod.snd (ha.prod_game_add hb) : acc _ (ff, a, b)).of_fibration
+  _ (prod.game_add_swap_fibration r)
+
+/-- The `game_add_swap` relation is well-founded. -/
+lemma _root_.well_founded.game_add_swap {r : α → α → Prop} (h : well_founded r) :
+  well_founded (prod.game_add_swap r) := ⟨λ ⟨a, b⟩, (h.apply a).game_add_swap (h.apply b)⟩

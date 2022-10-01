@@ -359,7 +359,7 @@ from `α` to `β` considered as Boolean rings. -/
 { to_fun := to_boolring ∘ f ∘ of_boolring,
   map_zero' := f.map_bot',
   map_one' := f.map_top',
-  map_add' := map_symm_diff f,
+  map_add' := map_symm_diff' f,
   map_mul' := f.map_inf' }
 
 @[simp] lemma bounded_lattice_hom.as_boolring_id :

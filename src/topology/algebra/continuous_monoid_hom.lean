@@ -15,53 +15,51 @@ This file defines the space of continuous homomorphisms between two topological 
 ## Main definitions
 
 * `continuous_monoid_hom A B`: The continuous homomorphisms `A →* B`.
-* `continuous_add_monoid_hom α β`: The continuous additive homomorphisms `α →+ β`.
+* `continuous_add_monoid_hom A B`: The continuous additive homomorphisms `A →+ B`.
 -/
 
 open_locale pointwise
 
 open function
 
-variables {F α β : Type*} (A B C D E : Type*)
-  [monoid A] [monoid B] [monoid C] [monoid D] [comm_group E]
+variables (F A B C D E : Type*) [monoid A] [monoid B] [monoid C] [monoid D] [comm_group E]
   [topological_space A] [topological_space B] [topological_space C] [topological_space D]
   [topological_space E] [topological_group E]
 
-/-- The type of continuous additive monoid homomorphisms from `α` to `β`.
+/-- The type of continuous additive monoid homomorphisms from `A` to `B`.
 
-When possible, instead of parametrizing results over `(f : continuous_add_monoid_hom α β)`,
-you should parametrize over `(F : Type*) [continuous_add_monoid_hom_class F α β] (f : F)`.
+When possible, instead of parametrizing results over `(f : continuous_add_monoid_hom A B)`,
+you should parametrize over `(F : Type*) [continuous_add_monoid_hom_class F A B] (f : F)`.
 
 When you extend this structure, make sure to extend `continuous_add_monoid_hom_class`. -/
 structure continuous_add_monoid_hom (A B : Type*) [add_monoid A] [add_monoid B]
   [topological_space A] [topological_space B] extends A →+ B :=
 (continuous_to_fun : continuous to_fun)
 
-/-- The type of continuous monoid homomorphisms from `α` to `β`.
+/-- The type of continuous monoid homomorphisms from `A` to `B`.
 
-When possible, instead of parametrizing results over `(f : continuous_monoid_hom α β)`,
-you should parametrize over `(F : Type*) [continuous_monoid_hom_class F α β] (f : F)`.
+When possible, instead of parametrizing results over `(f : continuous_monoid_hom A B)`,
+you should parametrize over `(F : Type*) [continuous_monoid_hom_class F A B] (f : F)`.
 
 When you extend this structure, make sure to extend `continuous_add_monoid_hom_class`. -/
 @[to_additive]
 structure continuous_monoid_hom extends A →* B :=
 (continuous_to_fun : continuous to_fun)
 
-/-- `continuous_add_monoid_hom_class F α β` states that `F` is a type of continuous additive monoid
+/-- `continuous_add_monoid_hom_class F A B` states that `F` is a type of continuous additive monoid
 homomorphisms.
 
 You should also extend this typeclass when you extend `continuous_add_monoid_hom`. -/
-class continuous_add_monoid_hom_class (F α β : Type*) [add_monoid α] [add_monoid β]
-  [topological_space α] [topological_space β] extends add_monoid_hom_class F α β :=
+class continuous_add_monoid_hom_class (A B : Type*) [add_monoid A] [add_monoid B]
+  [topological_space A] [topological_space B] extends add_monoid_hom_class F A B :=
 (map_continuous (f : F) : continuous f)
 
-/-- `continuous_monoid_hom_class F α β` states that `F` is a type of continuous additive monoid
+/-- `continuous_monoid_hom_class F A B` states that `F` is a type of continuous additive monoid
 homomorphisms.
 
 You should also extend this typeclass when you extend `continuous_monoid_hom`. -/
 @[to_additive]
-class continuous_monoid_hom_class (F α β : Type*) [monoid α] [monoid β]
-  [topological_space α] [topological_space β] extends monoid_hom_class F α β :=
+class continuous_monoid_hom_class extends monoid_hom_class F A B :=
 (map_continuous (f : F) : continuous f)
 
 /-- Reinterpret a `continuous_monoid_hom` as a `monoid_hom`. -/
@@ -71,16 +69,15 @@ add_decl_doc continuous_monoid_hom.to_monoid_hom
 add_decl_doc continuous_add_monoid_hom.to_add_monoid_hom
 
 @[priority 100, to_additive] -- See note [lower instance priority]
-instance continuous_monoid_hom_class.to_continuous_map_class [monoid α] [monoid β]
-  [topological_space α] [topological_space β] [continuous_monoid_hom_class F α β] :
-  continuous_map_class F α β :=
-{ .. ‹continuous_monoid_hom_class F α β› }
+instance continuous_monoid_hom_class.to_continuous_map_class [continuous_monoid_hom_class F A B] :
+  continuous_map_class F A B :=
+{ .. ‹continuous_monoid_hom_class F A B› }
 
 namespace continuous_monoid_hom
-variables {A B C D E} [monoid α] [monoid β] [topological_space α] [topological_space β]
+variables {A B C D E}
 
 @[to_additive]
-instance : continuous_monoid_hom_class (continuous_monoid_hom α β) α β :=
+instance : continuous_monoid_hom_class (continuous_monoid_hom A B) A B :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
   map_mul := λ f, f.map_mul',
@@ -98,9 +95,9 @@ fun_like.ext _ _ h
 
 /-- Reinterpret a `continuous_monoid_hom` as a `continuous_map`. -/
 @[to_additive "Reinterpret a `continuous_add_monoid_hom` as a `continuous_map`."]
-def to_continuous_map (f : continuous_monoid_hom α β) : C(α, β) := { .. f}
+def to_continuous_map (f : continuous_monoid_hom A B) : C(A, B) := { .. f}
 
-@[to_additive] lemma to_continuous_map_injective : injective (to_continuous_map : _ → C(α, β)) :=
+@[to_additive] lemma to_continuous_map_injective : injective (to_continuous_map : _ → C(A, B)) :=
 λ f g h, ext $ by convert fun_like.ext_iff.1 h
 
 /-- Construct a `continuous_monoid_hom` from a `continuous` `monoid_hom`. -/
@@ -244,6 +241,6 @@ let hi := is_inducing A E, hc := hi.continuous in
 
 end continuous_monoid_hom
 
-/-- The Pontryagin dual of `G` is the group of continuous homomorphism `G → circle`. -/
+/-- The Pontryagin dual of `A` is the group of continuous homomorphism `A → circle`. -/
 @[derive [topological_space, t2_space, comm_group, topological_group, inhabited]]
-def pontryagin_dual (G : Type*) [monoid G] [topological_space G] := continuous_monoid_hom G circle
+def pontryagin_dual := continuous_monoid_hom A circle

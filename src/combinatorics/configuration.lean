@@ -301,8 +301,8 @@ end in
 noncomputable def has_points.has_lines [has_points P L] [fintype P] [fintype L]
   (h : fintype.card P = fintype.card L) : has_lines P L :=
 let this := @has_lines.has_points (dual L) (dual P) _ _ _ _ h.symm in
-{ mk_line := this.mk_point,
-  mk_line_ax := this.mk_point_ax }
+{ mk_line := λ _ _, this.mk_point,
+  mk_line_ax := λ _ _, this.mk_point_ax }
 
 variables (P L)
 

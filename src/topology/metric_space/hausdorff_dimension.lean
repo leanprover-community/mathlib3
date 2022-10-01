@@ -345,7 +345,7 @@ lemma dimH_image_le_of_locally_lipschitz_on [second_countable_topology X] {f : X
 begin
   have : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C 1 f t,
     by simpa only [holder_on_with_one] using hf,
-  simpa only [ennreal.coe_one, ennreal.div_one]
+  simpa only [ennreal.coe_one, div_one]
     using dimH_image_le_of_locally_holder_on zero_lt_one this
 end
 

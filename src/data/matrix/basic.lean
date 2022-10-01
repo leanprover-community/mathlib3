@@ -119,13 +119,13 @@ lemma map_injective {f : α → β} (hf : function.injective f) :
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
 
-localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
+localized "postfix (name := matrix.transpose) `ᵀ`:1500 := matrix.transpose" in matrix
 
 /-- The conjugate transpose of a matrix defined in term of `star`. -/
 def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α :=
 M.transpose.map star
 
-localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
+localized "postfix (name := matrix.conj_transpose) `ᴴ`:1500 := matrix.conj_transpose" in matrix
 
 /-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
 def col (w : m → α) : matrix m unit α
@@ -433,7 +433,7 @@ def dot_product [has_mul α] [add_comm_monoid α] (v w : m → α) : α :=
 
 /- The precedence of 72 comes immediately after ` • ` for `has_smul.smul`,
    so that `r₁ • a ⬝ᵥ r₂ • b` is parsed as `(r₁ • a) ⬝ᵥ (r₂ • b)` here. -/
-localized "infix  ` ⬝ᵥ `:72 := matrix.dot_product" in matrix
+localized "infix (name := matrix.dot_product) ` ⬝ᵥ `:72 := matrix.dot_product" in matrix
 
 lemma dot_product_assoc [non_unital_semiring α] (u : m → α) (w : n → α)
   (v : matrix m n α) :
@@ -549,7 +549,7 @@ protected def mul [fintype m] [has_mul α] [add_comm_monoid α]
   (M : matrix l m α) (N : matrix m n α) : matrix l n α :=
 λ i k, (λ j, M i j) ⬝ᵥ (λ j, N j k)
 
-localized "infixl ` ⬝ `:75 := matrix.mul" in matrix
+localized "infixl (name := matrix.mul) ` ⬝ `:75 := matrix.mul" in matrix
 
 theorem mul_apply [fintype m] [has_mul α] [add_comm_monoid α]
   {M : matrix l m α} {N : matrix m n α} {i k} : (M ⬝ N) i k = ∑ j, M i j * N j k := rfl
@@ -571,6 +571,18 @@ lemma sum_apply [add_comm_monoid α] (i : m) (j : n)
   (s : finset β) (g : β → matrix m n α) :
   (∑ c in s, g c) i j = ∑ c in s, g c i j :=
 (congr_fun (s.sum_apply i g) j).trans (s.sum_apply j _)
+
+lemma two_mul_expl {R : Type*} [comm_ring R] (A B : matrix (fin 2) (fin 2) R) :
+  (A * B) 0 0 = A 0 0 * B 0 0 + A 0 1 * B 1 0 ∧
+  (A * B) 0 1 = A 0 0 * B 0 1 + A 0 1 * B 1 1 ∧
+  (A * B) 1 0 = A 1 0 * B 0 0 + A 1 1 * B 1 0 ∧
+  (A * B) 1 1 = A 1 0 * B 0 1 + A 1 1 * B 1 1 :=
+begin
+  split, work_on_goal 2 {split}, work_on_goal 3 {split},
+  all_goals {simp only [matrix.mul_eq_mul],
+  rw [matrix.mul_apply, finset.sum_fin_eq_sum_range, finset.sum_range_succ, finset.sum_range_succ],
+  simp},
+end
 
 section add_comm_monoid
 

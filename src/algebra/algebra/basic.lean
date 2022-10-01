@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.module.basic
+import algebra.module.ulift
+import algebra.ne_zero
 import algebra.ring.aut
 import algebra.ring.ulift
-import algebra.module.ulift
 import linear_algebra.span
 import tactic.abel
 
@@ -400,8 +401,8 @@ lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x 
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
 def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
-  (M : submonoid R) : (submonoid S) :=
-submonoid.map (algebra_map R S : R →* S) M
+  (M : submonoid R) : submonoid S :=
+M.map (algebra_map R S)
 
 lemma mem_algebra_map_submonoid_of_mem {S : Type*} [semiring S] [algebra R S] {M : submonoid R}
   (x : M) : (algebra_map R S x) ∈ algebra_map_submonoid S M :=
@@ -906,6 +907,7 @@ rfl
 @[simp] lemma to_ring_equiv_eq_coe : e.to_ring_equiv = e := rfl
 
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
+
 lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 
 lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
@@ -995,8 +997,12 @@ symm_bijective.injective $ ext $ λ x, rfl
   { to_fun := f', inv_fun := f,
     ..(⟨f, f', h₁, h₂, h₃, h₄, h₅⟩ : A₁ ≃ₐ[R] A₂).symm } := rfl
 
-@[simp]
-theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
+@[simp] theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
+
+--this should be a simp lemma but causes a lint timeout
+lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) : (f : A₁ ≃+* A₁).symm = f.symm := rfl
+
+@[simp] lemma symm_to_ring_equiv : (e.symm : A₂ ≃+* A₁) = (e : A₁ ≃+* A₂).symm := rfl
 
 /-- Algebra equivalences are transitive. -/
 @[trans]
@@ -1164,6 +1170,19 @@ by { ext, refl }
 by { ext, refl }
 
 end of_linear_equiv
+
+section of_ring_equiv
+
+/-- Promotes a linear ring_equiv to an alg_equiv. -/
+@[simps]
+def of_ring_equiv {f : A₁ ≃+* A₂}
+  (hf : ∀ x, f (algebra_map R A₁ x) = algebra_map R A₂ x) : A₁ ≃ₐ[R] A₂ :=
+{ to_fun := f,
+  inv_fun := f.symm,
+  commutes' := hf,
+  .. f }
+
+end of_ring_equiv
 
 @[simps mul one {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
@@ -1449,6 +1468,10 @@ lemma algebra_map_injective [comm_ring R] [ring A] [nontrivial A]
 suffices function.injective (λ (c : R), c • (1 : A)),
 by { convert this, ext, rw [algebra.smul_def, mul_one] },
 smul_left_injective R one_ne_zero
+
+lemma _root_.ne_zero.of_no_zero_smul_divisors (n : ℕ) [comm_ring R] [ne_zero (n : R)] [ring A]
+  [nontrivial A] [algebra R A] [no_zero_smul_divisors R A] : ne_zero (n : A) :=
+ne_zero.nat_of_injective $ no_zero_smul_divisors.algebra_map_injective R A
 
 variables {R A}
 lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R A] :

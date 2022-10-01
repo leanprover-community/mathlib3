@@ -123,10 +123,10 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   continuous_inv_fun := continuous.subtype_mk (continuous_pi $ λ i,
     (continuous_id.max continuous_const).comp (continuous_apply i)) _ }
 
-localized "notation `𝓡 `n :=
+localized "notation (name := model_with_corners_self.euclidean) `𝓡 `n :=
   (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :
     model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_space ℝ (fin n)))" in manifold
-localized "notation `𝓡∂ `n :=
+localized "notation (name := model_with_corners_euclidean_half_space.euclidean) `𝓡∂ `n :=
   (model_with_corners_euclidean_half_space n :
     model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n))" in manifold
 

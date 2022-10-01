@@ -529,32 +529,19 @@ section topological_properties
 
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι] [countable ι]
 variables {p : seminorm_family 𝕜 E ι}
-variables [uniform_space E]
-
-lemma with_seminorms.has_countable_basis (hp : with_seminorms p) :
-  (𝓝 (0 : E)).has_countable_basis (λ _, true)
-    (λ i : finset ι × ℕ, ball (i.fst.sup p) 0 (i.snd + 1)⁻¹) :=
-begin
-  refine ⟨hp.has_basis.to_has_basis _ _, set.countable_univ⟩,
-  { intros s hs,
-    rw p.basis_sets_iff at hs,
-    rcases hs with ⟨i, r, hr, hs⟩,
-    cases exists_nat_gt (r⁻¹ - 1) with n hn,
-    rw [id.def, hs],
-    rw [sub_lt_iff_lt_add, inv_lt hr n.cast_add_one_pos] at hn,
-    exact ⟨(i, n), trivial, seminorm.ball_mono hn.le⟩ },
-  rintros ⟨i, n⟩ _,
-  refine ⟨(i.sup p).ball 0 (n + 1)⁻¹, p.basis_sets_mem i _, set.subset.rfl⟩,
-  rw [inv_pos],
-  exact n.cast_add_one_pos,
-end
+variables [uniform_space E] [uniform_add_group E]
 
 /-- If the topology of a space is induced by a countable family of seminorms, then the topology
 is first countable. -/
-lemma with_seminorms.first_countable (hp : with_seminorms p) [uniform_add_group E] :
+lemma with_seminorms.first_countable (hp : with_seminorms p) :
   topological_space.first_countable_topology E :=
 begin
-  haveI : (𝓝 (0 : E)).is_countably_generated := hp.has_countable_basis.is_countably_generated,
+  haveI : (𝓝 (0 : E)).is_countably_generated :=
+  begin
+    rw seminorm_family.with_seminorms_iff_nhds_eq_infi at hp,
+    rw hp,
+    exact filter.infi.is_countably_generated _,
+  end,
   haveI : (uniformity E).is_countably_generated := uniform_add_group.uniformity_countably_generated,
   exact uniform_space.first_countable_topology E,
 end

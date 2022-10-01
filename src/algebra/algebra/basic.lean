@@ -476,6 +476,50 @@ lemma algebra_map_End_eq_smul_id (a : R) :
   ((algebra_map K (End K V)) a).ker = ⊥ :=
 linear_map.ker_smul _ _ ha
 
+section
+
+variables {R M}
+
+lemma End_is_unit_apply_inv_apply_of_is_unit {f : module.End R M} (h : is_unit f) (x : M) :
+  f (h.unit.inv x) = x :=
+show (f * h.unit.inv) x = x, by simp
+
+lemma End_is_unit_inv_apply_apply_of_is_unit {f : module.End R M} (h : is_unit f) (x : M) :
+  h.unit.inv (f x) = x :=
+(by simp : (h.unit.inv * f) x = x)
+
+lemma End_is_unit_iff (f : module.End R M) :
+  is_unit f ↔ function.bijective f :=
+⟨λ h, function.bijective_iff_has_inverse.mpr $
+  ⟨h.unit.inv, ⟨End_is_unit_inv_apply_apply_of_is_unit h,
+    End_is_unit_apply_inv_apply_of_is_unit h⟩⟩,
+ λ H, let e : M ≃ₗ[R] M := { ..f, ..(equiv.of_bijective f H)} in
+  ⟨⟨_, e.symm, linear_map.ext e.right_inv, linear_map.ext e.left_inv⟩, rfl⟩⟩
+
+lemma End_algebra_map_is_unit_inv_apply_eq_iff
+  {x : R} (h : is_unit (algebra_map R (module.End R M) x)) (m m' : M) :
+  h.unit⁻¹ m = m' ↔ m = x • m' :=
+{ mp := λ H, ((congr_arg h.unit H).symm.trans (End_is_unit_apply_inv_apply_of_is_unit h _)).symm,
+  mpr := λ H, H.symm ▸
+  begin
+    apply_fun h.unit using ((module.End_is_unit_iff _).mp h).injective,
+    erw [End_is_unit_apply_inv_apply_of_is_unit],
+    refl,
+  end }
+
+lemma End_algebra_map_is_unit_inv_apply_eq_iff'
+  {x : R} (h : is_unit (algebra_map R (module.End R M) x)) (m m' : M) :
+  m' = h.unit⁻¹ m ↔ m = x • m' :=
+{ mp := λ H, ((congr_arg h.unit H).trans (End_is_unit_apply_inv_apply_of_is_unit h _)).symm,
+  mpr := λ H, H.symm ▸
+  begin
+    apply_fun h.unit using ((module.End_is_unit_iff _).mp h).injective,
+    erw [End_is_unit_apply_inv_apply_of_is_unit],
+    refl,
+  end }
+
+end
+
 end module
 
 namespace linear_map

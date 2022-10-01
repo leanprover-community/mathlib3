@@ -58,8 +58,8 @@ def vertex_group_isom_of_map {c d : C} (f : c ⟶ d) : (c ⟶ c) ≃* (d ⟶ d) 
   { simp_rw [category.assoc, groupoid.comp_inv, category.comp_id,←category.assoc,
              groupoid.comp_inv, category.id_comp], }
 , λ x, by
-  { simp_rw [category.assoc, groupoid.inv_comp, ←category.assoc, groupoid.inv_comp,category.id_comp,
-             category.comp_id], }
+  { simp_rw [category.assoc, groupoid.inv_comp, ←category.assoc, groupoid.inv_comp,
+             category.id_comp, category.comp_id], }
 , λ x y, by
   { have : x ≫ y = x ≫ f ≫ (groupoid.inv f) ≫ y, by
     { congr, rw [←category.assoc,groupoid.comp_inv,category.id_comp], },

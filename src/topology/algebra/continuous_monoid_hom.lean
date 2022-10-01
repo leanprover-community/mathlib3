@@ -193,16 +193,16 @@ topological_space.induced to_continuous_map continuous_map.compact_open
 
 variables (A B C D E)
 
-@[to_additive]
-lemma is_inducing : inducing (to_continuous_map : continuous_monoid_hom A B → C(A, B)) := ⟨rfl⟩
+@[to_additive] lemma inducing_to_continuous_map :
+  inducing (to_continuous_map : continuous_monoid_hom A B → C(A, B)) := ⟨rfl⟩
 
-@[to_additive]
-lemma is_embedding : embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
-⟨is_inducing A B, to_continuous_map_injective⟩
+@[to_additive] lemma embedding_to_continuous_map :
+  embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
+⟨inducing_to_continuous_map A B, to_continuous_map_injective⟩
 
-@[to_additive] lemma is_closed_embedding [has_continuous_mul B] [t2_space B] :
+@[to_additive] lemma closed_embedding_to_continuous_map [has_continuous_mul B] [t2_space B] :
   closed_embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
-⟨is_embedding A B, ⟨begin
+⟨embedding_to_continuous_map A B, ⟨begin
   suffices : (set.range (to_continuous_map : continuous_monoid_hom A B → C(A, B))) =
     ({f | f '' {1} ⊆ {1}ᶜ} ∪ ⋃ (x y) (U V W) (hU : is_open U) (hV : is_open V) (hW : is_open W)
     (h : disjoint (U * V) W), {f | f '' {x} ⊆ U} ∩ {f | f '' {y} ⊆ V} ∩ {f | f '' {x * y} ⊆ W})ᶜ,
@@ -234,27 +234,27 @@ end⟩⟩
 variables {A B C D E}
 
 @[to_additive] instance [t2_space B] : t2_space (continuous_monoid_hom A B) :=
-(is_embedding A B).t2_space
+(embedding_to_continuous_map A B).t2_space
 
 @[to_additive] instance : topological_group (continuous_monoid_hom A E) :=
-let hi := is_inducing A E, hc := hi.continuous in
+let hi := inducing_to_continuous_map A E, hc := hi.continuous in
 { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (continuous.prod_map hc hc)),
   continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
 
 @[to_additive] lemma continuous_comp [locally_compact_space B] :
   continuous (λ f : continuous_monoid_hom A B × continuous_monoid_hom B C, f.2.comp f.1) :=
-(is_inducing A C).continuous_iff.2 $ (continuous_map.continuous_comp'.comp
-    ((is_inducing A B).prod_mk (is_inducing B C)).continuous)
+(inducing_to_continuous_map A C).continuous_iff.2 $ (continuous_map.continuous_comp'.comp
+    ((inducing_to_continuous_map A B).prod_mk (inducing_to_continuous_map B C)).continuous)
 
 @[to_additive] lemma continuous_comp_left (f : continuous_monoid_hom A B) :
   continuous (λ g : continuous_monoid_hom B C, g.comp f) :=
-(is_inducing A C).continuous_iff.2 $ f.to_continuous_map.continuous_comp_left.comp
-  (is_inducing B C).continuous
+(inducing_to_continuous_map A C).continuous_iff.2 $ f.to_continuous_map.continuous_comp_left.comp
+  (inducing_to_continuous_map B C).continuous
 
 @[to_additive] lemma continuous_comp_right (f : continuous_monoid_hom B C) :
   continuous (λ g : continuous_monoid_hom A B, f.comp g) :=
-(is_inducing A C).continuous_iff.2 $ f.to_continuous_map.continuous_comp.comp
-  (is_inducing A B).continuous
+(inducing_to_continuous_map A C).continuous_iff.2 $ f.to_continuous_map.continuous_comp.comp
+  (inducing_to_continuous_map A B).continuous
 
 variables (E)
 
@@ -319,7 +319,7 @@ noncomputable def dual_hom [locally_compact_space E] :
 { to_fun := continuous_monoid_hom.dual,
   map_one' := dual_one,
   map_mul' := dual_mul,
-  continuous_to_fun := (is_inducing _ _).continuous_iff.mpr
+  continuous_to_fun := (inducing_to_continuous_map _ _).continuous_iff.mpr
     (continuous_map.continuous_of_continuous_uncurry _ continuous_comp) }
 
 end continuous_monoid_hom

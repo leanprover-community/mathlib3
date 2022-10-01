@@ -273,14 +273,7 @@ begin
   repeat { exact monic.ne_zero (minpoly.monic hx), },
 end
 
-end bounded
-
-section finite
-
-open finite_dimensional polynomial set
-
-variables (K : Type*) [field K] [number_field K]
-variables (A : Type*) [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
+variables (K A)
 
 /-- Let `B` be a real number. The set of algebraic integers in `K` whose conjugates are all
 smaller in norm than `B` is finite. -/
@@ -327,6 +320,6 @@ begin
     exact λ a, ⟨hxi.pow a, λ φ, by simp [hx φ, norm_pow, one_pow]⟩, },
 end
 
-end finite
+end bounded
 
 end number_field.embeddings

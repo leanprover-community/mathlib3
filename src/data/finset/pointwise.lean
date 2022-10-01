@@ -120,7 +120,7 @@ attribute [mono] neg_subset_neg
 @[simp, to_additive] lemma inv_singleton (a : α) : ({a} : finset α)⁻¹ = {a⁻¹} := image_singleton _ _
 
 @[simp, to_additive]
-lemma inv_insert (a : α) (s : finset α) : (insert a s)⁻¹ = insert a⁻¹ s⁻¹ := image_insert _ _ _ 
+lemma inv_insert (a : α) (s : finset α) : (insert a s)⁻¹ = insert a⁻¹ s⁻¹ := image_insert _ _ _
 
 end has_inv
 

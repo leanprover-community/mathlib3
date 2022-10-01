@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.hom.basic
+import logic.relation
 
 /-!
 # Turning a preorder into a partial order
@@ -107,6 +108,17 @@ instance : partial_order (antisymmetrization α (≤)) :=
   le_trans := λ a b c, quotient.induction_on₃' a b c $ λ a b c, le_trans,
   lt_iff_le_not_le := λ a b, quotient.induction_on₂' a b $ λ a b, lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂' a b $ λ a b hab hba, quotient.sound' ⟨hab, hba⟩ }
+
+lemma antisymmetrization_fibration :
+  relation.fibration (<) (<) (@to_antisymmetrization α (≤) _) :=
+by { rintro a ⟨b⟩ h, exact ⟨b, h, rfl⟩ }
+
+lemma acc.antisymmetrization (h : acc (<) a) : acc (<) (to_antisymmetrization (≤) a) :=
+acc.of_fibration _ antisymmetrization_fibration h
+
+lemma well_founded.antisymmetrization [well_founded_lt α] :
+  well_founded_lt (antisymmetrization α (≤)) :=
+⟨⟨by { rintro ⟨a⟩, exact (well_founded_lt.apply a).antisymmetrization }⟩⟩
 
 instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
   linear_order (antisymmetrization α (≤)) :=

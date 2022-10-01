@@ -241,6 +241,11 @@ let hi := inducing_to_continuous_map A E, hc := hi.continuous in
 { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (continuous.prod_map hc hc)),
   continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
 
+@[to_additive] lemma continuous_of_continuous_uncurry (f : A → continuous_monoid_hom B C)
+  (h : continuous (function.uncurry (λ x y, f x y))) : continuous f :=
+(inducing_to_continuous_map _ _).continuous_iff.mpr
+  (continuous_map.continuous_of_continuous_uncurry _ h)
+
 @[to_additive] lemma continuous_comp [locally_compact_space B] :
   continuous (λ f : continuous_monoid_hom A B × continuous_monoid_hom B C, f.2.comp f.1) :=
 (inducing_to_continuous_map A C).continuous_iff.2 $ (continuous_map.continuous_comp'.comp
@@ -322,7 +327,6 @@ noncomputable def map_hom [locally_compact_space E] :
 { to_fun := map,
   map_one' := map_one,
   map_mul' := map_mul,
-  continuous_to_fun := (inducing_to_continuous_map _ _).continuous_iff.mpr
-    (continuous_map.continuous_of_continuous_uncurry _ continuous_comp) }
+  continuous_to_fun := continuous_of_continuous_uncurry _ continuous_comp }
 
 end pontryagin_dual

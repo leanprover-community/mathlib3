@@ -159,6 +159,42 @@ begin
   { rw [←snd_apply _, apply_total R], exact hsQ x, },
 end
 
+-- What should be the universe for `ι`?
+variables {ι : Type} (A : ι → Type (max u v)) [Π (i : ι), add_comm_monoid (A i)]
+  [Π (i : ι), module R (A i)]
+
+instance [h : Π (i : ι), projective R (A i)] : projective R (Π₀ i, A i) :=
+begin
+  classical,
+  rw module.projective_def',
+  simp_rw projective_def at h, choose s hs using h,
+
+  letI : Π (i : ι), add_comm_monoid (A i →₀ R) := λ i, by apply_instance,
+  letI : Π (i : ι), module R (A i →₀ R) := λ i, by apply_instance,
+  letI : add_comm_monoid (Π₀ (i : ι), A i →₀ R) := @dfinsupp.add_comm_monoid ι (λ i, A i →₀ R) _,
+  letI : module R (Π₀ (i : ι), A i →₀ R) := @dfinsupp.module ι R (λ i, A i →₀ R) _ _ _,
+
+  let f := λ i, lmap_domain R R (dfinsupp.single i : A i → Π₀ i, A i),
+  use dfinsupp.coprod_map f ∘ₗ dfinsupp.map_range.linear_map s,
+
+  ext i x j,
+  simp only [dfinsupp.coprod_map, direct_sum.lof, total_map_domain R _ dfinsupp.single_injective,
+  coe_comp, coe_lsum, id_coe, linear_equiv.coe_to_linear_map, finsupp_lequiv_dfinsupp_symm_apply,
+  function.comp_app, dfinsupp.lsingle_apply, dfinsupp.map_range.linear_map_apply,
+  dfinsupp.map_range_single, lmap_domain_apply, dfinsupp.to_finsupp_single,
+  finsupp.sum_single_index, id.def, function.comp.left_id, dfinsupp.single_apply],
+  rw [←dfinsupp.lapply_apply j, apply_total R],
+
+  obtain rfl | hij := eq_or_ne i j,
+
+  { convert (hs i) x,
+    { ext, simp },
+    { simp } },
+  { convert finsupp.total_zero_apply _ ((s i) x),
+    { ext, simp [hij] },
+    { simp [hij] } }
+end
+
 end semiring
 
 section ring

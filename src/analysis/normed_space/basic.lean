@@ -446,6 +446,18 @@ by rw [norm_algebra_map, norm_one, mul_one]
 @[simp] lemma nnnorm_algebra_map' [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ = ∥x∥₊ :=
 subtype.ext $ norm_algebra_map' _ _
 
+section nnreal
+
+variables [norm_one_class 𝕜'] [normed_algebra ℝ 𝕜']
+
+@[simp] lemma norm_algebra_map_nnreal (x : ℝ≥0) : ∥algebra_map ℝ≥0 𝕜' x∥ = x :=
+(norm_algebra_map' 𝕜' (x : ℝ)).symm ▸ real.norm_of_nonneg x.prop
+
+@[simp] lemma nnnorm_algebra_map_nnreal (x : ℝ≥0) : ∥algebra_map ℝ≥0 𝕜' x∥₊ = x :=
+subtype.ext $ norm_algebra_map_nnreal 𝕜' x
+
+end nnreal
+
 variables (𝕜 𝕜')
 
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/

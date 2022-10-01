@@ -683,3 +683,37 @@ instance finite.to_is_atomic [partial_order α] [order_bot α] [finite α] : is_
 is_coatomic_dual_iff_is_atomic.mp finite.to_is_coatomic
 
 end fintype
+
+namespace set
+
+lemma is_atom_singleton (x : α) : is_atom ({x} : set α) :=
+⟨(singleton_nonempty x).ne_empty, λ s hs, ssubset_singleton_iff.mp hs⟩
+
+lemma is_atom_iff (s : set α) : is_atom s ↔ ∃ x, s = {x} :=
+begin
+  refine ⟨_, by { rintro ⟨x, rfl⟩, exact is_atom_singleton x }⟩,
+  rintro ⟨hs₁, hs₂⟩,
+  obtain ⟨x, hx⟩ := ne_empty_iff_nonempty.mp hs₁,
+  have := singleton_subset_iff.mpr hx,
+  refine ⟨x, subset.antisymm _ this⟩,
+  by_contra h,
+  exact (singleton_nonempty x).ne_empty (hs₂ {x} (ssubset_of_subset_not_subset this h)),
+end
+
+lemma is_coatom_iff (s : set α) : is_coatom s ↔ ∃ x, s = {x}ᶜ :=
+by simp_rw [is_compl_compl.is_coatom_iff_is_atom, is_atom_iff, @eq_comm _ s, compl_eq_comm]
+
+lemma is_coatom_singleton_compl (x : α) : is_coatom ({x}ᶜ : set α) :=
+(is_coatom_iff {x}ᶜ).mpr ⟨x, rfl⟩
+
+instance : is_atomistic (set α) :=
+{ eq_Sup_atoms := λ s, ⟨(λ x, {x}) '' s,
+    by rw [Sup_eq_sUnion, sUnion_image, bUnion_of_singleton],
+    by { rintro - ⟨x, hx, rfl⟩, exact is_atom_singleton x }⟩ }
+
+instance : is_coatomistic (set α) :=
+{ eq_Inf_coatoms := λ s, ⟨(λ x, {x}ᶜ) '' sᶜ,
+    by rw [Inf_eq_sInter, sInter_image, ←compl_Union₂, bUnion_of_singleton, compl_compl],
+    by { rintro - ⟨x, hx, rfl⟩, exact is_coatom_singleton_compl x }⟩ }
+
+end set

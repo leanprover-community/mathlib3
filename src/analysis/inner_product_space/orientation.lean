@@ -55,7 +55,7 @@ end
 section adjust_to_orientation
 include ne
 
-/-- `basis.adjust_to_orientation`, applied to an orthonormal basis, preserves the property of
+/-- `orthonormal_basis.adjust_to_orientation`, applied to an orthonormal basis, preserves the property of
 orthonormality. -/
 lemma orthonormal_adjust_to_orientation : orthonormal ℝ (e.to_basis.adjust_to_orientation x) :=
 begin

@@ -104,10 +104,8 @@ theorem finite.exists_finset_coe {s : set α} (h : s.finite) :
 by { casesI h, exact ⟨s.to_finset, s.coe_to_finset⟩ }
 
 /-- Finite sets can be lifted to finsets. -/
-instance : can_lift (set α) (finset α) :=
-{ coe := coe,
-  cond := set.finite,
-  prf := λ s hs, hs.exists_finset_coe }
+instance : can_lift (set α) (finset α) coe set.finite :=
+{ prf := λ s hs, hs.exists_finset_coe }
 
 /-- A set is infinite if it is not finite.
 
@@ -140,6 +138,10 @@ by rw [← finset.coe_sort_coe _, h.coe_to_finset]
 
 @[simp] lemma finite_empty_to_finset (h : (∅ : set α).finite) : h.to_finset = ∅ :=
 by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
+
+@[simp] lemma finite_univ_to_finset [fintype α] (h : (set.univ : set α).finite) :
+  h.to_finset = finset.univ :=
+finset.ext $ by simp
 
 @[simp] lemma finite.to_finset_inj {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset = ht.to_finset ↔ s = t :=
@@ -385,7 +387,7 @@ instance finite_sep (s : set α) (p : α → Prop) [finite s] :
 by { casesI nonempty_fintype s, apply_instance }
 
 protected lemma subset (s : set α) {t : set α} [finite s] (h : t ⊆ s) : finite t :=
-by { rw eq_sep_of_subset h, apply_instance }
+by { rw ←sep_eq_of_subset h, apply_instance }
 
 instance finite_inter_of_right (s t : set α) [finite t] :
   finite (s ∩ t : set α) := finite.set.subset t (inter_subset_right s t)

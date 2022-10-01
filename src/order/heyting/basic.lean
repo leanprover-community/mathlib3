@@ -61,7 +61,7 @@ variables {ι α β : Type*}
 
 /-- Syntax typeclass for Heyting negation `￢`.
 
-The difference between `has_hnot` and `has_compl` is that the former belongs to Heyting algebras,
+The difference between `has_compl` and `has_hnot` is that the former belongs to Heyting algebras,
 while the latter belongs to co-Heyting algebras. They are both pseudo-complements, but `compl`
 underestimates while `hnot` overestimates. In boolean algebras, they are equal. See `hnot_eq_compl`.
 -/
@@ -258,6 +258,8 @@ end
 
 -- `p → q → r ↔ q → p → r`
 lemma himp_left_comm (a b c : α) : a ⇨ b ⇨ c = b ⇨ a ⇨ c := by simp_rw [himp_himp, inf_comm]
+
+@[simp] lemma himp_idem : b ⇨ b ⇨ a = b ⇨ a := by rw [himp_himp, inf_idem]
 
 lemma himp_inf_distrib (a b c : α) : a ⇨ b ⊓ c = (a ⇨ b) ⊓ (a ⇨ c) :=
 eq_of_forall_le_iff $ λ d, by simp_rw [le_himp_iff, le_inf_iff, le_himp_iff]

@@ -619,7 +619,7 @@ begin
   ext,
   convert minpoly.aeval F α,
   conv in (aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
-  exact is_scalar_tower.algebra_map_aeval F F⟮α⟯ E _ _
+  exact (aeval_algebra_map_apply E (adjoin_simple.gen F α) _).symm
 end
 
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/

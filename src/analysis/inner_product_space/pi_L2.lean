@@ -332,6 +332,12 @@ begin
   refl,
 end
 
+protected lemma orthogonal_projection_eq_sum {U : submodule 𝕜 E} [complete_space U]
+  (b : orthonormal_basis ι 𝕜 U) (x : E) :
+  orthogonal_projection U x = ∑ i, ⟪(b i : E), x⟫ • b i :=
+by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
+  using (b.sum_repr (orthogonal_projection U x)).symm
+
 /-- Mapping an orthonormal basis along a `linear_isometry_equiv`. -/
 protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
   (L : E ≃ₗᵢ[𝕜] G) :
@@ -539,7 +545,7 @@ end
 
 /-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` has
 unit length. -/
-lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
+@[simp] lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
   ∥a.to_basis.det b∥ = 1 :=
 begin
   have : (norm_sq (a.to_basis.det b) : 𝕜) = 1,

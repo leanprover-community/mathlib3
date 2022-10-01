@@ -81,28 +81,18 @@ def seminormed_add_comm_group.of_add_dist' [has_norm E] [add_comm_group E] [pseu
     { rw [sub_eq_add_neg, ← add_right_neg y], apply H2 }
   end }
 
-/-- A seminormed group can be built from a seminorm that satisfies algebraic properties. This is
-formalised in this structure. -/
-structure seminormed_add_comm_group.core (E : Type*) [add_comm_group E] [has_norm E] : Prop :=
-(norm_zero : ∥(0 : E)∥ = 0)
-(triangle : ∀ x y : E, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
-(norm_neg : ∀ x : E, ∥-x∥ = ∥x∥)
-
-/-- Constructing a seminormed group from core properties of a seminorm, i.e., registering the
-pseudodistance and the pseudometric space structure from the seminorm properties. Note that in most
-cases this instance creates bad definitional equalities (e.g., it does not take into account
-a possibly existing `uniform_space` instance on `E`). -/
-def seminormed_add_comm_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
-  (C : seminormed_add_comm_group.core E) : seminormed_add_comm_group E :=
-{ dist := λ x y, ∥x - y∥,
-  dist_eq := assume x y, by refl,
-  dist_self := assume x, by simp [C.norm_zero],
-  dist_triangle := assume x y z,
-    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by rw sub_add_sub_cancel
-            ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
-  dist_comm := assume x y,
-    calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
-             ... = ∥y - x∥ : by { rw [C.norm_neg] } }
+/-- Construct a seminormed group from a seminorm, i.e., registering the pseudodistance and the
+pseudometric space structure from the seminorm properties. Note that in most cases this instance
+creates bad definitional equalities (e.g., it does not take into account a possibly existing
+`uniform_space` instance on `E`). -/
+def add_group_seminorm.to_seminormed_add_comm_group [add_comm_group E] (f : add_group_seminorm E) :
+  seminormed_add_comm_group E :=
+{ dist := λ x y, f (x - y),
+  norm := f,
+  dist_eq := λ x y, rfl,
+  dist_self := λ x, by simp only [sub_self, map_zero],
+  dist_triangle := le_map_sub_add_map_sub f,
+  dist_comm := map_sub_rev f }
 
 instance : normed_add_comm_group punit :=
 { norm := function.const _ 0,
@@ -110,11 +100,12 @@ instance : normed_add_comm_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-noncomputable instance : normed_add_comm_group ℝ :=
-{ norm := λ x, |x|,
-  dist_eq := assume x y, rfl }
+instance : has_norm ℝ := { norm := λ x, |x| }
 
 @[simp] lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
+
+instance : normed_add_comm_group ℝ :=
+{ dist_eq := assume x y, rfl }
 
 section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group F] [seminormed_add_comm_group G]
@@ -1146,32 +1137,14 @@ def normed_add_comm_group.of_add_dist [has_norm E] [add_comm_group E] [metric_sp
     { have := H2 (x-y) 0 y, rwa [sub_add_cancel, zero_add] at this }
   end }
 
-/-- A normed group can be built from a norm that satisfies algebraic properties. This is
-formalised in this structure. -/
-structure normed_add_comm_group.core (E : Type*) [add_comm_group E] [has_norm E] : Prop :=
-(norm_eq_zero_iff : ∀ x : E, ∥x∥ = 0 ↔ x = 0)
-(triangle : ∀ x y : E, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
-(norm_neg : ∀ x : E, ∥-x∥ = ∥x∥)
-
-/-- The `seminormed_add_comm_group.core` induced by a `normed_add_comm_group.core`. -/
-lemma normed_add_comm_group.core.to_seminormed_add_comm_group.core {E : Type*} [add_comm_group E]
-  [has_norm E]
-  (C : normed_add_comm_group.core E) : seminormed_add_comm_group.core E :=
-{ norm_zero := (C.norm_eq_zero_iff 0).2 rfl,
-  triangle := C.triangle,
-  norm_neg := C.norm_neg }
-
-/-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
-the metric space structure from the norm properties. -/
-def normed_add_comm_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
-  (C : normed_add_comm_group.core E) : normed_add_comm_group E :=
-{ eq_of_dist_eq_zero := λ x y h,
-  begin
-    rw [dist_eq_norm] at h,
-    exact sub_eq_zero.mp ((C.norm_eq_zero_iff _).1 h)
-  end
-  ..seminormed_add_comm_group.of_core E
-    (normed_add_comm_group.core.to_seminormed_add_comm_group.core C) }
+/-- Construct a normed group from a norm, i.e., registering the distance and the metric space
+structure from the norm properties. Note that in most cases this instance creates bad definitional
+equalities (e.g., it does not take into account a possibly existing `uniform_space` instance on
+`E`). -/
+def add_group_norm.to_normed_add_comm_group [add_comm_group E] (f : add_group_norm E) :
+  normed_add_comm_group E :=
+{ eq_of_dist_eq_zero := λ x y h, sub_eq_zero.1 $ eq_zero_of_map_eq_zero f h,
+  ..f.to_add_group_seminorm.to_seminormed_add_comm_group }
 
 variables [normed_add_comm_group E] [normed_add_comm_group F] {x y : E}
 
@@ -1199,6 +1172,16 @@ norm_sub_eq_zero_iff.1 h
 by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
 
 lemma nnnorm_ne_zero_iff {g : E} : ∥g∥₊ ≠ 0 ↔ g ≠ 0 := not_congr nnnorm_eq_zero
+
+variables (E)
+
+/-- The norm of a normed group as an additive group norm. -/
+def norm_add_group_norm : add_group_norm E := ⟨norm, norm_zero, norm_add_le, norm_neg,
+  λ {g : E}, norm_eq_zero.mp⟩
+
+@[simp] lemma coe_norm_add_group_norm : ⇑(norm_add_group_norm E) = norm := rfl
+
+variables {E}
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_add_comm_group` induces a
 `normed_add_comm_group` structure on the domain.

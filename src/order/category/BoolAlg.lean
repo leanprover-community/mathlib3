@@ -45,7 +45,7 @@ induced_category.has_forget₂ to_BoundedDistribLattice
 
 section
 
-local attribute [instance] bounded_lattice_hom_class.to_heyting_hom_class
+local attribute [instance] bounded_lattice_hom_class.to_biheyting_hom_class
 
 instance has_forget_to_HeytAlg : has_forget₂ BoolAlg HeytAlg :=
 { forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, show bounded_lattice_hom X Y, from f } }

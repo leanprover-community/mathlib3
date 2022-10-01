@@ -106,10 +106,8 @@ protected def rec {C : ereal → Sort*} (h_bot : C ⊥) (h_real : Π a : ℝ, C 
 
 /-! ### Real coercion -/
 
-instance : can_lift ereal ℝ :=
-{ coe := coe,
-  cond := λ r, r ≠ ⊤ ∧ r ≠ ⊥,
-  prf := λ x hx,
+instance can_lift : can_lift ereal ℝ coe (λ r, r ≠ ⊤ ∧ r ≠ ⊥) :=
+{ prf := λ x hx,
   begin
     induction x using ereal.rec,
     { simpa using hx },
@@ -190,10 +188,10 @@ lemma to_real_le_to_real {x y : ereal} (h : x ≤ y) (hx : x ≠ ⊥) (hy : y �
   x.to_real ≤ y.to_real :=
 begin
   lift x to ℝ,
-  lift y to ℝ,
-  { simpa using h },
-  { simp [hy, ((bot_lt_iff_ne_bot.2 hx).trans_le h).ne'] },
   { simp [hx, (h.trans_lt (lt_top_iff_ne_top.2 hy)).ne], },
+  lift y to ℝ,
+  { simp [hy, ((bot_lt_iff_ne_bot.2 hx).trans_le h).ne'] },
+  simpa using h
 end
 
 lemma coe_to_real {x : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) : (x.to_real : ereal) = x :=
@@ -349,8 +347,8 @@ def ne_top_bot_equiv_real : ({⊥, ⊤}ᶜ : set ereal) ≃ ℝ :=
   inv_fun := λ x, ⟨x, by simp⟩,
   left_inv := λ ⟨x, hx⟩, subtype.eq $ begin
     lift x to ℝ,
+    { simpa [not_or_distrib, and_comm] using hx },
     { simp },
-    { simpa [not_or_distrib, and_comm] using hx }
   end,
   right_inv := λ x, by simp }
 
@@ -424,13 +422,14 @@ protected def neg : ereal → ereal
 | ⊤       := ⊥
 | (x : ℝ) := (-x : ℝ)
 
-instance : has_neg ereal := ⟨ereal.neg⟩
+noncomputable instance : sub_neg_zero_monoid ereal :=
+{ neg_zero := by { change ((-0 : ℝ) : ereal) = 0, simp },
+  ..ereal.add_monoid, ..ereal.has_neg }
 
 @[norm_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
 
 @[simp] lemma neg_top : - (⊤ : ereal) = ⊥ := rfl
 @[simp] lemma neg_bot : - (⊥ : ereal) = ⊤ := rfl
-@[simp] lemma neg_zero : - (0 : ereal) = 0 := by { change ((-0 : ℝ) : ereal) = 0, simp }
 
 @[simp, norm_cast] lemma coe_neg (x : ℝ) : (↑(-x) : ereal) = -x := rfl
 
@@ -447,13 +446,13 @@ instance : has_involutive_neg ereal :=
 | ⊥ := by simp
 | (x : ℝ) := rfl
 
-@[simp] lemma neg_eg_top_iff {x : ereal} : - x = ⊤ ↔ x = ⊥ :=
+@[simp] lemma neg_eq_top_iff {x : ereal} : - x = ⊤ ↔ x = ⊥ :=
 by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
 
-@[simp] lemma neg_eg_bot_iff {x : ereal} : - x = ⊥ ↔ x = ⊤ :=
+@[simp] lemma neg_eq_bot_iff {x : ereal} : - x = ⊥ ↔ x = ⊤ :=
 by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
 
-@[simp] lemma neg_eg_zero_iff {x : ereal} : - x = 0 ↔ x = 0 :=
+@[simp] lemma neg_eq_zero_iff {x : ereal} : - x = 0 ↔ x = 0 :=
 by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
 
 /-- if `-a ≤ b` then `-b ≤ a` on `ereal`. -/
@@ -499,10 +498,8 @@ lemma neg_lt_iff_neg_lt {a b : ereal} : -a < b ↔ -b < a :=
 
 Subtraction on `ereal` is defined by `x - y = x + (-y)`. Since addition is badly behaved at some
 points, so is subtraction. There is no standard algebraic typeclass involving subtraction that is
-registered on `ereal` because of this bad behavior.
+registered on `ereal`, beyond `sub_neg_zero_monoid`, because of this bad behavior.
 -/
-
-instance : sub_neg_monoid ereal := { ..ereal.add_monoid, ..ereal.has_neg }
 
 @[simp] lemma top_sub (x : ereal) : ⊤ - x = ⊤ := top_add _
 @[simp] lemma sub_bot (x : ereal) : x - ⊥ = ⊤ := add_top x
@@ -510,9 +507,6 @@ instance : sub_neg_monoid ereal := { ..ereal.add_monoid, ..ereal.has_neg }
 @[simp] lemma bot_sub_top : (⊥ : ereal) - ⊤ = ⊥ := rfl
 @[simp] lemma bot_sub_coe (x : ℝ) : (⊥ : ereal) - x = ⊥ := rfl
 @[simp] lemma coe_sub_bot (x : ℝ) : (x : ereal) - ⊤ = ⊥ := rfl
-
-@[simp] lemma sub_zero (x : ereal) : x - 0 = x := by { change x + (-0) = x, simp }
-@[simp] lemma zero_sub (x : ereal) : 0 - x = - x := by { change 0 + (-x) = - x, simp }
 
 @[simp, norm_cast] lemma coe_sub (x y : ℝ) : (↑(x - y) : ereal) = x - y := rfl
 @[simp, norm_cast] lemma coe_zsmul (n : ℤ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=

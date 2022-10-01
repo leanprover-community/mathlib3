@@ -20,7 +20,7 @@ subspaces of affine spaces.
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 section affine_space'
 
@@ -70,7 +70,7 @@ finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
 noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
   {p : ι → P} (hi : affine_independent k p) : fintype ι :=
-if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
+by classical; exact if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
 begin
   let q := (not_is_empty_iff.mp hι).some,
   rw affine_independent_iff_linear_independent_vsub k p q at hi,

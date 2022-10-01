@@ -33,11 +33,6 @@ boundedness in terms of that seminorm family.
 * `with_seminorms.image_is_vonN_bounded_iff_finset_seminorm_bounded`
 * `with_seminorms.image_is_vonN_bounded_iff_seminorm_bounded`
 
-
-## TODO
-
-Show that for any locally convex space there exist seminorms that induce the topology.
-
 ## Tags
 
 seminorm, locally convex
@@ -317,6 +312,15 @@ begin
   exact add_group_filter_basis.nhds_zero_eq _,
 end
 
+lemma with_seminorms.continuous_seminorm [module ℝ E] [normed_algebra ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E]
+  [has_continuous_const_smul ℝ E] {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p)
+  (i : ι) : continuous (p i) :=
+begin
+  refine seminorm.continuous _,
+  rw [p.with_seminorms_iff_nhds_eq_infi.mp hp, ball_zero_eq_preimage_ball],
+  exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
+end
+
 end topological_add_group
 
 section normed_space
@@ -416,25 +420,42 @@ namespace seminorm
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 variables [nonempty ι] [nonempty ι']
 
-lemma continuous_from_bounded {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
-  [uniform_space E] [uniform_add_group E] (hp : with_seminorms p)
-  [uniform_space F] [uniform_add_group F] (hq : with_seminorms q)
-  (f : E →ₗ[𝕜] F) (hf : seminorm.is_bounded p q f) : continuous f :=
+lemma continuous_of_continuous_comp {q : seminorm_family 𝕜 F ι'}
+  [topological_space E] [topological_add_group E]
+  [topological_space F] [topological_add_group F] (hq : with_seminorms q)
+  (f : E →ₗ[𝕜] F) (hf : ∀ i, continuous ((q i).comp f)) : continuous f :=
 begin
   refine continuous_of_continuous_at_zero f _,
-  rw [continuous_at_def, f.map_zero, hp.1],
-  intros U hU,
-  rw [hq.1, add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
-  rcases hU with ⟨V, hV : V ∈ q.basis_sets, hU⟩,
-  rcases q.basis_sets_iff.mp hV with ⟨s₂, r, hr, hV⟩,
-  rw hV at hU,
-  rw [p.add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff],
-  rcases (seminorm.is_bounded_sup hf s₂) with ⟨C, s₁, hC, hf⟩,
-  refine ⟨(s₁.sup p).ball 0 (r/C), p.basis_sets_mem _ (div_pos hr (nnreal.coe_pos.mpr hC)), _⟩,
-  refine subset.trans _ (preimage_mono hU),
-  simp_rw [←linear_map.map_zero f, ←ball_comp],
+  simp_rw [continuous_at, f.map_zero, q.with_seminorms_iff_nhds_eq_infi.mp hq, filter.tendsto_infi,
+            filter.tendsto_comap_iff],
+  intros i,
+  convert (hf i).continuous_at,
+  exact (map_zero _).symm
+end
+
+lemma continuous_iff_continuous_comp [normed_algebra ℝ 𝕜] [module ℝ F] [is_scalar_tower ℝ 𝕜 F]
+  {q : seminorm_family 𝕜 F ι'} [topological_space E] [topological_add_group E]
+  [topological_space F] [topological_add_group F] [has_continuous_const_smul ℝ F]
+  (hq : with_seminorms q) (f : E →ₗ[𝕜] F) :
+  continuous f ↔ ∀ i, continuous ((q i).comp f) :=
+⟨λ h i, continuous.comp (hq.continuous_seminorm i) h, continuous_of_continuous_comp hq f⟩
+
+lemma continuous_from_bounded {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
+  [topological_space E] [topological_add_group E] (hp : with_seminorms p)
+  [topological_space F] [topological_add_group F] (hq : with_seminorms q)
+  (f : E →ₗ[𝕜] F) (hf : seminorm.is_bounded p q f) : continuous f :=
+begin
+  refine continuous_of_continuous_comp hq _ (λ i, seminorm.continuous_of_continuous_at_zero _),
+  rw [metric.continuous_at_iff', map_zero],
+  intros r hr,
+  rcases hf i with ⟨s₁, C, hC, hf⟩,
+  have hC' : 0 < C := hC.bot_lt,
+  rw hp.has_basis.eventually_iff,
+  refine ⟨(s₁.sup p).ball 0 (r/C), p.basis_sets_mem _ (by positivity), _⟩,
+  simp_rw [ ←metric.mem_ball, ←mem_preimage, ←ball_zero_eq_preimage_ball],
   refine subset.trans _ (ball_antitone hf),
-  rw ball_smul (s₁.sup p) hC,
+  rw ball_smul (s₁.sup p) hC',
+  refl
 end
 
 lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed_space 𝕜 F]

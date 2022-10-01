@@ -1018,11 +1018,9 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, coe_mul, coe_inv hr]
 
 lemma div_zero (h : a ≠ 0) : a / 0 = ∞ := by simp [div_eq_mul_inv, h]
 
-@[simp] lemma inv_one : (1 : ℝ≥0∞)⁻¹ = 1 :=
-by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 inv_one
-
-@[simp] lemma div_one {a : ℝ≥0∞} : a / 1 = a :=
-by rw [div_eq_mul_inv, inv_one, mul_one]
+instance : div_inv_one_monoid ℝ≥0∞ :=
+{ inv_one := by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 inv_one,
+  ..ennreal.div_inv_monoid }
 
 protected lemma inv_pow {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
 begin

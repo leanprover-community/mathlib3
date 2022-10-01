@@ -14,6 +14,15 @@ import tactic.positivity
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
 
+/-  Test for instantiating meta-variables.  Reported on
+https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/New.20tactic.3A.20.60positivity.60/near/300639970
+-/
+example : 0 ≤ 0 :=
+begin
+  apply le_trans _ le_rfl,
+  positivity,
+end
+
 open_locale ennreal nnrat nnreal
 
 universe u
@@ -82,6 +91,13 @@ example {a : ℝ≥0} {b : ℝ} (ha : 0 < a) : 0 < a ^ b := by positivity
 example {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 ≤ b) : 0 < a ^ b := by positivity
 example {a : ℝ≥0∞} {b : ℝ} (ha : 0 < a) (hb : 0 < b) : 0 < a ^ b := by positivity
 
+example {a : ℝ} (ha : 0 < a) : 0 ≤ ⌊a⌋ := by positivity
+example {a : ℝ} (ha : 0 ≤ a) : 0 ≤ ⌊a⌋ := by positivity
+
+example {a : ℝ} (ha : 0 < a) : 0 < ⌈a⌉₊ := by positivity
+example {a : ℝ} (ha : 0 < a) : 0 < ⌈a⌉ := by positivity
+example {a : ℝ} (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ := by positivity
+
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 2 + a := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 3 + a := by positivity
@@ -125,6 +141,9 @@ example : 0 ≤ max (-3 : ℤ) 5 := by positivity
 
 example [ordered_semiring α] [ordered_add_comm_monoid β] [smul_with_zero α β]
   [ordered_smul α β] {a : α} (ha : 0 < a) {b : β} (hb : 0 < b) : 0 ≤ a • b := by positivity
+
+example {α : Type*} (s : finset α) (hs : s.nonempty) : 0 < s.card := by positivity
+example {α : Type*} [fintype α] [nonempty α] : 0 < fintype.card α := by positivity
 
 example {r : ℝ} : 0 < real.exp r := by positivity
 

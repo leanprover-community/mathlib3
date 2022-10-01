@@ -567,21 +567,14 @@ def cosimplicial_to_simplicial_augmented :
 
 /-- The contravariant categorical equivalence between augmented simplicial
 objects and augmented cosimplicial objects in the opposite category. -/
-@[simps]
+@[simps functor inverse]
 def simplicial_cosimplicial_augmented_equiv :
   (simplicial_object.augmented C)ᵒᵖ ≌ cosimplicial_object.augmented Cᵒᵖ :=
-{ functor := simplicial_to_cosimplicial_augmented _,
-  inverse := cosimplicial_to_simplicial_augmented _,
-  unit_iso := nat_iso.of_components
-    (λ X, X.unop.right_op_left_op_iso.op) begin
-      intros X Y f,
-      dsimp,
-      rw (show f = f.unop.op, by simp),
-      simp_rw ← op_comp,
-      congr' 1,
-      tidy,
-    end,
-  counit_iso := nat_iso.of_components
-    (λ X, X.left_op_right_op_iso) (by tidy) }
+equivalence.mk
+  (simplicial_to_cosimplicial_augmented _)
+  (cosimplicial_to_simplicial_augmented _)
+  (nat_iso.of_components (λ X, X.unop.right_op_left_op_iso.op) $ λ X Y f,
+    by { dsimp, rw ←f.op_unop, simp_rw ← op_comp, congr' 1, tidy })
+  (nat_iso.of_components (λ X, X.left_op_right_op_iso) $ by tidy)
 
 end category_theory

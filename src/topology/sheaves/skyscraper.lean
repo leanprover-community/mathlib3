@@ -224,4 +224,15 @@ The skyscraper presheaf supported at `p₀` with value `A` is the sheaf that ass
 def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
 ⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩
 
+/--
+Taking skyscraper sheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor by
+sending every `f : a ⟶ b` to the natural transformation `α` defined as: `α(U) = f : a ⟶ b` if
+`p₀ ∈ U` and the unique morphism to a terminal object in `C` if `p₀ ∉ U`.
+-/
+def skyscraper_sheaf_functor [has_products.{u} C] : C ⥤ sheaf C X :=
+{ obj := λ c, skyscraper_sheaf p₀ c,
+  map := λ a b f, Sheaf.hom.mk $ (skyscraper_presheaf_functor p₀).map f,
+  map_id' := λ c, Sheaf.hom.ext _ _ $ (skyscraper_presheaf_functor p₀).map_id _,
+  map_comp' := λ _ _ _ f g, Sheaf.hom.ext _ _ $ (skyscraper_presheaf_functor p₀).map_comp _ _ }
+
 end

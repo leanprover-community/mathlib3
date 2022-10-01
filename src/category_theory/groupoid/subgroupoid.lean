@@ -204,8 +204,7 @@ def discrete [decidable_eq C] : subgroupoid C :=
         rw [hp, hq], simp only [category.comp_id], },
       { simp only [eq_self_iff_true, dite_eq_ite, if_true, mem_singleton_iff] at ⊢ hp hq,
         rw dif_neg (λ l : d = e, k l.symm) at hq, exact hq.elim, }, },
-    { rw dif_neg (λ l : c = d, h l.symm) at hp, exact hp.elim, }
-  }⟩
+    { rw dif_neg (λ l : c = d, h l.symm) at hp, exact hp.elim, }, } ⟩
 
 /-- A subgroupoid is normal if it is “wide” (meaning that its carrier set is all of `C`)
     and satisfies the expected stability under conjugacy -/

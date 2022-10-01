@@ -126,7 +126,7 @@ theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
   (x : B) (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, hp.map _,
-  by rw [← aeval_def, aeval_apply_algebra_map, aeval_def, hpx]⟩
+  by rw [← aeval_def, aeval_map_algebra_map, aeval_def, hpx]⟩
 
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=
@@ -157,7 +157,7 @@ begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
     refine ⟨_, finset.finite_to_set _, p.restriction, monic_restriction.2 hmp, _⟩,
-    rw [← aeval_def, ← aeval_apply_algebra_map R r p.restriction,
+    rw [← aeval_def, ← aeval_map_algebra_map R r p.restriction,
       map_restriction, aeval_def, hpr], },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr

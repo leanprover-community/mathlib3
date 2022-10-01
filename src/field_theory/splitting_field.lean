@@ -476,7 +476,7 @@ begin
       ((polynomial.splits_map_iff _ _).2 _)
       (minpoly.dvd _ _ _),
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
-    { rw [polynomial.aeval_apply_algebra_map, minpoly.aeval] } },
+    { rw [polynomial.aeval_map_algebra_map, minpoly.aeval] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (ne_of_lt (minpoly.degree_pos H5)).symm,
   refine ⟨subalgebra.of_restrict_scalars _ _ _⟩,
   refine (adjoin_root.lift_hom (minpoly (algebra.adjoin F (↑s : set K)) a) y hy).comp _,

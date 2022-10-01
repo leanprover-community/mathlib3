@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang
+Authors: Jujian Zhang, Junyan Xu
 -/
 import algebraic_geometry.sheafed_space
-import topology.sheaves.sheaf_condition.opens_le_cover
+import topology.sheaves.punit
 import topology.sheaves.stalks
 import category_theory.preadditive.injective
 
@@ -63,6 +63,13 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
       simp only [dif_pos hW, dif_pos hV, eq_to_hom_trans] },
     { rw [dif_neg hW], apply ((if_neg hW).symm.rec terminal_is_terminal).hom_ext }
   end }
+
+lemma skyscraper_presheaf_eq_pushforward
+  [hd : Π (U : opens (Top.of punit.{u+1})), decidable (punit.star ∈ U)] :
+  skyscraper_presheaf p₀ A =
+  continuous_map.const (Top.of punit) p₀ _* skyscraper_presheaf punit.star A :=
+by convert_to @skyscraper_presheaf X p₀
+  (λ U, hd $ (opens.map $ continuous_map.const _ p₀).obj U) C _ A _ = _; congr <|> refl
 
 end
 
@@ -157,5 +164,18 @@ If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y`
 def skyscraper_presheaf_stalk_of_not_specializes_is_terminal
   [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ A).stalk y) :=
 is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_specializes _ _ h).symm
+
+lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
+by classical; exact (presheaf.is_sheaf_iso_iff
+  (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr
+  (sheaf.pushforward_sheaf_of_sheaf _ (presheaf.is_sheaf_on_punit_of_is_terminal _
+  (by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star })))
+
+/--
+The skyscraper presheaf supported at `p₀` with value `A` is the sheaf that assigns `A` to all opens
+`U` that contain `p₀` and assigns `*` otherwise.
+-/
+def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
+⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩
 
 end

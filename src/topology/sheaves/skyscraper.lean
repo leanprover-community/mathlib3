@@ -165,11 +165,11 @@ def skyscraper_presheaf_stalk_of_not_specializes_is_terminal
   [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ A).stalk y) :=
 is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_specializes _ _ h).symm
 
-
 lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
-(presheaf.is_sheaf_iso_iff (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr $
-  sheaf.pushforward_sheaf_of_sheaf _ $ presheaf.is_sheaf_on_punit_of_is_terminal _ $
-    by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star }
+by classical; exact (presheaf.is_sheaf_iso_iff
+  (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr
+  (sheaf.pushforward_sheaf_of_sheaf _ (presheaf.is_sheaf_on_punit_of_is_terminal _
+  (by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star})))}
 
 /--
 The skyscraper presheaf supported at `p₀` with value `A` is the sheaf that assigns `A` to all opens

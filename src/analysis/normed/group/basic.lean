@@ -1272,7 +1272,7 @@ variables (E)
 /-- The norm of a normed group as a group norm. -/
 @[to_additive "The norm of a normed group as an additive group norm."]
 def norm_group_norm : group_norm E :=
-{ eq_one_of_map_eq_zero' := λ _, norm_eq_zero.1, ..norm_group_seminorm _ }
+{ eq_one_of_map_eq_zero' := λ _, norm_eq_zero''.1, ..norm_group_seminorm _ }
 
 @[simp] lemma coe_norm_group_norm : ⇑(norm_group_norm E) = norm := rfl
 

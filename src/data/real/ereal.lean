@@ -434,6 +434,9 @@ instance : sub_neg_zero_monoid ereal :=
 @[simp] lemma neg_bot : - (⊥ : ereal) = ⊤ := rfl
 
 @[simp, norm_cast] lemma coe_neg (x : ℝ) : (↑(-x) : ereal) = -x := rfl
+@[simp, norm_cast] lemma coe_sub (x y : ℝ) : (↑(x - y) : ereal) = x - y := rfl
+@[norm_cast] lemma coe_zsmul (n : ℤ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
+map_zsmul' (⟨coe, coe_zero, coe_add⟩ : ℝ →+ ereal) coe_neg _ _
 
 instance : has_involutive_neg ereal :=
 { neg := has_neg.neg,
@@ -509,10 +512,6 @@ registered on `ereal`, beyond `sub_neg_zero_monoid`, because of this bad behavio
 @[simp] lemma bot_sub_top : (⊥ : ereal) - ⊤ = ⊥ := rfl
 @[simp] lemma bot_sub_coe (x : ℝ) : (⊥ : ereal) - x = ⊥ := rfl
 @[simp] lemma coe_sub_bot (x : ℝ) : (x : ereal) - ⊤ = ⊥ := rfl
-
-@[simp, norm_cast] lemma coe_sub (x y : ℝ) : (↑(x - y) : ereal) = x - y := rfl
-@[ norm_cast] lemma coe_zsmul (n : ℤ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
-map_zsmul' (⟨coe, coe_zero, coe_add⟩ : ℝ →+ ereal) coe_neg _ _
 
 lemma sub_le_sub {x y z t : ereal} (h : x ≤ y) (h' : t ≤ z) : x - z ≤ y - t :=
 add_le_add h (neg_le_neg_iff.2 h')

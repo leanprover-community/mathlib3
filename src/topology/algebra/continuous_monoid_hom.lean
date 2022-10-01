@@ -284,42 +284,45 @@ end continuous_monoid_hom
 /-- The Pontryagin dual of `A` is the group of continuous homomorphism `A → circle`. -/
 @[derive [topological_space, t2_space, comm_group, topological_group, inhabited]]
 def pontryagin_dual := continuous_monoid_hom A circle
+
 variables {A B C D E}
+
+namespace pontryagin_dual
+
+open continuous_monoid_hom
 
 noncomputable instance : continuous_monoid_hom_class (pontryagin_dual A) A circle :=
 continuous_monoid_hom.continuous_monoid_hom_class
 
-namespace continuous_monoid_hom
-
 /-- `pontryagin_dual` is a functor. -/
-protected noncomputable def dual (f : continuous_monoid_hom A B) :
+noncomputable def map (f : continuous_monoid_hom A B) :
   continuous_monoid_hom (pontryagin_dual B) (pontryagin_dual A) :=
 f.comp_left circle
 
-@[simp] lemma dual_apply (f : continuous_monoid_hom A B) (x : pontryagin_dual B) (y : A) :
-  f.dual x y = x (f y) :=
+@[simp] lemma map_apply (f : continuous_monoid_hom A B) (x : pontryagin_dual B) (y : A) :
+  map f x y = x (f y) :=
 rfl
 
-@[simp] lemma dual_one : (one A B).dual = one (pontryagin_dual B) (pontryagin_dual A) :=
+@[simp] lemma map_one : map (one A B) = one (pontryagin_dual B) (pontryagin_dual A) :=
 ext (λ x, ext (λ y, map_one x))
 
-@[simp] lemma dual_comp (g : continuous_monoid_hom B C) (f : continuous_monoid_hom A B) :
-  (comp g f).dual = comp f.dual g.dual :=
+@[simp] lemma map_comp (g : continuous_monoid_hom B C) (f : continuous_monoid_hom A B) :
+  map (comp g f) = comp (map f) (map g) :=
 ext (λ x, ext (λ y, rfl))
 
-@[simp] lemma dual_mul (f g : continuous_monoid_hom A E) : (f * g).dual = f.dual * g.dual :=
+@[simp] lemma map_mul (f g : continuous_monoid_hom A E) : map (f * g) = map f * map g :=
 ext (λ x, ext (λ y, map_mul x (f y) (g y)))
 
 variables (A B C D E)
 
 /-- `continuous_monoid_hom.dual` as a `continuous_monoid_hom`. -/
-noncomputable def dual_hom [locally_compact_space E] :
+noncomputable def map_hom [locally_compact_space E] :
   continuous_monoid_hom (continuous_monoid_hom A E)
     (continuous_monoid_hom (pontryagin_dual E) (pontryagin_dual A)) :=
-{ to_fun := continuous_monoid_hom.dual,
-  map_one' := dual_one,
-  map_mul' := dual_mul,
+{ to_fun := map,
+  map_one' := map_one,
+  map_mul' := map_mul,
   continuous_to_fun := (inducing_to_continuous_map _ _).continuous_iff.mpr
     (continuous_map.continuous_of_continuous_uncurry _ continuous_comp) }
 
-end continuous_monoid_hom
+end pontryagin_dual

@@ -479,11 +479,11 @@ begin
     apply_instance }
 end
 
-section finite_dim
+-- For the following lemma we don't need to assume that the space is Borel
+variables {F : Type*} [normed_add_comm_group F] [measurable_space F] [normed_space ℝ F]
+  [finite_dimensional ℝ F] (ν : measure F) [is_add_haar_measure ν]
 
-variable [finite_dimensional ℝ E]
-
-lemma add_haar_closed_ball_lt_top (x : E) (r : ℝ): μ (closed_ball x r) < ∞ :=
+lemma add_haar_closed_ball_lt_top (x : F) (r : ℝ): ν (closed_ball x r) < ∞ :=
 (is_compact_closed_ball _ _).measure_lt_top
 
 lemma add_haar_ball_lt_top [nontrivial E] (x : E) (r : ℝ) : μ (ball x r) < ∞ :=
@@ -491,8 +491,6 @@ begin
   rw ←add_haar_closed_ball_eq_add_haar_ball,
   exact add_haar_closed_ball_lt_top _ _ _,
 end
-
-end finite_dim
 
 lemma add_haar_sphere [nontrivial E] (x : E) (r : ℝ) :
   μ (sphere x r) = 0 :=

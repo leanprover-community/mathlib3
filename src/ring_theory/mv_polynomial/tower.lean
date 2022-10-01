@@ -30,7 +30,7 @@ variables [is_scalar_tower R A B]
 
 variables {R B}
 
-theorem aeval_apply_algebra_map (x : σ → B) (p : mv_polynomial σ R) :
+theorem aeval_map_algebra_map (x : σ → B) (p : mv_polynomial σ R) :
   aeval x (map (algebra_map R A) p) = aeval x p :=
 by rw [aeval_def, aeval_def, eval₂_map, is_scalar_tower.algebra_map_eq R A B]
 

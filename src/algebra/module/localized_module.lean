@@ -682,8 +682,6 @@ are isomorphic as `R`-module
 noncomputable def linear_equiv [is_localized_module S g] : M' ≃ₗ[R] M'' :=
 (iso S f).symm.trans (iso S g)
 
-end is_localized_module
-
 section
 
 /--
@@ -702,17 +700,14 @@ lemma has_localization_smul.mk_smul [is_localized_module S f] (r : R) (s : S) (x
 begin
   rw [module.End_algebra_map_is_unit_inv_apply_eq_iff'],
   change r • x = s • iso S f _,
-  rcases is_localized_module.surj S f x with ⟨⟨a, b⟩, eq1⟩,
-  dsimp at eq1,
-  rw [iso_symm_apply' S f x _ _ eq1, localized_module.mk_smul_mk],
-  simp only [localized_module.lift_on_mk, submonoid.coe_mul, map_mul, iso_apply,
-    linear_map.to_fun_eq_coe, from_localized_module_apply, linear_map.map_smulₛₗ, ring_hom.id_apply],
+  rcases is_localized_module.surj S f x with ⟨⟨a, b⟩, eq1⟩, dsimp only at eq1,
+  rw [iso_symm_apply' S f x _ _ eq1, localized_module.mk_smul_mk, iso_apply,
+    linear_map.to_fun_eq_coe, from_localized_module_mk],
   generalize_proofs h1,
-  erw [←linear_map.map_smul],
-  rw [←map_mul] at h1,
+  erw [←h1.unit⁻¹.1.map_smul],
   convert (module.End_algebra_map_is_unit_inv_apply_eq_iff' h1 (s • r • f a) (r • x)).mpr _,
-  { rw map_mul },
-  conv_rhs { rw [←mul_smul, mul_assoc, mul_comm _ r, mul_smul, mul_smul] },
+  { rw map_smul },
+  conv_rhs { rw [submonoid.coe_mul, ←mul_smul, mul_assoc, mul_comm _ r, mul_smul, mul_smul] },
   erw [eq1],
   refl,
 end
@@ -801,7 +796,7 @@ begin
     module.End_algebra_map_is_unit_inv_apply_eq_iff'],
   dsimp only at *,
   apply_fun h1.unit at eq1,
-  erw [linear_map.map_smul, module.End_is_unit_apply_inv_apply] at eq1,
+  erw [linear_map.map_smul, module.End_is_unit_apply_inv_apply_of_is_unit] at eq1,
   change ↑b • f m = ↑t • f a at eq1,
   simp only [submonoid.coe_mul, mul_smul, linear_map.map_smul],
   simp only [←mul_smul, mul_comm _ r, ←mul_assoc],
@@ -858,11 +853,13 @@ noncomputable def iso_as_localization_module [is_localized_module S f] :
 If `(M', f)` and `(M'', g)` both satisfy universal property of localized module, then `M''` and `M'`
 are isomorphic as `localization S`-module.
 -/
-noncomputable def unique_up_to_iso_as_localization_module
+noncomputable def linear_equiv_as_localization_module
   [is_localized_module S f] [is_localized_module S g] :
   M' ≃ₗ[localization S] M'' :=
 (iso_as_localization_module S f).symm.trans (iso_as_localization_module S g)
 
 end
+
+end is_localized_module
 
 end is_localized_module

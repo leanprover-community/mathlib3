@@ -28,6 +28,10 @@ open_locale unit_interval
 
 open path continuous_map set.Icc
 
+/--
+An topological space `X` is an H-space if it behaves like a (potentially non-associative)
+topological group, but where the axioms for a group only hold up to homotopy.
+-/
 class H_space (X : Type u) [topological_space X] :=
 (Hmul : C(X × X, X))
 (e : X)
@@ -39,6 +43,7 @@ class H_space (X : Type u) [topological_space X] :=
 
 namespace topological_group
 
+@[priority 600]
 @[to_additive] instance H_space (G : Type u) [topological_space G] [group G]
   [topological_group G] : H_space G :=
 { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
@@ -52,7 +57,7 @@ lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological
 
 end topological_group
 
-open unit_interval
+namespace unit_interval
 
 variables {X : Type u} [topological_space X]
 
@@ -83,7 +88,13 @@ lemma Q_right_one_right (t : I) : Q_right (t, 1) = t :=
 eq.trans (by {rw Q_right, congr, apply mul_div_cancel_left, exact two_ne_zero}) $
   set.proj_Icc_coe zero_le_one _
 
-variables {x y : X}
+end unit_interval
+
+namespace path
+
+open unit_interval
+
+variables {X : Type u} [topological_space X] {x y : X}
 
 /-- This is the function analogous to the one on p. 475 of [serre1951], defining a homotopy from
 the product path `e ∧ γ` to `γ`.-/
@@ -138,3 +149,5 @@ instance (x : X) : H_space Ω_[x] :=
   { to_homotopy := ⟨⟨λ p : I × Ω_[x], delayed_refl_right p.1 p.2,
       continuous_delayed_refl_right⟩, delayed_refl_right_zero, delayed_refl_right_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } } }
+
+end path

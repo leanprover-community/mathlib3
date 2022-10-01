@@ -75,21 +75,20 @@ class module.projective (R : Type u) [semiring R] (P : Type (max u v)) [add_comm
 
 namespace module
 
-lemma projective_def {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P]
-  [module R P] : projective R P ↔
-  (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
-⟨λ h, h.1, λ h, ⟨h⟩⟩
-
-theorem projective_def' {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P]
-  [module R P] : projective R P ↔
-  (∃ s : P →ₗ[R] (P →₀ R), (finsupp.total P P R id) ∘ₗ s = id) :=
-by simp_rw [module.projective_def, fun_like.ext_iff, function.left_inverse, coe_comp, id_coe,
-  id.def]
 
 section semiring
 
 variables {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P] [module R P]
   {M : Type (max u v)} [add_comm_group M] [module R M] {N : Type*} [add_comm_group N] [module R N]
+
+lemma projective_def : projective R P ↔
+  (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+theorem projective_def' : projective R P ↔
+  (∃ s : P →ₗ[R] (P →₀ R), (finsupp.total P P R id) ∘ₗ s = id) :=
+by simp_rw [projective_def, fun_like.ext_iff, function.left_inverse, coe_comp, id_coe, id.def]
+
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
 theorem projective_lifting_property [h : projective R P] (f : M →ₗ[R] N) (g : P →ₗ[R] N)
@@ -139,7 +138,7 @@ begin
     simp },
 end
 
-variables (Q : Type (max u v)) [add_comm_monoid Q] [module R Q]
+variables {Q : Type (max u v)} [add_comm_monoid Q] [module R Q]
 
 instance [hP : projective R P] [hQ : projective R Q] : projective R (P × Q) :=
 begin

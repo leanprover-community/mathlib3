@@ -139,6 +139,162 @@ end generator
 
 open generator
 
+@[derive monoid] def word : Type := free_monoid generator
+
+instance : has_coe_t generator word := ⟨free_monoid.of⟩
+
+@[ext] structure noncancellable : Type :=
+(to_word : word)
+(chain'_xor : chain' (λ x y, xor (x = a) (y = a)) to_word)
+
+local notation `NC` := noncancellable
+
+namespace noncancellable
+
+instance : has_coe_t generator NC := ⟨λ x, ⟨x, chain'_singleton _⟩⟩
+
+@[simp, norm_cast] lemma to_word_coe (g : generator) : (g : NC).to_word = g := rfl
+@[simp] lemma mk_singleton (g : generator) (h) : mk g h = g := rfl
+
+instance : has_one NC := ⟨⟨[], chain'_nil⟩⟩
+
+@[simp] lemma one_to_word : to_word 1 = 1 := rfl
+@[simp] lemma mk_nil (h) : mk [] h = 1 := rfl
+
+def tail (l : NC) : NC := ⟨l.to_word.tail, l.2.tail⟩
+
+instance : has_inv NC :=
+⟨λ l, ⟨l.to_word.reverse, chain'_reverse.2 (l.2.imp $ λ x y h, by rwa [flip, xor_comm])⟩⟩
+
+end noncancellable
+
+namespace generator
+
+def cons_noncancellable : generator → NC → NC
+| x ⟨[], _⟩ := x
+| a ⟨a :: l, h⟩ := ⟨l, h.tail⟩
+| a ⟨bcd n :: l, h⟩ := ⟨a :: bcd n :: l, h.cons $
+  by simp only [eq_self_iff_true, xor_true, not_false_iff]⟩
+| (bcd n) ⟨a :: l, h⟩ := ⟨bcd n :: a :: l, h.cons $ by simp only [eq_self_iff_true, xor_false]⟩
+| (bcd n) ⟨bcd m :: l, h⟩ := if n = m then ⟨l, h.tail⟩
+  else ⟨bcd (-n - m) :: l, h.imp_head $ λ z hz, by simpa only using hz⟩
+
+lemma cons_noncancellable_one (x : generator) : x.cons_noncancellable 1 = x :=
+by cases x; refl
+
+end generator
+
+namespace noncancellable
+
+lemma mk_cons {x : generator} {l : word} (h) :
+  mk (x :: l) h = x.cons_noncancellable (mk l h.tail) :=
+by cases x; rcases l with (_|⟨(_|_), l⟩); simp only [generator.cons_noncancellable];
+  try { refl }; apply absurd h.rel_head; simp
+
+end noncancellable
+
+namespace word
+
+def cancel_aux : word → NC := foldr generator.cons_noncancellable 1
+
+lemma cancel_aux_one : cancel_aux 1 = 1 := rfl
+
+lemma cancel_aux_cons (x : generator) (l : word) :
+  cancel_aux (x :: l) = x.cons_noncancellable (cancel_aux l) :=
+rfl
+
+end word
+
+namespace noncancellable
+
+lemma cancel_aux_to_word (g : NC) : g.to_word.cancel_aux = g :=
+begin
+  cases g with l hl,
+  induction l with x l ihl,
+  { refl },
+  { simp only [word.cancel_aux_cons, ihl hl.tail, mk_cons] }
+end
+
+instance : mul_one_class NC :=
+{ mul := λ g₁ g₂, (g₁.to_word * g₂.to_word).cancel_aux,
+  one_mul := λ a, cancel_aux_to_word _,
+  mul_one := λ a, by simp only [one_to_word, mul_one, cancel_aux_to_word],
+  .. noncancellable.has_one }
+
+lemma mul_def (g₁ g₂ : NC) : g₁ * g₂ = (g₁.to_word * g₂.to_word).cancel_aux := rfl
+
+end noncancellable
+
+namespace generator
+
+open noncancellable
+
+@[simp] lemma cons_noncancellable_eq_coe_mul (x : generator) (g : NC) :
+  x.cons_noncancellable g = x * g :=
+by erw [noncancellable.mul_def, noncancellable.to_word_coe, word.cancel_aux_cons,
+  noncancellable.cancel_aux_to_word]
+
+lemma cons_noncancellable_mul_assoc (x : generator) (g₁ g₂ : NC) :
+  (x.cons_noncancellable g₁) * g₂ = x.cons_noncancellable (g₁ * g₂) :=
+begin
+  cases g₁ with l hl,
+  induction l with y l ihl generalizing x,
+  { rw [mk_nil, one_mul, cons_noncancellable_one, cons_noncancellable_eq_coe_mul] },
+  { specialize ihl hl.tail,
+    change (x.cons_noncancellable ⟨y :: l, hl⟩) * g₂ =
+      x.cons_noncancellable (y.cons_noncancellable (⟨l, hl.tail⟩ * g₂)),
+
+ }
+end
+
+end generator
+
+namespace word
+
+lemma cancel_aux_mul' (g₁ g₂ : word) :
+  (g₁ * g₂).cancel_aux = g₁.cancel_aux * g₂.cancel_aux :=
+begin
+  simp only [noncancellable.mul_def],
+  induction g₁ using free_monoid.rec_on with x g₁ ih,
+  { rw [one_mul, word.cancel_aux_one, noncancellable.one_to_word, one_mul,
+      noncancellable.cancel_aux_to_word] },
+  { simp_rw [mul_assoc, free_monoid.of_mul_eq_cons, word.cancel_aux_cons, ih],
+    generalize : word.cancel_aux g₁ = g, clear ih g₁,
+    generalize : g₂.cancel_aux = g', clear g₂,
+    
+ }
+end
+
+lemma cancel_aux_mul (g₁ g₂ : word) :
+  (g₁ * g₂).cancel_aux = g₁.cancel_aux * g₂.cancel_aux :=
+calc (g₁ * g₂).cancel_aux = foldr generator.cons_noncancellable g₂.cancel_aux g₁ :
+  foldr_append _ _ _ _
+... = foldr generator.cons_noncancellable g₂.cancel_aux g₁.cancel_aux.to_word :
+  begin
+    generalize : g₂.cancel_aux = g', clear g₂,
+    induction g₁ with x l ihl, { refl },
+    rw [foldr, ihl, word.cancel_aux_cons],
+    generalize : word.cancel_aux l = g, clear ihl l,
+    rcases ⟨x, g⟩ with ⟨_|n, ⟨_|⟨_|m, l⟩, h⟩⟩; simp only [generator.cons_noncancellable, foldr],
+  end
+... = foldr generator.cons_noncancellable g₂.cancel_aux.to_word.cancel_aux g₁.cancel_aux.to_word :
+  by rw [cancel_aux_to_word]
+... = g₁.cancel_aux * g₂.cancel_aux : (foldr_append _ _ _ _).symm
+
+end noncancellable
+
+def word.cancel : word →* NC :=
+free_monoid.lift _
+
+instance : group NC :=
+{ mul_assoc := _,
+  one_mul := λ ⟨l, hl⟩, by simp only [one_to_word, one_mul],
+  mul_one := _,
+  inv := _,
+  mul_left_inv := _,
+  .. noncancellable.has_one, .. noncancellable.has_mul }
+
+
 def cancel_aux (n : fin 3) : free_monoid generator → free_monoid generator
 | [] := [bcd n]
 | (a :: l) := bcd n :: a :: l

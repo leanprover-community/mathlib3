@@ -80,5 +80,5 @@ end
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_std_orthonormal_basis h).orientation_adjust_to_orientation x
+  exact ((std_orthonormal_basis _ _).reindex $ fin_congr h).orientation_adjust_to_orientation x
 end

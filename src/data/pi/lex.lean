@@ -88,8 +88,8 @@ noncomputable instance [linear_order ι] [is_well_order ι (<)] [∀ a, linear_o
 
 lemma lex.le_of_forall_le [linear_order ι] [hwf : is_well_order ι (<)] [Π a, partial_order (β a)]
   {a b : lex (Π i, β i)} (h : ∀ i, a i ≤ b i) : a ≤ b :=
-or_iff_not_imp_left.2 $ λ he,
-  let ⟨i, hi, hl⟩ := hwf.to_is_well_founded.wf.has_min {i | a i ≠ b i} (function.ne_iff.1 he) in
+or_iff_not_imp_left.2 $ λ hne,
+  let ⟨i, hi, hl⟩ := hwf.to_is_well_founded.wf.has_min {i | a i ≠ b i} (function.ne_iff.1 hne) in
   ⟨i, λ j hj, by { contrapose! hl, exact ⟨j, hl, hj⟩ }, (h i).lt_of_ne hi⟩
 
 lemma lex.le_of_of_lex_le [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]

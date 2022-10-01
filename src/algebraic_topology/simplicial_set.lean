@@ -143,7 +143,7 @@ end augmented
 end sSet
 
 /-- The functor associating the singular simplicial set to a topological space. -/
-noncomputable def Top.to_sSet : Top ⥤ sSet :=
+def Top.to_sSet : Top ⥤ sSet :=
 colimit_adj.restricted_yoneda simplex_category.to_Top
 
 /-- The geometric realization functor. -/

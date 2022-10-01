@@ -840,7 +840,8 @@ lemma topological_space.quotient.second_countable_topology [second_countable_top
   begin
     let π : X → (quotient S) := quotient.mk,
     obtain ⟨V, V_countable, V_no_empty, V_generates⟩ := topological_space.exists_countable_basis X,
-    exact ⟨set.image π '' V, V_countable.image (set.image π), (V_generates.quotient h).eq_generate_from⟩,
+    exact ⟨set.image π '' V, V_countable.image (set.image π),
+      (V_generates.quotient h).eq_generate_from⟩,
   end }
 
 end quotient

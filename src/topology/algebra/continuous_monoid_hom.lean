@@ -241,8 +241,9 @@ let hi := inducing_to_continuous_map A E, hc := hi.continuous in
 { continuous_mul := hi.continuous_iff.mpr (continuous_mul.comp (continuous.prod_map hc hc)),
   continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
 
-@[to_additive] lemma continuous_of_continuous_uncurry (f : A → continuous_monoid_hom B C)
-  (h : continuous (function.uncurry (λ x y, f x y))) : continuous f :=
+@[to_additive] lemma continuous_of_continuous_uncurry {A : Type*} [topological_space A]
+  (f : A → continuous_monoid_hom B C) (h : continuous (function.uncurry (λ x y, f x y))) :
+  continuous f :=
 (inducing_to_continuous_map _ _).continuous_iff.mpr
   (continuous_map.continuous_of_continuous_uncurry _ h)
 

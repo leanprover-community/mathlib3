@@ -422,7 +422,9 @@ protected def neg : ereal → ereal
 | ⊤       := ⊥
 | (x : ℝ) := (-x : ℝ)
 
-noncomputable instance : sub_neg_zero_monoid ereal :=
+instance : has_neg ereal := ⟨ereal.neg⟩
+
+instance : sub_neg_zero_monoid ereal :=
 { neg_zero := by { change ((-0 : ℝ) : ereal) = 0, simp },
   ..ereal.add_monoid, ..ereal.has_neg }
 
@@ -501,7 +503,7 @@ points, so is subtraction. There is no standard algebraic typeclass involving su
 registered on `ereal`, beyond `sub_neg_zero_monoid`, because of this bad behavior.
 -/
 
-@[simp] lemma top_sub (x : ereal) : ⊤ - x = ⊤ := top_add _
+@[simp] lemma top_sub (x : ereal) : ⊤ - x = ⊤ := top_add x
 @[simp] lemma sub_bot (x : ereal) : x - ⊥ = ⊤ := add_top x
 
 @[simp] lemma bot_sub_top : (⊥ : ereal) - ⊤ = ⊥ := rfl
@@ -509,7 +511,7 @@ registered on `ereal`, beyond `sub_neg_zero_monoid`, because of this bad behavio
 @[simp] lemma coe_sub_bot (x : ℝ) : (x : ereal) - ⊤ = ⊥ := rfl
 
 @[simp, norm_cast] lemma coe_sub (x y : ℝ) : (↑(x - y) : ereal) = x - y := rfl
-@[simp, norm_cast] lemma coe_zsmul (n : ℤ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
+@[ norm_cast] lemma coe_zsmul (n : ℤ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
 map_zsmul' (⟨coe, coe_zero, coe_add⟩ : ℝ →+ ereal) coe_neg _ _
 
 lemma sub_le_sub {x y z t : ereal} (h : x ≤ y) (h' : t ≤ z) : x - z ≤ y - t :=

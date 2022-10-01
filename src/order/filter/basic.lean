@@ -630,6 +630,31 @@ lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
 by simpa only [disjoint_iff] using filter.disjoint_iff
 
+lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
+  {l : ι → filter α} (hd : pairwise (disjoint on l)) :
+  ∃ s : ι → set α, (∀ i, s i ∈ l i) ∧ pairwise (disjoint on s) :=
+begin
+  simp only [pairwise, function.on_fun, filter.disjoint_iff, subtype.exists'] at hd,
+  choose! s t hst using hd,
+  refine ⟨λ i, ⋂ j, s i j ∩ t j i, λ i, _, λ i j hij, _⟩,
+  exacts [Inter_mem.2 (λ j, inter_mem (s i j).2 (t j i).2),
+    (hst i j hij).mono ((Inter_subset _ j).trans (inter_subset_left _ _))
+      ((Inter_subset _ i).trans (inter_subset_right _ _))]
+end
+
+lemma _root_.set.pairwise_disjoint.exists_mem_filter {ι : Type*} {l : ι → filter α} {t : set ι}
+  (hd : t.pairwise_disjoint l) (ht : t.finite) :
+  ∃ s : ι → set α, (∀ i, s i ∈ l i) ∧ t.pairwise_disjoint s :=
+begin
+  casesI ht,
+  obtain ⟨s, hd⟩ : ∃ s : Π i : t, {s : set α // s ∈ l i}, pairwise (disjoint on λ i, (s i : set α)),
+  { rcases (hd.subtype _ _).exists_mem_filter_of_disjoint with ⟨s, hsl, hsd⟩,
+    exact ⟨λ i, ⟨s i, hsl i⟩, hsd⟩ },
+  -- TODO: Lean fails to find `can_lift` instance and fails to use an instance supplied by `letI`
+  rcases @subtype.exists_pi_extension ι (λ i, {s // s ∈ l i}) _ _ s with ⟨s, rfl⟩,
+  exact ⟨λ i, s i, λ i, (s i).2, pairwise.set_of_subtype _ _ hd⟩
+end
+
 /-- There is exactly one filter on an empty type. --/
 instance unique [is_empty α] : unique (filter α) :=
 { default := ⊥, uniq := filter_eq_bot_of_is_empty }

@@ -12,18 +12,24 @@ import data.fin.tuple.nat_antidiagonal
 
 /-! # Multinomial theorem
 
-`finset.sum_pow` is the *multinomial theorem* that expresses a power of a finite sum in a commutative semiring as a finite sum involving multinomial coefficients:
+`finset.sum_pow` is the *multinomial theorem* that expresses a power of a
+finite sum in a commutative semiring as a finite sum involving multinomial
+ coefficients:
 (f 0 + f 1 + ...  + f (m-1))^n
     = ∑_(c ∈ list.nat.antidiagonal_tuple m n)
      (multinomial c id) *  ∏ (f i) ^ (c i)
 It generalizes the binomial formula which is `add_pow`.
 
-A small section on `tuples` which are members of `fin m → ℕ` and proves results which are used to simplify the proof and could be elsewhere.
+A small section on `tuples` which are members of `fin m → ℕ` and proves results
+which are used to simplify the proof and could be elsewhere.
 
 
 ## TODO :
 * Extend to the noncommutative case, as `commute.add_pow`
-* The indices of the sums are `fin m`. This may be painful but is due to the definition of `nat.antidiagonal_tuple` which is defined as `finset : (fin m → ℕ)`. Some lemmas would apply once `nat_antidiagonal` is properly rewritten.
+* The indices of the sums are `fin m`. This may be painful but is due
+to thedefinition of `nat.antidiagonal_tuple` which is defined as
+`finset : (fin m → ℕ)`.  Some lemmas would apply once `nat_antidiagonal` is
+rewritten in a greater generality.
 * The proofs are in need of being golfed.
 
 -/
@@ -106,7 +112,8 @@ begin
   simp only [mul_zero],
   suffices H2 : ∀ (x ∈ finset.nat.antidiagonal_tuple m n),
     ite (tuple.add x a = c)
-      (finset.univ.prod (λ (i : fin m), (c i).factorial) * nat.multinomial finset.univ x)
+      (finset.univ.prod (λ (i : fin m), (c i).factorial)
+        * nat.multinomial finset.univ x)
       0
     = (ite (tuple.add x a = c) (c a) 0) * n.factorial,
   rw finset.sum_congr rfl H2,
@@ -135,8 +142,8 @@ begin
     intros c hc,
     split_ifs,
     { rw ← h,
-      simp only [tuple.add, function.update_same, ← function.comp_apply nat.factorial,
-      function.comp_update],
+      simp only [tuple.add, function.update_same,
+        ← function.comp_apply nat.factorial, function.comp_update],
 
       rw finset.prod_update_of_mem (finset.mem_univ a),
       dsimp,
@@ -169,25 +176,31 @@ theorem finset.sum_pow {m : ℕ} (f : fin m → α) (n : ℕ) :
 begin
   induction n with n ih,
   { -- case 0
-    simp only [finset.nat.antidiagonal_tuple_zero_right, pow_zero, finset.sum_singleton, pi.zero_apply, finset.prod_const_one,
-  mul_one],
-    simp only [nat.multinomial, pi.zero_apply, finset.sum_const_zero, nat.factorial_zero, finset.prod_const_one, nat.div_self,
-  nat.lt_one_iff, nat.cast_one], },
+    simp only [finset.nat.antidiagonal_tuple_zero_right, pow_zero,
+      finset.sum_singleton, pi.zero_apply, finset.prod_const_one, mul_one],
+    simp only [nat.multinomial, pi.zero_apply, finset.sum_const_zero,
+      nat.factorial_zero, finset.prod_const_one, nat.div_self,
+      nat.lt_one_iff, nat.cast_one], },
   { -- induction case
     by_cases hm : m = 0,
     { have : (finset.univ : finset (fin m)) = ∅,
       rw [finset.univ_eq_empty_iff, hm], exact fin.is_empty,
       rw this,
-      simp only [finset.sum_empty, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, nat.multinomial_nil, nat.cast_one, finset.prod_empty, mul_one, finset.sum_const, nat.smul_one_eq_coe],
+      simp only [finset.sum_empty, zero_pow', ne.def, nat.succ_ne_zero,
+        not_false_iff, nat.multinomial_nil, nat.cast_one, finset.prod_empty,
+        mul_one, finset.sum_const, nat.smul_one_eq_coe],
       rw hm,
-      simp only [hm, finset.nat.antidiagonal_tuple_zero_succ, finset.card_empty, nat.cast_zero], },
+      simp only [hm, finset.nat.antidiagonal_tuple_zero_succ,
+        finset.card_empty, nat.cast_zero], },
 
     -- m ≠ 0
     rw pow_succ',
     rw ih,
     rw finset.sum_mul, simp_rw finset.mul_sum, rw ← finset.sum_product',
 
-    have hq : ∀ ca ∈  finset.nat.antidiagonal_tuple m n ×ˢ (finset.univ : finset (fin m)), tuple.add ca.fst ca.snd ∈ finset.nat.antidiagonal_tuple m n.succ
+    have hq : ∀ ca ∈  finset.nat.antidiagonal_tuple m n
+      ×ˢ (finset.univ : finset (fin m)),
+      tuple.add ca.fst ca.snd ∈ finset.nat.antidiagonal_tuple m n.succ
     := λ ca hca, tuple.add_sum.mp (finset.mem_product.mp hca).1,
     rw ← finset.sum_fiberwise_of_maps_to hq,
     rw finset.sum_congr rfl,
@@ -207,7 +220,8 @@ begin
     apply multinomial_induction,
     exact hc, },
     { rintros ⟨x,a⟩ hxa,
-      simp only [finset.mem_filter, finset.mem_product, finset.nat.mem_antidiagonal_tuple] at hxa,
+      simp only [finset.mem_filter, finset.mem_product,
+        finset.nat.mem_antidiagonal_tuple] at hxa,
       rw mul_assoc,
       apply congr_arg2 _ rfl,
       rw ← hxa.2,
@@ -218,7 +232,8 @@ begin
       apply congr_arg2,
       { rw finset.prod_congr rfl,
         intros i hi,
-        simp only [finset.mem_sdiff, finset.mem_range, finset.mem_singleton] at hi,
+        simp only [finset.mem_sdiff,
+          finset.mem_range, finset.mem_singleton] at hi,
         apply congr_arg2 _ rfl,
         change x i = function.update x a (x a + 1) i,
         simp only [function.update_apply, if_neg hi.2], },

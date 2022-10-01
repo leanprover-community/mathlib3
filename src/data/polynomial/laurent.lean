@@ -355,7 +355,7 @@ lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
 begin
   induction f using laurent_polynomial.induction_on_mul_T with f n,
   induction n with n hn,
-  { simpa only [int.coe_nat_zero, neg_zero', T_zero, mul_one] using Qf _ },
+  { simpa only [int.coe_nat_zero, neg_zero, T_zero, mul_one] using Qf _ },
   { convert QT _ _,
     simpa using hn }
 end

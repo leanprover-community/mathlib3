@@ -564,6 +564,31 @@ lemma has_basis.disjoint_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
 not_iff_not.mp $ by simp only [disjoint_iff, ← ne.def, ← ne_bot_iff, hl.inf_basis_ne_bot_iff hl',
   not_exists, bot_eq_empty, ne_empty_iff_nonempty, inf_eq_inter]
 
+lemma _root_.disjoint.exists_mem_filter_basis (h : disjoint l l') (hl : l.has_basis p s)
+  (hl' : l'.has_basis p' s') :
+  ∃ i (hi : p i) i' (hi' : p' i'), disjoint (s i) (s' i') :=
+(hl.disjoint_iff hl').1 h
+
+lemma _root_.pairwise.exists_mem_filter_basis_of_disjoint {I : Type*} [finite I]
+  {l : I → filter α} {ι : I → Sort*} {p : Π i, ι i → Prop} {s : Π i, ι i → set α}
+  (hd : pairwise (disjoint on l)) (h : ∀ i, (l i).has_basis (p i) (s i)) :
+  ∃ ind : Π i, ι i, (∀ i, p i (ind i)) ∧ pairwise (disjoint on λ i, s i (ind i)) :=
+begin
+  rcases hd.exists_mem_filter_of_disjoint with ⟨t, htl, hd⟩,
+  choose ind hp ht using λ i, (h i).mem_iff.1 (htl i),
+  exact ⟨ind, hp, hd.mono $ λ i j hij, hij.mono (ht _) (ht _)⟩
+end
+
+lemma _root_.set.pairwise_disjoint.exists_mem_filter_basis {I : Type*} {l : I → filter α}
+  {ι : I → Sort*} {p : Π i, ι i → Prop} {s : Π i, ι i → set α} {S : set I}
+  (hd : S.pairwise_disjoint l) (hS : S.finite) (h : ∀ i, (l i).has_basis (p i) (s i)) :
+  ∃ ind : Π i, ι i, (∀ i, p i (ind i)) ∧ S.pairwise_disjoint (λ i, s i (ind i)) :=
+begin
+  rcases hd.exists_mem_filter hS with ⟨t, htl, hd⟩,
+  choose ind hp ht using λ i, (h i).mem_iff.1 (htl i),
+  exact ⟨ind, hp, hd.mono ht⟩
+end
+
 lemma inf_ne_bot_iff :
   ne_bot (l ⊓ l') ↔ ∀ ⦃s : set α⦄ (hs : s ∈ l) ⦃s'⦄ (hs' : s' ∈ l'), (s ∩ s').nonempty :=
 l.basis_sets.inf_ne_bot_iff
@@ -605,6 +630,15 @@ by simp only [← principal_singleton, disjoint_principal_principal, disjoint_si
 @[simp] lemma compl_diagonal_mem_prod {l₁ l₂ : filter α} :
   (diagonal α)ᶜ ∈ l₁ ×ᶠ l₂ ↔ disjoint l₁ l₂ :=
 by simp only [mem_prod_iff, filter.disjoint_iff, prod_subset_compl_diagonal_iff_disjoint]
+
+lemma has_basis.disjoint_iff_left (h : l.has_basis p s) :
+  disjoint l l' ↔ ∃ i (hi : p i), (s i)ᶜ ∈ l' :=
+by simp only [h.disjoint_iff l'.basis_sets, exists_prop, id, ← disjoint_principal_left,
+  (has_basis_principal _).disjoint_iff l'.basis_sets, unique.exists_iff]
+
+lemma has_basis.disjoint_iff_right (h : l.has_basis p s) :
+  disjoint l' l ↔ ∃ i (hi : p i), (s i)ᶜ ∈ l' :=
+disjoint.comm.trans h.disjoint_iff_left
 
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=

@@ -102,8 +102,8 @@ end module
 
 section linear_ordered_field
 
-variables (𝕜 E : Type*) [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
-  [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+variables (𝕜 E : Type*) [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E]
+  [topological_space E] [topological_add_group E] [has_continuous_const_smul 𝕜 E]
 
 lemma locally_convex_space.convex_open_basis_zero [locally_convex_space 𝕜 E] :
   (𝓝 0 : filter E).has_basis (λ s, (0 : E) ∈ s ∧ is_open s ∧ convex 𝕜 s) id :=

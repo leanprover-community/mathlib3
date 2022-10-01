@@ -113,7 +113,7 @@ monoid_hom.ext_iff.1 (comp_lift g f) x
   one_smul := λ x, rfl,
   mul_smul := λ xs ys b, list.foldr_append _ _ _ _ }
 
-@[simp, to_additive] lemma of_smul (f : α → function.End β) (x : α) (y : β) :
+@[simp, to_additive] lemma of_smul (f : α → β → β) (x : α) (y : β) :
   (by haveI := mk_mul_action f; exact of x • y) = f x y :=
 rfl
 

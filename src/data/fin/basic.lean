@@ -283,6 +283,10 @@ involutive.to_perm (λ i, ⟨n - (i + 1), tsub_lt_self i.pos (nat.succ_pos _)⟩
 
 @[simp] lemma coe_rev (i : fin n) : (i.rev : ℕ) = n - (i + 1) := rfl
 lemma rev_involutive : involutive (@rev n) := involutive.to_perm_involutive _
+lemma rev_injective : injective (@rev n) := rev_involutive.injective
+lemma rev_surjective : surjective (@rev n) := rev_involutive.surjective
+lemma rev_bijective : bijective (@rev n) := rev_involutive.bijective
+@[simp] lemma rev_inj {i j : fin n} : i.rev = j.rev ↔ i = j := rev_injective.eq_iff
 @[simp] lemma rev_rev (i : fin n) : i.rev.rev = i := rev_involutive _
 @[simp] lemma rev_symm : (@rev n).symm = rev := rfl
 
@@ -298,6 +302,9 @@ end
 @[simp] lemma rev_le_rev {i j : fin n} : i.rev ≤ j.rev ↔ j ≤ i :=
 by simp only [le_iff_coe_le_coe, coe_rev, tsub_le_tsub_iff_left (nat.add_one_le_iff.2 j.is_lt),
   add_le_add_iff_right]
+
+@[simp] lemma rev_lt_rev {i j : fin n} : i.rev < j.rev ↔ j < i :=
+lt_iff_lt_of_le_iff_le rev_le_rev
 
 /-- `fin.rev n` as an order-reversing isomorphism. -/
 @[simps apply to_equiv] def rev_order_iso {n} : (fin n)ᵒᵈ ≃o fin n :=

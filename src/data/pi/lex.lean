@@ -46,6 +46,15 @@ notation `Πₗ` binders `, ` r:(scoped p, lex (Π i, p i)) := r
 @[simp] lemma to_lex_apply (x : Π i, β i) (i : ι) : to_lex x i = x i := rfl
 @[simp] lemma of_lex_apply (x : lex (Π i, β i)) (i : ι) : of_lex x i = x i := rfl
 
+lemma lex_lt_of_lt_of_preorder [Π i, preorder (β i)] {r} (hwf : well_founded r)
+  {x y : Π i, β i} (hlt : x < y) : ∃ i, (∀ j, r j i → x j ≤ y j ∧ y j ≤ x j) ∧ x i < y i :=
+let h' := pi.lt_def.1 hlt, ⟨i, hi, hl⟩ := hwf.has_min _ h'.2 in
+  ⟨i, λ j hj, ⟨h'.1 j, not_not.1 $ λ h, hl j (lt_of_le_not_le (h'.1 j) h) hj⟩, hi⟩
+
+lemma lex_lt_of_lt [Π i, partial_order (β i)] {r} (hwf : well_founded r)
+  {x y : Π i, β i} (hlt : x < y) : pi.lex r (λ i, (<)) x y :=
+by { simp_rw [pi.lex, le_antisymm_iff], exact lex_lt_of_lt_of_preorder hwf hlt }
+
 lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r) :
   is_trichotomous (Π i, β i) (pi.lex r @s) :=
 { trichotomous := λ a b,

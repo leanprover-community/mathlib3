@@ -161,6 +161,47 @@ instance [order_monoid_with_zero_hom_class F α β] : has_coe_t F (α →*₀o �
 
 end monoid_with_zero
 
+section ordered_add_comm_monoid
+variables [ordered_add_comm_monoid α] [ordered_add_comm_monoid β] [order_add_monoid_hom_class F α β]
+  (f : F) {a : α}
+include β
+
+lemma map_nonneg (ha : 0 ≤ a) : 0 ≤ f a := by { rw ←map_zero f, exact order_hom_class.mono _ ha }
+lemma map_nonpos (ha : a ≤ 0) : f a ≤ 0 := by { rw ←map_zero f, exact order_hom_class.mono _ ha }
+
+end ordered_add_comm_monoid
+
+section ordered_add_comm_group
+
+variables [ordered_add_comm_group α]
+  [ordered_add_comm_monoid β] [add_monoid_hom_class F α β] (f : F)
+
+lemma monotone_iff_map_nonneg : monotone (f : α → β) ↔ ∀ a, 0 ≤ a → 0 ≤ f a :=
+⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
+  by { rw [←sub_add_cancel b a, map_add f], exact le_add_of_nonneg_left (h _ $ sub_nonneg.2 hl) }⟩
+
+lemma antitone_iff_map_nonpos : antitone (f : α → β) ↔ ∀ a, 0 ≤ a → f a ≤ 0 :=
+monotone_to_dual_comp_iff.symm.trans $ monotone_iff_map_nonneg _
+lemma monotone_iff_map_nonpos : monotone (f : α → β) ↔ ∀ a ≤ 0, f a ≤ 0 :=
+antitone_comp_of_dual_iff.symm.trans $ antitone_iff_map_nonpos _
+lemma antitone_iff_map_nonneg : antitone (f : α → β) ↔ ∀ a ≤ 0, 0 ≤ f a :=
+monotone_comp_of_dual_iff.symm.trans $ monotone_iff_map_nonneg _
+
+variable [covariant_class β β (+) (<)]
+
+lemma strict_mono_iff_map_pos : strict_mono (f : α → β) ↔ ∀ a, 0 < a → 0 < f a :=
+⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
+  by { rw [←sub_add_cancel b a, map_add f], exact lt_add_of_pos_left _ (h _ $ sub_pos.2 hl) }⟩
+
+lemma strict_anti_iff_map_neg : strict_anti (f : α → β) ↔ ∀ a, 0 < a → f a < 0 :=
+strict_mono_to_dual_comp_iff.symm.trans $ strict_mono_iff_map_pos _
+lemma strict_mono_iff_map_neg : strict_mono (f : α → β) ↔ ∀ a < 0, f a < 0 :=
+strict_anti_comp_of_dual_iff.symm.trans $ strict_anti_iff_map_neg _
+lemma strict_anti_iff_map_pos : strict_anti (f : α → β) ↔ ∀ a < 0, 0 < f a :=
+strict_mono_comp_of_dual_iff.symm.trans $ strict_mono_iff_map_pos _
+
+end ordered_add_comm_group
+
 namespace order_monoid_hom
 section preorder
 variables [preorder α] [preorder β] [preorder γ] [preorder δ] [mul_one_class α]

@@ -31,7 +31,7 @@ von Neumann-bounded sets.
 
 -/
 
-variables {𝕜 E F ι : Type*}
+variables {𝕜 E E' F ι : Type*}
 
 open filter
 open_locale topological_space pointwise
@@ -117,7 +117,7 @@ begin
   refine ⟨r, hrpos, λ a ha, _⟩,
   rw ← σ'.apply_symm_apply a,
   have hanz : a ≠ 0 := norm_pos_iff.mp (hrpos.trans_le ha),
-  have : σ'.symm a ≠ 0 := (ring_hom.map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
+  have : σ'.symm a ≠ 0 := (map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
   change _ ⊆ σ _ • _,
   rw [set.image_subset_iff, preimage_smul_setₛₗ _ _ _ f this.is_unit],
   refine hr (σ'.symm a) _,
@@ -270,6 +270,14 @@ begin
     exact ⟨∥a∥, hρball.trans metric.ball_subset_closed_ball⟩ },
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
 end
+
+lemma is_vonN_bounded_iff' (s : set E) :
+  bornology.is_vonN_bounded 𝕜 s ↔ ∃ r : ℝ, ∀ (x : E) (hx : x ∈ s), ∥x∥ ≤ r :=
+by rw [normed_space.is_vonN_bounded_iff, ←metric.bounded_iff_is_bounded, bounded_iff_forall_norm_le]
+
+lemma image_is_vonN_bounded_iff (f : E' → E) (s : set E') :
+  bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∃ r : ℝ, ∀ (x : E') (hx : x ∈ s), ∥f x∥ ≤ r :=
+by simp_rw [is_vonN_bounded_iff', set.ball_image_iff]
 
 /-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the
 metric bornology. -/

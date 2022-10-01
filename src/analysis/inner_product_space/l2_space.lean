@@ -80,7 +80,7 @@ Hilbert space, Hilbert sum, l2, Hilbert basis, unitary equivalence, isometric is
 -/
 
 open is_R_or_C submodule filter
-open_locale big_operators nnreal ennreal classical complex_conjugate
+open_locale big_operators nnreal ennreal classical complex_conjugate topological_space
 
 noncomputable theory
 
@@ -89,7 +89,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 
 variables {G : ι → Type*} [Π i, inner_product_space 𝕜 (G i)]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-notation `ℓ²(` ι `,` 𝕜 `)` := lp (λ i : ι, 𝕜) 2
+notation `ℓ²(`ι`, `𝕜`)` := lp (λ i : ι, 𝕜) 2
 
 /-! ### Inner product space structure on `lp G 2` -/
 
@@ -485,6 +485,22 @@ end
   (b.to_orthonormal_basis : ι → E) = b :=
 orthonormal_basis.coe_mk _ _
 
+protected lemma has_sum_orthogonal_projection {U : submodule 𝕜 E}
+  [complete_space U] (b : hilbert_basis ι 𝕜 U) (x : E) :
+  has_sum (λ i, ⟪(b i : E), x⟫ • b i) (orthogonal_projection U x) :=
+by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
+  using b.has_sum_repr (orthogonal_projection U x)
+
+lemma finite_spans_dense (b : hilbert_basis ι 𝕜 E) :
+  (⨆ J : finset ι, span 𝕜 (J.image b : set E)).topological_closure = ⊤ :=
+eq_top_iff.mpr $ b.dense_span.ge.trans
+begin
+  simp_rw [← submodule.span_Union],
+  exact topological_closure_mono (span_mono $ set.range_subset_iff.mpr $
+    λ i, set.mem_Union_of_mem {i} $ finset.mem_coe.mpr $ finset.mem_image_of_mem _ $
+    finset.mem_singleton_self i)
+end
+
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 
@@ -501,7 +517,7 @@ by rw [is_hilbert_sum.linear_isometry_equiv_symm_apply_single,
 
 @[simp] protected lemma coe_mk (hsp : ⊤ ≤ (span 𝕜 (set.range v)).topological_closure) :
   ⇑(hilbert_basis.mk hv hsp) = v :=
-funext $ orthonormal.linear_isometry_equiv_symm_apply_single_one hv _
+by apply (funext $ orthonormal.linear_isometry_equiv_symm_apply_single_one hv hsp)
 
 /-- An orthonormal family of vectors whose span has trivial orthogonal complement is a Hilbert
 basis. -/

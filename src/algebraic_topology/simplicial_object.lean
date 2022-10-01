@@ -36,9 +36,8 @@ def simplicial_object := simplex_categoryᵒᵖ ⥤ C
 
 namespace simplicial_object
 
-localized
-  "notation X `_[`:1000 n `]` :=
-    (X : category_theory.simplicial_object _).obj (opposite.op (simplex_category.mk n))"
+localized "notation (name := simplicial_object.at) X ` _[`:1000 n `]` :=
+  (X : category_theory.simplicial_object hole!).obj (opposite.op (simplex_category.mk n))"
   in simplicial
 
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
@@ -237,7 +236,7 @@ end augmented
 
 open_locale simplicial
 
-/-- Aaugment a simplicial object with an object. -/
+/-- Augment a simplicial object with an object. -/
 @[simps]
 def augment (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀)
   (w : ∀ (i : simplex_category) (g₁ g₂ : [0] ⟶ i),
@@ -266,10 +265,8 @@ def cosimplicial_object := simplex_category ⥤ C
 
 namespace cosimplicial_object
 
-localized
-  "notation X `_[`:1000 n `]` :=
-    (X : category_theory.cosimplicial_object _).obj (simplex_category.mk n)"
-  in simplicial
+localized "notation (name := cosimplicial_object.at) X ` _[`:1000 n `]` :=
+  (X : category_theory.cosimplicial_object hole!).obj (simplex_category.mk n)" in simplicial
 
 instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
   has_limits_of_shape J (cosimplicial_object C) := by {dsimp [cosimplicial_object], apply_instance}
@@ -570,21 +567,14 @@ def cosimplicial_to_simplicial_augmented :
 
 /-- The contravariant categorical equivalence between augmented simplicial
 objects and augmented cosimplicial objects in the opposite category. -/
-@[simps]
+@[simps functor inverse]
 def simplicial_cosimplicial_augmented_equiv :
   (simplicial_object.augmented C)ᵒᵖ ≌ cosimplicial_object.augmented Cᵒᵖ :=
-{ functor := simplicial_to_cosimplicial_augmented _,
-  inverse := cosimplicial_to_simplicial_augmented _,
-  unit_iso := nat_iso.of_components
-    (λ X, X.unop.right_op_left_op_iso.op) begin
-      intros X Y f,
-      dsimp,
-      rw (show f = f.unop.op, by simp),
-      simp_rw ← op_comp,
-      congr' 1,
-      tidy,
-    end,
-  counit_iso := nat_iso.of_components
-    (λ X, X.left_op_right_op_iso) (by tidy) }
+equivalence.mk
+  (simplicial_to_cosimplicial_augmented _)
+  (cosimplicial_to_simplicial_augmented _)
+  (nat_iso.of_components (λ X, X.unop.right_op_left_op_iso.op) $ λ X Y f,
+    by { dsimp, rw ←f.op_unop, simp_rw ← op_comp, congr' 1, tidy })
+  (nat_iso.of_components (λ X, X.left_op_right_op_iso) $ by tidy)
 
 end category_theory

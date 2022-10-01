@@ -292,6 +292,9 @@ instance [monoid α] : is_refl α associated := ⟨associated.refl⟩
 | x _ ⟨u, rfl⟩ := ⟨u⁻¹, by rw [mul_assoc, units.mul_inv, mul_one]⟩
 instance [monoid α] : is_symm α associated := ⟨λ a b, associated.symm⟩
 
+protected theorem comm [monoid α] {x y : α} : x ~ᵤ y ↔ y ~ᵤ x :=
+⟨associated.symm, associated.symm⟩
+
 @[trans] protected theorem trans [monoid α] : ∀{x y z : α}, x ~ᵤ y → y ~ᵤ z → x ~ᵤ z
 | x _ _ ⟨u, rfl⟩ ⟨v, rfl⟩ := ⟨u * v, by rw [units.coe_mul, mul_assoc]⟩
 instance [monoid α] : is_trans α associated := ⟨λ a b c, associated.trans⟩
@@ -341,6 +344,45 @@ lemma associated_mul_unit_right {β : Type*} [monoid β] (a u : β) (hu : is_uni
 lemma associated_unit_mul_right {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
   associated a (u * a) :=
 (associated_unit_mul_left a u hu).symm
+
+lemma associated_mul_is_unit_left_iff {β : Type*} [monoid β] {a u b : β} (hu : is_unit u) :
+  associated (a * u) b ↔ associated a b :=
+⟨trans (associated_mul_unit_right _ _ hu), trans (associated_mul_unit_left _ _ hu)⟩
+
+lemma associated_is_unit_mul_left_iff {β : Type*} [comm_monoid β] {u a b : β} (hu : is_unit u) :
+  associated (u * a) b ↔ associated a b :=
+begin
+  rw mul_comm,
+  exact associated_mul_is_unit_left_iff hu
+end
+
+lemma associated_mul_is_unit_right_iff {β : Type*} [monoid β] {a b u : β} (hu : is_unit u) :
+  associated a (b * u) ↔ associated a b :=
+associated.comm.trans $ (associated_mul_is_unit_left_iff hu).trans associated.comm
+
+lemma associated_is_unit_mul_right_iff {β : Type*} [comm_monoid β] {a u b : β} (hu : is_unit u) :
+  associated a (u * b) ↔ associated a b :=
+associated.comm.trans $ (associated_is_unit_mul_left_iff hu).trans associated.comm
+
+@[simp]
+lemma associated_mul_unit_left_iff {β : Type*} [monoid β] {a b : β} {u : units β} :
+  associated (a * u) b ↔ associated a b :=
+associated_mul_is_unit_left_iff u.is_unit
+
+@[simp]
+lemma associated_unit_mul_left_iff {β : Type*} [comm_monoid β] {a b : β} {u : units β} :
+  associated (↑u * a) b ↔ associated a b :=
+associated_is_unit_mul_left_iff u.is_unit
+
+@[simp]
+lemma associated_mul_unit_right_iff {β : Type*} [monoid β] {a b : β} {u : units β} :
+  associated a (b * u) ↔ associated a b :=
+associated_mul_is_unit_right_iff u.is_unit
+
+@[simp]
+lemma associated_unit_mul_right_iff {β : Type*} [comm_monoid β] {a b : β} {u : units β} :
+  associated a (↑u * b) ↔ associated a b :=
+associated_is_unit_mul_right_iff u.is_unit
 
 lemma associated.mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)

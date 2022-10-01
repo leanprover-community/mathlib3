@@ -113,12 +113,17 @@ lemma antisymmetrization_fibration :
   relation.fibration (<) (<) (@to_antisymmetrization α (≤) _) :=
 by { rintro a ⟨b⟩ h, exact ⟨b, h, rfl⟩ }
 
-lemma acc.antisymmetrization (h : acc (<) a) : acc (<) (to_antisymmetrization (≤) a) :=
-acc.of_fibration _ antisymmetrization_fibration h
+lemma acc_antisymmetrization_iff : acc (<) (to_antisymmetrization (≤) a) ↔ acc (<) a :=
+⟨λ h, by { have := inv_image.accessible _ h, exact this },
+  acc.of_fibration _ antisymmetrization_fibration⟩
 
-lemma well_founded.antisymmetrization [well_founded_lt α] :
-  well_founded_lt (antisymmetrization α (≤)) :=
-⟨⟨by { rintro ⟨a⟩, exact (well_founded_lt.apply a).antisymmetrization }⟩⟩
+lemma well_founded_antisymmetrization_iff :
+  well_founded (@has_lt.lt (antisymmetrization α (≤)) _) ↔ well_founded (@has_lt.lt α _) :=
+⟨λ h, ⟨λ a, acc_antisymmetrization_iff.1 $ h.apply _⟩,
+  λ h, ⟨by { rintro ⟨a⟩, exact acc_antisymmetrization_iff.2 (h.apply a) }⟩⟩
+
+instance [well_founded_lt α] : well_founded_lt (antisymmetrization α (≤)) :=
+⟨well_founded_antisymmetrization_iff.2 is_well_founded.wf⟩
 
 instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
   linear_order (antisymmetrization α (≤)) :=

@@ -362,6 +362,8 @@ lemma stable_under_composition.epimorphisms : stable_under_composition (epimorph
   apply epi_comp,
 end
 
+variable {C}
+
 /-- The full subcategory of `C ⥤ D` consisting of functors inverting morphisms in `W` -/
 @[derive category, nolint has_nonempty_instance]
 def functors_inverting (W : morphism_property C) (D : Type*) [category D] :=

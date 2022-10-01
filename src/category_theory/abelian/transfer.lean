@@ -290,9 +290,7 @@ begin
   rw [←R.map_comp],
   simp only [counit_naturality_assoc, left_triangle_components_assoc, functor.map_comp,
     unit_naturality_assoc],
-  congr,
-  ext,
-  rw h₁.some_spec,
+  congr, ext, rw h₁.some_spec,
 end
 
 include adj
@@ -315,21 +313,13 @@ begin
   exact L.map_exact _ _ (exact_kernel_ι)
 end,
 have eq1 : L.map (to_RJ_of A) ≫ (adj.counit.app _) = injective.ι _, from by simp [to_RJ],
-have m1 : mono (L.map (to_RJ_of A) ≫ (adj.counit.app _)),
-begin
-  rw eq1, exactI injective.ι_mono _
-end,
+have m1 : mono (L.map (to_RJ_of A) ≫ (adj.counit.app _)), by { rw eq1, exactI injective.ι_mono _ },
 have m2 : mono (L.map (to_RJ_of A)),
-begin
-  exactI mono_of_mono _ (adj.counit.app $ injective.under _),
-end,
+by { exactI mono_of_mono _ (adj.counit.app $ injective.under _) },
 have eq2 : L.map (kernel.ι (to_RJ_of A)) =
   (preserves_kernel.iso L (to_RJ_of A)).hom ≫ kernel.ι (L.map (to_RJ_of A)), from by simp,
-have eq3 : kernel.ι (to_RJ_of A) = 0, from L.zero_of_map_zero _
-begin
-  rw abelian.mono_iff_kernel_ι_eq_zero at m2,
-  rw [eq2, m2, comp_zero],
-end,
+have eq3 : kernel.ι (to_RJ_of A) = 0, from L.zero_of_map_zero _ $
+by { rw abelian.mono_iff_kernel_ι_eq_zero at m2, rw [eq2, m2, comp_zero] },
 by rw [abelian.mono_iff_kernel_ι_eq_zero, eq3]
 
 end enough_injectives_of_adjunction_auxs

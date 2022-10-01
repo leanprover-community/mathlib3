@@ -177,11 +177,46 @@ begin
 end
 
 /-- The natural homomorphism from `Rˣ` to `K⟮S, n⟯`. -/
-def from_unit (n : ℕ) : Rˣ →* (K⟮(∅ : set $ height_one_spectrum R), n⟯) :=
+def from_unit {n : ℕ} : Rˣ →* K⟮(∅ : set $ height_one_spectrum R), n⟯ :=
 { to_fun   := λ x, ⟨quotient_group.mk $ units.map (algebra_map R K).to_monoid_hom x,
                     λ v _, v.valuation_of_unit_mod_eq n x⟩,
   map_one' := by simpa only [map_one],
   map_mul' := λ _ _, by simpa only [map_mul] }
+
+lemma from_unit_ker [hn : fact $ 0 < n] :
+  (@from_unit R _ _ _ K _ _ _ n).ker = (pow_monoid_hom n : Rˣ →* Rˣ).range :=
+begin
+  ext ⟨_, _, _, _⟩,
+  split,
+  { intro hx,
+    rcases (quotient_group.eq_one_iff _).mp (subtype.mk.inj hx) with ⟨⟨v, i, vi, iv⟩, hx⟩,
+    have hv : ↑(_ ^ n : Kˣ) = algebra_map R K _ := congr_arg units.val hx,
+    have hi : ↑(_ ^ n : Kˣ)⁻¹ = algebra_map R K _ := congr_arg units.inv hx,
+    rw [units.coe_pow] at hv,
+    rw [← inv_pow, units.inv_mk, units.coe_pow] at hi,
+    rcases @is_integrally_closed.exists_algebra_map_eq_of_is_integral_pow R _ _ _ _ _ _ _ v _
+      hn.out (hv.symm ▸ is_integral_algebra_map) with ⟨v', rfl⟩,
+    rcases @is_integrally_closed.exists_algebra_map_eq_of_is_integral_pow R _ _ _ _ _ _ _ i _
+      hn.out (hi.symm ▸ is_integral_algebra_map) with ⟨i', rfl⟩,
+    rw [← map_mul, map_eq_one_iff _ $ no_zero_smul_divisors.algebra_map_injective R K] at vi,
+    rw [← map_mul, map_eq_one_iff _ $ no_zero_smul_divisors.algebra_map_injective R K] at iv,
+    rw [units.coe_mk, ← map_pow] at hv,
+    exact ⟨⟨v', i', vi, iv⟩, by simpa only [units.ext_iff, pow_monoid_hom_apply, units.coe_pow]
+                               using no_zero_smul_divisors.algebra_map_injective R K hv⟩ },
+  { rintro ⟨_, hx⟩,
+    rw [← hx],
+    exact subtype.mk_eq_mk.mpr
+      ((quotient_group.eq_one_iff _).mpr ⟨_, by simp only [pow_monoid_hom_apply, map_pow]⟩) }
+end
+
+/-- The injection induced by the natural homomorphism from `Rˣ` to `K⟮S, n⟯`. -/
+def from_unit_lift [fact $ 0 < n] : R/n →* K⟮(∅ : set $ height_one_spectrum R), n⟯ :=
+(quotient_group.ker_lift _).comp
+  (quotient_group.equiv_quotient_of_eq from_unit_ker).symm.to_monoid_hom
+
+lemma from_unit_lift_injective [fact $ 0 < n] :
+  function.injective $ @from_unit_lift R _ _ _ K _ _ _ n _ :=
+function.injective.comp (quotient_group.ker_lift_injective _) (mul_equiv.injective _)
 
 end selmer_group
 

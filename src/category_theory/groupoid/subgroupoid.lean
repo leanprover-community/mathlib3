@@ -1,4 +1,9 @@
-import .vertex_group
+/-
+Copyright (c) 2022 Rémi Bottinelli. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Rémi Bottinelli
+-/
+import category_theory.groupoid.vertex_group
 import category_theory.groupoid
 import algebra.group.defs
 import algebra.hom.group
@@ -6,20 +11,65 @@ import algebra.hom.equiv
 import data.set.lattice
 import combinatorics.quiver.connected_component
 import group_theory.subgroup.basic
+/-!
+# Subgroupoid
+
+This file defines subgroupoids as `structure`s containing the subsets of arrows and their
+stability under composition and inversion.
+Also defined are
+
+* containment of subgroupoids is a complete lattice;
+* preimages of subgroupoids under a functor;
+* the notion of normality of subgroupoids and its stability under intersection and preimage;
+* compatibility of the above with `groupoid.vertex_group`.
+
+
+## Main definitions
+
+Given a type `C` with associated `groupoid C` instance.
+
+* `subgroupoid C` is the type of subgroupoids of `C`
+* `subgroupoid.is_normal` is the property that the subgroupoid is stable under conjugation
+  by arbitrary arrows, _and_ that all identity arrows are contained in the subgroupoid.
+* `subgroupoid.comap` is the "preimage" map of subgroupoids along a functor.
+* `subgroupoid.vertex_subgroup` is the subgroup of the `vertex group` at a given vertex `v`,
+  assuming `v` is contained in the `subgroupoid` (meaning, by definition, that the arrow `𝟙 v`
+  is contained in the subgroupoid).
+
+## Implementation details
+
+The structure of this file is copied from/inspired by `group_theory.subgroup.basic`
+and `combinatorics.simple_graph.subgraph`.
+
+## TODO
+
+* Equivalent inductive characterization of generated (normal) subgroupoids.
+* A "forward" image map of subgroupoids (similar to `subgroup.map`) under the hypothesis that
+  the functor at hand is injective on vertices.
+* Characterization of normal subgroupoids as kernels.
+
+## Tags
+
+subgroupoid
+
+-/
 
 open set classical function
 local attribute [instance] prop_decidable
 
-
 namespace category_theory
+
+namespace groupoid
 
 universes u v
 
 variables {C : Type u} [groupoid C]
 
 
-namespace groupoid
-
+/--
+A sugroupoid of `C` consists of a choice of arrows for each pair of vertices, closed
+under composition and inverses
+-/
 @[ext] structure subgroupoid (C : Type u) [groupoid C] :=
   (arrws : ∀ (c d : C), set (c ⟶ d))
   (inv' : ∀ {c d} {p : c ⟶ d} (hp : p ∈ arrws c d),
@@ -31,16 +81,17 @@ namespace subgroupoid
 
 variable (S : subgroupoid C)
 
-lemma id_mem_of_nonempty_isotropy (c : C) :
-  (S.arrws c c).nonempty → 𝟙 c ∈ S.arrws c c :=
-begin
-  rintro ⟨γ,hγ⟩,
-  have : 𝟙 c = γ * (inv γ), by simp only [vertex_group.mul_eq_comp, comp_inv],
-  rw this, apply S.mul', exact hγ, apply S.inv', exact hγ,
-end
-
 /-- The vertices of `C` on which `S` has non-trivial isotropy -/
 def carrier : set C := {c : C | (S.arrws c c).nonempty }
+
+lemma id_mem_of_nonempty_isotropy (c : C) :
+  c ∈ carrier S → 𝟙 c ∈ S.arrws c c :=
+begin
+  rintro ⟨γ,hγ⟩,
+  have : 𝟙 c = γ * (inv γ), by simp only [vertex_group_mul, comp_inv],
+  rw this,
+  apply S.mul' hγ (S.inv' hγ),
+end
 
 /-- A subgroupoid seen as a quiver on vertex set `C` -/
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrws c d⟩
@@ -51,7 +102,7 @@ def coe : groupoid (S.carrier) :=
   { to_category_struct :=
     { to_quiver :=
       { hom := λ a b, S.arrws a.val b.val }
-    , id := λ a, ⟨𝟙 a.val, by {apply id_mem_of_nonempty_isotropy, use a.prop,}⟩
+    , id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩
     , comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul' p.prop q.prop⟩, }
   , id_comp' := λ a b ⟨p,hp⟩, by simp only [category.id_comp]
   , comp_id' := λ a b ⟨p,hp⟩, by simp only [category.comp_id]
@@ -60,7 +111,8 @@ def coe : groupoid (S.carrier) :=
 , inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp]
 , comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
 
-def vertex_subgroup (c : C) (hc : c ∈ S.carrier) : subgroup (c ⟶ c) :=
+/-- The subgroup of the vertex group at `c` given by the subgroupoid -/
+def vertex_subgroup {c : C} (hc : c ∈ S.carrier) : subgroup (c ⟶ c) :=
 ⟨ S.arrws c c
 , λ f g hf hg, S.mul' hf hg
 , by {apply id_mem_of_nonempty_isotropy, use hc,}
@@ -91,6 +143,8 @@ instance : has_top (subgroupoid C) :=
 ⟨⟨(λ _ _, set.univ), by { rintros, trivial, }, by { rintros, trivial, }⟩⟩
 instance : has_bot (subgroupoid C) :=
 ⟨⟨(λ _ _, ∅), by { rintros, exfalso, assumption, }, by { rintros, exfalso, assumption, }⟩⟩
+
+instance : inhabited (subgroupoid C) := ⟨⊤⟩
 
 instance : has_inf (subgroupoid C) :=
 ⟨ λ S T,
@@ -199,58 +253,44 @@ lemma Inf_is_normal (s : set $ subgroupoid C) (sn : ∀ S ∈ s, is_normal S) : 
     use ⟨S,Ss⟩, } }
 
 lemma is_normal.vertex_subgroup (Sn : is_normal S) (c : C) (cS : c ∈ S.carrier) :
-  (S.vertex_subgroup c cS).normal :=
+  (S.vertex_subgroup cS).normal :=
 begin
   constructor,
   rintros x hx y,
-  simp only [vertex_group.mul_eq_comp, vertex_group.inv_eq_inv, category.assoc],
+  simp only [vertex_group_mul, vertex_group.inv_eq_inv, category.assoc],
   have : y = inv (inv y), by { simp only [inv_eq_inv, is_iso.inv_inv], },
   nth_rewrite 0 this,
   simp only [←inv_eq_inv],
   apply Sn.conj, exact hx,
 end
 
-lemma is_normal.arrws_nonempty_refl {S : subgroupoid C} (Sn : S.is_normal) (c : C) :
-  (S.arrws c c).nonempty :=
-⟨𝟙 c, Sn.wide c⟩
-
-lemma is_normal.arrws_nonempty_symm {S : subgroupoid C} (Sn : S.is_normal)
-  {c d : C} : (S.arrws c d).nonempty → (S.arrws d c).nonempty :=
-by { rintro ⟨f, hf⟩, exact ⟨groupoid.inv f, S.inv' hf⟩ }
-
-lemma is_normal.arrws_nonempty_trans {S : subgroupoid C} (Sn : S.is_normal)
-  {c d e : C} : (S.arrws c d).nonempty → (S.arrws d e).nonempty → (S.arrws c e).nonempty :=
-by { rintro ⟨f, hf⟩ ⟨g, hg⟩, exact ⟨f ≫ g, S.mul' hf hg⟩ }
-
-def is_normal.arrws_nonempty_setoid {S : subgroupoid C} (Sn : S.is_normal) : setoid C :=
-{ r := λ c d, (S.arrws c d).nonempty,
-  iseqv := ⟨Sn.arrws_nonempty_refl,
-            λ c d, Sn.arrws_nonempty_symm,
-            λ c d e, Sn.arrws_nonempty_trans⟩ }
-
 section generated_subgroupoid
+
 -- TODO: proof that generated is just "words in X" and generated_normal is similarly
 variable (X : ∀ c d : C, set (c ⟶ d))
 
+/-- The subgropoid generated by the set of arrows `X` -/
 def generated : subgroupoid C :=
   Inf {S : subgroupoid C | ∀ c d, X c d ⊆ S.arrws c d}
 
+/-- The normal sugroupoid generated by the set of arrows `X` -/
 def generated_normal : subgroupoid C :=
   Inf {S : subgroupoid C | (∀ c d, X c d ⊆ S.arrws c d) ∧ S.is_normal }
 
 lemma generated_normal_is_normal : (generated_normal X).is_normal :=
-begin
-  apply Inf_is_normal,
-  rintro S h,
-  exact h.right,
-end
+Inf_is_normal _ (λ S h, h.right)
 
 end generated_subgroupoid
 
 section hom
 
-variables {C} {D : Type*}
-variables [groupoid C] [groupoid D] (φ : C ⥤ D)
+variables {D : Type*}
+variables [groupoid D] (φ : C ⥤ D)
+
+/--
+A functor between groupoid defines a map of subgroupoids in the reverse direction
+by taking preimages.
+ -/
 
 def comap (S : subgroupoid D) : subgroupoid C :=
 ⟨ λ c d, {f : c ⟶ d | φ.map f ∈ S.arrws (φ.obj c) (φ.obj d)}
@@ -258,13 +298,14 @@ def comap (S : subgroupoid D) : subgroupoid C :=
   { rintros,
     simp only [inv_eq_inv, mem_set_of_eq, functor.map_inv],
     simp only [←inv_eq_inv],
-    simp at hp,
+    simp only [mem_set_of_eq] at hp,
     apply S.inv', assumption, }
 , by
   { rintros,
     simp only [mem_set_of_eq, functor.map_comp],
     apply S.mul';
     assumption, }⟩
+
 
 lemma comap_mono (S T : subgroupoid D) :
   S ≤ T → comap φ S ≤ comap φ T :=
@@ -276,30 +317,31 @@ begin
 end
 
 lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap φ S) :=
-begin
-  dsimp only [subgroupoid.comap],
-  split,
+{ wide := by
   { rintro c,
+    dsimp only [comap],
     simp only [mem_set_of_eq, functor.map_id],
-    apply Sn.wide, },
+    apply Sn.wide, }
+, conj := by
   { rintros c d f γ hγ,
+    dsimp only [comap],
     simp only [mem_set_of_eq, functor.map_comp, functor.map_inv, inv_eq_inv],
     rw [←inv_eq_inv],
-    apply Sn.conj, exact hγ, },
-end
+    apply Sn.conj, exact hγ, } }
 
+/-- The kernel of a functor between subgroupoid is the preimage. -/
 noncomputable def ker : subgroupoid C := comap φ (discrete)
 
-def mem_ker_iff {c d : C} (f : c ⟶ d) :
+lemma mem_ker_iff {c d : C} (f : c ⟶ d) :
   f ∈ (ker φ).arrws c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = h.rec_on (𝟙 $ φ.obj c) :=
 begin
-  dsimp only [ker, discrete,subgroupoid.comap],
+  dsimp only [ker, discrete, subgroupoid.comap],
   by_cases h : φ.obj c = φ.obj d,
   { simp only [dif_pos h, mem_singleton_iff, mem_set_of_eq],
     split,
     { rintro e, use h, exact e, },
-    { rintro ⟨_,e⟩, exact e, }},
-  { simp [dif_neg h, set_of_false, false_iff, not_exists],
+    { rintro ⟨_,e⟩, exact e, }, },
+  { simp only [dif_neg h, set_of_false, false_iff, not_exists, mem_empty_iff_false],
     rintro e, exact (h e).elim, },
 end
 

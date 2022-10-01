@@ -21,8 +21,29 @@ namespace groupoid
 
 section quotient
 
-open subgroupoid
+namespace subgroupoid
 
+lemma is_normal.arrws_nonempty_refl {S : subgroupoid C} (Sn : S.is_normal) (c : C) :
+  (S.arrws c c).nonempty :=
+⟨𝟙 c, Sn.wide c⟩
+
+lemma is_normal.arrws_nonempty_symm {S : subgroupoid C} (Sn : S.is_normal)
+  {c d : C} : (S.arrws c d).nonempty → (S.arrws d c).nonempty :=
+by { rintro ⟨f, hf⟩, exact ⟨groupoid.inv f, S.inv' hf⟩ }
+
+lemma is_normal.arrws_nonempty_trans {S : subgroupoid C} (Sn : S.is_normal)
+  {c d e : C} : (S.arrws c d).nonempty → (S.arrws d e).nonempty → (S.arrws c e).nonempty :=
+by { rintro ⟨f, hf⟩ ⟨g, hg⟩, exact ⟨f ≫ g, S.mul' hf hg⟩ }
+
+def is_normal.arrws_nonempty_setoid {S : subgroupoid C} (Sn : S.is_normal) : setoid C :=
+{ r := λ c d, (S.arrws c d).nonempty,
+  iseqv := ⟨Sn.arrws_nonempty_refl,
+            λ c d, Sn.arrws_nonempty_symm,
+            λ c d e, Sn.arrws_nonempty_trans⟩ }
+
+end subgroupoid
+
+open subgroupoid
 
 -- The vertices of the quotient of G by S
 @[reducible] def quot_v := quotient Sn.arrws_nonempty_setoid
@@ -195,19 +216,26 @@ def of : C ⥤ quot_v S Sn :=
 def lift {D : Type v} [groupoid D] {S} {Sn} (φ : C ⥤ D) (hφ : S ≤ ker φ) : (quot_v S Sn) ⥤ D :=
 { obj := quot.lift φ.obj (λ c d r, by
   { letI := Sn.arrws_nonempty_setoid,
-    let h := hφ r.some_spec,
+    let h := hφ (r : c ≈ d).some_spec,
     rw mem_ker_iff at h,
     exact h.some, })
 , map := λ c d, by
   { letI := Sn.arrws_nonempty_setoid,
     refine quot.lift (λ f, _) (λ f₁ f₂ h, _),
     { rcases f with ⟨⟨a,ac⟩,⟨b,bd⟩,f⟩,
-      subst_vars,
-      exact φ.map f,},
+      rw [←ac,←bd],
+      exact (φ.map f),},
     { rcases f₁ with ⟨⟨a₁,ac₁⟩,⟨b₁,bd₁⟩,f₁⟩,
       rcases f₂ with ⟨⟨a₂,ac₂⟩,⟨b₂,bd₂⟩,f₂⟩,
+      rcases h with ⟨α,αS,β,βS,he⟩,
+      simp only at he,
       subst_vars,
-      dsimp, dsimp at h, sorry, }
+      rw he, simp,
+      let := hφ αS, rw mem_ker_iff at this, rw this.some_spec,
+      let := hφ βS, rw mem_ker_iff at this, rw this.some_spec,
+      simp,
+
+       }
 
   }
 , map_id' := sorry

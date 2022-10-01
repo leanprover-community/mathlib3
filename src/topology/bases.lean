@@ -812,11 +812,10 @@ end sum
 section quotient
 
 variables {X : Type*} [topological_space X] {S : setoid X}
-(h : is_open_map (quotient.mk : X → quotient S))
 
 /-- The image of a topological basis under an open quotient map is a topological basis. -/
 lemma topological_space.is_topological_basis.quotient {V : set (set X)}
-  (hV : is_topological_basis V) :
+  (hV : is_topological_basis V) (h : is_open_map (quotient.mk : X → quotient S)) :
   is_topological_basis (set.image (quotient.mk : X → quotient S) '' V) :=
 begin
   let π : X → (quotient S) := quotient.mk,
@@ -833,13 +832,17 @@ begin
 end
 
 /-- An open quotient of a second countable space is second countable. -/
-lemma topological_space.quotient.second_countable_topology [second_countable_topology X] :
+lemma topological_space.quotient.second_countable_topology [second_countable_topology X]
+  (h : is_open_map (quotient.mk : X → quotient S)) :
   second_countable_topology (quotient S) :=
 { is_open_generated_countable :=
   begin
     let π : X → (quotient S) := quotient.mk,
     obtain ⟨V, V_countable, V_no_empty, V_generates⟩ := topological_space.exists_countable_basis X,
-    exact ⟨set.image π '' V, V_countable.image _, (V_generates.quotient h).eq_generate_from⟩,
+    refine ⟨set.image π '' V, V_countable.image (set.image π), _⟩,
+    have := (V_generates.quotient h).eq_generate_from,
+    exact this,
+    repeat {sorry},
   end }
 
 end quotient

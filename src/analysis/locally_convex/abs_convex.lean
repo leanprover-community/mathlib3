@@ -137,8 +137,6 @@ begin
   exact gauge_lt_one_eq_self_of_open s.coe_convex s.coe_zero_mem s.coe_is_open,
 end
 
-section
-
 variables [topological_add_group E] [has_continuous_smul 𝕜 E]
 variables [smul_comm_class ℝ 𝕜 E] [locally_convex_space ℝ E]
 
@@ -171,6 +169,4 @@ begin
   refine is_open.smul₀ _ hr'',
   rw gauge_seminorm_family_ball,
   exact abs_convex_open_sets.coe_is_open _,
-end
-
 end

@@ -53,7 +53,7 @@ open function
 open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [has_top, comm_monoid_with_zero, nontrivial,
+@[derive [has_top, comm_monoid_with_zero, nontrivial, add_monoid,
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
@@ -90,21 +90,6 @@ instance has_coe_ennreal : has_coe ℝ≥0∞ ereal := ⟨ennreal.to_ereal⟩
 
 instance : has_zero ereal := ⟨(0 : ℝ)⟩
 instance : inhabited ereal := ⟨0⟩
-
-/-- Negation on `ereal` -/
-protected def neg : ereal → ereal
-| ⊥       := ⊤
-| ⊤       := ⊥
-| (x : ℝ) := (-x : ℝ)
-
-instance : has_neg ereal := ⟨ereal.neg⟩
-
-/-- Subtraction on `ereal`, defined by `x - y = x + (-y)`. Since addition is badly behaved at some
-points, so is subtraction. There is no standard algebraic typeclass involving subtraction that is
-registered on `ereal` because of this bad behavior. -/
-protected noncomputable def sub (x y : ereal) : ereal := x + (-y)
-
-noncomputable instance : has_sub ereal := ⟨ereal.sub⟩
 
 /-- A recursor for `ereal` in terms of the coercion.
 
@@ -173,9 +158,7 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 
 @[simp, norm_cast] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
-@[simp, norm_cast] lemma coe_neg (x : ℝ) : (↑(-x) : ereal) = -x := rfl
 @[simp, norm_cast] lemma coe_add (x y : ℝ) : (↑(x + y) : ereal) = x + y := rfl
-@[simp, norm_cast] lemma coe_sub (x y : ℝ) : (↑(x - y) : ereal) = x - y := rfl
 @[simp, norm_cast] lemma coe_mul (x y : ℝ) : (↑(x * y) : ereal) = x * y :=
 (with_top.coe_eq_coe.2 with_bot.coe_mul).trans with_top.coe_mul
 @[norm_cast] lemma coe_nsmul (n : ℕ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
@@ -435,11 +418,21 @@ by simp [lt_top_iff_ne_top, not_or_distrib]
 
 /-! ### Negation -/
 
+/-- negation on `ereal` -/
+protected def neg : ereal → ereal
+| ⊥       := ⊤
+| ⊤       := ⊥
+| (x : ℝ) := (-x : ℝ)
+
+instance : has_neg ereal := ⟨ereal.neg⟩
+
 @[norm_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
 
 @[simp] lemma neg_top : - (⊤ : ereal) = ⊥ := rfl
 @[simp] lemma neg_bot : - (⊥ : ereal) = ⊤ := rfl
 @[simp] lemma neg_zero : - (0 : ereal) = 0 := by { change ((-0 : ℝ) : ereal) = 0, simp }
+
+@[simp, norm_cast] lemma coe_neg (x : ℝ) : (↑(-x) : ereal) = -x := rfl
 
 instance : has_involutive_neg ereal :=
 { neg := has_neg.neg,
@@ -501,9 +494,17 @@ end
 lemma neg_lt_iff_neg_lt {a b : ereal} : -a < b ↔ -b < a :=
 ⟨λ h, ereal.neg_lt_of_neg_lt h, λ h, ereal.neg_lt_of_neg_lt h⟩
 
-/-! ### Subtraction -/
+/-!
+### Subtraction
 
-@[simp] lemma top_sub (x : ereal) : ⊤ - x = ⊤ := top_add x
+Subtraction on `ereal` is defined by `x - y = x + (-y)`. Since addition is badly behaved at some
+points, so is subtraction. There is no standard algebraic typeclass involving subtraction that is
+registered on `ereal` because of this bad behavior.
+-/
+
+instance : sub_neg_monoid ereal := { ..ereal.add_monoid, ..ereal.has_neg }
+
+@[simp] lemma top_sub (x : ereal) : ⊤ - x = ⊤ := top_add _
 @[simp] lemma sub_bot (x : ereal) : x - ⊥ = ⊤ := add_top x
 
 @[simp] lemma bot_sub_top : (⊥ : ereal) - ⊤ = ⊥ := rfl
@@ -513,7 +514,9 @@ lemma neg_lt_iff_neg_lt {a b : ereal} : -a < b ↔ -b < a :=
 @[simp] lemma sub_zero (x : ereal) : x - 0 = x := by { change x + (-0) = x, simp }
 @[simp] lemma zero_sub (x : ereal) : 0 - x = - x := by { change 0 + (-x) = - x, simp }
 
-lemma sub_eq_add_neg (x y : ereal) : x - y = x + -y := rfl
+@[simp, norm_cast] lemma coe_sub (x y : ℝ) : (↑(x - y) : ereal) = x - y := rfl
+@[simp, norm_cast] lemma coe_zsmul (n : ℤ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
+map_zsmul' (⟨coe, coe_zero, coe_add⟩ : ℝ →+ ereal) coe_neg _ _
 
 lemma sub_le_sub {x y z t : ereal} (h : x ≤ y) (h' : t ≤ z) : x - z ≤ y - t :=
 add_le_add h (neg_le_neg_iff.2 h')
@@ -541,7 +544,7 @@ end
 lemma to_real_sub {x y : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) (hy : y ≠ ⊤) (h'y : y ≠ ⊥) :
   to_real (x - y) = to_real x - to_real y :=
 begin
-  rw [ereal.sub_eq_add_neg, to_real_add hx h'x, to_real_neg],
+  rw [sub_eq_add_neg, to_real_add hx h'x, to_real_neg],
   { refl },
   { simpa using hy },
   { simpa using h'y }

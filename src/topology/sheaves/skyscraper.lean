@@ -169,7 +169,7 @@ lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p
 by classical; exact (presheaf.is_sheaf_iso_iff
   (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr
   (sheaf.pushforward_sheaf_of_sheaf _ (presheaf.is_sheaf_on_punit_of_is_terminal _
-  (by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star})))}
+  (by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star })))
 
 /--
 The skyscraper presheaf supported at `p₀` with value `A` is the sheaf that assigns `A` to all opens

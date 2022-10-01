@@ -66,7 +66,8 @@ omit nf
 is the integral closure of ℤ in the number field. -/
 def ring_of_integers := integral_closure ℤ K
 
-localized "notation `𝓞` := number_field.ring_of_integers" in number_field
+localized "notation (name := ring_of_integers)
+  `𝓞` := number_field.ring_of_integers" in number_field
 
 lemma mem_ring_of_integers (x : K) : x ∈ 𝓞 K ↔ is_integral ℤ x := iff.rfl
 
@@ -115,6 +116,8 @@ protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
 variables (K)
 
 instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
+
+instance [number_field K] : is_noetherian ℤ (𝓞 K) := is_integral_closure.is_noetherian _ ℚ K _
 
 /-- The ring of integers of a number field is not a field. -/
 lemma not_is_field [number_field K] : ¬ is_field (𝓞 K) :=

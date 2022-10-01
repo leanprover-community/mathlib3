@@ -54,7 +54,7 @@ instance : set_like (lie_submodule R L M) M :=
   coe_injective' := λ N O h, by cases N; cases O; congr' }
 
 instance : add_subgroup_class (lie_submodule R L M) M :=
-{ add_mem := λ N, N.add_mem',
+{ add_mem := λ N _ _, N.add_mem',
   zero_mem := λ N, N.zero_mem',
   neg_mem := λ N x hx, show -x ∈ N.to_submodule, from neg_mem hx }
 
@@ -108,9 +108,9 @@ equalities. -/
 protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
 { carrier := s,
   zero_mem' := hs.symm ▸ N.zero_mem',
-  add_mem'  := hs.symm ▸ N.add_mem',
+  add_mem'  := λ _ _, hs.symm ▸ N.add_mem',
   smul_mem' := hs.symm ▸ N.smul_mem',
-  lie_mem   := hs.symm ▸ N.lie_mem, }
+  lie_mem   := λ _ _, hs.symm ▸ N.lie_mem, }
 
 @[simp] lemma coe_copy (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) :
   (S.copy s hs : set M) = s := rfl
@@ -208,7 +208,7 @@ lemma submodule.exists_lie_submodule_coe_eq_iff (p : submodule R M) :
   (∃ (N : lie_submodule R L M), ↑N = p) ↔ ∀ (x : L) (m : M), m ∈ p → ⁅x, m⁆ ∈ p :=
 begin
   split,
-  { rintros ⟨N, rfl⟩, exact N.lie_mem, },
+  { rintros ⟨N, rfl⟩ _ _, exact N.lie_mem, },
   { intros h, use { lie_mem := h, ..p }, exact lie_submodule.coe_to_submodule_mk p _, },
 end
 

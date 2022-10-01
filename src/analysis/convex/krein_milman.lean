@@ -64,9 +64,8 @@ lemma is_compact.has_extreme_point (hscomp : is_compact s) (hsnemp : s.nonempty)
   (s.extreme_points ℝ).nonempty :=
 begin
   let S : set (set E) := {t | t.nonempty ∧ is_closed t ∧ is_extreme ℝ s t},
-  suffices h : ∃ t ∈ S, ∀ u ∈ S, u ⊆ t → u = t,
-  { obtain ⟨t, ⟨⟨x, hxt⟩, htclos, hst⟩, hBmin⟩ := h,
-    refine ⟨x, mem_extreme_points_iff_extreme_singleton.2 _⟩,
+  rsuffices ⟨t, ⟨⟨x, hxt⟩, htclos, hst⟩, hBmin⟩ : ∃ t ∈ S, ∀ u ∈ S, u ⊆ t → u = t,
+  { refine ⟨x, mem_extreme_points_iff_extreme_singleton.2 _⟩,
     rwa ←eq_singleton_iff_unique_mem.2 ⟨hxt, λ y hyB, _⟩,
     by_contra hyx,
     obtain ⟨l, hl⟩ := geometric_hahn_banach_point_point hyx,

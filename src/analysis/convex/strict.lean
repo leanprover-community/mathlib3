@@ -144,7 +144,7 @@ variables [topological_space β] [linear_ordered_cancel_add_comm_monoid β] [ord
 lemma strict_convex_Iic (r : β) : strict_convex 𝕜 (Iic r) :=
 begin
   rintro x (hx : x ≤ r) y (hy : y ≤ r) hxy a b ha hb hab,
-  refine (subset_interior_iff_subset_of_open is_open_Iio).2 Iio_subset_Iic_self _,
+  refine is_open_Iio.subset_interior_iff.2 Iio_subset_Iic_self _,
   rw ←convex.combo_self hab r,
   obtain rfl | hx := hx.eq_or_lt,
   { exact add_lt_add_left (smul_lt_smul_of_pos (hy.lt_of_ne hxy.symm) hb) _ },

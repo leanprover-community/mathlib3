@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl, Yaël Dillies
 -/
 import algebra.module.ulift
+import analysis.normed.group.seminorm
 import order.liminf_limsup
 import topology.algebra.uniform_group
 import topology.metric_space.algebra
@@ -40,10 +41,10 @@ to for performance concerns.
 normed group
 -/
 
-variables {𝓕 𝕜 α ι E F G : Type*}
+variables {𝓕 𝕜 α ι κ E F G : Type*}
 
 open filter function metric
-open_locale topological_space big_operators nnreal ennreal uniformity pointwise
+open_locale big_operators ennreal filter nnreal uniformity pointwise topological_space
 
 /-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ` with notation `∥x∥`. This
 class is designed to be extended in more interesting classes specifying the properties of the norm.
@@ -221,84 +222,56 @@ def normed_comm_group.of_mul_dist' [has_norm E] [comm_group E] [metric_space E]
 
 set_option old_structure_cmd true
 
-/-- A seminormed group can be built from a seminorm that satisfies algebraic properties. This is
-formalised in this structure. -/
-structure seminormed_add_group.core (E : Type*) [add_group E] [has_norm E] : Prop :=
-(norm_zero : ∥(0 : E)∥ = 0)
-(triangle : ∀ x y : E, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
-(norm_neg : ∀ x : E, ∥-x∥ = ∥x∥)
+/-- Construct a seminormed group from a seminorm, i.e., registering the pseudodistance and the
+pseudometric space structure from the seminorm properties. Note that in most cases this instance
+creates bad definitional equalities (e.g., it does not take into account a possibly existing
+`uniform_space` instance on `E`). -/
+@[to_additive "Construct a seminormed group from a seminorm, i.e., registering the pseudodistance*
+and the pseudometric space structure from the seminorm properties. Note that in most cases this
+instance creates bad definitional equalities (e.g., it does not take into account a possibly
+existing `uniform_space` instance on `E`)."]
+def group_seminorm.to_seminormed_group [group E] (f : group_seminorm E) : seminormed_group E :=
+{ dist := λ x y, f (x / y),
+  norm := f,
+  dist_eq := λ x y, rfl,
+  dist_self := λ x, by simp only [div_self', map_one_eq_zero],
+  dist_triangle := le_map_div_add_map_div f,
+  dist_comm := map_div_rev f }
 
-/-- A seminormed group can be built from a seminorm that satisfies algebraic properties. This is
-formalised in this structure. -/
-@[to_additive]
-structure seminormed_group.core (E : Type*) [group E] [has_norm E] : Prop :=
-(norm_one : ∥(1 : E)∥ = 0)
-(triangle : ∀ x y : E, ∥x * y∥ ≤ ∥x∥ + ∥y∥)
-(norm_inv : ∀ x : E, ∥x⁻¹∥ = ∥x∥)
+/-- Construct a seminormed group from a seminorm, i.e., registering the pseudodistance and the
+pseudometric space structure from the seminorm properties. Note that in most cases this instance
+creates bad definitional equalities (e.g., it does not take into account a possibly existing
+`uniform_space` instance on `E`). -/
+@[to_additive "Construct a seminormed group from a seminorm, i.e., registering the pseudodistance*
+and the pseudometric space structure from the seminorm properties. Note that in most cases this
+instance creates bad definitional equalities (e.g., it does not take into account a possibly
+existing `uniform_space` instance on `E`)."]
+def group_seminorm.to_seminormed_comm_group [comm_group E] (f : group_seminorm E) :
+  seminormed_comm_group E :=
+{ ..f.to_seminormed_group }
 
-/-- A normed group can be built from a norm that satisfies algebraic properties. This is
-formalised in this structure. -/
-structure normed_add_group.core (E : Type*) [add_group E] [has_norm E]
-  extends seminormed_add_group.core E : Prop :=
-(eq_zero_of_norm : ∀ x : E, ∥x∥ = 0 → x = 0)
+/-- Construct a normed group from a norm, i.e., registering the distance and the metric space
+structure from the norm properties. Note that in most cases this instance creates bad definitional
+equalities (e.g., it does not take into account a possibly existing `uniform_space` instance on
+`E`). -/
+@[to_additive "Construct a normed group from a norm, i.e., registering the distance and the metric
+space structure from the norm properties. Note that in most cases this instance creates bad
+definitional equalities (e.g., it does not take into account a possibly existing `uniform_space`
+instance on `E`)."]
+def group_norm.to_normed_group [group E] (f : group_norm E) : normed_group E :=
+{ eq_of_dist_eq_zero := λ x y h, div_eq_one.1 $ eq_one_of_map_eq_zero f h,
+  ..f.to_group_seminorm.to_seminormed_group }
 
-/-- A normed group can be built from a norm that satisfies algebraic properties. This is
-formalised in this structure. -/
-@[to_additive]
-structure normed_group.core (E : Type*) [group E] [has_norm E]
-  extends seminormed_group.core E : Prop :=
-(eq_one_of_norm : ∀ x : E, ∥x∥ = 0 → x = 1)
-
--- The structure command incorrectly marks those as definitions
-attribute [nolint def_lemma doc_blame] normed_group.core.to_core normed_add_group.core.to_core
-
-/-- Constructing a seminormed group from core properties of a seminorm, i.e., registering the
-pseudodistance and the pseudometric space structure from the seminorm properties. Note that in most
-cases this instance creates bad definitional equalities (e.g., it does not take into account
-a possibly existing `uniform_space` instance on `E`). -/
-@[to_additive "Constructing a seminormed group from core properties of a seminorm, i.e., registering
-the pseudodistance and the pseudometric space structure from the seminorm properties. Note that in
-most cases this instance creates bad definitional equalities (e.g., it does not take into account
-a possibly existing `uniform_space` instance on `E`)"]
-def seminormed_group.of_core (E : Type*) [group E] [has_norm E] (C : seminormed_group.core E) :
-  seminormed_group E :=
-{ dist := λ x y, ∥x / y∥,
-  dist_self := λ x, by simp [C.norm_one],
-  dist_triangle := λ x y z,
-    calc ∥x / z∥ = ∥x / y * (y / z)∥ : by rw div_mul_div_cancel'
-            ... ≤ ∥x / y∥ + ∥y / z∥  : C.triangle _ _,
-  dist_comm := λ x y,
-    calc ∥x / y∥ = ∥(y / x)⁻¹∥ : by simp
-             ... = ∥y / x∥ : C.norm_inv _ }
-
-/-- Constructing a seminormed group from core properties of a seminorm, i.e., registering the
-pseudodistance and the pseudometric space structure from the seminorm properties. Note that in most
-cases this instance creates bad definitional equalities (e.g., it does not take into account
-a possibly existing `uniform_space` instance on `E`). -/
-@[to_additive "Constructing a seminormed group from core properties of a seminorm, i.e., registering
-the pseudodistance and the pseudometric space structure from the seminorm properties. Note that in
-most cases this instance creates bad definitional equalities (e.g., it does not take into account
-a possibly existing `uniform_space` instance on `E`)"]
-def seminormed_comm_group.of_core (E : Type*) [comm_group E] [has_norm E]
-  (C : seminormed_group.core E) : seminormed_comm_group E :=
-{ ..seminormed_group.of_core _ C }
-
-/-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
-the metric space structure from the norm properties. -/
-@[to_additive "Constructing a normed group from core properties of a norm, i.e., registering the
-distance and the metric space structure from the norm properties."]
-def normed_group.of_core (E : Type*) [group E] [has_norm E] (C : normed_group.core E) :
-  normed_group E :=
-{ eq_of_dist_eq_zero := λ x y h, div_eq_one.1 $ C.eq_one_of_norm _ h,
-  ..seminormed_group.of_core E C.to_core }
-
-/-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
-the metric space structure from the norm properties. -/
-@[to_additive "Constructing a normed group from core properties of a norm, i.e., registering the
-distance and the metric space structure from the norm properties."]
-def normed_comm_group.of_core (E : Type*) [comm_group E] [has_norm E] (C : normed_group.core E) :
-  normed_comm_group E :=
-{ ..normed_group.of_core E C }
+/-- Construct a normed group from a norm, i.e., registering the distance and the metric space
+structure from the norm properties. Note that in most cases this instance creates bad definitional
+equalities (e.g., it does not take into account a possibly existing `uniform_space` instance on
+`E`). -/
+@[to_additive "Construct a normed group from a norm, i.e., registering the distance and the metric
+space structure from the norm properties. Note that in most cases this instance creates bad
+definitional equalities (e.g., it does not take into account a possibly existing `uniform_space`
+instance on `E`)."]
+def group_norm.to_normed_comm_group [comm_group E] (f : group_norm E) : normed_comm_group E :=
+{ ..f.to_normed_group }
 
 instance : normed_add_comm_group punit :=
 { norm := function.const _ 0,
@@ -306,11 +279,11 @@ instance : normed_add_comm_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-noncomputable instance : normed_add_comm_group ℝ :=
-{ norm := λ x, |x|,
-  dist_eq := assume x y, rfl }
+instance : has_norm ℝ := { norm := λ x, |x| }
 
 @[simp] lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
+
+instance : normed_add_comm_group ℝ := ⟨λ x y, rfl⟩
 
 section seminormed_group
 variables [seminormed_group E] [seminormed_group F] [seminormed_group G] {s : set E}
@@ -380,16 +353,15 @@ by simpa [dist_eq_norm_div] using dist_triangle a 1 b⁻¹
 norm_mul_le_of_le (norm_mul_le' _ _) le_rfl
 
 @[simp, to_additive norm_nonneg] lemma norm_nonneg' (a : E) : 0 ≤ ∥a∥ :=
-by { rw[←dist_one_right], exact dist_nonneg }
+by { rw [←dist_one_right], exact dist_nonneg }
 
 section
 open tactic tactic.positivity
 
---TODO: Support multiplicative norms
 /-- Extension for the `positivity` tactic: norms are nonnegative. -/
 @[positivity]
 meta def _root_.tactic.positivity_norm : expr → tactic strictness
-| `(∥%%a∥) := nonnegative <$> mk_app ``norm_nonneg [a]
+| `(∥%%a∥) := nonnegative <$> mk_app ``norm_nonneg [a] <|> nonnegative <$> mk_app ``norm_nonneg' [a]
 | _ := failed
 
 end
@@ -494,6 +466,16 @@ ne_one_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere' x
 @[to_additive ne_zero_of_mem_unit_sphere]
 lemma ne_one_of_mem_unit_sphere (x : sphere (1 : E) 1) : (x:E) ≠ 1 :=
 ne_one_of_mem_sphere one_ne_zero _
+
+variables (E)
+
+/-- The norm of a seminormed group as a group seminorm. -/
+@[to_additive "The norm of a seminormed group as an additive group seminorm."]
+def norm_group_seminorm : group_seminorm E := ⟨norm, norm_one', norm_mul_le', norm_inv'⟩
+
+@[simp, to_additive] lemma coe_norm_group_seminorm : ⇑(norm_group_seminorm E) = norm := rfl
+
+variables {E}
 
 namespace isometric
 -- TODO This material is superseded by similar constructions such as
@@ -737,8 +719,7 @@ by simpa using tendsto_norm_div_self (1:E)
 by simpa using continuous_id.dist (continuous_const : continuous (λ a, (1:E)))
 
 @[continuity, to_additive continuous_nnnorm]
-lemma continuous_nnnorm' : continuous (λ (a : E), ∥a∥₊) :=
-continuous_subtype_mk _ continuous_norm'
+lemma continuous_nnnorm' : continuous (λ a : E, ∥a∥₊) := continuous_norm'.subtype_mk _
 
 @[to_additive lipschitz_with_one_norm] lemma lipschitz_with_one_norm' :
   lipschitz_with 1 (norm : E → ℝ) :=
@@ -754,7 +735,7 @@ lipschitz_with_one_norm'.uniform_continuous
 
 @[to_additive uniform_continuous_nnnorm]
 lemma uniform_continuous_nnnorm' : uniform_continuous (λ (a : E), ∥a∥₊) :=
-uniform_continuous_subtype_mk uniform_continuous_norm' _
+uniform_continuous_norm'.subtype_mk _
 
 /-- A helper lemma used to prove that the (scalar or usual) product of a function that tends to one
 and a bounded function tends to one. This lemma is formulated for any binary operation
@@ -873,6 +854,36 @@ end
 @[to_additive norm_pos_iff'] lemma norm_pos_iff''' [t0_space E] {a : E} : 0 < ∥a∥ ↔ a ≠ 1 :=
 by rw [← not_le, norm_le_zero_iff''']
 
+@[to_additive]
+lemma seminormed_group.tendsto_uniformly_on_one {f : ι → κ → G} {s : set κ} {l : filter ι} :
+  tendsto_uniformly_on f 1 l s ↔ ∀ ε > 0, ∀ᶠ i in l, ∀ x ∈ s, ∥f i x∥ < ε :=
+by simp_rw [tendsto_uniformly_on_iff, pi.one_apply, dist_one_left]
+
+@[to_additive]
+lemma seminormed_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_one
+  {f : ι → κ → G} {l : filter ι} {l' : filter κ} : uniform_cauchy_seq_on_filter f l l' ↔
+  tendsto_uniformly_on_filter (λ n : ι × ι, λ z, f n.fst z / f n.snd z) 1 (l ×ᶠ l) l' :=
+begin
+  refine ⟨λ hf u hu, _, λ hf u hu, _⟩,
+  { obtain ⟨ε, hε, H⟩ := uniformity_basis_dist.mem_uniformity_iff.mp hu,
+    refine (hf {p : G × G | dist p.fst p.snd < ε} $ dist_mem_uniformity hε).mono (λ x hx,
+      H 1 (f x.fst.fst x.snd / f x.fst.snd x.snd) _),
+    simpa [dist_eq_norm_div, norm_div_rev] using hx },
+  { obtain ⟨ε, hε, H⟩ := uniformity_basis_dist.mem_uniformity_iff.mp hu,
+    refine (hf {p : G × G | dist p.fst p.snd < ε} $ dist_mem_uniformity hε).mono (λ x hx,
+      H (f x.fst.fst x.snd) (f x.fst.snd x.snd) _),
+    simpa [dist_eq_norm_div, norm_div_rev] using hx }
+end
+
+@[to_additive]
+lemma seminormed_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_one
+  {f : ι → κ → G} {s : set κ} {l : filter ι} :
+  uniform_cauchy_seq_on f l s ↔
+  tendsto_uniformly_on (λ n : ι × ι, λ z, f n.fst z / f n.snd z) 1 (l ×ᶠ l) s :=
+by rw [tendsto_uniformly_on_iff_tendsto_uniformly_on_filter,
+    uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
+    seminormed_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_one]
+
 end seminormed_group
 
 section induced
@@ -963,6 +974,19 @@ by simpa only [div_eq_mul_inv, dist_inv_inv] using dist_mul_mul_le a₁ a₂⁻�
   |dist a₁ b₁ - dist a₂ b₂| ≤ dist (a₁ * a₂) (b₁ * b₂) :=
 by simpa only [dist_mul_left, dist_mul_right, dist_comm b₂]
   using abs_dist_sub_le (a₁ * a₂) (b₁ * b₂) (b₁ * a₂)
+
+lemma norm_multiset_sum_le {E} [seminormed_add_comm_group E] (m : multiset E) :
+  ∥m.sum∥ ≤ (m.map (λ x, ∥x∥)).sum :=
+m.le_sum_of_subadditive norm norm_zero norm_add_le
+
+@[to_additive]
+lemma norm_multiset_prod_le (m : multiset E) : ∥m.prod∥ ≤ (m.map $ λ x, ∥x∥).sum :=
+begin
+  rw [←multiplicative.of_add_le, of_add_multiset_prod, multiset.map_map],
+  refine multiset.le_prod_of_submultiplicative (multiplicative.of_add ∘ norm) _ (λ x y, _) _,
+  { simp only [comp_app, norm_one', of_add_zero] },
+  { exact norm_mul_le' _ _ }
+end
 
 lemma norm_sum_le {E} [seminormed_add_comm_group E] (s : finset ι) (f : ι → E) :
   ∥∑ i in s, f i∥ ≤ ∑ i in s, ∥f i∥ :=
@@ -1113,6 +1137,10 @@ by rw [edist_inv, inv_inv]
 @[simp, to_additive] lemma edist_div_left (a b₁ b₂ : E) : edist (a / b₁) (a / b₂) = edist b₁ b₂ :=
 by simp only [div_eq_mul_inv, edist_mul_left, edist_inv_inv]
 
+@[to_additive]
+lemma nnnorm_multiset_prod_le (m : multiset E) : ∥m.prod∥₊ ≤ (m.map (λ x, ∥x∥₊)).sum :=
+nnreal.coe_le_coe.1 $ by { push_cast, rw multiset.map_map, exact norm_multiset_prod_le _ }
+
 @[to_additive] lemma nnnorm_prod_le (s : finset ι) (f : ι → E) :
   ∥∏ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 nnreal.coe_le_coe.1 $ by { push_cast, exact norm_prod_le _ _ }
@@ -1238,6 +1266,15 @@ lemma tendsto_norm_div_self_punctured_nhds (a : E) : tendsto (λ x, ∥x / a∥)
 
 @[to_additive] lemma tendsto_norm_nhds_within_one : tendsto (norm : E → ℝ) (𝓝[≠] 1) (𝓝[>] 0) :=
 tendsto_norm_one.inf $ tendsto_principal_principal.2 $ λ x, norm_pos_iff''.2
+
+variables (E)
+
+/-- The norm of a normed group as a group norm. -/
+@[to_additive "The norm of a normed group as an additive group norm."]
+def norm_group_norm : group_norm E :=
+{ eq_one_of_map_eq_zero' := λ _, norm_eq_zero.1, ..norm_group_seminorm _ }
+
+@[simp] lemma coe_norm_group_norm : ⇑(norm_group_norm E) = norm := rfl
 
 end normed_group
 

@@ -383,7 +383,11 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F
 /-- Continuous linear maps themselves form a seminormed space with respect to
     the operator norm. -/
 instance to_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
-seminormed_add_comm_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
+add_group_seminorm.to_seminormed_add_comm_group
+{ to_fun := norm,
+  map_zero' := op_norm_zero,
+  add_le' := op_norm_add_le,
+  neg' := op_norm_neg }
 
 lemma nnnorm_def (f : E →SL[σ₁₂] F) : ∥f∥₊ = Inf {c | ∀ x, ∥f x∥₊ ≤ c * ∥x∥₊} :=
 begin
@@ -1237,8 +1241,12 @@ instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨n
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
 instance to_normed_add_comm_group [ring_hom_isometric σ₁₂] : normed_add_comm_group (E →SL[σ₁₂] F) :=
-normed_add_comm_group.of_core _
-  ⟨op_norm_zero, op_norm_add_le, op_norm_neg, λ f, (op_norm_zero_iff f).1⟩
+add_group_norm.to_normed_add_comm_group
+{ to_fun := norm,
+  map_zero' := op_norm_zero,
+  neg' := op_norm_neg,
+  add_le' := op_norm_add_le,
+  eq_zero_of_map_eq_zero' := λ f, (op_norm_zero_iff f).1 }
 
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
@@ -1256,9 +1264,6 @@ begin
   apply le_antisymm (f.op_norm_le_bound ha (λ y, le_of_eq (hf y))),
   simpa only [hf, hx, mul_le_mul_right] using f.le_op_norm x,
 end
-
-lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-homothety_norm _ (to_span_singleton_homothety 𝕜 x)
 
 variable (f)
 

@@ -1425,10 +1425,10 @@ begin
     tauto }
 end
 
-/-- There exists a bijection between two types of the same finite cardinality, which extends a given
-bijection on a given set. -/
-lemma finset.exists_equiv_extend_of_card_eq' [fintype α] {t : finset β}
-  (hαt : fintype.card α = t.card) {s : set α} {f : α → β} (hfst : f '' s ⊆ t)
+/-- Any injection from a set `s` in a fintype `α` to a finset `t` of the same cardinality as `α`
+can be extended to a bijection between `α` and `t`. -/
+lemma set.maps_to.exists_equiv_extend_of_card_eq [fintype α] {t : finset β}
+  (hαt : fintype.card α = t.card) {s : set α} {f : α → β} (hfst : s.maps_to f t)
   (hfs : set.inj_on f s) :
   ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
 begin

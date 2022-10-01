@@ -69,7 +69,7 @@ lemma skyscraper_presheaf_eq_pushforward
   skyscraper_presheaf p₀ A =
   continuous_map.const (Top.of punit) p₀ _* skyscraper_presheaf punit.star A :=
 by convert_to @skyscraper_presheaf X p₀
-  (λ U, hd $ (opens.map $ continuous_map.const _ p₀).obj U) C _ A _ = _; congr <|> refl
+  (λ U, hd $ (opens.map $ continuous_map.const _ p₀).obj U) C _ _ A = _; congr <|> refl
 
 /--
 Taking skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor by

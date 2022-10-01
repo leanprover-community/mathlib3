@@ -1,7 +1,6 @@
 import algebra.order.smul
 import analysis.normed.group.basic
 import analysis.special_functions.pow
-import combinatorics.simple_graph.regularity.bound
 import data.complex.exponential
 import data.rat.nnrat
 import data.real.ereal
@@ -134,9 +133,6 @@ example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
 
 example {E : Type*} [add_group E] {p : add_group_seminorm E} {x : E} : 0 ≤ p x := by positivity
 example {E : Type*} [group E] {p : group_seminorm E} {x : E} : 0 ≤ p x := by positivity
-
-example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.initial_bound ε l := by positivity
-example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.bound ε l := by positivity
 
 /- ### Canonical orders -/
 

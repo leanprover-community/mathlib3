@@ -156,4 +156,7 @@ meta def positivity_szemeredi_regularity_bound : expr → tactic strictness
 | e := pp e >>= fail ∘ format.bracket "The expression `"
  "` isn't of the form `szemeredi_regularity.initial_bound ε l` nor `szemeredi_regularity.bound ε l`"
 
+example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.initial_bound ε l := by positivity
+example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.bound ε l := by positivity
+
 end tactic

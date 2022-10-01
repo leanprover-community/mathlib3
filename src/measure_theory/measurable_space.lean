@@ -573,6 +573,11 @@ lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
 
+instance [measurable_singleton_class α] [measurable_singleton_class β] :
+  measurable_singleton_class (α × β) :=
+⟨λ ⟨a, b⟩, @singleton_prod_singleton _ _ a b ▸
+  (measurable_set_singleton a).prod (measurable_set_singleton b)⟩
+
 lemma measurable_from_prod_countable [countable β] [measurable_singleton_class β]
   {mγ : measurable_space γ} {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
   measurable f :=
@@ -620,7 +625,7 @@ begin
   { have B : x ∈ t (nat.find (P x)) ∪ (⋃ k, t k)ᶜ := nat.find_spec (P x),
     have B' : (∀ (i : ℕ), x ∉ t i) ↔ false,
     { simp only [iff_false, not_forall, not_not_mem], exact ⟨n, hx⟩ },
-    simpa only [B', mem_union_eq, mem_Inter, or_false, compl_Union, mem_compl_eq] using B },
+    simpa only [B', mem_union, mem_Inter, or_false, compl_Union, mem_compl_iff] using B },
   congr,
   by_contra h,
   exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩
@@ -696,6 +701,10 @@ begin
   { simp [h] },
   { simp [measurable_set_pi_of_nonempty hs, h, ← not_nonempty_iff_eq_empty] }
 end
+
+instance [countable δ] [Π a, measurable_singleton_class (π a)] :
+  measurable_singleton_class (Π a, π a) :=
+⟨λ f, univ_pi_singleton f ▸ measurable_set.univ_pi (λ t, measurable_set_singleton (f t))⟩
 
 variable (π)
 

@@ -202,6 +202,9 @@ ne_of_apply_ne f $ ne_of_ne_of_eq hx (map_one f).symm
 instance [one_hom_class F M N] : has_coe_t F (one_hom M N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f }⟩
 
+@[simp, to_additive] lemma one_hom.coe_coe [one_hom_class F M N] (f : F) :
+  ((f : one_hom M N) : M → N) = f := rfl
+
 end one
 
 section mul
@@ -246,6 +249,9 @@ mul_hom_class.map_mul f x y
 instance [mul_hom_class F M N] : has_coe_t F (M →ₙ* N) :=
 ⟨λ f, { to_fun := f, map_mul' := map_mul f }⟩
 
+@[simp, to_additive] lemma mul_hom.coe_coe [mul_hom_class F M N] (f : F) :
+  ((f : mul_hom M N) : M → N) = f := rfl
+
 end mul
 
 section mul_one
@@ -288,6 +294,9 @@ instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
 @[to_additive]
 instance [monoid_hom_class F M N] : has_coe_t F (M →* N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
+
+@[simp, to_additive] lemma monoid_hom.coe_coe [monoid_hom_class F M N] (f : F) :
+  ((f : M →* N) : M → N) = f := rfl
 
 @[to_additive]
 lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) :
@@ -401,6 +410,9 @@ instance monoid_with_zero_hom.monoid_with_zero_hom_class :
 
 instance [monoid_with_zero_hom_class F M N] : has_coe_t F (M →*₀ N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_zero' := map_zero f, map_mul' := map_mul f }⟩
+
+@[simp] lemma monoid_with_zero_hom.coe_coe [monoid_with_zero_hom_class F M N] (f : F) :
+  ((f : M →*₀ N) : M → N) = f := rfl
 
 end mul_zero_one
 

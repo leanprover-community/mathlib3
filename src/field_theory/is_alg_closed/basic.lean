@@ -348,7 +348,7 @@ perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ ne_ze
 @[priority 500]
 instance {K : Type*} [field K] [is_alg_closed K] : infinite K :=
 begin
-  apply infinite.mk,
+  apply infinite.of_not_fintype,
   introsI hfin,
   set n := fintype.card K with hn,
   set f := (X : K[X]) ^ (n + 1) - 1 with hf,

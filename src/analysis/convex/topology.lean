@@ -199,11 +199,10 @@ convex_iff_open_segment_subset.mpr $ λ x hx y hy,
 protected lemma convex.closure {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (closure s) :=
 λ x hx y hy a b ha hb hab,
 let f : E → E → E := λ x' y', a • x' + b • y' in
-have hf : continuous (λ p : E × E, f p.1 p.2), from
-  (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
-show f x y ∈ closure s, from
-  mem_closure_of_continuous2 hf hx hy (λ x' hx' y' hy', subset_closure
-  (hs hx' hy' ha hb hab))
+have hf : continuous (function.uncurry f),
+  from (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
+show f x y ∈ closure s,
+  from map_mem_closure₂ hf hx hy (λ x' hx' y' hy', hs hx' hy' ha hb hab)
 
 end has_continuous_const_smul
 
@@ -403,6 +402,22 @@ lemma dist_add_dist_of_mem_segment {x y z : E} (h : y ∈ [x -[ℝ] z]) :
 begin
   simp only [dist_eq_norm, mem_segment_iff_same_ray] at *,
   simpa only [sub_add_sub_cancel', norm_sub_rev] using h.norm_add.symm
+end
+
+/-- The set of vectors in the same ray as `x` is connected. -/
+lemma is_connected_set_of_same_ray (x : E) : is_connected {y | same_ray ℝ x y} :=
+begin
+  by_cases hx : x = 0, { simpa [hx] using is_connected_univ },
+  simp_rw ←exists_nonneg_left_iff_same_ray hx,
+  exact is_connected_Ici.image _ ((continuous_id.smul continuous_const).continuous_on)
+end
+
+/-- The set of nonzero vectors in the same ray as the nonzero vector `x` is connected. -/
+lemma is_connected_set_of_same_ray_and_ne_zero {x : E} (hx : x ≠ 0) :
+  is_connected {y | same_ray ℝ x y ∧ y ≠ 0} :=
+begin
+  simp_rw ←exists_pos_left_iff_same_ray_and_ne_zero hx,
+  exact is_connected_Ioi.image _ ((continuous_id.smul continuous_const).continuous_on)
 end
 
 end normed_space

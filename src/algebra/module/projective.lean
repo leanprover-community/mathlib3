@@ -80,7 +80,7 @@ lemma projective_def {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_mo
   (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
-theorem module.projective_def' {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P]
+theorem projective_def' {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P]
   [module R P] : projective R P ↔
   (∃ s : P →ₗ[R] (P →₀ R), (finsupp.total P P R id) ∘ₗ s = id) :=
 by simp_rw [module.projective_def, fun_like.ext_iff, function.left_inverse, coe_comp, id_coe,

@@ -436,13 +436,13 @@ by simp [total_apply, sum_single_index]
 
 variables (α M)
 
-@[simp] lemma finsupp.total_zero :
+@[simp] lemma total_zero :
   finsupp.total α M R 0 = 0 :=
 by { ext, simp [finsupp.total_apply] }
 
 variables {α M}
 
-lemma finsupp.total_zero_apply (x : α →₀ R) :
+lemma total_zero_apply (x : α →₀ R) :
   (finsupp.total α M R 0) x = 0 := by simp
 
 theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :

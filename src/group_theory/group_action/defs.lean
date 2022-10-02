@@ -209,7 +209,7 @@ class is_central_scalar (M α : Type*) [has_smul M α] [has_smul Mᵐᵒᵖ α] 
 
 lemma is_central_scalar.unop_smul_eq_smul {M α : Type*} [has_smul M α] [has_smul Mᵐᵒᵖ α]
   [is_central_scalar M α] (m : Mᵐᵒᵖ) (a : α) : (mul_opposite.unop m) • a = m • a :=
-mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
+by { convert (is_central_scalar.op_smul_eq_smul _ _).symm, apply_instance }
 
 export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
 

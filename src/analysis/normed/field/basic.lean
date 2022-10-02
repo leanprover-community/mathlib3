@@ -17,7 +17,6 @@ definitions.
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
-noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
@@ -322,7 +321,8 @@ instance prod.semi_normed_ring [semi_normed_ring β] :
 
 /-- Seminormed ring structure on the product of finitely many seminormed rings,
   using the sup norm. -/
-instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, semi_normed_ring (π i)] :
   semi_normed_ring (Π i, π i) :=
 { ..pi.non_unital_semi_normed_ring,
   ..pi.seminormed_add_comm_group, }
@@ -338,7 +338,8 @@ instance : non_unital_normed_ring (ulift α) :=
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
-instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_normed_ring (α × β) :=
+instance prod.non_unital_normed_ring [non_unital_normed_ring β] :
+  non_unital_normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.seminormed_add_comm_group }
 
@@ -616,11 +617,16 @@ end densely
 
 end normed_field
 
-instance : normed_field ℝ :=
+instance : normed_comm_ring ℝ :=
+{ norm_mul := λ x y, (abs_mul x y).le,
+  .. real.normed_add_comm_group,
+  .. real.comm_ring }
+
+noncomputable instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_add_comm_group }
 
-instance : densely_normed_field ℝ :=
+noncomputable instance : densely_normed_field ℝ :=
 { lt_norm_lt := λ _ _ h₀ hr, let ⟨x, h⟩ := exists_between hr in
     ⟨x, by rwa [real.norm_eq_abs, abs_of_nonneg (h₀.trans h.1.le)]⟩ }
 

@@ -3,6 +3,7 @@ Copyright (c) 2021 Alex Kontorovich, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
+import data.real.nnreal
 import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
@@ -113,6 +114,10 @@ instance [has_smul M β] [has_continuous_const_smul M β] :
 instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π i, has_smul M (γ i)]
   [∀ i, has_continuous_const_smul M (γ i)] : has_continuous_const_smul M (Π i, γ i) :=
 ⟨λ _, continuous_pi $ λ i, (continuous_apply i).const_smul _⟩
+
+lemma is_compact.smul {α β} [has_smul α β] [topological_space β]
+  [has_continuous_const_smul α β] (a : α) {s : set β}
+  (hs : is_compact s) : is_compact (a • s) := hs.image (continuous_id'.const_smul a)
 
 end has_smul
 

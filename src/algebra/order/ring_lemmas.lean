@@ -116,56 +116,54 @@ instance mul_pos_reflect_lt.to_contravariant_class_pos_mul_lt [mul_pos_reflect_l
   contravariant_class α>0 α (λ x y, y * x) (<) :=
 ⟨λ a b c bc, @contravariant_class.elim α≥0 α (λ x y, y * x) (<) _ ⟨_, a.2.le⟩ _ _ bc⟩
 
-lemma mul_le_mul_of_nonneg_left [pos_mul_mono α] (h : b ≤ c) (ha : 0 ≤ a) : a * b ≤ a * c :=
-@covariant_class.elim α≥0 α (λ x y, x * y) (≤) _ ⟨a, ha⟩ _ _ h
+lemma mul_le_mul_of_nonneg_left [pos_mul_mono α] (h : b ≤ c) (a0 : 0 ≤ a) : a * b ≤ a * c :=
+@covariant_class.elim α≥0 α (λ x y, x * y) (≤) _ ⟨a, a0⟩ _ _ h
 
-lemma mul_le_mul_of_nonneg_right [mul_pos_mono α] (h : b ≤ c) (ha : 0 ≤ a) : b * a ≤ c * a :=
-@covariant_class.elim α≥0 α (λ x y, y * x) (≤) _ ⟨a, ha⟩ _ _ h
+lemma mul_le_mul_of_nonneg_right [mul_pos_mono α] (h : b ≤ c) (a0 : 0 ≤ a) : b * a ≤ c * a :=
+@covariant_class.elim α≥0 α (λ x y, y * x) (≤) _ ⟨a, a0⟩ _ _ h
 
-lemma mul_lt_mul_of_pos_left [pos_mul_strict_mono α] (bc : b < c) (ha : 0 < a) : a * b < a * c :=
-@covariant_class.elim α>0 α (λ x y, x * y) (<) _ ⟨a, ha⟩ _ _ bc
+lemma mul_lt_mul_of_pos_left [pos_mul_strict_mono α] (bc : b < c) (a0 : 0 < a) : a * b < a * c :=
+@covariant_class.elim α>0 α (λ x y, x * y) (<) _ ⟨a, a0⟩ _ _ bc
 
-lemma mul_lt_mul_of_pos_right [mul_pos_strict_mono α] (bc : b < c) (ha : 0 < a) : b * a < c * a :=
-@covariant_class.elim α>0 α (λ x y, y * x) (<) _ ⟨a, ha⟩ _ _ bc
+lemma mul_lt_mul_of_pos_right [mul_pos_strict_mono α] (bc : b < c) (a0 : 0 < a) : b * a < c * a :=
+@covariant_class.elim α>0 α (λ x y, y * x) (<) _ ⟨a, a0⟩ _ _ bc
 
-lemma lt_of_mul_lt_mul_left [pos_mul_reflect_lt α] (h : a * b < a * c) (ha : 0 ≤ a) : b < c :=
-@contravariant_class.elim α≥0 α (λ x y, x * y) (<) _ ⟨a, ha⟩ _ _ h
+lemma lt_of_mul_lt_mul_left [pos_mul_reflect_lt α] (h : a * b < a * c) (a0 : 0 ≤ a) : b < c :=
+@contravariant_class.elim α≥0 α (λ x y, x * y) (<) _ ⟨a, a0⟩ _ _ h
 
-lemma lt_of_mul_lt_mul_right [mul_pos_reflect_lt α] (h : b * a < c * a) (ha : 0 ≤ a) : b < c :=
-@contravariant_class.elim α≥0 α (λ x y, y * x) (<) _ ⟨a, ha⟩ _ _ h
+lemma lt_of_mul_lt_mul_right [mul_pos_reflect_lt α] (h : b * a < c * a) (a0 : 0 ≤ a) : b < c :=
+@contravariant_class.elim α≥0 α (λ x y, y * x) (<) _ ⟨a, a0⟩ _ _ h
 
-@[simp]
-lemma mul_lt_mul_left [pos_mul_strict_mono α] [pos_mul_reflect_lt α]
+lemma le_of_mul_le_mul_left [pos_mul_mono_rev α] (bc : a * b ≤ a * c) (a0 : 0 < a) : b ≤ c :=
+@contravariant_class.elim α>0 α (λ x y, x * y) (≤) _ ⟨a, a0⟩ _ _ bc
+
+lemma le_of_mul_le_mul_right [mul_pos_mono_rev α] (bc : b * a ≤ c * a) (a0 : 0 < a) : b ≤ c :=
+@contravariant_class.elim α>0 α (λ x y, y * x) (≤) _ ⟨a, a0⟩ _ _ bc
+
+alias lt_of_mul_lt_mul_left  ← lt_of_mul_lt_mul_of_nonneg_left
+alias lt_of_mul_lt_mul_right ← lt_of_mul_lt_mul_of_nonneg_right
+alias le_of_mul_le_mul_left  ← le_of_mul_le_mul_of_pos_left
+alias le_of_mul_le_mul_right ← le_of_mul_le_mul_of_pos_right
+
+@[simp] lemma mul_lt_mul_left [pos_mul_strict_mono α] [pos_mul_reflect_lt α]
   (a0 : 0 < a) :
   a * b < a * c ↔ b < c :=
 @rel_iff_cov α>0 α (λ x y, x * y) (<) _ _ ⟨a, a0⟩ _ _
 
-@[simp]
-lemma mul_lt_mul_right [mul_pos_strict_mono α] [mul_pos_reflect_lt α]
+@[simp] lemma mul_lt_mul_right [mul_pos_strict_mono α] [mul_pos_reflect_lt α]
   (a0 : 0 < a) :
   b * a < c * a ↔ b < c :=
 @rel_iff_cov α>0 α (λ x y, y * x) (<) _ _ ⟨a, a0⟩ _ _
 
-lemma le_of_mul_le_mul_of_pos_left [pos_mul_mono_rev α]
-  (bc : a * b ≤ a * c) (a0 : 0 < a) :
-  b ≤ c :=
-@contravariant_class.elim α>0 α (λ x y, x * y) (≤) _ ⟨a, a0⟩ _ _ bc
-
-lemma le_of_mul_le_mul_of_pos_right [mul_pos_mono_rev α]
-  (bc : b * a ≤ c * a) (a0 : 0 < a) :
-  b ≤ c :=
-@contravariant_class.elim α>0 α (λ x y, y * x) (≤) _ ⟨a, a0⟩ _ _ bc
-
-alias le_of_mul_le_mul_of_pos_left ← le_of_mul_le_mul_left
-alias le_of_mul_le_mul_of_pos_right ← le_of_mul_le_mul_right
-
-@[simp] lemma mul_le_mul_left [pos_mul_mono α] [pos_mul_mono_rev α] (ha : 0 < a) :
+@[simp] lemma mul_le_mul_left [pos_mul_mono α] [pos_mul_mono_rev α]
+  (a0 : 0 < a) :
   a * b ≤ a * c ↔ b ≤ c :=
-@rel_iff_cov α>0 α (λ x y, x * y) (≤) _ _ ⟨a, ha⟩ _ _
+@rel_iff_cov α>0 α (λ x y, x * y) (≤) _ _ ⟨a, a0⟩ _ _
 
-@[simp] lemma mul_le_mul_right [mul_pos_mono α] [mul_pos_mono_rev α] (ha : 0 < a) :
+@[simp] lemma mul_le_mul_right [mul_pos_mono α] [mul_pos_mono_rev α]
+  (a0 : 0 < a) :
   b * a ≤ c * a ↔ b ≤ c :=
-@rel_iff_cov α>0 α (λ x y, y * x) (≤) _ _ ⟨a, ha⟩ _ _
+@rel_iff_cov α>0 α (λ x y, y * x) (≤) _ _ ⟨a, a0⟩ _ _
 
 lemma mul_lt_mul_of_pos_of_nonneg [pos_mul_strict_mono α] [mul_pos_mono α]
   (h₁ : a ≤ b) (h₂ : c < d) (a0 : 0 < a) (d0 : 0 ≤ d) : a * c < b * d :=
@@ -232,12 +230,10 @@ lemma pos_mul_strict_mono_iff_pos_mul_mono_rev : pos_mul_strict_mono α ↔ pos_
 lemma mul_pos_strict_mono_iff_mul_pos_mono_rev : mul_pos_strict_mono α ↔ mul_pos_mono_rev α :=
 ⟨@mul_pos_strict_mono.to_mul_pos_mono_rev _ _ _ _, @mul_pos_mono_rev.to_mul_pos_strict_mono _ _ _ _⟩
 
-lemma pos_mul_reflect_lt.to_pos_mul_mono {α : Type*} [mul_zero_class α] [linear_order α]
-  [pos_mul_reflect_lt α] : pos_mul_mono α :=
+lemma pos_mul_reflect_lt.to_pos_mul_mono [pos_mul_reflect_lt α] : pos_mul_mono α :=
 ⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt $ lt_of_mul_lt_mul_left h' x.prop⟩
 
-lemma mul_pos_reflect_lt.to_mul_pos_mono {α : Type*} [mul_zero_class α] [linear_order α]
-  [mul_pos_reflect_lt α] : mul_pos_mono α :=
+lemma mul_pos_reflect_lt.to_mul_pos_mono [mul_pos_reflect_lt α] : mul_pos_mono α :=
 ⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt $ lt_of_mul_lt_mul_right h' x.prop⟩
 
 lemma pos_mul_mono.to_pos_mul_reflect_lt [pos_mul_mono α] : pos_mul_reflect_lt α :=
@@ -246,13 +242,11 @@ lemma pos_mul_mono.to_pos_mul_reflect_lt [pos_mul_mono α] : pos_mul_reflect_lt 
 lemma mul_pos_mono.to_mul_pos_reflect_lt [mul_pos_mono α] : mul_pos_reflect_lt α :=
 ⟨λ x a b h, lt_of_not_le $ λ h', h.not_le $ mul_le_mul_of_nonneg_right h' x.prop⟩
 
-lemma pos_mul_mono_iff_pos_mul_reflect_lt {α : Type*} [mul_zero_class α] [linear_order α] :
-  pos_mul_mono α ↔ pos_mul_reflect_lt α :=
-⟨@pos_mul_mono.to_pos_mul_reflect_lt _ _ _ _, @pos_mul_reflect_lt.to_pos_mul_mono _ _ _⟩
+lemma pos_mul_mono_iff_pos_mul_reflect_lt : pos_mul_mono α ↔ pos_mul_reflect_lt α :=
+⟨@pos_mul_mono.to_pos_mul_reflect_lt _ _ _ _, @pos_mul_reflect_lt.to_pos_mul_mono _ _ _ _⟩
 
-lemma mul_pos_mono_iff_mul_pos_reflect_lt {α : Type*} [mul_zero_class α] [linear_order α] :
-  mul_pos_mono α ↔ mul_pos_reflect_lt α :=
-⟨@mul_pos_mono.to_mul_pos_reflect_lt _ _ _ _, @mul_pos_reflect_lt.to_mul_pos_mono _ _ _⟩
+lemma mul_pos_mono_iff_mul_pos_reflect_lt : mul_pos_mono α ↔ mul_pos_reflect_lt α :=
+⟨@mul_pos_mono.to_mul_pos_reflect_lt _ _ _ _, @mul_pos_reflect_lt.to_mul_pos_mono _ _ _ _⟩
 
 end linear_order
 
@@ -268,7 +262,7 @@ variables [preorder α]
 lemma left.mul_pos [pos_mul_strict_mono α] (ha : 0 < a) (hb : 0 < b) : 0 < a * b :=
 by simpa only [mul_zero] using mul_lt_mul_of_pos_left hb ha
 
-alias left.mul_pos ← _root_.mul_pos
+alias left.mul_pos ← mul_pos
 
 lemma mul_neg_of_pos_of_neg [pos_mul_strict_mono α] (ha : 0 < a) (hb : b < 0) : a * b < 0 :=
 by simpa only [mul_zero] using mul_lt_mul_of_pos_left hb ha

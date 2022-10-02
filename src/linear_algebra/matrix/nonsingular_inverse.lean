@@ -429,8 +429,10 @@ begin
     simp [hn] },
 end
 
-@[simp] lemma inv_one : (1 : matrix n n α)⁻¹ = 1 :=
-inv_eq_left_inv (by simp)
+noncomputable instance : inv_one_class (matrix n n α) :=
+{ inv_one := inv_eq_left_inv (by simp),
+  ..matrix.has_one,
+  ..matrix.has_inv }
 
 lemma inv_smul (k : α) [invertible k] (h : is_unit A.det) : (k • A)⁻¹ = ⅟k • A⁻¹ :=
 inv_eq_left_inv (by simp [h, smul_smul])

@@ -74,10 +74,10 @@ instance [non_unital_comm_ring α] : non_unital_comm_ring αᵐᵒᵖ :=
 instance [comm_ring α] : comm_ring αᵐᵒᵖ :=
 { .. mul_opposite.ring α, .. mul_opposite.comm_semiring α }
 
-instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors αᵐᵒᵖ :=
+instance [has_zero α] [has_mul α] [hα : no_zero_divisors α] : no_zero_divisors αᵐᵒᵖ :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y (H : op (_ * _) = op (0:α)),
-    or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ op_injective H)
-      (λ hy, or.inr $ unop_injective $ hy) (λ hx, or.inl $ unop_injective $ hx), }
+    or.cases_on (@eq_zero_or_eq_zero_of_mul_eq_zero _ _ _ hα _ _ $ op_injective H)
+      (λ hy, or.inr $ unop_injective $ hy) (λ hx, or.inl $ unop_injective $ hx) }
 
 instance [ring α] [is_domain α] : is_domain αᵐᵒᵖ :=
 { .. mul_opposite.no_zero_divisors α, .. mul_opposite.ring α, .. mul_opposite.nontrivial α }

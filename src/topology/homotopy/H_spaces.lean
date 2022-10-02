@@ -43,8 +43,7 @@ class H_space (X : Type u) [topological_space X] :=
 
 namespace topological_group
 
-@[priority 600]
-@[to_additive] instance H_space (G : Type u) [topological_space G] [group G]
+@[priority 600, to_additive] instance H_space (G : Type u) [topological_space G] [group G]
   [topological_group G] : H_space G :=
 { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
   e := 1,

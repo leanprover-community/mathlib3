@@ -402,6 +402,7 @@ section distribution
 
 variables (𝕜 F)
 
+/-- The delta distribution as a linear map. -/
 def delta_aux (x₀ : E) : 𝓢(E, F) →ₗ[𝕜] F :=
 { to_fun := λ f, f x₀,
   map_add' := λ f g, by simp,
@@ -409,6 +410,7 @@ def delta_aux (x₀ : E) : 𝓢(E, F) →ₗ[𝕜] F :=
 
 lemma delta_aux_apply (x₀ : E) (f : 𝓢(E, F)) : delta_aux 𝕜 F x₀ f = f x₀ := rfl
 
+/-- The delta distribution -/
 def delta (x₀ : E) : 𝓢(E, F) →L[𝕜] F :=
 { cont :=
   begin

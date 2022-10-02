@@ -219,18 +219,33 @@ lemma pi_norm_const_le (a : E) : ∥(λ _ : ι, a)∥ ≤ ∥a∥ :=
 
 end
 
+namespace set
+variables {α : Type*} [subsingleton α] {s : set α}
+
+lemma nonempty.eq_univ : s.nonempty → s = univ :=
+by { rintro ⟨x, hx⟩, refine eq_univ_of_forall (λ y, by rwa subsingleton.elim y x) }
+
+end set
+
 open function measure_theory measure_theory.measure metric set
 
-variables {ι : Type*} [fintype ι] {s : set (ι → ℝ)} {x : ι → ℝ} {δ : ℝ}
+variables {ι : Type*} [fintype ι] {s : set (ι → ℝ)} {x y : ι → ℝ} {δ : ℝ}
 
-lemma is_upper_set.Ioi_subset_of_mem_closure (h : is_upper_set s) (hx : x ∈ closure s) :
-  Ioi x ⊆ s :=
+lemma is_upper_set.mem_interior_of_forall_lt_of_mem_closure (hs : is_upper_set s)
+  (hx : x ∈ closure s) (h : ∀ i, x i < y i) :
+  y ∈ interior s :=
 begin
-  rintro y (hy : _ < _),
-  set d := finset.univ.inf' sorry (λ i, dist (x i) $ y i),
-  have hd : 0 < d := (finset.lt_inf'_iff _).2 (λ i _, sorry), -- false :(
-  obtain ⟨z, hz, hxz⟩ :=  metric.mem_closure_iff.1 hx _ hd,
-  refine h (λ i, _) hz,
+  casesI is_empty_or_nonempty ι,
+  { simp [(closure_nonempty_iff.1 ⟨x, hx⟩).eq_univ] },
+  have hd : 0 < finset.univ.inf' finset.univ_nonempty (λ i, dist (x i) $ y i) :=
+    (finset.lt_inf'_iff _).2 (λ i _, dist_pos.2 (h _).ne),
+  obtain ⟨z, hz, hxz⟩ := metric.mem_closure_iff.1 hx _ hd,
+  rw dist_pi_lt_iff hd at hxz,
+  refine mem_interior.2 ⟨ball y $ finset.univ.inf' finset.univ_nonempty (λ i, dist (y i) $ z i), _,
+    is_open_ball, mem_ball_self $ (finset.lt_inf'_iff _).2 $ λ i _, dist_pos.2 _⟩,
+  rintro w hw,
+  refine hs (λ i, _) hz,
+  simp_rw [ball_pi', real.ball_eq_Ioo] at hw,
   have := (dist_le_pi_dist _ _ i).trans_lt (hxz.trans_le $ finset.inf'_le _ $ finset.mem_univ i),
   rw [dist_eq_norm', dist_eq_norm', real.norm_eq_abs,
     real.norm_of_nonneg (sub_nonneg_of_le $ hy.le _)] at this,

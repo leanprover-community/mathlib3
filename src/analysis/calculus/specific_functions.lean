@@ -281,24 +281,70 @@ bundled smooth function such that
 The structure `cont_diff_bump_of_inner` contains the data required to construct the function:
 real numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available through
 `coe_fn`. -/
-structure cont_diff_bump_of_inner (c : E) :=
+structure cont_diff_bump (c : E) :=
 (r R : ℝ)
 (r_pos : 0 < r)
 (r_lt_R : r < R)
 
-namespace cont_diff_bump_of_inner
+namespace cont_diff_bump
 
-lemma R_pos {c : E} (f : cont_diff_bump_of_inner c) : 0 < f.R := f.r_pos.trans f.r_lt_R
+lemma R_pos {c : E} (f : cont_diff_bump c) : 0 < f.R := f.r_pos.trans f.r_lt_R
 
-instance (c : E) : inhabited (cont_diff_bump_of_inner c) := ⟨⟨1, 2, zero_lt_one, one_lt_two⟩⟩
+instance (c : E) : inhabited (cont_diff_bump c) := ⟨⟨1, 2, zero_lt_one, one_lt_two⟩⟩
 
-variables [inner_product_space ℝ E] [normed_add_comm_group X] [normed_space ℝ X]
-variables {c : E} (f : cont_diff_bump_of_inner c) {x : E} {n : ℕ∞}
+variables [normed_add_comm_group E] [normed_space ℝ E]
+variables {c : E} (f : cont_diff_bump c) {x : E} {n : ℕ∞}
+
+/-- The base function from which one will construct a family of bump functions. One could
+add more properties if they are useful and satisfied in the examples of inner product spaces
+and finite dimensional vector spaces, notably smooth dependence in `R` or derivative norm
+control in terms of `R`. -/
+structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
+(to_fun : ℝ → E → ℝ)
+(mem_Icc   : ∀ (R : ℝ) (x : E), to_fun R x ∈ Icc (0 : ℝ) 1)
+(symmetric : ∀ (R : ℝ) (x : E), to_fun R (-x) = to_fun R x)
+(smooth    : ∀ (R : ℝ) (hR : 1 < R), cont_diff ℝ ⊤ (to_fun R))
+(eq_one    : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : ∥x∥ ≤ 1), to_fun R x = 1)
+(eq_zero   : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : R ≤ ∥x∥), to_fun R x = 0)
+
+class has_cont_diff_bump (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
+(out : nonempty (cont_diff_bump_base E))
+
+noncomputable theory
+
+noncomputable instance of_inner_product_space (E : Type*) [inner_product_space ℝ E] :
+  has_cont_diff_bump E :=
+let e : cont_diff_bump_base E :=
+{ to_fun := λ R x, real.smooth_transition ((R - ∥x∥) / (R - 1)),
+  mem_Icc := λ R x, ⟨real.smooth_transition.nonneg _, real.smooth_transition.le_one _⟩,
+  symmetric := λ R x, by simp only [norm_neg],
+  smooth := begin
+    assume R hR,
+    rw cont_diff_iff_cont_diff_at,
+    assume x,
+    rcases eq_or_ne x 0 with rfl|hx,
+    { have : (λ (y : E), real.smooth_transition ((R - ∥y∥) / (R - 1))) =ᶠ[𝓝 0] (λ x, 1),
+      { filter_upwards [metric.ball_mem_nhds (0 : E) zero_lt_one] with x hx,
+        rw mem_ball_zero_iff at hx,
+        exact real.smooth_transition.one_of_one_le
+          ((one_le_div (sub_pos.2 hR)).2 (sub_le_sub_left hx.le _)) },
+      exact cont_diff_at_const.congr_of_eventually_eq this },
+    { refine real.smooth_transition.cont_diff_at.comp x _,
+      exact (cont_diff_at_const.sub (cont_diff_at_norm hx)).div_const }
+  end,
+  eq_one := λ R hR x hx, real.smooth_transition.one_of_one_le $
+    (one_le_div (sub_pos.2 hR)).2 (sub_le_sub_left hx _),
+  eq_zero := λ R hR x hx, real.smooth_transition.zero_of_nonpos $
+    div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 hx) (sub_nonneg.2 hR.le) }
+in ⟨⟨e⟩⟩
 
 /-- The function defined by `f : cont_diff_bump_of_inner c`. Use automatic coercion to
 function instead. -/
-def to_fun (f : cont_diff_bump_of_inner c) : E → ℝ :=
-λ x, real.smooth_transition ((f.R - dist x c) / (f.R - f.r))
+def to_fun [normed_add_comm_group E] [normed_space ℝ E] [h : has_cont_diff_bump E]
+  (f : cont_diff_bump c) : E → ℝ :=
+λ x, (nonempty.some h.out).to_fun (f.R / f.r) (f.r⁻¹ • (x - c))
+
+
 
 instance : has_coe_to_fun (cont_diff_bump_of_inner c) (λ _, E → ℝ) := ⟨to_fun⟩
 

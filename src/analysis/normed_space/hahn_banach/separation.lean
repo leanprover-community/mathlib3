@@ -86,8 +86,6 @@ begin
     apply_instance }
 end
 
-section TVS
-
 variables [topological_space E] [add_comm_group E] [topological_add_group E] [module ℝ E]
   [has_continuous_smul ℝ E] [locally_convex_space ℝ E] {s t : set E} {x y : E}
 
@@ -156,12 +154,6 @@ begin
   exact (hf₁ _ ha₀).not_le (hf₂ _ hb₀),
 end
 
-end TVS
-
-section normed
-
-variables [normed_add_comm_group E] [normed_space ℝ E] {s t : set E} {x y : E}
-
 /-- A version of the **Hahn-Banach theorem**: given disjoint convex sets `s`, `t` where `s` is
 compact and `t` is closed, there is a continuous linear functional which strongly separates them. -/
 theorem geometric_hahn_banach_compact_closed (hs₁ : convex ℝ s) (hs₂ : is_compact s)
@@ -221,5 +213,3 @@ begin
   obtain ⟨y, hy, hxy⟩ := hx l,
   exact ((hxy.trans_lt (hlA y hy)).trans hl).not_le le_rfl,
 end
-
-end normed

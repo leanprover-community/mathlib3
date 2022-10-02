@@ -53,6 +53,13 @@ assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 theorem cons_inj (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
 cons_injective.eq_iff
 
+theorem cons_eq_cons {a b : α} {l l' : list α} : a::l = b::l' ↔ a = b ∧ l = l' :=
+⟨list.cons.inj, λ h, h.1 ▸ h.2 ▸ rfl⟩
+
+lemma singleton_injective : injective (λ a : α, [a]) := λ a b h, (cons_eq_cons.1 h).1
+
+lemma singleton_inj {a b : α} : [a] = [b] ↔ a = b := singleton_injective.eq_iff
+
 theorem exists_cons_of_ne_nil {l : list α} (h : l ≠ nil) : ∃ b L, l = b :: L :=
 by { induction l with c l',  contradiction,  use [c,l'], }
 
@@ -208,10 +215,9 @@ by rw [range_map, subtype.range_coe]
 
 /-- If each element of a list can be lifted to some type, then the whole list can be lifted to this
 type. -/
-instance [h : can_lift α β] : can_lift (list α) (list β) :=
-{ coe := list.map h.coe,
-  cond := λ l, ∀ x ∈ l, can_lift.cond β x,
-  prf  := λ l H,
+instance can_lift (c) (p) [can_lift α β c p] :
+  can_lift (list α) (list β) (list.map c) (λ l, ∀ x ∈ l, p x) :=
+{ prf  := λ l H,
     begin
       rw [← set.mem_range, range_map],
       exact λ a ha, can_lift.prf a (H a ha),

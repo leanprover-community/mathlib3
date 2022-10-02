@@ -54,7 +54,7 @@ open set filter topological_space bornology
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
 universes u v w
-variables {α : Type u} {β : Type v} {X : Type*}
+variables {α : Type u} {β : Type v} {X ι : Type*}
 
 /-- Construct a uniform structure core from a distance function and metric space axioms.
 This is a technical construction that can be immediately used to construct a uniform structure
@@ -870,6 +870,30 @@ lemma eventually_nhds_iff_ball {p : α → Prop} :
   (∀ᶠ y in 𝓝 x, p y) ↔ ∃ ε>0, ∀ y ∈ ball x ε, p y :=
 mem_nhds_iff
 
+/-- A version of `filter.eventually_prod_iff` where the second filter consists of neighborhoods
+in a pseudo-metric space.-/
+lemma eventually_prod_nhds_iff {f : filter ι} {x₀ : α} {p : ι × α → Prop}:
+  (∀ᶠ x in f ×ᶠ 𝓝 x₀, p x) ↔ ∃ (pa : ι → Prop) (ha : ∀ᶠ i in f, pa i) (ε > 0),
+    ∀ {i}, pa i → ∀ {x}, dist x x₀ < ε → p (i, x) :=
+begin
+  simp_rw [eventually_prod_iff, metric.eventually_nhds_iff],
+  refine exists_congr (λ q, exists_congr $ λ hq, _),
+  split,
+  { rintro ⟨r, ⟨ε, hε, hεr⟩, hp⟩, exact ⟨ε, hε, λ i hi x hx, hp hi $ hεr hx⟩ },
+  { rintro ⟨ε, hε, hp⟩, exact ⟨λ x, dist x x₀ < ε, ⟨ε, hε, λ y, id⟩, @hp⟩ }
+end
+
+/-- A version of `filter.eventually_prod_iff` where the first filter consists of neighborhoods
+in a pseudo-metric space.-/
+lemma eventually_nhds_prod_iff {ι α} [pseudo_metric_space α] {f : filter ι} {x₀ : α}
+  {p : α × ι → Prop}:
+  (∀ᶠ x in 𝓝 x₀ ×ᶠ f, p x) ↔ ∃ (ε > (0 : ℝ)) (pa : ι → Prop) (ha : ∀ᶠ i in f, pa i) ,
+    ∀ {x}, dist x x₀ < ε → ∀ {i}, pa i → p (x, i) :=
+begin
+  rw [eventually_swap_iff, metric.eventually_prod_nhds_iff],
+  split; { rintro ⟨a1, a2, a3, a4, a5⟩, refine ⟨a3, a4, a1, a2, λ b1 b2 b3 b4, a5 b4 b2⟩ }
+end
+
 theorem nhds_basis_closed_ball : (𝓝 x).has_basis (λ ε:ℝ, 0 < ε) (closed_ball x) :=
 nhds_basis_uniformity uniformity_basis_dist_le
 
@@ -1537,13 +1561,14 @@ end ulift
 section prod
 variables [pseudo_metric_space β]
 
-noncomputable instance prod.pseudo_metric_space_max :
+instance prod.pseudo_metric_space_max :
   pseudo_metric_space (α × β) :=
 (pseudo_emetric_space.to_pseudo_metric_space_of_dist
-  (λ x y : α × β, max (dist x.1 y.1) (dist x.2 y.2))
+  (λ x y : α × β, dist x.1 y.1 ⊔ dist x.2 y.2)
   (λ x y, (max_lt (edist_lt_top _ _) (edist_lt_top _ _)).ne)
-  (λ x y, by simp only [dist_edist, ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _),
-    prod.edist_eq])).replace_bornology $
+  (λ x y, by simp only [sup_eq_max, dist_edist,
+    ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _), prod.edist_eq]))
+    .replace_bornology $
   λ s, by { simp only [← is_bounded_image_fst_and_snd, is_bounded_iff_eventually, ball_image_iff,
     ← eventually_and, ← forall_and_distrib, ← max_le_iff], refl }
 
@@ -1771,7 +1796,7 @@ open finset
 variables {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
 
 /-- A finite product of pseudometric spaces is a pseudometric space, with the sup distance. -/
-noncomputable instance pseudo_metric_space_pi : pseudo_metric_space (Πb, π b) :=
+instance pseudo_metric_space_pi : pseudo_metric_space (Πb, π b) :=
 begin
   /- we construct the instance from the pseudoemetric space instance to avoid checking again that
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
@@ -2770,7 +2795,7 @@ metric_space.induced ulift.down ulift.down_injective ‹_›
 
 section prod
 
-noncomputable instance prod.metric_space_max [metric_space β] : metric_space (γ × β) :=
+instance prod.metric_space_max [metric_space β] : metric_space (γ × β) :=
 { eq_of_dist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
     exact prod.ext_iff.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
@@ -2784,7 +2809,7 @@ open finset
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
 
 /-- A finite product of metric spaces is a metric space, with the sup distance. -/
-noncomputable instance metric_space_pi : metric_space (Πb, π b) :=
+instance metric_space_pi : metric_space (Πb, π b) :=
   /- we construct the instance from the emetric space instance to avoid checking again that the
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/

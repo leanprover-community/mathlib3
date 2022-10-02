@@ -48,7 +48,7 @@ open_locale topological_space pointwise
 
 section group
 
-variables {α G : Type*} [group G] [uniform_space G] [uniform_group G] {𝔖 : set $ set α}
+variables {α G ι : Type*} [group G] [uniform_space G] [uniform_group G] {𝔖 : set $ set α}
 
 local attribute [-instance] Pi.uniform_space
 local attribute [-instance] Pi.topological_space
@@ -72,7 +72,7 @@ begin
 end
 
 @[to_additive]
-protected lemma uniform_convergence.has_basis_nhds_one_of_basis {ι : Type*} {p : ι → Prop}
+protected lemma uniform_convergence.has_basis_nhds_one_of_basis {p : ι → Prop}
   {b : ι → set G} (h : (𝓝 1 : filter G).has_basis p b) :
   (@nhds (α → G) (uniform_convergence.topological_space α G) 1).has_basis p
     (λ i, {f : α → G | ∀ x, f x ∈ b i}) :=
@@ -110,7 +110,7 @@ begin
 end
 
 @[to_additive]
-protected lemma uniform_convergence_on.has_basis_nhds_one_of_basis {ι : Type*} (𝔖 : set $ set α)
+protected lemma uniform_convergence_on.has_basis_nhds_one_of_basis (𝔖 : set $ set α)
   (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) {p : ι → Prop}
   {b : ι → set G} (h : (𝓝 1 : filter G).has_basis p b) :
   (@nhds (α → G) (uniform_convergence_on.topological_space α G 𝔖) 1).has_basis
@@ -136,6 +136,10 @@ end group
 
 section module
 
+variables (𝕜 α E H : Type*) {hom : Type*} [normed_field 𝕜] [add_comm_group H] [module 𝕜 H]
+  [add_comm_group E] [module 𝕜 E] [linear_map_class hom 𝕜 H (α → E)] [topological_space H]
+  [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E] {𝔖 : set $ set α}
+
 local attribute [-instance] Pi.uniform_space
 local attribute [-instance] Pi.topological_space
 
@@ -143,16 +147,13 @@ local attribute [-instance] Pi.topological_space
 by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with
 the topology of `𝔖`-convergence, is a TVS.
 
-For convenience, we don't litteraly ask for `H : submodule (α → E)`. Instead, we prove the result
+For convenience, we don't literaly ask for `H : submodule (α → E)`. Instead, we prove the result
 for any vector space `H` equipped with a linear inducing to `α → E`, which is often easier to use.
 We also state the `submodule` version as
 `uniform_convergence_on.has_continuous_smul_submodule_of_image_bounded`. -/
-lemma uniform_convergence_on.has_continuous_smul_induced_of_image_bounded (𝕜 α E H : Type*)
-  {hom : Type*} [normed_field 𝕜] [add_comm_group H] [module 𝕜 H] [add_comm_group E] [module 𝕜 E]
-  [topological_space H] [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
-  {𝔖 : set $ set α} (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖)
-  [linear_map_class hom 𝕜 H (α → E)] (φ : hom)
-  (hφ : @inducing _ _ _ (uniform_convergence_on.topological_space α E 𝔖) φ)
+lemma uniform_convergence_on.has_continuous_smul_induced_of_image_bounded
+  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖)
+  (φ : hom) (hφ : @inducing _ _ _ (uniform_convergence_on.topological_space α E 𝔖) φ)
   (h : ∀ u : H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 ((φ u : α → E) '' s)) :
   has_continuous_smul 𝕜 H :=
 begin
@@ -205,9 +206,7 @@ by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then 
 the topology of `𝔖`-convergence, is a TVS.
 
 If you have a hard time using this lemma, try the one above instead. -/
-lemma uniform_convergence_on.has_continuous_smul_submodule_of_image_bounded (𝕜 α E : Type*)
-  [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-  [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E] {𝔖 : set $ set α}
+lemma uniform_convergence_on.has_continuous_smul_submodule_of_image_bounded
   (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) (H : submodule 𝕜 (α → E))
   (h : ∀ u ∈ H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 (u '' s)) :
   @has_continuous_smul 𝕜 H _ _

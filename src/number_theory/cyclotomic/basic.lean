@@ -86,7 +86,7 @@ section basic
 lemma iff_adjoin_eq_top : is_cyclotomic_extension S A B ↔
  (∀ (a : ℕ+), a ∈ S → ∃ r : B, is_primitive_root r a) ∧
  (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 } = ⊤) :=
-⟨λ h, ⟨h.exists_prim_root, algebra.eq_top_iff.2 h.adjoin_roots⟩,
+⟨λ h, ⟨λ _, h.exists_prim_root, algebra.eq_top_iff.2 h.adjoin_roots⟩,
   λ h, ⟨h.1, algebra.eq_top_iff.1 h.2⟩⟩
 
 /-- A reformulation of `is_cyclotomic_extension` in the case `S` is a singleton. -/
@@ -504,8 +504,8 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
     subst a,
     haveI := ne_zero.of_no_zero_smul_divisors A K n,
     haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n,
-    obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_prim_root
-                      in h $ mem_singleton n,
+    obtain ⟨μ, hμ⟩ :=
+      (cyclotomic_field.is_cyclotomic_extension n K).exists_prim_root (mem_singleton n),
     refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
     { apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
       refine ⟨n, nat.mem_divisors_self _ n.ne_zero, _⟩,
@@ -552,12 +552,12 @@ instance [ne_zero ((n : ℕ) : A)] :
       refine ⟨⟨a.1 * b.2 + b.1 * a.2, a.2 * b.2, mul_mem_non_zero_divisors.2 ⟨a.2.2, b.2.2⟩⟩, _⟩,
       rw [set_like.coe_mk, ring_hom.map_mul, add_mul, ← mul_assoc, ha,
         mul_comm ((algebra_map _ _) ↑a.2), ← mul_assoc, hb],
-      simp },
+      simp only [map_add, map_mul] },
     { rintro y z ⟨a, ha⟩ ⟨b, hb⟩,
       refine ⟨⟨a.1 * b.1, a.2 * b.2, mul_mem_non_zero_divisors.2 ⟨a.2.2, b.2.2⟩⟩, _⟩,
       rw [set_like.coe_mk, ring_hom.map_mul, mul_comm ((algebra_map _ _) ↑a.2), mul_assoc,
         ← mul_assoc z, hb, ← mul_comm ((algebra_map _ _) ↑a.2), ← mul_assoc, ha],
-      simp }
+      simp only [map_mul] }
   end,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by rw adjoin_algebra_injective n A K h⟩,
     λ ⟨c, hc⟩, by rw mul_right_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }

@@ -1298,9 +1298,7 @@ iff.intro
   (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
-  (λ hf, le_antisymm (cInf_le bounds_bdd_below
-    ⟨le_rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
-    (op_norm_nonneg _))
+  (by { rintro rfl, exact op_norm_zero })
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
 @[simp] lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
@@ -1333,9 +1331,6 @@ begin
   apply le_antisymm (f.op_norm_le_bound ha (λ y, le_of_eq (hf y))),
   simpa only [hf, hx, mul_le_mul_right] using f.le_op_norm x,
 end
-
-lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-homothety_norm _ (to_span_singleton_homothety 𝕜 x)
 
 variable (f)
 

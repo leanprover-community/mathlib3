@@ -98,11 +98,11 @@ namespace glue_data
 variables {C} (D : glue_data C)
 
 local notation `𝖣` := D.to_glue_data
-local notation `π₁` i `,` j `,` k := @pullback.fst _ _ _ _ _ (D.f i j) (D.f i k) _
-local notation `π₂` i `,` j `,` k := @pullback.snd _ _ _ _ _ (D.f i j) (D.f i k) _
-local notation `π₁⁻¹` i `,` j `,` k :=
+local notation `π₁ `i`, `j`, `k := @pullback.fst _ _ _ _ _ (D.f i j) (D.f i k) _
+local notation `π₂ `i`, `j`, `k := @pullback.snd _ _ _ _ _ (D.f i j) (D.f i k) _
+local notation `π₁⁻¹ `i`, `j`, `k :=
 (PresheafedSpace.is_open_immersion.pullback_fst_of_right (D.f i j) (D.f i k)).inv_app
-local notation `π₂⁻¹` i `,` j `,` k :=
+local notation `π₂⁻¹ `i`, `j`, `k :=
 (PresheafedSpace.is_open_immersion.pullback_snd_of_left (D.f i j) (D.f i k)).inv_app
 
 /-- The glue data of topological spaces associated to a family of glue data of PresheafedSpaces. -/

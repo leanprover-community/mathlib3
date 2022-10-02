@@ -60,14 +60,14 @@ else (has_deriv_at_log hx).deriv
 
 @[simp] lemma deriv_log' : deriv log = has_inv.inv := funext deriv_log
 
-lemma cont_diff_on_log {n : with_top ℕ} : cont_diff_on ℝ n log {0}ᶜ :=
+lemma cont_diff_on_log {n : ℕ∞} : cont_diff_on ℝ n log {0}ᶜ :=
 begin
   suffices : cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top,
   refine (cont_diff_on_top_iff_deriv_of_open is_open_compl_singleton).2 _,
   simp [differentiable_on_log, cont_diff_on_inv]
 end
 
-lemma cont_diff_at_log {n : with_top ℕ} : cont_diff_at ℝ n log x ↔ x ≠ 0 :=
+lemma cont_diff_at_log {n : ℕ∞} : cont_diff_at ℝ n log x ↔ x ≠ 0 :=
 ⟨λ h, continuous_at_log_iff.1 h.continuous_at,
   λ hx, (cont_diff_on_log x hx).cont_diff_at $
     is_open.mem_nhds is_open_compl_singleton hx⟩

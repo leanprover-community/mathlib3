@@ -44,17 +44,11 @@ instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) :=
 
 lemma lex_lt_of_lt_of_preorder [preorder N] (r) [hr : is_strict_order α r]
   {x y : α →₀ N} (hlt : x < y) : ∃ i, (∀ j, r j i → x j ≤ y j ∧ y j ≤ x j) ∧ x i < y i :=
-begin
-  obtain ⟨hle, j, hlt⟩ := pi.lt_def.1 hlt, classical,
-  obtain ⟨i, hi, hl⟩ := (x.ne_locus y).finite_to_set.well_founded_on.has_min
-    {i | x i < y i} ⟨⟨j, mem_ne_locus.2 hlt.ne⟩, hlt⟩, swap 3, { exact hr },
-  exact ⟨i, λ k hk, ⟨hle k, not_not.1 $ λ h,
-    hl ⟨k, mem_ne_locus.2 (ne_of_not_le h).symm⟩ ((hle k).lt_of_not_le h) hk⟩, hi⟩,
-end
+dfinsupp.lex_lt_of_lt_of_preorder r (id hlt : x.to_dfinsupp < y.to_dfinsupp)
 
 lemma lex_lt_of_lt [partial_order N] (r) [is_strict_order α r]
   {x y : α →₀ N} (hlt : x < y) : pi.lex r (λ i, (<)) x y :=
-by { simp_rw [pi.lex, le_antisymm_iff], exact lex_lt_of_lt_of_preorder r hlt }
+dfinsupp.lex_lt_of_lt r (id hlt : x.to_dfinsupp < y.to_dfinsupp)
 
 instance lex.is_strict_order [linear_order α] [partial_order N] :
   is_strict_order (lex (α →₀ N)) (<) :=

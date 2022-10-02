@@ -405,7 +405,7 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
       eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
 
-/-- Any two `n`-th cyclotomic extension are isomorphic. -/
+/-- Any two `n`-th cyclotomic extensions are isomorphic. -/
 def alg_equiv (L' : Type*) [field L'] [algebra K L'] [is_cyclotomic_extension {n} K L'] :
   L ≃ₐ[K] L' :=
 let _ := splitting_field_X_pow_sub_one n K L in let _ := splitting_field_X_pow_sub_one n K L' in

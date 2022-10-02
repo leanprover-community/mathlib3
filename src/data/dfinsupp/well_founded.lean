@@ -7,7 +7,7 @@ import data.dfinsupp.lex
 import order.game_add
 
 /-!
-# Well-foundedness of the lexicographic and product orders on `dfinsupp` and dependent `pi`
+# Well-foundedness of the lexicographic and product orders on `dfinsupp` and `pi`
 
 -/
 

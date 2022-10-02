@@ -7,7 +7,7 @@ import data.dfinsupp.well_founded
 import data.finsupp.lex
 
 /-!
-# Well-foundedness of the lexicographic and product orders on `finsupp` and function types
+# Well-foundedness of the lexicographic and product orders on `finsupp`
 
 -/
 

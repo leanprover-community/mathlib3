@@ -236,7 +236,7 @@ meta def interval_cases (n : parse texpr?)
   (lname : parse (tk "with" *> ident)?) :
   tactic unit :=
 do
-  if h : n.is_some then (do
+  focus1 $ if h : n.is_some then (do
     guard bounds.is_none <|>
       fail "Do not use the `using` keyword if specifying the variable explicitly.",
     n ← to_expr (option.get h),

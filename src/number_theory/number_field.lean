@@ -114,7 +114,7 @@ lemma alg_hom.mem_ring_of_integers [char_zero K] (f : K →ₐ[ℚ] K) (x : 𝓞
 (mem_ring_of_integers _ _).2 $ is_integral_int_alg_hom f $ ring_of_integers.is_integral_coe x
 
 lemma alg_equiv.mem_ring_of_integers [char_zero K] (f : K ≃ₐ[ℚ] K) (x : 𝓞 K) : f x ∈ 𝓞 K :=
-mem_ring_of_integers_alg_hom f.to_alg_hom _
+f.to_alg_hom.mem_ring_of_integers _
 
 /-- The ring of integers of `K` are equivalent to any integral closure of `ℤ` in `K` -/
 protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]

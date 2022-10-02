@@ -19,6 +19,30 @@ variables {C : Type u} [groupoid C] (S : groupoid.subgroupoid C) (Sn : S.is_norm
 
 namespace groupoid
 
+namespace subgroupoid
+
+lemma is_normal.arrws_nonempty_refl {S : subgroupoid C} (Sn : S.is_normal) (c : C) :
+  (S.arrws c c).nonempty :=
+⟨𝟙 c, Sn.wide c⟩
+
+lemma is_normal.arrws_nonempty_symm {S : subgroupoid C} (Sn : S.is_normal)
+  {c d : C} : (S.arrws c d).nonempty → (S.arrws d c).nonempty :=
+by { rintro ⟨f, hf⟩, exact ⟨groupoid.inv f, S.inv' hf⟩ }
+
+lemma is_normal.arrws_nonempty_trans {S : subgroupoid C} (Sn : S.is_normal)
+  {c d e : C} : (S.arrws c d).nonempty → (S.arrws d e).nonempty → (S.arrws c e).nonempty :=
+by { rintro ⟨f, hf⟩ ⟨g, hg⟩, exact ⟨f ≫ g, S.mul' hf hg⟩ }
+
+def is_normal.arrws_nonempty_setoid {S : subgroupoid C} (Sn : S.is_normal) : setoid C :=
+{ r := λ c d, (S.arrws c d).nonempty,
+  iseqv := ⟨Sn.arrws_nonempty_refl,
+            λ c d, Sn.arrws_nonempty_symm,
+            λ c d e, Sn.arrws_nonempty_trans⟩ }
+
+end subgroupoid
+
+open subgroupoid
+
 section quotient
 
 open subgroupoid

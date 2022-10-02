@@ -184,19 +184,18 @@ end
 
 end multiset
 
-namespace nat
+namespace finset
 
 /-! ### Multinomial theorem -/
 
 variables {α : Type*} (s : finset α)
 
-open finset
 /--
   The multinomial theorem
 
   Proof is by induction on the number of summands.
 -/
-theorem finset.sum_pow [decidable_eq α] {R : Type*} [comm_semiring R] (x : α → R) :
+theorem sum_pow [decidable_eq α] {R : Type*} [comm_semiring R] (x : α → R) :
   ∀ n, (s.sum x) ^ n = ∑ k in s.sym n, k.val.multinomial * (k.val.map x).prod :=
 begin
   induction s using finset.induction with a s ha ih,
@@ -221,4 +220,4 @@ begin
   { exact sym.filter_ne_fill a m (mt (mem_sym_iff.1 (mem_sigma.1 hm).2 a) ha) },
 end
 
-end nat
+end finset

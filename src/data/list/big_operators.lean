@@ -593,9 +593,9 @@ lemma map_list_prod {F : Type*} [monoid_hom_class F M N] (f : F)
 (l.prod_hom f).symm
 
 /-- A morphism into the opposite monoid acts on the product by acting on the reversed elements. -/
-lemma unop_map_list_prod {F : Type*} [monoid_hom_class F M Nᵐᵒᵖ] (f : F) (l : list M) :
+lemma unop_map_list_prod {F : Type*} [hF : monoid_hom_class F M Nᵐᵒᵖ] (f : F) (l : list M) :
   (f l.prod).unop = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-by rw [map_list_prod f l, mul_opposite.unop_list_prod, list.map_map]
+by rw [@map_list_prod _ _ _ _ _ hF f l, mul_opposite.unop_list_prod, list.map_map]
 
 namespace monoid_hom
 

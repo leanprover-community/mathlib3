@@ -19,14 +19,18 @@ bounded by a finite number of seminorms in `E`.
 
 ## Main statements
 
-* `continuous_from_bounded`: A bounded linear map `f : E →ₗ[𝕜] F` is continuous.
 * `seminorm_family.to_locally_convex_space`: A space equipped with a family of seminorms is locally
 convex.
 
-## Relation between boundedness and continuity
+## Continuity of semilinear maps
 
-If the topology of a space is induced by a family of seminorms, then we can characterize von Neumann
-boundedness in terms of that seminorm family.
+If `E` and `F` are topological vector space with the topology induced by a family of seminorms, then
+we have a direct method to prove that a linear map is continuous:
+* `continuous_from_bounded`: A bounded linear map `f : E →ₗ[𝕜] F` is continuous.
+
+If the topology of a space `E` is induced by a family of seminorms, then we can characterize von
+Neumann boundedness in terms of that seminorm family. Together with
+`linear_map.continuous_of_locally_bounded` this gives general criterion for continuity.
 
 * `with_seminorms.is_vonN_bounded_iff_finset_seminorm_bounded`
 * `with_seminorms.is_vonN_bounded_iff_seminorm_bounded`

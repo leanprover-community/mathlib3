@@ -196,7 +196,7 @@ open finset
 
   Proof is by induction on the number of summands.
 -/
-theorem multinomial_theorem [decidable_eq α] {R : Type*} [comm_semiring R] (x : α → R) :
+theorem finset.sum_pow [decidable_eq α] {R : Type*} [comm_semiring R] (x : α → R) :
   ∀ n, (s.sum x) ^ n = ∑ k in s.sym n, k.val.multinomial * (k.val.map x).prod :=
 begin
   induction s using finset.induction with a s ha ih,

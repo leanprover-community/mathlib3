@@ -952,7 +952,7 @@ begin
   refine indep_supr_of_directed_le _ _ _ _,
   { exact λ a, bsupr_indep_limsup h_le h_indep hf (hnsp a), },
   { exact λ a, supr₂_le (λ n hn, h_le n), },
-  { exact (f.limsup_le_supr s).trans (supr_le h_le), },
+  { exact limsup_le_supr.trans (supr_le h_le), },
   { intros a b,
     obtain ⟨c, hc⟩ := hns a b,
     refine ⟨c, _, _⟩; refine supr_mono (λ n, supr_mono' (λ hn, ⟨_, le_rfl⟩)),
@@ -977,8 +977,7 @@ end
 lemma limsup_indep_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
   (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) (hns_univ : ∀ n, ∃ a, n ∈ ns a) :
   indep (limsup f s) (limsup f s) μ :=
-indep_of_indep_of_le_left (supr_indep_limsup h_le h_indep hf hns hnsp hns_univ)
-  (f.limsup_le_supr s)
+indep_of_indep_of_le_left (supr_indep_limsup h_le h_indep hf hns hnsp hns_univ) limsup_le_supr
 
 theorem measure_zero_or_one_of_measurable_set_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   (hf : ∀ t, p t → tᶜ ∈ f) (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a))

@@ -546,3 +546,23 @@ begin
 end
 
 end topological_constructions
+
+section topological_properties
+
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι] [countable ι]
+variables {p : seminorm_family 𝕜 E ι}
+variables [uniform_space E] [uniform_add_group E]
+
+/-- If the topology of a space is induced by a countable family of seminorms, then the topology
+is first countable. -/
+lemma with_seminorms.first_countable (hp : with_seminorms p) :
+  topological_space.first_countable_topology E :=
+begin
+  haveI : (𝓝 (0 : E)).is_countably_generated,
+  { rw p.with_seminorms_iff_nhds_eq_infi.mp hp,
+    exact filter.infi.is_countably_generated _ },
+  haveI : (uniformity E).is_countably_generated := uniform_add_group.uniformity_countably_generated,
+  exact uniform_space.first_countable_topology E,
+end
+
+end topological_properties

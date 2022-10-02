@@ -1150,6 +1150,19 @@ begin
     exact h.2.2 hp },
 end
 
+lemma _root_.sbtw.s_opp_side_of_not_mem_of_mem {s : affine_subspace R P} {x y z : P}
+  (h : sbtw R x y z) (hx : x ∉ s) (hy : y ∈ s) : s.s_opp_side x z :=
+begin
+  refine ⟨h.wbtw.w_opp_side₁₃ hy, hx, λ hz, hx _⟩,
+  rcases h with ⟨⟨t, ⟨ht0, ht1⟩, rfl⟩, hyx, hyz⟩,
+  rw line_map_apply at hy,
+  have ht : t ≠ 1, { rintro rfl, simpa [line_map_apply] using hyz },
+  have hy' := vsub_mem_direction hy hz,
+  rw [vadd_vsub_assoc, ←neg_vsub_eq_vsub_rev z, ←neg_one_smul R (z -ᵥ x), ←add_smul,
+      ←sub_eq_add_neg, s.direction.smul_mem_iff (sub_ne_zero_of_ne ht)] at hy',
+  rwa vadd_mem_iff_mem_of_mem_direction (submodule.smul_mem _ _ hy') at hy
+end
+
 lemma s_same_side_smul_vsub_vadd_left {s : affine_subspace R P} {x p₁ p₂ : P} (hx : x ∉ s)
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) {t : R} (ht : 0 < t) : s.s_same_side (t • (x -ᵥ p₁) +ᵥ p₂) x :=
 begin

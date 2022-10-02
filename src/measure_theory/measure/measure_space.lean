@@ -1082,50 +1082,6 @@ lemma comapₗ_eq_comap {β} [measurable_space α] {mβ : measurable_space β} (
   comapₗ f μ s = comap f μ s :=
 (comapₗ_apply f hfi hf μ hs).trans (comap_apply f hfi hf μ hs).symm
 
-
-section Yael's_application
-variables {V : Type*} [measure_space V] {p : V → Prop}
-
-instance subtype.measure_space : measure_space (subtype p) :=
-{ volume := measure.comap subtype.val volume,
-  ..subtype.measurable_space }
-
-lemma subtype.volume_def {s : set V} : (volume : measure s) = volume.comap subtype.val := rfl
-
-lemma measurable_set.null_measurable_set_subtype_image {s : set V} {t : set s}
-  (hs : null_measurable_set s) (ht : measurable_set t) :
-  null_measurable_set ((coe : s → V) '' t) :=
-begin
-  rw [subtype.measurable_space, comap_eq_generate_from] at ht,
-  refine generate_from_induction
-    (λ t : set s, null_measurable_set (coe '' t) volume)
-    {t : set s | ∃ (s' : set V), measurable_set s' ∧ coe ⁻¹' s' = t} _ _ _ _ ht,
-  { rintros t' ⟨s', hs', rfl⟩,
-    rw [subtype.image_preimage_coe],
-    exact hs'.null_measurable_set.inter hs, },
-  { simp only [image_empty, null_measurable_set_empty], },
-  { intro t',
-    simp only [←range_diff_image subtype.coe_injective, subtype.range_coe_subtype, set_of_mem_eq],
-    exact hs.diff, },
-  { intro f,
-    rw image_Union,
-    exact null_measurable_set.Union, },
-end
-
-lemma subtype.volume_univ {s : set V} (hs : null_measurable_set s) :
-  volume (univ : set s) = volume s :=
-begin
-  rw [subtype.volume_def, comap_apply₀ _ _ _ _ measurable_set.univ.null_measurable_set],
-  { congr, simp only [subtype.val_eq_coe, image_univ, subtype.range_coe_subtype, set_of_mem_eq], },
-  { exact subtype.coe_injective, },
-  { exact λ t, measurable_set.null_measurable_set_subtype_image hs, },
-end
-
-lemma volume_coe_le_volume {s : set V} (hs : null_measurable_set s) (t : set s) :
-  volume ((coe : s → V) '' t) ≤ volume t :=
-le_comap_apply _ _ subtype.coe_injective
-  (λ t, measurable_set.null_measurable_set_subtype_image hs) _
-
 lemma measure_image_eq_zero_of_comap_eq_zero {β} [measurable_space α] {mβ : measurable_space β}
   (f : α → β) (μ : measure β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) {s : set α} (hs : comap f μ s = 0) :
@@ -1149,11 +1105,6 @@ begin
   exact measure_image_eq_zero_of_comap_eq_zero f μ hfi hf hst,
 end
 
-lemma volume_image_coe_eq_zero_of_volume_eq_zero {s : set V} (hs : null_measurable_set s)
-  {t : set s} (ht : volume t = 0) :
-  volume ((coe : s → V) '' t) = 0 :=
-eq_bot_iff.mpr $ (volume_coe_le_volume hs t).trans ht.le
-
 lemma null_measurable_set.image {β} [measurable_space α] {mβ : measurable_space β}
   (f : α → β) (μ : measure β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) {s : set α}
@@ -1168,13 +1119,64 @@ begin
   refine ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
 end
 
-lemma null_measurable_set.subtype_image {s : set V} {t : set s} (hs : null_measurable_set s)
-  (ht : null_measurable_set t) :
-  null_measurable_set ((coe : s → V) '' t) :=
-null_measurable_set.image coe volume subtype.coe_injective
-  (λ t, measurable_set.null_measurable_set_subtype_image hs) ht
 
-end Yael's_application
+section subtype
+/-! ### Subtype of a measure space -/
+
+variables [measure_space α] {p : α → Prop}
+
+instance subtype.measure_space : measure_space (subtype p) :=
+{ volume := measure.comap subtype.val volume,
+  ..subtype.measurable_space }
+
+lemma subtype.volume_def : (volume : measure s) = volume.comap subtype.val := rfl
+
+lemma measurable_set.null_measurable_set_subtype_coe {t : set s}
+  (hs : null_measurable_set s) (ht : measurable_set t) :
+  null_measurable_set ((coe : s → α) '' t) :=
+begin
+  rw [subtype.measurable_space, comap_eq_generate_from] at ht,
+  refine generate_from_induction
+    (λ t : set s, null_measurable_set (coe '' t) volume)
+    {t : set s | ∃ (s' : set α), measurable_set s' ∧ coe ⁻¹' s' = t} _ _ _ _ ht,
+  { rintros t' ⟨s', hs', rfl⟩,
+    rw [subtype.image_preimage_coe],
+    exact hs'.null_measurable_set.inter hs, },
+  { simp only [image_empty, null_measurable_set_empty], },
+  { intro t',
+    simp only [←range_diff_image subtype.coe_injective, subtype.range_coe_subtype, set_of_mem_eq],
+    exact hs.diff, },
+  { intro f,
+    rw image_Union,
+    exact null_measurable_set.Union, },
+end
+
+lemma subtype.volume_univ (hs : null_measurable_set s) :
+  volume (univ : set s) = volume s :=
+begin
+  rw [subtype.volume_def, comap_apply₀ _ _ _ _ measurable_set.univ.null_measurable_set],
+  { congr, simp only [subtype.val_eq_coe, image_univ, subtype.range_coe_subtype, set_of_mem_eq], },
+  { exact subtype.coe_injective, },
+  { exact λ t, measurable_set.null_measurable_set_subtype_coe hs, },
+end
+
+lemma volume_subtype_coe_le_volume (hs : null_measurable_set s) (t : set s) :
+  volume ((coe : s → α) '' t) ≤ volume t :=
+le_comap_apply _ _ subtype.coe_injective
+  (λ t, measurable_set.null_measurable_set_subtype_coe hs) _
+
+lemma volume_subtype_coe_eq_zero_of_volume_eq_zero (hs : null_measurable_set s)
+  {t : set s} (ht : volume t = 0) :
+  volume ((coe : s → α) '' t) = 0 :=
+eq_bot_iff.mpr $ (volume_subtype_coe_le_volume hs t).trans ht.le
+
+lemma null_measurable_set.subtype_coe {t : set s} (hs : null_measurable_set s)
+  (ht : null_measurable_set t) :
+  null_measurable_set ((coe : s → α) '' t) :=
+null_measurable_set.image coe volume subtype.coe_injective
+  (λ t, measurable_set.null_measurable_set_subtype_coe hs) ht
+
+end subtype
 
 
 /-! ### Restricting a measure -/

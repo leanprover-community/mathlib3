@@ -338,6 +338,25 @@ theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
   tendsto f (𝓝[s] a) l :=
 h.mono_left inf_le_left
 
+lemma eventually_mem_of_tendsto_nhds_within {f : β → α} {a : α}
+  {s : set α} {l : filter β} (h : tendsto f l (𝓝[s] a)) :
+  ∀ᶠ i in l, f i ∈ s :=
+begin
+  simp_rw [nhds_within_eq, tendsto_infi, mem_set_of_eq, tendsto_principal, mem_inter_iff,
+    eventually_and] at h,
+  exact (h univ ⟨mem_univ a, is_open_univ⟩).2,
+end
+
+lemma tendsto_nhds_of_tendsto_nhds_within {f : β → α} {a : α}
+  {s : set α} {l : filter β} (h : tendsto f l (𝓝[s] a)) :
+  tendsto f l (𝓝 a) :=
+begin
+  intros t ht,
+  obtain ⟨u, hu₁, hu₂, hu₃⟩ := mem_nhds_iff.mp ht,
+  simp_rw [tendsto_def, mem_nhds_within] at h,
+  exact h _ ⟨u, hu₂, hu₃, (inter_subset_left u s).trans hu₁⟩,
+end
+
 theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=
 by rw [comap_principal, set.preimage_image_eq _ subtype.coe_injective]

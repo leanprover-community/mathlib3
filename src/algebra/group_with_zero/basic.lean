@@ -843,6 +843,14 @@ classical.by_cases
   (assume ha, ha)
   (assume ha, ((one_div_ne_zero ha) h).elim)
 
+lemma range_mul_left_eq_univ {a : G₀} (h : a ≠ 0) :
+  set.range (λ g, a * g) = set.univ :=
+set.eq_univ_iff_forall.mpr $ λ g, ⟨a⁻¹ * g, by simp [← mul_assoc, mul_inv_cancel h]⟩
+
+lemma range_mul_right_eq_univ {a : G₀} (h : a ≠ 0) :
+  set.range (λ g, g * a) = set.univ :=
+set.eq_univ_iff_forall.mpr $ λ g, ⟨g * a⁻¹, by simp [mul_assoc, inv_mul_cancel h]⟩
+
 end group_with_zero
 
 section comm_group_with_zero -- comm

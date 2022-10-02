@@ -203,6 +203,25 @@ begin
   exact ⟨1, zero_lt_one⟩
 end
 
+lemma eventually_filter_at_subset_closed_ball (x : α) {ε : ℝ} (hε : 0 < ε) :
+  ∀ᶠ (a : set α) in v.filter_at x, a ⊆ closed_ball x ε :=
+begin
+  simp only [v.eventually_filter_at_iff],
+  exact ⟨ε, hε, λ a ha ha', ha'⟩,
+end
+
+lemma tendsto_filter_at_iff {ι : Type*} {l : filter ι} {f : ι → set α} {x : α} :
+  tendsto f l (v.filter_at x) ↔
+  (∀ᶠ i in l, f i ∈ v.sets_at x) ∧ (∀ (ε > (0 : ℝ)), ∀ᶠ i in l, f i ⊆ closed_ball x ε) :=
+begin
+  refine ⟨λ H,
+    ⟨H.eventually $ v.eventually_filter_at_mem_sets x,
+     λ ε hε, H.eventually $ v.eventually_filter_at_subset_closed_ball x hε⟩,
+    λ H s hs, (_ : ∀ᶠ i in l, f i ∈ s)⟩,
+  obtain ⟨ε, εpos, hε⟩ := v.mem_filter_at_iff.mp hs,
+  filter_upwards [H.1, H.2 ε εpos] with i hi hiε using hε _ hi hiε,
+end
+
 lemma eventually_filter_at_measurable_set (x : α) :
   ∀ᶠ a in v.filter_at x, measurable_set a :=
 by { filter_upwards [v.eventually_filter_at_mem_sets x] with _ ha using v.measurable_set' _ _ ha }

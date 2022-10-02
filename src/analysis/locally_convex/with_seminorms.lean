@@ -429,12 +429,12 @@ begin
   rw [metric.continuous_at_iff', map_zero],
   intros r hr,
   rcases hf i with ⟨s₁, C, hC, hf⟩,
+  have hC' : 0 < C := hC.bot_lt,
   rw hp.has_basis.eventually_iff,
-  refine ⟨(s₁.sup p).ball 0 (r/C), p.basis_sets_mem _ (div_pos hr
-    (nnreal.coe_pos.mpr hC.bot_lt)), _⟩,
+  refine ⟨(s₁.sup p).ball 0 (r/C), p.basis_sets_mem _ (by positivity), _⟩,
   simp_rw [ ←metric.mem_ball, ←mem_preimage, ←ball_zero_eq_preimage_ball],
   refine subset.trans _ (ball_antitone hf),
-  rw ball_smul (s₁.sup p) hC.bot_lt,
+  rw ball_smul (s₁.sup p) hC',
   refl
 end
 

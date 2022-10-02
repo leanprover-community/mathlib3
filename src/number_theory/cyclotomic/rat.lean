@@ -181,6 +181,12 @@ unity and `K` is a `p ^ k`-th cyclotomic extension of `ℚ`. -/
 let _ := is_integral_closure_adjoin_singleton_of_prime_pow hζ in
   by exactI (is_integral_closure.equiv ℤ (adjoin ℤ ({ζ} : set K)) K (𝓞 K))
 
+/-- The ring of integers of a `p ^ k`-th cyclotomic extension of `ℚ` is a cyclotomic extension. -/
+instance _root_.is_cyclotomic_extension.ring_of_integers
+  [is_cyclotomic_extension {p ^ k} ℚ K] : is_cyclotomic_extension {p ^ k} ℤ (𝓞 K) :=
+let _ := (zeta_spec (p ^ k) ℚ K).adjoin_is_cyclotomic_extension ℤ in by exactI
+  is_cyclotomic_extension.equiv _ ℤ _ ((zeta_spec (p ^ k) ℚ K).adjoin_equiv_ring_of_integers)
+
 /-- The integral `power_basis` of `𝓞 K` given by a primitive root of unity, where `K` is a `p ^ k`
 cyclotomic extension of `ℚ`. -/
 noncomputable def integral_power_basis [hcycl : is_cyclotomic_extension {p ^ k} ℚ K]
@@ -202,6 +208,12 @@ unity and `K` is a `p`-th cyclotomic extension of `ℚ`. -/
   [hcycl : is_cyclotomic_extension {p} ℚ K] (hζ : is_primitive_root ζ p) :
   adjoin ℤ ({ζ} : set K) ≃ₐ[ℤ] (𝓞 K) :=
 @adjoin_equiv_ring_of_integers p 1 K _ _ _ _ (by { convert hcycl, rw pow_one }) (by rwa pow_one)
+
+/-- The ring of integers of a `p`-th cyclotomic extension of `ℚ` is a cyclotomic extension. -/
+instance _root_.is_cyclotomic_extension.ring_of_integers'
+  [is_cyclotomic_extension {p} ℚ K] : is_cyclotomic_extension {p} ℤ (𝓞 K) :=
+let _ := (zeta_spec p ℚ K).adjoin_is_cyclotomic_extension ℤ in by exactI
+  is_cyclotomic_extension.equiv _ ℤ _ ((zeta_spec p ℚ K).adjoin_equiv_ring_of_integers')
 
 /-- The integral `power_basis` of `𝓞 K` given by a primitive root of unity, where `K` is a `p`-th
 cyclotomic extension of `ℚ`. -/

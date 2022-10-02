@@ -64,7 +64,8 @@ def strong_uniformity [uniform_space F] [uniform_add_group F]
   (strong_uniformity σ E F 𝔖).to_topological_space = strong_topology σ E F 𝔖 :=
 rfl
 
-lemma strong_uniformity.uniform_embedding_coe_fn [uniform_space F] [uniform_add_group F] (𝔖 : set (set E)) :
+lemma strong_uniformity.uniform_embedding_coe_fn [uniform_space F] [uniform_add_group F]
+  (𝔖 : set (set E)) :
   @uniform_embedding (E →SL[σ] F) (E → F) (strong_uniformity σ E F 𝔖)
   (uniform_convergence_on.uniform_space E F 𝔖) coe_fn :=
 begin

@@ -123,14 +123,23 @@ theorem is_integral_alg_equiv (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) 
 ⟨λ h, by simpa using is_integral_alg_hom f.symm.to_alg_hom h, is_integral_alg_hom f.to_alg_hom⟩
 
 theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
-  (x : B) (hx : is_integral R x) : is_integral A x :=
+  {x : B} (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, hp.map _,
   by rw [← aeval_def, aeval_map_algebra_map, aeval_def, hpx]⟩
 
+lemma is_integral_map_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B] {b : B}
+  (f : B →ₐ[A] B) (hb : is_integral R b) : is_integral R (f b) :=
+begin
+  obtain ⟨P, hP⟩ := hb,
+  refine ⟨P, hP.1, _⟩,
+  rw [← aeval_def, show (aeval (f b)) P = (aeval (f b)) (P.map (algebra_map R A)), by simp,
+    aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
+end
+
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=
-is_integral_of_is_scalar_tower x hx
+is_integral_of_is_scalar_tower hx
 
 lemma is_integral.algebra_map [algebra A B] [is_scalar_tower R A B]
   {x : A} (h : is_integral R x) :

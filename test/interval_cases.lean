@@ -132,7 +132,7 @@ example {x : ℕ} (hx2 : x < 2) (h : false) : false :=
 begin
   have : x ≤ 1,
   interval_cases x,
-  norm_num,
+  exact zero_le_one,  -- this is the left-over goal of `interval_cases`, closing the `have`
   exact h,
 end
 

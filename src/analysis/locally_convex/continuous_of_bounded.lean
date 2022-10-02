@@ -27,8 +27,59 @@ continuous linear maps will require importing `analysis/locally_convex/bounded` 
 open topological_space bornology filter
 open_locale topological_space pointwise
 
-variables {𝕜 𝕜' E F : Type*} [add_comm_group E] [add_comm_group F]
-variables [uniform_space E] [uniform_space F] [uniform_add_group E] [first_countable_topology E]
+variables {𝕜 𝕜' E F : Type*}
+variables [add_comm_group E] [uniform_space E] [uniform_add_group E]
+variables [add_comm_group F] [uniform_space F]
+
+section nontrivially_normed_field
+
+variables [uniform_add_group F]
+variables [nontrivially_normed_field 𝕜] [module 𝕜 E] [module 𝕜 F] [has_continuous_smul 𝕜 E]
+
+/-- Construct a continuous linear map from a linear map `f : E →ₗ[𝕜] F` and the existence of a
+neighborhood of zero that gets mapped into a bounded set in `F`. -/
+def linear_map.clm_of_exists_bounded_image (f : E →ₗ[𝕜] F)
+  (h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)) : E →L[𝕜] F :=
+⟨f, begin
+  -- It suffices to show that `f` is continuous at `0`.
+  refine continuous_of_continuous_at_zero f _,
+  rw [continuous_at_def, f.map_zero],
+  intros U hU,
+  -- Continuity means that `U ∈ 𝓝 0` implies that `f ⁻¹' U ∈ 𝓝 0`.
+  rcases h with ⟨V, hV, h⟩,
+  rcases h hU with ⟨r, hr, h⟩,
+  rcases normed_field.exists_lt_norm 𝕜 r with ⟨x, hx⟩,
+  specialize h x hx.le,
+  -- After unfolding all the definitions, we know that `f '' V ⊆ x • U`. We use this to show the
+  -- inclusion `x⁻¹ • V ⊆ f⁻¹' U`.
+  have x_ne := norm_pos_iff.mp (hr.trans hx),
+  have : x⁻¹ • V ⊆ f⁻¹' U :=
+  calc x⁻¹ • V ⊆  x⁻¹ • (f⁻¹' (f '' V)) : set.smul_set_mono (set.subset_preimage_image ⇑f V)
+  ... ⊆ x⁻¹ • (f⁻¹' (x • U)) : set.smul_set_mono (set.preimage_mono h)
+  ... = f⁻¹' (x⁻¹ • (x • U)) :
+      by ext; simp only [set.mem_inv_smul_set_iff₀ x_ne, set.mem_preimage, linear_map.map_smul]
+  ... ⊆ f⁻¹' U : by rw inv_smul_smul₀ x_ne _,
+  -- Using this inclusion, it suffices to show that `x⁻¹ • V` is in `𝓝 0`, which is trivial.
+  refine mem_of_superset _ this,
+  convert set_smul_mem_nhds_smul hV (inv_ne_zero x_ne),
+  exact (smul_zero _).symm,
+end⟩
+
+lemma linear_map.clm_of_exists_bounded_image_coe {f : E →ₗ[𝕜] F}
+  {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} :
+  (f.clm_of_exists_bounded_image h : E →ₗ[𝕜] F) = f := rfl
+
+@[simp] lemma linear_map.clm_of_exists_bounded_image_apply {f : E →ₗ[𝕜] F}
+  {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} {x : E} :
+  f.clm_of_exists_bounded_image h x = f x := rfl
+
+end nontrivially_normed_field
+
+section is_R_or_C
+
+open topological_space bornology
+
+variables [first_countable_topology E]
 variables [is_R_or_C 𝕜] [module 𝕜 E] [has_continuous_smul 𝕜 E]
 variables [is_R_or_C 𝕜'] [module 𝕜' F] [has_continuous_smul 𝕜' F]
 variables {σ : 𝕜 →+* 𝕜'}
@@ -119,3 +170,5 @@ lemma linear_map.continuous_of_locally_bounded [uniform_add_group F] (f : E →�
   (hf : ∀ (s : set E) (hs : is_vonN_bounded 𝕜 s), is_vonN_bounded 𝕜' (f '' s)) :
   continuous f :=
 (uniform_continuous_of_continuous_at_zero f $ f.continuous_at_zero_of_locally_bounded hf).continuous
+
+end is_R_or_C

@@ -26,7 +26,7 @@ convex.
 
 If `E` and `F` are topological vector space with the topology induced by a family of seminorms, then
 we have a direct method to prove that a linear map is continuous:
-* `continuous_from_bounded`: A bounded linear map `f : E →ₗ[𝕜] F` is continuous.
+* `seminorm.continuous_from_bounded`: A bounded linear map `f : E →ₗ[𝕜] F` is continuous.
 
 If the topology of a space `E` is induced by a family of seminorms, then we can characterize von
 Neumann boundedness in terms of that seminorm family. Together with

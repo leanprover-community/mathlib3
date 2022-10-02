@@ -536,12 +536,9 @@ is first countable. -/
 lemma with_seminorms.first_countable (hp : with_seminorms p) :
   topological_space.first_countable_topology E :=
 begin
-  haveI : (𝓝 (0 : E)).is_countably_generated :=
-  begin
-    rw seminorm_family.with_seminorms_iff_nhds_eq_infi at hp,
-    rw hp,
-    exact filter.infi.is_countably_generated _,
-  end,
+  haveI : (𝓝 (0 : E)).is_countably_generated,
+  { rw p.with_seminorms_iff_nhds_eq_infi.mp hp,
+    exact filter.infi.is_countably_generated _ },
   haveI : (uniformity E).is_countably_generated := uniform_add_group.uniformity_countably_generated,
   exact uniform_space.first_countable_topology E,
 end

@@ -90,18 +90,12 @@ instance : has_smul ℝ (convex_body V) :=
 @[simp]
 lemma coe_smul (c : ℝ) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
 
--- @[simp]
--- lemma coe_smul' (c: ℝ≥0) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := sorry
-
 instance : distrib_mul_action ℝ (convex_body V) :=
 { to_has_smul := convex_body.has_smul,
   one_smul := λ K, by { ext, simp only [coe_smul, one_smul] },
   mul_smul := λ c d K, by { ext, simp only [coe_smul, mul_smul] },
   smul_add := λ c K L, by { ext, simp only [coe_smul, coe_add, smul_add] },
   smul_zero := λ c, by { ext, simp only [coe_smul, coe_zero, smul_zero] } }
-
-instance has_smul' : has_smul ℝ≥0 (convex_body V) :=
-nnreal.distrib_mul_action.to_has_smul
 
 @[simp]
 lemma coe_smul' (c : ℝ≥0) (K : convex_body V) : (↑(c • K) : set V) = c • (K : set V) := rfl
@@ -110,8 +104,7 @@ lemma coe_smul' (c : ℝ≥0) (K : convex_body V) : (↑(c • K) : set V) = c �
 The convex bodies in a fixed space $V$ form a module over the nonnegative reals.
 -/
 instance : module ℝ≥0 (convex_body V) :=
-{ to_distrib_mul_action := infer_instance,
-  add_smul := λ c d K,
+{ add_smul := λ c d K,
   begin
     ext1,
     simp only [coe_smul, coe_add],

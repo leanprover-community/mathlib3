@@ -21,7 +21,7 @@ interval arithmetic.
 
 open function order_dual set
 
-variables {α β γ : Type*} {ι : Sort*} {κ : ι → Sort*}
+variables {α β γ δ : Type*} {ι : Sort*} {κ : ι → Sort*}
 
 /-- The nonempty closed intervals in an order.
 
@@ -34,6 +34,9 @@ namespace nonempty_interval
 section has_le
 variables [has_le α] {s t : nonempty_interval α}
 
+lemma to_prod_injective : injective (to_prod : nonempty_interval α → α × α) :=
+λ s t, (ext_iff _ _).2
+
 /-- The injection that induces the order on intervals. -/
 def to_dual_prod : nonempty_interval α → αᵒᵈ × α := to_prod
 
@@ -41,7 +44,7 @@ def to_dual_prod : nonempty_interval α → αᵒᵈ × α := to_prod
   s.to_dual_prod = (to_dual s.fst, s.snd) := prod.mk.eta.symm
 
 lemma to_dual_prod_injective : injective (to_dual_prod : nonempty_interval α → αᵒᵈ × α) :=
-λ s t, (ext_iff _ _).2
+to_prod_injective
 
 instance [is_empty α] : is_empty (nonempty_interval α) := ⟨λ s, is_empty_elim s.fst⟩
 instance [subsingleton α] : subsingleton (nonempty_interval α) :=
@@ -70,7 +73,7 @@ def dual : nonempty_interval α ≃ nonempty_interval αᵒᵈ :=
 end has_le
 
 section preorder
-variables [preorder α] [preorder β] [preorder γ]
+variables [preorder α] [preorder β] [preorder γ] [preorder δ]
 
 instance : preorder (nonempty_interval α) := preorder.lift to_dual_prod
 
@@ -97,6 +100,21 @@ instance [nontrivial α] : nontrivial (nonempty_interval α) := pure_injective.n
 @[simp] lemma dual_map (f : α →o β) (a : nonempty_interval α) :
   (a.map f).dual = a.dual.map f.dual := rfl
 
+/-- Binary pushforward of nonempty intervals. -/
+@[simps]
+def map₂ (f : α → β → γ) (h₀ : ∀ b, monotone (λ a, f a b)) (h₁ : ∀ a, monotone (f a)) :
+  nonempty_interval α → nonempty_interval β → nonempty_interval γ :=
+λ s t, ⟨(f s.fst t.fst, f s.snd t.snd), (h₀ _ s.fst_le_snd).trans $ h₁ _ t.fst_le_snd⟩
+
+@[simp] lemma map₂_pure (f : α → β → γ) (h₀ h₁) (a : α) (b : β) :
+  map₂ f h₀ h₁ (pure a) (pure b) = pure (f a b) := rfl
+@[simp] lemma map₂_map₂ (g : γ →o δ) (f : α → β → γ) (h₀ h₁ s t) :
+  (map₂ f h₀ h₁).map g = a.map (g.comp f) := rfl
+
+@[simp] lemma dual_map₂ (f : α → β → γ) (h₀ h₁ s t) :
+  (map₂ f h₀ h₁ s t).dual = map₂ (λ a b, to_dual $ f (of_dual a) $ of_dual b)
+    (λ _, (h₀ _).dual) (λ _, (h₁ _).dual) s.dual t.dual := rfl
+
 variables [bounded_order α]
 
 instance : order_top (nonempty_interval α) :=
@@ -108,7 +126,7 @@ instance : order_top (nonempty_interval α) :=
 end preorder
 
 section partial_order
-variables [partial_order α] {s t : nonempty_interval α} {x : α × α} {a : α}
+variables [partial_order α] [partial_order β] {s t : nonempty_interval α} {x : α × α} {a : α}
 
 instance : partial_order (nonempty_interval α) := partial_order.lift _ to_dual_prod_injective
 
@@ -138,6 +156,9 @@ lemma coe_top [bounded_order α] : ((⊤ : nonempty_interval α) : set α) = uni
 
 @[simp, norm_cast]
 lemma coe_dual (s : nonempty_interval α) : (s.dual : set αᵒᵈ) = of_dual ⁻¹' s := dual_Icc
+
+lemma subset_coe_map (f : α →o β) (s : nonempty_interval α) : f '' s ⊆ (s.map f : set β) :=
+image_subset_iff.2 $ λ a ha, ⟨f.mono ha.1, f.mono ha.2⟩
 
 end partial_order
 

@@ -280,7 +280,7 @@ set.ext $ λ a,
 by { classical, rw [←image2_mk_eq_prod, image_image2, curry] }
 
 @[simp] lemma image_uncurry_prod [decidable_eq α] [decidable_eq β] (f : α → β → γ) (s : set α)
-  (t : set β) : uncurry f '' s ×ˢ t = image2 f s t := by ext c; simp [and_assoc]
+  (t : set β) : uncurry f '' s ×ˢ t = image2 f s t := by rw [←image2_curry, curry_uncurry]
 
 section mono
 

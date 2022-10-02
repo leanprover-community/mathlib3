@@ -23,7 +23,7 @@ absorbs `s`.
 
 ## Main results
 
-* `bornology.is_vonN_bounded_of_topological_space_le`: A coarser topology admits more
+* `bornology.is_vonN_bounded.of_topological_space_le`: A coarser topology admits more
 von Neumann-bounded sets.
 * `bornology.is_vonN_bounded.image`: A continuous linear image of a bounded set is bounded.
 

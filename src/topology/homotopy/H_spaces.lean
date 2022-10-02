@@ -58,8 +58,6 @@ end topological_group
 
 namespace unit_interval
 
-variables {X : Type u} [topological_space X]
-
 /-- `Q_right` is analogous to the function `Q` defined on p. 475 of [serre1951] that helps proving
 continuity of `delayed_refl_right`.-/
 def Q_right (p : I × I) : I := set.proj_Icc 0 1 zero_le_one (2 * p.1 / (1 + p.2))

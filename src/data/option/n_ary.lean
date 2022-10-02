@@ -20,9 +20,11 @@ on intervals.
 This file is very similar to the n-ary section of `data.set.basic`, to `data.finset.n_ary` and to
 `order.filter.n_ary`. Please keep them in sync.
 
-We do not define `option.map₃` as its only purpose would be to prove properties of `option.map₂`
-and casing already fulfills this task.
+We do not define `option.map₃` as its only purpose so far would be to prove properties of
+`option.map₂` and casing already fulfills this task.
 -/
+
+open function
 
 namespace option
 variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {f : α → β → γ} {a : option α} {b : option β}
@@ -31,6 +33,11 @@ variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {f : α → β → γ} {a
 /-- The image of a binary function `f : α → β → γ` as a function `option α → option β → option γ`.
 Mathematically this should be thought of as the image of the corresponding function `α × β → γ`. -/
 def map₂ (f : α → β → γ) (a : option α) (b : option β) : option γ := a.bind $ λ a, b.map $ f a
+
+/-- `option.map₂` in terms of monadic operations. Note that this can't be taken as the definition
+because of the lack of universe polymorphism. -/
+lemma map₂_def {α β γ : Type*} (f : α → β → γ) (a : option α) (b : option β) :
+  map₂ f a b = f <$> a <*> b := by cases a; refl
 
 @[simp] lemma map₂_some_some (f : α → β → γ) (a : α) (b : β) : map₂ f (some a) (some b) = f a b :=
 rfl
@@ -63,6 +70,12 @@ by cases a; refl
 lemma map₂_map_right (f : α → γ → δ) (g : β → γ) :
   map₂ f a (b.map g) = map₂ (λ a b, f a (g b)) a b :=
 by cases b; refl
+
+@[simp] lemma map₂_curry (f : α × β → γ) (a : option α) (b : option β) :
+  map₂ (curry f) a b = option.map f (map₂ prod.mk a b) := (map_map₂ _ _).symm
+
+@[simp] lemma map_uncurry (f : α → β → γ) (x : option (α × β)) :
+  x.map (uncurry f) = map₂ f (x.map prod.fst) (x.map prod.snd) := by cases x; refl
 
 /-!
 ### Algebraic replacement rules
@@ -150,4 +163,3 @@ lemma map_map₂_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : �
 by cases a; cases b; simp [h_right_anticomm]
 
 end option
-#lint

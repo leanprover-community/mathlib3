@@ -206,6 +206,17 @@ lemma image₂_swap (f : α → β → γ) (s : finset α) (t : finset β) :
   image₂ f s t = image₂ (λ a b, f b a) t s :=
 coe_injective $ by { push_cast, exact image2_swap _ _ _ }
 
+@[simp] lemma image₂_mk_eq_product [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+  image₂ prod.mk s t = s ×ˢ t :=
+by ext; simp [prod.ext_iff]
+
+@[simp] lemma image₂_curry (f : α × β → γ) (s : finset α) (t : finset β) :
+  image₂ (curry f) s t = (s ×ˢ t).image f :=
+by { classical, rw [←image₂_mk_eq_prod, image_image₂, curry] }
+
+@[simp] lemma image_uncurry_product [decidable_eq α] [decidable_eq β] (f : α → β → γ) (s : finset α)
+  (t : finset β) : (s ×ˢ t).image (uncurry f) = image₂ f s t := by ext c; simp [and_assoc]
+
 @[simp] lemma image₂_left [decidable_eq α] (h : t.nonempty) : image₂ (λ x y, x) s t = s :=
 coe_injective $ by { push_cast, exact image2_left h }
 

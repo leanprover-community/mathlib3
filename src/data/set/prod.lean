@@ -275,6 +275,13 @@ set.ext $ λ a,
 
 @[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
 
+@[simp] lemma image2_curry (f : α × β → γ) (s : set α) (t : set β) :
+  image2 (curry f) s t = (s ×ˢ t).image f :=
+by { classical, rw [←image2_mk_eq_prod, image_image2, curry] }
+
+@[simp] lemma image_uncurry_prod [decidable_eq α] [decidable_eq β] (f : α → β → γ) (s : set α)
+  (t : set β) : uncurry f '' s ×ˢ t = image2 f s t := by ext c; simp [and_assoc]
+
 section mono
 
 variables [preorder α] {f : α → set β} {g : α → set γ}

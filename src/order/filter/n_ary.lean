@@ -76,6 +76,16 @@ lemma map_prod_eq_map₂' (m : α × β → γ) (f : filter α) (g : filter β) 
   filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
 by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simp }
 
+@[simp] lemma map₂_mk_eq_prod (f : filter α) (g : filter β) : map₂ prod.mk f g = f ×ᶠ g :=
+by ext; simp [prod.ext_iff]
+
+@[simp] lemma map₂_curry (m : α × β → γ) (f : filter α) (g : filter β) :
+  map₂ (curry m) f g = (f ×ᶠ g).map m :=
+by { classical, rw [←map₂_mk_eq_prod, map_map₂, curry] }
+
+@[simp] lemma map_uncurry_prod (m : α → β → γ) (f : filter α) (g : filter β) :
+  uncurry m '' f ×ˢ g = map₂ m f g := by ext c; simp [and_assoc]
+
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
 -- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
 --   exact ⟨mem_of_superset hu h.1, mem_of_superset hv h.2⟩ }, λ h, image2_mem_map₂ h.1 h.2⟩

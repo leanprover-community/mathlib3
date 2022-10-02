@@ -304,6 +304,15 @@ begin
   exact add_group_filter_basis.nhds_zero_eq _,
 end
 
+lemma with_seminorms.continuous_seminorm [module ℝ E] [normed_algebra ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E]
+  [has_continuous_const_smul ℝ E] {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p)
+  (i : ι) : continuous (p i) :=
+begin
+  refine seminorm.continuous _,
+  rw [p.with_seminorms_iff_nhds_eq_infi.mp hp, ball_zero_eq_preimage_ball],
+  exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
+end
+
 /-- The topology induced by a family of seminorms is exactly the infimum of the ones induced by
 each seminorm individually. We express this as a characterization of `with_seminorms p`. -/
 lemma seminorm_family.with_seminorms_iff_topological_space_eq_infi (p : seminorm_family 𝕜 E ι) :
@@ -332,15 +341,6 @@ begin
   congrm (_ = ⨅ i, _),
   exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_comm_group,
   all_goals {apply_instance}
-end
-
-lemma with_seminorms.continuous_seminorm [module ℝ E] [normed_algebra ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E]
-  [has_continuous_const_smul ℝ E] {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p)
-  (i : ι) : continuous (p i) :=
-begin
-  refine seminorm.continuous _,
-  rw [p.with_seminorms_iff_nhds_eq_infi.mp hp, ball_zero_eq_preimage_ball],
-  exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
 end
 
 end topological_add_group

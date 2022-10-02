@@ -599,29 +599,6 @@ begin
   rwa ring_char.eq_iff.mpr h
 end
 
-/-- If `1 < k` then (∑ i in range k, ζ ^ i) = 0. -/
-lemma geom_sum_eq_zero [is_domain R] {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) :
-  (∑ i in range k, ζ ^ i) = 0 :=
-begin
-  have : 1 - ζ ≠ 0,
-  { intro h,
-    have := hζ.dvd_of_pow_eq_one 1,
-    simp only [(eq_of_sub_eq_zero h).symm, one_pow, eq_self_iff_true, nat.dvd_one,
-      forall_true_left] at this,
-    simpa [this] using hk },
-  refine eq_zero_of_ne_zero_of_mul_left_eq_zero this _,
-  rw [mul_neg_geom_sum, hζ.pow_eq_one, sub_self]
-end
-
-/-- If `1 < k`, then `ζ ^ k.pred = -(∑ i in range k.pred, ζ ^ i)`. -/
-lemma pow_sub_one_eq [is_domain R] {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) :
-  ζ ^ k.pred = -(∑ i in range k.pred, ζ ^ i) :=
-begin
-  have := hζ.geom_sum_eq_zero hk,
-  rwa [← nat.succ_pred_eq_of_pos (lt_trans zero_lt_one hk), range_succ,
-    sum_insert not_mem_range_self, add_eq_zero_iff_eq_neg] at this
-end
-
 /-- The (additive) monoid equivalence between `zmod k`
 and the powers of a primitive root of unity `ζ`. -/
 def zmod_equiv_zpowers (h : is_primitive_root ζ k) : zmod k ≃+ additive (subgroup.zpowers ζ) :=

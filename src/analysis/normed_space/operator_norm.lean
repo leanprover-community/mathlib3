@@ -386,7 +386,11 @@ the operator norm. This is only a temporary definition because we want to replac
 with `continuous_linear_map.topological_space` to avoid diamond issues.
 See Note [forgetful inheritance] -/
 private def tmp_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
-seminormed_add_comm_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
+add_group_seminorm.to_seminormed_add_comm_group
+{ to_fun := norm,
+  map_zero' := op_norm_zero,
+  add_le' := op_norm_add_le,
+  neg' := op_norm_neg }
 
 private def tmp_pseudo_metric_space : pseudo_metric_space (E →SL[σ₁₂] F) :=
 tmp_seminormed_add_comm_group.to_pseudo_metric_space

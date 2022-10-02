@@ -360,6 +360,9 @@ variables (𝕜 E F)
 def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
 λ n, seminorm 𝕜 n.1 n.2
 
+@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
+  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
+
 instance : topological_space 𝓢(E, F) :=
 (schwartz_seminorm_family ℝ E F).module_filter_basis.topology'
 
@@ -399,8 +402,8 @@ end topology
 
 section distribution
 
-
 variables (𝕜 F)
+variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
 /-- The delta distribution as a linear map. -/
 def delta_aux (x₀ : E) : 𝓢(E, F) →ₗ[𝕜] F :=
@@ -417,11 +420,11 @@ def delta (x₀ : E) : 𝓢(E, F) →L[𝕜] F :=
     refine (delta_aux 𝕜 F x₀).continuous_of_locally_bounded (λ s hs, _),
     rw bornology.is_vonN_bounded_iff_seminorm_bounded (schwartz_with_seminorms 𝕜 E F) at hs,
     rcases hs (0,0) with ⟨r, hr, hs⟩,
-    rw [schwartz_seminorm_family_apply] at hs,
+    simp_rw [schwartz_seminorm_family_apply] at hs,
     rw normed_space.image_is_vonN_bounded_iff,
     use r,
     intros f hf,
-    rw [delta_aux_apply, ←norm_fderiv_zero],
+    rw [delta_aux_apply, ← @norm_iterated_fderiv_zero ℝ],
     exact (norm_iterated_fderiv_le_seminorm 𝕜 f 0 x₀).trans (hs f hf).le,
   end,
   .. delta_aux 𝕜 F x₀ }

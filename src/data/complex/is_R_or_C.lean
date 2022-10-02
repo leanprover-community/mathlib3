@@ -679,7 +679,7 @@ namespace polynomial
 open_locale polynomial
 
 lemma of_real_eval (p : ℝ[X]) (x : ℝ) : (p.eval x : K) = aeval ↑x p :=
-(@aeval_algebra_map_apply ℝ K _ _ _ x p).symm
+(@aeval_algebra_map_apply_eq_algebra_map_eval ℝ K _ _ _ x p).symm
 
 end polynomial
 

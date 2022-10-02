@@ -74,8 +74,7 @@ instance : lie_group 𝓘(𝕜, R) Rˣ :=
     rw this,
     have : cont_mdiff (𝓘(𝕜, R).prod 𝓘(𝕜, R)) (𝓘(𝕜, R × R))
       ∞ (λ x : Rˣ × Rˣ, ((x.1 : R), (x.2 : R))) :=
-      cont_mdiff.prod_mk_space
-        (cont_mdiff.comp cont_mdiff_coe cont_mdiff_fst)
+      (cont_mdiff.comp cont_mdiff_coe cont_mdiff_fst).prod_mk_space
         (cont_mdiff.comp cont_mdiff_coe cont_mdiff_snd),
     refine cont_mdiff.comp _ this,
     rw cont_mdiff_iff_cont_diff,

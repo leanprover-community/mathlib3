@@ -2141,8 +2141,7 @@ begin
   repeat {rw function.comp_app},
   rw [local_homeomorph.refl_apply, id.def, local_homeomorph.singleton_charted_space_chart_at_eq,
     open_embedding.to_local_homeomorph_right_inv e],
-  { rw model_with_corners.right_inv,
-    { refl },
+  { rw [id.def, model_with_corners.right_inv],
     apply set.mem_of_subset_of_mem _ hz.1,
     apply ext_chart_at_target_subset_range },
   rw model_with_corners.symm, -- show hz implies z is in range of I ∘ e

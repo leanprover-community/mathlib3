@@ -1075,22 +1075,20 @@ begin
   { simp, },
 end
 
-lemma to_local_homeomorph_left_inv
-  [nonempty α] {x : α} :
+variables [nonempty α]
+
+lemma to_local_homeomorph_left_inv {x : α} :
   (h.to_local_homeomorph f).symm (f x) = x :=
 begin
-  rw ←congr_fun (h.to_local_homeomorph_apply f),
-  rw local_homeomorph.left_inv,
+  rw [←congr_fun (h.to_local_homeomorph_apply f), local_homeomorph.left_inv],
   rw to_local_homeomorph_source,
   apply set.mem_univ
 end
 
-lemma to_local_homeomorph_right_inv
-  [nonempty α] {x : β} (hx : x ∈ set.range f) :
+lemma to_local_homeomorph_right_inv {x : β} (hx : x ∈ set.range f) :
   f ((h.to_local_homeomorph f).symm x) = x :=
 begin
-  rw ←congr_fun (h.to_local_homeomorph_apply f),
-  rw local_homeomorph.right_inv,
+  rw [←congr_fun (h.to_local_homeomorph_apply f), local_homeomorph.right_inv],
   rw to_local_homeomorph_target,
   exact hx
 end

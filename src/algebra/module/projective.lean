@@ -81,7 +81,7 @@ lemma projective_def {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_mo
 section semiring
 
 variables {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P] [module R P]
-  {M : Type (max u v)} [add_comm_group M] [module R M] {N : Type*} [add_comm_group N] [module R N]
+  {M : Type*} [add_comm_monoid M] [module R M] {N : Type*} [add_comm_monoid N] [module R N]
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
 theorem projective_lifting_property [h : projective R P] (f : M →ₗ[R] N) (g : P →ₗ[R] N)

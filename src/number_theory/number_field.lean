@@ -111,7 +111,7 @@ lemma is_integral_coe (x : 𝓞 K) : is_integral ℤ (x : K) :=
 x.2
 
 lemma mem_ring_of_integers_alg_hom_class {F L : Type*} [field L] [char_zero K] [char_zero L]
-  [alg_hom_map_class F ℚ K L] (f : F) (x : 𝓞 K) : f x ∈ 𝓞 L :=
+  [alg_hom_class F ℚ K L] (f : F) (x : 𝓞 K) : f x ∈ 𝓞 L :=
 (mem_ring_of_integers _ _).2 $ is_integral_int_alg_hom_class f $ ring_of_integers.is_integral_coe x
 
 /-- The ring of integers of `K` are equivalent to any integral closure of `ℤ` in `K` -/

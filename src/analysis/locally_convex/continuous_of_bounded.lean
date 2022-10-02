@@ -90,7 +90,7 @@ lemma linear_map.continuous_at_zero_of_locally_bounded (f : E →ₛₗ[σ] F)
 begin
   -- Assume that f is not continuous at 0
   by_contradiction,
-  -- We use the a decreasing balanced basis for 0 : E and a balanced basis for 0 : F
+  -- We use a decreasing balanced basis for 0 : E and a balanced basis for 0 : F
   -- and reformulate non-continuity in terms of these bases
   rcases (nhds_basis_balanced 𝕜 E).exists_antitone_subbasis with ⟨b, bE1, bE⟩,
   simp only [id.def] at bE,

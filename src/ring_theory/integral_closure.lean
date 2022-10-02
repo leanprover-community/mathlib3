@@ -121,7 +121,7 @@ begin
   obtain ⟨P, hP⟩ := hb,
   refine ⟨P, hP.1, _⟩,
   rw [← aeval_def, show (aeval (f b)) P = (aeval (f b)) (P.map (algebra_map R A)), by simp,
-    aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
+    aeval_alg_hom_class_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
 end
 
 lemma is_integral_alg_hom {C : Type*} [comm_ring C] [algebra A B] [algebra R C]

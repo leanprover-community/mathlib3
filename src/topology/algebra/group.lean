@@ -1211,7 +1211,8 @@ instance quotient_group.has_continuous_smul [locally_compact_space G] :
   end }
 
 /-- The quotient of a second countable topological group by a subgroup is second countable -/
-@[to_additive]
+@[to_additive "The quotient of a second countable additive topological group by a subgroup is second
+countable"]
 instance quotient_group.second_countable_topology [second_countable_topology G] :
   second_countable_topology (G ⧸ Γ) :=
 has_continuous_const_smul.second_countable_topology

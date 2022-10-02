@@ -110,6 +110,12 @@ integral_closure.is_integrally_closed_of_finite_extension ℚ
 lemma is_integral_coe (x : 𝓞 K) : is_integral ℤ (x : K) :=
 x.2
 
+lemma mem_ring_of_integers_alg_hom [char_zero K] (f : K →ₐ[ℚ] K) (x : 𝓞 K) : f x ∈ 𝓞 K :=
+(mem_ring_of_integers _ _).2 $ is_integral_int_alg_hom f $ ring_of_integers.is_integral_coe x
+
+lemma mem_ring_of_integers_alg_equiv [char_zero K] (f : K ≃ₐ[ℚ] K) (x : 𝓞 K) : f x ∈ 𝓞 K :=
+mem_ring_of_integers_alg_hom f.to_alg_hom _
+
 /-- The ring of integers of `K` are equivalent to any integral closure of `ℤ` in `K` -/
 protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
   [is_integral_closure R ℤ K] : 𝓞 K ≃+* R :=
@@ -289,7 +295,7 @@ begin
   rw [mem_Union, exists_prop],
   refine ⟨⟨_, λ i, _⟩, _⟩,
   { rw [← nat_degree_map_eq_of_injective (algebra_map ℤ ℚ).injective_int _, ← h_map_rat_minpoly],
-    exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower _ hx.1), },
+    exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower hx.1), },
   { rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
     apply le_trans _ (nat.le_ceil _),
     convert coeff_bdd_of_norm_le hx.2 i,

@@ -86,7 +86,7 @@ lemma normal.tower_top_of_normal [h : normal F E] : normal K E :=
 normal_iff.2 $ λ x, begin
   cases h.out x with hx hhx,
   rw algebra_map_eq F K E at hhx,
-  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
+  exact ⟨is_integral_of_is_scalar_tower hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
     (polynomial.map_ne_zero (minpoly.ne_zero hx))
     ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
     (minpoly.dvd_map_of_is_scalar_tower F K x)⟩,
@@ -97,7 +97,7 @@ lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.
 { letI : algebra E K := ϕ.to_ring_hom.to_algebra,
   obtain ⟨h1, h2⟩ := h.out (algebra_map K E x),
   cases minpoly.mem_range_of_degree_eq_one E x (h2.def.resolve_left (minpoly.ne_zero h1)
-    (minpoly.irreducible (is_integral_of_is_scalar_tower x
+    (minpoly.irreducible (is_integral_of_is_scalar_tower
       ((is_integral_algebra_map_iff (algebra_map K E).injective).mp h1)))
     (minpoly.dvd E x ((algebra_map K E).injective (by
     { rw [ring_hom.map_zero, aeval_map_algebra_map, ← aeval_algebra_map_apply],
@@ -246,7 +246,7 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
     exact or.resolve_left (h.splits z).def (minpoly.ne_zero (h.is_integral z))
-      (minpoly.irreducible $ is_integral_of_is_scalar_tower _ $
+      (minpoly.irreducible $ is_integral_of_is_scalar_tower $
         is_integral_alg_hom ϕ $ is_integral_alg_hom _ $ h.is_integral z)
       (minpoly.dvd E _ $ by rw [aeval_map_algebra_map, aeval_alg_hom_apply, aeval_alg_hom_apply,
         minpoly.aeval, alg_hom.map_zero, alg_hom.map_zero]) }⟩,
@@ -330,7 +330,7 @@ noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
   @intermediate_field.alg_hom_mk_adjoin_splits' _ _ _ _ _ _ _
   ((is_scalar_tower.to_alg_hom F K₂ E).comp ϕ).to_ring_hom.to_algebra _
   (intermediate_field.adjoin_univ _ _)
-  (λ x hx, ⟨is_integral_of_is_scalar_tower x (h.out x).1,
+  (λ x hx, ⟨is_integral_of_is_scalar_tower (h.out x).1,
     splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
     (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h.out x).2 })
     (minpoly.dvd_map_of_is_scalar_tower F K₁ x)⟩)

@@ -392,6 +392,69 @@ instance : uniform_add_group 𝓢(E, F) :=
 instance : locally_convex_space ℝ 𝓢(E, F) :=
 seminorm_family.to_locally_convex_space (schwartz_with_seminorms ℝ E F)
 
+instance : topological_space.first_countable_topology (𝓢(E, F)) :=
+(schwartz_with_seminorms ℝ E F).first_countable
+
 end topology
+
+section fderiv
+
+/-! ### Derivatives of Schwartz functions -/
+
+variables {E F}
+variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+
+def fderiv_aux (f : 𝓢(E, F)) : 𝓢(E, E→L[ℝ] F) :=
+{ to_fun := fderiv ℝ f,
+  smooth' :=
+  begin
+    have hf := f.2,
+    rw cont_diff_top_iff_fderiv at hf,
+    exact hf.2,
+  end,
+  decay' :=
+  begin
+    intros k n,
+    cases f.3 k (n+1) with C hC,
+    use C,
+    intros x,
+    refine (mul_le_mul_of_nonneg_left _ (by positivity)).trans (hC x),
+    rw iterated_fderiv_succ_eq_comp_right,
+    simp only [linear_isometry_equiv.norm_map],
+    exact rfl.le,
+  end }
+
+@[simp] lemma fderiv_aux_apply (f : 𝓢(E, F)) (x : E):
+  f.fderiv_aux x = fderiv ℝ f x := rfl
+
+variables (𝕜)
+
+def fderiv_aux' : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
+{ to_fun := fderiv_aux,
+  map_add' := λ f g,
+  begin
+    ext1 x,
+    simp only [fderiv_aux_apply, add_apply],
+    exact fderiv_add (f.2.differentiable le_top).differentiable_at
+      (g.2.differentiable le_top).differentiable_at,
+  end,
+  map_smul' := λ a f,
+  begin
+    ext1 x,
+    simp only [fderiv_aux_apply, ring_hom.id_apply, smul_apply],
+    exact fderiv_const_smul (f.2.differentiable le_top).differentiable_at _,
+  end }
+
+def fderiv : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
+{ cont :=
+  begin
+    refine (fderiv_aux' 𝕜).continuous_of_locally_bounded (λ s hs, _),
+    rw bornology.is_vonN_bounded_iff_seminorm_bounded (schwartz_with_seminorms 𝕜 E F) at hs,
+    sorry,
+  end,
+  ..fderiv_aux' 𝕜 }
+
+
+end fderiv
 
 end schwartz_map

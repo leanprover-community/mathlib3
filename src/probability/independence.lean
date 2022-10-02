@@ -923,14 +923,6 @@ lemma bsupr_indep_bsupr_compl (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) 
   indep (⨆ n ∈ t, s n) (⨆ n ∈ tᶜ, s n) μ :=
 indep_supr_of_disjoint h_le h_indep disjoint_compl_right
 
-lemma _root_.filter.limsup_le_supr {α} [complete_lattice α] (f : filter ι) (s : ι → α) :
-  limsup f s ≤ ⨆ n, s n :=
-begin
-  refine Limsup_le_of_le (by is_bounded_default) _,
-  simp only [eventually_map],
-  refine eventually_of_forall (le_supr s),
-end
-
 section abstract
 variables {α : Type*} {p : set ι → Prop} {f : filter ι} {ns : α → set ι}
 

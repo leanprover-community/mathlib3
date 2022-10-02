@@ -457,6 +457,12 @@ f.basis_sets.Limsup_eq_infi_Sup
 theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆ s ∈ f, Inf s :=
 @Limsup_eq_infi_Sup αᵒᵈ _ _
 
+theorem limsup_le_supr {f : filter β} {u : β → α} : f.limsup u ≤ ⨆ n, u n :=
+limsup_le_of_le (by is_bounded_default) (eventually_of_forall (le_supr u))
+
+theorem infi_le_liminf {f : filter β} {u : β → α} : (⨅ n, u n) ≤ f.liminf u :=
+le_liminf_of_le (by is_bounded_default) (eventually_of_forall (infi_le u))
+
 /-- In a complete lattice, the limsup of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
 theorem limsup_eq_infi_supr {f : filter β} {u : β → α} : f.limsup u = ⨅ s ∈ f, ⨆ a ∈ s, u a :=

@@ -1115,8 +1115,9 @@ begin
     measurable_set_to_measurable _ _, _⟩,
   refine eventually_eq.trans _ (null_measurable_set.to_measurable_ae_eq _).symm,
   swap, { exact hf _ (measurable_set_to_measurable _ _), },
-  have h := @null_measurable_set.to_measurable_ae_eq _ _ (μ.comap f : measure α) s hs,
-  refine ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
+  have h : to_measurable (comap f μ) s =ᵐ[comap f μ] s,
+    from @null_measurable_set.to_measurable_ae_eq _ _ (μ.comap f : measure α) s hs,
+  exact ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
 end
 
 

@@ -42,7 +42,7 @@ namespace stirling
 -/
 
 /--
-Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
+Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}(\frac{n}{e})^n}$.
 Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
 noncomputable def stirling_seq (n : ℕ) : ℝ :=

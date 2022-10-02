@@ -333,6 +333,20 @@ lemma le_seminorm (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ ≤ seminorm 𝕜 k n f :=
 f.le_seminorm_aux k n x
 
+lemma norm_iterated_fderiv_le_seminorm (f : 𝓢(E, F)) (n : ℕ) (x₀ : E):
+  ∥iterated_fderiv ℝ n f x₀∥ ≤ (schwartz_map.seminorm 𝕜 0 n) f :=
+begin
+  have := schwartz_map.le_seminorm 𝕜 0 n f x₀,
+  rwa [pow_zero, one_mul] at this,
+end
+
+lemma norm_pow_mul_le_seminorm (f : 𝓢(E, F)) (k : ℕ) (x₀ : E):
+  ∥x₀∥^k * ∥f x₀∥ ≤ (schwartz_map.seminorm 𝕜 k 0) f :=
+begin
+  have := schwartz_map.le_seminorm 𝕜 k 0 f x₀,
+  rwa norm_iterated_fderiv_zero at this,
+end
+
 end seminorms
 
 section topology

@@ -410,7 +410,7 @@ def delta (x₀ : E) : 𝓢(E, F) →L[𝕜] F :=
   end,
   .. delta_aux 𝕜 F x₀ }
 
-lemma delta_aux_apply (x₀ : E) (f : 𝓢(E, F)) : delta_aux 𝕜 F x₀ f = f x₀ := rfl
+lemma delta_apply (x₀ : E) (f : 𝓢(E, F)) : delta 𝕜 F x₀ f = f x₀ := rfl
 
 end distribution
 

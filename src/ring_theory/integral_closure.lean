@@ -128,7 +128,7 @@ let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, hp.map _,
   by rw [← aeval_def, aeval_map_algebra_map, aeval_def, hpx]⟩
 
-lemma is_integral_map_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B] {b : B}
+lemma is_integral_alg_hom_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B] {b : B}
   (f : B →ₐ[A] B) (hb : is_integral R b) : is_integral R (f b) :=
 begin
   obtain ⟨P, hP⟩ := hb,
@@ -136,6 +136,10 @@ begin
   rw [← aeval_def, show (aeval (f b)) P = (aeval (f b)) (P.map (algebra_map R A)), by simp,
     aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
 end
+
+lemma is_integral_int_alg_hom [algebra A B] {b : B} (f : B →ₐ[A] B) (hb : is_integral ℤ b) :
+  is_integral ℤ (f b) :=
+is_integral_alg_hom_of_is_scalar_tower f hb
 
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=

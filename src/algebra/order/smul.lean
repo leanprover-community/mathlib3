@@ -174,11 +174,8 @@ instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_sem
 ordered_smul.mk'' $ λ c, strict_mono_mul_left_of_pos
 
 section linear_ordered_semifield
-variables [linear_ordered_semifield 𝕜]
-
-section ordered_add_comm_monoid
-variables [ordered_add_comm_monoid M] [ordered_add_comm_monoid N] [mul_action_with_zero 𝕜 M]
-  [mul_action_with_zero 𝕜 N]
+variables [linear_ordered_semifield 𝕜] [ordered_add_comm_monoid M] [ordered_add_comm_monoid N]
+  [mul_action_with_zero 𝕜 M] [mul_action_with_zero 𝕜 N]
 
 /-- To prove that a vector space over a linear ordered field is ordered, it suffices to verify only
 the first axiom of `ordered_smul`. -/
@@ -213,32 +210,24 @@ instance pi.ordered_smul' [ordered_smul 𝕜 M] : ordered_smul 𝕜 (ι → M) :
 /- Sometimes Lean fails to unify the module with the scalars, so we define another instance. -/
 instance pi.ordered_smul'' : ordered_smul 𝕜 (ι → 𝕜) := @pi.ordered_smul' ι 𝕜 𝕜 _ _ _ _
 
-end ordered_add_comm_monoid
-
-section ordered_add_comm_group
-variables [ordered_add_comm_group M] [mul_action_with_zero 𝕜 M] [ordered_smul 𝕜 M] {s : set M}
-  {a b : M} {c : 𝕜}
+variables [ordered_smul 𝕜 M] {s : set M} {a b : M} {c : 𝕜}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
 ⟨λ h, inv_smul_smul₀ hc.ne' a ▸ inv_smul_smul₀ hc.ne' b ▸
   smul_le_smul_of_nonneg h (inv_nonneg.2 hc.le),
   λ h, smul_le_smul_of_nonneg h hc.le⟩
 
-lemma smul_lt_iff_of_pos (hc : 0 < c) : c • a < b ↔ a < c⁻¹ • b :=
-calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul₀ hc.ne']
-... ↔ a < c⁻¹ • b : smul_lt_smul_iff_of_pos hc
+lemma inv_smul_le_iff (h : 0 < c) : c⁻¹ • a ≤ b ↔ a ≤ c • b :=
+by { rw [←smul_le_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
-lemma lt_smul_iff_of_pos (hc : 0 < c) : a < c • b ↔ c⁻¹ • a < b :=
-calc a < c • b ↔ c • c⁻¹ • a < c • b : by rw [smul_inv_smul₀ hc.ne']
-... ↔ c⁻¹ • a < b : smul_lt_smul_iff_of_pos hc
+lemma inv_smul_lt_iff (h : 0 < c) : c⁻¹ • a < b ↔ a < c • b :=
+by { rw [←smul_lt_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
-lemma smul_le_iff_of_pos (hc : 0 < c) : c • a ≤ b ↔ a ≤ c⁻¹ • b :=
-calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul₀ hc.ne']
-... ↔ a ≤ c⁻¹ • b : smul_le_smul_iff_of_pos hc
+lemma le_inv_smul_iff (h : 0 < c) : a ≤ c⁻¹ • b ↔ c • a ≤ b :=
+by { rw [←smul_le_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
-lemma le_smul_iff_of_pos (hc : 0 < c) : a ≤ c • b ↔ c⁻¹ • a ≤ b :=
-calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul₀ hc.ne']
-... ↔ c⁻¹ • a ≤ b : smul_le_smul_iff_of_pos hc
+lemma lt_inv_smul_iff (h : 0 < c) : a < c⁻¹ • b ↔ c • a < b :=
+by { rw [←smul_lt_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
 variables (M)
 
@@ -264,7 +253,6 @@ variables {M}
 @[simp] lemma bdd_above_smul_iff_of_pos (hc : 0 < c) : bdd_above (c • s) ↔ bdd_above s :=
 (order_iso.smul_left _ hc).bdd_above_image
 
-end ordered_add_comm_group
 end linear_ordered_semifield
 
 namespace tactic

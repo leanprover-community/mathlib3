@@ -1134,6 +1134,10 @@ lemma comap_comap (K : subgroup P) (g : N →* P) (f : G →* N) :
   (K.comap g).comap f = K.comap (g.comp f) :=
 rfl
 
+@[simp, to_additive] lemma comap_id (K : subgroup N) :
+  K.comap (monoid_hom.id _) = K :=
+by { ext, refl }
+
 /-- The image of a subgroup along a monoid homomorphism is a subgroup. -/
 @[to_additive "The image of an `add_subgroup` along an `add_monoid` homomorphism
 is an `add_subgroup`."]
@@ -1854,6 +1858,12 @@ end⟩⟩
 @[to_additive] instance subgroup_of_is_commutative [H.is_commutative] :
   (H.subgroup_of K).is_commutative :=
 H.comap_injective_is_commutative subtype.coe_injective
+
+@[to_additive] lemma le_centralizer_iff_is_commutative : K ≤ K.centralizer ↔ K.is_commutative :=
+⟨λ h, ⟨⟨λ x y, subtype.ext (h y.2 x x.2)⟩⟩, λ h x hx y hy, congr_arg coe (h.1.1 ⟨y, hy⟩ ⟨x, hx⟩)⟩
+
+@[to_additive] lemma le_centralizer [h : H.is_commutative] : H ≤ H.centralizer :=
+le_centralizer_iff_is_commutative.mpr h
 
 end subgroup
 

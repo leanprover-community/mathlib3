@@ -81,28 +81,18 @@ def seminormed_add_comm_group.of_add_dist' [has_norm E] [add_comm_group E] [pseu
     { rw [sub_eq_add_neg, ← add_right_neg y], apply H2 }
   end }
 
-/-- A seminormed group can be built from a seminorm that satisfies algebraic properties. This is
-formalised in this structure. -/
-structure seminormed_add_comm_group.core (E : Type*) [add_comm_group E] [has_norm E] : Prop :=
-(norm_zero : ∥(0 : E)∥ = 0)
-(triangle : ∀ x y : E, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
-(norm_neg : ∀ x : E, ∥-x∥ = ∥x∥)
-
-/-- Constructing a seminormed group from core properties of a seminorm, i.e., registering the
-pseudodistance and the pseudometric space structure from the seminorm properties. Note that in most
-cases this instance creates bad definitional equalities (e.g., it does not take into account
-a possibly existing `uniform_space` instance on `E`). -/
-def seminormed_add_comm_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
-  (C : seminormed_add_comm_group.core E) : seminormed_add_comm_group E :=
-{ dist := λ x y, ∥x - y∥,
-  dist_eq := assume x y, by refl,
-  dist_self := assume x, by simp [C.norm_zero],
-  dist_triangle := assume x y z,
-    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by rw sub_add_sub_cancel
-            ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
-  dist_comm := assume x y,
-    calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
-             ... = ∥y - x∥ : by { rw [C.norm_neg] } }
+/-- Construct a seminormed group from a seminorm, i.e., registering the pseudodistance and the
+pseudometric space structure from the seminorm properties. Note that in most cases this instance
+creates bad definitional equalities (e.g., it does not take into account a possibly existing
+`uniform_space` instance on `E`). -/
+def add_group_seminorm.to_seminormed_add_comm_group [add_comm_group E] (f : add_group_seminorm E) :
+  seminormed_add_comm_group E :=
+{ dist := λ x y, f (x - y),
+  norm := f,
+  dist_eq := λ x y, rfl,
+  dist_self := λ x, by simp only [sub_self, map_zero],
+  dist_triangle := le_map_sub_add_map_sub f,
+  dist_comm := map_sub_rev f }
 
 instance : normed_add_comm_group punit :=
 { norm := function.const _ 0,
@@ -866,8 +856,8 @@ lemma ulift.nnnorm_def (x : ulift E) : ∥x∥₊ = ∥x.down∥₊ := rfl
 @[simp] lemma ulift.nnnorm_up (x : E) : ∥ulift.up x∥₊ = ∥x∥₊ := rfl
 
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/
-noncomputable instance prod.seminormed_add_comm_group : seminormed_add_comm_group (E × F) :=
-{ norm := λx, max ∥x.1∥ ∥x.2∥,
+instance prod.seminormed_add_comm_group : seminormed_add_comm_group (E × F) :=
+{ norm := λx, ∥x.1∥ ⊔ ∥x.2∥,
   dist_eq := assume (x y : E × F),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
 
@@ -891,7 +881,7 @@ variables {π : ι → Type*} [fintype ι] [Π i, seminormed_add_comm_group (π 
 
 /-- seminormed group instance on the product of finitely many seminormed groups,
 using the sup norm. -/
-noncomputable instance pi.seminormed_add_comm_group : seminormed_add_comm_group (Π i, π i) :=
+instance pi.seminormed_add_comm_group : seminormed_add_comm_group (Π i, π i) :=
 { norm := λ f, ↑(finset.univ.sup (λ b, ∥f b∥₊)),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
@@ -1147,32 +1137,14 @@ def normed_add_comm_group.of_add_dist [has_norm E] [add_comm_group E] [metric_sp
     { have := H2 (x-y) 0 y, rwa [sub_add_cancel, zero_add] at this }
   end }
 
-/-- A normed group can be built from a norm that satisfies algebraic properties. This is
-formalised in this structure. -/
-structure normed_add_comm_group.core (E : Type*) [add_comm_group E] [has_norm E] : Prop :=
-(norm_eq_zero_iff : ∀ x : E, ∥x∥ = 0 ↔ x = 0)
-(triangle : ∀ x y : E, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
-(norm_neg : ∀ x : E, ∥-x∥ = ∥x∥)
-
-/-- The `seminormed_add_comm_group.core` induced by a `normed_add_comm_group.core`. -/
-lemma normed_add_comm_group.core.to_seminormed_add_comm_group.core {E : Type*} [add_comm_group E]
-  [has_norm E]
-  (C : normed_add_comm_group.core E) : seminormed_add_comm_group.core E :=
-{ norm_zero := (C.norm_eq_zero_iff 0).2 rfl,
-  triangle := C.triangle,
-  norm_neg := C.norm_neg }
-
-/-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
-the metric space structure from the norm properties. -/
-def normed_add_comm_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
-  (C : normed_add_comm_group.core E) : normed_add_comm_group E :=
-{ eq_of_dist_eq_zero := λ x y h,
-  begin
-    rw [dist_eq_norm] at h,
-    exact sub_eq_zero.mp ((C.norm_eq_zero_iff _).1 h)
-  end
-  ..seminormed_add_comm_group.of_core E
-    (normed_add_comm_group.core.to_seminormed_add_comm_group.core C) }
+/-- Construct a normed group from a norm, i.e., registering the distance and the metric space
+structure from the norm properties. Note that in most cases this instance creates bad definitional
+equalities (e.g., it does not take into account a possibly existing `uniform_space` instance on
+`E`). -/
+def add_group_norm.to_normed_add_comm_group [add_comm_group E] (f : add_group_norm E) :
+  normed_add_comm_group E :=
+{ eq_of_dist_eq_zero := λ x y h, sub_eq_zero.1 $ eq_zero_of_map_eq_zero f h,
+  ..f.to_add_group_seminorm.to_seminormed_add_comm_group }
 
 variables [normed_add_comm_group E] [normed_add_comm_group F] {x y : E}
 
@@ -1236,12 +1208,11 @@ instance ulift.normed_add_comm_group : normed_add_comm_group (ulift E) :=
 { ..ulift.seminormed_add_comm_group }
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
-noncomputable instance prod.normed_add_comm_group : normed_add_comm_group (E × F) :=
+instance prod.normed_add_comm_group : normed_add_comm_group (E × F) :=
 { ..prod.seminormed_add_comm_group }
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
-noncomputable instance pi.normed_add_comm_group {π : ι → Type*} [fintype ι]
-  [Π i, normed_add_comm_group (π i)] :
+instance pi.normed_add_comm_group {π : ι → Type*} [fintype ι] [Π i, normed_add_comm_group (π i)] :
   normed_add_comm_group (Πi, π i) := { ..pi.seminormed_add_comm_group }
 
 lemma tendsto_norm_sub_self_punctured_nhds (a : E) : tendsto (λ x, ∥x - a∥) (𝓝[≠] a) (𝓝[>] 0) :=

@@ -19,7 +19,7 @@ stability under composition and inversion.
 Also defined are
 
 * containment of subgroupoids is a complete lattice;
-* preimages of subgroupoids under a functor;
+* images and preimages of subgroupoids under a functor;
 * the notion of normality of subgroupoids and its stability under intersection and preimage;
 * compatibility of the above with `groupoid.vertex_group`.
 
@@ -32,6 +32,7 @@ Given a type `C` with associated `groupoid C` instance.
 * `subgroupoid.is_normal` is the property that the subgroupoid is stable under conjugation
   by arbitrary arrows, _and_ that all identity arrows are contained in the subgroupoid.
 * `subgroupoid.comap` is the "preimage" map of subgroupoids along a functor.
+* `subgroupoid.map` is the "image" map of subgroupoids along a functor _injective on objects_.
 * `subgroupoid.vertex_subgroup` is the subgroup of the `vertex group` at a given vertex `v`,
   assuming `v` is contained in the `subgroupoid` (meaning, by definition, that the arrow `𝟙 v`
   is contained in the subgroupoid).
@@ -185,26 +186,23 @@ instance : complete_lattice (subgroupoid C) :=
             simp only [Inter_coe_set, mem_Inter],
             rintros S Ss, apply Tl Ss, exact pT,}}) }
 
-/-- The discrete subgroupoid has only the `𝟙 _` arrows -/
-def discrete [decidable_eq C] : subgroupoid C :=
-⟨ λ c d, if h : c = d then {h.rec_on (𝟙 c)} else ∅
-, by
-  { rintros c d p hp,
-    by_cases h : d = c,
-    { subst_vars,
-      simp only [eq_self_iff_true, congr_arg_mpr_hom_right, eq_to_hom_refl, category.comp_id,
-                 dite_eq_ite, if_true, mem_singleton_iff] at hp ⊢,
-      rw hp, apply inv_one, },
-    { rw dif_neg (λ l : c = d, h l.symm) at hp, exact hp.elim, }, }
-, by
-  { rintros c d e p hp q hq,
-    by_cases h : d = c,
-    { by_cases k : e = d; subst_vars,
-      { simp only [eq_self_iff_true, dite_eq_ite, if_true, mem_singleton_iff] at ⊢ hp hq,
-        rw [hp, hq], simp only [category.comp_id], },
-      { simp only [eq_self_iff_true, dite_eq_ite, if_true, mem_singleton_iff] at ⊢ hp hq,
-        rw dif_neg (λ l : d = e, k l.symm) at hq, exact hq.elim, }, },
-    { rw dif_neg (λ l : c = d, h l.symm) at hp, exact hp.elim, }, } ⟩
+/-- The family of arrows of the discrete groupoid -/
+inductive discrete.arrws : Π (c d : C), (c ⟶ d) → Prop
+| id (c : C) : discrete.arrws c c (𝟙 c)
+
+/-- The only arrows of the discrete groupoid are the identity arrows-/
+def discrete : subgroupoid C :=
+⟨ discrete.arrws
+, by { rintros _ _ _ hp, induction hp, simp only [inv_eq_inv, is_iso.inv_id], constructor, }
+, by { rintros _ _ _ _ hp _ hq, induction hp, induction hq, rw category.comp_id, constructor,} ⟩
+
+lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
+  (f ∈ (discrete).arrws c d) ↔ (∃ (h : c = d), f = h.rec_on (𝟙 c)) :=
+begin
+  split,
+  { intro hf, induction hf, simp only [eq_self_iff_true, exists_true_left], },
+  { rintro ⟨h,he⟩, subst_vars, constructor, }
+end
 
 /-- A subgroupoid is normal if it is “wide” (meaning that its carrier set is all of `C`)
     and satisfies the expected stability under conjugacy -/
@@ -329,19 +327,66 @@ lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap 
     apply Sn.conj, exact hγ, } }
 
 /-- The kernel of a functor between subgroupoid is the preimage. -/
-noncomputable def ker : subgroupoid C := comap φ (discrete)
+def ker : subgroupoid C := comap φ (discrete)
 
 lemma mem_ker_iff {c d : C} (f : c ⟶ d) :
   f ∈ (ker φ).arrws c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = h.rec_on (𝟙 $ φ.obj c) :=
+mem_discrete_iff (φ.map f)
+
+/-- The family of arrows of the image of a subgroupoid under a functor injective on objects -/
+inductive map.arrws (hφ : function.injective φ.obj) (S : subgroupoid C) :
+  Π (c d : D), (c ⟶ d) → Prop
+| im {c d : C} (f : c ⟶ d) (hf : f ∈ S.arrws c d) : map.arrws (φ.obj c) (φ.obj d) (φ.map f)
+
+lemma map.mem_arrws_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d) :
+  map.arrws φ hφ S c d f ↔
+  ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrws a b),
+    f = @eq.rec_on _ (φ.obj a) (λ x, x ⟶ d) (c) ha (hb.rec_on $ φ.map g) :=
 begin
-  dsimp only [ker, discrete, subgroupoid.comap],
-  by_cases h : φ.obj c = φ.obj d,
-  { simp only [dif_pos h, mem_singleton_iff, mem_set_of_eq],
-    split,
-    { rintro e, use h, exact e, },
-    { rintro ⟨_,e⟩, exact e, }, },
-  { simp only [dif_neg h, set_of_false, false_iff, not_exists, mem_empty_iff_false],
-    rintro e, exact (h e).elim, },
+  split,
+  { rintro ⟨a,b,g,hg⟩, use [a,b,g,rfl,rfl,hg,rfl], },
+  { rintro ⟨a,b,g,ha,hb,hg,he⟩, subst_vars,
+    simp only [congr_arg_mpr_hom_right, eq_to_hom_refl, category.comp_id],
+    constructor, exact hg, },
+end
+
+/-- The "forward" image of a subgroupoid under a functor injective on objects -/
+def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
+⟨ map.arrws φ hφ S
+, by
+  { rintro _ _ _ hp, induction hp,
+    rw [inv_eq_inv,←functor.map_inv], constructor,
+    rw ←inv_eq_inv, apply S.inv', assumption, }
+, by -- Is there no way to prove this ↓ directly without the help of `map.mem_arrws_iff` ?
+  { rintro _ _ _ _ hp _ hq,
+    obtain ⟨f₀,f₁,f,hf₀,hf₁,hf,fp⟩ := (map.mem_arrws_iff φ hφ S p).mp hp,
+    obtain ⟨g₀,g₁,g,hg₀,hg₁,hg,gq⟩ := (map.mem_arrws_iff φ hφ S q).mp hq,
+    simp only [has_mem.mem, map.mem_arrws_iff],
+    have : f₁ = g₀, by {apply hφ, exact hf₁.trans hg₀.symm, },
+    induction this,
+    refine ⟨f₀,g₁,f ≫ g,hf₀,hg₁,S.mul' hf hg,_⟩,
+    simp only [functor.map_comp],
+    subst_vars } ⟩
+
+lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
+  S ≤ T → map φ hφ S ≤ map φ hφ T :=
+begin
+  rintros le _ _ _ ⟨a,b,f,h⟩,
+  constructor,
+  apply le h,
+end
+
+/-- The image of a functor injective on objects -/
+def im  (hφ : function.injective φ.obj) := map φ hφ (⊤)
+
+lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
+  f ∈ (im φ hφ).arrws c d ↔
+  ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d),
+    f = @eq.rec_on _ (φ.obj a) (λ x, x ⟶ d) (c) ha (hb.rec_on $ φ.map g) :=
+begin
+  convert map.mem_arrws_iff φ hφ ⊤ f,
+  dsimp [⊤,has_top.top],
+  simp only [mem_univ, exists_true_left],
 end
 
 end hom

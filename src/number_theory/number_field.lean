@@ -110,11 +110,9 @@ integral_closure.is_integrally_closed_of_finite_extension ℚ
 lemma is_integral_coe (x : 𝓞 K) : is_integral ℤ (x : K) :=
 x.2
 
-lemma alg_hom.mem_ring_of_integers [char_zero K] (f : K →ₐ[ℚ] K) (x : 𝓞 K) : f x ∈ 𝓞 K :=
-(mem_ring_of_integers _ _).2 $ is_integral_int_alg_hom f $ ring_of_integers.is_integral_coe x
-
-lemma alg_equiv.mem_ring_of_integers [char_zero K] (f : K ≃ₐ[ℚ] K) (x : 𝓞 K) : f x ∈ 𝓞 K :=
-f.to_alg_hom.mem_ring_of_integers _
+lemma mem_ring_of_integers_alg_hom_class {F L : Type*} [field L] [char_zero K] [char_zero L]
+  [alg_hom_map_class F ℚ K L] (f : F) (x : 𝓞 K) : f x ∈ 𝓞 K :=
+(mem_ring_of_integers _ _).2 $ is_integral_int_alg_hom_class f $ ring_of_integers.is_integral_coe x
 
 /-- The ring of integers of `K` are equivalent to any integral closure of `ℤ` in `K` -/
 protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]

@@ -505,6 +505,8 @@ begin
   simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
 
+instance : is_simple_order (ideal K) := ⟨eq_bot_or_top⟩
+
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 

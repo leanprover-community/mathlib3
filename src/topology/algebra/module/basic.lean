@@ -12,6 +12,7 @@ import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
 import linear_algebra.determinant
+import ring_theory.simple_module
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -237,6 +238,19 @@ instance {M' : Type*} [add_comm_monoid M'] [module R M'] [uniform_space M']
   [has_continuous_add M'] [has_continuous_smul R M'] [complete_space M'] (U : submodule R M') :
   complete_space U.topological_closure :=
 is_closed_closure.complete_space_coe
+
+lemma submodule.is_closed_or_dense_of_is_coatom (s : submodule R M) (hs : is_coatom s) :
+  is_closed (s : set M) ∨ dense (s : set M) :=
+(hs.le_iff.mp s.submodule_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
+  submodule.dense_iff_topological_closure_eq_top.mpr
+
+lemma linear_map.is_closed_or_dense_ker [is_simple_module R] (l : M →ₗ[R] R) :
+  is_closed (l.ker : set M) ∨ dense (l.ker : set M) :=
+begin
+
+end
+
+#exit
 
 end closure
 

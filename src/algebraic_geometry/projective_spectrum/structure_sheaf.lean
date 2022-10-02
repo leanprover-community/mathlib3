@@ -271,7 +271,7 @@ by { cases x, exact stalk_to_fiber_ring_hom_germ' 𝒜 U _ _ _ }
 
 lemma homogeneous_localization.mem_basic_open (x : projective_spectrum.Top 𝒜) (f : at x) :
   x ∈ projective_spectrum.basic_open 𝒜 f.denom :=
-by { rw projective_spectrum.mem_basic_open, exact f.denom_wd }
+by { rw projective_spectrum.mem_basic_open, exact f.denom_mem }
 
 variable (𝒜)
 
@@ -281,9 +281,9 @@ basic open set `D(f.denom)`-/
 def section_in_basic_open (x : projective_spectrum.Top 𝒜) :
   Π (f : at x),
     (Proj.structure_sheaf 𝒜).1.obj (op (projective_spectrum.basic_open 𝒜 f.denom)) :=
-λ f, ⟨λ y, quotient.mk' ⟨f.deg, ⟨f.num, f.num_mem⟩, ⟨f.denom, f.denom_mem⟩, y.2⟩,
+λ f, ⟨λ y, quotient.mk' ⟨f.deg, ⟨f.num, f.num_mem_deg⟩, ⟨f.denom, f.denom_mem_deg⟩, y.2⟩,
   λ y, ⟨projective_spectrum.basic_open 𝒜 f.denom, y.2,
-    ⟨𝟙 _, ⟨f.deg, ⟨⟨f.num, f.num_mem⟩, ⟨f.denom, f.denom_mem⟩,
+    ⟨𝟙 _, ⟨f.deg, ⟨⟨f.num, f.num_mem_deg⟩, ⟨f.denom, f.denom_mem_deg⟩,
       λ z, ⟨z.2, rfl⟩⟩⟩⟩⟩⟩
 
 /--Given any point `x` and `f` in the homogeneous localization at `x`, there is an element in the

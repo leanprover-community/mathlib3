@@ -119,9 +119,9 @@ end dfinsupp
 
 open dfinsupp
 
-variables {r : ι → ι → Prop} {s : Π i, α i → α i → Prop}
+variables (r : ι → ι → Prop) {s : Π i, α i → α i → Prop}
 
-theorem pi.well_founded_lex [is_strict_total_order ι r] [finite ι]
+theorem pi.lex.well_founded [is_strict_total_order ι r] [finite ι]
   (hs : ∀ i, well_founded (s i)) : well_founded (pi.lex r s) :=
 begin
   by_cases is_empty (Π i, α i),
@@ -135,7 +135,16 @@ end
 
 instance pi.lex.well_founded_lt [linear_order ι] [finite ι] [Π i, has_lt (α i)]
   [hwf : ∀ i, well_founded_lt (α i)] : well_founded_lt (lex (Π i, α i)) :=
-⟨pi.well_founded_lex (λ i, (hwf i).1)⟩
+⟨pi.lex.well_founded (<) (λ i, (hwf i).1)⟩
 
 instance pi.lex.well_founded_lt' {α} [linear_order ι] [finite ι] [has_lt α] [well_founded_lt α] :
   well_founded_lt (lex (ι → α)) := pi.lex.well_founded_lt
+
+theorem dfinsupp.lex.well_founded_of_finite [is_strict_total_order ι r] [finite ι]
+  [Π i, has_zero (α i)] (hs : ∀ i, well_founded (s i)) : well_founded (dfinsupp.lex r s) :=
+have _ := fintype.of_finite ι,
+  by exactI inv_image.wf equiv_fun_on_fintype (pi.lex.well_founded r hs)
+
+instance dfinsupp.lex.well_founded_lt_of_finite [linear_order ι] [finite ι] [Π i, has_zero (α i)]
+  [Π i, has_lt (α i)] [hwf : ∀ i, well_founded_lt (α i)] : well_founded_lt (lex (Π₀ i, α i)) :=
+⟨dfinsupp.lex.well_founded_of_finite (<) $ λ i, (hwf i).1⟩

@@ -21,8 +21,8 @@ include hbot hs
 
 lemma lex.acc (x : α →₀ N) (h : ∀ a ∈ x.support, acc (rᶜ ⊓ (≠)) a) : acc (finsupp.lex r s) x :=
 begin
-  rw lex_eq_inv_image_dfinsupp_lex,
-  refine inv_image.accessible finsupp.to_dfinsupp (dfinsupp.lex.acc (λ a, hbot) (λ a, hs) _ _),
+  rw lex_eq_inv_image_dfinsupp_lex, classical,
+  refine inv_image.accessible to_dfinsupp (dfinsupp.lex.acc (λ a, hbot) (λ a, hs) _ _),
   simpa only [to_dfinsupp_support] using h,
 end
 
@@ -39,5 +39,16 @@ omit hbot hs
 instance lex.well_founded_lt [has_lt α] [is_trichotomous α (<)] [hα : well_founded_gt α]
   [canonically_ordered_add_monoid N] [hN : well_founded_lt N] : well_founded_lt (lex (α →₀ N)) :=
 ⟨lex.well_founded' (λ n, (zero_le n).not_lt) hN.wf hα.wf⟩
+
+variable (r)
+
+theorem lex.well_founded_of_finite [is_strict_total_order α r] [finite α] [has_zero N]
+  (hs : well_founded s) : well_founded (finsupp.lex r s) :=
+have _ := fintype.of_finite α,
+  by exactI inv_image.wf (@equiv_fun_on_fintype α N _ _) (pi.lex.well_founded r $ λ a, hs)
+
+theorem lex.well_founded_lt_of_finite [linear_order α] [finite α] [has_zero N] [has_lt N]
+  [hwf : well_founded_lt N] : well_founded_lt (lex (α →₀ N)) :=
+⟨finsupp.lex.well_founded_of_finite (<) hwf.1⟩
 
 end finsupp

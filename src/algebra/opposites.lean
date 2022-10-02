@@ -61,8 +61,6 @@ attribute [pp_nodot] add_opposite.op add_opposite.unop
 @[simp, to_additive] lemma op_comp_unop : (op : α → αᵐᵒᵖ) ∘ unop = id := rfl
 @[simp, to_additive] lemma unop_comp_op : (unop : αᵐᵒᵖ → α) ∘ op = id := rfl
 
-attribute [irreducible] mul_opposite
-
 /-- A recursor for `mul_opposite`. Use as `induction x using mul_opposite.rec`. -/
 @[simp, to_additive "A recursor for `add_opposite`. Use as `induction x using add_opposite.rec`."]
 protected def rec {F : Π (X : αᵐᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=

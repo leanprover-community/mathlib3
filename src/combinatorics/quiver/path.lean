@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn, Scott Morrison
 -/
 import combinatorics.quiver.basic
+import data.list.basic
 
 /-!
 # Paths in quivers
@@ -11,6 +12,8 @@ import combinatorics.quiver.basic
 Given a quiver `V`, we define the type of paths from `a : V` to `b : V` as an inductive
 family. We define composition of paths and the action of prefunctors on paths.
 -/
+
+open function
 
 universes v v₁ v₂ u u₁ u₂
 
@@ -27,7 +30,7 @@ path.nil.cons e
 
 namespace path
 
-variables {V : Type u} [quiver V]
+variables {V : Type u} [quiver V] {a b : V}
 
 /-- The length of a path is the number of arrows it uses. -/
 def length {a : V} : Π {b : V}, path a b → ℕ
@@ -41,6 +44,9 @@ instance {a : V} : inhabited (path a a) := ⟨path.nil⟩
 
 @[simp] lemma length_cons (a b c : V) (p : path a b)
   (e : b ⟶ c) : (p.cons e).length = p.length + 1 := rfl
+
+lemma eq_of_length_zero (p : path a b) (hzero : p.length = 0) : a = b :=
+by { cases p, { refl }, { cases nat.succ_ne_zero _ hzero } }
 
 /-- Composition of paths. -/
 def comp {a b : V} : Π {c}, path a b → path b c → path a c
@@ -58,6 +64,38 @@ def comp {a b : V} : Π {c}, path a b → path b c → path a c
     (p.comp q).comp r = p.comp (q.comp r)
 | c p q path.nil := rfl
 | d p q (path.cons r e) := by rw [comp_cons, comp_cons, comp_cons, comp_assoc]
+
+/-- Turn a path into a list. The list contains `a` at its head, but not `b` a priori. -/
+@[simp] def to_list : Π {b : V}, path a b → list V
+| b nil := []
+| b (@cons _ _ _ c _ p f) := c :: p.to_list
+
+/-- `quiver.path.to_list` is a contravariant functor. The inversion comes from `quiver.path` and
+`list` having different preferred directions for adding elements. -/
+@[simp] lemma to_list_comp (p : path a b) :
+  ∀ {c} (q : path b c), (p.comp q).to_list = q.to_list ++ p.to_list
+| c nil := by simp
+| c (@cons _ _ _ d _ q f) := by simp [to_list_comp]
+
+lemma to_list_chain_nonempty :
+  ∀ {b} (p : path a b), p.to_list.chain (λ x y, nonempty (y ⟶ x)) b
+| b nil := list.chain.nil
+| b (cons p f) := p.to_list_chain_nonempty.cons ⟨f⟩
+
+variables [∀ a b : V, subsingleton (a ⟶ b)]
+
+lemma to_list_injective (a : V) : ∀ b, injective (to_list : path a b → list V)
+| b nil nil h := rfl
+| b nil (@cons _ _ _ c _ p f) h := (list.cons_ne_nil _ _ h.symm).elim
+| b (@cons _ _ _ c _ p f) nil h := (list.cons_ne_nil _ _ h).elim
+| b (@cons _ _ _ c _ p f) (@cons _ _ s t u C D) h := begin
+  simp only [to_list] at h,
+  obtain ⟨rfl, hAC⟩ := h,
+  simp [to_list_injective _ hAC],
+end
+
+@[simp] lemma to_list_inj {p q : path a b} : p.to_list = q.to_list ↔ p = q :=
+(to_list_injective _ _).eq_iff
 
 end path
 

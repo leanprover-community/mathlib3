@@ -404,4 +404,20 @@ begin
   simpa only [sub_add_sub_cancel', norm_sub_rev] using h.norm_add.symm
 end
 
+/-- The set of vectors in the same ray as `x` is connected. -/
+lemma is_connected_set_of_same_ray (x : E) : is_connected {y | same_ray ℝ x y} :=
+begin
+  by_cases hx : x = 0, { simpa [hx] using is_connected_univ },
+  simp_rw ←exists_nonneg_left_iff_same_ray hx,
+  exact is_connected_Ici.image _ ((continuous_id.smul continuous_const).continuous_on)
+end
+
+/-- The set of nonzero vectors in the same ray as the nonzero vector `x` is connected. -/
+lemma is_connected_set_of_same_ray_and_ne_zero {x : E} (hx : x ≠ 0) :
+  is_connected {y | same_ray ℝ x y ∧ y ≠ 0} :=
+begin
+  simp_rw ←exists_pos_left_iff_same_ray_and_ne_zero hx,
+  exact is_connected_Ioi.image _ ((continuous_id.smul continuous_const).continuous_on)
+end
+
 end normed_space

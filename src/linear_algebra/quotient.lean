@@ -109,6 +109,23 @@ function.surjective.mul_action mk (surjective_quot_mk _) P^.quotient.mk_smul
 instance mul_action (P : submodule R M) : mul_action R (M ⧸ P) :=
 quotient.mul_action' P
 
+instance smul_zero_class' [has_smul S R] [smul_zero_class S M]
+  [is_scalar_tower S R M]
+  (P : submodule R M) : smul_zero_class S (M ⧸ P) :=
+zero_hom.smul_zero_class ⟨mk, mk_zero _⟩ P^.quotient.mk_smul
+
+instance smul_zero_class (P : submodule R M) : smul_zero_class R (M ⧸ P) :=
+quotient.smul_zero_class' P
+
+instance distrib_smul' [has_smul S R] [distrib_smul S M]
+  [is_scalar_tower S R M]
+  (P : submodule R M) : distrib_smul S (M ⧸ P) :=
+function.surjective.distrib_smul
+  ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
+
+instance distrib_smul (P : submodule R M) : distrib_smul R (M ⧸ P) :=
+quotient.distrib_smul' P
+
 instance distrib_mul_action' [monoid S] [has_smul S R] [distrib_mul_action S M]
   [is_scalar_tower S R M]
   (P : submodule R M) : distrib_mul_action S (M ⧸ P) :=

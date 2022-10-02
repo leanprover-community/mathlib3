@@ -162,7 +162,7 @@ begin
   refine locally_convex_space.of_basis_zero _ _ _ _
     (strong_topology.has_basis_nhds_zero_of_basis _ _ _ _ h𝔖₁ h𝔖₂
       (locally_convex_space.convex_basis_zero ℝ F')) _,
-  rintros ⟨S, V⟩ ⟨hS, hVmem, hVconvex⟩ f g hf hg a b ha hb hab x hx,
+  rintros ⟨S, V⟩ ⟨hS, hVmem, hVconvex⟩ f hf g hg a b ha hb hab x hx,
   exact hVconvex (hf x hx) (hg x hx) ha hb hab,
 end
 

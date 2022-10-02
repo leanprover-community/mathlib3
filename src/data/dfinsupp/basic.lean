@@ -147,6 +147,14 @@ end⟩
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 rfl
 
+/-- Merge two finitely supported functions `x y : Π₀ i, α i`; at every coordinate `a : α`, use the
+  predicate `p` to decide whether to take the value of `x` or the value of `y`. -/
+noncomputable def merge (p : ι → Prop) (x y : Π₀ i, β i) : Π₀ i, β i :=
+by classical; exactI zip_with (λ i x y, if p i then x else y) (λ _, if_t_t _ 0) x y
+
+lemma merge_apply (p : ι → Prop) (x y : Π₀ i, β i) (i : ι) :
+  merge p x y i = if p i then x i else y i := zip_with_apply _ _ x y i
+
 end basic
 
 section algebra
@@ -582,6 +590,10 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+lemma merge_single_erase (x : Π₀ i, β i) (i : ι) :
+  merge (λ j, j = i) (single i (x i)) (x.erase i) = x :=
+by { ext j, rw merge_apply, split_ifs, { rw [h, single_eq_same] }, { exact erase_ne h } }
 
 lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
   f.erase i = f - single i (f i) :=

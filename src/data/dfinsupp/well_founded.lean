@@ -15,31 +15,10 @@ variables {ι : Type*} {α : ι → Type*}
 
 namespace dfinsupp
 
-variable [hz : Π i, has_zero (α i)]
+variables [hz : Π i, has_zero (α i)] (r : ι → ι → Prop) (s : Π i, α i → α i → Prop)
 include hz
 
-/-- Merge two finitely supported functions `x y : Π₀ i, α i`; at every coordinate `a : α`, use the
-  predicate `p` to decide whether to take the value of `x` or the value of `y`. -/
-noncomputable def merge (p : ι → Prop) (x y : Π₀ i, α i) : Π₀ i, α i :=
-by classical; exactI mk (x.support ∪ y.support) (λ i, if p i then x i else y i)
-
-lemma merge_apply (p : ι → Prop) (x y : Π₀ i, α i) (i : ι) :
-  merge p x y i = if p i then x i else y i :=
-mk_apply.trans begin
-  split_ifs with h h' h', refl, refl,
-  all_goals { rw [eq_comm, ← not_mem_support_iff], rw finset.not_mem_union at h },
-  exacts [h.1, h.2],
-end
-
-lemma merge_single_erase (x : Π₀ i, α i) (i : ι) :
-  merge (λ j, j = i) (single i (x i)) (x.erase i) = x :=
-begin
-  ext j, rw merge_apply, split_ifs,
-  { rw [h, single_eq_same] }, { exact erase_ne h },
-end
-
 open relation prod
-variables (r : ι → ι → Prop) (s : Π i, α i → α i → Prop)
 
 lemma lex_fibration : fibration
   (inv_image (game_add (dfinsupp.lex r s) (dfinsupp.lex r s)) snd)
@@ -70,7 +49,7 @@ end
 
 variables {r s}
 
-lemma lex.acc_of_single_erase {x : Π₀ i, α i} (i : ι)
+lemma lex.acc_of_single_erase [decidable_eq ι] {x : Π₀ i, α i} (i : ι)
   (hs : acc (dfinsupp.lex r s) (single i (x i)))
   (hu : acc (dfinsupp.lex r s) (x.erase i)) : acc (dfinsupp.lex r s) x :=
 begin
@@ -85,7 +64,7 @@ include hbot
 
 lemma lex.acc_zero : acc (dfinsupp.lex r s) 0 := acc.intro 0 $ λ x ⟨_, _, h⟩, (hbot h).elim
 
-lemma lex.acc_of_single (x : Π₀ i, α i) :
+lemma lex.acc_of_single [decidable_eq ι] [Π i (x : α i), decidable (x ≠ 0)] (x : Π₀ i, α i) :
   (∀ i ∈ x.support, acc (dfinsupp.lex r s) $ single i (x i)) → acc (dfinsupp.lex r s) x :=
 begin
   generalize ht : x.support = t, revert x, classical,
@@ -100,7 +79,7 @@ end
 variable (hs : ∀ i, well_founded (s i))
 include hs
 
-lemma lex.acc_single {i : ι} (a : α i)
+lemma lex.acc_single [decidable_eq ι] {i : ι} (a : α i)
   (hi : acc (rᶜ ⊓ (≠)) i) : acc (dfinsupp.lex r s) (single i a) :=
 begin
   revert a, induction hi with i hi ih,
@@ -117,12 +96,12 @@ begin
   { exact ih _ ⟨h, hij.symm⟩ _ },
 end
 
-lemma lex.acc (x : Π₀ i, α i)
+lemma lex.acc [decidable_eq ι] [Π i (x : α i), decidable (x ≠ 0)] (x : Π₀ i, α i)
   (h : ∀ i ∈ x.support, acc (rᶜ ⊓ (≠)) i) : acc (dfinsupp.lex r s) x :=
 lex.acc_of_single hbot x $ λ i hi, lex.acc_single hbot hs _ (h i hi)
 
 theorem lex.well_founded (hr : well_founded $ rᶜ ⊓ (≠)) : well_founded (dfinsupp.lex r s) :=
-⟨λ x, lex.acc hbot hs x $ λ i _, hr.apply i⟩
+⟨λ x, by classical; exact lex.acc hbot hs x (λ i _, hr.apply i)⟩
 
 theorem lex.well_founded' [is_trichotomous ι r]
   (hr : well_founded r.swap) : well_founded (dfinsupp.lex r s) :=

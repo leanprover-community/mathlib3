@@ -95,6 +95,37 @@ lemma iff_singleton : is_cyclotomic_extension {n} A B ↔
  (∀ x, x ∈ adjoin A { b : B | b ^ (n : ℕ) = 1 }) :=
 by simp [is_cyclotomic_extension_iff]
 
+/-- Given `(f : B ≃ₐ[A] C)`, if `is_cyclotomic_extension S A B` then
+`is_cyclotomic_extension S A C`. -/
+@[protected] lemma equiv {C : Type*} [comm_ring C] [algebra A C] [h : is_cyclotomic_extension S A B]
+  (f : B ≃ₐ[A] C) : is_cyclotomic_extension S A C :=
+begin
+  refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, _, _⟩,
+  { obtain ⟨a, ha⟩ := ((is_cyclotomic_extension_iff S A B).1 h).1 hs,
+    exact ⟨f a, ha.map_of_injective f.injective⟩ },
+  { have : (f.symm) '' {c : C | ∃ (s : ℕ+), s ∈ S ∧ c ^ (s : ℕ) = 1} =
+      {b : B | ∃ (s : ℕ+), s ∈ S ∧ b ^ (s : ℕ) = 1},
+    { refine set.ext (λ x, ⟨λ hx, _, λ hx, _⟩),
+      { simp only [set.mem_image, set.mem_set_of_eq] at ⊢ hx,
+        obtain ⟨c, ⟨n, ⟨hn, hcn⟩⟩, hxc⟩ := hx,
+        refine ⟨n, ⟨hn, _⟩⟩,
+        rw [← hxc, ← alg_equiv.map_pow, hcn, alg_equiv.map_one] },
+      { simp only [set.mem_image, set.mem_set_of_eq] at ⊢ hx,
+        obtain ⟨n, ⟨hn, hxn⟩⟩ := hx,
+        refine ⟨f x, ⟨⟨n, ⟨hn, _⟩⟩, by simp⟩⟩,
+        { rw [← alg_equiv.map_pow, hxn, alg_equiv.map_one] } } },
+    refine _root_.eq_top_iff.2 (λ x hx, _),
+    suffices : f.symm x ∈
+      (adjoin A {c : C | ∃ (s : ℕ+), s ∈ S ∧ c ^ ↑s = 1}).map f.symm.to_alg_hom,
+    { obtain ⟨c, hc, Hc⟩ := subalgebra.mem_map.1 this,
+      simp only [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom,
+        embedding_like.apply_eq_iff_eq] at Hc,
+      rwa [← Hc] },
+    rw [← adjoin_image, alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, this,
+      ((iff_adjoin_eq_top _ _ _).1 h).2],
+    exact mem_top }
+end
+
 /-- If `is_cyclotomic_extension ∅ A B`, then the image of `A` in `B` equals `B`. -/
 lemma empty [h : is_cyclotomic_extension ∅ A B] : (⊥ : subalgebra A B) = ⊤ :=
 by simpa [algebra.eq_top_iff, is_cyclotomic_extension_iff] using h

@@ -44,23 +44,23 @@ instance (R : Type*) [monoid R] [monoid α] [mul_distrib_mul_action R α] :
 
 instance {M N} [has_smul M N] [has_smul M α] [has_smul N α] [is_scalar_tower M N α] :
   is_scalar_tower M N αᵐᵒᵖ :=
-⟨λ x y z, unop_injective $ smul_assoc _ _ _⟩
+⟨λ x y z, unop_injective $ by convert smul_assoc (unop x) (unop y) (unop z)⟩
 
 @[to_additive] instance {M N} [has_smul M α] [has_smul N α] [smul_comm_class M N α] :
   smul_comm_class M N αᵐᵒᵖ :=
-⟨λ x y z, unop_injective $ smul_comm _ _ _⟩
+⟨λ x y z, unop_injective $ by convert smul_comm (unop x) (unop y) (unop z)⟩
 
 instance (R : Type*) [has_smul R α] [has_smul Rᵐᵒᵖ α] [is_central_scalar R α] :
   is_central_scalar R αᵐᵒᵖ :=
-⟨λ r m, unop_injective $ op_smul_eq_smul _ _⟩
+⟨λ r m, unop_injective $ by convert op_smul_eq_smul (unop r) (unop m)⟩
 
 lemma op_smul_eq_op_smul_op {R : Type*} [has_smul R α] [has_smul Rᵐᵒᵖ α] [is_central_scalar R α]
   (r : R) (a : α) : op (r • a) = op r • op a :=
-(op_smul_eq_smul r (op a)).symm
+by convert (op_smul_eq_smul r $ op a).symm
 
 lemma unop_smul_eq_unop_smul_unop {R : Type*} [has_smul R α] [has_smul Rᵐᵒᵖ α]
   [is_central_scalar R α] (r : Rᵐᵒᵖ) (a : αᵐᵒᵖ) : unop (r • a) = unop r • unop a :=
-(unop_smul_eq_smul r (unop a)).symm
+by convert (unop_smul_eq_smul r $ unop a).symm
 
 end mul_opposite
 
@@ -107,13 +107,11 @@ instance comm_semigroup.is_central_scalar [comm_semigroup α] : is_central_scala
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
 
-instance is_scalar_tower.opposite_mid {M N} [has_mul N] [has_smul M N]
-  [smul_comm_class M N N] :
+instance is_scalar_tower.opposite_mid {M N} [has_mul N] [has_smul M N] [smul_comm_class M N N] :
   is_scalar_tower M Nᵐᵒᵖ N :=
-⟨λ x y z, mul_smul_comm _ _ _⟩
+⟨λ x y z, by convert mul_smul_comm (unop x) (unop z) (unop y)⟩
 
-instance smul_comm_class.opposite_mid {M N} [has_mul N] [has_smul M N]
-  [is_scalar_tower M N N] :
+instance smul_comm_class.opposite_mid {M N} [has_mul N] [has_smul M N] [is_scalar_tower M N N] :
   smul_comm_class M Nᵐᵒᵖ N :=
 ⟨λ x y z, by { induction y using mul_opposite.rec, simp [smul_mul_assoc] }⟩
 

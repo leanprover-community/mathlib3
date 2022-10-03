@@ -73,12 +73,12 @@ variables {X : Type*} {A : set X} [topological_space X]
 /-- Helper to coerce a topological retraction to a continuous map. -/
 def to_continuous_map (r : top_retraction X A) : C(X, subtype A) :=
 { to_fun := r.to_fun,
-  continuous_to_fun :=  is_top_retraction.continuous r.top_retraction' }
+  continuous_to_fun := r.top_retraction'.continuous }
 
 /-- Coercing a topological retraction `to_fun` is the same as coercing it to a continuous map
 and then to a function. -/
 lemma coe_continuous_map_eq_to_fun (r : top_retraction X A) :
-  ⇑r.to_continuous_map = r.to_fun := by refl
+  ⇑r.to_continuous_map = r.to_fun := rfl
 
 /-- A topological retraction is a continuous map. -/
 @[priority 100]

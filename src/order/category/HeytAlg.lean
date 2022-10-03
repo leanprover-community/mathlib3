@@ -10,10 +10,6 @@ import order.heyting.hom
 # The category of Heyting algebras
 
 This file defines `HeytAlg`, the category of Heyting algebras.
-
-## References
-
-* [nLab, *Frm*](https://ncatlab.org/nlab/show/Frm)
 -/
 
 universes u
@@ -36,13 +32,15 @@ def of (α : Type*) [heyting_algebra α] : HeytAlg := bundled.of α
 instance : inhabited HeytAlg := ⟨of punit⟩
 
 instance bundled_hom : bundled_hom heyting_hom :=
-⟨λ α β [heyting_algebra α] [heyting_algebra β], by exactI (coe_fn : heyting_hom α β → α → β),
-  heyting_hom.id,
-  @heyting_hom.comp,
-  λ α β [heyting_algebra α] [heyting_algebra β], by exactI fun_like.coe_injective⟩
+{ to_fun := λ α β [heyting_algebra α] [heyting_algebra β],
+    by exactI (coe_fn : heyting_hom α β → α → β),
+  id := heyting_hom.id,
+  comp := @heyting_hom.comp,
+  hom_ext := λ α β [heyting_algebra α] [heyting_algebra β], by exactI fun_like.coe_injective }
 
 attribute [derive [large_category, concrete_category]] HeytAlg
 
+@[simps]
 instance has_forget_to_Lattice : has_forget₂ HeytAlg BoundedDistribLattice :=
 { forget₂ := { obj := λ X, BoundedDistribLattice.of X,
                map := λ X Y f, (f : bounded_lattice_hom X Y) } }

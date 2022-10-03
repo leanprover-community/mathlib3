@@ -1001,13 +1001,6 @@ begin
   exact subset_closure (mem_inv.mp hs),
 end
 
-@[simp, to_additive] lemma closure_inv (S : set G) : closure S⁻¹ = closure S :=
-begin
-  refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
-  { exact inv_subset_closure S },
-  { simpa only [inv_inv] using inv_subset_closure S⁻¹ },
-end
-
 @[to_additive]
 lemma closure_to_submonoid (S : set G) :
   (closure S).to_submonoid = submonoid.closure (S ∪ S⁻¹) :=
@@ -1023,7 +1016,14 @@ end
 
 @[to_additive]
 lemma le_closure_to_submonoid (S : set G) : submonoid.closure S ≤ (closure S).to_submonoid :=
-by { rw [closure_to_submonoid], exact submonoid.closure_mono (subset_union_left _ _) }
+submonoid.closure_le.2 subset_closure
+
+@[simp, to_additive] lemma closure_inv (S : set G) : closure S⁻¹ = closure S :=
+by simp only [← to_submonoid_eq, closure_to_submonoid, inv_inv, union_comm]
+
+@[to_additive] lemma closure_eq_top_of_mclosure_eq_top {S : set G} (h : submonoid.closure S = ⊤) :
+  closure S = ⊤ :=
+(eq_top_iff' _).2 $ λ x, le_closure_to_submonoid _ $ h.symm ▸ trivial
 
 @[to_additive] lemma closure_induction_left {p : G → Prop} {x : G}
   (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ (x ∈ k) y, p y → p (x * y))

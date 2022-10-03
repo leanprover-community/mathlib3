@@ -40,6 +40,30 @@ by { simp only [fin.range_fin_succ, range_unique], refl }
 
 @[simp] lemma a_cons (x : bool) (l : list bool) : a (x :: l) = !x :: l := rfl
 
+protected lemma «forall» {p : generator → Prop} : (∀ x, p x) ↔ p a ∧ ∀ n, p (bcd n) :=
+⟨λ h, ⟨h a, λ n, h (bcd n)⟩, λ h, by { rintro (_|n), exacts [h.1, h.2 n] }⟩
+
+protected lemma forall' {p : generator → Prop} : (∀ x, p x) ↔ p a ∧ p b ∧ p c ∧ p d :=
+by { rw [generator.forall, fin.forall_fin_succ, fin.forall_fin_two], refl }
+
+protected lemma «exists» {p : generator → Prop} : (∃ x, p x) ↔ p a ∨ ∃ n, p (bcd n) :=
+⟨by { rintro ⟨_|n, h⟩, exacts [or.inl h, or.inr ⟨n, h⟩] },
+  λ h, h.elim (λ ha, ⟨a, ha⟩) (λ ⟨n, hn⟩, ⟨bcd n, hn⟩)⟩
+
+protected lemma exists' {p : generator → Prop} : (∃ x, p x) ↔ p a ∨ p b ∨ p c ∨ p d :=
+by { rw [generator.exists, fin.exists_fin_succ, fin.exists_fin_two], refl }
+
+@[simp] lemma range_eq {α} (f : generator → α) : range f = {f a, f b, f c, f d} :=
+set.ext $ λ y, by { simp only [set.mem_range, generator.exists', @eq_comm _ _ y], refl }
+
+def equiv_with_bot : generator ≃ with_bot (fin 3) :=
+{ to_fun := λ x, generator.cases_on x ⊥ coe,
+  inv_fun := λ x, with_bot.rec_bot_coe a bcd x,
+  left_inv := generator.forall.2 ⟨rfl, λ n, rfl⟩,
+  right_inv := option.forall.2 ⟨rfl, λ n, rfl⟩ }
+
+instance : linear_order generator := linear_order.lift' equiv_with_bot equiv_with_bot.injective
+
 lemma bcd_cons_ff (n : fin 3) (l : list bool) : bcd n (ff :: l) = ff :: if n = 0 then l else a l :=
 rfl
 
@@ -141,15 +165,33 @@ open generator
 
 @[derive monoid] def word : Type := free_monoid generator
 
-instance : has_coe_t generator word := ⟨free_monoid.of⟩
+local notation `W` := word
+
+namespace word
+
+instance : has_coe_t generator W := ⟨free_monoid.of⟩
+
+@[simp] lemma length_coe (x : generator) : (x : W).length = 1 := rfl
+
+@[elab_as_eliminator]
+protected def rec_on {C : W → Sort*} (w : W) (h1 : C 1)
+  (h : ∀ (a : generator) g, C g → C (a * g)) : C w :=
+free_monoid.rec_on w h1 h
+
+@[simp] lemma closure_abcd : submonoid.closure ({a, b, c, d} : set W) = ⊤ :=
+by { rw [← generator.range_eq, ← free_monoid.closure_range_of], refl }
+
+end word
 
 @[ext] structure noncancellable : Type :=
-(to_word : word)
-(chain'_xor : chain' (λ x y, xor (x = a) (y = a)) to_word)
+(to_word : W)
+(chain'_xor : chain' (λ x y, xor (x = a) (y = a) ∧ x ≠ y) to_word)
 
 local notation `NC` := noncancellable
 
 namespace noncancellable
+
+@[simp] lemma mk_to_word (g : NC) (hg : _ := g.2) : mk g.to_word hg = g := by { cases g, refl }
 
 instance : has_coe_t generator NC := ⟨λ x, ⟨x, chain'_singleton _⟩⟩
 
@@ -164,7 +206,19 @@ instance : has_one NC := ⟨⟨[], chain'_nil⟩⟩
 def tail (l : NC) : NC := ⟨l.to_word.tail, l.2.tail⟩
 
 instance : has_inv NC :=
-⟨λ l, ⟨l.to_word.reverse, chain'_reverse.2 (l.2.imp $ λ x y h, by rwa [flip, xor_comm])⟩⟩
+⟨λ l, ⟨l.to_word.reverse, chain'_reverse.2 (l.2.imp $ λ x y h, by rwa [flip, xor_comm, ne_comm])⟩⟩
+
+@[simp] lemma inv_to_word (g : NC) : (g⁻¹).to_word = g.to_word.reverse := rfl
+
+@[simps] def cons (x : generator) (g : NC)
+  (hxg : chain' (λ x y, xor (x = a) (y = a) ∧ x ≠ y) (x :: g.to_word)) : NC :=
+⟨x :: g.to_word, hxg⟩
+
+@[simps] def update_bcd (m n : fin 3) (l : W)
+  (h : chain' (λ x y, xor (x = a) (y = a) ∧ x ≠ y) (bcd n :: l)) : NC :=
+cons (bcd m) ⟨l, h.tail⟩ $ h.imp_head $ λ z hz,
+  by { simp only [xor_false, id] at hz, rcases hz with ⟨rfl, -⟩,
+       simp only [xor_false, ne.def, id, not_false_iff, and_true] }
 
 end noncancellable
 
@@ -174,152 +228,222 @@ def cons_noncancellable : generator → NC → NC
 | x ⟨[], _⟩ := x
 | a ⟨a :: l, h⟩ := ⟨l, h.tail⟩
 | a ⟨bcd n :: l, h⟩ := ⟨a :: bcd n :: l, h.cons $
-  by simp only [eq_self_iff_true, xor_true, not_false_iff]⟩
-| (bcd n) ⟨a :: l, h⟩ := ⟨bcd n :: a :: l, h.cons $ by simp only [eq_self_iff_true, xor_false]⟩
-| (bcd n) ⟨bcd m :: l, h⟩ := if n = m then ⟨l, h.tail⟩
-  else ⟨bcd (-n - m) :: l, h.imp_head $ λ z hz, by simpa only using hz⟩
+  by simp only [eq_self_iff_true, xor_true, not_false_iff, ne.def, true_and]⟩
+| (bcd m) ⟨a :: l, h⟩ := ⟨bcd m :: a :: l, h.cons $
+  by simp only [eq_self_iff_true, xor_false, ne.def, not_false_iff, id, true_and]⟩
+| (bcd m) ⟨bcd n :: l, h⟩ :=
+  if m = n then ⟨l, h.tail⟩ else noncancellable.update_bcd (-m - n) _ _ h
 
 lemma cons_noncancellable_one (x : generator) : x.cons_noncancellable 1 = x :=
 by cases x; refl
 
+lemma length_cons_noncancellable_le (x : generator) (g : NC) :
+  length (cons_noncancellable x g).to_word ≤ length g.to_word + 1 :=
+begin
+  cases x with m; rcases g with ⟨_|⟨_|n, l⟩, hl⟩;
+    simp only [cons_noncancellable, length, word.length_coe, noncancellable.to_word_coe],
+  { exact ((lt_add_one _).trans (lt_add_one _)).le },
+  { split_ifs,
+    exacts [((lt_add_one _).trans (lt_add_one _)).le, (lt_add_one _).le] }
+end
+
 end generator
 
 namespace noncancellable
 
-lemma mk_cons {x : generator} {l : word} (h) :
-  mk (x :: l) h = x.cons_noncancellable (mk l h.tail) :=
-by cases x; rcases l with (_|⟨(_|_), l⟩); simp only [generator.cons_noncancellable];
-  try { refl }; apply absurd h.rel_head; simp
+lemma cons_eq_cons {x : generator} {g : NC}
+  (hxg : chain' (λ x y, xor (x = a) (y = a) ∧ x ≠ y) (x :: g.to_word)) :
+  cons x g hxg = x.cons_noncancellable g :=
+by cases g with l hl; cases x; rcases l with (_|⟨(_|_), l⟩);
+  simp only [generator.cons_noncancellable, cons]; try { refl }; apply absurd hxg.rel_head; simp
 
-end noncancellable
-
-namespace word
-
-def cancel_aux : word → NC := foldr generator.cons_noncancellable 1
-
-lemma cancel_aux_one : cancel_aux 1 = 1 := rfl
-
-lemma cancel_aux_cons (x : generator) (l : word) :
-  cancel_aux (x :: l) = x.cons_noncancellable (cancel_aux l) :=
+lemma mk_cons {x : generator} {l : W} (h : chain' (λ x y, xor (x = a) (y = a) ∧ x ≠ y) (x :: l)) :
+  mk (x :: l) h = cons x ⟨l, h.tail⟩ h :=
 rfl
 
-end word
+@[simp] lemma cons_one (x : generator)
+  (h : chain' (λ x y, xor (x = a) (y = a) ∧ x ≠ y) [x] := chain'_singleton _) :
+  cons x 1 h = x :=
+rfl
 
-namespace noncancellable
+@[elab_as_eliminator]
+def rec_on_cons {C : NC → Sort*} (g : NC) (h1 : C 1) (hcons : ∀ x g' h, C g' → C (cons x g' h)) :
+  C g :=
+by { cases g with l hl, induction l with x l ihl, exacts [h1, hcons x ⟨l, hl.tail⟩ _ (ihl _)] }
 
-lemma cancel_aux_to_word (g : NC) : g.to_word.cancel_aux = g :=
+@[elab_as_eliminator]
+def cases_on_cons {C : NC → Sort*} (g : NC) (h1 : C 1) (hcons : ∀ x g' h, C (cons x g' h)) :
+  C g :=
+rec_on_cons g h1 (λ x g' h _, hcons x g' h)
+
+instance : mul_action W NC := free_monoid.mk_mul_action generator.cons_noncancellable
+
+lemma cons_smul (x : generator) (l : W) (g : NC) :
+  @has_smul.smul W NC _ (x :: l) g = x.cons_noncancellable (l • g) := rfl
+
+lemma length_smul_le (w : W) (g : NC) : length (w • g).to_word ≤ length w + length g.to_word :=
 begin
-  cases g with l hl,
-  induction l with x l ihl,
-  { refl },
-  { simp only [word.cancel_aux_cons, ihl hl.tail, mk_cons] }
+  induction w with x w ihw, { exact (zero_add _).ge },
+  rw [cons_smul, length_cons, add_right_comm],
+  exact (x.length_cons_noncancellable_le _).trans (add_le_add_right ihw _)
 end
 
 instance : mul_one_class NC :=
-{ mul := λ g₁ g₂, (g₁.to_word * g₂.to_word).cancel_aux,
-  one_mul := λ a, cancel_aux_to_word _,
-  mul_one := λ a, by simp only [one_to_word, mul_one, cancel_aux_to_word],
+{ mul := λ g₁ g₂, g₁.to_word • g₂,
+  one_mul := λ a, rfl,
+  mul_one := λ g,
+    begin
+      induction g using grigorchuk_group.noncancellable.rec_on_cons with x l hxl ihl,
+      { refl },
+      { conv_rhs { erw [cons_eq_cons, ← ihl] }, refl }
+    end,
   .. noncancellable.has_one }
 
-lemma mul_def (g₁ g₂ : NC) : g₁ * g₂ = (g₁.to_word * g₂.to_word).cancel_aux := rfl
+lemma to_word_smul (g₁ g₂ : NC) : g₁.to_word • g₂ = g₁ * g₂ := rfl
 
-end noncancellable
+lemma coe_mul (x : generator) (g : NC) : ↑x * g = x.cons_noncancellable g := rfl
+@[simp] lemma coe_smul (x : generator) (g : NC) : (x : W) • g = x * g := rfl
+lemma cons_mul {x g g' h} : cons x g h * g' = x * (g * g') := rfl
 
-namespace generator
+lemma length_mul_le (g₁ g₂ : NC) :
+  (g₁ * g₂).to_word.length ≤ g₁.to_word.length + g₂.to_word.length :=
+length_smul_le _ _
 
-open noncancellable
+lemma coe_smul_one (x : generator) : (x : W) • (1 : NC) = x := mul_one (x : NC)
 
-@[simp] lemma cons_noncancellable_eq_coe_mul (x : generator) (g : NC) :
-  x.cons_noncancellable g = x * g :=
-by erw [noncancellable.mul_def, noncancellable.to_word_coe, word.cancel_aux_cons,
-  noncancellable.cancel_aux_to_word]
+@[simp] lemma coe_mul_cons_self {x : generator} {g : NC} (h) : ↑x * cons x g h = g :=
+by { cases g, cases x, exacts [rfl, if_pos rfl] }
 
-lemma cons_noncancellable_mul_assoc (x : generator) (g₁ g₂ : NC) :
-  (x.cons_noncancellable g₁) * g₂ = x.cons_noncancellable (g₁ * g₂) :=
+lemma cons_eq_coe_mul {x g} (h) : cons x g h = x * g := cons_eq_cons h
+
+lemma bcd_mul_cons_bcd {m n : fin 3} {g : NC} (hmn : m ≠ n)
+  (h : chain' (λ x y, xor (x = a) (y = a) ∧ x ≠ y) (bcd n :: g.to_word)) :
+  ↑(bcd m) * cons (bcd n) g h = update_bcd (-m - n) n g.to_word h :=
+if_neg hmn
+
+lemma coe_mul_coe_cancel_left : ∀ (x : generator) (g : NC), ↑x * (↑x * g) = g
+| x ⟨[], _⟩ :=
+  begin
+    rw [mk_nil, mul_one], conv_lhs { congr, skip, rw [← cons_one] },
+    exact coe_mul_cons_self _
+  end
+| a ⟨a :: l, h⟩ := by rw [mk_cons, coe_mul_cons_self, cons_eq_coe_mul]
+| a ⟨bcd n :: l, h⟩ := rfl
+| (bcd m) ⟨a :: l, h⟩ := if_pos rfl
+| (bcd m) ⟨bcd n :: l, h⟩ :=
+  begin
+    rcases eq_or_ne m n with rfl|hmn,
+    { rw [mk_cons, coe_mul_cons_self, cons_eq_coe_mul] },
+    { rw [mk_cons, bcd_mul_cons_bcd hmn, update_bcd, bcd_mul_cons_bcd, ext_iff],
+      { simp only [update_bcd_to_word, cons_to_word, ← sub_add, sub_self, zero_add] },
+      { rwa [← neg_one_mul, show ((-1 : fin 3) = 2), from rfl, two_mul, add_sub_assoc,
+          ne.def, self_eq_add_right, sub_eq_zero] } },
+  end
+
+lemma bcd_mul_bcd_left {m n : fin 3} (h : m ≠ n) (g : NC) :
+  ↑(bcd m) * (↑(bcd n) * g) = bcd (-m - n) * g :=
 begin
-  cases g₁ with l hl,
-  induction l with y l ihl generalizing x,
-  { rw [mk_nil, one_mul, cons_noncancellable_one, cons_noncancellable_eq_coe_mul] },
-  { specialize ihl hl.tail,
-    change (x.cons_noncancellable ⟨y :: l, hl⟩) * g₂ =
-      x.cons_noncancellable (y.cons_noncancellable (⟨l, hl.tail⟩ * g₂)),
-
- }
+  induction g using grigorchuk_group.noncancellable.cases_on_cons with x g hxg,
+  { rw [mul_one, mul_one], exact if_neg h },
+  { cases x with k,
+    { rw [← @cons_eq_coe_mul (bcd n), bcd_mul_cons_bcd h], refl,
+      refine hxg.cons _, simp },
+    { rcases eq_or_ne n k with rfl|hnk,
+      { rw [coe_mul_cons_self, bcd_mul_cons_bcd, neg_sub, sub_sub_cancel_left, neg_neg,
+          update_bcd, cons_eq_coe_mul, mk_to_word],
+        { rwa [sub_eq_add_neg, ← neg_one_mul n, show ((-1 : fin 3) = 2), from rfl, two_mul,
+            ← add_assoc, ne.def, add_left_eq_self, neg_add_eq_zero] } },
+      { rw [bcd_mul_cons_bcd hnk, update_bcd],
+        rcases eq_or_ne m (-n - k) with rfl|hmnk,
+        { rw [coe_mul_cons_self, mk_to_word, neg_sub, sub_neg_eq_add, add_sub_cancel,
+            coe_mul_cons_self] },
+        { rw [bcd_mul_cons_bcd hmnk, bcd_mul_cons_bcd, ext_iff, update_bcd_to_word,
+            update_bcd_to_word], dsimp only,
+          { congr' 2,
+            fin_cases m; fin_cases n; try { exact absurd rfl h }; fin_cases k;
+              try { exact absurd rfl hnk }; try { exact absurd rfl hmnk }; refl },
+          { rintro rfl, apply hmnk,
+            rw [sub_sub_eq_add_sub, neg_add_self, zero_sub, neg_neg] } } } } }
 end
 
-end generator
+instance : is_scalar_tower W NC NC :=
+begin
+  refine is_scalar_tower.of_mclosure_eq_top word.closure_abcd _,
+  rw [← generator.range_eq, forall_range_iff],
+  intros x g g',
+  rw [smul_eq_mul, smul_eq_mul, coe_smul, coe_smul],
+  induction g using grigorchuk_group.noncancellable.cases_on_cons with y g hyg generalizing x,
+  { rw [one_mul, mul_one] },
+  { by_cases h : xor (x = a) (y = a) ∧ x ≠ y,
+    { rw [← cons_eq_coe_mul, cons_mul], exact hyg.cons h },
+    { rw [not_and_distrib, not_xor, ne.def, not_not] at h,
+      cases x with m; cases y with n; try { exact absurd h (by simp) }; clear h,
+      { rw [coe_mul_cons_self, cons_mul, coe_mul_coe_cancel_left] },
+      { rcases eq_or_ne m n with rfl|hmn,
+        { rw [coe_mul_cons_self, cons_mul, coe_mul_coe_cancel_left] },
+        { simp only [cons_mul, bcd_mul_cons_bcd hmn, update_bcd, mk_to_word,
+            bcd_mul_bcd_left hmn] } } } }
+end
+
+instance : group NC :=
+{ mul_assoc := λ x y z, smul_mul_assoc x.to_word y z,
+  mul_left_inv := λ x,
+    begin
+      induction x using grigorchuk_group.noncancellable.rec_on_cons with x g hxg ihg,
+      { refl },
+      { erw [← to_word_smul, inv_to_word, cons_to_word, reverse_cons, ← free_monoid.mul_def,
+          mul_smul, coe_smul, coe_mul_cons_self],
+        exact ihg }
+    end,
+  .. noncancellable.mul_one_class, .. noncancellable.has_inv }
+
+@[simp] lemma coe_mul_self (x : generator) : (x * x : NC) = 1 :=
+by rw [← coe_mul_coe_cancel_left x 1, mul_one]
+
+lemma bcd_mul_bcd {m n : fin 3} (h : m ≠ n) : (bcd m * bcd n : NC) = bcd (-m - n) :=
+if_neg h
+
+@[simp] lemma b_mul_c : (b * c : NC) = d := bcd_mul_bcd dec_trivial
+@[simp] lemma b_mul_d : (b * d : NC) = c := bcd_mul_bcd dec_trivial
+@[simp] lemma c_mul_b : (c * b : NC) = d := bcd_mul_bcd dec_trivial
+@[simp] lemma c_mul_d : (c * d : NC) = b := bcd_mul_bcd dec_trivial
+@[simp] lemma d_mul_b : (d * b : NC) = c := bcd_mul_bcd dec_trivial
+@[simp] lemma d_mul_c : (d * c : NC) = b := bcd_mul_bcd dec_trivial
+@[simp] lemma inv_coe (x : generator) : (x : NC)⁻¹ = x := rfl
+
+end noncancellable
 
 namespace word
 
-lemma cancel_aux_mul' (g₁ g₂ : word) :
-  (g₁ * g₂).cancel_aux = g₁.cancel_aux * g₂.cancel_aux :=
+def cancel : W →* NC := free_monoid.lift coe
+
+@[simp, norm_cast] lemma cancel_coe (x : generator) : cancel x = x := rfl
+
+lemma cancel_eq_smul_one (w : W) : cancel w = w • 1 :=
+by { rw [cancel, free_monoid.lift_apply, list.prod_eq_foldr, foldr_map], refl }
+
+lemma length_cancel_le (w : W) : length (cancel w).to_word ≤ length w :=
+(cancel_eq_smul_one w).symm ▸ (noncancellable.length_smul_le _ _).trans_eq (add_zero _)
+
+end word
+
+@[simp] lemma noncancellable.cancel_to_word (g : NC) : g.to_word.cancel = g :=
+by rw [word.cancel_eq_smul_one, noncancellable.to_word_smul, mul_one]
+
+namespace noncancellable
+
+@[simp] lemma mclosure_abcd : submonoid.closure ({a, b, c, d} : set NC) = ⊤ :=
 begin
-  simp only [noncancellable.mul_def],
-  induction g₁ using free_monoid.rec_on with x g₁ ih,
-  { rw [one_mul, word.cancel_aux_one, noncancellable.one_to_word, one_mul,
-      noncancellable.cancel_aux_to_word] },
-  { simp_rw [mul_assoc, free_monoid.of_mul_eq_cons, word.cancel_aux_cons, ih],
-    generalize : word.cancel_aux g₁ = g, clear ih g₁,
-    generalize : g₂.cancel_aux = g', clear g₂,
-    
- }
+  refine top_unique (λ g hg, _),
+  rw [← cancel_to_word g, ← generator.range_eq],
+  exact submonoid.list_prod_mem _
+    (forall_mem_map_iff.2 $ λ x hx, submonoid.subset_closure $ mem_range_self _)
 end
 
-lemma cancel_aux_mul (g₁ g₂ : word) :
-  (g₁ * g₂).cancel_aux = g₁.cancel_aux * g₂.cancel_aux :=
-calc (g₁ * g₂).cancel_aux = foldr generator.cons_noncancellable g₂.cancel_aux g₁ :
-  foldr_append _ _ _ _
-... = foldr generator.cons_noncancellable g₂.cancel_aux g₁.cancel_aux.to_word :
-  begin
-    generalize : g₂.cancel_aux = g', clear g₂,
-    induction g₁ with x l ihl, { refl },
-    rw [foldr, ihl, word.cancel_aux_cons],
-    generalize : word.cancel_aux l = g, clear ihl l,
-    rcases ⟨x, g⟩ with ⟨_|n, ⟨_|⟨_|m, l⟩, h⟩⟩; simp only [generator.cons_noncancellable, foldr],
-  end
-... = foldr generator.cons_noncancellable g₂.cancel_aux.to_word.cancel_aux g₁.cancel_aux.to_word :
-  by rw [cancel_aux_to_word]
-... = g₁.cancel_aux * g₂.cancel_aux : (foldr_append _ _ _ _).symm
+@[simp] lemma closure_abcd : subgroup.closure ({a, b, c, d} : set NC) = ⊤ :=
+subgroup.closure_eq_top_of_mclosure_eq_top mclosure_abcd
 
 end noncancellable
-
-def word.cancel : word →* NC :=
-free_monoid.lift _
-
-instance : group NC :=
-{ mul_assoc := _,
-  one_mul := λ ⟨l, hl⟩, by simp only [one_to_word, one_mul],
-  mul_one := _,
-  inv := _,
-  mul_left_inv := _,
-  .. noncancellable.has_one, .. noncancellable.has_mul }
-
-
-def cancel_aux (n : fin 3) : free_monoid generator → free_monoid generator
-| [] := [bcd n]
-| (a :: l) := bcd n :: a :: l
-| (bcd m :: l) := if m = n then l else bcd (-n - m) :: l
-
-lemma length_cancel_aux_le (n : fin 3) : ∀ l : free_monoid generator,
-  length (cancel_aux n l) ≤ length l + 1
-| [] := le_rfl
-| (a :: l) := le_rfl
-| (bcd m :: l) := by { rw [cancel_aux], split_ifs,
-  exacts [nat.le_succ_of_le $ nat.le_succ _, nat.le_succ _] }
-
-def cancel : free_monoid generator → free_monoid generator
-| [] := []
-| [a] := [a]
-| (a :: a :: l) := cancel l
-| (a :: bcd n :: l) := a :: cancel (bcd n :: l)
-| (bcd n :: l) := cancel_aux n l
-
-lemma length_cancel_le : ∀ l : free_monoid generator, length (cancel l) ≤ length l
-| [] := le_rfl
-| [a] := le_rfl
-| (a :: a :: l) := nat.le_succ_of_le $ nat.le_succ_of_le $ length_cancel_le l
-| (a :: bcd n :: l) := nat.succ_le_succ $ length_cancel_le _
-| (bcd n :: l) := length_cancel_aux_le n _
 
 def _root_.grigorchuk_group : subgroup (equiv.perm (list bool)) :=
 subgroup.closure (range (coe : generator → equiv.perm (list bool)))

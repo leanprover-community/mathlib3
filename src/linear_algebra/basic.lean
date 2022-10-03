@@ -813,7 +813,7 @@ omit sc
 include σ₁₂ σ₂₁
 variables [semilinear_equiv_class F σ₁₂ M M₂]
 
-/-- -/
+/-- A linear isomorphism induces an order isomorphism of submodules. -/
 @[simps symm_apply apply] def order_iso_map_comap (f : F) : submodule R M ≃o submodule R₂ M₂ :=
 { to_fun := map f,
   inv_fun := comap f,

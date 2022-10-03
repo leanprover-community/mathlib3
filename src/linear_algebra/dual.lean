@@ -18,7 +18,7 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 * `dual R M` defines the dual space of M over R.
 * Given a basis for an `R`-module `M`, `basis.to_dual` produces a map from `M` to `dual R M`.
-* Given families of vectors `e` and `ε`, `dual_pair e ε` states that these families have the
+* Given families of vectors `e` and `ε`, `module.dual_bases e ε` states that these families have the
   characteristic properties of a basis and a dual.
 * `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.
 
@@ -26,8 +26,8 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 * `to_dual_equiv` : the linear equivalence between the dual module and primal module,
   given a finite basis.
-* `dual_pair.basis` and `dual_pair.eq_dual`: if `e` and `ε` form a dual pair, `e` is a basis and
-  `ε` is its dual basis.
+* `module.dual_bases.basis` and `module.dual_bases.eq_dual`: if `e` and `ε` form a dual pair, `e`
+  is a basis and `ε` is its dual basis.
 * `quot_equiv_annihilator`: the quotient by a subspace is isomorphic to its dual annihilator.
 
 ## Notation
@@ -342,7 +342,7 @@ variables {K V}
 
 end module
 
-section dual_pair
+section dual_bases
 
 open module
 
@@ -351,14 +351,14 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
 @[nolint has_nonempty_instance]
-structure dual_pair (e : ι → M) (ε : ι → (dual R M)) :=
+structure module.dual_bases (e : ι → M) (ε : ι → (dual R M)) :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)
 [finite : ∀ m : M, fintype {i | ε i m ≠ 0}]
 
-end dual_pair
+end dual_bases
 
-namespace dual_pair
+namespace module.dual_bases
 
 open module module.dual linear_map function
 
@@ -367,12 +367,12 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 variables {e : ι → M} {ε : ι → dual R M}
 
 /-- The coefficients of `v` on the basis `e` -/
-def coeffs [decidable_eq ι] (h : dual_pair e ε) (m : M) : ι →₀ R :=
+def coeffs [decidable_eq ι] (h : dual_bases e ε) (m : M) : ι →₀ R :=
 { to_fun := λ i, ε i m,
   support := by { haveI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finset },
   mem_support_to_fun := by {intro i, rw set.mem_to_finset, exact iff.rfl } }
 
-@[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_pair e ε) (m : M) (i : ι) :
+@[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_bases e ε) (m : M) (i : ι) :
   h.coeffs m i = ε i m := rfl
 
 /-- linear combinations of elements of `e`.
@@ -381,10 +381,12 @@ def lc {ι} (e : ι → M) (l : ι →₀ R) : M := l.sum (λ (i : ι) (a : R), 
 
 lemma lc_def (e : ι → M) (l : ι →₀ R) : lc e l = finsupp.total _ _ _ e l := rfl
 
-variables [decidable_eq ι] (h : dual_pair e ε)
+open module
+
+variables [decidable_eq ι] (h : dual_bases e ε)
 include h
 
-lemma dual_lc (l : ι →₀ R) (i : ι) : ε i (dual_pair.lc e l) = l i :=
+lemma dual_lc (l : ι →₀ R) (i : ι) : ε i (dual_bases.lc e l) = l i :=
 begin
   erw linear_map.map_sum,
   simp only [h.eval, map_smul, smul_eq_mul],
@@ -397,19 +399,19 @@ begin
 end
 
 @[simp]
-lemma coeffs_lc (l : ι →₀ R) : h.coeffs (dual_pair.lc e l) = l :=
+lemma coeffs_lc (l : ι →₀ R) : h.coeffs (dual_bases.lc e l) = l :=
 by { ext i, rw [h.coeffs_apply, h.dual_lc] }
 
 /-- For any m : M n, \sum_{p ∈ Q n} (ε p m) • e p = m -/
 @[simp]
-lemma lc_coeffs (m : M) : dual_pair.lc e (h.coeffs m) = m :=
+lemma lc_coeffs (m : M) : dual_bases.lc e (h.coeffs m) = m :=
 begin
   refine eq_of_sub_eq_zero (h.total _),
   intros i,
   simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
 end
 
-/-- `(h : dual_pair e ε).basis` shows the family of vectors `e` forms a basis. -/
+/-- `(h : dual_bases e ε).basis` shows the family of vectors `e` forms a basis. -/
 @[simps]
 def basis : basis ι R M :=
 basis.of_repr
@@ -438,7 +440,7 @@ lemma coe_dual_basis [fintype ι] : ⇑h.basis.dual_basis = ε :=
 funext (λ i, h.basis.ext (λ j, by rw [h.basis.dual_basis_apply_self, h.coe_basis, h.eval,
                                       if_congr eq_comm rfl rfl]))
 
-end dual_pair
+end module.dual_bases
 
 namespace submodule
 

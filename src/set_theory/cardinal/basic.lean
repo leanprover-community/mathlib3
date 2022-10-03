@@ -11,6 +11,7 @@ import logic.small
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
+import tactic.positivity
 
 /-!
 # Cardinal Numbers
@@ -105,8 +106,8 @@ def mk : Type u → cardinal := quotient.mk
 
 localized "prefix (name := cardinal.mk) `#` := cardinal.mk" in cardinal
 
-instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
-⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
+instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) mk (λ _, true) :=
+⟨λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
 
 @[elab_as_eliminator]
 lemma induction_on {p : cardinal → Prop} (c : cardinal) (h : ∀ α, p (#α)) : p c :=
@@ -517,6 +518,8 @@ end
 
 theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
 induction_on₃ a b c $ λ α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
+
+theorem power_pos {a : cardinal} (b) (ha : 0 < a) : 0 < a ^ b := (power_ne_zero _ ha.ne').bot_lt
 
 end order_properties
 
@@ -979,13 +982,31 @@ lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
 theorem lt_aleph_0_of_finite (α : Type u) [finite α] : #α < ℵ₀ :=
 lt_aleph_0_iff_finite.2 ‹_›
 
-theorem lt_aleph_0_iff_set_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
+@[simp] theorem lt_aleph_0_iff_set_finite {S : set α} : #S < ℵ₀ ↔ S.finite :=
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
 
-instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
-⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
+@[simp] theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
+  #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
+lt_aleph_0_iff_set_finite
+
+lemma mk_le_aleph_0_iff : #α ≤ ℵ₀ ↔ countable α :=
+by rw [countable_iff_nonempty_embedding, aleph_0, ← lift_uzero (#α), lift_mk_le']
+
+@[simp] lemma mk_le_aleph_0 [countable α] : #α ≤ ℵ₀ := mk_le_aleph_0_iff.mpr ‹_›
+
+@[simp] lemma le_aleph_0_iff_set_countable {s : set α} : #s ≤ ℵ₀ ↔ s.countable :=
+by rw [mk_le_aleph_0_iff, countable_coe_iff]
+
+alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
+
+@[simp] lemma le_aleph_0_iff_subtype_countable {p : α → Prop} :
+  #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
+le_aleph_0_iff_set_countable
+
+instance can_lift_cardinal_nat : can_lift cardinal ℕ coe (λ x, x < ℵ₀) :=
+⟨λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
 
 theorem add_lt_aleph_0 {a b : cardinal} (ha : a < ℵ₀) (hb : b < ℵ₀) : a + b < ℵ₀ :=
 match a, b, lt_aleph_0.1 ha, lt_aleph_0.1 hb with
@@ -1066,29 +1087,12 @@ by rw [← not_lt, lt_aleph_0_iff_finite, not_finite_iff_infinite]
 
 @[simp] lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
 
-lemma encodable_iff {α : Type u} : nonempty (encodable α) ↔ #α ≤ ℵ₀ :=
-⟨λ ⟨h⟩, ⟨(@encodable.encode' α h).trans equiv.ulift.symm.to_embedding⟩,
-  λ ⟨h⟩, ⟨encodable.of_inj _ (h.trans equiv.ulift.to_embedding).injective⟩⟩
-
-@[simp] lemma mk_le_aleph_0 [countable α] : #α ≤ ℵ₀ :=
-encodable_iff.1 $ encodable.nonempty_encodable.2 ‹_›
-
 lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀ :=
 ⟨λ ⟨h⟩, mk_congr ((@denumerable.eqv α h).trans equiv.ulift.symm),
  λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
 
 @[simp] lemma mk_denumerable (α : Type u) [denumerable α] : #α = ℵ₀ :=
 denumerable_iff.1 ⟨‹_›⟩
-
-@[simp] lemma mk_set_le_aleph_0 (s : set α) : #s ≤ ℵ₀ ↔ s.countable :=
-begin
-  rw [set.countable_iff_exists_injective], split,
-  { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
-  { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
-end
-
-@[simp] lemma mk_subtype_le_aleph_0 (p : α → Prop) : #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
-mk_set_le_aleph_0 _
 
 @[simp] lemma aleph_0_add_aleph_0 : ℵ₀ + ℵ₀ = ℵ₀ := mk_denumerable _
 
@@ -1579,3 +1583,19 @@ begin
 end
 
 end cardinal
+
+namespace tactic
+open cardinal positivity
+
+/-- Extension for the `positivity` tactic: The cardinal power of a positive cardinal is positive. -/
+@[positivity]
+meta def positivity_cardinal_pow : expr → tactic strictness
+| `(@has_pow.pow _ _ %%inst %%a %%b) := do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``power_pos [b, p]
+  | _ := failed -- We already know that `0 ≤ x` for all `x : cardinal`
+  end
+| _ := failed
+
+end tactic

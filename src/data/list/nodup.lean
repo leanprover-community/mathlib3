@@ -135,6 +135,14 @@ theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 
+lemma count_eq_of_nodup [decidable_eq α] {a : α} {l : list α}
+  (d : nodup l) : count a l = if a ∈ l then 1 else 0 :=
+begin
+  split_ifs with h,
+  { exact count_eq_one_of_mem d h },
+  { exact count_eq_zero_of_not_mem h },
+end
+
 lemma nodup.of_append_left : nodup (l₁ ++ l₂) → nodup l₁ :=
 nodup.sublist (sublist_append_left l₁ l₂)
 

@@ -293,7 +293,7 @@ lemma R_pos {c : E} (f : cont_diff_bump_of_inner c) : 0 < f.R := f.r_pos.trans f
 instance (c : E) : inhabited (cont_diff_bump_of_inner c) := ⟨⟨1, 2, zero_lt_one, one_lt_two⟩⟩
 
 variables [inner_product_space ℝ E] [normed_add_comm_group X] [normed_space ℝ X]
-variables {c : E} (f : cont_diff_bump_of_inner c) {x : E} {n : with_top ℕ}
+variables {c : E} (f : cont_diff_bump_of_inner c) {x : E} {n : ℕ∞}
 
 /-- The function defined by `f : cont_diff_bump_of_inner c`. Use automatic coercion to
 function instead. -/
@@ -406,7 +406,7 @@ rfl
 lemma nonneg_normed (x : E) : 0 ≤ f.normed μ x :=
 div_nonneg f.nonneg $ integral_nonneg f.nonneg'
 
-lemma cont_diff_normed {n : with_top ℕ} : cont_diff ℝ n (f.normed μ) :=
+lemma cont_diff_normed {n : ℕ∞} : cont_diff ℝ n (f.normed μ) :=
 f.cont_diff.div_const
 
 lemma continuous_normed : continuous (f.normed μ) :=
@@ -451,6 +451,20 @@ by simp_rw [tsupport, f.support_normed_eq, closure_ball _ f.R_pos.ne']
 
 lemma has_compact_support_normed : has_compact_support (f.normed μ) :=
 by simp_rw [has_compact_support, f.tsupport_normed_eq, is_compact_closed_ball]
+
+lemma tendsto_support_normed_small_sets {ι} {φ : ι → cont_diff_bump_of_inner c} {l : filter ι}
+  (hφ : tendsto (λ i, (φ i).R) l (𝓝 0)) :
+  tendsto (λ i, support (λ x, (φ i).normed μ x)) l (𝓝 c).small_sets :=
+begin
+  simp_rw [normed_add_comm_group.tendsto_nhds_zero, real.norm_eq_abs,
+    abs_eq_self.mpr (φ _).R_pos.le] at hφ,
+  rw [tendsto_small_sets_iff],
+  intros t ht,
+  rcases metric.mem_nhds_iff.mp ht with ⟨ε, hε, ht⟩,
+  refine (hφ ε hε).mono (λ i hi, subset_trans _ ht),
+  simp_rw [(φ i).support_normed_eq],
+  exact ball_subset_ball hi.le
+end
 
 variable (μ)
 lemma integral_normed_smul (z : X) [complete_space X] : ∫ x, f.normed μ x • z ∂μ = z :=

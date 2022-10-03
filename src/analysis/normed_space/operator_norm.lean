@@ -383,7 +383,11 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F
 /-- Continuous linear maps themselves form a seminormed space with respect to
     the operator norm. -/
 instance to_seminormed_add_comm_group : seminormed_add_comm_group (E →SL[σ₁₂] F) :=
-seminormed_add_comm_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
+add_group_seminorm.to_seminormed_add_comm_group
+{ to_fun := norm,
+  map_zero' := op_norm_zero,
+  add_le' := op_norm_add_le,
+  neg' := op_norm_neg }
 
 lemma nnnorm_def (f : E →SL[σ₁₂] F) : ∥f∥₊ = Inf {c | ∀ x, ∥f x∥₊ ≤ c * ∥x∥₊} :=
 begin
@@ -819,7 +823,10 @@ end prod
 variables {𝕜 E Fₗ Gₗ}
 
 section multiplication_linear
-variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+
+section non_unital
+variables (𝕜) (𝕜' : Type*) [non_unital_semi_normed_ring 𝕜'] [normed_space 𝕜 𝕜']
+  [is_scalar_tower 𝕜 𝕜' 𝕜'] [smul_comm_class 𝕜 𝕜' 𝕜']
 
 /-- Left multiplication in a normed algebra as a continuous bilinear map. -/
 def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
@@ -831,19 +838,6 @@ def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
 @[simp] lemma op_norm_lmul_apply_le (x : 𝕜') : ∥lmul 𝕜 𝕜' x∥ ≤ ∥x∥ :=
 (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
 
-/-- Left multiplication in a normed algebra as a linear isometry to the space of
-continuous linear maps. -/
-def lmulₗᵢ [norm_one_class 𝕜'] : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
-{ to_linear_map := lmul 𝕜 𝕜',
-  norm_map' := λ x, le_antisymm (op_norm_lmul_apply_le _ _ _)
-    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [norm_one],
-          apply_instance }) }
-
-@[simp] lemma coe_lmulₗᵢ [norm_one_class 𝕜'] : ⇑(lmulₗᵢ 𝕜 𝕜') = lmul 𝕜 𝕜' := rfl
-
-@[simp] lemma op_norm_lmul_apply [norm_one_class 𝕜'] (x : 𝕜') : ∥lmul 𝕜 𝕜' x∥ = ∥x∥ :=
-(lmulₗᵢ 𝕜 𝕜').norm_map x
-
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (lmul 𝕜 𝕜').flip
 
@@ -851,20 +845,6 @@ def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (lmul 𝕜 𝕜').fl
 
 @[simp] lemma op_norm_lmul_right_apply_le (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ ≤ ∥x∥ :=
 op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _ _))
-
-@[simp] lemma op_norm_lmul_right_apply [norm_one_class 𝕜'] (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
-le_antisymm
-  (op_norm_lmul_right_apply_le _ _ _)
-  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [norm_one],
-        apply_instance })
-
-/-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
-continuous linear maps. -/
-def lmul_rightₗᵢ [norm_one_class 𝕜'] : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
-{ to_linear_map := lmul_right 𝕜 𝕜',
-  norm_map' := op_norm_lmul_right_apply 𝕜 𝕜' }
-
-@[simp] lemma coe_lmul_rightₗᵢ [norm_one_class 𝕜'] : ⇑(lmul_rightₗᵢ 𝕜 𝕜') = lmul_right 𝕜 𝕜' := rfl
 
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
 trilinear map. -/
@@ -887,6 +867,40 @@ op_norm_le_bound _ (norm_nonneg x) (op_norm_lmul_left_right_apply_apply_le 𝕜 
 lemma op_norm_lmul_left_right_le :
   ∥lmul_left_right 𝕜 𝕜'∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λ x, (one_mul ∥x∥).symm ▸ op_norm_lmul_left_right_apply_le 𝕜 𝕜' x)
+
+end non_unital
+
+section unital
+variables (𝕜) (𝕜' : Type*) [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] [norm_one_class 𝕜']
+
+/-- Left multiplication in a normed algebra as a linear isometry to the space of
+continuous linear maps. -/
+def lmulₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+{ to_linear_map := lmul 𝕜 𝕜',
+  norm_map' := λ x, le_antisymm (op_norm_lmul_apply_le _ _ _)
+    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [norm_one],
+          apply_instance }) }
+
+@[simp] lemma coe_lmulₗᵢ : ⇑(lmulₗᵢ 𝕜 𝕜') = lmul 𝕜 𝕜' := rfl
+
+@[simp] lemma op_norm_lmul_apply (x : 𝕜') : ∥lmul 𝕜 𝕜' x∥ = ∥x∥ :=
+(lmulₗᵢ 𝕜 𝕜').norm_map x
+
+@[simp] lemma op_norm_lmul_right_apply (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
+le_antisymm
+  (op_norm_lmul_right_apply_le _ _ _)
+  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [norm_one],
+        apply_instance })
+
+/-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
+continuous linear maps. -/
+def lmul_rightₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+{ to_linear_map := lmul_right 𝕜 𝕜',
+  norm_map' := op_norm_lmul_right_apply 𝕜 𝕜' }
+
+@[simp] lemma coe_lmul_rightₗᵢ : ⇑(lmul_rightₗᵢ 𝕜 𝕜') = lmul_right 𝕜 𝕜' := rfl
+
+end unital
 
 end multiplication_linear
 
@@ -1212,9 +1226,7 @@ iff.intro
   (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
-  (λ hf, le_antisymm (cInf_le bounds_bdd_below
-    ⟨le_rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
-    (op_norm_nonneg _))
+  (by { rintro rfl, exact op_norm_zero })
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
 @[simp] lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
@@ -1229,7 +1241,12 @@ instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨n
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
 instance to_normed_add_comm_group [ring_hom_isometric σ₁₂] : normed_add_comm_group (E →SL[σ₁₂] F) :=
-normed_add_comm_group.of_core _ ⟨λ f, op_norm_zero_iff f, op_norm_add_le, op_norm_neg⟩
+add_group_norm.to_normed_add_comm_group
+{ to_fun := norm,
+  map_zero' := op_norm_zero,
+  neg' := op_norm_neg,
+  add_le' := op_norm_add_le,
+  eq_zero_of_map_eq_zero' := λ f, (op_norm_zero_iff f).1 }
 
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
@@ -1247,9 +1264,6 @@ begin
   apply le_antisymm (f.op_norm_le_bound ha (λ y, le_of_eq (hf y))),
   simpa only [hf, hx, mul_le_mul_right] using f.le_op_norm x,
 end
-
-lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-homothety_norm _ (to_span_singleton_homothety 𝕜 x)
 
 variable (f)
 
@@ -1649,7 +1663,7 @@ variables [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 by haveI := norm_one_class.nontrivial 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
 
 @[simp] lemma op_norm_lmul_right [norm_one_class 𝕜'] : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
-(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
+(op_norm_flip (lmul 𝕜 𝕜')).trans (op_norm_lmul _ _)
 end
 
 /-- The norm of `lsmul` equals 1 in any nontrivial normed group.

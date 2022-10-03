@@ -13,7 +13,7 @@ import category_theory.limits.shapes.equalizers
 A regular monomorphism is a morphism that is the equalizer of some parallel pair.
 
 We give the constructions
-* `split_mono → regular_mono` and
+* `is_split_mono → regular_mono` and
 * `regular_mono → mono`
 as well as the dual constructions for regular epimorphisms. Additionally, we give the construction
 * `regular_epi ⟶ strong_epi`.
@@ -59,12 +59,12 @@ instance equalizer_regular (g h : X ⟶ Y) [has_limit (parallel_pair g h)] :
 
 /-- Every split monomorphism is a regular monomorphism. -/
 @[priority 100]
-instance regular_mono.of_split_mono (f : X ⟶ Y) [split_mono f] : regular_mono f :=
+instance regular_mono.of_is_split_mono (f : X ⟶ Y) [is_split_mono f] : regular_mono f :=
 { Z     := Y,
   left  := 𝟙 Y,
   right := retraction f ≫ f,
   w     := by tidy,
-  is_limit := split_mono_equalizes f }
+  is_limit := is_split_mono_equalizes f }
 
 /-- If `f` is a regular mono, then any map `k : W ⟶ Y` equalizing `regular_mono.left` and
     `regular_mono.right` induces a morphism `l : W ⟶ X` such that `l ≫ f = k`. -/
@@ -118,17 +118,15 @@ regular_of_is_pullback_snd_of_regular comm.symm (pullback_cone.flip_is_limit t)
 
 @[priority 100]
 instance strong_mono_of_regular_mono (f : X ⟶ Y) [regular_mono f] : strong_mono f :=
-{ mono := by apply_instance,
-  has_lift :=
-  begin
-    introsI,
-    have : v ≫ (regular_mono.left : Y ⟶ regular_mono.Z f) = v ≫ regular_mono.right,
-    { apply (cancel_epi z).1,
-      simp only [regular_mono.w, ← reassoc_of h] },
-    obtain ⟨t, ht⟩ := regular_mono.lift' _ _ this,
-    refine arrow.has_lift.mk ⟨t, (cancel_mono f).1 _, ht⟩,
-    simp only [arrow.mk_hom, arrow.hom_mk'_left, category.assoc, ht, h]
-  end }
+strong_mono.mk' begin
+  introsI A B z hz u v sq,
+  have : v ≫ (regular_mono.left : Y ⟶ regular_mono.Z f) = v ≫ regular_mono.right,
+  { apply (cancel_epi z).1,
+    simp only [regular_mono.w, ← reassoc_of sq.w] },
+  obtain ⟨t, ht⟩ := regular_mono.lift' _ _ this,
+  refine comm_sq.has_lift.mk' ⟨t, (cancel_mono f).1 _, ht⟩,
+  simp only [arrow.mk_hom, arrow.hom_mk'_left, category.assoc, ht, sq.w],
+end
 
 /-- A regular monomorphism is an isomorphism if it is an epimorphism. -/
 lemma is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
@@ -152,7 +150,7 @@ regular_mono_category.regular_mono_of_mono _
 instance regular_mono_category_of_split_mono_category [split_mono_category C] :
   regular_mono_category C :=
 { regular_mono_of_mono := λ _ _ f _,
-  by { haveI := by exactI split_mono_of_mono f, apply_instance } }
+  by { haveI := by exactI is_split_mono_of_mono f, apply_instance } }
 
 @[priority 100]
 instance strong_mono_category_of_regular_mono_category [regular_mono_category C] :
@@ -185,12 +183,12 @@ instance coequalizer_regular (g h : X ⟶ Y) [has_colimit (parallel_pair g h)] :
 
 /-- Every split epimorphism is a regular epimorphism. -/
 @[priority 100]
-instance regular_epi.of_split_epi (f : X ⟶ Y) [split_epi f] : regular_epi f :=
+instance regular_epi.of_split_epi (f : X ⟶ Y) [is_split_epi f] : regular_epi f :=
 { W     := X,
   left  := 𝟙 X,
   right := f ≫ section_ f,
   w     := by tidy,
-  is_colimit := split_epi_coequalizes f }
+  is_colimit := is_split_epi_coequalizes f }
 
 /-- If `f` is a regular epi, then every morphism `k : X ⟶ W` coequalizing `regular_epi.left` and
     `regular_epi.right` induces `l : Y ⟶ W` such that `f ≫ l = k`. -/
@@ -244,17 +242,15 @@ regular_of_is_pushout_snd_of_regular comm.symm (pushout_cocone.flip_is_colimit t
 
 @[priority 100]
 instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=
-{ epi := by apply_instance,
-  has_lift :=
-  begin
-    introsI,
-    have : (regular_epi.left : regular_epi.W f ⟶ X) ≫ u = regular_epi.right ≫ u,
-    { apply (cancel_mono z).1,
-      simp only [category.assoc, h, regular_epi.w_assoc] },
-    obtain ⟨t, ht⟩ := regular_epi.desc' f u this,
-    exact arrow.has_lift.mk ⟨t, ht, (cancel_epi f).1
-      (by simp only [←category.assoc, ht, ←h, arrow.mk_hom, arrow.hom_mk'_right])⟩,
-  end }
+strong_epi.mk' begin
+  introsI A B z hz u v sq,
+  have : (regular_epi.left : regular_epi.W f ⟶ X) ≫ u = regular_epi.right ≫ u,
+  { apply (cancel_mono z).1,
+    simp only [category.assoc, sq.w, regular_epi.w_assoc] },
+  obtain ⟨t, ht⟩ := regular_epi.desc' f u this,
+  exact comm_sq.has_lift.mk' ⟨t, ht, (cancel_epi f).1
+    (by simp only [←category.assoc, ht, ←sq.w, arrow.mk_hom, arrow.hom_mk'_right])⟩,
+end
 
 /-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
 lemma is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
@@ -277,7 +273,7 @@ regular_epi_category.regular_epi_of_epi _
 @[priority 100]
 instance regular_epi_category_of_split_epi_category [split_epi_category C] :
   regular_epi_category C :=
-{ regular_epi_of_epi := λ _ _ f _, by { haveI := by exactI split_epi_of_epi f, apply_instance } }
+{ regular_epi_of_epi := λ _ _ f _, by { haveI := by exactI is_split_epi_of_epi f, apply_instance } }
 
 @[priority 100]
 instance strong_epi_category_of_regular_epi_category [regular_epi_category C] :

@@ -44,7 +44,11 @@ by rw [smodeq.def, submodule.quotient.eq, mem_bot, sub_eq_zero]
 @[mono] theorem mono (HU : U₁ ≤ U₂) (hxy : x ≡ y [SMOD U₁]) : x ≡ y [SMOD U₂] :=
 (submodule.quotient.eq U₂).2 $ HU $ (submodule.quotient.eq U₁).1 hxy
 
-@[refl] theorem refl : x ≡ x [SMOD U] := eq.refl _
+@[refl] protected theorem refl (x : M) : x ≡ x [SMOD U] := @rfl _ _
+
+protected theorem rfl : x ≡ x [SMOD U] := smodeq.refl _
+
+instance : is_refl _ (smodeq U) := ⟨smodeq.refl⟩
 
 @[symm] theorem symm (hxy : x ≡ y [SMOD U]) : y ≡ x [SMOD U] := hxy.symm
 

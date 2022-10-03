@@ -461,8 +461,8 @@ def to_word {i j} (w : neword M i j) : word M :=
 lemma of_word (w : word M) (h : w ≠ empty) :
   ∃ i j (w' : neword M i j), w'.to_word = w :=
 begin
-  suffices : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
-  { obtain ⟨i, j, w, h⟩ := this, refine ⟨i, j, w, _⟩, ext, rw h, },
+  rsuffices ⟨i, j, w, h⟩ : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
+  { refine ⟨i, j, w, _⟩, ext, rw h, },
   cases w with l hnot1 hchain,
   induction l with x l hi,
   { contradiction, },

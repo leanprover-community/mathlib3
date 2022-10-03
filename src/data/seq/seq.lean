@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.list.basic
 import data.lazy_list
 import data.nat.basic
 import data.stream.init
@@ -49,6 +50,25 @@ end⟩
 /-- Get the nth element of a sequence (if it exists) -/
 def nth : seq α → ℕ → option α := subtype.val
 
+@[simp] theorem nth_mk (f hf) : @nth α ⟨f, hf⟩ = f := rfl
+
+@[simp] theorem nth_nil (n : ℕ) : (@nil α).nth n = none := rfl
+@[simp] theorem nth_cons_zero (a : α) (s : seq α) : (cons a s).nth 0 = some a := rfl
+@[simp] theorem nth_cons_succ (a : α) (s : seq α) (n : ℕ) : (cons a s).nth (n + 1) = s.nth n := rfl
+
+@[ext] protected lemma ext {s t : seq α} (h : ∀ n : ℕ, s.nth n = t.nth n) : s = t :=
+subtype.eq $ funext h
+
+lemma cons_injective2 : function.injective2 (cons : α → seq α → seq α) :=
+λ x y s t h, ⟨by rw [←option.some_inj, ←nth_cons_zero, h, nth_cons_zero],
+  seq.ext $ λ n, by simp_rw [←nth_cons_succ x s n, h, nth_cons_succ]⟩
+
+lemma cons_left_injective (s : seq α) : function.injective (λ x, cons x s) :=
+cons_injective2.left _
+
+lemma cons_right_injective (x : α) : function.injective (cons x) :=
+cons_injective2.right _
+
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
@@ -58,6 +78,9 @@ decidable_of_iff' (s.nth n).is_none $ by unfold terminated_at; cases s.nth n; si
 
 /-- A sequence terminates if there is some position `n` at which it has terminated. -/
 def terminates (s : seq α) : Prop := ∃ (n : ℕ), s.terminated_at n
+
+theorem not_terminates_iff {s : seq α} : ¬ s.terminates ↔ ∀ n, (s.nth n).is_some :=
+by simp [terminates, terminated_at, ←ne.def, option.ne_none_iff_is_some]
 
 /-- Functorial action of the functor `option (α × _)` -/
 @[simp] def omap (f : β → γ) : option (α × β) → option (α × γ)
@@ -158,6 +181,8 @@ by rw [head_eq_destruct, destruct_cons]; refl
 @[simp] theorem tail_cons (a : α) (s) : tail (cons a s) = s :=
 by cases s with f al; apply subtype.eq; dsimp [tail, cons]; rw [stream.tail_cons]
 
+@[simp] theorem nth_tail (s : seq α) (n) : nth (tail s) n = nth s (n + 1) := rfl
+
 /-- Recursion principle for sequences, compare with `list.rec_on`. -/
 def rec_on {C : seq α → Sort v} (s : seq α)
   (h1 : C nil) (h2 : ∀ x s, C (cons x s)) : C s := begin
@@ -220,21 +245,10 @@ begin
   dsimp [corec.F], rw h, refl
 end
 
-/-- Embed a list as a sequence -/
-def of_list (l : list α) : seq α :=
-⟨list.nth l, λ n h, begin
-  induction l with a l IH generalizing n, refl,
-  dsimp [list.nth], cases n with n; dsimp [list.nth] at h,
-  { contradiction },
-  { apply IH _ h }
-end⟩
-
-instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
-
 section bisim
   variable (R : seq α → seq α → Prop)
 
-  local infix ` ~ `:50 := R
+  local infix (name := R) ` ~ `:50 := R
 
   def bisim_o : option (seq1 α) → option (seq1 α) → Prop
   | none          none            := true
@@ -288,6 +302,20 @@ begin
   intros s1 s2 h, rcases h with ⟨s, h1, h2⟩,
   rw [h1, h2], apply H
 end
+
+/-- Embed a list as a sequence -/
+def of_list (l : list α) : seq α :=
+⟨list.nth l, λ n h, begin
+  rw list.nth_eq_none_iff at h ⊢,
+  exact h.trans (nat.le_succ n)
+end⟩
+
+instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
+
+@[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
+@[simp] theorem of_list_nth (l : list α) (n : ℕ) : (of_list l).nth n = l.nth n := rfl
+@[simp] theorem of_list_cons (a : α) (l : list α) : of_list (a :: l) = cons a (of_list l) :=
+by ext1 (_|n); refl
 
 /-- Embed an infinite stream as a sequence -/
 def of_stream (s : stream α) : seq α :=
@@ -437,21 +465,20 @@ def zip : seq α → seq β → seq (α × β) := zip_with prod.mk
 def unzip (s : seq (α × β)) : seq α × seq β := (map prod.fst s, map prod.snd s)
 
 /-- Convert a sequence which is known to terminate into a list -/
-def to_list (s : seq α) (h : ∃ n, ¬ (nth s n).is_some) : list α :=
+def to_list (s : seq α) (h : s.terminates) : list α :=
 take (nat.find h) s
 
 /-- Convert a sequence which is known not to terminate into a stream -/
-def to_stream (s : seq α) (h : ∀ n, (nth s n).is_some) : stream α :=
-λ n, option.get (h n)
+def to_stream (s : seq α) (h : ¬ s.terminates) : stream α :=
+λ n, option.get $ not_terminates_iff.1 h n
 
 /-- Convert a sequence into either a list or a stream depending on whether
   it is finite or infinite. (Without decidability of the infiniteness predicate,
   this is not constructively possible.) -/
-def to_list_or_stream (s : seq α) [decidable (∃ n, ¬ (nth s n).is_some)] :
-  list α ⊕ stream α :=
-if h : ∃ n, ¬ (nth s n).is_some
+def to_list_or_stream (s : seq α) [decidable s.terminates] : list α ⊕ stream α :=
+if h : s.terminates
 then sum.inl (to_list s h)
-else sum.inr (to_stream s (λ n, decidable.by_contradiction (λ hn, h ⟨n, hn⟩)))
+else sum.inr (to_stream s h)
 
 @[simp] theorem nil_append (s : seq α) : append nil s = s :=
 begin
@@ -588,12 +615,6 @@ begin
   { refine ⟨nil, S, T, _, _⟩; simp }
 end
 
-@[simp] theorem of_list_nil : of_list [] = (nil : seq α) := rfl
-
-@[simp] theorem of_list_cons (a : α) (l) :
-  of_list (a :: l) = cons a (of_list l) :=
-by ext (_|n) : 2; simp [of_list, cons, stream.nth, stream.cons]
-
 @[simp] theorem of_stream_cons (a : α) (s) :
   of_stream (a :: s) = cons a (of_stream s) :=
 by apply subtype.eq; simp [of_stream, cons]; rw stream.map_cons
@@ -622,27 +643,6 @@ theorem dropn_add (s : seq α) (m) : ∀ n, drop s (m + n) = drop (drop s m) n
 
 theorem dropn_tail (s : seq α) (n) : drop (tail s) n = drop s (n + 1) :=
 by rw add_comm; symmetry; apply dropn_add
-
-theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
-| ⟨f, al⟩ n := rfl
-
-@[ext]
-protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
-begin
-  let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
-  apply seq.eq_of_bisim ext _ hyp,
-  -- we have to show that ext is a bisimulation
-  clear hyp s s',
-  assume s s' (hyp : ext s s'),
-  unfold seq.destruct,
-  rw (hyp 0),
-  cases (s'.nth 0),
-  { simp [seq.bisim_o] }, -- option.none
-  { -- option.some
-    suffices : ext s.tail s'.tail, by simpa,
-    assume n,
-    simp only [seq.nth_tail _ n, (hyp $ n + 1)] }
-end
 
 @[simp] theorem head_dropn (s : seq α) (n) : head (drop s n) = nth s n :=
 begin

@@ -538,7 +538,7 @@ end
 @[simp] protected lemma map_mul : (p * q).map f = p.map f * q.map f :=
 by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 
-@[simp] lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
+@[simp] protected lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
 /-- `polynomial.map` as a `ring_hom`. -/
@@ -560,6 +560,12 @@ def map_ring_hom (f : R →+* S) : R[X] →+* S[X] :=
 -- This is protected to not clash with the global `map_nat_cast`.
 @[simp] protected theorem map_nat_cast (n : ℕ) : (n : R[X]).map f = n :=
 map_nat_cast (map_ring_hom f) n
+
+@[simp] protected lemma map_bit0 : (bit0 p).map f = bit0 (p.map f) :=
+map_bit0 (map_ring_hom f) p
+
+@[simp] protected lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
+map_bit1 (map_ring_hom f) p
 
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
@@ -612,6 +618,12 @@ lemma nat_degree_map_le (p : R[X]) : nat_degree (p.map f) ≤ nat_degree p :=
 nat_degree_le_nat_degree (degree_map_le f p)
 
 variables {f}
+
+protected lemma map_eq_zero_iff (hf : function.injective f) : p.map f = 0 ↔ p = 0 :=
+map_eq_zero_iff (map_ring_hom f) (map_injective f hf)
+
+protected lemma map_ne_zero_iff (hf : function.injective f) : p.map f ≠ 0 ↔ p ≠ 0 :=
+(polynomial.map_eq_zero_iff hf).not
 
 lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
 ⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp only [mul_one, hp.leading_coeff, f.map_one]
@@ -724,7 +736,7 @@ lemma eval_int_cast_map {R S : Type*} [ring R] [ring S]
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, simp only [hp, hq, polynomial.map_add, ring_hom.map_add, eval_add] },
-  { intros n r, simp only [f.map_int_cast, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
+  { intros n r, simp only [map_int_cast, eval_monomial, map_monomial, map_pow, map_mul] }
 end
 
 end map
@@ -928,9 +940,8 @@ lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
   (-p).map f = -(p.map f) :=
 (map_ring_hom f).map_neg p
 
-@[simp] lemma map_int_cast {S} [ring S] (f : R →+* S) (n : ℤ) :
-  map f ↑n = ↑n :=
-(map_ring_hom f).map_int_cast n
+@[simp] lemma map_int_cast {S} [ring S] (f : R →+* S) (n : ℤ) : map f ↑n = ↑n :=
+map_int_cast (map_ring_hom f) n
 
 @[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : R[X]).eval x = n :=
 by simp only [←C_eq_int_cast, eval_C]

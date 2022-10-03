@@ -29,6 +29,8 @@ simplicial objects in any category.
 functor `C ⥤ D`
 - `sSet.augmented.standard_simplex.extra_degeneracy`: the standard `n`-simplex has
 an extra degeneracy
+- `arrow.augmented_cech_nerve.extra_degeneracy`: the Čech nerve of a split
+epimorphism has an extra degeneracy
 
 TODO @joelriou:
 1) when the category `C` is preadditive and has a zero object, and

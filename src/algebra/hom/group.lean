@@ -1279,6 +1279,16 @@ protected def mul_hom.coe [has_mul M] [has_mul N] [coe_mul_hom M N] : mul_hom M 
 { to_fun := coe,
   map_mul' := coe_mul }
 
+@[simp, norm_cast]
+lemma coe_bit0 [has_add M] [has_add N] [coe_add_hom M N]
+  (x : M) : ↑(bit0 x) = bit0 (↑x : N) :=
+coe_add _ _
+
+@[simp, norm_cast]
+lemma coe_bit1 [has_one M] [has_add M] [has_one N] [has_add N] [coe_one_hom M N] [coe_add_hom M N]
+  (x : M) : ↑(bit1 x) = bit1 (↑x : N) :=
+by simp [bit1]
+
 /-- `coe_add_monoid_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
 is an additive monoid homomorphism.
 -/

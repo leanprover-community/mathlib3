@@ -139,6 +139,7 @@ noncomputable def bound : ℕ :=
 
 lemma initial_bound_le_bound : initial_bound ε l ≤ bound ε l :=
 (id_le_iterate_of_id_le le_step_bound _ _).trans $ nat.le_mul_of_pos_right $ by positivity
+
 lemma le_bound : l ≤ bound ε l := (le_initial_bound ε l).trans $ initial_bound_le_bound ε l
 lemma bound_pos : 0 < bound ε l := (initial_bound_pos ε l).trans_le $ initial_bound_le_bound ε l
 

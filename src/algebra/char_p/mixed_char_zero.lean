@@ -368,10 +368,10 @@ end
 # Splitting statements into different characteristic
 
 Statements to split a proof by characteristic. There are 3 theorems here that are very
-similar that only differ in the assumptions we can make on the positive characteristic
+similar. They only differ in the assumptions we can make on the positive characteristic
 case:
 Generally we need to consider all `p ≠ 0`, but if `R` is a local ring, we can assume
-that `p` is a prime power and if `R` is a domain, we can even assume that `p` is prime.
+that `p` is a prime power. And if `R` is a domain, we can even assume that `p` is prime.
 -/
 section main_statements
 

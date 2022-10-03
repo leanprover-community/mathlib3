@@ -96,8 +96,11 @@ end
 /-- A subgroupoid seen as a quiver on vertex set `C` -/
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrws c d⟩
 
+/-- Type synonym to coerce a subgroupoid into a groupoid -/
+def coe := subtype $ S.carrier
+
 /-- The coercion of a subgroupoid as a groupoid -/
-def coe : groupoid (S.carrier) :=
+@[simps] def coe_groupoid : groupoid (coe S) :=
 { to_category :=
   { to_category_struct :=
     { to_quiver :=
@@ -110,6 +113,11 @@ def coe : groupoid (S.carrier) :=
 , inv := λ a b p, ⟨inv p.val, S.inv' p.prop⟩
 , inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp]
 , comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
+
+instance (S : subgroupoid C) : groupoid S.coe := coe_groupoid S
+
+@[simp] lemma coe_comp {a b c : coe S} (f : a ⟶ b) (g : b ⟶ c) :
+  (f ≫ g).val = f.val ≫ g.val := by simp
 
 /-- The subgroup of the vertex group at `c` given by the subgroupoid -/
 def vertex_subgroup {c : C} (hc : c ∈ S.carrier) : subgroup (c ⟶ c) :=
@@ -184,6 +192,24 @@ instance : complete_lattice (subgroupoid C) :=
           { rintro T Tl c d p pT,
             simp only [Inter_coe_set, mem_Inter],
             rintros S Ss, apply Tl Ss, exact pT,}}) }
+
+/-- The family of arrows on the full subgroupoid on vertex set `V` -/
+inductive full_on.arrws (V : set C) : Π (c d : C), (c ⟶ d) → Prop
+| intro {c : C} (hc : c ∈ V) {d : C} (hd : d ∈ V) (f : c ⟶ d) : full_on.arrws c d f
+
+@[simp] lemma full_on.mem_arrws_iff (V : set C) {c d : C} (f : c ⟶ d) :
+  full_on.arrws V c d f ↔ c ∈ V ∧ d ∈ V :=
+begin
+  split,
+  { rintros ⟨c,hc,d,hd,f⟩, exact ⟨hc,hd⟩, },
+  { rintros ⟨hc,hd⟩, constructor; assumption, },
+end
+
+/-- The full subgroupoid on vertices of `V` -/
+def full_on (V : set C) : subgroupoid C :=
+⟨ full_on.arrws V
+, by { rintros, induction hp, constructor; assumption, }
+, by { rintros, induction hp, induction hq, constructor; assumption } ⟩
 
 /-- The family of arrows of the discrete groupoid -/
 inductive discrete.arrws : Π (c d : C), (c ⟶ d) → Prop
@@ -481,6 +507,14 @@ begin
   dsimp [⊤,has_top.top],
   simp only [mem_univ, exists_true_left],
 end
+
+lemma is_normal_map (hφi : function.injective φ.obj) (hφs : im φ hφi = ⊤) :
+  S.is_normal → (map φ hφi S).is_normal :=
+begin
+  rintro ⟨Swide,Sconj⟩,
+  sorry
+end
+
 
 end hom
 

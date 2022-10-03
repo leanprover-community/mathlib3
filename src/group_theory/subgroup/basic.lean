@@ -648,11 +648,12 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 
 @[to_additive] instance : unique (⊥ : subgroup G) := ⟨⟨1⟩, λ g, subtype.ext g.2⟩
 
+@[simp, to_additive] lemma top_to_submonoid : (⊤ : subgroup G).to_submonoid = ⊤ := rfl
+
+@[simp, to_additive] lemma bot_to_submonoid : (⊥ : subgroup G).to_submonoid = ⊥ := rfl
+
 @[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
-begin
-  rw set_like.ext'_iff,
-  simp only [coe_bot, set.eq_singleton_iff_unique_mem, set_like.mem_coe, H.one_mem, true_and],
-end
+to_submonoid_injective.eq_iff.symm.trans $ submonoid.eq_bot_iff_forall _
 
 @[to_additive] lemma eq_bot_of_subsingleton [subsingleton H] : H = ⊥ :=
 begin

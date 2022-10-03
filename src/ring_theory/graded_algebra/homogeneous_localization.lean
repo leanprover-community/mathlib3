@@ -29,7 +29,7 @@ is a `num_denom_same_deg`, then generally, `c + (-c)` is not necessarily `0` for
 `0` is considered to have grade zero (see `deg_zero`) but `c + (-c)` has the same degree as `c`. To
 circumvent this, we quotient `num_denom_same_deg 𝒜 x` by the kernel of `c ↦ c.num / c.denom`.
 
-* `homogeneous_localization.num_denom_same_deg.embedding` : for `x : prime ideal of A` and any
+* `homogeneous_localization.num_denom_same_deg.embedding` : for `x : submonoid A` and any
   `c : num_denom_same_deg 𝒜 x`, or equivalent a numerator and a denominator of the same degree,
   we get an element `c.num / c.denom` of `Aₓ`.
 * `homogeneous_localization`: `num_denom_same_deg 𝒜 x` quotiented by kernel of `embedding 𝒜 x`.
@@ -38,19 +38,20 @@ circumvent this, we quotient `num_denom_same_deg 𝒜 x` by the kernel of `c ↦
   through `homogeneous_localization.val`.
 * `homogeneous_localization.num`: if `f : homogeneous_localization 𝒜 x`, then `f.num : A` is the
   numerator of `f`.
-* `homogeneous_localization.num`: if `f : homogeneous_localization 𝒜 x`, then `f.denom : A` is the
+* `homogeneous_localization.denom`: if `f : homogeneous_localization 𝒜 x`, then `f.denom : A` is the
   denominator of `f`.
 * `homogeneous_localization.deg`: if `f : homogeneous_localization 𝒜 x`, then `f.deg : ι` is the
   degree of `f` such that `f.num ∈ 𝒜 f.deg` and `f.denom ∈ 𝒜 f.deg`
-  (see `homogeneous_localization.num_mem` and `homogeneous_localization.denom_mem`).
-* `homogeneous_localization.num_mem`: if `f : homogeneous_localization 𝒜 x`, then `f.num_mem` is a
-  proof that `f.num ∈ f.deg`.
-* `homogeneous_localization.denom_mem`: if `f : homogeneous_localization 𝒜 x`, then `f.denom_mem`
-  is a proof that `f.denom ∈ f.deg`.
+  (see `homogeneous_localization.num_mem_deg` and `homogeneous_localization.denom_mem_deg`).
+* `homogeneous_localization.num_mem_deg`: if `f : homogeneous_localization 𝒜 x`, then
+  `f.num_mem_deg` is a proof that `f.num ∈ 𝒜 f.deg`.
+* `homogeneous_localization.denom_mem_deg`: if `f : homogeneous_localization 𝒜 x`, then
+  `f.denom_mem_deg` is a proof that `f.denom ∈ 𝒜 f.deg`.
 * `homogeneous_localization.eq_num_div_denom`: if `f : homogeneous_localization 𝒜 x`, then
   `f.val : Aₓ` is equal to `f.num / f.denom`.
 
-* `homogeneous_localization.local_ring`: `homogeneous_localization 𝒜 x` is a local ring.
+* `homogeneous_localization.local_ring`: `homogeneous_localization 𝒜 x` is a local ring when `x` is
+  the complement of some prime ideals.
 
 ## References
 

@@ -1140,6 +1140,98 @@ end
 
 variables (k)
 
+/-- The `vector_span` of two points is the span of their difference. -/
+lemma vector_span_pair (p₁ p₂ : P) : vector_span k ({p₁, p₂} : set P) = k ∙ (p₁ -ᵥ p₂) :=
+by rw [vector_span_eq_span_vsub_set_left k (mem_insert p₁ _), image_pair, vsub_self,
+       submodule.span_insert_zero]
+
+/-- The `vector_span` of two points is the span of their difference (reversed). -/
+lemma vector_span_pair_rev (p₁ p₂ : P) : vector_span k ({p₁, p₂} : set P) = k ∙ (p₂ -ᵥ p₁) :=
+by rw [pair_comm, vector_span_pair]
+
+/-- The difference between two points lies in their `vector_span`. -/
+lemma vsub_mem_vector_span_pair (p₁ p₂ : P) : p₁ -ᵥ p₂ ∈ vector_span k ({p₁, p₂} : set P) :=
+vsub_mem_vector_span _ (set.mem_insert _ _) (set.mem_insert_of_mem _ (set.mem_singleton _))
+
+/-- The difference between two points (reversed) lies in their `vector_span`. -/
+lemma vsub_rev_mem_vector_span_pair (p₁ p₂ : P) : p₂ -ᵥ p₁ ∈ vector_span k ({p₁, p₂} : set P) :=
+vsub_mem_vector_span _ (set.mem_insert_of_mem _ (set.mem_singleton _)) (set.mem_insert _ _)
+
+variables {k}
+
+/-- A multiple of the difference between two points lies in their `vector_span`. -/
+lemma smul_vsub_mem_vector_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₁ -ᵥ p₂) ∈ vector_span k ({p₁, p₂} : set P) :=
+submodule.smul_mem _ _ (vsub_mem_vector_span_pair k p₁ p₂)
+
+/-- A multiple of the difference between two points (reversed) lies in their `vector_span`. -/
+lemma smul_vsub_rev_mem_vector_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₂ -ᵥ p₁) ∈ vector_span k ({p₁, p₂} : set P) :=
+submodule.smul_mem _ _ (vsub_rev_mem_vector_span_pair k p₁ p₂)
+
+/-- A vector lies in the `vector_span` of two points if and only if it is a multiple of their
+difference. -/
+lemma mem_vector_span_pair {p₁ p₂ : P} {v : V} :
+  v ∈ vector_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
+by rw [vector_span_pair, submodule.mem_span_singleton]
+
+/-- A vector lies in the `vector_span` of two points if and only if it is a multiple of their
+difference (reversed). -/
+lemma mem_vector_span_pair_rev {p₁ p₂ : P} {v : V} :
+  v ∈ vector_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
+by rw [vector_span_pair_rev, submodule.mem_span_singleton]
+
+variables (k)
+
+/-- The first of two points lies in their affine span. -/
+lemma left_mem_affine_span_pair (p₁ p₂ : P) : p₁ ∈ affine_span k ({p₁, p₂} : set P) :=
+mem_affine_span _ (set.mem_insert _ _)
+
+/-- The second of two points lies in their affine span. -/
+lemma right_mem_affine_span_pair (p₁ p₂ : P) : p₂ ∈ affine_span k ({p₁, p₂} : set P) :=
+mem_affine_span _ (set.mem_insert_of_mem _ (set.mem_singleton _))
+
+variables {k}
+
+/-- A combination of two points expressed with `line_map` lies in their affine span. -/
+lemma affine_map.line_map_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  affine_map.line_map p₁ p₂ r ∈ affine_span k ({p₁, p₂} : set P) :=
+affine_map.line_map_mem _ (left_mem_affine_span_pair _ _ _) (right_mem_affine_span_pair _ _ _)
+
+/-- A combination of two points expressed with `line_map` (with the two points reversed) lies in
+their affine span. -/
+lemma affine_map.line_map_rev_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  affine_map.line_map p₂ p₁ r ∈ affine_span k ({p₁, p₂} : set P) :=
+affine_map.line_map_mem _ (right_mem_affine_span_pair _ _ _) (left_mem_affine_span_pair _ _ _)
+
+/-- A multiple of the difference of two points added to the first point lies in their affine
+span. -/
+lemma smul_vsub_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₂ -ᵥ p₁) +ᵥ p₁ ∈ affine_span k ({p₁, p₂} : set P) :=
+affine_map.line_map_mem_affine_span_pair _ _ _
+
+/-- A multiple of the difference of two points added to the second point lies in their affine
+span. -/
+lemma smul_vsub_rev_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₁ -ᵥ p₂) +ᵥ p₂ ∈ affine_span k ({p₁, p₂} : set P) :=
+affine_map.line_map_rev_mem_affine_span_pair _ _ _
+
+/-- A vector added to the first point lies in the affine span of two points if and only if it is
+a multiple of their difference. -/
+lemma vadd_left_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
+  v +ᵥ p₁ ∈ affine_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
+by rw [vadd_mem_iff_mem_direction _ (left_mem_affine_span_pair _ _ _), direction_affine_span,
+       mem_vector_span_pair_rev]
+
+/-- A vector added to the second point lies in the affine span of two points if and only if it is
+a multiple of their difference. -/
+lemma vadd_right_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
+  v +ᵥ p₂ ∈ affine_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
+by rw [vadd_mem_iff_mem_direction _ (right_mem_affine_span_pair _ _ _), direction_affine_span,
+       mem_vector_span_pair]
+
+variables (k)
+
 /-- `affine_span` is monotone. -/
 @[mono]
 lemma affine_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : affine_span k s₁ ≤ affine_span k s₂ :=

@@ -176,7 +176,7 @@ begin
   { exact λ hx', funext $ λ v, hx' v $ set.not_mem_empty v }
 end
 
-/-- The natural homomorphism from `Rˣ` to `K⟮S, n⟯`. -/
+/-- The natural homomorphism from `Rˣ` to `K⟮∅, n⟯`. -/
 def from_unit {n : ℕ} : Rˣ →* K⟮(∅ : set $ height_one_spectrum R), n⟯ :=
 { to_fun   := λ x, ⟨quotient_group.mk $ units.map (algebra_map R K).to_monoid_hom x,
                     λ v _, v.valuation_of_unit_mod_eq n x⟩,
@@ -209,7 +209,7 @@ begin
       ((quotient_group.eq_one_iff _).mpr ⟨_, by simp only [pow_monoid_hom_apply, map_pow]⟩) }
 end
 
-/-- The injection induced by the natural homomorphism from `Rˣ` to `K⟮S, n⟯`. -/
+/-- The injection induced by the natural homomorphism from `Rˣ` to `K⟮∅, n⟯`. -/
 def from_unit_lift [fact $ 0 < n] : R/n →* K⟮(∅ : set $ height_one_spectrum R), n⟯ :=
 (quotient_group.ker_lift _).comp
   (quotient_group.equiv_quotient_of_eq from_unit_ker).symm.to_monoid_hom

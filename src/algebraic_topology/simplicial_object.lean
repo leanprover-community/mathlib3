@@ -109,6 +109,16 @@ lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   X.σ j ≫ X.σ i.cast_succ = X.σ i ≫ X.σ j.succ :=
 by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H] }
 
+open_locale simplicial
+
+@[simp, reassoc]
+lemma δ_naturality {X' X : simplicial_object C} (f : X ⟶ X') {n : ℕ} (i : fin (n+2)) :
+  X.δ i ≫ f.app (op [n]) = f.app (op [n+1]) ≫ X'.δ i := f.naturality _
+
+@[simp, reassoc]
+lemma σ_naturality {X' X : simplicial_object C} (f : X ⟶ X') {n : ℕ} (i : fin (n+1)) :
+  X.σ i ≫ f.app (op [n+1]) = f.app (op [n]) ≫ X'.σ i := f.naturality _
+
 variable (C)
 
 /-- Functor composition induces a functor on simplicial objects. -/
@@ -194,6 +204,14 @@ def to_arrow : augmented C ⥤ arrow C :=
       refl,
     end } }
 
+/-- The compatibility of a morphism with the augmentation, on 0-simplices -/
+@[reassoc]
+lemma w₀ {X Y : augmented C} (f : X ⟶ Y) :
+  (augmented.drop.map f).app (op (simplex_category.mk 0)) ≫
+    Y.hom.app (op (simplex_category.mk 0)) =
+  X.hom.app (op (simplex_category.mk 0)) ≫ augmented.point.map f :=
+by convert congr_app f.w (op (simplex_category.mk 0))
+
 variable (C)
 
 /-- Functor composition induces a functor on augmented simplicial objects. -/
@@ -233,8 +251,6 @@ def whiskering (D : Type u') [category.{v'} D] :
 variable {C}
 
 end augmented
-
-open_locale simplicial
 
 /-- Augment a simplicial object with an object. -/
 @[simps]
@@ -336,6 +352,16 @@ by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.δ_comp_σ_of_gt
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   X.σ i.cast_succ ≫ X.σ j = X.σ j.succ ≫ X.σ i :=
 by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.σ_comp_σ H] }
+
+@[simp, reassoc]
+lemma δ_naturality {X' X : cosimplicial_object C} (f : X ⟶ X') {n : ℕ} (i : fin (n+2)) :
+  X.δ i ≫ f.app (simplex_category.mk (n+1)) =
+    f.app (simplex_category.mk n) ≫ X'.δ i := f.naturality _
+
+@[simp, reassoc]
+lemma σ_naturality {X' X : cosimplicial_object C} (f : X ⟶ X') {n : ℕ} (i : fin (n+1)) :
+  X.σ i ≫ f.app (simplex_category.mk n) =
+    f.app (simplex_category.mk (n+1)) ≫ X'.σ i := f.naturality _
 
 variable (C)
 

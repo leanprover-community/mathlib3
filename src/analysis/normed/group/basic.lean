@@ -856,8 +856,8 @@ lemma ulift.nnnorm_def (x : ulift E) : ∥x∥₊ = ∥x.down∥₊ := rfl
 @[simp] lemma ulift.nnnorm_up (x : E) : ∥ulift.up x∥₊ = ∥x∥₊ := rfl
 
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/
-noncomputable instance prod.seminormed_add_comm_group : seminormed_add_comm_group (E × F) :=
-{ norm := λx, max ∥x.1∥ ∥x.2∥,
+instance prod.seminormed_add_comm_group : seminormed_add_comm_group (E × F) :=
+{ norm := λx, ∥x.1∥ ⊔ ∥x.2∥,
   dist_eq := assume (x y : E × F),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
 
@@ -881,7 +881,7 @@ variables {π : ι → Type*} [fintype ι] [Π i, seminormed_add_comm_group (π 
 
 /-- seminormed group instance on the product of finitely many seminormed groups,
 using the sup norm. -/
-noncomputable instance pi.seminormed_add_comm_group : seminormed_add_comm_group (Π i, π i) :=
+instance pi.seminormed_add_comm_group : seminormed_add_comm_group (Π i, π i) :=
 { norm := λ f, ↑(finset.univ.sup (λ b, ∥f b∥₊)),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
@@ -1208,12 +1208,11 @@ instance ulift.normed_add_comm_group : normed_add_comm_group (ulift E) :=
 { ..ulift.seminormed_add_comm_group }
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
-noncomputable instance prod.normed_add_comm_group : normed_add_comm_group (E × F) :=
+instance prod.normed_add_comm_group : normed_add_comm_group (E × F) :=
 { ..prod.seminormed_add_comm_group }
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
-noncomputable instance pi.normed_add_comm_group {π : ι → Type*} [fintype ι]
-  [Π i, normed_add_comm_group (π i)] :
+instance pi.normed_add_comm_group {π : ι → Type*} [fintype ι] [Π i, normed_add_comm_group (π i)] :
   normed_add_comm_group (Πi, π i) := { ..pi.seminormed_add_comm_group }
 
 lemma tendsto_norm_sub_self_punctured_nhds (a : E) : tendsto (λ x, ∥x - a∥) (𝓝[≠] a) (𝓝[>] 0) :=

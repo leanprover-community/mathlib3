@@ -6,6 +6,7 @@ Authors: Moritz Doll
 
 import analysis.calculus.cont_diff
 import analysis.complex.basic
+import analysis.locally_convex.continuous_of_bounded
 import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import tactic.positivity
@@ -449,7 +450,13 @@ def fderiv : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
 { cont :=
   begin
     refine (fderiv_aux' 𝕜).continuous_of_locally_bounded (λ s hs, _),
-    rw bornology.is_vonN_bounded_iff_seminorm_bounded (schwartz_with_seminorms 𝕜 E F) at hs,
+    rw (schwartz_with_seminorms 𝕜 E F).is_vonN_bounded_iff_seminorm_bounded at hs,
+    rw (schwartz_with_seminorms 𝕜 E (E →L[ℝ] F)).image_is_vonN_bounded_iff_seminorm_bounded _,
+    intros n,
+    rcases hs (n.1, n.2 + 1) with ⟨r, hr, hs'⟩,
+    use [r, hr],
+    intros u hu,
+    specialize hs' u hu,
     sorry,
   end,
   ..fderiv_aux' 𝕜 }

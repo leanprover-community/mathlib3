@@ -222,8 +222,7 @@ begin
 end
 
 /-- This is the computation performed in the proof of [Halmos, §60 Th. A]. -/
-@[to_additive
-  "This is the computation performed in the proof of [Halmos, §60 Th. A]."]
+@[to_additive "This is the computation performed in the proof of [Halmos, §60 Th. A]."]
 lemma measure_mul_lintegral_eq
   [is_mul_left_invariant ν] (Em : measurable_set E) (f : G → ℝ≥0∞) (hf : measurable f) :
   μ E * ∫⁻ y, f y ∂ν = ∫⁻ x, ν ((λ z, z * x) ⁻¹' E) * f (x⁻¹) ∂μ :=

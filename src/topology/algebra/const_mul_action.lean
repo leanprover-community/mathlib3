@@ -398,7 +398,7 @@ begin
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end
 
-/-- The quotient of a second countable space by a group action is second countable -/
+/-- The quotient of a second countable space by a group action is second countable. -/
 @[to_additive "The quotient of a second countable space by an additive group action is second
 countable"]
 theorem has_continuous_const_smul.second_countable_topology [second_countable_topology T]

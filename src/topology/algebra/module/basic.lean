@@ -168,10 +168,13 @@ S.to_add_subgroup.topological_add_group
 end submodule
 
 section closure
-variables {R : Type u} {M : Type v}
+variables {R R' : Type u} {M M' : Type v}
 [semiring R] [topological_space R]
+[ring R'] [topological_space R']
 [topological_space M] [add_comm_monoid M]
+[topological_space M'] [add_comm_group M']
 [module R M] [has_continuous_smul R M]
+[module R' M'] [has_continuous_smul R' M']
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
   (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) ⊆ closure s :=
@@ -244,10 +247,28 @@ lemma submodule.is_closed_or_dense_of_is_coatom (s : submodule R M) (hs : is_coa
 (hs.le_iff.mp s.submodule_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
   submodule.dense_iff_topological_closure_eq_top.mpr
 
-lemma linear_map.is_closed_or_dense_ker [is_simple_module R] (l : M →ₗ[R] R) :
-  is_closed (l.ker : set M) ∨ dense (l.ker : set M) :=
-begin
+#check strict_mono.lt_iff_lt
+#check submodule.comap_mkq.order_embedding
+#check linear_map.surjective_or_eq_zero
 
+lemma linear_map.is_closed_or_dense_ker [has_continuous_add M'] [is_simple_module R' R']
+  (l : M' →ₗ[R'] R') :
+  is_closed (l.ker : set M') ∨ dense (l.ker : set M') :=
+begin
+  rcases eq_or_ne l 0 with (rfl|hl),
+  { rw linear_map.ker_zero,
+    left,
+    exact is_closed_univ },
+  { refine l.ker.is_closed_or_dense_of_is_coatom _,
+    haveI : is_simple_module R' (M' ⧸ l.ker),
+    {  },
+    have := submodule.comap_map_eq l U,
+    rw sup_eq_left.mpr hU.le at this,
+    have : ⊥ < U.map l,
+    {  },
+    rw [←this, ←submodule.comap_top l],
+    have := submodule.comap_injective_of_surjective (linear_map.surjective_of_ne_zero hl),
+    refine this _, },
 end
 
 #exit

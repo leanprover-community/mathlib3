@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 
 import linear_algebra.span
 import order.atoms
+import linear_algebra.quotient
 
 /-!
 # Simple Modules
@@ -47,12 +48,23 @@ end⟩⟩
 
 variables {R} {M} {m : submodule R M} {N : Type*} [add_comm_group N] [module R N]
 
+lemma is_simple_module.congr (l : M ≃ₗ[R] N) [is_simple_module R M] : is_simple_module R N :=
+sorry
+
 theorem is_simple_module_iff_is_atom :
   is_simple_module R m ↔ is_atom m :=
 begin
   rw ← set.is_simple_order_Iic_iff_is_atom,
   apply order_iso.is_simple_order_iff,
   exact submodule.map_subtype.rel_iso m,
+end
+
+theorem is_simple_module_iff_is_coatom :
+  is_simple_module R (M ⧸ m) ↔ is_coatom m :=
+begin
+  rw ← set.is_simple_order_Ici_iff_is_coatom,
+  apply order_iso.is_simple_order_iff,
+  exact submodule.comap_mkq.rel_iso m,
 end
 
 namespace is_simple_module

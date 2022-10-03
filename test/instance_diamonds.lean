@@ -150,9 +150,9 @@ end multiplicative
 section finsupp
 open finsupp
 
-/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.has_smul` -/
+/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.smul_zero_class` -/
 example {k : Type*} [semiring k] [nontrivial k] :
-  (finsupp.comap_has_smul : has_smul k (k →₀ k)) ≠ finsupp.has_smul :=
+  (finsupp.comap_has_smul : has_smul k (k →₀ k)) ≠ finsupp.smul_zero_class.to_has_smul :=
 begin
   obtain ⟨u : k, hu⟩ := exists_ne (1 : k),
   intro h,
@@ -164,10 +164,10 @@ begin
   exact one_ne_zero h,
 end
 
-/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.has_smul` even when
+/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.smul_zero_class` even when
 the domain is a group. -/
 example {k : Type*} [semiring k] [nontrivial kˣ] :
-  (finsupp.comap_has_smul : has_smul kˣ (kˣ →₀ k)) ≠ finsupp.has_smul :=
+  (finsupp.comap_has_smul : has_smul kˣ (kˣ →₀ k)) ≠ finsupp.smul_zero_class.to_has_smul :=
 begin
   obtain ⟨u : kˣ, hu⟩ := exists_ne (1 : kˣ),
   haveI : nontrivial k := ⟨⟨u, 1, units.ext.ne hu⟩⟩,

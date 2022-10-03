@@ -126,3 +126,4 @@ def map_path {a : V} :
 lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f).to_path := rfl
 
 end prefunctor
+

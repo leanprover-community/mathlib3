@@ -101,10 +101,7 @@ def split_mono_of_inclusion (r : top_retraction X A) :
 { retraction := r.to_continuous_map,
   id' := begin
     apply fun_like.ext,
-    rw [top_hom_of_continuous_map, Top.top_comp, Top.top_id,
-        continuous_map.coe_mk, continuous_map.coe_mk, coe_continuous_map_eq_to_fun,
-        r.top_retraction'.id_of_retraction_of_inclusion],
-    intro x, refl,
+    exact λ x, congr_fun r.top_retraction'.id_of_retraction_of_inclusion x,
   end, }
 
 /-- We show that a topological retraction `r : X → A` is a split epimorphism in the category Top. -/
@@ -113,10 +110,7 @@ def split_epi_of_retraction (r : top_retraction X A) :
 { section_ := inclusion X A,
   id' := begin
     apply fun_like.ext,
-    rw [top_hom_of_continuous_map, Top.top_comp, Top.top_id,
-        continuous_map.coe_mk, continuous_map.coe_mk, coe_continuous_map_eq_to_fun,
-        r.top_retraction'.id_of_retraction_of_inclusion],
-    intro x, refl,
+    exact λ x, congr_fun r.top_retraction'.id_of_retraction_of_inclusion x,
   end, }
 
 /-- We show that if a topological retraction `r : X → A` exists, then the induced arrow between

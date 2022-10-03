@@ -25,6 +25,9 @@ variables {α β : Type*}
 
 namespace nat
 
+instance (α : Type*) [add_monoid_with_one α] : coe_one_hom ℕ α :=
+{ coe_one := cast_one }
+
 instance (α : Type*) [add_monoid_with_one α] : coe_add_monoid_hom ℕ α :=
 { coe_add := cast_add,
   coe_zero := cast_zero }

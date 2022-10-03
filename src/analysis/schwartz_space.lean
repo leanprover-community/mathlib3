@@ -408,8 +408,8 @@ variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 /-- The delta distribution as a linear map. -/
 def delta_aux (x₀ : E) : 𝓢(E, F) →ₗ[𝕜] F :=
 { to_fun := λ f, f x₀,
-  map_add' := λ f g, by simp,
-  map_smul' := λ a f, by simp }
+  map_add' := λ f g, add_apply,
+  map_smul' := λ a f, smul_apply }
 
 lemma delta_aux_apply (x₀ : E) (f : 𝓢(E, F)) : delta_aux 𝕜 F x₀ f = f x₀ := rfl
 
@@ -419,17 +419,16 @@ def delta (x₀ : E) : 𝓢(E, F) →L[𝕜] F :=
   begin
     refine (delta_aux 𝕜 F x₀).continuous_of_locally_bounded (λ s hs, _),
     rw bornology.is_vonN_bounded_iff_seminorm_bounded (schwartz_with_seminorms 𝕜 E F) at hs,
-    rcases hs (0,0) with ⟨r, hr, hs⟩,
-    simp_rw [schwartz_seminorm_family_apply] at hs,
+    rcases hs (0,0) with ⟨r, hr, hs'⟩,
     rw normed_space.image_is_vonN_bounded_iff,
     use r,
     intros f hf,
     rw [delta_aux_apply, ← @norm_iterated_fderiv_zero ℝ],
-    exact (norm_iterated_fderiv_le_seminorm 𝕜 f 0 x₀).trans (hs f hf).le,
+    exact (norm_iterated_fderiv_le_seminorm 𝕜 f 0 x₀).trans (hs' f hf).le,
   end,
   .. delta_aux 𝕜 F x₀ }
 
-lemma delta_apply (x₀ : E) (f : 𝓢(E, F)) : delta 𝕜 F x₀ f = f x₀ := rfl
+@[simp] lemma delta_apply (x₀ : E) (f : 𝓢(E, F)) : delta 𝕜 F x₀ f = f x₀ := rfl
 
 end distribution
 

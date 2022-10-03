@@ -293,20 +293,26 @@ begin
   haveI : locally_compact_space M := charted_space.locally_compact H M,
   haveI : normal_space M := normal_of_paracompact_t2,
   -- Next we choose a covering by supports of smooth bump functions
-  have hB := λ x hx, smooth_bump_function.nhds_basis_support I (hU x hx),
+  have hB := λ x hx, smooth_bump_function.nhds_basis_max_support I (hU x hx),
   rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs hB
     with ⟨ι, c, f, hf, hsub', hfin⟩, choose hcs hfU using hf,
   /- Then we use the shrinking lemma to get a covering by smaller open -/
-  rcases exists_subset_Union_closed_subset hs (λ i, (f i).open_support)
+  rcases exists_subset_Union_closed_subset hs (λ i, sorry) --(f i).open_max_support)
     (λ x hx, hfin.point_finite x) hsub' with ⟨V, hsV, hVc, hVf⟩,
   choose r hrR hr using λ i, (f i).exists_r_pos_lt_subset_ball (hVc i) (hVf i),
   refine ⟨ι, ⟨c, λ i, (f i).update_r (r i) (hrR i), hcs, _, λ x hx, _⟩, λ i, _⟩,
-  { simpa only [smooth_bump_function.support_update_r] },
+  { apply hfin.subset (λ i, _),
+    refine (smooth_bump_function.support_subset_max_support _).trans _,
+    simp only [smooth_bump_function.max_support_update_r] },
   { refine (mem_Union.1 $ hsV hx).imp (λ i hi, _),
     exact ((f i).update_r _ _).eventually_eq_one_of_dist_lt
-      ((f i).support_subset_source $ hVf _ hi) (hr i hi).2 },
-  { simpa only [coe_mk, smooth_bump_function.support_update_r, tsupport] using hfU i }
+      ((f i).max_support_subset_source $ hVf _ hi) (hr i hi).2 },
+  { dsimp,
+    simpa only [coe_mk, smooth_bump_function.support_update_r, tsupport] using hfU i }
 end
+
+#exit
+
 
 variables {I M}
 

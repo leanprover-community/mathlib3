@@ -397,7 +397,7 @@ lemma closed_ball_subset_support : closed_ball c f.r ⊆ support (f : E → ℝ)
 lemma ball_subset_support : ball c f.r ⊆ support (f : E → ℝ) :=
 ball_subset_closed_ball.trans f.closed_ball_subset_support
 
-lemma support_subset : support (f : E → ℝ) ⊆ ball c f.R :=
+lemma support_subset_ball : support (f : E → ℝ) ⊆ ball c f.R :=
 begin
   assume x hx,
   simp only [mem_support, ne.def] at hx,
@@ -406,14 +406,18 @@ begin
   simpa using hx,
 end
 
-lemma tsupport_subset : tsupport (f : E → ℝ) ⊆ closed_ball c f.R :=
+lemma support_subset_closed_ball : support (f : E → ℝ) ⊆ closed_ball c f.R :=
+f.support_subset_ball.trans ball_subset_closed_ball
+
+lemma tsupport_subset_closed_ball : tsupport (f : E → ℝ) ⊆ closed_ball c f.R :=
 begin
   rw [tsupport, ← closure_ball c f.R_pos.ne'],
-  exact closure_mono (support_subset _),
+  exact closure_mono (support_subset_ball _),
 end
 
 protected lemma has_compact_support [finite_dimensional ℝ E] : has_compact_support f :=
-compact_of_is_closed_subset (is_compact_closed_ball c f.R) (is_closed_tsupport _) f.tsupport_subset
+compact_of_is_closed_subset (is_compact_closed_ball c f.R) (is_closed_tsupport _)
+  f.tsupport_subset_closed_ball
 
 lemma eventually_eq_one_of_mem_ball (h : x ∈ ball c f.r) :
   f =ᶠ[𝓝 x] 1 :=
@@ -518,8 +522,8 @@ end
 lemma support_normed_eq : support (f.normed μ) = support f :=
 by simp_rw [cont_diff_bump.normed, support_div, support_const f.integral_pos.ne', inter_univ]
 
-lemma support_normed_subset : support (f.normed μ) ⊆ ball c f.R :=
-by { rw support_normed_eq, exact support_subset _ }
+lemma support_normed_subset_ball : support (f.normed μ) ⊆ ball c f.R :=
+by { rw support_normed_eq, exact support_subset_ball _ }
 
 lemma tsupport_normed_eq : tsupport (f.normed μ) = tsupport f :=
 by simp_rw [tsupport, support_normed_eq]
@@ -541,7 +545,7 @@ begin
   rcases metric.mem_nhds_iff.mp ht with ⟨ε, hε, ht⟩,
   refine (hφ ε hε).mono (λ i hi, subset_trans _ ht),
   simp_rw [(φ i).support_normed_eq],
-  exact (φ i).support_subset.trans (ball_subset_ball hi.le),
+  exact (φ i).support_subset_ball.trans (ball_subset_ball hi.le),
 end
 
 variable (μ)

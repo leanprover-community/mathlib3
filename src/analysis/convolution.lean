@@ -712,6 +712,9 @@ end
 
 end normed_add_comm_group
 
+instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
+  nonempty (cont_diff_bump_base E) := sorry
+
 namespace cont_diff_bump
 
 variables {n : ℕ∞}
@@ -723,7 +726,7 @@ variables {a : G} {φ : cont_diff_bump (0 : G)}
 /-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma convolution_eq_right {x₀ : G}
   (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = integral μ φ • g x₀ :=
-by simp_rw [convolution_eq_right' _ φ.support_subset hg, lsmul_apply, integral_smul_const]
+by simp_rw [convolution_eq_right' _ φ.support_subset_ball hg, lsmul_apply, integral_smul_const]
 
 variables [borel_space G]
 variables [is_locally_finite_measure μ] [is_open_pos_measure μ]
@@ -732,7 +735,7 @@ variables [finite_dimensional ℝ G]
 /-- If `φ` is a normed bump function, compute `φ ⋆ g` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma normed_convolution_eq_right {x₀ : G}
   (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = g x₀ :=
-by { simp_rw [convolution_eq_right' _ φ.support_normed_subset hg, lsmul_apply],
+by { simp_rw [convolution_eq_right' _ φ.support_normed_subset_ball hg, lsmul_apply],
   exact integral_normed_smul φ μ (g x₀) }
 
 variables [is_add_left_invariant μ]
@@ -744,7 +747,7 @@ lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
   (hg : ∀ x ∈ ball x₀ φ.R, dist (g x) (g x₀) ≤ ε) :
   dist ((φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) (g x₀) ≤ ε :=
 dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self φ.R_pos)])
-  φ.support_normed_subset φ.nonneg_normed φ.integral_normed hmg hg
+  φ.support_normed_subset_ball φ.nonneg_normed φ.integral_normed hmg hg
 
 /-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
 * `φ` is a sequence of normed bump functions such that `(φ i).R` tends to `0` as `i` tends to `l`;

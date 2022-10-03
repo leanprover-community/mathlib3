@@ -400,7 +400,7 @@ end
 
 /-- The quotient of a second countable space by a group action is second countable. -/
 @[to_additive "The quotient of a second countable space by an additive group action is second
-countable"]
+countable."]
 theorem has_continuous_const_smul.second_countable_topology [second_countable_topology T]
   [has_continuous_const_smul Γ T] :
   second_countable_topology (quotient (mul_action.orbit_rel Γ T)) :=

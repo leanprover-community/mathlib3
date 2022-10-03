@@ -12,6 +12,7 @@ import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
 import linear_algebra.determinant
+import ring_theory.simple_module
 
 /-!
 # Theory of topological modules and continuous linear maps.

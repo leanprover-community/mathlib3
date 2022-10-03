@@ -491,6 +491,29 @@ subgroup.map_injective to_perm_injective $ by rw [monoid_hom.map_closure, ← ge
 by simp only [← subgroup.top_to_submonoid, ← closure_abcd, subgroup.closure_to_submonoid,
   inv_insert, inv_singleton, inv_coe, union_self]
 
+namespace word
+
+def to_grigorchuk : W →* G := free_monoid.lift coe
+
+@[simp] lemma to_grigorchuk_of (x : generator) : to_grigorchuk x = x := rfl
+
+end word
+
+namespace noncancellable
+
+def to_grigorchuk : NC →* G :=
+monoid_hom.of_mclosure_eq_top_left (word.to_grigorchuk ∘ to_word) mclosure_abcd rfl $
+  begin
+    rw [← generator.range_eq, forall_range_iff], intros x y,
+    induction y using grigorchuk_group.noncancellable.cases_on_cons with y g hyg,
+    { simp only [mul_one, (∘), one_to_word, map_one] },
+    {
+
+     }
+  end
+
+end noncancellable
+
 #exit
 
 def of_word : free_monoid (fin 4) →* G := free_monoid.lift abcd

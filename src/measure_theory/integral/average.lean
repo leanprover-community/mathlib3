@@ -78,7 +78,7 @@ by rw [average_def, integral_smul_measure, ennreal.to_real_inv]
 
 lemma average_eq_integral [is_probability_measure μ] (f : α → E) :
   ⨍ x, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [average, measure_univ, ennreal.inv_one, one_smul]
+by rw [average, measure_univ, inv_one, one_smul]
 
 @[simp] lemma measure_smul_average [is_finite_measure μ] (f : α → E) :
   (μ univ).to_real • ⨍ x, f x ∂μ = ∫ x, f x ∂μ :=

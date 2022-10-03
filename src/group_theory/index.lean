@@ -270,7 +270,7 @@ end
 @[to_additive] lemma index_inf_le : (H ⊓ K).index ≤ H.index * K.index :=
 by simp_rw [←relindex_top_right, relindex_inf_le]
 
-@[to_additive] lemma relindex_infi_ne_zero {ι : Type*} [hι : finite ι] (f : ι → subgroup G)
+@[to_additive] lemma relindex_infi_ne_zero {ι : Type*} [hι : finite ι] {f : ι → subgroup G}
   (hf : ∀ i, (f i).relindex L ≠ 0) : (⨅ i, f i).relindex L ≠ 0 :=
 begin
   haveI := fintype.of_finite ι,
@@ -284,11 +284,11 @@ le_of_le_of_eq (finite.card_le_of_embedding' (quotient_infi_embedding f L)
   (λ h, let ⟨i, hi, h⟩ := finset.prod_eq_zero_iff.mp (nat.card_pi.symm.trans h) in
     relindex_eq_zero_of_le_left (infi_le f i) h)) nat.card_pi
 
-@[to_additive] lemma index_infi_ne_zero {ι : Type*} [finite ι] (f : ι → subgroup G)
+@[to_additive] lemma index_infi_ne_zero {ι : Type*} [finite ι] {f : ι → subgroup G}
   (hf : ∀ i, (f i).index ≠ 0) : (⨅ i, f i).index ≠ 0 :=
 begin
   simp_rw ← relindex_top_right at hf ⊢,
-  exact relindex_infi_ne_zero f hf,
+  exact relindex_infi_ne_zero hf,
 end
 
 @[to_additive] lemma index_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :

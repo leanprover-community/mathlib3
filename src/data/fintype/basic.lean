@@ -123,6 +123,8 @@ instance : order_top (finset α) :=
 { top := univ,
   le_top := subset_univ }
 
+@[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
+
 section boolean_algebra
 variables [decidable_eq α] {a : α}
 
@@ -140,6 +142,12 @@ lemma not_mem_compl : a ∉ sᶜ ↔ a ∈ s := by rw [mem_compl, not_not]
 set.ext $ λ x, mem_compl
 
 @[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
+
+@[simp] lemma compl_univ : (univ : finset α)ᶜ = ∅ := compl_top
+
+@[simp] lemma compl_eq_empty_iff (s : finset α) : sᶜ = ∅ ↔ s = univ := compl_eq_bot
+
+@[simp] lemma compl_eq_univ_iff (s : finset α) : sᶜ = univ ↔ s = ∅ := compl_eq_top
 
 @[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = univ := sup_compl_eq_top
 
@@ -623,6 +631,12 @@ by simp [to_finset]
 
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
+
+/-- Many `fintype` instances for sets are defined using an extensionally equal `finset`.
+Rewriting `s.to_finset` with `set.to_finset_of_finset` replaces the term with such a `finset`. -/
+theorem to_finset_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
+  @set.to_finset _ p (fintype.of_finset s H) = s :=
+finset.ext (λ x, by rw [mem_to_finset, H])
 
 /-- Membership of a set with a `fintype` instance is decidable.
 

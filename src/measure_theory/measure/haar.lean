@@ -595,7 +595,7 @@ theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_inva
   (K₀ : positive_compacts G) : μ = μ K₀ • haar_measure K₀ :=
 (measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
   (measure_pos_of_nonempty_interior _ K₀.interior_nonempty).ne'
-  K₀.compact.measure_lt_top.ne).trans (by rw [haar_measure_self, ennreal.div_one])
+  K₀.compact.measure_lt_top.ne).trans (by rw [haar_measure_self, div_one])
 
 example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
   μ = μ K₀.1 • haar_measure K₀ :=

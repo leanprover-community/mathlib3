@@ -160,10 +160,11 @@ begin
   have hy2: y1 ∈ [0, 2*π], by {convert (Ico_subset_Icc_self hy1),
     simp [interval_of_le real.two_pi_pos.le]},
   have := mul_le_mul (hab ⟨⟨v, y1⟩, ⟨ball_subset_closed_ball (H hv), hy2⟩⟩)
-   (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1)) (abs_nonneg _) (abs_nonneg _),
-   simp_rw hfun,
+   (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1))
+   (complex.abs.nonneg _) (complex.abs.nonneg _),
+  simp_rw hfun,
   simp only [circle_transform_bounding_function, circle_transform_deriv, V, norm_eq_abs,
-    algebra.id.smul_eq_mul, deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one,
+    algebra.id.smul_eq_mul, deriv_circle_map, map_mul, abs_circle_map_zero, abs_I, mul_one,
     ←mul_assoc, mul_inv_rev, inv_I, abs_neg, abs_inv, abs_of_real, one_mul, abs_two, abs_pow,
     mem_ball, gt_iff_lt, subtype.coe_mk, set_coe.forall, mem_prod, mem_closed_ball, and_imp,
     prod.forall, normed_space.sphere_nonempty, mem_sphere_iff_norm] at *,

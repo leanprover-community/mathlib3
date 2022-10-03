@@ -40,8 +40,6 @@ class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
 restate_axiom groupoid.inv_comp'
 restate_axiom groupoid.comp_inv'
 
-attribute [simp] groupoid.inv_comp groupoid.comp_inv
-
 /--
 A `large_groupoid` is a groupoid
 where the objects live in `Type (u+1)` while the morphisms live in `Type u`.
@@ -59,7 +57,14 @@ variables {C : Type u} [groupoid.{v} C] {X Y : C}
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f :=
-⟨⟨groupoid.inv f, by simp⟩⟩
+⟨⟨groupoid.inv f, groupoid.comp_inv f, groupoid.inv_comp f⟩⟩
+
+@[simp] lemma groupoid.inv_eq_inv (f : X ⟶ Y) : groupoid.inv f = inv f :=
+is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
+
+/-- `groupoid.inv` is involutive. -/
+@[simps] def groupoid.inv_equiv : (X ⟶ Y) ≃ (Y ⟶ X) :=
+⟨groupoid.inv, groupoid.inv, λ f, by simp, λ f, by simp⟩
 
 variables (X Y)
 

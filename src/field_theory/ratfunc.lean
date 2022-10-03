@@ -140,7 +140,9 @@ of `∀ {p q a : K[X]} (hq : q ≠ 0) (ha : a ≠ 0), f (a * p) (a * q) = f p q)
   (H : ∀ {p q p' q'} (hq : q ∈ K[X]⁰) (hq' : q' ∈ K[X]⁰), p * q' = p' * q →
     f p q = f p' q') :
   P :=
-localization.lift_on (to_fraction_ring x) (λ p q, f p q) (λ p p' q q' h, H q.2 q'.2
+localization.lift_on
+  (by exact to_fraction_ring x) -- Fix timeout by manipulating elaboration order
+  (λ p q, f p q) (λ p p' q q' h, H q.2 q'.2
   (let ⟨⟨c, hc⟩, mul_eq⟩ := (localization.r_iff_exists).mp h in
     mul_cancel_right_coe_non_zero_divisor.mp mul_eq))
 
@@ -148,7 +150,7 @@ lemma lift_on_of_fraction_ring_mk {P : Sort v} (n : K[X]) (d : K[X]⁰)
   (f : ∀ (p q : K[X]), P)
   (H : ∀ {p q p' q'} (hq : q ∈ K[X]⁰) (hq' : q' ∈ K[X]⁰), p * q' = p' * q →
     f p q = f p' q') :
-  ratfunc.lift_on (of_fraction_ring (localization.mk n d)) f @H = f n d :=
+  ratfunc.lift_on (by exact of_fraction_ring (localization.mk n d)) f @H = f n d :=
 begin
   unfold ratfunc.lift_on,
   exact localization.lift_on_mk _ _ _ _
@@ -1403,7 +1405,7 @@ lift_alg_hom_injective _ (polynomial.algebra_map_hahn_series_injective _)
 
 @[simp, norm_cast] lemma coe_div : ((f / g : ratfunc F) : laurent_series F) =
   (f : laurent_series F) / (g : laurent_series F) :=
-(coe_alg_hom F).map_div _ _
+map_div₀ (coe_alg_hom F) _ _
 
 @[simp, norm_cast] lemma coe_C (r : F) : ((C r : ratfunc F) : laurent_series F) = hahn_series.C r :=
 by rw [coe_num_denom, num_C, denom_C, coe_coe, polynomial.coe_C, coe_C, coe_coe, polynomial.coe_one,

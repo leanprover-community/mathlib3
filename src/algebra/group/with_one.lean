@@ -67,6 +67,17 @@ def rec_one_coe {C : with_one α → Sort*} (h₁ : C 1) (h₂ : Π (a : α), C 
   Π (n : with_one α), C n :=
 option.rec h₁ h₂
 
+/-- Deconstruct a `x : with_one α` to the underlying value in `α`, given a proof that `x ≠ 1`. -/
+@[to_additive unzero
+  "Deconstruct a `x : with_zero α` to the underlying value in `α`, given a proof that `x ≠ 0`."]
+def unone {x : with_one α} (hx : x ≠ 1) : α := with_bot.unbot x hx
+
+@[simp, to_additive unzero_coe]
+lemma unone_coe {x : α} (hx : (x : with_one α) ≠ 1) : unone hx = x := rfl
+
+@[simp, to_additive coe_unzero]
+lemma coe_unone {x : with_one α} (hx : x ≠ 1) : ↑(unone hx) = x := with_bot.coe_unbot x hx
+
 @[to_additive]
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
@@ -83,10 +94,8 @@ lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :
 option.ne_none_iff_exists
 
 @[to_additive]
-instance : can_lift (with_one α) α :=
-{ coe := coe,
-  cond := λ a, a ≠ 1,
-  prf := λ a, ne_one_iff_exists.1 }
+instance can_lift : can_lift (with_one α) α coe (λ a, a ≠ 1) :=
+{ prf := λ a, ne_one_iff_exists.1 }
 
 @[simp, norm_cast, to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
@@ -420,6 +429,14 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.add_comm_monoid,
   ..with_zero.mul_zero_class,
   ..with_zero.monoid_with_zero }
+
+/-- Any group is isomorphic to the units of itself adjoined with `0`. -/
+def units_with_zero_equiv [group α] : (with_zero α)ˣ ≃* α :=
+{ to_fun    := λ a, unzero a.ne_zero,
+  inv_fun   := λ a, units.mk0 a coe_ne_zero,
+  left_inv  := λ _, units.ext $ by simpa only [coe_unzero],
+  right_inv := λ _, rfl,
+  map_mul'  := λ _ _, coe_inj.mp $ by simpa only [coe_unzero, coe_mul] }
 
 attribute [irreducible] with_zero
 

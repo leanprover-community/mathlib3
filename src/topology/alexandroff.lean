@@ -55,7 +55,7 @@ namespace alexandroff
 
 /-- The point at infinity -/
 def infty : alexandroff X := none
-localized "notation `∞` := alexandroff.infty" in alexandroff
+localized "notation (name := alexandroff.infty) `∞` := alexandroff.infty" in alexandroff
 
 instance : has_coe_t X (alexandroff X) := ⟨option.some⟩
 
@@ -102,10 +102,8 @@ lemma ne_infty_iff_exists {x : alexandroff X} :
   x ≠ ∞ ↔ ∃ (y : X), (y : alexandroff X) = x :=
 by induction x using alexandroff.rec; simp
 
-instance : can_lift (alexandroff X) X :=
-{ coe := coe,
-  cond := λ x, x ≠ ∞,
-  prf := λ x, ne_infty_iff_exists.1 }
+instance can_lift : can_lift (alexandroff X) X coe (λ x, x ≠ ∞) :=
+with_top.can_lift
 
 lemma not_mem_range_coe_iff {x : alexandroff X} :
   x ∉ range (coe : X → alexandroff X) ↔ x = ∞ :=
@@ -350,7 +348,7 @@ by induction x using alexandroff.rec; induction y using alexandroff.rec;
 
 In this section we prove that `alexandroff X` is a compact space; it is a T₀ (resp., T₁) space if
 the original space satisfies the same separation axiom. If the original space is a locally compact
-Hausdorff space, then `alexandroff X` is a normal (hence, regular and Hausdorff) space.
+Hausdorff space, then `alexandroff X` is a normal (hence, T₃ and Hausdorff) space.
 
 Finally, if the original space `X` is *not* compact and is a preconnected space, then
 `alexandroff X` is a connected space.

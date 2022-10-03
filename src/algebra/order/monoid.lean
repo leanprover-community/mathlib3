@@ -95,6 +95,25 @@ export has_exists_mul_of_le (exists_mul_of_le)
 
 export has_exists_add_of_le (exists_add_of_le)
 
+section has_exists_mul_of_le
+variables [linear_order α] [densely_ordered α] [monoid α] [has_exists_mul_of_le α]
+  [covariant_class α α (*) (<)] [contravariant_class α α (*) (<)] {a b : α}
+
+@[to_additive]
+lemma le_of_forall_one_lt_le_mul (h : ∀ ε : α, 1 < ε → a ≤ b * ε) : a ≤ b :=
+le_of_forall_le_of_dense $ λ x hxb, by { obtain ⟨ε, rfl⟩ := exists_mul_of_le hxb.le,
+  exact h _ ((lt_mul_iff_one_lt_right' b).1 hxb) }
+
+@[to_additive]
+lemma le_of_forall_one_lt_lt_mul' (h : ∀ ε : α, 1 < ε → a < b * ε) : a ≤ b :=
+le_of_forall_one_lt_le_mul $ λ ε hε, (h _ hε).le
+
+@[to_additive]
+lemma le_iff_forall_one_lt_lt_mul' : a ≤ b ↔ ∀ ε, 1 < ε → a < b * ε :=
+⟨λ h ε, lt_mul_of_le_of_one_lt h, le_of_forall_one_lt_lt_mul'⟩
+
+end has_exists_mul_of_le
+
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]
 class linear_ordered_add_comm_monoid (α : Type*)
@@ -119,6 +138,14 @@ zero_le_one
 lemma zero_le_two [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
   [covariant_class α α (+) (≤)] : (0 : α) ≤ 2 :=
 add_nonneg zero_le_one zero_le_one
+
+lemma zero_le_three [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 3 :=
+add_nonneg zero_le_two zero_le_one
+
+lemma zero_le_four [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 4 :=
+add_nonneg zero_le_two zero_le_two
 
 lemma one_le_two [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
   [covariant_class α α (+) (≤)] : (1 : α) ≤ 2 :=
@@ -184,12 +211,13 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α] {β : Type*}
-  [has_one β] [has_mul β] [has_pow β ℕ]
+  [has_one β] [has_mul β] [has_pow β ℕ] [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_monoid β :=
 { .. hf.ordered_comm_monoid f one mul npow,
-  .. linear_order.lift f hf }
+  .. linear_order.lift f hf hsup hinf }
 
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos' h h
@@ -214,17 +242,21 @@ partial_order.lift coe units.ext
 
 @[to_additive]
 instance [monoid α] [linear_order α] : linear_order αˣ :=
-linear_order.lift coe units.ext
+linear_order.lift' coe units.ext
+
+/-- `coe : αˣ → α` as an order embedding. -/
+@[to_additive "`coe : add_units α → α` as an order embedding.", simps { fully_applied := ff }]
+def order_embedding_coe [monoid α] [linear_order α] : αˣ ↪o α := ⟨⟨coe, ext⟩, λ _ _, iff.rfl⟩
 
 @[simp, norm_cast, to_additive]
 theorem max_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [max_def, h]
+monotone.map_max order_embedding_coe.monotone
 
 @[simp, norm_cast, to_additive]
 theorem min_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [min_def, h]
+monotone.map_min order_embedding_coe.monotone
 
 end units
 
@@ -401,15 +433,16 @@ le_antisymm bot_le (one_le ⊥)
 mul_eq_one_iff' (one_le _) (one_le _)
 
 @[simp, to_additive] lemma le_one_iff_eq_one : a ≤ 1 ↔ a = 1 :=
-iff.intro
-  (assume h, le_antisymm h (one_le a))
-  (assume h, h ▸ le_refl a)
+(one_le a).le_iff_eq
 
 @[to_additive] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
-iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
+(one_le a).lt_iff_ne.trans ne_comm
 
 @[to_additive] lemma eq_one_or_one_lt : a = 1 ∨ 1 < a :=
 (one_le a).eq_or_lt.imp_left eq.symm
+
+@[simp, to_additive add_pos_iff] lemma one_lt_mul_iff : 1 < a * b ↔ 1 < a ∨ 1 < b :=
+by simp only [one_lt_iff_ne_one, ne.def, mul_eq_one_iff, not_and_distrib]
 
 @[to_additive] lemma exists_one_lt_mul_of_lt (h : a < b) : ∃ c (hc : 1 < c), a * c = b :=
 begin
@@ -469,6 +502,10 @@ end canonically_ordered_monoid
 lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
 lt_of_le_of_lt (zero_le _) h
 
+@[priority 100] instance canonically_ordered_add_monoid.zero_le_one_class {M : Type*}
+  [canonically_ordered_add_monoid M] [has_one M] : zero_le_one_class M :=
+⟨zero_le 1⟩
+
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/
 @[protect_proj, ancestor canonically_ordered_add_monoid linear_order]
@@ -527,23 +564,26 @@ end canonically_linear_ordered_monoid
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
 in which addition is cancellative and monotone. -/
-@[protect_proj, ancestor add_cancel_comm_monoid partial_order]
-class ordered_cancel_add_comm_monoid (α : Type u)
-      extends add_cancel_comm_monoid α, partial_order α :=
+@[protect_proj, ancestor add_comm_monoid partial_order]
+class ordered_cancel_add_comm_monoid (α : Type u) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (le_of_add_le_add_left : ∀ a b c : α, a + b ≤ a + c → b ≤ c)
 
 /-- An ordered cancellative commutative monoid
 is a commutative monoid with a partial order,
 in which multiplication is cancellative and monotone. -/
-@[protect_proj, ancestor cancel_comm_monoid partial_order, to_additive]
-class ordered_cancel_comm_monoid (α : Type u)
-      extends cancel_comm_monoid α, partial_order α :=
+@[protect_proj, ancestor comm_monoid partial_order, to_additive]
+class ordered_cancel_comm_monoid (α : Type u) extends comm_monoid α, partial_order α :=
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (le_of_mul_le_mul_left : ∀ a b c : α, a * b ≤ a * c → b ≤ c)
 
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
+
+@[priority 200, to_additive] -- see Note [lower instance priority]
+instance ordered_cancel_comm_monoid.to_contravariant_class_le_left :
+  contravariant_class α α (*) (≤) :=
+⟨ordered_cancel_comm_monoid.le_of_mul_le_mul_left⟩
 
 @[to_additive]
 lemma ordered_cancel_comm_monoid.lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c :=
@@ -571,6 +611,12 @@ contravariant_swap_mul_lt_of_contravariant_mul_lt M
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid : ordered_comm_monoid α :=
 { ..‹ordered_cancel_comm_monoid α› }
 
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance ordered_cancel_comm_monoid.to_cancel_comm_monoid : cancel_comm_monoid α :=
+{ mul_left_cancel := λ a b c h,
+    (le_of_mul_le_mul_left' h.le).antisymm $ le_of_mul_le_mul_left' h.ge,
+  ..‹ordered_cancel_comm_monoid α› }
+
 /-- Pullback an `ordered_cancel_comm_monoid` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.ordered_cancel_add_comm_monoid
@@ -582,7 +628,6 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
   ordered_cancel_comm_monoid β :=
 { le_of_mul_le_mul_left := λ a b c (bc : f (a * b) ≤ f (a * c)),
     (mul_le_mul_iff_left (f a)).mp (by rwa [← mul, ← mul]),
-  ..hf.left_cancel_semigroup f mul,
   ..hf.ordered_comm_monoid f one mul npow }
 
 end ordered_cancel_comm_monoid
@@ -694,11 +739,12 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_cancel_add_comm_monoid
 "Pullback a `linear_ordered_cancel_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_cancel_comm_monoid {β : Type*}
-  [has_one β] [has_mul β] [has_pow β ℕ]
+  [has_one β] [has_mul β] [has_pow β ℕ] [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_cancel_comm_monoid β :=
-{ ..hf.linear_ordered_comm_monoid f one mul npow,
+{ ..hf.linear_ordered_comm_monoid f one mul npow hsup hinf,
   ..hf.ordered_cancel_comm_monoid f one mul npow }
 
 end linear_ordered_cancel_comm_monoid
@@ -706,23 +752,6 @@ end linear_ordered_cancel_comm_monoid
 /-! ### Order dual -/
 
 namespace order_dual
-
-@[to_additive] instance [h : has_mul α] : has_mul αᵒᵈ := h
-@[to_additive] instance [h : has_one α] : has_one αᵒᵈ := h
-@[to_additive] instance [h : semigroup α] : semigroup αᵒᵈ := h
-@[to_additive] instance [h : comm_semigroup α] : comm_semigroup αᵒᵈ := h
-@[to_additive] instance [h : mul_one_class α] : mul_one_class αᵒᵈ := h
-@[to_additive] instance [h : monoid α] : monoid αᵒᵈ := h
-@[to_additive] instance [h : comm_monoid α] : comm_monoid αᵒᵈ := h
-@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : cancel_monoid α] : cancel_monoid αᵒᵈ := h
-@[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid αᵒᵈ := h
-instance [h : mul_zero_class α] : mul_zero_class αᵒᵈ := h
-instance [h : mul_zero_one_class α] : mul_zero_one_class αᵒᵈ := h
-instance [h : monoid_with_zero α] : monoid_with_zero αᵒᵈ := h
-instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero αᵒᵈ := h
-instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero αᵒᵈ := h
 
 @[to_additive]
 instance contravariant_class_mul_le [has_le α] [has_mul α] [c : contravariant_class α α (*) (≤)] :
@@ -775,7 +804,7 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid αᵒᵈ :=
 @[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
 instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
   contravariant_class αᵒᵈ αᵒᵈ has_mul.mul has_le.le :=
-{ elim := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
+{ elim := λ a b c, ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid αᵒᵈ :=
@@ -796,6 +825,8 @@ instance [linear_ordered_comm_monoid α] :
 
 end order_dual
 
+/-! ### Product -/
+
 namespace prod
 
 variables {M N : Type*}
@@ -809,7 +840,7 @@ instance [ordered_comm_monoid α] [ordered_comm_monoid β] : ordered_comm_monoid
 instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
   ordered_cancel_comm_monoid (M × N) :=
 { le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
-  .. prod.cancel_comm_monoid, .. prod.ordered_comm_monoid }
+  .. prod.ordered_comm_monoid }
 
 @[to_additive] instance [has_le α] [has_le β] [has_mul α] [has_mul β] [has_exists_mul_of_le α]
   [has_exists_mul_of_le β] : has_exists_mul_of_le (α × β) :=
@@ -987,6 +1018,18 @@ protected lemma add_lt_add_of_lt_of_le [preorder α] [covariant_class α α (+) 
   [covariant_class α α (swap (+)) (<)] (hc : c ≠ ⊤) (hab : a < b) (hcd : c ≤ d) : a + c < b + d :=
 (with_top.add_lt_add_right hc hab).trans_le $ add_le_add_left hcd _
 
+/-  There is no `with_top.map_mul_of_mul_hom`, since `with_top` does not have a multiplication. -/
+@[simp] protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_top α) :
+  (a + b).map f = a.map f + b.map f :=
+begin
+  induction a using with_top.rec_top_coe,
+  { exact (top_add _).symm },
+  { induction b using with_top.rec_top_coe,
+    { exact (add_top _).symm },
+    { rw [map_coe, map_coe, ← coe_add, ← coe_add, ← map_add],
+      refl } },
+end
+
 end has_add
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
@@ -1029,6 +1072,15 @@ instance [add_monoid α] : add_monoid (with_top α) :=
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 { ..with_top.add_monoid, ..with_top.add_comm_semigroup }
+
+instance [add_monoid_with_one α] : add_monoid_with_one (with_top α) :=
+{ nat_cast := λ n, ↑(n : α),
+  nat_cast_zero := by rw [nat.cast_zero, with_top.coe_zero],
+  nat_cast_succ := λ n, by rw [nat.cast_add_one, with_top.coe_add, with_top.coe_one],
+  .. with_top.has_one, .. with_top.add_monoid }
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one (with_top α) :=
+{ .. with_top.add_monoid_with_one, .. with_top.add_comm_monoid }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 { add_le_add_left :=
@@ -1073,6 +1125,10 @@ instance [canonically_linear_ordered_add_monoid α] :
   canonically_linear_ordered_add_monoid (with_top α) :=
 { ..with_top.canonically_ordered_add_monoid, ..with_top.linear_order }
 
+@[simp, norm_cast] lemma coe_nat [add_monoid_with_one α] (n : ℕ) : ((n : α) : with_top α) = n := rfl
+@[simp] lemma nat_ne_top [add_monoid_with_one α] (n : ℕ) : (n : with_top α) ≠ ⊤ := coe_ne_top
+@[simp] lemma top_ne_nat [add_monoid_with_one α] (n : ℕ) : (⊤ : with_top α) ≠ n := top_ne_coe
+
 /-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
 def coe_add_hom [add_monoid α] : α →+ with_top α :=
 ⟨coe, rfl, λ _ _, rfl⟩
@@ -1098,11 +1154,7 @@ protected def _root_.one_hom.with_top_map {M N : Type*} [has_one M] [has_one N] 
   {M N : Type*} [has_add M] [has_add N] (f : add_hom M N) :
   add_hom (with_top M) (with_top N) :=
 { to_fun := with_top.map f,
-  map_add' := λ x y, match x, y with
-    ⊤, y := by rw [top_add, map_top, top_add],
-    x, ⊤ := by rw [add_top, map_top, add_top],
-    (x : M), (y : M) := by simp only [← coe_add, map_coe, map_add]
-  end }
+  map_add' := with_top.map_add f }
 
 /-- A version of `with_top.map` for `add_monoid_hom`s. -/
 @[simps { fully_applied := ff }] protected def _root_.add_monoid_hom.with_top_map
@@ -1122,6 +1174,10 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.
 instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero_class
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (with_bot α) := with_top.add_comm_monoid
+instance [add_monoid_with_one α] : add_monoid_with_one (with_bot α) := with_top.add_monoid_with_one
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one (with_bot α) :=
+with_top.add_comm_monoid_with_one
 
 instance [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] :
   zero_le_one_class (with_bot α) :=
@@ -1138,6 +1194,10 @@ with_top.coe_eq_one
 
 @[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
   (1 : with_bot α).map f = (f 1 : with_bot β) := rfl
+
+@[norm_cast] lemma coe_nat [add_monoid_with_one α] (n : ℕ) : ((n : α) : with_bot α) = n := rfl
+@[simp] lemma nat_ne_bot [add_monoid_with_one α] (n : ℕ) : (n : with_bot α) ≠ ⊥ := coe_ne_bot
+@[simp] lemma bot_ne_nat [add_monoid_with_one α] (n : ℕ) : (⊥ : with_bot α) ≠ n := bot_ne_coe
 
 section has_add
 variables [has_add α] {a b c d : with_bot α} {x y : α}
@@ -1160,6 +1220,32 @@ lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a
 
 @[simp] lemma add_coe_eq_bot_iff : a + y = ⊥ ↔ a = ⊥ := with_top.add_coe_eq_top_iff
 @[simp] lemma coe_add_eq_bot_iff : ↑x + b = ⊥ ↔ b = ⊥ := with_top.coe_add_eq_top_iff
+
+/-  There is no `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have a multiplication. -/
+@[simp] protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_bot α) :
+  (a + b).map f = a.map f + b.map f :=
+with_top.map_add f a b
+
+/-- A version of `with_bot.map` for `one_hom`s. -/
+@[to_additive "A version of `with_bot.map` for `zero_hom`s", simps { fully_applied := ff }]
+protected def _root_.one_hom.with_bot_map {M N : Type*} [has_one M] [has_one N] (f : one_hom M N) :
+  one_hom (with_bot M) (with_bot N) :=
+{ to_fun := with_bot.map f,
+  map_one' := by rw [with_bot.map_one, map_one, coe_one] }
+
+/-- A version of `with_bot.map` for `add_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.add_hom.with_bot_map
+  {M N : Type*} [has_add M] [has_add N] (f : add_hom M N) :
+  add_hom (with_bot M) (with_bot N) :=
+{ to_fun := with_bot.map f,
+  map_add' := with_bot.map_add f }
+
+/-- A version of `with_bot.map` for `add_monoid_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.add_monoid_hom.with_bot_map
+  {M N : Type*} [add_zero_class M] [add_zero_class N] (f : M →+ N) :
+  with_bot M →+ with_bot N :=
+{ to_fun := with_bot.map f,
+  .. f.to_zero_hom.with_bot_map, .. f.to_add_hom.with_bot_map }
 
 variables [preorder α]
 
@@ -1264,12 +1350,10 @@ instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_comm_monoid (multiplicative α) :=
 { le_of_mul_le_mul_left := @ordered_cancel_add_comm_monoid.le_of_add_le_add_left α _,
-  ..multiplicative.left_cancel_semigroup,
   ..multiplicative.ordered_comm_monoid }
 
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (additive α) :=
 { le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
-  ..additive.add_left_cancel_semigroup,
   ..additive.ordered_add_comm_monoid }
 
 instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multiplicative α) :=

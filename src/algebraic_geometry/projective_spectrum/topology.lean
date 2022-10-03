@@ -47,7 +47,7 @@ variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals that
 are prime and do not contain the irrelevant ideal.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def projective_spectrum :=
 {I : homogeneous_ideal 𝒜 // I.to_ideal.is_prime ∧ ¬(homogeneous_ideal.irrelevant 𝒜 ≤ I)}
 
@@ -252,7 +252,7 @@ by convert (gc_ideal 𝒜).u_infi; exact homogeneous_ideal.to_ideal_infi _
 
 lemma zero_locus_inf (I J : ideal A) :
   zero_locus 𝒜 ((I ⊓ J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.inf_le
+set.ext $ λ x, x.2.1.inf_le
 
 lemma union_zero_locus (s s' : set A) :
   zero_locus 𝒜 s ∪ zero_locus 𝒜 s' = zero_locus 𝒜 ((ideal.span s) ⊓ (ideal.span s'): ideal A) :=
@@ -260,11 +260,11 @@ by { rw zero_locus_inf, simp }
 
 lemma zero_locus_mul_ideal (I J : ideal A) :
   zero_locus 𝒜 ((I * J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.mul_le
+set.ext $ λ x, x.2.1.mul_le
 
 lemma zero_locus_mul_homogeneous_ideal (I J : homogeneous_ideal 𝒜) :
   zero_locus 𝒜 ((I * J : homogeneous_ideal 𝒜) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.mul_le
+set.ext $ λ x, x.2.1.mul_le
 
 lemma zero_locus_singleton_mul (f g : A) :
   zero_locus 𝒜 ({f * g} : set A) = zero_locus 𝒜 {f} ∪ zero_locus 𝒜 {g} :=
@@ -287,7 +287,7 @@ end
 
 lemma mem_compl_zero_locus_iff_not_mem {f : A} {I : projective_spectrum 𝒜} :
   I ∈ (zero_locus 𝒜 {f} : set (projective_spectrum 𝒜))ᶜ ↔ f ∉ I.as_homogeneous_ideal :=
-by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
+by rw [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]; refl
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
@@ -364,7 +364,7 @@ lemma is_open_basic_open {a : A} : is_open ((basic_open 𝒜 a) :
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : A) :
   (basic_open 𝒜 r : set (projective_spectrum 𝒜)) = (zero_locus 𝒜 {r})ᶜ :=
-set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+set.ext $ λ x, by simpa only [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open 𝒜 (1 : A) = ⊤ :=
 topological_space.opens.ext $ by simp
@@ -408,7 +408,7 @@ begin
   { rintros _ ⟨r, rfl⟩,
     exact is_open_basic_open 𝒜 },
   { rintros p U hp ⟨s, hs⟩,
-    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    rw [← compl_compl U, set.mem_compl_iff, ← hs, mem_zero_locus, set.not_subset] at hp,
     obtain ⟨f, hfs, hfp⟩ := hp,
     refine ⟨basic_open 𝒜 f, ⟨f, rfl⟩, hfp, _⟩,
     rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],

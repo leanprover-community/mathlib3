@@ -58,7 +58,7 @@ M-summand, M-projection, L-summand, L-projection, M-ideal, M-structure
 
 -/
 
-variables (X : Type*) [normed_group X]
+variables (X : Type*) [normed_add_comm_group X]
 variables {M : Type} [ring M] [module M X]
 /--
 A projection on a normed space `X` is said to be an L-projection if, for all `x` in `X`,
@@ -278,14 +278,7 @@ instance [has_faithful_smul M X] : distrib_lattice {P : M // is_Lprojection X P}
   .. is_Lprojection.subtype.partial_order }
 
 instance [has_faithful_smul M X] : boolean_algebra {P : M // is_Lprojection X P} :=
-{ sup_inf_sdiff := λ P Q, subtype.ext $
-    by rw [coe_sup, coe_inf, coe_sdiff, mul_assoc, ← mul_assoc ↑Q,
-    (Q.prop.commute P.prop).eq, mul_assoc ↑P ↑Q, ← coe_compl, mul_compl_self, mul_zero, mul_zero,
-    sub_zero, ← mul_add, coe_compl, add_sub_cancel'_right, mul_one],
-  inf_inf_sdiff := λ P Q, subtype.ext $
-    by rw [coe_inf, coe_inf, coe_sdiff, coe_bot, mul_assoc, ← mul_assoc ↑Q,
-      (Q.prop.commute P.prop).eq, ← coe_compl, mul_assoc, mul_compl_self, mul_zero, mul_zero],
-  inf_compl_le_bot := λ P,
+{ inf_compl_le_bot := λ P,
     (subtype.ext (by rw [coe_inf, coe_compl, coe_bot, ← coe_compl, mul_compl_self])).le,
   top_le_sup_compl := λ P, (subtype.ext(by rw [coe_top, coe_sup, coe_compl,
     add_sub_cancel'_right, ← coe_compl, mul_compl_self, sub_zero])).le,

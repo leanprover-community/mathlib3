@@ -93,7 +93,7 @@ instance is_asymm (r : α → α → Prop)
 end⟩
 
 instance is_strict_total_order (r : α → α → Prop)
-  [is_strict_total_order' α r] : is_strict_total_order' (list α) (lex r) :=
+  [is_strict_total_order α r] : is_strict_total_order (list α) (lex r) :=
 {..is_strict_weak_order_of_is_order_connected}
 
 instance decidable_rel [decidable_eq α] (r : α → α → Prop)
@@ -157,7 +157,7 @@ theorem nil_lt_cons [has_lt α] (a : α) (l : list α) : [] < a :: l :=
 lex.nil
 
 instance [linear_order α] : linear_order (list α) :=
-linear_order_of_STO' (lex (<))
+linear_order_of_STO (lex (<))
 
 --Note: this overrides an instance in core lean
 instance has_le' [linear_order α] : has_le (list α) :=

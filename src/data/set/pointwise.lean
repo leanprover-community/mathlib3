@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
-import data.set.finite
+import data.fin.tuple.basic
 import group_theory.submonoid.basic
+import order.well_founded_set
 
 /-!
 # Pointwise operations of sets
@@ -33,6 +34,13 @@ pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) •
 the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`. See note [pointwise nat action].
 
 Appropriate definitions and results are also transported to the additive theory via `to_additive`.
+
+### Definitions for Hahn series
+
+* `set.add_antidiagonal s t a`, `set.mul_antidiagonal s t a`: Sets of pairs of elements of `s` and
+  `t` that add/multiply to `a`.
+* `finset.add_antidiagonal`, `finset.mul_antidiagonal`: Finset versions of the above when `s` and
+  `t` are well-founded.
 
 ## Implementation notes
 
@@ -471,6 +479,32 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
+@[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → set α} :
+  a ∈ (list.of_fn s).prod ↔ ∃ f : (Π i : fin n, s i), (list.of_fn (λ i, (f i : α))).prod = a :=
+begin
+  induction n with n ih generalizing a,
+  { simp_rw [list.of_fn_zero, list.prod_nil, fin.exists_fin_zero_pi, eq_comm, set.mem_one] },
+  { simp_rw [list.of_fn_succ, list.prod_cons, fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ,
+      mem_mul, @ih, exists_and_distrib_left, exists_exists_eq_and, set_coe.exists, subtype.coe_mk,
+      exists_prop] }
+end
+
+@[to_additive] lemma mem_list_prod {l : list (set α)} {a : α} :
+  a ∈ l.prod ↔ ∃ l' : list (Σ s : set α, ↥s),
+    list.prod (l'.map (λ x, (sigma.snd x : α))) = a ∧ l'.map sigma.fst = l :=
+begin
+  induction l using list.of_fn_rec with n f,
+  simp_rw [list.exists_iff_exists_tuple, list.map_of_fn, list.of_fn_inj', and.left_comm,
+    exists_and_distrib_left, exists_eq_left, heq_iff_eq, function.comp, mem_prod_list_of_fn],
+  split,
+  { rintros ⟨fi, rfl⟩,  exact ⟨λ i, ⟨_, fi i⟩, rfl, rfl⟩, },
+  { rintros ⟨fi, rfl, rfl⟩, exact ⟨λ i, _, rfl⟩, },
+end
+
+@[to_additive] lemma mem_pow {a : α} {n : ℕ} :
+  a ∈ s ^ n ↔ ∃ f : fin n → s, (list.of_fn (λ i, (f i : α))).prod = a :=
+by rw [←mem_prod_list_of_fn, list.of_fn_const, list.prod_repeat]
+
 @[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
@@ -737,24 +771,76 @@ lemma mem_fintype_prod [fintype ι] (f : ι → set α) (a : α) :
   a ∈ ∏ i, f i ↔ ∃ (g : ι → α) (hg : ∀ i, g i ∈ f i), ∏ i, g i = a :=
 by { rw mem_finset_prod, simp }
 
-/-- The n-ary version of `set.mul_mem_mul`. -/
-@[to_additive /-" The n-ary version of `set.add_mem_add`. "-/]
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
+lemma list_prod_mem_list_prod (t : list ι) (f : ι → set α)
+  (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
+  (t.map g).prod ∈ (t.map f).prod :=
+begin
+  induction t with h tl ih,
+  { simp_rw [list.map_nil, list.prod_nil, set.mem_one] },
+  { simp_rw [list.map_cons, list.prod_cons],
+    exact mul_mem_mul
+      (hg h $ list.mem_cons_self _ _) (ih $ λ i hi, hg i $ list.mem_cons_of_mem _ hi) }
+end
+
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
+lemma list_prod_subset_list_prod (t : list ι) (f₁ f₂ : ι → set α) (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
+  (t.map f₁).prod ⊆ (t.map f₂).prod :=
+begin
+  induction t with h tl ih,
+  { refl, },
+  { simp_rw [list.map_cons, list.prod_cons],
+    exact mul_subset_mul
+      (hf h $ list.mem_cons_self _ _) (ih $ λ i hi, hf i $ list.mem_cons_of_mem _ hi) }
+end
+
+@[to_additive]
+lemma list_prod_singleton {M : Type*} [comm_monoid M] (s : list M) :
+  (s.map $ λ i, ({i} : set M)).prod = {s.prod} :=
+(map_list_prod (singleton_monoid_hom : M →* set M) _).symm
+
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
+lemma multiset_prod_mem_multiset_prod (t : multiset ι) (f : ι → set α)
+  (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
+  (t.map g).prod ∈ (t.map f).prod :=
+begin
+  induction t using quotient.induction_on,
+  simp_rw [multiset.quot_mk_to_coe, multiset.coe_map, multiset.coe_prod],
+  exact list_prod_mem_list_prod _ _ _ hg,
+end
+
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
+lemma multiset_prod_subset_multiset_prod (t : multiset ι) (f₁ f₂ : ι → set α)
+  (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
+  (t.map f₁).prod ⊆ (t.map f₂).prod :=
+begin
+  induction t using quotient.induction_on,
+  simp_rw [multiset.quot_mk_to_coe, multiset.coe_map, multiset.coe_prod],
+  exact list_prod_subset_list_prod _ _ _ hf,
+end
+
+@[to_additive]
+lemma multiset_prod_singleton {M : Type*} [comm_monoid M] (s : multiset M) :
+  (s.map $ λ i, ({i} : set M)).prod = {s.prod} :=
+(map_multiset_prod (singleton_monoid_hom : M →* set M) _).symm
+
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
 lemma finset_prod_mem_finset_prod (t : finset ι) (f : ι → set α)
   (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
   ∏ i in t, g i ∈ ∏ i in t, f i :=
-by { rw mem_finset_prod, exact ⟨g, hg, rfl⟩ }
+multiset_prod_mem_multiset_prod _ _ _ hg
 
-/-- The n-ary version of `set.mul_subset_mul`. -/
-@[to_additive /-" The n-ary version of `set.add_subset_add`. "-/]
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
 lemma finset_prod_subset_finset_prod (t : finset ι) (f₁ f₂ : ι → set α)
-  (hf : ∀ {i}, i ∈ t → f₁ i ⊆ f₂ i) :
+  (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
   ∏ i in t, f₁ i ⊆ ∏ i in t, f₂ i :=
-begin
-  intro a,
-  rw [mem_finset_prod, mem_finset_prod],
-  rintro ⟨g, hg, rfl⟩,
-  exact ⟨g, λ i hi, hf hi $ hg hi, rfl⟩
-end
+multiset_prod_subset_multiset_prod _ _ _ hf
 
 @[to_additive]
 lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : ι → M) :
@@ -964,18 +1050,18 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
   smul_comm_class (set α) (set β) (set γ) :=
 ⟨λ _ _ _, image2_left_comm smul_comm⟩
 
-instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α β (set γ) :=
 { smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
 
-instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α (set β) (set γ) :=
 ⟨λ _ _ _, image2_image_left_comm $ smul_assoc _⟩
 
-instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
@@ -1115,23 +1201,6 @@ end vsub
 
 open_locale pointwise
 
-section ring
-variables [ring α] [add_comm_group β] [module α β] {s : set α} {t : set β} {a : α}
-
-@[simp] lemma neg_smul_set : -a • t = -(a • t) :=
-by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
-
-@[simp] lemma smul_set_neg : a • -t = -(a • t) :=
-by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
-
-@[simp] protected lemma neg_smul : -s • t = -(s • t) :=
-by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
-
-@[simp] protected lemma smul_neg : s • -t = -(s • t) :=
-by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
-
-end ring
-
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β] {s : set α} {t : set β}
 
@@ -1157,10 +1226,10 @@ lemma zero_smul_set_subset (s : set β) : (0 : α) • s ⊆ 0 :=
 image_subset_iff.2 $ λ x _, zero_smul α x
 
 lemma subsingleton_zero_smul_set (s : set β) : ((0 : α) • s).subsingleton :=
-subsingleton_singleton.mono $ zero_smul_set_subset s
+subsingleton_singleton.anti $ zero_smul_set_subset s
 
 lemma zero_mem_smul_set {t : set β} {a : α} (h : (0 : β) ∈ t) : (0 : β) ∈ a • t :=
-⟨0, h, smul_zero' _ _⟩
+⟨0, h, smul_zero _⟩
 
 variables [no_zero_smul_divisors α β] {a : α}
 
@@ -1173,7 +1242,7 @@ begin
     { exact or.inr ⟨hb, a, ha⟩ } },
   { rintro (⟨hs, b, hb⟩ | ⟨ht, a, ha⟩),
     { exact ⟨0, b, hs, hb, zero_smul _ _⟩ },
-    { exact ⟨a, 0, ha, ht, smul_zero' _ _⟩ } }
+    { exact ⟨a, 0, ha, ht, smul_zero _⟩ } }
 end
 
 lemma zero_mem_smul_set_iff (ha : a ≠ 0) : (0 : β) ∈ a • t ↔ (0 : β) ∈ t :=
@@ -1189,7 +1258,7 @@ section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}
 
 @[to_additive] lemma pairwise_disjoint_smul_iff :
-  s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
+  s.pairwise_disjoint (• t) ↔ (s ×ˢ t).inj_on (λ p, p.1 * p.2) :=
 pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
 
 end left_cancel_semigroup
@@ -1272,6 +1341,28 @@ eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
 
 end group_with_zero
 
+section monoid
+variables [monoid α] [add_group β] [distrib_mul_action α β] (a : α) (s : set α) (t : set β)
+
+@[simp] lemma smul_set_neg : a • -t = -(a • t) :=
+by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
+
+@[simp] protected lemma smul_neg : s • -t = -(s • t) :=
+by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
+
+end monoid
+
+section ring
+variables [ring α] [add_comm_group β] [module α β] (a : α) (s : set α) (t : set β)
+
+@[simp] lemma neg_smul_set : -a • t = -(a • t) :=
+by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
+
+@[simp] protected lemma neg_smul : -s • t = -(s • t) :=
+by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
+
+end ring
+
 end set
 
 /-! ### Miscellaneous -/
@@ -1316,6 +1407,7 @@ le_antisymm
     (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
+@[to_additive]
 lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
   [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
   ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=
@@ -1384,3 +1476,170 @@ begin
 end
 
 end group
+
+namespace set
+variables {s t : set α}
+
+@[to_additive]
+lemma is_pwo.mul [ordered_cancel_comm_monoid α] (hs : s.is_pwo) (ht : t.is_pwo) : is_pwo (s * t) :=
+by { rw ←image_mul_prod, exact (hs.prod ht).image_of_monotone (monotone_fst.mul' monotone_snd) }
+
+variables [linear_ordered_cancel_comm_monoid α]
+
+@[to_additive]
+lemma is_wf.mul (hs : s.is_wf) (ht : t.is_wf) : is_wf (s * t) := (hs.is_pwo.mul ht.is_pwo).is_wf
+
+@[to_additive]
+lemma is_wf.min_mul (hs : s.is_wf) (ht : t.is_wf) (hsn : s.nonempty) (htn : t.nonempty) :
+  (hs.mul ht).min (hsn.mul htn) = hs.min hsn * ht.min htn :=
+begin
+  refine le_antisymm (is_wf.min_le _ _ (mem_mul.2 ⟨_, _, hs.min_mem _, ht.min_mem _, rfl⟩)) _,
+  rw is_wf.le_min_iff,
+  rintro _ ⟨x, y, hx, hy, rfl⟩,
+  exact mul_le_mul' (hs.min_le _ hx) (ht.min_le _ hy),
+end
+
+end set
+
+/-! ### Multiplication antidiagonal -/
+
+namespace set
+section has_mul
+variables [has_mul α] {s s₁ s₂ t t₁ t₂ : set α} {a : α} {x : α × α}
+
+/-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
+that multiply to `a`. -/
+@[to_additive "`set.add_antidiagonal s t a` is the set of all pairs of an element in `s` and an
+element in `t` that add to `a`."]
+def mul_antidiagonal (s t : set α) (a : α) : set (α × α) := {x | x.1 ∈ s ∧ x.2 ∈ t ∧ x.1 * x.2 = a}
+
+@[simp, to_additive]
+lemma mem_mul_antidiagonal : x ∈ mul_antidiagonal s t a ↔ x.1 ∈ s ∧ x.2 ∈ t ∧ x.1 * x.2 = a :=
+iff.rfl
+
+@[to_additive] lemma mul_antidiagonal_mono_left (h : s₁ ⊆ s₂) :
+  mul_antidiagonal s₁ t a ⊆ mul_antidiagonal s₂ t a :=
+λ x hx, ⟨h hx.1, hx.2.1, hx.2.2⟩
+
+@[to_additive] lemma mul_antidiagonal_mono_right (h : t₁ ⊆ t₂) :
+  mul_antidiagonal s t₁ a ⊆ mul_antidiagonal s t₂ a :=
+λ x hx, ⟨hx.1, h hx.2.1, hx.2.2⟩
+
+end has_mul
+
+@[simp, to_additive] lemma swap_mem_mul_antidiagonal [comm_semigroup α] {s t : set α} {a : α}
+  {x : α × α} :
+  x.swap ∈ set.mul_antidiagonal s t a ↔ x ∈ set.mul_antidiagonal t s a :=
+by simp [mul_comm, and.left_comm]
+
+namespace mul_antidiagonal
+
+section cancel_comm_monoid
+variables [cancel_comm_monoid α] {s t : set α} {a : α} {x y : mul_antidiagonal s t a}
+
+@[to_additive]
+lemma fst_eq_fst_iff_snd_eq_snd : (x : α × α).1 = (y : α × α).1 ↔ (x : α × α).2 = (y : α × α).2 :=
+⟨λ h, mul_left_cancel (y.prop.2.2.trans $ by { rw ←h, exact x.2.2.2.symm }).symm,
+  λ h, mul_right_cancel (y.prop.2.2.trans $ by { rw ←h, exact x.2.2.2.symm }).symm⟩
+
+@[to_additive] lemma eq_of_fst_eq_fst (h : (x : α × α).fst = (y : α × α).fst) : x = y :=
+subtype.ext $ prod.ext h $ fst_eq_fst_iff_snd_eq_snd.1 h
+
+@[to_additive] lemma eq_of_snd_eq_snd (h : (x : α × α).snd = (y : α × α).snd) : x = y :=
+subtype.ext $ prod.ext (fst_eq_fst_iff_snd_eq_snd.2 h) h
+
+end cancel_comm_monoid
+
+section ordered_cancel_comm_monoid
+variables [ordered_cancel_comm_monoid α] (s t : set α) (a : α) {x y : mul_antidiagonal s t a}
+
+@[to_additive]
+lemma eq_of_fst_le_fst_of_snd_le_snd (h₁ : (x : α × α).1 ≤ (y : α × α).1)
+  (h₂ : (x : α × α).2 ≤ (y : α × α).2) :
+  x = y :=
+eq_of_fst_eq_fst $ h₁.eq_of_not_lt $ λ hlt, (mul_lt_mul_of_lt_of_le hlt h₂).ne $
+  (mem_mul_antidiagonal.1 x.2).2.2.trans (mem_mul_antidiagonal.1 y.2).2.2.symm
+
+variables {s t}
+
+@[to_additive]
+lemma finite_of_is_pwo (hs : s.is_pwo) (ht : t.is_pwo) (a) : (mul_antidiagonal s t a).finite :=
+begin
+  refine not_infinite.1 (λ h, _),
+  have h1 : (mul_antidiagonal s t a).partially_well_ordered_on (prod.fst ⁻¹'o (≤)),
+    from λ f hf, hs (prod.fst ∘ f) (λ n, (mem_mul_antidiagonal.1 (hf n)).1),
+  have h2 : (mul_antidiagonal s t a).partially_well_ordered_on (prod.snd ⁻¹'o (≤)),
+    from λ f hf, ht (prod.snd ∘ f) (λ n, (mem_mul_antidiagonal.1 (hf n)).2.1),
+  obtain ⟨g, hg⟩ := h1.exists_monotone_subseq (λ n, h.nat_embedding _ n)
+    (λ n, (h.nat_embedding _ n).2),
+  obtain ⟨m, n, mn, h2'⟩ := h2 (λ x, (h.nat_embedding _) (g x)) (λ n, (h.nat_embedding _ _).2),
+  refine mn.ne (g.injective $ (h.nat_embedding _).injective _),
+  exact eq_of_fst_le_fst_of_snd_le_snd _ _ _ (hg _ _ mn.le) h2',
+end
+
+end ordered_cancel_comm_monoid
+
+@[to_additive]
+lemma finite_of_is_wf [linear_ordered_cancel_comm_monoid α] {s t : set α} (hs : s.is_wf)
+  (ht : t.is_wf) (a) :
+  (mul_antidiagonal s t a).finite :=
+finite_of_is_pwo hs.is_pwo ht.is_pwo a
+
+end mul_antidiagonal
+end set
+
+namespace finset
+variables [ordered_cancel_comm_monoid α] {s t : set α} (hs : s.is_pwo) (ht : t.is_pwo) (a : α)
+
+/-- `finset.mul_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in `s` and an
+element in `t` that multiply to `a`, but its construction requires proofs that `s` and `t` are
+well-ordered. -/
+@[to_additive "`finset.add_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in
+`s` and an element in `t` that add to `a`, but its construction requires proofs that `s` and `t` are
+well-ordered."]
+noncomputable def mul_antidiagonal : finset (α × α) :=
+(set.mul_antidiagonal.finite_of_is_pwo hs ht a).to_finset
+
+variables {hs ht a} {u : set α} {hu : u.is_pwo} {x : α × α}
+
+@[simp, to_additive]
+lemma mem_mul_antidiagonal : x ∈ mul_antidiagonal hs ht a ↔ x.1 ∈ s ∧ x.2 ∈ t ∧ x.1 * x.2 = a :=
+by simp [mul_antidiagonal, and_rotate]
+
+@[to_additive] lemma mul_antidiagonal_mono_left (h : u ⊆ s) :
+  mul_antidiagonal hu ht a ⊆ mul_antidiagonal hs ht a :=
+finite.to_finset_subset.2 $ set.mul_antidiagonal_mono_left h
+
+@[to_additive] lemma mul_antidiagonal_mono_right (h : u ⊆ t) :
+  mul_antidiagonal hs hu a ⊆ mul_antidiagonal hs ht a :=
+finite.to_finset_subset.2 $ set.mul_antidiagonal_mono_right h
+
+@[simp, to_additive] lemma swap_mem_mul_antidiagonal :
+  x.swap ∈ finset.mul_antidiagonal hs ht a ↔ x ∈ finset.mul_antidiagonal ht hs a :=
+by simp [mul_comm, and.left_comm]
+
+@[to_additive]
+lemma support_mul_antidiagonal_subset_mul : {a | (mul_antidiagonal hs ht a).nonempty} ⊆ s * t :=
+λ a ⟨b, hb⟩, by { rw mem_mul_antidiagonal at hb, exact ⟨b.1, b.2, hb⟩ }
+
+@[to_additive]
+lemma is_pwo_support_mul_antidiagonal : {a | (mul_antidiagonal hs ht a).nonempty}.is_pwo :=
+(hs.mul ht).mono support_mul_antidiagonal_subset_mul
+
+@[to_additive]
+lemma mul_antidiagonal_min_mul_min {α} [linear_ordered_cancel_comm_monoid α] {s t : set α}
+  (hs : s.is_wf) (ht : t.is_wf) (hns : s.nonempty) (hnt : t.nonempty) :
+  mul_antidiagonal hs.is_pwo ht.is_pwo ((hs.min hns) * (ht.min hnt)) = {(hs.min hns, ht.min hnt)} :=
+begin
+  ext ⟨a, b⟩,
+  simp only [mem_mul_antidiagonal, mem_singleton, prod.ext_iff],
+  split,
+  { rintro ⟨has, hat, hst⟩,
+    obtain rfl := (hs.min_le hns has).eq_of_not_lt
+      (λ hlt, (mul_lt_mul_of_lt_of_le hlt $ ht.min_le hnt hat).ne' hst),
+    exact ⟨rfl, mul_left_cancel hst⟩ },
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨hs.min_mem _, ht.min_mem _, rfl⟩ }
+end
+
+end finset

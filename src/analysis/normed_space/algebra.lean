@@ -32,7 +32,7 @@ variables {𝕜 : Type*} {A : Type*}
 namespace weak_dual
 namespace character_space
 
-variables [nondiscrete_normed_field 𝕜] [normed_ring A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A]
   [normed_algebra 𝕜 A] [complete_space A] [norm_one_class A]
 
 lemma norm_one (φ : character_space 𝕜 A) : ∥to_normed_dual (φ : weak_dual 𝕜 A)∥ = 1 :=
@@ -51,7 +51,7 @@ begin
   { intros φ hφ,
     rw [set.mem_preimage, mem_closed_ball_zero_iff],
     exact (le_of_eq $ norm_one ⟨φ, ⟨hφ.1, hφ.2⟩⟩ : _), },
-  exact compact_of_is_closed_subset (is_compact_closed_ball 𝕜 0 1) is_closed h,
+  exact compact_of_is_closed_subset (is_compact_closed_ball 𝕜 0 1) character_space.is_closed h,
 end
 
 end character_space

@@ -16,8 +16,8 @@ norms and `∥y∥ • x = ∥x∥ • y`.
 
 open real
 
-variables {E : Type*} [semi_normed_group E] [normed_space ℝ E]
-  {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {E : Type*} [seminormed_add_comm_group E] [normed_space ℝ E]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 namespace same_ray
 
@@ -90,6 +90,7 @@ begin
   simp only [same_ray_iff_inv_norm_smul_eq_of_ne hx hy, *, false_or]
 end
 
+/-- Two vectors of the same norm are on the same ray if and only if they are equal. -/
 lemma same_ray_iff_of_norm_eq (h : ∥x∥ = ∥y∥) : same_ray ℝ x y ↔ x = y :=
 begin
   obtain rfl | hy := eq_or_ne y 0,
@@ -100,3 +101,11 @@ end
 
 lemma not_same_ray_iff_of_norm_eq (h : ∥x∥ = ∥y∥) : ¬ same_ray ℝ x y ↔ x ≠ y :=
 (same_ray_iff_of_norm_eq h).not
+
+/-- If two points on the same ray have the same norm, then they are equal. -/
+lemma same_ray.eq_of_norm_eq (h : same_ray ℝ x y) (hn : ∥x∥ = ∥y∥) : x = y :=
+(same_ray_iff_of_norm_eq hn).mp h
+
+/-- The norms of two vectors on the same ray are equal if and only if they are equal. -/
+lemma same_ray.norm_eq_iff (h : same_ray ℝ x y) : ∥x∥ = ∥y∥ ↔ x = y :=
+⟨h.eq_of_norm_eq, λ h, h ▸ rfl⟩

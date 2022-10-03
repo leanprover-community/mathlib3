@@ -27,7 +27,7 @@ partition of unity, smooth bump function, whitney theorem
 
 universes uι uE uH uM
 variables {ι : Type uι}
-{E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+{E : Type uE} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] {I : model_with_corners ℝ E H}
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -91,7 +91,7 @@ begin
 end
 
 lemma embedding_pi_tangent_ker_mfderiv (x : M) (hx : x ∈ s) :
-  (mfderiv I 𝓘(ℝ, ι → (E × ℝ)) f.embedding_pi_tangent x).ker = ⊥ :=
+  linear_map.ker (mfderiv I 𝓘(ℝ, ι → (E × ℝ)) f.embedding_pi_tangent x) = ⊥ :=
 begin
   apply bot_unique,
   rw [← (mdifferentiable_chart I (f.c (f.ind x hx))).ker_mfderiv_eq_bot

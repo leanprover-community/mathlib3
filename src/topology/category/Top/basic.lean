@@ -83,7 +83,7 @@ by { ext, refl }
 @[simp]
 lemma open_embedding_iff_comp_is_iso {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso g] :
   open_embedding (f ≫ g) ↔ open_embedding f :=
-open_embedding_iff_open_embedding_compose f (Top.homeo_of_iso (as_iso g)).open_embedding
+(Top.homeo_of_iso (as_iso g)).open_embedding.of_comp_iff f
 
 @[simp]
 lemma open_embedding_iff_is_iso_comp {X Y Z : Top} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] :

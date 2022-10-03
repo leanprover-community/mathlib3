@@ -48,7 +48,7 @@ def lsmul : A →ₐ[R] module.End R M :=
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
 lemma lmul_algebra_map (x : R) :
-  lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
+  algebra.lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
 eq.symm $ linear_map.ext $ smul_def x
 
 end algebra
@@ -212,8 +212,8 @@ variables (R) {S A B} [comm_semiring R] [comm_semiring S] [semiring A] [semiring
 variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
-/-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
-`R`-subalgebra. -/
+/-- Given a tower `A / ↥U / S / R` of algebras, where `U` is an `S`-subalgebra of `A`, reinterpret
+`U` as an `R`-subalgebra of `A`. -/
 def restrict_scalars (U : subalgebra S A) : subalgebra R A :=
 { algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
   .. U }

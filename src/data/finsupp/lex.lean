@@ -58,7 +58,7 @@ let i : is_strict_order (lex (α → N)) (<) := pi.lex.is_strict_order in
 
 variables [linear_order α]
 
-/--  The partial order on `finsupp`s obtained by the lexicographic ordering.
+/-- The partial order on `finsupp`s obtained by the lexicographic ordering.
 See `finsupp.lex.linear_order` for a proof that this partial order is in fact linear. -/
 instance lex.partial_order [partial_order N] : partial_order (lex (α →₀ N)) :=
 partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_like.coe_injective

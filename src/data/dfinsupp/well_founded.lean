@@ -156,7 +156,7 @@ protected theorem dfinsupp.well_founded_lt [Π i, has_zero (α i)] [Π i, preord
   [∀ i, well_founded_lt (α i)] (hbot : ∀ ⦃i⦄ ⦃a : α i⦄, ¬ a < 0) : well_founded_lt (Π₀ i, α i) :=
 ⟨begin
   letI : Π i, has_zero (antisymmetrization (α i) (≤)) := λ i, ⟨to_antisymmetrization (≤) 0⟩,
-  let f := dfinsupp.map_range (λ i, @to_antisymmetrization (α i) (≤) _) (λ i, rfl),
+  let f := map_range (λ i, @to_antisymmetrization (α i) (≤) _) (λ i, rfl),
   refine subrelation.wf (λ x y h, _) (inv_image.wf f $ lex.well_founded' _ (λ i, _) _),
   { exact well_ordering_rel.swap }, { exact λ i, (<) },
   { haveI := is_strict_order.swap (@well_ordering_rel ι),

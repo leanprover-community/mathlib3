@@ -6,7 +6,7 @@ Authors: Aaron Anderson
 
 import linear_algebra.span
 import order.atoms
-import linear_algebra.quotient
+import linear_algebra.isomorphisms
 
 /-!
 # Simple Modules
@@ -48,8 +48,8 @@ end⟩⟩
 
 variables {R} {M} {m : submodule R M} {N : Type*} [add_comm_group N] [module R N]
 
-lemma is_simple_module.congr (l : M ≃ₗ[R] N) [is_simple_module R M] : is_simple_module R N :=
-sorry
+lemma is_simple_module.congr (l : M ≃ₗ[R] N) [is_simple_module R N] : is_simple_module R M :=
+(submodule.order_iso_map_comap l).is_simple_order
 
 theorem is_simple_module_iff_is_atom :
   is_simple_module R m ↔ is_atom m :=
@@ -142,6 +142,13 @@ theorem bijective_of_ne_zero [is_simple_module R M] [is_simple_module R N]
   {f : M →ₗ[R] N} (h : f ≠ 0):
   function.bijective f :=
 f.bijective_or_eq_zero.resolve_right h
+
+theorem is_coatom_ker_of_surjective [is_simple_module R N] {f : M →ₗ[R] N}
+  (hf : function.surjective f) : is_coatom f.ker :=
+begin
+  rw ←is_simple_module_iff_is_coatom,
+  exact is_simple_module.congr (f.quot_ker_equiv_of_surjective hf)
+end
 
 /-- Schur's Lemma makes the endomorphism ring of a simple module a division ring. -/
 noncomputable instance _root_.module.End.division_ring

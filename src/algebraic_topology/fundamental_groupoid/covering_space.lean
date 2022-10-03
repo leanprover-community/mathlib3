@@ -36,10 +36,10 @@ section unbundled_covering_morphism
 -- variables {C X : Type u} [topological_space C] [topological_space X]
 variables {C X : Groupoid.{u v}}
 
-/-- A morphism in Groupoid is a covering morphism if   -/
+/-- A morphism `p` in Groupoid is a covering morphism if  -/
 structure is_covering_morphism (p : C ⟶ X) : Prop :=
 (iso_of_under_restriction : ∀(x : C), true)
-/- TODO: define this here, probably want to deal with category_theory.under -/
+/- TODO: define this here, probably want to deal with category_theory.over -/
 
 end unbundled_covering_morphism
 
@@ -53,14 +53,17 @@ structure covering_groupoid (X : Groupoid.{u}) :=
 
 end Groupoid
 
-
 structure is_covering_space
   (C : Type*) (X : Type*) [topological_space C] [topological_space X] : Prop :=
 (fundamental_groupoid_is_covering_groupoid : true)
--- TODO: figure out the right condition for a space to be a covering space
+-- TODO: figure out the right condition for a space to be a covering space. We probably want
+-- to relate this to πₓC  being a covering groupoid for πₓX.
+-- Check if this is actually true
 
 /-- A space C is a universal cover for X if it's a covering space whose fundamental groupoid
 is thin i.e. there is at most one morphism x ⟶ y for each pair of objects x, y in C. -/
 structure is_universal_cover (C : Type*) (X : Type*) [topological_space C] [topological_space X]
   extends is_covering_space C X : Prop :=
 (thin_fundamental_groupoid : ∀(x y : πₓ (Top.of C)), subsingleton (x ⟶ y))
+
+-- TODO: connect this definition to the purely topology definition somehow

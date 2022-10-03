@@ -78,8 +78,8 @@ for example, to display nats as `n.succ` instead of `n+1`.
 These should be defeq to and in the same order as the terms in the enumeration of `α`.
 -/
 meta def fin_cases_at (nm : option name) : Π (with_list : option pexpr) (e : expr), tactic unit
-| with_list e :=
-focus1 $ do ty ← try_core $ guard_mem_fin e,
+| with_list e := focus1 $
+  do ty ← try_core $ guard_mem_fin e,
     match ty with
     | none := -- Deal with `x : A`, where `[fintype A]` is available:
       (do

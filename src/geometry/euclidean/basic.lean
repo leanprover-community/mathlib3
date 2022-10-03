@@ -701,6 +701,18 @@ begin
     { exact h.angle₃₁₂_eq_zero_of_ne hp₃p₂ } }
 end
 
+/-- The angle between three points is zero if and only if one of the first and third points is
+strictly between the other two, or those two points are equal but not equal to the second. -/
+lemma angle_eq_zero_iff_eq_and_ne_or_sbtw {p₁ p₂ p₃ : P} :
+  ∠ p₁ p₂ p₃ = 0 ↔ (p₁ = p₃ ∧ p₁ ≠ p₂) ∨ sbtw ℝ p₂ p₁ p₃ ∨ sbtw ℝ p₂ p₃ p₁ :=
+begin
+  rw angle_eq_zero_iff_ne_and_wbtw,
+  by_cases hp₁p₂ : p₁ = p₂, { simp [hp₁p₂] },
+  by_cases hp₁p₃ : p₁ = p₃, { simp [hp₁p₃] },
+  by_cases hp₃p₂ : p₃ = p₂, { simp [hp₃p₂] },
+  simp [hp₁p₂, hp₁p₃, ne.symm hp₁p₃, sbtw, hp₃p₂]
+end
+
 /-- The inner product of two vectors given with `weighted_vsub`, in
 terms of the pairwise distances. -/
 lemma inner_weighted_vsub {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ} (p₁ : ι₁ → P)

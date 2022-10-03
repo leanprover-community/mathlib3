@@ -107,8 +107,9 @@ by { ext, simp }
 lemma hom_map_lift (g : M →* N) (f : α → M) (x : free_monoid α) : g (lift f x) = lift (g ∘ f) x :=
 monoid_hom.ext_iff.1 (comp_lift g f) x
 
-/-- Define a multiplicative action of `free_monoid α` on `β` from  -/
-@[to_additive] def mk_mul_action (f : α → β → β) : mul_action (free_monoid α) β :=
+/-- Define a multiplicative action of `free_monoid α` on `β`. -/
+@[to_additive "Define an additive action of `free_add_monoid α` on `β`."]
+def mk_mul_action (f : α → β → β) : mul_action (free_monoid α) β :=
 { smul := λ l b, list.foldr f b l,
   one_smul := λ x, rfl,
   mul_smul := λ xs ys b, list.foldr_append _ _ _ _ }

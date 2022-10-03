@@ -1086,6 +1086,19 @@ theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : sup.{u (max v w)} f = sup.{v (max u w)} g :=
 (sup_le_of_range_subset h.le).antisymm (sup_le_of_range_subset.{v u w} h.ge)
 
+@[simp] theorem sup_sum {α : Type u} {β : Type v} (f : α ⊕ β → ordinal) : sup.{(max u v) w} f =
+  max (sup.{u (max v w)} (λ a, f (sum.inl a))) (sup.{v (max u w)} (λ b, f (sum.inr b))) :=
+begin
+  apply (sup_le_iff.2 _).antisymm (max_le_iff.2 ⟨_, _⟩),
+  { rintro (i|i),
+    { exact le_max_of_le_left (le_sup _ i) },
+    { exact le_max_of_le_right (le_sup _ i) } },
+  all_goals
+  { apply sup_le_of_range_subset.{_ (max u v) w},
+    rintros i ⟨a, rfl⟩,
+    apply mem_range_self }
+end
+
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
 (not_bounded_iff _).1 $ λ ⟨x, hx⟩, not_lt_of_le h $ lt_of_le_of_lt
@@ -1332,6 +1345,10 @@ sup_le_of_range_subset (by convert set.image_subset _ h; apply set.range_comp)
 theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : lsub.{u (max v w)} f = lsub.{v (max u w)} g :=
 (lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
+
+@[simp] theorem lsub_sum {α : Type u} {β : Type v} (f : α ⊕ β → ordinal) : lsub.{(max u v) w} f =
+  max (lsub.{u (max v w)} (λ a, f (sum.inl a))) (lsub.{v (max u w)} (λ b, f (sum.inr b))) :=
+sup_sum _
 
 theorem lsub_not_mem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
@@ -2164,6 +2181,9 @@ end
 
 /-! ### Casting naturals into ordinals, compatibility with operations -/
 
+@[simp] theorem one_add_nat_cast (m : ℕ) : 1 + (m : ordinal) = succ m :=
+by { rw [←nat.cast_one, ←nat.cast_add, add_comm], refl }
+
 @[simp, norm_cast] theorem nat_cast_mul (m : ℕ) : ∀ n : ℕ, ((m * n : ℕ) : ordinal) = m * n
 | 0     := by simp
 | (n+1) := by rw [nat.mul_succ, nat.cast_add, nat_cast_mul, nat.cast_succ, mul_add_one]
@@ -2363,3 +2383,20 @@ begin
 end
 
 end ordinal
+
+namespace tactic
+open ordinal positivity
+
+/-- Extension for the `positivity` tactic: `ordinal.opow` takes positive values on positive inputs.
+-/
+@[positivity]
+meta def positivity_opow : expr → tactic strictness
+| `(@has_pow.pow _ _ %%inst %%a %%b) := do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``opow_pos [b, p]
+  | _ := failed -- We already know that `0 ≤ x` for all `x : ordinal`
+  end
+| _ := failed
+
+end tactic

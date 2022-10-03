@@ -184,7 +184,7 @@ instance : non_unital_semi_normed_ring (ulift α) :=
 
 /-- Non-unital seminormed ring structure on the product of two non-unital seminormed rings,
   using the sup norm. -/
-noncomputable instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
+instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
   non_unital_semi_normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
@@ -201,7 +201,7 @@ noncomputable instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_
 
 /-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
 rings, using the sup norm. -/
-noncomputable instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
+instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
   [Π i, non_unital_semi_normed_ring (π i)] :
   non_unital_semi_normed_ring (Π i, π i) :=
 { norm_mul := λ x y, nnreal.coe_mono $
@@ -314,14 +314,14 @@ instance : semi_normed_ring (ulift α) :=
 
 /-- Seminormed ring structure on the product of two seminormed rings,
   using the sup norm. -/
-noncomputable instance prod.semi_normed_ring [semi_normed_ring β] :
+instance prod.semi_normed_ring [semi_normed_ring β] :
   semi_normed_ring (α × β) :=
 { ..prod.non_unital_semi_normed_ring,
   ..prod.seminormed_add_comm_group, }
 
 /-- Seminormed ring structure on the product of finitely many seminormed rings,
   using the sup norm. -/
-noncomputable instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
   [Π i, semi_normed_ring (π i)] :
   semi_normed_ring (Π i, π i) :=
 { ..pi.non_unital_semi_normed_ring,
@@ -338,15 +338,14 @@ instance : non_unital_normed_ring (ulift α) :=
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
-noncomputable instance prod.non_unital_normed_ring [non_unital_normed_ring β] :
+instance prod.non_unital_normed_ring [non_unital_normed_ring β] :
   non_unital_normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.seminormed_add_comm_group }
 
 /-- Normed ring structure on the product of finitely many non-unital normed rings, using the sup
 norm. -/
-noncomputable instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι]
-  [Π i, non_unital_normed_ring (π i)] :
+instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_unital_normed_ring (π i)] :
   non_unital_normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
@@ -368,12 +367,12 @@ instance : normed_ring (ulift α) :=
   .. ulift.normed_add_comm_group }
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
-noncomputable instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
+instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.normed_add_comm_group }
 
 /-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
-noncomputable instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
+instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
@@ -618,6 +617,11 @@ end densely
 
 end normed_field
 
+instance : normed_comm_ring ℝ :=
+{ norm_mul := λ x y, (abs_mul x y).le,
+  .. real.normed_add_comm_group,
+  .. real.comm_ring }
+
 noncomputable instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_add_comm_group }
@@ -700,7 +704,7 @@ lemma normed_add_comm_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=
 (at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
 
-noncomputable instance : normed_comm_ring ℤ :=
+instance : normed_comm_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
   dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub],
@@ -726,12 +730,12 @@ end
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩
 
-noncomputable instance : normed_field ℚ :=
+instance : normed_field ℚ :=
 { norm := λ r, ∥(r : ℝ)∥,
   norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
   dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
 
-noncomputable instance : densely_normed_field ℚ :=
+instance : densely_normed_field ℚ :=
 { lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨q, h⟩ := exists_rat_btwn hr in
     ⟨q, by { unfold norm, rwa abs_of_pos (h₀.trans_lt h.1) } ⟩ }
 

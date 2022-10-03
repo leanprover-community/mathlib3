@@ -811,9 +811,9 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
-lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
-  (h : s.nonempty) (h' : is_clopen s) : s = univ :=
-by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
+lemma is_clopen.eq_univ [preconnected_space α] {s : set α} (h' : is_clopen s) (h : s.nonempty) :
+  s = univ :=
+(is_clopen_iff.mp h').resolve_left h.ne_empty
 
 lemma frontier_eq_empty_iff [preconnected_space α] {s : set α} :
   frontier s = ∅ ↔ s = ∅ ∨ s = univ :=

@@ -38,7 +38,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
-open is_R_or_C real filter
+open is_R_or_C real filter linear_map (ker range)
 open_locale big_operators topological_space
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
@@ -123,7 +123,8 @@ begin
         repeat {exact le_of_lt one_half_pos},
         exact add_halves 1 },
     have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-    { mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
+    { simp_rw mul_assoc,
+      exact mul_le_mul_of_nonneg_left (mul_self_le_mul_self zero_le_δ eq) zero_le_four },
     have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),
@@ -1015,7 +1016,7 @@ specifically at most as many reflections as the dimension of the complement of t
 of `φ`. -/
 lemma linear_isometry_equiv.reflections_generate_dim_aux [finite_dimensional ℝ F] {n : ℕ}
   (φ : F ≃ₗᵢ[ℝ] F)
-  (hn : finrank ℝ (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).kerᗮ ≤ n) :
+  (hn : finrank ℝ (ker (continuous_linear_map.id ℝ F - φ))ᗮ ≤ n) :
   ∃ l : list F, l.length ≤ n ∧ φ = (l.map (λ v, reflection (ℝ ∙ v)ᗮ)).prod :=
 begin
   -- We prove this by strong induction on `n`, the dimension of the orthogonal complement of the
@@ -1023,16 +1024,17 @@ begin
   induction n with n IH generalizing φ,
   { -- Base case: `n = 0`, the fixed subspace is the whole space, so `φ = id`
     refine ⟨[], rfl.le, show φ = 1, from _⟩,
-    have : (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker = ⊤,
+    have : ker (continuous_linear_map.id ℝ F - φ) = ⊤,
     { rwa [le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
     symmetry,
     ext x,
     have := linear_map.congr_fun (linear_map.ker_eq_top.mp this) x,
-    rwa [continuous_linear_map.coe_sub, linear_map.zero_apply, linear_map.sub_apply, sub_eq_zero]
-      at this },
+    simpa only [sub_eq_zero, continuous_linear_map.to_linear_map_eq_coe,
+                continuous_linear_map.coe_sub, linear_map.sub_apply, linear_map.zero_apply]
+                using this },
   { -- Inductive step.  Let `W` be the fixed subspace of `φ`.  We suppose its complement to have
     -- dimension at most n + 1.
-    let W := (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker,
+    let W := ker (continuous_linear_map.id ℝ F - φ),
     have hW : ∀ w ∈ W, φ w = w := λ w hw, (sub_eq_zero.mp hw).symm,
     by_cases hn' : finrank ℝ Wᗮ ≤ n,
     { obtain ⟨V, hV₁, hV₂⟩ := IH φ hn',
@@ -1051,7 +1053,7 @@ begin
     let x : F := v - φ v,
     let ρ := reflection (ℝ ∙ x)ᗮ,
     -- Notation: Let `V` be the fixed subspace of `φ.trans ρ`
-    let V := (continuous_linear_map.id ℝ F - (φ.trans ρ).to_continuous_linear_equiv).ker,
+    let V := ker (continuous_linear_map.id ℝ F - (φ.trans ρ)),
     have hV : ∀ w, ρ (φ w) = w → w ∈ V,
     { intros w hw,
       change w - ρ (φ w) = 0,

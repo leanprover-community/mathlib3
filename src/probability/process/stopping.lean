@@ -71,7 +71,7 @@ begin
   by_cases hi_min : is_min i,
   { suffices : {ω : Ω | τ ω < i} = ∅, by { rw this, exact @measurable_set.empty _ (f i), },
     ext1 ω,
-    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    simp only [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
     rw is_min_iff_forall_not_lt at hi_min,
     exact hi_min (τ ω), },
   have : {ω : Ω | τ ω < i} = τ ⁻¹' (set.Iio i) := rfl,
@@ -136,7 +136,7 @@ protected lemma measurable_set_ge_of_countable_range {ι} [linear_order ι] {τ 
   measurable_set[f i] {ω | i ≤ τ ω} :=
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω < i}ᶜ,
-  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
+  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_iff, not_lt], },
   rw this,
   exact (hτ.measurable_set_lt_of_countable_range h_countable i).compl,
 end
@@ -157,7 +157,7 @@ lemma is_stopping_time.measurable_set_gt (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {ω | i < τ ω} :=
 begin
   have : {ω | i < τ ω} = {ω | τ ω ≤ i}ᶜ,
-  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_le], },
+  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_iff, not_le], },
   rw this,
   exact (hτ.measurable_set_le i).compl,
 end
@@ -174,7 +174,7 @@ begin
   by_cases hi_min : is_min i,
   { suffices : {ω | τ ω < i} = ∅, by { rw this, exact @measurable_set.empty _ (f i), },
     ext1 ω,
-    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    simp only [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
     exact is_min_iff_forall_not_lt.mp hi_min (τ ω), },
   obtain ⟨seq, -, -, h_tendsto, h_bound⟩ : ∃ seq : ℕ → ι,
       monotone seq ∧ (∀ j, seq j ≤ i) ∧ tendsto seq at_top (𝓝 i) ∧ (∀ j, seq j < i),
@@ -214,7 +214,7 @@ lemma is_stopping_time.measurable_set_ge (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {ω | i ≤ τ ω} :=
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω < i}ᶜ,
-  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
+  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_iff, not_lt], },
   rw this,
   exact (hτ.measurable_set_lt i).compl,
 end
@@ -223,7 +223,7 @@ lemma is_stopping_time.measurable_set_eq (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {ω | τ ω = i} :=
 begin
   have : {ω | τ ω = i} = {ω | τ ω ≤ i} ∩ {ω | τ ω ≥ i},
-  { ext1 ω, simp only [set.mem_set_of_eq, ge_iff_le, set.mem_inter_eq, le_antisymm_iff], },
+  { ext1 ω, simp only [set.mem_set_of_eq, ge_iff_le, set.mem_inter_iff, le_antisymm_iff], },
   rw this,
   exact (hτ.measurable_set_le i).inter (hτ.measurable_set_ge i),
 end
@@ -307,7 +307,7 @@ begin
   { rw not_le at hij,
     convert measurable_set.empty,
     ext ω,
-    simp only [set.mem_empty_eq, iff_false],
+    simp only [set.mem_empty_iff_false, iff_false],
     rintro (hx : τ ω + i = j),
     linarith },
 end
@@ -322,7 +322,7 @@ begin
   { exact measurable_set.Union (λ k, measurable_set.Union
       (λ hk, (hπ.measurable_set_eq_le hk).inter (hτ.add_const_nat i))) },
   ext ω,
-  simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_prop],
+  simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_iff, exists_prop],
   refine ⟨λ h, ⟨π ω, by linarith, rfl, h⟩, _⟩,
   rintro ⟨j, hj, rfl, h⟩,
   assumption
@@ -367,7 +367,7 @@ begin
   rw (_ : s ∩ {ω | π ω ≤ i} = s ∩ {ω | τ ω ≤ i} ∩ {ω | π ω ≤ i}),
   { exact (hs i).inter (hπ i) },
   { ext,
-    simp only [set.mem_inter_eq, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
+    simp only [set.mem_inter_iff, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
     intros hle' _,
     exact le_trans (hle _) hle' },
 end
@@ -446,7 +446,7 @@ begin
   have : ∀ j, ({ω : Ω | τ ω = i} ∩ {ω : Ω | τ ω ≤ j}) = {ω : Ω | τ ω = i} ∩ {ω | i ≤ j},
   { intro j,
     ext1 ω,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    simp only [set.mem_inter_iff, set.mem_set_of_eq, and.congr_right_iff],
     intro hxi,
     rw hxi, },
   split; intro h,
@@ -506,7 +506,7 @@ protected lemma measurable_set_le' (hτ : is_stopping_time f τ) (i : ι) :
 begin
   intro j,
   have : {ω : Ω | τ ω ≤ i} ∩ {ω : Ω | τ ω ≤ j} = {ω : Ω | τ ω ≤ min i j},
-  { ext1 ω, simp only [set.mem_inter_eq, set.mem_set_of_eq, le_min_iff], },
+  { ext1 ω, simp only [set.mem_inter_iff, set.mem_set_of_eq, le_min_iff], },
   rw this,
   exact f.mono (min_le_right i j) _ (hτ _),
 end
@@ -535,7 +535,7 @@ protected lemma measurable_set_ge' [topological_space ι] [order_topology ι]
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | i < τ ω},
   { ext1 ω,
-    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
+    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union],
     rw [@eq_comm _ i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq' i).union (hτ.measurable_set_gt' i),
@@ -573,7 +573,7 @@ protected lemma measurable_set_ge_of_countable_range'
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | i < τ ω},
   { ext1 ω,
-    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
+    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union],
     rw [@eq_comm _ i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq_of_countable_range' h_countable i).union (hτ.measurable_set_gt' i),
@@ -610,7 +610,7 @@ begin
     split; rw set.mem_Union,
     { exact λ hx, ⟨τ ω, by simpa using hx⟩,},
     { rintro ⟨i, hx⟩,
-      simp only [set.mem_range, set.Union_exists, set.mem_Union, set.mem_inter_eq,
+      simp only [set.mem_range, set.Union_exists, set.mem_Union, set.mem_inter_iff,
         set.mem_set_of_eq, exists_prop, exists_and_distrib_right] at hx,
       exact hx.1.2, } }
 end
@@ -671,7 +671,7 @@ begin
   have : (s ∩ {ω | τ ω ≤ π ω} ∩ {ω | min (τ ω) (π ω) ≤ i})
     = (s ∩ {ω | τ ω ≤ i}) ∩ {ω | min (τ ω) (π ω) ≤ i} ∩ {ω | min (τ ω) i ≤ min (min (τ ω) (π ω)) i},
   { ext1 ω,
-    simp only [min_le_iff, set.mem_inter_eq, set.mem_set_of_eq, le_min_iff, le_refl, true_and,
+    simp only [min_le_iff, set.mem_inter_iff, set.mem_set_of_eq, le_min_iff, le_refl, true_and,
       and_true, true_or, or_true],
     by_cases hτi : τ ω ≤ i,
     { simp only [hτi, true_or, and_true, and.congr_right_iff],
@@ -728,7 +728,7 @@ begin
   intro j,
   have : {ω | τ ω ≤ π ω} ∩ {ω | τ ω ≤ j} = {ω | min (τ ω) j ≤ min (π ω) j} ∩ {ω | τ ω ≤ j},
   { ext1 ω,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, min_le_iff, le_min_iff, le_refl, and_true,
+    simp only [set.mem_inter_iff, set.mem_set_of_eq, min_le_iff, le_min_iff, le_refl, and_true,
       and.congr_left_iff],
     intro h,
     simp only [h, or_self, and_true],
@@ -764,7 +764,7 @@ begin
   have : {ω | τ ω = π ω} ∩ {ω | τ ω ≤ j}
     = {ω | min (τ ω) j = min (π ω) j} ∩ {ω | τ ω ≤ j} ∩ {ω | π ω ≤ j},
   { ext1 ω,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq],
+    simp only [set.mem_inter_iff, set.mem_set_of_eq],
     refine ⟨λ h, ⟨⟨_, h.2⟩, _⟩, λ h, ⟨_, h.1.2⟩⟩,
     { rw h.1, },
     { rw ← h.1, exact h.2, },
@@ -790,7 +790,7 @@ begin
   have : {ω | τ ω = π ω} ∩ {ω | τ ω ≤ j}
     = {ω | min (τ ω) j = min (π ω) j} ∩ {ω | τ ω ≤ j} ∩ {ω | π ω ≤ j},
   { ext1 ω,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq],
+    simp only [set.mem_inter_iff, set.mem_set_of_eq],
     refine ⟨λ h, ⟨⟨_, h.2⟩, _⟩, λ h, ⟨_, h.1.2⟩⟩,
     { rw h.1, },
     { rw ← h.1, exact h.2, },
@@ -885,7 +885,7 @@ begin
     have hx_fst_le : ↑(ω : set.Iic i × Ω).fst ≤ i, from (ω : set.Iic i × Ω).fst.prop,
     refine hx_fst_le.trans (le_of_lt _),
     convert ω.prop,
-    simp only [not_le, set.mem_compl_eq, set.mem_set_of_eq], },
+    simp only [not_le, set.mem_compl_iff, set.mem_set_of_eq], },
 end
 
 lemma prog_measurable.stopped_process [metrizable_space ι]
@@ -926,7 +926,7 @@ begin
       = stopped_value u (λ ω, min (τ ω) i) ⁻¹' t ∩ {ω : Ω | τ ω ≤ i},
     by { rw this, exact ((h_str_meas i).measurable ht).inter (hτ.measurable_set_le i), },
   ext1 ω,
-  simp only [stopped_value, set.mem_inter_eq, set.mem_preimage, set.mem_set_of_eq,
+  simp only [stopped_value, set.mem_inter_iff, set.mem_preimage, set.mem_set_of_eq,
     and.congr_left_iff],
   intro h,
   rw min_eq_left h,
@@ -1129,7 +1129,7 @@ begin
   intro n,
   have : {ω | s.piecewise τ η ω ≤ n} = (s ∩ {ω | τ ω ≤ n}) ∪ (sᶜ ∩ {ω | η ω ≤ n}),
   { ext1 ω,
-    simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    simp only [set.piecewise, set.mem_inter_iff, set.mem_set_of_eq, and.congr_right_iff],
     by_cases hx : ω ∈ s; simp [hx], },
   rw this,
   by_cases hin : i ≤ n,

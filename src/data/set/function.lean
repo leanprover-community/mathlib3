@@ -413,6 +413,11 @@ theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y ↔ x = y :=
 ⟨h hx hy, λ h, h ▸ rfl⟩
 
+lemma inj_on.ne_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) : f x ≠ f y ↔ x ≠ y :=
+(h.eq_iff hx hy).not
+
+alias inj_on.ne_iff ↔ _ inj_on.ne
+
 theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
   inj_on f₂ s :=
 λ x hx y hy, h hx ▸ h hy ▸ h₁ hx hy
@@ -1052,7 +1057,7 @@ by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
   pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
 begin
   ext x,
-  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  simp only [mem_pi, mem_inter_iff, ← forall_and_distrib],
   refine forall_congr (λ i, _),
   by_cases hi : i ∈ s'; simp *
 end

@@ -452,6 +452,20 @@ by simp_rw [tsupport, f.support_normed_eq, closure_ball _ f.R_pos.ne']
 lemma has_compact_support_normed : has_compact_support (f.normed μ) :=
 by simp_rw [has_compact_support, f.tsupport_normed_eq, is_compact_closed_ball]
 
+lemma tendsto_support_normed_small_sets {ι} {φ : ι → cont_diff_bump_of_inner c} {l : filter ι}
+  (hφ : tendsto (λ i, (φ i).R) l (𝓝 0)) :
+  tendsto (λ i, support (λ x, (φ i).normed μ x)) l (𝓝 c).small_sets :=
+begin
+  simp_rw [normed_add_comm_group.tendsto_nhds_zero, real.norm_eq_abs,
+    abs_eq_self.mpr (φ _).R_pos.le] at hφ,
+  rw [tendsto_small_sets_iff],
+  intros t ht,
+  rcases metric.mem_nhds_iff.mp ht with ⟨ε, hε, ht⟩,
+  refine (hφ ε hε).mono (λ i hi, subset_trans _ ht),
+  simp_rw [(φ i).support_normed_eq],
+  exact ball_subset_ball hi.le
+end
+
 variable (μ)
 lemma integral_normed_smul (z : X) [complete_space X] : ∫ x, f.normed μ x • z ∂μ = z :=
 by simp_rw [integral_smul_const, f.integral_normed, one_smul]

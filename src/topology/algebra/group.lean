@@ -1128,7 +1128,7 @@ begin
   refine locally_compact_of_compact_nhds (λ x, _),
   obtain ⟨y, hy⟩ := K.interior_nonempty,
   let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K, _, K.compact.image F.continuous⟩,
+  refine ⟨F '' K, _, K.is_compact.image F.continuous⟩,
   suffices : F.symm ⁻¹' K ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
   apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
   have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],

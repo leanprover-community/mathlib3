@@ -212,7 +212,7 @@ end
 /-- The injection induced by the natural homomorphism from `Rˣ` to `K⟮∅, n⟯`. -/
 def from_unit_lift [fact $ 0 < n] : R/n →* K⟮(∅ : set $ height_one_spectrum R), n⟯ :=
 (quotient_group.ker_lift _).comp
-  (quotient_group.equiv_quotient_of_eq from_unit_ker).symm.to_monoid_hom
+  (quotient_group.quotient_mul_equiv_of_eq from_unit_ker).symm.to_monoid_hom
 
 lemma from_unit_lift_injective [fact $ 0 < n] :
   function.injective $ @from_unit_lift R _ _ _ K _ _ _ n _ :=

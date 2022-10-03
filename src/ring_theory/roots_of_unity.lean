@@ -599,17 +599,14 @@ begin
   rwa ring_char.eq_iff.mpr h
 end
 
+lemma ne_one {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) : ζ ≠ 1 :=
+hζ.pow_ne_one_of_pos_of_lt zero_lt_one hk ∘ (pow_one ζ).trans
+
 /-- If `1 < k` then `(∑ i in range k, ζ ^ i) = 0`. -/
 lemma geom_sum_eq_zero [is_domain R] {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) :
   (∑ i in range k, ζ ^ i) = 0 :=
 begin
-  have : 1 - ζ ≠ 0,
-  { intro h,
-    have := hζ.dvd_of_pow_eq_one 1,
-    simp only [(eq_of_sub_eq_zero h).symm, one_pow, eq_self_iff_true, nat.dvd_one,
-      forall_true_left] at this,
-    simpa [this] using hk },
-  refine eq_zero_of_ne_zero_of_mul_left_eq_zero this _,
+  refine eq_zero_of_ne_zero_of_mul_left_eq_zero (sub_ne_zero_of_ne (hζ.ne_one hk).symm) _,
   rw [mul_neg_geom_sum, hζ.pow_eq_one, sub_self]
 end
 

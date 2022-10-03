@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Yury Kudryashov
 -/
 import topology.algebra.order.intermediate_value
+import topology.local_extr
 
 /-!
 # Compactness of a closed interval
@@ -388,3 +389,20 @@ begin
 end
 
 end continuous_on
+
+lemma is_compact.exists_local_min_mem_subset {f : β → α} {s t : set β} {m : α} (ht : is_compact t)
+  (hst : s ⊆ t) (hf : continuous_on f t) (hf1 : ∀ z ∈ t \ s, m ≤ f z) {z : β} (hz : z ∈ t)
+  (hfz : f z < m) :
+  ∃ x ∈ s, is_local_min_on f t x :=
+begin
+  obtain ⟨x, hx, hfx⟩ : ∃ x ∈ t, ∀ y ∈ t, f x ≤ f y := ht.exists_forall_le ⟨z, hz⟩ hf,
+  have key : ∀ ⦃y⦄, y ∈ t → f y < m → y ∈ s := λ y hy hfy,
+    by { by_contra; simpa using ((hf1 y ((mem_diff y).mpr ⟨hy,h⟩)).trans_lt hfy) },
+  have h1 : f x < m := (hfx z hz).trans_lt hfz,
+  have h2 : x ∈ s := key hx h1,
+  have h3 := tendsto.eventually_lt (hf.continuous_within_at (hst h2)).tendsto tendsto_const_nhds h1,
+  have h4 : ∀ᶠ z in 𝓝[t] x, z ∈ s,
+    { rw eventually_nhds_within_iff at h3 ⊢,
+      filter_upwards [h3] with y hyf hy using key hy (hyf hy) },
+  exact ⟨x, h2, eventually_of_mem h4 (λ y hy, hfx y (hst hy))⟩
+end

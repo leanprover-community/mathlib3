@@ -502,10 +502,8 @@ begin
     field_simp [norm_smul, hi] },
   refine ⟨c', λ n, norm_c'_le n, λ i j inej, _⟩,
   -- up to exchanging `i` and `j`, one can assume `∥c i∥ ≤ ∥c j∥`.
-  wlog hij : ∥a.c i∥ ≤ ∥a.c j∥ := le_total (∥a.c i∥) (∥a.c j∥) using [i j, j i] tactic.skip, swap,
-  { assume i_ne_j,
-    rw norm_sub_rev,
-    exact this i_ne_j.symm },
+  wlog hij : ∥a.c i∥ ≤ ∥a.c j∥ generalizing i j,
+  { rw norm_sub_rev, exact this j i inej.symm (le_of_not_le hij) },
   rcases le_or_lt (∥a.c j∥) 2 with Hj|Hj,
   -- case `∥c j∥ ≤ 2` (and therefore also `∥c i∥ ≤ 2`)
   { simp_rw [c', Hj, hij.trans Hj, if_true],

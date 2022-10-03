@@ -615,18 +615,19 @@ by rw [pow_min_fac hk, hp.min_fac_eq]
 
 lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
-⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [sq],
+⟨λ h,
 begin
-  wlog := hp.dvd_mul.1 pdvdxy using x y,
-  cases case with a ha,
-  have hap : a ∣ p, from ⟨y, by rwa [ha, sq,
-        mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
-  exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, sq, nat.mul_right_inj hp.pos] at *
-      {contextual := tt})
-    (λ _, by clear_aux_decl; simp [*, sq, mul_comm, mul_assoc,
-      nat.mul_right_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
-      {contextual := tt})
+  wlog H : p ∣ x,
+  { have pdvdxy : p ∣ x * y, by rw h; simp [sq],
+    have hpy : p ∣ y := or_iff_not_imp_left.1 (hp.dvd_mul.1 pdvdxy) H,
+    refine (this hp hy hx _ hpy).symm, rwa mul_comm },
+  rsuffices rfl : x = p, { simp only [sq, nat.mul_right_inj hp.pos] at h, simp only [h, and_self] },
+  cases H with a ha,
+  have hap : a ∣ p := ⟨y, by rwa [ha, sq, mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
+  refine ((nat.dvd_prime hp).1 hap).elim _ _; rintro rfl,
+  { rwa [mul_one] at ha },
+  { rw [← mul_one (a ^ 2), ha, sq] at h, simp only [mul_assoc, nat.mul_right_inj hp.pos] at h,
+    contradiction }
 end,
 λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (sq _).symm⟩
 

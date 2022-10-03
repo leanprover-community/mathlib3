@@ -212,7 +212,9 @@ theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is
 begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
-  wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
+  wlog h : x ∈ U ∧ y ∉ U,
+  { exact this hmin y hy x hx (ne.symm hxy) U hUo hU.symm (hU.resolve_left h), },
+  cases h with hxU hyU,
   have : s \ U = s := hmin (s \ U) (diff_subset _ _) ⟨y, hy, hyU⟩ (hs.sdiff hUo),
   exact (this.symm.subset hx).2 hxU
 end
@@ -239,7 +241,9 @@ theorem minimal_nonempty_open_subsingleton [t0_space α] {s : set α} (hs : is_o
 begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
-  wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
+  wlog h : x ∈ U ∧ y ∉ U,
+  { exact this hs hmin y hy x hx (ne.symm hxy) U hUo hU.symm (hU.resolve_left h), },
+  cases h with hxU hyU,
   have : s ∩ U = s := hmin (s ∩ U) (inter_subset_left _ _) ⟨x, hx, hxU⟩ (hs.inter hUo),
   exact hyU (this.symm.subset hy).2
 end
@@ -1468,11 +1472,11 @@ instance t3_space.t2_5_space [t3_space α] : t2_5_space α :=
 begin
   haveI : t2_space α,
   { refine t2_space_iff_disjoint_nhds.mpr (λ x y hne, _),
-    have : x ∉ closure {y} ∨ y ∉ closure {x},
+    have aux : x ∉ closure {y} ∨ y ∉ closure {x},
       from (t0_space_iff_or_not_mem_closure α).mp infer_instance x y hne,
-    wlog H : x ∉ closure {y} := this using [x y, y x] tactic.skip,
-    { rwa [← disjoint_nhds_nhds_set, nhds_set_singleton] at H },
-    { exact λ h, (this h.symm).symm } },
+    wlog H : x ∉ closure ({y} : set α),
+    { refine (this y x hne.symm aux.symm (aux.resolve_left H)).symm },
+    { rwa [← disjoint_nhds_nhds_set, nhds_set_singleton] at H } },
   -- TODO: reformulate `t2_5_space` in terms of `(𝓝 x).lift' closure`
   refine ⟨λ x y hne, _⟩,
   rcases ((closed_nhds_basis x).disjoint_iff (closed_nhds_basis y)).1

@@ -251,17 +251,15 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
   ..star_add_equiv.trans (mul_opposite.op_add_equiv : R ≃+ Rᵐᵒᵖ),
   ..star_mul_equiv }
 
-@[simp, norm_cast] lemma star_nat_cast [semiring R] [star_ring R] (n : ℕ) :
-  star (n : R) = n :=
-(congr_arg unop (map_nat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) n)).trans (unop_nat_cast _)
+@[simp, norm_cast] lemma star_nat_cast [semiring R] [star_ring R] (n : ℕ) : star (n : R) = n :=
+(congr_arg unop $ map_nat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) n).trans $ unop_nat_cast _
 
-@[simp, norm_cast] lemma star_int_cast [ring R] [star_ring R] (z : ℤ) :
-  star (z : R) = z :=
-(congr_arg unop $ map_int_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) z).trans (unop_int_cast _)
+@[simp, norm_cast] lemma star_int_cast [ring R] [star_ring R] (z : ℤ) : star (z : R) = z :=
+(congr_arg unop $ @map_int_cast _ _ _ _ _ (ring_equiv_class.to_ring_hom_class _ _ _)
+  (star_ring_equiv : R ≃+* Rᵐᵒᵖ) z).trans $ unop_int_cast _
 
-@[simp, norm_cast] lemma star_rat_cast [division_ring R] [star_ring R] (r : ℚ) :
-  star (r : R) = r :=
-(congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
+@[simp, norm_cast] lemma star_rat_cast [division_ring R] [star_ring R] (r : ℚ) : star (r : R) = r :=
+(congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans $ unop_rat_cast _
 
 /-- `star` as a ring automorphism, for commutative `R`. -/
 @[simps apply]

@@ -149,6 +149,15 @@ map_eq_zero_iff (algebra_map _ _) (algebra_map_left_inverse _).injective
 @[simp] lemma algebra_map_eq_one_iff (x : R) : algebra_map R (exterior_algebra R M) x = 1 ↔ x = 1 :=
 map_eq_one_iff (algebra_map _ _) (algebra_map_left_inverse _).injective
 
+lemma is_unit_algebra_map (r : R) : is_unit (algebra_map R (exterior_algebra R M) r) ↔ is_unit r :=
+is_unit_map_of_left_inverse _ (algebra_map_left_inverse M)
+
+/-- Invertibility in the exterior algebra is the same as invertibility of the base ring. -/
+@[simps]
+def invertible_algebra_map_equiv (r : R) :
+  invertible (algebra_map R (exterior_algebra R M) r) ≃ invertible r :=
+invertible_equiv_of_left_inverse _ _ _ (algebra_map_left_inverse M)
+
 variables {M}
 
 /-- The canonical map from `exterior_algebra R M` into `triv_sq_zero_ext R M` that sends

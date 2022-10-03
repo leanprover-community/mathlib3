@@ -252,6 +252,9 @@ limsup_eq_zero_iff
 lemma ess_sup_const_mul {a : ℝ≥0∞} : ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
 limsup_const_mul
 
+lemma ess_sup_mul_le (f g : α → ℝ≥0∞) : ess_sup (f * g) μ ≤ ess_sup f μ * ess_sup g μ :=
+limsup_mul_le f g
+
 lemma ess_sup_add_le (f g : α → ℝ≥0∞) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
 limsup_add_le f g
 

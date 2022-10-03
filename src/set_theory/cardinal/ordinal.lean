@@ -284,7 +284,7 @@ lemma aleph_0_lt_aleph_one : ℵ₀ < aleph 1 :=
 by { rw ←succ_aleph_0, apply lt_succ }
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : s.countable ↔ #s < aleph 1 :=
-by rw [←succ_aleph_0, lt_succ_iff, mk_set_le_aleph_0]
+by rw [←succ_aleph_0, lt_succ_iff, le_aleph_0_iff_set_countable]
 
 /-- Ordinals that are cardinals are unbounded. -/
 theorem ord_card_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
@@ -404,7 +404,7 @@ begin
     quotient.induction_on c $ λ α IH ol, _) h,
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
-  letI := linear_order_of_STO' r,
+  letI := linear_order_of_STO r,
   haveI : is_well_order α (<) := wo,
   -- Define an order `s` on `α × α` by writing `(a, b) < (c, d)` if `max a b < max c d`, or
   -- the max are equal and `a < c`, or the max are equal and `a = c` and `b < d`.
@@ -644,6 +644,9 @@ end
 lemma add_eq_right_iff {a b : cardinal} : a + b = b ↔ (max ℵ₀ a ≤ b ∨ a = 0) :=
 by { rw [add_comm, add_eq_left_iff] }
 
+lemma add_nat_eq {a : cardinal} (n : ℕ) (ha : ℵ₀ ≤ a) : a + n = a :=
+add_eq_left ha ((nat_lt_aleph_0 _).le.trans ha)
+
 lemma add_one_eq {a : cardinal} (ha : ℵ₀ ≤ a) : a + 1 = a :=
 add_eq_left ha (one_le_aleph_0.trans ha)
 
@@ -678,6 +681,35 @@ theorem principal_add_ord {c : cardinal} (hc : ℵ₀ ≤ c) : ordinal.principal
 
 theorem principal_add_aleph (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
 principal_add_ord $ aleph_0_le_aleph o
+
+lemma add_right_inj_of_lt_aleph_0 {α β γ : cardinal} (γ₀ : γ < aleph_0) :
+  α + γ = β + γ ↔ α = β :=
+⟨λ h, cardinal.eq_of_add_eq_add_right h γ₀, λ h, congr_fun (congr_arg (+) h) γ⟩
+
+@[simp] lemma add_nat_inj {α β : cardinal} (n : ℕ) :
+  α + n = β + n ↔ α = β :=
+add_right_inj_of_lt_aleph_0 (nat_lt_aleph_0 _)
+
+@[simp] lemma add_one_inj {α β : cardinal} :
+  α + 1 = β + 1 ↔ α = β :=
+add_right_inj_of_lt_aleph_0 one_lt_aleph_0
+
+lemma add_le_add_iff_of_lt_aleph_0 {α β γ : cardinal} (γ₀ : γ < cardinal.aleph_0) :
+  α + γ ≤ β + γ ↔ α ≤ β :=
+begin
+  refine ⟨λ h, _, λ h, add_le_add_right h γ⟩,
+  contrapose h,
+  rw [not_le, lt_iff_le_and_ne, ne] at h ⊢,
+  exact ⟨add_le_add_right h.1 γ, mt (add_right_inj_of_lt_aleph_0 γ₀).1 h.2⟩,
+end
+
+@[simp] lemma add_nat_le_add_nat_iff_of_lt_aleph_0 {α β : cardinal} (n : ℕ) :
+  α + n ≤ β + n ↔ α ≤ β :=
+add_le_add_iff_of_lt_aleph_0 (nat_lt_aleph_0 n)
+
+@[simp] lemma add_one_le_add_one_iff_of_lt_aleph_0 {α β : cardinal} :
+  α + 1 ≤ β + 1 ↔ α ≤ β :=
+add_le_add_iff_of_lt_aleph_0 one_lt_aleph_0
 
 /-! ### Properties about power -/
 

@@ -365,10 +365,8 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
     let ⟨x1, hx1⟩ := complete_space.complete $ hf.map uniform_continuous_fst in
     let ⟨x2, hx2⟩ := complete_space.complete $ hf.map uniform_continuous_snd in
     ⟨(x1, x2), by rw [nhds_prod_eq, filter.prod_def];
-      from filter.le_lift (λ s hs, filter.le_lift' $ λ t ht,
-        have H1 : prod.fst ⁻¹' s ∈ f.sets := hx1 hs,
-        have H2 : prod.snd ⁻¹' t ∈ f.sets := hx2 ht,
-        filter.inter_mem H1 H2)⟩ }
+      from filter.le_lift.2 (λ s hs, filter.le_lift'.2 $ λ t ht,
+        inter_mem (hx1 hs) (hx2 ht))⟩ }
 
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
@@ -559,6 +557,20 @@ instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α]
 lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : is_compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
+
+/-- Every Cauchy sequence over `ℕ` is totally bounded. -/
+lemma cauchy_seq.totally_bounded_range {s : ℕ → α} (hs : cauchy_seq s) :
+  totally_bounded (range s) :=
+begin
+  refine totally_bounded_iff_subset.2 (λ a ha, _),
+  cases cauchy_seq_iff.1 hs a ha with n hn,
+  refine ⟨s '' {k | k ≤ n}, image_subset_range _ _, (finite_le_nat _).image _, _⟩,
+  rw [range_subset_iff, bUnion_image],
+  intro m,
+  rw [mem_Union₂],
+  cases le_total m n with hm hm,
+  exacts [⟨m, hm, refl_mem_uniformity ha⟩, ⟨n, le_refl n, hn m hm n le_rfl⟩]
+end
 
 /-!
 ### Sequentially complete space

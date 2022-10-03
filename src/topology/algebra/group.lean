@@ -638,6 +638,12 @@ eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
 
 @[to_additive]
+lemma topological_group.ext_iff {G : Type*} [group G] {t t' : topological_space G}
+  (tg : @topological_group G t _) (tg' : @topological_group G t' _) :
+  t = t' ↔ @nhds G t 1 = @nhds G t' 1 :=
+⟨λ h, h ▸ rfl, tg.ext tg'⟩
+
+@[to_additive]
 lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]
   (hinv : tendsto (λ (x : G), x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ (x₀ : G), 𝓝 x₀ = map (λ (x : G), x₀ * x) (𝓝 1))
@@ -1203,6 +1209,13 @@ instance quotient_group.has_continuous_smul [locally_compact_space G] :
       refine continuous_coinduced_rng.comp continuous_mul },
     exact quotient_map.continuous_lift_prod_right quotient_map_quotient_mk H,
   end }
+
+/-- The quotient of a second countable topological group by a subgroup is second countable. -/
+@[to_additive "The quotient of a second countable additive topological group by a subgroup is second
+countable."]
+instance quotient_group.second_countable_topology [second_countable_topology G] :
+  second_countable_topology (G ⧸ Γ) :=
+has_continuous_const_smul.second_countable_topology
 
 end quotient
 

@@ -3,6 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
+import analysis.convex.between
 import analysis.inner_product_space.projection
 import analysis.special_functions.trigonometric.inverse
 import algebra.quadratic_discriminant
@@ -90,6 +91,10 @@ by rw [angle, angle, real_inner_smul_left, inner_smul_right, norm_smul, norm_smu
   [inner_product_space ℝ E] [inner_product_space ℝ F] (f : E →ₗᵢ[ℝ] F) (u v : E) :
   angle (f u) (f v) = angle u v :=
 by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
+
+@[simp, norm_cast] lemma _root_.submodule.angle_coe {s : submodule ℝ V} (x y : s) :
+  angle (x : V) (y : V) = angle x y :=
+s.subtypeₗᵢ.angle_map x y
 
 lemma is_conformal_map.preserves_angle {E F : Type*}
   [inner_product_space ℝ E] [inner_product_space ℝ F]
@@ -412,6 +417,11 @@ end
   ∠ (f p₁) (f p₂) (f p₃) = ∠ p₁ p₂ p₃ :=
 by simp_rw [angle, ←affine_isometry.map_vsub, linear_isometry.angle_map]
 
+@[simp, norm_cast] lemma _root_.affine_subspace.angle_coe {s : affine_subspace ℝ P}
+  (p₁ p₂ p₃ : s) :
+  by haveI : nonempty s := ⟨p₁⟩; exact ∠ (p₁ : P) (p₂ : P) (p₃ : P) = ∠ p₁ p₂ p₃ :=
+by haveI : nonempty s := ⟨p₁⟩; exact s.subtypeₐᵢ.angle_map p₁ p₂ p₃
+
 /-- The angle at a point does not depend on the order of the other two
 points. -/
 lemma angle_comm (p1 p2 p3 : P) : ∠ p1 p2 p3 = ∠ p3 p2 p1 :=
@@ -568,6 +578,140 @@ then ∠CMB = π / 2. -/
 lemma angle_right_midpoint_eq_pi_div_two_of_dist_eq {p1 p2 p3 : P} (h : dist p3 p1 = dist p3 p2) :
   ∠ p3 (midpoint ℝ p1 p2) p2 = π / 2 :=
 by rw [midpoint_comm p1 p2, angle_left_midpoint_eq_pi_div_two_of_dist_eq h.symm]
+
+/-- If the second of three points is strictly between the other two, the angle at that point
+is π. -/
+lemma _root_.sbtw.angle₁₂₃_eq_pi {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₁ p₂ p₃ = π :=
+begin
+  rw [angle, angle_eq_pi_iff],
+  rcases h with ⟨⟨r, ⟨hr0, hr1⟩, hp₂⟩, hp₂p₁, hp₂p₃⟩,
+  refine ⟨vsub_ne_zero.2 hp₂p₁.symm, -(1 - r) / r, _⟩,
+  have hr0' : r ≠ 0,
+  { rintro rfl,
+    rw ←hp₂ at hp₂p₁,
+    simpa using hp₂p₁ },
+  have hr1' : r ≠ 1,
+  { rintro rfl,
+    rw ←hp₂ at hp₂p₃,
+    simpa using hp₂p₃ },
+  replace hr0 := hr0.lt_of_ne hr0'.symm,
+  replace hr1 := hr1.lt_of_ne hr1',
+  refine ⟨div_neg_of_neg_of_pos (left.neg_neg_iff.2 (sub_pos.2 hr1)) hr0, _⟩,
+  rw [←hp₂, affine_map.line_map_apply, vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub, vsub_self,
+      zero_sub, smul_neg, smul_smul, div_mul_cancel _ hr0', neg_smul, neg_neg, sub_eq_iff_eq_add,
+      ←add_smul, sub_add_cancel, one_smul]
+end
+
+/-- If the second of three points is strictly between the other two, the angle at that point
+(reversed) is π. -/
+lemma _root_.sbtw.angle₃₂₁_eq_pi {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₃ p₂ p₁ = π :=
+by rw [←h.angle₁₂₃_eq_pi, angle_comm]
+
+/-- The angle between three points is π if and only if the second point is strictly between the
+other two. -/
+lemma angle_eq_pi_iff_sbtw {p₁ p₂ p₃ : P} : ∠ p₁ p₂ p₃ = π ↔ sbtw ℝ p₁ p₂ p₃ :=
+begin
+  refine ⟨_, λ h, h.angle₁₂₃_eq_pi⟩,
+  rw [angle, angle_eq_pi_iff],
+  rintro ⟨hp₁p₂, r, hr, hp₃p₂⟩,
+  refine ⟨⟨1 / (1 - r),
+           ⟨div_nonneg zero_le_one (sub_nonneg.2 (hr.le.trans zero_le_one)),
+            (div_le_one (sub_pos.2 (hr.trans zero_lt_one))).2 ((le_sub_self_iff 1).2 hr.le)⟩, _⟩,
+          (vsub_ne_zero.1 hp₁p₂).symm, _⟩,
+  { rw ←eq_vadd_iff_vsub_eq at hp₃p₂,
+    rw [affine_map.line_map_apply, hp₃p₂, vadd_vsub_assoc, ←neg_vsub_eq_vsub_rev p₂ p₁,
+        smul_neg, ←neg_smul, smul_add, smul_smul, ←add_smul, eq_comm, eq_vadd_iff_vsub_eq],
+    convert (one_smul ℝ (p₂ -ᵥ p₁)).symm,
+    field_simp [(sub_pos.2 (hr.trans zero_lt_one)).ne.symm],
+    abel },
+  { rw [ne_comm, ←@vsub_ne_zero V, hp₃p₂, smul_ne_zero_iff],
+    exact ⟨hr.ne, hp₁p₂⟩ }
+end
+
+/-- If the second of three points is weakly between the other two, and not equal to the first,
+the angle at the first point is zero. -/
+lemma _root_.wbtw.angle₂₁₃_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₁ : p₂ ≠ p₁) :
+  ∠ p₂ p₁ p₃ = 0 :=
+begin
+  rw [angle, angle_eq_zero_iff],
+  rcases h with ⟨r, ⟨hr0, hr1⟩, rfl⟩,
+  have hr0' : r ≠ 0, { rintro rfl, simpa using hp₂p₁ },
+  replace hr0 := hr0.lt_of_ne hr0'.symm,
+  refine ⟨vsub_ne_zero.2 hp₂p₁, r⁻¹, inv_pos.2 hr0, _⟩,
+  rw [affine_map.line_map_apply, vadd_vsub_assoc, vsub_self, add_zero, smul_smul,
+      inv_mul_cancel hr0', one_smul]
+end
+
+/-- If the second of three points is strictly between the other two, the angle at the first point
+is zero. -/
+lemma _root_.sbtw.angle₂₁₃_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₂ p₁ p₃ = 0 :=
+h.wbtw.angle₂₁₃_eq_zero_of_ne h.ne_left
+
+/-- If the second of three points is weakly between the other two, and not equal to the first,
+the angle at the first point (reversed) is zero. -/
+lemma _root_.wbtw.angle₃₁₂_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₁ : p₂ ≠ p₁) :
+  ∠ p₃ p₁ p₂ = 0 :=
+by rw [←h.angle₂₁₃_eq_zero_of_ne hp₂p₁, angle_comm]
+
+/-- If the second of three points is strictly between the other two, the angle at the first point
+(reversed) is zero. -/
+lemma _root_.sbtw.angle₃₁₂_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₃ p₁ p₂ = 0 :=
+h.wbtw.angle₃₁₂_eq_zero_of_ne h.ne_left
+
+/-- If the second of three points is weakly between the other two, and not equal to the third,
+the angle at the third point is zero. -/
+lemma _root_.wbtw.angle₂₃₁_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₃ : p₂ ≠ p₃) :
+  ∠ p₂ p₃ p₁ = 0 :=
+h.symm.angle₂₁₃_eq_zero_of_ne hp₂p₃
+
+/-- If the second of three points is strictly between the other two, the angle at the third point
+is zero. -/
+lemma _root_.sbtw.angle₂₃₁_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₂ p₃ p₁ = 0 :=
+h.wbtw.angle₂₃₁_eq_zero_of_ne h.ne_right
+
+/-- If the second of three points is weakly between the other two, and not equal to the third,
+the angle at the third point (reversed) is zero. -/
+lemma _root_.wbtw.angle₁₃₂_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₃ : p₂ ≠ p₃) :
+  ∠ p₁ p₃ p₂ = 0 :=
+h.symm.angle₃₁₂_eq_zero_of_ne hp₂p₃
+
+/-- If the second of three points is strictly between the other two, the angle at the third point
+(reversed) is zero. -/
+lemma _root_.sbtw.angle₁₃₂_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₁ p₃ p₂ = 0 :=
+h.wbtw.angle₁₃₂_eq_zero_of_ne h.ne_right
+
+/-- The angle between three points is zero if and only if one of the first and third points is
+weakly between the other two, and not equal to the second. -/
+lemma angle_eq_zero_iff_ne_and_wbtw {p₁ p₂ p₃ : P} :
+  ∠ p₁ p₂ p₃ = 0 ↔ (p₁ ≠ p₂ ∧ wbtw ℝ p₂ p₁ p₃) ∨ (p₃ ≠ p₂ ∧ wbtw ℝ p₂ p₃ p₁) :=
+begin
+  split,
+  { rw [angle, angle_eq_zero_iff],
+    rintro ⟨hp₁p₂, r, hr0, hp₃p₂⟩,
+    rcases le_or_lt 1 r with hr1 | hr1,
+    { refine or.inl ⟨vsub_ne_zero.1 hp₁p₂, r⁻¹, ⟨(inv_pos.2 hr0).le, inv_le_one hr1⟩, _⟩,
+      rw [affine_map.line_map_apply, hp₃p₂, smul_smul, inv_mul_cancel hr0.ne.symm, one_smul,
+          vsub_vadd] },
+    { refine or.inr ⟨_, r, ⟨hr0.le, hr1.le⟩, _⟩,
+      { rw [←@vsub_ne_zero V, hp₃p₂, smul_ne_zero_iff],
+        exact ⟨hr0.ne.symm, hp₁p₂⟩ },
+      { rw [affine_map.line_map_apply, ←hp₃p₂, vsub_vadd] } } },
+  { rintro (⟨hp₁p₂, h⟩ | ⟨hp₃p₂, h⟩),
+    { exact h.angle₂₁₃_eq_zero_of_ne hp₁p₂ },
+    { exact h.angle₃₁₂_eq_zero_of_ne hp₃p₂ } }
+end
+
+/-- The angle between three points is zero if and only if one of the first and third points is
+strictly between the other two, or those two points are equal but not equal to the second. -/
+lemma angle_eq_zero_iff_eq_and_ne_or_sbtw {p₁ p₂ p₃ : P} :
+  ∠ p₁ p₂ p₃ = 0 ↔ (p₁ = p₃ ∧ p₁ ≠ p₂) ∨ sbtw ℝ p₂ p₁ p₃ ∨ sbtw ℝ p₂ p₃ p₁ :=
+begin
+  rw angle_eq_zero_iff_ne_and_wbtw,
+  by_cases hp₁p₂ : p₁ = p₂, { simp [hp₁p₂] },
+  by_cases hp₁p₃ : p₁ = p₃, { simp [hp₁p₃] },
+  by_cases hp₃p₂ : p₃ = p₂, { simp [hp₃p₂] },
+  simp [hp₁p₂, hp₁p₃, ne.symm hp₁p₃, sbtw, hp₃p₂]
+end
 
 /-- The inner product of two vectors given with `weighted_vsub`, in
 terms of the pairwise distances. -/

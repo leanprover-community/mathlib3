@@ -76,6 +76,7 @@ variables {α : Type*} {β : Type*}
   and is relevant as the codomain of a measure. -/
 @[derive [
   has_zero, add_comm_monoid_with_one,
+  semilattice_sup, distrib_lattice, order_bot, bounded_order,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
   linear_ordered_add_comm_monoid_with_top]]
@@ -104,10 +105,8 @@ instance : inhabited ℝ≥0∞ := ⟨0⟩
 
 instance : has_coe ℝ≥0 ℝ≥0∞ := ⟨ option.some ⟩
 
-instance : can_lift ℝ≥0∞ ℝ≥0 :=
-{ coe := coe,
-  cond := λ r, r ≠ ∞,
-  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
+instance can_lift : can_lift ℝ≥0∞ ℝ≥0 coe (λ r, r ≠ ∞) :=
+{ prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
 
 @[simp] lemma none_eq_top : (none : ℝ≥0∞) = ∞ := rfl
 @[simp] lemma some_eq_coe (a : ℝ≥0) : (some a : ℝ≥0∞) = (↑a : ℝ≥0∞) := rfl
@@ -190,6 +189,17 @@ by rintro (h | h); simp [h]⟩
 lemma to_real_eq_zero_iff (x : ℝ≥0∞) : x.to_real = 0 ↔ x = 0 ∨ x = ∞ :=
 by simp [ennreal.to_real, to_nnreal_eq_zero_iff]
 
+lemma to_nnreal_eq_one_iff (x : ℝ≥0∞) : x.to_nnreal = 1 ↔ x = 1 :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  cases x,
+  { exact false.elim (zero_ne_one $ ennreal.top_to_nnreal.symm.trans h) },
+  { exact congr_arg _ h }
+end
+
+lemma to_real_eq_one_iff (x : ℝ≥0∞) : x.to_real = 1 ↔ x = 1 :=
+by rw [ennreal.to_real, nnreal.coe_eq_one, ennreal.to_nnreal_eq_one_iff]
+
 @[simp] lemma coe_ne_top : (r : ℝ≥0∞) ≠ ∞ := with_top.coe_ne_top
 @[simp] lemma top_ne_coe : ∞ ≠ (r : ℝ≥0∞) := with_top.top_ne_coe
 @[simp] lemma of_real_ne_top {r : ℝ} : ennreal.of_real r ≠ ∞ := by simp [ennreal.of_real]
@@ -221,6 +231,29 @@ lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
 @[simp, norm_cast] lemma coe_bit0 : (↑(bit0 r) : ℝ≥0∞) = bit0 r := coe_add
 @[simp, norm_cast] lemma coe_bit1 : (↑(bit1 r) : ℝ≥0∞) = bit1 r := by simp [bit1]
 lemma coe_two : ((2:ℝ≥0) : ℝ≥0∞) = 2 := by norm_cast
+
+lemma to_nnreal_eq_to_nnreal_iff (x y : ℝ≥0∞) :
+  x.to_nnreal = y.to_nnreal ↔ x = y ∨ (x = 0 ∧ y = ⊤) ∨ (x = ⊤ ∧ y = 0) :=
+begin
+  cases x,
+  { simp only [@eq_comm ℝ≥0 _ y.to_nnreal, @eq_comm ℝ≥0∞ _ y, to_nnreal_eq_zero_iff,
+      none_eq_top, top_to_nnreal, top_ne_zero, false_and, eq_self_iff_true,
+        true_and, false_or, or_comm (y = ⊤)] },
+  { cases y; simp }
+end
+
+lemma to_real_eq_to_real_iff (x y : ℝ≥0∞) :
+  x.to_real = y.to_real ↔ x = y ∨ (x = 0 ∧ y = ⊤) ∨ (x = ⊤ ∧ y = 0) :=
+by simp only [ennreal.to_real, nnreal.coe_eq, to_nnreal_eq_to_nnreal_iff]
+
+lemma to_nnreal_eq_to_nnreal_iff' {x y : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ ⊤) :
+  x.to_nnreal = y.to_nnreal ↔ x = y :=
+by simp only [ennreal.to_nnreal_eq_to_nnreal_iff x y, hx, hy, and_false, false_and, or_false]
+
+lemma to_real_eq_to_real_iff' {x y : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ ⊤) :
+  x.to_real = y.to_real ↔ x = y :=
+by simp only [ennreal.to_real, nnreal.coe_eq, to_nnreal_eq_to_nnreal_iff' hx hy]
+
 
 protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
   canonically_ordered_comm_semiring.zero_lt_one
@@ -986,11 +1019,9 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, coe_mul, coe_inv hr]
 
 lemma div_zero (h : a ≠ 0) : a / 0 = ∞ := by simp [div_eq_mul_inv, h]
 
-@[simp] lemma inv_one : (1 : ℝ≥0∞)⁻¹ = 1 :=
-by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 inv_one
-
-@[simp] lemma div_one {a : ℝ≥0∞} : a / 1 = a :=
-by rw [div_eq_mul_inv, inv_one, mul_one]
+instance : div_inv_one_monoid ℝ≥0∞ :=
+{ inv_one := by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 inv_one,
+  ..ennreal.div_inv_monoid }
 
 protected lemma inv_pow {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
 begin

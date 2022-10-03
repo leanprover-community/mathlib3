@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Xavier Roblot
 -/
 
-import number_theory.number_field.basic
 import analysis.normed_space.basic
+import number_theory.number_field.basic
 import topology.algebra.polynomial
 
 /-!

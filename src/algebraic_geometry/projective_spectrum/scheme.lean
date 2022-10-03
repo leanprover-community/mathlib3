@@ -239,10 +239,6 @@ def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f)) :=
     generalize_proofs h, exact (classical.some_spec h).1 },
 end⟩
 
-instance : comm_ring (quotient
-  (setoid.ker (homogeneous_localization.num_denom_same_deg.embedding 𝒜 (submonoid.powers f)))) :=
-homogeneous_localization.homogenous_localization_comm_ring
-
 /-
 The preimage of basic open set `D(a/f^n)` in `Spec A⁰_f` under the forward map from `Proj A` to
 `Spec A⁰_f` is the basic open set `D(a) ∩ D(f)` in  `Proj A`. This lemma is used to prove that the

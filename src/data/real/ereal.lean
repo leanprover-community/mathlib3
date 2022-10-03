@@ -294,7 +294,8 @@ by rw [←coe_ennreal_zero, coe_ennreal_lt_coe_ennreal_iff]
 @[simp, norm_cast] lemma coe_ennreal_add : ∀ (x y : ennreal), ((x + y : ℝ≥0∞) : ereal) = x + y
 | ⊤ y := rfl
 | x ⊤ := by simp
-| (some x) (some y) := rfl=
+| (some x) (some y) := rfl
+
 
 /-! ### Order -/
 
@@ -392,6 +393,14 @@ by simp [lt_top_iff_ne_top, not_or_distrib]
 
 /-! ### Negation -/
 
+/-- negation on `ereal` -/
+protected def neg : ereal → ereal
+| ⊥       := ⊤
+| ⊤       := ⊥
+| (x : ℝ) := (-x : ℝ)
+
+instance : has_neg ereal := ⟨ereal.neg⟩
+
 @[norm_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
 
 @[simp] lemma neg_top : - (⊤ : ereal) = ⊥ := rfl
@@ -438,6 +447,8 @@ by rwa [←neg_neg b, ereal.neg_le, neg_neg]
 
 @[simp] lemma neg_le_neg_iff {a b : ereal} : - a ≤ - b ↔ b ≤ a :=
 by conv_lhs { rw [ereal.neg_le, neg_neg] }
+
+@[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
 
 /-- Negation as an order reversing isomorphism on `ereal`. -/
 def neg_order_iso : ereal ≃o erealᵒᵈ :=

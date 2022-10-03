@@ -298,6 +298,6 @@ meta def positivity_smul : expr → tactic strictness
   | nonzero pa, nonzero pb := nonzero <$> to_expr ``(smul_ne_zero %%pa %%pb)
   | sa@_, sb@ _ := positivity_fail e a b sa sb
   end
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a • b`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a • b`"
 
 end tactic

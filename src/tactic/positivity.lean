@@ -240,7 +240,7 @@ meta def compare_hyp (e p₂ : expr) : tactic strictness := do
   | `(%%hi ≠ %%lo) := compare_hyp_ne e lo hi p₂ <|> do
                         p₂' ← mk_mapp ``ne.symm [none, none, none, p₂],
                         compare_hyp_ne e hi lo p₂'
-  | e@_ := do
+  | e := do
              p₂' ← pp p₂,
              fail (p₂' ++ "is not of the form `a ≤ b`, `a < b`, `a = b` or `a ≠ b`")
   end
@@ -343,7 +343,6 @@ add_tactic_doc
   tags := ["arithmetic", "monotonicity", "finishing"] }
 
 end interactive
-example {a : ℤ} (ha : a = -1) : a ≠ 0 := by positivity
 
 variables {α R : Type*}
 
@@ -381,7 +380,7 @@ meta def positivity_min : expr → tactic strictness
   | nonzero pa, nonzero pb := nonzero <$> to_expr ``(min_ne %%pa %%pb)
   | sa@_, sb@ _ := positivity_fail e a b sa sb
   end
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `min a b`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `min a b`"
 
 /-- Extension for the `positivity` tactic: the `max` of two numbers is nonnegative if at least one
 is nonnegative, strictly positive if at least one is positive, and nonzero if both are nonzero. -/
@@ -409,7 +408,7 @@ meta def positivity_max : expr → tactic strictness
                         nonzero pa ← strictness_a,
                         nonzero <$> to_expr ``(max_ne %%pa %%pb)
       end)
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `max a b`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `max a b`"
 
 /-- Extension for the `positivity` tactic: addition is nonnegative if both summands are nonnegative,
 and strictly positive if at least one summand is. -/
@@ -425,7 +424,7 @@ meta def positivity_add : expr → tactic strictness
   | (nonnegative pa), (nonnegative pb) := nonnegative <$> mk_app ``add_nonneg [pa, pb]
   | sa@_, sb@ _ := positivity_fail e a b sa sb
   end
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a + b`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a + b`"
 
 section ordered_semiring
 variables [ordered_semiring R] {a b : R}
@@ -463,7 +462,7 @@ meta def positivity_mul : expr → tactic strictness
   | nonzero pa, nonzero pb := nonzero <$> to_expr ``(mul_ne_zero %%pa %%pb)
   | sa@_, sb@ _ := positivity_fail e a b sa sb
   end
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a * b`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a * b`"
 
 section linear_ordered_semifield
 variables [linear_ordered_semifield R] {a b : R}
@@ -527,7 +526,7 @@ meta def positivity_div : expr → tactic strictness
   | nonzero pa, nonzero pb := nonzero <$> to_expr ``(div_ne_zero %%pa %%pb)
   | sa@_, sb@ _ := positivity_fail e a b sa sb
   end
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a / b`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a / b`"
 
 /-- Extension for the `positivity` tactic: an inverse of a positive number is positive, an inverse
 of a nonnegative number is nonnegative. -/
@@ -540,7 +539,7 @@ meta def positivity_inv : expr → tactic strictness
       | (nonnegative pa) := nonnegative <$> mk_app ``inv_nonneg_of_nonneg [pa]
       | nonzero pa := nonzero <$> to_expr ``(inv_ne_zero %%pa)
       end
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a⁻¹`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a⁻¹`"
 
 private lemma pow_zero_pos [ordered_semiring R] [nontrivial R] (a : R) : 0 < a ^ 0 :=
 zero_lt_one.trans_le (pow_zero a).ge
@@ -612,7 +611,7 @@ meta def positivity_abs : expr → tactic strictness
     | _ := failed
     end) <|>
   nonnegative <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
-| e@_ := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `|a|`"
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `|a|`"
 
 private lemma nat_cast_pos [ordered_semiring α] [nontrivial α] {n : ℕ} : 0 < n → 0 < (n : α) :=
 nat.cast_pos.2

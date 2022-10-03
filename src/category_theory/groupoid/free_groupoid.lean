@@ -162,6 +162,13 @@ quotient.lift _
       symmetry,
       apply groupoid.comp_inv, })
 
+lemma lift_of_injective (φi : function.injective φ.obj) : function.injective (lift φ).obj :=
+begin
+  rintro X Y he,
+  dsimp [lift,paths.lift,quiver.symmetrify.lift,category_theory.quotient.as] at he,
+  exact quotient.ext X Y (φ he),
+end
+
 lemma lift_spec (φ : prefunctor V V') : of.comp (lift φ).to_prefunctor = φ :=
 begin
   rw [of_eq, prefunctor.comp_assoc, prefunctor.comp_assoc, functor.to_prefunctor_comp],
@@ -185,15 +192,6 @@ begin
 end
 
 end universal_property
-
-section graph_like
-
-lemma is_graph_like_iff : (is_graph_like $ free_groupoid V) ↔ (quiver.is_forest V) :=
-begin
-  sorry
-end
-
-end graph_like
 
 end free
 end groupoid

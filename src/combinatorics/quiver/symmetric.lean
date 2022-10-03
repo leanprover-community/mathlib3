@@ -58,43 +58,45 @@ instance : has_involutive_reverse (symmetrify V) :=
   { simp only [path.reverse, path.reverse_comp, path.reverse_to_path, reverse_reverse, p_ih],
     refl, }, }
 
+namespace symmetrify
+
 /-- The inclusion of a quiver in its symmetrification -/
-def symmetrify.of : prefunctor V (symmetrify V) :=
+def of : prefunctor V (symmetrify V) :=
 { obj := id,
   map := λ X Y f, sum.inl f }
 
 /-- Given a quiver `V'` with reversible arrows, a prefunctor to `V'` can be lifted to one from
     `symmetrify V` to `V'` -/
-def symmetrify.lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
+def lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
   prefunctor (symmetrify V) V' :=
 { obj := φ.obj,
   map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
 
-lemma symmetrify.lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
-  symmetrify.of.comp (symmetrify.lift φ) = φ :=
+lemma lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
+  of.comp (lift φ) = φ :=
 begin
   fapply prefunctor.ext,
   { rintro X, refl, },
   { rintros X Y f, refl, },
 end
 
-lemma symmetrify.lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reverse V']
+lemma lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reverse V']
   (φ : prefunctor V V')
   {X Y : symmetrify V} (f : X ⟶ Y) :
-  (symmetrify.lift φ).map (quiver.reverse f) = quiver.reverse ((symmetrify.lift φ).map f) :=
+  (lift φ).map (quiver.reverse f) = quiver.reverse ((lift φ).map f) :=
 begin
-  dsimp [symmetrify.lift], cases f,
+  dsimp [lift], cases f,
   { simp only, refl, },
   { simp only, rw h.inv', refl, }
 end
 
 /-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/
-lemma symmetrify.lift_spec_unique (V' : Type*) [quiver V'] [has_reverse V']
+lemma lift_spec_unique (V' : Type*) [quiver V'] [has_reverse V']
   (φ : prefunctor V V')
   (Φ : prefunctor (symmetrify V) V')
-  (hΦ : symmetrify.of.comp Φ = φ)
+  (hΦ : of.comp Φ = φ)
   (hΦinv : ∀ {X Y : V} (f : X ⟶ Y), Φ.map (reverse f) = reverse (Φ.map f)) :
-  Φ = symmetrify.lift φ :=
+  Φ = lift φ :=
 begin
   subst_vars,
   fapply prefunctor.ext,
@@ -102,9 +104,11 @@ begin
   { rintros X Y f,
     cases f,
     { refl, },
-    { dsimp [symmetrify.lift,symmetrify.of],
+    { dsimp [lift,of],
       convert hΦinv (sum.inl f), }, },
 end
+
+end symmetrify
 
 /--
 `V` is a forest if there is at most one path between any two of its vertices, in the
@@ -112,5 +116,15 @@ symmetrification of `V`
 -/
 def is_forest (V) [quiver V] :=
   ∀ (X Y : V), subsingleton (@quiver.path (symmetrify V) (quiver.symmetrify_quiver V) X Y)
+
+section reduction
+
+variable [has_involutive_reverse V]
+
+def tail_reduce {X : V} : Π {Y : V}, path X Y → path X Y
+| _ (path.nil) := path.nil
+| _ (path.cons (path.cons p f) g) := if (reverse f) = g then p else path.cons (path.cons p f) g
+
+end reduction
 
 end quiver

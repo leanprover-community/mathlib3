@@ -214,8 +214,8 @@ by ext; simp [prod.ext_iff]
   image₂ (curry f) s t = (s ×ˢ t).image f :=
 by { classical, rw [←image₂_mk_eq_product, image_image₂, curry] }
 
-@[simp] lemma image_uncurry_product [decidable_eq α] [decidable_eq β] (f : α → β → γ) (s : finset α)
-  (t : finset β) : (s ×ˢ t).image (uncurry f) = image₂ f s t := by rw [←image₂_curry, curry_uncurry]
+@[simp] lemma image_uncurry_product (f : α → β → γ) (s : finset α) (t : finset β) :
+  (s ×ˢ t).image (uncurry f) = image₂ f s t := by rw [←image₂_curry, curry_uncurry]
 
 @[simp] lemma image₂_left [decidable_eq α] (h : t.nonempty) : image₂ (λ x y, x) s t = s :=
 coe_injective $ by { push_cast, exact image2_left h }

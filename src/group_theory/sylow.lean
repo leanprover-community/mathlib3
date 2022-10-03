@@ -110,7 +110,7 @@ lemma subtype_injective {P Q : sylow p G} {hP : ↑P ≤ N} {hQ : ↑Q ≤ N}
   (h : P.subtype hP = Q.subtype hQ) : P = Q :=
 begin
   rw set_like.ext_iff at h ⊢,
-  exact λ g, (em (g ∈ N)).elim (λ hg, h ⟨g, hg⟩) (λ h, iff_of_false (mt (@hP g) h) (mt (@hQ g) h)),
+  exact λ g, ⟨λ hg, (h ⟨g, hP hg⟩).mp hg, λ hg, (h ⟨g, hQ hg⟩).mpr hg⟩,
 end
 
 end sylow

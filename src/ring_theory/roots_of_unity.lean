@@ -616,11 +616,8 @@ end
 /-- If `1 < k`, then `ζ ^ k.pred = -(∑ i in range k.pred, ζ ^ i)`. -/
 lemma pow_sub_one_eq [is_domain R] {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) :
   ζ ^ k.pred = -(∑ i in range k.pred, ζ ^ i) :=
-begin
-  have := hζ.geom_sum_eq_zero hk,
-  rwa [← nat.succ_pred_eq_of_pos (lt_trans zero_lt_one hk), range_succ,
-    sum_insert not_mem_range_self, add_eq_zero_iff_eq_neg] at this
-end
+by rw [eq_neg_iff_add_eq_zero, add_comm, ←sum_range_succ, ←nat.succ_eq_add_one,
+  nat.succ_pred_eq_of_pos (pos_of_gt hk), hζ.geom_sum_eq_zero hk]
 
 /-- The (additive) monoid equivalence between `zmod k`
 and the powers of a primitive root of unity `ζ`. -/

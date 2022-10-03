@@ -135,13 +135,12 @@ lemma mem_carrier_iff (z : A⁰_ f) :
 iff.rfl
 
 lemma mem_carrier.clear_denominator' [decidable_eq (away f)]
-  {z : localization.away f} (hz : z ∈ span (⇑(algebra_map A (away f)) '' x.val.as_homogeneous_ideal)) :
+  {z : localization.away f}
+  (hz : z ∈ span ((algebra_map A (away f)) '' x.val.as_homogeneous_ideal)) :
   ∃ (c : algebra_map A (away f) '' x.1.as_homogeneous_ideal →₀ away f)
-    (N : ℕ)
-    (acd : Π y ∈ c.support.image c, A),
-    f ^ N • z =
-    algebra_map A (away f) (∑ i in c.support.attach,
-      acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * classical.some i.1.2) :=
+    (N : ℕ) (acd : Π y ∈ c.support.image c, A),
+    f ^ N • z = algebra_map A (away f)
+      (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) :=
 begin
   rw [←submodule_span_eq, finsupp.span_eq_range_total, linear_map.mem_range] at hz,
   rcases hz with ⟨c, eq1⟩,
@@ -161,11 +160,9 @@ end
 lemma mem_carrier.clear_denominator [decidable_eq (away f)]
   {z : A⁰_ f} (hz : z ∈ carrier 𝒜 x) :
   ∃ (c : algebra_map A (away f) '' x.1.as_homogeneous_ideal →₀ away f)
-    (N : ℕ)
-    (acd : Π y ∈ c.support.image c, A),
-    f ^ N • z.val =
-    algebra_map A (away f) (∑ i in c.support.attach,
-      acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * classical.some i.1.2) :=
+    (N : ℕ) (acd : Π y ∈ c.support.image c, A),
+    f ^ N • z.val = algebra_map A (away f)
+      (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) :=
 mem_carrier.clear_denominator' x $ (mem_carrier_iff 𝒜 x z).mpr hz
 
 lemma disjoint :

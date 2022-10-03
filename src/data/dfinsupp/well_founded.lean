@@ -127,9 +127,9 @@ variables (r : ι → ι → Prop) {s : Π i, α i → α i → Prop}
 theorem pi.lex.well_founded [is_strict_total_order ι r] [finite ι]
   (hs : ∀ i, well_founded (s i)) : well_founded (pi.lex r s) :=
 begin
-  by_cases is_empty (Π i, α i),
+  cases is_empty_or_nonempty (Π i, α i),
   { convert empty_wf, ext1 x, exact (h.1 x).elim },
-  simp_rw [is_empty_pi, not_exists, not_is_empty_iff, set.nonempty_iff_univ_nonempty] at h,
+  simp_rw [classical.nonempty_pi, set.nonempty_iff_univ_nonempty] at h,
   letI : Π i, has_zero (α i) := λ i, ⟨(hs i).min ⊤ (h i)⟩,
   haveI := is_trans.swap r, haveI := is_irrefl.swap r, haveI := fintype.of_finite ι,
   refine inv_image.wf equiv_fun_on_fintype.symm (lex.well_founded' (λ i a, _) hs _),
@@ -173,9 +173,9 @@ dfinsupp.well_founded_lt $ λ i a, (zero_le a).not_lt
 instance pi.well_founded_lt [finite ι] [Π i, preorder (α i)]
   [hwf : ∀ i, well_founded_lt (α i)] : well_founded_lt (Π i, α i) :=
 ⟨begin
-  by_cases is_empty (Π i, α i),
+  cases is_empty_or_nonempty (Π i, α i),
   { convert empty_wf, ext1 x, exact (h.1 x).elim },
-  simp_rw [is_empty_pi, not_exists, not_is_empty_iff, set.nonempty_iff_univ_nonempty] at h,
+  simp_rw [classical.nonempty_pi, set.nonempty_iff_univ_nonempty] at h,
   letI : Π i, has_zero (α i) := λ i, ⟨(hwf i).wf.min ⊤ (h i)⟩, haveI := fintype.of_finite ι,
   refine inv_image.wf equiv_fun_on_fintype.symm (dfinsupp.well_founded_lt $ λ i a, _).wf,
   exact (hwf i).wf.not_lt_min ⊤ _ trivial,

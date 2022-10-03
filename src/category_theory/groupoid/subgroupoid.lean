@@ -384,7 +384,6 @@ variable (X : ∀ (c d : C), set (c ⟶ d))
 def generated : subgroupoid C :=
   Inf {S : subgroupoid C | ∀ c d, X c d ⊆ S.arrws c d}
 
-
 /- TODO to prove this:
 * Define the “forest” property below properly on quivers: this is equivalent to the symmetrification
   containing only subsingletons

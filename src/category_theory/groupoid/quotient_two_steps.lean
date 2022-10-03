@@ -54,6 +54,12 @@ abbreviation qex := @quotient.exact _ (R S Sn)
 
 @[simp] lemma noname (c : C) : qout S Sn (qmk S Sn c) ∈ r_reps S Sn := ⟨qmk S Sn c, rfl⟩
 
+lemma qoutmk (c : C) : (R S Sn).r (qout S Sn (qmk S Sn c)) c :=
+begin
+  apply qex,
+  simp only [quotient.out_eq],
+end
+
 noncomputable def of : C ⥤ quotient S Sn :=
 { obj := λ c,
   ⟨ qout S Sn (qmk S Sn c),
@@ -74,6 +80,7 @@ noncomputable def of : C ⥤ quotient S Sn :=
 
 def fo : (quotient S Sn) ⥤ C := coe_embedding _
 
+
 lemma fo_of : (fo S Sn) ⋙ (of S Sn) = 𝟭 _ :=
 begin
   dsimp only [of,fo,coe_embedding,full_on],
@@ -87,10 +94,12 @@ begin
     simp only [functor.comp_map, functor.id_map],
     cases hc, cases hc_h, cases hc_h_hc,
     cases hd, cases hd_h, cases hd_h_hd,
-    subst_vars,
+    cases hf, cases hf_hc, cases  hf_hd,
+    subst_vars, ext, simp,
     sorry,
    }
 end
+
 
 section ump
 
@@ -98,14 +107,23 @@ variables {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ)
 
 def lift : quotient S Sn ⥤ D := (fo S Sn) ⋙ φ
 
-def lift_spec : (of S Sn) ⋙ (lift S Sn φ) = φ :=
+include hφ
+lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ) = φ :=
 begin
-  dsimp [lift],
-  change ((of S Sn) ⋙ (fo S Sn)) ⋙ φ = φ,
-  rw fo_of,
+  dsimp [lift, of, fo, full_on, coe_embedding], simp,
+  apply functor.hext,
+  { rintro c, simp, }
 end
 
-def lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : Φ)
+lemma fo_of : (fo S Sn) ⋙ (of S Sn) = 𝟭 _ :=
+begin
+
+end
+
+def lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) : Φ = (lift S Sn φ) :=
+begin
+  subst hΦ, sorry,
+end
 
 end ump
 

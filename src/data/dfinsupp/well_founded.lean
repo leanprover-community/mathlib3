@@ -11,6 +11,7 @@ import set_theory.ordinal.basic
 /-!
 # Well-foundedness of the lexicographic and product orders on `dfinsupp` and `pi`
 
+The proof is modelled on the proof of `well_founded.cut_expand`.
 -/
 
 variables {ι : Type*} {α : ι → Type*}

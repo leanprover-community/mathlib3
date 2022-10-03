@@ -54,7 +54,6 @@ lemma exists_measure_closed_ball_le_mul' :
   ∀ᶠ ε in 𝓝[>] 0, ∀ x, μ (closed_ball x (2 * ε)) ≤ (doubling_constant μ) * μ (closed_ball x ε) :=
 classical.some_spec $ exists_measure_closed_ball_le_mul μ
 
--- TODO Maybe generalise (any value instead of just `8`) now that this is a lemma in its own right.
 lemma exists_measure_closed_ball_le_mul_of_mem_Ioc (t : ℝ) (ht : t ∈ Ioc (0 : ℝ) 8) :
   ∀ᶠ ε in 𝓝[>] 0, ∀ x,
     μ (closed_ball x (t * ε)) ≤ ↑((doubling_constant μ)^3) * μ (closed_ball x ε) :=
@@ -86,18 +85,17 @@ vitali.vitali_family μ ((doubling_constant μ)^3) $ λ x ε hε,
 begin
   have h := forall_eventually_of_eventually_forall
     (exists_measure_closed_ball_le_mul_of_mem_Ioc μ 6 $ by norm_num),
-  simpa only [exists_prop] using
-    ((eventually_nhds_within_pos_mem_Ioc hε).and (h x)).frequently.exists,
+  simpa only [exists_prop] using ((eventually_nhds_within_pos_mem_Ioc hε).and (h x)).exists,
 end
 
 /-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centres are
 not required to be fixed.
 
 See also `besicovitch.ae_tendsto_measure_inter_div`. -/
-lemma ae_tendsto_measure_inter_div (S : set α) :
+lemma ae_tendsto_measure_inter_div (S : set α) (K : ℝ) (hK : K ∈ unit_interval) :
   ∀ᵐ x ∂μ.restrict S, ∀ {ι : Type*} {l : filter ι} (w : ι → α) (δ : ι → ℝ)
     (δlim : tendsto δ l (𝓝[>] 0))
-    (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (δ j)),
+    (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (K * δ j)),
     tendsto (λ j, μ (S ∩ closed_ball (w j) (δ j)) / μ (closed_ball (w j) (δ j))) l (𝓝 1) :=
 begin
   let v := is_doubling_measure.vitali_family μ,
@@ -106,6 +104,8 @@ begin
   { refine v.tendsto_filter_at_iff.mpr ⟨_, (λ ε hε, _)⟩,
     { simp only [v, vitali.vitali_family],
       have δpos : ∀ᶠ j in l, 0 < δ j := eventually_mem_of_tendsto_nhds_within δlim,
+      replace xmem : ∀ᶠ (j : ι) in l, x ∈ closed_ball (w j) (δ j) := (δpos.and xmem).mono
+        (λ j hj, closed_ball_subset_closed_ball (by nlinarith [hj.1, hK.2]) hj.2),
       apply ((δlim.eventually
         (exists_measure_closed_ball_le_mul_of_mem_Ioc μ 7 $ by norm_num)).and (xmem.and δpos)).mono,
       rintros j ⟨hjC, hjx, hjδ⟩,
@@ -121,9 +121,11 @@ begin
       linarith [dist_triangle_right y (w j) x], },
     { have δpos := eventually_mem_of_tendsto_nhds_within δlim,
       replace δlim := tendsto_nhds_of_tendsto_nhds_within δlim,
-      apply (((metric.tendsto_nhds.mp δlim _ (half_pos hε)).and δpos).and xmem).mono,
-      rintros j ⟨hj, hx⟩ y hy,
-      replace hj : δ j < ε / 2 := by simpa [abs_eq_self.mpr (mem_Ioi.mp hj.2).le] using hj.1,
+      replace hK : 0 < K + 1 := by linarith [hK.1],
+      apply (((metric.tendsto_nhds.mp δlim _ (div_pos hε hK)).and δpos).and xmem).mono,
+      rintros j ⟨⟨hjε, hj₀ : 0 < δ j⟩, hx⟩ y hy,
+      replace hjε : (K + 1) * δ j < ε :=
+        by simpa [abs_eq_self.mpr hj₀.le] using (lt_div_iff' hK).mp hjε,
       simp only [mem_closed_ball] at hx hy ⊢,
       linarith [dist_triangle_right y x (w j)], } },
   exact hx.comp this,

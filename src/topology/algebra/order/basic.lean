@@ -2983,7 +2983,7 @@ begin
     have hr : 𝓝[>] (0 : α) = ((𝓝[>] (0 : α)).comap (λ ε, x⁻¹ * ε)).comap (λ ε, x * ε),
     { simp [comap_comap, inv_mul_cancel hx.ne.symm, comap_id, one_mul_eq_id], },
     conv_rhs { rw hr, },
-    rw comap_le_comap_iff (by { convert univ_mem, exact range_mul_left_eq_univ hx.ne.symm, }),
+    rw comap_le_comap_iff (by convert univ_mem; exact (mul_left_surjective₀ hx.ne.symm).range_eq),
     exact this (inv_pos.mpr hx), },
   intros x hx,
   convert nhds_within_le_comap (continuous_mul_left x).continuous_within_at,

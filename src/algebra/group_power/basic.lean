@@ -68,7 +68,9 @@ by rw [pow_succ, pow_one]
 
 alias pow_two ← sq
 
-theorem pow_three {M : Type*} [monoid M] (a : M) : a^3 = a * a * a := by rw [pow_succ', pow_two]
+theorem pow_three' (a : M) : a^3 = a * a * a := by rw [pow_succ', pow_two]
+
+theorem pow_three (a : M) : a^3 = a * (a * a) := by rw [pow_succ, pow_two]
 
 @[to_additive]
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n := commute.pow_self a n

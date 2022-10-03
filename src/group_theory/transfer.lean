@@ -202,49 +202,51 @@ lemma sylow.conj_eq_normalizer_conj' {p : ℕ} [fact p.prime] {G : Type*} [group
   ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
 P.conj_eq_normalizer_conj g (le_centralizer P hx) (le_centralizer P hy)
 
-noncomputable def burnside_transfer {p : ℕ} (P : sylow p G) [fintype (G ⧸ (P : subgroup G))]
+variables {p : ℕ} (P : sylow p G)
+
+/-- The homomorphism `G →* P` in Burnside's transfer theorem. -/
+noncomputable def transfer_sylow {p : ℕ} (P : sylow p G) [fintype (G ⧸ (P : subgroup G))]
   (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer) : G →* (P : subgroup G) :=
 @transfer G _ P P (@subgroup.is_commutative.comm_group G _ P
   ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩) (monoid_hom.id P) _
 
-/-- Auxillary lemma in order to state `burnside_transfer_eq_pow`. -/
-lemma burnside_transfer_eq_pow_aux {p : ℕ} [fact p.prime] {G : Type*} [group G]
-  [fintype (sylow p G)] (P : sylow p G) (hP : P.1.normalizer ≤ P.1.centralizer)
+/-- Auxillary lemma in order to state `transfer_sylow_eq_pow`. -/
+lemma transfer_sylow_eq_pow_aux [fact p.prime] [fintype (sylow p G)]
+  (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer)
   (g : G) (hg : g ∈ P) (k : ℕ) (g₀ : G) (h : g₀⁻¹ * g ^ k * g₀ ∈ P) : g₀⁻¹ * g ^ k * g₀ = g ^ k :=
 begin
   haveI : (P : subgroup G).is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
-  obtain ⟨n, hn, key⟩ := sylow.conj_eq_normalizer_conj' g₀ P (P.1.pow_mem hg k) h,
-  rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg k), inv_mul_cancel_left],
+  obtain ⟨n, hn, h⟩ := sylow.conj_eq_normalizer_conj' g₀ P (P.1.pow_mem hg k) h,
+  rw [h, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg k), inv_mul_cancel_left],
 end
 
-lemma burnside_transfer_eq_pow {p : ℕ} [fact p.prime] {G : Type*} [group G] [fintype (sylow p G)]
-  (P : sylow p G) [fintype (G ⧸ (P : subgroup G))] (hP : P.1.normalizer ≤ P.1.centralizer) (g : G) (hg : g ∈ P) :
-  burnside_transfer P hP g = ⟨g ^ P.1.index, transfer_eq_pow_aux g (burnside_transfer_eq_pow_aux P hP g hg)⟩ :=
+lemma transfer_sylow_eq_pow [fact p.prime] [fintype (sylow p G)] [fintype (G ⧸ (P : subgroup G))]
+  (hP : P.1.normalizer ≤ P.1.centralizer) (g : G) (hg : g ∈ P) :
+  transfer_sylow P hP g = ⟨g ^ P.1.index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
 by apply transfer_eq_pow
 
-lemma burnside_transfer_ker_disjoint {p : ℕ} [fact p.prime] {G : Type*} [group G] (P : sylow p G)
+lemma burnside_transfer_ker_disjoint' {p : ℕ} [fact p.prime] {G : Type*} [group G] (P : sylow p G)
   [fintype (G ⧸ (P : subgroup G))] [fintype G]
-  (hP : P.1.normalizer ≤ P.1.centralizer) : disjoint (burnside_transfer P hP).ker P.1 :=
+  (hP : P.1.normalizer ≤ P.1.centralizer) : disjoint (transfer_sylow P hP).ker ↑P :=
 begin
   classical,
   intros g hg,
-  have key := burnside_transfer_eq_pow P hP g hg.2,
+  have key := transfer_sylow_eq_pow P hP g hg.2,
   have key' : (fintype.card P.1).coprime P.1.index := P.card_coprime_index,
   have : pow_coprime P.card_coprime_index ⟨g, hg.2⟩ = 1 := key.symm.trans hg.1,
   rwa [←pow_coprime_one, equiv.apply_eq_iff_eq, subtype.ext_iff] at this,
 end
 
-lemma burnside_transfer_ker_disjoint' {p : ℕ} [fact p.prime] {G : Type*} [group G] (P Q : sylow p G)
+lemma burnside_transfer_ker_disjoint {p : ℕ} [fact p.prime] {G : Type*} [group G] (P Q : sylow p G)
   [fintype (G ⧸ (P : subgroup G))] [fintype G]
-  (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer) :
-  disjoint (burnside_transfer P hP).ker Q.1 :=
+  (hP : P.1.normalizer ≤ P.1.centralizer) : disjoint (transfer_sylow P hP).ker ↑Q :=
 begin
   sorry,
 end
 
 lemma burnside_transfer_surjective {p : ℕ} {G : Type*} [group G] (P : sylow p G)
   [fintype (G ⧸ (P : subgroup G))] [fintype G]
-  (hP : P.1.normalizer ≤ P.1.centralizer) : function.surjective (burnside_transfer P hP) :=
+  (hP : P.1.normalizer ≤ P.1.centralizer) : function.surjective (transfer_sylow P hP) :=
 begin
   classical,
   haveI P_comm : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,

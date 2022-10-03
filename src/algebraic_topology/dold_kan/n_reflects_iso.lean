@@ -36,8 +36,7 @@ variables {C : Type*} [category C] [preadditive C]
 
 open morph_components
 
-instance : reflects_isomorphisms
-  (N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)) :=
+instance : reflects_isomorphisms (N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)) :=
 ⟨λ X Y f, begin
   introI,
   /- restating the result in a way that allows induction on the degree n -/

@@ -69,7 +69,7 @@ variables {V : Type*} {V₂ : Type*}
 namespace finsupp
 
 lemma smul_sum {α : Type*} {β : Type*} {R : Type*} {M : Type*}
-  [has_zero β] [monoid R] [add_comm_monoid M] [distrib_mul_action R M]
+  [has_zero β] [add_comm_monoid M] [distrib_smul R M]
   {v : α →₀ β} {c : R} {h : α → β → M} :
   c • (v.sum h) = v.sum (λa b, c • h a b) :=
 finset.smul_sum
@@ -1181,7 +1181,7 @@ variables [module R M] [module R₂ M₂] [module R₃ M₃]
 variables {τ₁₂ : R →+* R₂} {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃}
 variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃]
 variables {F : Type*} [sc : semilinear_map_class F τ₁₂ M M₂]
-variables {f : M →ₛₗ[τ₁₂] M₂}
+variables {f : F}
 include R
 open submodule
 
@@ -1191,7 +1191,8 @@ lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ�
 lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
   f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
 
-theorem sub_mem_ker_iff {x y} : x - y ∈ f.ker ↔ f x = f y :=
+include sc
+theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]
 
 theorem disjoint_ker' {p : submodule R M} :
@@ -1205,22 +1206,30 @@ theorem inj_of_disjoint_ker {p : submodule R M}
   ∀ x y ∈ s, f x = f y → x = y :=
 λ x hx y hy, disjoint_ker'.1 hd _ (h hx) _ (h hy)
 
-theorem ker_eq_bot : ker f = ⊥ ↔ injective f :=
-by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ _ _ _ f ⊤
+variables (F)
+theorem _root_.linear_map_class.ker_eq_bot : ker f = ⊥ ↔ injective f :=
+by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
+variables {F}
+
+omit sc
+theorem ker_eq_bot {f : M →ₛₗ[τ₁₂] M₂} : ker f = ⊥ ↔ injective f :=
+linear_map_class.ker_eq_bot _
+include sc
 
 lemma ker_le_iff [ring_hom_surjective τ₁₂] {p : submodule R M} :
   ker f ≤ p ↔ ∃ (y ∈ range f), f ⁻¹' {y} ⊆ p :=
 begin
   split,
-  { intros h, use 0, rw [← set_like.mem_coe, f.range_coe], exact ⟨⟨0, map_zero f⟩, h⟩, },
+  { intros h, use 0, rw [← set_like.mem_coe, range_coe], exact ⟨⟨0, map_zero f⟩, h⟩, },
   { rintros ⟨y, h₁, h₂⟩,
     rw set_like.le_def, intros z hz, simp only [mem_ker, set_like.mem_coe] at hz,
-    rw [← set_like.mem_coe, f.range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
+    rw [← set_like.mem_coe, range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
     have hx' : x ∈ p, { exact h₂ hx, },
     have hxz : z + x ∈ p, { apply h₂, simp [hx, hz], },
     suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel], },
     exact p.sub_mem hxz hx', },
 end
+omit sc
 
 end ring
 

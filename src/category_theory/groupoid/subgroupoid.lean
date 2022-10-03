@@ -116,8 +116,19 @@ def coe := subtype $ S.carrier
 
 instance (S : subgroupoid C) : groupoid S.coe := coe_groupoid S
 
-@[simp] lemma coe_comp {a b c : coe S} (f : a ⟶ b) (g : b ⟶ c) :
-  (f ≫ g).val = f.val ≫ g.val := by simp
+/-- There is an embedding of the coerced subgroupoid to its parent-/
+def coe_embedding : (coe S) ⥤ C :=
+{ obj := λ c, c.val,
+  map := λ c d f, f.val,
+  map_id' := λ c, by simp only [subtype.val_eq_coe, coe_groupoid_to_category_id_coe],
+  map_comp' := λ c d e f g, by simp only [subtype.val_eq_coe, coe_groupoid_to_category_comp_coe] }
+
+lemma coe_embedding.inj_on_objects : function.injective (coe_embedding S).obj := by
+{ rintros ⟨c,hc⟩ ⟨d,hd⟩ hcd, simp only [subtype.mk_eq_mk], exact hcd }
+
+lemma coe_embedding.faithful :
+  ∀ c d, function.injective (λ (f : c ⟶ d), (coe_embedding S).map f) := by
+{ rintros ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,hf⟩ ⟨g,hg⟩ hfg, simp only [subtype.mk_eq_mk], exact hfg, }
 
 /-- The subgroup of the vertex group at `c` given by the subgroupoid -/
 def vertex_subgroup {c : C} (hc : c ∈ S.carrier) : subgroup (c ⟶ c) :=

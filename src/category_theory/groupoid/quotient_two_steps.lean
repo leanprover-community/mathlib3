@@ -72,11 +72,30 @@ noncomputable def of : C ⥤ quotient S Sn :=
       simp only [inv_eq_inv, category.assoc, subtype.coe_mk, coe_groupoid_to_category_comp_coe,
                  is_iso.inv_hom_id_assoc], } }
 
-def lift {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ) : quotient S Sn ⥤ D :=
-{ obj := sorry,
-  map := sorry,
-  map_id' := sorry,
-  map_comp' := sorry }
+def fo : (quotient S Sn) ⥤ C := coe_embedding _
+
+lemma fo_of : (fo S Sn) ⋙ (of S Sn) = 𝟭 _ :=
+begin
+  dsimp only [of,fo,coe_embedding,full_on],
+  simp only [inv_eq_inv],
+  fapply functor.ext,
+  { rintro ⟨c,hc⟩,
+    simp only [functor.comp_obj, functor.id_obj, subtype.mk_eq_mk],
+    cases hc, cases hc_h, cases hc_h_hc, subst_vars,
+    simp only [quotient.out_inj], apply quotient.out_eq, },
+  { rintros ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,hf⟩,
+    simp only [functor.comp_map, functor.id_map],
+    cases hc, cases hc_h, cases hc_h_hc,
+    cases hd, cases hd_h, cases hd_h_hd,
+    subst_vars,
+    sorry,
+   }
+end
+
+def lift {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ) :
+  quotient S Sn ⥤ D := (fo S Sn) ⋙ φ
+
+
 
 end is_graph_like
 end subgroupoid

@@ -951,3 +951,30 @@ lemma End.int_cast_def (z : ℤ) [add_comm_group N₁] [module R N₁] :
   (↑z : module.End R N₁) = module.to_module_End R N₁ z := rfl
 
 end module
+
+section coe
+
+variables {R S} [semiring R] [semiring S] (σ : R →+* S)
+
+/-- `coe_semilinear_map σ M N` is a class stating that the coercion map `↑ : M → N`
+(a.k.a. `coe`) is a `σ`-semilinear map.
+-/
+class coe_semilinear_map (M N : Type*) [has_lift_t M N] [has_smul R M] [has_smul S N] :=
+(coe_smulₛₗ : ∀ (c : R) (x : M), ↑(c • x) = σ c • (↑ x : N))
+
+export coe_semilinear_map (coe_smulₛₗ)
+
+-- `simp` can't infer `σ` so this can't be a `@[simp]` lemma
+-- attribute [simp, norm_num] coe_smulₛₗ
+
+/-- `linear_map.coe M N` is the map `↑ : M → N` (a.k.a. `coe`), bundled as a (semi)linear map. -/
+@[simps { fully_applied := ff }]
+protected def linear_map.coe (M N : Type*) [has_lift_t M N]
+  [add_comm_monoid M] [add_comm_monoid N] [module R M] [module S N]
+  [coe_add_monoid_hom M N] [coe_semilinear_map σ M N] :
+  M →ₛₗ[σ] N :=
+{ to_fun := coe,
+  map_smul' := coe_smulₛₗ,
+  .. add_monoid_hom.coe M N }
+
+end coe

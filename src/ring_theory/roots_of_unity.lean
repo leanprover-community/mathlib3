@@ -319,6 +319,9 @@ end
 lemma pow_ne_one_of_pos_of_lt (h0 : 0 < l) (hl : l < k) : ζ ^ l ≠ 1 :=
 mt (nat.le_of_dvd h0 ∘ h.dvd_of_pow_eq_one _) $ not_le_of_lt hl
 
+lemma ne_one {ζ : M} (hζ : is_primitive_root ζ k) (hk : 1 < k) : ζ ≠ 1 :=
+hζ.pow_ne_one_of_pos_of_lt zero_lt_one hk ∘ (pow_one ζ).trans
+
 lemma pow_inj (h : is_primitive_root ζ k) ⦃i j : ℕ⦄ (hi : i < k) (hj : j < k) (H : ζ ^ i = ζ ^ j) :
   i = j :=
 begin
@@ -598,9 +601,6 @@ begin
   rw [order_of_neg_one, if_neg],
   rwa ring_char.eq_iff.mpr h
 end
-
-lemma ne_one {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) : ζ ≠ 1 :=
-hζ.pow_ne_one_of_pos_of_lt zero_lt_one hk ∘ (pow_one ζ).trans
 
 /-- If `1 < k` then `(∑ i in range k, ζ ^ i) = 0`. -/
 lemma geom_sum_eq_zero [is_domain R] {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) :

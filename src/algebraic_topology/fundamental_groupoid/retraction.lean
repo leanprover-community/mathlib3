@@ -29,15 +29,12 @@ noncomputable theory
 
 universe u
 
-open fundamental_groupoid
-open category_theory
-open fundamental_groupoid_functor
+open fundamental_groupoid category_theory fundamental_groupoid_functor
 
-open_locale fundamental_groupoid
-open_locale unit_interval
+open_locale fundamental_groupoid unit_interval
 
 /-- Helper to convert a continuous map to an arrow in the category Top. -/
-def top_hom_of_continuous_map
+def Top.hom_of_continuous_map
   {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) : Top.of X ⟶ Top.of Y := f
 
 

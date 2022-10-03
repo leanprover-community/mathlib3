@@ -271,7 +271,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
 structure with_seminorms (p : seminorm_family 𝕜 E ι) [t : topological_space E] : Prop :=
 (topology_eq_with_seminorms : t = p.module_filter_basis.topology)
 
-lemma seminorm_family.with_seminorms_eq {p : seminorm_family 𝕜 E ι} [t : topological_space E]
+lemma with_seminorms.with_seminorms_eq {p : seminorm_family 𝕜 E ι} [t : topological_space E]
   (hp : with_seminorms p) : t = p.module_filter_basis.topology := hp.1
 
 variables [topological_space E]
@@ -493,7 +493,7 @@ variables [nonempty ι] [normed_field 𝕜] [normed_space ℝ 𝕜]
   [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
   [topological_add_group E]
 
-lemma seminorm_family.to_locally_convex_space {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p) :
+lemma with_seminorms.to_locally_convex_space {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p) :
   locally_convex_space ℝ E :=
 begin
   apply of_basis_zero ℝ E id (λ s, s ∈ p.basis_sets),
@@ -516,7 +516,7 @@ variables (𝕜) [normed_field 𝕜] [normed_space ℝ 𝕜] [seminormed_add_com
 slightly weaker instance version. -/
 lemma normed_space.to_locally_convex_space' [normed_space 𝕜 E] [module ℝ E]
   [is_scalar_tower ℝ 𝕜 E] : locally_convex_space ℝ E :=
-seminorm_family.to_locally_convex_space (norm_with_seminorms 𝕜 E)
+(norm_with_seminorms 𝕜 E).to_locally_convex_space
 
 /-- See `normed_space.to_locally_convex_space'` for a slightly stronger version which is not an
 instance. -/

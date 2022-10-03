@@ -16,7 +16,7 @@ open finset finsupp
 variables {k : Type u₁} {G : Type u₂} [semiring k]
 
 lemma support_single_mul_subset [decidable_eq G] [has_mul G]
-  (f : monoid_algebra k G) {r : k} {a : G} :
+  (f : monoid_algebra k G) (r : k) (a : G) :
   (single a r * f : monoid_algebra k G).support ⊆ finset.image ((*) a) f.support :=
 begin
   intros x hx,
@@ -29,7 +29,7 @@ begin
 end
 
 lemma support_mul_single_subset [decidable_eq G] [has_mul G]
-  (f : monoid_algebra k G) {r : k} {a : G} :
+  (f : monoid_algebra k G) (r : k) (a : G) :
   (f * single a r).support ⊆ finset.image (* a) f.support :=
 begin
   intros x hx,
@@ -45,7 +45,7 @@ lemma support_single_mul_eq_image [decidable_eq G] [has_mul G]
   (f : monoid_algebra k G) {r : k} (hr : ∀ y, r * y = 0 ↔ y = 0) {x : G} (lx : is_left_regular x) :
   (single x r * f : monoid_algebra k G).support = finset.image ((*) x) f.support :=
 begin
-  refine subset_antisymm (support_single_mul_subset f) (λ y hy, _),
+  refine subset_antisymm (support_single_mul_subset f _ _) (λ y hy, _),
   obtain ⟨y, yf, rfl⟩ : ∃ (a : G), a ∈ f.support ∧ x * a = y,
   { simpa only [finset.mem_image, exists_prop] using hy },
   simp only [mul_apply, mem_support_iff.mp yf, hr, mem_support_iff, sum_single_index,
@@ -56,7 +56,7 @@ lemma support_mul_single_eq_image [decidable_eq G] [has_mul G]
   (f : monoid_algebra k G) {r : k} (hr : ∀ y, y * r = 0 ↔ y = 0) {x : G} (rx : is_right_regular x) :
   (f * single x r).support = finset.image (* x) f.support :=
 begin
-  refine subset_antisymm (support_mul_single_subset f) (λ y hy, _),
+  refine subset_antisymm (support_mul_single_subset f _ _) (λ y hy, _),
   obtain ⟨y, yf, rfl⟩ : ∃ (a : G), a ∈ f.support ∧ a * x = y,
   { simpa only [finset.mem_image, exists_prop] using hy },
   simp only [mul_apply, mem_support_iff.mp yf, hr, mem_support_iff, sum_single_index,

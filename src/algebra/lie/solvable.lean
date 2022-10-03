@@ -78,7 +78,7 @@ end
   D k I ≤ D l J :=
 begin
   revert l, induction k with k ih; intros l h₂,
-  { rw nat.le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
+  { rw le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
   { have h : l = k.succ ∨ l ≤ k, by rwa [le_iff_eq_or_lt, nat.lt_succ_iff] at h₂,
     cases h,
     { rw [h, derived_series_of_ideal_succ, derived_series_of_ideal_succ],

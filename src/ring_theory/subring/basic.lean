@@ -211,7 +211,7 @@ iff.rfl
 equalities. -/
 protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
 { carrier := s,
-  neg_mem' := hs.symm ▸ S.neg_mem',
+  neg_mem' := λ _, hs.symm ▸ S.neg_mem',
   ..S.to_subsemiring.copy s hs }
 
 @[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :
@@ -559,6 +559,13 @@ instance : has_Inf (subring R) :=
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
+
+@[simp, norm_cast] lemma coe_infi {ι : Sort*} {S : ι → subring R} :
+  (↑(⨅ i, S i) : set R) = ⋂ i, S i :=
+by simp only [infi, coe_Inf, set.bInter_range]
+
+lemma mem_infi {ι : Sort*} {S : ι → subring R} {x : R} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
+by simp only [infi, mem_Inf, set.forall_range_iff]
 
 @[simp] lemma Inf_to_submonoid (s : set (subring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
@@ -1036,14 +1043,13 @@ begin
   { rw [list.map_cons, list.sum_cons],
     exact ha this (ih HL.2) },
   replace HL := HL.1, clear ih tl,
-  suffices : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
+  rsuffices ⟨L, HL', HP | HP⟩ : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
     (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
-  { rcases this with ⟨L, HL', HP | HP⟩,
-    { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
-      rw list.forall_mem_cons at HL',
-      rw list.prod_cons,
-      exact hs _ HL'.1 _ (ih HL'.2) },
-    rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
+  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
+    rw list.forall_mem_cons at HL',
+    rw list.prod_cons,
+    exact hs _ HL'.1 _ (ih HL'.2) },
+  { rw HP, clear HP HL hd, induction L with hd tl ih, { exact hneg1 },
     rw [list.prod_cons, neg_mul_eq_mul_neg],
     rw list.forall_mem_cons at HL',
     exact hs _ HL'.1 _ (ih HL'.2) },

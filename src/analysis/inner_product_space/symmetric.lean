@@ -103,9 +103,8 @@ end
   {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E)) (x : E) :
   (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
 begin
-  suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
-  { obtain ⟨r, hr⟩ := this,
-    simp [hr, T.re_apply_inner_self_apply] },
+  rsuffices ⟨r, hr⟩ : ∃ r : ℝ, ⟪T x, x⟫ = r,
+  { simp [hr, T.re_apply_inner_self_apply] },
   rw ← eq_conj_iff_real,
   exact hT.conj_inner_sym x x
 end

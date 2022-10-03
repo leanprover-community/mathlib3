@@ -567,12 +567,13 @@ end
 
 end
 
-variables (f : J → C) (i : J) [has_biproduct f] [has_biproduct (subtype.restrict (λ j, i ≠ j) f)]
+section
+variables (f : J → C) (i : J) [has_biproduct f] [has_biproduct (subtype.restrict (λ j, j ≠ i) f)]
 
 /-- The kernel of `biproduct.π f i` is the inclusion from the biproduct which omits `i`
 from the index set `J` into the biproduct over `J`. -/
 def biproduct.is_limit_from_subtype : is_limit
-  (kernel_fork.of_ι (biproduct.from_subtype f (λ j, i ≠ j))
+  (kernel_fork.of_ι (biproduct.from_subtype f (λ j, j ≠ i))
     (by simp) : kernel_fork (biproduct.π f i)) :=
 fork.is_limit.mk' _ $ λ s,
 ⟨s.ι ≫ biproduct.to_subtype _ _,
@@ -582,7 +583,7 @@ fork.is_limit.mk' _ $ λ s,
      biproduct.to_subtype_from_subtype_assoc, biproduct.map_π],
    rcases em (i = j) with (rfl|h),
    { rw [if_neg (not_not.2 rfl), comp_zero, comp_zero, kernel_fork.condition] },
-   { rw [if_pos, category.comp_id], exact h, }
+   { rw [if_pos (ne.symm h), category.comp_id], }
  end,
  begin
    intros m hm,
@@ -590,10 +591,18 @@ fork.is_limit.mk' _ $ λ s,
    exact (category.comp_id _).symm
  end⟩
 
+instance : has_kernel (biproduct.π f i) :=
+has_limit.mk ⟨_, biproduct.is_limit_from_subtype f i⟩
+
+/-- The kernel of `biproduct.π f i` is `⨁ subtype.restrict {i}ᶜ f`. -/
+@[simps]
+def kernel_biproduct_π_iso : kernel (biproduct.π f i) ≅ ⨁ subtype.restrict (λ j, j ≠ i) f :=
+limit.iso_limit_cone ⟨_, biproduct.is_limit_from_subtype f i⟩
+
 /-- The cokernel of `biproduct.ι f i` is the projection from the biproduct over the index set `J`
 onto the biproduct omitting `i`. -/
 def biproduct.is_colimit_to_subtype : is_colimit
-  (cokernel_cofork.of_π (biproduct.to_subtype f (λ j, i ≠ j))
+  (cokernel_cofork.of_π (biproduct.to_subtype f (λ j, j ≠ i))
     (by simp) : cokernel_cofork (biproduct.ι f i)) :=
 cofork.is_colimit.mk' _ $ λ s,
 ⟨biproduct.from_subtype _ _ ≫ s.π,
@@ -603,13 +612,96 @@ cofork.is_colimit.mk' _ $ λ s,
      biproduct.ι_map_assoc],
    rcases em (i = j) with (rfl|h),
    { rw [if_neg (not_not.2 rfl), zero_comp, cokernel_cofork.condition] },
-   { rw [if_pos, category.id_comp], exact h, }
+   { rw [if_pos (ne.symm h), category.id_comp], }
  end,
  begin
    intros m hm,
    rw [← hm, cokernel_cofork.π_of_π, ← category.assoc, biproduct.from_subtype_to_subtype],
    exact (category.id_comp _).symm
  end⟩
+
+instance : has_cokernel (biproduct.ι f i) :=
+has_colimit.mk ⟨_, biproduct.is_colimit_to_subtype f i⟩
+
+/-- The cokernel of `biproduct.ι f i` is `⨁ subtype.restrict {i}ᶜ f`. -/
+@[simps]
+def cokernel_biproduct_ι_iso : cokernel (biproduct.ι f i) ≅ ⨁ subtype.restrict (λ j, j ≠ i) f :=
+colimit.iso_colimit_cocone ⟨_, biproduct.is_colimit_to_subtype f i⟩
+
+end
+
+section
+open_locale classical
+
+-- Per #15067, we only allow indexing in `Type 0` here.
+variables {K : Type} [fintype K] [has_finite_biproducts C] (f : K → C)
+
+/-- The limit cone exhibiting `⨁ subtype.restrict pᶜ f` as the kernel of
+`biproduct.to_subtype f p` -/
+@[simps]
+def kernel_fork_biproduct_to_subtype (p : set K) :
+  limit_cone (parallel_pair (biproduct.to_subtype f p) 0) :=
+{ cone := kernel_fork.of_ι (biproduct.from_subtype f pᶜ) begin
+    ext j k,
+    simp only [biproduct.ι_from_subtype_assoc, biproduct.ι_to_subtype, comp_zero, zero_comp],
+    erw [dif_neg j.2],
+    simp only [zero_comp],
+  end,
+  is_limit := kernel_fork.is_limit.of_ι _ _ (λ W g h, g ≫ biproduct.to_subtype f pᶜ)
+    begin
+      intros W' g' w,
+      ext j,
+      simp only [category.assoc, biproduct.to_subtype_from_subtype, pi.compl_apply,
+        biproduct.map_π],
+      split_ifs,
+      { simp, },
+      { replace w := w =≫ biproduct.π _ ⟨j, not_not.mp h⟩, simpa using w.symm, },
+    end
+    (by tidy), }
+
+instance (p : set K) : has_kernel (biproduct.to_subtype f p) :=
+has_limit.mk (kernel_fork_biproduct_to_subtype f p)
+
+/-- The kernel of `biproduct.to_subtype f p` is `⨁ subtype.restrict pᶜ f`. -/
+@[simps]
+def kernel_biproduct_to_subtype_iso (p : set K) :
+  kernel (biproduct.to_subtype f p) ≅ ⨁ subtype.restrict pᶜ f :=
+limit.iso_limit_cone (kernel_fork_biproduct_to_subtype f p)
+
+/-- The colimit cocone exhibiting `⨁ subtype.restrict pᶜ f` as the cokernel of
+`biproduct.from_subtype f p` -/
+@[simps]
+def cokernel_cofork_biproduct_from_subtype (p : set K) :
+  colimit_cocone (parallel_pair (biproduct.from_subtype f p) 0) :=
+{ cocone := cokernel_cofork.of_π (biproduct.to_subtype f pᶜ) begin
+    ext j k,
+    simp only [pi.compl_apply, biproduct.ι_from_subtype_assoc, biproduct.ι_to_subtype,
+      comp_zero, zero_comp],
+    rw [dif_neg],
+    simp only [zero_comp],
+    exact not_not.mpr j.2,
+  end,
+  is_colimit := cokernel_cofork.is_colimit.of_π _ _ (λ W g h, biproduct.from_subtype f pᶜ ≫ g)
+    begin
+      intros W' g' w,
+      ext j,
+      simp only [biproduct.to_subtype_from_subtype_assoc, pi.compl_apply, biproduct.ι_map_assoc],
+      split_ifs,
+      { simp, },
+      { replace w := biproduct.ι _ (⟨j, not_not.mp h⟩ : p) ≫= w, simpa using w.symm, },
+    end
+    (by tidy), }
+
+instance (p : set K) : has_cokernel (biproduct.from_subtype f p) :=
+has_colimit.mk (cokernel_cofork_biproduct_from_subtype f p)
+
+/-- The cokernel of `biproduct.from_subtype f p` is `⨁ subtype.restrict pᶜ f`. -/
+@[simps]
+def cokernel_biproduct_from_subtype_iso (p : set K) :
+  cokernel (biproduct.from_subtype f p) ≅ ⨁ subtype.restrict pᶜ f :=
+colimit.iso_colimit_cocone (cokernel_cofork_biproduct_from_subtype f p)
+
+end
 
 end π_kernel
 
@@ -1380,6 +1472,40 @@ binary_bicone.is_colimit_inr_cokernel_cofork (binary_biproduct.is_colimit _ _)
 
 end has_binary_biproduct
 
+variables {X Y : C} [has_binary_biproduct X Y]
+
+instance : has_kernel (biprod.fst : X ⊞ Y ⟶ X) :=
+has_limit.mk ⟨_, biprod.is_kernel_fst_kernel_fork X Y⟩
+
+/-- The kernel of `biprod.fst : X ⊞ Y ⟶ X` is `Y`. -/
+@[simps]
+def kernel_biprod_fst_iso : kernel (biprod.fst : X ⊞ Y ⟶ X) ≅ Y :=
+limit.iso_limit_cone ⟨_, biprod.is_kernel_fst_kernel_fork X Y⟩
+
+instance : has_kernel (biprod.snd : X ⊞ Y ⟶ Y) :=
+has_limit.mk ⟨_, biprod.is_kernel_snd_kernel_fork X Y⟩
+
+/-- The kernel of `biprod.snd : X ⊞ Y ⟶ Y` is `X`. -/
+@[simps]
+def kernel_biprod_snd_iso : kernel (biprod.snd : X ⊞ Y ⟶ Y) ≅ X :=
+limit.iso_limit_cone ⟨_, biprod.is_kernel_snd_kernel_fork X Y⟩
+
+instance : has_cokernel (biprod.inl : X ⟶ X ⊞ Y) :=
+has_colimit.mk ⟨_, biprod.is_cokernel_inl_cokernel_fork X Y⟩
+
+/-- The cokernel of `biprod.inl : X ⟶ X ⊞ Y` is `Y`. -/
+@[simps]
+def cokernel_biprod_inl_iso : cokernel (biprod.inl : X ⟶ X ⊞ Y) ≅ Y :=
+colimit.iso_colimit_cocone ⟨_, biprod.is_cokernel_inl_cokernel_fork X Y⟩
+
+instance : has_cokernel (biprod.inr : Y ⟶ X ⊞ Y) :=
+has_colimit.mk ⟨_, biprod.is_cokernel_inr_cokernel_fork X Y⟩
+
+/-- The cokernel of `biprod.inr : Y ⟶ X ⊞ Y` is `X`. -/
+@[simps]
+def cokernel_biprod_inr_iso : cokernel (biprod.inr : Y ⟶ X ⊞ Y) ≅ X :=
+colimit.iso_colimit_cocone ⟨_, biprod.is_cokernel_inr_cokernel_fork X Y⟩
+
 end biprod_kernel
 
 section is_zero
@@ -1536,7 +1662,9 @@ is_bilimit_of_is_limit _ $
 
 /-- In a preadditive category, if the product over `f : J → C` exists,
     then the biproduct over `f` exists. -/
-lemma has_biproduct.of_has_product (f : J → C) [has_product f] : has_biproduct f :=
+lemma has_biproduct.of_has_product {J : Type} [finite J] (f : J → C) [has_product f] :
+  has_biproduct f :=
+by casesI nonempty_fintype J; exact
 has_biproduct.mk
 { bicone := _,
   is_bilimit := bicone_is_bilimit_of_limit_cone_of_is_limit (limit.is_limit _) }
@@ -1559,7 +1687,9 @@ is_bilimit_of_is_colimit _ $
 
 /-- In a preadditive category, if the coproduct over `f : J → C` exists,
     then the biproduct over `f` exists. -/
-lemma has_biproduct.of_has_coproduct (f : J → C) [has_coproduct f] : has_biproduct f :=
+lemma has_biproduct.of_has_coproduct {J : Type} [finite J] (f : J → C) [has_coproduct f] :
+  has_biproduct f :=
+by casesI nonempty_fintype J; exact
 has_biproduct.mk
 { bicone := _,
   is_bilimit := bicone_is_bilimit_of_colimit_cocone_of_is_colimit (colimit.is_colimit _) }

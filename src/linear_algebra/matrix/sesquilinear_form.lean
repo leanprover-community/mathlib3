@@ -144,7 +144,7 @@ variables {σ₁ : R₁ →+* R} {σ₂ : R₂ →+* R}
 
 /-- The linear equivalence between sesquilinear forms and `n × m` matrices -/
 def linear_map.to_matrixₛₗ₂' : ((n → R₁) →ₛₗ[σ₁] (m → R₂) →ₛₗ[σ₂] R) ≃ₗ[R] matrix n m R :=
-{ to_fun := linear_map.to_matrix₂_aux (λ i, std_basis R₁ (λ _, R₁) i 1) (λ j, std_basis R₂ (λ _, R₂) j 1),
+{ to_fun := linear_map.to_matrix₂_aux _ _,
   inv_fun := matrix.to_linear_map₂'_aux σ₁ σ₂,
   left_inv := linear_map.to_linear_map₂'_aux_to_matrix₂_aux,
   right_inv := matrix.to_matrix₂_aux_to_linear_map₂'_aux,

@@ -73,6 +73,15 @@ attribute [nolint dangerous_instance] non_unital_alg_hom_class.to_mul_hom_class
 
 namespace non_unital_alg_hom_class
 
+@[priority 100] -- See note [lower instance priority]
+instance {F R A B : Type*} [monoid R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
+  [hF : non_unital_alg_hom_class F R A B] : non_unital_ring_hom_class F A B :=
+{ coe := coe_fn, .. hF }
+
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] non_unital_alg_hom_class.non_unital_ring_hom_class
+
 variables [semiring R]
   [non_unital_non_assoc_semiring A] [module R A]
   [non_unital_non_assoc_semiring B] [module R B]

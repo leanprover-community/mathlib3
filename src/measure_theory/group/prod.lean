@@ -68,7 +68,7 @@ lemma measure_preserving_prod_mul [is_mul_left_invariant ν] :
 This is the map `SR` in [Halmos, §59].
 `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_prod_add_swap
-  /-" The map `(x, y) ↦ (y, y + x)` semds the measure `μ × ν` to `ν × μ`. "-/]
+  /-" The map `(x, y) ↦ (y, y + x)` sends the measure `μ × ν` to `ν × μ`. "-/]
 lemma measure_preserving_prod_mul_swap [is_mul_left_invariant μ] :
   measure_preserving (λ z : G × G, (z.2, z.2 * z.1)) (μ.prod ν) (ν.prod μ) :=
 (measure_preserving_prod_mul ν μ).comp measure_preserving_swap

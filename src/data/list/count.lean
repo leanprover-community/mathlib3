@@ -83,7 +83,7 @@ by simp only [countp_eq_length_filter, filter_filter]
 
 variables {p q}
 
-lemma countp_le_of_imp (h : ∀ x ∈ l, p x → q x) : countp p l ≤ countp q l :=
+lemma countp_mono_left (h : ∀ x ∈ l, p x → q x) : countp p l ≤ countp q l :=
 begin
   induction l with a l ihl, { refl },
   rw [forall_mem_cons] at h, cases h with ha hl,
@@ -94,7 +94,7 @@ begin
 end
 
 lemma countp_congr (h : ∀ x ∈ l, p x ↔ q x) : countp p l = countp q l :=
-le_antisymm (countp_le_of_imp $ λ x hx, (h x hx).1) (countp_le_of_imp $ λ x hx, (h x hx).2)
+le_antisymm (countp_mono_left $ λ x hx, (h x hx).1) (countp_mono_left $ λ x hx, (h x hx).2)
 
 end countp
 
@@ -195,7 +195,7 @@ lemma count_le_count_map [decidable_eq β] (l : list α) (f : α → β) (x : α
   count x l ≤ count (f x) (map f l) :=
 begin
   rw [count, count, countp_map],
-  exact countp_le_of_imp (λ y hyl, congr_arg f),
+  exact countp_mono_left (λ y hyl, congr_arg f),
 end
 
 @[simp] lemma count_erase_self (a : α) :

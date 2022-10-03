@@ -52,7 +52,7 @@ instance has_forget_to_HeytAlg : has_forget₂ BoolAlg HeytAlg :=
 
 end
 
-/-- Constructs an equivalence between Heyting algebras from an order isomorphism between them. -/
+/-- Constructs an equivalence between Boolean algebras from an order isomorphism between them. -/
 @[simps] def iso.mk {α β : BoolAlg.{u}} (e : α ≃o β) : α ≅ β :=
 { hom := (e : bounded_lattice_hom α β),
   inv := (e.symm : bounded_lattice_hom β α),

@@ -166,11 +166,12 @@ by simpa only [union_compl_self, restrict_univ]
   using average_union_mem_open_segment ae_disjoint_compl_right hs.compl hs₀ hsc₀
     (measure_ne_top _ _) (measure_ne_top _ _) hfi.integrable_on hfi.integrable_on
 
-lemma average_const [is_finite_measure μ] (h : μ ≠ 0) (c : E) :
+lemma average_const [is_finite_measure μ] [h : μ.ae.ne_bot] (c : E) :
   ⨍ x, c ∂μ = c :=
 by simp only [average_eq, integral_const, measure.restrict_apply, measurable_set.univ, one_smul,
   univ_inter, smul_smul, ← ennreal.to_real_inv, ← ennreal.to_real_mul, ennreal.inv_mul_cancel,
-  measure_ne_top μ univ, ne.def, measure_univ_eq_zero, h, not_false_iff, ennreal.one_to_real]
+  measure_ne_top μ univ, ne.def, measure_univ_eq_zero, ae_ne_bot.1 h, not_false_iff,
+  ennreal.one_to_real]
 
 lemma set_average_const {s : set α} (hs₀ : μ s ≠ 0) (hs : μ s ≠ ∞) (c : E) :
   ⨍ x in s, c ∂μ = c :=

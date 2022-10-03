@@ -5,6 +5,8 @@ Authors: Junyan Xu
 -/
 import data.dfinsupp.lex
 import order.game_add
+import order.antisymmetrization
+import set_theory.ordinal.basic
 
 /-!
 # Well-foundedness of the lexicographic and product orders on `dfinsupp` and `pi`
@@ -137,8 +139,8 @@ instance pi.lex.well_founded_lt [linear_order ι] [finite ι] [Π i, has_lt (α 
   [hwf : ∀ i, well_founded_lt (α i)] : well_founded_lt (lex (Π i, α i)) :=
 ⟨pi.lex.well_founded (<) (λ i, (hwf i).1)⟩
 
-instance pi.lex.well_founded_lt' {α} [linear_order ι] [finite ι] [has_lt α] [well_founded_lt α] :
-  well_founded_lt (lex (ι → α)) := pi.lex.well_founded_lt
+instance function.lex.well_founded_lt {α} [linear_order ι] [finite ι] [has_lt α]
+  [well_founded_lt α] : well_founded_lt (lex (ι → α)) := pi.lex.well_founded_lt
 
 theorem dfinsupp.lex.well_founded_of_finite [is_strict_total_order ι r] [finite ι]
   [Π i, has_zero (α i)] (hs : ∀ i, well_founded (s i)) : well_founded (dfinsupp.lex r s) :=
@@ -148,3 +150,40 @@ have _ := fintype.of_finite ι,
 instance dfinsupp.lex.well_founded_lt_of_finite [linear_order ι] [finite ι] [Π i, has_zero (α i)]
   [Π i, has_lt (α i)] [hwf : ∀ i, well_founded_lt (α i)] : well_founded_lt (lex (Π₀ i, α i)) :=
 ⟨dfinsupp.lex.well_founded_of_finite (<) $ λ i, (hwf i).1⟩
+
+protected theorem dfinsupp.well_founded_lt [Π i, has_zero (α i)] [Π i, preorder (α i)]
+  [∀ i, well_founded_lt (α i)] (hbot : ∀ ⦃i⦄ ⦃a : α i⦄, ¬ a < 0) : well_founded_lt (Π₀ i, α i) :=
+⟨begin
+  letI : Π i, has_zero (antisymmetrization (α i) (≤)) := λ i, ⟨to_antisymmetrization (≤) 0⟩,
+  let f := dfinsupp.map_range (λ i, @to_antisymmetrization (α i) (≤) _) (λ i, rfl),
+  refine subrelation.wf (λ x y h, _) (inv_image.wf f $ lex.well_founded' _ (λ i, _) _),
+  { exact well_ordering_rel.swap }, { exact λ i, (<) },
+  { haveI := is_strict_order.swap (@well_ordering_rel ι),
+    obtain ⟨i, he, hl⟩ := lex_lt_of_lt_of_preorder well_ordering_rel.swap h,
+    exact ⟨i, λ j hj, quot.sound (he j hj), hl⟩ },
+  { rintro i ⟨a⟩, apply hbot },
+  exacts [is_well_founded.wf, is_trichotomous.swap _, is_well_founded.wf],
+end⟩
+
+instance dfinsupp.well_founded_lt' [Π i, canonically_ordered_add_monoid (α i)]
+  [∀ i, well_founded_lt (α i)] : well_founded_lt (Π₀ i, α i) :=
+dfinsupp.well_founded_lt $ λ i a, (zero_le a).not_lt
+
+instance pi.well_founded_lt [finite ι] [Π i, preorder (α i)]
+  [hwf : ∀ i, well_founded_lt (α i)] : well_founded_lt (Π i, α i) :=
+⟨begin
+  by_cases is_empty (Π i, α i),
+  { convert empty_wf, ext1 x, exact (h.1 x).elim },
+  simp_rw [is_empty_pi, not_exists, not_is_empty_iff, set.nonempty_iff_univ_nonempty] at h,
+  letI : Π i, has_zero (α i) := λ i, ⟨(hwf i).wf.min ⊤ (h i)⟩, haveI := fintype.of_finite ι,
+  refine inv_image.wf equiv_fun_on_fintype.symm (dfinsupp.well_founded_lt $ λ i a, _).wf,
+  exact (hwf i).wf.not_lt_min ⊤ _ trivial,
+end⟩
+
+instance function.well_founded_lt {α} [finite ι] [preorder α]
+  [well_founded_lt α] : well_founded_lt (ι → α) := pi.well_founded_lt
+
+instance dfinsupp.well_founded_lt_of_finite [finite ι] [Π i, has_zero (α i)] [Π i, preorder (α i)]
+  [∀ i, well_founded_lt (α i)] : well_founded_lt (Π₀ i, α i) :=
+have _ := fintype.of_finite ι,
+  by exactI ⟨inv_image.wf equiv_fun_on_fintype pi.well_founded_lt.wf⟩

@@ -51,4 +51,17 @@ theorem lex.well_founded_lt_of_finite [linear_order α] [finite α] [has_zero N]
   [hwf : well_founded_lt N] : well_founded_lt (lex (α →₀ N)) :=
 ⟨finsupp.lex.well_founded_of_finite (<) hwf.1⟩
 
+protected theorem well_founded_lt [has_zero N] [preorder N] [well_founded_lt N]
+  (hbot : ∀ n : N, ¬ n < 0) : well_founded_lt (α →₀ N) :=
+⟨inv_image.wf to_dfinsupp (dfinsupp.well_founded_lt $ λ i a, hbot a).wf⟩
+
+instance well_founded_lt' [canonically_ordered_add_monoid N]
+  [well_founded_lt N] : well_founded_lt (α →₀ N) :=
+finsupp.well_founded_lt $ λ a, (zero_le a).not_lt
+
+instance well_founded_lt_of_finite [finite α] [has_zero N] [preorder N]
+  [well_founded_lt N] : well_founded_lt (α →₀ N) :=
+have _ := fintype.of_finite α,
+  by exactI ⟨inv_image.wf equiv_fun_on_fintype function.well_founded_lt.wf⟩
+
 end finsupp

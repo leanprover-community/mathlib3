@@ -39,7 +39,6 @@ instance : has_involutive_reverse (symmetrify V) :=
 { to_has_reverse := ⟨λ a b e, e.swap⟩,
   inv' := λ a b e, congr_fun sum.swap_swap_eq e }
 
-
 /-- Reverse the direction of a path. -/
 @[simp] def path.reverse [has_reverse V] {a : V} : Π {b}, path a b → path b a
 | a path.nil := path.nil
@@ -106,5 +105,12 @@ begin
     { dsimp [symmetrify.lift,symmetrify.of],
       convert hΦinv (sum.inl f), }, },
 end
+
+/--
+`V` is a forest if there is at most one path between any two of its vertices, in the
+symmetrification of `V`
+-/
+def is_forest (V) [quiver V] :=
+  ∀ (X Y : V), subsingleton (@quiver.path (symmetrify V) (quiver.symmetrify_quiver V) X Y)
 
 end quiver

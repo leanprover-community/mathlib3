@@ -6,8 +6,9 @@ Authors: Rémi Bottinelli
 import category_theory.category.basic
 import category_theory.functor.basic
 import category_theory.groupoid
+import category_theory.groupoid.basic
 import combinatorics.quiver.basic
-import combinatorics.quiver.connected_component
+import combinatorics.quiver.symmetric
 import logic.relation
 import tactic.nth_rewrite
 import category_theory.path_category
@@ -184,6 +185,15 @@ begin
 end
 
 end universal_property
+
+section graph_like
+
+lemma is_graph_like_iff : (is_graph_like $ free_groupoid V) ↔ (quiver.is_forest V) :=
+begin
+  sorry
+end
+
+end graph_like
 
 end free
 end groupoid

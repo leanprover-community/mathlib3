@@ -6,6 +6,9 @@ Authors: Reid Barton, Scott Morrison, David Wärn
 import category_theory.full_subcategory
 import category_theory.products.basic
 import category_theory.pi.basic
+import category_theory.category.basic
+import tactic.nth_rewrite
+import combinatorics.quiver.connected_component
 
 /-!
 # Groupoids
@@ -65,6 +68,11 @@ is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
 /-- `groupoid.inv` is involutive. -/
 @[simps] def groupoid.inv_equiv : (X ⟶ Y) ≃ (Y ⟶ X) :=
 ⟨groupoid.inv, groupoid.inv, λ f, by simp, λ f, by simp⟩
+
+@[priority 100]
+instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
+{ reverse' := λ X Y f, groupoid.inv f
+, inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
 
 variables (X Y)
 

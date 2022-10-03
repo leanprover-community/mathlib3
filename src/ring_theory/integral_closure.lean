@@ -114,7 +114,7 @@ variables {R A B S : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S]
 variables [algebra R A] [algebra R B] (f : R →+* S)
 
-lemma is_integral_alg_hom_class {C F : Type*} [comm_ring C] [algebra A B] [algebra R C]
+lemma is_integral_alg_hom {C F : Type*} [comm_ring C] [algebra A B] [algebra R C]
   [is_scalar_tower R A B] [algebra A C] [is_scalar_tower R A C] {b : B} [alg_hom_class F A B C]
   (f : F) (hb : is_integral R b) : is_integral R (f b) :=
 begin
@@ -123,11 +123,6 @@ begin
   rw [← aeval_def, show (aeval (f b)) P = (aeval (f b)) (P.map (algebra_map R A)), by simp,
     aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
 end
-
-lemma is_integral_alg_hom {C : Type*} [comm_ring C] [algebra A B] [algebra R C]
-  [is_scalar_tower R A B] [algebra A C] [is_scalar_tower R A C] {b : B} (f : B →ₐ[A] C)
-  (hb : is_integral R b) : is_integral R (f b) :=
-is_integral_alg_hom_class f hb
 
 @[simp]
 theorem is_integral_alg_equiv (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) ↔ is_integral R x :=
@@ -142,7 +137,7 @@ let ⟨p, hp, hpx⟩ := hx in
 lemma is_integral_int_alg_hom_class {C F : Type*} [comm_ring C] [algebra A B] [algebra A C] {b : B}
   [alg_hom_class F A B C] (f : F) (hb : is_integral ℤ b) :
   is_integral ℤ (f b) :=
-is_integral_alg_hom_class f hb
+is_integral_alg_hom f hb
 
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=

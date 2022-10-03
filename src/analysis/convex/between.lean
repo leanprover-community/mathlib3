@@ -242,12 +242,22 @@ end
 
 variables {R}
 
-lemma sbtw.left_ne_right {x y z : P} (h : sbtw R x y z) : x ≠ z :=
+lemma wbtw.left_ne_right_of_ne_left {x y z : P} (h : wbtw R x y z) (hne : y ≠ x) : x ≠ z :=
 begin
   rintro rfl,
-  rw [sbtw, wbtw_self_iff] at h,
-  exact h.2.1 h.1
+  rw wbtw_self_iff at h,
+  exact hne h
 end
+
+lemma wbtw.left_ne_right_of_ne_right {x y z : P} (h : wbtw R x y z) (hne : y ≠ z) : x ≠ z :=
+begin
+  rintro rfl,
+  rw wbtw_self_iff at h,
+  exact hne h
+end
+
+lemma sbtw.left_ne_right {x y z : P} (h : sbtw R x y z) : x ≠ z :=
+h.wbtw.left_ne_right_of_ne_left h.2.1
 
 lemma sbtw_iff_mem_image_Ioo_and_ne [no_zero_smul_divisors R V] {x y z : P} :
   sbtw R x y z ↔ y ∈ line_map x z '' (set.Ioo (0 : R) 1) ∧ x ≠ z :=

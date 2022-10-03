@@ -69,7 +69,7 @@ variables {V : Type*} {V₂ : Type*}
 namespace finsupp
 
 lemma smul_sum {α : Type*} {β : Type*} {R : Type*} {M : Type*}
-  [has_zero β] [monoid R] [add_comm_monoid M] [distrib_mul_action R M]
+  [has_zero β] [add_comm_monoid M] [distrib_smul R M]
   {v : α →₀ β} {c : R} {h : α → β → M} :
   c • (v.sum h) = v.sum (λa b, c • h a b) :=
 finset.smul_sum

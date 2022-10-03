@@ -76,38 +76,30 @@ Reduction to `p` prime: When proving any statement `P` about mixed characteristi
 can always assume that `p` is prime.
 -/
 lemma reduce_to_p_prime {P : Prop} :
-  (∀ p > 0, (mixed_char_zero R p → P)) ↔
-  (∀ (p : ℕ), (nat.prime p → mixed_char_zero R p → P)) :=
+  (∀ p > 0, mixed_char_zero R p → P) ↔
+  (∀ (p : ℕ), p.prime → mixed_char_zero R p → P) :=
 begin
   split,
   { intros h q q_prime q_mixed_char,
     exact h q (nat.prime.pos q_prime) q_mixed_char },
   { intros h q q_pos q_mixed_char,
-    rcases q_mixed_char.char_p_quotient with ⟨I, ⟨hI_ne_top, hI_char⟩⟩,
+    rcases q_mixed_char.char_p_quotient with ⟨I, hI_ne_top, hI_char⟩,
 
     -- Krull's Thm: There exists a prime ideal `P` such that `I ≤ P`
-    rcases ideal.exists_le_maximal I hI_ne_top with ⟨M, ⟨hM_max, h_IM⟩⟩,
+    rcases ideal.exists_le_maximal I hI_ne_top with ⟨M, hM_max, h_IM⟩,
     resetI, -- make `hI_char : char_p (R ⧸ I) q` an instance.
 
     let r := ring_char (R ⧸ M),
-    have r_pos : r ≠ 0 :=
-    begin
-      have q_zero := congr_arg (ideal.quotient.factor I M h_IM) (char_p.cast_eq_zero (R ⧸ I) q),
+    have r_pos : r ≠ 0,
+    { have q_zero := congr_arg (ideal.quotient.factor I M h_IM) (char_p.cast_eq_zero (R ⧸ I) q),
       simp only [map_nat_cast, map_zero] at q_zero,
       apply ne_zero_of_dvd_ne_zero (ne_of_gt q_pos),
-      exact (char_p.cast_eq_zero_iff (R ⧸ M) r q).mp q_zero
-    end,
+      exact (char_p.cast_eq_zero_iff (R ⧸ M) r q).mp q_zero },
     have r_prime : nat.prime r :=
       or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
     apply h r r_prime,
     haveI : char_zero R := q_mixed_char.to_char_zero,
-    exact
-    ⟨begin
-      use M,
-      split,
-      exact hM_max.ne_top,
-      refine ring_char.of_eq rfl
-    end⟩ }
+    exact ⟨⟨M, hM_max.ne_top, ring_char.of_eq rfl⟩⟩ }
 end
 
 /--
@@ -132,16 +124,13 @@ begin
       convert hr,
       resetI, -- make `hr : char_p (R ⧸ M) r` an instance.
 
-      have r_dvd_p : r ∣ p :=
-      begin
-        rw ←char_p.cast_eq_zero_iff (R ⧸ M) r p,
-        convert congr_arg (ideal.quotient.factor I M hM) (char_p.cast_eq_zero (R ⧸ I) p)
-      end,
-      rw eq_comm,
-      apply or_iff_not_imp_left.mp (nat.prime.eq_one_or_self_of_dvd hp r r_dvd_p),
+      have r_dvd_p : r ∣ p,
+      { rw ←char_p.cast_eq_zero_iff (R ⧸ M) r p,
+        convert congr_arg (ideal.quotient.factor I M hM) (char_p.cast_eq_zero (R ⧸ I) p) },
+      symmetry,
+      apply (nat.prime.eq_one_or_self_of_dvd hp r r_dvd_p).resolve_left,
       exact char_p.char_ne_one (R ⧸ M) r }},
-  { intro g,
-    rcases g with ⟨I, ⟨hI_max, hI⟩⟩,
+  { rintro ⟨I, hI_max, hI⟩,
     use I,
     exact ⟨ideal.is_maximal.ne_top hI_max, hI⟩ }
 end
@@ -172,26 +161,16 @@ section equal_char_zero
 lemma Q_algebra_to_equal_char_zero [nontrivial R] [algebra ℚ R] :
   ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I) :=
 begin
-    haveI : char_zero R := @char_p.char_p_to_char_zero R _
-      (char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0),
-    intros I hI,
-    exact
-    ⟨begin
-      intros a b h_ab,
-      apply @nat.cast_injective R,
-      simp_rw ←map_nat_cast (ideal.quotient.mk I) at h_ab,
-      simp_rw ←map_nat_cast (algebra_map ℚ R) at ⊢ h_ab,
-      apply congr_arg,
-      rw ←sub_eq_zero at ⊢ h_ab,
-      simp_rw ←map_sub at ⊢ h_ab,
-      rw ideal.quotient.eq_zero_iff_mem at h_ab,
-
-      -- `i(↑a - ↑b)` is a unit contained in `I`, which contradicts `I ≠ ⊤`.
-      by_contradiction h_ne_zero,
-      have hI' : I = ⊤ :=
-        I.eq_top_of_is_unit_mem h_ab (is_unit.map (algebra_map ℚ R) (is_unit.mk0 _ h_ne_zero)),
-      exact absurd hI' hI,
-    end⟩
+  haveI : char_zero R := @char_p.char_p_to_char_zero R _
+    (char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0),
+  intros I hI,
+  constructor,
+  intros a b h_ab,
+  contrapose! hI,
+  -- `↑a - ↑b` is a unit contained in `I`, which contradicts `I ≠ ⊤`.
+  refine I.eq_top_of_is_unit_mem _ (is_unit.map (algebra_map ℚ R) (is_unit.mk0 (a - b : ℚ) _)),
+  { simpa only [← ideal.quotient.eq_zero_iff_mem, map_sub, sub_eq_zero, map_nat_cast] },
+  simpa only [ne.def, sub_eq_zero] using (@nat.cast_injective ℚ _ _).ne hI
 end
 
 section construction_of_Q_algebra
@@ -200,32 +179,16 @@ section construction_of_Q_algebra
 lemma equal_char_zero.pnat_coe_is_unit [h : fact (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I))]
   (n : ℕ+) : is_unit (n : R) :=
 begin
-  rw is_unit_iff_exists_inv',
-
-  -- Assume `n` is not invertible.
-  by_contradiction h',
-  rw not_exists at h',
-
-  -- Then `(n)` is a proper ideal in `R`.
-  let I := ideal.span ({n} : set R),
-  have hI : (1 : R) ∉ I :=
-  begin
-    by_contradiction one_mem_I,
-    cases ideal.mem_span_singleton'.mp one_mem_I with x hx,
-    exact absurd hx (h' x),
-  end,
-
-  -- by assumption `char_zero R⧸(n)` so `n = 0`.
-  have h_char_zero : char_zero (R ⧸ I) := (h.elim) I ((ideal.ne_top_iff_one I).mpr hI),
-  have n_zero : (n : ℕ) = 0 :=
-  begin
-    apply h_char_zero.cast_injective,
-    rw ←map_nat_cast (ideal.quotient.mk I),
-    rw [nat.cast_zero, ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton'],
-    use 1,
-    simp,
-  end,
-  exact absurd n_zero (ne_of_gt n.property),
+  -- `n : R` is a unit iff `(n)` is not a proper ideal in `R`.
+  rw ← ideal.span_singleton_eq_top,
+  -- So by contrapositive, we should show the quotient does not have characteristic zero.
+  apply not_imp_comm.mp (h.elim (ideal.span {n})),
+  unfreezingI { intro h_char_zero },
+  -- In particular, the image of `n` in the quotient should be nonzero.
+  apply (h_char_zero.cast_injective).ne n.ne_zero,
+  -- But `n` generates the ideal, so its image is clearly zero.
+  rw [←map_nat_cast (ideal.quotient.mk _), nat.cast_zero, ideal.quotient.eq_zero_iff_mem],
+  exact ideal.subset_span (set.mem_singleton _)
 end
 
 /-- Internal: Not intended to be used outside this local construction. -/
@@ -258,12 +221,8 @@ Equal characteristic implies `ℚ`-algebra.
 -/
 noncomputable def equal_char_zero_to_Q_algebra (h : ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) :
   algebra ℚ R :=
-begin
-  -- turning `h` into a `fact` since we used it that way in the helper lemmas above.
-  haveI : fact (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) := by {rw fact_iff, exact h},
-
-  apply ring_hom.to_algebra,
-  exact
+by haveI : fact (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) := ⟨h⟩; exact
+ring_hom.to_algebra
   { to_fun := λ x, x.num /ₚ ↑(x.pnat_denom),
     map_zero' := by simp [divp],
     map_one' := by simp [equal_char_zero.pnat_coe_units_eq_one],
@@ -272,7 +231,7 @@ begin
       intros a b,
       field_simp,
       repeat { rw equal_char_zero.pnat_coe_units_coe_eq_coe R },
-      convert_to (↑((a * b).num * (a.denom) * (b.denom)) : R) = _,
+      transitivity (↑((a * b).num * (a.denom) * (b.denom)) : R),
       { simp_rw [int.cast_mul, int.cast_coe_nat, coe_coe, rat.coe_pnat_denom],
         ring },
       rw rat.mul_num_denom' a b,
@@ -283,13 +242,12 @@ begin
       intros a b,
       field_simp,
       repeat { rw equal_char_zero.pnat_coe_units_coe_eq_coe R },
-      convert_to (↑((a + b).num * a.denom * b.denom) : R)  = _,
+      transitivity (↑((a + b).num * a.denom * b.denom) : R),
       { simp_rw [int.cast_mul, int.cast_coe_nat, coe_coe, rat.coe_pnat_denom],
         ring },
       rw rat.add_num_denom' a b,
       simp
     end }
-end
 
 end construction_of_Q_algebra
 
@@ -337,7 +295,7 @@ have mixed characteristic for any `p`.
 -/
 lemma equal_char_zero_iff_not_mixed_char [char_zero R] :
   (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) ↔ (¬(∃ p > 0, mixed_char_zero R p)) :=
-iff.intro (equal_char_zero_to_not_mixed_char R) (not_mixed_char_to_equal_char_zero R)
+⟨equal_char_zero_to_not_mixed_char R, not_mixed_char_to_equal_char_zero R⟩
 
 /--
 A ring is a `ℚ`-algebra iff it has equal characteristic zero.

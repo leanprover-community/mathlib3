@@ -1080,8 +1080,8 @@ begin
     exact small_step.while, }
 end
 
-infixr ` ⇒ ` := small_step
-infixr ` ⇒* ` : 100 := star small_step
+infixr (name := small_step) ` ⇒ ` := small_step
+infixr (name := small_step.star) ` ⇒* ` : 100 := star small_step
 
 
 /- More lemmas about big-step and small-step semantics. These are taken from the

@@ -43,7 +43,7 @@ open_locale big_operators
 
 notation `√` := real.sqrt
 
-open function bool linear_map fintype finite_dimensional dual_pair
+open function bool linear_map fintype finite_dimensional module.dual_bases
 
 /-!
 ### The hypercube
@@ -217,9 +217,11 @@ begin
       rwa show p = π q, by { ext, simp [q, fin.succ_ne_zero, π] } } }
 end
 
+open module
+
 /-- `e` and `ε` are dual families of vectors. It implies that `e` is indeed a basis
 and `ε` computes coefficients of decompositions of vectors on that basis. -/
-def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
+def dual_bases_e_ε (n : ℕ) : dual_bases (@e n) (@ε n) :=
 { eval := duality,
   total := @epsilon_total _ }
 
@@ -228,11 +230,11 @@ since this cardinal is finite, as a natural number in `finrank_V` -/
 
 lemma dim_V : module.rank ℝ (V n) = 2^n :=
 have module.rank ℝ (V n) = (2^n : ℕ),
-  by { rw [dim_eq_card_basis (dual_pair_e_ε _).basis, Q.card]; apply_instance },
+  by { rw [dim_eq_card_basis (dual_bases_e_ε _).basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
-finite_dimensional.of_fintype_basis (dual_pair_e_ε _).basis
+finite_dimensional.of_fintype_basis (dual_bases_e_ε _).basis
 
 lemma finrank_V : finrank ℝ (V n) = 2^n :=
 have _ := @dim_V n,
@@ -332,7 +334,7 @@ In this section, in order to enforce that `n` is positive, we write it as
 `m + 1` for some natural number `m`. -/
 
 /-! `dim X` will denote the dimension of a subspace `X` as a cardinal. -/
-notation `dim` X:70 := module.rank ℝ ↥X
+notation `dim ` X:70 := module.rank ℝ ↥X
 /-! `fdim X` will denote the (finite) dimension of a subspace `X` as a natural number. -/
 notation `fdim` := finrank ℝ
 
@@ -341,7 +343,7 @@ notation `Span` := submodule.span ℝ
 
 /-! `Card X` will denote the cardinal of a subset of a finite type, as a
 natural number. -/
-notation `Card` X:70 := X.to_finset.card
+notation `Card ` X:70 := X.to_finset.card
 
 /-! In the following, `⊓` and `⊔` will denote intersection and sums of ℝ-subspaces,
 equipped with their subspace structures. The notations come from the general
@@ -367,12 +369,12 @@ begin
     apply dim_V },
   have dimW : dim W = card H,
   { have li : linear_independent ℝ (H.restrict e),
-    { convert (dual_pair_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
-      rw (dual_pair_e_ε _).coe_basis },
+    { convert (dual_bases_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
+      rw (dual_bases_e_ε _).coe_basis },
     have hdW := dim_span li,
     rw set.range_restrict at hdW,
     convert hdW,
-    rw [← (dual_pair_e_ε _).coe_basis, cardinal.mk_image_eq (dual_pair_e_ε _).basis.injective,
+    rw [← (dual_bases_e_ε _).coe_basis, cardinal.mk_image_eq (dual_bases_e_ε _).basis.injective,
         cardinal.mk_fintype] },
   rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
@@ -387,28 +389,28 @@ theorem huang_degree_theorem (H : set (Q (m + 1))) (hH : Card H ≥ 2^m + 1) :
   ∃ q, q ∈ H ∧ √(m + 1) ≤ Card (H ∩ q.adjacent) :=
 begin
   rcases exists_eigenvalue H hH with ⟨y, ⟨⟨y_mem_H, y_mem_g⟩, y_ne⟩⟩,
-  have coeffs_support : ((dual_pair_e_ε (m+1)).coeffs y).support ⊆ H.to_finset,
+  have coeffs_support : ((dual_bases_e_ε (m+1)).coeffs y).support ⊆ H.to_finset,
   { intros p p_in,
     rw finsupp.mem_support_iff at p_in,
     rw set.mem_to_finset,
-    exact (dual_pair_e_ε _).mem_of_mem_span y_mem_H p p_in },
+    exact (dual_bases_e_ε _).mem_of_mem_span y_mem_H p p_in },
   obtain ⟨q, H_max⟩ : ∃ q : Q (m+1), ∀ q' : Q (m+1), |(ε q' : _) y| ≤ |ε q y|,
-    from fintype.exists_max _,
+    from finite.exists_max _,
   have H_q_pos : 0 < |ε q y|,
   { contrapose! y_ne,
     exact epsilon_total (λ p, abs_nonpos_iff.mp (le_trans (H_max p) y_ne)) },
-  refine ⟨q, (dual_pair_e_ε _).mem_of_mem_span y_mem_H q (abs_pos.mp H_q_pos), _⟩,
+  refine ⟨q, (dual_bases_e_ε _).mem_of_mem_span y_mem_H q (abs_pos.mp H_q_pos), _⟩,
   let s := √(m+1),
   suffices : s * |ε q y| ≤ ↑(_) * |ε q y|,
     from (mul_le_mul_right H_q_pos).mp ‹_›,
 
-  let coeffs := (dual_pair_e_ε (m+1)).coeffs,
+  let coeffs := (dual_bases_e_ε (m+1)).coeffs,
   calc
     s * |ε q y|
         = |ε q (s • y)| :
       by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
     ... = |ε q (f (m+1) y)| : by rw [← f_image_g y (by simpa using y_mem_g)]
-    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_pair_e_ε _).lc_coeffs y
+    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_bases_e_ε _).lc_coeffs y
     ... = |(coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘
             λ (i : Q (m + 1)), e i) i)| :
       by erw [(f $ m + 1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply]

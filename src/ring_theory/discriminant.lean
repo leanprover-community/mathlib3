@@ -128,7 +128,7 @@ begin
   { have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
       (finrank_eq_card_basis b).symm,
     rw [discr_def, trace_matrix_def],
-    simp_rw [← basis.mk_apply b.linear_independent this],
+    simp_rw [← basis.mk_apply b.linear_independent this.ge],
     rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
     exact trace_form_nondegenerate _ _ },
 end

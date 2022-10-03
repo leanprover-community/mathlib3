@@ -45,10 +45,10 @@ variables {τ : Type*} {α : Type*} {β : Type*} {ι : Type*}
 def omega_limit [topological_space β] (f : filter τ) (ϕ : τ → α → β) (s : set α) : set β :=
 ⋂ u ∈ f, closure (image2 ϕ u s)
 
-localized "notation `ω` := omega_limit" in omega_limit
+localized "notation (name := omega_limit) `ω` := omega_limit" in omega_limit
 
-localized "notation `ω⁺` := omega_limit filter.at_top" in omega_limit
-localized "notation `ω⁻` := omega_limit filter.at_bot" in omega_limit
+localized "notation (name := omega_limit.at_top) `ω⁺` := omega_limit filter.at_top" in omega_limit
+localized "notation (name := omega_limit.at_bot) `ω⁻` := omega_limit filter.at_bot" in omega_limit
 
 variables [topological_space β]
 variables (f : filter τ) (ϕ : τ → α → β) (s s₁ s₂: set α)

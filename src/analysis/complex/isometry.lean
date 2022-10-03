@@ -29,13 +29,13 @@ noncomputable theory
 open complex
 open_locale complex_conjugate
 
-local notation `|` x `|` := complex.abs x
+local notation (name := complex.abs) `|` x `|` := complex.abs x
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
 rotation. -/
 def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 { to_fun := λ a,
-  { norm_map' := λ x, show |a * x| = |x|, by rw [complex.abs_mul, abs_coe_circle, one_mul],
+  { norm_map' := λ x, show |a * x| = |x|, by rw [map_mul, abs_coe_circle, one_mul],
     ..distrib_mul_action.to_linear_equiv ℝ ℂ a },
   map_one' := linear_isometry_equiv.ext $ one_smul _,
   map_mul' := λ _ _, linear_isometry_equiv.ext $ mul_smul _ _ }
@@ -82,7 +82,7 @@ lemma linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re {f : ℂ →ₗᵢ
   (f z).im = z.im ∨ (f z).im = -z.im :=
 begin
   have h₁ := f.norm_map z,
-  simp only [complex.abs, norm_eq_abs] at h₁,
+  simp only [complex.abs_def, norm_eq_abs] at h₁,
   rwa [real.sqrt_inj (norm_sq_nonneg _) (norm_sq_nonneg _), norm_sq_apply (f z), norm_sq_apply z,
     h₂, add_left_cancel_iff, mul_self_eq_mul_self_iff] at h₁,
 end
@@ -141,7 +141,7 @@ begin
 end
 
 /-- The matrix representation of `rotation a` is equal to the conformal matrix
-`![![re a, -im a], ![im a, re a]]`. -/
+`!![re a, -im a; im a, re a]`. -/
 lemma to_matrix_rotation (a : circle) :
   linear_map.to_matrix basis_one_I basis_one_I (rotation a).to_linear_equiv =
     matrix.plane_conformal_matrix (re a) (im a) (by simp [pow_two, ←norm_sq_apply]) :=

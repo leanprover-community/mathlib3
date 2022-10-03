@@ -64,8 +64,8 @@ In this file we prove the following facts:
 -/
 
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
-          {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+          {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 open metric set asymptotics continuous_linear_map filter
 open_locale classical topological_space nnreal
@@ -251,8 +251,8 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 * we have `f' x < B' x` whenever `∥f x∥ = B x`.
 
 Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. -/
-lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [normed_group E]
-  {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
+lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*}
+  [normed_add_comm_group E] {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (∥f z∥ - ∥f x∥) / (z - x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
     ∃ᶠ z in 𝓝[>] x, slope (norm ∘ f) x z < r)
@@ -471,7 +471,8 @@ also assume `[normed_space ℝ E]` to have a notion of a `convex` set. -/
 
 section
 
-variables {𝕜 G : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 G : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_add_comm_group G]
+  [normed_space 𝕜 G]
 
 namespace convex
 
@@ -1037,11 +1038,112 @@ begin
   exact neg_convex_on_iff.mp (this.convex_on_of_deriv hD hf.neg hf'.neg),
 end
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
-and `f'` is strictly monotone on the interior, then `f` is strictly convex on `D`. -/
+lemma strict_mono_on.exists_slope_lt_deriv_aux {x y : ℝ} {f : ℝ → ℝ}
+  (hf : continuous_on f (Icc x y)) (hxy : x < y)
+  (hf'_mono : strict_mono_on (deriv f) (Ioo x y)) (h : ∀ w ∈ Ioo x y, deriv f w ≠ 0) :
+  ∃ a ∈ Ioo x y, (f y - f x) / (y - x) < deriv f a :=
+begin
+  have A : differentiable_on ℝ f (Ioo x y),
+    from λ w wmem, (differentiable_at_of_deriv_ne_zero (h w wmem)).differentiable_within_at,
+  obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
+    from exists_deriv_eq_slope f hxy hf A,
+  rcases nonempty_Ioo.2 hay with ⟨b, ⟨hab, hby⟩⟩,
+  refine ⟨b, ⟨hxa.trans hab, hby⟩, _⟩,
+  rw ← ha,
+  exact hf'_mono ⟨hxa, hay⟩ ⟨hxa.trans hab, hby⟩ hab
+end
+
+lemma strict_mono_on.exists_slope_lt_deriv {x y : ℝ} {f : ℝ → ℝ}
+  (hf : continuous_on f (Icc x y)) (hxy : x < y)
+  (hf'_mono : strict_mono_on (deriv f) (Ioo x y)) :
+  ∃ a ∈ Ioo x y, (f y - f x) / (y - x) < deriv f a :=
+begin
+  by_cases h : ∀ w ∈ Ioo x y, deriv f w ≠ 0,
+  { apply strict_mono_on.exists_slope_lt_deriv_aux hf hxy hf'_mono h },
+  { push_neg at h,
+    rcases h with ⟨w, ⟨hxw, hwy⟩, hw⟩,
+    obtain ⟨a, ⟨hxa, haw⟩, ha⟩ : ∃ (a : ℝ) (H : a ∈ Ioo x w), (f w - f x) / (w - x) < deriv f a,
+    { apply strict_mono_on.exists_slope_lt_deriv_aux _ hxw _ _,
+      { exact hf.mono (Icc_subset_Icc le_rfl hwy.le) },
+      { exact hf'_mono.mono (Ioo_subset_Ioo le_rfl hwy.le) },
+      { assume z hz,
+        rw ← hw,
+        apply ne_of_lt,
+        exact hf'_mono ⟨hz.1, hz.2.trans hwy⟩ ⟨hxw, hwy⟩ hz.2 } },
+    obtain ⟨b, ⟨hwb, hby⟩, hb⟩ : ∃ (b : ℝ) (H : b ∈ Ioo w y), (f y - f w) / (y - w) < deriv f b,
+    { apply strict_mono_on.exists_slope_lt_deriv_aux _ hwy _ _,
+      { refine hf.mono (Icc_subset_Icc hxw.le le_rfl), },
+      { exact hf'_mono.mono (Ioo_subset_Ioo hxw.le le_rfl) },
+      { assume z hz,
+        rw ← hw,
+        apply ne_of_gt,
+        exact hf'_mono ⟨hxw, hwy⟩ ⟨hxw.trans hz.1, hz.2⟩ hz.1, } },
+    refine ⟨b, ⟨hxw.trans hwb, hby⟩, _⟩,
+    simp only [div_lt_iff, hxy, hxw, hwy, sub_pos] at ⊢ ha hb,
+    have : deriv f a * (w - x) < deriv f b * (w - x),
+    { apply mul_lt_mul _ le_rfl (sub_pos.2 hxw) _,
+      { exact hf'_mono ⟨hxa, haw.trans hwy⟩ ⟨hxw.trans hwb, hby⟩ (haw.trans hwb) },
+      { rw ← hw,
+        exact (hf'_mono ⟨hxw, hwy⟩ ⟨hxw.trans hwb, hby⟩ hwb).le } },
+    linarith }
+end
+
+lemma strict_mono_on.exists_deriv_lt_slope_aux {x y : ℝ} {f : ℝ → ℝ}
+  (hf : continuous_on f (Icc x y)) (hxy : x < y)
+  (hf'_mono : strict_mono_on (deriv f) (Ioo x y)) (h : ∀ w ∈ Ioo x y, deriv f w ≠ 0) :
+  ∃ a ∈ Ioo x y, deriv f a < (f y - f x) / (y - x) :=
+begin
+  have A : differentiable_on ℝ f (Ioo x y),
+    from λ w wmem, (differentiable_at_of_deriv_ne_zero (h w wmem)).differentiable_within_at,
+  obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
+    from exists_deriv_eq_slope f hxy hf A,
+  rcases nonempty_Ioo.2 hxa with ⟨b, ⟨hxb, hba⟩⟩,
+  refine ⟨b, ⟨hxb, hba.trans hay⟩, _⟩,
+  rw ← ha,
+  exact hf'_mono ⟨hxb, hba.trans hay⟩ ⟨hxa, hay⟩ hba
+end
+
+lemma strict_mono_on.exists_deriv_lt_slope {x y : ℝ} {f : ℝ → ℝ}
+  (hf : continuous_on f (Icc x y)) (hxy : x < y)
+  (hf'_mono : strict_mono_on (deriv f) (Ioo x y)) :
+  ∃ a ∈ Ioo x y, deriv f a < (f y - f x) / (y - x) :=
+begin
+  by_cases h : ∀ w ∈ Ioo x y, deriv f w ≠ 0,
+  { apply strict_mono_on.exists_deriv_lt_slope_aux hf hxy hf'_mono h },
+  { push_neg at h,
+    rcases h with ⟨w, ⟨hxw, hwy⟩, hw⟩,
+    obtain ⟨a, ⟨hxa, haw⟩, ha⟩ : ∃ (a : ℝ) (H : a ∈ Ioo x w), deriv f a < (f w - f x) / (w - x),
+    { apply strict_mono_on.exists_deriv_lt_slope_aux _ hxw _ _,
+      { exact hf.mono (Icc_subset_Icc le_rfl hwy.le) },
+      { exact hf'_mono.mono (Ioo_subset_Ioo le_rfl hwy.le) },
+      { assume z hz,
+        rw ← hw,
+        apply ne_of_lt,
+        exact hf'_mono ⟨hz.1, hz.2.trans hwy⟩ ⟨hxw, hwy⟩ hz.2 } },
+    obtain ⟨b, ⟨hwb, hby⟩, hb⟩ : ∃ (b : ℝ) (H : b ∈ Ioo w y), deriv f b < (f y - f w) / (y - w),
+    { apply strict_mono_on.exists_deriv_lt_slope_aux _ hwy _ _,
+      { refine hf.mono (Icc_subset_Icc hxw.le le_rfl), },
+      { exact hf'_mono.mono (Ioo_subset_Ioo hxw.le le_rfl) },
+      { assume z hz,
+        rw ← hw,
+        apply ne_of_gt,
+        exact hf'_mono ⟨hxw, hwy⟩ ⟨hxw.trans hz.1, hz.2⟩ hz.1, } },
+    refine ⟨a, ⟨hxa, haw.trans hwy⟩, _⟩,
+    simp only [lt_div_iff, hxy, hxw, hwy, sub_pos] at ⊢ ha hb,
+    have : deriv f a * (y - w) < deriv f b * (y - w),
+    { apply mul_lt_mul _ le_rfl (sub_pos.2 hwy) _,
+      { exact hf'_mono ⟨hxa, haw.trans hwy⟩ ⟨hxw.trans hwb, hby⟩ (haw.trans hwb) },
+      { rw ← hw,
+        exact (hf'_mono ⟨hxw, hwy⟩ ⟨hxw.trans hwb, hby⟩ hwb).le } },
+    linarith }
+end
+
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, and `f'` is strictly monotone on the
+interior, then `f` is strictly convex on `D`.
+Note that we don't require differentiability, since it is guaranteed at all but at most
+one point by the strict monotonicity of `f'`. -/
 lemma strict_mono_on.strict_convex_on_of_deriv {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
-  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
-  (hf'_mono : strict_mono_on (deriv f) (interior D)) :
+  (hf : continuous_on f D) (hf' : strict_mono_on (deriv f) (interior D)) :
   strict_convex_on ℝ D f :=
 strict_convex_on_of_slope_strict_mono_adjacent hD
 begin
@@ -1054,27 +1156,29 @@ begin
   have hyzD : Icc y z ⊆ D, from subset.trans (Icc_subset_Icc_left $ le_of_lt hxy) hxzD,
   have hyzD' : Ioo y z ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hyzD⟩,
-  -- Then we apply MVT to both `[x, y]` and `[y, z]`
-  obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
-    from exists_deriv_eq_slope f hxy (hf.mono hxyD) (hf'.mono hxyD'),
-  obtain ⟨b, ⟨hyb, hbz⟩, hb⟩ : ∃ b ∈ Ioo y z, deriv f b = (f z - f y) / (z - y),
-    from exists_deriv_eq_slope f hyz (hf.mono hyzD) (hf'.mono hyzD'),
-  rw [← ha, ← hb],
-  exact hf'_mono (hxyD' ⟨hxa, hay⟩) (hyzD' ⟨hyb, hbz⟩) (hay.trans hyb)
+  -- Then we get points `a` and `b` in each interval `[x, y]` and `[y, z]` where the derivatives
+  -- can be compared to the slopes between `x, y` and `y, z` respectively.
+  obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, (f y - f x) / (y - x) < deriv f a,
+    from strict_mono_on.exists_slope_lt_deriv (hf.mono hxyD) hxy (hf'.mono hxyD'),
+  obtain ⟨b, ⟨hyb, hbz⟩, hb⟩ : ∃ b ∈ Ioo y z, deriv f b < (f z - f y) / (z - y),
+    from strict_mono_on.exists_deriv_lt_slope (hf.mono hyzD) hyz (hf'.mono hyzD'),
+  apply ha.trans (lt_trans _ hb),
+  exact hf' (hxyD' ⟨hxa, hay⟩) (hyzD' ⟨hyb, hbz⟩) (hay.trans hyb),
 end
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
-and `f'` is strictly antitone on the interior, then `f` is strictly concave on `D`. -/
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ` and `f'` is strictly antitone on the
+interior, then `f` is strictly concave on `D`.
+Note that we don't require differentiability, since it is guaranteed at all but at most
+one point by the strict antitonicity of `f'`. -/
 lemma strict_anti_on.strict_concave_on_of_deriv {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
-  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
-  (h_anti : strict_anti_on (deriv f) (interior D)) :
+  (hf : continuous_on f D) (h_anti : strict_anti_on (deriv f) (interior D)) :
   strict_concave_on ℝ D f :=
 begin
   have : strict_mono_on (deriv (-f)) (interior D),
   { intros x hx y hy hxy,
     convert neg_lt_neg (h_anti hx hy hxy);
     convert deriv.neg },
-  exact neg_strict_convex_on_iff.mp (this.strict_convex_on_of_deriv hD hf.neg hf'.neg),
+  exact neg_strict_convex_on_iff.mp (this.strict_convex_on_of_deriv hD hf.neg),
 end
 
 /-- If a function `f` is differentiable and `f'` is monotone on `ℝ` then `f` is convex. -/
@@ -1089,20 +1193,19 @@ theorem antitone.concave_on_univ_of_deriv {f : ℝ → ℝ} (hf : differentiable
 (hf'_anti.antitone_on _).concave_on_of_deriv convex_univ hf.continuous.continuous_on
   hf.differentiable_on
 
-/-- If a function `f` is differentiable and `f'` is strictly monotone on `ℝ` then `f` is strictly
-convex. -/
-lemma strict_mono.strict_convex_on_univ_of_deriv {f : ℝ → ℝ} (hf : differentiable ℝ f)
-  (hf'_mono : strict_mono (deriv f)) :
-  strict_convex_on ℝ univ f :=
-(hf'_mono.strict_mono_on _).strict_convex_on_of_deriv convex_univ hf.continuous.continuous_on
-  hf.differentiable_on
+/-- If a function `f` is continuous and `f'` is strictly monotone on `ℝ` then `f` is strictly
+convex. Note that we don't require differentiability, since it is guaranteed at all but at most
+one point by the strict monotonicity of `f'`. -/
+lemma strict_mono.strict_convex_on_univ_of_deriv {f : ℝ → ℝ} (hf : continuous f)
+  (hf'_mono : strict_mono (deriv f)) : strict_convex_on ℝ univ f :=
+(hf'_mono.strict_mono_on _).strict_convex_on_of_deriv convex_univ hf.continuous_on
 
-/-- If a function `f` is differentiable and `f'` is strictly antitone on `ℝ` then `f` is strictly
-concave. -/
-lemma strict_anti.strict_concave_on_univ_of_deriv {f : ℝ → ℝ} (hf : differentiable ℝ f)
+/-- If a function `f` is continuous and `f'` is strictly antitone on `ℝ` then `f` is strictly
+concave. Note that we don't require differentiability, since it is guaranteed at all but at most
+one point by the strict antitonicity of `f'`. -/
+lemma strict_anti.strict_concave_on_univ_of_deriv {f : ℝ → ℝ} (hf : continuous f)
   (hf'_anti : strict_anti (deriv f)) : strict_concave_on ℝ univ f :=
-(hf'_anti.strict_anti_on _).strict_concave_on_of_deriv convex_univ hf.continuous.continuous_on
-  hf.differentiable_on
+(hf'_anti.strict_anti_on _).strict_concave_on_of_deriv convex_univ hf.continuous_on
 
 /-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
 interior, and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
@@ -1124,72 +1227,68 @@ theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) {f : ℝ �
 (hD.interior.antitone_on_of_deriv_nonpos hf''.continuous_on (by rwa interior_interior)
   $ by rwa interior_interior).concave_on_of_deriv hD hf hf'
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
-interior, and `f''` is strictly positive on the interior, then `f` is strictly convex on `D`.
-Note that we don't require twice differentiability explicitly as it already implied by the second
-derivative being strictly positive. -/
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ` and `f''` is strictly positive on the
+interior, then `f` is strictly convex on `D`.
+Note that we don't require twice differentiability explicitly as it is already implied by the second
+derivative being strictly positive, except at at most one point. -/
 lemma strict_convex_on_of_deriv2_pos {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
-  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
-  (hf'' : ∀ x ∈ interior D, 0 < (deriv^[2] f) x) :
+  (hf : continuous_on f D) (hf'' : ∀ x ∈ interior D, 0 < (deriv^[2] f) x) :
   strict_convex_on ℝ D f :=
 (hD.interior.strict_mono_on_of_deriv_pos (λ z hz,
   (differentiable_at_of_deriv_ne_zero (hf'' z hz).ne').differentiable_within_at
-   .continuous_within_at) $ by rwa interior_interior).strict_convex_on_of_deriv hD hf hf'
+   .continuous_within_at) $ by rwa interior_interior).strict_convex_on_of_deriv hD hf
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
-interior, and `f''` is strictly negative on the interior, then `f` is strictly concave on `D`.
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ` and `f''` is strictly negative on the
+interior, then `f` is strictly concave on `D`.
 Note that we don't require twice differentiability explicitly as it already implied by the second
-derivative being strictly negative. -/
+derivative being strictly negative, except at at most one point. -/
 lemma strict_concave_on_of_deriv2_neg {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
-  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
-  (hf'' : ∀ x ∈ interior D, deriv^[2] f x < 0) :
+  (hf : continuous_on f D) (hf'' : ∀ x ∈ interior D, deriv^[2] f x < 0) :
   strict_concave_on ℝ D f :=
 (hD.interior.strict_anti_on_of_deriv_neg (λ z hz,
   (differentiable_at_of_deriv_ne_zero (hf'' z hz).ne).differentiable_within_at
-   .continuous_within_at) $ by rwa interior_interior).strict_concave_on_of_deriv hD hf hf'
+   .continuous_within_at) $ by rwa interior_interior).strict_concave_on_of_deriv hD hf
 
 /-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
 `f''` is nonnegative on `D`, then `f` is convex on `D`. -/
-theorem convex_on_open_of_deriv2_nonneg {D : set ℝ} (hD : convex ℝ D) (hD₂ : is_open D) {f : ℝ → ℝ}
+theorem convex_on_of_deriv2_nonneg' {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)
   (hf''_nonneg : ∀ x ∈ D, 0 ≤ (deriv^[2] f) x) : convex_on ℝ D f :=
-convex_on_of_deriv2_nonneg hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf')
-  (by simpa [hD₂.interior_eq] using hf'') (by simpa [hD₂.interior_eq] using hf''_nonneg)
+convex_on_of_deriv2_nonneg hD hf'.continuous_on (hf'.mono interior_subset)
+  (hf''.mono interior_subset) (λ x hx, hf''_nonneg x (interior_subset hx))
 
 /-- If a function `f` is twice differentiable on an open convex set `D ⊆ ℝ` and
 `f''` is nonpositive on `D`, then `f` is concave on `D`. -/
-theorem concave_on_open_of_deriv2_nonpos {D : set ℝ} (hD : convex ℝ D) (hD₂ : is_open D) {f : ℝ → ℝ}
+theorem concave_on_of_deriv2_nonpos' {D : set ℝ} (hD : convex ℝ D) {f : ℝ → ℝ}
   (hf' : differentiable_on ℝ f D) (hf'' : differentiable_on ℝ (deriv f) D)
   (hf''_nonpos : ∀ x ∈ D, deriv^[2] f x ≤ 0) : concave_on ℝ D f :=
-concave_on_of_deriv2_nonpos hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf')
-  (by simpa [hD₂.interior_eq] using hf'') (by simpa [hD₂.interior_eq] using hf''_nonpos)
+concave_on_of_deriv2_nonpos hD hf'.continuous_on (hf'.mono interior_subset)
+  (hf''.mono interior_subset) (λ x hx, hf''_nonpos x (interior_subset hx))
 
-/-- If a function `f` is twice differentiable on a open convex set `D ⊆ ℝ` and
-`f''` is strictly positive on `D`, then `f` is strictly convex on `D`.
-Note that we don't require twice differentiability explicitly as it already implied by the second
-derivative being strictly positive. -/
-lemma strict_convex_on_open_of_deriv2_pos {D : set ℝ} (hD : convex ℝ D) (hD₂ : is_open D)
-  {f : ℝ → ℝ} (hf' : differentiable_on ℝ f D) (hf'' : ∀ x ∈ D, 0 < (deriv^[2] f) x) :
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ` and `f''` is strictly positive on `D`,
+then `f` is strictly convex on `D`.
+Note that we don't require twice differentiability explicitly as it is already implied by the second
+derivative being strictly positive, except at at most one point. -/
+lemma strict_convex_on_of_deriv2_pos' {D : set ℝ} (hD : convex ℝ D)
+  {f : ℝ → ℝ} (hf : continuous_on f D) (hf'' : ∀ x ∈ D, 0 < (deriv^[2] f) x) :
   strict_convex_on ℝ D f :=
-strict_convex_on_of_deriv2_pos hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf') $
-  by simpa [hD₂.interior_eq] using hf''
+strict_convex_on_of_deriv2_pos hD hf $ λ x hx, hf'' x (interior_subset hx)
 
-/-- If a function `f` is twice differentiable on an open convex set `D ⊆ ℝ` and
-`f''` is strictly negative on `D`, then `f` is strictly concave on `D`.
-Note that we don't require twice differentiability explicitly as it already implied by the second
-derivative being strictly negative. -/
-lemma strict_concave_on_open_of_deriv2_neg {D : set ℝ} (hD : convex ℝ D) (hD₂ : is_open D)
-  {f : ℝ → ℝ} (hf' : differentiable_on ℝ f D) (hf'' : ∀ x ∈ D, deriv^[2] f x < 0) :
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ` and `f''` is strictly negative on `D`,
+then `f` is strictly concave on `D`.
+Note that we don't require twice differentiability explicitly as it is already implied by the second
+derivative being strictly negative, except at at most one point. -/
+lemma strict_concave_on_of_deriv2_neg' {D : set ℝ} (hD : convex ℝ D)
+  {f : ℝ → ℝ} (hf : continuous_on f D) (hf'' : ∀ x ∈ D, deriv^[2] f x < 0) :
   strict_concave_on ℝ D f :=
-strict_concave_on_of_deriv2_neg hD hf'.continuous_on (by simpa [hD₂.interior_eq] using hf') $
-  by simpa [hD₂.interior_eq] using hf''
+strict_concave_on_of_deriv2_neg hD hf $ λ x hx, hf'' x (interior_subset hx)
 
 /-- If a function `f` is twice differentiable on `ℝ`, and `f''` is nonnegative on `ℝ`,
 then `f` is convex on `ℝ`. -/
 theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable ℝ f)
   (hf'' : differentiable ℝ (deriv f)) (hf''_nonneg : ∀ x, 0 ≤ (deriv^[2] f) x) :
   convex_on ℝ univ f :=
-convex_on_open_of_deriv2_nonneg convex_univ is_open_univ hf'.differentiable_on
+convex_on_of_deriv2_nonneg' convex_univ hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonneg x)
 
 /-- If a function `f` is twice differentiable on `ℝ`, and `f''` is nonpositive on `ℝ`,
@@ -1197,26 +1296,26 @@ then `f` is concave on `ℝ`. -/
 theorem concave_on_univ_of_deriv2_nonpos {f : ℝ → ℝ} (hf' : differentiable ℝ f)
   (hf'' : differentiable ℝ (deriv f)) (hf''_nonpos : ∀ x, deriv^[2] f x ≤ 0) :
   concave_on ℝ univ f :=
-concave_on_open_of_deriv2_nonpos convex_univ is_open_univ hf'.differentiable_on
+concave_on_of_deriv2_nonpos' convex_univ hf'.differentiable_on
   hf''.differentiable_on (λ x _, hf''_nonpos x)
 
-/-- If a function `f` is twice differentiable on `ℝ`, and `f''` is strictly positive on `ℝ`,
+/-- If a function `f` is continuous on `ℝ`, and `f''` is strictly positive on `ℝ`,
 then `f` is strictly convex on `ℝ`.
-Note that we don't require twice differentiability explicitly as it already implied by the second
-derivative being strictly positive. -/
-lemma strict_convex_on_univ_of_deriv2_pos {f : ℝ → ℝ} (hf' : differentiable ℝ f)
+Note that we don't require twice differentiability explicitly as it is already implied by the second
+derivative being strictly positive, except at at most one point.  -/
+lemma strict_convex_on_univ_of_deriv2_pos {f : ℝ → ℝ} (hf : continuous f)
   (hf'' : ∀ x, 0 < (deriv^[2] f) x) :
   strict_convex_on ℝ univ f :=
-strict_convex_on_open_of_deriv2_pos convex_univ is_open_univ hf'.differentiable_on $ λ x _, hf'' x
+strict_convex_on_of_deriv2_pos' convex_univ hf.continuous_on $ λ x _, hf'' x
 
-/-- If a function `f` is twice differentiable on `ℝ`, and `f''` is strictly negative on `ℝ`,
+/-- If a function `f` is continuous on `ℝ`, and `f''` is strictly negative on `ℝ`,
 then `f` is strictly concave on `ℝ`.
-Note that we don't require twice differentiability explicitly as it already implied by the second
-derivative being strictly negative. -/
-lemma strict_concave_on_univ_of_deriv2_neg {f : ℝ → ℝ} (hf' : differentiable ℝ f)
+Note that we don't require twice differentiability explicitly as it is already implied by the second
+derivative being strictly negative, except at at most one point.  -/
+lemma strict_concave_on_univ_of_deriv2_neg {f : ℝ → ℝ} (hf : continuous f)
   (hf'' : ∀ x, deriv^[2] f x < 0) :
   strict_concave_on ℝ univ f :=
-strict_concave_on_open_of_deriv2_neg convex_univ is_open_univ hf'.differentiable_on $ λ x _, hf'' x
+strict_concave_on_of_deriv2_neg' convex_univ hf.continuous_on $ λ x _, hf'' x
 
 /-! ### Functions `f : E → ℝ` -/
 
@@ -1269,8 +1368,8 @@ make sense and are enough. Many formulations of the mean value inequality could 
 balls over `ℝ` or `ℂ`. For now, we only include the ones that we need.
 -/
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {G : Type*} [normed_group G] [normed_space 𝕜 G]
-  {H : Type*} [normed_group H] [normed_space 𝕜 H] {f : G → H} {f' : G → G →L[𝕜] H} {x : G}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+  {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H] {f : G → H} {f' : G → G →L[𝕜] H} {x : G}
 
 /-- Over the reals or the complexes, a continuously differentiable function is strictly
 differentiable. -/

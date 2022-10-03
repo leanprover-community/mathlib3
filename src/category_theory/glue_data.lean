@@ -42,7 +42,7 @@ such that
     `t' : V i j ×[U i] V i k ⟶ V j k ×[U j] V j i`.
 10. `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data :=
 (J : Type v)
 (U : J → C)
@@ -199,7 +199,7 @@ instance (i j k : D.J) : has_pullback (F.map (D.f i j)) (F.map (D.f i k)) :=
   U := λ i, F.obj (D.U i),
   V := λ i, F.obj (D.V i),
   f := λ i j, F.map (D.f i j),
-  f_mono := λ i j, category_theory.preserves_mono F (D.f i j),
+  f_mono := λ i j, preserves_mono_of_preserves_limit _ _,
   f_id := λ i, infer_instance,
   t := λ i j, F.map (D.t i j),
   t_id := λ i, by { rw D.t_id i, simp },

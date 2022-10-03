@@ -3,6 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import algebra.add_torsor
 import topology.algebra.constructions
 import group_theory.group_action.prod
 import group_theory.group_action.basic
@@ -154,7 +155,7 @@ variables {ι : Sort*} {M X : Type*} [topological_space M] [has_smul M X]
 { continuous_smul :=
   begin
     rw ← @Inf_singleton _ _ ‹topological_space M›,
-    exact continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
+    exact continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
       (@has_continuous_smul.continuous_smul _ _ _ _ t (h t ht)))
   end }
 
@@ -169,3 +170,22 @@ has_continuous_smul_Inf $ set.forall_range_iff.mpr h
 by { rw inf_eq_infi, refine has_continuous_smul_infi (λ b, _), cases b; assumption }
 
 end lattice_ops
+
+section add_torsor
+
+variables (G : Type*) (P : Type*) [add_group G] [add_torsor G P] [topological_space G]
+variables [preconnected_space G] [topological_space P] [has_continuous_vadd G P]
+include G
+
+/-- An `add_torsor` for a connected space is a connected space. This is not an instance because
+it loops for a group as a torsor over itself. -/
+protected lemma add_torsor.connected_space : connected_space P :=
+{ is_preconnected_univ :=
+    begin
+      convert is_preconnected_univ.image ((equiv.vadd_const (classical.arbitrary P)) : G → P)
+                                         (continuous_id.vadd continuous_const).continuous_on,
+      rw [set.image_univ, equiv.range_eq_univ]
+    end,
+  to_nonempty := infer_instance }
+
+end add_torsor

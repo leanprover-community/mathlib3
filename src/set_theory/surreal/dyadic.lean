@@ -26,7 +26,7 @@ rational numbers to construct an ordered field embedding of ℝ into `surreal`.
 
 universes u
 
-local infix ` ≈ ` := pgame.equiv
+local infix (name := pgame.equiv) ` ≈ ` := pgame.equiv
 
 namespace pgame
 

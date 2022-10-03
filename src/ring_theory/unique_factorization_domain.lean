@@ -250,7 +250,7 @@ lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
 ⟨begin
   classical,
   refine rel_hom_class.well_founded
-    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : with_top ℕ → with_top ℕ → Prop))
+    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : ℕ∞ → ℕ∞ → Prop))
     (with_top.well_founded_lt nat.lt_wf),
   { intro a,
     by_cases h : a = 0, { exact ⊤ },
@@ -604,6 +604,15 @@ begin
     apply multiset.prod_dvd_prod_of_le }
 end
 
+lemma associated_iff_normalized_factors_eq_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  x ~ᵤ y ↔ normalized_factors x = normalized_factors y :=
+begin
+  refine ⟨λ h, _,
+    λ h, (normalized_factors_prod hx).symm.trans (trans (by rw h) (normalized_factors_prod hy))⟩,
+  apply le_antisymm; rw [← dvd_iff_normalized_factors_le_normalized_factors],
+  all_goals { simp [*, h.dvd, h.symm.dvd], },
+end
+
 theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
   normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
@@ -625,6 +634,19 @@ begin
   use (normalized_factors r).card,
   have := unique_factorization_monoid.normalized_factors_prod hr,
   rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
+end
+
+lemma normalized_factors_prod_of_prime [nontrivial α] [unique αˣ] {m : multiset α}
+  (h : ∀ p ∈ m, prime p) : (normalized_factors m.prod) = m :=
+by simpa only [←multiset.rel_eq, ←associated_eq_eq] using prime_factors_unique
+  (prime_of_normalized_factor) h (normalized_factors_prod (m.prod_ne_zero_of_prime h))
+
+lemma mem_normalized_factors_eq_of_associated {a b c : α} (ha : a ∈ normalized_factors c)
+  (hb : b ∈ normalized_factors c) (h : associated a b) : a = b :=
+begin
+  rw [← normalize_normalized_factor a ha, ← normalize_normalized_factor b hb,
+    normalize_eq_normalize_iff],
+  apply associated.dvd_dvd h,
 end
 
 end unique_factorization_monoid
@@ -775,7 +797,7 @@ lemma multiplicity_eq_count_normalized_factors {a b : R} (ha : irreducible a) (h
   multiplicity a b = (normalized_factors b).count (normalize a) :=
 begin
   apply le_antisymm,
-  { apply enat.le_of_lt_add_one,
+  { apply part_enat.le_of_lt_add_one,
     rw [← nat.cast_one, ← nat.cast_add, lt_iff_not_ge, ge_iff_le,
       le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
     simp },
@@ -796,7 +818,7 @@ begin
   letI : decidable_rel ((∣) : R → R → Prop) := λ _ _, classical.prop_decidable _,
   by_cases hx0 : x = 0,
   { simp [hx0] at hlt, contradiction },
-  rw [← enat.coe_inj],
+  rw [← part_enat.coe_inj],
   convert (multiplicity_eq_count_normalized_factors hp hx0).symm,
   { exact hnorm.symm },
   exact (multiplicity.eq_coe_iff.mpr ⟨hle, hlt⟩).symm
@@ -1659,10 +1681,8 @@ by { ext, simp [factorization] }
 lemma associated_of_factorization_eq (a b: α) (ha: a ≠ 0) (hb: b ≠ 0)
   (h: factorization a = factorization b) : associated a b :=
 begin
-  simp only [factorization, add_equiv.apply_eq_iff_eq] at h,
-  have ha' := normalized_factors_prod ha,
-  rw h at ha',
-  exact associated.trans ha'.symm (normalized_factors_prod hb),
+  simp_rw [factorization, add_equiv.apply_eq_iff_eq] at h,
+  rwa [associated_iff_normalized_factors_eq_normalized_factors ha hb],
 end
 
 end finsupp

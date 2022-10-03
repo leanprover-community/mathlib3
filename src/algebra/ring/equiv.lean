@@ -230,9 +230,9 @@ protected lemma surjective (e : R ≃+* S) : function.surjective e := equiv_like
 lemma image_eq_preimage (e : R ≃+* S) (s : set R) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s
 
-@[simp] lemma coe_mul_equiv_trans [non_assoc_semiring S'] (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+@[simp] lemma coe_mul_equiv_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
   (e₁.trans e₂ : R ≃* S') = (e₁ : R ≃* S).trans ↑e₂:= rfl
-@[simp] lemma coe_add_equiv_trans [non_assoc_semiring S'] (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+@[simp] lemma coe_add_equiv_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
   (e₁.trans e₂ : R ≃+ S') = (e₁ : R ≃+ S).trans ↑e₂:= rfl
 
 end basic
@@ -346,7 +346,7 @@ protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one
 
 lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
 
-@[simp] lemma coe_monoid_hom_refl : (ring_equiv.refl R : R →* R) = monoid_hom.id R := rfl
+lemma coe_monoid_hom_refl : (ring_equiv.refl R : R →* R) = monoid_hom.id R := rfl
 @[simp] lemma coe_add_monoid_hom_refl : (ring_equiv.refl R : R →+ R) = add_monoid_hom.id R := rfl
 /-! `ring_equiv.coe_mul_equiv_refl` and `ring_equiv.coe_add_equiv_refl` are proved above
 in higher generality -/

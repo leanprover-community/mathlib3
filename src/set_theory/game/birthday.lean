@@ -121,15 +121,14 @@ le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i
 variables (a b x : pgame.{u})
 
 theorem neg_birthday_le : -x.birthday.to_pgame ≤ x :=
-let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff] at h
+by simpa only [neg_birthday, ←neg_le_iff] using le_birthday (-x)
 
 @[simp] theorem birthday_add : ∀ x y : pgame.{u}, (x + y).birthday = x.birthday ♯ y.birthday
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
   rw [birthday_def, nadd_def],
   simp only [birthday_add, lsub_sum, mk_add_move_left_inl, move_left_mk, mk_add_move_left_inr,
     mk_add_move_right_inl, move_right_mk, mk_add_move_right_inr],
-  rw [max_assoc, ←max_assoc (lsub (λ b : yl, _)), max_comm (lsub (λ b : yl, _)), max_assoc,
-    ←max_assoc],
+  rw max_max_max_comm,
   congr; apply le_antisymm,
   any_goals
   { exact max_le_iff.2 ⟨lsub_le_iff.2 (λ i, lt_blsub _ _ (birthday_move_left_lt i)),
@@ -149,12 +148,9 @@ theorem birthday_zero_add : (0 + a).birthday = a.birthday := by simp
 theorem birthday_add_one  : (a + 1).birthday = order.succ a.birthday := by simp
 theorem birthday_one_add  : (1 + a).birthday = order.succ a.birthday := by simp
 
-@[simp] theorem birthday_nat_cast (n : ℕ) : birthday n = n :=
-begin
-  induction n with n hn,
-  { exact birthday_zero },
-  { simp [hn] }
-end
+@[simp] theorem birthday_nat_cast : ∀ n : ℕ, birthday n = n
+| 0 := birthday_zero
+| (n + 1) := by simp [birthday_nat_cast]
 
 theorem birthday_add_nat (n : ℕ) : (a + n).birthday = a.birthday + n := by simp
 theorem birthday_nat_add (n : ℕ) : (↑n + a).birthday = a.birthday + n := by simp

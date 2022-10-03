@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang
+Authors: Jujian Zhang, Junyan Xu
 -/
 import algebraic_geometry.sheafed_space
-import topology.sheaves.sheaf_condition.opens_le_cover
+import topology.sheaves.punit
 import topology.sheaves.stalks
 import category_theory.preadditive.injective
 
@@ -42,7 +42,7 @@ variables {X : Top.{u}} (p₀ : X) [Π (U : opens X), decidable (p₀ ∈ U)]
 
 section
 
-variables {C : Type v} [category.{w} C] (A : C) [has_terminal C]
+variables {C : Type v} [category.{w} C] [has_terminal C] (A : C)
 
 /--
 A skyscraper presheaf is a presheaf supported at a single point: if `p₀ ∈ X` is a specified
@@ -63,6 +63,59 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
       simp only [dif_pos hW, dif_pos hV, eq_to_hom_trans] },
     { rw [dif_neg hW], apply ((if_neg hW).symm.rec terminal_is_terminal).hom_ext }
   end }
+
+lemma skyscraper_presheaf_eq_pushforward
+  [hd : Π (U : opens (Top.of punit.{u+1})), decidable (punit.star ∈ U)] :
+  skyscraper_presheaf p₀ A =
+  continuous_map.const (Top.of punit) p₀ _* skyscraper_presheaf punit.star A :=
+by convert_to @skyscraper_presheaf X p₀
+  (λ U, hd $ (opens.map $ continuous_map.const _ p₀).obj U) C _ _ A = _; congr <|> refl
+
+/--
+Taking skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor by
+sending every `f : a ⟶ b` to the natural transformation `α` defined as: `α(U) = f : a ⟶ b` if
+`p₀ ∈ U` and the unique morphism to a terminal object in `C` if `p₀ ∉ U`.
+-/
+@[simps] def skyscraper_presheaf_functor.map' {a b : C} (f : a ⟶ b) :
+  skyscraper_presheaf p₀ a ⟶ skyscraper_presheaf p₀ b :=
+{ app := λ U, if h : p₀ ∈ U.unop
+    then eq_to_hom (if_pos h) ≫ f ≫ eq_to_hom (if_pos h).symm
+    else ((if_neg h).symm.rec terminal_is_terminal).from _,
+  naturality' := λ U V i,
+  begin
+    simp only [skyscraper_presheaf_map], by_cases hV : p₀ ∈ V.unop,
+    { have hU : p₀ ∈ U.unop := le_of_hom i.unop hV, split_ifs,
+      simpa only [eq_to_hom_trans_assoc, category.assoc, eq_to_hom_trans], },
+    { apply ((if_neg hV).symm.rec terminal_is_terminal).hom_ext, },
+  end }
+
+lemma skyscraper_presheaf_functor.map'_id {a : C} :
+  skyscraper_presheaf_functor.map' p₀ (𝟙 a) = 𝟙 _ :=
+begin
+  ext1, ext1, simp only [skyscraper_presheaf_functor.map'_app, nat_trans.id_app], split_ifs,
+  { simp only [category.id_comp, category.comp_id, eq_to_hom_trans, eq_to_hom_refl], },
+  { apply ((if_neg h).symm.rec terminal_is_terminal).hom_ext, },
+end
+
+lemma skyscraper_presheaf_functor.map'_comp {a b c : C} (f : a ⟶ b) (g : b ⟶ c) :
+  skyscraper_presheaf_functor.map' p₀ (f ≫ g) =
+  skyscraper_presheaf_functor.map' p₀ f ≫ skyscraper_presheaf_functor.map' p₀ g :=
+begin
+  ext1, ext1, simp only [skyscraper_presheaf_functor.map'_app, nat_trans.comp_app], split_ifs,
+  { simp only [category.assoc, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp], },
+  { apply ((if_neg h).symm.rec terminal_is_terminal).hom_ext, },
+end
+
+/--
+Taking skyscraper presheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor by
+sending every `f : a ⟶ b` to the natural transformation `α` defined as: `α(U) = f : a ⟶ b` if
+`p₀ ∈ U` and the unique morphism to a terminal object in `C` if `p₀ ∉ U`.
+-/
+@[simps] def skyscraper_presheaf_functor : C ⥤ presheaf C X :=
+{ obj := skyscraper_presheaf p₀,
+  map := λ _ _, skyscraper_presheaf_functor.map' p₀,
+  map_id' := λ _, skyscraper_presheaf_functor.map'_id p₀,
+  map_comp' := λ _ _ _, skyscraper_presheaf_functor.map'_comp p₀ }
 
 end
 
@@ -157,5 +210,29 @@ If `y ∉ closure {p₀}`, then the stalk of `skyscraper_presheaf p₀ A` at `y`
 def skyscraper_presheaf_stalk_of_not_specializes_is_terminal
   [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ A).stalk y) :=
 is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_specializes _ _ h).symm
+
+lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
+by classical; exact (presheaf.is_sheaf_iso_iff
+  (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr
+  (sheaf.pushforward_sheaf_of_sheaf _ (presheaf.is_sheaf_on_punit_of_is_terminal _
+  (by { dsimp, rw if_neg, exact terminal_is_terminal, exact set.not_mem_empty punit.star })))
+
+/--
+The skyscraper presheaf supported at `p₀` with value `A` is the sheaf that assigns `A` to all opens
+`U` that contain `p₀` and assigns `*` otherwise.
+-/
+def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
+⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩
+
+/--
+Taking skyscraper sheaf at a point is functorial: `c ↦ skyscraper p₀ c` defines a functor by
+sending every `f : a ⟶ b` to the natural transformation `α` defined as: `α(U) = f : a ⟶ b` if
+`p₀ ∈ U` and the unique morphism to a terminal object in `C` if `p₀ ∉ U`.
+-/
+def skyscraper_sheaf_functor [has_products.{u} C] : C ⥤ sheaf C X :=
+{ obj := λ c, skyscraper_sheaf p₀ c,
+  map := λ a b f, Sheaf.hom.mk $ (skyscraper_presheaf_functor p₀).map f,
+  map_id' := λ c, Sheaf.hom.ext _ _ $ (skyscraper_presheaf_functor p₀).map_id _,
+  map_comp' := λ _ _ _ f g, Sheaf.hom.ext _ _ $ (skyscraper_presheaf_functor p₀).map_comp _ _ }
 
 end

@@ -5,7 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import ring_theory.polynomial.cyclotomic.basic
-import number_theory.number_field
+import number_theory.number_field.basic
 import algebra.char_p.algebra
 import field_theory.galois
 

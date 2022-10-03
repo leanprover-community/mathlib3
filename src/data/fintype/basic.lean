@@ -1404,6 +1404,49 @@ lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
   univ.map e = univ :=
 by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
 
+/-- Any injection from a finset `s` in a fintype `α` to a finset `t` of the same cardinality as `α`
+can be extended to a bijection between `α` and `t`. -/
+lemma finset.exists_equiv_extend_of_card_eq [fintype α] {t : finset β}
+  (hαt : fintype.card α = t.card) {s : finset α} {f : α → β} (hfst : s.image f ⊆ t)
+  (hfs : set.inj_on f s) :
+  ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
+begin
+  classical,
+  induction s using finset.induction with a s has H generalizing f,
+  { obtain ⟨e⟩ : nonempty (α ≃ ↥t) := by rwa [← fintype.card_eq, fintype.card_coe],
+    use e,
+    simp },
+  have hfst' : finset.image f s ⊆ t := (finset.image_mono _ (s.subset_insert a)).trans hfst,
+  have hfs' : set.inj_on f s := hfs.mono (s.subset_insert a),
+  obtain ⟨g', hg'⟩ := H hfst' hfs',
+  have hfat : f a ∈ t := hfst (mem_image_of_mem _ (s.mem_insert_self a)),
+  use g'.trans (equiv.swap (⟨f a, hfat⟩ : t) (g' a)),
+  simp_rw mem_insert,
+  rintro i (rfl | hi),
+  { simp },
+  rw [equiv.trans_apply, equiv.swap_apply_of_ne_of_ne, hg' _ hi],
+  { exact ne_of_apply_ne subtype.val (ne_of_eq_of_ne (hg' _ hi) $
+    hfs.ne (subset_insert _ _ hi) (mem_insert_self _ _) $ ne_of_mem_of_not_mem hi has) },
+  { exact g'.injective.ne (ne_of_mem_of_not_mem hi has) },
+end
+
+/-- Any injection from a set `s` in a fintype `α` to a finset `t` of the same cardinality as `α`
+can be extended to a bijection between `α` and `t`. -/
+lemma set.maps_to.exists_equiv_extend_of_card_eq [fintype α] {t : finset β}
+  (hαt : fintype.card α = t.card) {s : set α} {f : α → β} (hfst : s.maps_to f t)
+  (hfs : set.inj_on f s) :
+  ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
+begin
+  classical,
+  let s' : finset α := s.to_finset,
+  have hfst' : s'.image f ⊆ t := by simpa [← finset.coe_subset] using hfst,
+  have hfs' : set.inj_on f s' := by simpa using hfs,
+  obtain ⟨g, hg⟩ := finset.exists_equiv_extend_of_card_eq hαt hfst' hfs',
+  refine ⟨g, λ i hi, _⟩,
+  apply hg,
+  simpa using hi,
+end
+
 namespace fintype
 
 /-- Given `fintype α`, `finset_equiv_set` is the equiv between `finset α` and `set α`. (All

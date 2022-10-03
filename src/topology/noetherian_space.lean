@@ -101,6 +101,17 @@ end
 
 variables {α β}
 
+instance {α} : noetherian_space (cofinite_topology α) :=
+begin
+  simp only [noetherian_space_iff_opens, is_compact_iff_ultrafilter_le_nhds,
+    cofinite_topology.nhds_eq, ultrafilter.le_sup_iff],
+  intros s f hs,
+  rcases f.le_cofinite_or_eq_pure with hf|⟨a, rfl⟩,
+  { rcases filter.nonempty_of_mem (filter.le_principal_iff.1 hs) with ⟨a, ha⟩,
+    exact ⟨a, ha, or.inr hf⟩ },
+  { exact ⟨a, filter.le_principal_iff.mp hs, or.inl le_rfl⟩ }
+end
+
 lemma noetherian_space.is_compact [h : noetherian_space α] (s : set α) : is_compact s :=
 let H := (noetherian_space_tfae α).out 0 2 in H.mp h s
 

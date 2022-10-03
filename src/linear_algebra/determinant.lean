@@ -238,7 +238,7 @@ linear_map.det.map_one
 begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
   { haveI : finite_dimensional 𝕜 M,
-    { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
+    { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_fintype_basis hs },
     simp only [← det_to_matrix (finite_dimensional.fin_basis 𝕜 M), linear_equiv.map_smul,
               fintype.card_fin, det_smul] },
   { classical,
@@ -246,11 +246,10 @@ begin
     simp [coe_det, H, this] }
 end
 
-lemma det_zero' {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
+lemma det_zero' {ι : Type*} [finite ι] [nonempty ι] (b : basis ι A M) :
   linear_map.det (0 : M →ₗ[A] M) = 0 :=
-by { haveI := classical.dec_eq ι,
-     rw [← det_to_matrix b, linear_equiv.map_zero, det_zero],
-     assumption }
+by { haveI := classical.dec_eq ι, casesI nonempty_fintype ι,
+     rwa [← det_to_matrix b, linear_equiv.map_zero, det_zero] }
 
 /-- In a finite-dimensional vector space, the zero map has determinant `1` in dimension `0`,
 and `0` otherwise. We give a formula that also works in infinite dimension, where we define
@@ -295,7 +294,7 @@ lemma finite_dimensional_of_det_ne_one {𝕜 : Type*} [field 𝕜] [module 𝕜 
   (f : M →ₗ[𝕜] M) (hf : f.det ≠ 1) : finite_dimensional 𝕜 M :=
 begin
   by_cases H : ∃ (s : finset M), nonempty (basis s 𝕜 M),
-  { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_finset_basis hs },
+  { rcases H with ⟨s, ⟨hs⟩⟩, exact finite_dimensional.of_fintype_basis hs },
   { classical,
     simp [linear_map.coe_det, H] at hf,
     exact hf.elim }
@@ -491,11 +490,14 @@ begin
   simp [alternating_map.map_perm, basis.det_self]
 end
 
-@[simp] lemma alternating_map.map_basis_eq_zero_iff (f : alternating_map R M R ι) :
+@[simp] lemma alternating_map.map_basis_eq_zero_iff {ι : Type*} [decidable_eq ι] [finite ι]
+  (e : basis ι R M) (f : alternating_map R M R ι) :
   f e = 0 ↔ f = 0 :=
-⟨λ h, by simpa [h] using f.eq_smul_basis_det e, λ h, h.symm ▸ alternating_map.zero_apply _⟩
+⟨λ h, by { casesI nonempty_fintype ι, simpa [h] using f.eq_smul_basis_det e },
+  λ h, h.symm ▸ alternating_map.zero_apply _⟩
 
-lemma alternating_map.map_basis_ne_zero_iff (f : alternating_map R M R ι) :
+lemma alternating_map.map_basis_ne_zero_iff {ι : Type*} [decidable_eq ι] [finite ι]
+  (e : basis ι R M) (f : alternating_map R M R ι) :
   f e ≠ 0 ↔ f ≠ 0 :=
 not_congr $ f.map_basis_eq_zero_iff e
 
@@ -548,11 +550,24 @@ begin
     exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
 end
 
+/-- If a basis is multiplied columnwise by scalars `w : ι → Rˣ`, then the determinant with respect
+to this basis is multiplied by the product of the inverse of these scalars. -/
+lemma basis.det_units_smul (e : basis ι R M) (w : ι → Rˣ) :
+  (e.units_smul w).det = (↑(∏ i, w i)⁻¹ : R) • e.det :=
+begin
+  ext f,
+  change matrix.det (λ i j, (e.units_smul w).repr (f j) i)
+    = (↑(∏ i, w i)⁻¹ : R) • matrix.det (λ i j, e.repr (f j) i),
+  simp only [e.repr_units_smul],
+  convert matrix.det_mul_column (λ i, (↑((w i)⁻¹) : R)) (λ i j, e.repr (f j) i),
+  simp [← finset.prod_inv_distrib]
+end
+
 /-- The determinant of a basis constructed by `units_smul` is the product of the given units. -/
-@[simp] lemma basis.det_units_smul (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
+@[simp] lemma basis.det_units_smul_self (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
 by simp [basis.det_apply]
 
 /-- The determinant of a basis constructed by `is_unit_smul` is the product of the given units. -/
 @[simp] lemma basis.det_is_unit_smul {w : ι → R} (hw : ∀ i, is_unit (w i)) :
   e.det (e.is_unit_smul hw) = ∏ i, w i :=
-e.det_units_smul _
+e.det_units_smul_self _

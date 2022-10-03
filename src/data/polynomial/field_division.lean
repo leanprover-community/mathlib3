@@ -139,9 +139,8 @@ have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
 by rw [degree_mul, degree_C h₁, add_zero]
 
-@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
-  p.map f = 0 ↔ p = 0 :=
-by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
+@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) : p.map f = 0 ↔ p = 0 :=
+by simp only [polynomial.ext_iff, map_eq_zero, coeff_map, coeff_zero]
 
 lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
 mt (map_eq_zero f).1 hp
@@ -356,7 +355,7 @@ lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
 begin
   ext x,
   rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, aeval_X_pow, mul_eq_zero],
-  { simp_rw [ring_hom.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
+  { simp_rw [_root_.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
     exact λ ha', (ha ha').elim },
   { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
 end

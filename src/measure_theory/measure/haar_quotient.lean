@@ -63,7 +63,7 @@ instance quotient_group.has_measurable_smul [measurable_space (G ⧸ Γ)] [borel
 variables {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ.opposite 𝓕 μ)
 include h𝓕
 
-variables [encodable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
+variables [countable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
 
 /-- The pushforward to the coset space `G ⧸ Γ` of the restriction of a both left- and right-
   invariant measure on `G` to a fundamental domain `𝓕` is a `G`-invariant measure on `G ⧸ Γ`. -/

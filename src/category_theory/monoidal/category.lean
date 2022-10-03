@@ -67,7 +67,7 @@ See <https://stacks.math.columbia.edu/tag/0FFK>.
 class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)
-(infixr ` ⊗ `:70          := tensor_obj) -- This notation is only temporary
+(infixr (name := tensor_obj) ` ⊗ `:70 := tensor_obj) -- This notation is only temporary
 -- curried tensor product of morphisms:
 (tensor_hom               :
   Π {X₁ Y₁ X₂ Y₂ : C}, (X₁ ⟶ Y₁) → (X₂ ⟶ Y₂) → ((X₁ ⊗ X₂) ⟶ (Y₁ ⊗ Y₂)))
@@ -124,8 +124,8 @@ attribute [simp, reassoc] monoidal_category.triangle
 
 open monoidal_category
 
-infixr ` ⊗ `:70 := tensor_obj
-infixr ` ⊗ `:70 := tensor_hom
+infixr (name := tensor_obj) ` ⊗ `:70 := tensor_obj
+infixr (name := tensor_hom) ` ⊗ `:70 := tensor_hom
 
 notation `𝟙_` := tensor_unit
 notation `α_` := associator
@@ -142,7 +142,7 @@ def tensor_iso {C : Type u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.
   hom_inv_id' := by rw [←tensor_comp, iso.hom_inv_id, iso.hom_inv_id, ←tensor_id],
   inv_hom_id' := by rw [←tensor_comp, iso.inv_hom_id, iso.inv_hom_id, ←tensor_id] }
 
-infixr ` ⊗ `:70 := tensor_iso
+infixr (name := tensor_iso) ` ⊗ `:70 := tensor_iso
 
 namespace monoidal_category
 

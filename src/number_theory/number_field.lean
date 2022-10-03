@@ -6,6 +6,8 @@ Authors: Ashvni Narayanan, Anne Baanen
 
 import ring_theory.dedekind_domain.integral_closure
 import algebra.char_p.algebra
+import analysis.normed_space.basic
+import topology.algebra.polynomial
 
 /-!
 # Number fields
@@ -66,7 +68,8 @@ omit nf
 is the integral closure of ℤ in the number field. -/
 def ring_of_integers := integral_closure ℤ K
 
-localized "notation `𝓞` := number_field.ring_of_integers" in number_field
+localized "notation (name := ring_of_integers)
+  `𝓞` := number_field.ring_of_integers" in number_field
 
 lemma mem_ring_of_integers (x : K) : x ∈ 𝓞 K ↔ is_integral ℤ x := iff.rfl
 
@@ -198,7 +201,7 @@ open set polynomial
 
 /-- Let `A` an algebraically closed field and let `x ∈ K`, with `K` a number field. For `F`,
 subfield of `K`, the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
-the roots in `A` of the minimal polynomial of `x` over `F` -/
+the roots in `A` of the minimal polynomial of `x` over `F`. -/
 lemma range_eq_roots (F K A : Type*) [field F] [number_field F] [field K] [number_field K]
   [field A] [is_alg_closed A] [algebra F K] [algebra F A] (x : K) :
   range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
@@ -237,9 +240,8 @@ variables (K A : Type*) [field K] [number_field K] [field A] [char_zero A] [is_a
 
 /-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K` a number field.
 The images of `x` by the embeddings of `K` in `A` are exactly the roots in `A` of
-the minimal polynomial of `x` over `ℚ` -/
-lemma rat_range_eq_roots :
-range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
+the minimal polynomial of `x` over `ℚ`. -/
+lemma rat_range_eq_roots : range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
 begin
   convert range_eq_roots ℚ K A x using 1,
   ext a,
@@ -247,5 +249,77 @@ begin
 end
 
 end roots
+
+section bounded
+
+open finite_dimensional polynomial set
+
+variables {K : Type*} [field K] [number_field K]
+variables {A : Type*} [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
+
+lemma coeff_bdd_of_norm_le {B : ℝ} {x : K} (h : ∀ φ : K →+* A, ∥φ x∥ ≤ B) (i : ℕ):
+  ∥(minpoly ℚ x).coeff i∥ ≤ (max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2) :=
+begin
+  have hx : is_integral ℚ x := is_separable.is_integral _ _,
+  rw (by rw [coeff_map, norm_algebra_map'] :
+    ∥(minpoly ℚ x).coeff i∥ = ∥(map (algebra_map ℚ A) (minpoly ℚ x)).coeff i∥),
+  refine coeff_bdd_of_roots_le _ (minpoly.monic hx) (is_alg_closed.splits_codomain _)
+    (minpoly.nat_degree_le hx) _ i,
+  intros z hz,
+  rsuffices ⟨φ, rfl⟩ : ∃ (φ : K →+* A), φ x = z, {exact h φ },
+  letI : char_zero A := char_zero_of_injective_algebra_map (algebra_map ℚ _).injective,
+  rw [← set.mem_range, rat_range_eq_roots, mem_root_set_iff, aeval_def],
+  convert (mem_roots_map _).mp hz,
+  repeat { exact monic.ne_zero (minpoly.monic hx), },
+end
+
+variables (K A)
+
+/-- Let `B` be a real number. The set of algebraic integers in `K` whose conjugates are all
+smaller in norm than `B` is finite. -/
+lemma finite_of_norm_le (B : ℝ) :
+  {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
+begin
+  let C := nat.ceil ((max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2)),
+  have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
+  refine this.subset (λ x hx, _),
+  have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
+  rw mem_Union,
+  use minpoly ℤ x,
+  rw [mem_Union, exists_prop],
+  refine ⟨⟨_, λ i, _⟩, _⟩,
+  { rw [← nat_degree_map_eq_of_injective (algebra_map ℤ ℚ).injective_int _, ← h_map_rat_minpoly],
+    exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower _ hx.1), },
+  { rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
+    apply le_trans _ (nat.le_ceil _),
+    convert coeff_bdd_of_norm_le hx.2 i,
+    simp only [h_map_rat_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat, int.norm_eq_abs,
+      int.cast_abs], },
+  { rw [finset.mem_coe, multiset.mem_to_finset, mem_roots, is_root.def, ← eval₂_eq_eval_map,
+      ← aeval_def],
+    { exact minpoly.aeval ℤ x, },
+    { exact monic.ne_zero (monic.map (algebra_map ℤ K) (minpoly.monic hx.1)), }},
+end
+
+/-- An algebraic integer whose conjugates are all of norm one is a root of unity. -/
+lemma pow_eq_one_of_norm_eq_one {x : K}
+  (hxi : is_integral ℤ x)  (hx : ∀ φ : K →+* A, ∥φ x∥ = 1) :
+  ∃ (n : ℕ) (hn : 0 < n), x ^ n = 1 :=
+begin
+  obtain ⟨a, -, b, -, habne, h⟩ := @set.infinite.exists_ne_map_eq_of_maps_to _ _ _ _
+    ((^) x : ℕ → K) set.infinite_univ _ (finite_of_norm_le K A (1:ℝ)),
+  { replace habne := habne.lt_or_lt,
+    wlog : a < b := habne using [a b],
+    refine ⟨b - a, tsub_pos_of_lt habne, _⟩,
+    have hxne : x ≠ 0,
+    { contrapose! hx,
+      simp only [hx, norm_zero, ring_hom.map_zero, ne.def, not_false_iff, zero_ne_one],
+      use (is_alg_closed.lift (number_field.is_algebraic K)).to_ring_hom, },
+    { rw [pow_sub₀ _ hxne habne.le, h, mul_inv_cancel (pow_ne_zero b hxne)], }},
+  { rw set.maps_univ_to,
+    exact λ a, ⟨hxi.pow a, λ φ, by simp [hx φ, norm_pow, one_pow]⟩, },
+end
+
+end bounded
 
 end number_field.embeddings

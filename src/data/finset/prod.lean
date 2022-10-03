@@ -34,7 +34,7 @@ variables {s s' : finset α} {t t' : finset β} {a : α} {b : β}
 protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, s.nodup.product t.nodup⟩
 
 /- This notation binds more strongly than (pre)images, unions and intersections. -/
-infixr ` ×ˢ `:82 := finset.product
+infixr (name := finset.product) ` ×ˢ `:82 := finset.product
 
 @[simp] lemma product_val : (s ×ˢ t).1 = s.1 ×ˢ t.1 := rfl
 

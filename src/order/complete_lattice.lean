@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.bool.set
+import data.ulift
 import data.nat.basic
 import order.bounds
 
@@ -40,7 +41,7 @@ In lemma names,
 -/
 
 set_option old_structure_cmd true
-open set function
+open function order_dual set
 
 variables {α β β₂ γ : Type*} {ι ι' : Sort*} {κ : ι → Sort*} {κ' : ι' → Sort*}
 
@@ -293,8 +294,19 @@ instance [complete_linear_order α] : complete_linear_order αᵒᵈ :=
 
 end order_dual
 
+open order_dual
+
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
+
+@[simp] lemma to_dual_Sup (s : set α) : to_dual (Sup s) = Inf (of_dual ⁻¹' s) := rfl
+@[simp] lemma to_dual_Inf (s : set α) : to_dual (Inf s) = Sup (of_dual ⁻¹' s) := rfl
+@[simp] lemma of_dual_Sup (s : set αᵒᵈ) : of_dual (Sup s) = Inf (to_dual ⁻¹' s) := rfl
+@[simp] lemma of_dual_Inf (s : set αᵒᵈ) : of_dual (Inf s) = Sup (to_dual ⁻¹' s) := rfl
+@[simp] lemma to_dual_supr (f : ι → α) : to_dual (⨆ i, f i) = ⨅ i, to_dual (f i) := rfl
+@[simp] lemma to_dual_infi (f : ι → α) : to_dual (⨅ i, f i) = ⨆ i, to_dual (f i) := rfl
+@[simp] lemma of_dual_supr (f : ι → αᵒᵈ) : of_dual (⨆ i, f i) = ⨅ i, of_dual (f i) := rfl
+@[simp] lemma of_dual_infi (f : ι → αᵒᵈ) : of_dual (⨅ i, f i) = ⨆ i, of_dual (f i) := rfl
 
 theorem Inf_le_Sup (hs : s.nonempty) : Inf s ≤ Sup s :=
 is_glb_le_is_lub (is_glb_Inf s) (is_lub_Sup s) hs
@@ -428,6 +440,12 @@ e.surjective.supr_congr _ h
   (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 by { obtain rfl := propext pq, congr' with x, apply f }
 
+lemma supr_plift_up (f : plift ι → α) : (⨆ i, f (plift.up i)) = ⨆ i, f i :=
+plift.up_surjective.supr_congr _ $ λ _, rfl
+
+lemma supr_plift_down (f : ι → α) : (⨆ i, f (plift.down i)) = ⨆ i, f i :=
+plift.down_surjective.supr_congr _ $ λ _, rfl
+
 lemma supr_range' (g : β → α) (f : ι → β) : (⨆ b : range f, g b) = ⨆ i, g (f i) :=
 by rw [supr, supr, ← image_eq_range, ← range_comp]
 
@@ -463,6 +481,12 @@ protected lemma equiv.infi_congr {g : ι' → α} (e : ι ≃ ι') (h : ∀ x, g
 @[congr]lemma infi_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
 @supr_congr_Prop αᵒᵈ _ p q f₁ f₂ pq f
+
+lemma infi_plift_up (f : plift ι → α) : (⨅ i, f (plift.up i)) = ⨅ i, f i :=
+plift.up_surjective.infi_congr _ $ λ _, rfl
+
+lemma infi_plift_down (f : ι → α) : (⨅ i, f (plift.down i)) = ⨅ i, f i :=
+plift.down_surjective.infi_congr _ $ λ _, rfl
 
 lemma infi_range' (g : β → α) (f : ι → β) : (⨅ b : range f, g b) = ⨅ i, g (f i) :=
 @supr_range' αᵒᵈ _ _ _ _ _

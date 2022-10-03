@@ -53,7 +53,7 @@ variables [decidable_eq α] {𝒜 : finset (finset α)} {s t : finset α} {a : �
 elements from any set in `𝒜`. -/
 def shadow (𝒜 : finset (finset α)) : finset (finset α) := 𝒜.sup (λ s, s.image (erase s))
 
-localized "notation `∂ `:90 := finset.shadow" in finset_family
+localized "notation (name := finset.shadow) `∂ `:90 := finset.shadow" in finset_family
 
 /-- The shadow of the empty set is empty. -/
 @[simp] lemma shadow_empty : ∂ (∅ : finset (finset α)) = ∅ := rfl
@@ -160,7 +160,7 @@ variables [decidable_eq α] [fintype α] {𝒜 : finset (finset α)} {s t : fins
 def up_shadow (𝒜 : finset (finset α)) : finset (finset α) :=
 𝒜.sup $ λ s, sᶜ.image $ λ a, insert a s
 
-localized "notation `∂⁺ `:90 := finset.up_shadow" in finset_family
+localized "notation (name := finset.up_shadow) `∂⁺ `:90 := finset.up_shadow" in finset_family
 
 /-- The upper shadow of the empty set is empty. -/
 @[simp] lemma up_shadow_empty : ∂⁺ (∅ : finset (finset α)) = ∅ := rfl

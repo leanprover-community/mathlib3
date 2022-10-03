@@ -40,8 +40,6 @@ def Top.hom_of_continuous_map
 
 section unbundled
 
-/-- We define `A ⊆ X` to be a topological subspace by defining the property `A_filter` picking
-elements of `A` out of `X`. This inherits the topology on `X` via `subtype.topological_space`. -/
 variables {X : Type*} {A : set X} [topological_space X]
 
 /-- The inclusion map `i : A → X` for `A ⊆ X` is just the restriction of `id X` to A. -/

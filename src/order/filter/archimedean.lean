@@ -78,14 +78,14 @@ by rw [← tendsto_comap_iff, rat.comap_coe_at_bot]
 
 lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [archimedean R] :
   (at_top : filter R).has_countable_basis (λ n : ℕ, true) (λ n, Ici n) :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   to_has_basis := at_top_basis.to_has_basis
     (λ x hx, let ⟨n, hn⟩ := exists_nat_ge x in ⟨n, trivial, Ici_subset_Ici.2 hn⟩)
     (λ n hn, ⟨n, trivial, subset.rfl⟩) }
 
 lemma at_bot_countable_basis_of_archimedean [linear_ordered_ring R] [archimedean R] :
   (at_bot : filter R).has_countable_basis (λ m : ℤ, true) (λ m, Iic m) :=
-{ countable := countable_encodable _,
+{ countable := to_countable _,
   to_has_basis := at_bot_basis.to_has_basis
     (λ x hx, let ⟨m, hm⟩ := exists_int_lt x in ⟨m, trivial, Iic_subset_Iic.2 hm.le⟩)
     (λ m hm, ⟨m, trivial, subset.rfl⟩) }

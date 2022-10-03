@@ -42,6 +42,9 @@ instance : field ℚ :=
   one              := 1,
   mul              := (*),
   inv              := has_inv.inv,
+  rat_cast         := id,
+  rat_cast_mk      := λ a b h1 h2, (num_div_denom _).symm,
+  qsmul            := (*),
   .. rat.comm_ring,
   .. rat.comm_group_with_zero}
 

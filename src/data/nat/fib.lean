@@ -77,7 +77,7 @@ by rw [fib_add_two, add_tsub_cancel_right]
 
 lemma fib_lt_fib_succ {n : ℕ} (hn : 2 ≤ n) : fib n < fib (n + 1) :=
 begin
-  rcases le_iff_exists_add.1 hn with ⟨n, rfl⟩,
+  rcases exists_add_of_le hn with ⟨n, rfl⟩,
   rw [← tsub_pos_iff_lt, add_comm 2, fib_add_two_sub_fib_add_one],
   apply fib_pos (succ_pos n),
 end

@@ -20,26 +20,26 @@ and subsequently be moved upstream to `data.finset.locally_finite`.
 open finset nat
 
 instance : locally_finite_order ℕ :=
-{ finset_Icc := λ a b, (list.range' a (b + 1 - a)).to_finset,
-  finset_Ico := λ a b, (list.range' a (b - a)).to_finset,
-  finset_Ioc := λ a b, (list.range' (a + 1) (b - a)).to_finset,
-  finset_Ioo := λ a b, (list.range' (a + 1) (b - a - 1)).to_finset,
+{ finset_Icc := λ a b, ⟨list.range' a (b + 1 - a), list.nodup_range' _ _⟩,
+  finset_Ico := λ a b, ⟨list.range' a (b - a), list.nodup_range' _ _⟩,
+  finset_Ioc := λ a b, ⟨list.range' (a + 1) (b - a), list.nodup_range' _ _⟩,
+  finset_Ioo := λ a b, ⟨list.range' (a + 1) (b - a - 1), list.nodup_range' _ _⟩,
   finset_mem_Icc := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range'],
+    rw [finset.mem_mk, multiset.mem_coe, list.mem_range'],
     cases le_or_lt a b,
     { rw [add_tsub_cancel_of_le (nat.lt_succ_of_le h).le, nat.lt_succ_iff] },
     { rw [tsub_eq_zero_iff_le.2 (succ_le_of_lt h), add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)) }
   end,
   finset_mem_Ico := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range'],
+    rw [finset.mem_mk, multiset.mem_coe, list.mem_range'],
     cases le_or_lt a b,
     { rw [add_tsub_cancel_of_le h] },
     { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2.le)) }
   end,
   finset_mem_Ioc := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range'],
+    rw [finset.mem_mk, multiset.mem_coe, list.mem_range'],
     cases le_or_lt a b,
     { rw [←succ_sub_succ, add_tsub_cancel_of_le (succ_le_succ h), nat.lt_succ_iff,
         nat.succ_le_iff] },
@@ -47,7 +47,7 @@ instance : locally_finite_order ℕ :=
       exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.le.trans hx.2)) }
   end,
   finset_mem_Ioo := λ a b x, begin
-    rw [list.mem_to_finset, list.mem_range', ← tsub_add_eq_tsub_tsub],
+    rw [finset.mem_mk, multiset.mem_coe, list.mem_range', ← tsub_add_eq_tsub_tsub],
     cases le_or_lt (a + 1) b,
     { rw [add_tsub_cancel_of_le h, nat.succ_le_iff] },
     { rw [tsub_eq_zero_iff_le.2 h.le, add_zero],
@@ -58,10 +58,10 @@ variables (a b c : ℕ)
 
 namespace nat
 
-lemma Icc_eq_range' : Icc a b = (list.range' a (b + 1 - a)).to_finset := rfl
-lemma Ico_eq_range' : Ico a b = (list.range' a (b - a)).to_finset := rfl
-lemma Ioc_eq_range' : Ioc a b = (list.range' (a + 1) (b - a)).to_finset := rfl
-lemma Ioo_eq_range' : Ioo a b = (list.range' (a + 1) (b - a - 1)).to_finset := rfl
+lemma Icc_eq_range' : Icc a b = ⟨list.range' a (b + 1 - a), list.nodup_range' _ _⟩ := rfl
+lemma Ico_eq_range' : Ico a b = ⟨list.range' a (b - a), list.nodup_range' _ _⟩ := rfl
+lemma Ioc_eq_range' : Ioc a b = ⟨list.range' (a + 1) (b - a), list.nodup_range' _ _⟩ := rfl
+lemma Ioo_eq_range' : Ioo a b = ⟨list.range' (a + 1) (b - a - 1), list.nodup_range' _ _⟩ := rfl
 
 lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
@@ -69,18 +69,10 @@ lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
 lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 
-@[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
-by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
-
-@[simp] lemma card_Ico : (Ico a b).card = b - a :=
-by rw [Ico_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
-
-@[simp] lemma card_Ioc : (Ioc a b).card = b - a :=
-by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
-
-@[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
-by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
-
+@[simp] lemma card_Icc : (Icc a b).card = b + 1 - a := list.length_range' _ _
+@[simp] lemma card_Ico : (Ico a b).card = b - a := list.length_range' _ _
+@[simp] lemma card_Ioc : (Ioc a b).card = b - a := list.length_range' _ _
+@[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 := list.length_range' _ _
 @[simp] lemma card_Iic : (Iic b).card = b + 1 :=
 by rw [Iic_eq_Icc, card_Icc, bot_eq_zero, tsub_zero]
 

@@ -119,8 +119,9 @@ The restriction of a sheafed space along an open embedding into the space.
 -/
 def restrict {U : Top} (X : SheafedSpace C)
   {f : U ⟶ (X : Top.{v})} (h : open_embedding f) : SheafedSpace C :=
-{ is_sheaf := λ ι 𝒰, ⟨is_limit.of_iso_limit
-    ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.is_sheaf _).some)
+{ is_sheaf := (is_sheaf_iff_is_sheaf_equalizer_products _).mpr $ λ ι 𝒰, ⟨is_limit.of_iso_limit
+    ((is_limit.postcompose_inv_equiv _ _).inv_fun
+    ((is_sheaf_iff_is_sheaf_equalizer_products _).mp X.is_sheaf _).some)
     (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm⟩,
   ..X.to_PresheafedSpace.restrict h }
 

@@ -274,9 +274,9 @@ lemma lie_submodule.lie_abelian_iff_lie_self_eq_bot : is_lie_abelian I ↔ ⁅I,
 begin
   simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_submodule.lie_span_le,
     lie_submodule.bot_coe, set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
-  refine ⟨λ h z x y hz, hz.symm.trans ((lie_subalgebra.coe_bracket _ _ _).symm.trans
+  refine ⟨λ h z x y hz, hz.symm.trans (((I : lie_subalgebra R L).coe_bracket x y).symm.trans
     ((coe_zero_iff_zero _ _).mpr (by apply h.trivial))),
-    λ h, ⟨λ x y, (coe_zero_iff_zero _ _).mp (h _ x y rfl)⟩⟩,
+    λ h, ⟨λ x y, ((I : lie_subalgebra R L).coe_zero_iff_zero _).mp (h _ x y rfl)⟩⟩,
 end
 
 end ideal_operations

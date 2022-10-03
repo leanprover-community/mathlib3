@@ -535,10 +535,10 @@ begin
     split,
     { rintros ⟨⟨y, -⟩, ⟨z, hz⟩, rfl : ⁅y, z⁆ = x⟩,
       erw [← lie_submodule.mem_coe_submodule, ih, lie_submodule.mem_coe_submodule] at hz,
-      exact ⟨⟨lie_submodule.quotient.mk y, submodule.mem_top⟩, ⟨z, hz⟩, rfl⟩, },
+      exact ⟨⟨lie_submodule.quotient.mk y, lie_submodule.mem_top _⟩, ⟨z, hz⟩, rfl⟩, },
     { rintros ⟨⟨⟨y⟩, -⟩, ⟨z, hz⟩, rfl : ⁅y, z⁆ = x⟩,
       erw [← lie_submodule.mem_coe_submodule, ← ih, lie_submodule.mem_coe_submodule] at hz,
-      exact ⟨⟨y, submodule.mem_top⟩, ⟨z, hz⟩, rfl⟩, }, },
+      exact ⟨⟨y, lie_submodule.mem_top _⟩, ⟨z, hz⟩, rfl⟩, }, },
 end
 
 /-- Note that the below inequality can be strict. For example the ideal of strictly-upper-triangular
@@ -551,7 +551,7 @@ begin
   { simp only [lie_module.lower_central_series_succ, lie_submodule.lie_ideal_oper_eq_linear_span],
     apply submodule.span_mono,
     rintros x ⟨⟨y, -⟩, ⟨z, hz⟩, rfl : ⁅y, z⁆ = x⟩,
-    exact ⟨⟨y.val, submodule.mem_top⟩, ⟨z, ih hz⟩, rfl⟩, },
+    exact ⟨⟨y.val, lie_submodule.mem_top _⟩, ⟨z, ih hz⟩, rfl⟩, },
 end
 
 /-- A central extension of nilpotent Lie algebras is nilpotent. -/
@@ -671,7 +671,7 @@ begin
   { simp, },
   { simp_rw [lower_central_series_succ, lcs_succ, lie_submodule.lie_ideal_oper_eq_linear_span',
       ← (I.lcs M k).mem_coe_submodule, ih, lie_submodule.mem_coe_submodule,
-      lie_submodule.mem_top, exists_true_left, lie_subalgebra.coe_bracket_of_module],
+      lie_submodule.mem_top, exists_true_left, (I : lie_subalgebra R L).coe_bracket_of_module],
     congr,
     ext m,
     split,
@@ -691,9 +691,12 @@ lemma lie_algebra.ad_nilpotent_of_nilpotent {a : A} (h : is_nilpotent a) :
   is_nilpotent (lie_algebra.ad R A a) :=
 begin
   rw lie_algebra.ad_eq_lmul_left_sub_lmul_right,
-  have hl : is_nilpotent (algebra.lmul_left R a), { rwa algebra.is_nilpotent_lmul_left_iff, },
-  have hr : is_nilpotent (algebra.lmul_right R a), { rwa algebra.is_nilpotent_lmul_right_iff, },
-  exact (algebra.commute_lmul_left_right R a a).is_nilpotent_sub hl hr,
+  have hl : is_nilpotent (linear_map.mul_left R a),
+  { rwa linear_map.is_nilpotent_mul_left_iff, },
+  have hr : is_nilpotent (linear_map.mul_right R a),
+  { rwa linear_map.is_nilpotent_mul_right_iff, },
+  have := @linear_map.commute_mul_left_right R A _ _ _ _ _ a a,
+  exact this.is_nilpotent_sub hl hr,
 end
 
 variables {R}

@@ -71,8 +71,8 @@ lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsi
 lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
 ⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : subsingleton (subtype p) :=
+instance subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) :
+  subsingleton (subtype p) :=
 ⟨λ ⟨x,_⟩ ⟨y,_⟩, have x = y, from subsingleton.elim _ _, by { cases this, refl }⟩
 
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
@@ -98,6 +98,10 @@ theorem coe_fn_coe_trans'
 theorem coe_fn_coe_base'
   {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
+
+-- This instance should have low priority, to ensure we follow the chain
+-- `set_like → has_coe_to_sort`
+attribute [instance, priority 10] coe_sort_trans
 
 theorem coe_sort_coe_trans
   {α β γ δ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ δ]
@@ -293,6 +297,9 @@ if ha : a then by simp only [ha, true_and, true_implies_iff]
 
 @[simp] theorem and_or_imp : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
 decidable.and_or_imp
+
+/-- Provide modus tollens (`mt`) as dot notation for implications. -/
+protected lemma function.mt : (a → b) → ¬ b → ¬ a := mt
 
 /-! ### Declarations about `not` -/
 
@@ -576,6 +583,9 @@ protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b �
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 
 theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
+
+/-- Provide the reverse of modus tollens (`mt`) as dot notation for implications. -/
+protected theorem function.mtr : (¬ a → ¬ b) → (b → a) := not_imp_not.mp
 
 -- See Note [decidable namespace]
 protected lemma decidable.or_congr_left [decidable c] (h : ¬ c → (a ↔ b)) : a ∨ c ↔ b ∨ c :=
@@ -910,10 +920,10 @@ lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c
   f a b c = g a b c :=
 congr_fun₂ (congr_fun h _) _ _
 
-lemma funext₂ {f g : Π a, β a → Prop} (h : ∀ a b, f a b = g a b) : f = g :=
+lemma funext₂ {f g : Π a b, γ a b} (h : ∀ a b, f a b = g a b) : f = g :=
 funext $ λ _, funext $ h _
 
-lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+lemma funext₃ {f g : Π a b c, δ a b c} (h : ∀ a b c, f a b c = g a b c) : f = g :=
 funext $ λ _, funext₂ $ h _
 
 end equality
@@ -1131,6 +1141,9 @@ by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, 
 -- this lemma is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=
 by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
+
+lemma ne.ne_or_ne {x y : α} (z : α) (h : x ≠ y) : x ≠ z ∨ y ≠ z :=
+not_and_distrib.1 $ mt (and_imp.2 eq.substr) h.symm
 
 theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 

@@ -68,9 +68,16 @@ it returns `none` otherwise -/
 def to_array (l : list α) : array l.length α :=
 {data := λ v, l.nth_le v.1 v.2}
 
+/-- "default" `nth` function: returns `d` instead of `none` in the case
+  that the index is out of bounds. -/
+def nthd (d : α) : Π (l : list α) (n : ℕ), α
+| []      _       := d
+| (x::xs) 0       := x
+| (x::xs) (n + 1) := nthd xs n
+
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-@[simp] def inth [h : inhabited α] (l : list α) (n : nat) : α := (nth l n).iget
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd default l n
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.
@@ -533,6 +540,9 @@ def revzip (l : list α) : list (α × α) := zip l l.reverse
 def product (l₁ : list α) (l₂ : list β) : list (α × β) :=
 l₁.bind $ λ a, l₂.map $ prod.mk a
 
+/- This notation binds more strongly than (pre)images, unions and intersections. -/
+infixr (name := list.product) ` ×ˢ `:82 := list.product
+
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
      sigma [1, 2] (λ_, [(5 : ℕ), 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)] -/
@@ -634,7 +644,7 @@ def nodup : list α → Prop := pairwise (≠)
 instance nodup_decidable [decidable_eq α] : ∀ l : list α, decidable (nodup l) :=
 list.decidable_pairwise
 
-/-- `dedup l` removes duplicates from `l` (taking only the first occurrence).
+/-- `dedup l` removes duplicates from `l` (taking only the last occurrence).
   Defined as `pw_filter (≠)`.
 
      dedup [1, 0, 2, 2, 1] = [0, 2, 1] -/

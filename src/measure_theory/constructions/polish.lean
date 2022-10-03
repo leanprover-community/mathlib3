@@ -46,7 +46,7 @@ analytic sets.
 -/
 
 open set function polish_space pi_nat topological_space metric filter
-open_locale topological_space measure_theory
+open_locale topological_space measure_theory filter
 
 variables {α : Type*} [topological_space α] {ι : Type*}
 
@@ -136,7 +136,7 @@ lemma analytic_set.image_of_continuous {β : Type*} [topological_space β]
 hs.image_of_continuous_on hf.continuous_on
 
 /-- A countable intersection of analytic sets is analytic. -/
-theorem analytic_set.Inter [hι : nonempty ι] [encodable ι] [t2_space α]
+theorem analytic_set.Inter [hι : nonempty ι] [countable ι] [t2_space α]
   {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
   analytic_set (⋂ n, s n) :=
 begin
@@ -181,7 +181,7 @@ begin
 end
 
 /-- A countable union of analytic sets is analytic. -/
-theorem analytic_set.Union [encodable ι] {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
+theorem analytic_set.Union [countable ι] {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
   analytic_set (⋃ n, s n) :=
 begin
   /- For the proof, write each `s n` as the continuous image under a map `f n` of a
@@ -270,7 +270,7 @@ This is mostly interesting for Borel-separable sets. -/
 def measurably_separable {α : Type*} [measurable_space α] (s t : set α) : Prop :=
 ∃ u, s ⊆ u ∧ disjoint t u ∧ measurable_set u
 
-lemma measurably_separable.Union [encodable ι]
+lemma measurably_separable.Union [countable ι]
   {α : Type*} [measurable_space α] {s t : ι → set α}
   (h : ∀ m n, measurably_separable (s m) (t n)) :
   measurably_separable (⋃ n, s n) (⋃ m, t m) :=
@@ -475,11 +475,11 @@ begin
     { assume b,
       refine is_closed_closure.measurable_set.inter _,
       refine measurable_set.Inter (λ s, _),
-      exact measurable_set.Inter_Prop (λ hs, (q_meas _).diff (q_meas _)) },
+      exact measurable_set.Inter (λ hs, (q_meas _).diff (q_meas _)) },
     have F_meas : ∀ n, measurable_set (F n),
     { assume n,
       refine measurable_set.Union (λ s, _),
-      exact measurable_set.Union_Prop (λ hs, E_meas _) },
+      exact measurable_set.Union (λ hs, E_meas _) },
     rw this,
     exact measurable_set.Inter (λ n, F_meas n) },
   -- we check both inclusions.
@@ -580,10 +580,11 @@ begin
   { rwa inj_on_iff_injective at f_inj }
 end
 
-variables [measurable_space γ] [borel_space γ]
+
+variables [measurable_space γ] [hγb : borel_space γ]
 {β : Type*} [tβ : topological_space β] [t2_space β] [measurable_space β] [borel_space β]
 {s : set γ} {f : γ → β}
-include tβ
+include tβ hγb
 
 /-- The Lusin-Souslin theorem: if `s` is Borel-measurable in a Polish space, then its image under
 a continuous injective map is also Borel-measurable. -/
@@ -678,6 +679,33 @@ begin
   -- therefore, its image under the measurable embedding `id` is also measurable for `tγ`.
   convert E.measurable_set_image.2 M,
   simp only [id.def, image_id'],
+end
+
+omit hγb
+
+/-- The set of points for which a measurable sequence of functions converges is measurable. -/
+@[measurability] lemma measurable_set_exists_tendsto
+  [hγ : opens_measurable_space γ] [countable ι] {l : filter ι}
+  [l.is_countably_generated] {f : ι → β → γ} (hf : ∀ i, measurable (f i)) :
+  measurable_set {x | ∃ c, tendsto (λ n, f n x) l (𝓝 c)} :=
+begin
+  by_cases hl : l.ne_bot,
+  swap, { rw not_ne_bot at hl, simp [hl] },
+  letI := upgrade_polish_space γ,
+  rcases l.exists_antitone_basis with ⟨u, hu⟩,
+  simp_rw ← cauchy_map_iff_exists_tendsto,
+  change measurable_set {x | _ ∧ _},
+  have : ∀ x, ((map (λ i, f i x) l) ×ᶠ (map (λ i, f i x) l)).has_antitone_basis
+    (λ n, ((λ i, f i x) '' u n) ×ˢ ((λ i, f i x) '' u n)) := λ x, hu.map.prod hu.map,
+  simp_rw [and_iff_right (hl.map _), filter.has_basis.le_basis_iff (this _).to_has_basis
+    metric.uniformity_basis_dist_inv_nat_succ, set.set_of_forall],
+  refine measurable_set.bInter set.countable_univ (λ K _, _),
+  simp_rw set.set_of_exists,
+  refine measurable_set.bUnion set.countable_univ (λ N hN, _),
+  simp_rw [prod_image_image_eq, image_subset_iff, prod_subset_iff, set.set_of_forall],
+  exact measurable_set.bInter (to_countable (u N)) (λ i _,
+    measurable_set.bInter (to_countable (u N)) (λ j _,
+    measurable_set_lt (measurable.dist (hf i) (hf j)) measurable_const)),
 end
 
 end measure_theory

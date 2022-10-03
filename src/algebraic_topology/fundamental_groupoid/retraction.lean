@@ -99,7 +99,7 @@ instance : inhabited (top_retraction X set.univ) := ⟨top_retraction.id⟩
 /-- We show that if a topological retraction `r : X → A` exists, then the inclusion map `i : A → X`
 is a split monomorphism in the category Top. -/
 def split_mono_of_inclusion (r : top_retraction X A) :
-  split_mono (top_hom_of_continuous_map (inclusion X A)) :=
+  split_mono (Top.hom_of_continuous_map (inclusion X A)) :=
 { retraction := r.to_continuous_map,
   id' := begin
     apply fun_like.ext,
@@ -111,7 +111,7 @@ def split_mono_of_inclusion (r : top_retraction X A) :
 
 /-- We show that a topological retraction `r : X → A` is a split epimorphism in the category Top. -/
 def split_epi_of_retraction (r : top_retraction X A) :
-  split_epi (top_hom_of_continuous_map r.to_continuous_map) :=
+  split_epi (Top.hom_of_continuous_map r.to_continuous_map) :=
 { section_ := inclusion X A,
   id' := begin
     apply fun_like.ext,
@@ -125,19 +125,19 @@ def split_epi_of_retraction (r : top_retraction X A) :
 fundamental groupoids of the inclusion map `i : A → X` is split monomorphism in the category
 Groupoid. -/
 def fundamental_groupoid_split_mono (r : top_retraction X A) :
-  split_mono (πₘ (top_hom_of_continuous_map (inclusion X A))) :=
+  split_mono (πₘ (Top.hom_of_continuous_map (inclusion X A))) :=
 split_mono.map (split_mono_of_inclusion r) fundamental_groupoid_functor
 
 /-- We show that the induced arrow between fundamental groupoids of the topological retraction
 `r : X → A` is a split epimorphism in the category Groupoid. -/
 def fundamental_groupoid_split_epi (r : top_retraction X A) :
-  split_epi (πₘ (top_hom_of_continuous_map r.to_continuous_map)) :=
+  split_epi (πₘ (Top.hom_of_continuous_map r.to_continuous_map)) :=
 split_epi.map (split_epi_of_retraction r) fundamental_groupoid_functor
 
 /-- We show that the induced arrow of the topological retraction `r : X → A` in the fundamental
 groupoid is an epimorphism. -/
 lemma fundamental_groupoid_epi_of_top_retraction (r : top_retraction X A) :
-  epi (πₘ (top_hom_of_continuous_map r.to_continuous_map)) :=
+  epi (πₘ (Top.hom_of_continuous_map r.to_continuous_map)) :=
 split_epi.epi (fundamental_groupoid_split_epi r)
 
 end top_retraction

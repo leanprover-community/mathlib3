@@ -1232,7 +1232,7 @@ class coe_zero_hom [has_zero M] [has_zero N] : Prop :=
 (coe_zero : (↑(0 : M) : N) = 0)
 export coe_zero_hom (coe_zero)
 
-attribute [simp] coe_zero
+attribute [simp, norm_cast] coe_zero
 
 /-- `coe_one_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
 is a one-preserving homomorphism.
@@ -1242,7 +1242,7 @@ class coe_one_hom [has_one M] [has_one N] : Prop :=
 (coe_one : (↑(1 : M) : N) = 1)
 export coe_one_hom (coe_one)
 
-attribute [simp] coe_one
+attribute [simp, norm_cast] coe_one
 
 /-- `one_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a one-preserving homomorphism. -/
@@ -1259,7 +1259,7 @@ class coe_add_hom [has_add M] [has_add N] : Prop :=
 (coe_add : ∀ (x y : M), (↑(x + y) : N) = ↑x + ↑y)
 export coe_add_hom (coe_add)
 
-attribute [simp] coe_add
+attribute [simp, norm_cast] coe_add
 
 /-- `coe_mul_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
 is a multiplicative homomorphism.
@@ -1269,7 +1269,7 @@ class coe_mul_hom [has_mul M] [has_mul N] : Prop :=
 (coe_mul : ∀ (x y : M), (↑(x * y) : N) = ↑x * ↑y)
 export coe_mul_hom (coe_mul)
 
-attribute [simp] coe_mul
+attribute [simp, norm_cast] coe_mul
 
 /-- `mul_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a multiplicative homomorphism. -/
@@ -1305,22 +1305,22 @@ protected def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_monoid_hom
   .. one_hom.coe M N,
   .. mul_hom.coe M N }
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_pow [monoid M] [monoid N] [has_lift_t M N] [coe_monoid_hom M N]
   (a : M) (n : ℕ) : ↑(a ^ n) = (↑a : N) ^ n :=
 map_pow (monoid_hom.coe M N) a n
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_zpow [group M] [group N] [has_lift_t M N] [coe_monoid_hom M N]
   (a : M) (n : ℤ) : ↑(a ^ n) = (↑a : N) ^ n :=
 map_zpow (monoid_hom.coe M N) a n
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inv [group G] [division_monoid H] [has_lift_t G H] [coe_monoid_hom G H]
   (a : G) : ↑(a⁻¹) = (↑a : H)⁻¹ :=
 map_inv (monoid_hom.coe G H) a
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_div [group G] [division_monoid H] [has_lift_t G H] [coe_monoid_hom G H]
   (a b : G) : ↑(a / b) = (↑a : H) / ↑b :=
 map_div (monoid_hom.coe G H) a b

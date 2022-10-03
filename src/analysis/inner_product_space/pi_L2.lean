@@ -656,24 +656,15 @@ lemma _root_.exists_orthonormal_basis :
 let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_orthonormal_basis_extension in
 ⟨w, hw, hw''⟩
 
-/-- Index for an arbitrary orthonormal basis on a finite-dimensional `inner_product_space`. -/
-def orthonormal_basis_index : finset E :=
-classical.some (exists_orthonormal_basis 𝕜 E)
-
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-def std_orthonormal_basis : orthonormal_basis (orthonormal_basis_index 𝕜 E) 𝕜 E :=
-classical.some (classical.some_spec (exists_orthonormal_basis 𝕜 E))
-
-@[simp] lemma coe_std_orthonormal_basis : ⇑(std_orthonormal_basis 𝕜 E) = coe :=
-classical.some_spec (classical.some_spec (exists_orthonormal_basis 𝕜 E))
+def std_orthonormal_basis : orthonormal_basis (fin (finrank 𝕜 E)) 𝕜 E :=
+begin
+  let b := classical.some (classical.some_spec $ exists_orthonormal_basis 𝕜 E),
+  rw [finrank_eq_card_basis b.to_basis],
+  exact b.reindex (fintype.equiv_fin_of_card_eq rfl),
+end
 
 variables {𝕜 E}
-
-/-- An `n`-dimensional `inner_product_space` has an orthonormal basis indexed by `fin n`. -/
-def fin_std_orthonormal_basis {n : ℕ} (hn : finrank 𝕜 E = n) : orthonormal_basis (fin n) 𝕜 E :=
-have h : fintype.card (orthonormal_basis_index 𝕜 E) = n,
-by rw [← finrank_eq_card_basis (std_orthonormal_basis 𝕜 E).to_basis, hn],
-(std_orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
 
 section subordinate_orthonormal_basis
 open direct_sum
@@ -684,7 +675,7 @@ variables {n : ℕ} (hn : finrank 𝕜 E = n) [decidable_eq ι]
 inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
 @[irreducible] def direct_sum.is_internal.sigma_orthonormal_basis_index_equiv
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
-  (Σ i, orthonormal_basis_index 𝕜 (V i)) ≃ fin n :=
+  (Σ i, fin (finrank 𝕜 (V i))) ≃ fin n :=
 let b := hV.collected_orthonormal_basis hV' (λ i, (std_orthonormal_basis 𝕜 (V i))) in
 fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b.to_basis).symm.trans hn
 
@@ -728,7 +719,7 @@ space, there exists an isometry from the orthogonal complement of a nonzero sing
 def orthonormal_basis.from_orthogonal_span_singleton
   (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   orthonormal_basis (fin n) 𝕜 (𝕜 ∙ v)ᗮ :=
-(fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv))
+(std_orthonormal_basis _ _).reindex $ fin_congr $ finrank_orthogonal_span_singleton hv
 
 section linear_isometry
 
@@ -755,11 +746,9 @@ begin
       ...               = finrank 𝕜 V - finrank 𝕜 S : by simp only
         [linear_map.finrank_range_of_inj L.injective]
       ...               = finrank 𝕜 Sᗮ : by simp only
-        [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
-      ...               = d : dim_S_perp,
-    let BS := (fin_std_orthonormal_basis dim_S_perp),
-    let BLS := (fin_std_orthonormal_basis dim_LS_perp),
-    exact BS.repr.trans BLS.repr.symm },
+        [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left],
+    exact (std_orthonormal_basis 𝕜 Sᗮ).repr.trans
+      ((std_orthonormal_basis 𝕜 LSᗮ).reindex $ fin_congr dim_LS_perp).repr.symm },
   let L3 := (LS)ᗮ.subtypeₗᵢ.comp E.to_linear_isometry,
   -- Project onto S and Sᗮ
   haveI : complete_space S := finite_dimensional.complete 𝕜 S,

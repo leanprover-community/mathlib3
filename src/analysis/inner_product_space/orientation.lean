@@ -110,7 +110,7 @@ protected def fin_orthonormal_basis (hn : 0 < n) (h : finrank ℝ E = n)
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_std_orthonormal_basis h).adjust_to_orientation x
+  exact ((std_orthonormal_basis _ _).reindex $ fin_congr h).adjust_to_orientation x
 end
 
 /-- `orientation.fin_orthonormal_basis` gives a basis with the required orientation. -/
@@ -120,7 +120,7 @@ end
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_std_orthonormal_basis h).orientation_adjust_to_orientation x
+  exact ((std_orthonormal_basis _ _).reindex $ fin_congr h).orientation_adjust_to_orientation x
 end
 
 section volume_form

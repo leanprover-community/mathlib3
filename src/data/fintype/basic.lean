@@ -123,6 +123,8 @@ instance : order_top (finset α) :=
 { top := univ,
   le_top := subset_univ }
 
+@[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
+
 section boolean_algebra
 variables [decidable_eq α] {a : α}
 
@@ -140,6 +142,12 @@ lemma not_mem_compl : a ∉ sᶜ ↔ a ∈ s := by rw [mem_compl, not_not]
 set.ext $ λ x, mem_compl
 
 @[simp] lemma compl_empty : (∅ : finset α)ᶜ = univ := compl_bot
+
+@[simp] lemma compl_univ : (univ : finset α)ᶜ = ∅ := compl_top
+
+@[simp] lemma compl_eq_empty_iff (s : finset α) : sᶜ = ∅ ↔ s = univ := compl_eq_bot
+
+@[simp] lemma compl_eq_univ_iff (s : finset α) : sᶜ = univ ↔ s = ∅ := compl_eq_top
 
 @[simp] lemma union_compl (s : finset α) : s ∪ sᶜ = univ := sup_compl_eq_top
 
@@ -1396,46 +1404,36 @@ lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
   univ.map e = univ :=
 by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
 
-/-- There exists a bijection between two types of the same finite cardinality, which extends a given
-bijection on a given finset. -/
-lemma finset.exists_equiv_extend_of_card_eq [fintype α] [decidable_eq β] {t : finset β}
-  (hαt : fintype.card α = t.card) {s : finset α} :
-  ∀ {f : α → β} (hfst : s.image f ⊆ t) (hfs : set.inj_on f s),
-    ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
+/-- Any injection from a finset `s` in a fintype `α` to a finset `t` of the same cardinality as `α`
+can be extended to a bijection between `α` and `t`. -/
+lemma finset.exists_equiv_extend_of_card_eq [fintype α] {t : finset β}
+  (hαt : fintype.card α = t.card) {s : finset α} {f : α → β} (hfst : s.image f ⊆ t)
+  (hfs : set.inj_on f s) :
+  ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
 begin
   classical,
-  apply @finset.induction α
-    (λ s, ∀ f (hfst : s.image f ⊆ t) (hfs : set.inj_on f s), ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i),
-  { intros f hfst hfs,
-    have : nonempty (α ≃ ↥t) := by rwa [← fintype.card_eq, fintype.card_coe],
-    use this.some,
-    simp }, clear s,
-  intros a s has H f hfst hfs,
+  induction s using finset.induction with a s has H generalizing f,
+  { obtain ⟨e⟩ : nonempty (α ≃ ↥t) := by rwa [← fintype.card_eq, fintype.card_coe],
+    use e,
+    simp },
   have hfst' : finset.image f s ⊆ t := (finset.image_mono _ (s.subset_insert a)).trans hfst,
   have hfs' : set.inj_on f s := hfs.mono (s.subset_insert a),
-  obtain ⟨g', hg'⟩ := H f hfst' hfs',
-  have hfat : f a ∈ t := hfst (finset.mem_image_of_mem _ (s.mem_insert_self a)),
+  obtain ⟨g', hg'⟩ := H hfst' hfs',
+  have hfat : f a ∈ t := hfst (mem_image_of_mem _ (s.mem_insert_self a)),
   use g'.trans (equiv.swap (⟨f a, hfat⟩ : t) (g' a)),
-  intros i hi,
-  obtain rfl | his : i = a ∨ i ∈ s := by simpa using hi,
+  simp_rw mem_insert,
+  rintro i (rfl | hi),
   { simp },
-  simp only [equiv.coe_trans, comp_app],
-  rw equiv.swap_apply_of_ne_of_ne,
-  { rw hg' i his },
-  { intros h,
-    apply has,
-    have h' : f i = f a := by simpa only [subtype.ext_iff, hg' i his, subtype.coe_mk] using h,
-    rw ← hfs (finset.mem_coe.mpr hi) (s.mem_insert_self a) h',
-    exact his },
-  { apply g'.injective.ne,
-    rintros rfl,
-    contradiction }
+  rw [equiv.trans_apply, equiv.swap_apply_of_ne_of_ne, hg' _ hi],
+  { exact ne_of_apply_ne subtype.val (ne_of_eq_of_ne (hg' _ hi) $
+    hfs.ne (subset_insert _ _ hi) (mem_insert_self _ _) $ ne_of_mem_of_not_mem hi has) },
+  { exact g'.injective.ne (ne_of_mem_of_not_mem hi has) },
 end
 
-/-- There exists a bijection between two types of the same finite cardinality, which extends a given
-bijection on a given set. -/
-lemma finset.exists_equiv_extend_of_card_eq' [fintype α] {t : finset β}
-  (hαt : fintype.card α = t.card) {s : set α} {f : α → β} (hfst : f '' s ⊆ t)
+/-- Any injection from a set `s` in a fintype `α` to a finset `t` of the same cardinality as `α`
+can be extended to a bijection between `α` and `t`. -/
+lemma set.maps_to.exists_equiv_extend_of_card_eq [fintype α] {t : finset β}
+  (hαt : fintype.card α = t.card) {s : set α} {f : α → β} (hfst : s.maps_to f t)
   (hfs : set.inj_on f s) :
   ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
 begin

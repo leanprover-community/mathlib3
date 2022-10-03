@@ -71,6 +71,7 @@ This file expands on the development in the core library.
 ### Misc definitions
 
 * `fin.last n` : The greatest value of `fin (n+1)`.
+* `fin.rev : fin n → fin n` : the antitone involution given by `i ↦ n-(i+1)`
 
 -/
 
@@ -268,6 +269,24 @@ begin
   rcases i with ⟨_|j, h⟩,
   { left, refl, },
   { right, exact ⟨⟨j, nat.lt_of_succ_lt_succ h⟩, rfl⟩, }
+end
+
+/-- The antitone involution `fin n → fin n` given by `i ↦ n-(i+1)`. -/
+def rev {n : ℕ} (i : fin n) : fin n :=
+⟨n-(i+1), begin
+  cases n,
+  { exfalso,
+    exact nat.not_lt_zero _ (i.is_lt), },
+  { simpa only [nat.succ_sub_succ_eq_sub n i, nat.lt_succ_iff] using tsub_le_self, },
+end⟩
+
+lemma rev_eq {n a : ℕ} (i : fin (n+1)) (h : n=a+i) :
+  i.rev = ⟨a, nat.lt_succ_iff.mpr (nat.le.intro (h.symm))⟩ :=
+begin
+  ext,
+  dsimp [fin.rev],
+  conv_lhs { congr, rw h, },
+  rw [add_assoc, add_tsub_cancel_right],
 end
 
 lemma eq_succ_of_ne_zero {n : ℕ} {i : fin (n + 1)} (hi : i ≠ 0) : ∃ j : fin n, i = j.succ :=

@@ -8,9 +8,8 @@ import data.dfinsupp.ne_locus
 
 /-!
 # Lexicographic order on finitely supported dependent functions
-This file defines the lexicographic order on `dfinsupp`.
 
-TODO: port `finsupp.lex.linear_order` to `dfinsupp`.
+This file defines the lexicographic order on `dfinsupp`.
 -/
 
 variables {ι : Type*} {α : ι → Type*}
@@ -96,7 +95,7 @@ lt_trichotomy_rec
   (λ f g h, is_false h.not_lt)
   (λ f g h, is_false h.asymm)
 
-/--  The linear order on `finsupp`s obtained by the lexicographic ordering. -/
+/--  The linear order on `dfinsupp`s obtained by the lexicographic ordering. -/
 instance lex.linear_order : linear_order (lex (Π₀ i, α i)) :=
 { le_total := lt_trichotomy_rec
     (λ f g h, or.inl h.le)
@@ -134,8 +133,8 @@ variables [linear_order ι] [Π i, add_monoid (α i)] [Π i, linear_order (α i)
 
 /-!  We are about to sneak in a hypothesis that might appear to be too strong.
 We assume `covariant_class` with *strict* inequality `<` also when proving the one with the
-*weak* inequality `≤`.  This is actually necessary: addition on `lex (α →₀ N)` may fail to be
-monotone, when it is "just" monotone on `N`. -/
+*weak* inequality `≤`.  This is actually necessary: addition on `lex (Π₀ i, α i)` may fail to be
+monotone, when it is "just" monotone on `α i`. -/
 section left
 variables [Π i, covariant_class (α i) (α i) (+) (<)]
 

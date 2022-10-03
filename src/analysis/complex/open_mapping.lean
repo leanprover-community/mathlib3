@@ -8,6 +8,12 @@ import analysis.complex.cauchy_integral
 import analysis.complex.abs_max
 import topology.locally_constant.basic
 
+/-!
+# The open mapping theorem for holomorphic functions
+
+A holomorphic function on a preconnected open set of the complex plane is either constant or open.
+-/
+
 open set filter metric complex
 open_locale topological_space
 

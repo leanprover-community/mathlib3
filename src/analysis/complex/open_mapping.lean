@@ -6,6 +6,7 @@ Authors: Vincent Beffara
 import analysis.analytic.isolated_zeros
 import analysis.complex.cauchy_integral
 import analysis.complex.abs_max
+import topology.algebra.field
 import topology.locally_constant.basic
 
 /-!
@@ -18,10 +19,6 @@ open set filter metric complex
 open_locale topological_space
 
 variables {U : set ℂ} {f : ℂ → ℂ} {z₀ w : ℂ} {ε r m : ℝ}
-
-lemma is_local_min.inv {φ : ℂ → ℝ} (h1 : is_local_min φ w) (h2 : ∀ᶠ z in 𝓝 w, 0 < φ z) :
-  is_local_max φ⁻¹ w :=
-by filter_upwards [h1, h2] with z h3 h4 using (inv_le_inv h4 h2.self_of_nhds).mpr h3
 
 lemma exists_local_min_mem_ball {f : ℂ → ℝ} {z : ℂ} (hf : continuous_on f (closed_ball w r))
   (hf1 : ∀ z ∈ sphere w r, m ≤ f z) (hz : z ∈ ball w r) (hfz : f z < m) :
@@ -71,7 +68,7 @@ begin
   have h8 : ∀ᶠ w in 𝓝 z, f w = f z := by { filter_upwards [key] with h; field_simp },
   have h9 : is_preconnected (ball z₀ r) := (convex_ball z₀ r).is_preconnected,
   have h10 : ∃ᶠ w in 𝓝[≠] z, f w = f z := (h8.filter_mono nhds_within_le_nhds).frequently,
-  have h11 := h4.eq_on_of_preconnected_of_frequently_eq' analytic_on_const h9 hz1 h10,
+  have h11 := h4.eq_on_of_preconnected_of_frequently_eq analytic_on_const h9 hz1 h10,
   have h12 : f z = f z₀ := (h11 (mem_ball_self hr)).symm,
   exact hz₀ (mem_of_superset (ball_mem_nhds z₀ hr) (h12 ▸ h11))
 end
@@ -120,7 +117,7 @@ begin
   by_cases ∃ z₀ ∈ U, ∀ᶠ z in 𝓝 z₀, f z = f z₀,
   { obtain ⟨z₀, hz₀, h⟩ := h,
     have h3 : ∃ᶠ z in 𝓝[≠] z₀, f z = f z₀ := (h.filter_mono nhds_within_le_nhds).frequently,
-    exact or.inl ⟨f z₀, hf.eq_on_of_preconnected_of_frequently_eq' analytic_on_const hU hz₀ h3⟩ },
+    exact or.inl ⟨f z₀, hf.eq_on_of_preconnected_of_frequently_eq analytic_on_const hU hz₀ h3⟩ },
   { push_neg at h,
     refine or.inr (λ s hs1 hs2, is_open_iff_mem_nhds.mpr _),
     rintro z ⟨w, hw1, rfl⟩,

@@ -1393,36 +1393,27 @@ by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embe
 /-- Any injection from a finset `s` in a fintype `α` to a finset `t` of the same cardinality as `α`
 can be extended to a bijection between `α` and `t`. -/
 lemma finset.exists_equiv_extend_of_card_eq [fintype α] {t : finset β}
-  (hαt : fintype.card α = t.card) {s : finset α} :
-  ∀ {f : α → β} (hfst : s.image f ⊆ t) (hfs : set.inj_on f s),
-    ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
+  (hαt : fintype.card α = t.card) {s : finset α} {f : α → β} (hfst : s.image f ⊆ t)
+  (hfs : set.inj_on f s) :
+  ∃ g : α ≃ t, ∀ i ∈ s, (g i : β) = f i :=
 begin
   classical,
-  induction s using finset.induction with a s has H,
-  { intros f hfst hfs,
-    obtain ⟨e⟩ : nonempty (α ≃ ↥t) := by rwa [← fintype.card_eq, fintype.card_coe],
+  induction s using finset.induction with a s has H generalizing f,
+  { obtain ⟨e⟩ : nonempty (α ≃ ↥t) := by rwa [← fintype.card_eq, fintype.card_coe],
     use e,
     simp },
-  intros f hfst hfs,
   have hfst' : finset.image f s ⊆ t := (finset.image_mono _ (s.subset_insert a)).trans hfst,
   have hfs' : set.inj_on f s := hfs.mono (s.subset_insert a),
   obtain ⟨g', hg'⟩ := H hfst' hfs',
-  have hfat : f a ∈ t := hfst (finset.mem_image_of_mem _ (s.mem_insert_self a)),
+  have hfat : f a ∈ t := hfst (mem_image_of_mem _ (s.mem_insert_self a)),
   use g'.trans (equiv.swap (⟨f a, hfat⟩ : t) (g' a)),
-  intros i hi,
-  obtain rfl | his : i = a ∨ i ∈ s := by simpa using hi,
+  simp_rw mem_insert,
+  rintro i (rfl | hi),
   { simp },
-  simp only [equiv.coe_trans, comp_app],
-  rw equiv.swap_apply_of_ne_of_ne,
-  { rw hg' i his },
-  { intros h,
-    apply has,
-    have h' : f i = f a := by simpa only [subtype.ext_iff, hg' i his, subtype.coe_mk] using h,
-    rw ← hfs (finset.mem_coe.mpr hi) (s.mem_insert_self a) h',
-    exact his },
-  { apply g'.injective.ne,
-    apply ne_of_apply_ne (λ p, p ∈ s),
-    tauto }
+  rw [equiv.trans_apply, equiv.swap_apply_of_ne_of_ne, hg' _ hi],
+  { exact ne_of_apply_ne subtype.val (ne_of_eq_of_ne (hg' _ hi) $
+    hfs.ne (subset_insert _ _ hi) (mem_insert_self _ _) $ ne_of_mem_of_not_mem hi has) },
+  { exact g'.injective.ne (ne_of_mem_of_not_mem hi has) },
 end
 
 /-- Any injection from a set `s` in a fintype `α` to a finset `t` of the same cardinality as `α`

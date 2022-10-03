@@ -413,6 +413,11 @@ theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y ↔ x = y :=
 ⟨h hx hy, λ h, h ▸ rfl⟩
 
+lemma inj_on.ne_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) : f x ≠ f y ↔ x ≠ y :=
+(h.eq_iff hx hy).not
+
+alias inj_on.ne_iff ↔ _ inj_on.ne
+
 theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
   inj_on f₂ s :=
 λ x hx y hy, h hx ▸ h hy ▸ h₁ hx hy

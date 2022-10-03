@@ -1161,6 +1161,14 @@ begin
   rw [←affine_span_insert_affine_span, set.insert_eq_of_mem h, affine_span_coe]
 end
 
+variables {k}
+
+/-- If a point is in the affine span of a set, adding it to that set
+does not change the vector span. -/
+lemma vector_span_insert_eq_vector_span {p : P} {ps : set P} (h : p ∈ affine_span k ps) :
+  vector_span k (insert p ps) = vector_span k ps :=
+by simp_rw [←direction_affine_span, affine_span_insert_eq_affine_span _ h]
+
 end affine_space'
 
 namespace affine_subspace

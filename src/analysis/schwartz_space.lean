@@ -22,7 +22,7 @@ natural numbers `k` and `n` we have uniform bounds `∥x∥^k * ∥iterated_fder
 This approach completely avoids using partial derivatives as well as polynomials.
 We construct the topology on the Schwartz space by a family of seminorms, which are the best
 constants in the above estimates, which is by abstract theory from
-`seminorm_family.module_filter_basis` and `seminorm_family.to_locally_convex_space` turns the
+`seminorm_family.module_filter_basis` and `with_seminorms.to_locally_convex_space` turns the
 Schwartz space into a locally convex topological vector space.
 
 ## Main definitions

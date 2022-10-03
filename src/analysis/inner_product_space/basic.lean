@@ -2368,7 +2368,8 @@ protected lemma continuous.inner {α : Type*} [topological_space α]
 uniform_space.completion.continuous_inner.comp (hf.prod_mk hg : _)
 
 instance : inner_product_space 𝕜 (completion E) :=
-{ norm_sq_eq_inner := λ x, completion.induction_on x
+{ to_normed_add_comm_group := infer_instance,
+  norm_sq_eq_inner := λ x, completion.induction_on x
     (is_closed_eq
       (continuous_norm.pow 2)
       (continuous_re.comp (continuous.inner continuous_id' continuous_id')))

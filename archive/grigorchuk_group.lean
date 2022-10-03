@@ -450,90 +450,48 @@ subgroup.closure (range (coe : generator → equiv.perm (list bool)))
 
 local notation `G` := grigorchuk_group
 
-@[simp] lemma abcd_zero : abcd 0 = a := rfl
-
-@[simp] lemma range_abcd : range abcd = {a, b, c, d} :=
-by rw [fin.range_fin_succ, a, ← bcd, range_bcd]
-
-@[simp] lemma abcd_inv (n : fin 4) : (abcd n)⁻¹ = abcd n := by fin_cases n; refl
-
-@[simp] lemma abcd_mul_self (n : fin 4) : abcd n * abcd n = 1 :=
-inv_eq_iff_mul_eq_one.1 (abcd_inv n)
-
-@[simp] lemma bcd_inv (n : fin 3) : (bcd n)⁻¹ = bcd n := abcd_inv _
-@[simp] lemma bcd_mul_self (n : fin 3) : bcd n * bcd n = 1 := abcd_mul_self _
-
-@[simp] lemma coe_fn_coe (g : G) : ⇑(g : equiv.perm (list bool)) = g := rfl
-
 instance fun_like : fun_like G (list bool) (λ _, list bool) :=
 { coe := λ f, f.1,
   coe_injective' := λ f g h₁, subtype.ext $ equiv.coe_fn_injective h₁ }
 
-@[simp] lemma a_apply_cons (b : bool) (l : list bool) : a (b :: l) = !b :: l := rfl
+instance : has_coe_t generator G := ⟨λ x, ⟨x, subgroup.subset_closure $ mem_range_self _⟩⟩
 
+@[simp] lemma inv_coe (x : generator) : (x : G)⁻¹ = x := rfl
+@[simp] lemma coe_mul_self (x : generator) : (x * x : G) = 1 := fun_like.ext' x.comp_self
+@[simp, norm_cast] lemma coe_fn_coe_gen (x : generator) : ⇑(x : G) = x := rfl
+@[simp, norm_cast] lemma coe_fn_coe (x : G) : ⇑(x : equiv.perm (list bool)) = x := rfl
+@[simp, norm_cast] lemma coe_coe (x : generator) : ((x : G) : equiv.perm (list bool)) = x := rfl
 @[simp] lemma coe_fn_one : ⇑(1 : G) = id := rfl
 lemma one_apply (l : list bool) : (1 : G) l = l := rfl
-
 @[simp] lemma coe_fn_mul (g₁ g₂ : G) : ⇑(g₁ * g₂) = g₁ ∘ g₂ := rfl
 lemma mul_apply (g₁ g₂ : G) (l : list bool) : (g₁ * g₂) l = g₁ (g₂ l) := rfl
 
-lemma coe_bcd_eq_pre (n : fin 3) : ⇑(bcd n) = pre.bcd n := by fin_cases n; refl
+lemma bcd_mul_of_ne {m n : fin 3} (h : m ≠ n) : (bcd m * bcd n : G) = bcd (-m - n) :=
+fun_like.ext' $ generator.bcd_comp_bcd_of_ne h
 
-lemma coe_a_eq_pre : ⇑a = pre.a := rfl
-
-lemma bcd_mul_of_ne {m n : fin 3} (h : m ≠ n) : bcd m * bcd n = bcd (-m - n) :=
-fun_like.ext _ _ $ λ l, by simp only [coe_bcd_eq_pre, mul_apply, pre.bcd_apply_of_ne h l]
-
-@[simp] lemma a_inv : a⁻¹ = a := rfl
-@[simp] lemma b_inv : b⁻¹ = b := rfl
-@[simp] lemma c_inv : c⁻¹ = c := rfl
-@[simp] lemma d_inv : d⁻¹ = d := rfl
-
-@[simp] lemma a_mul_a : a * a = 1 := abcd_mul_self _
-@[simp] lemma b_mul_b : b * b = 1 := abcd_mul_self _
-@[simp] lemma c_mul_c : c * c = 1 := abcd_mul_self _
-@[simp] lemma d_mul_d : d * d = 1 := abcd_mul_self _
-
-@[simp] lemma b_mul_c : b * c = d := bcd_mul_of_ne dec_trivial
-@[simp] lemma c_mul_d : c * d = b := bcd_mul_of_ne dec_trivial
-@[simp] lemma d_mul_b : d * b = c := bcd_mul_of_ne dec_trivial
-@[simp] lemma c_mul_b : c * b = d := bcd_mul_of_ne dec_trivial
-@[simp] lemma d_mul_c : d * c = b := bcd_mul_of_ne dec_trivial
-@[simp] lemma b_mul_d : b * d = c := bcd_mul_of_ne dec_trivial
-
-@[simp] lemma head'_a (l : list bool) : (a l).head' = l.head'.map bnot := pre.head'_a l
-
-@[simp] lemma head'_bcd (n : fin 3) (l : list bool) : (bcd n l).head' = l.head' :=
-by rw [coe_bcd_eq_pre,  pre.head'_bcd _ l]
-
-@[simp] lemma head'_b (l : list bool) : (b l).head' = l.head' := head'_bcd _ l
-@[simp] lemma head'_c (l : list bool) : (c l).head' = l.head' := head'_bcd _ l
-@[simp] lemma head'_d (l : list bool) : (d l).head' = l.head' := head'_bcd _ l
+@[simp] lemma b_mul_c : (b * c : G) = d := bcd_mul_of_ne dec_trivial
+@[simp] lemma c_mul_d : (c * d : G) = b := bcd_mul_of_ne dec_trivial
+@[simp] lemma d_mul_b : (d * b : G) = c := bcd_mul_of_ne dec_trivial
+@[simp] lemma c_mul_b : (c * b : G) = d := bcd_mul_of_ne dec_trivial
+@[simp] lemma d_mul_c : (d * c : G) = b := bcd_mul_of_ne dec_trivial
+@[simp] lemma b_mul_d : (b * d : G) = c := bcd_mul_of_ne dec_trivial
 
 def to_perm : G →* equiv.perm (list bool) := subgroup.subtype _
 
-@[simp] lemma coe_fn_to_perm (g : G) : ⇑(to_perm g) = g := rfl
-
-@[simp] lemma to_perm_a : to_perm a = pre.a := rfl
-
-@[simp] lemma to_perm_bcd (n : fin 3) : to_perm (bcd n) = pre.bcd' n :=
-equiv.ext $ congr_fun (coe_bcd_eq_pre n)
-
-lemma to_perm_comp_abcd : to_perm ∘ abcd = matrix.vec_cons pre.a pre.bcd' :=
-funext $ fin.forall_fin_succ.2
-  ⟨to_perm_a, λ n, (to_perm_bcd n).trans (matrix.cons_val_succ _ _ _).symm⟩
-
+@[simp] lemma coe_to_perm : ⇑to_perm = coe := rfl
 @[simp] lemma to_perm_range : to_perm.range = G := subgroup.subtype_range G
-
 lemma to_perm_injective : injective to_perm := subtype.coe_injective
 
 @[simp] lemma closure_abcd : subgroup.closure ({a, b, c, d} : set G) = ⊤ :=
-subgroup.map_injective to_perm_injective $ by rw [monoid_hom.map_closure, ← range_abcd,
-  ← range_comp, ← monoid_hom.range_eq_map, to_perm_range, to_perm_comp_abcd, grigorchuk_group]
+subgroup.map_injective to_perm_injective $ by rw [monoid_hom.map_closure, ← generator.range_eq,
+  ← range_comp, ← monoid_hom.range_eq_map, to_perm_range, coe_to_perm, (∘), funext coe_coe,
+   grigorchuk_group]
 
 @[simp] lemma mclosure_abcd : submonoid.closure ({a, b, c, d} : set G) = ⊤ :=
 by simp only [← subgroup.top_to_submonoid, ← closure_abcd, subgroup.closure_to_submonoid,
-  inv_insert, inv_singleton, a_inv, b_inv, c_inv, d_inv, union_self]
+  inv_insert, inv_singleton, inv_coe, union_self]
+
+#exit
 
 def of_word : free_monoid (fin 4) →* G := free_monoid.lift abcd
 
@@ -607,7 +565,7 @@ protected lemma is_minimal.chain' {g : free_monoid (fin 4)} (h : is_minimal g) :
 def cancel : free_monoid (fin 4) → free_monoid (fin 4)
 | [] := []
 | [x] := [x]
-| 
+|
 
 lemma is_minimal.ne {m n : fin 4} (h : is_minimal [m, n]) : m ≠ n :=
 begin
@@ -1105,12 +1063,12 @@ begin
   -- { cases g with n g, { exact one_pow _ },
   --   cases g with m g, { rw [length_singleton, pow_one, of_word_singleton, sq, abcd_mul_self] },
   --   exact absurd h₂ (by simp [bit0]) },
-  
+
 end
 
 lemma exists_pow_two_pow_eq_one (g : G) : ∃ k : ℕ, g ^ (2 ^ k) = 1 :=
 begin
-  
+
 
 end
 
@@ -1141,7 +1099,7 @@ lemma alpha_lt_one : α < 1 :=
   calc 2 * η < 2 * 1 : (mul_lt_mul_left two_pos).2 eta_lt_one
   ... = 2 : mul_one _
 
-/- 
+/-
 definitions: normed group, multiplication operation.
 definition: equiv. of norms
 lemma: for f.g. group, canonical equiv. class of norms

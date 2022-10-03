@@ -582,6 +582,10 @@ instance coe_ring_hom.to_coe_non_unital_ring_hom [non_assoc_semiring R] [non_ass
   [inst : coe_ring_hom R S] : coe_non_unital_ring_hom R S :=
 { .. inst }
 
+instance coe_ring_hom.to_coe_monoid_with_zero_hom [semiring R] [semiring S]
+  [inst : coe_ring_hom R S] : coe_monoid_with_zero_hom R S :=
+{ .. inst }
+
 /-- `ring_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a ring homomorphism. -/
 @[simps { fully_applied := ff }]

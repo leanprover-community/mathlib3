@@ -197,7 +197,8 @@ lemma mul_neg_geom_sum [ring α] (x : α) (n : ℕ) :
   (1 - x) * (∑ i in range n, x ^ i) = 1 - x ^ n :=
 op_injective $ by simpa using geom_sum_mul_neg (op x) n
 
-lemma commute.geom_sum₂_comm {α : Type u} [semiring α] (x y : α) (n : ℕ) (h : commute x y) :
+protected lemma commute.geom_sum₂_comm {α : Type u} [semiring α] {x y : α} (n : ℕ)
+  (h : commute x y) :
   ∑ i in range n, x ^ i * y ^ (n - 1 - i) = ∑ i in range n, y ^ i * x ^ (n - 1 - i) :=
 begin
   cases n, { simp },
@@ -209,7 +210,7 @@ end
 
 lemma geom_sum₂_comm {α : Type u} [comm_semiring α] (x y : α) (n : ℕ) :
   ∑ i in range n, x ^ i * y ^ (n - 1 - i) = ∑ i in range n, y ^ i * x ^ (n - 1 - i) :=
-(commute.all x y).geom_sum₂_comm x y n
+(commute.all x y).geom_sum₂_comm n
 
 protected theorem commute.geom_sum₂ [division_ring α] {x y : α} (h' : commute x y) (h : x ≠ y)
   (n : ℕ) : (∑ i in range n, x ^ i * (y ^ (n - 1 - i))) = (x ^ n - y ^ n) / (x - y) :=

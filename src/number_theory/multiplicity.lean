@@ -57,13 +57,14 @@ begin
   { simp only [nat.succ_sub_succ_eq_sub, tsub_zero, nat.cast_succ, add_pow,
       finset.sum_range_succ, nat.choose_self, nat.succ_sub _, tsub_self, pow_one,
       nat.choose_succ_self_right, pow_zero, mul_one, nat.cast_zero, zero_add, nat.succ_eq_add_one],
-    abel,
-    apply finset.dvd_sum,
-    intros y hy,
-    calc p ^ 2 ∣ p ^ (n + 1 - y) : pow_dvd_pow p (le_tsub_of_add_le_left
-      (by linarith [finset.mem_range.mp hy]))
-    ... ∣ x ^ y * p ^ (n + 1 - y) * ↑((n + 1).choose y) : dvd_mul_of_dvd_left (dvd_mul_left _ _)
-      ((n + 1).choose y) },
+    suffices : p ^ 2 ∣ ∑ (i : ℕ) in range n, x ^ i * p ^ (n + 1 - i) * ↑((n + 1).choose i),
+    { convert this; abel },
+    { apply finset.dvd_sum,
+      intros y hy,
+      calc p ^ 2 ∣ p ^ (n + 1 - y) : pow_dvd_pow p (le_tsub_of_add_le_left
+        (by linarith [finset.mem_range.mp hy]))
+      ... ∣ x ^ y * p ^ (n + 1 - y) * ↑((n + 1).choose y) : dvd_mul_of_dvd_left (dvd_mul_left _ _)
+        ((n + 1).choose y) }}
 end
 
 lemma not_dvd_geom_sum₂ {p : R} (hp : prime p)
@@ -193,8 +194,6 @@ begin
     refine hpn ⟨c, _⟩,
     rwa [pow_succ', mul_assoc] }
 end
-
-
 lemma int.pow_add_pow {x y : ℤ} (hxy : ↑p ∣ x + y) (hx : ¬↑p ∣ x) {n : ℕ} (hn : odd n) :
   multiplicity ↑p (x ^ n + y ^ n) = multiplicity ↑p (x + y) + multiplicity p n :=
 begin
@@ -230,7 +229,7 @@ end lifting_the_exponent
 end multiplicity
 end comm_ring
 
-lemma  pow_two_pow_sub_pow_two_pow [comm_ring R] {x y : R} (n : ℕ) :
+lemma pow_two_pow_sub_pow_two_pow [comm_ring R] {x y : R} (n : ℕ) :
   x ^ (2 ^ n) - y ^ (2 ^ n) = (∏ i in finset.range n, (x ^ (2 ^ i) + y ^ (2 ^ i))) * (x - y) :=
 begin
   induction n with d hd,
@@ -240,7 +239,7 @@ begin
     { ring_exp_eq } }
 end
 
-lemma int.sq_mod_four_eq_one_of_odd {x : ℤ} : odd x → x ^ 2 % 4 = 1 :=
+lemma _root_.int.sq_mod_four_eq_one_of_odd {x : ℤ} : odd x → x ^ 2 % 4 = 1 :=
 begin
   intro hx,
   -- Replace `x : ℤ` with `y : zmod 4`
@@ -256,8 +255,6 @@ begin
   fin_cases y using hy;
     rw hy at ⊢ hx; revert hx; dec_trivial
 end
-
-namespace multiplicity
 
 lemma int.two_pow_two_pow_add_two_pow_two_pow {x y : ℤ}
   (hx : ¬ 2 ∣ x) (hxy : 4 ∣ (x - y))
@@ -286,7 +283,7 @@ lemma int.two_pow_two_pow_sub_pow_two_pow {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x -
   multiplicity 2 (x ^ (2 ^ n) - y ^ (2 ^ n)) = multiplicity 2 (x - y) + n :=
 by simp only [pow_two_pow_sub_pow_two_pow  n, multiplicity.mul int.prime_two,
     multiplicity.finset.prod (int.prime_two), add_comm, nat.cast_one, finset.sum_const,
-    finset.card_range, nsmul_one, multiplicity.int.two_pow_two_pow_add_two_pow_two_pow hx hxy]
+    finset.card_range, nsmul_one, int.two_pow_two_pow_add_two_pow_two_pow hx hxy]
 
 lemma int.two_pow_sub_pow' {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x - y) (hx : ¬ 2 ∣ x) :
   multiplicity 2 (x ^ n - y ^ n) = multiplicity 2 (x - y) + multiplicity (2 : ℤ) n :=
@@ -296,9 +293,10 @@ begin
   have hy_odd : odd y := by simpa using hx_odd.sub_even hxy_even,
   cases n,
   { simp only [pow_zero, sub_self, multiplicity.zero, int.coe_nat_zero, part_enat.add_top] },
-  have h : (multiplicity 2 n.succ).dom := finite_nat_iff.mpr ⟨by norm_num, n.succ_pos⟩,
-  rcases eq_coe_iff.mp (part_enat.coe_get h).symm with ⟨⟨k, hk⟩, hpn⟩,
-  rw [hk, pow_mul, pow_mul, pow_sub_pow_of_prime, int.two_pow_two_pow_sub_pow_two_pow _ hxy hx,
+  have h : (multiplicity 2 n.succ).dom := multiplicity.finite_nat_iff.mpr ⟨by norm_num, n.succ_pos⟩,
+  rcases multiplicity.eq_coe_iff.mp (part_enat.coe_get h).symm with ⟨⟨k, hk⟩, hpn⟩,
+  rw [hk, pow_mul, pow_mul, multiplicity.pow_sub_pow_of_prime,
+      int.two_pow_two_pow_sub_pow_two_pow _ hxy hx,
       ← hk, part_enat.coe_get],
   { norm_cast },
   { exact int.prime_two },
@@ -334,7 +332,7 @@ begin
   suffices : multiplicity (2 : ℤ) ↑(2 : ℕ) = 1,
   { rw [this, add_comm (1 : part_enat), ← add_assoc] },
   { norm_cast,
-    rw multiplicity_self _ _,
+    rw multiplicity.multiplicity_self _ _,
     { apply prime.not_unit,
       simp only [← nat.prime_iff, nat.prime_two] },
     { exact two_ne_zero }},
@@ -348,21 +346,19 @@ lemma nat.two_pow_sub_pow {x y : ℕ} (hxy : 2 ∣ x - y) (hx : ¬2 ∣ x) {n : 
     multiplicity 2 n :=
 begin
   obtain hyx | hyx := le_total y x,
-  { iterate 3 { rw ←int.coe_nat_multiplicity },
+  { iterate 3 { rw ←multiplicity.int.coe_nat_multiplicity },
     have hxyn : y ^ n ≤ x ^ n := pow_le_pow_of_le_left' hyx _,
     simp only [int.coe_nat_sub hyx, int.coe_nat_sub (pow_le_pow_of_le_left' hyx _), int.coe_nat_add,
       int.coe_nat_pow],
     rw ←int.coe_nat_dvd at hx,
     rw [←int.coe_nat_dvd, int.coe_nat_sub hyx] at hxy,
     convert int.two_pow_sub_pow hxy hx hn using 2,
-    rw ← int.coe_nat_multiplicity,
+    rw ← multiplicity.int.coe_nat_multiplicity,
     refl },
   { simp only [nat.sub_eq_zero_iff_le.mpr hyx,
       nat.sub_eq_zero_iff_le.mpr (pow_le_pow_of_le_left' hyx n), multiplicity.zero,
       part_enat.top_add, part_enat.add_top] }
 end
-
-end multiplicity
 
 namespace padic_val_nat
 
@@ -375,7 +371,7 @@ lemma pow_two_sub_pow (hyx : y < x) (hxy : 2 ∣ x - y) (hx : ¬ 2 ∣ x) {n : �
 begin
   simp only [←part_enat.coe_inj, nat.cast_add],
   iterate 4 { rw [padic_val_nat_def, part_enat.coe_get] },
-  { convert multiplicity.nat.two_pow_sub_pow hxy hx hneven using 2 },
+  { convert nat.two_pow_sub_pow hxy hx hneven using 2 },
   { exact hn },
   { exact (nat.sub_pos_of_lt hyx) },
   { linarith },

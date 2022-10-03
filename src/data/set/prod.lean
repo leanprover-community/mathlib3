@@ -355,13 +355,13 @@ lemma pi_mono (h : ∀ i ∈ s, t₁ i ⊆ t₂ i) : pi s t₁ ⊆ pi s t₂ :=
 λ x hx i hi, (h i hi $ hx i hi)
 
 lemma pi_inter_distrib : s.pi (λ i, t i ∩ t₁ i) = s.pi t ∩ s.pi t₁ :=
-ext $ λ x, by simp only [forall_and_distrib, mem_pi, mem_inter_eq]
+ext $ λ x, by simp only [forall_and_distrib, mem_pi, mem_inter_iff]
 
 lemma pi_congr (h : s₁ = s₂) (h' : ∀ i ∈ s₁, t₁ i = t₂ i) : s₁.pi t₁ = s₂.pi t₂ :=
 h ▸ (ext $ λ x, forall₂_congr $ λ i hi, h' i hi ▸ iff.rfl)
 
 lemma pi_eq_empty (hs : i ∈ s) (ht : t i = ∅) : s.pi t = ∅ :=
-by { ext f, simp only [mem_empty_eq, not_forall, iff_false, mem_pi, not_imp],
+by { ext f, simp only [mem_empty_iff_false, not_forall, iff_false, mem_pi, not_imp],
      exact ⟨i, hs, by simp [ht]⟩ }
 
 lemma univ_pi_eq_empty (ht : t i = ∅) : pi univ t = ∅ := pi_eq_empty (mem_univ i) ht
@@ -456,14 +456,16 @@ image_subset_iff.2 $ λ f hf, hf i hs
 lemma eval_image_univ_pi_subset : eval i '' pi univ t ⊆ t i :=
 eval_image_pi_subset (mem_univ i)
 
-lemma eval_image_pi (hs : i ∈ s) (ht : (s.pi t).nonempty) : eval i '' s.pi t = t i :=
+lemma subset_eval_image_pi (ht : (s.pi t).nonempty) (i : ι) : t i ⊆ eval i '' s.pi t :=
 begin
-  refine (eval_image_pi_subset hs).antisymm _,
   classical,
   obtain ⟨f, hf⟩ := ht,
   refine λ y hy, ⟨update f i y, λ j hj, _, update_same _ _ _⟩,
   obtain rfl | hji := eq_or_ne j i; simp [*, hf _ hj]
 end
+
+lemma eval_image_pi (hs : i ∈ s) (ht : (s.pi t).nonempty) : eval i '' s.pi t = t i :=
+(eval_image_pi_subset hs).antisymm (subset_eval_image_pi ht i)
 
 @[simp] lemma eval_image_univ_pi (ht : (pi univ t).nonempty) :
   (λ f : Π i, α i, f i) '' pi univ t = t i :=

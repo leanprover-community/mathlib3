@@ -256,6 +256,19 @@ lemma is_open_implies_is_open_iff {a b : topological_space α} :
   (∀ s, a.is_open s → b.is_open s) ↔ b ≤ a :=
 iff.rfl
 
+/-- The only open sets in the indiscrete topology are the empty set and the whole space. -/
+lemma topological_space.is_open_top_iff {α} (U : set α) :
+  (⊤ : topological_space α).is_open U ↔ U = ∅ ∨ U = univ :=
+⟨λ h, begin
+  induction h with V h _ _ _ _ ih₁ ih₂ _ _ ih,
+  { cases h }, { exact or.inr rfl },
+  { obtain ⟨rfl|rfl, rfl|rfl⟩ := ⟨ih₁, ih₂⟩; simp },
+  { rw [sUnion_eq_empty, or_iff_not_imp_left],
+    intro h, push_neg at h, obtain ⟨U, hU, hne⟩ := h,
+    have := (ih U hU).resolve_left hne, subst this,
+    refine sUnion_eq_univ_iff.2 (λ a, ⟨_, hU, trivial⟩) },
+end, by { rintro (rfl|rfl), exacts [@is_open_empty _ ⊤, @is_open_univ _ ⊤] }⟩
+
 /-- A topological space is discrete if every set is open, that is,
   its topology equals the discrete topology `⊥`. -/
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=

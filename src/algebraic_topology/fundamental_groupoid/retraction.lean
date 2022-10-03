@@ -33,6 +33,7 @@ open fundamental_groupoid category_theory fundamental_groupoid_functor
 
 open_locale fundamental_groupoid unit_interval
 
+-- TODO: move to other file.
 /-- Helper to convert a continuous map to an arrow in the category Top. -/
 def Top.hom_of_continuous_map
   {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) : Top.of X ⟶ Top.of Y := f
@@ -83,12 +84,12 @@ lemma coe_continuous_map_eq_to_fun (r : top_retraction X A) :
 instance top_retraction.continuous_map_class :
   continuous_map_class (top_retraction X A) X (subtype A) :=
 { coe := top_retraction.to_fun,
-  coe_injective' := λr s h, by { cases r, cases s, congr' },
-  map_continuous := λr, is_top_retraction.continuous r.top_retraction' }
+  coe_injective' := λ r s h, by { cases r, cases s, congr' },
+  map_continuous := λ r, r.top_retraction'.continuous }
 
 /-- The identity function, interpreted as a top_retraction. -/
 protected def id : top_retraction X set.univ :=
-{ to_fun := set.cod_restrict id set.univ (λx, set.mem_univ x),
+{ to_fun := (equiv.set.univ X).symm,
   top_retraction' := by obviously }
 
 /-- There is always a top_retraction from a space to itself, namely `id`. -/

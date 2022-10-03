@@ -64,7 +64,7 @@ lemma measure_preserving_prod_mul [is_mul_left_invariant ν] :
 (measure_preserving.id μ).skew_product measurable_mul $
   filter.eventually_of_forall $ map_mul_left_eq_self ν
 
-/-- The map `(x, y) ↦ (y, yx)` semds the measure `μ × ν` to `ν × μ`.
+/-- The map `(x, y) ↦ (y, yx)` sends the measure `μ × ν` to `ν × μ`.
 This is the map `SR` in [Halmos, §59].
 `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_prod_add_swap

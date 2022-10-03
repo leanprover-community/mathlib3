@@ -396,7 +396,6 @@ lemma carrier.zero_mem : (0 : A) ∈ carrier f_deg q := λ i, begin
   convert localization.mk_zero _ using 1,
 end
 
-
 lemma carrier.smul_mem (c x : A) (hx : x ∈ carrier f_deg q) : c • x ∈ carrier f_deg q :=
 begin
   revert c,
@@ -405,14 +404,13 @@ begin
   { rintros n ⟨a, ha⟩ i,
     simp_rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_of_left_mem 𝒜 i ha],
     split_ifs,
-    { convert_to (quotient.mk' ⟨_, ⟨a^m, pow_mem_graded m ha⟩, ⟨_, _⟩, ⟨n, rfl⟩⟩ : A⁰_ f) *
-        quotient.mk' ⟨_, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, ⟨_, _⟩, ⟨i - n, rfl⟩⟩ ∈ q.1,
-      { rw [ext_iff_val, val_mk', mul_val, val_mk', val_mk', subtype.coe_mk],
-        simp_rw [mul_pow, subtype.coe_mk],
-        rw [localization.mk_mul],
+    { convert_to (quotient.mk' ⟨_, ⟨a^m, pow_mem_graded m ha⟩, ⟨_, _⟩, ⟨n, rfl⟩⟩ * quotient.mk'
+         ⟨_, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, ⟨_, _⟩, ⟨i - n, rfl⟩⟩ : A⁰_ f) ∈ q.1,
+      { erw [ext_iff_val, val_mk', mul_val, val_mk', val_mk', subtype.coe_mk],
+        simp_rw [mul_pow, subtype.coe_mk], rw [localization.mk_mul],
         congr, erw [← pow_add, nat.add_sub_of_le h] },
       { exact ideal.mul_mem_left _ _ (hx _), rw [smul_eq_mul, mul_comm], mem_tac, } },
-    { simp_rw [zero_pow hm], convert carrier.zero_mem f_deg hm q i, rw [map_zero, zero_pow hm], } },
+    { simp_rw [zero_pow hm], convert carrier.zero_mem f_deg hm q i, rw [map_zero, zero_pow hm] } },
   { simp_rw add_smul, exact λ _ _, carrier.add_mem f_deg q },
 end
 

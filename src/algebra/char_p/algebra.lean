@@ -65,27 +65,23 @@ section Q_algebra
 
 variables (R : Type*) [nontrivial R]
 
-/-
-Implementation note: These are not instances because the counter direction `algebra_rat` in
-[algebra.algebra.basic] is chosen as instance:
-(`algebra_rat [division_ring α] [char_zero α] : algebra ℚ α`)
--/
-
 /-- A nontrivial `ℚ`-algebra has `char_p` equal to zero.
 
-This cannot be a (local) instance because it would immediately form a loop with the instance `algebra_rat`.
-It's probably easier to go the other way: prove `char_zero R` and automatically receive an `algebra ℚ R` instance.
+This cannot be a (local) instance because it would immediately form a loop with the
+instance `algebra_rat`. It's probably easier to go the other way: prove `char_zero R` and
+automatically receive an `algebra ℚ R` instance.
 -/
 lemma algebra_rat.char_p_zero [semiring R] [algebra ℚ R] : char_p R 0 :=
 char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0
 
 /-- A nontrivial `ℚ`-algebra has characteristic zero.
 
-This cannot be a (local) instance because it would immediately form a loop with the instance `algebra_rat`.
-It's probably easier to go the other way: prove `char_zero R` and automatically receive an `algebra ℚ R` instance.
+This cannot be a (local) instance because it would immediately form a loop with the
+instance `algebra_rat`. It's probably easier to go the other way: prove `char_zero R` and
+automatically receive an `algebra ℚ R` instance.
 -/
 lemma algebra_rat.char_zero [ring R] [algebra ℚ R] : char_zero R :=
-@char_p.char_p_to_char_zero R _ (Q_algebra_char_p_zero R)
+@char_p.char_p_to_char_zero R _ (algebra_rat.char_p_zero R)
 
 end Q_algebra
 

@@ -161,8 +161,7 @@ section equal_char_zero
 lemma Q_algebra_to_equal_char_zero [nontrivial R] [algebra ℚ R] :
   ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I) :=
 begin
-  haveI : char_zero R := @char_p.char_p_to_char_zero R _
-    (char_p_of_injective_algebra_map (algebra_map ℚ R).injective 0),
+  haveI : char_zero R := algebra_rat.char_zero R,
   intros I hI,
   constructor,
   intros a b h_ab,
@@ -256,10 +255,9 @@ end equal_char_zero
 /--
 Not mixed characteristic implies equal characteristic.
 -/
-lemma not_mixed_char_to_equal_char_zero [char_zero R] (h : ¬(∃ p > 0, mixed_char_zero R p)) :
+lemma not_mixed_char_to_equal_char_zero [char_zero R] (h : ∀ p > 0, ¬mixed_char_zero R p) :
   ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I) :=
 begin
-  push_neg at h,
   intros I hI_ne_top,
   apply char_p.char_p_to_char_zero _,
   cases char_p.exists (R ⧸ I) with p hp,
@@ -269,24 +267,17 @@ begin
     exact absurd h_mixed (h p.succ p.succ_pos) }
 end
 
-example (n : ℕ) (h : 0<n) : n ≠ 0 := ne_of_gt h
-
 /--
 Equal characteristic implies not mixed characteristic.
 -/
 lemma equal_char_zero_to_not_mixed_char (h : ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) :
-  ¬(∃ p > 0, mixed_char_zero R p) :=
+  ∀ p > 0, ¬mixed_char_zero R p :=
 begin
-  push_neg,
-  intro p,
-  by_contradiction hp,
-  push_neg at hp,
-  let hp_pos := hp.1,
-  let hp_mixed_char := hp.2,
-  rcases hp_mixed_char.char_p_quotient with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
-  haveI hI_zero : char_zero (R ⧸ I) := (h I hI_ne_top),
-  replace hI_zero : char_p (R ⧸ I) 0 := char_p.of_char_zero _,
-  exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) (ne_of_gt hp_pos),
+  intros p p_pos,
+  by_contradiction hp_mixed_char,
+  rcases hp_mixed_char.char_p_quotient with ⟨I, hI_ne_top, hI_p⟩,
+  replace hI_zero : char_p (R ⧸ I) 0 := @char_p.of_char_zero _ _ (h I hI_ne_top),
+  exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) (ne_of_gt p_pos),
 end
 
 /--
@@ -294,7 +285,7 @@ A ring of characteristic zero has equal characteristic iff it does not
 have mixed characteristic for any `p`.
 -/
 lemma equal_char_zero_iff_not_mixed_char [char_zero R] :
-  (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) ↔ (¬(∃ p > 0, mixed_char_zero R p)) :=
+  (∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I)) ↔ (∀ p > 0, ¬mixed_char_zero R p) :=
 ⟨equal_char_zero_to_not_mixed_char R, not_mixed_char_to_equal_char_zero R⟩
 
 /--
@@ -318,7 +309,9 @@ A ring of characteristic zero is not a `ℚ`-algebra iff it has mixed characteri
 theorem not_Q_algebra_iff_not_equal_char_zero [char_zero R] :
   is_empty (algebra ℚ R) ↔ (∃ p > 0, mixed_char_zero R p) :=
 begin
-  rw [←not_iff_not, not_is_empty_iff, ←equal_char_zero_iff_not_mixed_char],
+  rw ←not_iff_not,
+  push_neg,
+  rw [not_is_empty_iff, ←equal_char_zero_iff_not_mixed_char],
   apply Q_algebra_iff_equal_char_zero,
 end
 

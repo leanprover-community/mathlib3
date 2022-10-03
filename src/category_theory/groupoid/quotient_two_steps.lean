@@ -92,9 +92,22 @@ begin
    }
 end
 
-def lift {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ) :
-  quotient S Sn ⥤ D := (fo S Sn) ⋙ φ
+section ump
 
+variables {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ)
+
+def lift : quotient S Sn ⥤ D := (fo S Sn) ⋙ φ
+
+def lift_spec : (of S Sn) ⋙ (lift S Sn φ) = φ :=
+begin
+  dsimp [lift],
+  change ((of S Sn) ⋙ (fo S Sn)) ⋙ φ = φ,
+  rw fo_of,
+end
+
+def lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : Φ)
+
+end ump
 
 
 end is_graph_like

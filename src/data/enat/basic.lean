@@ -32,11 +32,17 @@ instance : is_well_order ℕ∞ (<) := { }
 
 variables {m n : ℕ∞}
 
-@[simp, norm_cast] lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : ℕ) : ℕ∞) = 1 := rfl
-@[simp, norm_cast] lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
-@[simp, norm_cast] lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
-@[simp, norm_cast] lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
+protected lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
+protected lemma coe_one : ((1 : ℕ) : ℕ∞) = 1 := rfl
+protected lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
+protected lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
+protected lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
+
+instance : coe_ring_hom ℕ ℕ∞ :=
+{ coe_one := rfl,
+  coe_zero := rfl,
+  coe_add := λ _ _, rfl,
+  coe_mul := λ _ _, with_top.coe_mul }
 
 instance can_lift : can_lift ℕ∞ ℕ coe (λ n, n ≠ ⊤) := with_top.can_lift
 

@@ -67,8 +67,9 @@ lemma measure_preserving_prod_mul [is_mul_left_invariant ν] :
 /-- The map `(x, y) ↦ (y, yx)` semds the measure `μ × ν` to `ν × μ`.
 This is the map `SR` in [Halmos, §59].
 `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
-@[to_additive measure_preserving_prod_add_prod_add_swap /-"  "-/]
-lemma measure_preserving_prod_add_prod_mul_swap [is_mul_left_invariant μ] :
+@[to_additive measure_preserving_prod_add_swap
+  /-" The map `(x, y) ↦ (y, y + x)` semds the measure `μ × ν` to `ν × μ`. "-/]
+lemma measure_preserving_prod_mul_swap [is_mul_left_invariant μ] :
   measure_preserving (λ z : G × G, (z.2, z.2 * z.1)) (μ.prod ν) (ν.prod μ) :=
 (measure_preserving_prod_mul ν μ).comp measure_preserving_swap
 
@@ -122,7 +123,7 @@ lemma measure_preserving_mul_prod_inv [is_mul_left_invariant ν] :
   measure_preserving (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod ν) (μ.prod ν) :=
 begin
   convert (measure_preserving_prod_inv_mul_swap ν μ).comp
-    (measure_preserving_prod_add_prod_mul_swap μ ν),
+    (measure_preserving_prod_mul_swap μ ν),
   ext1 ⟨x, y⟩,
   simp_rw [function.comp_apply, mul_inv_rev, inv_mul_cancel_right]
 end
@@ -221,7 +222,8 @@ begin
 end
 
 /-- This is the computation performed in the proof of [Halmos, §60 Th. A]. -/
-@[to_additive "This is the computation performed in the proof of [Halmos, §60 Th. A]."]
+@[to_additive
+  "This is the computation performed in the proof of [Halmos, §60 Th. A]."]
 lemma measure_mul_lintegral_eq
   [is_mul_left_invariant ν] (Em : measurable_set E) (f : G → ℝ≥0∞) (hf : measurable f) :
   μ E * ∫⁻ y, f y ∂ν = ∫⁻ x, ν ((λ z, z * x) ⁻¹' E) * f (x⁻¹) ∂μ :=

@@ -88,7 +88,7 @@ namespace nat
 -- see note [coercion into rings]
 @[priority 900] instance cast_coe {R} [has_nat_cast R] : has_coe_t ℕ R := ⟨nat.cast⟩
 
-protected theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
+theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
 
 -- Lemmas about nat.succ need to get a low priority, so that they are tried last.
 -- This is because `nat.succ _` matches `1`, `3`, `x+1`, etc.
@@ -109,10 +109,10 @@ end
 namespace nat
 variables {R : Type*}
 
-protected theorem cast_one [add_monoid_with_one R] : ((1 : ℕ) : R) = 1 :=
+theorem cast_one [add_monoid_with_one R] : ((1 : ℕ) : R) = 1 :=
 by rw [cast_succ, nat.cast_zero, zero_add]
 
-protected theorem cast_add [add_monoid_with_one R] (m n : ℕ) : ((m + n : ℕ) : R) = m + n :=
+theorem cast_add [add_monoid_with_one R] (m n : ℕ) : ((m + n : ℕ) : R) = m + n :=
 by induction n; simp [add_succ, add_assoc, nat.add_zero, nat.cast_one, nat.cast_zero, *]
 
 /-- Computationally friendlier cast than `nat.unary_cast`, using binary representation. -/

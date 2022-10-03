@@ -54,11 +54,11 @@ namespace measure_theory
 
 open measure
 
-/-- The shear mapping `(x, y) ↦ (x, xy)` preserves the measure `μ × ν`.
+/-- The multiplicative shear mapping `(x, y) ↦ (x, xy)` preserves the measure `μ × ν`.
 This condition is part of the definition of a measurable group in [Halmos, §59].
 There, the map in this lemma is called `S`. -/
 @[to_additive measure_preserving_prod_add
-  /-" An additive shear mapping `(x, y) ↦ (x, x + y)` preserves the measure `μ.prod ν`. "-/]
+  /-" The shear mapping `(x, y) ↦ (x, x + y)` preserves the measure `μ.prod ν`. "-/]
 lemma measure_preserving_prod_mul [is_mul_left_invariant ν] :
   measure_preserving (λ z : G × G, (z.1, z.1 * z.2)) (μ.prod ν) (μ.prod ν) :=
 (measure_preserving.id μ).skew_product measurable_mul $
@@ -185,9 +185,9 @@ lemma measure_mul_right_ne_zero
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null μ y)).mpr h2E
 
-/-- A *left*-invariant is quasi-preserved by *right*-multiplication.
+/-- A *left*-invariant measure is quasi-preserved by *right*-multiplication.
 This should not be confused with `(measure_preserving_mul_right μ g).quasi_measure_preserving`. -/
-@[to_additive /-"A *left*-invariant is quasi-preserved by *right*-addition.
+@[to_additive /-"A *left*-invariant measure is quasi-preserved by *right*-addition.
 This should not be confused with `(measure_preserving_add_right μ g).quasi_measure_preserving`. "-/]
 lemma quasi_measure_preserving_mul_right (g : G) :
   quasi_measure_preserving (λ h : G, h * g) μ μ :=

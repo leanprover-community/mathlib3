@@ -375,22 +375,21 @@ variables {𝕜 E F}
 
 instance : has_continuous_smul 𝕜 𝓢(E, F) :=
 begin
-  rw seminorm_family.with_seminorms_eq (schwartz_with_seminorms 𝕜 E F),
+  rw (schwartz_with_seminorms 𝕜 E F).with_seminorms_eq,
   exact (schwartz_seminorm_family 𝕜 E F).module_filter_basis.has_continuous_smul,
 end
 
 instance : topological_add_group 𝓢(E, F) :=
-(schwartz_seminorm_family ℝ E F).module_filter_basis.to_add_group_filter_basis
-  .is_topological_add_group
+(schwartz_seminorm_family ℝ E F).add_group_filter_basis.is_topological_add_group
 
 instance : uniform_space 𝓢(E, F) :=
-(schwartz_seminorm_family ℝ E F).module_filter_basis.to_add_group_filter_basis.uniform_space
+(schwartz_seminorm_family ℝ E F).add_group_filter_basis.uniform_space
 
 instance : uniform_add_group 𝓢(E, F) :=
-(schwartz_seminorm_family ℝ E F).module_filter_basis.to_add_group_filter_basis.uniform_add_group
+(schwartz_seminorm_family ℝ E F).add_group_filter_basis.uniform_add_group
 
 instance : locally_convex_space ℝ 𝓢(E, F) :=
-seminorm_family.to_locally_convex_space (schwartz_with_seminorms ℝ E F)
+(schwartz_with_seminorms ℝ E F).to_locally_convex_space
 
 end topology
 

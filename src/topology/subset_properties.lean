@@ -736,18 +736,6 @@ lemma is_closed.is_compact [compact_space α] {s : set α} (h : is_closed s) :
   is_compact s :=
 compact_of_is_closed_subset compact_univ h (subset_univ _)
 
-/-- If a continuous function `f : α → β` is such that the image of a compact set `s` in `α` is all
-of `β`, then `β` is a compact space. -/
-lemma set.surj_on.compact_space {s : set α} (hs : is_compact s) {f : α → β} (hf : continuous f)
-  (hf' : set.surj_on f s set.univ) :
-  compact_space β :=
-is_compact_univ_iff.mp
-begin
-  convert ← hs.image hf,
-  rw ← set.univ_subset_iff,
-  exact hf',
-end
-
 /-- `α` is a noncompact topological space if it not a compact space. -/
 class noncompact_space (α : Type*) [topological_space α] : Prop :=
 (noncompact_univ [] : ¬is_compact (univ : set α))

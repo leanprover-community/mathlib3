@@ -417,6 +417,74 @@ lemma collinear_iff_not_affine_independent (p : fin 3 → P) :
 by rw [collinear_iff_finrank_le_one,
        finrank_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]
 
+variables {k}
+
+/-- If three points are not collinear, the first and second are different. -/
+lemma ne₁₂_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₁ ≠ p₂ :=
+begin
+  rintro rfl,
+  simpa [collinear_pair] using h
+end
+
+/-- If three points are not collinear, the first and third are different. -/
+lemma ne₁₃_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₁ ≠ p₃ :=
+begin
+  rintro rfl,
+  simpa [collinear_pair] using h
+end
+
+/-- If three points are not collinear, the second and third are different. -/
+lemma ne₂₃_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₂ ≠ p₃ :=
+begin
+  rintro rfl,
+  simpa [collinear_pair] using h
+end
+
+/-- A point in a collinear set of points lies in the affine span of any two distinct points of
+that set. -/
+lemma collinear.mem_affine_span_of_mem_of_ne {s : set P} (h : collinear k s) {p₁ p₂ p₃ : P}
+  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
+  p₃ ∈ affine_span k ({p₁, p₂} : set P) :=
+begin
+  rw collinear_iff_of_mem k hp₁ at h,
+  rcases h with ⟨v, h⟩,
+  rcases h p₂ hp₂ with ⟨r₂, rfl⟩,
+  rcases h p₃ hp₃ with ⟨r₃, rfl⟩,
+  rw vadd_left_mem_affine_span_pair,
+  refine ⟨r₃ / r₂, _⟩,
+  have h₂ : r₂ ≠ 0,
+  { rintro rfl,
+    simpa using hp₁p₂ },
+  simp [smul_smul, h₂]
+end
+
+/-- The affine span of any two distinct points of a collinear set of points equals the affine
+span of the whole set. -/
+lemma collinear.affine_span_eq_of_ne {s : set P} (h : collinear k s) {p₁ p₂ : P}
+  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
+  affine_span k ({p₁, p₂} : set P) = affine_span k s :=
+le_antisymm (affine_span_mono _
+  (set.insert_subset.2 ⟨hp₁, set.singleton_subset_iff.2 hp₂⟩))
+  (affine_span_le.2 (λ p hp, h.mem_affine_span_of_mem_of_ne hp₁ hp₂ hp hp₁p₂))
+
+/-- Given a collinear set of points, and two distinct points `p₂` and `p₃` in it, a point `p₁` is
+collinear with the set if and only if it is collinear with `p₂` and `p₃`. -/
+lemma collinear.collinear_insert_iff_of_ne {s : set P} (h : collinear k s) {p₁ p₂ p₃ : P}
+  (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₂p₃ : p₂ ≠ p₃) :
+  collinear k (insert p₁ s) ↔ collinear k ({p₁, p₂, p₃} : set P) :=
+begin
+  have hv : vector_span k (insert p₁ s) = vector_span k ({p₁, p₂, p₃} : set P),
+  { conv_lhs { rw [←direction_affine_span, ←affine_span_insert_affine_span] },
+    conv_rhs { rw [←direction_affine_span, ←affine_span_insert_affine_span] },
+    rw h.affine_span_eq_of_ne hp₂ hp₃ hp₂p₃ },
+  rw [collinear, collinear, hv]
+end
+
+/-- Adding a point in the affine span of a set does not change whether that set is collinear. -/
+lemma collinear_insert_iff_of_mem_affine_span {s : set P} {p : P} (h : p ∈ affine_span k s) :
+  collinear k (insert p s) ↔ collinear k s :=
+by rw [collinear, collinear, vector_span_insert_eq_vector_span h]
+
 end affine_space'
 
 section field

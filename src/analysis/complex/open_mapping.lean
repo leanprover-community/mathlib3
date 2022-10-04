@@ -20,21 +20,6 @@ open_locale topological_space
 
 variables {U : set ℂ} {f : ℂ → ℂ} {z₀ w : ℂ} {ε r m : ℝ}
 
-lemma complex.eventually_eq_or_eq_zero_of_is_local_min_norm
-  (hf : ∀ᶠ z in 𝓝 w, differentiable_at ℂ f z) (hw : is_local_min (norm ∘ f) w) :
-  (∀ᶠ z in 𝓝 w, f z = f w) ∨ (f w = 0) :=
-begin
-  refine dite (f w = 0) or.inr (λ h, or.inl _),
-  have h1 : ∀ᶠ z in 𝓝 w, f z ≠ 0 := hf.self_of_nhds.continuous_at.eventually_ne h,
-  have h2 : is_local_max (norm ∘ f)⁻¹ w := hw.inv (h1.mono (λ z, norm_pos_iff.mpr)),
-  have h3 : is_local_max (norm ∘ f⁻¹) w := by { refine h2.congr (eventually_of_forall _); simp },
-  have h4 : ∀ᶠ z in 𝓝 w, differentiable_at ℂ f⁻¹ z, by filter_upwards [hf, h1] with z h using h.inv,
-  filter_upwards [eventually_eq_of_is_local_max_norm h4 h3] with z using inv_inj.mp
-end
-
-lemma norm_sub_sub_norm_sub_le_norm_sub (a b c : ℂ) : ∥a - c∥ - ∥b - c∥ ≤ ∥a - b∥ :=
-by simpa only [sub_sub_sub_cancel_right] using norm_sub_norm_le (a - c) (b - c)
-
 lemma diff_cont_on_cl.ball_subset_image_closed_ball (h : diff_cont_on_cl ℂ f (ball z₀ r))
   (hr : 0 < r) (hf : ∀ z ∈ sphere z₀ r, ε ≤ ∥f z - f z₀∥) (hz₀ : ¬ ∀ᶠ z in 𝓝 z₀, f z = f z₀) :
   ball (f z₀) (ε / 2) ⊆ f '' closed_ball z₀ r :=
@@ -62,9 +47,6 @@ begin
   have h12 : f z = f z₀ := (h11 (mem_ball_self hr)).symm,
   exact hz₀ (mem_of_superset (ball_mem_nhds z₀ hr) (h12 ▸ h11))
 end
-
-lemma analytic_on.mono {s t : set ℂ} (hf : analytic_on ℂ f t) (hst : s ⊆ t) : analytic_on ℂ f s :=
-  λ z hz, hf z (hst hz)
 
 lemma diff_cont_on_cl.continuous_on_closed_ball (hf : diff_cont_on_cl ℂ f (ball z₀ r)) :
   continuous_on f (closed_ball z₀ r) :=

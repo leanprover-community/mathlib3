@@ -390,9 +390,9 @@ end
 
 end continuous_on
 
-lemma is_compact.exists_local_min_on_mem_subset {f : β → α} {s t : set β} {m : α} (ht : is_compact t)
-  (hst : s ⊆ t) (hf : continuous_on f t) (hf1 : ∀ z ∈ t \ s, m ≤ f z) {z : β} (hz : z ∈ t)
-  (hfz : f z < m) :
+lemma is_compact.exists_local_min_on_mem_subset {f : β → α} {s t : set β} {m : α} {z : β}
+  (ht : is_compact t) (hst : s ⊆ t) (hf : continuous_on f t) (hf1 : ∀ z ∈ t \ s, m ≤ f z)
+  (hz : z ∈ t) (hfz : f z < m) :
   ∃ x ∈ s, is_local_min_on f t x :=
 begin
   obtain ⟨x, hx, hfx⟩ : ∃ x ∈ t, ∀ y ∈ t, f x ≤ f y := ht.exists_forall_le ⟨z, hz⟩ hf,

@@ -268,6 +268,9 @@ le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 lemma dist_norm_norm_le (g h : E) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
+lemma norm_sub_sub_norm_sub_le_norm_sub (u v w : E) : ∥u - w∥ - ∥v - w∥ ≤ ∥u - v∥ :=
+by simpa only [sub_sub_sub_cancel_right] using norm_sub_norm_le (u - w) (v - w)
+
 /-- The direct path from `0` to `v` is shorter than the path with `u` inserted in between. -/
 lemma norm_le_insert (u v : E) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
 calc ∥v∥ = ∥u - (u - v)∥ : by abel

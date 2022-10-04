@@ -223,17 +223,16 @@ def quotient_infi_embedding' {ι : Type*} (f : ι → subgroup α) : α ⧸ (⨅
   quotient_infi_embedding' f (quotient_group.mk g) i = quotient_group.mk g :=
 rfl
 
-noncomputable def key_inclusio (S : finset G) (hS : closure (S : set G) = ⊤) :
+noncomputable def key_inclusio (S : set G) (hS : closure S = ⊤) :
   G ⧸ center G ↪ S → {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
 begin
   refine ((quotient_equiv_of_eq _).to_embedding.trans
     (quotient_infi_embedding' (λ g : S, centralizer (zpowers (g : G))))).trans
     (function.embedding.Pi_congr_right (λ g : S, quotient_centralizer_embedding_commutators (g : G))),
   rw [←centralizer_top, ←hS, centralizer_closure, ←infi_subtype''],
-  refl,
 end
 
-lemma key_inclusio_apply (S : finset G) (hS : closure (S : set G) = ⊤) (g : G) (s : S) :
+lemma key_inclusio_apply (S : set G) (hS : closure S = ⊤) (g : G) (s : S) :
   key_inclusio S hS g s = ⟨⁅g, s⁆, g, s, rfl⟩ :=
 rfl
 
@@ -241,31 +240,29 @@ end for_mathlib
 
 variables (G)
 
+lemma nat.card_pos {α : Type*} [finite α] [nonempty α] : 0 < nat.card α :=
+begin
+  haveI := fintype.of_finite α,
+  rw nat.card_eq_fintype_card,
+  exact fintype.card_pos,
+end
+
 lemma index_center_ne_zero [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≠ 0 :=
 begin
+  haveI : nonempty {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := ⟨⟨1, 1, 1, commutator_element_self 1⟩⟩,
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
-  let e := key_inclusio S hS2, -- use this + nat.card_ne_zero_of_embedding
-
-  rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype''],
-  refine index_infi_ne_zero (λ g, _),
-  sorry,
+  exact mt (finite.card_eq_zero_of_embedding (key_inclusio (S : set G) hS2)) nat.card_pos.ne',
 end
 
 lemma index_center_le_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≤ (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) ^ group.rank G :=
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
-  rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype'', ←hS1, ←fintype.card_coe],
-  exact (index_infi_le _).trans (finset.prod_le_pow_card _ _ _
-    (λ g _, finite.card_le_of_injective _ (quotient_centralizer_embedding_commutators (g : G)).injective)),
-end
-
-lemma nat.card_pos {α : Type*} [finite α] [nonempty α] : 0 < nat.card α :=
-begin
-  haveI := fintype.of_finite α,
-  rw nat.card_eq_fintype_card,
-  exact fintype.card_pos,
+  apply (finite.card_le_of_embedding (key_inclusio (S : set G) hS2)).trans_eq,
+  rw [nat.card, cardinal.mk_pi, cardinal.prod_const', finset.coe_sort_coe, cardinal.mk_fintype S,
+    cardinal.pow_cast_right, fintype.card_coe, hS1],
+  apply map_pow cardinal.to_nat_hom,
 end
 
 /-- docstring -/

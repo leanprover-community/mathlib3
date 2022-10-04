@@ -10,9 +10,17 @@ import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finite_dimensional
 
 /-!
-# Block Codes
+# Linear Codes
 
-TODO
+This file introduces Linear codes. A linear code is a type of error-correcting code defined as a
+linear subspace of a finite-dimensional vector space.
+
+## Main Definitions
+
+* `linear_code 𝓓 F`: The type of linear codes with domain `𝓓` over field `F`
+* `reed_solomon k D` : The code consisting of all polynomials of degree `≤ k` evaluated on a
+subset `D` of the field
+
 -/
 
 
@@ -47,46 +55,35 @@ def reed_solomon (k : ℕ) (D : finset F) : linear_code D F :=
       rcases hb with ⟨pb, hbp⟩,
       use pa + pb,
       split,
-      {
-        apply le_trans (polynomial.nat_degree_add_le _ _),
+      { apply le_trans (polynomial.nat_degree_add_le _ _),
         simp only [max_le_iff],
-        simp [hap.left, hbp.left],
-      },
-      {
-        rw [hap.right, hbp.right],
+        simp [hap.left, hbp.left], },
+      { rw [hap.right, hbp.right],
         funext,
-        simp,
-      },
+        simp, },
     end,
   zero_mem' :=
-  begin
-    rw set.mem_set_of,
-    use 0,
-    simp,
-    funext,
-    simp,
-  end,
+    begin
+      rw set.mem_set_of,
+      use 0,
+      simp,
+      funext,
+      simp,
+    end,
   smul_mem' :=
     begin
       intros c a ha,
       rw set.mem_set_of at ha ⊢,
       rcases ha with ⟨pa, hap⟩,
-      -- rcases hb with ⟨pb, hbp⟩,
       use c • pa,
       split,
-      {
-        -- apply le_trans (polynomial.nat_degree_add_le _ _),
-        -- simp only [max_le_iff],
-        rw polynomial.smul_eq_C_mul,
+      { rw polynomial.smul_eq_C_mul,
         by_cases c = 0, simp [h],
         rw polynomial.nat_degree_C_mul h,
-        simp [hap.left],
-      },
-      {
-        rw [hap.right],
+        simp [hap.left], },
+      { rw [hap.right],
         funext,
-        simp,
-      },
+        simp, },
     end }
 
 end reed_solomon

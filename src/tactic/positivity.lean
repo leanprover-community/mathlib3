@@ -416,7 +416,10 @@ meta def positivity_abs : expr → tactic strictness
 private lemma int_nat_abs_pos {n : ℤ} (hn : 0 < n) : 0 < n.nat_abs :=
 int.nat_abs_pos_of_ne_zero hn.ne'
 
-/-- Extension for the `positivity` tactic: `int.nat_abs` is positive when its input is. -/
+/-- Extension for the `positivity` tactic: `int.nat_abs` is positive when its input is.
+
+Since the output type of `int.nat_abs` is `ℕ`, the nonnegative case is handled by the default `positivity` tactic.
+-/
 @[positivity]
 meta def positivity_nat_abs : expr → tactic strictness
 | `(int.nat_abs %%a) := do

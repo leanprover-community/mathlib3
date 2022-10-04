@@ -128,7 +128,10 @@ def cast : Π {n : ℕ}, zmod n → R
 @[priority 900] instance (n : ℕ) : has_coe_t (zmod n) R := ⟨cast⟩
 
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
-by cases n; simp
+-- `zmod 0` unifies with `ℤ` but doesn't inherit the `coe_add_monoid_hom` instance
+-- so we add `int.cast_zero` to the `simp` set despite being an instance of the
+-- existing `@[simp] lemma coe_zero`
+by cases n; simp [int.cast_zero]
 
 lemma cast_eq_val [ne_zero n] (a : zmod n) : (a : R) = a.val :=
 begin

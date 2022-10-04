@@ -389,8 +389,8 @@ def comp_right_homeomorph {X Y : Type*} (T : Type*) [topological_space X] [compa
   (f : X ≃ₜ Y) : C(Y, T) ≃ₜ C(X, T) :=
 { to_fun := comp_right_continuous_map T f.to_continuous_map,
   inv_fun := comp_right_continuous_map T f.symm.to_continuous_map,
-  left_inv := by tidy,
-  right_inv := by tidy, }
+  left_inv := λ g, by ext y; exact congr_arg g (f.right_inv y),
+  right_inv := λ g, by ext x; exact congr_arg g (f.left_inv x), }
 
 /--
 Precomposition of functions into a normed ring by continuous map is an algebra homomorphism.

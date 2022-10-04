@@ -2,8 +2,6 @@ src/control/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too lat
 src/control/monad/cont.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/control/monad/writer.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/control/traversable/derive.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/data/analysis/filter.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/analysis/topology.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/array/lemmas.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
@@ -40,7 +38,7 @@ src/tactic/interactive.lean : line 10 : ERR_MOD : Module docstring missing, or t
 src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/interactive.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/tactic/monotonicity/lemmas.lean : line 12 : ERR_MOD : Module docstring missing, or too late
+src/tactic/monotonicity/lemmas.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/noncomm_ring.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/congr.lean : line 9 : ERR_MOD : Module docstring missing, or too late

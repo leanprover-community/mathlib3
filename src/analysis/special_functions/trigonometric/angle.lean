@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne
 -/
 import analysis.special_functions.trigonometric.basic
+import analysis.normed.group.add_circle
 import algebra.char_zero.quotient
 import algebra.order.to_interval_mod
 import topology.instances.sign
@@ -22,15 +23,10 @@ noncomputable theory
 namespace real
 
 /-- The type of angles -/
-@[derive [add_comm_group, topological_space, topological_add_group]]
-def angle : Type :=
-ℝ ⧸ (add_subgroup.zmultiples (2 * π))
+@[derive [normed_add_comm_group, inhabited, has_coe_t ℝ]]
+def angle : Type := add_circle (2 * π)
 
 namespace angle
-
-instance : inhabited angle := ⟨0⟩
-
-instance : has_coe ℝ angle := ⟨quotient_add_group.mk' _⟩
 
 @[continuity] lemma continuous_coe : continuous (coe : ℝ → angle) :=
 continuous_quotient_mk

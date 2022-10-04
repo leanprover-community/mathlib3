@@ -300,7 +300,7 @@ end
 /-- The oriented angle between two vectors is zero or `π` if and only if those two vectors are
 not linearly independent. -/
 lemma oangle_eq_zero_or_eq_pi_iff_not_linear_independent {x y : V} :
-  (o.oangle x y = 0 ∨ o.oangle x y = π) ↔ ¬ _root_.linear_independent ℝ ![x, y] :=
+  (b.oangle x y = 0 ∨ b.oangle x y = π) ↔ ¬ linear_independent ℝ ![x, y] :=
 by rw [oangle_eq_zero_iff_same_ray, oangle_eq_pi_iff_same_ray_neg,
        same_ray_or_ne_zero_and_same_ray_neg_iff_not_linear_independent]
 
@@ -323,7 +323,7 @@ begin
     by_cases hx : x = 0, { simp [hx] },
     rcases lt_trichotomy r 0 with hr|hr|hr,
     { rw ←neg_smul,
-      exact or.inr ⟨hx, smul_ne_zero.2 ⟨hr.ne, hx⟩,
+      exact or.inr ⟨hx, smul_ne_zero hr.ne hx,
                     same_ray_pos_smul_right x (left.neg_pos_iff.2 hr)⟩ },
     { simp [hr] },
     { exact or.inl (same_ray_pos_smul_right x hr) } }
@@ -332,7 +332,7 @@ end
 /-- The oriented angle between two vectors is not zero or `π` if and only if those two vectors
 are linearly independent. -/
 lemma oangle_ne_zero_and_ne_pi_iff_linear_independent {x y : V} :
-  (o.oangle x y ≠ 0 ∧ o.oangle x y ≠ π) ↔ _root_.linear_independent ℝ ![x, y] :=
+  (b.oangle x y ≠ 0 ∧ b.oangle x y ≠ π) ↔ linear_independent ℝ ![x, y] :=
 by rw [←not_or_distrib, ←not_iff_not, not_not, oangle_eq_zero_or_eq_pi_iff_not_linear_independent]
 
 /-- Two vectors are equal if and only if they have equal norms and zero angle between them. -/

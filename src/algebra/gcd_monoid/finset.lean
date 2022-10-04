@@ -87,6 +87,11 @@ lcm_dvd (λ b hb, (h b hb).trans (dvd_lcm hb))
 lemma lcm_mono (h : s₁ ⊆ s₂) : s₁.lcm f ∣ s₂.lcm f :=
 lcm_dvd $ assume b hb, dvd_lcm (h hb)
 
+lemma lcm_image [decidable_eq β] {g : γ → β} (s : finset γ) : (s.image g).lcm f = s.lcm (f ∘ g) :=
+by { classical, induction s using finset.induction with c s hc ih; simp [*] }
+
+lemma lcm_eq_lcm_image [decidable_eq α] : s.lcm f = (s.image f).lcm id := eq.symm $ lcm_image _
+
 theorem lcm_eq_zero_iff [nontrivial α] : s.lcm f = 0 ↔ 0 ∈ f '' s :=
 by simp only [multiset.mem_map, lcm_def, multiset.lcm_eq_zero_iff, set.mem_image, mem_coe,
   ← finset.mem_def]

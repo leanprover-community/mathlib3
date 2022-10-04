@@ -356,16 +356,15 @@ begin
   have h' : ∀ (y : ℝ) (hy : y ∈ Ico a x),
     ∥((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y∥
     ≤ (n! : ℝ)⁻¹ * |(x - a)|^n * C,
-  { intros y hy,
+  { rintro y ⟨hay, hyx⟩,
     rw [norm_smul, real.norm_eq_abs],
     -- Estimate the iterated derivative by `C`
-    refine mul_le_mul _ (hC y ⟨hy.1, hy.2.le.trans hx.2⟩) (by positivity) (by positivity),
+    refine mul_le_mul _ (hC y ⟨hay, hyx.le.trans hx.2⟩) (by positivity) (by positivity),
     -- The rest is a trivial calculation
     rw [abs_mul, abs_pow, abs_inv, nat.abs_cast],
-    mono*,
+    mono* with [0 ≤ (n! : ℝ)⁻¹],
     any_goals { positivity },
-    { exact hy.1 },
-    { linarith [hx.1, hy.2] } },
+    linarith [hx.1, hyx] },
   -- Apply the mean value theorem for vector valued functions:
   have A : ∀ t ∈ Icc a x, has_deriv_within_at (λ y, taylor_within_eval f n (Icc a b) y x)
     (((↑n!)⁻¹ * (x - t) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) t) (Icc a x) t,

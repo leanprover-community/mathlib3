@@ -35,6 +35,9 @@ lemma card_eq_fintype_card [fintype α] : nat.card α = fintype.card α := mk_to
 @[simp]
 lemma card_eq_zero_of_infinite [infinite α] : nat.card α = 0 := mk_to_nat_of_infinite
 
+lemma finite_of_card_ne_zero (h : nat.card α ≠ 0) : finite α :=
+not_infinite_iff_finite.mp $ h ∘ @nat.card_eq_zero_of_infinite α
+
 lemma card_congr (f : α ≃ β) : nat.card α = nat.card β :=
 cardinal.to_nat_congr f
 

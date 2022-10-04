@@ -140,12 +140,22 @@ variables {F K : Type*} [field F] [normed_field K]
 
 open multiset
 
+lemma eq_one_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (hB : B < 0)
+  (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ∥z∥ ≤ B) :
+  p = 1 :=
+h1.nat_degree_eq_zero_iff_eq_one.mp begin
+  contrapose !hB,
+  rw nat_degree_eq_card_roots h2 at hB,
+  obtain ⟨z, hz⟩ := multiset.card_pos_iff_exists_mem.mp (zero_lt_iff.mpr hB),
+  exact le_trans (norm_nonneg _) (h3 z hz),
+end
+
 lemma coeff_le_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (i : ℕ)
   (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ∥z∥ ≤ B) :
   ∥ (map f p).coeff i ∥ ≤ B^(p.nat_degree - i) * p.nat_degree.choose i  :=
 begin
   have hcd : card (map f p).roots = p.nat_degree := (nat_degree_eq_card_roots h2).symm,
-  by_cases hB : 0 ≤ B,
+  obtain hB | hB := le_or_lt 0 B,
   { by_cases hi : i ≤ p.nat_degree,
     { rw [eq_prod_roots_of_splits h2, monic.def.mp h1, ring_hom.map_one, ring_hom.map_one, one_mul],
       rw prod_X_sub_C_coeff,
@@ -184,23 +194,32 @@ begin
       rw_mod_cast mul_zero,
       { rwa monic.nat_degree_map h1,
         apply_instance, }}},
-  { push_neg at hB,
-    have noroots : (map f p).roots = 0,
-    { contrapose! hB,
-      obtain ⟨z, hz⟩ := exists_mem_of_ne_zero hB,
-      exact le_trans (norm_nonneg z) (h3 z hz), },
-    suffices : p.nat_degree = 0,
-    { by_cases hi : i = 0,
-      { rw [this, hi, (monic.nat_degree_eq_zero_iff_eq_one h1).mp this],
-        simp only [polynomial.map_one, coeff_one_zero, norm_one, pow_zero, nat.choose_self,
-          nat.cast_one, mul_one], },
-      { replace hi := zero_lt_iff.mpr hi,
-        rw ←this at hi,
-        rw [nat.choose_eq_zero_of_lt hi, coeff_eq_zero_of_nat_degree_lt, norm_zero],
-        rw_mod_cast mul_zero,
-        { rwa monic.nat_degree_map h1,
-          apply_instance, }}},
-    rw [←hcd, noroots, card_zero], },
+  { rw [eq_one_of_roots_le hB h1 h2 h3, polynomial.map_one, nat_degree_one, zero_tsub, pow_zero,
+      one_mul, coeff_one],
+    split_ifs; norm_num [h], },
+end
+
+/-- The coefficients of the monic polynomials of bounded degree with bounded roots are
+uniformely bounded. -/
+lemma coeff_bdd_of_roots_le {B : ℝ} {d : ℕ} (f : F →+* K) {p : F[X]}
+  (h1 : p.monic) (h2 : splits f p) (h3 : p.nat_degree ≤ d) (h4 : ∀ z ∈ (map f p).roots, ∥z∥ ≤ B)
+  (i : ℕ) : ∥(map f p).coeff i∥ ≤ (max B 1) ^ d * d.choose (d / 2) :=
+begin
+  obtain hB | hB := le_or_lt 0 B,
+  { apply (coeff_le_of_roots_le i h1 h2 h4).trans,
+    calc
+    _   ≤ (max B 1) ^ (p.nat_degree - i) * (p.nat_degree.choose i)
+      : mul_le_mul_of_nonneg_right (pow_le_pow_of_le_left hB (le_max_left _ _) _) _
+    ... ≤ (max B 1) ^ d * (p.nat_degree.choose i)
+      : mul_le_mul_of_nonneg_right ((pow_mono (le_max_right _ _)) (le_trans (nat.sub_le _ _) h3)) _
+    ... ≤ (max B 1) ^ d * d.choose (d / 2)
+      : mul_le_mul_of_nonneg_left (nat.cast_le.mpr ((i.choose_mono h3).trans
+        (i.choose_le_middle d))) _,
+    all_goals { positivity, }},
+  { rw [eq_one_of_roots_le hB h1 h2 h4, polynomial.map_one, coeff_one],
+    refine trans _ (one_le_mul_of_one_le_of_one_le (one_le_pow_of_one_le (le_max_right B 1) d) _),
+    { split_ifs; norm_num, },
+    { exact_mod_cast nat.succ_le_iff.mpr (nat.choose_pos (d.div_le_self 2)), }},
 end
 
 end roots

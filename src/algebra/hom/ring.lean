@@ -391,6 +391,14 @@ protected lemma map_bit0 (f : α →+* β) : ∀ a, f (bit0 a) = bit0 (f a) := m
 /-- Ring homomorphisms preserve `bit1`. -/
 protected lemma map_bit1 (f : α →+* β) : ∀ a, f (bit1 a) = bit1 (f a) := map_bit1 f
 
+@[simp] lemma map_ite_zero_one {F : Type*} [ring_hom_class F α β] (f : F) (p : Prop) [decidable p] :
+  f (ite p 0 1) = ite p 0 1 :=
+by { split_ifs; simp [h] }
+
+@[simp] lemma map_ite_one_zero {F : Type*} [ring_hom_class F α β] (f : F) (p : Prop) [decidable p] :
+  f (ite p 1 0) = ite p 1 0 :=
+by { split_ifs; simp [h] }
+
 /-- `f : α →+* β` has a trivial codomain iff `f 1 = 0`. -/
 lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 := by rw [map_one, eq_comm]
 

@@ -245,11 +245,12 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
     rintros x ⟨y, ⟨z, hy⟩, hx⟩,
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
-    exact or.resolve_left (h.splits z).def (minpoly.ne_zero (h.is_integral z))
-      (minpoly.irreducible $ is_integral_of_is_scalar_tower $
-        is_integral_alg_hom ϕ $ is_integral_alg_hom _ $ h.is_integral z)
-      (minpoly.dvd E _ $ by rw [aeval_map_algebra_map, aeval_alg_hom_apply, aeval_alg_hom_apply,
-        minpoly.aeval, alg_hom.map_zero, alg_hom.map_zero]) }⟩,
+    refine or.resolve_left (h.splits z).def (minpoly.ne_zero (h.is_integral z))
+      (minpoly.irreducible _) (minpoly.dvd E _ (by simp [aeval_alg_hom_apply])),
+    simp only [alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom],
+    suffices : is_integral F _,
+    { exact is_integral_of_is_scalar_tower this },
+    exact is_integral_alg_hom ϕ (is_integral_alg_hom (to_alg_hom F E K₁) (h.is_integral z)) }⟩,
   map_zero' := subtype.ext ϕ.map_zero,
   map_one' := subtype.ext ϕ.map_one,
   map_add' := λ x y, subtype.ext (ϕ.map_add x y),

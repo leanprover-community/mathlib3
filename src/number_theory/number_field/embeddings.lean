@@ -51,38 +51,25 @@ open set polynomial
 /-- Let `A` an algebraically closed field and let `x ∈ K`, with `K` a number field. For `F`,
 subfield of `K`, the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
 the roots in `A` of the minimal polynomial of `x` over `F`. -/
-lemma range_eq_roots (F K A : Type*) [field F] [number_field F] [field K] [number_field K]
-  [field A] [is_alg_closed A] [algebra F K] [algebra F A] (x : K) :
+-- ! should be moved to another namespace
+lemma range_eq_roots (F K A : Type*) [field F] [field K] [field A] [is_alg_closed A]
+  [algebra F K] (hK : algebra.is_algebraic F K) [algebra F A] (x : K) :
   range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
 begin
-  haveI : finite_dimensional F K := finite_dimensional.right ℚ  _ _ ,
-  have hx : is_integral F x := is_separable.is_integral F x,
-  ext a, split,
-  { rintro ⟨ψ, hψ⟩,
-    rw [mem_root_set_iff, ←hψ],
-    { rw aeval_alg_hom_apply ψ x (minpoly F x),
-      simp only [minpoly.aeval, map_zero], },
-    exact minpoly.ne_zero hx, },
-  { intro ha,
-    let Fx := adjoin_root (minpoly F x),
-    haveI : fact (irreducible $ minpoly F x) := ⟨minpoly.irreducible hx⟩,
-    have hK : (aeval x) (minpoly F x) = 0 := minpoly.aeval _ _,
-    have hA : (aeval a) (minpoly F x) = 0,
-    { rwa [aeval_def, ←eval_map, ←mem_root_set_iff'],
-      exact monic.ne_zero (monic.map (algebra_map F A) (minpoly.monic hx)), },
-    letI : algebra Fx A := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map F A) a hA),
-    letI : algebra Fx K := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map F K) x hK),
-    haveI : finite_dimensional Fx K := finite_dimensional.right ℚ  _ _ ,
-    let ψ₀ : K →ₐ[Fx] A := is_alg_closed.lift (algebra.is_algebraic_of_finite _ _),
-    haveI : is_scalar_tower F Fx K := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ _ hK),
-    haveI : is_scalar_tower F Fx A := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ _ hA),
-    let ψ : K →ₐ[F] A := alg_hom.restrict_scalars F ψ₀,
-    refine ⟨ψ, _⟩,
-    rw (_ : x = (algebra_map Fx K) (adjoin_root.root (minpoly F x))),
-    rw (_ : a = (algebra_map Fx A) (adjoin_root.root (minpoly F x))),
-    exact alg_hom.commutes _ _,
-    exact (adjoin_root.lift_root hA).symm,
-    exact (adjoin_root.lift_root hK).symm, },
+  have := algebra.is_algebraic_iff_is_integral.1 hK,
+  ext a, rw mem_root_set_iff (minpoly.ne_zero $ this x) a,
+  refine ⟨_, λ ha, _⟩,
+  { rintro ⟨ψ, rfl⟩, rw [aeval_alg_hom_apply ψ x, minpoly.aeval, map_zero] },
+  { let Fx := adjoin_root (minpoly F x),
+    haveI : fact (irreducible $ minpoly F x) := ⟨minpoly.irreducible $ this x⟩,
+    have hx : aeval x (minpoly F x) = 0 := minpoly.aeval F x,
+    letI : algebra Fx A := (adjoin_root.lift (algebra_map F A) a ha).to_algebra,
+    letI : algebra Fx K := (adjoin_root.lift (algebra_map F K) x hx).to_algebra,
+    haveI : is_scalar_tower F Fx A := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ _ ha),
+    haveI : is_scalar_tower F Fx K := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ _ hx),
+    let ψ₀ : K →ₐ[Fx] A := is_alg_closed.lift (algebra.is_algebraic_of_larger_base F Fx hK),
+    exact ⟨ψ₀.restrict_scalars F, (congr_arg ψ₀ (adjoin_root.lift_root hx).symm).trans $
+      (ψ₀.commutes _).trans $ adjoin_root.lift_root ha⟩ },
 end
 
 variables (K A : Type*) [field K] [number_field K] [field A] [char_zero A] [is_alg_closed A] (x : K)
@@ -92,7 +79,7 @@ The images of `x` by the embeddings of `K` in `A` are exactly the roots in `A` o
 the minimal polynomial of `x` over `ℚ`. -/
 lemma rat_range_eq_roots : range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
 begin
-  convert range_eq_roots ℚ K A x using 1,
+  convert range_eq_roots ℚ K A (number_field.is_algebraic K) x using 1,
   ext a,
   exact ⟨λ ⟨φ, hφ⟩, ⟨φ.to_rat_alg_hom, hφ⟩, λ ⟨φ, hφ⟩, ⟨φ.to_ring_hom, hφ⟩⟩,
 end
@@ -106,20 +93,17 @@ open finite_dimensional polynomial set
 variables {K : Type*} [field K] [number_field K]
 variables {A : Type*} [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
 
-lemma coeff_bdd_of_norm_le {B : ℝ} {x : K} (h : ∀ φ : K →+* A, ∥φ x∥ ≤ B) (i : ℕ):
+lemma coeff_bdd_of_norm_le {B : ℝ} {x : K} (h : ∀ φ : K →+* A, ∥φ x∥ ≤ B) (i : ℕ) :
   ∥(minpoly ℚ x).coeff i∥ ≤ (max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2) :=
 begin
   have hx : is_integral ℚ x := is_separable.is_integral _ _,
-  rw (by rw [coeff_map, norm_algebra_map'] :
-    ∥(minpoly ℚ x).coeff i∥ = ∥(map (algebra_map ℚ A) (minpoly ℚ x)).coeff i∥),
+  rw [← norm_algebra_map' A, ← coeff_map (algebra_map ℚ A)],
   refine coeff_bdd_of_roots_le _ (minpoly.monic hx) (is_alg_closed.splits_codomain _)
-    (minpoly.nat_degree_le hx) _ i,
-  intros z hz,
-  rsuffices ⟨φ, rfl⟩ : ∃ (φ : K →+* A), φ x = z, {exact h φ },
-  letI : char_zero A := char_zero_of_injective_algebra_map (algebra_map ℚ _).injective,
-  rw [← set.mem_range, rat_range_eq_roots, mem_root_set_iff, aeval_def],
-  convert (mem_roots_map _).mp hz,
-  repeat { exact monic.ne_zero (minpoly.monic hx), },
+    (minpoly.nat_degree_le hx) (λ z hz, _) i,
+  classical, rw [← multiset.mem_to_finset, ← finset.mem_coe] at hz,
+  haveI : char_zero A := char_zero_of_injective_algebra_map (algebra_map ℚ A).injective,
+  obtain ⟨φ, rfl⟩ := (rat_range_eq_roots K A x).symm.subset (_ : z ∈ _), { exact h φ },
+  rw root_set_def, convert hz using 5,
 end
 
 variables (K A)
@@ -132,39 +116,31 @@ begin
   let C := nat.ceil ((max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2)),
   have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
   refine this.subset (λ x hx, _),
-  have h_map_rat_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
-  rw mem_Union,
-  use minpoly ℤ x,
-  rw [mem_Union, exists_prop],
-  refine ⟨⟨_, λ i, _⟩, _⟩,
-  { rw [← nat_degree_map_eq_of_injective (algebra_map ℤ ℚ).injective_int _, ← h_map_rat_minpoly],
+  have h_map_ℚ_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
+  simp_rw mem_Union,
+  refine ⟨_, ⟨_, λ i, _⟩, (mem_root_set_iff (minpoly.ne_zero hx.1) x).2 (minpoly.aeval ℤ x)⟩,
+  { rw [← (minpoly.monic hx.1).nat_degree_map (_ : ℤ →+* ℚ), ← h_map_ℚ_minpoly],
     exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower _ hx.1), },
-  { rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
-    apply le_trans _ (nat.le_ceil _),
-    convert coeff_bdd_of_norm_le hx.2 i,
-    simp only [h_map_rat_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat, int.norm_eq_abs,
-      int.cast_abs], },
-  { rw [finset.mem_coe, multiset.mem_to_finset, mem_roots, is_root.def, ← eval₂_eq_eval_map,
-      ← aeval_def],
-    { exact minpoly.aeval ℤ x, },
-    { exact monic.ne_zero (monic.map (algebra_map ℤ K) (minpoly.monic hx.1)), }},
+  rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
+  apply le_trans _ (nat.le_ceil _),
+  convert coeff_bdd_of_norm_le hx.2 i,
+  rw [h_map_ℚ_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat, int.norm_eq_abs, int.cast_abs],
 end
 
 /-- An algebraic integer whose conjugates are all of norm one is a root of unity. -/
 lemma pow_eq_one_of_norm_eq_one {x : K}
-  (hxi : is_integral ℤ x)  (hx : ∀ φ : K →+* A, ∥φ x∥ = 1) :
+  (hxi : is_integral ℤ x) (hx : ∀ φ : K →+* A, ∥φ x∥ = 1) :
   ∃ (n : ℕ) (hn : 0 < n), x ^ n = 1 :=
 begin
   obtain ⟨a, -, b, -, habne, h⟩ := @set.infinite.exists_ne_map_eq_of_maps_to _ _ _ _
     ((^) x : ℕ → K) set.infinite_univ _ (finite_of_norm_le K A (1:ℝ)),
   { replace habne := habne.lt_or_lt,
-    wlog : a < b := habne using [a b],
-    refine ⟨b - a, tsub_pos_of_lt habne, _⟩,
-    have hxne : x ≠ 0,
-    { contrapose! hx,
-      simp only [hx, norm_zero, ring_hom.map_zero, ne.def, not_false_iff, zero_ne_one],
-      use (is_alg_closed.lift (number_field.is_algebraic K)).to_ring_hom, },
-    { rw [pow_sub₀ _ hxne habne.le, h, mul_inv_cancel (pow_ne_zero b hxne)], }},
+    wlog : b < a := habne using [a b],
+    refine ⟨a - b, tsub_pos_of_lt habne, _⟩,
+    rw [← nat.sub_add_cancel habne.le, pow_add, mul_left_eq_self₀] at h,
+    refine h.resolve_right (λ hp, _),
+    specialize hx (is_alg_closed.lift (number_field.is_algebraic K)).to_ring_hom,
+    rw [pow_eq_zero hp, map_zero, norm_zero] at hx, norm_num at hx },
   { rw set.maps_univ_to,
     exact λ a, ⟨hxi.pow a, λ φ, by simp [hx φ, norm_pow, one_pow]⟩, },
 end

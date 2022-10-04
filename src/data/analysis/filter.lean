@@ -2,10 +2,21 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Computational realization of filters (experimental).
 -/
 import order.filter.cofinite
+
+/-!
+# Computational realization of filters (experimental)
+
+This file provides infrastructure to compute with filters.
+
+## Main declarations
+
+* `cfilter`: Realization of a filter base. Note that this is in the generality of filters on
+  lattices, while `filter` is filters of sets (so corresponding to `cfilter (set α) σ`).
+* `filter.realizer`: Realization of a `filter`. `cfilter` that generates the given filter.
+-/
+
 open set filter
 
 /-- A `cfilter α σ` is a realization of a filter (base) on `α`,
@@ -19,6 +30,13 @@ structure cfilter (α σ : Type*) [partial_order α] :=
 (inf_le_right : ∀ a b : σ, f (inf a b) ≤ f b)
 
 variables {α : Type*} {β : Type*} {σ : Type*} {τ : Type*}
+
+instance [inhabited α] [semilattice_inf α] : inhabited (cfilter α α) :=
+⟨{ f := id,
+  pt := default,
+  inf := (⊓),
+  inf_le_left := λ _ _, inf_le_left,
+  inf_le_right := λ _ _, inf_le_right }⟩
 
 namespace cfilter
 section
@@ -62,6 +80,7 @@ structure filter.realizer (f : filter α) :=
 (F : cfilter (set α) σ)
 (eq : F.to_filter = f)
 
+/-- A `cfilter` realizes the filter it generates. -/
 protected def cfilter.to_realizer (F : cfilter (set α) σ) : F.to_filter.realizer := ⟨σ, F, rfl⟩
 
 namespace filter.realizer
@@ -69,7 +88,8 @@ namespace filter.realizer
 theorem mem_sets {f : filter α} (F : f.realizer) {a : set α} : a ∈ f ↔ ∃ b, F.F b ⊆ a :=
 by cases F; subst f; simp
 
--- Used because it has better definitional equalities than the eq.rec proof
+/-- Transfer a realizer along an equality of filter. This has better definitional equalities than
+the `eq.rec` proof. -/
 def of_eq {f g : filter α} (e : f = g) (F : f.realizer) : g.realizer :=
 ⟨F.σ, F.F, F.eq.trans e⟩
 
@@ -104,6 +124,8 @@ filter_eq $ set.ext $ λ x,
 
 @[simp] theorem principal_σ (s : set α) : (realizer.principal s).σ = unit := rfl
 @[simp] theorem principal_F (s : set α) (u : unit) : (realizer.principal s).F u = s := rfl
+
+instance (s : set α) : inhabited (principal s).realizer := ⟨realizer.principal s⟩
 
 /-- `unit` is a realizer for the top filter -/
 protected def top : (⊤ : filter α).realizer :=

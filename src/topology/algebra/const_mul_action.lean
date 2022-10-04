@@ -7,6 +7,7 @@ import data.real.nnreal
 import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
+import topology.bases
 /-!
 # Monoid actions continuous in the second variable
 
@@ -37,7 +38,7 @@ Hausdorff, discrete group, properly discontinuous, quotient space
 
 open_locale topological_space pointwise
 
-open filter set
+open filter set topological_space
 
 local attribute [instance] mul_action.orbit_rel
 
@@ -353,8 +354,10 @@ export properly_discontinuous_smul (finite_disjoint_inter_image)
 
 export properly_discontinuous_vadd (finite_disjoint_inter_image)
 
-/-- The quotient map by a group action is open. -/
-@[to_additive "The quotient map by a group action is open."]
+/-- The quotient map by a group action is open, i.e. the quotient by a group action is an open
+  quotient. -/
+@[to_additive "The quotient map by a group action is open, i.e. the quotient by a group 
+action is an open quotient. "]
 lemma is_open_map_quotient_mk_mul [has_continuous_const_smul Γ T] :
   is_open_map (quotient.mk : T → quotient (mul_action.orbit_rel Γ T)) :=
 begin
@@ -399,6 +402,14 @@ begin
     simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end
+
+/-- The quotient of a second countable space by a group action is second countable. -/
+@[to_additive "The quotient of a second countable space by an additive group action is second
+countable."]
+theorem has_continuous_const_smul.second_countable_topology [second_countable_topology T]
+  [has_continuous_const_smul Γ T] :
+  second_countable_topology (quotient (mul_action.orbit_rel Γ T)) :=
+topological_space.quotient.second_countable_topology is_open_map_quotient_mk_mul
 
 section nhds
 

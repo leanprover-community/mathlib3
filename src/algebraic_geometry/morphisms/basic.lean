@@ -553,7 +553,7 @@ affine_target_morphism_property.is_local_of_open_cover_imply
 
 lemma diagonal_target_affine_locally_eq_target_affine_locally (P : affine_target_morphism_property)
   (hP : P.is_local) :
-    (target_affine_locally P).diagonal = target_affine_locally P.diagonal :=
+  (target_affine_locally P).diagonal = target_affine_locally P.diagonal :=
 begin
   ext _ _ f,
   exact ((hP.diagonal_affine_open_cover_tfae f).out 0 1).trans

@@ -863,7 +863,7 @@ by simp only [divp, add_mul, units.mul_inv_cancel_right]
 @[field_simps] lemma divp_sub (a b : α) (u : αˣ) : a /ₚ u - b = (a - b * u) /ₚ u :=
 begin
   simp only [divp, sub_mul, sub_right_inj],
-  assoc_rw [units.mul_inv, mul_one],
+  rw units.mul_inv_cancel_right
 end
 
 end units

@@ -193,23 +193,6 @@ end matrix
 
 section ideal
 
-lemma coeff_prod_mem_ideal_pow_tsub {α : Type*} (s : finset α) (f : α → R[X])
-  (I : ideal R) (n : α → ℕ) (h : ∀ i k, (f i).coeff k ∈ I ^ (n i - k)) (k : ℕ) :
-  (s.prod f).coeff k ∈ I ^ (s.sum n - k) :=
-begin
-  classical,
-  induction s using finset.induction with a s ha hs generalizing k,
-  { rw [sum_empty, prod_empty, coeff_one, zero_tsub, pow_zero, ideal.one_eq_top],
-    exact submodule.mem_top },
-  { rw [sum_insert ha, prod_insert ha, coeff_mul],
-    apply sum_mem,
-    rintro ⟨i, j⟩ e,
-    obtain rfl : i + j = k := nat.mem_antidiagonal.mp e,
-    apply ideal.pow_le_pow add_tsub_add_le_tsub_add_tsub,
-    rw pow_add,
-    exact ideal.mul_mem_mul (h _ _) (hs j) }
-end
-
 lemma coeff_charpoly_mem_ideal_pow {I : ideal R} (h : ∀ i j, M i j ∈ I) (k : ℕ) :
   M.charpoly.coeff k ∈ I ^ (fintype.card n - k) :=
 begin

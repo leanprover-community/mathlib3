@@ -70,6 +70,28 @@ lemma is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, ¬ is_max a → 
   @is_succ_limit_rec_on α _ _ C b hs hl = hl b hb :=
 by { classical, exact dif_pos hb }
 
+/-- A predecessor function for a `succ_order`. We have `pred' a = a` for a successor limit `a`, and
+`pred' (succ a) = a` when `a` is not maximal.
+
+When working in a succ-archimedean partial order, this can be used to build an `is_pred_archimdean`
+instance: see `order.succ_order.to_is_pred_archimedean`.
+
+Note that this is only nicely behaved on partial orders. -/
+noncomputable def pred' (a : α) : α := is_succ_limit_rec_on a (λ b _, b) (λ b _, b)
+
+lemma pred'_of_limit : is_succ_limit a → pred' a = a := is_succ_limit_rec_on_limit _ _
+
+alias pred'_of_limit ← is_succ_limit.pred'_eq
+
+lemma pred'_le (b : α) : pred' b ≤ b :=
+begin
+  change dite _ _ _ ≤ b,
+  split_ifs,
+  { exact le_rfl },
+  { convert le_succ _,
+    exact (classical.some_spec $ not_is_succ_limit_iff.1 h).2.symm }
+end
+
 section no_max_order
 variables [no_max_order α]
 
@@ -89,6 +111,8 @@ section order_bot
 variable [order_bot α]
 
 lemma is_succ_limit_bot : is_succ_limit (⊥ : α) := is_min_bot.is_succ_limit
+
+@[simp] lemma pred'_bot : pred' (⊥ : α) = ⊥ := is_succ_limit_bot.pred'_eq
 
 end order_bot
 
@@ -143,6 +167,34 @@ begin
   { apply proof_irrel_heq }
 end
 
+lemma pred'_succ_of_not_is_max : ¬ is_max a → pred' (succ a) = a := is_succ_limit_rec_on_succ' _ _
+
+lemma le_pred'_of_lt : a < b → a ≤ pred' b :=
+begin
+  refine is_succ_limit_rec_on b (λ c hc hc', _) (λ c hc hc', _),
+  { rw pred'_succ_of_not_is_max hc,
+    exact le_of_lt_succ hc' },
+  { rw pred'_of_limit hc,
+    exact hc'.le }
+end
+
+lemma le_of_pred'_lt : pred' a < b → a ≤ b :=
+begin
+  refine is_succ_limit_rec_on a (λ c hc hc', _) (λ c hc hc', _),
+  { rw pred'_succ_of_not_is_max hc at hc',
+    exact succ_le_of_lt hc' },
+  { rw pred'_of_limit hc at hc',
+    exact hc'.le }
+end
+
+lemma le_succ_pred' (a : α) : a ≤ succ (pred' a) :=
+begin
+  refine is_succ_limit_rec_on a (λ a ha, _) (λ a ha, _),
+  { rw pred'_succ_of_not_is_max ha },
+  { rw pred'_of_limit ha,
+    exact le_succ a }
+end
+
 section no_max_order
 variables [no_max_order α]
 
@@ -150,6 +202,8 @@ variables [no_max_order α]
   (hl : Π a, is_succ_limit a → C a) (b : α) :
   @is_succ_limit_rec_on α _ _ C (succ b) hs hl = hs b (not_is_max b) :=
 is_succ_limit_rec_on_succ' _ _ _
+
+@[simp] lemma pred'_succ (a : α) : pred' (succ a) = a := pred'_succ_of_not_is_max (not_is_max a)
 
 end no_max_order
 
@@ -169,6 +223,45 @@ end
 ⟨is_succ_limit.is_min, is_min.is_succ_limit⟩
 
 lemma not_is_succ_limit [no_min_order α] : ¬ is_succ_limit a := by simp
+
+lemma min_of_le_pred' : a ≤ pred' a → is_min a :=
+begin
+  refine is_succ_limit_rec_on a (λ b hb hb', _) (λ a h _, h.is_min),
+  rw pred'_succ_of_not_is_max hb at hb',
+  exact (hb'.not_lt $ lt_succ_of_not_is_max hb).elim
+end
+
+/-- Builds a `pred_order` from a `succ_order` via `order.pred'`. -/
+noncomputable def succ_order.to_pred_order : pred_order α :=
+{ pred := pred',
+  pred_le := pred'_le,
+  min_of_le_pred := λ a, min_of_le_pred',
+  le_pred_of_lt := λ a b, le_pred'_of_lt,
+  le_of_pred_lt := λ a b, le_of_pred'_lt }
+
+@[simp] lemma pred'_eq_pred [h : pred_order α] : @pred' α _ _ = pred :=
+show @pred α _ succ_order.to_pred_order = @pred α _ h, by congr
+
+lemma exists_pred'_iterate_of_le (h : a ≤ b) : ∃ n : ℕ, pred'^[n] b = a :=
+begin
+  cases exists_succ_iterate_of_le h with n hn,
+  induction n with n IH generalizing a b,
+  { exact ⟨0, hn.symm⟩ },
+  { rw iterate_succ_apply' at hn,
+    by_cases hs : is_max (succ^[n] a),
+    { rw hs.succ_eq at hn,
+      exact IH h hn },
+    { rcases eq_or_lt_of_le h with rfl | h,
+      { exact ⟨0, rfl⟩ },
+      { apply_fun pred' at hn,
+        rw pred'_succ_of_not_is_max hs at hn,
+        cases IH (le_pred'_of_lt h) hn with m hm,
+        exact ⟨m + 1, hm⟩ } } }
+end
+
+/-- A succ-archimedean partial order is pred-archimedean. -/
+lemma succ_order.to_is_pred_archimedean [pred_order α] : is_pred_archimedean α :=
+⟨by { rw ←pred'_eq_pred, exact λ a b, exists_pred'_iterate_of_le }⟩
 
 end is_succ_archimedean
 end partial_order
@@ -209,10 +302,25 @@ Note that you need a partial order for data built using this to behave nicely on
   (hs : Π a, ¬ is_min a → C (pred a)) (hl : Π a, is_pred_limit a → C a), C b :=
 @is_succ_limit_rec_on αᵒᵈ _ _
 
-theorem is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
+lemma is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
   (hl : Π a, is_pred_limit a → C a) (hb : is_pred_limit b),
   @is_pred_limit_rec_on α _ _ C b hs hl = hl b hb :=
 @is_succ_limit_rec_on_limit αᵒᵈ b _ _
+
+/-- A successor function for a `pred_order`. We have `succ' a = a` for a predecessor limit `a`, and
+`succ' (pred a) = a` where `a` is not minimal.
+
+When working in a pred-archimedean partial order, this can be used to build an `is_succ_archimdean`
+instance: see `order.pred_order.to_is_succ_archimedean`.
+
+Note that this is only nicely behaved on partial orders. -/
+noncomputable def succ' : α → α := @pred' αᵒᵈ _ _
+
+lemma succ'_of_limit : is_pred_limit a → succ' a = a := @pred'_of_limit αᵒᵈ _ _ _
+
+alias succ'_of_limit ← is_pred_limit.succ'_eq
+
+lemma le_succ' : ∀ b : α, b ≤ succ' b := @pred'_le αᵒᵈ _ _
 
 section no_min_order
 variables [no_min_order α]
@@ -233,6 +341,8 @@ section order_top
 variable [order_top α]
 
 lemma is_pred_limit_top : is_pred_limit (⊤ : α) := is_max_top.is_pred_limit
+
+@[simp] lemma succ'_top : succ' (⊤ : α) = ⊤ := @pred'_bot αᵒᵈ _ _ _
 
 end order_top
 
@@ -268,13 +378,24 @@ lemma is_pred_limit_rec_on_pred' : ∀ {C : α → Sort*} (hs : Π a, ¬ is_min 
   @is_pred_limit_rec_on α _ _ C (pred b) hs hl = hs b hb :=
 @is_succ_limit_rec_on_succ' αᵒᵈ _ _
 
+lemma succ'_pred_of_not_is_min : ¬ is_min a → succ' (pred a) = a :=
+@pred'_succ_of_not_is_max αᵒᵈ _ _ _
+
+lemma succ'_le_of_lt : a < b → succ' a ≤ b := @le_pred'_of_lt αᵒᵈ _ _ _ _
+
+lemma le_of_lt_succ' : a < succ' b → a ≤ b := @le_of_pred'_lt αᵒᵈ _ _ _ _
+
+lemma pred_succ'_le : ∀ a : α, pred (succ' a) ≤ a := @le_succ_pred' αᵒᵈ _ _
+
 section no_min_order
 variables [no_min_order α]
 
-@[simp] theorem is_pred_limit_rec_on_pred : ∀ {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
-  (hl : Π a, is_pred_limit a → C a) (b : α),
+@[simp] lemma is_pred_limit_rec_on_pred : ∀ {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
+  (hl : Π a, is_pred_limit a → C a) {b : α},
   @is_pred_limit_rec_on α _ _ C (pred b) hs hl = hs b (not_is_min b) :=
 @is_succ_limit_rec_on_succ αᵒᵈ _ _ _
+
+@[simp] lemma succ'_pred : ∀ a : α, succ' (pred a) = a := @pred'_succ αᵒᵈ _ _ _
 
 end no_min_order
 
@@ -288,6 +409,25 @@ protected lemma is_pred_limit.is_max : is_pred_limit a → is_max a :=
 @is_succ_limit_iff αᵒᵈ a _ _ _
 
 lemma not_is_pred_limit [no_max_order α] : ¬ is_pred_limit a := by simp
+
+lemma max_of_succ'_le : succ' a ≤ a → is_max a := @min_of_le_pred' αᵒᵈ _ _ _ _
+
+/-- Builds a `succ_order` from a `pred_order` via `order.succ'`. -/
+noncomputable def pred_order.to_succ_order : succ_order α :=
+{ succ := succ',
+  le_succ := le_succ',
+  max_of_succ_le := λ a, max_of_succ'_le,
+  succ_le_of_lt := λ a b, succ'_le_of_lt,
+  le_of_lt_succ := λ a b, le_of_lt_succ' }
+
+@[simp] lemma succ'_eq_succ [h : succ_order α] : @succ' α _ _ = succ := @pred'_eq_pred αᵒᵈ _ _ _ _
+
+lemma exists_succ'_iterate_of_le : a ≤ b → ∃ n : ℕ, succ'^[n] a = b :=
+@exists_pred'_iterate_of_le αᵒᵈ _ _ _ _ _
+
+/-- A pred-archimedean partial order is succ-archimedean. -/
+lemma pred_order.to_is_succ_archimedean [succ_order α] : is_succ_archimedean α :=
+⟨λ a b, by { rw ←succ'_eq_succ, exact exists_succ'_iterate_of_le }⟩
 
 end is_pred_archimedean
 end partial_order

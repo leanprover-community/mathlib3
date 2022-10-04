@@ -95,8 +95,11 @@ end
 /-- A subgroupoid seen as a quiver on vertex set `C` -/
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrws c d⟩
 
+/-- Type synonim for the coercion of a subgroupoid as a groupoid -/
+def coe (S : subgroupoid C) := subtype S.carrier
+
 /-- The coercion of a subgroupoid as a groupoid -/
-def coe : groupoid (S.carrier) :=
+def coe_groupoid : groupoid S.coe :=
 { to_category :=
   { to_category_struct :=
     { to_quiver :=

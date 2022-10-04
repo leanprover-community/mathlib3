@@ -77,7 +77,7 @@ lemma measure_preserving_prod_mul_right [is_mul_right_invariant ν] :
 (measure_preserving.id μ).skew_product (by exact measurable_snd.mul measurable_fst) $
   filter.eventually_of_forall $ map_mul_right_eq_self ν
 
-/-- The map `(x, y) ↦ (y, yx)` semds the measure `μ × ν` to `ν × μ`.
+/-- The map `(x, y) ↦ (y, yx)` sends the measure `μ × ν` to `ν × μ`.
 This is the map `SR` in [Halmos, §59].
 `S` is the map `(x, y) ↦ (x, xy)` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_prod_add_swap
@@ -86,9 +86,9 @@ lemma measure_preserving_prod_mul_swap [is_mul_left_invariant μ] :
   measure_preserving (λ z : G × G, (z.2, z.2 * z.1)) (μ.prod ν) (ν.prod μ) :=
 (measure_preserving_prod_mul ν μ).comp measure_preserving_swap
 
-/-- The map `(x, y) ↦ (y, xy)` semds the measure `μ × ν` to `ν × μ`. -/
+/-- The map `(x, y) ↦ (y, xy)` sends the measure `μ × ν` to `ν × μ`. -/
 @[to_additive measure_preserving_prod_add_swap_right
-  /-" The map `(x, y) ↦ (y, x + y)` semds the measure `μ × ν` to `ν × μ`. "-/]
+  /-" The map `(x, y) ↦ (y, x + y)` sends the measure `μ × ν` to `ν × μ`. "-/]
 lemma measure_preserving_prod_mul_swap_right [is_mul_right_invariant μ] :
   measure_preserving (λ z : G × G, (z.2, z.1 * z.2)) (μ.prod ν) (ν.prod μ) :=
 (measure_preserving_prod_mul_right ν μ).comp measure_preserving_swap

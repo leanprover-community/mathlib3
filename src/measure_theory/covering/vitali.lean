@@ -232,9 +232,10 @@ Then one can extract from `t` a disjoint subfamily that covers almost all `s`. -
 theorem exists_disjoint_covering_ae [metric_space α] [measurable_space α] [opens_measurable_space α]
   [second_countable_topology α]
   (μ : measure α) [is_locally_finite_measure μ] (s : set α)
-  (t : set (set α)) (hf : ∀ x ∈ s, ∀ (ε > (0 : ℝ)), ∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε)
+  (t : set (set α)) (hf : ∀ x ∈ s, ∀ (ε > (0 : ℝ)), ∃ a ∈ t, a ⊆ closed_ball x ε
+    ∧ inf_dist x a ≤ 10 * diam a)
   (ht : ∀ a ∈ t, (interior a).nonempty) (h't : ∀ a ∈ t, is_closed a)
-  (C : ℝ≥0) (h : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (3 * diam a)) ≤ C * μ a) :
+  (C : ℝ≥0) (h : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (23 * diam a)) ≤ C * μ a) :
   ∃ u ⊆ t, u.countable ∧ u.pairwise_disjoint id ∧ μ (s \ ⋃ (a ∈ u), a) = 0 :=
 begin
   /- The idea of the proof is the following. Assume for simplicity that `μ` is finite. Applying the
@@ -256,14 +257,14 @@ begin
   the family is assumed to be fine at every point of `s`).
   -/
   rcases eq_empty_or_nonempty s with rfl|nonempty,
-  { refine ⟨∅, empty_subset _, countable_empty, pairwise_disjoint_empty,
+  sorry { refine ⟨∅, empty_subset _, countable_empty, pairwise_disjoint_empty,
       by simp only [measure_empty, Union_false, Union_empty, diff_self]⟩ },
   haveI : inhabited α,
   { choose x hx using nonempty,
     exact ⟨x⟩ },
   -- choose around each `x` a small ball on which the measure is finite
   have : ∀ x, ∃ r, 0 < r ∧ r ≤ 1 ∧ μ (closed_ball x (20 * r)) < ∞,
-  { assume x,
+  sorry { assume x,
     obtain ⟨R, Rpos, μR⟩ : ∃ (R : ℝ) (hR : 0 < R), μ (closed_ball x R) < ∞ :=
       (μ.finite_at_nhds x).exists_mem_basis nhds_basis_closed_ball,
     refine ⟨min 1 (R/20), _, min_le_left _ _, _⟩,
@@ -281,7 +282,7 @@ begin
   -- extract a disjoint subfamily `u` of `t'` thanks to the abstract Vitali covering theorem.
   obtain ⟨u, ut', u_disj, hu⟩ : ∃ u ⊆ t', u.pairwise_disjoint id ∧
     ∀ a ∈ t', ∃ b ∈ u, set.nonempty (a ∩ b) ∧ diam a ≤ 2 * diam b,
-  { have A : ∀ (a : set α), a ∈ t' → diam a ≤ 2,
+  sorry { have A : ∀ (a : set α), a ∈ t' → diam a ≤ 2,
     { rintros a ⟨hat, ⟨x, hax⟩⟩,
       calc diam a ≤ 2 * 1 : diam_le_of_subset_closed_ball zero_le_one
         (hax.trans $ closed_ball_subset_closed_ball $ hr1 x)
@@ -303,10 +304,9 @@ begin
   let v := {a ∈ u | (a ∩ ball x (r x)).nonempty },
   have vu : v ⊆ u := λ a ha, ha.1,
   -- they are all contained in a fixed ball of finite measure, thanks to our choice of `t'`
-
   obtain ⟨R, μR, hR⟩ : ∃ R, μ (closed_ball x R) < ∞ ∧
                           ∀ a ∈ u, (a ∩ ball x (r x)).nonempty → a ⊆ closed_ball x R,
-  { have : ∀ a ∈ u, ∃ y, a ⊆ closed_ball y (r y) := λ a hau, (ut' hau).2,
+  sorry { have : ∀ a ∈ u, ∃ y, a ⊆ closed_ball y (r y) := λ a hau, (ut' hau).2,
     choose! y hy using this,
     have Idist_v : ∀ a ∈ v, dist (y a) x ≤ r (y a) + r x,
     { assume a hav,
@@ -350,7 +350,7 @@ begin
   -- the elements of `v` are disjoint and all contained in a finite volume ball, hence the sum
   -- of their measures is finite.
   have I : ∑' (a : v), μ (↑a) < ∞,
-  { calc ∑' (a : v), μ (↑a) = μ (⋃ (a ∈ v), a) : begin
+  sorry { calc ∑' (a : v), μ (↑a) = μ (⋃ (a ∈ v), a) : begin
       rw measure_bUnion (u_count.mono vu) _ (λ a ha, (h't _ (vu.trans ut ha)).measurable_set),
       exact u_disj.subset vu
     end
@@ -359,7 +359,7 @@ begin
   -- we can obtain a finite subfamily of `v`, such that the measures of the remaining elements
   -- add up to an arbitrarily small number, say `ε / C`.
   obtain ⟨w, hw⟩ : ∃ (w : finset ↥v), ∑' (a : {a // a ∉ w}), μ (↑a) < ε / C,
-  { haveI : ne_bot (at_top : filter (finset v)) := at_top_ne_bot,
+  sorry { haveI : ne_bot (at_top : filter (finset v)) := at_top_ne_bot,
     have : 0 < ε / C, by simp only [ennreal.div_pos_iff, εpos.ne', ennreal.coe_ne_top, ne.def,
                                     not_false_iff, and_self],
     exact ((tendsto_order.1 (ennreal.tendsto_tsum_compl_at_top_zero I.ne)).2 _ this).exists },
@@ -367,7 +367,7 @@ begin
   -- main property: the points `z` of `s` which are not covered by `u` are contained in the
   -- enlargements of the elements not in `w`.
   have M : (s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ ball x (r x)
-    ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y a) (3 * diam (a : set α)),
+    ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y a) (23 * diam (a : set α)),
   { assume z hz,
     set k := ⋃ (a : v) (ha : a ∈ w), (↑a : set α) with hk,
     have k_closed : is_closed k :=
@@ -387,7 +387,7 @@ begin
     obtain ⟨d, dpos, hd⟩ : ∃ (d : ℝ) (dpos : 0 < d), closed_ball z d ⊆ ball x (r x) \ k :=
       nhds_basis_closed_ball.mem_iff.1 this,
     -- choose an element `a` of the family `t` contained in this small ball
-    obtain ⟨a, hat, za, ad⟩ : ∃ a ∈ t, z ∈ a ∧ a ⊆ closed_ball z d :=
+    obtain ⟨a, hat, ad, diam_a⟩ : ∃ a ∈ t, a ⊆ closed_ball z d ∧ inf_dist z a ≤ 10 * diam a :=
       hf z ((mem_diff _).1 (mem_of_mem_inter_left hz)).1 d dpos,
     have ax : a ⊆ ball x (r x) := ad.trans (hd.trans (diff_subset (ball x (r x)) k)),
     -- it intersects an element `b` of `u` with comparable diameter, by definition of `u`
@@ -408,23 +408,25 @@ begin
     let b'' : {a // a ∉ w} := ⟨b', b'_notmem_w⟩,
     -- since `a` and `b` have comparable diameters, it follows that `z` belongs to the
     -- enlargement of `b`
-    have zb : z ∈ closed_ball (y b) (3 * diam b),
+    have zb : z ∈ closed_ball (y b) (23 * diam b),
     { rcases ab with ⟨e, ⟨ea, eb⟩⟩,
-      have A : dist z e ≤ diam a := dist_le_diam_of_mem (bounded_closed_ball.mono ad) za ea,
+      have A : dist z e ≤ 11 * diam a, from calc
+        dist z e ≤ diam a + inf_dist z a : sorry
+        ... ≤ 11 * diam a : by linarith only [diam_a],
       have B : dist e (y b) ≤ diam b,
       { rcases (ut' bu).2 with ⟨c, hc⟩,
         apply dist_le_diam_of_mem (bounded_closed_ball.mono hc) eb (hy b (ut bu)).1 },
       simp only [mem_closed_ball],
       linarith [dist_triangle z e (y b)] },
-    suffices H : closed_ball (y (↑b'')) (3 * diam (↑b'' : set α))
-      ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y (↑a)) (3 * diam (↑a : set α)), from H zb,
-    exact subset_Union (λ (a : {a // a ∉ w}), closed_ball (y (↑a)) (3 * diam (↑a : set α))) b'' },
+    suffices H : closed_ball (y (↑b'')) (23 * diam (↑b'' : set α))
+      ⊆ ⋃ (a : {a // a ∉ w}), closed_ball (y (↑a)) (23 * diam (↑a : set α)), from H zb,
+    exact subset_Union (λ (a : {a // a ∉ w}), closed_ball (y (↑a)) (23 * diam (↑a : set α))) b'' },
   -- now that we have proved our main inclusion, we can use it to estimate the measure of the points
   -- in `ball x (r x)` not covered by `u`.
   haveI : encodable v := (u_count.mono vu).to_encodable,
   calc μ ((s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ ball x (r x))
-      ≤ μ (⋃ (a : {a // a ∉ w}), closed_ball (y (↑a)) (3 * diam (↑a : set α))) : measure_mono M
-  ... ≤ ∑' (a : {a // a ∉ w}), μ (closed_ball (y (↑a)) (3 * diam (↑a : set α))) :
+      ≤ μ (⋃ (a : {a // a ∉ w}), closed_ball (y (↑a)) (23 * diam (↑a : set α))) : measure_mono M
+  ... ≤ ∑' (a : {a // a ∉ w}), μ (closed_ball (y (↑a)) (23 * diam (↑a : set α))) :
     measure_Union_le _
   ... ≤ ∑' (a : {a // a ∉ w}), C * μ (↑a) : ennreal.tsum_le_tsum (λ a, (hy a (ut (vu a.1.2))).2)
   ... = C * ∑' (a : {a // a ∉ w}), μ (↑a) : ennreal.tsum_mul_left

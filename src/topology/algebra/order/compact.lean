@@ -390,7 +390,7 @@ end
 
 end continuous_on
 
-lemma is_compact.exists_local_min_mem_subset {f : β → α} {s t : set β} {m : α} (ht : is_compact t)
+lemma is_compact.exists_local_min_on_mem_subset {f : β → α} {s t : set β} {m : α} (ht : is_compact t)
   (hst : s ⊆ t) (hf : continuous_on f t) (hf1 : ∀ z ∈ t \ s, m ≤ f z) {z : β} (hz : z ∈ t)
   (hfz : f z < m) :
   ∃ x ∈ s, is_local_min_on f t x :=
@@ -405,4 +405,13 @@ begin
     { rw eventually_nhds_within_iff at h3 ⊢,
       filter_upwards [h3] with y hyf hy using key hy (hyf hy) },
   exact ⟨x, h2, eventually_of_mem h4 (λ y hy, hfx y (hst hy))⟩
+end
+
+lemma is_compact.exists_local_min_mem_open {f : β → α} {s t : set β} {m : α} (ht : is_compact t)
+  (hst : s ⊆ t) (hf : continuous_on f t) (hf1 : ∀ z ∈ t \ s, m ≤ f z) {z : β} (hz : z ∈ t)
+  (hfz : f z < m) (hs : is_open s) :
+  ∃ x ∈ s, is_local_min f x :=
+begin
+  obtain ⟨x, hx, hfx⟩ := ht.exists_local_min_on_mem_subset hst hf hf1 hz hfz,
+  exact ⟨x, hx, hfx.is_local_min (filter.mem_of_superset (hs.mem_nhds hx) hst)⟩
 end

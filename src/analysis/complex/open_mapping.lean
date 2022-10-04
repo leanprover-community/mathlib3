@@ -20,16 +20,6 @@ open_locale topological_space
 
 variables {U : set ℂ} {f : ℂ → ℂ} {z₀ w : ℂ} {ε r m : ℝ}
 
-lemma exists_local_min_mem_ball {f : ℂ → ℝ} {z : ℂ} (hf : continuous_on f (closed_ball w r))
-  (hf1 : ∀ z ∈ sphere w r, m ≤ f z) (hz : z ∈ ball w r) (hfz : f z < m) :
-  ∃ z ∈ ball w r, is_local_min f z :=
-begin
-  simp_rw [← closed_ball_diff_ball] at hf1,
-  obtain ⟨x, hx, hfx⟩ := (is_compact_closed_ball w r).exists_local_min_mem_subset
-    ball_subset_closed_ball hf hf1 (ball_subset_closed_ball hz) hfz,
-  exact ⟨x, hx, hfx.is_local_min (closed_ball_mem_nhds_of_mem hx)⟩
-end
-
 lemma complex.eventually_eq_or_eq_zero_of_is_local_min_norm
   (hf : ∀ᶠ z in 𝓝 w, differentiable_at ℂ f z) (hw : is_local_min (norm ∘ f) w) :
   (∀ᶠ z in 𝓝 w, f z = f w) ∨ (f w = 0) :=

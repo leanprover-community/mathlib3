@@ -527,11 +527,12 @@ end star_alg_equiv_class
 
 namespace star_alg_equiv
 
+section basic
+
 variables {F R A B C : Type*}
   [has_add A] [has_mul A] [has_smul R A] [has_star A]
   [has_add B] [has_mul B] [has_smul R B] [has_star B]
   [has_add C] [has_mul C] [has_smul R C] [has_star C]
-  (e : A ≃⋆ₐ[R] B)
 
 instance : star_alg_equiv_class (A ≃⋆ₐ[R] B) R A B :=
 { coe := to_fun,
@@ -551,8 +552,7 @@ instance : has_coe_to_fun (A ≃⋆ₐ[R] B) (λ _, A → B) := ⟨star_alg_equi
 @[ext]
 lemma ext {f g : A ≃⋆ₐ[R] B} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
----- `copy` and other lemmas?
-
+lemma ext_iff {f g : A ≃⋆ₐ[R] B} : f = g ↔ ∀ a, f a = g a  := fun_like.ext_iff
 
 /-- Star algebra equivalences are reflexive. -/
 @[refl] def refl : A ≃⋆ₐ[R] A := { map_smul' := λ r a, rfl, map_star' := λ a, rfl, ..(1 : A ≃+* A) }
@@ -594,9 +594,10 @@ symm_bijective.injective $ ext $ λ x, rfl
 
 @[simp] lemma refl_symm : (star_alg_equiv.refl : A ≃⋆ₐ[R] A).symm = star_alg_equiv.refl := rfl
 
-@[simp] lemma to_ring_equiv_symm (f : A ≃⋆ₐ[R] B) : (f : A ≃+* B).symm = f.symm := rfl
+-- should be a `simp` lemma, but causes a linter timeout
+lemma to_ring_equiv_symm (f : A ≃⋆ₐ[R] B) : (f : A ≃+* B).symm = f.symm := rfl
 
-@[simp] lemma symm_to_ring_equiv : (e.symm : B ≃+* A) = (e : A ≃+* B).symm := rfl
+@[simp] lemma symm_to_ring_equiv (e : A ≃⋆ₐ[R] B) : (e.symm : B ≃+* A) = (e : A ≃+* B).symm := rfl
 
 /-- Star algebra equivalences are transitive. -/
 @[trans]
@@ -626,13 +627,20 @@ theorem left_inverse_symm (e : A ≃⋆ₐ[R] B) : function.left_inverse e.symm 
 
 theorem right_inverse_symm (e : A ≃⋆ₐ[R] B) : function.right_inverse e.symm e := e.right_inv
 
+end basic
+
+section bijective
+
+variables {F G R A B : Type*} [monoid R]
+variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star A]
+variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
+variables [hF : non_unital_star_alg_hom_class F R A B] [non_unital_star_alg_hom_class G R B A]
+include hF
+
 /-- If a (unital or non-unital) star algebra morphism has an inverse, it is an isomorphism of
 star algebras. -/
-@[simps] def of_star_alg_hom {F G R A B : Type*} [monoid R]
-  [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star A]
-  [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
-  [non_unital_star_alg_hom_class F R A B] [non_unital_star_alg_hom_class G R B A]
-  (f : F) (g : G) (h₁ : ∀ x, g (f x) = x) (h₂ : ∀ x, f (g x) = x) : A ≃⋆ₐ[R] B :=
+@[simps] def of_star_alg_hom (f : F) (g : G) (h₁ : ∀ x, g (f x) = x) (h₂ : ∀ x, f (g x) = x) :
+  A ≃⋆ₐ[R] B :=
 { to_fun    := f,
   inv_fun   := g,
   left_inv  := h₁,
@@ -642,26 +650,19 @@ star algebras. -/
   map_smul' := map_smul f,
   map_star' := map_star f }
 
-/-- Promotes a bijective star algebra homomorphism to a star algebra equivalence. -/
-noncomputable def of_bijective {F R A B : Type*} [monoid R]
-  [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star A]
-  [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
-  [non_unital_star_alg_hom_class F R A B] (f : F) (hf : function.bijective f) : A ≃⋆ₐ[R] B :=
+/-- Promote a bijective star algebra homomorphism to a star algebra equivalence. -/
+noncomputable def of_bijective (f : F) (hf : function.bijective f) : A ≃⋆ₐ[R] B :=
 { to_fun := f,
   map_star' := map_star f,
   map_smul' := map_smul f,
   .. ring_equiv.of_bijective f (hf : function.bijective (f : A → B)), }
 
-@[simp] lemma coe_of_bijective {F R A B : Type*} [monoid R]
-  [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star A]
-  [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
-  [non_unital_star_alg_hom_class F R A B] {f : F} (hf : function.bijective f) :
+@[simp] lemma coe_of_bijective {f : F} (hf : function.bijective f) :
   (star_alg_equiv.of_bijective f hf : A → B) = f := rfl
 
-lemma of_bijective_apply {F R A B : Type*} [monoid R]
-  [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star A]
-  [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
-  [non_unital_star_alg_hom_class F R A B] {f : F} (hf : function.bijective f) (a : A) :
+lemma of_bijective_apply {f : F} (hf : function.bijective f) (a : A) :
   (star_alg_equiv.of_bijective f hf) a = f a := rfl
+
+end bijective
 
 end star_alg_equiv

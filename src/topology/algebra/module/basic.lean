@@ -172,7 +172,7 @@ variables {R R' : Type u} {M M' : Type v}
 [semiring R] [topological_space R]
 [ring R'] [topological_space R']
 [topological_space M] [add_comm_monoid M]
-[topological_space M'] [add_comm_monoid M']
+[topological_space M'] [add_comm_group M']
 [module R M] [has_continuous_smul R M]
 [module R' M'] [has_continuous_smul R' M']
 

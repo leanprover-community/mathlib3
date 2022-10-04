@@ -370,7 +370,7 @@ def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
 values are retained. This is the `order_iso` version of `fin.cast_le`. -/
 @[simps apply symm_apply]
 def fin.cast_le_order_iso {n m : ℕ} (h : n ≤ m) : fin n ≃o {i : fin m // (i : ℕ) < n} :=
-{ to_fun := λ i, ⟨fin.cast_le h i, by simpa using i.is_lt⟩,
+{ to_fun := λ i, ⟨fin.cast_le h i, by simp⟩,
   inv_fun := λ i, ⟨i, i.prop⟩,
   left_inv := λ _, by simp,
   right_inv := λ _, by simp,

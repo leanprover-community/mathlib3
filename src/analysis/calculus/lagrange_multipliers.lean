@@ -38,7 +38,7 @@ a complete space, then the linear map `x ↦ (f' x, φ' x)` is not surjective. -
 lemma is_local_extr_on.range_ne_top_of_has_strict_fderiv_at
   (hextr : is_local_extr_on φ {x | f x = f x₀} x₀) (hf' : has_strict_fderiv_at f f' x₀)
   (hφ' : has_strict_fderiv_at φ φ' x₀) :
-  (f'.prod φ').range ≠ ⊤ :=
+  linear_map.range (f'.prod φ') ≠ ⊤ :=
 begin
   intro htop,
   set fφ := λ x, (f x, φ x),
@@ -68,11 +68,12 @@ begin
   refine ⟨Λ, Λ₀, e.map_ne_zero_iff.1 h0, λ x, _⟩,
   convert linear_map.congr_fun (linear_map.range_le_ker_iff.1 hΛ') x using 1,
   -- squeezed `simp [mul_comm]` to speed up elaboration
-  simp only [linear_map.coprod_equiv_apply, linear_equiv.refl_apply,
-    linear_map.ring_lmap_equiv_self_symm_apply, linear_map.comp_apply,
-    continuous_linear_map.coe_coe, continuous_linear_map.prod_apply,
-    linear_equiv.trans_apply, linear_equiv.prod_apply, linear_map.coprod_apply,
-    linear_map.smul_right_apply, linear_map.one_apply, smul_eq_mul, mul_comm]
+  simp only [mul_comm, algebra.id.smul_eq_mul, linear_equiv.trans_apply, linear_equiv.prod_apply,
+             linear_equiv.refl_apply, linear_map.ring_lmap_equiv_self_symm_apply,
+             linear_map.coprod_equiv_apply, continuous_linear_map.to_linear_map_eq_coe,
+             continuous_linear_map.coe_prod, linear_map.coprod_comp_prod, linear_map.add_apply,
+             linear_map.coe_comp, continuous_linear_map.coe_coe, linear_map.coe_smul_right,
+             linear_map.one_apply]
 end
 
 /-- Lagrange multipliers theorem: if `φ : E → ℝ` has a local extremum on the set `{x | f x = f x₀}`
@@ -133,13 +134,14 @@ Then the derivatives `f' i : E → L[ℝ] ℝ` and `φ' : E →L[ℝ] ℝ` are l
 See also `is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at` for a version that
 that states existence of Lagrange multipliers `Λ` and `Λ₀` instead of using
 `¬linear_independent ℝ _` -/
-lemma is_local_extr_on.linear_dependent_of_has_strict_fderiv_at {ι : Type*} [fintype ι]
+lemma is_local_extr_on.linear_dependent_of_has_strict_fderiv_at {ι : Type*} [finite ι]
   {f : ι → E → ℝ} {f' : ι → E →L[ℝ] ℝ}
   (hextr : is_local_extr_on φ {x | ∀ i, f i x = f i x₀} x₀)
   (hf' : ∀ i, has_strict_fderiv_at (f i) (f' i) x₀)
   (hφ' : has_strict_fderiv_at φ φ' x₀) :
   ¬linear_independent ℝ (option.elim φ' f' : option ι → E →L[ℝ] ℝ) :=
 begin
+  casesI nonempty_fintype ι,
   rw [fintype.linear_independent_iff], push_neg,
   rcases hextr.exists_multipliers_of_has_strict_fderiv_at hf' hφ' with ⟨Λ, Λ₀, hΛ, hΛf⟩,
   refine ⟨option.elim Λ₀ Λ, _, _⟩,

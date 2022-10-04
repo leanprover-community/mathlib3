@@ -55,7 +55,7 @@ class enriched_category (C : Type u₁) :=
   Π W X Y Z, (α_ _ _ _).inv ≫ (comp W X Y ⊗ 𝟙 _) ≫ comp W Y Z = (𝟙 _ ⊗ comp X Y Z) ≫ comp W X Z
   . obviously)
 
-notation X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
+notation (name := enriched_category.hom) X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
 
 variables (V) {C : Type u₁} [enriched_category V C]
 

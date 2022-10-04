@@ -572,7 +572,7 @@ def lift.initial_seg : @initial_seg ordinal.{u} ordinal.{max u v} (<) (<) :=
 /-- `ω` is the first infinite ordinal, defined as the order type of `ℕ`. -/
 def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
-localized "notation `ω` := ordinal.omega" in ordinal
+localized "notation (name := ordinal.omega) `ω` := ordinal.omega" in ordinal
 
 /-- Note that the presence of this lemma makes `simp [omega]` form a loop. -/
 @[simp] theorem type_nat_lt : @type ℕ (<) _ = ω := (lift_id _).symm

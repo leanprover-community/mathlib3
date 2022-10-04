@@ -107,14 +107,14 @@ private def fintype_helper : (zmod n ⊕ zmod n) ≃ dihedral_group n :=
 /--
 If `0 < n`, then `dihedral_group n` is a finite group.
 -/
-instance [fact (0 < n)] : fintype (dihedral_group n) := fintype.of_equiv _ fintype_helper
+instance [ne_zero n] : fintype (dihedral_group n) := fintype.of_equiv _ fintype_helper
 
 instance : nontrivial (dihedral_group n) := ⟨⟨r 0, sr 0, dec_trivial⟩⟩
 
 /--
 If `0 < n`, then `dihedral_group n` has `2n` elements.
 -/
-lemma card [fact (0 < n)] : fintype.card (dihedral_group n) = 2 * n :=
+lemma card [ne_zero n] : fintype.card (dihedral_group n) = 2 * n :=
 by rw [← fintype.card_eq.mpr ⟨fintype_helper⟩, fintype.card_sum, zmod.card, two_mul]
 
 @[simp] lemma r_one_pow (k : ℕ) : (r 1 : dihedral_group n) ^ k = r k :=
@@ -152,14 +152,15 @@ If `0 < n`, then `r 1` has order `n`.
 -/
 @[simp] lemma order_of_r_one : order_of (r 1 : dihedral_group n) = n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn,
+  rcases eq_zero_or_ne_zero n with rfl | hn,
   { rw order_of_eq_zero_iff',
     intros n hn,
     rw [r_one_pow, one_def],
     apply mt r.inj,
     simpa using hn.ne' },
-  { haveI := fact.mk hn,
-    apply (nat.le_of_dvd hn $ order_of_dvd_of_pow_eq_one $ @r_one_pow_n n).lt_or_eq.resolve_left,
+  { resetI,
+    apply (nat.le_of_dvd (ne_zero.pos n) $ order_of_dvd_of_pow_eq_one $ @r_one_pow_n n)
+      .lt_or_eq.resolve_left,
     intro h,
     have h1 : (r 1 : dihedral_group n)^(order_of (r 1)) = 1,
     { exact pow_order_of_eq_one _ },
@@ -172,7 +173,7 @@ end
 /--
 If `0 < n`, then `i : zmod n` has order `n / gcd n i`.
 -/
-lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
+lemma order_of_r [ne_zero n] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
 begin
   conv_lhs { rw ←zmod.nat_cast_zmod_val i },
   rw [←r_one_pow, order_of_pow, order_of_r_one]
@@ -180,9 +181,9 @@ end
 
 lemma exponent : monoid.exponent (dihedral_group n) = lcm n 2 :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn,
+  rcases eq_zero_or_ne_zero n with rfl | hn,
   { exact monoid.exponent_eq_zero_of_order_zero order_of_r_one },
-  haveI := fact.mk hn,
+  resetI,
   apply nat.dvd_antisymm,
   { apply monoid.exponent_dvd_of_forall_pow_eq_one,
     rintro (m | m),

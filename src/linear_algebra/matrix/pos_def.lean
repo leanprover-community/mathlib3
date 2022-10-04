@@ -31,6 +31,13 @@ M.is_hermitian ∧ ∀ x : n → 𝕜, x ≠ 0 → 0 < is_R_or_C.re (dot_product
 
 lemma pos_def.is_hermitian {M : matrix n n 𝕜} (hM : M.pos_def) : M.is_hermitian := hM.1
 
+lemma pos_def.transpose {M : matrix n n 𝕜} (hM : M.pos_def) : Mᵀ.pos_def :=
+begin
+  refine ⟨is_hermitian.transpose hM.1, λ x hx, _⟩,
+  convert hM.2 (star x) (star_ne_zero.2 hx) using 2,
+  rw [mul_vec_transpose, matrix.dot_product_mul_vec, star_star, dot_product_comm]
+end
+
 lemma pos_def_of_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ}
   (hM : M.is_symm) (hMq : M.to_quadratic_form'.pos_def) :
   M.pos_def :=
@@ -48,6 +55,26 @@ begin
   simp only [to_quadratic_form', bilin_form.to_quadratic_form_apply, matrix.to_bilin'_apply'],
   apply hM.2 x hx,
 end
+
+namespace pos_def
+
+variables {M : matrix n n ℝ} (hM : M.pos_def)
+include hM
+
+lemma det_pos [decidable_eq n] : 0 < det M :=
+begin
+  rw hM.is_hermitian.det_eq_prod_eigenvalues,
+  apply finset.prod_pos,
+  intros i _,
+  rw hM.is_hermitian.eigenvalues_eq,
+  apply hM.2 _ (λ h, _),
+  have h_det : (hM.is_hermitian.eigenvector_matrix)ᵀ.det = 0,
+    from matrix.det_eq_zero_of_row_eq_zero i (λ j, congr_fun h j),
+  simpa only [h_det, not_is_unit_zero] using
+    is_unit_det_of_invertible hM.is_hermitian.eigenvector_matrixᵀ,
+end
+
+end pos_def
 
 end matrix
 

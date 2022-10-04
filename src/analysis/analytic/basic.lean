@@ -516,7 +516,7 @@ lemma analytic_at.sub (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
   analytic_at 𝕜 (f - g) x :=
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
-lemma analytic_on.mono {s t : set 𝕜} (hf : analytic_on 𝕜 f t) (hst : s ⊆ t) :
+lemma analytic_on.mono {s t : set E} (hf : analytic_on 𝕜 f t) (hst : s ⊆ t) :
   analytic_on 𝕜 f s :=
 λ z hz, hf z (hst hz)
 

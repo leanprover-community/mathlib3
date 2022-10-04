@@ -18,7 +18,7 @@ The idea of the proof is to use the translation invariance of measures to prove 
 for two sets `E` and `F`, where `c` is a constant that does not depend on `μ`. Let `e` and `f` be
 the characteristic functions of `E` and `F`.
 Assume that `μ` and `ν` are left-invariant measures. Then the map `(x, y) ↦ (y * x, x⁻¹)`
-preserves the measure `μ.prod ν`, which means that
+preserves the measure `μ × ν`, which means that
 ```
   ∫ x, ∫ y, h x y ∂ν ∂μ = ∫ x, ∫ y, h (y * x) x⁻¹ ∂ν ∂μ
 ```
@@ -65,7 +65,7 @@ open measure
 This condition is part of the definition of a measurable group in [Halmos, §59].
 There, the map in this lemma is called `S`. -/
 @[to_additive measure_preserving_prod_add
-  /-" The shear mapping `(x, y) ↦ (x, x + y)` preserves the measure `μ.prod ν`. "-/]
+  /-" The shear mapping `(x, y) ↦ (x, x + y)` preserves the measure `μ × ν`. "-/]
 lemma measure_preserving_prod_mul [is_mul_left_invariant ν] :
   measure_preserving (λ z : G × G, (z.1, z.1 * z.2)) (μ.prod ν) (μ.prod ν) :=
 (measure_preserving.id μ).skew_product measurable_mul $
@@ -95,7 +95,7 @@ lemma measure_preserving_prod_mul_swap_right [is_mul_right_invariant μ] :
 
 /-- The map `(x, y) ↦ (xy, y)` preserves the measure `μ × ν`. -/
 @[to_additive measure_preserving_add_prod
-  /-" The map `(x, y) ↦ (x + y, y)` preserves the measure `μ.prod ν`. "-/]
+  /-" The map `(x, y) ↦ (x + y, y)` preserves the measure `μ × ν`. "-/]
 lemma measure_preserving_mul_prod [is_mul_right_invariant μ] :
   measure_preserving (λ z : G × G, (z.1 * z.2, z.2)) (μ.prod ν) (μ.prod ν) :=
 measure_preserving_swap.comp $ by apply measure_preserving_prod_mul_swap_right μ ν
@@ -146,7 +146,7 @@ lemma measure_preserving_prod_div_swap [is_mul_right_invariant μ] :
 
 /-- The map `(x, y) ↦ (x / y, y)` preserves the measure `μ × ν`. -/
 @[to_additive measure_preserving_sub_prod
-  /-" The map `(x, y) ↦ (x - y, y)` preserves the measure `μ.prod ν`. "-/]
+  /-" The map `(x, y) ↦ (x - y, y)` preserves the measure `μ × ν`. "-/]
 lemma measure_preserving_div_prod [is_mul_right_invariant μ] :
   measure_preserving (λ z : G × G, (z.1 / z.2, z.2)) (μ.prod ν) (μ.prod ν) :=
 measure_preserving_swap.comp $ by apply measure_preserving_prod_div_swap μ ν

@@ -1347,8 +1347,11 @@ instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
 instance add_circle.measurable_space {a : ℝ} [fact (0 < a)] : measurable_space (add_circle a) :=
 borel (add_circle a)
 
-instance add_circle.borel_space {a : ℝ} [fact (0 < a)] : borel_space (add_circle a) :=
-⟨rfl⟩
+instance add_circle.borel_space {a : ℝ} [fact (0 < a)] : borel_space (add_circle a) := ⟨rfl⟩
+
+@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} [fact (0 < a)] :
+  measurable (coe : ℝ → add_circle a) :=
+continuous.measurable $ add_circle.continuous_mk' a
 
 /-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
 gives a way to compute the measure of a set in terms of sets on which a given function `f` does not

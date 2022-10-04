@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Alex Kontorovich, Heather Macbeth
 -/
 import measure_theory.measure.haar_quotient
 import measure_theory.integral.interval_integral
@@ -10,17 +10,20 @@ import topology.algebra.order.floor
 /-!
 # Integrals of periodic functions
 
-In this file we prove that `∫ x in t..t + T, f x = ∫ x in s..s + T, f x` for any (not necessarily
-measurable) function periodic function with period `T`.
+In this file we prove that the half-open interval `Ioc t (t + T)` in `ℝ` is a fundamental domain of
+the action of the subgroup `ℤ ∙ T` on `ℝ`.
+
+A consequence is `add_circle.measure_preserving_mk`: the covering map from `ℝ` to the "additive
+circle" `ℝ ⧸ (ℤ ∙ T)` is measure-preserving, with respect to the restriction of Lebesgue measure to
+`Ioc t (t + T)` (upstairs) and with respect to Haar measure (downstairs).
+
+Another consequence (`function.periodic.interval_integral_add_eq` and related declarations) is that
+`∫ x in t..t + T, f x = ∫ x in s..s + T, f x` for any (not necessarily measurable) function with
+period `T`.
 -/
 
-/-!
- TO DO in this file (9/9/22):
-  - pull names from `real_mod_zmultiples`
--/
-
-open set function measure_theory measure_theory.measure topological_space
-open_locale measure_theory nnreal
+open set function measure_theory measure_theory.measure topological_space add_subgroup
+open_locale measure_theory nnreal ennreal
 
 local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
 
@@ -34,8 +37,6 @@ begin
   simpa only [add_comm x] using exists_unique_add_zsmul_mem_Ioc hT x t
 end
 
-section newstuff ---- NEW STUFF
-
 lemma is_add_fundamental_domain_Ioc' {T : ℝ} (hT : 0 < T) (t : ℝ) (μ : measure ℝ . volume_tac) :
   is_add_fundamental_domain (add_subgroup.zmultiples T).opposite (Ioc t (t + T)) μ :=
 begin
@@ -46,30 +47,68 @@ begin
   simpa using exists_unique_add_zsmul_mem_Ioc hT x t,
 end
 
-open add_subgroup
+namespace add_circle
+variables (T : ℝ) [hT : fact (0 < T)]
+include hT
 
-variables {T : ℝ} [fact (0 < T)]
-
+/-- Equip the "additive circle" `ℝ ⧸ (ℤ ∙ T)` with, as a standard measure, the Haar measure of total
+mass `T` -/
 noncomputable instance : measure_space (add_circle T) :=
-{ volume := (id ⟨T, le_of_lt (fact.out _)⟩ : ℝ≥0) • add_haar_measure ⊤,
+{ volume := (ennreal.of_real T) • add_haar_measure ⊤,
   .. add_circle.measurable_space }
 
-local notation `π` := quotient_add_group.mk' (zmultiples T)
+@[simp] protected lemma measure_univ : volume (set.univ : set (add_circle T)) = ennreal.of_real T :=
+begin
+  dsimp [(volume)],
+  rw ← positive_compacts.coe_top,
+  simp [add_haar_measure_self, -positive_compacts.coe_top],
+end
 
-lemma foo (t : ℝ) : measure_preserving π (volume.restrict (Ioc t (t + T))) volume :=
+/-- The covering map from `ℝ` to the "additive circle" `ℝ ⧸ (ℤ ∙ T)` is measure-preserving,
+considered with respect to the standard measure (defined to be the Haar measure of total mass `T`)
+on the additive circle, and with respect to the restriction of Lebsegue measure on `ℝ` to an
+interval (t, t + T]. -/
+protected lemma measure_preserving_mk (t : ℝ) :
+  measure_preserving (coe : ℝ → add_circle T) (volume.restrict (Ioc t (t + T))) :=
 measure_preserving_quotient_add_group.mk'
-  (is_add_fundamental_domain_Ioc' (fact.out (0 < T)) t)
-  ⊤
+  (is_add_fundamental_domain_Ioc' hT.out t)
+  (⊤ : positive_compacts (add_circle T))
   (by simp)
-  ⟨T, le_of_lt (fact.out _)⟩
-  begin
-    rw ← ennreal.of_real_coe_nnreal,
-    simp,
-  end
+  T.to_nnreal
+  (by simp [← ennreal.of_real_coe_nnreal, real.coe_to_nnreal T hT.out.le])
 
-end newstuff
+/-- The integral of a measurable function over `add_circle T` is equal to the integral over an
+interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
+protected lemma lintegral_preimage (t : ℝ) {f : add_circle T → ℝ≥0∞} (hf : measurable f) :
+  ∫⁻ a in Ioc t (t + T), f a = ∫⁻ b : add_circle T, f b :=
+by rw [← lintegral_map hf (add_circle.measurable_mk' T),
+  (add_circle.measure_preserving_mk T t).map_eq]
 
---------------------------
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+
+/-- The integral of an almost-everywhere strongly measurable function over `add_circle T` is equal
+to the integral over an interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
+protected lemma integral_preimage (t : ℝ) {f : add_circle T → E}
+  (hf : ae_strongly_measurable f volume) :
+  ∫ a in Ioc t (t + T), f a = ∫ b : add_circle T, f b :=
+begin
+  rw ← (add_circle.measure_preserving_mk T t).map_eq at ⊢ hf,
+  rw integral_map (add_circle.measurable_mk' T).ae_measurable hf,
+end
+
+open interval_integral
+
+/-- The integral of an almost-everywhere strongly measurable function over `add_circle T` is equal
+to the integral over an interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
+protected lemma interval_integral_preimage (t : ℝ) {f : add_circle T → E}
+  (hf : ae_strongly_measurable f volume) :
+  ∫ a in t..(t + T), f a = ∫ b : add_circle T, f b :=
+begin
+  rw [integral_of_le, add_circle.integral_preimage T t hf],
+  linarith [hT.out],
+end
+
+end add_circle
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
@@ -85,7 +124,6 @@ variables {f : ℝ → E} {T : ℝ}
 lemma interval_integral_add_eq_of_pos (hf : periodic f T)
   (hT : 0 < T) (t s : ℝ) : ∫ x in t..t + T, f x = ∫ x in s..s + T, f x :=
 begin
-  haveI : encodable (add_subgroup.zmultiples T) := (countable_range _).to_encodable,
   simp only [integral_of_le, hT.le, le_add_iff_nonneg_right],
   haveI : vadd_invariant_measure (add_subgroup.zmultiples T) ℝ volume :=
     ⟨λ c s hs, measure_preimage_add _ _ _⟩,

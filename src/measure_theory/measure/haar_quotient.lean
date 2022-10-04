@@ -159,8 +159,13 @@ begin
   exact K.compact.measurable_set,
 end
 
--- maybe make a special case version of all this for `K` the `set.univ`, compact quotient
-
+/-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
+  right-invariant, and a finite volume fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is
+  measure-preserving between appropriate multiples of Haar measure on `G` and `G ⧸ Γ`. -/
+@[to_additive "Given a normal subgroup `Γ` of an additive topological group `G` with Haar measure
+  `μ`, which is also right-invariant, and a finite volume fundamental domain `𝓕`, the quotient map
+  to `G ⧸ Γ` is measure-preserving between appropriate multiples of Haar measure on `G` and
+  `G ⧸ Γ`."]
 @[to_additive measure_preserving_quotient_add_group.mk']
 lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
   [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]

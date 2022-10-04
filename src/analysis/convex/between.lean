@@ -379,9 +379,8 @@ h₁.wbtw.trans_sbtw_right h₂
 
 end ordered_ring
 
-section ordered_comm_ring
-
-variables [ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
+section strict_ordered_comm_ring
+variables [strict_ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
 
 include V
 
@@ -411,7 +410,7 @@ begin
     same_ray_nonneg_smul_right (z -ᵥ x) (sub_nonneg.2 ht1)
 end
 
-end ordered_comm_ring
+end strict_ordered_comm_ring
 
 section linear_ordered_field
 

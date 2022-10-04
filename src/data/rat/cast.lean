@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Yaël Dillies
 -/
 import data.rat.field
 import data.int.char_zero
@@ -24,15 +24,167 @@ casting lemmas showing the well-behavedness of this injection.
 rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, casting
 -/
 
+open function
 open_locale big_operators nnrat
 
 variables {F ι α β : Type*}
 
 namespace nnrat
-variable [division_semiring α]
+variables [division_semiring α] {p q : ℚ≥0}
 
 @[simp, norm_cast] lemma cast_coe_nat (n : ℕ) : ((n : ℚ≥0) : α) = n :=
 by simpa only [num_coe_nat, denom_coe_nat, nat.cast_one, div_one] using @nnrat.cast_def α _ n
+
+@[simp, norm_cast] lemma cast_zero : ((0 : ℚ≥0) : α) = 0 := (cast_coe_nat _).trans nat.cast_zero
+@[simp, norm_cast] lemma cast_one : ((1 : ℚ≥0) : α) = 1 := (cast_coe_nat _).trans nat.cast_one
+
+lemma cast_commute (q : ℚ≥0) (a : α) : commute ↑q a :=
+by simpa only [cast_def] using (q.num.cast_commute a).div_left (q.denom.cast_commute a)
+
+lemma commute_cast (a : α) (q : ℚ≥0) : commute a q := (cast_commute _ _).symm
+lemma cast_comm (q : ℚ≥0) (a : α) : (q : α) * a = a * q := (cast_commute _ _).eq
+
+@[norm_cast] lemma cast_div_of_ne_zero (a b : ℕ) (hb : (b : α) ≠ 0) : ((a / b : ℚ≥0) : α) = a / b :=
+begin
+  have hb' : b ≠ 0, { rintro rfl, exact hb nat.cast_zero },
+  cases e : a /. b with n d h c,
+  have d0 : (d:α) ≠ 0,
+  { intro d0,
+    have dd := denom_dvd a b,
+    cases (show (d:ℤ) ∣ b, by rwa e at dd) with k ke,
+    have : (b:α) = (d:α) * (k:α), {rw [ke, int.cast_mul, int.cast_coe_nat]},
+    rw [d0, zero_mul] at this, contradiction },
+  rw [num_denom'] at e,
+  have := congr_arg (coe : ℤ → α) ((mk_eq b0' $ ne_of_gt $ int.coe_nat_pos.2 h).1 e),
+  rw [int.cast_mul, int.cast_mul, int.cast_coe_nat] at this,
+  symmetry,
+  rw [cast_def, div_eq_mul_inv, eq_div_iff_mul_eq d0, mul_assoc, (d.commute_cast _).eq,
+      ← mul_assoc, this, mul_assoc, mul_inv_cancel b0, mul_one]
+end
+
+@[norm_cast] lemma cast_add_of_ne_zero (hp : (p.denom : α) ≠ 0) (hq : (q.denom : α) ≠ 0) :
+  (↑(p + q) : α) = p + q :=
+begin
+  have h : ∀ {n : ℕ}, (n : α) ≠ 0 → n ≠ 0 := by { rintro n hn rfl, exact hn nat.cast_zero },
+  rw add_def (h hp) (h hq),
+  norm_cast,
+  rw cast_div_of_ne_zero,
+  push_cast,
+  rw [←(nat.commute_cast _ _).div_add_div (nat.commute_cast _ _) hp hq, ←cast_div_of_ne_zero _ _ hp,
+    num_div_denom, ←cast_div_of_ne_zero _ _ hq, num_div_denom],
+  push_cast,
+  exact mul_ne_zero hp hq,
+end
+
+@[norm_cast] lemma cast_mul_of_ne_zero (hp : (p.denom : α) ≠ 0) (hq : (q.denom : α) ≠ 0) :
+  (↑(p * q) : α) = p * q :=
+begin
+  rw mul_def,
+  norm_cast,
+  rw cast_div_of_ne_zero,
+  push_cast,
+  push_cast,
+  exact mul_ne_zero hp hq,
+  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 nat.cast_zero),
+  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 nat.cast_zero),
+  rw [num_denom', num_denom', mul_def d₁0' d₂0'],
+  suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
+  { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
+    { simpa [division_def, mul_inv_rev, d₁0, d₂0, mul_assoc] },
+    all_goals {simp [d₁0, d₂0]} },
+  rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
+end
+
+@[simp] lemma cast_inv_nat (n : ℕ) : ((n⁻¹ : ℚ≥0) : α) = n⁻¹ :=
+begin
+  cases n, { simp },
+  simp_rw [coe_nat_eq_mk, inv_def, mk, mk_nat, dif_neg n.succ_ne_zero, mk_pnat],
+  simp [cast_def]
+end
+
+@[norm_cast] lemma cast_inv_of_ne_zero : ∀ {n : ℚ≥0},
+  (n.num : α) ≠ 0 → (n.denom : α) ≠ 0 → ((n⁻¹ : ℚ≥0) : α) = n⁻¹
+| ⟨n, d, h, c⟩ := λ (n0 : (n:α) ≠ 0) (d0 : (d:α) ≠ 0), begin
+  have n0' : (n:ℤ) ≠ 0 := λ e, by rw e at n0; exact n0 int.cast_zero,
+  have d0' : (d:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d0; exact d0 nat.cast_zero),
+  rw [num_denom', inv_def],
+  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, inv_div];
+  simp [n0, d0]
+end
+
+@[norm_cast] lemma cast_div_of_ne_zero {m n : ℚ≥0} (md : (m.denom : α) ≠ 0)
+  (nn : (n.num : α) ≠ 0) (nd : (n.denom : α) ≠ 0) : ((m / n : ℚ≥0) : α) = m / n :=
+have (n⁻¹.denom : ℤ) ∣ n.num,
+by conv in n⁻¹.denom { rw [←(@num_denom n), inv_def] };
+   apply denom_dvd,
+have (n⁻¹.denom : α) = 0 → (n.num : α) = 0, from
+λ h, let ⟨k, e⟩ := this in
+  by have := congr_arg (coe : ℤ → α) e;
+     rwa [int.cast_mul, int.cast_coe_nat, h, zero_mul] at this,
+by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn nd, division_def]
+
+variables [char_zero α]
+
+lemma cast_injective : injective (coe : ℚ≥0 → α) :=
+begin
+  refine λ p q h, _,
+  have d₁0 : d₁ ≠ 0 := ne_of_gt h₁,
+  have d₂0 : d₂ ≠ 0 := ne_of_gt h₂,
+  have d₁a : (d₁:α) ≠ 0 := nat.cast_ne_zero.2 d₁0,
+  have d₂a : (d₂:α) ≠ 0 := nat.cast_ne_zero.2 d₂0,
+  rw [num_denom', num_denom'] at h ⊢,
+  rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
+  rwa [eq_div_iff_mul_eq d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left₀.eq,
+    ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq d₁a, eq_comm,
+    ← int.cast_coe_nat d₁, ← int.cast_mul, ← int.cast_coe_nat d₂, ← int.cast_mul,
+    int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h
+end
+
+@[simp, norm_cast] lemma cast_inj : (p : α) = q ↔ p = q := cast_injective.eq_iff
+
+@[simp, norm_cast] lemma cast_eq_zero : (q : α) = 0 ↔ q = 0 := by rw [←cast_zero, cast_inj]
+@[norm_cast] lemma cast_ne_zero : (q : α) ≠ 0 ↔ q ≠ 0 := cast_eq_zero.not
+
+@[simp, norm_cast] lemma cast_add (m n) : ((m + n : ℚ≥0) : α) = m + n :=
+cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp, norm_cast] lemma cast_mul (m n) : ((m * n : ℚ≥0) : α) = m * n :=
+cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+variables (α)
+
+/-- Coercion `ℚ≥0 → α` as a `ring_hom`. -/
+def cast_hom : ℚ≥0 →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
+
+variable {α}
+
+@[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
+
+@[simp, norm_cast] lemma cast_bit0 (q : ℚ≥0) : (↑(bit0 q) : α) = bit0 q := cast_add _ _
+@[simp, norm_cast] lemma cast_bit1 (q : ℚ≥0) : (↑(bit1 q) : α) = bit1 q := map_bit1 (cast_hom α) _
+@[simp, norm_cast] lemma cast_inv (q : ℚ≥0) : (↑(q⁻¹) : α) = q⁻¹ := map_inv₀ (cast_hom α) _
+@[simp, norm_cast] lemma cast_div (p q : ℚ≥0) : (↑(p / q) : α) = p / q := map_div₀ (cast_hom α) _ _
+@[simp, norm_cast] lemma cast_zpow (q : ℚ≥0) (n : ℤ) : (↑(q ^ n) : α) = q ^ n :=
+map_zpow₀ (cast_hom α) q n
+
+@[norm_cast] lemma cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
+by simp only [mk_eq_div, cast_div, cast_coe_int]
+
+@[simp, norm_cast] lemma cast_pow (q) (k : ℕ) : ((q ^ k : ℚ≥0) : α) = q ^ k :=
+(cast_hom α).map_pow q k
+
+@[simp, norm_cast] lemma cast_list_sum (s : list ℚ≥0) : (↑(s.sum) : α) = (s.map coe).sum :=
+map_list_sum (cast_hom α) _
+
+@[simp, norm_cast] lemma cast_multiset_sum (s : multiset ℚ≥0) : (↑(s.sum) : α) = (s.map coe).sum :=
+map_multiset_sum (cast_hom α) _
+
+@[simp, norm_cast] lemma cast_sum (s : finset ι) (f : ι → ℚ≥0) :
+  (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
+map_sum (cast_hom α) _ _
+
+@[simp, norm_cast] lemma cast_list_prod (s : list ℚ≥0) : (↑(s.prod) : α) = (s.map coe).prod :=
+map_list_prod (cast_hom α) _
 
 end nnrat
 
@@ -299,6 +451,10 @@ end linear_ordered_field
 end rat
 
 open rat
+
+@[simp] lemma map_nnrat_cast [division_semiring α] [division_semiring β] [ring_hom_class F α β]
+  (f : F) (q : ℚ≥0) : f q = q :=
+by simp_rw [nnrat.cast_def, map_div₀, map_nat_cast]
 
 @[simp] lemma map_rat_cast [division_ring α] [division_ring β] [ring_hom_class F α β]
   (f : F) (q : ℚ) : f q = q :=

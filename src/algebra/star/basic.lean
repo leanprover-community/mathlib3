@@ -41,6 +41,7 @@ advantage of not requiring a topology.
 universes u v
 
 open mul_opposite
+open_locale nnrat
 
 /--
 Notation typeclass (with no default notation!) for an algebraic structure with a star operation.
@@ -259,6 +260,10 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
   star (z : R) = z :=
 (congr_arg unop $ map_int_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) z).trans (unop_int_cast _)
 
+@[simp, norm_cast] lemma star_nnrat_cast [division_semiring R] [star_ring R] (r : ℚ≥0) :
+  star (r : R) = r :=
+(congr_arg unop $ map_nnrat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_nnrat_cast _)
+
 @[simp, norm_cast] lemma star_rat_cast [division_ring R] [star_ring R] (r : ℚ) :
   star (r : R) = r :=
 (congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
@@ -296,15 +301,15 @@ lemma star_ring_end_apply [comm_semiring R] [star_ring R] {x : R} :
 alias star_ring_end_self_apply ← complex.conj_conj
 alias star_ring_end_self_apply ← is_R_or_C.conj_conj
 
-@[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
+@[simp] lemma star_inv' [division_semiring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $ (map_inv₀ (star_ring_equiv : R ≃+* Rᵐᵒᵖ) x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+@[simp] lemma star_zpow₀ [division_semiring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $ (map_zpow₀ (star_ring_equiv : R ≃+* Rᵐᵒᵖ) x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
-@[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
+@[simp] lemma star_div' [semifield R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
 map_div₀ (star_ring_end R) _ _
 
 @[simp] lemma star_bit0 [add_monoid R] [star_add_monoid R] (r : R) :

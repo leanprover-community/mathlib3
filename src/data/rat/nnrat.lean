@@ -289,16 +289,4 @@ lemma ext_num_denom_iff : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
 @[simp, norm_cast] lemma num_coe_nat (n : ℕ) : (n : ℚ≥0).num = n := by simp [num]
 @[simp, norm_cast] lemma denom_coe_nat (n : ℕ) : (n : ℚ≥0).denom = 1 := by simp [denom]
 
--- @[simp] lemma num_div_denom (q : ℚ≥0) : (q.num : ℚ≥0) / q.denom = q :=
--- begin
---   ext1,
---   rw [coe_div, coe_nat_cast, coe_nat_cast, num, ←int.cast_coe_nat,
---     int.nat_abs_of_nonneg (rat.num_nonneg_iff_zero_le.2 q.prop)],
---   exact rat.num_div_denom q,
--- end
-
--- /-- A recursor for nonnegative rationals in terms of numerators and denominators. -/
--- protected def rec {α : ℚ≥0 → Sort*} (h : Π m n : ℕ, α (m / n)) (q : ℚ≥0) : α q :=
--- (num_div_denom _).rec (h _ _)
-
 end nnrat

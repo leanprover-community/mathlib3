@@ -167,7 +167,7 @@ See also Note [forgetful inheritance].
 class field (K : Type u) extends comm_ring K, division_ring K
 
 section division_semiring
-variables [division_semiring α] {a b c : α}
+variables [division_semiring α] {a b c d : α}
 
 namespace nnrat
 
@@ -203,6 +203,10 @@ by rw [add_div, mul_div_cancel _ hc]
 
 @[field_simps] lemma div_add' (a b c : α) (hc : c ≠ 0) : a / c + b = (a + b * c) / c :=
 by rwa [add_comm, add_div', add_comm]
+
+lemma commute.div_add_div (hbc : commute b c) (hbd : commute b d) (hb : b ≠ 0) (hd : d ≠ 0) :
+  a / b + c / d = (a * d + b * c) / (b * d) :=
+by rw [add_div, mul_div_mul_right _ b hd, hbc.eq, hbd.eq, mul_div_mul_right c d hb]
 
 end division_semiring
 
@@ -305,7 +309,7 @@ variables [semifield α] {a b c d : α}
 
 lemma div_add_div (a : α) (c : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   (a / b) + (c / d) = ((a * d) + (b * c)) / (b * d) :=
-by rw [← mul_div_mul_right _ b hd, ← mul_div_mul_left c d hb, div_add_div_same]
+(commute.all b _).div_add_div (commute.all _ _) hb hd
 
 lemma one_div_add_one_div (ha : a ≠ 0) (hb : b ≠ 0) : 1 / a + 1 / b = (a + b) / (a * b) :=
 by rw [div_add_div _ _ ha hb, one_mul, mul_one, add_comm]

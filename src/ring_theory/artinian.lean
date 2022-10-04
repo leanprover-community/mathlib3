@@ -253,9 +253,8 @@ lemma disjoint_partial_infs_eventually_top (f : ℕ → submodule R M)
   ∃ n : ℕ, ∀ m, n ≤ m → f m = ⊤  :=
 begin
   -- A little off-by-one cleanup first:
-  suffices t : ∃ n : ℕ, ∀ m, n ≤ m → order_dual.to_dual f (m+1) = ⊤,
-  { obtain ⟨n, w⟩ := t,
-    use n+1,
+  rsuffices ⟨n, w⟩ : ∃ n : ℕ, ∀ m, n ≤ m → order_dual.to_dual f (m+1) = ⊤,
+  { use n+1,
     rintros (_|m) p,
     { cases p, },
     { apply w,
@@ -277,7 +276,7 @@ variables {R : Type*} (M : Type*) [comm_ring R] [add_comm_group M] [module R M] 
 namespace is_artinian
 
 lemma range_smul_pow_stabilizes (r : R) : ∃ n : ℕ, ∀ m, n ≤ m →
-  (r^n • linear_map.id : M →ₗ[R] M).range = (r^m • linear_map.id).range :=
+  (r^n • linear_map.id : M →ₗ[R] M).range = (r^m • linear_map.id : M →ₗ[R] M).range :=
 monotone_stabilizes
 ⟨λ n, (r^n • linear_map.id : M →ₗ[R] M).range,
  λ n m h x ⟨y, hy⟩, ⟨r ^ (m - n) • y,

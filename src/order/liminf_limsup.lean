@@ -279,11 +279,52 @@ def limsup (f : filter β) (u : β → α) : α := (f.map u).Limsup
 eventually for `f`, holds `u x ≥ a`. -/
 def liminf (f : filter β) (u : β → α) : α := (f.map u).Liminf
 
+/-- The `blimsup` of a function `u` along a filter `f`, bounded by a predicate `p`, is the infimum
+of the `a` such that, eventually for `f`, `u x ≤ a` whenever `p x` holds. -/
+def blimsup (f : filter β) (p : β → Prop) (u : β → α) :=
+Inf { a | ∀ᶠ x in f, p x → u x ≤ a }
+
+/-- The `bliminf` of a function `u` along a filter `f`, bounded by a predicate `p`, is the supremum
+of the `a` such that, eventually for `f`, `a ≤ u x` whenever `p x` holds. -/
+def bliminf (f : filter β) (p : β → Prop) (u : β → α) :=
+Sup { a | ∀ᶠ x in f, p x → a ≤ u x }
+
 section
-variables {f : filter β} {u : β → α}
+
+variables {f : filter β} {u : β → α} {p : β → Prop}
+
 theorem limsup_eq : f.limsup u = Inf { a | ∀ᶠ n in f, u n ≤ a } := rfl
+
 theorem liminf_eq : f.liminf u = Sup { a | ∀ᶠ n in f, a ≤ u n } := rfl
+
+theorem blimsup_eq : f.blimsup p u = Inf { a | ∀ᶠ x in f, p x → u x ≤ a } := rfl
+
+theorem bliminf_eq : f.bliminf p u = Sup { a | ∀ᶠ x in f, p x → a ≤ u x } := rfl
+
 end
+
+@[simp] lemma blimsup_true (f : filter β) (u : β → α) :
+  f.blimsup (λ x, true) u = f.limsup u :=
+by simp [blimsup_eq, limsup_eq]
+
+@[simp] lemma bliminf_true (f : filter β) (u : β → α) :
+  f.bliminf (λ x, true) u = f.liminf u :=
+by simp [bliminf_eq, liminf_eq]
+
+lemma blimsup_eq_limsup_subtype {f : filter β} {u : β → α} {p : β → Prop} :
+  f.blimsup p u = (f.comap (coe : {x | p x} → β)).limsup (u ∘ coe) :=
+begin
+  simp only [blimsup_eq, limsup_eq, function.comp_app, eventually_comap, set_coe.forall,
+    subtype.coe_mk, mem_set_of_eq],
+  congr,
+  ext a,
+  exact eventually_congr (eventually_of_forall
+    (λ x, ⟨λ hx y hy hxy, hxy.symm ▸ (hx (hxy ▸ hy)), λ hx hx', hx x hx' rfl⟩)),
+end
+
+lemma bliminf_eq_liminf_subtype {f : filter β} {u : β → α} {p : β → Prop} :
+  f.bliminf p u = (f.comap (coe : {x | p x} → β)).liminf (u ∘ coe) :=
+@blimsup_eq_limsup_subtype αᵒᵈ β _ f u p
 
 theorem Limsup_le_of_le {f : filter α} {a}
   (hf : f.is_cobounded (≤) . is_bounded_default) (h : ∀ᶠ n in f, n ≤ a) : f.Limsup ≤ a :=
@@ -429,6 +470,14 @@ top_unique $ le_Inf $
 bot_unique $ Sup_le $
   by simp [eq_univ_iff_forall]; exact assume b hb, (bot_unique $ hb _)
 
+@[simp] lemma blimsup_false {f : filter β} {u : β → α} :
+  f.blimsup (λ x, false) u = ⊥ :=
+by simp [blimsup_eq]
+
+@[simp] lemma bliminf_false {f : filter β} {u : β → α} :
+  f.bliminf (λ x, false) u = ⊤ :=
+by simp [bliminf_eq]
+
 /-- Same as limsup_const applied to `⊥` but without the `ne_bot f` assumption -/
 lemma limsup_const_bot {f : filter β} : limsup f (λ x : β, (⊥ : α)) = (⊥ : α) :=
 begin
@@ -480,6 +529,20 @@ theorem has_basis.limsup_eq_infi_supr {p : ι → Prop} {s : ι → set β} {f :
   (h : f.has_basis p s) : f.limsup u = ⨅ i (hi : p i), ⨆ a ∈ s i, u a :=
 (h.map u).Limsup_eq_infi_Sup.trans $ by simp only [Sup_image, id]
 
+lemma blimsup_eq_infi_bsupr {f : filter β} {p : β → Prop} {u : β → α} :
+  f.blimsup p u = ⨅ s ∈ f, ⨆ b (hb : p b ∧ b ∈ s), u b :=
+begin
+  refine le_antisymm (Inf_le_Inf _) (infi_le_iff.mpr $ λ a ha, le_Inf_iff.mpr $ λ a' ha', _),
+  { rintros - ⟨s, rfl⟩,
+    simp only [mem_set_of_eq, le_infi_iff],
+    conv { congr, funext, rw imp.swap, },
+    refine eventually_imp_distrib_left.mpr (λ h, eventually_iff_exists_mem.2 ⟨s, h, λ x h₁ h₂, _⟩),
+    exact @le_supr₂ α β (λ b, p b ∧ b ∈ s) _ (λ b hb, u b) x ⟨h₂, h₁⟩, },
+  { obtain ⟨s, hs, hs'⟩ := eventually_iff_exists_mem.mp ha',
+    simp_rw imp.swap at hs',
+    exact (le_infi_iff.mp (ha s) hs).trans (by simpa only [supr₂_le_iff, and_imp]), },
+end
+
 /-- In a complete lattice, the liminf of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
 theorem liminf_eq_supr_infi {f : filter β} {u : β → α} : f.liminf u = ⨆ s ∈ f, ⨅ a ∈ s, u a :=
@@ -494,6 +557,10 @@ lemma liminf_eq_supr_infi_of_nat' {u : ℕ → α} : liminf at_top u = ⨆ n : �
 theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
   (h : f.has_basis p s) : f.liminf u = ⨆ i (hi : p i), ⨅ a ∈ s i, u a :=
 @has_basis.limsup_eq_infi_supr αᵒᵈ _ _ _ _ _ _ _ h
+
+lemma bliminf_eq_supr_binfi {f : filter β} {p : β → Prop} {u : β → α} :
+  f.bliminf p u = ⨆ s ∈ f, ⨅ b (hb : p b ∧ b ∈ s), u b :=
+@blimsup_eq_infi_bsupr αᵒᵈ β _ f p u
 
 lemma limsup_eq_Inf_Sup {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
   F.limsup a = Inf ((λ I, Sup (a '' I)) '' F.sets) :=
@@ -540,7 +607,108 @@ lemma le_limsup_of_frequently_le' {α β} [complete_lattice β]
   x ≤ f.limsup u :=
 @liminf_le_of_frequently_le' _ βᵒᵈ _ _ _ _ h
 
+variables {f : filter β} {p q : β → Prop} {u v : β → α}
+
+lemma blimsup_mono (h : ∀ x, p x → q x) :
+  f.blimsup p u ≤ f.blimsup q u :=
+Inf_le_Inf $ λ a ha, ha.mono $ by tauto
+
+lemma bliminf_antitone (h : ∀ x, p x → q x) :
+  f.bliminf q u ≤ f.bliminf p u :=
+Sup_le_Sup $ λ a ha, ha.mono $ by tauto
+
+lemma mono_blimsup' (h : ∀ᶠ x in f, u x ≤ v x) :
+  f.blimsup p u ≤ f.blimsup p v :=
+Inf_le_Inf $ λ a ha, (ha.and h).mono $ λ x hx hx', hx.2.trans (hx.1 hx')
+
+lemma mono_blimsup (h : ∀ x, u x ≤ v x) :
+  f.blimsup p u ≤ f.blimsup p v :=
+mono_blimsup' $ eventually_of_forall h
+
+lemma mono_bliminf' (h : ∀ᶠ x in f, u x ≤ v x) :
+  f.bliminf p u ≤ f.bliminf p v :=
+Sup_le_Sup $ λ a ha, (ha.and h).mono $ λ x hx hx', (hx.1 hx').trans hx.2
+
+lemma mono_bliminf (h : ∀ x, u x ≤ v x) :
+  f.bliminf p u ≤ f.bliminf p v :=
+mono_bliminf' $ eventually_of_forall h
+
+@[simp] lemma blimsup_and_le_inf :
+  f.blimsup (λ x, p x ∧ q x) u ≤ f.blimsup p u ⊓ f.blimsup q u :=
+le_inf (blimsup_mono $ by tauto) (blimsup_mono $ by tauto)
+
+@[simp] lemma bliminf_sup_le_and :
+  f.bliminf p u ⊔ f.bliminf q u ≤ f.bliminf (λ x, p x ∧ q x) u :=
+@blimsup_and_le_inf αᵒᵈ β _ f p q u
+
+/-- See also `filter.blimsup_or_eq_sup`. -/
+@[simp] lemma blimsup_sup_le_or :
+  f.blimsup p u ⊔ f.blimsup q u ≤ f.blimsup (λ x, p x ∨ q x) u :=
+sup_le (blimsup_mono $ by tauto) (blimsup_mono $ by tauto)
+
+/-- See also `filter.bliminf_or_eq_inf`. -/
+@[simp] lemma bliminf_or_le_inf :
+  f.bliminf (λ x, p x ∨ q x) u ≤ f.bliminf p u ⊓ f.bliminf q u :=
+@blimsup_sup_le_or αᵒᵈ β _ f p q u
+
 end complete_lattice
+
+section complete_distrib_lattice
+
+variables [complete_distrib_lattice α] {f : filter β} {p q : β → Prop} {u : β → α}
+
+@[simp] lemma blimsup_or_eq_sup :
+  f.blimsup (λ x, p x ∨ q x) u = f.blimsup p u ⊔ f.blimsup q u :=
+begin
+  refine le_antisymm _ blimsup_sup_le_or,
+  simp only [blimsup_eq, Inf_sup_eq, sup_Inf_eq, le_infi₂_iff, mem_set_of_eq],
+  refine λ a' ha' a ha, Inf_le ((ha.and ha').mono $ λ b h hb, _),
+  exact or.elim hb (λ hb, le_sup_of_le_left $ h.1 hb) (λ hb, le_sup_of_le_right $ h.2 hb),
+end
+
+@[simp] lemma bliminf_or_eq_inf :
+  f.bliminf (λ x, p x ∨ q x) u = f.bliminf p u ⊓ f.bliminf q u :=
+@blimsup_or_eq_sup αᵒᵈ β _ f p q u
+
+end complete_distrib_lattice
+
+section set_lattice
+
+variables {p : ι → Prop} {s : ι → set α}
+
+lemma cofinite.blimsup_set_eq :
+  cofinite.blimsup p s = { x | { n | p n ∧ x ∈ s n }.infinite } :=
+begin
+  simp only [blimsup_eq, le_eq_subset, eventually_cofinite, not_forall, Inf_eq_sInter, exists_prop],
+  ext x,
+  refine ⟨λ h, _, λ hx t h, _⟩;
+  contrapose! h,
+  { simp only [mem_sInter, mem_set_of_eq, not_forall, exists_prop],
+    exact ⟨{x}ᶜ, by simpa using h, by simp⟩, },
+  { exact hx.mono (λ i hi, ⟨hi.1, λ hit, h (hit hi.2)⟩), },
+end
+
+lemma cofinite.bliminf_set_eq :
+  cofinite.bliminf p s = { x | { n | p n ∧ x ∉ s n }.finite } :=
+begin
+  rw ← compl_inj_iff,
+  simpa only [bliminf_eq_supr_binfi, compl_infi, compl_supr, ← blimsup_eq_infi_bsupr,
+    cofinite.blimsup_set_eq],
+end
+
+/-- In other words, `cofinite.limsup s` is the set of elements lying inside the family `s`
+infinitely often. -/
+lemma cofinite.limsup_set_eq :
+  cofinite.limsup s = { x | { n | x ∈ s n }.infinite } :=
+by simp only [← cofinite.blimsup_true s, cofinite.blimsup_set_eq, true_and]
+
+/-- In other words, `cofinite.liminf s` is the set of elements lying outside the family `s`
+finitely often. -/
+lemma cofinite.liminf_set_eq :
+  cofinite.liminf s = { x | { n | x ∉ s n }.finite } :=
+by simp only [← cofinite.bliminf_true s, cofinite.bliminf_set_eq, true_and]
+
+end set_lattice
 
 section conditionally_complete_linear_order
 

@@ -382,7 +382,6 @@ whenever `P` holds for `X ⟶ Y xₓ Y`. -/
 def diagonal (P : morphism_property C) : morphism_property C :=
 λ X Y f, P (pullback.diagonal f)
 
-@[simp]
 lemma diagonal_iff {X Y : C} {f : X ⟶ Y} : P.diagonal f ↔ P (pullback.diagonal f) := iff.rfl
 
 lemma respects_iso.diagonal (hP : P.respects_iso) : P.diagonal.respects_iso :=

@@ -614,6 +614,21 @@ meta def positivity_abs : expr → tactic strictness
   nonnegative <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
 | e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `|a|`"
 
+private lemma int_nat_abs_pos {n : ℤ} (hn : 0 < n) : 0 < n.nat_abs :=
+int.nat_abs_pos_of_ne_zero hn.ne'
+
+/-- Extension for the `positivity` tactic: `int.nat_abs` is positive when its input is.
+
+Since the output type of `int.nat_abs` is `ℕ`, the nonnegative case is handled by the default
+`positivity` tactic.
+-/
+@[positivity]
+meta def positivity_nat_abs : expr → tactic strictness
+| `(int.nat_abs %%a) := do
+    positive p ← core a,
+    positive <$> mk_app ``int_nat_abs_pos [p]
+| _ := failed
+
 private lemma nat_cast_pos [ordered_semiring α] [nontrivial α] {n : ℕ} : 0 < n → 0 < (n : α) :=
 nat.cast_pos.2
 

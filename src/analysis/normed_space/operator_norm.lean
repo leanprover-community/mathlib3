@@ -834,27 +834,28 @@ def mul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (linear_map.mul 𝕜 𝕜')
 (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
 
 /-- Simultaneous left- and right-multiplication in a non-unital normed algebra, considered as a
-continuous trilinear map. -/
-def mul_mul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+continuous trilinear map. This is akin to its non-continuous version `linear_map.mul_left_right`,
+but there is a minor difference: `linear_map.mul_left_right` is uncurried. -/
+def mul_left_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
 ((compL 𝕜 𝕜' 𝕜' 𝕜').comp (mul 𝕜 𝕜').flip).flip.comp (mul 𝕜 𝕜')
 
-@[simp] lemma mul_mul_apply (x y z : 𝕜') :
-  mul_mul 𝕜 𝕜' x y z = x * z * y := rfl
+@[simp] lemma mul_left_right_apply (x y z : 𝕜') :
+  mul_left_right 𝕜 𝕜' x y z = x * z * y := rfl
 
-lemma op_norm_mul_mul_apply_apply_le (x y : 𝕜') :
-  ∥mul_mul 𝕜 𝕜' x y∥ ≤ ∥x∥ * ∥y∥ :=
+lemma op_norm_mul_left_right_apply_apply_le (x y : 𝕜') :
+  ∥mul_left_right 𝕜 𝕜' x y∥ ≤ ∥x∥ * ∥y∥ :=
 (op_norm_comp_le _ _).trans $ (mul_comm _ _).trans_le $
   mul_le_mul (op_norm_mul_apply_le _ _ _)
     (op_norm_le_bound _ (norm_nonneg _) (λ _, (norm_mul_le _ _).trans_eq (mul_comm _ _)))
     (norm_nonneg _) (norm_nonneg _)
 
-lemma op_norm_mul_mul_apply_le (x : 𝕜') :
-  ∥mul_mul 𝕜 𝕜' x∥ ≤ ∥x∥ :=
-op_norm_le_bound _ (norm_nonneg x) (op_norm_mul_mul_apply_apply_le 𝕜 𝕜' x)
+lemma op_norm_mul_left_right_apply_le (x : 𝕜') :
+  ∥mul_left_right 𝕜 𝕜' x∥ ≤ ∥x∥ :=
+op_norm_le_bound _ (norm_nonneg x) (op_norm_mul_left_right_apply_apply_le 𝕜 𝕜' x)
 
-lemma op_norm_mul_mul_le :
-  ∥mul_mul 𝕜 𝕜'∥ ≤ 1 :=
-op_norm_le_bound _ zero_le_one (λ x, (one_mul ∥x∥).symm ▸ op_norm_mul_mul_apply_le 𝕜 𝕜' x)
+lemma op_norm_mul_left_right_le :
+  ∥mul_left_right 𝕜 𝕜'∥ ≤ 1 :=
+op_norm_le_bound _ zero_le_one (λ x, (one_mul ∥x∥).symm ▸ op_norm_mul_left_right_apply_le 𝕜 𝕜' x)
 
 end non_unital
 

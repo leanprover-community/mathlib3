@@ -153,6 +153,20 @@ begin
   cyclotomic_one, eval_sub, eval_X, eval_one, int.cast_sub, mul_sub, mul_one, mul_div_cancel' _ hb]
 end
 
+lemma cyclotomic₂_two_eq {a b : ℤ} (hbne : b ≠ 0) : cyclotomic₂ 2 a b = a + b :=
+begin
+  rcases eq_or_ne b a with rfl | hab,
+  { replace hbne : (b : ℝ) ≠ 0 := by norm_num [hbne],
+    simp only [←(@ int.cast_inj) ℝ, ←cyclotomic₂_def', cyclotomic₂', nat.totient_two, pow_one,
+      cyclotomic_two, eval_add, eval_X, eval_one, int.cast_add, mul_add, div_self hbne, mul_one] },
+  { have := cyclotomic₂_div_prod_eq a b (show 0 < 2, by norm_num) hbne,
+    rw [← pow_one 2, nat.divisors_prime_pow (nat.prime_two)] at this,
+    simp only [finset.prod_map, function.embedding.coe_fn_mk, pow_one, finset.prod_range_succ,
+    finset.prod_range_zero, pow_zero, one_mul, sq_sub_sq, cyclotomic₂_one_eq a b hbne,
+    mul_comm (a -b)] at this,
+    exact mul_right_cancel₀ (sub_ne_zero.mpr (ne.symm hab)) this }
+end
+
 lemma prime_div_pow_sub {p : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa: ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
   ↑p ∣ a ^ (p - 1) - b ^ (p - 1) :=
 by exact int.modeq.dvd (int.modeq.trans (int.modeq.pow_card_sub_one_eq_one hp
@@ -430,8 +444,7 @@ begin
   have := congr_arg int.nat_abs hpow,
   simp_rw [int.nat_abs_pow] at this,
   have honelepow : 1 ≤ p ^ β * least_dvd_pow hp hpa hpb := by linarith [hpowpos1],
-  sorry,
-  -- refine nat.pow_left_injective honelepow _,
+  exact nat.pow_left_injective honelepow this
 end
 
 end cyclotomic₂

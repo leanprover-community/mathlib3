@@ -219,7 +219,7 @@ variables (R) [with_ideal R]
 topological_add_group.to_uniform_space R
 
 @[priority 100] instance : uniform_add_group R :=
-topological_add_group_is_uniform
+topological_add_comm_group_is_uniform
 
 /-- The adic topology on a `R` module coming from the ideal `with_ideal.I`.
 This cannot be an instance because `R` cannot be inferred from `M`. -/

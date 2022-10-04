@@ -83,72 +83,6 @@ meta def list.decide_mem (decide_eq : expr → expr → tactic (bool × expr)) :
       pf ← i_to_expr ``(list.not_mem_cons %%head_pf %%tail_pf),
       pure (ff, pf)
 
-lemma finset.insert_eq_coe_list_of_mem {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
-  {xs' : list α} (h : x ∈ xs') (nd_xs : xs'.nodup)
-  (hxs' : xs = finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs)) :
-  insert x xs = finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) :=
-have h : x ∈ xs, by simpa [hxs'] using h,
-by rw [finset.insert_eq_of_mem h, hxs']
-
-lemma finset.insert_eq_coe_list_cons {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
-  {xs' : list α} (h : x ∉ xs') (nd_xs : xs'.nodup) (nd_xxs : (x :: xs').nodup)
-  (hxs' : xs = finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs)) :
-  insert x xs = finset.mk ↑(x :: xs') (multiset.coe_nodup.mpr nd_xxs) :=
-have h : x ∉ xs, by simpa [hxs'] using h,
-by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, hxs'], simp only [multiset.cons_coe] }
-
-/-- Convert an expression denoting a finset to a list of elements,
-a proof that this list is equal to the original finset,
-and a proof that the list contains no duplicates.
-
-We return a list rather than a finset, so we can more easily iterate over it
-(without having to prove that our tactics are independent of the order of iteration,
-which is in general not true).
-
-`decide_eq` is a (partial) decision procedure for determining whether two
-elements of the finset are equal, for example to parse `{2, 1, 2}` into `[2, 1]`.
--/
-meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
-  expr → tactic (list expr × expr × expr)
-| e@`(has_emptyc.emptyc) := do
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_nil),
-  pure ([], eq, nd)
-| e@`(has_singleton.singleton %%x) := do
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_singleton %%x),
-  pure ([x], eq, nd)
-| `(@@has_insert.insert (@@finset.has_insert %%dec) %%x %%xs) := do
-  (exs, xs_eq, xs_nd) ← eval_finset xs,
-  (is_mem, mem_pf) ← list.decide_mem decide_eq x exs,
-  if is_mem then do
-    pf ← i_to_expr ``(finset.insert_eq_coe_list_of_mem %%x %%xs %%mem_pf %%xs_nd %%xs_eq),
-    pure (exs, pf, xs_nd)
-  else do
-    nd ← i_to_expr ``(list.nodup_cons.mpr ⟨%%mem_pf, %%xs_nd⟩),
-    pf ← i_to_expr ``(finset.insert_eq_coe_list_cons %%x %%xs %%mem_pf %%xs_nd %%nd %%xs_eq),
-    pure (x :: exs, pf, nd)
-| `(@@finset.univ %%ft) := do
-  -- Convert the fintype instance expression `ft` to a list of its elements.
-  -- Unfold it to the `fintype.mk` constructor and a list of arguments.
-  `fintype.mk ← get_app_fn_const_whnf ft
-    | fail (to_fmt "Unknown fintype expression" ++ format.line ++ to_fmt ft),
-  [_, args, _] ← get_app_args_whnf ft | fail (to_fmt "Expected 3 arguments to `fintype.mk`"),
-  eval_finset args
-| e@`(finset.range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_range %%en),
-  pure (eis, eq, nd)
-| e@`(finset.fin_range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_fin_range %%en),
-  pure (eis, eq, nd)
-| e := fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e)
-
 lemma list.map_cons_congr {α β : Type*} (f : α → β) {x : α} {xs : list α} {fx : β} {fxs : list β}
   (h₁ : f x = fx) (h₂ : xs.map f = fxs) : (x :: xs).map f = fx :: fxs :=
 by rw [list.map_cons, h₁, h₂]
@@ -163,6 +97,41 @@ meta def eval_list_map (ef : expr) : list expr → tactic (list expr × expr)
   (fxs, fxs_eq) ← eval_list_map xs,
   eq ← i_to_expr ``(list.map_cons_congr %%ef %%fx_eq %%fxs_eq),
   pure (fx :: fxs, eq)
+
+lemma list.cons_congr {α : Type*} (x : α) {xs : list α} {xs' : list α} (xs_eq : xs' = xs) :
+  x :: xs' = x :: xs :=
+by rw xs_eq
+
+lemma list.map_congr {α β : Type*} (f : α → β) {xs xs' : list α}
+  {ys : list β} (xs_eq : xs = xs') (ys_eq : xs'.map f = ys) :
+  xs.map f = ys :=
+by rw [← ys_eq, xs_eq]
+
+/-- Convert an expression denoting a list to a list of elements. -/
+meta def eval_list : expr → tactic (list expr × expr)
+| e@`(list.nil) := do
+  eq ← mk_eq_refl e,
+  pure ([], eq)
+| e@`(list.cons %%x %%xs) := do
+  (xs, xs_eq) ← eval_list xs,
+  eq ← i_to_expr ``(list.cons_congr %%x %%xs_eq),
+  pure (x :: xs, eq)
+| e@`(list.range %%en) := do
+  n ← expr.to_nat en,
+  eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
+  eq ← mk_eq_refl e,
+  pure (eis, eq)
+| `(@list.map %%α %%β %%ef %%exs) := do
+  (xs, xs_eq) ← eval_list exs,
+  (ys, ys_eq) ← eval_list_map ef xs,
+  eq ← i_to_expr ``(list.map_congr %%ef %%xs_eq %%ys_eq),
+  pure (ys, eq)
+| e@`(@list.fin_range %%en) := do
+  n ← expr.to_nat en,
+  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
+  eq ← mk_eq_refl e,
+  pure (eis, eq)
+| e := fail (to_fmt "Unknown list expression" ++ format.line ++ to_fmt e)
 
 lemma multiset.cons_congr {α : Type*} (x : α) {xs : multiset α} {xs' : list α}
   (xs_eq : (xs' : multiset α) = xs) : (list.cons x xs' : multiset α) = x ::ₘ xs :=
@@ -202,6 +171,10 @@ meta def eval_multiset : expr → tactic (list expr × expr)
   eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
   eq ← mk_eq_refl e,
   pure (eis, eq)
+| `(@@coe (@@coe_to_lift (@@coe_base (multiset.has_coe))) %%exs) := do
+  (xs, xs_eq) ← eval_list exs,
+  eq ← i_to_expr ``(congr_arg coe %%xs_eq),
+  pure (xs, eq)
 | `(@multiset.map %%α %%β %%ef %%exs) := do
   (xs, xs_eq) ← eval_multiset exs,
   (ys, ys_eq) ← eval_list_map ef xs,
@@ -209,35 +182,73 @@ meta def eval_multiset : expr → tactic (list expr × expr)
   pure (ys, eq)
 | e := fail (to_fmt "Unknown multiset expression" ++ format.line ++ to_fmt e)
 
-lemma list.cons_congr {α : Type*} (x : α) {xs : list α} {xs' : list α} (xs_eq : xs' = xs) :
-  x :: xs' = x :: xs :=
-by rw xs_eq
+lemma finset.mk_congr {α : Type*} {xs xs' : multiset α} (h : xs = xs') (nd nd') :
+  finset.mk xs nd = finset.mk xs' nd' :=
+by congr; assumption
 
-lemma list.map_congr {α β : Type*} (f : α → β) {xs xs' : list α}
-  {ys : list β} (xs_eq : xs = xs') (ys_eq : xs'.map f = ys) :
-  xs.map f = ys :=
-by rw [← ys_eq, xs_eq]
+lemma finset.insert_eq_coe_list_of_mem {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
+  {xs' : list α} (h : x ∈ xs') (nd_xs : xs'.nodup)
+  (hxs' : xs = finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs)) :
+  insert x xs = finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) :=
+have h : x ∈ xs, by simpa [hxs'] using h,
+by rw [finset.insert_eq_of_mem h, hxs']
 
-/-- Convert an expression denoting a list to a list of elements. -/
-meta def eval_list : expr → tactic (list expr × expr)
-| e@`(list.nil) := do
+lemma finset.insert_eq_coe_list_cons {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
+  {xs' : list α} (h : x ∉ xs') (nd_xs : xs'.nodup) (nd_xxs : (x :: xs').nodup)
+  (hxs' : xs = finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs)) :
+  insert x xs = finset.mk ↑(x :: xs') (multiset.coe_nodup.mpr nd_xxs) :=
+have h : x ∉ xs, by simpa [hxs'] using h,
+by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, hxs'], simp only [multiset.cons_coe] }
+
+/-- Convert an expression denoting a finset to a list of elements,
+a proof that this list is equal to the original finset,
+and a proof that the list contains no duplicates.
+
+We return a list rather than a finset, so we can more easily iterate over it
+(without having to prove that our tactics are independent of the order of iteration,
+which is in general not true).
+
+`decide_eq` is a (partial) decision procedure for determining whether two
+elements of the finset are equal, for example to parse `{2, 1, 2}` into `[2, 1]`.
+-/
+meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
+  expr → tactic (list expr × expr × expr)
+| e@`(finset.mk %%val %%nd) := do
+  (val', eq) ← eval_multiset val,
+  eq' ← i_to_expr ``(finset.mk_congr %%eq _ _),
+  pure (val', eq', nd)
+| e@`(has_emptyc.emptyc) := do
   eq ← mk_eq_refl e,
-  pure ([], eq)
-| e@`(list.cons %%x %%xs) := do
-  (xs, xs_eq) ← eval_list xs,
-  eq ← i_to_expr ``(list.cons_congr %%x %%xs_eq),
-  pure (x :: xs, eq)
-| e@`(list.range %%en) := do
+  nd ← i_to_expr ``(list.nodup_nil),
+  pure ([], eq, nd)
+| e@`(has_singleton.singleton %%x) := do
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(list.nodup_singleton %%x),
+  pure ([x], eq, nd)
+| `(@@has_insert.insert (@@finset.has_insert %%dec) %%x %%xs) := do
+  (exs, xs_eq, xs_nd) ← eval_finset xs,
+  (is_mem, mem_pf) ← list.decide_mem decide_eq x exs,
+  if is_mem then do
+    pf ← i_to_expr ``(finset.insert_eq_coe_list_of_mem %%x %%xs %%mem_pf %%xs_nd %%xs_eq),
+    pure (exs, pf, xs_nd)
+  else do
+    nd ← i_to_expr ``(list.nodup_cons.mpr ⟨%%mem_pf, %%xs_nd⟩),
+    pf ← i_to_expr ``(finset.insert_eq_coe_list_cons %%x %%xs %%mem_pf %%xs_nd %%nd %%xs_eq),
+    pure (x :: exs, pf, nd)
+| `(@@finset.univ %%ft) := do
+  -- Convert the fintype instance expression `ft` to a list of its elements.
+  -- Unfold it to the `fintype.mk` constructor and a list of arguments.
+  `fintype.mk ← get_app_fn_const_whnf ft
+    | fail (to_fmt "Unknown fintype expression" ++ format.line ++ to_fmt ft),
+  [_, args, _] ← get_app_args_whnf ft | fail (to_fmt "Expected 3 arguments to `fintype.mk`"),
+  eval_finset args
+| e@`(finset.range %%en) := do
   n ← expr.to_nat en,
   eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
   eq ← mk_eq_refl e,
-  pure (eis, eq)
-| `(@list.map %%α %%β %%ef %%exs) := do
-  (xs, xs_eq) ← eval_list exs,
-  (ys, ys_eq) ← eval_list_map ef xs,
-  eq ← i_to_expr ``(list.map_congr %%ef %%xs_eq %%ys_eq),
-  pure (ys, eq)
-| e := fail (to_fmt "Unknown list expression" ++ format.line ++ to_fmt e)
+  nd ← i_to_expr ``(list.nodup_range %%en),
+  pure (eis, eq, nd)
+| e := fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e)
 
 @[to_additive]
 lemma list.prod_cons_congr {α : Type*} [monoid α] (xs : list α) (x y z : α)

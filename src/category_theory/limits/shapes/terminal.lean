@@ -116,20 +116,20 @@ t.hom_ext _ _
 t.hom_ext _ _
 
 /-- Any morphism from a terminal object is split mono. -/
-def is_terminal.split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : split_mono f :=
-⟨t.from _, t.hom_ext _ _⟩
+lemma is_terminal.is_split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) :
+  is_split_mono f := is_split_mono.mk' ⟨t.from _, t.hom_ext _ _⟩
 
 /-- Any morphism to an initial object is split epi. -/
-def is_initial.split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : split_epi f :=
-⟨t.to _, t.hom_ext _ _⟩
+lemma is_initial.is_split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) :
+  is_split_epi f := is_split_epi.mk' ⟨t.to _, t.hom_ext _ _⟩
 
 /-- Any morphism from a terminal object is mono. -/
 lemma is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
-by haveI := t.split_mono_from f; apply_instance
+by haveI := t.is_split_mono_from f; apply_instance
 
 /-- Any morphism to an initial object is epi. -/
 lemma is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
-by haveI := t.split_epi_to f; apply_instance
+by haveI := t.is_split_epi_to f; apply_instance
 
 /-- If `T` and `T'` are terminal, they are isomorphic. -/
 @[simps]
@@ -235,10 +235,17 @@ and showing there is a unique morphism to it from any other object. -/
 lemma has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
 { has_limit := λ F, has_limit.mk ⟨_, (is_terminal_equiv_unique F X).inv_fun h⟩ }
 
+lemma is_terminal.has_terminal {X : C} (h : is_terminal X) : has_terminal C :=
+{ has_limit := λ F, has_limit.mk ⟨⟨X, by tidy⟩, is_limit_change_empty_cone _ h _ (iso.refl _)⟩ }
+
 /-- We can more explicitly show that a category has an initial object by specifying the object,
 and showing there is a unique morphism from it to any other object. -/
 lemma has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial C :=
 { has_colimit := λ F, has_colimit.mk ⟨_, (is_initial_equiv_unique F X).inv_fun h⟩ }
+
+lemma is_initial.has_initial {X : C} (h : is_initial X) : has_initial C :=
+{ has_colimit := λ F, has_colimit.mk
+    ⟨⟨X, by tidy⟩, is_colimit_change_empty_cocone _ h _ (iso.refl _)⟩ }
 
 /-- The map from an object to the terminal object. -/
 abbreviation terminal.from [has_terminal C] (P : C) : P ⟶ ⊤_ C :=
@@ -277,12 +284,12 @@ initial_is_initial.unique_up_to_iso t
 terminal_is_terminal.unique_up_to_iso t
 
 /-- Any morphism from a terminal object is split mono. -/
-instance terminal.split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : split_mono f :=
-is_terminal.split_mono_from terminal_is_terminal _
+instance terminal.is_split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : is_split_mono f :=
+is_terminal.is_split_mono_from terminal_is_terminal _
 
 /-- Any morphism to an initial object is split epi. -/
-instance initial.split_epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : split_epi f :=
-is_initial.split_epi_to initial_is_initial _
+instance initial.is_split_epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : is_split_epi f :=
+is_initial.is_split_epi_to initial_is_initial _
 
 /-- An initial object is terminal in the opposite category. -/
 def terminal_op_of_initial {X : C} (t : is_initial X) : is_terminal (opposite.op X) :=
@@ -303,6 +310,18 @@ def initial_op_of_terminal {X : C} (t : is_terminal X) : is_initial (opposite.op
 def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.unop :=
 { desc := λ s, (t.from (opposite.op s.X)).unop,
   uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
+
+instance has_initial_op_of_has_terminal [has_terminal C] : has_initial Cᵒᵖ :=
+(initial_op_of_terminal terminal_is_terminal).has_initial
+
+instance has_terminal_op_of_has_initial [has_initial C] : has_terminal Cᵒᵖ :=
+(terminal_op_of_initial initial_is_initial).has_terminal
+
+lemma has_terminal_of_has_initial_op [has_initial Cᵒᵖ] : has_terminal C :=
+(terminal_unop_of_initial initial_is_initial).has_terminal
+
+lemma has_initial_of_has_terminal_op [has_terminal Cᵒᵖ] : has_initial C :=
+(initial_unop_of_terminal terminal_is_terminal).has_initial
 
 instance {J : Type*} [category J] {C : Type*} [category C] [has_terminal C] :
   has_limit ((category_theory.functor.const J).obj (⊤_ C)) :=

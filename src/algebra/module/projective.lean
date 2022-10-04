@@ -67,21 +67,20 @@ universes u v
 /-- An R-module is projective if it is a direct summand of a free module, or equivalently
   if maps from the module lift along surjections. There are several other equivalent
   definitions. -/
-class module.projective (R : Type u) [semiring R] (P : Type (max u v)) [add_comm_monoid P]
+class module.projective (R : Type*) [semiring R] (P : Type*) [add_comm_monoid P]
   [module R P] : Prop :=
 (out : ∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s)
 
 namespace module
 
-lemma projective_def {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P]
-  [module R P] : projective R P ↔
-  (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
-⟨λ h, h.1, λ h, ⟨h⟩⟩
-
 section semiring
 
-variables {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P] [module R P]
-  {M : Type (max u v)} [add_comm_group M] [module R M] {N : Type*} [add_comm_group N] [module R N]
+variables {R : Type*} [semiring R] {P : Type*} [add_comm_monoid P] [module R P]
+  {M : Type*} [add_comm_monoid M] [module R M] {N : Type*} [add_comm_monoid N] [module R N]
+
+lemma projective_def : projective R P ↔
+  (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
 theorem projective_lifting_property [h : projective R P] (f : M →ₗ[R] N) (g : P →ₗ[R] N)
@@ -106,9 +105,37 @@ begin
   simp [φ, finsupp.total_apply, function.surj_inv_eq hf],
 end
 
+end semiring
+
+section ring
+
+variables {R : Type*} [ring R] {P : Type*} [add_comm_group P] [module R P]
+
+/-- Free modules are projective. -/
+theorem projective_of_basis {ι : Type*} (b : basis ι R P) : projective R P :=
+begin
+  -- need P →ₗ (P →₀ R) for definition of projective.
+  -- get it from `ι → (P →₀ R)` coming from `b`.
+  use b.constr ℕ (λ i, finsupp.single (b i) (1 : R)),
+  intro m,
+  simp only [b.constr_apply, mul_one, id.def, finsupp.smul_single', finsupp.total_single,
+    linear_map.map_finsupp_sum],
+  exact b.total_repr m,
+end
+
+@[priority 100]
+instance projective_of_free [module.free R P] : module.projective R P :=
+projective_of_basis $ module.free.choose_basis R P
+
+end ring
+
+--This is in a different section because special universe restrictions are required.
+section of_lifting_property
+
 /-- A module which satisfies the universal property is projective. Note that the universe variables
 in `huniv` are somewhat restricted. -/
 theorem projective_of_lifting_property'
+  {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P] [module R P]
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
   (huniv : ∀ {M : Type (max v u)} {N : Type (max u v)} [add_comm_monoid M] [add_comm_monoid N],
     by exactI
@@ -131,15 +158,10 @@ begin
     simp },
 end
 
-end semiring
-
-section ring
-
-variables {R : Type u} [ring R] {P : Type (max u v)} [add_comm_group P] [module R P]
-
 /-- A variant of `of_lifting_property'` when we're working over a `[ring R]`,
 which only requires quantifying over modules with an `add_comm_group` instance. -/
 theorem projective_of_lifting_property
+  {R : Type u} [ring R] {P : Type (max u v)} [add_comm_group P] [module R P]
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
   (huniv : ∀ {M : Type (max v u)} {N : Type (max u v)} [add_comm_group M] [add_comm_group N],
     by exactI
@@ -165,22 +187,6 @@ begin
     simp },
 end
 
-/-- Free modules are projective. -/
-theorem projective_of_basis {ι : Type*} (b : basis ι R P) : projective R P :=
-begin
-  -- need P →ₗ (P →₀ R) for definition of projective.
-  -- get it from `ι → (P →₀ R)` coming from `b`.
-  use b.constr ℕ (λ i, finsupp.single (b i) (1 : R)),
-  intro m,
-  simp only [b.constr_apply, mul_one, id.def, finsupp.smul_single', finsupp.total_single,
-    linear_map.map_finsupp_sum],
-  exact b.total_repr m,
-end
-
-@[priority 100]
-instance projective_of_free [module.free R P] : module.projective R P :=
-projective_of_basis $ module.free.choose_basis R P
-
-end ring
+end of_lifting_property
 
 end module

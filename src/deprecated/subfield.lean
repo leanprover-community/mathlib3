@@ -52,13 +52,13 @@ lemma univ.is_subfield : is_subfield (@set.univ F) :=
 lemma preimage.is_subfield {K : Type*} [field K]
   (f : F →+* K) {s : set K} (hs : is_subfield s) : is_subfield (f ⁻¹' s) :=
 { inv_mem := λ a (ha : f a ∈ s), show f a⁻¹ ∈ s,
-    by { rw [f.map_inv],
+    by { rw [map_inv₀],
          exact hs.inv_mem ha },
   ..f.is_subring_preimage hs.to_is_subring }
 
 lemma image.is_subfield {K : Type*} [field K]
   (f : F →+* K) {s : set F} (hs : is_subfield s) : is_subfield (f '' s) :=
-{ inv_mem := λ a ⟨x, xmem, ha⟩, ⟨x⁻¹, hs.inv_mem xmem, ha ▸ f.map_inv _⟩,
+{ inv_mem := λ a ⟨x, xmem, ha⟩, ⟨x⁻¹, hs.inv_mem xmem, ha ▸ map_inv₀ f _⟩,
   ..f.is_subring_image hs.to_is_subring }
 
 lemma range.is_subfield {K : Type*} [field K]

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import analysis.convex.specific_functions
+import tactic.positivity
 
 /-!
 # Mean value inequalities
@@ -71,7 +72,7 @@ theorem arith_mean_le_rpow_mean (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) {p : ℝ} (hp : 1 ≤ p) :
   ∑ i in s, w i * z i ≤ (∑ i in s, (w i * z i ^ p)) ^ (1 / p) :=
 begin
-  have : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  have : 0 < p := by positivity,
   rw [← rpow_le_rpow_iff _ _ this, ← rpow_mul, one_div_mul_cancel (ne_of_gt this), rpow_one],
   exact rpow_arith_mean_le_arith_mean_rpow s w z hw hw' hz hp,
   all_goals { apply_rules [sum_nonneg, rpow_nonneg_of_nonneg],
@@ -133,7 +134,7 @@ end
 lemma add_rpow_le_rpow_add {p : ℝ} (a b : ℝ≥0) (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ (a + b) ^ p :=
 begin
-  have hp_pos : 0 < p := lt_of_lt_of_le zero_lt_one hp1,
+  have hp_pos : 0 < p := by positivity,
   by_cases h_zero : a + b = 0,
   { simp [add_eq_zero_iff.mp h_zero, hp_pos.ne'] },
   have h_nonzero : ¬(a = 0 ∧ b = 0), by rwa add_eq_zero_iff at h_zero,
@@ -171,9 +172,11 @@ begin
   rwa one_div_div at h_rpow_add_rpow_le_add,
 end
 
-lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0) (hp : 0 ≤ p) (hp1 : p ≤ 1) :
   (a + b) ^ p ≤ a ^ p + b ^ p :=
 begin
+  rcases hp.eq_or_lt with rfl|hp_pos,
+  { simp },
   have h := rpow_add_rpow_le a b hp_pos hp1,
   rw one_div_one at h,
   repeat { rw nnreal.rpow_one at h },
@@ -190,8 +193,8 @@ theorem rpow_arith_mean_le_arith_mean_rpow (w z : ι → ℝ≥0∞) (hw' : ∑ 
   (hp : 1 ≤ p) :
   (∑ i in s, w i * z i) ^ p ≤ ∑ i in s, (w i * z i ^ p) :=
 begin
-  have hp_pos : 0 < p, from lt_of_lt_of_le zero_lt_one hp,
-  have hp_nonneg : 0 ≤ p, from le_of_lt hp_pos,
+  have hp_pos : 0 < p, positivity,
+  have hp_nonneg : 0 ≤ p, positivity,
   have hp_not_nonpos : ¬ p ≤ 0, by simp [hp_pos],
   have hp_not_neg : ¬ p < 0, by simp [hp_nonneg],
   have h_top_iff_rpow_top : ∀ (i : ι) (hi : i ∈ s), w i * z i = ⊤ ↔ w i * (z i) ^ p = ⊤,
@@ -252,7 +255,7 @@ namespace ennreal
 lemma add_rpow_le_rpow_add {p : ℝ} (a b : ℝ≥0∞) (hp1 : 1 ≤ p) :
   a ^ p + b ^ p ≤ (a + b) ^ p :=
 begin
-  have hp_pos : 0 < p := lt_of_lt_of_le zero_lt_one hp1,
+  have hp_pos : 0 < p := by positivity,
   by_cases h_top : a + b = ⊤,
   { rw ←@ennreal.rpow_eq_top_iff_of_pos (a + b) p hp_pos at h_top,
     rw h_top,
@@ -285,9 +288,14 @@ begin
   rwa one_div_div at h_rpow_add_rpow_le_add,
 end
 
-lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp : 0 ≤ p) (hp1 : p ≤ 1) :
   (a + b) ^ p ≤ a ^ p + b ^ p :=
 begin
+  rcases hp.eq_or_lt with rfl|hp_pos,
+  { suffices : (1 : ℝ≥0∞) ≤ 1 + 1,
+    { simpa using this },
+    norm_cast,
+    norm_num },
   have h := rpow_add_rpow_le a b hp_pos hp1,
   rw one_div_one at h,
   repeat { rw ennreal.rpow_one at h },

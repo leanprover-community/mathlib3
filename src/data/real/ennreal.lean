@@ -76,6 +76,7 @@ variables {α : Type*} {β : Type*}
   and is relevant as the codomain of a measure. -/
 @[derive [
   has_zero, add_comm_monoid_with_one,
+  semilattice_sup, distrib_lattice, order_bot, bounded_order,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
   linear_ordered_add_comm_monoid_with_top]]

@@ -510,14 +510,16 @@ image_subset_iff.2 $ λ f hf, hf i hs
 lemma eval_image_univ_pi_subset : eval i '' pi univ t ⊆ t i :=
 eval_image_pi_subset (mem_univ i)
 
-lemma eval_image_pi (hs : i ∈ s) (ht : (s.pi t).nonempty) : eval i '' s.pi t = t i :=
+lemma subset_eval_image_pi (ht : (s.pi t).nonempty) (i : ι) : t i ⊆ eval i '' s.pi t :=
 begin
-  refine (eval_image_pi_subset hs).antisymm _,
   classical,
   obtain ⟨f, hf⟩ := ht,
   refine λ y hy, ⟨update f i y, λ j hj, _, update_same _ _ _⟩,
   obtain rfl | hji := eq_or_ne j i; simp [*, hf _ hj]
 end
+
+lemma eval_image_pi (hs : i ∈ s) (ht : (s.pi t).nonempty) : eval i '' s.pi t = t i :=
+(eval_image_pi_subset hs).antisymm (subset_eval_image_pi ht i)
 
 @[simp] lemma eval_image_univ_pi (ht : (pi univ t).nonempty) :
   (λ f : Π i, α i, f i) '' pi univ t = t i :=

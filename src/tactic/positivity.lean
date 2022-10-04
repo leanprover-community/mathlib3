@@ -413,6 +413,21 @@ meta def positivity_abs : expr → tactic strictness
   nonnegative <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
 | _ := failed
 
+private lemma int_nat_abs_pos {n : ℤ} (hn : 0 < n) : 0 < n.nat_abs :=
+int.nat_abs_pos_of_ne_zero hn.ne'
+
+/-- Extension for the `positivity` tactic: `int.nat_abs` is positive when its input is.
+
+Since the output type of `int.nat_abs` is `ℕ`, the nonnegative case is handled by the default
+`positivity` tactic.
+-/
+@[positivity]
+meta def positivity_nat_abs : expr → tactic strictness
+| `(int.nat_abs %%a) := do
+    positive p ← core a,
+    positive <$> mk_app ``int_nat_abs_pos [p]
+| _ := failed
+
 private lemma nat_cast_pos [ordered_semiring α] [nontrivial α] {n : ℕ} : 0 < n → 0 < (n : α) :=
 nat.cast_pos.2
 
@@ -441,7 +456,7 @@ meta def positivity_coe : expr → tactic strictness
   | `(@coe_to_lift _ _ %%inst) := do
     strictness_a ← core a,
     match inst, strictness_a with -- `mk_mapp` is necessary in some places. Why?
-    | `(nat.cast_coe), positive p := positive <$> mk_app ``nat_cast_pos [p]
+    | `(nat.cast_coe), positive p := positive <$> mk_mapp ``nat_cast_pos [typ, none, none, none, p]
     | `(nat.cast_coe), _ := nonnegative <$> mk_mapp ``nat.cast_nonneg [typ, none, a]
     | `(int.cast_coe), positive p := positive <$> mk_mapp ``int_cast_pos [typ, none, none, none, p]
     | `(int.cast_coe), nonnegative p := nonnegative <$>
@@ -456,5 +471,38 @@ meta def positivity_coe : expr → tactic strictness
   | _  := failed
   end
 | _ := failed
+
+/-- Extension for the `positivity` tactic: `nat.succ` is always positive. -/
+@[positivity]
+meta def positivity_succ : expr → tactic strictness
+| `(nat.succ %%a) := positive <$> mk_app `nat.succ_pos [a]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `nat.succ n`"
+
+/-- Extension for the `positivity` tactic: `nat.factorial` is always positive. -/
+@[positivity]
+meta def positivity_factorial : expr → tactic strictness
+| `(nat.factorial %%a) := positive <$> mk_app ``nat.factorial_pos [a]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `n!`"
+
+/-- Extension for the `positivity` tactic: `nat.asc_factorial` is always positive. -/
+@[positivity]
+meta def positivity_asc_factorial : expr → tactic strictness
+| `(nat.asc_factorial %%a %%b) := positive <$> mk_app ``nat.asc_factorial_pos [a, b]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+         "` isn't of the form `nat.asc_factorial n k`"
+
+private lemma card_univ_pos (α : Type*) [fintype α] [nonempty α] :
+  0 < (finset.univ : finset α).card :=
+finset.univ_nonempty.card_pos
+
+/-- Extension for the `positivity` tactic: `finset.card s` is positive if `s` is nonempty. -/
+@[positivity]
+meta def positivity_finset_card : expr → tactic strictness
+| `(finset.card %%s) := do -- TODO: Partial decision procedure for `finset.nonempty`
+                          p ← to_expr ``(finset.nonempty %%s) >>= find_assumption,
+                          positive <$> mk_app ``finset.nonempty.card_pos [p]
+| `(@fintype.card %%α %%i) := positive <$> mk_mapp ``fintype.card_pos [α, i, none]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` isn't of the form `finset.card s` or `fintype.card α`"
 
 end tactic

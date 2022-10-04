@@ -289,7 +289,7 @@ colimit.hom_ext $ λ U, by { erw [colimit.ι_desc], dsimp, rw dif_pos U.unop.2, 
   apply_fun opposite.unop using unop_injective, rw [unop_op], ext, refl }
 
 /--
-The unit in `skyscraper_presheaf_functor ⊣ presheaf.stalk`
+The unit in `presheaf.stalk ⊣ skyscraper_presheaf_functor`
 -/
 @[simps] protected def unit :
   𝟭 (presheaf C X) ⟶ presheaf.stalk_functor C p₀ ⋙ skyscraper_presheaf_functor p₀ :=

@@ -739,6 +739,12 @@ lemma add_monoid_hom_class.bound_of_antilipschitz {𝓕 : Type*} [add_monoid_hom
   {K : ℝ≥0} (h : antilipschitz_with K f) (x) : ∥x∥ ≤ K * ∥f x∥ :=
 by simpa only [dist_zero_right, map_zero] using h.le_mul_dist x 0
 
+lemma real.to_nnreal_nonneg_eq_nnnorm {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
+begin
+  rw real.to_nnreal_of_nonneg hr,
+  congr,
+  rw [real.norm_eq_abs, abs_of_nonneg hr],
+end
 
 end nnnorm
 

@@ -96,28 +96,6 @@ begin
   exact hf.evariance_lt_top.ne,
 end
 
-section move
-
-lemma real.to_nnreal_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ⟨r, hr⟩ :=
-by simp_rw [real.to_nnreal, max_eq_left hr]
-
-lemma real.to_nnreal_nonneg_eq_nnnorm {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
-begin
-  rw real.to_nnreal_of_nonneg hr,
-  congr,
-  rw [real.norm_eq_abs, abs_of_nonneg hr],
-end
-
-lemma real.to_nnreal_mul_nnnorm {r : ℝ} (s : ℝ) (hr : 0 ≤ r) : r.to_nnreal * ∥s∥₊ = ∥r * s∥₊ :=
-begin
-  rw real.to_nnreal_of_nonneg hr,
-  simp only [nnnorm_mul, mul_eq_mul_right_iff],
-  refine or.inl (nnreal.eq _),
-  simp only [subtype.coe_mk, coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hr]
-end
-
-end move
-
 lemma evariance_eq_lintegral_of_real {Ω : Type*} {m : measurable_space Ω}
   (f : Ω → ℝ) (μ : measure Ω) :
   evariance f μ = ∫⁻ ω, ennreal.of_real ((f ω - μ[f])^2) ∂μ :=

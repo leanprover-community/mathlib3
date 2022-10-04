@@ -45,8 +45,6 @@ and `combinatorics.simple_graph.subgraph`.
 ## TODO
 
 * Equivalent inductive characterization of generated (normal) subgroupoids.
-* A "forward" image map of subgroupoids (similar to `subgroup.map`) under the hypothesis that
-  the functor at hand is injective on vertices.
 * Characterization of normal subgroupoids as kernels.
 
 ## Tags
@@ -102,22 +100,22 @@ def coe : groupoid (S.carrier) :=
 { to_category :=
   { to_category_struct :=
     { to_quiver :=
-      { hom := λ a b, S.arrws a.val b.val }
-    , id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩
-    , comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul' p.prop q.prop⟩, }
-  , id_comp' := λ a b ⟨p,hp⟩, by simp only [category.id_comp]
-  , comp_id' := λ a b ⟨p,hp⟩, by simp only [category.comp_id]
-  , assoc' := λ a b c d ⟨p,hp⟩ ⟨q,hq⟩ ⟨r,hr⟩, by simp only [category.assoc] }
-, inv := λ a b p, ⟨inv p.val, S.inv' p.prop⟩
-, inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp]
-, comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
+      { hom := λ a b, S.arrws a.val b.val },
+      id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩,
+      comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul' p.prop q.prop⟩, },
+    id_comp' := λ a b ⟨p,hp⟩, by simp only [category.id_comp],
+    comp_id' := λ a b ⟨p,hp⟩, by simp only [category.comp_id],
+    assoc' := λ a b c d ⟨p,hp⟩ ⟨q,hq⟩ ⟨r,hr⟩, by simp only [category.assoc] },
+  inv := λ a b p, ⟨inv p.val, S.inv' p.prop⟩,
+  inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp],
+  comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
 
 /-- The subgroup of the vertex group at `c` given by the subgroupoid -/
 def vertex_subgroup {c : C} (hc : c ∈ S.carrier) : subgroup (c ⟶ c) :=
-⟨ S.arrws c c
-, λ f g hf hg, S.mul' hf hg
-, by {apply id_mem_of_nonempty_isotropy, use hc,}
-, λ f hf, S.inv' hf⟩
+⟨ S.arrws c c,
+  λ f g hf hg, S.mul' hf hg,
+  by {apply id_mem_of_nonempty_isotropy, use hc,},
+  λ f hf, S.inv' hf⟩
 
 /-- `S` is a subgroupoid of `T` if it is contained in it -/
 def is_subgroupoid (S T : subgroupoid C) : Prop :=
@@ -149,19 +147,19 @@ instance : inhabited (subgroupoid C) := ⟨⊤⟩
 
 instance : has_inf (subgroupoid C) :=
 ⟨ λ S T,
-  ⟨(λ c d, (S.arrws c d)∩(T.arrws c d))
-  , by { rintros, exact ⟨S.inv' hp.1,T.inv' hp.2⟩, }
-  , by { rintros, exact ⟨S.mul' hp.1 hq.1, T.mul' hp.2 hq.2⟩, }⟩⟩
+  ⟨(λ c d, (S.arrws c d)∩(T.arrws c d)),
+    by { rintros, exact ⟨S.inv' hp.1,T.inv' hp.2⟩, },
+    by { rintros, exact ⟨S.mul' hp.1 hq.1, T.mul' hp.2 hq.2⟩, }⟩⟩
 
 instance : has_Inf (subgroupoid C) :=
 ⟨ λ s,
-  ⟨(λ c d, set.Inter (λ (S : s), S.val.arrws c d))
-  , by
+  ⟨(λ c d, set.Inter (λ (S : s), S.val.arrws c d)),
+    by
     { rintros,
       simp only [Inter_coe_set, mem_Inter] at hp ⊢,
       rintro S Ss,
-      exact S.inv' (hp S Ss)}
-  , by
+      exact S.inv' (hp S Ss)},
+    by
     { rintros,
       simp only [Inter_coe_set, mem_Inter] at hp hq ⊢,
       rintro S Ss,
@@ -192,9 +190,9 @@ inductive discrete.arrws : Π (c d : C), (c ⟶ d) → Prop
 
 /-- The only arrows of the discrete groupoid are the identity arrows-/
 def discrete : subgroupoid C :=
-⟨ discrete.arrws
-, by { rintros _ _ _ hp, induction hp, simp only [inv_eq_inv, is_iso.inv_id], constructor, }
-, by { rintros _ _ _ _ hp _ hq, induction hp, induction hq, rw category.comp_id, constructor,} ⟩
+⟨ discrete.arrws,
+  by { rintros _ _ _ hp, induction hp, simp only [inv_eq_inv, is_iso.inv_id], constructor, },
+  by { rintros _ _ _ _ hp _ hq, induction hp, induction hq, rw category.comp_id, constructor,} ⟩
 
 lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
   (f ∈ (discrete).arrws c d) ↔ (∃ (h : c = d), f = h.rec_on (𝟙 c)) :=
@@ -235,8 +233,8 @@ begin
 end
 
 lemma top_is_normal : is_normal (⊤ : subgroupoid C) :=
-{ wide := (λ c, trivial)
-, conj := (λ a b c d e, trivial) }
+{ wide := (λ c, trivial),
+  conj := (λ a b c d e, trivial) }
 
 
 lemma Inf_is_normal (s : set $ subgroupoid C) (sn : ∀ S ∈ s, is_normal S) : is_normal (Inf s) :=
@@ -288,16 +286,15 @@ variables [groupoid D] (φ : C ⥤ D)
 A functor between groupoid defines a map of subgroupoids in the reverse direction
 by taking preimages.
  -/
-
 def comap (S : subgroupoid D) : subgroupoid C :=
-⟨ λ c d, {f : c ⟶ d | φ.map f ∈ S.arrws (φ.obj c) (φ.obj d)}
-, by
+⟨ λ c d, {f : c ⟶ d | φ.map f ∈ S.arrws (φ.obj c) (φ.obj d)},
+  by
   { rintros,
     simp only [inv_eq_inv, mem_set_of_eq, functor.map_inv],
     simp only [←inv_eq_inv],
     simp only [mem_set_of_eq] at hp,
-    apply S.inv', assumption, }
-, by
+    apply S.inv', assumption, },
+  by
   { rintros,
     simp only [mem_set_of_eq, functor.map_comp],
     apply S.mul';
@@ -318,8 +315,8 @@ lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap 
   { rintro c,
     dsimp only [comap],
     simp only [mem_set_of_eq, functor.map_id],
-    apply Sn.wide, }
-, conj := by
+    apply Sn.wide, },
+  conj := by
   { rintros c d f γ hγ,
     dsimp only [comap],
     simp only [mem_set_of_eq, functor.map_comp, functor.map_inv, inv_eq_inv],
@@ -352,12 +349,12 @@ end
 
 /-- The "forward" image of a subgroupoid under a functor injective on objects -/
 def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
-⟨ map.arrws φ hφ S
-, by
+⟨ map.arrws φ hφ S,
+  by
   { rintro _ _ _ hp, induction hp,
     rw [inv_eq_inv,←functor.map_inv], constructor,
-    rw ←inv_eq_inv, apply S.inv', assumption, }
-, by -- Is there no way to prove this ↓ directly without the help of `map.mem_arrws_iff` ?
+    rw ←inv_eq_inv, apply S.inv', assumption, },
+  by -- Is there no way to prove this ↓ directly without the help of `map.mem_arrws_iff` ?
   { rintro _ _ _ _ hp _ hq,
     obtain ⟨f₀,f₁,f,hf₀,hf₁,hf,fp⟩ := (map.mem_arrws_iff φ hφ S p).mp hp,
     obtain ⟨g₀,g₁,g,hg₀,hg₁,hg,gq⟩ := (map.mem_arrws_iff φ hφ S q).mp hq,

@@ -99,7 +99,7 @@ def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrws c d⟩
 def coe (S : subgroupoid C) := subtype S.carrier
 
 /-- The coercion of a subgroupoid as a groupoid -/
-def coe_groupoid : groupoid S.coe :=
+instance coe_groupoid : groupoid S.coe :=
 { to_category :=
   { to_category_struct :=
     { to_quiver :=

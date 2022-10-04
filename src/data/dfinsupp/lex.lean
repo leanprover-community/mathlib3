@@ -22,7 +22,7 @@ variable [Π i, has_zero (α i)]
 
 /-- `dfinsupp.lex r s` is the lexicographic relation on `Π₀ i, α i`, where `ι` is ordered by `r`,
 and `α i` is ordered by `s i`.
-The type synonym `lex (Π₀ i, α i)` has an order given by `dfinsupp.lex (<) (<)`.
+The type synonym `lex (Π₀ i, α i)` has an order given by `dfinsupp.lex (<) (λ i, (<))`.
 -/
 protected def lex (r : ι → ι → Prop) (s : Π i, α i → α i → Prop) (x y : Π₀ i, α i) : Prop :=
 pi.lex r s x y

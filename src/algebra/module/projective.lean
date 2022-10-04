@@ -84,10 +84,6 @@ lemma projective_def : projective R P ↔
   (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
-lemma projective_def : projective R P ↔
-  (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
-⟨λ h, h.1, λ h, ⟨h⟩⟩
-
 theorem projective_def' : projective R P ↔
   (∃ s : P →ₗ[R] (P →₀ R), (finsupp.total P P R id) ∘ₗ s = id) :=
 by simp_rw [projective_def, fun_like.ext_iff, function.left_inverse, coe_comp, id_coe, id.def]
@@ -115,7 +111,7 @@ begin
   simp [φ, finsupp.total_apply, function.surj_inv_eq hf],
 end
 
-variables {Q : Type (max u v)} [add_comm_monoid Q] [module R Q]
+variables {Q : Type*} [add_comm_monoid Q] [module R Q]
 
 instance [hP : projective R P] [hQ : projective R Q] : projective R (P × Q) :=
 begin
@@ -123,11 +119,10 @@ begin
   cases hP.out with sP hsP,
   cases hQ.out with sQ hsQ,
   use coprod (lmap_domain R R (inl R P Q)) (lmap_domain R R (inr R P Q)) ∘ₗ sP.prod_map sQ,
-  ext;
-  simp only [coe_inl, coe_inr, coe_comp, function.comp_app, prod_map_apply, map_zero, coprod_apply,
-  lmap_domain_apply, map_domain_zero, add_zero, zero_add, id_comp,
-  total_map_domain R _ (prod.mk.inj_right (0 : Q)),
-  total_map_domain R _ (prod.mk.inj_left (0 : P))],
+  ext; simp only [coe_inl, coe_inr, coe_comp, function.comp_app, prod_map_apply, map_zero,
+    coprod_apply, lmap_domain_apply, map_domain_zero, add_zero, zero_add, id_comp,
+    total_map_domain R _ (prod.mk.inj_right (0 : Q)),
+    total_map_domain R _ (prod.mk.inj_left (0 : P))],
 
   { rw [←fst_apply _, apply_total R], exact hsP x, },
   { rw [←snd_apply _, apply_total R], exact finsupp.total_zero_apply _ (sP x), },

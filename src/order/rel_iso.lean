@@ -290,8 +290,8 @@ protected theorem is_strict_order : ∀ (f : r ↪r s) [is_strict_order β s], i
 protected theorem is_trichotomous : ∀ (f : r ↪r s) [is_trichotomous β s], is_trichotomous α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o (or_congr f.inj'.eq_iff o)).1 (H _ _)⟩
 
-protected theorem is_strict_total_order' :
-  ∀ (f : r ↪r s) [is_strict_total_order' β s], is_strict_total_order' α r
+protected theorem is_strict_total_order :
+  ∀ (f : r ↪r s) [is_strict_total_order β s], is_strict_total_order α r
 | f H := by exactI {..f.is_trichotomous, ..f.is_strict_order}
 
 protected theorem acc (f : r ↪r s) (a : α) : acc s (f a) → acc r a :=
@@ -305,7 +305,7 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
-| f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
+| f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
 
 /-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
 @[simps] noncomputable def _root_.quotient.out_rel_embedding [s : setoid α] {r : α → α → Prop} (H) :

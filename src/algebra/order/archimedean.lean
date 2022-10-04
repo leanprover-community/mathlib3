@@ -3,7 +3,6 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.field_power
 import data.int.least_greatest
 import data.rat.floor
 
@@ -331,7 +330,8 @@ floor_ring.of_floor α (λ a, classical.some (exists_floor a))
   (λ z a, (classical.some_spec (exists_floor a) z).symm)
 
 /-- A linear ordered field that is a floor ring is archimedean. -/
-lemma floor_ring.archimedean (α) [linear_ordered_field α] [floor_ring α] : archimedean α :=
+@[priority 100] -- see Note [lower instance priority]
+instance floor_ring.archimedean (α) [linear_ordered_field α] [floor_ring α] : archimedean α :=
 begin
   rw archimedean_iff_int_le,
   exact λ x, ⟨⌈x⌉, int.le_ceil x⟩

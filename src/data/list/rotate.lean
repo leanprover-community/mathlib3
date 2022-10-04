@@ -417,6 +417,12 @@ begin
     { simp [hn] } }
 end
 
+/-- A rotated list equals itself when it is a repetition of the first k elements -/
+lemma rotatel_eq_self_iff {l : list α} {n : ℕ} :
+  let k := nat.gcd n l.length in
+    l.rotatel n = l ↔ l = ((l.take k).repeat (l.length / k)).join :=
+sorry
+
 theorem nodup.rotatel_eq_self_iff {l : list α} (hl : l.nodup) {n : ℕ} :
   l.rotatel n = l ↔ n % l.length = 0 ∨ l = [] :=
 begin
@@ -510,7 +516,7 @@ begin
 end
 
 
-lemma rotate_cons_one (l : list α) (a : α) (n : ℤ) :
+lemma rotate_cons_one (l : list α) (a : α) :
   (a :: l : list α).rotate 1 = l ++ [a] :=
 begin
   rw rotate_eq_drop_append_take_mod,
@@ -538,13 +544,14 @@ begin
   simp [this],
 end
 
--- lemma rotate_cons_succ (l : list α) (a : α) (n : ℤ) :
---   (a :: l : list α).rotate n.succ = (l ++ [a]).rotate n :=
--- by {
---   simp [rotate], rw ←rotatel_cons_succ, apply rotatel_eq_of_mod_eq,
---   simp,
---   sorry,
---   }
+
+lemma rotate_cons_succ (l : list α) (a : α) (n : ℤ) :
+  (a :: l : list α).rotate n.succ = (l ++ [a]).rotate n :=
+by {
+  simp [rotate], rw ←rotatel_cons_succ, apply rotatel_eq_of_mod_eq,
+  simp,
+  sorry,
+  }
 
 @[simp] lemma rotate_append_length_eq (l l' : list α) : (l ++ l').rotate l.length = l' ++ l :=
 begin
@@ -596,38 +603,38 @@ begin
   exact hl,
 end
 
-lemma rotate_perm (l : list α) (n : ℕ) : l.rotate n ~ l :=
+lemma rotate_perm (l : list α) (n : ℤ) : l.rotate n ~ l :=
 begin
   rw rotate,
   apply rotatel_perm,
 end
 
-@[simp] lemma nodup_rotate {l : list α} {n : ℕ} : nodup (l.rotate n) ↔ nodup l :=
+@[simp] lemma nodup_rotate {l : list α} {n : ℤ} : nodup (l.rotate n) ↔ nodup l :=
 (rotate_perm l n).nodup_iff
 
-@[simp] lemma rotate_eq_nil_iff {l : list α} {n : ℕ} : l.rotate n = [] ↔ l = [] :=
+@[simp] lemma rotate_eq_nil_iff {l : list α} {n : ℤ} : l.rotate n = [] ↔ l = [] :=
 rotatel_eq_nil_iff
 
-@[simp] lemma nil_eq_rotate_iff {l : list α} {n : ℕ} : [] = l.rotate n ↔ [] = l :=
+@[simp] lemma nil_eq_rotate_iff {l : list α} {n : ℤ} : [] = l.rotate n ↔ [] = l :=
 by rw [eq_comm, rotate_eq_nil_iff, eq_comm]
 
-@[simp] lemma rotate_singleton (x : α) (n : ℕ) :
+@[simp] lemma rotate_singleton (x : α) (n : ℤ) :
   [x].rotate n = [x] :=
 begin
   rw rotate,
   apply rotatel_singleton,
 end
 
-@[simp] lemma rotate_eq_singleton_iff {l : list α} {n : ℕ} {x : α} : l.rotate n = [x] ↔ l = [x] :=
+@[simp] lemma rotate_eq_singleton_iff {l : list α} {n : ℤ} {x : α} : l.rotate n = [x] ↔ l = [x] :=
 begin
   rw rotate,
   apply rotatel_eq_singleton_iff,
 end
 
-@[simp] lemma singleton_eq_rotate_iff {l : list α} {n : ℕ} {x : α} : [x] = l.rotate n ↔ [x] = l :=
+@[simp] lemma singleton_eq_rotate_iff {l : list α} {n : ℤ} {x : α} : [x] = l.rotate n ↔ [x] = l :=
 by rw [eq_comm, rotate_eq_singleton_iff, eq_comm]
 
-lemma zip_with_rotate_distrib {α β γ : Type*} (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
+lemma zip_with_rotate_distrib {α β γ : Type*} (f : α → β → γ) (l : list α) (l' : list β) (n : ℤ)
   (h : l.length = l'.length) :
   (zip_with f l l').rotate n = zip_with f (l.rotate n) (l'.rotate n) :=
 begin
@@ -716,49 +723,75 @@ begin
   },
 end
 
+
+
+-- TODO move to another file
+lemma list.reverse_take_eq_drop_reverse (l : list α) (a b : ℕ) (h : a + b = l.length) :
+  l.reverse.take a = (l.drop b).reverse :=
+begin
+  rw reverse_take,
+  congr,
+  rw ←h,
+  simp only [add_tsub_cancel_left, eq_self_iff_true],
+  rw ←h,
+  simp,
+end
+
+-- TODO move to another file
+lemma list.reverse_drop_eq_take_reverse (l : list α) (a b : ℕ) (h : a + b = l.length) :
+  l.reverse.drop a = (l.take b).reverse :=
+begin
+  nth_rewrite 1 ←reverse_reverse l,
+  rw list.reverse_take_eq_drop_reverse l.reverse b a,
+  rw reverse_reverse, -- chacha now y'all
+  rw add_comm,
+  rw h,
+  simp,
+end
+
 lemma reverse_rotate (l : list α) (n : ℤ) :
   (l.rotate n).reverse = l.reverse.rotate (- n) :=
 begin
+  simp_rw rotate_eq_drop_append_take_mod,
+  rw list.reverse_append,
+  simp only [list.length_reverse],
+  congr,
+  {
+    rw list.reverse_drop_eq_take_reverse,
+    sorry,
+  },
+  {
+    rw list.reverse_take_eq_drop_reverse,
+    sorry,
 
+  }
 end
 
-lemma map_rotate {β : Type*} (f : α → β) (l : list α) (n : ℕ) :
+lemma map_rotate {β : Type*} (f : α → β) (l : list α) (n : ℤ) :
   map f (l.rotate n) = (map f l).rotate n :=
 begin
-  induction n with n hn IH generalizing l,
-  { simp },
-  { cases l with hd tl,
-    { simp },
-    { simp [hn] } }
+  unfold rotate,
+  rw map_rotatel,
+  simp,
 end
 
-theorem nodup.rotate_eq_self_iff {l : list α} (hl : l.nodup) {n : ℕ} :
+theorem nodup.rotate_eq_self_iff {l : list α} (hl : l.nodup) {n : ℤ} :
   l.rotate n = l ↔ n % l.length = 0 ∨ l = [] :=
 begin
-  split,
-  { intro h,
-    cases l.length.zero_le.eq_or_lt with hl' hl',
-    { simp [←length_eq_zero, ←hl'] },
-    left,
-    rw nodup_iff_nth_le_inj at hl,
-    refine hl _ _ (mod_lt _ hl') hl' _,
-    rw ←nth_le_rotate' _ n,
-    simp_rw [h, tsub_add_cancel_of_le (mod_lt _ hl').le, mod_self] },
-  { rintro (h|h),
-    { rw [←rotate_mod, h],
-      exact rotate_zero l },
-    { simp [h] } }
+  unfold rotate,
+  rw nodup.rotatel_eq_self_iff,
+  simp,
+  rw int.nat_mod,
+  sorry,
+  sorry,
+  -- simp,
 end
 
-lemma nodup.rotate_congr {l : list α} (hl : l.nodup) (hn : l ≠ []) (i j : ℕ)
-  (h : l.rotate i = l.rotate j) : i % l.length = j % l.length :=
-begin
-  have hi : i % l.length < l.length := mod_lt _ (length_pos_of_ne_nil hn),
-  have hj : j % l.length < l.length := mod_lt _ (length_pos_of_ne_nil hn),
-  refine (nodup_iff_nth_le_inj.mp hl) _ _ hi hj _,
-  rw [←nth_le_rotate' l i, ←nth_le_rotate' l j],
-  simp [tsub_add_cancel_of_le, hi.le, hj.le, h]
-end
+-- lemma nodup.rotate_congr {l : list α} (hl : l.nodup) (hn : l ≠ []) (i j : ℕ)
+--   (h : l.rotate i = l.rotate j) : i % l.length = j % l.length :=
+-- begin
+
+-- end
 
 end rotate
 
@@ -768,7 +801,7 @@ variables (l l' : list α)
 
 /-- `is_rotated l₁ l₂` or `l₁ ~r l₂` asserts that `l₁` and `l₂` are cyclic permutations
   of each other. This is defined by claiming that `∃ n, l.rotate n = l'`. -/
-def is_rotated : Prop := ∃ n, l.rotate n = l'
+def is_rotated : Prop := ∃ z, l.rotate z = l'
 
 infixr ` ~r `:1000 := is_rotated
 
@@ -779,12 +812,9 @@ variables {l l'}
 
 @[symm] lemma is_rotated.symm (h : l ~r l') : l' ~r l :=
 begin
-  obtain ⟨n, rfl⟩ := h,
-  cases l with hd tl,
-  { simp },
-  { use (hd :: tl).length * n - n,
-    rw [rotate_rotate, add_tsub_cancel_of_le, rotate_length_mul],
-    exact nat.le_mul_of_pos_left (by simp) }
+  obtain ⟨z, rfl⟩ := h,
+  use -z,
+  simp,
 end
 
 lemma is_rotated_comm : l ~r l' ↔ l' ~r l :=
@@ -826,7 +856,7 @@ by rw [is_rotated_comm, is_rotated_singleton_iff, eq_comm]
 
 lemma is_rotated_concat (hd : α) (tl : list α) :
   (tl ++ [hd]) ~r (hd :: tl) :=
-is_rotated.symm ⟨1, by simp⟩
+is_rotated.symm ⟨1, by rw rotate_cons_one⟩
 
 lemma is_rotated_append : (l ++ l') ~r (l' ++ l) :=
 ⟨l.length, by simp⟩

@@ -761,17 +761,17 @@ begin
   apply forall_congr,
   intro x,
   have e₁ : (tensor_product.lmul' R : S ⊗[R] S →ₐ[R] S).ker_square_lift (f x) =
-    kaehler_differential.quotient_cotangent_ideal R S
+    kaehler_differential.quotient_cotangent_ideal_ring_equiv R S
       (ideal.quotient.mk (kaehler_differential.ideal R S).cotangent_ideal $ f x),
   { generalize : f x = y, obtain ⟨y, rfl⟩ := ideal.quotient.mk_surjective y, refl },
-  have e₂ : x = kaehler_differential.quotient_cotangent_ideal
+  have e₂ : x = kaehler_differential.quotient_cotangent_ideal_ring_equiv
     R S (is_scalar_tower.to_alg_hom R S _ x),
   { exact ((tensor_product.lmul'_apply_tmul x 1).trans (mul_one x)).symm },
   split,
   { intro e,
     exact (e₁.trans (@ring_equiv.congr_arg _ _ _ _ _ _
-      (kaehler_differential.quotient_cotangent_ideal R S) _ _ e)).trans e₂.symm },
-  { intro e, apply (kaehler_differential.quotient_cotangent_ideal R S).injective,
+      (kaehler_differential.quotient_cotangent_ideal_ring_equiv R S) _ _ e)).trans e₂.symm },
+  { intro e, apply (kaehler_differential.quotient_cotangent_ideal_ring_equiv R S).injective,
     exact e₁.symm.trans (e.trans e₂) }
 end
 

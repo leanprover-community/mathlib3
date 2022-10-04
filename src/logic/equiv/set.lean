@@ -362,6 +362,14 @@ protected def prod {α β} (s : set α) (t : set β) :
   ↥(s ×ˢ t) ≃ s × t :=
 @subtype_prod_equiv_prod α β s t
 
+/-- The set `set.pi set.univ s` is equivalent to `Π a, s a`. -/
+@[simps] protected def univ_pi {α : Type*} {β : α → Type*} (s : Π a, set (β a)) :
+  pi univ s ≃ Π a, s a :=
+{ to_fun := λ f a, ⟨(f : Π a, β a) a, f.2 a (mem_univ a)⟩,
+  inv_fun := λ f, ⟨λ a, f a, λ a ha, (f a).2⟩,
+  left_inv := λ ⟨f, hf⟩, by { ext a, refl },
+  right_inv := λ f, by { ext a, refl } }
+
 /-- If a function `f` is injective on a set `s`, then `s` is equivalent to `f '' s`. -/
 protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α) (H : inj_on f s) :
   s ≃ (f '' s) :=
@@ -495,7 +503,7 @@ e.injective.preimage_surjective.forall
 lemma preimage_pi_equiv_pi_subtype_prod_symm_pi {α : Type*} {β : α → Type*}
   (p : α → Prop) [decidable_pred p] (s : Π i, set (β i)) :
   (pi_equiv_pi_subtype_prod p β).symm ⁻¹' pi univ s =
-    (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)) :=
+    (pi univ (λ i : {i // p i}, s i)) ×ˢ pi univ (λ i : {i // ¬p i}, s i) :=
 begin
   ext ⟨f, g⟩,
   simp only [mem_preimage, mem_univ_pi, prod_mk_mem_set_prod_eq, subtype.forall,

@@ -7,6 +7,7 @@ import dynamics.ergodic.measure_preserving
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
+import measure_theory.constructions.prod
 
 /-!
 # Measures on Groups
@@ -115,6 +116,36 @@ begin
   exact ⟨λ h, ⟨h⟩, λ h, h.1⟩
 end
 
+@[to_additive]
+instance [is_mul_left_invariant μ] [sigma_finite μ] {H : Type*} [has_mul H]
+  {mH : measurable_space H} {ν : measure H} [has_measurable_mul H]
+  [is_mul_left_invariant ν] [sigma_finite ν] :
+  is_mul_left_invariant (μ.prod ν) :=
+begin
+  constructor,
+  rintros ⟨g, h⟩,
+  change map (prod.map ((*) g) ((*) h)) (μ.prod ν) = μ.prod ν,
+  rw [← map_prod_map _ _ (measurable_const_mul g) (measurable_const_mul h),
+    map_mul_left_eq_self μ g, map_mul_left_eq_self ν h],
+  { rw map_mul_left_eq_self μ g, apply_instance },
+  { rw map_mul_left_eq_self ν h, apply_instance },
+end
+
+@[to_additive]
+instance [is_mul_right_invariant μ] [sigma_finite μ] {H : Type*} [has_mul H]
+  {mH : measurable_space H} {ν : measure H} [has_measurable_mul H]
+  [is_mul_right_invariant ν] [sigma_finite ν] :
+  is_mul_right_invariant (μ.prod ν) :=
+begin
+  constructor,
+  rintros ⟨g, h⟩,
+  change map (prod.map (* g) (* h)) (μ.prod ν) = μ.prod ν,
+  rw [← map_prod_map _ _ (measurable_mul_const g) (measurable_mul_const h),
+    map_mul_right_eq_self μ g, map_mul_right_eq_self ν h],
+  { rw map_mul_right_eq_self μ g, apply_instance },
+  { rw map_mul_right_eq_self ν h, apply_instance },
+end
+
 end has_measurable_mul
 
 end mul
@@ -128,8 +159,12 @@ lemma map_div_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G)
   map (/ g) μ = μ :=
 by simp_rw [div_eq_mul_inv, map_mul_right_eq_self μ g⁻¹]
 
-
 variables [has_measurable_mul G]
+
+@[to_additive]
+lemma measure_preserving_div_right (μ : measure G) [is_mul_right_invariant μ]
+  (g : G) : measure_preserving (/ g) μ μ :=
+by simp_rw [div_eq_mul_inv, measure_preserving_mul_right μ g⁻¹]
 
 /-- We shorten this from `measure_preimage_mul_left`, since left invariant is the preferred option
   for measures in this formalization. -/
@@ -353,7 +388,7 @@ begin
   calc μ K ≤ μ (⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U) : measure_mono hKt
   ... ≤ ∑ g in t, μ ((λ (h : G), g * h) ⁻¹' U) : measure_bUnion_finset_le _ _
   ... = finset.card t * μ U : by simp only [measure_preimage_mul, finset.sum_const, nsmul_eq_mul]
-  ... < ∞ : ennreal.mul_lt_top ennreal.coe_nat_ne_top h
+  ... < ∞ : ennreal.mul_lt_top (ennreal.nat_ne_top _) h
 end
 
 /-- If a left-invariant measure gives finite mass to a set with nonempty interior, then
@@ -488,6 +523,14 @@ instance is_haar_measure.sigma_finite [sigma_compact_space G] : sigma_finite μ 
   finite := λ n, is_compact.measure_lt_top $ is_compact_compact_covering G n,
   spanning := Union_compact_covering G }⟩⟩
 
+@[to_additive]
+instance {G : Type*} [group G] [topological_space G] {mG : measurable_space G}
+  {H : Type*} [group H] [topological_space H] {mH : measurable_space H}
+  (μ : measure G) (ν : measure H) [is_haar_measure μ] [is_haar_measure ν]
+  [sigma_finite μ] [sigma_finite ν]
+  [has_measurable_mul G] [has_measurable_mul H] :
+  is_haar_measure (μ.prod ν) := {}
+
 open_locale topological_space
 open filter
 
@@ -536,8 +579,9 @@ end
 
 /- The above instance applies in particular to show that an additive Haar measure on a nontrivial
 finite-dimensional real vector space has no atom. -/
-example {E : Type*} [normed_group E] [normed_space ℝ E] [nontrivial E] [finite_dimensional ℝ E]
-  [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ] :
+example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E]
+  [finite_dimensional ℝ E] [measurable_space E] [borel_space E] (μ : measure E)
+  [is_add_haar_measure μ] :
   has_no_atoms μ := by apply_instance
 
 end

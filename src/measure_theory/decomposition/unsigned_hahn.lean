@@ -106,7 +106,7 @@ begin
   have hf : ∀n m, measurable_set (f n m),
   { assume n m,
     simp only [f, finset.inf_eq_infi],
-    exact measurable_set.bInter (countable_encodable _) (assume i _, he₁ _) },
+    exact measurable_set.bInter (to_countable _) (assume i _, he₁ _) },
 
   have f_subset_f : ∀{a b c d}, a ≤ b → c ≤ d → f a d ⊆ f b c,
   { assume a b c d hab hcd,

@@ -43,10 +43,6 @@ instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, (x i) ^ n };
 tactic.pi_instance_derive_field
 
--- the attributes are intentionally out of order. `smul_apply` proves `nsmul_apply`.
-@[to_additive, simp]
-lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n := rfl
-
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow };

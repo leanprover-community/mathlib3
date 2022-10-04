@@ -121,7 +121,7 @@ end semiring
 begin
   induction n with k hk,
   { simp },
-  { simp only [geom_sum_succ', nat.even_succ, hk],
+  { simp only [geom_sum_succ', nat.even_add_one, hk],
     split_ifs,
     { rw [h.neg_one_pow, add_zero] },
     { rw [(nat.odd_iff_not_even.2 h).neg_one_pow, neg_add_self] } }
@@ -196,6 +196,21 @@ end
 lemma mul_neg_geom_sum [ring α] (x : α) (n : ℕ) :
   (1 - x) * (∑ i in range n, x ^ i) = 1 - x ^ n :=
 op_injective $ by simpa using geom_sum_mul_neg (op x) n
+
+protected lemma commute.geom_sum₂_comm {α : Type u} [semiring α] {x y : α} (n : ℕ)
+  (h : commute x y) :
+  ∑ i in range n, x ^ i * y ^ (n - 1 - i) = ∑ i in range n, y ^ i * x ^ (n - 1 - i) :=
+begin
+  cases n, { simp },
+  simp only [nat.succ_eq_add_one, nat.add_sub_cancel],
+  rw ← finset.sum_flip,
+  refine finset.sum_congr rfl (λ i hi, _),
+  simpa [nat.sub_sub_self (nat.succ_le_succ_iff.mp (finset.mem_range.mp hi))] using h.pow_pow _ _
+end
+
+lemma geom_sum₂_comm {α : Type u} [comm_semiring α] (x y : α) (n : ℕ) :
+  ∑ i in range n, x ^ i * y ^ (n - 1 - i) = ∑ i in range n, y ^ i * x ^ (n - 1 - i) :=
+(commute.all x y).geom_sum₂_comm n
 
 protected theorem commute.geom_sum₂ [division_ring α] {x y : α} (h' : commute x y) (h : x ≠ y)
   (n : ℕ) : (∑ i in range n, x ^ i * (y ^ (n - 1 - i))) = (x ^ n - y ^ n) / (x - y) :=
@@ -395,13 +410,7 @@ section order
 variables {n : ℕ} {x : α}
 
 lemma geom_sum_pos [ordered_semiring α] (hx : 0 < x) (hn : n ≠ 0) : 0 < ∑ i in range n, x ^ i :=
-begin
-  refine nat.le_induction _ _ _ (show 1 ≤ n, from hn.bot_lt),
-  { simp [@@zero_lt_one _ (nontrivial_of_lt _ _ hx)] },
-  intros k hk,
-  rw [geom_sum_succ'],
-  apply add_pos (pow_pos hx _)
-end
+sum_pos (λ k hk, pow_pos hx _) $ nonempty_range_iff.2 hn
 
 lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
   0 < ∑ i in range n, x ^ i ∧ ∑ i in range n, x ^ i < 1 :=
@@ -424,7 +433,7 @@ begin
   { simp only [geom_sum_two, hx, true_or, even_bit0, if_true_left_eq_or] },
   clear hn n,
   intros n hn ihn,
-  simp only [nat.even_succ, geom_sum_succ],
+  simp only [nat.even_add_one, geom_sum_succ],
   by_cases hn' : even n,
   { rw [if_pos hn'] at ihn, rw [if_neg, lt_add_iff_pos_left],
     exact mul_pos_of_neg_of_neg hx0 ihn, exact not_not_intro hn', },

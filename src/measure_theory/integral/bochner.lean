@@ -153,7 +153,7 @@ section weighted_smul
 
 open continuous_linear_map
 
-variables [normed_group F] [normed_space ℝ F] {m : measurable_space α} {μ : measure α}
+variables [normed_add_comm_group F] [normed_space ℝ F] {m : measurable_space α} {μ : measure α}
 
 /-- Given a set `s`, return the continuous linear map `λ x, (μ s).to_real • x`. The extension of
 that set function through `set_to_L1` gives the Bochner integral of L1 functions. -/
@@ -278,8 +278,8 @@ and prove basic property of this integral.
 -/
 open finset
 
-variables [normed_group E] [normed_group F] [normed_space ℝ F] {p : ℝ≥0∞}
-  {G F' : Type*} [normed_group G] [normed_group F'] [normed_space ℝ F']
+variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space ℝ F] {p : ℝ≥0∞}
+  {G F' : Type*} [normed_add_comm_group G] [normed_add_comm_group F'] [normed_space ℝ F']
   {m : measurable_space α} {μ : measure α}
 
 /-- Bochner integral of simple functions whose codomain is a real `normed_space`.
@@ -424,7 +424,8 @@ namespace L1
 
 open ae_eq_fun Lp.simple_func Lp
 
-variables [normed_group E] [normed_group F] {m : measurable_space α} {μ : measure α}
+variables [normed_add_comm_group E] [normed_add_comm_group F] {m : measurable_space α}
+  {μ : measure α}
 
 variables {α E μ}
 
@@ -466,7 +467,7 @@ Define the Bochner integral on `α →₁ₛ[μ] E` by extension from the simple
 and prove basic properties of this integral. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
-  {F' : Type*} [normed_group F'] [normed_space ℝ F']
+  {F' : Type*} [normed_add_comm_group F'] [normed_space ℝ F']
 
 local attribute [instance] simple_func.normed_space
 
@@ -498,7 +499,7 @@ begin
   exact (to_simple_func f).norm_integral_le_integral_norm (simple_func.integrable f)
 end
 
-variables {E' : Type*} [normed_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
+variables {E' : Type*} [normed_add_comm_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
 
 
 variables (α E μ 𝕜)
@@ -512,7 +513,7 @@ def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E := integral_clm' α E ℝ μ
 
 variables {α E μ 𝕜}
 
-local notation `Integral` := integral_clm α E μ
+local notation (name := simple_func.integral_clm) `Integral` := integral_clm α E μ
 
 open continuous_linear_map
 
@@ -584,10 +585,10 @@ end simple_func_integral
 end simple_func
 
 open simple_func
-local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
+local notation (name := simple_func.integral_clm) `Integral` := @integral_clm α E _ _ _ _ _ μ _
 
 
-variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_space ℝ E] [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [normed_space ℝ F] [complete_space E]
 
 section integration_in_L1
@@ -638,8 +639,9 @@ map_sub integral_clm f g
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
 show (integral_clm' 𝕜) (c • f) = c • (integral_clm' 𝕜) f, from map_smul (integral_clm' 𝕜) c f
 
-local notation `Integral` := @integral_clm α E _ _ μ _ _
-local notation `sIntegral` := @simple_func.integral_clm α E _ _ μ _
+local notation (name := integral_clm) `Integral` := @integral_clm α E _ _ μ _ _
+local notation (name := simple_func.integral_clm') `sIntegral` :=
+  @simple_func.integral_clm α E _ _ μ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
 norm_set_to_L1_le (dominated_fin_meas_additive_weighted_smul μ) zero_le_one
@@ -686,9 +688,9 @@ functions, and 0 otherwise; prove its basic properties.
 
 -/
 
-variables [normed_group E] [normed_space ℝ E] [complete_space E]
-          [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
-          [normed_group F] [normed_space ℝ F] [complete_space F]
+variables [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+          [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
+          [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
 
 section
 open_locale classical
@@ -833,16 +835,7 @@ lemma tendsto_integral_of_L1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)
   (hF : tendsto (λ i, ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0)) :
   tendsto (λ i, ∫ x, F i x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
-begin
-  rw [tendsto_iff_norm_tendsto_zero],
-  replace hF : tendsto (λ i, ennreal.to_real $ ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0) :=
-    (ennreal.tendsto_to_real zero_ne_top).comp hF,
-  refine squeeze_zero_norm' (hFi.mp $ hFi.mono $ λ i hFi hFm, _) hF,
-  simp only [norm_norm, ← integral_sub hFi hfi],
-  convert norm_integral_le_lintegral_norm (λ x, F i x - f x),
-  ext1 x,
-  exact coe_nnreal_eq _
-end
+tendsto_set_to_fun_of_L1 (dominated_fin_meas_additive_weighted_smul μ) f hfi hFi hF
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
   everywhere convergence of a sequence of functions implies the convergence of their integrals.
@@ -871,7 +864,7 @@ tendsto_set_to_fun_filter_of_dominated_convergence (dominated_fin_meas_additive_
   bound hF_meas h_bound bound_integrable h_lim
 
 /-- Lebesgue dominated convergence theorem for series. -/
-lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
+lemma has_sum_integral_of_dominated_convergence {ι} [countable ι]
   {F : ι → α → E} {f : α → E} (bound : ι → α → ℝ)
   (hF_meas : ∀ n, ae_strongly_measurable (F n) μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound n a)
@@ -978,7 +971,7 @@ begin
     rw [this, hfi], refl }
 end
 
-lemma integral_norm_eq_lintegral_nnnorm {G} [normed_group G]
+lemma integral_norm_eq_lintegral_nnnorm {G} [normed_add_comm_group G]
   {f : α → G} (hf : ae_strongly_measurable f μ) :
   ∫ x, ∥f x∥ ∂μ = ennreal.to_real ∫⁻ x, ∥f x∥₊ ∂μ :=
 begin
@@ -987,7 +980,7 @@ begin
   { refine ae_of_all _ _, simp_rw [pi.zero_apply, norm_nonneg, imp_true_iff] },
 end
 
-lemma of_real_integral_norm_eq_lintegral_nnnorm {G} [normed_group G] {f : α → G}
+lemma of_real_integral_norm_eq_lintegral_nnnorm {G} [normed_add_comm_group G] {f : α → G}
   (hf : integrable f μ) :
   ennreal.of_real ∫ x, ∥f x∥ ∂μ = ∫⁻ x, ∥f x∥₊ ∂μ :=
 by rw [integral_norm_eq_lintegral_nnnorm hf.ae_strongly_measurable,
@@ -1083,8 +1076,8 @@ lemma integral_pos_iff_support_of_nonneg {f : α → ℝ} (hf : 0 ≤ f) (hfi : 
   (0 < ∫ x, f x ∂μ) ↔ 0 < μ (function.support f) :=
 integral_pos_iff_support_of_nonneg_ae (eventually_of_forall hf) hfi
 
-section normed_group
-variables {H : Type*} [normed_group H]
+section normed_add_comm_group
+variables {H : Type*} [normed_add_comm_group H]
 
 lemma L1.norm_eq_integral_norm (f : α →₁[μ] H) : ∥f∥ = ∫ a, ∥f a∥ ∂μ :=
 begin
@@ -1120,7 +1113,7 @@ begin
   exact (lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp1 hp2 hf.2).ne
 end
 
-end normed_group
+end normed_add_comm_group
 
 lemma integral_mono_ae {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ᵐ[μ] g) :
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
@@ -1137,7 +1130,7 @@ begin
   by_cases hfm : ae_strongly_measurable f μ,
   { refine integral_mono_ae ⟨hfm, _⟩ hgi h,
     refine (hgi.has_finite_integral.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
-    simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
+    simpa [abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
   { rw [integral_non_ae_strongly_measurable hfm],
     exact integral_nonneg_of_ae (hf.trans h) }
 end
@@ -1212,8 +1205,8 @@ lemma tendsto_integral_approx_on_of_measurable
 begin
   have hfi' := simple_func.integrable_approx_on hfm hfi h₀ h₀i,
   simp only [simple_func.integral_eq_integral _ (hfi' _)],
-  exact tendsto_integral_of_L1 _ hfi (eventually_of_forall hfi')
-    (simple_func.tendsto_approx_on_L1_nnnorm hfm _ hs (hfi.sub h₀i).2)
+  exact tendsto_set_to_fun_approx_on_of_measurable (dominated_fin_meas_additive_weighted_smul μ)
+    hfi hfm hs h₀ h₀i,
 end
 
 lemma tendsto_integral_approx_on_of_measurable_of_range_subset
@@ -1224,10 +1217,7 @@ lemma tendsto_integral_approx_on_of_measurable_of_range_subset
     (𝓝 $ ∫ x, f x ∂μ) :=
 begin
   apply tendsto_integral_approx_on_of_measurable hf fmeas _ _ (integrable_zero _ _ _),
-  apply eventually_of_forall (λ x, _),
-  apply subset_closure,
-  apply hs,
-  simp,
+  exact eventually_of_forall (λ x, subset_closure (hs (set.mem_union_left _ (mem_range_self _)))),
 end
 
 variable {ν : measure α}
@@ -1402,6 +1392,110 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
+lemma mul_meas_ge_le_integral_of_nonneg [is_finite_measure μ] {f : α → ℝ} (hf_nonneg : 0 ≤ f)
+  (hf_int : integrable f μ) (ε : ℝ) :
+  ε * (μ {x | ε ≤ f x}).to_real ≤ ∫ x, f x ∂μ :=
+begin
+  cases lt_or_le ε 0 with hε hε,
+  { exact (mul_nonpos_of_nonpos_of_nonneg hε.le ennreal.to_real_nonneg).trans
+      (integral_nonneg hf_nonneg), },
+  rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, hf_nonneg x))
+    hf_int.ae_strongly_measurable, ← ennreal.to_real_of_real hε, ← ennreal.to_real_mul],
+  have : {x : α | (ennreal.of_real ε).to_real ≤ f x}
+    = {x : α | ennreal.of_real ε ≤ (λ x, ennreal.of_real (f x)) x},
+  { ext1 x,
+    rw [set.mem_set_of_eq, set.mem_set_of_eq, ← ennreal.to_real_of_real (hf_nonneg x)],
+    exact ennreal.to_real_le_to_real ennreal.of_real_ne_top ennreal.of_real_ne_top, },
+  rw this,
+  have h_meas : ae_measurable (λ x, ennreal.of_real (f x)) μ,
+    from measurable_id'.ennreal_of_real.comp_ae_measurable hf_int.ae_measurable,
+  have h_mul_meas_le := @mul_meas_ge_le_lintegral₀ _ _ μ _ h_meas (ennreal.of_real ε),
+  rw ennreal.to_real_le_to_real _ _,
+  { exact h_mul_meas_le, },
+  { simp only [ne.def, with_top.mul_eq_top_iff, ennreal.of_real_eq_zero, not_le,
+      ennreal.of_real_ne_top, false_and, or_false, not_and],
+    exact λ _, measure_ne_top _ _, },
+  { have h_lt_top : ∫⁻ a, ∥f a∥₊ ∂μ < ∞ := hf_int.has_finite_integral,
+    simp_rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs] at h_lt_top,
+    convert h_lt_top.ne,
+    ext1 x,
+    rw abs_of_nonneg (hf_nonneg x), },
+end
+
+/-- Hölder's inequality for the integral of a product of norms. The integral of the product of two
+norms of functions is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are
+conjugate exponents. -/
+theorem integral_mul_norm_le_Lp_mul_Lq {E} [normed_add_comm_group E] {f g : α → E}
+  {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+  (hf : mem_ℒp f (ennreal.of_real p) μ) (hg : mem_ℒp g (ennreal.of_real q) μ) :
+  ∫ a, ∥f a∥ * ∥g a∥ ∂μ ≤ (∫ a, ∥f a∥ ^ p ∂μ) ^ (1/p) * (∫ a, ∥g a∥ ^ q ∂μ) ^ (1/q) :=
+begin
+  -- translate the Bochner integrals into Lebesgue integrals.
+  rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae,
+    integral_eq_lintegral_of_nonneg_ae],
+  rotate 1,
+  { exact eventually_of_forall (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _), },
+  { exact (hg.1.norm.ae_measurable.pow ae_measurable_const).ae_strongly_measurable, },
+  { exact eventually_of_forall (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _),},
+  { exact (hf.1.norm.ae_measurable.pow ae_measurable_const).ae_strongly_measurable, },
+  { exact eventually_of_forall (λ x, mul_nonneg (norm_nonneg _) (norm_nonneg _)), },
+  { exact hf.1.norm.mul hg.1.norm, },
+  rw [ennreal.to_real_rpow, ennreal.to_real_rpow, ← ennreal.to_real_mul],
+  -- replace norms by nnnorm
+  have h_left : ∫⁻ a, ennreal.of_real (∥f a∥ * ∥g a∥) ∂μ
+    = ∫⁻ a, ((λ x, (∥f x∥₊ : ℝ≥0∞)) * (λ x, ∥g x∥₊)) a ∂μ,
+  { simp_rw [pi.mul_apply, ← of_real_norm_eq_coe_nnnorm, ennreal.of_real_mul (norm_nonneg _)], },
+  have h_right_f : ∫⁻ a, ennreal.of_real (∥f a∥ ^ p) ∂μ = ∫⁻ a, ∥f a∥₊ ^ p ∂μ,
+  { refine lintegral_congr (λ x, _),
+    rw [← of_real_norm_eq_coe_nnnorm, ennreal.of_real_rpow_of_nonneg (norm_nonneg _) hpq.nonneg], },
+  have h_right_g : ∫⁻ a, ennreal.of_real (∥g a∥ ^ q) ∂μ = ∫⁻ a, ∥g a∥₊ ^ q ∂μ,
+  { refine lintegral_congr (λ x, _),
+    rw [← of_real_norm_eq_coe_nnnorm,
+      ennreal.of_real_rpow_of_nonneg (norm_nonneg _) hpq.symm.nonneg], },
+  rw [h_left, h_right_f, h_right_g],
+  -- we can now apply `ennreal.lintegral_mul_le_Lp_mul_Lq` (up to the `to_real` application)
+  refine ennreal.to_real_mono _ _,
+  { refine ennreal.mul_ne_top _ _,
+    { convert hf.snorm_ne_top,
+      rw snorm_eq_lintegral_rpow_nnnorm,
+      { rw ennreal.to_real_of_real hpq.nonneg, },
+      { rw [ne.def, ennreal.of_real_eq_zero, not_le],
+        exact hpq.pos, },
+      { exact ennreal.coe_ne_top, }, },
+    { convert hg.snorm_ne_top,
+      rw snorm_eq_lintegral_rpow_nnnorm,
+      { rw ennreal.to_real_of_real hpq.symm.nonneg, },
+      { rw [ne.def, ennreal.of_real_eq_zero, not_le],
+        exact hpq.symm.pos, },
+      { exact ennreal.coe_ne_top, }, }, },
+  { exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.1.nnnorm.ae_measurable.coe_nnreal_ennreal
+      hg.1.nnnorm.ae_measurable.coe_nnreal_ennreal, },
+end
+
+/-- Hölder's inequality for functions `α → ℝ`. The integral of the product of two nonnegative
+functions is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are conjugate
+exponents. -/
+theorem integral_mul_le_Lp_mul_Lq_of_nonneg {p q : ℝ}
+  (hpq : p.is_conjugate_exponent q) {f g : α → ℝ} (hf_nonneg : 0 ≤ᵐ[μ] f) (hg_nonneg : 0 ≤ᵐ[μ] g)
+  (hf : mem_ℒp f (ennreal.of_real p) μ) (hg : mem_ℒp g (ennreal.of_real q) μ) :
+  ∫ a, f a * g a ∂μ ≤ (∫ a, (f a) ^ p ∂μ) ^ (1/p) * (∫ a, (g a) ^ q ∂μ) ^ (1/q) :=
+begin
+  have h_left : ∫ a, f a * g a ∂μ = ∫ a, ∥f a∥ * ∥g a∥ ∂μ,
+  { refine integral_congr_ae _,
+    filter_upwards [hf_nonneg, hg_nonneg] with x hxf hxg,
+    rw [real.norm_of_nonneg hxf, real.norm_of_nonneg hxg], },
+  have h_right_f : ∫ a, (f a) ^ p ∂μ = ∫ a, ∥f a∥ ^ p ∂μ,
+  { refine integral_congr_ae _,
+    filter_upwards [hf_nonneg] with x hxf,
+    rw real.norm_of_nonneg hxf, },
+  have h_right_g : ∫ a, (g a) ^ q ∂μ = ∫ a, ∥g a∥ ^ q ∂μ,
+  { refine integral_congr_ae _,
+    filter_upwards [hg_nonneg] with x hxg,
+    rw real.norm_of_nonneg hxg, },
+  rw [h_left, h_right_f, h_right_g],
+  exact integral_mul_norm_le_Lp_mul_Lq hpq hf hg,
+end
+
 end properties
 
 mk_simp_attribute integral_simps "Simp set for integral rules."
@@ -1413,7 +1507,7 @@ attribute [irreducible] integral L1.integral
 
 section integral_trim
 
-variables {H β γ : Type*} [normed_group H]
+variables {H β γ : Type*} [normed_add_comm_group H]
   {m m0 : measurable_space β} {μ : measure β}
 
 /-- Simple function seen as simple function of a larger `measurable_space`. -/
@@ -1516,5 +1610,66 @@ lemma ae_le_trim_iff
 ⟨ae_le_of_ae_le_trim, ae_le_trim_of_strongly_measurable hm hf hg⟩
 
 end integral_trim
+
+section snorm_bound
+
+variables {m0 : measurable_space α} {μ : measure α}
+
+lemma snorm_one_le_of_le {r : ℝ≥0} {f : α → ℝ}
+  (hfint : integrable f μ) (hfint' : 0 ≤ ∫ x, f x ∂μ) (hf : ∀ᵐ ω ∂μ, f ω ≤ r) :
+  snorm f 1 μ ≤ 2 * μ set.univ * r :=
+begin
+  by_cases hr : r = 0,
+  { suffices : f =ᵐ[μ] 0,
+    { rw [snorm_congr_ae this, snorm_zero, hr, ennreal.coe_zero, mul_zero],
+      exact le_rfl },
+    rw [hr, nonneg.coe_zero] at hf,
+    have hnegf : ∫ x, -f x ∂μ = 0,
+    { rw [integral_neg, neg_eq_zero],
+      exact le_antisymm (integral_nonpos_of_ae hf) hfint' },
+    have := (integral_eq_zero_iff_of_nonneg_ae _ hfint.neg).1 hnegf,
+    { filter_upwards [this] with ω hω,
+      rwa [pi.neg_apply, pi.zero_apply, neg_eq_zero] at hω },
+    { filter_upwards [hf] with ω hω,
+      rwa [pi.zero_apply, pi.neg_apply, right.nonneg_neg_iff] } },
+  by_cases hμ : is_finite_measure μ,
+  swap,
+  { have : μ set.univ = ∞,
+    { by_contra hμ',
+      exact hμ (is_finite_measure.mk $ lt_top_iff_ne_top.2 hμ') },
+    rw [this, ennreal.mul_top, if_neg, ennreal.top_mul, if_neg],
+    { exact le_top },
+    { simp [hr] },
+    { norm_num } },
+  haveI := hμ,
+  rw [integral_eq_integral_pos_part_sub_integral_neg_part hfint, sub_nonneg] at hfint',
+  have hposbdd : ∫ ω, max (f ω) 0 ∂μ ≤ (μ set.univ).to_real • r,
+  { rw ← integral_const,
+    refine integral_mono_ae hfint.real_to_nnreal (integrable_const r) _,
+    filter_upwards [hf] with ω hω using real.to_nnreal_le_iff_le_coe.2 hω },
+  rw [mem_ℒp.snorm_eq_integral_rpow_norm one_ne_zero ennreal.one_ne_top
+      (mem_ℒp_one_iff_integrable.2 hfint),
+    ennreal.of_real_le_iff_le_to_real (ennreal.mul_ne_top
+      (ennreal.mul_ne_top ennreal.two_ne_top $ @measure_ne_top _ _ _ hμ _) ennreal.coe_ne_top)],
+  simp_rw [ennreal.one_to_real, _root_.inv_one, real.rpow_one, real.norm_eq_abs,
+    ← max_zero_add_max_neg_zero_eq_abs_self, ← real.coe_to_nnreal'],
+  rw integral_add hfint.real_to_nnreal,
+  { simp only [real.coe_to_nnreal', ennreal.to_real_mul, ennreal.to_real_bit0,
+    ennreal.one_to_real, ennreal.coe_to_real] at hfint' ⊢,
+    refine (add_le_add_left hfint' _).trans _,
+    rwa [← two_mul, mul_assoc, mul_le_mul_left (two_pos : (0 : ℝ) < 2)] },
+  { exact hfint.neg.sup (integrable_zero _ _ μ) }
+end
+
+lemma snorm_one_le_of_le' {r : ℝ} {f : α → ℝ}
+  (hfint : integrable f μ) (hfint' : 0 ≤ ∫ x, f x ∂μ) (hf : ∀ᵐ ω ∂μ, f ω ≤ r) :
+  snorm f 1 μ ≤ 2 * μ set.univ * ennreal.of_real r :=
+begin
+  refine snorm_one_le_of_le hfint hfint' _,
+  simp only [real.coe_to_nnreal', le_max_iff],
+  filter_upwards [hf] with ω hω using or.inl hω,
+end
+
+end snorm_bound
 
 end measure_theory

@@ -25,7 +25,7 @@ open_locale topological_space interval
 
 variables {X Y E : Type*} [measurable_space X] [topological_space X]
 variables [measurable_space Y] [topological_space Y]
-variables [normed_group E] {f : X → E} {μ : measure X}
+variables [normed_add_comm_group E] {f : X → E} {μ : measure X}
 
 namespace measure_theory
 

@@ -158,16 +158,14 @@ variables [infinite R]
 
 /-- In the following results, we need a large set of distinct elements of `R`. -/
 noncomputable def distinct_elems : fin (cardM bS adm).succ ↪ R :=
-function.embedding.trans (fin.coe_embedding _).to_embedding (infinite.nat_embedding R)
+fin.coe_embedding.trans (infinite.nat_embedding R)
 
 variables [decidable_eq R]
 
 /-- `finset_approx` is a finite set such that each fractional ideal in the integral closure
 contains an element close to `finset_approx`. -/
 noncomputable def finset_approx : finset R :=
-((finset.univ.product finset.univ)
-  .image (λ (xy : _ × _), distinct_elems bS adm xy.1 - distinct_elems bS adm xy.2))
-  .erase 0
+(finset.univ.image $ λ xy : _ × _, distinct_elems bS adm xy.1 - distinct_elems bS adm xy.2).erase 0
 
 lemma finset_approx.zero_not_mem : (0 : R) ∉ finset_approx bS adm :=
 finset.not_mem_erase _ _
@@ -183,7 +181,7 @@ begin
     rintro rfl,
     simpa using hx },
   { rintros ⟨i, j, hij, rfl⟩,
-    refine ⟨_, ⟨i, j⟩, finset.mem_product.mpr ⟨finset.mem_univ _, finset.mem_univ _⟩, rfl⟩,
+    refine ⟨_, ⟨i, j⟩, finset.mem_univ _, rfl⟩,
     rw [ne.def, sub_eq_zero],
     exact λ h, hij ((distinct_elems bS adm).injective h) }
 end
@@ -206,7 +204,7 @@ begin
                 (abv b ^ fintype.card ι),
   { have := norm_bound_pos abv bS,
     have := abv.nonneg b,
-    rw [ε_eq, algebra.smul_def, ring_hom.eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
+    rw [ε_eq, algebra.smul_def, eq_int_cast, ← rpow_nat_cast, mul_rpow, ← rpow_mul,
         div_mul_cancel, rpow_neg_one, mul_left_comm, mul_inv_cancel, mul_one, rpow_nat_cast];
       try { norm_cast, linarith },
     { apply rpow_nonneg_of_nonneg,

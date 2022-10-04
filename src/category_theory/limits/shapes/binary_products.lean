@@ -139,6 +139,17 @@ abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app ⟨walkin
 @[simp] lemma binary_fan.π_app_right {X Y : C} (s : binary_fan X Y) :
   s.π.app ⟨walking_pair.right⟩ = s.snd := rfl
 
+/-- A convenient way to show that a binary fan is a limit. -/
+def binary_fan.is_limit.mk {X Y : C} (s : binary_fan X Y)
+  (lift : Π {T : C} (f : T ⟶ X) (g : T ⟶ Y), T ⟶ s.X)
+  (hl₁ : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y), lift f g ≫ s.fst = f)
+  (hl₂ : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y), lift f g ≫ s.snd = g)
+  (uniq : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y) (m : T ⟶ s.X) (h₁ : m ≫ s.fst = f)
+    (h₂ : m ≫ s.snd = g), m = lift f g) : is_limit s := is_limit.mk
+  (λ t, lift (binary_fan.fst t) (binary_fan.snd t))
+  (by { rintros t (rfl|rfl), { exact hl₁ _ _ }, { exact hl₂ _ _ } })
+  (λ t m h, uniq _ _ _ (h ⟨walking_pair.left⟩) (h ⟨walking_pair.right⟩))
+
 lemma binary_fan.is_limit.hom_ext {W X Y : C} {s : binary_fan X Y} (h : is_limit s)
   {f g : W ⟶ s.X} (h₁ : f ≫ s.fst = g ≫ s.fst) (h₂ : f ≫ s.snd = g ≫ s.snd) : f = g :=
 h.hom_ext $ λ j, discrete.rec_on j (λ j, walking_pair.cases_on j h₁ h₂)
@@ -156,6 +167,17 @@ abbreviation binary_cofan.inr {X Y : C} (s : binary_cofan X Y) := s.ι.app ⟨wa
   s.ι.app ⟨walking_pair.left⟩ = s.inl := rfl
 @[simp] lemma binary_cofan.ι_app_right {X Y : C} (s : binary_cofan X Y) :
   s.ι.app ⟨walking_pair.right⟩ = s.inr := rfl
+
+/-- A convenient way to show that a binary cofan is a colimit. -/
+def binary_cofan.is_colimit.mk {X Y : C} (s : binary_cofan X Y)
+  (desc : Π {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.X ⟶ T)
+  (hd₁ : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.inl ≫ desc f g = f)
+  (hd₂ : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.inr ≫ desc f g = g)
+  (uniq : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T) (m : s.X ⟶ T) (h₁ : s.inl ≫ m = f)
+    (h₂ : s.inr ≫ m = g), m = desc f g) : is_colimit s := is_colimit.mk
+    (λ t, desc (binary_cofan.inl t) (binary_cofan.inr t))
+    (by { rintros t (rfl|rfl), { exact hd₁ _ _ }, { exact hd₂ _ _ }})
+    (λ t m h, uniq _ _ _ (h ⟨walking_pair.left⟩) (h ⟨walking_pair.right⟩))
 
 lemma binary_cofan.is_colimit.hom_ext {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s)
   {f g : s.X ⟶ W} (h₁ : s.inl ≫ f = s.inl ≫ g) (h₂ : s.inr ≫ f = s.inr ≫ g) : f = g :=
@@ -180,14 +202,22 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 
 end
 
-@[simp] lemma binary_fan.mk_π_app_left {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
-  (binary_fan.mk π₁ π₂).π.app ⟨walking_pair.left⟩ = π₁ := rfl
-@[simp] lemma binary_fan.mk_π_app_right {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
-  (binary_fan.mk π₁ π₂).π.app ⟨walking_pair.right⟩ = π₂ := rfl
-@[simp] lemma binary_cofan.mk_ι_app_left {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
-  (binary_cofan.mk ι₁ ι₂).ι.app ⟨walking_pair.left⟩ = ι₁ := rfl
-@[simp] lemma binary_cofan.mk_ι_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
-  (binary_cofan.mk ι₁ ι₂).ι.app ⟨walking_pair.right⟩ = ι₂ := rfl
+@[simp] lemma binary_fan.mk_fst {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
+  (binary_fan.mk π₁ π₂).fst = π₁ := rfl
+@[simp] lemma binary_fan.mk_snd {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
+  (binary_fan.mk π₁ π₂).snd = π₂ := rfl
+@[simp] lemma binary_cofan.mk_inl {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+  (binary_cofan.mk ι₁ ι₂).inl = ι₁ := rfl
+@[simp] lemma binary_cofan.mk_inr {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+  (binary_cofan.mk ι₁ ι₂).inr = ι₂ := rfl
+
+/-- Every `binary_fan` is isomorphic to an application of `binary_fan.mk`. -/
+def iso_binary_fan_mk {X Y : C} (c : binary_fan X Y) : c ≅ binary_fan.mk c.fst c.snd :=
+cones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
+
+/-- Every `binary_fan` is isomorphic to an application of `binary_fan.mk`. -/
+def iso_binary_cofan_mk {X Y : C} (c : binary_cofan X Y) : c ≅ binary_cofan.mk c.inl c.inr :=
+cocones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 
 /-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
     `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.
@@ -441,8 +471,8 @@ lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
 by simp
 
-instance {X : C} [has_binary_product X X] : split_mono (diag X) :=
-{ retraction := prod.fst }
+instance {X : C} [has_binary_product X X] : is_split_mono (diag X) :=
+is_split_mono.mk' { retraction := prod.fst }
 
 end prod_lemmas
 

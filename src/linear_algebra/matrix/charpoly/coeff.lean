@@ -221,7 +221,7 @@ begin
   have : ∑ (x : n), 1 = fintype.card n := by rw [finset.sum_const, card_univ, smul_eq_mul, mul_one],
   rw ← this,
   apply coeff_prod_mem_ideal_pow_tsub,
-  rintro i (_|k),
+  rintro i - (_|k),
   { rw [tsub_zero, pow_one, charmatrix_apply, coeff_sub, coeff_X_mul_zero, coeff_C_zero, zero_sub,
       neg_mem_iff],
     exact h (c i) i },

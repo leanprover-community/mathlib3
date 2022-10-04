@@ -128,7 +128,7 @@ def is_limit_aux (t : kernel_fork f)
 This is a more convenient formulation to show that a `kernel_fork` constructed using
 `kernel_fork.of_ι` is a limit cone.
 -/
-def is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
+def kernel_fork.is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
   (lift : Π {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), W' ⟶ W)
   (fac : ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), lift g' eq' ≫ g = g')
   (uniq :
@@ -465,7 +465,7 @@ def is_colimit_aux (t : cokernel_cofork f)
 This is a more convenient formulation to show that a `cokernel_cofork` constructed using
 `cokernel_cofork.of_π` is a limit cone.
 -/
-def is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
+def cokernel_cofork.is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
   (desc : Π {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), Z ⟶ Z')
   (fac : ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), g ≫ desc g' eq' = g')
   (uniq :

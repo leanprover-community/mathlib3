@@ -223,9 +223,10 @@ include β
 lemma disjoint.map (h : disjoint a b) : disjoint (f a) (f b) :=
 by rw [disjoint_iff, ←map_inf, h.eq_bot, map_bot]
 
-lemma is_compl.map (h : is_compl a b) : is_compl (f a) (f b) :=
-{ inf_le_bot := h.disjoint.map _,
-  top_le_sup := by rw [←map_sup, h.sup_eq_top, map_top] }
+lemma codisjoint.map (h : codisjoint a b) : codisjoint (f a) (f b) :=
+by rw [codisjoint_iff, ←map_sup, h.eq_top, map_top]
+
+lemma is_compl.map (h : is_compl a b) : is_compl (f a) (f b) := ⟨h.1.map _, h.2.map _⟩
 
 end bounded_lattice
 
@@ -233,12 +234,16 @@ section boolean_algebra
 variables [boolean_algebra α] [boolean_algebra β] [bounded_lattice_hom_class F α β] (f : F)
 include β
 
-lemma map_compl (a : α) : f aᶜ = (f a)ᶜ := (is_compl_compl.map _).compl_eq.symm
+/-- Special case of `map_compl` for boolean algebras. -/
+lemma map_compl' (a : α) : f aᶜ = (f a)ᶜ := (is_compl_compl.map _).compl_eq.symm
 
-lemma map_sdiff (a b : α) : f (a \ b) = f a \ f b := by rw [sdiff_eq, sdiff_eq, map_inf, map_compl]
+/-- Special case of `map_sdiff` for boolean algebras. -/
+lemma map_sdiff' (a b : α) : f (a \ b) = f a \ f b :=
+by rw [sdiff_eq, sdiff_eq, map_inf, map_compl']
 
-lemma map_symm_diff (a b : α) : f (a ∆ b) = f a ∆ f b :=
-by rw [symm_diff, symm_diff, map_sup, map_sdiff, map_sdiff]
+/-- Special case of `map_symm_diff` for boolean algebras. -/
+lemma map_symm_diff' (a b : α) : f (a ∆ b) = f a ∆ f b :=
+by rw [symm_diff, symm_diff, map_sup, map_sdiff', map_sdiff']
 
 end boolean_algebra
 

@@ -542,9 +542,11 @@ end mul_one_class
 section mul_zero_class
 variables [mul_zero_class α] [has_distrib_neg α]
 
-/-- Prefer `neg_zero` if `subtraction_monoid` is available. -/
-@[simp] lemma neg_zero' : (-0 : α) = 0 :=
-by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
+@[priority 100]
+instance mul_zero_class.neg_zero_class : neg_zero_class α :=
+{ neg_zero := by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero],
+  ..mul_zero_class.to_has_zero α,
+  ..has_distrib_neg.to_has_involutive_neg α }
 
 end mul_zero_class
 
@@ -837,6 +839,32 @@ instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
 @[simp, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
 
 instance : has_distrib_neg αˣ := units.ext.has_distrib_neg _ units.coe_neg units.coe_mul
+
+@[field_simps] lemma neg_divp (a : α) (u : αˣ) : -(a /ₚ u) = (-a) /ₚ u :=
+by simp only [divp, neg_mul]
+
+@[field_simps] lemma divp_add_divp_same (a b : α) (u : αˣ) :
+  a /ₚ u + b /ₚ u = (a + b) /ₚ u :=
+by simp only [divp, add_mul]
+
+@[field_simps] lemma divp_sub_divp_same (a b : α) (u : αˣ) :
+  a /ₚ u - b /ₚ u = (a - b) /ₚ u :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, neg_divp, divp_add_divp_same]
+
+@[field_simps] lemma add_divp (a b : α) (u : αˣ)  : a + b /ₚ u = (a * u + b) /ₚ u :=
+by simp only [divp, add_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma sub_divp (a b : α) (u : αˣ) : a - b /ₚ u = (a * u - b) /ₚ u :=
+by simp only [divp, sub_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma divp_add (a b : α) (u : αˣ) : a /ₚ u + b = (a + b * u) /ₚ u :=
+by simp only [divp, add_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma divp_sub (a b : α) (u : αˣ) : a /ₚ u - b = (a - b * u) /ₚ u :=
+begin
+  simp only [divp, sub_mul, sub_right_inj],
+  assoc_rw [units.mul_inv, mul_one],
+end
 
 end units
 
@@ -1228,12 +1256,68 @@ lemma mul_self_eq_one_iff [non_assoc_ring R] [no_zero_divisors R] {a : R} :
   a * a = 1 ↔ a = 1 ∨ a = -1 :=
 by rw [←(commute.one_right a).mul_self_eq_mul_self_iff, mul_one]
 
+namespace units
+
+@[field_simps] lemma divp_add_divp [comm_ring α] (a b : α) (u₁ u₂ : αˣ) :
+a /ₚ u₁ + b /ₚ u₂ = (a * u₂ + u₁ * b) /ₚ (u₁ * u₂) :=
+begin
+  simp only [divp, add_mul, mul_inv_rev, coe_mul],
+  rw [mul_comm (↑u₁ * b), mul_comm b],
+  assoc_rw [mul_inv, mul_inv, mul_one, mul_one],
+end
+
+@[field_simps] lemma divp_sub_divp [comm_ring α] (a b : α) (u₁ u₂ : αˣ) :
+  (a /ₚ u₁) - (b /ₚ u₂) = ((a * u₂) - (u₁ * b)) /ₚ (u₁ * u₂) :=
+by simp_rw [sub_eq_add_neg, neg_divp, divp_add_divp, mul_neg]
+
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
   one's additive inverse. -/
-lemma units.inv_eq_self_iff [ring R] [no_zero_divisors R] (u : Rˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
+lemma inv_eq_self_iff [ring R] [no_zero_divisors R] (u : Rˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 begin
   rw inv_eq_iff_mul_eq_one,
-  simp only [units.ext_iff],
+  simp only [ext_iff],
   push_cast,
   exact mul_self_eq_one_iff
 end
+
+end units
+
+/-! ### Order dual -/
+
+instance [h : distrib α] : distrib αᵒᵈ := h
+instance [has_mul α] [has_add α] [h : left_distrib_class α] : left_distrib_class αᵒᵈ := h
+instance [has_mul α] [has_add α] [h : right_distrib_class α] : right_distrib_class αᵒᵈ := h
+instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring αᵒᵈ := h
+instance [h : non_unital_semiring α] : non_unital_semiring αᵒᵈ := h
+instance [h : non_assoc_semiring α] : non_assoc_semiring αᵒᵈ := h
+instance [h : semiring α] : semiring αᵒᵈ := h
+instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring αᵒᵈ := h
+instance [h : comm_semiring α] : comm_semiring αᵒᵈ := h
+instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg αᵒᵈ := h
+instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring αᵒᵈ := h
+instance [h : non_unital_ring α] : non_unital_ring αᵒᵈ := h
+instance [h : non_assoc_ring α] : non_assoc_ring αᵒᵈ := h
+instance [h : ring α] : ring αᵒᵈ := h
+instance [h : non_unital_comm_ring α] : non_unital_comm_ring αᵒᵈ := h
+instance [h : comm_ring α] : comm_ring αᵒᵈ := h
+instance [ring α] [h : is_domain α] : is_domain αᵒᵈ := h
+
+/-! ### Lexicographical order -/
+
+instance [h : distrib α] : distrib (lex α) := h
+instance [has_mul α] [has_add α] [h : left_distrib_class α] : left_distrib_class (lex α) := h
+instance [has_mul α] [has_add α] [h : right_distrib_class α] : right_distrib_class (lex α) := h
+instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring (lex α) := h
+instance [h : non_unital_semiring α] : non_unital_semiring (lex α) := h
+instance [h : non_assoc_semiring α] : non_assoc_semiring (lex α) := h
+instance [h : semiring α] : semiring (lex α) := h
+instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring (lex α) := h
+instance [h : comm_semiring α] : comm_semiring (lex α) := h
+instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg (lex α) := h
+instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (lex α) := h
+instance [h : non_unital_ring α] : non_unital_ring (lex α) := h
+instance [h : non_assoc_ring α] : non_assoc_ring (lex α) := h
+instance [h : ring α] : ring (lex α) := h
+instance [h : non_unital_comm_ring α] : non_unital_comm_ring (lex α) := h
+instance [h : comm_ring α] : comm_ring (lex α) := h
+instance [ring α] [h : is_domain α] : is_domain (lex α) := h

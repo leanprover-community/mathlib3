@@ -66,9 +66,7 @@ begin
     category_struct.id.epi (of ℤ ℚ), _, _⟩,
   { refine (Module.epi_iff_surjective _).2 (λ a, ⟨(a/2 : ℚ), _⟩),
     simp only [two_smul, add_apply, of_hom_apply, id_coe, id.def],
-    convert add_halves' _,
-    change char_zero ℚ,
-    apply_instance },
+    exact add_halves' (show ℚ, from a) },
   { dsimp [x, y],
     exact concrete_category.hom_ext _ _ (λ a, by simpa) }
 end

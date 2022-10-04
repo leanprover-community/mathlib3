@@ -43,7 +43,7 @@ begin
   have hk₂ : ∀ x, 2 * (∥f x∥ * ∥g y∥) ≤ 2 * k,
   { intro x,
     calc 2 * (∥f x∥ * ∥g y∥)
-        = ∥2 * f x * g y∥ : by simp [real.norm_eq_abs, abs_mul, mul_assoc]
+        = ∥2 * f x * g y∥ : by simp [abs_mul, mul_assoc]
     ... = ∥f (x + y) + f (x - y)∥ : by rw hf1
     ... ≤ ∥f (x + y)∥ + ∥f (x - y)∥ : norm_add_le _ _
     ... ≤ k + k : add_le_add (hk₁ _) (hk₁ _)
@@ -112,7 +112,7 @@ begin
   { suffices : ∀ x, ∥f x∥ ≤ k / ∥g y∥, from csupr_le this,
     intro x,
     suffices : 2 * (∥f x∥ * ∥g y∥) ≤ 2 * k,
-      by { rwa [le_div_iff hgy, ←mul_le_mul_left zero_lt_two], apply_instance },
+      by { rwa [le_div_iff hgy, ←mul_le_mul_left (zero_lt_two : (0 : ℝ) < 2)] },
     calc 2 * (∥f x∥ * ∥g y∥)
         = ∥2 * f x * g y∥           : by simp [abs_mul, mul_assoc]
     ... = ∥f (x + y) + f (x - y)∥   : by rw hf1

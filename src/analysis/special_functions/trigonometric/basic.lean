@@ -97,7 +97,7 @@ intermediate_value_Icc' (by norm_num) continuous_on_cos
 which one can derive all its properties. For explicit bounds on π, see `data.real.pi.bounds`. -/
 protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
-localized "notation `π` := real.pi" in real
+localized "notation (name := real.pi) `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
@@ -364,9 +364,9 @@ lemma sin_eq_zero_iff_of_lt_of_lt {x : ℝ} (hx₁ : -π < x) (hx₂ : x < π) :
   λ h, by simp [h]⟩
 
 lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x :=
-⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (sub_floor_div_mul_nonneg _ pi_pos))
+⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (int.sub_floor_div_mul_nonneg _ pi_pos))
   (sub_nonpos.1 $ le_of_not_gt $ λ h₃,
-    (sin_pos_of_pos_of_lt_pi h₃ (sub_floor_div_mul_lt _ pi_pos)).ne
+    (sin_pos_of_pos_of_lt_pi h₃ (int.sub_floor_div_mul_lt _ pi_pos)).ne
     (by simp [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
 

@@ -126,6 +126,33 @@ lemma range_const_subset (α) [measurable_space α] (b : β) :
   (const α b).range ⊆ {b} :=
 finset.coe_subset.1 $ by simp
 
+lemma simple_func_bot {α} (f : @simple_func α ⊥ β) [nonempty β] : ∃ c, ∀ x, f x = c :=
+begin
+  have hf_meas := @simple_func.measurable_set_fiber α _ ⊥ f,
+  simp_rw measurable_space.measurable_set_bot_iff at hf_meas,
+  casesI is_empty_or_nonempty α,
+  { simp only [is_empty.forall_iff, exists_const], },
+  { specialize hf_meas (f h.some),
+    cases hf_meas,
+    { exfalso,
+      refine set.not_mem_empty h.some _,
+      rw [← hf_meas, set.mem_preimage],
+      exact set.mem_singleton _, },
+    { refine ⟨f h.some, λ x, _⟩,
+      have : x ∈ f ⁻¹' {f h.some},
+      { rw hf_meas, exact set.mem_univ x, },
+      rwa [set.mem_preimage, set.mem_singleton_iff] at this, }, },
+end
+
+lemma simple_func_bot' {α} [nonempty β] (f : @simple_func α ⊥ β) :
+  ∃ c, f = @simple_func.const α _ ⊥ c :=
+begin
+  obtain ⟨c, h_eq⟩ := simple_func_bot f,
+  refine ⟨c, _⟩,
+  ext1 x,
+  rw [h_eq x, simple_func.coe_const],
+end
+
 lemma measurable_set_cut (r : α → β → Prop) (f : α →ₛ β)
   (h : ∀b, measurable_set {a | r a b}) : measurable_set {a | r a (f a)} :=
 begin
@@ -1199,6 +1226,27 @@ lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measu
   (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
 by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
+
+lemma lintegral_of_real_le_lintegral_nnnorm (f : α → ℝ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ∥f x∥₊ ∂μ :=
+begin
+  simp_rw ← of_real_norm_eq_coe_nnnorm,
+  refine lintegral_mono (λ x, ennreal.of_real_le_of_real _),
+  rw real.norm_eq_abs,
+  exact le_abs_self (f x),
+end
+
+lemma lintegral_nnnorm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
+  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+begin
+  apply lintegral_congr_ae,
+  filter_upwards [h_nonneg] with x hx,
+  rw [real.nnnorm_of_nonneg hx, ennreal.of_real_eq_coe_nnreal hx],
+end
+
+lemma lintegral_nnnorm_eq_of_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ f) :
+  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+lintegral_nnnorm_eq_of_ae_nonneg (filter.eventually_of_forall h_nonneg)
 
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
@@ -2398,14 +2446,14 @@ begin
     simp only [pi.zero_apply, mem_set_of_eq, filter.mem_mk] at A,
     convert A,
     ext x,
-    simp only [and_comm, exists_prop, mem_inter_eq, iff_self, mem_set_of_eq, mem_compl_eq,
+    simp only [and_comm, exists_prop, mem_inter_iff, iff_self, mem_set_of_eq, mem_compl_iff,
                not_forall] },
   { assume hs,
     let t := to_measurable μ ({x | f x ≠ 0} ∩ s),
     have A : s ⊆ t ∪ {x | f x = 0},
     { assume x hx,
       rcases eq_or_ne (f x) 0 with fx|fx,
-      { simp only [fx, mem_union_eq, mem_set_of_eq, eq_self_iff_true, or_true] },
+      { simp only [fx, mem_union, mem_set_of_eq, eq_self_iff_true, or_true] },
       { left,
         apply subset_to_measurable _ _,
         exact ⟨fx, hx⟩ } },
@@ -2424,7 +2472,7 @@ begin
   rw [ae_iff, ae_iff, with_density_apply_eq_zero hf],
   congr',
   ext x,
-  simp only [exists_prop, mem_inter_eq, iff_self, mem_set_of_eq, not_forall],
+  simp only [exists_prop, mem_inter_iff, iff_self, mem_set_of_eq, not_forall],
 end
 
 lemma ae_with_density_iff_ae_restrict {p : α → Prop} {f : α → ℝ≥0∞} (hf : measurable f) :
@@ -2453,7 +2501,7 @@ begin
       rw ha this },
     { filter_upwards [ae_restrict_mem A.compl],
       assume x hx,
-      simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+      simp only [not_not, mem_set_of_eq, mem_compl_iff] at hx,
       simp [hx] } },
   { rintros ⟨g', g'meas, hg'⟩,
     refine ⟨λ x, (f x : ℝ)⁻¹ • g' x, hf.coe_nnreal_real.inv.smul g'meas, _⟩,
@@ -2482,7 +2530,7 @@ begin
       rw ha this },
     { filter_upwards [ae_restrict_mem A.compl],
       assume x hx,
-      simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+      simp only [not_not, mem_set_of_eq, mem_compl_iff] at hx,
       simp [hx] } },
   { rintros ⟨g', g'meas, hg'⟩,
     refine ⟨λ x, (f x)⁻¹ * g' x, hf.coe_nnreal_ennreal.inv.smul g'meas, _⟩,
@@ -2583,7 +2631,7 @@ begin
           (hf.measurable_mk (measurable_set_singleton 0).compl).compl,
         filter_upwards [ae_restrict_mem M],
         assume x hx,
-        simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+        simp only [not_not, mem_set_of_eq, mem_compl_iff] at hx,
         simp only [hx, zero_mul, pi.mul_apply] }
     end
   ... = ∫⁻ (a : α), (f * g) a ∂μ :

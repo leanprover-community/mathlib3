@@ -128,7 +128,7 @@ meta instance : has_to_format order_rel :=
 - else if at least one reports `nonzero`, report `nonzero` and one of the expressions giving a proof
   of nonzeroness
 - if both fail, fail -/
-meta def orelse' (tac1 tac2 : tactic strictness) : tactic strictness := do
+protected meta def orelse (tac1 tac2 : tactic strictness) : tactic strictness := do
   res1 ← try_core tac1,
   match res1 with
   | none := tac2
@@ -149,7 +149,7 @@ meta def orelse' (tac1 tac2 : tactic strictness) : tactic strictness := do
       end
   end
 
-infixr ` ≤|≥ `:2 := orelse'
+localized "infixr ` ≤|≥ `:2 := tactic.positivity.orelse" in positivity
 
 /-- This tactic fails with a message saying that `positivity` couldn't prove anything about `e`
 if we only know that `a` and `b` are positive/nonnegative/nonzero (according to `pa` and `pb`). -/
@@ -279,6 +279,7 @@ meta def core (e : expr) : tactic strictness := do
 end positivity
 
 open positivity
+open_locale positivity
 
 namespace interactive
 

@@ -117,6 +117,7 @@ end linear_ordered_field
 
 variables (p : ℝ) [fact (0 < p)]
 
+/-- The "additive circle" `ℝ ⧸ (ℤ ∙ p)` is compact. -/
 instance compact_space : compact_space $ add_circle p :=
 begin
   rw [← is_compact_univ_iff, ← coe_image_Icc_eq p],

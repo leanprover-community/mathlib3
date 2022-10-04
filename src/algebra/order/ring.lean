@@ -1559,7 +1559,7 @@ end
 
 end mul_zero_class
 
-/-- `nontrivial α` is needed here as otherwise we have `1 * ⊤ = ⊤` but also `= 0 * ⊤ = 0`. -/
+/-- `nontrivial α` is needed here as otherwise we have `1 * ⊤ = ⊤` but also `0 * ⊤ = 0`. -/
 instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top α) :=
 { mul := (*),
   one := 1,

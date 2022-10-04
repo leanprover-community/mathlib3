@@ -25,8 +25,7 @@ section congr
 variables {c d : C} (f g h : c ⟶ d)
 
 def congr := ∃ (γ ∈ S.arrws c c) (δ ∈ S.arrws d d), g = γ ≫ f ≫ δ
-def cgr (c) (d) (f) (g) := ∃ (γ ∈ S.arrws c c) (δ ∈ S.arrws d d), g = γ ≫ f ≫ δ
-
+def cgr (c) (d) (f) (g) := @congr _ _ S c d f g
 
 lemma congr.refl (f : c ⟶ d) : congr S f f :=  ⟨(𝟙 c), Sn.wide c, (𝟙 d), Sn.wide d, by simp ⟩
 lemma congr.symm {f g : c ⟶ d} : congr S f g → congr S g f :=
@@ -41,6 +40,8 @@ def R (c d) : setoid (c ⟶ d) :=
 end congr
 
 def isotropy_quotient (S : subgroupoid C) (Sn : S.is_normal) := C
+
+namespace isotropy_quotient
 
 @[instance,simps]
 def category_struct_isotropy_quotient : category_struct (isotropy_quotient S Sn) :=
@@ -73,10 +74,12 @@ instance groupoid_isotropy_quotient : groupoid (isotropy_quotient S Sn) :=
       ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, quot.sound ⟨inv δ, S.inv' hδ, inv γ, S.inv' hγ, by { rw e, simp, } ⟩ ),
   comp_inv' := λ a b f, by
     { refine quot.induction_on f (λ f, _),
-      simp, },
+      simp only [category_struct_isotropy_quotient_id, category_struct_isotropy_quotient_comp,
+                 quot.lift_on₂_mk, inv_eq_inv, is_iso.hom_inv_id], },
   inv_comp' := λ a b f, by
     { refine quot.induction_on f (λ f, _),
-      simp, }, }
+      simp only [category_struct_isotropy_quotient_id, category_struct_isotropy_quotient_comp,
+                 quot.lift_on₂_mk, inv_eq_inv, is_iso.inv_hom_id], }, }
 
 def of : C ⥤ (isotropy_quotient S Sn) :=
 { obj := λ c, c,
@@ -86,8 +89,62 @@ def of : C ⥤ (isotropy_quotient S Sn) :=
 
 lemma of_injective : function.injective (of S Sn).obj := by { intros a b e, assumption }
 
-lift 
+/-- The image of `S` via the quotient is graph-like (since every loop is killed, essentially) -/
+lemma map_is_graph_like : (map (of S Sn) (of_injective S Sn) S).is_graph_like :=
+begin
+  rw is_graph_like_iff,
+  rintro c d,
+  constructor,
+  rintro ⟨_,hf⟩ ⟨_,hg⟩,
+  cases hf,
+  cases hg,
+  simp only [subtype.mk_eq_mk],
+  apply quot.sound,
+  refine ⟨𝟙 _, Sn.wide _, inv hf_f ≫ hg_f, S.mul' (S.inv' _) _, _⟩,
+  assumption,
+  assumption,
+  simp only [inv_eq_inv, is_iso.hom_inv_id_assoc, category.id_comp],
+end
 
+section ump
+
+variables  {D : Type*} [groupoid D]
+  (φ : C ⥤ D) (hφ : ∀ (c : C) (γ ∈ S.arrws c c), γ ∈ (ker φ).arrws c c)
+
+include hφ
+def lift :
+  (isotropy_quotient S Sn) ⥤ D :=
+{ obj := λ c, φ.obj c,
+  map := λ c d f,
+    quot.lift_on f
+      ( λ f, φ.map f )
+      ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, by
+        { let hφγ := hφ c γ hγ,
+          let hφδ := hφ d δ hδ,
+          simp only [mem_ker_iff, eq_self_iff_true, exists_true_left] at hφγ hφδ,
+          simp only [e, functor.map_comp,hφγ,hφδ,category.comp_id,category.id_comp], } ),
+  map_id' := λ c, by  simp,
+  map_comp' := λ a b c f g, by { apply quot.induction_on₂ f g, rintros, simp, } }
+
+lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ hφ) = φ :=
+begin
+  apply functor.ext,
+  { rintros, dsimp [of, lift], simp, },
+  { rintros, dsimp [of, lift], simp, },
+end
+
+lemma lift_spec_unique (Φ : (isotropy_quotient S Sn) ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
+  (lift S Sn φ hφ) = Φ :=
+begin
+  subst_vars,
+  apply functor.ext,
+  { rintros, dsimp [of, lift], apply quot.induction_on f, rintro f, simp, },
+  { rintros, dsimp [of, lift], refl, }
+end
+
+end ump
+
+end isotropy_quotient
 
 end isotropy_quotient
 
@@ -101,7 +158,7 @@ By graph-likeness, the quotient be represented by the full subgroupoid induced b
 set of representatives of the vertices, which makes dealing with quotients easier.
 -/
 
-variable (Sg : is_graph_like (S.coe))
+variable (Sg : S.is_graph_like)
 
 abbreviation r := λ c d, nonempty (S.arrws c d)
 

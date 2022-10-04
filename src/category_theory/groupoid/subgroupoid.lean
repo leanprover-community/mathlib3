@@ -79,7 +79,12 @@ under composition and inverses
   (mul' : ∀ {c d e} {p} (hp : p ∈ arrws c d) {q} (hq : q ∈ arrws d e),
             p ≫ q ∈ arrws c e)
 
+
 namespace subgroupoid
+
+-- Why can't I use this?
+instance mem_subgroupoid (c d : C) : has_mem (c ⟶ d) (subgroupoid C) :=
+⟨ λ f S, f ∈ S.arrws c d ⟩
 
 variable (S : subgroupoid C)
 
@@ -309,7 +314,20 @@ end
 
 end normal
 
+
+section graph_like
+
+abbreviation is_graph_like := is_graph_like S.coe
+
+lemma is_graph_like_iff : S.is_graph_like ↔ ∀ c d, subsingleton (S.arrws c d) := sorry
+
+end graph_like
+
 section disconnected
+
+abbreviation is_disconnected := is_disconnected S.coe
+
+lemma is_disconnected_iff : S.is_disconnected ↔ ∀ c d, c ≠ d → is_empty (S.arrws c d) := sorry
 
 /-- The arrow set of `disconnect`, which drops all arrows but the loops -/
 inductive disconnect.arrws : Π  (c d : C), (c ⟶ d) → Prop
@@ -330,7 +348,7 @@ def disconnect (C) [groupoid C] : subgroupoid C :=
   λ _ _ _ f hf g hg, by
   { induction hf, induction hg, constructor, }⟩
 
-lemma disconnect_is_disconnected : is_disconnected  (disconnect C).coe :=
+lemma disconnect_is_disconnected : groupoid.is_disconnected  (disconnect C).coe :=
 begin
   rintro c d ne, by_contradiction,
   simp only [coe_groupoid_to_category_hom, is_empty_coe_sort] at h,

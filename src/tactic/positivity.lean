@@ -418,7 +418,8 @@ int.nat_abs_pos_of_ne_zero hn.ne'
 
 /-- Extension for the `positivity` tactic: `int.nat_abs` is positive when its input is.
 
-Since the output type of `int.nat_abs` is `ℕ`, the nonnegative case is handled by the default `positivity` tactic.
+Since the output type of `int.nat_abs` is `ℕ`, the nonnegative case is handled by the default
+`positivity` tactic.
 -/
 @[positivity]
 meta def positivity_nat_abs : expr → tactic strictness

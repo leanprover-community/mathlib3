@@ -52,22 +52,6 @@ namespace category_theory
 
 variables {C : Type u₁} [category.{v₁} C]
 
-/-- The proposition that a square
-```
-  W ---f---> X
-  |          |
-  g          h
-  |          |
-  v          v
-  Y ---i---> Z
-
-```
-is a commuting square.
--/
-structure comm_sq {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y ⟶ Z) : Prop :=
-(w : f ≫ h = g ≫ i)
-
-attribute [reassoc] comm_sq.w
 attribute [simp] comm_sq.mk
 
 namespace comm_sq

@@ -32,7 +32,7 @@ We provide various results concerning the minimal primes above an ideal
 
 section
 
-variables {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S) (I J : ideal R)
+variables {R S : Type*} [comm_ring R] [comm_ring S] (I J : ideal R)
 
 /-- `I.minimal_primes` is the set of ideals that are minimal primes over `I`. -/
 def ideal.minimal_primes : set (ideal R) :=
@@ -90,8 +90,8 @@ begin
     exact hI.1.symm },
 end
 
-lemma ideal.exists_comap_eq_of_mem_minimal_primes_of_injective (hf : function.injective f)
-  (p ∈ minimal_primes R) :
+lemma ideal.exists_comap_eq_of_mem_minimal_primes_of_injective {f : R →+* S}
+  (hf : function.injective f) (p ∈ minimal_primes R) :
   ∃ p' : ideal S, p'.is_prime ∧ p'.comap f = p :=
 begin
   haveI := H.1.1,
@@ -117,7 +117,8 @@ begin
   apply_instance
 end
 
-lemma ideal.exists_comap_eq_of_mem_minimal_primes {I : ideal S} (p ∈ (I.comap f).minimal_primes) :
+lemma ideal.exists_comap_eq_of_mem_minimal_primes {I : ideal S}
+  (f : R →+* S) (p ∈ (I.comap f).minimal_primes) :
   ∃ p' : ideal S, p'.is_prime ∧ I ≤ p' ∧ p'.comap f = p :=
 begin
   haveI := H.1.1,
@@ -126,7 +127,7 @@ begin
   { ext1, exact (submodule.quotient.mk_eq_zero _) },
   have : (I^.quotient.mk^.comp f).ker^.quotient.mk^.ker ≤ p,
   { rw [ideal.mk_ker, e], exact H.1.2 },
-  obtain ⟨p', hp₁, hp₂⟩ := ideal.exists_comap_eq_of_mem_minimal_primes_of_injective _
+  obtain ⟨p', hp₁, hp₂⟩ := ideal.exists_comap_eq_of_mem_minimal_primes_of_injective
     (I^.quotient.mk^.comp f).ker_lift_injective (p.map (I^.quotient.mk^.comp f).ker^.quotient.mk) _,
   { resetI,
     refine ⟨p'.comap I^.quotient.mk, ideal.is_prime.comap _, _, _⟩,
@@ -147,7 +148,8 @@ begin
       exacts [sup_le rfl.le this, ideal.quotient.mk_surjective] } }
 end
 
-lemma ideal.exists_minimal_primes_comap_eq {I : ideal S} (p ∈ (I.comap f).minimal_primes) :
+lemma ideal.exists_minimal_primes_comap_eq {I : ideal S}
+  (f : R →+* S) (p ∈ (I.comap f).minimal_primes) :
   ∃ p' ∈ I.minimal_primes, ideal.comap f p' = p :=
 begin
   obtain ⟨p', h₁, h₂, h₃⟩ := ideal.exists_comap_eq_of_mem_minimal_primes f p H,
@@ -159,9 +161,7 @@ begin
   exact (H.2 ⟨infer_instance, ideal.comap_mono hq.1.2⟩ this).antisymm this
 end
 
-variables {f}
-
-lemma ideal.mimimal_primes_comap_of_surjective (hf : function.surjective f)
+lemma ideal.mimimal_primes_comap_of_surjective {f : R →+* S} (hf : function.surjective f)
   {I J : ideal S} (h : J ∈ I.minimal_primes) :
   J.comap f ∈ (I.comap f).minimal_primes :=
 begin
@@ -177,7 +177,8 @@ begin
   { exact ideal.map_le_of_le_comap e₂ }
 end
 
-lemma ideal.comap_minimal_primes_eq_of_surjective (hf : function.surjective f) (I : ideal S) :
+lemma ideal.comap_minimal_primes_eq_of_surjective {f : R →+* S} (hf : function.surjective f)
+  (I : ideal S) :
   (I.comap f).minimal_primes = ideal.comap f '' I.minimal_primes :=
 begin
   ext J,

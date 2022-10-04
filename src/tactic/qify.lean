@@ -39,7 +39,8 @@ namespace qify
 The `qify` attribute is used by the `qify` tactic. It applies to lemmas that shift propositions
 from `nat` or `int` to `rat`.
 
-`qify` lemmas should have the form `∀ a₁ ... aₙ : ℕ, Pq (a₁ : ℚ) ... (aₙ : ℚ) ↔ Pn a₁ ... aₙ`.
+`qify` lemmas should have the form `∀ a₁ ... aₙ : ℕ, Pq (a₁ : ℚ) ... (aₙ : ℚ) ↔ Pn a₁ ... aₙ` or
+ `∀ a₁ ... aₙ : ℤ, Pq (a₁ : ℚ) ... (aₙ : ℚ) ↔ Pz a₁ ... aₙ`.
 For example, `rat.coe_nat_le_coe_nat_iff : ∀ (m n : ℕ), ↑m ≤ ↑n ↔ m ≤ n` is a `qify` lemma.
 -/
 @[user_attribute]

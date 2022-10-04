@@ -73,10 +73,6 @@ instance mean.mean_class : mean_class (mean G) G :=
   map_rel := λ f, order_hom_class.monotone f.to_order_hom }
 
 
-instance : has_coe (mean G) ((bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ) :=
-  {coe := mean.to_linear_map}
-
-
 /--Equality of means can be checked by evaluation -/
 @[ext]
 theorem ext {m n : mean G} (h: ∀ f, m f = n f) : m = n :=
@@ -112,19 +108,21 @@ begin
                 simp,
               end
   ... = M • m (bounded_continuous_function.const G (1:ℝ))
-        : by exact mean_class.to_one_hom_class m
+        : by norm_num
   ... = M • 1
-        : by {congr' 1, exact m.normality}
+        : by {congr' 1, exact m.to_one_hom.map_one',}
   ... = M
         : by simp,
 end
+
+
 
 lemma mean_bounded (m : mean G) {f: bounded_continuous_function G ℝ} {M : ℝ}
   (fbound : ∀ (x:G), f x ≤ M) : m f ≤ M :=
 begin
   have fle  : f ≤ bounded_continuous_function.const G M := by {intro x,simp[fbound x],},
   calc  m f
-      ≤ m (bounded_continuous_function.const G M) : by exact m.monotonicity fle
+      ≤ m (bounded_continuous_function.const G M) : by exact m.to_order_hom.monotone' fle
   ... = M                                         : mean_const _,
 end
 
@@ -144,7 +142,7 @@ begin
       simp,
       by linarith[(abs_le.mp (fbound x)).1], },
     have : m (-f) ≤ M := mean_bounded G m negfbound',
-    have : m (-f) = - m f := mean_of_neg G m,
+    have : m (-f) = - m f := map_neg m f,
     by linarith, },
   exact abs_le.mpr (and.intro bound_ge bound_le),
 end
@@ -152,14 +150,16 @@ end
 
 @[simp]
 lemma mean_add {m : mean G} {f g: bounded_continuous_function G ℝ} : m (f+g) = m f + m g :=
-m.lin_map.map_add' f g
+m.to_linear_map.map_add' f g
 
 
 
 @[simp]
 lemma mean_smul {m : mean G} {f: bounded_continuous_function G ℝ} {r :ℝ} :
   m (r•f) = r • (m f) :=
-m.lin_map.map_smul' r f
+m.to_linear_map.map_smul' r f
+
+
 end el_facts
 
 
@@ -214,7 +214,7 @@ include π
 @[simp]
 noncomputable def mean_pushforward_linmap {π : G → H} (π_cont: continuous π)
   (m : mean G) : (bounded_continuous_function H ℝ) →ₗ[ℝ] ℝ :=
-linear_map.comp m.lin_map (pull_bcont π π_cont)
+linear_map.comp m.to_linear_map (pull_bcont π π_cont)
 
 lemma mean_pushforward_norm {π : G → H} (π_cont: continuous π) (m : mean G) :
   (mean_pushforward_linmap π_cont m) (bounded_continuous_function.const H (1:ℝ)) = 1 :=
@@ -225,12 +225,12 @@ begin
         = bounded_continuous_function.const G (1:ℝ),
   {ext (x:G), simp,},
   calc  (mean_pushforward_linmap π_cont m) (bounded_continuous_function.const H (1:ℝ))
-      = m.lin_map (pull_bcont π π_cont (bounded_continuous_function.const H (1:ℝ)))
+      = m.to_linear_map (pull_bcont π π_cont (bounded_continuous_function.const H (1:ℝ)))
         : by tauto
-  ... = m.lin_map (bounded_continuous_function.const G (1:ℝ))
+  ... = m.to_linear_map (bounded_continuous_function.const G (1:ℝ))
         : by rw pull_of_one
   ... = 1
-        : m.normality,
+        : m.to_one_hom.map_one',
 end
 
 
@@ -239,7 +239,7 @@ lemma mean_pushforward_mon {π : G → H} (π_cont: continuous π ) (m : mean G)
 begin
   assume f g fleg,
   simp,
-  apply m.monotonicity,
+  apply m.to_order_hom.monotone',
   intro x,
   simp,
   exact fleg _,
@@ -249,9 +249,12 @@ end
 @[simp]
 noncomputable def mean_pushforward (π : G → H) (π_cont: continuous π) (m : mean G) :
   mean H :=
-{ lin_map     := mean_pushforward_linmap π_cont m,
-  normality   := mean_pushforward_norm π_cont m,
-  monotonicity:= mean_pushforward_mon π_cont m }
+{ to_fun        :=  (mean_pushforward_linmap π_cont m),
+  map_add'      :=  (mean_pushforward_linmap π_cont m).map_add',
+  map_smul'     :=  (mean_pushforward_linmap π_cont m).map_smul',
+  map_one'      := mean_pushforward_norm π_cont m,
+  monotone'     := mean_pushforward_mon π_cont m, }
+
 
 
 end pushforward_mean

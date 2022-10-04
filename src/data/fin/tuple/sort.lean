@@ -117,6 +117,35 @@ of_fn_injective $ eq_of_perm_of_sorted
 
 variables [linear_order α] {f : fin n → α} {σ : equiv.perm (fin n)}
 
+lemma graph_equiv₁_apply (i : fin n) : (graph_equiv₁ f i).val = to_lex (f i, i) := rfl
+
+/-- If `f` is monotone, then the map that sends `i` to `(f i, i)` is an order isomorphism. -/
+def order_iso_of_monotone (hf : monotone f) : fin n ≃o graph f :=
+{ to_equiv := graph_equiv₁ f,
+  map_rel_iff' :=
+  begin
+    intros a b,
+    simp_rw [←subtype.coe_le_coe, ←subtype.val_eq_coe, graph_equiv₁_apply, prod.lex.le_iff],
+    refine ⟨λ h, h.elim (λ h', _) (λ h', h'.2),
+            λ h, (hf h).lt_or_eq.elim or.inl (λ h', or.inr ⟨h', h⟩)⟩,
+    by_contra' hh,
+    exact not_le_of_lt h' (hf hh.le),
+  end }
+
+lemma order_iso_of_monotone_eq (hf : monotone f) : order_iso_of_monotone hf = graph_equiv₂ f :=
+(eq_iff_true_of_subsingleton _ _).mpr trivial
+
+/-- The permutation that sorts `f` is the identity if and only if `f` is monotone. -/
+lemma sort_eq_refl_iff_monotone : sort f = equiv.refl _ ↔ monotone f :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { have := monotone_sort f,
+    rwa [h, equiv.coe_refl, function.comp.right_id] at this, },
+  { simp only [sort],
+    change (graph_equiv₂ f).to_equiv.trans (order_iso_of_monotone h).to_equiv.symm = _,
+    simp only [order_iso_of_monotone_eq h, equiv.self_trans_symm], }
+end
+
 /-- A permutation of a tuple `f` is `f` sorted if and only if it is monotone. -/
 lemma comp_sort_eq_comp_iff_monotone :
   f ∘ σ = f ∘ sort f ↔ monotone (f ∘ σ) :=

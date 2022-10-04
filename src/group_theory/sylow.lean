@@ -106,6 +106,13 @@ P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
 
 @[simp] lemma coe_subtype (h : ↑P ≤ N) : ↑(P.subtype h) = subgroup.comap N.subtype ↑P := rfl
 
+lemma subtype_injective {P Q : sylow p G} {hP : ↑P ≤ N} {hQ : ↑Q ≤ N}
+  (h : P.subtype hP = Q.subtype hQ) : P = Q :=
+begin
+  rw set_like.ext_iff at h ⊢,
+  exact λ g, ⟨λ hg, (h ⟨g, hP hg⟩).mp hg, λ hg, (h ⟨g, hQ hg⟩).mpr hg⟩,
+end
+
 end sylow
 
 /-- A generalization of **Sylow's first theorem**.

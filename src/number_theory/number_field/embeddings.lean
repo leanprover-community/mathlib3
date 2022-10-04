@@ -138,7 +138,7 @@ begin
   rw [mem_Union, exists_prop],
   refine ⟨⟨_, λ i, _⟩, _⟩,
   { rw [← nat_degree_map_eq_of_injective (algebra_map ℤ ℚ).injective_int _, ← h_map_rat_minpoly],
-    exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower _ hx.1), },
+    refine minpoly.nat_degree_le (is_integral_of_is_scalar_tower hx.1), },
   { rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
     apply le_trans _ (nat.le_ceil _),
     convert coeff_bdd_of_norm_le hx.2 i,

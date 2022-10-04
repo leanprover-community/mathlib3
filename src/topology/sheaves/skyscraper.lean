@@ -304,7 +304,7 @@ The unit in `skyscraper_presheaf_functor ⊣ presheaf.stalk`
   end }
 
 /--
-The counit in `skyscraper_presheaf_functor ⊣ presheaf.stalk`
+The counit in `presheaf.stalk ⊣ skyscraper_presheaf_functor`
 -/
 @[simps] protected def counit :
   (skyscraper_presheaf_functor p₀ ⋙ (presheaf.stalk_functor C p₀ : presheaf C X ⥤ C)) ⟶ 𝟭 C :=

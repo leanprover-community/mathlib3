@@ -665,6 +665,25 @@ meta def positivity_coe : expr → tactic strictness
   end
 | _ := failed
 
+/-- Extension for the `positivity` tactic: `nat.succ` is always positive. -/
+@[positivity]
+meta def positivity_succ : expr → tactic strictness
+| `(nat.succ %%a) := positive <$> mk_app `nat.succ_pos [a]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `nat.succ n`"
+
+/-- Extension for the `positivity` tactic: `nat.factorial` is always positive. -/
+@[positivity]
+meta def positivity_factorial : expr → tactic strictness
+| `(nat.factorial %%a) := positive <$> mk_app ``nat.factorial_pos [a]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `n!`"
+
+/-- Extension for the `positivity` tactic: `nat.asc_factorial` is always positive. -/
+@[positivity]
+meta def positivity_asc_factorial : expr → tactic strictness
+| `(nat.asc_factorial %%a %%b) := positive <$> mk_app ``nat.asc_factorial_pos [a, b]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+         "` isn't of the form `nat.asc_factorial n k`"
+
 private lemma card_univ_pos (α : Type*) [fintype α] [nonempty α] :
   0 < (finset.univ : finset α).card :=
 finset.univ_nonempty.card_pos

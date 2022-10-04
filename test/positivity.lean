@@ -14,16 +14,7 @@ import tactic.positivity
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
 
-/-  Test for instantiating meta-variables.  Reported on
-https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/New.20tactic.3A.20.60positivity.60/near/300639970
--/
-example : 0 ≤ 0 :=
-begin
-  apply le_trans _ le_rfl,
-  positivity,
-end
-
-open_locale ennreal nnrat nnreal
+open_locale ennreal nat nnrat nnreal
 
 universe u
 variables {α β : Type*}
@@ -143,12 +134,12 @@ example {a : ℤ} (ha : 0 < a) : 0 < a / a := by positivity
 /-! ### Exponentiation -/
 
 example [ordered_semiring α] [nontrivial α] (a : α) : 0 < a ^ 0 := by positivity
-example [linear_ordered_ring α] (a : α) (n : ℕ) : 0 ≤ a ^ (bit0 n) := by positivity
+example [linear_ordered_ring α] (a : α) (n : ℕ) : 0 ≤ a ^ bit0 n := by positivity
 example [ordered_semiring α] {a : α} {n : ℕ} (ha : 0 ≤ a) : 0 ≤ a ^ n := by positivity
 example [ordered_semiring α] {a : α} {n : ℕ} (ha : 0 < a) : 0 < a ^ n := by positivity
 
 example [linear_ordered_semifield α] (a : α) : 0 < a ^ (0 : ℤ) := by positivity
-example [linear_ordered_field α] (a : α) (n : ℤ) : 0 ≤ a ^ (bit0 n) := by positivity
+example [linear_ordered_field α] (a : α) (n : ℤ) : 0 ≤ a ^ bit0 n := by positivity
 example [linear_ordered_semifield α] {a : α} {n : ℤ} (ha : 0 ≤ a) : 0 ≤ a ^ n := by positivity
 example [linear_ordered_semifield α] {a : α} {n : ℤ} (ha : 0 < a) : 0 < a ^ n := by positivity
 
@@ -177,8 +168,6 @@ example {a : ℤ} (ha : 3 < a) : 0 < a ^ 2 + a := by positivity
 example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 ≤ 3 * a ^ 2 * b + b * 7 + 14 := by positivity
 
 example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 < 3 * a ^ 2 * b + b * 7 + 14 := by positivity
-
-example {x : ℚ} (hx : 0 ≤ x) : 0 ≤ x⁻¹ := by positivity
 
 example {a : ℤ} : 0 ≤ |a| := by positivity
 
@@ -211,6 +200,10 @@ example : 0 ≤ max (-3 : ℤ) 5 := by positivity
 
 example [ordered_semiring α] [ordered_add_comm_monoid β] [smul_with_zero α β]
   [ordered_smul α β] {a : α} (ha : 0 < a) {b : β} (hb : 0 < b) : 0 ≤ a • b := by positivity
+
+example (n : ℕ) : 0 < n.succ := by positivity
+example (n : ℕ) : 0 < n! := by positivity
+example (n k : ℕ) : 0 < n.asc_factorial k := by positivity
 
 example {α : Type*} (s : finset α) (hs : s.nonempty) : 0 < s.card := by positivity
 example {α : Type*} [fintype α] [nonempty α] : 0 < fintype.card α := by positivity
@@ -261,3 +254,20 @@ example {r : ℝ≥0∞} (hr : 0 < r) : (0 : ereal) < r := by positivity
 example {α : Type*} [ordered_ring α] {n : ℤ} : 0 ≤ ((n ^ 2 : ℤ) : α) := by positivity
 example {r : ℝ≥0} : 0 ≤ ((r : ℝ) : ereal) := by positivity
 example {r : ℝ≥0} : 0 < ((r + 1 : ℝ) : ereal) := by positivity
+
+/- ## Tests that the tactic is agnostic on reversed inequalities -/
+
+example {a : ℤ} (ha : a > 0) : 0 ≤ a := by positivity
+
+example {a : ℤ} (ha : 0 < a) : a ≥ 0 := by positivity
+
+example {a : ℤ} (ha : a > 0) : a ≥ 0 := by positivity
+
+/-
+## Test for meta-variable instantiation
+
+Reported on
+https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/New.20tactic.3A.20.60positivity.60/near/300639970
+-/
+
+example : 0 ≤ 0 := by { apply le_trans _ le_rfl, positivity }

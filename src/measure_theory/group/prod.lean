@@ -40,13 +40,20 @@ variables (G : Type*) [measurable_space G]
 variables [group G] [has_measurable_mul₂ G]
 variables (μ ν : measure G) [sigma_finite ν] [sigma_finite μ] {E : set G}
 
-/-- The map `(x, y) ↦ (x, xy)` as a `measurable_equiv`. This is a shear mapping. -/
-@[to_additive "The map `(x, y) ↦ (x, x + y)` as a `measurable_equiv`.
-This is a shear mapping."]
+/-- The map `(x, y) ↦ (x, xy)` as a `measurable_equiv`. -/
+@[to_additive "The map `(x, y) ↦ (x, x + y)` as a `measurable_equiv`."]
 protected def measurable_equiv.shear_mul_right [has_measurable_inv G] : G × G ≃ᵐ G × G :=
 { measurable_to_fun  := measurable_fst.prod_mk measurable_mul,
   measurable_inv_fun := measurable_fst.prod_mk $ measurable_fst.inv.mul measurable_snd,
   .. equiv.prod_shear (equiv.refl _) equiv.mul_left }
+
+/-- The map `(x, y) ↦ (x, yx)` as a `measurable_equiv` with as inverse `(x, y) ↦ (x, y / x)` -/
+@[to_additive
+  "The map `(x, y) ↦ (x, y + x)` as a `measurable_equiv` with as inverse `(x, y) ↦ (x, y - x)`."]
+protected def measurable_equiv.shear_mul_left [has_measurable_inv G] : G × G ≃ᵐ G × G :=
+{ measurable_to_fun  := measurable_fst.prod_mk $ measurable_snd.mul measurable_fst,
+  measurable_inv_fun := measurable_fst.prod_mk $ measurable_snd.div measurable_fst,
+  .. equiv.prod_shear (equiv.refl _) (λ x, (equiv.div_right x).symm) }
 
 variables {G}
 
@@ -64,14 +71,34 @@ lemma measure_preserving_prod_mul [is_mul_left_invariant ν] :
 (measure_preserving.id μ).skew_product measurable_mul $
   filter.eventually_of_forall $ map_mul_left_eq_self ν
 
-/-- The map `(x, y) ↦ (y, yx)` sends the measure `μ × ν` to `ν × μ`.
+@[to_additive measure_preserving_prod_add_right]
+lemma measure_preserving_prod_mul_right [is_mul_right_invariant ν] :
+  measure_preserving (λ z : G × G, (z.1, z.2 * z.1)) (μ.prod ν) (μ.prod ν) :=
+(measure_preserving.id μ).skew_product (by exact measurable_snd.mul measurable_fst) $
+  filter.eventually_of_forall $ map_mul_right_eq_self ν
+
+/-- The map `(x, y) ↦ (y, yx)` semds the measure `μ × ν` to `ν × μ`.
 This is the map `SR` in [Halmos, §59].
-`S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+`S` is the map `(x, y) ↦ (x, xy)` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_prod_add_swap
   /-" The map `(x, y) ↦ (y, y + x)` sends the measure `μ × ν` to `ν × μ`. "-/]
 lemma measure_preserving_prod_mul_swap [is_mul_left_invariant μ] :
   measure_preserving (λ z : G × G, (z.2, z.2 * z.1)) (μ.prod ν) (ν.prod μ) :=
 (measure_preserving_prod_mul ν μ).comp measure_preserving_swap
+
+/-- The map `(x, y) ↦ (y, xy)` semds the measure `μ × ν` to `ν × μ`. -/
+@[to_additive measure_preserving_prod_add_swap_right
+  /-" The map `(x, y) ↦ (y, x + y)` semds the measure `μ × ν` to `ν × μ`. "-/]
+lemma measure_preserving_prod_mul_swap_right [is_mul_right_invariant μ] :
+  measure_preserving (λ z : G × G, (z.2, z.1 * z.2)) (μ.prod ν) (ν.prod μ) :=
+(measure_preserving_prod_mul_right ν μ).comp measure_preserving_swap
+
+/-- The map `(x, y) ↦ (xy, y)` preserves the measure `μ × ν`. -/
+@[to_additive measure_preserving_add_prod
+  /-" The map `(x, y) ↦ (x + y, y)` preserves the measure `μ.prod ν`. "-/]
+lemma measure_preserving_mul_prod [is_mul_right_invariant μ] :
+  measure_preserving (λ z : G × G, (z.1 * z.2, z.2)) (μ.prod ν) (μ.prod ν) :=
+measure_preserving_swap.comp $ by apply measure_preserving_prod_mul_swap_right μ ν
 
 @[to_additive]
 lemma measurable_measure_mul_right (hE : measurable_set E) :
@@ -86,28 +113,61 @@ end
 
 variables [has_measurable_inv G]
 
+@[to_additive]
+lemma quasi_measure_preserving_div [is_mul_right_invariant μ] :
+  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod ν) μ :=
+begin
+  refine quasi_measure_preserving.prod_of_left measurable_div (eventually_of_forall $ λ y, _),
+  exact (measure_preserving_div_right μ y).quasi_measure_preserving
+end
+
 /-- The map `(x, y) ↦ (x, x⁻¹y)` is measure-preserving.
 This is the function `S⁻¹` in [Halmos, §59],
-where `S` is the map in `measure_preserving_prod_mul`. -/
+where `S` is the map `(x, y) ↦ (x, xy)`. -/
 @[to_additive measure_preserving_prod_neg_add
   "The map `(x, y) ↦ (x, - x + y)` is measure-preserving."]
 lemma measure_preserving_prod_inv_mul [is_mul_left_invariant ν] :
   measure_preserving (λ z : G × G, (z.1, z.1⁻¹ * z.2)) (μ.prod ν) (μ.prod ν) :=
 (measure_preserving_prod_mul μ ν).symm $ measurable_equiv.shear_mul_right G
 
-@[to_additive]
-lemma quasi_measure_preserving_div [is_mul_right_invariant μ] :
-  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod μ) μ :=
+/-- The map `(x, y) ↦ (x, y / x)` is measure-preserving. -/
+@[to_additive measure_preserving_prod_sub
+  "The map `(x, y) ↦ (x, y - x)` is measure-preserving."]
+lemma measure_preserving_prod_div [is_mul_right_invariant ν] :
+  measure_preserving (λ z : G × G, (z.1, z.2 / z.1)) (μ.prod ν) (μ.prod ν) :=
+(measure_preserving_prod_mul_right μ ν).symm (measurable_equiv.shear_mul_left G)
+
+/-- The map `(x, y) ↦ (y, x / y)` sends `μ × ν` to `ν × μ`. -/
+@[to_additive measure_preserving_prod_sub_swap
+  "The map `(x, y) ↦ (y, x - y)` sends `μ × ν` to `ν × μ`."]
+lemma measure_preserving_prod_div_swap [is_mul_right_invariant μ] :
+  measure_preserving (λ z : G × G, (z.2, z.1 / z.2)) (μ.prod ν) (ν.prod μ) :=
+(measure_preserving_prod_div ν μ).comp measure_preserving_swap
+
+/-- The map `(x, y) ↦ (x / y, y)` preserves the measure `μ × ν`. -/
+@[to_additive measure_preserving_sub_prod
+  /-" The map `(x, y) ↦ (x - y, y)` preserves the measure `μ.prod ν`. "-/]
+lemma measure_preserving_div_prod [is_mul_right_invariant μ] :
+  measure_preserving (λ z : G × G, (z.1 / z.2, z.2)) (μ.prod ν) (μ.prod ν) :=
+measure_preserving_swap.comp $ by apply measure_preserving_prod_div_swap μ ν
+
+/-- The map `(x, y) ↦ (xy, x⁻¹)` is measure-preserving. -/
+@[to_additive measure_preserving_add_prod_neg_right
+  "The map `(x, y) ↦ (x + y, - x)` is measure-preserving."]
+lemma measure_preserving_mul_prod_inv_right [is_mul_right_invariant μ] [is_mul_right_invariant ν] :
+  measure_preserving (λ z : G × G, (z.1 * z.2, z.1⁻¹)) (μ.prod ν) (μ.prod ν) :=
 begin
-  refine quasi_measure_preserving.prod_of_left measurable_div (eventually_of_forall $ λ y, _),
-  exact (measure_preserving_div_right μ y).quasi_measure_preserving
+  convert (measure_preserving_prod_div_swap ν μ).comp
+    (measure_preserving_prod_mul_swap_right μ ν),
+  ext1 ⟨x, y⟩,
+  simp_rw [function.comp_apply, div_mul_eq_div_div_swap, div_self', one_div]
 end
 
 variables [is_mul_left_invariant μ]
 
 /-- The map `(x, y) ↦ (y, y⁻¹x)` sends `μ × ν` to `ν × μ`.
 This is the function `S⁻¹R` in [Halmos, §59],
-where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+where `S` is the map `(x, y) ↦ (x, xy)` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_prod_neg_add_swap
   "The map `(x, y) ↦ (y, - y + x)` sends `μ × ν` to `ν × μ`."]
 lemma measure_preserving_prod_inv_mul_swap :
@@ -116,7 +176,7 @@ lemma measure_preserving_prod_inv_mul_swap :
 
 /-- The map `(x, y) ↦ (yx, x⁻¹)` is measure-preserving.
 This is the function `S⁻¹RSR` in [Halmos, §59],
-where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+where `S` is the map `(x, y) ↦ (x, xy)` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_add_prod_neg
   "The map `(x, y) ↦ (y + x, - x)` is measure-preserving."]
 lemma measure_preserving_mul_prod_inv [is_mul_left_invariant ν] :

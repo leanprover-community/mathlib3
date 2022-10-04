@@ -1,4 +1,8 @@
 import ring_theory.artinian
+import ring_theory.ideal.operations
+import algebra.module.torsion
+import ring_theory.dimension.length
+import ring_theory.dimension.noetherian
 
 variables (R : Type*) [comm_ring R]
 
@@ -101,4 +105,139 @@ begin
   convert is_artinian_ring.is_maximal_finite R,
   ext,
   rw is_artinian_ring.is_maximal_iff_is_prime,
+end
+
+def submodule.order_iso_of_surjective {R S} (M) [comm_semiring R] [semiring S]
+  [add_comm_monoid M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  (h : function.surjective (algebra_map R S)) :
+  submodule S M ≃o submodule R M :=
+{ inv_fun := λ p,
+  { smul_mem' := λ c x hx, by { obtain ⟨c, rfl⟩ := h c, simpa using p.smul_mem c hx }, ..p },
+  left_inv := λ x, submodule.ext (λ _, iff.rfl),
+  right_inv := λ x, submodule.ext (λ _, iff.rfl),
+  ..submodule.restrict_scalars_embedding _ _ _ }
+
+lemma is_noetherian_of_tower_of_surjective {R S} (M) [comm_semiring R] [semiring S]
+  [add_comm_monoid M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  (h : function.surjective (algebra_map R S)) :
+  is_noetherian R M ↔ is_noetherian S M :=
+begin
+  refine ⟨is_noetherian_of_tower R, _⟩,
+  simp_rw is_noetherian_iff_well_founded,
+  exact (submodule.order_iso_of_surjective M h).symm.to_order_embedding.dual.well_founded
+end
+
+lemma is_artinian_of_tower_of_surjective {R S} (M) [comm_ring R] [comm_ring S]
+  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  (h : function.surjective (algebra_map R S)) :
+  is_artinian R M ↔ is_artinian S M :=
+begin
+  refine ⟨is_artinian_of_tower R, _⟩,
+  simp_rw is_artinian_iff_well_founded,
+  exact (submodule.order_iso_of_surjective M h).symm.to_order_embedding.well_founded
+end
+
+
+instance (R) [ring R] (M) [add_comm_group M] [module R M]
+  (N : submodule R M) [is_artinian R M] : is_artinian R (M ⧸ N) :=
+is_artinian_of_surjective M (submodule.mkq N) (submodule.quotient.mk_surjective N)
+
+lemma is_noetherian_iff_is_artinian_of_mul (I J : ideal R) [I.is_maximal]
+  (H : is_noetherian R (I * J : _) ↔ is_artinian R (I * J : _)) :
+    is_noetherian R J ↔ is_artinian R J :=
+begin
+  let IJ := submodule.comap J.subtype (I * J),
+  have : module.is_torsion_by_set R (↥J ⧸ IJ) I,
+  { rintros x ⟨y, hy : y ∈ I⟩,
+    obtain ⟨⟨x, hx⟩, rfl⟩ := submodule.mkq_surjective _ x,
+    rw [subtype.coe_mk, ← map_smul, submodule.mkq_apply, submodule.quotient.mk_eq_zero],
+    show _ ∈ I * J, by simpa using ideal.mul_mem_mul hy hx },
+  letI : module (R ⧸ I) (J ⧸ IJ) := this.module,
+  letI := ideal.quotient.field I,
+  have : function.surjective (algebra_map R (R ⧸ I)) := ideal.quotient.mk_surjective,
+  have : is_noetherian R (J ⧸ IJ) ↔ is_artinian R (J ⧸ IJ),
+  { rw [is_noetherian_of_tower_of_surjective (J ⧸ IJ) this,
+      (module.finite_length_tfae_of_field (R ⧸ I) (J ⧸ IJ)).out 1 2,
+      ← is_artinian_of_tower_of_surjective (J ⧸ IJ) this] },
+  split,
+  { introI _,
+    haveI := this.mp infer_instance,
+    haveI : is_artinian R (I * J : _) := H.mp (is_noetherian_of_le ideal.mul_le_left),
+    exact is_artinian_of_range_eq_ker
+      (submodule.of_le (ideal.mul_le_left) : (I * J : _) →ₗ[R] J) IJ.mkq
+      (submodule.of_le_injective _)
+      (submodule.mkq_surjective _)
+      (by simp [submodule.range_of_le]) },
+  { introI _,
+    haveI := this.mpr infer_instance,
+    haveI : is_noetherian R (I * J : _) := H.mpr (is_artinian_of_le ideal.mul_le_left),
+    exact is_noetherian_of_range_eq_ker
+      (submodule.of_le (ideal.mul_le_left) : (I * J : _) →ₗ[R] J) IJ.mkq
+      (submodule.of_le_injective _)
+      (submodule.mkq_surjective _)
+      (by simp [submodule.range_of_le]) },
+end
+.
+
+lemma is_artinian_top_iff {M} [add_comm_group M] [module R M]:
+  is_artinian R (⊤ : submodule R M) ↔ is_artinian R M :=
+begin
+  unfreezingI { split; assume h },
+  { exact is_artinian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule R M) rfl) },
+  { exact is_artinian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule R M) rfl).symm },
+end
+
+lemma is_noetherian_iff_is_artinian_of_prod_eq_bot (s : multiset (ideal R))
+  (hs : ∀ I ∈ s, ideal.is_maximal I) (h' : s.prod = ⊥) :
+    is_noetherian_ring R ↔ is_artinian_ring R :=
+begin
+  rw [is_noetherian_ring_iff, ← is_noetherian_top_iff, is_artinian_ring_iff,
+    ← is_artinian_top_iff],
+  by_contra h,
+  suffices : ¬ (is_noetherian R (⊥ : ideal R) ↔ is_artinian R (⊥ : ideal R)),
+  { apply this, exact ⟨λ _, infer_instance, λ _, infer_instance⟩ },
+  rw ← h', clear h',
+  unfreezingI { induction s using multiset.induction with a s hs' },
+  { rw [multiset.prod_zero, ideal.one_eq_top], exact h },
+  { rw multiset.prod_cons,
+    intro hs'',
+    apply hs' (λ _ H, hs _ $ multiset.mem_cons_of_mem H),
+    haveI := hs a (multiset.mem_cons_self a _),
+    apply is_noetherian_iff_is_artinian_of_mul _ _ _ hs'' }
+end
+
+lemma is_artinian_ring_iff_is_noetherian_ring :
+  is_artinian_ring R ↔ is_noetherian_ring R ∧ ∀ I : ideal R, I.is_prime → I.is_maximal :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  { exact ⟨λ _, ⟨infer_instance, λ I h, (h.ne_top (subsingleton.elim _ _)).elim⟩,
+      λ _, infer_instance⟩ },
+  split,
+  { introI H,
+    obtain ⟨n, e⟩ := is_artinian_ring.is_nilpotent_nilradical R,
+    have hn : n ≠ 0, { rintro rfl, apply @top_ne_bot (ideal R), simpa using e },
+    have := is_noetherian_iff_is_artinian_of_prod_eq_bot _
+      (n • (is_artinian_ring.is_prime_finite R).to_finset.1) _ _,
+    { simp_rw [is_artinian_ring.is_maximal_iff_is_prime, this], exact ⟨H, λ _ h, h⟩ },
+    { intros I hI,
+      rw [multiset.mem_nsmul hn, ← finset.mem_def, set.finite.mem_to_finset] at hI,
+      rwa is_artinian_ring.is_maximal_iff_is_prime },
+    { rw [multiset.prod_nsmul, eq_bot_iff, ← ideal.zero_eq_bot, ← e,
+        nilradical_eq_Inf, finset.prod_val],
+      apply ideal.pow_mono,
+      refine ideal.prod_le_inf.trans (le_Inf $ λ I hI, finset.inf_le _),
+      rwa set.finite.mem_to_finset } },
+  { rintros ⟨h₁, h₂⟩,
+    resetI,
+    obtain ⟨n, e⟩ := is_noetherian_ring.is_nilpotent_nilradical R,
+    have hn : n ≠ 0, { rintro rfl, apply @top_ne_bot (ideal R), simpa using e },
+    rwa ← is_noetherian_iff_is_artinian_of_prod_eq_bot _
+      (n • (@minimal_primes_finite R _ _).to_finset.1) _ _,
+    { simp_rw [multiset.mem_nsmul hn, ← finset.mem_def, set.finite.mem_to_finset],
+      exact λ I hI, h₂ _ hI.1.1 },
+    { rw [multiset.prod_nsmul, eq_bot_iff, ← ideal.zero_eq_bot, ← e, nilradical,
+        ← ideal.Inf_minimal_primes, finset.prod_val],
+      apply ideal.pow_mono,
+      refine ideal.prod_le_inf.trans (le_Inf $ λ I hI, finset.inf_le _),
+      rwa set.finite.mem_to_finset } }
 end

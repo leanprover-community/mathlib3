@@ -196,7 +196,7 @@ begin
   rw [ideal.prime_height, set.chain_height_eq_zero_iff],
   split,
   { intro e,
-    refine ⟨⟨infer_instance, bot_le⟩, λ J hJ e', (eq_of_le_of_not_lt e' _).symm⟩,
+    refine ⟨⟨infer_instance, bot_le⟩, λ J hJ e', (eq_of_le_of_not_lt e' _).symm.le⟩,
     intro e'',
     show J ∈ (∅ : set (ideal R)),
     rw ← e,
@@ -205,7 +205,7 @@ begin
     ext J,
     suffices : J.is_prime → ¬J < I, { simpa },
     intros hJ e,
-    exact e.ne.symm (hI.2 ⟨hJ, bot_le⟩ e.le) }
+    exact not_le_of_lt e (hI.2 ⟨hJ, bot_le⟩ e.le) }
 end
 
 lemma ideal.is_maximal_of_prime_height_eq_krull_dimesion
@@ -313,7 +313,7 @@ submodule.size_eq_zero_iff.mpr rfl
 lemma mem_minimal_primes_of_height_eq {I J : ideal R} [J.is_prime] (e : I ≤ J)
   (e' : I.height = J.prime_height) [J.finite_height] : J ∈ I.minimal_primes :=
 begin
-  refine ⟨⟨infer_instance, e⟩, λ K hK e'', (eq_of_le_of_not_lt e'' _).symm⟩,
+  refine ⟨⟨infer_instance, e⟩, λ K hK e'', (eq_of_le_of_not_lt e'' _).symm.le⟩,
   intro e''',
   haveI := hK.1,
   rw ← lt_self_iff_false J.prime_height,
@@ -361,7 +361,7 @@ begin
       { rw [nat.succ_eq_add_one, with_top.coe_add],
         have := h₃.trans this,
         rw ideal.height_eq_prime_height at this,
-        exact with_top.add_one_le_of_lt (lt_of_le_of_ne this h) },
+        exact enat.add_one_le_of_lt (lt_of_le_of_ne this h) },
       intro e,
       apply hx₂ p,
       { have : J.height = p.prime_height,

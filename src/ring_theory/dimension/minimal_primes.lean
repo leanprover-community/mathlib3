@@ -73,7 +73,7 @@ begin
       ∀ z ∈ { p : (ideal R)ᵒᵈ | ideal.is_prime p ∧ I ≤ p }, m ≤ z → z = m,
   { obtain ⟨p, h₁, h₂, h₃⟩ := this,
     simp_rw ← @eq_comm _ p at h₃,
-    exact ⟨p, ⟨h₁, h₃⟩, h₂⟩ },
+    exact ⟨p, ⟨h₁, λ a b c, (h₃ a b c).le⟩, h₂⟩ },
   apply zorn_nonempty_partial_order₀,
   swap, { refine ⟨show J.is_prime, by apply_instance, e⟩ },
   rintros (c : set (ideal R)) hc hc' J' hJ',
@@ -125,9 +125,8 @@ begin
     infer_instance, _⟩,
   rw [ideal.comap_comap, ← @@is_localization.map_comp _ _ _ _ localization.is_localization _
     p.prime_compl.le_comap_map _ localization.is_localization, ← ideal.comap_comap],
-  symmetry,
-  apply H.2,
-  { exact ⟨infer_instance, bot_le⟩ },
+  suffices : _ ≤ p,
+  { exact this.antisymm (H.2 ⟨infer_instance, bot_le⟩ this) },
   intros x hx,
   by_contra h,
   apply hM.ne_top,
@@ -159,7 +158,7 @@ begin
   { rintro q ⟨hq, -⟩ hq',
     rw ← ideal.map_comap_of_surjective (I^.quotient.mk^.comp f).ker^.quotient.mk
       ideal.quotient.mk_surjective q,
-    congr' 1,
+    apply ideal.map_mono,
     resetI,
     apply H.2,
     { refine ⟨infer_instance, (ideal.mk_ker.trans e).symm.trans_le (ideal.comap_mono bot_le)⟩ },
@@ -175,7 +174,8 @@ begin
   obtain ⟨q, hq, hq'⟩ := ideal.exists_minimal_primes_le h₂,
   refine ⟨q, hq, eq.symm _⟩,
   haveI := hq.1.1,
-  exact H.2 ⟨infer_instance, ideal.comap_mono hq.1.2⟩ ((ideal.comap_mono hq').trans_eq h₃)
+  have := (ideal.comap_mono hq').trans_eq h₃,
+  exact (H.2 ⟨infer_instance, ideal.comap_mono hq.1.2⟩ this).antisymm this
 end
 
 variables {f}
@@ -189,8 +189,8 @@ begin
   rintros K ⟨hK, e₁⟩ e₂,
   have : f.ker ≤ K := (ideal.comap_mono bot_le).trans e₁,
   rw [← sup_eq_left.mpr this, ring_hom.ker_eq_comap_bot, ← ideal.comap_map_of_surjective f hf],
-  congr' 1,
-  apply h.2,
+  apply ideal.comap_mono _,
+  apply h.2 _ _,
   { exactI ⟨ideal.map_is_prime_of_surjective hf this,
       ideal.le_map_of_comap_le_of_surjective f hf e₁⟩ },
   { exact ideal.map_le_of_le_comap e₂ }
@@ -217,10 +217,10 @@ lemma ideal.minimal_primes_eq_subsingleton (hI : I.is_primary) :
 begin
   ext J,
   split,
-  { exact λ H, H.2 ⟨ideal.is_prime_radical hI, ideal.le_radical⟩ (H.1.1.radical_le_iff.mpr H.1.2) },
+  { exact λ H, let e := H.1.1.radical_le_iff.mpr H.1.2 in
+      (H.2 ⟨ideal.is_prime_radical hI, ideal.le_radical⟩ e).antisymm e },
   { rintro (rfl : J = I.radical),
-    exact ⟨⟨ideal.is_prime_radical hI, ideal.le_radical⟩,
-      λ _ H, (H.1.radical_le_iff.mpr H.2).antisymm⟩ }
+    exact ⟨⟨ideal.is_prime_radical hI, ideal.le_radical⟩, λ _ H _, H.1.radical_le_iff.mpr H.2⟩ }
 end
 
 lemma ideal.minimal_primes_eq_subsingleton_self [I.is_prime] :
@@ -228,8 +228,8 @@ lemma ideal.minimal_primes_eq_subsingleton_self [I.is_prime] :
 begin
   ext J,
   split,
-  { exact λ H, H.2 ⟨infer_instance, rfl.le⟩ H.1.2 },
-  { unfreezingI { rintro (rfl : J = I) }, refine ⟨⟨infer_instance, rfl.le⟩, λ _ h, h.2.antisymm⟩ },
+  { exact λ H, (H.2 ⟨infer_instance, rfl.le⟩ H.1.2).antisymm H.1.2 },
+  { unfreezingI { rintro (rfl : J = I) }, refine ⟨⟨infer_instance, rfl.le⟩, λ _ h _, h.2⟩ },
 end
 
 end

@@ -1,6 +1,8 @@
-import ring_theory.ideal.operations
-import linear_algebra.finite_dimensional
+import field_theory.finiteness
+import ring_theory.artinian
 import ring_theory.dimension.order_height
+import ring_theory.dimension.rank
+import ring_theory.dimension.min_generator_card
 
 variables {R M M' M'' : Type*} [comm_ring R] [add_comm_group M] [module R M] (p : submodule R M)
 variables [add_comm_group M'] [module R M'] [add_comm_group M''] [module R M'']
@@ -13,12 +15,18 @@ noncomputable
 def module.length (R M : Type*) [comm_ring R] [add_comm_group M] [module R M] : with_top ℕ :=
 (⊤ : submodule R M).length
 
-def module.length_succ (R M : Type*) [comm_ring R] [add_comm_group M] [module R M] :
+lemma submodule.length_succ :
+  p.length + 1 = (set.Iic p).chain_height  :=
+begin
+  convert (set.chain_height_insert_of_forall_ge _ p _).symm,
+  { rw set.Iio_insert },
+  { intros p e, exact e }
+end
+
+lemma module.length_succ (R M : Type*) [comm_ring R] [add_comm_group M] [module R M] :
   module.length R M + 1 = (set.univ : set $ submodule R M).chain_height :=
 begin
-  convert (set.chain_height_insert_of_forall_ge _ ⊤ _).symm,
-  { rw [set.Iio_insert, set.Iic_top] },
-  { intros p e, exact e }
+  rw [module.length, submodule.length_succ, set.Iic_top],
 end
 
 lemma set.dedup_mem_subchain {α : Type*} [partial_order α] [decidable_eq α] (s : set α) (l : list α)
@@ -130,6 +138,18 @@ begin
     simp_rw [lt_iff_le_and_ne, submodule.map_le_map_iff_of_injective hf,
       (submodule.map_injective_of_injective hf).ne_iff] },
 end
+
+lemma submodule.supr_lt_length_succ :
+  (⨆ q < p, q.length + 1) = p.length :=
+begin
+  rw [submodule.length, set.chain_height_eq_supr_Iic, supr_subtype', supr_subtype'],
+  congr,
+  ext1 ⟨q, hq⟩,
+  rw [submodule.length, subtype.coe_mk, ← set.chain_height_insert_of_forall_ge _ q,
+    set.Iio_insert, set.inter_eq_right_iff_subset.mpr _],
+  { intros x hx, exact has_le.le.trans_lt hx hq },
+  { intros a ha, exact ha }
+end
 .
 
 section
@@ -142,6 +162,15 @@ def cardinal.to_with_top_nat : cardinal →+ with_top ℕ :=
   map_zero' := by simp only [part_enat.to_with_top_zero', map_zero],
   map_add' := by simp }
 
+end
+
+lemma cardinal.to_with_top_nat_apply' (c : cardinal) :
+  c.to_with_top_nat = if c < cardinal.aleph_0 then c.to_nat else ⊤ :=
+begin
+  dsimp [cardinal.to_with_top_nat, cardinal.to_part_enat],
+  split_ifs,
+  { rw [if_pos h, part_enat.to_with_top_coe] },
+  { rw part_enat.to_with_top_top }
 end
 
 lemma cardinal.coe_le_to_with_top_nat {c : cardinal} (n : ℕ) :
@@ -158,31 +187,206 @@ begin
   { simp only [le_top, true_iff], exact (cardinal.nat_lt_aleph_0 n).le.trans (not_lt.mp h) },
 end
 
+lemma cardinal.coe_eq_to_with_top_nat_iff {c : cardinal} {n : ℕ} :
+  ↑n = c.to_with_top_nat ↔ c = n ∧ c < cardinal.aleph_0 :=
+begin
+  rw cardinal.to_with_top_nat_apply',
+  split_ifs with h,
+  { rw [with_top.coe_eq_coe, and_iff_left h, ← cardinal.nat_cast_inj,
+      cardinal.cast_to_nat_of_lt_aleph_0 h, eq_comm] },
+  { simp [h] },
+end
+
+lemma cardinal.to_with_top_nat_eq_top_iff {c : cardinal} :
+  c.to_with_top_nat = ⊤ ↔ cardinal.aleph_0 ≤ c :=
+begin
+  rw [cardinal.to_with_top_nat_apply'],
+  dsimp,
+  split_ifs,
+  { simp [h] },
+  { rw not_lt at h, simpa }
+end
+
 lemma cardinal.to_with_top_nat_cast (n : ℕ) : cardinal.to_with_top_nat n = n :=
 by { rw [cardinal.to_with_top_nat_apply, cardinal.to_part_enat_cast, part_enat.to_with_top_coe] }
 
-lemma module.length_le_rank {R M : Type*} [field R] [add_comm_group M] [module R M] :
-  module.length R M ≤ (module.rank R M).to_with_top_nat :=
+lemma cardinal.to_with_top_nat_one : cardinal.to_with_top_nat 1 = 1 :=
 begin
-  rw [← with_top.add_le_add_iff_right with_top.one_ne_top, module.length_succ],
-  any_goals { apply_instance },
-  by_cases finite_dimensional R M,
-  swap,
-  { have := is_noetherian.iff_dim_lt_aleph_0.mpr (show is_noetherian), },
-  apply supr₂_le _,
-  intros l hl,
-  have : ∀ i < l.length, ↑i ≤ module.rank R (list.nth_le l i H : _),
-  { intros i hi,
-    induction i with i h₁ h₂,
-    { exact zero_le _ },
-    { have := h₁ (i.lt_succ_self.trans hi),
-      conv_lhs { rw [nat.succ_eq_add_one, nat.cast_add, nat.cast_one] },
-
-    }
+  rw [cardinal.to_with_top_nat_apply', if_pos cardinal.one_lt_aleph_0, ← with_top.coe_one,
+    with_top.coe_eq_coe, cardinal.to_nat_eq_one.mpr rfl],
+end
 
 
-  }
-  -- rw [← with_top.coe_one, ← cardinal.to_with_top_nat_cast 1, ← map_add,
-  --   cardinal.coe_le_to_with_top_nat],
-  -- any_goals { apply_instance },
+lemma cardinal.to_with_top_nat_mono : monotone cardinal.to_with_top_nat :=
+begin
+  rintros a b e x (e' : _ = ↑x),
+  rw [eq_comm, cardinal.coe_eq_to_with_top_nat_iff] at e',
+  have := cardinal.cast_to_nat_of_lt_aleph_0 (e.trans_lt e'.2),
+  rw ← this,
+  rw [← this, e'.1, cardinal.nat_cast_le] at e,
+  exact ⟨a.to_nat, cardinal.to_with_top_nat_cast _, e⟩
+end
+
+lemma cardinal.supr_to_with_top_nat {ι : Type*} {f : ι → cardinal} (hf : bdd_above $ set.range f) :
+  (⨆ i, f i).to_with_top_nat = ⨆ i, (f i).to_with_top_nat :=
+begin
+  refine le_antisymm _ (supr_le (λ i, cardinal.to_with_top_nat_mono $ le_csupr hf i)),
+  rw cardinal.to_with_top_nat_apply',
+  split_ifs,
+  { have : ∀ i, (f i).to_with_top_nat = (f i).to_nat :=
+      λ i, (f i).to_with_top_nat_apply'.trans (if_pos $ (le_csupr hf i).trans_lt h),
+    simp_rw this,
+    rintros a (e : _ = (a : with_top ℕ)), refine ⟨_, rfl, _⟩,
+    have : bdd_above (set.range (λ i, (f i).to_nat)),
+    { rw [← with_top.supr_coe_lt_top, e], exact with_top.coe_lt_top _ },
+    rw [← cardinal.to_nat_cast a,
+      cardinal.to_nat_le_iff_le_of_lt_aleph_0 h (cardinal.nat_lt_aleph_0 _)],
+    refine csupr_le' (λ i, _),
+    rw [← with_top.coe_supr _ this, with_top.coe_eq_coe] at e,
+    rw [← e, ← cardinal.cast_to_nat_of_lt_aleph_0 ((le_csupr hf i).trans_lt h),
+      cardinal.nat_cast_le],
+    exact le_csupr this i },
+  { rintros a (e : _ = (a : with_top ℕ)),
+    apply h.elim,
+    refine (csupr_le' _).trans_lt (cardinal.nat_lt_aleph_0 a),
+    intro i,
+    have : (f i).to_with_top_nat ≤ a := ((le_supr _ _).trans_eq e : _),
+    rw [cardinal.to_with_top_nat_apply'] at this,
+    split_ifs at this with h',
+    { rwa [with_top.coe_le_coe, ← cardinal.nat_cast_le,
+        cardinal.cast_to_nat_of_lt_aleph_0 h'] at this },
+    { exact (not_le_of_lt (with_top.coe_lt_top a) this).elim } }
+end
+
+@[simp]
+lemma submodule.length_bot : (⊥ : submodule R M).length = 0 :=
+by rw [submodule.length, set.chain_height_eq_zero_iff, set.Iio_bot]
+
+lemma is_field_iff_ideal [nontrivial R] : is_field R ↔ @set.univ (ideal R) = {⊤, ⊥} :=
+begin
+  rw [← not_iff_not, ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top, iff_not_comm,
+    set.insert_eq, eq_comm, set.eq_univ_iff_forall],
+  push_neg,
+  simp [bot_lt_iff_ne_bot, or_iff_not_imp_left],
+end
+
+
+instance {R} [field R] : finite (ideal R) :=
+begin
+  rw [← set.finite_univ_iff, is_field_iff_ideal.mp (field.to_is_field R)],
+  simp
+end
+
+instance field.is_artinian_ring {R} [field R] : is_artinian_ring R :=
+⟨finite.preorder.well_founded_lt⟩
+
+lemma submodule.length_mono {p q : submodule R M} (h : p ≤ q) : p.length ≤ q.length :=
+begin
+  apply set.chain_height_le_of_subset,
+  exact λ x, h.trans_lt',
+end
+
+lemma submodule.length_succ_le_of_lt {p q : submodule R M} (h : p < q) : p.length + 1 ≤ q.length :=
+begin
+  rw [submodule.length_succ],
+  apply set.chain_height_le_of_subset,
+  exact λ x, h.trans_le',
+end
+
+lemma submodule.length_succ_lt_of_lt {p q : submodule R M} (h : p < q) (h' : p.length ≠ ⊤) :
+  p.length < q.length :=
+begin
+  obtain ⟨a, e⟩ := with_top.ne_top_iff_exists.mp h',
+  simp_rw [← e, with_top.coe_lt_iff, ← nat.add_one_le_iff, ← with_top.coe_le_iff, with_top.coe_add,
+    e, with_top.coe_one],
+  exact submodule.length_succ_le_of_lt h,
+end
+
+lemma submodule.eq_of_le_of_length_le {p q : submodule R M}
+  (h : p ≤ q) (h' : q.length ≤ p.length) (hp : p.length ≠ ⊤) :
+  p = q :=
+begin
+  by_contra h'',
+  apply not_lt_of_le rfl.le,
+  exact h'.trans_lt (submodule.length_succ_lt_of_lt (lt_of_le_of_ne h h'') hp)
+end
+
+lemma is_noetherian_of_finite_length (h : module.length R M ≠ ⊤) : is_noetherian R M :=
+begin
+  rw is_noetherian_iff_well_founded,
+  apply (@order_iso.set.univ (submodule R M) _).symm.to_order_embedding.dual.well_founded,
+  rw ← is_well_founded_iff,
+  apply set.well_founded_gt_of_chain_height_ne_top,
+  rw [← module.length_succ, with_top.add_ne_top],
+  exact ⟨h, with_top.one_ne_top⟩,
+end
+
+lemma is_artinian_of_finite_length (h : module.length R M ≠ ⊤) : is_artinian R M :=
+begin
+  rw is_artinian_iff_well_founded,
+  apply (@order_iso.set.univ (submodule R M) _).symm.to_order_embedding.well_founded,
+  rw ← is_well_founded_iff,
+  apply set.well_founded_lt_of_chain_height_ne_top,
+  rw [← module.length_succ, with_top.add_ne_top],
+  exact ⟨h, with_top.one_ne_top⟩,
+end
+
+lemma module.length_eq_rank
+  {R M : Type*} [field R] [add_comm_group M] [module R M] :
+  module.length R M = (module.rank R M).to_with_top_nat :=
+begin
+  by_cases is_artinian R M,
+  { resetI,
+    rw [module.length, ← dim_top],
+    generalize : ⊤ = N,
+    apply is_artinian.induction _ N; clear N,
+    intros N H,
+    rw [← submodule.supr_lt_length_succ N, ← rank_supr_lt_add_one, supr_subtype', csupr_subtype,
+      cardinal.supr_to_with_top_nat],
+    simp_rw [map_add, cardinal.to_with_top_nat_one],
+    congr,
+    ext1 ⟨p, hp⟩,
+    rw [subtype.coe_mk, H _ hp],
+    { use module.rank R M + 1, rintros _ ⟨_, rfl⟩, exact add_le_add (dim_submodule_le _) rfl.le },
+    { exact ⟨module.rank R M + 1, λ _ _, add_le_add (dim_submodule_le _) rfl.le⟩ } },
+  { have : ¬ is_noetherian R M,
+    { introI H, apply h, exact is_artinian_of_fg_of_artinian' module.finite.out },
+    rw is_noetherian.iff_dim_lt_aleph_0 at this,
+    rw [cardinal.to_with_top_nat_apply', if_neg this],
+    revert h,
+    rw not_imp_comm,
+    exact is_artinian_of_finite_length }
+end
+
+lemma module.finite_length_tfae_of_field (R M : Type*) [field R] [add_comm_group M] [module R M] :
+  tfae [finite_dimensional R M,
+    is_noetherian R M,
+    is_artinian R M,
+    module.length R M ≠ ⊤] :=
+begin
+  tfae_have : 1 → 2,
+  { rintro ⟨a⟩, exact is_noetherian_of_fg_of_noetherian' a, },
+  tfae_have : 1 → 3,
+  { rintro ⟨a⟩, exact is_artinian_of_fg_of_artinian' a, },
+  tfae_have : 2 → 1,
+  { introI _, apply_instance },
+  tfae_have : 3 → 2,
+  { introI H,
+    suffices : ∀ p : submodule R M, module.rank R p < cardinal.aleph_0,
+    { rw [is_noetherian.iff_dim_lt_aleph_0, ← dim_top], apply this },
+    intro p,
+    apply is_artinian.induction _ p; clear p,
+    intros p H,
+    by_contra h,
+    push_neg at h,
+    obtain ⟨q, hq, e⟩ := add_one_le_dim_iff_exists_submodule_rank_eq.mp (cardinal.add_one_eq h).le,
+    refine not_lt_of_le h _,
+    rw [← e, (submodule.equiv_map_of_injective _ p.injective_subtype q).dim_eq],
+    apply H,
+    convert submodule.map_strict_mono_of_injective p.injective_subtype (lt_top_iff_ne_top.mpr hq),
+    exact p.map_subtype_top.symm },
+  tfae_have : 2 ↔ 4,
+  { rw [is_noetherian.iff_dim_lt_aleph_0, module.length_eq_rank, iff_not_comm, not_lt,
+      cardinal.to_with_top_nat_eq_top_iff] },
+  tfae_finish
 end

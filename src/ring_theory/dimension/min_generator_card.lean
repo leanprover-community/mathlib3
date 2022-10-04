@@ -65,7 +65,7 @@ begin
       split_ifs,
       { apply submodule.subset_span, exact set.mem_range_self _ },
       { exact (span R (set.range f)).zero_mem } },
-    { apply submodule.subset_span, use fin.cast_le e x, dsimp [f'], rw dif_pos x.prop, congr' 1,
+    { apply submodule.subset_span, use fin.cast_le e x, dsimp [f'], rw dif_pos x.is_lt, congr' 1,
       ext, refl } },
   { rintros ⟨f, hf⟩,
     let s : { s : set M // s.finite ∧ span R s = p} :=

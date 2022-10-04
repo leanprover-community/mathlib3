@@ -565,16 +565,28 @@ is_simple_order_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
 
 end set
 
+namespace order_embedding
+
+variables [partial_order α] [partial_order β]
+
+lemma is_atom_of_map_bot_of_image [order_bot α] [order_bot β] (f : β ↪o α) (hbot : f ⊥ = ⊥) {b : β}
+  (hb : is_atom (f b)) : is_atom b :=
+by { simp only [←bot_covby_iff] at hb ⊢, exact covby.of_image f (hbot.symm ▸ hb) }
+
+lemma is_coatom_of_map_top_of_image [order_top α] [order_top β] (f : β ↪o α) (htop : f ⊤ = ⊤)
+  {b : β} (hb : is_coatom (f b)) : is_coatom b :=
+f.dual.is_atom_of_map_bot_of_image htop hb
+
+end order_embedding
+
 namespace galois_insertion
 
 variables [partial_order α] [partial_order β]
 
-
 lemma is_atom_of_u_bot [order_bot α] [order_bot β] {l : α → β} {u : β → α}
   (gi : galois_insertion l u) (hbot : u ⊥ = ⊥) {b : β} (hb : is_atom (u b)) : is_atom b :=
-let ⟨hb₁, hb₂⟩ := hb in
-  ⟨λ hb, hb₁ $ hbot ▸ congr_arg u hb,
-   λ b' hb', gi.gc.l_bot ▸ gi.l_u_eq b' ▸ congr_arg l (hb₂ (u b') (gi.strict_mono_u hb'))⟩
+order_embedding.is_atom_of_map_bot_of_image
+  ⟨⟨u, gi.u_injective⟩, @galois_insertion.u_le_u_iff _ _ _ _ _ _ gi⟩ hbot hb
 
 lemma is_atom_iff [order_bot α] [is_atomic α] [order_bot β] {l : α → β} {u : β → α}
   (gi : galois_insertion l u) (hbot : u ⊥ = ⊥) (h_atom : ∀ a, is_atom a → u (l a) = a) (a : α) :
@@ -596,19 +608,18 @@ lemma is_atom_iff' [order_bot α] [is_atomic α] [order_bot β] {l : α → β} 
   is_atom (u b) ↔ is_atom b :=
 by rw [←gi.is_atom_iff hbot h_atom, gi.l_u_eq]
 
-lemma is_coatom_of_l_top [order_top α] [order_top β] {l : α → β} {u : β → α}
-  (gi : galois_insertion l u) (htop : l ⊤ = ⊤) {b : β} (hb : is_coatom (u b)) : is_coatom b :=
-let ⟨hb₁, hb₂⟩ := hb in
-  ⟨mt (congr_arg u) (gi.gc.u_top.symm ▸ hb₁),
-   λ b' hb', htop ▸ gi.l_u_eq b' ▸ congr_arg l (hb₂ _ (gi.strict_mono_u hb'))⟩
+lemma is_coatom_of_image [order_top α] [order_top β] {l : α → β} {u : β → α}
+  (gi : galois_insertion l u) {b : β} (hb : is_coatom (u b)) : is_coatom b :=
+order_embedding.is_coatom_of_map_top_of_image
+  ⟨⟨u, gi.u_injective⟩, @galois_insertion.u_le_u_iff _ _ _ _ _ _ gi⟩ gi.gc.u_top hb
 
 lemma is_coatom_iff [order_top α] [is_coatomic α] [order_top β] {l : α → β} {u : β → α}
-  (gi : galois_insertion l u) (htop : l ⊤ = ⊤) (h_coatom : ∀ a, is_coatom a → u (l a) = a) (b : β) :
+  (gi : galois_insertion l u) (h_coatom : ∀ a : α, is_coatom a → u (l a) = a) (b : β) :
   is_coatom (u b) ↔ is_coatom b :=
 begin
-  refine ⟨λ hb, gi.is_coatom_of_l_top htop hb, λ hb, _⟩,
+  refine ⟨λ hb, gi.is_coatom_of_image hb, λ hb, _⟩,
   obtain ⟨a, ha, hab⟩ := (eq_top_or_exists_le_coatom (u b)).resolve_left
-    (λ h, hb.1 $ htop ▸ gi.l_u_eq b ▸ congr_arg l h),
+    (λ h, hb.1 $ (gi.gc.u_top ▸ gi.l_u_eq ⊤ : l ⊤ = ⊤) ▸ gi.l_u_eq b ▸ congr_arg l h),
   have : l a = b := (hb.le_iff.mp ((gi.l_u_eq b ▸ gi.gc.monotone_l hab) : b ≤ l a)).resolve_left
     (λ hla, ha.1 (gi.gc.u_top ▸ h_coatom a ha ▸ congr_arg u hla)),
   exact this ▸ (h_coatom a ha).symm ▸ ha,
@@ -634,14 +645,14 @@ lemma is_coatom_iff' [order_top α] [order_top β] [is_coatomic β] {l : α → 
   (a : α) : is_coatom (l a) ↔ is_coatom a :=
 gi.dual.is_atom_iff' htop h_coatom a
 
-lemma is_atom_of_u_bot [order_bot α] [order_bot β] {l : α → β} {u : β → α}
-  (gi : galois_coinsertion l u) (hbot : u ⊥ = ⊥) {a : α} (hb : is_atom (l a)) : is_atom a :=
-gi.dual.is_coatom_of_l_top hbot hb.dual
+lemma is_atom_of_image [order_bot α] [order_bot β] {l : α → β} {u : β → α}
+  (gi : galois_coinsertion l u) {a : α} (hb : is_atom (l a)) : is_atom a :=
+gi.dual.is_coatom_of_image hb.dual
 
 lemma is_atom_iff [order_bot α] [order_bot β] [is_atomic β] {l : α → β} {u : β → α}
-  (gi : galois_coinsertion l u) (hbot : u ⊥ = ⊥) (h_atom : ∀ b, is_atom b → l (u b) = b) (a : α) :
+  (gi : galois_coinsertion l u) (h_atom : ∀ b, is_atom b → l (u b) = b) (a : α) :
   is_atom (l a) ↔ is_atom a :=
-gi.dual.is_coatom_iff hbot h_atom a
+gi.dual.is_coatom_iff h_atom a
 
 end galois_coinsertion
 
@@ -651,7 +662,7 @@ variables [partial_order α] [partial_order β]
 
 @[simp] lemma is_atom_iff [order_bot α] [order_bot β] (f : α ≃o β) (a : α) :
   is_atom (f a) ↔ is_atom a :=
-⟨f.to_galois_coinsertion.is_atom_of_u_bot (map_bot f.symm),
+⟨f.to_galois_coinsertion.is_atom_of_image,
  λ ha, f.to_galois_insertion.is_atom_of_u_bot (map_bot f.symm) $ (f.symm_apply_apply a).symm ▸ ha⟩
 
 @[simp] lemma is_coatom_iff [order_top α] [order_top β] (f : α ≃o β) (a : α) :

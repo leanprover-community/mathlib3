@@ -461,5 +461,4 @@ end
 
 end quasi_measure_preserving
 
-#lint
 end measure_theory

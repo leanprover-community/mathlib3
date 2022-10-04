@@ -144,7 +144,7 @@ lemma eq_one_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (hB : B < 0)
   p = 1 :=
 h1.nat_degree_eq_zero_iff_eq_one.mp begin
   contrapose !hB,
-  rw [← h1.nat_degree_map, nat_degree_eq_card_roots' h2] at hB, swap, apply_instance,
+  rw [← h1.nat_degree_map f, nat_degree_eq_card_roots' h2] at hB,
   obtain ⟨z, hz⟩ := card_pos_iff_exists_mem.mp (zero_lt_iff.mpr hB),
   exact le_trans (norm_nonneg _) (h3 z hz),
 end
@@ -157,7 +157,7 @@ begin
   { rw [eq_one_of_roots_le hB h1 h2 h3, polynomial.map_one,
       nat_degree_one, zero_tsub, pow_zero, one_mul, coeff_one],
     split_ifs; norm_num [h] },
-  have : (map f p).nat_degree = p.nat_degree := h1.nat_degree_map _,
+  have : (map f p).nat_degree = p.nat_degree := h1.nat_degree_map f,
   obtain hi | hi := le_or_lt i p.nat_degree,
   { rw [coeff_eq_esymm_roots_of_splits ((splits_id_iff_splits f).2 h2) (this.substr hi),
       (h1.map _).leading_coeff, one_mul, norm_mul, norm_pow, norm_neg, norm_one, one_pow, one_mul],

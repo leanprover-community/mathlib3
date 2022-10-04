@@ -86,7 +86,8 @@ include hp
 /-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
 def equiv_Ico : add_circle p ≃ Ico 0 p :=
 { inv_fun := quotient_add_group.mk' _ ∘ coe,
-  to_fun := λ x, ⟨(to_Ico_mod_periodic 0 hp.out).lift x, quot.induction_on x $ to_Ico_mod_mem_Ico' hp.out⟩,
+  to_fun := λ x, ⟨(to_Ico_mod_periodic 0 hp.out).lift x,
+    quot.induction_on x $ to_Ico_mod_mem_Ico' hp.out⟩,
   right_inv := by { rintros ⟨x, hx⟩, ext, simp [to_Ico_mod_eq_self, hx.1, hx.2], },
   left_inv :=
   begin

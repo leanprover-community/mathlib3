@@ -54,11 +54,13 @@ namespace is_doubling_measure
 
 variables {α : Type*} [metric_space α] [measurable_space α] (μ : measure α) [is_doubling_measure μ]
 
-/-- A doubling constant for a doubling measure. -/
+/-- A doubling constant for a doubling measure.
+
+See also `is_doubling_measure.scaling_constant_of`. -/
 def doubling_constant : ℝ≥0 := classical.some $ exists_measure_closed_ball_le_mul μ
 
 lemma exists_measure_closed_ball_le_mul' :
-  ∀ᶠ ε in 𝓝[>] 0, ∀ x, μ (closed_ball x (2 * ε)) ≤ (doubling_constant μ) * μ (closed_ball x ε) :=
+  ∀ᶠ ε in 𝓝[>] 0, ∀ x, μ (closed_ball x (2 * ε)) ≤ doubling_constant μ * μ (closed_ball x ε) :=
 classical.some_spec $ exists_measure_closed_ball_le_mul μ
 
 lemma exists_eventually_forall_measure_closed_ball_le_mul (K : ℝ) :
@@ -90,16 +92,25 @@ begin
     exact real.rpow_le_rpow_of_exponent_le one_le_two (nat.le_ceil (real.logb 2 K)), },
 end
 
+/-- A variant of `is_doubling_measure.doubling_constant` which allows for scaling the radius by
+values other than `2`. -/
+def scaling_constant_of (K : ℝ) : ℝ≥0 :=
+classical.some $ exists_eventually_forall_measure_closed_ball_le_mul μ K
+
+lemma eventually_scaling_constant_of (K : ℝ) :
+  ∀ᶠ ε in 𝓝[>] 0, ∀ x t (ht : t ≤ K),
+    μ (closed_ball x (t * ε)) ≤ (scaling_constant_of μ K) * μ (closed_ball x ε) :=
+classical.some_spec $ exists_eventually_forall_measure_closed_ball_le_mul μ K
+
 variables [proper_space α] [borel_space α] [is_locally_finite_measure μ]
 
 /-- A Vitali family in space with doubling measure with a covering proportion controlled by `K`. -/
 def vitali_family (K : ℝ) (hK : 6 ≤ K) : vitali_family μ :=
-vitali.vitali_family μ
-  (classical.some (exists_eventually_forall_measure_closed_ball_le_mul μ K)) $ λ x ε hε,
+vitali.vitali_family μ (scaling_constant_of μ K) $ λ x ε hε,
 begin
-  have h := classical.some_spec (exists_eventually_forall_measure_closed_ball_le_mul μ K),
+  have h := eventually_scaling_constant_of μ K,
   replace h := forall_eventually_of_eventually_forall (forall_eventually_of_eventually_forall h x),
-  replace h := (eventually_imp_distrib_left.mp (h 6) hK),
+  replace h := eventually_imp_distrib_left.mp (h 6) hK,
   simpa only [exists_prop] using ((eventually_nhds_within_pos_mem_Ioc hε).and h).exists,
 end
 
@@ -121,8 +132,7 @@ begin
     have δpos : ∀ᶠ j in l, 0 < δ j := eventually_mem_of_tendsto_nhds_within δlim,
     replace xmem : ∀ᶠ (j : ι) in l, x ∈ closed_ball (w j) (δ j) := (δpos.and xmem).mono
       (λ j hj, closed_ball_subset_closed_ball (by nlinarith [hj.1, hK.2]) hj.2),
-    apply ((δlim.eventually (classical.some_spec
-      (exists_eventually_forall_measure_closed_ball_le_mul μ 7))).and (xmem.and δpos)).mono,
+    apply ((δlim.eventually (eventually_scaling_constant_of μ 7)).and (xmem.and δpos)).mono,
     rintros j ⟨hjC, hjx, hjδ⟩,
     have hdiam : 3 * diam (closed_ball (w j) (δ j)) ≤ 6 * δ j,
     { linarith [@diam_closed_ball _ _ (w j) _ hjδ.le], },
@@ -131,8 +141,7 @@ begin
     suffices : closed_ball x (6 * δ j) ⊆ closed_ball (w j) (7 * δ j),
     { exact (measure_mono this).trans ((hjC (w j) 7 (by norm_num)).trans $ le_refl _), },
     intros y hy,
-    simp only [mem_closed_ball] at hjx hy ⊢,
-    rw dist_comm at hjx,
+    simp only [mem_closed_ball, dist_comm x (w j)] at hjx hy ⊢,
     linarith [dist_triangle_right y (w j) x], },
   { have δpos := eventually_mem_of_tendsto_nhds_within δlim,
     replace δlim := tendsto_nhds_of_tendsto_nhds_within δlim,

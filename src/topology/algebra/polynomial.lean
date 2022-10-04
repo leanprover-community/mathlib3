@@ -133,10 +133,9 @@ else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
 
 section roots
 
-open_locale polynomial
-open_locale nnreal
+open_locale polynomial nnreal
 
-variables {F K : Type*} [field F] [normed_field K]
+variables {F K : Type*} [comm_ring F] [normed_field K]
 
 open multiset
 
@@ -145,8 +144,8 @@ lemma eq_one_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (hB : B < 0)
   p = 1 :=
 h1.nat_degree_eq_zero_iff_eq_one.mp begin
   contrapose !hB,
-  rw nat_degree_eq_card_roots h2 at hB,
-  obtain ⟨z, hz⟩ := multiset.card_pos_iff_exists_mem.mp (zero_lt_iff.mpr hB),
+  rw [← h1.nat_degree_map, nat_degree_eq_card_roots' h2] at hB, swap, apply_instance,
+  obtain ⟨z, hz⟩ := card_pos_iff_exists_mem.mp (zero_lt_iff.mpr hB),
   exact le_trans (norm_nonneg _) (h3 z hz),
 end
 
@@ -154,49 +153,27 @@ lemma coeff_le_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (i : ℕ)
   (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ∥z∥ ≤ B) :
   ∥ (map f p).coeff i ∥ ≤ B^(p.nat_degree - i) * p.nat_degree.choose i  :=
 begin
-  have hcd : card (map f p).roots = p.nat_degree := (nat_degree_eq_card_roots h2).symm,
-  obtain hB | hB := le_or_lt 0 B,
-  { by_cases hi : i ≤ p.nat_degree,
-    { rw [eq_prod_roots_of_splits h2, monic.def.mp h1, ring_hom.map_one, ring_hom.map_one, one_mul],
-      rw prod_X_sub_C_coeff,
-      swap, rwa hcd,
-      rw [norm_mul, (by norm_num : ∥(-1 : K) ^ (card (map f p).roots - i)∥=  1), one_mul],
-      apply le_trans (le_sum_of_subadditive norm _ _ _ ),
-      rotate, exact norm_zero, exact norm_add_le,
-      rw multiset.map_map,
-      suffices : ∀ r ∈ multiset.map (norm_hom ∘ prod)
-        (powerset_len (card (map f p).roots - i) (map f p).roots), r ≤ B^(p.nat_degree - i),
-      { convert sum_le_sum_map _ this,
-        simp only [hi, hcd, multiset.map_const, card_map, card_powerset_len, nat.choose_symm,
-          sum_repeat, nsmul_eq_mul, mul_comm], },
-      { intros r hr,
-        obtain ⟨t, ht⟩ := multiset.mem_map.mp hr,
-        have hbounds : ∀ x ∈ (multiset.map norm_hom t), 0 ≤ x ∧ x ≤ B,
-        { intros x hx,
-          obtain ⟨z, hz⟩ := multiset.mem_map.mp hx,
-          rw ←hz.right,
-          exact ⟨norm_nonneg z,
-            h3 z (mem_of_le (mem_powerset_len.mp ht.left).left hz.left)⟩, },
-        lift B to ℝ≥0 using hB,
-        lift (multiset.map norm_hom t) to (multiset ℝ≥0) using (λ x hx, (hbounds x hx).left)
-          with normt hn,
-        rw (by rw_mod_cast [←ht.right, function.comp_apply, ←prod_hom t norm_hom, ←hn] :
-          r = normt.prod),
-        convert multiset.prod_le_pow_card normt _ _,
-        { rw (_ : card normt = card (multiset.map coe normt)),
-          rwa [hn, ←hcd, card_map, (mem_powerset_len.mp ht.left).right.symm],
-          rwa card_map, },
-        { intros x hx,
-          have xmem : (x : ℝ) ∈ multiset.map coe normt := mem_map_of_mem _ hx,
-          exact (hbounds x xmem).right, }}},
-    { push_neg at hi,
-      rw [nat.choose_eq_zero_of_lt hi, coeff_eq_zero_of_nat_degree_lt, norm_zero],
-      rw_mod_cast mul_zero,
-      { rwa monic.nat_degree_map h1,
-        apply_instance, }}},
-  { rw [eq_one_of_roots_le hB h1 h2 h3, polynomial.map_one, nat_degree_one, zero_tsub, pow_zero,
-      one_mul, coeff_one],
-    split_ifs; norm_num [h], },
+  obtain hB | hB := lt_or_le B 0,
+  { rw [eq_one_of_roots_le hB h1 h2 h3, polynomial.map_one,
+      nat_degree_one, zero_tsub, pow_zero, one_mul, coeff_one],
+    split_ifs; norm_num [h] },
+  have : (map f p).nat_degree = p.nat_degree := h1.nat_degree_map _,
+  obtain hi | hi := le_or_lt i p.nat_degree,
+  { rw [coeff_eq_esymm_roots_of_splits ((splits_id_iff_splits f).2 h2) (this.substr hi),
+      (h1.map _).leading_coeff, one_mul, norm_mul, norm_pow, norm_neg, norm_one, one_pow, one_mul],
+    apply ((norm_multiset_sum_le _).trans $ sum_le_card_nsmul _ _ $ λ r hr, _).trans,
+    { rw [multiset.map_map, card_map, card_powerset_len, this,
+        ←nat_degree_eq_card_roots' h2, this, nat.choose_symm hi, mul_comm, nsmul_eq_mul] },
+    simp_rw multiset.mem_map at hr,
+    obtain ⟨_, ⟨s, hs, rfl⟩, rfl⟩ := hr,
+    rw [mem_powerset_len, this] at hs,
+    lift B to ℝ≥0 using hB,
+    rw [←coe_nnnorm, ←nnreal.coe_pow, nnreal.coe_le_coe,
+      ←nnnorm_hom_apply, ←monoid_hom.coe_coe, monoid_hom.map_multiset_prod],
+    refine (prod_le_pow_card _ B $ λ x hx, _).trans_eq (by rw [card_map, hs.2]),
+    obtain ⟨z, hz, rfl⟩ := multiset.mem_map.1 hx,
+    exact h3 z (mem_of_le hs.1 hz) },
+  { rw [coeff_eq_zero_of_nat_degree_lt, norm_zero], { positivity }, { rwa this } },
 end
 
 /-- The coefficients of the monic polynomials of bounded degree with bounded roots are

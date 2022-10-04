@@ -369,7 +369,7 @@ begin
   have hc : is_compact (closure U), from hb.is_compact_closure,
   obtain ⟨w, hwU, hle⟩ : ∃ w ∈ closure U, is_max_on (norm ∘ f) (closure U) w,
     from hc.exists_forall_ge hne.closure hd.continuous_on.norm,
-  rw [closure_eq_interior_union_frontier, mem_union_eq] at hwU,
+  rw [closure_eq_interior_union_frontier, mem_union] at hwU,
   cases hwU, rotate, { exact ⟨w, hwU, hle⟩ },
   have : interior U ≠ univ, from ne_top_of_le_ne_top hc.ne_univ interior_subset_closure,
   rcases exists_mem_frontier_inf_dist_compl_eq_dist hwU this with ⟨z, hzU, hzw⟩,
@@ -386,7 +386,7 @@ lemma norm_le_of_forall_mem_frontier_norm_le {f : E → F} {U : set E} (hU : bou
   {z : E} (hz : z ∈ closure U) :
   ∥f z∥ ≤ C :=
 begin
-  rw [closure_eq_self_union_frontier, union_comm, mem_union_eq] at hz,
+  rw [closure_eq_self_union_frontier, union_comm, mem_union] at hz,
   cases hz, { exact hC z hz },
   /- In case of a finite dimensional domain, one can just apply
   `complex.exists_mem_frontier_is_max_on_norm`. To make it work in any Banach space, we restrict

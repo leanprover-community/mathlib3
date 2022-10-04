@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.continuous_function.bounded
-import topology.uniform_space.compact_separated
+import topology.uniform_space.compact
 import topology.compact_open
 import topology.sets.compacts
 
@@ -159,6 +159,9 @@ instance : normed_add_comm_group C(α, E) :=
     rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm, mk_of_compact_sub],
   dist := dist, norm := norm, .. continuous_map.metric_space _ _, .. continuous_map.add_comm_group }
 
+instance [nonempty α] [has_one E] [norm_one_class E] : norm_one_class C(α, E) :=
+{ norm_one := by simp only [←norm_mk_of_compact, mk_of_compact_one, norm_one] }
+
 section
 variables (f : C(α, E))
 -- The corresponding lemmas for `bounded_continuous_function` are stated with `{f}`,
@@ -182,9 +185,16 @@ lemma norm_le_of_nonempty [nonempty α] {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥
 lemma norm_lt_iff {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_compact _ _ _ _ _ (mk_of_compact f) _ M0
 
+theorem nnnorm_lt_iff {M : ℝ≥0} (M0 : 0 < M) : ∥f∥₊ < M ↔ ∀ (x : α), ∥f x∥₊ < M :=
+f.norm_lt_iff M0
+
 lemma norm_lt_iff_of_nonempty [nonempty α] {M : ℝ} :
   ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _ (mk_of_compact f) _
+
+lemma nnnorm_lt_iff_of_nonempty [nonempty α] {M : ℝ≥0} :
+  ∥f∥₊ < M ↔ ∀ x, ∥f x∥₊ < M :=
+f.norm_lt_iff_of_nonempty
 
 lemma apply_le_norm (f : C(α, ℝ)) (x : α) : f x ≤ ∥f∥ :=
 le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)

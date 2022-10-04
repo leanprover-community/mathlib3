@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import linear_algebra.finsupp
-import algebra.monoid_algebra.basic
+import algebra.monoid_algebra.support
 import algebra.direct_sum.internal
 import ring_theory.graded_algebra.basic
 
@@ -62,7 +62,7 @@ end
 
 lemma mem_grade_iff' (m : M) (a : add_monoid_algebra R M) :
   a ∈ grade R m ↔
-    a ∈ ((finsupp.lsingle m).range : submodule R (add_monoid_algebra R M)) :=
+    a ∈ ((finsupp.lsingle m : R →ₗ[R] (M →₀ R)).range : submodule R (add_monoid_algebra R M)) :=
 begin
   rw [mem_grade_iff, finsupp.support_subset_singleton'],
   apply exists_congr,
@@ -70,7 +70,7 @@ begin
   split; exact eq.symm
 end
 
-lemma grade_eq_lsingle_range (m : M) : grade R m = (finsupp.lsingle m).range :=
+lemma grade_eq_lsingle_range (m : M) : grade R m = (finsupp.lsingle m : R →ₗ[R] (M →₀ R)).range :=
 submodule.ext (mem_grade_iff' R m)
 
 lemma single_mem_grade_by {R} [comm_semiring R] (f : M → ι) (m : M) (r : R) :

@@ -117,3 +117,9 @@ linear_equiv.of_linear
   ((self_adjoint.submodule R A).subtype.coprod (skew_adjoint.submodule R A).subtype)
   (by ext; simp)
   (linear_map.ext $ star_module.self_adjoint_part_add_skew_adjoint_part R)
+
+@[simp]
+lemma algebra_map_star_comm {R A : Type*} [comm_semiring R] [star_ring R] [semiring A]
+  [star_semigroup A] [algebra R A] [star_module R A] (r : R) :
+  algebra_map R A (star r) = star (algebra_map R A r) :=
+by simp only [algebra.algebra_map_eq_smul_one, star_smul, star_one]

@@ -104,7 +104,18 @@ lemma to_cotangent_to_quotient_square (x : I) : I.cotangent_to_quotient_square (
 def cotangent_ideal (I : ideal R) : ideal (R ⧸ I ^ 2) :=
 begin
   haveI : @ring_hom_surjective R (R ⧸ I ^ 2) _ _ _ := ⟨ideal.quotient.mk_surjective⟩,
-  exact submodule.map (ring_hom.to_semilinear_map (I ^ 2)^.quotient.mk) I,
+  let rq := (I ^ 2)^.quotient.mk,
+  exact submodule.map rq.to_semilinear_map I,
+end
+
+lemma cotangent_ideal_square (I : ideal R) : I.cotangent_ideal ^ 2 = ⊥ :=
+begin
+  rw [eq_bot_iff, pow_two I.cotangent_ideal, ← smul_eq_mul],
+  intros x hx,
+  apply submodule.smul_induction_on hx,
+  { rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩, apply (submodule.quotient.eq _).mpr _,
+    rw [sub_zero, pow_two], exact ideal.mul_mem_mul hx hy },
+  { intros x y hx hy, exact add_mem hx hy }
 end
 
 lemma cotangent_ideal_square (I : ideal R) : I.cotangent_ideal ^ 2 = ⊥ :=

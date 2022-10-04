@@ -356,12 +356,8 @@ export properly_discontinuous_vadd (finite_disjoint_inter_image)
 
 /-- The quotient map by a group action is open, i.e. the quotient by a group action is an open
   quotient. -/
-<<<<<<< HEAD
-@[to_additive "The quotient map by a group action is open."]
-=======
 @[to_additive "The quotient map by a group action is open, i.e. the quotient by a group
 action is an open quotient. "]
->>>>>>> RmodZ_topology
 lemma is_open_map_quotient_mk_mul [has_continuous_const_smul Γ T] :
   is_open_map (quotient.mk : T → quotient (mul_action.orbit_rel Γ T)) :=
 begin

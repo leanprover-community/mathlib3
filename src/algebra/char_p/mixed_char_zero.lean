@@ -158,6 +158,7 @@ section equal_char_zero
 /--
 `ℚ`-algebra implies equal characteristic.
 -/
+@[nolint unused_arguments] -- argument `[nontrivial R]` is used in the first line of the proof.
 lemma Q_algebra_to_equal_char_zero [nontrivial R] [algebra ℚ R] :
   ∀ (I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I) :=
 begin

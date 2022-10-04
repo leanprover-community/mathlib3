@@ -11,6 +11,7 @@ import measure_theory.lattice
 import measure_theory.measure.open_pos
 import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
+import topology.instances.add_circle
 import topology.instances.ereal
 import topology.G_delta
 import topology.order.lattice
@@ -1343,12 +1344,10 @@ instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
 
-instance real_mod_zmultiples.measurable_space {a : ℝ} [fact (0 < a)] :
-  measurable_space (ℝ ⧸ add_subgroup.zmultiples a) :=
-borel (ℝ ⧸ add_subgroup.zmultiples a)
+instance add_circle.measurable_space {a : ℝ} [fact (0 < a)] : measurable_space (add_circle a) :=
+borel (add_circle a)
 
-instance real_mod_zmultiples.borel_space {a : ℝ} [fact (0 < a)] :
-  borel_space (ℝ ⧸ add_subgroup.zmultiples a) :=
+instance add_circle.borel_space {a : ℝ} [fact (0 < a)] : borel_space (add_circle a) :=
 ⟨rfl⟩
 
 /-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This

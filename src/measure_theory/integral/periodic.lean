@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 import measure_theory.measure.haar_quotient
 import measure_theory.integral.interval_integral
 import topology.algebra.order.floor
-import topology.instances.real_mod_zmultiples
 
 /-!
 # Integrals of periodic functions
@@ -51,9 +50,9 @@ open add_subgroup
 
 variables {T : ℝ} [fact (0 < T)]
 
-noncomputable instance : measure_space (ℝ ⧸ zmultiples T) :=
+noncomputable instance : measure_space (add_circle T) :=
 { volume := (id ⟨T, le_of_lt (fact.out _)⟩ : ℝ≥0) • add_haar_measure ⊤,
-  .. real_mod_zmultiples.measurable_space }
+  .. add_circle.measurable_space }
 
 local notation `π` := quotient_add_group.mk' (zmultiples T)
 

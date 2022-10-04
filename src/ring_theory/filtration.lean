@@ -28,10 +28,12 @@ This file contains the definitions and basic results around (stable) `I`-filtrat
   `F.stable` iff `F.submodule.fg`.
 - `ideal.filtration.stable.of_le`: In a finite module over a noetherian ring,
   if `F' ≤ F`, then `F.stable → F'.stable`.
-- `ideal.exists_pow_inf_eq_pow_smul`: **Artin-Rees lemma**
+- `ideal.exists_pow_inf_eq_pow_smul`: **Artin-Rees lemma**.
+  given `N ≤ M`, there exists a `k` such that `IⁿM ⊓ N = Iⁿ⁻ᵏ(IᵏM ⊓ N)` for all `n ≥ k`.
 - `ideal.infi_pow_eq_bot_of_local_ring`:
-  **Krull's intersection theorem** for noetherian local rings.
-- `ideal.infi_pow_eq_bot_of_is_domain`: **Krull's intersection theorem** for noetherian domains.
+  **Krull's intersection theorem** (`⨅ i, I ^ i = ⊥`) for noetherian local rings.
+- `ideal.infi_pow_eq_bot_of_is_domain`:
+  **Krull's intersection theorem** (`⨅ i, I ^ i = ⊥`) for noetherian domains.
 
 -/
 
@@ -361,7 +363,7 @@ lemma stable.of_le [is_noetherian_ring R] [h : module.finite R M] (hF : F.stable
   {F' : I.filtration M} (hf : F' ≤ F) : F'.stable :=
 begin
   haveI := is_noetherian_of_fg_of_noetherian' h.1,
-  rw ← submodule_fg_of_stable at hF ⊢,
+  rw ← submodule_fg_iff_stable at hF ⊢,
   any_goals { intro i, exact is_noetherian.noetherian _ },
   have := is_noetherian_of_fg_of_noetherian _ hF,
   rw is_noetherian_submodule at this,

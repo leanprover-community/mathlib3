@@ -220,18 +220,18 @@ begin
 end
 
 section left
-variables [sigma_finite μ] [is_add_left_invariant μ]
+variables [sigma_finite μ] [is_add_right_invariant μ]
 
 lemma measure_theory.ae_strongly_measurable.convolution_integrand_snd
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)
   (x : G) : ae_strongly_measurable (λ t, L (f t) (g (x - t))) μ :=
 hf.convolution_integrand_snd' L $ hg.mono' $
-  (quasi_measure_preserving_sub_left μ x).absolutely_continuous
+  (quasi_measure_preserving_sub_left_of_right_invariant μ x).absolutely_continuous
 
 lemma measure_theory.ae_strongly_measurable.convolution_integrand_swap_snd
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)
   (x : G) : ae_strongly_measurable (λ t, L (f (x - t)) (g t)) μ :=
-(hf.mono' (quasi_measure_preserving_sub_left μ x).absolutely_continuous)
+(hf.mono' (quasi_measure_preserving_sub_left_of_right_invariant μ x).absolutely_continuous)
   .convolution_integrand_swap_snd' L hg
 
 /-- If `∥f∥ *[μ] ∥g∥` exists, then `f *[L, μ] g` exists. -/
@@ -240,7 +240,8 @@ lemma convolution_exists_at.of_norm {x₀ : G}
   (hmg : ae_strongly_measurable g μ)
   (h : convolution_exists_at (λ x, ∥f x∥) (λ x, ∥g x∥) x₀ (lmul ℝ ℝ) μ) :
   convolution_exists_at f g x₀ L μ :=
-h.of_norm' L hmf $ hmg.mono' (quasi_measure_preserving_sub_left μ x₀).absolutely_continuous
+h.of_norm' L hmf $ hmg.mono'
+  (quasi_measure_preserving_sub_left_of_right_invariant μ x₀).absolutely_continuous
 
 end left
 
@@ -251,7 +252,8 @@ variables [sigma_finite μ] [is_add_right_invariant μ] [sigma_finite ν]
 lemma measure_theory.ae_strongly_measurable.convolution_integrand
   (hf : ae_strongly_measurable f ν) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (λ p : G × G, L (f p.2) (g (p.1 - p.2))) (μ.prod ν) :=
-hf.convolution_integrand' L $ hg.mono' (quasi_measure_preserving_sub μ ν).absolutely_continuous
+hf.convolution_integrand' L $ hg.mono'
+  (quasi_measure_preserving_sub_of_right_invariant μ ν).absolutely_continuous
 
 lemma measure_theory.integrable.convolution_integrand (hf : integrable f ν) (hg : integrable g μ) :
   integrable (λ p : G × G, L (f p.2) (g (p.1 - p.2))) (μ.prod ν) :=
@@ -339,7 +341,8 @@ lemma bdd_above.convolution_exists_at [sigma_finite μ] {x₀ : G}
 begin
   refine bdd_above.convolution_exists_at' L _ hs h2s hf hmf _,
   { simp_rw [← sub_eq_neg_add, hbg] },
-  { exact hmg.mono' (quasi_measure_preserving_sub_left μ x₀).absolutely_continuous }
+  { exact hmg.mono'
+      (quasi_measure_preserving_sub_left_of_right_invariant μ x₀).absolutely_continuous }
 end
 
 variables {L} [is_neg_invariant μ]
@@ -443,13 +446,14 @@ by { ext, exact (hfg x).add_distrib (hfg' x) }
 
 variables (L)
 
-lemma convolution_congr [has_measurable_add G] [has_measurable_neg G] [is_add_left_invariant μ]
-  [is_neg_invariant μ] (h1 : f =ᵐ[μ] f') (h2 : g =ᵐ[μ] g') :
+lemma convolution_congr [has_measurable_add₂ G] [has_measurable_neg G]
+  [sigma_finite μ] [is_add_right_invariant μ] (h1 : f =ᵐ[μ] f') (h2 : g =ᵐ[μ] g') :
   f ⋆[L, μ] g = f' ⋆[L, μ] g' :=
 begin
   ext x,
   apply integral_congr_ae,
-  exact (h1.prod_mk $ h2.comp_tendsto (map_sub_left_ae μ x).le).fun_comp ↿(λ x y, L x y)
+  exact (h1.prod_mk $ h2.comp_tendsto
+    (quasi_measure_preserving_sub_left_of_right_invariant μ x).tendsto_ae).fun_comp ↿(λ x y, L x y)
 end
 
 lemma support_convolution_subset_swap : support (f ⋆[L, μ] g) ⊆ support g + support f :=
@@ -843,7 +847,7 @@ begin
   exact (L.flip (∫ x, g x ∂μ)).integral_comp_comm hf
 end
 
-variables [has_measurable_add₂ G] [is_add_left_invariant ν] [has_measurable_neg G]
+variables [has_measurable_add₂ G] [is_add_right_invariant ν] [has_measurable_neg G]
 
 /-- Convolution is associative. This has a weak but inconvenient integrability condition.
 See also `convolution_assoc`. -/
@@ -867,12 +871,10 @@ calc    ((f ⋆[L, ν] g) ⋆[L₂, μ] k) x₀
   end
   ... = ∫ s, L₃ (f s) (∫ u, L₄ (g u) (k ((x₀ - s) - u)) ∂μ) ∂ν : begin
     refine integral_congr_ae _,
-    refine ((quasi_measure_preserving_sub_left ν x₀).ae hgk).mono (λ t ht, _),
+    refine ((quasi_measure_preserving_sub_left_of_right_invariant ν x₀).ae hgk).mono (λ t ht, _),
     exact (L₃ (f t)).integral_comp_comm ht,
   end
   ... = (f ⋆[L₃, ν] (g ⋆[L₄, μ] k)) x₀ : rfl
-
-variables [is_add_left_invariant μ] [is_neg_invariant μ]
 
 /-- Convolution is associative. This requires that
 * all maps are a.e. strongly measurable w.r.t one of the measures
@@ -904,7 +906,7 @@ begin
     refine quasi_measure_preserving.prod_of_left
       ((measurable_const.sub measurable_snd).sub measurable_fst) (eventually_of_forall $ λ y, _),
     dsimp only,
-    exact (measure_preserving_sub_left μ _).quasi_measure_preserving },
+    exact quasi_measure_preserving_sub_left_of_right_invariant μ _ },
   have h2_meas : ae_strongly_measurable (λ y, ∫ x, ∥L₃ (f y) (L₄ (g x) (k (x₀ - y - x)))∥ ∂μ) ν :=
     h_meas.prod_swap.norm.integral_prod_right',
   have h3 : map (λ z : G × G, (z.1 - z.2, z.2)) (μ.prod ν) = μ.prod ν :=
@@ -915,10 +917,10 @@ begin
     ext ⟨x, y⟩,
     simp_rw [uncurry, function.comp_apply, sub_sub_sub_cancel_right] },
   simp_rw [integrable_prod_iff' h_meas],
-  refine ⟨((quasi_measure_preserving_sub_left ν x₀).ae hgk).mono
+  refine ⟨((quasi_measure_preserving_sub_left_of_right_invariant ν x₀).ae hgk).mono
     (λ t ht, (L₃ (f t)).integrable_comp $ ht.of_norm L₄ hg hk), _⟩,
   refine (hfgk.const_mul (∥L₃∥ * ∥L₄∥)).mono' h2_meas
-    (((quasi_measure_preserving_sub_left ν x₀).ae hgk).mono $ λ t ht, _),
+    (((quasi_measure_preserving_sub_left_of_right_invariant ν x₀).ae hgk).mono $ λ t ht, _),
   { simp_rw [convolution_def, lmul_apply, mul_mul_mul_comm ∥L₃∥ ∥L₄∥, ← integral_mul_left],
     rw [real.norm_of_nonneg],
     { refine integral_mono_of_nonneg (eventually_of_forall $ λ t, norm_nonneg _)

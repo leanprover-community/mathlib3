@@ -148,15 +148,19 @@ end
 lemma measure_inv_null : μ E⁻¹ = 0 ↔ μ E = 0 :=
 begin
   refine ⟨λ hE, _, (quasi_measure_preserving_inv μ).preimage_null⟩,
-  convert (quasi_measure_preserving_inv μ).preimage_null hE,
-  exact (inv_inv _).symm
+  rw [← inv_inv E],
+  exact (quasi_measure_preserving_inv μ).preimage_null hE
 end
 
 @[to_additive]
-lemma absolutely_continuous_map_inv : μ ≪ map has_inv.inv μ :=
+lemma inv_absolutely_continuous : μ.inv ≪ μ :=
+(quasi_measure_preserving_inv μ).absolutely_continuous
+
+@[to_additive]
+lemma absolutely_continuous_inv : μ ≪ μ.inv :=
 begin
   refine absolutely_continuous.mk (λ s hs, _),
-  simp_rw [map_apply measurable_inv hs, inv_preimage, measure_inv_null, imp_self]
+  simp_rw [inv_apply μ s, measure_inv_null, imp_self]
 end
 
 @[to_additive]
@@ -187,30 +191,11 @@ lemma measure_mul_right_ne_zero
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null μ y)).mpr h2E
 
-/-- A *left*-invariant measure is quasi-preserved by *right*-multiplication.
-This should not be confused with `(measure_preserving_mul_right μ g).quasi_measure_preserving`. -/
-@[to_additive /-"A *left*-invariant measure is quasi-preserved by *right*-addition.
-This should not be confused with `(measure_preserving_add_right μ g).quasi_measure_preserving`. "-/]
-lemma quasi_measure_preserving_mul_right (g : G) :
-  quasi_measure_preserving (λ h : G, h * g) μ μ :=
-begin
-  refine ⟨measurable_mul_const g, absolutely_continuous.mk $ λ s hs, _⟩,
-  rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id,
-end
-
 @[to_additive]
 lemma absolutely_continuous_map_mul_right (g : G) : μ ≪ map (* g) μ :=
 begin
   refine absolutely_continuous.mk (λ s hs, _),
   rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id
-end
-
-@[to_additive] lemma quasi_measure_preserving_div_left (g : G) :
-  quasi_measure_preserving (λ h : G, g / h) μ μ :=
-begin
-  simp_rw [div_eq_mul_inv],
-  exact (measure_preserving_mul_left μ g).quasi_measure_preserving.comp
-    (quasi_measure_preserving_inv μ)
 end
 
 @[to_additive]
@@ -219,7 +204,7 @@ begin
   simp_rw [div_eq_mul_inv],
   rw [← map_map (measurable_const_mul g) measurable_inv],
   conv_lhs { rw [← map_mul_left_eq_self μ g] },
-  exact (absolutely_continuous_map_inv μ).map (measurable_const_mul g)
+  exact (absolutely_continuous_inv μ).map (measurable_const_mul g)
 end
 
 /-- This is the computation performed in the proof of [Halmos, §60 Th. A]. -/
@@ -366,14 +351,6 @@ measure_preserving_swap.comp $ by apply measure_preserving_prod_mul_swap_right �
 
 variables [has_measurable_inv G]
 
-@[to_additive]
-lemma quasi_measure_preserving_div [is_mul_right_invariant μ] :
-  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod ν) μ :=
-begin
-  refine quasi_measure_preserving.prod_of_left measurable_div (eventually_of_forall $ λ y, _),
-  exact (measure_preserving_div_right μ y).quasi_measure_preserving
-end
-
 /-- The map `(x, y) ↦ (x, y / x)` is measure-preserving. -/
 @[to_additive measure_preserving_prod_sub
   "The map `(x, y) ↦ (x, y - x)` is measure-preserving."]
@@ -409,4 +386,80 @@ end
 
 end right_invariant
 
+section quasi_measure_preserving
+
+variables [has_measurable_inv G]
+
+@[to_additive]
+lemma quasi_measure_preserving_inv_of_right_invariant [is_mul_right_invariant μ] :
+  quasi_measure_preserving (has_inv.inv : G → G) μ μ :=
+begin
+  rw [← μ.inv_inv],
+  exact (quasi_measure_preserving_inv μ.inv).mono
+    (inv_absolutely_continuous μ.inv) (absolutely_continuous_inv μ.inv)
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div_left [is_mul_left_invariant μ] (g : G) :
+  quasi_measure_preserving (λ h : G, g / h) μ μ :=
+begin
+  simp_rw [div_eq_mul_inv],
+  exact (measure_preserving_mul_left μ g).quasi_measure_preserving.comp
+    (quasi_measure_preserving_inv μ)
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div_left_of_right_invariant [is_mul_right_invariant μ] (g : G) :
+  quasi_measure_preserving (λ h : G, g / h) μ μ :=
+begin
+  rw [← μ.inv_inv],
+  exact (quasi_measure_preserving_div_left μ.inv g).mono
+    (inv_absolutely_continuous μ.inv) (absolutely_continuous_inv μ.inv)
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div_of_right_invariant [is_mul_right_invariant μ] :
+  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod ν) μ :=
+begin
+  refine quasi_measure_preserving.prod_of_left measurable_div (eventually_of_forall $ λ y, _),
+  exact (measure_preserving_div_right μ y).quasi_measure_preserving
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div [is_mul_left_invariant μ] :
+  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod ν) μ :=
+(quasi_measure_preserving_div_of_right_invariant μ.inv ν).mono
+  ((absolutely_continuous_inv μ).prod absolutely_continuous.rfl)
+  (inv_absolutely_continuous μ)
+
+/-- A *left*-invariant measure is quasi-preserved by *right*-multiplication.
+This should not be confused with `(measure_preserving_mul_right μ g).quasi_measure_preserving`. -/
+@[to_additive /-"A *left*-invariant measure is quasi-preserved by *right*-addition.
+This should not be confused with `(measure_preserving_add_right μ g).quasi_measure_preserving`. "-/]
+lemma quasi_measure_preserving_mul_right [is_mul_left_invariant μ] (g : G) :
+  quasi_measure_preserving (λ h : G, h * g) μ μ :=
+begin
+  refine ⟨measurable_mul_const g, absolutely_continuous.mk $ λ s hs, _⟩,
+  rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id,
+end
+
+/-- A *right*-invariant measure is quasi-preserved by *left*-multiplication.
+This should not be confused with `(measure_preserving_mul_left μ g).quasi_measure_preserving`. -/
+@[to_additive /-"A *right*-invariant measure is quasi-preserved by *left*-addition.
+This should not be confused with `(measure_preserving_add_left μ g).quasi_measure_preserving`. "-/]
+lemma quasi_measure_preserving_mul_left [is_mul_right_invariant μ] (g : G) :
+  quasi_measure_preserving (λ h : G, g * h) μ μ :=
+begin
+  have := (quasi_measure_preserving_mul_right μ.inv g⁻¹).mono
+    (inv_absolutely_continuous μ.inv) (absolutely_continuous_inv μ.inv),
+  rw [μ.inv_inv] at this,
+  have := (quasi_measure_preserving_inv_of_right_invariant μ).comp
+    (this.comp (quasi_measure_preserving_inv_of_right_invariant μ)),
+  simp_rw [function.comp, mul_inv_rev, inv_inv] at this,
+  exact this
+end
+
+end quasi_measure_preserving
+
+#lint
 end measure_theory

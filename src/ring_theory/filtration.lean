@@ -318,7 +318,7 @@ end
 
 /-- If the components of a filtration are finitely generated, then the filtration is stable iff
 its associated submodule of is finitely generated.  -/
-lemma submodule_fg_of_stable (hF' : ∀ i, (F.N i).fg) :
+lemma submodule_fg_iff_stable (hF' : ∀ i, (F.N i).fg) :
   F.submodule.fg ↔ F.stable :=
 begin
   classical,

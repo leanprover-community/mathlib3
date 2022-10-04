@@ -34,6 +34,8 @@ namespace relation
 
 open multiset prod
 
+variable {α : Type*}
+
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
   multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`.
@@ -48,10 +50,10 @@ open multiset prod
 
   The lemma `relation.cut_expand_iff` below converts between this convenient definition
   and the direct translation when `r` is irreflexive. -/
-def cut_expand {α} (r : α → α → Prop) (s' s : multiset α) : Prop :=
+def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
-variables {α : Type*} {r : α → α → Prop}
+variable {r : α → α → Prop}
 
 lemma cut_expand_le_inv_image_lex [hi : is_irrefl α r] :
   cut_expand r ≤ inv_image (finsupp.lex (rᶜ ⊓ (≠)) (<)) to_finsupp :=

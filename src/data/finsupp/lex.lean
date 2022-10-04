@@ -63,6 +63,8 @@ See `finsupp.lex.linear_order` for a proof that this partial order is in fact li
 instance lex.partial_order [partial_order N] : partial_order (lex (α →₀ N)) :=
 partial_order.lift (λ x, to_lex ⇑(of_lex x)) finsupp.coe_fn_injective--fun_like.coe_injective
 
+section linear_order
+
 variable [linear_order N]
 
 /-- Auxiliary helper to case split computably. -/
@@ -107,8 +109,15 @@ instance lex.linear_order : linear_order (lex (α →₀ N)) :=
   decidable_eq := by apply_instance,
   ..lex.partial_order }
 
+end linear_order
+
+variable [partial_order N]
+
 lemma lex.le_of_forall_le {a b : lex (α →₀ N)} (h : ∀ i, of_lex a i ≤ of_lex b i) : a ≤ b :=
-le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
+le_of_lt_or_eq $ or_iff_not_imp_right.2 $ λ hne, by classical; exact
+  ⟨finset.min' _ (nonempty_ne_locus_iff.2 hne),
+    λ j hj, not_mem_ne_locus.1 (λ h, (finset.min'_le _ _ h).not_lt hj),
+    (h _).lt_of_ne (mem_ne_locus.1 $ finset.min'_mem _ _)⟩
 
 lemma lex.le_of_of_lex_le {a b : lex (α →₀ N)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
 lex.le_of_forall_le h

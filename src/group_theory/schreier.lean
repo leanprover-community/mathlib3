@@ -247,6 +247,14 @@ begin
   exact fintype.card_pos,
 end
 
+lemma nat.card_fun {α β : Type*} [finite α] : nat.card (α → β) = nat.card β ^ nat.card α :=
+begin
+  haveI := fintype.of_finite α,
+  rw [nat.card, nat.card, nat.card_eq_fintype_card, cardinal.mk_pi, cardinal.prod_const,
+    cardinal.mk_fintype α, cardinal.lift_nat_cast, cardinal.pow_cast_right,
+    ←cardinal.to_nat_hom_apply, map_pow, cardinal.to_nat_hom_apply, cardinal.to_nat_lift],
+end
+
 lemma index_center_ne_zero [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≠ 0 :=
 begin
@@ -260,9 +268,7 @@ lemma index_center_le_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   apply (finite.card_le_of_embedding (key_inclusio (S : set G) hS2)).trans_eq,
-  rw [nat.card, cardinal.mk_pi, cardinal.prod_const', finset.coe_sort_coe, cardinal.mk_fintype S,
-    cardinal.pow_cast_right, fintype.card_coe, hS1],
-  apply map_pow cardinal.to_nat_hom,
+  rw [nat.card_fun, finset.coe_sort_coe, @nat.card_eq_fintype_card S, fintype.card_coe, hS1],
 end
 
 /-- docstring -/

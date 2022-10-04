@@ -360,6 +360,27 @@ instance [has_colimits C] : is_right_adjoint (skyscraper_presheaf_functor p₀ :
 instance [has_colimits C] : is_left_adjoint (presheaf.stalk_functor C p₀) :=
 ⟨_, skyscraper_presheaf_stalk_adjunction _⟩
 
+/--
+Taking stalks of a sheaf is the left adjoint functor to `skyscraper_sheaf_functor`
+-/
+def stalk_skyscraper_sheaf_adjunction [has_colimits C] [has_products.{u} C] :
+  sheaf.forget C X ⋙ presheaf.stalk_functor _ p₀ ⊣ skyscraper_sheaf_functor p₀ :=
+{ hom_equiv := λ 𝓕 c,
+  ⟨λ f, ⟨to_skyscraper_presheaf p₀ f⟩, λ g, from_stalk p₀ g.1, from_stalk_to_skyscraper p₀,
+   λ g, by { ext1, apply to_skyscraper_from_stalk }⟩,
+  unit :=
+  { app := λ 𝓕, ⟨(stalk_skyscraper_presheaf_adjunction_auxs.unit p₀).app 𝓕.1⟩,
+    naturality' := λ 𝓐 𝓑 ⟨f⟩,
+      by { ext1, apply (stalk_skyscraper_presheaf_adjunction_auxs.unit p₀).naturality } },
+  counit := stalk_skyscraper_presheaf_adjunction_auxs.counit p₀,
+  hom_equiv_unit' := λ 𝓐 c f,
+    by { ext1, exact (skyscraper_presheaf_stalk_adjunction p₀).hom_equiv_unit },
+  hom_equiv_counit' := λ 𝓐 c f, (skyscraper_presheaf_stalk_adjunction p₀).hom_equiv_counit }
+
+instance [has_colimits C] [has_products.{u} C] :
+  is_right_adjoint (skyscraper_sheaf_functor p₀ : C ⥤ sheaf C X) :=
+⟨_, stalk_skyscraper_sheaf_adjunction _⟩
+
 end
 
 end

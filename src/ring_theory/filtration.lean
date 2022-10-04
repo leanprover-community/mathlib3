@@ -21,7 +21,7 @@ This file contains the definitions and basic results around (stable) `I`-filtrat
 - `ideal.filtration`: An `I`-filtration on the module `M` is a sequence of decreasing submodules
   `N i` such that `I • N ≤ I (i + 1)`. Note that we do not require the filtration to start from `⊤`.
 - `ideal.filtration.stable`: An `I`-filtration is stable if `I • (N i) = N (i + 1)` for large
-  enough `I`.
+  enough `i`.
 - `ideal.filtration.submodule`: The associated module `⨁ Nᵢ` of a filtration, implemented as a
   submodule of `M[X]`.
 - `ideal.filtration.submodule_fg_iff_stable`: If `F.N i` are all finitely generated, then
@@ -316,7 +316,7 @@ begin
     { intros x y hx hy, rw map_add, exact F'.add_mem hx hy } }
 end
 
-/-- If the components of a filtration is finitely generated, then the filtration is stable iff
+/-- If the components of a filtration are finitely generated, then the filtration is stable iff
 its associated submodule of is finitely generated.  -/
 lemma submodule_fg_of_stable (hF' : ∀ i, (F.N i).fg) :
   F.submodule.fg ↔ F.stable :=

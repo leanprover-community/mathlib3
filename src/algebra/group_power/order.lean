@@ -3,8 +3,9 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.order.ring
+import algebra.order.ring.basic
 import algebra.group_power.ring
+import data.set.intervals.basic
 
 /-!
 # Lemmas about the interaction of power operations with order
@@ -201,6 +202,14 @@ end canonically_ordered_comm_semiring
 section ordered_semiring
 variables [ordered_semiring R] {a x y : R} {n m : ℕ}
 
+-- See Note [decidable namespace]
+protected lemma decidable.strict_mono_on_mul_self [@decidable_rel R (≤)] :
+  strict_mono_on (λ x : R, x * x) (set.Ici 0) :=
+λ x hx y hy hxy, decidable.mul_self_lt_mul_self hx hxy
+
+lemma strict_mono_on_mul_self : strict_mono_on (λ x : R, x * x) (set.Ici 0) :=
+λ x hx y hy hxy, mul_self_lt_mul_self hx hxy
+
 lemma zero_pow_le_one : ∀ n : ℕ, (0 : R) ^ n ≤ 1
 | 0 := (pow_zero _).le
 | (n + 1) := by { rw [zero_pow n.succ_pos], exact zero_le_one }
@@ -310,6 +319,17 @@ end ordered_ring
 section linear_ordered_semiring
 variables [linear_ordered_semiring R] {a b : R}
 
+section
+local attribute [instance] linear_ordered_semiring.decidable_le
+
+lemma mul_self_lt_mul_self_iff (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
+((@decidable.strict_mono_on_mul_self R _ _).lt_iff_lt h1 h2).symm
+
+lemma mul_self_inj (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
+(@decidable.strict_mono_on_mul_self R _ _).inj_on.eq_iff h1 h2
+
+end
+
 lemma pow_le_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ 1 ↔ a ≤ 1 :=
 begin
   refine ⟨_, pow_le_one n ha⟩,
@@ -363,6 +383,18 @@ end linear_ordered_semiring
 section linear_ordered_ring
 
 variable [linear_ordered_ring R]
+
+lemma abs_eq_iff_mul_self_eq {a b : R} : |a| = |b| ↔ a * a = b * b :=
+begin
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact (mul_self_inj (abs_nonneg a) (abs_nonneg b)).symm,
+end
+
+lemma abs_lt_iff_mul_self_lt {a b : R} : |a| < |b| ↔ a * a < b * b :=
+begin
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact mul_self_lt_mul_self_iff (abs_nonneg a) (abs_nonneg b)
+end
 
 lemma pow_abs (a : R) (n : ℕ) : |a| ^ n = |a ^ n| :=
 ((abs_hom.to_monoid_hom : R →* R).map_pow a n).symm

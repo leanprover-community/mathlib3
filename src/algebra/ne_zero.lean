@@ -7,6 +7,7 @@ Authors: Eric Rodriguez
 import data.nat.cast
 import data.pnat.basic
 import algebra.group_power.ring
+import algebra.order.ring.char_zero
 
 /-!
 # `ne_zero` typeclass

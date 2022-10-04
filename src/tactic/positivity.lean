@@ -10,7 +10,7 @@ import tactic.norm_num
 The `positivity` tactic in this file solves goals of the form `0 ≤ x` and `0 < x`.  The tactic works
 recursively according to the syntax of the expression `x`.  For example, a goal of the form
 `0 ≤ 3 * a ^ 2 + b * c` can be solved either
-* by a hypothesis such as `5 ≤ 3 * a ^ 2 + b * c` which directly implies the nonegativity of
+* by a hypothesis such as `5 ≤ 3 * a ^ 2 + b * c` which directly implies the non-negativity of
   `3 * a ^ 2 + b * c`; or,
 * by the application of the lemma `add_nonneg` and the success of the `positivity` tactic on the two
   sub-expressions `3 * a ^ 2` and `b * c`.

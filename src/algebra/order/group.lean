@@ -1261,7 +1261,7 @@ namespace add_comm_group
 
 /-- A collection of elements in an `add_comm_group` designated as "non-negative".
 This is useful for constructing an `ordered_add_commm_group`
-by choosing a positive cone in an exisiting `add_comm_group`. -/
+by choosing a positive cone in an existing `add_comm_group`. -/
 @[nolint has_nonempty_instance]
 structure positive_cone (α : Type*) [add_comm_group α] :=
 (nonneg          : α → Prop)

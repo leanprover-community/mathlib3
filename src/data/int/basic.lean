@@ -6,6 +6,7 @@ Authors: Jeremy Avigad
 import data.nat.pow
 import order.min_max
 import data.nat.cast
+import algebra.order.ring.char_zero
 
 /-!
 # Basic operations on the integers

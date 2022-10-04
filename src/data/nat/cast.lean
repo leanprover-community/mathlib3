@@ -8,6 +8,7 @@ import data.nat.cast.defs
 import algebra.group.pi
 import tactic.pi_instances
 import data.sum.basic
+import algebra.hom.ring
 
 /-!
 # Cast of natural numbers (additional theorems)

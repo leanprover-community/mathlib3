@@ -1,5 +1,5 @@
 import logic.nontrivial
-import algebra.order.ring
+import algebra.order.ring.basic
 import data.nat.basic
 
 /-! ### Test `nontriviality` with inequality hypotheses -/

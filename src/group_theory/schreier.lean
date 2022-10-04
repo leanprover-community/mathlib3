@@ -178,40 +178,6 @@ open_locale big_operators
 
 variables {G}
 
--- PRed
-lemma index_infi_ne_zero {ι : Type*} [fintype ι] (f : ι → subgroup G) (hf : ∀ i, (f i).index ≠ 0) :
-  (⨅ i, f i).index ≠ 0 :=
-begin
-  unfreezingI { revert ι },
-  refine fintype.induction_empty_option _ _ _,
-  { intros α β _ e h t hf,
-    rw ← e.infi_congr (λ _, rfl),
-    exact h (t ∘ e) (λ i, hf (e i)) },
-  { intros t hf,
-    rw [infi_of_empty, index_top],
-    exact one_ne_zero },
-  { intros α _ h t hf,
-    rw infi_option,
-    exact index_inf_ne_zero (hf none) (h (t ∘ some) (λ i, hf (some i))) },
-end
-
--- PRed
-lemma index_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
-  (⨅ i, f i).index ≤ ∏ i, (f i).index :=
-begin
-  unfreezingI { revert ι },
-  refine fintype.induction_empty_option _ _ _,
-  { introsI α β _ e h t,
-    haveI : fintype α := fintype.of_equiv β e.symm,
-    rw [←e.infi_congr (λ _, rfl), ←fintype.prod_equiv e _ _ (λ _, rfl)],
-    convert h (t ∘ e) },
-  { intro t,
-    rw [infi_of_empty, index_top, fintype.univ_pempty, finset.prod_empty] },
-  { intros α _ h t,
-    rw [infi_option, fintype.prod_option],
-    exact index_inf_le.trans (mul_le_mul_left' (h (t ∘ some)) (t none).index) },
-end
-
 section for_mathlib
 
 lemma stabilizer_conj_act_eq_centralizer (g : G) :
@@ -282,7 +248,7 @@ begin
   let e := key_inclusio S hS2, -- use this + nat.card_ne_zero_of_embedding
 
   rw [←centralizer_top, ←hS2, centralizer_closure, ←infi_subtype''],
-  refine index_infi_ne_zero _ (λ g, _),
+  refine index_infi_ne_zero (λ g, _),
   sorry,
 end
 

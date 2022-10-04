@@ -165,14 +165,6 @@ rfl
 
 section burnside_transfer
 
--- PRed
-lemma sylow.subtype_injective {G : Type*} [group G] {p : ℕ} {P Q : sylow p G} {H : subgroup G}
-  {hP : ↑P ≤ H} {hQ : ↑Q ≤ H} (h : P.subtype hP = Q.subtype hQ) : P = Q :=
-begin
-  rw set_like.ext_iff at h ⊢,
-  exact λ g, (em (g ∈ H)).elim (λ hg, h ⟨g, hg⟩) (λ h, iff_of_false (mt (@hP g) h) (mt (@hQ g) h)),
-end
-
 -- PR ready
 lemma _root_.sylow.conj_eq_normalizer_conj {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [fintype (sylow p G)]
   (P : sylow p G)

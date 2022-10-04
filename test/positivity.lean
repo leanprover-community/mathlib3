@@ -105,6 +105,8 @@ example {a : ℤ} : 0 ≤ |a| := by positivity
 
 example {a : ℤ} : 0 < |a| + 3 := by positivity
 
+example {n : ℤ} (hn : 0 < n) : 0 < n.nat_abs := by positivity
+
 example {a : ℤ} (ha : 1 < a) : 0 < |(3:ℤ) + a| := by positivity
 
 example {a : ℝ} (ha : 0 ≤ a) : 0 ≤ real.sqrt a := by positivity

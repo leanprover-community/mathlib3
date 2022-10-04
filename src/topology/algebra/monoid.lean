@@ -251,12 +251,8 @@ variables [topological_space M] [monoid M] [has_continuous_mul M]
 @[to_additive]
 lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
   closure (s : set M) * closure s ⊆ closure s :=
-calc
-closure (s : set M) * closure s
-    = (λ p : M × M, p.1 * p.2) '' closure (s ×ˢ s) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' s ×ˢ s) :
-  image_closure_subset_closure_image continuous_mul
-... = closure s : by simp [s.coe_mul_self_eq]
+image2_subset_iff.2 $ λ x hx y hy, map_mem_closure₂ continuous_mul hx hy $
+  λ a ha b hb, s.mul_mem ha hb
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
@@ -463,7 +459,7 @@ Notably, this instances applies when `R = Aᵐᵒᵖ` -/
 @[priority 100, to_additive "If the action of `R` on `A` commutes with left-addition, then
 continuous addition implies continuous affine addition by constants.
 
-Notably, this instances applies when `R = Aᵃᵒᵖ` "]
+Notably, this instances applies when `R = Aᵃᵒᵖ`. "]
 instance smul_comm_class.has_continuous_const_smul {R A : Type*} [monoid A] [has_smul R A]
   [smul_comm_class R A A] [topological_space A] [has_continuous_mul A] :
   has_continuous_const_smul R A :=

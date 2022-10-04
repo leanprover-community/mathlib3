@@ -625,8 +625,12 @@ Since the output type of `int.nat_abs` is `ℕ`, the nonnegative case is handled
 @[positivity]
 meta def positivity_nat_abs : expr → tactic strictness
 | `(int.nat_abs %%a) := do
-    positive p ← core a,
-    positive <$> mk_app ``int_nat_abs_pos [p]
+    strict_a ← core a,
+    match strict_a with
+    | positive p := positive <$> mk_app ``int_nat_abs_pos [p]
+    | nonzero p := positive <$> mk_app ``int.nat_abs_pos_of_ne_zero [p]
+    | _ := failed
+    end
 | _ := failed
 
 private lemma nat_cast_pos [ordered_semiring α] [nontrivial α] {n : ℕ} : 0 < n → 0 < (n : α) :=

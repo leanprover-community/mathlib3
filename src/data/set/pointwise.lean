@@ -166,6 +166,9 @@ lemma inv_subset_inv : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
 @[simp, to_additive] lemma inv_singleton (a : α) : ({a} : set α)⁻¹ = {a⁻¹} :=
 by rw [←image_inv, image_singleton]
 
+@[simp, to_additive] lemma inv_insert (a : α) (s : set α) : (insert a s)⁻¹ = insert a⁻¹ s⁻¹ :=
+by rw [insert_eq, union_inv, inv_singleton, insert_eq]
+
 @[to_additive] lemma inv_range {ι : Sort*} {f : ι → α} : (range f)⁻¹ = range (λ i, (f i)⁻¹) :=
 by { rw ←image_inv, exact (range_comp _ _).symm }
 
@@ -1229,7 +1232,7 @@ lemma subsingleton_zero_smul_set (s : set β) : ((0 : α) • s).subsingleton :=
 subsingleton_singleton.anti $ zero_smul_set_subset s
 
 lemma zero_mem_smul_set {t : set β} {a : α} (h : (0 : β) ∈ t) : (0 : β) ∈ a • t :=
-⟨0, h, smul_zero' _ _⟩
+⟨0, h, smul_zero _⟩
 
 variables [no_zero_smul_divisors α β] {a : α}
 
@@ -1242,7 +1245,7 @@ begin
     { exact or.inr ⟨hb, a, ha⟩ } },
   { rintro (⟨hs, b, hb⟩ | ⟨ht, a, ha⟩),
     { exact ⟨0, b, hs, hb, zero_smul _ _⟩ },
-    { exact ⟨a, 0, ha, ht, smul_zero' _ _⟩ } }
+    { exact ⟨a, 0, ha, ht, smul_zero _⟩ } }
 end
 
 lemma zero_mem_smul_set_iff (ha : a ≠ 0) : (0 : β) ∈ a • t ↔ (0 : β) ∈ t :=

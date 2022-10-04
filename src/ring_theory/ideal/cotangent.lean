@@ -118,16 +118,6 @@ begin
   { intros x y hx hy, exact add_mem hx hy }
 end
 
-lemma cotangent_ideal_square (I : ideal R) : I.cotangent_ideal ^ 2 = ⊥ :=
-begin
-  rw [eq_bot_iff, pow_two I.cotangent_ideal, ← smul_eq_mul],
-  intros x hx,
-  apply submodule.smul_induction_on hx,
-  { rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩, apply (submodule.quotient.eq _).mpr _,
-    rw [sub_zero, pow_two], exact ideal.mul_mem_mul hx hy },
-  { intros x y hx hy, exact add_mem hx hy }
-end
-
 lemma to_quotient_square_range :
   I.cotangent_to_quotient_square.range = I.cotangent_ideal.restrict_scalars R :=
 begin

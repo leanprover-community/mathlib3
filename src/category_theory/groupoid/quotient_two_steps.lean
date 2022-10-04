@@ -298,6 +298,28 @@ instance : groupoid (quotient S Sn) :=
 
 noncomputable def of : C ⥤ quotient S Sn := (isotropy.of _ _) ⋙ (is_graph_like.of _ _)
 
+section ump
+
+variables {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ)
+
+def lift : quotient S Sn ⥤ D := sorry
+
+include hφ
+lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ) = φ :=
+begin
+
+end
+
+
+def lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) : Φ = (lift S Sn φ) :=
+begin
+
+end
+
+
+end ump
+
+
 end quotient
 
 end subgroupoid

@@ -138,6 +138,20 @@ def of : prefunctor V (free_groupoid V) :=
 { obj := λ X, ⟨X⟩,
   map := λ X Y f, quot.mk _ f.to_pos_path}
 
+lemma of_inj_on_objects : function.injective (λ (X : V), of.obj X) :=
+begin
+  rintro X Y he,
+  dsimp [of] at he,
+  rw quotient.ext_iff at he,
+  exact he,
+end
+
+lemma of_faithful {X Y : V} : function.injective (λ (f : X ⟶ Y), of.map f) :=
+begin
+  rintro f g he, sorry
+end
+
+
 lemma of_eq : of =
   ((quiver.symmetrify.of).comp
     paths.of).comp (quotient.functor $ @red_step V _).to_prefunctor :=
@@ -162,7 +176,7 @@ quotient.lift _
       symmetry,
       apply groupoid.comp_inv, })
 
-lemma lift_of_injective (φi : function.injective φ.obj) : function.injective (lift φ).obj :=
+lemma lift_inj_on_objects (φi : function.injective φ.obj) : function.injective (lift φ).obj :=
 begin
   rintro X Y he,
   dsimp [lift,paths.lift,quiver.symmetrify.lift,category_theory.quotient.as] at he,

@@ -291,7 +291,8 @@ colimit.hom_ext $ λ U, by { erw [colimit.ι_desc], dsimp, rw dif_pos U.unop.2, 
 /--
 The unit in `skyscraper_presheaf_functor ⊣ presheaf.stalk`
 -/
-@[simps] protected def unit : 𝟭 (presheaf C X) ⟶ presheaf.stalk_functor C p₀ ⋙ skyscraper_presheaf_functor p₀ :=
+@[simps] protected def unit :
+  𝟭 (presheaf C X) ⟶ presheaf.stalk_functor C p₀ ⋙ skyscraper_presheaf_functor p₀ :=
 { app := λ 𝓕, to_skyscraper_presheaf _ $ 𝟙 _,
   naturality' := λ 𝓕 𝓖 f,
   begin

@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 import logic.nonempty
 import tactic.lint
 import tactic.dependencies
+import tactic.recommend
 
 setup_tactic_parser
 

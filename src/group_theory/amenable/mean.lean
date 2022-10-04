@@ -51,15 +51,30 @@ open bounded_continuous_function
 variables (G:Type*) [uniform_space G] [group G] [topological_group G]
 
 
-/-- A mean on a group-/
-structure mean := mk ::
-(lin_map : (bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ)
-(normality : lin_map (bounded_continuous_function.const G (1:ℝ)) = 1)
-(monotonicity: monotone lin_map)
+set_option old_structure_cmd true
+
+structure mean extends
+  bounded_continuous_function G ℝ →ₗ[ℝ] ℝ,
+  one_hom (bounded_continuous_function G ℝ) ℝ,
+  order_hom (bounded_continuous_function G ℝ) ℝ.
+
+class mean_class (F : out_param Type*) (G : Type*) [uniform_space G] [group G] [topological_group G]
+  extends
+    semilinear_map_class F (ring_hom.id ℝ) (bounded_continuous_function G ℝ) ℝ,
+    one_hom_class F (bounded_continuous_function G ℝ) ℝ,
+    rel_hom_class F ((≤) : _ → bounded_continuous_function G ℝ → Prop) ((≤) : ℝ → ℝ → Prop).
+
+instance mean.mean_class : mean_class (mean G) G :=
+{ coe := mean.to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_one := λ f, map_one f.to_one_hom,
+  map_add := λ f, map_add f.to_linear_map,
+  map_smulₛₗ := λ f, map_smul f.to_linear_map,
+  map_rel := λ f, order_hom_class.monotone f.to_order_hom }
 
 
 instance : has_coe (mean G) ((bounded_continuous_function G ℝ) →ₗ[ℝ] ℝ) :=
-  {coe := mean.lin_map}
+  {coe := mean.to_linear_map}
 
 
 /--Equality of means can be checked by evaluation -/
@@ -85,23 +100,7 @@ section el_facts
 We collect some elementary facts about means
 -/
 
-@[simp]
-lemma mean_of_neg (m : mean G) {f: bounded_continuous_function G ℝ} : m (-f) = - m f :=
-begin
-  have : m (-f) + m f = 0,
-  {calc   m (-f) + m f
-        = m ((-f) +f )
-         : by exact (m.lin_map.map_add' (-f) f).symm
-    ... = m 0
-          : by ring_nf
-    ... = m ((0:ℝ) • 0)
-          : by simp
-    ... = (ring_hom.id ℝ) 0 • m 0
-          : by exact m.lin_map.map_smul' 0 0
-    ... = 0
-          : by simp, },
-  linarith,
-end
+
 
 lemma mean_const {m : mean G} {M : ℝ} : m (bounded_continuous_function.const G M) = M :=
 begin
@@ -113,7 +112,7 @@ begin
                 simp,
               end
   ... = M • m (bounded_continuous_function.const G (1:ℝ))
-        : by exact m.lin_map.map_smul _ _
+        : by exact mean_class.to_one_hom_class m
   ... = M • 1
         : by {congr' 1, exact m.normality}
   ... = M

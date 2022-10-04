@@ -587,7 +587,7 @@ by simpa [re_add_im] using abs.add_le z.re (z.im * I)
 lemma abs_le_sqrt_two_mul_max (z : ℂ) : abs z ≤ real.sqrt 2 * max (|z.re|) (|z.im|) :=
 begin
   cases z with x y,
-  simp only [abs, norm_sq_mk, ← sq],
+  simp only [abs_apply, norm_sq_mk, ← sq],
   wlog hle : |x| ≤ |y|,
   { rw [add_comm, max_comm], exact this _ _ (le_of_not_le hle), },
   calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :

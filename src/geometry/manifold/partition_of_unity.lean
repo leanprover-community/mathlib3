@@ -297,7 +297,7 @@ begin
   rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs hB
     with ⟨ι, c, f, hf, hsub', hfin⟩, choose hcs hfU using hf,
   /- Then we use the shrinking lemma to get a covering by smaller open -/
-  rcases exists_subset_Union_closed_subset hs (λ i, sorry) --(f i).open_max_support)
+  rcases exists_subset_Union_closed_subset hs (λ i, (f i).is_open_max_support)
     (λ x hx, hfin.point_finite x) hsub' with ⟨V, hsV, hVc, hVf⟩,
   choose r hrR hr using λ i, (f i).exists_r_pos_lt_subset_ball (hVc i) (hVf i),
   refine ⟨ι, ⟨c, λ i, (f i).update_r (r i) (hrR i), hcs, _, λ x hx, _⟩, λ i, _⟩,
@@ -307,12 +307,10 @@ begin
   { refine (mem_Union.1 $ hsV hx).imp (λ i hi, _),
     exact ((f i).update_r _ _).eventually_eq_one_of_dist_lt
       ((f i).max_support_subset_source $ hVf _ hi) (hr i hi).2 },
-  { dsimp,
-    simpa only [coe_mk, smooth_bump_function.support_update_r, tsupport] using hfU i }
+  { apply subset.trans _ (hfU i),
+    refine (smooth_bump_function.tsupport_subset_max_tsupport _).trans _,
+    simp only [coe_mk, smooth_bump_function.max_tsupport_update_r] }
 end
-
-#exit
-
 
 variables {I M}
 

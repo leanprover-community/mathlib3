@@ -731,8 +731,8 @@ def kaehler_differential.linear_map_equiv_derivation : (Ω[S⁄R] →ₗ[S] M) �
   right_inv := derivation.lift_kaehler_differential_comp,
   ..(derivation.llcomp.flip $ kaehler_differential.D R S) }
 
-/-- The quotient ring of `S ⊗ S ⧸ J` by `Ω[S⁄R]` is isomorphic to `S`. -/
-def kaehler_differential.quotient_cotangent_ideal :
+/-- The quotient ring of `S ⊗ S ⧸ J ^ 2` by `Ω[S⁄R]` is isomorphic to `S`. -/
+def kaehler_differential.quotient_cotangent_ideal_ring_equiv :
   (S ⊗ S ⧸ kaehler_differential.ideal R S ^ 2) ⧸
     (kaehler_differential.ideal R S).cotangent_ideal ≃+* S :=
 begin
@@ -744,6 +744,13 @@ begin
   refine (ideal.quot_equiv_of_eq _).trans (ring_hom.quotient_ker_equiv_of_right_inverse this),
   ext, refl,
 end
+
+/-- The quotient ring of `S ⊗ S ⧸ J ^ 2` by `Ω[S⁄R]` is isomorphic to `S` as an `S`-algebra. -/
+def kaehler_differential.quotient_cotangent_ideal :
+  ((S ⊗ S ⧸ kaehler_differential.ideal R S ^ 2) ⧸
+    (kaehler_differential.ideal R S).cotangent_ideal) ≃ₐ[S] S :=
+{ commutes' := (kaehler_differential.quotient_cotangent_ideal_ring_equiv R S).apply_symm_apply,
+  ..kaehler_differential.quotient_cotangent_ideal_ring_equiv R S }
 
 lemma kaehler_differential.End_equiv_aux (f : S →ₐ[R] S ⊗ S ⧸ kaehler_differential.ideal R S ^ 2) :
   (ideal.quotient.mkₐ R (kaehler_differential.ideal R S).cotangent_ideal).comp f =

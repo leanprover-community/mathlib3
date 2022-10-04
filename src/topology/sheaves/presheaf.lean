@@ -56,8 +56,7 @@ F.map h.op x
 
 infixl ` ∣_ₕ `: 80 := restrict
 
-notation x ` ∣_ₗ `: 80 U ` ⟪` e `⟫ ` := @restrict _ _ _ _ _ _ x U
-  (@hom_of_le (opens _) _ U _ e)
+notation x ` ∣_ₗ `: 80 U ` ⟪` e `⟫ ` := @restrict _ _ _ _ _ _ x U (@hom_of_le (opens _) _ U _ e)
 
 @[simp]
 lemma restrict_restrict {X : Top} {C : Type*} [category C] [concrete_category C]

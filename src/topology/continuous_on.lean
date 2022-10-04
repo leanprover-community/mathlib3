@@ -350,12 +350,7 @@ end
 lemma tendsto_nhds_of_tendsto_nhds_within {f : β → α} {a : α}
   {s : set α} {l : filter β} (h : tendsto f l (𝓝[s] a)) :
   tendsto f l (𝓝 a) :=
-begin
-  intros t ht,
-  obtain ⟨u, hu₁, hu₂, hu₃⟩ := mem_nhds_iff.mp ht,
-  simp_rw [tendsto_def, mem_nhds_within] at h,
-  exact h _ ⟨u, hu₂, hu₃, (inter_subset_left u s).trans hu₁⟩,
-end
+h.mono_right nhds_within_le_nhds
 
 theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=

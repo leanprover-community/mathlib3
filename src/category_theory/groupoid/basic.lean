@@ -1,4 +1,3 @@
-import category_theory.groupoid.vertex_group
 import category_theory.groupoid
 import algebra.group.defs
 import algebra.hom.group

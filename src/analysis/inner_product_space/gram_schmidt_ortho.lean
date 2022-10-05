@@ -398,8 +398,8 @@ lemma gram_schmidt_orthonormal_basis_inv_block_triangular :
 λ i j, gram_schmidt_orthonormal_basis_inv_triangular' h f
 
 lemma gram_schmidt_orthonormal_basis_det :
-  (gram_schmidt_orthonormal_basis h f).to_basis.det f
-  = ∏ i, ⟪gram_schmidt_orthonormal_basis h f i, f i⟫ :=
+  (gram_schmidt_orthonormal_basis h f).to_basis.det f =
+    ∏ i, ⟪gram_schmidt_orthonormal_basis h f i, f i⟫ :=
 begin
   convert matrix.det_of_upper_triangular (gram_schmidt_orthonormal_basis_inv_block_triangular h f),
   ext i,

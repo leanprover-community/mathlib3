@@ -39,7 +39,7 @@ set_option old_structure_cmd true
 open_locale classical
 open function
 
-variables {α M₀ G₀ M₀' G₀' F : Type*}
+variables {α M₀ G₀ M₀' G₀' F F' : Type*}
 
 section
 
@@ -905,6 +905,9 @@ lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b := ha.is_unit.div_div_can
 lemma div_helper (b : G₀) (h : a ≠ 0) : 1 / (a * b) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]
 
+lemma div_mul_eq_mul_div₀ (a b c : G₀) : (a / c) * b = a * b / c :=
+by simp_rw [div_eq_mul_inv, mul_assoc, mul_comm c⁻¹]
+
 end comm_group_with_zero
 
 namespace semiconj_by
@@ -976,13 +979,24 @@ end commute
 
 section monoid_with_zero
 variables [group_with_zero G₀] [monoid_with_zero M₀] [nontrivial M₀]
-  [monoid_with_zero_hom_class F G₀ M₀] (f : F) {a : G₀}
+  [monoid_with_zero M₀'] [monoid_with_zero_hom_class F G₀ M₀]
+  [monoid_with_zero_hom_class F' G₀ M₀'] (f : F) {a : G₀}
 include M₀
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 ⟨λ hfa ha, hfa $ ha.symm ▸ map_zero f, λ ha, ((is_unit.mk0 a ha).map f).ne_zero⟩
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := not_iff_not.1 (map_ne_zero f)
+
+omit M₀
+include M₀'
+
+lemma eq_on_inv₀ (f g : F') (h : f a = g a) : f a⁻¹ = g a⁻¹ :=
+begin
+  rcases eq_or_ne a 0 with rfl|ha,
+  { rw [inv_zero, map_zero, map_zero] },
+  { exact (is_unit.mk0 a ha).eq_on_inv f g h }
+end
 
 end monoid_with_zero
 

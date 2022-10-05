@@ -158,7 +158,7 @@ variables [infinite R]
 
 /-- In the following results, we need a large set of distinct elements of `R`. -/
 noncomputable def distinct_elems : fin (cardM bS adm).succ ↪ R :=
-function.embedding.trans (fin.coe_embedding _).to_embedding (infinite.nat_embedding R)
+fin.coe_embedding.trans (infinite.nat_embedding R)
 
 variables [decidable_eq R]
 

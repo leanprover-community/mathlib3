@@ -253,6 +253,20 @@ begin
   { rwa [degree_eq_nat_degree hp, with_bot.coe_lt_coe] }
 end
 
+lemma ext_iff_nat_degree_le {p q : R[X]} {n : ℕ} (hp : p.nat_degree ≤ n) (hq : q.nat_degree ≤ n) :
+  p = q ↔ (∀ i ≤ n, p.coeff i = q.coeff i) :=
+begin
+  refine iff.trans polynomial.ext_iff _,
+  refine forall_congr (λ i, ⟨λ h _, h, λ h, _⟩),
+  refine (le_or_lt i n).elim h (λ k, _),
+  refine (coeff_eq_zero_of_nat_degree_lt (hp.trans_lt k)).trans
+    (coeff_eq_zero_of_nat_degree_lt (hq.trans_lt k)).symm,
+end
+
+lemma ext_iff_degree_le {p q : R[X]} {n : ℕ} (hp : p.degree ≤ n) (hq : q.degree ≤ n) :
+  p = q ↔ (∀ i ≤ n, p.coeff i = q.coeff i)  :=
+ext_iff_nat_degree_le (nat_degree_le_of_degree_le hp) (nat_degree_le_of_degree_le hq)
+
 @[simp] lemma coeff_nat_degree_succ_eq_zero {p : R[X]} : p.coeff (p.nat_degree + 1) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (lt_add_one _)
 
@@ -1047,10 +1061,11 @@ calc degree (p - q) = degree (erase (nat_degree q) p + -erase (nat_degree q) q) 
   : degree_neg (erase (nat_degree q) q) ▸ degree_add_le _ _
 ... < degree p : max_lt_iff.2 ⟨hd' ▸ degree_erase_lt hp0, hd.symm ▸ degree_erase_lt hq0⟩
 
+lemma degree_X_sub_C_le (r : R) : (X - C r).degree ≤ 1 :=
+(degree_sub_le _ _).trans (max_le degree_X_le (degree_C_le.trans zero_le_one))
 
-lemma nat_degree_X_sub_C_le {r : R} : (X - C r).nat_degree ≤ 1 :=
-nat_degree_le_iff_degree_le.2 $ le_trans (degree_sub_le _ _) $ max_le degree_X_le $
-le_trans degree_C_le $ with_bot.coe_le_coe.2 zero_le_one
+lemma nat_degree_X_sub_C_le (r : R) : (X - C r).nat_degree ≤ 1 :=
+nat_degree_le_iff_degree_le.2 $ degree_X_sub_C_le r
 
 lemma degree_sub_eq_left_of_degree_lt (h : degree q < degree p) : degree (p - q) = degree p :=
 by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_left_of_degree_lt h] }

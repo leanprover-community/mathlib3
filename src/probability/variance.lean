@@ -66,9 +66,8 @@ begin
   { simp only [algebra.smul_def, map_pow], }
 end
 
-localized
-"notation `Var[` X `]` := probability_theory.variance X measure_theory.measure_space.volume"
-in probability_theory
+localized "notation (name := probability_theory.variance) `Var[` X `]` :=
+  probability_theory.variance X measure_theory.measure_space.volume" in probability_theory
 
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (volume : measure Ω)]
 
@@ -224,11 +223,11 @@ begin
       (λ i hi, (mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi)))),
       mul_sum, mul_sum, ← sum_sub_distrib],
     apply finset.sum_eq_zero (λ i hi, _),
-    rw [integral_mul_left, indep_fun.integral_mul_of_integrable', sub_self],
+    rw [integral_mul_left, indep_fun.integral_mul', sub_self],
     { apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
       exact (λ hki, ks (hki.symm ▸ hi)) },
-    { exact mem_ℒp.integrable one_le_two (hs _ (mem_insert_self _ _)) },
-    { exact mem_ℒp.integrable one_le_two (hs _ (mem_insert_of_mem hi)) }
+    { exact mem_ℒp.ae_strongly_measurable (hs _ (mem_insert_self _ _)) },
+    { exact mem_ℒp.ae_strongly_measurable (hs _ (mem_insert_of_mem hi)) }
   end
   ... = Var[X k] + ∑ i in s, Var[X i] :
     by rw IH (λ i hi, hs i (mem_insert_of_mem hi))

@@ -45,10 +45,8 @@ lemma compact (s : compacts α) : is_compact (s : set α) := s.compact'
 
 instance (K : compacts α) : compact_space K := is_compact_iff_compact_space.1 K.compact
 
-instance : can_lift (set α) (compacts α) :=
-{ coe := coe,
-  cond := is_compact,
-  prf := λ K hK, ⟨⟨K, hK⟩, rfl⟩ }
+instance : can_lift (set α) (compacts α) coe is_compact :=
+{ prf := λ K hK, ⟨⟨K, hK⟩, rfl⟩ }
 
 @[ext] protected lemma ext {s t : compacts α} (h : (s : set α) = t) : s = t := set_like.ext' h
 

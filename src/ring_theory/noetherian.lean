@@ -172,9 +172,9 @@ lemma fg_bsupr {ι : Type*} (s : finset ι) (N : ι → submodule R M) (h : ∀ 
   (⨆ i ∈ s, N i).fg :=
 by simpa only [finset.sup_eq_supr] using fg_finset_sup s N h
 
-lemma fg_supr {ι : Type*} [fintype ι] (N : ι → submodule R M) (h : ∀ i, (N i).fg) :
+lemma fg_supr {ι : Type*} [finite ι] (N : ι → submodule R M) (h : ∀ i, (N i).fg) :
   (supr N).fg :=
-by simpa using fg_bsupr finset.univ N (λ i hi, h i)
+by { casesI nonempty_fintype ι, simpa using fg_bsupr finset.univ N (λ i hi, h i) }
 
 variables {P : Type*} [add_comm_monoid P] [module R P]
 variables (f : M →ₗ[R] P)
@@ -211,7 +211,7 @@ fg_def.2 ⟨linear_map.inl R M P '' tb ∪ linear_map.inr R M P '' tc,
   (htb.1.image _).union (htc.1.image _),
   by rw [linear_map.span_inl_union_inr, htb.2, htc.2]⟩
 
-theorem fg_pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
+theorem fg_pi {ι : Type*} {M : ι → Type*} [finite ι] [Π i, add_comm_monoid (M i)]
   [Π i, module R (M i)] {p : Π i, submodule R (M i)} (hsb : ∀ i, (p i).fg) :
   (submodule.pi set.univ p).fg :=
 begin
@@ -312,6 +312,23 @@ begin
   obtain ⟨X, rfl⟩ := hfin,
   use X,
   exact submodule.span_eq_restrict_scalars R S M X h
+end
+
+lemma fg.stablizes_of_supr_eq {M' : submodule R M} (hM' : M'.fg)
+  (N : ℕ →o submodule R M) (H : supr N = M') : ∃ n, M' = N n :=
+begin
+  obtain ⟨S, hS⟩ := hM',
+  have : ∀ s : S, ∃ n, (s : M) ∈ N n :=
+    λ s, (submodule.mem_supr_of_chain N s).mp
+      (by { rw [H, ← hS], exact submodule.subset_span s.2 }),
+  choose f hf,
+  use S.attach.sup f,
+  apply le_antisymm,
+  { conv_lhs { rw ← hS },
+    rw submodule.span_le,
+    intros s hs,
+    exact N.2 (finset.le_sup $ S.mem_attach ⟨s, hs⟩) (hf _) },
+  { rw ← H, exact le_supr _ _ }
 end
 
 /-- Finitely generated submodules are precisely compact elements in the submodule lattice. -/
@@ -511,9 +528,10 @@ from λ x ⟨hx1, hx2⟩, ⟨x.1, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 
 submodule.map_comap_eq_self this ▸ (noetherian _).map _⟩
 
 instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
-  [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]
+  [Π i, add_comm_group (M i)] [Π i, module R (M i)] [finite ι]
   [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=
 begin
+  casesI nonempty_fintype ι,
   haveI := classical.dec_eq ι,
   suffices on_finset : ∀ s : finset ι, is_noetherian R (Π i : s, M i),
   { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,
@@ -544,8 +562,7 @@ begin
     { simp only [or.by_cases, dif_pos] },
     { ext ⟨i, his⟩,
       have : ¬i = a, { rintro rfl, exact has his },
-      dsimp only [or.by_cases], change i ∈ s at his,
-      rw [dif_neg this, dif_pos his] } },
+      simp only [or.by_cases, this, not_false_iff, dif_neg] } },
   { intro f, ext ⟨i, hi⟩,
     rcases finset.mem_insert.1 hi with rfl | h,
     { simp only [or.by_cases, dif_pos], },
@@ -556,7 +573,7 @@ end
 /-- A version of `is_noetherian_pi` for non-dependent functions. We need this instance because
 sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to
 prove that `ι → ℝ` is finite dimensional over `ℝ`). -/
-instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
+instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [finite ι]
   [is_noetherian R M] : is_noetherian R (ι → M) :=
 is_noetherian_pi
 

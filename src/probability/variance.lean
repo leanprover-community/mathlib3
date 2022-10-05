@@ -216,7 +216,7 @@ end
 localized "notation (name := probability_theory.variance) `Var[` X `]` :=
   probability_theory.variance X measure_theory.measure_space.volume" in probability_theory
 
-lemma variance_def' [is_probability_measure (volume : measure Ω)]
+lemma variance_def' [is_probability_measure (ℙ : measure Ω)]
   {X : Ω → ℝ} (hX : mem_ℒp X 2) :
   Var[X] = 𝔼[X^2] - 𝔼[X]^2 :=
 begin
@@ -234,7 +234,7 @@ begin
   ring,
 end
 
-lemma variance_le_expectation_sq [is_probability_measure (volume : measure Ω)]
+lemma variance_le_expectation_sq [is_probability_measure (ℙ : measure Ω)]
   {X : Ω → ℝ} (hm : ae_strongly_measurable X ℙ) :
   Var[X] ≤ 𝔼[X^2] :=
 begin
@@ -257,7 +257,7 @@ begin
   { exact (ae_measurable.pow_const (hm.ae_measurable.sub_const _) _).ae_strongly_measurable },
 end
 
-lemma evariance_def' [is_probability_measure (volume : measure Ω)]
+lemma evariance_def' [is_probability_measure (ℙ : measure Ω)]
   {X : Ω → ℝ} (hX : ae_strongly_measurable X ℙ) :
   eVar[X] = (∫⁻ ω, ∥X ω∥₊^2) - ennreal.of_real (𝔼[X]^2) :=
 begin
@@ -303,7 +303,7 @@ end
 
 /-- *Chebyshev's inequality* : one can control the deviation probability of a real random variable
 from its expectation in terms of the variance. -/
-theorem meas_ge_le_variance_div_sq [is_finite_measure (volume : measure Ω)]
+theorem meas_ge_le_variance_div_sq [is_finite_measure (ℙ : measure Ω)]
   {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ} (hc : 0 < c) :
   ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2) :=
 begin
@@ -315,7 +315,7 @@ begin
 end
 
 /-- The variance of the sum of two independent random variables is the sum of the variances. -/
-theorem indep_fun.variance_add [is_probability_measure (volume : measure Ω)]
+theorem indep_fun.variance_add [is_probability_measure (ℙ : measure Ω)]
   {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
   Var[X + Y] = Var[X] + Var[Y] :=
 calc
@@ -344,7 +344,7 @@ end
 
 /-- The variance of a finite sum of pairwise independent random variables is the sum of the
 variances. -/
-theorem indep_fun.variance_sum [is_probability_measure (volume : measure Ω)]
+theorem indep_fun.variance_sum [is_probability_measure (ℙ : measure Ω)]
   {ι : Type*} {X : ι → Ω → ℝ} {s : finset ι}
   (hs : ∀ i ∈ s, mem_ℒp (X i) 2) (h : set.pairwise ↑s (λ i j, indep_fun (X i) (X j))) :
   Var[∑ i in s, X i] = ∑ i in s, Var[X i] :=

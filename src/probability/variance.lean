@@ -160,10 +160,6 @@ begin
   { measurability }
 end
 
-lemma evariance_nonneg {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
-  0 ≤ evariance 0 μ :=
-zero_le _
-
 lemma evariance_mul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
   evariance (λ ω, c * f ω) μ = ennreal.of_real (c^2) * evariance f μ :=
 begin
@@ -266,8 +262,7 @@ begin
     congr,
     simp_rw ← ennreal.coe_pow,
     rw lintegral_coe_eq_integral,
-    { congr' 2,
-      ext ω,
+    { congr' 2 with ω,
       simp only [pi.pow_apply, nnreal.coe_pow, coe_nnnorm, real.norm_eq_abs, pow_bit0_abs] },
     { exact hℒ.abs.integrable_sq } },
   { symmetry,

@@ -1442,9 +1442,9 @@ lemma sInter_prod_sInter_empty (f₁ : set (set α)) (h₁ : f₁.nonempty) :
   ⋂₀ f₁ ×ˢ ⋂₀ (∅ : set (set β))  = ⋂₀ ((λ C : set α, C ×ˢ univ) '' f₁) :=
 by rw [sInter_empty, sInter_prod_set f₁ h₁]
 
-lemma sInter__empty_prod_sInter (f₂ : set (set β)) (h₂ : f₂.nonempty)
-  : ⋂₀(∅ : set (set α)) ×ˢ ⋂₀f₂    = ⋂₀((λ (C : set β), univ ×ˢ C) '' (f₂)) :=
-by rw [sInter_empty, (set_prod_sInter _ h₂)]
+lemma sInter_empty_prod_sInter (f₂ : set (set β)) (h₂ : f₂.nonempty) :
+  ⋂₀ (∅ : set (set α)) ×ˢ ⋂₀ f₂ = ⋂₀ ((λ C : set β, univ ×ˢ C) '' f₂) :=
+by rw [sInter_empty, set_prod_sInter f₂ h₂]
 
 lemma sInter__empty_prod_sInter_empty : ⋂₀(∅ : set (set α)) ×ˢ ⋂₀(∅ : set (set β)) = univ ×ˢ univ :=
 by rw [sInter_empty, sInter_empty]

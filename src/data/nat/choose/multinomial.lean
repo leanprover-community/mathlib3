@@ -5,14 +5,12 @@ Authors: Kyle Miller, Pim Otte
 -/
 
 import algebra.big_operators.fin
-import algebra.big_operators.order
 import data.nat.choose.sum
 import data.nat.factorial.big_operators
 import data.fin.vec_notation
 import data.finset.sym
 import data.finsupp.multiset
 
-import tactic.linarith
 
 /-!
 # Multinomial

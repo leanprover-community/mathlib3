@@ -6,7 +6,7 @@ Amelia Livingston, Yury Kudryashov
 -/
 import group_theory.submonoid.operations
 import algebra.big_operators.basic
-import algebra.free_monoid
+import algebra.free_monoid.basic
 import data.finset.noncomm_prod
 
 /-!

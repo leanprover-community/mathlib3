@@ -136,13 +136,12 @@ lemma mem_carrier_iff (z : A⁰_ f) :
 iff.rfl
 
 lemma mem_carrier.clear_denominator' [decidable_eq (away f)]
-  {z : localization.away f} (hz : z ∈ span (⇑(algebra_map A (away f)) '' x.val.as_homogeneous_ideal)) :
+  {z : localization.away f}
+  (hz : z ∈ span ((algebra_map A (away f)) '' x.val.as_homogeneous_ideal)) :
   ∃ (c : algebra_map A (away f) '' x.1.as_homogeneous_ideal →₀ away f)
-    (N : ℕ)
-    (acd : Π y ∈ c.support.image c, A),
-    f ^ N • z =
-    algebra_map A (away f) (∑ i in c.support.attach,
-      acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * classical.some i.1.2) :=
+    (N : ℕ) (acd : Π y ∈ c.support.image c, A),
+    f ^ N • z = algebra_map A (away f)
+      (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) :=
 begin
   rw [←submodule_span_eq, finsupp.span_eq_range_total, linear_map.mem_range] at hz,
   rcases hz with ⟨c, eq1⟩,
@@ -162,10 +161,8 @@ end
 lemma mem_carrier.clear_denominator [decidable_eq (away f)]
   {z : A⁰_ f} (hz : z ∈ carrier 𝒜 x) :
   ∃ (c : algebra_map A (away f) '' x.1.as_homogeneous_ideal →₀ away f)
-    (N : ℕ)
-    (acd : Π y ∈ c.support.image c, A),
-    f ^ N • z.val =
-    algebra_map A (away f) (∑ i in c.support.attach,
+    (N : ℕ) (acd : Π y ∈ c.support.image c, A),
+    f ^ N • z.val = algebra_map A (away f) (∑ i in c.support.attach,
       acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * classical.some i.1.2) :=
 mem_carrier.clear_denominator' x $ (mem_carrier_iff 𝒜 x z).mpr hz
 
@@ -274,6 +271,11 @@ end
 
 end carrier'
 
+    (N : ℕ) (acd : Π y ∈ c.support.image c, A),
+    f ^ N • z.val = algebra_map A (away f)
+      (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) :=
+mem_carrier.clear_denominator' x $ (mem_carrier_iff 𝒜 x z).mpr hz
+
 lemma disjoint :
   (disjoint (x.1.as_homogeneous_ideal.to_ideal : set A) (submonoid.powers f : set A)) :=
 begin
@@ -335,10 +337,10 @@ def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f)) :=
   rcases x.1.is_prime.mem_or_mem (show a1 * a2 * f ^ N * f ^ M ∈ _, from _) with h1|rid2,
   rcases x.1.is_prime.mem_or_mem h1 with h1|rid1,
   rcases x.1.is_prime.mem_or_mem h1 with h1|h2,
-  { left, simp only [show (mk a1 ⟨f ^ n1, _⟩ : localization.away f) = mk a1 1 * mk 1 ⟨f^n1, ⟨n1, rfl⟩⟩,
-      by rw [mk_mul, mul_one, one_mul]],
+  { left, simp only [show (mk a1 ⟨f ^ n1, _⟩ : away f) = mk a1 1 * mk 1 ⟨f^n1, ⟨n1, rfl⟩⟩,
+      by rw [localization.mk_mul, mul_one, one_mul]],
     exact ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h1, rfl⟩), },
-  { right, simp only [show (mk a2 ⟨f ^ n2, _⟩ : localization.away f) = mk a2 1 * mk 1 ⟨f^n2, ⟨n2, rfl⟩⟩,
+  { right, simp only [show (mk a2 ⟨f ^ n2, _⟩ : away f) = mk a2 1 * mk 1 ⟨f^n2, ⟨n2, rfl⟩⟩,
       by rw [localization.mk_mul, mul_one, one_mul]],
     exact ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h2, rfl⟩), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem N rid1)), },
@@ -357,7 +359,7 @@ The preimage of basic open set `D(a/f^n)` in `Spec A⁰_f` under the forward map
 `Spec A⁰_f` is the basic open set `D(a) ∩ D(f)` in  `Proj A`. This lemma is used to prove that the
 forward map is continuous.
 -/
-lemma preimage_eq' (a b : A) (k : ℕ) (a_mem : a ∈ 𝒜 k) (b_mem1 : b ∈ 𝒜 k)
+lemma preimage_eq (a b : A) (k : ℕ) (a_mem : a ∈ 𝒜 k) (b_mem1 : b ∈ 𝒜 k)
   (b_mem2 : b ∈ submonoid.powers f) : to_fun 𝒜 f ⁻¹'
     ((@prime_spectrum.basic_open (A⁰_ f) _
       (quotient.mk' ⟨k, ⟨a, a_mem⟩, ⟨b, b_mem1⟩, b_mem2⟩)) :
@@ -373,7 +375,7 @@ begin
     apply hy,
     rw [to_fun, mem_carrier_iff, homogeneous_localization.val_mk', subtype.coe_mk],
     dsimp, rcases b_mem2 with ⟨k, hk⟩,
-    simp only [show (mk a ⟨b, ⟨k, hk⟩⟩ : localization.away f) = mk 1 ⟨f^k, ⟨_, rfl⟩⟩ * mk a 1,
+    simp only [show (mk a ⟨b, ⟨k, hk⟩⟩ : away f) = mk 1 ⟨f^k, ⟨_, rfl⟩⟩ * mk a 1,
       by { rw [mk_mul, one_mul, mul_one], congr, rw hk }],
     exact ideal.mul_mem_left _ _ (ideal.subset_span ⟨_, a_mem_y, rfl⟩), },
   { change y.1 ∈ _ at hy,
@@ -413,7 +415,7 @@ def to_Spec {f : A} : (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f)) :=
   continuous_to_fun := begin
     apply is_topological_basis.continuous (prime_spectrum.is_topological_basis_basic_opens),
     rintros _ ⟨⟨k, ⟨a, ha⟩, ⟨b, hb1⟩, ⟨k', hb2⟩⟩, rfl⟩, dsimp,
-    erw to_Spec.preimage_eq' f a b k ha hb1 ⟨k', hb2⟩,
+    erw to_Spec.preimage_eq f a b k ha hb1 ⟨k', hb2⟩,
     refine is_open_induced_iff.mpr ⟨(pbo f).1 ⊓ (pbo a).1, is_open.inter (pbo f).2 (pbo a).2, _⟩,
     ext z, split; intros hz; simpa [set.mem_preimage],
   end }
@@ -478,9 +480,9 @@ begin
     then quotient.mk' ⟨m * i, ⟨proj 𝒜 i a^j * proj 𝒜 i b ^ (m - j), _⟩,
       ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩ *
       quotient.mk' ⟨m * i, ⟨proj 𝒜 i b ^ m, by mem_tac⟩, ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩
-    else quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ m, by mem_tac⟩, ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩ *
-      quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ (j - m) * proj 𝒜 i b ^ (m + m - j), _⟩,
-      ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩,
+    else quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ m, by mem_tac⟩,
+      ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩ * quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ (j - m) *
+        proj 𝒜 i b ^ (m + m - j), _⟩, ⟨_, by rw mul_comm; mem_tac⟩, ⟨i, rfl⟩⟩,
   rotate,
   { rw (_ : m*i = _), mem_tac, rw [← add_smul, nat.add_sub_of_le h1], refl },
   { rw (_ : m*i = _), mem_tac, rw ←add_smul, congr, zify [le_of_not_lt h2, le_of_not_le h1], abel },
@@ -509,7 +511,6 @@ lemma carrier.zero_mem : (0 : A) ∈ carrier f_deg q := λ i, begin
   convert localization.mk_zero _ using 1,
 end
 
-
 lemma carrier.smul_mem (c x : A) (hx : x ∈ carrier f_deg q) : c • x ∈ carrier f_deg q :=
 begin
   revert c,
@@ -518,14 +519,13 @@ begin
   { rintros n ⟨a, ha⟩ i,
     simp_rw [subtype.coe_mk, proj_apply, smul_eq_mul, coe_decompose_mul_of_left_mem 𝒜 i ha],
     split_ifs,
-    { convert_to (quotient.mk' ⟨_, ⟨a^m, pow_mem_graded m ha⟩, ⟨_, _⟩, ⟨n, rfl⟩⟩ : A⁰_ f) *
-        quotient.mk' ⟨_, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, ⟨_, _⟩, ⟨i - n, rfl⟩⟩ ∈ q.1,
-      { rw [ext_iff_val, val_mk', mul_val, val_mk', val_mk', subtype.coe_mk],
-        simp_rw [mul_pow, subtype.coe_mk],
-        rw [localization.mk_mul],
+    { convert_to (quotient.mk' ⟨_, ⟨a^m, pow_mem_graded m ha⟩, ⟨_, _⟩, ⟨n, rfl⟩⟩ * quotient.mk'
+         ⟨_, ⟨proj 𝒜 (i - n) x ^ m, by mem_tac⟩, ⟨_, _⟩, ⟨i - n, rfl⟩⟩ : A⁰_ f) ∈ q.1,
+      { erw [ext_iff_val, val_mk', mul_val, val_mk', val_mk', subtype.coe_mk],
+        simp_rw [mul_pow, subtype.coe_mk], rw [localization.mk_mul],
         congr, erw [← pow_add, nat.add_sub_of_le h] },
       { exact ideal.mul_mem_left _ _ (hx _), rw [smul_eq_mul, mul_comm], mem_tac, } },
-    { simp_rw [zero_pow hm], convert carrier.zero_mem f_deg hm q i, rw [map_zero, zero_pow hm], } },
+    { simp_rw [zero_pow hm], convert carrier.zero_mem f_deg hm q i, rw [map_zero, zero_pow hm] } },
   { simp_rw add_smul, exact λ _ _, carrier.add_mem f_deg q },
 end
 

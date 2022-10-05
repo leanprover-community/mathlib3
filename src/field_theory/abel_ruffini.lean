@@ -346,7 +346,7 @@ begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
       apply (algebra_map F⟮α, β⟯ (solvable_by_rad F E)).injective,
-      rw [ring_hom.map_zero, is_scalar_tower.algebra_map_aeval],
+      rw [ring_hom.map_zero, ← aeval_algebra_map_apply],
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],

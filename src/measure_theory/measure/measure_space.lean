@@ -1994,6 +1994,23 @@ lemma ae_restrict_bUnion_finset_eq (s : ι → set α) (t : finset ι) :
   (μ.restrict (⋃ i ∈ t, s i)).ae = ⨆ i ∈ t, (μ.restrict (s i)).ae :=
 ae_restrict_bUnion_eq s t.countable_to_set
 
+lemma ae_restrict_Union_iff [countable ι] (s : ι → set α) (p : α → Prop) :
+  (∀ᵐ x ∂ (μ.restrict (⋃ i, s i)), p x) ↔ (∀ i, (∀ᵐ x ∂ (μ.restrict (s i)), p x)) :=
+by simp
+
+lemma ae_restrict_union_iff (s t : set α) (p : α → Prop) :
+  (∀ᵐ x ∂ (μ.restrict (s ∪ t)), p x) ↔
+    ((∀ᵐ x ∂ (μ.restrict s), p x) ∧ (∀ᵐ x ∂ (μ.restrict t), p x)) :=
+by simp
+
+lemma ae_restrict_bUnion_iff (s : ι → set α) {t : set ι} (ht : t.countable) (p : α → Prop) :
+  (∀ᵐ x ∂(μ.restrict (⋃ i ∈ t, s i)), p x) ↔ ∀ i ∈ t, ∀ᵐ x ∂(μ.restrict (s i)), p x :=
+by simp_rw [filter.eventually, ae_restrict_bUnion_eq s ht, mem_supr]
+
+@[simp] lemma ae_restrict_bUnion_finset_iff (s : ι → set α) (t : finset ι) (p : α → Prop) :
+  (∀ᵐ x ∂(μ.restrict (⋃ i ∈ t, s i)), p x) ↔ ∀ i ∈ t, ∀ᵐ x ∂(μ.restrict (s i)), p x :=
+by simp_rw [filter.eventually, ae_restrict_bUnion_finset_eq s, mem_supr]
+
 lemma ae_eq_restrict_Union_iff [countable ι] (s : ι → set α) (f g : α → δ) :
   f =ᵐ[μ.restrict (⋃ i, s i)] g ↔ ∀ i, f =ᵐ[μ.restrict (s i)] g :=
 by simp_rw [eventually_eq, ae_restrict_Union_eq, eventually_supr]
@@ -2091,6 +2108,10 @@ add_eq_zero_iff
 lemma ae_eq_comp' {ν : measure β} {f : α → β} {g g' : β → δ} (hf : ae_measurable f μ)
   (h : g =ᵐ[ν] g') (h2 : μ.map f ≪ ν) : g ∘ f =ᵐ[μ] g' ∘ f :=
 (tendsto_ae_map hf).mono_right h2.ae_le h
+
+lemma measure.quasi_measure_preserving.ae_eq_comp {ν : measure β} {f : α → β} {g g' : β → δ}
+  (hf : quasi_measure_preserving f μ ν) (h : g =ᵐ[ν] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
+ae_eq_comp' hf.ae_measurable h hf.absolutely_continuous
 
 lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : ae_measurable f μ)
   (h : g =ᵐ[μ.map f] g') : g ∘ f =ᵐ[μ] g' ∘ f :=

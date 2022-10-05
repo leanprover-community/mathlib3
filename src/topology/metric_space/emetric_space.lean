@@ -28,7 +28,6 @@ to `emetric_space` at the end.
 -/
 
 open set filter classical
-noncomputable theory
 
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
@@ -427,7 +426,7 @@ end ulift
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
 instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
-{ edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
+{ edist := λ x y, edist x.1 y.1 ⊔ edist x.2 y.2,
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
   edist_triangle := λ x y z, max_le
@@ -746,7 +745,7 @@ end second_countable
 section diam
 
 /-- The diameter of a set in a pseudoemetric space, named `emetric.diam` -/
-def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
+noncomputable def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
 
 lemma diam_le_iff {d : ℝ≥0∞} :
   diam s ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist x y ≤ d :=

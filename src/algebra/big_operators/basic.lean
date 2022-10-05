@@ -1332,6 +1332,24 @@ begin
   rwa eq_of_mem_of_not_mem_erase hx hnx
 end
 
+@[to_additive]
+lemma ite_exists_eq_prod {f : α → Prop} [Π i, decidable (f i)]
+  (hf : (s : set α).pairwise_disjoint f) (a : β) :
+  ite (∃ i ∈ s, f i) a 1 = ∏ i in s, ite (f i) a 1 :=
+begin
+  classical,
+  unfreezingI { induction s using finset.induction with i s hi ih },
+  { simp },
+  simp only [or_and_distrib_right, exists_or_distrib, hi, mem_insert, exists_prop,
+    exists_eq_left, prod_insert, not_false_iff] at ⊢ ih,
+  rw [coe_insert, set.pairwise_disjoint_insert_of_not_mem (mem_coe.not.2 hi)] at hf,
+  by_cases hfi : f i,
+  { rw prod_eq_one (λ j hj, _),
+    { simp only [hfi, true_or, mul_one] },
+    exact if_neg (λ hfj, hf.2 _ hj ⟨hfi, hfj⟩) },
+  { simp [hfi, ih hf.1] }
+end
+
 lemma sum_erase_lt_of_pos {γ : Type*} [decidable_eq α] [ordered_add_comm_monoid γ]
   [covariant_class γ γ (+) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → γ} (hdf : 0 < f d) :
   ∑ (m : α) in s.erase d, f m < ∑ (m : α) in s, f m :=

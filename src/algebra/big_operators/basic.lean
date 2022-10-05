@@ -1337,17 +1337,13 @@ lemma ite_exists_eq_prod {f : α → Prop} [Π i, decidable (f i)]
   (hf : (s : set α).pairwise_disjoint f) (a : β) :
   ite (∃ i ∈ s, f i) a 1 = ∏ i in s, ite (f i) a 1 :=
 begin
-  classical,
-  unfreezingI { induction s using finset.induction with i s hi ih },
-  { simp },
-  simp only [or_and_distrib_right, exists_or_distrib, hi, mem_insert, exists_prop,
-    exists_eq_left, prod_insert, not_false_iff] at ⊢ ih,
-  rw [coe_insert, set.pairwise_disjoint_insert_of_not_mem (mem_coe.not.2 hi)] at hf,
-  by_cases hfi : f i,
-  { rw prod_eq_one (λ j hj, _),
-    { simp only [hfi, true_or, mul_one] },
-    exact if_neg (λ hfj, hf.2 _ hj ⟨hfi, hfj⟩) },
-  { simp [hfi, ih hf.1] }
+  split_ifs,
+  { obtain ⟨i, hi, hfi⟩ := h,
+    rw [prod_eq_single_of_mem _ hi, if_pos hfi],
+    exact λ j hj h, if_neg (λ hfj, hf hj hi h ⟨hfj, hfi⟩) },
+  { push_neg at h,
+    rw prod_eq_one,
+    exact λ i hi, if_neg (h i hi) }
 end
 
 lemma sum_erase_lt_of_pos {γ : Type*} [decidable_eq α] [ordered_add_comm_monoid γ]

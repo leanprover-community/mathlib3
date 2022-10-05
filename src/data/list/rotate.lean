@@ -417,11 +417,12 @@ begin
     { simp [hn] } }
 end
 
-/-- A rotated list equals itself when it is a repetition of the first k elements -/
-lemma rotatel_eq_self_iff {l : list α} {n : ℕ} :
-  let k := nat.gcd n l.length in
-    l.rotatel n = l ↔ l = ((l.take k).repeat (l.length / k)).join :=
-sorry
+-- TODO
+-- /-- A rotated list equals itself when it is a repetition of the first k elements -/
+-- lemma rotatel_eq_self_iff {l : list α} {n : ℕ} :
+--   let k := nat.gcd n l.length in
+--     l.rotatel n = l ↔ l = ((l.take k).repeat (l.length / k)).join :=
+-- sorry
 
 theorem nodup.rotatel_eq_self_iff {l : list α} (hl : l.nodup) {n : ℕ} :
   l.rotatel n = l ↔ n % l.length = 0 ∨ l = [] :=
@@ -879,15 +880,35 @@ end
   l.reverse ~r l'.reverse ↔ l ~r l' :=
 by simp [is_rotated_reverse_comm_iff]
 
-lemma is_rotated_iff_mod : l ~r l' ↔ ∃ n ≤ l.length, l.rotate n = l' :=
+lemma is_rotated_iff_mod : l ~r l' ↔ ∃ n ≤ l.length, l.rotatel n = l' :=
 begin
-  refine ⟨λ h, _, λ ⟨n, _, h⟩, ⟨n, h⟩⟩,
-  obtain ⟨n, rfl⟩ := h,
-  cases l with hd tl,
-  { simp },
-  { refine ⟨n % (hd :: tl).length, _, rotate_mod _ _⟩,
-    refine (nat.mod_lt _ _).le,
-    simp }
+  by_cases l = nil,
+  {
+    sorry,
+  },
+  rw is_rotated,
+  unfold rotate,
+  split,
+  rintro ⟨z, h⟩,
+  use z.nat_mod ↑(l.length),
+  split,
+  rw int.nat_mod,
+  simp,
+  apply le_of_lt,
+
+  apply int.mod_lt_of_pos,
+  simp,
+  apply nat.pos_of_ne_zero,
+  simp [h],
+  -- linarith,
+  -- suggest,
+  rintro ⟨n, H, h⟩,
+  use n,
+  rw <-h,
+  rw rotatel_eq_of_mod_eq,
+  simp,
+
+  -- simp,
 end
 
 lemma is_rotated_iff_mem_map_range : l ~r l' ↔ l' ∈ (list.range (l.length + 1)).map l.rotate :=

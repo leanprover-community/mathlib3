@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Bolton Bailey
 -/
 
-
 import data.fintype.basic
 import data.pfun
 import logic.function.iterate

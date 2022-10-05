@@ -51,7 +51,7 @@ hamming distance of 0 from any nonzero element of the code.
 noncomputable def distance (C : linear_code 𝓓 F) : ℕ :=
 Inf (set.image (λ w : hamming (λ i : 𝓓, F), hamming_dist w 0) (C.codewords \ {0}))
 
-/-- The proportion of non-redundant information to the size of the code -/
+/-- The proportion of the code dimension to the size of the code -/
 noncomputable def rate (C : linear_code 𝓓 F) : ℚ := rat.mk C.dimension C.length
 
 end linear_code

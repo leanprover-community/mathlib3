@@ -1949,9 +1949,9 @@ lemma oangle_eq_pi_iff_angle_eq_pi {p₁ p₂ p₃ : P} : ∡ p₁ p₂ p₃ = �
 (o).oangle_eq_pi_iff_angle_eq_pi
 
 /-- Swapping the first and second points in an oriented angle negates the sign of that angle. -/
-lemma oangle_swap₁₂_sign (p₁ p₂ p₃ : P) : (∡ p₂ p₁ p₃).sign = -(∡ p₁ p₂ p₃).sign :=
+lemma oangle_swap₁₂_sign (p₁ p₂ p₃ : P) : -(∡ p₁ p₂ p₃).sign = (∡ p₂ p₁ p₃).sign :=
 begin
-  rw [oangle, oangle, ←(o).oangle_neg_neg, neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev,
+  rw [eq_comm, oangle, oangle, ←(o).oangle_neg_neg, neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev,
       ←vsub_sub_vsub_cancel_left p₁ p₃ p₂, ←neg_vsub_eq_vsub_rev p₃ p₂, sub_eq_add_neg,
       neg_vsub_eq_vsub_rev p₂ p₁, add_comm, ←@neg_one_smul ℝ],
   nth_rewrite 1 [←one_smul ℝ (p₁ -ᵥ p₂)],
@@ -1960,15 +1960,15 @@ begin
 end
 
 /-- Swapping the first and third points in an oriented angle negates the sign of that angle. -/
-lemma oangle_swap₁₃_sign (p₁ p₂ p₃ : P) : (∡ p₃ p₂ p₁).sign = -(∡ p₁ p₂ p₃).sign :=
-by rw [oangle_rev, real.angle.sign_neg]
+lemma oangle_swap₁₃_sign (p₁ p₂ p₃ : P) : -(∡ p₁ p₂ p₃).sign = (∡ p₃ p₂ p₁).sign :=
+by rw [oangle_rev, real.angle.sign_neg, neg_neg]
 
 /-- Swapping the second and third points in an oriented angle negates the sign of that angle. -/
-lemma oangle_swap₂₃_sign (p₁ p₂ p₃ : P) : (∡ p₁ p₃ p₂).sign = -(∡ p₁ p₂ p₃).sign :=
+lemma oangle_swap₂₃_sign (p₁ p₂ p₃ : P) : -(∡ p₁ p₂ p₃).sign = (∡ p₁ p₃ p₂).sign :=
 by rw [oangle_swap₁₃_sign, ←oangle_swap₁₂_sign, oangle_swap₁₃_sign]
 
 /-- Rotating the points in an oriented angle does not change the sign of that angle. -/
 lemma oangle_rotate_sign (p₁ p₂ p₃ : P) : (∡ p₂ p₃ p₁).sign = (∡ p₁ p₂ p₃).sign :=
-by rw [oangle_swap₁₂_sign, ←oangle_swap₁₃_sign]
+by rw [←oangle_swap₁₂_sign, oangle_swap₁₃_sign]
 
 end euclidean_geometry

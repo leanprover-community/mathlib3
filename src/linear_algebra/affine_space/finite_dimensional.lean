@@ -442,8 +442,6 @@ lemma collinear_iff_not_affine_independent {p : fin 3 → P} :
 by rw [collinear_iff_finrank_le_one,
        finrank_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]
 
-variables {k}
-
 /-- If three points are not collinear, the first and second are different. -/
 lemma ne₁₂_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₁ ≠ p₂ :=
 begin
@@ -471,7 +469,7 @@ lemma collinear.mem_affine_span_of_mem_of_ne {s : set P} (h : collinear k s) {p�
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
   p₃ ∈ affine_span k ({p₁, p₂} : set P) :=
 begin
-  rw collinear_iff_of_mem k hp₁ at h,
+  rw collinear_iff_of_mem hp₁ at h,
   rcases h with ⟨v, h⟩,
   rcases h p₂ hp₂ with ⟨r₂, rfl⟩,
   rcases h p₃ hp₃ with ⟨r₃, rfl⟩,

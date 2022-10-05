@@ -7,6 +7,7 @@ import group_theory.subgroup.pointwise
 import group_theory.group_action.pi
 import group_theory.quotient_group
 import algebra.group.pi
+import algebra.group.ulift
 
 /-!
 # Divisible Group and rootable group
@@ -220,6 +221,13 @@ def rootable_by_nat_of_rootable_by_int [rootable_by A ℤ] : rootable_by A ℕ :
     norm_num at this,
     exact this,
   end }
+
+@[to_additive]
+instance rootable_by_ulift {α : Type*} [has_pow A α] [has_zero α] [rootable_by A α] :
+  rootable_by (ulift A) α :=
+{ root := λ a n, ulift.up $ rootable_by.root a.down n,
+  root_zero := λ _, ulift.ext _ _ $ rootable_by.root_zero _,
+  root_cancel := λ _ _ h, ulift.ext _ _ $ rootable_by.root_cancel _ h }
 
 end group
 

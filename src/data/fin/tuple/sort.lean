@@ -76,7 +76,6 @@ lemma self_comp_sort (f : fin n → α) : f ∘ sort f = graph.proj ∘ graph_eq
 show graph.proj ∘ ((graph_equiv₁ f) ∘ (graph_equiv₁ f).symm) ∘ (graph_equiv₂ f).to_equiv = _,
   by simp
 
-
 lemma monotone_proj (f : fin n → α) : monotone (graph.proj : graph f → α) :=
 begin
   rintro ⟨⟨x, i⟩, hx⟩ ⟨⟨y, j⟩, hy⟩ (h|h),
@@ -119,21 +118,56 @@ variables [linear_order α] {f : fin n → α} {σ : equiv.perm (fin n)}
 
 lemma graph_equiv₁_apply (i : fin n) : (graph_equiv₁ f i).val = to_lex (f i, i) := rfl
 
-/-- If `f` is monotone, then the map that sends `i` to `(f i, i)` is an order isomorphism. -/
-def order_iso_of_monotone (hf : monotone f) : fin n ≃o graph f :=
-{ to_equiv := graph_equiv₁ f,
-  map_rel_iff' :=
-  begin
-    intros a b,
-    simp_rw [←subtype.coe_le_coe, ←subtype.val_eq_coe, graph_equiv₁_apply, prod.lex.le_iff],
-    refine ⟨λ h, h.elim (λ h', _) (λ h', h'.2),
-            λ h, (hf h).lt_or_eq.elim or.inl (λ h', or.inr ⟨h', h⟩)⟩,
-    by_contra' hh,
-    exact not_le_of_lt h' (hf hh.le),
-  end }
+lemma graph_equiv₂_apply (i : fin n) : (graph_equiv₂ f i).val = to_lex (f (sort f i), sort f i) :=
+begin
+  simp only [sort, graph_equiv₁, to_lex, prod.ext_iff, subtype.val_eq_coe, equiv.coe_trans,
+             equiv.coe_fn_symm_mk, rel_iso.coe_fn_to_equiv, function.comp_app, equiv.coe_refl,
+             id.def, eq_self_iff_true, and_true],
+  have := (graph_equiv₂ f i).prop,
+  simp only [graph, finset.mem_image, finset.mem_univ, exists_true_left] at this,
+  obtain ⟨j, hj⟩ := this,
+  rw ← hj,
+end
 
-lemma order_iso_of_monotone_eq (hf : monotone f) : order_iso_of_monotone hf = graph_equiv₂ f :=
-(eq_iff_true_of_subsingleton _ _).mpr trivial
+lemma graph_equiv₂_apply' (i : fin n) :
+  graph_equiv₂ f i = ⟨to_lex (f (sort f i), sort f i),
+                      (@graph_equiv₂_apply _ _ _ f i) ▸ (graph_equiv₂ f i).prop⟩ :=
+begin
+  simp [subtype.ext_iff, ← subtype.val_eq_coe, graph_equiv₂_apply],
+end
+
+/-- A permutation `σ` is `sort f` if and only if `f ∘ σ` is monotone and whenever `i < j`
+and `f (σ i) = f (σ j)`, then `σ i < σ j`. -/
+lemma eq_sort_iff : σ = sort f ↔ monotone (f ∘ σ) ∧ ∀ i j, i < j → f (σ i) = f (σ j) → σ i < σ j :=
+begin
+  refine ⟨λ h, ⟨_, λ i j hij hfij, _⟩, λ h₁, _⟩,
+  { have :=  monotone_sort f, rwa ← h at this, },
+  { rw [h] at hfij ⊢,
+    have := (order_iso.lt_iff_lt (graph_equiv₂ f)).mpr hij,
+    rw [graph_equiv₂_apply', graph_equiv₂_apply' j, subtype.mk_lt_mk, prod.lex.lt_iff] at this,
+    simp only at this,
+    exact this.elim (λ h₁, false.elim $ hfij.not_lt h₁) (λ h₁, h₁.2), },
+  { obtain ⟨hf, h₂⟩ := h₁,
+    let oi : fin n ≃o graph f :=
+    { to_equiv := σ.trans (graph_equiv₁ f),
+      map_rel_iff' :=
+      begin
+        intros a b,
+        simp only [equiv.coe_trans, function.comp_app],
+        simp_rw [←subtype.coe_le_coe, ←subtype.val_eq_coe, graph_equiv₁_apply, prod.lex.le_iff],
+        refine ⟨λ h, _, λ h, _⟩,
+        { by_contra' hh,
+          have := hf hh.le, simp only [function.comp_app] at this,
+          have H := h.resolve_left this.not_lt,
+          exact H.2.not_lt (h₂ b a hh H.1.symm), },
+        { have := hf h, simp only [function.comp_app] at this,
+          exact this.lt_or_eq.elim or.inl (λ he, or.inr ⟨he, h.lt_or_eq.elim
+             (λ hl, (h₂ a b hl he).le) (λ he', (congr_arg σ he').le)⟩), }
+      end },
+    have := subsingleton.elim (graph_equiv₂ f) oi,
+    ext,
+    simp only [sort, this, equiv.coe_trans, function.comp_app, equiv.symm_apply_apply], }
+end
 
 /-- The permutation that sorts `f` is the identity if and only if `f` is monotone. -/
 lemma sort_eq_refl_iff_monotone : sort f = equiv.refl _ ↔ monotone f :=
@@ -141,9 +175,9 @@ begin
   refine ⟨λ h, _, λ h, _⟩,
   { have := monotone_sort f,
     rwa [h, equiv.coe_refl, function.comp.right_id] at this, },
-  { simp only [sort],
-    change (graph_equiv₂ f).to_equiv.trans (order_iso_of_monotone h).to_equiv.symm = _,
-    simp only [order_iso_of_monotone_eq h, equiv.self_trans_symm], }
+  { refine (eq_sort_iff.mpr ⟨_, λ i j hij hfij, _⟩).symm,
+    { simpa only, },
+    { simpa only [equiv.coe_refl, id.def], } }
 end
 
 /-- A permutation of a tuple `f` is `f` sorted if and only if it is monotone. -/

@@ -2109,6 +2109,10 @@ lemma ae_eq_comp' {ν : measure β} {f : α → β} {g g' : β → δ} (hf : ae_
   (h : g =ᵐ[ν] g') (h2 : μ.map f ≪ ν) : g ∘ f =ᵐ[μ] g' ∘ f :=
 (tendsto_ae_map hf).mono_right h2.ae_le h
 
+lemma measure.quasi_measure_preserving.ae_eq_comp {ν : measure β} {f : α → β} {g g' : β → δ}
+  (hf : quasi_measure_preserving f μ ν) (h : g =ᵐ[ν] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
+ae_eq_comp' hf.ae_measurable h hf.absolutely_continuous
+
 lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : ae_measurable f μ)
   (h : g =ᵐ[μ.map f] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
 ae_eq_comp' hf h absolutely_continuous.rfl

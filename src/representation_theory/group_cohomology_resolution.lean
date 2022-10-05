@@ -7,6 +7,7 @@ Authors: Amelia Livingston
 import algebraic_topology.alternating_face_map_complex
 import algebraic_topology.cech_nerve
 import algebraic_topology.extra_degeneracy
+import algebraic_topology.thingy
 import category_theory.abelian.exact
 import representation_theory.basic
 import representation_theory.Rep
@@ -62,7 +63,7 @@ over `k`.
 
 noncomputable theory
 
-universes u
+universes u v u' v' w w' t t'
 
 variables {k G : Type u} [comm_ring k] {n : ℕ}
 
@@ -78,7 +79,7 @@ open finsupp (hiding lift) fin (partial_prod) representation
 
 section basis
 variables (k G n) [group G]
-
+/-
 /-- The `k`-linear map from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` sending `(g₀, ..., gₙ)`
 to `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)`. -/
 def to_tensor_aux :
@@ -231,7 +232,7 @@ def of_mul_action_basis  :
 lemma of_mul_action_free :
   module.free (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
 module.free.of_basis (of_mul_action_basis k G n)
-
+-/
 end basis
 end group_cohomology.resolution
 variables (G)
@@ -251,138 +252,244 @@ namespace classifying_space_universal_cover
 open category_theory.limits category_theory.arrow
 variables (G) [monoid G] (m : simplex_categoryᵒᵖ)
 
-/-- The natural hom of `G`-sets `G ⟶ {pt}` as an arrow. -/
-def arrow : arrow (Action (Type u) (Mon.of G)) :=
-⟨Action.of_mul_action G G, default, ⟨λ x, punit.star, λ g, rfl⟩⟩
+variables (ι : Type w) [fintype ι] {C : Type u} [category.{v} C] [has_finite_products C]
+  [has_terminal C] (X : C)
 
-/-- The diagram `option (fin (m + 1)) ⥤ G-Set` sending `none` to `{pt}` and `some j` to `G` (with
-the left regular action). -/
-abbreviation wide_cospan :
-  wide_pullback_shape (fin ((opposite.unop m).len + 1)) ⥤ Action (Type u) (Mon.of G) :=
-wide_pullback_shape.wide_cospan default (λ (i : fin (m.unop.len + 1)), Action.of_mul_action G G)
-  (λ i, ⟨λ x, punit.star, λ g, rfl⟩)
+/-- The diagram `option ι ⥤ C` sending `none` to the terminal object and `some j` to `X`. -/
+def wide_cospan : wide_pullback_shape ι ⥤ C :=
+wide_pullback_shape.wide_cospan (terminal C) (λ i : ι, X) (λ i, terminal.from X)
 
-/-- The `G-Set` `Gᵐ⁺¹` (with the diagonal action) is the vertex of a cone on `wide_cospan G m`. -/
-def wide_cospan.cone : cone (wide_cospan G m) :=
-{ X := Action.of_mul_action G (fin (m.unop.len + 1) → G),
-  π :=
-  { app := λ X, option.cases_on X (⟨λ x, punit.star, λ g, rfl⟩)
-      (λ i, ⟨λ x, x i, λ x, by ext; refl⟩),
-    naturality' := λ X Y f, by { cases f, cases X, obviously }}}
+instance unique_to_wide_cospan_none (Y : C) : unique (Y ⟶ (wide_cospan ι X).obj none) :=
+by unfold wide_cospan; dsimp; apply_instance
 
-/-- The cone on `wide_cospan G m` with `Gᵐ⁺¹` as a vertex is a limit. -/
-def wide_cospan.is_limit : is_limit (wide_cospan.cone G m) :=
-{ lift := λ s,
-  { hom := λ x j, (s.π.app (some j)).hom x,
-    comm' := λ g, by ext; convert congr_fun ((s.π.app (some j)).comm' g) i },
-  fac' := λ s j, option.cases_on j (by ext) (λ j, by ext; refl),
-  uniq' := λ s f h, by ext x j; simpa only [←h (some j)] }
+/-- The product `Xᶥ` is the vertex of a cone on `wide_cospan X m`. -/
+def wide_cospan.limit_cone : limit_cone (wide_cospan ι X) :=
+{ cone :=
+  { X := ∏ (λ i : ι, X),
+    π :=
+    { app := λ X, option.cases_on X (terminal.from _) (λ i, limit.π _ ⟨i⟩),
+      naturality' := λ i j f,
+      begin
+      cases f,
+      { cases i,
+        all_goals { dsimp, simp }},
+      { dsimp,
+        simp only [terminal.comp_from],
+        exact subsingleton.elim _ _ }
+      end } },
+  is_limit :=
+  { lift := λ s, limits.pi.lift (λ j, s.π.app (some j)),
+    fac' := λ s j, option.cases_on j (subsingleton.elim _ _) (λ j, limit.lift_π _ _),
+    uniq' := λ s f h,
+    begin
+      ext j,
+      dunfold limits.pi.lift,
+      rw limit.lift_π,
+      dsimp,
+      rw ←h (some j.as),
+      congr,
+      ext,
+      refl,
+    end } }
 
-instance has_wide_pullback : has_wide_pullback (arrow G).right
-  (λ i : fin (m.unop.len + 1), (arrow G).left) (λ i, (arrow G).hom) :=
-⟨⟨⟨wide_cospan.cone G m, wide_cospan.is_limit G m⟩⟩⟩
+instance has_wide_pullback : has_wide_pullback (arrow.mk (terminal.from X)).right
+  (λ i : ι, (arrow.mk (terminal.from X)).left)
+  (λ i, (arrow.mk (terminal.from X)).hom) :=
+⟨⟨wide_cospan.limit_cone ι X⟩⟩
+
+/-- I want to say Gⁿ with diagonal action is the product of n copies of G with left regular action
+in Action (Type u) G, not sure this is the best way. -/
+def diagonal_as_limit_cone (ι : Type v) (G : Type (max v u)) [monoid G] :
+  limit_cone (discrete.functor (λ i : ι, Action.of_mul_action G G)) :=
+{ cone :=
+  { X := Action.of_mul_action G (ι → G),
+    π :=
+    { app := λ i, ⟨λ f, f i.as, λ g, by ext; refl⟩,
+      naturality' := λ i j f, by { ext, discrete_cases, cases f, congr } } },
+  is_limit :=
+  { lift := λ s,
+    { hom := λ x i, (s.π.app ⟨i⟩).hom x,
+      comm' := λ g,
+      begin
+        ext,
+        dsimp,
+        exact congr_fun ((s.π.app ⟨j⟩).comm g) i,
+      end },
+    fac' := λ s j,
+    begin
+      ext,
+      dsimp,
+      rw discrete.mk_as,
+    end,
+    uniq' := λ s f h,
+    begin
+      ext x j,
+      dsimp at *,
+      rw ←h ⟨j⟩,
+      congr,
+    end } }
 
 /-- The `m`th object of the Čech nerve of the `G`-set hom `G ⟶ {pt}` is isomorphic to `Gᵐ⁺¹` with
 the diagonal action. -/
 def cech_nerve_obj_iso :
-  (cech_nerve (arrow G)).obj m ≅ Action.of_mul_action G (fin (m.unop.len + 1) → G) :=
-is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (wide_cospan.is_limit G m)
+  (cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G)))).obj m
+    ≅ Action.of_mul_action G (fin (m.unop.len + 1) → G) :=
+(is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (wide_cospan.limit_cone
+  (fin (m.unop.len + 1)) (Action.of_mul_action G G)).2).trans $
+  limit.iso_limit_cone (diagonal_as_limit_cone _ _)
 
 /-- The Čech nerve of the `G`-set hom `G ⟶ {pt}` is naturally isomorphic to `EG`, the universal
 cover of the classifying space of `G` as a simplicial `G`-set. -/
-def cech_nerve_iso : cech_nerve (arrow G) ≅ classifying_space_universal_cover G :=
-(@nat_iso.of_components _ _ _ _ (classifying_space_universal_cover G) (cech_nerve (arrow G))
-(λ n, (cech_nerve_obj_iso G n).symm) $ λ m n f,  wide_pullback.hom_ext (λ j, (arrow G).hom) _ _
+def cech_nerve_iso : cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G)))
+  ≅ classifying_space_universal_cover G :=
+(@nat_iso.of_components _ _ _ _ (classifying_space_universal_cover G)
+  (cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G))))
+(λ n, (cech_nerve_obj_iso G n).symm) $ λ m n f,  wide_pullback.hom_ext
+  (λ j, (arrow.mk (terminal.from (Action.of_mul_action G G))).hom) _ _
 (λ j, begin
   simp only [category.assoc],
-  dsimp,
-  rw wide_pullback.lift_π,
-  erw [limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.is_limit G n),
-    limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.is_limit G m)],
+  dsimp [cech_nerve_obj_iso],
+  rw [wide_pullback.lift_π, category.assoc],
+  erw [limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.limit_cone _ _).2,
+    limit.cone_point_unique_up_to_iso_hom_comp (diagonal_as_limit_cone _ _).2, category.assoc],
+  dunfold wide_pullback.π,
+  erw [limit.cone_point_unique_up_to_iso_inv_comp, limit.iso_limit_cone_inv_π],
   refl,
-end) (by ext)).symm
+end)
+(@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _)).symm
+
+/-- The `m`th object of the Čech nerve of the function
+`G ⟶ {pt}` is isomorphic to the set `Gᵐ⁺¹`. -/
+def forget_nerve_iso_obj :
+  (cech_nerve (arrow.mk $ terminal.from G)).obj m ≅ (fin (m.unop.len + 1) → G) :=
+(limit.iso_limit_cone (wide_cospan.limit_cone _ _)).trans $ types.product_iso _
+
+/-- The Čech nerve of the function `G ⟶ {pt}` is naturally isomorphic to `EG`, the universal
+cover of the classifying space of `G` as a simplicial set. -/
+def forget_nerve_iso : cech_nerve (arrow.mk $ terminal.from G)
+  ≅ classifying_space_universal_cover G ⋙ forget _ :=
+(@nat_iso.of_components _ _ _ _ (classifying_space_universal_cover G ⋙ forget _)
+  (cech_nerve (arrow.mk $ terminal.from G))
+  (λ m, (forget_nerve_iso_obj G m).symm) $
+λ m n f, wide_pullback.hom_ext (λ j, (arrow.mk $ terminal.from G).hom) _ _
+(λ j, begin
+  simp only [category.assoc],
+  dsimp [forget_nerve_iso_obj],
+  rw [wide_pullback.lift_π, category.assoc],
+  erw [limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.limit_cone _ _).2,
+    limit.cone_point_unique_up_to_iso_hom_comp (types.product_limit_cone _).2, category.assoc],
+  dunfold wide_pullback.π,
+  erw [limit.cone_point_unique_up_to_iso_inv_comp, limit.iso_limit_cone_inv_π],
+  refl,
+end)
+(@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _)).symm
+
 
 variables (k G)
+
+def aug_cover : simplicial_object.augmented (Type u) :=
+simplicial_object.augment (classifying_space_universal_cover G ⋙ forget _) (terminal _)
+(terminal.from _) $ λ i g h, subsingleton.elim _ _
+
+def aug_iso : (arrow.mk $ terminal.from G).augmented_cech_nerve ≅ aug_cover G :=
+comma.iso_mk (forget_nerve_iso G) (iso.refl _) $
+begin
+  ext1, ext1,
+  exact (@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _),
+end
+
+def split_epi : split_epi (arrow.mk $ terminal.from G).hom :=
+{ section_ := λ x, (1 : G),
+  id' := @subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _ }
+
+def extra_degen_nerve :
+  simplicial_object.augmented.extra_degeneracy (arrow.mk $ terminal.from G).augmented_cech_nerve :=
+augmented_cech_nerve.extra_degeneracy (arrow.mk $ terminal.from G) (split_epi G)
+
+def extra_degen_cover :
+  simplicial_object.augmented.extra_degeneracy (aug_cover G) :=
+simplicial_object.augmented.extra_degeneracy.of_iso (aug_iso G) (extra_degen_nerve G)
+
+def Module_cover : simplicial_object.augmented (Module.{u} k) :=
+((simplicial_object.augmented.whiskering _ _).obj (Module.free k)).obj (aug_cover G)
+
+def extra_degen_Module_cover :
+  simplicial_object.augmented.extra_degeneracy (Module_cover k G) :=
+(Module.free k).map_extra_degeneracy (aug_cover G) (extra_degen_cover G)
+
+def resn := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
+  (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
+
+def forget_resn := ((forget₂ (Rep k G) (Module.{u} k)).map_homological_complex _).obj (resn k G)
+
+lemma forget_free_eq : forget (Action (Type u) (Mon.of G)) ⋙ Module.free.{u} k
+  = (Rep.linearization k G).1.1 ⋙ forget₂ (Rep k G) (Module.{u} k) :=
+category_theory.functor.ext (λ X, by refl) (λ X Y f, by ext; refl)
+
+lemma functor.comp_assoc {A : Type u} [category.{v} A] {B : Type u'} [category.{v'} B]
+  {C : Type w} [category.{w'} C] {D : Type t} [category.{t'} D]
+  (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : (F ⋙ G) ⋙ H = F ⋙ G ⋙ H :=
+begin
+  refine category_theory.functor.ext _ _,
+  intro, refl,
+  intros,
+  simp only [functor.comp_map, eq_to_hom_refl, category.comp_id, category.id_comp],
+
+end
+
+lemma eq_forget_resn : (algebraic_topology.alternating_face_map_complex.obj
+  (simplicial_object.augmented.drop.obj (Module_cover k G))) = forget_resn k G :=
+begin
+  show algebraic_topology.alternating_face_map_complex.obj
+    ((_ ⋙ _) ⋙ _) = _,
+  rw [functor.comp_assoc, forget_free_eq, ←functor.comp_assoc],
+  exact (category_theory.functor.congr_obj
+    (algebraic_topology.map_alternating_face_map_complex _) _).symm,
+end
+
+def homotopy_equiv.of_iso {ι : Type*} {V : Type u} [category.{v} V] [preadditive V]
+  {c : complex_shape ι} {C D : homological_complex V c} (f : C ≅ D) :
+  homotopy_equiv C D :=
+{ hom := f.hom,
+  inv := f.inv,
+  homotopy_hom_inv_id := homotopy.of_eq f.3,
+  homotopy_inv_hom_id := homotopy.of_eq f.4 }
+
+def homotopy_equiv.of_eq {ι : Type*} {V : Type u} [category.{v} V] [preadditive V]
+  {c : complex_shape ι} {C D : homological_complex V c} (h : C = D) :
+  homotopy_equiv C D := homotopy_equiv.of_iso (eq_to_iso h)
+
+instance : unique (terminal (Type u)) := equiv.unique (types.terminal_iso).to_equiv
+
+instance : unique ((@simplicial_object.augmented.point (Type u) _).obj (aug_cover G)) :=
+equiv.unique (types.terminal_iso).to_equiv
+
+def single_iso : (chain_complex.single₀ (Module k)).obj
+  (simplicial_object.augmented.point.obj (Module_cover k G)) ≅
+  (chain_complex.single₀ (Module k)).obj (Module.of k k) :=
+homological_complex.hom.iso_of_components (λ i, nat.rec_on i
+  (finsupp.linear_equiv.finsupp_unique k k (terminal (Type u))).to_Module_iso (λ j hj, iso.refl _)) $
+begin
+   intros i j hij,
+   cases hij,
+   ext,
+   simp only [chain_complex.single₀_obj_X_d, comp_zero, zero_comp],
+end
+
+def forget_resn_homotopy_equiv : homotopy_equiv (forget_resn k G)
+    ((chain_complex.single₀ (Module k)).obj (Module.of k k)) :=
+(homotopy_equiv.of_eq (eq_forget_resn k G).symm).trans $
+  (simplicial_object.augmented.extra_degeneracy.preadditive.homotopy_equivalence
+  (extra_degen_Module_cover k G)).trans (homotopy_equiv.of_iso $ single_iso k G)
+
 def resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
   (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
 
-def forget_resn := ((forget₂ (Rep k G) (Module.{u} k)).map_homological_complex _).obj
-(resolution k G)
-
-def to_Module := (Rep.linearization k G).1.1 ⋙ forget₂ (Rep k G) (Module.{u} k)
-def to_Module2 := forget (Action (Type u) $ Mon.of G) ⋙ Module.free k
-
-def split_epi_aux : split_epi (arrow G).hom.hom :=
-{ section_ := λ x, (1 : G),
-  id' := by ext }
-
-def split_epi : split_epi ((to_Module k G).map_arrow.obj (arrow G)).hom :=
-{ section_ := (split_epi.map (split_epi_aux G) ((forget _) ⋙ Module.free k)).1,
-  id' := (split_epi.map (split_epi_aux G) ((forget _) ⋙ Module.free k)).2 }
-
-def aug_nerve := ((to_Module k G).map_arrow.obj $ arrow G).augmented_cech_nerve
-
-def cech_nerve_extra_degen :
-  simplicial_object.augmented.extra_degeneracy (aug_nerve k G) :=
-augmented_cech_nerve.extra_degeneracy _ (split_epi k G)
-
-def homotopy_equiv := simplicial_object.augmented.extra_degeneracy.preadditive.homotopy_equivalence
-  (cech_nerve_extra_degen k G)
-
-def nerve_complex := (algebraic_topology.alternating_face_map_complex.obj
-  (simplicial_object.augmented.drop.obj (aug_nerve k G)))
-
-theorem nerve_complex_exact (n : ℕ) :
-  exact ((nerve_complex k G).d (n + 2) (n + 1)) ((nerve_complex k G).d (n + 1) n) :=
-(preadditive.exact_iff_homology_zero _ _).2 ⟨(nerve_complex k G).d_comp_d _ _ _,
+theorem forget_resn_exact (n : ℕ) :
+  exact ((forget_resn k G).d (n + 2) (n + 1)) ((forget_resn k G).d (n + 1) n) :=
+(preadditive.exact_iff_homology_zero _ _).2 ⟨(forget_resn k G).d_comp_d _ _ _,
   ⟨(chain_complex.succth _ _).symm.trans ((homology_obj_iso_of_homotopy_equiv
-  (homotopy_equiv k G) _).trans homology_zero_zero)⟩⟩
-
-def aux (n : simplex_categoryᵒᵖ) :
-  (wide_pullback_shape.wide_cospan ((to_Module k G).obj (arrow G).right)
-    (λ (i : fin ((opposite.unop n).len + 1)), (to_Module k G).obj (arrow G).left)
-    (λ (i : fin ((opposite.unop n).len + 1)), (to_Module k G).map (arrow G).hom))
-  ≅ (wide_pullback_shape.wide_cospan (arrow G).right (λ (i : fin ((opposite.unop n).len + 1)),
-   (arrow G).left) (λ (i : fin ((opposite.unop n).len + 1)), (arrow G).hom) ⋙ to_Module k G) :=
-nat_iso.of_components (λ m, option.rec_on m (iso.refl _) (λ i, iso.refl _)) $ λ i j f,
-begin
-  cases f,
-  { cases i,
-    all_goals
-    { ext a b,
-      show finsupp.single a (1 : k) _ = finsupp.map_domain _ _ _,
-      dsimp,
-      rw finsupp.map_domain_single,
-      congr }},
-  { refl },
-end
-
-instance hmmm (n : simplex_categoryᵒᵖ) : preserves_limit (wide_pullback_shape.wide_cospan
-  (arrow G).right (λ (i : fin ((opposite.unop n).len + 1)),
-  (arrow G).left) (λ (i : fin ((opposite.unop n).len + 1)), (arrow G).hom))
-    (to_Module2 k G) :=
-preserves_limit_of_preserves_limit_cone (wide_cospan.is_limit G n) $
-sorry
-
-def nerve_complex_iso_aux (n : simplex_categoryᵒᵖ) :
-  ((to_Module k G).map_arrow.obj $ arrow G).cech_nerve.obj n ≅
-  (((simplicial_object.whiskering _ _).obj (to_Module k G)).obj
-  (arrow G).cech_nerve).obj n :=
-(has_limit.iso_of_nat_iso (aux k G n)).trans (@preserves_limit_iso _ _ _
-    _ _ _ _ (wide_pullback_shape.wide_cospan _ _ _)
-    (classifying_space_universal_cover.hmmm _ _ _) _ _).symm
-
-def nerve_complex_iso :
-  nerve_complex k G ≅ forget_resn k G :=
-homological_complex.hom.iso_of_components (λ i,
-(nerve_complex_iso_aux k G (opposite.op $ simplex_category.mk i)).trans ((to_Module k G).map_iso
-(cech_nerve_obj_iso G (opposite.op $ simplex_category.mk i)))) $
-begin
-  intros i j hij,
-  cases hij,
-  dsimp at *,
-  sorry,
-end
+  (forget_resn_homotopy_equiv k G) _).trans homology_zero_zero)⟩⟩
 
 variables {k G}
 
@@ -412,8 +519,7 @@ end
 
 theorem noice (n : ℕ) :
   exact ((resolution k G).d (n + 2) (n + 1)) ((resolution k G).d (n + 1) n) :=
-functor.exact_of_exact_map (forget₂ (Rep k G) (Module.{u} k)) ((yeugh (nerve_complex_iso _ _).symm
-  (n + 2) (n + 1) n (by simp) (by simp)).2 (nerve_complex_exact _ _ _))
+functor.exact_of_exact_map (forget₂ (Rep k G) (Module.{u} k)) (forget_resn_exact _ _ _)
 
 end classifying_space_universal_cover
 namespace group_cohomology.resolution

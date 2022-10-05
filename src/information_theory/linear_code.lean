@@ -8,6 +8,8 @@ import information_theory.hamming
 import linear_algebra.linear_independent
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finite_dimensional
+import data.set.basic
+-- import data.rational.basic
 
 /-!
 # Linear Codes
@@ -23,21 +25,34 @@ subset `D` of the field
 
 -/
 
-
+/--
+A linear error-correcting code, defined as a subspace of the vector space of functions from a
+domain into a field.
+-/
 def linear_code (𝓓 F : Type) [fintype 𝓓] [field F] := submodule F ( 𝓓 -> F )
 
 namespace linear_code
 
 variables {𝓓 F : Type} [fintype 𝓓] [field F] [decidable_eq F]
 
+/-- The size of the domain of a code, i.e. the number of field elements transmitted -/
 def length (C : linear_code 𝓓 F) : ℕ := fintype.card 𝓓
 
+/-- The set of all valid codewords -/
 def codewords (C : linear_code 𝓓 F) := C.carrier
 
+/-- The dimension of the subspace of codewords -/
 noncomputable def dimension (C : linear_code 𝓓 F) : ℕ := set.finrank F C.codewords
 
+/--
+The minimum hamming distance between any two elements of the code. Equivalently, the minimum
+hamming distance of 0 from any nonzero element of the code.
+-/
 noncomputable def distance (C : linear_code 𝓓 F) : ℕ :=
-Inf (set.image (λ w : hamming (λ i : 𝓓, F), hamming_dist w 0) C.codewords)
+Inf (set.image (λ w : hamming (λ i : 𝓓, F), hamming_dist w 0) (C.codewords \ {0}))
+
+/-- The proportion of non-redundant information to the size of the code -/
+noncomputable def rate (C : linear_code 𝓓 F) : ℚ := rat.mk C.dimension C.length
 
 end linear_code
 
@@ -45,6 +60,10 @@ section reed_solomon
 
 variables {F : Type} [field F]
 
+/--
+The linear code consisting of all polynomials of degree `≤ k` evaluated on a subset `D` of the
+field.
+-/
 def reed_solomon (k : ℕ) (D : finset F) : linear_code D F :=
 { carrier := {w | ∃ p : polynomial F, p.nat_degree ≤ k ∧ w = (λ x, polynomial.eval x p)},
   add_mem' :=

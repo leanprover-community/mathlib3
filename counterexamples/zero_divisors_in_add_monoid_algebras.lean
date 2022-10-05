@@ -17,7 +17,7 @@ This file contains an easy source of zero-divisors in an `add_monoid_algebra`.
 If `k` is a field and `G` is an additive group containing a non-zero torsion element, then
 `add_monoid_algebra k G` contains non-zero zero-divisors: this is lemma `zero_divisors_of_torsion`.
 
-There is also a version for periodic elements of an additive monoid `zero_divisors_of_periodic`.
+There is also a version for periodic elements of an additive monoid: `zero_divisors_of_periodic`.
 
 The converse of this statement is
 [Kaplansky's zero divisor conjecture](https://en.wikipedia.org/wiki/Kaplansky%27s_conjectures).
@@ -42,7 +42,7 @@ finitely supported function is lexicographic, matching the list notation.  The i
 -/
 open finsupp add_monoid_algebra
 
-/--  This is simple example showing that if `R` is a non-trivial ring and `A` is an additive
+/--  This is a simple example showing that if `R` is a non-trivial ring and `A` is an additive
 monoid with an element `a` satisfying `n • a = a` and `(n - 1) • a ≠ a`, for some `2 ≤ n`,
 then `add_monoid_algebra R A` contains non-zero zero-divisors.  The elements are easy to write down:
 `[a]` and `[a] ^ (n - 1) - 1` are non-zero elements of `add_monoid_algebra R A` whose product
@@ -63,7 +63,7 @@ end
 lemma single_zero_one {R A} [semiring R] [has_zero A] :
   single (0 : A) (1 : R) = (1 : add_monoid_algebra R A) := rfl
 
-/--  This is simple example showing that if `R` is a non-trivial ring and `A` is an additive
+/--  This is a simple example showing that if `R` is a non-trivial ring and `A` is an additive
 monoid with a non-zero element `a` of finite order `oa`, then `add_monoid_algebra R A` contains
 non-zero zero-divisors.  The elements are easy to write down:
 `∑ i in finset.range oa, [a] ^ i` and `[a] - 1` are non-zero elements of `add_monoid_algebra R A`

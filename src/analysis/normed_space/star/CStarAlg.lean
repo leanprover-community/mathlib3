@@ -9,6 +9,7 @@ import analysis.normed_space.star.basic
 import analysis.complex.basic
 import category_theory.elementwise
 import category_theory.concrete_category.reflects_isomorphisms
+import algebra.category.Algebra.basic
 
 .
 
@@ -188,6 +189,11 @@ noncomputable instance has_forget_to_CStarAlg : has_forget₂ CStarAlg₁ CStarA
 { forget₂ :=
   { obj := λ A, ⟨A⟩,
     map := λ A B f, (f : A →⋆ₙₐ[ℂ] B), } }
+
+noncomputable instance has_forget_to_Algebra : has_forget₂ CStarAlg₁ (Algebra ℂ) :=
+{ forget₂ :=
+  { obj := λ A, ⟨A⟩,
+    map := λ A B f, f.to_alg_hom } }
 
 /- need more imports for this, and probably we can get stronger statements, like `lipschitz_with 1`
 Any morphism of `CStarAlg₁` is continuous.

@@ -120,7 +120,7 @@ begin
   cases eq_or_lt_of_le (norm_nonneg (u ×₃ v)) with h h,
   { rw ← h,
     positivity },
-  refine le_of_mul_le_mul_right' _ h,
+  refine le_of_mul_le_mul_right _ h,
   rw ← real_inner_self_eq_norm_mul_norm,
   simpa only [inner_cross_product_apply, fin.mk_zero, fin.prod_univ_succ, finset.card_singleton,
     finset.prod_const, fintype.univ_of_subsingleton, matrix.cons_val_fin_one, matrix.cons_val_succ,
@@ -152,7 +152,7 @@ begin
     have h2 : ⟪(v:E), w⟫ = 0 := w.2 _ (submodule.subset_span (by simp)),
     have h3 : ⟪u, w⟫ = 0 := w.2 _ (submodule.subset_span (by simp)),
     fin_cases i; fin_cases j; norm_num at hij; simp [h1, h2, h3]; rw real_inner_comm; assumption },
-  refine le_of_mul_le_mul_right' _ (by rwa norm_pos_iff : 0 < ∥w∥),
+  refine le_of_mul_le_mul_right _ (by rwa norm_pos_iff : 0 < ∥w∥),
   -- Cauchy-Schwarz inequality for `u ×₃ v` and `w`
   simpa only [inner_cross_product_apply, ω.abs_volume_form_apply_of_pairwise_orthogonal H,
     inner_cross_product_apply, fin.mk_zero, fin.prod_univ_succ, finset.card_singleton,

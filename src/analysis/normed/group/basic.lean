@@ -621,6 +621,9 @@ lemma nnnorm_mul_le' (a b : E) : ∥a * b∥₊ ≤ ∥a∥₊ + ∥b∥₊ := n
 
 @[simp, to_additive nnnorm_neg] lemma nnnorm_inv' (a : E) : ∥a⁻¹∥₊ = ∥a∥₊ := nnreal.eq $ norm_inv' a
 
+@[to_additive] lemma nnnorm_div_le (a b : E) : ∥a / b∥₊ ≤ ∥a∥₊ + ∥b∥₊ :=
+nnreal.coe_le_coe.1 $ norm_div_le _ _
+
 @[to_additive nndist_nnnorm_nnnorm_le]
 lemma nndist_nnnorm_nnnorm_le' (a b : E) : nndist ∥a∥₊ ∥b∥₊ ≤ ∥a / b∥₊ :=
 nnreal.coe_le_coe.1 $ dist_norm_norm_le' a b
@@ -1438,9 +1441,9 @@ end order_dual
 section has_norm
 variables [has_norm E] [has_norm F] {x : E × F} {r : ℝ}
 
-noncomputable instance : has_norm (E × F) := ⟨λ x, max ∥x.1∥ ∥x.2∥⟩
+instance : has_norm (E × F) := ⟨λ x, ∥x.1∥ ⊔ ∥x.2∥⟩
 
-lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
+lemma prod.norm_def (x : E × F) : ∥x∥ = max ∥x.1∥ ∥x.2∥ := rfl
 lemma norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ := le_max_left _ _
 lemma norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ := le_max_right _ _
 
@@ -1453,7 +1456,7 @@ variables [seminormed_group E] [seminormed_group F]
 
 /-- Product of seminormed groups, using the sup norm. -/
 @[to_additive "Product of seminormed groups, using the sup norm."]
-noncomputable instance : seminormed_group (E × F) :=
+instance : seminormed_group (E × F) :=
 ⟨λ x y, by simp only [prod.norm_def, prod.dist_eq, dist_eq_norm_div, prod.fst_div, prod.snd_div]⟩
 
 @[to_additive prod.nnnorm_def']
@@ -1463,18 +1466,16 @@ end seminormed_group
 
 /-- Product of seminormed groups, using the sup norm. -/
 @[to_additive "Product of seminormed groups, using the sup norm."]
-noncomputable instance [seminormed_comm_group E] [seminormed_comm_group F] :
-  seminormed_comm_group (E × F) :=
+instance [seminormed_comm_group E] [seminormed_comm_group F] : seminormed_comm_group (E × F) :=
 { ..prod.seminormed_group }
 
 /-- Product of normed groups, using the sup norm. -/
 @[to_additive "Product of normed groups, using the sup norm."]
-noncomputable instance [normed_group E] [normed_group F] : normed_group (E × F) :=
-{ ..prod.seminormed_group }
+instance [normed_group E] [normed_group F] : normed_group (E × F) := { ..prod.seminormed_group }
 
 /-- Product of normed groups, using the sup norm. -/
 @[to_additive "Product of normed groups, using the sup norm."]
-noncomputable instance [normed_comm_group E] [normed_comm_group F] : normed_comm_group (E × F) :=
+instance [normed_comm_group E] [normed_comm_group F] : normed_comm_group (E × F) :=
 { ..prod.seminormed_group }
 
 
@@ -1488,7 +1489,7 @@ variables [Π i, seminormed_group (π i)] [seminormed_group E] (f : Π i, π i) 
 
 /-- Finite product of seminormed groups, using the sup norm. -/
 @[to_additive "Finite product of seminormed groups, using the sup norm."]
-noncomputable instance : seminormed_group (Π i, π i) :=
+instance : seminormed_group (Π i, π i) :=
 { norm := λ f, ↑(finset.univ.sup (λ b, ∥f b∥₊)),
   dist_eq := λ x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ λ a,
@@ -1547,19 +1548,18 @@ end seminormed_group
 
 /-- Finite product of seminormed groups, using the sup norm. -/
 @[to_additive "Finite product of seminormed groups, using the sup norm."]
-noncomputable instance pi.seminormed_comm_group [Π i, seminormed_comm_group (π i)] :
+instance pi.seminormed_comm_group [Π i, seminormed_comm_group (π i)] :
   seminormed_comm_group (Π i, π i) :=
 { ..pi.seminormed_group }
 
 /-- Finite product of normed groups, using the sup norm. -/
 @[to_additive "Finite product of seminormed groups, using the sup norm."]
-noncomputable instance pi.normed_group [Π i, normed_group (π i)] : normed_group (Π i, π i) :=
+instance pi.normed_group [Π i, normed_group (π i)] : normed_group (Π i, π i) :=
 { ..pi.seminormed_group }
 
 /-- Finite product of normed groups, using the sup norm. -/
 @[to_additive "Finite product of seminormed groups, using the sup norm."]
-noncomputable instance pi.normed_comm_group [Π i, normed_comm_group (π i)] :
-  normed_comm_group (Π i, π i) :=
+instance pi.normed_comm_group [Π i, normed_comm_group (π i)] : normed_comm_group (Π i, π i) :=
 { ..pi.seminormed_group }
 
 end pi

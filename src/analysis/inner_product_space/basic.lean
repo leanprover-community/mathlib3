@@ -841,11 +841,22 @@ begin
   simp [hf.eq_iff]
 end
 
+/-- An injective family `v : ι → E` is orthonormal if and only if `coe : (range v) → E` is
+orthonormal. -/
+lemma orthonormal_subtype_range {v : ι → E} (hv : function.injective v) :
+  orthonormal 𝕜 (coe : set.range v → E) ↔ orthonormal 𝕜 v :=
+begin
+  let f : ι ≃ set.range v := equiv.of_injective v hv,
+  refine ⟨λ h, h.comp f f.injective, λ h, _⟩,
+  rw ← equiv.self_comp_of_injective_symm hv,
+  exact h.comp f.symm f.symm.injective,
+end
+
 /-- If `v : ι → E` is an orthonormal family, then `coe : (range v) → E` is an orthonormal
 family. -/
-lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
+lemma orthonormal.to_subtype_range {v : ι → E} (hv : orthonormal 𝕜 v) :
   orthonormal 𝕜 (coe : set.range v → E) :=
-by simpa using hv.comp _ (set.range_splitting_injective v)
+(orthonormal_subtype_range hv.linear_independent.injective).2 hv
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/

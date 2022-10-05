@@ -138,8 +138,7 @@ lemma concrete_category.injective_of_mono_of_preserves_pullback {X Y : C} (f : X
 
 lemma concrete_category.mono_iff_injective_of_preserves_pullback {X Y : C} (f : X ⟶ Y)
   [preserves_limits_of_shape walking_cospan (forget C)] : mono f ↔ function.injective f :=
-⟨λ m, by exactI concrete_category.injective_of_mono_of_preserves_pullback _,
- concrete_category.mono_of_injective f⟩
+((forget C).mono_map_iff_mono _).symm.trans (mono_iff_injective _)
 
 /-- In any concrete category, surjective morphisms are epimorphisms. -/
 lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.surjective f) :

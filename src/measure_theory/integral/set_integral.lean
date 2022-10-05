@@ -247,7 +247,7 @@ lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_top
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 begin
   have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
-    by { ext, simp_rw [set.mem_union_eq, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
+    by { ext, simp_rw [set.mem_union, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
   rw h_union,
   exact (set_integral_union_eq_left hf hfi (hf.measurable_set_lt strongly_measurable_const)
     (λ x hx, hx)).symm,
@@ -274,7 +274,7 @@ begin
   refine set_integral_congr h_meas.compl (λ x hx, _),
   dsimp only,
   rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
-  rw [set.mem_compl_iff, set.nmem_set_of_eq] at hx,
+  rw [set.mem_compl_iff, set.nmem_set_of_iff] at hx,
   linarith,
 end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :
@@ -394,6 +394,30 @@ begin
   rw [integral_pos_iff_support_of_nonneg_ae hf hfi, measure.restrict_apply₀],
   rw support_eq_preimage,
   exact hfi.ae_strongly_measurable.ae_measurable.null_measurable (measurable_set_singleton 0).compl
+end
+
+lemma set_integral_gt_gt {R : ℝ} {f : α → ℝ} (hR : 0 ≤ R) (hfm : measurable f)
+  (hfint : integrable_on f {x | ↑R < f x} μ) (hμ : μ {x | ↑R < f x} ≠ 0):
+  (μ {x | ↑R < f x}).to_real * R < ∫ x in {x | ↑R < f x}, f x ∂μ :=
+begin
+  have : integrable_on (λ x, R) {x | ↑R < f x} μ,
+  { refine ⟨ae_strongly_measurable_const, lt_of_le_of_lt _ hfint.2⟩,
+    refine set_lintegral_mono (measurable.nnnorm _).coe_nnreal_ennreal
+      hfm.nnnorm.coe_nnreal_ennreal (λ x hx, _),
+    { exact measurable_const },
+    { simp only [ennreal.coe_le_coe, real.nnnorm_of_nonneg hR,
+        real.nnnorm_of_nonneg (hR.trans $ le_of_lt hx), subtype.mk_le_mk],
+      exact le_of_lt hx } },
+  rw [← sub_pos, ← smul_eq_mul, ← set_integral_const, ← integral_sub hfint this,
+    set_integral_pos_iff_support_of_nonneg_ae],
+  { rw ← zero_lt_iff at hμ,
+    rwa set.inter_eq_self_of_subset_right,
+    exact λ x hx, ne.symm (ne_of_lt $ sub_pos.2 hx) },
+  { change ∀ᵐ x ∂(μ.restrict _), _,
+    rw ae_restrict_iff,
+    { exact eventually_of_forall (λ x hx, sub_nonneg.2 $ le_of_lt hx) },
+    { exact measurable_set_le measurable_zero (hfm.sub measurable_const) } },
+  { exact integrable.sub hfint this },
 end
 
 lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}

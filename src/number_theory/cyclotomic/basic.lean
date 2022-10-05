@@ -5,7 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import ring_theory.polynomial.cyclotomic.basic
-import number_theory.number_field
+import number_theory.number_field.basic
 import algebra.char_p.algebra
 import field_theory.galois
 
@@ -552,12 +552,12 @@ instance [ne_zero ((n : ℕ) : A)] :
       refine ⟨⟨a.1 * b.2 + b.1 * a.2, a.2 * b.2, mul_mem_non_zero_divisors.2 ⟨a.2.2, b.2.2⟩⟩, _⟩,
       rw [set_like.coe_mk, ring_hom.map_mul, add_mul, ← mul_assoc, ha,
         mul_comm ((algebra_map _ _) ↑a.2), ← mul_assoc, hb],
-      simp },
+      simp only [map_add, map_mul] },
     { rintro y z ⟨a, ha⟩ ⟨b, hb⟩,
       refine ⟨⟨a.1 * b.1, a.2 * b.2, mul_mem_non_zero_divisors.2 ⟨a.2.2, b.2.2⟩⟩, _⟩,
       rw [set_like.coe_mk, ring_hom.map_mul, mul_comm ((algebra_map _ _) ↑a.2), mul_assoc,
         ← mul_assoc z, hb, ← mul_comm ((algebra_map _ _) ↑a.2), ← mul_assoc, ha],
-      simp }
+      simp only [map_mul] }
   end,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by rw adjoin_algebra_injective n A K h⟩,
     λ ⟨c, hc⟩, by rw mul_right_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }

@@ -413,16 +413,9 @@ end
 instance complete_space.sum [complete_space α] [complete_space β] :
   complete_space (α ⊕ β) :=
 begin
-  rw complete_space_iff_is_complete_univ,
-  have A : is_complete (range (sum.inl : α → α ⊕ β)) :=
-    uniform_embedding_inl.to_uniform_inducing.is_complete_range,
-  have B : is_complete (range (sum.inr : β → α ⊕ β)) :=
-    uniform_embedding_inr.to_uniform_inducing.is_complete_range,
-  convert A.union B,
-  apply (eq_univ_of_forall (λ x, _)).symm,
-  cases x,
-  { left, exact mem_range_self _ },
-  { right, exact mem_range_self _ }
+  rw [complete_space_iff_is_complete_univ, ← range_inl_union_range_inr],
+  exact uniform_embedding_inl.to_uniform_inducing.is_complete_range.union
+    uniform_embedding_inr.to_uniform_inducing.is_complete_range
 end
 
 end

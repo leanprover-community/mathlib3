@@ -848,7 +848,7 @@ lemma comp_star_alg_hom_id :
   comp_star_alg_hom 𝕜 A (continuous_map.id X) = star_alg_hom.id 𝕜 C(X, A) :=
 star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
 
-/-- `continuous_map.comp_star_alg_hom` really is functorial. -/
+/-- `continuous_map.comp_star_alg_hom` is functorial. -/
 lemma comp_star_alg_hom_comp (g : C(Y, Z)) (f : C(X, Y)) :
   comp_star_alg_hom 𝕜 A (g.comp f) = (comp_star_alg_hom 𝕜 A f).comp (comp_star_alg_hom 𝕜 A g) :=
 star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl

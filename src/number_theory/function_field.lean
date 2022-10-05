@@ -8,6 +8,7 @@ import ring_theory.algebraic
 import ring_theory.dedekind_domain.integral_closure
 import ring_theory.integrally_closed
 import topology.algebra.valued_field
+import algebra.order.group.type_tags
 
 /-!
 # Function fields

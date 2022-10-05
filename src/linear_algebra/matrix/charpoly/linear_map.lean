@@ -29,10 +29,10 @@ open_locale big_operators
 /-- Matrices, being endomorphisms of `ι → R`, acts on `(ι → R) →ₗ[R] M`, and takes the projection
 to a `(ι → R) →ₗ[R] M`.  -/
 def pi_to_module.from_matrix [decidable_eq ι] : matrix ι ι R →ₗ[R] (ι → R) →ₗ[R] M :=
-(linear_map.llcomp R _ _ _ (fintype.total ι M R v)).comp alg_equiv_matrix'.symm.to_linear_map
+(linear_map.llcomp R _ _ _ (fintype.total R R v)).comp alg_equiv_matrix'.symm.to_linear_map
 
 lemma pi_to_module.from_matrix_apply [decidable_eq ι] (A : matrix ι ι R) (w : ι → R) :
-  pi_to_module.from_matrix R v A w = fintype.total ι M R v (A.mul_vec w) := rfl
+  pi_to_module.from_matrix R v A w = fintype.total R R v (A.mul_vec w) := rfl
 
 lemma pi_to_module.from_matrix_apply_single_one [decidable_eq ι] (A : matrix ι ι R) (i : ι) :
   pi_to_module.from_matrix R v A (pi.single i 1) = ∑ (x : ι), A x i • v x :=
@@ -44,17 +44,17 @@ end
 /-- The endomorphisms of `M` acts on `(ι → R) →ₗ[R] M`, and takes the projection
 to a `(ι → R) →ₗ[R] M`. -/
 def pi_to_module.from_End : (module.End R M) →ₗ[R] (ι → R) →ₗ[R] M :=
-linear_map.lcomp _ _ (fintype.total ι M R v)
+linear_map.lcomp _ _ (fintype.total R R v)
 
 lemma pi_to_module.from_End_apply (f : module.End R M) (w : ι → R) :
-  pi_to_module.from_End R v f w = f (fintype.total ι M R v w) := rfl
+  pi_to_module.from_End R v f w = f (fintype.total R R v w) := rfl
 
 lemma pi_to_module.from_End_apply_single_one [decidable_eq ι] (f : module.End R M) (i : ι) :
   pi_to_module.from_End R v f (pi.single i 1) = f (v i) :=
 begin
   rw pi_to_module.from_End_apply,
   congr,
-  convert fintype.total_apply_single R i 1,
+  convert fintype.total_apply_single R v i 1,
   rw one_smul,
 end
 
@@ -63,8 +63,8 @@ lemma pi_to_module.from_End_injective (hv : submodule.span R (set.range v) = ⊤
 begin
   intros x y e,
   ext m,
-  obtain ⟨m, rfl⟩ : m ∈ (fintype.total ι M R v).range,
-  { rw (fintype.range_total R).trans hv, trivial },
+  obtain ⟨m, rfl⟩ : m ∈ (fintype.total R R v).range,
+  { rw (fintype.range_total R v).trans hv, trivial },
   exact (linear_map.congr_fun e m : _)
 end
 
@@ -81,12 +81,12 @@ variables {v}
 
 lemma matrix_represents.congr_fun {A : matrix ι ι R} {f : module.End R M}
   (h : matrix_represents v A f) (x) :
-  fintype.total ι M R v (A.mul_vec x) = f (fintype.total ι M R v x) :=
+  fintype.total R R v (A.mul_vec x) = f (fintype.total R R v x) :=
 linear_map.congr_fun h x
 
 lemma matrix_represents.iff {A : matrix ι ι R} {f : module.End R M} :
   matrix_represents v A f ↔
-    ∀ x, fintype.total ι M R v (A.mul_vec x) = f (fintype.total ι M R v x) :=
+    ∀ x, fintype.total R R v (A.mul_vec x) = f (fintype.total R R v x) :=
 ⟨λ e x, e.congr_fun x, λ H, linear_map.ext $ λ x, H x⟩
 
 lemma matrix_represents.iff' {A : matrix ι ι R} {f : module.End R M} :
@@ -210,8 +210,8 @@ end
 end
 
 /--
-The **Cayley-Hamilton Theorem** for f.g. modules over arbirary rings, states that for each
-`R`-endomorphism `φ` of an `R`-module `M` such that `φ(M) ≤ I • M` for some ideal `I`, then there
+The **Cayley-Hamilton Theorem** for f.g. modules over arbirary rings states that for each
+`R`-endomorphism `φ` of an `R`-module `M` such that `φ(M) ≤ I • M` for some ideal `I`, there
 exists some `n` and some `aᵢ ∈ Iⁱ` such that `φⁿ + a₁ φⁿ⁻¹ + ⋯ + aₙ = 0`.
 
 This is the version found in Eisenbud 4.3, which is slightly weaker than Matsumura 2.1
@@ -219,9 +219,8 @@ This is the version found in Eisenbud 4.3, which is slightly weaker than Matsumu
 -/
 lemma linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul
   [module.finite R M] (f : module.End R M) (I : ideal R) (hI : f.range ≤ I • ⊤) :
-  ∃ p : polynomial R, p.monic ∧
-    (∀ k, p.coeff k ∈ I ^ (p.nat_degree - k)) ∧
-      polynomial.aeval f p = 0 :=
+  ∃ p : polynomial R,
+    p.monic ∧ (∀ k, p.coeff k ∈ I ^ (p.nat_degree - k)) ∧ polynomial.aeval f p = 0 :=
 begin
   classical,
   cases subsingleton_or_nontrivial R,

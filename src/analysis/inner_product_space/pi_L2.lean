@@ -51,7 +51,7 @@ For consequences in infinite dimension (Hilbert bases, etc.), see the file
 
 -/
 
-open real set filter is_R_or_C submodule
+open real set filter is_R_or_C submodule function
 open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
@@ -622,6 +622,28 @@ begin
   { simpa using hu₀_max },
   { simpa using hu₀s },
   { simp },
+end
+
+lemma _root_.orthonormal.exists_orthonormal_basis_extension_of_card_eq
+  {ι : Type*} [fintype ι] (card_ι : finrank 𝕜 E = fintype.card ι) {v : ι → E} {s : set ι}
+  (hv : orthonormal 𝕜 (s.restrict v)) :
+  ∃ b : orthonormal_basis ι 𝕜 E, ∀ i ∈ s, b i = v i :=
+begin
+  have hsv : injective (s.restrict v) := hv.linear_independent.injective,
+  have hX : orthonormal 𝕜 (coe : set.range (s.restrict v) → E),
+  { rwa orthonormal_subtype_range hsv },
+  obtain ⟨Y, b₀, hX, hb₀⟩ := hX.exists_orthonormal_basis_extension,
+  have hιY : fintype.card ι = Y.card,
+  { refine (card_ι.symm.trans _),
+    exact finite_dimensional.finrank_eq_card_finset_basis b₀.to_basis },
+  have hvsY : s.maps_to v Y := (s.maps_to_image v).mono_right (by rwa ← range_restrict),
+  have hsv' : set.inj_on v s,
+  { rw set.inj_on_iff_injective,
+    exact hsv },
+  obtain ⟨g, hg⟩ := hvsY.exists_equiv_extend_of_card_eq hιY hsv',
+  use b₀.reindex g.symm,
+  intros i hi,
+  { simp [hb₀, hg i hi] },
 end
 
 variables (𝕜 E)

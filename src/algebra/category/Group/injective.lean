@@ -164,7 +164,7 @@ variables {A} {a : A}
 There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
 -/
 @[reducible] noncomputable def to_fun : submodule.span ℤ {a} → ℚ⧸ℤ :=
-λ x, ⟨quotient.mk' (rat.mk (rep x) 2)⟩
+λ x, ulift.up $ quotient.mk' (rat.mk (rep x) 2)
 
 variables (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0)
 include infinite_order
@@ -212,8 +212,7 @@ end
 
 lemma map_smul' (m : ℤ) (x : submodule.span ℤ {a}) : to_fun (m • x) = m • to_fun x :=
 begin
-  ext1,
-  erw [quotient_add_group.eq', rep_smul infinite_order, zsmul_eq_mul, rat.coe_int_eq_mk m,
+  ext1, erw [quotient_add_group.eq', rep_smul infinite_order, zsmul_eq_mul, rat.coe_int_eq_mk m,
     rat.mul_def, show (1 : ℤ) * 2 = 2, from rfl, neg_add_self],
   exact add_subgroup.zero_mem _, all_goals { norm_num },
 end
@@ -226,45 +225,24 @@ There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
   map_add' := map_add' infinite_order,
   map_smul' := map_smul' infinite_order }
 
-lemma to_quotient.apply_ne_zero
-  (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0) :
+lemma to_quotient.apply_ne_zero :
   to_quotient infinite_order ⟨a, submodule.mem_span_singleton_self _⟩ ≠ 0 :=
 have H : ∀ (m : ℤ), - m * 2 ≠ 1, from λ m,
 by { rw [mul_comm, ←bit0_eq_two_mul], exact int.bit0_ne_bit1 (-m) 0 },
 begin
-  rw to_quotient_apply,
-  suffices : (quotient.mk' (rat.mk (rep ⟨a, _⟩) 2) : ℚ ⧸ divisible_emb.ℤ_as_ℚ_subgroup) ≠ 0,
-  { contrapose! this, rwa ulift.ext_iff at this, },
-  intro r,
-  rw show (0 : ℚ ⧸ divisible_emb.ℤ_as_ℚ_subgroup) = quotient.mk' 0, from rfl at r,
+  intros r, rw [to_quotient_apply, ulift.ext_iff] at r,
+  change quotient.mk' _ = (quotient.mk' 0 : ℚ ⧸ Z) at r,
   rw [quotient_add_group.eq', add_zero, rat.neg_def] at r,
   rcases r with ⟨m, eq1⟩,
-  rw show (m : ℚ) = rat.mk m 1, from rat.coe_int_eq_mk _ at eq1,
-  rw [rat.mk_eq, mul_one] at eq1,
-  replace eq1 : - m * 2 = rep ⟨a, _⟩,
-  { rw [neg_mul, eq1, neg_neg], },
-  have eq2 : (- m * 2) • a = rep ⟨a, _⟩ • a,
-  { rw [eq1], },
-  rw rep_eq at eq2,
-  rw ←subtype.val_eq_coe at eq2,
-  dsimp only at eq2,
+  rw [rat.coe_int_eq_mk _, rat.mk_eq, mul_one, eq_neg_iff_eq_neg, ←neg_mul] at eq1,
+  have eq2 : (- m * 2) • a = rep ⟨a, _⟩ • a := by rw [eq1],
+  rw [rep_eq, subtype.coe_mk] at eq2,
   have eq3 : (-m * 2 - 1) • a = 0,
   { rw [sub_smul, one_smul, sub_eq_zero, eq2], },
-  have eq4 : (-m * 2 - 1).nat_abs • a = 0,
-  { suffices : ((-m * 2 - 1).nat_abs : ℤ) • a = 0,
-    { rw ←this,
-      simp only [coe_nat_zsmul], },
-    rw [←int.abs_eq_nat_abs],
-    refine abs_by_cases (λ (m : ℤ), m • a = 0) eq3 _,
-    rw [neg_smul, eq3, neg_zero], },
-  have eq5 : (-m * 2 - 1).nat_abs = 0,
-  { contrapose! infinite_order,
-    exact ⟨_, infinite_order, eq4⟩, },
-  rw int.nat_abs_eq_zero at eq5,
-  rw [sub_eq_zero] at eq5,
-  exact H _ eq5,
-  norm_num,
-  norm_num,
+  have eq4 := infinite_order' infinite_order _ eq3,
+  rw [int.sub_eq_zero_iff_eq] at eq4,
+  exact H _ eq4,
+  all_goals { norm_num },
 end
 
 end infinite_order

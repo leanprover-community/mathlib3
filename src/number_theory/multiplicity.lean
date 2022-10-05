@@ -256,9 +256,9 @@ begin
     rw hy at ⊢ hx; revert hx; dec_trivial
 end
 
-lemma int.two_pow_two_pow_add_two_pow_two_pow {x y : ℤ}
-  (hx : ¬ 2 ∣ x) (hxy : 4 ∣ (x - y))
-  (i : ℕ) : multiplicity 2 (x ^ 2 ^ i + y ^ 2 ^ i) = ↑(1 : ℕ) :=
+lemma multiplicity.int.two_pow_two_pow_add_two_pow_two_pow {x y : ℤ}
+  (hx : ¬ 2 ∣ x) (hxy : 4 ∣ x - y) (i : ℕ) :
+  multiplicity 2 (x ^ 2 ^ i + y ^ 2 ^ i) = ↑(1 : ℕ) :=
 begin
   have hx_odd : odd x, { rwa [int.odd_iff_not_even, even_iff_two_dvd] },
   have hxy_even : even (x - y) := even_iff_two_dvd.mpr (dvd_trans (by norm_num) hxy),
@@ -279,11 +279,11 @@ begin
   rw [pow_succ, mul_comm, pow_mul, int.sq_mod_four_eq_one_of_odd hx.pow]
 end
 
-lemma int.two_pow_two_pow_sub_pow_two_pow {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x - y) (hx : ¬ 2 ∣ x) :
+lemma multiplicity.int.two_pow_two_pow_sub_pow_two_pow {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x - y) (hx : ¬ 2 ∣ x) :
   multiplicity 2 (x ^ (2 ^ n) - y ^ (2 ^ n)) = multiplicity 2 (x - y) + n :=
 by simp only [pow_two_pow_sub_pow_two_pow  n, multiplicity.mul int.prime_two,
     multiplicity.finset.prod (int.prime_two), add_comm, nat.cast_one, finset.sum_const,
-    finset.card_range, nsmul_one, int.two_pow_two_pow_add_two_pow_two_pow hx hxy]
+    finset.card_range, nsmul_one, multiplicity.int.two_pow_two_pow_add_two_pow_two_pow hx hxy]
 
 lemma int.two_pow_sub_pow' {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x - y) (hx : ¬ 2 ∣ x) :
   multiplicity 2 (x ^ n - y ^ n) = multiplicity 2 (x - y) + multiplicity (2 : ℤ) n :=
@@ -296,7 +296,7 @@ begin
   have h : (multiplicity 2 n.succ).dom := multiplicity.finite_nat_iff.mpr ⟨by norm_num, n.succ_pos⟩,
   rcases multiplicity.eq_coe_iff.mp (part_enat.coe_get h).symm with ⟨⟨k, hk⟩, hpn⟩,
   rw [hk, pow_mul, pow_mul, multiplicity.pow_sub_pow_of_prime,
-      int.two_pow_two_pow_sub_pow_two_pow _ hxy hx,
+      multiplicity.int.two_pow_two_pow_sub_pow_two_pow _ hxy hx,
       ← hk, part_enat.coe_get],
   { norm_cast },
   { exact int.prime_two },
@@ -310,7 +310,7 @@ begin
 end
 
 /-- **Lifting the exponent lemma** for `p = 2` -/
-lemma int.two_pow_sub_pow {x y : ℤ} {n : ℕ} (hxy : 2 ∣ x - y) (hx : ¬ 2 ∣ x) (hn : even n) :
+lemma multiplicity.int.two_pow_sub_pow {x y : ℤ} {n : ℕ} (hxy : 2 ∣ x - y) (hx : ¬ 2 ∣ x) (hn : even n) :
   multiplicity 2 (x ^ n - y ^ n) + 1 = multiplicity 2 (x + y) + multiplicity 2 (x - y) +
     multiplicity (2 : ℤ) n :=
 begin
@@ -341,7 +341,7 @@ begin
     simp only [int.odd_iff_not_even, even_iff_two_dvd, hx, not_false_iff] }
 end
 
-lemma nat.two_pow_sub_pow {x y : ℕ} (hxy : 2 ∣ x - y) (hx : ¬2 ∣ x) {n : ℕ} (hn : even n) :
+lemma multiplicity.nat.two_pow_sub_pow {x y : ℕ} (hxy : 2 ∣ x - y) (hx : ¬2 ∣ x) {n : ℕ} (hn : even n) :
   multiplicity 2 (x ^ n - y ^ n) + 1 = multiplicity 2 (x + y) + multiplicity 2 (x - y) +
     multiplicity 2 n :=
 begin
@@ -352,7 +352,7 @@ begin
       int.coe_nat_pow],
     rw ←int.coe_nat_dvd at hx,
     rw [←int.coe_nat_dvd, int.coe_nat_sub hyx] at hxy,
-    convert int.two_pow_sub_pow hxy hx hn using 2,
+    convert multiplicity.int.two_pow_sub_pow hxy hx hn using 2,
     rw ← multiplicity.int.coe_nat_multiplicity,
     refl },
   { simp only [nat.sub_eq_zero_iff_le.mpr hyx,
@@ -371,7 +371,7 @@ lemma pow_two_sub_pow (hyx : y < x) (hxy : 2 ∣ x - y) (hx : ¬ 2 ∣ x) {n : �
 begin
   simp only [←part_enat.coe_inj, nat.cast_add],
   iterate 4 { rw [padic_val_nat_def, part_enat.coe_get] },
-  { convert nat.two_pow_sub_pow hxy hx hneven using 2 },
+  { convert multiplicity.nat.two_pow_sub_pow hxy hx hneven using 2 },
   { exact hn },
   { exact (nat.sub_pos_of_lt hyx) },
   { linarith },

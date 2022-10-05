@@ -461,7 +461,7 @@ begin
   { intros x hx,
     simp only [finset.mem_sdiff, finset.mem_range, not_lt] at hx,
     exact hind _ hx.1 hx.2 },
-  have hlte := int.two_pow_sub_pow hdvdsub h2a h2d,
+  have hlte := multiplicity.int.two_pow_sub_pow hdvdsub h2a h2d,
   simp only [int.coe_nat_pow, int.coe_nat_bit0, nat.cast_one,
     ← cyclotomic₂_div_prod_eq a b (show 0 < 2 ^ d, by positivity) hbne,
     nat.divisors_prime_pow (nat.prime_two), multiplicity.multiplicity_pow_self_of_prime
@@ -510,6 +510,54 @@ begin
       ← add_assoc] }
 end
 
-
+lemma proposition_15 {n : ℕ} {a b : ℤ} (ha : odd a) (hb : odd b) (hbne : b ≠ 0)
+  (hab : b.nat_abs ≠ a.nat_abs) (hn : n ∉ {y | ∃ (β : ℕ), 2 ^ β = y}) :
+  multiplicity 2 (cyclotomic₂ n a b) = 0 :=
+begin
+  rcases eq_or_ne n 0 with rfl | hnzero,
+  { rw [cyclotomic₂_zero, multiplicity.one_right (prime.not_unit int.prime_two)] },
+  simp only [set.mem_set_of_eq, not_exists] at hn,
+  rcases nat.exists_eq_pow_mul_and_not_dvd hnzero 2 (nat.succ_ne_self 1) with ⟨β, m, h2m, hmβ⟩,
+  subst hmβ,
+  have hm : 2 ≤ m,
+  { rw nat.two_le_iff,
+    refine ⟨right_ne_zero_of_mul hnzero, _⟩,
+    contrapose! hn,
+    exact ⟨β, by rw [hn, mul_one]⟩ },
+  have h2div : 2 ∣ a - b,
+  { simp only [← even_iff_two_dvd, ha.sub_odd hb] },
+  have h2a : ¬ 2 ∣ a,
+    by simp only [← even_iff_two_dvd, ← int.odd_iff_not_even, ha],
+  rcases nat.eq_zero_or_pos β with rfl | hβzero,
+  { have h2mint : ¬ 2 ∣ (m : ℤ) := by {norm_cast; assumption},
+    have hsub : {1} ⊆ m.divisors,
+    { simp only [finset.singleton_subset_iff, nat.mem_divisors, is_unit.dvd, nat.is_unit_iff,
+      ne.def, true_and]; linarith [h2m] },
+    have hnetop : multiplicity 2 (a - b) ≠ ⊤,
+    { rw [← nat.cast_two, ← multiplicity.int.nat_abs, multiplicity.ne_top_iff_finite, multiplicity.finite_nat_iff],
+      refine ⟨by norm_num, int.nat_abs_pos_of_ne_zero (sub_ne_zero.mpr _)⟩,
+      contrapose! hab;  subst hab },
+    have := multiplicity.pow_sub_pow_of_prime (int.prime_two) h2div h2a h2mint,
+    rw [← zero_add (multiplicity 2 (a - b)),
+      ← cyclotomic₂_div_prod_eq a b (show 0 < m, by linarith) hbne, multiplicity.finset.prod (int.prime_two),
+      ← finset.sum_sdiff hsub, finset.sum_singleton, cyclotomic₂_one_eq a b hbne,
+      part_enat.add_right_cancel_iff hnetop] at this,
+    apply finset.sum_eq_zero_iff.mp this,
+    simp only [pow_zero, one_mul, finset.mem_sdiff, nat.mem_divisors, dvd_refl, ne.def, true_and,
+      finset.mem_singleton],
+    split; linarith [h2m] },
+  { have hevenpow: even (2 ^ β * m), simp only [even_iff_two_dvd], sorry,
+    have hpowpos1 : 0 < 2 ^ β := by positivity,
+    have hpowpos2 : 0 < 2 ^ β * m := by positivity,
+    suffices hsum : ∑ x in (2 ^ β * m).divisors \ ((2 : ℕ) ^ β).divisors,
+      multiplicity 2 (cyclotomic₂ x a b) = 0,
+    { rw finset.sum_eq_zero_iff at hsum,
+      refine hsum _ _,
+      simp only [finset.mem_sdiff, mul_assoc, mul_comm m, nat.mem_divisors_self _
+        (show 2 ^ β * m ≠ 0, by linarith), true_and],
+      simp only [nat.mem_divisors, not_and, not_ne_iff, ←mul_assoc],
+      exact λ hdvd, nat.eq_zero_of_dvd_of_lt hdvd (lt_mul_of_one_lt_right ‹_› hm) },
+    have := multiplicity.int.two_pow_sub_pow h2div h2a },
+end
 
 end cyclotomic₂

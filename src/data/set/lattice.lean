@@ -1438,9 +1438,9 @@ begin
     (h (s ×ˢ s₂) ⟨(s, s₂), ⟨hs, h₂⟩, rfl⟩).1, λ s hs, (h (s₁ ×ˢ s) ⟨(s₁, s), ⟨h₁, hs⟩, rfl⟩).2⟩),
 end
 
-lemma sInter_prod_sInter_empty (f₁ : set (set α)) (h₁ : f₁.nonempty)
-  : ⋂₀f₁ ×ˢ ⋂₀(∅ : set (set β))  = ⋂₀((λ (C : set α), C ×ˢ univ) '' (f₁)) :=
-by rw [sInter_empty, (sInter_prod_set _ h₁)]
+lemma sInter_prod_sInter_empty (f₁ : set (set α)) (h₁ : f₁.nonempty) :
+  ⋂₀ f₁ ×ˢ ⋂₀ (∅ : set (set β))  = ⋂₀ ((λ C : set α, C ×ˢ univ) '' f₁) :=
+by rw [sInter_empty, sInter_prod_set f₁ h₁]
 
 lemma sInter__empty_prod_sInter (f₂ : set (set β)) (h₂ : f₂.nonempty)
   : ⋂₀(∅ : set (set α)) ×ˢ ⋂₀f₂    = ⋂₀((λ (C : set β), univ ×ˢ C) '' (f₂)) :=

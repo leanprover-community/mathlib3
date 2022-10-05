@@ -19,15 +19,6 @@ section extras
 
 open_locale ennreal
 
-lemma le_edist_pi_iff {π : β → Type*} [fintype β] [nonempty β]
-  [Π b, pseudo_emetric_space (π b)] {f g : Π b, π b} {d : ℝ≥0∞} :
-  d ≤ edist f g ↔ ∃ b, d ≤ edist (f b) (g b) :=
-begin
-  by_cases hd : ⊥ < d,
-  { exact (finset.le_sup_iff hd).trans (by simp only [finset.mem_univ, exists_true_left]) },
-  { rw not_bot_lt_iff at hd, rw hd, simp only [ennreal.bot_eq_zero, zero_le, exists_const] }
-end
-
 lemma finset.off_diag_nonempty_iff [decidable_eq α] {s : finset α} :
   (s : set α).nontrivial ↔ s.off_diag.nonempty :=
 by simp_rw [set.nontrivial, finset.nonempty, finset.mem_off_diag, finset.mem_coe,
@@ -49,21 +40,6 @@ by { letI := hs.fintype, exact set.nontrivial_iff_to_finset_off_diag_nonempty }
 lemma set.finite.to_finset_off_diag_nonempty_of_nontrivial [decidable_eq α] {s : set α}
   (hsf : s.finite) (hs : s.nontrivial) : hsf.to_finset.off_diag.nonempty :=
 hsf.nontrivial_iff_to_finset_off_diag_nonempty.mpr hs
-
-lemma ennreal.to_real_min {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞) :
-  ennreal.to_real (min a b) = min (ennreal.to_real a) (ennreal.to_real b) :=
-(le_total a b).elim
-  (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, min_eq_left])
-  (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, min_eq_right])
-
-lemma ennreal.to_real_sup {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
-  : (a ⊔ b).to_real = a.to_real ⊔ b.to_real :=
-by simp_rw [sup_eq_max, ennreal.to_real_max hr hp]
-
-lemma ennreal.to_real_inf {a b : ℝ≥0∞} (hr : a ≠ ∞) (hp : b ≠ ∞)
-  : (a ⊓ b).to_real = a.to_real ⊓ b.to_real :=
-by simp_rw [inf_eq_min, ennreal.to_real_min hr hp]
-
 
 end extras
 
@@ -225,11 +201,9 @@ lemma infesep_pi_le_of_le {π : β → Type*} [fintype β] [∀ b, pseudo_emetri
   c ≤ infesep (set.pi univ s) :=
 begin
   refine le_infesep (λ x hx y hy hxy, _),
-  rw function.ne_iff at hxy,
-  haveI := nonempty_of_exists hxy,
-  rcases hxy with ⟨i, hi⟩,
   rw mem_univ_pi at hx hy,
-  exact le_edist_pi_iff.mpr ⟨i, (le_infesep_iff.1 (h i) _ (hx _) _ (hy _) hi)⟩
+  rcases function.ne_iff.mp hxy with ⟨i, hi⟩,
+  exact le_trans (le_infesep_iff.1 (h i) _ (hx _) _ (hy _) hi) (edist_le_pi_edist _ _ i)
 end
 
 end pseudo_emetric_space
@@ -474,10 +448,3 @@ end metric_space
 end infsep
 
 end set
-
-section bonus
-open_locale ennreal
-lemma finset.coe_pair [decidable_eq α] {x y : α} : (({x, y} : finset α) : set α) = {x, y} :=
-by rw [finset.coe_insert, finset.coe_singleton]
-
-end bonus

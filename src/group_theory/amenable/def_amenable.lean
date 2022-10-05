@@ -46,7 +46,7 @@ open mean
 open classical
 open bounded_continuous_function
 
-variables {G:Type*} [uniform_space G] [group G] [topological_group G]
+variables {G:Type*} [topological_space G] [group G] [topological_group G]
 
 
 /-- left-translate of a function by translating the argument -/
@@ -152,7 +152,7 @@ end invariance_structures
 
 /-- A group is amenable if there exists a left-invariant mean-/
 @[simp]
-def amenable (G:Type*)  [uniform_space G] [group G] [topological_group G] : Prop :=
+def amenable (G:Type*)  [topological_space G] [group G] [topological_group G] : Prop :=
 nonempty (left_invariant_mean G)
 
 
@@ -160,12 +160,12 @@ nonempty (left_invariant_mean G)
 This is a noncomputable process.
 -/
 noncomputable def invmean_of_amenable {G:Type*}
-  [uniform_space G] [group G] [topological_group G]
+  [topological_space G] [group G] [topological_group G]
   (G_am : amenable G) : left_invariant_mean G :=
 classical.choice G_am
 
 /--If we can exhibit a mean, the group is amenable-/
 lemma amenable_of_invmean
-  {G:Type*}  [uniform_space G] [group G] [topological_group G]
+  {G:Type*}  [topological_space G] [group G] [topological_group G]
   (m : left_invariant_mean G) : amenable G :=
 nonempty.intro m

@@ -142,7 +142,7 @@ lemma differentiable_within_at_local_invariant_prop :
       by { rw [model_with_corners.left_inv], exact is_open.mem_nhds u_open xu },
     apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
   end,
-  right_invariance :=
+  right_invariance' :=
   begin
     assume s x f e he hx h,
     rw differentiable_within_at_prop at h ⊢,
@@ -1447,11 +1447,11 @@ lemma mfderiv_surjective {x : M} (hx : x ∈ e.source) :
 (he.mfderiv hx).surjective
 
 lemma ker_mfderiv_eq_bot {x : M} (hx : x ∈ e.source) :
-  (mfderiv I I' e x).ker = ⊥ :=
+  linear_map.ker (mfderiv I I' e x) = ⊥ :=
 (he.mfderiv hx).to_linear_equiv.ker
 
 lemma range_mfderiv_eq_top {x : M} (hx : x ∈ e.source) :
-  (mfderiv I I' e x).range = ⊤ :=
+  linear_map.range (mfderiv I I' e x) = ⊤ :=
 (he.mfderiv hx).to_linear_equiv.range
 
 lemma range_mfderiv_eq_univ {x : M} (hx : x ∈ e.source) :
@@ -1651,8 +1651,8 @@ begin
   -- rewrite the relevant set in the chart as a direct product
   have : (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
          (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (sigma.fst ⁻¹' s)) ∩
-         (range I ×ˢ (univ : set F))
-        = (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) ×ˢ (univ : set F),
+         (range I ×ˢ univ)
+        = (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) ×ˢ univ,
     by mfld_set_tac,
   assume q hq,
   replace hq : q.1 ∈ (chart_at H p.1).target ∧ ((chart_at H p.1).symm : H → M) q.1 ∈ s,

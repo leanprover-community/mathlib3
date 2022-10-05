@@ -291,8 +291,8 @@ lemma is_compact.lt_Inf_iff_of_continuous {α β : Type*}
 @is_compact.Sup_lt_iff_of_continuous αᵒᵈ β _ _ _ _ _ _ hK h0K hf y
 
 /-- A continuous function with compact support has a global minimum. -/
-@[to_additive]
-lemma _root_.continuous.exists_forall_le_of_has_compact_mul_support [nonempty β] [has_one α]
+@[to_additive "A continuous function with compact support has a global minimum."]
+lemma continuous.exists_forall_le_of_has_compact_mul_support [nonempty β] [has_one α]
   {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
   ∃ (x : β), ∀ (y : β), f x ≤ f y :=
 begin
@@ -302,7 +302,7 @@ begin
 end
 
 /-- A continuous function with compact support has a global maximum. -/
-@[to_additive]
+@[to_additive "A continuous function with compact support has a global maximum."]
 lemma continuous.exists_forall_ge_of_has_compact_mul_support [nonempty β] [has_one α]
   {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
   ∃ (x : β), ∀ (y : β), f y ≤ f x :=

@@ -44,6 +44,14 @@ lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in 𝓝[s] a, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
 eventually_inf_principal
 
+lemma frequently_nhds_within_iff {z : α} {p : α → Prop} :
+  (∃ᶠ x in 𝓝[≠] z, p x) ↔ (∃ᶠ x in 𝓝 z, p x ∧ x ≠ z) :=
+iff.not (by simp [eventually_nhds_within_iff, not_imp_not])
+
+lemma mem_closure_ne_iff_frequently_within {z : α} {s : set α} :
+  z ∈ closure (s \ {z}) ↔ ∃ᶠ x in 𝓝[≠] z, x ∈ s :=
+by simp [mem_closure_iff_frequently, frequently_nhds_within_iff]
+
 @[simp] lemma eventually_nhds_within_nhds_within {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ y in 𝓝[s] a, ∀ᶠ x in 𝓝[s] y, p x) ↔ ∀ᶠ x in 𝓝[s] a, p x :=
 begin
@@ -283,7 +291,7 @@ begin
   simp only [infi_inf_eq]
 end
 
-lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [fintype ι] [Π i, topological_space (α i)]
+lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [finite ι] [Π i, topological_space (α i)]
   (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi univ s] x = ⨅ i, comap (λ x, x i) 𝓝[s i] (x i) :=
 by simpa [nhds_within] using nhds_within_pi_eq finite_univ s x
@@ -329,6 +337,20 @@ theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
     {s : set α} {l : filter β} (h : tendsto f (𝓝 a) l) :
   tendsto f (𝓝[s] a) l :=
 h.mono_left inf_le_left
+
+lemma eventually_mem_of_tendsto_nhds_within {f : β → α} {a : α}
+  {s : set α} {l : filter β} (h : tendsto f l (𝓝[s] a)) :
+  ∀ᶠ i in l, f i ∈ s :=
+begin
+  simp_rw [nhds_within_eq, tendsto_infi, mem_set_of_eq, tendsto_principal, mem_inter_iff,
+    eventually_and] at h,
+  exact (h univ ⟨mem_univ a, is_open_univ⟩).2,
+end
+
+lemma tendsto_nhds_of_tendsto_nhds_within {f : β → α} {a : α}
+  {s : set α} {l : filter β} (h : tendsto f l (𝓝[s] a)) :
+  tendsto f l (𝓝 a) :=
+h.mono_right nhds_within_le_nhds
 
 theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=

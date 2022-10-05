@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import algebra.big_operators.ring
 import number_theory.divisors
 import data.nat.squarefree
+import data.nat.gcd.big_operators
 import algebra.invertible
 import data.nat.factorization.basic
 

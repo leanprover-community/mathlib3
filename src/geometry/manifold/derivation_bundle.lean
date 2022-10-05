@@ -35,7 +35,7 @@ instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^�
 which is defined as `f • r = f(x) * r`. -/
 @[nolint unused_arguments] def pointed_smooth_map (x : M) := C^n⟮I, M; 𝕜⟯
 
-localized "notation (name := pointed_smooth_map) `C^` n `⟮` I `,` M `;` 𝕜 `⟯⟨` x `⟩` :=
+localized "notation (name := pointed_smooth_map) `C^` n `⟮` I `, ` M `; ` 𝕜 `⟯⟨` x `⟩` :=
   pointed_smooth_map 𝕜 I M n x" in derivation
 
 variables {𝕜 M}

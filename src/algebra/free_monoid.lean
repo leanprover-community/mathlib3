@@ -43,6 +43,10 @@ lemma one_def : (1 : free_monoid α) = [] := rfl
 lemma mul_def (xs ys : list α) : (xs * ys : free_monoid α) = (xs ++ ys : list α) :=
 rfl
 
+@[to_additive]
+lemma prod_eq_join (xs : list (free_monoid α)) : xs.prod = xs.join :=
+by induction xs; simp [*, mul_def, list.join, one_def]
+
 /-- Embeds an element of `α` into `free_monoid α` as a singleton list. -/
 @[to_additive "Embeds an element of `α` into `free_add_monoid α` as a singleton list." ]
 def of (x : α) : free_monoid α := [x]
@@ -53,6 +57,8 @@ lemma of_def (x : α) : of x = [x] := rfl
 @[to_additive]
 lemma of_injective : function.injective (@of α) :=
 λ a b, list.head_eq_of_cons_eq
+
+@[to_additive] lemma of_mul_eq_cons (x : α) (l : free_monoid α) : of x * l = x :: l := rfl
 
 /-- Recursor for `free_monoid` using `1` and `of x * xs` instead of `[]` and `x :: xs`. -/
 @[elab_as_eliminator, to_additive
@@ -101,6 +107,17 @@ by { ext, simp }
 lemma hom_map_lift (g : M →* N) (f : α → M) (x : free_monoid α) : g (lift f x) = lift (g ∘ f) x :=
 monoid_hom.ext_iff.1 (comp_lift g f) x
 
+/-- Define a multiplicative action of `free_monoid α` on `β`. -/
+@[to_additive "Define an additive action of `free_add_monoid α` on `β`."]
+def mk_mul_action (f : α → β → β) : mul_action (free_monoid α) β :=
+{ smul := λ l b, list.foldr f b l,
+  one_smul := λ x, rfl,
+  mul_smul := λ xs ys b, list.foldr_append _ _ _ _ }
+
+@[simp, to_additive] lemma of_smul (f : α → β → β) (x : α) (y : β) :
+  (by haveI := mk_mul_action f; exact of x • y) = f x y :=
+rfl
+
 /-- The unique monoid homomorphism `free_monoid α →* free_monoid β` that sends
 each `of x` to `of (f x)`. -/
 @[to_additive "The unique additive monoid homomorphism `free_add_monoid α →+ free_add_monoid β`
@@ -119,6 +136,9 @@ hom_eq $ λ x, rfl
 
 @[to_additive]
 lemma map_comp (g : β → γ) (f : α → β) : map (g ∘ f) = (map g).comp (map f) :=
+hom_eq $ λ x, rfl
+
+@[simp, to_additive] lemma map_id : map (@id α) = monoid_hom.id (free_monoid α) :=
 hom_eq $ λ x, rfl
 
 end free_monoid

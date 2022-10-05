@@ -20,7 +20,7 @@ subspaces of affine spaces.
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 section affine_space'
 
@@ -39,13 +39,13 @@ span_of_finite k $ h.vsub h
 
 /-- The `vector_span` of a family indexed by a `fintype` is
 finite-dimensional. -/
-instance finite_dimensional_vector_span_of_fintype [fintype ι] (p : ι → P) :
+instance finite_dimensional_vector_span_range [_root_.finite ι] (p : ι → P) :
   finite_dimensional k (vector_span k (set.range p)) :=
 finite_dimensional_vector_span_of_finite k (set.finite_range _)
 
 /-- The `vector_span` of a subset of a family indexed by a `fintype`
 is finite-dimensional. -/
-instance finite_dimensional_vector_span_image_of_fintype [fintype ι] (p : ι → P)
+instance finite_dimensional_vector_span_image_of_finite [_root_.finite ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (vector_span k (p '' s)) :=
 finite_dimensional_vector_span_of_finite k (set.to_finite _)
 
@@ -57,20 +57,20 @@ lemma finite_dimensional_direction_affine_span_of_finite {s : set P} (h : set.fi
 
 /-- The direction of the affine span of a family indexed by a
 `fintype` is finite-dimensional. -/
-instance finite_dimensional_direction_affine_span_of_fintype [fintype ι] (p : ι → P) :
+instance finite_dimensional_direction_affine_span_range [_root_.finite ι] (p : ι → P) :
   finite_dimensional k (affine_span k (set.range p)).direction :=
 finite_dimensional_direction_affine_span_of_finite k (set.finite_range _)
 
 /-- The direction of the affine span of a subset of a family indexed
 by a `fintype` is finite-dimensional. -/
-instance finite_dimensional_direction_affine_span_image_of_fintype [fintype ι] (p : ι → P)
+instance finite_dimensional_direction_affine_span_image_of_finite [_root_.finite ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (affine_span k (p '' s)).direction :=
 finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
 noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
   {p : ι → P} (hi : affine_independent k p) : fintype ι :=
-if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
+by classical; exact if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
 begin
   let q := (not_is_empty_iff.mp hι).some,
   rw affine_independent_iff_linear_independent_vsub k p q at hi,
@@ -266,7 +266,7 @@ begin
 end
 
 /-- The `vector_span` of adding a point to a finite-dimensional subspace is finite-dimensional. -/
-lemma finite_dimensional_vector_span_insert (s : affine_subspace k P)
+instance finite_dimensional_vector_span_insert (s : affine_subspace k P)
   [finite_dimensional k s.direction] (p : P) :
   finite_dimensional k (vector_span k (insert p (s : set P))) :=
 begin
@@ -282,7 +282,7 @@ end
 
 /-- The direction of the affine span of adding a point to a finite-dimensional subspace is
 finite-dimensional. -/
-lemma finite_dimensional_direction_affine_span_insert (s : affine_subspace k P)
+instance finite_dimensional_direction_affine_span_insert (s : affine_subspace k P)
   [finite_dimensional k s.direction] (p : P) :
   finite_dimensional k (affine_span k (insert p (s : set P))).direction :=
 (direction_affine_span k (insert p (s : set P))).symm ▸ finite_dimensional_vector_span_insert s p
@@ -291,7 +291,7 @@ variables (k)
 
 /-- The `vector_span` of adding a point to a set with a finite-dimensional `vector_span` is
 finite-dimensional. -/
-lemma finite_dimensional_vector_span_insert_set (s : set P)
+instance finite_dimensional_vector_span_insert_set (s : set P)
   [finite_dimensional k (vector_span k s)] (p : P) :
   finite_dimensional k (vector_span k (insert p s)) :=
 begin
@@ -309,10 +309,12 @@ def collinear (s : set P) : Prop := module.rank k (vector_span k s) ≤ 1
 lemma collinear_iff_dim_le_one (s : set P) : collinear k s ↔ module.rank k (vector_span k s) ≤ 1 :=
 iff.rfl
 
+variables {k}
+
 /-- A set of points, whose `vector_span` is finite-dimensional, is
 collinear if and only if their `vector_span` has dimension at most
 `1`. -/
-lemma collinear_iff_finrank_le_one (s : set P) [finite_dimensional k (vector_span k s)] :
+lemma collinear_iff_finrank_le_one {s : set P} [finite_dimensional k (vector_span k s)] :
   collinear k s ↔ finrank k (vector_span k s) ≤ 1 :=
 begin
   have h := collinear_iff_dim_le_one k s,
@@ -320,7 +322,24 @@ begin
   exact_mod_cast h
 end
 
-variables (P)
+alias collinear_iff_finrank_le_one ↔ collinear.finrank_le_one _
+
+/-- A subset of a collinear set is collinear. -/
+lemma collinear.subset {s₁ s₂ : set P} (hs : s₁ ⊆ s₂) (h : collinear k s₂) : collinear k s₁ :=
+(dim_le_of_submodule (vector_span k s₁) (vector_span k s₂) (vector_span_mono k hs)).trans h
+
+/-- The `vector_span` of collinear points is finite-dimensional. -/
+lemma collinear.finite_dimensional_vector_span {s : set P} (h : collinear k s) :
+  finite_dimensional k (vector_span k s) :=
+is_noetherian.iff_fg.1
+  (is_noetherian.iff_dim_lt_aleph_0.2 (lt_of_le_of_lt h cardinal.one_lt_aleph_0))
+
+/-- The direction of the affine span of collinear points is finite-dimensional. -/
+lemma collinear.finite_dimensional_direction_affine_span {s : set P} (h : collinear k s) :
+  finite_dimensional k (affine_span k s).direction :=
+(direction_affine_span k s).symm ▸ h.finite_dimensional_vector_span
+
+variables (k P)
 
 /-- The empty set is collinear. -/
 lemma collinear_empty : collinear k (∅ : set P) :=
@@ -337,6 +356,8 @@ begin
   rw [collinear_iff_dim_le_one, vector_span_singleton],
   simp
 end
+
+variables {k}
 
 /-- Given a point `p₀` in a set of points, that set is collinear if and
 only if the points can all be expressed as multiples of the same
@@ -377,7 +398,7 @@ lemma collinear_iff_exists_forall_eq_smul_vadd (s : set P) :
 begin
   rcases set.eq_empty_or_nonempty s with rfl | ⟨⟨p₁, hp₁⟩⟩,
   { simp [collinear_empty] },
-  { rw collinear_iff_of_mem k hp₁,
+  { rw collinear_iff_of_mem hp₁,
     split,
     { exact λ h, ⟨p₁, h⟩ },
     { rintros ⟨p, v, hv⟩,
@@ -388,6 +409,8 @@ begin
       use r - r₁,
       simp [vadd_vadd, ←add_smul] } }
 end
+
+variables (k)
 
 /-- Two points are collinear. -/
 lemma collinear_pair (p₁ p₂ : P) : collinear k ({p₁, p₂} : set P) :=
@@ -403,16 +426,18 @@ begin
     simp [hp] }
 end
 
+variables {k}
+
 /-- Three points are affinely independent if and only if they are not
 collinear. -/
-lemma affine_independent_iff_not_collinear (p : fin 3 → P) :
+lemma affine_independent_iff_not_collinear {p : fin 3 → P} :
   affine_independent k p ↔ ¬ collinear k (set.range p) :=
 by rw [collinear_iff_finrank_le_one,
        affine_independent_iff_not_finrank_vector_span_le k p (fintype.card_fin 3)]
 
 /-- Three points are collinear if and only if they are not affinely
 independent. -/
-lemma collinear_iff_not_affine_independent (p : fin 3 → P) :
+lemma collinear_iff_not_affine_independent {p : fin 3 → P} :
   collinear k (set.range p) ↔ ¬ affine_independent k p :=
 by rw [collinear_iff_finrank_le_one,
        finrank_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]

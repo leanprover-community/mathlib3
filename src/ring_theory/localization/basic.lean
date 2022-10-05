@@ -710,7 +710,7 @@ variables (M S)
 include M
 
 lemma non_zero_divisors_le_comap [is_localization M S] :
-    non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
+  non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
 begin
   rintros a ha b (e : b * algebra_map R S a = 0),
   obtain ⟨x, s, rfl⟩ := mk'_surjective M b,
@@ -723,7 +723,7 @@ begin
 end
 
 lemma map_non_zero_divisors_le [is_localization M S] :
-    (non_zero_divisors R).map (algebra_map R S).to_monoid_hom ≤ non_zero_divisors S  :=
+  (non_zero_divisors R).map (algebra_map R S) ≤ non_zero_divisors S  :=
 submonoid.map_le_iff_le_comap.mpr (non_zero_divisors_le_comap M S)
 
 end is_localization

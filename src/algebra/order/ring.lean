@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.char_zero.defs
-import algebra.order.group
-import algebra.order.monoid_lemmas_zero_lt
-import algebra.order.sub
 import algebra.hom.ring
+import algebra.order.group
+import algebra.order.ring_lemmas
 import data.set.intervals.basic
 
 /-!
@@ -34,6 +33,8 @@ For short,
   `*` respects `<`.
 * `linear_ordered_semiring`: Semiring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
+* `linear_ordered_comm_semiring`: Commutative semiring with a linear order such that `+` respects
+  `≤` and `*` respects `<`.
 * `linear_ordered_ring`: Ring with a linear order such that `+` respects `≤` and `*` respects `<`.
 * `linear_ordered_comm_ring`: Commutative ring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
@@ -66,6 +67,9 @@ immediate predecessors and what conditions are added to each of them.
   - `comm_ring` & partial order structure & `+` respects `≤` & `*` respects `<`
 * `linear_ordered_semiring`
   - `ordered_semiring` & totality of the order & nontriviality
+* `linear_ordered_comm_semiring`
+  - `ordered_comm_semiring` & totality of the order & nontriviality
+  - `linear_ordered_semiring` & commutativity of multiplication
   - `linear_ordered_add_comm_monoid` & multiplication & nontriviality & `*` respects `<`
 * `linear_ordered_ring`
   - `ordered_ring` & totality of the order & nontriviality
@@ -75,6 +79,7 @@ immediate predecessors and what conditions are added to each of them.
 * `linear_ordered_comm_ring`
   - `ordered_comm_ring` & totality of the order & nontriviality
   - `linear_ordered_ring` & commutativity of multiplication
+  - `linear_ordered_comm_semiring` & additive inverses
   - `is_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
   - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
@@ -83,10 +88,11 @@ immediate predecessors and what conditions are added to each of them.
 ## TODO
 
 We're still missing some typeclasses, like
-* `linear_ordered_comm_semiring`
 * `canonically_ordered_semiring`
 They have yet to come up in practice.
 -/
+
+open function
 
 set_option old_structure_cmd true
 
@@ -113,23 +119,17 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
-lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
-ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
+@[priority 200] -- see Note [lower instance priority]
+instance ordered_semiring.pos_mul_strict_mono : pos_mul_strict_mono α :=
+⟨λ x a b h, ordered_semiring.mul_lt_mul_of_pos_left _ _ _ h x.prop⟩
 
-lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
-ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
+@[priority 200] -- see Note [lower instance priority]
+instance ordered_semiring.mul_pos_strict_mono : mul_pos_strict_mono α :=
+⟨λ x a b h, ordered_semiring.mul_lt_mul_of_pos_right _ _ _ h x.prop⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance ordered_semiring.zero_le_one_class : zero_le_one_class α :=
 { ..‹ordered_semiring α› }
-
-@[priority 200] -- see Note [lower instance priority]
-instance ordered_semiring.pos_mul_strict_mono : zero_lt.pos_mul_strict_mono α :=
-⟨λ x a b h, mul_lt_mul_of_pos_left h x.prop⟩
-
-@[priority 200] -- see Note [lower instance priority]
-instance ordered_semiring.mul_pos_strict_mono : zero_lt.mul_pos_strict_mono α :=
-⟨λ x a b h, mul_lt_mul_of_pos_right h x.prop⟩
 
 section nontrivial
 
@@ -162,6 +162,10 @@ alias zero_lt_one ← one_pos
 alias zero_lt_two ← two_pos
 alias zero_lt_three ← three_pos
 alias zero_lt_four ← four_pos
+
+@[priority 100] -- see Note [lower instance priority]
+instance ordered_semiring.to_no_max_order : no_max_order α :=
+⟨assume a, ⟨a + 1, lt_add_of_pos_right _ one_pos⟩⟩
 
 end nontrivial
 
@@ -584,7 +588,7 @@ class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semi
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Type*}
-  [add_monoid_with_one β] [has_mul β] [has_pow β ℕ]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -618,12 +622,6 @@ local attribute [instance] linear_ordered_semiring.decidable_le
 -- we provide a synonym for `zero_lt_one` (which needs both `ordered_semiring α` and `nontrivial α`)
 -- with only a `linear_ordered_semiring` typeclass argument.
 lemma zero_lt_one' : 0 < (1 : α) := zero_lt_one
-
-lemma le_of_mul_le_mul_left (h : c * a ≤ c * b) (hc : 0 < c) : a ≤ b :=
-(strict_mono_mul_left_of_pos hc).le_iff_le.1 h
-
-lemma le_of_mul_le_mul_right (h : a * c ≤ b * c) (hc : 0 < c) : a ≤ b :=
-(strict_mono_mul_right_of_pos hc).le_iff_le.1 h
 
 lemma nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg (hab : 0 ≤ a * b) :
     (0 ≤ a ∧ 0 ≤ b) ∨ (a ≤ 0 ∧ b ≤ 0) :=
@@ -726,11 +724,6 @@ le_of_not_gt (λ ha, absurd h (mul_neg_of_pos_of_neg ha hb).not_le)
 lemma nonpos_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : a < 0) : b ≤ 0 :=
 le_of_not_gt (λ hb, absurd h (mul_neg_of_neg_of_pos ha hb).not_le)
 
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_no_max_order {α : Type*} [linear_ordered_semiring α] :
-  no_max_order α :=
-⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
-
 /-- Pullback a `linear_ordered_semiring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -795,6 +788,31 @@ lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b
 
 end linear_ordered_semiring
 
+/-- A `linear_ordered_comm_semiring` is a nontrivial commutative semiring with a linear order such
+that addition is monotone and multiplication by a positive number is strictly monotone. -/
+@[protect_proj, ancestor ordered_comm_semiring linear_ordered_semiring]
+class linear_ordered_comm_semiring (α : Type*)
+  extends ordered_comm_semiring α, linear_ordered_semiring α
+
+@[priority 100] -- See note [lower instance priority]
+instance linear_ordered_comm_semiring.to_linear_ordered_cancel_add_comm_monoid
+  [linear_ordered_comm_semiring α] : linear_ordered_cancel_add_comm_monoid α :=
+{ ..‹linear_ordered_comm_semiring α› }
+
+/-- Pullback a `linear_ordered_semiring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
+def function.injective.linear_ordered_comm_semiring [linear_ordered_comm_semiring α] {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β]
+  [has_sup β] [has_inf β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
+  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
+  linear_ordered_comm_semiring β :=
+{ ..hf.linear_ordered_semiring f zero one add mul nsmul npow nat_cast hsup hinf,
+  ..hf.ordered_comm_semiring f zero one add mul nsmul npow nat_cast }
+
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
 addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
@@ -853,13 +871,10 @@ end
 
 @[priority 100] -- see Note [lower instance priority]
 instance ordered_ring.to_ordered_semiring : ordered_semiring α :=
-{ mul_zero                   := mul_zero,
-  zero_mul                   := zero_mul,
-  add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
+{ le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
   mul_lt_mul_of_pos_left     := @ordered_ring.mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @ordered_ring.mul_lt_mul_of_pos_right α _,
-  ..‹ordered_ring α› }
+  ..‹ordered_ring α›, ..ring.to_semiring }
 
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul_of_nonpos_left [@decidable_rel α (≤)]
@@ -1025,14 +1040,7 @@ local attribute [instance] linear_ordered_ring.decidable_le linear_ordered_ring.
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semiring α :=
-{ mul_zero                   := mul_zero,
-  zero_mul                   := zero_mul,
-  add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
-  mul_lt_mul_of_pos_left     := @mul_lt_mul_of_pos_left α _,
-  mul_lt_mul_of_pos_right    := @mul_lt_mul_of_pos_right α _,
-  le_total                   := linear_ordered_ring.le_total,
-  ..‹linear_ordered_ring α› }
+{ ..‹linear_ordered_ring α›, ..ordered_ring.to_ordered_semiring }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.is_domain : is_domain α :=
@@ -1155,6 +1163,12 @@ lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
 @[simp] lemma mul_lt_mul_right_of_neg {a b c : α} (h : c < 0) : a * c < b * c ↔ b < a :=
 (strict_anti_mul_right h).lt_iff_lt
 
+lemma lt_of_mul_lt_mul_of_nonpos_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
+lt_of_mul_lt_mul_left (by rwa [neg_mul, neg_mul, neg_lt_neg_iff]) $ neg_nonneg.2 hc
+
+lemma lt_of_mul_lt_mul_of_nonpos_right (h : a * c < b * c) (hc : c ≤ 0) : b < a :=
+lt_of_mul_lt_mul_right (by rwa [mul_neg, mul_neg, neg_lt_neg_iff]) $ neg_nonneg.2 hc
+
 lemma cmp_mul_neg_left {a : α} (ha : a < 0) (b c : α) : cmp (a * b) (a * c) = cmp c b :=
 (strict_anti_mul_left ha).cmp_map_eq b c
 
@@ -1260,8 +1274,8 @@ instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_
 { ..d }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
-   linear_ordered_semiring α :=
+instance linear_ordered_comm_ring.to_linear_ordered_comm_semiring [d : linear_ordered_comm_ring α] :
+   linear_ordered_comm_semiring α :=
 { .. d, ..linear_ordered_ring.to_linear_ordered_semiring }
 
 section linear_ordered_comm_ring
@@ -1421,13 +1435,11 @@ begin
 end
 
 @[priority 200] -- see Note [lower instance priority]
-instance canonically_ordered_comm_semiring.pos_mul_mono :
-  zero_lt.pos_mul_mono α :=
+instance canonically_ordered_comm_semiring.to_pos_mul_mono : pos_mul_mono α :=
 ⟨λ x a b h, by { obtain ⟨d, rfl⟩ := exists_add_of_le h, simp_rw [left_distrib, le_self_add], }⟩
 
 @[priority 200] -- see Note [lower instance priority]
-instance canonically_ordered_comm_semiring.mul_pos_mono :
-  zero_lt.mul_pos_mono α :=
+instance canonically_ordered_comm_semiring.to_mul_pos_mono : mul_pos_mono α :=
 ⟨λ x a b h, by { obtain ⟨d, rfl⟩ := exists_add_of_le h, simp_rw [right_distrib, le_self_add], }⟩
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
@@ -1524,10 +1536,8 @@ lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λ
 begin
   cases a; cases b; simp only [none_eq_top, some_eq_coe],
   { simp [← coe_mul] },
-  { suffices : ⊤ * (b : with_top α) = ⊤ ↔ b ≠ 0, by simpa,
-    by_cases hb : b = 0; simp [hb] },
-  { suffices : (a : with_top α) * ⊤ = ⊤ ↔ a ≠ 0, by simpa,
-    by_cases ha : a = 0; simp [ha] },
+  { by_cases hb : b = 0; simp [hb] },
+  { by_cases ha : a = 0; simp [ha] },
   { simp [← coe_mul] }
 end
 
@@ -1555,12 +1565,12 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
   one := 1,
   zero := 0,
   one_mul := λ a, match a with
-  | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
-  | (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
+  | ⊤       := mul_top (mt coe_eq_coe.1 one_ne_zero)
+  | (a : α) := by rw [← coe_one, ← coe_mul, one_mul]
   end,
   mul_one := λ a, match a with
-  | none     := show ⊤ * ((1:α) : with_top α) = ⊤, by simp [-with_top.coe_one]
-  | (some a) := show ↑a * ((1:α) : with_top α) = a, by simp [coe_mul.symm, -with_top.coe_one]
+  | ⊤       := top_mul (mt coe_eq_coe.1 one_ne_zero)
+  | (a : α) := by rw [← coe_one, ← coe_mul, mul_one]
   end,
   .. with_top.mul_zero_class }
 
@@ -1592,16 +1602,13 @@ instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (w
 { mul := (*),
   zero := 0,
   mul_assoc := λ a b c, begin
-    cases a,
-    { by_cases hb : b = 0; by_cases hc : c = 0;
-        simp [*, none_eq_top] },
-    cases b,
-    { by_cases ha : a = 0; by_cases hc : c = 0;
-        simp [*, none_eq_top, some_eq_coe] },
-    cases c,
-    { by_cases ha : a = 0; by_cases hb : b = 0;
-        simp [*, none_eq_top, some_eq_coe] },
-    simp [some_eq_coe, coe_mul.symm, mul_assoc]
+    rcases eq_or_ne a 0 with rfl|ha, { simp only [zero_mul] },
+    rcases eq_or_ne b 0 with rfl|hb, { simp only [zero_mul, mul_zero] },
+    rcases eq_or_ne c 0 with rfl|hc, { simp only [mul_zero] },
+    induction a using with_top.rec_top_coe, { simp [hb, hc] },
+    induction b using with_top.rec_top_coe, { simp [ha, hc] },
+    induction c using with_top.rec_top_coe, { simp [ha, hb] },
+    simp only [← coe_mul, mul_assoc]
   end,
   .. with_top.mul_zero_class }
 
@@ -1612,22 +1619,17 @@ instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
   comm_monoid_with_zero (with_top α) :=
 { mul := (*),
   zero := 0,
-  mul_comm := λ a b, begin
-    by_cases ha : a = 0, { simp [ha] },
-    by_cases hb : b = 0, { simp [hb] },
-    simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
-  end,
+  mul_comm := λ a b,
+    by simp only [or_comm, mul_def, option.bind_comm a b, mul_comm],
   .. with_top.monoid_with_zero }
 
 variables [canonically_ordered_comm_semiring α]
 
 private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
 begin
-  cases c,
-  { show (a + b) * ⊤ = a * ⊤ + b * ⊤,
-    by_cases ha : a = 0; simp [ha] },
-  { show (a + b) * c = a * c + b * c,
-    by_cases hc : c = 0, { simp [hc] },
+  induction c using with_top.rec_top_coe,
+  { by_cases ha : a = 0; simp [ha] },
+  { by_cases hc : c = 0, { simp [hc] },
     simp [mul_coe hc], cases a; cases b,
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
@@ -1727,20 +1729,17 @@ with_top.comm_monoid_with_zero
 instance [canonically_ordered_comm_semiring α] [nontrivial α] : comm_semiring (with_bot α) :=
 with_top.comm_semiring
 
-instance [canonically_ordered_comm_semiring α] [nontrivial α] :
-  zero_lt.pos_mul_mono (with_bot α) :=
-⟨ begin
+instance [canonically_ordered_comm_semiring α] [nontrivial α] : pos_mul_mono (with_bot α) :=
+pos_mul_mono_iff_covariant_pos.2 ⟨begin
     rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
-    induction x using with_bot.rec_bot_coe,
-    { have := bot_lt_coe (0 : α), rw [coe_zero] at this, exact absurd x0.le this.not_le, },
-    { induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le], },
-      induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le, },
-      { simp only [← coe_mul, coe_le_coe] at *,
-        exact mul_le_mul_left' h x, }, },
+    lift x to α using x0.ne_bot,
+    induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le] },
+    induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le },
+    simp only [← coe_mul, coe_le_coe] at *,
+    exact mul_le_mul_left' h x,
   end ⟩
 
-instance [canonically_ordered_comm_semiring α] [nontrivial α] :
-  zero_lt.mul_pos_mono (with_bot α) :=
-zero_lt.pos_mul_mono_iff_mul_pos_mono.mp zero_lt.pos_mul_mono
+instance [canonically_ordered_comm_semiring α] [nontrivial α] : mul_pos_mono (with_bot α) :=
+pos_mul_mono_iff_mul_pos_mono.mp infer_instance
 
 end with_bot

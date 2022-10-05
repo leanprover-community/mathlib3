@@ -244,7 +244,7 @@ The preimage of basic open set `D(a/f^n)` in `Spec A⁰_f` under the forward map
 `Spec A⁰_f` is the basic open set `D(a) ∩ D(f)` in  `Proj A`. This lemma is used to prove that the
 forward map is continuous.
 -/
-lemma preimage_eq' (a b : A) (k : ℕ) (a_mem : a ∈ 𝒜 k) (b_mem1 : b ∈ 𝒜 k)
+lemma preimage_eq (a b : A) (k : ℕ) (a_mem : a ∈ 𝒜 k) (b_mem1 : b ∈ 𝒜 k)
   (b_mem2 : b ∈ submonoid.powers f) : to_fun 𝒜 f ⁻¹'
     ((@prime_spectrum.basic_open (A⁰_ f) _
       (quotient.mk' ⟨k, ⟨a, a_mem⟩, ⟨b, b_mem1⟩, b_mem2⟩)) :
@@ -300,7 +300,7 @@ def to_Spec {f : A} : (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f)) :=
   continuous_to_fun := begin
     apply is_topological_basis.continuous (prime_spectrum.is_topological_basis_basic_opens),
     rintros _ ⟨⟨k, ⟨a, ha⟩, ⟨b, hb1⟩, ⟨k', hb2⟩⟩, rfl⟩, dsimp,
-    erw to_Spec.preimage_eq' f a b k ha hb1 ⟨k', hb2⟩,
+    erw to_Spec.preimage_eq f a b k ha hb1 ⟨k', hb2⟩,
     refine is_open_induced_iff.mpr ⟨(pbo f).1 ⊓ (pbo a).1, is_open.inter (pbo f).2 (pbo a).2, _⟩,
     ext z, split; intros hz; simpa [set.mem_preimage],
   end }

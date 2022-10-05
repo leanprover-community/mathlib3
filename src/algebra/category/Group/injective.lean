@@ -235,13 +235,11 @@ begin
   rw [quotient_add_group.eq', add_zero, rat.neg_def] at r,
   rcases r with ⟨m, eq1⟩,
   rw [rat.coe_int_eq_mk _, rat.mk_eq, mul_one, eq_neg_iff_eq_neg, ←neg_mul] at eq1,
-  have eq2 : (- m * 2) • a = rep ⟨a, _⟩ • a := by rw [eq1],
-  rw [rep_eq, subtype.coe_mk] at eq2,
-  have eq3 : (-m * 2 - 1) • a = 0,
-  { rw [sub_smul, one_smul, sub_eq_zero, eq2], },
-  have eq4 := infinite_order' infinite_order _ eq3,
-  rw [int.sub_eq_zero_iff_eq] at eq4,
-  exact H _ eq4,
+  have eq2 : (-m * 2 - 1) • a = 0,
+  { rw [sub_smul, one_smul, sub_eq_zero, ←eq1, rep_eq, subtype.coe_mk] },
+  have eq3 := infinite_order' infinite_order _ eq2,
+  rw [int.sub_eq_zero_iff_eq] at eq3,
+  exact H _ eq3,
   all_goals { norm_num },
 end
 

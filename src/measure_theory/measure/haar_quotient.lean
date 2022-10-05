@@ -162,11 +162,10 @@ end
 /-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
   right-invariant, and a finite volume fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is
   measure-preserving between appropriate multiples of Haar measure on `G` and `G ⧸ Γ`. -/
-@[to_additive "Given a normal subgroup `Γ` of an additive topological group `G` with Haar measure
-  `μ`, which is also right-invariant, and a finite volume fundamental domain `𝓕`, the quotient map
-  to `G ⧸ Γ` is measure-preserving between appropriate multiples of Haar measure on `G` and
-  `G ⧸ Γ`."]
-@[to_additive measure_preserving_quotient_add_group.mk']
+@[to_additive measure_preserving_quotient_add_group.mk' "Given a normal subgroup `Γ` of an additive
+  topological group `G` with Haar measure `μ`, which is also right-invariant, and a finite volume
+  fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is measure-preserving between appropriate
+  multiples of Haar measure on `G` and `G ⧸ Γ`."]
 lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
   [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]
   (h𝓕_finite : μ 𝓕 < ⊤) (c : ℝ≥0) (h : μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K) = c) :

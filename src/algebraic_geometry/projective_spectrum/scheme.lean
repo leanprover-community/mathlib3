@@ -163,7 +163,7 @@ lemma mem_carrier.clear_denominator [decidable_eq (away f)]
   ∃ (c : algebra_map A (away f) '' x.1.as_homogeneous_ideal →₀ away f)
     (N : ℕ) (acd : Π y ∈ c.support.image c, A),
     f ^ N • z.val = algebra_map A (away f)
-    (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) :=
+      (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) := :=
 mem_carrier.clear_denominator' x $ (mem_carrier_iff 𝒜 x z).mpr hz
 
 
@@ -271,11 +271,6 @@ end
 
 end carrier'
 
-    (N : ℕ) (acd : Π y ∈ c.support.image c, A),
-    f ^ N • z.val = algebra_map A (away f)
-      (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) :=
-mem_carrier.clear_denominator' x $ (mem_carrier_iff 𝒜 x z).mpr hz
-
 lemma disjoint :
   (disjoint (x.1.as_homogeneous_ideal.to_ideal : set A) (submonoid.powers f : set A)) :=
 begin
@@ -349,10 +344,6 @@ def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f)) :=
     refine mul_mem_right _ _ (mul_mem_right _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
     generalize_proofs h, exact (classical.some_spec h).1 },
 end⟩
-
-instance : comm_ring (quotient
-  (setoid.ker (homogeneous_localization.num_denom_same_deg.embedding 𝒜 (submonoid.powers f)))) :=
-homogeneous_localization.homogenous_localization_comm_ring
 
 /-
 The preimage of basic open set `D(a/f^n)` in `Spec A⁰_f` under the forward map from `Proj A` to

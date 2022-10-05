@@ -134,10 +134,7 @@ lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.
 
 lemma concrete_category.injective_of_mono_of_preserves_pullback {X Y : C} (f : X ⟶ Y) [mono f]
   [preserves_limits_of_shape walking_cospan (forget C)] : function.injective f :=
-begin
- haveI := category_theory.preserves_monomorphisms_of_preserves_limits_of_shape (forget C),
- exact (mono_iff_injective ((forget C).map f)).mp infer_instance
-end
+(mono_iff_injective ((forget C).map f)).mp infer_instance
 
 lemma concrete_category.mono_iff_injective_of_preserves_pullback {X Y : C} (f : X ⟶ Y)
   [preserves_limits_of_shape walking_cospan (forget C)] : mono f ↔ function.injective f :=

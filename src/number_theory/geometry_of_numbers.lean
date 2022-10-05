@@ -18,7 +18,7 @@ Hermann Minkowski.
 - `exists_sub_mem_lattice_of_volume_lt_volume`: Blichfeldt's principle, existence of two points
   within a set whose difference lies in a subgroup when the covolume of the subgroup is larger than
   the set.
-- `exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume`: Minkowski's theorem, existence
+- `exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure`: Minkowski's theorem, existence
   of a non-zero lattice point inside a convex symmetric domain of large enough covolume.
 -/
 
@@ -588,8 +588,8 @@ end
 open finite_dimensional
 
 @[simp, to_additive]
-lemma subgroup.coe_equiv_map_of_injective_symm_apply {G H : Type*} [group G] [group H] (e : G ≃* H) {L : subgroup G}
-  {g : L.map (e : G →* H)} {hh} :
+lemma subgroup.coe_equiv_map_of_injective_symm_apply {G H : Type*} [group G] [group H] (e : G ≃* H)
+  {L : subgroup G} {g : L.map (e : G →* H)} {hh} :
   (((L.equiv_map_of_injective _ hh).symm g) : G) = e.symm g :=
 begin
   rcases g with ⟨-, h, h_prop, rfl⟩,

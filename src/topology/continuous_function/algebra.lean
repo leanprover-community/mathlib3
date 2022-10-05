@@ -832,8 +832,10 @@ variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A
 variables [has_continuous_star A] [algebra 𝕜 A]
 
 /-- The functorial map taking `f : C(X, Y)` to `C(Y, A) →⋆ₐ[A] C(X, A)` given by pre-composition
-with the continuous function `f`. -/
-def comp_star_alg_hom (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
+with the continuous function `f`. See `continuous_map.comp_monoid_hom'` and
+`continuous_map.comp_add_monoid_hom'` for bundlings of pre-composition into a `monoid_hom` and
+an `add_monoid_hom`, respectively, under suitable assumptions on `A`. -/
+@[simps] def comp_star_alg_hom (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
 { to_fun := λ g, g.comp f,
   map_one' := one_comp _,
   map_mul' := λ _ _, rfl,
@@ -842,7 +844,7 @@ def comp_star_alg_hom (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
   commutes' := λ _, rfl,
   map_star' := λ _, rfl }
 
-/-- `continuous_map.comp_star_alg_hom` sends the identity continuous map to the identiy
+/-- `continuous_map.comp_star_alg_hom` sends the identity continuous map to the identity
 `star_alg_hom` -/
 lemma comp_star_alg_hom_id :
   comp_star_alg_hom 𝕜 A (continuous_map.id X) = star_alg_hom.id 𝕜 C(X, A) :=

@@ -105,7 +105,7 @@ lemma exists_approx_polynomial {b : Fq[X]} (hb : b ≠ 0)
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ (card_pow_degree (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree b • ε :=
 begin
   have hbε : 0 < card_pow_degree b • ε,
-  { rw [algebra.smul_def, ring_hom.eq_int_cast],
+  { rw [algebra.smul_def, eq_int_cast],
     exact mul_pos (int.cast_pos.mpr (absolute_value.pos _ hb)) hε },
   have one_lt_q : 1 < fintype.card Fq := fintype.one_lt_card,
   have one_lt_q' : (1 : ℝ) < fintype.card Fq, { assumption_mod_cast },
@@ -134,7 +134,7 @@ begin
     b.nat_degree + log ε / log (fintype.card Fq),
   { rwa [← real.log_lt_log_iff (int.cast_pos.mpr (card_pow_degree.pos h')) hbε,
         card_pow_degree_nonzero _ h', card_pow_degree_nonzero _ hb,
-        algebra.smul_def, ring_hom.eq_int_cast,
+        algebra.smul_def, eq_int_cast,
         int.cast_pow, int.cast_coe_nat, int.cast_pow, int.cast_coe_nat,
         log_mul (pow_ne_zero _ q_pos'.ne') hε.ne',
         ← rpow_nat_cast, ← rpow_nat_cast, log_rpow q_pos', log_rpow q_pos',
@@ -184,7 +184,7 @@ lemma exists_partition_polynomial_aux (n : ℕ) {ε : ℝ} (hε : 0 < ε)
   t i₀ = t i₁ ↔ (card_pow_degree (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree b • ε :=
 begin
   have hbε : 0 < card_pow_degree b • ε,
-  { rw [algebra.smul_def, ring_hom.eq_int_cast],
+  { rw [algebra.smul_def, eq_int_cast],
     exact mul_pos (int.cast_pos.mpr (absolute_value.pos _ hb)) hε },
   -- We go by induction on the size `A`.
   induction n with n ih,
@@ -199,10 +199,9 @@ begin
 
   obtain ⟨t', ht'⟩ := ih (fin.tail A),
   -- We got rid of `A 0`, so determine the index `j` of the partition we'll re-add it to.
-  suffices : ∃ j,
+  rsuffices ⟨j, hj⟩ : ∃ j,
     ∀ i, t' i = j ↔ (card_pow_degree (A 0 % b - A i.succ % b) : ℝ) < card_pow_degree b • ε,
-  { obtain ⟨j, hj⟩ := this,
-    refine ⟨fin.cons j t', λ i₀ i₁, _⟩,
+  { refine ⟨fin.cons j t', λ i₀ i₁, _⟩,
     refine fin.cases _ (λ i₀, _) i₀; refine fin.cases _ (λ i₁, _) i₁,
     { simpa using hbε },
     { rw [fin.cons_succ, fin.cons_zero, eq_comm, absolute_value.map_sub],

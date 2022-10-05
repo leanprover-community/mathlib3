@@ -189,6 +189,14 @@ by { ext, rw [mem_restrict_scalars, mem_bot], exact set.ext_iff.mp subtype.range
   (⊤ : intermediate_field F E).restrict_scalars K = ⊤ :=
 rfl
 
+lemma _root_.alg_hom.field_range_eq_map {K : Type*} [field K] [algebra F K] (f : E →ₐ[F] K) :
+  f.field_range = intermediate_field.map f ⊤ :=
+set_like.ext' set.image_univ.symm
+
+lemma _root_.alg_hom.map_field_range {K L : Type*} [field K] [field L] [algebra F K] [algebra F L]
+  (f : E →ₐ[F] K) (g : K →ₐ[F] L) : f.field_range.map g = (g.comp f).field_range :=
+set_like.ext' (set.range_comp g f).symm
+
 end lattice
 
 section adjoin_def
@@ -611,7 +619,7 @@ begin
   ext,
   convert minpoly.aeval F α,
   conv in (aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
-  exact is_scalar_tower.algebra_map_aeval F F⟮α⟯ E _ _
+  exact (aeval_algebra_map_apply E (adjoin_simple.gen F α) _).symm
 end
 
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
@@ -669,6 +677,14 @@ begin
   rw power_basis.finrank (adjoin.power_basis hx : _),
   refl
 end
+
+lemma _root_.minpoly.nat_degree_le {x : L} [finite_dimensional K L] (hx : is_integral K x) :
+  (minpoly K x).nat_degree ≤ finrank K L :=
+le_of_eq_of_le (intermediate_field.adjoin.finrank hx).symm K⟮x⟯.to_submodule.finrank_le
+
+lemma _root_.minpoly.degree_le {x : L} [finite_dimensional K L] (hx : is_integral K x) :
+  (minpoly K x).degree ≤ finrank K L :=
+degree_le_of_nat_degree_le (minpoly.nat_degree_le hx)
 
 end power_basis
 

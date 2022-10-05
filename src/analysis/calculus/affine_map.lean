@@ -24,7 +24,7 @@ variables [normed_add_comm_group V] [normed_space 𝕜 V]
 variables [normed_add_comm_group W] [normed_space 𝕜 W]
 
 /-- A continuous affine map between normed vector spaces is smooth. -/
-lemma cont_diff {n : with_top ℕ} (f : V →A[𝕜] W) :
+lemma cont_diff {n : ℕ∞} (f : V →A[𝕜] W) :
   cont_diff 𝕜 n f :=
 begin
   rw f.decomp,

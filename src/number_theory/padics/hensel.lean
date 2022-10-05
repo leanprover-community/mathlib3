@@ -157,8 +157,7 @@ private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n
 begin
   have hdzne : F.derivative.eval z ≠ 0 :=
     mt norm_eq_zero.2 (by rw hz.1; apply deriv_norm_ne_zero; assumption),
-  have hdzne' : (↑(F.derivative.eval z) : ℚ_[p]) ≠ 0 :=
-    λ h, hdzne $ subtype.ext_iff_val.2 h,
+  have hdzne' : (↑(F.derivative.eval z) : ℚ_[p]) ≠ 0 := λ h, hdzne (subtype.ext_iff_val.2 h),
   obtain ⟨q, hq⟩ := F.binom_expansion z (-z1),
   have : ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) : ℚ_[p])∥ ≤ 1,
   { rw padic_norm_e.mul, exact mul_le_one (padic_int.norm_le_one _) (norm_nonneg _) h1 },

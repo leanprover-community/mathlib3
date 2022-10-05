@@ -328,7 +328,7 @@ lemma same_cycle.to_list_is_rotated {f : perm α} {x y : α} (h : same_cycle f x
 begin
   by_cases hx : x ∈ f.support,
   { obtain ⟨_ | k, hk, hy⟩ := h.nat_of_mem_support _ hx,
-    { simp only [coe_one, id.def, pow_zero] at hy,
+    { simp only [perm.coe_one, id.def, pow_zero] at hy,
       simp [hy] },
     use k.succ,
     rw [←to_list_pow_apply_eq_rotate, hy] },

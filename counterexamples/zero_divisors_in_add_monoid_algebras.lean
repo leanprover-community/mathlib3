@@ -3,10 +3,10 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.finsupp.lex
-import algebra.monoid_algebra.basic
-import algebra.geom_sum
 import algebra.char_p.basic
+import algebra.geom_sum
+import algebra.monoid_algebra.basic
+import data.finsupp.lex
 import data.zmod.basic
 import group_theory.order_of_element
 
@@ -153,7 +153,7 @@ meta def boom : tactic unit :=
 
 /--  `aux` maps `0 1 : F` to their counterparts in `ℕ`.
 We use it to lift the linear order on `N`. -/
-def aux : ∀ a : F, ℕ
+def val : ∀ a : F, ℕ
 | 0 := 0
 | 1 := 1
 

@@ -25,7 +25,7 @@ This file defines the multinomial coefficient and several small lemma's for mani
 
 ## Main results
 
-- `nat.multinomial_theorem`: The expansion of `(s.sum x) ^ n` using multinomial coefficients
+- `finest.sum_pow`: The expansion of `(s.sum x) ^ n` using multinomial coefficients
 
 -/
 

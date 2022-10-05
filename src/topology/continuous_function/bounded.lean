@@ -1124,7 +1124,7 @@ instance [non_unital_normed_comm_ring R] : non_unital_comm_ring (α →ᵇ R) :=
 
 instance [non_unital_normed_comm_ring R] : non_unital_normed_comm_ring (α →ᵇ R) :=
 { .. bounded_continuous_function.non_unital_comm_ring,
-  .. bounded_continuous_function.normed_group }
+  .. bounded_continuous_function.normed_add_comm_group }
 
 instance [semi_normed_comm_ring R] : comm_ring (α →ᵇ R) :=
 { mul_comm := λ f₁ f₂, ext $ λ x, mul_comm _ _,

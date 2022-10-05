@@ -447,4 +447,69 @@ begin
   exact nat.pow_left_injective honelepow this
 end
 
+lemma proposition_14 {β : ℕ} {a b : ℤ} (hβ : 2 ≤ β) (hbne : b ≠ 0) (ha : odd a) (hb : odd b)
+  (hab : a.nat_abs ≠ b.nat_abs) :
+  multiplicity 2 (cyclotomic₂ (2 ^ β) a b) = 1 :=
+begin
+  revert hβ,
+  induction β using nat.strong_induction_on with d hind,
+  intro h1d,
+  have hdvdsub : 2 ∣ a - b := by simp only [← even_iff_two_dvd, ha.sub_odd hb],
+  have h2a : ¬ 2 ∣ a := by simp only [← even_iff_two_dvd, ← int.odd_iff_not_even, ha],
+  have h2d : even (2 ^ d), simp only [nat.even_pow' (show d ≠ 0, by linarith [h1d]), even_two],
+  replace hind : ∀ x ∈ finset.range d \ finset.range 2, multiplicity 2 (cyclotomic₂ (2 ^ x) a b) = 1,
+  { intros x hx,
+    simp only [finset.mem_sdiff, finset.mem_range, not_lt] at hx,
+    exact hind _ hx.1 hx.2 },
+  have hlte := int.two_pow_sub_pow hdvdsub h2a h2d,
+  simp only [int.coe_nat_pow, int.coe_nat_bit0, nat.cast_one,
+    ← cyclotomic₂_div_prod_eq a b (show 0 < 2 ^ d, by positivity) hbne,
+    nat.divisors_prime_pow (nat.prime_two), multiplicity.multiplicity_pow_self_of_prime
+    (int.prime_two), finset.prod_map, function.embedding.coe_fn_mk,
+    multiplicity.finset.prod (int.prime_two), finset.sum_range_succ,
+    ← finset.sum_sdiff (finset.range_subset.mpr h1d), finset.range_zero, finset.sum_empty,
+    pow_zero, zero_add, pow_one, cyclotomic₂_one_eq a b hbne, cyclotomic₂_two_eq hbne,
+    finset.sum_congr rfl hind, finset.sum_const, nsmul_one,
+    finset.card_sdiff (finset.range_subset.mpr h1d), finset.card_range, ← add_assoc] at hlte,
+  suffices : multiplicity 2 (a + b) + multiplicity 2 (a - b) +
+    (↑(d - 2) + (1 : ℕ) + multiplicity 2 (cyclotomic₂ (2 ^ d) a b)) =
+    multiplicity 2 (a + b) + multiplicity 2 (a - b) + d,
+  { have hdom : (multiplicity 2 (cyclotomic₂ (2 ^ d) a b)).dom,
+  { rw [← nat.cast_two, ← multiplicity.int.nat_abs, ← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
+    refine ⟨by norm_num, int.nat_abs_pos_of_ne_zero _⟩,
+    -- maybe extract separate proof here
+    simp only [ne.def, ←(@int.cast_inj) ℝ, ←cyclotomic₂_def', int.cast_zero, cyclotomic₂'],
+    have h2le: 2 < 2 ^ d,
+    { conv_lhs { rw ← pow_one 2 },
+      exact pow_lt_pow one_lt_two h1d },
+    have hbpow : (b : ℝ) ^ nat.totient (2 ^ d) ≠ 0,
+    { apply pow_ne_zero; simp only [ne.def, int.cast_eq_zero, hbne, not_false_iff] },
+    simp only [← ne.def, mul_ne_zero hbpow (ne_of_gt (cyclotomic_pos h2le _)), not_false_iff] },
+    have hnetop1 : multiplicity 2 (a - b) ≠ ⊤,
+    { rw [← nat.cast_two, ← multiplicity.int.nat_abs, multiplicity.ne_top_iff_finite, multiplicity.finite_nat_iff],
+      refine ⟨by norm_num, int.nat_abs_pos_of_ne_zero (sub_ne_zero.mpr _)⟩,
+      contrapose! hab;  subst hab },
+    have hnetop2 : multiplicity 2 (a + b) ≠ ⊤,
+    { rw [← nat.cast_two, ← multiplicity.int.nat_abs, multiplicity.ne_top_iff_finite, multiplicity.finite_nat_iff],
+      refine ⟨by norm_num, int.nat_abs_pos_of_ne_zero _⟩,
+      contrapose! hab,
+      rw int.nat_abs_eq_nat_abs_iff,
+      right, exact add_eq_zero_iff_eq_neg.mp hab },
+    rw [add_assoc, add_assoc, add_assoc, part_enat.add_left_cancel_iff hnetop2,
+      part_enat.add_left_cancel_iff hnetop1, ← add_assoc, ← part_enat.coe_get hdom,
+      ← part_enat.coe_coe_hom, ← part_enat.coe_hom.map_add, ← part_enat.coe_hom.map_add,
+      part_enat.coe_coe_hom, part_enat.coe_inj, ← nat.sub_add_comm h1d,
+      nat.succ_sub_succ_eq_sub, ← nat.sub_add_comm (le_trans one_le_two h1d),
+      nat.sub_eq_iff_eq_add (le_trans (le_trans one_le_two h1d) (self_le_add_right d _)),
+      add_left_cancel_iff] at this,
+    rw [← part_enat.coe_get hdom, this, nat.cast_one] },
+  { convert hlte using 1,
+    -- abel doesn't work here
+    rw [nat.cast_one, ← add_assoc, ← add_assoc, ← add_comm ↑(d - 2),
+      add_comm (multiplicity 2 (a + b)), add_assoc, add_comm (1 : part_enat), ← add_assoc,
+      ← add_assoc] }
+end
+
+
+
 end cyclotomic₂

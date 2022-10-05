@@ -280,10 +280,14 @@ mem_closure_singleton.2 ⟨1, pow_one y⟩
 lemma closure_singleton_one : closure ({1} : set M) = ⊥ :=
 by simp [eq_bot_iff_forall, mem_closure_singleton]
 
+@[to_additive] lemma _root_.free_monoid.mrange_lift {α} (f : α → M) :
+  (free_monoid.lift f).mrange = closure (set.range f) :=
+by rw [mrange_eq_map, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
+  free_monoid.lift_comp_of]
+
 @[to_additive]
 lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s → M)).mrange :=
-by rw [mrange_eq_map, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
-  free_monoid.lift_comp_of, subtype.range_coe]
+by rw [free_monoid.mrange_lift, subtype.range_coe]
 
 @[to_additive] lemma closure_eq_image_prod (s : set M) :
   (closure s : set M) = list.prod '' {l : list M | ∀ x ∈ l, x ∈ s} :=
@@ -376,9 +380,9 @@ lemma log_mul [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ 
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
 (pow_log_equiv (int.pow_right_injective h)).symm_apply_apply _
 
-@[simp] lemma map_powers {N : Type*} [monoid N] (f : M →* N) (m : M) :
-  (powers m).map f = powers (f m) :=
-by simp only [powers_eq_closure, f.map_mclosure, set.image_singleton]
+@[simp] lemma map_powers {N : Type*} {F : Type*} [monoid N] [monoid_hom_class F M N]
+  (f : F) (m : M) : (powers m).map f = powers (f m) :=
+by simp only [powers_eq_closure, map_mclosure f, set.image_singleton]
 
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 @[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive

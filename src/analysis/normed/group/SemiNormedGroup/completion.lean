@@ -34,7 +34,7 @@ noncomputable theory
 
 universe u
 
-open uniform_space mul_opposite category_theory normed_group_hom
+open uniform_space mul_opposite category_theory normed_add_group_hom
 
 namespace SemiNormedGroup
 
@@ -60,9 +60,9 @@ lemma Completion.norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥Completion.incl
 
 lemma Completion.map_norm_noninc {V W : SemiNormedGroup} {f : V ⟶ W} (hf : f.norm_noninc) :
   (Completion.map f).norm_noninc :=
-normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 $
-  (normed_group_hom.norm_completion f).le.trans $
-  normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.1 hf
+normed_add_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 $
+  (normed_add_group_hom.norm_completion f).le.trans $
+  normed_add_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.1 hf
 
 /-- Given a normed group hom `V ⟶ W`, this defines the associated morphism
 from the completion of `V` to the completion of `W`.
@@ -79,9 +79,9 @@ add_monoid_hom.mk' (category_theory.functor.map Completion) $ λ f g,
 instance : preadditive SemiNormedGroup.{u} :=
 { hom_group := λ P Q, infer_instance,
   add_comp' := by { intros, ext,
-    simp only [normed_group_hom.add_apply, category_theory.comp_apply, normed_group_hom.map_add] },
+    simp only [normed_add_group_hom.add_apply, category_theory.comp_apply, map_add] },
   comp_add' := by { intros, ext,
-    simp only [normed_group_hom.add_apply, category_theory.comp_apply, normed_group_hom.map_add] } }
+    simp only [normed_add_group_hom.add_apply, category_theory.comp_apply, map_add] } }
 
 instance : functor.additive Completion :=
 { map_add' := λ X Y, (Completion.map_hom _ _).map_add }
@@ -97,10 +97,10 @@ def Completion.lift {V W : SemiNormedGroup} [complete_space W] [separated_space 
 
 lemma Completion.lift_comp_incl {V W : SemiNormedGroup} [complete_space W] [separated_space W]
   (f : V ⟶ W) : Completion.incl ≫ (Completion.lift f) = f :=
-by { ext, apply normed_group_hom.extension_coe }
+by { ext, apply normed_add_group_hom.extension_coe }
 
 lemma Completion.lift_unique {V W : SemiNormedGroup} [complete_space W] [separated_space W]
   (f : V ⟶ W) (g : Completion.obj V ⟶ W) : Completion.incl ≫ g = f → g = Completion.lift f :=
-λ h, (normed_group_hom.extension_unique _ (λ v, ((ext_iff.1 h) v).symm)).symm
+λ h, (normed_add_group_hom.extension_unique _ (λ v, ((ext_iff.1 h) v).symm)).symm
 
 end SemiNormedGroup

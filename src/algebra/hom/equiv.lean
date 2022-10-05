@@ -354,11 +354,16 @@ lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x
 mul_equiv_class.map_ne_one_iff h
 
 /-- A bijective `semigroup` homomorphism is an isomorphism -/
-@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism"]
+@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism", simps apply]
 noncomputable def of_bijective {M N F} [has_mul M] [has_mul N] [mul_hom_class F M N] (f : F)
   (hf : function.bijective f) : M ≃* N :=
 { map_mul' := map_mul f,
   ..equiv.of_bijective f hf }
+
+@[simp]
+lemma of_bijective_apply_symm_apply {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
+  (hf : function.bijective f) : f ((equiv.of_bijective f hf).symm n) = n :=
+(mul_equiv.of_bijective f hf).apply_symm_apply n
 
 /--
 Extract the forward direction of a multiplicative equivalence
@@ -498,9 +503,6 @@ def to_units [group G] : G ≃* Gˣ :=
 @[simp, to_additive] lemma coe_to_units [group G] (g : G) :
   (to_units g : G) = g := rfl
 
-@[to_additive]
-protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
-
 namespace units
 
 variables [monoid M] [monoid N] [monoid P]
@@ -512,6 +514,14 @@ def map_equiv (h : M ≃* N) : Mˣ ≃* Nˣ :=
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
   .. map h.to_monoid_hom }
+
+@[simp]
+lemma map_equiv_symm (h : M ≃* N) : (map_equiv h).symm = map_equiv h.symm :=
+rfl
+
+@[simp]
+lemma coe_map_equiv (h : M ≃* N) (x : Mˣ) : (map_equiv h x : N) = h x :=
+rfl
 
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
 @[to_additive "Left addition of an additive unit is a permutation of the underlying type.",
@@ -724,3 +734,16 @@ def mul_equiv.to_additive'' [add_zero_class G] [mul_one_class H] :
 add_equiv.to_multiplicative''.symm
 
 end type_tags
+
+section
+variables (G) (H)
+
+/-- `additive (multiplicative G)` is just `G`. -/
+def add_equiv.additive_multiplicative [add_zero_class G] : additive (multiplicative G) ≃+ G :=
+mul_equiv.to_additive'' (mul_equiv.refl (multiplicative G))
+
+/-- `multiplicative (additive H)` is just `H`. -/
+def mul_equiv.multiplicative_additive [mul_one_class H] : multiplicative (additive H) ≃* H :=
+add_equiv.to_multiplicative'' (add_equiv.refl (additive H))
+
+end

@@ -40,7 +40,7 @@ instance [Π i, non_unital_semiring (f i)] [Π i, star_ring (f i)] : star_ring (
 { ..pi.star_add_monoid, ..(pi.star_semigroup : star_semigroup (Π i, f i)) }
 
 instance {R : Type w}
-  [Π i, has_scalar R (f i)] [has_star R] [Π i, has_star (f i)] [Π i, star_module R (f i)] :
+  [Π i, has_smul R (f i)] [has_star R] [Π i, has_star (f i)] [Π i, star_module R (f i)] :
   star_module R (Π i, f i) :=
 { star_smul := λ r x, funext $ λ i, star_smul r (x i) }
 

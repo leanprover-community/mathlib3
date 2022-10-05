@@ -36,7 +36,7 @@ variables {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, module R (M i
 instance : module R (⨁ i, M i) := dfinsupp.module
 instance {S : Type*} [semiring S] [Π i, module S (M i)] [Π i, smul_comm_class R S (M i)] :
   smul_comm_class R S (⨁ i, M i) := dfinsupp.smul_comm_class
-instance {S : Type*} [semiring S] [has_scalar R S] [Π i, module S (M i)]
+instance {S : Type*} [semiring S] [has_smul R S] [Π i, module S (M i)]
   [Π i, is_scalar_tower R S (M i)] :
   is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
 instance [Π i, module Rᵐᵒᵖ (M i)] [Π i, is_central_scalar R (M i)] :

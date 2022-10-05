@@ -65,6 +65,9 @@ variables (K L : Type*) [field K] [comm_semiring L] [nontrivial L] [algebra K L]
 lemma algebra.char_p_iff (p : ℕ) : char_p K p ↔ char_p L p :=
 (algebra_map K L).char_p_iff_char_p p
 
+lemma algebra.ring_char_eq : ring_char K = ring_char L :=
+by { rw [ring_char.eq_iff, algebra.char_p_iff K L], apply ring_char.char_p }
+
 end
 
 namespace free_algebra

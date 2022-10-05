@@ -20,7 +20,7 @@ In this file we define
 -/
 
 universes u v
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {γ : Type*}
 
 open set filter function
 open_locale classical filter
@@ -67,6 +67,12 @@ le_of_inf_eq (f.unique inf_le_left hg)
 lemma le_of_inf_ne_bot' (f : ultrafilter α) {g : filter α} (hg : ne_bot (g ⊓ f)) : ↑f ≤ g :=
 f.le_of_inf_ne_bot $ by rwa inf_comm
 
+lemma inf_ne_bot_iff {f : ultrafilter α} {g : filter α} : ne_bot (↑f ⊓ g) ↔ ↑f ≤ g :=
+⟨le_of_inf_ne_bot f, λ h, (inf_of_le_left h).symm ▸ f.ne_bot⟩
+
+lemma disjoint_iff_not_le {f : ultrafilter α} {g : filter α} : disjoint ↑f g ↔ ¬↑f ≤ g :=
+by rw [← inf_ne_bot_iff, ne_bot_iff, ne.def, not_not, disjoint_iff]
+
 @[simp] lemma compl_not_mem_iff : sᶜ ∉ f ↔ s ∈ f :=
 ⟨λ hsc, le_principal_iff.1 $ f.le_of_inf_ne_bot
   ⟨λ h, hsc $ mem_of_eq_bot$ by rwa compl_compl⟩, compl_not_mem⟩
@@ -74,7 +80,7 @@ f.le_of_inf_ne_bot $ by rwa inf_comm
 @[simp] lemma frequently_iff_eventually : (∃ᶠ x in f, p x) ↔ ∀ᶠ x in f, p x :=
 compl_not_mem_iff
 
-alias frequently_iff_eventually ↔ filter.frequently.eventually _
+alias frequently_iff_eventually ↔ _root_.filter.frequently.eventually _
 
 lemma compl_mem_iff_not_mem : sᶜ ∈ f ↔ s ∉ f := by rw [← compl_not_mem_iff, compl_compl]
 
@@ -92,6 +98,12 @@ lemma nonempty_of_mem (hs : s ∈ f) : s.nonempty := nonempty_of_mem hs
 lemma ne_empty_of_mem (hs : s ∈ f) : s ≠ ∅ := (nonempty_of_mem hs).ne_empty
 @[simp] lemma empty_not_mem : ∅ ∉ f := empty_not_mem f
 
+@[simp] lemma le_sup_iff {u : ultrafilter α} {f g : filter α} : ↑u ≤ f ⊔ g ↔ ↑u ≤ f ∨ ↑u ≤ g :=
+not_iff_not.1 $ by simp only [← disjoint_iff_not_le, not_or_distrib, disjoint_sup_right]
+
+@[simp] lemma union_mem_iff : s ∪ t ∈ f ↔ s ∈ f ∨ t ∈ f :=
+by simp only [← mem_coe, ← le_principal_iff, ← sup_principal, le_sup_iff]
+
 lemma mem_or_compl_mem (f : ultrafilter α) (s : set α) : s ∈ f ∨ sᶜ ∈ f :=
 or_iff_not_imp_left.2 compl_mem_iff_not_mem.2
 
@@ -100,10 +112,7 @@ protected lemma em (f : ultrafilter α) (p : α → Prop) :
 f.mem_or_compl_mem {x | p x}
 
 lemma eventually_or : (∀ᶠ x in f, p x ∨ q x) ↔ (∀ᶠ x in f, p x) ∨ ∀ᶠ x in f, q x :=
-⟨λ H, (f.em p).imp_right $ λ hp, (H.and hp).mono $ λ x ⟨hx, hnx⟩, hx.resolve_left hnx,
-  λ H, H.elim (λ hp, hp.mono $ λ x, or.inl) (λ hp, hp.mono $ λ x, or.inr)⟩
-
-lemma union_mem_iff : s ∪ t ∈ f ↔ s ∈ f ∨ t ∈ f := eventually_or
+union_mem_iff
 
 lemma eventually_not : (∀ᶠ x in f, ¬p x) ↔ ¬∀ᶠ x in f, p x := compl_mem_iff_not_mem
 
@@ -128,6 +137,13 @@ of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 @[simp] lemma mem_map {m : α → β} {f : ultrafilter α} {s : set β} :
   s ∈ map m f ↔ m ⁻¹' s ∈ f := iff.rfl
 
+@[simp] lemma map_id (f : ultrafilter α) : f.map id = f := coe_injective map_id
+@[simp] lemma map_id' (f : ultrafilter α) : f.map (λ x, x) = f := map_id _
+
+@[simp] lemma map_map (f : ultrafilter α) (m : α → β) (n : β → γ) :
+  (f.map m).map n = f.map (n ∘ m) :=
+coe_injective map_map
+
 /-- The pullback of an ultrafilter along an injection whose range is large with respect to the given
 ultrafilter. -/
 def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
@@ -142,29 +158,54 @@ def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   s ∈ u.comap inj large ↔ m '' s ∈ u :=
 mem_comap_iff inj large
 
-@[simp] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+@[simp, norm_cast] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   (large : set.range m ∈ u) : (u.comap inj large : filter α) = filter.comap m u := rfl
+
+@[simp] lemma comap_id (f : ultrafilter α) (h₀ : injective (id : α → α) := injective_id)
+  (h₁ : range id ∈ f := by { rw range_id, exact univ_mem}) :
+  f.comap h₀ h₁ = f :=
+coe_injective comap_id
+
+@[simp] lemma comap_comap (f : ultrafilter γ) {m : α → β} {n : β → γ} (inj₀ : injective n)
+  (large₀ : range n ∈ f) (inj₁ : injective m) (large₁ : range m ∈ f.comap inj₀ large₀)
+  (inj₂ : injective (n ∘ m) := inj₀.comp inj₁)
+  (large₂ : range (n ∘ m) ∈ f := by { rw range_comp, exact image_mem_of_mem_comap large₀ large₁ }) :
+  (f.comap inj₀ large₀).comap inj₁ large₁ = f.comap inj₂ large₂ :=
+coe_injective comap_comap
 
 /-- The principal ultrafilter associated to a point `x`. -/
 instance : has_pure ultrafilter :=
 ⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩
 
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
+@[simp] lemma coe_pure (a : α) : ↑(pure a : ultrafilter α) = (pure a : filter α) := rfl
+@[simp] lemma map_pure (m : α → β) (a : α) : map m (pure a) = pure (m a) := rfl
+@[simp] lemma comap_pure {m : α → β} (a : α) (inj : injective m) (large) :
+  comap (pure $ m a) inj large = pure a :=
+coe_injective $ comap_pure.trans $
+  by rw [coe_pure, ←principal_singleton, ←image_singleton, preimage_image_eq _ inj]
+
+lemma pure_injective : injective (pure : α → ultrafilter α) :=
+λ a b h, filter.pure_injective (congr_arg ultrafilter.to_filter h : _)
 
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
 instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 
-lemma eq_principal_of_finite_mem {f : ultrafilter α} {s : set α} (h : s.finite) (h' : s ∈ f) :
-  ∃ x ∈ s, (f : filter α) = pure x :=
+lemma eq_pure_of_finite_mem (h : s.finite) (h' : s ∈ f) : ∃ x ∈ s, f = pure x :=
 begin
   rw ← bUnion_of_singleton s at h',
   rcases (ultrafilter.finite_bUnion_mem_iff h).mp h' with ⟨a, has, haf⟩,
-  use [a, has],
-  change (f : filter α) = (pure a : ultrafilter α),
-  rw [ultrafilter.coe_inj, ← ultrafilter.coe_le_coe],
-  change (f : filter α) ≤ pure a,
-  rwa [← principal_singleton, le_principal_iff]
+  exact ⟨a, has, eq_of_le (filter.le_pure_iff.2 haf)⟩
 end
+
+lemma eq_pure_of_finite [finite α] (f : ultrafilter α) : ∃ a, f = pure a :=
+(eq_pure_of_finite_mem finite_univ univ_mem).imp $ λ a ⟨_, ha⟩, ha
+
+lemma le_cofinite_or_eq_pure (f : ultrafilter α) : (f : filter α) ≤ cofinite ∨ ∃ a, f = pure a :=
+or_iff_not_imp_left.2 $ λ h,
+  let ⟨s, hs, hfin⟩ := filter.disjoint_cofinite_right.1 (disjoint_iff_not_le.2 h),
+      ⟨a, has, hf⟩ := eq_pure_of_finite_mem hfin hs
+  in ⟨a, hf⟩
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/
@@ -211,7 +252,7 @@ begin
     hmin ⟨g, hg₁, le_trans hg₂ uτ.property.right⟩ hg₂⟩, uτ.property.right⟩
 end
 
-alias exists_le ← filter.exists_ultrafilter_le
+alias exists_le ← _root_.filter.exists_ultrafilter_le
 
 /-- Construct an ultrafilter extending a given filter.
   The ultrafilter lemma is the assertion that such a filter exists;
@@ -228,10 +269,8 @@ lemma exists_ultrafilter_of_finite_inter_nonempty (S : set (set α))
   (cond : ∀ T : finset (set α), (↑T : set (set α)) ⊆ S → (⋂₀ (↑T : set (set α))).nonempty) :
   ∃ F : ultrafilter α, S ⊆ F.sets :=
 begin
-  suffices : ∃ F : filter α, ne_bot F ∧ S ⊆ F.sets,
-  { rcases this with ⟨F, cond, hF⟩,
-    resetI,
-    obtain ⟨G : ultrafilter α, h1 : ↑G ≤ F⟩ := exists_le F,
+  rsufficesI ⟨F, cond, hF⟩ : ∃ F : filter α, ne_bot F ∧ S ⊆ F.sets,
+  { obtain ⟨G : ultrafilter α, h1 : ↑G ≤ F⟩ := exists_le F,
     exact ⟨G, λ T hT, h1 (hF hT)⟩ },
   use filter.generate S,
   refine ⟨_, λ T hT, filter.generate_sets.basic hT⟩,
@@ -304,13 +343,13 @@ ultrafilter.of_le cofinite
 theorem nmem_hyperfilter_of_finite {s : set α} (hf : s.finite) : s ∉ hyperfilter α :=
 λ hy, compl_not_mem hy $ hyperfilter_le_cofinite hf.compl_mem_cofinite
 
-alias nmem_hyperfilter_of_finite ← set.finite.nmem_hyperfilter
+alias nmem_hyperfilter_of_finite ← _root_.set.finite.nmem_hyperfilter
 
 theorem compl_mem_hyperfilter_of_finite {s : set α} (hf : set.finite s) :
   sᶜ ∈ hyperfilter α :=
 compl_mem_iff_not_mem.2 hf.nmem_hyperfilter
 
-alias compl_mem_hyperfilter_of_finite ← set.finite.compl_mem_hyperfilter
+alias compl_mem_hyperfilter_of_finite ← _root_.set.finite.compl_mem_hyperfilter
 
 theorem mem_hyperfilter_of_finite_compl {s : set α} (hf : set.finite sᶜ) :
   s ∈ hyperfilter α :=

@@ -303,16 +303,16 @@ lemma ae_cover.comp_tendsto {α ι ι' : Type*} [measurable_space α] {μ : meas
 { ae_eventually_mem := hφ.ae_eventually_mem.mono (λ x hx, hu.eventually hx),
   measurable := λ i, hφ.measurable (u i) }
 
-section ae_cover_Union_Inter_encodable
+section ae_cover_Union_Inter_countable
 
-variables {α ι : Type*} [encodable ι]
+variables {α ι : Type*} [countable ι]
   [measurable_space α] {μ : measure α}
 
 lemma ae_cover.bUnion_Iic_ae_cover [preorder ι] {φ : ι → set α} (hφ : ae_cover μ at_top φ) :
   ae_cover μ at_top (λ (n : ι), ⋃ k (h : k ∈ Iic n), φ k) :=
 { ae_eventually_mem := hφ.ae_eventually_mem.mono
     (λ x h, h.mono (λ i hi, mem_bUnion right_mem_Iic hi)),
-  measurable := λ i, measurable_set.bUnion (countable_encodable _) (λ n _, hφ.measurable n) }
+  measurable := λ i, measurable_set.bUnion (to_countable _) (λ n _, hφ.measurable n) }
 
 lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι → set α}
   (hφ : ae_cover μ at_top φ) : ae_cover μ at_top (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
@@ -325,9 +325,9 @@ lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι �
       intros j hj,
       exact mem_bInter (λ k hk, hi k (le_trans hj hk)),
     end,
-  measurable := λ i, measurable_set.bInter (countable_encodable _) (λ n _, hφ.measurable n) }
+  measurable := λ i, measurable_set.bInter (to_countable _) (λ n _, hφ.measurable n) }
 
-end ae_cover_Union_Inter_encodable
+end ae_cover_Union_Inter_countable
 
 section lintegral
 
@@ -385,7 +385,7 @@ end lintegral
 section integrable
 
 variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter ι}
-  [normed_group E]
+  [normed_add_comm_group E]
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ) (hfm : ae_strongly_measurable f μ)
@@ -469,7 +469,7 @@ end integrable
 section integral
 
 variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter ι}
-  [normed_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 lemma ae_cover.integral_tendsto_of_countably_generated [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (hfi : integrable f μ) :
@@ -505,7 +505,7 @@ section integrable_of_interval_integral
 
 variables {ι E : Type*} {μ : measure ℝ}
           {l : filter ι} [filter.ne_bot l] [is_countably_generated l]
-          [normed_group E]
+          [normed_add_comm_group E]
           {a b : ι → ℝ} {f : ℝ → E}
 
 lemma integrable_of_interval_integral_norm_bounded
@@ -521,6 +521,10 @@ begin
   rwa ←interval_integral.integral_of_le (hai.trans hbi)
 end
 
+/-- If `f` is integrable on intervals `Ioc (a i) (b i)`,
+where `a i` tends to -∞ and `b i` tends to ∞, and
+`∫ x in a i .. b i, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (-∞, ∞) -/
 lemma integrable_of_interval_integral_norm_tendsto
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
@@ -545,6 +549,10 @@ begin
   exact id
 end
 
+/-- If `f` is integrable on intervals `Ioc (a i) b`,
+where `a i` tends to -∞, and
+`∫ x in a i .. b, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (-∞, b) -/
 lemma integrable_on_Iic_of_interval_integral_norm_tendsto (I b : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
   (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) l (𝓝 I)) :
@@ -569,6 +577,10 @@ begin
   exact id
 end
 
+/-- If `f` is integrable on intervals `Ioc a (b i)`,
+where `b i` tends to ∞, and
+`∫ x in a .. b i, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (a, ∞) -/
 lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b l at_top)
   (h : tendsto (λ i, ∫ x in a .. b i, ∥f x∥ ∂μ) l (𝓝 $ I)) :
@@ -605,7 +617,7 @@ section integral_of_interval_integral
 
 variables {ι E : Type*} {μ : measure ℝ}
           {l : filter ι} [is_countably_generated l]
-          [normed_group E] [normed_space ℝ E] [complete_space E]
+          [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
           {a b : ι → ℝ} {f : ℝ → E}
 
 lemma interval_integral_tendsto_integral

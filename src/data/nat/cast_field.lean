@@ -29,9 +29,8 @@ begin
   rw [nat.mul_div_cancel_left _ this.bot_lt, cast_mul, mul_div_cancel_left _ n_nonzero],
 end
 
-
-section linear_ordered_field
-variables [linear_ordered_field α]
+section linear_ordered_semifield
+variables [linear_ordered_semifield α]
 
 /-- Natural division is always less than division in the field. -/
 lemma cast_div_le {m n : ℕ} : ((m / n : ℕ) : α) ≤ m / n :=
@@ -55,6 +54,5 @@ by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
 lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
 by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
 
-end linear_ordered_field
-
+end linear_ordered_semifield
 end nat

@@ -120,12 +120,6 @@ meta def head : name → string
 meta def is_private (n : name) : bool :=
 n.head = "_private"
 
-/-- Get the last component of a name, and convert it to a string. -/
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
-
 /-- Returns the number of characters used to print all the string components of a name,
   including periods between name segments. Ignores numerical parts of a name. -/
 meta def length : name → ℕ
@@ -151,6 +145,19 @@ def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/-- Like `++`, except that if the right argument starts with `_root_` the namespace will be
+ignored.
+```
+append_namespace `a.b `c.d = `a.b.c.d
+append_namespace `a.b `_root_.c.d = `c.d
+```
+-/
+meta def append_namespace (ns : name) : name → name
+| (mk_string s anonymous) := if s = "_root_" then anonymous else mk_string s ns
+| (mk_string s p)         := mk_string s (append_namespace p)
+| (mk_numeral n p)        := mk_numeral n (append_namespace p)
+| anonymous               := ns
 
 /--
 Constructs a (non-simple) name from a string.
@@ -886,6 +893,19 @@ private meta def all_implicitly_included_variables_aux
 meta def all_implicitly_included_variables (es vs : list expr) : list expr :=
 all_implicitly_included_variables_aux es vs [] ff
 
+/-- Get the list of explicit arguments of a function. -/
+meta def list_explicit_args (f : expr) : tactic (list expr) :=
+tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
+
+/--  `replace_explicit_args f parg` assumes that `f` is an expression corresponding to a function
+application.  It replaces the explicit arguments of `f`, in succession, by the elements of `parg`.
+The implicit arguments of `f` remain unchanged. -/
+meta def replace_explicit_args (f : expr) (parg : list expr) : tactic expr :=
+do finf ← (get_fun_info f.get_app_fn),
+  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
+  let nargs := list.replace_if f.get_app_args is_ex_arg parg,
+  return $ expr.mk_app f.get_app_fn nargs
+
 /-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
 This also works if `x1, ... xn` contain free variables. -/
 protected meta def simple_infer_type (env : environment) (e : expr) : exceptional expr := do
@@ -1192,3 +1212,9 @@ end declaration
 meta instance pexpr.decidable_eq {elab} : decidable_eq (expr elab) :=
 unchecked_cast
 expr.has_decidable_eq
+
+section
+local attribute [semireducible] reflected
+meta instance {α} [has_reflect α] : has_reflect (thunk α) | a :=
+expr.lam `x binder_info.default (reflect unit) (reflect $ a ())
+end

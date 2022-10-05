@@ -202,6 +202,9 @@ ne_of_apply_ne f $ ne_of_ne_of_eq hx (map_one f).symm
 instance [one_hom_class F M N] : has_coe_t F (one_hom M N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f }⟩
 
+@[simp, to_additive] lemma one_hom.coe_coe [one_hom_class F M N] (f : F) :
+  ((f : one_hom M N) : M → N) = f := rfl
+
 end one
 
 section mul
@@ -246,6 +249,9 @@ mul_hom_class.map_mul f x y
 instance [mul_hom_class F M N] : has_coe_t F (M →ₙ* N) :=
 ⟨λ f, { to_fun := f, map_mul' := map_mul f }⟩
 
+@[simp, to_additive] lemma mul_hom.coe_coe [mul_hom_class F M N] (f : F) :
+  ((f : mul_hom M N) : M → N) = f := rfl
+
 end mul
 
 section mul_one
@@ -288,6 +294,9 @@ instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
 @[to_additive]
 instance [monoid_hom_class F M N] : has_coe_t F (M →* N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
+
+@[simp, to_additive] lemma monoid_hom.coe_coe [monoid_hom_class F M N] (f : F) :
+  ((f : M →* N) : M → N) = f := rfl
 
 @[to_additive]
 lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) :
@@ -356,6 +365,9 @@ attribute [to_additive_reorder 8, to_additive] map_zpow
 
 end mul_one
 
+@[to_additive] lemma group.is_unit [group G] (g : G) : is_unit g :=
+⟨⟨g, g⁻¹, mul_inv_self g, inv_mul_self g⟩, rfl⟩
+
 section mul_zero_one
 
 variables [mul_zero_one_class M] [mul_zero_one_class N]
@@ -398,6 +410,9 @@ instance monoid_with_zero_hom.monoid_with_zero_hom_class :
 
 instance [monoid_with_zero_hom_class F M N] : has_coe_t F (M →*₀ N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_zero' := map_zero f, map_mul' := map_mul f }⟩
+
+@[simp] lemma monoid_with_zero_hom.coe_coe [monoid_with_zero_hom_class F M N] (f : F) :
+  ((f : M →*₀ N) : M → N) = f := rfl
 
 end mul_zero_one
 
@@ -919,7 +934,7 @@ instance : monoid (monoid.End M) :=
 
 instance : inhabited (monoid.End M) := ⟨1⟩
 
-instance : has_coe_to_fun (monoid.End M) (λ _, M → M) := ⟨monoid_hom.to_fun⟩
+instance : monoid_hom_class (monoid.End M) M M := monoid_hom.monoid_hom_class
 
 end End
 
@@ -946,7 +961,7 @@ instance : monoid (add_monoid.End A) :=
 
 instance : inhabited (add_monoid.End A) := ⟨1⟩
 
-instance : has_coe_to_fun (add_monoid.End A) (λ _, A → A) := ⟨add_monoid_hom.to_fun⟩
+instance : add_monoid_hom_class (add_monoid.End A) A A := add_monoid_hom.add_monoid_hom_class
 
 end End
 
@@ -1061,13 +1076,21 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
   g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
+/-- If two homomorphisms from a division monoid to a monoid are equal at a unit `x`, then they are
+equal at `x⁻¹`. -/
+@[to_additive "If two homomorphisms from a subtraction monoid to an additive monoid are equal at an
+additive unit `x`, then they are equal at `-x`."]
+lemma _root_.is_unit.eq_on_inv {G N} [division_monoid G] [monoid N] [monoid_hom_class F G N] {x : G}
+  (hx : is_unit x) (f g : F) (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
+left_inv_eq_right_inv (map_mul_eq_one f hx.inv_mul_cancel) $
+  h.symm ▸ map_mul_eq_one g $ hx.mul_inv_cancel
+
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
 then they are equal at `-x`." ]
-lemma eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] {f g : F} {x : G}
+lemma _root_.eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] (f g : F) {x : G}
   (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
-left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
-  h.symm ▸ map_mul_eq_one g $ mul_inv_self x
+(group.is_unit x).eq_on_inv f g h
 
 /-- Group homomorphisms preserve inverse. -/
 @[to_additive "Additive group homomorphisms preserve negation."]

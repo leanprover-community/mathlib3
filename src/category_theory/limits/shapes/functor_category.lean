@@ -16,12 +16,11 @@ open category_theory
 
 namespace category_theory.limits
 
-universes z w v u
-variables {C : Type (max v u)} [category.{v} C]
-variables {D : Type w} [category.{max z v u} D]
+universes v₁ v₂ u₁ u₂ w
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 
-instance functor_category_has_finite_limits [has_finite_limits D] :
-  has_finite_limits (C ⥤ D) :=
+instance functor_category_has_finite_limits [has_finite_limits D] : has_finite_limits (C ⥤ D) :=
 { out := λ J _ _, by exactI infer_instance, }
 
 instance functor_category_has_finite_colimits [has_finite_colimits D] :

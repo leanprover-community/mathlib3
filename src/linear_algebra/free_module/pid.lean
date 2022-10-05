@@ -59,7 +59,7 @@ open submodule.is_principal submodule
 
 lemma eq_bot_of_generator_maximal_map_eq_zero (b : basis ι R M) {N : submodule R M}
   {ϕ : M →ₗ[R] R} (hϕ : ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ)
-  [(N.map ϕ).is_principal] (hgen : generator (N.map ϕ) = 0) : N = ⊥ :=
+  [(N.map ϕ).is_principal] (hgen : generator (N.map ϕ) = (0 : R)) : N = ⊥ :=
 begin
   rw submodule.eq_bot_iff,
   intros x hx,
@@ -405,7 +405,7 @@ section smith_normal
 /-- A Smith normal form basis for a submodule `N` of a module `M` consists of
 bases for `M` and `N` such that the inclusion map `N → M` can be written as a
 (rectangular) matrix with `a` along the diagonal: in Smith normal form. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure basis.smith_normal_form (N : submodule R M) (ι : Type*) (n : ℕ) :=
 (bM : basis ι R M)
 (bN : basis (fin n) R N)
@@ -514,11 +514,11 @@ See also `ideal.smith_normal_form` for a version of this theorem that returns
 a `basis.smith_normal_form`.
 -/
 theorem ideal.exists_smith_normal_form
-  [fintype ι] {S : Type*} [comm_ring S] [is_domain S] [algebra R S]
+  [finite ι] {S : Type*} [comm_ring S] [is_domain S] [algebra R S]
   (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
   ∃ (b' : basis ι R S) (a : ι → R) (ab' : basis ι R I),
   ∀ i, (ab' i : S) = a i • b' i :=
-let ⟨bS, bI, f, a, snf⟩ := I.smith_normal_form b hI,
+ by casesI nonempty_fintype ι; exact let ⟨bS, bI, f, a, snf⟩ := I.smith_normal_form b hI,
     e : fin (fintype.card ι) ≃ ι := equiv.of_bijective f
       ((fintype.bijective_iff_injective_and_card f).mpr ⟨f.injective, fintype.card_fin _⟩) in
 have fe : ∀ i, f (e.symm i) = i := e.apply_symm_apply,

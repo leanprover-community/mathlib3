@@ -12,6 +12,7 @@ This file defines instances for additive and multiplicative actions on the binar
 
 ## See also
 
+* `group_theory.group_action.option`
 * `group_theory.group_action.pi`
 * `group_theory.group_action.prod`
 * `group_theory.group_action.sigma`
@@ -21,18 +22,18 @@ variables {M N P α β γ : Type*}
 
 namespace sum
 
-section has_scalar
-variables [has_scalar M α] [has_scalar M β] [has_scalar N α] [has_scalar N β] (a : M) (b : α)
+section has_smul
+variables [has_smul M α] [has_smul M β] [has_smul N α] [has_smul N β] (a : M) (b : α)
   (c : β) (x : α ⊕ β)
 
-@[to_additive sum.has_vadd] instance : has_scalar M (α ⊕ β) := ⟨λ a, sum.map ((•) a) ((•) a)⟩
+@[to_additive sum.has_vadd] instance : has_smul M (α ⊕ β) := ⟨λ a, sum.map ((•) a) ((•) a)⟩
 
 @[to_additive] lemma smul_def : a • x = x.map ((•) a) ((•) a) := rfl
 @[simp, to_additive] lemma smul_inl : a • (inl b : α ⊕ β) = inl (a • b) := rfl
 @[simp, to_additive] lemma smul_inr : a • (inr c : α ⊕ β) = inr (a • c) := rfl
 @[simp, to_additive] lemma smul_swap : (a • x).swap = a • x.swap := by cases x; refl
 
-instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
+instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α ⊕ β) :=
 ⟨λ a b x,
   by { cases x, exacts [congr_arg inl (smul_assoc _ _ _), congr_arg inr (smul_assoc _ _ _)] }⟩
@@ -42,7 +43,7 @@ instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
 ⟨λ a b x,
   by { cases x, exacts [congr_arg inl (smul_comm _ _ _), congr_arg inr (smul_comm _ _ _)] }⟩
 
-instance [has_scalar Mᵐᵒᵖ α] [has_scalar Mᵐᵒᵖ β] [is_central_scalar M α] [is_central_scalar M β] :
+instance [has_smul Mᵐᵒᵖ α] [has_smul Mᵐᵒᵖ β] [is_central_scalar M α] [is_central_scalar M β] :
   is_central_scalar M (α ⊕ β) :=
 ⟨λ a x,
   by { cases x, exacts [congr_arg inl (op_smul_eq_smul _ _), congr_arg inr (op_smul_eq_smul _ _)] }⟩
@@ -55,7 +56,7 @@ instance [has_scalar Mᵐᵒᵖ α] [has_scalar Mᵐᵒᵖ β] [is_central_scala
   has_faithful_smul M (α ⊕ β) :=
 ⟨λ x y h, eq_of_smul_eq_smul $ λ b : β, by injection h (inr b)⟩
 
-end has_scalar
+end has_smul
 
 @[to_additive] instance {m : monoid M} [mul_action M α] [mul_action M β] : mul_action M (α ⊕ β) :=
 { mul_smul := λ a b x,

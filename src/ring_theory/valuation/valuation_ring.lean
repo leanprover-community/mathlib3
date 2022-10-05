@@ -6,7 +6,9 @@ Authors: Adam Topaz
 import ring_theory.valuation.integers
 import ring_theory.ideal.local_ring
 import ring_theory.localization.fraction_ring
+import ring_theory.localization.integer
 import ring_theory.discrete_valuation_ring
+import ring_theory.bezout
 import tactic.field_simp
 
 /-!
@@ -21,7 +23,13 @@ Namely, given the following instances:
 there is a natural valuation `valuation A K` on `K` with values in `value_group A K` where
 the image of `A` under `algebra_map A K` agrees with `(valuation A K).integer`.
 
-We also show that valuation rings are local and that their lattice of ideals is totally ordered.
+We also provide the equivalence of the following notions for a domain `R` in `valuation_ring.tfae`.
+1. `R` is a valuation ring.
+2. For each `x : fraction_ring K`, either `x` or `x⁻¹` is in `R`.
+3. "divides" is a total relation on the elements of `R`.
+4. "contains" is a total relation on the ideals of `R`.
+5. `R` is a local bezout domain.
+
 -/
 
 universes u v w
@@ -81,7 +89,7 @@ begin
   use b⁻¹,
   dsimp,
   rw [units.smul_def, units.smul_def, algebra.smul_def, algebra.smul_def,
-    mul_inv, ring_hom.map_units_inv],
+    mul_inv, map_units_inv],
 end
 
 variables [is_domain A] [valuation_ring A] [is_fraction_ring A K]
@@ -267,6 +275,142 @@ instance [decidable_rel ((≤) : ideal A → ideal A → Prop)] : linear_order (
   ..(infer_instance : complete_lattice (ideal A)) }
 
 end
+
+section
+
+variables {R : Type*} [comm_ring R] [is_domain R] {K : Type*}
+variables [field K] [algebra R K] [is_fraction_ring R K]
+
+lemma iff_dvd_total :
+  valuation_ring R ↔ is_total R (∣) :=
+begin
+  classical,
+  refine ⟨λ H, ⟨λ a b, _⟩, λ H, ⟨λ a b, _⟩⟩; resetI,
+  { obtain ⟨c,rfl|rfl⟩ := @@valuation_ring.cond _ _ H a b; simp },
+  { obtain (⟨c, rfl⟩|⟨c, rfl⟩) := @is_total.total _ _ H a b; use c; simp }
+end
+
+lemma iff_ideal_total :
+  valuation_ring R ↔ is_total (ideal R) (≤) :=
+begin
+  classical,
+  refine ⟨λ _, by exactI ⟨le_total⟩, λ H, iff_dvd_total.mpr ⟨λ a b, _⟩⟩,
+  have := @is_total.total _ _ H (ideal.span {a}) (ideal.span {b}),
+  simp_rw ideal.span_singleton_le_span_singleton at this,
+  exact this.symm
+end
+
+variables {R} (K)
+
+lemma dvd_total [h : valuation_ring R] (x y : R) : x ∣ y ∨ y ∣ x :=
+@@is_total.total _ (iff_dvd_total.mp h) x y
+
+lemma unique_irreducible [valuation_ring R] ⦃p q : R⦄
+  (hp : irreducible p) (hq : irreducible q) : associated p q :=
+begin
+  have := dvd_total p q,
+  rw [irreducible.dvd_comm hp hq, or_self] at this,
+  exact associated_of_dvd_dvd (irreducible.dvd_symm hq hp this) this,
+end
+
+variable (R)
+
+lemma iff_is_integer_or_is_integer :
+  valuation_ring R ↔ ∀ x : K, is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹ :=
+begin
+  split,
+  { introsI H x,
+    obtain ⟨x : R, y, hy, rfl⟩ := is_fraction_ring.div_surjective x,
+    any_goals { apply_instance },
+    have := (map_ne_zero_iff _ (is_fraction_ring.injective R K)).mpr (non_zero_divisors.ne_zero hy),
+    obtain ⟨s, rfl|rfl⟩ := valuation_ring.cond x y,
+    { exact or.inr ⟨s, eq_inv_of_mul_eq_one_left $
+        by rwa [mul_div, div_eq_one_iff_eq, map_mul, mul_comm]⟩ },
+    { exact or.inl ⟨s, by rwa [eq_div_iff, map_mul, mul_comm]⟩ } },
+  { intro H,
+    constructor,
+    intros a b,
+    by_cases ha : a = 0, { subst ha, exact ⟨0, or.inr $ mul_zero b⟩ },
+    by_cases hb : b = 0, { subst hb, exact ⟨0, or.inl $ mul_zero a⟩ },
+    replace ha := (map_ne_zero_iff _ (is_fraction_ring.injective R K)).mpr ha,
+    replace hb := (map_ne_zero_iff _ (is_fraction_ring.injective R K)).mpr hb,
+    obtain ⟨c, e⟩|⟨c, e⟩ := H (algebra_map R K a / algebra_map R K b),
+    { rw [eq_div_iff hb, ← map_mul, (is_fraction_ring.injective R K).eq_iff, mul_comm] at e,
+      exact ⟨c, or.inr e⟩ },
+    { rw [inv_div, eq_div_iff ha, ← map_mul,
+        (is_fraction_ring.injective R K).eq_iff, mul_comm c] at e,
+      exact ⟨c, or.inl e⟩ } }
+end
+
+variable {K}
+
+lemma is_integer_or_is_integer [h : valuation_ring R] (x : K) :
+  is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹ :=
+(iff_is_integer_or_is_integer R K).mp h x
+
+variable {R}
+
+-- This implies that valuation rings are integrally closed through typeclass search.
+@[priority 100]
+instance [valuation_ring R] : is_bezout R :=
+begin
+  classical,
+  rw is_bezout.iff_span_pair_is_principal,
+  intros x y,
+  rw ideal.span_insert,
+  cases le_total (ideal.span {x} : ideal R) (ideal.span {y}),
+  { erw sup_eq_right.mpr h, exact ⟨⟨_, rfl⟩⟩ },
+  { erw sup_eq_left.mpr h, exact ⟨⟨_, rfl⟩⟩ }
+end
+
+lemma iff_local_bezout_domain :
+  valuation_ring R ↔ local_ring R ∧ is_bezout R :=
+begin
+  classical,
+  refine ⟨λ H, by exactI ⟨infer_instance, infer_instance⟩, _⟩,
+  rintro ⟨h₁, h₂⟩,
+  resetI,
+  refine iff_dvd_total.mpr ⟨λ a b, _⟩,
+  obtain ⟨g, e : _ = ideal.span _⟩ := is_bezout.span_pair_is_principal a b,
+  obtain ⟨a, rfl⟩ := ideal.mem_span_singleton'.mp
+    (show a ∈ ideal.span {g}, by { rw [← e], exact ideal.subset_span (by simp) }),
+  obtain ⟨b, rfl⟩ := ideal.mem_span_singleton'.mp
+    (show b ∈ ideal.span {g}, by { rw [← e], exact ideal.subset_span (by simp) }),
+  obtain ⟨x, y, e'⟩ := ideal.mem_span_pair.mp
+    (show g ∈ ideal.span {a * g, b * g}, by { rw e, exact ideal.subset_span (by simp) }),
+  cases eq_or_ne g 0 with h h, { simp [h] },
+  have : x * a + y * b = 1,
+  { apply mul_left_injective₀ h, convert e'; ring_nf },
+  cases local_ring.is_unit_or_is_unit_of_add_one this with h' h',
+  left, swap, right,
+  all_goals
+  { exact mul_dvd_mul_right (is_unit_iff_forall_dvd.mp (is_unit_of_mul_is_unit_right h') _) _ },
+end
+
+protected lemma tfae (R : Type u) [comm_ring R] [is_domain R] :
+  tfae [valuation_ring R,
+    ∀ x : fraction_ring R, is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹,
+    is_total R (∣),
+    is_total (ideal R) (≤),
+    local_ring R ∧ is_bezout R] :=
+begin
+  tfae_have : 1 ↔ 2, { exact iff_is_integer_or_is_integer R _ },
+  tfae_have : 1 ↔ 3, { exact iff_dvd_total },
+  tfae_have : 1 ↔ 4, { exact iff_ideal_total },
+  tfae_have : 1 ↔ 5, { exact iff_local_bezout_domain },
+  tfae_finish
+end
+
+end
+
+lemma _root_.function.surjective.valuation_ring {R S : Type*} [comm_ring R] [is_domain R]
+  [valuation_ring R] [comm_ring S] [is_domain S] (f : R →+* S) (hf : function.surjective f) :
+  valuation_ring S :=
+⟨λ a b, begin
+  obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨hf a, hf b⟩,
+  obtain ⟨c, rfl|rfl⟩ := valuation_ring.cond a b,
+  exacts [⟨f c, or.inl $ (map_mul _ _ _).symm⟩, ⟨f c, or.inr $ (map_mul _ _ _).symm⟩],
+end⟩
 
 section
 

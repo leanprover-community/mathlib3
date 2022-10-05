@@ -32,7 +32,7 @@ open_locale cardinal
 
 universe u
 
-variables {C : Type u} [small_category C] [has_products C]
+variables {C : Type u} [small_category C] [has_products.{u} C]
 
 /--
 A small category with products is a thin category.

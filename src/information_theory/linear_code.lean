@@ -33,7 +33,7 @@ def linear_code (𝓓 F : Type) [fintype 𝓓] [field F] := submodule F ( 𝓓 -
 
 namespace linear_code
 
-variables {𝓓 F : Type} [fintype 𝓓] [field F] [decidable_eq F]
+variables {𝓓 F : Type} [fintype 𝓓] [field F]
 
 /-- The size of the domain of a code, i.e. the number of field elements transmitted -/
 def length (C : linear_code 𝓓 F) : ℕ := fintype.card 𝓓
@@ -48,7 +48,7 @@ noncomputable def dimension (C : linear_code 𝓓 F) : ℕ := set.finrank F C.co
 The minimum hamming distance between any two elements of the code. Equivalently, the minimum
 hamming distance of 0 from any nonzero element of the code.
 -/
-noncomputable def distance (C : linear_code 𝓓 F) : ℕ :=
+noncomputable def distance [decidable_eq F] (C : linear_code 𝓓 F) : ℕ :=
 Inf (set.image (λ w : hamming (λ i : 𝓓, F), hamming_dist w 0) (C.codewords \ {0}))
 
 /-- The proportion of the code dimension to the size of the code -/
@@ -106,3 +106,42 @@ def reed_solomon (k : ℕ) (D : finset F) : linear_code D F :=
     end }
 
 end reed_solomon
+
+section repetition
+
+variables {𝓓 F : Type} [field F] [fintype 𝓓]
+
+/-- The repetition code, where all symbols in each codeword are the same. This is equivalent to a
+Reed-Solomon code with max degree 0 -/
+def repetition : linear_code 𝓓 F :=
+{ carrier :=  {w | ∃ f : F, w = (λ x, f)},
+  add_mem' :=
+    begin
+      intros a b ha hb,
+      rw set.mem_set_of at ha hb ⊢,
+      rcases ha with ⟨pa, hap⟩,
+      rcases hb with ⟨pb, hbp⟩,
+      use pa + pb,
+      funext,
+      simp [hap, hbp],
+    end,
+  zero_mem' :=
+    begin
+      rw set.mem_set_of,
+      use 0,
+      funext,
+      simp,
+    end,
+  smul_mem' :=
+    begin
+      intros c a ha,
+      rw set.mem_set_of at ha ⊢,
+      rcases ha with ⟨pa, hap⟩,
+      use c • pa,
+      funext,
+      simp [hap],
+    end }
+
+instance : inhabited (linear_code 𝓓 F) := ⟨repetition⟩
+
+end repetition

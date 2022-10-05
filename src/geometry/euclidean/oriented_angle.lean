@@ -1845,6 +1845,28 @@ lemma oangle_eq_zero_iff_oangle_rev_eq_zero {p₁ p₂ p₃ : P} : ∡ p₁ p₂
 lemma oangle_eq_pi_iff_oangle_rev_eq_pi {p₁ p₂ p₃ : P} : ∡ p₁ p₂ p₃ = π ↔ ∡ p₃ p₂ p₁ = π :=
 (o).oangle_eq_pi_iff_oangle_rev_eq_pi
 
+/-- An oriented angle not zero or `π` if and only if the three points are affinely independent. -/
+lemma oangle_ne_zero_and_ne_pi_iff_affine_independent {p₁ p₂ p₃ : P} :
+  (∡ p₁ p₂ p₃ ≠ 0 ∧ ∡ p₁ p₂ p₃ ≠ π) ↔ affine_independent ℝ ![p₁, p₂, p₃] :=
+begin
+  rw [oangle, (o).oangle_ne_zero_and_ne_pi_iff_linear_independent,
+      affine_independent_iff_linear_independent_vsub ℝ _ (1 : fin 3),
+      ←linear_independent_equiv (fin_succ_above_equiv (1 : fin 3)).to_equiv],
+  convert iff.rfl,
+  ext i,
+  fin_cases i;
+    refl
+end
+
+/-- An oriented angle is zero or `π` if and only if the three points are collinear. -/
+lemma oangle_eq_zero_or_eq_pi_iff_collinear {p₁ p₂ p₃ : P} :
+  (∡ p₁ p₂ p₃ = 0 ∨ ∡ p₁ p₂ p₃ = π) ↔ collinear ℝ ({p₁, p₂, p₃} : set P) :=
+begin
+  rw [←not_iff_not, not_or_distrib, oangle_ne_zero_and_ne_pi_iff_affine_independent,
+      affine_independent_iff_not_collinear],
+  simp [-set.union_singleton]
+end
+
 /-- Given three points not equal to `p`, the angle between the first and the second at `p` plus
 the angle between the second and the third equals the angle between the first and the third. -/
 @[simp] lemma oangle_add {p p₁ p₂ p₃ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) (hp₃ : p₃ ≠ p) :

@@ -290,10 +290,7 @@ end
 
 lemma variance_eq {f : α → ℝ} {g : β → ℝ} (h : ident_distrib f g μ ν) :
   variance f μ = variance g ν :=
-begin
-  rw [variance, h.evariance_eq],
-  refl,
-end
+by { rw [variance, h.evariance_eq], refl, }
 
 end ident_distrib
 

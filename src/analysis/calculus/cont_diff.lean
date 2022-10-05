@@ -2581,16 +2581,15 @@ variables {𝔸 𝔸' ι 𝕜' : Type*} [normed_ring 𝔸] [normed_algebra 𝕜 
   [normed_comm_ring 𝔸'] [normed_algebra 𝕜 𝔸'] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 
 /- The product is smooth. -/
-lemma cont_diff_mul : cont_diff 𝕜 n (λ p : 𝕜 × 𝕜, p.1 * p.2) :=
-(is_bounded_bilinear_map_mul : is_bounded_bilinear_map 𝕜 (λ p : 𝕜 × 𝕜, p.1 * p.2)).cont_diff
+lemma cont_diff_mul : cont_diff 𝕜 n (λ p : 𝔸 × 𝔸, p.1 * p.2) :=
+(continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.cont_diff
 
 /-- The product of two `C^n` functions within a set at a point is `C^n` within this set
 at this point. -/
 lemma cont_diff_within_at.mul {s : set E} {f g : E → 𝔸}
   (hf : cont_diff_within_at 𝕜 n f s x) (hg : cont_diff_within_at 𝕜 n g s x) :
   cont_diff_within_at 𝕜 n (λ x, f x * g x) s x :=
-(cont_diff_mul : cont_diff 𝕜 n (λ p : 𝕜 × 𝕜, p.1 * p.2)).cont_diff_within_at.comp x (hf.prod hg)
-subset_preimage_univ
+cont_diff_mul.comp_cont_diff_within_at (hf.prod hg)
 
 /-- The product of two `C^n` functions at a point is `C^n` at this point. -/
 lemma cont_diff_at.mul {f g : E → 𝔸} (hf : cont_diff_at 𝕜 n f x) (hg : cont_diff_at 𝕜 n g x) :
@@ -2605,7 +2604,7 @@ lemma cont_diff_on.mul {f g : E → 𝔸} (hf : cont_diff_on 𝕜 n f s) (hg : c
 /-- The product of two `C^n`functions is `C^n`. -/
 lemma cont_diff.mul {f g : E → 𝔸} (hf : cont_diff 𝕜 n f) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (λ x, f x * g x) :=
-(cont_diff_mul : cont_diff 𝕜 n (λ p : 𝕜 × 𝕜, p.1 * p.2)).comp (hf.prod hg)
+cont_diff_mul.comp (hf.prod hg)
 
 lemma cont_diff_within_at_prod' {t : finset ι} {f : ι → E → 𝔸'}
   (h : ∀ i ∈ t, cont_diff_within_at 𝕜 n (f i) s x) :

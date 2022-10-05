@@ -59,7 +59,7 @@ over `k`.
 
 noncomputable theory
 
-universes u
+universes u v w
 
 variables {k G : Type u} [comm_ring k] {n : ℕ}
 
@@ -246,58 +246,87 @@ def classifying_space_universal_cover [monoid G] :
 namespace classifying_space_universal_cover
 
 open category_theory.limits category_theory.arrow
-variables (G) [monoid G] (m : simplex_categoryᵒᵖ)
 
-/-- The natural hom of `G`-sets `G ⟶ {pt}` as an arrow. -/
-def arrow : arrow (Action (Type u) (Mon.of G)) :=
-⟨Action.of_mul_action G G, default, ⟨λ x, punit.star, λ g, rfl⟩⟩
+variables (ι : Type w) {C : Type u} [category.{v} C] [has_terminal C]
 
-/-- The diagram `option (fin (m + 1)) ⥤ G-Set` sending `none` to `{pt}` and `some j` to `G` (with
-the left regular action). -/
-abbreviation wide_cospan :
-  wide_pullback_shape (fin ((opposite.unop m).len + 1)) ⥤ Action (Type u) (Mon.of G) :=
-wide_pullback_shape.wide_cospan default (λ (i : fin (m.unop.len + 1)), Action.of_mul_action G G)
-  (λ i, ⟨λ x, punit.star, λ g, rfl⟩)
+/-- The diagram `option ι ⥤ C` sending `none` to the terminal object and `some j` to `X`. -/
+def wide_cospan (X : C) : wide_pullback_shape ι ⥤ C :=
+wide_pullback_shape.wide_cospan (terminal C) (λ i : ι, X) (λ i, terminal.from X)
 
-/-- The `G-Set` `Gᵐ⁺¹` (with the diagonal action) is the vertex of a cone on `wide_cospan G m`. -/
-def wide_cospan.cone : cone (wide_cospan G m) :=
-{ X := Action.of_mul_action G (fin (m.unop.len + 1) → G),
-  π :=
-  { app := λ X, option.cases_on X (⟨λ x, punit.star, λ g, rfl⟩)
-      (λ i, ⟨λ x, x i, λ x, by ext; refl⟩),
-    naturality' := λ X Y f, by { cases f, cases X, obviously }}}
+instance unique_to_wide_cospan_none (X Y : C) : unique (Y ⟶ (wide_cospan ι X).obj none) :=
+by unfold wide_cospan; dsimp; apply_instance
 
-/-- The cone on `wide_cospan G m` with `Gᵐ⁺¹` as a vertex is a limit. -/
-def wide_cospan.is_limit : is_limit (wide_cospan.cone G m) :=
-{ lift := λ s,
-  { hom := λ x j, (s.π.app (some j)).hom x,
-    comm' := λ g, by ext; convert congr_fun ((s.π.app (some j)).comm' g) i },
-  fac' := λ s j, option.cases_on j (by ext) (λ j, by ext; refl),
-  uniq' := λ s f h, by ext x j; simpa only [←h (some j)] }
+variables [has_finite_products C]
 
-instance has_wide_pullback : has_wide_pullback (arrow G).right
-  (λ i : fin (m.unop.len + 1), (arrow G).left) (λ i, (arrow G).hom) :=
-⟨⟨⟨wide_cospan.cone G m, wide_cospan.is_limit G m⟩⟩⟩
+/-- The product `Xᶥ` is the vertex of a limit cone on `wide_cospan ι X`. -/
+def wide_cospan.limit_cone [fintype ι] (X : C) : limit_cone (wide_cospan ι X) :=
+{ cone :=
+  { X := ∏ (λ i : ι, X),
+    π :=
+    { app := λ X, option.cases_on X (terminal.from _) (λ i, limit.π _ ⟨i⟩),
+      naturality' := λ i j f,
+      begin
+      cases f,
+      { cases i,
+        all_goals { dsimp, simp }},
+      { dsimp,
+        simp only [terminal.comp_from],
+        exact subsingleton.elim _ _ }
+      end } },
+  is_limit :=
+  { lift := λ s, limits.pi.lift (λ j, s.π.app (some j)),
+    fac' := λ s j, option.cases_on j (subsingleton.elim _ _) (λ j, limit.lift_π _ _),
+    uniq' := λ s f h,
+    begin
+      ext j,
+      dunfold limits.pi.lift,
+      rw limit.lift_π,
+      dsimp,
+      rw ←h (some j.as),
+      congr,
+      ext,
+      refl,
+    end } }
+
+instance has_wide_pullback [finite ι] (X : C) :
+  has_wide_pullback (arrow.mk (terminal.from X)).right
+  (λ i : ι, (arrow.mk (terminal.from X)).left) (λ i, (arrow.mk (terminal.from X)).hom) :=
+begin
+  casesI nonempty_fintype ι,
+  exact ⟨⟨wide_cospan.limit_cone ι X⟩⟩,
+end
+
+variables [monoid G] (m : simplex_categoryᵒᵖ)
 
 /-- The `m`th object of the Čech nerve of the `G`-set hom `G ⟶ {pt}` is isomorphic to `Gᵐ⁺¹` with
 the diagonal action. -/
 def cech_nerve_obj_iso :
-  (cech_nerve (arrow G)).obj m ≅ Action.of_mul_action G (fin (m.unop.len + 1) → G) :=
-is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (wide_cospan.is_limit G m)
+  (cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G)))).obj m
+    ≅ Action.of_mul_action G (fin (m.unop.len + 1) → G) :=
+(is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (wide_cospan.limit_cone
+  (fin (m.unop.len + 1)) (Action.of_mul_action G G)).2).trans $
+  limit.iso_limit_cone (Action.of_mul_action_limit_cone _ _)
 
 /-- The Čech nerve of the `G`-set hom `G ⟶ {pt}` is naturally isomorphic to `EG`, the universal
 cover of the classifying space of `G` as a simplicial `G`-set. -/
-def cech_nerve_iso : cech_nerve (arrow G) ≅ classifying_space_universal_cover G :=
-(@nat_iso.of_components _ _ _ _ (classifying_space_universal_cover G) (cech_nerve (arrow G))
-(λ n, (cech_nerve_obj_iso G n).symm) $ λ m n f,  wide_pullback.hom_ext (λ j, (arrow G).hom) _ _
+def cech_nerve_iso : cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G)))
+  ≅ classifying_space_universal_cover G :=
+(@nat_iso.of_components _ _ _ _ (classifying_space_universal_cover G)
+  (cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G))))
+(λ n, (cech_nerve_obj_iso G n).symm) $ λ m n f,  wide_pullback.hom_ext
+  (λ j, (arrow.mk (terminal.from (Action.of_mul_action G G))).hom) _ _
 (λ j, begin
   simp only [category.assoc],
-  dsimp,
-  rw wide_pullback.lift_π,
-  erw [limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.is_limit G n),
-    limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.is_limit G m)],
+  dsimp [cech_nerve_obj_iso],
+  rw [wide_pullback.lift_π, category.assoc],
+  erw [limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.limit_cone _ _).2,
+    limit.cone_point_unique_up_to_iso_hom_comp (Action.of_mul_action_limit_cone _ _).2,
+    category.assoc],
+  dunfold wide_pullback.π,
+  erw [limit.cone_point_unique_up_to_iso_inv_comp, limit.iso_limit_cone_inv_π],
   refl,
-end) (by ext)).symm
+end)
+(@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _)).symm
 
 end classifying_space_universal_cover
 namespace group_cohomology.resolution

@@ -1443,7 +1443,7 @@ variables [has_norm E] [has_norm F] {x : E × F} {r : ℝ}
 
 instance : has_norm (E × F) := ⟨λ x, ∥x.1∥ ⊔ ∥x.2∥⟩
 
-lemma prod.norm_def (x : E × F) : ∥x∥ = max ∥x.1∥ ∥x.2∥ := rfl
+lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 lemma norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ := le_max_left _ _
 lemma norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ := le_max_right _ _
 

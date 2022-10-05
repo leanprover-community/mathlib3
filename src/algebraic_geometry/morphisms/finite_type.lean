@@ -15,7 +15,7 @@ A morphism of schemes `f : X ⟶ Y` is locally of finite type if for each affine
 
 A morphism of schemes is of finite type if it is both locally of finite type and quasi-compact.
 
-We show that these properties is local, and is stable under compositions.
+We show that these properties are local, and are stable under compositions.
 
 -/
 
@@ -23,20 +23,21 @@ noncomputable theory
 
 open category_theory category_theory.limits opposite topological_space
 
-universe u
+universes v u
 
 namespace algebraic_geometry
 
 variables {X Y : Scheme.{u}} (f : X ⟶ Y)
 
 /--
-A morphism is `affine` if the preimages of affine open sets are affine.
+A morphism of schemes `f : X ⟶ Y` is locally of finite type if for each affine `U ⊆ Y` and
+`V ⊆ f ⁻¹' U`, The induced map `Γ(Y, U) ⟶ Γ(X, V)` is of finite type.
 -/
 @[mk_iff]
 class locally_of_finite_type (f : X ⟶ Y) : Prop :=
 (finite_type_of_affine_subset :
   ∀ (U : Y.affine_opens) (V : X.affine_opens) (e : V.1 ≤ (opens.map f.1.base).obj U.1),
-  (f.1.c.app (op U) ≫ X.presheaf.map (hom_of_le e).op).finite_type)
+  (f.app_le e).finite_type)
 
 lemma locally_of_finite_type_eq :
   @locally_of_finite_type = affine_locally @ring_hom.finite_type :=

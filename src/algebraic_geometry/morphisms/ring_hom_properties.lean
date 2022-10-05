@@ -175,7 +175,7 @@ lemma affine_locally_iff_affine_opens_le
   (hP : ring_hom.respects_iso @P) {X Y : Scheme} (f : X ⟶ Y) :
   affine_locally @P f ↔
   (∀ (U : Y.affine_opens) (V : X.affine_opens) (e : V.1 ≤ (opens.map f.1.base).obj U.1),
-    P (f.1.c.app (op U) ≫ X.presheaf.map (hom_of_le e).op)) :=
+    P (f.app_le e) :=
 begin
   apply forall_congr,
   intro U,

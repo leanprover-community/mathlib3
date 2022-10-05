@@ -151,8 +151,7 @@ lemma concrete_category.surjective_of_epi_of_preserves_pushout {X Y : C} (f : X 
 
 lemma concrete_category.epi_iff_surjective_of_preserves_pushout {X Y : C} (f : X ⟶ Y)
   [preserves_colimits_of_shape walking_span (forget C)] : epi f ↔ function.surjective f :=
-⟨λ m, by exactI concrete_category.surjective_of_epi_of_preserves_pushout _,
-concrete_category.epi_of_surjective f⟩
+((forget C).epi_map_iff_epi _).symm.trans (epi_iff_surjective _)
 
 lemma concrete_category.bijective_of_is_iso {X Y : C} (f : X ⟶ Y) [is_iso f] :
   function.bijective ((forget C).map f) :=

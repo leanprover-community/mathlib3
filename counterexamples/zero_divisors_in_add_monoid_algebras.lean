@@ -13,8 +13,8 @@ import group_theory.order_of_element
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s
 
-This file contains an easy source of zero-divisors in an `add_monoid_algebra`:
-if `k` is a field and `G` is an additive group containing a non-zero torsion element, then
+This file contains an easy source of zero-divisors in an `add_monoid_algebra`.
+If `k` is a field and `G` is an additive group containing a non-zero torsion element, then
 `add_monoid_algebra k G` contains non-zero zero-divisors: this is lemma `zero_divisors_of_torsion`.
 
 There is also a version for periodic elements of an additive monoid `zero_divisors_of_periodic`.
@@ -151,13 +151,13 @@ instance : has_one F := ⟨F.one⟩
 meta def boom : tactic unit :=
 `[ repeat { rintro ⟨⟩ }; dec_trivial ]
 
-/--  `aux` maps `0 1 : F` to their counterparts in `ℕ`.
+/--  `val` maps `0 1 : F` to their counterparts in `ℕ`.
 We use it to lift the linear order on `N`. -/
-def aux : ∀ a : F, ℕ
+def val : ∀ a : F, ℕ
 | 0 := 0
 | 1 := 1
 
-instance : linear_order F := linear_order.lift' aux (by boom)
+instance : linear_order F := linear_order.lift' val (by boom)
 
 @[simp] lemma z01  : (0 : F) < 1 := by boom
 

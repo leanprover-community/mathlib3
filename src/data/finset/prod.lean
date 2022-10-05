@@ -161,7 +161,7 @@ by { simp only [off_diag, mem_filter, mem_product], split; intros h;
      simp only [h, ne.def, not_false_iff, and_self] }
 
 @[simp, norm_cast] lemma coe_off_diag : (s.off_diag : set (α × α)) = (s : set α).off_diag :=
-set.ext $ λ _, mem_off_diag _ _
+set.ext $ mem_off_diag _
 
 @[simp] lemma diag_card : (diag s).card = s.card :=
 begin

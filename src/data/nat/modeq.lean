@@ -309,13 +309,22 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 λ h, ⟨h.of_modeq_mul_right _, h.of_modeq_mul_left _⟩⟩
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
-nat.coprime_of_dvd' (λ k kp ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
-  rw [hka, hkb, modeq_iff_dvd] at h,
-  cases h with z hz,
-  rw [sub_eq_iff_eq_add] at hz,
-  rw [hz, int.coe_nat_mul, mul_assoc, mul_assoc, int.coe_nat_mul, ← mul_add],
-  exact dvd_mul_right _ _,
-end)
+begin
+  have H : (a * b) % n = 1 % n := h,
+  cases n,
+  { rw nat.coprime_zero_right,
+    apply eq_one_of_mul_eq_one_right,
+    rwa mod_zero at H },
+  cases n,
+  { apply nat.coprime_one_right },
+  have h1 : n.succ.succ * (a * b / n.succ.succ) + 1 = a * b,
+  { simpa only [H, one_mod] using nat.div_add_mod (a * b) n.succ.succ },
+  rw [nat.coprime_iff_gcd_eq_one, ← nat.dvd_one],
+  set N := n.succ.succ,
+  have h2 : a.gcd N ∣ N * ((a * b) / N) := dvd_mul_of_dvd_left (nat.gcd_dvd_right a N) _,
+  rw [← nat.dvd_add_right h2, h1],
+  apply dvd_mul_of_dvd_left (gcd_dvd_left a N),
+end
 
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=
 (mod_modeq _ _).of_modeq_mul_right _

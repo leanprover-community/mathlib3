@@ -1378,7 +1378,7 @@ begin
 end
 
 lemma sInter_prod_sInter_subseteq (f₁ : set (set α)) (f₂ : set (set β)) :
-  ⋂₀f₁ ×ˢ ⋂₀f₂ ⊆ ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
+  ⋂₀ f₁ ×ˢ ⋂₀ f₂ ⊆ ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' f₁ ×ˢ f₂) :=
 λ x hx _ ⟨s, hs, h⟩, h ▸ ⟨hx.1 s.1 hs.1, hx.2 s.2 hs.2⟩
 
 lemma sInter_prod_set (f₁ : set (set α)) (h₁ : f₁.nonempty) (T : set β)

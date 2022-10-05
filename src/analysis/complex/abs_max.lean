@@ -348,7 +348,7 @@ begin
     (λ x hx, (hr $ ball_subset_closed_ball hx).2)⟩
 end
 
-lemma complex.eventually_eq_or_eq_zero_of_is_local_min_norm {f : ℂ → ℂ} {c : ℂ}
+lemma eventually_eq_or_eq_zero_of_is_local_min_norm {f : E → ℂ} {c : E}
   (hf : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f z) (hc : is_local_min (norm ∘ f) c) :
   (∀ᶠ z in 𝓝 c, f z = f c) ∨ (f c = 0) :=
 begin

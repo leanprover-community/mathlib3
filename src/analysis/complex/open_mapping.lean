@@ -39,7 +39,7 @@ begin
     from exists_local_min_mem_ball h3 h5 hw hfw,
   have h7 := h2.differentiable_on.eventually_differentiable_at (is_open_ball.mem_nhds hz1),
   refine ⟨z, ball_subset_closed_ball hz1, sub_eq_zero.mp _⟩,
-  refine (complex.eventually_eq_or_eq_zero_of_is_local_min_norm h7 hz2).resolve_left (λ key, _),
+  refine (eventually_eq_or_eq_zero_of_is_local_min_norm h7 hz2).resolve_left (λ key, _),
   have h8 : ∀ᶠ w in 𝓝 z, f w = f z := by { filter_upwards [key] with h; field_simp },
   have h9 : is_preconnected (ball z₀ r) := (convex_ball z₀ r).is_preconnected,
   have h10 : ∃ᶠ w in 𝓝[≠] z, f w = f z := (h8.filter_mono nhds_within_le_nhds).frequently,

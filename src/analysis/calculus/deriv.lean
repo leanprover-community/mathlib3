@@ -1541,9 +1541,10 @@ lemma differentiable_within_at.inv (hc : differentiable_within_at 𝕜 c s x) (h
   differentiable_within_at 𝕜 (λx, (c x)⁻¹) s x :=
 (hc.has_deriv_within_at.inv hx).differentiable_within_at
 
-@[simp] lemma differentiable_at.inv (hc : differentiable_at 𝕜 c x) (hx : c x ≠ 0) :
-  differentiable_at 𝕜 (λx, (c x)⁻¹) x :=
-(hc.has_deriv_at.inv hx).differentiable_at
+@[simp] lemma differentiable_at.inv {f : E → 𝕜} {x : E} (hf : differentiable_at 𝕜 f x)
+  (hx : f x ≠ 0) :
+  differentiable_at 𝕜 (λ x, (f x)⁻¹) x :=
+differentiable_at.comp x (differentiable_at_inv.mpr hx) hf
 
 lemma differentiable_on.inv (hc : differentiable_on 𝕜 c s) (hx : ∀ x ∈ s, c x ≠ 0) :
   differentiable_on 𝕜 (λx, (c x)⁻¹) s :=

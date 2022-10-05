@@ -1443,48 +1443,10 @@ end
 lemma sInter_prod_sInter (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty) (h₂ : f₂.nonempty)
   : ⋂₀f₁ ×ˢ ⋂₀f₂ = ⋂₀((λ (C : set α × set β), C.1 ×ˢ C.2) '' (f₁ ×ˢ f₂)) :=
 begin
-  rw subset_antisymm_iff,
-  split,
-  { apply sInter_prod_sInter_subseteq, },
-  { rintro ⟨x, y⟩,
-    intro h,
-    rw [image_prod, mem_sInter] at h,
-    rw [prod_mk_mem_set_prod_eq, mem_sInter],
-    rw nonempty_def at h₁,
-    rw nonempty_def at h₂,
-    cases h₁ with s₀ hs₀,
-    cases h₂ with t₀ ht₀,
-    split,
-    { rintro s₁ hs₁,
-      have e1 : (x,y) ∈ s₁ ×ˢ t₀ :=
-      begin
-        apply h,
-        rw mem_image2,
-        use s₁,
-        use t₀,
-        split,
-        { exact hs₁, },
-        { split,
-          { exact ht₀, },
-          { simp only [eq_self_iff_true], }, }
-      end,
-      rw prod_mk_mem_set_prod_eq at e1,
-      exact e1.1, },
-    { rintro t₁ ht₁,
-      have e1 : (x,y) ∈ s₀ ×ˢ t₁ :=
-      begin
-        apply h,
-        rw mem_image2,
-        use s₀,
-        use t₁,
-        split,
-        { exact hs₀, },
-        { split,
-          { exact ht₁, },
-          { simp only [eq_self_iff_true], }, }
-      end,
-      rw prod_mk_mem_set_prod_eq at e1,
-      exact e1.2, }, },
+  obtain ⟨s₁, h₁⟩ := h₁,
+  obtain ⟨s₂, h₂⟩ := h₂,
+  exact set.subset.antisymm (sInter_prod_sInter_subseteq f₁ f₂) (λ ⟨x, y⟩ h, ⟨λ s hs,
+    (h (s ×ˢ s₂) ⟨(s, s₂), ⟨hs, h₂⟩, rfl⟩).1, λ s hs, (h (s₁ ×ˢ s) ⟨(s₁, s), ⟨h₁, hs⟩, rfl⟩).2⟩),
 end
 
 lemma sInter_prod_sInter_empty (f₁ : set (set α)) (h₁ : f₁.nonempty)

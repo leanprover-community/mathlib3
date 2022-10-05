@@ -147,10 +147,7 @@ lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.
 
 lemma concrete_category.surjective_of_epi_of_preserves_pushout {X Y : C} (f : X ⟶ Y) [epi f]
   [preserves_colimits_of_shape walking_span (forget C)] : function.surjective f :=
-begin
-  haveI := category_theory.preserves_epimorphisms_of_preserves_colimits_of_shape (forget C),
-  exact (epi_iff_surjective ((forget C).map f)).mp infer_instance
-end
+(epi_iff_surjective ((forget C).map f)).mp infer_instance
 
 lemma concrete_category.epi_iff_surjective_of_preserves_pushout {X Y : C} (f : X ⟶ Y)
   [preserves_colimits_of_shape walking_span (forget C)] : epi f ↔ function.surjective f :=

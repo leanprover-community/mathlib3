@@ -337,7 +337,7 @@ begin
   ext,
   dsimp only,
   rw [quotient_add_group.eq', rat.neg_def, rat.add_def, ←add_mul, ←sub_eq_neg_add,
-    show rat.mk ((m - rep x) * (order fo)) ((order fo) * (order fo)) = rat.mk (m - rep x) (order fo),
+    show rat.mk ((m - rep x) * order fo) (order fo * order fo) = rat.mk (m - rep x) (order fo),
     { rw [rat.mk_eq],
       ring,
       rw mul_ne_zero_iff,

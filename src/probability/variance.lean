@@ -48,8 +48,9 @@ to `evariance`. -/
 def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ :=
 (evariance f μ).to_real
 
-lemma _root_.measure_theory.mem_ℒp.evariance_lt_top {Ω : Type*} {m : measurable_space Ω}
-  {f : Ω → ℝ} {μ : measure Ω} [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
+variables {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ} {μ : measure Ω}
+
+lemma _root_.measure_theory.mem_ℒp.evariance_lt_top [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
   evariance f μ < ∞ :=
 begin
   have := ennreal.pow_lt_top (hf.sub $ mem_ℒp_const $ μ[f]).2 2,
@@ -61,8 +62,8 @@ begin
   exact this,
 end
 
-lemma evariance_eq_top {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ}
-  {μ : measure Ω} [is_finite_measure μ] (hfm : ae_strongly_measurable f μ) (hf : ¬ mem_ℒp f 2 μ) :
+lemma evariance_eq_top [is_finite_measure μ]
+  (hfm : ae_strongly_measurable f μ) (hf : ¬ mem_ℒp f 2 μ) :
   evariance f μ = ∞ :=
 begin
   by_contra h,
@@ -78,8 +79,8 @@ begin
   rw [pi.add_apply, sub_add_cancel],
 end
 
-lemma evariance_lt_top_iff_mem_ℒp {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ}
-  {μ : measure Ω} [is_finite_measure μ] (hf : ae_strongly_measurable f μ) :
+lemma evariance_lt_top_iff_mem_ℒp [is_finite_measure μ]
+  (hf : ae_strongly_measurable f μ) :
   evariance f μ < ∞ ↔ mem_ℒp f 2 μ :=
 begin
   refine ⟨_, measure_theory.mem_ℒp.evariance_lt_top⟩,
@@ -88,16 +89,17 @@ begin
   exact evariance_eq_top hf
 end
 
-lemma _root_.measure_theory.mem_ℒp.of_real_variance_eq {Ω : Type*} {m : measurable_space Ω}
-  {f : Ω → ℝ} {μ : measure Ω} [is_finite_measure μ] (hf : mem_ℒp f 2 μ) :
+lemma _root_.measure_theory.mem_ℒp.of_real_variance_eq [is_finite_measure μ]
+  (hf : mem_ℒp f 2 μ) :
   ennreal.of_real (variance f μ) = evariance f μ :=
 begin
   rw [variance, ennreal.of_real_to_real],
   exact hf.evariance_lt_top.ne,
 end
 
-lemma evariance_eq_lintegral_of_real {Ω : Type*} {m : measurable_space Ω}
-  (f : Ω → ℝ) (μ : measure Ω) :
+include m
+
+lemma evariance_eq_lintegral_of_real (f : Ω → ℝ) (μ : measure Ω) :
   evariance f μ = ∫⁻ ω, ennreal.of_real ((f ω - μ[f])^2) ∂μ :=
 begin
   rw evariance,
@@ -109,7 +111,6 @@ begin
 end
 
 lemma _root_.measure_theory.mem_ℒp.variance_eq_of_integral_eq_zero
-  {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ} {μ : measure Ω}
   (hf : mem_ℒp f 2 μ) (hfint : μ[f] = 0) :
   variance f μ = μ[f^2] :=
 begin
@@ -125,8 +126,7 @@ begin
   { exact ae_of_all _ (λ ω, pow_two_nonneg _) }
 end
 
-lemma _root_.measure_theory.mem_ℒp.variance_eq
-  {Ω : Type*} {m : measurable_space Ω} {f : Ω → ℝ} {μ : measure Ω} [is_finite_measure μ]
+lemma _root_.measure_theory.mem_ℒp.variance_eq [is_finite_measure μ]
   (hf : mem_ℒp f 2 μ) :
   variance f μ = μ[(f - (λ ω, μ[f]))^2] :=
 begin
@@ -142,12 +142,10 @@ begin
   { exact ae_of_all _ (λ ω, pow_two_nonneg _) }
 end
 
-@[simp] lemma evariance_zero {Ω : Type*} {m : measurable_space Ω} {μ : measure Ω} :
-  evariance 0 μ = 0 :=
+@[simp] lemma evariance_zero : evariance 0 μ = 0 :=
 by simp [evariance]
 
-lemma evariance_eq_zero_iff {Ω : Type*} {m : measurable_space Ω}
-  {f : Ω → ℝ} {μ : measure Ω} (hf : ae_measurable f μ) :
+lemma evariance_eq_zero_iff (hf : ae_measurable f μ) :
   evariance f μ = 0 ↔ f =ᵐ[μ] λ ω, μ[f] :=
 begin
   rw [evariance, lintegral_eq_zero_iff'],
@@ -160,7 +158,7 @@ begin
   { measurability }
 end
 
-lemma evariance_mul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
+lemma evariance_mul (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
   evariance (λ ω, c * f ω) μ = ennreal.of_real (c^2) * evariance f μ :=
 begin
   rw [evariance, evariance, ← lintegral_const_mul' _ _ ennreal.of_real_lt_top.ne],
@@ -179,29 +177,26 @@ end
 localized "notation (name := probability_theory.evariance) `eVar[` X `]` :=
   probability_theory.evariance X measure_theory.measure_space.volume" in probability_theory
 
-variables {Ω : Type*} [measure_space Ω]
-
-@[simp] lemma variance_zero {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
-  variance 0 μ = 0 :=
+@[simp] lemma variance_zero (μ : measure Ω) : variance 0 μ = 0 :=
 by simp only [variance, evariance_zero, ennreal.zero_to_real]
 
-lemma variance_nonneg {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) :
+lemma variance_nonneg (f : Ω → ℝ) (μ : measure Ω) :
   0 ≤ variance f μ :=
 ennreal.to_real_nonneg
 
-lemma variance_mul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
+lemma variance_mul (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
   variance (λ ω, c * f ω) μ = c^2 * variance f μ :=
 begin
   rw [variance, evariance_mul, ennreal.to_real_mul, ennreal.to_real_of_real (sq_nonneg _)],
   refl,
 end
 
-lemma variance_smul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
+lemma variance_smul (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
   variance (c • f) μ = c^2 * variance f μ :=
 variance_mul c f μ
 
 lemma variance_smul' {A : Type*} [comm_semiring A] [algebra A ℝ]
-  {Ω : Type*} {m : measurable_space Ω} (c : A) (f : Ω → ℝ) (μ : measure Ω) :
+  (c : A) (f : Ω → ℝ) (μ : measure Ω) :
   variance (c • f) μ = c^2 • variance f μ :=
 begin
   convert variance_smul (algebra_map A ℝ c) f μ,
@@ -211,6 +206,10 @@ end
 
 localized "notation (name := probability_theory.variance) `Var[` X `]` :=
   probability_theory.variance X measure_theory.measure_space.volume" in probability_theory
+
+omit m
+
+variables [measure_space Ω]
 
 lemma variance_def' [is_probability_measure (ℙ : measure Ω)]
   {X : Ω → ℝ} (hX : mem_ℒp X 2) :

@@ -324,6 +324,14 @@ convenience in the commutative case. For a right Artinian ring, use `is_artinian
 theorem is_artinian_ring_iff {R} [ring R] : is_artinian_ring R ↔ is_artinian R R :=
 iff.rfl
 
+@[priority 100] -- see Note [lower instance priority]
+instance division_ring.is_artinian_ring (R : Type*) [division_ring R] : is_artinian_ring R :=
+{ well_founded_submodule_lt := fintype.well_founded_of_trans_of_irrefl _ }
+
+@[priority 100] -- see Note [lower instance priority]
+instance division_ring.is_right_artinian (R : Type*) [division_ring R] : is_artinian Rᵐᵒᵖ R :=
+{ well_founded_submodule_lt := fintype.well_founded_of_trans_of_irrefl _ }
+
 theorem ring.is_artinian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_artinian_ring R :=
 have _ := subsingleton_of_zero_eq_one h01, by exactI infer_instance
 

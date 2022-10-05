@@ -20,7 +20,9 @@ Note that over commutative rings, left ideals and two-sided ideals are equivalen
 
 ## Implementation notes
 
-`ideal R` is implemented using `submodule R R`, where `•` is interpreted as `*`.
+ * `ideal R` is implemented using `submodule R R`, where `•` is interpreted as `*`.
+ * `right_ideal R` is implemented using `submodule Rᵐᵒᵖ R`, where `•` is interpreted as `*` but
+   reversed (i.e., if `(r : Rᵐᵒᵖ) (s : R)` then `r • s = s * (mul_opposite.unop r)`).
 
 ## TODO
 
@@ -53,7 +55,7 @@ variables {a}
 @[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h
 
-lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
+lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → α} :
   (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
 
 theorem eq_top_of_unit_mem
@@ -322,6 +324,56 @@ lemma Inf_is_prime_of_is_chain {s : set (ideal α)} (hs : s.nonempty) (hs' : is_
 
 end ideal
 
+/-- A right ideal in a semiring `R` is an additive submonoid `s` such that
+`b * a ∈ s` whenever `b ∈ s`. If `R` is a ring, then `s` is an additive subgroup.  -/
+@[reducible] def right_ideal (R : Type u) [semiring R] := submodule Rᵐᵒᵖ R
+
+namespace right_ideal
+
+variables [semiring α] (I : right_ideal α) {a b : α}
+
+protected lemma zero_mem : (0 : α) ∈ I := I.zero_mem
+
+protected lemma add_mem : a ∈ I → b ∈ I → a + b ∈ I := I.add_mem
+
+variables (a)
+lemma mul_mem_right : b ∈ I → b * a ∈ I := I.smul_mem (mul_opposite.op a)
+variables {a}
+
+@[ext] lemma ext {I J : right_ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
+submodule.ext h
+
+lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → α} :
+  (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
+
+theorem eq_top_of_unit_mem
+  (x y : α) (hx : x ∈ I) (h : x * y = 1) : I = ⊤ :=
+eq_top_iff.2 $ λ z _, calc
+    z = (x * y) * z : by simp [h]
+  ... = x * (y * z) : mul_assoc x y z
+  ... ∈ I : I.mul_mem_right _ hx
+
+theorem eq_top_of_is_unit_mem {x} (hx : x ∈ I) (h : is_unit x) : I = ⊤ :=
+let ⟨y, hy⟩ := h.exists_right_inv in eq_top_of_unit_mem I x y hx hy
+
+theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
+⟨by rintro rfl; trivial,
+ λ h, eq_top_of_unit_mem _ _ 1 h (by simp)⟩
+
+theorem ne_top_iff_one : I ≠ ⊤ ↔ (1:α) ∉ I :=
+not_congr I.eq_top_iff_one
+
+/-- A right ideal is a left ideal of the opposite (semi)ring. -/
+@[simps] def to_ideal : ideal αᵐᵒᵖ :=
+{ carrier   := mul_opposite.unop ⁻¹' I,
+  zero_mem' := I.zero_mem,
+  add_mem'  := λ a b ha hb, I.add_mem ha hb,
+  smul_mem' := λ a b hb, I.smul_mem a hb }
+
+lemma mem_to_ideal {a : αᵐᵒᵖ} : a ∈ I.to_ideal ↔ mul_opposite.unop a ∈ I := iff.rfl
+
+end right_ideal
+
 end semiring
 
 section comm_semiring
@@ -509,15 +561,20 @@ namespace ideal
 /-- All ideals in a division ring are trivial. -/
 lemma eq_bot_or_top : I = ⊥ ∨ I = ⊤ :=
 begin
-  rw or_iff_not_imp_right,
-  change _ ≠ _ → _,
-  rw ideal.ne_top_iff_one,
+  rw [or_iff_not_imp_right, ← ne.def, ideal.ne_top_iff_one],
   intro h1,
   rw eq_bot_iff,
   intros r hr,
   by_cases H : r = 0, {simpa},
   simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
+
+@[priority 100] -- see Note [lower instance priority]
+instance : fintype $ ideal K :=
+{ elems := finset.cons ⊥ {⊤} $ finset.mem_singleton.not.mpr bot_ne_top,
+  complete := λ I, by simp [eq_bot_or_top], }
+
+@[simp] lemma card_of_division_ring : fintype.card (ideal K) = 2 := rfl
 
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1
@@ -527,6 +584,27 @@ lemma bot_is_maximal : is_maximal (⊥ : ideal K) :=
 λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩⟩
 
 end ideal
+
+namespace right_ideal
+
+lemma eq_bot_or_top (I : right_ideal K) : I = ⊥ ∨ I = ⊤ :=
+begin
+  rw [or_iff_not_imp_right, ← ne.def, right_ideal.ne_top_iff_one],
+  intros h1,
+  rw eq_bot_iff,
+  intros r hr,
+  by_cases H : r = 0, {simpa},
+  simpa [H, h1] using I.mul_mem_right r⁻¹ hr,
+end
+
+@[priority 100] -- see Note [lower instance priority]
+instance : fintype $ right_ideal K :=
+{ elems := finset.cons ⊥ {⊤} $ finset.mem_singleton.not.mpr bot_ne_top,
+  complete := λ I, by simp [right_ideal.eq_bot_or_top], }
+
+@[simp] lemma card_of_division_ring : fintype.card (right_ideal K) = 2 := rfl
+
+end right_ideal
 
 end division_ring
 

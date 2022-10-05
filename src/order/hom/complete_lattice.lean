@@ -31,6 +31,10 @@ be satisfied by itself and all stricter types.
 ## Concrete homs
 
 * `complete_lattice.set_preimage`: `set.preimage` as a complete lattice homomorphism.
+
+## TODO
+
+Frame homs are Heyting homs.
 -/
 
 open function order_dual set

@@ -294,6 +294,18 @@ explicit for this purpose. -/
 lemma Inter_subset_of_subset {s : ι → set α} {t : set α} (i : ι) (h : s i ⊆ t) : (⋂ i, s i) ⊆ t :=
 @infi_le_of_le (set α) _ _ _ _ i h
 
+/-- This rather trivial consequence of `subset_Union₂` is convenient with `apply`, and has `i` and
+`j` explicit for this purpose. -/
+lemma subset_Union₂_of_subset {s : set α} {t : Π i, κ i → set α} (i : ι) (j : κ i) (h : s ⊆ t i j) :
+  s ⊆ ⋃ i j, t i j :=
+@le_supr₂_of_le (set α) _ _ _ _ _ i j h
+
+/-- This rather trivial consequence of `Inter₂_subset` is convenient with `apply`, and has `i` and
+`j` explicit for this purpose. -/
+lemma Inter₂_subset_of_subset {s : Π i, κ i → set α} {t : set α} (i : ι) (j : κ i) (h : s i j ⊆ t) :
+  (⋂ i j, s i j) ⊆ t :=
+@infi₂_le_of_le (set α) _ _ _ _ _ i j h
+
 lemma Union_mono {s t : ι → set α} (h : ∀ i, s i ⊆ t i) : (⋃ i, s i) ⊆ ⋃ i, t i :=
 @supr_mono (set α) _ _ s t h
 
@@ -1684,7 +1696,7 @@ by simpa using h.preimage f
 lemma preimage_eq_empty_iff {s : set β} : f ⁻¹' s = ∅ ↔ disjoint s (range f) :=
 ⟨λ h, begin
     simp only [eq_empty_iff_forall_not_mem, disjoint_iff_inter_eq_empty, not_exists,
-      mem_inter_eq, not_and, mem_range, mem_preimage] at h ⊢,
+      mem_inter_iff, not_and, mem_range, mem_preimage] at h ⊢,
     assume y hy x hx,
     rw ← hx at hy,
     exact h x hy,

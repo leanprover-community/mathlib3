@@ -244,12 +244,16 @@ section boolean_algebra
 variables [boolean_algebra α] [boolean_algebra β] [bounded_lattice_hom_class F α β] (f : F)
 include β
 
-lemma map_compl (a : α) : f aᶜ = (f a)ᶜ := (is_compl_compl.map _).compl_eq.symm
+/-- Special case of `map_compl` for boolean algebras. -/
+lemma map_compl' (a : α) : f aᶜ = (f a)ᶜ := (is_compl_compl.map _).compl_eq.symm
 
-lemma map_sdiff (a b : α) : f (a \ b) = f a \ f b := by rw [sdiff_eq, sdiff_eq, map_inf, map_compl]
+/-- Special case of `map_sdiff` for boolean algebras. -/
+lemma map_sdiff' (a b : α) : f (a \ b) = f a \ f b :=
+by rw [sdiff_eq, sdiff_eq, map_inf, map_compl']
 
-lemma map_symm_diff (a b : α) : f (a ∆ b) = f a ∆ f b :=
-by rw [symm_diff, symm_diff, map_sup, map_sdiff, map_sdiff]
+/-- Special case of `map_symm_diff` for boolean algebras. -/
+lemma map_symm_diff' (a b : α) : f (a ∆ b) = f a ∆ f b :=
+by rw [symm_diff, symm_diff, map_sup, map_sdiff', map_sdiff']
 
 end boolean_algebra
 

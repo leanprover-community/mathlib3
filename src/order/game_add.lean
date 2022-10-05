@@ -18,8 +18,8 @@ subsequency relation on the addition of combinatorial games.
 ## Main definitions and results
 
 - `prod.game_add`: the game addition relation on ordered pairs.
-- `well_founded.game_add`: formalizes induction on ordered pairs, where exactly one entry decreases
-  at a time.
+- `well_founded.prod_game_add`: formalizes induction on ordered pairs, where exactly one entry
+  decreases at a time.
 
 ## Todo
 

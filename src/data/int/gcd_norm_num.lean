@@ -6,7 +6,8 @@ Authors: Mario Carneiro
 import data.int.gcd
 import tactic.norm_num
 
-/-! ### Computation of the greatest common divisor and least common multiple
+/-! 
+# Computation of the greatest common divisor and least common multiple
 
 This file implements a `norm_num` plugin to evaluate terms like `nat.gcd 6 8 = 2`,
 `nat.coprime 127 128`, and so on for {nat, int}.{gcd, lcm, coprime}.

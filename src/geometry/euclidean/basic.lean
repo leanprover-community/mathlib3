@@ -1455,7 +1455,7 @@ lemma cospherical.affine_independent {s : set P} (hs : cospherical s) {p : fin 3
 begin
   rw affine_independent_iff_not_collinear,
   intro hc,
-  rw collinear_iff_of_mem ℝ (set.mem_range_self (0 : fin 3)) at hc,
+  rw collinear_iff_of_mem (set.mem_range_self (0 : fin 3)) at hc,
   rcases hc with ⟨v, hv⟩,
   rw set.forall_range_iff at hv,
   have hv0 : v ≠ 0,

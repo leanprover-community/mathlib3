@@ -3,13 +3,11 @@ Copyright (c) 2022 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
-
 import information_theory.hamming
 import linear_algebra.linear_independent
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finite_dimensional
 import data.set.basic
--- import data.rational.basic
 
 /-!
 # Linear Codes
@@ -22,7 +20,6 @@ linear subspace of a finite-dimensional vector space.
 * `linear_code 𝓓 F`: The type of linear codes with domain `𝓓` over field `F`
 * `reed_solomon k D` : The code consisting of all polynomials of degree `≤ k` evaluated on a
 subset `D` of the field
-
 -/
 
 /--

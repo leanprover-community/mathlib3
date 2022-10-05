@@ -63,6 +63,10 @@ lemma to_Ico_mod_mem_Ico (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_mod a hb x ∈ set.Ico a (a + b) :=
 add_to_Ico_div_zsmul_mem_Ico a hb x
 
+lemma to_Ico_mod_mem_Ico' {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_mod 0 hb x ∈ set.Ico 0 b :=
+by { convert to_Ico_mod_mem_Ico 0 hb x, exact (zero_add b).symm, }
+
 lemma to_Ioc_mod_mem_Ioc (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_mod a hb x ∈ set.Ioc a (a + b) :=
 add_to_Ioc_div_zsmul_mem_Ioc a hb x
@@ -426,8 +430,6 @@ section linear_ordered_field
 
 variables {α : Type*} [linear_ordered_field α] [floor_ring α]
 
-local attribute [instance] floor_ring.archimedean
-
 lemma to_Ico_div_eq_neg_floor (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_div a hb x = -⌊(x - a) / b⌋ :=
 begin
@@ -460,6 +462,10 @@ begin
   field_simp [hb.ne.symm],
   ring
 end
+
+lemma to_Ico_mod_eq_fract_mul {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_mod 0 hb x = int.fract (x / b) * b :=
+by simp [to_Ico_mod_eq_add_fract_mul]
 
 lemma to_Ioc_mod_eq_sub_fract_mul (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_mod a hb x = a + b - int.fract ((a + b - x) / b) * b :=

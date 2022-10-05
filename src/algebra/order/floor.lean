@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import tactic.abel
 import tactic.linarith
+import tactic.positivity
 
 /-!
 # Floor and ceil
@@ -885,6 +886,7 @@ by simp_rw [round_eq, ←map_floor _ hf, map_add, one_div, map_inv₀, map_bit0,
 
 end int
 
+section floor_ring_to_semiring
 variables {α} [linear_ordered_ring α] [floor_ring α]
 
 /-! #### A floor ring as a floor semiring -/
@@ -919,6 +921,8 @@ by { rw [←int.ceil_to_nat, int.to_nat_of_nonneg (int.ceil_nonneg ha)] }
 lemma nat.cast_ceil_eq_cast_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a⌉ :=
 by rw [←nat.cast_ceil_eq_int_ceil ha, int.cast_coe_nat]
 
+end floor_ring_to_semiring
+
 /-- There exists at most one `floor_ring` structure on a given linear ordered ring. -/
 lemma subsingleton_floor_ring {α} [linear_ordered_ring α] :
   subsingleton (floor_ring α) :=
@@ -928,3 +932,46 @@ begin
   have : H₁.ceil = H₂.ceil := funext (λ a, H₁.gc_ceil_coe.l_unique H₂.gc_ceil_coe $ λ _, rfl),
   cases H₁, cases H₂, congr; assumption
 end
+
+namespace tactic
+open positivity
+
+private lemma int_floor_nonneg [linear_ordered_ring α] [floor_ring α] {a : α} (ha : 0 ≤ a) :
+  0 ≤ ⌊a⌋ := int.floor_nonneg.2 ha
+private lemma int_floor_nonneg_of_pos [linear_ordered_ring α] [floor_ring α] {a : α} (ha : 0 < a) :
+  0 ≤ ⌊a⌋ := int_floor_nonneg ha.le
+
+/-- Extension for the `positivity` tactic: `int.floor` is nonnegative if its input is. -/
+@[positivity]
+meta def positivity_floor : expr → tactic strictness
+| `(⌊%%a⌋) := do
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := nonnegative <$> mk_app ``int_floor_nonneg_of_pos [p]
+      | nonnegative p := nonnegative <$> mk_app ``int_floor_nonneg [p]
+      | _ := failed
+      end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌊a⌋`"
+
+private lemma nat_ceil_pos [linear_ordered_semiring α] [floor_semiring α] {a : α} :
+  0 < a → 0 < ⌈a⌉₊ := nat.ceil_pos.2
+private lemma int_ceil_pos [linear_ordered_ring α] [floor_ring α] {a : α} : 0 < a → 0 < ⌈a⌉ :=
+int.ceil_pos.2
+
+/-- Extension for the `positivity` tactic: `ceil` and `int.ceil` are positive/nonnegative if
+their input is. -/
+@[positivity]
+meta def positivity_ceil : expr → tactic strictness
+| `(⌈%%a⌉₊) := do
+      positive p ← core a, -- We already know `0 ≤ n` for all `n : ℕ`
+      positive <$> mk_app ``nat_ceil_pos [p]
+| `(⌈%%a⌉) := do
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := positive <$> mk_app ``int_ceil_pos [p]
+      | nonnegative p := nonnegative <$> mk_app ``int.ceil_nonneg [p]
+      | _ := failed
+      end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌈a⌉₊` nor `⌈a⌉`"
+
+end tactic

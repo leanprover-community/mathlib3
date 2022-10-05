@@ -9,6 +9,17 @@ import data.finsupp.lex
 /-!
 # Well-foundedness of the lexicographic and product orders on `finsupp`
 
+`finsupp.lex.well_founded` and the two variants that follow it essentially say that if
+`(>)` is a well order on `α`, `(<)` is well-founded on `N`, and `0` is a bottom element in `N`,
+then the lexicographic `(<)` is well-founded on `α →₀ N`.
+
+`finsupp.lex.well_founded_lt_of_finite` says that if `α` is finite and equipped with a linear
+order and `(<)` is well-founded on `N`, then the lexicographic `(<)` is well-founded on `α →₀ N`.
+
+`finsupp.well_founded_lt` and `well_founded_lt_of_finite` state the same results for the product
+order `(<)`, but without the ordering conditions on `α`.
+
+All results are transferred from `dfinsupp` via `finsupp.to_dfinsupp`.
 -/
 
 variables {α N : Type*}
@@ -19,6 +30,8 @@ variables [hz : has_zero N] {r : α → α → Prop} {s : N → N → Prop}
   (hbot : ∀ ⦃n⦄, ¬ s n 0) (hs : well_founded s)
 include hbot hs
 
+/-- Transferred from `dfinsupp.lex.acc`. See the top of that file for an explanation for the
+  appearance of the relation `rᶜ ⊓ (≠)`. -/
 lemma lex.acc (x : α →₀ N) (h : ∀ a ∈ x.support, acc (rᶜ ⊓ (≠)) a) : acc (finsupp.lex r s) x :=
 begin
   rw lex_eq_inv_image_dfinsupp_lex, classical,

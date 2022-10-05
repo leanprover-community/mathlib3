@@ -11,7 +11,37 @@ import set_theory.ordinal.basic
 /-!
 # Well-foundedness of the lexicographic and product orders on `dfinsupp` and `pi`
 
-The proof is modelled on the proof of `well_founded.cut_expand`.
+The primary results are `dfinsupp.lex.well_founded` and the two variants that follow it,
+which essentially say that if `(>)` is a well order on `ι`, `(<)` is well-founded on each
+`α i`, and `0` is a bottom element in `α i`, then the lexicographic `(<)` is well-founded
+on `Π₀ i, α i`. The proof is modelled on the proof of `well_founded.cut_expand`.
+
+The results are used to prove `pi.lex.well_founded` and two variants, which say that if
+`ι` is finite and equipped with a linear order and `(<)` is well-founded on each `α i`,
+then the lexicographic `(<)` is well-founded on `Π i, α i`, and the same is true for
+`Π₀ i, α i` (`dfinsupp.lex.well_founded_of_finite`), because `dfinsupp` is order-isomorphic
+to `pi` when `ι` is finite.
+
+Finally, we deduce `dfinsupp.well_founded_lt`, `pi.well_founded_lt`,
+`dfinsupp.well_founded_lt_of_finite` and variants, which concern the product order
+rather than the lexicographic one. An order on `ι` is not required in these results,
+but we deduce them from the well-foundedness of the lexicographic order by choosing
+a well order on `ι` so that the product order `(<)` becomes a subrelation
+of the lexicographic `(<)`.
+
+All results are provided in two forms whenever possible: a general form where the relations
+can be arbitrary (not the `(<)` of a preorder, or not even transitive, etc.) and a specialized
+form provided as `well_founded_lt` instances where the `(d)finsupp/pi` type (or their `lex`
+type synonyms) carries a natural `(<)`.
+
+Notice that the definition of `dfinsupp.lex` says that `x < y` according to `dfinsupp.lex r s`
+iff there exists a coordinate `i : ι` such that `x i < y i` according to `s i`, and at all
+`r`-smaller coordinates `j` (i.e. satisfying `r j i`), `x` remains unchanged relative to `y`;
+in other words, coordinates `j` such that `¬ r j i` and `j ≠ i` are exactly where changes
+can happen arbitrarily. This explains the appearance of `rᶜ ⊓ (≠)` in
+`dfinsupp.acc_single` and `dfinsupp.well_founded`. When `r` is trichotomous (e.g. the `(<)`
+of a linear order), `¬ r j i ∧ j ≠ i` implies `r i j`, so it suffices to require `r.swap`
+to be well-founded.
 -/
 
 variables {ι : Type*} {α : ι → Type*}
@@ -23,6 +53,14 @@ include hz
 
 open relation prod
 
+/-- This key lemma says that if a finitely supported dependent function `x₀` is obtained by merging
+  two such functions `x₁` and `x₂`, and if we evolve `x₀` down the `dfinsupp.lex` relation one
+  step and get `x`, we can always evolve one of `x₁` and `x₂` down the `dfinsupp.lex` relation
+  one step while keeping the other unchanged, and merge them back (possibly in a different way)
+  to get back `x`. In other words, the two parts evolve essentially independently under
+  `dfinsupp.lex`. This is used to show that a function `x` is accessible if
+  `dfinsupp.single i (x i)` is accessible for each `i` in the (finite) support of `x`
+  (`dfinsupp.lex.acc_of_single`). -/
 lemma lex_fibration : fibration
   (inv_image (game_add (dfinsupp.lex r s) (dfinsupp.lex r s)) snd)
   (dfinsupp.lex r s)

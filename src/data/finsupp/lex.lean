@@ -42,7 +42,7 @@ lemma lex_eq_inv_image_dfinsupp_lex (r : α → α → Prop) (s : N → N → Pr
 instance [has_lt α] [has_lt N] : has_lt (lex (α →₀ N)) :=
 ⟨λ f g, finsupp.lex (<) (<) (of_lex f) (of_lex g)⟩
 
-lemma lex_lt_of_lt_of_preorder [preorder N] (r) [hr : is_strict_order α r]
+lemma lex_lt_of_lt_of_preorder [preorder N] (r) [is_strict_order α r]
   {x y : α →₀ N} (hlt : x < y) : ∃ i, (∀ j, r j i → x j ≤ y j ∧ y j ≤ x j) ∧ x i < y i :=
 dfinsupp.lex_lt_of_lt_of_preorder r (id hlt : x.to_dfinsupp < y.to_dfinsupp)
 

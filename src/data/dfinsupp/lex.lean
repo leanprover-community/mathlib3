@@ -36,12 +36,12 @@ lemma lex_def {r : ι → ι → Prop} {s : Π i, α i → α i → Prop} {a b :
 instance [has_lt ι] [Π i, has_lt (α i)] : has_lt (lex (Π₀ i, α i)) :=
 ⟨λ f g, dfinsupp.lex (<) (λ i, (<)) (of_lex f) (of_lex g)⟩
 
-lemma lex_lt_of_lt_of_preorder [Π i, preorder (α i)] (r) [hr : is_strict_order ι r]
+lemma lex_lt_of_lt_of_preorder [Π i, preorder (α i)] (r) [is_strict_order ι r]
   {x y : Π₀ i, α i} (hlt : x < y) : ∃ i, (∀ j, r j i → x j ≤ y j ∧ y j ≤ x j) ∧ x i < y i :=
 begin
   obtain ⟨hle, j, hlt⟩ := pi.lt_def.1 hlt, classical,
   obtain ⟨i, hi, hl⟩ := (x.ne_locus y).finite_to_set.well_founded_on.has_min
-    {i | x i < y i} ⟨⟨j, mem_ne_locus.2 hlt.ne⟩, hlt⟩, swap 3, { exact hr },
+    {i | x i < y i} ⟨⟨j, mem_ne_locus.2 hlt.ne⟩, hlt⟩, swap 3, { assumption },
   exact ⟨i, λ k hk, ⟨hle k, not_not.1 $ λ h,
     hl ⟨k, mem_ne_locus.2 (ne_of_not_le h).symm⟩ ((hle k).lt_of_not_le h) hk⟩, hi⟩,
 end
@@ -78,8 +78,8 @@ lex.rec $ λ f, lex.rec $ λ g,
   match _, rfl : ∀ y, (f.ne_locus g).min = y → _ with
   | ⊤, h := h_eq (ne_locus_eq_empty.mp $ finset.min_eq_top.mp h)
   | (wit : ι), h := (mem_ne_locus.mp $ finset.mem_of_min h).lt_or_lt.by_cases
-      (λ hwit, h_lt ⟨wit, λ j hj, mem_ne_locus.not_left.mp (finset.not_mem_of_lt_min hj h), hwit⟩)
-      (λ hwit, h_gt ⟨wit, λ j hj, mem_ne_locus.not_left.mp
+      (λ hwit, h_lt ⟨wit, λ j hj, not_mem_ne_locus.mp (finset.not_mem_of_lt_min hj h), hwit⟩)
+      (λ hwit, h_gt ⟨wit, λ j hj, not_mem_ne_locus.mp
         (finset.not_mem_of_lt_min hj $ by rwa ne_locus_comm), hwit⟩)
   end
 

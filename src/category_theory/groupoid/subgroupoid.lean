@@ -98,6 +98,8 @@ def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrws c d⟩
 /-- Type synonim for the coercion of a subgroupoid as a groupoid -/
 def coe (S : subgroupoid C) := subtype S.carrier
 
+instance (h : S.carrier.nonempty) : nonempty S.coe := ⟨⟨h.some,h.some_spec⟩⟩
+
 /-- The coercion of a subgroupoid as a groupoid -/
 instance coe_groupoid : groupoid S.coe :=
 { to_category :=
@@ -198,10 +200,10 @@ def discrete : subgroupoid C :=
   by { rintros _ _ _ _ hp _ hq, induction hp, induction hq, rw category.comp_id, constructor,} ⟩
 
 lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
-  (f ∈ (discrete).arrws c d) ↔ (∃ (h : c = d), f = h.rec_on (𝟙 c)) :=
+  (f ∈ (discrete).arrws c d) ↔ (∃ (h : c = d), f = eq_to_hom h) :=
 begin
   split,
-  { intro hf, induction hf, simp only [eq_self_iff_true, exists_true_left], },
+  { intro hf, induction hf, simp only [eq_self_iff_true, exists_true_left, eq_to_hom_refl], },
   { rintro ⟨h,he⟩, subst_vars, constructor, }
 end
 
@@ -330,7 +332,7 @@ lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap 
 def ker : subgroupoid C := comap φ (discrete)
 
 lemma mem_ker_iff {c d : C} (f : c ⟶ d) :
-  f ∈ (ker φ).arrws c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = h.rec_on (𝟙 $ φ.obj c) :=
+  f ∈ (ker φ).arrws c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = eq_to_hom h :=
 mem_discrete_iff (φ.map f)
 
 /-- The family of arrows of the image of a subgroupoid under a functor injective on objects -/

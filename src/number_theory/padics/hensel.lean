@@ -151,25 +151,29 @@ calc
 ... < ∥F.derivative.eval a∥ :
   (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow' _)
 
-private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n z)
+private lemma calc_eval_z'_aux {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n z)
   (h1 : ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1) (hzeq : z1 = ⟨_, h1⟩) :
-  {q : ℤ_[p] // F.eval z' = q * z1^2} :=
+  F.derivative.eval z * (-z1) = -F.eval z :=
 have hdzne' : (↑(F.derivative.eval z) : ℚ_[p]) ≠ 0, from
   have hdzne : F.derivative.eval z ≠ 0,
     from mt norm_eq_zero.2 (by rw hz.1; apply deriv_norm_ne_zero; assumption),
   λ h, hdzne $ subtype.ext_iff_val.2 h,
-let ⟨q, hq⟩ := F.binom_expansion z (-z1) in
 have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) : ℚ_[p])∥ ≤ 1,
   by { rw padic_norm_e.mul, exact mul_le_one (padic_int.norm_le_one _) (norm_nonneg _) h1 },
-have F.derivative.eval z * (-z1) = -F.eval z, from calc
+calc
   F.derivative.eval z * (-z1)
     = (F.derivative.eval z) * -⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩ : by rw [hzeq]
 ... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : mul_neg _ _
 ... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) :
   subtype.ext $ by simp only [padic_int.coe_neg, padic_int.coe_mul, subtype.coe_mk]
-... = -(F.eval z) : by simp only [mul_div_cancel' _ hdzne', subtype.coe_eta],
-have heq : F.eval z' = q * z1^2, by simpa only [sub_eq_add_neg, this, hz', add_right_neg, neg_sq,
-  zero_add] using hq,
+... = -(F.eval z) : by simp only [mul_div_cancel' _ hdzne', subtype.coe_eta]
+
+private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n z)
+  (h1 : ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1) (hzeq : z1 = ⟨_, h1⟩) :
+  {q : ℤ_[p] // F.eval z' = q * z1^2} :=
+let ⟨q, hq⟩ := F.binom_expansion z (-z1) in
+have heq : F.eval z' = q * z1^2, by simpa only [sub_eq_add_neg,
+  calc_eval_z'_aux hnorm hz' hz h1 hzeq, hz', add_right_neg, neg_sq, zero_add] using hq,
 ⟨q, heq⟩
 
 private def calc_eval_z'_norm {z z' z1 : ℤ_[p]} {n} (hz : ih n z) {q}

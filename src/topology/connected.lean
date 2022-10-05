@@ -531,19 +531,19 @@ lemma sum.is_connected_iff [topological_space β] {s : set (α ⊕ β)} :
     (∃ t, is_connected t ∧ s = sum.inl '' t) ∨ ∃ t, is_connected t ∧ s = sum.inr '' t :=
 begin
   refine ⟨λ hs, _, _⟩,
-  { let u : set (α ⊕ β):= range sum.inl,
+  { let u : set (α ⊕ β) := range sum.inl,
     let v : set (α ⊕ β) := range sum.inr,
     have hu : is_open u, exact is_open_range_inl,
     obtain ⟨x | x, hx⟩ := hs.nonempty,
-    { have h := is_preconnected.subset_left_of_subset_union
+    { have h : s ⊆ range sum.inl := is_preconnected.subset_left_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
+        (by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
       refine or.inl ⟨sum.inl ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inl_injective open_embedding_inl.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } },
-    { have h := is_preconnected.subset_right_of_subset_union
+    { have h : s ⊆ range sum.inr := is_preconnected.subset_right_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
+        (by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
       refine or.inr ⟨sum.inr ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inr_injective open_embedding_inr.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } } },
@@ -683,10 +683,9 @@ set.disjoint_left.2 (λ a h1 h2, h
 
 theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
-closure_eq_iff_is_closed.1 $ subset.antisymm
-  (is_connected_connected_component.closure.subset_connected_component
-    (subset_closure mem_connected_component))
-  subset_closure
+closure_subset_iff_is_closed.1 $
+  is_connected_connected_component.closure.subset_connected_component $
+    subset_closure mem_connected_component
 
 lemma continuous.image_connected_component_subset [topological_space β] {f : α → β}
   (h : continuous f) (a : α) : f '' connected_component a ⊆ connected_component (f a) :=
@@ -810,9 +809,9 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
-lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
-  (h : s.nonempty) (h' : is_clopen s) : s = univ :=
-by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
+lemma is_clopen.eq_univ [preconnected_space α] {s : set α} (h' : is_clopen s) (h : s.nonempty) :
+  s = univ :=
+(is_clopen_iff.mp h').resolve_left h.ne_empty
 
 lemma frontier_eq_empty_iff [preconnected_space α] {s : set α} :
   frontier s = ∅ ↔ s = ∅ ∨ s = univ :=
@@ -1246,7 +1245,7 @@ theorem is_totally_disconnected_empty : is_totally_disconnected (∅ : set α) :
 λ _ ht _ _ x_in _ _, (ht x_in).elim
 
 theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : set α) :=
-λ _ ht _, subsingleton.mono subsingleton_singleton ht
+λ _ ht _, subsingleton_singleton.anti ht
 
 /-- A space is totally disconnected if all of its connected components are singletons. -/
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
@@ -1322,7 +1321,7 @@ begin
   intros s s_sub hs,
   rcases eq_empty_or_nonempty s with rfl | ⟨x, x_in⟩,
   { exact subsingleton_empty },
-  { exact (h x).mono (hs.subset_connected_component x_in) }
+  { exact (h x).anti (hs.subset_connected_component x_in) }
 end
 
 /-- A space is totally disconnected iff its connected components are singletons. -/
@@ -1480,7 +1479,7 @@ def continuous.connected_components_lift (h : continuous f) :
 
 @[continuity] lemma continuous.connected_components_lift_continuous (h : continuous f) :
   continuous h.connected_components_lift :=
-continuous_quotient_lift_on' h.image_eq_of_connected_component_eq h
+h.quotient_lift_on' h.image_eq_of_connected_component_eq
 
 @[simp] lemma continuous.connected_components_lift_apply_coe (h : continuous f) (x : α) :
   h.connected_components_lift x = f x := rfl

@@ -89,6 +89,17 @@ lemma prod_map_mul {α : Type*} [comm_monoid α] {l : list ι} {f g : ι → α}
   (l.map $ λ i, f i * g i).prod = (l.map f).prod * (l.map g).prod :=
 l.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
+@[simp]
+lemma prod_map_neg {α} [comm_monoid α] [has_distrib_neg α] (l : list α) :
+  (l.map has_neg.neg).prod = (-1) ^ l.length * l.prod :=
+begin
+  convert @prod_map_mul α α _ l (λ _, -1) id,
+  { ext, rw neg_one_mul, refl },
+  { convert (prod_repeat _ _).symm, rw eq_repeat,
+    use l.length_map _, intro, rw mem_map, rintro ⟨_, _, rfl⟩, refl },
+  { rw l.map_id },
+end
+
 @[to_additive]
 lemma prod_map_hom (L : list ι) (f : ι → M) {G : Type*} [monoid_hom_class G M N] (g : G) :
   (L.map (g ∘ f)).prod = g ((L.map f).prod) :=
@@ -106,7 +117,7 @@ end
 @[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list M) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
-| [] i := by simp
+| [] i := by simp [@zero_le' ℕ]
 | L 0 := by simp
 | (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop] }
 
@@ -140,7 +151,7 @@ lemma prod_update_nth : ∀ (L : list M) (n : ℕ) (a : M),
     (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
 | (x :: xs) 0     a := by simp [update_nth]
 | (x :: xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
-| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt]
+| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt, @zero_le' ℕ]
 
 open mul_opposite
 

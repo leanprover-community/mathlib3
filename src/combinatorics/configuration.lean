@@ -130,7 +130,7 @@ begin
     finset.one_lt_card_iff.mp (nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hs₀, hs₁⟩),
     exact (eq_or_eq (hp₁ l₁ hl₁) (hp₂ l₁ hl₁) (hp₁ l₂ hl₂) (hp₂ l₂ hl₂)).resolve_right hl₃ },
   by_cases hs₃ : sᶜ.card = 0,
-  { rw [hs₃, nat.le_zero_iff],
+  { rw [hs₃, le_zero_iff],
     rw [finset.card_compl, tsub_eq_zero_iff_le, has_le.le.le_iff_eq (finset.card_le_univ _),
         eq_comm, finset.card_eq_iff_eq_univ] at hs₃ ⊢,
     rw hs₃,
@@ -301,8 +301,8 @@ end in
 noncomputable def has_points.has_lines [has_points P L] [fintype P] [fintype L]
   (h : fintype.card P = fintype.card L) : has_lines P L :=
 let this := @has_lines.has_points (dual L) (dual P) _ _ _ _ h.symm in
-{ mk_line := this.mk_point,
-  mk_line_ax := this.mk_point_ax }
+{ mk_line := λ _ _, this.mk_point,
+  mk_line_ax := λ _ _, this.mk_point_ax }
 
 variables (P L)
 

@@ -33,9 +33,9 @@ lemma log_im_le_pi (x : ℂ) : (log x).im ≤ π := by simp only [log_im, arg_le
 
 lemma exp_log {x : ℂ} (hx : x ≠ 0) : exp (log x) = x :=
 by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx,
-  ← of_real_exp, real.exp_log (abs_pos.2 hx), mul_add, of_real_div, of_real_div,
-  mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), ← mul_assoc,
-  mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), re_add_im]
+  ← of_real_exp, real.exp_log (abs.pos hx), mul_add, of_real_div, of_real_div,
+  mul_div_cancel' _ (of_real_ne_zero.2 $ abs.ne_zero hx), ← mul_assoc,
+  mul_div_cancel' _ (of_real_ne_zero.2 $ abs.ne_zero hx), re_add_im]
 
 @[simp] lemma range_exp : range exp = {0}ᶜ :=
 set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
@@ -157,7 +157,7 @@ begin
   refine continuous_at.add _ _,
   { refine continuous_of_real.continuous_at.comp _,
     refine (real.continuous_at_log _).comp complex.continuous_abs.continuous_at,
-    rw abs_ne_zero,
+    rw complex.abs.ne_zero_iff,
     rintro rfl,
     simpa using h },
   { have h_cont_mul : continuous (λ x : ℂ, x * I), from continuous_id'.mul continuous_const,

@@ -4,14 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebra.category.Group.epi_mono
-import algebra.group.ulift
 import algebra.category.Group.Z_Module_equivalence
 import algebra.category.Module.epi_mono
 import algebra.module.injective
 import category_theory.preadditive.injective
 import group_theory.divisible
 import ring_theory.principal_ideal_domain
-import tactic.omega
 
 /-!
 # Injective objects in the category of abelian groups

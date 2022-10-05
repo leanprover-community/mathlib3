@@ -133,9 +133,8 @@ def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
   end }
 
 namespace simple_graph
-
-variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
-  {a b c u v w : V} {e : sym2 V}
+variables {𝕜 : Type*} {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V)
+  (G' : simple_graph W) {a b c u v w : V} {e : sym2 V}
 
 @[simp] protected lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
@@ -281,6 +280,9 @@ The way `edge_set` is defined is such that `mem_edge_set` is proved by `refl`.
 def edge_set : set (sym2 V) := sym2.from_rel G.symm
 
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
+
+lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
+λ e, sym2.ind (λ v w, @h v w) e
 
 /--
 Two vertices are adjacent iff there is an edge between them. The
@@ -445,7 +447,7 @@ by rwa [←mk_mem_incidence_set_left_iff,
 lemma incidence_set_inter_incidence_set_of_not_adj (h : ¬ G.adj a b) (hn : a ≠ b) :
   G.incidence_set a ∩ G.incidence_set b = ∅ :=
 begin
-  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_eq, not_and],
+  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_iff, not_and],
   intros u ha hb,
   exact h (G.adj_of_mem_incidence_set hn ha hb),
 end
@@ -462,6 +464,14 @@ set.to_finset G.edge_set
 @[simp] lemma mem_edge_finset [fintype G.edge_set] (e : sym2 V) :
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 set.mem_to_finset
+
+@[simp, norm_cast] lemma coe_edge_finset [fintype G.edge_set] :
+  (G.edge_finset : set (sym2 V)) = G.edge_set :=
+set.coe_to_finset _
+
+lemma edge_finset_mono {G G' : simple_graph V} [fintype G.edge_set] [fintype G'.edge_set] :
+  G ≤ G' → G.edge_finset ⊆ G'.edge_finset :=
+by { simp_rw [←coe_subset, coe_edge_finset], exact edge_set_mono }
 
 lemma edge_finset_card [fintype G.edge_set] : G.edge_finset.card = fintype.card G.edge_set :=
 set.to_finset_card _
@@ -483,7 +493,7 @@ lemma adj_incidence_set_inter {v : V} {e : sym2 V} (he : e ∈ G.edge_set) (h : 
   G.incidence_set v ∩ G.incidence_set h.other = {e} :=
 begin
   ext e',
-  simp only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
+  simp only [incidence_set, set.mem_sep_iff, set.mem_inter_iff, set.mem_singleton_iff],
   refine ⟨λ h', _, _⟩,
   { rw ←sym2.other_spec h,
     exact (sym2.mem_and_mem_iff (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩ },
@@ -505,7 +515,7 @@ lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
 begin
   ext w,
   have h := @ne_of_adj _ G,
-  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_eq, set.mem_singleton_iff],
+  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_iff, set.mem_singleton_iff],
   tauto,
 end
 
@@ -637,6 +647,51 @@ end
 lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
 by { ext, simp [imp_false] { contextual := tt } }
+
+lemma delete_edges_sdiff_eq_of_le {H : simple_graph V} (h : H ≤ G) :
+  G.delete_edges (G.edge_set \ H.edge_set) = H :=
+by { ext v w, split; simp [@h v w] { contextual := tt } }
+
+lemma edge_set_delete_edges (s : set (sym2 V)) :
+  (G.delete_edges s).edge_set = G.edge_set \ s :=
+by { ext e, refine sym2.ind _ e, simp }
+
+lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj]
+  (s : finset (sym2 V)) [decidable_rel (G.delete_edges s).adj] :
+  (G.delete_edges s).edge_finset = G.edge_finset \ s :=
+by { ext e, simp [edge_set_delete_edges] }
+
+section delete_far
+variables (G) [ordered_ring 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]
+  {p : simple_graph V → Prop} {r r₁ r₂ : 𝕜}
+
+/-- A graph is `r`-*delete-far* from a property `p` if we must delete at least `r` edges from it to
+get a graph with the property `p`. -/
+def delete_far (p : simple_graph V → Prop) (r : 𝕜) : Prop :=
+∀ ⦃s⦄, s ⊆ G.edge_finset → p (G.delete_edges s) → r ≤ s.card
+
+open_locale classical
+
+variables {G}
+
+lemma delete_far_iff :
+  G.delete_far p r ↔ ∀ ⦃H⦄, H ≤ G → p H → r ≤ G.edge_finset.card - H.edge_finset.card :=
+begin
+  refine ⟨λ h H hHG hH, _, λ h s hs hG, _⟩,
+  { have := h (sdiff_subset G.edge_finset H.edge_finset),
+    simp only [delete_edges_sdiff_eq_of_le _ hHG, edge_finset_mono hHG, card_sdiff,
+      card_le_of_subset, coe_sdiff, coe_edge_finset, nat.cast_sub] at this,
+    exact this hH },
+  { simpa [card_sdiff hs, edge_finset_delete_edges, -set.to_finset_card, nat.cast_sub,
+      card_le_of_subset hs] using h (G.delete_edges_le s) hG }
+end
+
+alias delete_far_iff ↔ delete_far.le_card_sub_card _
+
+lemma delete_far.mono (h : G.delete_far p r₂) (hr : r₁ ≤ r₂) : G.delete_far p r₁ :=
+λ s hs hG, hr.trans $ h hs hG
+
+end delete_far
 
 /-! ## Map and comap -/
 
@@ -869,7 +924,7 @@ end
 lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.degree v :=
 begin
   obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
-  have := finset.min_le_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  have := finset.min_le_of_eq (mem_image_of_mem _ (mem_univ v)) ht,
   rwa [min_degree, ht]
 end
 
@@ -911,7 +966,7 @@ end
 lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_degree :=
 begin
   obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
-  have := finset.le_max_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  have := finset.le_max_of_eq (mem_image_of_mem _ (mem_univ v)) ht,
   rwa [max_degree, ht],
 end
 
@@ -987,7 +1042,7 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, set.to_finset_mono],
+    { rw [neighbor_finset, set.to_finset_subset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
@@ -997,7 +1052,7 @@ begin
   simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [set.to_finset_mono, set.subset_univ] },
+  { simp only [set.to_finset_subset, set.subset_univ] },
 end
 
 end finite

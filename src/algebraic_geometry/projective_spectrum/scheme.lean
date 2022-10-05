@@ -163,7 +163,7 @@ lemma mem_carrier.clear_denominator [decidable_eq (away f)]
   ∃ (c : algebra_map A (away f) '' x.1.as_homogeneous_ideal →₀ away f)
     (N : ℕ) (acd : Π y ∈ c.support.image c, A),
     f ^ N • z.val = algebra_map A (away f)
-      (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) := :=
+      (∑ i in c.support.attach, acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * i.1.2.some) :=
 mem_carrier.clear_denominator' x $ (mem_carrier_iff 𝒜 x z).mpr hz
 
 

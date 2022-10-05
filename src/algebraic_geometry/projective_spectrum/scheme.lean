@@ -206,7 +206,7 @@ begin
         { rw [mk_mul, show (1 * 1 : submonoid.powers f) = 1, from one_mul _], }, },
       simp_rw [←finset.mul_sum, hacd, subtype.coe_mk, ←finset.smul_sum],
       rw [algebra.smul_def, ←mul_assoc],
-      have eq1' := congr_arg ((*) (mk (f^k * f^N) 1) : localization.away f → localization.away f) eq1,
+      have eq1' := congr_arg ((*) (localization.mk (f^k * f^N) 1) : away f → away f) eq1,
       rw [mk_mul, one_mul] at eq1', convert eq1'.symm using 1,
       { rw [mk_eq_mk', is_localization.eq], refine ⟨1, _⟩,
         simp only [submonoid.coe_one, one_mul, mul_one, subtype.coe_mk], ring1, },

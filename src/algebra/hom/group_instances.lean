@@ -233,7 +233,7 @@ def add_monoid_hom.mul : R →+ R →+ R :=
 lemma add_monoid_hom.mul_apply (x y : R) : add_monoid_hom.mul x y = x * y := rfl
 
 @[simp]
-lemma add_monoid_hom.coe_mul :
+protected lemma add_monoid_hom.coe_mul :
   ⇑(add_monoid_hom.mul : R →+ R →+ R) = add_monoid_hom.mul_left := rfl
 
 @[simp]

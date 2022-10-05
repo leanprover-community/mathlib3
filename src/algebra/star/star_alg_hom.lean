@@ -40,15 +40,6 @@ TODO: add `star_alg_equiv`.
 non-unital, algebra, morphism, star
 -/
 
------------------- prereq
-@[priority 100] -- See note [lower instance priority]
-instance non_unital_alg_hom_class.non_unital_ring_hom_class
-  (F R A B : Type*) [monoid R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
-  [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
-  [hF : non_unital_alg_hom_class F R A B] : non_unital_ring_hom_class F A B :=
-{ coe := coe_fn, .. hF }
------------------- prereq
-
 set_option old_structure_cmd true
 
 /-! ### Non-unital star algebra homomorphisms -/

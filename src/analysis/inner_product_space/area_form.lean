@@ -183,7 +183,7 @@ def right_angle_rotation_aux₂ : E →ₗᵢ[ℝ] E :=
     { cases eq_or_lt_of_le (norm_nonneg (o.right_angle_rotation_aux₁ x)) with h h,
       { rw ← h,
         positivity },
-      refine le_of_mul_le_mul_right' _ h,
+      refine le_of_mul_le_mul_right _ h,
       rw [← real_inner_self_eq_norm_mul_norm, o.inner_right_angle_rotation_aux₁_left],
       exact o.area_form_le x (o.right_angle_rotation_aux₁ x) },
     { let K : submodule ℝ E := ℝ ∙ x,
@@ -199,7 +199,7 @@ def right_angle_rotation_aux₂ : E →ₗᵢ[ℝ] E :=
       obtain ⟨w, hw₀⟩ : ∃ w : Kᗮ, w ≠ 0 := exists_ne 0,
       have hw' : ⟪x, (w:E)⟫ = 0 := inner_right_of_mem_orthogonal_singleton x w.2, -- hw'₀,
       have hw : (w:E) ≠ 0 := λ h, hw₀ (submodule.coe_eq_zero.mp h),
-      refine le_of_mul_le_mul_right' _ (by rwa norm_pos_iff : 0 < ∥(w:E)∥),
+      refine le_of_mul_le_mul_right _ (by rwa norm_pos_iff : 0 < ∥(w:E)∥),
       rw ← o.abs_area_form_of_orthogonal hw',
       rw ← o.inner_right_angle_rotation_aux₁_left x w,
       exact abs_real_inner_le_norm (o.right_angle_rotation_aux₁ x) w },
@@ -484,7 +484,7 @@ lemma abs_kahler (x y : E) : complex.abs (o.kahler x y) = ∥x∥ * ∥y∥ :=
 begin
   rw [← sq_eq_sq, complex.sq_abs],
   { linear_combination o.norm_sq_kahler x y },
-  { exact complex.abs_nonneg _ },
+  { positivity },
   { positivity }
 end
 

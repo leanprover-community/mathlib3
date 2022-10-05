@@ -243,10 +243,10 @@ def discrete : subgroupoid C :=
   by { rintros _ _ _ _ hp _ hq, induction hp, induction hq, rw category.comp_id, constructor,} ⟩
 
 lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
-  (f ∈ (discrete).arrws c d) ↔ (∃ (h : c = d), f = h.rec_on (𝟙 c)) :=
+  (f ∈ (discrete).arrws c d) ↔ (∃ (h : c = d), f = eq_to_hom h) :=
 begin
   split,
-  { intro hf, induction hf, simp only [eq_self_iff_true, exists_true_left], },
+  { intro hf, induction hf, simp only [eq_self_iff_true, eq_to_hom_refl, exists_true_left], },
   { rintro ⟨h,he⟩, subst_vars, constructor, }
 end
 
@@ -415,8 +415,8 @@ lemma is_normal_comap {T} (Tn : is_normal T) : is_normal (comap φ T) :=
 def ker : subgroupoid C := comap φ (discrete)
 
 lemma mem_ker_iff {c d : C} (f : c ⟶ d) :
-  f ∈ (ker φ).arrws c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = h.rec_on (𝟙 $ φ.obj c) :=
-mem_discrete_iff (φ.map f)
+  f ∈ (ker φ).arrws c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = eq_to_hom h :=
+mem_discrete_iff' (φ.map f)
 
 end comap
 

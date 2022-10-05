@@ -93,7 +93,16 @@ def of : C ⥤ (quotient S Sn) :=
 
 lemma of_inj_on_objects : function.injective (of S Sn).obj := by { intros a b e, assumption }
 
-lemma of_onto : im (of S Sn) (of_inj_on_objects S Sn) = (⊤ : subgroupoid $ quotient S Sn) := sorry
+lemma of_onto : im (of S Sn) (of_inj_on_objects S Sn) = (⊤ : subgroupoid $ quotient S Sn) :=
+begin
+  apply subgroupoid.le_antisymm,
+  { exact le_top, },
+  { rintro c d f _,
+    apply quot.induction_on f,
+    rintro f,
+    constructor,
+    constructor, },
+end
 
 /-- The image of `S` via the quotient is graph-like (since every loop is killed, essentially) -/
 lemma map_is_graph_like : (map (of S Sn) (of_inj_on_objects S Sn) S).is_graph_like :=
@@ -113,13 +122,15 @@ begin
 end
 
 section ump
+/-!
+The universal mapping property of the quotient by the isotropy part of a normal subgroupoid.
+-/
 
 variables  {D : Type*} [groupoid D]
   (φ : C ⥤ D) (hφ : ∀ (c : C) (γ : c ⟶ c), γ ∈ₐ S → γ ∈ₐ ker φ)
 
 include hφ
-def lift :
-  (quotient S Sn) ⥤ D :=
+def lift : (quotient S Sn) ⥤ D :=
 { obj := λ c, φ.obj c,
   map := λ c d f,
     quot.lift_on f
@@ -127,16 +138,18 @@ def lift :
       ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, by
         { let hφγ := hφ c γ hγ,
           let hφδ := hφ d δ hδ,
-          simp only [mem_subgroupoid_iff,mem_ker_iff,eq_self_iff_true,exists_true_left] at hφγ hφδ,
-          simp only [e, functor.map_comp,hφγ,hφδ,category.comp_id,category.id_comp], } ),
-  map_id' := λ c, by  simp,
+          simp only [mem_subgroupoid_iff, mem_ker_iff, eq_self_iff_true,
+                     exists_true_left] at hφγ hφδ,
+          simp only [e, functor.map_comp,hφγ,hφδ,category.comp_id,category.id_comp,
+                     eq_to_hom_refl], } ),
+  map_id' := λ c, by simp,
   map_comp' := λ a b c f g, by { apply quot.induction_on₂ f g, rintros, simp, } }
 
 lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ hφ) = φ :=
 begin
   apply functor.ext,
-  { rintros, dsimp [of, lift], simp, },
-  { rintros, dsimp [of, lift], simp, },
+  { rintros, dsimp only [of, lift], simp, },
+  { rintros, dsimp only [of, lift], simp, },
 end
 
 lemma lift_spec_unique (Φ : (quotient S Sn) ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
@@ -145,7 +158,7 @@ begin
   subst_vars,
   apply functor.ext,
   { rintros, dsimp [of, lift], apply quot.induction_on f, rintro f, simp, },
-  { rintros, dsimp [of, lift], refl, }
+  { rintros, dsimp only [of, lift], refl, }
 end
 
 end ump
@@ -153,8 +166,6 @@ end ump
 end isotropy
 
 end isotropy
-
-
 
 
 namespace is_graph_like
@@ -177,9 +188,9 @@ lemma r.tran {c d e : C} : r S c d → r S d e → r S c e := λ ⟨⟨f,fS⟩�
 
 instance : setoid C := R S Sn
 
-def C_by_r := _root_.quotient (R S Sn)
+abbreviation C_by_r := _root_.quotient (R S Sn)
 
-def r_reps : set C := set.range (@quotient.out C (R S Sn))
+abbreviation r_reps : set C := set.range (@quotient.out C (R S Sn))
 
 def quotient := (full_on $ r_reps S Sn).coe
 
@@ -197,6 +208,17 @@ begin
   apply qex,
   simp only [quotient.out_eq],
 end
+
+lemma in_quotient (c : quotient S Sn) : ∃ (c₀ : C), c.val = (qout S Sn $ qmk S Sn c₀) :=
+begin
+  obtain ⟨c₀,⟨_,⟨_,⟨c,h⟩⟩⟩⟩ := c,
+  use c₀,
+  simp only [←h, quotient.out_inj],
+  letI := R S Sn,
+  change c = ⟦c.out⟧,
+  simp only [quotient.out_eq],
+end
+
 
 noncomputable def of : C ⥤ quotient S Sn :=
 { obj := λ c,
@@ -218,9 +240,6 @@ noncomputable def of : C ⥤ quotient S Sn :=
 
 def fo : (quotient S Sn) ⥤ C := coe_embedding _
 
-
-lemma fo_of : (fo S Sn) ⋙ (of S Sn) = 𝟭 _ := sorry
-
 section ump
 
 variables {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ)
@@ -231,7 +250,7 @@ include hφ
 lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ) = φ :=
 begin
   dsimp only [lift, of, fo, full_on, coe_embedding],
-  fapply functor.hext,
+  fapply functor.ext,
   { rintro c,
     simp only [functor.comp_obj],
     obtain ⟨γ,γS⟩ := (qoutmk S Sn c).some,
@@ -242,32 +261,41 @@ begin
                functor.map_comp, functor.map_inv],
 
     obtain ⟨γ,hγ⟩ := (qex S Sn (qouteq S Sn (qmk S Sn c))).some,
-    let hγ' := hφ hγ,
-    rw mem_ker_iff at hγ',
-    rcases hγ' with ⟨a,b⟩,
-
     obtain ⟨δ,hδ⟩ := (qex S Sn (qouteq S Sn (qmk S Sn d))).some,
+    let hγ' := hφ hγ,
     let hδ' := hφ hδ,
-    rw mem_ker_iff at hδ',
-    rcases hδ' with ⟨c,d⟩,
-    simp only [subtype.coe_mk],
-
-    sorry, },
+    rw mem_ker_iff at hγ' hδ',
+    obtain ⟨eγ,hγ'⟩ := hγ',
+    obtain ⟨eδ,hδ'⟩ := hδ',
+    simp only [subtype.coe_mk,hδ',hγ',inv_eq_to_hom], refl, },
 end
 
-
-def lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) : Φ = (lift S Sn φ) :=
+lemma lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) : Φ = (lift S Sn φ) :=
 begin
-  dsimp only [lift, of, fo, full_on, coe_embedding],
+  letI := R S Sn,
+  subst_vars,
   fapply functor.ext,
-  { rintro ⟨c,hc⟩,
-    simp only [subtype.val_eq_coe, functor.comp_obj],
-    obtain ⟨γ,γS⟩ := (qoutmk S Sn c).some,
-    let := hφ γS, rw mem_ker_iff at this, rw ←hΦ at this ⊢,
-    rw ←this.some, sorry
+  { rintro ⟨c₀,⟨_,⟨_,⟨c,h⟩⟩⟩⟩,
+    dsimp only [lift, of, fo, full_on, coe_embedding],
+    simp only [functor.comp_obj],
+    congr,
+    rw ←h,
+    change c.out = ⟦c.out⟧.out,
+    simp only [quotient.out_eq], },
+  { rintro ⟨c,⟨_,⟨_,⟨c₀,hc⟩⟩⟩⟩ ⟨d,⟨_,⟨_,⟨d₀,hd⟩⟩⟩⟩ f,
+    obtain ⟨γ,hγ⟩ := (qex S Sn (qouteq S Sn (qmk S Sn c))).some,
+    obtain ⟨δ,hδ⟩ := (qex S Sn (qouteq S Sn (qmk S Sn d))).some,
+    let hγ' := hφ hγ,
+    let hδ' := hφ hδ,
+    rw mem_ker_iff at hγ' hδ',
+    obtain ⟨eγ,hγ'⟩ := hγ',
+    obtain ⟨eδ,hδ'⟩ := hδ',
+    --simp only [subtype.coe_mk,hδ',hγ',inv_eq_to_hom],
+    dsimp only [lift, of, fo, full_on, coe_embedding] at *,
+    simp only [inv_eq_inv, functor.comp_map] at *,
+    dsimp [category_struct.comp], sorry,
+     },
 
-    },
-  { sorry, },
 end
 
 end ump
@@ -288,10 +316,10 @@ def quotient :=
 
 instance : groupoid (quotient S Sn) :=
   is_graph_like.quotient.category_theory.groupoid
-    (map (isotropy.of S Sn) (isotropy.of_inj_on_objects S Sn) S)
+    (map /-(isotropy.of S Sn)-/ _ (isotropy.of_inj_on_objects S Sn) S)
     (is_normal_map
-      S
-      (isotropy.of S Sn)
+      /-S-/ _
+      /-(isotropy.of S Sn)-/ _
       (isotropy.of_inj_on_objects S Sn)
       (isotropy.of_onto S Sn)
       Sn)
@@ -302,12 +330,23 @@ section ump
 
 variables {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ)
 
-def lift : quotient S Sn ⥤ D := sorry
-
 include hφ
-lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ) = φ :=
+def lift : quotient S Sn ⥤ D :=
 begin
+  apply is_graph_like.lift,
+  fapply isotropy.lift,
+  exact φ,
+  rintro c γ γS, exact hφ γS,
+end
 
+lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ $ λ _ _, hφ) = φ :=
+begin
+  dsimp [of, lift],
+  change isotropy.of S Sn ⋙ (is_graph_like.of (map (isotropy.of S Sn) _ S) _) ⋙
+    is_graph_like.lift (map (isotropy.of S Sn) _ S) _ (isotropy.lift S Sn φ _) = φ,
+  rw is_graph_like.lift_spec,
+  apply isotropy.lift_spec,
+  sorry,
 end
 
 

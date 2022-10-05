@@ -39,7 +39,7 @@ open_locale big_operators measure_theory probability_theory ennreal nnreal
 
 namespace probability_theory
 
-/-- The `ℝ≥0∞`-valued variance of a real-valued random variable defined as a lintegral.-/
+/-- The `ℝ≥0∞`-valued variance of a real-valued random variable defined as the Lebesgue integral of `(X - 𝔼[X])^2`. -/
 def evariance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ≥0∞ :=
 ∫⁻ ω, ∥f ω - μ[f]∥₊^2 ∂μ
 

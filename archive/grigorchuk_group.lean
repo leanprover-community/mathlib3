@@ -3,6 +3,9 @@ import topology.algebra.order.intermediate_value
 import group_theory.perm.fibered
 import group_theory.free_group
 import data.bool.count
+import algebra.free_monoid.count
+import algebra.char_p.two
+import data.zmod.parity
 
 /-!
 -/
@@ -15,6 +18,7 @@ local notation `L` := list bool
 
 namespace grigorchuk_group
 
+@[derive decidable_eq]
 inductive generator
 | a : generator
 | bcd : fin 3 → generator
@@ -64,11 +68,12 @@ def equiv_with_bot : generator ≃ with_bot (fin 3) :=
   left_inv := generator.forall.2 ⟨rfl, λ n, rfl⟩,
   right_inv := option.forall.2 ⟨rfl, λ n, rfl⟩ }
 
+lemma a_ne_bcd (n : fin 3) : a ≠ bcd n .
+lemma bcd_ne_a (n : fin 3) : bcd n ≠ a .
+
 instance : fintype generator := @fintype.of_equiv _ _ option.fintype equiv_with_bot.symm
 instance : encodable generator := @encodable.of_equiv _ _ option.encodable equiv_with_bot
-instance : nontrivial generator := ⟨⟨a, bcd 0, λ h, generator.no_confusion h⟩⟩
-
-instance : linear_order generator := linear_order.lift' equiv_with_bot equiv_with_bot.injective
+instance : nontrivial generator := nontrivial_of_ne _ _ (a_ne_bcd 0)
 
 lemma bcd_cons_ff (n : fin 3) (l : L) : bcd n (ff :: l) = ff :: if n = 0 then l else a l :=
 rfl
@@ -169,7 +174,7 @@ end generator
 
 open generator
 
-@[derive monoid] def word : Type := free_monoid generator
+@[derive [monoid, decidable_eq]] def word : Type := free_monoid generator
 
 local notation `W` := word
 
@@ -180,6 +185,7 @@ instance : denumerable W :=
 
 instance : has_coe_t generator W := ⟨free_monoid.of⟩
 
+lemma coe_def (x : generator) : (x : W) = [x] := rfl
 @[simp] lemma length_coe (x : generator) : (x : W).length = 1 := rfl
 
 @[elab_as_eliminator]
@@ -216,7 +222,8 @@ by cases x; cases y; simp [noncancellable_rel, em]
 lemma noncancellable_rel.ne {x y : generator} (h : R x y) : x ≠ y :=
 by { rintro rfl, exact not_noncancellable_rel_same _ h }
 
-@[ext] structure noncancellable : Type :=
+@[ext, derive decidable_eq]
+structure noncancellable : Type :=
 (to_word : W)
 (chain'_rel : chain' R to_word)
 
@@ -509,6 +516,25 @@ subgroup.map_injective to_perm_injective $ by rw [monoid_hom.map_closure, ← ra
 by simp only [← subgroup.top_to_submonoid, ← closure_abcd, subgroup.closure_to_submonoid,
   ← image_inv, ← range_comp, (∘), inv_coe, union_self]
 
+lemma le_length_preserving : G ≤ equiv.perm.fiberwise length :=
+(subgroup.closure_le _).2 $ range_subset_iff.2 generator.length_apply
+
+def to_length_preserving : G →* equiv.perm.fiberwise (@length bool) :=
+subgroup.inclusion le_length_preserving
+
+@[simp] lemma coe_to_length_preserving (g : G) : ⇑(to_length_preserving g) = g := rfl
+
+@[simp] lemma length_apply (g : G) (l : L) : length (g l) = length l :=
+le_length_preserving g.2 l
+
+@[simp] lemma apply_nil (g : G) : g [] = [] := length_eq_zero.1 $ length_apply g _
+
+def head_preserving : subgroup G := (equiv.perm.fiberwise head').comap to_perm
+
+local notation `H` := head_preserving
+
+lemma mem_head_preserving {g : G} : g ∈ H ↔ ∀ l, (g l).head' = l.head' := iff.rfl
+
 namespace word
 
 def to_grigorchuk : W →* G := free_monoid.lift coe
@@ -518,6 +544,13 @@ def to_grigorchuk : W →* G := free_monoid.lift coe
 @[simp] lemma to_grigorchuk_cons (x : generator) (l : W) :
   to_grigorchuk (x :: l) = x * to_grigorchuk l :=
 list.prod_cons
+
+@[simp] lemma mrange_to_grigorchuk : to_grigorchuk.mrange = ⊤ :=
+top_unique $ grigorchuk_group.mclosure_abcd ▸ submonoid.closure_le.2 (range_subset_iff.2 $
+  λ x, to_grigorchuk_coe x ▸ mem_range_self _)
+
+lemma to_grigorchuk_surjective : surjective to_grigorchuk :=
+monoid_hom.mrange_top_iff_surjective.1 mrange_to_grigorchuk
 
 end word
 
@@ -541,6 +574,10 @@ begin
         map_mul] } }
 end
 
+@[simp] lemma lift_apply {M : Type*} [monoid M] (f : W →* M) (h : ∀ x : generator, f x * f x = 1)
+  (hbcd : ∀ m n, m ≠ n → f (bcd m) * f (bcd n) = f (bcd (-m - n))) (g : NC) :
+  lift f h hbcd g = f g.to_word :=
+rfl
 
 def to_grigorchuk : NC →* G :=
 lift word.to_grigorchuk grigorchuk_group.coe_mul_self $ λ m n, grigorchuk_group.bcd_mul_of_ne
@@ -564,103 +601,98 @@ free_monoid.hom_eq $ λ x, rfl
 
 end noncancellable
 
+instance : countable G := noncancellable.to_grigorchuk_surjective.countable
+
 namespace word
 
 @[simp] lemma to_grigorchuk_cancel (w : W) : w.cancel.to_grigorchuk = w.to_grigorchuk :=
 fun_like.congr_fun noncancellable.to_grigorchuk_comp_cancel w
 
-@[simp] lemma mrange_to_grigorchuk : to_grigorchuk.mrange = ⊤ :=
-top_unique $ mclosure_abcd ▸ submonoid.closure_le.2
-  (range_subset_iff.2 $ λ x, to_grigorchuk_coe x ▸ mem_range_self _)
+def parity (x : generator) : W →* multiplicative (zmod 2) :=
+(nat.cast_add_monoid_hom (zmod 2)).to_multiplicative.comp (free_monoid.count x)
 
-lemma surjective_to_grigorchuk : surjective to_grigorchuk :=
-monoid_hom.mrange_top_iff_surjective.1 mrange_to_grigorchuk
+lemma mem_mker_parity_a {x : generator} {g : W} :
+  g ∈ (parity x).mker ↔ even (count x g) :=
+zmod.eq_zero_iff_even
 
-def even_a
+lemma head'_to_grigorchuk_apply (g : W) (l : L) :
+  (to_grigorchuk g l).head' = l.head'.map (bnot^[count a g]) :=
+begin
+  induction g using grigorchuk_group.word.rec_on with x g ihg,
+  { exact (congr_fun option.map_id l.head').symm },
+  { rw [map_mul, to_grigorchuk_coe, mul_apply, coe_fn_coe_gen, ← cons_eq_mul, count_cons'],
+    cases x,
+    { rw [generator.head'_a, if_pos rfl, iterate_succ', ihg, option.map_map] },
+    { rw [generator.head'_bcd, ihg, if_neg, add_zero],
+      simp only [not_false_iff] } }
+end
+
+lemma to_grigorchuk_mem_head_preserving {g : W} : to_grigorchuk g ∈ H ↔ even (count a g) :=
+calc to_grigorchuk g ∈ H ↔ ∀ o : option bool, o.map (bnot ^[count a g]) = id o :
+  by simp only [mem_head_preserving, head'_to_grigorchuk_apply, surjective_head'.forall, id]
+... ↔ (bnot ^[count a g]) = id : by simp only [← funext_iff, option.map_eq_id]
+... ↔ even (count a g) : bool.involutive_bnot.iterate_eq_id bool.bnot_ne_id
+
+lemma comap_to_grigorchuk_head_preserving :
+  head_preserving.to_submonoid.comap to_grigorchuk = (parity a).mker :=
+set_like.ext $ λ x, to_grigorchuk_mem_head_preserving.trans mem_mker_parity_a.symm
+
+lemma map_to_grigorchuk_mker_parity_a :
+  (parity a).mker.map to_grigorchuk = head_preserving.to_submonoid :=
+by rw [← comap_to_grigorchuk_head_preserving,
+  submonoid.map_comap_eq_of_surjective to_grigorchuk_surjective]
 
 end word
 
-instance : countable G := noncancellable.to_grigorchuk_surjective.countable
+namespace noncancellable
 
-lemma le_length_preserving : G ≤ equiv.perm.fiberwise length :=
-(subgroup.closure_le _).2 $ range_subset_iff.2 generator.length_apply
+def parity_a : NC →* multiplicative (zmod 2) :=
+lift (word.parity a) (λ x, char_two.add_self_eq_zero (count a [x] : zmod 2)) (λ m n hmn, rfl)
 
-def to_length_preserving : G →* equiv.perm.fiberwise (@length bool) :=
-subgroup.inclusion le_length_preserving
+lemma mem_ker_parity_a {g : NC} : g ∈ parity_a.ker ↔ even (count a g.to_word) :=
+zmod.eq_zero_iff_even
 
-@[simp] lemma coe_to_length_preserving (g : G) : ⇑(to_length_preserving g) = g := rfl
+lemma to_grigorchuk_mem_head_preserving {g : NC} : to_grigorchuk g ∈ H ↔ even (count a g.to_word) :=
+word.to_grigorchuk_mem_head_preserving
 
-@[simp] lemma length_apply (g : G) (l : L) : length (g l) = length l :=
-le_length_preserving g.2 l
+lemma comap_to_grigorchuk_head_preserving :
+  head_preserving.comap to_grigorchuk = parity_a.ker :=
+set_like.ext $ λ x, to_grigorchuk_mem_head_preserving.trans mem_ker_parity_a.symm
 
-@[simp] lemma apply_nil (g : G) : g [] = [] := length_eq_zero.1 $ length_apply g _
+lemma map_to_grigorchuk_mker_parity_a : parity_a.ker.map to_grigorchuk = H :=
+by rw [← comap_to_grigorchuk_head_preserving,
+  subgroup.map_comap_eq_self_of_surjective to_grigorchuk_surjective]
 
-lemma word.head'_to_grigorchuk_apply (w : W) (l : L) : 
-
-lemma head'_of_word (g : free_monoid (fin 4)) (l : L) :
-  (of_word g l).head' = l.head'.map (bnot^[count 0 g]) :=
-begin
-  induction g using free_monoid.rec_on with x g ihg,
-  { exact (congr_fun option.map_id l.head').symm },
-  { rw [map_mul, of_word_of, free_monoid.mul_def, free_monoid.of_def, singleton_append,
-      count_cons, mul_apply],
-    revert x, refine fin.forall_fin_succ.2 ⟨_, λ x, _⟩,
-    { rw [← a, if_pos rfl, iterate_succ', head'_a, ihg, option.map_map] },
-    { rw [abcd_succ, head'_bcd, ihg, if_neg],
-      exact x.succ_ne_zero.symm } }
-end
-
-def head_preserving : subgroup G := (equiv.perm.fiberwise head').comap to_perm
-
-local notation `H` := head_preserving
-
-lemma mem_head_preserving {g : G} : g ∈ H ↔ ∀ l, (g l).head' = l.head' := iff.rfl
+end noncancellable
 
 namespace head_preserving
 
-@[simp] lemma of_word_mem (g : free_monoid (fin 4)) : of_word g ∈ H ↔ even (count 0 g) :=
-calc of_word g ∈ H ↔ ∀ o : option bool, o.map (bnot ^[count 0 g]) = id o :
-  by simp only [mem_head_preserving, head'_of_word, surjective_head'.forall, id]
-... ↔ (bnot ^[count 0 g]) = id : by simp only [← funext_iff, option.map_eq_id]
-... ↔ even (count 0 g) : bool.involutive_bnot.iterate_eq_id bool.bnot_ne_id
-
-@[simp] lemma a_nmem : a ∉ H := show abcd 0 ∉ H, by { rw [← of_word_of, of_word_mem], dec_trivial }
-
-lemma ne_top : H ≠ ⊤ := λ h, a_nmem $ h.symm ▸ subgroup.mem_top _
-
-@[simp] lemma bcd_mem (n : fin 3) : bcd n ∈ H :=
+@[simp] lemma coe_mem {x : generator} : (x : G) ∈ H ↔ x ≠ a :=
 begin
-  rw [← abcd_succ, ← of_word_of, of_word_mem, free_monoid.of_def, count_singleton',
-    if_neg n.succ_pos.ne],
-  exact even_zero
+  rw [← word.to_grigorchuk_coe, word.to_grigorchuk_mem_head_preserving, word.coe_def,
+    count_singleton'],
+  cases x; simp
 end
 
-@[simp] lemma abcd_mem : ∀ {n : fin 4}, abcd n ∈ H ↔ n ≠ 0 :=
-fin.forall_fin_succ.2 ⟨by simp, λ k, by simp [fin.succ_ne_zero]⟩
-
-@[simp] lemma b_mem : b ∈ H := bcd_mem _
-@[simp] lemma c_mem : c ∈ H := bcd_mem _
-@[simp] lemma d_mem : d ∈ H := bcd_mem _
+lemma a_nmem : (a : G) ∉ H := mt coe_mem.1 (not_not.2 rfl)
+lemma ne_top : H ≠ ⊤ := λ h, a_nmem $ h.symm ▸ subgroup.mem_top _
+lemma bcd_mem (n : fin 3) : (bcd n : G) ∈ H := coe_mem.2 (generator.bcd_ne_a n)
 
 @[simp] lemma mul_mem_iff {g₁ g₂ : G} : g₁ * g₂ ∈ H ↔ (g₁ ∈ H ↔ g₂ ∈ H) :=
 begin
-  rcases surjective_of_word g₁ with ⟨g₁, rfl⟩,
-  rcases surjective_of_word g₂ with ⟨g₂, rfl⟩,
-  simp_rw [← map_mul, of_word_mem, free_monoid.mul_def, count_append, nat.even_add]
+  rcases word.to_grigorchuk_surjective g₁ with ⟨g₁, rfl⟩,
+  rcases word.to_grigorchuk_surjective g₂ with ⟨g₂, rfl⟩,
+  simp_rw [← map_mul, word.to_grigorchuk_mem_head_preserving, free_monoid.mul_def, count_append,
+    nat.even_add]
 end
 
 instance : subgroup.normal H := ⟨λ g₁ h g₂, by simp [h]⟩
 
-lemma a_mul_mem {g : G} : a * g ∈ H ↔ g ∉ H := by simp
-lemma bcd_mul_mem {n : fin 3} {g : G} : bcd n * g ∈ H ↔ g ∈ H := by simp
-lemma b_mul_mem {g : G} : b * g ∈ H ↔ g ∈ H := by simp
-lemma c_mul_mem {g : G} : c * g ∈ H ↔ g ∈ H := by simp
-lemma d_mul_mem {g : G} : d * g ∈ H ↔ g ∈ H := by simp
+lemma a_mul_mem {g : G} : ↑a * g ∈ H ↔ g ∉ H := by simp
+lemma bcd_mul_mem {n : fin 3} {g : G} : ↑(bcd n) * g ∈ H ↔ g ∈ H := by simp
 
 lemma mul_a_mem {g : G} : g * a ∈ H ↔ g ∉ H := by simp
-lemma mul_b_mem {g : G} : g * b ∈ H ↔ g ∈ H := by simp
-lemma mul_c_mem {g : G} : g * c ∈ H ↔ g ∈ H := by simp
-lemma mul_d_mem {g : G} : g * d ∈ H ↔ g ∈ H := by simp
+lemma mul_bcd_mem {g : G} {n : fin 3} : g * bcd n ∈ H ↔ g ∈ H := by simp
 
 @[simp] lemma index_eq : subgroup.index H = 2 := subgroup.index_eq_two_iff.2 $ ⟨a, λ g, mul_a_mem⟩
 

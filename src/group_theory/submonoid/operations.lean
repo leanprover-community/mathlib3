@@ -243,6 +243,11 @@ lemma map_comap_le {S : submonoid N} {f : F} : (S.comap f).map f ≤ S :=
 (gc_map_comap f).l_u_le _
 
 @[to_additive]
+lemma map_comap_eq_self_of_surjective {f : F} (hf : function.surjective f) (S : submonoid N) :
+  (S.comap f).map f = S :=
+set_like.ext' $ image_preimage_eq _ hf
+
+@[to_additive]
 lemma monotone_map {f : F} : monotone (map f) :=
 (gc_map_comap f).monotone_l
 

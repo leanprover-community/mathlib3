@@ -1096,9 +1096,9 @@ lemma ae_eq_image_of_ae_eq_comap {β} [measurable_space α] {mβ : measurable_sp
 begin
   rw [eventually_eq, ae_iff] at hst ⊢,
   have h_eq_α : {a : α | ¬s a = t a} = s \ t ∪ t \ s,
-  { ext1 x, simp only [eq_iff_iff, mem_set_of_eq, mem_union_eq, mem_diff], tauto, },
+  { ext1 x, simp only [eq_iff_iff, mem_set_of_eq, mem_union, mem_diff], tauto, },
   have h_eq_β : {a : β | ¬(f '' s) a = (f '' t) a} = f '' s \ f '' t ∪ f '' t \ f '' s,
-  { ext1 x, simp only [eq_iff_iff, mem_set_of_eq, mem_union_eq, mem_diff], tauto, },
+  { ext1 x, simp only [eq_iff_iff, mem_set_of_eq, mem_union, mem_diff], tauto, },
   rw [← set.image_diff hfi, ← set.image_diff hfi, ← set.image_union] at h_eq_β,
   rw h_eq_β,
   rw h_eq_α at hst,

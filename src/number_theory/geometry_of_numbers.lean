@@ -23,6 +23,7 @@ Hermann Minkowski.
 -/
 
 namespace measure_theory
+section
 variables {α : Type*} (μ : outer_measure α)
 
 @[simp] lemma outer_measure.measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
@@ -32,20 +33,88 @@ by by_cases i : ι; simp [i]
 @[simp] lemma measure.measure_Union_null_iff' [measurable_space α] {μ : measure α} {ι : Prop}
   {s : ι → set α} : μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 μ.to_outer_measure.measure_Union_null_iff'
-
-end measure_theory
+end
 
 
 open measure_theory measure_theory.measure set topological_space
-open_locale pointwise
+section
+open function
+variables {G H α β E : Type*} [group G] [group H]
+  [mul_action G α] [measurable_space α]
+  [mul_action H β] [measurable_space β]
+  [normed_add_comm_group E] {s t : set α} {μ : measure α} {ν : measure β}
+
+
+
+@[to_additive is_add_fundamental_domain.preimage_of_equiv']
+lemma is_fundamental_domain.preimage_of_equiv' [measurable_space H]
+  [has_measurable_smul H β] [smul_invariant_measure H β ν]
+  {s : set β} (h : is_fundamental_domain H s ν) {f : α → β}
+  (hf : quasi_measure_preserving f μ ν) {e : H → G} (he : bijective e)
+  (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
+  is_fundamental_domain G (f ⁻¹' s) μ :=
+{ null_measurable_set := h.null_measurable_set.preimage hf,
+  ae_covers := (hf.ae h.ae_covers).mono $ λ x ⟨g, hg⟩, ⟨e g, by rwa [mem_preimage, hef g x]⟩,
+  ae_disjoint := λ g hg,
+    begin
+      lift e to H ≃ G using he,
+      have : (e.symm g⁻¹)⁻¹ ≠ (e.symm 1)⁻¹, by simp [hg],
+      convert (h.pairwise_ae_disjoint _ _ this).preimage hf using 1,
+      { simp only [← preimage_smul_inv, preimage_preimage, ← hef _ _, e.apply_symm_apply,
+          inv_inv] },
+      { ext1 x,
+        simp only [mem_preimage, ← preimage_smul, ← hef _ _, e.apply_symm_apply, one_smul] }
+    end }
+
+@[to_additive is_add_fundamental_domain.image_of_equiv']
+lemma is_fundamental_domain.image_of_equiv' [measurable_space G]
+  [has_measurable_smul G α] [smul_invariant_measure G α μ]
+  (h : is_fundamental_domain G s μ)
+  (f : α ≃ β) (hf : quasi_measure_preserving f.symm ν μ)
+  (e : H ≃ G) (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
+  is_fundamental_domain H (f '' s) ν :=
+begin
+  rw f.image_eq_preimage,
+  refine h.preimage_of_equiv' hf e.symm.bijective (λ g x, _),
+  rcases f.surjective x with ⟨x, rfl⟩,
+  rw [← hef _ _, f.symm_apply_apply, f.symm_apply_apply, e.apply_symm_apply]
+end
+end
+
+section
+variables {G α β E : Type*} [group G]
+  [mul_action G α] [measurable_space α]
+  [mul_action G β] [measurable_space β]
+  [normed_add_comm_group E] {s t : set α} {μ : measure α} {ν : measure β}
+
+variables [measurable_space G]
+
+-- TODO not needed but maybe useful?
+-- @[to_additive is_add_fundamental_domain.image_of_equiv']
+-- lemma smul_invariant_measure_map (f : α ≃ β) (hf : measurable f)
+--   [smul_invariant_measure G α μ] :
+--   smul_invariant_measure G β (μ.map f) :=
+-- ⟨begin
+--   intros c s hs,
+--   simp,
+--   rw map_apply hf hs,
+--   rw map_apply hf,
+--   rw preimage_smul,
+--   rw preimage_smul_set,
+--   rw measure_preimage_smul,
+--   -- simp,
+--   -- rw measurable_equiv.map_apply,
+-- end⟩
+end
+end measure_theory
+
+
+open_locale ennreal pointwise
+open has_inv set function measure_theory measure_theory.measure
 section
 -- TODO move to measure_theory.group.basic
 noncomputable theory
 
-open_locale ennreal pointwise
-open has_inv set function measure_theory.measure
-section
-end
 variables {α : Type*} [measurable_space α] {μ : measure α}
 
 namespace measure_theory
@@ -71,10 +140,13 @@ lemma smul_invariant_measure.volume_smul {G : Type*} [group G] [measurable_space
   [smul_invariant_measure G V μ] (g : G) {S : set V} : μ (g • S) = μ S :=
 by rw [←measure_preimage_smul (g⁻¹) μ S, preimage_smul, inv_inv]
 
--- @[to_additive]
--- lemma is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [has_mul G]
---   {μ : measure G} [is_mul_left_invariant μ] :
--- smul_invariant_measure G G μ := ⟨h⟩
+-- TODO generalize
+@[to_additive]
+instance is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [has_mul G]
+  [has_measurable_mul G] {μ : measure G} [h : is_mul_left_invariant μ] :
+smul_invariant_measure G G μ :=
+⟨λ g s hs,
+  by simp_rw [smul_eq_mul, ← measure.map_apply (measurable_const_mul g) hs, map_mul_left_eq_self]⟩
 
 end
 end measure_theory
@@ -125,7 +197,7 @@ end
 
 variables (ι : Type*) [fintype ι]
 noncomputable theory
-open set
+open set topological_space
 
 lemma is_add_left_invariant_pi_volume {K : ι → Type*} [Π i, measure_space (K i)]
   [Π i, add_group (K i)] [∀ i, has_measurable_add (K i)] -- TODO???
@@ -328,10 +400,9 @@ namespace subtype
 
 
 variables {V : Type*} [measure_space V] {p : V → Prop}
-variables [measure_space V] {s t : set V}
+variables {s t : set V}
 
 lemma volume_def {s : set V} : (volume : measure s) = volume.comap subtype.val := rfl
-
 
 lemma measurable_set.null_measurable_set_subtype_image {s : set V} {t : set s}
   (hs : null_measurable_set s) (ht : measurable_set t) :
@@ -451,16 +522,31 @@ begin
   { exact measurable_set.univ_pi hS }
 end
 
-open ennreal
+open ennreal topological_space.positive_compacts
 
 -- TODO version for any real vector space in terms of dimension
-lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume {L : add_subgroup (ι → ℝ)}
-  [encodable L] {F T : set (ι → ℝ)} (fund : is_add_fundamental_domain L F)
-  (h : volume F * 2 ^ card ι < volume T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
+-- actually the proof shows that there is a point in the interior of T, perhaps we should expose
+-- this
+lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure {L : add_subgroup (ι → ℝ)}
+  [encodable L] {F T : set (ι → ℝ)}
+  (μ : measure (ι → ℝ)) [is_add_haar_measure μ]
+  (fund : is_add_fundamental_domain L F μ)
+  (h : μ F * 2 ^ card ι < μ T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
   ∃ (x : L) (h : x ≠ 0), (x : ι → ℝ) ∈ T :=
 begin
+  rw [add_haar_measure_unique μ (pi_Icc01 ι), add_haar_measure_eq_volume_pi] at fund,
+  have fund_vol : is_add_fundamental_domain L F volume,
+  { refine is_add_fundamental_domain.mono fund (absolutely_continuous.mk _),
+    intros s hs h,
+    rw [measure.smul_apply, smul_eq_zero] at h,
+    -- TODO nice lemma for this?
+    exact h.resolve_left (measure_pos_of_nonempty_interior _ (pi_Icc01 _).interior_nonempty).ne', },
+
+  rw [add_haar_measure_unique μ (pi_Icc01 ι), add_haar_measure_eq_volume_pi, measure.smul_apply,
+    measure.smul_apply, smul_mul_assoc, smul_eq_mul, smul_eq_mul] at h,
+  replace h := lt_of_mul_lt_mul_left' h,
   have hS : measurable_set (interior T) := measurable_set_interior,
-  rw ← measure_interior_of_null_frontier (h_conv.add_haar_frontier measure_space.volume) at *,
+  rw ← measure_interior_of_null_frontier (h_conv.add_haar_frontier volume) at *,
   set S := interior T,
   have mhalf : measurable_set ((1/2 : ℝ) • S),
   { convert measurable_const_smul (2 : ℝ) hS,
@@ -490,10 +576,96 @@ begin
     convert h },
   rw [←one_smul ℝ T, ←_root_.add_halves (1 : ℝ), h_conv.add_smul one_half_pos.le one_half_pos.le],
   obtain ⟨x, y, hx, hy, hne, hsub⟩ :=
-    exists_add_neg_mem_lattice_of_volume_lt_volume' L mhalf fund h2,
+    exists_add_neg_mem_lattice_of_volume_lt_volume' L mhalf fund_vol h2,
   refine ⟨⟨y - x, hsub⟩, subtype.ne_of_val_ne $ sub_ne_zero.2 hne.symm, y, -x,
     smul_set_mono interior_subset hy, _, rfl⟩,
   obtain ⟨x, hx, rfl⟩ := hx,
   rw ←smul_neg,
   exact smul_mem_smul_set (h_symm ⟨x, interior_subset hx, rfl⟩),
+end
+
+
+open finite_dimensional
+
+@[simp, to_additive]
+lemma subgroup.coe_equiv_map_of_injective_symm_apply {G H : Type*} [group G] [group H] (e : G ≃* H) {L : subgroup G}
+  {g : L.map (e : G →* H)} {hh} :
+  (((L.equiv_map_of_injective _ hh).symm g) : G) = e.symm g :=
+begin
+  rcases g with ⟨-, h, h_prop, rfl⟩,
+  rw [subtype.coe_mk, subtype.coe_eq_iff],
+  refine ⟨_, _⟩,
+  { convert h_prop,
+    erw [mul_equiv.symm_apply_apply], },
+  erw [mul_equiv.symm_apply_eq, subtype.ext_iff, subgroup.coe_equiv_map_of_injective_apply,
+    subtype.coe_mk, mul_equiv.apply_symm_apply],
+end
+
+
+lemma exists_nonzero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ] {L : add_subgroup E}
+  [encodable L] {F T : set E} (fund : is_add_fundamental_domain L F μ)
+  (h : μ F * 2 ^ finrank ℝ E < μ T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
+  ∃ (x : L) (h : x ≠ 0), (x : E) ∈ T :=
+begin
+  let ι := fin (finrank ℝ E),
+  haveI : finite_dimensional ℝ (ι → ℝ) := by apply_instance,
+  have : finrank ℝ E = finrank ℝ (ι → ℝ), by simp,
+  have e : E ≃ₗ[ℝ] ι → ℝ := linear_equiv.of_finrank_eq E (ι → ℝ) this,
+  have Ce : continuous e := (e : E →ₗ[ℝ] (ι → ℝ)).continuous_of_finite_dimensional,
+  have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
+  haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
+  have hfund : is_add_fundamental_domain (L.map (e : E →+ ι → ℝ)) ((e : E → ι → ℝ) '' F) (map e μ),
+  { refine is_add_fundamental_domain.image_of_equiv' fund e.to_equiv _ _ _,
+    { refine ⟨_, _⟩, -- TODO lemma
+      convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.symm.measurable,
+      ext,
+      refl,
+      simp only [linear_equiv.coe_to_equiv_symm],
+      rw [map_map],
+      convert absolutely_continuous.refl _,
+      rw eq_comm,
+      convert map_id,
+      ext,
+      simp,
+      convert e.symm.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
+      convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
+      ext,
+      refl, },
+    { refine ((L.equiv_map_of_injective _ _).symm.to_equiv : L.map (e : E →+ ι → ℝ) ≃ L),
+      change injective e,
+      exact equiv_like.injective _, },
+    { intros g x,
+      simp only [add_subgroup.vadd_def, add_equiv.to_equiv_symm, add_equiv.to_equiv_eq_coe,
+        vadd_eq_add, linear_equiv.coe_to_equiv, _root_.map_add, _root_.add_left_inj],
+      apply_fun e.symm,
+      simp only [add_equiv.coe_to_equiv, linear_equiv.symm_apply_apply],
+      convert add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
+      change injective e,
+      exact equiv_like.injective _,
+      exact equiv_like.injective _, }, },
+  haveI : encodable (L.map (e : E →+ ι → ℝ)),
+  { refine encodable.of_inj (L.equiv_map_of_injective _ _).symm (equiv.injective _),
+    exact equiv_like.injective e, },
+  obtain ⟨x, hx, hxT⟩ :=
+    exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure (map e μ) hfund
+      (_ : (map e μ) ((e : E → ι → ℝ) '' F) * _ < (map e μ) ((e : E → ι → ℝ) '' T)) _
+      (convex.linear_image h_conv e.to_linear_map),
+  { existsi (L.equiv_map_of_injective _ _).symm x,
+    swap,
+    exact equiv_like.injective e,
+    simp only [hx, ne.def, add_equiv_class.map_eq_zero_iff, not_false_iff, exists_true_left],
+    erw add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
+    exact mem_image_equiv.mp hxT, },
+  { erw [measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
+      measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
+      preimage_image_eq _ e.injective, preimage_image_eq _ e.injective],
+    convert h,
+    simp [ι], },
+  { rintros - ⟨-, ⟨hy, hy_h, rfl⟩, rfl⟩,
+    use -hy,
+    simp only [linear_equiv.map_neg, eq_self_iff_true, and_true],
+    refine h_symm ⟨hy, _⟩,
+    simpa, },
 end

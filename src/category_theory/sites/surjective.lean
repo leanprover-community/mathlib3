@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.sites.subsheaf
+import category_theory.adjunction.evaluation
 
 /-!
 
@@ -70,6 +71,25 @@ begin
   simp only [subpresheaf.ext_iff, function.funext_iff, set.ext_iff, top_subpresheaf_obj,
     set.top_eq_univ, set.mem_univ, iff_true],
   exact ⟨λ H U, H (unop U), λ H U, H (op U)⟩
+end
+
+lemma is_locally_surjective_iff_image_presheaf_sheafify_eq_top'
+  {F G : Cᵒᵖ ⥤ (Type w)} (f : F ⟶ G) :
+  is_locally_surjective J f ↔ (image_presheaf f).sheafify J = ⊤ :=
+begin
+  simp only [subpresheaf.ext_iff, function.funext_iff, set.ext_iff, top_subpresheaf_obj,
+    set.top_eq_univ, set.mem_univ, iff_true],
+  exact ⟨λ H U, H (unop U), λ H U, H (op U)⟩
+end
+
+lemma is_locally_surjective_iff_is_iso
+  {F G : Sheaf J (Type w)} (f : F ⟶ G) :
+  is_locally_surjective J f.1 ↔ is_iso (image_sheaf_ι f) :=
+begin
+  rw [image_sheaf_ι, is_locally_surjective_iff_image_presheaf_sheafify_eq_top',
+    subpresheaf.eq_top_iff_is_iso],
+  exact ⟨λ h, @@is_iso_of_reflects_iso _ _ (image_sheaf_ι f) (Sheaf_to_presheaf J _) h _,
+    λ h, @@functor.map_is_iso _ _ (Sheaf_to_presheaf J _) _ h⟩,
 end
 
 lemma is_locally_surjective_iff_whisker_forget {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G) :

@@ -1381,54 +1381,6 @@ lemma sInter_prod_sInter_subseteq (f₁ : set (set α)) (f₂ : set (set β)) :
   ⋂₀ f₁ ×ˢ ⋂₀ f₂ ⊆ ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' f₁ ×ˢ f₂) :=
 λ x hx _ ⟨s, hs, h⟩, h ▸ ⟨hx.1 s.1 hs.1, hx.2 s.2 hs.2⟩
 
-lemma sInter_prod_set (f₁ : set (set α)) (h₁ : f₁.nonempty) (T : set β)
-  : ⋂₀f₁ ×ˢ T  = ⋂₀((λ (C : set α), C ×ˢ T) '' (f₁)) :=
-begin
-  ext ⟨x,y⟩,
-  rw [prod_mk_mem_set_prod_eq, mem_sInter, sInter_image, mem_Inter],
-  simp only [mem_Inter, prod_mk_mem_set_prod_eq],
-  split,
-  { intros h S hS,
-    split,
-    { apply h.1, exact hS, },
-    { exact h.2, }, },
-  { intros h,
-    split,
-    { intros S hS,
-      exact mem_of_mem_inter_left (h S hS),},
-       { cases h₁ with S hS,
-      have e1: x∈ S ∧ y∈ T :=
-      begin
-        apply h,
-        exact hS,
-      end,
-      exact e1.2, }, },
-end
-
-lemma set_prod_sInter (f₂ : set (set β)) (h₁ : f₂.nonempty) (S : set α)
-  : S ×ˢ ⋂₀f₂ = ⋂₀((λ (C : set β), S ×ˢ C) '' (f₂)) :=
-begin
-  ext ⟨x,y⟩,
-  rw [prod_mk_mem_set_prod_eq, mem_sInter, sInter_image, mem_Inter],
-  simp only [mem_Inter, prod_mk_mem_set_prod_eq],
-  split,
-  { intros h S hS,
-  split,
-  { exact h.1, },
-  { apply h.2, exact hS, }, },
-  { intros h,
-    split,
-       { cases h₁ with T hT,
-      have e1: x∈ S ∧ y ∈ T :=
-      begin
-        apply h,
-        exact hT,
-      end,
-      exact e1.1, },
-    { intros S hS,
-    exact mem_of_mem_inter_right (h S hS), }, },
-end
-
 lemma sInter_prod_sInter (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty)
   (h₂ : f₂.nonempty) : ⋂₀ f₁ ×ˢ ⋂₀ f₂ = ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' f₁ ×ˢ f₂) :=
 begin
@@ -1437,6 +1389,16 @@ begin
   exact set.subset.antisymm (sInter_prod_sInter_subseteq f₁ f₂) (λ x h, ⟨λ s hs,
     (h (s ×ˢ s₂) ⟨(s, s₂), ⟨hs, h₂⟩, rfl⟩).1, λ s hs, (h (s₁ ×ˢ s) ⟨(s₁, s), ⟨h₁, hs⟩, rfl⟩).2⟩),
 end
+
+lemma sInter_prod_set (f₁ : set (set α)) (h₁ : f₁.nonempty) (T : set β) :
+  ⋂₀ f₁ ×ˢ T  = ⋂₀ ((×ˢ T) '' f₁) :=
+by rw [←sInter_singleton T, sInter_prod_sInter f₁ {T} h₁ (singleton_nonempty T), sInter_singleton,
+  prod_singleton, ←set.image_comp]
+
+lemma set_prod_sInter (f₂ : set (set β)) (h₂ : f₂.nonempty) (S : set α) :
+  S ×ˢ ⋂₀ f₂ = ⋂₀ ((×ˢ) S '' f₂) :=
+by rw [←sInter_singleton S, sInter_prod_sInter {S} f₂ (singleton_nonempty S) h₂, sInter_singleton,
+  singleton_prod, ←set.image_comp]
 
 end prod
 

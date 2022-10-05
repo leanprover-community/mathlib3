@@ -98,7 +98,7 @@ def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrws c d⟩
 /-- Type synonim for the coercion of a subgroupoid as a groupoid -/
 def coe (S : subgroupoid C) := subtype S.carrier
 
-instance (h : S.carrier.nonempty) : nonempty S.coe := ⟨⟨h.some,h.some_spec⟩⟩
+instance [h : S.carrier.nonempty] : nonempty S.coe := ⟨⟨h.some,h.some_spec⟩⟩
 
 /-- The coercion of a subgroupoid as a groupoid -/
 instance coe_groupoid : groupoid S.coe :=

@@ -81,7 +81,7 @@ measure_preserving_quotient_add_group.mk'
 interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
 protected lemma lintegral_preimage (t : ℝ) {f : add_circle T → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a in Ioc t (t + T), f a = ∫⁻ b : add_circle T, f b :=
-by rw [← lintegral_map hf (add_circle.measurable_mk' T),
+by rw [← lintegral_map hf add_circle.measurable_mk',
   (add_circle.measure_preserving_mk T t).map_eq]
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
@@ -93,7 +93,7 @@ protected lemma integral_preimage (t : ℝ) {f : add_circle T → E}
   ∫ a in Ioc t (t + T), f a = ∫ b : add_circle T, f b :=
 begin
   rw ← (add_circle.measure_preserving_mk T t).map_eq at ⊢ hf,
-  rw integral_map (add_circle.measurable_mk' T).ae_measurable hf,
+  rw integral_map add_circle.measurable_mk'.ae_measurable hf,
 end
 
 open interval_integral

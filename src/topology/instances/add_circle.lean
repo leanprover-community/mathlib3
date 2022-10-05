@@ -116,10 +116,10 @@ end
 
 end linear_ordered_field
 
-variables (p : ℝ) [fact (0 < p)]
+variables (p : ℝ)
 
 /-- The "additive circle" `ℝ ⧸ (ℤ ∙ p)` is compact. -/
-instance compact_space : compact_space $ add_circle p :=
+instance compact_space [fact (0 < p)] : compact_space $ add_circle p :=
 begin
   rw [← is_compact_univ_iff, ← coe_image_Icc_eq p],
   exact is_compact_Icc.image (add_circle.continuous_mk' p),
@@ -135,7 +135,7 @@ instance : properly_discontinuous_vadd (zmultiples p).opposite ℝ :=
 instance : t2_space (add_circle p) := t2_space_of_properly_discontinuous_vadd_of_t2_space
 
 /-- The "additive circle" `ℝ ⧸ (ℤ ∙ p)` is normal. -/
-instance : normal_space (add_circle p) := normal_of_compact_t2
+instance [fact (0 < p)] : normal_space (add_circle p) := normal_of_compact_t2
 
 /-- The "additive circle" `ℝ ⧸ (ℤ ∙ p)` is second-countable. -/
 instance : second_countable_topology (add_circle p) := quotient_add_group.second_countable_topology

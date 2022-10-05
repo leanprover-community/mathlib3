@@ -34,7 +34,7 @@ density theorem.
 
 noncomputable theory
 
-open set filter metric measure_theory
+open set filter metric measure_theory topological_space
 open_locale nnreal topological_space
 
 /-- A measure `μ` is said to be a doubling measure if there exists a constant `C` such that for
@@ -54,11 +54,13 @@ namespace is_doubling_measure
 
 variables {α : Type*} [metric_space α] [measurable_space α] (μ : measure α) [is_doubling_measure μ]
 
-/-- A doubling constant for a doubling measure. -/
+/-- A doubling constant for a doubling measure.
+
+See also `is_doubling_measure.scaling_constant_of`. -/
 def doubling_constant : ℝ≥0 := classical.some $ exists_measure_closed_ball_le_mul μ
 
 lemma exists_measure_closed_ball_le_mul' :
-  ∀ᶠ ε in 𝓝[>] 0, ∀ x, μ (closed_ball x (2 * ε)) ≤ (doubling_constant μ) * μ (closed_ball x ε) :=
+  ∀ᶠ ε in 𝓝[>] 0, ∀ x, μ (closed_ball x (2 * ε)) ≤ doubling_constant μ * μ (closed_ball x ε) :=
 classical.some_spec $ exists_measure_closed_ball_le_mul μ
 
 lemma exists_eventually_forall_measure_closed_ball_le_mul (K : ℝ) :
@@ -90,18 +92,92 @@ begin
     exact real.rpow_le_rpow_of_exponent_le one_le_two (nat.le_ceil (real.logb 2 K)), },
 end
 
-variables [proper_space α] [borel_space α] [is_locally_finite_measure μ]
+/-- A variant of `is_doubling_measure.doubling_constant` which allows for scaling the radius by
+values other than `2`. -/
+def scaling_constant_of (K : ℝ) : ℝ≥0 :=
+max (classical.some $ exists_eventually_forall_measure_closed_ball_le_mul μ K) 1
 
-/-- A Vitali family in space with doubling measure with a covering proportion controlled by `K`. -/
-def vitali_family (K : ℝ) (hK : 6 ≤ K) : vitali_family μ :=
-vitali.vitali_family μ
-  (classical.some (exists_eventually_forall_measure_closed_ball_le_mul μ K)) $ λ x ε hε,
+lemma eventually_measure_mul_le_scaling_constant_of_mul (K : ℝ) :
+  ∃ (R : ℝ), 0 < R ∧ ∀ x t r (ht : t ∈ Ioc 0 K) (hr : r ≤ R),
+    μ (closed_ball x (t * r)) ≤ scaling_constant_of μ K * μ (closed_ball x r) :=
 begin
   have h := classical.some_spec (exists_eventually_forall_measure_closed_ball_le_mul μ K),
-  replace h := forall_eventually_of_eventually_forall (forall_eventually_of_eventually_forall h x),
-  replace h := (eventually_imp_distrib_left.mp (h 6) hK),
-  simpa only [exists_prop] using ((eventually_nhds_within_pos_mem_Ioc hε).and h).exists,
+  rcases mem_nhds_within_Ioi_iff_exists_Ioc_subset.1 h with ⟨R, Rpos, hR⟩,
+  refine ⟨R, Rpos, λ x t r ht hr, _⟩,
+  rcases lt_trichotomy r 0 with rneg|rfl|rpos,
+  { have : t * r < 0, from mul_neg_of_pos_of_neg ht.1 rneg,
+    simp only [closed_ball_eq_empty.2 this, measure_empty, zero_le'] },
+  { simp only [mul_zero, closed_ball_zero],
+    refine le_mul_of_one_le_of_le _ le_rfl,
+    apply ennreal.one_le_coe_iff.2 (le_max_right _ _) },
+  { apply (hR ⟨rpos, hr⟩ x t ht.2).trans _,
+    exact ennreal.mul_le_mul (ennreal.coe_le_coe.2 (le_max_left _ _)) le_rfl }
 end
+
+/-- A scale below which the doubling measure `μ` satisfies good rescaling properties when one
+multiplies the radius of balls by at most `K`, as stated
+in `measure_mul_le_scaling_constant_of_mul`. -/
+def scaling_scale_of (K : ℝ) : ℝ :=
+(eventually_measure_mul_le_scaling_constant_of_mul μ K).some
+
+lemma scaling_scale_of_pos (K : ℝ) : 0 < scaling_scale_of μ K :=
+(eventually_measure_mul_le_scaling_constant_of_mul μ K).some_spec.1
+
+lemma measure_mul_le_scaling_constant_of_mul {K : ℝ} {x : α} {t r : ℝ}
+  (ht : t ∈ Ioc 0 K) (hr : r ≤ scaling_scale_of μ K) :
+  μ (closed_ball x (t * r)) ≤ scaling_constant_of μ K * μ (closed_ball x r) :=
+(eventually_measure_mul_le_scaling_constant_of_mul μ K).some_spec.2 x t r ht hr
+
+variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
+
+/-- A Vitali family in a space with a doubling measure, designed so that the sets at `x` contain
+all `closed_ball y r` when `dist x y ≤ K * r`. -/
+def vitali_family (K : ℝ) : vitali_family μ :=
+begin
+  let R := scaling_scale_of μ (max (4 * K + 3) 3),
+  have Rpos : 0 < R := scaling_scale_of_pos _ _,
+  have A : ∀ (x : α) (ε : ℝ), ε > 0 → ∃ (r : ℝ) (H : r ∈ Ioc 0 ε),
+    μ (closed_ball x (3 * r)) ≤ scaling_constant_of μ (max (4 * K + 3) 3) * μ (closed_ball x r),
+  { assume x ε εpos,
+    refine ⟨min ε R, ⟨lt_min εpos Rpos, min_le_left _ _⟩, _⟩,
+    exact measure_mul_le_scaling_constant_of_mul μ
+      ⟨zero_lt_three, le_max_right _ _⟩ (min_le_right _ _) },
+  exact (vitali.vitali_family μ (scaling_constant_of μ (max (4 * K + 3) 3)) A).enlarge R Rpos,
+end
+
+lemma closed_ball_mem_vitali_family_of_dist_le_mul
+  {K : ℝ} {x y : α} {r : ℝ} (h : dist x y ≤ K * r) (rpos : 0 < r) :
+  closed_ball y r ∈ (vitali_family μ K).sets_at x :=
+begin
+  simp only [vitali_family, vitali_family.enlarge, vitali.vitali_family, mem_union, mem_set_of_eq,
+    is_closed_ball, true_and, (nonempty_ball.2 rpos).mono ball_subset_interior_closed_ball,
+    measurable_set_closed_ball],
+  by_cases H : closed_ball y r ⊆ closed_ball x (scaling_scale_of μ (max (4 * K + 3) 3)),
+  swap, { exact or.inr H },
+  left,
+  rcases le_or_lt r (scaling_scale_of μ (max (4 * K + 3) 3)) with hr|hr,
+  { refine ⟨(K + 1) * r, _⟩,
+    split,
+    { apply closed_ball_subset_closed_ball',
+      rw dist_comm,
+      linarith },
+    { have I1 : closed_ball x (3 * ((K + 1) * r)) ⊆ closed_ball y ((4 * K + 3) * r),
+      { apply closed_ball_subset_closed_ball',
+        linarith },
+      have I2 : closed_ball y ((4 * K + 3) * r) ⊆ closed_ball y ((max (4 * K + 3) 3) * r),
+      { apply closed_ball_subset_closed_ball,
+        exact mul_le_mul_of_nonneg_right (le_max_left _ _) rpos.le },
+      apply (measure_mono (I1.trans I2)).trans,
+      exact measure_mul_le_scaling_constant_of_mul _
+        ⟨zero_lt_three.trans_le (le_max_right _ _), le_rfl⟩ hr } },
+  { refine ⟨scaling_scale_of μ (max (4 * K + 3) 3), H, _⟩,
+    sorry,
+
+  }
+end
+
+
+#exit
 
 /-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centres are
 not required to be fixed.
@@ -121,8 +197,7 @@ begin
     have δpos : ∀ᶠ j in l, 0 < δ j := eventually_mem_of_tendsto_nhds_within δlim,
     replace xmem : ∀ᶠ (j : ι) in l, x ∈ closed_ball (w j) (δ j) := (δpos.and xmem).mono
       (λ j hj, closed_ball_subset_closed_ball (by nlinarith [hj.1, hK.2]) hj.2),
-    apply ((δlim.eventually (classical.some_spec
-      (exists_eventually_forall_measure_closed_ball_le_mul μ 7))).and (xmem.and δpos)).mono,
+    apply ((δlim.eventually (eventually_scaling_constant_of μ 7)).and (xmem.and δpos)).mono,
     rintros j ⟨hjC, hjx, hjδ⟩,
     have hdiam : 3 * diam (closed_ball (w j) (δ j)) ≤ 6 * δ j,
     { linarith [@diam_closed_ball _ _ (w j) _ hjδ.le], },
@@ -131,8 +206,7 @@ begin
     suffices : closed_ball x (6 * δ j) ⊆ closed_ball (w j) (7 * δ j),
     { exact (measure_mono this).trans ((hjC (w j) 7 (by norm_num)).trans $ le_refl _), },
     intros y hy,
-    simp only [mem_closed_ball] at hjx hy ⊢,
-    rw dist_comm at hjx,
+    simp only [mem_closed_ball, dist_comm x (w j)] at hjx hy ⊢,
     linarith [dist_triangle_right y (w j) x], },
   { have δpos := eventually_mem_of_tendsto_nhds_within δlim,
     replace δlim := tendsto_nhds_of_tendsto_nhds_within δlim,

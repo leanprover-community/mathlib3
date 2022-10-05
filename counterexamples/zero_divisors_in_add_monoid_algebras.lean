@@ -152,8 +152,8 @@ meta def boom : tactic unit :=
 `[ repeat { rintro ⟨⟩ }; dec_trivial ]
 
 /--  `val` maps `0 1 : F` to their counterparts in `ℕ`.
-We use it to lift the linear order on `N`. -/
-def val : ∀ a : F, ℕ
+We use it to lift the linear order on `ℕ`. -/
+def val : F → ℕ
 | 0 := 0
 | 1 := 1
 

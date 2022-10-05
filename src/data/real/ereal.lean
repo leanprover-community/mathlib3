@@ -573,6 +573,7 @@ end ereal
 namespace tactic
 open positivity
 
+private lemma ereal_coe_ne_zero {r : ℝ} : r ≠ 0 → (r : ereal) ≠ 0 := ereal.coe_ne_zero.2
 private lemma ereal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ereal) := ereal.coe_nonneg.2
 private lemma ereal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ereal) := ereal.coe_pos.2
 private lemma ereal_coe_ennreal_pos {r : ℝ≥0∞} : 0 < r → 0 < (r : ereal) := ereal.coe_ennreal_pos.2
@@ -586,6 +587,7 @@ meta def positivity_coe_real_ereal : expr → tactic strictness
   match strictness_a with
   | positive p := positive <$> mk_app ``ereal_coe_pos [p]
   | nonnegative p := nonnegative <$> mk_mapp ``ereal_coe_nonneg [a, p]
+  | nonzero p := nonzero <$> mk_mapp ``ereal_coe_ne_zero [a, p]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ereal)` for `r : ℝ`"
@@ -598,7 +600,7 @@ meta def positivity_coe_ennreal_ereal : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``ereal_coe_ennreal_pos [p]
-  | nonnegative _ := nonnegative <$> mk_mapp `ereal.coe_ennreal_nonneg [a]
+  | _ := nonnegative <$> mk_mapp `ereal.coe_ennreal_nonneg [a]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ereal)` for `r : ℝ≥0∞`"

@@ -949,6 +949,7 @@ meta def positivity_floor : expr → tactic strictness
       match strictness_a with
       | positive p := nonnegative <$> mk_app ``int_floor_nonneg_of_pos [p]
       | nonnegative p := nonnegative <$> mk_app ``int_floor_nonneg [p]
+      | _ := failed
       end
 | e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌊a⌋`"
 
@@ -969,6 +970,7 @@ meta def positivity_ceil : expr → tactic strictness
       match strictness_a with
       | positive p := positive <$> mk_app ``int_ceil_pos [p]
       | nonnegative p := nonnegative <$> mk_app ``int.ceil_nonneg [p]
+      | _ := failed
       end
 | e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌈a⌉₊` nor `⌈a⌉`"
 

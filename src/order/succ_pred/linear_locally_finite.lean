@@ -84,61 +84,6 @@ lemma is_lub_mem_of_finite {α : Type*} [linear_order α] (s : set α) {i : α}
 
 variables {ι : Type*}
 
-lemma is_max_iterate_succ_of_eq_of_lt [preorder ι] [succ_order ι] {n m : ℕ} {i : ι}
-  (h_eq : (succ^[n] i) = (succ^[m] i)) (h_lt : n < m) :
-  is_max (succ^[n] i) :=
-begin
-  refine max_of_succ_le _,
-  nth_rewrite 1 h_eq,
-  have : succ (succ^[n] i) = (succ^[n + 1] i), by rw function.iterate_succ',
-  rw this,
-  have h_le : n + 1 ≤ m := nat.succ_le_of_lt h_lt,
-  exact monotone.monotone_iterate_of_le_map succ_mono (le_succ i) h_le,
-end
-
-lemma is_min_iterate_pred_of_eq_of_lt [preorder ι] [pred_order ι] {n m : ℕ} {i : ι}
-  (h_eq : (pred^[n] i) = (pred^[m] i)) (h_lt : n < m) :
-  is_min (pred^[n] i) :=
-@is_max_iterate_succ_of_eq_of_lt (order_dual ι) _ _ _ _ _ h_eq h_lt
-
-lemma is_max_iterate_succ_of_eq_of_ne [preorder ι] [succ_order ι] {n m : ℕ} {i : ι}
-  (h_eq : (succ^[n] i) = (succ^[m] i)) (h_ne : n ≠ m) :
-  is_max (succ^[n] i) :=
-begin
-  cases le_total n m,
-  { exact is_max_iterate_succ_of_eq_of_lt h_eq (lt_of_le_of_ne h h_ne), },
-  { rw h_eq,
-    exact is_max_iterate_succ_of_eq_of_lt h_eq.symm (lt_of_le_of_ne h h_ne.symm), },
-end
-
-lemma is_min_iterate_pred_of_eq_of_ne [preorder ι] [pred_order ι] {n m : ℕ} {i : ι}
-  (h_eq : (pred^[n] i) = (pred^[m] i)) (h_ne : n ≠ m) :
-  is_min (pred^[n] i) :=
-@is_max_iterate_succ_of_eq_of_ne (order_dual ι) _ _ _ _ _ h_eq h_ne
-
-lemma pred_succ_iterate_of_not_is_max [partial_order ι] [succ_order ι] [pred_order ι]
-  (i : ι) (n : ℕ) (hin : ¬ is_max (succ^[n-1] i)) :
-  pred^[n] (succ^[n] i) = i :=
-begin
-  induction n with n hn,
-  { simp only [function.iterate_zero, id.def], },
-  rw [nat.succ_sub_succ_eq_sub, tsub_zero] at hin,
-  have h_not_max : ¬ is_max (succ^[n - 1] i),
-  { cases n,
-    { simpa using hin, },
-    rw [nat.succ_sub_succ_eq_sub, tsub_zero] at hn ⊢,
-    have h_sub_le : (succ^[n] i) ≤ (succ^[n.succ] i),
-    { rw function.iterate_succ',
-      exact le_succ _, },
-    refine λ h_max, hin (λ j hj, _),
-    have hj_le : j ≤ (succ^[n] i) := h_max (h_sub_le.trans hj),
-    exact hj_le.trans h_sub_le, },
-  rw [function.iterate_succ, function.iterate_succ'],
-  simp only [function.comp_app],
-  rw pred_succ_of_not_is_max hin,
-  exact hn h_not_max,
-end
-
 namespace linear_order_succ_pred
 variables [linear_order ι]
 

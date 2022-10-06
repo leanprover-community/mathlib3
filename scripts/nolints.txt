@@ -139,24 +139,6 @@ apply_nolint tactic.interactive.traverse_constructor unused_arguments
 apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
 
--- data/analysis/filter.lean
-apply_nolint cfilter has_nonempty_instance
-apply_nolint cfilter.to_realizer doc_blame
-apply_nolint filter.realizer has_nonempty_instance
-apply_nolint filter.realizer.of_eq doc_blame
-
--- data/analysis/topology.lean
-apply_nolint compact.realizer has_nonempty_instance doc_blame unused_arguments
-apply_nolint ctop has_nonempty_instance
-apply_nolint ctop.realizer has_nonempty_instance
-apply_nolint ctop.realizer.id doc_blame
-apply_nolint ctop.realizer.nhds doc_blame
-apply_nolint ctop.realizer.nhds_F unused_arguments
-apply_nolint ctop.realizer.nhds_σ unused_arguments
-apply_nolint ctop.realizer.of_equiv doc_blame
-apply_nolint ctop.to_realizer doc_blame
-apply_nolint locally_finite.realizer has_nonempty_instance doc_blame
-
 -- data/finset/noncomm_prod.lean
 apply_nolint add_monoid_hom.pi_ext fintype_finite
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
@@ -349,7 +331,6 @@ apply_nolint rbnode.is_bad_red_black doc_blame
 apply_nolint computation.bind.F doc_blame
 apply_nolint computation.bind.G doc_blame
 apply_nolint computation.bisim_o doc_blame
-apply_nolint computation.cases_on doc_blame
 apply_nolint computation.corec.F doc_blame
 apply_nolint computation.is_bisimulation doc_blame
 apply_nolint computation.lift_rel_aux doc_blame
@@ -365,14 +346,12 @@ apply_nolint computation.parallel_rec doc_blame
 
 -- data/seq/seq.lean
 apply_nolint seq.bisim_o doc_blame
-apply_nolint seq.cases_on doc_blame
 apply_nolint seq.corec.F doc_blame
 apply_nolint seq.is_bisimulation doc_blame
 apply_nolint seq.mem doc_blame
 
 -- data/seq/wseq.lean
 apply_nolint wseq.bisim_o doc_blame
-apply_nolint wseq.cases_on doc_blame
 apply_nolint wseq.destruct_append.aux doc_blame
 apply_nolint wseq.destruct_join.aux doc_blame
 apply_nolint wseq.drop.aux doc_blame

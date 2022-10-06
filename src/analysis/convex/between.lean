@@ -5,6 +5,7 @@ Authors: Joseph Myers
 -/
 import analysis.convex.segment
 import linear_algebra.affine_space.finite_dimensional
+import tactic.field_simp
 
 /-!
 # Betweenness in affine spaces
@@ -241,12 +242,22 @@ end
 
 variables {R}
 
-lemma sbtw.left_ne_right {x y z : P} (h : sbtw R x y z) : x ≠ z :=
+lemma wbtw.left_ne_right_of_ne_left {x y z : P} (h : wbtw R x y z) (hne : y ≠ x) : x ≠ z :=
 begin
   rintro rfl,
-  rw [sbtw, wbtw_self_iff] at h,
-  exact h.2.1 h.1
+  rw wbtw_self_iff at h,
+  exact hne h
 end
+
+lemma wbtw.left_ne_right_of_ne_right {x y z : P} (h : wbtw R x y z) (hne : y ≠ z) : x ≠ z :=
+begin
+  rintro rfl,
+  rw wbtw_self_iff at h,
+  exact hne h
+end
+
+lemma sbtw.left_ne_right {x y z : P} (h : sbtw R x y z) : x ≠ z :=
+h.wbtw.left_ne_right_of_ne_left h.2.1
 
 lemma sbtw_iff_mem_image_Ioo_and_ne [no_zero_smul_divisors R V] {x y z : P} :
   sbtw R x y z ↔ y ∈ line_map x z '' (set.Ioo (0 : R) 1) ∧ x ≠ z :=
@@ -368,6 +379,40 @@ h₁.wbtw.trans_sbtw_right h₂
 
 end ordered_ring
 
+section ordered_comm_ring
+
+variables [ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
+
+include V
+
+variables {R}
+
+lemma wbtw.same_ray_vsub {x y z : P} (h : wbtw R x y z) : same_ray R (y -ᵥ x) (z -ᵥ y) :=
+begin
+  rcases h with ⟨t, ⟨ht0, ht1⟩, rfl⟩,
+  simp_rw line_map_apply,
+  rcases ht0.lt_or_eq with ht0' | rfl, swap, { simp },
+  rcases ht1.lt_or_eq with ht1' | rfl, swap, { simp },
+  refine or.inr (or.inr ⟨1 - t, t, sub_pos.2 ht1', ht0', _⟩),
+  simp [vsub_vadd_eq_vsub_sub, smul_sub, smul_smul, ←sub_smul],
+  ring_nf
+end
+
+lemma wbtw.same_ray_vsub_left {x y z : P} (h : wbtw R x y z) : same_ray R (y -ᵥ x) (z -ᵥ x) :=
+begin
+  rcases h with ⟨t, ⟨ht0, ht1⟩, rfl⟩,
+  simpa [line_map_apply] using same_ray_nonneg_smul_left (z -ᵥ x) ht0
+end
+
+lemma wbtw.same_ray_vsub_right {x y z : P} (h : wbtw R x y z) : same_ray R (z -ᵥ x) (z -ᵥ y) :=
+begin
+  rcases h with ⟨t, ⟨ht0, ht1⟩, rfl⟩,
+  simpa [line_map_apply, vsub_vadd_eq_vsub_sub, sub_smul] using
+    same_ray_nonneg_smul_right (z -ᵥ x) (sub_nonneg.2 ht1)
+end
+
+end ordered_comm_ring
+
 section linear_ordered_field
 
 variables [linear_ordered_field R] [add_comm_group V] [module R V] [add_torsor V P]
@@ -474,7 +519,7 @@ end
 lemma collinear.wbtw_or_wbtw_or_wbtw {x y z : P} (h : collinear R ({x, y, z} : set P)) :
   wbtw R x y z ∨ wbtw R y z x ∨ wbtw R z x y :=
 begin
-  rw collinear_iff_of_mem R (set.mem_insert _ _) at h,
+  rw collinear_iff_of_mem (set.mem_insert _ _) at h,
   rcases h with ⟨v, h⟩,
   simp_rw [set.mem_insert_iff, set.mem_singleton_iff] at h,
   have hy := h y (or.inr (or.inl rfl)),
@@ -495,6 +540,24 @@ begin
     { nth_rewrite 1 wbtw_comm,
       rw ←or_assoc,
       exact or.inl (wbtw_or_wbtw_smul_vadd_of_nonneg _ _ hy0.le hz0.le) } }
+end
+
+lemma wbtw_iff_same_ray_vsub {x y z : P} : wbtw R x y z ↔ same_ray R (y -ᵥ x) (z -ᵥ y) :=
+begin
+  refine ⟨wbtw.same_ray_vsub, λ h, _⟩,
+  rcases h with h | h | ⟨r₁, r₂, hr₁, hr₂, h⟩,
+  { rw vsub_eq_zero_iff_eq at h, simp [h] },
+  { rw vsub_eq_zero_iff_eq at h, simp [h] },
+  { refine ⟨r₂ / (r₁ + r₂),
+            ⟨div_nonneg hr₂.le (add_nonneg hr₁.le hr₂.le),
+             div_le_one_of_le (le_add_of_nonneg_left hr₁.le) (add_nonneg hr₁.le hr₂.le)⟩, _⟩,
+    have h' : z = r₂⁻¹ • r₁ • (y -ᵥ x) +ᵥ y, { simp [h, hr₂.ne'] },
+    rw eq_comm,
+    simp only [line_map_apply, h', vadd_vsub_assoc, smul_smul, ←add_smul, eq_vadd_iff_vsub_eq,
+               smul_add],
+    convert (one_smul _ _).symm,
+    field_simp [(add_pos hr₁ hr₂).ne', hr₂.ne'],
+    ring }
 end
 
 end linear_ordered_field

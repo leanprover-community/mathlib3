@@ -62,7 +62,7 @@ def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
   { induction g with _ _ g' p ih _ _ _,
     { rw category.comp_id, refl, },
     { have : f ≫ g'.cons p = (f ≫ g').cons p, by apply quiver.path.comp_cons,
-      rw this, simp only, rw [ih, category.assoc], }} }
+      rw this, simp only, rw [ih, category.assoc], } } }
 
 @[simp] lemma lift_nil {C} [category C] (φ : prefunctor V C) (X : V) :
   (lift φ).map (quiver.path.nil) = 𝟙 (φ.obj X) := rfl
@@ -97,7 +97,7 @@ begin
     { simp only [category.comp_id, category.id_comp] at ih ⊢,
       have : Φ.map (p.cons f') = Φ.map p ≫ (Φ.map (f'.to_path)), by
       { convert functor.map_comp Φ p (f'.to_path), },
-      rw [this,ih], }, },
+      rw [this, ih], }, },
 end
 
 /-- Two functors out of a path category are equal when they agree on singleton paths. -/

@@ -57,15 +57,23 @@ begin
   linarith,
 end
 
+variables {e f}
+
 /-- Two orthonormal bases with the same orientation determine the same "determinant" top-dimensional
-form on `E`. -/
-lemma det_eq_det_of_same_orientation
-  (h : e.to_basis.orientation = f.to_basis.orientation) :
-  e.to_basis.det = f.to_basis.det :=
+form on `E`, and conversely. -/
+lemma same_orientation_iff_det_eq_det :
+  e.to_basis.det = f.to_basis.det ↔ e.to_basis.orientation = f.to_basis.orientation :=
 begin
-  rw e.to_basis.det.eq_smul_basis_det f.to_basis,
-  simp [e.det_to_matrix_orthonormal_basis_of_same_orientation f h],
+  split,
+  { intros h,
+    dsimp [basis.orientation],
+    congr' },
+  { intros h,
+    rw e.to_basis.det.eq_smul_basis_det f.to_basis,
+    simp [e.det_to_matrix_orthonormal_basis_of_same_orientation f h], },
 end
+
+variables (e)
 
 section adjust_to_orientation
 include ne
@@ -119,6 +127,8 @@ end orthonormal_basis
 namespace orientation
 variables {n : ℕ}
 
+open orthonormal_basis
+
 /-- An orthonormal basis, indexed by `fin n`, with the given orientation. -/
 protected def fin_orthonormal_basis (hn : 0 < n) (h : finrank ℝ E = n)
   (x : orientation ℝ E (fin n)) : orthonormal_basis (fin n) ℝ E :=
@@ -155,9 +165,8 @@ lemma volume_form_robust (b : orthonormal_basis (fin n.succ) ℝ E)
   (hb : b.to_basis.orientation = ω) :
   ω.volume_form = b.to_basis.det :=
 begin
-  let e : orthonormal_basis (fin n.succ) ℝ E := ω.fin_orthonormal_basis n.succ_pos (fact.out _),
-  apply e.det_eq_det_of_same_orientation b,
-  rw hb,
+  dsimp [volume_form] at *,
+  rw [same_orientation_iff_det_eq_det, hb],
   exact ω.fin_orthonormal_basis_orientation _ _,
 end
 

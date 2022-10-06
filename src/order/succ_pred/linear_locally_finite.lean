@@ -65,7 +65,7 @@ end
 lemma is_lub_mem_finset {α : Type*} [linear_order α] (s : finset α) {i : α}
   (his : is_lub (s : set α) i) (hs : s.nonempty) :
   i ∈ s :=
-@is_glb_mem_finset (order_dual α) _ s i his hs
+@is_glb_mem_finset αᵒᵈ _ s i his hs
 
 lemma is_glb_mem_of_finite {α : Type*} [linear_order α] (s : set α) {i : α}
   (his : is_glb s i) (hs : s.nonempty) (hs_fin : s.finite) :
@@ -80,7 +80,7 @@ end
 lemma is_lub_mem_of_finite {α : Type*} [linear_order α] (s : set α) {i : α}
   (his : is_lub s i) (hs : s.nonempty) (hs_fin : s.finite) :
   i ∈ s :=
-@is_glb_mem_of_finite (order_dual α) _ s i his hs hs_fin
+@is_glb_mem_of_finite αᵒᵈ _ s i his hs hs_fin
 
 variables {ι : Type*}
 
@@ -144,13 +144,13 @@ begin
 end
 
 lemma is_min_of_le_pred_fn [locally_finite_order ι] (i : ι) (hi : i ≤ pred_fn i) : is_min i :=
-@is_max_of_succ_fn_le (order_dual ι) _ _ i hi
+@is_max_of_succ_fn_le ιᵒᵈ _ _ i hi
 
 lemma succ_fn_le_of_lt (i j : ι) (hij : i < j) : succ_fn i ≤ j :=
 by { have h := succ_fn_spec i, rw [is_glb, is_greatest, mem_lower_bounds] at h, exact h.1 j hij, }
 
 lemma le_pred_fn_of_lt (j i : ι) (hij : j < i) : j ≤ pred_fn i :=
-@succ_fn_le_of_lt (order_dual ι) _ i j hij
+@succ_fn_le_of_lt ιᵒᵈ _ i j hij
 
 lemma le_of_lt_succ_fn (j i : ι) (hij : j < succ_fn i) : j ≤ i :=
 begin
@@ -161,7 +161,7 @@ begin
 end
 
 lemma le_of_pred_fn_lt (i j : ι) (hij : pred_fn i < j) : i ≤ j :=
-@le_of_lt_succ_fn (order_dual ι) _ j i hij
+@le_of_lt_succ_fn ιᵒᵈ _ j i hij
 
 @[priority 100]
 noncomputable

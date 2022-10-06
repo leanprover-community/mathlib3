@@ -912,7 +912,7 @@ begin
   ext x,
   cases lt_or_le x b with hba hba,
   { simp [hba, h₁] },
-  { simp only [mem_Iio, mem_union_eq, mem_Ioo, lt_max_iff],
+  { simp only [mem_Iio, mem_union, mem_Ioo, lt_max_iff],
     refine or_congr iff.rfl ⟨and.right, _⟩,
     exact λ h₂, ⟨h₁.trans_le hba, h₂⟩ },
 end

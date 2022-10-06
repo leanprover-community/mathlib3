@@ -340,13 +340,15 @@ omit module_M₃
 
 @[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
 
-@[simp] lemma self_trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
-  f.trans f.symm = linear_equiv.refl R M :=
+include re₁₂ re₂₁ module_M₁ module_M₂
+@[simp] lemma self_trans_symm (f : M₁ ≃ₛₗ[σ₁₂] M₂) :
+  f.trans f.symm = linear_equiv.refl R₁ M₁ :=
 by { ext x, simp }
 
-@[simp] lemma symm_trans_self [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
-  f.symm.trans f = linear_equiv.refl R M₂ :=
+@[simp] lemma symm_trans_self (f : M₁ ≃ₛₗ[σ₁₂] M₂) :
+  f.symm.trans f = linear_equiv.refl R₂ M₂ :=
 by { ext x, simp }
+omit re₁₂ re₂₁ module_M₁ module_M₂
 
 @[simp, norm_cast] lemma refl_to_linear_map [module R M] :
   (linear_equiv.refl R M : M →ₗ[R] M) = linear_map.id :=

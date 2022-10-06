@@ -48,6 +48,8 @@ namespace upper_half_plane
 
 instance : inhabited ℍ := ⟨⟨complex.I, by simp⟩⟩
 
+instance can_lift : can_lift ℂ ℍ coe (λ z, 0 < z.im) := subtype.can_lift (λ z, 0 < z.im)
+
 /-- Imaginary part -/
 def im (z : ℍ) := (z : ℂ).im
 
@@ -266,5 +268,35 @@ lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = (↑g : matrix (fin 2
   (↑g : matrix (fin 2) (fin 2) ℤ) 1 1 := by simp
 
 end SL_modular_action
+
+section pos_real_action
+
+instance pos_real_action : mul_action {x : ℝ // 0 < x} ℍ :=
+{ smul := λ x z, mk ((x : ℝ) • z) $ by simpa using mul_pos x.2 z.2,
+  one_smul := λ z, subtype.ext $ one_smul _ _,
+  mul_smul := λ x y z, subtype.ext $ mul_smul (x : ℝ) y (z : ℂ) }
+
+variables (x : {x : ℝ // 0 < x}) (z : ℍ)
+
+@[simp] lemma coe_pos_real_smul : ↑(x • z) = (x : ℝ) • (z : ℂ) := rfl
+@[simp] lemma pos_real_im : (x • z).im = x * z.im := complex.smul_im _ _
+@[simp] lemma pos_real_re : (x • z).re = x * z.re := complex.smul_re _ _
+
+end pos_real_action
+
+section real_add_action
+
+instance : add_action ℝ ℍ :=
+{ vadd := λ x z, mk (x + z) $ by simpa using z.im_pos,
+  zero_vadd := λ z, subtype.ext $ by simp,
+  add_vadd := λ x y z, subtype.ext $ by simp [add_assoc] }
+
+variables (x : ℝ) (z : ℍ)
+
+@[simp] lemma coe_vadd : ↑(x +ᵥ z) = (x + z : ℂ) := rfl
+@[simp] lemma vadd_re : (x +ᵥ z).re = x + z.re := rfl
+@[simp] lemma vadd_im : (x +ᵥ z).im = z.im := zero_add _
+
+end real_add_action
 
 end upper_half_plane

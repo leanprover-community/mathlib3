@@ -119,6 +119,9 @@ attribute [mono] neg_subset_neg
 
 @[simp, to_additive] lemma inv_singleton (a : α) : ({a} : finset α)⁻¹ = {a⁻¹} := image_singleton _ _
 
+@[simp, to_additive]
+lemma inv_insert (a : α) (s : finset α) : (insert a s)⁻¹ = insert a⁻¹ s⁻¹ := image_insert _ _ _
+
 end has_inv
 
 open_locale pointwise
@@ -1012,7 +1015,7 @@ lemma zero_smul_finset_subset (s : finset β) : (0 : α) • s ⊆ 0 :=
 image_subset_iff.2 $ λ x _, mem_zero.2 $ zero_smul α x
 
 lemma zero_mem_smul_finset {t : finset β} {a : α} (h : (0 : β) ∈ t) : (0 : β) ∈ a • t :=
-mem_smul_finset.2 ⟨0, h, smul_zero' _ _⟩
+mem_smul_finset.2 ⟨0, h, smul_zero _⟩
 
 variables [no_zero_smul_divisors α β] {a : α}
 

@@ -548,7 +548,7 @@ instance [non_unital_non_assoc_semiring R] : distrib (hahn_series Γ R) :=
       mul_coeff_right' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, mul_add, sum_add_distrib] },
     { intro b,
-      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq, mem_support],
+      simp only [add_coeff, ne.def, set.mem_union, set.mem_set_of_eq, mem_support],
       contrapose!,
       intro h,
       rw [h.1, h.2, add_zero], }
@@ -560,7 +560,7 @@ instance [non_unital_non_assoc_semiring R] : distrib (hahn_series Γ R) :=
       mul_coeff_left' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, add_mul, sum_add_distrib] },
     { intro b,
-      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq, mem_support],
+      simp only [add_coeff, ne.def, set.mem_union, set.mem_set_of_eq, mem_support],
       contrapose!,
       intro h,
       rw [h.1, h.2, add_zero], },

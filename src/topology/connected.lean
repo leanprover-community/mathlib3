@@ -683,10 +683,9 @@ set.disjoint_left.2 (λ a h1 h2, h
 
 theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
-closure_eq_iff_is_closed.1 $ subset.antisymm
-  (is_connected_connected_component.closure.subset_connected_component
-    (subset_closure mem_connected_component))
-  subset_closure
+closure_subset_iff_is_closed.1 $
+  is_connected_connected_component.closure.subset_connected_component $
+    subset_closure mem_connected_component
 
 lemma continuous.image_connected_component_subset [topological_space β] {f : α → β}
   (h : continuous f) (a : α) : f '' connected_component a ⊆ connected_component (f a) :=
@@ -810,9 +809,9 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
-lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
-  (h : s.nonempty) (h' : is_clopen s) : s = univ :=
-by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
+lemma is_clopen.eq_univ [preconnected_space α] {s : set α} (h' : is_clopen s) (h : s.nonempty) :
+  s = univ :=
+(is_clopen_iff.mp h').resolve_left h.ne_empty
 
 lemma frontier_eq_empty_iff [preconnected_space α] {s : set α} :
   frontier s = ∅ ↔ s = ∅ ∨ s = univ :=

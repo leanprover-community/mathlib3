@@ -52,17 +52,17 @@ theorem l_series_summable_of_bounded_of_one_lt_real {f : arithmetic_function ℂ
 begin
   by_cases h0 : m = 0,
   { subst h0,
-    have hf : f = 0 := arithmetic_function.ext (λ n, complex.abs_eq_zero.1
-        (le_antisymm (h n) (complex.abs_nonneg _))),
+    have hf : f = 0 := arithmetic_function.ext (λ n, complex.abs.eq_zero.1
+        (le_antisymm (h n) (complex.abs.nonneg _))),
     simp [hf] },
   refine summable_of_norm_bounded (λ (n : ℕ), m / (n ^ z)) _ _,
   { simp_rw [div_eq_mul_inv],
     exact (summable_mul_left_iff h0).1 (real.summable_nat_rpow_inv.2 hz) },
   { intro n,
-    have hm : 0 ≤ m := le_trans (complex.abs_nonneg _) (h 0),
+    have hm : 0 ≤ m := le_trans (complex.abs.nonneg _) (h 0),
     cases n,
     { simp [hm, real.zero_rpow (ne_of_gt (lt_trans real.zero_lt_one hz))] },
-    simp only [complex.abs_div, complex.norm_eq_abs],
+    simp only [map_div₀, complex.norm_eq_abs],
     apply div_le_div hm (h _) (real.rpow_pos_of_pos (nat.cast_pos.2 n.succ_pos) _) (le_of_eq _),
     rw [complex.abs_cpow_real, complex.abs_cast_nat] }
 end
@@ -109,10 +109,11 @@ begin
     ext n,
     simp [n.succ_ne_zero] },
   { apply congr rfl,
-    ext n,
-    cases n, { simp [h0] },
-    simp only [n.succ_ne_zero, one_div, cast_one, nat_coe_apply, complex.abs_cpow_real, inv_inj,
-      complex.abs_inv, if_false, zeta_apply, complex.norm_eq_abs, complex.abs_of_nat] }
+    ext ⟨-|n⟩,
+    { simp [h0] },
+    simp only [cast_zero, nat_coe_apply, zeta_apply, succ_ne_zero, if_false, cast_succ, one_div,
+               complex.norm_eq_abs, map_inv₀, complex.abs_cpow_real, inv_inj, zero_add],
+    rw [←cast_one, ←cast_add, complex.abs_of_nat, cast_add, cast_one] }
 end
 
 @[simp] theorem l_series_add {f g : arithmetic_function ℂ} {z : ℂ}

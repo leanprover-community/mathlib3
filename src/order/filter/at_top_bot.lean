@@ -164,6 +164,10 @@ lemma tendsto.eventually_ne_at_top [preorder β] [no_max_order β] {f : α → �
   (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, f x ≠ c :=
 hf.eventually (eventually_ne_at_top c)
 
+lemma tendsto.eventually_ne_at_top' [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : α) : ∀ᶠ x in l, x ≠ c :=
+(hf.eventually_ne_at_top (f c)).mono $ λ x, ne_of_apply_ne f
+
 lemma eventually_lt_at_bot [preorder α] [no_min_order α] (a : α) :
   ∀ᶠ x in at_bot, x < a :=
 Iio_mem_at_bot a
@@ -1650,7 +1654,7 @@ begin
   have hms_freq : ∀ (n : ℕ), x (y (ms n)) ∉ s, from λ n, hy_freq (ms n),
   have h_empty : (λ (n : ℕ), x (y (ms n))) ⁻¹' s = ∅,
   { ext1 n,
-    simp only [set.mem_preimage, set.mem_empty_eq, iff_false],
+    simp only [set.mem_preimage, set.mem_empty_iff_false, iff_false],
     exact hms_freq n, },
   rw h_empty at hms_tendsto,
   exact empty_not_mem at_top hms_tendsto,

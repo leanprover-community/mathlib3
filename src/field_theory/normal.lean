@@ -96,12 +96,11 @@ lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.
 ⟨ϕ.to_ring_hom.injective, λ x, by
 { letI : algebra E K := ϕ.to_ring_hom.to_algebra,
   obtain ⟨h1, h2⟩ := h.out (algebra_map K E x),
-  cases minpoly.mem_range_of_degree_eq_one E x (or.resolve_left h2 (minpoly.ne_zero h1)
+  cases minpoly.mem_range_of_degree_eq_one E x (h2.def.resolve_left (minpoly.ne_zero h1)
     (minpoly.irreducible (is_integral_of_is_scalar_tower x
       ((is_integral_algebra_map_iff (algebra_map K E).injective).mp h1)))
     (minpoly.dvd E x ((algebra_map K E).injective (by
-    { rw [ring_hom.map_zero, aeval_map, ←is_scalar_tower.to_alg_hom_apply F K E,
-          ←alg_hom.comp_apply, ←aeval_alg_hom],
+    { rw [ring_hom.map_zero, aeval_map_algebra_map, ← aeval_algebra_map_apply],
       exact minpoly.aeval F (algebra_map K E x) })))) with y hy,
   exact ⟨y, hy⟩ }⟩
 
@@ -246,11 +245,11 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
     rintros x ⟨y, ⟨z, hy⟩, hx⟩,
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
-    exact or.resolve_left (h.splits z) (minpoly.ne_zero (h.is_integral z))
+    exact or.resolve_left (h.splits z).def (minpoly.ne_zero (h.is_integral z))
       (minpoly.irreducible $ is_integral_of_is_scalar_tower _ $
         is_integral_alg_hom ϕ $ is_integral_alg_hom _ $ h.is_integral z)
-      (minpoly.dvd E _ $ by rw [aeval_map, aeval_alg_hom, aeval_alg_hom, alg_hom.comp_apply,
-        alg_hom.comp_apply, minpoly.aeval, alg_hom.map_zero, alg_hom.map_zero]) }⟩,
+      (minpoly.dvd E _ $ by rw [aeval_map_algebra_map, aeval_alg_hom_apply, aeval_alg_hom_apply,
+        minpoly.aeval, alg_hom.map_zero, alg_hom.map_zero]) }⟩,
   map_zero' := subtype.ext ϕ.map_zero,
   map_one' := subtype.ext ϕ.map_one,
   map_add' := λ x y, subtype.ext (ϕ.map_add x y),

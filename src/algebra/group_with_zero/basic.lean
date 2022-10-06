@@ -843,6 +843,12 @@ classical.by_cases
   (assume ha, ha)
   (assume ha, ((one_div_ne_zero ha) h).elim)
 
+lemma mul_left_surjective₀ {a : G₀} (h : a ≠ 0) : surjective (λ g, a * g) :=
+λ g, ⟨a⁻¹ * g, by simp [← mul_assoc, mul_inv_cancel h]⟩
+
+lemma mul_right_surjective₀ {a : G₀} (h : a ≠ 0) : surjective (λ g, g * a) :=
+λ g, ⟨g * a⁻¹, by simp [mul_assoc, inv_mul_cancel h]⟩
+
 end group_with_zero
 
 section comm_group_with_zero -- comm
@@ -904,6 +910,9 @@ lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b := ha.is_unit.div_div_can
 
 lemma div_helper (b : G₀) (h : a ≠ 0) : 1 / (a * b) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]
+
+lemma div_mul_eq_mul_div₀ (a b c : G₀) : (a / c) * b = a * b / c :=
+by simp_rw [div_eq_mul_inv, mul_assoc, mul_comm c⁻¹]
 
 end comm_group_with_zero
 

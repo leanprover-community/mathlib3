@@ -67,7 +67,7 @@ instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
 /- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
 @[simp] lemma val_eq_coe (n : ℝ≥0) : n.val = n := rfl
 
-instance : can_lift ℝ ℝ≥0 := subtype.can_lift _
+instance can_lift : can_lift ℝ ℝ≥0 coe (λ r, 0 ≤ r) := subtype.can_lift _
 
 protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
 
@@ -852,7 +852,7 @@ meta def positivity_coe_nnreal_real : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
-  | nonnegative _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
+  | _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ℝ)` for `r : ℝ≥0`"

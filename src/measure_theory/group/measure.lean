@@ -159,8 +159,12 @@ lemma map_div_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G)
   map (/ g) μ = μ :=
 by simp_rw [div_eq_mul_inv, map_mul_right_eq_self μ g⁻¹]
 
-
 variables [has_measurable_mul G]
+
+@[to_additive]
+lemma measure_preserving_div_right (μ : measure G) [is_mul_right_invariant μ]
+  (g : G) : measure_preserving (/ g) μ μ :=
+by simp_rw [div_eq_mul_inv, measure_preserving_mul_right μ g⁻¹]
 
 /-- We shorten this from `measure_preimage_mul_left`, since left invariant is the preferred option
   for measures in this formalization. -/

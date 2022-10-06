@@ -630,6 +630,31 @@ lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
 by simpa only [disjoint_iff] using filter.disjoint_iff
 
+lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
+  {l : ι → filter α} (hd : pairwise (disjoint on l)) :
+  ∃ s : ι → set α, (∀ i, s i ∈ l i) ∧ pairwise (disjoint on s) :=
+begin
+  simp only [pairwise, function.on_fun, filter.disjoint_iff, subtype.exists'] at hd,
+  choose! s t hst using hd,
+  refine ⟨λ i, ⋂ j, s i j ∩ t j i, λ i, _, λ i j hij, _⟩,
+  exacts [Inter_mem.2 (λ j, inter_mem (s i j).2 (t j i).2),
+    (hst i j hij).mono ((Inter_subset _ j).trans (inter_subset_left _ _))
+      ((Inter_subset _ i).trans (inter_subset_right _ _))]
+end
+
+lemma _root_.set.pairwise_disjoint.exists_mem_filter {ι : Type*} {l : ι → filter α} {t : set ι}
+  (hd : t.pairwise_disjoint l) (ht : t.finite) :
+  ∃ s : ι → set α, (∀ i, s i ∈ l i) ∧ t.pairwise_disjoint s :=
+begin
+  casesI ht,
+  obtain ⟨s, hd⟩ : ∃ s : Π i : t, {s : set α // s ∈ l i}, pairwise (disjoint on λ i, (s i : set α)),
+  { rcases (hd.subtype _ _).exists_mem_filter_of_disjoint with ⟨s, hsl, hsd⟩,
+    exact ⟨λ i, ⟨s i, hsl i⟩, hsd⟩ },
+  -- TODO: Lean fails to find `can_lift` instance and fails to use an instance supplied by `letI`
+  rcases @subtype.exists_pi_extension ι (λ i, {s // s ∈ l i}) _ _ s with ⟨s, rfl⟩,
+  exact ⟨λ i, s i, λ i, (s i).2, pairwise.set_of_subtype _ _ hd⟩
+end
+
 /-- There is exactly one filter on an empty type. --/
 instance unique [is_empty α] : unique (filter α) :=
 { default := ⊥, uniq := filter_eq_bot_of_is_empty }
@@ -943,6 +968,10 @@ lemma eventually_true (f : filter α) : ∀ᶠ x in f, true := univ_mem
 lemma eventually_of_forall {p : α → Prop} {f : filter α} (hp : ∀ x, p x) :
   ∀ᶠ x in f, p x :=
 univ_mem' hp
+
+lemma forall_eventually_of_eventually_forall {f : filter α} {p : α → β → Prop}
+  (h : ∀ᶠ x in f, ∀ y, p x y) : ∀ y, ∀ᶠ x in f, p x y :=
+by { intros y, filter_upwards [h], tauto, }
 
 @[simp] lemma eventually_false_iff_eq_bot {f : filter α} :
   (∀ᶠ x in f, false) ↔ f = ⊥ :=
@@ -1799,10 +1828,9 @@ end
 lemma map_comap_of_mem {f : filter β} {m : α → β} (hf : range m ∈ f) : (f.comap m).map m = f :=
 by rw [map_comap, inf_eq_left.2 (le_principal_iff.2 hf)]
 
-instance [can_lift α β] : can_lift (filter α) (filter β) :=
-{ coe := map can_lift.coe,
-  cond := λ f, ∀ᶠ x : α in f, can_lift.cond β x,
-  prf := λ f hf, ⟨comap can_lift.coe f, map_comap_of_mem $ hf.mono can_lift.prf⟩ }
+instance can_lift (c) (p) [can_lift α β c p] :
+  can_lift (filter α) (filter β) (map c) (λ f, ∀ᶠ x : α in f, p x) :=
+{ prf := λ f hf, ⟨comap c f, map_comap_of_mem $ hf.mono can_lift.prf⟩ }
 
 lemma comap_le_comap_iff {f g : filter β} {m : α → β} (hf : range m ∈ f) :
   comap m f ≤ comap m g ↔ f ≤ g :=

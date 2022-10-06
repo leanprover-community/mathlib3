@@ -384,7 +384,7 @@ lemma filter.tendsto.uniformity_trans {l : filter β} {f₁ f₂ f₃ : β → �
   (h₁₂ : tendsto (λ x, (f₁ x, f₂ x)) l (𝓤 α)) (h₂₃ : tendsto (λ x, (f₂ x, f₃ x)) l (𝓤 α)) :
   tendsto (λ x, (f₁ x, f₃ x)) l (𝓤 α) :=
 begin
-  refine le_trans (le_lift' $ λ s hs, mem_map.2 _) comp_le_uniformity,
+  refine le_trans (le_lift'.2 $ λ s hs, mem_map.2 _) comp_le_uniformity,
   filter_upwards [h₁₂ hs, h₂₃ hs] with x hx₁₂ hx₂₃ using ⟨_, hx₁₂, hx₂₃⟩,
 end
 

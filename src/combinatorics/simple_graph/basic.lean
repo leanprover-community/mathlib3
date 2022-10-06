@@ -924,7 +924,7 @@ end
 lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.degree v :=
 begin
   obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
-  have := finset.min_le_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  have := finset.min_le_of_eq (mem_image_of_mem _ (mem_univ v)) ht,
   rwa [min_degree, ht]
 end
 
@@ -966,7 +966,7 @@ end
 lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_degree :=
 begin
   obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
-  have := finset.le_max_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  have := finset.le_max_of_eq (mem_image_of_mem _ (mem_univ v)) ht,
   rwa [max_degree, ht],
 end
 

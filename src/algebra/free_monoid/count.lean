@@ -8,6 +8,12 @@ import data.list.count
 
 /-!
 # `list.count` as a bundled homomorphism
+
+In this file we define `free_monoid.countp`, `free_monoid.count`, `free_add_monoid.countp`, and
+`free_add_monoid.count`. These are `list.countp` and `list.count` bundled as multiplicative and
+additive homomorphisms from `free_monoid` and `free_add_monoid`.
+
+We do not use `to_additive` because it can't map `multiplicative ℕ` to `ℕ`.
 -/
 
 variables {α : Type*} (p : α → Prop) [decidable_pred p]

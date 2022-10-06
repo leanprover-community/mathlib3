@@ -14,9 +14,9 @@ A doubling measure `μ` on a metric space is a measure for which there exists a 
 that for all sufficiently small radii `ε`, and for any centre, the measure of a ball of radius
 `2 * ε` is bounded by `C` times the measure of the concentric ball of radius `ε`.
 
-Lebesgue's density theorem states that given a set `S` in a proper metric space with locally-finite
-doubling measure `μ` then for almost all points `x` in `S`, for any sequence of closed balls
-`B₀, B₁, B₂, ...` containing `x`, the limit `μ (S ∩ Bⱼ) / μ (Bⱼ) → 1` as `j → ∞`.
+Lebesgue's density theorem states that given a set `S` in a sigma compact metric space with
+locally-finite doubling measure `μ` then for almost all points `x` in `S`, for any sequence of
+closed balls `B₀, B₁, B₂, ...` containing `x`, the limit `μ (S ∩ Bⱼ) / μ (Bⱼ) → 1` as `j → ∞`.
 
 In this file we combine general results about existence of Vitali families for doubling measures
 with results about differentiation along a Vitali family to obtain an explicit form of Lebesgue's
@@ -29,13 +29,14 @@ density theorem.
   in the definition of a doubling measure.
   * `is_doubling_measure.ae_tendsto_measure_inter_div`: a version of Lebesgue's density theorem for
   sequences of balls converging on a point but whose centres are not required to be fixed.
-
 -/
 
 noncomputable theory
 
 open set filter metric measure_theory topological_space
 open_locale nnreal topological_space
+
+local attribute [instance] emetric.second_countable_of_sigma_compact
 
 /-- A measure `μ` is said to be a doubling measure if there exists a constant `C` such that for
 all sufficiently small radii `ε`, and for any centre, the measure of a ball of radius `2 * ε` is
@@ -128,12 +129,16 @@ lemma measure_mul_le_scaling_constant_of_mul {K : ℝ} {x : α} {t r : ℝ}
   μ (closed_ball x (t * r)) ≤ scaling_constant_of μ K * μ (closed_ball x r) :=
 (eventually_measure_mul_le_scaling_constant_of_mul μ K).some_spec.2 x t r ht hr
 
+section
 variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
 
 /-- A Vitali family in a space with a doubling measure, designed so that the sets at `x` contain
 all `closed_ball y r` when `dist x y ≤ K * r`. -/
-def vitali_family (K : ℝ) : vitali_family μ :=
+@[irreducible] def vitali_family (K : ℝ) : vitali_family μ :=
 begin
+  /- the Vitali covering theorem gives a family that works well at small scales, thanks to the
+  doubling property. We enlarge this family to add large sets, to make sure that all balls and not
+  only small ones belong to the family, for convenience. -/
   let R := scaling_scale_of μ (max (4 * K + 3) 3),
   have Rpos : 0 < R := scaling_scale_of_pos _ _,
   have A : ∀ (x : α) (ε : ℝ), ε > 0 → ∃ (r : ℝ) (H : r ∈ Ioc 0 ε),
@@ -142,20 +147,30 @@ begin
     refine ⟨min ε R, ⟨lt_min εpos Rpos, min_le_left _ _⟩, _⟩,
     exact measure_mul_le_scaling_constant_of_mul μ
       ⟨zero_lt_three, le_max_right _ _⟩ (min_le_right _ _) },
-  exact (vitali.vitali_family μ (scaling_constant_of μ (max (4 * K + 3) 3)) A).enlarge R Rpos,
+  exact (vitali.vitali_family μ (scaling_constant_of μ (max (4 * K + 3) 3)) A).enlarge
+    (R / 4) (by linarith),
 end
 
+/-- In the Vitali family `is_doubling_measure.vitali_family K`, the sets based at `x` contain all
+balls `closed_ball y r` when `dist x y ≤ K * r`. -/
 lemma closed_ball_mem_vitali_family_of_dist_le_mul
   {K : ℝ} {x y : α} {r : ℝ} (h : dist x y ≤ K * r) (rpos : 0 < r) :
   closed_ball y r ∈ (vitali_family μ K).sets_at x :=
 begin
+  let R := scaling_scale_of μ (max (4 * K + 3) 3),
   simp only [vitali_family, vitali_family.enlarge, vitali.vitali_family, mem_union, mem_set_of_eq,
     is_closed_ball, true_and, (nonempty_ball.2 rpos).mono ball_subset_interior_closed_ball,
     measurable_set_closed_ball],
-  by_cases H : closed_ball y r ⊆ closed_ball x (scaling_scale_of μ (max (4 * K + 3) 3)),
+  /- The measure is doubling on scales smaller than `R`. Therefore, we treat differently small
+  and large balls. For large balls, this follows directly from the enlargement we used in the
+  definition. -/
+  by_cases H : closed_ball y r ⊆ closed_ball x (R / 4),
   swap, { exact or.inr H },
   left,
-  rcases le_or_lt r (scaling_scale_of μ (max (4 * K + 3) 3)) with hr|hr,
+  /- For small balls, there is the difficulty that `r` could be large but still the ball could be
+  small, if the annulus `{y | ε ≤ dist y x ≤ R/4}` is empty. We split between the cases `r ≤ R`
+  and `r < R`, and use the doubling for the former and rough estimates for the latter. -/
+  rcases le_or_lt r R with hr|hr,
   { refine ⟨(K + 1) * r, _⟩,
     split,
     { apply closed_ball_subset_closed_ball',
@@ -170,53 +185,56 @@ begin
       apply (measure_mono (I1.trans I2)).trans,
       exact measure_mul_le_scaling_constant_of_mul _
         ⟨zero_lt_three.trans_le (le_max_right _ _), le_rfl⟩ hr } },
-  { refine ⟨scaling_scale_of μ (max (4 * K + 3) 3), H, _⟩,
-    sorry,
-
-  }
+  { refine ⟨R / 4, H, _⟩,
+    have : closed_ball x (3 * (R / 4)) ⊆ closed_ball y r,
+    { apply closed_ball_subset_closed_ball',
+      have A : y ∈ closed_ball y r, from mem_closed_ball_self rpos.le,
+      have B := mem_closed_ball'.1 (H A),
+      linarith },
+    apply (measure_mono this).trans _,
+    refine le_mul_of_one_le_left (zero_le _) _,
+    exact ennreal.one_le_coe_iff.2 (le_max_right _ _) }
 end
 
-
-#exit
-
-/-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centres are
-not required to be fixed.
-
-See also `besicovitch.ae_tendsto_measure_inter_div`. -/
-lemma ae_tendsto_measure_inter_div (S : set α) (K : ℝ) (hK : K ∈ unit_interval) :
-  ∀ᵐ x ∂μ.restrict S, ∀ {ι : Type*} {l : filter ι} (w : ι → α) (δ : ι → ℝ)
-    (δlim : tendsto δ l (𝓝[>] 0))
-    (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (K * δ j)),
-    tendsto (λ j, μ (S ∩ closed_ball (w j) (δ j)) / μ (closed_ball (w j) (δ j))) l (𝓝 1) :=
+lemma tendsto_closed_ball_filter_at {K : ℝ} {x : α} {ι : Type*} {l : filter ι}
+  (w : ι → α) (δ : ι → ℝ) (δlim : tendsto δ l (𝓝[>] 0))
+  (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (K * δ j)) :
+  tendsto (λ j, closed_ball (w j) (δ j)) l ((vitali_family μ K).filter_at x) :=
 begin
-  let v := is_doubling_measure.vitali_family μ 7 (by norm_num),
-  filter_upwards [v.ae_tendsto_measure_inter_div S] with x hx ι l w δ δlim xmem,
-  suffices : tendsto (λ j, closed_ball (w j) (δ j)) l (v.filter_at x), { exact hx.comp this, },
-  refine v.tendsto_filter_at_iff.mpr ⟨_, λ ε hε, _⟩,
-  { simp only [v, vitali.vitali_family],
-    have δpos : ∀ᶠ j in l, 0 < δ j := eventually_mem_of_tendsto_nhds_within δlim,
-    replace xmem : ∀ᶠ (j : ι) in l, x ∈ closed_ball (w j) (δ j) := (δpos.and xmem).mono
-      (λ j hj, closed_ball_subset_closed_ball (by nlinarith [hj.1, hK.2]) hj.2),
-    apply ((δlim.eventually (eventually_scaling_constant_of μ 7)).and (xmem.and δpos)).mono,
-    rintros j ⟨hjC, hjx, hjδ⟩,
-    have hdiam : 3 * diam (closed_ball (w j) (δ j)) ≤ 6 * δ j,
-    { linarith [@diam_closed_ball _ _ (w j) _ hjδ.le], },
-    refine ⟨hjx, is_closed_ball, (nonempty_ball.mpr hjδ).mono ball_subset_interior_closed_ball,
-      (measure_mono (closed_ball_subset_closed_ball hdiam)).trans _⟩,
-    suffices : closed_ball x (6 * δ j) ⊆ closed_ball (w j) (7 * δ j),
-    { exact (measure_mono this).trans ((hjC (w j) 7 (by norm_num)).trans $ le_refl _), },
-    intros y hy,
-    simp only [mem_closed_ball, dist_comm x (w j)] at hjx hy ⊢,
-    linarith [dist_triangle_right y (w j) x], },
-  { have δpos := eventually_mem_of_tendsto_nhds_within δlim,
+  refine (vitali_family μ K).tendsto_filter_at_iff.mpr ⟨_, λ ε hε, _⟩,
+  { filter_upwards [xmem, δlim self_mem_nhds_within] with j hj h'j,
+    exact closed_ball_mem_vitali_family_of_dist_le_mul μ hj h'j },
+  { by_cases l.ne_bot,
+    swap, { simp [not_ne_bot.1 h] },
+    have hK : 0 ≤ K,
+    { resetI,
+      rcases (xmem.and (δlim self_mem_nhds_within)).exists with ⟨j, hj, h'j⟩,
+      have : 0 ≤ K * δ j := nonempty_closed_ball.1 ⟨x, hj⟩,
+      exact (mul_nonneg_iff_left_nonneg_of_pos (mem_Ioi.1 h'j)).1 this },
+    have δpos := eventually_mem_of_tendsto_nhds_within δlim,
     replace δlim := tendsto_nhds_of_tendsto_nhds_within δlim,
-    replace hK : 0 < K + 1 := by linarith [hK.1],
+    replace hK : 0 < K + 1, by linarith,
     apply (((metric.tendsto_nhds.mp δlim _ (div_pos hε hK)).and δpos).and xmem).mono,
     rintros j ⟨⟨hjε, hj₀ : 0 < δ j⟩, hx⟩ y hy,
     replace hjε : (K + 1) * δ j < ε :=
       by simpa [abs_eq_self.mpr hj₀.le] using (lt_div_iff' hK).mp hjε,
     simp only [mem_closed_ball] at hx hy ⊢,
-    linarith [dist_triangle_right y x (w j)], },
+    linarith [dist_triangle_right y x (w j)] }
 end
+
+end
+
+/-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centres are
+not required to be fixed.
+
+See also `besicovitch.ae_tendsto_measure_inter_div`. -/
+lemma ae_tendsto_measure_inter_div
+  [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ] (S : set α) (K : ℝ) :
+  ∀ᵐ x ∂μ.restrict S, ∀ {ι : Type*} {l : filter ι} (w : ι → α) (δ : ι → ℝ)
+    (δlim : tendsto δ l (𝓝[>] 0))
+    (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (K * δ j)),
+    tendsto (λ j, μ (S ∩ closed_ball (w j) (δ j)) / μ (closed_ball (w j) (δ j))) l (𝓝 1) :=
+by filter_upwards [(vitali_family μ K).ae_tendsto_measure_inter_div S] with x hx ι l w δ δlim xmem
+using hx.comp (tendsto_closed_ball_filter_at μ _ _ δlim xmem)
 
 end is_doubling_measure

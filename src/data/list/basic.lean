@@ -277,6 +277,8 @@ lemma length_eq_two {l : list α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
 lemma length_eq_three {l : list α} : l.length = 3 ↔ ∃ a b c, l = [a, b, c] :=
 ⟨match l with [a, b, c], _ := ⟨a, b, c, rfl⟩ end, λ ⟨a, b, c, e⟩, e.symm ▸ rfl⟩
 
+alias length_le_of_sublist ← sublist.length_le
+
 /-! ### set-theoretic notation of lists -/
 
 lemma empty_eq : (∅ : list α) = [] := by refl
@@ -1090,22 +1092,22 @@ eq_nil_of_subset_nil $ s.subset
 ⟨eq_nil_of_sublist_nil, λ H, H ▸ sublist.refl _⟩
 
 @[simp] theorem repeat_sublist_repeat (a : α) {m n} : repeat a m <+ repeat a n ↔ m ≤ n :=
-⟨λ h, by simpa only [length_repeat] using length_le_of_sublist h,
+⟨λ h, by simpa only [length_repeat] using sublist.length_le h,
  λ h, by induction h; [refl, simp only [*, repeat_succ, sublist.cons]] ⟩
 
 theorem eq_of_sublist_of_length_eq : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → length l₁ = length l₂ → l₁ = l₂
 | ._ ._ sublist.slnil             h := rfl
 | ._ ._ (sublist.cons  l₁ l₂ a s) h :=
-  absurd (length_le_of_sublist s) $ not_le_of_gt $ by rw h; apply lt_succ_self
+  absurd (sublist.length_le s) $ not_le_of_gt $ by rw h; apply lt_succ_self
 | ._ ._ (sublist.cons2 l₁ l₂ a s) h :=
   by rw [length, length] at h; injection h with h; rw eq_of_sublist_of_length_eq s h
 
 theorem eq_of_sublist_of_length_le {l₁ l₂ : list α} (s : l₁ <+ l₂) (h : length l₂ ≤ length l₁) :
   l₁ = l₂ :=
-eq_of_sublist_of_length_eq s (le_antisymm (length_le_of_sublist s) h)
+eq_of_sublist_of_length_eq s (le_antisymm (sublist.length_le s) h)
 
 theorem sublist.antisymm {l₁ l₂ : list α} (s₁ : l₁ <+ l₂) (s₂ : l₂ <+ l₁) : l₁ = l₂ :=
-eq_of_sublist_of_length_le s₁ (length_le_of_sublist s₂)
+eq_of_sublist_of_length_le s₁ (sublist.length_le s₂)
 
 instance decidable_sublist [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <+ l₂)
 | []      l₂      := is_true $ nil_sublist _
@@ -3003,7 +3005,7 @@ by simp only [map_filter_map, H, filter_map_some]
 
 theorem length_filter_le (p : α → Prop) [decidable_pred p] (l : list α) :
   (l.filter p).length ≤ l.length :=
-list.length_le_of_sublist (list.filter_sublist _)
+(list.filter_sublist _).length_le
 
 theorem length_filter_map_le (f : α → option β) (l : list α) :
   (list.filter_map f l).length ≤ l.length :=
@@ -3172,7 +3174,7 @@ begin
   { rw [filter_cons_of_neg _ h],
     refine iff_of_false _ (mt and.left h), intro e,
     have := filter_sublist l, rw e at this,
-    exact not_lt_of_ge (length_le_of_sublist this) (lt_succ_self _) }
+    exact not_lt_of_ge (sublist.length_le this) (lt_succ_self _) }
 end
 
 theorem filter_length_eq_length {l} : (filter p l).length = l.length ↔ ∀ a ∈ l, p a :=

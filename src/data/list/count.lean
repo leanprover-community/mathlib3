@@ -45,7 +45,7 @@ by induction l with x l ih; [refl, by_cases (p x)];
    simp only [countp_cons_of_neg _ _ h, ih, filter_cons_of_neg _ h]]; refl
 
 lemma countp_le_length : countp p l ≤ l.length :=
-by simpa only [countp_eq_length_filter] using length_le_of_sublist (filter_sublist _)
+by simpa only [countp_eq_length_filter] using length_filter_le _ _
 
 @[simp] lemma countp_append (l₁ l₂) : countp p (l₁ ++ l₂) = countp p l₁ + countp p l₂ :=
 by simp only [countp_eq_length_filter, filter_append, length_append]

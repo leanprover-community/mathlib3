@@ -54,7 +54,8 @@ kummer, dedekind, kummer dedekind, dedekind-kummer, dedekind kummer
 
 namespace conductor
 
-variables {R S : Type*} [comm_ring R] [comm_ring S] variables [algebra R S]
+variables (R : Type*) {S : Type*} [comm_ring R] [comm_ring S]
+variables [algebra R S]
 
 /-- Let `S / R` be a ring extension and `x : S`, then the conductor of R[x] is the
 biggest ideal of `S` contained in `R[x]`. -/
@@ -82,10 +83,6 @@ lemma conductor_subset_adjoin {x : S} : (conductor R x : set S) ⊆ algebra.adjo
 lemma mem_conductor_iff {x y : S} :
   y ∈ conductor R x ↔ ∀ (b : S), y * b ∈ algebra.adjoin R ({x} : set S) :=
 ⟨λ h, h, λ h, h⟩
-
-end
-
-variables {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S] {I : ideal R}
 
 /-- This technical lemma tell us that if `C` is the conductor of `R[α]` and `I` is an ideal of R
   then `p * (I * S) ⊆ I*R[α]` for any `p` in `C ∩ R` (this should be generalized to `p ∈ C`) -/
@@ -125,7 +122,6 @@ begin
   { intros y hy,
     exact test2 ((finsupp.mem_supported _ l).mp H hy) },
 end
-
 
 /-- A technical result telling us us that `(I*S) ∩ R[α] = I*R[α]` -/
 lemma test (I : ideal R) (x : S)
@@ -189,6 +185,8 @@ begin
     exact hI ((ring_hom.mem_ker f).mpr hu),
 end
 
+variable {I : ideal R}
+
 noncomputable def quot_adjoin_equiv_quot_map (x : S) (hx : (conductor R x).comap
   (algebra_map R S) ⊔ I = ⊤) (hx' : is_integral R x)
   (h_alg : function.injective (algebra_map (algebra.adjoin R ( {x} : set S)) S)) :
@@ -225,7 +223,6 @@ begin
     { exact ideal.quotient.mk_surjective } }
 
 end
-
 
 end conductor
 

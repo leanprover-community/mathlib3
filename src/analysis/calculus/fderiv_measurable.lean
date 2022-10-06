@@ -211,7 +211,7 @@ begin
   rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
-  simp only [mem_Union, mem_Inter, B, mem_inter_eq],
+  simp only [mem_Union, mem_Inter, B, mem_inter_iff],
   refine ⟨n, λ p hp q hq, ⟨fderiv 𝕜 f x, hx.2, ⟨_, _⟩⟩⟩;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }
@@ -474,9 +474,9 @@ lemma B_mem_nhds_within_Ioi {K : set F} {r s ε x : ℝ} (hx : x ∈ B f K r s �
   B f K r s ε ∈ 𝓝[>] x :=
 begin
   obtain ⟨L, LK, hL₁, hL₂⟩ : ∃ (L : F), L ∈ K ∧ x ∈ A f L r ε ∧ x ∈ A f L s ε,
-    by simpa only [B, mem_Union, mem_inter_eq, exists_prop] using hx,
+    by simpa only [B, mem_Union, mem_inter_iff, exists_prop] using hx,
   filter_upwards [A_mem_nhds_within_Ioi hL₁, A_mem_nhds_within_Ioi hL₂] with y hy₁ hy₂,
-  simp only [B, mem_Union, mem_inter_eq, exists_prop],
+  simp only [B, mem_Union, mem_inter_iff, exists_prop],
   exact ⟨L, LK, hy₁, hy₂⟩
 end
 
@@ -567,7 +567,7 @@ begin
   rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
-  simp only [mem_Union, mem_Inter, B, mem_inter_eq],
+  simp only [mem_Union, mem_Inter, B, mem_inter_iff],
   refine ⟨n, λ p hp q hq, ⟨deriv_within f (Ici x) x, hx.2, ⟨_, _⟩⟩⟩;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }

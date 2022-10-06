@@ -172,7 +172,7 @@ lemma mem_filter_at_iff {x : α} {s : set (set α)} :
 begin
   simp only [filter_at, exists_prop, gt_iff_lt],
   rw mem_binfi_of_directed,
-  { simp only [subset_def, and_imp, exists_prop, mem_sep_eq, mem_Ioi, mem_principal] },
+  { simp only [subset_def, and_imp, exists_prop, mem_sep_iff, mem_Ioi, mem_principal] },
   { simp only [directed_on, exists_prop, ge_iff_le, le_principal_iff, mem_Ioi, order.preimage,
       mem_principal],
     assume x hx y hy,
@@ -185,7 +185,7 @@ end
 instance filter_at_ne_bot (x : α) : (v.filter_at x).ne_bot :=
 begin
   simp only [ne_bot_iff, ←empty_mem_iff_bot, mem_filter_at_iff, not_exists, exists_prop,
-    mem_empty_eq, and_true, gt_iff_lt, not_and, ne.def, not_false_iff, not_forall],
+    mem_empty_iff_false, and_true, gt_iff_lt, not_and, ne.def, not_false_iff, not_forall],
   assume ε εpos,
   obtain ⟨w, w_sets, hw⟩ : ∃ (w ∈ v.sets_at x), w ⊆ closed_ball x ε := v.nontrivial x ε εpos,
   exact ⟨w, w_sets, hw⟩
@@ -201,6 +201,25 @@ begin
   simp only [eventually_filter_at_iff, exists_prop, and_true, gt_iff_lt,
              implies_true_iff] {contextual := tt},
   exact ⟨1, zero_lt_one⟩
+end
+
+lemma eventually_filter_at_subset_closed_ball (x : α) {ε : ℝ} (hε : 0 < ε) :
+  ∀ᶠ (a : set α) in v.filter_at x, a ⊆ closed_ball x ε :=
+begin
+  simp only [v.eventually_filter_at_iff],
+  exact ⟨ε, hε, λ a ha ha', ha'⟩,
+end
+
+lemma tendsto_filter_at_iff {ι : Type*} {l : filter ι} {f : ι → set α} {x : α} :
+  tendsto f l (v.filter_at x) ↔
+  (∀ᶠ i in l, f i ∈ v.sets_at x) ∧ (∀ (ε > (0 : ℝ)), ∀ᶠ i in l, f i ⊆ closed_ball x ε) :=
+begin
+  refine ⟨λ H,
+    ⟨H.eventually $ v.eventually_filter_at_mem_sets x,
+     λ ε hε, H.eventually $ v.eventually_filter_at_subset_closed_ball x hε⟩,
+    λ H s hs, (_ : ∀ᶠ i in l, f i ∈ s)⟩,
+  obtain ⟨ε, εpos, hε⟩ := v.mem_filter_at_iff.mp hs,
+  filter_upwards [H.1, H.2 ε εpos] with i hi hiε using hε _ hi hiε,
 end
 
 lemma eventually_filter_at_measurable_set (x : α) :

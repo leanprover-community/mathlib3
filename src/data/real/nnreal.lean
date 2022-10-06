@@ -3,12 +3,10 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.big_operators.ring
-import data.real.pointwise
-import algebra.indicator_function
 import algebra.algebra.basic
-import algebra.order.module
 import algebra.order.nonneg
+import data.real.pointwise
+import tactic.positivity
 
 /-!
 # Nonnegative real numbers
@@ -69,7 +67,7 @@ instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
 /- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
 @[simp] lemma val_eq_coe (n : ℝ≥0) : n.val = n := rfl
 
-instance : can_lift ℝ ℝ≥0 := subtype.can_lift _
+instance can_lift : can_lift ℝ ℝ≥0 coe (λ r, 0 ≤ r) := subtype.can_lift _
 
 protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
 
@@ -840,3 +838,23 @@ lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
 by { ext, rw [nnreal.coe_nat_cast, int.cast_nat_abs, real.coe_nnabs] }
 
 end real
+
+namespace tactic
+open positivity
+
+private lemma nnreal_coe_pos {r : ℝ≥0} : 0 < r → 0 < (r : ℝ) := nnreal.coe_pos.2
+
+/-- Extension for the `positivity` tactic: cast from `ℝ≥0` to `ℝ`. -/
+@[positivity]
+meta def positivity_coe_nnreal_real : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  unify inst `(@coe_to_lift _ _ $ @coe_base _ _ nnreal.real.has_coe),
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
+  | _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
+  end
+| e := pp e >>= fail ∘ format.bracket "The expression "
+         " is not of the form `(r : ℝ)` for `r : ℝ≥0`"
+
+end tactic

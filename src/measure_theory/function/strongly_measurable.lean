@@ -730,7 +730,7 @@ begin
         ((ht.subtype_image
         ((hd.approx n).measurable_set_fiber x)).diff hs),
       ext1 y,
-      simp only [mem_union_eq, mem_preimage, mem_singleton_iff, mem_image, set_coe.exists,
+      simp only [mem_union, mem_preimage, mem_singleton_iff, mem_image, set_coe.exists,
         subtype.coe_mk, exists_and_distrib_right, exists_eq_right, mem_diff],
       by_cases hy : y ∈ s,
       { rw dif_pos hy,
@@ -904,8 +904,8 @@ begin
         exact ⟨λ h, h.2, λ h, ⟨hg_seq_zero y h n, h⟩⟩, },
       { suffices : (g_seq_s n) ⁻¹' {x} ∩ sᶜ = ∅, by { rw this, exact measurable_set.empty, },
         ext1 y,
-        simp only [mem_inter_eq, mem_preimage, mem_singleton_iff, mem_compl_eq, mem_empty_eq,
-          iff_false, not_and, not_not_mem],
+        simp only [mem_inter_iff, mem_preimage, mem_singleton_iff, mem_compl_iff,
+          mem_empty_iff_false, iff_false, not_and, not_not_mem],
         refine imp_of_not_imp_not _ _ (λ hys, _),
         rw hg_seq_zero y hys n,
         exact ne.symm hx, },
@@ -1466,10 +1466,10 @@ lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable
   ae_strongly_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
-lemma comp_measurable' {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
-  {μ : measure γ} {ν : measure α} (hg : ae_strongly_measurable g ν) (hf : measurable f)
-  (h : μ.map f ≪ ν) : ae_strongly_measurable (g ∘ f) μ :=
-(hg.mono' h).comp_measurable hf
+lemma comp_quasi_measure_preserving {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α}
+  {f : γ → α} {μ : measure γ} {ν : measure α} (hg : ae_strongly_measurable g ν)
+  (hf : quasi_measure_preserving f μ ν) : ae_strongly_measurable (g ∘ f) μ :=
+(hg.mono' hf.absolutely_continuous).comp_measurable hf.measurable
 
 lemma is_separable_ae_range (hf : ae_strongly_measurable f μ) :
   ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t :=
@@ -1489,7 +1489,7 @@ begin
   refine ⟨λ H, ⟨H.ae_measurable, H.is_separable_ae_range⟩, _⟩,
   rintros ⟨H, ⟨t, t_sep, ht⟩⟩,
   rcases eq_empty_or_nonempty t with rfl|h₀,
-  { simp only [mem_empty_eq, eventually_false_iff_eq_bot, ae_eq_bot] at ht,
+  { simp only [mem_empty_iff_false, eventually_false_iff_eq_bot, ae_eq_bot] at ht,
     rw ht,
     exact ae_strongly_measurable_zero_measure f },
   { obtain ⟨g, g_meas, gt, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
@@ -1706,7 +1706,7 @@ begin
       have : (f a : ℝ≥0∞) ≠ 0, by simpa only [ne.def, ennreal.coe_eq_zero] using h'a,
       rw ha this },
     { filter_upwards [ae_restrict_mem A.compl] with x hx,
-      simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
+      simp only [not_not, mem_set_of_eq, mem_compl_iff] at hx,
       simp [hx] } },
   { rintros ⟨g', g'meas, hg'⟩,
     refine ⟨λ x, (f x : ℝ)⁻¹ • g' x, hf.coe_nnreal_real.inv.strongly_measurable.smul g'meas, _⟩,

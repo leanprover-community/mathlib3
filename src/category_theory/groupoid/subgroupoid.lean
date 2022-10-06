@@ -70,11 +70,11 @@ A sugroupoid of `C` consists of a choice of arrows for each pair of vertices, cl
 under composition and inverses
 -/
 @[ext] structure subgroupoid (C : Type u) [groupoid C] :=
-  (arrws : ∀ (c d : C), set (c ⟶ d))
-  (inv' : ∀ {c d} {p : c ⟶ d} (hp : p ∈ arrws c d),
-            inv p ∈ arrws d c)
-  (mul' : ∀ {c d e} {p} (hp : p ∈ arrws c d) {q} (hq : q ∈ arrws d e),
-            p ≫ q ∈ arrws c e)
+(arrws : ∀ (c d : C), set (c ⟶ d))
+(inv' : ∀ {c d} {p : c ⟶ d} (hp : p ∈ arrws c d),
+          groupoid.inv p ∈ arrws d c)
+(mul' : ∀ {c d e} {p} (hp : p ∈ arrws c d) {q} (hq : q ∈ arrws d e),
+          p ≫ q ∈ arrws c e)
 
 namespace subgroupoid
 
@@ -87,18 +87,17 @@ lemma id_mem_of_nonempty_isotropy (c : C) :
   c ∈ carrier S → 𝟙 c ∈ S.arrws c c :=
 begin
   rintro ⟨γ,hγ⟩,
-  have : 𝟙 c = γ * (inv γ), by simp only [vertex_group_mul, comp_inv],
-  rw this,
-  apply S.mul' hγ (S.inv' hγ),
+  convert S.mul' hγ (S.inv' hγ),
+  simp only [inv_eq_inv, is_iso.hom_inv_id],
 end
 
 /-- A subgroupoid seen as a quiver on vertex set `C` -/
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrws c d⟩
 
-/-- Type synonim for the coercion of a subgroupoid as a groupoid -/
+/-- Type synonym for the coercion of a subgroupoid as a groupoid -/
 def coe (S : subgroupoid C) := subtype S.carrier
 
-instance [h : S.carrier.nonempty] : nonempty S.coe := ⟨⟨h.some,h.some_spec⟩⟩
+instance (h : S.carrier.nonempty) : nonempty S.coe := ⟨⟨h.some,h.some_spec⟩⟩
 
 /-- The coercion of a subgroupoid as a groupoid -/
 instance coe_groupoid : groupoid S.coe :=
@@ -115,27 +114,41 @@ instance coe_groupoid : groupoid S.coe :=
   inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp],
   comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
 
+/-- There is an embedding of the coerced subgroupoid to its parent-/
+def coe_embedding : (coe S) ⥤ C :=
+{ obj := λ c, c.val,
+  map := λ c d f, f.val,
+  map_id' := λ c, rfl,
+  map_comp' := λ c d e f g, rfl }
+
+lemma coe_embedding.inj_on_objects : function.injective (coe_embedding S).obj := by
+{ rintros ⟨c,hc⟩ ⟨d,hd⟩ hcd, simp only [subtype.mk_eq_mk], exact hcd }
+
+lemma coe_embedding.faithful :
+  ∀ c d, function.injective (λ (f : c ⟶ d), (coe_embedding S).map f) := by
+{ rintros ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,hf⟩ ⟨g,hg⟩ hfg, simp only [subtype.mk_eq_mk], exact hfg, }
+
 /-- The subgroup of the vertex group at `c` given by the subgroupoid -/
 def vertex_subgroup {c : C} (hc : c ∈ S.carrier) : subgroup (c ⟶ c) :=
-⟨ S.arrws c c,
-  λ f g hf hg, S.mul' hf hg,
-  by {apply id_mem_of_nonempty_isotropy, use hc,},
-  λ f hf, S.inv' hf⟩
+{ carrier  := S.arrws c c,
+  mul_mem' := λ f g hf hg, S.mul' hf hg,
+  one_mem' := id_mem_of_nonempty_isotropy _ _ hc,
+  inv_mem' := λ f hf, S.inv' hf }
 
 /-- `S` is a subgroupoid of `T` if it is contained in it -/
 def is_subgroupoid (S T : subgroupoid C) : Prop :=
-  ∀ {c d}, S.arrws c d ⊆ T.arrws c d
+∀ ⦃c d⦄, S.arrws c d ⊆ T.arrws c d
 
 instance subgroupoid_le : has_le (subgroupoid C) := ⟨is_subgroupoid⟩
 
 lemma le_refl (S : subgroupoid C) : S ≤ S :=
-by {rintro c d p, exact id,}
+λ c d p, id
 
 lemma le_trans (R S T : subgroupoid C) : R ≤ S → S ≤ T → R ≤ T :=
-by {rintro RS ST c d, exact (@RS c d).trans (@ST c d), }
+λ RS ST c d, (@RS c d).trans (@ST c d)
 
 lemma le_antisymm (R S : subgroupoid C) : R ≤ S → S ≤ R → R = S :=
-by {rintro RS SR, ext c d p, exact ⟨(@RS c d p), (@SR c d p)⟩,}
+λ RS SR, by { ext c d p, exact ⟨(@RS c d p), (@SR c d p)⟩, }
 
 instance : partial_order (subgroupoid C) :=
 { le := is_subgroupoid,
@@ -152,8 +165,8 @@ instance : inhabited (subgroupoid C) := ⟨⊤⟩
 
 instance : has_inf (subgroupoid C) :=
 ⟨ λ S T,
-  ⟨(λ c d, (S.arrws c d)∩(T.arrws c d)),
-    by { rintros, exact ⟨S.inv' hp.1,T.inv' hp.2⟩, },
+  ⟨(λ c d, (S.arrws c d) ∩ (T.arrws c d)),
+    by { rintros, exact ⟨S.inv' hp.1, T.inv' hp.2⟩, },
     by { rintros, exact ⟨S.mul' hp.1 hq.1, T.mul' hp.2 hq.2⟩, }⟩⟩
 
 instance : has_Inf (subgroupoid C) :=
@@ -162,19 +175,17 @@ instance : has_Inf (subgroupoid C) :=
     by
     { rintros,
       simp only [Inter_coe_set, mem_Inter] at hp ⊢,
-      rintro S Ss,
-      exact S.inv' (hp S Ss)},
+      exact λ S Ss, S.inv' (hp S Ss)},
     by
     { rintros,
       simp only [Inter_coe_set, mem_Inter] at hp hq ⊢,
-      rintro S Ss,
-      apply S.mul' (hp S Ss) (hq S Ss), }⟩⟩
+      exact λ S Ss, S.mul' (hp S Ss) (hq S Ss), }⟩⟩
 
 instance : complete_lattice (subgroupoid C) :=
 { bot          := (⊥),
-  bot_le       := λ S c d, by {apply empty_subset,},
+  bot_le       := λ S c d, empty_subset _,
   top          := (⊤),
-  le_top       := λ S c d, by {apply subset_univ,},
+  le_top       := λ S c d, subset_univ _,
   inf          := (⊓),
   le_inf       := λ R S T RS RT c d p pR, ⟨RS pR, RT pR⟩,
   inf_le_left  := λ R S c d p pRS, pRS.left,
@@ -187,7 +198,68 @@ instance : complete_lattice (subgroupoid C) :=
             exact hp S Ss, },
           { rintro T Tl c d p pT,
             simp only [Inter_coe_set, mem_Inter],
-            rintros S Ss, apply Tl Ss, exact pT,}}) }
+            exact λ S Ss, (Tl Ss) pT, }}) }
+
+lemma le_carrier {S T : subgroupoid C} (h : S ≤ T) : S.carrier ⊆ T.carrier :=
+λ s ⟨γ,hγ⟩, ⟨γ, h hγ⟩
+
+/-- The functor associated to the embedding of subgroupoids -/
+def coe_le {S T : subgroupoid C} (h : S ≤ T) : S.coe ⥤ T.coe :=
+{ obj := λ s, ⟨s.val, le_carrier h s.prop⟩,
+  map := λ s t f, ⟨f.val, h f.prop⟩,
+  map_id' := λ _, rfl,
+  map_comp' := λ _ _ _ _ _, rfl }
+
+lemma coe_le_inj_on_objects {S T : subgroupoid C} (h : S ≤ T) :
+  function.injective (coe_le h).obj :=
+begin
+  dsimp only [coe_le],
+  rintros ⟨s,hs⟩ ⟨t,ht⟩ he,
+  simp only [subtype.mk_eq_mk] at he ⊢,
+  exact he,
+end
+
+lemma coe_le_faithful {S T : subgroupoid C} (h : S ≤ T) (s t : S.coe):
+  function.injective (λ (f : s ⟶ t), (coe_le h).map f) :=
+begin
+  dsimp only [coe_le],
+  rintros ⟨f,hf⟩ ⟨g,hg⟩ he,
+  simp only [subtype.mk_eq_mk] at he ⊢,
+  exact he,
+end
+
+lemma coe_le_refl {S : subgroupoid C} : coe_le (le_refl S) = 𝟭 S.coe :=
+begin
+  dsimp only [coe_le],
+  fapply functor.ext,
+  { rintros,
+    simp only [subtype.val_eq_coe, subtype.coe_eta, functor.id_obj], },
+  { rintros ⟨s,hs⟩ ⟨t,ht⟩ ⟨f,hf⟩,
+    simp only [eq_to_hom_refl, functor.id_map, category.comp_id, category.id_comp,
+               subtype.mk_eq_mk], }
+end
+
+lemma coe_le_trans {R S T : subgroupoid C} (k : R ≤ S) (h : S ≤ T) :
+  coe_le (le_trans R S T k h) = (coe_le k) ⋙ (coe_le h) :=
+begin
+  dsimp only [coe_le],
+  fapply functor.ext,
+  { rintros, simp only [functor.comp_obj], },
+  { rintros ⟨s,hs⟩ ⟨t,ht⟩ ⟨f,hf⟩,
+    simp only [eq_to_hom_refl, functor.comp_map, category.comp_id, category.id_comp,
+    subtype.mk_eq_mk], }
+end
+
+lemma coe_le_comp_embedding {S T : subgroupoid C} (h : S ≤ T) :
+  (coe_le h) ⋙ T.coe_embedding = S.coe_embedding :=
+begin
+  dsimp only [coe_le, coe_embedding],
+  fapply functor.ext,
+  { rintros, simp only [functor.comp_obj, subtype.val_eq_coe], },
+  { rintros ⟨s,hs⟩ ⟨t,ht⟩ ⟨f,hf⟩,
+    simp only [functor.comp_map, subtype.coe_mk, eq_to_hom_refl, category.comp_id,
+    category.id_comp], }
+end
 
 /-- The family of arrows of the discrete groupoid -/
 inductive discrete.arrws : Π (c d : C), (c ⟶ d) → Prop
@@ -210,12 +282,12 @@ end
 /-- A subgroupoid is normal if it is “wide” (meaning that its carrier set is all of `C`)
     and satisfies the expected stability under conjugacy -/
 structure is_normal : Prop :=
-  (wide : ∀ c, (𝟙 c) ∈ (S.arrws c c))
-  (conj : ∀ {c d} (p : c ⟶ d) (γ : c ⟶ c) (hs : γ ∈ S.arrws c c),
-                ((inv p) ≫ γ ≫ p) ∈ (S.arrws d d))
-  (conj' : ∀ {c d} (p : d ⟶ c) (γ : c ⟶ c) (hs : γ ∈ S.arrws c c),
-                (p ≫ γ ≫ (inv p)) ∈ (S.arrws d d)
-         := λ c d p γ hs, by { convert conj (inv p) γ hs, simp, })
+(wide : ∀ c, (𝟙 c) ∈ (S.arrws c c))
+(conj : ∀ {c d} (p : c ⟶ d) (γ : c ⟶ c) (hs : γ ∈ S.arrws c c),
+              ((inv p) ≫ γ ≫ p) ∈ (S.arrws d d))
+(conj' : ∀ {c d} (p : d ⟶ c) (γ : c ⟶ c) (hs : γ ∈ S.arrws c c),
+              (p ≫ γ ≫ (inv p)) ∈ (S.arrws d d)
+        := λ c d p γ hs, by { convert conj (inv p) γ hs, simp, })
 
 
 lemma is_normal.conjugation_eq (Sn : is_normal S) {c d} (p : c ⟶ d) :
@@ -308,12 +380,7 @@ def comap (S : subgroupoid D) : subgroupoid C :=
 
 lemma comap_mono (S T : subgroupoid D) :
   S ≤ T → comap φ S ≤ comap φ T :=
-begin
-  rintro ST,
-  dsimp only [subgroupoid.comap],
-  rintro c d p hp,
-  exact ST hp,
-end
+λ ST c d p hp, ST hp
 
 lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap φ S) :=
 { wide := by

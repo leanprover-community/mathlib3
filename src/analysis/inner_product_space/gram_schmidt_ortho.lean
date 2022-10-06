@@ -32,9 +32,8 @@ and outputs a set of orthogonal vectors which have the same span.
   the normalized `gram_schmidt` (i.e each vector in `gram_schmidt_normed` has unit length.)
 - `gram_schmidt_orthornormal` :
   `gram_schmidt_normed` produces an orthornormal system of vectors.
-
-## TODO
-  Construct a version with an orthonormal basis from Gram-Schmidt process.
+- `gram_schmidt_orthonormal_basis`: orthonormal basis constructed by the Gram-Schmidt process from
+  an indexed set of vectors of the right size
 -/
 
 open_locale big_operators
@@ -399,8 +398,8 @@ lemma gram_schmidt_orthonormal_basis_inv_block_triangular :
 λ i j, gram_schmidt_orthonormal_basis_inv_triangular' h f
 
 lemma gram_schmidt_orthonormal_basis_det :
-  (gram_schmidt_orthonormal_basis h f).to_basis.det f
-  = ∏ i, ⟪gram_schmidt_orthonormal_basis h f i, f i⟫ :=
+  (gram_schmidt_orthonormal_basis h f).to_basis.det f =
+    ∏ i, ⟪gram_schmidt_orthonormal_basis h f i, f i⟫ :=
 begin
   convert matrix.det_of_upper_triangular (gram_schmidt_orthonormal_basis_inv_block_triangular h f),
   ext i,

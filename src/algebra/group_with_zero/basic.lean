@@ -843,6 +843,12 @@ classical.by_cases
   (assume ha, ha)
   (assume ha, ((one_div_ne_zero ha) h).elim)
 
+lemma mul_left_surjective₀ {a : G₀} (h : a ≠ 0) : surjective (λ g, a * g) :=
+λ g, ⟨a⁻¹ * g, by simp [← mul_assoc, mul_inv_cancel h]⟩
+
+lemma mul_right_surjective₀ {a : G₀} (h : a ≠ 0) : surjective (λ g, g * a) :=
+λ g, ⟨g * a⁻¹, by simp [mul_assoc, inv_mul_cancel h]⟩
+
 end group_with_zero
 
 section comm_group_with_zero -- comm

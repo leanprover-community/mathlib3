@@ -11,13 +11,16 @@ import geometry.euclidean.basic
 /-!
 # Oriented angles.
 
-This file defines oriented angles in real inner product spaces.
+This file defines oriented angles in real inner product spaces and Euclidean affine spaces.
 
 ## Main definitions
 
 * `orientation.oangle` is the oriented angle between two vectors with respect to an orientation.
 
 * `orientation.rotation` is the rotation by an oriented angle with respect to an orientation.
+
+* `euclidean_geometry.oangle`, with notation `∡`, is the oriented angle determined by three
+  points.
 
 ## Implementation notes
 
@@ -35,7 +38,7 @@ modulo `2 * π` as equalities of `(2 : ℤ) • θ`.
 noncomputable theory
 
 open finite_dimensional complex
-open_locale real real_inner_product_space complex_conjugate
+open_locale euclidean_geometry real real_inner_product_space complex_conjugate
 
 namespace orientation
 
@@ -1161,3 +1164,190 @@ begin
 end
 
 end orientation
+
+namespace euclidean_geometry
+
+open finite_dimensional
+
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
+variables [normed_add_torsor V P] [hd2 : fact (finrank ℝ V = 2)] [module.oriented ℝ V (fin 2)]
+include hd2
+
+local notation `o` := module.oriented.positive_orientation
+
+/-- The oriented angle at `p₂` between the line segments to `p₁` and `p₃`, modulo `2 * π`. If
+either of those points equals `p₂`, this is 0. See `euclidean_geometry.angle` for the
+corresponding unoriented angle definition. -/
+def oangle (p₁ p₂ p₃ : P) : real.angle := (o).oangle (p₁ -ᵥ p₂) (p₃ -ᵥ p₂)
+
+localized "notation (name := oangle) `∡` := euclidean_geometry.oangle" in euclidean_geometry
+
+/-- Oriented angles are continuous when neither end point equals the middle point. -/
+lemma continuous_at_oangle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
+  continuous_at (λ y : P × P × P, ∡ y.1 y.2.1 y.2.2) x :=
+begin
+  let f : P × P × P → V × V := λ y, (y.1 -ᵥ y.2.1, y.2.2 -ᵥ y.2.1),
+  have hf1 : (f x).1 ≠ 0, by simp [hx12],
+  have hf2 : (f x).2 ≠ 0, by simp [hx32],
+  exact ((o).continuous_at_oangle hf1 hf2).comp
+    ((continuous_fst.vsub continuous_snd.fst).prod_mk
+      (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
+end
+
+/-- The angle ∡AAB at a point. -/
+@[simp] lemma oangle_self_left (p₁ p₂ : P) : ∡ p₁ p₁ p₂ = 0 :=
+by simp [oangle]
+
+/-- The angle ∡ABB at a point. -/
+@[simp] lemma oangle_self_right (p₁ p₂ : P) : ∡ p₁ p₂ p₂ = 0 :=
+by simp [oangle]
+
+/-- The angle ∡ABA at a point. -/
+@[simp] lemma oangle_self_left_right (p₁ p₂ : P) : ∡ p₁ p₂ p₁ = 0 :=
+(o).oangle_self _
+
+/-- Reversing the order of the points passed to `oangle` negates the angle. -/
+lemma oangle_rev (p₁ p₂ p₃ : P) : ∡ p₃ p₂ p₁ = -∡ p₁ p₂ p₃ :=
+(o).oangle_rev _ _
+
+/-- Adding an angle to that with the order of the points reversed results in 0. -/
+@[simp] lemma oangle_add_oangle_rev (p₁ p₂ p₃ : P) : ∡ p₁ p₂ p₃ + ∡ p₃ p₂ p₁ = 0 :=
+(o).oangle_add_oangle_rev _ _
+
+/-- An oriented angle is zero if and only if the angle with the order of the points reversed is
+zero. -/
+lemma oangle_eq_zero_iff_oangle_rev_eq_zero {p₁ p₂ p₃ : P} : ∡ p₁ p₂ p₃ = 0 ↔ ∡ p₃ p₂ p₁ = 0 :=
+(o).oangle_eq_zero_iff_oangle_rev_eq_zero
+
+/-- An oriented angle is `π` if and only if the angle with the order of the points reversed is
+`π`. -/
+lemma oangle_eq_pi_iff_oangle_rev_eq_pi {p₁ p₂ p₃ : P} : ∡ p₁ p₂ p₃ = π ↔ ∡ p₃ p₂ p₁ = π :=
+(o).oangle_eq_pi_iff_oangle_rev_eq_pi
+
+/-- Given three points not equal to `p`, the angle between the first and the second at `p` plus
+the angle between the second and the third equals the angle between the first and the third. -/
+@[simp] lemma oangle_add {p p₁ p₂ p₃ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) (hp₃ : p₃ ≠ p) :
+  ∡ p₁ p p₂ + ∡ p₂ p p₃ = ∡ p₁ p p₃ :=
+(o).oangle_add (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂) (vsub_ne_zero.2 hp₃)
+
+/-- Given three points not equal to `p`, the angle between the second and the third at `p` plus
+the angle between the first and the second equals the angle between the first and the third. -/
+@[simp] lemma oangle_add_swap {p p₁ p₂ p₃ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) (hp₃ : p₃ ≠ p) :
+  ∡ p₂ p p₃ + ∡ p₁ p p₂ = ∡ p₁ p p₃ :=
+(o).oangle_add_swap (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂) (vsub_ne_zero.2 hp₃)
+
+/-- Given three points not equal to `p`, the angle between the first and the third at `p` minus
+the angle between the first and the second equals the angle between the second and the third. -/
+@[simp] lemma oangle_sub_left {p p₁ p₂ p₃ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) (hp₃ : p₃ ≠ p) :
+  ∡ p₁ p p₃ - ∡ p₁ p p₂ = ∡ p₂ p p₃ :=
+(o).oangle_sub_left (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂) (vsub_ne_zero.2 hp₃)
+
+/-- Given three points not equal to `p`, the angle between the first and the third at `p` minus
+the angle between the second and the third equals the angle between the first and the second. -/
+@[simp] lemma oangle_sub_right {p p₁ p₂ p₃ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) (hp₃ : p₃ ≠ p) :
+  ∡ p₁ p p₃ - ∡ p₂ p p₃ = ∡ p₁ p p₂ :=
+(o).oangle_sub_right (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂) (vsub_ne_zero.2 hp₃)
+
+/-- Given three points not equal to `p`, adding the angles between them at `p` in cyclic order
+results in 0. -/
+@[simp] lemma oangle_add_cyc3 {p p₁ p₂ p₃ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) (hp₃ : p₃ ≠ p) :
+  ∡ p₁ p p₂ + ∡ p₂ p p₃ + ∡ p₃ p p₁ = 0 :=
+(o).oangle_add_cyc3 (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂) (vsub_ne_zero.2 hp₃)
+
+/-- Pons asinorum, oriented angle-at-point form. -/
+lemma oangle_eq_oangle_of_dist_eq {p₁ p₂ p₃ : P} (h : dist p₁ p₂ = dist p₁ p₃) :
+  ∡ p₁ p₂ p₃ = ∡ p₂ p₃ p₁ :=
+begin
+  simp_rw dist_eq_norm_vsub at h,
+  rw [oangle, oangle, ←vsub_sub_vsub_cancel_left p₃ p₂ p₁, ←vsub_sub_vsub_cancel_left p₂ p₃ p₁,
+      (o).oangle_sub_eq_oangle_sub_rev_of_norm_eq h]
+end
+
+/-- The angle at the apex of an isosceles triangle is `π` minus twice a base angle, oriented
+angle-at-point form. -/
+lemma oangle_eq_pi_sub_two_zsmul_oangle_of_dist_eq {p₁ p₂ p₃ : P} (hn : p₂ ≠ p₃)
+  (h : dist p₁ p₂ = dist p₁ p₃) : ∡ p₃ p₁ p₂ = π - (2 : ℤ) • ∡ p₁ p₂ p₃ :=
+begin
+  simp_rw dist_eq_norm_vsub at h,
+  rw [oangle, oangle],
+  convert (o).oangle_eq_pi_sub_two_zsmul_oangle_sub_of_norm_eq _ h using 1,
+  { rw [←neg_vsub_eq_vsub_rev p₁ p₃, ←neg_vsub_eq_vsub_rev p₁ p₂, (o).oangle_neg_neg] },
+  { rw [←(o).oangle_sub_eq_oangle_sub_rev_of_norm_eq h], simp },
+  { simpa using hn }
+end
+
+/-- The cosine of the oriented angle at `p` between two points not equal to `p` equals that of the
+unoriented angle. -/
+lemma cos_oangle_eq_cos_angle {p p₁ p₂ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) :
+  real.angle.cos (∡ p₁ p p₂) = real.cos (∠ p₁ p p₂) :=
+(o).cos_oangle_eq_cos_angle (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂)
+
+/-- The oriented angle at `p` between two points not equal to `p` is plus or minus the unoriented
+angle. -/
+lemma oangle_eq_angle_or_eq_neg_angle {p p₁ p₂ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) :
+  ∡ p₁ p p₂ = ∠ p₁ p p₂ ∨ ∡ p₁ p p₂ = -∠ p₁ p p₂ :=
+(o).oangle_eq_angle_or_eq_neg_angle (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂)
+
+/-- The unoriented angle at `p` between two points not equal to `p` is the absolute value of the
+oriented angle. -/
+lemma angle_eq_abs_oangle_to_real {p p₁ p₂ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) :
+  ∠ p₁ p p₂ = |(∡ p₁ p p₂).to_real| :=
+(o).angle_eq_abs_oangle_to_real (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂)
+
+/-- If the sign of the oriented angle at `p` between two points is zero, either one of the points
+equals `p` or the unoriented angle is 0 or π. -/
+lemma eq_zero_or_angle_eq_zero_or_pi_of_sign_oangle_eq_zero {p p₁ p₂ : P}
+  (h : (∡ p₁ p p₂).sign = 0) : p₁ = p ∨ p₂ = p ∨ ∠ p₁ p p₂ = 0 ∨ ∠ p₁ p p₂ = π :=
+begin
+  convert (o).eq_zero_or_angle_eq_zero_or_pi_of_sign_oangle_eq_zero h;
+    simp
+end
+
+/-- If two unoriented angles are equal, and the signs of the corresponding oriented angles are
+equal, then the oriented angles are equal (even in degenerate cases). -/
+lemma oangle_eq_of_angle_eq_of_sign_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P} (h : ∠ p₁ p₂ p₃ = ∠ p₄ p₅ p₆)
+  (hs : (∡ p₁ p₂ p₃).sign = (∡ p₄ p₅ p₆).sign) : ∡ p₁ p₂ p₃ = ∡ p₄ p₅ p₆ :=
+(o).oangle_eq_of_angle_eq_of_sign_eq h hs
+
+/-- If the signs of two nondegenerate oriented angles between points are equal, the oriented
+angles are equal if and only if the unoriented angles are equal. -/
+lemma oangle_eq_iff_angle_eq_of_sign_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P} (hp₁ : p₁ ≠ p₂) (hp₃ : p₃ ≠ p₂)
+  (hp₄ : p₄ ≠ p₅) (hp₆ : p₆ ≠ p₅) (hs : (∡ p₁ p₂ p₃).sign = (∡ p₄ p₅ p₆).sign) :
+  ∠ p₁ p₂ p₃ = ∠ p₄ p₅ p₆ ↔ ∡ p₁ p₂ p₃ = ∡ p₄ p₅ p₆ :=
+(o).oangle_eq_iff_angle_eq_of_sign_eq (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₃)
+                                      (vsub_ne_zero.2 hp₄) (vsub_ne_zero.2 hp₆) hs
+
+/-- The unoriented angle at `p` between two points not equal to `p` is zero if and only if the
+unoriented angle is zero. -/
+lemma oangle_eq_zero_iff_angle_eq_zero {p p₁ p₂ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) :
+  ∡ p₁ p p₂ = 0 ↔ ∠ p₁ p p₂ = 0 :=
+(o).oangle_eq_zero_iff_angle_eq_zero (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₂)
+
+/-- The oriented angle between three points is `π` if and only if the unoriented angle is `π`. -/
+lemma oangle_eq_pi_iff_angle_eq_pi {p₁ p₂ p₃ : P} : ∡ p₁ p₂ p₃ = π ↔ ∠ p₁ p₂ p₃ = π :=
+(o).oangle_eq_pi_iff_angle_eq_pi
+
+/-- Swapping the first and second points in an oriented angle negates the sign of that angle. -/
+lemma oangle_swap₁₂_sign (p₁ p₂ p₃ : P) : -(∡ p₁ p₂ p₃).sign = (∡ p₂ p₁ p₃).sign :=
+begin
+  rw [eq_comm, oangle, oangle, ←(o).oangle_neg_neg, neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev,
+      ←vsub_sub_vsub_cancel_left p₁ p₃ p₂, ←neg_vsub_eq_vsub_rev p₃ p₂, sub_eq_add_neg,
+      neg_vsub_eq_vsub_rev p₂ p₁, add_comm, ←@neg_one_smul ℝ],
+  nth_rewrite 1 [←one_smul ℝ (p₁ -ᵥ p₂)],
+  rw (o).oangle_sign_smul_add_smul_right,
+  simp
+end
+
+/-- Swapping the first and third points in an oriented angle negates the sign of that angle. -/
+lemma oangle_swap₁₃_sign (p₁ p₂ p₃ : P) : -(∡ p₁ p₂ p₃).sign = (∡ p₃ p₂ p₁).sign :=
+by rw [oangle_rev, real.angle.sign_neg, neg_neg]
+
+/-- Swapping the second and third points in an oriented angle negates the sign of that angle. -/
+lemma oangle_swap₂₃_sign (p₁ p₂ p₃ : P) : -(∡ p₁ p₂ p₃).sign = (∡ p₁ p₃ p₂).sign :=
+by rw [oangle_swap₁₃_sign, ←oangle_swap₁₂_sign, oangle_swap₁₃_sign]
+
+/-- Rotating the points in an oriented angle does not change the sign of that angle. -/
+lemma oangle_rotate_sign (p₁ p₂ p₃ : P) : (∡ p₂ p₃ p₁).sign = (∡ p₁ p₂ p₃).sign :=
+by rw [←oangle_swap₁₂_sign, oangle_swap₁₃_sign]
+
+end euclidean_geometry

@@ -9,15 +9,25 @@ import topology.algebra.order.left_right
 /-!
 # Left and right limits
 
-We define the (strict) left and right limits of a function and prove some properties:
+We define the (strict) left and right limits of a function.
+
 * `left_lim f x` is the strict left limit of `f` at `x` (using `f x` as a garbage value if `x`
   is isolated to its left).
 * `right_lim f x` is the strict right limit of `f` at `x` (using `f x` as a garbage value if `x`
   is isolated to its right).
+
+We develop a comprehensive API for monotone functions. Notably,
+
 * `monotone.continuous_at_iff_left_lim_eq_right_lim` states that a monotone function is continuous
   at a point if and only if its left and right limits coincide.
 * `monotone.countable_not_continuous_at` asserts that a monotone function taking values in a
   second-countable space has at most countably many discontinuity points.
+
+We also port the API to antitone functions.
+
+## TODO
+
+Prove corresponding stronger results for strict_mono and strict_anti functions.
 -/
 
 open set filter
@@ -76,8 +86,7 @@ open function
 namespace monotone
 
 variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order β]
-[topological_space β] [order_topology β]
-{f : α → β} (hf : monotone f) {x y : α}
+[topological_space β] [order_topology β] {f : α → β} (hf : monotone f) {x y : α}
 include hf
 
 lemma left_lim_eq_Sup [topological_space α] [order_topology α] (h : 𝓝[<] x ≠ ⊥) :
@@ -212,8 +221,6 @@ begin
       exact hf.continuous_within_at_Ioi_iff_right_lim_eq.2 h' } },
 end
 
-open function
-
 /-- In a second countable space, the set of points where a monotone function is not right-continuous
 is at most countable. Superseded by `countable_not_continuous_at` which gives the two-sided
 version. -/
@@ -287,8 +294,7 @@ end monotone
 namespace antitone
 
 variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order β]
-[topological_space β] [order_topology β]
-{f : α → β} (hf : antitone f) {x y : α}
+[topological_space β] [order_topology β] {f : α → β} (hf : antitone f) {x y : α}
 include hf
 
 lemma le_left_lim (h : x ≤ y) : f y ≤ left_lim f x :=
@@ -349,9 +355,7 @@ lemma continuous_at_iff_left_lim_eq_right_lim :
   continuous_at f x ↔ left_lim f x = right_lim f x :=
 hf.dual_right.continuous_at_iff_left_lim_eq_right_lim
 
-open function
-
-/-- In a second countable space, the set of points where a monotone function is not continuous
+/-- In a second countable space, the set of points where an antitone function is not continuous
 is at most countable. -/
 lemma countable_not_continuous_at [topological_space.second_countable_topology β] :
   set.countable {x | ¬(continuous_at f x)} :=

@@ -41,12 +41,10 @@ begin
     (Union_of_singleton α),
 end
 
-@[priority 100]
-instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology α] [partial_order α]
+lemma bot_topological_space_eq_generate_from_of_pred_succ_order [partial_order α]
   [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
-  order_topology α :=
-⟨begin
-  rw h.eq_bot,
+  (⊥ : topological_space α) = generate_from {s | ∃ a, s = Ioi a ∨ s = Iio a} :=
+begin
   refine (eq_bot_of_singletons_open (λ a, _)).symm,
   have h_singleton_eq_inter : {a} = Iio (succ a) ∩ Ioi (pred a),
   { suffices h_singleton_eq_inter' : {a} = Iic a ∩ Ici a,
@@ -56,14 +54,18 @@ instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology �
   apply is_open.inter,
   { exact is_open_generate_from_of_mem ⟨succ a, or.inr rfl⟩, },
   { exact is_open_generate_from_of_mem ⟨pred a, or.inl rfl⟩, },
-end⟩
+end
 
 @[priority 100]
-instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α] [linear_order α]
-  [pred_order α] [succ_order α] :
+instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology α] [partial_order α]
+  [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
   order_topology α :=
-⟨begin
-  rw h.eq_bot,
+⟨by { rw h.eq_bot, exact bot_topological_space_eq_generate_from_of_pred_succ_order, }⟩
+
+lemma linear_order.bot_topological_space_eq_generate_from
+  {α} [linear_order α] [pred_order α] [succ_order α] :
+  (⊥ : topological_space α) = generate_from {s | ∃ a, s = Ioi a ∨ s = Iio a} :=
+begin
   refine (eq_bot_of_singletons_open (λ a, _)).symm,
   have h_singleton_eq_inter : {a} = Iic a ∩ Ici a,
     by rw [inter_comm, Ici_inter_Iic, Icc_self a],
@@ -88,5 +90,19 @@ instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α
       rw h_singleton_eq_inter,
       apply is_open.inter,
       { exact is_open_generate_from_of_mem ⟨succ a, or.inr rfl⟩ },
-      { exact is_open_generate_from_of_mem ⟨pred a, or.inl rfl⟩ } } }
+      { exact is_open_generate_from_of_mem ⟨pred a, or.inl rfl⟩ } } },
+end
+
+@[priority 100]
+instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α] [linear_order α]
+  [pred_order α] [succ_order α] :
+  order_topology α :=
+⟨by { rw h.eq_bot, exact linear_order.bot_topological_space_eq_generate_from, }⟩
+
+lemma order_topology.discrete_topology_of_pred_succ [linear_order α]
+  [pred_order α] [succ_order α] [h : order_topology α] :
+  discrete_topology α :=
+⟨begin
+  rw h.topology_eq_generate_intervals,
+  exact linear_order.bot_topological_space_eq_generate_from.symm,
 end⟩

@@ -69,7 +69,7 @@ variables {V : Type*} {V₂ : Type*}
 namespace finsupp
 
 lemma smul_sum {α : Type*} {β : Type*} {R : Type*} {M : Type*}
-  [has_zero β] [monoid R] [add_comm_monoid M] [distrib_mul_action R M]
+  [has_zero β] [add_comm_monoid M] [distrib_smul R M]
   {v : α →₀ β} {c : R} {h : α → β → M} :
   c • (v.sum h) = v.sum (λa b, c • h a b) :=
 finset.smul_sum
@@ -807,6 +807,21 @@ lemma map_strict_mono_of_injective : strict_mono (map f) :=
 (gci_map_comap hf).strict_mono_l
 
 end galois_coinsertion
+
+section order_iso
+omit sc
+include σ₁₂ σ₂₁
+variables [semilinear_equiv_class F σ₁₂ M M₂]
+
+/-- A linear isomorphism induces an order isomorphism of submodules. -/
+@[simps symm_apply apply] def order_iso_map_comap (f : F) : submodule R M ≃o submodule R₂ M₂ :=
+{ to_fun := map f,
+  inv_fun := comap f,
+  left_inv := comap_map_eq_of_injective $ equiv_like.injective f,
+  right_inv := map_comap_eq_of_surjective $ equiv_like.surjective f,
+  map_rel_iff' := map_le_map_iff_of_injective $ equiv_like.injective f }
+
+end order_iso
 
 --TODO(Mario): is there a way to prove this from order properties?
 lemma map_inf_eq_map_inf_comap [ring_hom_surjective σ₁₂] {f : F}
@@ -1962,6 +1977,16 @@ submodule.ext (λ _, by rw [mem_map_equiv, mem_comap, linear_equiv.coe_coe])
 lemma comap_equiv_eq_map_symm (e : M ≃ₛₗ[τ₁₂] M₂) (K : submodule R₂ M₂) :
   K.comap (e : M →ₛₗ[τ₁₂] M₂) = K.map (e.symm : M₂ →ₛₗ[τ₂₁] M) :=
 (map_equiv_eq_comap_symm e.symm K).symm
+
+include τ₂₁
+lemma order_iso_map_comap_apply' (e : M ≃ₛₗ[τ₁₂] M₂) (p : submodule R M) :
+  order_iso_map_comap e p = comap e.symm p :=
+p.map_equiv_eq_comap_symm _
+
+lemma order_iso_map_comap_symm_apply' (e : M ≃ₛₗ[τ₁₂] M₂) (p : submodule R₂ M₂) :
+  (order_iso_map_comap e).symm p = map e.symm p :=
+p.comap_equiv_eq_map_symm _
+omit τ₂₁
 
 lemma comap_le_comap_smul (fₗ : N →ₗ[R] N₂) (c : R) :
   comap fₗ qₗ ≤ comap (c • fₗ) qₗ :=

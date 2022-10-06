@@ -238,6 +238,14 @@ lemma continuous_of_continuous_eval [topological_space α] {g : α → weak_dual
   (h : ∀ y, continuous (λ a, (g a) y)) : continuous g :=
 continuous_induced_rng.2 (continuous_pi_iff.mpr h)
 
+instance [t2_space 𝕜] : t2_space (weak_dual 𝕜 E) :=
+begin
+  refine t2_iff_is_closed_diagonal.mpr _,
+  simp_rw [set.diagonal, fun_like.ext_iff, set.set_of_forall],
+  exact is_closed_Inter (λ x, is_closed_eq ((weak_dual.eval_continuous x).comp continuous_fst) $
+    (weak_dual.eval_continuous x).comp continuous_snd),
+end
+
 end weak_dual
 
 /-- The weak topology is the topology coarsest topology on `E` such that all

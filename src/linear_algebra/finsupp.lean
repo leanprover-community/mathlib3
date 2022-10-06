@@ -434,16 +434,16 @@ finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_
   finsupp.total α M R v (single a c) = c • (v a) :=
 by simp [total_apply, sum_single_index]
 
+lemma total_zero_apply (x : α →₀ R) :
+  (finsupp.total α M R 0) x = 0 := by simp [finsupp.total_apply]
+
 variables (α M)
 
 @[simp] lemma total_zero :
   finsupp.total α M R 0 = 0 :=
-by { ext, simp [finsupp.total_apply] }
+linear_map.ext (total_zero_apply R)
 
 variables {α M}
-
-lemma total_zero_apply (x : α →₀ R) :
-  (finsupp.total α M R 0) x = 0 := by simp
 
 theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :
   f (finsupp.total α M R v l) = finsupp.total α M' R (f ∘ v) l :=

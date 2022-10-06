@@ -56,11 +56,22 @@ begin
   { exact is_open_generate_from_of_mem ⟨pred a, or.inl rfl⟩, },
 end
 
+lemma discrete_topology_iff_order_topology_of_pred_succ' [partial_order α]
+  [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
+  discrete_topology α ↔ order_topology α :=
+begin
+  refine ⟨λ h, ⟨_⟩, λ h, ⟨_⟩⟩,
+  { rw h.eq_bot,
+    exact bot_topological_space_eq_generate_from_of_pred_succ_order, },
+  { rw h.topology_eq_generate_intervals,
+    exact bot_topological_space_eq_generate_from_of_pred_succ_order.symm, },
+end
+
 @[priority 100]
 instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology α] [partial_order α]
   [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
   order_topology α :=
-⟨by { rw h.eq_bot, exact bot_topological_space_eq_generate_from_of_pred_succ_order, }⟩
+discrete_topology_iff_order_topology_of_pred_succ'.1 h
 
 lemma linear_order.bot_topological_space_eq_generate_from
   {α} [linear_order α] [pred_order α] [succ_order α] :
@@ -93,16 +104,19 @@ begin
       { exact is_open_generate_from_of_mem ⟨pred a, or.inl rfl⟩ } } },
 end
 
+lemma discrete_topology_iff_order_topology_of_pred_succ
+  [linear_order α] [pred_order α] [succ_order α] :
+  discrete_topology α ↔ order_topology α :=
+begin
+  refine ⟨λ h, ⟨_⟩, λ h, ⟨_⟩⟩,
+  { rw h.eq_bot,
+    exact linear_order.bot_topological_space_eq_generate_from, },
+  { rw h.topology_eq_generate_intervals,
+    exact linear_order.bot_topological_space_eq_generate_from.symm, },
+end
+
 @[priority 100]
 instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α] [linear_order α]
   [pred_order α] [succ_order α] :
   order_topology α :=
-⟨by { rw h.eq_bot, exact linear_order.bot_topological_space_eq_generate_from, }⟩
-
-lemma order_topology.discrete_topology_of_pred_succ [linear_order α]
-  [pred_order α] [succ_order α] [h : order_topology α] :
-  discrete_topology α :=
-⟨begin
-  rw h.topology_eq_generate_intervals,
-  exact linear_order.bot_topological_space_eq_generate_from.symm,
-end⟩
+discrete_topology_iff_order_topology_of_pred_succ.mp h

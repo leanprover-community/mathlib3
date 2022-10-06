@@ -1395,7 +1395,7 @@ lemma sInter_prod (f₁ : set (set α)) (h₁ : f₁.nonempty) (T : set β) :
 by rw [←sInter_singleton T, sInter_prod_sInter f₁ {T} h₁ (singleton_nonempty T), sInter_singleton,
   prod_singleton, ←set.image_comp]
 
-lemma set_prod_sInter (f₂ : set (set β)) (h₂ : f₂.nonempty) (S : set α) :
+lemma prod_sInter (f₂ : set (set β)) (h₂ : f₂.nonempty) (S : set α) :
   S ×ˢ ⋂₀ f₂ = ⋂₀ ((×ˢ) S '' f₂) :=
 by rw [←sInter_singleton S, sInter_prod_sInter {S} f₂ (singleton_nonempty S) h₂, sInter_singleton,
   singleton_prod, ←set.image_comp]

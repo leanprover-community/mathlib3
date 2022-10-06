@@ -157,14 +157,14 @@ lemma pow_eq_one_of_norm_eq_one {x : K}
 begin
   obtain ⟨a, -, b, -, habne, h⟩ := @set.infinite.exists_ne_map_eq_of_maps_to _ _ _ _
     ((^) x : ℕ → K) set.infinite_univ _ (finite_of_norm_le K A (1:ℝ)),
-  { replace habne := habne.lt_or_lt,
-    wlog : a < b := habne using [a b],
-    refine ⟨b - a, tsub_pos_of_lt habne, _⟩,
+  { wlog hab : a ≤ b,
+    { exact this hxi hx b a habne.symm h.symm (le_of_not_le hab) },
+    refine ⟨b - a, tsub_pos_of_lt (hab.lt_of_ne habne), _⟩,
     have hxne : x ≠ 0,
     { contrapose! hx,
       simp only [hx, norm_zero, ring_hom.map_zero, ne.def, not_false_iff, zero_ne_one],
       use (is_alg_closed.lift (number_field.is_algebraic K)).to_ring_hom, },
-    { rw [pow_sub₀ _ hxne habne.le, h, mul_inv_cancel (pow_ne_zero b hxne)], }},
+    { rw [pow_sub₀ _ hxne hab, h, mul_inv_cancel (pow_ne_zero b hxne)], }},
   { rw set.maps_univ_to,
     exact λ a, ⟨hxi.pow a, λ φ, by simp [hx φ, norm_pow, one_pow]⟩, },
 end

@@ -576,8 +576,17 @@ begin
       part_enat.add_right_cancel_iff h1netop, ← cyclotomic₂_div_prod_eq a b hpowpos2 hbne,
       multiplicity.finset.prod (int.prime_two), ← finset.sum_sdiff hsubdiv,
       ← multiplicity.finset.prod (int.prime_two) (nat.divisors (2 ^ β)),
-      cyclotomic₂_div_prod_eq a b hpowpos1 hbne, ← zero_add (multiplicity 2 _)] at h2,
-      sorry }
+      cyclotomic₂_div_prod_eq a b hpowpos1 hbne] at h2,
+    have hnetop : multiplicity 2 (a ^ (2 ^ β) - b ^ (2 ^ β)) ≠ ⊤,
+    { rw [← nat.cast_two, ← multiplicity.int.nat_abs, multiplicity.ne_top_iff_finite,
+        multiplicity.finite_nat_iff],
+      refine ⟨by norm_num, int.nat_abs_pos_of_ne_zero (sub_ne_zero.mpr _)⟩,
+      contrapose! hab,
+      replace hab := congr_arg int.nat_abs (hab.symm),
+      simp only [int.nat_abs_pow] at hab,
+      exact (nat.pow_left_injective hpowpos1) hab },
+    apply (part_enat.add_right_cancel_iff hnetop).mp,
+    convert h2; simp only [zero_add] }
 end
 
 end cyclotomic₂

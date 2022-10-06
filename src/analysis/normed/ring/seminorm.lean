@@ -53,7 +53,8 @@ multiplication, takes nonnegative values, is subadditive and such that `f (-x) =
 structure mul_ring_seminorm (R : Type*) [non_assoc_ring R]
   extends add_group_seminorm R, monoid_with_zero_hom R ℝ
 
-/-- A multiplicative norm on a ring `R` is a ring seminorm such that `f x = 0` implies `x = 0`. -/
+/-- A multiplicative norm on a ring `R` is a multiplicative ring seminorm such that `f x = 0`
+implies `x = 0`. -/
 structure mul_ring_norm (R : Type*) [non_assoc_ring R] extends mul_ring_seminorm R, add_group_norm R
 
 attribute [nolint doc_blame] ring_seminorm.to_add_group_seminorm ring_norm.to_add_group_norm

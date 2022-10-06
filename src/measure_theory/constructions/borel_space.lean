@@ -1344,12 +1344,12 @@ instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
 
-instance add_circle.measurable_space {a : ℝ} [fact (0 < a)] : measurable_space (add_circle a) :=
+instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
 borel (add_circle a)
 
-instance add_circle.borel_space {a : ℝ} [fact (0 < a)] : borel_space (add_circle a) := ⟨rfl⟩
+instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
 
-@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} [fact (0 < a)] :
+@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
   measurable (coe : ℝ → add_circle a) :=
 continuous.measurable $ add_circle.continuous_mk' a
 

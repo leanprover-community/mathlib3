@@ -77,10 +77,10 @@ instance {V} [Q : quiver.{v+1} V] [h : nonempty V] : nonempty (free_groupoid V) 
 
 lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
-  quotient.comp_closure red_step (p.reverse) (q.reverse)  :=
+  quotient.comp_closure red_step (p.reverse) (q.reverse) :=
 begin
-  rintros ⟨U, W, XW, pp, qq, WY, ⟨_, Z, f⟩⟩,
-  have : quotient.comp_closure red_step (WY.reverse ≫ 𝟙 _ ≫  XW.reverse)
+  rintros ⟨U, W, XW, pp, qq, WY, _, Z, f⟩,
+  have : quotient.comp_closure red_step (WY.reverse ≫ 𝟙 _ ≫ XW.reverse)
     (WY.reverse ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ XW.reverse),
   { apply quotient.comp_closure.intro,
     apply red_step.step, },

@@ -149,7 +149,7 @@ begin
 end
 
 section volume_form
-variables [fact (finrank ℝ E = n + 1)] (ω : orientation ℝ E (fin n.succ))
+variables [fact (finrank ℝ E = n + 1)] (o : orientation ℝ E (fin n.succ))
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
@@ -157,35 +157,35 @@ local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 alternating form uniquely defined by compatibility with the orientation and inner product structure.
 -/
 def volume_form : alternating_map ℝ E ℝ (fin n.succ) :=
-(ω.fin_orthonormal_basis n.succ_pos (fact.out (finrank ℝ E = n + 1))).to_basis.det
+(o.fin_orthonormal_basis n.succ_pos (fact.out (finrank ℝ E = n + 1))).to_basis.det
 
 /-- The volume form on an oriented real inner product space can be evaluated as the determinant with
 respect to any orthonormal basis of the space compatible with the orientation. -/
 lemma volume_form_robust (b : orthonormal_basis (fin n.succ) ℝ E)
-  (hb : b.to_basis.orientation = ω) :
-  ω.volume_form = b.to_basis.det :=
+  (hb : b.to_basis.orientation = o) :
+  o.volume_form = b.to_basis.det :=
 begin
   dsimp [volume_form] at *,
   rw [same_orientation_iff_det_eq_det, hb],
-  exact ω.fin_orthonormal_basis_orientation _ _,
+  exact o.fin_orthonormal_basis_orientation _ _,
 end
 
 attribute [irreducible] orientation.volume_form
 
 lemma volume_form_robust' (b : orthonormal_basis (fin n.succ) ℝ E) (v : fin n.succ → E) :
-  |ω.volume_form v| = |b.to_basis.det v| :=
-by rw [ω.volume_form_robust (b.adjust_to_orientation ω) (b.orientation_adjust_to_orientation ω),
+  |o.volume_form v| = |b.to_basis.det v| :=
+by rw [o.volume_form_robust (b.adjust_to_orientation o) (b.orientation_adjust_to_orientation o),
   b.abs_det_adjust_to_orientation]
 
 /-- Let `v` be an indexed family of `n + 1` vectors in an oriented `(n + 1)`-dimensional real inner
 product space `E`. The output of the volume form of `E` when evaluated on `v` is bounded in absolute
 value by the product of the norms of the vectors `v i`. -/
-lemma abs_volume_form_apply_le (v : fin n.succ → E) : |ω.volume_form v| ≤ ∏ i : fin n.succ, ∥v i∥ :=
+lemma abs_volume_form_apply_le (v : fin n.succ → E) : |o.volume_form v| ≤ ∏ i : fin n.succ, ∥v i∥ :=
 begin
   have : finrank ℝ E = fintype.card (fin n.succ) := by simpa using fact.out _,
   let b : orthonormal_basis (fin n.succ) ℝ E := gram_schmidt_orthonormal_basis this v,
   have hb : b.to_basis.det v = ∏ i, ⟪b i, v i⟫ := gram_schmidt_orthonormal_basis_det this v,
-  rw [ω.volume_form_robust' b, hb, finset.abs_prod],
+  rw [o.volume_form_robust' b, hb, finset.abs_prod],
   apply finset.prod_le_prod,
   { intros i hi,
     positivity },
@@ -195,20 +195,20 @@ begin
 end
 
 lemma volume_form_apply_le (v : fin n.succ → E) :
-  ω.volume_form v ≤ ∏ i : fin n.succ, ∥v i∥ :=
-(le_abs_self _).trans (ω.abs_volume_form_apply_le v)
+  o.volume_form v ≤ ∏ i : fin n.succ, ∥v i∥ :=
+(le_abs_self _).trans (o.abs_volume_form_apply_le v)
 
 /-- Let `v` be an indexed family of `n + 1` orthogonal vectors in an oriented `(n + 1)`-dimensional
 real inner product space `E`. The output of the volume form of `E` when evaluated on `v` is, up to
 sign, the product of the norms of the vectors `v i`. -/
 lemma abs_volume_form_apply_of_pairwise_orthogonal
   {v : fin n.succ → E} (hv : pairwise (λ i j, ⟪v i, v j⟫ = 0)) :
-  |ω.volume_form v| = ∏ i : fin n.succ, ∥v i∥ :=
+  |o.volume_form v| = ∏ i : fin n.succ, ∥v i∥ :=
 begin
   have hdim : finrank ℝ E = fintype.card (fin n.succ) := by simpa using fact.out _,
   let b : orthonormal_basis (fin n.succ) ℝ E := gram_schmidt_orthonormal_basis hdim v,
   have hb : b.to_basis.det v = ∏ i, ⟪b i, v i⟫ := gram_schmidt_orthonormal_basis_det hdim v,
-  rw [ω.volume_form_robust' b, hb, finset.abs_prod],
+  rw [o.volume_form_robust' b, hb, finset.abs_prod],
   by_cases h : ∃ i, v i = 0,
   obtain ⟨i, hi⟩ := h,
   { rw [finset.prod_eq_zero (finset.mem_univ i), finset.prod_eq_zero (finset.mem_univ i)];
@@ -227,8 +227,8 @@ end
 /-- The output of the volume form of an oriented real inner product space `E` when evaluated on an
 orthonormal basis is ±1. -/
 lemma abs_volume_form_apply_of_orthonormal (v : orthonormal_basis (fin n.succ) ℝ E) :
-  |ω.volume_form v| = 1 :=
-by simpa [ω.volume_form_robust' v v] using congr_arg abs v.to_basis.det_self
+  |o.volume_form v| = 1 :=
+by simpa [o.volume_form_robust' v v] using congr_arg abs v.to_basis.det_self
 
 end volume_form
 

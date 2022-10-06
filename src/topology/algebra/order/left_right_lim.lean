@@ -77,7 +77,7 @@ namespace monotone
 
 variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order β]
 [topological_space β] [order_topology β]
-{f : α → β} (hf : monotone f)  {x y : α}
+{f : α → β} (hf : monotone f) {x y : α}
 include hf
 
 lemma left_lim_eq_Sup [topological_space α] [order_topology α] (h : 𝓝[<] x ≠ ⊥) :
@@ -123,13 +123,13 @@ begin
 end
 
 lemma le_right_lim (h : x ≤ y) : f x ≤ right_lim f y :=
-@left_lim_le αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual y x h
+hf.dual.left_lim_le h
 
 lemma right_lim_le (h : x < y) : right_lim f x ≤ f y :=
-@le_left_lim αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual y x h
+hf.dual.le_left_lim h
 
 @[mono] protected lemma right_lim : monotone (right_lim f) :=
-λ x y h, @monotone.left_lim αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual y x h
+λ x y h, hf.dual.left_lim h
 
 lemma left_lim_le_right_lim (h : x ≤ y) : left_lim f x ≤ right_lim f y :=
 (hf.left_lim_le le_rfl).trans (hf.le_right_lim h)
@@ -158,9 +158,19 @@ begin
   exact hf.tendsto_nhds_within_Iio x
 end
 
+lemma tendsto_left_lim_within (x : α) : tendsto f (𝓝[<] x) (𝓝[≤] (left_lim f x)) :=
+begin
+  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within f (hf.tendsto_left_lim x),
+  filter_upwards [self_mem_nhds_within] with y hy using hf.le_left_lim hy,
+end
+
 lemma tendsto_right_lim (x : α) :
   tendsto f (𝓝[>] x) (𝓝 (right_lim f x)) :=
-@monotone.tendsto_left_lim αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual _ _ x
+hf.dual.tendsto_left_lim x
+
+lemma tendsto_right_lim_within (x : α) :
+  tendsto f (𝓝[>] x) (𝓝[≥] (right_lim f x)) :=
+hf.dual.tendsto_left_lim_within x
 
 /-- A monotone function is continuous to the left at a point if and only if its left limit
 coincides with the value of the function. -/
@@ -179,7 +189,7 @@ end
 coincides with the value of the function. -/
 lemma continuous_within_at_Ioi_iff_right_lim_eq :
   continuous_within_at f (Ioi x) x ↔ right_lim f x = f x :=
-@continuous_within_at_Iio_iff_left_lim_eq αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual x _ _
+hf.dual.continuous_within_at_Iio_iff_left_lim_eq
 
 /-- A monotone function is continuous at a point if and only if its left and right limits
 coincide. -/
@@ -210,7 +220,7 @@ version. -/
 lemma countable_not_continuous_within_at_Ioi [topological_space.second_countable_topology β] :
   set.countable {x | ¬(continuous_within_at f (Ioi x) x)} :=
 begin
-  /- If `f` is not continuous on the right at `x`, there is an inverval `(f x, z x)` which is not
+  /- If `f` is not continuous on the right at `x`, there is an interval `(f x, z x)` which is not
   reached by `f`. This gives a family of disjoint open intervals in `β`. Such a family can only
   be countable as `β` is second-countable. -/
   nontriviality α,
@@ -256,7 +266,7 @@ is at most countable. Superseded by `countable_not_continuous_at` which gives th
 version. -/
 lemma countable_not_continuous_within_at_Iio [topological_space.second_countable_topology β] :
   set.countable {x | ¬(continuous_within_at f (Iio x) x)} :=
-@monotone.countable_not_continuous_within_at_Ioi αᵒᵈ βᵒᵈ _ _ _ _ f hf.dual _ _ _
+hf.dual.countable_not_continuous_within_at_Ioi
 
 /-- In a second countable space, the set of points where a monotone function is not continuous
 is at most countable. -/
@@ -273,3 +283,78 @@ begin
 end
 
 end monotone
+
+namespace antitone
+
+variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order β]
+[topological_space β] [order_topology β]
+{f : α → β} (hf : antitone f) {x y : α}
+include hf
+
+lemma le_left_lim (h : x ≤ y) : f y ≤ left_lim f x :=
+hf.dual_right.left_lim_le h
+
+lemma left_lim_le (h : x < y) : left_lim f y ≤ f x :=
+hf.dual_right.le_left_lim h
+
+@[mono] protected lemma left_lim : antitone (left_lim f) :=
+hf.dual_right.left_lim
+
+lemma right_lim_le (h : x ≤ y) : right_lim f y ≤ f x :=
+hf.dual_right.le_right_lim h
+
+lemma le_right_lim (h : x < y) : f y ≤ right_lim f x :=
+hf.dual_right.right_lim_le h
+
+@[mono] protected lemma right_lim : antitone (right_lim f) :=
+hf.dual_right.right_lim
+
+lemma right_lim_le_left_lim (h : x ≤ y) : right_lim f y ≤ left_lim f x :=
+hf.dual_right.left_lim_le_right_lim h
+
+lemma left_lim_le_right_lim (h : x < y) : left_lim f y ≤ right_lim f x :=
+hf.dual_right.right_lim_le_left_lim h
+
+variables [topological_space α] [order_topology α]
+
+lemma tendsto_left_lim (x : α) : tendsto f (𝓝[<] x) (𝓝 (left_lim f x)) :=
+hf.dual_right.tendsto_left_lim x
+
+lemma tendsto_left_lim_within (x : α) : tendsto f (𝓝[<] x) (𝓝[≥] (left_lim f x)) :=
+hf.dual_right.tendsto_left_lim_within x
+
+lemma tendsto_right_lim (x : α) :
+  tendsto f (𝓝[>] x) (𝓝 (right_lim f x)) :=
+hf.dual_right.tendsto_right_lim x
+
+lemma tendsto_right_lim_within (x : α) :
+  tendsto f (𝓝[>] x) (𝓝[≤] (right_lim f x)) :=
+hf.dual_right.tendsto_right_lim_within x
+
+/-- An antitone function is continuous to the left at a point if and only if its left limit
+coincides with the value of the function. -/
+lemma continuous_within_at_Iio_iff_left_lim_eq  :
+  continuous_within_at f (Iio x) x ↔ left_lim f x = f x :=
+hf.dual_right.continuous_within_at_Iio_iff_left_lim_eq
+
+/-- An antitone function is continuous to the right at a point if and only if its right limit
+coincides with the value of the function. -/
+lemma continuous_within_at_Ioi_iff_right_lim_eq :
+  continuous_within_at f (Ioi x) x ↔ right_lim f x = f x :=
+hf.dual_right.continuous_within_at_Ioi_iff_right_lim_eq
+
+/-- An antitone function is continuous at a point if and only if its left and right limits
+coincide. -/
+lemma continuous_at_iff_left_lim_eq_right_lim :
+  continuous_at f x ↔ left_lim f x = right_lim f x :=
+hf.dual_right.continuous_at_iff_left_lim_eq_right_lim
+
+open function
+
+/-- In a second countable space, the set of points where a monotone function is not continuous
+is at most countable. -/
+lemma countable_not_continuous_at [topological_space.second_countable_topology β] :
+  set.countable {x | ¬(continuous_at f x)} :=
+hf.dual_right.countable_not_continuous_at
+
+end antitone

@@ -314,6 +314,23 @@ begin
   exact submodule.span_eq_restrict_scalars R S M X h
 end
 
+lemma fg.stablizes_of_supr_eq {M' : submodule R M} (hM' : M'.fg)
+  (N : ℕ →o submodule R M) (H : supr N = M') : ∃ n, M' = N n :=
+begin
+  obtain ⟨S, hS⟩ := hM',
+  have : ∀ s : S, ∃ n, (s : M) ∈ N n :=
+    λ s, (submodule.mem_supr_of_chain N s).mp
+      (by { rw [H, ← hS], exact submodule.subset_span s.2 }),
+  choose f hf,
+  use S.attach.sup f,
+  apply le_antisymm,
+  { conv_lhs { rw ← hS },
+    rw submodule.span_le,
+    intros s hs,
+    exact N.2 (finset.le_sup $ S.mem_attach ⟨s, hs⟩) (hf _) },
+  { rw ← H, exact le_supr _ _ }
+end
+
 /-- Finitely generated submodules are precisely compact elements in the submodule lattice. -/
 theorem fg_iff_compact (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
 begin

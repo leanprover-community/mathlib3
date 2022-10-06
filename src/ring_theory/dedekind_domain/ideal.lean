@@ -187,8 +187,10 @@ begin
     ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
-@[simp] lemma inv_one : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
-fractional_ideal.div_one
+noncomputable instance : inv_one_class (fractional_ideal R₁⁰ K) :=
+{ inv_one := fractional_ideal.div_one,
+  ..fractional_ideal.has_one,
+  ..fractional_ideal.has_inv K }
 
 end fractional_ideal
 
@@ -431,7 +433,7 @@ lemma mul_inv_cancel_of_le_one [h : is_dedekind_domain A]
 begin
   -- Handle a few trivial cases.
   by_cases hI1 : I = ⊤,
-  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.inv_one] },
+  { rw [hI1, coe_ideal_top, one_mul, inv_one] },
   by_cases hNF : is_field A,
   { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
@@ -583,10 +585,8 @@ noncomputable instance fractional_ideal.semifield :
   inv_zero := inv_zero' _,
   div := (/),
   div_eq_mul_inv := fractional_ideal.div_eq_mul_inv,
-  exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective le_rfl).ne
-    (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
-  .. fractional_ideal.comm_semiring }
+  .. fractional_ideal.comm_semiring, ..(coe_to_fractional_ideal_injective le_rfl).nontrivial }
 
 /-- Fractional ideals have cancellative multiplication in a Dedekind domain.
 

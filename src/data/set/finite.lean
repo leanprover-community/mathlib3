@@ -387,7 +387,7 @@ instance finite_sep (s : set α) (p : α → Prop) [finite s] :
 by { casesI nonempty_fintype s, apply_instance }
 
 protected lemma subset (s : set α) {t : set α} [finite s] (h : t ⊆ s) : finite t :=
-by { rw eq_sep_of_subset h, apply_instance }
+by { rw ←sep_eq_of_subset h, apply_instance }
 
 instance finite_inter_of_right (s t : set α) [finite t] :
   finite (s ∩ t : set α) := finite.set.subset t (inter_subset_right s t)
@@ -596,6 +596,11 @@ theorem finite_mem_finset (s : finset α) : {a | a ∈ s}.finite := to_finite _
 
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : s.finite :=
 h.induction_on finite_empty finite_singleton
+
+lemma finite_preimage_inl_and_inr {s : set (α ⊕ β)} :
+  (sum.inl ⁻¹' s).finite ∧ (sum.inr ⁻¹' s).finite ↔ s.finite :=
+⟨λ h, image_preimage_inl_union_image_preimage_inr s ▸ (h.1.image _).union (h.2.image _),
+  λ h, ⟨h.preimage (sum.inl_injective.inj_on _), h.preimage (sum.inr_injective.inj_on _)⟩⟩
 
 theorem exists_finite_iff_finset {p : set α → Prop} :
   (∃ s : set α, s.finite ∧ p s) ↔ ∃ s : finset α, p ↑s :=

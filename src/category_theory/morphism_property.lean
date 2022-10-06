@@ -3,7 +3,7 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.diagonal
 import category_theory.arrow
 import category_theory.limits.shapes.comm_sq
 
@@ -18,6 +18,8 @@ The following meta-properties are defined
 * `stable_under_composition`: `P` is stable under composition if `P f → P g → P (f ≫ g)`.
 * `stable_under_base_change`: `P` is stable under base change if in all pullback
   squares, the left map satisfies `P` if the right map satisfies it.
+* `stable_under_cobase_change`: `P` is stable under cobase change if in all pushout
+  squares, the right map satisfies `P` if the left map satisfies it.
 
 -/
 
@@ -41,26 +43,68 @@ variable {C}
 
 namespace morphism_property
 
+instance : has_subset (morphism_property C) :=
+⟨λ P₁ P₂, ∀ ⦃X Y : C⦄ (f : X ⟶ Y) (hf : P₁ f), P₂ f⟩
+instance : has_inter (morphism_property C) :=
+⟨λ P₁ P₂ X Y f, P₁ f ∧ P₂ f⟩
+
+/-- The morphism property in `Cᵒᵖ` associated to a morphism property in `C` -/
+@[simp] def op (P : morphism_property C) : morphism_property Cᵒᵖ := λ X Y f, P f.unop
+
+/-- The morphism property in `C` associated to a morphism property in `Cᵒᵖ` -/
+@[simp] def unop (P : morphism_property Cᵒᵖ) : morphism_property C := λ X Y f, P f.op
+
+lemma unop_op (P : morphism_property C) : P.op.unop = P := rfl
+lemma op_unop (P : morphism_property Cᵒᵖ) : P.unop.op = P := rfl
+
+/-- The inverse image of a `morphism_property D` by a functor `C ⥤ D` -/
+def inverse_image (P : morphism_property D) (F : C ⥤ D) : morphism_property C :=
+λ X Y f, P (F.map f)
+
 /-- A morphism property `respects_iso` if it still holds when composed with an isomorphism -/
 def respects_iso (P : morphism_property C) : Prop :=
   (∀ {X Y Z} (e : X ≅ Y) (f : Y ⟶ Z), P f → P (e.hom ≫ f)) ∧
   (∀ {X Y Z} (e : Y ≅ Z) (f : X ⟶ Y), P f → P (f ≫ e.hom))
+
+lemma respects_iso.op {P : morphism_property C} (h : respects_iso P) : respects_iso P.op :=
+⟨λ X Y Z e f hf, h.2 e.unop f.unop hf, λ X Y Z e f hf, h.1 e.unop f.unop hf⟩
+
+lemma respects_iso.unop {P : morphism_property Cᵒᵖ} (h : respects_iso P) : respects_iso P.unop :=
+⟨λ X Y Z e f hf, h.2 e.op f.op hf, λ X Y Z e f hf, h.1 e.op f.op hf⟩
 
 /-- A morphism property is `stable_under_composition` if the composition of two such morphisms
 still falls in the class. -/
 def stable_under_composition (P : morphism_property C) : Prop :=
   ∀ ⦃X Y Z⦄ (f : X ⟶ Y) (g : Y ⟶ Z), P f → P g → P (f ≫ g)
 
+lemma stable_under_composition.op {P : morphism_property C} (h : stable_under_composition P) :
+  stable_under_composition P.op := λ X Y Z f g hf hg, h g.unop f.unop hg hf
+
+lemma stable_under_composition.unop {P : morphism_property Cᵒᵖ} (h : stable_under_composition P) :
+  stable_under_composition P.unop := λ X Y Z f g hf hg, h g.op f.op hg hf
+
 /-- A morphism property is `stable_under_inverse` if the inverse of a morphism satisfying
 the property still falls in the class. -/
 def stable_under_inverse (P : morphism_property C) : Prop :=
 ∀ ⦃X Y⦄ (e : X ≅ Y), P e.hom → P e.inv
+
+lemma stable_under_inverse.op {P : morphism_property C} (h : stable_under_inverse P) :
+  stable_under_inverse P.op := λ X Y e he, h e.unop he
+
+lemma stable_under_inverse.unop {P : morphism_property Cᵒᵖ} (h : stable_under_inverse P) :
+  stable_under_inverse P.unop := λ X Y e he, h e.op he
 
 /-- A morphism property is `stable_under_base_change` if the base change of such a morphism
 still falls in the class. -/
 def stable_under_base_change (P : morphism_property C) : Prop :=
 ∀ ⦃X Y Y' S : C⦄ ⦃f : X ⟶ S⦄ ⦃g : Y ⟶ S⦄ ⦃f' : Y' ⟶ Y⦄ ⦃g' : Y' ⟶ X⦄
   (sq : is_pullback f' g' g f) (hg : P g), P g'
+
+/-- A morphism property is `stable_under_cobase_change` if the cobase change of such a morphism
+still falls in the class. -/
+def stable_under_cobase_change (P : morphism_property C) : Prop :=
+∀ ⦃A A' B B' : C⦄ ⦃f : A ⟶ A'⦄ ⦃g : A ⟶ B⦄ ⦃f' : B ⟶ B'⦄ ⦃g' : A' ⟶ B'⦄
+  (sq : is_pushout g f f' g') (hf : P f), P f'
 
 lemma stable_under_composition.respects_iso {P : morphism_property C}
   (hP : stable_under_composition P) (hP' : ∀ {X Y} (e : X ≅ Y), P e.hom) : respects_iso P :=
@@ -164,11 +208,56 @@ begin
     hP.base_change_map _ (over.hom_mk _ e₁.symm : over.mk f ⟶ over.mk f') h₁],
 end
 
+lemma stable_under_cobase_change.mk {P : morphism_property C} [has_pushouts C]
+  (hP₁ : respects_iso P)
+  (hP₂ : ∀ (A B A' : C) (f : A ⟶ A') (g : A ⟶ B) (hf : P f), P (pushout.inr : B ⟶ pushout f g)) :
+  stable_under_cobase_change P := λ A A' B B' f g f' g' sq hf,
+begin
+  let e := sq.flip.iso_pushout,
+  rw [← hP₁.cancel_right_is_iso _ e.hom, sq.flip.inr_iso_pushout_hom],
+  exact hP₂ _ _ _ f g hf,
+end
+
+lemma stable_under_cobase_change.respects_iso {P : morphism_property C}
+  (hP : stable_under_cobase_change P) : respects_iso P :=
+respects_iso.of_respects_arrow_iso _ (λ f g e, hP (is_pushout.of_horiz_is_iso (comm_sq.mk e.hom.w)))
+
+lemma stable_under_cobase_change.inl {P : morphism_property C}
+  (hP : stable_under_cobase_change P) {A B A' : C} (f : A ⟶ A') (g : A ⟶ B) [has_pushout f g]
+  (H : P g) : P (pushout.inl : A' ⟶ pushout f g) :=
+hP (is_pushout.of_has_pushout f g) H
+
+lemma stable_under_cobase_change.inr {P : morphism_property C}
+  (hP : stable_under_cobase_change P) {A B A' : C} (f : A ⟶ A') (g : A ⟶ B) [has_pushout f g]
+  (H : P f) : P (pushout.inr : B ⟶ pushout f g) :=
+hP (is_pushout.of_has_pushout f g).flip H
+
+lemma stable_under_cobase_change.op {P : morphism_property C}
+  (hP : stable_under_cobase_change P) : stable_under_base_change P.op :=
+λ X Y Y' S f g f' g' sq hg, hP sq.unop hg
+
+lemma stable_under_cobase_change.unop {P : morphism_property Cᵒᵖ}
+  (hP : stable_under_cobase_change P) : stable_under_base_change P.unop :=
+λ X Y Y' S f g f' g' sq hg, hP sq.op hg
+
+lemma stable_under_base_change.op {P : morphism_property C}
+  (hP : stable_under_base_change P) : stable_under_cobase_change P.op :=
+λ A A' B B' f g f' g' sq hf, hP sq.unop hf
+
+lemma stable_under_base_change.unop {P : morphism_property Cᵒᵖ}
+  (hP : stable_under_base_change P) : stable_under_cobase_change P.unop :=
+λ A A' B B' f g f' g' sq hf, hP sq.op hf
+
 /-- If `P : morphism_property C` and `F : C ⥤ D`, then
 `P.is_inverted_by F` means that all morphisms in `P` are mapped by `F`
 to isomorphisms in `D`. -/
 def is_inverted_by (P : morphism_property C) (F : C ⥤ D) : Prop :=
 ∀ ⦃X Y : C⦄ (f : X ⟶ Y) (hf : P f), is_iso (F.map f)
+
+lemma is_inverted_by.of_comp {C₁ C₂ C₃ : Type*} [category C₁] [category C₂] [category C₃]
+  (W : morphism_property C₁) (F : C₁ ⥤ C₂) (hF : W.is_inverted_by F) (G : C₂ ⥤ C₃) :
+  W.is_inverted_by (F ⋙ G) :=
+λ X Y f hf, by { haveI := hF f hf, dsimp, apply_instance, }
 
 /-- Given `app : Π X, F₁.obj X ⟶ F₂.obj X` where `F₁` and `F₂` are two functors,
 this is the `morphism_property C` satisfied by the morphisms in `C` with respect
@@ -199,6 +288,137 @@ begin
 end
 
 end naturality_property
+
+lemma respects_iso.inverse_image {P : morphism_property D} (h : respects_iso P) (F : C ⥤ D) :
+  respects_iso (P.inverse_image F) :=
+begin
+  split,
+  all_goals
+  { intros X Y Z e f hf,
+    dsimp [inverse_image],
+    rw F.map_comp, },
+  exacts [h.1 (F.map_iso e) (F.map f) hf, h.2 (F.map_iso e) (F.map f) hf],
+end
+
+lemma stable_under_composition.inverse_image {P : morphism_property D}
+  (h : stable_under_composition P) (F : C ⥤ D) : stable_under_composition (P.inverse_image F) :=
+λ X Y Z f g hf hg, by simpa only [← F.map_comp] using h (F.map f) (F.map g) hf hg
+
+variable (C)
+
+/-- The `morphism_property C` satisfied by isomorphisms in `C`. -/
+def isomorphisms : morphism_property C := λ X Y f, is_iso f
+
+/-- The `morphism_property C` satisfied by monomorphisms in `C`. -/
+def monomorphisms : morphism_property C := λ X Y f, mono f
+
+/-- The `morphism_property C` satisfied by epimorphisms in `C`. -/
+def epimorphisms : morphism_property C := λ X Y f, epi f
+
+section
+
+variables {C} {X Y : C} (f : X ⟶ Y)
+
+@[simp] lemma isomorphisms.iff : (isomorphisms C) f ↔ is_iso f := by refl
+@[simp] lemma monomorphisms.iff : (monomorphisms C) f ↔ mono f := by refl
+@[simp] lemma epimorphisms.iff : (epimorphisms C) f ↔ epi f := by refl
+
+lemma isomorphisms.infer_property [hf : is_iso f] : (isomorphisms C) f := hf
+lemma monomorphisms.infer_property [hf : mono f] : (monomorphisms C) f := hf
+lemma epimorphisms.infer_property [hf : epi f] : (epimorphisms C) f := hf
+
+end
+
+lemma respects_iso.monomorphisms : respects_iso (monomorphisms C) :=
+by { split; { intros X Y Z e f, simp only [monomorphisms.iff], introI, apply mono_comp, }, }
+
+lemma respects_iso.epimorphisms : respects_iso (epimorphisms C) :=
+by { split; { intros X Y Z e f, simp only [epimorphisms.iff], introI, apply epi_comp, }, }
+
+lemma respects_iso.isomorphisms : respects_iso (isomorphisms C) :=
+by { split; { intros X Y Z e f, simp only [isomorphisms.iff], introI, apply_instance, }, }
+
+lemma stable_under_composition.isomorphisms : stable_under_composition (isomorphisms C) :=
+λ X Y Z f g hf hg, begin
+  rw isomorphisms.iff at hf hg ⊢,
+  haveI := hf,
+  haveI := hg,
+  apply_instance,
+end
+
+lemma stable_under_composition.monomorphisms : stable_under_composition (monomorphisms C) :=
+λ X Y Z f g hf hg, begin
+  rw monomorphisms.iff at hf hg ⊢,
+  haveI := hf,
+  haveI := hg,
+  apply mono_comp,
+end
+
+lemma stable_under_composition.epimorphisms : stable_under_composition (epimorphisms C) :=
+λ X Y Z f g hf hg, begin
+  rw epimorphisms.iff at hf hg ⊢,
+  haveI := hf,
+  haveI := hg,
+  apply epi_comp,
+end
+
+variable {C}
+
+/-- The full subcategory of `C ⥤ D` consisting of functors inverting morphisms in `W` -/
+@[derive category, nolint has_nonempty_instance]
+def functors_inverting (W : morphism_property C) (D : Type*) [category D] :=
+full_subcategory (λ (F : C ⥤ D), W.is_inverted_by F)
+
+/-- A constructor for `W.functors_inverting D` -/
+def functors_inverting.mk {W : morphism_property C} {D : Type*} [category D]
+(F : C ⥤ D) (hF : W.is_inverted_by F) : W.functors_inverting D := ⟨F, hF⟩
+
+section diagonal
+
+variables [has_pullbacks C] {P : morphism_property C}
+
+/-- For `P : morphism_property C`, `P.diagonal` is a morphism property that holds for `f : X ⟶ Y`
+whenever `P` holds for `X ⟶ Y xₓ Y`. -/
+def diagonal (P : morphism_property C) : morphism_property C :=
+λ X Y f, P (pullback.diagonal f)
+
+lemma diagonal_iff {X Y : C} {f : X ⟶ Y} : P.diagonal f ↔ P (pullback.diagonal f) := iff.rfl
+
+lemma respects_iso.diagonal (hP : P.respects_iso) : P.diagonal.respects_iso :=
+begin
+  split,
+  { introv H,
+    rwa [diagonal_iff, pullback.diagonal_comp, hP.cancel_left_is_iso, hP.cancel_left_is_iso,
+      ← hP.cancel_right_is_iso _ _, ← pullback.condition, hP.cancel_left_is_iso],
+    apply_instance },
+  { introv H,
+    delta diagonal,
+    rwa [pullback.diagonal_comp, hP.cancel_right_is_iso] }
+end
+
+lemma stable_under_composition.diagonal
+  (hP : stable_under_composition P) (hP' : respects_iso P) (hP'' : stable_under_base_change P) :
+  P.diagonal.stable_under_composition :=
+begin
+  introv X h₁ h₂,
+  rw [diagonal_iff, pullback.diagonal_comp],
+  apply hP, { assumption },
+  rw hP'.cancel_left_is_iso,
+  apply hP''.snd,
+  assumption
+end
+
+lemma stable_under_base_change.diagonal
+  (hP : stable_under_base_change P) (hP' : respects_iso P) :
+  P.diagonal.stable_under_base_change :=
+stable_under_base_change.mk hP'.diagonal
+begin
+  introv h,
+  rw [diagonal_iff, diagonal_pullback_fst, hP'.cancel_left_is_iso, hP'.cancel_right_is_iso],
+  convert hP.base_change_map f _ _; simp; assumption
+end
+
+end diagonal
 
 end morphism_property
 

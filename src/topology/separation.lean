@@ -333,6 +333,17 @@ begin
   exact mem_nhds_within_of_mem_nhds (is_open_ne.mem_nhds h)
 end
 
+lemma is_open_set_of_eventually_nhds_within [t1_space α] {p : α → Prop} :
+  is_open {x | ∀ᶠ y in 𝓝[≠] x, p y} :=
+begin
+  refine is_open_iff_mem_nhds.mpr (λ a ha, _),
+  filter_upwards [eventually_nhds_nhds_within.mpr ha] with b hb,
+  by_cases a = b,
+  { subst h, exact hb },
+  { rw (ne.symm h).nhds_within_compl_singleton at hb,
+    exact hb.filter_mono nhds_within_le_nhds }
+end
+
 protected lemma set.finite.is_closed [t1_space α] {s : set α} (hs : set.finite s) :
   is_closed s :=
 begin
@@ -793,6 +804,17 @@ end
 @[simp] lemma disjoint_nhds_nhds [t2_space α] {x y : α} : disjoint (𝓝 x) (𝓝 y) ↔ x ≠ y :=
 ⟨λ hd he, by simpa [he, nhds_ne_bot.ne] using hd, t2_space_iff_disjoint_nhds.mp ‹_› x y⟩
 
+lemma pairwise_disjoint_nhds [t2_space α] : pairwise (disjoint on (𝓝 : α → filter α)) :=
+λ x y, disjoint_nhds_nhds.2
+
+protected lemma set.pairwise_disjoint_nhds [t2_space α] (s : set α) : s.pairwise_disjoint 𝓝 :=
+pairwise_disjoint_nhds.set_pairwise s
+
+/-- Points of a finite set can be separated by open sets from each other. -/
+lemma set.finite.t2_separation [t2_space α] {s : set α} (hs : s.finite) :
+  ∃ U : α → set α, (∀ x, x ∈ U x ∧ is_open (U x)) ∧ s.pairwise_disjoint U :=
+s.pairwise_disjoint_nhds.exists_mem_filter_basis hs nhds_basis_opens
+
 lemma is_open_set_of_disjoint_nhds_nhds :
   is_open {p : α × α | disjoint (𝓝 p.1) (𝓝 p.2)} :=
 begin
@@ -801,37 +823,6 @@ begin
   obtain ⟨U, hU, V, hV, hd⟩ := ((nhds_basis_opens x).disjoint_iff (nhds_basis_opens y)).mp h,
   exact mem_nhds_prod_iff.mpr ⟨U, hU.2.mem_nhds hU.1, V, hV.2.mem_nhds hV.1,
     λ ⟨x', y'⟩ ⟨hx', hy'⟩, disjoint_of_disjoint_of_mem hd (hU.2.mem_nhds hx') (hV.2.mem_nhds hy')⟩
-end
-
-/-- A finite set can be separated by open sets. -/
-lemma t2_separation_finset [t2_space α] (s : finset α) :
-  ∃ f : α → set α, set.pairwise_disjoint ↑s f ∧ ∀ x ∈ s, x ∈ f x ∧ is_open (f x) :=
-finset.induction_on s (by simp) begin
-  rintros t s ht ⟨f, hf, hf'⟩,
-  have hty : ∀ y : s, t ≠ y := by { rintros y rfl, exact ht y.2 },
-  choose u v hu hv htu hxv huv using λ {x} (h : t ≠ x), t2_separation h,
-  refine ⟨λ x, if ht : t = x then ⋂ y : s, u (hty y) else f x ∩ v ht, _, _⟩,
-  { rintros x hx₁ y hy₁ hxy a ⟨hx, hy⟩,
-    rw [finset.mem_coe, finset.mem_insert, eq_comm] at hx₁ hy₁,
-    rcases eq_or_ne t x with rfl | hx₂;
-    rcases eq_or_ne t y with rfl | hy₂,
-    { exact hxy rfl },
-    { simp_rw [dif_pos rfl, mem_Inter] at hx,
-      simp_rw [dif_neg hy₂] at hy,
-      exact huv hy₂ ⟨hx ⟨y, hy₁.resolve_left hy₂⟩, hy.2⟩ },
-    { simp_rw [dif_neg hx₂] at hx,
-      simp_rw [dif_pos rfl, mem_Inter] at hy,
-      exact huv hx₂ ⟨hy ⟨x, hx₁.resolve_left hx₂⟩, hx.2⟩ },
-    { simp_rw [dif_neg hx₂] at hx,
-      simp_rw [dif_neg hy₂] at hy,
-      exact hf (hx₁.resolve_left hx₂) (hy₁.resolve_left hy₂) hxy ⟨hx.1, hy.1⟩ } },
-  { intros x hx,
-    split_ifs with ht,
-    { refine ⟨mem_Inter.2 (λ y, _), is_open_Inter (λ y, hu (hty y))⟩,
-      rw ←ht,
-      exact htu (hty y) },
-    { have hx := hf' x ((finset.mem_insert.1 hx).resolve_left (ne.symm ht)),
-      exact ⟨⟨hx.1, hxv ht⟩, is_open.inter hx.2 (hv ht)⟩ } }
 end
 
 @[priority 100] -- see Note [lower instance priority]

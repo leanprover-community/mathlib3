@@ -325,22 +325,11 @@ end
 
 /-- Normed group structure constructed from an `inner_product_space.core` structure -/
 def to_normed_add_comm_group : normed_add_comm_group F :=
-normed_add_comm_group.of_core F
-{ norm_eq_zero_iff := assume x,
-  begin
-    split,
-    { intro H,
-      change sqrt (re ⟪x, x⟫) = 0 at H,
-      rw [sqrt_eq_zero inner_self_nonneg] at H,
-      apply (inner_self_eq_zero : ⟪x, x⟫ = 0 ↔ x = 0).mp,
-      rw ext_iff,
-      exact ⟨by simp [H], by simp [inner_self_im_zero]⟩ },
-    { rintro rfl,
-      change sqrt (re ⟪0, 0⟫) = 0,
-      simp only [sqrt_zero, inner_zero_right, add_monoid_hom.map_zero] }
-  end,
-  triangle := assume x y,
-  begin
+add_group_norm.to_normed_add_comm_group
+{ to_fun := λ x, sqrt (re ⟪x, x⟫),
+  map_zero' := by simp only [sqrt_zero, inner_zero_right, map_zero],
+  neg' := λ x, by simp only [inner_neg_left, neg_neg, inner_neg_right],
+  add_le' := λ x y, begin
     have h₁ : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ := abs_inner_le_norm _ _,
     have h₂ : re ⟪x, y⟫ ≤ abs ⟪x, y⟫ := re_le_abs _,
     have h₃ : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ := by linarith,
@@ -348,9 +337,13 @@ normed_add_comm_group.of_core F
     have : ∥x + y∥ * ∥x + y∥ ≤ (∥x∥ + ∥y∥) * (∥x∥ + ∥y∥),
     { simp [←inner_self_eq_norm_mul_norm, inner_add_add_self, add_mul, mul_add, mul_comm],
       linarith },
-    exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this
+    exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this,
   end,
-  norm_neg := λ x, by simp only [norm, inner_neg_left, neg_neg, inner_neg_right] }
+  eq_zero_of_map_eq_zero' := λ x hx, (inner_self_eq_zero : ⟪x, x⟫ = 0 ↔ x = 0).1 $ begin
+    change sqrt (re ⟪x, x⟫) = 0 at hx,
+    rw [sqrt_eq_zero inner_self_nonneg] at hx,
+    exact ext (by simp [hx]) (by simp [inner_self_im_zero]),
+  end }
 
 local attribute [instance] to_normed_add_comm_group
 
@@ -848,11 +841,22 @@ begin
   simp [hf.eq_iff]
 end
 
+/-- An injective family `v : ι → E` is orthonormal if and only if `coe : (range v) → E` is
+orthonormal. -/
+lemma orthonormal_subtype_range {v : ι → E} (hv : function.injective v) :
+  orthonormal 𝕜 (coe : set.range v → E) ↔ orthonormal 𝕜 v :=
+begin
+  let f : ι ≃ set.range v := equiv.of_injective v hv,
+  refine ⟨λ h, h.comp f f.injective, λ h, _⟩,
+  rw ← equiv.self_comp_of_injective_symm hv,
+  exact h.comp f.symm f.symm.injective,
+end
+
 /-- If `v : ι → E` is an orthonormal family, then `coe : (range v) → E` is an orthonormal
 family. -/
-lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
+lemma orthonormal.to_subtype_range {v : ι → E} (hv : orthonormal 𝕜 v) :
   orthonormal 𝕜 (coe : set.range v → E) :=
-by simpa using hv.comp _ (set.range_splitting_injective v)
+(orthonormal_subtype_range hv.linear_independent.injective).2 hv
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/

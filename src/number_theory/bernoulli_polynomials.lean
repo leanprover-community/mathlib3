@@ -190,7 +190,7 @@ begin
   simp_rw [smul_eq_mul],
 end
 
-open power_series
+open _root_.power_series
 variables {A : Type*} [comm_ring A] [algebra ℚ A]
 
 -- TODO: define exponential generating functions, and use them here

@@ -1390,7 +1390,7 @@ begin
     (h (s ×ˢ s₂) ⟨(s, s₂), ⟨hs, h₂⟩, rfl⟩).1, λ s hs, (h (s₁ ×ˢ s) ⟨(s₁, s), ⟨h₁, hs⟩, rfl⟩).2⟩),
 end
 
-lemma sInter_prod_set (f₁ : set (set α)) (h₁ : f₁.nonempty) (T : set β) :
+lemma sInter_prod (f₁ : set (set α)) (h₁ : f₁.nonempty) (T : set β) :
   ⋂₀ f₁ ×ˢ T  = ⋂₀ ((×ˢ T) '' f₁) :=
 by rw [←sInter_singleton T, sInter_prod_sInter f₁ {T} h₁ (singleton_nonempty T), sInter_singleton,
   prod_singleton, ←set.image_comp]

@@ -2560,8 +2560,7 @@ theorem disj_Union_map {s : finset α} {t : α → finset β} {f : β ↪ γ} {h
     end) :=
 eq_of_veq $ multiset.map_bind _ _ _
 
-lemma disj_Union_disj_Union (s : finset α) (f : α → finset β) (g : β → finset γ)
-  (h1) (h2) :
+lemma disj_Union_disj_Union (s : finset α) (f : α → finset β) (g : β → finset γ) (h1 h2) :
   (s.disj_Union f h1).disj_Union g h2 =
     s.attach.disj_Union (λ a, (f a).disj_Union g $
       λ b hb c hc, h2 (mem_disj_Union.mpr ⟨_, a.prop, hb⟩) (mem_disj_Union.mpr ⟨_, a.prop, hc⟩))

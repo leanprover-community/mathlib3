@@ -132,6 +132,7 @@ end
 congr_arg coe $ nnnorm_diagonal v
 
 /-- Note this is safe as an instance as it carries no data. -/
+@[nolint fails_quickly]
 instance [nonempty n] [decidable_eq n] [has_one α] [norm_one_class α] :
   norm_one_class (matrix n n α) :=
 ⟨(norm_diagonal _).trans $ norm_one⟩

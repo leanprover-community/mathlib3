@@ -211,8 +211,19 @@ lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
   option.map g ∘ option.map f = option.map (g ∘ f) :=
 by { ext x, rw comp_map }
 
-lemma mem_map_of_mem {α β : Type*} {a : α} {x : option α} (g : α → β) (h : a ∈ x) : g a ∈ x.map g :=
+lemma mem_map_of_mem {a : α} {x : option α} (g : α → β) (h : a ∈ x) : g a ∈ x.map g :=
 mem_def.mpr ((mem_def.mp h).symm ▸ map_some')
+
+lemma mem_map {f : α → β} {y : β} {o : option α} : y ∈ o.map f ↔ ∃ x ∈ o, f x = y :=
+by cases o; simp
+
+@[simp] lemma forall_mem_map {f : α → β} {o : option α} {p : β → Prop} :
+  (∀ y ∈ o.map f, p y) ↔ ∀ x ∈ o, p (f x) :=
+by simp [mem_map]
+
+@[simp] lemma exists_mem_map {f : α → β} {o : option α} {p : β → Prop} :
+  (∃ y ∈ o.map f, p y) ↔ ∃ x ∈ o, p (f x) :=
+by simp [mem_map]
 
 lemma bind_map_comm {α β} {x : option (option α) } {f : α → β} :
   x >>= option.map f = x.map (option.map f) >>= id :=

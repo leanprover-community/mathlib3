@@ -13,8 +13,23 @@ This file provides definitions and proves lemmas about orientations of real inne
 
 ## Main definitions
 
+* `orthonormal_basis.adjust_to_orientation` takes an orthonormal basis and an orientation, and
+  returns an orthonormal basis with that orientation: either the original orthonormal basis, or one
+  constructed by negating a single (arbitrary) basis vector.
 * `orientation.fin_orthonormal_basis` is an orthonormal basis, indexed by `fin n`, with the given
-orientation.
+  orientation.
+* `orientation.volume_form` is a nonvanishing top-dimensional alternating form on an oriented real
+  inner product space, uniquely defined by compatibility with the orientation and inner product
+  structure.
+
+## Main theorems
+
+* `orientation.volume_form_apply_le` states that the result of applying the volume form to a set of
+  `N` vectors, where `N` is the dimension the inner product space, is bounded by the product of the
+  lengths of the vectors.
+* `orientation.abs_volume_form_apply_of_pairwise_orthogonal` states that the result of applying the
+  volume form to a set of `N` orthogonal vectors, where `N` is the dimension the inner product
+  space, is equal up to sign to the product of the lengths of the vectors.
 
 -/
 

@@ -180,13 +180,12 @@ variables (L : Type*) [field L]  [uniform_space L] [completable_top_field L]
 instance subfield.completable_top_field (K : subfield L) : completable_top_field K :=
 { nice := begin
     intros F F_cau inf_F,
-    let i : K → L := coe,
+    let i : K →+* L := K.subtype,
     have hi : uniform_inducing i, from uniform_embedding_subtype_coe.to_uniform_inducing,
     rw ← hi.cauchy_map_iff at F_cau ⊢,
-    rw [map_comm (show (i ∘ λ x, x⁻¹) = (λ x, x⁻¹) ∘ i, by {ext , refl })],
+    rw [map_comm (show (i ∘ λ x, x⁻¹) = (λ x, x⁻¹) ∘ i, by {ext, refl})],
     apply completable_top_field.nice _ F_cau,
-    rw [← filter.push_pull', show (0 : L) = i 0, from rfl, ← hi.inducing.nhds_eq_comap, inf_F,
-        filter.map_bot]
+    rw [← filter.push_pull', ← map_zero i, ← hi.inducing.nhds_eq_comap, inf_F, filter.map_bot]
   end,
   ..subtype.separated_space (K : set L) }
 

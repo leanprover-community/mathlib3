@@ -1386,7 +1386,7 @@ lemma sInter_prod_sInter (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f�
 begin
   obtain ⟨s₁, h₁⟩ := h₁,
   obtain ⟨s₂, h₂⟩ := h₂,
-  exact set.subset.antisymm (sInter_prod_sInter_subseteq f₁ f₂) (λ x h, ⟨λ s hs,
+  exact set.subset.antisymm (sInter_prod_sInter_subset f₁ f₂) (λ x h, ⟨λ s hs,
     (h (s ×ˢ s₂) ⟨(s, s₂), ⟨hs, h₂⟩, rfl⟩).1, λ s hs, (h (s₁ ×ˢ s) ⟨(s₁, s), ⟨h₁, hs⟩, rfl⟩).2⟩),
 end
 

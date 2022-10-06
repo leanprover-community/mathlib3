@@ -1,8 +1,25 @@
+/-
+Copyright (c) 2022 Riccardo Brasca. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Riccardo Brasca
+-/
 import algebra.gcd_monoid.finset
 import ring_theory.int.basic
 
+/-!
+# Basic results about setwise gcds on ℤ
+This file proves some basic results about `finset.gcd` on `ℤ`.
+## Main results
+
+* `finset.gcd_is_unit_of_div_gcd`: given a nonempty finset `s` and a function `f` from `s` to `ℤ`,
+  if `d = s.gcd`, then the `gcd` of `(f i) / d` is a unit. See `finset.coprime_of_div_gcd` for a
+  similar result for `ℕ`.
+-/
+
 namespace finset
 
+/-- Given a nonempty finset `s` and a function `f` from `s` to `ℤ`, if `d = s.gcd`, then the `gcd`
+of `(f i) / d` is a unit. -/
 theorem gcd_is_unit_of_div_gcd {β : Type*} {f : β → ℤ} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) :
   is_unit (s.gcd (λ b, f b / (s.gcd f))) :=

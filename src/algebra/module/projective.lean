@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Buzzard
+Authors: Kevin Buzzard, Antoine Labelle
 -/
 
 import algebra.module.basic
@@ -130,7 +130,6 @@ begin
   { rw [←snd_apply _, apply_total R], exact hsQ x, },
 end
 
--- What should be the universe for `ι`?
 variables {ι : Type*} (A : ι → Type*) [Π (i : ι), add_comm_monoid (A i)]
   [Π (i : ι), module R (A i)]
 

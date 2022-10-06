@@ -835,7 +835,7 @@ variables [has_continuous_star A] [algebra 𝕜 A]
 with the continuous function `f`. See `continuous_map.comp_monoid_hom'` and
 `continuous_map.comp_add_monoid_hom'` for bundlings of pre-composition into a `monoid_hom` and
 an `add_monoid_hom`, respectively, under suitable assumptions on `A`. -/
-@[simps] def comp_star_alg_hom (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
+@[simps] def comp_star_alg_hom' (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
 { to_fun := λ g, g.comp f,
   map_one' := one_comp _,
   map_mul' := λ _ _, rfl,
@@ -844,15 +844,15 @@ an `add_monoid_hom`, respectively, under suitable assumptions on `A`. -/
   commutes' := λ _, rfl,
   map_star' := λ _, rfl }
 
-/-- `continuous_map.comp_star_alg_hom` sends the identity continuous map to the identity
+/-- `continuous_map.comp_star_alg_hom'` sends the identity continuous map to the identity
 `star_alg_hom` -/
-lemma comp_star_alg_hom_id :
-  comp_star_alg_hom 𝕜 A (continuous_map.id X) = star_alg_hom.id 𝕜 C(X, A) :=
+lemma comp_star_alg_hom'_id :
+  comp_star_alg_hom' 𝕜 A (continuous_map.id X) = star_alg_hom.id 𝕜 C(X, A) :=
 star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
 
 /-- `continuous_map.comp_star_alg_hom` is functorial. -/
-lemma comp_star_alg_hom_comp (g : C(Y, Z)) (f : C(X, Y)) :
-  comp_star_alg_hom 𝕜 A (g.comp f) = (comp_star_alg_hom 𝕜 A f).comp (comp_star_alg_hom 𝕜 A g) :=
+lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
+  comp_star_alg_hom' 𝕜 A (g.comp f) = (comp_star_alg_hom' 𝕜 A f).comp (comp_star_alg_hom' 𝕜 A g) :=
 star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
 
 end continuous_map

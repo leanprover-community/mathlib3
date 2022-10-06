@@ -126,7 +126,9 @@ variables [linear_order α] [add_monoid N] [linear_order N]
 /-!  We are about to sneak in a hypothesis that might appear to be too strong.
 We assume `covariant_class` with *strict* inequality `<` also when proving the one with the
 *weak* inequality `≤`.  This is actually necessary: addition on `lex (α →₀ N)` may fail to be
-monotone, when it is "just" monotone on `N`. -/
+monotone, when it is "just" monotone on `N`.
+
+See `counterexamples.zero_divisors_in_add_monoid_algebras` for a counterexample. -/
 section left
 variables [covariant_class N N (+) (<)]
 

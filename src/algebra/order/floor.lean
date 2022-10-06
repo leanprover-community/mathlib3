@@ -979,11 +979,11 @@ floor_semiring α :=
   gc_ceil := λ a n, by rw [int.to_nat_le, int.ceil_le, int.cast_coe_nat] }
 
 namespace int
-variables [ordered_ring α] [floor_ring α]
+variables [ordered_ring α] [floor_ring α] (a : α)
 
-lemma floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
+lemma floor_to_nat : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 
-lemma ceil_to_nat  (a : α) [ordered_ring α] [floor_ring α] : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
+lemma ceil_to_nat : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
 
 end int
 

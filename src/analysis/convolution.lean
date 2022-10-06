@@ -8,6 +8,7 @@ import measure_theory.group.prod
 import measure_theory.function.locally_integrable
 import analysis.calculus.specific_functions
 import analysis.calculus.parametric_integral
+import measure_theory.measure.haar
 
 /-!
 # Convolution of functions
@@ -712,8 +713,53 @@ end
 
 end normed_add_comm_group
 
+section
+
+#where
+
+open finite_dimensional
+
+variables (H : Type*) [normed_add_comm_group H] [normed_space ℝ H] [finite_dimensional ℝ H]
+
+lemma foo : ∃ g : H → ℝ, cont_diff ℝ ⊤ g ∧
+  (∀ x, g x ∈ Icc (0 : ℝ) 1) ∧ 0 < g 0 ∧ (∀ x, 1 ≤ ∥x∥ → g x = 0) ∧ (∀ x, g (-x) = g x) :=
+sorry
+
+def e : cont_diff_bump_base H :=
+begin
+  borelize H,
+  let μ : measure H := measure_theory.measure.add_haar,
+  choose g g_smooth g_mem g_pos g_zero g_symm using foo H,
+  let φ : H → ℝ := (closed_ball (0 : H) 1).indicator (λ y, 1),
+  let c := ∫ x, g x ∂μ,
+  set g0 : ℝ → H → ℝ := λ R,
+    (λ x, (c * (R - 1)^(finrank ℝ H))⁻¹ • g ((R - 1) • x)) ⋆[lsmul ℝ ℝ, μ] φ with g0_def,
+  have : ∀ R x, g0 R (-x) = g0 R x,
+  { assume R x,
+    simp_rw [g0_def, convolution],
+    congr,
+    ext t,
+    dsimp,
+
+
+  },
+  refine
+  { to_fun := g0,
+    mem_Icc := _,
+    symmetric := _,
+    smooth := _,
+    eq_one := _,
+    eq_zero := _},
+end
+
 instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
   nonempty (cont_diff_bump_base E) := sorry
+
+
+
+end
+
+#exit
 
 namespace cont_diff_bump
 

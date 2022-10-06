@@ -41,6 +41,29 @@ instance : has_top (star_subalgebra R A) :=
 
 instance : inhabited (star_subalgebra R A) := ⟨⊤⟩
 
+instance : subsemiring_class (star_subalgebra R A) A :=
+{ add_mem := add_mem',
+  mul_mem := mul_mem',
+  one_mem := one_mem',
+  zero_mem := zero_mem' }
+
+@[simp]
+lemma mem_carrier {s : star_subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
+
+@[ext] theorem ext {S T : star_subalgebra R A} (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
+set_like.ext h
+
+@[simp] lemma mem_to_subalgebra {S : star_subalgebra R A} {x} : x ∈ S.to_subalgebra ↔ x ∈ S :=
+iff.rfl
+
+@[simp] lemma coe_to_subalgebra (S : star_subalgebra R A) : (S.to_subalgebra : set A) = S := rfl
+
+theorem to_subalgebra_injective :
+  function.injective (to_subalgebra : star_subalgebra R A → subalgebra R A) :=
+λ S T h, ext R S T _ --  by rw [← mem_to_subalgebra, ← mem_to_subalgebra, h]
+
+theorem to_subsemiring_inj {S U : subalgebra R A} : S.to_subsemiring = U.to_subsemiring ↔ S = U :=
+to_subsemiring_injective.eq_iff
 section centralizer
 variables {A}
 

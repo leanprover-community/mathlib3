@@ -189,6 +189,7 @@ instance subfield.completable_top_field (K : subfield L) : completable_top_field
   end,
   ..subtype.separated_space (K : set L) }
 
+@[priority 100]
 instance completable_top_field_of_complete (L : Type*) [field L]
   [uniform_space L] [topological_division_ring L] [separated_space L] [complete_space L] :
   completable_top_field L :=

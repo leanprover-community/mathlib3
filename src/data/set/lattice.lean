@@ -1378,28 +1378,53 @@ begin
 end
 
 lemma sInter_prod_sInter_subset (S : set (set α)) (T : set (set β)) :
-  ⋂₀ S ×ˢ ⋂₀ T ⊆ ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' S ×ˢ T) :=
-λ x hx _ ⟨s, hs, h⟩, h ▸ ⟨hx.1 s.1 hs.1, hx.2 s.2 hs.2⟩
+  ⋂₀ S ×ˢ ⋂₀ T ⊆ ⋂ r ∈ S ×ˢ T, r.1 ×ˢ r.2 :=
+λ x hx,
+begin
+  rw [mem_Inter, prod.forall],
+  intros s t,
+  rw [mem_Inter, mem_prod, and_imp],
+  intros hs ht,
+  split,
+  rw mem_prod_eq at hx,
+  exact hx.1 s hs,
+  exact hx.2 t ht,
+end
 
 lemma sInter_prod_sInter (S : set (set α)) (T : set (set β)) (hS : S.nonempty) (hT : T.nonempty) :
-  ⋂₀ S ×ˢ ⋂₀ T = ⋂₀ ((λ st : set α × set β, st.1 ×ˢ st.2) '' S ×ˢ T) :=
+  ⋂₀ S ×ˢ ⋂₀ T = ⋂ r ∈ S ×ˢ T, r.1 ×ˢ r.2 :=
 begin
   obtain ⟨s₁, h₁⟩ := hS,
   obtain ⟨s₂, h₂⟩ := hT,
-  exact set.subset.antisymm (sInter_prod_sInter_subset S T) (λ x h, ⟨λ s hs,
-    (h (s ×ˢ s₂) ⟨(s, s₂), ⟨hs, h₂⟩, rfl⟩).1, λ s hs, (h (s₁ ×ˢ s) ⟨(s₁, s), ⟨h₁, hs⟩, rfl⟩).2⟩),
+  exact set.subset.antisymm (sInter_prod_sInter_subset S T) (λ x h, begin
+    rw mem_Inter at h,
+    rw mem_prod,
+    simp only [mem_prod, mem_Inter, and_imp, prod.forall] at h,
+    split,
+    { rw mem_sInter,
+      intros t ht,
+      apply (h t s₂ ht h₂).1, },
+    { rw mem_sInter,
+      intros t ht,
+      apply (h s₁ t h₁ ht).2, }
+  end),
 end
 
 lemma sInter_prod (S : set (set α)) (hS : S.nonempty) (t : set β) :
-  ⋂₀ S ×ˢ t  = ⋂₀ ((×ˢ t) '' S) :=
-by rw [←sInter_singleton t, sInter_prod_sInter S {t} hS (singleton_nonempty t), sInter_singleton,
-  prod_singleton, ←set.image_comp]
+  ⋂₀ S ×ˢ t  = ⋂ s ∈ S, s ×ˢ t :=
+begin
+  rw [←sInter_singleton t, sInter_prod_sInter S {t} hS (singleton_nonempty t), sInter_singleton,
+    prod_singleton],
+  simp only [mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right],
+end
 
 lemma prod_sInter (T : set (set β)) (hT : T.nonempty) (s : set α) :
   s ×ˢ ⋂₀ T = ⋂₀ ((×ˢ) s '' T) :=
-by rw [←sInter_singleton s, sInter_prod_sInter {s} T (singleton_nonempty s) hT, sInter_singleton,
-  singleton_prod, ←set.image_comp]
-
+begin
+  rw [←sInter_singleton s, sInter_prod_sInter {s} T (singleton_nonempty s) hT, sInter_singleton,
+  singleton_prod],
+  simp only [mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right, sInter_image],
+end
 end prod
 
 section image2

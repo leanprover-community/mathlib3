@@ -168,7 +168,7 @@ begin
   rw [quotient.lift_spec, paths.lift_spec, quiver.symmetrify.lift_spec],
 end
 
-lemma lift_unique_spec  (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V')
+lemma lift_unique_spec (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V')
   (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = (lift φ) :=
 begin
   apply quotient.lift_spec_unique,

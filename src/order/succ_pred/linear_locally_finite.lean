@@ -84,7 +84,7 @@ lemma is_lub_mem_of_finite {α : Type*} [linear_order α] (s : set α) {i : α}
 
 variables {ι : Type*}
 
-namespace linear_order_succ_pred
+namespace linear_locally_finite_order
 variables [linear_order ι]
 
 /-- Successor in a linear order. This defines a true successor only when `i` is isolated from above,
@@ -146,7 +146,7 @@ noncomputable instance [locally_finite_order ι] : succ_order ι :=
 noncomputable instance [locally_finite_order ι] : pred_order ι :=
 @order_dual.pred_order ιᵒᵈ _ _
 
-end linear_order_succ_pred
+end linear_locally_finite_order
 
 @[priority 100]
 instance linear_locally_finite_order.is_succ_archimedean [linear_order ι] [locally_finite_order ι] :

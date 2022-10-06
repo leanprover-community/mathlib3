@@ -554,16 +554,10 @@ map_pow abs z n
 map_zpow₀ abs z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
-begin
-  rw [mul_self_le_mul_self_iff (abs_nonneg z.re) (abs.nonneg _),
-       abs_mul_abs_self, mul_self_abs],
-  apply re_sq_le_norm_sq
-end
+real.abs_le_sqrt $ by { rw [norm_sq_apply, ← sq], exact le_add_of_nonneg_right (mul_self_nonneg _) }
 
 lemma abs_im_le_abs (z : ℂ) : |z.im| ≤ abs z :=
-by rw [mul_self_le_mul_self_iff (abs_nonneg z.im) (abs.nonneg _),
-       abs_mul_abs_self, mul_self_abs];
-   apply im_sq_le_norm_sq
+real.abs_le_sqrt $ by { rw [norm_sq_apply, ← sq, ← sq], exact le_add_of_nonneg_left (sq_nonneg _) }
 
 lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 (abs_le.1 (abs_re_le_abs _)).2

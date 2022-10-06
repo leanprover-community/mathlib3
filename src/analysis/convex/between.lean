@@ -518,7 +518,7 @@ end
 lemma collinear.wbtw_or_wbtw_or_wbtw {x y z : P} (h : collinear R ({x, y, z} : set P)) :
   wbtw R x y z ∨ wbtw R y z x ∨ wbtw R z x y :=
 begin
-  rw collinear_iff_of_mem R (set.mem_insert _ _) at h,
+  rw collinear_iff_of_mem (set.mem_insert _ _) at h,
   rcases h with ⟨v, h⟩,
   simp_rw [set.mem_insert_iff, set.mem_singleton_iff] at h,
   have hy := h y (or.inr (or.inl rfl)),

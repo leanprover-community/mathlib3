@@ -23,12 +23,13 @@ notation `ℝ*` := hyperreal
 
 noncomputable instance : has_coe_t ℝ ℝ* := ⟨λ x, (↑x : germ _ _)⟩
 
-@[simp, norm_cast]
-lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y :=
-germ.const_inj
+@[simp, norm_cast] lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y := germ.const_inj
+lemma coe_ne_coe {x y : ℝ} : (x : ℝ*) ≠ y ↔ x ≠ y := coe_eq_coe.not
 
 @[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ℝ*) = 0 ↔ x = 0 := coe_eq_coe
 @[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ℝ*) = 1 ↔ x = 1 := coe_eq_coe
+@[norm_cast] lemma coe_ne_zero {x : ℝ} : (x : ℝ*) ≠ 0 ↔ x ≠ 0 := coe_ne_coe
+@[norm_cast] lemma coe_ne_one {x : ℝ} : (x : ℝ*) ≠ 1 ↔ x ≠ 1 := coe_ne_coe
 
 @[simp, norm_cast] lemma coe_one : ↑(1 : ℝ) = (1 : ℝ*) := rfl
 @[simp, norm_cast] lemma coe_zero : ↑(0 : ℝ) = (0 : ℝ*) := rfl
@@ -783,6 +784,7 @@ end hyperreal
 namespace tactic
 open positivity
 
+private lemma hyperreal_coe_ne_zero {r : ℝ} : r ≠ 0 → (r : ℝ*) ≠ 0 := hyperreal.coe_ne_zero.2
 private lemma hyperreal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ℝ*) := hyperreal.coe_nonneg.2
 private lemma hyperreal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ℝ*) := hyperreal.coe_pos.2
 
@@ -795,6 +797,7 @@ meta def positivity_coe_real_hyperreal : expr → tactic strictness
   match strictness_a with
   | positive p := positive <$> mk_app ``hyperreal_coe_pos [p]
   | nonnegative p := nonnegative <$> mk_app ``hyperreal_coe_nonneg [p]
+  | nonzero p := nonzero <$> mk_app ``hyperreal_coe_ne_zero [p]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `(r : ℝ*)` for `r : ℝ`"
 

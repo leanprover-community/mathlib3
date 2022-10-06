@@ -24,6 +24,8 @@ and even an equivalence between C⋆-algebras.
 
 * `ideal.to_character_space` : constructs an element of the character space from a maximal ideal in
   a commutative complex Banach algebra
+* `weak_dual.character_space.comp_continuous_map`: The functorial map taking `ψ : A →⋆ₐ[ℂ] B` to a
+  continuous function `character_space ℂ B → character_space ℂ A` given by pre-composition with `ψ`.
 
 ## Main statements
 
@@ -167,3 +169,46 @@ begin
 end
 
 end complex_cstar_algebra
+
+section functoriality
+
+namespace weak_dual
+
+namespace character_space
+
+variables {A B C : Type*}
+variables [normed_ring A] [normed_algebra ℂ A] [complete_space A]
+variables [star_ring A] [cstar_ring A] [nontrivial A]
+variables [normed_ring B] [normed_algebra ℂ B] [complete_space B]
+variables [star_ring B] [cstar_ring B] [nontrivial B]
+variables [normed_ring C] [normed_algebra ℂ C] [complete_space C]
+variables [star_ring C] [cstar_ring C] [nontrivial C]
+
+/-- The functorial map taking `ψ : A →⋆ₐ[ℂ] B` to a continuous function
+`character_space ℂ B → character_space ℂ A` obtained by pre-composition with `ψ`. -/
+@[simps]
+noncomputable def comp_continuous_map (ψ : A →⋆ₐ[ℂ] B) :
+  C(character_space ℂ B, character_space ℂ A) :=
+{ to_fun := λ φ, equiv_alg_hom.symm ((equiv_alg_hom φ).comp (ψ.to_alg_hom)),
+  continuous_to_fun := continuous.subtype_mk (continuous_of_continuous_eval $
+    λ a, map_continuous $ gelfand_transform ℂ B (ψ a)) _ }
+
+variables (A)
+
+/-- `weak_dual.character_space.comp_continuous_map` is sends the identity to the identity. -/
+@[simp] lemma comp_continuous_map_id :
+  comp_continuous_map (star_alg_hom.id ℂ A) = continuous_map.id (character_space ℂ A) :=
+continuous_map.ext $ λ a, ext $ λ x, rfl
+
+variables {A}
+
+/-- `weak_dual.character_space.comp_continuous_map` is functorial. -/
+@[simp] lemma comp_continuous_map_comp (ψ₂ : B →⋆ₐ[ℂ] C) (ψ₁ : A →⋆ₐ[ℂ] B) :
+  comp_continuous_map (ψ₂.comp ψ₁) = (comp_continuous_map ψ₁).comp (comp_continuous_map ψ₂) :=
+continuous_map.ext $ λ a, ext $ λ x, rfl
+
+end character_space
+
+end weak_dual
+
+end functoriality

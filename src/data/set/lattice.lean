@@ -1377,7 +1377,7 @@ begin
   { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
 end
 
-lemma sInter_prod_sInter_subseteq (f₁ : set (set α)) (f₂ : set (set β)) :
+lemma sInter_prod_sInter_subset (f₁ : set (set α)) (f₂ : set (set β)) :
   ⋂₀ f₁ ×ˢ ⋂₀ f₂ ⊆ ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' f₁ ×ˢ f₂) :=
 λ x hx _ ⟨s, hs, h⟩, h ▸ ⟨hx.1 s.1 hs.1, hx.2 s.2 hs.2⟩
 

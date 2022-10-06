@@ -82,8 +82,9 @@ lemma mem_conductor_iff {x y : S} :
 
 variables {I : ideal R} {x : S}
 
-/-- This technical lemma tell us that if `C` is the conductor of `R[α]` and `I` is an ideal of R
-  then `p * (I * S) ⊆ I*R[α]` for any `p` in `C ∩ R` (this should be generalized to `p ∈ C`) -/
+/-- This technical lemma tell us that if `C` is the conductor of `R[x]` and `I` is an ideal of R
+  then `p * (I * S) ⊆ I * R[x]` for any `p` in `C ∩ R` -/
+-- TODO: (this should be generalized to `p ∈ C`)
 lemma tricky_result (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤)
   (hx' : is_integral R x) {p : R} (hp : p ∈ ideal.comap (algebra_map R S) (conductor R x))
   {z : S} (hz : z ∈ algebra.adjoin R ({x} : set S))
@@ -121,7 +122,7 @@ begin
     exact test2 ((finsupp.mem_supported _ l).mp H hy) },
 end
 
-/-- A technical result telling us us that `(I * S) ∩ R[α] = I * R[α]` -/
+/-- A technical result telling us that `(I * S) ∩ R[x] = I * R[x]` for any ideal I of R. -/
 lemma test (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤) (hx' : is_integral R x)
   (h_alg : function.injective (algebra_map (algebra.adjoin R ( {x} : set S)) S)):
   (I.map (algebra_map R S)).comap (algebra_map (algebra.adjoin R ( {x} : set S)) S)
@@ -130,7 +131,7 @@ begin
   apply le_antisymm,
   { -- This is adapted from [Neukirch1992]. Let `C = (conductor R x)`. The idea of the proof
     -- is that since `I` and `C ∩ R` are coprime, we have
-    -- `(I * S) ∩ R[α] ⊆ (I + C) * ((I * S) ∩ R[α]) ⊆ I * R[α] + I * C * S ⊆ I * R[α]`.
+    -- `(I * S) ∩ R[x] ⊆ (I + C) * ((I * S) ∩ R[x]) ⊆ I * R[x] + I * C * S ⊆ I * R[x]`.
     intros y hy,
     obtain ⟨z, hz⟩ := y,
     obtain ⟨p, hp, q, hq, hpq⟩ := submodule.mem_sup.mp ((ideal.eq_top_iff_one _).mp hx),
@@ -160,13 +161,15 @@ begin
     apply ideal.le_comap_map }
 end
 
+/-- The canonical morphism of rings from `R[x] ⧸ (I*R[x])` to `S ⧸ (I*S)` is an isomorphism
+    when `I` and `(conductor R x) ∩ R` are coprime. -/
 noncomputable def quot_adjoin_equiv_quot_map (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤)
   (hx' : is_integral R x)
   (h_alg : function.injective (algebra_map (algebra.adjoin R ( {x} : set S)) S)) :
   (algebra.adjoin R ( {x} : set S)) ⧸ (I.map (algebra_map R (algebra.adjoin R ( {x} : set S))))
     ≃+* S ⧸ (I.map (algebra_map R S : R →+* S)) :=
-ring_equiv.of_bijective (ideal.quotient.lift (I.map (algebra_map R (algebra.adjoin R ( {x} : set S))))
-  (((I.map (algebra_map R S : R →+* S))^.quotient.mk).comp
+ring_equiv.of_bijective (ideal.quotient.lift (I.map (algebra_map R
+  (algebra.adjoin R ( {x} : set S)))) (((I.map (algebra_map R S : R →+* S))^.quotient.mk).comp
   (algebra_map (algebra.adjoin R ( {x} : set S)) S : (algebra.adjoin R ( {x} : set S)) →+* S))
   (λ r hr, by {
     have : algebra_map R S = (algebra_map (algebra.adjoin R ( {x} : set S)) S).comp
@@ -180,7 +183,9 @@ begin
     refine ideal.quotient.lift_injective_of_ker_le_ideal _ _ _ (λ u hu, _),
     rwa [ring_hom.mem_ker, ring_hom.comp_apply, ideal.quotient.eq_zero_iff_mem,
       ← ideal.mem_comap, test hx hx' h_alg] at hu },
-  { refine ideal.quotient.lift_surjective_of_surjective _ _ _ (λ y, _),
+  { -- Surjectivity follows from the surjectivity of the canonical map R[x] → S ⧸ (I * S),
+    -- which in turn follows from the fact that `I * S + (conductor R x) = S`.
+    refine ideal.quotient.lift_surjective_of_surjective _ _ _ (λ y, _),
     obtain ⟨z, hz⟩ := ideal.quotient.mk_surjective y,
     have : z ∈ conductor R x ⊔ (I.map (algebra_map R S : R →+* S)),
     { suffices : conductor R x ⊔ (I.map (algebra_map R S : R →+* S)) = ⊤,

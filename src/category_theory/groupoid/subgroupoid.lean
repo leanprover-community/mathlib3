@@ -149,7 +149,7 @@ def vertex_subgroup {c : C} (hc : c ∈ S.carrier) : subgroup (c ⟶ c) :=
 
 /-- `S` is a subgroupoid of `T` if it is contained in it -/
 def is_subgroupoid (S T : subgroupoid C) : Prop :=
-  ∀ {c d}, S.arrws c d ⊆ T.arrws c d
+  ∀ ⦃c d⦄, S.arrws c d ⊆ T.arrws c d
 
 instance subgroupoid_le : has_le (subgroupoid C) := ⟨is_subgroupoid⟩
 
@@ -213,6 +213,66 @@ instance : complete_lattice (subgroupoid C) :=
           { rintro T Tl c d p pT,
             simp only [Inter_coe_set, mem_Inter],
             rintros S Ss, apply Tl Ss, exact pT,}}) }
+
+lemma le_carrier {S T : subgroupoid C} (h : S ≤ T) : S.carrier ⊆ T.carrier := by
+{ rintro s ⟨γ,hγ⟩, exact ⟨γ, h hγ⟩,}
+
+/-- The functor associated to the embedding of subgroupoids -/
+def coe_le {S T : subgroupoid C} (h : S ≤ T) : S.coe ⥤ T.coe :=
+{ obj := λ s, ⟨s.val, le_carrier h s.prop⟩,
+  map := λ s t f, ⟨f.val, h f.prop⟩,
+  map_id' := by { rintro, refl, },
+  map_comp' := by { rintro, refl, } }
+
+lemma coe_le_inj_on_objects {S T : subgroupoid C} (h : S ≤ T) : function.injective (coe_le h).obj :=
+begin
+  dsimp only [coe_le],
+  rintros ⟨s,hs⟩ ⟨t,ht⟩ he,
+  simp only [subtype.mk_eq_mk] at he ⊢,
+  exact he,
+end
+
+lemma coe_le_faithful {S T : subgroupoid C} (h : S ≤ T) (s t : S.coe):
+  function.injective (λ (f : s ⟶ t), (coe_le h).map f) :=
+begin
+  dsimp only [coe_le],
+  rintros ⟨f,hf⟩ ⟨g,hg⟩ he,
+  simp only [subtype.mk_eq_mk] at he ⊢,
+  exact he,
+end
+
+lemma coe_le_refl {S : subgroupoid C} : coe_le (le_refl S) = 𝟭 S.coe :=
+begin
+  dsimp only [coe_le],
+  fapply functor.ext,
+  { rintros,
+    simp only [subtype.val_eq_coe, subtype.coe_eta, functor.id_obj], },
+  { rintros ⟨s,hs⟩ ⟨t,ht⟩ ⟨f,hf⟩,
+    simp only [eq_to_hom_refl, functor.id_map, category.comp_id, category.id_comp,
+               subtype.mk_eq_mk], }
+end
+
+lemma coe_le_trans {R S T : subgroupoid C} (k : R ≤ S) (h : S ≤ T) :
+  coe_le (le_trans R S T k h) = (coe_le k) ⋙ (coe_le h) :=
+begin
+  dsimp only [coe_le],
+  fapply functor.ext,
+  { rintros, simp only [functor.comp_obj], },
+  { rintros ⟨s,hs⟩ ⟨t,ht⟩ ⟨f,hf⟩,
+    simp only [eq_to_hom_refl, functor.comp_map, category.comp_id, category.id_comp,
+    subtype.mk_eq_mk], }
+end
+
+lemma coe_le_comp_embedding {S T : subgroupoid C} (h : S ≤ T) :
+  (coe_le h) ⋙ T.coe_embedding = S.coe_embedding :=
+begin
+  dsimp only [coe_le, coe_embedding],
+  fapply functor.ext,
+  { rintros, simp only [functor.comp_obj, subtype.val_eq_coe], },
+  { rintros ⟨s,hs⟩ ⟨t,ht⟩ ⟨f,hf⟩,
+    simp only [functor.comp_map, subtype.coe_mk, eq_to_hom_refl, category.comp_id,
+    category.id_comp], }
+end
 
 /-- The family of arrows of the full subgroupoid on vertex set `V` -/
 inductive full_on.arrws (V : set C) : Π (c d : C), (c ⟶ d) → Prop
@@ -290,7 +350,7 @@ lemma discrete_is_normal : is_normal (discrete : subgroupoid C) :=
   conj := (λ a b f d e , by
   { simp only [mem_discrete_iff, eq_self_iff_true, inv_eq_inv, is_iso.inv_comp_eq,
                category.comp_id, exists_true_left] at e ⊢,
-    simp only [e, category.id_comp], }) }
+    simp only [e, category.id_comp, eq_to_hom_refl, category.comp_id], }) }
 
 lemma Inf_is_normal (s : set $ subgroupoid C) (sn : ∀ S ∈ s, is_normal S) : is_normal (Inf s) :=
 { wide := by
@@ -416,7 +476,7 @@ def ker : subgroupoid C := comap φ (discrete)
 
 lemma mem_ker_iff {c d : C} (f : c ⟶ d) :
   f ∈ (ker φ).arrws c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = eq_to_hom h :=
-mem_discrete_iff' (φ.map f)
+mem_discrete_iff (φ.map f)
 
 end comap
 

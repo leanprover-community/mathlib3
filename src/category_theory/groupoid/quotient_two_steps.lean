@@ -270,14 +270,15 @@ begin
     simp only [subtype.coe_mk,hδ',hγ',inv_eq_to_hom], refl, },
 end
 
-lemma lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) : Φ = (lift S Sn φ) :=
+lemma lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
+  Φ = (lift S Sn φ) :=
 begin
   letI := R S Sn,
   subst_vars,
+  dsimp [lift],
   fapply functor.ext,
   { rintro ⟨c₀,⟨_,⟨_,⟨c,h⟩⟩⟩⟩,
-    dsimp only [lift, of, fo, full_on, coe_embedding],
-    simp only [functor.comp_obj],
+    simp only [lift, of, fo, full_on, coe_embedding, functor.comp_obj],
     congr,
     rw ←h,
     change c.out = ⟦c.out⟧.out,
@@ -290,12 +291,9 @@ begin
     rw mem_ker_iff at hγ' hδ',
     obtain ⟨eγ,hγ'⟩ := hγ',
     obtain ⟨eδ,hδ'⟩ := hδ',
-    --simp only [subtype.coe_mk,hδ',hγ',inv_eq_to_hom],
     dsimp only [lift, of, fo, full_on, coe_embedding] at *,
     simp only [inv_eq_inv, functor.comp_map] at *,
-    dsimp [category_struct.comp], sorry,
-     },
-
+    sorry },
 end
 
 end ump
@@ -350,14 +348,13 @@ begin
 end
 
 
-def lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) : Φ = (lift S Sn φ) :=
+def lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
+  Φ = (lift S Sn φ $ λ _ _, hφ) :=
 begin
-
+  sorry,
 end
 
-
 end ump
-
 
 end quotient
 

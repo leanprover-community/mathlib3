@@ -45,8 +45,8 @@ Semistandard Young tableau
 numbers, such that the entries in each row are weakly increasing (left to right), and the entries
 in each column are strictly increasing (top to bottom).
 
-Here, an SSYT is represented as an unrestricted function `ℕ → ℕ → ℕ` that, for reasons of extensionality,
-is required to vanish outside `μ`. --/
+Here, an SSYT is represented as an unrestricted function `ℕ → ℕ → ℕ` that, for reasons
+of extensionality, is required to vanish outside `μ`. --/
 structure ssyt (μ : young_diagram) :=
 (entry : ℕ → ℕ → ℕ)
 (row_weak' : ∀ {i j1 j2 : ℕ}, j1 < j2 → (i, j2) ∈ μ → entry i j1 ≤ entry i j2)

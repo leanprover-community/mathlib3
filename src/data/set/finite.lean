@@ -597,6 +597,11 @@ theorem finite_mem_finset (s : finset α) : {a | a ∈ s}.finite := to_finite _
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : s.finite :=
 h.induction_on finite_empty finite_singleton
 
+lemma finite_preimage_inl_and_inr {s : set (α ⊕ β)} :
+  (sum.inl ⁻¹' s).finite ∧ (sum.inr ⁻¹' s).finite ↔ s.finite :=
+⟨λ h, image_preimage_inl_union_image_preimage_inr s ▸ (h.1.image _).union (h.2.image _),
+  λ h, ⟨h.preimage (sum.inl_injective.inj_on _), h.preimage (sum.inr_injective.inj_on _)⟩⟩
+
 theorem exists_finite_iff_finset {p : set α → Prop} :
   (∃ s : set α, s.finite ∧ p s) ↔ ∃ s : finset α, p ↑s :=
 ⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,

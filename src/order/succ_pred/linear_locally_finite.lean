@@ -91,19 +91,10 @@ variables [linear_order ι]
 i.e. when `i` is not the greatest lower bound of `(i, ∞)`. -/
 noncomputable def succ_fn (i : ι) : ι := (exists_glb_Ioi i).some
 
-/-- Predecessor in a linear order. This defines a true predecessor only when `i` is isolated from
-below, i.e. when `i` is not the least upper bound of `(-∞, i)`. -/
-noncomputable def pred_fn (i : ι) : ι := (exists_lub_Iio i).some
-
 lemma succ_fn_spec (i : ι) : is_glb (set.Ioi i) (succ_fn i) := (exists_glb_Ioi i).some_spec
-
-lemma pred_fn_spec (i : ι) : is_lub (set.Iio i) (pred_fn i) := (exists_lub_Iio i).some_spec
 
 lemma le_succ_fn (i : ι) : i ≤ succ_fn i :=
 by { rw [le_is_glb_iff (succ_fn_spec i), mem_lower_bounds], exact λ x hx, (le_of_lt hx), }
-
-lemma pred_fn_le (i : ι) : pred_fn i ≤ i :=
-by { rw [is_lub_le_iff (pred_fn_spec i), mem_upper_bounds], exact λ x hx, (le_of_lt hx), }
 
 lemma is_glb_Ioc_of_is_glb_Ioi {i j k : ι} (hij_lt : i < j) (h : is_glb (set.Ioi i) k) :
   is_glb (set.Ioc i j) k :=
@@ -114,17 +105,6 @@ begin
   cases le_or_lt y j with h_le h_lt,
   { exact hx y ⟨hy, h_le⟩, },
   { exact le_trans (hx j ⟨hij_lt, le_rfl⟩) h_lt.le, },
-end
-
-lemma is_lub_Ico_of_is_lub_Iio {i j k : ι} (hji_lt : j < i) (h : is_lub (set.Iio i) k) :
-  is_lub (set.Ico j i) k :=
-begin
-  simp_rw [is_lub, is_least, mem_lower_bounds, mem_upper_bounds] at h ⊢,
-  refine ⟨λ x hx, h.1 x hx.2, λ x hx, h.2 x _⟩,
-  intros y hy,
-  cases le_or_lt j y with h_le h_lt,
-  { exact hx y ⟨h_le, hy⟩, },
-  { exact le_trans h_lt.le (hx j ⟨le_rfl, hji_lt⟩), },
 end
 
 lemma is_max_of_succ_fn_le [locally_finite_order ι] (i : ι) (hi : succ_fn i ≤ i) : is_max i :=
@@ -143,14 +123,8 @@ begin
   exact lt_irrefl i hi_mem.1,
 end
 
-lemma is_min_of_le_pred_fn [locally_finite_order ι] (i : ι) (hi : i ≤ pred_fn i) : is_min i :=
-@is_max_of_succ_fn_le ιᵒᵈ _ _ i hi
-
 lemma succ_fn_le_of_lt (i j : ι) (hij : i < j) : succ_fn i ≤ j :=
 by { have h := succ_fn_spec i, rw [is_glb, is_greatest, mem_lower_bounds] at h, exact h.1 j hij, }
-
-lemma le_pred_fn_of_lt (j i : ι) (hij : j < i) : j ≤ pred_fn i :=
-@succ_fn_le_of_lt ιᵒᵈ _ i j hij
 
 lemma le_of_lt_succ_fn (j i : ι) (hij : j < succ_fn i) : j ≤ i :=
 begin
@@ -160,13 +134,8 @@ begin
   exact not_lt.mp (λ hi_lt_j, not_le.mpr hk (hk_lb j hi_lt_j)),
 end
 
-lemma le_of_pred_fn_lt (i j : ι) (hij : pred_fn i < j) : i ≤ j :=
-@le_of_lt_succ_fn ιᵒᵈ _ j i hij
-
 @[priority 100]
-noncomputable
-instance _root_.linear_locally_finite_order.succ_order [locally_finite_order ι] :
-  succ_order ι :=
+noncomputable instance [locally_finite_order ι] : succ_order ι :=
 { succ := succ_fn,
   le_succ := le_succ_fn,
   max_of_succ_le := is_max_of_succ_fn_le,
@@ -174,14 +143,8 @@ instance _root_.linear_locally_finite_order.succ_order [locally_finite_order ι]
   le_of_lt_succ := le_of_lt_succ_fn, }
 
 @[priority 100]
-noncomputable
-instance _root_.linear_locally_finite_order.pred_order [locally_finite_order ι] :
-  pred_order ι :=
-{ pred := pred_fn,
-  pred_le := pred_fn_le,
-  min_of_le_pred := is_min_of_le_pred_fn,
-  le_pred_of_lt := le_pred_fn_of_lt,
-  le_of_pred_lt := le_of_pred_fn_lt, }
+noncomputable instance [locally_finite_order ι] : pred_order ι :=
+@order_dual.pred_order ιᵒᵈ _ _
 
 end linear_order_succ_pred
 

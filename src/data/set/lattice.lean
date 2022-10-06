@@ -1381,8 +1381,8 @@ lemma sInter_prod_sInter_subset (f₁ : set (set α)) (f₂ : set (set β)) :
   ⋂₀ f₁ ×ˢ ⋂₀ f₂ ⊆ ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' f₁ ×ˢ f₂) :=
 λ x hx _ ⟨s, hs, h⟩, h ▸ ⟨hx.1 s.1 hs.1, hx.2 s.2 hs.2⟩
 
-lemma sInter_prod_sInter (f₁ : set (set α)) (f₂ : set (set β)) (h₁ : f₁.nonempty)
-  (h₂ : f₂.nonempty) : ⋂₀ f₁ ×ˢ ⋂₀ f₂ = ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' f₁ ×ˢ f₂) :=
+lemma sInter_prod_sInter (S : set (set α)) (T : set (set β)) (hS : S.nonempty) (hT : T.nonempty) :
+  ⋂₀ S ×ˢ ⋂₀ T = ⋂₀ ((λ st : set α × set β, st.1 ×ˢ st.2) '' S ×ˢ T) :=
 begin
   obtain ⟨s₁, h₁⟩ := h₁,
   obtain ⟨s₂, h₂⟩ := h₂,

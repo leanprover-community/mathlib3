@@ -3,7 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.order.monoid.canonically_ordered
+import algebra.order.monoid.canonical
 import algebra.order.monoid.with_top
 
 /-! # Translating ordered monoids across `additive`/`multiplicative` -/

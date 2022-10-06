@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 
-import algebra.order.ring.canonically_ordered
+import algebra.order.ring.canonical
 import algebra.order.group.with_top
 import algebra.hom.ring
 

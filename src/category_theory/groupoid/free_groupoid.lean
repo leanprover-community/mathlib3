@@ -71,7 +71,7 @@ inductive red_step : hom_rel (paths (quiver.symmetrify V))
     red_step (𝟙 X) (f.to_path ≫ (quiver.reverse f).to_path)
 
 /-- The underlying vertices of the free groupoid -/
-def free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
+def _root_.category_theory.free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
 
 instance {V} [Q : quiver.{v+1} V] [h : nonempty V] : nonempty (free_groupoid V) := ⟨⟨h.some⟩⟩
 

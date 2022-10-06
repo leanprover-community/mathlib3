@@ -792,8 +792,8 @@ lemma mul_eq_comp (f g : module.End R M) : f * g = f.comp g := rfl
 @[simp] lemma one_apply (x : M) : (1 : module.End R M) x = x := rfl
 @[simp] lemma mul_apply (f g : module.End R M) (x : M) : (f * g) x = f (g x) := rfl
 
-lemma coe_one : ⇑(1 : module.End R M) = _root_.id := rfl
-lemma coe_mul (f g : module.End R M) : ⇑(f * g) = f ∘ g := rfl
+protected lemma coe_one : ⇑(1 : module.End R M) = _root_.id := rfl
+protected lemma coe_mul (f g : module.End R M) : ⇑(f * g) = f ∘ g := rfl
 
 instance _root_.module.End.monoid : monoid (module.End R M) :=
 { mul := (*),

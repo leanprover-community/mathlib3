@@ -17,7 +17,7 @@ with `f` via the projection `(ι → R) →ₗ[R] M` given by `v`.
 We show that every endomorphism has a matrix representation, and if `f.range ≤ I • ⊤` for some
 ideal `I`, we may furthermore obtain a matrix representation whose entries fall in `I`.
 
-This is used to conclue the Calyley-Hamilton theorem for f.g. modules over arbitrary rings.
+This is used to conclude the Cayley-Hamilton theorem for f.g. modules over arbitrary rings.
 -/
 
 variables {ι : Type*} [fintype ι]
@@ -210,12 +210,12 @@ end
 end
 
 /--
-The **Cayley-Hamilton Theorem** for f.g. modules over arbirary rings states that for each
+The **Cayley-Hamilton Theorem** for f.g. modules over arbitrary rings states that for each
 `R`-endomorphism `φ` of an `R`-module `M` such that `φ(M) ≤ I • M` for some ideal `I`, there
 exists some `n` and some `aᵢ ∈ Iⁱ` such that `φⁿ + a₁ φⁿ⁻¹ + ⋯ + aₙ = 0`.
 
 This is the version found in Eisenbud 4.3, which is slightly weaker than Matsumura 2.1
-(this lacks the constraint on `n`), and is slightly stonger than Atiyah-Macdonald 2.4.
+(this lacks the constraint on `n`), and is slightly stronger than Atiyah-Macdonald 2.4.
 -/
 lemma linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul
   [module.finite R M] (f : module.End R M) (I : ideal R) (hI : f.range ≤ I • ⊤) :
@@ -223,9 +223,8 @@ lemma linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_sm
     p.monic ∧ (∀ k, p.coeff k ∈ I ^ (p.nat_degree - k)) ∧ polynomial.aeval f p = 0 :=
 begin
   classical,
-  cases subsingleton_or_nontrivial R,
+  casesI subsingleton_or_nontrivial R,
   { exactI ⟨0, polynomial.monic_of_subsingleton _, by simp⟩ },
-  resetI,
   obtain ⟨s : finset M, hs : submodule.span R (s : set M) = ⊤⟩ := module.finite.out,
   obtain ⟨A, rfl, h⟩ := matrix.is_representation.to_End_exists_mem_ideal R (coe : s → M)
     (by rw [subtype.range_coe_subtype, finset.set_of_mem, hs]) f I hI,
@@ -242,8 +241,5 @@ end
 
 lemma linear_map.exists_monic_and_aeval_eq_zero [module.finite R M]
   (f : module.End R M) : ∃ p : polynomial R, p.monic ∧ polynomial.aeval f p = 0 :=
-begin
-  obtain ⟨p, hp₁, -, hp₂⟩ :=
-    linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul R f ⊤ (by simp),
-  exact ⟨p, hp₁, hp₂⟩
-end
+(linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul R f ⊤ (by simp)).imp
+  (λ p h, h.imp_right and.elim_right)

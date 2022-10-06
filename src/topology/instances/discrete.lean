@@ -41,7 +41,7 @@ begin
     (Union_of_singleton α),
 end
 
-lemma bot_topological_space_eq_generate_from_of_pred_succ_order [partial_order α]
+lemma bot_topological_space_eq_generate_from_of_pred_succ_order {α} [partial_order α]
   [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
   (⊥ : topological_space α) = generate_from {s | ∃ a, s = Ioi a ∨ s = Iio a} :=
 begin

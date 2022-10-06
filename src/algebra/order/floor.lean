@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import tactic.abel
 import tactic.linarith
+import tactic.positivity
 
 /-!
 # Floor and ceil
@@ -686,7 +687,7 @@ fract_eq_self.2 ⟨fract_nonneg _, fract_lt_one _⟩
 lemma preimage_fract (s : set α) : fract ⁻¹' s = ⋃ m : ℤ, (λ x, x - m) ⁻¹' (s ∩ Ico (0 : α) 1) :=
 begin
   ext x,
-  simp only [mem_preimage, mem_Union, mem_inter_eq],
+  simp only [mem_preimage, mem_Union, mem_inter_iff],
   refine ⟨λ h, ⟨⌊x⌋, h, fract_nonneg x, fract_lt_one x⟩, _⟩,
   rintro ⟨m, hms, hm0, hm1⟩,
   obtain rfl : ⌊x⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 hm0, sub_lt_iff_lt_add'.1 hm1⟩,
@@ -696,7 +697,7 @@ end
 lemma image_fract (s : set α) : fract '' s = ⋃ m : ℤ, (λ x, x - m) '' s ∩ Ico 0 1 :=
 begin
   ext x,
-  simp only [mem_image, mem_inter_eq, mem_Union], split,
+  simp only [mem_image, mem_inter_iff, mem_Union], split,
   { rintro ⟨y, hy, rfl⟩,
     exact ⟨⌊y⌋, ⟨y, hy, rfl⟩, fract_nonneg y, fract_lt_one y⟩ },
   { rintro ⟨m, ⟨y, hys, rfl⟩, h0, h1⟩,
@@ -999,3 +1000,46 @@ begin
   have : H₁.ceil = H₂.ceil := funext (λ a, H₁.gc_ceil_coe.l_unique H₂.gc_ceil_coe $ λ _, rfl),
   cases H₁, cases H₂, congr; assumption
 end
+
+namespace tactic
+open positivity
+
+private lemma int_floor_nonneg [ordered_ring α] [floor_ring α] {a : α} (ha : 0 ≤ a) :
+  0 ≤ ⌊a⌋ := int.floor_nonneg.2 ha
+private lemma int_floor_nonneg_of_pos [ordered_ring α] [floor_ring α] {a : α} (ha : 0 < a) :
+  0 ≤ ⌊a⌋ := int_floor_nonneg ha.le
+
+/-- Extension for the `positivity` tactic: `int.floor` is nonnegative if its input is. -/
+@[positivity]
+meta def positivity_floor : expr → tactic strictness
+| `(⌊%%a⌋) := do
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := nonnegative <$> mk_app ``int_floor_nonneg_of_pos [p]
+      | nonnegative p := nonnegative <$> mk_app ``int_floor_nonneg [p]
+      | _ := failed
+      end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌊a⌋`"
+
+private lemma nat_ceil_pos [linear_ordered_semiring α] [floor_semiring α] {a : α} :
+  0 < a → 0 < ⌈a⌉₊ := nat.ceil_pos.2
+private lemma int_ceil_pos [linear_ordered_ring α] [floor_ring α] {a : α} : 0 < a → 0 < ⌈a⌉ :=
+int.ceil_pos.2
+
+/-- Extension for the `positivity` tactic: `ceil` and `int.ceil` are positive/nonnegative if
+their input is. -/
+@[positivity]
+meta def positivity_ceil : expr → tactic strictness
+| `(⌈%%a⌉₊) := do
+      positive p ← core a, -- We already know `0 ≤ n` for all `n : ℕ`
+      positive <$> mk_app ``nat_ceil_pos [p]
+| `(⌈%%a⌉) := do
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := positive <$> mk_app ``int_ceil_pos [p]
+      | nonnegative p := nonnegative <$> mk_app ``int.ceil_nonneg [p]
+      | _ := failed
+      end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌈a⌉₊` nor `⌈a⌉`"
+
+end tactic

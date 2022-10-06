@@ -10,6 +10,10 @@ import logic.basic
 
 open tactic expr
 
+/- Enable the option `trace.push_neg.use_distrib` in order to have `¬ (p ∧ q)` normalized to
+`¬ p ∨ ¬ q`, rather than the default `p → ¬ q`. -/
+declare_trace push_neg.use_distrib
+
 namespace push_neg
 section
 
@@ -21,6 +25,7 @@ variable  (s : α → Prop)
 local attribute [instance, priority 10] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
 theorem not_and_eq : (¬ (p ∧ q)) = (p → ¬ q) := propext not_and
+theorem not_and_distrib_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
 theorem not_forall_eq : (¬ ∀ x, s x) = (∃ x, ¬ s x) := propext not_forall
 theorem not_exists_eq : (¬ ∃ x, s x) = (∀ x, ¬ s x) := propext not_exists
@@ -48,8 +53,13 @@ do e ← whnf_reducible e,
       match ne with
       | `(¬ %%a)      := do pr ← mk_app ``not_not_eq [a],
                             return (some (a, pr))
-      | `(%%a ∧ %%b)  := do pr ← mk_app ``not_and_eq [a, b],
-                            return (some (`((%%a : Prop) → ¬ %%b), pr))
+      | `(%%a ∧ %%b)  := do distrib ← get_bool_option `trace.push_neg.use_distrib ff,
+                            if distrib then do
+                              pr ← mk_app ``not_and_distrib_eq [a, b],
+                              return (some (`(¬ (%%a : Prop) ∨ ¬ %%b), pr))
+                            else do
+                              pr ← mk_app ``not_and_eq [a, b],
+                              return (some (`((%%a : Prop) → ¬ %%b), pr))
       | `(%%a ∨ %%b)  := do pr ← mk_app ``not_or_eq [a, b],
                             return (some (`(¬ %%a ∧ ¬ %%b), pr))
       | `(%%a ≤ %%b)  := do e ← to_expr ``(%%b < %%a),

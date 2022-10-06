@@ -1,5 +1,4 @@
-import algebra.group_power.order
-import data.nat.basic
+import data.int.basic
 
 open nat
 

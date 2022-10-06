@@ -61,7 +61,7 @@ end
 floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
 
 @[simp, norm_cast] lemma ceil_cast (x : ℚ) : ⌈(x : α)⌉ = ⌈x⌉ :=
-by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
+by rw [←neg_inj, ←floor_neg_eq_neg_ceil, ←floor_neg_eq_neg_ceil, ← rat.cast_neg, rat.floor_cast]
 
 @[simp, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
 have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,

@@ -137,7 +137,7 @@ begin
   { rintro X Y f, simp, },
 end
 
-lemma lift_spec_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
+lemma lift_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
 begin
   subst_vars,
   apply functor.hext,

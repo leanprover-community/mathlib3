@@ -84,7 +84,7 @@ begin
     simp only [category.id_comp], },
 end
 
-lemma lift_spec_unique {C} [category C] (φ : prefunctor V C) (Φ : paths V ⥤ C)
+lemma lift_unique {C} [category C] (φ : prefunctor V C) (Φ : paths V ⥤ C)
   (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = lift φ :=
 begin
   subst_vars,

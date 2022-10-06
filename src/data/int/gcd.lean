@@ -395,7 +395,7 @@ end
 
 attribute [to_additive gcd_nsmul_eq_zero] pow_gcd_eq_one
 
-
+/-! ### GCD prover -/
 open norm_num
 
 namespace tactic

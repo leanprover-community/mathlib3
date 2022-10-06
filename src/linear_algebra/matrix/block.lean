@@ -37,7 +37,7 @@ open_locale big_operators matrix
 universes v
 
 variables {α β m n o : Type*} {m' n' : α → Type*}
-variables {R : Type v} [comm_ring R] {M : matrix m m R} {b : m → α}
+variables {R : Type v} [comm_ring R] {M N : matrix m m R} {b : m → α}
 
 namespace matrix
 
@@ -68,21 +68,18 @@ protected lemma block_triangular.transpose :
 @[simp] protected lemma block_triangular_transpose_iff {b : m → αᵒᵈ} :
   Mᵀ.block_triangular b ↔ M.block_triangular (of_dual ∘ b) := forall_swap
 
-lemma block_triangular_zero : block_triangular (0 : matrix m m R) b := λ i j h, rfl
+@[simp] lemma block_triangular_zero : block_triangular (0 : matrix m m R) b := λ i j h, rfl
 
-protected lemma block_triangular.neg (hM : block_triangular M b) :
-  block_triangular (- M) b :=
-λ i j h, show - M i j = 0, by rw [hM h, neg_zero]
+protected lemma block_triangular.neg (hM : block_triangular M b) : block_triangular (-M) b :=
+λ i j h, neg_eq_zero.2 $ hM h
 
-lemma block_triangular.add {M N : matrix m m R}
-    (hM : block_triangular M b) (hN : block_triangular N b) :
+lemma block_triangular.add (hM : block_triangular M b) (hN : block_triangular N b) :
   block_triangular (M + N) b :=
-λ i j h, show M i j + N i j = 0, by rw [hM h, hN h, zero_add]
+λ i j h, by simp_rw [pi.add_apply, hM h, hN h, zero_add]
 
-lemma block_triangular.sub {M N : matrix m m R}
-    (hM : block_triangular M b) (hN : block_triangular N b) :
+lemma block_triangular.sub (hM : block_triangular M b) (hN : block_triangular N b) :
   block_triangular (M - N) b :=
-λ i j h, show M i j - N i j = 0, by rw [hM h, hN h, zero_sub_zero]
+λ i j h, by simp_rw [pi.sub_apply, hM h, hN h, sub_zero]
 
 end has_lt
 
@@ -121,7 +118,7 @@ begin
   apply finset.sum_eq_zero,
   intros k hk,
   by_cases hki : b k < b i,
-  { simp_rw [hM hki, zero_mul], },
+  { simp_rw [hM hki, zero_mul] },
   { simp_rw [hN (lt_of_lt_of_le hij (le_of_not_lt hki)), mul_zero] },
 end
 
@@ -130,23 +127,7 @@ end linear_order
 lemma upper_two_block_triangular [preorder α]
   (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) {a b : α} (hab : a < b) :
   block_triangular (from_blocks A B 0 D) (sum.elim (λ i, a) (λ j, b)) :=
-begin
-  intros k1 k2 hk12,
-  have hor : ∀ (k : m ⊕ n), sum.elim (λ i, a) (λ j, b) k = a ∨ sum.elim (λ i, a) (λ j, b) k = b,
-  { simp },
-  have hne : a ≠ b, from λ h, lt_irrefl _ (lt_of_lt_of_eq hab h.symm),
-  have ha : ∀ (k : m ⊕ n), sum.elim (λ i, a) (λ j, b) k = a → ∃ i, k = sum.inl i,
-  { simp [hne.symm] },
-  have hb : ∀ (k : m ⊕ n), sum.elim (λ i, a) (λ j, b) k = b → ∃ j, k = sum.inr j,
-  { simp [hne] },
-  cases (hor k1) with hk1 hk1; cases (hor k2) with hk2 hk2; rw [hk1, hk2] at hk12,
-  { exact false.elim (lt_irrefl a hk12), },
-  { exact false.elim (lt_irrefl _ (lt_trans hab hk12)) },
-  { obtain ⟨i, hi⟩ := hb k1 hk1,
-    obtain ⟨j, hj⟩ := ha k2 hk2,
-    rw [hi, hj], simp },
-  { exact absurd hk12 (irrefl b) }
-end
+by rintro (c | c) (d | d) hcd; simpa [hab.not_lt] using hcd <|> simp
 
 /-! ### Determinant -/
 
@@ -206,17 +187,16 @@ begin
   unfreezingI { induction hs : univ.image b using finset.strong_induction
     with s ih generalizing m },
   subst hs,
-  by_cases h : univ.image b = ∅,
-  { haveI := univ_eq_empty_iff.1 (image_eq_empty.1 h),
-    simp [h] },
-  { let k := (univ.image b).max' (nonempty_of_ne_empty h),
+  casesI is_empty_or_nonempty m,
+  { simp [h] },
+  let k := (univ.image b).max' (univ_nonempty.image _),
     rw two_block_triangular_det' M (λ i, b i = k),
     { have : univ.image b = insert k ((univ.image b).erase k),
       { rw insert_erase, apply max'_mem },
       rw [this, prod_insert (not_mem_erase _ _)],
       refine congr_arg _ _,
       let b' := λ i : {a // b a ≠ k}, b ↑i,
-      have h' :  block_triangular (M.to_square_block_prop (λ (i : m), b i ≠ k)) b',
+      have h' :  block_triangular (M.to_square_block_prop (λ i, b i ≠ k)) b',
       { intros i j, apply hM },
       have hb' : image b' univ = (image b univ).erase k,
         by convert image_subtype_ne_univ_eq_image_erase k b,
@@ -236,7 +216,7 @@ begin
     apply hM,
     rw hi,
     apply lt_of_le_of_ne _ hj,
-    exact finset.le_max' (univ.image b) _ (mem_image_of_mem _ (mem_univ _)) } }
+    exact finset.le_max' (univ.image b) _ (mem_image_of_mem _ (mem_univ _)) }
 end
 
 lemma block_triangular.det_fintype [decidable_eq α] [fintype α] [linear_order α]
@@ -261,8 +241,8 @@ by { rw ←det_transpose, exact det_of_upper_triangular h.transpose }
 
 /-! ### Invertible -/
 
-lemma to_block_inverse_mul_to_block_eq_one_of_block_triangular [linear_order α]
-  [invertible M] (hM : block_triangular M b) (k : α) :
+lemma block_triangular.to_block_inverse_mul_to_block_eq_one [linear_order α] [invertible M]
+  (hM : block_triangular M b) (k : α) :
   M⁻¹.to_block (λ i, b i < k) (λ i, b i < k) ⬝ M.to_block (λ i, b i < k) (λ i, b i < k) = 1 :=
 begin
   let p := (λ i, b i < k),
@@ -277,89 +257,62 @@ end
 
 /-- The inverse of an upper-left subblock of a block-triangular matrix `M` is the upper-left
 subblock of `M⁻¹`. -/
-lemma inv_to_block_of_block_triangular [linear_order α]
-  [invertible M] (hM : block_triangular M b) (k : α) :
+lemma block_triangular.inv_to_block [linear_order α] [invertible M]
+  (hM : block_triangular M b) (k : α) :
   (M.to_block (λ i, b i < k) (λ i, b i < k))⁻¹ = M⁻¹.to_block (λ i, b i < k) (λ i, b i < k) :=
-inv_eq_left_inv (to_block_inverse_mul_to_block_eq_one_of_block_triangular hM k)
+inv_eq_left_inv $ hM.to_block_inverse_mul_to_block_eq_one k
 
 /-- An upper-left subblock of an invertible block-triangular matrix is invertible. -/
-def invertible_to_block_of_block_triangular
-  [linear_order α] [invertible M] (hM : block_triangular M b) (k : α) :
+def block_triangular.invertible_to_block [linear_order α] [invertible M]
+ (hM : block_triangular M b) (k : α) :
   invertible (M.to_block (λ i, b i < k) (λ i, b i < k)) :=
-invertible_of_left_inverse _ ((⅟M).to_block (λ i, b i < k) (λ i, b i < k))
-  (by simpa only [inv_of_eq_nonsing_inv]
-    using to_block_inverse_mul_to_block_eq_one_of_block_triangular hM k)
+invertible_of_left_inverse _ ((⅟M).to_block (λ i, b i < k) (λ i, b i < k)) $
+  by simpa only [inv_of_eq_nonsing_inv] using hM.to_block_inverse_mul_to_block_eq_one k
 
 /-- A lower-left subblock of the inverse of a block-triangular matrix is zero. This is a first step
-towards `block_triangular_inv_of_block_triangular` below. -/
-lemma to_block_inverse_eq_zero [linear_order α]
-  [invertible M] (hM : block_triangular M b) (k : α) :
+towards `block_triangular.inv_to_block` below. -/
+lemma to_block_inverse_eq_zero [linear_order α] [invertible M] (hM : block_triangular M b) (k : α) :
   M⁻¹.to_block (λ i, k ≤ b i) (λ i, b i < k) = 0 :=
 begin
-  have := mul_inv_of_invertible M,
-  have h_iff : (λ i, k ≤ b i) = (λ i, ¬ b i < k),
-  { ext i, simp },
-  let p := (λ i, b i < k),
-  let q := (λ i, ¬ b i < k),
-  have h_sum : M⁻¹.to_block q p ⬝ M.to_block p p +
-      M⁻¹.to_block q q ⬝ M.to_block q p = 0,
+  let p := λ i, b i < k,
+  let q := λ i, ¬ b i < k,
+  have h_sum : M⁻¹.to_block q p ⬝ M.to_block p p + M⁻¹.to_block q q ⬝ M.to_block q p = 0,
   { rw [←to_block_mul_eq_add, inv_mul_of_invertible M, to_block_one_disjoint],
-    rintros i ⟨hq, hp⟩, exact hq hp },
+    exact λ i h, h.1 h.2 },
   have h_zero : M.to_block q p = 0,
   { ext i j,
-    simpa using hM (lt_of_lt_of_le j.2 (le_of_not_lt i.2)) },
-  have h_mul_eq_zero : M⁻¹.to_block q p ⬝ M.to_block p p = 0,
-    by simpa [h_zero] using h_sum,
-  haveI : invertible (M.to_block p p) := invertible_to_block_of_block_triangular hM k,
-  rw [h_iff, ← matrix.zero_mul (M.to_block p p)⁻¹, ← h_mul_eq_zero,
+    simpa using hM (lt_of_lt_of_le j.2 $ le_of_not_lt i.2) },
+  have h_mul_eq_zero : M⁻¹.to_block q p ⬝ M.to_block p p = 0 := by simpa [h_zero] using h_sum,
+  haveI : invertible (M.to_block p p) := hM.invertible_to_block k,
+  have : (λ i, k ≤ b i) = q := by { ext, exact not_lt.symm },
+  rw [this, ← matrix.zero_mul (M.to_block p p)⁻¹, ← h_mul_eq_zero,
     mul_inv_cancel_right_of_invertible],
 end
 
 /-- The inverse of a block-triangular matrix is block-triangular. -/
-lemma block_triangular_inv_of_block_triangular
-    [invertible M] [linear_order α] (hM : block_triangular M b) :
+lemma block_triangular_inv_of_block_triangular [linear_order α] [invertible M]
+  (hM : block_triangular M b) :
   block_triangular M⁻¹ b :=
 begin
   unfreezingI { induction hs : univ.image b using finset.strong_induction
     with s ih generalizing m },
   subst hs,
-  by_cases h : univ.image b = ∅,
-  { intros i j,
-    rw [image_eq_empty, univ_eq_empty_iff] at h,
-    exact false.elim (@is_empty.false _ h i) },
-  { let k := (univ.image b).max' (nonempty_of_ne_empty h),
-    let b' := λ i : {a // b a < k}, b ↑i,
-    let A := M.to_block (λ i, b i < k) (λ j, b j < k),
-    let B := M.to_block (λ i, b i < k) (λ j, b j ≤ k),
-    let C := M.to_block (λ i, b i ≤ k) (λ j, b j < k),
-    let D := M.to_block (λ i, b i ≤ k) (λ j, b j ≤ k),
-    show M⁻¹.block_triangular b,
-    { intros i j hij,
-      by_cases hbi : b i = k,
-      { have hi : k ≤ b i := le_of_eq hbi.symm,
-        have hj : b j < k := hbi ▸ hij,
-        have : M⁻¹.to_block (λ (i : m), k ≤ b i) (λ (i : m), b i < k) ⟨i, hi⟩ ⟨j, hj⟩ = 0 :=
-          by simp only [to_block_inverse_eq_zero hM k, pi.zero_apply],
-        simp [this.symm] },
-      { haveI : invertible A,
-        { apply invertible_to_block_of_block_triangular hM },
-        have hA : A.block_triangular b',
-        { intros i j, apply hM },
-        have hb' : image b' univ ⊂ (image b univ),
-        { convert image_subtype_univ_ssubset_image_univ k b _ (λ a, a < k) (lt_irrefl _),
-          convert max'_mem _ _, },
-        have hA : A⁻¹.block_triangular b',
-          from ih (image b' univ) hb' hA rfl,
-        have hi : b i < k,
-          from lt_of_le_of_ne (le_max' (univ.image b) (b i) (mem_image_of_mem _ (mem_univ _))) hbi,
-        have hj : b j < k, from lt_trans hij hi,
-        have hij' : b' ⟨j, hj⟩ < b' ⟨i, hi⟩, by simp_rw [b', subtype.coe_mk, hij],
-        have hA := hA hij',
-        have h_A_inv: A⁻¹ = M⁻¹.to_block (λ (i : m), b i < k) (λ (i : m), b i < k),
-        { simp_rw [A],
-          exact inv_to_block_of_block_triangular hM k },
-        rw h_A_inv at hA,
-        simp [hA.symm] } } }
+  intros i j hij,
+  haveI : inhabited m := ⟨i⟩,
+  let k := (univ.image b).max' (univ_nonempty.image _),
+  let b' := λ i : {a // b a < k}, b ↑i,
+  let A := M.to_block (λ i, b i < k) (λ j, b j < k),
+  obtain hbi | hi : b i = k ∨ _ := (le_max' _ (b i) $ mem_image_of_mem _ $ mem_univ _).eq_or_lt,
+  { have : M⁻¹.to_block (λ i, k ≤ b i) (λ i, b i < k) ⟨i, hbi.ge⟩ ⟨j, hbi ▸ hij⟩ = 0,
+    { simp only [to_block_inverse_eq_zero hM k, pi.zero_apply] },
+    simp [this.symm] },
+  haveI : invertible A := hM.invertible_to_block _,
+  have hA : A.block_triangular b' := hM.submatrix,
+  have hb' : image b' univ ⊂ image b univ,
+  { convert image_subtype_univ_ssubset_image_univ k b _ (λ a, a < k) (lt_irrefl _),
+    convert max'_mem _ _ },
+  have hij' : b' ⟨j, hij.trans hi⟩ < b' ⟨i, hi⟩, by simp_rw [b', subtype.coe_mk, hij],
+  simp [hM.inv_to_block k, (ih (image b' univ) hb' hA rfl hij').symm],
 end
 
 end matrix

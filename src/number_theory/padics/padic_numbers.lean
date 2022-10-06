@@ -721,7 +721,9 @@ begin
   have p₁ : p ≠ 1 := hp.1.ne_one,
   rw ← @rat.cast_coe_nat ℝ _ p,
   rw ← @rat.cast_coe_nat (ℚ_[p]) _ p,
-  simp [p₀, p₁, norm, padic_norm, padic_val_rat, padic_val_int, zpow_neg, -rat.cast_coe_nat],
+  -- Rewrite `padic_norm_e` before rewriting `(↑(p : ℕ) : ℚ)`
+  simp only [norm, padic_norm_e.eq_padic_norm'],
+  simp [p₀, p₁, padic_val_int, zpow_neg]
 end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=

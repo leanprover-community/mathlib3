@@ -175,6 +175,189 @@ begin
     ext S : 3,
     apply hb },
 end
+
+abbreviation open_normal :=
+order_dual $ @subtype (subgroup G) (λ U, is_open (U : set G) ∧ U.normal)
+
+instance : has_coe (open_normal G) (subgroup G) :=
+⟨λ U, U.1⟩
+
+instance open_normal_normal (U : open_normal G) : (U : subgroup G).normal := U.2.2
+
+def n_prods {G : Type*} [monoid G] (T : set G) (n : ℕ) : set G :=
+{ g | ∃ f : fin n → T, (list.of_fn (coe ∘ f)).prod = g }
+
+def invs {G : Type*} [group G] (T : set G) : set G := { g | ∃ t : T, (t : G)⁻¹ = g }
+
+lemma invs_open (T : set G) (hT : is_open T) : is_open (invs T) :=
+begin
+  convert is_open.preimage continuous_inv hT,
+  ext,
+  split,
+  { rintros ⟨y, rfl⟩,
+    dsimp,
+    rw inv_inv,
+    exact y.2 },
+  { intro h,
+    use x⁻¹,
+    { exact h },
+    { exact inv_inv _ } }
+end
+
+variables {G}
+
+lemma lemma1 (x : G) (H : x ≠ 1) : ∃ (U : {U : set G // is_clopen U ∧ (1 : G) ∈ U}), x ∉ (U : set G) :=
+begin
+  have := totally_disconnected_space_iff_connected_component_singleton.1
+    ProfiniteGroup.totally_disconnected_space (1 : G),
+  rw connected_component_eq_Inter_clopen at this,
+  rw ←not_forall,
+  intros H1,
+  refine H _,
+  have h' := set.mem_Inter.2 H1,
+  rw this at h',
+  rw set.mem_singleton_iff.1 h',
+end
+
+lemma lemma2 (U : set G) (hU : is_clopen U) : is_compact (Uᶜ ∩ n_prods U 2) :=
+begin
+  refine (compact_of_is_closed_subset G.1.1.2.1 (is_closed_compl_iff.2 hU.1)
+    (set.subset_univ _)).inter _,
+  let F : G × G → G := λ x, x.1 * x.2,
+    have : is_compact (F '' (U ×ˢ U)) := ((compact_of_is_closed_subset G.1.1.2.1 hU.2 (set.subset_univ _)).prod
+      (compact_of_is_closed_subset G.1.1.2.1 hU.2 (set.subset_univ _))).image continuous_mul,
+    convert this,
+    ext g,
+    split,
+    { rintro ⟨f, hg⟩,
+      let X : ((U : set G) ×ˢ (U : set G) : set (G × G)) := ⟨(f 0, f 1), ⟨(f 0).2, (f 1).2⟩⟩,
+      use X,
+      use X.2,
+      rw ←hg,
+      simp },
+    { rintro ⟨x, hg⟩,
+      use (fin.cons (⟨x.1, hg.1.1⟩) (λ i, ⟨x.2, hg.1.2⟩) : fin 2 → U),
+      cases hg with hg1 hg2,
+      simpa using hg2 }
+end
+
+def inter_conjugates (H : subgroup G) : subgroup G :=
+{ carrier := set.Inter (λ g, (λ h : G, g * h * g⁻¹) '' H),
+  mul_mem' := sorry,
+  one_mem' := sorry,
+  inv_mem' := sorry }
+
+theorem ummmm (x : G) : (∀ U : open_normal G, x ∈ (U : subgroup G)) → x = 1 :=
+begin
+  contrapose!,
+  intro H,
+  have := totally_disconnected_space_iff_connected_component_singleton.1
+    ProfiniteGroup.totally_disconnected_space (1 : G),
+  rw connected_component_eq_Inter_clopen at this,
+  obtain ⟨U, hU⟩ := lemma1 x H,
+  let V := (U : set G)ᶜ ∩ n_prods U 2,
+  have hm : is_compact ((U : set G) ×ˢ (U : set G)),
+  begin
+    refine is_compact.prod _ _,
+    all_goals { exact compact_of_is_closed_subset G.1.1.2.1 U.2.1.2 (set.subset_univ _) },
+  end,
+  have hm2 : is_compact (n_prods (U : set G) 2) :=
+  begin
+    sorry/-let F : G × G → G := λ x, x.1 * x.2,
+    have := is_compact.image hm continuous_mul,
+    convert this,
+    ext g,
+    split,
+    { rintro ⟨f, hg⟩,
+      let X : ((U : set G) ×ˢ (U : set G) : set (G × G)) := ⟨(f 0, f 1), ⟨(f 0).2, (f 1).2⟩⟩,
+      use X,
+      use X.2,
+      rw ←hg,
+      simp },
+    { rintro ⟨x, hg⟩,
+      use (fin.cons (⟨x.1, hg.1.1⟩) (λ i, ⟨x.2, hg.1.2⟩) : fin 2 → U),
+      cases hg with hg1 hg2,
+      simpa using hg2 }-/
+  end,
+  have hV : is_compact V := (compact_of_is_closed_subset G.1.1.2.1 (is_closed_compl_iff.2 U.2.1.1)
+    (set.subset_univ _)).inter hm2,
+  have hV1 : is_open ((λ g : G × G, g.1 * g.2) ⁻¹' Vᶜ) :=
+  is_open.preimage continuous_mul (is_open_compl_iff.2 $ is_compact.is_closed hV),
+  have hV2 : (U : set G) ⊆ Vᶜ := λ y hy, show y ∈ (_ ∩ _)ᶜ, by simpa using hy,
+  have hV3 := ((topological_space.is_topological_basis_opens).prod
+    topological_space.is_topological_basis_opens).is_open_iff.1 hV1,
+  let im : U → set (G × G) := λ h, classical.some (hV3 (h, 1) $ hV2 $
+    show (h : G) * (1 : G) ∈ _, by rw mul_one; exact h.2),
+  have Him := λ (h : U), classical.some_spec (hV3 (h, 1) $ hV2 $
+    show (h : G) * (1 : G) ∈ _, by rw mul_one; exact h.2),
+  have Him1 := λ h : U, classical.some (Him h),
+  have Him2 := λ h : U, classical.some_spec (Him h),
+  let W1 := λ h : U, classical.some (Him1 h),
+  have HW1X11 := λ h : U, classical.some_spec (Him1 h),
+  let X1 := λ h : U, classical.some (HW1X11 h),
+  let HW1X1 := λ h : U, classical.some_spec (HW1X11 h),
+  let W : U → set G := λ h : U, W1 h ∩ U,
+  let X : U → set G := λ h : U, X1 h ∩ U,
+  have hW1 : ∀ h : U, is_open (W h) := λ h, (HW1X1 h).1.inter U.2.1.1,
+  have hW2 : ∀ h : U, (h : G) ∈ W h := λ h,
+    set.mem_inter (show _ ∈ classical.some _, by
+    {have Hx := (Him2 ⟨h, h.2⟩).1, rw ←(HW1X1 ⟨h, h.2⟩).2.2 at Hx, exact Hx.1 }) h.2,
+  have hW3 : (U : set G) ⊆ set.Union (λ h : U, W h) := λ x hx,
+    set.mem_Union.2 ⟨⟨x, hx⟩, hW2 ⟨x, hx⟩⟩,
+  have hX1 : ∀ h : U, (1 : G) ∈ X h := λ h,
+    set.mem_inter (show _ ∈ classical.some _, by
+    { have H1 := (Him2 h).1, rw ←(HW1X1 h).2.2 at H1, exact H1.2 }) U.2.2,
+  have hWX1 : ∀ h : U, (λ x : G × G, x.1 * x.2) '' (W h ×ˢ X h) ⊆ Vᶜ := λ h,
+  begin
+    intros x hx,
+    rcases hx with ⟨y, hy⟩,
+    have hy2 : y ∈ W1 h ×ˢ X1 h := ⟨hy.1.1.1, hy.1.2.1⟩,
+    rw (HW1X1 h).2.2 at hy2,
+    rw ←hy.2,
+    exact (Him2 h).2 hy2,
+  end,
+  have hWX2 : ∀ h : U, (λ x : G × G, x.1 * x.2) '' (W h ×ˢ X h) ⊆ n_prods U 2 := λ h,
+  begin
+    intros x hx,
+    rcases hx with ⟨y, hy⟩,
+    use (fin.cons ⟨y.1, hy.1.1.2⟩ (λ i, ⟨y.2, hy.1.2.2⟩) : fin 2 → U),
+    simpa using hy.2,
+  end,
+  obtain ⟨t, ht⟩ := is_compact.elim_finite_subcover (compact_of_is_closed_subset G.1.1.2.1 U.2.1.2
+    (set.subset_univ _)) W hW1 hW3,
+  let X2 := set.Inter (λ i : t, X i),
+  let Y := X2 ∩ invs X2,
+  have hY1 : is_open Y :=
+  begin
+    have hX2 : is_open X2 := is_open_Inter (λ t, (HW1X1 _).2.1.inter U.2.1.1),
+    exact hX2.inter (invs_open _ _ hX2),
+  end,
+  have hY2 : (1 : G) ∈ Y := ⟨set.mem_Inter.2 (λ i, hX1 i),
+    ⟨⟨1, set.mem_Inter.2 (λ i, hX1 i)⟩, inv_one⟩⟩,
+  have hY3 : Y ⊆ U :=
+    (set.inter_subset_left _ _).trans
+    (begin
+      have hex : ∃ i : U, i ∈ t,
+      sorry,
+      cases hex with i hi,
+      exact set.Inter_subset_of_subset ⟨i, hi⟩ (set.inter_subset_right _ _)
+    end),
+  have hY4 : (λ g : G × G, g.1 * g.2) '' ((U : set G) ×ˢ Y) ⊆ U := sorry,
+  have hY5 : ∀ i : ℕ, (λ g : G × G, g.1 * g.2) '' ((U : set G) ×ˢ n_prods Y (i + 1)) ⊆ U := sorry,
+  let S' : subgroup G :=
+  { carrier := set.Union (λ i : ℕ, n_prods Y (i + 1)),
+    mul_mem' := sorry,
+    one_mem' := sorry,
+    inv_mem' := sorry },
+  have hS'1 : is_open (S' : set G) := sorry,
+  have hS'2 : (S' : set G) ⊆ U := sorry,
+  let S := inter_conjugates S',
+  have hS1 : is_open (S : set G) := sorry,
+  have hS2 : S.normal := sorry,
+  use ⟨S, hS1, hS2⟩,
+  sorry,
+end
+
 #exit
 
 /--

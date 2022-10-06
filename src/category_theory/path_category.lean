@@ -64,7 +64,7 @@ def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
     { have : f ≫ g'.cons p = (f ≫ g').cons p, by apply quiver.path.comp_cons,
       rw this, simp only, rw [ih, category.assoc], }} }
 
-@[simp] lemma lift_nil  {C} [category C] (φ : prefunctor V C) (X : V) :
+@[simp] lemma lift_nil {C} [category C] (φ : prefunctor V C) (X : V) :
   (lift φ).map (quiver.path.nil) = 𝟙 (φ.obj X) := rfl
 
 @[simp] lemma lift_cons {C} [category C] (φ : prefunctor V C) {X Y Z : V}

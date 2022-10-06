@@ -53,19 +53,19 @@ Note that many lemmas require a `linear_order`. Please see the above `TODO`. -/
 class floor_semiring (α) [ordered_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
-(floor_of_neg {a : α} (ha : a < 0) : floor a = 0)
+(nonneg_of_floor_nonzero {a : α} : floor a ≠ 0 → 0 ≤ a)
 (gc_floor {a : α} {n : ℕ} (ha : 0 ≤ a) : n ≤ floor a ↔ (n : α) ≤ a)
 (gc_ceil : galois_connection ceil coe)
 
 instance : floor_semiring ℕ :=
 { floor := id,
   ceil := id,
-  floor_of_neg := λ a ha, (a.not_lt_zero ha).elim,
+  nonneg_of_floor_nonzero := λ a ha, zero_le _,
   gc_floor := λ n a ha, by { rw nat.cast_id, refl },
   gc_ceil := λ n a, by { rw nat.cast_id, refl } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance ordered_semiring.nontrivial [ordered_semiring α] [floor_semiring α] : nontrivial α :=
+instance floor_semiring.to_nontrivial [ordered_semiring α] [floor_semiring α] : nontrivial α :=
 begin
   refine (subsingleton_or_nontrivial α).resolve_left (λ h, _),
   refine nat.not_succ_le_self (floor_semiring.floor (0 : α)) _,
@@ -106,8 +106,11 @@ eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff n.cast_nonneg], exact nat.cast
 
 @[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
 
+lemma floor_of_not_nonneg : ¬ 0 ≤ a → ⌊a⌋₊ = 0 :=
+imp_of_not_imp_not _ _ (λ H, not_not.mpr (floor_semiring.nonneg_of_floor_nonzero H))
+
 lemma floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
-ha.lt_or_eq.elim floor_semiring.floor_of_neg $ by { rintro rfl, exact floor_zero }
+by { classical, exact dite (0 ≤ a) (λ H, (le_antisymm H ha) ▸ floor_zero ) floor_of_not_nonneg }
 
 /-! #### Ceil -/
 
@@ -358,7 +361,7 @@ end linear_ordered_semifield
 end nat
 
 /-- There exists at most one `floor_semiring` structure on a linear ordered semiring. -/
-lemma subsingleton_floor_semiring [linear_ordered_semiring α] :
+lemma subsingleton_floor_semiring [ordered_semiring α] :
   subsingleton (floor_semiring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,
@@ -366,10 +369,12 @@ begin
     from funext (λ a, H₁.gc_ceil.l_unique H₂.gc_ceil $ λ n, rfl),
   have : H₁.floor = H₂.floor,
   { ext a,
-    cases lt_or_le a 0,
-    { rw [H₁.floor_of_neg, H₂.floor_of_neg]; exact h },
+    by_cases 0 ≤ a,
     { refine eq_of_forall_le_iff (λ n, _),
-      rw [H₁.gc_floor, H₂.gc_floor]; exact h } },
+      rw [H₁.gc_floor, H₂.gc_floor]; exact h },
+    { transitivity,
+      { exact @nat.floor_of_not_nonneg _ _ H₁ _ h },
+      { exact (@nat.floor_of_not_nonneg _ _ H₂ _ h).symm } } },
   cases H₁, cases H₂, congr; assumption
 end
 
@@ -445,17 +450,19 @@ notation `⌈` a `⌉` := int.ceil a
 
 lemma gc_coe_floor : galois_connection (coe : ℤ → α) floor := floor_ring.gc_coe_floor
 
+@[mono] lemma floor_mono : monotone (floor : α → ℤ) := gc_coe_floor.monotone_u
+
 lemma le_floor : z ≤ ⌊a⌋ ↔ (z : α) ≤ a := (gc_coe_floor z a).symm
 
 lemma floor_le (a : α) : (⌊a⌋ : α) ≤ a := gc_coe_floor.l_u_le a
 
 lemma floor_nonneg : 0 ≤ ⌊a⌋ ↔ 0 ≤ a := by rw [le_floor, int.cast_zero]
 
-lemma floor_nonpos (ha : a ≤ 0) : ⌊a⌋ ≤ 0 :=
-begin
-  rw [← @cast_le α, int.cast_zero],
-  exact (floor_le a).trans ha,
-end
+lemma floor_nonpos (ha : a ≤ 0) : ⌊a⌋ ≤ 0 := by exact_mod_cast (floor_le a).trans ha
+
+lemma floor_pos : 0 < ⌊a⌋ ↔ 1 ≤ a := by { convert le_floor, exact cast_one.symm }
+
+lemma floor_neg' : ⌊a⌋ < 0 ↔ ¬ 0 ≤ a := by rw [← floor_nonneg, not_le]
 
 @[simp] lemma floor_int_cast (z : ℤ) : ⌊(z : α)⌋ = z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
@@ -466,11 +473,6 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor, ← cast_coe_nat, cast_le]
 @[simp] lemma floor_zero : ⌊(0 : α)⌋ = 0 := by rw [← cast_zero, floor_int_cast]
 
 @[simp] lemma floor_one : ⌊(1 : α)⌋ = 1 := by rw [← cast_one, floor_int_cast]
-
-@[mono] lemma floor_mono : monotone (floor : α → ℤ) := gc_coe_floor.monotone_u
-
-lemma floor_pos : 0 < ⌊a⌋ ↔ 1 ≤ a :=
-by { convert le_floor, exact cast_one.symm }
 
 @[simp] lemma floor_add_int (a : α) (z : ℤ) : ⌊a + z⌋ = ⌊a⌋ + z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor,
@@ -548,15 +550,19 @@ end
 
 lemma gc_ceil_coe : galois_connection ceil (coe : ℤ → α) := floor_ring.gc_ceil_coe
 
+@[mono] lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
+
 lemma ceil_le : ⌈a⌉ ≤ z ↔ a ≤ z := gc_ceil_coe a z
 
-lemma floor_neg : ⌊-a⌋ = -⌈a⌉ :=
-eq_of_forall_le_iff (λ z, by rw [le_neg, ceil_le, le_floor, int.cast_neg, le_neg])
-
-lemma ceil_neg : ⌈-a⌉ = -⌊a⌋ :=
-eq_of_forall_ge_iff (λ z, by rw [neg_le, ceil_le, le_floor, int.cast_neg, neg_le])
-
 lemma le_ceil (a : α) : a ≤ ⌈a⌉ := gc_ceil_coe.le_u_l a
+
+lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ := by exact_mod_cast ha.trans (le_ceil a)
+
+lemma ceil_nonpos : ⌈a⌉ ≤ 0 ↔ a ≤ 0 := by rw [ceil_le, int.cast_zero]
+
+lemma ceil_neg : ⌈a⌉ < 0 ↔ a ≤ -1 := by rw [←le_sub_one_iff, ceil_le, zero_sub, cast_neg, cast_one]
+
+lemma ceil_pos' : 0 < ⌈a⌉ ↔ ¬ a ≤ 0 := by rw [← ceil_nonpos, not_le]
 
 @[simp] lemma ceil_int_cast (z : ℤ) : ⌈(z : α)⌉ = z :=
 eq_of_forall_ge_iff $ λ a, by rw [ceil_le, int.cast_le]
@@ -564,10 +570,18 @@ eq_of_forall_ge_iff $ λ a, by rw [ceil_le, int.cast_le]
 @[simp] lemma ceil_nat_cast (n : ℕ) : ⌈(n : α)⌉ = n :=
 eq_of_forall_ge_iff $ λ a, by rw [ceil_le, ← cast_coe_nat, cast_le]
 
-lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
+@[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := by rw [← cast_zero, ceil_int_cast]
+
+@[simp] lemma ceil_one : ⌈(1 : α)⌉ = 1 := by rw [← cast_one, ceil_int_cast]
+
+lemma floor_neg_eq_neg_ceil : ⌊-a⌋ = -⌈a⌉ :=
+eq_of_forall_le_iff (λ z, by rw [le_neg, ceil_le, le_floor, int.cast_neg, le_neg])
+
+lemma ceil_neg_eq_neg_floor : ⌈-a⌉ = -⌊a⌋ :=
+eq_of_forall_ge_iff (λ z, by rw [neg_le, ceil_le, le_floor, int.cast_neg, neg_le])
 
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
-by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
+by rw [←neg_inj, neg_add', ←floor_neg_eq_neg_ceil, ←floor_neg_eq_neg_ceil, neg_add', floor_sub_int]
 
 @[simp] lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
 by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
@@ -577,13 +591,6 @@ eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
 
 @[simp] lemma ceil_sub_one (a : α) : ⌈a - 1⌉ = ⌈a⌉ - 1 :=
 by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
-
-@[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := by rw [← cast_zero, ceil_int_cast]
-
-@[simp] lemma ceil_one : ⌈(1 : α)⌉ = 1 := by rw [← cast_one, ceil_int_cast]
-
-lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ :=
-by exact_mod_cast ha.trans (le_ceil a)
 
 lemma floor_le_ceil (a : α) : ⌊a⌋ ≤ ⌈a⌉ := cast_le.1 $ (floor_le _).trans $ le_ceil _
 
@@ -609,6 +616,8 @@ variables [linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
 /-! #### Floor -/
 
 lemma floor_lt : ⌊a⌋ < z ↔ a < z := lt_iff_lt_of_le_iff_le le_floor
+
+@[simp] lemma floor_neg : ⌊a⌋ < 0 ↔ a < 0 := by rw [floor_neg', not_le]
 
 @[simp] lemma floor_le_sub_one_iff : ⌊a⌋ ≤ z - 1 ↔ a < z := by rw [← floor_lt, le_sub_one_iff]
 
@@ -707,6 +716,8 @@ end
 
 lemma lt_ceil : z < ⌈a⌉ ↔ (z : α) < a := lt_iff_lt_of_le_iff_le ceil_le
 
+@[simp] lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [ceil_pos', not_le]
+
 @[simp] lemma add_one_le_ceil_iff : z + 1 ≤ ⌈a⌉ ↔ (z : α) < a := by rw [← lt_ceil, add_one_le_iff]
 
 @[simp] lemma one_le_ceil_iff : 1 ≤ ⌈a⌉ ↔ 0 < a :=
@@ -717,8 +728,6 @@ by { rw [ceil_le, int.cast_add, int.cast_one], exact (lt_floor_add_one a).le }
 
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
 by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
-
-@[simp] lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, cast_zero]
 
 lemma ceil_eq_iff : ⌈a⌉ = z ↔ ↑z - 1 < a ∧ a ≤ z :=
 by rw [←ceil_le, ←int.cast_one, ←int.cast_sub, ←lt_ceil, int.sub_one_lt_iff, le_antisymm_iff,
@@ -958,10 +967,13 @@ end int
 /-! #### A floor ring as a floor semiring -/
 
 @[priority 100] -- see Note [lower instance priority]
-instance _root_.floor_ring.to_floor_semiring [ordered_ring α] [floor_ring α] : floor_semiring α :=
+instance floor_ring.to_floor_semiring [ordered_ring α] [zero_le_one_class α] [floor_ring α] :
+floor_semiring α :=
 { floor := λ a, ⌊a⌋.to_nat,
   ceil := λ a, ⌈a⌉.to_nat,
-  floor_of_neg := λ a ha, int.to_nat_of_nonpos (int.floor_nonpos ha.le),
+  nonneg_of_floor_nonzero := λ a ha,
+  by { rw [ne.def, int.to_nat_eq_zero, not_le, floor_pos] at ha,
+       exact zero_le_one.trans ha },
   gc_floor := λ a n ha,
     by rw [int.le_to_nat_iff (int.floor_nonneg.2 ha), int.le_floor, int.cast_coe_nat],
   gc_ceil := λ a n, by rw [int.to_nat_le, int.ceil_le, int.cast_coe_nat] }

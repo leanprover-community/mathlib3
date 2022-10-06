@@ -358,7 +358,7 @@ end linear_ordered_semifield
 end nat
 
 /-- There exists at most one `floor_semiring` structure on a linear ordered semiring. -/
-lemma subsingleton_floor_semiring {α} [linear_ordered_semiring α] :
+lemma subsingleton_floor_semiring [linear_ordered_semiring α] :
   subsingleton (floor_semiring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,
@@ -955,12 +955,10 @@ by simp_rw [round_eq, ←map_floor _ hf, map_add, one_div, map_inv₀, map_bit0,
 
 end int
 
-variables {α} [ordered_ring α] [floor_ring α]
-
 /-! #### A floor ring as a floor semiring -/
 
 @[priority 100] -- see Note [lower instance priority]
-instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
+instance _root_.floor_ring.to_floor_semiring [ordered_ring α] [floor_ring α] : floor_semiring α :=
 { floor := λ a, ⌊a⌋.to_nat,
   ceil := λ a, ⌈a⌉.to_nat,
   floor_of_neg := λ a ha, int.to_nat_of_nonpos (int.floor_nonpos ha.le),
@@ -968,29 +966,37 @@ instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
     by rw [int.le_to_nat_iff (int.floor_nonneg.2 ha), int.le_floor, int.cast_coe_nat],
   gc_ceil := λ a n, by rw [int.to_nat_le, int.ceil_le, int.cast_coe_nat] }
 
-lemma int.floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
+namespace int
+variables [ordered_ring α] [floor_ring α]
 
-lemma int.ceil_to_nat  (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
+lemma floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 
-@[simp] lemma nat.floor_int : (nat.floor : ℤ → ℕ) = int.to_nat := rfl
-@[simp] lemma nat.ceil_int : (nat.ceil : ℤ → ℕ) = int.to_nat := rfl
+lemma ceil_to_nat  (a : α) [ordered_ring α] [floor_ring α] : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
 
-variables {a : α}
+end int
 
-lemma nat.cast_floor_eq_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : ℤ) = ⌊a⌋ :=
+namespace nat
+@[simp] lemma floor_int : (nat.floor : ℤ → ℕ) = int.to_nat := rfl
+@[simp] lemma ceil_int : (nat.ceil : ℤ → ℕ) = int.to_nat := rfl
+
+variables [ordered_ring α] [floor_ring α] {a : α}
+
+lemma cast_floor_eq_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : ℤ) = ⌊a⌋ :=
 by rw [←int.floor_to_nat, int.to_nat_of_nonneg (int.floor_nonneg.2 ha)]
 
-lemma nat.cast_floor_eq_cast_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : α) = ⌊a⌋ :=
+lemma cast_floor_eq_cast_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : α) = ⌊a⌋ :=
 by rw [←nat.cast_floor_eq_int_floor ha, int.cast_coe_nat]
 
-lemma nat.cast_ceil_eq_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : ℤ) = ⌈a⌉ :=
+lemma cast_ceil_eq_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : ℤ) = ⌈a⌉ :=
 by { rw [←int.ceil_to_nat, int.to_nat_of_nonneg (int.ceil_nonneg ha)] }
 
-lemma nat.cast_ceil_eq_cast_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a⌉ :=
+lemma cast_ceil_eq_cast_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a⌉ :=
 by rw [←nat.cast_ceil_eq_int_ceil ha, int.cast_coe_nat]
 
+end nat
+
 /-- There exists at most one `floor_ring` structure on a given ordered ring. -/
-lemma subsingleton_floor_ring {α} [ordered_ring α] :
+lemma subsingleton_floor_ring [ordered_ring α] :
   subsingleton (floor_ring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,

@@ -52,7 +52,7 @@ About `to_Z`:
 
 open order
 
-lemma is_glb_mem_finset {α : Type*} [linear_order α] (s : finset α) {i : α}
+lemma finset.is_glb_mem {α : Type*} [linear_order α] (s : finset α) {i : α}
   (his : is_glb (s : set α) i) (hs : s.nonempty) :
   i ∈ s :=
 begin
@@ -62,25 +62,25 @@ begin
   exact le_antisymm (his.1 (finset.min' s hs) (finset.min'_mem s hs)) (his.2 _ (finset.min'_le s)),
 end
 
-lemma is_lub_mem_finset {α : Type*} [linear_order α] (s : finset α) {i : α}
+lemma finset.is_lub_mem {α : Type*} [linear_order α] (s : finset α) {i : α}
   (his : is_lub (s : set α) i) (hs : s.nonempty) :
   i ∈ s :=
-@is_glb_mem_finset αᵒᵈ _ s i his hs
+@finset.is_glb_mem αᵒᵈ _ s i his hs
 
-lemma is_glb_mem_of_finite {α : Type*} [linear_order α] (s : set α) {i : α}
+lemma set.finite.is_glb_mem {α : Type*} [linear_order α] (s : set α) {i : α}
   (his : is_glb s i) (hs : s.nonempty) (hs_fin : s.finite) :
   i ∈ s :=
 begin
   suffices : i ∈ hs_fin.to_finset, from (set.finite.mem_to_finset hs_fin).mp this,
-  refine is_glb_mem_finset hs_fin.to_finset _ _,
+  refine finset.is_glb_mem hs_fin.to_finset _ _,
   { rwa set.finite.coe_to_finset, },
   { rwa set.finite.nonempty_to_finset, },
 end
 
-lemma is_lub_mem_of_finite {α : Type*} [linear_order α] (s : set α) {i : α}
+lemma set.finite.is_lub_mem{α : Type*} [linear_order α] (s : set α) {i : α}
   (his : is_lub s i) (hs : s.nonempty) (hs_fin : s.finite) :
   i ∈ s :=
-@is_glb_mem_of_finite αᵒᵈ _ s i his hs hs_fin
+@set.finite.is_glb_mem αᵒᵈ _ s i his hs hs_fin
 
 variables {ι : Type*}
 
@@ -117,7 +117,7 @@ begin
     rw h_succ_fn_eq at h,
     exact is_glb_Ioc_of_is_glb_Ioi hij_lt h, },
   have hi_mem : i ∈ finset.Ioc i j,
-  { refine is_glb_mem_finset _ h_glb _,
+  { refine finset.is_glb_mem _ h_glb _,
     exact finset.nonempty_of_mem (finset.mem_Ioc.mpr ⟨hij_lt, le_rfl⟩), },
   rw finset.mem_Ioc at hi_mem,
   exact lt_irrefl i hi_mem.1,

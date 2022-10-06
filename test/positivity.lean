@@ -1,12 +1,12 @@
--- import algebra.order.smul
--- import analysis.normed.group.basic
--- import analysis.special_functions.pow
--- import combinatorics.simple_graph.density
--- import data.complex.exponential
--- import data.rat.nnrat
--- import data.real.ereal
--- import data.real.hyperreal
--- import data.real.sqrt
+import algebra.order.smul
+import analysis.normed.group.basic
+import analysis.special_functions.pow
+import combinatorics.simple_graph.density
+import data.complex.exponential
+import data.rat.nnrat
+import data.real.ereal
+import data.real.hyperreal
+import data.real.sqrt
 import tactic.positivity
 
 /-! # Tests for the `positivity` tactic

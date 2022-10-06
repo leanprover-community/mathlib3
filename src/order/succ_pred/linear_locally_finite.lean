@@ -52,9 +52,6 @@ About `to_Z`:
 
 open order
 
-lemma _root_.finset.nonempty_of_mem {α : Type*} {a : α} {s : finset α} (h : a ∈ s) : s.nonempty :=
-finset.nonempty_of_ne_empty (finset.ne_empty_of_mem h)
-
 lemma is_glb_mem_finset {α : Type*} [linear_order α] (s : finset α) {i : α}
   (his : is_glb (s : set α) i) (hs : s.nonempty) :
   i ∈ s :=

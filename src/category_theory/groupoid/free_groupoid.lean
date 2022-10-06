@@ -134,8 +134,8 @@ instance : groupoid (free_groupoid V) :=
 
 /-- The inclusion of the quiver on `V` to the underlying quiver on `free_groupoid V`-/
 def of : prefunctor V (free_groupoid V) :=
-{ obj := λ X, ⟨X⟩
-, map := λ X Y f, quot.mk _ f.to_pos_path}
+{ obj := λ X, ⟨X⟩,
+  map := λ X Y f, quot.mk _ f.to_pos_path }
 
 lemma of_eq : of =
   ((quiver.symmetrify.of).comp

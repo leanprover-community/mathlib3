@@ -152,8 +152,8 @@ begin
   { rintros, dsimp only [of, lift], simp, },
 end
 
-lemma lift_spec_unique (Φ : (quotient S Sn) ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
-  (lift S Sn φ hφ) = Φ :=
+lemma lift_unique (Φ : (quotient S Sn) ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
+  Φ = (lift S Sn φ hφ) :=
 begin
   subst_vars,
   apply functor.ext,
@@ -270,7 +270,7 @@ begin
     simp only [subtype.coe_mk,hδ',hγ',inv_eq_to_hom], refl, },
 end
 
-lemma lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
+lemma lift_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
   Φ = (lift S Sn φ) :=
 begin
   letI := R S Sn,
@@ -337,21 +337,25 @@ begin
   rintro c γ γS, exact hφ γS,
 end
 
-lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ $ λ _ _, hφ) = φ :=
+lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ hφ) = φ :=
 begin
-  dsimp [of, lift],
   change isotropy.of S Sn ⋙ (is_graph_like.of (map (isotropy.of S Sn) _ S) _) ⋙
     is_graph_like.lift (map (isotropy.of S Sn) _ S) _ (isotropy.lift S Sn φ _) = φ,
   rw is_graph_like.lift_spec,
   apply isotropy.lift_spec,
-  sorry,
+  { rintros a b f ⟨_,_,g,gS⟩,
+    exact hφ gS, },
 end
 
 
-def lift_spec_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
-  Φ = (lift S Sn φ $ λ _ _, hφ) :=
+def lift_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
+  Φ = (lift S Sn φ hφ) :=
 begin
-  sorry,
+  apply is_graph_like.lift_unique,
+  { rintros a b f ⟨_,_,g,gS⟩,
+    exact hφ gS, },
+  apply isotropy.lift_unique,
+  exact hΦ,
 end
 
 end ump

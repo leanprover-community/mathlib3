@@ -52,40 +52,9 @@ About `to_Z`:
 
 open order
 
-lemma finset.is_glb_mem {α : Type*} [linear_order α] (s : finset α) {i : α}
-  (his : is_glb (s : set α) i) (hs : s.nonempty) :
-  i ∈ s :=
-begin
-  suffices : i = finset.min' s hs,
-  { rw this, exact finset.min'_mem s hs, },
-  rw [is_glb, is_greatest, mem_lower_bounds, mem_upper_bounds] at his,
-  exact le_antisymm (his.1 (finset.min' s hs) (finset.min'_mem s hs)) (his.2 _ (finset.min'_le s)),
-end
-
-lemma finset.is_lub_mem {α : Type*} [linear_order α] (s : finset α) {i : α}
-  (his : is_lub (s : set α) i) (hs : s.nonempty) :
-  i ∈ s :=
-@finset.is_glb_mem αᵒᵈ _ s i his hs
-
-lemma set.finite.is_glb_mem {α : Type*} [linear_order α] (s : set α) {i : α}
-  (his : is_glb s i) (hs : s.nonempty) (hs_fin : s.finite) :
-  i ∈ s :=
-begin
-  suffices : i ∈ hs_fin.to_finset, from (set.finite.mem_to_finset hs_fin).mp this,
-  refine finset.is_glb_mem hs_fin.to_finset _ _,
-  { rwa set.finite.coe_to_finset, },
-  { rwa set.finite.nonempty_to_finset, },
-end
-
-lemma set.finite.is_lub_mem{α : Type*} [linear_order α] (s : set α) {i : α}
-  (his : is_lub s i) (hs : s.nonempty) (hs_fin : s.finite) :
-  i ∈ s :=
-@set.finite.is_glb_mem αᵒᵈ _ s i his hs hs_fin
-
-variables {ι : Type*}
+variables {ι : Type*} [linear_order ι]
 
 namespace linear_locally_finite_order
-variables [linear_order ι]
 
 /-- Successor in a linear order. This defines a true successor only when `i` is isolated from above,
 i.e. when `i` is not the greatest lower bound of `(i, ∞)`. -/
@@ -149,7 +118,7 @@ noncomputable instance [locally_finite_order ι] : pred_order ι :=
 end linear_locally_finite_order
 
 @[priority 100]
-instance linear_locally_finite_order.is_succ_archimedean [linear_order ι] [locally_finite_order ι] :
+instance linear_locally_finite_order.is_succ_archimedean [locally_finite_order ι] :
   is_succ_archimedean ι :=
 { exists_succ_iterate_of_le := λ i j hij,
   begin
@@ -181,8 +150,9 @@ instance linear_locally_finite_order.is_succ_archimedean [linear_order ι] [loca
   end }
 
 @[priority 100]
-instance linear_order.pred_archimedean_of_succ_archimedean [linear_order ι] [succ_order ι]
-  [pred_order ι] [is_succ_archimedean ι] : is_pred_archimedean ι :=
+instance linear_order.pred_archimedean_of_succ_archimedean [succ_order ι] [pred_order ι]
+  [is_succ_archimedean ι] :
+  is_pred_archimedean ι :=
 { exists_pred_iterate_of_le := λ i j hij,
   begin
     have h_exists := exists_succ_iterate_of_le hij,
@@ -205,8 +175,7 @@ instance linear_order.pred_archimedean_of_succ_archimedean [linear_order ι] [su
 
 section to_Z
 
-variables [linear_order ι] [succ_order ι] [is_succ_archimedean ι] [pred_order ι]
-  {i0 i : ι}
+variables [succ_order ι] [is_succ_archimedean ι] [pred_order ι] {i0 i : ι}
 
 /-- `to_Z` numbers elements of `ι` according to their order, starting from `i0`. We prove in
 `order_iso_range_to_Z_of_linear_succ_pred_arch` that this defines an `order_iso` between `ι` and
@@ -384,18 +353,19 @@ lemma injective_to_Z : function.injective (to_Z i0) :=
 
 end to_Z
 
+section order_iso
+
+variables [succ_order ι] [pred_order ι] [is_succ_archimedean ι]
+
 /-- `to_Z` defines an `order_iso` between `ι` and its range. -/
 noncomputable
-def order_iso_range_to_Z_of_linear_succ_pred_arch [linear_order ι] [succ_order ι] [pred_order ι]
-  [is_succ_archimedean ι] [hι : nonempty ι] :
+def order_iso_range_to_Z_of_linear_succ_pred_arch [hι : nonempty ι] :
   ι ≃o set.range (to_Z hι.some) :=
 { to_equiv := equiv.of_injective _ injective_to_Z,
   map_rel_iff' := to_Z_le_iff, }
 
 @[priority 100]
-instance countable_of_linear_succ_pred_arch [linear_order ι] [succ_order ι] [is_succ_archimedean ι]
-  [pred_order ι] :
-  countable ι :=
+instance countable_of_linear_succ_pred_arch : countable ι :=
 begin
   casesI is_empty_or_nonempty ι with _ hι,
   { apply_instance, },
@@ -404,8 +374,7 @@ end
 
 /-- If the order has neither bot nor top, `to_Z` defines an `order_iso` between `ι` and `ℤ`. -/
 noncomputable
-def order_iso_int_of_linear_succ_pred_arch [linear_order ι] [succ_order ι] [pred_order ι]
-  [is_succ_archimedean ι] [no_max_order ι] [no_min_order ι] [hι : nonempty ι] :
+def order_iso_int_of_linear_succ_pred_arch [no_max_order ι] [no_min_order ι] [hι : nonempty ι] :
   ι ≃o ℤ :=
 { to_fun := to_Z hι.some,
   inv_fun := λ n, if 0 ≤ n then (succ^[n.to_nat] hι.some) else (pred^[(-n).to_nat] hι.some),
@@ -432,8 +401,7 @@ def order_iso_int_of_linear_succ_pred_arch [linear_order ι] [succ_order ι] [pr
   map_rel_iff' := to_Z_le_iff, }
 
 /-- If the order has a bot but no top, `to_Z` defines an `order_iso` between `ι` and `ℕ`. -/
-def order_iso_nat_of_linear_succ_pred_arch [linear_order ι] [succ_order ι] [pred_order ι]
-  [is_succ_archimedean ι] [no_max_order ι] [order_bot ι] :
+def order_iso_nat_of_linear_succ_pred_arch [no_max_order ι] [order_bot ι] :
   ι ≃o ℕ :=
 { to_fun := λ i, (to_Z ⊥ i).to_nat,
   inv_fun := λ n, succ^[n] ⊥,
@@ -452,8 +420,7 @@ def order_iso_nat_of_linear_succ_pred_arch [linear_order ι] [succ_order ι] [pr
 
 /-- If the order has both a bot and a top, `to_Z` gives an `order_iso` between `ι` and
 `finset.range n` for some `n`. -/
-def order_iso_range_of_linear_succ_pred_arch [linear_order ι] [succ_order ι] [is_succ_archimedean ι]
-  [pred_order ι] [order_bot ι] [order_top ι] :
+def order_iso_range_of_linear_succ_pred_arch [order_bot ι] [order_top ι] :
   ι ≃o finset.range ((to_Z ⊥ (⊤ : ι)).to_nat + 1) :=
 { to_fun := λ i, ⟨(to_Z ⊥ i).to_nat,
     finset.mem_range_succ_iff.mpr (int.to_nat_le_to_nat ((to_Z_le_iff _ _).mpr le_top))⟩,
@@ -477,3 +444,5 @@ def order_iso_range_of_linear_succ_pred_arch [linear_order ι] [succ_order ι] [
     simp only [equiv.coe_fn_mk, subtype.mk_le_mk, int.to_nat_le],
     rw [← @to_Z_le_iff ι _ _ _ _ ⊥, int.to_nat_of_nonneg (to_Z_nonneg bot_le)],
   end, }
+
+end order_iso

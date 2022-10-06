@@ -2158,6 +2158,11 @@ is_compl.compl_eq is_compl_range_inl_range_inr
 @[simp] lemma compl_range_inr : (range (sum.inr : β → α ⊕ β))ᶜ = range (sum.inl : α → α ⊕ β) :=
 is_compl.compl_eq is_compl_range_inl_range_inr.symm
 
+theorem image_preimage_inl_union_image_preimage_inr (s : set (α ⊕ β)) :
+  sum.inl '' (sum.inl ⁻¹' s) ∪ sum.inr '' (sum.inr ⁻¹' s) = s :=
+by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, ← inter_distrib_left,
+  range_inl_union_range_inr, inter_univ]
+
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
 

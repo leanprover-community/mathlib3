@@ -852,7 +852,7 @@ meta def positivity_coe_nnreal_real : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
-  | nonnegative _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
+  | _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ℝ)` for `r : ℝ≥0`"

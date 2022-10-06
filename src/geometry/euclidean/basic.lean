@@ -1315,6 +1315,69 @@ reflection_orthogonal_vadd hp₁
 
 omit V
 
+variables (P)
+
+/-- A `sphere P` bundles a `center` and `radius`. This definition does not require the radius to
+be positive; that should be given as a hypothesis to lemmas that require it. -/
+@[ext] structure sphere :=
+(center : P)
+(radius : ℝ)
+
+variables {P}
+
+instance [nonempty P] : nonempty (sphere P) := ⟨⟨classical.arbitrary P, 0⟩⟩
+
+instance : has_coe (sphere P) (set P) := ⟨λ s, metric.sphere s.center s.radius⟩
+instance : has_mem P (sphere P) := ⟨λ p s, p ∈ (s : set P)⟩
+
+lemma sphere.mk_center (c : P) (r : ℝ) : (⟨c, r⟩ : sphere P).center = c := rfl
+
+lemma sphere.mk_radius (c : P) (r : ℝ) : (⟨c, r⟩ : sphere P).radius = r := rfl
+
+@[simp] lemma sphere.mk_center_radius (s : sphere P) : (⟨s.center, s.radius⟩ : sphere P) = s :=
+by ext; refl
+
+lemma sphere.coe_def (s : sphere P) : (s : set P) = metric.sphere s.center s.radius := rfl
+
+@[simp] lemma sphere.coe_mk (c : P) (r : ℝ) : ↑(⟨c, r⟩ : sphere P) = metric.sphere c r := rfl
+
+@[simp] lemma sphere.mem_coe {p : P} {s : sphere P} : p ∈ (s : set P) ↔ p ∈ s := iff.rfl
+
+lemma mem_sphere {p : P} {s : sphere P} : p ∈ s ↔ dist p s.center = s.radius := iff.rfl
+
+lemma mem_sphere' {p : P} {s : sphere P} : p ∈ s ↔ dist s.center p = s.radius :=
+metric.mem_sphere'
+
+lemma subset_sphere {ps : set P} {s : sphere P} : ps ⊆ s ↔ ∀ p ∈ ps, p ∈ s := iff.rfl
+
+lemma dist_of_mem_subset_sphere {p : P} {ps : set P} {s : sphere P} (hp : p ∈ ps)
+  (hps : ps ⊆ (s : set P)) : dist p s.center = s.radius :=
+mem_sphere.1 (sphere.mem_coe.1 (set.mem_of_mem_of_subset hp hps))
+
+lemma dist_of_mem_subset_mk_sphere {p c : P} {ps : set P} {r : ℝ} (hp : p ∈ ps)
+  (hps : ps ⊆ ↑(⟨c, r⟩ : sphere P)) : dist p c = r :=
+dist_of_mem_subset_sphere hp hps
+
+lemma sphere.ne_iff {s₁ s₂ : sphere P} :
+  s₁ ≠ s₂ ↔ s₁.center ≠ s₂.center ∨ s₁.radius ≠ s₂.radius :=
+by rw [←not_and_distrib, ←sphere.ext_iff]
+
+lemma sphere.center_eq_iff_eq_of_mem {s₁ s₂ : sphere P} {p : P} (hs₁ : p ∈ s₁) (hs₂ : p ∈ s₂) :
+  s₁.center = s₂.center ↔ s₁ = s₂ :=
+begin
+  refine ⟨λ h, sphere.ext _ _ h _, λ h, h ▸ rfl⟩,
+  rw mem_sphere at hs₁ hs₂,
+  rw [←hs₁, ←hs₂, h]
+end
+
+lemma sphere.center_ne_iff_ne_of_mem {s₁ s₂ : sphere P} {p : P} (hs₁ : p ∈ s₁) (hs₂ : p ∈ s₂) :
+  s₁.center ≠ s₂.center ↔ s₁ ≠ s₂ :=
+(sphere.center_eq_iff_eq_of_mem hs₁ hs₂).not
+
+lemma dist_center_eq_dist_center_of_mem_sphere {p₁ p₂ : P} {s : sphere P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : dist p₁ s.center = dist p₂ s.center :=
+by rw [mem_sphere.1 hp₁, mem_sphere.1 hp₂]
+
 /-- A set of points is cospherical if they are equidistant from some
 point.  In two dimensions, this is the same thing as being
 concyclic. -/
@@ -1325,6 +1388,21 @@ def cospherical (ps : set P) : Prop :=
 lemma cospherical_def (ps : set P) :
   cospherical ps ↔ ∃ (center : P) (radius : ℝ), ∀ p ∈ ps, dist p center = radius :=
 iff.rfl
+
+/-- A set of points is cospherical if and only if they lie in some sphere. -/
+lemma cospherical_iff_exists_sphere {ps : set P} :
+  cospherical ps ↔ ∃ s : sphere P, ps ⊆ (s : set P) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with ⟨c, r, h⟩,
+    exact ⟨⟨c, r⟩, h⟩ },
+  { rcases h with ⟨s, h⟩,
+    exact ⟨s.center, s.radius, h⟩ }
+end
+
+/-- The set of points in a sphere is cospherical. -/
+lemma sphere.cospherical (s : sphere P) : cospherical (s : set P) :=
+cospherical_iff_exists_sphere.2 ⟨s, set.subset.rfl⟩
 
 /-- A subset of a cospherical set is cospherical. -/
 lemma cospherical_subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (hc : cospherical ps₂) :
@@ -1377,7 +1455,7 @@ lemma cospherical.affine_independent {s : set P} (hs : cospherical s) {p : fin 3
 begin
   rw affine_independent_iff_not_collinear,
   intro hc,
-  rw collinear_iff_of_mem ℝ (set.mem_range_self (0 : fin 3)) at hc,
+  rw collinear_iff_of_mem (set.mem_range_self (0 : fin 3)) at hc,
   rcases hc with ⟨v, hv⟩,
   rw set.forall_range_iff at hv,
   have hv0 : v ≠ 0,
@@ -1409,5 +1487,35 @@ begin
   have hf12 : f 1 = f 2, { rw [hfn0' 1 dec_trivial, hfn0' 2 dec_trivial] },
   exact (dec_trivial : (1 : fin 3) ≠ 2) (hfi hf12)
 end
+
+/-- Suppose that `p₁` and `p₂` lie in spheres `s₁` and `s₂`.  Then the vector between the centers
+of those spheres is orthogonal to that between `p₁` and `p₂`; this is a version of
+`inner_vsub_vsub_of_dist_eq_of_dist_eq` for bundled spheres.  (In two dimensions, this says that
+the diagonals of a kite are orthogonal.) -/
+lemma inner_vsub_vsub_of_mem_sphere_of_mem_sphere {p₁ p₂ : P} {s₁ s₂ : sphere P}
+  (hp₁s₁ : p₁ ∈ s₁) (hp₂s₁ : p₂ ∈ s₁) (hp₁s₂ : p₁ ∈ s₂) (hp₂s₂ : p₂ ∈ s₂) :
+  ⟪s₂.center -ᵥ s₁.center, p₂ -ᵥ p₁⟫ = 0 :=
+inner_vsub_vsub_of_dist_eq_of_dist_eq (dist_center_eq_dist_center_of_mem_sphere hp₁s₁ hp₂s₁)
+                                      (dist_center_eq_dist_center_of_mem_sphere hp₁s₂ hp₂s₂)
+
+/-- Two spheres intersect in at most two points in a two-dimensional subspace containing their
+centers; this is a version of `eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two` for bundled
+spheres. -/
+lemma eq_of_mem_sphere_of_mem_sphere_of_mem_of_finrank_eq_two {s : affine_subspace ℝ P}
+  [finite_dimensional ℝ s.direction] (hd : finrank ℝ s.direction = 2) {s₁ s₂ : sphere P}
+  {p₁ p₂ p : P} (hs₁ : s₁.center ∈ s) (hs₂ : s₂.center ∈ s) (hp₁s : p₁ ∈ s) (hp₂s : p₂ ∈ s)
+  (hps : p ∈ s) (hs : s₁ ≠ s₂) (hp : p₁ ≠ p₂) (hp₁s₁ : p₁ ∈ s₁) (hp₂s₁ : p₂ ∈ s₁) (hps₁ : p ∈ s₁)
+  (hp₁s₂ : p₁ ∈ s₂) (hp₂s₂ : p₂ ∈ s₂) (hps₂ : p ∈ s₂) : p = p₁ ∨ p = p₂ :=
+eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two hd hs₁ hs₂ hp₁s hp₂s hps
+  ((sphere.center_ne_iff_ne_of_mem hps₁ hps₂).2 hs) hp hp₁s₁ hp₂s₁ hps₁ hp₁s₂ hp₂s₂ hps₂
+
+/-- Two spheres intersect in at most two points in two-dimensional space; this is a version of
+`eq_of_dist_eq_of_dist_eq_of_finrank_eq_two` for bundled spheres. -/
+lemma eq_of_mem_sphere_of_mem_sphere_of_finrank_eq_two [finite_dimensional ℝ V]
+  (hd : finrank ℝ V = 2) {s₁ s₂ : sphere P} {p₁ p₂ p : P} (hs : s₁ ≠ s₂) (hp : p₁ ≠ p₂)
+  (hp₁s₁ : p₁ ∈ s₁) (hp₂s₁ : p₂ ∈ s₁) (hps₁ : p ∈ s₁) (hp₁s₂ : p₁ ∈ s₂) (hp₂s₂ : p₂ ∈ s₂)
+  (hps₂ : p ∈ s₂) : p = p₁ ∨ p = p₂ :=
+eq_of_dist_eq_of_dist_eq_of_finrank_eq_two hd ((sphere.center_ne_iff_ne_of_mem hps₁ hps₂).2 hs)
+  hp hp₁s₁ hp₂s₁ hps₁ hp₁s₂ hp₂s₂ hps₂
 
 end euclidean_geometry

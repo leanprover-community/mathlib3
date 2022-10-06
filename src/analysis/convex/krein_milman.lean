@@ -56,7 +56,8 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 open set
 open_locale classical
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {s : set E}
+variables {E : Type*} [add_comm_group E] [module ℝ E] [topological_space E] [t2_space E]
+  [topological_add_group E] [has_continuous_smul ℝ E] [locally_convex_space ℝ E] {s : set E}
 
 /-- **Krein-Milman lemma**: In a LCTVS (currently only in normed `ℝ`-spaces), any nonempty compact
 set has an extreme point. -/

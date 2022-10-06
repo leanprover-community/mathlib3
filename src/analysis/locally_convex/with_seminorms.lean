@@ -19,9 +19,23 @@ bounded by a finite number of seminorms in `E`.
 
 ## Main statements
 
-* `continuous_from_bounded`: A bounded linear map `f : E →ₗ[𝕜] F` is continuous.
 * `seminorm_family.to_locally_convex_space`: A space equipped with a family of seminorms is locally
 convex.
+
+## Continuity of semilinear maps
+
+If `E` and `F` are topological vector space with the topology induced by a family of seminorms, then
+we have a direct method to prove that a linear map is continuous:
+* `seminorm.continuous_from_bounded`: A bounded linear map `f : E →ₗ[𝕜] F` is continuous.
+
+If the topology of a space `E` is induced by a family of seminorms, then we can characterize von
+Neumann boundedness in terms of that seminorm family. Together with
+`linear_map.continuous_of_locally_bounded` this gives general criterion for continuity.
+
+* `with_seminorms.is_vonN_bounded_iff_finset_seminorm_bounded`
+* `with_seminorms.is_vonN_bounded_iff_seminorm_bounded`
+* `with_seminorms.image_is_vonN_bounded_iff_finset_seminorm_bounded`
+* `with_seminorms.image_is_vonN_bounded_iff_seminorm_bounded`
 
 ## Tags
 
@@ -370,7 +384,12 @@ begin
   exact (finset.sup I p).ball_zero_absorbs_ball_zero hr,
 end
 
-lemma bornology.is_vonN_bounded_iff_seminorm_bounded {s : set E} (hp : with_seminorms p) :
+lemma with_seminorms.image_is_vonN_bounded_iff_finset_seminorm_bounded (f : G → E) {s : set G}
+  (hp : with_seminorms p) : bornology.is_vonN_bounded 𝕜 (f '' s) ↔
+  ∀ I : finset ι, ∃ r (hr : 0 < r), ∀ (x ∈ s), I.sup p (f x) < r :=
+by simp_rw [hp.is_vonN_bounded_iff_finset_seminorm_bounded, set.ball_image_iff]
+
+lemma with_seminorms.is_vonN_bounded_iff_seminorm_bounded {s : set E} (hp : with_seminorms p) :
   bornology.is_vonN_bounded 𝕜 s ↔ ∀ i : ι, ∃ r (hr : 0 < r), ∀ (x ∈ s), p i x < r :=
 begin
   rw hp.is_vonN_bounded_iff_finset_seminorm_bounded,
@@ -391,6 +410,11 @@ begin
     exists_prop],
   exact ⟨1, zero_lt_one, λ _ _, zero_lt_one⟩,
 end
+
+lemma with_seminorms.image_is_vonN_bounded_iff_seminorm_bounded (f : G → E) {s : set G}
+  (hp : with_seminorms p) :
+  bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∀ i : ι, ∃ r (hr : 0 < r), ∀ (x ∈ s), p i (f x) < r :=
+by simp_rw [hp.is_vonN_bounded_iff_seminorm_bounded, set.ball_image_iff]
 
 end nontrivially_normed_field
 section continuous_bounded

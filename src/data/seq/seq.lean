@@ -42,7 +42,7 @@ namespace seq
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- The empty sequence -/
-def nil : seq α := ⟨stream.const none, λn h, rfl⟩
+def nil : seq α := ⟨stream.const none, λ n h, rfl⟩
 
 instance : inhabited (seq α) := ⟨nil⟩
 

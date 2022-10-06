@@ -310,20 +310,11 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
 begin
-  have H : (a * b) % n = 1 % n := h,
-  cases n,
-  { rw nat.coprime_zero_right,
-    apply eq_one_of_mul_eq_one_right,
-    rwa mod_zero at H },
-  cases n,
-  { apply nat.coprime_one_right },
-  have h1 : n.succ.succ * (a * b / n.succ.succ) + 1 = a * b,
-  { simpa only [H, one_mod] using nat.div_add_mod (a * b) n.succ.succ },
-  rw [nat.coprime_iff_gcd_eq_one, ← nat.dvd_one],
-  set N := n.succ.succ,
-  have h2 : a.gcd N ∣ N * ((a * b) / N) := dvd_mul_of_dvd_left (nat.gcd_dvd_right a N) _,
-  rw [← nat.dvd_add_right h2, h1],
-  apply dvd_mul_of_dvd_left (gcd_dvd_left a N),
+  obtain ⟨g, hh⟩ := nat.gcd_dvd_right a n,
+  rw [nat.coprime_iff_gcd_eq_one, ← nat.dvd_one, ← nat.modeq_zero_iff_dvd],
+  calc 1 ≡ a * b [MOD a.gcd n] : nat.modeq.of_modeq_mul_right g (hh.subst h).symm
+  ... ≡ 0 * b [MOD a.gcd n] : (nat.modeq_zero_iff_dvd.mpr (nat.gcd_dvd_left _ _)).mul_right b
+  ... = 0 : by rw zero_mul,
 end
 
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=

@@ -1377,27 +1377,27 @@ begin
   { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
 end
 
-lemma sInter_prod_sInter_subset (f₁ : set (set α)) (f₂ : set (set β)) :
-  ⋂₀ f₁ ×ˢ ⋂₀ f₂ ⊆ ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' f₁ ×ˢ f₂) :=
+lemma sInter_prod_sInter_subset (S : set (set α)) (T : set (set β)) :
+  ⋂₀ S ×ˢ ⋂₀ T ⊆ ⋂₀ ((λ C : set α × set β, C.1 ×ˢ C.2) '' S ×ˢ T) :=
 λ x hx _ ⟨s, hs, h⟩, h ▸ ⟨hx.1 s.1 hs.1, hx.2 s.2 hs.2⟩
 
 lemma sInter_prod_sInter (S : set (set α)) (T : set (set β)) (hS : S.nonempty) (hT : T.nonempty) :
   ⋂₀ S ×ˢ ⋂₀ T = ⋂₀ ((λ st : set α × set β, st.1 ×ˢ st.2) '' S ×ˢ T) :=
 begin
-  obtain ⟨s₁, h₁⟩ := h₁,
-  obtain ⟨s₂, h₂⟩ := h₂,
-  exact set.subset.antisymm (sInter_prod_sInter_subset f₁ f₂) (λ x h, ⟨λ s hs,
+  obtain ⟨s₁, h₁⟩ := hS,
+  obtain ⟨s₂, h₂⟩ := hT,
+  exact set.subset.antisymm (sInter_prod_sInter_subset S T) (λ x h, ⟨λ s hs,
     (h (s ×ˢ s₂) ⟨(s, s₂), ⟨hs, h₂⟩, rfl⟩).1, λ s hs, (h (s₁ ×ˢ s) ⟨(s₁, s), ⟨h₁, hs⟩, rfl⟩).2⟩),
 end
 
-lemma sInter_prod (f₁ : set (set α)) (h₁ : f₁.nonempty) (T : set β) :
-  ⋂₀ f₁ ×ˢ T  = ⋂₀ ((×ˢ T) '' f₁) :=
-by rw [←sInter_singleton T, sInter_prod_sInter f₁ {T} h₁ (singleton_nonempty T), sInter_singleton,
+lemma sInter_prod (S : set (set α)) (hS : S.nonempty) (T : set β) :
+  ⋂₀ S ×ˢ T  = ⋂₀ ((×ˢ T) '' S) :=
+by rw [←sInter_singleton T, sInter_prod_sInter S {T} hS (singleton_nonempty T), sInter_singleton,
   prod_singleton, ←set.image_comp]
 
-lemma prod_sInter (f₂ : set (set β)) (h₂ : f₂.nonempty) (S : set α) :
-  S ×ˢ ⋂₀ f₂ = ⋂₀ ((×ˢ) S '' f₂) :=
-by rw [←sInter_singleton S, sInter_prod_sInter {S} f₂ (singleton_nonempty S) h₂, sInter_singleton,
+lemma prod_sInter (T : set (set β)) (hT : T.nonempty) (S : set α) :
+  S ×ˢ ⋂₀ T = ⋂₀ ((×ˢ) S '' T) :=
+by rw [←sInter_singleton S, sInter_prod_sInter {S} T (singleton_nonempty S) hT, sInter_singleton,
   singleton_prod, ←set.image_comp]
 
 end prod

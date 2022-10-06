@@ -54,11 +54,11 @@ local attribute [ext] functor.ext
 
 /-- Any prefunctor from `V` lifts to a functor from `paths V` -/
 def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
-{ obj := φ.obj
-, map := λ X Y f, @quiver.path.rec V _ X (λ Y f, φ.obj X ⟶ φ.obj Y) (𝟙 $ φ.obj X)
-                  (λ Y Z p f ihp, ihp ≫ (φ.map f)) Y f
-, map_id' := λ X, by { refl, }
-, map_comp' := λ X Y Z f g, by
+{ obj := φ.obj,
+  map := λ X Y f, @quiver.path.rec V _ X (λ Y f, φ.obj X ⟶ φ.obj Y) (𝟙 $ φ.obj X)
+                  (λ Y Z p f ihp, ihp ≫ (φ.map f)) Y f,
+  map_id' := λ X, by { refl, },
+  map_comp' := λ X Y Z f g, by
   { induction g with _ _ g' p ih _ _ _,
     { rw category.comp_id, refl, },
     { have : f ≫ g'.cons p = (f ≫ g').cons p, by apply quiver.path.comp_cons,

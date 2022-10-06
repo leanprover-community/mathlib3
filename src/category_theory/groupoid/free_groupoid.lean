@@ -128,9 +128,9 @@ quot.lift_on f
             (λ pp qq con, quot.sound $ congr_reverse pp qq con)
 
 instance : groupoid (free_groupoid V) :=
-{ inv := λ X Y f, quot_inv f
-, inv_comp' := λ X Y p, quot.induction_on p $ λ pp, congr_reverse_comp pp
-, comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse pp }
+{ inv := λ X Y f, quot_inv f,
+  inv_comp' := λ X Y p, quot.induction_on p $ λ pp, congr_reverse_comp pp,
+  comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse pp }
 
 /-- The inclusion of the quiver on `V` to the underlying quiver on `free_groupoid V`-/
 def of : prefunctor V (free_groupoid V) :=
@@ -171,9 +171,9 @@ end
 lemma lift_unique (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V')
   (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = (lift φ) :=
 begin
-  apply quotient.lift_spec_unique,
-  apply paths.lift_spec_unique,
-  apply quiver.symmetrify.lift_spec_unique,
+  apply quotient.lift_unique,
+  apply paths.lift_unique,
+  apply quiver.symmetrify.lift_unique,
   { rw ←functor.to_prefunctor_comp, exact hΦ, },
   { rintros X Y f,
     simp [←functor.to_prefunctor_comp,prefunctor.comp_map, paths.of_map, inv_eq_inv],

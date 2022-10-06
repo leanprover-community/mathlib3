@@ -1390,14 +1390,14 @@ begin
     (h (s ×ˢ s₂) ⟨(s, s₂), ⟨hs, h₂⟩, rfl⟩).1, λ s hs, (h (s₁ ×ˢ s) ⟨(s₁, s), ⟨h₁, hs⟩, rfl⟩).2⟩),
 end
 
-lemma sInter_prod (S : set (set α)) (hS : S.nonempty) (T : set β) :
-  ⋂₀ S ×ˢ T  = ⋂₀ ((×ˢ T) '' S) :=
-by rw [←sInter_singleton T, sInter_prod_sInter S {T} hS (singleton_nonempty T), sInter_singleton,
+lemma sInter_prod (S : set (set α)) (hS : S.nonempty) (t : set β) :
+  ⋂₀ S ×ˢ t  = ⋂₀ ((×ˢ t) '' S) :=
+by rw [←sInter_singleton t, sInter_prod_sInter S {t} hS (singleton_nonempty t), sInter_singleton,
   prod_singleton, ←set.image_comp]
 
-lemma prod_sInter (T : set (set β)) (hT : T.nonempty) (S : set α) :
-  S ×ˢ ⋂₀ T = ⋂₀ ((×ˢ) S '' T) :=
-by rw [←sInter_singleton S, sInter_prod_sInter {S} T (singleton_nonempty S) hT, sInter_singleton,
+lemma prod_sInter (T : set (set β)) (hT : T.nonempty) (s : set α) :
+  s ×ˢ ⋂₀ T = ⋂₀ ((×ˢ) s '' T) :=
+by rw [←sInter_singleton s, sInter_prod_sInter {s} T (singleton_nonempty s) hT, sInter_singleton,
   singleton_prod, ←set.image_comp]
 
 end prod

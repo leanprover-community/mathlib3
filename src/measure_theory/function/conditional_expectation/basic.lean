@@ -2056,7 +2056,7 @@ begin
   exact set_integral_condexp_L1 hf hs,
 end
 
-lemma integral_condexp {hm : m ≤ m0} [hμm : sigma_finite (μ.trim hm)]
+lemma integral_condexp (hm : m ≤ m0) [hμm : sigma_finite (μ.trim hm)]
   (hf : integrable f μ) : ∫ x, μ[f|m] x ∂μ = ∫ x, f x ∂μ :=
 begin
   suffices : ∫ x in set.univ, μ[f|m] x ∂μ = ∫ x in set.univ, f x ∂μ,
@@ -2079,6 +2079,46 @@ begin
     (strongly_measurable.ae_strongly_measurable' strongly_measurable_condexp),
   rw [hg_eq s hs hμs, set_integral_condexp hm hf hs],
 end
+
+lemma condexp_bot' [hμ : μ.ae.ne_bot] (f : α → F') :
+  μ[f|⊥] = λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
+begin
+  by_cases hμ_finite : is_finite_measure μ,
+  swap,
+  { have h : ¬ sigma_finite (μ.trim bot_le),
+    { rwa sigma_finite_trim_bot_iff, },
+    rw not_is_finite_measure_iff at hμ_finite,
+    rw [condexp_of_not_sigma_finite bot_le h],
+    simp only [hμ_finite, ennreal.top_to_real, inv_zero, zero_smul],
+    refl, },
+  haveI : is_finite_measure μ := hμ_finite,
+  by_cases hf : integrable f μ,
+  swap, { rw [integral_undef hf, smul_zero, condexp_undef hf], refl, },
+  have h_meas : strongly_measurable[⊥] (μ[f|⊥]) := strongly_measurable_condexp,
+  obtain ⟨c, h_eq⟩ := strongly_measurable_bot_iff.mp h_meas,
+  rw h_eq,
+  have h_integral : ∫ x, μ[f|⊥] x ∂μ = ∫ x, f x ∂μ := integral_condexp bot_le hf,
+  simp_rw [h_eq, integral_const] at h_integral,
+  rw [← h_integral, ← smul_assoc, smul_eq_mul, inv_mul_cancel, one_smul],
+  rw [ne.def, ennreal.to_real_eq_zero_iff, auto.not_or_eq, measure.measure_univ_eq_zero,
+    ← ae_eq_bot, ← ne.def, ← ne_bot_iff],
+  exact ⟨hμ, measure_ne_top μ set.univ⟩,
+end
+
+lemma condexp_bot_ae_eq (f : α → F') :
+  μ[f|⊥] =ᵐ[μ] λ _, (μ set.univ).to_real⁻¹ • ∫ x, f x ∂μ :=
+begin
+  by_cases μ.ae.ne_bot,
+  { refine eventually_of_forall (λ x, _),
+    rw condexp_bot' f,
+    exact h, },
+  { rw [ne_bot_iff, not_not, ae_eq_bot] at h,
+    simp only [h, ae_zero], },
+end
+
+lemma condexp_bot [is_probability_measure μ] (f : α → F') :
+  μ[f|⊥] = λ _, ∫ x, f x ∂μ :=
+by { refine (condexp_bot' f).trans _, rw [measure_univ, ennreal.one_to_real, inv_one, one_smul], }
 
 lemma condexp_add (hf : integrable f μ) (hg : integrable g μ) :
   μ[f + g | m] =ᵐ[μ] μ[f|m] + μ[g|m] :=

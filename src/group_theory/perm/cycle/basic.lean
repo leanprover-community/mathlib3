@@ -579,7 +579,13 @@ def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
 of_subtype (@subtype_perm _ f (same_cycle f x) (λ _, same_cycle_apply.symm))
 
 lemma cycle_of_apply [fintype α] (f : perm α) (x y : α) :
-  cycle_of f x y = if same_cycle f x y then f y else y := rfl
+  cycle_of f x y = if same_cycle f x y then f y else y :=
+begin
+  dsimp only [cycle_of],
+  split_ifs,
+  { apply of_subtype_apply_of_mem, exact h, },
+  { apply of_subtype_apply_of_not_mem, exact h },
+end
 
 lemma cycle_of_inv [fintype α] (f : perm α) (x : α) :
   (cycle_of f x)⁻¹ = cycle_of f⁻¹ x :=
@@ -602,10 +608,16 @@ end
   zpow_neg_succ_of_nat, ← inv_pow, cycle_of_pow_apply_self]
 
 lemma same_cycle.cycle_of_apply [fintype α] {f : perm α} {x y : α} (h : same_cycle f x y) :
-  cycle_of f x y = f y := dif_pos h
+  cycle_of f x y = f y :=
+begin
+  apply of_subtype_apply_of_mem, exact h,
+end
 
 lemma cycle_of_apply_of_not_same_cycle [fintype α] {f : perm α} {x y : α} (h : ¬same_cycle f x y) :
-  cycle_of f x y = y := dif_neg h
+  cycle_of f x y = y :=
+begin
+  apply of_subtype_apply_of_not_mem, exact h,
+end
 
 lemma same_cycle.cycle_of_eq [fintype α] {f : perm α} {x y : α} (h : same_cycle f x y) :
   cycle_of f x = cycle_of f y :=

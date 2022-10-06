@@ -658,6 +658,9 @@ nnreal.coe_le_coe.1 $ norm_add_le g h
 @[simp] lemma nnnorm_neg (g : E) : ∥-g∥₊ = ∥g∥₊ :=
 nnreal.eq $ norm_neg g
 
+lemma nnnorm_sub_le (g h : E) : ∥g - h∥₊ ≤ ∥g∥₊ + ∥h∥₊ :=
+nnreal.coe_le_coe.1 $ norm_sub_le g h
+
 lemma nndist_nnnorm_nnnorm_le (g h : E) : nndist ∥g∥₊ ∥h∥₊ ≤ ∥g - h∥₊ :=
 nnreal.coe_le_coe.1 $ dist_norm_norm_le g h
 

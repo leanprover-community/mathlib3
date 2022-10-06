@@ -622,15 +622,13 @@ by simpa only [int.succ, int.cast_add, int.cast_one] using lt_succ_floor a
 
 @[simp] lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋ := sub_lt_iff_lt_add.2 (lt_floor_add_one a)
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α] [floor_ring α]
-  {a b : α} (h : ⌊a⌋ = ⌊b⌋) : |a - b| < 1 :=
+lemma lt_add_one_of_floor_eq_floor {a b : α} (h : ⌊a⌋ = ⌊b⌋) : b < a + 1 :=
+lt_of_lt_of_le (lt_floor_add_one _) ((add_le_add_iff_right _).mpr (h ▸ (floor_le a)))
+
+lemma abs_sub_lt_one_of_floor_eq_floor {a b : α} (h : ⌊a⌋ = ⌊b⌋) : |a - b| < 1 :=
 begin
-  have : a < ⌊a⌋ + 1     := lt_floor_add_one a,
-  have : b < ⌊b⌋ + 1     := lt_floor_add_one b,
-  have : (⌊a⌋ : α) = ⌊b⌋ := int.cast_inj.2 h,
-  have : (⌊a⌋ : α) ≤ a   := floor_le a,
-  have : (⌊b⌋ : α) ≤ b   := floor_le b,
-  exact abs_sub_lt_iff.2 ⟨by linarith, by linarith⟩
+  simp_rw [abs_sub_lt_iff, sub_lt_iff_lt_add'],
+  exact ⟨lt_add_one_of_floor_eq_floor h.symm, lt_add_one_of_floor_eq_floor h⟩
 end
 
 lemma floor_eq_iff : ⌊a⌋ = z ↔ ↑z ≤ a ∧ a < z + 1 :=

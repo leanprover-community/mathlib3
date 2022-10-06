@@ -45,7 +45,7 @@ namespace category_theory
 namespace groupoid
 namespace free
 
-universes u v u' v'
+universes u v u' v' u'' v''
 
 variables {V : Type u} [quiver.{v+1} V]
 
@@ -133,11 +133,11 @@ instance : groupoid (free_groupoid V) :=
   comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse pp }
 
 /-- The inclusion of the quiver on `V` to the underlying quiver on `free_groupoid V`-/
-def of : prefunctor V (free_groupoid V) :=
+def of (V) [quiver.{v+1} V] : prefunctor V (free_groupoid V) :=
 { obj := λ X, ⟨X⟩,
   map := λ X Y f, quot.mk _ f.to_pos_path }
 
-lemma of_eq : of =
+lemma of_eq : of V =
   ((quiver.symmetrify.of).comp
     paths.of).comp (quotient.functor $ @red_step V _).to_prefunctor :=
 begin
@@ -161,7 +161,7 @@ quotient.lift _
       symmetry,
       apply groupoid.comp_inv, })
 
-lemma lift_spec (φ : prefunctor V V') : of.comp (lift φ).to_prefunctor = φ :=
+lemma lift_spec (φ : prefunctor V V') : (of V).comp (lift φ).to_prefunctor = φ :=
 begin
   rw [of_eq, prefunctor.comp_assoc, prefunctor.comp_assoc, functor.to_prefunctor_comp],
   dsimp [lift],
@@ -169,7 +169,7 @@ begin
 end
 
 lemma lift_unique (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V')
-  (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = (lift φ) :=
+  (hΦ : (of V).comp Φ.to_prefunctor = φ) : Φ = (lift φ) :=
 begin
   apply quotient.lift_unique,
   apply paths.lift_unique,
@@ -184,6 +184,31 @@ begin
 end
 
 end universal_property
+
+section functoriality
+
+variables {V' : Type u'} [quiver.{v'+1} V'] {V'' : Type u''} [quiver.{v''+1} V'']
+
+/-- The functor of free groupoid induced by a prefunctor of quivers -/
+def _root_.category_theory.free_groupoid_functor (φ : prefunctor V V') :
+  free_groupoid V ⥤ free_groupoid V' := lift (φ.comp (of V'))
+
+lemma free_groupoid_functor_id :
+  free_groupoid_functor (prefunctor.id V) = functor.id (free_groupoid V) :=
+begin
+  dsimp only [free_groupoid_functor], symmetry,
+  apply lift_unique, refl,
+end
+
+lemma free_groupoid_functor_comp
+  (φ : prefunctor V V') (φ' : prefunctor V' V'') :
+  free_groupoid_functor (φ.comp φ') = (free_groupoid_functor φ) ⋙ (free_groupoid_functor φ') :=
+begin
+  dsimp only [free_groupoid_functor], symmetry,
+  apply lift_unique, refl,
+end
+
+end functoriality
 
 end free
 end groupoid

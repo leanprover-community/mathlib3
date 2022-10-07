@@ -405,8 +405,9 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
   measurable_set' := λ x a ha, ha.1.measurable_set,
   nonempty_interior := λ x a ha, ha.2.1,
   nontrivial := λ x ε εpos, begin
-    obtain ⟨r, ⟨rpos, rε⟩, μr⟩ : ∃ r ∈ Ioc (0 : ℝ) ε,
-      μ (closed_ball x (3 * r)) ≤ C * μ (closed_ball x r) := h x ε εpos,
+    obtain ⟨r, μr, rpos, rε⟩ : ∃ r,
+      μ (closed_ball x (3 * r)) ≤ C * μ (closed_ball x r) ∧ r ∈ Ioc (0 : ℝ) ε :=
+      ((h x).and_eventually (Ioc_mem_nhds_within_Ioi ⟨le_rfl, εpos⟩)).exists,
     refine ⟨closed_ball x r, ⟨is_closed_ball, _, ⟨r, subset.rfl, μr⟩⟩,
       closed_ball_subset_closed_ball rε⟩,
     exact (nonempty_ball.2 rpos).mono (ball_subset_interior_closed_ball)
@@ -431,8 +432,7 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
     { rintros - ⟨q, hq, rfl⟩,
       exact (t't hq).2.2.2.2.2 },
     { rintros p ⟨q, hq, rfl⟩ p' ⟨q', hq', rfl⟩ hqq',
-      have H : q ≠ q', { rintros rfl, exact hqq' rfl },
-      exact t'_disj hq hq' H },
+      exact t'_disj hq hq' (ne_of_apply_ne _ hqq') },
     { rintros - ⟨q, hq, rfl⟩,
       exact (t't hq).2.2.2.2.1 },
     { convert μt' using 3,

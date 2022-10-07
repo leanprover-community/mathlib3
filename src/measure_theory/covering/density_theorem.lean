@@ -132,6 +132,8 @@ lemma measure_mul_le_scaling_constant_of_mul {K : ℝ} {x : α} {t r : ℝ}
 section
 variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
 
+open_locale topological_space
+
 /-- A Vitali family in a space with a doubling measure, designed so that the sets at `x` contain
 all `closed_ball y r` when `dist x y ≤ K * r`. -/
 @[irreducible] def vitali_family (K : ℝ) : vitali_family μ :=
@@ -141,10 +143,12 @@ begin
   only small ones belong to the family, for convenience. -/
   let R := scaling_scale_of μ (max (4 * K + 3) 3),
   have Rpos : 0 < R := scaling_scale_of_pos _ _,
-  have A : ∀ (x : α) (ε : ℝ), ε > 0 → ∃ (r : ℝ) (H : r ∈ Ioc 0 ε),
+  have A : ∀ (x : α), ∃ᶠ r in 𝓝[>] (0 : ℝ),
     μ (closed_ball x (3 * r)) ≤ scaling_constant_of μ (max (4 * K + 3) 3) * μ (closed_ball x r),
-  { assume x ε εpos,
-    refine ⟨min ε R, ⟨lt_min εpos Rpos, min_le_left _ _⟩, _⟩,
+  { assume x,
+    apply frequently_iff.2 (λ U hU, _),
+    obtain ⟨ε, εpos, hε⟩ := mem_nhds_within_Ioi_iff_exists_Ioc_subset.1 hU,
+    refine ⟨min ε R, hε ⟨lt_min εpos Rpos, min_le_left _ _⟩, _⟩,
     exact measure_mul_le_scaling_constant_of_mul μ
       ⟨zero_lt_three, le_max_right _ _⟩ (min_le_right _ _) },
   exact (vitali.vitali_family μ (scaling_constant_of μ (max (4 * K + 3) 3)) A).enlarge

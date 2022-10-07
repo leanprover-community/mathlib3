@@ -115,7 +115,7 @@ h.exists_disjoint_covering_ae.some
 
 /-- Given `h : v.fine_subfamily_on f s`, then `h.covering p` is a set in the family,
 for `p ∈ h.index`, such that these sets form a disjoint covering of almost every `s`. -/
-protected def covering : α × set α → set α :=
+@[nolint unused_arguments] protected def covering : α × set α → set α :=
 λ p, p.2
 
 lemma index_subset : ∀ (p : α × set α), p ∈ h.index → p.1 ∈ s :=

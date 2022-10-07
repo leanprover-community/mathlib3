@@ -206,12 +206,10 @@ namespace kummer_dedekind
 
 open_locale big_operators polynomial classical
 
-variables [is_domain S] [is_dedekind_domain S] [algebra R S]
+variables [is_domain R] [is_domain S] [is_dedekind_domain S]
 variables (pb : power_basis R S)
 
 local attribute [instance] ideal.quotient.field
-
-variables [is_domain R]
 
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the prime
     factors of `I*S` are in bijection with those of the minimal polynomial of the generator of `S`

@@ -53,7 +53,7 @@ include hT
 
 /-- Equip the "additive circle" `ℝ ⧸ (ℤ ∙ T)` with, as a standard measure, the Haar measure of total
 mass `T` -/
-noncomputable instance : measure_space (add_circle T) :=
+noncomputable instance measure_space : measure_space (add_circle T) :=
 { volume := (ennreal.of_real T) • add_haar_measure ⊤,
   .. add_circle.measurable_space }
 

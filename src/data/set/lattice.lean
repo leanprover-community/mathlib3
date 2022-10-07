@@ -1403,7 +1403,7 @@ lemma prod_sInter (T : set (set β)) (hT : T.nonempty) (s : set α) :
   s ×ˢ ⋂₀ T = ⋂ t ∈ T, s ×ˢ t :=
 begin
   rw [←sInter_singleton s, sInter_prod_sInter {s} T (singleton_nonempty s) hT, sInter_singleton,
-  singleton_prod],
+    singleton_prod],
   simp only [mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right, sInter_image],
 end
 end prod

@@ -179,6 +179,7 @@ Morphisms from a `ℕ`-indexed chain complex `C`
 to a single object chain complex with `X` concentrated in degree 0
 are the same as morphisms `f : C.X 0 ⟶ X` such that `C.d 1 0 ≫ f = 0`.
 -/
+@[simps]
 def to_single₀_equiv (C : chain_complex V ℕ) (X : V) :
   (C ⟶ (single₀ V).obj X) ≃ { f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 } :=
 { to_fun := λ f, ⟨f.f 0, by { rw ←f.comm 1 0, simp, }⟩,
@@ -196,6 +197,42 @@ def to_single₀_equiv (C : chain_complex V ℕ) (X : V) :
   left_inv := λ f, begin
     ext i,
     rcases i,
+    { refl, },
+    { ext, },
+  end,
+  right_inv := by tidy, }
+
+@[ext]
+lemma to_single₀_ext {C : chain_complex V ℕ} {X : V}
+  (f g : (C ⟶ (single₀ V).obj X)) (h : f.f 0 = g.f 0) : f = g :=
+begin
+  rw [← (to_single₀_equiv C X).left_inv f, ← (to_single₀_equiv C X).left_inv g],
+  congr' 1,
+  ext,
+  exact h,
+end
+
+/--
+Morphisms from a single object chain complex with `X` concentrated in degree 0
+to a `ℕ`-indexed chain complex `C` are the same as morphisms `f : X → C.X`.
+-/
+@[simps]
+def from_single₀_equiv (C : chain_complex V ℕ) (X : V) :
+  ((single₀ V).obj X ⟶ C) ≃ (X ⟶ C.X 0) :=
+{ to_fun := λ f, f.f 0,
+  inv_fun := λ f,
+  { f := λ i, match i with
+    | 0 := f
+    | (n+1) := 0
+    end,
+    comm' := λ i j h, begin
+      cases i; cases j; unfold_aux;
+      simp only [shape, complex_shape.down_rel, nat.one_ne_zero, not_false_iff,
+        comp_zero, zero_comp, nat.succ_ne_zero, single₀_obj_X_d],
+    end },
+  left_inv := λ f, begin
+    ext i,
+    cases i,
     { refl, },
     { ext, },
   end,

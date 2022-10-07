@@ -299,7 +299,7 @@ instance canonically_linear_ordered_semifield [linear_ordered_field α] :
 instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
 { floor := λ a, ⌊(a : α)⌋₊,
   ceil := λ a, ⌈(a : α)⌉₊,
-  nonneg_of_floor_nonzero := λ a _, a.prop,
+  nonneg_of_floor := λ a _, a.prop,
   gc_floor := λ a n ha, begin
     refine (floor_semiring.gc_floor (show 0 ≤ (a : α), from ha)).trans _,
     rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]

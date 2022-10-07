@@ -53,14 +53,14 @@ Note that many lemmas require a `linear_order`. Please see the above `TODO`. -/
 class floor_semiring (α) [ordered_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
-(nonneg_of_floor_nonzero {a : α} : floor a ≠ 0 → 0 ≤ a)
+(nonneg_of_floor {a : α} : floor a ≠ 0 → 0 ≤ a)
 (gc_floor {a : α} {n : ℕ} (ha : 0 ≤ a) : n ≤ floor a ↔ (n : α) ≤ a)
 (gc_ceil : galois_connection ceil coe)
 
 instance : floor_semiring ℕ :=
 { floor := id,
   ceil := id,
-  nonneg_of_floor_nonzero := λ a ha, zero_le _,
+  nonneg_of_floor := λ a ha, zero_le _,
   gc_floor := λ n a ha, by { rw nat.cast_id, refl },
   gc_ceil := λ n a, by { rw nat.cast_id, refl } }
 
@@ -107,7 +107,7 @@ eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff n.cast_nonneg], exact nat.cast
 @[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
 
 lemma floor_of_not_nonneg : ¬ 0 ≤ a → ⌊a⌋₊ = 0 :=
-imp_of_not_imp_not _ _ (λ H, not_not.mpr (floor_semiring.nonneg_of_floor_nonzero H))
+imp_of_not_imp_not _ _ (λ H, not_not.mpr (floor_semiring.nonneg_of_floor H))
 
 lemma floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
 by { classical, exact dite (0 ≤ a) (λ H, (le_antisymm H ha) ▸ floor_zero ) floor_of_not_nonneg }
@@ -971,7 +971,7 @@ instance floor_ring.to_floor_semiring [ordered_ring α] [zero_le_one_class α] [
 floor_semiring α :=
 { floor := λ a, ⌊a⌋.to_nat,
   ceil := λ a, ⌈a⌉.to_nat,
-  nonneg_of_floor_nonzero := λ a ha,
+  nonneg_of_floor := λ a ha,
   by { rw [ne.def, int.to_nat_eq_zero, not_le, floor_pos] at ha,
        exact zero_le_one.trans ha },
   gc_floor := λ a n ha,

@@ -1085,11 +1085,9 @@ protected def vitali_family (μ : measure α) [sigma_finite μ] :
     refine ⟨F '' t, _, _, _, _⟩,
     { rintros - ⟨x, hx, rfl⟩, exact ts hx },
     { rintros p ⟨x, hx, rfl⟩ q ⟨y, hy, rfl⟩ hxy,
-      have : x ≠ y, { rintros rfl, exact hxy rfl },
-      exact tdisj hx hy this },
+      exact tdisj hx hy (ne_of_apply_ne F hxy) },
     { rintros - ⟨x, hx, rfl⟩, exact (tg x hx).1.2 },
-    { convert μt using 3,
-      rw bUnion_image }
+    { rwa bUnion_image }
   end }
 
 /-- The main feature of the Besicovitch Vitali family is that its filter at a point `x` corresponds

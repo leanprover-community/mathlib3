@@ -535,7 +535,6 @@ def of_mul_action (G H : Type u) [monoid G] [mul_action G H] : Action (Type u) (
   (of_mul_action G H).ρ g x = (g • x : H) :=
 rfl
 
-/- should be generalised and abstracted I guess? I tried and got tired. -/
 /-- Given a family `F` of types with `G`-actions, this is the limit cone demonstrating that the
 product of `F` as types is a product in the category of `G`-sets. -/
 def of_mul_action_limit_cone {ι : Type v} (G : Type (max v u)) [monoid G]

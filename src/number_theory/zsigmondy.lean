@@ -589,4 +589,28 @@ begin
     convert h2; simp only [zero_add] }
 end
 
+lemma zsigmondy_2 {a b : ℤ} (hab1: (a + b).nat_abs ≠ 1) (hab2 : is_coprime a b)
+  (hpow : (a + b) ∉ {y | ∃ (β : ℕ), (2 : ℤ) ^ β = y}) :
+  ∃ p, nat.prime p ∧ ↑p ∣ a ^ 2 - b ^ 2 ∧ ¬ ↑p ∣ a - b :=
+begin
+  contrapose! hpow,
+  obtain ⟨p, hp, hpdvd⟩ := nat.exists_prime_and_dvd hab1,
+  replace hpdvd := int.of_nat_dvd_of_dvd_nat_abs hpdvd,
+  have hsqdvd := dvd_mul_of_dvd_left hpdvd (a - b),
+  rw ← sq_sub_sq at hsqdvd,
+  specialize hpow p hp hsqdvd,
+  have ha := dvd_add hpdvd hpow,
+  have hb := dvd_sub hpdvd hpow,
+  simp only [add_add_sub_cancel, ← two_mul] at ha,
+  simp only [add_sub_sub_cancel, ← two_mul] at hb,
+  replace ha := prime.dvd_or_dvd (nat.prime_iff_prime_int.mp hp) ha,
+  replace hb := prime.dvd_or_dvd (nat.prime_iff_prime_int.mp hp) hb,
+  cases ha,
+  { rw [show (2 : ℤ) = ↑(2 : ℕ), by norm_cast] at ha,
+    norm_cast at ha,
+    rw nat.prime_dvd_prime_iff_eq hp (nat.prime_two) at ha,
+    sorry, },
+  sorry
+end
+
 end cyclotomic₂

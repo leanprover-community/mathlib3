@@ -491,7 +491,12 @@ linear_map.isometry_of_inner
         + real.angle.sin θ • ↑(linear_isometry_equiv.to_linear_equiv J))
   begin
     intros x y,
-    simp [inner_smul_left, inner_smul_right, inner_add_left, inner_add_right],
+    simp only [is_R_or_C.conj_to_real, id.def, linear_map.smul_apply, linear_map.add_apply,
+      linear_map.id_coe, linear_equiv.coe_coe, linear_isometry_equiv.coe_to_linear_equiv,
+      orientation.area_form_right_angle_rotation_left,
+      orientation.inner_right_angle_rotation_left,
+      orientation.inner_right_angle_rotation_right,
+      inner_add_left, inner_smul_left, inner_add_right, inner_smul_right],
     linear_combination inner x y * θ.cos_sq_add_sin_sq,
   end
 

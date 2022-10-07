@@ -9,6 +9,7 @@ import algebra.category.Module.epi_mono
 import algebra.module.injective
 import category_theory.preadditive.injective
 import group_theory.divisible
+import group_theory.order_of_element
 import ring_theory.principal_ideal_domain
 
 /-!
@@ -111,14 +112,7 @@ namespace divisible_emb
 -- In this section we prove that any additive abelian group A can be embed into a divisible group,
 -- namely `∏ᵢ (ℚ⧸ℤ)` where `i` indexing over all morphism `A →+ ℚ⧸ℤ`
 
-/-- integers as a subgroup of ℚ -/
-protected def ℤ_as_ℚ_subgroup : add_subgroup ℚ :=
-{ carrier := set.range (coe : ℤ → ℚ),
-  add_mem' := by { rintros _ _ ⟨a, rfl⟩ ⟨b, rfl⟩, refine ⟨a + b, by norm_cast⟩, },
-  zero_mem' := ⟨0, rfl⟩,
-  neg_mem' := by { rintros _ ⟨a, rfl⟩, refine ⟨-a, by norm_cast⟩ } }
-
-local notation `Z` := divisible_emb.ℤ_as_ℚ_subgroup
+local notation `Z` := (algebra_map ℤ ℚ).to_add_monoid_hom.range
 
 noncomputable instance divisible_ℚ_quotient_ℤ : divisible_by (ℚ ⧸ Z) ℤ :=
 @@add_group.divisible_by_int_of_divisible_by_nat _ _ $ @@quotient_add_group.divisible_by _ _ $
@@ -137,10 +131,33 @@ pi.divisible_by _
 For every abelian group `A`, there is a group homomorphism `A ⟶ ∏ (i : A ⟶ ℚ/ℤ), ℚ/ℤ)`
 by evaluating: `a ↦ (f ↦ f a)`.
 -/
-@[simps] def embed_into_divisible : AddCommGroup.of A ⟶ Div :=
+@[simps] def to_Div : AddCommGroup.of A ⟶ Div :=
 { to_fun := λ a i, i a,
   map_zero' := by simpa only [map_zero],
   map_add' := λ x y, by simpa only [map_add] }
+
+lemma to_Div_inj_of_exists
+  (h : ∀ (a : A), a ≠ 0 → ∃ (f : (⟨submodule.span ℤ {a}⟩ : Module ℤ) ⟶ ⟨ℚ⧸ℤ⟩),
+    f ⟨a, submodule.subset_span $ set.mem_singleton _⟩ ≠ 0) :
+  function.injective $ to_Div A :=
+begin
+  contrapose! h,
+  simp only [function.injective, not_forall] at h,
+  obtain ⟨a, b, h1, h2⟩ := h,
+  refine ⟨a-b, λ r, h2 (sub_eq_zero.mp r), λ f, _⟩,
+  haveI injQZ : category_theory.injective (⟨ℚ⧸ℤ⟩ : Module ℤ) :=
+    injective_as_module_of_injective_as_Ab _,
+  let g : (⟨(submodule.span ℤ {a - b} : submodule ℤ A)⟩ : Module ℤ) ⟶ ⟨A⟩ :=
+    submodule.subtype (submodule.span ℤ {a - b}),
+  haveI : mono g,
+  { rw Module.mono_iff_injective, apply submodule.injective_subtype, },
+  have f_eq := injective.comp_factor_thru f g,
+  rw [←fun_like.congr_fun f_eq ⟨a - b, submodule.subset_span (set.mem_singleton _)⟩,
+    comp_apply],
+  have := congr_fun h1 (injective.factor_thru f g).to_add_monoid_hom,
+  rw [to_Div_apply, to_Div_apply, ←sub_eq_zero, ←map_sub] at this,
+  convert this,
+end
 
 section
 variable {A}
@@ -151,7 +168,7 @@ variable {A}
 noncomputable def rep {a : A} (x : submodule.span ℤ {a}) : ℤ :=
 (submodule.mem_span_singleton.mp x.2).some
 
-lemma rep_eq {a : A} (x : submodule.span ℤ {a}) : rep x • a = x :=
+lemma rep_spec {a : A} (x : submodule.span ℤ {a}) : rep x • a = x :=
 (submodule.mem_span_singleton.mp x.2).some_spec
 
 end
@@ -166,7 +183,7 @@ There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
 @[reducible] noncomputable def to_fun : submodule.span ℤ {a} → ℚ⧸ℤ :=
 λ x, ulift.up $ quotient.mk' (rat.mk (rep x) 2)
 
-variables (infinite_order : ∀ (n : ℕ), n ≠ 0 → n • a ≠ 0)
+variable (infinite_order : ∀ (a : A), add_order_of a = 0)
 include infinite_order
 
 lemma infinite_order' (m : ℤ) : m • a = 0 → m = 0 :=
@@ -174,36 +191,35 @@ match m with
 | int.of_nat 0 := λ _, rfl
 | int.of_nat (nat.succ n) := λ h, begin
   erw of_nat_zsmul at h,
-  exact false.elim (infinite_order n.succ (nat.succ_ne_zero _) h),
+  exact false.elim (add_order_of_eq_zero_iff'.mp (infinite_order a) n.succ (nat.zero_lt_succ _) h),
 end
 | -[1+n] := λ h, begin
   rw [zsmul_neg_succ_of_nat, neg_eq_zero] at h,
-  exact false.elim (infinite_order n.succ (nat.succ_ne_zero _) h),
+  exact false.elim (add_order_of_eq_zero_iff'.mp (infinite_order a) n.succ (nat.zero_lt_succ _) h),
 end
 end
 
-lemma to_fun_wd.aux {m n : ℤ} (eq1 : m • a = n • a) : m = n :=
+lemma to_fun_spec.aux {m n : ℤ} (eq1 : m • a = n • a) : m = n :=
 begin
   rw [←sub_eq_zero, ←sub_smul] at eq1,
-  replace eq1 := infinite_order' infinite_order _ eq1,
-  rwa sub_eq_zero at eq1,
+  refine sub_eq_zero.mp (infinite_order' infinite_order _ eq1),
 end
 
 lemma rep_add (x y : submodule.span ℤ {a}) : rep (x + y) = rep x + rep y :=
-to_fun_wd.aux infinite_order $ by simp only [add_smul, rep_eq, submodule.coe_add]
+to_fun_spec.aux infinite_order $ (by simp [rep_spec, add_smul] : _ • a = _ • a)
 
 lemma rep_smul (m : ℤ) (x : submodule.span ℤ {a}) : rep (m • x) = m * rep x :=
-to_fun_wd.aux infinite_order $ by rw [mul_smul, rep_eq x, rep_eq (m • x), submodule.coe_smul]
+to_fun_spec.aux infinite_order $ by rw [mul_smul, rep_spec x, rep_spec (m • x), submodule.coe_smul]
 
-lemma to_fun_wd (x : submodule.span ℤ {a}) {m : ℤ} (hm : m • a = (↑x : A)) :
+lemma to_fun_spec (x : submodule.span ℤ {a}) {m : ℤ} (hm : m • a = (↑x : A)) :
   to_fun x = ⟨quotient.mk' (rat.mk m 2)⟩ :=
-by rw show m = rep x, by { apply to_fun_wd.aux infinite_order, rw [hm, rep_eq x] }
+by rw show m = rep x, by { apply to_fun_spec.aux infinite_order, rw [hm, rep_spec x] }
 
 lemma map_add' (x y : submodule.span ℤ {a}) :
   to_fun (x + y) = to_fun x + to_fun y :=
 begin
-  rw [to_fun_wd infinite_order (x + y) (rep_eq _), to_fun_wd infinite_order x (rep_eq _),
-    to_fun_wd infinite_order y (rep_eq _)],
+  rw [to_fun_spec infinite_order (x + y) (rep_spec _), to_fun_spec infinite_order x (rep_spec _),
+    to_fun_spec infinite_order y (rep_spec _)],
   ext1,
   erw [quotient_add_group.eq', rat.neg_def, rat.add_def, rat.add_def,
     rep_add infinite_order, ←add_mul, mul_assoc, neg_mul, neg_add_self, rat.zero_mk],
@@ -234,12 +250,10 @@ begin
   change quotient.mk' _ = (quotient.mk' 0 : ℚ ⧸ Z) at r,
   rw [quotient_add_group.eq', add_zero, rat.neg_def] at r,
   rcases r with ⟨m, eq1⟩,
-  rw [rat.coe_int_eq_mk _, rat.mk_eq, mul_one, eq_neg_iff_eq_neg, ←neg_mul] at eq1,
-  have eq2 : (-m * 2 - 1) • a = 0,
-  { rw [sub_smul, one_smul, sub_eq_zero, ←eq1, rep_eq, subtype.coe_mk] },
-  have eq3 := infinite_order' infinite_order _ eq2,
-  rw [int.sub_eq_zero_iff_eq] at eq3,
-  exact H _ eq3,
+  rw [show (algebra_map ℤ ℚ).to_add_monoid_hom m = (m : ℚ), from rfl, rat.coe_int_eq_mk _,
+    rat.mk_eq, mul_one, eq_neg_iff_eq_neg, ←neg_mul] at eq1,
+  refine H m (sub_eq_zero.mp (infinite_order' infinite_order _ (_ : _ • a = _))),
+  rw [sub_smul, one_smul, sub_eq_zero, ←eq1, rep_spec, subtype.coe_mk],
   all_goals { norm_num },
 end
 

@@ -2672,6 +2672,9 @@ lemma exists_mem_zpowers {x : G} {p : G → Prop} :
   (∃ g ∈ zpowers x, p g) ↔ ∃ m : ℤ, p (x ^ m) :=
 set.exists_range_iff
 
+instance (a : G) : countable (zpowers a) :=
+((zpowers_hom G a).range_restrict_surjective.comp multiplicative.of_add.surjective).countable
+
 end subgroup
 
 namespace add_subgroup
@@ -2693,6 +2696,9 @@ attribute [to_additive add_subgroup.forall_zmultiples] subgroup.forall_zpowers
 attribute [to_additive add_subgroup.forall_mem_zmultiples] subgroup.forall_mem_zpowers
 attribute [to_additive add_subgroup.exists_zmultiples] subgroup.exists_zpowers
 attribute [to_additive add_subgroup.exists_mem_zmultiples] subgroup.exists_mem_zpowers
+
+instance (a : A) : countable (zmultiples a) :=
+(zmultiples_hom A a).range_restrict_surjective.countable
 
 section ring
 

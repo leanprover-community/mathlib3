@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
 import order.filter.pointwise
+import tactic.congrm
 import topology.algebra.monoid
 import topology.compact_open
 import topology.sets.compacts
@@ -1035,6 +1036,64 @@ begin
   rw ← quotient_group.ker_mk S at hS,
   exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
 end
+
+/-- A discrete subgroup of a topological group `G` acts on `G` properly discontinuously on the left.
+-/
+@[to_additive "A discrete subgroup of an additive topological group `G` acts on `G` properly
+discontinuously on the left."]
+lemma subgroup.properly_discontinuous_smul_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have H : set.finite _ := hS ((hL.prod hK).image continuous_div').compl_mem_cocompact,
+    convert H,
+    ext x,
+    obtain ⟨x, hx⟩ := x,
+    dsimp,
+    simp_rw [set.ext_iff, prod.exists],
+    calc ¬(∀ l, (∃ k, k ∈ K ∧ x * k = l) ∧ l ∈ L ↔ false)
+        ↔ ¬¬∃ l k, (l ∈ L ∧ k ∈ K) ∧ x * k = l : by tidy
+    ... ↔ ¬¬∃ l k, (l ∈ L ∧ k ∈ K) ∧ l / k = x :
+            begin
+              congrm ¬¬∃ l k, _ ∧ _,
+              rw [div_eq_iff_eq_mul, @comm G (=)],
+            end
+  end }
+
+local attribute [semireducible] mul_opposite
+
+/-- A discrete subgroup of a topological group `G` acts on `G` properly discontinuously on the
+right.
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_smul_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff. -/
+@[to_additive "A discrete subgroup of an additive topological group `G` acts on `G` properly
+discontinuously on the right.
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_vadd_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff."]
+lemma subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S.opposite G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have : continuous (λ p : G × G, (p.1⁻¹, p.2)) := continuous_inv.prod_map continuous_id,
+    have H : set.finite _ :=
+      hS ((hK.prod hL).image (continuous_mul.comp this)).compl_mem_cocompact,
+    convert H using 1,
+    ext x,
+    obtain ⟨x, hx⟩ := x,
+    dsimp,
+    simp_rw [set.ext_iff, prod.exists],
+    calc (¬∀ (l : G), (∃ (k : G), k ∈ K ∧ k * x = l) ∧ l ∈ L ↔ false)
+        ↔ ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ k * x = l : by tidy
+    ... ↔ ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ k⁻¹ * l = x :
+            begin
+              congrm ¬¬∃ (k l : G), (k ∈ K ∧ l ∈ L) ∧ _,
+              rw [inv_mul_eq_iff_eq_mul, @comm G (=)]
+            end
+  end }
 
 end
 

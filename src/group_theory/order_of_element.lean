@@ -425,8 +425,8 @@ end
   refine order_of_eq_zero_iff'.mp h _ _ H,
   norm_num,
 end
-| -[1+m], -[1+n] := by { rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_inj, pow_inj_iff_of_order_of_eq_zero h,
-    add_left_inj], simp only }
+| -[1+m], -[1+n] := by { rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_inj,
+  pow_inj_iff_of_order_of_eq_zero h, add_left_inj], simp only }
 end
 
 @[to_additive]

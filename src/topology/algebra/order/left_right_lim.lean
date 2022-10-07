@@ -285,7 +285,7 @@ begin
   refine compl_subset_compl.1 _,
   simp only [compl_union],
   rintros x ⟨hx, h'x⟩,
-  simp only [mem_compl_eq, mem_set_of_eq, not_not] at hx h'x ⊢,
+  simp only [mem_set_of_eq, not_not, mem_compl_iff] at hx h'x ⊢,
   exact continuous_at_iff_continuous_left'_right'.2 ⟨h'x, hx⟩
 end
 

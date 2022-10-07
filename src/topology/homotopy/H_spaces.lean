@@ -94,7 +94,7 @@ open unit_interval
 variables {X : Type u} [topological_space X] {x y : X}
 
 /-- This is the function analogous to the one on p. 475 of [serre1951], defining a homotopy from
-the product path `e ∧ γ` to `γ`.-/
+the product path `γ ∧ e` to `γ`.-/
 def delayed_refl_right (θ : I) (γ : path x y) : path x y :=
 { to_fun := λ t, γ (Q_right (t, θ)),
   continuous_to_fun := γ.continuous.comp (continuous_Q_right.comp $ continuous.prod.mk_left θ),

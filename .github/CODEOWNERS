@@ -5,6 +5,6 @@
 src/tactic/		@leanprover-community/mathlib-meta
 
 src/category_theory/	@leanprover-community/mathlib-CT
-src/algebraic_topology/ @leanprover-community/mathlib-CT # for now that category theory team can take care of this
+src/algebraic_topology/ @leanprover-community/mathlib-CT # for now the category theory team can take care of this
 
 src/algebraic_geometry/ @leanprover-community/mathlib-AG

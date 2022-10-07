@@ -89,7 +89,6 @@ noncomputable def fractional_ideal.mk0 [is_dedekind_domain R] :
   map_mul' := λ x y, by simp }
 
 /-- Send a nonzero ideal to the corresponding class in the class group. -/
-@[simps]
 noncomputable def class_group.mk0 [is_dedekind_domain R] :
   (ideal R)⁰ →* class_group R K :=
 (quotient_group.mk' _).comp (fractional_ideal.mk0 K)

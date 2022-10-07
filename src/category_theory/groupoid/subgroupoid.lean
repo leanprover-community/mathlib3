@@ -112,17 +112,17 @@ instance coe_groupoid : groupoid S.coe :=
   comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
 
 /-- There is an embedding of the coerced subgroupoid to its parent-/
-def coe_embedding : (coe S) ⥤ C :=
+def hom : (coe S) ⥤ C :=
 { obj := λ c, c.val,
   map := λ c d f, f.val,
   map_id' := λ c, rfl,
   map_comp' := λ c d e f g, rfl }
 
-lemma coe_embedding.inj_on_objects : function.injective (coe_embedding S).obj :=
+lemma hom.inj_on_objects : function.injective (hom S).obj :=
 by { rintros ⟨c,hc⟩ ⟨d,hd⟩ hcd, simp only [subtype.mk_eq_mk], exact hcd }
 
-lemma coe_embedding.faithful :
-  ∀ c d, function.injective (λ (f : c ⟶ d), (coe_embedding S).map f) :=
+lemma hom.faithful :
+  ∀ c d, function.injective (λ (f : c ⟶ d), (hom S).map f) :=
 by { rintros ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,hf⟩ ⟨g,hg⟩ hfg, simp only [subtype.mk_eq_mk], exact hfg, }
 
 /-- The subgroup of the vertex group at `c` given by the subgroupoid -/
@@ -251,9 +251,9 @@ begin
 end
 
 lemma inclusion_comp_embedding {S T : subgroupoid C} (h : S ≤ T) :
-  (inclusion h) ⋙ T.coe_embedding = S.coe_embedding :=
+  (inclusion h) ⋙ T.hom = S.hom :=
 begin
-  dsimp only [inclusion, coe_embedding],
+  dsimp only [inclusion, hom],
   fapply functor.ext,
   { rintros, simp only [functor.comp_obj, subtype.val_eq_coe], },
   { rintros ⟨s,hs⟩ ⟨t,ht⟩ ⟨f,hf⟩,

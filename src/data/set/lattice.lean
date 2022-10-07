@@ -1388,7 +1388,7 @@ begin
   obtain ⟨s₂, h₂⟩ := hT,
   refine set.subset.antisymm (sInter_prod_sInter_subset S T) (λ x hx, _),
   rw mem_Inter₂ at hx,
-  refine ⟨λ s₀ h₀, (hx (s₀, s₂) ⟨h₀, h₂⟩).1, λ s₀ h₀, (hx (s₁, s₀) ⟨h₁, h₀⟩).2⟩,
+  exact ⟨λ s₀ h₀, (hx (s₀, s₂) ⟨h₀, h₂⟩).1, λ s₀ h₀, (hx (s₁, s₀) ⟨h₁, h₀⟩).2⟩,
 end
 
 lemma sInter_prod (S : set (set α)) (hS : S.nonempty) (t : set β) :

@@ -1564,7 +1564,7 @@ assume a b, quotient.induction_on₂' a b $
   assume a b (h : f a = f b), ideal.quotient.eq.2 $
 show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
 
-lemma ideal.quotient.lift_injective_of_ker_le_ideal (I : ideal R) (f : R →+* S)
+lemma lift_injective_of_ker_le_ideal (I : ideal R) (f : R →+* S)
   (H : ∀ (a : R), a ∈ I → f a = 0) (hI : ring_hom.ker f ≤ I) :
   function.injective (ideal.quotient.lift I f H) :=
 begin

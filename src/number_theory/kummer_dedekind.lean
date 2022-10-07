@@ -54,43 +54,42 @@ kummer, dedekind, kummer dedekind, dedekind-kummer, dedekind kummer
 
 variables (R : Type*) {S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
 
+open ideal polynomial double_quot unique_factorization_monoid algebra ring_hom
+
 /-- Let `S / R` be a ring extension and `x : S`, then the conductor of R[x] is the
 biggest ideal of `S` contained in `R[x]`. -/
 def conductor (x : S) : ideal S :=
-{ carrier := {a | ∀ (b : S), a * b ∈ algebra.adjoin R ({x} : set S)},
+{ carrier := {a | ∀ (b : S), a * b ∈ adjoin R ({x} : set S)},
   zero_mem' := λ b, by simpa only [zero_mul] using subalgebra.zero_mem _,
   add_mem' := λ a b ha hb c, by simpa only [add_mul] using subalgebra.add_mem _ (ha c) (hb c),
   smul_mem' := λ c a ha b, by simpa only [smul_eq_mul, mul_left_comm, mul_assoc] using ha (c * b) }
 
-variable {R}
+variables {R} {x : S}
 
-lemma mem_adjoin_of_mem_conductor {x y : S} (hy : y ∈ conductor R x) :
-  y ∈ algebra.adjoin R ({x} : set S) :=
+lemma mem_adjoin_of_mem_conductor {y : S} (hy : y ∈ conductor R x) : y ∈ adjoin R ({x} : set S) :=
 by simpa only [mul_one] using hy 1
 
-lemma conductor_eq_of_eq {x y : S} (h : (algebra.adjoin R ({x} : set S) : set S) =
-  algebra.adjoin R ({y} : set S)) : conductor R x = conductor R y :=
+lemma conductor_eq_of_eq {y : S} (h : (adjoin R ({x} : set S) : set S) = adjoin R ({y} : set S)):
+  conductor R x = conductor R y :=
 ideal.ext (λ a, ⟨λ H b,by {rw [← set_like.mem_coe, (set.ext_iff.mp h _).symm], exact H b}, λ H b,
   by {rw [← set_like.mem_coe, (set.ext_iff.mp h _)], exact H b }⟩)
 
-lemma conductor_subset_adjoin {x : S} : (conductor R x : set S) ⊆ algebra.adjoin R ({x} : set S) :=
+lemma conductor_subset_adjoin {x : S} : (conductor R x : set S) ⊆ adjoin R ({x} : set S) :=
 λ y, mem_adjoin_of_mem_conductor
 
-lemma mem_conductor_iff {x y : S} :
-  y ∈ conductor R x ↔ ∀ (b : S), y * b ∈ algebra.adjoin R ({x} : set S) :=
+lemma mem_conductor_iff {y : S} : y ∈ conductor R x ↔ ∀ (b : S), y * b ∈ adjoin R ({x} : set S) :=
 ⟨λ h, h, λ h, h⟩
 
-variables {I : ideal R} {x : S}
+variables {I : ideal R}
 
 /-- This technical lemma tell us that if `C` is the conductor of `R[x]` and `I` is an ideal of R
   then `p * (I * S) ⊆ I * R[x]` for any `p` in `C ∩ R` -/
 -- TODO: (this should be generalized to `p ∈ C`)
 lemma tricky_result (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤)
   (hx' : is_integral R x) {p : R} (hp : p ∈ ideal.comap (algebra_map R S) (conductor R x))
-  {z : S} (hz : z ∈ algebra.adjoin R ({x} : set S))
-  {hz' : z ∈ (I.map (algebra_map R S))} :
-  (algebra_map R S p)*z ∈ algebra_map (algebra.adjoin R ({x} : set S)) S
-    '' ↑(I.map (algebra_map R (algebra.adjoin R ({x} : set S)))) :=
+  {z : S} (hz : z ∈ adjoin R ({x} : set S)) {hz' : z ∈ (I.map (algebra_map R S))} :
+  (algebra_map R S p)*z ∈ algebra_map (adjoin R ({x} : set S)) S
+    '' ↑(I.map (algebra_map R (adjoin R ({x} : set S)))) :=
 begin
   rw [ideal.map, ideal.span, finsupp.mem_span_image_iff_total] at hz',
   obtain ⟨l, H, H'⟩ := hz',
@@ -100,33 +99,33 @@ begin
    (algebra.adjoin R ({x} : set S)) S) '' (I.map (algebra_map R (algebra.adjoin R ({x} : set S)))),
   { intros a ha,
     rw [algebra.id.smul_eq_mul, mul_assoc, mul_comm, mul_assoc, set.mem_image],
-    refine exists.intro (algebra_map R (algebra.adjoin R ({x} : set S)) a * ⟨l a * algebra_map R S
-      p, show l a * algebra_map R S p ∈ (algebra.adjoin R ({x} : set S)), from _ ⟩) _,
+    refine exists.intro (algebra_map R (adjoin R ({x} : set S)) a * ⟨l a * algebra_map R S p,
+      show l a * algebra_map R S p ∈ (adjoin R ({x} : set S)), from _ ⟩) _,
     { rw mul_comm,
       exact mem_conductor_iff.mp (ideal.mem_comap.mp hp) _ },
-    refine ⟨_, by simpa only [map_mul, mul_comm (algebra_map R S p) (l a)]⟩,
+    refine ⟨_, by simpa only [ring_hom.map_mul, mul_comm (algebra_map R S p) (l a)]⟩,
     rw mul_comm,
-    apply ideal.mul_mem_left (I.map (algebra_map R (algebra.adjoin R ({x} : set S)))) _
+    apply ideal.mul_mem_left (I.map (algebra_map R (adjoin R ({x} : set S)))) _
       (ideal.mem_map_of_mem _ ha) },
-  refine finset.sum_induction _ (λ u, u ∈ (algebra_map (algebra.adjoin R ({x} : set S)) S) ''
-    (I.map (algebra_map R (algebra.adjoin R ({x} : set S)))))
+  refine finset.sum_induction _ (λ u, u ∈ (algebra_map (adjoin R ({x} : set S)) S) ''
+    (I.map (algebra_map R (adjoin R ({x} : set S)))))
     (λ a b ha hb, _) _ _,
   obtain ⟨z, hz, rfl⟩ := (set.mem_image _ _ _).mp ha,
   obtain ⟨y, hy, rfl⟩ := (set.mem_image _ _ _).mp hb,
   rw [← ring_hom.map_add, set.mem_image],
   exact exists.intro (z + y)
-    ⟨ideal.add_mem (I.map (algebra_map R (algebra.adjoin R ({x} : set S)))) hz hy, rfl⟩,
+    ⟨ideal.add_mem (I.map (algebra_map R (adjoin R ({x} : set S)))) hz hy, rfl⟩,
   { refine (set.mem_image _ _ _).mpr (exists.intro 0 ⟨ideal.zero_mem (I.map (algebra_map R
-    (algebra.adjoin R ({x} : set S)))), (ring_hom.map_zero _)⟩) },
+    (adjoin R ({x} : set S)))), (ring_hom.map_zero _)⟩) },
   { intros y hy,
     exact test2 ((finsupp.mem_supported _ l).mp H hy) },
 end
 
 /-- A technical result telling us that `(I * S) ∩ R[x] = I * R[x]` for any ideal I of R. -/
 lemma test (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤) (hx' : is_integral R x)
-  (h_alg : function.injective (algebra_map (algebra.adjoin R ( {x} : set S)) S)):
-  (I.map (algebra_map R S)).comap (algebra_map (algebra.adjoin R ( {x} : set S)) S)
-    = I.map (algebra_map R (algebra.adjoin R ( {x} : set S))) :=
+  (h_alg : function.injective (algebra_map (adjoin R ( {x} : set S)) S)):
+  (I.map (algebra_map R S)).comap (algebra_map (adjoin R ( {x} : set S)) S)
+    = I.map (algebra_map R (adjoin R ( {x} : set S))) :=
 begin
   apply le_antisymm,
   { -- This is adapted from [Neukirch1992]. Let `C = (conductor R x)`. The idea of the proof
@@ -137,16 +136,16 @@ begin
     obtain ⟨p, hp, q, hq, hpq⟩ := submodule.mem_sup.mp ((ideal.eq_top_iff_one _).mp hx),
     have temp : (algebra_map R S p)*z + (algebra_map R S q)*z = z,
     { simp only [←add_mul, ←ring_hom.map_add (algebra_map R S), hpq, map_one, one_mul] },
-    suffices : z ∈ algebra_map (algebra.adjoin R ({x} : set S)) S '' (I.map (algebra_map R
-      (algebra.adjoin R ({x} : set S)))) ↔ (⟨z, hz⟩ : (algebra.adjoin R ({x} : set S)))
-      ∈ I.map (algebra_map R (algebra.adjoin R ({x} : set S))),
+    suffices : z ∈ algebra_map (adjoin R ({x} : set S)) S '' (I.map (algebra_map R
+      (algebra.adjoin R ({x} : set S)))) ↔ (⟨z, hz⟩ : (adjoin R ({x} : set S))) ∈ I.map
+        (algebra_map R (adjoin R ({x} : set S))),
     { rw [← this, ← temp],
       obtain ⟨a, ha⟩ := (set.mem_image _ _ _).mp (tricky_result hx hx' hp hz),
-      use a + (algebra_map R (algebra.adjoin R ({x} : set S)) q) * ⟨z, hz⟩,
-      refine ⟨ ideal.add_mem (I.map (algebra_map R (algebra.adjoin R ({x} : set S)))) ha.left _,
-        by simpa only [ha.right, map_add, map_mul, add_right_inj] ⟩,
+      use a + (algebra_map R (adjoin R ({x} : set S)) q) * ⟨z, hz⟩,
+      refine ⟨ ideal.add_mem (I.map (algebra_map R (adjoin R ({x} : set S)))) ha.left _,
+        by simpa only [ha.right, map_add, alg_hom.map_mul, add_right_inj] ⟩,
       { rw mul_comm,
-        exact ideal.mul_mem_left (I.map (algebra_map R (algebra.adjoin R ({x} : set S)))) _
+        exact ideal.mul_mem_left (I.map (algebra_map R (adjoin R ({x} : set S)))) _
           (ideal.mem_map_of_mem _ hq) },
       rwa ideal.mem_comap at hy },
     refine ⟨ λ h, _, λ h, (set.mem_image _ _ _).mpr (exists.intro ⟨z, hz⟩ ⟨by simp [h], rfl⟩ ) ⟩,
@@ -155,8 +154,8 @@ begin
       { apply h_alg,
         simpa [hx₂], },
       rwa ← this }  },
-  { have : algebra_map R S = (algebra_map (algebra.adjoin R ( {x} : set S)) S).comp
-      (algebra_map R (algebra.adjoin R ( {x} : set S))) := by { ext, refl },
+  { have : algebra_map R S = (algebra_map (adjoin R ( {x} : set S)) S).comp
+      (algebra_map R (adjoin R ( {x} : set S))) := by { ext, refl },
     rw [this, ← ideal.map_map],
     apply ideal.le_comap_map }
 end
@@ -169,18 +168,19 @@ noncomputable def quot_adjoin_equiv_quot_map (hx : (conductor R x).comap (algebr
   (algebra.adjoin R ( {x} : set S)) ⧸ (I.map (algebra_map R (algebra.adjoin R ( {x} : set S))))
     ≃+* S ⧸ (I.map (algebra_map R S : R →+* S)) :=
 ring_equiv.of_bijective (ideal.quotient.lift (I.map (algebra_map R
-  (algebra.adjoin R ( {x} : set S)))) (((I.map (algebra_map R S : R →+* S))^.quotient.mk).comp
-  (algebra_map (algebra.adjoin R ( {x} : set S)) S : (algebra.adjoin R ( {x} : set S)) →+* S))
-  (λ r hr, by {
-    have : algebra_map R S = (algebra_map (algebra.adjoin R ( {x} : set S)) S).comp
-    (algebra_map R (algebra.adjoin R ( {x} : set S))) := by ext ; refl,
-    rw [ring_hom.comp_apply, ideal.quotient.eq_zero_iff_mem, this, ← ideal.map_map],
-    exact ideal.mem_map_of_mem _ hr } ))
+  (adjoin R ( {x} : set S)))) (((I.map (algebra_map R S : R →+* S))^.quotient.mk).comp
+  (algebra_map (adjoin R ( {x} : set S)) S : (algebra.adjoin R ( {x} : set S)) →+* S)) (λ r hr,
+    begin
+      have : algebra_map R S = (algebra_map (adjoin R ( {x} : set S)) S).comp
+        (algebra_map R (adjoin R ( {x} : set S))) := by {ext, refl},
+      rw [ring_hom.comp_apply, ideal.quotient.eq_zero_iff_mem, this, ← ideal.map_map],
+      exact ideal.mem_map_of_mem _ hr
+    end))
 begin
   split,
   { --the kernel of the map is clearly `(I * S) ∩ R[α]`. To get injectivity, we need to show that
     --this is contained in `I * R[α]`, which is the content of the previous lemma.
-    refine ideal.quotient.lift_injective_of_ker_le_ideal _ _ _ (λ u hu, _),
+    refine ring_hom.lift_injective_of_ker_le_ideal.lift_injective_of_ker_le_ideal _ _ _ (λ u hu, _),
     rwa [ring_hom.mem_ker, ring_hom.comp_apply, ideal.quotient.eq_zero_iff_mem,
       ← ideal.mem_comap, test hx hx' h_alg] at hu },
   { -- Surjectivity follows from the surjectivity of the canonical map R[x] → S ⧸ (I * S),
@@ -206,8 +206,6 @@ end
 namespace kummer_dedekind
 
 open_locale big_operators polynomial classical
-
-open ideal polynomial double_quot unique_factorization_monoid
 
 variables [is_domain S] [is_dedekind_domain S] [algebra R S]
 variables (pb : power_basis R S)

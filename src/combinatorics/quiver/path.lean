@@ -5,6 +5,7 @@ Authors: David Wärn, Scott Morrison
 -/
 import combinatorics.quiver.basic
 import data.list.basic
+import logic.lemmas
 
 /-!
 # Paths in quivers

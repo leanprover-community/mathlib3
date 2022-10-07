@@ -97,7 +97,7 @@ def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
 /-- Type synonym for the coercion of a subgroupoid as a groupoid -/
 def coe (S : subgroupoid C) := subtype S.objs
 
-instance (h : S.objs.nonempty) : nonempty S.coe := ⟨⟨h.some,h.some_spec⟩⟩
+instance [h : nonempty S.objs] : nonempty S.coe := h
 
 /-- The coercion of a subgroupoid as a groupoid -/
 instance coe_groupoid : groupoid S.coe :=
@@ -132,26 +132,26 @@ def vertex_subgroup {c : C} (hc : c ∈ S.objs) : subgroup (c ⟶ c) :=
   one_mem' := id_mem_of_nonempty_isotropy _ _ hc,
   inv_mem' := λ f hf, S.inv' hf }
 
-/-- `S` is a subgroupoid of `T` if it is contained in it -/
-def is_subgroupoid (S T : subgroupoid C) : Prop :=
-∀ ⦃c d⦄, S.arrows c d ⊆ T.arrows c d
+/-- A subgroupoid seen as a set of arrows -/
+def coe_set (S : subgroupoid C) : set (Σ (c d : C), c ⟶ d) := {F | F.2.2 ∈ S.arrows F.1 F.2.1 }
 
-instance subgroupoid_le : has_le (subgroupoid C) := ⟨is_subgroupoid⟩
+private lemma mem_coe_set_iff' (S : subgroupoid C) {c d : C} (f : c ⟶ d) :
+  (⟨c,d,f⟩ : Σ (c d : C), c ⟶ d) ∈ S.coe_set ↔ f ∈ S.arrows c d := by refl
 
-lemma le_refl (S : subgroupoid C) : S ≤ S :=
-λ c d p, id
+instance : set_like (subgroupoid C) (Σ (c d : C), c ⟶ d) :=
+{ coe := coe_set,
+  coe_injective' := λ S T h, by
+  { ext c d f, simp_rw [←mem_coe_set_iff',h], } }
 
-lemma le_trans (R S T : subgroupoid C) : R ≤ S → S ≤ T → R ≤ T :=
-λ RS ST c d, (@RS c d).trans (@ST c d)
+@[simp] lemma mem_coe_set_iff (S : subgroupoid C) {c d : C} (f : c ⟶ d) :
+  (⟨c,d,f⟩ : Σ (c d : C), c ⟶ d) ∈ S ↔ f ∈ S.arrows c d := mem_coe_set_iff' S f
 
-lemma le_antisymm (R S : subgroupoid C) : R ≤ S → S ≤ R → R = S :=
-λ RS SR, by { ext c d p, exact ⟨(@RS c d p), (@SR c d p)⟩, }
-
-instance : partial_order (subgroupoid C) :=
-{ le := is_subgroupoid,
-  le_refl := le_refl,
-  le_trans := le_trans,
-  le_antisymm := le_antisymm}
+@[simp] lemma le_iff (S T : subgroupoid C) : (S ≤ T) ↔ (∀ {c d}, (S.arrows c d) ⊆ (T.arrows c d)) :=
+begin
+  split,
+  { rintro h c d f, simp only [←mem_coe_set_iff], apply h, },
+  { rintro h ⟨c,d,f⟩, simp only [mem_coe_set_iff], apply h, },
+end
 
 instance : has_top (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, set.univ),
@@ -184,30 +184,30 @@ instance : has_Inf (subgroupoid C) :=
 
 instance : complete_lattice (subgroupoid C) :=
 { bot          := (⊥),
-  bot_le       := λ S c d, empty_subset _,
+  bot_le       := λ S, empty_subset _,
   top          := (⊤),
-  le_top       := λ S c d, subset_univ _,
+  le_top       := λ S, subset_univ _,
   inf          := (⊓),
-  le_inf       := λ R S T RS RT c d p pR, ⟨RS pR, RT pR⟩,
-  inf_le_left  := λ R S c d p pRS, pRS.left,
-  inf_le_right := λ R S c d p pRS, pRS.right,
+  le_inf       := λ R S T RS RT ⟨c,d,f⟩ h, ⟨RS h, RT h⟩,
+  inf_le_left  := λ R S ⟨c,d,f⟩ pRS, pRS.left,
+  inf_le_right := λ R S ⟨c,d,f⟩ pRS, pRS.right,
   .. complete_lattice_of_Inf (subgroupoid C)
        ( by
         { dsimp only [Inf], rintro s, constructor,
-          { rintro S Ss c d p hp,
-            simp only [Inter_coe_set, mem_Inter] at hp,
-            exact hp S Ss, },
-          { rintro T Tl c d p pT,
-            simp only [Inter_coe_set, mem_Inter],
-            exact λ S Ss, (Tl Ss) pT, }}) }
+          { rintro S Ss ⟨c,d,f⟩,
+            simp only [Inter_coe_set, mem_Inter, mem_coe_set_iff],
+            exact λ hp, hp S Ss, },
+          { rintro T Tl ⟨c,d,f⟩ fT,
+            simp only [Inter_coe_set, mem_Inter, mem_coe_set_iff],
+            exact λ S Ss, (Tl Ss) fT, }}) }
 
 lemma le_objs {S T : subgroupoid C} (h : S ≤ T) : S.objs ⊆ T.objs :=
-λ s ⟨γ, hγ⟩, ⟨γ, h hγ⟩
+λ s ⟨γ, hγ⟩, ⟨γ, by { rw ←mem_coe_set_iff at hγ ⊢, exact h hγ, }⟩
 
 /-- The functor associated to the embedding of subgroupoids -/
 def inclusion {S T : subgroupoid C} (h : S ≤ T) : S.coe ⥤ T.coe :=
 { obj := λ s, ⟨s.val, le_objs h s.prop⟩,
-  map := λ s t f, ⟨f.val, h f.prop⟩,
+  map := λ s t f, ⟨f.val, by { rw ←mem_coe_set_iff, apply h, rw mem_coe_set_iff, exact f.prop, } ⟩,
   map_id' := λ _, rfl,
   map_comp' := λ _ _ _ _ _, rfl }
 
@@ -240,7 +240,7 @@ begin
 end
 
 lemma inclusion_trans {R S T : subgroupoid C} (k : R ≤ S) (h : S ≤ T) :
-  inclusion (le_trans R S T k h) = (inclusion k) ⋙ (inclusion h) :=
+  inclusion (k.trans h) = (inclusion k) ⋙ (inclusion h) :=
 begin
   dsimp only [inclusion],
   fapply functor.ext,
@@ -380,7 +380,7 @@ def comap (S : subgroupoid D) : subgroupoid C :=
 
 lemma comap_mono (S T : subgroupoid D) :
   S ≤ T → comap φ S ≤ comap φ T :=
-λ ST c d p hp, ST hp
+λ ST ⟨c,d,p⟩, by { simp only [mem_coe_set_iff, le_iff] at ST ⊢, exact λ h, ST h, }
 
 lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap φ S) :=
 { wide := by
@@ -440,8 +440,11 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
 begin
-  rintros le _ _ _ ⟨a,b,f,h⟩,
-  apply map.arrows.im f (le h),
+  rintros ST ⟨c,d,f⟩,
+  simp only [mem_coe_set_iff, le_iff] at ST ⊢,
+  rintro ⟨_,_,_,h⟩,
+  constructor,
+  exact ST h,
 end
 
 /-- The image of a functor injective on objects -/

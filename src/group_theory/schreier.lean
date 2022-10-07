@@ -223,14 +223,15 @@ def quotient_infi_embedding' {ι : Type*} (f : ι → subgroup α) : α ⧸ (⨅
   quotient_infi_embedding' f (quotient_group.mk g) i = quotient_group.mk g :=
 rfl
 
+lemma center_eq_infi_zpowers (S : set G) (hS : closure S = ⊤) :
+  center G = ⨅ g : S, centralizer (zpowers g) :=
+by rw [←centralizer_top, ←hS, centralizer_closure, ←infi_subtype'']
+
 noncomputable def key_inclusio (S : set G) (hS : closure S = ⊤) :
   G ⧸ center G ↪ S → {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
-begin
-  refine ((quotient_equiv_of_eq _).to_embedding.trans
-    (quotient_infi_embedding' (λ g : S, centralizer (zpowers (g : G))))).trans
-    (function.embedding.Pi_congr_right (λ g : S, quotient_centralizer_embedding_commutators (g : G))),
-  rw [←centralizer_top, ←hS, centralizer_closure, ←infi_subtype''],
-end
+(quotient_equiv_of_eq (center_eq_infi_zpowers S hS)).to_embedding.trans
+  ((quotient_infi_embedding' _).trans (function.embedding.Pi_congr_right
+  (λ g, quotient_centralizer_embedding_commutators g)))
 
 lemma key_inclusio_apply (S : set G) (hS : closure S = ⊤) (g : G) (s : S) :
   key_inclusio S hS g s = ⟨⁅g, s⁆, g, s, rfl⟩ :=
@@ -245,14 +246,6 @@ begin
   haveI := fintype.of_finite α,
   rw nat.card_eq_fintype_card,
   exact fintype.card_pos,
-end
-
-lemma nat.card_fun {α β : Type*} [finite α] : nat.card (α → β) = nat.card β ^ nat.card α :=
-begin
-  haveI := fintype.of_finite α,
-  rw [nat.card, nat.card, nat.card_eq_fintype_card, cardinal.mk_pi, cardinal.prod_const,
-    cardinal.mk_fintype α, cardinal.lift_nat_cast, cardinal.pow_cast_right,
-    ←cardinal.to_nat_hom_apply, map_pow, cardinal.to_nat_hom_apply, cardinal.to_nat_lift],
 end
 
 lemma index_center_ne_zero [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :

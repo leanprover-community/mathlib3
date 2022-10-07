@@ -165,14 +165,27 @@ rfl
 
 section burnside_transfer
 
+open_locale pointwise
+
+lemma _root_.subgroup.smul_inf  {α : Type*} [group α] [mul_distrib_mul_action α G] (a : α)
+  (H K : subgroup G) : a • (H ⊓ K) = a • H ⊓ a • K :=
+by simp [set_like.ext_iff, mem_pointwise_smul_iff_inv_smul_mem]
+
+lemma _root_.subgroup.smul_bot  {α : Type*} [monoid α] [mul_distrib_mul_action α G] (a : α) :
+  a • (⊥ : subgroup G) = ⊥ :=
+by simp [set_like.ext_iff, mem_smul_pointwise_iff_exists, eq_comm]
+
+lemma _root_.subgroup.smul_normal (g : G) (H : subgroup G) [h : normal H] : mul_aut.conj g • H = H :=
+h.conj_act g
+
 variables {p : ℕ} (P : sylow p G) (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer)
 
 include hP
 
 /-- The homomorphism `G →* P` in Burnside's transfer theorem. -/
-noncomputable def transfer_sylow [fintype (G ⧸ (P : subgroup G))] : G →* (P : subgroup G) :=
+noncomputable def transfer_sylow [finite (G ⧸ (P : subgroup G))] : G →* (P : subgroup G) :=
 @transfer G _ P P (@subgroup.is_commutative.comm_group G _ P
-  ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩) (monoid_hom.id P) _
+  ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩) (monoid_hom.id P) (fintype.of_finite _)
 
 /-- Auxillary lemma in order to state `transfer_sylow_eq_pow`. -/
 lemma transfer_sylow_eq_pow_aux [fact p.prime] [finite (sylow p G)] (g : G) (hg : g ∈ P) (k : ℕ)
@@ -190,30 +203,31 @@ lemma transfer_sylow_eq_pow [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ 
     transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
 by apply transfer_eq_pow
 
-lemma burnside_transfer_ker_disjoint' [fact p.prime] [fintype (G ⧸ (P : subgroup G))] [fintype G] :
+lemma burnside_transfer_ker_disjoint [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))] :
   disjoint (transfer_sylow P hP).ker ↑P :=
 begin
-  classical,
   intros g hg,
-  have key := transfer_sylow_eq_pow P hP g hg.2,
-  have key' : (fintype.card P.1).coprime P.1.index := P.card_coprime_index,
-  have : pow_coprime P.card_coprime_index ⟨g, hg.2⟩ = 1 := key.symm.trans hg.1,
-  rwa [←pow_coprime_one, equiv.apply_eq_iff_eq, subtype.ext_iff] at this,
+  obtain ⟨j, hj⟩ := P.2 ⟨g, hg.2⟩,
+  have := pow_gcd_eq_one (⟨g, hg.2⟩ : (P : subgroup G))
+    ((transfer_sylow_eq_pow P hP g hg.2).symm.trans hg.1) hj,
+  rwa [((fact.out p.prime).coprime_pow_of_not_dvd (not_dvd_index_sylow P _)).gcd_eq_one,
+    pow_one, subtype.ext_iff] at this,
+  exact index_ne_zero_of_finite ∘ (relindex_top_right (P : subgroup G)).symm.trans ∘
+    relindex_eq_zero_of_le_right le_top,
 end
 
-lemma burnside_transfer_ker_disjoint [fact p.prime] (Q : sylow p G)
-  [fintype (G ⧸ (P : subgroup G))] [fintype G] : disjoint (transfer_sylow P hP).ker ↑Q :=
+lemma burnside_transfer_ker_disjoint' [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))]
+  (Q : sylow p G) : disjoint (transfer_sylow P hP).ker ↑Q :=
 begin
-  sorry,
+  obtain ⟨g, hg⟩ := exists_smul_eq G Q P,
+  rw [disjoint_iff, ←smul_left_cancel_iff (mul_aut.conj g), subgroup.smul_bot, subgroup.smul_inf,
+    subgroup.smul_normal, ←sylow.coe_subgroup_smul, hg, ←disjoint_iff],
+  exact burnside_transfer_ker_disjoint P hP,
 end
 
-lemma burnside_transfer_surjective [fintype (G ⧸ (P : subgroup G))] [fintype G] :
-  function.surjective (transfer_sylow P hP) :=
-begin
-  classical,
-  haveI P_comm : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
-  sorry,
-end
+lemma burnside_transfer_ker_disjoint'' [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))]
+  (Q : subgroup G) (hQ : is_p_group p Q) : disjoint (transfer_sylow P hP).ker Q :=
+let ⟨R, hR⟩ := hQ.exists_le_sylow in (burnside_transfer_ker_disjoint' P hP R).mono_right hR
 
 end burnside_transfer
 

@@ -10,9 +10,9 @@ import linear_algebra.matrix.to_lin
 
 # Calyley-Hamilton theorem for f.g. modules.
 
-Given a fixed finite spanning set `v : ι → M` of a `R`-module `M`, we say that a matrix `M`
+Given a fixed finite spanning set `b : ι → M` of a `R`-module `M`, we say that a matrix `M`
 represents an endomorphism `f : M →ₗ[R] M` if the matrix as an endomorphism of `ι → R` commutes
-with `f` via the projection `(ι → R) →ₗ[R] M` given by `v`.
+with `f` via the projection `(ι → R) →ₗ[R] M` given by `b`.
 
 We show that every endomorphism has a matrix representation, and if `f.range ≤ I • ⊤` for some
 ideal `I`, we may furthermore obtain a matrix representation whose entries fall in `I`.
@@ -22,20 +22,20 @@ This is used to conclude the Cayley-Hamilton theorem for f.g. modules over arbit
 
 variables {ι : Type*} [fintype ι]
 variables {M : Type*} [add_comm_group M] (R : Type*) [comm_ring R] [module R M] (I : ideal R)
-variables (v : ι → M) (hv : submodule.span R (set.range v) = ⊤)
+variables (b : ι → M) (hb : submodule.span R (set.range b) = ⊤)
 
 open_locale big_operators
 
-/-- Matrices, being endomorphisms of `ι → R`, acts on `(ι → R) →ₗ[R] M`, and takes the projection
-to a `(ι → R) →ₗ[R] M`.  -/
+/-- The composition of a matrix (as an endomporphism of `ι → R`) with the projection
+`(ι → R) →ₗ[R] M`.  -/
 def pi_to_module.from_matrix [decidable_eq ι] : matrix ι ι R →ₗ[R] (ι → R) →ₗ[R] M :=
-(linear_map.llcomp R _ _ _ (fintype.total R R v)).comp alg_equiv_matrix'.symm.to_linear_map
+(linear_map.llcomp R _ _ _ (fintype.total R R b)).comp alg_equiv_matrix'.symm.to_linear_map
 
 lemma pi_to_module.from_matrix_apply [decidable_eq ι] (A : matrix ι ι R) (w : ι → R) :
-  pi_to_module.from_matrix R v A w = fintype.total R R v (A.mul_vec w) := rfl
+  pi_to_module.from_matrix R b A w = fintype.total R R b (A.mul_vec w) := rfl
 
-lemma pi_to_module.from_matrix_apply_single_one [decidable_eq ι] (A : matrix ι ι R) (i : ι) :
-  pi_to_module.from_matrix R v A (pi.single i 1) = ∑ (x : ι), A x i • v x :=
+lemma pi_to_module.from_matrix_apply_single_one [decidable_eq ι] (A : matrix ι ι R) (j : ι) :
+  pi_to_module.from_matrix R b A (pi.single j 1) = ∑ (i : ι), A i j • b i :=
 begin
   rw [pi_to_module.from_matrix_apply, fintype.total_apply, matrix.mul_vec_single],
   simp_rw [mul_one]
@@ -44,27 +44,27 @@ end
 /-- The endomorphisms of `M` acts on `(ι → R) →ₗ[R] M`, and takes the projection
 to a `(ι → R) →ₗ[R] M`. -/
 def pi_to_module.from_End : (module.End R M) →ₗ[R] (ι → R) →ₗ[R] M :=
-linear_map.lcomp _ _ (fintype.total R R v)
+linear_map.lcomp _ _ (fintype.total R R b)
 
 lemma pi_to_module.from_End_apply (f : module.End R M) (w : ι → R) :
-  pi_to_module.from_End R v f w = f (fintype.total R R v w) := rfl
+  pi_to_module.from_End R b f w = f (fintype.total R R b w) := rfl
 
 lemma pi_to_module.from_End_apply_single_one [decidable_eq ι] (f : module.End R M) (i : ι) :
-  pi_to_module.from_End R v f (pi.single i 1) = f (v i) :=
+  pi_to_module.from_End R b f (pi.single i 1) = f (b i) :=
 begin
   rw pi_to_module.from_End_apply,
   congr,
-  convert fintype.total_apply_single R v i 1,
+  convert fintype.total_apply_single R b i 1,
   rw one_smul,
 end
 
-lemma pi_to_module.from_End_injective (hv : submodule.span R (set.range v) = ⊤) :
-  function.injective (pi_to_module.from_End R v) :=
+lemma pi_to_module.from_End_injective (hb : submodule.span R (set.range b) = ⊤) :
+  function.injective (pi_to_module.from_End R b) :=
 begin
   intros x y e,
   ext m,
-  obtain ⟨m, rfl⟩ : m ∈ (fintype.total R R v).range,
-  { rw (fintype.range_total R v).trans hv, trivial },
+  obtain ⟨m, rfl⟩ : m ∈ (fintype.total R R b).range,
+  { rw (fintype.range_total R b).trans hb, trivial },
   exact (linear_map.congr_fun e m : _)
 end
 
@@ -74,23 +74,23 @@ variables {R} [decidable_eq ι]
 
 /-- We say that a matrix represents an endomorphism of `M` if the matrix acting on `ι → R` is
 equal to `f ` via the projection `(ι → R) →ₗ[R] M` given by a fixed (spanning) set.  -/
-def matrix_represents (A : matrix ι ι R) (f : module.End R M) : Prop :=
-pi_to_module.from_matrix R v A = pi_to_module.from_End R v f
+def matrix.represents (A : matrix ι ι R) (f : module.End R M) : Prop :=
+pi_to_module.from_matrix R b A = pi_to_module.from_End R b f
 
-variables {v}
+variables {b}
 
-lemma matrix_represents.congr_fun {A : matrix ι ι R} {f : module.End R M}
-  (h : matrix_represents v A f) (x) :
-  fintype.total R R v (A.mul_vec x) = f (fintype.total R R v x) :=
+lemma matrix.represents.congr_fun {A : matrix ι ι R} {f : module.End R M}
+  (h : A.represents b f) (x) :
+  fintype.total R R b (A.mul_vec x) = f (fintype.total R R b x) :=
 linear_map.congr_fun h x
 
-lemma matrix_represents.iff {A : matrix ι ι R} {f : module.End R M} :
-  matrix_represents v A f ↔
-    ∀ x, fintype.total R R v (A.mul_vec x) = f (fintype.total R R v x) :=
+lemma matrix.represents_iff {A : matrix ι ι R} {f : module.End R M} :
+  A.represents b f ↔
+    ∀ x, fintype.total R R b (A.mul_vec x) = f (fintype.total R R b x) :=
 ⟨λ e x, e.congr_fun x, λ H, linear_map.ext $ λ x, H x⟩
 
-lemma matrix_represents.iff' {A : matrix ι ι R} {f : module.End R M} :
-  matrix_represents v A f ↔ ∀ j, ∑ (i : ι), A i j • v i = f (v j) :=
+lemma matrix.represents_iff' {A : matrix ι ι R} {f : module.End R M} :
+  A.represents b f ↔ ∀ j, ∑ (i : ι), A i j • b i = f (b j) :=
 begin
   split,
   { intros h i,
@@ -104,11 +104,11 @@ begin
     apply h }
 end
 
-lemma matrix_represents.mul {A A' : matrix ι ι R} {f f' : module.End R M}
-  (h : matrix_represents v A f) (h' : matrix_represents v A' f') :
-  matrix_represents v (A * A') (f * f') :=
+lemma matrix.represents.mul {A A' : matrix ι ι R} {f f' : module.End R M}
+  (h : A.represents b f) (h' : matrix.represents b A' f') :
+  (A * A').represents b (f * f') :=
 begin
-  delta matrix_represents pi_to_module.from_matrix at ⊢,
+  delta matrix.represents pi_to_module.from_matrix at ⊢,
   rw [linear_map.comp_apply, alg_equiv.to_linear_map_apply, map_mul],
   ext,
   dsimp [pi_to_module.from_End],
@@ -116,93 +116,93 @@ begin
   refl,
 end
 
-lemma matrix_represents.one : matrix_represents v (1 : matrix ι ι R) 1 :=
+lemma matrix.represents.one : (1 : matrix ι ι R).represents b 1 :=
 begin
-  delta matrix_represents pi_to_module.from_matrix,
+  delta matrix.represents pi_to_module.from_matrix,
   rw [linear_map.comp_apply, alg_equiv.to_linear_map_apply, map_one],
   ext,
   refl
 end
 
-lemma matrix_represents.add {A A' : matrix ι ι R} {f f' : module.End R M}
-  (h : matrix_represents v A f) (h' : matrix_represents v A' f') :
-  matrix_represents v (A + A') (f + f') :=
+lemma matrix.represents.add {A A' : matrix ι ι R} {f f' : module.End R M}
+  (h : A.represents b f) (h' : matrix.represents b A' f') :
+  (A + A').represents b (f + f') :=
 begin
-  delta matrix_represents at ⊢ h h', rw [map_add, map_add, h, h'],
+  delta matrix.represents at ⊢ h h', rw [map_add, map_add, h, h'],
 end
 
-lemma matrix_represents.zero :
-  matrix_represents v (0 : matrix ι ι R) 0 :=
+lemma matrix.represents.zero :
+  (0 : matrix ι ι R).represents b 0 :=
 begin
-  delta matrix_represents, rw [map_zero, map_zero],
+  delta matrix.represents, rw [map_zero, map_zero],
 end
 
-lemma matrix_represents.smul {A : matrix ι ι R} {f : module.End R M}
-  (h : matrix_represents v A f) (r : R) :
-  matrix_represents v (r • A) (r • f) :=
+lemma matrix.represents.smul {A : matrix ι ι R} {f : module.End R M}
+  (h : A.represents b f) (r : R) :
+  (r • A).represents b (r • f) :=
 begin
-  delta matrix_represents at ⊢ h, rw [map_smul, map_smul, h],
+  delta matrix.represents at ⊢ h, rw [map_smul, map_smul, h],
 end
 
-lemma matrix_represents.eq {A : matrix ι ι R} {f f' : module.End R M}
-  (h : matrix_represents v A f) (h' : matrix_represents v A f') : f = f' :=
-pi_to_module.from_End_injective R v hv (h.symm.trans h')
+lemma matrix.represents.eq {A : matrix ι ι R} {f f' : module.End R M}
+  (h : A.represents b f) (h' : A.represents b f') : f = f' :=
+pi_to_module.from_End_injective R b hb (h.symm.trans h')
 
-variables (v R)
+variables (b R)
 
-/-- The subalgebra of `matrix ι ι R` that consists of matrices that actually represents
+/-- The subalgebra of `matrix ι ι R` that consists of matrices that actually represent
 endomorphisms on `M`. -/
 def matrix.is_representation : subalgebra R (matrix ι ι R) :=
-{ carrier := { A | ∃ f : module.End R M, matrix_represents v A f },
+{ carrier := { A | ∃ f : module.End R M, A.represents b f },
   mul_mem' := λ A₁ A₂ ⟨f₁, e₁⟩ ⟨f₂, e₂⟩, ⟨f₁ * f₂, e₁.mul e₂⟩,
-  one_mem' := ⟨1, matrix_represents.one⟩,
+  one_mem' := ⟨1, matrix.represents.one⟩,
   add_mem' := λ A₁ A₂ ⟨f₁, e₁⟩ ⟨f₂, e₂⟩, ⟨f₁ + f₂, e₁.add e₂⟩,
-  zero_mem' := ⟨0, matrix_represents.zero⟩,
-  algebra_map_mem' := λ r, ⟨r • 1, matrix_represents.one.smul r⟩ }
+  zero_mem' := ⟨0, matrix.represents.zero⟩,
+  algebra_map_mem' := λ r, ⟨r • 1, matrix.represents.one.smul r⟩ }
 
 /-- The map sending a matrix to the endomorphism it represents. This is an `R`-algebra morphism. -/
 noncomputable
-def matrix.is_representation.to_End : matrix.is_representation R v →ₐ[R] module.End R M :=
+def matrix.is_representation.to_End : matrix.is_representation R b →ₐ[R] module.End R M :=
 { to_fun := λ A, A.2.some,
-  map_one' := (1 : matrix.is_representation R v).2.some_spec.eq hv matrix_represents.one,
-  map_mul' := λ A₁ A₂, (A₁ * A₂).2.some_spec.eq hv (A₁.2.some_spec.mul A₂.2.some_spec),
-  map_zero' := (0 : matrix.is_representation R v).2.some_spec.eq hv matrix_represents.zero,
-  map_add' := λ A₁ A₂, (A₁ + A₂).2.some_spec.eq hv (A₁.2.some_spec.add A₂.2.some_spec),
-  commutes' := λ r, (r • 1 : matrix.is_representation R v).2.some_spec.eq
-    hv (matrix_represents.one.smul r) }
+  map_one' := (1 : matrix.is_representation R b).2.some_spec.eq hb matrix.represents.one,
+  map_mul' := λ A₁ A₂, (A₁ * A₂).2.some_spec.eq hb (A₁.2.some_spec.mul A₂.2.some_spec),
+  map_zero' := (0 : matrix.is_representation R b).2.some_spec.eq hb matrix.represents.zero,
+  map_add' := λ A₁ A₂, (A₁ + A₂).2.some_spec.eq hb (A₁.2.some_spec.add A₂.2.some_spec),
+  commutes' := λ r, (r • 1 : matrix.is_representation R b).2.some_spec.eq
+    hb (matrix.represents.one.smul r) }
 
-lemma matrix.is_representation.to_End_represents (A : matrix.is_representation R v) :
-  matrix_represents v (A : matrix ι ι R) (matrix.is_representation.to_End R v hv A) :=
+lemma matrix.is_representation.to_End_represents (A : matrix.is_representation R b) :
+  (A : matrix ι ι R).represents b (matrix.is_representation.to_End R b hb A) :=
 A.2.some_spec
 
-lemma matrix.is_representation.eq_to_End_of_represents (A : matrix.is_representation R v)
-  {f : module.End R M} (h : matrix_represents v (A : matrix ι ι R) f) :
-    matrix.is_representation.to_End R v hv A = f :=
-A.2.some_spec.eq hv h
+lemma matrix.is_representation.eq_to_End_of_represents (A : matrix.is_representation R b)
+  {f : module.End R M} (h : (A : matrix ι ι R).represents b f) :
+    matrix.is_representation.to_End R b hb A = f :=
+A.2.some_spec.eq hb h
 
 lemma matrix.is_representation.to_End_exists_mem_ideal
   (f : module.End R M) (I : ideal R) (hI : f.range ≤ I • ⊤) :
-  ∃ M, matrix.is_representation.to_End R v hv M = f ∧ ∀ i j, M.1 i j ∈ I :=
+  ∃ M, matrix.is_representation.to_End R b hb M = f ∧ ∀ i j, M.1 i j ∈ I :=
 begin
-  have : ∀ x, f x ∈ (ideal.finsupp_total ι M I v).range,
-  { rw [ideal.range_finsupp_total, hv], exact λ x, hI (f.mem_range_self x) },
+  have : ∀ x, f x ∈ (ideal.finsupp_total ι M I b).range,
+  { rw [ideal.range_finsupp_total, hb], exact λ x, hI (f.mem_range_self x) },
   choose bM' hbM',
-  let A : matrix ι ι R := λ i j, bM' (v j) i,
-  have : matrix_represents v A f,
-  { rw matrix_represents.iff',
+  let A : matrix ι ι R := λ i j, bM' (b j) i,
+  have : A.represents b f,
+  { rw matrix.represents_iff',
     dsimp [A],
     intro j,
-    specialize hbM' (v j),
+    specialize hbM' (b j),
     rwa ideal.finsupp_total_apply_eq_of_fintype at hbM' },
-  exact ⟨⟨A, f, this⟩, matrix.is_representation.eq_to_End_of_represents R v hv ⟨A, f, this⟩ this,
-    λ i j, (bM' (v j) i).prop⟩,
+  exact ⟨⟨A, f, this⟩, matrix.is_representation.eq_to_End_of_represents R b hb ⟨A, f, this⟩ this,
+    λ i j, (bM' (b j) i).prop⟩,
 end
 
 lemma matrix.is_representation.to_End_surjective :
-  function.surjective (matrix.is_representation.to_End R v hv) :=
+  function.surjective (matrix.is_representation.to_End R b hb) :=
 begin
   intro f,
-  obtain ⟨M, e, -⟩ := matrix.is_representation.to_End_exists_mem_ideal R v hv f ⊤ _,
+  obtain ⟨M, e, -⟩ := matrix.is_representation.to_End_exists_mem_ideal R b hb f ⊤ _,
   exact ⟨M, e⟩,
   simp,
 end

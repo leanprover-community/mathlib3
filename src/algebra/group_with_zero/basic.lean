@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import algebra.group.inj_surj
 import algebra.group_with_zero.defs
+import algebra.group.order_synonym
 import algebra.hom.units
 import logic.nontrivial
 import group_theory.group_action.units

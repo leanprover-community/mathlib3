@@ -73,7 +73,7 @@ section
 variables {R} [decidable_eq ι]
 
 /-- We say that a matrix represents an endomorphism of `M` if the matrix acting on `ι → R` is
-equal to `f ` via the projection `(ι → R) →ₗ[R] M` given by a fixed (spanning) set.  -/
+equal to `f` via the projection `(ι → R) →ₗ[R] M` given by a fixed (spanning) set.  -/
 def matrix.represents (A : matrix ι ι R) (f : module.End R M) : Prop :=
 pi_to_module.from_matrix R b A = pi_to_module.from_End R b f
 

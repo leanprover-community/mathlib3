@@ -398,7 +398,7 @@ covering a fixed proportion `1/C` of the ball `closed_ball x (3 * r)` forms a Vi
 This is essentially a restatement of the measurable Vitali theorem. -/
 protected def vitali_family [metric_space α] [measurable_space α] [opens_measurable_space α]
   [second_countable_topology α] (μ : measure α) [is_locally_finite_measure μ] (C : ℝ≥0)
-  (h : ∀ x (ε > 0), ∃ r ∈ Ioc (0 : ℝ) ε, μ (closed_ball x (3 * r)) ≤ C * μ (closed_ball x r)) :
+  (h : ∀ x, ∃ᶠ r in 𝓝[>] 0, μ (closed_ball x (3 * r)) ≤ C * μ (closed_ball x r)) :
   vitali_family μ :=
 { sets_at := λ x, {a | is_closed a ∧ (interior a).nonempty ∧ ∃ r, (a ⊆ closed_ball x r ∧
                       μ (closed_ball x (3 * r)) ≤ C * μ a)},

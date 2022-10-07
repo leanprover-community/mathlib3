@@ -2159,6 +2159,7 @@ do
   match strictness_a with
   | nonnegative p := nonnegative <$> mk_app ``real.rpow_nonneg_of_nonneg [p, b]
   | positive p := positive <$> mk_app ``real.rpow_pos_of_pos [p, b]
+  | _ := failed
   end
 
 private lemma nnrpow_pos {a : ℝ≥0} (ha : 0 < a) (b : ℝ) : 0 < a ^ b := nnreal.rpow_pos ha

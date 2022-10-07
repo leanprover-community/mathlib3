@@ -54,9 +54,10 @@ def restrict {X : Top} {C : Type*} [category C] [concrete_category C]
   {F : X.presheaf C} {V : opens X} (x : F.obj (op V)) {U : opens X} (h : U ⟶ V) : F.obj (op U) :=
 F.map h.op x
 
-infixl ` ∣_ₕ `: 80 := restrict
+localized "infixl ` ∣_ₕ `: 80 := restrict" in algebraic_geometry
 
-notation x ` ∣_ₗ `: 80 U ` ⟪` e `⟫ ` := @restrict _ _ _ _ _ _ x U (@hom_of_le (opens _) _ U _ e)
+localized "notation x ` ∣_ₗ `: 80 U ` ⟪` e `⟫ ` :=
+@restrict _ _ _ _ _ _ x U (@hom_of_le (opens _) _ U _ e)" in algebraic_geometry
 
 @[simp]
 lemma restrict_restrict {X : Top} {C : Type*} [category C] [concrete_category C]

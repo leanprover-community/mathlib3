@@ -20,7 +20,7 @@ We define the natural- and integer-valued floor and ceil functions on ordered ri
 * `nat.floor a`: Greatest natural `n` such that `n ≤ a`. Equal to `0` if `a < 0`.
 * `nat.ceil a`: Least natural `n` such that `a ≤ n`.
 
-* `floor_ring`: A linearly ordered ring with integer-valued floor and ceil.
+* `floor_ring`: An ordered ring with integer-valued floor and ceil.
 * `int.floor a`: Greatest integer `z` such that `z ≤ a`.
 * `int.ceil a`: Least integer `z` such that `a ≤ z`.
 * `int.fract a`: Fractional part of `a`, defined as `a - floor a`.

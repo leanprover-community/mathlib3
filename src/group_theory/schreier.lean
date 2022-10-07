@@ -260,8 +260,8 @@ lemma index_center_le_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
   (center G).index ≤ (nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}) ^ group.rank G :=
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
-  apply (finite.card_le_of_embedding (key_inclusio (S : set G) hS2)).trans_eq,
-  rw [nat.card_fun, finset.coe_sort_coe, @nat.card_eq_fintype_card S, fintype.card_coe, hS1],
+  rw [←hS1, ←fintype.card_coe, ←nat.card_eq_fintype_card, ←finset.coe_sort_coe, ←nat.card_fun],
+  exact finite.card_le_of_embedding (key_inclusio (S : set G) hS2),
 end
 
 /-- docstring -/

@@ -14,19 +14,22 @@ import topology.algebra.infinite_sum
 # Principle of isolated zeros
 
 This file proves the fact that the zeros of a non-constant analytic function of one variable are
-isolated. It also introduces a little bit of API in the `has_fpower_series_at` namespace that
-is useful in this setup.
+isolated. It also introduces a little bit of API in the `has_fpower_series_at` namespace that is
+useful in this setup.
 
 ## Main results
 
 * `analytic_at.eventually_eq_zero_or_eventually_ne_zero` is the main statement that if a function is
   analytic at `z₀`, then either it is identically zero in a neighborhood of `z₀`, or it does not
   vanish in a punctured neighborhood of `z₀`.
+* `analytic_on.eq_on_of_preconnected_of_frequently_eq` is the identity theorem for analytic
+  functions: if a function `f` is analytic on a connected set `U` and is zero on a set with an
+  accumulation point in `U` then `f` is identically `0` on `U`.
 -/
 
 open_locale classical
 
-open filter function nat formal_multilinear_series emetric
+open filter function nat formal_multilinear_series emetric set
 open_locale topological_space big_operators
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
@@ -137,4 +140,55 @@ begin
   { exact or.inr (hp.locally_ne_zero h) }
 end
 
+lemma frequently_zero_iff_eventually_zero {f : 𝕜 → E} {w : 𝕜} (hf : analytic_at 𝕜 f w) :
+  (∃ᶠ z in 𝓝[≠] w, f z = 0) ↔ (∀ᶠ z in 𝓝 w, f z = 0) :=
+⟨hf.eventually_eq_zero_or_eventually_ne_zero.resolve_right,
+  λ h, (h.filter_mono nhds_within_le_nhds).frequently⟩
+
 end analytic_at
+
+namespace analytic_on
+
+variables {U : set 𝕜} {w : 𝕜}
+
+theorem eq_on_of_preconnected_of_frequently_eq (hf : analytic_on 𝕜 f U) (hU : is_preconnected U)
+  (hw : w ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] w, f z = 0) :
+  eq_on f 0 U :=
+begin
+  by_contra,
+  simp only [eq_on, not_forall] at h,
+  obtain ⟨x, hx1, hx2⟩ := h,
+  let u := {z | f =ᶠ[𝓝 z] 0},
+  have hu : is_open u := is_open_set_of_eventually_nhds,
+  have hu' : (U ∩ u).nonempty := ⟨w, hw, (hf w hw).frequently_zero_iff_eventually_zero.mp hfw⟩,
+  let v := {z | ∀ᶠ w in 𝓝[≠] z, f w ≠ 0},
+  have hv : is_open v := by apply is_open_set_of_eventually_nhds_within,
+  have hv' : (U ∩ v).nonempty,
+    from ⟨x, hx1, ((hf x hx1).continuous_at.eventually_ne hx2).filter_mono nhds_within_le_nhds⟩,
+  have huv : U ⊆ u ∪ v := λ z hz, (hf z hz).eventually_eq_zero_or_eventually_ne_zero,
+  have huv' : u ∩ v = ∅,
+    by { ext z,
+      simp only [mem_inter_iff, mem_empty_iff_false, iff_false, not_and],
+      exact λ h, (h.filter_mono nhds_within_le_nhds).frequently },
+  simpa [huv'] using hU u v hu hv huv hu' hv'
+end
+
+theorem eq_on_of_preconnected_of_mem_closure (hf : analytic_on 𝕜 f U) (hU : is_preconnected U)
+  (hw : w ∈ U) (hfw : w ∈ closure ({z | f z = 0} \ {w})) :
+  eq_on f 0 U :=
+hf.eq_on_of_preconnected_of_frequently_eq hU hw (mem_closure_ne_iff_frequently_within.mp hfw)
+
+theorem eq_on_of_preconnected_of_frequently_eq' (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
+  (hU : is_preconnected U) (hw : w ∈ U) (hfg : ∃ᶠ z in 𝓝[≠] w, f z = g z) :
+  eq_on f g U :=
+begin
+  have hfg' : ∃ᶠ z in 𝓝[≠] w, (f - g) z = 0 := hfg.mono (λ z h, by rw [pi.sub_apply, h, sub_self]),
+  simpa [sub_eq_zero] using λ z hz, (hf.sub hg).eq_on_of_preconnected_of_frequently_eq hU hw hfg' hz
+end
+
+theorem eq_on_of_preconnected_of_mem_closure' (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
+  (hU : is_preconnected U) (hw : w ∈ U) (hfw : w ∈ closure ({z | f z = g z} \ {w})) :
+  eq_on f g U :=
+hf.eq_on_of_preconnected_of_frequently_eq' hg hU hw (mem_closure_ne_iff_frequently_within.mp hfw)
+
+end analytic_on

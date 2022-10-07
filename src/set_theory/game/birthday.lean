@@ -5,6 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.game.ordinal
+import set_theory.ordinal.natural_ops
 
 /-!
 # Birthdays of games
@@ -27,7 +28,7 @@ universe u
 
 open ordinal
 
-open_locale pgame
+open_locale natural_ops pgame
 
 namespace pgame
 
@@ -83,13 +84,7 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, x ≡r y → birthda
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-@[simp] theorem birthday_add_zero (x : pgame) : birthday (x + 0) = birthday x :=
-(add_zero_relabelling x).birthday_congr
-
-@[simp] theorem birthday_zero_add (x : pgame) : birthday (0 + x) = birthday x :=
-(zero_add_relabelling x).birthday_congr
-
-@[simp] theorem birthday_eq_zero (x : pgame) :
+@[simp] theorem birthday_eq_zero {x : pgame} :
   birthday x = 0 ↔ is_empty x.left_moves ∧ is_empty x.right_moves :=
 by rw [birthday_def, max_eq_zero, lsub_eq_zero_iff, lsub_eq_zero_iff]
 
@@ -123,7 +118,41 @@ theorem le_birthday : ∀ x : pgame, x ≤ x.birthday.to_pgame
 le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i⟩,
   by simp [le_birthday (xL i)]⟩, is_empty_elim⟩
 
-theorem neg_birthday_le (x : pgame) : -x.birthday.to_pgame ≤ x :=
-let h := le_birthday (-x) in by rwa [neg_birthday, neg_le_iff] at h
+variables (a b x : pgame.{u})
+
+theorem neg_birthday_le : -x.birthday.to_pgame ≤ x :=
+by simpa only [neg_birthday, ←neg_le_iff] using le_birthday (-x)
+
+@[simp] theorem birthday_add : ∀ x y : pgame.{u}, (x + y).birthday = x.birthday ♯ y.birthday
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
+  rw [birthday_def, nadd_def],
+  simp only [birthday_add, lsub_sum, mk_add_move_left_inl, move_left_mk, mk_add_move_left_inr,
+    mk_add_move_right_inl, move_right_mk, mk_add_move_right_inr],
+  rw max_max_max_comm,
+  congr; apply le_antisymm,
+  any_goals
+  { exact max_le_iff.2 ⟨lsub_le_iff.2 (λ i, lt_blsub _ _ (birthday_move_left_lt i)),
+      lsub_le_iff.2 (λ i, lt_blsub _ _ (birthday_move_right_lt i))⟩ },
+  all_goals
+  { apply blsub_le_iff.2 (λ i hi, _),
+    rcases lt_birthday_iff.1 hi with ⟨j, hj⟩ | ⟨j, hj⟩ },
+  { exact lt_max_of_lt_left ((nadd_le_nadd_right hj _).trans_lt (lt_lsub _ _)) },
+  { exact lt_max_of_lt_right ((nadd_le_nadd_right hj _).trans_lt (lt_lsub _ _)) },
+  { exact lt_max_of_lt_left ((nadd_le_nadd_left hj _).trans_lt (lt_lsub _ _)) },
+  { exact lt_max_of_lt_right ((nadd_le_nadd_left hj _).trans_lt (lt_lsub _ _)) }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+theorem birthday_add_zero : (a + 0).birthday = a.birthday := by simp
+theorem birthday_zero_add : (0 + a).birthday = a.birthday := by simp
+theorem birthday_add_one  : (a + 1).birthday = order.succ a.birthday := by simp
+theorem birthday_one_add  : (1 + a).birthday = order.succ a.birthday := by simp
+
+@[simp] theorem birthday_nat_cast : ∀ n : ℕ, birthday n = n
+| 0 := birthday_zero
+| (n + 1) := by simp [birthday_nat_cast]
+
+theorem birthday_add_nat (n : ℕ) : (a + n).birthday = a.birthday + n := by simp
+theorem birthday_nat_add (n : ℕ) : (↑n + a).birthday = a.birthday + n := by simp
 
 end pgame

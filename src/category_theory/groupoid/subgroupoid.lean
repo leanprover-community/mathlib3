@@ -410,12 +410,14 @@ inductive map.arrows (hφ : function.injective φ.obj) (S : subgroupoid C) :
 lemma map.mem_arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
   map.arrows φ hφ S c d f ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
-    f = @eq.rec_on _ (φ.obj a) (λ x, x ⟶ d) (c) ha (hb.rec_on $ φ.map g) :=
+    f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
 begin
   split,
-  { rintro ⟨a,b,g,hg⟩, use [a,b,g,rfl,rfl,hg,rfl], },
+  { rintro ⟨a,b,g,hg⟩,
+    use [a,b,g,rfl,rfl,hg],
+    simp only [eq_to_hom_refl, category.comp_id, category.id_comp], },
   { rintro ⟨a,b,g,ha,hb,hg,he⟩, subst_vars,
-    simp only [congr_arg_mpr_hom_right, eq_to_hom_refl, category.comp_id],
+    simp only [eq_to_hom_refl, category.comp_id, category.id_comp],
     constructor, exact hg, },
 end
 
@@ -434,8 +436,8 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
     have : f₁ = g₀, by {apply hφ, exact hf₁.trans hg₀.symm, },
     induction this,
     refine ⟨f₀,g₁,f ≫ g,hf₀,hg₁,S.mul' hf hg,_⟩,
-    simp only [functor.map_comp],
-    subst_vars } }
+    subst_vars,
+    simp only [eq_to_hom_refl, category.id_comp, category.assoc, functor.map_comp], } }
 
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
@@ -453,7 +455,7 @@ def im (hφ : function.injective φ.obj) := map φ hφ (⊤)
 lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
   f ∈ (im φ hφ).arrows c d ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d),
-    f = @eq.rec_on _ (φ.obj a) (λ x, x ⟶ d) (c) ha (hb.rec_on $ φ.map g) :=
+    f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
 begin
   convert map.mem_arrows_iff φ hφ ⊤ f,
   dsimp [⊤,has_top.top],

@@ -1379,17 +1379,7 @@ end
 
 lemma sInter_prod_sInter_subset (S : set (set α)) (T : set (set β)) :
   ⋂₀ S ×ˢ ⋂₀ T ⊆ ⋂ r ∈ S ×ˢ T, r.1 ×ˢ r.2 :=
-λ x hx,
-begin
-  rw [mem_Inter, prod.forall],
-  intros s t,
-  rw [mem_Inter, mem_prod, and_imp],
-  intros hs ht,
-  split,
-  rw mem_prod_eq at hx,
-  exact hx.1 s hs,
-  exact hx.2 t ht,
-end
+subset_Inter₂ (λ x hx y hy, ⟨hy.1 x.1 hx.1, hy.2 x.2 hx.2⟩)
 
 lemma sInter_prod_sInter (S : set (set α)) (T : set (set β)) (hS : S.nonempty) (hT : T.nonempty) :
   ⋂₀ S ×ˢ ⋂₀ T = ⋂ r ∈ S ×ˢ T, r.1 ×ˢ r.2 :=

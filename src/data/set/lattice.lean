@@ -1400,7 +1400,7 @@ begin
 end
 
 lemma prod_sInter (T : set (set β)) (hT : T.nonempty) (s : set α) :
-  s ×ˢ ⋂₀ T = ⋂₀ ((×ˢ) s '' T) :=
+  s ×ˢ ⋂₀ T = ⋂ t ∈ T, s ×ˢ t :=
 begin
   rw [←sInter_singleton s, sInter_prod_sInter {s} T (singleton_nonempty s) hT, sInter_singleton,
   singleton_prod],

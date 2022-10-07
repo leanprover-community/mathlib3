@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.locally_convex.with_seminorms
+import analysis.normed_space.hahn_banach.separation
 import topology.semicontinuous
 
 /-!
@@ -40,6 +41,18 @@ def is_barrel (𝕜) {E} [semi_normed_ring 𝕜] [add_comm_monoid E] [has_smul �
   [topological_space E] (S : set E) : Prop :=
 is_closed S ∧ convex ℝ S ∧ balanced 𝕜 S ∧ absorbent 𝕜 S
 
+section basic
+
+variables {𝕜 E : Type*} [semi_normed_ring 𝕜] [add_comm_monoid E] [has_smul 𝕜 E] [has_smul ℝ E]
+  [topological_space E] {S : set E} (hS : is_barrel 𝕜 S)
+
+lemma is_barrel.is_closed : is_closed S := hS.1
+lemma is_barrel.convex : convex ℝ S := hS.2.1
+lemma is_barrel.balanced : balanced 𝕜 S := hS.2.2.1
+lemma is_barrel.absorbent : absorbent 𝕜 S := hS.2.2.2
+
+end basic
+
 lemma lower_semicontinuous.is_barrel_closed_ball {𝕜 E : Type*} [normed_field 𝕜] [normed_space ℝ 𝕜]
   [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
   {p : seminorm 𝕜 E} (h : lower_semicontinuous p) :
@@ -63,16 +76,15 @@ lemma seminorm.continuous_of_lower_semicontinuous {𝕜 E} [semi_normed_ring �
   (h : lower_semicontinuous p) : continuous p :=
 sorry
 
-#lint
-#check seminorm.closed_ball_zero'
-
 lemma is_barrel.eq_closed_ball {𝕜 E : Type*} [normed_field 𝕜] [normed_space ℝ 𝕜]
   [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
-  {s : set E} (hs : is_barrel 𝕜 s) :
+  [topological_add_group E] [has_continuous_smul ℝ E] [locally_convex_space ℝ E] {s : set E}
+  (hs : is_barrel 𝕜 s) :
   ∃ p : seminorm 𝕜 E, lower_semicontinuous p ∧ s = p.closed_ball 0 1 :=
 begin
   let ι := {u : E →L[𝕜] 𝕜 // ∀ x ∈ s, ∥u x∥ ≤ 1},
-  haveI : nonempty ι := ⟨⟨0, λ x hx, by simp⟩⟩,
+  haveI : nonempty ι :=
+    ⟨⟨0, λ x hx, by simp only [continuous_linear_map.zero_apply, norm_zero, zero_le_one]⟩⟩,
   let p : seminorm 𝕜 E := ⨆ u : ι, (norm_seminorm 𝕜 𝕜).comp u,
   have : (p : E → ℝ) = ⨆ u : ι, norm ∘ u,
   { sorry }, --should be easy
@@ -85,6 +97,11 @@ begin
     { rw [this, supr_apply],
       exact csupr_le (λ u, u.2 x hx) },
     { refine λ x, not_imp_not.mp (λ hx, _),
+      -- TODO : version where we get one directly
+      rcases geometric_hahn_banach_closed_point hs.convex hs.is_closed hx with ⟨f, u, hfs, hfx⟩,
+      have : u ≠ 0,
+      { rintro rfl,
+         },
       --hard part
       sorry } }
 end

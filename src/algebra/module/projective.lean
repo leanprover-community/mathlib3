@@ -149,10 +149,10 @@ begin
 
   ext i x j,
   simp only [dfinsupp.coprod_map, direct_sum.lof, total_map_domain R _ dfinsupp.single_injective,
-  coe_comp, coe_lsum, id_coe, linear_equiv.coe_to_linear_map, finsupp_lequiv_dfinsupp_symm_apply,
-  function.comp_app, dfinsupp.lsingle_apply, dfinsupp.map_range.linear_map_apply,
-  dfinsupp.map_range_single, lmap_domain_apply, dfinsupp.to_finsupp_single,
-  finsupp.sum_single_index, id.def, function.comp.left_id, dfinsupp.single_apply],
+    coe_comp, coe_lsum, id_coe, linear_equiv.coe_to_linear_map, finsupp_lequiv_dfinsupp_symm_apply,
+    function.comp_app, dfinsupp.lsingle_apply, dfinsupp.map_range.linear_map_apply,
+    dfinsupp.map_range_single, lmap_domain_apply, dfinsupp.to_finsupp_single,
+    finsupp.sum_single_index, id.def, function.comp.left_id, dfinsupp.single_apply],
   rw [←dfinsupp.lapply_apply j, apply_total R],
 
   obtain rfl | hij := eq_or_ne i j,

@@ -186,34 +186,17 @@ There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
 variable (infinite_order : ∀ (a : A), add_order_of a = 0)
 include infinite_order
 
-lemma infinite_order' (m : ℤ) : m • a = 0 → m = 0 :=
-match m with
-| int.of_nat 0 := λ _, rfl
-| int.of_nat (nat.succ n) := λ h, begin
-  erw of_nat_zsmul at h,
-  exact false.elim (add_order_of_eq_zero_iff'.mp (infinite_order a) n.succ (nat.zero_lt_succ _) h),
-end
-| -[1+n] := λ h, begin
-  rw [zsmul_neg_succ_of_nat, neg_eq_zero] at h,
-  exact false.elim (add_order_of_eq_zero_iff'.mp (infinite_order a) n.succ (nat.zero_lt_succ _) h),
-end
-end
-
-lemma to_fun_spec.aux {m n : ℤ} (eq1 : m • a = n • a) : m = n :=
-begin
-  rw [←sub_eq_zero, ←sub_smul] at eq1,
-  refine sub_eq_zero.mp (infinite_order' infinite_order _ eq1),
-end
-
 lemma rep_add (x y : submodule.span ℤ {a}) : rep (x + y) = rep x + rep y :=
-to_fun_spec.aux infinite_order $ (by simp [rep_spec, add_smul] : _ • a = _ • a)
+by rw [←zsmul_inj_iff_of_add_order_of_eq_zero (infinite_order a), rep_spec, add_smul, rep_spec,
+  rep_spec, submodule.coe_add]
 
 lemma rep_smul (m : ℤ) (x : submodule.span ℤ {a}) : rep (m • x) = m * rep x :=
-to_fun_spec.aux infinite_order $ by rw [mul_smul, rep_spec x, rep_spec (m • x), submodule.coe_smul]
+by rw [←zsmul_inj_iff_of_add_order_of_eq_zero (infinite_order a), rep_spec, submodule.coe_smul,
+  mul_smul, rep_spec]
 
-lemma to_fun_spec (x : submodule.span ℤ {a}) {m : ℤ} (hm : m • a = (↑x : A)) :
+lemma to_fun_spec (x : submodule.span ℤ {a}) {m : ℤ} (h : m • a = (↑x : A)) :
   to_fun x = ⟨quotient.mk' (rat.mk m 2)⟩ :=
-by rw show m = rep x, by { apply to_fun_spec.aux infinite_order, rw [hm, rep_spec x] }
+by rw show m = rep x,by rw [←zsmul_inj_iff_of_add_order_of_eq_zero (infinite_order a), h, rep_spec]
 
 lemma map_add' (x y : submodule.span ℤ {a}) :
   to_fun (x + y) = to_fun x + to_fun y :=
@@ -252,8 +235,8 @@ begin
   rcases r with ⟨m, eq1⟩,
   rw [show (algebra_map ℤ ℚ).to_add_monoid_hom m = (m : ℚ), from rfl, rat.coe_int_eq_mk _,
     rat.mk_eq, mul_one, eq_neg_iff_eq_neg, ←neg_mul] at eq1,
-  refine H m (sub_eq_zero.mp (infinite_order' infinite_order _ (_ : _ • a = _))),
-  rw [sub_smul, one_smul, sub_eq_zero, ←eq1, rep_spec, subtype.coe_mk],
+  refine H m (sub_eq_zero.mp ((zsmul_inj_iff_of_add_order_of_eq_zero (infinite_order a)).mp _)),
+  rw [sub_smul, one_smul, zero_smul, sub_eq_zero, ←eq1, rep_spec, subtype.coe_mk],
   all_goals { norm_num },
 end
 

@@ -1392,7 +1392,7 @@ begin
 end
 
 lemma sInter_prod {S : set (set α)} (hS : S.nonempty) (t : set β) :
-  ⋂₀ S ×ˢ t  = ⋂ s ∈ S, s ×ˢ t :=
+  ⋂₀ S ×ˢ t = ⋂ s ∈ S, s ×ˢ t :=
 begin
   rw [←sInter_singleton t, sInter_prod_sInter hS (singleton_nonempty t), sInter_singleton,
     prod_singleton],

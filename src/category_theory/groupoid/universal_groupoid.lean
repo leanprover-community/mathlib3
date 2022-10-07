@@ -110,16 +110,19 @@ begin
   rintros ⟨U, W, XW, pp, qq, WY, ⟨x, y, z, f, g⟩⟩,
   have : quotient.comp_closure
     (red_step σ)
-    (WY.reverse ≫ ((push_prefunctor σ).map (quiver.reverse $ f≫g)).to_path ≫  XW.reverse)
-    (WY.reverse ≫ (((push_prefunctor σ).map (quiver.reverse g)).to_path ≫ ((push_prefunctor σ).map (quiver.reverse f)).to_path)  ≫ XW.reverse),
+    (WY.reverse
+      ≫ ((push_prefunctor σ).map (quiver.reverse $ f≫g)).to_path
+        ≫  XW.reverse)
+    (WY.reverse ≫ (((push_prefunctor σ).map (quiver.reverse g)).to_path
+      ≫ ((push_prefunctor σ).map (quiver.reverse f)).to_path)
+        ≫ XW.reverse),
   { apply quotient.comp_closure.intro,
     have := @red_step.step _ _ _ σ (z) (y) (x) (inv g) (inv f),
-    convert this; simp only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp], },
+    simpa only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp] using this, },
   dsimp only [category_struct.comp] at this ⊢,
-  simp only [quiver.path.reverse, quiver.path.reverse_comp, push_prefunctor_reverse, reverse_eq_inv,
+  simpa only [quiver.path.reverse, quiver.path.reverse_comp, push_prefunctor_reverse, reverse_eq_inv,
              inv_eq_inv, is_iso.inv_comp, quiver.path.comp_nil, quiver.path.comp_assoc,
-             quiver.path.reverse_to_path] at this ⊢,
-  exact this,
+             quiver.path.reverse_to_path] using this,
 end
 
 lemma congr_comp_reverse {X Y : paths $ push σ} (p : X ⟶ Y) :

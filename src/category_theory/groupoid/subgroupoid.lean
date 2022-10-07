@@ -407,7 +407,7 @@ inductive map.arrows (hφ : function.injective φ.obj) (S : subgroupoid C) :
   Π (c d : D), (c ⟶ d) → Prop
 | im {c d : C} (f : c ⟶ d) (hf : f ∈ S.arrows c d) : map.arrows (φ.obj c) (φ.obj d) (φ.map f)
 
-lemma map.mem_arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d) :
+lemma map.mem_arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
   map.arrows φ hφ S c d f ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = @eq.rec_on _ (φ.obj a) (λ x, x ⟶ d) (c) ha (hb.rec_on $ φ.map g) :=
@@ -426,7 +426,7 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
   { rintro _ _ _ hp, induction hp,
     rw [inv_eq_inv,←functor.map_inv], constructor,
     rw ←inv_eq_inv, apply S.inv', assumption, },
-  mul'   := by -- Is there no way to prove this ↓ directly without the help of `map.mem_arrows_iff` ?
+  mul'   := by -- Is there no way to prove this ↓ directly without the help of `map.mem_arrows_iff`?
   { rintro _ _ _ _ hp _ hq,
     obtain ⟨f₀,f₁,f,hf₀,hf₁,hf,fp⟩ := (map.mem_arrows_iff φ hφ S p).mp hp,
     obtain ⟨g₀,g₁,g,hg₀,hg₁,hg,gq⟩ := (map.mem_arrows_iff φ hφ S q).mp hq,

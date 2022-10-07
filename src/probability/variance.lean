@@ -105,7 +105,7 @@ begin
   ext1 ω,
   rw [pow_two, ← ennreal.coe_mul, ← nnnorm_mul, ← pow_two],
   congr,
-  exact (real.to_nnreal_nonneg_eq_nnnorm $ sq_nonneg _).symm,
+  exact (real.to_nnreal_eq_nnnorm_of_nonneg $ sq_nonneg _).symm,
 end
 
 lemma _root_.measure_theory.mem_ℒp.variance_eq_of_integral_eq_zero

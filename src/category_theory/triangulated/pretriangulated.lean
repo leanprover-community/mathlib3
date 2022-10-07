@@ -58,7 +58,7 @@ relative to that shift is called pretriangulated if the following hold:
   where the left square commutes, and whose rows are distinguished triangles,
   there exists a morphism `c : Z ⟶ Z'` such that `(a,b,c)` is a triangle morphism.
 
-See https://stacks.math.columbia.edu/tag/0145
+See <https://stacks.math.columbia.edu/tag/0145>
 -/
 class pretriangulated :=
 (distinguished_triangles [] : set (triangle C))
@@ -99,7 +99,7 @@ Given any distinguished triangle
   X  ───> Y  ───> Z  ───> X⟦1⟧
 ```
 the composition `f ≫ g = 0`.
-See https://stacks.math.columbia.edu/tag/0146
+See <https://stacks.math.columbia.edu/tag/0146>
 -/
 lemma comp_dist_triangle_mor_zero₁₂ (T ∈ dist_triang C) : T.mor₁ ≫ T.mor₂ = 0 :=
 begin
@@ -121,7 +121,7 @@ Given any distinguished triangle
   X  ───> Y  ───> Z  ───> X⟦1⟧
 ```
 the composition `g ≫ h = 0`.
-See https://stacks.math.columbia.edu/tag/0146
+See <https://stacks.math.columbia.edu/tag/0146>
 -/
 lemma comp_dist_triangle_mor_zero₂₃  (T ∈ dist_triang C) : T.mor₂ ≫ T.mor₃ = 0 :=
 comp_dist_triangle_mor_zero₁₂ C T.rotate (rot_of_dist_triangle C T H)
@@ -133,7 +133,7 @@ Given any distinguished triangle
   X  ───> Y  ───> Z  ───> X⟦1⟧
 ```
 the composition `h ≫ f⟦1⟧ = 0`.
-See https://stacks.math.columbia.edu/tag/0146
+See <https://stacks.math.columbia.edu/tag/0146>
 -/
 lemma comp_dist_triangle_mor_zero₃₁ (T ∈ dist_triang C) :
   T.mor₃ ≫ ((shift_equiv C 1).functor.map T.mor₁) = 0 :=
@@ -201,7 +201,7 @@ A triangulated functor between pretriangulated categories `C` and `D` is a funct
 together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧` such that for every
 distinguished triangle `(X,Y,Z,f,g,h)` of `C`, the triangle
 `(F(X), F(Y), F(Z), F(f), F(g), F(h) ≫ (ξ X))` is a distinguished triangle of `D`.
-See https://stacks.math.columbia.edu/tag/014V
+See <https://stacks.math.columbia.edu/tag/014V>
 -/
 structure triangulated_functor [pretriangulated C] [pretriangulated D] extends
   triangulated_functor_struct C D :=

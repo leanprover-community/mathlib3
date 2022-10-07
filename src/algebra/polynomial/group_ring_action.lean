@@ -7,6 +7,7 @@ import algebra.group_ring_action
 import algebra.hom.group_action
 import data.polynomial.algebra_map
 import data.polynomial.monic
+import group_theory.group_action.quotient
 
 
 /-!
@@ -40,8 +41,10 @@ variables (M)
 
 noncomputable instance [mul_semiring_action M R] : mul_semiring_action M R[X] :=
 { smul := (•),
-  smul_one := λ m, (smul_eq_map R m).symm ▸ map_one (mul_semiring_action.to_ring_hom M R m),
-  smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_ring_hom M R m),
+  smul_one := λ m,
+    (smul_eq_map R m).symm ▸ polynomial.map_one (mul_semiring_action.to_ring_hom M R m),
+  smul_mul := λ m p q,
+    (smul_eq_map R m).symm ▸ polynomial.map_mul (mul_semiring_action.to_ring_hom M R m),
   ..polynomial.distrib_mul_action }
 
 variables {M R}

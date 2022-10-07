@@ -48,7 +48,7 @@ gives a category whose
   `base : X.base ⟶ Y.base` and
   `f.fiber : (F.map base).obj X.fiber ⟶ Y.fiber`
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure grothendieck :=
 (base : C)
 (fiber : F.obj base)
@@ -97,6 +97,8 @@ def comp {X Y Z : grothendieck F} (f : hom X Y) (g : hom Y Z) : hom X Z :=
   fiber :=
   eq_to_hom (by erw [functor.map_comp, functor.comp_obj]) ≫
     (F.map g.base).map f.fiber ≫ g.fiber, }
+
+local attribute [simp] eq_to_hom_map
 
 instance : category (grothendieck F) :=
 { hom := λ X Y, grothendieck.hom X Y,
@@ -148,13 +150,13 @@ variables (G : C ⥤ Type w)
 /-- Auxiliary definition for `grothendieck_Type_to_Cat`, to speed up elaboration. -/
 @[simps]
 def grothendieck_Type_to_Cat_functor : grothendieck (G ⋙ Type_to_Cat) ⥤ G.elements :=
-{ obj := λ X, ⟨X.1, X.2⟩,
+{ obj := λ X, ⟨X.1, X.2.as⟩,
   map := λ X Y f, ⟨f.1, f.2.1.1⟩ }
 
 /-- Auxiliary definition for `grothendieck_Type_to_Cat`, to speed up elaboration. -/
 @[simps]
 def grothendieck_Type_to_Cat_inverse : G.elements ⥤ grothendieck (G ⋙ Type_to_Cat) :=
-{ obj := λ X, ⟨X.1, X.2⟩,
+{ obj := λ X, ⟨X.1, ⟨X.2⟩⟩,
   map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ }
 
 /--
@@ -166,11 +168,11 @@ is the same as the 'category of elements' construction.
 def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :=
 { functor := grothendieck_Type_to_Cat_functor G,
   inverse := grothendieck_Type_to_Cat_inverse G,
-  unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
-    (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, ext, simp, }),
+  unit_iso := nat_iso.of_components (λ X, by { rcases X with ⟨_, ⟨⟩⟩, exact iso.refl _, })
+    (by { rintro ⟨_, ⟨⟩⟩ ⟨_, ⟨⟩⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, ext, simp, }),
   counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
     (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, ext, simp }),
-  functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
+  functor_unit_iso_comp' := by { rintro ⟨_, ⟨⟩⟩, dsimp, simp, refl, } }
 
 end grothendieck
 

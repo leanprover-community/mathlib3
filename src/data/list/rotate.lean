@@ -31,7 +31,7 @@ namespace list
 lemma rotate_mod (l : list α) (n : ℕ) : l.rotate (n % l.length) = l.rotate n :=
 by simp [rotate]
 
-@[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by cases n; simp [rotate]
+@[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by simp [rotate]
 
 @[simp] lemma rotate_zero (l : list α) : l.rotate 0 = l := by simp [rotate]
 

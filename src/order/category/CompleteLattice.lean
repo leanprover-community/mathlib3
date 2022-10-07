@@ -53,7 +53,7 @@ instance has_forget_to_BoundedLattice : has_forget₂ CompleteLattice BoundedLat
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : CompleteLattice ⥤ CompleteLattice :=
-{ obj := λ X, of (order_dual X), map := λ X Y, complete_lattice_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, complete_lattice_hom.dual }
 
 /-- The equivalence between `CompleteLattice` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : CompleteLattice ≌ CompleteLattice :=

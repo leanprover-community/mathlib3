@@ -68,10 +68,10 @@ begin
           split,
           { erw [assoc, h₂, ← limits.fork.condition s, comp_id], },
           { intros m hm,
-            erw [← hm],
-            simp only [← hm, assoc, fork.ι_eq_app_zero,
-              fork.of_ι_π_app, h₁],
-            erw comp_id m, }
+            rw fork.ι_of_ι at hm,
+            rw [← hm],
+            simp only [← hm, assoc, h₁],
+            exact (comp_id m).symm }
         end }⟩, },
   { intro h,
     refine ⟨_⟩,

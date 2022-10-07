@@ -20,7 +20,7 @@ open_locale big_operators polynomial
 namespace polynomial
 universes u v w z
 variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {A' B' : Type*} {a b : R} {n : ℕ}
-variables [comm_semiring A'] [comm_semiring B']
+variables [comm_semiring A'] [semiring B']
 
 section comm_semiring
 variables [comm_semiring R] {p q r : R[X]}
@@ -54,7 +54,7 @@ lemma of_finsupp_algebra_map (r : R) :
 to_finsupp_injective (to_finsupp_algebra_map _).symm
 
 /--
-When we have `[comm_ring R]`, the function `C` is the same as `algebra_map R R[X]`.
+When we have `[comm_semiring R]`, the function `C` is the same as `algebra_map R R[X]`.
 
 (But note that `C` is defined when `R` is not necessarily commutative, in which case
 `algebra_map` is not available.)
@@ -105,23 +105,23 @@ end⟩⟩
 
 @[simp]
 lemma alg_hom_eval₂_algebra_map
-  {R A B : Type*} [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
+  {R A B : Type*} [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
   (p : R[X]) (f : A →ₐ[R] B) (a : A) :
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
   dsimp [eval₂, sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast,
+  simp only [f.map_sum, f.map_mul, f.map_pow, eq_int_cast, map_int_cast,
     alg_hom.commutes],
 end
 
 @[simp]
-lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
   conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
   dsimp [eval₂, sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast],
+  simp only [f.map_sum, f.map_mul, f.map_pow, eq_int_cast, map_int_cast],
   simp [polynomial.C_eq_algebra_map],
 end
 
@@ -204,16 +204,14 @@ lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
   aeval x (p.comp q) = (aeval (aeval x q) p) :=
 eval₂_comp (algebra_map R A)
 
-@[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
-  [is_scalar_tower R A B] (b : B) (p : R[X]) :
-  aeval b (p.map (algebra_map R A)) = aeval b p :=
-by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
-
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
 alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
 
 @[simp] theorem aeval_X_left : aeval (X : R[X]) = alg_hom.id R R[X] :=
 alg_hom_ext $ aeval_X X
+
+theorem aeval_X_left_apply (p : R[X]) : aeval X p = p :=
+alg_hom.congr_fun (@aeval_X_left R _) p
 
 theorem eval_unique (φ : R[X] →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=
@@ -230,7 +228,7 @@ theorem aeval_alg_equiv_apply (f : A ≃ₐ[R] B) (x : A) (p : R[X]) :
   aeval (f x) p = f (aeval x p) :=
 aeval_alg_hom_apply (f : A →ₐ[R] B) x p
 
-lemma aeval_algebra_map_apply (x : R) (p : R[X]) :
+lemma aeval_algebra_map_apply_eq_algebra_map_eval (x : R) (p : R[X]) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p
 
@@ -272,15 +270,6 @@ by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
 lemma aeval_eq_sum_range' [algebra R S] {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
   aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
-
-lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
-  (g : S) : aeval g (∑ i in s, f i) = ∑ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_sum f s
-
-@[to_additive]
-lemma aeval_prod {ι : Type*} [algebra R S] (s : finset ι)
-  (f : ι → R[X]) (g : S) : aeval g (∏ i in s, f i) = ∏ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_prod f s
 
 lemma is_root_of_eval₂_map_eq_zero
   (hf : function.injective f) {r : R} : eval₂ f (f r) p = 0 → p.is_root r :=
@@ -384,7 +373,7 @@ begin
   have bound := calc
     (p * (X - C r)).nat_degree
          ≤ p.nat_degree + (X - C r).nat_degree : nat_degree_mul_le
-     ... ≤ p.nat_degree + 1 : add_le_add_left nat_degree_X_sub_C_le _
+     ... ≤ p.nat_degree + 1 : add_le_add_left (nat_degree_X_sub_C_le _) _
      ... < p.nat_degree + 2 : lt_add_one _,
   rw sum_over_range' _ _ (p.nat_degree + 2) bound,
   swap,

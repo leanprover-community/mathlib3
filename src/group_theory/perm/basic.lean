@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import algebra.group.pi
 import algebra.group_power.lemmas
+import logic.function.iterate
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -51,9 +52,13 @@ lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
 
-lemma zpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
+lemma zpow_apply_comm {α : Type*} (σ : perm α) (m n : ℤ) {x : α} :
   (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
 by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
+
+@[simp] lemma iterate_eq_pow (f : perm α) : ∀ n, f^[n] = ⇑(f ^ n)
+| 0       := rfl
+| (n + 1) := by { rw [function.iterate_succ, pow_add, iterate_eq_pow], refl }
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -203,12 +208,12 @@ extend_domain_trans _ _ _
   map_mul' := λ e e', (extend_domain_mul f e e').symm }
 
 lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
-((extend_domain_hom f).injective_iff).mpr (λ e he, ext (λ x, f.injective (subtype.ext
+(injective_iff_map_eq_one (extend_domain_hom f)).mpr (λ e he, ext (λ x, f.injective (subtype.ext
   ((extend_domain_apply_image e f x).symm.trans (ext_iff.mp he (f x))))))
 
 @[simp] lemma extend_domain_eq_one_iff {e : perm α} {f : α ≃ subtype p} :
   e.extend_domain f = 1 ↔ e = 1 :=
-(extend_domain_hom f).injective_iff'.mp (extend_domain_hom_injective f) e
+(injective_iff_map_eq_one' (extend_domain_hom f)).mp (extend_domain_hom_injective f) e
 
 end extend_domain
 
@@ -229,39 +234,24 @@ equiv.ext $ λ ⟨_, _⟩, rfl
 /-- The inclusion map of permutations on a subtype of `α` into permutations of `α`,
   fixing the other points. -/
 def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm α :=
-{ to_fun := λ f,
-  ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
-  λ x, have h : ∀ h : p x, p (f ⟨x, h⟩), from λ h, (f ⟨x, h⟩).2,
-    by { simp only [], split_ifs at *;
-         simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * },
-  λ x, have h : ∀ h : p x, p (f⁻¹ ⟨x, h⟩), from λ h, (f⁻¹ ⟨x, h⟩).2,
-    by { simp only [], split_ifs at *;
-         simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * }⟩,
-  map_one' := begin ext, dsimp, split_ifs; refl, end,
-  map_mul' := λ f g, equiv.ext $ λ x, begin
-  by_cases h : p x,
-  { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
-    have h₂ : p (g ⟨x, h⟩), from (g ⟨x, h⟩).2,
-    simp only [h, h₂, coe_fn_mk, perm.mul_apply, dif_pos, subtype.coe_eta] },
-  { simp only [h, coe_fn_mk, perm.mul_apply, dif_neg, not_false_iff] }
-end }
+{ to_fun := λ f, extend_domain f (equiv.refl (subtype p)),
+  map_one' := equiv.perm.extend_domain_one _,
+  map_mul' := λ f g, (equiv.perm.extend_domain_mul _ f g).symm, }
 
 lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p]
   (h₁ : ∀ x, p x ↔ p (f x)) (h₂ : ∀ x, f x ≠ x → p x) :
   of_subtype (subtype_perm f h₁) = f :=
 equiv.ext $ λ x, begin
-  rw [of_subtype, subtype_perm],
   by_cases hx : p x,
-  { simp only [hx, coe_fn_mk, dif_pos, monoid_hom.coe_mk, subtype.coe_mk]},
-  { haveI := classical.prop_decidable,
-    simp only [hx, not_not.mp (mt (h₂ x) hx), coe_fn_mk, dif_neg, not_false_iff,
-      monoid_hom.coe_mk] }
+  { exact (subtype_perm f h₁).extend_domain_apply_subtype _ hx, },
+  { rw [of_subtype, monoid_hom.coe_mk, equiv.perm.extend_domain_apply_not_subtype],
+    { exact not_not.mp (λ h, hx (h₂ x (ne.symm h))),  },
+    { exact hx, }, }
 end
 
 lemma of_subtype_apply_of_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) {x : α} (hx : p x) :
-  of_subtype f x = f ⟨x, hx⟩ :=
-dif_pos hx
+  of_subtype f x = f ⟨x, hx⟩ := extend_domain_apply_subtype f _ hx
 
 @[simp] lemma of_subtype_apply_coe {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : subtype p)  :
@@ -270,20 +260,19 @@ subtype.cases_on x $ λ _, of_subtype_apply_of_mem f
 
 lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) {x : α} (hx : ¬ p x) :
-  of_subtype f x = x :=
-dif_neg hx
+  of_subtype f x = x := extend_domain_apply_not_subtype f (equiv.refl (subtype p)) hx
 
 lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : α) :
   p x ↔ p ((of_subtype f : α → α) x) :=
-if h : p x then by simpa only [of_subtype, h, coe_fn_mk, dif_pos, true_iff, monoid_hom.coe_mk]
-  using (f ⟨x, h⟩).2
+if h : p x then
+by simpa only [h, true_iff, monoid_hom.coe_mk, of_subtype_apply_of_mem f h] using (f ⟨x, h⟩).2
 else by simp [h, of_subtype_apply_of_not_mem f h]
 
 @[simp] lemma subtype_perm_of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) :
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
-equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
-  simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
+equiv.ext $ λ ⟨x, hx⟩,
+    subtype.coe_injective (of_subtype_apply_of_mem f hx)
 
 @[simp] lemma default_perm {n : Type*} : (default : perm n) = 1 := rfl
 

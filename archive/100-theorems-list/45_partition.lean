@@ -7,8 +7,10 @@ import ring_theory.power_series.basic
 import combinatorics.partition
 import data.nat.parity
 import data.finset.nat_antidiagonal
+import data.fin.tuple.nat_antidiagonal
 import tactic.interval_cases
 import tactic.apply_fun
+import tactic.congrm
 
 /-!
 # Euler's Partition Theorem
@@ -84,8 +86,8 @@ def partial_distinct_gf (m : ℕ) [comm_semiring α] :=
 /--
 Functions defined only on `s`, which sum to `n`. In other words, a partition of `n` indexed by `s`.
 Every function in here is finitely supported, and the support is a subset of `s`.
-This should be thought of as a generalisation of `finset.nat.antidiagonal`, where
-`antidiagonal n` is the same thing as `cut s n` if `s` has two elements.
+This should be thought of as a generalisation of `finset.nat.antidiagonal_tuple` where
+`antidiagonal_tuple k n` is the same thing as `cut (s : finset.univ (fin k)) n`.
 -/
 def cut {ι : Type*} (s : finset ι) (n : ℕ) : finset (ι → ℕ) :=
 finset.filter (λ f, s.sum f = n) ((s.pi (λ _, range (n+1))).map
@@ -119,6 +121,10 @@ begin
            ←equiv.eq_symm_apply],
   simp [mem_cut, add_comm],
 end
+
+lemma cut_univ_fin_eq_antidiagonal_tuple (n : ℕ) (k : ℕ) :
+  cut univ n = nat.antidiagonal_tuple k n :=
+by { ext, simp [nat.mem_antidiagonal_tuple, mem_cut] }
 
 /-- There is only one `cut` of 0. -/
 @[simp]
@@ -195,16 +201,14 @@ begin
     simp [cut_empty_succ, if_neg (nat.succ_ne_zero _)] },
   intros a s hi ih n,
   rw [cut_insert _ _ _ hi, prod_insert hi, coeff_mul, sum_bUnion],
-  { apply sum_congr rfl _,
-    simp only [prod.forall, sum_map, pi.add_apply,
-               function.embedding.coe_fn_mk, nat.mem_antidiagonal],
-    rintro i j rfl,
-    simp only [prod_insert hi, if_pos rfl, ih, mul_sum],
+  { congrm finset.sum _ (λ i, _),
+    simp only [sum_map, pi.add_apply, function.embedding.coe_fn_mk, prod_insert hi, if_pos rfl, ih,
+      mul_sum],
     apply sum_congr rfl _,
     intros x hx,
     rw mem_cut at hx,
     rw [hx.2 a hi, zero_add],
-    congr' 1,
+    congrm _ * _,
     apply prod_congr rfl,
     intros k hk,
     rw [if_neg, add_zero],
@@ -370,13 +374,11 @@ lemma partial_odd_gf_prop [field α] (n m : ℕ) :
 begin
   rw partial_odd_gf,
   convert partial_gf_prop α n ((range m).map mk_odd) _ (λ _, set.univ) (λ _ _, trivial) using 2,
-  { congr' 2,
+  { congrm card (filter (λ p, _) _),
     simp only [true_and, forall_const, set.mem_univ] },
   { rw finset.prod_map,
     simp_rw num_series',
-    apply prod_congr rfl,
-    intros,
-    congr' 1,
+    congrm finset.prod _ (λ x, indicator_series α _),
     ext k,
     split,
     { rintro ⟨p, rfl⟩,
@@ -395,9 +397,7 @@ theorem odd_gf_prop [field α] (n m : ℕ) (h : n < m * 2) :
   (finset.card (nat.partition.odds n) : α) = coeff α n (partial_odd_gf m) :=
 begin
   rw [← partial_odd_gf_prop],
-  congr' 2,
-  apply filter_congr,
-  intros p hp,
+  congrm card (filter (λ p,  (_ : Prop)) _),
   apply ball_congr,
   intros i hi,
   have hin : i ≤ n,
@@ -409,7 +409,7 @@ begin
     rw nat.not_even_iff at hi₂,
     rw [hi₂, add_comm] at this,
     refine ⟨i / 2, _, this⟩,
-    rw nat.div_lt_iff_lt_mul _ _ zero_lt_two,
+    rw nat.div_lt_iff_lt_mul zero_lt_two,
     exact lt_of_le_of_lt hin h },
   { rintro ⟨a, -, rfl⟩,
     rw even_iff_two_dvd,
@@ -425,27 +425,13 @@ begin
   rw partial_distinct_gf,
   convert partial_gf_prop α n
     ((range m).map ⟨nat.succ, nat.succ_injective⟩) _ (λ _, {0, 1}) (λ _ _, or.inl rfl) using 2,
-  { congr' 2,
-    ext p,
-    congr' 2,
-    apply propext,
+  { congrm card (filter (λ p, _ ∧ _) _),
     rw multiset.nodup_iff_count_le_one,
-    apply forall_congr,
-    intro i,
-    rw [set.mem_insert_iff, set.mem_singleton_iff],
-    split,
-    { intro hi,
-      interval_cases (multiset.count i p.parts),
-      { left, assumption },
-      { right, assumption } },
-    { rintro (h | h),
-      { rw h, norm_num },
-      { rw h } } },
-  { rw finset.prod_map,
-    apply prod_congr rfl,
-    intros,
-    rw two_series,
-    congr' 1,
+    congrm ∀ (i : ℕ), (_ : Prop),
+    rcases multiset.count i p.parts with _|_|ms;
+    simp },
+  { simp_rw [finset.prod_map, two_series],
+    congrm finset.prod _ (λ i, indicator_series _ _),
     simp [set.image_pair] },
   { simp only [mem_map, function.embedding.coe_fn_mk],
     rintro i ⟨_, _, rfl⟩,
@@ -459,9 +445,7 @@ theorem distinct_gf_prop [comm_semiring α] (n m : ℕ) (h : n < m + 1) :
   ((nat.partition.distincts n).card : α) = coeff α n (partial_distinct_gf m) :=
 begin
   erw [← partial_distinct_gf_prop],
-  congr' 2,
-  apply filter_congr,
-  intros p hp,
+  congrm card (filter (λ p, _) _),
   apply (and_iff_left _).symm,
   intros i hi,
   have : i ≤ n,

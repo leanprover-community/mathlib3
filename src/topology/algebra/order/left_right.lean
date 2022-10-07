@@ -35,7 +35,7 @@ by simp only [← Ici_diff_left, continuous_within_at_diff_self]
 
 lemma continuous_within_at_Iio_iff_Iic {a : α} {f : α → β} :
   continuous_within_at f (Iio a) a ↔ continuous_within_at f (Iic a) a :=
-@continuous_within_at_Ioi_iff_Ici (order_dual α) _ ‹topological_space α› _ _ _ f
+@continuous_within_at_Ioi_iff_Ici αᵒᵈ _ ‹topological_space α› _ _ _ f
 
 end partial_order
 

@@ -5,6 +5,7 @@ Authors: Markus Himmel
 -/
 import category_theory.abelian.exact
 import category_theory.over
+import algebra.category.Module.abelian
 
 /-!
 # Pseudoelements in abelian categories
@@ -399,8 +400,8 @@ variable [limits.has_pullbacks C]
 /-- If `f : P ⟶ R` and `g : Q ⟶ R` are morphisms and `p : P` and `q : Q` are pseudoelements such
     that `f p = g q`, then there is some `s : pullback f g` such that `fst s = p` and `snd s = q`.
 
-    Remark: Borceux claims that `s` is unique. I was unable to transform his proof sketch into
-    a pen-and-paper proof of this fact, so naturally I was not able to formalize the proof. -/
+    Remark: Borceux claims that `s` is unique, but this is false. See
+    `counterexamples/pseudoelement` for details. -/
 theorem pseudo_pullback {P Q R : C} {f : P ⟶ R} {g : Q ⟶ R} {p : P} {q : Q} : f p = g q →
   ∃ s, (pullback.fst : pullback f g ⟶ P) s = p ∧ (pullback.snd : pullback f g ⟶ Q) s = q :=
 quotient.induction_on₂ p q $ λ x y h,
@@ -413,6 +414,31 @@ begin
   exact ⟨l, ⟨quotient.sound ⟨Z, 𝟙 Z, a, by apply_instance, ea, by rwa category.id_comp⟩,
     quotient.sound ⟨Z, 𝟙 Z, b, by apply_instance, eb, by rwa category.id_comp⟩⟩⟩
 end
+
+section module
+
+local attribute [-instance] hom_to_fun
+
+/-- In the category `Module R`, if `x` and `y` are pseudoequal, then the range of the associated
+morphisms is the same. -/
+lemma Module.eq_range_of_pseudoequal {R : Type*} [comm_ring R] {G : Module R} {x y : over G}
+  (h : pseudo_equal G x y) : x.hom.range = y.hom.range :=
+begin
+  obtain ⟨P, p, q, hp, hq, H⟩ := h,
+  refine submodule.ext (λ a, ⟨λ ha, _, λ ha, _⟩),
+  { obtain ⟨a', ha'⟩ := ha,
+    obtain ⟨a'', ha''⟩ := (Module.epi_iff_surjective p).1 hp a',
+    refine ⟨q a'', _⟩,
+    rw [← linear_map.comp_apply, ← Module.comp_def, ← H, Module.comp_def, linear_map.comp_apply,
+      ha'', ha'] },
+  { obtain ⟨a', ha'⟩ := ha,
+    obtain ⟨a'', ha''⟩ := (Module.epi_iff_surjective q).1 hq a',
+    refine ⟨p a'', _⟩,
+    rw [← linear_map.comp_apply, ← Module.comp_def, H, Module.comp_def, linear_map.comp_apply,
+      ha'', ha'] }
+end
+
+end module
 
 end pseudoelement
 end category_theory.abelian

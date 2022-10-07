@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Johan Commelin
 -/
 
-import topology.sets.opens
+import topology.category.Top
 import ring_theory.graded_algebra.homogeneous_ideal
 
 /-!
@@ -30,11 +30,14 @@ It is naturally endowed with a topology: the Zariski topology.
 * `projective_spectrum.vanishing_ideal t`: The vanishing ideal of a subset `t` of
   `projective_spectrum 𝒜` is the intersection of points in `t` (viewed as relevant homogeneous prime
   ideals).
+* `projective_spectrum.Top`: the topological space of `projective_spectrum 𝒜` endowed with the
+  Zariski topology
+
 -/
 
 noncomputable theory
 open_locale direct_sum big_operators pointwise
-open direct_sum set_like
+open direct_sum set_like Top topological_space category_theory opposite
 
 variables {R A: Type*}
 variables [comm_semiring R] [comm_ring A] [algebra R A]
@@ -44,7 +47,7 @@ variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals that
 are prime and do not contain the irrelevant ideal.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def projective_spectrum :=
 {I : homogeneous_ideal 𝒜 // I.to_ideal.is_prime ∧ ¬(homogeneous_ideal.irrelevant 𝒜 ≤ I)}
 
@@ -127,19 +130,19 @@ lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (projective_spectrum �
 variable (𝒜)
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_ideal : @galois_connection
-  (ideal A) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (ideal A) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t).to_ideal) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_set : @galois_connection
-  (set A) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (set A) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ s, zero_locus 𝒜 s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi A _).gc,
 by simpa [zero_locus_span, function.comp] using galois_connection.compose ideal_gc (gc_ideal 𝒜)
 
 lemma gc_homogeneous_ideal : @galois_connection
-  (homogeneous_ideal 𝒜) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (homogeneous_ideal 𝒜) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t)) :=
 λ I t, by simpa [show I.to_ideal ≤ (vanishing_ideal t).to_ideal ↔ I ≤ (vanishing_ideal t),
   from iff.rfl] using subset_zero_locus_iff_le_vanishing_ideal t I.to_ideal
@@ -249,7 +252,7 @@ by convert (gc_ideal 𝒜).u_infi; exact homogeneous_ideal.to_ideal_infi _
 
 lemma zero_locus_inf (I J : ideal A) :
   zero_locus 𝒜 ((I ⊓ J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.inf_le
+set.ext $ λ x, x.2.1.inf_le
 
 lemma union_zero_locus (s s' : set A) :
   zero_locus 𝒜 s ∪ zero_locus 𝒜 s' = zero_locus 𝒜 ((ideal.span s) ⊓ (ideal.span s'): ideal A) :=
@@ -257,11 +260,11 @@ by { rw zero_locus_inf, simp }
 
 lemma zero_locus_mul_ideal (I J : ideal A) :
   zero_locus 𝒜 ((I * J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.mul_le
+set.ext $ λ x, x.2.1.mul_le
 
 lemma zero_locus_mul_homogeneous_ideal (I J : homogeneous_ideal 𝒜) :
   zero_locus 𝒜 ((I * J : homogeneous_ideal 𝒜) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
-set.ext $ λ x, by simpa using x.2.1.mul_le
+set.ext $ λ x, x.2.1.mul_le
 
 lemma zero_locus_singleton_mul (f g : A) :
   zero_locus 𝒜 ({f * g} : set A) = zero_locus 𝒜 {f} ∪ zero_locus 𝒜 {g} :=
@@ -284,7 +287,7 @@ end
 
 lemma mem_compl_zero_locus_iff_not_mem {f : A} {I : projective_spectrum 𝒜} :
   I ∈ (zero_locus 𝒜 {f} : set (projective_spectrum 𝒜))ᶜ ↔ f ∉ I.as_homogeneous_ideal :=
-by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
+by rw [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]; refl
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
@@ -301,6 +304,11 @@ topological_space.of_closed (set.range (projective_spectrum.zero_locus 𝒜))
     exact ⟨_, zero_locus_Union 𝒜 _⟩
   end
   (by { rintros _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus 𝒜 s t).symm⟩ })
+
+/--
+The underlying topology of `Proj` is the projective spectrum of graded ring `A`.
+-/
+def Top : Top := Top.of (projective_spectrum 𝒜)
 
 lemma is_open_iff (U : set (projective_spectrum 𝒜)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus 𝒜 s :=
@@ -356,7 +364,7 @@ lemma is_open_basic_open {a : A} : is_open ((basic_open 𝒜 a) :
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : A) :
   (basic_open 𝒜 r : set (projective_spectrum 𝒜)) = (zero_locus 𝒜 {r})ᶜ :=
-set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+set.ext $ λ x, by simpa only [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open 𝒜 (1 : A) = ⊤ :=
 topological_space.opens.ext $ by simp
@@ -384,8 +392,8 @@ topological_space.opens.ext $ set.ext $ λ z, begin
   split; intros hz,
   { rcases show ∃ i, graded_algebra.proj 𝒜 i f ∉ z.as_homogeneous_ideal, begin
       contrapose! hz with H,
-      haveI : Π (i : ℕ) (x : 𝒜 i), decidable (x ≠ 0) := λ _, classical.dec_pred _,
-      rw ←graded_algebra.sum_support_decompose 𝒜 f,
+      classical,
+      rw ←direct_sum.sum_support_decompose 𝒜 f,
       apply ideal.sum_mem _ (λ i hi, H i)
     end with ⟨i, hi⟩,
     exact ⟨basic_open 𝒜 (graded_algebra.proj 𝒜 i f), ⟨i, rfl⟩, by rwa mem_basic_open⟩ },
@@ -400,7 +408,7 @@ begin
   { rintros _ ⟨r, rfl⟩,
     exact is_open_basic_open 𝒜 },
   { rintros p U hp ⟨s, hs⟩,
-    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    rw [← compl_compl U, set.mem_compl_iff, ← hs, mem_zero_locus, set.not_subset] at hp,
     obtain ⟨f, hfs, hfp⟩ := hp,
     refine ⟨basic_open 𝒜 f, ⟨f, rfl⟩, hfp, _⟩,
     rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],

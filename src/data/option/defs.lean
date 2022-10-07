@@ -18,10 +18,10 @@ variables {α : Type*} {β : Type*}
 
 attribute [inline] option.is_some option.is_none
 
-/-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
-@[simp] protected def elim : option α → β → (α → β) → β
-| (some x) y f := f x
-| none     y f := y
+/-- An elimination principle for `option`. It is a nondependent version of `option.rec`. -/
+@[simp] protected def elim (b : β) (f : α → β) : option α → β
+| (some a) := f a
+| none     := b
 
 instance has_mem : has_mem α (option α) := ⟨λ a b, b = some a⟩
 
@@ -161,12 +161,12 @@ def {u v w} mmap {m : Type u → Type v} [monad m] {α : Type w} {β : Type u} (
   (o : option α) : m (option β) := (o.map f).maybe
 
 /-- A monadic analogue of `option.elim`. -/
-def melim {α β : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m β) (z : α → m β) :
+def melim {α β : Type*} {m : Type* → Type*} [monad m] (y : m β) (z : α → m β) (x : m (option α)) :
   m β :=
-x >>= λ o, option.elim o y z
+x >>= option.elim y z
 
 /-- A monadic analogue of `option.get_or_else`. -/
 def mget_or_else {α : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m α) : m α :=
-melim x y pure
+melim y pure x
 
 end option

@@ -6,7 +6,7 @@ Authors: Kyle Miller
 
 import data.fin.basic
 import data.finset.sort
-import order.lexicographic
+import data.prod.lex
 
 /-!
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Michael Howes
 -/
 import group_theory.commutator
-import group_theory.quotient_group
+import group_theory.finiteness
 
 /-!
 # The abelianization of a group
@@ -46,6 +46,19 @@ by simp_rw [commutator, subgroup.commutator_def', subgroup.mem_top, exists_true_
 instance commutator_characteristic : (commutator G).characteristic :=
 subgroup.commutator_characteristic ⊤ ⊤
 
+instance [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] : group.fg (commutator G) :=
+begin
+  rw commutator_eq_closure,
+  apply group.closure_finite_fg,
+end
+
+lemma rank_commutator_le_card [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+  group.rank (commutator G) ≤ nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
+begin
+  rw subgroup.rank_congr (commutator_eq_closure G),
+  apply subgroup.rank_closure_finite_le_nat_card,
+end
+
 lemma commutator_centralizer_commutator_le_center :
   ⁅(commutator G).centralizer, (commutator G).centralizer⁆ ≤ subgroup.center G :=
 begin
@@ -67,6 +80,7 @@ local attribute [instance] quotient_group.left_rel
 
 instance : comm_group (abelianization G) :=
 { mul_comm := λ x y, quotient.induction_on₂' x y $ λ a b, quotient.sound' $
+    quotient_group.left_rel_apply.mpr $
     subgroup.subset_closure ⟨b⁻¹, subgroup.mem_top b⁻¹, a⁻¹, subgroup.mem_top a⁻¹, by group⟩,
 .. quotient_group.quotient.group _ }
 

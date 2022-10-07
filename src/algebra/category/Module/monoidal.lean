@@ -8,7 +8,7 @@ import category_theory.closed.monoidal
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
 import category_theory.linear.yoneda
-import category_theory.monoidal.preadditive
+import category_theory.monoidal.linear
 
 /-!
 # The symmetric monoidal category structure on R-modules
@@ -27,7 +27,7 @@ If you're happy using the bundled `Module R`, it may be possible to mostly
 use this as an interface and not need to interact much with the implementation details.
 -/
 
-universes u
+universes v w x u
 
 open category_theory
 
@@ -50,17 +50,18 @@ def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') :
   tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
-lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (↥M ⊗ ↥N)) :=
-by tidy
+lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (M ⊗ N)) :=
+by { ext1, refl }
 
 lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module R}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
     tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = tensor_hom f₁ f₂ ≫ tensor_hom g₁ g₂ :=
-by tidy
+by { ext1, refl }
 
 /-- (implementation) the associator for R-modules -/
-def associator (M N K : Module R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
-linear_equiv.to_Module_iso (tensor_product.assoc R M N K)
+def associator (M : Module.{v} R) (N : Module.{w} R) (K : Module.{x} R) :
+  tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
+(tensor_product.assoc R M N K).to_Module_iso
 
 section
 
@@ -122,7 +123,7 @@ def left_unitor (M : Module.{u} R) : Module.of R (R ⊗[R] M) ≅ M :=
 lemma left_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom (𝟙 (Module.of R R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
 begin
-  ext x y, simp,
+  ext x y, dsimp,
   erw [tensor_product.lid_tmul, tensor_product.lid_tmul],
   rw linear_map.map_smul,
   refl,
@@ -135,7 +136,7 @@ def right_unitor (M : Module.{u} R) : Module.of R (M ⊗[R] R) ≅ M :=
 lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
 begin
-  ext x y, simp,
+  ext x y, dsimp,
   erw [tensor_product.rid_tmul, tensor_product.rid_tmul],
   rw linear_map.map_smul,
   refl,
@@ -272,6 +273,10 @@ instance : monoidal_preadditive (Module.{u} R) :=
   zero_tensor' := by { intros, ext, simp, },
   tensor_add' := by { intros, ext, simp [tensor_product.tmul_add], },
   add_tensor' := by { intros, ext, simp [tensor_product.add_tmul], }, }
+
+instance : monoidal_linear R (Module.{u} R) :=
+{ tensor_smul' := by { intros, ext, simp, },
+  smul_tensor' := by { intros, ext, simp [tensor_product.smul_tmul], }, }
 
 /--
 Auxiliary definition for the `monoidal_closed` instance on `Module R`.

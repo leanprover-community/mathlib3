@@ -17,43 +17,33 @@ a global minimum, and likewise for concave functions.
 
 variables {E β : Type*} [add_comm_group E] [topological_space E]
   [module ℝ E] [topological_add_group E] [has_continuous_smul ℝ E]
-  [linear_ordered_add_comm_group β] [module ℝ β] [ordered_smul ℝ β]
+  [ordered_add_comm_group β] [module ℝ β] [ordered_smul ℝ β]
   {s : set E}
 
-open set filter
-open_locale classical
+open set filter function
+open_locale classical topological_space
 
 /--
 Helper lemma for the more general case: `is_min_on.of_is_local_min_on_of_convex_on`.
 -/
 lemma is_min_on.of_is_local_min_on_of_convex_on_Icc {f : ℝ → β} {a b : ℝ} (a_lt_b : a < b)
   (h_local_min : is_local_min_on f (Icc a b) a) (h_conv : convex_on ℝ (Icc a b) f) :
-  ∀ x ∈ Icc a b, f a ≤ f x :=
+  is_min_on f (Icc a b) a :=
 begin
-  by_contra' H_cont,
-  rcases H_cont with ⟨x, ⟨h_ax, h_xb⟩, fx_lt_fa⟩,
-  obtain ⟨z, hz, ge_on_nhd⟩ : ∃ z > a, ∀ y ∈ (Icc a z), f y ≥ f a,
-  { rcases eventually_iff_exists_mem.mp h_local_min with ⟨U, U_in_nhds_within, fy_ge_fa⟩,
-    rw [nhds_within_Icc_eq_nhds_within_Ici a_lt_b, mem_nhds_within_Ici_iff_exists_Icc_subset]
-        at U_in_nhds_within,
-    rcases U_in_nhds_within with ⟨ε, ε_in_Ioi, Ioc_in_U⟩,
-    exact ⟨ε, mem_Ioi.mp ε_in_Ioi, λ y y_in_Ioc, fy_ge_fa y $ Ioc_in_U y_in_Ioc⟩ },
-  have a_lt_x : a < x := lt_of_le_of_ne h_ax (λ H, by subst H; exact lt_irrefl (f a) fx_lt_fa),
-  have lt_on_nhd : ∀ y ∈ Ioc a x, f y < f a,
-  { intros y y_in_Ioc,
-    rcases (convex.mem_Ioc a_lt_x).mp y_in_Ioc with ⟨ya, yx, ya_pos, yx_pos, yax, y_combo⟩,
-    calc
-      f y = f (ya * a + yx * x)       : by rw [y_combo]
-      ... ≤ ya • f a + yx • f x
-                : h_conv.2 (left_mem_Icc.mpr (le_of_lt a_lt_b)) ⟨h_ax, h_xb⟩ (ya_pos)
-                    (le_of_lt yx_pos) yax
-      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) _
-      ... = f a                       : by rw [←add_smul, yax, one_smul] },
-  by_cases h_xz : x ≤ z,
-  { exact not_lt_of_ge (ge_on_nhd x (show x ∈ Icc a z, by exact ⟨h_ax, h_xz⟩)) fx_lt_fa, },
-  { have h₁ : z ∈ Ioc a x := ⟨hz, le_of_not_ge h_xz⟩,
-    have h₂ : z ∈ Icc a z := ⟨le_of_lt hz, le_refl z⟩,
-    exact not_lt_of_ge (ge_on_nhd z h₂) (lt_on_nhd z h₁) }
+  rintro c hc, dsimp only [mem_set_of_eq],
+  rw [is_local_min_on, nhds_within_Icc_eq_nhds_within_Ici a_lt_b] at h_local_min,
+  rcases hc.1.eq_or_lt with rfl|a_lt_c, { exact le_rfl },
+  have H₁ : ∀ᶠ y in 𝓝[>] a, f a ≤ f y,
+    from h_local_min.filter_mono (nhds_within_mono _ Ioi_subset_Ici_self),
+  have H₂ : ∀ᶠ y in 𝓝[>] a, y ∈ Ioc a c,
+    from Ioc_mem_nhds_within_Ioi (left_mem_Ico.2 a_lt_c),
+  rcases (H₁.and H₂).exists with ⟨y, hfy, hy_ac⟩,
+  rcases (convex.mem_Ioc a_lt_c).mp hy_ac with ⟨ya, yc, ya₀, yc₀, yac, rfl⟩,
+  suffices : ya • f a + yc • f a ≤ ya • f a + yc • f c,
+    from (smul_le_smul_iff_of_pos yc₀).1 (le_of_add_le_add_left this),
+  calc ya • f a + yc • f a = f a : by rw [← add_smul, yac, one_smul]
+  ... ≤ f (ya * a + yc * c)      : hfy
+  ... ≤ ya • f a + yc • f c      : h_conv.2 (left_mem_Icc.2 a_lt_b.le) hc ya₀ yc₀.le yac
 end
 
 /--
@@ -61,47 +51,38 @@ A local minimum of a convex function is a global minimum, restricted to a set `s
 -/
 lemma is_min_on.of_is_local_min_on_of_convex_on {f : E → β} {a : E}
   (a_in_s : a ∈ s) (h_localmin : is_local_min_on f s a) (h_conv : convex_on ℝ s f) :
-  ∀ x ∈ s, f a ≤ f x :=
+  is_min_on f s a :=
 begin
-  by_contra' H_cont,
-  rcases H_cont with ⟨x, ⟨x_in_s, fx_lt_fa⟩⟩,
+  intros x x_in_s,
   let g : ℝ →ᵃ[ℝ] E := affine_map.line_map a x,
   have hg0 : g 0 = a := affine_map.line_map_apply_zero a x,
   have hg1 : g 1 = x := affine_map.line_map_apply_one a x,
-  have fg_local_min_on : is_local_min_on (f ∘ g) (g ⁻¹' s) 0,
-  { rw ←hg0 at h_localmin,
-    refine is_local_min_on.comp_continuous_on h_localmin subset.rfl
-      (continuous.continuous_on (affine_map.line_map_continuous)) _,
-    simp [mem_preimage, hg0, a_in_s] },
-  have fg_min_on : ∀ x ∈ (Icc 0 1 : set ℝ), (f ∘ g) 0 ≤ (f ∘ g) x,
-  { have Icc_in_s' : Icc 0 1 ⊆ (g ⁻¹' s),
-    { have h0 : (0 : ℝ) ∈ (g ⁻¹' s) := by simp [mem_preimage, a_in_s],
-      have h1 : (1 : ℝ) ∈ (g ⁻¹' s) := by simp [mem_preimage, hg1, x_in_s],
-      rw ←segment_eq_Icc (show (0 : ℝ) ≤ 1, by linarith),
-      exact (convex.affine_preimage g h_conv.1).segment_subset
-        (by simp [mem_preimage, hg0, a_in_s]) (by simp [mem_preimage, hg1, x_in_s]) },
-    have fg_local_min_on' : is_local_min_on (f ∘ g) (Icc 0 1) 0 :=
-      is_local_min_on.on_subset fg_local_min_on Icc_in_s',
-    refine is_min_on.of_is_local_min_on_of_convex_on_Icc (by linarith) fg_local_min_on' _,
-    exact (convex_on.comp_affine_map g h_conv).subset Icc_in_s' (convex_Icc 0 1) },
-  have gx_lt_ga : (f ∘ g) 1 < (f ∘ g) 0 := by simp [hg1, fx_lt_fa, hg0],
-  exact not_lt_of_ge (fg_min_on 1 (mem_Icc.mpr ⟨zero_le_one, le_refl 1⟩)) gx_lt_ga,
+  have hgc : continuous g, from affine_map.line_map_continuous,
+  have h_maps : maps_to g (Icc 0 1) s,
+  { simpa only [maps_to', ← segment_eq_image_line_map]
+      using h_conv.1.segment_subset a_in_s x_in_s },
+  have fg_local_min_on : is_local_min_on (f ∘ g) (Icc 0 1) 0,
+  { rw ← hg0 at h_localmin,
+    exact h_localmin.comp_continuous_on h_maps hgc.continuous_on (left_mem_Icc.2 zero_le_one) },
+  have fg_min_on : is_min_on (f ∘ g) (Icc 0 1 : set ℝ) 0,
+  { refine is_min_on.of_is_local_min_on_of_convex_on_Icc one_pos fg_local_min_on _,
+    exact (h_conv.comp_affine_map g).subset h_maps (convex_Icc 0 1) },
+  simpa only [hg0, hg1, comp_app, mem_set_of_eq] using fg_min_on (right_mem_Icc.2 zero_le_one)
 end
 
 /-- A local maximum of a concave function is a global maximum, restricted to a set `s`. -/
 lemma is_max_on.of_is_local_max_on_of_concave_on {f : E → β} {a : E}
   (a_in_s : a ∈ s) (h_localmax: is_local_max_on f s a) (h_conc : concave_on ℝ s f) :
-  ∀ x ∈ s, f x ≤ f a :=
-@is_min_on.of_is_local_min_on_of_convex_on
-  _ (order_dual β) _ _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc
+  is_max_on f s a :=
+@is_min_on.of_is_local_min_on_of_convex_on _ βᵒᵈ _ _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc
 
 /-- A local minimum of a convex function is a global minimum. -/
 lemma is_min_on.of_is_local_min_of_convex_univ {f : E → β} {a : E}
   (h_local_min : is_local_min f a) (h_conv : convex_on ℝ univ f) : ∀ x, f a ≤ f x :=
 λ x, (is_min_on.of_is_local_min_on_of_convex_on (mem_univ a)
-        (is_local_min.on h_local_min univ) h_conv) x (mem_univ x)
+        (h_local_min.on univ) h_conv) (mem_univ x)
 
 /-- A local maximum of a concave function is a global maximum. -/
 lemma is_max_on.of_is_local_max_of_convex_univ {f : E → β} {a : E}
   (h_local_max : is_local_max f a) (h_conc : concave_on ℝ univ f) : ∀ x, f x ≤ f a :=
-@is_min_on.of_is_local_min_of_convex_univ _ (order_dual β) _ _ _ _ _ _ _ _ f a h_local_max h_conc
+@is_min_on.of_is_local_min_of_convex_univ _ βᵒᵈ _ _ _ _ _ _ _ _ f a h_local_max h_conc

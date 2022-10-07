@@ -43,13 +43,12 @@ theorem applicative.ext {F} : ∀ {A1 : applicative F} {A2 : applicative F}
 | {to_functor := F1, seq := s1, pure := p1, seq_left := sl1, seq_right := sr1}
   {to_functor := F2, seq := s2, pure := p2, seq_left := sl2, seq_right := sr2} L1 L2 H1 H2 :=
 begin
-  have : @p1 = @p2, {funext α x, apply H1}, subst this,
-  have : @s1 = @s2, {funext α β f x, apply H2}, subst this,
+  obtain rfl : @p1 = @p2, {funext α x, apply H1},
+  obtain rfl : @s1 = @s2, {funext α β f x, apply H2},
   cases L1, cases L2,
-  have : F1 = F2,
+  obtain rfl : F1 = F2,
   { resetI, apply functor.ext, intros,
     exact (L1_pure_seq_eq_map _ _).symm.trans (L2_pure_seq_eq_map _ _) },
-  subst this,
   congr; funext α β x y,
   { exact (L1_seq_left_eq _ _).trans (L2_seq_left_eq _ _).symm },
   { exact (L1_seq_right_eq _ _).trans (L2_seq_right_eq _ _).symm }

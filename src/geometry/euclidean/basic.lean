@@ -3,6 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
+import analysis.convex.between
 import analysis.inner_product_space.projection
 import analysis.special_functions.trigonometric.inverse
 import algebra.quadratic_discriminant
@@ -74,22 +75,34 @@ this is π/2. See `orientation.oangle` for the corresponding oriented angle
 definition. -/
 def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
 
+lemma continuous_at_angle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
+  continuous_at (λ y : V × V, angle y.1 y.2) x :=
+real.continuous_arccos.continuous_at.comp $ continuous_inner.continuous_at.div
+  ((continuous_norm.comp continuous_fst).mul (continuous_norm.comp continuous_snd)).continuous_at
+  (by simp [hx1, hx2])
+
+lemma angle_smul_smul {c : ℝ} (hc : c ≠ 0) (x y : V) :
+  angle (c • x) (c • y) = angle x y :=
+have c * c ≠ 0, from mul_ne_zero hc hc,
+by rw [angle, angle, real_inner_smul_left, inner_smul_right, norm_smul, norm_smul, real.norm_eq_abs,
+  mul_mul_mul_comm _ (∥x∥), abs_mul_abs_self, ← mul_assoc c c, mul_div_mul_left _ _ this]
+
+@[simp] lemma _root_.linear_isometry.angle_map {E F : Type*}
+  [inner_product_space ℝ E] [inner_product_space ℝ F] (f : E →ₗᵢ[ℝ] F) (u v : E) :
+  angle (f u) (f v) = angle u v :=
+by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
+
+@[simp, norm_cast] lemma _root_.submodule.angle_coe {s : submodule ℝ V} (x y : s) :
+  angle (x : V) (y : V) = angle x y :=
+s.subtypeₗᵢ.angle_map x y
+
 lemma is_conformal_map.preserves_angle {E F : Type*}
   [inner_product_space ℝ E] [inner_product_space ℝ F]
   {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
   angle (f' u) (f' v) = angle u v :=
 begin
-  obtain ⟨c, hc, li, hcf⟩ := h,
-  suffices : c * (c * inner u v) / (∥c∥ * ∥u∥ * (∥c∥ * ∥v∥)) = inner u v / (∥u∥ * ∥v∥),
-  { simp [this, angle, hcf, norm_smul, inner_smul_left, inner_smul_right] },
-  by_cases hu : ∥u∥ = 0,
-  { simp [norm_eq_zero.mp hu] },
-  by_cases hv : ∥v∥ = 0,
-  { simp [norm_eq_zero.mp hv] },
-  have hc : ∥c∥ ≠ 0 := λ w, hc (norm_eq_zero.mp w),
-  field_simp,
-  have : c * c = ∥c∥ * ∥c∥ := by simp [real.norm_eq_abs, abs_mul_abs_self],
-  convert congr_arg (λ x, x * ⟪u, v⟫ * ∥u∥ * ∥v∥) this using 1; ring,
+  obtain ⟨c, hc, li, rfl⟩ := h,
+  exact (angle_smul_smul hc _ _).trans (li.angle_map _ _)
 end
 
 /-- If a real differentiable map `f` is conformal at a point `x`,
@@ -386,7 +399,28 @@ include V
 notation. -/
 def angle (p1 p2 p3 : P) : ℝ := angle (p1 -ᵥ p2 : V) (p3 -ᵥ p2)
 
-localized "notation `∠` := euclidean_geometry.angle" in euclidean_geometry
+localized "notation (name := angle) `∠` := euclidean_geometry.angle" in euclidean_geometry
+
+lemma continuous_at_angle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
+  continuous_at (λ y : P × P × P, ∠ y.1 y.2.1 y.2.2) x :=
+begin
+  let f : P × P × P → V × V := λ y, (y.1 -ᵥ y.2.1, y.2.2 -ᵥ y.2.1),
+  have hf1 : (f x).1 ≠ 0, by simp [hx12],
+  have hf2 : (f x).2 ≠ 0, by simp [hx32],
+  exact (inner_product_geometry.continuous_at_angle hf1 hf2).comp
+    ((continuous_fst.vsub continuous_snd.fst).prod_mk
+      (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
+end
+
+@[simp] lemma _root_.affine_isometry.angle_map {V₂ P₂ : Type*} [inner_product_space ℝ V₂]
+  [metric_space P₂] [normed_add_torsor V₂ P₂] (f : P →ᵃⁱ[ℝ] P₂) (p₁ p₂ p₃ : P) :
+  ∠ (f p₁) (f p₂) (f p₃) = ∠ p₁ p₂ p₃ :=
+by simp_rw [angle, ←affine_isometry.map_vsub, linear_isometry.angle_map]
+
+@[simp, norm_cast] lemma _root_.affine_subspace.angle_coe {s : affine_subspace ℝ P}
+  (p₁ p₂ p₃ : s) :
+  by haveI : nonempty s := ⟨p₁⟩; exact ∠ (p₁ : P) (p₂ : P) (p₃ : P) = ∠ p₁ p₂ p₃ :=
+by haveI : nonempty s := ⟨p₁⟩; exact s.subtypeₐᵢ.angle_map p₁ p₂ p₃
 
 /-- The angle at a point does not depend on the order of the other two
 points. -/
@@ -545,6 +579,140 @@ lemma angle_right_midpoint_eq_pi_div_two_of_dist_eq {p1 p2 p3 : P} (h : dist p3 
   ∠ p3 (midpoint ℝ p1 p2) p2 = π / 2 :=
 by rw [midpoint_comm p1 p2, angle_left_midpoint_eq_pi_div_two_of_dist_eq h.symm]
 
+/-- If the second of three points is strictly between the other two, the angle at that point
+is π. -/
+lemma _root_.sbtw.angle₁₂₃_eq_pi {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₁ p₂ p₃ = π :=
+begin
+  rw [angle, angle_eq_pi_iff],
+  rcases h with ⟨⟨r, ⟨hr0, hr1⟩, hp₂⟩, hp₂p₁, hp₂p₃⟩,
+  refine ⟨vsub_ne_zero.2 hp₂p₁.symm, -(1 - r) / r, _⟩,
+  have hr0' : r ≠ 0,
+  { rintro rfl,
+    rw ←hp₂ at hp₂p₁,
+    simpa using hp₂p₁ },
+  have hr1' : r ≠ 1,
+  { rintro rfl,
+    rw ←hp₂ at hp₂p₃,
+    simpa using hp₂p₃ },
+  replace hr0 := hr0.lt_of_ne hr0'.symm,
+  replace hr1 := hr1.lt_of_ne hr1',
+  refine ⟨div_neg_of_neg_of_pos (left.neg_neg_iff.2 (sub_pos.2 hr1)) hr0, _⟩,
+  rw [←hp₂, affine_map.line_map_apply, vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub, vsub_self,
+      zero_sub, smul_neg, smul_smul, div_mul_cancel _ hr0', neg_smul, neg_neg, sub_eq_iff_eq_add,
+      ←add_smul, sub_add_cancel, one_smul]
+end
+
+/-- If the second of three points is strictly between the other two, the angle at that point
+(reversed) is π. -/
+lemma _root_.sbtw.angle₃₂₁_eq_pi {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₃ p₂ p₁ = π :=
+by rw [←h.angle₁₂₃_eq_pi, angle_comm]
+
+/-- The angle between three points is π if and only if the second point is strictly between the
+other two. -/
+lemma angle_eq_pi_iff_sbtw {p₁ p₂ p₃ : P} : ∠ p₁ p₂ p₃ = π ↔ sbtw ℝ p₁ p₂ p₃ :=
+begin
+  refine ⟨_, λ h, h.angle₁₂₃_eq_pi⟩,
+  rw [angle, angle_eq_pi_iff],
+  rintro ⟨hp₁p₂, r, hr, hp₃p₂⟩,
+  refine ⟨⟨1 / (1 - r),
+           ⟨div_nonneg zero_le_one (sub_nonneg.2 (hr.le.trans zero_le_one)),
+            (div_le_one (sub_pos.2 (hr.trans zero_lt_one))).2 ((le_sub_self_iff 1).2 hr.le)⟩, _⟩,
+          (vsub_ne_zero.1 hp₁p₂).symm, _⟩,
+  { rw ←eq_vadd_iff_vsub_eq at hp₃p₂,
+    rw [affine_map.line_map_apply, hp₃p₂, vadd_vsub_assoc, ←neg_vsub_eq_vsub_rev p₂ p₁,
+        smul_neg, ←neg_smul, smul_add, smul_smul, ←add_smul, eq_comm, eq_vadd_iff_vsub_eq],
+    convert (one_smul ℝ (p₂ -ᵥ p₁)).symm,
+    field_simp [(sub_pos.2 (hr.trans zero_lt_one)).ne.symm],
+    abel },
+  { rw [ne_comm, ←@vsub_ne_zero V, hp₃p₂, smul_ne_zero_iff],
+    exact ⟨hr.ne, hp₁p₂⟩ }
+end
+
+/-- If the second of three points is weakly between the other two, and not equal to the first,
+the angle at the first point is zero. -/
+lemma _root_.wbtw.angle₂₁₃_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₁ : p₂ ≠ p₁) :
+  ∠ p₂ p₁ p₃ = 0 :=
+begin
+  rw [angle, angle_eq_zero_iff],
+  rcases h with ⟨r, ⟨hr0, hr1⟩, rfl⟩,
+  have hr0' : r ≠ 0, { rintro rfl, simpa using hp₂p₁ },
+  replace hr0 := hr0.lt_of_ne hr0'.symm,
+  refine ⟨vsub_ne_zero.2 hp₂p₁, r⁻¹, inv_pos.2 hr0, _⟩,
+  rw [affine_map.line_map_apply, vadd_vsub_assoc, vsub_self, add_zero, smul_smul,
+      inv_mul_cancel hr0', one_smul]
+end
+
+/-- If the second of three points is strictly between the other two, the angle at the first point
+is zero. -/
+lemma _root_.sbtw.angle₂₁₃_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₂ p₁ p₃ = 0 :=
+h.wbtw.angle₂₁₃_eq_zero_of_ne h.ne_left
+
+/-- If the second of three points is weakly between the other two, and not equal to the first,
+the angle at the first point (reversed) is zero. -/
+lemma _root_.wbtw.angle₃₁₂_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₁ : p₂ ≠ p₁) :
+  ∠ p₃ p₁ p₂ = 0 :=
+by rw [←h.angle₂₁₃_eq_zero_of_ne hp₂p₁, angle_comm]
+
+/-- If the second of three points is strictly between the other two, the angle at the first point
+(reversed) is zero. -/
+lemma _root_.sbtw.angle₃₁₂_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₃ p₁ p₂ = 0 :=
+h.wbtw.angle₃₁₂_eq_zero_of_ne h.ne_left
+
+/-- If the second of three points is weakly between the other two, and not equal to the third,
+the angle at the third point is zero. -/
+lemma _root_.wbtw.angle₂₃₁_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₃ : p₂ ≠ p₃) :
+  ∠ p₂ p₃ p₁ = 0 :=
+h.symm.angle₂₁₃_eq_zero_of_ne hp₂p₃
+
+/-- If the second of three points is strictly between the other two, the angle at the third point
+is zero. -/
+lemma _root_.sbtw.angle₂₃₁_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₂ p₃ p₁ = 0 :=
+h.wbtw.angle₂₃₁_eq_zero_of_ne h.ne_right
+
+/-- If the second of three points is weakly between the other two, and not equal to the third,
+the angle at the third point (reversed) is zero. -/
+lemma _root_.wbtw.angle₁₃₂_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₃ : p₂ ≠ p₃) :
+  ∠ p₁ p₃ p₂ = 0 :=
+h.symm.angle₃₁₂_eq_zero_of_ne hp₂p₃
+
+/-- If the second of three points is strictly between the other two, the angle at the third point
+(reversed) is zero. -/
+lemma _root_.sbtw.angle₁₃₂_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₁ p₃ p₂ = 0 :=
+h.wbtw.angle₁₃₂_eq_zero_of_ne h.ne_right
+
+/-- The angle between three points is zero if and only if one of the first and third points is
+weakly between the other two, and not equal to the second. -/
+lemma angle_eq_zero_iff_ne_and_wbtw {p₁ p₂ p₃ : P} :
+  ∠ p₁ p₂ p₃ = 0 ↔ (p₁ ≠ p₂ ∧ wbtw ℝ p₂ p₁ p₃) ∨ (p₃ ≠ p₂ ∧ wbtw ℝ p₂ p₃ p₁) :=
+begin
+  split,
+  { rw [angle, angle_eq_zero_iff],
+    rintro ⟨hp₁p₂, r, hr0, hp₃p₂⟩,
+    rcases le_or_lt 1 r with hr1 | hr1,
+    { refine or.inl ⟨vsub_ne_zero.1 hp₁p₂, r⁻¹, ⟨(inv_pos.2 hr0).le, inv_le_one hr1⟩, _⟩,
+      rw [affine_map.line_map_apply, hp₃p₂, smul_smul, inv_mul_cancel hr0.ne.symm, one_smul,
+          vsub_vadd] },
+    { refine or.inr ⟨_, r, ⟨hr0.le, hr1.le⟩, _⟩,
+      { rw [←@vsub_ne_zero V, hp₃p₂, smul_ne_zero_iff],
+        exact ⟨hr0.ne.symm, hp₁p₂⟩ },
+      { rw [affine_map.line_map_apply, ←hp₃p₂, vsub_vadd] } } },
+  { rintro (⟨hp₁p₂, h⟩ | ⟨hp₃p₂, h⟩),
+    { exact h.angle₂₁₃_eq_zero_of_ne hp₁p₂ },
+    { exact h.angle₃₁₂_eq_zero_of_ne hp₃p₂ } }
+end
+
+/-- The angle between three points is zero if and only if one of the first and third points is
+strictly between the other two, or those two points are equal but not equal to the second. -/
+lemma angle_eq_zero_iff_eq_and_ne_or_sbtw {p₁ p₂ p₃ : P} :
+  ∠ p₁ p₂ p₃ = 0 ↔ (p₁ = p₃ ∧ p₁ ≠ p₂) ∨ sbtw ℝ p₂ p₁ p₃ ∨ sbtw ℝ p₂ p₃ p₁ :=
+begin
+  rw angle_eq_zero_iff_ne_and_wbtw,
+  by_cases hp₁p₂ : p₁ = p₂, { simp [hp₁p₂] },
+  by_cases hp₁p₃ : p₁ = p₃, { simp [hp₁p₃] },
+  by_cases hp₃p₂ : p₃ = p₂, { simp [hp₃p₂] },
+  simp [hp₁p₂, hp₁p₃, ne.symm hp₁p₃, sbtw, hp₃p₂]
+end
+
 /-- The inner product of two vectors given with `weighted_vsub`, in
 terms of the pairwise distances. -/
 lemma inner_weighted_vsub {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ} (p₁ : ι₁ → P)
@@ -565,9 +733,8 @@ in terms of the pairwise distances between the points in that
 combination. -/
 lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → ℝ} (p : ι → P)
     (h₁ : ∑ i in s, w₁ i = 1) (h₂ : ∑ i in s, w₂ i = 1) :
-  dist (s.affine_combination p w₁) (s.affine_combination p w₂) *
-    dist (s.affine_combination p w₁) (s.affine_combination p w₂) =
-    (-∑ i₁ in s, ∑ i₂ in s,
+  by have a₁ := s.affine_combination p w₁; have a₂ := s.affine_combination p w₂; exact
+  dist a₁ a₂ * dist a₁ a₂ = (-∑ i₁ in s, ∑ i₂ in s,
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
   rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
@@ -587,7 +754,7 @@ begin
   have h : ⟪(c₂ -ᵥ c₁) + (c₂ -ᵥ c₁), p₂ -ᵥ p₁⟫ = 0,
   { conv_lhs { congr, congr, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₁,
                skip, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₂ },
-    rw [←add_sub_comm, inner_sub_left],
+    rw [sub_add_sub_comm, inner_sub_left],
     conv_lhs { congr, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₂,
                skip, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₁ },
     rw [dist_comm p₁, dist_comm p₂, dist_eq_norm_vsub V _ p₁,
@@ -764,6 +931,8 @@ lemma orthogonal_projection_fn_vsub_mem_direction_orthogonal {s : affine_subspac
   orthogonal_projection_fn s p -ᵥ p ∈ s.directionᗮ :=
 direction_mk' p s.directionᗮ ▸
   vsub_mem_direction (orthogonal_projection_fn_mem_orthogonal p) (self_mem_mk' _ _)
+
+local attribute [instance] affine_subspace.to_add_torsor
 
 /-- The orthogonal projection of a point onto a nonempty affine
 subspace, whose direction is complete. The corresponding linear map
@@ -963,7 +1132,7 @@ lemma dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
     dist p1 (orthogonal_projection s p2) * dist p1 (orthogonal_projection s p2) +
     dist p2 (orthogonal_projection s p2) * dist p2 (orthogonal_projection s p2) :=
 begin
-  rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
+  rw [dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
     norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal
@@ -1146,6 +1315,69 @@ reflection_orthogonal_vadd hp₁
 
 omit V
 
+variables (P)
+
+/-- A `sphere P` bundles a `center` and `radius`. This definition does not require the radius to
+be positive; that should be given as a hypothesis to lemmas that require it. -/
+@[ext] structure sphere :=
+(center : P)
+(radius : ℝ)
+
+variables {P}
+
+instance [nonempty P] : nonempty (sphere P) := ⟨⟨classical.arbitrary P, 0⟩⟩
+
+instance : has_coe (sphere P) (set P) := ⟨λ s, metric.sphere s.center s.radius⟩
+instance : has_mem P (sphere P) := ⟨λ p s, p ∈ (s : set P)⟩
+
+lemma sphere.mk_center (c : P) (r : ℝ) : (⟨c, r⟩ : sphere P).center = c := rfl
+
+lemma sphere.mk_radius (c : P) (r : ℝ) : (⟨c, r⟩ : sphere P).radius = r := rfl
+
+@[simp] lemma sphere.mk_center_radius (s : sphere P) : (⟨s.center, s.radius⟩ : sphere P) = s :=
+by ext; refl
+
+lemma sphere.coe_def (s : sphere P) : (s : set P) = metric.sphere s.center s.radius := rfl
+
+@[simp] lemma sphere.coe_mk (c : P) (r : ℝ) : ↑(⟨c, r⟩ : sphere P) = metric.sphere c r := rfl
+
+@[simp] lemma sphere.mem_coe {p : P} {s : sphere P} : p ∈ (s : set P) ↔ p ∈ s := iff.rfl
+
+lemma mem_sphere {p : P} {s : sphere P} : p ∈ s ↔ dist p s.center = s.radius := iff.rfl
+
+lemma mem_sphere' {p : P} {s : sphere P} : p ∈ s ↔ dist s.center p = s.radius :=
+metric.mem_sphere'
+
+lemma subset_sphere {ps : set P} {s : sphere P} : ps ⊆ s ↔ ∀ p ∈ ps, p ∈ s := iff.rfl
+
+lemma dist_of_mem_subset_sphere {p : P} {ps : set P} {s : sphere P} (hp : p ∈ ps)
+  (hps : ps ⊆ (s : set P)) : dist p s.center = s.radius :=
+mem_sphere.1 (sphere.mem_coe.1 (set.mem_of_mem_of_subset hp hps))
+
+lemma dist_of_mem_subset_mk_sphere {p c : P} {ps : set P} {r : ℝ} (hp : p ∈ ps)
+  (hps : ps ⊆ ↑(⟨c, r⟩ : sphere P)) : dist p c = r :=
+dist_of_mem_subset_sphere hp hps
+
+lemma sphere.ne_iff {s₁ s₂ : sphere P} :
+  s₁ ≠ s₂ ↔ s₁.center ≠ s₂.center ∨ s₁.radius ≠ s₂.radius :=
+by rw [←not_and_distrib, ←sphere.ext_iff]
+
+lemma sphere.center_eq_iff_eq_of_mem {s₁ s₂ : sphere P} {p : P} (hs₁ : p ∈ s₁) (hs₂ : p ∈ s₂) :
+  s₁.center = s₂.center ↔ s₁ = s₂ :=
+begin
+  refine ⟨λ h, sphere.ext _ _ h _, λ h, h ▸ rfl⟩,
+  rw mem_sphere at hs₁ hs₂,
+  rw [←hs₁, ←hs₂, h]
+end
+
+lemma sphere.center_ne_iff_ne_of_mem {s₁ s₂ : sphere P} {p : P} (hs₁ : p ∈ s₁) (hs₂ : p ∈ s₂) :
+  s₁.center ≠ s₂.center ↔ s₁ ≠ s₂ :=
+(sphere.center_eq_iff_eq_of_mem hs₁ hs₂).not
+
+lemma dist_center_eq_dist_center_of_mem_sphere {p₁ p₂ : P} {s : sphere P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : dist p₁ s.center = dist p₂ s.center :=
+by rw [mem_sphere.1 hp₁, mem_sphere.1 hp₂]
+
 /-- A set of points is cospherical if they are equidistant from some
 point.  In two dimensions, this is the same thing as being
 concyclic. -/
@@ -1156,6 +1388,21 @@ def cospherical (ps : set P) : Prop :=
 lemma cospherical_def (ps : set P) :
   cospherical ps ↔ ∃ (center : P) (radius : ℝ), ∀ p ∈ ps, dist p center = radius :=
 iff.rfl
+
+/-- A set of points is cospherical if and only if they lie in some sphere. -/
+lemma cospherical_iff_exists_sphere {ps : set P} :
+  cospherical ps ↔ ∃ s : sphere P, ps ⊆ (s : set P) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with ⟨c, r, h⟩,
+    exact ⟨⟨c, r⟩, h⟩ },
+  { rcases h with ⟨s, h⟩,
+    exact ⟨s.center, s.radius, h⟩ }
+end
+
+/-- The set of points in a sphere is cospherical. -/
+lemma sphere.cospherical (s : sphere P) : cospherical (s : set P) :=
+cospherical_iff_exists_sphere.2 ⟨s, set.subset.rfl⟩
 
 /-- A subset of a cospherical set is cospherical. -/
 lemma cospherical_subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (hc : cospherical ps₂) :
@@ -1186,7 +1433,7 @@ end
 include V
 
 /-- Two points are cospherical. -/
-lemma cospherical_insert_singleton (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
+lemma cospherical_pair (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
 begin
   use [(2⁻¹ : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁, (2⁻¹ : ℝ) * (dist p₂ p₁)],
   intro p,
@@ -1208,7 +1455,7 @@ lemma cospherical.affine_independent {s : set P} (hs : cospherical s) {p : fin 3
 begin
   rw affine_independent_iff_not_collinear,
   intro hc,
-  rw collinear_iff_of_mem ℝ (set.mem_range_self (0 : fin 3)) at hc,
+  rw collinear_iff_of_mem (set.mem_range_self (0 : fin 3)) at hc,
   rcases hc with ⟨v, hv⟩,
   rw set.forall_range_iff at hv,
   have hv0 : v ≠ 0,
@@ -1240,5 +1487,35 @@ begin
   have hf12 : f 1 = f 2, { rw [hfn0' 1 dec_trivial, hfn0' 2 dec_trivial] },
   exact (dec_trivial : (1 : fin 3) ≠ 2) (hfi hf12)
 end
+
+/-- Suppose that `p₁` and `p₂` lie in spheres `s₁` and `s₂`.  Then the vector between the centers
+of those spheres is orthogonal to that between `p₁` and `p₂`; this is a version of
+`inner_vsub_vsub_of_dist_eq_of_dist_eq` for bundled spheres.  (In two dimensions, this says that
+the diagonals of a kite are orthogonal.) -/
+lemma inner_vsub_vsub_of_mem_sphere_of_mem_sphere {p₁ p₂ : P} {s₁ s₂ : sphere P}
+  (hp₁s₁ : p₁ ∈ s₁) (hp₂s₁ : p₂ ∈ s₁) (hp₁s₂ : p₁ ∈ s₂) (hp₂s₂ : p₂ ∈ s₂) :
+  ⟪s₂.center -ᵥ s₁.center, p₂ -ᵥ p₁⟫ = 0 :=
+inner_vsub_vsub_of_dist_eq_of_dist_eq (dist_center_eq_dist_center_of_mem_sphere hp₁s₁ hp₂s₁)
+                                      (dist_center_eq_dist_center_of_mem_sphere hp₁s₂ hp₂s₂)
+
+/-- Two spheres intersect in at most two points in a two-dimensional subspace containing their
+centers; this is a version of `eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two` for bundled
+spheres. -/
+lemma eq_of_mem_sphere_of_mem_sphere_of_mem_of_finrank_eq_two {s : affine_subspace ℝ P}
+  [finite_dimensional ℝ s.direction] (hd : finrank ℝ s.direction = 2) {s₁ s₂ : sphere P}
+  {p₁ p₂ p : P} (hs₁ : s₁.center ∈ s) (hs₂ : s₂.center ∈ s) (hp₁s : p₁ ∈ s) (hp₂s : p₂ ∈ s)
+  (hps : p ∈ s) (hs : s₁ ≠ s₂) (hp : p₁ ≠ p₂) (hp₁s₁ : p₁ ∈ s₁) (hp₂s₁ : p₂ ∈ s₁) (hps₁ : p ∈ s₁)
+  (hp₁s₂ : p₁ ∈ s₂) (hp₂s₂ : p₂ ∈ s₂) (hps₂ : p ∈ s₂) : p = p₁ ∨ p = p₂ :=
+eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two hd hs₁ hs₂ hp₁s hp₂s hps
+  ((sphere.center_ne_iff_ne_of_mem hps₁ hps₂).2 hs) hp hp₁s₁ hp₂s₁ hps₁ hp₁s₂ hp₂s₂ hps₂
+
+/-- Two spheres intersect in at most two points in two-dimensional space; this is a version of
+`eq_of_dist_eq_of_dist_eq_of_finrank_eq_two` for bundled spheres. -/
+lemma eq_of_mem_sphere_of_mem_sphere_of_finrank_eq_two [finite_dimensional ℝ V]
+  (hd : finrank ℝ V = 2) {s₁ s₂ : sphere P} {p₁ p₂ p : P} (hs : s₁ ≠ s₂) (hp : p₁ ≠ p₂)
+  (hp₁s₁ : p₁ ∈ s₁) (hp₂s₁ : p₂ ∈ s₁) (hps₁ : p ∈ s₁) (hp₁s₂ : p₁ ∈ s₂) (hp₂s₂ : p₂ ∈ s₂)
+  (hps₂ : p ∈ s₂) : p = p₁ ∨ p = p₂ :=
+eq_of_dist_eq_of_dist_eq_of_finrank_eq_two hd ((sphere.center_ne_iff_ne_of_mem hps₁ hps₂).2 hs)
+  hp hp₁s₁ hp₂s₁ hps₁ hp₁s₂ hp₂s₂ hps₂
 
 end euclidean_geometry

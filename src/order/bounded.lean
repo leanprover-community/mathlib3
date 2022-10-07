@@ -41,7 +41,7 @@ lemma unbounded_lt_iff [linear_order α] : unbounded (<) s ↔ ∀ a, ∃ b ∈ 
 by simp only [unbounded, not_lt]
 
 lemma unbounded_ge_of_forall_exists_gt [preorder α] (h : ∀ a, ∃ b ∈ s, b < a) : unbounded (≥) s :=
-@unbounded_le_of_forall_exists_lt (order_dual α) _ _ h
+@unbounded_le_of_forall_exists_lt αᵒᵈ _ _ h
 
 lemma unbounded_ge_iff [linear_order α] : unbounded (≥) s ↔ ∀ a, ∃ b ∈ s, b < a :=
 ⟨λ h a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, lt_of_not_ge hba⟩, unbounded_ge_of_forall_exists_gt⟩
@@ -90,11 +90,11 @@ lemma unbounded_gt_of_unbounded_ge [preorder α] (h : unbounded (≥) s) : unbou
 λ a, let ⟨b, hb, hba⟩ := h a in ⟨b, hb, λ hba', hba (le_of_lt hba')⟩
 
 lemma bounded_ge_iff_bounded_gt [preorder α] [no_min_order α] : bounded (≥) s ↔ bounded (>) s :=
-@bounded_le_iff_bounded_lt (order_dual α) _ _ _
+@bounded_le_iff_bounded_lt αᵒᵈ _ _ _
 
 lemma unbounded_gt_iff_unbounded_ge [preorder α] [no_min_order α] :
   unbounded (>) s ↔ unbounded (≥) s :=
-@unbounded_lt_iff_unbounded_le (order_dual α) _ _ _
+@unbounded_lt_iff_unbounded_le αᵒᵈ _ _ _
 
 /-! ### The universal set -/
 
@@ -240,7 +240,7 @@ by simp_rw [← not_le, bounded_le_inter_not_le]
 
 theorem unbounded_le_inter_lt [linear_order α] (a : α) :
   unbounded (≤) (s ∩ {b | a < b}) ↔ unbounded (≤) s :=
-by { convert unbounded_le_inter_not_le a, ext, exact lt_iff_not_ge' }
+by { convert unbounded_le_inter_not_le a, ext, exact lt_iff_not_le }
 
 theorem bounded_le_inter_le [linear_order α] (a : α) :
   bounded (≤) (s ∩ {b | a ≤ b}) ↔ bounded (≤) s :=
@@ -296,52 +296,52 @@ end
 
 theorem bounded_ge_inter_not_ge [semilattice_inf α] (a : α) :
   bounded (≥) (s ∩ {b | ¬ a ≤ b}) ↔ bounded (≥) s :=
-@bounded_le_inter_not_le (order_dual α) s _ a
+@bounded_le_inter_not_le αᵒᵈ s _ a
 
 theorem unbounded_ge_inter_not_ge [semilattice_inf α] (a : α) :
   unbounded (≥) (s ∩ {b | ¬ a ≤ b}) ↔ unbounded (≥) s :=
-@unbounded_le_inter_not_le (order_dual α) s _ a
+@unbounded_le_inter_not_le αᵒᵈ s _ a
 
 theorem bounded_ge_inter_gt [linear_order α] (a : α) :
   bounded (≥) (s ∩ {b | b < a}) ↔ bounded (≥) s :=
-@bounded_le_inter_lt (order_dual α) s _ a
+@bounded_le_inter_lt αᵒᵈ s _ a
 
 theorem unbounded_ge_inter_gt [linear_order α] (a : α) :
   unbounded (≥) (s ∩ {b | b < a}) ↔ unbounded (≥) s :=
-@unbounded_le_inter_lt (order_dual α) s _ a
+@unbounded_le_inter_lt αᵒᵈ s _ a
 
 theorem bounded_ge_inter_ge [linear_order α] (a : α) :
   bounded (≥) (s ∩ {b | b ≤ a}) ↔ bounded (≥) s :=
-@bounded_le_inter_le (order_dual α) s _ a
+@bounded_le_inter_le αᵒᵈ s _ a
 
 theorem unbounded_ge_iff_unbounded_inter_ge [linear_order α] (a : α) :
   unbounded (≥) (s ∩ {b | b ≤ a}) ↔ unbounded (≥) s :=
-@unbounded_le_inter_le (order_dual α) s _ a
+@unbounded_le_inter_le αᵒᵈ s _ a
 
 /-! #### Greater than -/
 
 theorem bounded_gt_inter_not_gt [semilattice_inf α] (a : α) :
   bounded (>) (s ∩ {b | ¬ a < b}) ↔ bounded (>) s :=
-@bounded_lt_inter_not_lt (order_dual α) s _ a
+@bounded_lt_inter_not_lt αᵒᵈ s _ a
 
 theorem unbounded_gt_inter_not_gt [semilattice_inf α] (a : α) :
   unbounded (>) (s ∩ {b | ¬ a < b}) ↔ unbounded (>) s :=
-@unbounded_lt_inter_not_lt (order_dual α) s _ a
+@unbounded_lt_inter_not_lt αᵒᵈ s _ a
 
 theorem bounded_gt_inter_ge [linear_order α] (a : α) :
   bounded (>) (s ∩ {b | b ≤ a}) ↔ bounded (>) s :=
-@bounded_lt_inter_le (order_dual α) s _ a
+@bounded_lt_inter_le αᵒᵈ s _ a
 
 theorem unbounded_inter_ge [linear_order α] (a : α) :
   unbounded (>) (s ∩ {b | b ≤ a}) ↔ unbounded (>) s :=
-@unbounded_lt_inter_le (order_dual α) s _ a
+@unbounded_lt_inter_le αᵒᵈ s _ a
 
 theorem bounded_gt_inter_gt [linear_order α] [no_min_order α] (a : α) :
   bounded (>) (s ∩ {b | b < a}) ↔ bounded (>) s :=
-@bounded_lt_inter_lt (order_dual α) s _ _ a
+@bounded_lt_inter_lt αᵒᵈ s _ _ a
 
 theorem unbounded_gt_inter_gt [linear_order α] [no_min_order α] (a : α) :
   unbounded (>) (s ∩ {b | b < a}) ↔ unbounded (>) s :=
-@unbounded_lt_inter_lt (order_dual α) s _ _ a
+@unbounded_lt_inter_lt αᵒᵈ s _ _ a
 
 end set

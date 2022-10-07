@@ -161,7 +161,7 @@ begin
       refine v.measure_le_of_frequently_le ρ ((measure.absolutely_continuous.refl μ).smul ε) _ _,
       assume x hx,
       rw hs at hx,
-      simp only [mem_inter_eq, not_lt, not_eventually, mem_set_of_eq] at hx,
+      simp only [mem_inter_iff, not_lt, not_eventually, mem_set_of_eq] at hx,
       exact hx.1
     end
     ... ≤ ε⁻¹ * ρ o : ennreal.mul_le_mul le_rfl (measure_mono (inter_subset_right _ _))
@@ -218,7 +218,7 @@ the ratio `ρ a / μ a` converges as `a` shrinks to `x` along a Vitali family fo
 theorem ae_tendsto_div :
   ∀ᵐ x ∂μ, ∃ c, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 c) :=
 begin
-  obtain ⟨w, w_count, w_dense, w_zero, w_top⟩ : ∃ w : set ℝ≥0∞, countable w ∧ dense w ∧
+  obtain ⟨w, w_count, w_dense, w_zero, w_top⟩ : ∃ w : set ℝ≥0∞, w.countable ∧ dense w ∧
     0 ∉ w ∧ ∞ ∉ w := ennreal.exists_countable_dense_no_zero_top,
   have I : ∀ x ∈ w, x ≠ ∞ := λ x xs hx, w_top (hx ▸ xs),
   have A : ∀ (c ∈ w) (d ∈ w), (c < d) → ∀ᵐ x ∂μ,
@@ -228,19 +228,19 @@ begin
     lift d to ℝ≥0 using I d hd,
     apply v.null_of_frequently_le_of_frequently_ge hρ (ennreal.coe_lt_coe.1 hcd),
     { simp only [and_imp, exists_prop, not_frequently, not_and, not_lt, not_le, not_eventually,
-        mem_set_of_eq, mem_compl_eq, not_forall],
+        mem_set_of_eq, mem_compl_iff, not_forall],
       assume x h1x h2x,
       apply h1x.mono (λ a ha, _),
       refine (ennreal.div_le_iff_le_mul _ (or.inr (bot_le.trans_lt ha).ne')).1 ha.le,
       simp only [ennreal.coe_ne_top, ne.def, or_true, not_false_iff] },
     { simp only [and_imp, exists_prop, not_frequently, not_and, not_lt, not_le, not_eventually,
-        mem_set_of_eq, mem_compl_eq, not_forall],
+        mem_set_of_eq, mem_compl_iff, not_forall],
       assume x h1x h2x,
       apply h2x.mono (λ a ha, _),
       exact ennreal.mul_le_of_le_div ha.le } },
   have B : ∀ᵐ x ∂μ, ∀ (c ∈ w) (d ∈ w), (c < d) →
     ¬((∃ᶠ a in v.filter_at x, ρ a / μ a < c) ∧ (∃ᶠ a in v.filter_at x, d < ρ a / μ a)),
-    by simpa only [ae_ball_iff w_count, ae_imp_iff],
+    by simpa only [ae_ball_iff w_count, ae_all_iff],
   filter_upwards [B],
   assume x hx,
   exact tendsto_of_no_upcrossings w_dense hx,

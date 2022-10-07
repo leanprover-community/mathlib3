@@ -36,8 +36,6 @@ end free_monoid
 namespace free_algebra
 variables {R : Type*} [comm_semiring R] {X : Type*}
 
-set_option profiler true
-
 /-- The star ring formed by reversing the elements of products -/
 instance : star_ring (free_algebra R X) :=
 { star := mul_opposite.unop ∘ lift R (mul_opposite.op ∘ ι R),

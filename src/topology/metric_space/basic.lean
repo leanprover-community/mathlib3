@@ -2497,7 +2497,7 @@ open positivity
 
 /-- Extension for the `positivity` tactic: the diameter of a set is always nonnegative. -/
 @[positivity]
-meta def tactic.positivity_diam : expr → tactic strictness
+meta def positivity_diam : expr → tactic strictness
 | `(metric.diam %%s) := nonnegative <$> mk_app ``metric.diam_nonneg [s]
 | e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `metric.diam s`"
 

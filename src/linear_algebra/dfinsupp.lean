@@ -215,9 +215,9 @@ variables [decidable_eq ι] [Π (x : N), decidable (x ≠ 0)]
 This is the map coming from the universal property of `Π₀ i, M i` as the coproduct of the `M i`.
 See also `linear_map.coprod` for the binary product version. -/
 noncomputable def coprod_map (f : Π (i : ι), M i  →ₗ[R] N) : (Π₀ i, M i) →ₗ[R] N :=
- finsupp.lsum ℕ (λ i : ι, linear_map.id) ∘ₗ
- (@finsupp_lequiv_dfinsupp ι R N _ _ _ _ _).symm.to_linear_map ∘ₗ
- (dfinsupp.map_range.linear_map f)
+finsupp.lsum ℕ (λ i : ι, linear_map.id) ∘ₗ
+(@finsupp_lequiv_dfinsupp ι R N _ _ _ _ _).symm.to_linear_map ∘ₗ
+(dfinsupp.map_range.linear_map f)
 
 lemma coprod_map_apply (f : Π (i : ι), M i  →ₗ[R] N) (x : Π₀ i, M i) :
   coprod_map f x =

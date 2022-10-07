@@ -228,17 +228,20 @@ variables (I)
 
 /-- If `x` is an `I`-multiple of the submodule spanned by `f '' s`,
 then we can write `x` as an `I`-linear combination of the elements of `f '' s`. -/
-lemma exists_sum_of_mem_ideal_smul_span {ι : Type*} (s : set ι) (f : ι → M) (x : M)
-  (hx : x ∈ I • span R (f '' s)) :
-  ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
+lemma mem_ideal_smul_span_iff_exists_sum {ι : Type*} (f : ι → M) (x : M) :
+  x ∈ I • span R (set.range f) ↔
+  ∃ (a : ι →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
 begin
-  refine span_induction (mem_smul_span.mp hx) _ _ _ _,
+  split, swap,
+  { rintro ⟨a, ha, rfl⟩,
+    exact submodule.sum_mem _ (λ c _, smul_mem_smul (ha c) $ subset_span $ set.mem_range_self _) },
+  refine λ hx, span_induction (mem_smul_span.mp hx) _ _ _ _,
   { simp only [set.mem_Union, set.mem_range, set.mem_singleton_iff],
-    rintros x ⟨y, hy, x, ⟨i, hi, rfl⟩, rfl⟩,
-    refine ⟨finsupp.single ⟨i, hi⟩ y, λ j, _, _⟩,
-    { letI := classical.dec_eq s,
+    rintros x ⟨y, hy, x, ⟨i, rfl⟩, rfl⟩,
+    refine ⟨finsupp.single i y, λ j, _, _⟩,
+    { letI := classical.dec_eq ι,
       rw finsupp.single_apply, split_ifs, { assumption }, { exact I.zero_mem } },
-    refine @finsupp.sum_single_index s R M _ _ ⟨i, hi⟩ _ (λ i y, y • f i) _,
+    refine @finsupp.sum_single_index ι R M _ _ i _ (λ i y, y • f i) _,
     simp },
   { exact ⟨0, λ i, I.zero_mem, finsupp.sum_zero_index⟩ },
   { rintros x y ⟨ax, hax, rfl⟩ ⟨ay, hay, rfl⟩,
@@ -249,6 +252,11 @@ begin
     rw [finsupp.sum_smul_index, finsupp.smul_sum];
       intros; simp only [zero_smul, mul_smul] },
 end
+
+theorem mem_ideal_smul_span_iff_exists_sum' {ι : Type*} (s : set ι) (f : ι → M) (x : M) :
+  x ∈ I • span R (f '' s) ↔
+  ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
+by rw [← submodule.mem_ideal_smul_span_iff_exists_sum, ← set.image_eq_range]
 
 @[simp] lemma smul_comap_le_comap_smul (f : M →ₗ[R] M') (S : submodule R M') (I : ideal R) :
   I • S.comap f ≤ (I • S).comap f :=
@@ -1423,40 +1431,20 @@ end
 
 lemma finsupp_total_apply_eq_of_fintype [fintype ι] (f : ι →₀ I) :
   finsupp_total ι M I v f = ∑ i, (f i : R) • v i :=
-begin
-  rw finsupp_total_apply,
-  apply finset.sum_subset (finset.subset_univ _),
-  intros x _ hx,
-  rw finsupp.not_mem_support_iff.mp hx,
-  exact zero_smul _ _
-end
+by { rw [finsupp_total_apply, finsupp.sum_fintype], exact λ _, zero_smul _ _ }
 
 lemma range_finsupp_total :
   (finsupp_total ι M I v).range = I • (submodule.span R (set.range v)) :=
 begin
-  apply le_antisymm,
-  { rintros x ⟨f, rfl⟩,
-    rw finsupp_total_apply,
-    apply submodule.sum_mem _ _,
-    intros c _,
-    apply submodule.smul_mem_smul (f c).2,
-    apply submodule.subset_span,
-    exact set.mem_range_self c },
-  { rw submodule.smul_le,
-    rintros r hr m hm,
-    rw ← set.image_univ at hm,
-    obtain ⟨l, hl, rfl⟩ := (finsupp.mem_span_image_iff_total _).mp hm,
-    let l' : ι →₀ I := finsupp.map_range (λ x : R, (⟨x * r, I.mul_mem_left _ hr⟩ : I))
-      (subtype.ext $ zero_mul _) l,
-    use l',
-    rw [finsupp_total_apply, finsupp.total_apply, finsupp.sum, finsupp.sum, finset.smul_sum],
-    dsimp,
-    simp only [← mul_smul, mul_comm r],
-    apply finset.sum_subset,
-    { exact finsupp.support_map_range },
-    { intros x hx hx',
-      have : l x * r = 0 := by injection finsupp.not_mem_support_iff.mp hx',
-      rw [this, zero_smul] } }
+  ext,
+  rw submodule.mem_ideal_smul_span_iff_exists_sum,
+  refine ⟨λ ⟨f, h⟩, ⟨finsupp.map_range.linear_map I.subtype f, λ i, (f i).2, h⟩, _⟩,
+  rintro ⟨a, ha, rfl⟩,
+  classical,
+  refine ⟨a.map_range (λ r, if h : r ∈ I then ⟨r, h⟩ else 0) (by split_ifs; refl), _⟩,
+  rw [finsupp_total_apply, finsupp.sum_map_range_index],
+  { apply finsupp.sum_congr, intros i _, rw dif_pos (ha i), refl },
+  { exact λ _, zero_smul _ _ },
 end
 
 end total

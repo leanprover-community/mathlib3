@@ -621,14 +621,12 @@ of `M × N`. -/
 @[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`
 as an `add_submonoid` of `A × B`."]
 def prod (s : submonoid M) (t : submonoid N) : submonoid (M × N) :=
-{ carrier := (s : set M) ×ˢ (t : set N),
+{ carrier := s ×ˢ t,
   one_mem' := ⟨s.one_mem, t.one_mem⟩,
   mul_mem' := λ p q hp hq, ⟨s.mul_mem hp.1 hq.1, t.mul_mem hp.2 hq.2⟩ }
 
 @[to_additive coe_prod]
-lemma coe_prod (s : submonoid M) (t : submonoid N) :
- (s.prod t : set (M × N)) = (s : set M) ×ˢ (t : set N) :=
-rfl
+lemma coe_prod (s : submonoid M) (t : submonoid N) : (s.prod t : set (M × N)) = s ×ˢ t := rfl
 
 @[to_additive mem_prod]
 lemma mem_prod {s : submonoid M} {t : submonoid N} {p : M × N} :

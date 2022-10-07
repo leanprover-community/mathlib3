@@ -577,7 +577,7 @@ def substructure_reduct : L'.substructure M ↪o L.substructure M :=
 { to_fun := λ S, { carrier := S,
     fun_mem := λ n f x hx, begin
       have h := S.fun_mem (φ.on_function f) x hx,
-      simp only [is_expansion_on.map_on_function, substructure.mem_carrier] at h,
+      simp only [Lhom.map_on_function, substructure.mem_carrier] at h,
       exact h,
     end },
   inj' := λ S T h, begin

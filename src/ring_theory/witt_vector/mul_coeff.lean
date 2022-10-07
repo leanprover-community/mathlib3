@@ -48,8 +48,7 @@ rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
 
 include hp
 
-lemma witt_poly_prod_vars (n : ℕ) :
-  (witt_poly_prod p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_poly_prod_vars (n : ℕ) : (witt_poly_prod p n).vars ⊆ univ ×ˢ range (n + 1) :=
 begin
   rw [witt_poly_prod],
   apply subset.trans (vars_mul _ _),
@@ -63,7 +62,7 @@ def witt_poly_prod_remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 ∑ i in range n, p^i * (witt_mul p i)^(p^(n-i))
 
 lemma witt_poly_prod_remainder_vars (n : ℕ) :
-  (witt_poly_prod_remainder p n).vars ⊆ finset.univ.product (finset.range n) :=
+  (witt_poly_prod_remainder p n).vars ⊆ univ ×ˢ range n :=
 begin
   rw [witt_poly_prod_remainder],
   apply subset.trans (vars_sum_subset _ _),
@@ -100,7 +99,7 @@ def remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 
 include hp
 
-lemma remainder_vars (n : ℕ) : (remainder p n).vars ⊆ univ.product (range (n+1)) :=
+lemma remainder_vars (n : ℕ) : (remainder p n).vars ⊆ univ ×ˢ range (n + 1) :=
 begin
   rw [remainder],
   apply subset.trans (vars_mul _ _),
@@ -205,7 +204,7 @@ end
 
 lemma mul_poly_of_interest_vars (n : ℕ) :
   ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * poly_of_interest p n).vars ⊆
-  univ.product (range (n+1)) :=
+  univ ×ˢ range (n + 1) :=
 begin
   rw mul_poly_of_interest_aux5,
   apply subset.trans (vars_sub_subset _ _),
@@ -228,7 +227,7 @@ begin
   exact_mod_cast hp.out.ne_zero
 end
 
-lemma poly_of_interest_vars (n : ℕ) : (poly_of_interest p n).vars ⊆ univ.product (range (n+1)) :=
+lemma poly_of_interest_vars (n : ℕ) : (poly_of_interest p n).vars ⊆ univ ×ˢ (range (n+1)) :=
 by rw poly_of_interest_vars_eq; apply mul_poly_of_interest_vars
 
 lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :

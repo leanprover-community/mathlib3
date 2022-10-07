@@ -49,7 +49,7 @@ universes u v
 
 open_locale big_operators
 
-open add_char mul_char multiplicative
+open add_char mul_char
 
 section gauss_sum_def
 
@@ -63,15 +63,13 @@ variables {R' : Type v} [comm_ring R']
 -/
 
 /-- Definition of the Gauss sum associated to a multiplicative and an additive character. -/
-def gauss_sum (χ : mul_char R R') (ψ : add_char R R') : R' := ∑ a, χ a * ψ (of_add a)
+def gauss_sum (χ : mul_char R R') (ψ : add_char R R') : R' := ∑ a, χ a * ψ a
 
 /-- Replacing `ψ` by `mul_shift ψ a` and multiplying the Gauss sum by `χ a` does not change it. -/
 lemma gauss_sum_mul_shift (χ : mul_char R R') (ψ : add_char R R') (a : Rˣ) :
   χ a * gauss_sum χ (mul_shift ψ a) = gauss_sum χ ψ :=
 begin
-  simp only [gauss_sum, mul_shift, monoid_hom.coe_comp, function.comp_app, to_add_of_add,
-             add_monoid_hom.to_multiplicative_apply_apply, add_monoid_hom.coe_mul_left],
-  rw [finset.mul_sum],
+  simp only [gauss_sum, mul_shift_apply, finset.mul_sum],
   simp_rw [← mul_assoc, ← map_mul],
   exact fintype.sum_bijective _ a.mul_left_bijective _ _ (λ x, rfl),
 end
@@ -91,12 +89,12 @@ variables {R : Type u} [field R] [fintype R] {R' : Type v} [comm_ring R'] [is_do
 -- Is this useful enough in other contexts to be public?
 private
 lemma gauss_sum_mul_aux {χ : mul_char R R'} (hχ : is_nontrivial χ) (ψ : add_char R R') (b : R) :
-  ∑ a, χ (a * b⁻¹) * ψ (of_add (a - b)) = ∑ c, χ c * ψ (of_add $ b * (c - 1)) :=
+  ∑ a, χ (a * b⁻¹) * ψ (a - b) = ∑ c, χ c * ψ (b * (c - 1)) :=
 begin
   cases eq_or_ne b 0 with hb hb,
   { -- case `b = 0`
     simp only [hb, inv_zero, mul_zero, mul_char.map_zero, zero_mul, finset.sum_const_zero,
-               of_add_zero, monoid_hom.map_one, mul_one],
+               map_zero_one, mul_one],
     exact hχ.sum_eq_zero.symm, },
   { -- case `b ≠ 0`
     refine (fintype.sum_bijective _ (mul_left_bijective₀ b hb) _ _ $ λ x, _).symm,
@@ -109,16 +107,13 @@ lemma gauss_sum_mul_gauss_sum_eq_card  {χ : mul_char R R'} (hχ : is_nontrivial
   {ψ : add_char R R'} (hψ : is_primitive ψ) :
   gauss_sum χ ψ * gauss_sum χ⁻¹ ψ⁻¹ = fintype.card R :=
 begin
-  simp only [gauss_sum, inv_mul_shift, mul_shift, monoid_hom.coe_comp,
-             function.comp_app, add_monoid_hom.to_multiplicative_apply_apply, finset.mul_sum,
-             add_monoid_hom.coe_mul_left, neg_mul, one_mul, of_add_neg, of_add_to_add],
-  simp_rw [finset.sum_mul, mul_mul_mul_comm, inv_apply' χ, ← map_mul χ, ← map_mul ψ],
-  convert_to ∑ y x, χ (x * y⁻¹) * ψ (of_add (x - y)) = _,
-  { simp_rw sub_eq_add_neg, refl },
+  simp only [gauss_sum, add_char.inv_apply, finset.sum_mul, finset.mul_sum, mul_char.inv_apply'],
+  conv in (_ * _ * (_ * _))
+    { rw [mul_mul_mul_comm, ← map_mul, ← map_add_mul, ← sub_eq_add_neg], },
   simp_rw gauss_sum_mul_aux hχ ψ,
   rw [finset.sum_comm],
-  classical, -- to get `[decidable_eq R]` for `gauss_sum_mul_aux₂`
-  simp_rw [← finset.mul_sum, sum_mul_shift _ _ hψ, sub_eq_zero, mul_ite, mul_zero],
+  classical, -- to get `[decidable_eq R]` for `sum_mul_shift`
+  simp_rw [← finset.mul_sum, sum_mul_shift _ hψ, sub_eq_zero, mul_ite, mul_zero],
   rw [finset.sum_ite_eq' finset.univ (1 : R)],
   simp only [finset.mem_univ, map_one, one_mul, if_true],
 end
@@ -149,7 +144,7 @@ variables (p : ℕ) [fp : fact p.prime] [hch : char_p R' p]
 include fp hch
 
 /-- When `R'` has prime characteristic `p`, then the `p`th power of the Gauss sum
-of `χ` and `ψ` is the Gauss sum of `χ^p` and `mul_shift ψ p`. -/
+of `χ` and `ψ` is the Gauss sum of `χ^p` and `ψ^p`. -/
 lemma gauss_sum_frob (χ : mul_char R R') (ψ : add_char R R') :
   gauss_sum χ ψ ^ p = gauss_sum (χ ^ p) (ψ ^ p) :=
 begin
@@ -276,10 +271,10 @@ begin
   -- there is a primitive additive character `ℤ/8ℤ → FF`, sending `a + 8ℤ ↦ τ^a`
   -- with a primitive eighth root of unity `τ`
   let ψ₈ := primitive_zmod_char 8 F (by convert hp2 3; norm_num),
-  let τ : FF := ψ₈.char (of_add 1),
+  let τ : FF := ψ₈.char 1,
   have τ_spec : τ ^ 4 = -1,
   { refine (sq_eq_one_iff.1 _).resolve_left _;
-    { simp only [τ, ← map_pow],
+    { simp only [τ, ← map_nsmul_pow],
       erw add_char.is_primitive.zmod_char_eq_one_iff 8 ψ₈.prim,
       dec_trivial } },
 

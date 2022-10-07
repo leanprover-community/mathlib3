@@ -552,7 +552,7 @@ lemma measurable_set.prod {s : set α} {t : set β} (hs : measurable_set s) (ht 
   measurable_set (s ×ˢ t) :=
 measurable_set.inter (measurable_fst hs) (measurable_snd ht)
 
-lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t : set _).nonempty) :
+lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t).nonempty) :
   measurable_set (s ×ˢ t) ↔ measurable_set s ∧ measurable_set t :=
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
@@ -565,7 +565,7 @@ end
 lemma measurable_set_prod {s : set α} {t : set β} :
   measurable_set (s ×ˢ t) ↔ (measurable_set s ∧ measurable_set t) ∨ s = ∅ ∨ t = ∅ :=
 begin
-  cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
+  cases (s ×ˢ t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.mp h] },
   { simp [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, measurable_set_prod_of_nonempty h] }
 end

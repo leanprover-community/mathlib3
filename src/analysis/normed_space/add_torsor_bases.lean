@@ -72,7 +72,7 @@ begin
     have : convex_hull ℝ (range b.points) = ⋂ i, (b.coord i)⁻¹' Ici 0,
     { rw convex_hull_affine_basis_eq_nonneg_barycentric b, ext, simp, },
     ext,
-    simp only [this, interior_Inter_of_fintype, ← is_open_map.preimage_interior_eq_interior_preimage
+    simp only [this, interior_Inter, ← is_open_map.preimage_interior_eq_interior_preimage
       (is_open_map_barycentric_coord b _) (continuous_barycentric_coord b _),
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end

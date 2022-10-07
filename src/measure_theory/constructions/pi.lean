@@ -321,7 +321,7 @@ end
 /-- A measure on a finite product space equals the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
 lemma pi_eq_generate_from {C : Π i, set (set (α i))}
-  (hC : ∀ i, generate_from (C i) = _inst_3 i)
+  (hC : ∀ i, generate_from (C i) = by apply_assumption)
   (h2C : ∀ i, is_pi_system (C i))
   (h3C : ∀ i, (μ i).finite_spanning_sets_in (C i))
   {μν : measure (Π i, α i)}

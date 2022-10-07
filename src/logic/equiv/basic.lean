@@ -629,9 +629,27 @@ calc punit × α ≃ α × punit : prod_comm _ _
 def prod_unique (α β : Type*) [unique β] : α × β ≃ α :=
 ((equiv.refl α).prod_congr $ equiv_punit β).trans $ prod_punit α
 
+@[simp] lemma coe_prod_unique {α β : Type*} [unique β] :
+  ⇑(prod_unique α β) = prod.fst := rfl
+
+lemma prod_unique_apply {α β : Type*} [unique β] (x : α × β) :
+  prod_unique α β x = x.1 := rfl
+
+@[simp] lemma prod_unique_symm_apply {α β : Type*} [unique β] (x : α) :
+  (prod_unique α β).symm x = (x, default) := rfl
+
 /-- Any `unique` type is a left identity for type product up to equivalence. -/
 def unique_prod (α β : Type*) [unique β] : β × α ≃ α :=
 ((equiv_punit β).prod_congr $ equiv.refl α).trans $ punit_prod α
+
+@[simp] lemma coe_unique_prod {α β : Type*} [unique β] :
+  ⇑(unique_prod α β) = prod.snd := rfl
+
+lemma unique_prod_apply {α β : Type*} [unique β] (x : β × α) :
+  unique_prod α β x = x.2 := rfl
+
+@[simp] lemma unique_prod_symm_apply {α β : Type*} [unique β] (x : α) :
+  (unique_prod α β).symm x = (default, x) := rfl
 
 /-- `empty` type is a right absorbing element for type product up to an equivalence. -/
 def prod_empty (α : Type*) : α × empty ≃ empty :=

@@ -199,7 +199,7 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
-/-- All elements of `fin n`, from `0` to `n-1`. -/
+/-- All elements of `fin n`, from `0` to `n-1`. The corresponding finset is `finset.univ`. -/
 def fin_range (n : ℕ) : list (fin n) :=
 (range n).pmap fin.mk (λ _, list.mem_range.1)
 

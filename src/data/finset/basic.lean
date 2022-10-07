@@ -146,8 +146,9 @@ namespace finset
 theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t
 | ⟨s, _⟩ ⟨t, _⟩ rfl := rfl
 
-@[simp] theorem val_inj {s t : finset α} : s.1 = t.1 ↔ s = t :=
-⟨eq_of_veq, congr_arg _⟩
+theorem val_injective : injective (val : finset α → multiset α) := λ _ _, eq_of_veq
+
+@[simp] theorem val_inj {s t : finset α} : s.1 = t.1 ↔ s = t := val_injective.eq_iff
 
 @[simp] theorem dedup_eq_self [decidable_eq α] (s : finset α) : dedup s.1 = s.1 :=
 s.2.dedup
@@ -467,6 +468,12 @@ begin
   { rintros ⟨hne, h_uniq⟩, rw eq_singleton_iff_unique_mem, refine ⟨_, h_uniq⟩,
     rw ← h_uniq hne.some hne.some_spec, exact hne.some_spec }
 end
+
+lemma nonempty_iff_eq_singleton_default [unique α] {s : finset α} :
+  s.nonempty ↔ s = {default} :=
+by simp [eq_singleton_iff_nonempty_unique_mem]
+
+alias nonempty_iff_eq_singleton_default ↔ nonempty.eq_singleton_default _
 
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = {a}) ↔ ∃! a, a ∈ s :=
 by simp only [eq_singleton_iff_unique_mem, exists_unique]

@@ -374,7 +374,7 @@ lemma distortion_eq_of_sub_eq_div {I J : box ι} {r : ℝ}
   (h : ∀ i, I.upper i - I.lower i = (J.upper i - J.lower i) / r) :
   distortion I = distortion J :=
 begin
-  simp only [distortion, nndist_pi_def, real.nndist_eq', h, real.nnabs.map_div],
+  simp only [distortion, nndist_pi_def, real.nndist_eq', h, map_div₀],
   congr' 1 with i,
   have : 0 < r,
   { by_contra hr,

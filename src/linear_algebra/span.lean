@@ -505,11 +505,12 @@ lemma not_mem_span_of_apply_not_mem_span_image
    x ∉ submodule.span R s :=
 h.imp (apply_mem_span_image_of_mem_span f)
 
-lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
-  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
-le_antisymm
-  (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
+lemma supr_span {ι : Sort*} (p : ι → set M) : (⨆ i, span R (p i)) = span R (⋃ i, p i) :=
+le_antisymm (supr_le $ λ i, span_mono $ subset_Union _ i) $
+  span_le.mpr $ Union_subset $ λ i m hm, mem_supr_of_mem i $ subset_span hm
+
+lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) : (⨆ i, p i) = span R (⋃ i, ↑(p i)) :=
+by simp_rw [← supr_span, span_eq]
 
 lemma supr_to_add_submonoid {ι : Sort*} (p : ι → submodule R M) :
   (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=
@@ -667,12 +668,11 @@ variables {M' : Type*} [add_comm_monoid M'] [module R M'] (q₁ q₁' : submodul
 
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M') :=
-{ carrier   := (p : set M) ×ˢ (q₁ : set M'),
+{ carrier   := p ×ˢ q₁,
   smul_mem' := by rintro a ⟨x, y⟩ ⟨hx, hy⟩; exact ⟨smul_mem _ a hx, smul_mem _ a hy⟩,
   .. p.to_add_submonoid.prod q₁.to_add_submonoid }
 
-@[simp] lemma prod_coe :
-  (prod p q₁ : set (M × M')) = (p : set M) ×ˢ (q₁ : set M') := rfl
+@[simp] lemma prod_coe : (prod p q₁ : set (M × M')) = p ×ˢ q₁ := rfl
 
 @[simp] lemma mem_prod {p : submodule R M} {q : submodule R M'} {x : M × M'} :
   x ∈ prod p q ↔ x.1 ∈ p ∧ x.2 ∈ q := set.mem_prod

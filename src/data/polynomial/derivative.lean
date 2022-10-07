@@ -158,7 +158,7 @@ begin
   { exact nat.le_pred_of_lt (nat_degree_derivative_lt p0) }
 end
 
-@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
+@[simp] lemma derivative_nat_cast {n : ℕ} : derivative (n : R[X]) = 0 :=
 begin
   rw ← map_nat_cast C n,
   exact derivative_C,
@@ -248,7 +248,7 @@ begin
   { simp only [ih, function.iterate_succ, polynomial.derivative_map, function.comp_app], },
 end
 
-@[simp] lemma iterate_derivative_cast_nat_mul {n k : ℕ} {f : R[X]} :
+@[simp] lemma iterate_derivative_nat_cast_mul {n k : ℕ} {f : R[X]} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
 by induction k with k ih generalizing f; simp*
 

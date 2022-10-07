@@ -95,7 +95,7 @@ filter.coext $ λ s, by simp only [compl_mem_coprod, mem_cofinite, compl_compl,
   finite_image_fst_and_snd_iff]
 
 /-- Finite product of finite sets is finite -/
-lemma Coprod_cofinite {α : ι → Type*} [fintype ι] :
+lemma Coprod_cofinite {α : ι → Type*} [finite ι] :
   filter.Coprod (λ i, (cofinite : filter (α i))) = cofinite :=
 filter.coext $ λ s, by simp only [compl_mem_Coprod, mem_cofinite, compl_compl,
   forall_finite_image_eval_iff]

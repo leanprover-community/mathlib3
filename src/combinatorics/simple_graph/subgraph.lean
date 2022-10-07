@@ -228,8 +228,6 @@ def bot : subgraph G :=
   edge_vert := λ v w h, false.rec _ h,
   symm := λ u v h, h }
 
-instance subgraph_inhabited : inhabited (subgraph G) := ⟨bot⟩
-
 /-- The relation that one subgraph is a subgraph of another. -/
 def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
@@ -260,6 +258,8 @@ instance : bounded_order (subgraph G) :=
   bot := bot,
   le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
+
+@[simps] instance subgraph_inhabited : inhabited (subgraph G) := ⟨⊥⟩
 
 -- TODO simp lemmas for the other lattice operations on subgraphs
 @[simp] lemma top_verts : (⊤ : subgraph G).verts = set.univ := rfl

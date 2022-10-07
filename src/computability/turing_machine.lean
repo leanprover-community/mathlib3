@@ -1284,8 +1284,7 @@ end
 variables [fintype σ]
 /-- Given a finite set of accessible `Λ` machine states, there is a finite set of accessible
 machine states in the target (even though the type `Λ'` is infinite). -/
-noncomputable def tr_stmts (S : finset Λ) : finset Λ' :=
-(TM1.stmts M S).product finset.univ
+noncomputable def tr_stmts (S : finset Λ) : finset Λ' := TM1.stmts M S ×ˢ finset.univ
 
 open_locale classical
 local attribute [simp] TM1.stmts₁_self

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import field_theory.minpoly
 import field_theory.subfield
 import field_theory.tower
-import ring_theory.algebraic
 
 /-!
 # Intermediate fields
@@ -288,7 +288,7 @@ variables {L' : Type*} [field L'] [algebra K L']
 /-- If `f : L →+* L'` fixes `K`, `S.map f` is the intermediate field between `L'` and `K`
 such that `x ∈ S ↔ f x ∈ S.map f`. -/
 def map (f : L →ₐ[K] L') (S : intermediate_field K L) : intermediate_field K L' :=
-{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, S.inv_mem hx, f.map_inv x⟩ },
+{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, S.inv_mem hx, map_inv₀ f x⟩ },
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
 
@@ -484,8 +484,18 @@ eq_of_le_of_finrank_le' h_le h_finrank.le
 
 end finite_dimensional
 
-lemma algebraic_iff {x : S} : is_algebraic K x ↔ is_algebraic K (x : L) :=
+lemma is_algebraic_iff {x : S} : is_algebraic K x ↔ is_algebraic K (x : L) :=
 (is_algebraic_algebra_map_iff (algebra_map S L).injective).symm
+
+lemma is_integral_iff {x : S} : is_integral K x ↔ is_integral K (x : L) :=
+by rw [←is_algebraic_iff_is_integral, is_algebraic_iff, is_algebraic_iff_is_integral]
+
+lemma minpoly_eq (x : S) : minpoly K x = minpoly K (x : L) :=
+begin
+  by_cases hx : is_integral K x,
+  { exact minpoly.eq_of_algebra_map_eq (algebra_map S L).injective hx rfl },
+  { exact (minpoly.eq_zero hx).trans (minpoly.eq_zero (mt is_integral_iff.mpr hx)).symm },
+end
 
 end intermediate_field
 

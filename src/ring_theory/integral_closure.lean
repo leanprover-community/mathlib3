@@ -219,7 +219,7 @@ begin
   have hyS : ∀ {p}, p ∈ y → p ∈ S := λ p hp, show p ∈ S.to_submodule,
     by { rw ← hy, exact subset_span hp },
   -- Now `S` is a subalgebra so the product of two elements of `y` is also in `S`.
-  have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ S.to_submodule :=
+  have : ∀ (jk : (↑(y ×ˢ y) : set (A × A))), jk.1.1 * jk.1.2 ∈ S.to_submodule :=
     λ jk, S.mul_mem (hyS (finset.mem_product.1 jk.2).1) (hyS (finset.mem_product.1 jk.2).2),
   rw [← hy, ← set.image_id ↑y] at this, simp only [finsupp.mem_span_image_iff_total] at this,
   -- Say `yᵢyⱼ = ∑rᵢⱼₖ yₖ`
@@ -285,6 +285,51 @@ begin
   rw finsupp.mem_supported at hlx1,
   exact subalgebra.smul_mem _ (algebra.subset_adjoin $ hlx1 hr) _
 end
+
+variables {f}
+
+lemma ring_hom.finite.to_is_integral (h : f.finite) : f.is_integral :=
+by { letI := f.to_algebra, exact λ x, is_integral_of_mem_of_fg ⊤ h.1 _ trivial }
+
+alias ring_hom.finite.to_is_integral ← ring_hom.is_integral.of_finite
+
+lemma ring_hom.is_integral.to_finite (h : f.is_integral) (h' : f.finite_type) : f.finite :=
+begin
+  letI := f.to_algebra,
+  unfreezingI { obtain ⟨s, hs⟩ := h' },
+  constructor,
+  change (⊤ : subalgebra R S).to_submodule.fg,
+  rw ← hs,
+  exact fg_adjoin_of_finite (set.to_finite _) (λ x _, h x)
+end
+
+alias ring_hom.is_integral.to_finite ← ring_hom.finite.of_is_integral_of_finite_type
+
+/-- finite = integral + finite type -/
+lemma ring_hom.finite_iff_is_integral_and_finite_type :
+  f.finite ↔ f.is_integral ∧ f.finite_type :=
+⟨λ h, ⟨h.to_is_integral, h.to_finite_type⟩, λ ⟨h, h'⟩, h.to_finite h'⟩
+
+lemma algebra.is_integral.finite (h : algebra.is_integral R A) [h' : algebra.finite_type R A] :
+  module.finite R A :=
+begin
+  have := h.to_finite
+    (by { delta ring_hom.finite_type, convert h', ext, exact (algebra.smul_def _ _).symm }),
+  delta ring_hom.finite at this, convert this, ext, exact algebra.smul_def _ _,
+end
+
+lemma algebra.is_integral.of_finite [h : module.finite R A] : algebra.is_integral R A :=
+begin
+  apply ring_hom.finite.to_is_integral,
+  delta ring_hom.finite, convert h, ext, exact (algebra.smul_def _ _).symm,
+end
+
+/-- finite = integral + finite type -/
+lemma algebra.finite_iff_is_integral_and_finite_type :
+  module.finite R A ↔ algebra.is_integral R A ∧ algebra.finite_type R A :=
+⟨λ h, by exactI ⟨algebra.is_integral.of_finite, infer_instance⟩, λ ⟨h, h'⟩, by exactI h.finite⟩
+
+variables (f)
 
 lemma ring_hom.is_integral_of_mem_closure {x y z : S}
   (hx : f.is_integral_elem x) (hy : f.is_integral_elem y)

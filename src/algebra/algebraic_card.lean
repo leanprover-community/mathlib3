@@ -42,7 +42,7 @@ begin
     λ x, ulift.up (classical.some x.1.2),
   apply cardinal.mk_le_mk_mul_of_mk_preimage_le g (λ f, _),
   suffices : fintype (g ⁻¹' {f}),
-  { exact @mk_le_aleph_0 _ (@fintype.to_encodable _ this) },
+  { resetI, exact mk_le_aleph_0 },
   by_cases hf : f.1 = 0,
   { convert set.fintype_empty,
     apply set.eq_empty_iff_forall_not_mem.2 (λ x hx, _),

@@ -192,7 +192,7 @@ field hom induced from `K` to `L` maps `f x / f y` to `g x / g y` for all
 `x : A, y ∈ non_zero_divisors A`. -/
 lemma lift_mk' (hg : injective g) (x) (y : non_zero_divisors A) :
   lift hg (mk' K x y) = g x / g y :=
-by simp only [mk'_eq_div, ring_hom.map_div, lift_algebra_map]
+by simp only [mk'_eq_div, map_div₀, lift_algebra_map]
 
 /-- Given integral domains `A, B` with fields of fractions `K`, `L`
 and an injective ring hom `j : A →+* B`, we get a field hom

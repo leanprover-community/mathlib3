@@ -389,7 +389,7 @@ noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
 disjoint iff `f` is injective . -/
 lemma pairwise_disjoint_image_right_iff {f : α → β → γ} {s : set α} {t : set β}
   (hf : ∀ a ∈ s, injective (f a)) :
-  s.pairwise_disjoint (λ a, f a '' t) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
+  s.pairwise_disjoint (λ a, f a '' t) ↔ (s ×ˢ t).inj_on (λ p, f p.1 p.2) :=
 begin
   refine ⟨λ hs x hx y hy (h : f _ _ = _), _, λ hs x hx y hy h, _⟩,
   { suffices : x.1 = y.1,
@@ -405,7 +405,7 @@ end
 disjoint iff `f` is injective . -/
 lemma pairwise_disjoint_image_left_iff {f : α → β → γ} {s : set α} {t : set β}
   (hf : ∀ b ∈ t, injective (λ a, f a b)) :
-  t.pairwise_disjoint (λ b, (λ a, f a b) '' s) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
+  t.pairwise_disjoint (λ b, (λ a, f a b) '' s) ↔ (s ×ˢ t).inj_on (λ p, f p.1 p.2) :=
 begin
   refine ⟨λ ht x hx y hy (h : f _ _ = _), _, λ ht x hx y hy h, _⟩,
   { suffices : x.2 = y.2,

@@ -1740,6 +1740,10 @@ begin
   exact this.imp_right (λ h, h.2)
 end
 
+lemma to_real_pos_iff_ne_top (p : ℝ≥0∞) [fact (1 ≤ p)] : 0 < p.to_real ↔ p ≠ ∞ :=
+⟨λ h hp, let this : (0 : ℝ) ≠ 0 := top_to_real ▸ (hp ▸ h.ne : 0 ≠ ∞.to_real) in this rfl,
+ λ h, zero_lt_one.trans_le (p.dichotomy.resolve_left h)⟩
+
 lemma to_nnreal_inv (a : ℝ≥0∞) : (a⁻¹).to_nnreal = (a.to_nnreal)⁻¹ :=
 begin
   induction a using with_top.rec_top_coe, { simp },

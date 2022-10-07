@@ -492,7 +492,8 @@ begin
   exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
 end
 
-instance : is_well_order part_enat (<) := ⟨lt_wf⟩
+instance : well_founded_lt part_enat := ⟨lt_wf⟩
+instance : is_well_order part_enat (<) := { }
 instance : has_well_founded part_enat := ⟨(<), lt_wf⟩
 
 section find

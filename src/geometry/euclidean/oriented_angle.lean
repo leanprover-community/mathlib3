@@ -656,7 +656,7 @@ rfl
 by simp only [orthonormal.conj_lie, linear_isometry_equiv.symm_apply_apply, orthonormal.oangle,
   eq_self_iff_true, function.comp_app, complex.arg_coe_angle_eq_iff,
   linear_isometry_equiv.coe_trans, neg_inj, complex.conj_lie_apply, complex.arg_conj_coe_angle,
-  ←(star_ring_end ℂ).map_div]
+  ← map_div₀ (star_ring_end ℂ)]
 
 /-- Any linear isometric equivalence in `V` is `rotation` or `conj_lie` composed with
 `rotation`. -/

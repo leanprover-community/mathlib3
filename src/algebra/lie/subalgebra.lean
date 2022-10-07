@@ -400,8 +400,7 @@ by rw [← mem_coe_submodule, ← mem_coe_submodule, ← mem_coe_submodule, inf_
 lemma eq_bot_iff : K = ⊥ ↔ ∀ (x : L), x ∈ K → x = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_bot : subsingleton (lie_subalgebra R ↥(⊥ : lie_subalgebra R L)) :=
+instance subsingleton_of_bot : subsingleton (lie_subalgebra R ↥(⊥ : lie_subalgebra R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_subalgebra.mem_bot at hx, subst hx,

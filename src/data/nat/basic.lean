@@ -556,7 +556,7 @@ le_iff_le_iff_lt_iff_lt.1 mul_self_le_mul_self_iff
 
 theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_rfl
-| (n+1) := let t := nat.mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
+| (n+1) := by simp
 
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
@@ -1019,6 +1019,15 @@ begin
 end
 
 /-! ### `mod`, `dvd` -/
+
+lemma mod_eq_iff_lt {a b : ℕ} (h : b ≠ 0) : a % b = a ↔ a < b :=
+begin
+  cases b, contradiction,
+  exact ⟨λ h, h.ge.trans_lt (mod_lt _ (succ_pos _)), mod_eq_of_lt⟩,
+end
+
+@[simp] lemma mod_succ_eq_iff_lt {a b : ℕ} : a % b.succ = a ↔ a < b.succ :=
+mod_eq_iff_lt (succ_ne_zero _)
 
 lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=
 (nat.add_comm _ _).trans (mod_add_div _ _)

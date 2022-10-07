@@ -2564,7 +2564,7 @@ begin
 end
 
 lemma subsingleton_sphere (x : γ) {r : ℝ} (hr : r ≤ 0) : (sphere x r).subsingleton :=
-(subsingleton_closed_ball x hr).mono sphere_subset_closed_ball
+(subsingleton_closed_ball x hr).anti sphere_subset_closed_ball
 
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
@@ -2718,8 +2718,6 @@ metric_space.induced coe subtype.coe_injective ‹_›
 
 @[to_additive] instance {α : Type*} [metric_space α] : metric_space (αᵐᵒᵖ) :=
 metric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
-
-local attribute [instance] filter.unique
 
 instance : metric_space empty :=
 { dist := λ _ _, 0,

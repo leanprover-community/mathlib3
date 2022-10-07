@@ -208,7 +208,7 @@ lemma intermediate_field.fixing_subgroup_is_open {K L : Type*} [field K] [field 
   is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
 begin
   have h_basis : E.fixing_subgroup.carrier ∈ (gal_group_basis K L) :=
-   ⟨E.fixing_subgroup, ⟨E, _inst_4, rfl⟩, rfl⟩,
+   ⟨E.fixing_subgroup, ⟨E, ‹_›, rfl⟩, rfl⟩,
   have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
   rw mem_nhds_iff at h_nhd,
   rcases h_nhd with ⟨U, hU_le, hU_open, h1U⟩,

@@ -829,11 +829,9 @@ lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_con
 begin
   -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
   rw normalizer_condition_iff_only_full_group_self_normalizing,
-  unfreezingI
-  { induction h using nilpotent_center_quotient_ind with G' _ _ G' _ _ ih;
-    clear _inst_1 G; rename G' → G, },
-  { rintros H -, apply subsingleton.elim, },
-  { intros H hH,
+  apply nilpotent_center_quotient_ind G; unfreezingI { clear_dependent G },
+  { introsI G _ _ H _, apply subsingleton.elim, },
+  { introsI G _ _ ih H hH,
 
     have hch : center G ≤ H := subgroup.center_le_normalizer.trans (le_of_eq hH),
     have hkh : (mk' (center G)).ker ≤ H, by simpa using hch,

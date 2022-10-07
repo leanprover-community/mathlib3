@@ -327,14 +327,14 @@ begin
       (pow_pos (fact.out p.prime).pos 2)).1 (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
 end
 
-/-- A group of order `p ^ 2` is commutative. See also `is_p_group.comm_group_of_card_eq_prime_sq`
-for the `comm_group` instance. -/
+/-- A group of order `p ^ 2` is commutative. See also `is_p_group.commutative_of_card_eq_prime_sq`
+for just the proof that `∀ a b, a * b = b * a` -/
 def comm_group_of_card_eq_prime_sq (hG : card G = p ^ 2) : comm_group G :=
 @comm_group_of_cycle_center_quotient _ _ _ _ (cyclic_center_quotient_of_card_eq_prime_sq hG) _
   (quotient_group.ker_mk (center G)).le
 
-/-- A group of order `p ^ 2` is commutative. See also `is_p_group.commutative_of_card_eq_prime_sq`
-for just the proof that `∀ a b, a * b = b * a` -/
+/-- A group of order `p ^ 2` is commutative. See also `is_p_group.comm_group_of_card_eq_prime_sq`
+for the `comm_group` instance. -/
 lemma commutative_of_card_eq_prime_sq (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
 (comm_group_of_card_eq_prime_sq hG).mul_comm
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.hitting_time
-import probability.martingale
+import probability.martingale.basic
 
 /-!
 
@@ -43,7 +43,7 @@ convergence theorems.
   stopping time whenever the process it is associated to is adapted.
 * `measure_theory.submartingale.mul_integral_upcrossings_before_le_integral_pos_part`: Doob's
   upcrossing estimate.
-* `measure_theory.submartingale.mul_lintegral_upcrossing_le_lintegral_pos_part`: the inequality
+* `measure_theory.submartingale.mul_lintegral_upcrossings_le_lintegral_pos_part`: the inequality
   obtained by taking the supremum on both sides of Doob's upcrossing estimate.
 
 ### References
@@ -83,7 +83,7 @@ $0 \le f_0$ and $a \le f_N$. In particular, we will show
 $$
   (b - a) \mathbb{E}[U_N(a, b)] \le \mathbb{E}[f_N].
 $$
-This is `measure_theory.integral_mul_upcrossing_le_integral` in our formalization.
+This is `measure_theory.integral_mul_upcrossings_before_le_integral` in our formalization.
 
 To prove this, we use the fact that given a non-negative, bounded, predictable process $(C_n)$
 (i.e. $(C_{n + 1})$ is adapted), $(C \bullet f)_n := \sum_{k \le n} C_{k + 1}(f_{k + 1} - f_k)$ is
@@ -778,7 +778,7 @@ begin
       (integral_nonneg (λ ω, lattice_ordered_comm_group.pos_nonneg _)) }
 end
 
-/-
+/-!
 
 ### Variant of the upcrossing estimate
 

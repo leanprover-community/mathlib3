@@ -356,8 +356,7 @@ begin
   have hcomm: φ'.comp (algebra_map R Rₘ) = (algebra_map S Sₘ).comp φ := is_localization.map_comp _,
   let f := quotient_map (I.comap (algebra_map S Sₘ)) φ le_rfl,
   let g := quotient_map I (algebra_map S Sₘ) le_rfl,
-  have := is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I
-    (by convert hI; casesI _inst_4; refl),
+  have := is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI,
   have := ((is_maximal_iff_is_maximal_disjoint Rₘ x _).1 this).left,
   have : ((I.comap (algebra_map S Sₘ)).comap φ).is_maximal,
   { rwa [comap_comap, hcomm, ← comap_comap] at this },

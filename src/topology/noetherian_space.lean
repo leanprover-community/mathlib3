@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 import order.compactly_generated
 import order.order_iso_nat
-import topology.sets.compacts
+import topology.sets.closeds
 
 /-!
 # Noetherian space

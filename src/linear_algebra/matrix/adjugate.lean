@@ -336,7 +336,7 @@ begin
 end
 
 @[simp] lemma adjugate_fin_zero (A : matrix (fin 0) (fin 0) α) : adjugate A = 0 :=
-@subsingleton.elim _ matrix.subsingleton_of_empty_left _ _
+subsingleton.elim _ _
 
 @[simp] lemma adjugate_fin_one (A : matrix (fin 1) (fin 1) α) : adjugate A = 1 :=
 adjugate_subsingleton A
@@ -442,7 +442,7 @@ begin
   -- get rid of the `- 2`
   cases h_card : (fintype.card n) with n',
   { haveI : is_empty n := fintype.card_eq_zero_iff.mp h_card,
-    exact @subsingleton.elim _ (matrix.subsingleton_of_empty_left) _ _, },
+    apply subsingleton.elim, },
   cases n',
   { exact (h h_card).elim },
   rw ←h_card,

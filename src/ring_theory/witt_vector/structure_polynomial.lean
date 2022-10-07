@@ -382,7 +382,7 @@ variable (R)
 -- we could relax the fintype on `idx`, but then we need to cast from finset to set.
 -- for our applications `idx` is always finite.
 lemma witt_structure_rat_vars [fintype idx] (Φ : mv_polynomial idx ℚ) (n : ℕ) :
-  (witt_structure_rat p Φ n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+  (witt_structure_rat p Φ n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 begin
   rw witt_structure_rat,
   intros x hx,
@@ -399,7 +399,7 @@ end
 -- we could relax the fintype on `idx`, but then we need to cast from finset to set.
 -- for our applications `idx` is always finite.
 lemma witt_structure_int_vars [fintype idx] (Φ : mv_polynomial idx ℤ) (n : ℕ) :
-  (witt_structure_int p Φ n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+  (witt_structure_int p Φ n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 begin
   have : function.injective (int.cast_ring_hom ℚ) := int.cast_injective,
   rw [← vars_map_of_injective _ this, map_witt_structure_int],

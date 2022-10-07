@@ -132,7 +132,7 @@ begin
   by_contra q,
   push_neg at q,
   -- Then the labels `(a_i, b_i)` all fit in the following set: `{ (x,y) | 1 ≤ x ≤ r, 1 ≤ y ≤ s }`
-  let ran : finset (ℕ × ℕ) := ((range r).image nat.succ).product ((range s).image nat.succ),
+  let ran : finset (ℕ × ℕ) := (range r).image nat.succ ×ˢ (range s).image nat.succ,
   -- which we prove here.
   have : image ab univ ⊆ ran,
   -- First some logical shuffling

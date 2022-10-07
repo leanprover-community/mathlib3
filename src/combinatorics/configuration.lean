@@ -45,6 +45,7 @@ def dual := P
 
 instance [this : inhabited P] : inhabited (dual P) := this
 
+instance [finite P] : finite (dual P) := ‹finite P›
 instance [this : fintype P] : fintype (dual P) := this
 
 instance : has_mem (dual L) (dual P) :=
@@ -166,11 +167,12 @@ end
 variables {P L}
 
 lemma has_lines.point_count_le_line_count [has_lines P L] {p : P} {l : L} (h : p ∉ l)
-  [fintype {l : L // p ∈ l}] : point_count P l ≤ line_count L p :=
+  [finite {l : L // p ∈ l}] : point_count P l ≤ line_count L p :=
 begin
   by_cases hf : infinite {p : P // p ∈ l},
   { exactI (le_of_eq nat.card_eq_zero_of_infinite).trans (zero_le (line_count L p)) },
   haveI := fintype_of_not_infinite hf,
+  casesI nonempty_fintype {l : L // p ∈ l},
   rw [line_count, point_count, nat.card_eq_fintype_card, nat.card_eq_fintype_card],
   have : ∀ p' : {p // p ∈ l}, p ≠ p' := λ p' hp', h ((congr_arg (∈ l) hp').mpr p'.2),
   exact fintype.card_le_of_injective (λ p', ⟨mk_line (this p'), (mk_line_ax (this p')).1⟩)
@@ -180,7 +182,7 @@ begin
 end
 
 lemma has_points.line_count_le_point_count [has_points P L] {p : P} {l : L} (h : p ∉ l)
-  [hf : fintype {p : P // p ∈ l}] : line_count L p ≤ point_count P l :=
+  [hf : finite {p : P // p ∈ l}] : line_count L p ≤ point_count P l :=
 @has_lines.point_count_le_line_count (dual L) (dual P) _ _ l p h hf
 
 variables (P L)
@@ -323,7 +325,9 @@ instance has_points [h : projective_plane P L] : has_points P L := { .. h }
 @[priority 100] -- see Note [lower instance priority]
 instance has_lines [h : projective_plane P L] : has_lines P L := { .. h }
 
-instance [projective_plane P L] : projective_plane (dual L) (dual P) :=
+variables [projective_plane P L]
+
+instance : projective_plane (dual L) (dual P) :=
 { mk_line := @mk_point P L _ _,
   mk_line_ax := λ _ _, mk_point_ax,
   mk_point := @mk_line P L _ _,
@@ -336,19 +340,19 @@ instance [projective_plane P L] : projective_plane (dual L) (dual P) :=
 
 /-- The order of a projective plane is one less than the number of lines through an arbitrary point.
 Equivalently, it is one less than the number of points on an arbitrary line. -/
-noncomputable def order [projective_plane P L] : ℕ :=
+noncomputable def order : ℕ :=
 line_count L (classical.some (@exists_config P L _ _)) - 1
 
-variables [fintype P] [fintype L]
-
-lemma card_points_eq_card_lines [projective_plane P L] : fintype.card P = fintype.card L :=
+lemma card_points_eq_card_lines [fintype P] [fintype L] : fintype.card P = fintype.card L :=
 le_antisymm (has_lines.card_le P L) (has_points.card_le P L)
 
 variables {P} (L)
 
-lemma line_count_eq_line_count [projective_plane P L] (p q : P) :
+lemma line_count_eq_line_count [finite P] [finite L] (p q : P) :
   line_count L p = line_count L q :=
 begin
+  casesI nonempty_fintype P,
+  casesI nonempty_fintype L,
   obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, h₁₂, h₁₃, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ := exists_config,
   have h := card_points_eq_card_lines P L,
   let n := line_count L p₂,
@@ -366,28 +370,30 @@ end
 
 variables (P) {L}
 
-lemma point_count_eq_point_count [projective_plane P L] (l m : L) :
+lemma point_count_eq_point_count [finite P] [finite L] (l m : L) :
   point_count P l = point_count P m :=
 line_count_eq_line_count (dual P) l m
 
 variables {P L}
 
-lemma line_count_eq_point_count [projective_plane P L] (p : P) (l : L) :
+lemma line_count_eq_point_count [finite P] [finite L] (p : P) (l : L) :
   line_count L p = point_count P l :=
-exists.elim (exists_point l) (λ q hq, (line_count_eq_line_count L p q).trans
-  (has_lines.line_count_eq_point_count (card_points_eq_card_lines P L) hq))
+exists.elim (exists_point l) $ λ q hq, (line_count_eq_line_count L p q).trans $
+  by { casesI nonempty_fintype P, casesI nonempty_fintype L,
+    exact has_lines.line_count_eq_point_count (card_points_eq_card_lines P L) hq }
 
 variables (P L)
 
-lemma dual.order [projective_plane P L] : order (dual L) (dual P) = order P L :=
+lemma dual.order [finite P] [finite L] : order (dual L) (dual P) = order P L :=
 congr_arg (λ n, n - 1) (line_count_eq_point_count _ _)
 
 variables {P} (L)
 
-lemma line_count_eq [projective_plane P L] (p : P) : line_count L p = order P L + 1 :=
+lemma line_count_eq [finite P] [finite L] (p : P) : line_count L p = order P L + 1 :=
 begin
   classical,
   obtain ⟨q, -, -, l, -, -, -, -, h, -⟩ := classical.some_spec (@exists_config P L _ _),
+  casesI nonempty_fintype {l : L // q ∈ l},
   rw [order, line_count_eq_line_count L p q, line_count_eq_line_count L (classical.some _) q,
       line_count, nat.card_eq_fintype_card, nat.sub_add_cancel],
   exact fintype.card_pos_iff.mpr ⟨⟨l, h⟩⟩,
@@ -395,16 +401,17 @@ end
 
 variables (P) {L}
 
-lemma point_count_eq [projective_plane P L] (l : L) : point_count P l = order P L + 1 :=
+lemma point_count_eq [finite P] [finite L] (l : L) : point_count P l = order P L + 1 :=
 (line_count_eq (dual P) l).trans (congr_arg (λ n, n + 1) (dual.order P L))
 
 variables (P L)
 
-lemma one_lt_order [projective_plane P L] : 1 < order P L :=
+lemma one_lt_order [finite P] [finite L] : 1 < order P L :=
 begin
   obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, -, -, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ := @exists_config P L _ _,
   classical,
-  rw [←add_lt_add_iff_right, ←point_count_eq, point_count, nat.card_eq_fintype_card],
+  casesI nonempty_fintype {p : P // p ∈ l₂},
+  rw [←add_lt_add_iff_right, ←point_count_eq _ l₂, point_count, nat.card_eq_fintype_card],
   simp_rw [fintype.two_lt_card_iff, ne, subtype.ext_iff],
   have h := mk_point_ax (λ h, h₂₁ ((congr_arg _ h).mpr h₂₂)),
   exact ⟨⟨mk_point _, h.2⟩, ⟨p₂, h₂₂⟩, ⟨p₃, h₃₂⟩,
@@ -413,18 +420,19 @@ end
 
 variables {P} (L)
 
-lemma two_lt_line_count [projective_plane P L] (p : P) : 2 < line_count L p :=
+lemma two_lt_line_count [finite P] [finite L] (p : P) : 2 < line_count L p :=
 by simpa only [line_count_eq L p, nat.succ_lt_succ_iff] using one_lt_order P L
 
 variables (P) {L}
 
-lemma two_lt_point_count [projective_plane P L] (l : L) : 2 < point_count P l :=
+lemma two_lt_point_count [finite P] [finite L] (l : L) : 2 < point_count P l :=
 by simpa only [point_count_eq P l, nat.succ_lt_succ_iff] using one_lt_order P L
 
 variables (P) (L)
 
-lemma card_points [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
+lemma card_points [fintype P] [finite L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
 begin
+  casesI nonempty_fintype L,
   obtain ⟨p, -⟩ := @exists_config P L _ _,
   let ϕ : {q // q ≠ p} ≃ Σ (l : {l : L // p ∈ l}), {q // q ∈ l.1 ∧ q ≠ p} :=
   { to_fun := λ q, ⟨⟨mk_line q.2, (mk_line_ax q.2).2⟩, q, (mk_line_ax q.2).1, q.2⟩,
@@ -447,7 +455,8 @@ begin
   rw [←nat.card_eq_fintype_card, ←line_count, line_count_eq, smul_eq_mul, nat.succ_mul, sq],
 end
 
-lemma card_lines [projective_plane P L] : fintype.card L = order P L ^ 2 + order P L + 1 :=
+lemma card_lines [finite P] [fintype L] :
+  fintype.card L = order P L ^ 2 + order P L + 1 :=
 (card_points (dual L) (dual P)).trans (congr_arg (λ n, n ^ 2 + n + 1) (dual.order P L))
 
 end projective_plane

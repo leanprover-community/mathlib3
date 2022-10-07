@@ -405,7 +405,7 @@ do ((), body) ← solve_aux type tac,
 /-- `eval_expr' α e` attempts to evaluate the expression `e` in the type `α`.
 This is a variant of `eval_expr` in core. Due to unexplained behavior in the VM, in rare
 situations the latter will fail but the former will succeed. -/
-meta def eval_expr' (α : Type*) [_inst_1 : reflected _ α] (e : expr) : tactic α :=
+meta def eval_expr' (α : Type*) [reflected _ α] (e : expr) : tactic α :=
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,

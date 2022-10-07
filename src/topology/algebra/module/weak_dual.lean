@@ -96,6 +96,7 @@ variables (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 instance : topological_space (weak_bilin B) :=
 topological_space.induced (λ x y, B x y) Pi.topological_space
 
+/-- The coercion `(λ x y, B x y) : E → (F → 𝕜)` is continuous. -/
 lemma coe_fn_continuous : continuous (λ (x : weak_bilin B) y, B x y) :=
 continuous_induced_dom
 

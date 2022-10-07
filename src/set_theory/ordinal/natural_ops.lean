@@ -66,6 +66,7 @@ variables {a b c : nat_ordinal.{u}}
 @[simp] theorem to_ordinal_to_nat_ordinal (a : nat_ordinal) : a.to_ordinal.to_nat_ordinal = a := rfl
 
 theorem lt_wf : @well_founded nat_ordinal (<) := ordinal.lt_wf
+instance : well_founded_lt nat_ordinal := ordinal.well_founded_lt
 instance : is_well_order nat_ordinal (<) := ordinal.has_lt.lt.is_well_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl

@@ -27,7 +27,7 @@ the continuum hypothesis*][flypitch_itp]
 
 -/
 
-universes u v u' v' w
+universes u v u' v' w w'
 
 namespace first_order
 namespace language
@@ -179,7 +179,17 @@ class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
 (map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
   rel_map (ϕ.on_relation R) x = rel_map R x)
 
-attribute [simp] is_expansion_on.map_on_function is_expansion_on.map_on_relation
+@[simp] lemma map_on_function {M : Type*}
+  [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
+  {n} (f : L.functions n) (x : fin n → M) :
+  fun_map (ϕ.on_function f) x = fun_map f x :=
+is_expansion_on.map_on_function f x
+
+@[simp] lemma map_on_relation {M : Type*}
+  [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
+  {n} (R : L.relations n) (x : fin n → M) :
+  rel_map (ϕ.on_relation R) x = rel_map R x :=
+is_expansion_on.map_on_relation R x
 
 instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
@@ -210,6 +220,18 @@ instance sum_inr_is_expansion_on (M : Type*)
   [L.Structure M] [L'.Structure M] :
   (Lhom.sum_inr : L' →ᴸ L.sum L').is_expansion_on M :=
 ⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
+@[simp] lemma fun_map_sum_inl [(L.sum L').Structure M]
+  [(Lhom.sum_inl : L →ᴸ L.sum L').is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L.sum L') M _ n (sum.inl f) x = fun_map f x :=
+(Lhom.sum_inl : L →ᴸ L.sum L').map_on_function f x
+
+@[simp] lemma fun_map_sum_inr [(L'.sum L).Structure M]
+  [(Lhom.sum_inr : L →ᴸ L'.sum L).is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L'.sum L) M _ n (sum.inr f) x = fun_map f x :=
+(Lhom.sum_inr : L →ᴸ L'.sum L).map_on_function f x
 
 @[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
   @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
@@ -307,15 +329,15 @@ section with_constants
 variable (L)
 
 section
-variables (α : Type w)
+variables (α : Type w')
 
 /-- Extends a language with a constant for each element of a parameter set in `M`. -/
-def with_constants : language.{(max u w) v} := L.sum (constants_on α)
+def with_constants : language.{(max u w') v} := L.sum (constants_on α)
 
 localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 
 @[simp] lemma card_with_constants :
-  (L[[α]]).card = cardinal.lift.{w} L.card + cardinal.lift.{max u v} (# α) :=
+  (L[[α]]).card = cardinal.lift.{w'} L.card + cardinal.lift.{max u v} (# α) :=
 by rw [with_constants, card_sum, card_constants_on]
 
 /-- The language map adding constants.  -/
@@ -345,6 +367,18 @@ variables (L) (α)
     exact trans (congr rfl (subsingleton.elim _ _)) Lhom.sum_elim_inl_inr } }
 
 variables {α} {β : Type*}
+
+@[simp] lemma with_constants_fun_map_sum_inl [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L[[α]]) M _ n (sum.inl f) x = fun_map f x :=
+(Lhom_with_constants L α).map_on_function f x
+
+@[simp] lemma with_constants_rel_map_sum_inl [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {R : L.relations n} {x : fin n → M} :
+  @rel_map (L[[α]]) M _ n (sum.inl R) x = rel_map R x :=
+(Lhom_with_constants L α).map_on_relation R x
 
 /-- The language map extending the constant set.  -/
 def Lhom_with_constants_map (f : α → β) : L[[α]] →ᴸ L[[β]] :=
@@ -387,6 +421,13 @@ instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ
   [φ.is_expansion_on M] :
   (φ.add_constants α).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
+
+@[simp] lemma with_constants_fun_map_sum_inr {a : α} {x : fin 0 → M} :
+  @fun_map (L[[α]]) M _ 0 (sum.inr a : L[[α]].functions 0) x = L.con a :=
+begin
+  rw unique.eq_default x,
+  exact (Lhom.sum_inr : (constants_on α) →ᴸ L.sum _).map_on_function _ _,
+end
 
 variables {α} (A : set M)
 

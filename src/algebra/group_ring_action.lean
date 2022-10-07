@@ -40,8 +40,8 @@ class mul_semiring_action (M : Type u) (R : Type v) [monoid M] [semiring R]
 
 section semiring
 
-variables (M G : Type u) [monoid M] [group G]
-variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [division_ring F]
+variables (M G K N : Type u) [monoid M] [group G] [ring K] [ring N]
+variables (A R S F B: Type v) [add_monoid A] [semiring R] [comm_semiring S] [division_ring F][ring B]
 
 -- note we could not use `extends` since these typeclasses are made with `old_structure_cmd`
 @[priority 100]
@@ -64,6 +64,19 @@ theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_smul M R] 
 def mul_semiring_action.to_ring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
 { .. distrib_mul_action.to_add_equiv R x,
   .. mul_semiring_action.to_ring_hom G R x }
+
+/-- A multiplicative action of `N` on `B` and a ring homomorphism `K →+* N` induce
+a multiplicative action of `K` on `B`. -/
+
+def mul_semiring_action.comp_hom (g : K →+* N) [mul_semiring_action N B] :
+mul_semiring_action K B :=
+{ smul := has_smul.comp.smul g,
+  one_smul := λ a, by simp only [has_smul.comp.smul, map_one, one_smul],
+  smul_zero:= λ n, by simp only [has_smul.comp.smul, smul_zero],
+  smul_one := λ x, by simp [has_smul.comp.smul, smul_one],
+  smul_mul := λ n x y, by simp [has_smul.comp.smul, smul_mul'],
+  smul_add := λ n x y, by simp [has_smul.comp.smul, smul_add],
+  mul_smul := λ x y a, by simp only [has_smul.comp.smul, map_mul,mul_smul (g x) (g y) a] }
 
 section
 variables {M G R}

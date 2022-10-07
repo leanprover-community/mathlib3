@@ -1391,7 +1391,7 @@ begin
   exact ⟨λ s₀ h₀, (hx (s₀, s₂) ⟨h₀, h₂⟩).1, λ s₀ h₀, (hx (s₁, s₀) ⟨h₁, h₀⟩).2⟩,
 end
 
-lemma sInter_prod (S : set (set α)) (hS : S.nonempty) (t : set β) :
+lemma sInter_prod {S : set (set α)} (hS : S.nonempty) (t : set β) :
   ⋂₀ S ×ˢ t  = ⋂ s ∈ S, s ×ˢ t :=
 begin
   rw [←sInter_singleton t, sInter_prod_sInter S {t} hS (singleton_nonempty t), sInter_singleton,

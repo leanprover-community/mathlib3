@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.hom.aut
 import algebra.ring.equiv
+import algebra.group_ring_action
 
 /-!
 # Ring automorphisms
@@ -59,5 +60,15 @@ by refine_struct { to_fun := ring_equiv.to_mul_equiv }; intros; refl
 /-- Monoid homomorphism from ring automorphisms to permutations. -/
 def to_perm : ring_aut R →* equiv.perm R :=
 by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
+
+/-- The tautological action by `ring_equiv R R` on `R`.-/
+instance apply_mul_semiring_action {R : Type*} [ring R] : mul_semiring_action (ring_aut R) R :=
+{ smul := ($),
+  smul_zero := ring_equiv.map_zero,
+  smul_add := ring_equiv.map_add,
+  smul_one := ring_equiv.map_one,
+  smul_mul := ring_equiv.map_mul,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
 
 end ring_aut

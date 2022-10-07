@@ -364,6 +364,8 @@ begin
     exact le_csupr (bdd_above_of_small _) (⟨_, hb.succ_lt h⟩ : Iio b) }
 end
 
+lemma beth_mono : monotone beth := beth_strict_mono.monotone
+
 @[simp] theorem beth_lt {o₁ o₂ : ordinal} : beth o₁ < beth o₂ ↔ o₁ < o₂ :=
 beth_strict_mono.lt_iff_lt
 
@@ -390,6 +392,15 @@ aleph_0_pos.trans_le $ aleph_0_le_beth o
 
 theorem beth_ne_zero (o : ordinal) : beth o ≠ 0 :=
 (beth_pos o).ne'
+
+lemma beth_normal : ordinal.is_normal.{u} (λ o, (beth o).ord) :=
+(ordinal.is_normal_iff_strict_mono_limit _).2 ⟨ord_strict_mono.comp beth_strict_mono, λ o ho a ha,
+  begin
+    have : bdd_above (range $ λ b : Iio o, beth.{u} b) :=
+      ⟨beth o, forall_range_iff.2 $ λ b, beth_mono $ le_of_lt b.2⟩,
+    rw [beth_limit ho, ordinal.supr_ord this],
+    exact csupr_le' (λ b, ha _ b.2),
+  end⟩
 
 /-! ### Properties of `mul` -/
 

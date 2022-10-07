@@ -86,10 +86,7 @@ end
 
 lemma central_moment_two_eq_variance [is_finite_measure μ] (hX : mem_ℒp X 2 μ) :
   central_moment X 2 μ = variance X μ :=
-begin
-  rw hX.variance_eq,
-  refl,
-end
+by { rw hX.variance_eq, refl, }
 
 section moment_generating_function
 

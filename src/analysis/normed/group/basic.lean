@@ -1153,7 +1153,7 @@ lemma nnnorm_prod_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (
   ∥∏ b in s, f b∥₊ ≤ ∑ b in s, n b :=
 (norm_prod_le_of_le s h).trans_eq nnreal.coe_sum.symm
 
-lemma real.to_nnreal_nonneg_eq_nnnorm {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
+lemma real.to_nnreal_eq_nnnorm_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
 begin
   rw real.to_nnreal_of_nonneg hr,
   congr,

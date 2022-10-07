@@ -93,10 +93,7 @@ end
 lemma _root_.measure_theory.mem_ℒp.of_real_variance_eq [is_finite_measure μ]
   (hX : mem_ℒp X 2 μ) :
   ennreal.of_real (variance X μ) = evariance X μ :=
-begin
-  rw [variance, ennreal.of_real_to_real],
-  exact hX.evariance_lt_top.ne,
-end
+by { rw [variance, ennreal.of_real_to_real], exact hX.evariance_lt_top.ne, }
 
 include m
 
@@ -277,7 +274,7 @@ begin
     exact hℒ (λ _, zero_le_two) }
 end
 
-/-- *Chebyshev's inequality* for `ℝ≥0∞`-valued variancces. -/
+/-- *Chebyshev's inequality* for `ℝ≥0∞`-valued variance. -/
 theorem meas_ge_le_evariance_div_sq {X : Ω → ℝ}
   (hX : ae_strongly_measurable X ℙ) {c : ℝ≥0} (hc : c ≠ 0) :
   ℙ {ω | ↑c ≤ |X ω - 𝔼[X]|} ≤ eVar[X] / c ^ 2 :=

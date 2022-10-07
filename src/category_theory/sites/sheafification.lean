@@ -606,6 +606,11 @@ def presheaf_to_Sheaf : (Cᵒᵖ ⥤ D) ⥤ Sheaf J D :=
   map_id' := λ P, Sheaf.hom.ext _ _ $ J.sheafify_map_id _,
   map_comp' := λ P Q R f g, Sheaf.hom.ext _ _ $ J.sheafify_map_comp _ _ }
 
+instance presheaf_to_Sheaf_preserves_zero_morphisms [preadditive D] :
+  (presheaf_to_Sheaf J D).preserves_zero_morphisms  :=
+{ map_zero' := λ F G, by { ext, erw [colimit.ι_map, comp_zero, J.plus_map_zero,
+    J.diagram_nat_trans_zero, zero_comp] } }
+
 /-- The sheafification functor is left adjoint to the forgetful functor. -/
 @[simps unit_app counit_app_val]
 def sheafification_adjunction : presheaf_to_Sheaf J D ⊣ Sheaf_to_presheaf J D :=

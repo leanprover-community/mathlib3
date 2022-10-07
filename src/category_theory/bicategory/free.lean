@@ -65,16 +65,16 @@ section
 variables {B}
 
 -- The following notations are only used in the definition of `rel` to simplify the notation.
-local infixr ` ≫ ` := hom₂.vcomp
-local notation `𝟙` := hom₂.id
-local notation f ` ◁ ` η := hom₂.whisker_left f η
-local notation η ` ▷ ` h := hom₂.whisker_right h η
-local notation `α_` := hom₂.associator
-local notation `λ_` := hom₂.left_unitor
-local notation `ρ_` := hom₂.right_unitor
-local notation `α⁻¹_` := hom₂.associator_inv
-local notation `λ⁻¹_` := hom₂.left_unitor_inv
-local notation `ρ⁻¹_` := hom₂.right_unitor_inv
+local infixr (name := vcomp) ` ≫ ` := hom₂.vcomp
+local notation (name := id) `𝟙` := hom₂.id
+local notation (name := whisker_left) f ` ◁ ` η := hom₂.whisker_left f η
+local notation (name := whisker_right) η ` ▷ ` h := hom₂.whisker_right h η
+local notation (name := associator) `α_` := hom₂.associator
+local notation (name := left_unitor) `λ_` := hom₂.left_unitor
+local notation (name := right_unitor) `ρ_` := hom₂.right_unitor
+local notation (name := associator_inv) `α⁻¹_` := hom₂.associator_inv
+local notation (name := left_unitor_inv) `λ⁻¹_` := hom₂.left_unitor_inv
+local notation (name := right_unitor_inv) `ρ⁻¹_` := hom₂.right_unitor_inv
 
 /-- Relations between 2-morphisms in the free bicategory. -/
 inductive rel : Π {a b : B} {f g : hom a b}, hom₂ f g → hom₂ f g → Prop

@@ -127,6 +127,11 @@ lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := sub
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 :=
 submodule.span_singleton_eq_bot
 
+lemma span_singleton_ne_top {α : Type*} [comm_semiring α] {x : α} (hx : ¬ is_unit x) :
+  ideal.span ({x} : set α) ≠ ⊤ :=
+(ideal.ne_top_iff_one _).mpr $ λ h1, let ⟨y, hy⟩ := ideal.mem_span_singleton'.mp h1 in
+  hx ⟨⟨x, y, mul_comm y x ▸ hy, hy⟩, rfl⟩
+
 @[simp] lemma span_zero : span (0 : set α) = ⊥ := by rw [←set.singleton_zero, span_singleton_eq_bot]
 
 @[simp] lemma span_one : span (1 : set α) = ⊤ := by rw [←set.singleton_one, span_singleton_one]
@@ -151,12 +156,12 @@ class is_prime (I : ideal α) : Prop :=
 
 theorem is_prime_iff {I : ideal α} :
   is_prime I ↔ I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+⟨λ h, ⟨h.1, λ _ _, h.2⟩, λ h, ⟨h.1, λ _ _, h.2⟩⟩
 
 theorem is_prime.ne_top {I : ideal α} (hI : I.is_prime) : I ≠ ⊤ := hI.1
 
-theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
-  ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
+theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) {x y : α} :
+  x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
 
 theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
@@ -300,6 +305,20 @@ def pi : ideal (ι → α) :=
 lemma mem_pi (x : ι → α) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
 
 end pi
+
+lemma Inf_is_prime_of_is_chain {s : set (ideal α)} (hs : s.nonempty) (hs' : is_chain (≤) s)
+  (H : ∀ p ∈ s, ideal.is_prime p) :
+  (Inf s).is_prime :=
+⟨λ e, let ⟨x, hx⟩ := hs in (H x hx).ne_top (eq_top_iff.mpr (e.symm.trans_le (Inf_le hx))),
+  λ x y e, or_iff_not_imp_left.mpr $ λ hx, begin
+    rw ideal.mem_Inf at hx ⊢ e,
+    push_neg at hx,
+    obtain ⟨I, hI, hI'⟩ := hx,
+    intros J hJ,
+    cases hs'.total hI hJ,
+    { exact h (((H I hI).mem_or_mem (e hI)).resolve_left hI') },
+    { exact ((H J hJ).mem_or_mem (e hJ)).resolve_left (λ x, hI' $ h x) },
+  end⟩
 
 end ideal
 
@@ -499,6 +518,10 @@ begin
   by_cases H : r = 0, {simpa},
   simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
+
+/-- Ideals of a `division_ring` are a simple order. Thanks to the way abbreviations work, this
+automatically gives a `is_simple_module K` instance. -/
+instance : is_simple_order (ideal K) := ⟨eq_bot_or_top⟩
 
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1

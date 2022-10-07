@@ -110,12 +110,20 @@ end
 
 end symmetrify
 
+namespace path
+
+def is_reducible {V} [quiver V] [has_involutive_reverse V] {X Y : V} (r : path X Y) :=
+  ( ∃ (Z W : V) (p : path X Z) (f : Z ⟶ W) (q : path Z Y),
+        r = ((p.comp (f.to_path.cons $ quiver.reverse f)).comp q) )
+
+end path
+
 /--
 `V` is a forest if there is at most one path between any two of its vertices, in the
 symmetrification of `V`
 -/
-def is_forest (V) [quiver V] :=
-  ∀ (X Y : V), subsingleton (@quiver.path (symmetrify V) (quiver.symmetrify_quiver V) X Y)
+def is_forest (V) [quiver V] [has_involutive_reverse V] :=
+  ∀ (X Y : V), subsingleton { p : path X Y | ¬ p.is_reducible }
 
 section reduction
 

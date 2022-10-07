@@ -6,6 +6,26 @@ Authors: David Wärn
 import data.set.basic
 import combinatorics.quiver.basic
 
+
+section subquiver
+
+universes v u
+
+variables (V : Type u) [quiver.{v+1} V]
+
+structure subquiver :=
+( vertices : set V )
+( arrows : ∀ ⦃X Y : V⦄, (X ∈ vertices) → (Y ∈ vertices) → set (X ⟶ Y) )
+
+variable (V)
+
+def is_subquiver (S T : subquiver V) : Prop :=
+∃ (h : ∀ ⦃X⦄, X ∈ S.vertices → X ∈ T.vertices),
+  ∀ ⦃X Y : V⦄ (hX : X ∈ S.vertices) (hY :Y ∈ S.vertices),
+    S.arrows hX hY ⊆ T.arrows (h hX) (h hY)
+
+end subquiver
+
 /-!
 ## Wide subquivers
 

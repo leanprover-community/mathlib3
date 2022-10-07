@@ -74,6 +74,8 @@ instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
 { reverse' := λ X Y f, groupoid.inv f
 , inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
 
+@[simp] lemma groupoid.reverse_eq_inv (f : X ⟶ Y) : quiver.reverse f = groupoid.inv f := rfl
+
 variables (X Y)
 
 /-- In a groupoid, isomorphisms are equivalent to morphisms. -/

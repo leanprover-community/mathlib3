@@ -929,9 +929,8 @@ end
 
 lemma cycle_factors_finset_eq_finset {σ : perm α} {s : finset (perm α)} :
   σ.cycle_factors_finset = s ↔ (∀ f : perm α, f ∈ s → f.is_cycle) ∧
-    (∃ h : (∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b), s.noncomm_prod id
-      (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-        (set.pairwise.mono' (λ _ _, disjoint.commute) h ha hb)) = σ) :=
+    ∃ h : (s : set (perm α)).pairwise_disjoint id, s.noncomm_prod id
+      (h.mono' $ λ _ _, disjoint.commute) = σ :=
 begin
   obtain ⟨l, hl, rfl⟩ := s.exists_list_nodup_eq,
   rw cycle_factors_finset_eq_list_to_finset hl,
@@ -941,32 +940,24 @@ begin
   exact ⟨list.pairwise.forall disjoint.symmetric, hl.pairwise_of_forall_ne⟩
 end
 
-lemma cycle_factors_finset_pairwise_disjoint (p : perm α) (hp : p ∈ cycle_factors_finset f)
-  (q : perm α) (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
-  disjoint p q :=
+lemma cycle_factors_finset_pairwise_disjoint :
+  (cycle_factors_finset f : set (perm α)).pairwise_disjoint id :=
 begin
-  have : f.cycle_factors_finset = f.cycle_factors_finset := rfl,
-  obtain ⟨-, hd, -⟩ := cycle_factors_finset_eq_finset.mp this,
-  exact hd p hp q hq h
+  obtain ⟨-, hd, -⟩ := cycle_factors_finset_eq_finset.mp (eq.refl f.cycle_factors_finset),
+  exact hd,
 end
 
-lemma cycle_factors_finset_mem_commute (p : perm α) (hp : p ∈ cycle_factors_finset f)
-  (q : perm α) (hq : q ∈ cycle_factors_finset f) :
-  _root_.commute p q :=
-begin
-  by_cases h : p = q,
-  { exact h ▸ commute.refl _ },
-  { exact (cycle_factors_finset_pairwise_disjoint _ _ hp _ hq h).commute }
-end
+lemma cycle_factors_finset_mem_commute :
+  (cycle_factors_finset f : set (perm α)).pairwise commute :=
+(cycle_factors_finset_pairwise_disjoint _).mono' $ λ _ _, disjoint.commute
 
 /-- The product of cycle factors is equal to the original `f : perm α`. -/
 lemma cycle_factors_finset_noncomm_prod
-  (comm : ∀ (g ∈ f.cycle_factors_finset) (h ∈ f.cycle_factors_finset),
-    commute (id g) (id h) := cycle_factors_finset_mem_commute f) :
-  f.cycle_factors_finset.noncomm_prod id (comm) = f :=
+  (comm : (cycle_factors_finset f : set (perm α)).pairwise commute :=
+    cycle_factors_finset_mem_commute f) :
+  f.cycle_factors_finset.noncomm_prod id comm = f :=
 begin
-  have : f.cycle_factors_finset = f.cycle_factors_finset := rfl,
-  obtain ⟨-, hd, hp⟩ := cycle_factors_finset_eq_finset.mp this,
+  obtain ⟨-, hd, hp⟩ := cycle_factors_finset_eq_finset.mp (eq.refl f.cycle_factors_finset),
   exact hp
 end
 

@@ -62,7 +62,7 @@ def to_perm : ring_aut R →* equiv.perm R :=
 by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
 
 /-- The tautological action by the group of automorphism of a ring `R` on `R`.-/
-instance apply_mul_semiring_action {R : Type*} [ring R] : mul_semiring_action (ring_aut R) R :=
+instance apply_mul_semiring_action : mul_semiring_action (ring_aut R) R :=
 { smul := ($),
   smul_zero := ring_equiv.map_zero,
   smul_add := ring_equiv.map_add,

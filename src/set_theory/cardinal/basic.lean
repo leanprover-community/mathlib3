@@ -1425,10 +1425,10 @@ lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : #s ≤ #t :=
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀ x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
 ⟨embedding_of_subset _ _ h⟩
 
-lemma le_mk_sdiff_add_mk (S T : set α) : #S ≤ #(S \ T : set α) + #T :=
+lemma le_mk_diff_add_mk (S T : set α) : #S ≤ #(S \ T : set α) + #T :=
 (mk_le_mk_of_subset $ subset_diff_union _ _).trans $ mk_union_le _ _
 
-lemma mk_sdiff_add_mk {S T : set α} (h : T ⊆ S) : #(S \ T : set α) + #T = #S :=
+lemma mk_diff_add_mk {S T : set α} (h : T ⊆ S) : #(S \ T : set α) + #T = #S :=
 (mk_union_of_disjoint $ by exact disjoint_sdiff_self_left).symm.trans $ by rw diff_union_of_subset h
 
 lemma mk_union_le_aleph_0 {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ℵ₀ ↔ #P ≤ ℵ₀ ∧ #Q ≤ ℵ₀ :=

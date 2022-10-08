@@ -327,6 +327,8 @@ lemma singletons_open_iff_discrete {X : Type*} [topological_space X] :
   (∀ a : X, is_open ({a} : set X)) ↔ discrete_topology X :=
 ⟨λ h, ⟨eq_bot_of_singletons_open h⟩, λ a _, @is_open_discrete _ _ a _⟩
 
+/-- This lemma characterizes discrete topological spaces as those whose singletons are
+neighbourhoods. -/
 lemma discrete_topology_iff_nhds [topological_space α] :
   discrete_topology α ↔ ∀ x : α, 𝓝 x = pure x :=
 begin

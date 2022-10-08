@@ -39,51 +39,13 @@ TODO: Path-induced homomorphisms. Show that `pi1_equiv_fundamental_group` is a g
 -/
 
 open_locale unit_interval topological_space
+open homeomorph
 
 noncomputable theory
 
 universes u
 variables {X : Type u} [topological_space X]
 variables {N : Type*} {x : X}
-
-section merge_split
-
-variables (Y : Type*) [topological_space Y]
-
-lemma symm_comp_to_continuous_map (f : X ≃ₜ Y) :
-  f.symm.to_continuous_map.comp f.to_continuous_map = continuous_map.id X :=
-by { ext, apply f.to_equiv.symm_apply_apply }
--- TODO: move to the end of topology.continuous_function.basic and add the swapped version.
-
-variable [decidable_eq N]
-
-/--Equivalence of an `N` indexed type `Y` with index `i : N` detached. -/
-@[simps] def merge_split_equiv (Y : Type*) (i : N) : Y × ({j // j ≠ i} → Y) ≃ (N → Y) :=
--- lint complains of unused topological_space instace so we use a fresh Y
--- maybe use (n : N) everywhere? use (n : ℕ) only in the final section?
-{ to_fun := λ y j, if h : j = i then y.1 else y.2 ⟨j, h⟩,
-  inv_fun := λ f, ⟨f i, λ j, f j⟩,
-  left_inv := λ y, by { ext; dsimp only, {rw dif_pos rfl}, {rw [dif_neg x.prop, subtype.coe_eta]} },
-  right_inv := λ y, by { ext j, dsimp only, split_ifs, { rw h }, { refl } } }
--- TODO: move to logic.equiv.basic around equiv.pi_option_equiv_prod
--- should it be generalized to a type family like equiv.pi_option_equiv_prod?
--- (may cause some unification issue when applied to a const family, but usually tolerable)
--- What's a more descriptive name? Maybe equiv.prod_pi_erase_equiv_pi?
-
-/--Homeomorphism of an `N` indexed type `Y` with index `i : N` detached. -/
-@[simps] def merge_split (i : N) : Y × ({j // j ≠ i} → Y) ≃ₜ (N → Y) :=
-{ to_equiv := merge_split_equiv Y i,
-  continuous_to_fun := continuous_pi $ λ j, by { dsimp only [merge_split_equiv],
-    split_ifs,
-    exacts [continuous_fst, (continuous_apply _).comp continuous_snd] },
-  continuous_inv_fun := (continuous_apply i).prod_mk (continuous_pi $ λ j, continuous_apply j) }
--- TODO: move to topology.homeomorph, maybe below homeomorph.fin_two_arrow
--- homeomorph.prod_pi_erase_equiv_pi? generalize to family of spaces like homeomorph.pi_fin_two?
-
-@[simp] lemma merge_split_self (i : N) {t} : merge_split Y i t i = t.1 := by exact dif_pos rfl
--- remove `by exact` -> get strange class synthesized not defeq error
-
-end merge_split
 
 /-- The `n`-dimensional cube. -/
 @[derive [has_zero, has_one, topological_space]]
@@ -109,16 +71,15 @@ instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
 lemma one_char (f : I^1) : f = λ _, f 0 := eq_const_of_unique f
 
-
 section
 variable [decidable_eq N]
 
 lemma insert_boundary (i : N) {t₀ : I} {t} (H : (t₀ = 0 ∨ t₀ = 1) ∨ t ∈ boundary {j // j ≠ i}) :
-  merge_split I i ⟨t₀, t⟩ ∈ boundary N :=
+  (fun_split_at I i).symm ⟨t₀, t⟩ ∈ boundary N :=
 begin
-  cases H, { use i, rwa [merge_split_apply, dif_pos rfl] },
+  cases H, { use i, rwa [fun_split_at_symm_apply, dif_pos rfl] },
   cases H with j H,
-  { use j, rwa [merge_split_apply, dif_neg j.prop, subtype.coe_eta] },
+  { use j, rwa [fun_split_at_symm_apply, dif_neg j.prop, subtype.coe_eta] },
 end
 
 end
@@ -181,21 +142,20 @@ variable [decidable_eq N]
 
 /-- Path from a generalized loop by `insert`-ing into `I^(n+1)`. -/
 @[simps] def to_path (i : N) : gen_loop N x → Ω (gen_loop {j // j ≠ i} x) const := λ p,
-{ to_fun := λ t, ⟨(p.val.comp (merge_split I i).to_continuous_map).curry t,
-    λ y yH, p.property (merge_split I i (t, y)) (cube.insert_boundary i $ or.inr yH)⟩,
+{ to_fun := λ t, ⟨(p.val.comp (fun_split_at I i).symm.to_continuous_map).curry t,
+    λ y yH, p.property ((fun_split_at I i).symm (t, y)) (cube.insert_boundary i $ or.inr yH)⟩,
   continuous_to_fun := by continuity,
-  source' := by { ext t, refine p.property (merge_split I i (0, t)) ⟨i, or.inl _⟩, simp },
-  target' := by { ext t, refine p.property (merge_split I i (1, t)) ⟨i, or.inr _⟩, simp } }
-
+  source' := by { ext t, refine p.property ((fun_split_at I i).symm (0, t)) ⟨i, or.inl _⟩, simp },
+  target' := by { ext t, refine p.property ((fun_split_at I i).symm (1, t)) ⟨i, or.inr _⟩, simp } }
 
 /-- Generalized loop from a path by `extrac`-ing of `I×I^n`. -/
 @[simps] def from_path (i : N) : Ω (gen_loop {j // j ≠ i} x) const → gen_loop N x :=
 λ p, ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(cube _, X))).uncurry.comp
-  (merge_split I i).symm.to_continuous_map,
+  (fun_split_at I i).to_continuous_map,
 begin
   rintros y ⟨j, Hj⟩,
-  simp only [subtype.val_eq_coe, continuous_map.comp_apply, homeomorph.to_continuous_map_apply,
-    merge_split_symm_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
+  simp only [subtype.val_eq_coe, continuous_map.comp_apply, to_continuous_map_apply,
+    fun_split_at_apply, continuous_map.uncurry_apply, continuous_map.coe_mk,
     function.uncurry_apply_pair],
   by_cases Heq : j = i,
   { subst Heq, cases Hj; rw Hj; simp only [p.source, p.target]; convert const_eq },
@@ -204,8 +164,8 @@ end⟩
 
 lemma to_from (i : N) (p : Ω (gen_loop {j // j ≠ i} x) const) : to_path i (from_path i p) = p :=
 begin
-  simp_rw [to_path, from_path, continuous_map.comp_assoc,
-    symm_comp_to_continuous_map, continuous_map.comp_id], ext, refl,
+  simp_rw [to_path, from_path, continuous_map.comp_assoc, to_continuous_map_as_coe,
+    to_continuous_map_comp_symm, continuous_map.comp_id], ext, refl,
 end
 
 /-- The (n+1)-dimensional loops are isomorphic to the loop space at `const`.-/
@@ -216,10 +176,10 @@ end
   right_inv := to_from i }
 
 lemma to_path_apply (i : N) {p : gen_loop N x} {t} {tn} :
-  to_path i p t tn = p (merge_split I i ⟨t, tn⟩) := rfl
+  to_path i p t tn = p ((fun_split_at I i).symm ⟨t, tn⟩) := rfl
 
 lemma from_path_apply (i : N) {p : Ω (gen_loop {j // j ≠ i} x) const} {t : cube N} :
-  from_path i p t = p (t i) ((merge_split I i).symm t).snd := rfl
+  from_path i p t = p (t i) (fun_split_at I i t).snd := rfl
 
 end
 
@@ -232,8 +192,8 @@ variable [decidable_eq N]
 
 /-- Composition with insert as a continuous map.-/
 abbreviation c_comp_insert (i : N) : C(C(cube N, X), C(I × cube {j // j ≠ i}, X)) :=
-⟨λ f, f.comp (merge_split I i).to_continuous_map,
-  (merge_split I i).to_continuous_map.continuous_comp_left⟩
+⟨λ f, f.comp (fun_split_at I i).symm.to_continuous_map,
+  (fun_split_at I i).symm.to_continuous_map.continuous_comp_left⟩
 
 /--Homotopy of generalized loops to `C(I × I, C(cube {j // j ≠ i}, X))`. -/
 @[simps] def homotopy_to (i : N) {p q : gen_loop N x} (H : p.1.homotopy_rel q.1 (cube.boundary N)) :
@@ -253,7 +213,7 @@ begin
   { intros t y yH,
     split; ext; erw homotopy_to_apply_apply,
     apply H.eq_fst, work_on_goal 2 { apply H.eq_snd },
-    all_goals { use i, rw merge_split_self, exact yH } },
+    all_goals { use i, rw [fun_split_at_symm_apply, dif_pos rfl], exact yH } },
   all_goals { intro, ext, erw [homotopy_to_apply_apply, to_path_apply] },
   exacts [H.apply_zero _, H.apply_one _],
 end
@@ -263,7 +223,7 @@ end
   (H : (to_path i p).homotopy (to_path i q)) : C(I × cube N, X) :=
 ((⟨_,continuous_map.continuous_uncurry⟩ : C(_,_)).comp
   (c_coe.comp H.to_continuous_map).curry).uncurry.comp $
-    (continuous_map.id I).prod_map (merge_split I i).symm.to_continuous_map
+    (continuous_map.id I).prod_map (fun_split_at I i).to_continuous_map
 
 lemma homotopic_from (i : N) {p q : gen_loop N x} :
   (to_path i p).homotopic (to_path i q) → homotopic p q :=
@@ -399,10 +359,21 @@ lemma from_path_trans_to_path {p q : gen_loop N x} (i : N) {t} :
   (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) t = if (t i : ℝ) ≤ 1/2
     then p (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
     else q (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j) :=
-by { dsimp only [path.trans, path_equiv, from_path, coe_fn, has_coe_to_fun.coe, fun_like.coe,
-      equiv.symm, continuous_map.uncurry, continuous_map.comp_apply, function.uncurry,
-      function.comp],
-     split_ifs; refl }
+begin
+  simp only [path.trans, from_path, path.coe_mk, function.comp_app, subtype.val_eq_coe, path_equiv_apply,
+  path_equiv_symm_apply, mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
+  continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
+  split_ifs, rw coe_fn_coe_base, refl,
+  dsimp only [path.trans, path_equiv, from_path, coe_fn, has_coe_to_fun.coe, fun_like.coe,
+    equiv.symm, continuous_map.uncurry, continuous_map.comp_apply, function.uncurry, function.comp],
+    sorry,
+  dsimp [path.trans, from_path], split_ifs, rw to_path, simp, sorry,
+
+   simp only [continuous_map.curry_apply], simp, split_ifs, refl,
+  dsimp only [path.trans, path_equiv, from_path, coe_fn, has_coe_to_fun.coe, fun_like.coe,
+    equiv.symm, continuous_map.uncurry, continuous_map.comp_apply, function.uncurry, function.comp],
+  split_ifs, dsimp,
+end
 
 /-- Characterization for the multiplication on gen_loop;
   do the same for const/base point (easy) and reverse/path.symm? -/

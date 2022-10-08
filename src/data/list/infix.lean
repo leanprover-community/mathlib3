@@ -138,13 +138,13 @@ lemma infix_iff_prefix_suffix (l₁ l₂ : list α) : l₁ <:+: l₂ ↔ ∃ t, 
   λ ⟨._, ⟨t, rfl⟩, s, e⟩, ⟨s, t, by rw append_assoc; exact e⟩⟩
 
 lemma eq_of_infix_of_length_eq (h : l₁ <:+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma eq_of_prefix_of_length_eq (h : l₁ <+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma eq_of_suffix_of_length_eq (h : l₁ <:+ l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma prefix_of_prefix_length_le : ∀ {l₁ l₂ l₃ : list α},
   l₁ <+: l₃ → l₂ <+: l₃ → length l₁ ≤ length l₂ → l₁ <+: l₂

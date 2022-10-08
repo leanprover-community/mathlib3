@@ -352,12 +352,10 @@ theorem perm.subperm {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₁ <+~ l₂ :=
   let ⟨l₁', p₁, s₁⟩ := p₂.subperm_left.2 s in ⟨l₁', p₁, s₁.trans s₂⟩
 
 theorem subperm.length_le {l₁ l₂ : list α} : l₁ <+~ l₂ → length l₁ ≤ length l₂
-| ⟨l, p, s⟩ := p.length_eq ▸ sublist.length_le s
+| ⟨l, p, s⟩ := p.length_eq ▸ s.length_le
 
 theorem subperm.perm_of_length_le {l₁ l₂ : list α} : l₁ <+~ l₂ → length l₂ ≤ length l₁ → l₁ ~ l₂
-| ⟨l, p, s⟩ h :=
-  suffices l = l₂, from this ▸ p.symm,
-  eq_of_sublist_of_length_le s $ p.symm.length_eq ▸ h
+| ⟨l, p, s⟩ h := (s.eq_of_length_le $ p.symm.length_eq ▸ h) ▸ p.symm
 
 theorem subperm.antisymm {l₁ l₂ : list α} (h₁ : l₁ <+~ l₂) (h₂ : l₂ <+~ l₁) : l₁ ~ l₂ :=
 h₁.perm_of_length_le h₂.length_le
@@ -591,7 +589,7 @@ theorem subperm.exists_of_length_lt {l₁ l₂ : list α} :
     { cases h },
     { cases lt_or_eq_of_le (nat.le_of_lt_succ h : length l₁ ≤ length l₂) with h h,
       { exact (IH h).imp (λ a s, s.trans (sublist_cons _ _).subperm) },
-      { exact ⟨a, eq_of_sublist_of_length_eq s h ▸ subperm.refl _⟩ } },
+      { exact ⟨a, s.eq_of_length h ▸ subperm.refl _⟩ } },
     { exact (IH $ nat.lt_of_succ_lt_succ h).imp
         (λ a s, (swap _ _ _).subperm_right.1 $ (subperm_cons _).2 s) }
   end

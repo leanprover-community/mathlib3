@@ -175,8 +175,7 @@ lemma le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
 
 lemma repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
   repeat a (count a l) = l :=
-eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l)))
-    (eq.trans (length_repeat a (count a l)) h)
+(le_count_iff_repeat_sublist.mp le_rfl).eq_of_length $ (length_repeat a (count a l)).trans h
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=

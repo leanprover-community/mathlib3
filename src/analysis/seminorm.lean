@@ -492,7 +492,7 @@ begin
   exact (map_add_le_add p _ _).trans_lt (add_lt_add hy₁ hy₂),
 end
 
-lemma closed_ball_add_closed_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
+lemma closed_ball_add_closed_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E) :
   p.closed_ball (x₁ : E) r₁ + p.closed_ball (x₂ : E) r₂ ⊆ p.closed_ball (x₁ + x₂) (r₁ + r₂) :=
 begin
   rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,

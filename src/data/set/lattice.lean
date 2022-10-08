@@ -1579,11 +1579,6 @@ end disjoint
 
 namespace set
 
-protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
-
-theorem disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ :=
-disjoint_iff
-
 lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 

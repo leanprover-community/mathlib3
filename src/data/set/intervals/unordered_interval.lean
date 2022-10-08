@@ -117,7 +117,7 @@ interval_subset_interval left_mem_interval h
 
 /-- A sort of triangle inequality. -/
 lemma interval_subset_interval_union_interval : [a, c] ⊆ [a, b] ∪ [b, c] :=
-λ x, by simp only [mem_interval, mem_union_eq]; cases le_total a c; cases le_total x b; tauto
+λ x, by simp only [mem_interval, mem_union]; cases le_total a c; cases le_total x b; tauto
 
 lemma eq_of_mem_interval_of_mem_interval : a ∈ [b, c] → b ∈ [a, c] → a = b :=
 by simp_rw mem_interval; rintro (⟨_, _⟩ | ⟨_, _⟩) (⟨_, _⟩ | ⟨_, _⟩); apply le_antisymm;

@@ -88,21 +88,22 @@ end⟩
 namespace mono_coprod
 
 include hC
+variable [mono_coprod C]
 
-instance [mono_coprod C] {A B : C} : mono (coprod.inl : A ⟶ A ⨿ B) := mono_coprod.inl A B
+instance {A B : C} : mono (coprod.inl : A ⟶ A ⨿ B) := mono_coprod.inl A B
 
-instance [mono_coprod C] {A B : C} : mono (coprod.inr : B ⟶ A ⨿ B) :=
+instance {A B : C} : mono (coprod.inr : B ⟶ A ⨿ B) :=
 begin
   suffices : mono (coprod.inl ≫ (coprod.braiding B A).hom),
   { simpa only [coprod.braiding_hom, coprod.inl_desc] using this, },
   apply mono_comp,
 end
 
-lemma mono_binary_cofan_inl [mono_coprod C] {A B : C} (c : binary_cofan A B)
+lemma mono_binary_cofan_inl {A B : C} (c : binary_cofan A B)
   (hc : is_colimit c) : mono c.inl :=
 by { rw ← mono_coprod_inl_iff_of_is_colimit c hc, apply_instance, }
 
-lemma mono_binary_cofan_inr [mono_coprod C] {A B : C} (c : binary_cofan A B)
+lemma mono_binary_cofan_inr {A B : C} (c : binary_cofan A B)
   (hc : is_colimit c) : mono c.inr :=
 by { rw ← mono_coprod_inr_iff_of_is_colimit c hc, apply_instance, }
 

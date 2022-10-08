@@ -51,13 +51,14 @@ begin
   { simp [*, not_finite_iff_infinite.mpr h] },
 end
 
-lemma finite.card_pos_iff [finite α] :
-  0 < nat.card α ↔ nonempty α :=
+lemma finite.card_pos_iff [finite α] : 0 < nat.card α ↔ nonempty α :=
 begin
   haveI := fintype.of_finite α,
-  simp only [nat.card_eq_fintype_card],
-  exact fintype.card_pos_iff,
+  rw [nat.card_eq_fintype_card, fintype.card_pos_iff],
 end
+
+lemma finite.card_pos [finite α] [h : nonempty α] : 0 < nat.card α :=
+finite.card_pos_iff.mpr h
 
 namespace finite
 

@@ -119,9 +119,14 @@ from `X : Top` to `R : TopCommRing` form a commutative ring, functorial in both 
 def CommRing_yoneda : TopCommRing.{u} ⥤ (Top.{u}ᵒᵖ ⥤ CommRing.{u}) :=
 { obj := λ R,
   { obj := λ X, continuous_functions X R,
-    map := λ X Y f, continuous_functions.pullback f R },
+    map := λ X Y f, continuous_functions.pullback f R,
+    map_id' := λ X, by {ext, refl },
+    map_comp' := λ X Y Z f g, rfl, },
   map := λ R S φ,
-  { app := λ X, continuous_functions.map X φ } }
+  { app := λ X, continuous_functions.map X φ,
+    naturality' := λ X Y f, rfl, },
+  map_id' := λ X, by { ext, refl },
+  map_comp' := λ X Y Z f g, rfl }
 
 /--
 The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with

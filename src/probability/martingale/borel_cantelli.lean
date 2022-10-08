@@ -387,11 +387,20 @@ end
 /-- **Lévy's generalization of the Borel-Cantelli lemma**: given a sequence of sets `s` and a
 filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.limsup s` is almost
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/
-theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
+theorem ae_mem_limsup_at_top_iff (μ : measure Ω) [is_finite_measure μ]
   {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
       at_top at_top :=
 (limsup_eq_tendsto_sum_indicator_at_top ℝ s).symm ▸ tendsto_sum_indicator_at_top_iff' hs
+
+theorem ae_mem_limsup_at_top_iff' (μ : measure Ω) [is_finite_measure μ]
+  {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
+  ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
+    ∑' k, ennreal.of_real (μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω) = ∞ :=
+begin
+  filter_upwards [ae_mem_limsup_at_top_iff μ hs] with ω hω,
+  rw hω,
+end
 
 end measure_theory

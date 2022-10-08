@@ -332,6 +332,13 @@ begin
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end
 
+lemma indep_sets.indep' {m : measurable_space Ω}
+  {μ : measure Ω} [is_probability_measure μ] {p1 p2 : set (set Ω)}
+  (hp1m : ∀ s ∈ p1, measurable_set s) (hp2m : ∀ s ∈ p2, measurable_set s)
+  (hp1 : is_pi_system p1) (hp2 : is_pi_system p2) (hyp : indep_sets p1 p2 μ) :
+  indep (generate_from p1) (generate_from p2) μ :=
+hyp.indep (generate_from_le hp1m) (generate_from_le hp2m) hp1 hp2 rfl rfl
+
 variables {m0 : measurable_space Ω} {μ : measure Ω}
 
 lemma Indep_sets.pi_Union_Inter_singleton {π : ι → set (set Ω)} {a : ι} {S : finset ι}

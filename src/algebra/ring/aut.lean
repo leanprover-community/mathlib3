@@ -62,7 +62,7 @@ def to_perm : ring_aut R →* equiv.perm R :=
 by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
 
 /-- The tautological action by the group of automorphism of a ring `R` on `R`.-/
-instance apply_mul_semiring_action {R : Type*} [ring R] : mul_semiring_action (ring_aut R) R :=
+instance apply_mul_semiring_action : mul_semiring_action (ring_aut R) R :=
 { smul := ($),
   smul_zero := ring_equiv.map_zero,
   smul_add := ring_equiv.map_add,
@@ -71,16 +71,9 @@ instance apply_mul_semiring_action {R : Type*} [ring R] : mul_semiring_action (r
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-/--A multiplicative action of `ring_aut R` on `R`
- and a group homomorphism `G →* ring_aut R` induce a multiplicative action of `G` on `R`.-/
-def mul_semiring_action.to_ring_aut {R : Type*} {G : Type*} [group G] [ring R] [f : G →*(ring_aut R)]  :
-mul_semiring_action G R :=
-{ smul := has_smul.comp.smul f,
-  smul_zero := λ n, by simp only [has_smul.comp.smul, smul_zero],
-  one_smul := λb, by simp only [has_smul.comp.smul, map_one, one_smul],
-  mul_smul := λ x y r, by simp only [has_smul.comp.smul, map_mul ,mul_smul (f x) (f y) r],
-  smul_add := λ n x y, by simp [has_smul.comp.smul, smul_add],
-  smul_one := λ x, by simp [has_smul.comp.smul, smul_one],
-  smul_mul := λ n x y, by simp [has_smul.comp.smul, smul_mul'] }
+@[simp] protected lemma smul_def (f : ring_aut R) (r : R) : f • r = f r := rfl
+
+instance apply_has_faithful_smul : has_faithful_smul (ring_aut R) R :=
+ ⟨λ _ _, ring_equiv.ext⟩
 
 end ring_aut

@@ -56,17 +56,17 @@ lemma wcovby.wcovby_iff_le (hab : a ⩿ b) : b ⩿ a ↔ b ≤ a :=
 lemma wcovby_of_eq_or_eq (hab : a ≤ b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⩿ b :=
 ⟨hab, λ c ha hb, (h c ha.le hb.le).elim ha.ne' hb.ne⟩
 
-lemma wcovby.imp_left (h : a ⩿ c) (hab : antisymm_rel (≤) a b) : b ⩿ c :=
-⟨hab.2.trans h.le, λ d hbd hdc, h.2 (hab.1.trans_lt hbd) hdc⟩
+lemma antisymm_rel.trans_wcovby (hab : antisymm_rel (≤) a b) (hbc : b ⩿ c) : a ⩿ c :=
+⟨hab.1.trans hbc.le, λ d had hdc, hbc.2 (hab.2.trans_lt had) hdc⟩
 
 lemma wcovby_congr_left (hab : antisymm_rel (≤) a b) : a ⩿ c ↔ b ⩿ c :=
-⟨λ h, h.imp_left hab, λ h, h.imp_left hab.symm⟩
+⟨hab.symm.trans_wcovby, hab.trans_wcovby⟩
 
-lemma wcovby.imp_right (h : c ⩿ a) (hab : antisymm_rel (≤) a b) : c ⩿ b :=
-⟨h.le.trans hab.1, λ d hcd hdb, h.2 hcd (hdb.trans_le hab.2)⟩
+lemma wcovby.trans_antisymm_rel (hab : a ⩿ b) (hbc : antisymm_rel (≤) b c) : a ⩿ c :=
+⟨hab.le.trans hbc.1, λ d had hdc, hab.2 had $ hdc.trans_le hbc.2⟩
 
 lemma wcovby_congr_right (hab : antisymm_rel (≤) a b) : c ⩿ a ↔ c ⩿ b :=
-⟨λ h, h.imp_right hab, λ h, h.imp_right hab.symm⟩
+⟨λ h, h.trans_antisymm_rel hab, λ h, h.trans_antisymm_rel hab.symm⟩
 
 /-- If `a ≤ b`, then `b` does not cover `a` iff there's an element in between. -/
 lemma not_wcovby_iff (h : a ≤ b) : ¬ a ⩿ b ↔ ∃ c, a < c ∧ c < b :=
@@ -195,17 +195,17 @@ lemma wcovby_iff_covby_or_le_and_le : a ⩿ b ↔ a ⋖ b ∨ (a ≤ b ∧ b ≤
 ⟨λ h, or_iff_not_imp_right.mpr $ λ h', h.covby_of_not_le $ λ hba, h' ⟨h.le, hba⟩,
   λ h', h'.elim (λ h, h.wcovby) (λ h, h.1.wcovby_of_le h.2)⟩
 
-lemma covby.trans_antisymm_le_left (h : a ⋖ c) (hab : antisymm_rel (≤) a b) : b ⋖ c :=
-⟨hab.2.trans_lt h.lt, λ d hbd hdc, h.2 (hab.1.trans_lt hbd) hdc⟩
+lemma antisymm_rel.trans_covby (hab : antisymm_rel (≤) a b) (hbc : b ⋖ c) : a ⋖ c :=
+⟨hab.1.trans_lt hbc.lt, λ d had hdc, hbc.2 (hab.2.trans_lt had) hdc⟩
 
 lemma covby_congr_left (hab : antisymm_rel (≤) a b) : a ⋖ c ↔ b ⋖ c :=
-⟨λ h, h.trans_antisymm_le_left hab, λ h, h.trans_antisymm_le_left hab.symm⟩
+⟨hab.symm.trans_covby, hab.trans_covby⟩
 
-lemma covby.trans_antisymm_le_right (h : c ⋖ a) (hab : antisymm_rel (≤) a b) : c ⋖ b :=
-⟨h.lt.trans_le hab.1, λ d hcd hdb, h.2 hcd (hdb.trans_le hab.2)⟩
+lemma covby.trans_antisymm_rel (hab : a ⋖ b) (hbc : antisymm_rel (≤) b c) : a ⋖ c :=
+⟨hab.lt.trans_le hbc.1, λ d had hdb, hab.2 had $ hdb.trans_le hbc.2⟩
 
 lemma covby_congr_right (hab : antisymm_rel (≤) a b) : c ⋖ a ↔ c ⋖ b :=
-⟨λ h, h.trans_antisymm_le_right hab, λ h, h.trans_antisymm_le_right hab.symm⟩
+⟨λ h, h.trans_antisymm_rel hab, λ h, h.trans_antisymm_rel hab.symm⟩
 
 instance : is_nonstrict_strict_order α (⩿) (⋖) :=
 ⟨λ a b, covby_iff_wcovby_and_not_le.trans $ and_congr_right $ λ h, h.wcovby_iff_le.not.symm⟩

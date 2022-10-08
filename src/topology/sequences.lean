@@ -292,9 +292,8 @@ begin
   obtain ⟨V, hV, Vsymm⟩ :
     ∃ V : ℕ → set (X × X), (𝓤 X).has_antitone_basis V ∧ ∀ n, swap ⁻¹' V n = V n,
       from uniform_space.has_seq_basis X,
-  suffices : ∃ n, ∀ x ∈ s, ∃ i, ball x (V n) ⊆ c i,
-  { cases this with n hn,
-    exact ⟨V n, hV.to_has_basis.mem_of_mem trivial, Vsymm n, hn⟩ },
+  rsuffices ⟨n, hn⟩ : ∃ n, ∀ x ∈ s, ∃ i, ball x (V n) ⊆ c i,
+  { exact ⟨V n, hV.to_has_basis.mem_of_mem trivial, Vsymm n, hn⟩ },
   by_contradiction H,
   obtain ⟨x, x_in, hx⟩ : ∃ x : ℕ → X, (∀ n, x n ∈ s) ∧ ∀ n i, ¬ ball (x n) (V n) ⊆ c i,
   { push_neg at H,

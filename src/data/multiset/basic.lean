@@ -59,6 +59,9 @@ instance inhabited_multiset : inhabited (multiset α)  := ⟨0⟩
 @[simp] theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
 iff.trans coe_eq_coe perm_nil
 
+lemma coe_eq_zero_iff_empty (l : list α) : (l : multiset α) = 0 ↔ l.empty :=
+iff.trans (coe_eq_zero l) (empty_iff_eq_nil).symm
+
 /-! ### `multiset.cons` -/
 
 /-- `cons a s` is the multiset which contains `s` plus one more
@@ -296,19 +299,21 @@ end subset
 section to_list
 
 /-- Produces a list of the elements in the multiset using choice. -/
-@[reducible] noncomputable def to_list {α : Type*} (s : multiset α) :=
-classical.some (quotient.exists_rep s)
-
-@[simp] lemma to_list_zero {α : Type*} : (multiset.to_list 0 : list α) = [] :=
-(multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
+noncomputable def to_list (s : multiset α) := s.out'
 
 @[simp, norm_cast]
-lemma coe_to_list {α : Type*} (s : multiset α) : (s.to_list : multiset α) = s :=
-classical.some_spec (quotient.exists_rep _)
+lemma coe_to_list (s : multiset α) : (s.to_list : multiset α) = s := s.out_eq'
 
-@[simp]
-lemma mem_to_list {α : Type*} (a : α) (s : multiset α) : a ∈ s.to_list ↔ a ∈ s :=
-by rw [←multiset.mem_coe, multiset.coe_to_list]
+@[simp] lemma to_list_eq_nil {s : multiset α} : s.to_list = [] ↔ s = 0 :=
+by rw [← coe_eq_zero, coe_to_list]
+
+@[simp] lemma empty_to_list {s : multiset α} : s.to_list.empty ↔ s = 0 :=
+empty_iff_eq_nil.trans to_list_eq_nil
+
+@[simp] lemma to_list_zero : (multiset.to_list 0 : list α) = [] := to_list_eq_nil.mpr rfl
+
+@[simp] lemma mem_to_list {a : α} {s : multiset α} : a ∈ s.to_list ↔ a ∈ s :=
+by rw [← mem_coe, coe_to_list]
 
 end to_list
 
@@ -423,7 +428,6 @@ instance : ordered_cancel_add_comm_monoid (multiset α) :=
     congr_arg coe $ append_assoc l₁ l₂ l₃,
   zero_add              := λ s, quot.induction_on s $ λ l, rfl,
   add_zero              := λ s, quotient.induction_on s $ λ l, congr_arg coe $ append_nil l,
-  add_left_cancel       := λ a b c, add_left_cancel'',
   add_le_add_left       := λ s₁ s₂, add_le_add_left,
   le_of_add_le_add_left := λ s₁ s₂ s₃, le_of_add_le_add_left,
   ..@multiset.partial_order α }
@@ -485,6 +489,9 @@ def card : multiset α →+ ℕ :=
   map_add' := λ s t, quotient.induction_on₂ s t length_append }
 
 @[simp] theorem coe_card (l : list α) : card (l : multiset α) = length l := rfl
+
+@[simp] theorem length_to_list (s : multiset α) : s.to_list.length = s.card :=
+by rw [← coe_card, coe_to_list]
 
 @[simp] theorem card_zero : @card α 0 = 0 := rfl
 
@@ -815,10 +822,9 @@ quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
 /-- If each element of `s : multiset α` can be lifted to `β`, then `s` can be lifted to
 `multiset β`. -/
-instance [can_lift α β] : can_lift (multiset α) (multiset β) :=
-{ cond := λ s, ∀ x ∈ s, can_lift.cond β x,
-  coe := map can_lift.coe,
-  prf := by { rintro ⟨l⟩ hl, lift l to list β using hl, exact ⟨l, coe_map _ _⟩ } }
+instance can_lift (c) (p) [can_lift α β c p] :
+  can_lift (multiset α) (multiset β) (map c) (λ s, ∀ x ∈ s, p x) :=
+{ prf := by { rintro ⟨l⟩ hl, lift l to list β using hl, exact ⟨l, coe_map _ _⟩ } }
 
 /-- `multiset.map` as an `add_monoid_hom`. -/
 def map_add_monoid_hom (f : α → β) : multiset α →+ multiset β :=
@@ -1062,9 +1068,9 @@ theorem pmap_eq_map (p : α → Prop) (f : α → β) (s : multiset α) :
 quot.induction_on s $ λ l H, congr_arg coe $ pmap_eq_map p f l H
 
 theorem pmap_congr {p q : α → Prop} {f : Π a, p a → β} {g : Π a, q a → β}
-  (s : multiset α) {H₁ H₂} (h : ∀ a h₁ h₂, f a h₁ = g a h₂) :
-  pmap f s H₁ = pmap g s H₂ :=
-quot.induction_on s (λ l H₁ H₂, congr_arg coe $ pmap_congr l h) H₁ H₂
+  (s : multiset α) {H₁ H₂} :
+  (∀ (a ∈ s) h₁ h₂, f a h₁ = g a h₂) → pmap f s H₁ = pmap g s H₂ :=
+quot.induction_on s (λ l H₁ H₂ h, congr_arg coe $ pmap_congr l h) H₁ H₂
 
 theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (s) : ∀ H, map g (pmap f s H) = pmap (λ a h, g (f a h)) s H :=
@@ -1095,7 +1101,10 @@ quot.induction_on s (λ l H, length_pmap) H
 lemma attach_cons (a : α) (m : multiset α) :
   (a ::ₘ m).attach = ⟨a, mem_cons_self a m⟩ ::ₘ (m.attach.map $ λp, ⟨p.1, mem_cons_of_mem p.2⟩) :=
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
-  by rw [list.map_pmap]; exact list.pmap_congr _ (assume a' h₁ h₂, subtype.eq rfl)
+  by rw [list.map_pmap]; exact list.pmap_congr _ (λ _ _ _ _, subtype.eq rfl)
+
+@[simp]
+lemma attach_map_coe (m : multiset α) : multiset.map (coe : _ → α) m.attach = m := m.attach_map_val
 
 section decidable_pi_exists
 variables {m : multiset α}
@@ -1858,6 +1867,13 @@ begin
     rw hf hkx at *,
     contradiction }
 end
+
+@[simp]
+lemma attach_count_eq_count_coe (m : multiset α) (a) : m.attach.count a = m.count (a : α) :=
+calc m.attach.count a
+    = (m.attach.map (coe : _ → α)).count (a : α) :
+  (multiset.count_map_eq_count' _ _ subtype.coe_injective _).symm
+... = m.count (a : α) : congr_arg _ m.attach_map_coe
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
 begin

@@ -104,10 +104,8 @@ theorem finite.exists_finset_coe {s : set α} (h : s.finite) :
 by { casesI h, exact ⟨s.to_finset, s.coe_to_finset⟩ }
 
 /-- Finite sets can be lifted to finsets. -/
-instance : can_lift (set α) (finset α) :=
-{ coe := coe,
-  cond := set.finite,
-  prf := λ s hs, hs.exists_finset_coe }
+instance : can_lift (set α) (finset α) coe set.finite :=
+{ prf := λ s hs, hs.exists_finset_coe }
 
 /-- A set is infinite if it is not finite.
 
@@ -122,6 +120,7 @@ lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
 /-! ### Basic properties of `set.finite.to_finset` -/
 
 section finite_to_finset
+variables {s t : set α}
 
 @[simp] lemma finite.coe_to_finset {s : set α} (h : s.finite) : (h.to_finset : set α) = s :=
 @set.coe_to_finset _ s h.fintype
@@ -140,6 +139,10 @@ by rw [← finset.coe_sort_coe _, h.coe_to_finset]
 @[simp] lemma finite_empty_to_finset (h : (∅ : set α).finite) : h.to_finset = ∅ :=
 by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
 
+@[simp] lemma finite_univ_to_finset [fintype α] (h : (set.univ : set α).finite) :
+  h.to_finset = finset.univ :=
+finset.ext $ by simp
+
 @[simp] lemma finite.to_finset_inj {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset = ht.to_finset ↔ s = t :=
 by simp only [←finset.coe_inj, finite.coe_to_finset]
@@ -152,11 +155,11 @@ by rw [← finset.coe_subset, ht.coe_to_finset]
   h.to_finset = ∅ ↔ s = ∅ :=
 by simp only [←finset.coe_inj, finite.coe_to_finset, finset.coe_empty]
 
-@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+@[simp, mono] lemma finite.to_finset_subset {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
 by simp only [← finset.coe_subset, finite.coe_to_finset]
 
-@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+@[simp, mono] lemma finite.to_finset_ssubset {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
 by simp only [← finset.coe_ssubset, finite.coe_to_finset]
 
@@ -384,7 +387,7 @@ instance finite_sep (s : set α) (p : α → Prop) [finite s] :
 by { casesI nonempty_fintype s, apply_instance }
 
 protected lemma subset (s : set α) {t : set α} [finite s] (h : t ⊆ s) : finite t :=
-by { rw eq_sep_of_subset h, apply_instance }
+by { rw ←sep_eq_of_subset h, apply_instance }
 
 instance finite_inter_of_right (s t : set α) [finite t] :
   finite (s ∩ t : set α) := finite.set.subset t (inter_subset_right s t)
@@ -593,6 +596,11 @@ theorem finite_mem_finset (s : finset α) : {a | a ∈ s}.finite := to_finite _
 
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : s.finite :=
 h.induction_on finite_empty finite_singleton
+
+lemma finite_preimage_inl_and_inr {s : set (α ⊕ β)} :
+  (sum.inl ⁻¹' s).finite ∧ (sum.inr ⁻¹' s).finite ↔ s.finite :=
+⟨λ h, image_preimage_inl_union_image_preimage_inr s ▸ (h.1.image _).union (h.2.image _),
+  λ h, ⟨h.preimage (sum.inl_injective.inj_on _), h.preimage (sum.inr_injective.inj_on _)⟩⟩
 
 theorem exists_finite_iff_finset {p : set α → Prop} :
   (∃ s : set α, s.finite ∧ p s) ↔ ∃ s : finset α, p ↑s :=
@@ -852,10 +860,9 @@ theorem infinite_univ [h : infinite α] : (@univ α).infinite :=
 infinite_univ_iff.2 h
 
 theorem infinite_coe_iff {s : set α} : infinite s ↔ s.infinite :=
-⟨λ ⟨h₁⟩ h₂, h₁ h₂.fintype, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
+not_finite_iff_infinite.symm.trans finite_coe_iff.not
 
-theorem infinite.to_subtype {s : set α} (h : s.infinite) : infinite s :=
-infinite_coe_iff.2 h
+alias infinite_coe_iff ↔ _ infinite.to_subtype
 
 /-- Embedding of `ℕ` into an infinite set. -/
 noncomputable def infinite.nat_embedding (s : set α) (h : s.infinite) : ℕ ↪ s :=
@@ -934,11 +941,11 @@ theorem infinite.exists_lt_map_eq_of_maps_to [linear_order α] {s : set α} {t :
 let ⟨x, hx, y, hy, hxy, hf⟩ := hs.exists_ne_map_eq_of_maps_to hf ht
 in hxy.lt_or_lt.elim (λ hxy, ⟨x, hx, y, hy, hxy, hf⟩) (λ hyx, ⟨y, hy, x, hx, hyx, hf.symm⟩)
 
-lemma finite.exists_lt_map_eq_of_range_subset [linear_order α] [infinite α] {t : set β}
-  {f : α → β} (hf : range f ⊆ t) (ht : t.finite) :
+lemma finite.exists_lt_map_eq_of_forall_mem [linear_order α] [infinite α] {t : set β}
+  {f : α → β} (hf : ∀ a, f a ∈ t) (ht : t.finite) :
   ∃ a b, a < b ∧ f a = f b :=
 begin
-  rw [range_subset_iff, ←maps_univ_to] at hf,
+  rw ←maps_univ_to at hf,
   obtain ⟨a, -, b, -, h⟩ := (@infinite_univ α _).exists_lt_map_eq_of_maps_to hf ht,
   exact ⟨a, b, h⟩,
 end

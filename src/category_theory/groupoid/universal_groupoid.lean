@@ -52,35 +52,39 @@ universes u v u' v' u'' v''
 section push_quiver
 
 
-variables {V : Type u} [quiver.{v+1} V] {V' : Type u'} (σ : V → V')
+section
 
-def push {V : Type u} [quiver.{v+1} V] {V' : Type u'} (σ : V → V')  := V'
-def push_quiver : quiver (push σ) := ⟨λ X' Y', Σ (X: {X // σ X = X'}) (Y : {Y // σ Y = Y'}), X.val ⟶ Y.val⟩
+variables {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')
 
--- would be better but get universe troubles
-inductive push_quiver_arrows {V : Type u} [quiver V] {V' : Type u'} (σ : V → V') : V' → V' → Sort*
-| mk {X Y : V} (f : X ⟶ Y) : push_quiver_arrows (σ X) (σ Y)
+def push {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')  := V'
 
-instance : quiver (push σ) := push_quiver σ
+inductive push_quiver {V : Type u} [quiver.{v} V] {V' : Type u'} (σ : V → V') : V' → V' → Type (max u u' v)
+| arrow {X Y : V} (f : X ⟶ Y) : push_quiver (σ X) (σ Y)
 
-def of : prefunctor V (push σ) :=
+instance : quiver (push σ) := ⟨λ X Y, push_quiver σ X Y⟩
+
+def of  : prefunctor V (push σ) :=
 { obj := σ,
-  map := λ X Y f, ⟨⟨X,rfl⟩,⟨Y,rfl⟩,f⟩}
+  map := λ X Y f, push_quiver.arrow f}
 
 postfix ` * ` := of
 
 @[simp] lemma of_obj : ((σ *)).obj = σ := rfl
 
+end
+
+section reverse
+
+variables {V : Type u} [quiver.{v+1} V] {V' : Type u'} (σ : V → V')
+
+
 instance [quiver.has_reverse V] : quiver.has_reverse (push σ) :=
-{ reverse' := λ a b F, ⟨F.2.1,F.1,quiver.reverse F.2.2⟩ }
+{ reverse' := λ a b F, by { cases F, constructor, apply quiver.reverse, exact F_f, } }
 
 instance [h : quiver.has_involutive_reverse V] : quiver.has_involutive_reverse (push σ) :=
-{ reverse' := λ a b F, ⟨F.2.1,F.1,quiver.reverse F.2.2⟩,
-  inv' :=  λ a b ⟨A,B,f⟩, by
-  { dsimp only [quiver.reverse],
-    fapply sigma.eq, refl,
-    fapply sigma.eq, refl,
-    apply h.inv', }}
+{ reverse' := λ a b F, by { cases F, constructor, apply quiver.reverse, exact F_f, },
+  inv' :=  λ a b F, by
+  { cases F, dsimp [quiver.reverse], congr, apply h.inv', } }
 
 @[simp] lemma of_reverse [h : quiver.has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
   (quiver.reverse $ ((σ *)).map f) = ((σ *)).map (quiver.reverse f) := rfl
@@ -88,14 +92,18 @@ instance [h : quiver.has_involutive_reverse V] : quiver.has_involutive_reverse (
 variables {V'' : Type u''} [quiver.{v''+1} V'']
   (φ : prefunctor V V'') (τ : V' → V'') (h : ∀ x, φ.obj x = τ (σ x) )
 
+end reverse
 
-include h
+variables {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')
+variables {V'' : Type u''} [quiver.{v''+1} V'']
+  (φ : prefunctor V V'') (τ : V' → V'') (h : ∀ x, φ.obj x = τ (σ x) )
+
+include φ h
 def lift : prefunctor (push σ) V'' :=
 { obj := τ,
-  map := λ _ _ f, by
-  { obtain ⟨⟨x,xh⟩,⟨y,yh⟩,F⟩ := f,
-    rw [←xh, ←yh, ←h x, ←h y],
-    exact φ.map F, } }
+  map := by { apply push_quiver.rec, rintros X Y f, rw [←h X, ←h Y], exact φ.map f, } }
+
+
 
 lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
 

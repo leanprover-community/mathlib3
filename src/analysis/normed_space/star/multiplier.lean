@@ -36,6 +36,61 @@ noncomputable theory
 open_locale nnreal ennreal
 open nnreal continuous_linear_map
 
+lemma op_norm_eq_sup_unit_ball {𝕜 E F: Type*} [normed_add_comm_group E]
+  [normed_add_comm_group F] [densely_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
+  (f : E →L[𝕜] F) :  ∥f∥₊ = Sup {(∥f x∥₊) | (x : E) (hx : ∥ x ∥₊ ≤ 1)} :=
+begin
+have hf : ∥f∥₊ ∈ upper_bounds {(∥f x∥₊) | (x : E) (hx : ∥ x ∥₊ ≤ 1)},
+{ rintro _ ⟨x, hx, rfl⟩,
+  exact mul_one (∥f∥₊) ▸ (f.le_op_nnnorm x).trans (mul_le_mul_left' hx (∥f∥₊)) },
+rw← cInf_upper_bounds_eq_cSup _ _,
+{ refine le_antisymm _ (cInf_le (order_bot.bdd_below _) hf),
+ { refine le_cInf ⟨∥f∥₊, hf⟩ (λ u hu, _),
+   have P := λ (y : E) (δ : ℝ) (hδ : 0 < δ), normed_field.exists_lt_norm_lt 𝕜
+   (nnreal.coe_nonneg ∥ y ∥₊) (lt_add_of_pos_right (∥ y ∥₊ : ℝ) (hδ)),
+   by_contra, push_neg at h,
+   rw upper_bounds at *,
+   simp only [coe_nnnorm, set.mem_set_of_eq, forall_exists_index, forall_apply_eq_imp_iff₂] at *,
+   unfold nnnorm at *,
+   simp only [subtype.mk_le_mk] at *,
+   have Q : ∀ (x : E)(δ : ℝ≥0), (0 < δ) → ∥ f x ∥₊ ≤ ∥ x ∥₊ * u + δ * u,
+        begin
+        intros x δ hδ,
+        cases P x δ (nnreal.coe_pos.mp hδ),
+        have Q1 : ∥w⁻¹ • x∥ ≤ 1,
+          { by_cases w=0, rw h, simp only [zero_smul, zero_le_one, inv_zero, norm_zero],
+            rw [norm_smul, norm_inv, ←mul_le_mul_left (norm_pos_iff.mpr h), mul_one, ←mul_assoc],
+            simp only [h, mul_inv_cancel, ne.def, norm_eq_zero, not_false_iff, one_mul,
+            le_of_lt (h_1.left)]},
+        have Q2 : ∥ f x ∥ ≤ ∥ w ∥ * u,
+          { have A := h_1.left,
+            by_cases w=0, rw h at A, rw norm_zero at A, linarith [norm_nonneg x],
+            have R : ∥f (w⁻¹ • x)∥ ≤ (u : ℝ), by exact_mod_cast (hu (w⁻¹ • x) Q1),
+            simp only [norm_smul, continuous_linear_map.map_smul, norm_inv] at R,
+            rw [←mul_le_mul_left (norm_pos_iff.mpr h), ←mul_assoc] at R,
+            simp only [mul_inv_cancel (norm_ne_zero_iff.mpr h), one_mul] at R,
+            exact R},
+        by_cases u=0, simp only [h, mul_zero, add_zero, le_zero_iff, nnnorm_eq_zero],
+        simp only [h, nonneg.coe_zero, mul_zero, norm_le_zero_iff] at Q2, exact Q2,
+        have B:= (mul_le_mul_of_nonneg_right (le_of_lt (h_1.right))
+        (le_of_lt (pos_iff_ne_zero.mpr h))),
+        rw ←add_mul,
+        exact_mod_cast (le_trans Q2 B),
+        end,
+   have : ∀ (x : E), ∥f x∥ ≤ ∥x∥ * u,
+        begin
+        intro x,
+        apply le_iff_forall_pos_lt_add', --here's the spot, where I want the prime. I expect
+        --that will avoid having to prove the other couple goals beside the main one involving "covariant class" etc.
+        --intros ε hε,
+        --have Close := Q x ((real.to_nnreal ε) * u⁻¹),
+
+        end,
+   },},
+{ exact ⟨∥f∥₊, hf⟩,},
+{ exact ⟨0, 0, nnnorm_zero.trans_le zero_le_one, (map_zero f).symm ▸ nnnorm_zero⟩, },
+
+end
 universes u v
 
 variables (𝕜 : Type u) (A : Type v)

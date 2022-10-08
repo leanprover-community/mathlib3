@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import algebra.group.inj_surj
 import algebra.group_with_zero.defs
+import algebra.group.order_synonym
 
 /-!
 # Groups with an adjoined zero element

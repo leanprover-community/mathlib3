@@ -1570,6 +1570,18 @@ assume a b, quotient.induction_on₂' a b $
   assume a b (h : f a = f b), ideal.quotient.eq.2 $
 show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
 
+lemma lift_injective_of_ker_le_ideal (I : ideal R) (f : R →+* S)
+  (H : ∀ (a : R), a ∈ I → f a = 0) (hI : ring_hom.ker f ≤ I) :
+  function.injective (ideal.quotient.lift I f H) :=
+begin
+    rw [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_bot_iff_eq_zero],
+    intros u hu,
+    obtain ⟨v, rfl⟩ := ideal.quotient.mk_surjective u,
+    rw ideal.quotient.lift_mk at hu,
+    rw [ideal.quotient.eq_zero_iff_mem],
+    exact hI ((ring_hom.mem_ker f).mpr hu),
+end
+
 variable {f}
 
 /-- The **first isomorphism theorem** for commutative rings, computable version. -/

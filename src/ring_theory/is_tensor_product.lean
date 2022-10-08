@@ -136,6 +136,14 @@ variables {S f} (h : is_base_change S f)
 variables {P Q : Type*} [add_comm_monoid P] [module R P]
 variables [add_comm_monoid Q] [module S Q]
 
+@[elab_as_eliminator]
+lemma is_base_change.induction_on (x : N) (P : N → Prop)
+  (h₁ : P 0)
+  (h₂ : ∀ m : M, P (f m))
+  (h₃ : ∀ (s : S) n, P n → P (s • n))
+  (h₄ : ∀ n₁ n₂, P n₁ → P n₂ → P (n₁ + n₂)) : P x :=
+h.induction_on x h₁ (λ s y, h₃ _ _ (h₂ _)) h₄
+
 section
 
 variables [module R Q] [is_scalar_tower R S Q]
@@ -149,7 +157,7 @@ def is_base_change.lift (g : M →ₗ[R] Q) : N →ₗ[S] Q :=
       .to_linear_map.flip g).restrict_scalars R,
     have hF : ∀ (s : S) (m : M), h.lift F (s • f m) = s • g m := h.lift_eq F,
     change h.lift F (r • x) = r • h.lift F x,
-    apply h.induction_on x,
+    apply is_tensor_product.induction_on h x,
     { rw [smul_zero, map_zero, smul_zero] },
     { intros s m,
       change h.lift F (r • s • f m) = r • h.lift F (s • f m),
@@ -168,16 +176,28 @@ end
 lemma is_base_change.lift_comp (g : M →ₗ[R] Q) : ((h.lift g).restrict_scalars R).comp f = g :=
 linear_map.ext (h.lift_eq g)
 
+lemma is_base_change.span_range (h : is_base_change S f) : submodule.span S (f.range : set N) = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintro x -,
+  apply h.induction_on x _,
+  { exact zero_mem _ },
+  { exact λ x, submodule.subset_span (linear_map.mem_range_self f x) },
+  { exact λ s x, submodule.smul_mem _ s },
+  { exact λ _ _ , add_mem },
 end
-include h
 
-@[elab_as_eliminator]
-lemma is_base_change.induction_on (x : N) (P : N → Prop)
-  (h₁ : P 0)
-  (h₂ : ∀ m : M, P (f m))
-  (h₃ : ∀ (s : S) n, P n → P (s • n))
-  (h₄ : ∀ n₁ n₂, P n₁ → P n₂ → P (n₁ + n₂)) : P x :=
-h.induction_on x h₁ (λ s y, h₃ _ _ (h₂ _)) h₄
+lemma is_base_change.range_lift (g : M →ₗ[R] Q) : (h.lift g).range = submodule.span S g.range :=
+begin
+  rw [linear_map.range_eq_map, ← h.span_range, submodule.map_span, linear_map.range_coe,
+    ← set.image_univ, set.image_image],
+  simp_rw [h.lift_eq, set.image_univ],
+  refl,
+end
+
+end
+
+include h
 
 lemma is_base_change.alg_hom_ext (g₁ g₂ : N →ₗ[S] Q) (e : ∀ x, g₁ (f x) = g₂ (f x)) :
   g₁ = g₂ :=

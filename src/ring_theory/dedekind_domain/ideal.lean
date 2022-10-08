@@ -832,8 +832,6 @@ end
 
 end is_dedekind_domain
 
-section height_one_spectrum
-
 /-!
 ### Height one spectrum of a Dedekind domain
 If `R` is a Dedekind domain of Krull dimension 1, the maximal ideals of `R` are exactly its nonzero
@@ -847,34 +845,56 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[ext, nolint has_nonempty_instance unused_arguments]
-structure height_one_spectrum :=
-(as_ideal : ideal R)
-(is_prime : as_ideal.is_prime)
-(ne_bot   : as_ideal ≠ ⊥)
+@[nolint has_nonempty_instance unused_arguments]
+def height_one_spectrum := {I : ideal R // I.is_prime ∧ I ≠ ⊥}
 
 variables (v : height_one_spectrum R) {R}
 
-lemma height_one_spectrum.prime (v : height_one_spectrum R) : prime v.as_ideal :=
-ideal.prime_of_is_prime v.ne_bot v.is_prime
+namespace height_one_spectrum
 
-lemma height_one_spectrum.irreducible (v : height_one_spectrum R) :
-  irreducible v.as_ideal :=
+/-- A method to view a point in the height one spectrum of a commutative ring
+as an ideal of that ring. -/
+abbreviation as_ideal (x : height_one_spectrum R) : ideal R := x.val
+
+instance is_prime : v.as_ideal.is_prime := v.property.left
+
+lemma ne_bot : v.as_ideal ≠ ⊥ := v.property.right
+
+instance is_maximal : v.as_ideal.is_maximal := dimension_le_one v.as_ideal v.ne_bot v.is_prime
+
+lemma prime : prime v.as_ideal := ideal.prime_of_is_prime v.ne_bot v.is_prime
+
+lemma irreducible : irreducible v.as_ideal :=
+unique_factorization_monoid.irreducible_iff_prime.mpr v.prime
+
+lemma associates_irreducible : _root_.irreducible $ associates.mk v.as_ideal :=
+(associates.irreducible_mk _).mpr v.irreducible
+
+/-- An equivalence between the height one and maximal spectra for rings of Krull dimension 1. -/
+def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maximal_spectrum R :=
+{ to_fun    := λ ⟨v, hv, hbot⟩, ⟨v, dimension_le_one v hbot hv⟩,
+  inv_fun   := λ ⟨v, hv⟩, ⟨v, hv.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field hv hR⟩,
+  left_inv  := λ ⟨_, _, _⟩, rfl,
+  right_inv := λ ⟨_, _⟩, rfl }
+
+variables [algebra R K] [is_fraction_ring R K]
+
+/-- A Dedekind domain that is not a field is equal to the intersection of its localizations at all
+its height one prime ideals viewed as subalgebras of its field of fractions. -/
+theorem localization_infi_eq_bot (hR : ¬is_field R) :
+  (⨅ v : height_one_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
+    le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
 begin
-  rw [unique_factorization_monoid.irreducible_iff_prime],
-  apply v.prime,
+  ext x,
+  rw [← maximal_spectrum.localization_infi_eq_bot, algebra.mem_infi, algebra.mem_infi],
+  split,
+  { exact λ hx ⟨v, hv⟩, hx ((equiv_maximal_spectrum hR).symm ⟨v, hv⟩) },
+  { exact λ hx ⟨v, hv, hbot⟩, hx (equiv_maximal_spectrum hR ⟨v, hv, hbot⟩) }
 end
-
-lemma height_one_spectrum.associates_irreducible (v : height_one_spectrum R) :
-  irreducible (associates.mk v.as_ideal) :=
-begin
-  rw [associates.irreducible_mk _],
-  apply v.irreducible,
-end
-
-end is_dedekind_domain
 
 end height_one_spectrum
+
+end is_dedekind_domain
 
 section
 

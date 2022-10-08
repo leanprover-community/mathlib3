@@ -102,14 +102,10 @@ instance [ordered_comm_semiring R] [nontrivial R] : ordered_comm_monoid {x : R /
   .. subtype.coe_injective.comm_monoid (coe : {x : R // 0 < x} → R) coe_one coe_mul coe_pow }
 
 /-- If `R` is a nontrivial linear ordered commutative semiring, then `{x : R // 0 < x}` is a linear
-ordered cancellative commutative monoid. We don't have a typeclass for linear ordered commutative
-semirings, so we assume `[linear_ordered_semiring R] [is_commutative R (*)] instead. -/
-instance [linear_ordered_semiring R] [is_commutative R (*)] [nontrivial R] :
-  linear_ordered_cancel_comm_monoid {x : R // 0 < x} :=
+ordered cancellative commutative monoid. -/
+instance [linear_ordered_comm_semiring R] : linear_ordered_cancel_comm_monoid {x : R // 0 < x} :=
 { le_of_mul_le_mul_left := λ a b c h, subtype.coe_le_coe.1 $ (mul_le_mul_left a.2).1 h,
-  .. subtype.linear_order _,
-  .. @positive.subtype.ordered_comm_monoid R
-    { mul_comm := is_commutative.comm, .. ‹linear_ordered_semiring R› } _  }
+  .. subtype.linear_order _, .. positive.subtype.ordered_comm_monoid  }
 
 end mul_comm
 

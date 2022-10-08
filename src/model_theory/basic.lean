@@ -238,7 +238,7 @@ variables (N : Type w') [L.Structure M] [L.Structure N]
 open Structure
 
 /-- Used for defining `first_order.language.Theory.Model.inhabited`. -/
-def trivial_unit_structure : L.Structure unit := ⟨default, default⟩
+def inhabited.trivial_structure {α : Type*} [inhabited α] : L.Structure α := ⟨default, default⟩
 
 /-! ### Maps -/
 

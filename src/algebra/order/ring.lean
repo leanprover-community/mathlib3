@@ -7,7 +7,6 @@ import algebra.char_zero.defs
 import algebra.hom.ring
 import algebra.order.group
 import algebra.order.ring_lemmas
-import data.set.intervals.basic
 
 /-!
 # Ordered rings and semirings
@@ -255,12 +254,17 @@ decidable.mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
 lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
 mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
 
+-- In the next two lemmas, we used to write `set.Ici 0` instead of `{x | 0 ≤ x}`.
+-- As these lemmas are not used outside this file,
+-- and the import for `set.Ici` is not otherwise needed until later,
+-- we choose not to use it here.
+
 -- See Note [decidable namespace]
 protected lemma decidable.strict_mono_on_mul_self [@decidable_rel α (≤)] :
-  strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
+  strict_mono_on (λ x : α, x * x) {x | 0 ≤ x} :=
 λ x hx y hy hxy, decidable.mul_self_lt_mul_self hx hxy
 
-lemma strict_mono_on_mul_self : strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
+lemma strict_mono_on_mul_self : strict_mono_on (λ x : α, x * x) {x | 0 ≤ x} :=
 λ x hx y hy hxy, mul_self_lt_mul_self hx hxy
 
 -- See Note [decidable namespace]

@@ -31,7 +31,7 @@ namespace measure_theory
 open topological_space
 
 variables {μ ν : measure α}
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 /-- Given a measure `μ` and an integrable function `f`, `μ.with_densityᵥ f` is
 the vector measure which maps the set `s` to `∫ₛ f ∂μ`. -/

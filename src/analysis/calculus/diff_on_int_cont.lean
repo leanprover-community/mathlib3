@@ -16,9 +16,9 @@ this property and prove basic facts about this predicate.
 open set filter metric
 open_locale topological_space
 
-variables (𝕜 : Type*) {E F G : Type*} [nontrivially_normed_field 𝕜] [normed_group E]
-  [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_group G] [normed_space 𝕜 G]
-  {f g : E → F} {s t : set E} {x : E}
+variables (𝕜 : Type*) {E F G : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
+  [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_add_comm_group G]
+  [normed_space 𝕜 G] {f g : E → F} {s t : set E} {x : E}
 
 /-- A predicate saying that a function is differentiable on a set and is continuous on its
 closure. This is a common assumption in complex analysis. -/

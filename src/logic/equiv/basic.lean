@@ -629,9 +629,27 @@ calc punit × α ≃ α × punit : prod_comm _ _
 def prod_unique (α β : Type*) [unique β] : α × β ≃ α :=
 ((equiv.refl α).prod_congr $ equiv_punit β).trans $ prod_punit α
 
+@[simp] lemma coe_prod_unique {α β : Type*} [unique β] :
+  ⇑(prod_unique α β) = prod.fst := rfl
+
+lemma prod_unique_apply {α β : Type*} [unique β] (x : α × β) :
+  prod_unique α β x = x.1 := rfl
+
+@[simp] lemma prod_unique_symm_apply {α β : Type*} [unique β] (x : α) :
+  (prod_unique α β).symm x = (x, default) := rfl
+
 /-- Any `unique` type is a left identity for type product up to equivalence. -/
 def unique_prod (α β : Type*) [unique β] : β × α ≃ α :=
 ((equiv_punit β).prod_congr $ equiv.refl α).trans $ punit_prod α
+
+@[simp] lemma coe_unique_prod {α β : Type*} [unique β] :
+  ⇑(unique_prod α β) = prod.snd := rfl
+
+lemma unique_prod_apply {α β : Type*} [unique β] (x : β × α) :
+  unique_prod α β x = x.2 := rfl
+
+@[simp] lemma unique_prod_symm_apply {α β : Type*} [unique β] (x : α) :
+  (unique_prod α β).symm x = (default, x) := rfl
 
 /-- `empty` type is a right absorbing element for type product up to an equivalence. -/
 def prod_empty (α : Type*) : α × empty ≃ empty :=
@@ -1582,6 +1600,20 @@ depending on whether they satisfy a predicate `p` or not. -/
       refl },
   end }
 
+/-- A product of types can be split as the binary product of one of the types and the product
+  of all the remaining types. -/
+@[simps] def pi_split_at {α : Type*} [decidable_eq α] (i : α) (β : α → Type*) :
+  (Π j, β j) ≃ β i × Π j : {j // j ≠ i}, β j :=
+{ to_fun := λ f, ⟨f i, λ j, f j⟩,
+  inv_fun := λ f j, if h : j = i then h.symm.rec f.1 else f.2 ⟨j, h⟩,
+  right_inv := λ f, by { ext, exacts [dif_pos rfl, (dif_neg x.2).trans (by cases x; refl)] },
+  left_inv := λ f, by { ext, dsimp only, split_ifs, { subst h }, { refl } } }
+
+/-- A product of copies of a type can be split as the binary product of one copy and the product
+  of all the remaining copies. -/
+@[simps] def fun_split_at {α : Type*} [decidable_eq α] (i : α) (β : Type*) :
+  (α → β) ≃ β × ({j // j ≠ i} → β) := pi_split_at i _
+
 end
 
 section subtype_equiv_codomain
@@ -1639,10 +1671,8 @@ lemma of_bijective_apply_symm_apply (f : α → β) (hf : bijective f) (x : β) 
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
 
-instance : can_lift (α → β) (α ≃ β) :=
-{ coe := coe_fn,
-  cond := bijective,
-  prf := λ f hf, ⟨of_bijective f hf, rfl⟩ }
+instance : can_lift (α → β) (α ≃ β) coe_fn bijective :=
+{ prf := λ f hf, ⟨of_bijective f hf, rfl⟩ }
 
 section
 

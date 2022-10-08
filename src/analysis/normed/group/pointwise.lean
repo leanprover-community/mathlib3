@@ -16,9 +16,9 @@ Notably, we show that the sum of bounded sets remain bounded.
 open metric set
 open_locale pointwise topological_space
 
-section semi_normed_group
+section seminormed_add_comm_group
 
-variables {E : Type*} [semi_normed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
+variables {E : Type*} [seminormed_add_comm_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
 lemma bounded_iff_exists_norm_le : bounded s ↔ ∃ R, ∀ x ∈ s, ∥x∥ ≤ R :=
 by simp [subset_def, bounded_iff_subset_ball (0 : E)]
@@ -170,4 +170,4 @@ lemma is_compact.closed_ball_sub (hs : is_compact s) (hδ : 0 ≤ δ) (x : E) :
   closed_ball x δ + s = x +ᵥ cthickening δ s :=
 by simp [sub_eq_add_neg, add_comm, hs.closed_ball_add hδ]
 
-end semi_normed_group
+end seminormed_add_comm_group

@@ -395,6 +395,15 @@ end
 lemma pos_of_one_le (a : α) (h : 1 ≤ a) : a⁺ = a :=
 by { rw m_pos_part_def, exact sup_of_le_left h, }
 
+@[to_additive] -- pos_eq_self_of_pos_pos
+lemma pos_eq_self_of_one_lt_pos {α} [linear_order α] [comm_group α]
+  {x : α} (hx : 1 < x⁺) : x⁺ = x :=
+begin
+  rw [m_pos_part_def, right_lt_sup, not_le] at hx,
+  rw [m_pos_part_def, sup_eq_left],
+  exact hx.le
+end
+
 -- 0 ≤ a implies a⁺ = a
 @[to_additive] -- pos_of_nonpos
 lemma pos_of_le_one (a : α) (h : a ≤ 1) : a⁺ = 1 :=
@@ -462,7 +471,7 @@ sup_le (mabs_sup_div_sup_le_mabs a b c) (mabs_inf_div_inf_le_mabs a b c)
 /--
 The absolute value satisfies the triangle inequality.
 -/
-@[to_additive abs_add_le]
+@[to_additive abs_add_le "The absolute value satisfies the triangle inequality."]
 lemma mabs_mul_le [covariant_class α α (*) (≤)] (a b : α) : |a * b| ≤ |a| * |b| :=
 begin
   apply sup_le,

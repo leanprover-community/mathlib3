@@ -8,6 +8,8 @@ import algebraic_geometry.prime_spectrum.noetherian
 import order.hom.basic
 import ring_theory.dedekind_domain.basic
 import ring_theory.fractional_ideal
+import ring_theory.principal_ideal_domain
+import ring_theory.chain_of_divisors
 
 /-!
 # Dedekind domains and ideals
@@ -185,8 +187,10 @@ begin
     ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
-@[simp] lemma inv_one : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
-fractional_ideal.div_one
+noncomputable instance : inv_one_class (fractional_ideal R₁⁰ K) :=
+{ inv_one := fractional_ideal.div_one,
+  ..fractional_ideal.has_one,
+  ..fractional_ideal.has_inv K }
 
 end fractional_ideal
 
@@ -429,7 +433,7 @@ lemma mul_inv_cancel_of_le_one [h : is_dedekind_domain A]
 begin
   -- Handle a few trivial cases.
   by_cases hI1 : I = ⊤,
-  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.inv_one] },
+  { rw [hI1, coe_ideal_top, one_mul, inv_one] },
   by_cases hNF : is_field A,
   { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
@@ -575,22 +579,32 @@ variables {R A} [is_dedekind_domain A] [algebra A K] [is_fraction_ring A K]
 open fractional_ideal
 open ideal
 
-noncomputable instance fractional_ideal.comm_group_with_zero :
-  comm_group_with_zero (fractional_ideal A⁰ K) :=
+noncomputable instance fractional_ideal.semifield :
+  semifield (fractional_ideal A⁰ K) :=
 { inv := λ I, I⁻¹,
   inv_zero := inv_zero' _,
   div := (/),
   div_eq_mul_inv := fractional_ideal.div_eq_mul_inv,
-  exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective le_rfl).ne
-    (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
-  .. fractional_ideal.comm_semiring }
+  .. fractional_ideal.comm_semiring, ..(coe_to_fractional_ideal_injective le_rfl).nontrivial }
 
-noncomputable instance ideal.cancel_comm_monoid_with_zero :
+/-- Fractional ideals have cancellative multiplication in a Dedekind domain.
+
+Although this instance is a direct consequence of the instance
+`fractional_ideal.comm_group_with_zero`, we define this instance to provide
+a computable alternative.
+-/
+instance fractional_ideal.cancel_comm_monoid_with_zero :
+  cancel_comm_monoid_with_zero (fractional_ideal A⁰ K) :=
+{ .. fractional_ideal.comm_semiring, -- Project out the computable fields first.
+  .. (by apply_instance : cancel_comm_monoid_with_zero (fractional_ideal A⁰ K)) }
+
+instance ideal.cancel_comm_monoid_with_zero :
   cancel_comm_monoid_with_zero (ideal A) :=
-function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
-  coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
-  (ring_hom.map_pow _)
+{ .. ideal.comm_semiring,
+  .. function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
+    coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
+    (ring_hom.map_pow _) }
 
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
 lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=
@@ -645,7 +659,7 @@ instance ideal.unique_factorization_monoid :
    prime.irreducible⟩,
   .. ideal.wf_dvd_monoid }
 
-noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
+instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
 normalization_monoid_of_unique_units
 
 @[simp] lemma ideal.dvd_span_singleton {I : ideal A} {x : A} :
@@ -753,12 +767,6 @@ open multiset unique_factorization_monoid ideal
 lemma prod_normalized_factors_eq_self (hI : I ≠ ⊥) : (normalized_factors I).prod = I :=
 associated_iff_eq.1 (normalized_factors_prod hI)
 
-lemma normalized_factors_prod {α : multiset (ideal T)}
-  (h : ∀ p ∈ α, prime p) : normalized_factors α.prod = α :=
-by { simp_rw [← multiset.rel_eq, ← associated_eq_eq],
-     exact prime_factors_unique (prime_of_normalized_factor) h
-      (normalized_factors_prod (α.prod_ne_zero_of_prime h)) }
-
 lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
   count K (normalized_factors J) ≤ count K (normalized_factors I) :=
 le_iff_count.1 ((dvd_iff_normalized_factors_le_normalized_factors (ne_bot_of_le_ne_bot hI h) hI).1
@@ -769,7 +777,7 @@ lemma sup_eq_prod_inf_factors (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
 begin
   have H : normalized_factors (normalized_factors I ∩ normalized_factors J).prod =
     normalized_factors I ∩ normalized_factors J,
-  { apply _root_.normalized_factors_prod,
+  { apply normalized_factors_prod_of_prime,
     intros p hp,
     rw mem_inter at hp,
     exact prime_of_normalized_factor p hp.left },
@@ -783,7 +791,7 @@ begin
     { rw [dvd_iff_normalized_factors_le_normalized_factors this hJ, H],
       exact inf_le_right } },
   { rw [← dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors,
-      _root_.normalized_factors_prod, le_iff_count],
+      normalized_factors_prod_of_prime, le_iff_count],
     { intro a,
       rw multiset.count_inter,
       exact le_min (count_le_of_ideal_ge le_sup_left hI a)
@@ -837,7 +845,7 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[ext, nolint has_inhabited_instance unused_arguments]
+@[ext, nolint has_nonempty_instance unused_arguments]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)
@@ -918,13 +926,12 @@ begin
     map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_map],
 end
 
-variables [is_domain R] [is_dedekind_domain R]
+variables [is_domain R] [is_dedekind_domain R] (f : R ⧸ I ≃+* A ⧸ J)
 
 /-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
   an isomorphism `f : R/I ≅ A/J`. -/
 @[simps]
-def ideal_factors_equiv_of_quot_equiv (f : R ⧸ I ≃+* A ⧸ J) :
-  {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=
+def ideal_factors_equiv_of_quot_equiv : {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=
 order_iso.of_hom_inv
   (ideal_factors_fun_of_quot_hom (show function.surjective
     (f : R ⧸I →+* A ⧸ J), from f.surjective))
@@ -938,6 +945,71 @@ order_iso.of_hom_inv
     ideal_factors_fun_of_quot_hom_comp, ← ring_equiv.to_ring_hom_eq_coe,
     ← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_trans, ring_equiv.self_trans_symm,
     ring_equiv.to_ring_hom_refl])
+
+lemma ideal_factors_equiv_of_quot_equiv_symm :
+  (ideal_factors_equiv_of_quot_equiv f).symm = ideal_factors_equiv_of_quot_equiv f.symm := rfl
+
+lemma ideal_factors_equiv_of_quot_equiv_is_dvd_iso {L M : ideal R} (hL : L ∣ I) (hM : M ∣ I) :
+  (ideal_factors_equiv_of_quot_equiv f ⟨L, hL⟩ : ideal A) ∣
+    ideal_factors_equiv_of_quot_equiv f ⟨M, hM⟩  ↔ L ∣ M :=
+begin
+  suffices : ideal_factors_equiv_of_quot_equiv f ⟨M, hM⟩ ≤
+    ideal_factors_equiv_of_quot_equiv f ⟨L, hL⟩ ↔ (⟨M, hM⟩ : {p : ideal R | p ∣ I}) ≤ ⟨L, hL⟩,
+  { rw [dvd_iff_le, dvd_iff_le, subtype.coe_le_coe, this, subtype.mk_le_mk] },
+  exact (ideal_factors_equiv_of_quot_equiv f).le_iff_le,
+end
+
+open unique_factorization_monoid
+
+variables [decidable_eq (ideal R)] [decidable_eq (ideal A)]
+
+lemma ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors
+  (hJ : J ≠ ⊥) {L : ideal R} (hL : L ∈ normalized_factors I) :
+  ↑(ideal_factors_equiv_of_quot_equiv f
+    ⟨L, dvd_of_mem_normalized_factors hL⟩) ∈ normalized_factors J :=
+begin
+  by_cases hI : I = ⊥,
+  { exfalso,
+    rw [hI, bot_eq_zero, normalized_factors_zero, ← multiset.empty_eq_zero] at hL,
+    exact hL, },
+  { apply mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors hI hJ hL _,
+    rintros ⟨l, hl⟩ ⟨l', hl'⟩,
+    rw [subtype.coe_mk, subtype.coe_mk],
+    apply ideal_factors_equiv_of_quot_equiv_is_dvd_iso f }
+end
+
+/-- The bijection between the sets of normalized factors of I and J induced by a ring
+    isomorphism `f : R/I ≅ A/J`. -/
+@[simps apply]
+def normalized_factors_equiv_of_quot_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
+  {L : ideal R | L ∈ normalized_factors I } ≃ {M : ideal A | M ∈ normalized_factors J } :=
+{ to_fun := λ j, ⟨ideal_factors_equiv_of_quot_equiv f ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩,
+   ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors f hJ j.prop⟩,
+  inv_fun := λ j, ⟨(ideal_factors_equiv_of_quot_equiv f).symm
+    ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩, by { rw ideal_factors_equiv_of_quot_equiv_symm,
+      exact ideal_factors_equiv_of_quot_equiv_mem_normalized_factors_of_mem_normalized_factors
+        f.symm hI j.prop} ⟩,
+  left_inv := λ ⟨j, hj⟩, by simp,
+  right_inv := λ ⟨j, hj⟩, by simp }
+
+@[simp]
+lemma normalized_factors_equiv_of_quot_equiv_symm (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
+  (normalized_factors_equiv_of_quot_equiv f hI hJ).symm =
+    normalized_factors_equiv_of_quot_equiv f.symm hJ hI :=
+rfl
+
+variable [decidable_rel ((∣) : ideal R → ideal R → Prop)]
+variable [decidable_rel ((∣) : ideal A → ideal A → Prop)]
+
+/-- The map `normalized_factors_equiv_of_quot_equiv` preserves multiplicities. -/
+lemma normalized_factors_equiv_of_quot_equiv_multiplicity_eq_multiplicity (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  (L : ideal R) (hL : L ∈ normalized_factors I) :
+  multiplicity ↑(normalized_factors_equiv_of_quot_equiv f hI hJ ⟨L, hL⟩) J = multiplicity L I :=
+begin
+  rw [normalized_factors_equiv_of_quot_equiv, equiv.coe_fn_mk, subtype.coe_mk],
+  exact multiplicity_factor_dvd_iso_eq_multiplicity_of_mem_normalized_factor hI hJ hL
+    (λ ⟨l, hl⟩ ⟨l', hl'⟩, ideal_factors_equiv_of_quot_equiv_is_dvd_iso f hl hl'),
+end
 
 end
 
@@ -1108,3 +1180,110 @@ rfl
 end dedekind_domain
 
 end chinese_remainder
+
+section PID
+
+open multiplicity unique_factorization_monoid ideal
+
+variables {R} [is_domain R] [is_principal_ideal_ring R]
+
+lemma span_singleton_dvd_span_singleton_iff_dvd {a b : R} :
+  (ideal.span {a}) ∣ (ideal.span ({b} : set R)) ↔ a ∣ b :=
+⟨λ h, mem_span_singleton.mp (dvd_iff_le.mp h (mem_span_singleton.mpr (dvd_refl b))),
+  λ h, dvd_iff_le.mpr (λ d hd, mem_span_singleton.mpr (dvd_trans h (mem_span_singleton.mp hd)))⟩
+
+lemma singleton_span_mem_normalized_factors_of_mem_normalized_factors [normalization_monoid R]
+  [decidable_eq R] [decidable_eq (ideal R)] {a b : R} (ha : a ∈ normalized_factors b) :
+  ideal.span ({a} : set R) ∈ normalized_factors (ideal.span ({b} : set R)) :=
+begin
+  by_cases hb : b = 0,
+  { rw [ideal.span_singleton_eq_bot.mpr hb, bot_eq_zero, normalized_factors_zero],
+    rw [hb, normalized_factors_zero] at ha,
+    simpa only [multiset.not_mem_zero] },
+  { suffices : prime (ideal.span ({a} : set R)),
+    { obtain ⟨c, hc, hc'⟩ := exists_mem_normalized_factors_of_dvd _ this.irreducible
+        (dvd_iff_le.mpr (span_singleton_le_span_singleton.mpr (dvd_of_mem_normalized_factors ha))),
+      rwa associated_iff_eq.mp hc',
+      { by_contra,
+        exact hb (span_singleton_eq_bot.mp h) } },
+    rw prime_iff_is_prime,
+    exact (span_singleton_prime (prime_of_normalized_factor a ha).ne_zero).mpr
+      (prime_of_normalized_factor a ha),
+    by_contra,
+    exact (prime_of_normalized_factor a ha).ne_zero (span_singleton_eq_bot.mp h) },
+end
+
+lemma multiplicity_eq_multiplicity_span [decidable_rel ((∣) : R → R → Prop)]
+  [decidable_rel ((∣) : ideal R → ideal R → Prop)] {a b : R} :
+  multiplicity (ideal.span {a}) (ideal.span ({b} : set R)) = multiplicity a b :=
+begin
+  by_cases h : finite a b,
+    { rw ← part_enat.coe_get (finite_iff_dom.mp h),
+      refine (multiplicity.unique
+        (show (ideal.span {a})^(((multiplicity a b).get h)) ∣ (ideal.span {b}), from _) _).symm ;
+        rw [ideal.span_singleton_pow, span_singleton_dvd_span_singleton_iff_dvd],
+      exact pow_multiplicity_dvd h ,
+      { exact multiplicity.is_greatest ((part_enat.lt_coe_iff _ _).mpr (exists.intro
+          (finite_iff_dom.mp h) (nat.lt_succ_self _))) } },
+    { suffices : ¬ (finite (ideal.span ({a} : set R)) (ideal.span ({b} : set R))),
+      { rw [finite_iff_dom, part_enat.not_dom_iff_eq_top] at h this,
+        rw [h, this] },
+      refine not_finite_iff_forall.mpr (λ n, by {rw [ideal.span_singleton_pow,
+        span_singleton_dvd_span_singleton_iff_dvd], exact not_finite_iff_forall.mp h n }) }
+end
+
+variables [decidable_eq R] [decidable_eq (ideal R)] [normalization_monoid R]
+
+/-- The bijection between the (normalized) prime factors of `r` and the (normalized) prime factors
+    of `span {r}` -/
+@[simps]
+noncomputable def normalized_factors_equiv_span_normalized_factors {r : R} (hr : r ≠ 0) :
+  {d : R | d ∈ normalized_factors r} ≃
+    {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
+equiv.of_bijective
+  (λ d, ⟨ideal.span {↑d}, singleton_span_mem_normalized_factors_of_mem_normalized_factors d.prop⟩)
+begin
+  split,
+  { rintros ⟨a, ha⟩ ⟨b, hb⟩ h,
+    rw [subtype.mk_eq_mk, ideal.span_singleton_eq_span_singleton, subtype.coe_mk,
+      subtype.coe_mk] at h,
+    exact subtype.mk_eq_mk.mpr (mem_normalized_factors_eq_of_associated ha hb h) },
+  { rintros ⟨i, hi⟩,
+    letI : i.is_principal := infer_instance,
+    letI : i.is_prime := is_prime_of_prime (prime_of_normalized_factor i hi),
+    obtain ⟨a, ha, ha'⟩ := exists_mem_normalized_factors_of_dvd hr
+      (submodule.is_principal.prime_generator_of_is_prime i
+        (prime_of_normalized_factor i hi).ne_zero).irreducible _,
+    { use ⟨a, ha⟩,
+      simp only [subtype.coe_mk, subtype.mk_eq_mk, ← span_singleton_eq_span_singleton.mpr ha',
+        ideal.span_singleton_generator] },
+    {exact (submodule.is_principal.mem_iff_generator_dvd i).mp (((show ideal.span {r} ≤ i, from
+      dvd_iff_le.mp (dvd_of_mem_normalized_factors hi))) (mem_span_singleton.mpr (dvd_refl r))) } }
+end
+
+variables [decidable_rel ((∣) : R → R → Prop)] [decidable_rel ((∣) : ideal R → ideal R → Prop)]
+
+/-- The bijection `normalized_factors_equiv_span_normalized_factors` between the set of prime
+    factors of `r` and the set of prime factors of the ideal `⟨r⟩` preserves multiplicities. -/
+lemma multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity {r d: R}
+  (hr : r ≠ 0) (hd : d ∈ normalized_factors r) :
+  multiplicity d r =
+    multiplicity (normalized_factors_equiv_span_normalized_factors hr ⟨d, hd⟩ : ideal R)
+      (ideal.span {r}) :=
+by simp only [normalized_factors_equiv_span_normalized_factors, multiplicity_eq_multiplicity_span,
+    subtype.coe_mk, equiv.of_bijective_apply]
+
+/-- The bijection `normalized_factors_equiv_span_normalized_factors.symm` between the set of prime
+    factors of the ideal `⟨r⟩` and the set of prime factors of `r` preserves multiplicities. -/
+lemma multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity
+  {r : R} (hr : r ≠ 0) (I : {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))}) :
+  multiplicity ((normalized_factors_equiv_span_normalized_factors hr).symm I : R) r =
+    multiplicity (I : ideal R) (ideal.span {r}) :=
+begin
+  obtain ⟨x, hx⟩ := (normalized_factors_equiv_span_normalized_factors hr).surjective I,
+  obtain ⟨a, ha⟩ := x,
+  rw [hx.symm, equiv.symm_apply_apply, subtype.coe_mk,
+    multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity hr ha, hx],
+end
+
+end PID

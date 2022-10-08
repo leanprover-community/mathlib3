@@ -32,7 +32,7 @@ quot.induction_on s $ λ l, nodup_cons
 
 lemma nodup.cons (m : a ∉ s) (n : nodup s) : nodup (a ::ₘ s) := nodup_cons.2 ⟨m, n⟩
 
-theorem nodup_singleton : ∀ a : α, nodup ({a} : multiset α) := nodup_singleton
+@[simp] theorem nodup_singleton : ∀ a : α, nodup ({a} : multiset α) := nodup_singleton
 
 lemma nodup.of_cons (h : nodup (a ::ₘ s)) : nodup s := (nodup_cons.1 h).2
 
@@ -59,6 +59,14 @@ quot.induction_on s $ λ l, nodup_iff_count_le_one
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {s : multiset α}
   (d : nodup s) (h : a ∈ s) : count a s = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
+
+lemma count_eq_of_nodup [decidable_eq α] {a : α} {s : multiset α}
+  (d : nodup s) : count a s = if a ∈ s then 1 else 0 :=
+begin
+  split_ifs with h,
+  { exact count_eq_one_of_mem d h },
+  { exact count_eq_zero_of_not_mem h },
+end
 
 lemma nodup_iff_pairwise {α} {s : multiset α} : nodup s ↔ pairwise (≠) s :=
 quotient.induction_on s $ λ l, (pairwise_coe_iff_pairwise (by exact λ a b, ne.symm)).symm

@@ -102,7 +102,7 @@ end
 
 section
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {f : E → ℂ} {f' : E →L[𝕜] ℂ}
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {f : E → ℂ} {f' : E →L[𝕜] ℂ}
   {x : E} {s : set E}
 
 lemma has_strict_fderiv_at.cexp (hf : has_strict_fderiv_at f f' x) :
@@ -213,7 +213,7 @@ section
 /-! Register lemmas for the derivatives of the composition of `real.exp` with a differentiable
 function, for standalone use and use with `simp`. -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
 
 lemma cont_diff.exp {n} (hf : cont_diff ℝ n f) :

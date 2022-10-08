@@ -46,21 +46,30 @@ namespace category_theory
 namespace groupoid
 namespace free
 
-universes u v u' v'
+universes u v u' v' u'' v''
+
 
 section push_quiver
+
 
 variables {V : Type u} [quiver.{v+1} V] {V' : Type u'} (σ : V → V')
 
 def push {V : Type u} [quiver.{v+1} V] {V' : Type u'} (σ : V → V')  := V'
-def push_quiver : quiver (push σ) := ⟨λ X' Y', Σ (X: set.preimage σ {X'}) (Y : set.preimage σ {Y'}), X.val ⟶ Y.val⟩
+def push_quiver : quiver (push σ) := ⟨λ X' Y', Σ (X: {X // σ X = X'}) (Y : {Y // σ Y = Y'}), X.val ⟶ Y.val⟩
+
+-- would be better but get universe troubles
+inductive push_quiver_arrows {V : Type u} [quiver V] {V' : Type u'} (σ : V → V') : V' → V' → Sort*
+| mk {X Y : V} (f : X ⟶ Y) : push_quiver_arrows (σ X) (σ Y)
+
 instance : quiver (push σ) := push_quiver σ
 
-def push_prefunctor : prefunctor V (push σ) :=
+def of : prefunctor V (push σ) :=
 { obj := σ,
-  map := λ X Y f, ⟨⟨X,by simp,⟩,⟨Y,by simp⟩,f⟩}
+  map := λ X Y f, ⟨⟨X,rfl⟩,⟨Y,rfl⟩,f⟩}
 
-@[simp] lemma push_prefunctor_obj : (push_prefunctor σ).obj = σ := rfl
+postfix ` * ` := of
+
+@[simp] lemma of_obj : ((σ *)).obj = σ := rfl
 
 instance [quiver.has_reverse V] : quiver.has_reverse (push σ) :=
 { reverse' := λ a b F, ⟨F.2.1,F.1,quiver.reverse F.2.2⟩ }
@@ -73,56 +82,86 @@ instance [h : quiver.has_involutive_reverse V] : quiver.has_involutive_reverse (
     fapply sigma.eq, refl,
     apply h.inv', }}
 
-@[simp] lemma push_prefunctor_reverse [h : quiver.has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
-  (quiver.reverse $ (push_prefunctor σ).map f) = (push_prefunctor σ).map (quiver.reverse f) := rfl
+@[simp] lemma of_reverse [h : quiver.has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
+  (quiver.reverse $ ((σ *)).map f) = ((σ *)).map (quiver.reverse f) := rfl
 
+variables {V'' : Type u''} [quiver.{v''+1} V'']
+  (φ : prefunctor V V'') (τ : V' → V'') (h : ∀ x, φ.obj x = τ (σ x) )
+
+
+include h
+def lift : prefunctor (push σ) V'' :=
+{ obj := τ,
+  map := λ _ _ f, by
+  { obtain ⟨⟨x,xh⟩,⟨y,yh⟩,F⟩ := f,
+    rw [←xh, ←yh, ←h x, ←h y],
+    exact φ.map F, } }
+
+lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
+
+lemma lift_spec_comm : (of σ).comp (lift σ φ τ h) = φ :=
+begin
+  dsimp [of,lift],
+  fapply prefunctor.ext,
+  { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },
+  { rintros, simp only [prefunctor.comp_map], dsimp, simp, sorry, }
+end
+
+#print lift
 end push_quiver
 
 variables {V : Type u} [groupoid.{v+1} V] {V' : Type u'} (σ : V → V')
 
-/-- Composing composable arrows -/
+/-- Two reduction steps possible: compose composable arrows, or drop identity arrows -/
 inductive red_step : hom_rel (paths (push σ))
-| step (X Y Z : V) (f : X ⟶ Y) (g : Y ⟶ Z) :
+| comp (X Y Z : V) (f : X ⟶ Y) (g : Y ⟶ Z) :
     red_step
-      ((push_prefunctor σ).map (f ≫ g)).to_path
-      (((push_prefunctor σ).map f).to_path ≫ ((push_prefunctor σ).map g).to_path)
-
-/-- Collapsing identity arrows -/
-inductive red_step' : hom_rel (paths $ push σ)
-| drop (X : V) :
-    red_step'
+      ((σ *).map (f ≫ g)).to_path
+      (((σ *).map f).to_path ≫ ((σ *).map g).to_path)
+| id (X : V) :
+    red_step
       (𝟙 $ σ X)
-      ((push_prefunctor σ).map $ 𝟙 X).to_path
-
-def red_step'' : hom_rel (paths $ push σ) :=
-λ X Y f g, red_step σ f g ∨ red_step' σ f g
+      ((σ *).map $ 𝟙 X).to_path
 
 /-- The underlying vertices of the free groupoid -/
 def universal_groupoid {V : Type u} [groupoid.{v+1} V] {V' : Type u'} (σ : V → V') :=
-  quotient (red_step'' σ)
+  quotient (red_step σ)
 
-instance : category (universal_groupoid σ) := quotient.category (red_step'' σ)
+instance : category (universal_groupoid σ) := quotient.category (red_step σ)
 
 lemma congr_reverse {X Y : paths $ push σ} (p q : X ⟶ Y) :
   quotient.comp_closure (red_step σ) p q →
   quotient.comp_closure (red_step σ) (p.reverse) (q.reverse)  :=
 begin
-  rintros ⟨U, W, XW, pp, qq, WY, ⟨x, y, z, f, g⟩⟩,
-  have : quotient.comp_closure
-    (red_step σ)
-    (WY.reverse
-      ≫ ((push_prefunctor σ).map (quiver.reverse $ f≫g)).to_path
-        ≫  XW.reverse)
-    (WY.reverse ≫ (((push_prefunctor σ).map (quiver.reverse g)).to_path
-      ≫ ((push_prefunctor σ).map (quiver.reverse f)).to_path)
-        ≫ XW.reverse),
-  { apply quotient.comp_closure.intro,
-    have := @red_step.step _ _ _ σ (z) (y) (x) (inv g) (inv f),
-    simpa only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp] using this, },
-  dsimp only [category_struct.comp] at this ⊢,
-  simpa only [quiver.path.reverse, quiver.path.reverse_comp, push_prefunctor_reverse, reverse_eq_inv,
-             inv_eq_inv, is_iso.inv_comp, quiver.path.comp_nil, quiver.path.comp_assoc,
-             quiver.path.reverse_to_path] using this,
+  rintros ⟨U, W, XW, pp, qq, WY, rs⟩,
+  rcases rs with (⟨x, y, z, f, g⟩|⟨x⟩),
+  { have : quotient.comp_closure
+      (red_step σ)
+      (WY.reverse
+        ≫ (((σ *)).map (quiver.reverse $ f≫g)).to_path
+          ≫  XW.reverse)
+      (WY.reverse ≫ ((((σ *)).map (quiver.reverse g)).to_path
+        ≫ (((σ *)).map (quiver.reverse f)).to_path)
+          ≫ XW.reverse),
+    { apply quotient.comp_closure.intro,
+      have := @red_step.comp _ _ _ σ (z) (y) (x) (inv g) (inv f),
+      simpa only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp] using this, },
+    dsimp only [category_struct.comp] at this ⊢,
+    simpa only [quiver.path.reverse, quiver.path.reverse_comp, of_reverse, reverse_eq_inv,
+                inv_eq_inv, is_iso.inv_comp, quiver.path.comp_nil, quiver.path.comp_assoc,
+                quiver.path.reverse_to_path] using this, },
+  { have : quotient.comp_closure
+      (red_step σ)
+      (WY.reverse ≫ 𝟙 _ ≫  XW.reverse)
+      (WY.reverse ≫ (((σ *)).map (𝟙 x)).to_path ≫ XW.reverse),
+    { apply quotient.comp_closure.intro,
+      have := @red_step.id _ _ _ σ  (x),
+      simpa only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp] using this, },
+    dsimp only [category_struct.comp, category_struct.id] at this ⊢,
+    simpa only [quiver.path.reverse, quiver.path.reverse_comp, of_reverse,
+                reverse_eq_inv, inv_eq_inv, is_iso.inv_id, quiver.path.comp_nil,
+                quiver.path.comp_assoc, quiver.path.nil_comp] using this, },
+
 end
 
 lemma congr_comp_reverse {X Y : paths $ push σ} (p : X ⟶ Y) :
@@ -132,18 +171,29 @@ begin
   apply quot.eqv_gen_sound,
   induction p with _ _ q f ih,
   { apply eqv_gen.refl, },
-  { simp only [quiver.path.reverse],
+  { rcases f with ⟨⟨x,hx⟩,⟨y,hy⟩,f⟩,
+    simp only [mem_preimage, mem_singleton_iff] at hx hy, subst_vars,
+    simp only [quiver.path.reverse],
     fapply eqv_gen.trans,
-    { exact q ≫ q.reverse, },
-    { apply eqv_gen.symm, apply eqv_gen.rel,
-      have : quotient.comp_closure
-               (red_step σ) (q ≫ (𝟙 _) ≫ q.reverse)
-               (q ≫ (f.to_path ≫ (quiver.reverse f).to_path) ≫ q.reverse), by
-      { apply quotient.comp_closure.intro, apply red_step.step, },
-      have that : q.cons f = q.comp f.to_path, by refl, rw that,
-      simp only [category.assoc, category.id_comp] at this ⊢,
-      simp only [category_struct.comp, quiver.path.comp_assoc] at this ⊢,
-      exact this, },
+    { exact q ≫ (q.reverse),},
+    { apply eqv_gen.symm,
+      have hx : (⟨⟨x, hx⟩, ⟨⟨y, hy⟩, f⟩⟩ : (push_quiver σ).hom (σ x) (σ y)) = σ * .map f := rfl,
+      simp only [hx],
+      fapply eqv_gen.trans,
+      { exact q ≫ ((σ *).map (𝟙 x)).to_path ≫ q.reverse, },
+      { have : ((paths.category_paths (push σ)).id $ σ x) ≫ q.reverse = q.reverse, by {simp,},
+        nth_rewrite_lhs 0 ←this,
+        apply eqv_gen.rel, constructor, constructor, },
+      { apply eqv_gen.rel,
+        have : quotient.comp_closure
+               (red_step σ)
+               (q ≫ (σ * .map $ f ≫ inv f).to_path ≫ q.reverse)
+               (q ≫ ((σ * .map f).to_path ≫ (σ * .map $ inv f).to_path) ≫ q.reverse), by
+        { apply quotient.comp_closure.intro, constructor, },
+      simp only [of_reverse, reverse_eq_inv, inv_eq_inv, is_iso.hom_inv_id,
+                 category.assoc] at this ⊢,
+      dsimp only [category_struct.comp, quiver.hom.to_path,quiver.path.comp] at this ⊢,
+      simpa only [←quiver.path.comp_assoc] using this, }, },
     { exact ih }, },
 end
 
@@ -164,20 +214,35 @@ quot.lift_on f
 
 instance : groupoid (universal_groupoid σ) :=
 { inv := λ (X Y : universal_groupoid σ) (f : X ⟶ Y), quot_inv σ f,
-  inv_comp' := λ X Y p, quot.induction_on p $ λ pp, sorry,
-  comp_inv' := λ X Y p, quot.induction_on p $ λ pp, sorry }
+  inv_comp' := λ X Y p, quot.induction_on p $ λ pp, congr_reverse_comp σ pp,
+  comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse σ pp }
 
 /-- The extension of `σ` to a functor -/
-def of : V ⥤ (universal_groupoid σ) :=
+def extend : V ⥤ (universal_groupoid σ) :=
 { obj := λ X, ⟨σ X⟩,
-  map := λ X Y f, quot.mk _ ((push_prefunctor σ).map f).to_path,
-  map_id' := λ X, by { dsimp [push_prefunctor], simp, },
-  map_comp' := sorry }
+  map := λ X Y f, quot.mk _ (((σ *)).map f).to_path,
+  map_id' := λ X, by
+  { dsimp, symmetry,
+    apply quot.sound,
+    apply quotient.comp_closure.of,
+    constructor, },
+  map_comp' := λ X Y Z f g, by
+  { dsimp,
+    apply quot.sound,
+    apply quotient.comp_closure.of,
+    constructor, } }
+
+section ump
+
+def lift {V'' : Type*} [groupoid V'']
+  (θ : V ⥤ V'') (τ₀ : V' → V'') (hτ₀ : θ.obj = τ₀ ∘ σ) : (universal_groupoid σ) ⥤ V'' :=
+quotient.lift _
+  (paths.lift $ by {}) -- need ump of `push` and good to go
+  (sorry)
 
 
-section universal_property
 
-end universal_property
+end ump
 
 end free
 end groupoid

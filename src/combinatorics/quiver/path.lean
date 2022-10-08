@@ -55,10 +55,13 @@ def comp {a b : V} : Π {c}, path a b → path b c → path a c
 
 @[simp] lemma comp_cons {a b c d : V} (p : path a b) (q : path b c) (e : c ⟶ d) :
   p.comp (q.cons e) = (p.comp q).cons e := rfl
+
 @[simp] lemma comp_nil {a b : V} (p : path a b) : p.comp path.nil = p := rfl
+
 @[simp] lemma nil_comp {a : V} : ∀ {b} (p : path a b), path.nil.comp p = p
 | a path.nil := rfl
 | b (path.cons p e) := by rw [comp_cons, nil_comp]
+
 @[simp] lemma comp_assoc {a b c : V} : ∀ {d}
   (p : path a b) (q : path b c) (r : path c d),
     (p.comp q).comp r = p.comp (q.comp r)
@@ -126,4 +129,3 @@ def map_path {a : V} :
 lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f).to_path := rfl
 
 end prefunctor
-

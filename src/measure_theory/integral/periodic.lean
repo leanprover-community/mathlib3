@@ -23,6 +23,8 @@ period `T`.
 -/
 
 open set function measure_theory measure_theory.measure topological_space add_subgroup
+  interval_integral
+
 open_locale measure_theory nnreal ennreal
 
 local attribute [-instance] quotient_add_group.measurable_space quotient.measurable_space
@@ -64,6 +66,9 @@ begin
   simp [add_haar_measure_self, -positive_compacts.coe_top],
 end
 
+instance is_finite_measure : is_finite_measure (volume : measure (add_circle T)) :=
+{ measure_univ_lt_top := by simp }
+
 /-- The covering map from `ℝ` to the "additive circle" `ℝ ⧸ (ℤ ∙ T)` is measure-preserving,
 considered with respect to the standard measure (defined to be the Haar measure of total mass `T`)
 on the additive circle, and with respect to the restriction of Lebsegue measure on `ℝ` to an
@@ -96,8 +101,6 @@ begin
   rw integral_map add_circle.measurable_mk'.ae_measurable hf,
 end
 
-open interval_integral
-
 /-- The integral of an almost-everywhere strongly measurable function over `add_circle T` is equal
 to the integral over an interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
 protected lemma interval_integral_preimage (t : ℝ) {f : add_circle T → E}
@@ -110,13 +113,54 @@ end
 
 end add_circle
 
+namespace unit_add_circle
+private lemma fact_zero_lt_one : fact ((0:ℝ) < 1) := ⟨zero_lt_one⟩
+local attribute [instance] fact_zero_lt_one
+
+noncomputable instance measure_space : measure_space unit_add_circle := add_circle.measure_space 1
+
+@[simp] protected lemma measure_univ : volume (set.univ : set unit_add_circle) = 1 := by simp
+
+instance is_finite_measure : is_finite_measure (volume : measure unit_add_circle) :=
+add_circle.is_finite_measure 1
+
+/-- The covering map from `ℝ` to the "unit additive circle" `ℝ ⧸ ℤ` is measure-preserving,
+considered with respect to the standard measure (defined to be the Haar measure of total mass 1)
+on the additive circle, and with respect to the restriction of Lebsegue measure on `ℝ` to an
+interval (t, t + 1]. -/
+protected lemma measure_preserving_mk (t : ℝ) :
+  measure_preserving (coe : ℝ → unit_add_circle) (volume.restrict (Ioc t (t + 1))) :=
+add_circle.measure_preserving_mk 1 t
+
+/-- The integral of a measurable function over `unit_add_circle` is equal to the integral over an
+interval (t, t + 1] in `ℝ` of its lift to `ℝ`. -/
+protected lemma lintegral_preimage (t : ℝ) {f : unit_add_circle → ℝ≥0∞} (hf : measurable f) :
+  ∫⁻ a in Ioc t (t + 1), f a = ∫⁻ b : unit_add_circle, f b :=
+add_circle.lintegral_preimage 1 t hf
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+
+/-- The integral of an almost-everywhere strongly measurable function over `unit_add_circle` is
+equal to the integral over an interval (t, t + 1] in `ℝ` of its lift to `ℝ`. -/
+protected lemma integral_preimage (t : ℝ) {f : unit_add_circle → E}
+  (hf : ae_strongly_measurable f volume) :
+  ∫ a in Ioc t (t + 1), f a = ∫ b : unit_add_circle, f b :=
+add_circle.integral_preimage 1 t hf
+
+/-- The integral of an almost-everywhere strongly measurable function over `unit_add_circle` is
+equal to the integral over an interval (t, t + 1] in `ℝ` of its lift to `ℝ`. -/
+protected lemma interval_integral_preimage (t : ℝ) {f : unit_add_circle → E}
+  (hf : ae_strongly_measurable f volume) :
+  ∫ a in t..(t + 1), f a = ∫ b : unit_add_circle, f b :=
+add_circle.interval_integral_preimage 1 t hf
+
+end unit_add_circle
+
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 namespace function
 
 namespace periodic
-
-open interval_integral
 
 variables {f : ℝ → E} {T : ℝ}
 

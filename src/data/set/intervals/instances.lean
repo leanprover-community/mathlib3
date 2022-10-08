@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stuart Presnell, Eric Wieser, Yaël Dillies, Patrick Massot, Scott Morrison
 -/
 import algebra.group_power.order
+import algebra.ring.regular
 import data.set.intervals.proj_Icc
 
 /-!

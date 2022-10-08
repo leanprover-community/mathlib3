@@ -671,25 +671,15 @@ lemma bUnion_roots_finite {R S : Type*} [semiring R] [comm_ring S] [is_domain S]
   (m : R →+* S) (d : ℕ) {U : set R} (h : U.finite) :
   (⋃ (f : R[X]) (hf : f.nat_degree ≤ d ∧ ∀ i, (f.coeff i) ∈ U),
     ((f.map m).roots.to_finset : set S)).finite :=
-begin
-  refine set.finite.bUnion _ _,
-  { -- We prove that the set of polynomials under consideration is finite because its
-    -- image by the injective map `π` is finite
-    let π : R[X] → finset.range (d+1) → R := λ f i, f.coeff i,
-    have h_inj : set.inj_on π {f : R[X] | f.nat_degree ≤ d ∧ ∀ (i : ℕ), f.coeff i ∈ U},
-    { intros x hx y hy hxy,
-      rw ext_iff_nat_degree_le hx.1 hy.1,
-      exact_mod_cast λ i hi, congr_fun hxy ⟨i, finset.mem_range_succ_iff.mpr hi⟩, },
-    have h_fin : (set.pi set.univ (λ e : finset.range (d+1), U)).finite := set.finite.pi (λ e, h),
-    refine set.finite.of_finite_image (set.finite.subset h_fin _) h_inj,
-    rw set.image_subset_iff,
-    intros f hf,
-    rw [set.mem_preimage, set.mem_univ_pi],
-    exact λ i, hf.2 i, },
-  { intros i hi,
-    convert root_set_finite (i.map m) S,
-    simp only [algebra.id.map_eq_id, map_id], },
-end
+set.finite.bUnion begin
+  -- We prove that the set of polynomials under consideration is finite because its
+  -- image by the injective map `π` is finite
+  let π : R[X] → fin (d+1) → R := λ f i, f.coeff i,
+  refine ((set.finite.pi $ λ e, h).subset $ _).of_finite_image (_ : set.inj_on π _),
+  { exact set.image_subset_iff.2 (λ f hf i _, hf.2 i) },
+  { refine λ x hx y hy hxy, (ext_iff_nat_degree_le hx.1 hy.1).2 (λ i hi, _),
+    exact id congr_fun hxy ⟨i, nat.lt_succ_of_le hi⟩ },
+end $ λ i hi, finset.finite_to_set _
 
 theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]
   [algebra T S] (hp : p.map (algebra_map T S) ≠ 0) (a : S) :

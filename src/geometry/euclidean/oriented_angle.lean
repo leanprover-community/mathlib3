@@ -994,7 +994,7 @@ end
 
 /-- If the signs of two oriented angles between nonzero vectors are equal, the oriented angles are
 equal if and only if the unoriented angles are equal. -/
-lemma oangle_eq_iff_angle_eq_of_sign_eq {w x y z : V} (hw : w ≠ 0) (hx : x ≠ 0) (hy : y ≠ 0)
+lemma angle_eq_iff_oangle_eq_of_sign_eq {w x y z : V} (hw : w ≠ 0) (hx : x ≠ 0) (hy : y ≠ 0)
   (hz : z ≠ 0) (hs : (b.oangle w x).sign = (b.oangle y z).sign) :
   inner_product_geometry.angle w x = inner_product_geometry.angle y z ↔
     b.oangle w x = b.oangle y z :=
@@ -1699,11 +1699,11 @@ lemma oangle_eq_of_angle_eq_of_sign_eq {w x y z : V}
 
 /-- If the signs of two oriented angles between nonzero vectors are equal, the oriented angles are
 equal if and only if the unoriented angles are equal. -/
-lemma oangle_eq_iff_angle_eq_of_sign_eq {w x y z : V} (hw : w ≠ 0) (hx : x ≠ 0) (hy : y ≠ 0)
+lemma angle_eq_iff_oangle_eq_of_sign_eq {w x y z : V} (hw : w ≠ 0) (hx : x ≠ 0) (hy : y ≠ 0)
   (hz : z ≠ 0) (hs : (o.oangle w x).sign = (o.oangle y z).sign) :
   inner_product_geometry.angle w x = inner_product_geometry.angle y z ↔
     o.oangle w x = o.oangle y z :=
-(ob).oangle_eq_iff_angle_eq_of_sign_eq hw hx hy hz hs
+(ob).angle_eq_iff_oangle_eq_of_sign_eq hw hx hy hz hs
 
 /-- The oriented angle between two nonzero vectors is zero if and only if the unoriented angle
 is zero. -/
@@ -1932,10 +1932,10 @@ lemma oangle_eq_of_angle_eq_of_sign_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P} (h : 
 
 /-- If the signs of two nondegenerate oriented angles between points are equal, the oriented
 angles are equal if and only if the unoriented angles are equal. -/
-lemma oangle_eq_iff_angle_eq_of_sign_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P} (hp₁ : p₁ ≠ p₂) (hp₃ : p₃ ≠ p₂)
+lemma angle_eq_iff_oangle_eq_of_sign_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P} (hp₁ : p₁ ≠ p₂) (hp₃ : p₃ ≠ p₂)
   (hp₄ : p₄ ≠ p₅) (hp₆ : p₆ ≠ p₅) (hs : (∡ p₁ p₂ p₃).sign = (∡ p₄ p₅ p₆).sign) :
   ∠ p₁ p₂ p₃ = ∠ p₄ p₅ p₆ ↔ ∡ p₁ p₂ p₃ = ∡ p₄ p₅ p₆ :=
-(o).oangle_eq_iff_angle_eq_of_sign_eq (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₃)
+(o).angle_eq_iff_oangle_eq_of_sign_eq (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₃)
                                       (vsub_ne_zero.2 hp₄) (vsub_ne_zero.2 hp₆) hs
 
 /-- The unoriented angle at `p` between two points not equal to `p` is zero if and only if the

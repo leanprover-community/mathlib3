@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.prime
 import data.list.sort
-import data.nat.gcd
+import data.nat.gcd.basic
 import data.nat.sqrt_norm_num
 import data.set.finite
 import tactic.wlog

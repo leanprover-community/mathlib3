@@ -490,14 +490,14 @@ lemma pi_update_of_mem [decidable_eq ι] (hi : i ∈ s) (f : Π j, α j) (a : α
   (t : Π j, α j → set (β j)) :
   s.pi (λ j, t j (update f i a j)) = {x | x i ∈ t i a} ∩ (s \ {i}).pi (λ j, t j (f j)) :=
 calc s.pi (λ j, t j (update f i a j)) = ({i} ∪ s \ {i}).pi (λ j, t j (update f i a j)) :
-  by rw [union_diff_self, union_eq_self_of_subset_left (singleton_subset_iff.2 hi)]
+  by rw [union_sdiff_self, union_eq_self_of_subset_left (singleton_subset_iff.2 hi)]
 ... = {x | x i ∈ t i a} ∩ (s \ {i}).pi (λ j, t j (f j)) :
   by { rw [union_pi, singleton_pi', update_same, pi_update_of_not_mem], simp }
 
 lemma univ_pi_update [decidable_eq ι] {β : Π i, Type*} (i : ι) (f : Π j, α j) (a : α i)
   (t : Π j, α j → set (β j)) :
   pi univ (λ j, t j (update f i a j)) = {x | x i ∈ t i a} ∩ pi {i}ᶜ (λ j, t j (f j)) :=
-by rw [compl_eq_univ_diff, ← pi_update_of_mem (mem_univ _)]
+by rw [compl_eq_univ_sdiff, ← pi_update_of_mem (mem_univ _)]
 
 lemma univ_pi_update_univ [decidable_eq ι] (i : ι) (s : set (α i)) :
   pi univ (update (λ j : ι, (univ : set (α j))) i s) = eval i ⁻¹' s :=

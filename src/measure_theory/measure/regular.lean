@@ -351,7 +351,7 @@ begin
   { use (μ s - r) / 2, simp [*, hr.le, ennreal.add_halves, ennreal.sub_sub_cancel, le_add_right] },
   rcases hs.exists_is_open_diff_lt hμs hε with ⟨U, hsU, hUo, hUt, hμU⟩,
   rcases (U \ s).exists_is_open_lt_of_lt _ hμU with ⟨U', hsU', hU'o, hμU'⟩,
-  replace hsU' := diff_subset_comm.1 hsU',
+  replace hsU' := sdiff_subset_comm.1 hsU',
   rcases H.exists_subset_lt_add h0 hUo hUt.ne hε with ⟨K, hKU, hKc, hKr⟩,
   refine ⟨K \ U', λ x hx, hsU' ⟨hKU hx.1, hx.2⟩, hd hKc hU'o, ennreal.sub_lt_of_lt_add hεs _⟩,
   calc μ s ≤ μ U                   : μ.mono hsU

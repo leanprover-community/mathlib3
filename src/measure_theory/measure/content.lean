@@ -321,7 +321,7 @@ begin
   haveI : nonempty {L : compacts G // (L : set G) ⊆ U' ∩ U} := ⟨⟨⊥, empty_subset _⟩⟩,
   rw [ennreal.supr_add],
   refine supr_le _, rintro ⟨L, hL⟩, simp only [subset_inter_iff] at hL,
-  have : ↑U' \ U ⊆ U' \ L := diff_subset_diff_right hL.2,
+  have : ↑U' \ U ⊆ U' \ L := sdiff_mono_right hL.2,
   refine le_trans (add_le_add_left (μ.outer_measure.mono' this) _) _,
   rw μ.outer_measure_of_is_open (↑U' \ L) (is_open.sdiff U'.2 L.2.is_closed),
   simp only [inner_content, supr_subtype'], rw [opens.coe_mk],

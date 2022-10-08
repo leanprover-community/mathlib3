@@ -2668,8 +2668,8 @@ lemma dense.exists_countable_dense_subset_no_bot_top [nontrivial α]
 begin
   rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
   refine ⟨t \ ({x | is_bot x} ∪ {x | is_top x}), _, _, _, _, _⟩,
-  { exact (diff_subset _ _).trans hts },
-  { exact htc.mono (diff_subset _ _) },
+  { exact (sdiff_subset _ _).trans hts },
+  { exact htc.mono (sdiff_subset _ _) },
   { exact htd.diff_finite ((subsingleton_is_bot α).finite.union (subsingleton_is_top α).finite) },
   { assume x hx, simp [hx] },
   { assume x hx, simp [hx] }

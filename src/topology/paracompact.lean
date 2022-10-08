@@ -152,7 +152,7 @@ begin
   have hKcov : ∀ x, x ∈ Kdiff (K'.find x + 1),
   { intro x,
     simpa only [K'.find_shiftr]
-      using diff_subset_diff_right interior_subset (K'.shiftr.mem_diff_shiftr_find x) },
+      using sdiff_mono_right interior_subset (K'.shiftr.mem_diff_shiftr_find x) },
   have Kdiffc : ∀ n, is_compact (Kdiff n ∩ s),
     from λ n, ((K.is_compact _).diff is_open_interior).inter_right hs,
   -- Next we choose a finite covering `B (c n i) (r n i)` of each

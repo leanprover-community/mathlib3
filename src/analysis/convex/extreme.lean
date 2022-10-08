@@ -218,7 +218,7 @@ end
 lemma convex.mem_extreme_points_iff_mem_diff_convex_hull_diff (hA : convex 𝕜 A) :
   x ∈ A.extreme_points 𝕜 ↔ x ∈ A \ convex_hull 𝕜 (A \ {x}) :=
 by rw [hA.mem_extreme_points_iff_convex_diff, hA.convex_remove_iff_not_mem_convex_hull_remove,
-  mem_diff]
+  mem_sdiff]
 
 lemma extreme_points_convex_hull_subset :
   (convex_hull 𝕜 A).extreme_points 𝕜 ⊆ A :=

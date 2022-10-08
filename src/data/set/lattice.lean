@@ -429,11 +429,11 @@ Union_inter _ _
 
 theorem diff_Union [nonempty ι] (s : set β) (t : ι → set β) :
   s \ (⋃ i, t i) = ⋂ i, s \ t i :=
-by rw [diff_eq, compl_Union, inter_Inter]; refl
+by rw [sdiff_eq, compl_Union, inter_Inter]; refl
 
-theorem diff_Inter (s : set β) (t : ι → set β) :
+theorem sdiff_inter (s : set β) (t : ι → set β) :
   s \ (⋂ i, t i) = ⋃ i, s \ t i :=
-by rw [diff_eq, compl_Inter, inter_Union]; refl
+by rw [sdiff_eq, compl_Inter, inter_Union]; refl
 
 lemma directed_on_Union {r} {f : ι → set α} (hd : directed (⊆) f)
   (h : ∀ x, directed_on r (f x)) : directed_on r (⋃ x, f x) :=
@@ -1508,8 +1508,8 @@ by simp only [pi_def, Inter_true, mem_univ]
 lemma pi_diff_pi_subset (i : set α) (s t : Π a, set (π a)) :
   pi i s \ pi i t ⊆ ⋃ a ∈ i, (eval a ⁻¹' (s a \ t a)) :=
 begin
-  refine diff_subset_comm.2 (λ x hx a ha, _),
-  simp only [mem_diff, mem_pi, mem_Union, not_exists, mem_preimage, not_and, not_not, eval_apply]
+  refine sdiff_subset_comm.2 (λ x hx a ha, _),
+  simp only [mem_sdiff, mem_pi, mem_Union, not_exists, mem_preimage, not_and, not_not, eval_apply]
     at hx,
   exact hx.2 _ ha (hx.1 _ ha)
 end
@@ -1638,8 +1638,8 @@ Sup_disjoint_iff
   disjoint s (⋃₀ S) ↔ ∀ t ∈ S, disjoint s t :=
 disjoint_Sup_iff
 
-theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
-disjoint_iff.2 (inter_diff_self _ _)
+theorem disjoint_sdiff {a b : set α} : disjoint a (b \ a) :=
+disjoint_iff.2 (inter_sdiff_self _ _)
 
 @[simp] theorem disjoint_empty (s : set α) : disjoint s ∅ := disjoint_bot_right
 
@@ -1737,9 +1737,9 @@ lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
 lemma bUnion_diff_bUnion_subset (s₁ s₂ : set α) :
   (⋃ x ∈ s₁, t x) \ (⋃ x ∈ s₂, t x) ⊆ (⋃ x ∈ s₁ \ s₂, t x) :=
 begin
-  simp only [diff_subset_iff, ← bUnion_union],
+  simp only [sdiff_subset_iff, ← bUnion_union],
   apply bUnion_subset_bUnion_left,
-  rw union_diff_self,
+  rw union_sdiff_self,
   apply subset_union_right
 end
 

@@ -705,7 +705,7 @@ by { rw ←mem_to_set, simp }
 @[simp] theorem mem_inter {x y z : Set.{u}} : z ∈ x ∩ y ↔ z ∈ x ∧ z ∈ y :=
 @@mem_sep (λ z : Set.{u}, z ∈ y)
 
-@[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
+@[simp] theorem mem_sdiff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
 /-- Induction on the `∈` relation. -/
@@ -941,7 +941,7 @@ set.ext $ λ z, iff.symm Set.mem_union
 set.ext $ λ z, iff.symm Set.mem_inter
 
 @[simp] theorem diff_hom (x y : Set.{u}) : (x : Class.{u}) \ y = (x \ y : Set.{u}) :=
-set.ext $ λ z, iff.symm Set.mem_diff
+set.ext $ λ z, iff.symm Set.mem_sdiff
 
 @[simp] theorem powerset_hom (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
 set.ext $ λ z, iff.symm Set.mem_powerset

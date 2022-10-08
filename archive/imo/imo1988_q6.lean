@@ -120,7 +120,7 @@ begin
     use p.2,
     apply set.mem_image_of_mem,
     -- After all, we assumed that the exceptional locus is empty.
-    rwa [exceptional_empty, set.diff_empty], },
+    rwa [exceptional_empty, set.sdiff_empty], },
   -- We are now set for an infinite descent argument.
   -- Let m be the smallest element of the nonempty set S.
   let  m     : ℕ                := well_founded.min     nat.lt_wf S S_nonempty,
@@ -163,7 +163,7 @@ begin
   -- We do that, by showing that it lies in the upper branch
   -- (which is sufficient, because we assumed that the exceptional locus is empty).
   apply set.mem_image_of_mem,
-  rw [exceptional_empty, set.diff_empty],
+  rw [exceptional_empty, set.sdiff_empty],
   -- Now we are ready to prove that p' = (c, m_x) lies on the upper branch.
   -- We need to check two conditions: H(c, m_x) and c < m_x.
   split; dsimp only,

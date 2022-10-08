@@ -35,7 +35,7 @@ begin
     λ i, measurable_set_to_measurable _ _, λ i, _, _⟩,
   { simp only [measure_to_measurable, inter_Union],
     exact (measure_bUnion_null_iff $ to_countable _).2 (λ j hj, hd _ _ (ne.symm hj)) },
-  { simp only [pairwise, disjoint_left, on_fun, mem_diff, not_and, and_imp, not_not],
+  { simp only [pairwise, disjoint_left, on_fun, mem_sdiff, not_and, and_imp, not_not],
     intros i j hne x hi hU hj,
     replace hU : x ∉ s i ∩ ⋃ j ≠ i, s j := λ h, hU (subset_to_measurable _ _ h),
     simp only [mem_inter_iff, mem_Union, not_and, not_exists] at hU,
@@ -92,7 +92,7 @@ lemma union_right (ht : ae_disjoint μ s t) (hu : ae_disjoint μ s u) : ae_disjo
 union_right_iff.2 ⟨ht, hu⟩
 
 lemma diff_ae_eq_left (h : ae_disjoint μ s t) : (s \ t : set α) =ᵐ[μ] s :=
-@diff_self_inter _ s t ▸ diff_null_ae_eq_self h
+@sdiff_self_inter _ s t ▸ diff_null_ae_eq_self h
 
 lemma diff_ae_eq_right (h : ae_disjoint μ s t) : (t \ s : set α) =ᵐ[μ] t := h.symm.diff_ae_eq_left
 
@@ -106,7 +106,7 @@ set `u`. -/
 lemma exists_disjoint_diff (h : ae_disjoint μ s t) :
   ∃ u, measurable_set u ∧ μ u = 0 ∧ disjoint (s \ u) t :=
 ⟨to_measurable μ (s ∩ t), measurable_set_to_measurable _ _, (measure_to_measurable _).trans h,
-  disjoint_diff.symm.mono_left (λ x hx, ⟨hx.1, λ hxt, hx.2 $ subset_to_measurable _ _ ⟨hx.1, hxt⟩⟩)⟩
+  disjoint_sdiff.symm.mono_left (λ x hx, ⟨hx.1, λ hxt, hx.2 $ subset_to_measurable _ _ ⟨hx.1, hxt⟩⟩)⟩
 
 lemma of_null_right (h : μ t = 0) : ae_disjoint μ s t :=
 measure_mono_null (inter_subset_right _ _) h

@@ -249,7 +249,7 @@ begin
     simp },
   { rintro s ⟨h₁, h₂⟩,
     refine ⟨_, ⟨mem_compl infty_not_mem_image_coe, is_open_compl_image_coe.2 ⟨h₁, h₂⟩⟩, _⟩,
-    simp [compl_image_coe, ← diff_eq, subset_preimage_image] }
+    simp [compl_image_coe, ← sdiff_eq, subset_preimage_image] }
 end
 
 /-- If `X` is a non-compact space, then `∞` is not an isolated point of `alexandroff X`. -/

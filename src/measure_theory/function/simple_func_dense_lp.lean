@@ -756,7 +756,7 @@ begin
   { rw simple_func.coe_piecewise,
     have : s =ᵐ[μ] univ,
     { rw ae_eq_set,
-      simp only [true_and, measure_empty, eq_self_iff_true, diff_univ, ← compl_eq_univ_diff],
+      simp only [true_and, measure_empty, eq_self_iff_true, sdiff_univ, ← compl_eq_univ_sdiff],
       exact hs_zero, },
     refine eventually_eq.trans (to_simple_func_eq_to_fun f).symm _,
     refine eventually_eq.trans _ (piecewise_ae_eq_of_ae_eq_set this.symm),

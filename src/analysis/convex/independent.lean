@@ -131,7 +131,7 @@ begin
     exact h.2 (set.mem_singleton _) },
   { by_contra H,
     refine h i s _,
-    rw set.diff_singleton_eq_self H,
+    rw set.sdiff_singleton_eq_self H,
     exact hi }
 end
 
@@ -156,10 +156,10 @@ begin
   rw convex_independent_set_iff_inter_convex_hull_subset,
   split,
   { rintro hs x hxs hx,
-    exact (hs _ (set.diff_subset _ _) ⟨hxs, hx⟩).2 (set.mem_singleton _) },
+    exact (hs _ (set.sdiff_subset _ _) ⟨hxs, hx⟩).2 (set.mem_singleton _) },
   { rintro hs t ht x ⟨hxs, hxt⟩,
     by_contra h,
-    exact hs _ hxs (convex_hull_mono (set.subset_diff_singleton ht h) hxt) }
+    exact hs _ hxs (convex_hull_mono (set.subset_sdiff_singleton ht h) hxt) }
 end
 
 end ordered_semiring
@@ -199,6 +199,6 @@ lemma convex.convex_independent_extreme_points (hs : convex 𝕜 s) :
 convex_independent_set_iff_not_mem_convex_hull_diff.2 $ λ x hx h,
   (extreme_points_convex_hull_subset
   (inter_extreme_points_subset_extreme_points_of_subset (convex_hull_min
-  ((set.diff_subset _ _).trans extreme_points_subset) hs) ⟨h, hx⟩)).2 (set.mem_singleton _)
+  ((set.sdiff_subset _ _).trans extreme_points_subset) hs) ⟨h, hx⟩)).2 (set.mem_singleton _)
 
 end linear_ordered_field

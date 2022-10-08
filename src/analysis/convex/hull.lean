@@ -123,7 +123,7 @@ begin
     exact hx.2 (mem_singleton _) },
   rintro hx,
   suffices h : s \ {x} = convex_hull 𝕜 (s \ {x}), { convert convex_convex_hull 𝕜 _ },
-  exact subset.antisymm (subset_convex_hull 𝕜 _) (λ y hy, ⟨convex_hull_min (diff_subset _ _) hs hy,
+  exact subset.antisymm (subset_convex_hull 𝕜 _) (λ y hy, ⟨convex_hull_min (sdiff_subset _ _) hs hy,
     by { rintro (rfl : y = x), exact hx hy }⟩),
 end
 

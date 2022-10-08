@@ -1392,7 +1392,7 @@ begin
   -- The case that `j ≠ i` is easy because `b j ∈ b '' (univ \ {i})`.
   by_cases j_eq : j = i,
   swap,
-  { refine subset_span ⟨j, (set.mem_diff _).mpr ⟨set.mem_univ _, _⟩, rfl⟩,
+  { refine subset_span ⟨j, (set.mem_sdiff _).mpr ⟨set.mem_univ _, _⟩, rfl⟩,
     exact mt set.mem_singleton_iff.mp j_eq },
 
   -- To show `b i ∈ span (b '' (univ \ {i}))`, we use that it's a weighted sum

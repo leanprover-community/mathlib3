@@ -2871,7 +2871,7 @@ lemma has_fderiv_within_at.eventually_ne (h : has_fderiv_within_at f f' s x)
   (hf' : ∃ C, ∀ z, ∥z∥ ≤ C * ∥f' z∥) :
   ∀ᶠ z in 𝓝[s \ {x}] x, f z ≠ f x :=
 begin
-  rw [nhds_within, diff_eq, ← inf_principal, ← inf_assoc, eventually_inf_principal],
+  rw [nhds_within, sdiff_eq, ← inf_principal, ← inf_assoc, eventually_inf_principal],
   have A : (λ z, z - x) =O[𝓝[s] x] (λ z, f' (z - x)) :=
     (is_O_iff.2 $ hf'.imp $ λ C hC, eventually_of_forall $ λ z, hC _),
   have : (λ z, f z - f x) ~[𝓝[s] x] (λ z, f' (z - x)) := h.trans_is_O A,
@@ -2880,7 +2880,7 @@ end
 
 lemma has_fderiv_at.eventually_ne (h : has_fderiv_at f f' x) (hf' : ∃ C, ∀ z, ∥z∥ ≤ C * ∥f' z∥) :
   ∀ᶠ z in 𝓝[≠] x, f z ≠ f x :=
-by simpa only [compl_eq_univ_diff] using (has_fderiv_within_at_univ.2 h).eventually_ne hf'
+by simpa only [compl_eq_univ_sdiff] using (has_fderiv_within_at_univ.2 h).eventually_ne hf'
 
 end
 

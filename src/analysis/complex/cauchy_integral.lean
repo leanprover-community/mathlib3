@@ -345,9 +345,9 @@ begin
   obtain ⟨r, hr0, hrδ, hrR⟩ : ∃ r, 0 < r ∧ r ≤ δ ∧ r ≤ R :=
     ⟨min δ R, lt_min δ0 h0, min_le_left _ _, min_le_right _ _⟩,
   have hsub : closed_ball c R \ ball c r ⊆ closed_ball c R \ {c},
-    from diff_subset_diff_right (singleton_subset_iff.2 $ mem_ball_self hr0),
+    from sdiff_mono_right (singleton_subset_iff.2 $ mem_ball_self hr0),
   have hsub' : ball c R \ closed_ball c r ⊆ ball c R \ {c},
-    from diff_subset_diff_right (singleton_subset_iff.2 $ mem_closed_ball_self hr0.le),
+    from sdiff_mono_right (singleton_subset_iff.2 $ mem_closed_ball_self hr0.le),
   have hzne : ∀ z ∈ sphere c r, z ≠ c,
     from λ z hz, ne_of_mem_of_not_mem hz (λ h, hr0.ne' $ dist_self c ▸ eq.symm h),
   /- The integral `∮ z in C(c, r), f z / (z - c)` does not depend on `0 < r ≤ R` and tends to
@@ -390,7 +390,7 @@ lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable {R 
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :
   ∮ z in C(c, R), (z - c)⁻¹ • f z = (2 * π * I : ℂ) • f c :=
 circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto h0 hs
-  (hc.mono $ diff_subset _ _) (λ z hz, hd z ⟨hz.1.1, hz.2⟩)
+  (hc.mono $ sdiff_subset _ _) (λ z hz, hd z ⟨hz.1.1, hz.2⟩)
   (hc.continuous_at $ closed_ball_mem_nhds _ h0).continuous_within_at
 
 /-- **Cauchy-Goursat theorem** for a disk: if `f : ℂ → E` is continuous on a closed disk
@@ -428,7 +428,7 @@ begin
   have hdF : ∀ z ∈ ball (c : ℂ) R \ (insert w s), differentiable_at ℂ F z,
     from λ z hz, (differentiable_at_dslope_of_ne
       (ne_of_mem_of_not_mem (mem_insert _ _) hz.2).symm).2
-      (hd _ (diff_subset_diff_right (subset_insert _ _) hz)),
+      (hd _ (sdiff_mono_right (subset_insert _ _) hz)),
   have HI := circle_integral_eq_zero_of_differentiable_on_off_countable hR.le hws hcF hdF,
   have hne : ∀ z ∈ sphere c R, z ≠ w, from λ z hz, ne_of_mem_of_not_mem hz (ne_of_lt hw.1),
   have hFeq : eq_on F (λ z, (z - w)⁻¹ • f z - (z - w)⁻¹ • f w) (sphere c R),
@@ -474,7 +474,7 @@ begin
   rcases mem_nhds_iff_exists_Ioo_subset.1 (this $ inter_mem ht $ is_open_ball.mem_nhds hw)
     with ⟨l, u, hlu₀, hlu_sub⟩,
   obtain ⟨x, hx⟩ : (Ioo l u \ g ⁻¹' s).nonempty,
-  { refine nonempty_diff.2 (λ hsub, _),
+  { refine nonempty_sdiff.2 (λ hsub, _),
     have : (Ioo l u).countable,
       from (hs.preimage ((add_right_injective w).comp of_real_injective)).mono hsub,
     rw [← cardinal.le_aleph_0_iff_set_countable,

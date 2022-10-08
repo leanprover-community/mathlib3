@@ -776,7 +776,7 @@ lemma linear_independent_iff_not_smul_mem_span :
   rcases ha with ⟨l, hl, e⟩,
   rw sub_eq_zero.1 (linear_independent_iff.1 hv (l - finsupp.single i a) (by simp [e])) at hl,
   by_contra hn,
-  exact (not_mem_of_mem_diff (hl $ by simp [hn])) (mem_singleton _),
+  exact (not_mem_of_mem_sdiff (hl $ by simp [hn])) (mem_singleton _),
 end, λ H, linear_independent_iff.2 $ λ l hl, begin
   ext i, simp only [finsupp.zero_apply],
   by_contra hn,
@@ -786,7 +786,7 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
     intros j hj,
     have hij : j = i :=
       not_not.1
-          (λ hij : j ≠ i, hj ((mem_diff _).2 ⟨mem_univ _, λ h, hij (eq_of_mem_singleton h)⟩)),
+          (λ hij : j ≠ i, hj ((mem_sdiff _).2 ⟨mem_univ _, λ h, hij (eq_of_mem_singleton h)⟩)),
     simp [hij] },
   { simp [hl] }
 end⟩

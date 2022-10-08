@@ -376,7 +376,7 @@ lemma monotone_closure (α : Type*) [topological_space α] : monotone (@closure 
 
 lemma diff_subset_closure_iff {s t : set α} :
   s \ t ⊆ closure t ↔ s ⊆ closure t :=
-by rw [diff_subset_iff, union_eq_self_of_subset_left subset_closure]
+by rw [sdiff_subset_iff, union_eq_self_of_subset_left subset_closure]
 
 lemma closure_inter_subset_inter_closure (s t : set α) :
   closure (s ∩ t) ⊆ closure s ∩ closure t :=
@@ -540,26 +540,26 @@ def frontier (s : set α) : set α := closure s \ interior s
 @[simp] lemma closure_diff_interior (s : set α) : closure s \ interior s = frontier s := rfl
 
 @[simp] lemma closure_diff_frontier (s : set α) : closure s \ frontier s = interior s :=
-by rw [frontier, diff_diff_right_self, inter_eq_self_of_subset_right interior_subset_closure]
+by rw [frontier, sdiff_sdiff_right_self, inter_eq_self_of_subset_right interior_subset_closure]
 
 @[simp] lemma self_diff_frontier (s : set α) : s \ frontier s = interior s :=
-by rw [frontier, diff_diff_right, diff_eq_empty.2 subset_closure,
+by rw [frontier, sdiff_sdiff_right, sdiff_eq_empty.2 subset_closure,
   inter_eq_self_of_subset_right interior_subset, empty_union]
 
 lemma frontier_eq_closure_inter_closure {s : set α} :
   frontier s = closure s ∩ closure sᶜ :=
-by rw [closure_compl, frontier, diff_eq]
+by rw [closure_compl, frontier, sdiff_eq]
 
-lemma frontier_subset_closure {s : set α} : frontier s ⊆ closure s := diff_subset _ _
+lemma frontier_subset_closure {s : set α} : frontier s ⊆ closure s := sdiff_subset _ _
 
 lemma is_closed.frontier_subset (hs : is_closed s) : frontier s ⊆ s :=
 frontier_subset_closure.trans hs.closure_eq.subset
 
 lemma frontier_closure_subset {s : set α} : frontier (closure s) ⊆ frontier s :=
-diff_subset_diff closure_closure.subset $ interior_mono subset_closure
+sdiff_subset_sdiff closure_closure.subset $ interior_mono subset_closure
 
 lemma frontier_interior_subset {s : set α} : frontier (interior s) ⊆ frontier s :=
-diff_subset_diff (closure_mono interior_subset) interior_interior.symm.subset
+sdiff_subset_sdiff (closure_mono interior_subset) interior_interior.symm.subset
 
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
@@ -591,7 +591,7 @@ lemma is_open.frontier_eq {s : set α} (hs : is_open s) : frontier s = closure s
 by rw [frontier, hs.interior_eq]
 
 lemma is_open.inter_frontier_eq {s : set α} (hs : is_open s) : s ∩ frontier s = ∅ :=
-by rw [hs.frontier_eq, inter_diff_self]
+by rw [hs.frontier_eq, inter_sdiff_self]
 
 /-- The frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
@@ -601,18 +601,18 @@ by rw frontier_eq_closure_inter_closure; exact is_closed.inter is_closed_closure
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
 begin
   have A : frontier s = s \ interior s, from h.frontier_eq,
-  have B : interior (frontier s) ⊆ interior s, by rw A; exact interior_mono (diff_subset _ _),
+  have B : interior (frontier s) ⊆ interior s, by rw A; exact interior_mono (sdiff_subset _ _),
   have C : interior (frontier s) ⊆ frontier s := interior_subset,
   have : interior (frontier s) ⊆ (interior s) ∩ (s \ interior s) :=
     subset_inter B (by simpa [A] using C),
-  rwa [inter_diff_self, subset_empty_iff] at this,
+  rwa [inter_sdiff_self, subset_empty_iff] at this,
 end
 
 lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s ∪ frontier s :=
-(union_diff_cancel interior_subset_closure).symm
+(union_sdiff_cancel interior_subset_closure).symm
 
 lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
-(union_diff_cancel' interior_subset subset_closure).symm
+(union_sdiff_cancel' interior_subset subset_closure).symm
 
 lemma disjoint.frontier_left (ht : is_open t) (hd : disjoint s t) : disjoint (frontier s) t :=
 subset_compl_iff_disjoint_right.1 $ frontier_subset_closure.trans $ closure_minimal
@@ -1127,10 +1127,10 @@ let ⟨U, hsub, ho, hx⟩ := mem_nhds_iff.1 ht in
   (hs.inter_open_nonempty U ho ⟨x, hx⟩).mono $ λ y hy, ⟨hy.2, hsub hy.1⟩
 
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
-calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_eq, inter_comm]
+calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [sdiff_eq, inter_comm]
   ... ⊆ closure ((closure t)ᶜ ∩ s) : (is_open_compl_iff.mpr $ is_closed_closure).closure_inter
-  ... = closure (s \ closure t) : by simp only [diff_eq, inter_comm]
-  ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
+  ... = closure (s \ closure t) : by simp only [sdiff_eq, inter_comm]
+  ... ⊆ closure (s \ t) : closure_mono $ sdiff_subset_sdiff (subset.refl s) subset_closure
 
 lemma filter.frequently.mem_of_closed {a : α} {s : set α} (h : ∃ᶠ x in 𝓝 a, x ∈ s)
   (hs : is_closed s) : a ∈ s :=
@@ -1372,7 +1372,7 @@ end
 lemma continuous.frontier_preimage_subset
   {f : α → β} (hf : continuous f) (t : set β) :
   frontier (f ⁻¹' t) ⊆ f ⁻¹' (frontier t) :=
-diff_subset_diff (hf.closure_preimage_subset t) (preimage_interior_subset_interior_preimage hf)
+sdiff_subset_sdiff (hf.closure_preimage_subset t) (preimage_interior_subset_interior_preimage hf)
 
 /-! ### Continuity and partial functions -/
 

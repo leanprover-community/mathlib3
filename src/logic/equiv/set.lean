@@ -280,8 +280,8 @@ by cases x with x hx; exact set.sum_compl_symm_apply_of_not_mem hx
 protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] :
   s ⊕ (t \ s : set α) ≃ t :=
 calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) :
-  (equiv.set.union (by simp [inter_diff_self])).symm
-... ≃ t : equiv.set.of_eq (by { simp [union_diff_self, union_eq_self_of_subset_left h] })
+  (equiv.set.union (by simp [inter_sdiff_self])).symm
+... ≃ t : equiv.set.of_eq (by { simp [union_sdiff_self, union_eq_self_of_subset_left h] })
 
 @[simp] lemma sum_diff_subset_apply_inl
   {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] (x : s) :
@@ -289,7 +289,7 @@ calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) :
 
 @[simp] lemma sum_diff_subset_apply_inr
   {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] (x : t \ s) :
-  equiv.set.sum_diff_subset h (sum.inr x) = inclusion (diff_subset t s) x := rfl
+  equiv.set.sum_diff_subset h (sum.inr x) = inclusion (sdiff_subset t s) x := rfl
 
 lemma sum_diff_subset_symm_apply_of_mem
   {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] {x : t} (hx : x.1 ∈ s) :
@@ -314,15 +314,15 @@ to `s ⊕ t`. -/
 protected def union_sum_inter {α : Type u} (s t : set α) [decidable_pred (∈ s)] :
   (s ∪ t : set α) ⊕ (s ∩ t : set α) ≃ s ⊕ t :=
 calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
-    ≃ (s ∪ t \ s : set α) ⊕ (s ∩ t : set α) : by rw [union_diff_self]
+    ≃ (s ∪ t \ s : set α) ⊕ (s ∩ t : set α) : by rw [union_sdiff_self]
 ... ≃ (s ⊕ (t \ s : set α)) ⊕ (s ∩ t : set α) :
-  sum_congr (set.union $ subset_empty_iff.2 (inter_diff_self _ _)) (equiv.refl _)
+  sum_congr (set.union $ subset_empty_iff.2 (inter_sdiff_self _ _)) (equiv.refl _)
 ... ≃ s ⊕ (t \ s : set α) ⊕ (s ∩ t : set α) : sum_assoc _ _ _
 ... ≃ s ⊕ (t \ s ∪ s ∩ t : set α) : sum_congr (equiv.refl _) begin
     refine (set.union' (∉ s) _ _).symm,
     exacts [λ x hx, hx.2, λ x hx, not_not_intro hx.1]
   end
-... ≃ s ⊕ t : by { rw (_ : t \ s ∪ s ∩ t = t), rw [union_comm, inter_comm, inter_union_diff] }
+... ≃ s ⊕ t : by { rw (_ : t \ s ∪ s ∩ t = t), rw [union_comm, inter_comm, inter_union_sdiff] }
 
 /-- Given an equivalence `e₀` between sets `s : set α` and `t : set β`, the set of equivalences
 `e : α ≃ β` such that `e ↑x = ↑(e₀ x)` for each `x : s` is equivalent to the set of equivalences

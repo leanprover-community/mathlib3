@@ -174,7 +174,7 @@ begin
   calc μ (s ∩ t) + μ (S n) = μ (s ∩ t ∪ S n) :
     eq.symm $ hm _ _ $ (Ssep' n).symm
   ... ≤ μ (s ∩ t ∪ s \ t)  : by { mono*, exact le_rfl }
-  ... = μ s : by rw [inter_union_diff],
+  ... = μ s : by rw [inter_union_sdiff],
   have Union_S : (⋃ n, S n) = s \ t,
   { refine subset.antisymm (Union_subset S_sub) _,
     rintro x ⟨hxs, hxt⟩,
@@ -186,7 +186,7 @@ begin
   `μ` is only an outer measure. -/
   by_cases htop : μ (s \ t) = ∞,
   { rw [htop, ennreal.add_top, ← htop],
-    exact μ.mono (diff_subset _ _) },
+    exact μ.mono (sdiff_subset _ _) },
   suffices : μ (⋃ n, S n) ≤ ⨆ n, μ (S n),
   calc μ (s ∩ t) + μ (s \ t) = μ (s ∩ t) + μ (⋃ n, S n) :
     by rw Union_S

@@ -1194,7 +1194,7 @@ lemma subset_erase {a : α} {s t : finset α} : s ⊆ t.erase a ↔ s ⊆ t ∧ 
   λ h b hb, mem_erase.2 ⟨ne_of_mem_of_not_mem hb h.2, h.1 hb⟩⟩
 
 @[simp, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (s \ {a} : set α) :=
-set.ext $ λ _, mem_erase.trans $ by rw [and_comm, set.mem_diff, set.mem_singleton_iff]; refl
+set.ext $ λ _, mem_erase.trans $ by rw [and_comm, set.mem_sdiff, set.mem_singleton_iff]; refl
 
 lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
 calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
@@ -1343,13 +1343,13 @@ lemma insert_sdiff_of_not_mem (s : finset α) {t : finset α} {x : α} (h : x �
   (insert x s) \ t = insert x (s \ t) :=
 begin
   rw [← coe_inj, coe_insert, coe_sdiff, coe_sdiff, coe_insert],
-  exact set.insert_diff_of_not_mem s h
+  exact set.insert_sdiff_of_not_mem s h
 end
 
 lemma insert_sdiff_of_mem (s : finset α) {x : α} (h : x ∈ t) : (insert x s) \ t = s \ t :=
 begin
   rw [← coe_inj, coe_sdiff, coe_sdiff, coe_insert],
-  exact set.insert_diff_of_mem s h
+  exact set.insert_sdiff_of_mem s h
 end
 
 @[simp] lemma insert_sdiff_insert (s t : finset α) (x : α) :

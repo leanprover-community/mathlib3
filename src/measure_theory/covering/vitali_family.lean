@@ -148,7 +148,7 @@ lemma measure_le_tsum_of_absolutely_continuous [second_countable_topology α]
   {ρ : measure α} (hρ : ρ ≪ μ) :
   ρ s ≤ ∑' (p : h.index), ρ (h.covering p) :=
 calc ρ s ≤ ρ ((s \ ⋃ (p ∈ h.index), h.covering p) ∪ (⋃ (p ∈ h.index), h.covering p)) :
-    measure_mono (by simp only [subset_union_left, diff_union_self])
+    measure_mono (by simp only [subset_union_left, sdiff_union_self])
   ... ≤ ρ (s \ ⋃ (p ∈ h.index), h.covering p) + ρ (⋃ (p ∈ h.index), h.covering p) :
     measure_union_le _ _
   ... = ∑' (p : h.index), ρ (h.covering p) : by rw [hρ h.measure_diff_bUnion,

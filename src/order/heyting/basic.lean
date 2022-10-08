@@ -360,7 +360,7 @@ alias sup_sdiff_self ← sup_sdiff_self_right
 lemma sup_sdiff_eq_sup (h : c ≤ a) : a ⊔ b \ c = a ⊔ b :=
 sup_congr_left (sdiff_le.trans le_sup_right) $ le_sup_sdiff.trans $ sup_le_sup_right h _
 
--- cf. `set.union_diff_cancel'`
+-- cf. `set.union_sdiff_cancel'`
 lemma sup_sdiff_cancel' (hab : a ≤ b) (hbc : b ≤ c) : b ⊔ c \ a = c :=
 by rw [sup_sdiff_eq_sup hab, sup_of_le_right hbc]
 

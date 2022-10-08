@@ -677,7 +677,7 @@ lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s 
   [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
+lemma to_finset_sdiff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
   [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
 by { ext, simp }
 

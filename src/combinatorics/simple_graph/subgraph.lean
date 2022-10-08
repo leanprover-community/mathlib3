@@ -676,17 +676,17 @@ by ext; simp [not_or_distrib, and_assoc] { contextual := tt }
 by simp [delete_verts]
 
 lemma delete_verts_le : G'.delete_verts s ≤ G' :=
-by split; simp [set.diff_subset]
+by split; simp [set.sdiff_subset]
 
 @[mono]
 lemma delete_verts_mono {G' G'' : G.subgraph} (h : G' ≤ G'') :
   G'.delete_verts s ≤ G''.delete_verts s :=
-induce_mono h (set.diff_subset_diff_left h.1)
+induce_mono h (set.sdiff_mono_left h.1)
 
 @[mono]
 lemma delete_verts_anti {s s' : set V} (h : s ⊆ s') :
   G'.delete_verts s' ≤ G'.delete_verts s :=
-induce_mono (le_refl _) (set.diff_subset_diff_right h)
+induce_mono (le_refl _) (set.sdiff_mono_right h)
 
 @[simp] lemma delete_verts_inter_verts_left_eq :
   G'.delete_verts (G'.verts ∩ s) = G'.delete_verts s :=

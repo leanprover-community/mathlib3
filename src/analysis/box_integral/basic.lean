@@ -797,6 +797,6 @@ lemma has_integral_McShane_of_forall_is_o (B : ι →ᵇᵃ[I] ℝ) (hB0 : ∀ J
   has_integral I McShane f vol (g I) :=
 has_integral_of_bRiemann_eq_ff_of_forall_is_o rfl B hB0 g ∅ countable_empty (λ ⟨x, hx⟩, hx.elim)
   (λ c x hx, hx.2.elim) $
-  by simpa only [McShane, coe_sort_ff, false_implies_iff, true_implies_iff, diff_empty] using H
+  by simpa only [McShane, coe_sort_ff, false_implies_iff, true_implies_iff, sdiff_empty] using H
 
 end box_integral

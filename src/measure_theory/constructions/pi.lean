@@ -264,9 +264,9 @@ begin
   intro t,
   simp_rw [pi_premeasure],
   refine finset.prod_add_prod_le' (finset.mem_univ i) _ _ _,
-  { simp [image_inter_preimage, image_diff_preimage, measure_inter_add_diff _ hs, le_refl] },
+  { simp [image_inter_preimage, image_sdiff_preimage, measure_inter_add_diff _ hs, le_refl] },
   { rintro j - hj, apply mono', apply image_subset, apply inter_subset_left },
-  { rintro j - hj, apply mono', apply image_subset, apply diff_subset }
+  { rintro j - hj, apply mono', apply image_subset, apply sdiff_subset }
 end
 
 /-- `measure.pi μ` is the finite product of the measures `{μ i | i : ι}`.

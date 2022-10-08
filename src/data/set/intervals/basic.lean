@@ -437,7 +437,7 @@ ext $ λ x, by simp [and.right_comm, ← lt_iff_le_and_ne, eq_comm]
 ext $ λ x, by simp [and_assoc, ← lt_iff_le_and_ne]
 
 @[simp] lemma Icc_diff_both : Icc a b \ {a, b} = Ioo a b :=
-by rw [insert_eq, ← diff_diff, Icc_diff_left, Ioc_diff_right]
+by rw [insert_eq, ← sdiff_sdiff, Icc_diff_left, Ioc_diff_right]
 
 @[simp] lemma Ici_diff_left : Ici a \ {a} = Ioi a :=
 ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm]
@@ -446,39 +446,39 @@ ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm]
 ext $ λ x, by simp [lt_iff_le_and_ne]
 
 @[simp] lemma Ico_diff_Ioo_same (h : a < b) : Ico a b \ Ioo a b = {a} :=
-by rw [← Ico_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 $ left_mem_Ico.2 h)]
+by rw [← Ico_diff_left, sdiff_sdiff_cancel_left (singleton_subset_iff.2 $ left_mem_Ico.2 h)]
 
 @[simp] lemma Ioc_diff_Ioo_same (h : a < b) : Ioc a b \ Ioo a b = {b} :=
-by rw [← Ioc_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 $ right_mem_Ioc.2 h)]
+by rw [← Ioc_diff_right, sdiff_sdiff_cancel_left (singleton_subset_iff.2 $ right_mem_Ioc.2 h)]
 
 @[simp] lemma Icc_diff_Ico_same (h : a ≤ b) : Icc a b \ Ico a b = {b} :=
-by rw [← Icc_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 $ right_mem_Icc.2 h)]
+by rw [← Icc_diff_right, sdiff_sdiff_cancel_left (singleton_subset_iff.2 $ right_mem_Icc.2 h)]
 
 @[simp] lemma Icc_diff_Ioc_same (h : a ≤ b) : Icc a b \ Ioc a b = {a} :=
-by rw [← Icc_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 $ left_mem_Icc.2 h)]
+by rw [← Icc_diff_left, sdiff_sdiff_cancel_left (singleton_subset_iff.2 $ left_mem_Icc.2 h)]
 
 @[simp] lemma Icc_diff_Ioo_same (h : a ≤ b) : Icc a b \ Ioo a b = {a, b} :=
-by { rw [← Icc_diff_both, diff_diff_cancel_left], simp [insert_subset, h] }
+by { rw [← Icc_diff_both, sdiff_sdiff_cancel_left], simp [insert_subset, h] }
 
 @[simp] lemma Ici_diff_Ioi_same : Ici a \ Ioi a = {a} :=
-by rw [← Ici_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 left_mem_Ici)]
+by rw [← Ici_diff_left, sdiff_sdiff_cancel_left (singleton_subset_iff.2 left_mem_Ici)]
 
 @[simp] lemma Iic_diff_Iio_same : Iic a \ Iio a = {a} :=
-by rw [← Iic_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 right_mem_Iic)]
+by rw [← Iic_diff_right, sdiff_sdiff_cancel_left (singleton_subset_iff.2 right_mem_Iic)]
 
 @[simp] lemma Ioi_union_left : Ioi a ∪ {a} = Ici a := ext $ λ x, by simp [eq_comm, le_iff_eq_or_lt]
 
 @[simp] lemma Iio_union_right : Iio a ∪ {a} = Iic a := ext $ λ x, le_iff_lt_or_eq.symm
 
 lemma Ioo_union_left (hab : a < b) : Ioo a b ∪ {a} = Ico a b :=
-by rw [← Ico_diff_left, diff_union_self,
+by rw [← Ico_diff_left, sdiff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Ico.2 hab)]
 
 lemma Ioo_union_right (hab : a < b) : Ioo a b ∪ {b} = Ioc a b :=
 by simpa only [dual_Ioo, dual_Ico] using Ioo_union_left hab.dual
 
 lemma Ioc_union_left (hab : a ≤ b) : Ioc a b ∪ {a} = Icc a b :=
-by rw [← Icc_diff_left, diff_union_self,
+by rw [← Icc_diff_left, sdiff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Icc.2 hab)]
 
 lemma Ico_union_right (hab : a ≤ b) : Ico a b ∪ {b} = Icc a b :=
@@ -517,19 +517,19 @@ begin
   classical,
   by_cases ha : a ∈ s; by_cases hb : b ∈ s,
   { refine or.inl (subset.antisymm hc _),
-    rwa [← Ico_diff_left, diff_singleton_subset_iff, insert_eq_of_mem ha,
-      ← Icc_diff_right, diff_singleton_subset_iff, insert_eq_of_mem hb] at ho },
+    rwa [← Ico_diff_left, sdiff_singleton_subset_iff, insert_eq_of_mem ha,
+      ← Icc_diff_right, sdiff_singleton_subset_iff, insert_eq_of_mem hb] at ho },
   { refine (or.inr $ or.inl $ subset.antisymm _ _),
     { rw [← Icc_diff_right],
-      exact subset_diff_singleton hc hb },
-    { rwa [← Ico_diff_left, diff_singleton_subset_iff, insert_eq_of_mem ha] at ho } },
+      exact subset_sdiff_singleton hc hb },
+    { rwa [← Ico_diff_left, sdiff_singleton_subset_iff, insert_eq_of_mem ha] at ho } },
   { refine (or.inr $ or.inr $ or.inl $ subset.antisymm _ _),
     { rw [← Icc_diff_left],
-      exact subset_diff_singleton hc ha },
-    { rwa [← Ioc_diff_right, diff_singleton_subset_iff, insert_eq_of_mem hb] at ho } },
+      exact subset_sdiff_singleton hc ha },
+    { rwa [← Ioc_diff_right, sdiff_singleton_subset_iff, insert_eq_of_mem hb] at ho } },
   { refine (or.inr $ or.inr $ or.inr $ subset.antisymm _ ho),
     rw [← Ico_diff_left, ← Icc_diff_right],
-    apply_rules [subset_diff_singleton] }
+    apply_rules [subset_sdiff_singleton] }
 end
 
 lemma eq_left_or_mem_Ioo_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
@@ -621,28 +621,28 @@ not_mem_subset Ioo_subset_Iio_self $ not_mem_Iio.mpr hb
 @[simp] lemma compl_Ioi : (Ioi a)ᶜ = Iic a := ext $ λ _, not_lt
 
 @[simp] lemma Ici_diff_Ici : Ici a \ Ici b = Ico a b :=
-by rw [diff_eq, compl_Ici, Ici_inter_Iio]
+by rw [sdiff_eq, compl_Ici, Ici_inter_Iio]
 
 @[simp] lemma Ici_diff_Ioi : Ici a \ Ioi b = Icc a b :=
-by rw [diff_eq, compl_Ioi, Ici_inter_Iic]
+by rw [sdiff_eq, compl_Ioi, Ici_inter_Iic]
 
 @[simp] lemma Ioi_diff_Ioi : Ioi a \ Ioi b = Ioc a b :=
-by rw [diff_eq, compl_Ioi, Ioi_inter_Iic]
+by rw [sdiff_eq, compl_Ioi, Ioi_inter_Iic]
 
 @[simp] lemma Ioi_diff_Ici : Ioi a \ Ici b = Ioo a b :=
-by rw [diff_eq, compl_Ici, Ioi_inter_Iio]
+by rw [sdiff_eq, compl_Ici, Ioi_inter_Iio]
 
 @[simp] lemma Iic_diff_Iic : Iic b \ Iic a = Ioc a b :=
-by rw [diff_eq, compl_Iic, inter_comm, Ioi_inter_Iic]
+by rw [sdiff_eq, compl_Iic, inter_comm, Ioi_inter_Iic]
 
 @[simp] lemma Iio_diff_Iic : Iio b \ Iic a = Ioo a b :=
-by rw [diff_eq, compl_Iic, inter_comm, Ioi_inter_Iio]
+by rw [sdiff_eq, compl_Iic, inter_comm, Ioi_inter_Iio]
 
 @[simp] lemma Iic_diff_Iio : Iic b \ Iio a = Icc a b :=
-by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iic]
+by rw [sdiff_eq, compl_Iio, inter_comm, Ici_inter_Iic]
 
 @[simp] lemma Iio_diff_Iio : Iio b \ Iio a = Ico a b :=
-by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iio]
+by rw [sdiff_eq, compl_Iio, inter_comm, Ici_inter_Iio]
 
 lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
   Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -699,7 +699,7 @@ begin
 end
 
 @[simp] lemma Iio_subset_Iic_iff [densely_ordered α] : Iio a ⊆ Iic b ↔ a ≤ b :=
-by rw [←diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff, not_lt]
+by rw [←sdiff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff, not_lt]
 
 /-! ### Unions of adjacent intervals -/
 
@@ -1234,7 +1234,7 @@ lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b
 by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
-by rw [diff_eq, compl_Iio, Ico_inter_Ici, sup_eq_max]
+by rw [sdiff_eq, compl_Iio, Ico_inter_Ici, sup_eq_max]
 
 @[simp] lemma Ioc_diff_Ioi : Ioc a b \ Ioi c = Ioc a (min b c) :=
 ext $ by simp [iff_def] {contextual:=tt}
@@ -1247,7 +1247,7 @@ by rw [← Ioi_inter_Iic, inter_assoc, inter_comm, inter_assoc, Ioi_inter_Ioi, i
 ext $ by simp [iff_def] {contextual:=tt}
 
 @[simp] lemma Ioc_diff_Iic : Ioc a b \ Iic c = Ioc (max a c) b :=
-by rw [diff_eq, compl_Iic, Ioc_inter_Ioi, sup_eq_max]
+by rw [sdiff_eq, compl_Iic, Ioc_inter_Ioi, sup_eq_max]
 
 @[simp] lemma Ioc_union_Ioc_right : Ioc a b ∪ Ioc a c = Ioc a (max b c) :=
 by rw [Ioc_union_Ioc, min_self]; exact (min_le_left _ _).trans (le_max_left _ _)

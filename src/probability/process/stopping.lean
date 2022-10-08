@@ -94,7 +94,7 @@ begin
   have : {ω | τ ω = i} = {ω | τ ω ≤ i} \ (⋃ (j ∈ set.range τ) (hj : j < i), {ω | τ ω ≤ j}),
   { ext1 a,
     simp only [set.mem_set_of_eq, set.mem_range, set.Union_exists, set.Union_Union_eq',
-      set.mem_diff, set.mem_Union, exists_prop, not_exists, not_and, not_le],
+      set.mem_sdiff, set.mem_Union, exists_prop, not_exists, not_and, not_le],
     split; intro h,
     { simp only [h, lt_iff_le_not_le, le_refl, and_imp, imp_self, implies_true_iff, and_self], },
     { have h_lt_or_eq : τ a < i ∨ τ a = i := lt_or_eq_of_le h.1,
@@ -548,7 +548,7 @@ protected lemma measurable_set_lt' [topological_space ι] [order_topology ι]
 begin
   have : {ω | τ ω < i} = {ω | τ ω ≤ i} \ {ω | τ ω = i},
   { ext1 ω,
-    simp only [lt_iff_le_and_ne, set.mem_set_of_eq, set.mem_diff], },
+    simp only [lt_iff_le_and_ne, set.mem_set_of_eq, set.mem_sdiff], },
   rw this,
   exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq' i),
 end
@@ -589,7 +589,7 @@ protected lemma measurable_set_lt_of_countable_range'
 begin
   have : {ω | τ ω < i} = {ω | τ ω ≤ i} \ {ω | τ ω = i},
   { ext1 ω,
-    simp only [lt_iff_le_and_ne, set.mem_set_of_eq, set.mem_diff], },
+    simp only [lt_iff_le_and_ne, set.mem_set_of_eq, set.mem_sdiff], },
   rw this,
   exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq_of_countable_range' h_countable i),
 end

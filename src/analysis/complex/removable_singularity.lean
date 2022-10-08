@@ -37,13 +37,13 @@ begin
     rcases eq_or_ne z c with rfl | hne,
     exacts [hc, (hRs ⟨hz, hne⟩).continuous_at] },
   exact (has_fpower_series_on_ball_of_differentiable_off_countable (countable_singleton c) hc
-    (λ z hz, hRs (diff_subset_diff_left ball_subset_closed_ball hz)) hR0).analytic_at
+    (λ z hz, hRs (sdiff_mono_left ball_subset_closed_ball hz)) hR0).analytic_at
 end
 
 lemma differentiable_on_compl_singleton_and_continuous_at_iff {f : ℂ → E} {s : set ℂ} {c : ℂ}
   (hs : s ∈ 𝓝 c) : differentiable_on ℂ f (s \ {c}) ∧ continuous_at f c ↔ differentiable_on ℂ f s :=
 begin
-  refine ⟨_, λ hd, ⟨hd.mono (diff_subset _ _), (hd.differentiable_at hs).continuous_at⟩⟩,
+  refine ⟨_, λ hd, ⟨hd.mono (sdiff_subset _ _), (hd.differentiable_at hs).continuous_at⟩⟩,
   rintro ⟨hd, hc⟩ x hx,
   rcases eq_or_ne x c with rfl | hne,
   { refine (analytic_at_of_differentiable_on_punctured_nhds_of_continuous_at _ hc)
@@ -57,7 +57,7 @@ end
 lemma differentiable_on_dslope {f : ℂ → E} {s : set ℂ} {c : ℂ} (hc : s ∈ 𝓝 c) :
   differentiable_on ℂ (dslope f c) s ↔ differentiable_on ℂ f s :=
 ⟨λ h, h.of_dslope, λ h, (differentiable_on_compl_singleton_and_continuous_at_iff hc).mp $
-  ⟨iff.mpr (differentiable_on_dslope_of_nmem $ λ h, h.2 rfl) (h.mono $ diff_subset _ _),
+  ⟨iff.mpr (differentiable_on_dslope_of_nmem $ λ h, h.2 rfl) (h.mono $ sdiff_subset _ _),
     continuous_at_dslope_same.2 $ h.differentiable_at hc⟩⟩
 
 /-- **Removable singularity** theorem: if `s` is a neighborhood of `c : ℂ`, a function `f : ℂ → E`

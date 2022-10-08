@@ -141,8 +141,8 @@ begin
       λ v, (vsub_left_injective p₁).mem_set_image.1
              ((vadd_vsub (v : V) p₁).symm ▸ v.property),
     let f : (λ p : P, (p -ᵥ p₁ : V)) '' (s \ {p₁}) → {x : s // x ≠ ⟨p₁, hp₁⟩} :=
-      λ x, ⟨⟨(x : V) +ᵥ p₁, set.mem_of_mem_diff (hv x)⟩,
-            λ hx, set.not_mem_of_mem_diff (hv x) (subtype.ext_iff.1 hx)⟩,
+      λ x, ⟨⟨(x : V) +ᵥ p₁, set.mem_of_mem_sdiff (hv x)⟩,
+            λ hx, set.not_mem_of_mem_sdiff (hv x) (subtype.ext_iff.1 hx)⟩,
     convert h.comp f
       (λ x1 x2 hx, (subtype.ext (vadd_right_cancel p₁ (subtype.ext_iff.1 (subtype.ext_iff.1 hx))))),
     ext v,
@@ -164,9 +164,9 @@ begin
   rw affine_independent_set_iff_linear_independent_vsub k
     (set.mem_union_left _ (set.mem_singleton p₁)),
   have h : (λ p, (p -ᵥ p₁ : V)) '' (({p₁} ∪ (λ v, v +ᵥ p₁) '' s) \ {p₁}) = s,
-  { simp_rw [set.union_diff_left, set.image_diff (vsub_left_injective p₁), set.image_image,
+  { simp_rw [set.union_sdiff_left, set.image_sdiff (vsub_left_injective p₁), set.image_image,
              set.image_singleton, vsub_self, vadd_vsub, set.image_id'],
-    exact set.diff_singleton_eq_self (λ h, hs 0 h rfl) },
+    exact set.sdiff_singleton_eq_self (λ h, hs 0 h rfl) },
   rw h
 end
 

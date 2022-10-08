@@ -882,7 +882,7 @@ by { ext, simp }
 
 lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
-by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_diff, set.to_finset_compl,
+by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
     set.to_finset_singleton]
 
 @[simp]
@@ -1049,7 +1049,7 @@ end
 lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
   fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
 begin
-  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
+  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
   { simp only [set.to_finset_subset, set.subset_univ] },

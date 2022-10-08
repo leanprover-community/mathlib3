@@ -747,7 +747,7 @@ finprod_set_coe_eq_finprod_mem {i | p i}
 @[to_additive] lemma finprod_mem_inter_mul_diff' (t : set α) (h : (s ∩ mul_support f).finite) :
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
 begin
-  rw [← finprod_mem_union', inter_union_diff],
+  rw [← finprod_mem_union', inter_union_sdiff],
   exacts [λ x hx, hx.2.2 hx.1.2, h.subset (λ x hx, ⟨hx.1.1, hx.2⟩),
     h.subset (λ x hx, ⟨hx.1.1, hx.2⟩)],
 end

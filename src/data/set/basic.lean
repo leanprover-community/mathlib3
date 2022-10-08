@@ -315,9 +315,9 @@ let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩
 lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
 nonempty_of_not_subset ht.2
 
-lemma nonempty.of_diff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
+lemma nonempty.of_sdiff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
 
-lemma nonempty_of_ssubset' (ht : s ⊂ t) : t.nonempty := (nonempty_of_ssubset ht).of_diff
+lemma nonempty_of_ssubset' (ht : s ⊂ t) : t.nonempty := (nonempty_of_ssubset ht).of_sdiff
 
 lemma nonempty.inl (hs : s.nonempty) : (s ∪ t).nonempty := hs.imp $ λ _, or.inl
 
@@ -990,128 +990,124 @@ lemma inter_compl_nonempty_iff {s t : set α} : (s ∩ tᶜ).nonempty ↔ ¬ s �
 
 /-! ### Lemmas about set difference -/
 
-theorem diff_eq (s t : set α) : s \ t = s ∩ tᶜ := rfl
+theorem sdiff_eq (s t : set α) : s \ t = s ∩ tᶜ := rfl
 
-@[simp] theorem mem_diff {s t : set α} (x : α) : x ∈ s \ t ↔ x ∈ s ∧ x ∉ t := iff.rfl
+@[simp] theorem mem_sdiff {s t : set α} (x : α) : x ∈ s \ t ↔ x ∈ s ∧ x ∉ t := iff.rfl
 
-theorem mem_diff_of_mem {s t : set α} {x : α} (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s \ t :=
+theorem mem_sdiff_of_mem {s t : set α} {x : α} (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s \ t :=
 ⟨h1, h2⟩
 
-theorem mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∈ s :=
+theorem mem_of_mem_sdiff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∈ s :=
 h.left
 
-theorem not_mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∉ t :=
+theorem not_mem_of_mem_sdiff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∉ t :=
 h.right
 
-theorem diff_eq_compl_inter {s t : set α} : s \ t = tᶜ ∩ s :=
-by rw [diff_eq, inter_comm]
+theorem sdiff_eq_compl_inter {s t : set α} : s \ t = tᶜ ∩ s :=
+by rw [sdiff_eq, inter_comm]
 
-theorem nonempty_diff {s t : set α} : (s \ t).nonempty ↔ ¬ (s ⊆ t) := inter_compl_nonempty_iff
+theorem nonempty_sdiff {s t : set α} : (s \ t).nonempty ↔ ¬ (s ⊆ t) := inter_compl_nonempty_iff
 
-theorem diff_subset (s t : set α) : s \ t ⊆ s := show s \ t ≤ s, from sdiff_le
+theorem sdiff_subset (s t : set α) : s \ t ⊆ s := show s \ t ≤ s, from sdiff_le
 
-theorem union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : t ∪ (u \ s) = u :=
+theorem union_sdiff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : t ∪ (u \ s) = u :=
 sup_sdiff_cancel' h₁ h₂
 
-theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
+theorem union_sdiff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
 sup_sdiff_cancel_right h
 
-theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
+theorem union_sdiff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
 disjoint.sup_sdiff_cancel_left h
 
-theorem union_diff_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ t = s :=
+theorem union_sdiff_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ t = s :=
 disjoint.sup_sdiff_cancel_right h
 
-@[simp] theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
+@[simp] theorem union_sdiff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
 sup_sdiff_left_self
 
-@[simp] theorem union_diff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
+@[simp] theorem union_sdiff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
 sup_sdiff_right_self
 
-theorem union_diff_distrib {s t u : set α} : (s ∪ t) \ u = s \ u ∪ t \ u :=
+theorem union_sdiff_distrib {s t u : set α} : (s ∪ t) \ u = s \ u ∪ t \ u :=
 sup_sdiff
 
-theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
+theorem inter_sdiff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
 inf_sdiff_assoc
 
-@[simp] theorem inter_diff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
+@[simp] theorem inter_sdiff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
 inf_sdiff_self_right
 
-@[simp] theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
+@[simp] theorem inter_union_sdiff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 sup_inf_sdiff s t
 
-@[simp] lemma diff_union_inter (s t : set α) : (s \ t) ∪ (s ∩ t) = s :=
+@[simp] lemma sdiff_union_inter (s t : set α) : (s \ t) ∪ (s ∩ t) = s :=
 by { rw union_comm, exact sup_inf_sdiff _ _ }
 
-@[simp] theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
+@[simp] theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_sdiff _ _
 
-theorem diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
+theorem sdiff_subset_sdiff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
 show s₁ ≤ s₂ → t₂ ≤ t₁ → s₁ \ t₁ ≤ s₂ \ t₂, from sdiff_le_sdiff
 
-theorem diff_subset_diff_left {s₁ s₂ t : set α} (h : s₁ ⊆ s₂) : s₁ \ t ⊆ s₂ \ t :=
+theorem sdiff_mono_left {s₁ s₂ t : set α} (h : s₁ ⊆ s₂) : s₁ \ t ⊆ s₂ \ t :=
 sdiff_le_sdiff_right ‹s₁ ≤ s₂›
 
-theorem diff_subset_diff_right {s t u : set α} (h : t ⊆ u) : s \ u ⊆ s \ t :=
+theorem sdiff_mono_right {s t u : set α} (h : t ⊆ u) : s \ u ⊆ s \ t :=
 sdiff_le_sdiff_left ‹t ≤ u›
 
-theorem compl_eq_univ_diff (s : set α) : sᶜ = univ \ s :=
+theorem compl_eq_univ_sdiff (s : set α) : sᶜ = univ \ s :=
 top_sdiff.symm
 
-@[simp] lemma empty_diff (s : set α) : (∅ \ s : set α) = ∅ :=
+@[simp] lemma empty_sdiff (s : set α) : (∅ \ s : set α) = ∅ :=
 bot_sdiff
 
-theorem diff_eq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
+theorem sdiff_eq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
 sdiff_eq_bot_iff
 
-@[simp] theorem diff_empty {s : set α} : s \ ∅ = s :=
+@[simp] theorem sdiff_empty {s : set α} : s \ ∅ = s :=
 sdiff_bot
 
-@[simp] lemma diff_univ (s : set α) : s \ univ = ∅ := diff_eq_empty.2 (subset_univ s)
+@[simp] lemma sdiff_univ (s : set α) : s \ univ = ∅ := sdiff_eq_empty.2 (subset_univ s)
 
-theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
+theorem sdiff_sdiff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
 sdiff_sdiff_left
 
--- the following statement contains parentheses to help the reader
-lemma diff_diff_comm {s t u : set α} : (s \ t) \ u = (s \ u) \ t :=
-sdiff_sdiff_comm
-
-lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
+lemma sdiff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
 show s \ t ≤ u ↔ s ≤ t ∪ u, from sdiff_le_iff
 
-lemma subset_diff_union (s t : set α) : s ⊆ (s \ t) ∪ t :=
+lemma subset_sdiff_union (s t : set α) : s ⊆ (s \ t) ∪ t :=
 show s ≤ (s \ t) ∪ t, from le_sdiff_sup
 
-lemma diff_union_of_subset {s t : set α} (h : t ⊆ s) :
+lemma sdiff_union_of_subset {s t : set α} (h : t ⊆ s) :
   (s \ t) ∪ t = s :=
-subset.antisymm (union_subset (diff_subset _ _) h) (subset_diff_union _ _)
+subset.antisymm (union_subset (sdiff_subset _ _) h) (subset_sdiff_union _ _)
 
-@[simp] lemma diff_singleton_subset_iff {x : α} {s t : set α} : s \ {x} ⊆ t ↔ s ⊆ insert x t :=
-by { rw [←union_singleton, union_comm], apply diff_subset_iff }
+@[simp] lemma sdiff_singleton_subset_iff {x : α} {s t : set α} : s \ {x} ⊆ t ↔ s ⊆ insert x t :=
+by { rw [←union_singleton, union_comm], apply sdiff_subset_iff }
 
-lemma subset_diff_singleton {x : α} {s t : set α} (h : s ⊆ t) (hx : x ∉ s) : s ⊆ t \ {x} :=
+lemma subset_sdiff_singleton {x : α} {s t : set α} (h : s ⊆ t) (hx : x ∉ s) : s ⊆ t \ {x} :=
 subset_inter h $ subset_compl_comm.1 $ singleton_subset_iff.2 hx
 
-lemma subset_insert_diff_singleton (x : α) (s : set α) : s ⊆ insert x (s \ {x}) :=
-by rw [←diff_singleton_subset_iff]
+lemma subset_insert_sdiff_singleton (x : α) (s : set α) : s ⊆ insert x (s \ {x}) :=
+by rw [←sdiff_singleton_subset_iff]
 
-lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
+lemma sdiff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
 show s \ t ≤ u ↔ s \ u ≤ t, from sdiff_le_comm
 
-lemma diff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
+lemma sdiff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
 sdiff_inf
 
-lemma diff_inter_diff {s t u : set α} : s \ t ∩ (s \ u) = s \ (t ∪ u) :=
+lemma sdiff_inter_sdiff {s t u : set α} : s \ t ∩ (s \ u) = s \ (t ∪ u) :=
 sdiff_sup.symm
 
-lemma diff_compl : s \ tᶜ = s ∩ t := sdiff_compl
+lemma sdiff_compl : s \ tᶜ = s ∩ t := sdiff_compl
 
-lemma diff_diff_right {s t u : set α} : s \ (t \ u) = (s \ t) ∪ (s ∩ u) :=
+lemma sdiff_sdiff_right {s t u : set α} : s \ (t \ u) = (s \ t) ∪ (s ∩ u) :=
 sdiff_sdiff_right'
 
-@[simp] theorem insert_diff_of_mem (s) (h : a ∈ t) : insert a s \ t = s \ t :=
+@[simp] theorem insert_sdiff_of_mem (s) (h : a ∈ t) : insert a s \ t = s \ t :=
 by { ext, split; simp [or_imp_distrib, h] {contextual := tt} }
 
-theorem insert_diff_of_not_mem (s) (h : a ∉ t) : insert a s \ t = insert a (s \ t) :=
+theorem insert_sdiff_of_not_mem (s) (h : a ∉ t) : insert a s \ t = insert a (s \ t) :=
 begin
   classical,
   ext x,
@@ -1124,15 +1120,15 @@ begin
   { simp [h, h'] }
 end
 
-lemma insert_diff_self_of_not_mem {a : α} {s : set α} (h : a ∉ s) :
+lemma insert_sdiff_self_of_not_mem {a : α} {s : set α} (h : a ∉ s) :
   insert a s \ {a} = s :=
 by { ext, simp [and_iff_left_of_imp (λ hx : x ∈ s, show x ≠ a, from λ hxa, h $ hxa ▸ hx)] }
 
-@[simp] lemma insert_diff_eq_singleton {a : α} {s : set α} (h : a ∉ s) :
+@[simp] lemma insert_sdiff_eq_singleton {a : α} {s : set α} (h : a ∉ s) :
   insert a s \ s = {a} :=
 begin
   ext,
-  rw [set.mem_diff, set.mem_insert_iff, set.mem_singleton_iff, or_and_distrib_right,
+  rw [set.mem_sdiff, set.mem_insert_iff, set.mem_singleton_iff, or_and_distrib_right,
     and_not_self, or_false, and_iff_left_iff_imp],
   rintro rfl,
   exact h,
@@ -1150,42 +1146,42 @@ ext $ λ x, and_congr_right $ λ hx, or_iff_right $ ne_of_mem_of_not_mem hx h
 lemma insert_inter_of_not_mem (h : a ∉ t) : insert a s ∩ t = s ∩ t :=
 ext $ λ x, and_congr_left $ λ hx, or_iff_right $ ne_of_mem_of_not_mem hx h
 
-@[simp] lemma union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t := sup_sdiff_self _ _
-@[simp] lemma diff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t := sdiff_sup_self _ _
+@[simp] lemma union_sdiff_self {s t : set α} : s ∪ (t \ s) = s ∪ t := sup_sdiff_self _ _
+@[simp] lemma sdiff_union_self {s t : set α} : (s \ t) ∪ t = s ∪ t := sdiff_sup_self _ _
 
-@[simp] theorem diff_inter_self {a b : set α} : (b \ a) ∩ a = ∅ :=
+@[simp] theorem sdiff_inter_self {a b : set α} : (b \ a) ∩ a = ∅ :=
 inf_sdiff_self_left
 
-@[simp] theorem diff_inter_self_eq_diff {s t : set α} : s \ (t ∩ s) = s \ t :=
+@[simp] theorem sdiff_inter_self_eq_sdiff {s t : set α} : s \ (t ∩ s) = s \ t :=
 sdiff_inf_self_right _ _
 
-@[simp] theorem diff_self_inter {s t : set α} : s \ (s ∩ t) = s \ t := sdiff_inf_self_left _ _
+@[simp] theorem sdiff_self_inter {s t : set α} : s \ (s ∩ t) = s \ t := sdiff_inf_self_left _ _
 
-@[simp] theorem diff_eq_self {s t : set α} : s \ t = s ↔ t ∩ s ⊆ ∅ :=
+@[simp] theorem sdiff_eq_self {s t : set α} : s \ t = s ↔ t ∩ s ⊆ ∅ :=
 show s \ t = s ↔ t ⊓ s ≤ ⊥, from sdiff_eq_self_iff_disjoint
 
-@[simp] theorem diff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
-diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
+@[simp] theorem sdiff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
+sdiff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
 
-@[simp] theorem insert_diff_singleton {a : α} {s : set α} :
+@[simp] theorem insert_sdiff_singleton {a : α} {s : set α} :
   insert a (s \ {a}) = insert a s :=
-by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
+by simp [insert_eq, union_sdiff_self, -union_singleton, -singleton_union]
 
-@[simp] lemma diff_self {s : set α} : s \ s = ∅ := sdiff_self
+@[simp] lemma sdiff_self {s : set α} : s \ s = ∅ := sdiff_self
 
-lemma diff_diff_right_self (s t : set α)  : s \ (s \ t) = s ∩ t := sdiff_sdiff_right_self
+lemma sdiff_sdiff_right_self (s t : set α)  : s \ (s \ t) = s ∩ t := sdiff_sdiff_right_self
 
-lemma diff_diff_cancel_left {s t : set α} (h : s ⊆ t) : t \ (t \ s) = s :=
+lemma sdiff_sdiff_cancel_left {s t : set α} (h : s ⊆ t) : t \ (t \ s) = s :=
 sdiff_sdiff_eq_self h
 
-lemma mem_diff_singleton {x y : α} {s : set α} : x ∈ s \ {y} ↔ (x ∈ s ∧ x ≠ y) :=
+lemma mem_sdiff_singleton {x y : α} {s : set α} : x ∈ s \ {y} ↔ (x ∈ s ∧ x ≠ y) :=
 iff.rfl
 
-lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
+lemma mem_sdiff_singleton_empty {s : set α} {t : set (set α)} :
   s ∈ t \ {∅} ↔ (s ∈ t ∧ s.nonempty) :=
-mem_diff_singleton.trans $ iff.rfl.and ne_empty_iff_nonempty
+mem_sdiff_singleton.trans $ iff.rfl.and ne_empty_iff_nonempty
 
-lemma union_eq_diff_union_diff_union_inter (s t : set α) :
+lemma union_eq_sdiff_union_sdiff_union_inter (s t : set α) :
   s ∪ t = (s \ t) ∪ (t \ s) ∪ (s ∩ t) :=
 sup_eq_sdiff_sup_sdiff_sup_inf
 
@@ -1239,18 +1235,18 @@ Defined as `s ∩ t ∪ s' \ t`. -/
 protected def ite (t s s' : set α) : set α := s ∩ t ∪ s' \ t
 
 @[simp] lemma ite_inter_self (t s s' : set α) : t.ite s s' ∩ t = s ∩ t :=
-by rw [set.ite, union_inter_distrib_right, diff_inter_self, inter_assoc, inter_self, union_empty]
+by rw [set.ite, union_inter_distrib_right, sdiff_inter_self, inter_assoc, inter_self, union_empty]
 
 @[simp] lemma ite_compl (t s s' : set α) : tᶜ.ite s s' = t.ite s' s :=
-by rw [set.ite, set.ite, diff_compl, union_comm, diff_eq]
+by rw [set.ite, set.ite, sdiff_compl, union_comm, sdiff_eq]
 
 @[simp] lemma ite_inter_compl_self (t s s' : set α) : t.ite s s' ∩ tᶜ = s' ∩ tᶜ :=
 by rw [← ite_compl, ite_inter_self]
 
-@[simp] lemma ite_diff_self (t s s' : set α) : t.ite s s' \ t = s' \ t :=
+@[simp] lemma ite_sdiff_self (t s s' : set α) : t.ite s s' \ t = s' \ t :=
 ite_inter_compl_self t s s'
 
-@[simp] lemma ite_same (t s : set α) : t.ite s s = s := inter_union_diff _ _
+@[simp] lemma ite_same (t s : set α) : t.ite s s = s := inter_union_sdiff _ _
 
 @[simp] lemma ite_left (s t : set α) : s.ite s t = s ∪ t := by simp [set.ite]
 
@@ -1273,14 +1269,14 @@ lemma ite_mono (t : set α) {s₁ s₁' s₂ s₂' : set α} (h : s₁ ⊆ s₂)
 union_subset_union (inter_subset_inter_left _ h) (inter_subset_inter_left _ h')
 
 lemma ite_subset_union (t s s' : set α) : t.ite s s' ⊆ s ∪ s' :=
-union_subset_union (inter_subset_left _ _) (diff_subset _ _)
+union_subset_union (inter_subset_left _ _) (sdiff_subset _ _)
 
 lemma inter_subset_ite (t s s' : set α) : s ∩ s' ⊆ t.ite s s' :=
 ite_same t (s ∩ s') ▸ ite_mono _ (inter_subset_left _ _) (inter_subset_right _ _)
 
 lemma ite_inter_inter (t s₁ s₂ s₁' s₂' : set α) :
   t.ite (s₁ ∩ s₂) (s₁' ∩ s₂') = t.ite s₁ s₁' ∩ t.ite s₂ s₂' :=
-by { ext x, simp only [set.ite, set.mem_inter_iff, set.mem_diff, set.mem_union], itauto }
+by { ext x, simp only [set.ite, set.mem_inter_iff, set.mem_sdiff, set.mem_union], itauto }
 
 lemma ite_inter (t s₁ s₂ s : set α) :
   t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=
@@ -1328,7 +1324,7 @@ theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
 @[simp] theorem preimage_compl {s : set β} : f ⁻¹' sᶜ = (f ⁻¹' s)ᶜ := rfl
 
-@[simp] theorem preimage_diff (f : α → β) (s t : set β) :
+@[simp] theorem preimage_sdiff (f : α → β) (s t : set β) :
   f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := rfl
 
 @[simp] theorem preimage_ite (f : α → β) (s t₁ t₂ : set β) :
@@ -1544,18 +1540,18 @@ by { rw ← image_union, simp [image_univ_of_surjective H] }
 theorem image_compl_eq {f : α → β} {s : set α} (H : bijective f) : f '' sᶜ = (f '' s)ᶜ :=
 subset.antisymm (image_compl_subset H.1) (subset_image_compl H.2)
 
-theorem subset_image_diff (f : α → β) (s t : set α) :
+theorem subset_image_sdiff (f : α → β) (s t : set α) :
   f '' s \ f '' t ⊆ f '' (s \ t) :=
 begin
-  rw [diff_subset_iff, ← image_union, union_diff_self],
+  rw [sdiff_subset_iff, ← image_union, union_sdiff_self],
   exact image_subset f (subset_union_right t s)
 end
 
-theorem image_diff {f : α → β} (hf : injective f) (s t : set α) :
+theorem image_sdiff {f : α → β} (hf : injective f) (s t : set α) :
   f '' (s \ t) = f '' s \ f '' t :=
 subset.antisymm
   (subset.trans (image_inter_subset _ _ _) $ inter_subset_inter_right _ $ image_compl_subset hf)
-  (subset_image_diff f s t)
+  (subset_image_sdiff f s t)
 
 lemma nonempty.image (f : α → β) {s : set α} : s.nonempty → (f '' s).nonempty
 | ⟨x, hx⟩ := ⟨f x, mem_image_of_mem f hx⟩
@@ -1619,8 +1615,8 @@ by simp only [inter_comm, image_inter_preimage]
   (f '' s ∩ t).nonempty ↔ (s ∩ f ⁻¹' t).nonempty :=
 by rw [←image_inter_preimage, nonempty_image_iff]
 
-lemma image_diff_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
-by simp_rw [diff_eq, ← preimage_compl, image_inter_preimage]
+lemma image_sdiff_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
+by simp_rw [sdiff_eq, ← preimage_compl, image_inter_preimage]
 
 theorem compl_image : image (compl : set α → set α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
@@ -2208,7 +2204,7 @@ lemma range_subset_singleton {f : ι → α} {x : α} : range f ⊆ {x} ↔ f = 
 by simp [range_subset_iff, funext_iff, mem_singleton]
 
 lemma image_compl_preimage {f : α → β} {s : set β} : f '' ((f ⁻¹' s)ᶜ) = range f \ s :=
-by rw [compl_eq_univ_diff, image_diff_preimage, image_univ]
+by rw [compl_eq_univ_sdiff, image_sdiff_preimage, image_univ]
 
 /-- Any map `f : ι → β` factors through a map `range_factorization f : ι → range f`. -/
 def range_factorization (f : ι → β) : ι → range f :=
@@ -2264,13 +2260,13 @@ begin
   { exact λ h, ⟨default, h.symm⟩ }
 end
 
-lemma range_diff_image_subset (f : α → β) (s : set α) :
+lemma range_sdiff_image_subset (f : α → β) (s : set α) :
   range f \ f '' s ⊆ f '' sᶜ :=
 λ y ⟨⟨x, h₁⟩, h₂⟩, ⟨x, λ h, h₂ ⟨x, h, h₁⟩, h₁⟩
 
-lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
+lemma range_sdiff_image {f : α → β} (H : injective f) (s : set α) :
   range f \ f '' s = f '' sᶜ :=
-subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
+subset.antisymm (range_sdiff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
   ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
 
 /-- We can use the axiom of choice to pick a preimage for every element of `range f`. -/

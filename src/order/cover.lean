@@ -112,10 +112,10 @@ lemma wcovby.Icc_eq (h : a ⩿ b) : Icc a b = {a, b} :=
 by { ext c, exact h.le_and_le_iff }
 
 lemma wcovby.Ico_subset (h : a ⩿ b) : Ico a b ⊆ {a} :=
-by rw [← Icc_diff_right, h.Icc_eq, diff_singleton_subset_iff, pair_comm]
+by rw [← Icc_diff_right, h.Icc_eq, sdiff_singleton_subset_iff, pair_comm]
 
 lemma wcovby.Ioc_subset (h : a ⩿ b) : Ioc a b ⊆ {b} :=
-by rw [← Icc_diff_left, h.Icc_eq, diff_singleton_subset_iff]
+by rw [← Icc_diff_left, h.Icc_eq, sdiff_singleton_subset_iff]
 
 end partial_order
 
@@ -253,7 +253,7 @@ begin
   by_cases h : x ∈ t,
   { exact or.inr (subset_antisymm h2t $ insert_subset.mpr ⟨h, hst⟩) },
   { refine or.inl (subset_antisymm _ hst),
-    rwa [← diff_singleton_eq_self h, diff_singleton_subset_iff] }
+    rwa [← sdiff_singleton_eq_self h, sdiff_singleton_subset_iff] }
 end
 
 lemma covby_insert {x : α} {s : set α} (hx : x ∉ s) : s ⋖ insert x s :=

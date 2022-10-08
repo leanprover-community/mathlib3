@@ -1431,7 +1431,7 @@ protected lemma is_clopen.is_closed (hs : is_clopen s) : is_closed s := hs.2
 
 lemma is_clopen_iff_frontier_eq_empty {s : set α} : is_clopen s ↔ frontier s = ∅ :=
 begin
-  rw [is_clopen, ← closure_eq_iff_is_closed, ← interior_eq_iff_is_open, frontier, diff_eq_empty],
+  rw [is_clopen, ← closure_eq_iff_is_closed, ← interior_eq_iff_is_open, frontier, sdiff_eq_empty],
   refine ⟨λ h, (h.2.trans h.1.symm).subset, λ h, _⟩,
   exact ⟨interior_subset.antisymm (subset_closure.trans h),
     (h.trans interior_subset).antisymm subset_closure⟩

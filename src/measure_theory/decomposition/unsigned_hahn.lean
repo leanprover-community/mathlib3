@@ -145,7 +145,7 @@ begin
           ... = d (e (n + 1) ∪ f m n) + d (f m (n + 1)) :
             begin
               rw [d_split (e (n + 1) ∪ f m n) (e (n + 1)),
-                union_diff_left, union_inter_cancel_left],
+                union_sdiff_left, union_inter_cancel_left],
               ac_refl,
               exact (he₁ _).union (hf _ _),
               exact (he₁ _)
@@ -191,8 +191,8 @@ begin
       calc γ + d t ≤ d s + d t : add_le_add γ_le_d_s le_rfl
         ... = d (s ∪ t) :
         begin
-          rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
-            diff_eq_self.2],
+          rw [d_split _ _ (hs.union ht) ht, union_sdiff_right, union_inter_cancel_right,
+            sdiff_eq_self.2],
           exact assume a ⟨hat, has⟩, hts hat has
         end
         ... ≤ γ + 0 : by rw [add_zero]; exact d_le_γ _ (hs.union ht)),

@@ -235,12 +235,12 @@ lemma subset_positive_null_set
   (hsu : 0 ≤[u] s) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
   have : s v + s (w \ v) = 0,
-  { rw [← hw₁, ← of_union set.disjoint_diff hv (hw.diff hv),
-        set.union_diff_self, set.union_eq_self_of_subset_left hwt],
+  { rw [← hw₁, ← of_union set.disjoint_sdiff hv (hw.diff hv),
+        set.union_sdiff_self, set.union_eq_self_of_subset_left hwt],
     apply_instance },
   have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),
   have h₂ := nonneg_of_zero_le_restrict _
-    (restrict_le_restrict_subset _ _ hu hsu ((w.diff_subset v).trans hw₂)),
+    (restrict_le_restrict_subset _ _ hu hsu ((w.sdiff_subset v).trans hw₂)),
   linarith,
 end
 
@@ -263,9 +263,9 @@ lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive
   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
 begin
   rw restrict_le_restrict_iff at hsu hsv,
-  have a := hsu (hu.diff hv) (u.diff_subset v),
-  have b := hsv (hv.diff hu) (v.diff_subset u),
-  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff)
+  have a := hsu (hu.diff hv) (u.sdiff_subset v),
+  have b := hsv (hv.diff hu) (v.sdiff_subset u),
+  erw [of_union (set.disjoint_of_subset_left (u.sdiff_subset v) set.disjoint_sdiff)
         (hu.diff hv) (hv.diff hu)] at hs,
   rw zero_apply at a b,
   split,

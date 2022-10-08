@@ -44,11 +44,11 @@ let α := mem_left_transversals.to_equiv S.2, β := mem_left_transversals.to_equ
 prod_mul_distrib.symm.trans (prod_congr rfl (λ q hq, (ϕ.map_mul _ _).symm.trans (congr_arg ϕ
   (by simp_rw [subtype.ext_iff, coe_mul, coe_mk, mul_assoc, mul_inv_cancel_left]))))
 
-@[to_additive] lemma diff_self : diff ϕ T T = 1 :=
+@[to_additive] lemma sdiff_self : diff ϕ T T = 1 :=
 mul_right_eq_self.mp (diff_mul_diff ϕ T T T)
 
 @[to_additive] lemma diff_inv : (diff ϕ S T)⁻¹ = diff ϕ T S :=
-inv_eq_of_mul_eq_one_right $ (diff_mul_diff ϕ S T S).trans $ diff_self ϕ S
+inv_eq_of_mul_eq_one_right $ (diff_mul_diff ϕ S T S).trans $ sdiff_self ϕ S
 
 @[to_additive] lemma smul_diff_smul (g : G) : diff ϕ (g • S) (g • T) = diff ϕ S T :=
 prod_bij' (λ q _, g⁻¹ • q) (λ _ _, mem_univ _) (λ _ _, congr_arg ϕ (by simp_rw [coe_mk,
@@ -70,7 +70,7 @@ the transfer homomorphism is `transfer ϕ : G →+ A`."]
 noncomputable def transfer [fintype (G ⧸ H)] : G →* A :=
 let T : left_transversals (H : set G) := inhabited.default in
 { to_fun := λ g, diff ϕ T (g • T),
-  map_one' := by rw [one_smul, diff_self],
+  map_one' := by rw [one_smul, sdiff_self],
   map_mul' := λ g h, by rw [mul_smul, ←diff_mul_diff, smul_diff_smul] }
 
 variables (T : left_transversals (H : set G))

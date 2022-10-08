@@ -362,12 +362,12 @@ lemma ae_le_set_inter {s' t' : set α} (h : s ≤ᵐ[μ] t) (h' : s' ≤ᵐ[μ] 
 h.inter h'
 
 @[simp] lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
-  diff_eq_empty.2 (set.subset_union_right _ _)]
+by simp [eventually_le_antisymm_iff, ae_le_set, union_sdiff_right,
+  sdiff_eq_empty.2 (set.subset_union_right _ _)]
 
 lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
-  diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
+by simp [eventually_le_antisymm_iff, ae_le_set, sdiff_sdiff_right,
+  sdiff_sdiff, sdiff_eq_empty.2 (set.subset_union_right _ _)]
 
 lemma diff_null_ae_eq_self (ht : μ t = 0) : (s \ t : set α) =ᵐ[μ] s :=
 diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
@@ -388,7 +388,7 @@ by simpa [filter.eventually_eq, ae_iff] using h
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
 calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
-     ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
+     ... = μ (t ∪ s \ t)   : by rw [union_sdiff_self, set.union_comm]
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _
      ... = μ t             : by rw [ae_le_set.1 H, add_zero]
 

@@ -491,7 +491,7 @@ begin
       mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
     Union₂_subset (λ x hx, Union₂_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
-  rw ← union_diff_cancel this,
+  rw ← union_sdiff_cancel this,
   exact humeas.union hfinite.measurable_set
 end
 
@@ -773,7 +773,7 @@ begin
     rw hu,
     exact u_open.measurable_set.inter hs },
   { rcases _root_.continuous_on_iff'.1 hg t ht with ⟨u, u_open, hu⟩,
-    rw [diff_eq_compl_inter, inter_comm, hu],
+    rw [sdiff_eq_compl_inter, inter_comm, hu],
     exact u_open.measurable_set.inter hs.compl }
 end
 
@@ -1126,7 +1126,7 @@ lemma measurable_set_of_mem_nhds_within_Ioi_aux
 begin
   choose! M hM using h',
   suffices H : (s \ interior s).countable,
-  { have : s = interior s ∪ (s \ interior s), by rw union_diff_cancel interior_subset,
+  { have : s = interior s ∪ (s \ interior s), by rw union_sdiff_cancel interior_subset,
     rw this,
     exact is_open_interior.measurable_set.union H.measurable_set },
   have A : ∀ x ∈ s, ∃ y ∈ Ioi x, Ioo x y ⊆ s :=
@@ -1152,7 +1152,7 @@ lemma measurable_set_of_mem_nhds_within_Ioi {s : set α}
 begin
   by_cases H : ∃ x ∈ s, is_top x,
   { rcases H with ⟨x₀, x₀s, h₀⟩,
-    have : s = {x₀} ∪ (s \ {x₀}), by rw union_diff_cancel (singleton_subset_iff.2 x₀s),
+    have : s = {x₀} ∪ (s \ {x₀}), by rw union_sdiff_cancel (singleton_subset_iff.2 x₀s),
     rw this,
     refine (measurable_set_singleton _).union _,
     have A : ∀ x ∈ s \ {x₀}, x < x₀ :=

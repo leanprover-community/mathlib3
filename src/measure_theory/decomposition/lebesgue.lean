@@ -255,12 +255,12 @@ begin
     have hsinter : s (A ∩ (S ∩ T)) = 0,
     { rw ← nonpos_iff_eq_zero,
       exact hS₂ ▸ measure_mono ((inter_subset_right _ _).trans (inter_subset_left _ _)) },
-    rw [restrict_apply hA, ← diff_eq, ae_disjoint.measure_diff_left hsinter] },
+    rw [restrict_apply hA, ← sdiff_eq, ae_disjoint.measure_diff_left hsinter] },
   ext1 A hA,
   have hμinter : μ.singular_part ν (A ∩ (S ∩ T)) = 0,
   { rw ← nonpos_iff_eq_zero,
     exact hT₂ ▸ measure_mono ((inter_subset_right _ _).trans (inter_subset_right _ _)) },
-  rw [heq' A hA, heq, restrict_apply hA, ← diff_eq, ae_disjoint.measure_diff_left hμinter]
+  rw [heq' A hA, heq, restrict_apply hA, ← sdiff_eq, ae_disjoint.measure_diff_left hμinter]
 end
 
 lemma singular_part_zero (ν : measure α) : (0 : measure α).singular_part ν = 0 :=
@@ -348,14 +348,14 @@ begin
       exact with_density_absolutely_continuous ν f hνinter ▸
         measure_mono (inter_subset_right _ _) },
     rw [restrict_apply hA, ← add_zero (ν.with_density f (A ∩ (S ∩ T))), ← hνfinter,
-        ← diff_eq, measure_inter_add_diff _ (hS₁.inter hT₁)] },
+        ← sdiff_eq, measure_inter_add_diff _ (hS₁.inter hT₁)] },
   ext1 A hA,
   have hνrn : ν.with_density (μ.rn_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
   { rw ← nonpos_iff_eq_zero,
     exact with_density_absolutely_continuous ν (μ.rn_deriv ν) hνinter ▸
       measure_mono (inter_subset_right _ _) },
   rw [heq' A hA, heq, ← add_zero ((ν.with_density (μ.rn_deriv ν)).restrict (S ∩ T) A),
-      ← hνrn, restrict_apply hA, ← diff_eq, measure_inter_add_diff _ (hS₁.inter hT₁)]
+      ← hνrn, restrict_apply hA, ← sdiff_eq, measure_inter_add_diff _ (hS₁.inter hT₁)]
 end
 
 /-- Given measures `μ` and `ν`, if `s` is a measure mutually singular to `ν` and `f` is a
@@ -483,7 +483,7 @@ begin
   have h₂ := hA.inter (measurable_set_lt hg.1 hf.1),
   rw [set_lintegral_max hf.1 hg.1],
   refine (add_le_add (hg.2 _ h₁) (hf.2 _ h₂)).trans_eq _,
-  { simp only [← not_le, ← compl_set_of, ← diff_eq],
+  { simp only [← not_le, ← compl_set_of, ← sdiff_eq],
     exact measure_inter_add_diff _ (measurable_set_le hf.1 hg.1) }
 end
 

@@ -268,7 +268,7 @@ begin
           (deriv_circle_map_ne_zero hR)).eventually this,
       filter_upwards [self_mem_nhds_within,
         mem_nhds_within_of_mem_nhds (ball_mem_nhds _ zero_lt_one)],
-      simp only [dist_eq, sub_eq_zero, mem_compl_iff, mem_singleton_iff, mem_ball, mem_diff,
+      simp only [dist_eq, sub_eq_zero, mem_compl_iff, mem_singleton_iff, mem_ball, mem_sdiff,
                  mem_ball_zero_iff, norm_eq_abs, not_false_iff, and_self, implies_true_iff]
                 {contextual := tt} },
     refine ((((has_deriv_at_circle_map c R θ).is_O_sub).mono inf_le_left).inv_rev

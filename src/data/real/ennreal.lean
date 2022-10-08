@@ -620,16 +620,16 @@ subset.antisymm (Union_subset $ λ n x hx, ne_top_of_le_ne_top (nat_ne_top n) hx
   Union_Iio_coe_nat ▸ Union_mono (λ n, Iio_subset_Iic_self)
 
 @[simp] lemma Union_Ioc_coe_nat : (⋃ n : ℕ, Ioc a n) = Ioi a \ {∞} :=
-by simp only [← Ioi_inter_Iic, ← inter_Union, Union_Iic_coe_nat, diff_eq]
+by simp only [← Ioi_inter_Iic, ← inter_Union, Union_Iic_coe_nat, sdiff_eq]
 
 @[simp] lemma Union_Ioo_coe_nat : (⋃ n : ℕ, Ioo a n) = Ioi a \ {∞} :=
-by simp only [← Ioi_inter_Iio, ← inter_Union, Union_Iio_coe_nat, diff_eq]
+by simp only [← Ioi_inter_Iio, ← inter_Union, Union_Iio_coe_nat, sdiff_eq]
 
 @[simp] lemma Union_Icc_coe_nat : (⋃ n : ℕ, Icc a n) = Ici a \ {∞} :=
-by simp only [← Ici_inter_Iic, ← inter_Union, Union_Iic_coe_nat, diff_eq]
+by simp only [← Ici_inter_Iic, ← inter_Union, Union_Iic_coe_nat, sdiff_eq]
 
 @[simp] lemma Union_Ico_coe_nat : (⋃ n : ℕ, Ico a n) = Ici a \ {∞} :=
-by simp only [← Ici_inter_Iio, ← inter_Union, Union_Iio_coe_nat, diff_eq]
+by simp only [← Ici_inter_Iio, ← inter_Union, Union_Iio_coe_nat, sdiff_eq]
 
 @[simp] lemma Inter_Ici_coe_nat : (⋂ n : ℕ, Ici (n : ℝ≥0∞)) = {∞} :=
 by simp only [← compl_Iio, ← compl_Union, Union_Iio_coe_nat, compl_compl]

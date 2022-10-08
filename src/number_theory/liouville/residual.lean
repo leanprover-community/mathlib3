@@ -22,7 +22,7 @@ lemma set_of_liouville_eq_Inter_Union :
     ⋂ n : ℕ, ⋃ (a b : ℤ) (hb : 1 < b), ball (a / b) (1 / b ^ n) \ {a / b} :=
 begin
   ext x,
-  simp only [mem_Inter, mem_Union, liouville, mem_set_of_eq, exists_prop, mem_diff,
+  simp only [mem_Inter, mem_Union, liouville, mem_set_of_eq, exists_prop, mem_sdiff,
     mem_singleton_iff, mem_ball, real.dist_eq, and_comm]
 end
 
@@ -41,11 +41,11 @@ begin
   refine subset.antisymm _ _,
   { refine subset_inter (λ x hx, hx.irrational) _,
     rw set_of_liouville_eq_Inter_Union,
-    exact Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, diff_subset _ _) },
+    exact Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, sdiff_subset _ _) },
   { simp only [inter_Inter, inter_Union, set_of_liouville_eq_Inter_Union],
     refine Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, _),
     rw [inter_comm],
-    refine diff_subset_diff subset.rfl (singleton_subset_iff.2 ⟨a / b, _⟩),
+    refine sdiff_subset_sdiff subset.rfl (singleton_subset_iff.2 ⟨a / b, _⟩),
     norm_cast }
 end
 

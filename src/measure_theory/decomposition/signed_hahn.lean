@@ -137,7 +137,7 @@ begin
 end
 
 private lemma some_exists_one_div_lt_subset' : some_exists_one_div_lt s (i \ j) ⊆ i :=
-set.subset.trans some_exists_one_div_lt_subset (set.diff_subset _ _)
+set.subset.trans some_exists_one_div_lt_subset (set.sdiff_subset _ _)
 
 private lemma some_exists_one_div_lt_measurable_set :
   measurable_set (some_exists_one_div_lt s i) :=
@@ -190,7 +190,7 @@ private lemma measure_of_restrict_nonpos_seq (hi₂ : ¬ s ≤[i] 0)
   0 < s (restrict_nonpos_seq s i n) :=
 begin
   cases n,
-  { rw restrict_nonpos_seq, rw ← @set.diff_empty _ i at hi₂,
+  { rw restrict_nonpos_seq, rw ← @set.sdiff_empty _ i at hi₂,
     rcases some_exists_one_div_lt_spec hi₂ with ⟨_, _, h⟩,
     exact (lt_trans nat.one_div_pos_of_nat h) },
   { rw restrict_nonpos_seq_succ,
@@ -244,7 +244,7 @@ begin
   have hmeas : measurable_set (⋃ (l : ℕ) (H : l < k), restrict_nonpos_seq s i l) :=
     (measurable_set.Union $ λ _, measurable_set.Union
       (λ _, restrict_nonpos_seq_measurable_set _)),
-  refine ⟨i \ ⋃ l < k, restrict_nonpos_seq s i l, hi₁.diff hmeas, set.diff_subset _ _, hk₂, _⟩,
+  refine ⟨i \ ⋃ l < k, restrict_nonpos_seq s i l, hi₁.diff hmeas, set.sdiff_subset _ _, hk₂, _⟩,
   rw [of_diff hmeas hi₁, s.of_disjoint_Union_nat],
   { have h₁ : ∀ l < k, 0 ≤ s (restrict_nonpos_seq s i l),
     { intros l hl,
@@ -318,7 +318,7 @@ begin
   { convert at_top.tendsto_at_top_add_const_right (-1) h₃, simp },
   have A_meas : measurable_set A :=
     hi₁.diff (measurable_set.Union (λ _, restrict_nonpos_seq_measurable_set _)),
-  refine ⟨A, A_meas, set.diff_subset _ _, _, h₂.trans_lt hi⟩,
+  refine ⟨A, A_meas, set.sdiff_subset _ _, _, h₂.trans_lt hi⟩,
   by_contra hnn,
   rw restrict_le_restrict_iff _ _ A_meas at hnn, push_neg at hnn,
   obtain ⟨E, hE₁, hE₂, hE₃⟩ := hnn,
@@ -335,7 +335,7 @@ begin
       rwa inv_lt (lt_trans (inv_pos.2 hE₃) this) hE₃ } },
   obtain ⟨k, hk₁, hk₂⟩ := this,
   have hA' : A ⊆ i \ ⋃ l ≤ k, restrict_nonpos_seq s i l,
-  { apply set.diff_subset_diff_right,
+  { apply set.sdiff_mono_right,
     intro x, simp only [set.mem_Union],
     rintro ⟨n, _, hn₂⟩,
     exact ⟨n, hn₂⟩ },
@@ -370,11 +370,11 @@ begin
   have hfalse : ∀ n : ℕ, s A ≤ -n,
   { intro n,
     refine le_trans _ (le_of_lt (h_lt _)),
-    rw [hA, ← set.diff_union_of_subset (set.subset_Union _ n),
-        of_union (disjoint.comm.1 set.disjoint_diff) _ (hmeas n)],
+    rw [hA, ← set.sdiff_union_of_subset (set.subset_Union _ n),
+        of_union (disjoint.comm.1 set.disjoint_sdiff) _ (hmeas n)],
     { refine add_le_of_nonpos_left _,
       have : s ≤[A] 0 := restrict_le_restrict_Union _ _ hmeas hr,
-      refine nonpos_of_restrict_le_zero _ (restrict_le_zero_subset _ _ (set.diff_subset _ _) this),
+      refine nonpos_of_restrict_le_zero _ (restrict_le_zero_subset _ _ (set.sdiff_subset _ _) this),
       exact measurable_set.Union hmeas },
     { apply_instance },
     { exact (measurable_set.Union hmeas).diff (hmeas n) } },
@@ -398,13 +398,13 @@ begin
   have hA₃ : s A = Inf s.measure_of_negatives,
   { apply le_antisymm,
     { refine le_of_tendsto_of_tendsto tendsto_const_nhds hf₂ (eventually_of_forall (λ n, _)),
-      rw [← (hB n).2, hA, ← set.diff_union_of_subset (set.subset_Union _ n),
-          of_union (disjoint.comm.1 set.disjoint_diff) _ (hB₁ n)],
+      rw [← (hB n).2, hA, ← set.sdiff_union_of_subset (set.subset_Union _ n),
+          of_union (disjoint.comm.1 set.disjoint_sdiff) _ (hB₁ n)],
       { refine add_le_of_nonpos_left _,
         have : s ≤[A] 0 :=
           restrict_le_restrict_Union _ _ hB₁ (λ m, let ⟨_, h⟩ := (hB m).1 in h),
         refine nonpos_of_restrict_le_zero _
-          (restrict_le_zero_subset _ _ (set.diff_subset _ _) this),
+          (restrict_le_zero_subset _ _ (set.sdiff_subset _ _) this),
         exact measurable_set.Union hB₁ },
       { apply_instance },
       { exact (measurable_set.Union hB₁).diff (hB₁ n) } },
@@ -439,7 +439,7 @@ lemma of_symm_diff_compl_positive_negative {s : signed_measure α}
 begin
   rw [restrict_le_restrict_iff s 0, restrict_le_restrict_iff 0 s] at hi' hj',
   split,
-  { rw [symm_diff_def, set.diff_eq_compl_inter, set.diff_eq_compl_inter,
+  { rw [symm_diff_def, set.sdiff_eq_compl_inter, set.sdiff_eq_compl_inter,
         set.sup_eq_union, of_union,
         le_antisymm (hi'.2 (hi.compl.inter hj) (set.inter_subset_left _ _))
           (hj'.1 (hi.compl.inter hj) (set.inter_subset_right _ _)),
@@ -451,7 +451,7 @@ begin
         (disjoint.comm.1 (is_compl.disjoint is_compl_compl))) },
     { exact hj.compl.inter hi },
     { exact hi.compl.inter hj } },
-  { rw [symm_diff_def, set.diff_eq_compl_inter, set.diff_eq_compl_inter,
+  { rw [symm_diff_def, set.sdiff_eq_compl_inter, set.sdiff_eq_compl_inter,
         compl_compl, compl_compl, set.sup_eq_union, of_union,
         le_antisymm (hi'.2 (hj.inter hi.compl) (set.inter_subset_right _ _))
           (hj'.1 (hj.inter hi.compl) (set.inter_subset_left _ _)),

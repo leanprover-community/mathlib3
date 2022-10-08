@@ -179,7 +179,7 @@ begin
   obtain ⟨N, hN⟩ := exists_nat_one_div_lt hδ,
   rw eventually_at_top,
   refine ⟨egorov.not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg N, λ n hn x hx, _⟩,
-  simp only [mem_diff, egorov.Union_not_convergent_seq, not_exists, mem_Union, mem_inter_iff,
+  simp only [mem_sdiff, egorov.Union_not_convergent_seq, not_exists, mem_Union, mem_inter_iff,
     not_and, exists_and_distrib_left] at hx,
   obtain ⟨hxs, hx⟩ := hx,
   specialize hx hxs N,
@@ -222,7 +222,7 @@ begin
   obtain ⟨t, _, ht, htendsto⟩ :=
     tendsto_uniformly_on_of_ae_tendsto hf hg measurable_set.univ (measure_ne_top μ univ) _ hε,
   { refine ⟨_, ht, _⟩,
-    rwa compl_eq_univ_diff },
+    rwa compl_eq_univ_sdiff },
   { filter_upwards [hfg] with _ htendsto _ using htendsto, },
 end
 

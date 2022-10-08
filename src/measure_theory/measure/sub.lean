@@ -108,7 +108,7 @@ begin
         rw [← restrict_eq_self μ (inter_subset_right _ _),
           ← restrict_eq_self ν (inter_subset_right _ _)],
         apply h_ν'_in _ (h_meas_t.inter h_meas_s) },
-      { rw [add_apply, restrict_apply (h_meas_t.diff h_meas_s), diff_eq, inter_assoc,
+      { rw [add_apply, restrict_apply (h_meas_t.diff h_meas_s), sdiff_eq, inter_assoc,
           inter_self, ← add_apply],
         have h_mu_le_add_top : μ ≤ ν' + ν + ⊤, by simp only [add_top, le_top],
         exact measure.le_iff'.1 h_mu_le_add_top _ } },

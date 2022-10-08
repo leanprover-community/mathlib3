@@ -206,7 +206,7 @@ begin
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
   wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
-  have : s \ U = s := hmin (s \ U) (diff_subset _ _) ⟨y, hy, hyU⟩ (hs.sdiff hUo),
+  have : s \ U = s := hmin (s \ U) (sdiff_subset _ _) ⟨y, hy, hyU⟩ (hs.sdiff hUo),
   exact (this.symm.subset hx).2 hxU
 end
 
@@ -322,7 +322,7 @@ is_open_ne.nhds_within_eq h
 lemma ne.nhds_within_diff_singleton [t1_space α] {x y : α} (h : x ≠ y) (s : set α) :
   𝓝[s \ {y}] x = 𝓝[s] x :=
 begin
-  rw [diff_eq, inter_comm, nhds_within_inter_of_mem],
+  rw [sdiff_eq, inter_comm, nhds_within_inter_of_mem],
   exact mem_nhds_within_of_mem_nhds (is_open_ne.mem_nhds h)
 end
 
@@ -492,7 +492,7 @@ begin
   refine and_congr ⟨λ H z hz, _, λ H z hzx hzs, _⟩ (forall_congr $ λ hxs, _),
   { specialize H z hz.2 hz.1,
     rw continuous_within_at_update_of_ne hz.2 at H,
-    exact H.mono (diff_subset _ _) },
+    exact H.mono (sdiff_subset _ _) },
   { rw continuous_within_at_update_of_ne hzx,
     refine (H z ⟨hzs, hzx⟩).mono_of_mem (inter_mem_nhds_within _ _),
     exact is_open_ne.mem_nhds hzx },
@@ -580,7 +580,7 @@ monotone_nhds_set.strict_mono_of_injective injective_nhds_set
 by rw [← nhds_set_singleton, nhds_set_le_iff, singleton_subset_iff]
 
 /-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
-lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[≠] x)] :
+lemma dense.sdiff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[≠] x)] :
   dense (s \ {x}) :=
 hs.inter_of_open_right (dense_compl_singleton x) is_open_compl_singleton
 
@@ -592,8 +592,8 @@ lemma dense.diff_finset [t1_space α] [∀ (x : α), ne_bot (𝓝[≠] x)]
 begin
   induction t using finset.induction_on with x s hxs ih hd,
   { simpa using hs },
-  { rw [finset.coe_insert, ← union_singleton, ← diff_diff],
-    exact ih.diff_singleton _, }
+  { rw [finset.coe_insert, ← union_singleton, ← sdiff_sdiff],
+    exact ih.sdiff_singleton _, }
 end
 
 /-- Removing a finite set from a dense set in a space without isolated points, one still
@@ -642,9 +642,9 @@ lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [h
 begin
   intro hsf,
   have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
-  have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
+  have B : is_closed (s \ {x}) := (hsf.subset (sdiff_subset _ _)).is_closed,
   have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
-  have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
+  have D : {x} ∈ 𝓝 x, by simpa only [← sdiff_eq, sdiff_sdiff_cancel_left A] using inter_mem hs C,
   rwa [← mem_interior_iff_mem_nhds, interior_singleton] at D
 end
 
@@ -1161,9 +1161,9 @@ lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_co
   ∃ K₁ K₂ : set α, is_compact K₁ ∧ is_compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
 begin
   obtain ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩ := compact_compact_separated (hK.diff hU) (hK.diff hV)
-    (by rwa [disjoint_iff_inter_eq_empty, diff_inter_diff, diff_eq_empty]),
-  exact ⟨_, _, hK.diff h1O₁, hK.diff h1O₂, by rwa [diff_subset_comm], by rwa [diff_subset_comm],
-    by rw [← diff_inter, hO.inter_eq, diff_empty]⟩
+    (by rwa [disjoint_iff_inter_eq_empty, sdiff_inter_sdiff, sdiff_eq_empty]),
+  exact ⟨_, _, hK.diff h1O₁, hK.diff h1O₂, by rwa [sdiff_subset_comm], by rwa [sdiff_subset_comm],
+    by rw [← sdiff_inter, hO.inter_eq, sdiff_empty]⟩
 end
 
 lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β} (h : continuous f) :
@@ -1217,7 +1217,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
    mem_nhds_iff.mpr ⟨v, vw.subset_compl_right, vo, singleton_subset_iff.mp xv⟩,
   ⟨k \ w,
    filter.inter_mem kx wn,
-   subset.trans (diff_subset_comm.mp kuw) un,
+   subset.trans (sdiff_subset_comm.mp kuw) un,
    kc.diff wo⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
@@ -1580,7 +1580,7 @@ begin
     simp only [mem_Union],
     rintro ⟨u, huU, -, hxu⟩,
     exact hUd u huU ⟨hxu, hx⟩ },
-  { simp only [disjoint_left, mem_Union, mem_diff, not_exists, not_and, not_forall, not_not],
+  { simp only [disjoint_left, mem_Union, mem_sdiff, not_exists, not_and, not_forall, not_not],
     rintro a ⟨u, huU, hau, haV⟩ v hvV hav,
     cases le_total (encodable.encode u) (encodable.encode v) with hle hle,
     exacts [⟨u, huU, hle, subset_closure hau⟩, (haV _ hvV hle $ subset_closure hav).elim] }

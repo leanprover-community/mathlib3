@@ -174,7 +174,7 @@ end
 lemma of_add_of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v A + v (B \ A) = v B :=
 begin
-  rw [← of_union disjoint_diff hA (hB.diff hA), union_diff_cancel h],
+  rw [← of_union disjoint_sdiff hA (hB.diff hA), union_sdiff_cancel h],
   apply_instance,
 end
 
@@ -192,20 +192,20 @@ lemma of_diff_of_diff_eq_zero {A B : set α}
   v (A \ B) + v B = v A :=
 begin
   symmetry,
-  calc v A = v (A \ B ∪ A ∩ B) : by simp only [set.diff_union_inter]
+  calc v A = v (A \ B ∪ A ∩ B) : by simp only [set.sdiff_union_inter]
        ... = v (A \ B) + v (A ∩ B) :
   by { rw of_union,
        { rw disjoint.comm,
-         exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_diff },
+         exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_sdiff },
        { exact hA.diff hB },
        { exact hA.inter hB } }
        ... = v (A \ B) + v (A ∩ B ∪ B \ A) :
   by { rw [of_union, h', add_zero],
-       { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_diff },
+       { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_sdiff },
        { exact hA.inter hB },
        { exact hB.diff hA } }
        ... = v (A \ B) + v B :
-  by { rw [set.union_comm, set.inter_comm, set.diff_union_inter] }
+  by { rw [set.union_comm, set.inter_comm, set.sdiff_union_inter] }
 end
 
 lemma of_Union_nonneg {M : Type*} [topological_space M]
@@ -1141,10 +1141,10 @@ begin
     rw [(_ : t = (uᶜ ∩ t) ∪ (vᶜ \ uᶜ ∩ t)),
         of_union _ (hmu.compl.inter hmt) ((hmv.compl.diff hmu.compl).inter hmt),
         hu₂, hv₂, add_zero],
-    { exact subset.trans (inter_subset_left _ _) (diff_subset _ _) },
+    { exact subset.trans (inter_subset_left _ _) (sdiff_subset _ _) },
     { exact inter_subset_left _ _ },
     { apply_instance },
-    { exact disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _) disjoint_diff },
+    { exact disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _) disjoint_sdiff },
     { apply subset.antisymm;
       intros x hx,
       { by_cases hxu' : x ∈ uᶜ,

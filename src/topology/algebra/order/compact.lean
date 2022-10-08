@@ -76,7 +76,7 @@ begin
       (Ioc_mem_nhds_within_Iic ⟨hxc, le_rfl⟩)).exists
       with ⟨y, ⟨hyab, hyf⟩, hy⟩,
     refine mem_of_superset(f.diff_mem_iff.2 ⟨hcf, hyf⟩) (subset.trans _ hxU),
-    rw diff_subset_iff,
+    rw sdiff_subset_iff,
     exact subset.trans Icc_subset_Icc_union_Ioc
       (union_subset_union subset.rfl $ Ioc_subset_Ioc_left hy.1.le) },
   cases hc.2.eq_or_lt with heq hlt, { rw ← heq, exact hcs.2 },
@@ -88,7 +88,7 @@ begin
   have hy : y ∈ Icc a b, from ⟨hc.1.trans hxy.1.le, hxy.2⟩,
   by_cases hay : Icc a y ∈ f,
   { refine mem_of_superset (f.diff_mem_iff.2 ⟨f.diff_mem_iff.2 ⟨hay, hcs.2⟩, hpt y hy⟩) _,
-    rw [diff_subset_iff, union_comm, Ico_union_right hxy.1.le, diff_subset_iff],
+    rw [sdiff_subset_iff, union_comm, Ico_union_right hxy.1.le, sdiff_subset_iff],
     exact Icc_subset_Icc_union_Icc },
   { exact ((hsc.1 ⟨hy, hay⟩).not_lt hxy.1).elim },
 end

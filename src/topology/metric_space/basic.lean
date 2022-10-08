@@ -520,10 +520,10 @@ set.ext $ λ y, (@le_iff_lt_or_eq ℝ _ _ _).symm
 by rw [union_comm, ball_union_sphere]
 
 @[simp] theorem closed_ball_diff_sphere : closed_ball x ε \ sphere x ε = ball x ε :=
-by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.symm]
+by rw [← ball_union_sphere, set.union_sdiff_cancel_right sphere_disjoint_ball.symm]
 
 @[simp] theorem closed_ball_diff_ball : closed_ball x ε \ ball x ε = sphere x ε :=
-by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm]
+by rw [← ball_union_sphere, set.union_sdiff_cancel_left sphere_disjoint_ball.symm]
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by rw [mem_ball', mem_ball]

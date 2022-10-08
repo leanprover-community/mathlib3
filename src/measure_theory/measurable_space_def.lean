@@ -233,7 +233,7 @@ lemma measurable_set.insert {s : set α} (hs : measurable_set s) (a : α) :
 @[simp] lemma measurable_set_insert {a : α} {s : set α} :
   measurable_set (insert a s) ↔ measurable_set s :=
 ⟨λ h, if ha : a ∈ s then by rwa ← insert_eq_of_mem ha
-  else insert_diff_self_of_not_mem ha ▸ h.diff (measurable_set_singleton _),
+  else insert_sdiff_self_of_not_mem ha ▸ h.diff (measurable_set_singleton _),
   λ h, h.insert a⟩
 
 lemma set.subsingleton.measurable_set {s : set α} (hs : s.subsingleton) : measurable_set s :=

@@ -175,11 +175,11 @@ lemma set_independent_empty : set_independent (∅ : set α) :=
 
 theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
   set_independent t :=
-λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
+λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (sdiff_mono_left hst))
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
 lemma set_independent.pairwise_disjoint : s.pairwise_disjoint id :=
-λ x hx y hy h, disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, h.symm⟩)
+λ x hx y hy h, disjoint_Sup_right (hs hx) ((mem_sdiff y).mpr ⟨hy, h.symm⟩)
 
 lemma set_independent_pair {a b : α} (hab : a ≠ b) :
   set_independent ({a, b} : set α) ↔ disjoint a b :=
@@ -202,7 +202,7 @@ lemma set_independent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y 
   disjoint x (Sup y) :=
 begin
   have := (hs.mono $ insert_subset.mpr ⟨hx, hy⟩) (mem_insert x _),
-  rw [insert_diff_of_mem _ (mem_singleton _), diff_singleton_eq_self hxy] at this,
+  rw [insert_sdiff_of_mem _ (mem_singleton _), sdiff_singleton_eq_self hxy] at this,
   exact this,
 end
 

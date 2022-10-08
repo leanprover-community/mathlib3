@@ -713,8 +713,8 @@ begin
   let I : ι → ideal R := λ i, vanishing_ideal (Z i),
   have hI : ∀ i, Z i = zero_locus (I i) := λ i,
     by simpa only [zero_locus_vanishing_ideal_eq_closure] using (hZc i).closure_eq.symm,
-  rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.diff_eq,
-      set.diff_eq_empty, funext hI, ← zero_locus_supr] at hZ,
+  rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.sdiff_eq,
+      set.sdiff_eq_empty, funext hI, ← zero_locus_supr] at hZ,
   obtain ⟨n, hn⟩ : f ∈ (⨆ (i : ι), I i).radical,
   { rw ← vanishing_ideal_zero_locus_eq_radical,
     apply vanishing_ideal_anti_mono hZ,
@@ -722,8 +722,8 @@ begin
   rcases submodule.exists_finset_of_mem_supr I hn with ⟨s, hs⟩,
   use s,
   -- Using simp_rw here, because `hI` and `zero_locus_supr` need to be applied underneath binders
-  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm (zero_locus {f})ᶜ, ← set.diff_eq,
-           set.diff_eq_empty, hI, ← zero_locus_supr],
+  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm (zero_locus {f})ᶜ, ← set.sdiff_eq,
+           set.sdiff_eq_empty, hI, ← zero_locus_supr],
   rw ← zero_locus_radical, -- this one can't be in `simp_rw` because it would loop
   apply zero_locus_anti_mono,
   rw set.singleton_subset_iff,

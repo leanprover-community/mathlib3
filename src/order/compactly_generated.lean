@@ -366,10 +366,10 @@ theorem complete_lattice.set_independent_iff_finite {s : set α} :
   intro ht,
   classical,
   have h' := (h (insert a t) _ (t.mem_insert_self a)).eq_bot,
-  { rwa [finset.coe_insert, set.insert_diff_self_of_not_mem] at h',
-    exact λ con, ((set.mem_diff a).1 (ht con)).2 (set.mem_singleton a) },
+  { rwa [finset.coe_insert, set.insert_sdiff_self_of_not_mem] at h',
+    exact λ con, ((set.mem_sdiff a).1 (ht con)).2 (set.mem_singleton a) },
   { rw [finset.coe_insert, set.insert_subset],
-    exact ⟨ha, set.subset.trans ht (set.diff_subset _ _)⟩ }
+    exact ⟨ha, set.subset.trans ht (set.sdiff_subset _ _)⟩ }
 end⟩
 
 lemma complete_lattice.set_independent_Union_of_directed {η : Type*}
@@ -491,17 +491,17 @@ theorem complemented_lattice_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} =
     { exact set.mem_union_right _ (set.mem_singleton _) },
     { rw [set.mem_union, set.mem_singleton_iff] at hx,
       by_cases xa : x = a,
-      { simp only [xa, set.mem_singleton, set.insert_diff_of_mem, set.union_singleton],
-        exact con.mono_right (le_trans (Sup_le_Sup (set.diff_subset s {a})) le_sup_right) },
+      { simp only [xa, set.mem_singleton, set.insert_sdiff_of_mem, set.union_singleton],
+        exact con.mono_right (le_trans (Sup_le_Sup (set.sdiff_subset s {a})) le_sup_right) },
       { have h : (s ∪ {a}) \ {x} = (s \ {x}) ∪ {a},
         { simp only [set.union_singleton],
-          rw set.insert_diff_of_not_mem,
+          rw set.insert_sdiff_of_not_mem,
           rw set.mem_singleton_iff,
           exact ne.symm xa },
         rw [h, Sup_union, Sup_singleton],
         apply (s_ind (hx.resolve_right xa)).disjoint_sup_right_of_disjoint_sup_left
           (a_dis_Sup_s.mono_right _).symm,
-        rw [← Sup_insert, set.insert_diff_singleton,
+        rw [← Sup_insert, set.insert_sdiff_singleton,
           set.insert_eq_of_mem (hx.resolve_right xa)] } },
     { rw [Sup_union, Sup_singleton, ← disjoint_iff],
       exact b_inf_Sup_s.disjoint_sup_right_of_disjoint_sup_left con.symm },

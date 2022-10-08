@@ -332,7 +332,7 @@ lemma compl_congr {π₁ π₂ : prepartition I} (h : π₁.Union = π₂.Union)
 by { dunfold compl, congr' 1, rw h }
 
 lemma is_partition.compl_eq_bot {π : prepartition I} (h : is_partition π) : π.compl = ⊥ :=
-by rw [← Union_eq_empty, Union_compl, h.Union_eq, diff_self]
+by rw [← Union_eq_empty, Union_compl, h.Union_eq, sdiff_self]
 
 @[simp] lemma compl_top : (⊤ : prepartition I).compl = ⊥ := (is_partition_top I).compl_eq_bot
 

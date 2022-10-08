@@ -91,7 +91,7 @@ diff_mem_inf_principal_compl hs t
 lemma diff_mem_nhds_within_diff {x : α} {s t : set α} (hs : s ∈ 𝓝[t] x) (t' : set α) :
   s \ t' ∈ 𝓝[t \ t'] x :=
 begin
-  rw [nhds_within, diff_eq, diff_eq, ← inf_principal, ← inf_assoc],
+  rw [nhds_within, sdiff_eq, sdiff_eq, ← inf_principal, ← inf_assoc],
   exact inter_mem_inf hs (mem_principal_self _)
 end
 
@@ -685,8 +685,8 @@ alias continuous_within_at_insert_self ↔ _ continuous_within_at.insert_self
 lemma continuous_within_at.diff_iff {f : α → β} {s t : set α} {x : α}
   (ht : continuous_within_at f t x) :
   continuous_within_at f (s \ t) x ↔ continuous_within_at f s x :=
-⟨λ h, (h.union ht).mono $ by simp only [diff_union_self, subset_union_left],
-  λ h, h.mono (diff_subset _ _)⟩
+⟨λ h, (h.union ht).mono $ by simp only [sdiff_union_self, subset_union_left],
+  λ h, h.mono (sdiff_subset _ _)⟩
 
 @[simp] lemma continuous_within_at_diff_self {f : α → β} {s : set α} {x : α} :
   continuous_within_at f (s \ {x}) x ↔ continuous_within_at f s x :=
@@ -694,7 +694,7 @@ continuous_within_at_singleton.diff_iff
 
 @[simp] lemma continuous_within_at_compl_self {f : α → β} {a : α} :
   continuous_within_at f {a}ᶜ a ↔ continuous_at f a :=
-by rw [compl_eq_univ_diff, continuous_within_at_diff_self, continuous_within_at_univ]
+by rw [compl_eq_univ_sdiff, continuous_within_at_diff_self, continuous_within_at_univ]
 
 @[simp] lemma continuous_within_at_update_same [decidable_eq α] {f : α → β}
   {s : set α} {x : α} {y : β} :
@@ -707,7 +707,7 @@ calc continuous_within_at (update f x y) s x ↔ tendsto (update f x y) (𝓝[s 
 
 @[simp] lemma continuous_at_update_same [decidable_eq α] {f : α → β} {x : α} {y : β} :
   continuous_at (function.update f x y) x ↔ tendsto f (𝓝[≠] x) (𝓝 y) :=
-by rw [← continuous_within_at_univ, continuous_within_at_update_same, compl_eq_univ_diff]
+by rw [← continuous_within_at_univ, continuous_within_at_update_same, compl_eq_univ_sdiff]
 
 theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set α}
   (h : is_open_map (s.restrict f)) {finv : β → α} (hleft : left_inv_on finv f s) :

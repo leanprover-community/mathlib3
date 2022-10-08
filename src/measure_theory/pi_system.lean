@@ -485,7 +485,7 @@ by { rw union_eq_Union, exact
 lemma has_diff {s₁ s₂ : set α} (h₁ : d.has s₁) (h₂ : d.has s₂) (h : s₂ ⊆ s₁) : d.has (s₁ \ s₂) :=
 begin
   apply d.has_compl_iff.1,
-  simp [diff_eq, compl_inter],
+  simp [sdiff_eq, compl_inter],
   exact d.has_union (d.has_compl h₁) h₂ (λ x ⟨h₁, h₂⟩, h₁ (h h₂)),
 end
 

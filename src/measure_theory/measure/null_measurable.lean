@@ -175,7 +175,7 @@ lemma exists_measurable_superset_ae_eq (h : null_measurable_set s μ) :
 begin
   rcases h with ⟨t, htm, hst⟩,
   refine ⟨t ∪ to_measurable μ (s \ t), _, htm.union (measurable_set_to_measurable _ _), _⟩,
-  { exact diff_subset_iff.1 (subset_to_measurable _ _) },
+  { exact sdiff_subset_iff.1 (subset_to_measurable _ _) },
   { have : to_measurable μ (s \ t) =ᵐ[μ] (∅ : set α), by simp [ae_le_set.1 hst.le],
     simpa only [union_empty] using hst.symm.union this }
 end
@@ -208,10 +208,10 @@ lemma exists_subordinate_pairwise_disjoint [countable ι] {s : ι → set α}
 begin
   choose t ht_sub htm ht_eq using λ i, (h i).exists_measurable_subset_ae_eq,
   rcases exists_null_pairwise_disjoint_diff hd with ⟨u, hum, hu₀, hud⟩,
-  exact ⟨λ i, t i \ u i, λ i, (diff_subset _ _).trans (ht_sub _),
+  exact ⟨λ i, t i \ u i, λ i, (sdiff_subset _ _).trans (ht_sub _),
     λ i, (ht_eq _).symm.trans (diff_null_ae_eq_self (hu₀ i)).symm,
     λ i, (htm i).diff (hum i), hud.mono $
-      λ i j h, h.mono (diff_subset_diff_left (ht_sub i)) (diff_subset_diff_left (ht_sub j))⟩
+      λ i j h, h.mono (sdiff_mono_left (ht_sub i)) (sdiff_mono_left (ht_sub j))⟩
 end
 
 lemma measure_Union {m0 : measurable_space α} {μ : measure α} [countable ι] {f : ι → set α}
@@ -253,19 +253,19 @@ begin
     replace hs'm : null_measurable_set s' μ := hs'm.null_measurable_set,
     calc μ (s ∩ t) + μ (s \ t) ≤ μ (s' ∩ t) + μ (s' \ t) :
       add_le_add (measure_mono $ inter_subset_inter_left _ hsub)
-        (measure_mono $ diff_subset_diff_left hsub)
+        (measure_mono $ sdiff_mono_left hsub)
     ... = μ (s' ∩ t ∪ s' \ t) :
       (measure_union₀_aux (hs'm.inter ht) (hs'm.diff ht) $
         (@disjoint_inf_sdiff _ s' t _).ae_disjoint).symm
-    ... = μ s' : congr_arg μ (inter_union_diff _ _)
+    ... = μ s' : congr_arg μ (inter_union_sdiff _ _)
     ... = μ s : hs' },
-  { calc μ s = μ (s ∩ t ∪ s \ t) : by rw inter_union_diff
+  { calc μ s = μ (s ∩ t ∪ s \ t) : by rw inter_union_sdiff
     ... ≤ μ (s ∩ t) + μ (s \ t) : measure_union_le _ _ }
 end
 
 lemma measure_union_add_inter₀ (s : set α) (ht : null_measurable_set t μ) :
   μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
-by rw [← measure_inter_add_diff₀ (s ∪ t) ht, union_inter_cancel_right, union_diff_right,
+by rw [← measure_inter_add_diff₀ (s ∪ t) ht, union_inter_cancel_right, union_sdiff_right,
   ← measure_inter_add_diff₀ s ht, add_comm, ← add_assoc, add_right_comm]
 
 lemma measure_union_add_inter₀' (hs : null_measurable_set s μ) (t : set α) :
@@ -382,7 +382,7 @@ measure_theory.measure.is_complete.out' s hs
 
 theorem null_measurable_set.measurable_of_complete (hs : null_measurable_set s μ) [μ.is_complete] :
   measurable_set s :=
-diff_diff_cancel_left (subset_to_measurable μ s) ▸ (measurable_set_to_measurable _ _).diff
+sdiff_sdiff_cancel_left (subset_to_measurable μ s) ▸ (measurable_set_to_measurable _ _).diff
   (measurable_set_of_null (ae_le_set.1 hs.to_measurable_ae_eq.le))
 
 theorem null_measurable.measurable_of_complete [μ.is_complete] {m1 : measurable_space β} {f : α → β}

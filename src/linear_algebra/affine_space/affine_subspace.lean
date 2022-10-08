@@ -1016,7 +1016,7 @@ lemma vector_span_eq_span_vsub_set_left_ne {s : set P} {p : P} (hp : p ∈ s) :
   vector_span k s = submodule.span k ((-ᵥ) p '' (s \ {p})) :=
 begin
   conv_lhs { rw [vector_span_eq_span_vsub_set_left k hp, ←set.insert_eq_of_mem hp,
-                 ←set.insert_diff_singleton, set.image_insert_eq] },
+                 ←set.insert_sdiff_singleton, set.image_insert_eq] },
   simp [submodule.span_insert_eq_span]
 end
 
@@ -1027,7 +1027,7 @@ lemma vector_span_eq_span_vsub_set_right_ne {s : set P} {p : P} (hp : p ∈ s) :
   vector_span k s = submodule.span k ((-ᵥ p) '' (s \ {p})) :=
 begin
   conv_lhs { rw [vector_span_eq_span_vsub_set_right k hp, ←set.insert_eq_of_mem hp,
-                 ←set.insert_diff_singleton, set.image_insert_eq] },
+                 ←set.insert_sdiff_singleton, set.image_insert_eq] },
   simp [submodule.span_insert_eq_span]
 end
 
@@ -1046,7 +1046,7 @@ lemma vector_span_image_eq_span_vsub_set_left_ne (p : ι → P) {s : set ι} {i 
   vector_span k (p '' s) = submodule.span k ((-ᵥ) (p i) '' (p '' (s \ {i}))) :=
 begin
   conv_lhs { rw [vector_span_eq_span_vsub_set_left k (set.mem_image_of_mem p hi),
-                 ←set.insert_eq_of_mem hi, ←set.insert_diff_singleton, set.image_insert_eq,
+                 ←set.insert_eq_of_mem hi, ←set.insert_sdiff_singleton, set.image_insert_eq,
                  set.image_insert_eq] },
   simp [submodule.span_insert_eq_span]
 end
@@ -1058,7 +1058,7 @@ lemma vector_span_image_eq_span_vsub_set_right_ne (p : ι → P) {s : set ι} {i
   vector_span k (p '' s) = submodule.span k ((-ᵥ (p i)) '' (p '' (s \ {i}))) :=
 begin
   conv_lhs { rw [vector_span_eq_span_vsub_set_right k (set.mem_image_of_mem p hi),
-                 ←set.insert_eq_of_mem hi, ←set.insert_diff_singleton, set.image_insert_eq,
+                 ←set.insert_eq_of_mem hi, ←set.insert_sdiff_singleton, set.image_insert_eq,
                  set.image_insert_eq] },
   simp [submodule.span_insert_eq_span]
 end
@@ -1083,7 +1083,7 @@ lemma vector_span_range_eq_span_range_vsub_left_ne (p : ι → P) (i₀ : ι) :
 begin
   rw [←set.image_univ, vector_span_image_eq_span_vsub_set_left_ne k _ (set.mem_univ i₀)],
   congr' with v,
-  simp only [set.mem_range, set.mem_image, set.mem_diff, set.mem_singleton_iff, subtype.exists,
+  simp only [set.mem_range, set.mem_image, set.mem_sdiff, set.mem_singleton_iff, subtype.exists,
              subtype.coe_mk],
   split,
   { rintros ⟨x, ⟨i₁, ⟨⟨hi₁u, hi₁⟩, rfl⟩⟩, hv⟩,
@@ -1099,7 +1099,7 @@ lemma vector_span_range_eq_span_range_vsub_right_ne (p : ι → P) (i₀ : ι) :
 begin
   rw [←set.image_univ, vector_span_image_eq_span_vsub_set_right_ne k _ (set.mem_univ i₀)],
   congr' with v,
-  simp only [set.mem_range, set.mem_image, set.mem_diff, set.mem_singleton_iff, subtype.exists,
+  simp only [set.mem_range, set.mem_image, set.mem_sdiff, set.mem_singleton_iff, subtype.exists,
              subtype.coe_mk],
   split,
   { rintros ⟨x, ⟨i₁, ⟨⟨hi₁u, hi₁⟩, rfl⟩⟩, hv⟩,

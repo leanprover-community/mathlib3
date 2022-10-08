@@ -127,7 +127,7 @@ lemma measure_diff_add_inter (s : set α) (ht : measurable_set t) :
 lemma measure_union_add_inter (s : set α) (ht : measurable_set t) :
   μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
 by { rw [← measure_inter_add_diff (s ∪ t) ht, set.union_inter_cancel_right,
-  union_diff_right, ← measure_inter_add_diff s ht], ac_refl }
+  union_sdiff_right, ← measure_inter_add_diff s ht], ac_refl }
 
 lemma measure_union_add_inter' (hs : measurable_set s) (t : set α) :
   μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
@@ -196,7 +196,7 @@ lemma measure_diff_null (h : μ s₂ = 0) : μ (s₁ \ s₂) = μ s₁ :=
 measure_diff_null' $ measure_mono_null (inter_subset_right _ _) h
 
 lemma measure_add_diff (hs : measurable_set s) (t : set α) : μ s + μ (t \ s) = μ (s ∪ t) :=
-by rw [← measure_union' disjoint_diff hs, union_diff_self]
+by rw [← measure_union' disjoint_sdiff hs, union_sdiff_self]
 
 lemma measure_diff' (s : set α) (hm : measurable_set t) (h_fin : μ t ≠ ∞) :
   μ (s \ t) = μ (s ∪ t) - μ t :=
@@ -209,7 +209,7 @@ by rw [measure_diff' _ h₂ h_fin, union_eq_self_of_subset_right h]
 lemma le_measure_diff : μ s₁ - μ s₂ ≤ μ (s₁ \ s₂) :=
 tsub_le_iff_left.2 $
 calc μ s₁ ≤ μ (s₂ ∪ s₁)        : measure_mono (subset_union_right _ _)
-      ... = μ (s₂ ∪ s₁ \ s₂)   : congr_arg μ union_diff_self.symm
+      ... = μ (s₂ ∪ s₁ \ s₂)   : congr_arg μ union_sdiff_self.symm
       ... ≤ μ s₂ + μ (s₁ \ s₂) : measure_union_le _ _
 
 lemma measure_diff_lt_of_lt_add (hs : measurable_set s) (hst : s ⊆ t)
@@ -234,7 +234,7 @@ begin
   have le12 : μ s₁ ≤ μ s₂ := measure_mono h12,
   have le23 : μ s₂ ≤ μ s₃ := measure_mono h23,
   have key : μ s₃ ≤ μ s₁ := calc
-    μ s₃ = μ ((s₃ \ s₁) ∪ s₁)  : by rw (diff_union_of_subset (h12.trans h23))
+    μ s₃ = μ ((s₃ \ s₁) ∪ s₁)  : by rw (sdiff_union_of_subset (h12.trans h23))
      ... ≤ μ (s₃ \ s₁) + μ s₁  : measure_union_le _ _
      ... = μ s₁                : by simp only [h_nulldiff, zero_add],
   exact ⟨le12.antisymm (le23.trans key), le23.antisymm (key.trans le12)⟩,
@@ -249,7 +249,7 @@ lemma measure_eq_measure_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
 (measure_eq_measure_of_between_null_diff h12 h23 h_nulldiff).2
 
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ) = μ univ - μ s :=
-by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) h₁ h_fin }
+by { rw compl_eq_univ_sdiff, exact measure_diff (subset_univ s) h₁ h_fin }
 
 /-- If `s ⊆ t`, `μ t ≤ μ s`, `μ t ≠ ∞`, and `s` is measurable, then `s =ᵐ[μ] t`. -/
 lemma ae_eq_of_subset_of_measure_ge (h₁ : s ⊆ t) (h₂ : μ t ≤ μ s) (hsm : measurable_set s)
@@ -429,16 +429,16 @@ begin
   rw [← ennreal.sub_sub_cancel (by exact hk) (infi_le _ k), ennreal.sub_infi,
     ← ennreal.sub_sub_cancel (by exact hk) (measure_mono (Inter_subset _ k)),
     ← measure_diff (Inter_subset _ k) (measurable_set.Inter h) (this _ (Inter_subset _ k)),
-    diff_Inter, measure_Union_eq_supr],
+    sdiff_inter, measure_Union_eq_supr],
   { congr' 1,
     refine le_antisymm (supr_mono' $ λ i, _) (supr_mono $ λ i, _),
     { rcases hd i k with ⟨j, hji, hjk⟩,
       use j,
       rw [← measure_diff hjk (h _) (this _ hjk)],
-      exact measure_mono (diff_subset_diff_right hji) },
-    { rw [tsub_le_iff_right, ← measure_union disjoint_diff.symm (h i), set.union_comm],
-      exact measure_mono (diff_subset_iff.1 $ subset.refl _) } },
-  { exact hd.mono_comp _ (λ _ _, diff_subset_diff_right) }
+      exact measure_mono (sdiff_mono_right hji) },
+    { rw [tsub_le_iff_right, ← measure_union disjoint_sdiff.symm (h i), set.union_comm],
+      exact measure_mono (sdiff_subset_iff.1 $ subset.refl _) } },
+  { exact hd.mono_comp _ (λ _ _, sdiff_mono_right) }
 end
 
 /-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
@@ -596,8 +596,8 @@ begin
     ... = μ t : h.symm
     ... = μ (t ∩ s) + μ (t \ s) : (measure_inter_add_diff _ hs).symm
     ... ≤ μ (t ∩ s) + μ (u \ s) :
-      add_le_add le_rfl (measure_mono (diff_subset_diff htu subset.rfl)),
-  have B : μ (u \ s) ≠ ∞ := (lt_of_le_of_lt (measure_mono (diff_subset _ _)) ht_ne_top.lt_top).ne,
+      add_le_add le_rfl (measure_mono (sdiff_subset_sdiff htu subset.rfl)),
+  have B : μ (u \ s) ≠ ∞ := (lt_of_le_of_lt (measure_mono (sdiff_subset _ _)) ht_ne_top.lt_top).ne,
   exact ennreal.le_of_add_le_add_right B A
 end
 
@@ -820,7 +820,7 @@ begin
     rw [to_outer_measure_apply],
     refine measure_mono hst },
   rw [← measure_inter_add_diff u hs],
-  refine add_le_add (hm $ inter_subset_inter_left _ htu) (hm $ diff_subset_diff_left htu)
+  refine add_le_add (hm $ inter_subset_inter_left _ htu) (hm $ sdiff_mono_left htu)
 end
 
 instance [measurable_space α] : has_Inf (measure α) :=
@@ -1030,7 +1030,7 @@ if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
   begin
     simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
-      image_diff hf.1],
+      image_sdiff hf.1],
     apply le_to_outer_measure_caratheodory,
     exact hf.2 s hs
   end
@@ -1052,7 +1052,7 @@ if hf : injective f ∧ ∀ s, measurable_set s → null_measurable_set (f '' s)
   (outer_measure.comap f μ.to_outer_measure).to_measure $ λ s hs t,
   begin
     simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
-      image_diff hf.1],
+      image_sdiff hf.1],
     exact (measure_inter_add_diff₀ _ (hf.2 s hs)).symm
   end
 else 0
@@ -1084,7 +1084,7 @@ def restrictₗ {m0 : measurable_space α} (s : set α) : measure α →ₗ[ℝ�
 lift_linear (outer_measure.restrict s) $ λ μ s' hs' t,
 begin
   suffices : μ (s ∩ t) = μ (s ∩ t ∩ s') + μ (s ∩ t \ s'),
-  { simpa [← set.inter_assoc, set.inter_comm _ s, ← inter_diff_assoc] },
+  { simpa [← set.inter_assoc, set.inter_comm _ s, ← inter_sdiff_assoc] },
   exact le_to_outer_measure_caratheodory _ _ hs' _,
 end
 
@@ -1243,7 +1243,7 @@ lemma restrict_inter_add_diff₀ (s : set α) (ht : null_measurable_set t μ) :
   μ.restrict (s ∩ t) + μ.restrict (s \ t) = μ.restrict s :=
 begin
   ext1 u hu,
-  simp only [add_apply, restrict_apply hu, ← inter_assoc, diff_eq],
+  simp only [add_apply, restrict_apply hu, ← inter_assoc, sdiff_eq],
   exact measure_inter_add_diff₀ (u ∩ s) ht
 end
 
@@ -1253,7 +1253,7 @@ restrict_inter_add_diff₀ s ht.null_measurable_set
 
 lemma restrict_union_add_inter₀ (s : set α) (ht : null_measurable_set t μ) :
   μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
-by rw [← restrict_inter_add_diff₀ (s ∪ t) ht, union_inter_cancel_right, union_diff_right,
+by rw [← restrict_inter_add_diff₀ (s ∪ t) ht, union_inter_cancel_right, union_sdiff_right,
  ← restrict_inter_add_diff₀ s ht, add_comm, ← add_assoc, add_right_comm]
 
 lemma restrict_union_add_inter (s : set α) (ht : measurable_set t) :
@@ -1360,10 +1360,10 @@ begin
     measure_union_congr_of_subset hsub hμ.le subset.rfl le_rfl
   ... = μ US + μ (u ∩ t \ US) : (measure_add_diff hm _).symm
   ... = restrict μ s u + restrict μ t (u \ US) :
-    by simp only [restrict_apply, hu, hu.diff hm, hμ, ← inter_comm t, inter_diff_assoc]
+    by simp only [restrict_apply, hu, hu.diff hm, hμ, ← inter_comm t, inter_sdiff_assoc]
   ... = restrict ν s u + restrict ν t (u \ US) : by rw [hs, ht]
   ... = ν US + ν (u ∩ t \ US) :
-    by simp only [restrict_apply, hu, hu.diff hm, hν, ← inter_comm t, inter_diff_assoc]
+    by simp only [restrict_apply, hu, hu.diff hm, hν, ← inter_comm t, inter_sdiff_assoc]
   ... = ν (US ∪ u ∩ t) : measure_add_diff hm _
   ... = ν (u ∩ s ∪ u ∩ t) :
     eq.symm $ measure_union_congr_of_subset hsub hν.le subset.rfl le_rfl
@@ -2471,7 +2471,7 @@ s.finite_to_set.measure_zero μ
 
 lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=
-union_ae_eq_right.2 $ measure_mono_null (diff_subset _ _) (measure_singleton _)
+union_ae_eq_right.2 $ measure_mono_null (sdiff_subset _ _) (measure_singleton _)
 
 section
 
@@ -3509,7 +3509,7 @@ begin
   rw [measure.restrict_apply' hs, set.indicator_preimage, set.ite],
   simp_rw [set.compl_union, set.compl_inter],
   change μ (((f ⁻¹' t)ᶜ ∪ sᶜ) ∩ ((λ x, (0 : β)) ⁻¹' t \ s)ᶜ) = 0 ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0,
-  simp only [ht, ← set.compl_eq_univ_diff, compl_compl, set.compl_union, if_true,
+  simp only [ht, ← set.compl_eq_univ_sdiff, compl_compl, set.compl_union, if_true,
     set.preimage_const],
   simp_rw [set.union_inter_distrib_right, set.compl_inter_self s, set.union_empty],
 end
@@ -3519,7 +3519,7 @@ lemma mem_map_indicator_ae_iff_of_zero_nmem [has_zero β] {t : set β} (ht : (0 
 begin
   rw [mem_map, mem_ae_iff, set.indicator_preimage, set.ite, set.compl_union, set.compl_inter],
   change μ (((f ⁻¹' t)ᶜ ∪ sᶜ) ∩ ((λ x, (0 : β)) ⁻¹' t \ s)ᶜ) = 0 ↔ μ ((f ⁻¹' t)ᶜ ∪ sᶜ) = 0,
-  simp only [ht, if_false, set.compl_empty, set.empty_diff, set.inter_univ, set.preimage_const],
+  simp only [ht, if_false, set.compl_empty, set.empty_sdiff, set.inter_univ, set.preimage_const],
 end
 
 lemma map_restrict_ae_le_map_indicator_ae [has_zero β] (hs : measurable_set s) :

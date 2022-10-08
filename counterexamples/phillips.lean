@@ -262,7 +262,7 @@ begin
   -- We will get a contradiction from the fact that there is a countable set `u` with positive
   -- measure in the complement of `⋃ n, s n`.
   rcases h (⋃ n, ↑(s n)) (countable_Union (λ n, (s n).2)) with ⟨t, t_count, ht⟩,
-  let u : A := ⟨t \ ⋃ n, ↑(s n), t_count.mono (diff_subset _ _)⟩,
+  let u : A := ⟨t \ ⋃ n, ↑(s n), t_count.mono (sdiff_subset _ _)⟩,
   set ε := f (↑u) with hε,
   have ε_pos : 0 < ε := ht,
   have I1 : ∀ n, ε / 2 ≤ f (↑(s (n+1)) \ ↑(s n)),
@@ -271,19 +271,19 @@ begin
     convert hF (s n) u using 3,
     { dsimp [u],
       ext x,
-      simp only [not_exists, mem_Union, mem_diff],
+      simp only [not_exists, mem_Union, mem_sdiff],
       tauto },
-    { simp only [s, function.iterate_succ', subtype.coe_mk, union_diff_left] } },
+    { simp only [s, function.iterate_succ', subtype.coe_mk, union_sdiff_left] } },
   have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (↑(s n)),
   { assume n,
     induction n with n IH,
     { simp only [s, bounded_additive_measure.empty, id.def, nat.cast_zero, zero_mul,
         function.iterate_zero, subtype.coe_mk], },
     { have : (↑(s (n+1)) : set α) = (↑(s (n+1)) \ ↑(s n)) ∪ ↑(s n),
-        by simp only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
-          union_diff_left],
+        by simp only [s, function.iterate_succ', union_comm, union_sdiff_self, subtype.coe_mk,
+          union_sdiff_left],
       rw [nat.succ_eq_add_one, this, f.additive],
-      swap, { rw disjoint.comm, apply disjoint_diff },
+      swap, { rw disjoint.comm, apply disjoint_sdiff },
       calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
       ... ≤ f (↑(s (n + 1 : ℕ)) \ ↑(s n)) + f (↑(s n)) :
         add_le_add (I1 n) IH } },
@@ -300,14 +300,14 @@ begin
   rcases (-f).exists_discrete_support_nonpos with ⟨s₂, s₂_count, h₂⟩,
   refine ⟨s₁ ∪ s₂, s₁_count.union s₂_count, λ t ht, le_antisymm _ _⟩,
   { have : t \ (s₁ ∪ s₂) = (t \ (s₁ ∪ s₂)) \ s₁,
-      by rw [diff_diff, union_comm, union_assoc, union_self],
+      by rw [sdiff_sdiff, union_comm, union_assoc, union_self],
     rw this,
-    exact h₁ _ (ht.mono (diff_subset _ _)) },
+    exact h₁ _ (ht.mono (sdiff_subset _ _)) },
   { have : t \ (s₁ ∪ s₂) = (t \ (s₁ ∪ s₂)) \ s₂,
-      by rw [diff_diff, union_assoc, union_self],
+      by rw [sdiff_sdiff, union_assoc, union_self],
     rw this,
     simp only [neg_nonpos, neg_apply] at h₂,
-    exact h₂ _ (ht.mono (diff_subset _ _)) },
+    exact h₂ _ (ht.mono (sdiff_subset _ _)) },
 end
 
 /-- A countable set outside of which the measure gives zero mass to countable sets. We are not
@@ -338,8 +338,8 @@ lemma eq_add_parts (f : bounded_additive_measure α) (s : set α) :
 begin
   simp only [discrete_part, continuous_part, restrict_apply],
   rw [← f.additive, ← inter_distrib_right],
-  { simp only [union_univ, union_diff_self, univ_inter] },
-  { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_diff,
+  { simp only [union_univ, union_sdiff_self, univ_inter] },
+  { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_sdiff,
     exact this.mono (inter_subset_left _ _) (inter_subset_left _ _) }
 end
 
@@ -358,10 +358,10 @@ end
 lemma continuous_part_apply_diff (f : bounded_additive_measure α)
   (s t : set α) (hs : s.countable) : f.continuous_part (t \ s) = f.continuous_part t :=
 begin
-  conv_rhs { rw ← diff_union_inter t s },
+  conv_rhs { rw ← sdiff_union_inter t s },
   rw [additive, self_eq_add_right],
   { exact continuous_part_apply_eq_zero_of_countable _ _ (hs.mono (inter_subset_right _ _)) },
-  { exact disjoint.mono_right (inter_subset_right _ _) (disjoint.comm.1 disjoint_diff) },
+  { exact disjoint.mono_right (inter_subset_right _ _) (disjoint.comm.1 disjoint_sdiff) },
 end
 
 end bounded_additive_measure
@@ -437,7 +437,7 @@ begin
   { exact measurable_set.inter
       (measurable_set.univ.diff (countable.measurable_set f.countable_discrete_support)) hs },
   congr' 1,
-  rw [inter_comm, ← inter_diff_assoc, inter_univ],
+  rw [inter_comm, ← inter_sdiff_assoc, inter_univ],
   exact measure_diff_null (f.countable_discrete_support.measure_zero _)
 end
 
@@ -460,7 +460,7 @@ begin
   refine ⟨λ x, {y | r x y}, λ x, _, λ y, _⟩,
   { have : univ \ {y | r x y} = {y | r y x} ∪ {x},
     { ext y,
-      simp only [true_and, mem_univ, mem_set_of_eq, mem_insert_iff, union_singleton, mem_diff],
+      simp only [true_and, mem_univ, mem_set_of_eq, mem_insert_iff, union_singleton, mem_sdiff],
       rcases trichotomous_of r x y with h|rfl|h,
       { simp only [h, not_or_distrib, false_iff, not_true],
         split,
@@ -513,9 +513,9 @@ lemma apply_f_eq_continuous_part (Hcont : #ℝ = aleph 1)
 begin
   set ψ := φ.to_bounded_additive_measure with hψ,
   have : φ (f Hcont x) = ψ (spf Hcont x) := rfl,
-  have U : univ = spf Hcont x ∪ (univ \ spf Hcont x), by simp only [union_univ, union_diff_self],
+  have U : univ = spf Hcont x ∪ (univ \ spf Hcont x), by simp only [union_univ, union_sdiff_self],
   rw [this, eq_add_parts, discrete_part_apply, hx, ψ.empty, zero_add, U,
-    ψ.continuous_part.additive _ _ (disjoint_diff),
+    ψ.continuous_part.additive _ _ (disjoint_sdiff),
     ψ.continuous_part_apply_eq_zero_of_countable _ (countable_compl_spf Hcont x), add_zero],
 end
 

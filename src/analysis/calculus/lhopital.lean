@@ -362,7 +362,7 @@ theorem lhopital_zero_nhds'
   tendsto (λ x, (f x) / (g x)) (𝓝[univ \ {a}] a) l :=
 begin
   have : univ \ {a} = Iio a ∪ Ioi a,
-  { ext, rw [mem_diff_singleton, eq_true_intro $ mem_univ x, true_and, ne_iff_lt_or_gt], refl },
+  { ext, rw [mem_sdiff_singleton, eq_true_intro $ mem_univ x, true_and, ne_iff_lt_or_gt], refl },
   simp only [this, nhds_within_union, tendsto_sup, eventually_sup] at *,
   exact ⟨lhopital_zero_nhds_left hff'.1 hgg'.1 hg'.1 hfa.1 hga.1 hdiv.1,
           lhopital_zero_nhds_right hff'.2 hgg'.2 hg'.2 hfa.2 hga.2 hdiv.2⟩
@@ -480,7 +480,7 @@ theorem lhopital_zero_nhds'
   tendsto (λ x, (f x) / (g x)) (𝓝[univ \ {a}] a) l :=
 begin
   have : univ \ {a} = Iio a ∪ Ioi a,
-  { ext, rw [mem_diff_singleton, eq_true_intro $ mem_univ x, true_and, ne_iff_lt_or_gt], refl },
+  { ext, rw [mem_sdiff_singleton, eq_true_intro $ mem_univ x, true_and, ne_iff_lt_or_gt], refl },
   simp only [this, nhds_within_union, tendsto_sup, eventually_sup] at *,
   exact ⟨lhopital_zero_nhds_left hdf.1 hg'.1 hfa.1 hga.1 hdiv.1,
           lhopital_zero_nhds_right hdf.2 hg'.2 hfa.2 hga.2 hdiv.2⟩,

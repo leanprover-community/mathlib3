@@ -273,7 +273,7 @@ end
 lemma has_deriv_within_at_iff_tendsto_slope :
   has_deriv_within_at f f' s x ↔ tendsto (slope f x) (𝓝[s \ {x}] x) (𝓝 f') :=
 begin
-  simp only [has_deriv_within_at, nhds_within, diff_eq, inf_assoc.symm, inf_principal.symm],
+  simp only [has_deriv_within_at, nhds_within, sdiff_eq, inf_assoc.symm, inf_principal.symm],
   exact has_deriv_at_filter_iff_tendsto_slope
 end
 
@@ -281,7 +281,7 @@ lemma has_deriv_within_at_iff_tendsto_slope' (hs : x ∉ s) :
   has_deriv_within_at f f' s x ↔ tendsto (slope f x) (𝓝[s] x) (𝓝 f') :=
 begin
   convert ← has_deriv_within_at_iff_tendsto_slope,
-  exact diff_singleton_eq_self hs
+  exact sdiff_singleton_eq_self hs
 end
 
 lemma has_deriv_at_iff_tendsto_slope :
@@ -2150,7 +2150,7 @@ begin
     from mem_of_superset self_mem_nhds_within
       (singleton_subset_iff.2 $ by simp [hr₀]),
   have C := mem_sup.2 ⟨A, B⟩,
-  rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup] at C,
+  rw [← nhds_within_union, sdiff_union_self, nhds_within_union, mem_sup] at C,
   filter_upwards [C.1],
   simp only [norm_smul, mem_Iio, norm_inv],
   exact λ _, id

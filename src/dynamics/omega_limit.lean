@@ -224,9 +224,9 @@ begin
     λ _ _, (is_open_compl_iff.mpr is_closed_closure),
   have hj₂ : k \ n ⊆ ⋃ u ∈ f, j u, begin
     have : (⋃ u ∈ f, j u) = ⋃ (u : ↥f.sets), j u, from bUnion_eq_Union _ _,
-    rw [this, diff_subset_comm, diff_Union],
+    rw [this, sdiff_subset_comm, diff_Union],
     rw omega_limit_eq_Inter_inter _ _ _ hv₁ at hn₂,
-    simp_rw diff_compl,
+    simp_rw sdiff_compl,
     rw ←inter_Inter,
     exact subset.trans (inter_subset_right _ _) hn₂,
   end,
@@ -247,7 +247,7 @@ begin
     calc closure (image2 ϕ w s)
         ⊆ _ : closure_mono (image2_subset (inter_subset_right _ _) subset.rfl)
   end,
-  have hnc : nᶜ ⊆ (k \ n) ∪ kᶜ, by rw [union_comm, ←inter_subset, diff_eq, inter_comm],
+  have hnc : nᶜ ⊆ (k \ n) ∪ kᶜ, by rw [union_comm, ←inter_subset, sdiff_eq, inter_comm],
   have hw : closure (image2 ϕ w s) ⊆ n, from
     compl_subset_compl.mp (subset.trans hnc (union_subset hw₃ hw₄)),
   exact ⟨_, hw₂, hw⟩

@@ -149,7 +149,7 @@ begin
   have hsS : ∀ {k}, s k ⊆ S, from λ k, subset_Union _ _,
   refine le_antisymm _ (supr_le $ λ n, m.mono hsS),
   have A : ∀ k, m S ≤ M + m (S \ s k), from λ k,
-  calc m S = m (s k ∪ S \ s k) : by rw [union_diff_self, union_eq_self_of_subset_left hsS]
+  calc m S = m (s k ∪ S \ s k) : by rw [union_sdiff_self, union_eq_self_of_subset_left hsS]
   ... ≤ m (s k) + m (S \ s k) : m.union _ _
   ... ≤ M + m (S \ s k) : add_le_add_right (le_supr _ k) _,
   have B : tendsto (λ k, M + m (S \ s k)) l (𝓝 (M + 0)), from tendsto_const_nhds.add h0,
@@ -168,7 +168,7 @@ begin
   refine (m.mono _).trans (m.Union _),
   /- Current goal: `(⋃ k, s k) \ s n ⊆ ⋃ k, s (k + n + 1) \ s (k + n)` -/
   have h' : monotone s := @monotone_nat_of_le_succ (set α) _ _ h_mono,
-  simp only [diff_subset_iff, Union_subset_iff],
+  simp only [sdiff_subset_iff, Union_subset_iff],
   intros i x hx,
   rcases nat.find_x ⟨i, hx⟩ with ⟨j, hj, hlt⟩, clear hx i,
   cases le_or_lt j n with hjn hnj, { exact or.inl (h' hjn hj) },
@@ -181,12 +181,12 @@ end
 
 lemma le_inter_add_diff {m : outer_measure α} {t : set α} (s : set α) :
   m t ≤ m (t ∩ s) + m (t \ s) :=
-by { convert m.union _ _, rw inter_union_diff t s }
+by { convert m.union _ _, rw inter_union_sdiff t s }
 
 lemma diff_null (m : outer_measure α) (s : set α) {t : set α} (ht : m t = 0) :
   m (s \ t) = m s :=
 begin
-  refine le_antisymm (m.mono $ diff_subset _ _) _,
+  refine le_antisymm (m.mono $ sdiff_subset _ _) _,
   calc m s ≤ m (s ∩ t) + m (s \ t) : le_inter_add_diff _
        ... ≤ m t + m (s \ t)       : add_le_add_right (m.mono $ inter_subset_right _ _) _
        ... = m (s \ t)             : by rw [ht, zero_add]
@@ -747,10 +747,10 @@ lemma is_caratheodory_iff_le' {s : set α} : is_caratheodory s ↔ ∀t, m (t �
 forall_congr $ λ t, le_antisymm_iff.trans $ and_iff_right $ le_inter_add_diff _
 
 @[simp] lemma is_caratheodory_empty : is_caratheodory ∅ :=
-by simp [is_caratheodory, m.empty, diff_empty]
+by simp [is_caratheodory, m.empty, sdiff_empty]
 
 lemma is_caratheodory_compl : is_caratheodory s₁ → is_caratheodory s₁ᶜ :=
-by simp [is_caratheodory, diff_eq, add_comm]
+by simp [is_caratheodory, sdiff_eq, add_comm]
 
 @[simp] lemma is_caratheodory_compl_iff : is_caratheodory sᶜ ↔ is_caratheodory s :=
 ⟨λ h, by simpa using is_caratheodory_compl m h, is_caratheodory_compl⟩
@@ -759,16 +759,16 @@ lemma is_caratheodory_union (h₁ : is_caratheodory s₁) (h₂ : is_caratheodor
   is_caratheodory (s₁ ∪ s₂) :=
 λ t, begin
   rw [h₁ t, h₂ (t ∩ s₁), h₂ (t \ s₁), h₁ (t ∩ (s₁ ∪ s₂)),
-    inter_diff_assoc _ _ s₁, set.inter_assoc _ _ s₁,
+    inter_sdiff_assoc _ _ s₁, set.inter_assoc _ _ s₁,
     inter_eq_self_of_subset_right (set.subset_union_left _ _),
-    union_diff_left, h₂ (t ∩ s₁)],
-  simp [diff_eq, add_assoc]
+    union_sdiff_left, h₂ (t ∩ s₁)],
+  simp [sdiff_eq, add_assoc]
 end
 
 lemma measure_inter_union (h : s₁ ∩ s₂ ⊆ ∅) (h₁ : is_caratheodory s₁) {t : set α} :
   m (t ∩ (s₁ ∪ s₂)) = m (t ∩ s₁) + m (t ∩ s₂) :=
 by rw [h₁, set.inter_assoc, set.union_inter_cancel_left,
-  inter_diff_assoc, union_diff_cancel_left h]
+  inter_sdiff_assoc, union_sdiff_cancel_left h]
 
 lemma is_caratheodory_Union_lt {s : ℕ → set α} :
   ∀{n:ℕ}, (∀i<n, is_caratheodory (s i)) → is_caratheodory (⋃i<n, s i)
@@ -804,7 +804,7 @@ is_caratheodory_iff_le'.2 $ λ t, begin
   rw ennreal.supr_add,
   refine supr_le (λ n, le_trans (add_le_add_left _ _)
     (ge_of_eq (is_caratheodory_Union_lt m (λ i _, h i) _))),
-  refine m.mono (diff_subset_diff_right _),
+  refine m.mono (sdiff_mono_right _),
   exact Union₂_subset (λ i _, subset_Union _ i),
 end
 
@@ -858,7 +858,7 @@ begin
     (infi_le_of_le (λi, f i ∩ s) $ infi_le _ _)
     (infi_le_of_le (λi, f i \ s) $ infi_le _ _)) _,
   { rw ← Union_inter, exact inter_subset_inter_left _ hf },
-  { rw ← Union_diff, exact diff_subset_diff_left hf },
+  { rw ← Union_diff, exact sdiff_mono_left hf },
   { rw ← ennreal.tsum_add, exact ennreal.tsum_le_tsum (λ i, hs _) }
 end
 
@@ -1227,7 +1227,7 @@ begin
     refine le_infi _, intro t, refine le_infi _, intro ht, refine le_infi _, intro h2t,
     refine le_trans _ (le_trans (h t ht) $ le_of_eq $ induced_outer_measure_eq' _ msU m_mono ht),
     refine add_le_add (mono' _ $ set.inter_subset_inter_left _ h2t)
-      (mono' _  $ diff_subset_diff_left h2t) }
+      (mono' _  $ sdiff_mono_left h2t) }
 end
 
 end extend_set
@@ -1247,9 +1247,9 @@ lemma extend_mono {s₁ s₂ : set α} (h₁ : measurable_set s₁) (hs : s₁ �
   extend m s₁ ≤ extend m s₂ :=
 begin
   refine le_infi _, intro h₂,
-  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_diff
+  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_sdiff
     h₁ (h₂.diff h₁),
-  rw union_diff_cancel hs at this,
+  rw union_sdiff_cancel hs at this,
   rw ← extend_eq m,
   exact le_iff_exists_add.2 ⟨_, this⟩,
 end

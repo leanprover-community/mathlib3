@@ -228,7 +228,7 @@ begin
   refine le_infi (λ a, le_infi (λ b, le_infi (λ h, _))),
   refine le_trans (add_le_add
     (f.length_mono $ inter_subset_inter_left _ h)
-    (f.length_mono $ diff_subset_diff_left h)) _,
+    (f.length_mono $ sdiff_mono_left h)) _,
   cases le_total a c with hac hac; cases le_total b c with hbc hbc,
   { simp only [Ioc_inter_Ioi, f.length_Ioc, hac, sup_eq_max, hbc, le_refl, Ioc_eq_empty,
       max_eq_right, min_eq_left, Ioc_diff_Ioi, f.length_empty, zero_add, not_lt] },

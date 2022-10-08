@@ -396,7 +396,7 @@ instance finite_inter_of_left (s t : set α) [finite s] :
   finite (s ∩ t : set α) := finite.set.subset s (inter_subset_left s t)
 
 instance finite_diff (s t : set α) [finite s] :
-  finite (s \ t : set α) := finite.set.subset s (diff_subset s t)
+  finite (s \ t : set α) := finite.set.subset s (sdiff_subset s t)
 
 instance finite_range (f : ι → α) [finite ι] : finite (range f) :=
 by { haveI := fintype.of_finite (plift ι), apply_instance }
@@ -505,8 +505,8 @@ by { casesI hs, haveI := finite.set.subset _ ht, apply to_finite }
 theorem finite.diff {s : set α} (hs : s.finite) (t : set α) : (s \ t).finite :=
 by { casesI hs, apply to_finite }
 
-theorem finite.of_diff {s t : set α} (hd : (s \ t).finite) (ht : t.finite) : s.finite :=
-(hd.union ht).subset $ subset_diff_union _ _
+theorem finite.of_sdiff {s t : set α} (hd : (s \ t).finite) (ht : t.finite) : s.finite :=
+(hd.union ht).subset $ subset_sdiff_union _ _
 
 theorem finite_Union [finite ι] {f : ι → set α} (H : ∀ i, (f i).finite) :
   (⋃ i, f i).finite :=
@@ -885,7 +885,7 @@ protected theorem infinite.mono {s t : set α} (h : s ⊆ t) : s.infinite → t.
 mt (λ ht, ht.subset h)
 
 lemma infinite.diff {s t : set α} (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
-λ h, hs $ h.of_diff ht
+λ h, hs $ h.of_sdiff ht
 
 @[simp] lemma infinite_union {s t : set α} : (s ∪ t).infinite ↔ s.infinite ∨ t.infinite :=
 by simp only [set.infinite, finite_union, not_and_distrib]

@@ -90,7 +90,7 @@ by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 begin
   refine ⟨λ hs, _, λ hs, _⟩,
   { refine ((hs.image exp).insert 0).mono _,
-    rw [image_preimage_eq_inter_range, range_exp, ← diff_eq, ← union_singleton, diff_union_self],
+    rw [image_preimage_eq_inter_range, range_exp, ← sdiff_eq, ← union_singleton, sdiff_union_self],
     exact subset_union_left _ _ },
   { rw ← bUnion_preimage_singleton,
     refine hs.bUnion (λ z hz, _),

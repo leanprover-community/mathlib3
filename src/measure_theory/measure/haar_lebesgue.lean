@@ -463,7 +463,7 @@ lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=
 begin
   rcases hr.lt_or_lt with h|h,
-  { simp only [empty_diff, measure_empty, ← closed_ball_diff_ball, closed_ball_eq_empty.2 h] },
+  { simp only [empty_sdiff, measure_empty, ← closed_ball_diff_ball, closed_ball_eq_empty.2 h] },
   { rw [← closed_ball_diff_ball,
         measure_diff ball_subset_closed_ball measurable_set_ball measure_ball_lt_top.ne,
         add_haar_ball_of_pos μ _ h, add_haar_closed_ball μ _ h.le, tsub_self];
@@ -630,11 +630,11 @@ begin
   { have A : tendsto (λ (n : ℕ), μ (t \ closed_ball 0 n)) at_top
       (𝓝 (μ (⋂ (n : ℕ), t \ closed_ball 0 n))),
     { have N : ∃ (n : ℕ), μ (t \ closed_ball 0 n) ≠ ∞ :=
-        ⟨0, ((measure_mono (diff_subset t _)).trans_lt h''t.lt_top).ne⟩,
+        ⟨0, ((measure_mono (sdiff_subset t _)).trans_lt h''t.lt_top).ne⟩,
       refine tendsto_measure_Inter (λ n, ht.diff measurable_set_closed_ball) (λ m n hmn, _) N,
-      exact diff_subset_diff subset.rfl (closed_ball_subset_closed_ball (nat.cast_le.2 hmn)) },
+      exact sdiff_subset_sdiff subset.rfl (closed_ball_subset_closed_ball (nat.cast_le.2 hmn)) },
     have : (⋂ (n : ℕ), t \ closed_ball 0 n) = ∅,
-      by simp_rw [diff_eq, ← inter_Inter, Inter_eq_compl_Union_compl, compl_compl,
+      by simp_rw [sdiff_eq, ← inter_Inter, Inter_eq_compl_Union_compl, compl_compl,
           Union_closed_ball_nat, compl_univ, inter_empty],
     simp only [this, measure_empty] at A,
     have I : 0 < (ε / 2) * μ t := ennreal.mul_pos (ennreal.half_pos εpos.ne').ne' h't,
@@ -649,7 +649,7 @@ begin
     μ (s ∩ ({x} + r • (t ∩ closed_ball 0 n))) + μ ({x} + r • (t \ closed_ball 0 n)) := calc
   μ (s ∩ ({x} + r • t))
       = μ ((s ∩ ({x} + r • (t ∩ closed_ball 0 n))) ∪ (s ∩ ({x} + r • (t \ closed_ball 0 n)))) :
-    by rw [← inter_union_distrib_left, ← add_union, ← smul_set_union, inter_union_diff]
+    by rw [← inter_union_distrib_left, ← add_union, ← smul_set_union, inter_union_sdiff]
   ... ≤ μ (s ∩ ({x} + r • (t ∩ closed_ball 0 n))) + μ (s ∩ ({x} + r • (t \ closed_ball 0 n))) :
     measure_union_le _ _
   ... ≤ μ (s ∩ ({x} + r • (t ∩ closed_ball 0 n))) + μ ({x} + r • (t \ closed_ball 0 n)) :

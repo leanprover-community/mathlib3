@@ -808,7 +808,7 @@ Here, we generalize this by replacing:
 * the additions in the subscripts of $\sigma$ with an index of type `sum`
 
 The specialized version can be obtained by combining this definition with `fin_sum_fin_equiv` and
-`algebra.lmul'`.
+`linear_map.mul'`.
 -/
 @[simps]
 def dom_coprod
@@ -956,7 +956,7 @@ section basis
 
 open alternating_map
 
-variables {ι₁ : Type*} [fintype ι]
+variables {ι₁ : Type*} [finite ι]
 variables {R' : Type*} {N₁ N₂ : Type*} [comm_semiring R'] [add_comm_monoid N₁] [add_comm_monoid N₂]
 variables [module R' N₁] [module R' N₂]
 

@@ -496,6 +496,11 @@ begin
   exact ⟨f', hf'.mono st⟩
 end
 
+lemma differentiable_within_at.mono_of_mem (h : differentiable_within_at 𝕜 f s x) {t : set E}
+  (hst : s ∈ nhds_within x t) :
+  differentiable_within_at 𝕜 f t x :=
+(h.has_fderiv_within_at.mono_of_mem hst).differentiable_within_at
+
 lemma differentiable_within_at_univ :
   differentiable_within_at 𝕜 f univ x ↔ differentiable_at 𝕜 f x :=
 by simp only [differentiable_within_at, has_fderiv_within_at_univ, differentiable_at]
@@ -2939,7 +2944,7 @@ begin
   refine ⟨h'.dense_of_maps_to f'.continuous hs.1 _,
     h.continuous_within_at.mem_closure_image hs.2⟩,
   show submodule.span 𝕜 (tangent_cone_at 𝕜 s x) ≤
-    (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))).comap ↑f',
+    (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))).comap f',
   rw [submodule.span_le],
   exact h.maps_to_tangent_cone.mono (subset.refl _) submodule.subset_span
 end

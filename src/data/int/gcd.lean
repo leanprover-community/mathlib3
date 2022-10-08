@@ -3,7 +3,7 @@ Copyright (c) 2018 Guy Leroy. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
 -/
-import data.nat.gcd
+import data.nat.gcd.basic
 import tactic.norm_num
 
 /-!

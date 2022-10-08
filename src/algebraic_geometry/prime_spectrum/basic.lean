@@ -61,18 +61,19 @@ namespace maximal_spectrum
 
 variable {R}
 
-/-- A method to view a point in the maximal spectrum of a commutative ring
-as an ideal of that ring. -/
+/-- View a point in the maximal spectrum of a commutative ring as an ideal of that ring. -/
 abbreviation as_ideal (x : maximal_spectrum R) : ideal R := x.val
+
+@[ext] lemma ext {x y : maximal_spectrum R} : x = y ↔ x.as_ideal = y.as_ideal := subtype.ext_iff_val
 
 instance is_maximal (x : maximal_spectrum R) : x.as_ideal.is_maximal := x.property
 
 instance is_prime (x : maximal_spectrum R) : x.as_ideal.is_prime := x.is_maximal.is_prime
 
-variables [no_zero_divisors R] {K : Type v} [field K] [algebra R K] [is_fraction_ring R K]
+variables [is_domain R] {K : Type v} [field K] [algebra R K] [is_fraction_ring R K]
 
-/-- An commutative ring with no zero divisors is equal to the intersection of its localizations at
-all its maximal ideals viewed as subalgebras of its field of fractions. -/
+/-- An integral domain is equal to the intersection of its localizations at all its maximal ideals
+viewed as subalgebras of its field of fractions. -/
 theorem localization_infi_eq_bot :
   (⨅ v : maximal_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
     le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
@@ -116,15 +117,12 @@ namespace prime_spectrum
 
 variable {R}
 
-/-- A method to view a point in the prime spectrum of a commutative ring
-as an ideal of that ring. -/
+/-- View a point in the prime spectrum of a commutative ring as an ideal of that ring. -/
 abbreviation as_ideal (x : prime_spectrum R) : ideal R := x.val
 
 instance is_prime (x : prime_spectrum R) : x.as_ideal.is_prime := x.property
 
-/--
-The prime spectrum of the zero ring is empty.
--/
+/-- The prime spectrum of the zero ring is empty. -/
 lemma punit (x : prime_spectrum punit) : false :=
 x.1.ne_top_iff_one.1 x.2.1 $ subsingleton.elim (0 : punit) 1 ▸ x.1.zero_mem
 
@@ -132,7 +130,7 @@ section
 variables (R) (S : Type v) [comm_ring S]
 
 /-- The prime spectrum of `R × S` is in bijection with the disjoint unions of the prime spectrum of
-    `R` and the prime spectrum of `S`. -/
+`R` and the prime spectrum of `S`. -/
 noncomputable def prime_spectrum_prod :
   prime_spectrum (R × S) ≃ prime_spectrum R ⊕ prime_spectrum S :=
 ideal.prime_ideals_equiv R S
@@ -148,9 +146,7 @@ by { cases x, refl }
 
 end
 
-@[ext] lemma ext {x y : prime_spectrum R} :
-  x = y ↔ x.as_ideal = y.as_ideal :=
-subtype.ext_iff_val
+@[ext] lemma ext {x y : prime_spectrum R} : x = y ↔ x.as_ideal = y.as_ideal := subtype.ext_iff_val
 
 /-- The zero locus of a set `s` of elements of a commutative ring `R`
 is the set of all prime ideals of the ring that contain the set `s`.
@@ -525,7 +521,6 @@ end
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
 
-
 lemma preimage_comap_zero_locus_aux (f : R →+* S) (s : set R) :
   (λ y, ⟨ideal.comap f y.as_ideal, infer_instance⟩ :
     prime_spectrum S → prime_spectrum R) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=
@@ -868,10 +863,10 @@ def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
     exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
   end
 
-variables [no_zero_divisors R] {K : Type v} [field K] [algebra R K] [is_fraction_ring R K]
+variables [is_domain R] {K : Type v} [field K] [algebra R K] [is_fraction_ring R K]
 
-/-- An commutative ring with no zero divisors is equal to the intersection of its localizations at
-all its prime ideals viewed as subalgebras of its field of fractions. -/
+/-- An integral domain is equal to the intersection of its localizations at all its prime ideals
+viewed as subalgebras of its field of fractions. -/
 theorem localization_infi_eq_bot :
   (⨅ v : prime_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
     le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=

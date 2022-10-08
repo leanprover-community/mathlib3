@@ -852,9 +852,11 @@ variables (v : height_one_spectrum R) {R}
 
 namespace height_one_spectrum
 
-/-- A method to view a point in the height one spectrum of a commutative ring
-as an ideal of that ring. -/
+/-- View a point in the height one spectrum of a commutative ring as an ideal of that ring. -/
 abbreviation as_ideal (x : height_one_spectrum R) : ideal R := x.val
+
+@[ext] lemma ext {x y : height_one_spectrum R} : x = y ↔ x.as_ideal = y.as_ideal :=
+subtype.ext_iff_val
 
 instance is_prime : v.as_ideal.is_prime := v.property.left
 
@@ -877,19 +879,24 @@ def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maxim
   left_inv  := λ ⟨_, _, _⟩, rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 
-variables [algebra R K] [is_fraction_ring R K]
-
-/-- A Dedekind domain that is not a field is equal to the intersection of its localizations at all
-its height one prime ideals viewed as subalgebras of its field of fractions. -/
-theorem localization_infi_eq_bot (hR : ¬is_field R) :
+/-- A Dedekind domain is equal to the intersection of its localizations at all its height one
+non-zero prime ideals viewed as subalgebras of its field of fractions. -/
+theorem localization_infi_eq_bot [algebra R K] [hK : is_fraction_ring R K] :
   (⨅ v : height_one_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
     le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
 begin
   ext x,
-  rw [← maximal_spectrum.localization_infi_eq_bot, algebra.mem_infi, algebra.mem_infi],
+  rw [algebra.mem_infi],
   split,
+  by_cases hR : is_field R,
+  { rcases function.bijective_iff_has_inverse.mp
+      (is_field.localization_map_bijective (flip non_zero_divisors.ne_zero rfl : 0 ∉ R⁰) hR)
+      with ⟨algebra_map_inv, _, algebra_map_right_inv⟩,
+    exact λ _, algebra.mem_bot.mpr ⟨algebra_map_inv x, algebra_map_right_inv x⟩,
+    exact hK },
+  all_goals { rw [← maximal_spectrum.localization_infi_eq_bot, algebra.mem_infi] },
   { exact λ hx ⟨v, hv⟩, hx ((equiv_maximal_spectrum hR).symm ⟨v, hv⟩) },
-  { exact λ hx ⟨v, hv, hbot⟩, hx (equiv_maximal_spectrum hR ⟨v, hv, hbot⟩) }
+  { exact λ hx ⟨v, hv, hbot⟩, hx ⟨v, dimension_le_one v hbot hv⟩ }
 end
 
 end height_one_spectrum

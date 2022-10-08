@@ -91,9 +91,11 @@ decidable_of_decidable_of_iff or.decidable exists_bool.symm
 
 @[simp] theorem cond_tt {α} (t e : α) : cond tt t e = t := rfl
 
+theorem cond_eq_ite {α} (b : bool) (t e : α) : cond b t e = if b then t else e := by cases b; simp
+
 @[simp] theorem cond_to_bool {α} (p : Prop) [decidable p] (t e : α) :
   cond (to_bool p) t e = if p then t else e :=
-by by_cases p; simp *
+by simp [cond_eq_ite]
 
 @[simp] theorem cond_bnot {α} (b : bool) (t e : α) : cond (!b) t e = cond b e t :=
 by cases b; refl

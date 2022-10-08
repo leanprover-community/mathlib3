@@ -89,6 +89,9 @@ noncomputable def _root_.real.to_nnreal (r : ℝ) : ℝ≥0 := ⟨max r 0, le_ma
 lemma _root_.real.coe_to_nnreal (r : ℝ) (hr : 0 ≤ r) : (real.to_nnreal r : ℝ) = r :=
 max_eq_left hr
 
+lemma _root_.real.to_nnreal_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ⟨r, hr⟩ :=
+by simp_rw [real.to_nnreal, max_eq_left hr]
+
 lemma _root_.real.le_coe_to_nnreal (r : ℝ) : r ≤ real.to_nnreal r :=
 le_max_left r 0
 
@@ -852,7 +855,7 @@ meta def positivity_coe_nnreal_real : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
-  | nonnegative _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
+  | _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ℝ)` for `r : ℝ≥0`"

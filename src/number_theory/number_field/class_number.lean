@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 import number_theory.class_number.admissible_abs
 import number_theory.class_number.finite
-import number_theory.number_field
+import number_theory.number_field.basic
 
 /-!
 # Class numbers of number fields

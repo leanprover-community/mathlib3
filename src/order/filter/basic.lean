@@ -969,6 +969,10 @@ lemma eventually_of_forall {p : α → Prop} {f : filter α} (hp : ∀ x, p x) :
   ∀ᶠ x in f, p x :=
 univ_mem' hp
 
+lemma forall_eventually_of_eventually_forall {f : filter α} {p : α → β → Prop}
+  (h : ∀ᶠ x in f, ∀ y, p x y) : ∀ y, ∀ᶠ x in f, p x y :=
+by { intros y, filter_upwards [h], tauto, }
+
 @[simp] lemma eventually_false_iff_eq_bot {f : filter α} :
   (∀ᶠ x in f, false) ↔ f = ⊥ :=
 empty_mem_iff_bot

@@ -327,6 +327,29 @@ lemma singletons_open_iff_discrete {X : Type*} [topological_space X] :
   (∀ a : X, is_open ({a} : set X)) ↔ discrete_topology X :=
 ⟨λ h, ⟨eq_bot_of_singletons_open h⟩, λ a _, @is_open_discrete _ _ a _⟩
 
+lemma discrete_topology_iff_nhds [topological_space α] :
+  discrete_topology α ↔ ∀ x : α, 𝓝 x = pure x :=
+begin
+  split ; introI h,
+  { intro x,
+    rw nhds_discrete },
+  { constructor,
+    apply eq_of_nhds_eq_nhds,
+    simp [h, nhds_discrete] },
+end
+
+lemma discrete_topology_iff_nhds_ne [topological_space α] :
+  discrete_topology α ↔ ∀ x : α, 𝓝[≠] x = ⊥ :=
+begin
+  rw discrete_topology_iff_nhds,
+  apply forall_congr (λ x, _),
+  rw [nhds_within, inf_principal_eq_bot, compl_compl],
+  split ; intro h,
+  { rw h,
+    exact singleton_mem_pure },
+  { exact le_antisymm (le_pure_iff.mpr h) (pure_le_nhds x) }
+end
+
 end lattice
 
 section galois_connection

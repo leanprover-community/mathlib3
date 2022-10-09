@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 
+import algebra.group.order_synonym
 import algebra.order.monoid.cancel
 
 /-! # Ordered monoid structures on the order dual. -/

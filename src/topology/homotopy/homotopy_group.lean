@@ -221,7 +221,7 @@ end
 /--Homotopy of paths to `C(I × cube N, X)`. -/
 @[simps] def homotopy_from (i : N) {p q : gen_loop N x}
   (H : (to_path i p).homotopy (to_path i q)) : C(I × cube N, X) :=
-((⟨_,continuous_map.continuous_uncurry⟩ : C(_,_)).comp
+((⟨_, continuous_map.continuous_uncurry⟩ : C(_,_)).comp
   (c_coe.comp H.to_continuous_map).curry).uncurry.comp $
     (continuous_map.id I).prod_map (fun_split_at I i).to_continuous_map
 

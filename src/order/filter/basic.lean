@@ -969,6 +969,10 @@ lemma eventually_of_forall {p : α → Prop} {f : filter α} (hp : ∀ x, p x) :
   ∀ᶠ x in f, p x :=
 univ_mem' hp
 
+lemma forall_eventually_of_eventually_forall {f : filter α} {p : α → β → Prop}
+  (h : ∀ᶠ x in f, ∀ y, p x y) : ∀ y, ∀ᶠ x in f, p x y :=
+by { intros y, filter_upwards [h], tauto, }
+
 @[simp] lemma eventually_false_iff_eq_bot {f : filter α} :
   (∀ᶠ x in f, false) ↔ f = ⊥ :=
 empty_mem_iff_bot
@@ -1787,6 +1791,14 @@ lemma le_comap_map : f ≤ comap m (map m f) := (gc_map_comap m).le_u_l _
 @[simp] lemma comap_bot : comap m ⊥ = ⊥ :=
 bot_unique $ λ s _, ⟨∅, mem_bot, by simp only [empty_subset, preimage_empty]⟩
 
+lemma ne_bot_of_comap (h : (comap m g).ne_bot) : g.ne_bot :=
+begin
+  rw ne_bot_iff at *,
+  contrapose! h,
+  rw h,
+  exact comap_bot
+end
+
 lemma comap_inf_principal_range : comap m (g ⊓ 𝓟 (range m)) = comap m g := by simp
 
 lemma disjoint_comap (h : disjoint g₁ g₂) : disjoint (comap m g₁) (comap m g₂) :=
@@ -2106,6 +2118,13 @@ end
 protected lemma push_pull' (f : α → β) (F : filter α) (G : filter β) :
   map f (comap f G ⊓ F) = G ⊓ map f F :=
 by simp only [filter.push_pull, inf_comm]
+
+lemma principal_eq_map_coe_top (s : set α) : 𝓟 s = map (coe : s → α) ⊤ :=
+by simp
+
+lemma inf_principal_eq_bot_iff_comap {F : filter α} {s : set α} :
+  F ⊓ 𝓟 s = ⊥ ↔ comap (coe : s → α) F = ⊥ :=
+by rw [principal_eq_map_coe_top s, ← filter.push_pull',inf_top_eq, map_eq_bot_iff]
 
 section applicative
 

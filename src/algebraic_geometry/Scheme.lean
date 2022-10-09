@@ -119,6 +119,13 @@ begin
   refl
 end
 
+/-- Given a morphism of schemes `f : X ⟶ Y`, and open sets `U ⊆ Y`, `V ⊆ f ⁻¹' U`,
+this is the induced map `Γ(Y, U) ⟶ Γ(X, V)`. -/
+abbreviation hom.app_le {X Y : Scheme}
+  (f : X ⟶ Y) {V : opens X.carrier} {U : opens Y.carrier} (e : V ≤ (opens.map f.1.base).obj U) :
+    Y.presheaf.obj (op U) ⟶ X.presheaf.obj (op V) :=
+f.1.c.app (op U) ≫ X.presheaf.map (hom_of_le e).op
+
 /--
 The spectrum of a commutative ring, as a scheme.
 -/

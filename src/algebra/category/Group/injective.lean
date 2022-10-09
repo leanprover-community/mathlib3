@@ -20,7 +20,6 @@ groups.
 
 -/
 
-
 open category_theory
 open_locale pointwise
 

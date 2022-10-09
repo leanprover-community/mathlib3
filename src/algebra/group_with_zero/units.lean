@@ -425,7 +425,7 @@ by { rw div_eq_mul_inv, exact hac.mul_left hbc.inv_left₀ }
 end commute
 
 section monoid_with_zero
-variables [group_with_zero G₀] [monoid_with_zero M₀] [nontrivial M₀]
+variables [group_with_zero G₀] [nontrivial M₀]
   [monoid_with_zero M₀'] [monoid_with_zero_hom_class F G₀ M₀]
   [monoid_with_zero_hom_class F' G₀ M₀'] (f : F) {a : G₀}
 include M₀

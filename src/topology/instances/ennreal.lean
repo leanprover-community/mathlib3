@@ -958,37 +958,17 @@ le_of_tendsto' ((ennreal.has_sum_iff_tendsto_nat _).1 ennreal.summable.has_sum) 
 lemma tsum_add_one_eq_top {f : ℕ → ℝ≥0∞} (hf : ∑' n, f n = ∞) (hf0 : f 0 ≠ ∞) :
   ∑' n, f (n + 1) = ∞ :=
 begin
-  classical,
-  suffices : f 0 + ∑' (n : ℕ), f (n + 1) = ⊤,
-  { obtain h | h := ennreal.add_eq_top.1 this,
-    { exact false.elim (hf0 h) },
-    { assumption } },
-  { rw [← tsum_univ, (_ : set.univ = {0} ∪ set.range nat.succ)] at hf,
-    swap,
-    { rw [eq_comm, set.eq_univ_iff_forall],
-      rintro ⟨-, x⟩,
-      { exact or.inl rfl },
-      { exact or.inr ⟨x, rfl⟩ } },
-    rw [← top_le_iff, ← hf],
-    refine (ennreal.tsum_union_le _ _ _).trans _,
-    rw [tsum_singleton, ennreal.add_le_add_iff_left hf0, tsum_subtype],
-    refine ennreal.tsum_le_of_sum_range_le (λ n, _),
-    cases n,
-    { simp only [finset.range_zero, finset.sum_empty, zero_le'] },
-    { refine le_trans _ (sum_le_tsum (finset.range n) (λ _ _, bot_le) ennreal.summable),
-      set i : ℕ ↪ ℕ := ⟨(+1), nat.succ_injective⟩,
-      rw [(_ : ∑ k in finset.range n, f (k + 1) = ∑ k in finset.range n, f (i k)),
-        ← finset.sum_map (finset.range n) i f, finset.sum_indicator_eq_sum_filter],
-      swap, { refl },
-      refine le_of_eq (finset.sum_congr _ (λ _ _, rfl)),
-      ext m,
-      rw [finset.mem_filter, finset.mem_map],
-      split,
-      { rintro ⟨hk, k, rfl⟩,
-        rw [finset.mem_range, nat.succ_lt_succ_iff] at hk,
-        exact ⟨k, finset.mem_range.2 hk, rfl⟩ },
-      { rintro ⟨k, hk, rfl⟩,
-        exact ⟨finset.mem_range.2 $ nat.succ_lt_succ $ finset.mem_range.1 hk, k, rfl⟩ } } }
+  rw ← tsum_eq_tsum_of_has_sum_iff_has_sum (λ _, (not_mem_range_equiv 1).has_sum_iff),
+  swap, { apply_instance },
+  have h₁ : (∑' b : {n // n ∈ finset.range 1}, f b) + (∑' b : {n // n ∉ finset.range 1}, f b) =
+    ∑' b, f b,
+  { exact tsum_add_tsum_compl ennreal.summable ennreal.summable },
+  rw [finset.tsum_subtype, finset.sum_range_one, hf, ennreal.add_eq_top] at h₁,
+  rw ← h₁.resolve_left hf0,
+  apply tsum_congr,
+  rintro ⟨i, hi⟩,
+  simp only [multiset.mem_range, not_lt] at hi,
+  simp only [tsub_add_cancel_of_le hi, coe_not_mem_range_equiv, function.comp_app, subtype.coe_mk],
 end
 
 end tsum

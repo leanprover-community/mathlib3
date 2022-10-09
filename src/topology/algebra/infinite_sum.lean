@@ -520,6 +520,21 @@ lemma tsum_subtype (s : set β) (f : β → α) :
   ∑' x:s, f x = ∑' x, s.indicator f x :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_subtype_iff_indicator
 
+@[simp] lemma tsum_univ (f : β → α) :
+  ∑' x : (set.univ : set β), f x = ∑' x, f x :=
+by simp [tsum_subtype]
+
+@[simp] lemma tsum_singleton (b : β) (f : β → α) :
+  ∑' x : ({b} : set β), f x = f b :=
+begin
+  rw [tsum_subtype, tsum_eq_single b],
+  { simp },
+  { intros b' hb',
+    rw set.indicator_of_not_mem,
+    rwa set.mem_singleton_iff },
+  { apply_instance }
+end
+
 lemma tsum_op : ∑' x, mul_opposite.op (f x) = mul_opposite.op (∑' x, f x) :=
 begin
   by_cases h : summable f,

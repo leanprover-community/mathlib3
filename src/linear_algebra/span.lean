@@ -353,11 +353,12 @@ end,
 by rintro ⟨a, y, rfl⟩; exact
   smul_mem _ _ (subset_span $ by simp)⟩
 
-noncomputable def coeff_of_span_singleton {y : M} (h : x ∈ (R ∙ y)) : R :=
-(mem_span_singleton.mp h).some
+noncomputable def coeff_of_span_singleton {y : M} (x : (R ∙ y)) : R :=
+(mem_span_singleton.mp x.2).some
 
-lemma coeff_of_span_singleton_smul {y : M} (h : x ∈ (R ∙ y)) :
-  coeff_of_span_singleton h • y = x := (mem_span_singleton.mp h).some_spec
+lemma coeff_of_span_singleton_spec {y : M} (x : (R ∙ y)) :
+  coeff_of_span_singleton x • y = x :=
+(mem_span_singleton.mp x.2).some_spec
 
 lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=

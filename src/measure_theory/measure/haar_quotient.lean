@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
 
-import measure_theory.measure.haar
-import measure_theory.group.fundamental_domain
-import topology.compact_open
 import algebra.group.opposite
 import analysis.normed_space.lp_space
+import measure_theory.group.fundamental_domain
+import measure_theory.integral.integral_eq_improper
+import measure_theory.measure.haar
+import topology.compact_open
 
 /-!
 # Haar quotient measure
@@ -44,12 +45,8 @@ begin
   refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
 end
 
--- exists in mathlib, not merged
-theorem measure_theory.measure.empty_of_count_eq_zero {α : Type*} {s : set α} [measurable_space α]
-[measurable_singleton_class α] (hsc : measure_theory.measure.count s = 0) :
-s = ∅ := sorry
 
-theorem measure_theory.L1.tsum_eq_set_to_L1 {α : Type*} {E : Type*} [normed_group E]
+theorem measure_theory.L1.tsum_eq_set_to_L1 {α : Type*} {E : Type*} [normed_add_comm_group E]
   {m : measurable_space α} [normed_space ℝ E] [complete_space E]
   (f : (Lp E 1 measure.count)) :
 ∑' (a : α), f a = (L1.set_to_L1 (dominated_fin_meas_additive_weighted_smul measure.count)) f :=
@@ -60,36 +57,6 @@ begin
 end
 
 
--- exists in mathlib, not merged
-theorem measure_theory.measure.count_eq_zero_iff {α : Type*} {s : set α} [measurable_space α]
-[measurable_singleton_class α] :
-measure_theory.measure.count s = 0 ↔ s = ∅ := sorry
-
--- exists in mathlib, not merged
-structure measure_theory.ae_cover {α : Type*} {ι : Type*} [measurable_space α]
-(μ : measure_theory.measure α) (l : filter ι) (φ : ι → set α) :
-Prop :=
-(ae_eventually_mem : ∀ᵐ (x : α) ∂μ, ∀ᶠ (i : ι) in l, x ∈ φ i)
-(measurable : ∀ (i : ι), measurable_set (φ i))
-
--- exists in mathlib, not merged
-theorem measure_theory.ae_cover.integral_tendsto_of_countably_generated {α : Type*} {ι : Type*}
-{E : Type*} [measurable_space α] {μ : measure_theory.measure α} {l : filter ι} [normed_group E]
-[normed_space ℝ E] [complete_space E] [l.is_countably_generated] {φ : ι → set α}
-(hφ : measure_theory.ae_cover μ l φ) {f : α → E} (hfi : measure_theory.integrable f μ) :
-filter.tendsto (λ (i : ι), ∫ (x : α) in φ i, f x ∂μ) l (nhds (∫ (x : α), f x ∂μ)) := sorry
-
--- exists in mathlib, not merged
-theorem measure_theory.measure.count_singleton {α : Type*} [measurable_space α]
-[measurable_singleton_class α] (a : α) :
-measure.count ({a} : set α) = 1
-:= sorry
-
--- exists in mathlib, not merged
-theorem measure_theory.ae_cover.lintegral_tendsto_of_countably_generated {α : Type*} {ι : Type*}
-[measurable_space α] {μ : measure_theory.measure α} {l : filter ι} [l.is_countably_generated]
-{φ : ι → set α} (hφ : measure_theory.ae_cover μ l φ) {f : α → ennreal} (hfm : ae_measurable f μ) :
-filter.tendsto (λ (i : ι), ∫⁻ (x : α) in φ i, f x ∂μ) l (nhds (∫⁻ (x : α), f x ∂μ)) := sorry
 
 open_locale big_operators nnreal
 
@@ -112,21 +79,6 @@ begin
   sorry
 end
 
--- finsets are an ae-cover of encodable space
-
--- lemma finset_ae_cover_of_encodable (α : Type*) [measurable_space α] [encodable α]
---   :
---   measure_theory.ae_cover measure.count (filter.at_top : filter (finset α)) (λ (s: finset α), (s : set α)) :=
--- { ae_eventually_mem :=
--- begin
---   sorry,
--- end,
---   measurable :=
---   begin
---     sorry,
---   end }
-
---     -- if f: α→ ℝ≥0 lintegral f < ⊤ , then limit in cofinite filter over sᶜ of lintegral f → 0
 
 open_locale topological_space
 
@@ -144,13 +96,13 @@ begin
 end
 
 --  *** Not needed???
--- theorem tendsto_zero_iff_nnnorm_tendsto_zero {α : Type*} {E : Type*} [semi_normed_group E]
+-- theorem tendsto_zero_iff_nnnorm_tendsto_zero {α : Type*} {E : Type*} [semi_normed_add_comm_group E]
 -- {f : α → E} {a : filter α} :
 -- filter.tendsto f a (nhds 0) ↔ filter.tendsto (λ (e : α), ∥f e∥₊) a (nhds 0) :=
 -- sorry
 
 -- prove and add to mathlib analysis.normed.group.basic
-theorem tendsto_iff_nnnorm_tendsto_zero {α : Type*} {E : Type*} [semi_normed_group E]
+theorem tendsto_iff_nnnorm_tendsto_zero {α : Type*} {E : Type*} [seminormed_add_comm_group E]
 {f : α → E} {a : filter α} {b : E} :
 filter.tendsto f a (nhds b) ↔ filter.tendsto (λ (e : α), ∥f e - b∥₊) a (nhds 0) :=
 begin
@@ -159,7 +111,7 @@ end
 
 -- lemma tendsto_Lp_count_compl_at_top_zero {α : Type*} [measurable_space α]
 --   [measurable_singleton_class α] [encodable α]
---   {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+--   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
 --   [complete_space E] {p : ennreal} (f : Lp E p (measure.count : measure α)) :
 --   --filter.tendsto  (filter.at_top : filter (finset α)) (nhds f)
 --   -----***** FIX **** Or drop!? :)
@@ -180,7 +132,7 @@ end
 
 -- *** ADD to measure_theory.function.l1_space
 theorem measure_theory.L1.nnnorm_def {α : Type*} {β : Type*} {m : measurable_space α}
-{μ : measure_theory.measure α} [normed_group β] (f : ↥(measure_theory.Lp β 1 μ)) :
+{μ : measure_theory.measure α} [normed_add_comm_group β] (f : ↥(measure_theory.Lp β 1 μ)) :
 (∥f∥₊ : ennreal) = ∫⁻ (a : α), ∥f a∥₊ ∂μ := sorry
 
 
@@ -209,7 +161,7 @@ theorem ennreal.eq_to_nnreal_of_coe_eq {a : nnreal} {b : ennreal} (h : (a : ennr
   a = b.to_nnreal := by convert congr_arg ennreal.to_nnreal h
 
 -- *** ADD to analysis.normed.group.basic
-theorem nnnorm_sub_rev {E : Type*} [semi_normed_group E] (g h : E) :
+theorem nnnorm_sub_rev {E : Type*} [seminormed_add_comm_group E] (g h : E) :
 ∥g - h∥₊ = ∥h - g∥₊ :=
 begin
   rw ← nnnorm_neg,
@@ -218,8 +170,8 @@ begin
 end
 
 -- exists in mathlib
-theorem ennreal.add_sub_cancel_left {a b : ennreal} (ha : a ≠ ⊤) :
-a + b - a = b := sorry
+-- theorem ennreal.add_sub_cancel_left {a b : ennreal} (ha : a ≠ ⊤) :
+-- a + b - a = b := sorry
 
 --- *** ADD measure_theory.integral.lebesgue
 theorem measure_theory.lintegral_sub_compl {α : Type*} {m : measurable_space α} {μ : measure α}
@@ -257,7 +209,7 @@ end
 -- move to measure_theory.measurable_space_def, after `measurable_singleton_class`
 theorem measurable_set_of_encodable_singleton_class {α : Type*} [measurable_space α]
   [measurable_singleton_class α] [encodable α] (A : set α) : measurable_set A :=
- measurable_set_of_countable A.countable_encodable
+ measurable_set_of_countable A.to_countable
 
 
 theorem measurable_of_encodable_singleton_class {α : Type*} [measurable_space α]
@@ -268,7 +220,7 @@ theorem measurable_of_encodable_singleton_class {α : Type*} [measurable_space �
 theorem extracted_goal_from_extracted_goal {α : Type*} [measurable_space α]
   [measurable_singleton_class α] [encodable α] {f : α → ennreal}
   (hf : ∫⁻ (x : α), (f x) ∂measure.count < ⊤) : filter.tendsto (λ (s : finset α),
-  ∫⁻ (x : α) in (s : set α).compl, f x ∂measure.count) filter.at_top (𝓝 0) :=
+  ∫⁻ (x : α) in (s : set α)ᶜ, f x ∂measure.count) filter.at_top (𝓝 0) :=
 begin
   have : filter.tendsto (λ (s : finset α),
     ∫⁻ (x : α), f x ∂measure.count - ∫⁻ (x : α) in (s : set α), f x ∂measure.count)
@@ -290,7 +242,7 @@ theorem extracted_goal_from_next_theorem {α : Type*} {E : Type*}
   [measurable_space α]
   [measurable_singleton_class α]
   [encodable α]
-  [normed_group E]
+  [normed_add_comm_group E]
   [normed_space ℝ E]
   [measurable_space E]
   [borel_space E]
@@ -307,7 +259,7 @@ begin
   rw  tendsto_iff_nnnorm_tendsto_zero,
 
   have : filter.tendsto (λ (s : finset α),
-    ∫⁻ x in (s : set α).compl, nnnorm (f x) ∂measure.count )
+    ∫⁻ x in (s : set α)ᶜ, nnnorm (f x) ∂measure.count )
     filter.at_top (𝓝 0),
   {
     exact extracted_goal_from_extracted_goal hf.2,
@@ -317,7 +269,7 @@ begin
     ((ennreal.tendsto_to_nnreal ennreal.zero_ne_top).comp this) bot_le _ using 1,
 
   intros s,
-  simp only [coe_nnnorm, set.compl_eq_compl, function.comp_app, ←hh s],
+  simp only [coe_nnnorm, function.comp_app, ←hh s],
   rw ←continuous_linear_map.map_sub,
 
   -- FIX NAMING CONVENTION `continuous_linear_map.le_op_nnnorm_of_le`
@@ -373,7 +325,7 @@ theorem something14 {α : Type*} {E : Type*}
   [measurable_space α]
   [measurable_singleton_class α]
   [encodable α]
-  [normed_group E]
+  [normed_add_comm_group E]
   [normed_space ℝ E]
   [measurable_space E]
   [borel_space E]
@@ -392,7 +344,7 @@ end
 theorem something13 {α : Type*} {E : Type*} [measurable_space α]
   [measurable_singleton_class α]
   [encodable α]
-  [normed_group E]
+  [normed_add_comm_group E]
   [normed_space ℝ E]
   [measurable_space E]
   [borel_space E]
@@ -434,7 +386,7 @@ theorem something12 {α : Type*} {E : Type*}
   [measurable_space α]
   [measurable_singleton_class α]
   [encodable α]
-  [normed_group E]
+  [normed_add_comm_group E]
   [normed_space ℝ E]
   [measurable_space E]
   [borel_space E]
@@ -481,7 +433,7 @@ end
 
 theorem measure_theory.integral_count {α : Type*} [measurable_space α]
   [measurable_singleton_class α] [encodable α]
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [complete_space E] {f : α → E} (hf : integrable f measure.count)  :
 ∫ (a : α), f a ∂measure.count = ∑' (a : α), f a :=
 begin
@@ -525,7 +477,7 @@ begin
   refine extracted_goal_from_next_theorem _ hf' hF hh,
 end
 
-#exit
+-- #exit
 
       /-
       ext i,
@@ -562,7 +514,7 @@ end
 
 
 lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
-  {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_group E] [normed_space ℝ E]
+  {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E]
   {f : β → α → E}
   (hf : ∀ (i : β), measurable (f i)) -- (hf : ∀ (i : β), ae_measurable (f i) μ)
@@ -896,22 +848,6 @@ begin
 end
 
 
-example : true :=
-begin
-  have : is_add_fundamental_domain (add_subgroup.zmultiples (1:ℝ)).opposite
-    (Ioc (0:ℝ) (0 + 1)) measure_space.volume,
-  { -- have := is_add_fundamental_domain_Ioc zero_lt_one 0,
-    sorry }, -- something stupid
-  haveI : encodable (add_subgroup.zmultiples (1:ℝ)) := sorry, -- easy?
-  haveI : second_countable_topology (ℝ ⧸ (add_subgroup.zmultiples (1:ℝ))),
-  { sorry }, -- easy?
-  haveI : t2_space (ℝ ⧸ (add_subgroup.zmultiples (1:ℝ))),
-  { sorry }, -- we proved this!  modulo the action being discrete
-  haveI : borel_space (ℝ ⧸ (add_subgroup.zmultiples (1:ℝ))),
-  { -- borel sigma-algebra of quotient topology equals quotient sigma-algebra of borel topology
-    sorry },
-  have := add_unfolding_trick this,
-end
 /-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
   right-invariant, and a finite volume fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is
   measure-preserving between appropriate multiples of Haar measure on `G` and `G ⧸ Γ`. -/

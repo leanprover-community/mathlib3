@@ -26,6 +26,7 @@ universes u v
 /--
 A ring-module pair is a pair `(R, M)` such that `R : Ring` and `M` is an `R`-module.
 -/
+@[nolint check_univs]
 structure RingModPair : Type (max (v+1) (u+1)) :=
 (ring : Ring.{u})
 (mod : Module.{v u} ring)

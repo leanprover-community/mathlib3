@@ -470,7 +470,11 @@ lemma mul_lt_mul' (hac : a ≤ c) (hbd : b < d) (hb : 0 ≤ b) (hc : 0 < c) : a 
 lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
 mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
 
-lemma strict_mono_on_mul_self : strict_mono_on (λ x : α, x * x) (set.Ici 0) :=
+-- In the next lemma, we used to write `set.Ici 0` instead of `{x | 0 ≤ x}`.
+-- As this lemma is not used outside this file,
+-- and the import for `set.Ici` is not otherwise needed until later,
+-- we choose not to use it here.
+lemma strict_mono_on_mul_self : strict_mono_on (λ x : α, x * x) {x | 0 ≤ x} :=
 λ x hx y hy hxy, mul_self_lt_mul_self hx hxy
 
 -- See Note [decidable namespace]

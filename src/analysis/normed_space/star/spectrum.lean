@@ -25,11 +25,12 @@ section unitary_spectrum
 variables
 {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E]
-[normed_algebra 𝕜 E] [complete_space E] [nontrivial E]
+[normed_algebra 𝕜 E] [complete_space E]
 
 lemma unitary.spectrum_subset_circle (u : unitary E) :
   spectrum 𝕜 (u : E) ⊆ metric.sphere 0 1 :=
 begin
+  nontriviality E,
   refine λ k hk, mem_sphere_zero_iff_norm.mpr (le_antisymm _ _),
   { simpa only [cstar_ring.norm_coe_unitary u] using norm_le_norm_of_mem hk },
   { rw ←unitary.coe_to_units_apply u at hk,
@@ -54,65 +55,74 @@ variables {A : Type*}
 
 local notation `↑ₐ` := algebra_map ℂ A
 
-lemma is_self_adjoint.spectral_radius_eq_nnnorm [norm_one_class A] {a : A}
+@[simp] lemma foo [subsingleton A] (a : A) : spectral_radius ℂ a = 0 :=
+by simp [spectral_radius]
+
+lemma is_self_adjoint.spectral_radius_eq_nnnorm {a : A}
   (ha : is_self_adjoint a) :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
-  have hconst : tendsto (λ n : ℕ, (∥a∥₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
-  refine tendsto_nhds_unique _ hconst,
-  convert (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A)).comp
-      (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two),
-  refine funext (λ n, _),
-  rw [function.comp_app, ha.nnnorm_pow_two_pow, ennreal.coe_pow, ←rpow_nat_cast,
-    ←rpow_mul],
-  simp,
+  unfreezingI { obtain (_ | _) := subsingleton_or_nontrivial A },
+  { simp [subsingleton.elim a 0] },
+  { have hconst : tendsto (λ n : ℕ, (∥a∥₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
+    refine tendsto_nhds_unique _ hconst,
+    convert (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A)).comp
+        (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two),
+    refine funext (λ n, _),
+    rw [function.comp_app, ha.nnnorm_pow_two_pow, ennreal.coe_pow, ←rpow_nat_cast,
+      ←rpow_mul],
+    simp }
 end
 
-lemma is_star_normal.spectral_radius_eq_nnnorm [norm_one_class A] (a : A) [is_star_normal a] :
+lemma is_star_normal.spectral_radius_eq_nnnorm (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
-  refine (ennreal.pow_strict_mono two_ne_zero).injective _,
-  have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
-    = (λ x, x ^ 2) ∘ (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
-  { funext,
-    rw [function.comp_apply, ←rpow_nat_cast, ←rpow_mul, mul_comm, rpow_mul, rpow_nat_cast,
-      ←coe_pow, sq, ←nnnorm_star_mul_self, commute.mul_pow (star_comm_self' a), star_pow], },
-  have h₂ := ((ennreal.continuous_pow 2).tendsto (spectral_radius ℂ a)).comp
-    (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a),
-  rw ←heq at h₂,
-  convert tendsto_nhds_unique h₂ (pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a⋆ * a)),
-  rw [(is_self_adjoint.star_mul_self a).spectral_radius_eq_nnnorm, sq, nnnorm_star_mul_self,
-    coe_mul],
+  unfreezingI { obtain (_ | _) := subsingleton_or_nontrivial A },
+  { simp [subsingleton.elim a 0] },
+  { refine (ennreal.pow_strict_mono two_ne_zero).injective _,
+    have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
+      = (λ x, x ^ 2) ∘ (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
+    { funext,
+      rw [function.comp_apply, ←rpow_nat_cast, ←rpow_mul, mul_comm, rpow_mul, rpow_nat_cast,
+        ←coe_pow, sq, ←nnnorm_star_mul_self, commute.mul_pow (star_comm_self' a), star_pow], },
+    have h₂ := ((ennreal.continuous_pow 2).tendsto (spectral_radius ℂ a)).comp
+      (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a),
+    rw ←heq at h₂,
+    convert tendsto_nhds_unique h₂ (pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a⋆ * a)),
+    rw [(is_self_adjoint.star_mul_self a).spectral_radius_eq_nnnorm, sq, nnnorm_star_mul_self,
+      coe_mul] }
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
-theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A] {a : A}
+theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] {a : A}
   (ha : is_self_adjoint a) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
 begin
-  let Iu := units.mk0 I I_ne_zero,
-  have : exp ℂ (I • z) ∈ spectrum ℂ (exp ℂ (I • a)),
-    by simpa only [units.smul_def, units.coe_mk0]
-      using spectrum.exp_mem_exp (Iu • a) (smul_mem_smul_iff.mpr hz),
-  exact complex.ext (of_real_re _)
-    (by simpa only [←complex.exp_eq_exp_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
-      real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
-      using spectrum.subset_circle_of_unitary ha.exp_i_smul_unitary this),
+  unfreezingI { obtain (_ | _) := subsingleton_or_nontrivial A },
+  { exact false.elim (by simpa using hz), },
+  { let Iu := units.mk0 I I_ne_zero,
+    have : exp ℂ (I • z) ∈ spectrum ℂ (exp ℂ (I • a)),
+      by simpa only [units.smul_def, units.coe_mk0]
+        using spectrum.exp_mem_exp (Iu • a) (smul_mem_smul_iff.mpr hz),
+    exact complex.ext (of_real_re _)
+      (by simpa only [←complex.exp_eq_exp_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
+        real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
+        using spectrum.subset_circle_of_unitary ha.exp_i_smul_unitary this), }
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
-theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A]
+theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A]
   (a : self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ (a : A)) : z = z.re :=
 a.prop.mem_spectrum_eq_re hz
 
 /-- The spectrum of a selfadjoint is real -/
-theorem is_self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
+theorem is_self_adjoint.coe_re_map_spectrum [star_module ℂ A] {a : A}
   (ha : is_self_adjoint a) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
 le_antisymm (λ z hz, ⟨z, hz, (ha.mem_spectrum_eq_re hz).symm⟩) (λ z, by
   { rintros ⟨z, hz, rfl⟩,
     simpa only [(ha.mem_spectrum_eq_re hz).symm, function.comp_app] using hz })
 
 /-- The spectrum of a selfadjoint is real -/
-theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] (a : self_adjoint A) :
+theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] (a : self_adjoint A) :
   spectrum ℂ (a : A) = (coe ∘ re '' (spectrum ℂ (a : A)) : set ℂ) :=
 a.property.coe_re_map_spectrum
 
@@ -121,10 +131,8 @@ end complex_scalars
 namespace star_alg_hom
 
 variables {F A B : Type*}
-[normed_ring A] [normed_algebra ℂ A] [norm_one_class A]
-[complete_space A] [star_ring A] [cstar_ring A]
-[normed_ring B] [normed_algebra ℂ B] [norm_one_class B]
-[complete_space B] [star_ring B] [cstar_ring B]
+[normed_ring A] [normed_algebra ℂ A] [complete_space A] [star_ring A] [cstar_ring A]
+[normed_ring B] [normed_algebra ℂ B] [complete_space B] [star_ring B] [cstar_ring B]
 [hF : star_alg_hom_class F ℂ A B] (φ : F)
 include hF
 
@@ -161,7 +169,7 @@ namespace weak_dual
 open continuous_map complex
 open_locale complex_star_module
 
-variables {F A : Type*} [normed_ring A] [normed_algebra ℂ A] [nontrivial A] [complete_space A]
+variables {F A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
   [star_ring A] [cstar_ring A] [star_module ℂ A] [hF : alg_hom_class F ℂ A ℂ]
 
 include hF

@@ -7,7 +7,7 @@ import group_theory.finiteness
 import data.multiset.finset_ops
 import algebra.algebra.tower
 import order.order_iso_nat
-import ring_theory.ideal.operations
+import ring_theory.nilpotent
 import order.compactly_generated
 import linear_algebra.linear_independent
 import algebra.ring.idempotents
@@ -425,6 +425,32 @@ begin
     rintro rfl,
     simp },
   { rintro (rfl|rfl); simp [is_idempotent_elem] }
+end
+
+lemma exists_radical_pow_le_of_fg {R : Type*} [comm_semiring R] (I : ideal R) (h : I.radical.fg) :
+  ∃ n : ℕ, I.radical ^ n ≤ I :=
+begin
+  classical,
+  suffices : ∀ (s : finset R) (hs : (s : set R) ⊆ I.radical),
+    ∃ n : ℕ, ideal.span (s : set R) ^ n ≤ I,
+  { obtain ⟨s, hs⟩ := h, rw ← hs at this ⊢, apply this _ ideal.subset_span },
+  intros s hs,
+  induction s using finset.induction with a s h₁ h₂,
+  { use 1, simp },
+  { obtain ⟨n, hn⟩ := h₂ ((finset.coe_subset.mpr (finset.subset_insert a s)).trans hs),
+    obtain ⟨m, hm⟩ := hs (finset.mem_insert_self a s),
+    use n + m,
+    rw [finset.coe_insert, ← set.union_singleton, ideal.span_union, ← ideal.add_eq_sup,
+      add_pow, ideal.sum_eq_sup, finset.sup_le_iff],
+    intros i hi,
+    refine ideal.mul_le_right.trans _,
+    have : n ≤ i ∨ m ≤ n + m - i,
+    { by_contra, push_neg at h, have := add_lt_add h.1 h.2, rw finset.mem_range_succ_iff at hi,
+      rw add_tsub_cancel_of_le hi at this, exact irrefl _ this },
+    cases this,
+    { exact ideal.mul_le_right.trans ((ideal.pow_le_pow this).trans hn) },
+    { refine ideal.mul_le_left.trans ((ideal.pow_le_pow this).trans _),
+      rwa [ideal.span_singleton_pow, ideal.span_le, set.singleton_subset_iff] } }
 end
 
 end ideal
@@ -887,6 +913,13 @@ is_noetherian_ring_of_surjective R f.range f.range_restrict
 theorem is_noetherian_ring_of_ring_equiv (R) [ring R] {S} [ring S]
   (f : R ≃+* S) [is_noetherian_ring R] : is_noetherian_ring S :=
 is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
+
+lemma is_noetherian_ring.is_nilpotent_nilradical (R : Type*) [comm_ring R] [is_noetherian_ring R] :
+  is_nilpotent (nilradical R) :=
+begin
+  obtain ⟨n, hn⟩ := ideal.exists_radical_pow_le_of_fg (⊥ : ideal R) (is_noetherian.noetherian _),
+  exact ⟨n, eq_bot_iff.mpr hn⟩
+end
 
 namespace submodule
 

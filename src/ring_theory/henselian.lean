@@ -60,7 +60,7 @@ noncomputable theory
 
 universes u v
 
-open_locale big_operators
+open_locale big_operators polynomial
 
 open local_ring polynomial function
 
@@ -96,7 +96,7 @@ into monic linear factors in which `X - b` shows up only once; for example `1` i
 of `X^2-1` over `ℤ/4ℤ`.) -/
 class henselian_ring (R : Type*) [comm_ring R] (I : ideal R) : Prop :=
 (jac : I ≤ ideal.jacobson ⊥)
-(is_henselian : ∀ (f : polynomial R) (hf : f.monic) (a₀ : R) (h₁ : f.eval a₀ ∈ I)
+(is_henselian : ∀ (f : R[X]) (hf : f.monic) (a₀ : R) (h₁ : f.eval a₀ ∈ I)
   (h₂ : is_unit (ideal.quotient.mk I (f.derivative.eval a₀))),
   ∃ a : R, f.is_root a ∧ (a - a₀ ∈ I))
 
@@ -109,7 +109,7 @@ there exists a lift `a : R` of `a₀` that is a root of `f`.
 In other words, `R` is local Henselian if it is Henselian at the ideal `I`,
 in the sense of `henselian_ring`. -/
 class henselian_local_ring (R : Type*) [comm_ring R] extends local_ring R : Prop :=
-(is_henselian : ∀ (f : polynomial R) (hf : f.monic) (a₀ : R) (h₁ : f.eval a₀ ∈ maximal_ideal R)
+(is_henselian : ∀ (f : R[X]) (hf : f.monic) (a₀ : R) (h₁ : f.eval a₀ ∈ maximal_ideal R)
   (h₂ : is_unit (f.derivative.eval a₀)),
   ∃ a : R, f.is_root a ∧ (a - a₀ ∈ maximal_ideal R))
 
@@ -125,11 +125,11 @@ instance field.henselian (K : Type*) [field K] : henselian_local_ring K :=
 lemma henselian_local_ring.tfae (R : Type u) [comm_ring R] [local_ring R] :
   tfae [
   henselian_local_ring R,
-  ∀ (f : polynomial R) (hf : f.monic) (a₀ : residue_field R) (h₁ : aeval a₀ f = 0)
+  ∀ (f : R[X]) (hf : f.monic) (a₀ : residue_field R) (h₁ : aeval a₀ f = 0)
     (h₂ : aeval a₀ f.derivative ≠ 0),
     ∃ a : R, f.is_root a ∧ (residue R a = a₀),
   ∀ {K : Type u} [field K], by exactI ∀ (φ : R →+* K) (hφ : surjective φ)
-    (f : polynomial R) (hf : f.monic) (a₀ : K) (h₁ : f.eval₂ φ a₀ = 0)
+    (f : R[X]) (hf : f.monic) (a₀ : K) (h₁ : f.eval₂ φ a₀ = 0)
     (h₂ : f.derivative.eval₂ φ a₀ ≠ 0),
     ∃ a : R, f.is_root a ∧ (φ a = a₀)] :=
 begin
@@ -216,7 +216,7 @@ instance is_adic_complete.henselian_ring
       swap, { intro i, rw zero_mul },
       refine ideal.add_mem _ _ _,
       { simp only [finset.sum_range_succ, taylor_coeff_one, mul_one, pow_one, taylor_coeff_zero,
-          mul_neg_eq_neg_mul_symm, finset.sum_singleton, finset.range_one, pow_zero],
+          mul_neg, finset.sum_singleton, finset.range_one, pow_zero],
         rw [mul_left_comm, ring.mul_inverse_cancel _ (hf'c n), mul_one, add_neg_self],
         exact ideal.zero_mem _ },
       { refine submodule.sum_mem _ _, simp only [finset.mem_Ico],
@@ -228,7 +228,7 @@ instance is_adic_complete.henselian_ring
     -- we are now in the position to show that `c : ℕ → R` is a Cauchy sequence
     have aux : ∀ m n, m ≤ n → c m ≡ c n [SMOD (I ^ m • ⊤ : ideal R)],
     { intros m n hmn,
-      rw [← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one],
+      rw [← ideal.one_eq_top, ideal.smul_eq_mul, mul_one],
       obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn, clear hmn,
       induction k with k ih, { rw add_zero, },
       rw [nat.succ_eq_add_one, ← add_assoc, hc, ← add_zero (c m), sub_eq_add_neg],
@@ -242,15 +242,15 @@ instance is_adic_complete.henselian_ring
     { show f.is_root a,
       suffices : ∀ n, f.eval a ≡ 0 [SMOD (I ^ n • ⊤ : ideal R)], { from is_Hausdorff.haus' _ this },
       intro n, specialize ha n,
-      rw [← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one] at ha ⊢,
+      rw [← ideal.one_eq_top, ideal.smul_eq_mul, mul_one] at ha ⊢,
       refine (ha.symm.eval f).trans _,
       rw [smodeq.zero],
       exact ideal.pow_le_pow le_self_add (hfcI _), },
     { show a - a₀ ∈ I,
       specialize ha 1,
-      rw [hc, pow_one, ← ideal.one_eq_top, algebra.id.smul_eq_mul, mul_one, sub_eq_add_neg] at ha,
+      rw [hc, pow_one, ← ideal.one_eq_top, ideal.smul_eq_mul, mul_one, sub_eq_add_neg] at ha,
       rw [← smodeq.sub_mem, ← add_zero a₀],
-      refine ha.symm.trans (smodeq.refl.add _),
+      refine ha.symm.trans (smodeq.rfl.add _),
       rw [smodeq.zero, ideal.neg_mem_iff],
       exact ideal.mul_mem_right _ _ h₁, }
   end }

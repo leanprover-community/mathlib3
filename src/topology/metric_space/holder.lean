@@ -122,7 +122,7 @@ begin
   have : tendsto (λ d : ℝ≥0∞, (C : ℝ≥0∞) * d ^ (r : ℝ)) (𝓝 0) (𝓝 0),
     from ennreal.tendsto_const_mul_rpow_nhds_zero_of_pos ennreal.coe_ne_top h0,
   rcases ennreal.nhds_zero_basis.mem_iff.1 (this (gt_mem_nhds εpos)) with ⟨δ, δ0, H⟩,
-  exact ⟨δ, δ0, λ x y hx hy h, (hf.edist_le hx hy).trans_lt (H h)⟩,
+  exact ⟨δ, δ0, λ x hx y hy h, (hf.edist_le hx hy).trans_lt (H h)⟩,
 end
 
 protected lemma continuous_on (hf : holder_on_with C r f s) (h0 : 0 < r) : continuous_on f s :=

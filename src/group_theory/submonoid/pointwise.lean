@@ -3,8 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.submonoid.operations
-import algebra.pointwise
+import data.set.pointwise
+import group_theory.submonoid.membership
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
@@ -22,6 +22,14 @@ which matches the action of `mul_action_set`.
 
 These are all available in the `pointwise` locale.
 
+Additionally, it provides various degrees of monoid structure:
+* `add_submonoid.has_one`
+* `add_submonoid.has_mul`
+* `add_submonoid.mul_one_class`
+* `add_submonoid.semigroup`
+* `add_submonoid.monoid`
+which is available globally to match the monoid structure implied by `submodule.semiring`.
+
 ## Implementation notes
 
 Most of the lemmas in this file are direct copies of lemmas from `algebra/pointwise.lean`.
@@ -31,7 +39,10 @@ on `set`s.
 
 -/
 
-variables {α : Type*} {M : Type*} {G : Type*} {A : Type*} [monoid M] [add_monoid A]
+open set
+
+variables {α : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
+variables [monoid M] [add_monoid A]
 
 namespace submonoid
 
@@ -44,7 +55,7 @@ open_locale pointwise
 protected def has_inv : has_inv (submonoid G):=
 { inv := λ S,
   { carrier := (S : set G)⁻¹,
-    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw one_inv, exact S.one_mem },
+    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw inv_one, exact S.one_mem },
     mul_mem' := λ a b (ha : a⁻¹ ∈ S) (hb : b⁻¹ ∈ S), show (a * b)⁻¹ ∈ S,
       by { rw mul_inv_rev, exact S.mul_mem hb ha } } }
 
@@ -55,8 +66,8 @@ open_locale pointwise
 
 @[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
-@[simp, to_additive] protected lemma inv_inv (S : submonoid G) : S⁻¹⁻¹ = S :=
-set_like.coe_injective set.inv_inv
+@[to_additive] instance : has_involutive_inv (submonoid G) :=
+set_like.coe_injective.has_involutive_inv _ $ λ _, rfl
 
 @[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
@@ -67,16 +78,13 @@ set_like.coe_subset_coe.symm.trans set.inv_subset
 /-- `submonoid.has_inv` as an order isomorphism. -/
 @[to_additive /-" `add_submonoid.has_neg` as an order isomorphism "-/, simps]
 def inv_order_iso : submonoid G ≃o submonoid G :=
-{ to_fun := has_inv.inv,
-  inv_fun := has_inv.inv,
-  left_inv := submonoid.inv_inv,
-  right_inv := submonoid.inv_inv,
+{ to_equiv := equiv.inv _,
   map_rel_iff' := inv_le_inv }
 
 @[to_additive] lemma closure_inv (s : set G) : closure s⁻¹ = (closure s)⁻¹ :=
 begin
   apply le_antisymm,
-  { rw [closure_le, coe_inv, ←set.inv_subset, set.inv_inv],
+  { rw [closure_le, coe_inv, ←set.inv_subset, inv_inv],
     exact subset_closure },
   { rw [inv_le, closure_le, coe_inv, ←set.inv_subset],
     exact subset_closure }
@@ -92,7 +100,7 @@ lemma inv_sup (S T : submonoid G) : (S ⊔ T)⁻¹ = S⁻¹ ⊔ T⁻¹ :=
 
 @[simp, to_additive]
 lemma inv_bot : (⊥ : submonoid G)⁻¹ = ⊥ :=
-set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ one_inv
+set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ inv_one
 
 @[simp, to_additive]
 lemma inv_top : (⊤ : submonoid G)⁻¹ = ⊤ :=
@@ -117,10 +125,11 @@ variables [monoid α] [mul_distrib_mul_action α M]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (submonoid M) :=
-{ smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ _ a),
-  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+{ smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ M a),
+  one_smul := λ S, by { ext, simp, },
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+    (congr_arg (λ f : monoid.End M, S.map f) (monoid_hom.map_mul _ _ _)).trans
+      (S.map_map _ _).symm,}
 
 localized "attribute [instance] submonoid.pointwise_mul_action" in pointwise
 open_locale pointwise
@@ -130,9 +139,13 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submonoid M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
 
+lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
+  m ∈ a • S ↔ ∃ (s : M), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set M) ↔ _)
+
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
   is_central_scalar α (submonoid M) :=
-⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+⟨λ a S, congr_arg (λ f : monoid.End M, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -211,10 +224,12 @@ variables [monoid α] [distrib_mul_action α A]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (add_submonoid A) :=
-{ smul := λ a S, S.map (distrib_mul_action.to_add_monoid_End _ _ a),
-  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+{ smul := λ a S, S.map (distrib_mul_action.to_add_monoid_End _ A a),
+  one_smul := λ S, (congr_arg (λ f : add_monoid.End A, S.map f)
+    (monoid_hom.map_one _)).trans S.map_id,
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+    (congr_arg (λ f : add_monoid.End A, S.map f) (monoid_hom.map_mul _ _ _)).trans
+      (S.map_map _ _).symm,}
 
 localized "attribute [instance] add_submonoid.pointwise_mul_action" in pointwise
 open_locale pointwise
@@ -226,7 +241,8 @@ lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_submonoid A) : m ∈ S �
 
 instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
   is_central_scalar α (add_submonoid A) :=
-⟨λ a S, congr_arg (λ f, S.map f) $ add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+⟨λ a S, congr_arg (λ f : add_monoid.End A, S.map f) $
+  add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -242,6 +258,10 @@ smul_mem_smul_set_iff
 lemma mem_pointwise_smul_iff_inv_smul_mem {a : α} {S : add_submonoid A} {x : A} :
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
 mem_smul_set_iff_inv_smul_mem
+
+lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_submonoid A) :
+  m ∈ a • S ↔ ∃ (s : A), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set A) ↔ _)
 
 lemma mem_inv_pointwise_smul_iff {a : α} {S : add_submonoid A} {x : A} : x ∈ a⁻¹ • S ↔ a • x ∈ S :=
 mem_inv_smul_set_iff
@@ -289,6 +309,194 @@ subset_set_smul_iff₀ ha
 
 end group_with_zero
 
+end add_submonoid
+
+/-! ### Elementwise monoid structure of additive submonoids
+
+These definitions are a cut-down versions of the ones around `submodule.has_mul`, as that API is
+usually more useful. -/
+namespace add_submonoid
+
 open_locale pointwise
 
+section add_monoid_with_one
+variables [add_monoid_with_one R]
+
+instance : has_one (add_submonoid R) :=
+⟨(nat.cast_add_monoid_hom R).mrange⟩
+
+theorem one_eq_mrange :
+  (1 : add_submonoid R) = (nat.cast_add_monoid_hom R).mrange := rfl
+
+lemma nat_cast_mem_one (n : ℕ) : (n : R) ∈ (1 : add_submonoid R) := ⟨_, rfl⟩
+
+@[simp] lemma mem_one {x : R} : x ∈ (1 : add_submonoid R) ↔ ∃ n : ℕ, ↑n = x := iff.rfl
+
+theorem one_eq_closure : (1 : add_submonoid R) = closure {1} :=
+begin
+  simp only [closure_singleton_eq, mul_one, one_eq_mrange],
+  congr' 1 with n,
+  simp,
+end
+
+theorem one_eq_closure_one_set : (1 : add_submonoid R) = closure 1 := one_eq_closure
+end add_monoid_with_one
+
+section non_unital_non_assoc_semiring
+variables [non_unital_non_assoc_semiring R]
+
+/-- Multiplication of additive submonoids of a semiring R. The additive submonoid `S * T` is the
+smallest R-submodule of `R` containing the elements `s * t` for `s ∈ S` and `t ∈ T`. -/
+instance : has_mul (add_submonoid R) :=
+⟨λ M N, ⨆ s : M, N.map $ add_monoid_hom.mul s.1⟩
+
+theorem mul_mem_mul {M N : add_submonoid R} {m n : R} (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N :=
+(le_supr _ ⟨m, hm⟩ : _ ≤ M * N) ⟨n, hn, rfl⟩
+
+theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
+⟨λ H m hm n hn, H $ mul_mem_mul hm hn,
+λ H, supr_le $ λ ⟨m, hm⟩, map_le_iff_le_comap.2 $ λ n hn, H m hm n hn⟩
+
+@[elab_as_eliminator] protected theorem mul_induction_on
+  {M N : add_submonoid R}
+  {C : R → Prop} {r : R} (hr : r ∈ M * N)
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
+  (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+(@mul_le _ _ _ _ ⟨C, ha, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _)⟩).2 hm hr
+
+open_locale pointwise
+
+-- this proof is copied directly from `submodule.span_mul_span`
+theorem closure_mul_closure (S T : set R) : closure S * closure T = closure (S * T) :=
+begin
+  apply le_antisymm,
+  { rw mul_le, intros a ha b hb,
+    apply closure_induction ha,
+    work_on_goal 1 { intros, apply closure_induction hb,
+      work_on_goal 1 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
+    all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
+        left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
+      solve_by_elim [add_mem _ _, zero_mem _]
+        { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
+  { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
+    exact mul_mem_mul (subset_closure ha) (subset_closure hb) }
+end
+
+lemma mul_eq_closure_mul_set (M N : add_submonoid R) : M * N = closure (M * N) :=
+by rw [←closure_mul_closure, closure_eq, closure_eq]
+
+@[simp] theorem mul_bot (S : add_submonoid R) : S * ⊥ = ⊥ :=
+eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [add_submonoid.mem_bot] at hn ⊢; rw [hn, mul_zero]
+
+@[simp] theorem bot_mul (S : add_submonoid R) : ⊥ * S = ⊥ :=
+eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [add_submonoid.mem_bot] at hm ⊢; rw [hm, zero_mul]
+
+@[mono] theorem mul_le_mul {M N P Q : add_submonoid R} (hmp : M ≤ P) (hnq : N ≤ Q) :
+  M * N ≤ P * Q :=
+mul_le.2 $ λ m hm n hn, mul_mem_mul (hmp hm) (hnq hn)
+
+theorem mul_le_mul_left {M N P : add_submonoid R} (h : M ≤ N) : M * P ≤ N * P :=
+mul_le_mul h (le_refl P)
+
+theorem mul_le_mul_right {M N P : add_submonoid R} (h : N ≤ P) : M * N ≤ M * P :=
+mul_le_mul (le_refl M) h
+
+lemma mul_subset_mul {M N : add_submonoid R} : (↑M : set R) * (↑N : set R) ⊆ (↑(M * N) : set R) :=
+by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
+
+end non_unital_non_assoc_semiring
+
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring R]
+
+/-- `add_submonoid.has_pointwise_neg` distributes over multiplication.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def has_distrib_neg : has_distrib_neg (add_submonoid R) :=
+{ neg := has_neg.neg,
+  neg_mul := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [add_submonoid.mem_neg, ←neg_mul] at *,
+    { exact mul_mem_mul hm hn },
+    { exact mul_mem_mul (neg_mem_neg.2 hm) hn },
+  end,
+  mul_neg := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [add_submonoid.mem_neg, ←mul_neg] at *,
+    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul hm (neg_mem_neg.2 hn) },
+  end,
+  ..add_submonoid.has_involutive_neg }
+
+localized "attribute [instance] add_submonoid.has_distrib_neg" in pointwise
+
+end non_unital_non_assoc_ring
+
+section non_assoc_semiring
+variables [non_assoc_semiring R]
+
+instance : mul_one_class (add_submonoid R) :=
+{ one := 1,
+  mul := (*),
+  one_mul := λ M, by rw [one_eq_closure_one_set, ←closure_eq M, closure_mul_closure, one_mul],
+  mul_one := λ M, by rw [one_eq_closure_one_set, ←closure_eq M, closure_mul_closure, mul_one] }
+
+end non_assoc_semiring
+
+section non_unital_semiring
+variables [non_unital_semiring R]
+
+instance : semigroup (add_submonoid R) :=
+{ mul := (*),
+  mul_assoc := λ M N P,
+    le_antisymm (mul_le.2 $ λ mn hmn p hp,
+      suffices M * N ≤ (M * (N * P)).comap (add_monoid_hom.mul_right p), from this hmn,
+      mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
+      (mul_assoc m n p).symm ▸ mul_mem_mul hm (mul_mem_mul hn hp))
+    (mul_le.2 $ λ m hm np hnp,
+      suffices N * P ≤ (M * N * P).comap (add_monoid_hom.mul_left m), from this hnp,
+      mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
+      mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp) }
+
+end non_unital_semiring
+
+section semiring
+variables [semiring R]
+
+instance : monoid (add_submonoid R) :=
+{ one := 1,
+  mul := (*),
+  ..add_submonoid.semigroup,
+  ..add_submonoid.mul_one_class }
+
+lemma closure_pow (s : set R) : ∀ n : ℕ, closure s ^ n = closure (s ^ n)
+| 0 := by rw [pow_zero, pow_zero, one_eq_closure_one_set]
+| (n + 1) := by rw [pow_succ, pow_succ, closure_pow, closure_mul_closure]
+
+lemma pow_eq_closure_pow_set (s : add_submonoid R) (n : ℕ) : s ^ n = closure ((s : set R) ^ n) :=
+by rw [←closure_pow, closure_eq]
+
+lemma pow_subset_pow {s : add_submonoid R} {n : ℕ} : (↑s : set R)^n ⊆ ↑(s^n) :=
+(pow_eq_closure_pow_set s n).symm ▸ subset_closure
+
+end semiring
+
 end add_submonoid
+
+namespace set.is_pwo
+variables [ordered_cancel_comm_monoid α] {s : set α}
+
+@[to_additive]
+lemma submonoid_closure (hpos : ∀ x : α, x ∈ s → 1 ≤ x) (h : s.is_pwo) :
+  is_pwo ((submonoid.closure s) : set α) :=
+begin
+  rw submonoid.closure_eq_image_prod,
+  refine (h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _,
+  exact λ l1 hl1 l2 hl2 h12, h12.prod_le_prod' (λ x hx, hpos x $ hl2 x hx)
+end
+
+end set.is_pwo

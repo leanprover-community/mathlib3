@@ -37,7 +37,7 @@ noncomputable theory
 open_locale classical
 
 open set linear_map submodule
-open_locale big_operators
+open_locale big_operators polynomial
 
 universes u v
 variables (σ : Type u) (R : Type v) [comm_ring R] (p m : ℕ)
@@ -97,7 +97,7 @@ end
 lemma mem_restrict_degree_iff_sup (p : mv_polynomial σ R) (n : ℕ) :
   p ∈ restrict_degree σ R n ↔ ∀i, p.degrees.count i ≤ n :=
 begin
-  simp only [mem_restrict_degree, degrees, multiset.count_sup, finsupp.count_to_multiset,
+  simp only [mem_restrict_degree, degrees, multiset.count_finset_sup, finsupp.count_to_multiset,
     finset.sup_le_iff],
   exact ⟨assume h n s hs, h s hs n, assume h s hs n, h n s hs⟩
 end
@@ -124,11 +124,11 @@ end mv_polynomial
 namespace polynomial
 
 /-- The monomials form a basis on `polynomial R`. -/
-noncomputable def basis_monomials : basis ℕ R (polynomial R) :=
-finsupp.basis_single_one.map (to_finsupp_iso_alg R).to_linear_equiv.symm
+noncomputable def basis_monomials : basis ℕ R R[X] :=
+basis.of_repr (to_finsupp_iso_alg R).to_linear_equiv
 
 @[simp] lemma coe_basis_monomials :
-  (basis_monomials R : ℕ → polynomial R) = λ s, monomial s 1 :=
-_root_.funext $ λ n, to_finsupp_iso_symm_single
+  (basis_monomials R : ℕ → R[X]) = λ s, monomial s 1 :=
+_root_.funext $ λ n, of_finsupp_single _ _
 
 end polynomial

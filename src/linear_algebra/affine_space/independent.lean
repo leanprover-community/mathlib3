@@ -32,7 +32,7 @@ This file defines affinely independent families of points.
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 open function
 
 section affine_independent
@@ -81,6 +81,7 @@ from a base point in that family are linearly independent. -/
 lemma affine_independent_iff_linear_independent_vsub (p : ι → P) (i1 : ι) :
   affine_independent k p ↔ linear_independent k (λ i : {x // x ≠ i1}, (p i -ᵥ p i1 : V)) :=
 begin
+  classical,
   split,
   { intro h,
     rw linear_independent_iff',
@@ -177,6 +178,7 @@ lemma affine_independent_iff_indicator_eq_of_affine_combination_eq (p : ι → P
     ∑ i in s2, w2 i = 1 → s1.affine_combination p w1 = s2.affine_combination p w2 →
       set.indicator ↑s1 w1 = set.indicator ↑s2 w2 :=
 begin
+  classical,
   split,
   { intros ha s1 s2 w1 w2 hw1 hw2 heq,
     ext i,
@@ -271,6 +273,7 @@ family. -/
 lemma affine_independent.comp_embedding {ι2 : Type*} (f : ι2 ↪ ι) {p : ι → P}
     (ha : affine_independent k p) : affine_independent k (p ∘ f) :=
 begin
+  classical,
   intros fs w hw hs i0 hi0,
   let fs' := fs.map f,
   let w' := λ i, if h : ∃ i2, f i2 = i then w h.some else 0,
@@ -464,6 +467,13 @@ begin
   { simp only [finset.sum_dite_of_true (λx h, h), subtype.val_eq_coe, finset.mk_coe, f, hwt, hw], },
 end
 
+/-- Viewing a module as an affine space modelled on itself, we can characterise affine independence
+in terms of linear combinations. -/
+lemma affine_independent_iff {ι} {p : ι → V} :
+  affine_independent k p ↔
+  ∀ (s : finset ι) (w : ι → k), s.sum w = 0 → ∑ e in s, w e • p e = 0 → ∀ (e ∈ s), w e = 0 :=
+forall₃_congr (λ s w hw, by simp [s.weighted_vsub_eq_linear_combination hw])
+
 end affine_independent
 
 section division_ring
@@ -519,7 +529,7 @@ begin
     rwa ← (equiv.vadd_const p).subset_image' b s, },
   { rw [equiv.coe_vadd_const_symm, ← vector_span_eq_span_vsub_set_right k hp] at hb₂,
     apply affine_subspace.ext_of_direction_eq,
-    { have : submodule.span k b = submodule.span k (insert 0 b), { by simp, },
+    { have : submodule.span k b = submodule.span k (insert 0 b), { simp, },
       simp only [direction_affine_span, ← hb₂, equiv.coe_vadd_const, set.singleton_union,
         vector_span_eq_span_vsub_set_right k (set.mem_insert p _), this],
       congr,
@@ -527,7 +537,7 @@ begin
       rw [set.image_insert_eq, ← set.image_comp],
       simp, },
     { use p,
-      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_eq, coe_affine_span],
+      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_iff, coe_affine_span],
       exact ⟨mem_span_points k _ _ (set.mem_insert p _), mem_span_points k _ _ hp⟩, }, },
 end
 
@@ -544,8 +554,8 @@ begin
     fin_cases i,
     { simpa using hi } },
   haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
-  have hz : (![p₁, p₂] ↑(default {x // x ≠ (0 : fin 2)}) -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
-  { rw he' (default _), simp, cc },
+  have hz : (![p₁, p₂] ↑default -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
+  { rw he' default, simpa using h.symm },
   exact linear_independent_unique _ hz
 end
 
@@ -579,7 +589,7 @@ def mk_of_point (p : P) : simplex k P 0 :=
 rfl
 
 instance [inhabited P] : inhabited (simplex k P 0) :=
-⟨mk_of_point k $ default P⟩
+⟨mk_of_point k default⟩
 
 instance nonempty : nonempty (simplex k P 0) :=
 ⟨mk_of_point k $ add_torsor.nonempty.some⟩
@@ -658,30 +668,22 @@ faces are given by the same subset of points. -/
   {fs₁ fs₂ : finset (fin (n + 1))} {m₁ m₂ : ℕ} (h₁ : fs₁.card = m₁ + 1) (h₂ : fs₂.card = m₂ + 1) :
   fs₁.centroid k s.points = fs₂.centroid k s.points ↔ fs₁ = fs₂ :=
 begin
-  split,
-  { intro h,
-    rw [finset.centroid_eq_affine_combination_fintype,
-        finset.centroid_eq_affine_combination_fintype] at h,
-    have ha := (affine_independent_iff_indicator_eq_of_affine_combination_eq k s.points).1
-      s.independent _ _ _ _ (fs₁.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₁)
-      (fs₂.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₂) h,
-    simp_rw [finset.coe_univ, set.indicator_univ, function.funext_iff,
-             finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
-    ext i,
-    replace ha := ha i,
-    split,
-    all_goals
-    { intro hi,
-      by_contradiction hni,
-      simp [hi, hni] at ha,
-      norm_cast at ha } },
-  { intro h,
-    have hm : m₁ = m₂,
-    { subst h,
-      simpa [h₁] using h₂ },
-    subst hm,
-    congr,
-    exact h }
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [finset.centroid_eq_affine_combination_fintype,
+      finset.centroid_eq_affine_combination_fintype] at h,
+  have ha := (affine_independent_iff_indicator_eq_of_affine_combination_eq k s.points).1
+    s.independent _ _ _ _ (fs₁.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₁)
+    (fs₂.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₂) h,
+  simp_rw [finset.coe_univ, set.indicator_univ, function.funext_iff,
+           finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
+  ext i,
+  specialize ha i,
+  have key : ∀ n : ℕ, (n : k) + 1 ≠ 0 := λ n h, by norm_cast at h,
+  -- we should be able to golf this to `refine ⟨λ hi, decidable.by_contradiction (λ hni, _), ...⟩`,
+  -- but for some unknown reason it doesn't work.
+  split; intro hi; by_contra hni,
+  { simpa [hni, hi, key] using ha },
+  { simpa [hni, hi, key] using ha.symm }
 end
 
 /-- Over a characteristic-zero division ring, the centroids of two

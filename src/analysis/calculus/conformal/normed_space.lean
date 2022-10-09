@@ -42,8 +42,8 @@ Maps such as the complex conjugate are considered to be conformal.
 
 noncomputable theory
 
-variables {X Y Z : Type*} [normed_group X] [normed_group Y] [normed_group Z]
-  [normed_space ℝ X] [normed_space ℝ Y] [normed_space ℝ Z]
+variables {X Y Z : Type*} [normed_add_comm_group X] [normed_add_comm_group Y]
+  [normed_add_comm_group Z] [normed_space ℝ X] [normed_space ℝ Y] [normed_space ℝ Z]
 
 section loc_conformality
 
@@ -61,22 +61,22 @@ lemma conformal_at_const_smul {c : ℝ} (h : c ≠ 0) (x : X) :
 ⟨c • continuous_linear_map.id ℝ X,
   (has_fderiv_at_id x).const_smul c, is_conformal_map_const_smul h⟩
 
+@[nontriviality] lemma subsingleton.conformal_at [subsingleton X] (f : X → Y) (x : X) :
+  conformal_at f x :=
+⟨0, has_fderiv_at_of_subsingleton _ _, is_conformal_map_of_subsingleton _⟩
+
 /-- A function is a conformal map if and only if its differential is a conformal linear map-/
 lemma conformal_at_iff_is_conformal_map_fderiv {f : X → Y} {x : X} :
   conformal_at f x ↔ is_conformal_map (fderiv ℝ f x) :=
 begin
   split,
-  { rintros ⟨c, hf, hf'⟩,
-    rw hf.fderiv,
-    exact hf' },
+  { rintros ⟨f', hf, hf'⟩,
+    rwa hf.fderiv },
   { intros H,
     by_cases h : differentiable_at ℝ f x,
     { exact ⟨fderiv ℝ f x, h.has_fderiv_at, H⟩, },
-    { cases subsingleton_or_nontrivial X with w w; resetI,
-      { exact ⟨(0 : X →L[ℝ] Y), has_fderiv_at_of_subsingleton f x,
-        is_conformal_map_of_subsingleton 0⟩, },
-      { exfalso,
-        exact H.ne_zero (fderiv_zero_of_not_differentiable_at h), }, }, },
+    { nontriviality X,
+      exact absurd (fderiv_zero_of_not_differentiable_at h) H.ne_zero } },
 end
 
 namespace conformal_at

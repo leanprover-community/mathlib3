@@ -3,8 +3,8 @@ Copyright (c) 2021 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
-import algebra.pointwise
-import algebra.module.pi
+import data.set.pointwise
+import group_theory.group_action.pi
 
 /-!
 # Pointwise actions on sets in Pi types
@@ -23,7 +23,7 @@ open set
 variables {K ι : Type*} {R : ι → Type*}
 
 @[to_additive]
-lemma smul_pi_subset [∀ i, has_scalar K (R i)] (r : K) (s : set ι) (t : Π i, set (R i)) :
+lemma smul_pi_subset [∀ i, has_smul K (R i)] (r : K) (s : set ι) (t : Π i, set (R i)) :
   r • pi s t ⊆ pi s (r • t) :=
 begin
   rintros x ⟨y, h, rfl⟩ i hi,
@@ -31,7 +31,7 @@ begin
 end
 
 @[to_additive]
-lemma smul_univ_pi [∀ i, has_scalar K (R i)] (r : K) (t : Π i, set (R i)) :
+lemma smul_univ_pi [∀ i, has_smul K (R i)] (r : K) (t : Π i, set (R i)) :
   r • pi (univ : set ι) t = pi (univ : set ι) (r • t) :=
 subset.antisymm (smul_pi_subset _ _ _) $ λ x h, begin
   refine ⟨λ i, classical.some (h i $ set.mem_univ _), λ i hi, _, funext $ λ i, _⟩,

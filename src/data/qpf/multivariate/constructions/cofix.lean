@@ -20,17 +20,17 @@ and take a fixed point again.
 ## Main definitions
 
  * `cofix.mk`     - constructor
- * `cofix.dest    - destructor
+ * `cofix.dest`   - destructor
  * `cofix.corec`  - corecursor: useful for formulating infinite, productive computations
  * `cofix.bisim`  - bisimulation: proof technique to show the equality of possibly infinite values
                     of `cofix F α`
 
 ## Implementation notes
 
-For `F` a QPF`, we define `cofix F α` in terms of the M-type of the polynomial functor `P` of `F`.
+For `F` a QPF, we define `cofix F α` in terms of the M-type of the polynomial functor `P` of `F`.
 We define the relation `Mcongr` and take its quotient as the definition of `cofix F α`.
 
-`Mcongr` is taken as the weakest bisimulation on M-type.  See
+`Mcongr` is taken as the weakest bisimulation on M-type. See
 [avigad-carneiro-hudon2019] for more details.
 
 ## Reference
@@ -80,7 +80,7 @@ def cofix (F : typevec (n + 1) → Type u) [mvfunctor F] [q : mvqpf F] (α : typ
 quot (@Mcongr _ F _ q α)
 
 instance {α : typevec n} [inhabited q.P.A] [Π (i : fin2 n), inhabited (α i)] :
-  inhabited (cofix F α) := ⟨ quot.mk _ (default _) ⟩
+  inhabited (cofix F α) := ⟨ quot.mk _ default ⟩
 
 /-- maps every element of the W type to a canonical representative -/
 def Mrepr {α : typevec n} : q.P.M α → q.P.M α := corecF (abs ∘ M.dest q.P)

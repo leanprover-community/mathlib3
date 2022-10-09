@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.uniform_space.uniform_embedding
+import topology.uniform_space.equiv
 
 /-!
 # Abstract theory of Hausdorff completions of uniform spaces
@@ -67,6 +68,10 @@ variables {α : Type*} [uniform_space α] (pkg : abstract_completion α)
 local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
+/-- If `α` is complete, then it is an abstract completion of itself. -/
+def of_complete [separated_space α] [complete_space α] : abstract_completion α :=
+mk α id infer_instance infer_instance infer_instance uniform_inducing_id dense_range_id
+
 lemma closure_range : closure (range ι) = univ :=
 pkg.dense.closure_range
 
@@ -84,11 +89,14 @@ lemma induction_on {p : hatα → Prop}
   (a : hatα) (hp : is_closed {a | p a}) (ih : ∀ a, p (ι a)) : p a :=
 is_closed_property pkg.dense hp ih a
 
-variables {β : Type*} [uniform_space β]
+variables {β : Type*}
 
-protected lemma funext [t2_space β] {f g : hatα → β} (hf : continuous f) (hg : continuous g)
+protected lemma funext [topological_space β] [t2_space β] {f g : hatα → β}
+  (hf : continuous f) (hg : continuous g)
   (h : ∀ a, f (ι a) = g (ι a)) : f = g :=
 funext $ assume a, pkg.induction_on a (is_closed_eq hf hg) h
+
+variables [uniform_space β]
 
 section extend
 /-- Extension of maps to completions -/
@@ -104,7 +112,7 @@ lemma extend_def (hf : uniform_continuous f) : pkg.extend f = pkg.dense_inducing
 if_pos hf
 
 lemma extend_coe [t2_space β] (hf : uniform_continuous f) (a : α) :
-(pkg.extend f) (ι a) = f a :=
+  (pkg.extend f) (ι a) = f a :=
 begin
   rw pkg.extend_def hf,
   exact pkg.dense_inducing.extend_eq hf.continuous a
@@ -219,12 +227,14 @@ begin
   refl
 end
 
-/-- The bijection between two completions of the same uniform space. -/
-def compare_equiv : pkg.space ≃ pkg'.space :=
+/-- The uniform bijection between two completions of the same uniform space. -/
+def compare_equiv : pkg.space ≃ᵤ pkg'.space :=
 { to_fun := pkg.compare pkg',
   inv_fun := pkg'.compare pkg,
   left_inv := congr_fun (pkg'.inverse_compare pkg),
-  right_inv := congr_fun (pkg.inverse_compare pkg') }
+  right_inv := congr_fun (pkg.inverse_compare pkg'),
+  uniform_continuous_to_fun := uniform_continuous_compare _ _,
+  uniform_continuous_inv_fun := uniform_continuous_compare _ _, }
 
 lemma uniform_continuous_compare_equiv : uniform_continuous (pkg.compare_equiv pkg') :=
 pkg.uniform_continuous_compare pkg'
@@ -249,8 +259,6 @@ protected def prod : abstract_completion (α × β) :=
   uniform_inducing := uniform_inducing.prod pkg.uniform_inducing pkg'.uniform_inducing,
   dense := pkg.dense.prod_map pkg'.dense }
 end prod
-
-
 
 section extension₂
 variables (pkg' : abstract_completion β)
@@ -296,7 +304,7 @@ variables {γ : Type*} [uniform_space γ] (pkg'' : abstract_completion γ)
 local notation `hatγ` := pkg''.space
 local notation `ι''` := pkg''.coe
 
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 /-- Lift two variable maps to completions. -/
 protected def map₂ (f : α → β → γ) : hatα → hatβ → hatγ :=

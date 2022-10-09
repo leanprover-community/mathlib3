@@ -3,11 +3,10 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
-import data.equiv.functor
 import data.mv_polynomial.equiv
 import data.mv_polynomial.comm_ring
+import logic.equiv.functor
 import ring_theory.free_ring
-import deprecated.ring
 
 /-!
 # Free commutative rings
@@ -49,7 +48,7 @@ free commutative ring, free ring
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 universes u v
 
@@ -194,10 +193,10 @@ suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, subring.subset
 assume hps : is_supported (of p) s, begin
   haveI := classical.dec_pred s,
   have : ∀ x, is_supported x s →
-    ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : polynomial ℤ) else polynomial.X) x = n,
+    ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : ℤ[X]) else polynomial.X) x = n,
   { intros x hx, refine subring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [ring_hom.map_one], norm_cast },
-    { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
+    { use -1, rw [ring_hom.map_neg, ring_hom.map_one, int.cast_neg, int.cast_one] },
     { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul],
       norm_cast },
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [ring_hom.map_add, hq, hr], norm_cast } },
@@ -290,25 +289,16 @@ funext $ λ x, free_abelian_group.lift.unique _ _ $ λ L,
 by { simp_rw [free_abelian_group.lift.of, (∘)], exact free_monoid.rec_on L rfl
 (λ hd tl ih, by { rw [(free_monoid.lift _).map_mul, free_monoid.lift_eval_of, ih], refl }) }
 
--- FIXME This was in `deprecated.ring`, but only used here.
--- It would be good to inline it into the next construction.
-/-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
-def of' {R S : Type*} [ring R] [ring S] (e : R ≃ S) (he : is_ring_hom e) : R ≃+* S :=
-{ .. e,
-  .. monoid_hom.of he.to_is_semiring_hom.to_is_monoid_hom,
-  .. add_monoid_hom.of he.to_is_semiring_hom.to_is_add_monoid_hom }
-
 /-- If α has size at most 1 then the natural map from the free ring on `α` to the
     free commutative ring on `α` is an isomorphism of rings. -/
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃+* free_comm_ring α :=
-@of' (free_ring α) (free_comm_ring α) _ _
-  (functor.map_equiv free_abelian_group (multiset.subsingleton_equiv α)) $
+ring_equiv.of_bijective (coe_ring_hom _)
   begin
-    delta functor.map_equiv,
-    rw congr_arg is_ring_hom _,
-    work_on_goal 2 { symmetry, exact coe_eq α },
-    exact (coe_ring_hom _).to_is_ring_hom,
+    have : (coe_ring_hom _ : free_ring α → free_comm_ring α) =
+      (functor.map_equiv free_abelian_group (multiset.subsingleton_equiv α)) := coe_eq α,
+    rw this,
+    apply equiv.bijective,
   end
 
 instance [subsingleton α] : comm_ring (free_ring α) :=
@@ -327,10 +317,10 @@ end free_ring
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃+* mv_polynomial α ℤ :=
 ring_equiv.of_hom_inv
-  (free_comm_ring.lift $ λ a, mv_polynomial.X a)
+  (free_comm_ring.lift $ (λ a, mv_polynomial.X a : α → mv_polynomial α ℤ))
   (mv_polynomial.eval₂_hom (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of)
   (by { ext, simp })
-  (by ext; simp )
+  (by ext; simp)
 
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=

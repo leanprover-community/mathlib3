@@ -37,7 +37,7 @@ these results are found in `category_theory/abelian/exact.lean`.
 
 -/
 
-universes v u
+universes v v₂ u u₂
 
 open category_theory
 open category_theory.limits
@@ -60,12 +60,15 @@ and hence equivalent to the usual definition,
 -- One nice feature of this definition is that we have
 -- `epi f → exact g h → exact (f ≫ g) h` and `exact f g → mono h → exact f (g ≫ h)`,
 -- which do not necessarily hold in a non-abelian category with the usual definition of `exact`.
-class exact [has_zero_morphisms V] [has_kernels V] {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
+structure exact [has_zero_morphisms V] [has_kernels V] {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
 (w : f ≫ g = 0)
 (epi : epi (image_to_kernel f g w))
 
+-- This works as an instance even though `exact` itself is not a class, as long as the goal is
+-- literally of the form `epi (image_to_kernel f g h.w)` (where `h : exact f g`). If the proof of
+-- `f ≫ g = 0` looks different, we are out of luck and have to add the instance by hand.
 attribute [instance] exact.epi
-attribute [simp, reassoc] exact.w
+attribute [reassoc] exact.w
 
 section
 variables [has_zero_object V] [preadditive V] [has_kernels V] [has_cokernels V]
@@ -98,6 +101,16 @@ begin
   simp only [arrow.mk_hom, is_iso.inv_hom_id_assoc, category.assoc, ← arrow.inv_right,
     is_iso.iso.inv_hom]
 end
+
+/-- A reformulation of `preadditive.exact_of_iso_of_exact` that does not involve the arrow
+category. -/
+lemma preadditive.exact_of_iso_of_exact' {A₁ B₁ C₁ A₂ B₂ C₂ : V}
+  (f₁ : A₁ ⟶ B₁) (g₁ : B₁ ⟶ C₁) (f₂ : A₂ ⟶ B₂) (g₂ : B₂ ⟶ C₂)
+  (α : A₁ ≅ A₂) (β : B₁ ≅ B₂) (γ : C₁ ≅ C₂) (hsq₁ : α.hom ≫ f₂ = f₁ ≫ β.hom)
+  (hsq₂ : β.hom ≫ g₂ = g₁ ≫ γ.hom)
+  (h : exact f₁ g₁) :
+  exact f₂ g₂ :=
+preadditive.exact_of_iso_of_exact f₁ g₁ f₂ g₂ (arrow.iso_mk α β hsq₁) (arrow.iso_mk β γ hsq₂) rfl h
 
 lemma preadditive.exact_iff_exact_of_iso {A₁ B₁ C₁ A₂ B₂ C₂ : V}
   (f₁ : A₁ ⟶ B₁) (g₁ : B₁ ⟶ C₁) (f₂ : A₂ ⟶ B₂) (g₂ : B₂ ⟶ C₂)
@@ -153,49 +166,49 @@ local attribute [instance] epi_comp
 section
 variables [has_zero_morphisms V] [has_equalizers V]
 
-instance exact_comp_hom_inv_comp [exact f g] (i : B ≅ D) : exact (f ≫ i.hom) (i.inv ≫ g) :=
+lemma exact_comp_hom_inv_comp (i : B ≅ D) (h : exact f g) : exact (f ≫ i.hom) (i.inv ≫ g) :=
 begin
-  refine ⟨by simp, _⟩,
+  refine ⟨by simp [h.w], _⟩,
   rw image_to_kernel_comp_hom_inv_comp,
+  haveI := h.epi,
   apply_instance,
 end
 
-instance exact_comp_inv_hom_comp [exact f g] (i : D ≅ B) : exact (f ≫ i.inv) (i.hom ≫ g) :=
-category_theory.exact_comp_hom_inv_comp i.symm
+lemma exact_comp_inv_hom_comp (i : D ≅ B) (h : exact f g) : exact (f ≫ i.inv) (i.hom ≫ g) :=
+exact_comp_hom_inv_comp i.symm h
 
 lemma exact_comp_hom_inv_comp_iff (i : B ≅ D) : exact (f ≫ i.hom) (i.inv ≫ g) ↔ exact f g :=
-begin
-  refine ⟨_, by { introI, apply_instance }⟩,
-  introI,
-  have : exact ((f ≫ i.hom) ≫ i.inv) (i.hom ≫ i.inv ≫ g) := infer_instance,
-  simpa using this
-end
+⟨λ h, by simpa using exact_comp_inv_hom_comp i h, exact_comp_hom_inv_comp i⟩
 
-lemma exact_epi_comp [exact g h] [epi f] : exact (f ≫ g) h :=
+lemma exact_epi_comp (hgh : exact g h) [epi f] : exact (f ≫ g) h :=
 begin
-  refine ⟨by simp, _⟩,
+  refine ⟨by simp [hgh.w], _⟩,
   rw image_to_kernel_comp_left,
   apply_instance,
 end
 
 @[simp]
 lemma exact_iso_comp [is_iso f] : exact (f ≫ g) h ↔ exact g h :=
-⟨λ w, by { rw ←is_iso.inv_hom_id_assoc f g, exactI exact_epi_comp, }, λ w, by exactI exact_epi_comp⟩
+⟨λ w, by { rw ←is_iso.inv_hom_id_assoc f g, exact exact_epi_comp w }, λ w, exact_epi_comp w⟩
 
-lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=
+lemma exact_comp_mono (hfg : exact f g) [mono h] : exact f (g ≫ h) :=
 begin
-  refine ⟨by simp, _⟩,
-  rw image_to_kernel_comp_right f g h exact.w,
+  refine ⟨by simp [hfg.w_assoc], _⟩,
+  rw image_to_kernel_comp_right f g h hfg.w,
   apply_instance,
+end
+
+/-- The dual of this lemma is only true when `V` is abelian, see `abelian.exact_epi_comp_iff`. -/
+lemma exact_comp_mono_iff [mono h] : exact f (g ≫ h) ↔ exact f g :=
+begin
+  refine ⟨λ hfg, ⟨zero_of_comp_mono h (by rw [category.assoc, hfg.1]), _⟩, λ h, exact_comp_mono h⟩,
+  rw ← (iso.eq_comp_inv _).1 (image_to_kernel_comp_mono _ _ h hfg.1),
+  haveI := hfg.2, apply_instance
 end
 
 @[simp]
 lemma exact_comp_iso [is_iso h] : exact f (g ≫ h) ↔ exact f g :=
-⟨λ w, begin
-    rw [←category.comp_id g, ←is_iso.hom_inv_id h, ←category.assoc],
-    exactI exact_comp_mono,
-  end,
-  λ w, by exactI exact_comp_mono⟩
+exact_comp_mono_iff
 
 lemma exact_kernel_subobject_arrow : exact (kernel_subobject f).arrow f :=
 begin
@@ -207,13 +220,13 @@ end
 lemma exact_kernel_ι : exact (kernel.ι f) f :=
 by { rw [←kernel_subobject_arrow', exact_iso_comp], exact exact_kernel_subobject_arrow }
 
-instance [exact f g] : epi (factor_thru_kernel_subobject g f (by simp)) :=
+instance (h : exact f g) : epi (factor_thru_kernel_subobject g f h.w) :=
 begin
   rw ←factor_thru_image_subobject_comp_image_to_kernel,
   apply epi_comp,
 end
 
-instance [exact f g] : epi (kernel.lift g f (by simp)) :=
+instance (h : exact f g) : epi (kernel.lift g f h.w) :=
 begin
   rw ←factor_thru_kernel_subobject_comp_kernel_subobject_iso,
   apply epi_comp
@@ -221,17 +234,17 @@ end
 
 variables (A)
 
-lemma kernel_subobject_arrow_eq_zero_of_exact_zero_left [exact (0 : A ⟶ B) g] :
+lemma kernel_subobject_arrow_eq_zero_of_exact_zero_left (h : exact (0 : A ⟶ B) g) :
   (kernel_subobject g).arrow = 0 :=
 begin
-  rw [←cancel_epi (image_to_kernel (0 : A ⟶ B) g exact.w),
+  rw [←cancel_epi (image_to_kernel (0 : A ⟶ B) g h.w),
     ←cancel_epi (factor_thru_image_subobject (0 : A ⟶ B))],
   simp
 end
 
-lemma kernel_ι_eq_zero_of_exact_zero_left [exact (0 : A ⟶ B) g] :
+lemma kernel_ι_eq_zero_of_exact_zero_left (h : exact (0 : A ⟶ B) g) :
   kernel.ι g = 0 :=
-by { rw ←kernel_subobject_arrow', simp [kernel_subobject_arrow_eq_zero_of_exact_zero_left A], }
+by { rw ←kernel_subobject_arrow', simp [kernel_subobject_arrow_eq_zero_of_exact_zero_left A h], }
 
 lemma exact_zero_left_of_mono [has_zero_object V] [mono g] : exact (0 : A ⟶ B) g :=
 ⟨by simp, image_to_kernel_epi_of_zero_of_mono _⟩
@@ -241,24 +254,24 @@ end
 section has_cokernels
 variables [has_zero_morphisms V] [has_equalizers V] [has_cokernels V] (f g)
 
-@[simp, reassoc] lemma kernel_comp_cokernel [exact f g] : kernel.ι g ≫ cokernel.π f = 0 :=
+@[simp, reassoc] lemma kernel_comp_cokernel (h : exact f g) : kernel.ι g ≫ cokernel.π f = 0 :=
 begin
   rw [←kernel_subobject_arrow', category.assoc],
   convert comp_zero,
-  apply zero_of_epi_comp (image_to_kernel f g exact.w) _,
+  apply zero_of_epi_comp (image_to_kernel f g h.w) _,
   rw [image_to_kernel_arrow_assoc, ←image_subobject_arrow, category.assoc, ←iso.eq_inv_comp],
   ext,
   simp,
 end
 
-lemma comp_eq_zero_of_exact [exact f g] {X Y : V} {ι : X ⟶ B} (hι : ι ≫ g = 0) {π : B ⟶ Y}
+lemma comp_eq_zero_of_exact (h : exact f g) {X Y : V} {ι : X ⟶ B} (hι : ι ≫ g = 0) {π : B ⟶ Y}
   (hπ : f ≫ π = 0) : ι ≫ π = 0 :=
-by rw [←kernel.lift_ι _ _ hι, ←cokernel.π_desc _ _ hπ, category.assoc, kernel_comp_cokernel_assoc,
-  zero_comp, comp_zero]
+by rw [←kernel.lift_ι _ _ hι, ←cokernel.π_desc _ _ hπ, category.assoc,
+  kernel_comp_cokernel_assoc _ _ h, zero_comp, comp_zero]
 
-@[simp, reassoc] lemma fork_ι_comp_cofork_π [exact f g] (s : kernel_fork g)
+@[simp, reassoc] lemma fork_ι_comp_cofork_π (h : exact f g) (s : kernel_fork g)
   (t : cokernel_cofork f) : fork.ι s ≫ cofork.π t = 0 :=
-comp_eq_zero_of_exact f g (kernel_fork.condition s) (cokernel_cofork.condition t)
+comp_eq_zero_of_exact f g h (kernel_fork.condition s) (cokernel_cofork.condition t)
 
 end has_cokernels
 
@@ -270,7 +283,7 @@ open_locale zero_object
 section
 variables [has_zero_morphisms V] [has_kernels V]
 
-instance exact_of_zero {A C : V} (f : A ⟶ 0) (g : 0 ⟶ C) : exact f g :=
+lemma exact_of_zero {A C : V} (f : A ⟶ 0) (g : 0 ⟶ C) : exact f g :=
 begin
   obtain rfl : f = 0 := by ext,
   obtain rfl : g = 0 := by ext,
@@ -279,10 +292,10 @@ begin
   { exact image_to_kernel_epi_of_zero_of_mono 0, },
 end
 
-instance exact_zero_mono {B C : V} (f : B ⟶ C) [mono f] : exact (0 : (0 ⟶ B)) f :=
+lemma exact_zero_mono {B C : V} (f : B ⟶ C) [mono f] : exact (0 : (0 ⟶ B)) f :=
 ⟨by simp, infer_instance⟩
 
-instance exact_epi_zero {A B : V} (f : A ⟶ B) [epi f] : exact f (0 : (B ⟶ 0)) :=
+lemma exact_epi_zero {A B : V} (f : A ⟶ B) [epi f] : exact f (0 : (B ⟶ 0)) :=
 ⟨by simp, infer_instance⟩
 
 end
@@ -290,15 +303,15 @@ end
 section
 variables [preadditive V]
 
-lemma mono_iff_exact_zero_left [has_kernels V]{B C : V} (f : B ⟶ C) :
+lemma mono_iff_exact_zero_left [has_kernels V] {B C : V} (f : B ⟶ C) :
   mono f ↔ exact (0 : (0 ⟶ B)) f :=
-⟨λ h, by { resetI, apply_instance, },
+⟨λ h, by exactI exact_zero_mono _,
   λ h, preadditive.mono_of_kernel_iso_zero
       ((kernel_subobject_iso f).symm ≪≫ iso_zero_of_epi_zero (by simpa using h.epi))⟩
 
 lemma epi_iff_exact_zero_right [has_equalizers V] {A B : V} (f : A ⟶ B) :
   epi f ↔ exact f (0 : (B ⟶ 0)) :=
-⟨λ h, by { resetI, apply_instance, },
+⟨λ h, by exactI exact_epi_zero _,
   λ h, begin
     have e₁ := h.epi,
     rw image_to_kernel_zero_right at e₁,
@@ -314,5 +327,20 @@ lemma epi_iff_exact_zero_right [has_equalizers V] {A B : V} (f : A ⟶ B) :
 end
 
 end
+
+namespace functor
+variables [has_zero_morphisms V] [has_kernels V] {W : Type u₂} [category.{v₂} W]
+variables [has_images W] [has_zero_morphisms W] [has_kernels W]
+
+/-- A functor reflects exact sequences if any composable pair of morphisms that is mapped to an
+    exact pair is itself exact. -/
+class reflects_exact_sequences (F : V ⥤ W) :=
+(reflects : ∀ {A B C : V} (f : A ⟶ B) (g : B ⟶ C), exact (F.map f) (F.map g) → exact f g)
+
+lemma exact_of_exact_map (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} {f : A ⟶ B}
+  {g : B ⟶ C} (hfg : exact (F.map f) (F.map g)) : exact f g :=
+reflects_exact_sequences.reflects f g hfg
+
+end functor
 
 end category_theory

@@ -39,9 +39,9 @@ def d : D :=
 begin
   tidy,
 
-  -- Try this: fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, work_on_goal 1 { refl }
-  -- }, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, work_on_goal 1 { fsplit, work_on_goal 0
-  -- { fsplit }, work_on_goal 1 { refl } }, work_on_goal 1 { refl } }, refl
+  -- Try this: fsplit, work_on_goal 1 { fsplit, work_on_goal 1 { fsplit }, work_on_goal 2 { refl }
+  -- }, work_on_goal 1 { fsplit, work_on_goal 1 { fsplit }, work_on_goal 2 { fsplit, work_on_goal 1
+  -- { fsplit }, work_on_goal 2 { refl } }, work_on_goal 2 { refl } }, refl
 end.
 
 def f : unit → unit → unit := by tidy -- intros a a_1, cases a_1, cases a, fsplit

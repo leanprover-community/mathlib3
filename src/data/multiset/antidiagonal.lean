@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.multiset.bind
 import data.multiset.powerset
 
 /-!
@@ -66,10 +67,23 @@ quotient.induction_on s $ λ l, begin
   {congr; simp}, {simp}
 end
 
+theorem antidiagonal_eq_map_powerset [decidable_eq α] (s : multiset α) :
+  s.antidiagonal = s.powerset.map (λ t, (s - t, t)) :=
+begin
+  induction s using multiset.induction_on with a s hs,
+  { simp only [antidiagonal_zero, powerset_zero, zero_tsub, map_singleton] },
+  { simp_rw [antidiagonal_cons, powerset_cons, map_add, hs, map_map, function.comp, prod.map_mk,
+      id.def, sub_cons, erase_cons_head],
+    rw add_comm,
+    congr' 1,
+    refine multiset.map_congr rfl (λ x hx, _),
+    rw cons_sub_of_le _ (mem_powerset.mp hx) }
+end
+
 @[simp] theorem card_antidiagonal (s : multiset α) :
   card (antidiagonal s) = 2 ^ card s :=
 by have := card_powerset s;
-   rwa [← antidiagonal_map_fst, card_map] at this
+  rwa [← antidiagonal_map_fst, card_map] at this
 
 lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
   prod (s.map (λa, f a + g a)) =

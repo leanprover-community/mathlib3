@@ -43,6 +43,12 @@ multiset.mem_sort _
 @[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
 multiset.length_sort _
 
+@[simp] theorem sort_empty : sort r ∅ = [] :=
+multiset.sort_zero r
+
+@[simp] theorem sort_singleton (a : α) : sort r {a} = [a] :=
+multiset.sort_singleton r a
+
 lemma sort_perm_to_list (s : finset α) : sort r s ~ s.to_list :=
 by { rw ←multiset.coe_eq_coe, simp only [coe_to_list, sort_eq] }
 
@@ -142,7 +148,7 @@ by simp [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h)]
 /-- The bijection `order_emb_of_fin s h` sends `0` to the minimum of `s`. -/
 lemma order_emb_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
   order_emb_of_fin s h ⟨0, hz⟩ = s.min' (card_pos.mp (h.symm ▸ hz)) :=
-by simp only [order_emb_of_fin_apply, subtype.coe_mk, sorted_zero_eq_min']
+by simp only [order_emb_of_fin_apply, fin.coe_mk, sorted_zero_eq_min']
 
 /-- The bijection `order_emb_of_fin s h` sends `k-1` to the maximum of `s`. -/
 lemma order_emb_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
@@ -160,10 +166,10 @@ lemma order_emb_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fi
   (hfs : ∀ x, f x ∈ s) (hmono : strict_mono f) : f = s.order_emb_of_fin h :=
 begin
   apply fin.strict_mono_unique hmono (s.order_emb_of_fin h).strict_mono,
-  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_fin_range, ← coe_image, coe_inj],
+  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_univ, ← coe_image, coe_inj],
   refine eq_of_subset_of_card_le (λ x hx, _) _,
   { rcases mem_image.1 hx with ⟨x, hx, rfl⟩, exact hfs x },
-  { rw [h, card_image_of_injective _ hmono.injective, fin_range_card] }
+  { rw [h, card_image_of_injective _ hmono.injective, card_univ, fintype.card_fin] }
 end
 
 /-- An order embedding `f` from `fin k` to a finset of cardinality `k` has to coincide with
@@ -180,8 +186,18 @@ and only if `i = j`. Since they can be defined on a priori not defeq types `fin 
   s.order_emb_of_fin h i = s.order_emb_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
 begin
   substs k l,
-  exact (s.order_emb_of_fin rfl).eq_iff_eq.trans (fin.ext_iff _ _)
+  exact (s.order_emb_of_fin rfl).eq_iff_eq.trans fin.ext_iff
 end
+
+/-- Given a finset `s` of size at least `k` in a linear order `α`, the map `order_emb_of_card_le`
+is an order embedding from `fin k` to `α` whose image is contained in `s`. Specifically, it maps
+`fin k` to an initial segment of `s`. -/
+def order_emb_of_card_le (s : finset α) {k : ℕ} (h : k ≤ s.card) : fin k ↪o α :=
+(fin.cast_le h).trans (s.order_emb_of_fin rfl)
+
+lemma order_emb_of_card_le_mem (s : finset α) {k : ℕ} (h : k ≤ s.card) (a) :
+  order_emb_of_card_le s h a ∈ s :=
+by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
 
 lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) :
   s.card ≤ t.card + 1 :=
@@ -193,8 +209,8 @@ begin
   have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length :=
   λ i, lt_of_le_of_lt (nat.le_succ i) (h1 i),
   have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
-    ((s.sort (≤)).nth_le (i + 1) (h1 i))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
+    ((s.sort (≤)).nth_le (i + 1) (h1 i))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
     (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
   let f : fin (s.card - 1) → t :=

@@ -3,9 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import algebra.group.pi
-import algebra.order.group
-import tactic.pi_instances
+import algebra.ring.pi
+
 /-!
 # Pi instances for ordered groups and monoids
 
@@ -28,23 +27,18 @@ instance ordered_comm_monoid {ι : Type*} {Z : ι → Type*} [∀ i, ordered_com
   ..pi.partial_order,
   ..pi.comm_monoid, }
 
+@[to_additive] instance {ι : Type*} {α : ι → Type*} [Π i, has_le (α i)] [Π i, has_mul (α i)]
+  [Π i, has_exists_mul_of_le (α i)] :
+  has_exists_mul_of_le (Π i, α i) :=
+⟨λ a b h, ⟨λ i, (exists_mul_of_le $ h i).some, funext $ λ i, (exists_mul_of_le $ h i).some_spec⟩⟩
+
 /-- The product of a family of canonically ordered monoids is a canonically ordered monoid. -/
 @[to_additive "The product of a family of canonically ordered additive monoids is
   a canonically ordered additive monoid."]
 instance {ι : Type*} {Z : ι → Type*} [∀ i, canonically_ordered_monoid (Z i)] :
   canonically_ordered_monoid (Π i, Z i) :=
-{ le_iff_exists_mul := λ f g, begin
-    fsplit,
-    { intro w,
-      fsplit,
-      { exact λ i, (le_iff_exists_mul.mp (w i)).some, },
-      { ext i,
-        exact (le_iff_exists_mul.mp (w i)).some_spec, }, },
-    { rintro ⟨h, rfl⟩,
-      exact λ i, le_mul_right (le_refl _), },
-  end,
-  ..pi.order_bot,
-  ..pi.ordered_comm_monoid, }
+{ le_self_mul := λ f g i, le_self_mul,
+  ..pi.order_bot, ..pi.ordered_comm_monoid, ..pi.has_exists_mul_of_le }
 
 @[to_additive]
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] :
@@ -60,5 +54,22 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   npow := monoid.npow,
   ..pi.comm_group,
   ..pi.ordered_comm_monoid, }
+
+instance [Π i, ordered_semiring (f i)] : ordered_semiring (Π i, f i) :=
+{ add_le_add_left := λ a b hab c i, add_le_add_left (hab _) _,
+  zero_le_one := λ _, zero_le_one,
+  mul_le_mul_of_nonneg_left := λ a b c hab hc i, mul_le_mul_of_nonneg_left (hab _) $ hc _,
+  mul_le_mul_of_nonneg_right := λ a b c hab hc i, mul_le_mul_of_nonneg_right (hab _) $ hc _,
+    ..pi.semiring, ..pi.partial_order }
+
+instance [Π i, ordered_comm_semiring (f i)] : ordered_comm_semiring (Π i, f i) :=
+{ ..pi.comm_semiring, ..pi.ordered_semiring }
+
+instance [Π i, ordered_ring (f i)] : ordered_ring (Π i, f i) :=
+{ mul_nonneg := λ a b ha hb i, mul_nonneg (ha _) (hb _),
+    ..pi.ring, ..pi.ordered_semiring }
+
+instance [Π i, ordered_comm_ring (f i)] : ordered_comm_ring (Π i, f i) :=
+{ ..pi.comm_ring, ..pi.ordered_ring }
 
 end pi

@@ -200,13 +200,13 @@ to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>=
 (if hn : n.is_some then
   note (option.get hn)
 else
-  note_anon none) >>= fin_cases_at none
+  note_anon none) >>= fin_cases_at none none
 
 setup_tactic_parser
 
 namespace interactive
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 `interval_cases n` searches for upper and lower bounds on a variable `n`,

@@ -23,8 +23,8 @@ noncomputable theory
 
 open_locale lie_group manifold derivation
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (G : Type*) [topological_space G] [charted_space H G] [monoid G] [has_smooth_mul I G] (g h : G)
 
@@ -78,8 +78,8 @@ lemma coe_derivation_injective : function.injective
 
 /-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
 lemma left_invariant' :
-  𝒅ₕ(smooth_left_mul_one I g) (derivation.eval_at (1 : G) ↑X) = derivation.eval_at g ↑X :=
-by rw [←to_derivation_eq_coe]; exact left_invariant'' X g
+  𝒅ₕ (smooth_left_mul_one I g) (derivation.eval_at (1 : G) ↑X) = derivation.eval_at g ↑X :=
+left_invariant'' X g
 
 @[simp] lemma map_add : X (f + f') = X f + X f' := derivation.map_add X f f'
 @[simp] lemma map_zero : X 0 = 0 := derivation.map_zero X
@@ -98,12 +98,10 @@ instance : has_add (left_invariant_derivation I G) :=
     left_invariant', pi.add_apply]⟩ }
 
 instance : has_neg (left_invariant_derivation I G) :=
-{ neg := λ X, ⟨-X, λ g, by simp only [linear_map.map_neg, derivation.coe_neg, left_invariant',
-    pi.neg_apply]⟩ }
+{ neg := λ X, ⟨-X, λ g, by simp [left_invariant']⟩ }
 
 instance : has_sub (left_invariant_derivation I G) :=
-{ sub := λ X Y, ⟨X - Y, λ g, by simp only [linear_map.map_sub, derivation.coe_sub,
-    left_invariant', pi.sub_apply]⟩ }
+{ sub := λ X Y, ⟨X - Y, λ g, by simp [left_invariant']⟩ }
 
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
@@ -114,12 +112,17 @@ instance : has_sub (left_invariant_derivation I G) :=
 @[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 
-instance : add_comm_group (left_invariant_derivation I G) :=
-coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+instance has_nat_scalar : has_smul ℕ (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul_of_tower, left_invariant']⟩ }
 
-instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
-{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.Rsmul_apply, algebra.id.smul_eq_mul,
-            mul_eq_mul_left_iff, linear_map.map_smul, left_invariant']⟩ }
+instance has_int_scalar : has_smul ℤ (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul_of_tower, left_invariant']⟩ }
+
+instance : add_comm_group (left_invariant_derivation I G) :=
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
+
+instance : has_smul 𝕜 (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul, left_invariant']⟩ }
 
 variables (r X)
 
@@ -158,7 +161,7 @@ by { ext f, rw [←left_invariant, apply_hfdifferential, apply_hfdifferential, L
   ←apply_hfdifferential, left_invariant] }
 
 lemma comp_L : (X f).comp (𝑳 I g) = X (f.comp (𝑳 I g)) :=
-by ext h; rw [times_cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_at_mul,
+by ext h; rw [cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_at_mul,
   apply_hfdifferential, apply_fdifferential, eval_at_apply]
 
 instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivation I G) :=

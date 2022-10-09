@@ -3,9 +3,9 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.fintype.card
 import data.finset.sort
 import algebra.big_operators.order
+import algebra.big_operators.fin
 
 /-!
 # Compositions
@@ -180,7 +180,7 @@ begin
 end
 
 @[simp] lemma size_up_to_length : c.size_up_to c.length = n :=
-c.size_up_to_of_length_le c.length (le_refl _)
+c.size_up_to_of_length_le c.length le_rfl
 
 lemma size_up_to_le (i : ℕ) : c.size_up_to i ≤ n :=
 begin
@@ -207,8 +207,7 @@ a virtual point at the right of the last block, to make for a nice equiv with
 `composition_as_set n`. -/
 def boundary : fin (c.length + 1) ↪o fin (n+1) :=
 order_embedding.of_strict_mono (λ i, ⟨c.size_up_to i, nat.lt_succ_of_le (c.size_up_to_le i)⟩) $
- fin.strict_mono_iff_lt_succ.2 $ λ i hi, c.size_up_to_strict_mono $
-   lt_of_add_lt_add_right hi
+ fin.strict_mono_iff_lt_succ.2 $ λ ⟨i, hi⟩, c.size_up_to_strict_mono hi
 
 @[simp] lemma boundary_zero : c.boundary 0 = 0 :=
 by simp [boundary, fin.ext_iff]
@@ -286,8 +285,7 @@ begin
   set i := c.index j with hi,
   push_neg at H,
   have i_pos : (0 : ℕ) < i,
-  { by_contradiction i_pos,
-    push_neg at i_pos,
+  { by_contra' i_pos,
     revert H, simp [nonpos_iff_eq_zero.1 i_pos, c.size_up_to_zero] },
   let i₁ := (i : ℕ).pred,
   have i₁_lt_i : i₁ < i := nat.pred_lt (ne_of_gt i_pos),
@@ -721,7 +719,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
     erw [set.mem_set_of_eq],
     simp only [this, false_or, add_right_inj, add_eq_zero_iff, one_ne_zero, false_and, fin.coe_mk],
     split,
-    { rintros ⟨j, js, hj⟩, convert js, exact (fin.ext_iff _ _).2 hj },
+    { rintros ⟨j, js, hj⟩, convert js, exact fin.ext_iff.2 hj },
     { assume h, exact ⟨i, h, rfl⟩ }
   end }
 
@@ -888,18 +886,17 @@ end
   c.to_composition.boundaries = c.boundaries :=
 begin
   ext j,
-  simp [c.mem_boundaries_iff_exists_blocks_sum_take_eq, c.card_boundaries_eq_succ_length,
-    composition.boundary, fin.ext_iff, composition.size_up_to, exists_prop, finset.mem_univ,
-    take, exists_prop_of_true, finset.mem_image, composition_as_set.to_composition_blocks,
-    composition.boundaries],
+  simp only [c.mem_boundaries_iff_exists_blocks_sum_take_eq, composition.boundaries,
+    finset.mem_map],
   split,
-  { rintros ⟨i, hi⟩,
-    refine ⟨i.1, _, hi⟩,
-    convert i.2,
-    simp },
+  { rintros ⟨i, _, hi⟩,
+    refine ⟨i.1, _, _⟩,
+    simpa [c.card_boundaries_eq_succ_length] using i.2,
+    simp [composition.boundary, composition.size_up_to, ← hi] },
   { rintros ⟨i, i_lt, hi⟩,
-    have : i < c.to_composition.length + 1, by simpa using i_lt,
-    exact ⟨⟨i, this⟩, hi⟩ }
+    refine ⟨i, by simp, _⟩,
+    rw [c.card_boundaries_eq_succ_length] at i_lt,
+    simp [composition.boundary, nat.mod_eq_of_lt i_lt, composition.size_up_to, hi] }
 end
 
 @[simp] lemma composition.to_composition_as_set_boundaries (c : composition n) :

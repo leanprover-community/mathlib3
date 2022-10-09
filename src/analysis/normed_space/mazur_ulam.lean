@@ -27,9 +27,9 @@ The formalization is based on [Jussi Väisälä, *A Proof of the Mazur-Ulam Theo
 isometry, affine map, linear map
 -/
 
-variables
-  {E PE : Type*} [normed_group E] [normed_space ℝ E] [metric_space PE] [normed_add_torsor E PE]
-  {F PF : Type*} [normed_group F] [normed_space ℝ F] [metric_space PF] [normed_add_torsor F PF]
+variables {E PE F PF : Type*} [normed_add_comm_group E] [normed_space ℝ E] [metric_space PE]
+  [normed_add_torsor E PE] [normed_add_comm_group F] [normed_space ℝ F] [metric_space PF]
+  [normed_add_torsor F PF]
 
 open set affine_map affine_isometry_equiv
 
@@ -135,8 +135,8 @@ def to_real_linear_isometry_equiv (f : E ≃ᵢ F) : E ≃ₗᵢ[ℝ] F :=
 normed vector spaces over `ℝ`, then `f` is an affine isometry equivalence. -/
 def to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) : PE ≃ᵃⁱ[ℝ] PF :=
 affine_isometry_equiv.mk' f
-  (((vadd_const ℝ (classical.arbitrary PE)).to_isometric.trans $ f.trans
-    (vadd_const ℝ (f $ classical.arbitrary PE)).to_isometric.symm).to_real_linear_isometry_equiv)
+  (((vadd_const (classical.arbitrary PE)).trans $ f.trans
+    (vadd_const (f $ classical.arbitrary PE)).symm).to_real_linear_isometry_equiv)
   (classical.arbitrary PE) (λ p, by simp)
 
 @[simp] lemma coe_fn_to_real_affine_isometry_equiv (f : PE ≃ᵢ PF) :

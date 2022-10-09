@@ -89,7 +89,7 @@ end is_R_or_C
 
 section real_composition
 open real
-variables {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f)
+variables {α : Type*} {m : measurable_space α} {f : α → ℝ} (hf : measurable f)
 
 @[measurability] lemma measurable.exp : measurable (λ x, real.exp (f x)) :=
 real.measurable_exp.comp hf
@@ -119,7 +119,7 @@ end real_composition
 
 section complex_composition
 open complex
-variables {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f)
+variables {α : Type*} {m : measurable_space α} {f : α → ℂ} (hf : measurable f)
 
 @[measurability] lemma measurable.cexp : measurable (λ x, complex.exp (f x)) :=
 complex.measurable_exp.comp hf
@@ -146,8 +146,10 @@ end complex_composition
 
 section is_R_or_C_composition
 
-variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α]
+variables {α 𝕜 : Type*} [is_R_or_C 𝕜] {m : measurable_space α}
   {f : α → 𝕜} {μ : measure_theory.measure α}
+
+include m
 
 @[measurability] lemma measurable.re (hf : measurable f) : measurable (λ x, is_R_or_C.re (f x)) :=
 is_R_or_C.measurable_re.comp hf
@@ -162,6 +164,8 @@ is_R_or_C.measurable_im.comp hf
 @[measurability] lemma ae_measurable.im (hf : ae_measurable f μ) :
   ae_measurable (λ x, is_R_or_C.im (f x)) μ :=
 is_R_or_C.measurable_im.comp_ae_measurable hf
+
+omit m
 
 end is_R_or_C_composition
 
@@ -231,14 +235,14 @@ variables {α : Type*} {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_produc
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 @[measurability]
-lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+lemma measurable.inner {m : measurable_space α} [measurable_space E] [opens_measurable_space E]
   [topological_space.second_countable_topology E]
   {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable (λ t, ⟪f t, g t⟫) :=
 continuous.measurable2 continuous_inner hf hg
 
 @[measurability]
-lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+lemma ae_measurable.inner {m : measurable_space α} [measurable_space E] [opens_measurable_space E]
   [topological_space.second_countable_topology E]
   {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ x, ⟪f x, g x⟫) μ :=
@@ -247,8 +251,7 @@ begin
   refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
   dsimp only,
   congr,
-  { exact hxf, },
-  { exact hxg, },
+  exacts [hxf, hxg],
 end
 
 end

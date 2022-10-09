@@ -81,18 +81,18 @@ attribute [simp] i_mul_i j_mul_j i_mul_j j_mul_i
 by rw [←i_mul_j, ←mul_assoc, i_mul_i, smul_mul_assoc, one_mul]
 
 @[simp] lemma k_mul_i : q.k * q.i = -c₁ • q.j :=
-by rw [←i_mul_j, mul_assoc, j_mul_i, mul_neg_eq_neg_mul_symm, i_mul_k, neg_smul]
+by rw [←i_mul_j, mul_assoc, j_mul_i, mul_neg, i_mul_k, neg_smul]
 
 @[simp] lemma k_mul_j : q.k * q.j = c₂ • q.i :=
 by rw [←i_mul_j, mul_assoc, j_mul_j, mul_smul_comm, mul_one]
 
 @[simp] lemma j_mul_k : q.j * q.k = -c₂ • q.i :=
-by rw [←i_mul_j, ←mul_assoc, j_mul_i, neg_mul_eq_neg_mul_symm, k_mul_j, neg_smul]
+by rw [←i_mul_j, ←mul_assoc, j_mul_i, neg_mul, k_mul_j, neg_smul]
 
 @[simp] lemma k_mul_k : q.k * q.k = -((c₁ * c₂) • 1) :=
 by rw [←i_mul_j, mul_assoc, ←mul_assoc q.j _ _, j_mul_i, ←i_mul_j,
-  ←mul_assoc, mul_neg_eq_neg_mul_symm, ←mul_assoc, i_mul_i, smul_mul_assoc, one_mul,
-  neg_mul_eq_neg_mul_symm, smul_mul_assoc, j_mul_j, smul_smul]
+  ←mul_assoc, mul_neg, ←mul_assoc, i_mul_i, smul_mul_assoc, one_mul,
+  neg_mul, smul_mul_assoc, j_mul_j, smul_smul]
 
 /-- Intermediate result used to define `quaternion_algebra.basis.lift_hom`. -/
 def lift (x : ℍ[R,c₁,c₂]) : A :=
@@ -109,7 +109,7 @@ begin
   simp only [add_mul, mul_add, smul_mul_assoc, mul_smul_comm, one_mul, mul_one,
     ←algebra.smul_def, smul_add, smul_smul],
   simp only [i_mul_i, j_mul_j, i_mul_j, j_mul_i, i_mul_k, k_mul_i, k_mul_j, j_mul_k, k_mul_k],
-  simp only [smul_smul, smul_neg, sub_eq_add_neg, add_smul, ←add_assoc, mul_neg_eq_neg_mul_symm,
+  simp only [smul_smul, smul_neg, sub_eq_add_neg, add_smul, ←add_assoc, mul_neg,
     neg_smul],
   simp only [mul_right_comm _ _ (c₁ * c₂), mul_comm _ (c₁ * c₂)],
   simp only [mul_comm _ c₁, mul_right_comm _ _ c₁],

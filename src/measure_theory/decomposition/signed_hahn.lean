@@ -9,9 +9,9 @@ import order.symm_diff
 /-!
 # Hahn decomposition
 
-This file prove the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
-states that, given a signed measure `s`, there exist complement, measurable sets `i` and `j`,
-such that `i` is positive and `j` is negative with repsect to `s`; that is, `s` restricted on `i`
+This file proves the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
+states that, given a signed measure `s`, there exist complementary, measurable sets `i` and `j`,
+such that `i` is positive and `j` is negative with respect to `s`; that is, `s` restricted on `i`
 is non-negative and `s` restricted on `j` is non-positive.
 
 The Hahn decomposition theorem leads to many other results in measure theory, most notably,
@@ -242,7 +242,7 @@ begin
   set k := nat.find hn with hk₁,
   have hk₂ : s ≤[i \ ⋃ l < k, restrict_nonpos_seq s i l] 0 := nat.find_spec hn,
   have hmeas : measurable_set (⋃ (l : ℕ) (H : l < k), restrict_nonpos_seq s i l) :=
-    (measurable_set.Union $ λ _, measurable_set.Union_Prop
+    (measurable_set.Union $ λ _, measurable_set.Union
       (λ _, restrict_nonpos_seq_measurable_set _)),
   refine ⟨i \ ⋃ l < k, restrict_nonpos_seq s i l, hi₁.diff hmeas, set.diff_subset _ _, hk₂, _⟩,
   rw [of_diff hmeas hi₁, s.of_disjoint_Union_nat],
@@ -250,7 +250,7 @@ begin
     { intros l hl,
       refine le_of_lt (measure_of_restrict_nonpos_seq h _ _),
       refine mt (restrict_le_zero_subset _ (hi₁.diff _) (set.subset.refl _)) (nat.find_min hn hl),
-      exact (measurable_set.Union $ λ _, measurable_set.Union_Prop
+      exact (measurable_set.Union $ λ _, measurable_set.Union
         (λ _, restrict_nonpos_seq_measurable_set _)) },
     suffices : 0 ≤ ∑' (l : ℕ), s (⋃ (H : l < k), restrict_nonpos_seq s i l),
     { rw sub_neg,
@@ -262,11 +262,11 @@ begin
       rw [set.mem_Union, exists_prop, and_iff_right_iff_imp],
       exact λ _, h },
     { convert le_of_eq s.empty.symm,
-      ext, simp only [exists_prop, set.mem_empty_eq, set.mem_Union, not_and, iff_false],
+      ext, simp only [exists_prop, set.mem_empty_iff_false, set.mem_Union, not_and, iff_false],
       exact λ h', false.elim (h h') } },
-  { intro, exact measurable_set.Union_Prop (λ _, restrict_nonpos_seq_measurable_set _) },
+  { intro, exact measurable_set.Union (λ _, restrict_nonpos_seq_measurable_set _) },
   { intros a b hab x hx,
-    simp only [exists_prop, set.mem_Union, set.mem_inter_eq, set.inf_eq_inter] at hx,
+    simp only [exists_prop, set.mem_Union, set.mem_inter_iff, set.inf_eq_inter] at hx,
     exact let ⟨⟨_, hx₁⟩, _, hx₂⟩ := hx in restrict_nonpos_seq_disjoint a b hab ⟨hx₁, hx₂⟩ },
   { apply set.Union_subset,
     intros a x,
@@ -358,7 +358,7 @@ lemma bdd_below_measure_of_negatives :
   bdd_below s.measure_of_negatives :=
 begin
   simp_rw [bdd_below, set.nonempty, mem_lower_bounds],
-  by_contra, push_neg at h,
+  by_contra' h,
   have h' : ∀ n : ℕ, ∃ y : ℝ, y ∈ s.measure_of_negatives ∧ y < -n := λ n, h (-n),
   choose f hf using h',
   have hf' : ∀ n : ℕ, ∃ B, measurable_set B ∧ s ≤[B] 0 ∧ s B < -n,
@@ -412,7 +412,7 @@ begin
   refine ⟨Aᶜ, hA₁.compl, _, (compl_compl A).symm ▸ hA₂⟩,
   rw restrict_le_restrict_iff _ _ hA₁.compl,
   intros C hC hC₁,
-  by_contra hC₂, push_neg at hC₂,
+  by_contra' hC₂,
   rcases exists_subset_restrict_nonpos hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
   have : s (A ∪ D) < Inf s.measure_of_negatives,
   { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC₁)
@@ -431,11 +431,11 @@ theorem exists_is_compl_positive_negative (s : signed_measure α) :
 let ⟨i, hi₁, hi₂, hi₃⟩ := exists_compl_positive_negative s in
   ⟨i, iᶜ, hi₁, hi₂, hi₁.compl, hi₃, is_compl_compl⟩
 
-/-- The symmetric difference of two Hahn decompositions have measure zero. -/
+/-- The symmetric difference of two Hahn decompositions has measure zero. -/
 lemma of_symm_diff_compl_positive_negative {s : signed_measure α}
   {i j : set α} (hi : measurable_set i) (hj : measurable_set j)
   (hi' : 0 ≤[i] s ∧ s ≤[iᶜ] 0) (hj' : 0 ≤[j] s ∧ s ≤[jᶜ] 0) :
-  s (i Δ j) = 0 ∧ s (iᶜ Δ jᶜ) = 0 :=
+  s (i ∆ j) = 0 ∧ s (iᶜ ∆ jᶜ) = 0 :=
 begin
   rw [restrict_le_restrict_iff s 0, restrict_le_restrict_iff 0 s] at hi' hj',
   split,

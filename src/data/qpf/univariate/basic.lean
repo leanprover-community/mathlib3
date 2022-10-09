@@ -213,7 +213,7 @@ def W_setoid : setoid q.P.W :=
 local attribute [instance] W_setoid
 
 /-- inductive type defined as initial algebra of a Quotient of Polynomial Functor -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def fix (F : Type u → Type u) [functor F] [q : qpf F] := quotient (W_setoid : setoid q.P.W)
 
 /-- recursor of a type defined by a qpf -/
@@ -341,7 +341,7 @@ def Mcongr : q.P.M → q.P.M → Prop :=
 /-- coinductive type defined as the final coalgebra of a qpf -/
 def cofix (F : Type u → Type u) [functor F] [q : qpf F]:= quot (@Mcongr F _ q)
 
-instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ (default _) ⟩
+instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ default ⟩
 
 /-- corecursor for type defined by `cofix` -/
 def cofix.corec {α : Type*} (g : α → F α) (x : α) : cofix F :=

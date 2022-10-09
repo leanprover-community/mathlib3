@@ -3,11 +3,14 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.opens
+import algebra.punit_instances
+import linear_algebra.finsupp
+import ring_theory.nilpotent
+import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import linear_algebra.finsupp
-import algebra.punit_instances
+import topology.sets.opens
+import topology.sober
 
 /-!
 # Prime spectrum of a commutative ring
@@ -54,7 +57,7 @@ is the type of all prime ideals of `R`.
 It is naturally endowed with a topology (the Zariski topology),
 and a sheaf of commutative rings (see `algebraic_geometry.structure_sheaf`).
 It is a fundamental building block in algebraic geometry. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def prime_spectrum := {I : ideal R // I.is_prime}
 
 variable {R}
@@ -158,14 +161,12 @@ section gc
 variable (R)
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc : @galois_connection
-  (ideal R) (order_dual (set (prime_spectrum R))) _ _
+lemma gc : @galois_connection (ideal R) (set (prime_spectrum R))ᵒᵈ _ _
   (λ I, zero_locus I) (λ t, vanishing_ideal t) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc_set : @galois_connection
-  (set R) (order_dual (set (prime_spectrum R))) _ _
+lemma gc_set : @galois_connection (set R) (set (prime_spectrum R))ᵒᵈ _ _
   (λ s, zero_locus s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi R R).gc,
 by simpa [zero_locus_span, function.comp] using ideal_gc.compose (gc R)
@@ -297,7 +298,7 @@ lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
 
 lemma zero_locus_inf (I J : ideal R) :
   zero_locus ((I ⊓ J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
-set.ext $ λ x, by simpa using x.2.inf_le
+set.ext $ λ x, x.2.inf_le
 
 lemma union_zero_locus (s s' : set R) :
   zero_locus s ∪ zero_locus s' = zero_locus ((ideal.span s) ⊓ (ideal.span s') : ideal R) :=
@@ -305,7 +306,7 @@ by { rw zero_locus_inf, simp }
 
 lemma zero_locus_mul (I J : ideal R) :
   zero_locus ((I * J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
-set.ext $ λ x, by simpa using x.2.mul_le
+set.ext $ λ x, x.2.mul_le
 
 lemma zero_locus_singleton_mul (f g : R) :
   zero_locus ({f * g} : set R) = zero_locus {f} ∪ zero_locus {g} :=
@@ -331,7 +332,7 @@ end
 
 lemma mem_compl_zero_locus_iff_not_mem {f : R} {I : prime_spectrum R} :
   I ∈ (zero_locus {f} : set (prime_spectrum R))ᶜ ↔ f ∉ I.as_ideal :=
-by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
+by rw [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]; refl
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
@@ -347,7 +348,7 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     simp only [hf],
     exact ⟨_, zero_locus_Union _⟩
   end
-  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
+  (by { rintro _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus s :=
@@ -356,6 +357,17 @@ by simp only [@eq_comm _ Uᶜ]; refl
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
 by rw [← is_open_compl_iff, is_open_iff, compl_compl]
+
+lemma is_closed_iff_zero_locus_ideal (Z : set (prime_spectrum R)) :
+  is_closed Z ↔ ∃ (s : ideal R), Z = zero_locus s :=
+(is_closed_iff_zero_locus _).trans
+  ⟨λ x, ⟨_, x.some_spec.trans (zero_locus_span _).symm⟩, λ x, ⟨_, x.some_spec⟩⟩
+
+lemma is_closed_iff_zero_locus_radical_ideal (Z : set (prime_spectrum R)) :
+  is_closed Z ↔ ∃ (s : ideal R), s.radical = s ∧ Z = zero_locus s :=
+(is_closed_iff_zero_locus_ideal _).trans
+  ⟨λ x, ⟨_, ideal.radical_idem _, x.some_spec.trans (zero_locus_radical _).symm⟩,
+    λ x, ⟨_, x.some_spec.2⟩⟩
 
 lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
@@ -403,8 +415,60 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ $ is_field.to_field R h) },
+    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ h.to_field) },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
+end
+
+local notation `Z(` a `)` := zero_locus (a : set R)
+
+lemma is_irreducible_zero_locus_iff_of_radical (I : ideal R) (hI : I.radical = I) :
+  is_irreducible (zero_locus (I : set R)) ↔ I.is_prime :=
+begin
+  rw [ideal.is_prime_iff, is_irreducible],
+  apply and_congr,
+  { rw [← set.ne_empty_iff_nonempty, ne.def, zero_locus_empty_iff_eq_top] },
+  { transitivity ∀ (x y : ideal R), Z(I) ⊆ Z(x) ∪ Z(y) → Z(I) ⊆ Z(x) ∨ Z(I) ⊆ Z(y),
+    { simp_rw [is_preirreducible_iff_closed_union_closed, is_closed_iff_zero_locus_ideal],
+      split,
+      { rintros h x y, exact h _ _ ⟨x, rfl⟩ ⟨y, rfl⟩ },
+      { rintros h _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, exact h x y } },
+    { simp_rw [← zero_locus_inf, subset_zero_locus_iff_le_vanishing_ideal,
+        vanishing_ideal_zero_locus_eq_radical, hI],
+      split,
+      { intros h x y h',
+        simp_rw [← set_like.mem_coe, ← set.singleton_subset_iff, ← ideal.span_le],
+        apply h,
+        rw [← hI, ← ideal.radical_le_radical_iff, ideal.radical_inf, ← ideal.radical_mul,
+          ideal.radical_le_radical_iff, hI, ideal.span_mul_span],
+        simpa [ideal.span_le] using h' },
+      { simp_rw [or_iff_not_imp_left, set_like.not_le_iff_exists],
+        rintros h s t h' ⟨x, hx, hx'⟩ y hy,
+        exact h (h' ⟨ideal.mul_mem_right _ _ hx, ideal.mul_mem_left _ _ hy⟩) hx' } } }
+end
+
+lemma is_irreducible_zero_locus_iff (I : ideal R) :
+  is_irreducible (zero_locus (I : set R)) ↔ I.radical.is_prime :=
+(zero_locus_radical I) ▸ is_irreducible_zero_locus_iff_of_radical _ I.radical_idem
+
+instance [is_domain R] : irreducible_space (prime_spectrum R) :=
+begin
+  rw [irreducible_space_def, set.top_eq_univ, ← zero_locus_bot, is_irreducible_zero_locus_iff],
+  simpa using ideal.bot_prime
+end
+
+instance : quasi_sober (prime_spectrum R) :=
+begin
+  constructor,
+  intros S h₁ h₂,
+  rw [← h₂.closure_eq, ← zero_locus_vanishing_ideal_eq_closure,
+    is_irreducible_zero_locus_iff] at h₁,
+  use ⟨_, h₁⟩,
+  obtain ⟨s, hs, rfl⟩ := (is_closed_iff_zero_locus_radical_ideal _).mp h₂,
+  rw is_generic_point_iff_forall_closed h₂,
+  intros Z hZ hxZ,
+  obtain ⟨t, rfl⟩ := (is_closed_iff_zero_locus_ideal _).mp hZ,
+  exact zero_locus_anti_mono (by simpa [hs] using hxZ),
+  simp [hs]
 end
 
 section comap
@@ -437,10 +501,14 @@ variables (f : R →+* S)
   (comap f y).as_ideal = ideal.comap f y.as_ideal :=
 rfl
 
-@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id := by { ext, refl }
+@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id _ := by { ext, refl }
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = (comap f).comp (comap g) :=
+rfl
+
+lemma comap_comp_apply (f : R →+* S) (g : S →+* S') (x : prime_spectrum S') :
+  prime_spectrum.comap (g.comp f) x = (prime_spectrum.comap f) (prime_spectrum.comap g x) :=
 rfl
 
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
@@ -517,6 +585,63 @@ begin
     exact is_localization.comap_map_of_is_prime_disjoint M S _ x.2 h }
 end
 
+section spec_of_surjective
+/-! The comap of a surjective ring homomorphism is a closed embedding between the prime spectra. -/
+
+open function ring_hom
+
+lemma comap_inducing_of_surjective (hf : surjective f) : inducing (comap f) :=
+{ induced := begin
+    simp_rw [topological_space_eq_iff, ←is_closed_compl_iff, is_closed_induced_iff,
+      is_closed_iff_zero_locus],
+    refine λ s, ⟨λ ⟨F, hF⟩, ⟨zero_locus (f ⁻¹' F), ⟨f ⁻¹' F, rfl⟩,
+      by rw [preimage_comap_zero_locus, surjective.image_preimage hf, hF]⟩, _⟩,
+    rintros ⟨-, ⟨F, rfl⟩, hF⟩,
+    exact ⟨f '' F, hF.symm.trans (preimage_comap_zero_locus f F)⟩,
+  end }
+
+lemma image_comap_zero_locus_eq_zero_locus_comap (hf : surjective f) (I : ideal S) :
+  comap f '' zero_locus I = zero_locus (I.comap f) :=
+begin
+  simp only [set.ext_iff, set.mem_image, mem_zero_locus, set_like.coe_subset_coe],
+  refine λ p, ⟨_, λ h_I_p, _⟩,
+  { rintro ⟨p, hp, rfl⟩ a ha,
+    exact hp ha },
+  { have hp : ker f ≤ p.as_ideal := (ideal.comap_mono bot_le).trans h_I_p,
+    refine ⟨⟨p.as_ideal.map f, ideal.map_is_prime_of_surjective hf hp⟩, λ x hx, _, _⟩,
+    { obtain ⟨x', rfl⟩ := hf x,
+      exact ideal.mem_map_of_mem f (h_I_p hx) },
+    { ext x,
+      change f x ∈ p.as_ideal.map f ↔ _,
+      rw ideal.mem_map_iff_of_surjective f hf,
+      refine ⟨_, λ hx, ⟨x, hx, rfl⟩⟩,
+      rintros ⟨x', hx', heq⟩,
+      rw ← sub_sub_cancel x' x,
+      refine p.as_ideal.sub_mem hx' (hp _),
+      rwa [mem_ker, map_sub, sub_eq_zero] } },
+end
+
+lemma range_comap_of_surjective (hf : surjective f) :
+  set.range (comap f) = zero_locus (ker f) :=
+begin
+  rw ← set.image_univ,
+  convert image_comap_zero_locus_eq_zero_locus_comap _ _ hf _,
+  rw zero_locus_bot,
+end
+
+lemma is_closed_range_comap_of_surjective (hf : surjective f) : is_closed (set.range (comap f)) :=
+begin
+  rw range_comap_of_surjective _ f hf,
+  exact is_closed_zero_locus ↑(ker f),
+end
+
+lemma closed_embedding_comap_of_surjective (hf : surjective f) : closed_embedding (comap f) :=
+{ induced := (comap_inducing_of_surjective S f hf).induced,
+  inj := comap_injective_of_surjective f hf,
+  closed_range := is_closed_range_comap_of_surjective S f hf }
+
+end spec_of_surjective
+
 end comap
 
 section basic_open
@@ -534,13 +659,13 @@ lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : R) :
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
-set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+set.ext $ λ x, by simpa only [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open (1 : R) = ⊤ :=
-topological_space.opens.ext $ by {simp, refl}
+topological_space.opens.ext $ by simp
 
 @[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
-topological_space.opens.ext $ by {simp, refl}
+topological_space.opens.ext $ by simp
 
 lemma basic_open_le_basic_open_iff (f g : R) :
   basic_open f ≤ basic_open g ↔ f ∈ (ideal.span ({g} : set R)).radical :=
@@ -567,7 +692,7 @@ begin
   { rintros _ ⟨r, rfl⟩,
     exact is_open_basic_open },
   { rintros p U hp ⟨s, hs⟩,
-    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    rw [← compl_compl U, set.mem_compl_iff, ← hs, mem_zero_locus, set.not_subset] at hp,
     obtain ⟨f, hfs, hfp⟩ := hp,
     refine ⟨basic_open f, ⟨f, rfl⟩, hfp, _⟩,
     rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],
@@ -597,12 +722,23 @@ begin
   rcases submodule.exists_finset_of_mem_supr I hn with ⟨s, hs⟩,
   use s,
   -- Using simp_rw here, because `hI` and `zero_locus_supr` need to be applied underneath binders
-  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.diff_eq,
+  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm (zero_locus {f})ᶜ, ← set.diff_eq,
            set.diff_eq_empty, hI, ← zero_locus_supr],
   rw ← zero_locus_radical, -- this one can't be in `simp_rw` because it would loop
   apply zero_locus_anti_mono,
   rw set.singleton_subset_iff,
   exact ⟨n, hs⟩
+end
+
+@[simp]
+lemma basic_open_eq_bot_iff (f : R) :
+  basic_open f = ⊥ ↔ is_nilpotent f :=
+begin
+  rw [← subtype.coe_injective.eq_iff, basic_open_eq_zero_locus_compl],
+  simp only [set.eq_univ_iff_forall, topological_space.opens.empty_eq, set.singleton_subset_iff,
+    topological_space.opens.coe_bot, nilpotent_iff_mem_prime, set.compl_empty_iff, mem_zero_locus,
+    set_like.mem_coe],
+  exact subtype.forall,
 end
 
 lemma localization_away_comap_range (S : Type v) [comm_ring S] [algebra R S] (r : R)
@@ -611,7 +747,7 @@ begin
   rw localization_comap_range S (submonoid.powers r),
   ext,
   simp only [mem_zero_locus, basic_open_eq_zero_locus_compl, set_like.mem_coe, set.mem_set_of_eq,
-    set.singleton_subset_iff, set.mem_compl_eq],
+    set.singleton_subset_iff, set.mem_compl_iff],
   split,
   { intros h₁ h₂,
     exact h₁ ⟨submonoid.mem_powers r, h₂⟩ },
@@ -637,8 +773,6 @@ section order
 
 We endow `prime_spectrum R` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
-
-TODO: maybe define sober topological spaces, and generalise this instance to those
 -/
 
 instance : partial_order (prime_spectrum R) :=
@@ -657,7 +791,31 @@ lemma le_iff_mem_closure (x y : prime_spectrum R) :
 by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
     mem_zero_locus, vanishing_ideal_singleton, set_like.coe_subset_coe]
 
+lemma le_iff_specializes (x y : prime_spectrum R) :
+  x ≤ y ↔ x ⤳ y :=
+(le_iff_mem_closure x y).trans specializes_iff_mem_closure.symm
+
+/-- `nhds` as an order embedding. -/
+@[simps { fully_applied := tt }]
+def nhds_order_embedding : prime_spectrum R ↪o filter (prime_spectrum R) :=
+order_embedding.of_map_le_iff nhds $ λ a b, (le_iff_specializes a b).symm
+
+instance : t0_space (prime_spectrum R) := ⟨nhds_order_embedding.injective⟩
+
 end order
+
+/-- If `x` specializes to `y`, then there is a natural map from the localization of `y` to
+the localization of `x`. -/
+def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
+  localization.at_prime y.as_ideal →+* localization.at_prime x.as_ideal :=
+@is_localization.lift _ _ _ _ _ _ _ _
+  localization.is_localization (algebra_map R (localization.at_prime x.as_ideal))
+  begin
+    rintro ⟨a, ha⟩,
+    rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
+      ← set.compl_subset_compl] at h,
+    exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
+  end
 
 end prime_spectrum
 
@@ -674,8 +832,12 @@ def closed_point : prime_spectrum R :=
 
 variable {R}
 
-lemma local_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
-  {f : R →+* S} : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
+lemma is_local_ring_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
+  (f : R →+* S) : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
 by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
+
+@[simp] lemma comap_closed_point {S : Type v} [comm_ring S] [local_ring S] (f : R →+* S)
+  [is_local_ring_hom f] : prime_spectrum.comap f (closed_point S) = closed_point R :=
+(is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
 
 end local_ring

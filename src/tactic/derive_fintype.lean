@@ -3,7 +3,6 @@ Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import logic.basic
 import data.fintype.basic
 
 /-!
@@ -145,7 +144,7 @@ instance (α enum n) : inhabited (finset_above α enum n) := ⟨finset_above.nil
 /-- This is a finset covering a nontrivial variant (with one or more constructor arguments).
 The property `P` here is `λ a, enum a = n` where `n` is the discriminant for the current
 variant. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def finset_in {α} (P : α → Prop) := {s : finset α // ∀ x ∈ s, P x}
 
 /-- To construct the finset, we use an injective map from the type `Γ`, which will be the

@@ -198,7 +198,7 @@ prime_multiset.of_nat_list (nat.factors n) (@nat.prime_of_mem_factors n)
 theorem prod_factor_multiset (n : ℕ+) : (factor_multiset n).prod = n :=
 eq $ by { dsimp [factor_multiset],
           rw [prime_multiset.prod_of_nat_list],
-          exact nat.prod_factors n.pos }
+          exact nat.prod_factors n.ne_zero }
 
 theorem coe_nat_factor_multiset (n : ℕ+) :
   ((factor_multiset n) : (multiset ℕ)) = ((nat.factors n) : multiset ℕ) :=

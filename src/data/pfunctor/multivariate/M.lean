@@ -67,7 +67,7 @@ instance M.path.inhabited (x : P.last.M) {i} [inhabited (P.drop.B x.head i)] :
 ⟨ M.path.root _ (pfunctor.M.head x) (pfunctor.M.children x)
   (pfunctor.M.cases_on' x $
     by intros; simp [pfunctor.M.dest_mk]; ext; rw pfunctor.M.children_mk; refl) _
-    (default _) ⟩
+    default ⟩
 
 /-- Polynomial functor of the M-type of `P`. `A` is a data-less
 possibly infinite tree whereas, for a given `a : A`, `B a` is a valid

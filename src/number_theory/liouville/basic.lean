@@ -34,7 +34,7 @@ begin
   -- By contradiction, `x = a / b`, with `a ∈ ℤ`, `0 < b ∈ ℕ` is a Liouville number,
   rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
   -- clear up the mess of constructions of rationals
-  change (liouville (a / b)) at h,
+  rw [rat.cast_mk', ←div_eq_mul_inv] at h,
   -- Since `a / b` is a Liouville number, there are `p, q ∈ ℤ`, with `q1 : 1 < q`,
   -- `a0 : a / b ≠ p / q` and `a1 : |a / b - p / q| < 1 / q ^ (b + 1)`
   rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,
@@ -87,7 +87,7 @@ It is stated in more general form than needed: in the intended application, `Z =
 root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is
 the degree of the polynomial `f`.
 -/
-lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
+lemma exists_one_le_pow_mul_dist {Z N R : Type*} [pseudo_metric_space R]
   {d : N → ℝ} {j : Z → N → R} {f : R → R} {α : R} {ε M : ℝ}
 -- denominators are positive
   (d0 : ∀ (a : N), 1 ≤ d a)
@@ -154,6 +154,7 @@ begin
   -- 3: the weird inequality of Liouville type with powers of the denominators.
   { show 1 ≤ (a + 1 : ℝ) ^ f.nat_degree * |eval α fR - eval (z / (a + 1)) fR|,
     rw [fa, zero_sub, abs_neg],
+    rw [show (a + 1 : ℝ) = ((a + 1 : ℕ) : ℤ), by norm_cast] at hq ⊢,
     -- key observation: the right-hand side of the inequality is an *integer*.  Therefore,
     -- if its absolute value is not at least one, then it vanishes.  Proceed by contradiction
     refine one_le_pow_mul_abs_eval_div (int.coe_nat_succ_pos a) (λ hy, _),
@@ -178,7 +179,7 @@ begin
   -- There is a "large" real number `A` such that `(b + 1) ^ (deg f) * |f (x - a / (b + 1))| * A`
   -- is at least one.  This is obtained from lemma `exists_pos_real_of_irrational_root`.
   obtain ⟨A, hA, h⟩ : ∃ (A : ℝ), 0 < A ∧
-    ∀ (a : ℤ) (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (|x - a / (b.succ)| * A) :=
+    ∀ (a : ℤ) (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (|x - a / (b + 1)| * A) :=
     exists_pos_real_of_irrational_root lx.irrational f0 ef0,
   -- Since the real numbers are Archimedean, a power of `2` exceeds `A`: `hn : A < 2 ^ r`.
   rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
@@ -204,7 +205,8 @@ begin
   -- at ratios of integers.
   { lift b to ℕ using zero_le_one.trans b1.le,
     specialize h a b.pred,
-    rwa [nat.succ_pred_eq_of_pos (zero_lt_one.trans _), ← mul_assoc, ← (div_le_iff hA)] at h,
+    rwa [← nat.cast_succ, nat.succ_pred_eq_of_pos (zero_lt_one.trans _),
+      ← mul_assoc, ← (div_le_iff hA)] at h,
     exact int.coe_nat_lt.mp b1 }
 end
 

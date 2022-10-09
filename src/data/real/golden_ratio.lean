@@ -28,8 +28,8 @@ noncomputable theory
 /-- The conjugate of the golden ratio `ψ := (1 - √5)/2`. -/
 @[reducible] def golden_conj := (1 - real.sqrt 5)/2
 
-localized "notation `φ` := golden_ratio" in real
-localized "notation `ψ` := golden_conj" in real
+localized "notation (name := golden_ratio) `φ` := golden_ratio" in real
+localized "notation (name := golden_conj) `ψ` := golden_conj" in real
 
 /-- The inverse of the golden ratio is the opposite of its conjugate. -/
 lemma inv_gold : φ⁻¹ = -ψ :=
@@ -43,7 +43,7 @@ end
 /-- The opposite of the golden ratio is the inverse of its conjugate. -/
 lemma inv_gold_conj : ψ⁻¹ = -φ :=
 begin
-  rw [inv_eq_iff, ← neg_inv, neg_eq_iff_neg_eq],
+  rw [inv_eq_iff_inv_eq, ← neg_inv, neg_eq_iff_neg_eq],
   exact inv_gold.symm,
 end
 

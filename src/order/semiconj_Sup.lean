@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import order.conditionally_complete_lattice
+import algebra.hom.equiv
 import logic.function.conjugate
+import order.conditionally_complete_lattice
 import order.ord_continuous
-import data.equiv.mul_add
 
 /-!
 # Semiconjugate by `Sup`

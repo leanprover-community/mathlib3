@@ -3,10 +3,10 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.equiv.basic
+import algebra.hom.group
 import control.applicative
 import control.traversable.basic
-import algebra.group.hom
+import logic.equiv.basic
 
 /-!
 # Free constructions
@@ -44,7 +44,7 @@ namespace free_magma
 variables {α : Type u}
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_magma α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_magma α) := ⟨of default⟩
 
 @[to_additive]
 instance : has_mul (free_magma α) := ⟨free_magma.mul⟩
@@ -82,13 +82,13 @@ namespace free_magma
 variables {α : Type u} {β : Type v} [has_mul β] (f : α → β)
 
 @[to_additive]
-theorem lift_aux_unique (F : mul_hom (free_magma α) β) : ⇑F = lift_aux (F ∘ of) :=
+theorem lift_aux_unique (F : free_magma α →ₙ* β) : ⇑F = lift_aux (F ∘ of) :=
 funext $ λ x, free_magma.rec_on x (λ x, rfl) $ λ x y ih1 ih2,
 (F.map_mul x y).trans $ congr (congr_arg _ ih1) ih2
 
 /-- The universal property of the free magma expressing its adjointness. -/
 @[to_additive "The universal property of the free additive magma expressing its adjointness."]
-def lift : (α → β) ≃ mul_hom (free_magma α) β :=
+def lift : (α → β) ≃ (free_magma α →ₙ* β) :=
 { to_fun    := λ f,
   { to_fun := lift_aux f,
     map_mul' := λ x y, rfl, },
@@ -300,7 +300,7 @@ variables {α : Type u} [has_mul α]
 def of : α → free_semigroup α := quot.mk _
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of default⟩
 
 @[elab_as_eliminator, to_additive]
 protected lemma induction_on {C : free_semigroup α → Prop} (x : free_semigroup α)
@@ -399,7 +399,7 @@ def of (x : α) : free_semigroup α :=
 (x, [])
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of default⟩
 
 /-- Recursor for free semigroup using `of` and `*`. -/
 @[elab_as_eliminator, to_additive "Recursor for free additive semigroup using `of` and `+`."]

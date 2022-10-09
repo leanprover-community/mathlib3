@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
+import algebra.big_operators.nat_antidiagonal
 import data.polynomial.ring_division
 
 /-!
@@ -11,38 +12,37 @@ import data.polynomial.ring_division
 
 In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference
 between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is
-divisible by `X`. We also define `polynomial.norm2`, which is the sum of the squares of the
-coefficients of a polynomial. It is also a coefficient of `p * p.mirror`.
+divisible by `X`.
 
 ## Main definitions
 
 - `polynomial.mirror`
-- `polynomial.norm2`
 
 ## Main results
 
 - `polynomial.mirror_mul_of_domain`: `mirror` preserves multiplication.
 - `polynomial.irreducible_of_mirror`: an irreducibility criterion involving `mirror`
-- `polynomial.norm2_eq_mul_reverse_coeff`: `norm2` is a coefficient of `p * p.mirror`
 
 -/
 
 namespace polynomial
+open_locale polynomial
 
-variables {R : Type*} [semiring R] (p : polynomial R)
+section semiring
 
-section mirror
+variables {R : Type*} [semiring R] (p q : R[X])
 
 /-- mirror of a polynomial: reverses the coefficients while preserving `polynomial.nat_degree` -/
 noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
 
-@[simp] lemma mirror_zero : (0 : polynomial R).mirror = 0 := by simp [mirror]
+@[simp] lemma mirror_zero : (0 : R[X]).mirror = 0 := by simp [mirror]
 
 lemma mirror_monomial (n : ℕ) (a : R) : (monomial n a).mirror = (monomial n a) :=
 begin
+  classical,
   by_cases ha : a = 0,
   { rw [ha, monomial_zero_right, mirror_zero] },
-  { rw [mirror, reverse, nat_degree_monomial n a ha, nat_trailing_degree_monomial ha,
+  { rw [mirror, reverse, nat_degree_monomial n a, if_neg ha, nat_trailing_degree_monomial ha,
         ←C_mul_X_pow_eq_monomial, reflect_C_mul_X_pow, rev_at_le (le_refl n),
         tsub_self, pow_zero, mul_one] },
 end
@@ -50,20 +50,17 @@ end
 lemma mirror_C (a : R) : (C a).mirror = C a :=
 mirror_monomial 0 a
 
-lemma mirror_X : X.mirror = (X : polynomial R) :=
+lemma mirror_X : X.mirror = (X : R[X]) :=
 mirror_monomial 1 (1 : R)
 
 lemma mirror_nat_degree : p.mirror.nat_degree = p.nat_degree :=
 begin
   by_cases hp : p = 0,
   { rw [hp, mirror_zero] },
-  by_cases hR : nontrivial R,
-  { haveI := hR,
-    rw [mirror, nat_degree_mul', reverse_nat_degree, nat_degree_X_pow,
-        tsub_add_cancel_of_le p.nat_trailing_degree_le_nat_degree],
-    rwa [leading_coeff_X_pow, mul_one, reverse_leading_coeff, ne, trailing_coeff_eq_zero] },
-  { haveI := not_nontrivial_iff_subsingleton.mp hR,
-    exact congr_arg nat_degree (subsingleton.elim p.mirror p) },
+  nontriviality R,
+  rw [mirror, nat_degree_mul', reverse_nat_degree, nat_degree_X_pow,
+      tsub_add_cancel_of_le p.nat_trailing_degree_le_nat_degree],
+  rwa [leading_coeff_X_pow, mul_one, reverse_leading_coeff, ne, trailing_coeff_eq_zero]
 end
 
 lemma mirror_nat_trailing_degree : p.mirror.nat_trailing_degree = p.nat_trailing_degree :=
@@ -96,7 +93,7 @@ end
 --TODO: Extract `finset.sum_range_rev_at` lemma.
 lemma mirror_eval_one : p.mirror.eval 1 = p.eval 1 :=
 begin
-  simp_rw [eval_eq_finset_sum, one_pow, mul_one, mirror_nat_degree],
+  simp_rw [eval_eq_sum_range, one_pow, mul_one, mirror_nat_degree],
   refine finset.sum_bij_ne_zero _ _ _ _ _,
   { exact λ n hn hp, rev_at (p.nat_degree + p.nat_trailing_degree) n },
   { intros n hn hp,
@@ -121,18 +118,68 @@ lemma mirror_mirror : p.mirror.mirror = p :=
 polynomial.ext (λ n, by rw [coeff_mirror, coeff_mirror,
   mirror_nat_degree, mirror_nat_trailing_degree, rev_at_invol])
 
-lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
+variables {p q}
+
+lemma mirror_involutive : function.involutive (mirror : R[X] → R[X]) :=
+mirror_mirror
+
+lemma mirror_eq_iff : p.mirror = q ↔ p = q.mirror :=
+mirror_involutive.eq_iff
+
+@[simp] lemma mirror_inj : p.mirror = q.mirror ↔ p = q :=
+mirror_involutive.injective.eq_iff
+
+@[simp] lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
 ⟨λ h, by rw [←p.mirror_mirror, h, mirror_zero], λ h, by rw [h, mirror_zero]⟩
 
-lemma mirror_trailing_coeff : p.mirror.trailing_coeff = p.leading_coeff :=
+variables (p q)
+
+@[simp] lemma mirror_trailing_coeff : p.mirror.trailing_coeff = p.leading_coeff :=
 by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
   rev_at_le (nat.le_add_left _ _), add_tsub_cancel_right]
 
-lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
+@[simp] lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
-lemma mirror_mul_of_domain {R : Type*} [ring R] [is_domain R] (p q : polynomial R) :
-  (p * q).mirror = p.mirror * q.mirror :=
+lemma coeff_mul_mirror :
+  (p * p.mirror).coeff (p.nat_degree + p.nat_trailing_degree) = p.sum (λ n, (^ 2)) :=
+begin
+  rw [coeff_mul, finset.nat.sum_antidiagonal_eq_sum_range_succ_mk],
+  refine (finset.sum_congr rfl (λ n hn, _)).trans (p.sum_eq_of_subset (λ n, (^ 2))
+    (λ n, zero_pow zero_lt_two) _ (λ n hn, finset.mem_range_succ_iff.mpr
+    ((le_nat_degree_of_mem_supp n hn).trans (nat.le_add_right _ _)))).symm,
+  rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
+end
+
+variables [no_zero_divisors R]
+
+lemma nat_degree_mul_mirror : (p * p.mirror).nat_degree = 2 * p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_degree_zero, mul_zero] },
+  rw [nat_degree_mul hp (mt mirror_eq_zero.mp hp), mirror_nat_degree, two_mul],
+end
+
+lemma nat_trailing_degree_mul_mirror :
+  (p * p.mirror).nat_trailing_degree = 2 * p.nat_trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_trailing_degree_zero, mul_zero] },
+  rw [nat_trailing_degree_mul hp (mt mirror_eq_zero.mp hp), mirror_nat_trailing_degree, two_mul],
+end
+
+end semiring
+
+section ring
+
+variables {R : Type*} [ring R] (p q : R[X])
+
+lemma mirror_neg : (-p).mirror = -(p.mirror) :=
+by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
+
+variables [no_zero_divisors R]
+
+lemma mirror_mul_of_domain : (p * q).mirror = p.mirror * q.mirror :=
 begin
   by_cases hp : p = 0,
   { rw [hp, zero_mul, mirror_zero, zero_mul] },
@@ -144,15 +191,16 @@ begin
   repeat { rw [mul_assoc], },
 end
 
-lemma mirror_smul {R : Type*} [ring R] [is_domain R] (p : polynomial R) (a : R) :
-  (a • p).mirror = a • p.mirror :=
+lemma mirror_smul (a : R) : (a • p).mirror = a • p.mirror :=
 by rw [←C_mul', ←C_mul', mirror_mul_of_domain, mirror_C]
 
-lemma mirror_neg {R : Type*} [ring R] (p : polynomial R) : (-p).mirror = -(p.mirror) :=
-by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
+end ring
 
-lemma irreducible_of_mirror {R : Type*} [comm_ring R] [is_domain R] {f : polynomial R}
-  (h1 : ¬ is_unit f)
+section comm_ring
+
+variables {R : Type*} [comm_ring R] [no_zero_divisors R] {f : R[X]}
+
+lemma irreducible_of_mirror (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)
   (h3 : ∀ g, g ∣ f → g ∣ f.mirror → is_unit g) : irreducible f :=
 begin
@@ -182,6 +230,6 @@ begin
     { exact or.inl (h3 g g_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, dvd_neg])) } },
 end
 
-end mirror
+end comm_ring
 
 end polynomial

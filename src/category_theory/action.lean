@@ -6,7 +6,7 @@ Authors: David Wärn
 import category_theory.elements
 import category_theory.is_connected
 import category_theory.single_obj
-import group_theory.group_action.basic
+import group_theory.group_action.quotient
 import group_theory.semidirect_product
 
 /-!
@@ -80,8 +80,7 @@ def obj_equiv : X ≃ action_category M X :=
 lemma hom_as_subtype (p q : action_category M X) :
   (p ⟶ q) = { m : M // m • p.back = q.back } := rfl
 
-instance [inhabited X] : inhabited (action_category M X) :=
-{ default := ↑(default X) }
+instance [inhabited X] : inhabited (action_category M X) := ⟨show X, from default⟩
 
 instance [nonempty X] : nonempty (action_category M X) :=
 nonempty.map (obj_equiv M X) infer_instance

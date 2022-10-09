@@ -3,7 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
-import linear_algebra.quadratic_form.basic
+import linear_algebra.quadratic_form.isometry
 import analysis.special_functions.pow
 import data.real.sign
 
@@ -32,7 +32,7 @@ noncomputable def isometry_sign_weighted_sum_squares
   [decidable_eq ι] (w : ι → ℝ) :
   isometry (weighted_sum_squares ℝ w) (weighted_sum_squares ℝ (sign ∘ w)) :=
 begin
-  let u := λ i, if h : w i = 0 then (1 : units ℝ) else units.mk0 (w i) h,
+  let u := λ i, if h : w i = 0 then (1 : ℝˣ) else units.mk0 (w i) h,
   have hu' : ∀ i : ι, (sign (u i) * u i) ^ - (1 / 2 : ℝ) ≠ 0,
   { intro i, refine (ne_of_lt (real.rpow_pos_of_pos
       (sign_mul_pos_of_ne_zero _ $ units.ne_zero _) _)).symm},
@@ -55,7 +55,7 @@ begin
   erw [hsum],
   simp only [u, function.comp, smul_eq_mul],
   split_ifs,
-  { simp only [h, zero_smul, zero_mul, sign_zero] },
+  { simp only [h, zero_smul, zero_mul, real.sign_zero] },
   have hwu : w j = u j,
   { simp only [u, dif_neg h, units.coe_mk0] },
   simp only [hwu, units.coe_mk0],
@@ -63,7 +63,7 @@ begin
     (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
   { erw [← mul_assoc, this], ring },
   rw [← real.rpow_add (sign_mul_pos_of_ne_zero _ $ units.ne_zero _),
-      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv₀,
+      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv,
       inv_sign, mul_assoc (sign (u j)) (u j)⁻¹,
       inv_mul_cancel (units.ne_zero _), mul_one],
   apply_instance

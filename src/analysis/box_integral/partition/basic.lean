@@ -60,7 +60,7 @@ instance : has_mem (box ι) (prepartition I) := ⟨λ J π, J ∈ π.boxes⟩
 
 lemma disjoint_coe_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (h : J₁ ≠ J₂) :
   disjoint (J₁ : set (ι → ℝ)) J₂ :=
-π.pairwise_disjoint J₁ h₁ J₂ h₂ h
+π.pairwise_disjoint h₁ h₂ h
 
 lemma eq_of_mem_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (hx₁ : x ∈ J₁) (hx₂ : x ∈ J₂) :
   J₁ = J₂ :=
@@ -169,7 +169,7 @@ lemma Union_def : π.Union = ⋃ J ∈ π, ↑J := rfl
 
 lemma Union_def' : π.Union = ⋃ J ∈ π.boxes, ↑J := rfl
 
-@[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_bUnion_iff
+@[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_Union₂
 
 @[simp] lemma Union_single (h : J ≤ I) : (single I J h).Union = J := by simp [Union_def]
 
@@ -182,7 +182,7 @@ by simp [← injective_boxes.eq_iff, finset.ext_iff, prepartition.Union, imp_fal
 
 lemma subset_Union (h : J ∈ π) : ↑J ⊆ π.Union := subset_bUnion_of_mem h
 
-lemma Union_subset : π.Union ⊆ I := bUnion_subset π.le_of_mem'
+lemma Union_subset : π.Union ⊆ I := Union₂_subset π.le_of_mem'
 
 @[mono] lemma Union_mono (h : π₁ ≤ π₂) : π₁.Union ⊆ π₂.Union :=
 λ x hx, let ⟨J₁, hJ₁, hx⟩ := π₁.mem_Union.1 hx, ⟨J₂, hJ₂, hle⟩ := h hJ₁
@@ -320,7 +320,7 @@ def of_with_bot (boxes : finset (with_bot (box ι)))
   pairwise_disjoint := λ J₁ h₁ J₂ h₂ hne,
     begin
       simp only [mem_coe, mem_erase_none] at h₁ h₂,
-      exact box.disjoint_coe.1 (pairwise_disjoint _ h₁ _ h₂ (mt option.some_inj.1 hne))
+      exact box.disjoint_coe.1 (pairwise_disjoint h₁ h₂ (mt option.some_inj.1 hne))
     end }
 
 @[simp] lemma mem_of_with_bot {boxes : finset (with_bot (box ι))} {h₁ h₂} :
@@ -344,7 +344,7 @@ lemma of_with_bot_le {boxes : finset (with_bot (box ι))}
   (H : ∀ J ∈ boxes, J ≠ ⊥ → ∃ J' ∈ π, J ≤ ↑J') :
   of_with_bot boxes le_of_mem pairwise_disjoint ≤ π :=
 have ∀ (J : box ι), ↑J ∈ boxes → ∃ J' ∈ π, J ≤ J',
-  from λ J hJ, by simpa only [with_bot.coe_le_coe] using H J hJ (with_bot.coe_ne_bot J),
+  from λ J hJ, by simpa only [with_bot.coe_le_coe] using H J hJ with_bot.coe_ne_bot,
 by simpa [of_with_bot, le_def]
 
 lemma le_of_with_bot {boxes : finset (with_bot (box ι))}
@@ -355,7 +355,7 @@ lemma le_of_with_bot {boxes : finset (with_bot (box ι))}
 begin
   intros J hJ,
   rcases H J hJ with ⟨J', J'mem, hle⟩,
-  lift J' to box ι using ne_bot_of_le_ne_bot (with_bot.coe_ne_bot _) hle,
+  lift J' to box ι using ne_bot_of_le_ne_bot with_bot.coe_ne_bot hle,
   exact ⟨J', mem_of_with_bot.2 J'mem, with_bot.coe_le_coe.1 hle⟩
 end
 
@@ -368,7 +368,7 @@ lemma of_with_bot_mono {boxes₁ : finset (with_bot (box ι))}
   (H : ∀ J ∈ boxes₁, J ≠ ⊥ → ∃ J' ∈ boxes₂, J ≤ J') :
   of_with_bot boxes₁ le_of_mem₁ pairwise_disjoint₁ ≤
     of_with_bot boxes₂ le_of_mem₂ pairwise_disjoint₂ :=
-le_of_with_bot _ $ λ J hJ, H J (mem_of_with_bot.1 hJ) (with_bot.coe_ne_bot _)
+le_of_with_bot _ $ λ J hJ, H J (mem_of_with_bot.1 hJ) with_bot.coe_ne_bot
 
 lemma sum_of_with_bot {M : Type*} [add_comm_monoid M]
   (boxes : finset (with_bot (box ι)))
@@ -376,7 +376,7 @@ lemma sum_of_with_bot {M : Type*} [add_comm_monoid M]
   (pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint)
   (f : box ι → M) :
   ∑ J in (of_with_bot boxes le_of_mem pairwise_disjoint).boxes, f J =
-    ∑ J in boxes, option.elim J 0 f :=
+    ∑ J in boxes, option.elim 0 f J :=
 finset.sum_erase_none _ _
 
 /-- Restrict a prepartition to a box. -/
@@ -434,7 +434,7 @@ begin
   refine (eq_of_boxes_subset_Union_superset (λ J₁ h₁, _) _).symm,
   { refine (mem_restrict _).2 ⟨J₁, π.mem_bUnion.2 ⟨J, hJ, h₁⟩, (inf_of_le_right _).symm⟩,
     exact with_bot.coe_le_coe.2 (le_of_mem _ h₁) },
-  { simp only [Union_restrict, Union_bUnion, set.subset_def, set.mem_inter_eq, set.mem_Union],
+  { simp only [Union_restrict, Union_bUnion, set.subset_def, set.mem_inter_iff, set.mem_Union],
     rintro x ⟨hxJ, J₁, h₁, hx⟩,
     obtain rfl : J = J₁, from π.eq_of_mem_of_mem hJ h₁ hxJ (Union_subset _ hx),
     exact hx }
@@ -550,7 +550,7 @@ lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=
 le_sup h
 
 lemma distortion_le_iff {c : ℝ≥0} : π.distortion ≤ c ↔ ∀ J ∈ π, box.distortion J ≤ c :=
-sup_le_iff
+finset.sup_le_iff
 
 lemma distortion_bUnion (π : prepartition I) (πi : Π J, prepartition J) :
   (π.bUnion πi).distortion = π.boxes.sup (λ J, (πi J).distortion) :=
@@ -625,8 +625,8 @@ is_partition_iff_Union_eq.2 $ by simp [h₁.Union_eq, h₂.Union_eq]
 end is_partition
 
 lemma Union_bUnion_partition (h : ∀ J ∈ π, (πi J).is_partition) : (π.bUnion πi).Union = π.Union :=
-(Union_bUnion _ _).trans $ Union_congr id surjective_id $ λ J, Union_congr id surjective_id $ λ hJ,
-  (h J hJ).Union_eq
+(Union_bUnion _ _).trans $ Union_congr_of_surjective id surjective_id $ λ J,
+  Union_congr_of_surjective id surjective_id $ λ hJ, (h J hJ).Union_eq
 
 lemma is_partition_disj_union_of_eq_diff (h : π₂.Union = I \ π₁.Union) :
   is_partition (π₁.disj_union π₂ (h.symm ▸ disjoint_diff)) :=

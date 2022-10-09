@@ -23,6 +23,8 @@ This file defines affine subspaces (over modules) and the affine span of a set o
   various lemmas relating to the set of vectors in the `direction`,
   and relating the lattice structure on affine subspaces to that on
   their directions.
+* `affine_subspace.parallel`, notation `‖`, gives the property of two affine subspaces being
+  parallel (one being a translate of the other).
 * `affine_span` gives the affine subspace spanned by a set of points,
   with `vector_span` giving its direction.  `affine_span` is defined
   in terms of `span_points`, which gives an explicit description of
@@ -52,7 +54,7 @@ Those depending on analysis or topology are defined elsewhere; see
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 
 open set
 
@@ -276,6 +278,16 @@ lemma vadd_mem_iff_mem_direction {s : affine_subspace k P} (v : V) {p : P} (hp :
   v +ᵥ p ∈ s ↔ v ∈ s.direction :=
 ⟨λ h, by simpa using vsub_mem_direction h hp, λ h, vadd_mem_of_mem_direction h hp⟩
 
+/-- Adding a vector in the direction to a point produces a point in the subspace if and only if
+the original point is in the subspace. -/
+lemma vadd_mem_iff_mem_of_mem_direction {s : affine_subspace k P} {v : V} (hv : v ∈ s.direction)
+  {p : P} : v +ᵥ p ∈ s ↔ p ∈ s :=
+begin
+  refine ⟨λ h, _, λ h, vadd_mem_of_mem_direction hv h⟩,
+  convert vadd_mem_of_mem_direction (submodule.neg_mem _ hv) h,
+  simp
+end
+
 /-- Given a point in an affine subspace, the set of vectors in its
 direction equals the set of vectors subtracting that point on the
 right. -/
@@ -343,8 +355,8 @@ begin
 end
 
 /-- Two affine subspaces are equal if they have the same points. -/
-@[ext] lemma ext {s1 s2 : affine_subspace k P} (h : (s1 : set P) = s2) : s1 = s2 :=
-begin
+@[ext] lemma coe_injective : function.injective (coe : affine_subspace k P → set P) :=
+λ s1 s2 h, begin
   cases s1,
   cases s2,
   congr,
@@ -353,7 +365,7 @@ end
 
 @[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
   (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
-⟨ext, by tidy⟩
+⟨λ h, coe_injective h, by tidy⟩
 
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/
@@ -376,7 +388,9 @@ begin
     exact vsub_mem_direction hp hq2 }
 end
 
-instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
+/-- This is not an instance because it loops with `add_torsor.nonempty`. -/
+@[reducible] -- See note [reducible non instances]
+def to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.direction s :=
 { vadd := λ a b, ⟨(a:V) +ᵥ (b:P), vadd_mem_of_mem_direction a.2 b.2⟩,
   zero_vadd := by simp,
   add_vadd := λ a b c, by { ext, apply add_vadd },
@@ -385,6 +399,8 @@ instance to_add_torsor (s : affine_subspace k P) [nonempty s] : add_torsor s.dir
   vsub_vadd' := λ a b, by { ext, apply add_torsor.vsub_vadd' },
   vadd_vsub' := λ a b, by { ext, apply add_torsor.vadd_vsub' } }
 
+local attribute [instance] to_add_torsor
+
 @[simp, norm_cast] lemma coe_vsub (s : affine_subspace k P) [nonempty s] (a b : s) :
   ↑(a -ᵥ b) = (a:P) -ᵥ (b:P) :=
 rfl
@@ -392,6 +408,25 @@ rfl
 @[simp, norm_cast] lemma coe_vadd (s : affine_subspace k P) [nonempty s] (a : s.direction) (b : s) :
   ↑(a +ᵥ b) = (a:V) +ᵥ (b:P) :=
 rfl
+
+/-- Embedding of an affine subspace to the ambient space, as an affine map. -/
+protected def subtype (s : affine_subspace k P) [nonempty s] : s →ᵃ[k] P :=
+{ to_fun := coe,
+  linear := s.direction.subtype,
+  map_vadd' := λ p v, rfl }
+
+@[simp] lemma subtype_linear (s : affine_subspace k P) [nonempty s] :
+  s.subtype.linear = s.direction.subtype :=
+rfl
+
+lemma subtype_apply (s : affine_subspace k P) [nonempty s] (p : s) : s.subtype p = p :=
+rfl
+
+@[simp] lemma coe_subtype (s : affine_subspace k P) [nonempty s] : (s.subtype : s → P) = coe :=
+rfl
+
+lemma injective_subtype (s : affine_subspace k P) [nonempty s] : function.injective s.subtype :=
+subtype.coe_injective
 
 /-- Two affine subspaces with nonempty intersection are equal if and
 only if their directions are equal. -/
@@ -546,15 +581,15 @@ instance : complete_lattice (affine_subspace k P) :=
   bot_le := λ _ _, false.elim,
   Sup := λ s, affine_span k (⋃ s' ∈ s, (s' : set P)),
   Inf := λ s, mk (⋂ s' ∈ s, (s' : set P))
-                 (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_bInter_iff.2 $ λ s2 hs2,
-                   s2.smul_vsub_vadd_mem c (set.mem_bInter_iff.1 hp1 s2 hs2)
-                                           (set.mem_bInter_iff.1 hp2 s2 hs2)
-                                           (set.mem_bInter_iff.1 hp3 s2 hs2)),
+                 (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_Inter₂.2 $ λ s2 hs2, begin
+                   rw set.mem_Inter₂ at *,
+                   exact s2.smul_vsub_vadd_mem c (hp1 s2 hs2) (hp2 s2 hs2) (hp3 s2 hs2)
+                 end),
   le_Sup := λ _ _ h, set.subset.trans (set.subset_bUnion_of_mem h) (subset_span_points k _),
-  Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.bUnion_subset h),
+  Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.Union₂_subset h),
   Inf_le := λ _ _, set.bInter_subset_of_mem,
-  le_Inf := λ _ _, set.subset_bInter,
-  .. partial_order.lift (coe : affine_subspace k P → set P) (λ _ _, ext) }
+  le_Inf := λ _ _, set.subset_Inter₂,
+  .. partial_order.lift (coe : affine_subspace k P → set P) coe_injective }
 
 instance : inhabited (affine_subspace k P) := ⟨⊤⟩
 
@@ -601,7 +636,7 @@ variables (k V)
 /-- The affine span is the `Inf` of subspaces containing the given
 points. -/
 lemma affine_span_eq_Inf (s : set P) : affine_span k s = Inf {s' | s ⊆ s'} :=
-le_antisymm (span_points_subset_coe_of_subset_coe (set.subset_bInter (λ _ h, h)))
+le_antisymm (span_points_subset_coe_of_subset_coe $ set.subset_Inter₂ $ λ _, id)
             (Inf_le (subset_span_points k _))
 
 variables (P)
@@ -751,6 +786,18 @@ variables (P)
 by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_empty, submodule.span_empty]
 
 variables {k V P}
+
+@[simp] lemma coe_eq_bot_iff (Q : affine_subspace k P) : (Q : set P) = ∅ ↔ Q = ⊥ :=
+coe_injective.eq_iff' (bot_coe _ _ _)
+
+@[simp] lemma coe_eq_univ_iff (Q : affine_subspace k P) : (Q : set P) = univ ↔ Q = ⊤ :=
+coe_injective.eq_iff' (top_coe _ _ _)
+
+lemma nonempty_iff_ne_bot (Q : affine_subspace k P) : (Q : set P).nonempty ↔ Q ≠ ⊥ :=
+by { rw ← ne_empty_iff_nonempty, exact not_congr Q.coe_eq_bot_iff }
+
+lemma eq_bot_or_nonempty (Q : affine_subspace k P) : Q = ⊥ ∨ (Q : set P).nonempty :=
+by { rw nonempty_iff_ne_bot, apply eq_or_ne }
 
 lemma subsingleton_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
   (h₂ : affine_span k s = ⊤) : subsingleton P :=
@@ -987,7 +1034,8 @@ end
 /-- The `vector_span` is the span of the pairwise subtractions with a
 given point on the right, excluding the subtraction of that point from
 itself. -/
-lemma vector_span_eq_span_vsub_finset_right_ne {s : finset P} {p : P} (hp : p ∈ s) :
+lemma vector_span_eq_span_vsub_finset_right_ne [decidable_eq P] [decidable_eq V] {s : finset P}
+  {p : P} (hp : p ∈ s) :
   vector_span k (s : set P) = submodule.span k ((s.erase p).image (-ᵥ p)) :=
 by simp [vector_span_eq_span_vsub_set_right_ne _ (finset.mem_coe.mpr hp)]
 
@@ -1092,6 +1140,98 @@ end
 
 variables (k)
 
+/-- The `vector_span` of two points is the span of their difference. -/
+lemma vector_span_pair (p₁ p₂ : P) : vector_span k ({p₁, p₂} : set P) = k ∙ (p₁ -ᵥ p₂) :=
+by rw [vector_span_eq_span_vsub_set_left k (mem_insert p₁ _), image_pair, vsub_self,
+       submodule.span_insert_zero]
+
+/-- The `vector_span` of two points is the span of their difference (reversed). -/
+lemma vector_span_pair_rev (p₁ p₂ : P) : vector_span k ({p₁, p₂} : set P) = k ∙ (p₂ -ᵥ p₁) :=
+by rw [pair_comm, vector_span_pair]
+
+/-- The difference between two points lies in their `vector_span`. -/
+lemma vsub_mem_vector_span_pair (p₁ p₂ : P) : p₁ -ᵥ p₂ ∈ vector_span k ({p₁, p₂} : set P) :=
+vsub_mem_vector_span _ (set.mem_insert _ _) (set.mem_insert_of_mem _ (set.mem_singleton _))
+
+/-- The difference between two points (reversed) lies in their `vector_span`. -/
+lemma vsub_rev_mem_vector_span_pair (p₁ p₂ : P) : p₂ -ᵥ p₁ ∈ vector_span k ({p₁, p₂} : set P) :=
+vsub_mem_vector_span _ (set.mem_insert_of_mem _ (set.mem_singleton _)) (set.mem_insert _ _)
+
+variables {k}
+
+/-- A multiple of the difference between two points lies in their `vector_span`. -/
+lemma smul_vsub_mem_vector_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₁ -ᵥ p₂) ∈ vector_span k ({p₁, p₂} : set P) :=
+submodule.smul_mem _ _ (vsub_mem_vector_span_pair k p₁ p₂)
+
+/-- A multiple of the difference between two points (reversed) lies in their `vector_span`. -/
+lemma smul_vsub_rev_mem_vector_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₂ -ᵥ p₁) ∈ vector_span k ({p₁, p₂} : set P) :=
+submodule.smul_mem _ _ (vsub_rev_mem_vector_span_pair k p₁ p₂)
+
+/-- A vector lies in the `vector_span` of two points if and only if it is a multiple of their
+difference. -/
+lemma mem_vector_span_pair {p₁ p₂ : P} {v : V} :
+  v ∈ vector_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
+by rw [vector_span_pair, submodule.mem_span_singleton]
+
+/-- A vector lies in the `vector_span` of two points if and only if it is a multiple of their
+difference (reversed). -/
+lemma mem_vector_span_pair_rev {p₁ p₂ : P} {v : V} :
+  v ∈ vector_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
+by rw [vector_span_pair_rev, submodule.mem_span_singleton]
+
+variables (k)
+
+/-- The first of two points lies in their affine span. -/
+lemma left_mem_affine_span_pair (p₁ p₂ : P) : p₁ ∈ affine_span k ({p₁, p₂} : set P) :=
+mem_affine_span _ (set.mem_insert _ _)
+
+/-- The second of two points lies in their affine span. -/
+lemma right_mem_affine_span_pair (p₁ p₂ : P) : p₂ ∈ affine_span k ({p₁, p₂} : set P) :=
+mem_affine_span _ (set.mem_insert_of_mem _ (set.mem_singleton _))
+
+variables {k}
+
+/-- A combination of two points expressed with `line_map` lies in their affine span. -/
+lemma affine_map.line_map_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  affine_map.line_map p₁ p₂ r ∈ affine_span k ({p₁, p₂} : set P) :=
+affine_map.line_map_mem _ (left_mem_affine_span_pair _ _ _) (right_mem_affine_span_pair _ _ _)
+
+/-- A combination of two points expressed with `line_map` (with the two points reversed) lies in
+their affine span. -/
+lemma affine_map.line_map_rev_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  affine_map.line_map p₂ p₁ r ∈ affine_span k ({p₁, p₂} : set P) :=
+affine_map.line_map_mem _ (right_mem_affine_span_pair _ _ _) (left_mem_affine_span_pair _ _ _)
+
+/-- A multiple of the difference of two points added to the first point lies in their affine
+span. -/
+lemma smul_vsub_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₂ -ᵥ p₁) +ᵥ p₁ ∈ affine_span k ({p₁, p₂} : set P) :=
+affine_map.line_map_mem_affine_span_pair _ _ _
+
+/-- A multiple of the difference of two points added to the second point lies in their affine
+span. -/
+lemma smul_vsub_rev_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₁ -ᵥ p₂) +ᵥ p₂ ∈ affine_span k ({p₁, p₂} : set P) :=
+affine_map.line_map_rev_mem_affine_span_pair _ _ _
+
+/-- A vector added to the first point lies in the affine span of two points if and only if it is
+a multiple of their difference. -/
+lemma vadd_left_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
+  v +ᵥ p₁ ∈ affine_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
+by rw [vadd_mem_iff_mem_direction _ (left_mem_affine_span_pair _ _ _), direction_affine_span,
+       mem_vector_span_pair_rev]
+
+/-- A vector added to the second point lies in the affine span of two points if and only if it is
+a multiple of their difference. -/
+lemma vadd_right_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
+  v +ᵥ p₂ ∈ affine_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
+by rw [vadd_mem_iff_mem_direction _ (right_mem_affine_span_pair _ _ _), direction_affine_span,
+       mem_vector_span_pair]
+
+variables (k)
+
 /-- `affine_span` is monotone. -/
 @[mono]
 lemma affine_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : affine_span k s₁ ≤ affine_span k s₂ :=
@@ -1112,6 +1252,14 @@ begin
   rw ←mem_coe at h,
   rw [←affine_span_insert_affine_span, set.insert_eq_of_mem h, affine_span_coe]
 end
+
+variables {k}
+
+/-- If a point is in the affine span of a set, adding it to that set
+does not change the vector span. -/
+lemma vector_span_insert_eq_vector_span {p : P} {ps : set P} (h : p ∈ affine_span k ps) :
+  vector_span k (insert p ps) = vector_span k ps :=
+by simp_rw [←direction_affine_span, affine_span_insert_eq_affine_span _ h]
 
 end affine_space'
 
@@ -1192,12 +1340,15 @@ end
 
 end affine_subspace
 
-section maps
+section map_comap
 
-variables {k V₁ P₁ V₂ P₂ : Type*} [ring k]
+variables {k V₁ P₁ V₂ P₂ V₃ P₃ : Type*} [ring k]
 variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
 variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+variables [add_comm_group V₃] [module k V₃] [add_torsor V₃ P₃]
 include V₁ V₂
+
+section
 
 variables (f : P₁ →ᵃ[k] P₂)
 
@@ -1214,14 +1365,44 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
     begin
       rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
       use t • (p₁ -ᵥ p₂) +ᵥ p₃,
-      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { by simp [this], },
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { simp [this], },
       exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
     end }
 
-@[simp] lemma map_coe (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+@[simp] lemma coe_map (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+
+@[simp] lemma mem_map {f : P₁ →ᵃ[k] P₂} {x : P₂} {s : affine_subspace k P₁} :
+  x ∈ s.map f ↔ ∃ y ∈ s, f y = x := mem_image_iff_bex
+
+lemma mem_map_of_mem {x : P₁} {s : affine_subspace k P₁} (h : x ∈ s) : f x ∈ s.map f :=
+set.mem_image_of_mem _ h
+
+lemma mem_map_iff_mem_of_injective {f : P₁ →ᵃ[k] P₂} {x : P₁} {s : affine_subspace k P₁}
+  (hf : function.injective f) : f x ∈ s.map f ↔ x ∈ s :=
+hf.mem_set_image
 
 @[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
-by { rw ← ext_iff, exact image_empty f, }
+coe_injective $ image_empty f
+
+@[simp] lemma map_eq_bot_iff {s : affine_subspace k P₁} : s.map f = ⊥ ↔ s = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [←coe_eq_bot_iff, coe_map, image_eq_empty, coe_eq_bot_iff] at h },
+  { rw [h, map_bot] }
+end
+
+omit V₂
+
+@[simp] lemma map_id (s : affine_subspace k P₁) : s.map (affine_map.id k P₁) = s :=
+coe_injective $ image_id _
+
+include V₂ V₃
+
+lemma map_map (s : affine_subspace k P₁) (f : P₁ →ᵃ[k] P₂) (g : P₂ →ᵃ[k] P₃) :
+  (s.map f).map g = s.map (g.comp f) :=
+coe_injective $ image_image _ _ _
+
+omit V₃
 
 @[simp] lemma map_direction (s : affine_subspace k P₁) :
   (s.map f).direction = s.direction.map f.linear :=
@@ -1254,7 +1435,9 @@ by rw [← affine_subspace.map_span, h, map_top_of_surjective f hf]
 
 end affine_map
 
-lemma affine_equiv.span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
+namespace affine_equiv
+
+lemma span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
   affine_span k s = ⊤ ↔ affine_span k (e '' s) = ⊤ :=
 begin
   refine ⟨(e : P₁ →ᵃ[k] P₂).span_eq_top_of_surjective e.surjective, _⟩,
@@ -1264,4 +1447,158 @@ begin
   exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
 end
 
-end maps
+end affine_equiv
+
+end
+
+namespace affine_subspace
+
+/-- The preimage of an affine subspace under an affine map as an affine subspace. -/
+def comap (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) : affine_subspace k P₁ :=
+{ carrier := f ⁻¹' s,
+  smul_vsub_vadd_mem := λ t p₁ p₂ p₃ (hp₁ : f p₁ ∈ s) (hp₂ : f p₂ ∈ s) (hp₃ : f p₃ ∈ s),
+    show f _ ∈ s, begin
+      rw [affine_map.map_vadd, linear_map.map_smul, affine_map.linear_map_vsub],
+      apply s.smul_vsub_vadd_mem _ hp₁ hp₂ hp₃,
+    end }
+
+@[simp] lemma coe_comap (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) :
+  (s.comap f : set P₁) = f ⁻¹' ↑s := rfl
+
+@[simp] lemma mem_comap {f : P₁ →ᵃ[k] P₂} {x : P₁} {s : affine_subspace k P₂} :
+  x ∈ s.comap f ↔ f x ∈ s := iff.rfl
+
+lemma comap_mono {f : P₁ →ᵃ[k] P₂} {s t : affine_subspace k P₂} : s ≤ t → s.comap f ≤ t.comap f :=
+preimage_mono
+
+@[simp] lemma comap_top {f : P₁ →ᵃ[k] P₂} : (⊤ : affine_subspace k P₂).comap f = ⊤ :=
+by { rw ← ext_iff, exact preimage_univ, }
+
+omit V₂
+
+@[simp] lemma comap_id (s : affine_subspace k P₁) : s.comap (affine_map.id k P₁) = s :=
+coe_injective rfl
+
+include V₂ V₃
+
+lemma comap_comap (s : affine_subspace k P₃) (f : P₁ →ᵃ[k] P₂) (g : P₂ →ᵃ[k] P₃) :
+  (s.comap g).comap f = s.comap (g.comp f) :=
+coe_injective rfl
+
+omit V₃
+
+-- lemmas about map and comap derived from the galois connection
+
+lemma map_le_iff_le_comap {f : P₁ →ᵃ[k] P₂} {s : affine_subspace k P₁} {t : affine_subspace k P₂} :
+  s.map f ≤ t ↔ s ≤ t.comap f :=
+image_subset_iff
+
+lemma gc_map_comap (f : P₁ →ᵃ[k] P₂) : galois_connection (map f) (comap f) :=
+λ _ _, map_le_iff_le_comap
+
+lemma map_comap_le (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) : (s.comap f).map f ≤ s :=
+(gc_map_comap f).l_u_le _
+
+lemma le_comap_map (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₁) : s ≤ (s.map f).comap f :=
+(gc_map_comap f).le_u_l _
+
+lemma map_sup (s t : affine_subspace k P₁) (f : P₁ →ᵃ[k] P₂) : (s ⊔ t).map f = s.map f ⊔ t.map f :=
+(gc_map_comap f).l_sup
+
+lemma map_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subspace k P₁) :
+  (supr s).map f = ⨆ i, (s i).map f :=
+(gc_map_comap f).l_supr
+
+lemma comap_inf (s t : affine_subspace k P₂) (f : P₁ →ᵃ[k] P₂) :
+  (s ⊓ t).comap f = s.comap f ⊓ t.comap f :=
+(gc_map_comap f).u_inf
+
+lemma comap_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subspace k P₂) :
+  (infi s).comap f = ⨅ i, (s i).comap f :=
+(gc_map_comap f).u_infi
+
+end affine_subspace
+
+end map_comap
+
+namespace affine_subspace
+
+open affine_equiv
+
+variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
+variables [affine_space V P]
+include V
+
+/-- Two affine subspaces are parallel if one is related to the other by adding the same vector
+to all points. -/
+def parallel (s₁ s₂ : affine_subspace k P) : Prop :=
+∃ v : V, s₂ = s₁.map (const_vadd k P v)
+
+/- The notation should logically be U+2225 PARALLEL TO, but that is used globally for norms at
+present, and norms and parallelism are both widely used in geometry, so use U+2016 DOUBLE
+VERTICAL LINE (which is logically more appropriate for norms) instead here to avoid conflict. -/
+localized "infix (name := affine_subspace.parallel) ` ‖ `:50 := affine_subspace.parallel" in affine
+
+@[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ‖ s₂) : s₂ ‖ s₁ :=
+begin
+  rcases h with ⟨v, rfl⟩,
+  refine ⟨-v, _⟩,
+  rw [map_map, ←coe_trans_to_affine_map, ←const_vadd_add, neg_add_self, const_vadd_zero,
+      coe_refl_to_affine_map, map_id]
+end
+
+lemma parallel_comm {s₁ s₂ : affine_subspace k P} : s₁ ‖ s₂ ↔ s₂ ‖ s₁ :=
+⟨parallel.symm, parallel.symm⟩
+
+@[refl] lemma parallel.refl (s : affine_subspace k P) : s ‖ s :=
+⟨0, by simp⟩
+
+@[trans] lemma parallel.trans {s₁ s₂ s₃ : affine_subspace k P} (h₁₂ : s₁ ‖ s₂) (h₂₃ : s₂ ‖ s₃) :
+  s₁ ‖ s₃ :=
+begin
+  rcases h₁₂ with ⟨v₁₂, rfl⟩,
+  rcases h₂₃ with ⟨v₂₃, rfl⟩,
+  refine ⟨v₂₃ + v₁₂, _⟩,
+  rw [map_map, ←coe_trans_to_affine_map, ←const_vadd_add]
+end
+
+lemma parallel.direction_eq {s₁ s₂ : affine_subspace k P} (h : s₁ ‖ s₂) :
+  s₁.direction = s₂.direction :=
+begin
+  rcases h with ⟨v, rfl⟩,
+  simp
+end
+
+@[simp] lemma parallel_bot_iff_eq_bot {s : affine_subspace k P} :
+  s ‖ ⊥ ↔ s = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h, h ▸ parallel.refl _⟩,
+  rcases h with ⟨v, h⟩,
+  rwa [eq_comm, map_eq_bot_iff] at h
+end
+
+@[simp] lemma bot_parallel_iff_eq_bot {s : affine_subspace k P} :
+  ⊥ ‖ s ↔ s = ⊥ :=
+by rw [parallel_comm, parallel_bot_iff_eq_bot]
+
+lemma parallel_iff_direction_eq_and_eq_bot_iff_eq_bot {s₁ s₂ : affine_subspace k P} :
+  s₁ ‖ s₂ ↔ s₁.direction = s₂.direction ∧ (s₁ = ⊥ ↔ s₂ = ⊥) :=
+begin
+  refine ⟨λ h, ⟨h.direction_eq, _, _⟩, λ h, _⟩,
+  { rintro rfl, exact bot_parallel_iff_eq_bot.1 h },
+  { rintro rfl, exact parallel_bot_iff_eq_bot.1 h },
+  { rcases h with ⟨hd, hb⟩,
+    by_cases hs₁ : s₁ = ⊥,
+    { rw [hs₁, bot_parallel_iff_eq_bot],
+      exact hb.1 hs₁ },
+    { have hs₂ : s₂ ≠ ⊥ := hb.not.1 hs₁,
+      rcases (nonempty_iff_ne_bot s₁).2 hs₁ with ⟨p₁, hp₁⟩,
+      rcases (nonempty_iff_ne_bot s₂).2 hs₂ with ⟨p₂, hp₂⟩,
+      refine ⟨p₂ -ᵥ p₁, (eq_iff_direction_eq_of_mem hp₂ _).2 _⟩,
+      { rw mem_map,
+        refine ⟨p₁, hp₁, _⟩,
+        simp },
+      { simpa using hd.symm } } }
+end
+
+end affine_subspace

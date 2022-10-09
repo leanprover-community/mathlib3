@@ -71,7 +71,7 @@ meta instance has_to_tactic_format_rule_data : has_to_tactic_format rule_data :=
   ma ← pp r.args,
   pat ← pp r.pat.target,
   output ← pp r.output,
-  return format!"{{ ⟨{pat}⟩ pr: {pr} → {output}, {up} {mp} {ua} {ma} }" ⟩
+  return format!"{{ ⟨{pat}⟩ pr: {pr} → {output}, {up} {mp} {ua} {ma} }}" ⟩
 
 private meta def get_lift_fun : expr → tactic (list rel_data × expr)
 | e :=

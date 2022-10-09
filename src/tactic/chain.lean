@@ -29,7 +29,7 @@ inductive tactic_script (α : Type) : Type
 
 meta def tactic_script.to_string : tactic_script string → string
 | (tactic_script.base a) := a
-| (tactic_script.work n a l c) :=  "work_on_goal " ++ (to_string n) ++
+| (tactic_script.work n a l c) :=  "work_on_goal " ++ (to_string (n+1)) ++
     " { " ++ (", ".intercalate (a :: l.map tactic_script.to_string)) ++ " }"
 
 meta instance : has_to_string (tactic_script string) :=

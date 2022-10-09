@@ -30,13 +30,13 @@ variables {Fq : Type*} [field Fq] [fintype Fq]
 
 open absolute_value
 
-open_locale classical
+open_locale classical polynomial
 
 /-- `card_pow_degree` is the absolute value on `𝔽_q[t]` sending `f` to `q ^ degree f`.
 
 `card_pow_degree 0` is defined to be `0`. -/
 noncomputable def card_pow_degree :
-  absolute_value (polynomial Fq) ℤ :=
+  absolute_value Fq[X] ℤ :=
 have card_pos : 0 < fintype.card Fq := fintype.card_pos_iff.mpr infer_instance,
 have pow_pos : ∀ n, 0 < (fintype.card Fq : ℤ) ^ n := λ n, pow_pos (int.coe_nat_pos.mpr card_pos) n,
 { to_fun := λ p, if p = 0 then 0 else fintype.card Fq ^ p.nat_degree,
@@ -63,17 +63,17 @@ have pow_pos : ∀ n, 0 < (fintype.card Fq : ℤ) ^ n := λ n, pow_pos (int.coe_
       polynomial.nat_degree_mul hp hq, pow_add],
   end }
 
-lemma card_pow_degree_apply (p : polynomial Fq) :
+lemma card_pow_degree_apply (p : Fq[X]) :
   card_pow_degree p = if p = 0 then 0 else fintype.card Fq ^ nat_degree p := rfl
 
-@[simp] lemma card_pow_degree_zero : card_pow_degree (0 : polynomial Fq) = 0 := if_pos rfl
+@[simp] lemma card_pow_degree_zero : card_pow_degree (0 : Fq[X]) = 0 := if_pos rfl
 
-@[simp] lemma card_pow_degree_nonzero (p : polynomial Fq) (hp : p ≠ 0) :
+@[simp] lemma card_pow_degree_nonzero (p : Fq[X]) (hp : p ≠ 0) :
   card_pow_degree p = fintype.card Fq ^ p.nat_degree :=
 if_neg hp
 
 lemma card_pow_degree_is_euclidean :
-  is_euclidean (card_pow_degree : absolute_value (polynomial Fq) ℤ) :=
+  is_euclidean (card_pow_degree : absolute_value Fq[X] ℤ) :=
 have card_pos : 0 < fintype.card Fq := fintype.card_pos_iff.mpr infer_instance,
 have pow_pos : ∀ n, 0 < (fintype.card Fq : ℤ) ^ n := λ n, pow_pos (int.coe_nat_pos.mpr card_pos) n,
 { map_lt_map_iff' := λ p q, begin

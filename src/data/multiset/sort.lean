@@ -42,6 +42,12 @@ by rw [← mem_coe, sort_eq]
 @[simp] theorem length_sort {s : multiset α} : (sort r s).length = s.card :=
 quot.induction_on s $ length_merge_sort _
 
+@[simp] theorem sort_zero : sort r 0 = [] :=
+list.merge_sort_nil r
+
+@[simp] theorem sort_singleton (a : α) : sort r {a} = [a] :=
+list.merge_sort_singleton r a
+
 end sort
 
 instance [has_repr α] : has_repr (multiset α) :=

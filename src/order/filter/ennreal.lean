@@ -30,7 +30,7 @@ begin
   { rw eventually_countable_forall,
     refine λ n, eventually_lt_of_limsup_lt _,
     nth_rewrite 0 ←add_zero (f.limsup u),
-    exact (add_lt_add_iff_left hx_top).mpr (by simp), },
+    exact (ennreal.add_lt_add_iff_left hx_top).mpr (by simp), },
   refine h_forall_le.mono (λ y hy, le_of_forall_pos_le_add (λ r hr_pos hx_top, _)),
   have hr_ne_zero : (r : ℝ≥0∞) ≠ 0,
   { rw [ne.def, coe_eq_zero],
@@ -67,7 +67,7 @@ begin
       (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,
   let g_iso := strict_mono.order_iso_of_surjective g hg_mono hg_bij.2,
   refine (order_iso.limsup_apply g_iso _ _ _ _).symm,
-  all_goals { by is_bounded_default },
+  all_goals { is_bounded_default },
 end
 
 lemma limsup_const_mul [countable_Inter_filter f] {u : α → ℝ≥0∞} {a : ℝ≥0∞} :
@@ -95,12 +95,23 @@ begin
     simp only [h_top_le, hfu, if_false], },
 end
 
+lemma limsup_mul_le [countable_Inter_filter f] (u v : α → ℝ≥0∞) :
+  f.limsup (u * v) ≤ f.limsup u * f.limsup v :=
+calc f.limsup (u * v) ≤ f.limsup (λ x, (f.limsup u) * v x) :
+  begin
+    refine limsup_le_limsup _ _,
+    { filter_upwards [@eventually_le_limsup _ f _ u] with x hx,
+      exact ennreal.mul_le_mul hx le_rfl, },
+    { is_bounded_default, },
+  end
+... = f.limsup u * f.limsup v : limsup_const_mul
+
 lemma limsup_add_le [countable_Inter_filter f] (u v : α → ℝ≥0∞) :
   f.limsup (u + v) ≤ f.limsup u + f.limsup v :=
 Inf_le ((eventually_le_limsup u).mp ((eventually_le_limsup v).mono
   (λ _ hxg hxf, add_le_add hxf hxg)))
 
-lemma limsup_liminf_le_liminf_limsup {β} [encodable β] {f : filter α} [countable_Inter_filter f]
+lemma limsup_liminf_le_liminf_limsup {β} [countable β] {f : filter α} [countable_Inter_filter f]
   {g : filter β} (u : α → β → ℝ≥0∞) :
   f.limsup (λ (a : α), g.liminf (λ (b : β), u a b)) ≤ g.liminf (λ b, f.limsup (λ a, u a b)) :=
 begin

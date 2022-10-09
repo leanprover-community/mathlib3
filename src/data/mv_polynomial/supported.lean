@@ -3,7 +3,6 @@ Copyright (c) 2021 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import ring_theory.adjoin.polynomial
 import data.mv_polynomial.variables
 
 /-!
@@ -110,6 +109,17 @@ end
 lemma supported_strict_mono [nontrivial R] :
   strict_mono (supported R : set σ → subalgebra R (mv_polynomial σ R)) :=
 strict_mono_of_le_iff_le (λ _ _, supported_le_supported_iff.symm)
+
+lemma exists_restrict_to_vars (R : Type*) [comm_ring R] {F : mv_polynomial σ ℤ} (hF : ↑F.vars ⊆ s) :
+  ∃ f : (s → R) → R, ∀ x : σ → R, f (x ∘ coe : s → R) = aeval x F :=
+begin
+  classical,
+  rw [← mem_supported, supported_eq_range_rename, alg_hom.mem_range] at hF,
+  cases hF with F' hF',
+  use λ z, aeval z F',
+  intro x,
+  simp only [←hF', aeval_rename],
+end
 
 end comm_semiring
 

@@ -9,7 +9,7 @@ import data.list.big_operators
 # Join of a list of lists
 
 This file proves basic properties of `list.join`, which concatenates a list of lists. It is defined
-in [`data.list.defs`](./data/list/defs).
+in [`data.list.defs`](./defs).
 -/
 
 variables {α β : Type*}
@@ -26,6 +26,9 @@ attribute [simp] join
 
 @[simp] lemma join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+
+lemma join_concat (L : list (list α)) (l : list α) : join (L.concat l) = join L ++ l :=
+by simp
 
 @[simp] lemma join_filter_empty_eq_ff [decidable_pred (λ l : list α, l.empty = ff)] :
   ∀ {L : list (list α)}, join (L.filter (λ l, l.empty = ff)) = L.join
@@ -46,6 +49,10 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
 @[simp] lemma length_bind (l : list α) (f : α → list β) :
   length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
+
+@[simp] lemma bind_eq_nil {l : list α} {f : α → list β} :
+  list.bind l f = [] ↔ ∀ x ∈ l, f x = [] :=
+join_eq_nil.trans $ by simp only [mem_map, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
 
 /-- In a join, taking the first elements up to an index which is the sum of the lengths of the
 first `i` sublists, is the same as taking the join of the first `i` sublists. -/

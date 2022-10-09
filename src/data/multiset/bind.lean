@@ -142,7 +142,7 @@ end
 
 @[simp] theorem attach_bind_coe (s : multiset α) (f : α → multiset β) :
   s.attach.bind (λ i, f i) = s.bind f :=
-congr_arg join $ attach_map_coe _ _
+congr_arg join $ attach_map_coe' _ _
 
 end bind
 

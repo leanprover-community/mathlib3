@@ -2729,16 +2729,12 @@ ext $ λ x, by simp only [mem_bUnion, exists_prop, mem_union, mem_insert,
 lemma bUnion_congr (hs : s₁ = s₂) (ht : ∀ a ∈ s₁, t₁ a = t₂ a) : s₁.bUnion t₁ = s₂.bUnion t₂ :=
 ext $ λ x, by simp [hs, ht] { contextual := tt }
 
-@[simp]
-lemma disj_Union_eq_bUnion (s : finset α) (f : α → finset β)
-  (hf : (s : set α).pairwise $ λ a b, ∀ x, x ∈ f a → x ∉ f b) :
+@[simp] lemma disj_Union_eq_bUnion (s : finset α) (f : α → finset β) (hf) :
   s.disj_Union f hf = s.bUnion f :=
 begin
   dsimp [disj_Union, finset.bUnion, function.comp],
-  letI : decidable_eq α := classical.dec_eq _,
   generalize_proofs h,
-  apply eq_of_veq,
-  exact h.dedup.symm,
+  exact eq_of_veq h.dedup.symm,
 end
 
 theorem bUnion_subset {s' : finset β} : s.bUnion t ⊆ s' ↔ ∀ x ∈ s, t x ⊆ s' :=

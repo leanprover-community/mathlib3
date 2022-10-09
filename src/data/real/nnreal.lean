@@ -50,7 +50,7 @@ open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 @[derive [
-  ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  strict_ordered_semiring, comm_monoid_with_zero, -- to ensure these instances are computable
   floor_semiring, comm_semiring, semiring,
   semilattice_inf, semilattice_sup,
   distrib_lattice, densely_ordered, order_bot,

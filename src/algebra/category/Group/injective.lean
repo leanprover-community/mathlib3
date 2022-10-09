@@ -194,7 +194,7 @@ begin
 end
 
 /--
-There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
+There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ r/2`.
 -/
 @[simps] noncomputable def to_quotient : (⟨ℤ ∙ a⟩ : Module ℤ) ⟶ ⟨rat_circle.{u}⟩ :=
 { to_fun := to_fun,

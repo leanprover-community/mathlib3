@@ -112,16 +112,8 @@ namespace divisible_emb
 -- In this section we prove that any additive abelian group A can be embed into a divisible group,
 -- namely `∏ᵢ (ℚ⧸ℤ)` where `i` indexing over all morphism `A →+ ℚ⧸ℤ`
 
-local notation `Z` := (algebra_map ℤ ℚ).to_add_monoid_hom.range
-
-noncomputable instance divisible_ℚ_quotient_ℤ : divisible_by (ℚ ⧸ Z) ℤ :=
-@@add_group.divisible_by_int_of_divisible_by_nat _ _ $ @@quotient_add_group.divisible_by _ _ $
-@@add_group.divisible_by_nat_of_divisible_by_int _ _ _
-
-local notation `ℚ⧸ℤ` := (ulift.{u} (ℚ ⧸ Z))
-instance : add_comm_group (ℚ⧸ℤ) := infer_instance -- this is for typechecking of `divisible_by_Div`
-local notation `I` := AddCommGroup.of A ⟶ AddCommGroup.of (ℚ⧸ℤ)
-local notation `Div` := AddCommGroup.of (Π (i : I), ℚ⧸ℤ)
+local notation `I` := AddCommGroup.of A ⟶ AddCommGroup.of (rat_circle)
+local notation `Div` := AddCommGroup.of (Π (i : I), rat_circle.{u})
 
 noncomputable instance divisible_by_Div : divisible_by Div ℤ :=
 pi.divisible_by _
@@ -137,7 +129,7 @@ by evaluating: `a ↦ (f ↦ f a)`.
   map_add' := λ x y, by simpa only [map_add] }
 
 lemma to_Div_inj_of_exists
-  (h : ∀ (a : A), a ≠ 0 → ∃ (f : (⟨submodule.span ℤ {a}⟩ : Module ℤ) ⟶ ⟨ℚ⧸ℤ⟩),
+  (h : ∀ (a : A), a ≠ 0 → ∃ (f : (⟨ℤ ∙ a⟩ : Module ℤ) ⟶ ⟨rat_circle⟩),
     f ⟨a, submodule.subset_span $ set.mem_singleton _⟩ ≠ 0) :
   function.injective $ to_Div A :=
 begin
@@ -145,10 +137,9 @@ begin
   simp only [function.injective, not_forall] at h,
   obtain ⟨a, b, h1, h2⟩ := h,
   refine ⟨a-b, λ r, h2 (sub_eq_zero.mp r), λ f, _⟩,
-  haveI injQZ : category_theory.injective (⟨ℚ⧸ℤ⟩ : Module ℤ) :=
+  haveI injQZ : category_theory.injective (⟨rat_circle.{u}⟩ : Module ℤ) :=
     injective_as_module_of_injective_as_Ab _,
-  let g : (⟨(submodule.span ℤ {a - b} : submodule ℤ A)⟩ : Module ℤ) ⟶ ⟨A⟩ :=
-    submodule.subtype (submodule.span ℤ {a - b}),
+  let g : (⟨ℤ ∙ (a - b)⟩ : Module ℤ) ⟶ ⟨A⟩ := submodule.subtype (ℤ ∙ (a - b)),
   haveI : mono g,
   { rw Module.mono_iff_injective, apply submodule.injective_subtype, },
   have f_eq := injective.comp_factor_thru f g,
@@ -159,20 +150,6 @@ begin
   convert this,
 end
 
-section
-variable {A}
-
-/--
-`rep x` is defined to be an integer such that `rep x • a = x` for any `x ∈ ⟨a⟩ ⊆ A`.
--/
-noncomputable def rep {a : A} (x : submodule.span ℤ {a}) : ℤ :=
-(submodule.mem_span_singleton.mp x.2).some
-
-lemma rep_spec {a : A} (x : submodule.span ℤ {a}) : rep x • a = x :=
-(submodule.mem_span_singleton.mp x.2).some_spec
-
-end
-
 namespace infinite_order
 
 variables {A} {a : A}
@@ -180,25 +157,25 @@ variables {A} {a : A}
 /--
 There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
 -/
-@[reducible] noncomputable def to_fun : submodule.span ℤ {a} → ℚ⧸ℤ :=
-λ x, ulift.up $ quotient.mk' (rat.mk (rep x) 2)
+@[reducible] noncomputable def to_fun : (ℤ ∙ a) → rat_circle.{u} :=
+λ x, ulift.up $ quotient.mk' (rat.mk (subdmoule.coeff_of_span_singleton x.2) 2)
 
-variable (infinite_order : ∀ (a : A), add_order_of a = 0)
+variable (infinite_order : add_order_of a = 0)
 include infinite_order
 
-lemma rep_add (x y : submodule.span ℤ {a}) : rep (x + y) = rep x + rep y :=
-by rw [←zsmul_inj_iff_of_add_order_of_eq_zero (infinite_order a), rep_spec, add_smul, rep_spec,
+lemma rep_add (x y : ℤ ∙ a) : rep (x + y) = rep x + rep y :=
+by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, rep_spec, add_smul, rep_spec,
   rep_spec, submodule.coe_add]
 
-lemma rep_smul (m : ℤ) (x : submodule.span ℤ {a}) : rep (m • x) = m * rep x :=
-by rw [←zsmul_inj_iff_of_add_order_of_eq_zero (infinite_order a), rep_spec, submodule.coe_smul,
+lemma rep_smul (m : ℤ) (x : ℤ ∙ a) : rep (m • x) = m * rep x :=
+by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, rep_spec, submodule.coe_smul,
   mul_smul, rep_spec]
 
-lemma to_fun_spec (x : submodule.span ℤ {a}) {m : ℤ} (h : m • a = (↑x : A)) :
+lemma to_fun_spec (x : ℤ ∙ a) {m : ℤ} (h : m • a = (↑x : A)) :
   to_fun x = ⟨quotient.mk' (rat.mk m 2)⟩ :=
-by rw show m = rep x,by rw [←zsmul_inj_iff_of_add_order_of_eq_zero (infinite_order a), h, rep_spec]
+by rw show m = rep x,by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, h, rep_spec]
 
-lemma map_add' (x y : submodule.span ℤ {a}) :
+lemma map_add' (x y : ℤ ∙ a) :
   to_fun (x + y) = to_fun x + to_fun y :=
 begin
   rw [to_fun_spec infinite_order (x + y) (rep_spec _), to_fun_spec infinite_order x (rep_spec _),
@@ -209,7 +186,7 @@ begin
   exact add_subgroup.zero_mem _, all_goals { norm_num },
 end
 
-lemma map_smul' (m : ℤ) (x : submodule.span ℤ {a}) : to_fun (m • x) = m • to_fun x :=
+lemma map_smul' (m : ℤ) (x : ℤ ∙ a) : to_fun (m • x) = m • to_fun x :=
 begin
   ext1, erw [quotient_add_group.eq', rep_smul infinite_order, zsmul_eq_mul, rat.coe_int_eq_mk m,
     rat.mul_def, show (1 : ℤ) * 2 = 2, from rfl, neg_add_self],
@@ -219,7 +196,7 @@ end
 /--
 There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
 -/
-@[simps] noncomputable def to_quotient : (⟨submodule.span ℤ {a}⟩ : Module ℤ) ⟶ ⟨ℚ⧸ℤ⟩ :=
+@[simps] noncomputable def to_quotient : (⟨ℤ ∙ a⟩ : Module ℤ) ⟶ ⟨rat_circle.{u}⟩ :=
 { to_fun := to_fun,
   map_add' := map_add' infinite_order,
   map_smul' := map_smul' infinite_order }
@@ -230,12 +207,12 @@ have H : ∀ (m : ℤ), - m * 2 ≠ 1, from λ m,
 by { rw [mul_comm, ←bit0_eq_two_mul], exact int.bit0_ne_bit1 (-m) 0 },
 begin
   intros r, rw [to_quotient_apply, ulift.ext_iff] at r,
-  change quotient.mk' _ = (quotient.mk' 0 : ℚ ⧸ Z) at r,
+  change quotient.mk' _ = (quotient.mk' 0 : ℚ ⧸ (algebra_map ℤ ℚ).to_add_monoid_hom.range) at r,
   rw [quotient_add_group.eq', add_zero, rat.neg_def] at r,
   rcases r with ⟨m, eq1⟩,
   rw [show (algebra_map ℤ ℚ).to_add_monoid_hom m = (m : ℚ), from rfl, rat.coe_int_eq_mk _,
     rat.mk_eq, mul_one, eq_neg_iff_eq_neg, ←neg_mul] at eq1,
-  refine H m (sub_eq_zero.mp ((zsmul_inj_iff_of_add_order_of_eq_zero (infinite_order a)).mp _)),
+  refine H m (sub_eq_zero.mp ((zsmul_inj_iff_of_add_order_of_eq_zero infinite_order).mp _)),
   rw [sub_smul, one_smul, zero_smul, sub_eq_zero, ←eq1, rep_spec, subtype.coe_mk],
   all_goals { norm_num },
 end

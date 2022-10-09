@@ -8,6 +8,7 @@ import group_theory.group_action.pi
 import group_theory.quotient_group
 import algebra.group.pi
 import algebra.group.ulift
+import algebra.algebra.basic
 
 /-!
 # Divisible Group and rootable group
@@ -261,3 +262,20 @@ noncomputable instance quotient_group.rootable_by [rootable_by A ℕ] : rootable
 quotient_group.mk_surjective.rootable_by _ $ λ _ _, rfl
 
 end quotient
+
+section rat_circle
+
+universe u
+
+/--
+The rational circle in universe u defined as `ℚ ⧸ ℤ`
+-/
+def rat_circle : Type u := (ulift.{u} (ℚ ⧸ (algebra_map ℤ ℚ).to_add_monoid_hom.range))
+
+instance : add_comm_group rat_circle := ulift.add_comm_group
+
+noncomputable instance divisible_rat_circle : divisible_by rat_circle ℤ :=
+@@add_group.divisible_by_ulift _ _ _ _ $ @@add_group.divisible_by_int_of_divisible_by_nat _ _ $
+  @@quotient_add_group.divisible_by _ _ $ @@add_group.divisible_by_nat_of_divisible_by_int _ _ _
+
+end rat_circle

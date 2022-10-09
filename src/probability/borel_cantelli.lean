@@ -105,25 +105,77 @@ ae_all_iff.2 (hs.condexp_indicator_filt_ae_eq hsm)
 
 open filter
 
-example (f : ℕ → ℝ≥0∞) (hf : ∑' n, f n = ∞) (hf0 : f 0 ≠ ∞) :
+section tsum
+
+variables {α β : Type*} [add_comm_monoid α] [topological_space α] [t2_space α]
+
+@[simp]
+lemma tsum_univ (f : β → α) :
+  ∑' x : (set.univ : set β), f x = ∑' x, f x :=
+by simp [tsum_subtype]
+
+@[simp]
+lemma tsum_singleton (b : β) (f : β → α) :
+  ∑' x : ({b} : set β), f x = f b :=
+begin
+  rw [tsum_subtype, tsum_eq_single b],
+  { simp },
+  { intros b' hb',
+    rw set.indicator_of_not_mem,
+    rwa set.mem_singleton_iff },
+  { apply_instance }
+end
+
+lemma ennreal.tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) :
+  ∑' n, f n ≤ c :=
+le_of_tendsto' ((ennreal.has_sum_iff_tendsto_nat _).1 ennreal.summable.has_sum) h
+
+lemma ennreal.tsum_add_one_eq_top {f : ℕ → ℝ≥0∞} (hf : ∑' n, f n = ∞) (hf0 : f 0 ≠ ∞) :
   ∑' n, f (n + 1) = ∞ :=
 begin
+  classical,
   suffices : f 0 + ∑' (n : ℕ), f (n + 1) = ⊤,
   { obtain h | h := ennreal.add_eq_top.1 this,
     { exact false.elim (hf0 h) },
     { assumption } },
-  { rw ← hf,
-    rw ← finset.sum_range_one f,
-    sorry
-
-  }
+  { rw [← tsum_univ, (_ : set.univ = {0} ∪ set.range nat.succ)] at hf,
+    swap,
+    { rw [eq_comm, set.eq_univ_iff_forall],
+      rintro ⟨-, x⟩,
+      { exact or.inl rfl },
+      { exact or.inr ⟨x, rfl⟩ } },
+    rw [← top_le_iff, ← hf],
+    refine (ennreal.tsum_union_le _ _ _).trans _,
+    rw [tsum_singleton, ennreal.add_le_add_iff_left hf0, tsum_subtype],
+    refine ennreal.tsum_le_of_sum_range_le (λ n, _),
+    cases n,
+    { simp only [finset.range_zero, finset.sum_empty, zero_le'] },
+    { refine le_trans _ (sum_le_tsum (finset.range n) (λ _ _, bot_le) ennreal.summable),
+      set i : ℕ ↪ ℕ := ⟨(+1), nat.succ_injective⟩,
+      rw [(_ : ∑ k in finset.range n, f (k + 1) = ∑ k in finset.range n, f (i k)),
+        ← finset.sum_map (finset.range n) i f, finset.sum_indicator_eq_sum_filter],
+      swap, { refl },
+      refine le_of_eq (finset.sum_congr _ (λ _ _, rfl)),
+      ext m,
+      rw [finset.mem_filter, finset.mem_map],
+      split,
+      { rintro ⟨hk, k, rfl⟩,
+        rw [finset.mem_range, nat.succ_lt_succ_iff] at hk,
+        exact ⟨k, finset.mem_range.2 hk, rfl⟩ },
+      { rintro ⟨k, hk, rfl⟩,
+        exact ⟨finset.mem_range.2 $ nat.succ_lt_succ $ finset.mem_range.1 hk, k, rfl⟩ } } }
 end
 
-lemma foo
+end tsum
+
+/-- **The second Borel-Cantelli lemma**: Given a sequence of independent sets `(sₙ)` such that
+`∑ n, μ sₙ = ∞`, `limsup sₙ` has measure 1. -/
+lemma measure_limsup_eq_one
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (hs' : ∑' n, μ (s n) = ∞) :
   μ (limsup at_top s) = 1 :=
 begin
-  rw measure_congr (eventually_eq_set.2 (ae_mem_limsup_at_top_iff $
+  rw measure_congr (eventually_eq_set.2 (ae_mem_limsup_at_top_iff μ $
     measurable_set_filtration_of_set' hsm) :
       (limsup at_top s : set Ω) =ᵐ[μ] {ω | tendsto (λ n, ∑ k in finset.range n,
         μ[(s (k + 1)).indicator (1 : Ω → ℝ) | filtration_of_set hsm k] ω) at_top at_top}),
@@ -132,24 +184,28 @@ begin
   { rw [measure_congr this, measure_univ] },
   filter_upwards [hs.condexp_indicator_filt_ae_eq' hsm] with ω hω,
   refine eq_true_intro (_ : tendsto _ _ _),
-  have hsumeq : ∀ n, ∑ k in finset.range n, (μ (s (k + 1))).to_real =
-    (∑ k in finset.range n, μ (s (k + 1))).to_real,
-  { intro n,
-    rw ennreal.to_real_sum,
-    exact λ _ _, measure_ne_top _ _ },
-  simp_rw [hω, hsumeq],
+  simp_rw hω,
   have htends : tendsto (λ n, ∑ k in finset.range n, μ (s (k + 1))) at_top (𝓝 ∞),
-  { have hs'': ∑' n, μ (s (n + 1)) = ∞,
-    { sorry
-
-     },
-    rw ← hs'',
+  { rw ← ennreal.tsum_add_one_eq_top hs' (measure_ne_top _ _),
     exact ennreal.tendsto_nat_tsum _ },
   rw ennreal.tendsto_nhds_top_iff_nnreal at htends,
-  sorry,
+  refine tendsto_at_top_at_top_of_monotone' _ _,
+  { refine monotone_nat_of_le_succ (λ n, _),
+    rw [← sub_nonneg, finset.sum_range_succ_sub_sum],
+    exact ennreal.to_real_nonneg },
+  { rintro ⟨B, hB⟩,
+    refine not_eventually.2 _ (htends B.to_nnreal),
+    refine frequently_of_forall (λ n, not_lt.2 _),
+    rw mem_upper_bounds at hB,
+    specialize hB (∑ (k : ℕ) in finset.range n, μ (s (k + 1))).to_real _,
+    { refine ⟨n, _⟩,
+      rw ennreal.to_real_sum,
+      exact λ _ _, measure_ne_top _ _ },
+    { rw ← ennreal.to_real_le_to_real (ennreal.sum_lt_top _).ne ennreal.coe_ne_top,
+      { exact hB.trans (by simp) },
+      { exact λ _ _, measure_ne_top _ _ } } }
 end
 
 end borel_cantelli
-
 
 end probability_theory

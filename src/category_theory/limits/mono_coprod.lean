@@ -11,9 +11,10 @@ import category_theory.morphism_property
 
 # Categories where inclusions into coproducts are monomorphisms
 
-If `C` is a category that has finite coproducts, the class `mono_coprod C`
-expresses that left inclusions `A ⟶ A ⨿ B` are monomorphisms. If it is so,
-it is shown that right inclusions are also monomorphisms.
+If `C` is a category, the class `mono_coprod C` expresses that left
+inclusions `A ⟶ A ⨿ B` are monomorphisms when `has_coproduct A B`
+is satisfied. If it is so, it is shown that right inclusions are
+also monomorphisms.
 
 TODO @joelriou: show that if `X : I → C` and `ι : J → I` is an injective map,
 then the canonical morphism `∐ (X ∘ ι) ⟶ ∐ X` is a monomorphism.
@@ -30,82 +31,79 @@ namespace category_theory
 
 namespace limits
 
-variables (C : Type*) [category C] [hC : has_finite_coproducts C]
-
-include hC
+variables (C : Type*) [category C]
 
 /-- This condition expresses that inclusion morphisms into coproducts are monomorphisms. -/
 class mono_coprod : Prop :=
-(inl : Π (A B : C), mono (coprod.inl : A ⟶ A ⨿ B))
+(binary_cofan_inl : ∀ ⦃A B : C⦄ (c : binary_cofan A B) (hc : is_colimit c), mono c.inl)
 
 variable {C}
 
 @[priority 100]
 instance mono_coprod_of_has_zero_morphisms
   [has_zero_morphisms C] : mono_coprod C :=
-⟨λ A B, infer_instance⟩
-
-omit hC
-
-lemma mono_sigma_ι_iff_of_is_colimit {J : Type*} (X : J → C) [has_coproduct X]
-  (c : cofan X) (hc : is_colimit c) (j : J) :
-  mono (sigma.ι X j) ↔ mono (c.ι.app (discrete.mk j)) :=
-(morphism_property.respects_iso.monomorphisms C).arrow_iso_iff
-  (arrow.iso_mk' (sigma.ι X j) (c.ι.app (discrete.mk j)) (iso.refl _)
-    (colimit.iso_colimit_cocone ⟨c, hc⟩) (by simp))
-
-include hC
-
-lemma mono_coprod_inl_iff_of_is_colimit {A B : C} (c : binary_cofan A B) (hc : is_colimit c) :
-  mono (coprod.inl : A ⟶ A ⨿ B) ↔ mono c.inl :=
-mono_sigma_ι_iff_of_is_colimit (pair_function A B) c hc walking_pair.left
-
-lemma mono_coprod_inr_iff_of_is_colimit {A B : C} (c : binary_cofan A B) (hc : is_colimit c) :
-  mono (coprod.inr : B ⟶ A ⨿ B) ↔ mono c.inr :=
-mono_sigma_ι_iff_of_is_colimit (pair_function A B) c hc walking_pair.right
-
-omit hC
-
-instance mono_coprod_type : mono_coprod (Type u) :=
-⟨λ A B, begin
-  let c : binary_cofan A B := binary_cofan.mk (sum.inl : A ⟶ A ⊕ B) sum.inr,
-  have hc : is_colimit c :=
-  { desc := λ (s : binary_cofan A B) x, by { cases x, exacts [s.inl x, s.inr x], },
-    fac' := λ s j, by { discrete_cases, cases j; refl, },
-    uniq' := λ (s : binary_cofan A B) m hm, begin
-      ext x,
-      cases x,
-      { dsimp, exact congr_fun (hm (discrete.mk walking_pair.left)) x, },
-      { dsimp, exact congr_fun (hm (discrete.mk walking_pair.right)) x, },
-    end },
-  rw [mono_coprod_inl_iff_of_is_colimit c hc, mono_iff_injective],
-  intros a₁ a₂ h,
-  simp only [binary_cofan.mk_inl] at h,
-  dsimp at h,
-  simpa only using h,
+⟨λ A B c hc, begin
+  haveI : is_split_mono c.inl := is_split_mono.mk'
+    (split_mono.mk (hc.desc (binary_cofan.mk (𝟙 A) 0)) (is_colimit.fac _ _ _)),
+  apply_instance,
 end⟩
 
 namespace mono_coprod
 
-include hC
-variable [mono_coprod C]
-
-instance {A B : C} : mono (coprod.inl : A ⟶ A ⨿ B) := mono_coprod.inl A B
-
-instance {A B : C} : mono (coprod.inr : B ⟶ A ⨿ B) :=
+lemma binary_cofan_inr {A B : C}[mono_coprod C] (c : binary_cofan A B) (hc : is_colimit c) :
+  mono c.inr :=
 begin
-  suffices : mono (coprod.inl ≫ (coprod.braiding B A).hom),
-  { simpa only [coprod.braiding_hom, coprod.inl_desc] using this, },
-  apply mono_comp,
+  have hc' : is_colimit (binary_cofan.mk c.inr c.inl) :=
+    binary_cofan.is_colimit_mk (λ s, hc.desc (binary_cofan.mk s.inr s.inl)) (by tidy) (by tidy)
+    (λ s m h₁ h₂, binary_cofan.is_colimit.hom_ext hc
+      (by simp only [h₂, is_colimit.fac, binary_cofan.ι_app_left, binary_cofan.mk_inl])
+      (by simp only [h₁, is_colimit.fac, binary_cofan.ι_app_right, binary_cofan.mk_inr])),
+  exact binary_cofan_inl _ hc',
 end
 
-lemma mono_binary_cofan_inl {A B : C} (c : binary_cofan A B)
-  (hc : is_colimit c) : mono c.inl :=
-by { rw ← mono_coprod_inl_iff_of_is_colimit c hc, apply_instance, }
+instance {A B : C} [mono_coprod C] [has_binary_coproduct A B] :
+  mono (coprod.inl : A ⟶ A ⨿ B) :=
+binary_cofan_inl _ (colimit.is_colimit _)
 
-lemma mono_binary_cofan_inr {A B : C} (c : binary_cofan A B)
-  (hc : is_colimit c) : mono c.inr :=
-by { rw ← mono_coprod_inr_iff_of_is_colimit c hc, apply_instance, }
+instance {A B : C} [mono_coprod C] [has_binary_coproduct A B] :
+  mono (coprod.inr : B ⟶ A ⨿ B) :=
+binary_cofan_inr _ (colimit.is_colimit _)
+
+lemma mono_inl_iff {A B : C} {c₁ c₂ : binary_cofan A B} (hc₁ : is_colimit c₁)
+  (hc₂ : is_colimit c₂) : mono c₁.inl ↔ mono c₂.inl :=
+begin
+  suffices : ∀ (c₁ c₂ : binary_cofan A B) (hc₁ : is_colimit c₁) (hc₂ : is_colimit c₂)
+    (h : mono c₁.inl), mono c₂.inl,
+  { exact ⟨λ h₁, this _ _ hc₁ hc₂ h₁, λ h₂, this _ _ hc₂ hc₁ h₂⟩, },
+  intros c₁ c₂ hc₁ hc₂,
+  introI,
+  simpa only [is_colimit.comp_cocone_point_unique_up_to_iso_hom]
+    using mono_comp c₁.inl (hc₁.cocone_point_unique_up_to_iso hc₂).hom,
+end
+
+lemma mk' (h : ∀ (A B : C), ∃ (c : binary_cofan A B) (hc : is_colimit c), mono c.inl) :
+  mono_coprod C :=
+⟨λ A B c' hc', begin
+  obtain ⟨c, hc₁, hc₂⟩ := h A B,
+  simpa only [mono_inl_iff hc' hc₁] using hc₂,
+end⟩
+
+instance mono_coprod_type : mono_coprod (Type u) :=
+mono_coprod.mk' (λ A B, begin
+  refine ⟨binary_cofan.mk (sum.inl : A ⟶ A ⊕ B) sum.inr, _, _⟩,
+  { refine binary_cofan.is_colimit.mk _ (λ Y f₁ f₂ x, by { cases x, exacts [f₁ x, f₂ x], })
+      (λ Y f₁ f₂, rfl) (λ Y f₁ f₂, rfl) _,
+    intros Y f₁ f₂ m h₁ h₂,
+    ext x,
+    cases x,
+    { dsimp, exact congr_fun h₁ x, },
+    { dsimp, exact congr_fun h₂ x, }, },
+  { rw mono_iff_injective,
+    intros a₁ a₂ h,
+    simp only [binary_cofan.mk_inl] at h,
+    dsimp at h,
+    simpa only using h, },
+end)
 
 end mono_coprod
 

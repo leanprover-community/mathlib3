@@ -1394,9 +1394,8 @@ end
 lemma sInter_prod {S : set (set α)} (hS : S.nonempty) (t : set β) :
   ⋂₀ S ×ˢ t = ⋂ s ∈ S, s ×ˢ t :=
 begin
-  rw [←sInter_singleton t, sInter_prod_sInter hS (singleton_nonempty t), sInter_singleton,
-    prod_singleton],
-  simp only [mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right],
+  rw [←sInter_singleton t, sInter_prod_sInter hS (singleton_nonempty t), sInter_singleton],
+  simp_rw [prod_singleton, mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right],
 end
 
 lemma prod_sInter {T : set (set β)} (hT : T.nonempty) (s : set α) :

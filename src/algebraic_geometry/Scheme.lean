@@ -208,7 +208,8 @@ lemma basic_open_res_eq (i : op U ⟶ op V) [is_iso i] :
   X.basic_open (X.presheaf.map i f) = X.basic_open f :=
 RingedSpace.basic_open_res_eq _ i f
 
-lemma basic_open_subset : X.basic_open f ⊆ U :=
+@[sheaf_restrict]
+lemma basic_open_subset : X.basic_open f ≤ U :=
 RingedSpace.basic_open_subset _ _
 
 lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}

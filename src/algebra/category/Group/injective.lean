@@ -188,7 +188,8 @@ end
 
 lemma map_smul' (m : ℤ) (x : ℤ ∙ a) : to_fun (m • x) = m • to_fun x :=
 begin
-  ext1, erw [quotient_add_group.eq', rep_smul infinite_order, zsmul_eq_mul, rat.coe_int_eq_mk m,
+  ext1,
+  erw [quotient_add_group.eq', rep_smul infinite_order, zsmul_eq_mul, rat.coe_int_eq_mk m,
     rat.mul_def, show (1 : ℤ) * 2 = 2, from rfl, neg_add_self],
   exact add_subgroup.zero_mem _, all_goals { norm_num },
 end

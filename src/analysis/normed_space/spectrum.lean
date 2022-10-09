@@ -58,7 +58,7 @@ namespace spectrum
 
 section spectrum_compact
 
-variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
@@ -73,32 +73,48 @@ variable [complete_space A]
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
 units.is_open.preimage ((continuous_algebra_map 𝕜 A).sub continuous_const)
 
-lemma is_closed (a : A) : is_closed (σ a) :=
+protected lemma is_closed (a : A) : is_closed (σ a) :=
 (is_open_resolvent_set a).is_closed_compl
 
-lemma mem_resolvent_of_norm_lt [norm_one_class A] {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
+lemma mem_resolvent_set_of_norm_lt_mul {a : A} {k : 𝕜} (h : ∥a∥ * ∥(1 : A)∥ < ∥k∥) :
   k ∈ ρ a :=
 begin
   rw [resolvent_set, set.mem_set_of_eq, algebra.algebra_map_eq_smul_one],
-  have hk : k ≠ 0 := ne_zero_of_norm_ne_zero (by linarith [norm_nonneg a]),
+  nontriviality A,
+  have hk : k ≠ 0,
+    from ne_zero_of_norm_ne_zero ((mul_nonneg (norm_nonneg _) (norm_nonneg _)).trans_lt h).ne',
   let ku := units.map (↑ₐ).to_monoid_hom (units.mk0 k hk),
-  have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, algebra_map_isometry] using h,
+  rw [←inv_inv (∥(1 : A)∥), mul_inv_lt_iff (inv_pos.2 $ norm_pos_iff.2 (one_ne_zero : (1 : A) ≠ 0))]
+    at h,
+  have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, norm_algebra_map] using h,
   simpa [ku, sub_eq_add_neg, algebra.algebra_map_eq_smul_one] using (ku.add (-a) hku).is_unit,
 end
 
+lemma mem_resolvent_set_of_norm_lt [norm_one_class A] {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
+  k ∈ ρ a :=
+mem_resolvent_set_of_norm_lt_mul (by rwa [norm_one, mul_one])
+
+lemma norm_le_norm_mul_of_mem {a : A} {k : 𝕜} (hk : k ∈ σ a) :
+  ∥k∥ ≤ ∥a∥ * ∥(1 : A)∥ :=
+le_of_not_lt $ mt mem_resolvent_set_of_norm_lt_mul hk
+
 lemma norm_le_norm_of_mem [norm_one_class A] {a : A} {k : 𝕜} (hk : k ∈ σ a) :
   ∥k∥ ≤ ∥a∥ :=
-le_of_not_lt $ mt mem_resolvent_of_norm_lt hk
+le_of_not_lt $ mt mem_resolvent_set_of_norm_lt hk
+
+lemma subset_closed_ball_norm_mul (a : A) :
+  σ a ⊆ metric.closed_ball (0 : 𝕜) (∥a∥ * ∥(1 : A)∥) :=
+λ k hk, by simp [norm_le_norm_mul_of_mem hk]
 
 lemma subset_closed_ball_norm [norm_one_class A] (a : A) :
   σ a ⊆ metric.closed_ball (0 : 𝕜) (∥a∥) :=
 λ k hk, by simp [norm_le_norm_of_mem hk]
 
-lemma is_bounded [norm_one_class A] (a : A) : metric.bounded (σ a) :=
-(metric.bounded_iff_subset_ball 0).mpr ⟨∥a∥, subset_closed_ball_norm a⟩
+lemma is_bounded (a : A) : metric.bounded (σ a) :=
+(metric.bounded_iff_subset_ball 0).mpr ⟨∥a∥ * ∥(1 : A)∥, subset_closed_ball_norm_mul a⟩
 
-theorem is_compact [norm_one_class A] [proper_space 𝕜] (a : A) : is_compact (σ a) :=
-metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
+protected theorem is_compact [proper_space 𝕜] (a : A) : is_compact (σ a) :=
+metric.is_compact_of_is_closed_bounded (spectrum.is_closed a) (is_bounded a)
 
 theorem spectral_radius_le_nnnorm [norm_one_class A] (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
@@ -420,23 +436,22 @@ end spectrum
 namespace alg_hom
 
 section normed_field
-variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
-
 
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
 automatically bounded). -/
-instance [norm_one_class A] : continuous_linear_map_class (A →ₐ[𝕜] 𝕜) 𝕜 A 𝕜 :=
-{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ 1 $
-    λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (apply_mem_spectrum φ _),
+instance : continuous_linear_map_class (A →ₐ[𝕜] 𝕜) 𝕜 A 𝕜 :=
+{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ ∥(1 : A)∥ $
+    λ a, (mul_comm ∥a∥ ∥(1 : A)∥) ▸ spectrum.norm_le_norm_mul_of_mem (apply_mem_spectrum φ _),
   .. alg_hom_class.linear_map_class }
 
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
 automatically bounded). -/
-def to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
+def to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
 { cont := map_continuous φ, .. φ.to_linear_map }
 
-@[simp] lemma coe_to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
+@[simp] lemma coe_to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) :
   ⇑φ.to_continuous_linear_map = φ := rfl
 
 end normed_field
@@ -459,7 +474,7 @@ namespace weak_dual
 
 namespace character_space
 
-variables [normed_field 𝕜] [normed_ring A] [complete_space A] [norm_one_class A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [complete_space A]
 variables [normed_algebra 𝕜 A]
 
 /-- The equivalence between characters and algebra homomorphisms into the base field. -/

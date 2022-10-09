@@ -103,8 +103,6 @@ def lift : prefunctor (push σ) V'' :=
 { obj := τ,
   map := by { apply push_quiver.rec, rintros X Y f, rw [←h X, ←h Y], exact φ.map f, } }
 
-
-
 lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
 
 lemma lift_spec_comm : (of σ).comp (lift σ φ τ h) = φ :=
@@ -112,10 +110,19 @@ begin
   dsimp [of,lift],
   fapply prefunctor.ext,
   { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },
-  { rintros, simp only [prefunctor.comp_map], dsimp, simp, sorry, }
+  { rintros _ _ f, simp only [prefunctor.comp_map], dsimp [cast], finish, },
+  -- no idea how `finish` worked :(
 end
 
-#print lift
+lemma lift_unique (Φ : prefunctor (push σ) V'') (Φ₀ : Φ.obj = τ) (Φcomm : (of σ).comp Φ = φ) :
+  Φ = (lift σ φ τ h) :=
+begin
+  dsimp [of,lift],
+  fapply prefunctor.ext,
+  { rintros, simp only [←Φ₀], },
+  { rintros _ _ f, induction f, subst_vars, simp only [prefunctor.comp_map, cast_eq], refl, }
+end
+
 end push_quiver
 
 variables {V : Type u} [groupoid.{v+1} V] {V' : Type u'} (σ : V → V')
@@ -179,14 +186,14 @@ begin
   apply quot.eqv_gen_sound,
   induction p with _ _ q f ih,
   { apply eqv_gen.refl, },
-  { rcases f with ⟨⟨x,hx⟩,⟨y,hy⟩,f⟩,
-    simp only [mem_preimage, mem_singleton_iff] at hx hy, subst_vars,
+  { rcases f with ⟨x,y,f⟩,
+    --simp only [mem_preimage, mem_singleton_iff] at hx hy, subst_vars,
     simp only [quiver.path.reverse],
     fapply eqv_gen.trans,
     { exact q ≫ (q.reverse),},
     { apply eqv_gen.symm,
-      have hx : (⟨⟨x, hx⟩, ⟨⟨y, hy⟩, f⟩⟩ : (push_quiver σ).hom (σ x) (σ y)) = σ * .map f := rfl,
-      simp only [hx],
+      --have hx : (⟨⟨x, hx⟩, ⟨⟨y, hy⟩, f⟩⟩ : (push_quiver σ).hom (σ x) (σ y)) = σ * .map f := rfl,
+      --simp only [hx],
       fapply eqv_gen.trans,
       { exact q ≫ ((σ *).map (𝟙 x)).to_path ≫ q.reverse, },
       { have : ((paths.category_paths (push σ)).id $ σ x) ≫ q.reverse = q.reverse, by {simp,},
@@ -201,7 +208,12 @@ begin
       simp only [of_reverse, reverse_eq_inv, inv_eq_inv, is_iso.hom_inv_id,
                  category.assoc] at this ⊢,
       dsimp only [category_struct.comp, quiver.hom.to_path,quiver.path.comp] at this ⊢,
-      simpa only [←quiver.path.comp_assoc] using this, }, },
+      simp only [←quiver.path.comp_assoc] at this ⊢,
+      dsimp [quiver.path.comp, of, quiver.reverse, quiver.has_reverse.reverse'] at this ⊢,
+      simp only [inv_eq_inv],
+      exact this,
+      -- VERY uGLY should be simplified a lot
+       }, },
     { exact ih }, },
 end
 
@@ -245,7 +257,7 @@ section ump
 def lift {V'' : Type*} [groupoid V'']
   (θ : V ⥤ V'') (τ₀ : V' → V'') (hτ₀ : θ.obj = τ₀ ∘ σ) : (universal_groupoid σ) ⥤ V'' :=
 quotient.lift _
-  (paths.lift $ by {}) -- need ump of `push` and good to go
+  (paths.lift $ ) -- need ump of `push` and good to go
   (sorry)
 
 

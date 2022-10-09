@@ -2711,11 +2711,16 @@ theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
   (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
 by rw [attach, map_pmap]; exact pmap_congr l (λ _ _ _ _, rfl)
 
-theorem attach_map_coe (l : list α) (f : α → β) : l.attach.map (λ i, f i) = l.map f :=
+@[simp] lemma attach_map_coe' (l : list α) (f : α → β) : l.attach.map (λ i, f i) = l.map f :=
 by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _)
 
-theorem attach_map_val (l : list α) : l.attach.map subtype.val = l :=
-(attach_map_coe l id).trans (map_id l)
+@[simp] lemma attach_map_val' (l : list α) (f : α → β) : l.attach.map (λ i, f i.val) = l.map f :=
+attach_map_coe' _ _
+
+@[simp] lemma attach_map_coe (l : list α) : l.attach.map (coe : _ → α) = l :=
+(attach_map_coe' _ _).trans l.map_id
+
+@[simp] lemma attach_map_val (l : list α) : l.attach.map subtype.val = l := attach_map_coe _
 
 @[simp] theorem mem_attach (l : list α) : ∀ x, x ∈ l.attach | ⟨a, h⟩ :=
 by have := mem_map.1 (by rw [attach_map_val]; exact h);

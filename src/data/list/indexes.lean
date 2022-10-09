@@ -49,6 +49,14 @@ end
 by simp [map_with_index_eq_enum_map, enum_eq_zip_range, map_uncurry_zip_eq_zip_with,
          range_succ_eq_map, zip_with_map_left]
 
+lemma map_with_index_append {α} (K L : list α) (f : ℕ → α → β) :
+  (K ++ L).map_with_index f = K.map_with_index f ++ L.map_with_index (λ i a, f (i + K.length) a) :=
+begin
+  induction K with a J IH generalizing f,
+  { simp },
+  { simp [IH (λ i, f (i+1)), add_assoc], }
+end
+
 @[simp] lemma length_map_with_index {α β} (l : list α) (f : ℕ → α → β) :
   (l.map_with_index f).length = l.length :=
 begin

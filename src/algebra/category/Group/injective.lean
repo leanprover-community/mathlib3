@@ -207,7 +207,8 @@ lemma to_quotient.apply_ne_zero :
 have H : ∀ (m : ℤ), - m * 2 ≠ 1, from λ m,
 by { rw [mul_comm, ←bit0_eq_two_mul], exact int.bit0_ne_bit1 (-m) 0 },
 begin
-  intros r, rw [to_quotient_apply, ulift.ext_iff] at r,
+  intros r,
+  rw [to_quotient_apply, ulift.ext_iff] at r,
   change quotient.mk' _ = (quotient.mk' 0 : ℚ ⧸ (algebra_map ℤ ℚ).to_add_monoid_hom.range) at r,
   rw [quotient_add_group.eq', add_zero, rat.neg_def] at r,
   rcases r with ⟨m, eq1⟩,

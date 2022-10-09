@@ -192,8 +192,6 @@ begin
     fapply eqv_gen.trans,
     { exact q ≫ (q.reverse),},
     { apply eqv_gen.symm,
-      --have hx : (⟨⟨x, hx⟩, ⟨⟨y, hy⟩, f⟩⟩ : (push_quiver σ).hom (σ x) (σ y)) = σ * .map f := rfl,
-      --simp only [hx],
       fapply eqv_gen.trans,
       { exact q ≫ ((σ *).map (𝟙 x)).to_path ≫ q.reverse, },
       { have : ((paths.category_paths (push σ)).id $ σ x) ≫ q.reverse = q.reverse, by {simp,},
@@ -205,14 +203,10 @@ begin
                (q ≫ (σ * .map $ f ≫ inv f).to_path ≫ q.reverse)
                (q ≫ ((σ * .map f).to_path ≫ (σ * .map $ inv f).to_path) ≫ q.reverse), by
         { apply quotient.comp_closure.intro, constructor, },
-      simp only [of_reverse, reverse_eq_inv, inv_eq_inv, is_iso.hom_inv_id,
-                 category.assoc] at this ⊢,
-      dsimp only [category_struct.comp, quiver.hom.to_path,quiver.path.comp] at this ⊢,
-      simp only [←quiver.path.comp_assoc] at this ⊢,
-      dsimp [quiver.path.comp, of, quiver.reverse, quiver.has_reverse.reverse'] at this ⊢,
-      simp only [inv_eq_inv],
-      exact this,
-      -- VERY uGLY should be simplified a lot
+      dsimp only [category_struct.comp, quiver.hom.to_path,
+                  quiver.path.comp, of, quiver.reverse, quiver.has_reverse.reverse'] at this ⊢,
+      simpa only [←quiver.path.comp_assoc,quiver.path.comp_cons, quiver.path.comp_nil, inv_eq_inv,
+                 is_iso.hom_inv_id] using this, -- UGLY
        }, },
     { exact ih }, },
 end

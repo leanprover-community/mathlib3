@@ -29,10 +29,8 @@ open  set topological_space
 
 section preorder
 
-variables [preorder α] [preorder β]
-
-
-lemma l1  (a : α) (b : β) : Ici (a,b) = (univ ×ˢ (Ici b)) ∩ ((Ici a) ×ˢ univ) :=
+lemma l1 [preorder α] [preorder β] (a : α) (b : β) :
+  Ici (a,b) = (univ ×ˢ (Ici b)) ∩ ((Ici a) ×ˢ univ) :=
 begin
   rw subset_antisymm_iff,
   split,
@@ -40,12 +38,37 @@ begin
   { intros x h, simp, simp at h, rw and.comm at h, rw prod.le_def, simp, apply h, }
 end
 
-lemma l2 (a : α) (b : β) : (Ici a)ᶜ ×ˢ (Ici b)ᶜ = ((univ ×ˢ Ici b) ∪ (Ici a ×ˢ univ))ᶜ :=
+lemma l2 [preorder α] [preorder β] (a : α) (b : β) :
+  (Ici a)ᶜ ×ˢ (Ici b)ᶜ = ((univ ×ˢ Ici b) ∪ (Ici a ×ˢ univ))ᶜ :=
 begin
   rw subset_antisymm_iff,
   split,
   { intros x h, simp, simp at h, rw and.comm, apply h, },
   { intros x h, simp, simp at h,  rw and.comm, apply h, }
+end
+
+lemma l2a [preorder β] (b : β) : (univ : set α) ×ˢ (Ici b)ᶜ = (univ ×ˢ Ici b)ᶜ :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { rintros x h,
+    simp at h,
+    finish, },
+  { rintros x h,
+    simp at h,
+    finish, }
+end
+
+lemma l2b [preorder α] (a : α) : (Ici a)ᶜ ×ˢ (univ : set β) = (Ici a ×ˢ univ)ᶜ :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { rintros x h,
+    simp at h,
+    finish, },
+  { rintros x h,
+    simp at h,
+    finish, }
 end
 
 end preorder
@@ -67,6 +90,23 @@ class lower_topology (α : Type*) [t : topological_space α] [preorder α] : Pro
 section lower_topology
 
 variables [topological_space α] [partial_order α] [t : lower_topology α]
+
+lemma u_union (β : Type*) [complete_lattice β] (s : set β):
+  ⋃₀ { (Ici a)ᶜ | a ∈ s } = (Ici (Sup s))ᶜ :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { rw sUnion_subset_iff,
+    simp only [mem_set_of_eq, forall_exists_index, forall_apply_eq_imp_iff₂, compl_subset_compl],
+    rintro a h,
+    rw Ici_subset_Ici,
+    apply le_Sup h, },
+  { rintro a h,
+    simp only [exists_prop, mem_sUnion, mem_set_of_eq, exists_exists_and_eq_and, mem_compl_eq,
+      mem_Ici],
+    simp only [mem_compl_eq, mem_Ici, Sup_le_iff, not_forall, exists_prop] at h,
+    apply h, }
+end
 
 include t
 
@@ -138,29 +178,14 @@ begin
   { rw ← Ici_subset_Ici, apply h.1, }
 end
 
-lemma u_union (β : Type*) [complete_lattice β] (s : set β):
-  ⋃₀ { (Ici a)ᶜ | a ∈ s } = (Ici (Sup s))ᶜ :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { rw sUnion_subset_iff,
-    simp only [mem_set_of_eq, forall_exists_index, forall_apply_eq_imp_iff₂, compl_subset_compl],
-    rintro a h,
-    rw Ici_subset_Ici,
-    apply le_Sup h, },
-  { rintro a h,
-    simp only [exists_prop, mem_sUnion, mem_set_of_eq, exists_exists_and_eq_and, mem_compl_eq,
-      mem_Ici],
-    simp only [mem_compl_eq, mem_Ici, Sup_le_iff, not_forall, exists_prop] at h,
-    apply h, }
-end
+
 
 variables [topological_space β] [partial_order β] [s : lower_topology β]
 
 include s
 
-instance : lower_topology (α × β) := {
-  topology_eq_generate_Ici_comp :=
+instance : lower_topology (α × β) :=
+{ topology_eq_generate_Ici_comp :=
   begin
     rw le_antisymm_iff,
     split,
@@ -175,8 +200,7 @@ instance : lower_topology (α × β) := {
       { apply is_closed.prod is_closed_univ, apply ici_is_closed, },
       { apply is_closed.prod, apply ici_is_closed, apply is_closed_univ, } },
     { sorry }
-  end
-}
+  end }
 
 end lower_topology
 

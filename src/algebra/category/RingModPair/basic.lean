@@ -17,7 +17,7 @@ homomorphism and `g : M ⟶ f* N` is a module homomorphism (linear map).
 
 namespace category_theory
 
-open category_theory.Module
+open category_theory.Module category_theory.limits
 
 section RingModPair
 
@@ -26,10 +26,12 @@ universes u v
 /--
 A ring-module pair is a pair `(R, M)` such that `R : Ring` and `M` is an `R`-module.
 -/
-@[nolint has_inhabited_instance]
-structure RingModPair :=
+structure RingModPair : Type (max (v+1) (u+1)) :=
 (ring : Ring.{u})
 (mod : Module.{v} ring)
+
+instance : inhabited RingModPair :=
+{ default := ⟨⟨punit⟩, ⟨punit⟩⟩ }
 
 namespace RingModPair
 
@@ -38,7 +40,7 @@ A morphism between `M1 = (R, M)`
 and `M2 = (S, N)` is a pair of morphism `(f, g)` where `f : R ⟶ S` is a ring
 homomorphism and `g : M ⟶ f* N` is a module homomorphism (linear map)
 -/
-def hom (P Q : RingModPair) :=
+def hom (P Q : RingModPair) : Type (max v u) :=
 Σ (ring_hom : P.ring ⟶ Q.ring),
   P.mod ⟶ (category_theory.Module.restrict_scalars ring_hom).obj Q.mod
 
@@ -57,6 +59,9 @@ instance : category RingModPair :=
   comp_id' := λ X Y ⟨f, g⟩, sigma.ext (category.comp_id _) $ heq_of_eq $ linear_map.ext $ λ x, rfl,
   assoc' := λ A B C D ⟨a, b⟩ ⟨c, d⟩ ⟨e, f⟩, sigma.ext (category.assoc _ _ _) $ heq_of_eq $
     linear_map.ext $ λ x, rfl }
+
+instance (P : RingModPair) : inhabited (hom P P) :=
+{ default := 𝟙 P }
 
 /--
 The underlying ring homomorphism of a morphism between two ring-module pairs.

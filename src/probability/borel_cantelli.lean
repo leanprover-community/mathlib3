@@ -1,5 +1,25 @@
+/-
+Copyright (c) 2022 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
 import probability.martingale.borel_cantelli
 import probability.independence
+
+/-!
+
+# The second Borel-Cantelli lemma
+
+This file contains the second Borel-Cantelli lemma which states that, given a sequence of
+independent sets `(sₙ)` in a probability space, if `∑ n, μ sₙ = ∞`, then the limsup of `sₙ` has
+measure 1. We employ a proof using Lévy's generalized Borel-Cantelli by choosing an appropriate
+filtration.
+
+## Main result
+
+- `probability_theory.measure_limsup_eq_one`: the second Borel-Cantelli lemma.
+
+-/
 
 open_locale measure_theory probability_theory ennreal big_operators topological_space
 
@@ -78,12 +98,12 @@ measurable_set_filtration_of_set hsm n le_rfl
 
 variables [is_probability_measure μ]
 
-lemma Indep_set.filt_indep
+lemma Indep_set.filtration_of_set_indep
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ) :
   indep (generate_from {s (n + 1)}) (filtration_of_set hsm n) μ :=
 hs.indep_generate_from_le hsm _
 
-lemma Indep_set.condexp_indicator_filt_ae_eq
+lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ) :
   μ[(s (n + 1)).indicator (λ ω, 1 : Ω → ℝ) | filtration_of_set hsm n] =ᵐ[μ]
     λ ω, (μ (s (n + 1))).to_real :=
@@ -97,11 +117,11 @@ begin
   rw [smul_eq_mul, mul_one],
 end
 
-lemma Indep_set.condexp_indicator_filt_ae_eq'
+lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq'
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) :
   ∀ᵐ ω ∂μ, ∀ n, μ[(s (n + 1)).indicator (1 : Ω → ℝ) | filtration_of_set hsm n] ω =
     (μ (s (n + 1))).to_real :=
-ae_all_iff.2 (hs.condexp_indicator_filt_ae_eq hsm)
+ae_all_iff.2 (hs.condexp_indicator_filtration_of_set_ae_eq hsm)
 
 open filter
 
@@ -118,7 +138,7 @@ begin
   suffices : {ω | tendsto (λ n, ∑ k in finset.range n,
     μ[(s (k + 1)).indicator (1 : Ω → ℝ) | filtration_of_set hsm k] ω) at_top at_top} =ᵐ[μ] set.univ,
   { rw [measure_congr this, measure_univ] },
-  filter_upwards [hs.condexp_indicator_filt_ae_eq' hsm] with ω hω,
+  filter_upwards [hs.condexp_indicator_filtration_of_set_ae_eq' hsm] with ω hω,
   refine eq_true_intro (_ : tendsto _ _ _),
   simp_rw hω,
   have htends : tendsto (λ n, ∑ k in finset.range n, μ (s (k + 1))) at_top (𝓝 ∞),

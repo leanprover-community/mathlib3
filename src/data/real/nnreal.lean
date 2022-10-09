@@ -485,6 +485,10 @@ end
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
 (real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [bit1])
 
+lemma to_nnreal_pow {x : ℝ} (hx : 0 ≤ x) (n : ℕ) : (x ^ n).to_nnreal = (x.to_nnreal) ^ n :=
+by rw [← nnreal.coe_eq, nnreal.coe_pow, real.coe_to_nnreal _ (pow_nonneg hx _),
+  real.coe_to_nnreal x hx]
+
 end to_nnreal
 
 end real

@@ -353,6 +353,10 @@ end,
 by rintro ⟨a, y, rfl⟩; exact
   smul_mem _ _ (subset_span $ by simp)⟩
 
+/--
+If `x` is in `R ∙ y`, then `x = r • y` for some `r ∈ R`, `coeff_of_span_singleton` picks any such
+`r`.
+-/
 noncomputable def coeff_of_span_singleton {y : M} (x : (R ∙ y)) : R :=
 (mem_span_singleton.mp x.2).some
 

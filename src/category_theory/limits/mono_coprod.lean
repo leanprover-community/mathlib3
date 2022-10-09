@@ -48,7 +48,7 @@ instance mono_coprod_of_has_zero_morphisms
 omit hC
 
 lemma mono_sigma_ι_iff_of_is_colimit {J : Type*} (X : J → C) [has_coproduct X]
-  (c : cocone (discrete.functor X)) (hc : is_colimit c) (j : J) :
+  (c : cofan X) (hc : is_colimit c) (j : J) :
   mono (sigma.ι X j) ↔ mono (c.ι.app (discrete.mk j)) :=
 (morphism_property.respects_iso.monomorphisms C).arrow_iso_iff
   (arrow.iso_mk' (sigma.ι X j) (c.ι.app (discrete.mk j)) (iso.refl _)

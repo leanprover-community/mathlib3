@@ -430,18 +430,18 @@ end
 lemma exists_radical_pow_le_of_fg {R : Type*} [comm_semiring R] (I : ideal R) (h : I.radical.fg) :
   ∃ n : ℕ, I.radical ^ n ≤ I :=
 begin
-  classical,
-  suffices : ∀ (s : finset R) (hs : (s : set R) ⊆ I.radical),
-    ∃ n : ℕ, ideal.span (s : set R) ^ n ≤ I,
-  { obtain ⟨s, hs⟩ := h, rw ← hs at this ⊢, apply this _ ideal.subset_span },
-  intros s hs,
-  induction s using finset.induction with a s h₁ h₂,
-  { use 1, simp },
-  { obtain ⟨n, hn⟩ := h₂ ((finset.coe_subset.mpr (finset.subset_insert a s)).trans hs),
-    obtain ⟨m, hm⟩ := hs (finset.mem_insert_self a s),
+  have : ∀ x ∈ I.radical, ∃ n : ℕ, x ^ n ∈ I := λ x hx, hx,
+  revert h this,
+  generalize : I.radical = J,
+  intro h,
+  apply submodule.fg_induction _ _ _ _ _ _ h,
+  { rintros x hx, obtain ⟨n, hn⟩ := hx x (subset_span (set.mem_singleton x)),
+    exact ⟨n, by rwa [← ideal.span, span_singleton_pow, span_le, set.singleton_subset_iff]⟩ },
+  { intros J K hJ hK hJK,
+    obtain ⟨n, hn⟩ := hJ (λ x hx, hJK x $ ideal.mem_sup_left hx),
+    obtain ⟨m, hm⟩ := hK (λ x hx, hJK x $ ideal.mem_sup_right hx),
     use n + m,
-    rw [finset.coe_insert, ← set.union_singleton, ideal.span_union, ← ideal.add_eq_sup,
-      add_pow, ideal.sum_eq_sup, finset.sup_le_iff],
+    rw [← ideal.add_eq_sup, add_pow, ideal.sum_eq_sup, finset.sup_le_iff],
     intros i hi,
     refine ideal.mul_le_right.trans _,
     have : n ≤ i ∨ m ≤ n + m - i,
@@ -449,8 +449,7 @@ begin
       rw add_tsub_cancel_of_le hi at this, exact irrefl _ this },
     cases this,
     { exact ideal.mul_le_right.trans ((ideal.pow_le_pow this).trans hn) },
-    { refine ideal.mul_le_left.trans ((ideal.pow_le_pow this).trans _),
-      rwa [ideal.span_singleton_pow, ideal.span_le, set.singleton_subset_iff] } }
+    { exact ideal.mul_le_left.trans ((ideal.pow_le_pow this).trans hm) } }
 end
 
 end ideal

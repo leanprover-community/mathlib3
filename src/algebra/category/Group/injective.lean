@@ -152,34 +152,40 @@ end
 
 namespace infinite_order
 
+open submodule
+
 variables {A} {a : A}
 
 /--
-There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ r/2`.
+There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
 -/
 @[reducible] noncomputable def to_fun : (ℤ ∙ a) → rat_circle.{u} :=
-λ x, ulift.up $ quotient.mk' (rat.mk (subdmoule.coeff_of_span_singleton x.2) 2)
+λ x, ulift.up $ quotient.mk' (rat.mk (coeff_of_span_singleton x) 2)
 
 variable (infinite_order : add_order_of a = 0)
 include infinite_order
 
-lemma rep_add (x y : ℤ ∙ a) : rep (x + y) = rep x + rep y :=
-by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, rep_spec, add_smul, rep_spec,
-  rep_spec, submodule.coe_add]
+lemma rep_add (x y : ℤ ∙ a) :
+  coeff_of_span_singleton (x + y) = coeff_of_span_singleton x + coeff_of_span_singleton y :=
+by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, coeff_of_span_singleton_spec,
+  add_smul, coeff_of_span_singleton_spec, coeff_of_span_singleton_spec, submodule.coe_add]
 
-lemma rep_smul (m : ℤ) (x : ℤ ∙ a) : rep (m • x) = m * rep x :=
-by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, rep_spec, submodule.coe_smul,
-  mul_smul, rep_spec]
+lemma rep_smul (m : ℤ) (x : ℤ ∙ a) :
+  coeff_of_span_singleton (m • x) = m * coeff_of_span_singleton x :=
+by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, coeff_of_span_singleton_spec,
+  submodule.coe_smul, mul_smul, coeff_of_span_singleton_spec]
 
 lemma to_fun_spec (x : ℤ ∙ a) {m : ℤ} (h : m • a = (↑x : A)) :
   to_fun x = ⟨quotient.mk' (rat.mk m 2)⟩ :=
-by rw show m = rep x,by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, h, rep_spec]
+by rw show m = coeff_of_span_singleton x,
+  by rw [←zsmul_inj_iff_of_add_order_of_eq_zero infinite_order, h, coeff_of_span_singleton_spec]
 
 lemma map_add' (x y : ℤ ∙ a) :
   to_fun (x + y) = to_fun x + to_fun y :=
 begin
-  rw [to_fun_spec infinite_order (x + y) (rep_spec _), to_fun_spec infinite_order x (rep_spec _),
-    to_fun_spec infinite_order y (rep_spec _)],
+  rw [to_fun_spec infinite_order (x + y) (coeff_of_span_singleton_spec (x + y)),
+    to_fun_spec infinite_order x (coeff_of_span_singleton_spec x),
+    to_fun_spec infinite_order y (coeff_of_span_singleton_spec y)],
   ext1,
   erw [quotient_add_group.eq', rat.neg_def, rat.add_def, rat.add_def,
     rep_add infinite_order, ←add_mul, mul_assoc, neg_mul, neg_add_self, rat.zero_mk],
@@ -188,14 +194,13 @@ end
 
 lemma map_smul' (m : ℤ) (x : ℤ ∙ a) : to_fun (m • x) = m • to_fun x :=
 begin
-  ext1,
-  erw [quotient_add_group.eq', rep_smul infinite_order, zsmul_eq_mul, rat.coe_int_eq_mk m,
+  ext1, erw [quotient_add_group.eq', rep_smul infinite_order, zsmul_eq_mul, rat.coe_int_eq_mk m,
     rat.mul_def, show (1 : ℤ) * 2 = 2, from rfl, neg_add_self],
   exact add_subgroup.zero_mem _, all_goals { norm_num },
 end
 
 /--
-There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ r/2`.
+There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
 -/
 @[simps] noncomputable def to_quotient : (⟨ℤ ∙ a⟩ : Module ℤ) ⟶ ⟨rat_circle.{u}⟩ :=
 { to_fun := to_fun,
@@ -207,15 +212,15 @@ lemma to_quotient.apply_ne_zero :
 have H : ∀ (m : ℤ), - m * 2 ≠ 1, from λ m,
 by { rw [mul_comm, ←bit0_eq_two_mul], exact int.bit0_ne_bit1 (-m) 0 },
 begin
-  intros r,
-  rw [to_quotient_apply, ulift.ext_iff] at r,
+  intros r, rw [to_quotient_apply, ulift.ext_iff] at r,
   change quotient.mk' _ = (quotient.mk' 0 : ℚ ⧸ (algebra_map ℤ ℚ).to_add_monoid_hom.range) at r,
   rw [quotient_add_group.eq', add_zero, rat.neg_def] at r,
   rcases r with ⟨m, eq1⟩,
   rw [show (algebra_map ℤ ℚ).to_add_monoid_hom m = (m : ℚ), from rfl, rat.coe_int_eq_mk _,
     rat.mk_eq, mul_one, eq_neg_iff_eq_neg, ←neg_mul] at eq1,
   refine H m (sub_eq_zero.mp ((zsmul_inj_iff_of_add_order_of_eq_zero infinite_order).mp _)),
-  rw [sub_smul, one_smul, zero_smul, sub_eq_zero, ←eq1, rep_spec, subtype.coe_mk],
+  rw [sub_smul, one_smul, zero_smul, sub_eq_zero, ←eq1, coeff_of_span_singleton_spec,
+    subtype.coe_mk],
   all_goals { norm_num },
 end
 

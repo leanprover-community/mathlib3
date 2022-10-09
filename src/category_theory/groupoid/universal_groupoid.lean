@@ -42,21 +42,19 @@ and finally quotienting by the reducibility relation.
 open set classical function relation
 local attribute [instance] prop_decidable
 
-namespace category_theory
-namespace groupoid
-namespace free
 
 universes u v u' v' u'' v''
 
 
-section push_quiver
+namespace quiver
 
+namespace push
 
 section
 
 variables {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')
 
-def push {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')  := V'
+def _root_.quiver.push {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')  := V'
 
 inductive push_quiver {V : Type u} [quiver.{v} V] {V' : Type u'} (σ : V → V') : V' → V' → Type (max u u' v)
 | arrow {X Y : V} (f : X ⟶ Y) : push_quiver (σ X) (σ Y)
@@ -86,7 +84,7 @@ instance [h : quiver.has_involutive_reverse V] : quiver.has_involutive_reverse (
   inv' :=  λ a b F, by
   { cases F, dsimp [quiver.reverse], congr, apply h.inv', } }
 
-@[simp] lemma of_reverse [h : quiver.has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
+@[simp] lemma of_reverse [h : has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
   (quiver.reverse $ ((σ *)).map f) = ((σ *)).map (quiver.reverse f) := rfl
 
 variables {V'' : Type u''} [quiver.{v''+1} V'']
@@ -123,12 +121,18 @@ begin
   { rintros _ _ f, induction f, subst_vars, simp only [prefunctor.comp_map, cast_eq], refl, }
 end
 
-end push_quiver
+end push
+end quiver
+
+
+namespace category_theory
+namespace groupoid
+namespace universal
 
 variables {V : Type u} [groupoid.{v+1} V] {V' : Type u'} (σ : V → V')
 
 /-- Two reduction steps possible: compose composable arrows, or drop identity arrows -/
-inductive red_step : hom_rel (paths (push σ))
+inductive red_step : hom_rel (paths (quiver.push σ))
 | comp (X Y Z : V) (f : X ⟶ Y) (g : Y ⟶ Z) :
     red_step
       ((σ *).map (f ≫ g)).to_path
@@ -144,7 +148,7 @@ def universal_groupoid {V : Type u} [groupoid.{v+1} V] {V' : Type u'} (σ : V �
 
 instance : category (universal_groupoid σ) := quotient.category (red_step σ)
 
-lemma congr_reverse {X Y : paths $ push σ} (p q : X ⟶ Y) :
+lemma congr_reverse {X Y : paths $ quiver.push σ} (p q : X ⟶ Y) :
   quotient.comp_closure (red_step σ) p q →
   quotient.comp_closure (red_step σ) (p.reverse) (q.reverse)  :=
 begin
@@ -162,7 +166,8 @@ begin
       have := @red_step.comp _ _ _ σ (z) (y) (x) (inv g) (inv f),
       simpa only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp] using this, },
     dsimp only [category_struct.comp] at this ⊢,
-    simpa only [quiver.path.reverse, quiver.path.reverse_comp, of_reverse, reverse_eq_inv,
+    simpa only [quiver.path.reverse, quiver.path.reverse_comp, quiver.push.of_reverse,
+                reverse_eq_inv,
                 inv_eq_inv, is_iso.inv_comp, quiver.path.comp_nil, quiver.path.comp_assoc,
                 quiver.path.reverse_to_path] using this, },
   { have : quotient.comp_closure
@@ -173,13 +178,13 @@ begin
       have := @red_step.id _ _ _ σ  (x),
       simpa only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp] using this, },
     dsimp only [category_struct.comp, category_struct.id] at this ⊢,
-    simpa only [quiver.path.reverse, quiver.path.reverse_comp, of_reverse,
+    simpa only [quiver.path.reverse, quiver.path.reverse_comp, quiver.push.of_reverse,
                 reverse_eq_inv, inv_eq_inv, is_iso.inv_id, quiver.path.comp_nil,
                 quiver.path.comp_assoc, quiver.path.nil_comp] using this, },
 
 end
 
-lemma congr_comp_reverse {X Y : paths $ push σ} (p : X ⟶ Y) :
+lemma congr_comp_reverse {X Y : paths $ quiver.push σ} (p : X ⟶ Y) :
   quot.mk (@quotient.comp_closure _ _ (red_step σ) _ _) (p ≫ p.reverse) =
   quot.mk (@quotient.comp_closure _ _ (red_step σ) _ _) (𝟙 X) :=
 begin
@@ -194,7 +199,7 @@ begin
     { apply eqv_gen.symm,
       fapply eqv_gen.trans,
       { exact q ≫ ((σ *).map (𝟙 x)).to_path ≫ q.reverse, },
-      { have : ((paths.category_paths (push σ)).id $ σ x) ≫ q.reverse = q.reverse, by {simp,},
+      { have : ((paths.category_paths (quiver.push σ)).id $ σ x) ≫ q.reverse = q.reverse, by simp,
         nth_rewrite_lhs 0 ←this,
         apply eqv_gen.rel, constructor, constructor, },
       { apply eqv_gen.rel,
@@ -204,14 +209,14 @@ begin
                (q ≫ ((σ * .map f).to_path ≫ (σ * .map $ inv f).to_path) ≫ q.reverse), by
         { apply quotient.comp_closure.intro, constructor, },
       dsimp only [category_struct.comp, quiver.hom.to_path,
-                  quiver.path.comp, of, quiver.reverse, quiver.has_reverse.reverse'] at this ⊢,
+                  quiver.path.comp, quiver.push.of, quiver.reverse, quiver.has_reverse.reverse'] at this ⊢,
       simpa only [←quiver.path.comp_assoc,quiver.path.comp_cons, quiver.path.comp_nil, inv_eq_inv,
                  is_iso.hom_inv_id] using this, -- UGLY
        }, },
     { exact ih }, },
 end
 
-lemma congr_reverse_comp {X Y : paths $ push σ} (p : X ⟶ Y) :
+lemma congr_reverse_comp {X Y : paths $ quiver.push σ} (p : X ⟶ Y) :
   quot.mk (@quotient.comp_closure _ _ (red_step σ) _ _) (p.reverse ≫ p) =
   quot.mk (@quotient.comp_closure _ _ (red_step σ) _ _) (𝟙 Y) :=
 begin
@@ -249,15 +254,22 @@ def extend : V ⥤ (universal_groupoid σ) :=
 section ump
 
 def lift {V'' : Type*} [groupoid V'']
-  (θ : V ⥤ V'') (τ₀ : V' → V'') (hτ₀ : θ.obj = τ₀ ∘ σ) : (universal_groupoid σ) ⥤ V'' :=
+  (θ : V ⥤ V'') (τ₀ : V' → V'') (hτ₀ : ∀ x, θ.obj x = τ₀ (σ x)) : (universal_groupoid σ) ⥤ V'' :=
 quotient.lift _
-  (paths.lift $ ) -- need ump of `push` and good to go
-  (sorry)
+  ( paths.lift $ quiver.push.lift σ θ.to_prefunctor τ₀ hτ₀ )
+  ( λ _ _ _ _ h, by
+    { dsimp [paths.lift, quiver.push.lift],
+      induction h,
+      { dsimp [quiver.push.of, category_struct.comp, category_struct.id, quiver.hom.to_path],
+        simp only [functor.map_comp, cast_cast, category.id_comp], finish, },
+      { dsimp [quiver.push.of, category_struct.comp, category_struct.id, quiver.hom.to_path],
+        simp only [functor.map_id, cast_cast, category.id_comp], finish,
+        /-I'm overusing finish… I have no idea how it works-/ }, } )
 
 
 
 end ump
 
-end free
+end universal
 end groupoid
 end category_theory

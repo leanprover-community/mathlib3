@@ -241,12 +241,12 @@ end for_mathlib
 
 variables (G)
 
-lemma nat.card_pos {α : Type*} [finite α] [nonempty α] : 0 < nat.card α :=
-begin
-  haveI := fintype.of_finite α,
-  rw nat.card_eq_fintype_card,
-  exact fintype.card_pos,
-end
+-- lemma nat.card_pos {α : Type*} [finite α] [nonempty α] : 0 < nat.card α :=
+-- begin
+--   haveI := fintype.of_finite α,
+--   rw nat.card_eq_fintype_card,
+--   exact fintype.card_pos,
+-- end
 
 lemma index_center_ne_zero [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] [group.fg G] :
   (center G).index ≠ 0 :=

@@ -62,9 +62,10 @@ section
 variables {𝕜 : Type*} [linear_ordered_add_comm_group 𝕜] [topological_space 𝕜] [order_topology 𝕜]
 variables {p : 𝕜} {β : Type*} [topological_space β]
 
-lemma function.periodic.continuous_lift {f : 𝕜 → β} (hf : function.periodic f p) (hf' : continuous f) :
-  continuous hf.lift :=
-continuous_coinduced_dom.mpr hf'
+lemma function.periodic.copy {α β : Type*} [add_group α] {f : α → β} {c d : α}
+  (hf : function.periodic f c) (h : c = d) :
+  function.periodic f d :=
+by subst h; assumption
 
 /-- An induction principle to deduce results for `add_circle` from those for `𝕜`, used with
 `induction θ using add_circle.induction_on`. -/
@@ -74,25 +75,13 @@ protected lemma add_circle.induction_on {P : add_circle p → Prop} (θ : add_ci
 quotient.induction_on' θ h
 end
 
-lemma function.periodic.copy {α β : Type*} [add_group α] {f : α → β} {c d : α}
-  (hf : function.periodic f c) (h : c = d) :
-  function.periodic f d :=
-by subst h; assumption
-
 def unit_add_circle.to_circle : C(unit_add_circle, circle) :=
 { to_fun := ((periodic_exp_map_circle.mul_const _).copy (mul_inv_cancel real.two_pi_pos.ne')).lift,
   continuous_to_fun :=
-    function.periodic.continuous_lift _ $ exp_map_circle.continuous.comp (continuous_mul_right _) }
+    continuous_coinduced_dom.mpr $ exp_map_circle.continuous.comp (continuous_mul_right _) }
 
 lemma unit_add_circle.injective_to_circle : function.injective unit_add_circle.to_circle :=
 sorry
-
-private lemma fact_zero_lt_one : fact ((0:ℝ) < 1) := ⟨zero_lt_one⟩
-local attribute [instance] fact_zero_lt_one
-
-instance : measure_space unit_add_circle := add_circle.measure_space 1
-
-instance : is_finite_measure (volume : measure unit_add_circle) := sorry
 
 @[simp] lemma unit_add_circle.coe_to_circle_coe (t : ℝ) :
   ↑(unit_add_circle.to_circle t) = complex.exp (t * (2 * π) * complex.I) :=

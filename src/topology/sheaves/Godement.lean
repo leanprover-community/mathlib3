@@ -68,57 +68,10 @@ limit_obj_iso_limit_comp_evaluation _ _ ≪≫
   end }
 
 /--
-Let `U` be an open set, since `𝓕(U) ⟶ 𝓕ₓ` or `𝓕(U) ⟶ *` depending on `x ∈ U` or not where `*`
-is a terminal object, there is a product map `𝓕(U) ⟶ ∏ₓ, 𝓕ₓ or *`.
--/
-def to_godement_presheaf_aux (U : (opens X)ᵒᵖ) :
-  𝓕.obj U ⟶ ∏ λ (x : X), (skyscraper_presheaf x (𝓕.stalk x)).obj U :=
-pi.lift $ λ x, if m : x ∈ U.unop
-  then 𝓕.germ ⟨x, m⟩ ≫ eq_to_hom (by rw [skyscraper_presheaf_obj, if_pos m, subtype.coe_mk])
-  else terminal.from _ ≫ eq_to_hom (by rw [skyscraper_presheaf_obj, if_neg m])
-
-/--
-Let `U` be an open set, if `p ∈ U`, then there is morphism `𝓕(U) ⟶ 𝓕ₚ` by composing the product
-map `to_godement_presheaf_aux` with projection map `pi.π`. This agrees with the `germ` morphism.
--/
-def to_godement_presheaf_aux_comp_π {U : (opens X)ᵒᵖ} (p : U.unop) :
-  𝓕.obj U ⟶ 𝓕.stalk p :=
-to_godement_presheaf_aux 𝓕 U ≫ pi.π _ p ≫ eq_to_hom (if_pos p.2)
-
-@[simp] lemma to_godement_presheaf_aux_comp_π_eq {U : (opens X)ᵒᵖ} (p : U.unop) :
-  to_godement_presheaf_aux_comp_π 𝓕 p = presheaf.germ 𝓕 p :=
-begin
-  dunfold to_godement_presheaf_aux_comp_π presheaf.germ to_godement_presheaf_aux,
-  rw [←category.assoc, limit.lift_π],
-  simp only [fan.mk_π_app],
-  split_ifs,
-  { rw [category.assoc, eq_to_hom_trans, eq_to_hom_refl, category.comp_id],
-    refl },
-  { exfalso, exact h p.2, },
-end
-
-/--
 Under the isomorphism `godement_presheaf(𝓕, U) ≅ ∏ₓ skyscraper(x, 𝓕ₓ)(U)`, there is a morphism
 `𝓕 ⟶ ∏ₓ skyscraper(x, 𝓕ₓ) ≅ godement_presheaf(𝓕)`
 -/
-@[simps] def to_godement_presheaf : 𝓕 ⟶ godement_presheaf 𝓕 :=
-{ app := λ U, to_godement_presheaf_aux 𝓕 U ≫ (godement_presheaf_obj 𝓕 U).inv,
-  naturality' := λ U V inc,
-  begin
-    ext ⟨x⟩,
-    dunfold to_godement_presheaf_aux godement_presheaf_obj discrete.functor,
-    simp only [iso.trans_inv, category.assoc, limit_obj_iso_limit_comp_evaluation_inv_π_app,
-      lim_map_π, category.comp_id, nat_trans.naturality, skyscraper_presheaf_map, category.id_comp,
-      limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc, lim_map_π_assoc],
-    erw [limit.lift_π, fan.mk_π_app, ←category.assoc, limit.lift_π, fan.mk_π_app],
-    dsimp only,
-    by_cases hV : x ∈ opposite.unop V,
-    { have hU : x ∈ U.unop := (le_of_hom inc.unop) hV,
-      simp_rw [dif_pos hV, dif_pos hU],
-      erw [←category.assoc, 𝓕.germ_res inc.unop, category.assoc, eq_to_hom_trans],
-      refl, },
-    { simp_rw [dif_neg hV],
-      apply ((if_neg hV).symm.rec terminal_is_terminal).hom_ext, },
-  end }
+def to_godement_presheaf : 𝓕 ⟶ godement_presheaf 𝓕 :=
+pi.lift $ λ p₀, (skyscraper_presheaf_stalk_adjunction p₀).unit.app 𝓕
 
 end presheaf

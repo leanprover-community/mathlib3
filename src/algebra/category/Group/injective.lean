@@ -155,7 +155,7 @@ namespace infinite_order
 variables {A} {a : A}
 
 /--
-There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ a/2`.
+There is a morphism `⟨a⟩ ⟶ ℚ/ℤ` by `r • a ↦ r/2`.
 -/
 @[reducible] noncomputable def to_fun : (ℤ ∙ a) → rat_circle.{u} :=
 λ x, ulift.up $ quotient.mk' (rat.mk (subdmoule.coeff_of_span_singleton x.2) 2)

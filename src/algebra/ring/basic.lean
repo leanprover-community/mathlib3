@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Ne
 -/
 import algebra.divisibility
 import algebra.regular.basic
+import algebra.opposites
 
 /-!
 # Semirings and rings

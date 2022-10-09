@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
 import algebra.regular.basic
-import data.int.cast.defs
-import data.pi.algebra
 
 /-!
 # Semirings and rings

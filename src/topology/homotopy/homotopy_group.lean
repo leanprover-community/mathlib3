@@ -338,53 +338,39 @@ end
 section
 variables {n : ℕ} (i : fin (n+1))
 
-/--Group structure on `π_(n+1)`. -/
-@[reducible] def is_group : group (π_(n+1) X x) :=
+/-- Group structure on `π_(n+1)`. -/
+instance group : group (π_(n+1) X x) :=
 (homotopy_group_equiv_fundamental_group 0).group
 
-instance : group (π_(n+1) X x) := is_group
-
-/--Additive group on `π_(n+2)`. -/
-def aux_group : group (π_(n+2) X x) :=
+/-- Another group structure on `π_(n+2)` that distributes over the default one,
+  so as to enable the Eckmann-Hilton argument. -/
+private def aux_group : group (π_(n+2) X x) :=
 (homotopy_group_equiv_fundamental_group 1).group
 
 instance add_group : add_group (additive $ π_(n+2) X x) := additive.add_group
-
-lemma ite_ite {α} (a b c : α) (j : fin (n+2)) :
-  (if j = 0 then a else if j = 1 then b else c) =
-  if j = 1 then b else if j = 0 then a else c :=
-by { split_ifs with h₀ h₁, { subst h₀, cases h₁ }, all_goals { refl } }
 
 lemma from_path_trans_to_path {p q : gen_loop N x} (i : N) {t} :
   (path_equiv i).symm ((path_equiv i p).trans $ path_equiv i q) t = if (t i : ℝ) ≤ 1/2
     then p (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i) else t j)
     else q (λ j, if j = i then set.proj_Icc 0 1 zero_le_one (2 * t i - 1) else t j) :=
 begin
-  simp only [path.trans, from_path, path.coe_mk, function.comp_app, subtype.val_eq_coe, path_equiv_apply,
-  path_equiv_symm_apply, mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
-  continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
-  split_ifs, rw coe_fn_coe_base, refl,
-  dsimp only [path.trans, path_equiv, from_path, coe_fn, has_coe_to_fun.coe, fun_like.coe,
-    equiv.symm, continuous_map.uncurry, continuous_map.comp_apply, function.uncurry, function.comp],
-    sorry,
-  dsimp [path.trans, from_path], split_ifs, rw to_path, simp, sorry,
-
-   simp only [continuous_map.curry_apply], simp, split_ifs, refl,
-  dsimp only [path.trans, path_equiv, from_path, coe_fn, has_coe_to_fun.coe, fun_like.coe,
-    equiv.symm, continuous_map.uncurry, continuous_map.comp_apply, function.uncurry, function.comp],
-  split_ifs, dsimp,
+  dsimp only [path.trans, from_path, path.coe_mk, function.comp_app, path_equiv_symm_apply,
+    mk_apply, continuous_map.comp_apply, to_continuous_map_apply, fun_split_at_apply,
+    continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
+  split_ifs, change p _ = _, swap, change q _ = _,
+  all_goals { congr' 1, ext, rw [to_continuous_map_apply, fun_split_at_symm_apply], refl },
 end
 
-/-- Characterization for the multiplication on gen_loop;
-  do the same for const/base point (easy) and reverse/path.symm? -/
+/-- Characterization for the multiplication on `gen_loop`;
+  TODO: do the same for const/base point (easy) and reverse/path.symm? -/
 lemma mul_spec {p q : gen_loop (fin (n+1)) x} :
   ∃ r, (⟦p⟧ * ⟦q⟧ : π_(n+1) X x) = ⟦r⟧ ∧ ∀ t, r t = if (t 0 : ℝ) ≤ 1/2
     then q (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0) else t j)
     else p (λ j, if j = 0 then set.proj_Icc 0 1 zero_le_one (2 * t 0 - 1) else t j) :=
 ⟨_, rfl, λ _, from_path_trans_to_path 0⟩
 
-/--Proof that the additive group is commutative. -/
-@[reducible] def is_comm_group : comm_group (π_(n+2) X x) :=
+/-- Multiplication on `π_(n+2}` is commutative. -/
+instance comm_group : comm_group (π_(n+2) X x) :=
 @eckmann_hilton.comm_group (π_(n+2) X x) aux_group.mul 1
   ⟨⟨λ _, by apply aux_group.one_mul⟩, ⟨λ _, by apply aux_group.mul_one⟩⟩ _
 begin
@@ -392,10 +378,8 @@ begin
   simp only [equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
   ext, iterate 6 { rw from_path_trans_to_path },
   simp_rw [if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
-  split_ifs; { congr, ext1, apply ite_ite },
+  split_ifs; { congr, ext1, apply ite_ite_eq_of_ne, norm_num },
 end
-
-instance comm_group : comm_group (π_(n+2) X x) := is_comm_group
 
 instance add_comm_group : add_comm_group (additive $ π_(n+2) X x) := additive.add_comm_group
 

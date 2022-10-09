@@ -3103,9 +3103,9 @@ begin
   revert heq1,
   induction s using finset.induction_on with i s hnmem ih,
   { simp, },
-  { simp only [finset.forall_mem_insert] at comm hmem,
-    specialize ih (λ x hx, (comm.2 x hx).2) hmem.2,
-    have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set ι)), K i,
+  { have hcomm := comm.mono (finset.coe_subset.2 $ finset.subset_insert _ _),
+    simp only [finset.forall_mem_insert] at hmem,
+    have hmem_bsupr: s.noncomm_prod f hcomm ∈ ⨆ (i ∈ (s : set ι)), K i,
     { refine subgroup.noncomm_prod_mem _ _ _,
       intros x hx,
       have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_supr₂ x hx,
@@ -3115,12 +3115,11 @@ begin
     have hnmem' : i ∉ (s : set ι), by simpa,
     obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
       subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
-    specialize ih heq1S,
     intros i h,
     simp only [finset.mem_insert] at h,
     rcases h with ⟨rfl | _⟩,
     { exact heq1i },
-    { exact (ih _ h), } }
+    { exact ih hcomm hmem.2 heq1S _ h } }
 end
 
 end subgroup

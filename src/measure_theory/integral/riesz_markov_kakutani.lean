@@ -12,7 +12,7 @@ This file will prove different versions of the Riesz-Markov-Kakutani representat
 The theorem is first proven for compact spaces, from which the statements about linear functionals
 on bounded continuous functions or compactly supported functions on locally compact spaces follow.
 
-To make use of the existing API, the measure is constructed from a content $ \lambda $ on the
+To make use of the existing API, the measure is constructed from a content `λ` on the
 compact subsets of the space X, rather than the usual construction of open sets in the literature.
 
 ## References
@@ -24,25 +24,24 @@ compact subsets of the space X, rather than the usual construction of open sets 
 noncomputable theory
 
 open_locale bounded_continuous_function nnreal ennreal
-open set function
+open set function topological_space
 
 variables {X : Type*} [topological_space X]
-
--- Let `Λ` be a positive linear functional on the space of continuous functions on `X`.
--- (Specifically, we consider only nonnegative functions, and require the functional to
--- have nonnegative values.)
 variables (Λ : (X →ᵇ ℝ≥0) →ₗ[ℝ≥0] ℝ≥0)
 
 /-! ### Construction of the content: -/
 
-/-- For `K ⊆ X` compact, define `λ(K) = inf {Λf | 1≤f on K}`.
-  This will be a content on `X`. -/
-def riesz_content_aux : (topological_space.compacts X) → ℝ≥0 :=
+/-- Given a positive linear functional Λ on X, for `K ⊆ X` compact define
+`λ(K) = inf {Λf | 1≤f on K}`. When X is a compact Hausdorff space, this will be shown to be a
+content, and will be shown to agree with the Riesz measure on the compact subsets `K ⊆ X`. -/
+def riesz_content_aux : (compacts X) → ℝ≥0 :=
 λ K, Inf (Λ '' {f : X →ᵇ ℝ≥0 | ∀ x ∈ K, (1 : ℝ≥0) ≤ f x})
 
 section riesz_monotone
 
-lemma riesz_content_aux_test_set_nonempty (K : topological_space.compacts X) :
+/-- For any compact subset `K ⊆ X`, there exist some bounded continuous nonnegative
+functions f on X such that `f ≥ 1` on K. -/
+lemma riesz_content_aux_image_nonempty (K : compacts X) :
   (Λ '' {f : X →ᵇ ℝ≥0 | ∀ x ∈ K, (1 : ℝ≥0) ≤ f x}).nonempty :=
 begin
   rw nonempty_image_iff,
@@ -51,49 +50,58 @@ begin
   simp only [bounded_continuous_function.coe_one, pi.one_apply],
 end
 
-lemma riesz_content_aux_mono {K₁ K₂ : topological_space.compacts X} (h : K₁ ≤ K₂) :
+/-- Riesz content λ (associated with a positive linear functional Λ) is
+monotone: if `K₁ ⊆ K₂` are compact subsets in X, then `λ(K₁) ≤ λ(K₂)`. -/
+lemma riesz_content_aux_mono {K₁ K₂ : compacts X} (h : K₁ ≤ K₂) :
   riesz_content_aux Λ K₁ ≤ riesz_content_aux Λ K₂ :=
-cInf_le_cInf (order_bot.bdd_below _) (riesz_content_aux_test_set_nonempty Λ K₂)
+cInf_le_cInf (order_bot.bdd_below _) (riesz_content_aux_image_nonempty Λ K₂)
   (image_subset Λ (set_of_subset_set_of.mpr (λ f f_hyp x x_in_K₁, f_hyp x (h x_in_K₁))))
 
 end riesz_monotone
 
 section riesz_subadditive
 
-lemma riesz_content_aux_le_test_function_evaluation {K : topological_space.compacts X}
+/-- Any bounded continuous nonnegative f such that `f ≥ 1` on K gives an upper bound on the
+content of K; namely `λ(K) ≤ Λ f`. -/
+lemma riesz_content_aux_le {K : compacts X}
   {f : X →ᵇ ℝ≥0} (h : ∀ x∈ K, (1 : ℝ≥0) ≤ f x ) :
   riesz_content_aux Λ K ≤ Λ f := cInf_le (order_bot.bdd_below _) ⟨f, ⟨h, rfl⟩⟩
 
-lemma riesz_content_aux_exists_test_function (K : topological_space.compacts X)
+/-- The Riesz content can be approximated arbitrarily well by evaluating the positive linear
+functional on test functions: for any `ε > 0`, there exists a bounded continuous nonnegative
+function f on X such that `f ≥ 1` on K and such that `λ(K) ≤ Λ f < λ(K) + ε`. -/
+lemma exists_lt_riesz_content_aux_add_pos (K : compacts X)
   {ε : ℝ≥0} (εpos : 0 < ε) :
   ∃ (f : X →ᵇ ℝ≥0), (∀ x ∈ K, (1 : ℝ≥0) ≤ f x) ∧ Λ f < riesz_content_aux Λ K + ε :=
 begin
-  --choose a test function `f` s.t. `Λf = α < μ(K) + ε`
+  --choose a test function `f` s.t. `Λf = α < λ(K) + ε`
   obtain ⟨α, ⟨⟨f, f_hyp⟩, α_hyp⟩⟩ :=
-    exists_lt_of_cInf_lt (riesz_content_aux_test_set_nonempty Λ K)
+    exists_lt_of_cInf_lt (riesz_content_aux_image_nonempty Λ K)
     (lt_add_of_pos_right (riesz_content_aux Λ K) εpos),
   refine ⟨f, f_hyp.left, _ ⟩,
   rw f_hyp.right,
   exact α_hyp,
 end
 
-lemma riesz_content_aux_sup_le (K1 K2 : topological_space.compacts X) :
+/-- The Riesz content λ associated to a given positive linear functional Λ is
+finitely subadditive: `λ(K₁ ∪ K₂) ≤ λ(K₁) + λ(K₂)` for any compact subsets `K₁, K₂ ⊆ X`. -/
+lemma riesz_content_aux_sup_le (K1 K2 : compacts X) :
   riesz_content_aux Λ (K1 ⊔ K2) ≤ riesz_content_aux Λ (K1) + riesz_content_aux Λ (K2) :=
 begin
   apply nnreal.le_of_forall_pos_le_add,
   intros ε εpos,
   --get test functions s.t. `λ(Ki) ≤ Λfi ≤ λ(Ki) + ε/2, i=1,2`
-  obtain ⟨f1, f_test_function_K1⟩ := riesz_content_aux_exists_test_function Λ K1
+  obtain ⟨f1, f_test_function_K1⟩ := exists_lt_riesz_content_aux_add_pos Λ K1
     (nnreal.half_pos εpos),
-  obtain ⟨f2, f_test_function_K2⟩ := riesz_content_aux_exists_test_function Λ K2
+  obtain ⟨f2, f_test_function_K2⟩ := exists_lt_riesz_content_aux_add_pos Λ K2
     (nnreal.half_pos εpos),
   --let `f := f1 + f2` test function for the content of `K`
   have f_test_function_union : (∀ x ∈ (K1 ⊔ K2), (1 : ℝ≥0) ≤ (f1 + f2) x),
   { rintros x (x_in_K1 | x_in_K2),
     { exact le_add_right (f_test_function_K1.left x x_in_K1) },
     { exact le_add_left (f_test_function_K2.left x x_in_K2) }},
-  --use that `Λf` is an upper bound for `μ(K1⊔K2)`
-  apply (riesz_content_aux_le_test_function_evaluation Λ f_test_function_union).trans (le_of_lt _),
+  --use that `Λf` is an upper bound for `λ(K1⊔K2)`
+  apply (riesz_content_aux_le Λ f_test_function_union).trans (le_of_lt _),
   rw map_add,
   --use that `Λfi` are lower bounds for `λ(Ki) + ε/2`
   apply lt_of_lt_of_le (add_lt_add f_test_function_K1.right f_test_function_K2.right) (le_of_eq _),

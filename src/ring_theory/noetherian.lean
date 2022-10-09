@@ -430,26 +430,20 @@ end
 lemma exists_radical_pow_le_of_fg {R : Type*} [comm_semiring R] (I : ideal R) (h : I.radical.fg) :
   ∃ n : ℕ, I.radical ^ n ≤ I :=
 begin
-  have : ∀ x ∈ I.radical, ∃ n : ℕ, x ^ n ∈ I := λ x hx, hx,
-  revert h this,
-  generalize : I.radical = J,
-  intro h,
-  apply submodule.fg_induction _ _ _ _ _ _ h,
-  { rintros x hx, obtain ⟨n, hn⟩ := hx x (subset_span (set.mem_singleton x)),
+  have := le_refl I.radical, revert this,
+  refine submodule.fg_induction _ _ (λ J, J ≤ I.radical → ∃ n : ℕ, J ^ n ≤ I) _ _ _ h,
+  { intros x hx, obtain ⟨n, hn⟩ := hx (subset_span (set.mem_singleton x)),
     exact ⟨n, by rwa [← ideal.span, span_singleton_pow, span_le, set.singleton_subset_iff]⟩ },
   { intros J K hJ hK hJK,
-    obtain ⟨n, hn⟩ := hJ (λ x hx, hJK x $ ideal.mem_sup_left hx),
-    obtain ⟨m, hm⟩ := hK (λ x hx, hJK x $ ideal.mem_sup_right hx),
+    obtain ⟨n, hn⟩ := hJ (λ x hx, hJK $ ideal.mem_sup_left hx),
+    obtain ⟨m, hm⟩ := hK (λ x hx, hJK $ ideal.mem_sup_right hx),
     use n + m,
     rw [← ideal.add_eq_sup, add_pow, ideal.sum_eq_sup, finset.sup_le_iff],
-    intros i hi,
-    refine ideal.mul_le_right.trans _,
-    have : n ≤ i ∨ m ≤ n + m - i,
-    { by_contra, push_neg at h, have := add_lt_add h.1 h.2, rw finset.mem_range_succ_iff at hi,
-      rw add_tsub_cancel_of_le hi at this, exact irrefl _ this },
-    cases this,
-    { exact ideal.mul_le_right.trans ((ideal.pow_le_pow this).trans hn) },
-    { exact ideal.mul_le_left.trans ((ideal.pow_le_pow this).trans hm) } }
+    refine λ i hi, ideal.mul_le_right.trans _,
+    obtain h | h := le_or_lt n i,
+    { exact ideal.mul_le_right.trans ((ideal.pow_le_pow h).trans hn) },
+    { refine ideal.mul_le_left.trans ((ideal.pow_le_pow _).trans hm),
+      rw [add_comm, nat.add_sub_assoc h.le], apply nat.le_add_right } },
 end
 
 end ideal

@@ -5,6 +5,10 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.abs
 import algebra.order.sub
+import algebra.order.monoid.min_max
+import algebra.order.monoid.prod
+import algebra.order.monoid.type_tags
+import algebra.order.monoid.units
 
 /-!
 # Ordered groups

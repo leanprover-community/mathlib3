@@ -1767,6 +1767,8 @@ begin
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
 
+lemma subsingleton.coe_sort {s : set α} : s.subsingleton → subsingleton s := s.subsingleton_coe.2
+
 /-- The `coe_sort` of a set `s` in a subsingleton type is a subsingleton.
 For the corresponding result for `subtype`, see `subtype.subsingleton`. -/
 instance subsingleton_coe_of_subsingleton [subsingleton α] {s : set α} : subsingleton s :=

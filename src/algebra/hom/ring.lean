@@ -6,6 +6,7 @@ Authors: Amelia Livingston, Jireh Loreaux
 import algebra.ring.basic
 import algebra.divisibility
 import data.pi.algebra
+import algebra.hom.units
 
 /-!
 # Homomorphisms of semirings and rings

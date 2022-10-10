@@ -8,6 +8,13 @@ import category_theory.abelian.exact
 import category_theory.preadditive.injective
 import category_theory.preadditive.yoneda
 
+/-!
+# Injective objects in abelian categories
+
+* Objects in an abelian categories are injective if and only if the preadditive Yoneda functor
+  on them preserves finite colimits.
+-/
+
 noncomputable theory
 
 open category_theory

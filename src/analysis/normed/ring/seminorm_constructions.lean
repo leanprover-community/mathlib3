@@ -39,8 +39,8 @@ section defs
 
 /-- A function `f : α → β` is power-multiplicative if for all `a ∈ α` and all positive `n ∈ ℕ`,
   `f (a ^ n) = (f a) ^ n`. -/
-def is_pow_mul {α : Type*} [has_pow α ℕ] {β : Type*} [has_pow β ℕ]  (f : α → β) :=
-∀ (a : α) {n : ℕ} (hn : 1 ≤ n), f (a ^ n) = (f a) ^ n
+def is_pow_mul {α β : Type*} [has_pow α ℕ] [has_pow β ℕ]  (f : α → β) :=
+∀ (a : α) {n : ℕ} (hn : n ≠ 0), f (a ^ n) = (f a) ^ n
 
 /-- A function `f : α → β` is nonarchimedean if it satisfies the inequality
   `f (a + b) ≤ max (f a) (f b)` for all `a, b ∈ α`. -/
@@ -77,12 +77,15 @@ end
 
 variable {f}
 
+lemma seminorm_from_const_apply (x : R) (n : ℕ) :
+  seminorm_from_const_seq c f x n = (f (x * c^n))/((f c)^n) :=
+rfl
+
 lemma seminorm_from_const_seq_zero (hf : f 0 = 0) :
   seminorm_from_const_seq c f 0 = 0 :=
 begin
-  simp only [seminorm_from_const_seq],
   ext n,
-  rw [zero_mul, hf, zero_div],
+  rw [seminorm_from_const_apply, zero_mul, hf, zero_div],
   refl,
 end
 
@@ -90,36 +93,23 @@ variable {c}
 
 include hc hpm
 
-lemma seminorm_from_const_seq_one (n : ℕ) (hn : 1 ≤ n) :
+lemma seminorm_from_const_seq_one {n : ℕ} (hn : n ≠ 0) :
   seminorm_from_const_seq c f 1 n = 1 :=
-begin
-  simp only [seminorm_from_const_seq],
-  rw [one_mul, hpm _ hn, div_self (pow_ne_zero n (ne.symm hc))],
-end
+by rw [seminorm_from_const_apply, one_mul, hpm _ hn, div_self (pow_ne_zero n (ne.symm hc))]
 
 include hf1
 
 lemma seminorm_from_const_seq_antitone (x : R) :
   antitone (seminorm_from_const_seq c f x) :=
 begin
-  intros m n hmn,
-  simp only [seminorm_from_const_seq],
-  nth_rewrite 0 ← nat.add_sub_of_le hmn,
-  rw [pow_add, ← mul_assoc],
+  apply antitone_nat_of_succ_le,
   have hc_pos : 0 < f c := lt_of_le_of_ne (map_nonneg f _) hc,
+  intros n,
+  simp only [seminorm_from_const_seq],
+  rw [pow_add, ← mul_assoc],
   apply le_trans ((div_le_div_right (pow_pos hc_pos _)).mpr (map_mul_le_mul f _ _)),
-  by_cases heq : m = n,
-  { have : n - m = 0,
-    { rw heq, exact nat.sub_self n, },
-    rw [this, heq, div_le_div_right (pow_pos hc_pos _), pow_zero],
-    conv_rhs{rw ← mul_one (f (x * c ^ n))},
-    exact mul_le_mul_of_nonneg_left hf1 (map_nonneg f _) },
-  { have h1 : 1 ≤ n - m,
-    { rw [nat.one_le_iff_ne_zero, ne.def, nat.sub_eq_zero_iff_le, not_le],
-    exact lt_of_le_of_ne hmn heq,},
-    rw [hpm c h1, mul_div_assoc, div_eq_mul_inv, pow_sub₀ _ (ne.symm hc) hmn, mul_assoc,
-      mul_comm (f c ^ m)⁻¹, ← mul_assoc (f c ^ n), mul_inv_cancel (pow_ne_zero n (ne.symm hc)),
-      one_mul, div_eq_mul_inv] }
+  rw [hpm c one_ne_zero, mul_div_assoc, pow_add, div_eq_mul_inv, mul_inv_rev, pow_one,
+    ← mul_assoc (f c), mul_inv_cancel (ne.symm hc), div_eq_mul_inv, one_mul],
 end
 
 omit hc hpm hf1
@@ -148,7 +138,7 @@ begin
   apply tendsto_nhds_unique_of_eventually_eq (seminorm_from_const_def_is_limit hf1 hc hpm 1)
     tendsto_const_nhds,
   simp only [filter.eventually_eq, filter.eventually_at_top, ge_iff_le],
-  exact ⟨1,  seminorm_from_const_seq_one hc hpm⟩,
+  exact ⟨1, λ n hn, seminorm_from_const_seq_one hc hpm (nat.one_le_iff_ne_zero.mp hn)⟩
 end
 
 lemma seminorm_from_const_mul (x y : R) :
@@ -237,7 +227,7 @@ begin
   { refine filter.tendsto.comp (seminorm_from_const_def_is_limit hf1 hc hpm (x^m)) _,
     apply filter.tendsto_at_top_at_top_of_monotone,
     { intros n k hnk, exact mul_le_mul_left' hnk m, },
-    { rintro n, use n, exact le_mul_of_one_le_left' hm, }},
+    { rintro n, use n, refine nat.le_mul_of_pos_left (nat.pos_of_ne_zero hm) }},
   apply tendsto_nhds_unique hlim,
   convert filter.tendsto.pow (seminorm_from_const_def_is_limit hf1 hc hpm x) m,
   ext n,
@@ -253,7 +243,8 @@ begin
   rintros n hn,
   apply le_trans ((div_le_div_right (pow_pos (lt_of_le_of_ne (map_nonneg f c) hc) _)).mpr
     (map_mul_le_mul _ _ _)),
-  rw [hpm c hn, mul_div_assoc, div_self (pow_ne_zero n hc.symm), mul_one],
+  rw [hpm c (nat.one_le_iff_ne_zero.mp hn), mul_div_assoc, div_self (pow_ne_zero n hc.symm),
+    mul_one],
 end
 
 lemma seminorm_from_const_apply_of_is_mult {x : R} (hx : ∀ y : R, f (x * y) = f x * f y) :
@@ -266,7 +257,7 @@ begin
       { simp only [seminorm_from_const_seq],
         rw [hn, pow_zero, pow_zero, mul_one, div_one], },
       { simp only [seminorm_from_const_seq],
-        rw [hx (c ^n), hpm _ (nat.one_le_iff_ne_zero.mpr hn), mul_div_assoc,
+        rw [hx (c ^n), hpm _ hn, mul_div_assoc,
           div_self (pow_ne_zero n hc.symm), mul_one], }},
     simpa [hseq] using tendsto_const_nhds, },
   exact tendsto_nhds_unique (seminorm_from_const_def_is_limit hf1 hc hpm x) hlim,
@@ -294,8 +285,8 @@ begin
   { have hseq : seminorm_from_const_seq c f c = λ n, f c,
     { ext n,
       simp only [seminorm_from_const_seq],
-      rw [← pow_succ, hpm _ le_add_self, pow_succ, mul_div_assoc, div_self (pow_ne_zero n hc.symm),
-        mul_one], },
+      rw [← pow_succ, hpm _ (nat.succ_ne_zero n), pow_succ, mul_div_assoc,
+        div_self (pow_ne_zero n hc.symm), mul_one] },
     simpa [hseq] using tendsto_const_nhds },
     exact tendsto_nhds_unique (seminorm_from_const_def_is_limit hf1 hc hpm c) hlim,
 end

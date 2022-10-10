@@ -397,6 +397,11 @@ begin
     (finset.prod_eq_one $ λ x hx, mul_indicator_of_not_mem (finset.mem_filter.1 hx).2 _)
 end
 
+@[simp, to_additive]
+lemma _root_.finset.prod_mul_indicator (s t : finset α) (f : α → M) :
+  (∏ i in s, mul_indicator t f i) = ∏ i in (s ∩ t), f i :=
+prod_ite_mem s t f
+
 @[to_additive] lemma mul_indicator_finset_prod (I : finset ι) (s : set α) (f : ι → α → M) :
   mul_indicator s (∏ i in I, f i) = ∏ i in I, mul_indicator s (f i) :=
 (mul_indicator_hom M s).map_prod _ _

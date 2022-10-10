@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import ring_theory.valuation.valuation_subring
-import ring_theory.integrally_closed
-import linear_algebra.quotient
-import ring_theory.nakayama
 import ring_theory.ideal.cotangent
-import linear_algebra.matrix.charpoly.linear_map
 import ring_theory.dedekind_domain.basic
 
 /-!
@@ -48,7 +44,7 @@ begin
   { rintro rfl,
     apply ring.ne_bot_of_is_maximal_of_not_is_field (maximal_ideal.is_maximal R) h,
     simp [hx] },
-  have hx' : irreducible x := irreducible_of_span_eq_maximal_ideal x this hx,
+  have hx' := discrete_valuation_ring.irreducible_of_span_eq_maximal_ideal x this hx,
   have H' : ∀ r : R, r ≠ 0 → r ∈ nonunits R → ∃ (n : ℕ), associated (x ^ n) r,
   { intros r hr₁ hr₂,
     obtain ⟨f, hf₁, rfl, hf₂⟩ := (wf_dvd_monoid.not_unit_iff_exists_factors_eq r hr₁).mp hr₂,
@@ -89,9 +85,8 @@ begin
     exact nat.find_spec this }
 end
 
-lemma maximal_ideal_is_principal_of_integrally_closed_of_dim_one
-  [is_noetherian_ring R] [local_ring R] [is_domain R] [is_integrally_closed R]
-  (H : ∃! P : ideal R, P ≠ ⊥ ∧ P.is_prime) : (maximal_ideal R).is_principal :=
+lemma maximal_ideal_is_principal_of_is_dedekind_domain
+  [local_ring R] [is_domain R] [is_dedekind_domain R] : (maximal_ideal R).is_principal :=
 begin
   classical,
   by_cases ne_bot : maximal_ideal R = ⊥,
@@ -104,8 +99,8 @@ begin
   { rw ideal.radical_eq_Inf,
     apply le_antisymm,
     { exact Inf_le ⟨hle, infer_instance⟩ },
-    { refine le_Inf (λ I hI, (unique_of_exists_unique H ⟨ne_bot, infer_instance⟩ _).le),
-      refine ⟨λ e, ha₂ _, hI.2⟩,
+    { refine le_Inf (λ I hI, (eq_maximal_ideal $
+        is_dedekind_domain.dimension_le_one _ (λ e, ha₂ _) hI.2).ge),
       rw [← ideal.span_singleton_eq_bot, eq_bot_iff, ← e], exact hI.1 } },
   have : ∃ n, maximal_ideal R ^ n ≤ ideal.span {a},
   { rw ← this, apply ideal.exists_radical_pow_le_of_fg, exact is_noetherian.noetherian _ },
@@ -164,6 +159,7 @@ lemma discrete_valuation_ring.tfae [is_noetherian_ring R] [local_ring R] [is_dom
     finite_dimensional.finrank (residue_field R) (cotangent_space R) = 1,
     ∀ I ≠ ⊥, ∃ n : ℕ, I = (maximal_ideal R) ^ n] :=
 begin
+  have ne_bot := ring.ne_bot_of_is_maximal_of_not_is_field (maximal_ideal.is_maximal R) h,
   classical,
   rw finrank_eq_one_iff',
   tfae_have : 1 → 2,
@@ -177,13 +173,14 @@ begin
       obtain ⟨p, hp₁, hp₂⟩ := wf_dvd_monoid.exists_irreducible_factor hx₂ hx₁,
       exact ⟨p, hp₁⟩ },
     { exact valuation_ring.unique_irreducible } },
-  tfae_have : 3 ↔ 4,
-  { sorry },
   tfae_have : 1 → 4,
   { introI H,
     exact ⟨infer_instance, ((discrete_valuation_ring.iff_pid_with_one_nonzero_prime R).mp H).2⟩ },
-  tfae_have : 4 → 5,
-  { rintro ⟨H₁, H₂⟩, exactI maximal_ideal_is_principal_of_integrally_closed_of_dim_one R H₂ },
+  tfae_have : 4 → 3,
+  { rintros ⟨h₁, h₂⟩, exact ⟨infer_instance, λ I hI hI', unique_of_exists_unique h₂
+      ⟨ne_bot, infer_instance⟩ ⟨hI, hI'⟩ ▸ maximal_ideal.is_maximal R, h₁⟩ },
+  tfae_have : 3 → 5,
+  { introI h, exact maximal_ideal_is_principal_of_is_dedekind_domain R },
   tfae_have : 5 → 6,
   { rintro ⟨x, hx⟩,
     have : x ∈ maximal_ideal R := by { rw hx, exact submodule.subset_span (set.mem_singleton x) },
@@ -198,9 +195,8 @@ begin
       { conv_lhs { rw hx },
         rw submodule.mem_smul_top_iff at e,
         rwa [submodule.span_le, set.singleton_subset_iff] },
-      { rw local_ring.jacobson_eq_maximal_ideal _ _ _,
-        exacts [le_refl _, bot_ne_top] } },
-    { refine λ _w, quotient.induction_on' _w $ λ y, _,
+      { rw local_ring.jacobson_eq_maximal_ideal (⊥ : ideal R) bot_ne_top, exact le_refl _ } },
+    { refine λ w, quotient.induction_on' w $ λ y, _,
       obtain ⟨y, hy⟩ := y,
       rw [hx, submodule.mem_span_singleton] at hy,
       obtain ⟨a, rfl⟩ := hy,

@@ -58,7 +58,9 @@ namespace spectrum
 
 section spectrum_compact
 
-variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+open filter
+
+variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜

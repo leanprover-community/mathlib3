@@ -23,7 +23,7 @@ open filter ennreal spectrum cstar_ring
 section unitary_spectrum
 
 variables
-{𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{𝕜 : Type*} [normed_field 𝕜]
 {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E]
 [normed_algebra 𝕜 E] [complete_space E]
 

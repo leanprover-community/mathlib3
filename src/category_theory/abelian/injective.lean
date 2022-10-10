@@ -29,7 +29,7 @@ namespace category_theory
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- The preadditive Yoneda functor on `J` preserves colimits if `J` is injective. -/
-lemma preserves_finite_colimits_preadditive_yoneda_obj_of_injective (J : C)
+def preserves_finite_colimits_preadditive_yoneda_obj_of_injective (J : C)
   [hP : injective J] : preserves_finite_colimits (preadditive_yoneda_obj J) :=
 begin
   letI := (injective_iff_preserves_epimorphisms_preadditive_yoneda_obj' J).mp hP,

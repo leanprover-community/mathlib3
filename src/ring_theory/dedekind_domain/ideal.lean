@@ -874,8 +874,8 @@ lemma associates_irreducible : _root_.irreducible $ associates.mk v.as_ideal :=
 
 /-- An equivalence between the height one and maximal spectra for rings of Krull dimension 1. -/
 def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maximal_spectrum R :=
-{ to_fun    := λ ⟨v, hv, hbot⟩, ⟨v, dimension_le_one v hbot hv⟩,
-  inv_fun   := λ ⟨v, hv⟩, ⟨v, hv.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field hv hR⟩,
+{ to_fun    := λ v, ⟨v.val, dimension_le_one v.val v.property.right v.property.left⟩,
+  inv_fun   := λ v, ⟨v.val, v.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field v.property hR⟩,
   left_inv  := λ ⟨_, _, _⟩, rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 

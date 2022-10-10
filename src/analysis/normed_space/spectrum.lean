@@ -43,38 +43,6 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 
 open_locale ennreal
 
---prereqs
-
-open filter
-
-open_locale nnreal
-
-lemma nnreal.eventually_pow_one_div_le (x : ℝ≥0) {ε : ℝ≥0} (hε : 1 < ε) :
-  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ ε :=
-begin
-  obtain ⟨m, hm⟩ := add_one_pow_unbounded_of_pos x (tsub_pos_of_lt hε),
-  rw [tsub_add_cancel_of_le hε.le] at hm,
-  refine eventually_at_top.2 ⟨m + 1, λ n hn, _⟩,
-  simpa only [nnreal.rpow_one_div_le_iff (nat.cast_pos.2 $ m.succ_pos.trans_le hn),
-    nnreal.rpow_nat_cast] using hm.le.trans (pow_le_pow hε.le (m.le_succ.trans hn)),
-end
-
-lemma ennreal.eventually_pow_one_div_le {x : ℝ≥0∞} (hx : x ≠ ∞) {ε : ℝ≥0∞} (hε : 1 < ε) :
-  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ ε :=
-begin
-  lift x to ℝ≥0 using hx,
-  by_cases ε = ∞,
-  refine eventually_of_forall (λ n, h.symm ▸ le_top),
-  lift ε to ℝ≥0 using h,
-  have := nnreal.eventually_pow_one_div_le x (by exact_mod_cast hε : 1 < ε),
-  refine this.congr (eventually_of_forall $ λ n, _),
-  rw [ennreal.coe_rpow_of_nonneg x (by positivity : 0 ≤ (1 / n : ℝ)), ennreal.coe_le_coe],
-end
-
-
---prereqs
-
-
 /-- The *spectral radius* is the supremum of the `nnnorm` (`∥⬝∥₊`) of elements in the spectrum,
     coerced into an element of `ℝ≥0∞`. Note that it is possible for `spectrum 𝕜 a = ∅`. In this
     case, `spectral_radius a = 0`.  It is also possible that `spectrum 𝕜 a` be unbounded (though

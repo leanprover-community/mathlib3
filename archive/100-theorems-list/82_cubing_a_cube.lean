@@ -504,15 +504,17 @@ theorem not_correct : ¬correct cs :=
 
 /-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :
-  ∀ {n : ℕ}, n ≥ 3 →                             -- In ℝ^n for n ≥ 3
-  ∀ {ι : Type} [finite ι] {cs : ι → cube n}      -- given a finite collection of (hyper)cubes
-  [nontrivial ι],                                -- containing at least two elements
-  pairwise (disjoint on (cube.to_set ∘ cs)) →    -- which is pairwise disjoint
-  (⋃(i : ι), (cs i).to_set) = unit_cube.to_set → -- whose union is the unit cube
-  injective (cube.w ∘ cs) →                      -- such that the widths of all cubes are different
-  false :=                                       -- then we can derive a contradiction
+  ∀ {n : ℕ}, n ≥ 3 →                            -- In ℝ^n for n ≥ 3
+  ∀ {s : set (cube n)}, s.finite →              -- given a finite collection of (hyper)cubes
+  s.nontrivial →                                -- containing at least two elements
+  s.pairwise_disjoint cube.to_set →             -- which is pairwise disjoint
+  (⋃ c ∈ s, cube.to_set c) = unit_cube.to_set → -- whose union is the unit cube
+  inj_on cube.w s →                             -- such that the widths of all cubes are different
+  false :=                                      -- then we can derive a contradiction
 begin
-  intros n hn ι hι cs h1 h2 h3 h4, resetI,
-  cases n, cases hn,
-  exact not_correct ⟨h2, h3, h4, hn⟩
+  intros n hn s hfin h2 hd hU hinj,
+  cases n,
+  { cases hn },
+  exact @not_correct n s coe hfin.to_subtype ((nontrivial_coe _).2 h2)
+    ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end

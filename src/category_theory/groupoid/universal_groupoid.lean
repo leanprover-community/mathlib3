@@ -15,7 +15,7 @@ import category_theory.path_category
 import category_theory.quotient
 
 /-!
-# Free groupoid on a quiver
+# Universal groupoid
 
 This file defines the free groupoid on a quiver, the lifting of a prefunctor to its unique
 extension as a functor from the free groupoid, and proves uniqueness of this extension.
@@ -251,22 +251,52 @@ def extend : V ⥤ (universal_groupoid σ) :=
     apply quotient.comp_closure.of,
     constructor, } }
 
+def as : (universal_groupoid σ) → V' := λ x, x.as
+lemma extend_eq : (extend σ).to_prefunctor =
+  ((quiver.push.of σ).comp paths.of).comp (quotient.functor $ red_step σ).to_prefunctor := rfl
+lemma _root_.category_theory.functor.to_prefunctor_ext {C D : Type*} [category C] [category D]
+  (F G : C ⥤ D) : F = G ↔ F.to_prefunctor = G.to_prefunctor := sorry
+
 section ump
 
-def lift {V'' : Type*} [groupoid V'']
-  (θ : V ⥤ V'') (τ₀ : V' → V'') (hτ₀ : ∀ x, θ.obj x = τ₀ (σ x)) : (universal_groupoid σ) ⥤ V'' :=
+variables {V'' : Type*} [groupoid V'']
+  (θ : V ⥤ V'') (τ₀ : V' → V'') (hτ₀ : ∀ x, θ.obj x = τ₀ (σ x))
+
+def lift : (universal_groupoid σ) ⥤ V'' :=
 quotient.lift _
   ( paths.lift $ quiver.push.lift σ θ.to_prefunctor τ₀ hτ₀ )
   ( λ _ _ _ _ h, by
-    { dsimp [paths.lift, quiver.push.lift],
+    { dsimp only [paths.lift, quiver.push.lift],
       induction h,
       { dsimp [quiver.push.of, category_struct.comp, category_struct.id, quiver.hom.to_path],
-        simp only [functor.map_comp, cast_cast, category.id_comp], finish, },
+        simp only [functor.map_comp, cast_cast, category.id_comp],
+        finish, },
       { dsimp [quiver.push.of, category_struct.comp, category_struct.id, quiver.hom.to_path],
         simp only [functor.map_id, cast_cast, category.id_comp], finish,
         /-I'm overusing finish… I have no idea how it works-/ }, } )
 
+lemma lift_spec_obj : (lift σ θ τ₀ hτ₀).obj = τ₀∘(as σ) := rfl
 
+lemma lift_spec_comp : (extend σ) ⋙ (lift σ θ τ₀ hτ₀) = θ :=
+begin
+  rw [functor.to_prefunctor_ext,←functor.to_prefunctor_comp, extend_eq],
+  dsimp only [lift],
+  rw [prefunctor.comp_assoc, functor.to_prefunctor_comp, quotient.lift_spec,
+      prefunctor.comp_assoc, paths.lift_spec, quiver.push.lift_spec_comm],
+end
+
+lemma lift_unique (Φ : universal_groupoid σ ⥤ V'')
+  (Φ₀ : Φ.obj = τ₀∘(as σ)) (Φc : extend σ ⋙ Φ = θ) : Φ = (lift σ θ τ₀ hτ₀) :=
+begin
+  apply quotient.lift_spec_unique,
+  apply paths.lift_spec_unique,
+  apply quiver.push.lift_unique,
+  { ext,
+    simp only [prefunctor.comp_obj, paths.of_obj, functor.to_prefunctor_obj, functor.comp_obj],
+    rw Φ₀, refl, },
+  { rw [functor.to_prefunctor_ext, ←functor.to_prefunctor_comp] at Φc,
+    exact Φc, },
+end
 
 end ump
 

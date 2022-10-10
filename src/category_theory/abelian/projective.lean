@@ -43,8 +43,8 @@ begin
   apply functor.preserves_finite_colimits_of_preserves_epis_and_kernels,
 end
 
-/-- An object is objective if its preadditive Co-Yoneda functor preserves finite colimits. -/
-lemma projective_of_preserves_finite_colimits_preadditive_cojoneda_obj (P : C)
+/-- An object is projective if its preadditive Co-Yoneda functor preserves finite colimits. -/
+lemma projective_of_preserves_finite_colimits_preadditive_coyoneda_obj (P : C)
   [hP : preserves_finite_colimits (preadditive_coyoneda_obj (op P))] : projective P :=
 begin
   rw projective_iff_preserves_epimorphisms_preadditive_coyoneda_obj',

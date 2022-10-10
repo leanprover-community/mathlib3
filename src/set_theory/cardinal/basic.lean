@@ -298,6 +298,11 @@ theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
  λ ⟨h⟩, ⟨⟨λ a, punit.star, λ a b _, h _ _⟩⟩⟩
 
+@[simp] lemma mk_le_one_iff_set_subsingleton {s : set α} : #s ≤ 1 ↔ s.subsingleton :=
+le_one_iff_subsingleton.trans s.subsingleton_coe
+
+alias mk_le_one_iff_set_subsingleton ↔ _ _root_.set.subsingleton.cardinal_mk_le_one
+
 instance : has_add cardinal.{u} := ⟨map₂ sum $ λ α β γ δ, equiv.sum_congr⟩
 
 theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
@@ -1419,6 +1424,12 @@ lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : #s ≤ #t :=
 
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀ x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
 ⟨embedding_of_subset _ _ h⟩
+
+lemma le_mk_diff_add_mk (S T : set α) : #S ≤ #(S \ T : set α) + #T :=
+(mk_le_mk_of_subset $ subset_diff_union _ _).trans $ mk_union_le _ _
+
+lemma mk_diff_add_mk {S T : set α} (h : T ⊆ S) : #(S \ T : set α) + #T = #S :=
+(mk_union_of_disjoint $ by exact disjoint_sdiff_self_left).symm.trans $ by rw diff_union_of_subset h
 
 lemma mk_union_le_aleph_0 {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ℵ₀ ↔ #P ≤ ℵ₀ ∧ #Q ≤ ℵ₀ :=
 by simp

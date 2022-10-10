@@ -82,10 +82,10 @@ def restrict {X : Top} {C : Type*} [category C] [concrete_category C]
   {F : X.presheaf C} {V : opens X} (x : F.obj (op V)) {U : opens X} (h : U ⟶ V) : F.obj (op U) :=
 F.map h.op x
 
-localized "infixl ` |_ₕ `: 80 := restrict" in algebraic_geometry
+localized "infixl ` |_ₕ `: 80 := Top.presheaf.restrict" in algebraic_geometry
 
 localized "notation x ` |_ₗ `: 80 U ` ⟪` e `⟫ ` :=
-@restrict _ _ _ _ _ _ x U (@hom_of_le (opens _) _ U _ e)" in algebraic_geometry
+@Top.presheaf.restrict _ _ _ _ _ _ x U (@hom_of_le (opens _) _ U _ e)" in algebraic_geometry
 
 /-- The restriction of a section along an inclusion of open sets.
 For `x : F.obj (op V)`, we provide the notation `x |_ U`, where the proof `U ≤ V` is inferred by
@@ -95,7 +95,7 @@ abbreviation restrict_open {X : Top} {C : Type*} [category C] [concrete_category
   (e : U ≤ V . Top.presheaf.restrict_tac') : F.obj (op U) :=
 x |_ₗ U ⟪e⟫
 
-localized "infixl ` |_ `: 80 := restrict_open" in algebraic_geometry
+localized "infixl ` |_ `: 80 := Top.presheaf.restrict_open" in algebraic_geometry
 
 @[simp]
 lemma restrict_restrict {X : Top} {C : Type*} [category C] [concrete_category C]

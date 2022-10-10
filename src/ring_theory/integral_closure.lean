@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 import data.polynomial.expand
 import linear_algebra.finite_dimensional
-import linear_algebra.matrix.determinant
+import linear_algebra.matrix.charpoly.linear_map
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
@@ -293,6 +293,45 @@ begin
   change (⟨_, this⟩ : S₀) • r ∈ _,
   rw finsupp.mem_supported at hlx1,
   exact subalgebra.smul_mem _ (algebra.subset_adjoin $ hlx1 hr) _
+end
+
+lemma module.End.is_integral {M : Type*} [add_comm_group M] [module R M] [module.finite R M] :
+  algebra.is_integral R (module.End R M) :=
+linear_map.exists_monic_and_aeval_eq_zero R
+
+/-- Suppose `A` is an `R`-algebra, `M` is an `A`-module such that `a • m ≠ 0` for all non-zero `a`
+and `m`. If `x : A` fixes a nontrivial f.g. `R`-submodule `N` of `M`, then `x` is `R`-integral. -/
+lemma is_integral_of_smul_mem_submodule {M : Type*} [add_comm_group M] [module R M]
+  [module A M] [is_scalar_tower R A M] [no_zero_smul_divisors A M]
+  (N : submodule R M) (hN : N ≠ ⊥) (hN' : N.fg) (x : A)
+    (hx : ∀ n ∈ N, x • n ∈ N) : is_integral R x :=
+begin
+  let A' : subalgebra R A :=
+  { carrier := { x | ∀ n ∈ N, x • n ∈ N },
+    mul_mem' := λ a b ha hb n hn, smul_smul a b n ▸ ha _ (hb _ hn),
+    one_mem' := λ n hn, (one_smul A n).symm ▸ hn,
+    add_mem' := λ a b ha hb n hn, (add_smul a b n).symm ▸ N.add_mem (ha _ hn) (hb _ hn),
+    zero_mem' := λ n hn, (zero_smul A n).symm ▸ N.zero_mem,
+    algebra_map_mem' := λ r n hn, (algebra_map_smul A r n).symm ▸ N.smul_mem r hn },
+  let f : A' →ₐ[R] module.End R N := alg_hom.of_linear_map
+    { to_fun := λ x, (distrib_mul_action.to_linear_map R M x).restrict x.prop,
+      map_add' := λ x y, linear_map.ext $ λ n, subtype.ext $ add_smul x y n,
+      map_smul' := λ r s, linear_map.ext $ λ n, subtype.ext $ smul_assoc r s n }
+      (linear_map.ext $ λ n, subtype.ext $ one_smul _ _)
+      (λ x y, linear_map.ext $ λ n, subtype.ext $ mul_smul x y n),
+  obtain ⟨a, ha₁, ha₂⟩ : ∃ a ∈ N, a ≠ (0 : M),
+  { by_contra h', push_neg at h', apply hN, rwa eq_bot_iff },
+  have : function.injective f,
+  { show function.injective f.to_linear_map,
+    rw [← linear_map.ker_eq_bot, eq_bot_iff],
+    intros s hs,
+    have : s.1 • a = 0 := congr_arg subtype.val (linear_map.congr_fun hs ⟨a, ha₁⟩),
+    exact subtype.ext ((eq_zero_or_eq_zero_of_smul_eq_zero this).resolve_right ha₂) },
+  show is_integral R (A'.val ⟨x, hx⟩),
+  rw [is_integral_alg_hom_iff A'.val subtype.val_injective,
+    ← is_integral_alg_hom_iff f this],
+  haveI : module.finite R N := by rwa [module.finite_def, submodule.fg_top],
+  apply module.End.is_integral,
 end
 
 variables {f}

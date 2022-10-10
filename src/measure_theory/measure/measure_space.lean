@@ -1122,7 +1122,11 @@ end
 
 section subtype
 
-lemma measurable_set.null_measurable_set_subtype_coe {m : measurable_space α} {μ : measure α}
+/-! ### Subtype of a measure space -/
+
+section comap_any_measure
+
+lemma measurable_set.null_measurable_set_subtype_coe
   {t : set s} (hs : null_measurable_set s μ) (ht : measurable_set t) :
   null_measurable_set ((coe : s → α) '' t) μ :=
 begin
@@ -1142,8 +1146,24 @@ begin
     exact null_measurable_set.Union, },
 end
 
-/-! ### Subtype of a measure space -/
+lemma null_measurable_set.subtype_coe {t : set s} (hs : null_measurable_set s μ)
+  (ht : null_measurable_set t (μ.comap subtype.val)) :
+  null_measurable_set ((coe : s → α) '' t) μ :=
+null_measurable_set.image coe μ subtype.coe_injective
+  (λ t, measurable_set.null_measurable_set_subtype_coe hs) ht
 
+lemma measure_subtype_coe_le_comap (hs : null_measurable_set s μ) (t : set s) :
+  μ ((coe : s → α) '' t) ≤ μ.comap subtype.val t :=
+le_comap_apply _ _ subtype.coe_injective (λ t, measurable_set.null_measurable_set_subtype_coe hs) _
+
+lemma measure_subtype_coe_eq_zero_of_comap_eq_zero (hs : null_measurable_set s μ)
+  {t : set s} (ht : μ.comap subtype.val t = 0) :
+  μ ((coe : s → α) '' t) = 0 :=
+eq_bot_iff.mpr $ (measure_subtype_coe_le_comap hs t).trans ht.le
+
+end comap_any_measure
+
+section measure_space
 variables [measure_space α] {p : α → Prop}
 
 instance subtype.measure_space : measure_space (subtype p) :=
@@ -1163,19 +1183,14 @@ end
 
 lemma volume_subtype_coe_le_volume (hs : null_measurable_set s) (t : set s) :
   volume ((coe : s → α) '' t) ≤ volume t :=
-le_comap_apply _ _ subtype.coe_injective
-  (λ t, measurable_set.null_measurable_set_subtype_coe hs) _
+measure_subtype_coe_le_comap hs t
 
 lemma volume_subtype_coe_eq_zero_of_volume_eq_zero (hs : null_measurable_set s)
   {t : set s} (ht : volume t = 0) :
   volume ((coe : s → α) '' t) = 0 :=
-eq_bot_iff.mpr $ (volume_subtype_coe_le_volume hs t).trans ht.le
+measure_subtype_coe_eq_zero_of_comap_eq_zero hs ht
 
-lemma null_measurable_set.subtype_coe {t : set s} (hs : null_measurable_set s)
-  (ht : null_measurable_set t) :
-  null_measurable_set ((coe : s → α) '' t) :=
-null_measurable_set.image coe volume subtype.coe_injective
-  (λ t, measurable_set.null_measurable_set_subtype_coe hs) ht
+end measure_space
 
 end subtype
 

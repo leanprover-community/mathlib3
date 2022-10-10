@@ -194,6 +194,21 @@ lemma map_div_right_ae (μ : measure G) [is_mul_right_invariant μ] (x : G) :
   filter.map (λ t, t / x) μ.ae = μ.ae :=
 ((measurable_equiv.div_right x).map_ae μ).trans $ congr_arg ae $ map_div_right_eq_self μ x
 
+@[to_additive]
+lemma eventually_mul_left_iff (μ : measure G) [is_mul_left_invariant μ] (t : G) {p : G → Prop} :
+  (∀ᵐ x ∂μ, p (t * x)) ↔ ∀ᵐ x ∂μ, p x :=
+by { conv_rhs { rw [filter.eventually, ← map_mul_left_ae μ t] }, refl }
+
+@[to_additive]
+lemma eventually_mul_right_iff (μ : measure G) [is_mul_right_invariant μ] (t : G) {p : G → Prop} :
+  (∀ᵐ x ∂μ, p (x * t)) ↔ ∀ᵐ x ∂μ, p x :=
+by { conv_rhs { rw [filter.eventually, ← map_mul_right_ae μ t] }, refl }
+
+@[to_additive]
+lemma eventually_div_right_iff (μ : measure G) [is_mul_right_invariant μ] (t : G) {p : G → Prop} :
+  (∀ᵐ x ∂μ, p (x / t)) ↔ ∀ᵐ x ∂μ, p x :=
+by { conv_rhs { rw [filter.eventually, ← map_div_right_ae μ t] }, refl }
+
 end group
 
 namespace measure

@@ -549,6 +549,18 @@ lemma convolution_lmul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G
   (f ⋆[lmul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
 convolution_eq_swap _
 
+lemma convolution_neg_of_neg_eq (h1 : ∀ᵐ x ∂μ, f (-x) = f x) (h2 : ∀ᵐ x ∂μ, g (-x) = g x) :
+  (f ⋆[L, μ] g) (-x) = (f ⋆[L, μ] g) x :=
+calc ∫ (t : G), (L (f t)) (g (-x - t)) ∂μ
+    = ∫ (t : G), (L (f (-t))) (g (x + t)) ∂μ :
+  begin
+    apply integral_congr_ae,
+    filter_upwards [h1, (eventually_add_left_iff μ x).2 h2] with t ht h't,
+    simp_rw [ht, ← h't, neg_add'],
+  end
+... = ∫ (t : G), (L (f t)) (g (x - t)) ∂μ :
+  by { rw ← integral_neg_eq_self, simp only [neg_neg, ← sub_eq_add_neg] }
+
 end measurable
 
 variables [topological_space G]
@@ -735,14 +747,16 @@ begin
   set g0 : ℝ → H → ℝ := λ R,
     (λ x, (c * (R - 1)^(finrank ℝ H))⁻¹ • g ((R - 1) • x)) ⋆[lsmul ℝ ℝ, μ] φ with g0_def,
   have : ∀ R x, g0 R (-x) = g0 R x,
-  { assume R x,
-    simp_rw [g0_def, convolution],
-    congr,
-    ext t,
-    dsimp,
+  sorry { assume R x,
+    apply convolution_neg_of_neg_eq,
+    { apply eventually_of_forall (λ x, _),
+      simp only [g_symm, smul_neg] },
+    { apply eventually_of_forall (λ x, _),
+      simp only [φ, indicator, mem_closed_ball_zero_iff, norm_neg] } },
+  have : ∀ R (x : H), x ∈ closed_ball (0 : H) (1 - R) → g0 R x = 1,
+  { assume R x hx,
 
-
-  },
+  } ,
   refine
   { to_fun := g0,
     mem_Icc := _,

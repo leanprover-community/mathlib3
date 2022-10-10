@@ -1032,10 +1032,12 @@ begin
   exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
 end
 
-/-- A discrete subgroup of a topological group `G` acts on `G` properly discontinuously on the left.
--/
-@[to_additive "A discrete subgroup of an additive topological group `G` acts on `G` properly
-discontinuously on the left."]
+/-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the left, if
+it is discrete in the sense that `S ∩ K` is finite for all compact `K`. (See also
+`discrete_topology`.) -/
+@[to_additive "A subgroup `S` of an additive topological group `G` acts on `G` properly
+discontinuously on the left, if it is discrete in the sense that `S ∩ K` is finite for all compact
+`K`. (See also `discrete_topology`."]
 lemma subgroup.properly_discontinuous_smul_of_tendsto_cofinite
   (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
   properly_discontinuous_smul S G :=
@@ -1050,13 +1052,15 @@ lemma subgroup.properly_discontinuous_smul_of_tendsto_cofinite
 
 local attribute [semireducible] mul_opposite
 
-/-- A discrete subgroup of a topological group `G` acts on `G` properly discontinuously on the
-right.
+/-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the right, if
+it is discrete in the sense that `S ∩ K` is finite for all compact `K`. (See also
+`discrete_topology`.)
 
 If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_smul_of_t2_space`
 to show that the quotient group `G ⧸ S` is Hausdorff. -/
-@[to_additive "A discrete subgroup of an additive topological group `G` acts on `G` properly
-discontinuously on the right.
+@[to_additive "A subgroup `S` of an additive topological group `G` acts on `G` properly
+discontinuously on the right, if it is discrete in the sense that `S ∩ K` is finite for all compact
+`K`. (See also `discrete_topology`.)
 
 If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_vadd_of_t2_space`
 to show that the quotient group `G ⧸ S` is Hausdorff."]

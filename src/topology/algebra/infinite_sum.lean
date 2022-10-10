@@ -519,7 +519,7 @@ end
 lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
 mul_opposite.op_injective tsum_op.symm
 
-/-! Some lemmas about `tsum` on subsets of the domain. -/
+/-! ### `tsum` on subsets -/
 
 @[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
   ∑' x : {x // x ∈ s}, f x = ∑ x in s, f x :=

@@ -1548,12 +1548,15 @@ namespace separation_quotient
 
 /-- The `separation_quotient` of a normal space is a T₄ space. We don't have separate typeclasses
 for normal spaces (without T₁ assumption) and T₄ spaces, so we use the same class for assumption
-and for conclusion. -/
+and for conclusion.
+
+One can prove this using a homeomorphism between `α` and `separation_quotient α`. We give an
+alternative proof that works without assuming that `α` is a T₁ space. -/
 instance [normal_space α] : normal_space (separation_quotient α) :=
-{ normal := λ s t hs ht hd, separated_iff_disjoint.2 $
+{ normal := λ s t hs ht hd, separated_nhds_iff_disjoint.2 $
     begin
       rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_set, comap_mk_nhds_set],
-      exact separated_iff_disjoint.1 (normal_separation (hs.preimage continuous_mk)
+      exact separated_nhds_iff_disjoint.1 (normal_separation (hs.preimage continuous_mk)
         (ht.preimage continuous_mk) (hd.preimage mk))
     end }
 
@@ -1649,7 +1652,10 @@ open separation_quotient
 
 /-- The `separation_quotient` of a completely normal space is a T₅ space. We don't have separate
 typeclasses for completely normal spaces (without T₁ assumption) and T₅ spaces, so we use the same
-class for assumption and for conclusion. -/
+class for assumption and for conclusion.
+
+One can prove this using a homeomorphism between `α` and `separation_quotient α`. We give an
+alternative proof that works without assuming that `α` is a T₁ space. -/
 instance [t5_space α] : t5_space (separation_quotient α) :=
 { completely_normal := λ s t hd₁ hd₂,
     begin

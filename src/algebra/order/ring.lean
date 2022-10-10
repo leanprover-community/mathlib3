@@ -230,7 +230,7 @@ calc a + (2 + b) ≤ a + (a + a * b) :
              ... ≤ a * (2 + b) : by rw [mul_add, mul_two, add_assoc]
 
 lemma one_le_mul_of_one_le_of_one_le (ha : 1 ≤ a) (hb : 1 ≤ b) : (1 : α) ≤ a * b :=
-left.one_le_mul_of_le_of_le ha hb $ zero_le_one.trans ha
+ha.trans (le_mul_of_one_le_right (zero_le_one.trans ha) hb)
 
 section monotone
 variables [preorder β] {f g : β → α}

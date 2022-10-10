@@ -30,8 +30,8 @@ import measure_theory.constructions.pi
   measurable space structures they generate are independent.
 * `indep_sets.indep`: variant with two π-systems.
 * `measure_zero_or_one_of_measurable_set_limsup_at_top`: Kolmogorov's 0-1 law. Any set which is
-  measurable with respect to the tail σ-algebra of a sequence (`limsup at_top s`) has probability
-  0 or 1.
+  measurable with respect to the tail σ-algebra `limsup at_top s` of an independent sequence of
+  σ-algebras `s` has probability 0 or 1.
 
 ## Implementation notes
 

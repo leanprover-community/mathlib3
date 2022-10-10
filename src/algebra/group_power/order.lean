@@ -265,7 +265,7 @@ variables [strict_ordered_semiring R] {a x y : R} {n m : ℕ}
 lemma pow_lt_pow_of_lt_left (h : x < y) (hx : 0 ≤ x) : ∀ {n : ℕ}, 0 < n → x ^ n < y ^ n
 | 0 hn := hn.false.elim
 | (n + 1) _ := by simpa only [pow_succ'] using
-    mul_lt_mul_of_le_of_le' (pow_le_pow_of_le_left hx h.le _) h (pow_pos (hx.trans_lt h) _) hx
+    mul_lt_mul_of_le_of_ltₚ' (pow_le_pow_of_le_left hx h.le _) h hx (pow_pos (hx.trans_lt h) _)
 
 lemma strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
 λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn

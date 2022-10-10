@@ -731,8 +731,13 @@ section
 
 open finite_dimensional
 
-variables (H : Type*) [normed_add_comm_group H] [normed_space ℝ H] [finite_dimensional ℝ H]
+variables {H : Type*} [normed_add_comm_group H] [normed_space ℝ H] [finite_dimensional ℝ H]
 
+lemma support_comp_inv_smul (f : H → ℝ) {R : ℝ} (hR : R ≠ 0) :
+  support (λ x, f (R⁻¹ • x)) = R • support f :=
+by { ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hR, mem_support] }
+
+variable (H)
 lemma foo : ∃ g : H → ℝ, cont_diff ℝ ⊤ g ∧
   (∀ x, g x ∈ Icc (0 : ℝ) 1) ∧ 0 < g 0 ∧ (∀ x, 1 ≤ ∥x∥ → g x = 0) ∧ (∀ x, g (-x) = g x) :=
 sorry
@@ -742,10 +747,11 @@ begin
   borelize H,
   let μ : measure H := measure_theory.measure.add_haar,
   choose g g_smooth g_mem g_pos g_zero g_symm using foo H,
+  have support_g : support g ⊆ ball 0 1, sorry,
   let φ : H → ℝ := (closed_ball (0 : H) 1).indicator (λ y, 1),
   let c := ∫ x, g x ∂μ,
   set g0 : ℝ → H → ℝ := λ R,
-    (λ x, (c * (R - 1)^(finrank ℝ H))⁻¹ • g ((R - 1) • x)) ⋆[lsmul ℝ ℝ, μ] φ with g0_def,
+    (λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x)) ⋆[lsmul ℝ ℝ, μ] φ with g0_def,
   have : ∀ R x, g0 R (-x) = g0 R x,
   sorry { assume R x,
     apply convolution_neg_of_neg_eq,
@@ -753,8 +759,22 @@ begin
       simp only [g_symm, smul_neg] },
     { apply eventually_of_forall (λ x, _),
       simp only [φ, indicator, mem_closed_ball_zero_iff, norm_neg] } },
-  have : ∀ R (x : H), x ∈ closed_ball (0 : H) (1 - R) → g0 R x = 1,
-  { assume R x hx,
+  have : ∀ R (x : H), 0 < R → x ∈ closed_ball (0 : H) (1 - R) → g0 R x = 1,
+  { assume R x Rpos hx,
+    let F : H → ℝ := λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x),
+    change (F ⋆[lsmul ℝ ℝ, μ] φ) x = 1,
+    have A : support F ⊆ ball (0 : H) R,
+    sorry { simp only [F, mul_inv_rev, algebra.id.smul_eq_mul, support_mul, support_inv,
+        support_comp_inv_smul _ Rpos.ne'],
+      refine (inter_subset_right _ _).trans _,
+      have : R • ball (0 : H) 1 = ball 0 R,
+        by rw [smul_unit_ball Rpos.ne', real.norm_of_nonneg Rpos.le],
+      rw ← this,
+      exact (set_smul_subset_set_smul_iff₀ Rpos.ne').2 support_g },
+    have B : ∀ y ∈ ball x R, φ y = φ x, sorry,
+    rw convolution_eq_right' _ A B,
+    simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply, lsmul_apply,
+      algebra.id.smul_eq_mul],
 
   } ,
   refine
@@ -774,6 +794,10 @@ instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dime
 end
 
 #exit
+
+convolution_eq_right' {x₀ : G} {R : ℝ}
+  (hf : support f ⊆ ball (0 : G) R)
+  (hg : ∀ x ∈ ball x₀ R, g x = g x₀) : (f ⋆[L, μ] g) x₀ = ∫ t, L (f t) (g x₀) ∂μ :=
 
 namespace cont_diff_bump
 

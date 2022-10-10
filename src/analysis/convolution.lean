@@ -205,12 +205,14 @@ variables [sigma_finite μ] [is_add_left_invariant μ]
 lemma measure_theory.ae_strongly_measurable.convolution_integrand_snd
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)
   (x : G) : ae_strongly_measurable (λ t, L (f t) (g (x - t))) μ :=
-hf.convolution_integrand_snd' L $ hg.mono' $ map_sub_left_absolutely_continuous μ x
+hf.convolution_integrand_snd' L $ hg.mono' $
+  (quasi_measure_preserving_sub_left μ x).absolutely_continuous
 
 lemma measure_theory.ae_strongly_measurable.convolution_integrand_swap_snd
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)
   (x : G) : ae_strongly_measurable (λ t, L (f (x - t)) (g t)) μ :=
-(hf.mono' (map_sub_left_absolutely_continuous μ x)).convolution_integrand_swap_snd' L hg
+(hf.mono' (quasi_measure_preserving_sub_left μ x).absolutely_continuous)
+  .convolution_integrand_swap_snd' L hg
 
 end left
 
@@ -309,7 +311,7 @@ lemma bdd_above.convolution_exists_at [sigma_finite μ] {x₀ : G}
 begin
   refine bdd_above.convolution_exists_at' L _ hs h2s hf hmf _,
   { simp_rw [← sub_eq_neg_add, hbg] },
-  { exact hmg.mono' (map_sub_left_absolutely_continuous μ x₀) }
+  { exact hmg.mono' (quasi_measure_preserving_sub_left μ x₀).absolutely_continuous }
 end
 
 variables {L} [is_neg_invariant μ]
@@ -641,7 +643,9 @@ begin
     (eventually_of_forall h2)).trans _,
   rw [integral_mul_right],
   refine mul_le_mul_of_nonneg_right _ hε,
-  have h3 : ∀ t, ∥L (f t)∥ ≤ ∥L∥ * ∥f t∥ := λ t, L.le_op_norm (f t),
+  have h3 : ∀ t, ∥L (f t)∥ ≤ ∥L∥ * ∥f t∥,
+  { intros t,
+    exact L.le_op_norm (f t) },
   refine (integral_mono (L.integrable_comp hif).norm (hif.norm.const_mul _) h3).trans_eq _,
   rw [integral_mul_left]
 end

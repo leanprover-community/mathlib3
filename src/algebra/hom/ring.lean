@@ -5,6 +5,7 @@ Authors: Amelia Livingston, Jireh Loreaux
 -/
 import algebra.ring.basic
 import data.pi.algebra
+import algebra.hom.units
 
 /-!
 # Homomorphisms of semirings and rings

@@ -160,7 +160,8 @@ begin
   simp only [ennreal.mul_le_iff_le_inv h (hε.trans_le le_top).ne, mul_comm ε⁻¹,
     liminf_eq_supr_infi_of_nat', ennreal.supr_mul, ennreal.infi_mul hε'],
   rw [←ennreal.inv_lt_inv, inv_one] at hε,
-  obtain ⟨N, hN⟩ := eventually_at_top.mp (ennreal.eventually_pow_one_div_le (ennreal.coe_ne_top : ↑∥(1 : A)∥₊ ≠ ∞) hε),
+  obtain ⟨N, hN⟩ := eventually_at_top.mp
+    (ennreal.eventually_pow_one_div_le (ennreal.coe_ne_top : ↑∥(1 : A)∥₊ ≠ ∞) hε),
   refine (le_trans _ (le_supr _ (N + 1))),
   refine le_infi (λ n, _),
   simp only [←add_assoc],

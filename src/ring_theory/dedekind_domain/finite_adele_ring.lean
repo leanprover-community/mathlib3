@@ -148,11 +148,11 @@ begin
   rw filter.eventually_cofinite,
   have h_empty : {v : height_one_spectrum R |
     ¬ ((0 : v.adic_completion K) ∈ v.adic_completion_integers K)} = ∅,
-  { ext v, rw mem_empty_eq, split; intro hv,
+  { ext v, rw mem_empty_iff_false, split; intro hv,
     { rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
       have h_zero : (valued.v (0 : v.adic_completion K) : (with_zero(multiplicative ℤ))) = 0 :=
       valued.v.map_zero',
-      rw h_zero, exact zero_le_one' },
+      rw h_zero, exact zero_le_one' _ },
     { exfalso, exact hv }},
   rw h_empty,
   exact finite_empty,
@@ -193,10 +193,9 @@ begin
     rw [adic_completion.is_integer, adic_completion.is_integer] at h,
     have h_mul : valued.v (x v * y v) = (valued.v (x v)) * (valued.v (y v))
     := (valued.v).map_mul' (x v) (y v),
-    rw [adic_completion.is_integer, pi.mul_apply, h_mul,
-      ← mul_one (1 : with_zero (multiplicative ℤ ))],
+    rw [adic_completion.is_integer, pi.mul_apply, h_mul],
     exact @mul_le_one' (with_zero (multiplicative ℤ)) _ _
-      (ordered_comm_monoid.to_covariant_class_left _) _ _ _ h.left h.right,  },
+      (ordered_comm_monoid.to_covariant_class_left _) _ _ h.left h.right  },
   exact finite.subset (finite.union hx hy) h_subset,
 end
 
@@ -211,7 +210,7 @@ begin
   rw filter.eventually_cofinite,
   have h_empty : {v : height_one_spectrum R |
     ¬ ((1 : v.adic_completion K) ∈ v.adic_completion_integers K)} = ∅,
-  { ext v, rw mem_empty_eq, split; intro hv,
+  { ext v, rw mem_empty_iff_false, split; intro hv,
     { rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
       exact le_of_eq valued.v.map_one' },
     { exfalso, exact hv }},

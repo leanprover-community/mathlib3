@@ -19,6 +19,9 @@ also monomorphisms.
 TODO @joelriou: show that if `X : I → C` and `ι : J → I` is an injective map,
 then the canonical morphism `∐ (X ∘ ι) ⟶ ∐ X` is a monomorphism.
 
+TODO: define distributive categories, and show that they satisfy `mono_coprod`, see
+<https://ncatlab.org/toddtrimble/published/distributivity+implies+monicity+of+coproduct+inclusions>
+
 -/
 
 noncomputable theory

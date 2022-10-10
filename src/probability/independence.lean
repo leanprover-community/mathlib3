@@ -27,8 +27,11 @@ import measure_theory.constructions.pi
 ## Main statements
 
 * `Indep_sets.Indep`: if π-systems are independent as sets of sets, then the
-measurable space structures they generate are independent.
+  measurable space structures they generate are independent.
 * `indep_sets.indep`: variant with two π-systems.
+* `measure_zero_or_one_of_measurable_set_limsup_at_top`: Kolmogorov's 0-1 law. Any set which is
+  measurable with respect to the tail σ-algebra of a sequence (`limsup at_top s`) has probability
+  0 or 1.
 
 ## Implementation notes
 
@@ -344,7 +347,6 @@ begin
 end
 
 variables {m0 : measurable_space Ω} {μ : measure Ω}
-
 
 -- todo move
 @[simp] lemma mem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :

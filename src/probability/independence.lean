@@ -389,8 +389,9 @@ begin
     split_ifs,
     { exact absurd rfl (finset.disjoint_iff_ne.mp (hST p1 p2 hp1 hp2) n h n h_1), },
     all_goals { simp only [measure_univ, one_mul, mul_one, set.inter_univ, set.univ_inter], }, },
-  simp_rw [h_P_inter, h_μg, finset.prod_mul_distrib, prod_ite_mem (p1 ∪ p2) p1 (λ x, μ (f1 x)),
-    finset.union_inter_cancel_left, prod_ite_mem (p1 ∪ p2) p2 (λ x, μ (f2 x)),
+  simp_rw [h_P_inter, h_μg, finset.prod_mul_distrib,
+    finset.prod_ite_mem (p1 ∪ p2) p1 (λ x, μ (f1 x)),
+    finset.union_inter_cancel_left, finset.prod_ite_mem (p1 ∪ p2) p2 (λ x, μ (f2 x)),
     finset.union_inter_cancel_right, ht1_eq, ← h_indep p1 ht1_m, ht2_eq, ← h_indep p2 ht2_m],
 end
 

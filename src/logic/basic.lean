@@ -1605,7 +1605,7 @@ by by_cases h : P; simp [h]
 lemma ite_and : ite (P ∧ Q) a b = ite P (ite Q a b) b :=
 by by_cases hp : P; by_cases hq : Q; simp [hp, hq]
 
-lemma ite_ite_eq_of_ne {α β} [decidable_eq β] {a b c : α} {i j k : β} (h : j ≠ k) :
+lemma ite_ite_comm_of_ne {α β} [decidable_eq β] {a b c : α} {i j k : β} (h : j ≠ k) :
   (if i = j then a else if i = k then b else c) =
   if i = k then b else if i = j then a else c :=
 ite_eq_iff'.2 ⟨λ he, by rw [if_pos he, if_neg (he.substr h)], λ he, by rw if_neg he⟩

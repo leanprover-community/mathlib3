@@ -310,6 +310,8 @@ variables {R : Type u} [semiring R]
 @[simp] lemma add_eq_sup {I J : ideal R} : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
 
+@[simp] lemma sum_eq_sup {ι : Type*} (s : finset ι) (f : ι → ideal R) : s.sum f = s.sup f := rfl
+
 end add
 
 section mul_and_radical

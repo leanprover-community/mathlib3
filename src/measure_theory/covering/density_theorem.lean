@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import measure_theory.measure.doubling
 import measure_theory.covering.vitali
+import measure_theory.covering.differentiation
 
 /-!
 # Doubling measures and Lebesgue's density theorem

@@ -43,6 +43,38 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 
 open_locale ennreal
 
+--prereqs
+
+open filter
+
+open_locale nnreal
+
+lemma nnreal.eventually_pow_one_div_le (x : ℝ≥0) {ε : ℝ≥0} (hε : 1 < ε) :
+  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ ε :=
+begin
+  obtain ⟨m, hm⟩ := add_one_pow_unbounded_of_pos x (tsub_pos_of_lt hε),
+  rw [tsub_add_cancel_of_le hε.le] at hm,
+  refine eventually_at_top.2 ⟨m + 1, λ n hn, _⟩,
+  simpa only [nnreal.rpow_one_div_le_iff (nat.cast_pos.2 $ m.succ_pos.trans_le hn),
+    nnreal.rpow_nat_cast] using hm.le.trans (pow_le_pow hε.le (m.le_succ.trans hn)),
+end
+
+lemma ennreal.eventually_pow_one_div_le {x : ℝ≥0∞} (hx : x ≠ ∞) {ε : ℝ≥0∞} (hε : 1 < ε) :
+  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ ε :=
+begin
+  lift x to ℝ≥0 using hx,
+  by_cases ε = ∞,
+  refine eventually_of_forall (λ n, h.symm ▸ le_top),
+  lift ε to ℝ≥0 using h,
+  have := nnreal.eventually_pow_one_div_le x (by exact_mod_cast hε : 1 < ε),
+  refine this.congr (eventually_of_forall $ λ n, _),
+  rw [ennreal.coe_rpow_of_nonneg x (by positivity : 0 ≤ (1 / n : ℝ)), ennreal.coe_le_coe],
+end
+
+
+--prereqs
+
+
 /-- The *spectral radius* is the supremum of the `nnnorm` (`∥⬝∥₊`) of elements in the spectrum,
     coerced into an element of `ℝ≥0∞`. Note that it is possible for `spectrum 𝕜 a = ∅`. In this
     case, `spectral_radius a = 0`.  It is also possible that `spectrum 𝕜 a` be unbounded (though
@@ -63,6 +95,13 @@ variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 
 local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
+
+@[simp] lemma spectral_radius.of_subsingleton [subsingleton A] (a : A) :
+  spectral_radius 𝕜 a = 0 :=
+by simp [spectral_radius]
+
+@[simp] lemma spectral_radius_zero : spectral_radius 𝕜 (0 : A) = 0 :=
+by { nontriviality A, simp [spectral_radius] }
 
 lemma mem_resolvent_set_of_spectral_radius_lt {a : A} {k : 𝕜} (h : spectral_radius 𝕜 a < ∥k∥₊) :
   k ∈ ρ a :=
@@ -123,8 +162,8 @@ by { refine supr₂_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
 open ennreal polynomial
 
 variable (𝕜)
-theorem spectral_radius_le_pow_nnnorm_pow_one_div [norm_one_class A] (a : A) (n : ℕ) :
-  spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
+theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
+  spectral_radius 𝕜 a ≤ (∥a ^ (n + 1)∥₊) ^ (1 / (n + 1) : ℝ) * (∥(1 : A)∥₊) ^ (1 / (n + 1) : ℝ) :=
 begin
   refine supr₂_le (λ k hk, _),
   /- apply easy direction of the spectral mapping theorem for polynomials -/
@@ -132,13 +171,34 @@ begin
     by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,
       eval_monomial] using subset_polynomial_aeval a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
   /- power of the norm is bounded by norm of the power -/
-  have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ↑∥a ^ (n + 1)∥₊,
-    by simpa only [norm_to_nnreal, nnnorm_pow k (n+1)]
-      using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
+  have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ∥a ^ (n + 1)∥₊ * ∥(1 : A)∥₊,
+    { simpa only [real.to_nnreal_mul (norm_nonneg _), norm_to_nnreal, nnnorm_pow k (n + 1),
+        ennreal.coe_mul] using coe_mono (real.to_nnreal_mono (norm_le_norm_mul_of_mem pow_mem)) },
   /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
   have hn : 0 < ((n + 1 : ℕ) : ℝ), by exact_mod_cast nat.succ_pos',
   convert monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
-  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one], rw nat.cast_succ,
+  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one],
+  rw [nat.cast_succ, ennreal.coe_mul_rpow],
+end
+
+theorem spectral_radius_le_liminf_pow_nnnorm_pow_one_div (a : A) :
+  spectral_radius 𝕜 a ≤ at_top.liminf (λ n : ℕ, (∥a ^ n∥₊ : ℝ≥0∞) ^ (1 / n : ℝ)) :=
+begin
+  refine ennreal.le_of_forall_lt_one_mul_le (λ ε hε, _),
+  by_cases ε = 0,
+  { simp only [h, zero_mul, zero_le'] },
+  have hε' : ε⁻¹ ≠ ∞,
+    from λ h', h (by simpa only [inv_inv, inv_top] using congr_arg (λ (x : ℝ≥0∞), x⁻¹) h'),
+  simp only [ennreal.mul_le_iff_le_inv h (hε.trans_le le_top).ne, mul_comm ε⁻¹,
+    liminf_eq_supr_infi_of_nat', ennreal.supr_mul, ennreal.infi_mul hε'],
+  rw [←ennreal.inv_lt_inv, inv_one] at hε,
+  obtain ⟨N, hN⟩ := eventually_at_top.mp (ennreal.eventually_pow_one_div_le (ennreal.coe_ne_top : ↑∥(1 : A)∥₊ ≠ ∞) hε),
+  refine (le_trans _ (le_supr _ (N + 1))),
+  refine le_infi (λ n, _),
+  simp only [←add_assoc],
+  refine (spectral_radius_le_pow_nnnorm_pow_one_div 𝕜 a (n + N)).trans _,
+  norm_cast,
+  exact mul_le_mul_left' (hN (n + N + 1) (by linarith)) _,
 end
 
 end spectrum_compact
@@ -299,22 +359,16 @@ end
 
 /-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
 `spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
-theorem pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius [norm_one_class A] (a : A) :
+theorem pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
   tendsto (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)) at_top (𝓝 (spectral_radius ℂ a)) :=
-begin
-  refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
-  { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
-    refine le_trans _ (le_supr _ 0),
-    simp only [nat.cast_succ],
-    exact le_infi₂ (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
-  { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
-end
+tendsto_of_le_liminf_of_limsup_le (spectral_radius_le_liminf_pow_nnnorm_pow_one_div ℂ a)
+  (limsup_pow_nnnorm_pow_one_div_le_spectral_radius a)
 
 /- This is the same as `pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius` but for `norm`
 instead of `nnnorm`. -/
 /-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
 `spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
-theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius [norm_one_class A] (a : A) :
+theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
   tendsto (λ n : ℕ,  ennreal.of_real (∥a ^ n∥ ^ (1 / n : ℝ))) at_top (𝓝 (spectral_radius ℂ a)) :=
 begin
   convert pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a,

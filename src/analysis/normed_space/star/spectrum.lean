@@ -62,51 +62,45 @@ lemma is_self_adjoint.spectral_radius_eq_nnnorm {a : A}
   (ha : is_self_adjoint a) :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
-  unfreezingI { obtain (_ | _) := subsingleton_or_nontrivial A },
-  { simp [subsingleton.elim a 0] },
-  { have hconst : tendsto (λ n : ℕ, (∥a∥₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
-    refine tendsto_nhds_unique _ hconst,
-    convert (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A)).comp
-        (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two),
-    refine funext (λ n, _),
-    rw [function.comp_app, ha.nnnorm_pow_two_pow, ennreal.coe_pow, ←rpow_nat_cast,
-      ←rpow_mul],
-    simp }
+  have hconst : tendsto (λ n : ℕ, (∥a∥₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
+  refine tendsto_nhds_unique _ hconst,
+  convert (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A)).comp
+      (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two),
+  refine funext (λ n, _),
+  rw [function.comp_app, ha.nnnorm_pow_two_pow, ennreal.coe_pow, ←rpow_nat_cast,
+    ←rpow_mul],
+  simp
 end
 
 lemma is_star_normal.spectral_radius_eq_nnnorm (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
-  unfreezingI { obtain (_ | _) := subsingleton_or_nontrivial A },
-  { simp [subsingleton.elim a 0] },
-  { refine (ennreal.pow_strict_mono two_ne_zero).injective _,
-    have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
-      = (λ x, x ^ 2) ∘ (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
-    { funext,
-      rw [function.comp_apply, ←rpow_nat_cast, ←rpow_mul, mul_comm, rpow_mul, rpow_nat_cast,
-        ←coe_pow, sq, ←nnnorm_star_mul_self, commute.mul_pow (star_comm_self' a), star_pow], },
-    have h₂ := ((ennreal.continuous_pow 2).tendsto (spectral_radius ℂ a)).comp
-      (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a),
-    rw ←heq at h₂,
-    convert tendsto_nhds_unique h₂ (pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a⋆ * a)),
-    rw [(is_self_adjoint.star_mul_self a).spectral_radius_eq_nnnorm, sq, nnnorm_star_mul_self,
-      coe_mul] }
+  refine (ennreal.pow_strict_mono two_ne_zero).injective _,
+  have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
+    = (λ x, x ^ 2) ∘ (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
+  { funext,
+    rw [function.comp_apply, ←rpow_nat_cast, ←rpow_mul, mul_comm, rpow_mul, rpow_nat_cast,
+      ←coe_pow, sq, ←nnnorm_star_mul_self, commute.mul_pow (star_comm_self' a), star_pow], },
+  have h₂ := ((ennreal.continuous_pow 2).tendsto (spectral_radius ℂ a)).comp
+    (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a),
+  rw ←heq at h₂,
+  convert tendsto_nhds_unique h₂ (pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a⋆ * a)),
+  rw [(is_self_adjoint.star_mul_self a).spectral_radius_eq_nnnorm, sq, nnnorm_star_mul_self,
+    coe_mul]
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
 theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] {a : A}
   (ha : is_self_adjoint a) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
 begin
-  unfreezingI { obtain (_ | _) := subsingleton_or_nontrivial A },
-  { exact false.elim (by simpa using hz), },
-  { let Iu := units.mk0 I I_ne_zero,
-    have : exp ℂ (I • z) ∈ spectrum ℂ (exp ℂ (I • a)),
-      by simpa only [units.smul_def, units.coe_mk0]
-        using spectrum.exp_mem_exp (Iu • a) (smul_mem_smul_iff.mpr hz),
-    exact complex.ext (of_real_re _)
-      (by simpa only [←complex.exp_eq_exp_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
-        real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
-        using spectrum.subset_circle_of_unitary ha.exp_i_smul_unitary this), }
+  let Iu := units.mk0 I I_ne_zero,
+  have : exp ℂ (I • z) ∈ spectrum ℂ (exp ℂ (I • a)),
+    by simpa only [units.smul_def, units.coe_mk0]
+      using spectrum.exp_mem_exp (Iu • a) (smul_mem_smul_iff.mpr hz),
+  exact complex.ext (of_real_re _)
+    (by simpa only [←complex.exp_eq_exp_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
+      real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
+      using spectrum.subset_circle_of_unitary ha.exp_i_smul_unitary this),
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/

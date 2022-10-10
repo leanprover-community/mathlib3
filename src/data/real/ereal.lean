@@ -49,10 +49,11 @@ also do some limits stuff (liminf/limsup etc).
 See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 -/
 
+open function
 open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [has_top, comm_monoid_with_zero,
+@[derive [has_top, comm_monoid_with_zero, nontrivial,
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
@@ -69,12 +70,19 @@ instance : has_bot ereal := ⟨some ⊥⟩
 @[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
 
 instance : has_coe ℝ ereal := ⟨real.to_ereal⟩
+
+lemma coe_strict_mono : strict_mono (coe : ℝ → ereal) :=
+with_top.coe_strict_mono.comp with_bot.coe_strict_mono
+
+lemma coe_injective : injective (coe : ℝ → ereal) := coe_strict_mono.injective
+
 @[simp, norm_cast] protected lemma coe_le_coe_iff {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
-by { unfold_coes, simp [real.to_ereal] }
+coe_strict_mono.le_iff_le
 @[simp, norm_cast] protected lemma coe_lt_coe_iff {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
-by { unfold_coes, simp [real.to_ereal] }
+coe_strict_mono.lt_iff_lt
 @[simp, norm_cast] protected lemma coe_eq_coe_iff {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
-by { unfold_coes, simp [real.to_ereal, option.some_inj] }
+coe_injective.eq_iff
+protected lemma coe_ne_coe_iff {x y : ℝ} : (x : ereal) ≠ (y : ereal) ↔ x ≠ y := coe_injective.ne_iff
 
 /-- The canonical map from nonnegative extended reals to extended reals -/
 def _root_.ennreal.to_ereal : ℝ≥0∞ → ereal
@@ -154,6 +162,11 @@ rfl
 
 @[simp, norm_cast] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
 
+@[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ereal) = 0 ↔ x = 0 := ereal.coe_eq_coe_iff
+@[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ereal) = 1 ↔ x = 1 := ereal.coe_eq_coe_iff
+lemma coe_ne_zero {x : ℝ} : (x : ereal) ≠ 0 ↔ x ≠ 0 := ereal.coe_ne_coe_iff
+lemma coe_ne_one {x : ℝ} : (x : ereal) ≠ 1 ↔ x ≠ 1 := ereal.coe_ne_coe_iff
+
 @[simp, norm_cast] protected lemma coe_nonneg {x : ℝ} : (0 : ereal) ≤ x ↔ 0 ≤ x :=
 ereal.coe_le_coe_iff
 
@@ -225,6 +238,7 @@ end
 lemma coe_nnreal_eq_coe_real (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) = (x : ℝ) := rfl
 
 @[simp, norm_cast] lemma coe_ennreal_zero : ((0 : ℝ≥0∞) : ereal) = 0 := rfl
+@[simp, norm_cast] lemma coe_ennreal_one : ((1 : ℝ≥0∞) : ereal) = 1 := rfl
 @[simp, norm_cast] lemma coe_ennreal_top : ((⊤ : ℝ≥0∞) : ereal) = ⊤ := rfl
 
 @[simp] lemma coe_ennreal_eq_top_iff : ∀ {x : ℝ≥0∞}, (x : ereal) = ⊤ ↔ x = ⊤
@@ -254,6 +268,17 @@ lemma coe_nnreal_ne_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) ≠ ⊤ := de
 | (some x) ⊤ := by simp
 | ⊤ (some y) := by simp [(coe_nnreal_lt_top y).ne']
 | (some x) (some y) := by simp [coe_nnreal_eq_coe_real]
+
+@[simp, norm_cast] lemma coe_ennreal_eq_zero {x : ℝ≥0∞} : (x : ereal) = 0 ↔ x = 0 :=
+by rw [←coe_ennreal_eq_coe_ennreal_iff, coe_ennreal_zero]
+
+@[simp, norm_cast] lemma coe_ennreal_eq_one {x : ℝ≥0∞} : (x : ereal) = 1 ↔ x = 1 :=
+by rw [←coe_ennreal_eq_coe_ennreal_iff, coe_ennreal_one]
+
+@[norm_cast] lemma coe_ennreal_ne_zero {x : ℝ≥0∞} : (x : ereal) ≠ 0 ↔ x ≠ 0 :=
+coe_ennreal_eq_zero.not
+
+@[norm_cast] lemma coe_ennreal_ne_one {x : ℝ≥0∞} : (x : ereal) ≠ 1 ↔ x ≠ 1 := coe_ennreal_eq_one.not
 
 lemma coe_ennreal_nonneg (x : ℝ≥0∞) : (0 : ereal) ≤ x :=
 coe_ennreal_le_coe_ennreal_iff.2 (zero_le x)
@@ -531,6 +556,7 @@ end ereal
 namespace tactic
 open positivity
 
+private lemma ereal_coe_ne_zero {r : ℝ} : r ≠ 0 → (r : ereal) ≠ 0 := ereal.coe_ne_zero.2
 private lemma ereal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ereal) := ereal.coe_nonneg.2
 private lemma ereal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ereal) := ereal.coe_pos.2
 private lemma ereal_coe_ennreal_pos {r : ℝ≥0∞} : 0 < r → 0 < (r : ereal) := ereal.coe_ennreal_pos.2
@@ -544,6 +570,7 @@ meta def positivity_coe_real_ereal : expr → tactic strictness
   match strictness_a with
   | positive p := positive <$> mk_app ``ereal_coe_pos [p]
   | nonnegative p := nonnegative <$> mk_mapp ``ereal_coe_nonneg [a, p]
+  | nonzero p := nonzero <$> mk_mapp ``ereal_coe_ne_zero [a, p]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ereal)` for `r : ℝ`"
@@ -556,7 +583,7 @@ meta def positivity_coe_ennreal_ereal : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``ereal_coe_ennreal_pos [p]
-  | nonnegative _ := nonnegative <$> mk_mapp `ereal.coe_ennreal_nonneg [a]
+  | _ := nonnegative <$> mk_mapp `ereal.coe_ennreal_nonneg [a]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ereal)` for `r : ℝ≥0∞`"

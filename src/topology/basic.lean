@@ -857,8 +857,9 @@ In this section we define [cluster points](https://en.wikipedia.org/wiki/Limit_p
 (also known as limit points and accumulation points) of a filter and of a sequence.
 -/
 
-/-- A point `x` is a cluster point of a filter `F` if 𝓝 x ⊓ F ≠ ⊥. Also known as
-an accumulation point or a limit point. -/
+/-- A point `x` is a cluster point of a filter `F` if `𝓝 x ⊓ F ≠ ⊥`. Also known as
+an accumulation point or a limit point, but beware that terminology varies. This
+is *not* the same as asking `𝓝[≠] x ⊓ F ≠ ⊥`. See `mem_closure_iff_cluster_pt` in particular. -/
 def cluster_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝 x ⊓ F)
 
 lemma cluster_pt.ne_bot {x : α} {F : filter α} (h : cluster_pt x F) : ne_bot (𝓝 x ⊓ F) := h
@@ -874,7 +875,7 @@ lemma cluster_pt_iff {x : α} {F : filter α} :
 inf_ne_bot_iff
 
 /-- `x` is a cluster point of a set `s` if every neighbourhood of `x` meets `s` on a nonempty
-set. -/
+set. See also `mem_closure_iff_cluster_pt`. -/
 lemma cluster_pt_principal_iff {x : α} {s : set α} :
   cluster_pt x (𝓟 s) ↔ ∀ U ∈ 𝓝 x, (U ∩ s).nonempty :=
 inf_principal_ne_bot_iff
@@ -1039,6 +1040,9 @@ space. -/
 @[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[≠] x)] :
   interior {x} = (∅ : set α) :=
 interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)
+
+lemma not_is_open_singleton (x : α) [ne_bot (𝓝[≠] x)] : ¬ is_open ({x} : set α) :=
+dense_compl_singleton_iff_not_open.1 (dense_compl_singleton x)
 
 lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
 set.ext $ λ x, mem_closure_iff_cluster_pt

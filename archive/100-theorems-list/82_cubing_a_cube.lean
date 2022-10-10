@@ -61,26 +61,17 @@ by simp [side, cube.hw, le_refl]
 def to_set (c : cube n) : set (fin n → ℝ) :=
 { x | ∀j, x j ∈ side c j }
 
+lemma side_nonempty (c : cube n) (i : fin n) : (side c i).nonempty := by simp [side, c.hw]
+
+lemma univ_pi_side (c : cube n) : pi univ (side c) = c.to_set := ext $ λ x, mem_univ_pi
+
 lemma to_set_subset {c c' : cube n} : c.to_set ⊆ c'.to_set ↔ ∀j, c.side j ⊆ c'.side j :=
-begin
-  split, intros h j x hx,
-  let f : fin n → ℝ := λ j', if j' = j then x else c.b j',
-  have : f ∈ c.to_set,
-  { intro j', by_cases hj' : j' = j; simp [f, hj', if_pos, if_neg, hx] },
-  convert h this j, { simp [f, if_pos] },
-  intros h f hf j, exact h j (hf j)
-end
+by simp only [← univ_pi_side, univ_pi_subset_univ_pi_iff, (c.side_nonempty _).ne_empty,
+  exists_false, or_false]
 
 lemma to_set_disjoint {c c' : cube n} : disjoint c.to_set c'.to_set ↔
-  ∃j, disjoint (c.side j) (c'.side j) :=
-begin
-  split, intros h, classical, by_contra h',
-  simp only [not_disjoint_iff, classical.skolem, not_exists] at h',
-  cases h' with f hf,
-  apply not_disjoint_iff.mpr ⟨f, _, _⟩ h; intro j, exact (hf j).1, exact (hf j).2,
-  rintro ⟨j, hj⟩, rw [set.disjoint_iff], rintros f ⟨h1f, h2f⟩,
-  apply not_disjoint_iff.mpr ⟨f j, h1f j, h2f j⟩ hj
-end
+  ∃ j, disjoint (c.side j) (c'.side j) :=
+by simp only [← univ_pi_side, disjoint_univ_pi]
 
 lemma b_mem_to_set (c : cube n) : c.b ∈ c.to_set :=
 by simp [to_set]
@@ -437,7 +428,7 @@ end
 
 /-- The top of `mi` gives rise to a new valley, since the neighbouring cubes extend further upward
   than `mi`. -/
-def valley_mi : valley cs ((cs (mi h v)).shift_up) :=
+lemma valley_mi : valley cs ((cs (mi h v)).shift_up) :=
 begin
   let i := mi h v, have hi : i ∈ bcubes cs c := mi_mem_bcubes,
   refine ⟨_, _, _⟩,
@@ -513,15 +504,17 @@ theorem not_correct : ¬correct cs :=
 
 /-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :
-  ∀ {n : ℕ}, n ≥ 3 →                             -- In ℝ^n for n ≥ 3
-  ∀ {ι : Type} [finite ι] {cs : ι → cube n}      -- given a finite collection of (hyper)cubes
-  [nontrivial ι],                                -- containing at least two elements
-  pairwise (disjoint on (cube.to_set ∘ cs)) →    -- which is pairwise disjoint
-  (⋃(i : ι), (cs i).to_set) = unit_cube.to_set → -- whose union is the unit cube
-  injective (cube.w ∘ cs) →                      -- such that the widths of all cubes are different
-  false :=                                       -- then we can derive a contradiction
+  ∀ {n : ℕ}, n ≥ 3 →                            -- In ℝ^n for n ≥ 3
+  ∀ {s : set (cube n)}, s.finite →              -- given a finite collection of (hyper)cubes
+  s.nontrivial →                                -- containing at least two elements
+  s.pairwise_disjoint cube.to_set →             -- which is pairwise disjoint
+  (⋃ c ∈ s, cube.to_set c) = unit_cube.to_set → -- whose union is the unit cube
+  inj_on cube.w s →                             -- such that the widths of all cubes are different
+  false :=                                      -- then we can derive a contradiction
 begin
-  intros n hn ι hι cs h1 h2 h3 h4, resetI,
-  cases n, cases hn,
-  exact not_correct ⟨h2, h3, h4, hn⟩
+  intros n hn s hfin h2 hd hU hinj,
+  cases n,
+  { cases hn },
+  exact @not_correct n s coe hfin.to_subtype ((nontrivial_coe _).2 h2)
+    ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end

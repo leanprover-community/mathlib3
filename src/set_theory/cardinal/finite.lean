@@ -90,6 +90,12 @@ card_congr equiv.plift
 lemma card_pi {β : α → Type*} [fintype α] : nat.card (Π a, β a) = ∏ a, nat.card (β a) :=
 by simp_rw [nat.card, mk_pi, prod_eq_of_fintype, to_nat_lift, to_nat_finset_prod]
 
+lemma card_fun [finite α] : nat.card (α → β) = nat.card β ^ nat.card α :=
+begin
+  haveI := fintype.of_finite α,
+  rw [nat.card_pi, finset.prod_const, finset.card_univ, ←nat.card_eq_fintype_card],
+end
+
 @[simp] lemma card_zmod (n : ℕ) : nat.card (zmod n) = n :=
 begin
   cases n,

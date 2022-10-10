@@ -272,7 +272,7 @@ begin
       matrix.special_linear_group.det_coe], },
   funext,
   rw [slash, zero_sub, this],
-  simp only [pi.one_apply, of_real_one, one_zpow, mul_one, neg_zero', zpow_zero],
+  simp,
 end
 
 /-- The constant function 1 is modular of weight 0. -/

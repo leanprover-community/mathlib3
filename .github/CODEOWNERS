@@ -1,6 +1,7 @@
 # By default, the mathlib maintainers own everything in the repo.
 # Later matches will take precedence over this match.
-*	@leanprover-community/mathlib-maintainers
+# Disabled until we have better coverage by other patterns. Reenable in the future.
+# *	@leanprover-community/mathlib-maintainers
 
 src/tactic/		@leanprover-community/mathlib-meta
 

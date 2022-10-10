@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.rat.order
 import data.int.char_zero
 import algebra.field.opposite
+import algebra.big_operators.basic
 
 /-!
 # Casts for Rational Numbers
@@ -204,6 +205,8 @@ variable {α}
 
 @[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := map_inv₀ (cast_hom α) _
 @[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := map_div₀ (cast_hom α) _ _
+@[simp, norm_cast] theorem cast_zpow (q : ℚ) (n : ℤ) : ((q ^ n : ℚ) : α) = q ^ n :=
+map_zpow₀ (cast_hom α) q n
 
 @[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
@@ -348,3 +351,22 @@ by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cas
     (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
 
 end mul_opposite
+
+section smul
+
+namespace rat
+
+variables {K : Type*} [division_ring K]
+
+@[priority 100]
+instance distrib_smul  : distrib_smul ℚ K :=
+{ smul := (•),
+  smul_zero := λ a, by rw [smul_def, mul_zero],
+  smul_add := λ a x y, by simp only [smul_def, mul_add, cast_add] }
+
+instance is_scalar_tower_right : is_scalar_tower ℚ K K :=
+⟨λ a x y, by simp only [smul_def, smul_eq_mul, mul_assoc]⟩
+
+end rat
+
+end smul

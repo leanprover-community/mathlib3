@@ -15,7 +15,7 @@ This file proves that every nonconstant complex polynomial has a root.
 As a consequence, the complex numbers are algebraically closed.
 -/
 
-open complex polynomial metric filter is_absolute_value set
+open complex polynomial metric filter set
 open_locale classical
 
 namespace complex
@@ -37,10 +37,10 @@ have hg : g * (X - C z₀) ^ n = f - C (f.eval z₀),
   from div_by_monic_mul_pow_root_multiplicity_eq _ _,
 have hn0 : n ≠ 0, from λ hn0, by simpa [g, hn0] using hg0,
 let ⟨δ', hδ'₁, hδ'₂⟩ := continuous_iff.1 (polynomial.continuous g) z₀
-  ((g.eval z₀).abs) (complex.abs_pos.2 hg0) in
+  ((g.eval z₀).abs) (abs.pos hg0) in
 let δ := min (min (δ' / 2) 1) (((f.eval z₀).abs / (g.eval z₀).abs) / 2) in
-have hf0' : 0 < (f.eval z₀).abs, from complex.abs_pos.2 hf0,
-have hg0' : 0 < abs (eval z₀ g), from complex.abs_pos.2 hg0,
+have hf0' : 0 < (f.eval z₀).abs, from abs.pos hf0,
+have hg0' : 0 < (eval z₀ g).abs, from abs.pos hg0,
 have hfg0 : 0 < (f.eval z₀).abs / abs (eval z₀ g), from div_pos hf0' hg0',
 have hδ0 : 0 < δ, from lt_min (lt_min (half_pos hδ'₁) (by norm_num)) (half_pos hfg0),
 have hδ : ∀ z : ℂ, abs (z - z₀) = δ → abs (g.eval z - g.eval z₀) < (g.eval z₀).abs,
@@ -65,31 +65,31 @@ have hF₂ : (F.eval z').abs = (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n,
   from calc (F.eval z').abs = (f.eval z₀ - f.eval z₀ * (g.eval z₀).abs
     * δ ^ n / (f.eval z₀).abs).abs : congr_arg abs hF₁
   ... = abs (f.eval z₀) * complex.abs (1 - (g.eval z₀).abs * δ ^ n /
-      (f.eval z₀).abs : ℝ) : by rw [← complex.abs_mul];
+      (f.eval z₀).abs : ℝ) : by rw [←map_mul];
         exact congr_arg complex.abs
-          (by simp [mul_add, add_mul, mul_assoc, div_eq_mul_inv, sub_eq_add_neg])
+          (by simp only [mul_add, mul_assoc, div_eq_mul_inv, sub_eq_add_neg, of_real_add, mul_one,
+                         of_real_one, of_real_neg, of_real_mul, of_real_pow, of_real_inv, mul_neg])
   ... = _ : by rw [complex.abs_of_nonneg (sub_nonneg.2 (le_of_lt hδs)),
       mul_sub, mul_div_cancel' _ (ne.symm (ne_of_lt hf0')), mul_one],
 have hef0 : abs (eval z₀ g) * (eval z₀ f).abs ≠ 0,
-  from mul_ne_zero (mt complex.abs_eq_zero.1 hg0) (mt complex.abs_eq_zero.1 hf0),
+  from mul_ne_zero (abs.ne_zero hg0) (abs.ne_zero hf0),
 have hz'z₀ : abs (z' - z₀) = δ,
-  by simp [z', mul_assoc, mul_left_comm _ (_ ^ n), mul_comm _ (_ ^ n),
-    mul_comm (eval z₀ f).abs, _root_.mul_div_cancel _ hef0, of_real_mul,
-    neg_mul, neg_div, is_absolute_value.abv_pow complex.abs,
-    complex.abs_of_nonneg hδ0.le, real.pow_nat_rpow_nat_inv hδ0.le hn0],
+  by simp only [z', mul_assoc, mul_left_comm _ (_ ^ n), mul_comm _ (_ ^ n), mul_comm (eval _ f).abs,
+                _root_.mul_div_cancel _ hef0, of_real_mul, neg_mul, neg_div, map_pow, abs_of_real,
+                add_sub_cancel, abs_cpow_inv_nat, absolute_value.map_neg, map_div₀, map_mul,
+                abs_abs, complex.abs_of_nonneg hδ0.le, real.pow_nat_rpow_nat_inv hδ0.le hn0],
 have hF₃ : (f.eval z' - F.eval z').abs < (g.eval z₀).abs * δ ^ n,
   from calc (f.eval z' - F.eval z').abs
       = (g.eval z' - g.eval z₀).abs * (z' - z₀).abs ^ n :
-        by rw [← eq_sub_iff_add_eq.1 hg, ← is_absolute_value.abv_pow complex.abs,
-            ← complex.abs_mul, sub_mul];
-          simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel,
-                sub_eq_add_neg, add_assoc]
+        by rw [← eq_sub_iff_add_eq.1 hg, ←map_pow abs, ←map_mul, sub_mul];
+           simp only [eval_pow, eval_add, eval_mul, eval_C, eval_X, eval_neg, sub_eq_add_neg,
+                      add_assoc, neg_add_rev, add_neg_cancel_comm_assoc]
   ... = (g.eval z' - g.eval z₀).abs * δ ^ n : by rw hz'z₀
   ... < _ : (mul_lt_mul_right (pow_pos hδ0 _)).2 (hδ _ hz'z₀),
 lt_irrefl (f.eval z₀).abs $
   calc (f.eval z₀).abs ≤ (f.eval z').abs : hz₀ _
     ... = (F.eval z' + (f.eval z' - F.eval z')).abs : by simp
-    ... ≤ (F.eval z').abs + (f.eval z' - F.eval z').abs : complex.abs_add _ _
+    ... ≤ (F.eval z').abs + (f.eval z' - F.eval z').abs : abs.add_le _ _
     ... < (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n + (g.eval z₀).abs * δ ^ n :
       add_lt_add_of_le_of_lt (by rw hF₂) hF₃
     ... = (f.eval z₀).abs : sub_add_cancel _ _

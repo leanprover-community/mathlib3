@@ -32,7 +32,7 @@ This file defines affinely independent families of points.
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators affine
 open function
 
 section affine_independent
@@ -81,6 +81,7 @@ from a base point in that family are linearly independent. -/
 lemma affine_independent_iff_linear_independent_vsub (p : ι → P) (i1 : ι) :
   affine_independent k p ↔ linear_independent k (λ i : {x // x ≠ i1}, (p i -ᵥ p i1 : V)) :=
 begin
+  classical,
   split,
   { intro h,
     rw linear_independent_iff',
@@ -177,6 +178,7 @@ lemma affine_independent_iff_indicator_eq_of_affine_combination_eq (p : ι → P
     ∑ i in s2, w2 i = 1 → s1.affine_combination p w1 = s2.affine_combination p w2 →
       set.indicator ↑s1 w1 = set.indicator ↑s2 w2 :=
 begin
+  classical,
   split,
   { intros ha s1 s2 w1 w2 hw1 hw2 heq,
     ext i,
@@ -271,6 +273,7 @@ family. -/
 lemma affine_independent.comp_embedding {ι2 : Type*} (f : ι2 ↪ ι) {p : ι → P}
     (ha : affine_independent k p) : affine_independent k (p ∘ f) :=
 begin
+  classical,
   intros fs w hw hs i0 hi0,
   let fs' := fs.map f,
   let w' := λ i, if h : ∃ i2, f i2 = i then w h.some else 0,
@@ -534,7 +537,7 @@ begin
       rw [set.image_insert_eq, ← set.image_comp],
       simp, },
     { use p,
-      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_eq, coe_affine_span],
+      simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_iff, coe_affine_span],
       exact ⟨mem_span_points k _ _ (set.mem_insert p _), mem_span_points k _ _ hp⟩, }, },
 end
 

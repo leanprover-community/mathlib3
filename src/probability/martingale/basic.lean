@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
 import probability.notation
-import probability.hitting_time
+import probability.process.hitting_time
 
 /-!
 # Martingales
@@ -47,24 +47,36 @@ variables {Ω E ι : Type*} [preorder ι]
 
 /-- A family of functions `f : ι → Ω → E` is a martingale with respect to a filtration `ℱ` if `f`
 is adapted with respect to `ℱ` and for all `i ≤ j`, `μ[f j | ℱ i] =ᵐ[μ] f i`. -/
-def martingale (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω) : Prop :=
+def martingale (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω . volume_tac) : Prop :=
 adapted ℱ f ∧ ∀ i j, i ≤ j → μ[f j | ℱ i] =ᵐ[μ] f i
 
 /-- A family of integrable functions `f : ι → Ω → E` is a supermartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. -/
-def supermartingale [has_le E] (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω) : Prop :=
+def supermartingale [has_le E] (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω . volume_tac) :
+  Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → μ[f j | ℱ i] ≤ᵐ[μ] f i) ∧ ∀ i, integrable (f i) μ
 
 /-- A family of integrable functions `f : ι → Ω → E` is a submartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`. -/
-def submartingale [has_le E] (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω) : Prop :=
+def submartingale [has_le E] (f : ι → Ω → E) (ℱ : filtration ι m0) (μ : measure Ω . volume_tac) :
+  Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ i, integrable (f i) μ
 
 lemma martingale_const (ℱ : filtration ι m0) (μ : measure Ω) [is_finite_measure μ] (x : E) :
   martingale (λ _ _, x) ℱ μ :=
 ⟨adapted_const ℱ _, λ i j hij, by rw condexp_const (ℱ.le _)⟩
+
+lemma martingale_const_fun [order_bot ι]
+  (ℱ : filtration ι m0) (μ : measure Ω) [is_finite_measure μ]
+  {f : Ω → E} (hf : strongly_measurable[ℱ ⊥] f) (hfint : integrable f μ) :
+  martingale (λ _, f) ℱ μ :=
+begin
+  refine ⟨λ i, hf.mono $ ℱ.mono bot_le, λ i j hij, _⟩,
+  rw condexp_of_strongly_measurable (ℱ.le _) (hf.mono $ ℱ.mono bot_le) hfint,
+  apply_instance,
+end
 
 variables (E)
 lemma martingale_zero (ℱ : filtration ι m0) (μ : measure Ω) :
@@ -478,6 +490,41 @@ begin
   refine (eventually_eq.trans _ (condexp_neg _).symm).le,
   filter_upwards [hf i] with x hx,
   simpa only [pi.zero_apply, pi.neg_apply, zero_eq_neg],
+end
+
+-- Note that one cannot use `submartingale.zero_le_of_predictable` to prove the other two
+-- corresponding lemmas without imposing more restrictions to the ordering of `E`
+/-- A predictable submartingale is a.e. greater equal than its initial state. -/
+lemma submartingale.zero_le_of_predictable [preorder E] [sigma_finite_filtration μ 𝒢]
+  {f : ℕ → Ω → E} (hfmgle : submartingale f 𝒢 μ) (hfadp : adapted 𝒢 (λ n, f (n + 1))) (n : ℕ) :
+  f 0 ≤ᵐ[μ] f n :=
+begin
+  induction n with k ih,
+  { refl },
+  { exact ih.trans ((hfmgle.2.1 k (k + 1) k.le_succ).trans_eq $ germ.coe_eq.mp $ congr_arg coe $
+      condexp_of_strongly_measurable (𝒢.le _) (hfadp _) $ hfmgle.integrable _) }
+end
+
+/-- A predictable supermartingale is a.e. less equal than its initial state. -/
+lemma supermartingale.le_zero_of_predictable [preorder E] [sigma_finite_filtration μ 𝒢]
+  {f : ℕ → Ω → E} (hfmgle : supermartingale f 𝒢 μ) (hfadp : adapted 𝒢 (λ n, f (n + 1))) (n : ℕ) :
+  f n ≤ᵐ[μ] f 0 :=
+begin
+  induction n with k ih,
+  { refl },
+  { exact ((germ.coe_eq.mp $ congr_arg coe $ condexp_of_strongly_measurable (𝒢.le _) (hfadp _) $
+      hfmgle.integrable _).symm.trans_le (hfmgle.2.1 k (k + 1) k.le_succ)).trans ih }
+end
+
+/-- A predictable martingale is a.e. equal to its initial state. -/
+lemma martingale.eq_zero_of_predicatable [sigma_finite_filtration μ 𝒢]
+  {f : ℕ → Ω → E} (hfmgle : martingale f 𝒢 μ) (hfadp : adapted 𝒢 (λ n, f (n + 1))) (n : ℕ) :
+  f n =ᵐ[μ] f 0 :=
+begin
+  induction n with k ih,
+  { refl },
+  { exact ((germ.coe_eq.mp (congr_arg coe $ condexp_of_strongly_measurable (𝒢.le _) (hfadp _)
+      (hfmgle.integrable _))).symm.trans (hfmgle.2 k (k + 1) k.le_succ)).trans ih }
 end
 
 namespace submartingale

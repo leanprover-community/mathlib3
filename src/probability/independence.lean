@@ -345,11 +345,6 @@ end
 
 variables {m0 : measurable_space Ω} {μ : measure Ω}
 
--- todo move
-@[to_additive] lemma prod_ite_mem {α ι} [decidable_eq ι] [comm_monoid α]
-  (s t : finset ι) (f : ι → α) :
-  ∏ i in s, ite (i ∈ t) (f i) 1 = ∏ i in (s ∩ t), f i :=
-by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
 
 -- todo move
 @[simp] lemma mem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :

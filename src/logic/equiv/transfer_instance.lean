@@ -19,6 +19,11 @@ so on.
 
 Note that most of these constructions can also be obtained using the `transport` tactic.
 
+### Implementation details
+
+When adding new definitions that transfer type-classes across an equivalence, please mark them
+`@[reducible]`. See note [reducible non-instances].
+
 ## Tags
 
 equiv, group, ring, field, module, algebra

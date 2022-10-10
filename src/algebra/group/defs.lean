@@ -814,13 +814,7 @@ end group
 @[to_additive]
 lemma group.to_div_inv_monoid_injective {G : Type*} :
   function.injective (@group.to_div_inv_monoid G) :=
-begin
-  rintros ⟨⟩ ⟨⟩ h,
-  replace h := div_inv_monoid.mk.inj h,
-  dsimp at h,
-  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
-  refl
-end
+by { rintros ⟨⟩ ⟨⟩ ⟨⟩, refl }
 
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]
@@ -834,13 +828,7 @@ attribute [instance, priority 300] add_comm_group.to_add_comm_monoid
 @[to_additive]
 lemma comm_group.to_group_injective {G : Type u} :
   function.injective (@comm_group.to_group G) :=
-begin
-  rintros ⟨⟩ ⟨⟩ h,
-  replace h := group.mk.inj h,
-  dsimp at h,
-  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
-  refl
-end
+by { rintros ⟨⟩ ⟨⟩ ⟨⟩, refl }
 
 section comm_group
 

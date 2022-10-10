@@ -75,7 +75,6 @@ section reverse
 
 variables {V : Type u} [quiver.{v+1} V] {V' : Type u'} (σ : V → V')
 
-
 instance [quiver.has_reverse V] : quiver.has_reverse (push σ) :=
 { reverse' := λ a b F, by { cases F, constructor, apply quiver.reverse, exact F_f, } }
 
@@ -129,7 +128,7 @@ namespace category_theory
 namespace groupoid
 namespace universal
 
-variables {V : Type u} [groupoid.{v+1} V] {V' : Type u'} (σ : V → V')
+variables {V : Type u} [groupoid V] {V' : Type u'} (σ : V → V')
 
 /-- Two reduction steps possible: compose composable arrows, or drop identity arrows -/
 inductive red_step : hom_rel (paths (quiver.push σ))
@@ -143,7 +142,7 @@ inductive red_step : hom_rel (paths (quiver.push σ))
       ((σ *).map $ 𝟙 X).to_path
 
 /-- The underlying vertices of the free groupoid -/
-def universal_groupoid {V : Type u} [groupoid.{v+1} V] {V' : Type u'} (σ : V → V') :=
+def universal_groupoid {V : Type u} [groupoid V] {V' : Type u'} (σ : V → V') :=
   quotient (red_step σ)
 
 instance : category (universal_groupoid σ) := quotient.category (red_step σ)
@@ -225,7 +224,7 @@ begin
 end
 
 
-/-- The inverse of an arrow in the free groupoid -/
+/-- The inverse of an arrow in the universal groupoid -/
 def quot_inv {X Y : universal_groupoid σ} (f : X ⟶ Y) : Y ⟶ X :=
 quot.lift_on f
             (λ pp, quot.mk _ $ pp.reverse)
@@ -254,8 +253,13 @@ def extend : V ⥤ (universal_groupoid σ) :=
 def as : (universal_groupoid σ) → V' := λ x, x.as
 lemma extend_eq : (extend σ).to_prefunctor =
   ((quiver.push.of σ).comp paths.of).comp (quotient.functor $ red_step σ).to_prefunctor := rfl
+
+-- HOW???
 lemma _root_.category_theory.functor.to_prefunctor_ext {C D : Type*} [category C] [category D]
-  (F G : C ⥤ D) : F = G ↔ F.to_prefunctor = G.to_prefunctor := sorry
+  (F G : C ⥤ D) : F = G ↔ F.to_prefunctor = G.to_prefunctor :=
+begin
+  sorry
+end
 
 section ump
 
@@ -270,9 +274,13 @@ quotient.lift _
       induction h,
       { dsimp [quiver.push.of, category_struct.comp, category_struct.id, quiver.hom.to_path],
         simp only [functor.map_comp, cast_cast, category.id_comp],
-        finish, },
+        finish,
+        --sorry,
+         },
       { dsimp [quiver.push.of, category_struct.comp, category_struct.id, quiver.hom.to_path],
-        simp only [functor.map_id, cast_cast, category.id_comp], finish,
+        simp only [functor.map_id, cast_cast, category.id_comp],
+        finish,
+        --sorry
         /-I'm overusing finish… I have no idea how it works-/ }, } )
 
 lemma lift_spec_obj : (lift σ θ τ₀ hτ₀).obj = τ₀∘(as σ) := rfl

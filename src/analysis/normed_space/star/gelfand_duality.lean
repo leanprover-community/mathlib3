@@ -104,9 +104,6 @@ end
 instance [nontrivial A] : nonempty (character_space ℂ A) :=
 ⟨classical.some $ weak_dual.character_space.exists_apply_eq_zero $ zero_mem_nonunits.2 zero_ne_one⟩
 
-instance [subsingleton A] : is_empty (character_space ℂ A) :=
-⟨λ φ, φ.prop.1 $ continuous_linear_map.ext (λ x, by simp only [subsingleton.elim x 0, map_zero])⟩
-
 end complex_banach_algebra
 
 section complex_cstar_algebra

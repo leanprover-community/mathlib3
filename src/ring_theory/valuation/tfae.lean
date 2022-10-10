@@ -1,30 +1,39 @@
+/-
+Copyright (c) 2022 Andrew Yang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Andrew Yang
+-/
 import ring_theory.valuation.valuation_subring
 import ring_theory.integrally_closed
 import linear_algebra.quotient
 import ring_theory.nakayama
 import ring_theory.ideal.cotangent
 import linear_algebra.matrix.charpoly.linear_map
+import ring_theory.dedekind_domain.basic
 
-variables (R : Type*) [comm_ring R] (K : Type*) [field K]
-variables [algebra R K] [is_fraction_ring R K]
+/-!
+
+# Equivalent conditions for DVR
+
+In `discrete_valuation_ring.tfae`, we show that the following are equivalent for a
+noetherian local domain `(R, m, k)`:
+- `R` is a discrete valuation ring
+- `R` is a valuation ring
+- `R` is a dedekind domain
+- `R` is integrally closed with a unique prime ideal
+- `m` is principal
+- `dimₖ m/m² = 1`
+- Every nonzero ideal is a power of `m`.
+
+-/
+
+
+variables (R : Type*) [comm_ring R] (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 
 open_locale discrete_valuation
 open local_ring
 
-variables (M : Type*) [add_comm_group M] [module R M] (I : ideal R)
-
 open_locale big_operators
-
-lemma submodule.mem_smul_top_iff {M : Type*} [add_comm_monoid M] [module R M]
-  (I : ideal R) (N : submodule R M) (x : N) : x ∈ I • (⊤ : submodule R N) ↔ (x : M) ∈ I • N :=
-begin
-  change _ ↔ N.subtype x ∈ I • N,
-  have : submodule.map N.subtype (I • ⊤) = I • N,
-  { rw [submodule.map_smul'', submodule.map_top, submodule.range_subtype] },
-  rw ← this,
-  convert (function.injective.mem_set_image N.injective_subtype).symm using 1,
-  refl,
-end
 
 lemma exists_maximal_ideal_pow_eq_of_principal [is_noetherian_ring R] [local_ring R] [is_domain R]
   (h : ¬ is_field R) (h' : (maximal_ideal R).is_principal) (I : ideal R) (hI : I ≠ ⊥) :
@@ -149,7 +158,8 @@ lemma discrete_valuation_ring.tfae [is_noetherian_ring R] [local_ring R] [is_dom
   (h : ¬ is_field R) :
   tfae [discrete_valuation_ring R,
     valuation_ring R,
-    is_integrally_closed R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ P.is_prime, -- integrally closed with dim = 1
+    is_dedekind_domain R,
+    is_integrally_closed R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ P.is_prime,
     (maximal_ideal R).is_principal,
     finite_dimensional.finrank (residue_field R) (cotangent_space R) = 1,
     ∀ I ≠ ⊥, ∃ n : ℕ, I = (maximal_ideal R) ^ n] :=
@@ -167,12 +177,14 @@ begin
       obtain ⟨p, hp₁, hp₂⟩ := wf_dvd_monoid.exists_irreducible_factor hx₂ hx₁,
       exact ⟨p, hp₁⟩ },
     { exact valuation_ring.unique_irreducible } },
-  tfae_have : 1 → 3,
+  tfae_have : 3 ↔ 4,
+  { sorry },
+  tfae_have : 1 → 4,
   { introI H,
     exact ⟨infer_instance, ((discrete_valuation_ring.iff_pid_with_one_nonzero_prime R).mp H).2⟩ },
-  tfae_have : 3 → 4,
-  { rintro ⟨H₁, H₂⟩, exactI maximal_ideal_is_principal_of_integrally_closed_of_dim_one R H₂ },
   tfae_have : 4 → 5,
+  { rintro ⟨H₁, H₂⟩, exactI maximal_ideal_is_principal_of_integrally_closed_of_dim_one R H₂ },
+  tfae_have : 5 → 6,
   { rintro ⟨x, hx⟩,
     have : x ∈ maximal_ideal R := by { rw hx, exact submodule.subset_span (set.mem_singleton x) },
     let x' : maximal_ideal R := ⟨x, this⟩,
@@ -193,7 +205,7 @@ begin
       rw [hx, submodule.mem_span_singleton] at hy,
       obtain ⟨a, rfl⟩ := hy,
       exact ⟨ideal.quotient.mk _ a, rfl⟩ } },
-  tfae_have : 5 → 4,
+  tfae_have : 6 → 5,
   { rintro ⟨x, hx, hx'⟩,
     induction x using quotient.induction_on',
     use x,
@@ -219,9 +231,9 @@ begin
     rw [submodule.bot_smul, sup_bot_eq] at this,
     rw [← sup_eq_left, eq_comm],
     exact le_sup_left.antisymm (h₁.trans $ le_of_eq this) },
-  tfae_have : 4 → 6,
+  tfae_have : 5 → 7,
   { exact exists_maximal_ideal_pow_eq_of_principal R h },
-  tfae_have : 6 → 2,
+  tfae_have : 7 → 2,
   { rw valuation_ring.iff_ideal_total,
     intro H,
     constructor,

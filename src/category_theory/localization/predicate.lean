@@ -133,8 +133,6 @@ namespace localization
 variable [L.is_localization W]
 include L W
 
-lemma as_localization : L.is_localization W := infer_instance
-
 lemma inverts : W.is_inverted_by L := (infer_instance : L.is_localization W).inverts
 
 variable {W}

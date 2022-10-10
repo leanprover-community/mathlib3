@@ -447,7 +447,7 @@ norm_le_of_mem_closed_ball'
 lemma norm_lt_of_mem_ball' (h : b ∈ ball a r) : ∥b∥ < ∥a∥ + r :=
 (norm_le_norm_add_norm_div' _ _).trans_lt $ add_lt_add_left (by rwa ←dist_eq_norm_div) _
 
-@[to_additive norm_sub_sub_norm_sub_le_norm_sub]
+@[to_additive]
 lemma norm_div_sub_norm_div_le_norm_div (u v w : E) : ∥u / w∥ - ∥v / w∥ ≤ ∥u / v∥ :=
 by simpa only [div_div_div_cancel_right'] using norm_sub_norm_le' (u / w) (v / w)
 

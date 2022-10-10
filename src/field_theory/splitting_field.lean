@@ -273,7 +273,7 @@ by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
 theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
   (f.map i).roots = f.roots.map i :=
-(roots_map_of_injective_card_eq_total_degree i.injective $
+(roots_map_of_injective_of_card_eq_nat_degree i.injective $
   by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
 
 lemma image_root_set [algebra F K] [algebra F L] {p : F[X]} (h : p.splits (algebra_map F K))
@@ -476,7 +476,7 @@ begin
       ((polynomial.splits_map_iff _ _).2 _)
       (minpoly.dvd _ _ _),
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
-    { rw [← is_scalar_tower.aeval_apply, minpoly.aeval] } },
+    { rw [polynomial.aeval_map_algebra_map, minpoly.aeval] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (ne_of_lt (minpoly.degree_pos H5)).symm,
   refine ⟨subalgebra.of_restrict_scalars _ _ _⟩,
   refine (adjoin_root.lift_hom (minpoly (algebra.adjoin F (↑s : set K)) a) y hy).comp _,

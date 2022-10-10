@@ -50,8 +50,8 @@ begin
       (signed_measure.measurable_rn_deriv _ _).strongly_measurable },
 end
 
-/-- TODO: this should be generalized and proved using Jensen's inequality
-for the conditional expectation (not in mathlib yet) .-/
+-- TODO: the following couple of lemmas should be generalized and proved using Jensen's inequality
+-- for the conditional expectation (not in mathlib yet) .
 lemma snorm_one_condexp_le_snorm (f : α → ℝ) :
   snorm (μ[f | m]) 1 μ ≤ snorm f 1 μ :=
 begin
@@ -88,6 +88,104 @@ begin
     filter_upwards [this] with x hx,
     exact abs_eq_self.2 hx
   end
+end
+
+lemma integral_abs_condexp_le (f : α → ℝ) :
+  ∫ x, |μ[f | m] x| ∂μ ≤ ∫ x, |f x| ∂μ :=
+begin
+  by_cases hm : m ≤ m0,
+  swap,
+  { simp_rw [condexp_of_not_le hm, pi.zero_apply, abs_zero, integral_zero],
+    exact integral_nonneg (λ x, abs_nonneg _) },
+  by_cases hfint : integrable f μ,
+  swap,
+  { simp only [condexp_undef hfint, pi.zero_apply, abs_zero, integral_const,
+      algebra.id.smul_eq_mul, mul_zero],
+    exact integral_nonneg (λ x, abs_nonneg _) },
+  rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
+  { rw ennreal.to_real_le_to_real;
+    simp_rw [← real.norm_eq_abs, of_real_norm_eq_coe_nnnorm],
+    { rw [← snorm_one_eq_lintegral_nnnorm, ← snorm_one_eq_lintegral_nnnorm],
+      exact snorm_one_condexp_le_snorm _ },
+    { exact ne_of_lt integrable_condexp.2 },
+    { exact ne_of_lt hfint.2 } },
+  { exact eventually_of_forall (λ x, abs_nonneg _) },
+  { simp_rw ← real.norm_eq_abs,
+    exact hfint.1.norm },
+  { exact eventually_of_forall (λ x, abs_nonneg _) },
+  { simp_rw ← real.norm_eq_abs,
+    exact (strongly_measurable_condexp.mono hm).ae_strongly_measurable.norm }
+end
+
+lemma set_integral_abs_condexp_le {s : set α} (hs : measurable_set[m] s) (f : α → ℝ) :
+  ∫ x in s, |μ[f | m] x| ∂μ ≤ ∫ x in s, |f x| ∂μ :=
+begin
+  by_cases hnm : m ≤ m0,
+  swap,
+  { simp_rw [condexp_of_not_le hnm, pi.zero_apply, abs_zero, integral_zero],
+    exact integral_nonneg (λ x, abs_nonneg _) },
+  by_cases hfint : integrable f μ,
+  swap,
+  { simp only [condexp_undef hfint, pi.zero_apply, abs_zero, integral_const,
+      algebra.id.smul_eq_mul, mul_zero],
+    exact integral_nonneg (λ x, abs_nonneg _) },
+  have : ∫ x in s, |μ[f | m] x| ∂μ = ∫ x, |μ[s.indicator f | m] x| ∂μ,
+  { rw ← integral_indicator,
+    swap, { exact hnm _ hs },
+    refine integral_congr_ae _,
+    have : (λ x, |μ[s.indicator f | m] x|) =ᵐ[μ] λ x, |s.indicator (μ[f | m]) x| :=
+      eventually_eq.fun_comp (condexp_indicator hfint hs) _,
+    refine eventually_eq.trans (eventually_of_forall $ λ x, _) this.symm,
+    rw [← real.norm_eq_abs, norm_indicator_eq_indicator_norm],
+    refl },
+  rw [this, ← integral_indicator],
+  swap, { exact hnm _ hs },
+  refine (integral_abs_condexp_le _).trans (le_of_eq $ integral_congr_ae $
+    eventually_of_forall $ λ x, _),
+  rw [← real.norm_eq_abs, norm_indicator_eq_indicator_norm],
+  refl,
+end
+
+/-- If the real valued function `f` is bounded almost everywhere by `R`, then so is its conditional
+expectation. -/
+lemma ae_bdd_condexp_of_ae_bdd {R : ℝ≥0} {f : α → ℝ}
+  (hbdd : ∀ᵐ x ∂μ, |f x| ≤ R) :
+  ∀ᵐ x ∂μ, |μ[f | m] x| ≤ R :=
+begin
+  by_cases hnm : m ≤ m0,
+  swap,
+  { simp_rw [condexp_of_not_le hnm, pi.zero_apply, abs_zero],
+    refine eventually_of_forall (λ x, R.coe_nonneg) },
+  by_cases hfint : integrable f μ,
+  swap,
+  { simp_rw [condexp_undef hfint],
+    filter_upwards [hbdd] with x hx,
+    rw [pi.zero_apply, abs_zero],
+    exact (abs_nonneg _).trans hx },
+  by_contra h,
+  change μ _ ≠ 0 at h,
+  simp only [← zero_lt_iff, set.compl_def, set.mem_set_of_eq, not_le] at h,
+  suffices : (μ {x | ↑R < |μ[f | m] x|}).to_real * ↑R < (μ {x | ↑R < |μ[f | m] x|}).to_real * ↑R,
+  { exact this.ne rfl },
+  refine lt_of_lt_of_le (set_integral_gt_gt R.coe_nonneg _ _ h.ne.symm) _,
+  { simp_rw [← real.norm_eq_abs],
+    exact (strongly_measurable_condexp.mono hnm).measurable.norm },
+  { exact integrable_condexp.abs.integrable_on },
+  refine (set_integral_abs_condexp_le _ _).trans _,
+  { simp_rw [← real.norm_eq_abs],
+    exact @measurable_set_lt _ _ _ _ _ m _ _ _ _ _ measurable_const
+      strongly_measurable_condexp.norm.measurable },
+  simp only [← smul_eq_mul, ← set_integral_const, nnreal.val_eq_coe,
+    is_R_or_C.coe_real_eq_id, id.def],
+  refine set_integral_mono_ae hfint.abs.integrable_on _ _,
+  { refine ⟨ae_strongly_measurable_const, lt_of_le_of_lt _
+      (integrable_condexp.integrable_on : integrable_on (μ[f | m]) {x | ↑R < |μ[f | m] x|} μ).2⟩,
+    refine set_lintegral_mono (measurable.nnnorm _).coe_nnreal_ennreal
+      (strongly_measurable_condexp.mono hnm).measurable.nnnorm.coe_nnreal_ennreal (λ x hx, _),
+    { exact measurable_const },
+    { rw [ennreal.coe_le_coe, real.nnnorm_of_nonneg R.coe_nonneg],
+      exact subtype.mk_le_mk.2 (le_of_lt hx) } },
+  { exact hbdd },
 end
 
 /-- Given a integrable function `g`, the conditional expectations of `g` with respect to

@@ -14,7 +14,7 @@ A *-subalgebra is a subalgebra of a *-algebra which is closed under *.
 The centralizer of a *-closed set is a *-subalgebra.
 -/
 
-universes u v w
+universes u v
 
 set_option old_structure_cmd true
 
@@ -33,9 +33,6 @@ instance : has_star s :=
 { star := λ r, ⟨star (r : R), star_mem r.prop⟩ }
 
 end star_mem_class
-
--- we really want a `star_subalgebra_class`, but we're several steps away from that yet,
--- we don't even have `submodule_class`.
 
 /-- A *-subalgebra is a subalgebra of a *-algebra which is closed under *. -/
 structure star_subalgebra (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]

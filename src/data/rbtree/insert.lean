@@ -306,7 +306,7 @@ begin
     simp [*] }
 end
 
-lemma equiv_or_mem_of_mem_ins [decidable_rel lt] [is_strict_weak_order α lt] {t : rbnode α} {x z} :
+lemma equiv_or_mem_of_mem_ins [decidable_rel lt] {t : rbnode α} {x z} :
   ∀ (h : x ∈ t.ins lt z), x ≈[lt] z ∨ x ∈ t :=
 begin
   apply ins.induction lt t z; intros; simp [ins, strict_weak_order.equiv, *] at *;
@@ -321,8 +321,7 @@ begin
     all_goals { simp [h, *] }},
 end
 
-lemma equiv_or_mem_of_mem_insert [decidable_rel lt] [is_strict_weak_order α lt] {t : rbnode α}
-  {x z} :
+lemma equiv_or_mem_of_mem_insert [decidable_rel lt] {t : rbnode α} {x z} :
   ∀ (h : x ∈ t.insert lt z), x ≈[lt] z ∨ x ∈ t :=
 begin
   simp [insert], intros, apply equiv_or_mem_of_mem_ins, exact mem_of_mem_mk_insert_result lt h

@@ -406,7 +406,7 @@ coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_n
 /-- Coercion to a function as a `ring_hom`. -/
 @[simps]
 def coe_fn_ring_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [ring β] [topological_ring β] : C(α, β) →+* (α → β) :=
+  [semiring β] [topological_semiring β] : C(α, β) →+* (α → β) :=
 { to_fun := coe_fn,
   ..(coe_fn_monoid_hom : C(α, β) →* _),
   ..(coe_fn_add_monoid_hom : C(α, β) →+ _) }
@@ -597,11 +597,7 @@ variables (R)
 def continuous_map.coe_fn_alg_hom : C(α, A) →ₐ[R] (α → A) :=
 { to_fun := coe_fn,
   commutes' := λ r, rfl,
-  -- `..(continuous_map.coe_fn_ring_hom : C(α, A) →+* _)` times out for some reason
-  map_zero' := continuous_map.coe_zero,
-  map_one' := continuous_map.coe_one,
-  map_add' := continuous_map.coe_add,
-  map_mul' := continuous_map.coe_mul }
+  ..(continuous_map.coe_fn_ring_hom : C(α, A) →+* _) }
 
 variables {R}
 

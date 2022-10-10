@@ -461,7 +461,7 @@ end spectrum
 namespace alg_hom
 
 section normed_field
-variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is

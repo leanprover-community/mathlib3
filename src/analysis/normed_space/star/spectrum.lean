@@ -55,9 +55,6 @@ variables {A : Type*}
 
 local notation `↑ₐ` := algebra_map ℂ A
 
-@[simp] lemma foo [subsingleton A] (a : A) : spectral_radius ℂ a = 0 :=
-by simp [spectral_radius]
-
 lemma is_self_adjoint.spectral_radius_eq_nnnorm {a : A}
   (ha : is_self_adjoint a) :
   spectral_radius ℂ a = ∥a∥₊ :=
@@ -69,7 +66,7 @@ begin
   refine funext (λ n, _),
   rw [function.comp_app, ha.nnnorm_pow_two_pow, ennreal.coe_pow, ←rpow_nat_cast,
     ←rpow_mul],
-  simp
+  simp,
 end
 
 lemma is_star_normal.spectral_radius_eq_nnnorm (a : A) [is_star_normal a] :
@@ -86,7 +83,7 @@ begin
   rw ←heq at h₂,
   convert tendsto_nhds_unique h₂ (pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a⋆ * a)),
   rw [(is_self_adjoint.star_mul_self a).spectral_radius_eq_nnnorm, sq, nnnorm_star_mul_self,
-    coe_mul]
+    coe_mul],
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/

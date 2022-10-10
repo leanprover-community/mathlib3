@@ -68,8 +68,8 @@ to_subsemiring_injective.eq_iff
 equalities. -/
 protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
 { carrier := s,
-  add_mem' := hs.symm ▸ S.add_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem',
+  add_mem' := λ _ _, hs.symm ▸ S.add_mem',
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem',
   algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
 
 @[simp] lemma coe_copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) :
@@ -188,9 +188,15 @@ instance to_comm_ring {R A}
 instance to_ordered_semiring {R A}
   [comm_semiring R] [ordered_semiring A] [algebra R A] (S : subalgebra R A) :
   ordered_semiring S := S.to_subsemiring.to_ordered_semiring
+instance to_strict_ordered_semiring {R A}
+  [comm_semiring R] [strict_ordered_semiring A] [algebra R A] (S : subalgebra R A) :
+  strict_ordered_semiring S := S.to_subsemiring.to_strict_ordered_semiring
 instance to_ordered_comm_semiring {R A}
   [comm_semiring R] [ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
   ordered_comm_semiring S := S.to_subsemiring.to_ordered_comm_semiring
+instance to_strict_ordered_comm_semiring {R A}
+  [comm_semiring R] [strict_ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
+  strict_ordered_comm_semiring S := S.to_subsemiring.to_strict_ordered_comm_semiring
 instance to_ordered_ring {R A}
   [comm_ring R] [ordered_ring A] [algebra R A] (S : subalgebra R A) :
   ordered_ring S := S.to_subring.to_ordered_ring
@@ -201,7 +207,9 @@ instance to_ordered_comm_ring {R A}
 instance to_linear_ordered_semiring {R A}
   [comm_semiring R] [linear_ordered_semiring A] [algebra R A] (S : subalgebra R A) :
   linear_ordered_semiring S := S.to_subsemiring.to_linear_ordered_semiring
-/-! There is no `linear_ordered_comm_semiring`. -/
+instance to_linear_ordered_comm_semiring {R A}
+ [comm_semiring R] [linear_ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
+  linear_ordered_comm_semiring S := S.to_subsemiring.to_linear_ordered_comm_semiring
 instance to_linear_ordered_ring {R A}
   [comm_ring R] [linear_ordered_ring A] [algebra R A] (S : subalgebra R A) :
   linear_ordered_ring S := S.to_subring.to_linear_ordered_ring
@@ -278,8 +286,8 @@ protected lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebr
   ↑(algebra_map R' S r) = algebra_map R' A r := rfl
 
 protected lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n := submonoid_class.coe_pow x n
-protected lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 := add_submonoid_class.coe_eq_zero
-protected lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 := submonoid_class.coe_eq_one
+protected lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 := zero_mem_class.coe_eq_zero
+protected lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 := one_mem_class.coe_eq_one
 
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype

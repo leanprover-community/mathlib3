@@ -150,7 +150,7 @@ end analytic_at
 
 namespace analytic_on
 
-variables {U : set 𝕜} {w : 𝕜}
+variables {U : set 𝕜}
 
 /-- The *principle of isolated zeros* for an analytic function, global version: if a function is
 analytic on a connected set `U` and vanishes in arbitrary neighborhoods of a point `z₀ ∈ U`, then
@@ -159,16 +159,16 @@ For higher-dimensional versions requiring that the function vanishes in a neighb
 see `eq_on_zero_of_preconnected_of_eventually_eq_zero`. -/
 theorem eq_on_zero_of_preconnected_of_frequently_eq_zero
   (hf : analytic_on 𝕜 f U) (hU : is_preconnected U)
-  (hw : w ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] w, f z = 0) :
+  (h₀ : z₀ ∈ U) (hfw : ∃ᶠ z in 𝓝[≠] z₀, f z = 0) :
   eq_on f 0 U :=
-hf.eq_on_zero_of_preconnected_of_eventually_eq_zero hU hw
-  ((hf w hw).frequently_zero_iff_eventually_zero.1 hfw)
+hf.eq_on_zero_of_preconnected_of_eventually_eq_zero hU h₀
+  ((hf z₀ h₀).frequently_zero_iff_eventually_zero.1 hfw)
 
 theorem eq_on_zero_of_preconnected_of_mem_closure (hf : analytic_on 𝕜 f U) (hU : is_preconnected U)
-  (hw : w ∈ U) (hfw : w ∈ closure ({z | f z = 0} \ {w})) :
+  (h₀ : z₀ ∈ U) (hfz₀ : z₀ ∈ closure ({z | f z = 0} \ {z₀})) :
   eq_on f 0 U :=
-hf.eq_on_zero_of_preconnected_of_frequently_eq_zero hU hw
-  (mem_closure_ne_iff_frequently_within.mp hfw)
+hf.eq_on_zero_of_preconnected_of_frequently_eq_zero hU h₀
+  (mem_closure_ne_iff_frequently_within.mp hfz₀)
 
 /-- The *identity principle* for analytic functions, global version: if two functions are
 analytic on a connected set `U` and coincide at points which accumulate to a point `z₀ ∈ U`, then
@@ -176,17 +176,17 @@ they coincide globally in `U`.
 For higher-dimensional versions requiring that the functions coincide in a neighborhood of `z₀`,
 see `eq_on_of_preconnected_of_eventually_eq`. -/
 theorem eq_on_of_preconnected_of_frequently_eq (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
-  (hU : is_preconnected U) (hw : w ∈ U) (hfg : ∃ᶠ z in 𝓝[≠] w, f z = g z) :
+  (hU : is_preconnected U) (h₀ : z₀ ∈ U) (hfg : ∃ᶠ z in 𝓝[≠] z₀, f z = g z) :
   eq_on f g U :=
 begin
-  have hfg' : ∃ᶠ z in 𝓝[≠] w, (f - g) z = 0 := hfg.mono (λ z h, by rw [pi.sub_apply, h, sub_self]),
+  have hfg' : ∃ᶠ z in 𝓝[≠] z₀, (f - g) z = 0 := hfg.mono (λ z h, by rw [pi.sub_apply, h, sub_self]),
   simpa [sub_eq_zero] using
-    λ z hz, (hf.sub hg).eq_on_zero_of_preconnected_of_frequently_eq_zero hU hw hfg' hz
+    λ z hz, (hf.sub hg).eq_on_zero_of_preconnected_of_frequently_eq_zero hU h₀ hfg' hz
 end
 
 theorem eq_on_of_preconnected_of_mem_closure (hf : analytic_on 𝕜 f U) (hg : analytic_on 𝕜 g U)
-  (hU : is_preconnected U) (hw : w ∈ U) (hfw : w ∈ closure ({z | f z = g z} \ {w})) :
+  (hU : is_preconnected U) (h₀ : z₀ ∈ U) (hfg : z₀ ∈ closure ({z | f z = g z} \ {z₀})) :
   eq_on f g U :=
-hf.eq_on_of_preconnected_of_frequently_eq hg hU hw (mem_closure_ne_iff_frequently_within.mp hfw)
+hf.eq_on_of_preconnected_of_frequently_eq hg hU h₀ (mem_closure_ne_iff_frequently_within.mp hfg)
 
 end analytic_on

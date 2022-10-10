@@ -11,7 +11,7 @@ import algebraic_topology.dold_kan.notations
 
 # Construction of homotopies for the Dold-Kan correspondence
 
-TODO (@joelriou) continue adding the various files references below
+TODO (@joelriou) continue adding the various files referenced below
 
 (The general strategy of proof of the Dold-Kan correspondence is explained
 in `equivalence.lean`.)
@@ -134,14 +134,14 @@ begin
   unfold Hσ,
   rw null_homotopic_map'_f_of_not_rel_left (c_mk 1 0 rfl) cs_down_0_not_rel_left,
   cases q,
-  { erw hσ'_eq (show 0=0+0, by refl) (c_mk 1 0 rfl),
+  { rw hσ'_eq (show 0=0+0, by refl) (c_mk 1 0 rfl),
     simp only [pow_zero, fin.mk_zero, one_zsmul, eq_to_hom_refl, category.comp_id],
     erw chain_complex.of_d,
     simp only [alternating_face_map_complex.obj_d, fin.sum_univ_two,
       fin.coe_zero, pow_zero, one_zsmul, fin.coe_one, pow_one, comp_add,
       neg_smul, one_zsmul, comp_neg, add_neg_eq_zero],
     erw [δ_comp_σ_self, δ_comp_σ_succ], },
-  { erw [hσ'_eq_zero (nat.succ_pos q) (c_mk 1 0 rfl), zero_comp], },
+  { rw [hσ'_eq_zero (nat.succ_pos q) (c_mk 1 0 rfl), zero_comp], },
 end
 
 /-- The maps `hσ' q n m hnm` are natural on the simplicial object -/
@@ -169,8 +169,7 @@ def nat_trans_Hσ (q : ℕ) :
     rw [null_homotopic_map'_comp, comp_null_homotopic_map'],
     congr,
     ext n m hnm,
-    simp only [alternating_face_map_complex_map, alternating_face_map_complex.map,
-      chain_complex.of_hom_f, hσ'_naturality],
+    simp only [alternating_face_map_complex_map_f, hσ'_naturality],
   end, }
 
 /-- The maps `hσ' q n m hnm` are compatible with the application of additive functors. -/

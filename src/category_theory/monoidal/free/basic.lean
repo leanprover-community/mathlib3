@@ -52,7 +52,7 @@ namespace free_monoidal_category
 /-- Formal compositions and tensor products of identities, unitors and associators. The morphisms
     of the free monoidal category are obtained as a quotient of these formal morphisms by the
     relations defining a monoidal category. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 inductive hom : F C → F C → Type u
 | id (X) : hom X X
 | α_hom (X Y Z : F C) : hom ((X.tensor Y).tensor Z) (X.tensor (Y.tensor Z))

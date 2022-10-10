@@ -159,7 +159,7 @@ begin
     { push_neg at hil, rw [← tsub_lt_iff_right hil] at hikl,
       rw [choose_eq_zero_of_lt hikl , zero_mul], }, },
   push_neg at hikl, apply @cast_injective ℚ,
-  have h1 : l ≤ i     := nat.le_of_add_le_right hikl,
+  have h1 : l ≤ i     := le_of_add_le_right hikl,
   have h2 : k ≤ i - l := le_tsub_of_add_le_right hikl,
   have h3 : k ≤ k + l := le_self_add,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },

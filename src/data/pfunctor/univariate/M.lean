@@ -170,7 +170,7 @@ lemma M.default_consistent [inhabited F.A] :
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
 instance M.inhabited [inhabited F.A] : inhabited (M F) :=
-⟨ { approx := λ n, default,
+⟨ { approx := default,
     consistent := M.default_consistent _ } ⟩
 
 instance M_intl.inhabited [inhabited F.A] : inhabited (M_intl F) :=
@@ -295,7 +295,9 @@ begin
   { rw [← head_succ' n,h,head'], apply x.consistent },
   revert ch, rw h', intros, congr,
   { ext a, dsimp only [children],
-    h_generalize! hh : a == a'',
+    generalize hh : cast _ a = a'',
+    rw cast_eq_iff_heq at hh,
+    revert a'',
     rw h, intros, cases hh, refl },
 end
 

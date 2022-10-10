@@ -27,6 +27,9 @@ attribute [simp] join
 @[simp] lemma join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
 
+lemma join_concat (L : list (list α)) (l : list α) : join (L.concat l) = join L ++ l :=
+by simp
+
 @[simp] lemma join_filter_empty_eq_ff [decidable_pred (λ l : list α, l.empty = ff)] :
   ∀ {L : list (list α)}, join (L.filter (λ l, l.empty = ff)) = L.join
 | []              := rfl

@@ -86,7 +86,7 @@ instance punit : fin_enum punit :=
 of_list [punit.star] (λ x, by cases x; simp)
 
 instance prod {β} [fin_enum α] [fin_enum β] : fin_enum (α × β) :=
-of_list ( (to_list α).product (to_list β) ) (λ x, by cases x; simp)
+of_list (to_list α ×ˢ to_list β) (λ x, by cases x; simp)
 
 instance sum {β} [fin_enum α] [fin_enum β] : fin_enum (α ⊕ β) :=
 of_list ( (to_list α).map sum.inl ++ (to_list β).map sum.inr ) (λ x, by cases x; simp)

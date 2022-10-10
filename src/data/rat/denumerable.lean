@@ -35,10 +35,6 @@ end
 
 end rat
 
-namespace cardinal
-
 open_locale cardinal
 
-@[simp] lemma mk_rat : #ℚ = ω := mk_denumerable ℚ
-
-end cardinal
+lemma cardinal.mk_rat : #ℚ = ℵ₀ := by simp

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Floris van Doorn
 -/
 import data.set.intervals.ord_connected
+import order.antisymmetrization
 
 /-!
 # The covering relation
@@ -26,7 +27,7 @@ variables {α β : Type*}
 section weakly_covers
 
 section preorder
-variables [preorder α] [preorder β] {a b c: α}
+variables [preorder α] [preorder β] {a b c : α}
 
 /-- `wcovby a b` means that `a = b` or `b` covers `a`.
 This means that `a ≤ b` and there is no element in between.
@@ -47,11 +48,25 @@ lemma wcovby_of_le_of_le (h1 : a ≤ b) (h2 : b ≤ a) : a ⩿ b :=
 
 alias wcovby_of_le_of_le ← has_le.le.wcovby_of_le
 
+lemma antisymm_rel.wcovby (h : antisymm_rel (≤) a b) : a ⩿ b := wcovby_of_le_of_le h.1 h.2
+
 lemma wcovby.wcovby_iff_le (hab : a ⩿ b) : b ⩿ a ↔ b ≤ a :=
 ⟨λ h, h.le, λ h, h.wcovby_of_le hab.le⟩
 
 lemma wcovby_of_eq_or_eq (hab : a ≤ b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⩿ b :=
 ⟨hab, λ c ha hb, (h c ha.le hb.le).elim ha.ne' hb.ne⟩
+
+lemma antisymm_rel.trans_wcovby (hab : antisymm_rel (≤) a b) (hbc : b ⩿ c) : a ⩿ c :=
+⟨hab.1.trans hbc.le, λ d had hdc, hbc.2 (hab.2.trans_lt had) hdc⟩
+
+lemma wcovby_congr_left (hab : antisymm_rel (≤) a b) : a ⩿ c ↔ b ⩿ c :=
+⟨hab.symm.trans_wcovby, hab.trans_wcovby⟩
+
+lemma wcovby.trans_antisymm_rel (hab : a ⩿ b) (hbc : antisymm_rel (≤) b c) : a ⩿ c :=
+⟨hab.le.trans hbc.1, λ d had hdc, hab.2 had $ hdc.trans_le hbc.2⟩
+
+lemma wcovby_congr_right (hab : antisymm_rel (≤) a b) : c ⩿ a ↔ c ⩿ b :=
+⟨λ h, h.trans_antisymm_rel hab, λ h, h.trans_antisymm_rel hab.symm⟩
 
 /-- If `a ≤ b`, then `b` does not cover `a` iff there's an element in between. -/
 lemma not_wcovby_iff (h : a ≤ b) : ¬ a ⩿ b ↔ ∃ c, a < c ∧ c < b :=
@@ -157,7 +172,7 @@ alias of_dual_covby_of_dual_iff ↔ _ covby.of_dual
 end has_lt
 
 section preorder
-variables [preorder α] [preorder β] {a b : α}
+variables [preorder α] [preorder β] {a b c : α}
 
 lemma covby.le (h : a ⋖ b) : a ≤ b := h.1.le
 protected lemma covby.ne (h : a ⋖ b) : a ≠ b := h.lt.ne
@@ -166,6 +181,9 @@ lemma covby.ne' (h : a ⋖ b) : b ≠ a := h.lt.ne'
 protected lemma covby.wcovby (h : a ⋖ b) : a ⩿ b := ⟨h.le, h.2⟩
 lemma wcovby.covby_of_not_le (h : a ⩿ b) (h2 : ¬ b ≤ a) : a ⋖ b := ⟨h.le.lt_of_not_le h2, h.2⟩
 lemma wcovby.covby_of_lt (h : a ⩿ b) (h2 : a < b) : a ⋖ b := ⟨h2, h.2⟩
+
+lemma not_covby_of_lt_of_lt (h₁ : a < b) (h₂ : b < c) : ¬ a ⋖ c :=
+(not_covby_iff (h₁.trans h₂)).2 ⟨b, h₁, h₂⟩
 
 lemma covby_iff_wcovby_and_lt : a ⋖ b ↔ a ⩿ b ∧ a < b :=
 ⟨λ h, ⟨h.wcovby, h.lt⟩, λ h, h.1.covby_of_lt h.2⟩
@@ -176,6 +194,18 @@ lemma covby_iff_wcovby_and_not_le : a ⋖ b ↔ a ⩿ b ∧ ¬ b ≤ a :=
 lemma wcovby_iff_covby_or_le_and_le : a ⩿ b ↔ a ⋖ b ∨ (a ≤ b ∧ b ≤ a) :=
 ⟨λ h, or_iff_not_imp_right.mpr $ λ h', h.covby_of_not_le $ λ hba, h' ⟨h.le, hba⟩,
   λ h', h'.elim (λ h, h.wcovby) (λ h, h.1.wcovby_of_le h.2)⟩
+
+lemma antisymm_rel.trans_covby (hab : antisymm_rel (≤) a b) (hbc : b ⋖ c) : a ⋖ c :=
+⟨hab.1.trans_lt hbc.lt, λ d had hdc, hbc.2 (hab.2.trans_lt had) hdc⟩
+
+lemma covby_congr_left (hab : antisymm_rel (≤) a b) : a ⋖ c ↔ b ⋖ c :=
+⟨hab.symm.trans_covby, hab.trans_covby⟩
+
+lemma covby.trans_antisymm_rel (hab : a ⋖ b) (hbc : antisymm_rel (≤) b c) : a ⋖ c :=
+⟨hab.lt.trans_le hbc.1, λ d had hdb, hab.2 had $ hdb.trans_le hbc.2⟩
+
+lemma covby_congr_right (hab : antisymm_rel (≤) a b) : c ⋖ a ↔ c ⋖ b :=
+⟨λ h, h.trans_antisymm_rel hab, λ h, h.trans_antisymm_rel hab.symm⟩
 
 instance : is_nonstrict_strict_order α (⩿) (⋖) :=
 ⟨λ a b, covby_iff_wcovby_and_not_le.trans $ and_congr_right $ λ h, h.wcovby_iff_le.not.symm⟩
@@ -260,3 +290,73 @@ lemma covby_insert {x : α} {s : set α} (hx : x ∉ s) : s ⋖ insert x s :=
 (wcovby_insert x s).covby_of_lt $ ssubset_insert hx
 
 end set
+
+namespace prod
+variables [partial_order α] [partial_order β] {a a₁ a₂ : α} {b b₁ b₂ : β} {x y : α × β}
+
+@[simp] lemma swap_wcovby_swap : x.swap ⩿ y.swap ↔ x ⩿ y :=
+apply_wcovby_apply_iff (order_iso.prod_comm : α × β ≃o β × α)
+
+@[simp] lemma swap_covby_swap : x.swap ⋖ y.swap ↔ x ⋖ y :=
+apply_covby_apply_iff (order_iso.prod_comm : α × β ≃o β × α)
+
+lemma fst_eq_or_snd_eq_of_wcovby : x ⩿ y → x.1 = y.1 ∨ x.2 = y.2 :=
+begin
+  refine λ h, of_not_not (λ hab, _),
+  push_neg at hab,
+  exact h.2 (mk_lt_mk.2 $ or.inl ⟨hab.1.lt_of_le h.1.1, le_rfl⟩)
+    (mk_lt_mk.2 $ or.inr ⟨le_rfl, hab.2.lt_of_le h.1.2⟩),
+end
+
+lemma _root_.wcovby.fst (h : x ⩿ y) : x.1 ⩿ y.1 :=
+⟨h.1.1, λ c h₁ h₂, h.2 (mk_lt_mk_iff_left.2 h₁) ⟨⟨h₂.le, h.1.2⟩, λ hc, h₂.not_le hc.1⟩⟩
+
+lemma _root_.wcovby.snd (h : x ⩿ y) : x.2 ⩿ y.2 :=
+⟨h.1.2, λ c h₁ h₂, h.2 (mk_lt_mk_iff_right.2 h₁) ⟨⟨h.1.1, h₂.le⟩, λ hc, h₂.not_le hc.2⟩⟩
+
+lemma mk_wcovby_mk_iff_left : (a₁, b) ⩿ (a₂, b) ↔ a₁ ⩿ a₂ :=
+begin
+  refine ⟨wcovby.fst, and.imp mk_le_mk_iff_left.2 $ λ h c h₁ h₂, _⟩,
+  have : c.2 = b:= h₂.le.2.antisymm h₁.le.2,
+  rw [←@prod.mk.eta _ _ c, this, mk_lt_mk_iff_left] at h₁ h₂,
+  exact h h₁ h₂,
+end
+
+lemma mk_wcovby_mk_iff_right : (a, b₁) ⩿ (a, b₂) ↔ b₁ ⩿ b₂ :=
+swap_wcovby_swap.trans mk_wcovby_mk_iff_left
+
+lemma mk_covby_mk_iff_left : (a₁, b) ⋖ (a₂, b) ↔ a₁ ⋖ a₂ :=
+by simp_rw [covby_iff_wcovby_and_lt, mk_wcovby_mk_iff_left, mk_lt_mk_iff_left]
+
+lemma mk_covby_mk_iff_right : (a, b₁) ⋖ (a, b₂) ↔ b₁ ⋖ b₂ :=
+by simp_rw [covby_iff_wcovby_and_lt, mk_wcovby_mk_iff_right, mk_lt_mk_iff_right]
+
+lemma mk_wcovby_mk_iff : (a₁, b₁) ⩿ (a₂, b₂) ↔ a₁ ⩿ a₂ ∧ b₁ = b₂ ∨ b₁ ⩿ b₂ ∧ a₁ = a₂ :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl | rfl : a₁ = a₂ ∨ b₁ = b₂ := fst_eq_or_snd_eq_of_wcovby h,
+    { exact or.inr ⟨mk_wcovby_mk_iff_right.1 h, rfl⟩ },
+    { exact or.inl ⟨mk_wcovby_mk_iff_left.1 h, rfl⟩ } },
+  { rintro (⟨h, rfl⟩ | ⟨h, rfl⟩),
+    { exact mk_wcovby_mk_iff_left.2 h },
+    { exact mk_wcovby_mk_iff_right.2 h } }
+end
+
+lemma mk_covby_mk_iff : (a₁, b₁) ⋖ (a₂, b₂) ↔ a₁ ⋖ a₂ ∧ b₁ = b₂ ∨ b₁ ⋖ b₂ ∧ a₁ = a₂ :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl | rfl : a₁ = a₂ ∨ b₁ = b₂ := fst_eq_or_snd_eq_of_wcovby h.wcovby,
+    { exact or.inr ⟨mk_covby_mk_iff_right.1 h, rfl⟩ },
+    { exact or.inl ⟨mk_covby_mk_iff_left.1 h, rfl⟩ } },
+  { rintro (⟨h, rfl⟩ | ⟨h, rfl⟩),
+    { exact mk_covby_mk_iff_left.2 h },
+    { exact mk_covby_mk_iff_right.2 h } }
+end
+
+lemma wcovby_iff : x ⩿ y ↔ x.1 ⩿ y.1 ∧ x.2 = y.2 ∨ x.2 ⩿ y.2 ∧ x.1 = y.1 :=
+by { cases x, cases y, exact mk_wcovby_mk_iff }
+
+lemma covby_iff : x ⋖ y ↔ x.1 ⋖ y.1 ∧ x.2 = y.2 ∨ x.2 ⋖ y.2 ∧ x.1 = y.1 :=
+by { cases x, cases y, exact mk_covby_mk_iff }
+
+end prod

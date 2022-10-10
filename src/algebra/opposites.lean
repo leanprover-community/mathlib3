@@ -118,7 +118,7 @@ instance [has_involutive_neg α] : has_involutive_neg αᵐᵒᵖ :=
 { inv_inv := λ a, unop_injective $ inv_inv _,
   ..mul_opposite.has_inv α }
 
-@[to_additive] instance (R : Type*) [has_scalar R α] : has_scalar R αᵐᵒᵖ :=
+@[to_additive] instance (R : Type*) [has_smul R α] : has_smul R αᵐᵒᵖ :=
 { smul := λ c x, op (c • unop x) }
 
 section
@@ -147,10 +147,10 @@ variable {α}
 @[simp] lemma op_sub [has_sub α] (x y : α) : op (x - y) = op x - op y := rfl
 @[simp] lemma unop_sub [has_sub α] (x y : αᵐᵒᵖ) : unop (x - y) = unop x - unop y := rfl
 
-@[simp, to_additive] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) :
+@[simp, to_additive] lemma op_smul {R : Type*} [has_smul R α] (c : R) (a : α) :
   op (c • a) = c • op a := rfl
 
-@[simp, to_additive] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵐᵒᵖ) :
+@[simp, to_additive] lemma unop_smul {R : Type*} [has_smul R α] (c : R) (a : αᵐᵒᵖ) :
   unop (c • a) = c • unop a := rfl
 
 end

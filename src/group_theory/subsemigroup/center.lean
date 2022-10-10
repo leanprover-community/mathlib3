@@ -87,7 +87,7 @@ begin
   obtain rfl | ha0 := eq_or_ne a 0,
   { rw inv_zero, exact zero_mem_center M },
   rcases is_unit.mk0 _ ha0 with ⟨a, rfl⟩,
-  rw ←units.coe_inv',
+  rw ←units.coe_inv,
   exact center_units_subset (inv_mem_center (subset_center_units ha)),
 end
 

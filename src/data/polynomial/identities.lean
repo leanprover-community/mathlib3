@@ -94,7 +94,7 @@ def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - 
   begin
     cases @pow_sub_pow_factor (k+1) with z hz,
     existsi z*x + y^(k+1),
-    linear_combination (hz, x) { normalization_tactic := `[ring_exp] }
+    linear_combination x * hz with { normalization_tactic := `[ring_exp] }
   end
 
 /--

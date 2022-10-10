@@ -36,3 +36,18 @@ begin
   set b : T := u, -- the type `T` can't be fully elaborated without the body but this is fine
   trivial
 end
+
+section lean_555 -- https://github.com/leanprover-community/mathlib/pull/14488
+
+inductive foo | bar
+
+instance : has_coe_to_sort foo _ :=
+⟨λ _, unit⟩
+
+example : true :=
+begin
+  set x : foo.bar := (),
+  trivial,
+end
+
+end lean_555

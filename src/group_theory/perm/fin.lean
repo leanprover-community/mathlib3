@@ -3,7 +3,7 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.perm.cycle_type
+import group_theory.perm.cycle.type
 import group_theory.perm.option
 import logic.equiv.fin
 import logic.equiv.fintype

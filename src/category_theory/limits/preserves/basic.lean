@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Reid Barton, Bhavik Mehta
+Authors: Scott Morrison, Reid Barton, Bhavik Mehta, Jakob von Raumer
 -/
 import category_theory.limits.has_limits
 
@@ -232,6 +232,20 @@ def preserves_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e
       { dsimp, simp [←functor.map_comp] }, -- See library note [dsimp, simp].
     end } }
 
+/--
+`preserves_limits_of_size_shrink.{w w'} F` tries to obtain `preserves_limits_of_size.{w w'} F`
+from some other `preserves_limits_of_size F`.
+-/
+def preserves_limits_of_size_shrink (F : C ⥤ D)
+  [preserves_limits_of_size.{(max w w₂) (max w' w₂')} F] : preserves_limits_of_size.{w w'} F :=
+⟨λ J hJ, by exactI preserves_limits_of_shape_of_equiv
+  (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
+
+/-- Preserving limits at any universe level implies preserving limits in universe `0`. -/
+def preserves_smallest_limits_of_preserves_limits
+  (F : C ⥤ D) [preserves_limits_of_size.{v₃ u₃} F] : preserves_limits_of_size.{0 0} F :=
+preserves_limits_of_size_shrink F
+
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/
 def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
@@ -277,6 +291,20 @@ def preserves_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] 
       refine cocones.ext (iso.refl _) (λ j, _),
       { dsimp, simp [←functor.map_comp] }, -- See library note [dsimp, simp].
     end } }
+
+/--
+`preserves_colimits_of_size_shrink.{w w'} F` tries to obtain `preserves_colimits_of_size.{w w'} F`
+from some other `preserves_colimits_of_size F`.
+-/
+def preserves_colimits_of_size_shrink (F : C ⥤ D)
+  [preserves_colimits_of_size.{(max w w₂) (max w' w₂')} F] : preserves_colimits_of_size.{w w'} F :=
+⟨λ J hJ, by exactI preserves_colimits_of_shape_of_equiv
+  (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
+
+/-- Preserving colimits at any universe implies preserving colimits at universe `0`. -/
+def preserves_smallest_colimits_of_preserves_colimits
+  (F : C ⥤ D) [preserves_colimits_of_size.{v₃ u₃} F] : preserves_colimits_of_size.{0 0} F :=
+preserves_colimits_of_size_shrink F
 
 /--
 A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if
@@ -501,6 +529,33 @@ def reflects_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_limits_of
   reflects_limits_of_size.{w' w} G :=
 { reflects_limits_of_shape := λ J 𝒥₁, by exactI reflects_limits_of_shape_of_nat_iso h }
 
+/-- Transfer reflection of limits along a equivalence in the shape. -/
+def reflects_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e : J ≌ J')
+  (F : C ⥤ D) [reflects_limits_of_shape J F] :
+  reflects_limits_of_shape J' F :=
+{ reflects_limit := λ K,
+  { reflects := λ c t,
+    begin
+      apply is_limit.of_whisker_equivalence e,
+      apply is_limit_of_reflects F,
+      apply is_limit.of_iso_limit _ (functor.map_cone_whisker _).symm,
+      exact is_limit.whisker_equivalence t _,
+    end } }
+
+/--
+`reflects_limits_of_size_shrink.{w w'} F` tries to obtain `reflects_limits_of_size.{w w'} F`
+from some other `reflects_limits_of_size F`.
+-/
+def reflects_limits_of_size_shrink (F : C ⥤ D)
+  [reflects_limits_of_size.{(max w w₂) (max w' w₂')} F] : reflects_limits_of_size.{w w'} F :=
+⟨λ J hJ, by exactI reflects_limits_of_shape_of_equiv
+  (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
+
+/-- Reflecting limits at any universe implies reflecting limits at universe `0`. -/
+def reflects_smallest_limits_of_reflects_limits
+  (F : C ⥤ D) [reflects_limits_of_size.{v₃ u₃} F] : reflects_limits_of_size.{0 0} F :=
+reflects_limits_of_size_shrink F
+
 /--
 If the limit of `F` exists and `G` preserves it, then if `G` reflects isomorphisms then it
 reflects the limit of `F`.
@@ -584,6 +639,33 @@ def reflects_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
 def reflects_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_colimits_of_size.{w w'} F] :
   reflects_colimits_of_size.{w w'} G :=
 { reflects_colimits_of_shape := λ J 𝒥₁, by exactI reflects_colimits_of_shape_of_nat_iso h }
+
+/-- Transfer reflection of colimits along a equivalence in the shape. -/
+def reflects_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e : J ≌ J')
+  (F : C ⥤ D) [reflects_colimits_of_shape J F] :
+  reflects_colimits_of_shape J' F :=
+{ reflects_colimit := λ K,
+  { reflects := λ c t,
+    begin
+      apply is_colimit.of_whisker_equivalence e,
+      apply is_colimit_of_reflects F,
+      apply is_colimit.of_iso_colimit _ (functor.map_cocone_whisker _).symm,
+      exact is_colimit.whisker_equivalence t _,
+    end } }
+
+/--
+`reflects_colimits_of_size_shrink.{w w'} F` tries to obtain `reflects_colimits_of_size.{w w'} F`
+from some other `reflects_colimits_of_size F`.
+-/
+def reflects_colimits_of_size_shrink (F : C ⥤ D)
+  [reflects_colimits_of_size.{(max w w₂) (max w' w₂')} F] : reflects_colimits_of_size.{w w'} F :=
+⟨λ J hJ, by exactI reflects_colimits_of_shape_of_equiv
+  (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
+
+/-- Reflecting colimits at any universe implies reflecting colimits at universe `0`. -/
+def reflects_smallest_colimits_of_reflects_colimits
+  (F : C ⥤ D) [reflects_colimits_of_size.{v₃ u₃} F] : reflects_colimits_of_size.{0 0} F :=
+reflects_colimits_of_size_shrink F
 
 /--
 If the colimit of `F` exists and `G` preserves it, then if `G` reflects isomorphisms then it

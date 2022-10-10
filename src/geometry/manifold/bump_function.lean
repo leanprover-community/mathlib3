@@ -28,7 +28,7 @@ manifold, smooth bump function
 
 universes uE uF uH uM
 variables
-{E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+{E : Type uE} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] (I : model_with_corners ℝ E H)
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -309,14 +309,14 @@ protected lemma continuous : continuous f := f.smooth.continuous
 
 /-- If `f : smooth_bump_function I c` is a smooth bump function and `g : M → G` is a function smooth
 on the source of the chart at `c`, then `f • g` is smooth on the whole manifold. -/
-lemma smooth_smul {G} [normed_group G] [normed_space ℝ G]
+lemma smooth_smul {G} [normed_add_comm_group G] [normed_space ℝ G]
   {g : M → G} (hg : smooth_on I 𝓘(ℝ, G) g (chart_at H c).source) :
   smooth I 𝓘(ℝ, G) (λ x, f x • g x) :=
 begin
   apply cont_mdiff_of_support (λ x hx, _),
   have : x ∈ (chart_at H c).source,
   calc x ∈ tsupport (λ x, f x • g x) : hx
-     ... ⊆ tsupport f : closure_mono (support_smul_subset_left _ _)
+     ... ⊆ tsupport f : tsupport_smul_subset_left _ _
      ... ⊆ (chart_at _ c).source : f.tsupport_subset_chart_at_source,
   exact f.smooth_at.smul ((hg _ this).cont_mdiff_at $
     is_open.mem_nhds (chart_at _ _).open_source this)

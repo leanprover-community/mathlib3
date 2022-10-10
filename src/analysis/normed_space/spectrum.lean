@@ -8,6 +8,7 @@ import analysis.special_functions.pow
 import analysis.special_functions.exponential
 import analysis.complex.liouville
 import analysis.analytic.radius_liminf
+import topology.algebra.module.character_space
 /-!
 # The spectrum of elements in a complete normed algebra
 
@@ -16,6 +17,9 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 ## Main definitions
 
 * `spectral_radius : ℝ≥0∞`: supremum of `∥k∥₊` for all `k ∈ spectrum 𝕜 a`
+* `normed_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
+  Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
+  is given by selecting the (unique) element of `spectrum ℂ a`
 
 ## Main statements
 
@@ -29,9 +33,6 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius`: Gelfand's formula for the
   spectral radius in Banach algebras over `ℂ`.
 * `spectrum.nonempty`: the spectrum of any element in a complex Banach algebra is nonempty.
-* `normed_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
-  Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
-  is given by selecting the (unique) element of `spectrum ℂ a`
 
 
 ## TODO
@@ -70,7 +71,7 @@ not_not.mp $ λ hn, h.not_le $ le_supr₂ k hn
 variable [complete_space A]
 
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
-units.is_open.preimage ((algebra_map_clm 𝕜 A).continuous.sub continuous_const)
+units.is_open.preimage ((continuous_algebra_map 𝕜 A).sub continuous_const)
 
 lemma is_closed (a : A) : is_closed (σ a) :=
 (is_open_resolvent_set a).is_closed_compl
@@ -119,9 +120,9 @@ begin
     by simpa only [norm_to_nnreal, nnnorm_pow k (n+1)]
       using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
   /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
-  have hn : 0 < ((n + 1) : ℝ), by exact_mod_cast nat.succ_pos',
+  have hn : 0 < ((n + 1 : ℕ) : ℝ), by exact_mod_cast nat.succ_pos',
   convert monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
-  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one],
+  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one], rw nat.cast_succ,
 end
 
 end spectrum_compact
@@ -130,7 +131,7 @@ section resolvent
 
 open filter asymptotics
 
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
@@ -146,7 +147,7 @@ end
 
 /- TODO: Once there is sufficient API for bornology, we should get a nice filter / asymptotics
 version of this, for example: `tendsto (resolvent a) (cobounded 𝕜) (𝓝 0)` or more specifically
-`is_O (resolvent a) (λ z, z⁻¹) (cobounded 𝕜)`. -/
+`(resolvent a) =O[cobounded 𝕜] (λ z, z⁻¹)`. -/
 lemma norm_resolvent_le_forall (a : A) :
   ∀ ε > 0, ∃ R > 0, ∀ z : 𝕜, R ≤ ∥z∥ → ∥resolvent a z∥ ≤ ε :=
 begin
@@ -163,7 +164,7 @@ begin
   replace hz := inv_le_of_inv_le min_pos hz,
   rcases (⟨units.mk0 z hnz, units.coe_mk0 hnz⟩ : is_unit z) with ⟨z, rfl⟩,
   have lt_δ : ∥z⁻¹ • a∥ < δ,
-  { rw [units.smul_def, norm_smul, units.coe_inv', norm_inv],
+  { rw [units.smul_def, norm_smul, units.coe_inv, norm_inv],
     calc ∥(z : 𝕜)∥⁻¹ * ∥a∥ ≤ δ * (∥a∥ + 1)⁻¹ * ∥a∥
         : mul_le_mul_of_nonneg_right (hz.trans (min_le_left _ _)) (norm_nonneg _)
     ...                   < δ
@@ -171,7 +172,7 @@ begin
                exact mul_lt_mul_of_pos_left
                  ((inv_mul_lt_iff ha₁).mpr ((mul_one (∥a∥ + 1)).symm ▸ (lt_add_one _))) δ_pos } },
   rw [←inv_smul_smul z (resolvent a (z : 𝕜)), units_smul_resolvent_self, resolvent,
-    algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv', norm_inv],
+    algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv, norm_inv],
   calc _ ≤ ε * c⁻¹ * c : mul_le_mul (hz.trans (min_le_right _ _)) (hδ (mem_ball_zero_iff.mpr lt_δ))
                            (norm_nonneg _) (mul_pos hε (inv_pos.mpr c_pos)).le
   ...    = _           : inv_mul_cancel_right₀ c_pos.ne.symm ε,
@@ -185,10 +186,10 @@ open continuous_multilinear_map ennreal formal_multilinear_series
 open_locale nnreal ennreal
 
 variables
-[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+[nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 variable (𝕜)
-/-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
+/-- In a Banach algebra `A` over a nontrivially normed field `𝕜`, for any `a : A` the
 power series with coefficients `a ^ n` represents the function `(1 - z • a)⁻¹` in a disk of
 radius `∥a∥₊⁻¹`. -/
 lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) :
@@ -232,7 +233,7 @@ begin
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
     { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
       refine mem_resolvent_set_of_spectral_radius_lt _,
-      rwa [units.coe_inv', nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+      rwa [units.coe_inv, nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 
@@ -288,6 +289,7 @@ begin
   refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
   { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
     refine le_trans _ (le_supr _ 0),
+    simp only [nat.cast_succ],
     exact le_infi₂ (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
   { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
 end
@@ -346,23 +348,32 @@ end
 
 section gelfand_mazur_isomorphism
 
-variables [normed_division_ring A] [normed_algebra ℂ A]
+variables [normed_ring A] [normed_algebra ℂ A] (hA : ∀ {a : A}, is_unit a ↔ a ≠ 0)
+include hA
 
 local notation `σ` := spectrum ℂ
 
 lemma algebra_map_eq_of_mem {a : A} {z : ℂ} (h : z ∈ σ a) : algebra_map ℂ A z = a :=
-by rwa [mem_iff, is_unit_iff_ne_zero, not_not, sub_eq_zero] at h
+by rwa [mem_iff, hA, not_not, sub_eq_zero] at h
 
 /-- **Gelfand-Mazur theorem**: For a complex Banach division algebra, the natural `algebra_map ℂ A`
 is an algebra isomorphism whose inverse is given by selecting the (unique) element of
-`spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry. -/
+`spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry.
+
+Note: because `normed_division_ring` requires the field `norm_mul' : ∀ a b, ∥a * b∥ = ∥a∥ * ∥b∥`, we
+don't use this type class and instead opt for a `normed_ring` in which the nonzero elements are
+precisely the units. This allows for the application of this isomorphism in broader contexts, e.g.,
+to the quotient of a complex Banach algebra by a maximal ideal. In the case when `A` is actually a
+`normed_division_ring`, one may fill in the argument `hA` with the lemma `is_unit_iff_ne_zero`. -/
 @[simps]
-noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
+noncomputable def _root_.normed_ring.alg_equiv_complex_of_complete
   [complete_space A] : ℂ ≃ₐ[ℂ] A :=
+let nt : nontrivial A := ⟨⟨1, 0, hA.mp ⟨⟨1, 1, mul_one _, mul_one _⟩, rfl⟩⟩⟩ in
 { to_fun := algebra_map ℂ A,
-  inv_fun := λ a, (spectrum.nonempty a).some,
-  left_inv := λ z, by simpa only [scalar_eq] using (spectrum.nonempty $ algebra_map ℂ A z).some_mem,
-  right_inv := λ a, algebra_map_eq_of_mem (spectrum.nonempty a).some_mem,
+  inv_fun := λ a, (@spectrum.nonempty _ _ _ _ nt a).some,
+  left_inv := λ z, by simpa only [@scalar_eq _ _ _ _ _ nt _] using
+    (@spectrum.nonempty _ _ _ _ nt $ algebra_map ℂ A z).some_mem,
+  right_inv := λ a, algebra_map_eq_of_mem @hA (@spectrum.nonempty _ _ _ _ nt a).some_mem,
   ..algebra.of_id ℂ A }
 
 end gelfand_mazur_isomorphism
@@ -412,27 +423,58 @@ section normed_field
 variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
+
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
 automatically bounded). -/
-@[simps] def to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
-φ.to_linear_map.mk_continuous_of_exists_bound $
-  ⟨1, λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _)⟩
+instance [norm_one_class A] : continuous_linear_map_class (A →ₐ[𝕜] 𝕜) 𝕜 A 𝕜 :=
+{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ 1 $
+    λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (apply_mem_spectrum φ _),
+  .. alg_hom_class.linear_map_class }
 
-lemma continuous [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : continuous φ :=
-φ.to_continuous_linear_map.continuous
+/-- An algebra homomorphism into the base field, as a continuous linear map (since it is
+automatically bounded). -/
+def to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
+{ cont := map_continuous φ, .. φ.to_linear_map }
+
+@[simp] lemma coe_to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
+  ⇑φ.to_continuous_linear_map = φ := rfl
 
 end normed_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+section nontrivially_normed_field
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 @[simp] lemma to_continuous_linear_map_norm [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
   ∥φ.to_continuous_linear_map∥ = 1 :=
 continuous_linear_map.op_norm_eq_of_bounds zero_le_one
-  (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _))
-  (λ _ _ h, by simpa only [to_continuous_linear_map_apply, mul_one, map_one, norm_one] using h 1)
+  (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (apply_mem_spectrum φ _))
+  (λ _ _ h, by simpa only [coe_to_continuous_linear_map, map_one, norm_one, mul_one] using h 1)
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 
 end alg_hom
+
+namespace weak_dual
+
+namespace character_space
+
+variables [normed_field 𝕜] [normed_ring A] [complete_space A] [norm_one_class A]
+variables [normed_algebra 𝕜 A]
+
+/-- The equivalence between characters and algebra homomorphisms into the base field. -/
+def equiv_alg_hom : (character_space 𝕜 A) ≃ (A →ₐ[𝕜] 𝕜)  :=
+{ to_fun := to_alg_hom,
+  inv_fun := λ f,
+  { val := f.to_continuous_linear_map,
+    property := by { rw eq_set_map_one_map_mul, exact ⟨map_one f, map_mul f⟩ } },
+  left_inv := λ f, subtype.ext $ continuous_linear_map.ext $ λ x, rfl,
+  right_inv := λ f, alg_hom.ext $ λ x, rfl }
+
+@[simp] lemma equiv_alg_hom_coe (f : character_space 𝕜 A) : ⇑(equiv_alg_hom f) = f := rfl
+
+@[simp] lemma equiv_alg_hom_symm_coe  (f : A →ₐ[𝕜] 𝕜) : ⇑(equiv_alg_hom.symm f) = f := rfl
+
+end character_space
+
+end weak_dual

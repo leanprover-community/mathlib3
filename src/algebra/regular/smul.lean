@@ -29,7 +29,7 @@ variables {R S : Type*} (M : Type*) {a b : R} {s : S}
 
 /-- An `M`-regular element is an element `c` such that multiplication on the left by `c` is an
 injective map `M → M`. -/
-def is_smul_regular [has_scalar R M] (c : R) := function.injective ((•) c : M → M)
+def is_smul_regular [has_smul R M] (c : R) := function.injective ((•) c : M → M)
 
 lemma is_left_regular.is_smul_regular [has_mul R] {c : R} (h : is_left_regular c) :
   is_smul_regular R c := h
@@ -49,9 +49,9 @@ namespace is_smul_regular
 
 variables {M}
 
-section has_scalar
+section has_smul
 
-variables [has_scalar R M] [has_scalar R S] [has_scalar S M] [is_scalar_tower R S M]
+variables [has_smul R M] [has_smul R S] [has_smul S M] [is_scalar_tower R S M]
 
 /-- The product of `M`-regular elements is `M`-regular. -/
 lemma smul (ra : is_smul_regular M a) (rs : is_smul_regular M s) :
@@ -102,7 +102,7 @@ begin
     exact ⟨ha.mul hb, hb.mul ha⟩ }
 end
 
-end has_scalar
+end has_smul
 
 section monoid
 
@@ -141,7 +141,7 @@ end monoid
 
 section monoid_smul
 
-variables [monoid S] [has_scalar R M] [has_scalar R S] [mul_action S M] [is_scalar_tower R S M]
+variables [monoid S] [has_smul R M] [has_smul R S] [mul_action S M] [is_scalar_tower R S M]
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
 lemma of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
@@ -183,7 +183,7 @@ end monoid_with_zero
 
 section comm_semigroup
 
-variables [comm_semigroup R] [has_scalar R M] [is_scalar_tower R R M]
+variables [comm_semigroup R] [has_smul R M] [is_scalar_tower R R M]
 
 /-- A product is `M`-regular if and only if the factors are. -/
 lemma mul_iff : is_smul_regular M (a * b) ↔

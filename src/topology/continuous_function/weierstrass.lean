@@ -66,19 +66,18 @@ begin
     -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
     have p := polynomial_functions_closure_eq_top',
     -- and pullback both sides, obtaining an equation between subalgebras of `C([a,b], ℝ)`.
-    apply_fun (λ s, s.comap' W) at p,
+    apply_fun (λ s, s.comap W) at p,
     simp only [algebra.comap_top] at p,
     -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
-    rw subalgebra.topological_closure_comap'_homeomorph _ W W' w at p,
+    rw subalgebra.topological_closure_comap_homeomorph _ W W' w at p,
     -- and precomposing with an affine map takes polynomial functions to polynomial functions.
-    rw polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo_I at p,
+    rw polynomial_functions.comap_comp_right_alg_hom_Icc_homeo_I at p,
     -- 🎉
     exact p },
   { -- Otherwise, `b ≤ a`, and the interval is a subsingleton,
     -- so all subalgebras are the same anyway.
     haveI : subsingleton (set.Icc a b) := ⟨λ x y, le_antisymm
       ((x.2.2.trans (not_lt.mp h)).trans y.2.1) ((y.2.2.trans (not_lt.mp h)).trans x.2.1)⟩,
-    haveI := (continuous_map.subsingleton_subalgebra (set.Icc a b) ℝ),
     apply subsingleton.elim, }
 end
 

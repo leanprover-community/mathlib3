@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
+import data.nat.bits
 import data.nat.log
 import data.nat.parity
 import data.list.indexes
@@ -188,7 +189,7 @@ end
   ((of_digits b L : ℕ) : α) = of_digits (b : α) L :=
 begin
   induction L with d L ih,
-  { refl, },
+  { simp [of_digits], },
   { dsimp [of_digits], push_cast, rw ih, }
 end
 
@@ -197,7 +198,7 @@ end
 begin
   induction L with d L ih,
   { refl, },
-  { dsimp [of_digits], push_cast, rw ih, }
+  { dsimp [of_digits], push_cast }
 end
 
 lemma digits_zero_of_eq_zero {b : ℕ} (h : 1 ≤ b) {L : list ℕ} (w : of_digits b L = 0) :
@@ -209,7 +210,7 @@ begin
   { intros l m,
     dsimp [of_digits] at w,
     rcases m with ⟨rfl⟩,
-    { convert nat.eq_zero_of_add_eq_zero_right w, simp, },
+    { apply nat.eq_zero_of_add_eq_zero_right w },
     { exact ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
 end
 
@@ -224,18 +225,17 @@ begin
     replace w₂ := w₂ (by simp),
     rw digits_add b h,
     { rw ih,
-      { simp, },
       { intros l m, apply w₁, exact list.mem_cons_of_mem _ m, },
       { intro h,
         { rw [list.last_cons h] at w₂,
             convert w₂, }}},
-    { convert w₁ d (list.mem_cons_self _ _), simp, },
+    { exact w₁ d (list.mem_cons_self _ _) },
     { by_cases h' : L = [],
       { rcases h' with rfl,
         simp at w₂,
         left,
         apply nat.pos_of_ne_zero,
-        convert w₂, simp, },
+        exact w₂ },
       { right,
         apply nat.pos_of_ne_zero,
         contrapose! w₂,
@@ -264,7 +264,7 @@ begin
       { simp only [nat.succ_eq_add_one, digits_add_two_add_one],
         dsimp [of_digits],
         rw h _ (nat.div_lt_self' n b),
-        rw [nat.cast_id, nat.mod_add_div], }, }, },
+        rw [nat.mod_add_div], }, }, },
 end
 
 lemma of_digits_one (L : list ℕ) : of_digits 1 L = L.sum :=
@@ -472,6 +472,22 @@ begin
   exact base_pow_length_digits_le' b m,
 end
 
+/-! ### Binary -/
+lemma digits_two_eq_bits (n : ℕ) : digits 2 n = n.bits.map (λ b, cond b 1 0) :=
+begin
+  induction n using nat.binary_rec_from_one with b n h ih,
+  { simp, },
+  { simp, },
+  rw bits_append_bit _ _ (λ hn, absurd hn h),
+  cases b,
+  { rw digits_def' (le_refl 2),
+     { simpa [nat.bit, nat.bit0_val n], },
+     { simpa [pos_iff_ne_zero, bit_eq_zero_iff], }, },
+  { simpa [nat.bit, nat.bit1_val n, add_comm, digits_add 2 le_rfl 1 n (by norm_num)
+    (by norm_num)] },
+end
+
+
 /-! ### Modular Arithmetic -/
 
 -- This is really a theorem about polynomials.
@@ -551,7 +567,6 @@ lemma of_digits_neg_one : Π (L : list ℕ),
 | (a :: b :: t) :=
   begin
     simp only [of_digits, list.alternating_sum, list.map_cons, of_digits_neg_one t],
-    push_cast,
     ring,
   end
 

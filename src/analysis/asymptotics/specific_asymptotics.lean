@@ -22,7 +22,7 @@ section normed_field
 `x → a`, `x ≠ a`. -/
 lemma filter.is_bounded_under.is_o_sub_self_inv {𝕜 E : Type*} [normed_field 𝕜] [has_norm E]
   {a : 𝕜} {f : 𝕜 → E} (h : is_bounded_under (≤) (𝓝[≠] a) (norm ∘ f)) :
-  is_o f (λ x, (x - a)⁻¹) (𝓝[≠] a) :=
+  f =o[𝓝[≠] a] (λ x, (x - a)⁻¹) :=
 begin
   refine (h.is_O_const (@one_ne_zero ℝ _ _)).trans_is_o (is_o_const_left.2 $ or.inr _),
   simp only [(∘), norm_inv],
@@ -46,7 +46,7 @@ lemma pow_div_pow_eventually_eq_at_bot {p q : ℕ} :
   (λ x : 𝕜, x^p / x^q) =ᶠ[at_bot] (λ x, x^((p : ℤ) -q)) :=
 begin
   apply ((eventually_lt_at_bot (0 : 𝕜)).mono (λ x hx, _)),
-  simp [zpow_sub₀ hx.ne'.symm],
+  simp [zpow_sub₀ hx.ne],
 end
 
 lemma tendsto_zpow_at_top_at_top {n : ℤ}
@@ -54,7 +54,7 @@ lemma tendsto_zpow_at_top_at_top {n : ℤ}
 begin
   lift n to ℕ using hn.le,
   simp only [zpow_coe_nat],
-  exact tendsto_pow_at_top (nat.succ_le_iff.mpr $int.coe_nat_pos.mp hn)
+  exact tendsto_pow_at_top (nat.cast_pos.mp hn).ne'
 end
 
 lemma tendsto_pow_div_pow_at_top_at_top {p q : ℕ}
@@ -81,14 +81,14 @@ variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜]
 
 lemma asymptotics.is_o_pow_pow_at_top_of_lt
   [order_topology 𝕜] {p q : ℕ} (hpq : p < q) :
-  is_o (λ x : 𝕜, x^p) (λ x, x^q) at_top :=
+  (λ x : 𝕜, x^p) =o[at_top] (λ x, x^q) :=
 begin
   refine (is_o_iff_tendsto' _).mpr (tendsto_pow_div_pow_at_top_zero hpq),
   exact (eventually_gt_at_top 0).mono (λ x hx hxq, (pow_ne_zero q hx.ne' hxq).elim),
 end
 
 lemma asymptotics.is_O.trans_tendsto_norm_at_top {α : Type*} {u v : α → 𝕜} {l : filter α}
-  (huv : is_O u v l) (hu : tendsto (λ x, ∥u x∥) l at_top) : tendsto (λ x, ∥v x∥) l at_top :=
+  (huv : u =O[l] v) (hu : tendsto (λ x, ∥u x∥) l at_top) : tendsto (λ x, ∥v x∥) l at_top :=
 begin
   rcases huv.exists_pos with ⟨c, hc, hcuv⟩,
   rw is_O_with at hcuv,
@@ -104,10 +104,10 @@ section real
 open_locale big_operators
 open finset
 
-lemma asymptotics.is_o.sum_range {α : Type*} [normed_group α]
-  {f : ℕ → α} {g : ℕ → ℝ} (h : is_o f g at_top)
+lemma asymptotics.is_o.sum_range {α : Type*} [normed_add_comm_group α]
+  {f : ℕ → α} {g : ℕ → ℝ} (h : f =o[at_top] g)
   (hg : 0 ≤ g) (h'g : tendsto (λ n, ∑ i in range n, g i) at_top at_top) :
-  is_o (λ n, ∑ i in range n, f i) (λ n, ∑ i in range n, g i) at_top :=
+  (λ n, ∑ i in range n, f i) =o[at_top] (λ n, ∑ i in range n, g i) :=
 begin
   have A : ∀ i, ∥g i∥ = g i := λ i, real.norm_of_nonneg (hg i),
   have B : ∀ n, ∥∑ i in range n, g i∥ = ∑ i in range n, g i,
@@ -115,7 +115,7 @@ begin
   apply is_o_iff.2 (λ ε εpos, _),
   obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (b : ℕ), N ≤ b → ∥f b∥ ≤ ε / 2 * g b,
     by simpa only [A, eventually_at_top] using is_o_iff.mp h (half_pos εpos),
-  have : is_o (λ (n : ℕ), ∑ i in range N, f i) (λ (n : ℕ), ∑ i in range n, g i) at_top,
+  have : (λ (n : ℕ), ∑ i in range N, f i) =o[at_top] (λ (n : ℕ), ∑ i in range n, g i),
   { apply is_o_const_left.2,
     exact or.inr (h'g.congr (λ n, (B n).symm)) },
   filter_upwards [is_o_iff.1 this (half_pos εpos), Ici_mem_at_top N] with n hn Nn,
@@ -143,9 +143,9 @@ begin
   ... = ε * ∥(∑ i in range n, g i)∥ : by { simp [B], ring }
 end
 
-lemma asymptotics.is_o_sum_range_of_tendsto_zero {α : Type*} [normed_group α]
+lemma asymptotics.is_o_sum_range_of_tendsto_zero {α : Type*} [normed_add_comm_group α]
   {f : ℕ → α} (h : tendsto f at_top (𝓝 0)) :
-  is_o (λ n, ∑ i in range n, f i) (λ n, (n : ℝ)) at_top :=
+  (λ n, ∑ i in range n, f i) =o[at_top] (λ n, (n : ℝ)) :=
 begin
   have := ((is_o_one_iff ℝ).2 h).sum_range (λ i, zero_le_one),
   simp only [sum_const, card_range, nat.smul_one_eq_coe] at this,
@@ -153,7 +153,7 @@ begin
 end
 
 /-- The Cesaro average of a converging sequence converges to the same limit. -/
-lemma filter.tendsto.cesaro_smul {E : Type*} [normed_group E] [normed_space ℝ E]
+lemma filter.tendsto.cesaro_smul {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   {u : ℕ → E} {l : E} (h : tendsto u at_top (𝓝 l)) :
   tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) • (∑ i in range n, u i)) at_top (𝓝 l) :=
 begin
@@ -170,8 +170,7 @@ begin
 end
 
 /-- The Cesaro average of a converging sequence converges to the same limit. -/
-lemma filter.tendsto.cesaro
-  {u : ℕ → ℝ} {l : ℝ} (h : tendsto u at_top (𝓝 l)) :
+lemma filter.tendsto.cesaro {u : ℕ → ℝ} {l : ℝ} (h : tendsto u at_top (𝓝 l)) :
   tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, u i)) at_top (𝓝 l) :=
 h.cesaro_smul
 

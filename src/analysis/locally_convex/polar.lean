@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll, Kalle Kytölä
 -/
 
-import analysis.normed.normed_field
+import analysis.normed.field.basic
 import analysis.convex.basic
 import linear_algebra.sesquilinear_form
 import topology.algebra.module.weak_dual
@@ -111,9 +111,9 @@ end
 
 end normed_ring
 
-section nondiscrete_normed_field
+section nontrivially_normed_field
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_monoid E] [add_comm_monoid F]
+variables [nontrivially_normed_field 𝕜] [add_comm_monoid E] [add_comm_monoid F]
 variables [module 𝕜 E] [module 𝕜 F]
 variables (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 
@@ -131,6 +131,6 @@ begin
   ... = ε : mul_one _
 end
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 
 end linear_map

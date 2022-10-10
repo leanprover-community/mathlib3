@@ -352,10 +352,10 @@ begin
     have : k ≠ 0,
     { simpa only [inv_inv] using inv_ne_zero (ne_zero_of_mem_of_unit hk), },
     lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr this,
-    rw ←units.coe_inv' k at hk,
+    rw ←units.coe_inv k at hk,
     exact inv_mem_iff.mp hk },
   { lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr (ne_zero_of_mem_of_unit hk),
-    simpa only [units.coe_inv'] using inv_mem_iff.mp hk, }
+    simpa only [units.coe_inv] using inv_mem_iff.mp hk, }
 end
 
 open polynomial
@@ -437,32 +437,33 @@ namespace alg_hom
 
 section comm_semiring
 
-variables {R : Type*} {A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
+variables {F R A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
+variables [alg_hom_class F R A B]
 local notation `σ` := spectrum R
 local notation `↑ₐ` := algebra_map R A
 
-lemma mem_resolvent_set_apply (φ : A →ₐ[R] B) {a : A} {r : R} (h : r ∈ resolvent_set R a) :
-  r ∈ resolvent_set R (φ a) :=
-by simpa only [map_sub, commutes] using h.map φ
+lemma mem_resolvent_set_apply (φ : F) {a : A} {r : R} (h : r ∈ resolvent_set R a) :
+  r ∈ resolvent_set R ((φ : A → B) a) :=
+by simpa only [map_sub, alg_hom_class.commutes] using h.map φ
 
-lemma spectrum_apply_subset (φ : A →ₐ[R] B) (a : A) : σ (φ a) ⊆ σ a :=
+lemma spectrum_apply_subset (φ : F) (a : A) : σ ((φ : A → B) a) ⊆ σ a :=
 λ _, mt (mem_resolvent_set_apply φ)
 
 end comm_semiring
 
 section comm_ring
 
-variables {R : Type*} {A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
+variables {F R A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
+variables [alg_hom_class F R A R]
 local notation `σ` := spectrum R
 local notation `↑ₐ` := algebra_map R A
 
-lemma apply_mem_spectrum [nontrivial R] (φ : A →ₐ[R] R) (a : A) : φ a ∈ σ a :=
+lemma apply_mem_spectrum [nontrivial R] (φ : F) (a : A) : φ a ∈ σ a :=
 begin
-  have h : ↑ₐ(φ a) - a ∈ φ.to_ring_hom.ker,
-  { simp only [ring_hom.mem_ker, coe_to_ring_hom, commutes, algebra.id.map_eq_id,
-               to_ring_hom_eq_coe, ring_hom.id_apply, sub_self, map_sub] },
-  simp only [spectrum.mem_iff, ←mem_nonunits_iff,
-             coe_subset_nonunits (φ.to_ring_hom.ker_ne_top) h],
+  have h : ↑ₐ(φ a) - a ∈ (φ : A →+* R).ker,
+  { simp only [ring_hom.mem_ker, map_sub, ring_hom.coe_coe, alg_hom_class.commutes,
+      algebra.id.map_eq_id, ring_hom.id_apply, sub_self], },
+  simp only [spectrum.mem_iff, ←mem_nonunits_iff, coe_subset_nonunits ((φ : A →+* R).ker_ne_top) h],
 end
 
 end comm_ring

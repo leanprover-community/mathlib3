@@ -448,6 +448,26 @@ def prod_comm : M × N ≃* N × M :=
 @[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 
+variables {M' N' : Type*} [mul_one_class M'] [mul_one_class N']
+
+/--Product of multiplicative isomorphisms; the maps come from `equiv.prod_congr`.-/
+@[to_additive prod_congr "Product of additive isomorphisms; the maps come from `equiv.prod_congr`."]
+def prod_congr (f : M ≃* M') (g : N ≃* N') : M × N ≃* M' × N' :=
+{ map_mul' := λ x y, prod.ext (f.map_mul _ _) (g.map_mul _ _),
+  ..f.to_equiv.prod_congr g.to_equiv }
+
+/--Multiplying by the trivial monoid doesn't change the structure.-/
+@[to_additive unique_prod "Multiplying by the trivial monoid doesn't change the structure."]
+def unique_prod [unique N] : N × M ≃* M :=
+{ map_mul' := λ x y, rfl,
+  ..equiv.unique_prod M N }
+
+/--Multiplying by the trivial monoid doesn't change the structure.-/
+@[to_additive prod_unique "Multiplying by the trivial monoid doesn't change the structure."]
+def prod_unique [unique N] : M × N ≃* M :=
+{ map_mul' := λ x y, rfl,
+  ..equiv.prod_unique M N }
+
 end
 
 section
@@ -475,7 +495,7 @@ open mul_opposite
 /-- Canonical homomorphism of monoids from `αˣ` into `α × αᵐᵒᵖ`.
 Used mainly to define the natural topology of `αˣ`. -/
 @[to_additive "Canonical homomorphism of additive monoids from `add_units α` into `α × αᵃᵒᵖ`.
-Used mainly to define the natural topology of `add_units α`."]
+Used mainly to define the natural topology of `add_units α`.", simps]
 def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [inv_one, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
@@ -513,7 +533,7 @@ def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : α × α →*₀ α :=
 
 /-- Division as a monoid homomorphism. -/
 @[to_additive "Subtraction as an additive monoid homomorphism.", simps]
-def div_monoid_hom [comm_group α] : α × α →* α :=
+def div_monoid_hom [division_comm_monoid α] : α × α →* α :=
 { to_fun := λ a, a.1 / a.2,
   map_one' := div_one _,
   map_mul' := λ a b, mul_div_mul_comm _ _ _ _ }

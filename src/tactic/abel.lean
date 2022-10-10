@@ -181,7 +181,7 @@ by simp [h₂.symm, h₁.symm, termg]; ac_refl
 
 meta def eval_neg (c : context) : normal_expr → tactic (normal_expr × expr)
 | (zero e) := do
-  p ← c.mk_app ``neg_zero ``subtraction_monoid [],
+  p ← c.mk_app ``neg_zero ``neg_zero_class [],
   return (zero' c, p)
 | (nterm e n x a) := do
   (n', h₁) ← mk_app ``has_neg.neg [n.1] >>= norm_num.eval_field,
@@ -309,9 +309,9 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
   guardb c.is_group,
   (e', p) ← eval $ c.iapp ``smul [e₁, e₂],
   return (e', c.app ``unfold_zsmul c.inst [e₁, e₂, e', p])
-| e@`(@has_scalar.smul nat _ add_monoid.has_scalar_nat %%e₁ %%e₂) :=
+| e@`(@has_smul.smul nat _ add_monoid.has_smul_nat %%e₁ %%e₂) :=
   eval_smul' c eval ff e e₁ e₂
-| e@`(@has_scalar.smul int _ sub_neg_monoid.has_scalar_int %%e₁ %%e₂) :=
+| e@`(@has_smul.smul int _ sub_neg_monoid.has_smul_int %%e₁ %%e₂) :=
   eval_smul' c eval tt e e₁ e₂
 | e@`(smul %%e₁ %%e₂) := eval_smul' c eval ff e e₁ e₂
 | e@`(smulg %%e₁ %%e₂) := eval_smul' c eval tt e e₁ e₂

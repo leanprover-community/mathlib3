@@ -147,7 +147,7 @@ noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
 lemma max_map (e₁ e₂ : enorm 𝕜 V) (x : V) : (e₁ ⊔ e₂) x = max (e₁ x) (e₂ x) := rfl
 
 /-- Structure of an `emetric_space` defined by an extended norm. -/
-def emetric_space : emetric_space V :=
+@[reducible] def emetric_space : emetric_space V :=
 { edist := λ x y, e (x - y),
   edist_self := λ x, by simp,
   eq_of_edist_eq_zero := λ x y, by simp [sub_eq_zero],
@@ -165,12 +165,12 @@ def finite_subspace : subspace 𝕜 V :=
     calc e (c • x) = ∥c∥₊ * e x : e.map_smul c x
                ... < ⊤              : ennreal.mul_lt_top ennreal.coe_ne_top hx.ne }
 
-/-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space_of_dist`
+/-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space`
 to ensure that this definition agrees with `e.emetric_space`. -/
 instance : metric_space e.finite_subspace :=
 begin
   letI := e.emetric_space,
-  refine emetric_space.to_metric_space_of_dist _ (λ x y, _) (λ x y, rfl),
+  refine emetric_space.to_metric_space (λ x y, _),
   change e (x - y) ≠ ⊤,
   exact ne_top_of_le_ne_top (ennreal.add_lt_top.2 ⟨x.2, y.2⟩).ne (e.map_sub_le x y)
 end
@@ -180,9 +180,10 @@ lemma finite_dist_eq (x y : e.finite_subspace) : dist x y = (e (x - y)).to_real 
 lemma finite_edist_eq (x y : e.finite_subspace) : edist x y = e (x - y) := rfl
 
 /-- Normed group instance on `e.finite_subspace`. -/
-instance : normed_group e.finite_subspace :=
+instance : normed_add_comm_group e.finite_subspace :=
 { norm := λ x, (e x).to_real,
-  dist_eq := λ x y, rfl }
+  dist_eq := λ x y, rfl,
+  .. finite_subspace.metric_space e, .. submodule.add_comm_group _ }
 
 lemma finite_norm_eq (x : e.finite_subspace) : ∥x∥ = (e x).to_real := rfl
 

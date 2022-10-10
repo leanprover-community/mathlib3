@@ -63,7 +63,21 @@ instance top_monoid_units [topological_semiring R] [induced_units R] :
 end⟩
 end topological_ring
 
-variables (K : Type*) [division_ring K] [topological_space K]
+variables {K : Type*} [division_ring K] [topological_space K]
+
+/-- Left-multiplication by a nonzero element of a topological division ring is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_left₀ [has_continuous_mul K] {a : K} (ha : a ≠ 0) :
+  filter.tendsto (λ x : K, a * x) (filter.cocompact K) (filter.cocompact K) :=
+filter.tendsto_cocompact_mul_left (inv_mul_cancel ha)
+
+/-- Right-multiplication by a nonzero element of a topological division ring is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_right₀ [has_continuous_mul K] {a : K} (ha : a ≠ 0) :
+  filter.tendsto (λ x : K, x * a) (filter.cocompact K) (filter.cocompact K) :=
+filter.tendsto_cocompact_mul_right (mul_inv_cancel ha)
+
+variables (K)
 
 /-- A topological division ring is a division ring with a topology where all operations are
     continuous, including inversion. -/
@@ -90,15 +104,14 @@ variables [topological_division_ring K]
 
 lemma units_top_group : topological_group Kˣ :=
 { continuous_inv := begin
-     have : (coe : Kˣ → K) ∘ (λ x, x⁻¹ : Kˣ → Kˣ) =
-            (λ x, x⁻¹ : K → K) ∘ (coe : Kˣ → K), from funext units.coe_inv',
-     rw continuous_iff_continuous_at,
-     intros x,
-     rw [continuous_at, nhds_induced, nhds_induced, tendsto_iff_comap, comap_comm this],
-     apply comap_mono,
-     rw [← tendsto_iff_comap, units.coe_inv'],
-     exact continuous_at_inv₀ x.ne_zero
-   end ,
+    rw continuous_iff_continuous_at,
+    intros x,
+    rw [continuous_at, nhds_induced, nhds_induced, tendsto_iff_comap,
+      ←function.semiconj.filter_comap units.coe_inv _],
+    apply comap_mono,
+    rw [← tendsto_iff_comap, units.coe_inv],
+    exact continuous_at_inv₀ x.ne_zero
+  end,
   ..topological_ring.top_monoid_units K}
 
 local attribute [instance] units_top_group

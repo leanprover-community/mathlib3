@@ -50,6 +50,8 @@ abbreviation orientation := module.ray R (alternating_map R M R ι)
 class module.oriented :=
 (positive_orientation : orientation R M ι)
 
+export module.oriented (positive_orientation)
+
 variables {R M}
 
 /-- An equivalence between modules implies an equivalence between orientations. -/
@@ -67,6 +69,12 @@ by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 
 @[simp] lemma orientation.map_symm (e : M ≃ₗ[R] N) :
   (orientation.map ι e).symm = orientation.map ι e.symm := rfl
+
+/-- A module is canonically oriented with respect to an empty index type. -/
+instance is_empty.oriented [nontrivial R] [is_empty ι] :
+  module.oriented R M ι :=
+{ positive_orientation := ray_of_ne_zero R (alternating_map.const_linear_equiv_of_is_empty 1) $
+    alternating_map.const_linear_equiv_of_is_empty.injective.ne (by simp) }
 
 end ordered_comm_semiring
 
@@ -111,6 +119,13 @@ begin
       e.det.eq_smul_basis_det (e.units_smul w), det_units_smul_self, units.smul_def, smul_smul],
   norm_cast,
   simp
+end
+
+@[simp] lemma orientation_is_empty [nontrivial R] [is_empty ι] (b : basis ι R M) :
+  b.orientation = positive_orientation :=
+begin
+  congrm ray_of_ne_zero _ _ _,
+  convert b.det_is_empty,
 end
 
 end basis
@@ -239,7 +254,10 @@ variables {ι : Type*} [decidable_eq ι]
 
 namespace orientation
 
-variables [fintype ι] [finite_dimensional R M]
+variables [fintype ι]
+
+section
+variables [finite_dimensional R M]
 
 open finite_dimensional
 
@@ -296,6 +314,18 @@ def some_basis [nonempty ι] (x : orientation R M ι) (h : fintype.card ι = fin
 @[simp] lemma some_basis_orientation [nonempty ι] (x : orientation R M ι)
   (h : fintype.card ι = finrank R M) : (x.some_basis h).orientation = x :=
 basis.orientation_adjust_to_orientation _ _
+
+end
+
+/-- A zero-dimensional (i.e., `subsingleton`) vector space over a linearly ordered field has
+precisely two orientations with respect to an empty index type. -/
+lemma eq_or_eq_neg_of_subsingleton [subsingleton M] [is_empty ι] (o : orientation R M ι) :
+  o = positive_orientation ∨ o = - positive_orientation :=
+begin
+  apply o.eq_or_eq_neg positive_orientation,
+  convert @fintype.card_of_is_empty ι _,
+  simp [finite_dimensional.finrank_zero_of_subsingleton],
+end
 
 end orientation
 

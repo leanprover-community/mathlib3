@@ -25,10 +25,10 @@ This file provides definitions and proves lemmas about orientations of real inne
 ## Main theorems
 
 * `orientation.volume_form_apply_le` states that the result of applying the volume form to a set of
-  `N` vectors, where `N` is the dimension the inner product space, is bounded by the product of the
+  `n` vectors, where `n` is the dimension the inner product space, is bounded by the product of the
   lengths of the vectors.
 * `orientation.abs_volume_form_apply_of_pairwise_orthogonal` states that the result of applying the
-  volume form to a set of `N` orthogonal vectors, where `N` is the dimension the inner product
+  volume form to a set of `n` orthogonal vectors, where `n` is the dimension the inner product
   space, is equal up to sign to the product of the lengths of the vectors.
 
 -/
@@ -149,41 +149,75 @@ begin
 end
 
 section volume_form
-variables [fact (finrank ℝ E = n + 1)] (o : orientation ℝ E (fin n.succ))
+variables [finite_dimensional ℝ E] [_i : fact (finrank ℝ E = n)] (o : orientation ℝ E (fin n))
 
-local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
+include _i o
 
 /-- The volume form on an oriented real inner product space, a nonvanishing top-dimensional
 alternating form uniquely defined by compatibility with the orientation and inner product structure.
 -/
-def volume_form : alternating_map ℝ E ℝ (fin n.succ) :=
-(o.fin_orthonormal_basis n.succ_pos (fact.out (finrank ℝ E = n + 1))).to_basis.det
+def volume_form : alternating_map ℝ E ℝ (fin n) :=
+begin
+  classical,
+  unfreezingI { cases n },
+  { haveI : subsingleton E := finite_dimensional.finrank_zero_iff.mp _i.out,
+    let opos : alternating_map ℝ E ℝ (fin 0) := alternating_map.const_of_is_empty ℝ E (1:ℝ),
+    let oneg : alternating_map ℝ E ℝ (fin 0) := alternating_map.const_of_is_empty ℝ E (-1:ℝ),
+    exact o.eq_or_eq_neg_of_subsingleton.by_cases (λ _, opos) (λ _, oneg) },
+  { exact (o.fin_orthonormal_basis n.succ_pos _i.out).to_basis.det }
+end
+
+omit _i o
+
+@[simp] lemma volume_form_zero_pos [_i : fact (finrank ℝ E = 0)] :
+  orientation.volume_form (positive_orientation : orientation ℝ E (fin 0))
+  = alternating_map.const_linear_equiv_of_is_empty 1 :=
+by simp [volume_form, or.by_cases, dif_pos]
+
+@[simp] lemma volume_form_zero_neg [_i : fact (finrank ℝ E = 0)] :
+  orientation.volume_form (-positive_orientation : orientation ℝ E (fin 0))
+  = alternating_map.const_linear_equiv_of_is_empty (-1) :=
+begin
+  dsimp [volume_form, or.by_cases],
+  apply if_neg,
+  have : fintype.card (fin 0) = finrank ℝ E := by simp [_i.out],
+  rw [← ne.def, (-positive_orientation).ne_iff_eq_neg positive_orientation this],
+end
+
+include _i o
 
 /-- The volume form on an oriented real inner product space can be evaluated as the determinant with
 respect to any orthonormal basis of the space compatible with the orientation. -/
-lemma volume_form_robust (b : orthonormal_basis (fin n.succ) ℝ E)
-  (hb : b.to_basis.orientation = o) :
+lemma volume_form_robust (b : orthonormal_basis (fin n) ℝ E) (hb : b.to_basis.orientation = o) :
   o.volume_form = b.to_basis.det :=
 begin
-  dsimp [volume_form] at *,
-  rw [same_orientation_iff_det_eq_det, hb],
-  exact o.fin_orthonormal_basis_orientation _ _,
+  unfreezingI { cases n },
+  { have : o = positive_orientation := hb.symm.trans b.to_basis.orientation_is_empty,
+    simp [volume_form, or.by_cases, dif_pos this] },
+  { dsimp [volume_form],
+    rw [same_orientation_iff_det_eq_det, hb],
+    exact o.fin_orthonormal_basis_orientation _ _ },
 end
 
 attribute [irreducible] orientation.volume_form
 
-lemma volume_form_robust' (b : orthonormal_basis (fin n.succ) ℝ E) (v : fin n.succ → E) :
+lemma volume_form_robust' (b : orthonormal_basis (fin n) ℝ E) (v : fin n → E) :
   |o.volume_form v| = |b.to_basis.det v| :=
-by rw [o.volume_form_robust (b.adjust_to_orientation o) (b.orientation_adjust_to_orientation o),
-  b.abs_det_adjust_to_orientation]
+begin
+  unfreezingI { cases n },
+  { haveI : subsingleton E := finite_dimensional.finrank_zero_iff.mp _i.out,
+    refine o.eq_or_eq_neg_of_subsingleton.by_cases _ _; rintros rfl; simp },
+  { rw [o.volume_form_robust (b.adjust_to_orientation o) (b.orientation_adjust_to_orientation o),
+      b.abs_det_adjust_to_orientation] },
+end
 
-/-- Let `v` be an indexed family of `n + 1` vectors in an oriented `(n + 1)`-dimensional real inner
+/-- Let `v` be an indexed family of `n` vectors in an oriented `n`-dimensional real inner
 product space `E`. The output of the volume form of `E` when evaluated on `v` is bounded in absolute
 value by the product of the norms of the vectors `v i`. -/
-lemma abs_volume_form_apply_le (v : fin n.succ → E) : |o.volume_form v| ≤ ∏ i : fin n.succ, ∥v i∥ :=
+lemma abs_volume_form_apply_le (v : fin n → E) : |o.volume_form v| ≤ ∏ i : fin n, ∥v i∥ :=
 begin
-  have : finrank ℝ E = fintype.card (fin n.succ) := by simpa using fact.out _,
-  let b : orthonormal_basis (fin n.succ) ℝ E := gram_schmidt_orthonormal_basis this v,
+  have : finrank ℝ E = fintype.card (fin n) := by simpa using _i.out,
+  let b : orthonormal_basis (fin n) ℝ E := gram_schmidt_orthonormal_basis this v,
   have hb : b.to_basis.det v = ∏ i, ⟪b i, v i⟫ := gram_schmidt_orthonormal_basis_det this v,
   rw [o.volume_form_robust' b, hb, finset.abs_prod],
   apply finset.prod_le_prod,
@@ -194,19 +228,18 @@ begin
   simp [b.orthonormal.1 i],
 end
 
-lemma volume_form_apply_le (v : fin n.succ → E) :
-  o.volume_form v ≤ ∏ i : fin n.succ, ∥v i∥ :=
+lemma volume_form_apply_le (v : fin n → E) : o.volume_form v ≤ ∏ i : fin n, ∥v i∥ :=
 (le_abs_self _).trans (o.abs_volume_form_apply_le v)
 
-/-- Let `v` be an indexed family of `n + 1` orthogonal vectors in an oriented `(n + 1)`-dimensional
+/-- Let `v` be an indexed family of `n` orthogonal vectors in an oriented `n`-dimensional
 real inner product space `E`. The output of the volume form of `E` when evaluated on `v` is, up to
 sign, the product of the norms of the vectors `v i`. -/
 lemma abs_volume_form_apply_of_pairwise_orthogonal
-  {v : fin n.succ → E} (hv : pairwise (λ i j, ⟪v i, v j⟫ = 0)) :
-  |o.volume_form v| = ∏ i : fin n.succ, ∥v i∥ :=
+  {v : fin n → E} (hv : pairwise (λ i j, ⟪v i, v j⟫ = 0)) :
+  |o.volume_form v| = ∏ i : fin n, ∥v i∥ :=
 begin
-  have hdim : finrank ℝ E = fintype.card (fin n.succ) := by simpa using fact.out _,
-  let b : orthonormal_basis (fin n.succ) ℝ E := gram_schmidt_orthonormal_basis hdim v,
+  have hdim : finrank ℝ E = fintype.card (fin n) := by simpa using _i.out,
+  let b : orthonormal_basis (fin n) ℝ E := gram_schmidt_orthonormal_basis hdim v,
   have hb : b.to_basis.det v = ∏ i, ⟪b i, v i⟫ := gram_schmidt_orthonormal_basis_det hdim v,
   rw [o.volume_form_robust' b, hb, finset.abs_prod],
   by_cases h : ∃ i, v i = 0,
@@ -226,7 +259,7 @@ end
 
 /-- The output of the volume form of an oriented real inner product space `E` when evaluated on an
 orthonormal basis is ±1. -/
-lemma abs_volume_form_apply_of_orthonormal (v : orthonormal_basis (fin n.succ) ℝ E) :
+lemma abs_volume_form_apply_of_orthonormal (v : orthonormal_basis (fin n) ℝ E) :
   |o.volume_form v| = 1 :=
 by simpa [o.volume_form_robust' v v] using congr_arg abs v.to_basis.det_self
 

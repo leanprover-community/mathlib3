@@ -17,11 +17,14 @@ import algebra.category.Algebra.basic
 # Category instances for C⋆-algebras.
 
 We introduce the bundled categories:
-* `CStarAlg`
-* `CStarAlg₁`
-* `CommCStarAlg` -- actually we have to hold off on this
-* `CommCStarAlg₁`
+* `CStarAlg`: not necessarily unital C⋆-algebras with `non_unital_star_alg_hom`s
+* `CStarAlg₁`: unital C⋆-algebras with `star_alg_hom`s
+* `CommCStarAlg₁`: commutative unital C⋆-algebras with `star_alg_hom`s
 along with the relevant forgetful functors between them.
+
+## TODO
+
+* add `CommCStarAlg` once we have `non_unital_normed_comm_ring`
 -/
 
 section prerequisites
@@ -88,20 +91,6 @@ structure CStarAlg₁ :=
 [is_normed_algebra : normed_algebra ℂ α]
 [is_star_module : star_module ℂ α]
 [is_complete_space : complete_space α]
-
-/-
-/-- The type of commutative C⋆-algebras with ⋆-algebra morphisms. -/
-structure CommCStarAlg :=
-(α : Type u)
-[is_non_unital_normed_comm_ring : non_unital_normed_comm_ring α]
-[is_star_ring : star_ring α]
-[is_cstar_ring : cstar_ring α]
-[is_normed_space : normed_space ℂ α]
-[is_is_scalar_tower : is_scalar_tower ℂ α α]
-[is_smul_comm_class : smul_comm_class ℂ α α]
-[is_star_module : star_module ℂ α]
-[is_complete_space : complete_space α]
--/
 
 /-- The type of commutative unital C⋆-algebras with unital ⋆-algebra morphisms. -/
 structure CommCStarAlg₁ :=
@@ -195,11 +184,6 @@ noncomputable instance has_forget_to_Algebra : has_forget₂ CStarAlg₁ (Algebr
   { obj := λ A, ⟨A⟩,
     map := λ A B f, f.to_alg_hom } }
 
-/- need more imports for this, and probably we can get stronger statements, like `lipschitz_with 1`
-Any morphism of `CStarAlg₁` is continuous.
-lemma iso_of_bijective {X Y : CStarAlg₁.{u}} (f : X ⟶ Y) : continuous f :=
-map_continuous (f : X →⋆ₐ[ℂ] Y) -/
-
 end CStarAlg₁
 
 namespace CommCStarAlg₁
@@ -231,11 +215,6 @@ instance has_forget_to_CStarAlg₁ : has_forget₂ CommCStarAlg₁ CStarAlg₁ :
 { forget₂ :=
   { obj := λ A, ⟨A⟩,
     map := λ A B f, f } }
-
-/- need more imports for this, and probably we can get stronger statements, like `lipschitz_with 1`
-Any morphism of `CStarAlg₁` is continuous.
-lemma iso_of_bijective {X Y : CStarAlg₁.{u}} (f : X ⟶ Y) : continuous f :=
-map_continuous (f : X →⋆ₐ[ℂ] Y) -/
 
 end CommCStarAlg₁
 

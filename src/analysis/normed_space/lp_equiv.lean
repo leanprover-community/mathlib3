@@ -24,9 +24,9 @@ structure, although the topological, uniform and bornological structures coincid
 These structures are only defined on `pi_Lp` for `fintype α`, so there are no issues of convergence
 to consider.
 
-While `lp` is also a type synonym for `Π i, E i`, it allows for infinite index types. There is a
-predicate `mem_ℓp` which says that the relevant `p`-norm is finite and `lp` is the subtype of those
-elements with finite `lp` norm.
+While `pre_lp` is also a type synonym for `Π i, E i`, it allows for infinite index types. On this
+type there is a predicate `mem_ℓp` which says that the relevant `p`-norm is finite and `lp E p` is
+the subtype of `pre_lp` satisfying `mem_ℓp`.
 
 ## TODO
 

@@ -114,19 +114,31 @@ variables {R A B S : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S]
 variables [algebra R A] [algebra R B] (f : R →+* S)
 
-theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
+theorem is_integral_alg_hom {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
+  (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
 let ⟨p, hp, hpx⟩ :=
 hx in ⟨p, hp, by rw [← aeval_def, aeval_alg_hom_apply, aeval_def, hpx, f.map_zero]⟩
 
+theorem is_integral_alg_hom_iff {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
+  (f : A →ₐ[R] B) (hf : function.injective f) {x : A} : is_integral R (f x) ↔ is_integral R x :=
+begin
+  refine ⟨_, is_integral_alg_hom f⟩,
+  rintros ⟨p, hp, hx⟩,
+  use [p, hp],
+  rwa [← f.comp_algebra_map, ← alg_hom.coe_to_ring_hom, ← polynomial.hom_eval₂,
+    alg_hom.coe_to_ring_hom, map_eq_zero_iff f hf] at hx
+end
+
 @[simp]
-theorem is_integral_alg_equiv (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) ↔ is_integral R x :=
+theorem is_integral_alg_equiv {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
+  (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) ↔ is_integral R x :=
 ⟨λ h, by simpa using is_integral_alg_hom f.symm.to_alg_hom h, is_integral_alg_hom f.to_alg_hom⟩
 
 theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
   (x : B) (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, hp.map _,
-  by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
+  by rw [← aeval_def, aeval_map_algebra_map, aeval_def, hpx]⟩
 
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=
@@ -144,12 +156,7 @@ end
 lemma is_integral_algebra_map_iff [algebra A B] [is_scalar_tower R A B]
   {x : A} (hAB : function.injective (algebra_map A B)) :
   is_integral R (algebra_map A B x) ↔ is_integral R x :=
-begin
-  refine ⟨_, λ h, h.algebra_map⟩,
-  rintros ⟨f, hf, hx⟩,
-  use [f, hf],
-  exact is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B hAB hx,
-end
+is_integral_alg_hom_iff (is_scalar_tower.to_alg_hom R A B) hAB
 
 theorem is_integral_iff_is_integral_closure_finite {r : A} :
   is_integral R r ↔ ∃ s : set R, s.finite ∧ is_integral (subring.closure s) r :=
@@ -157,7 +164,8 @@ begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
     refine ⟨_, finset.finite_to_set _, p.restriction, monic_restriction.2 hmp, _⟩,
-    erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
+    rw [← aeval_def, ← aeval_map_algebra_map R r p.restriction,
+      map_restriction, aeval_def, hpr], },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
 end

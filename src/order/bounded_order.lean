@@ -3,11 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.option.basic
-import logic.nontrivial
 import order.lattice
-import order.max
-import tactic.pi_instances
 
 /-!
 # ⊤ and ⊥, bounded lattices and variants
@@ -599,10 +595,8 @@ by { cases x, simpa using h, refl, }
 @[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot) :
   (x : with_bot α).unbot h = x := rfl
 
-instance : can_lift (with_bot α) α :=
-{ coe := coe,
-  cond := λ r, r ≠ ⊥,
-  prf := λ x h, ⟨x.unbot h, coe_unbot _ _⟩ }
+instance can_lift : can_lift (with_bot α) α coe (λ r, r ≠ ⊥) :=
+{ prf := λ x h, ⟨x.unbot h, coe_unbot _ _⟩ }
 
 section has_le
 variables [has_le α]
@@ -689,6 +683,8 @@ instance [partial_order α] : partial_order (with_bot α) :=
       rw le_antisymm h₁' h₂' }
   end,
   .. with_bot.preorder }
+
+lemma coe_strict_mono [preorder α] : strict_mono (coe : α → with_bot α) := λ a b, some_lt_some.2
 
 lemma map_le_iff [preorder α] [preorder β] (f : α → β) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
   ∀ (a b : with_bot α), a.map f ≤ b.map f ↔ a ≤ b
@@ -963,10 +959,8 @@ with_bot.coe_unbot x h
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl
 
-instance : can_lift (with_top α) α :=
-{ coe := coe,
-  cond := λ r, r ≠ ⊤,
-  prf := λ x h, ⟨x.untop h, coe_untop _ _⟩ }
+instance can_lift : can_lift (with_top α) α coe (λ r, r ≠ ⊤) :=
+{ prf := λ x h, ⟨x.untop h, coe_untop _ _⟩ }
 
 section has_le
 variables [has_le α]
@@ -1158,6 +1152,8 @@ instance [preorder α] : preorder (with_top α) :=
 instance [partial_order α] : partial_order (with_top α) :=
 { le_antisymm := λ _ _, by { simp_rw [←to_dual_le_to_dual_iff], exact function.swap le_antisymm },
   .. with_top.preorder }
+
+lemma coe_strict_mono [preorder α] : strict_mono (coe : α → with_top α) := λ a b, some_lt_some.2
 
 lemma map_le_iff [preorder α] [preorder β] (f : α → β)
   (a b : with_top α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
@@ -1660,6 +1656,9 @@ section is_compl
 (disjoint : disjoint x y)
 (codisjoint : codisjoint x y)
 
+lemma is_compl_iff [lattice α] [bounded_order α] {a b : α} :
+  is_compl a b ↔ disjoint a b ∧ codisjoint a b := ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
 namespace is_compl
 
 section bounded_order
@@ -1778,11 +1777,9 @@ section nontrivial
 
 variables [partial_order α] [bounded_order α] [nontrivial α]
 
-lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
-λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
-
-lemma top_ne_bot : (⊤ : α) ≠ ⊥ := bot_ne_top.symm
-lemma bot_lt_top : (⊥ : α) < ⊤ := lt_top_iff_ne_top.2 bot_ne_top
+@[simp] lemma bot_ne_top : (⊥ : α) ≠ ⊤ := λ h, not_subsingleton _ $ subsingleton_of_bot_eq_top h
+@[simp] lemma top_ne_bot : (⊤ : α) ≠ ⊥ := bot_ne_top.symm
+@[simp] lemma bot_lt_top : (⊥ : α) < ⊤ := lt_top_iff_ne_top.2 bot_ne_top
 
 end nontrivial
 

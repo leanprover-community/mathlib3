@@ -1442,14 +1442,14 @@ begin
   rw [←nnreal.coe_rpow, real.to_nnreal_coe],
 end
 
-lemma eventually_pow_one_div_le (x : ℝ≥0) {ε : ℝ≥0} (hε : 1 < ε) :
-  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ ε :=
+lemma eventually_pow_one_div_le (x : ℝ≥0) {y : ℝ≥0} (hy : 1 < y) :
+  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ y :=
 begin
-  obtain ⟨m, hm⟩ := add_one_pow_unbounded_of_pos x (tsub_pos_of_lt hε),
-  rw [tsub_add_cancel_of_le hε.le] at hm,
+  obtain ⟨m, hm⟩ := add_one_pow_unbounded_of_pos x (tsub_pos_of_lt hy),
+  rw [tsub_add_cancel_of_le hy.le] at hm,
   refine eventually_at_top.2 ⟨m + 1, λ n hn, _⟩,
   simpa only [nnreal.rpow_one_div_le_iff (nat.cast_pos.2 $ m.succ_pos.trans_le hn),
-    nnreal.rpow_nat_cast] using hm.le.trans (pow_le_pow hε.le (m.le_succ.trans hn)),
+    nnreal.rpow_nat_cast] using hm.le.trans (pow_le_pow hy.le (m.le_succ.trans hn)),
 end
 
 end nnreal
@@ -2013,14 +2013,14 @@ begin
   exact_mod_cast hc a (by exact_mod_cast ha),
 end
 
-lemma eventually_pow_one_div_le {x : ℝ≥0∞} (hx : x ≠ ∞) {ε : ℝ≥0∞} (hε : 1 < ε) :
-  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ ε :=
+lemma eventually_pow_one_div_le {x : ℝ≥0∞} (hx : x ≠ ∞) {y : ℝ≥0∞} (hy : 1 < y) :
+  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ y :=
 begin
   lift x to ℝ≥0 using hx,
-  by_cases ε = ∞,
+  by_cases y = ∞,
   { exact eventually_of_forall (λ n, h.symm ▸ le_top) },
-  { lift ε to ℝ≥0 using h,
-    have := nnreal.eventually_pow_one_div_le x (by exact_mod_cast hε : 1 < ε),
+  { lift y to ℝ≥0 using h,
+    have := nnreal.eventually_pow_one_div_le x (by exact_mod_cast hy : 1 < y),
     refine this.congr (eventually_of_forall $ λ n, _),
     rw [coe_rpow_of_nonneg x (by positivity : 0 ≤ (1 / n : ℝ)), coe_le_coe] },
 end

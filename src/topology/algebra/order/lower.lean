@@ -22,8 +22,8 @@ Based on `order_topology` from topology.algebra.order.basic
 * [Gierz et al, A Compendium of Continuous Lattices][GierzEtAl1980]
 -/
 
-universes u
-variables {α β: Type u}
+universes u v
+variables {α : Type u} {β : Type v}
 
 open  set topological_space
 
@@ -45,6 +45,60 @@ begin
   split,
   { intros x h, simp, simp at h, rw and.comm, apply h, },
   { intros x h, simp, simp at h,  rw and.comm, apply h, }
+end
+
+lemma upper_closure_comp_prod_upper_closure_comp [preorder α] [preorder β] (F₁ : set α) (F₂ : set β)
+  : (upper_closure F₁ : set α)ᶜ ×ˢ (upper_closure F₂ : set β)ᶜ =
+  (univ ×ˢ upper_closure F₂ ∪ upper_closure F₁ ×ˢ univ)ᶜ :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { rintros x h,
+    finish, },
+  { rintros x h,
+    finish, }
+end
+
+lemma upper_closure_prod [preorder α] [preorder β] (F₁ : set α) (F₂ : set β) :
+  (upper_closure (F₁ ×ˢ F₂) : set (α × β)) = ((univ : set α) ×ˢ ((upper_closure F₂) : set β))
+  ∩ ((upper_closure F₁ : set α) ×ˢ (univ : set β)) :=
+begin
+  rw subset_antisymm_iff,
+  split,
+  { rintros x h,
+    simp,
+    simp at h,
+    cases h with a,
+    cases h_h with b,
+    cases h_h_h,
+    cases h_h_h_right,
+    simp only at h_h_h_right_left,
+    simp only at h_h_h_right_right,
+    split,
+    { use b,
+      split,
+      exact h_h_h_left.2,
+      exact h_h_h_right_right, },
+    { use a,
+      split,
+      exact h_h_h_left.1,
+      exact h_h_h_right_left, } },
+  { rintros p h,
+    simp,
+    simp at h,
+    cases h,
+    cases h_left with b,
+    cases h_right with a,
+    cases h_left_h,
+    use a,
+    use b,
+    split,
+    { split,
+      exact h_right_h.1,
+      exact h_left_h_left, },
+    { split,
+      { simp only, exact h_right_h.2, },
+      { simp only, exact h_left_h_right, }, }, },
 end
 
 lemma l2a [preorder β] (b : β) : (univ : set α) ×ˢ (Ici b)ᶜ = (univ ×ˢ Ici b)ᶜ :=

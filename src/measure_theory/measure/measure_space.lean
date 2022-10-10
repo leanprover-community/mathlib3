@@ -1120,25 +1120,15 @@ begin
   exact ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
 end
 
-
 section subtype
-/-! ### Subtype of a measure space -/
 
-variables [measure_space α] {p : α → Prop}
-
-instance subtype.measure_space : measure_space (subtype p) :=
-{ volume := measure.comap subtype.val volume,
-  ..subtype.measurable_space }
-
-lemma subtype.volume_def : (volume : measure s) = volume.comap subtype.val := rfl
-
-lemma measurable_set.null_measurable_set_subtype_coe {t : set s}
-  (hs : null_measurable_set s) (ht : measurable_set t) :
-  null_measurable_set ((coe : s → α) '' t) :=
+lemma measurable_set.null_measurable_set_subtype_coe {m : measurable_space α} {μ : measure α}
+  {t : set s} (hs : null_measurable_set s μ) (ht : measurable_set t) :
+  null_measurable_set ((coe : s → α) '' t) μ :=
 begin
   rw [subtype.measurable_space, comap_eq_generate_from] at ht,
   refine generate_from_induction
-    (λ t : set s, null_measurable_set (coe '' t) volume)
+    (λ t : set s, null_measurable_set (coe '' t) μ)
     {t : set s | ∃ (s' : set α), measurable_set s' ∧ coe ⁻¹' s' = t} _ _ _ _ ht,
   { rintros t' ⟨s', hs', rfl⟩,
     rw [subtype.image_preimage_coe],
@@ -1151,6 +1141,16 @@ begin
     rw image_Union,
     exact null_measurable_set.Union, },
 end
+
+/-! ### Subtype of a measure space -/
+
+variables [measure_space α] {p : α → Prop}
+
+instance subtype.measure_space : measure_space (subtype p) :=
+{ volume := measure.comap subtype.val volume,
+  ..subtype.measurable_space }
+
+lemma subtype.volume_def : (volume : measure s) = volume.comap subtype.val := rfl
 
 lemma subtype.volume_univ (hs : null_measurable_set s) :
   volume (univ : set s) = volume s :=

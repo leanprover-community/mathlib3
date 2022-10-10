@@ -11,8 +11,6 @@ import category_theory.elementwise
 import category_theory.concrete_category.reflects_isomorphisms
 import algebra.category.Algebra.basic
 
-.
-
 /-!
 # Category instances for C⋆-algebras.
 

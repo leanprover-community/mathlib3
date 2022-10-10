@@ -447,13 +447,9 @@ norm_le_of_mem_closed_ball'
 lemma norm_lt_of_mem_ball' (h : b ∈ ball a r) : ∥b∥ < ∥a∥ + r :=
 (norm_le_norm_add_norm_div' _ _).trans_lt $ add_lt_add_left (by rwa ←dist_eq_norm_div) _
 
-lemma norm_sub_sub_norm_sub_le_norm_sub (u v w : E) : ∥u - w∥ - ∥v - w∥ ≤ ∥u - v∥ :=
-by simpa only [sub_sub_sub_cancel_right] using norm_sub_norm_le (u - w) (v - w)
-
-/-- The direct path from `0` to `v` is shorter than the path with `u` inserted in between. -/
-lemma norm_le_insert (u v : E) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
-calc ∥v∥ = ∥u - (u - v)∥ : by abel
-  ... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _
+@[to_additive norm_sub_sub_norm_sub_le_norm_sub]
+lemma norm_div_sub_norm_div_le_norm_div (u v w : E) : ∥u / w∥ - ∥v / w∥ ≤ ∥u / v∥ :=
+by simpa only [div_div_div_cancel_right'] using norm_sub_norm_le' (u / w) (v / w)
 
 @[to_additive bounded_iff_forall_norm_le]
 lemma bounded_iff_forall_norm_le' : bounded s ↔ ∃ C, ∀ x ∈ s, ∥x∥ ≤ C :=

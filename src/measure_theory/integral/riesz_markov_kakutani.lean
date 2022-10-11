@@ -64,7 +64,7 @@ section riesz_subadditive
 /-- Any bounded continuous nonnegative f such that `f ≥ 1` on K gives an upper bound on the
 content of K; namely `λ(K) ≤ Λ f`. -/
 lemma riesz_content_aux_le {K : compacts X}
-  {f : X →ᵇ ℝ≥0} (h : ∀ x∈ K, (1 : ℝ≥0) ≤ f x ) :
+  {f : X →ᵇ ℝ≥0} (h : ∀ x ∈ K, (1 : ℝ≥0) ≤ f x) :
   riesz_content_aux Λ K ≤ Λ f := cInf_le (order_bot.bdd_below _) ⟨f, ⟨h, rfl⟩⟩
 
 /-- The Riesz content can be approximated arbitrarily well by evaluating the positive linear

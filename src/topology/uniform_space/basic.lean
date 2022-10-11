@@ -709,7 +709,7 @@ begin
                 ... ⊆ U                          : hI z (htK z hzt),
 end
 
-lemma disjoint.exists_thickenings_uniformity {A B : set α}
+lemma disjoint.exists_uniform_thickening {A B : set α}
   (hA : is_compact A) (hB : is_closed B) (h : disjoint A B) :
   ∃ V ∈ 𝓤 α, disjoint (⋃ x ∈ A, ball x V) (⋃ x ∈ B, ball x V) :=
 begin
@@ -724,12 +724,12 @@ begin
   exact hUAB (mem_Union₂_of_mem ha $ hVU $ mem_comp_of_mem_ball hVsymm hxa hxb) hb
 end
 
-lemma disjoint.exists_thickenings_uniformity_of_basis {p : ι → Prop} {s : ι → set (α × α)}
+lemma disjoint.exists_uniform_thickening_of_basis {p : ι → Prop} {s : ι → set (α × α)}
   (hU : (𝓤 α).has_basis p s) {A B : set α}
   (hA : is_compact A) (hB : is_closed B) (h : disjoint A B) :
   ∃ i, p i ∧ disjoint (⋃ x ∈ A, ball x (s i)) (⋃ x ∈ B, ball x (s i)) :=
 begin
-  rcases h.exists_thickenings_uniformity hA hB with ⟨V, hV, hVAB⟩,
+  rcases h.exists_uniform_thickening hA hB with ⟨V, hV, hVAB⟩,
   rcases hU.mem_iff.1 hV with ⟨i, hi, hiV⟩,
   exact ⟨i, hi, hVAB.mono
     (Union₂_mono $ λ a _, ball_mono hiV a) (Union₂_mono $ λ b _, ball_mono hiV b)⟩,

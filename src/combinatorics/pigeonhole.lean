@@ -6,6 +6,7 @@ Authors: Kyle Miller, Yury Kudryashov
 import data.set.finite
 import data.nat.modeq
 import algebra.big_operators.order
+import algebra.module.basic
 
 /-!
 # Pigeonhole principles

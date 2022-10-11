@@ -380,7 +380,7 @@ open_locale tensor_product
 
 variables {R S : Type u} [comm_ring R] [comm_ring S] [algebra R S]
 
-instance formally_unramified.kaehler_differential_subsingleton [formally_unramified R S] :
+instance formally_unramified.subsingleton_kaehler_differential [formally_unramified R S] :
   subsingleton Ω[S⁄R] :=
 begin
   rw ← not_nontrivial_iff_subsingleton,
@@ -393,7 +393,7 @@ begin
   exact ⟨_, ideal.cotangent_ideal_square _⟩,
 end
 
-lemma formally_unramified.iff_kaehler_differential_subsingleton :
+lemma formally_unramified.iff_subsingleton_kaehler_differential :
   formally_unramified R S ↔ subsingleton Ω[S⁄R] :=
 begin
   split,

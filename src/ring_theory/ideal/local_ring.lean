@@ -365,7 +365,7 @@ lemma map_id :
   local_ring.residue_field.map (ring_hom.id R) = ring_hom.id (local_ring.residue_field R) :=
 ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
 
-/-- The composite of two `map`s is the `map` of the composite. -/
+/-- The composite of two `residue_field.map`s is the `residue_field.map` of the composite. -/
 lemma map_comp (f : T →+* R) (g : R →+* S) [is_local_ring_hom f] [is_local_ring_hom g] :
   local_ring.residue_field.map (g.comp f) =
   (local_ring.residue_field.map g).comp(local_ring.residue_field.map f) :=

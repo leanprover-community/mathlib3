@@ -87,42 +87,19 @@ end localization
 
 namespace functor
 
-variables (h₁ : localization.strict_universal_property_fixed_target L W D)
-  (h₂ : localization.strict_universal_property_fixed_target L W W.localization)
-
-namespace is_localization.mk'
-
-lemma unit_eq :
-  𝟭 W.localization = localization.construction.lift L h₁.inverts ⋙ h₂.lift W.Q W.Q_inverts :=
-begin
-  apply localization.construction.uniq,
-  rw [← functor.assoc, localization.construction.fac, h₂.fac, functor.comp_id],
-end
-
-lemma counit_eq :
-  h₂.lift W.Q W.Q_inverts ⋙ localization.construction.lift L h₁.inverts = 𝟭 D :=
-begin
-  apply h₁.uniq,
-  rw [← functor.assoc, h₂.fac, localization.construction.fac, functor.comp_id],
-end
-
-/-- The equivalence of categories `W.localization ≅ D` obtained when `L : C ⥤ D`
-satisfies the universal property of the localization. -/
-def equivalence : W.localization ≌ D :=
-{ functor := localization.construction.lift L h₁.inverts,
-  inverse := h₂.lift W.Q W.Q_inverts,
-  unit_iso := eq_to_iso (unit_eq L W h₁ h₂),
-  counit_iso := eq_to_iso (counit_eq L W h₁ h₂),
-  functor_unit_iso_comp' := λ X, by simpa only [eq_to_iso.hom, eq_to_hom_app, eq_to_hom_map,
-    eq_to_hom_trans, eq_to_hom_refl], }
-
-end is_localization.mk'
-
-lemma is_localization.mk' :
+lemma is_localization.mk'
+  (h₁ : localization.strict_universal_property_fixed_target L W D)
+  (h₂ : localization.strict_universal_property_fixed_target L W W.localization) :
   is_localization L W :=
 { inverts := h₁.inverts,
-  nonempty_is_equivalence :=
-    nonempty.intro (is_equivalence.of_equivalence (is_localization.mk'.equivalence L W h₁ h₂)), }
+  nonempty_is_equivalence := nonempty.intro
+  { inverse := h₂.lift W.Q W.Q_inverts,
+    unit_iso := eq_to_iso (localization.construction.uniq _ _
+      (by simp only [← functor.assoc, localization.construction.fac, h₂.fac, functor.comp_id])),
+    counit_iso := eq_to_iso (h₁.uniq _ _ (by simp only [← functor.assoc, h₂.fac,
+      localization.construction.fac, functor.comp_id])),
+    functor_unit_iso_comp' := λ X, by simpa only [eq_to_iso.hom, eq_to_hom_app,
+      eq_to_hom_map, eq_to_hom_trans, eq_to_hom_refl], }, }
 
 lemma is_localization.for_id (hW : W ⊆ morphism_property.isomorphisms C):
   (𝟭 C).is_localization W :=

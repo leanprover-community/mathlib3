@@ -108,9 +108,9 @@ lemma pow_eq_one_of_norm_eq_one {x : K}
 begin
   obtain ⟨a, -, b, -, habne, h⟩ := @set.infinite.exists_ne_map_eq_of_maps_to _ _ _ _
     ((^) x : ℕ → K) set.infinite_univ _ (finite_of_norm_le K A (1:ℝ)),
-  { wlog hab : a ≤ b,
-    { exact this hxi hx b a habne.symm h.symm (le_of_not_le hab) },
-    refine ⟨b - a, tsub_pos_of_lt (hab.lt_of_ne habne), _⟩,
+  { wlog hlt : b < a,
+    { exact this hxi hx b a habne.symm h.symm (habne.lt_or_lt.resolve_right hlt) },
+    refine ⟨a - b, tsub_pos_of_lt hlt, _⟩,
     rw [← nat.sub_add_cancel hlt.le, pow_add, mul_left_eq_self₀] at h,
     refine h.resolve_right (λ hp, _),
     specialize hx (is_alg_closed.lift (number_field.is_algebraic K)).to_ring_hom,

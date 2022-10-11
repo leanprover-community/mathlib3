@@ -30,9 +30,9 @@ by `besicovitch.vitali_family` (for balls) or by `vitali.vitali_family` (for dou
 
 Specific applications to Lebesgue density points and the Lebesgue differentiation theorem are also
 derived:
-* `vitali_family.ae_tendsto_measure_inter_div` states that, for almost all point `x ∈ s`,
+* `vitali_family.ae_tendsto_measure_inter_div` states that, for almost every point `x ∈ s`,
   then `μ (s ∩ a) / μ a` tends to `1` as `a` shrinks to `x` along a Vitali family.
-* `vitali_family.ae_tendsto_average_norm_sub` states that, for almost all point `x`, then the
+* `vitali_family.ae_tendsto_average_norm_sub` states that, for almost every point `x`, then the
   average of `y ↦ ∥f y - f x∥` on `a` tends to `0` as `a` shrinks to `x` along a Vitali family.
 
 ## Sketch of proof
@@ -792,6 +792,12 @@ lemma ae_tendsto_lintegral_nnnorm_sub_div'
   {f : α → E} (hf : integrable f μ) (h'f : strongly_measurable f) :
   ∀ᵐ x ∂μ, tendsto (λ a, (∫⁻ y in a, ∥f y - f x∥₊ ∂μ) / μ a) (v.filter_at x) (𝓝 0) :=
 begin
+  /- For every `c`, then `(∫⁻ y in a, ∥f y - c∥₊ ∂μ) / μ a` tends almost everywhere to `∥f x - c∥`.
+  We apply this to a countable set of `c` which is dense in the range of `f`, to deduce the desired
+  convergence.
+  A minor technical inconvenience is that constants are not integrable, so to apply previous lemmas
+  we need to replace `c` with the restriction of `c` to a finite measure set `A n` in the
+  above sketch. -/
   let A := measure_theory.measure.finite_spanning_sets_in_open μ,
   rcases h'f.is_separable_range with ⟨t, t_count, ht⟩,
   have main : ∀ᵐ x ∂μ, ∀ (n : ℕ) (c : E) (hc : c ∈ t),
@@ -879,7 +885,7 @@ begin
   rw [hy, h'x]
 end
 
-/-- * Lebesgue differentiation theorem*: for almost all point `x`, the
+/-- *Lebesgue differentiation theorem*: for almost every point `x`, the
 average of `∥f y - f x∥` on `a` tends to `0` as `a` shrinks to `x` along a Vitali family.-/
 lemma ae_tendsto_average_norm_sub {f : α → E} (hf : integrable f μ) :
   ∀ᵐ x ∂μ, tendsto (λ a, (⨍ y in a, ∥f y - f x∥ ∂μ)) (v.filter_at x) (𝓝 0) :=
@@ -902,7 +908,7 @@ begin
     exact nnreal.coe_nonneg _ }
 end
 
-/-- * Lebesgue differentiation theorem*: for almost all point `x`, the
+/-- *Lebesgue differentiation theorem*: for almost every point `x`, the
 average of `f` on `a` tends to `f x` as `a` shrinks to `x` along a Vitali family.-/
 lemma ae_tendsto_average [normed_space ℝ E] [complete_space E] {f : α → E} (hf : integrable f μ) :
   ∀ᵐ x ∂μ, tendsto (λ a, (⨍ y in a, f y ∂μ)) (v.filter_at x) (𝓝 (f x)) :=

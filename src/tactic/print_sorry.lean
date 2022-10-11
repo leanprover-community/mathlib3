@@ -21,33 +21,33 @@ namespace tactic
 meta structure find_all_expr_data :=
 (depends_on_sorry : bool) -- this declaration depends on sorry
 (found_sorry : bool) -- the search has found sorry somewhere
-(descendants : list (name × bool × list name)) -- name, contains sorry directly, direct descendants
+(descendants : list (name × bool × name_set)) -- name, contains sorry directly, direct descendants
 (name_map : name_map bool) -- all data
-(direct_descendants : list name) -- direct descendants of a declaration
+(direct_descendants : name_set) -- direct descendants of a declaration
 
 /-- Auxilliary declaration for `tactic.find_all_exprs` -/
 meta def find_all_exprs_aux (env : environment) (f : expr → bool) (g : name → bool) : name →
   find_all_expr_data → tactic find_all_expr_data
 | n ⟨b₀, b₁, l, ns, desc⟩ :=
   match ns.find n with
-  | some b := pure ⟨b₀, b || b₁, l, ns, if b then n::desc else desc⟩
+  | some b := pure ⟨b₀, b || b₁, l, ns, if b then desc.insert n else desc⟩
   | none := if g n then pure ⟨b₀, b₁, l, ns.insert n ff, desc⟩ else do
     d ← env.get n,
     let process (v : expr) : tactic find_all_expr_data := (do
-      v.mfold ⟨ff, ff, l, ns, []⟩ $ λ e _ p,
-        if f e then pure ⟨tt, tt, l, p.name_map, p.direct_descendants⟩ else
+      v.mfold ⟨ff, ff, l, ns, mk_name_set⟩ $ λ e _ p,
+        if f e then trace n >> pure ⟨tt, tt, p.descendants, p.name_map, p.direct_descendants⟩ else
         if e.is_constant then find_all_exprs_aux e.const_name p else pure p),
     ⟨b', b, l, ns, desc'⟩ ← process d.value,
     pure ⟨b₀, b₁ || b, if b then (n, b', desc')::l else l, ns.insert n b,
-      if b then n::desc else desc⟩
+      if b then desc.insert n else desc⟩
   end
 
 /-- `tactic.find_all_exprs env test exclude nm` searches for all declarations (transively) occuring
   in `nm` that contain a subexpression `e` such that `test e` is true.
   All declarations `n` such that `exclude n` is true (and all their descendants) are ignored. -/
 meta def find_all_exprs (env : environment) (test : expr → bool) (exclude : name → bool)
-  (nm : name) : tactic $ list $ name × bool × list name := do
-  ⟨_, _, l, _, _⟩ ← find_all_exprs_aux env test exclude nm ⟨ff, ff, [], mk_name_map, []⟩,
+  (nm : name) : tactic $ list $ name × bool × name_set := do
+  ⟨_, _, l, _, _⟩ ← find_all_exprs_aux env test exclude nm ⟨ff, ff, [], mk_name_map, mk_name_set⟩,
   pure l
 
 end tactic
@@ -65,7 +65,7 @@ meta def print_sorry_in (nm : name) (ignore_mathlib := tt) : tactic unit := do
   let to_print : list format := data.map $ λ ⟨nm, contains_sorry, desc⟩,
     let s1 := if contains_sorry then " contains sorry" else "",
         s2 := if contains_sorry && !desc.empty then " and" else "",
-        s3 := string.join $ (desc.map to_string).intersperse ", ",
+        s3 := string.join $ (desc.to_list.map to_string).intersperse ", ",
         s4 := if !desc.empty then format!" depends on {s3}" else "" in
     format!"{nm}{s1}{s2}{s4}.",
   trace $ format.join $ to_print.intersperse format.line

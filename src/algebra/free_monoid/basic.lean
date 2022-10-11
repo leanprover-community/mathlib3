@@ -95,7 +95,7 @@ rfl
 def rec_on {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
   (ih : Π x xs, C xs → C (of x * xs)) : C xs := list.rec_on xs h0 ih
 
-@[simp, to_additive] lemma rec_on_one {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
+@[simp, to_additive] lemma rec_on_one {C : free_monoid α → Sort*} (h0 : C 1)
   (ih : Π x xs, C xs → C (of x * xs)) :
   @rec_on α C 1 h0 ih = h0 :=
 rfl
@@ -113,7 +113,7 @@ rfl
 def cases_on {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
   (ih : Π x xs, C (of x * xs)) : C xs := list.cases_on xs h0 ih
 
-@[simp, to_additive] lemma cases_on_one {C : free_monoid α → Sort*} (xs : free_monoid α) (h0 : C 1)
+@[simp, to_additive] lemma cases_on_one {C : free_monoid α → Sort*} (h0 : C 1)
   (ih : Π x xs, C (of x * xs)) :
   @cases_on α C 1 h0 ih = h0 :=
 rfl

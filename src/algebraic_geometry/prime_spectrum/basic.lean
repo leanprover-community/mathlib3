@@ -5,10 +5,10 @@ Authors: Johan Commelin
 -/
 import algebra.punit_instances
 import linear_algebra.finsupp
-import ring_theory.ideal.over
-import ring_theory.ideal.prod
-import ring_theory.localization.away
 import ring_theory.nilpotent
+import ring_theory.localization.away
+import ring_theory.ideal.prod
+import ring_theory.ideal.over
 import topology.sets.opens
 import topology.sober
 
@@ -41,6 +41,7 @@ The contents of this file draw inspiration from
 <https://github.com/ramonfmir/lean-scheme>
 which has contributions from Ramon Fernandez Mir, Kevin Buzzard, Kenny Lau,
 and Chris Hughes (on an earlier repository).
+
 -/
 
 noncomputable theory
@@ -50,25 +51,29 @@ universes u v
 
 variables (R : Type u) [comm_ring R]
 
-/-- The prime spectrum of a commutative ring `R` is the type of all prime ideals of `R`.
+/-- The prime spectrum of a commutative ring `R`
+is the type of all prime ideals of `R`.
 
 It is naturally endowed with a topology (the Zariski topology),
 and a sheaf of commutative rings (see `algebraic_geometry.structure_sheaf`).
 It is a fundamental building block in algebraic geometry. -/
-@[nolint has_nonempty_instance] def prime_spectrum := {I : ideal R // I.is_prime}
-
-namespace prime_spectrum
+@[nolint has_nonempty_instance]
+def prime_spectrum := {I : ideal R // I.is_prime}
 
 variable {R}
 
-/-- View a point in the prime spectrum of a commutative ring as an ideal of that ring. -/
+namespace prime_spectrum
+
+/-- A method to view a point in the prime spectrum of a commutative ring
+as an ideal of that ring. -/
 abbreviation as_ideal (x : prime_spectrum R) : ideal R := x.val
 
-@[ext] lemma ext {x y : prime_spectrum R} : x = y ↔ x.as_ideal = y.as_ideal := subtype.ext_iff_val
+instance is_prime (x : prime_spectrum R) :
+  x.as_ideal.is_prime := x.2
 
-instance is_prime (x : prime_spectrum R) : x.as_ideal.is_prime := x.property
-
-/-- The prime spectrum of the zero ring is empty. -/
+/--
+The prime spectrum of the zero ring is empty.
+-/
 lemma punit (x : prime_spectrum punit) : false :=
 x.1.ne_top_iff_one.1 x.2.1 $ subsingleton.elim (0 : punit) 1 ▸ x.1.zero_mem
 
@@ -76,7 +81,7 @@ section
 variables (R) (S : Type v) [comm_ring S]
 
 /-- The prime spectrum of `R × S` is in bijection with the disjoint unions of the prime spectrum of
-`R` and the prime spectrum of `S`. -/
+    `R` and the prime spectrum of `S`. -/
 noncomputable def prime_spectrum_prod :
   prime_spectrum (R × S) ≃ prime_spectrum R ⊕ prime_spectrum S :=
 ideal.prime_ideals_equiv R S
@@ -92,13 +97,19 @@ by { cases x, refl }
 
 end
 
-/-- The zero locus of a set `s` of elements of a commutative ring `R` is the set of all prime ideals
-of the ring that contain the set `s`.
+@[ext] lemma ext {x y : prime_spectrum R} :
+  x = y ↔ x.as_ideal = y.as_ideal :=
+subtype.ext_iff_val
 
-An element `f` of `R` can be thought of as a dependent function on the prime spectrum of `R`.
-At a point `x` (a prime ideal) the function (i.e., element) `f` takes values in the quotient ring
-`R` modulo the prime ideal `x`. In this manner, `zero_locus s` is exactly the subset of
-`prime_spectrum R` where all "functions" in `s` vanish simultaneously.
+/-- The zero locus of a set `s` of elements of a commutative ring `R`
+is the set of all prime ideals of the ring that contain the set `s`.
+
+An element `f` of `R` can be thought of as a dependent function
+on the prime spectrum of `R`.
+At a point `x` (a prime ideal)
+the function (i.e., element) `f` takes values in the quotient ring `R` modulo the prime ideal `x`.
+In this manner, `zero_locus s` is exactly the subset of `prime_spectrum R`
+where all "functions" in `s` vanish simultaneously.
 -/
 def zero_locus (s : set R) : set (prime_spectrum R) :=
 {x | s ⊆ x.as_ideal}
@@ -110,12 +121,15 @@ def zero_locus (s : set R) : set (prime_spectrum R) :=
   zero_locus (ideal.span s : set R) = zero_locus s :=
 by { ext x, exact (submodule.gi R R).gc s x.as_ideal }
 
-/-- The vanishing ideal of a set `t` of points of the prime spectrum of a commutative ring `R` is
-the intersection of all the prime ideals in the set `t`.
+/-- The vanishing ideal of a set `t` of points
+of the prime spectrum of a commutative ring `R`
+is the intersection of all the prime ideals in the set `t`.
 
-An element `f` of `R` can be thought of as a dependent function on the prime spectrum of `R`.
-At a point `x` (a prime ideal) the function (i.e., element) `f` takes values in the quotient ring
-`R` modulo the prime ideal `x`. In this manner, `vanishing_ideal t` is exactly the ideal of `R`
+An element `f` of `R` can be thought of as a dependent function
+on the prime spectrum of `R`.
+At a point `x` (a prime ideal)
+the function (i.e., element) `f` takes values in the quotient ring `R` modulo the prime ideal `x`.
+In this manner, `vanishing_ideal t` is exactly the ideal of `R`
 consisting of all "functions" that vanish on all of `t`.
 -/
 def vanishing_ideal (t : set (prime_spectrum R)) : ideal R :=
@@ -320,8 +334,9 @@ lemma mem_compl_zero_locus_iff_not_mem {f : R} {I : prime_spectrum R} :
   I ∈ (zero_locus {f} : set (prime_spectrum R))ᶜ ↔ f ∉ I.as_ideal :=
 by rw [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]; refl
 
-/-- The Zariski topology on the prime spectrum of a commutative ring is defined via the closed sets
-of the topology: they are exactly those sets that are the zero locus of a subset of the ring. -/
+/-- The Zariski topology on the prime spectrum of a commutative ring
+is defined via the closed sets of the topology:
+they are exactly those sets that are the zero locus of a subset of the ring. -/
 instance zariski_topology : topological_space (prime_spectrum R) :=
 topological_space.of_closed (set.range prime_spectrum.zero_locus)
   (⟨set.univ, by simp⟩)
@@ -458,6 +473,7 @@ end
 
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
+
 
 lemma preimage_comap_zero_locus_aux (f : R →+* S) (s : set R) :
   (λ y, ⟨ideal.comap f y.as_ideal, infer_instance⟩ :
@@ -755,7 +771,8 @@ section order
 /-!
 ## The specialization order
 
-We endow `prime_spectrum R` with a partial order, where `x ≤ y` if and only if `y ∈ closure {x}`.
+We endow `prime_spectrum R` with a partial order,
+where `x ≤ y` if and only if `y ∈ closure {x}`.
 -/
 
 instance : partial_order (prime_spectrum R) :=
@@ -787,8 +804,8 @@ instance : t0_space (prime_spectrum R) := ⟨nhds_order_embedding.injective⟩
 
 end order
 
-/-- If `x` specializes to `y`, then there is a natural map from the localization of `y` to the
-localization of `x`. -/
+/-- If `x` specializes to `y`, then there is a natural map from the localization of `y` to
+the localization of `x`. -/
 def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
   localization.at_prime y.as_ideal →+* localization.at_prime x.as_ideal :=
 @is_localization.lift _ _ _ _ _ _ _ _
@@ -802,12 +819,16 @@ def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
 
 end prime_spectrum
 
+
 namespace local_ring
 
 variables (R) [local_ring R]
 
-/-- The closed point in the prime spectrum of a local ring. -/
-def closed_point : prime_spectrum R := ⟨maximal_ideal R, (maximal_ideal.is_maximal R).is_prime⟩
+/--
+The closed point in the prime spectrum of a local ring.
+-/
+def closed_point : prime_spectrum R :=
+⟨maximal_ideal R, (maximal_ideal.is_maximal R).is_prime⟩
 
 variable {R}
 

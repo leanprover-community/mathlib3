@@ -557,10 +557,6 @@ contravariant.add_le_cancellable.tsub_tsub_assoc h₁ h₂
 lemma tsub_add_tsub_comm (hba : b ≤ a) (hdc : d ≤ c) : a - b + (c - d) = a + c - (b + d) :=
 contravariant.add_le_cancellable.tsub_add_tsub_comm contravariant.add_le_cancellable hba hdc
 
-protected lemma tsub_tsub_tsub_cancel_left (hba : b ≤ a) (hcb : c ≤ b) : a - c - (a - b) = b - c :=
-by rw [tsub_eq_iff_eq_add_of_le (tsub_le_tsub_left hcb a), tsub_add_eq_add_tsub hcb, add_comm,
-  tsub_add_cancel_of_le hba]
-
 lemma le_tsub_iff_left (h : a ≤ c) : b ≤ c - a ↔ a + b ≤ c :=
 contravariant.add_le_cancellable.le_tsub_iff_left h
 
@@ -613,6 +609,9 @@ contravariant.add_le_cancellable.add_tsub_tsub_cancel h
 /-- See `tsub_tsub_le` for an inequality. -/
 lemma tsub_tsub_cancel_of_le (h : a ≤ b) : b - (b - a) = a :=
 contravariant.add_le_cancellable.tsub_tsub_cancel_of_le h
+
+lemma tsub_tsub_tsub_cancel_left (hba : b ≤ a) : a - c - (a - b) = b - c :=
+by rw [tsub_right_comm, tsub_tsub_cancel_of_le hba]
 
 end contra
 end has_exists_add_of_le

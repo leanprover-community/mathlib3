@@ -537,7 +537,7 @@ lemma tsum_subtype_eq_of_support_subset {f : β → α} {s : set β} (hs : suppo
   ∑' x : s, f x = ∑' x, f x :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ x, has_sum_subtype_iff_of_support_subset hs
 
-lemma tsum_univ (f : β → α) : ∑' x : (set.univ : set β), f x = ∑' x, f x :=
+@[simp] lemma tsum_univ (f : β → α) : ∑' x : (set.univ : set β), f x = ∑' x, f x :=
 tsum_subtype_eq_of_support_subset $ set.subset_univ _
 
 lemma tsum_image {g : γ → β} (f : β → α) {s : set γ} (hg : set.inj_on g s) :

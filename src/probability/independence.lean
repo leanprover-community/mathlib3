@@ -917,7 +917,7 @@ variables [is_probability_measure μ] {s : ι → measurable_space Ω}
 
 open filter
 
-lemma bsupr_indep_bsupr_compl (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι) :
+lemma indep_bsupr_compl (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (t : set ι) :
   indep (⨆ n ∈ t, s n) (⨆ n ∈ tᶜ, s n) μ :=
 indep_supr_of_disjoint h_le h_indep disjoint_compl_right
 
@@ -933,22 +933,22 @@ for which we can define the following two functions:
 For the example of `f = at_top`, we can take `p = bdd_above` and `ns : ι → set ι := λ i, set.Iic i`.
 -/
 
-lemma bsupr_indep_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
+lemma indep_bsupr_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   (hf : ∀ t, p t → tᶜ ∈ f) {t : set ι} (ht : p t) :
   indep (⨆ n ∈ t, s n) (limsup f s) μ :=
 begin
-  refine indep_of_indep_of_le_right (bsupr_indep_bsupr_compl h_le h_indep t) _,
+  refine indep_of_indep_of_le_right (indep_bsupr_compl h_le h_indep t) _,
   refine Limsup_le_of_le (by is_bounded_default) _,
   simp only [set.mem_compl_iff, eventually_map],
   exact eventually_of_mem (hf t ht) le_supr₂,
 end
 
-lemma supr_directed_indep_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
+lemma indep_supr_directed_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   (hf : ∀ t, p t → tᶜ ∈ f) (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) :
   indep (⨆ a, ⨆ n ∈ (ns a), s n) (limsup f s) μ :=
 begin
   refine indep_supr_of_directed_le _ _ _ _,
-  { exact λ a, bsupr_indep_limsup h_le h_indep hf (hnsp a), },
+  { exact λ a, indep_bsupr_limsup h_le h_indep hf (hnsp a), },
   { exact λ a, supr₂_le (λ n hn, h_le n), },
   { exact limsup_le_supr.trans (supr_le h_le), },
   { intros a b,
@@ -958,13 +958,13 @@ begin
     { exact hc.2 hn, }, },
 end
 
-lemma supr_indep_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
+lemma indep_supr_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
   (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) (hns_univ : ∀ n, ∃ a, n ∈ ns a) :
   indep (⨆ n, s n) (limsup f s) μ :=
 begin
   suffices : (⨆ a, ⨆ n ∈ (ns a), s n) = ⨆ n, s n,
   { rw ← this,
-    exact supr_directed_indep_limsup h_le h_indep hf hns hnsp, },
+    exact indep_supr_directed_limsup h_le h_indep hf hns hnsp, },
   rw supr_comm,
   refine supr_congr (λ n, _),
   have : (⨆ (i : α) (H : n ∈ ns i), s n) = (⨆ (h : ∃ i, n ∈ ns i), s n), by rw supr_exists,
@@ -972,17 +972,17 @@ begin
   rw [this, supr_const],
 end
 
-lemma limsup_indep_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
+lemma indep_limsup_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
   (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) (hns_univ : ∀ n, ∃ a, n ∈ ns a) :
   indep (limsup f s) (limsup f s) μ :=
-indep_of_indep_of_le_left (supr_indep_limsup h_le h_indep hf hns hnsp hns_univ) limsup_le_supr
+indep_of_indep_of_le_left (indep_supr_limsup h_le h_indep hf hns hnsp hns_univ) limsup_le_supr
 
 theorem measure_zero_or_one_of_measurable_set_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   (hf : ∀ t, p t → tᶜ ∈ f) (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a))
   (hns_univ : ∀ n, ∃ a, n ∈ ns a) {t : set Ω} (ht_tail : measurable_set[limsup f s] t) :
   μ t = 0 ∨ μ t = 1 :=
 measure_eq_zero_or_one_of_indep_set_self
-  ((limsup_indep_self h_le h_indep hf hns hnsp hns_univ).indep_set_of_measurable_set
+  ((indep_limsup_self h_le h_indep hf hns hnsp hns_univ).indep_set_of_measurable_set
     ht_tail ht_tail)
 
 end abstract
@@ -990,12 +990,12 @@ end abstract
 section at_top
 variables [semilattice_sup ι] [no_max_order ι] [nonempty ι]
 
-lemma limsup_at_top_indep_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
+lemma indep_limsup_at_top_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (limsup at_top s) (limsup at_top s) μ :=
 begin
   let ns : ι → set ι := set.Iic,
   have hnsp : ∀ i, bdd_above (ns i) := λ i, bdd_above_Iic,
-  refine limsup_indep_self h_le h_indep _ _ hnsp _,
+  refine indep_limsup_self h_le h_indep _ _ hnsp _,
   { simp only [mem_at_top_sets, ge_iff_le, set.mem_compl_iff, bdd_above, upper_bounds,
       set.nonempty],
     rintros t ⟨a, ha⟩,
@@ -1014,19 +1014,19 @@ theorem measure_zero_or_one_of_measurable_set_limsup_at_top (h_le : ∀ n, s n �
   (h_indep : Indep s μ) {t : set Ω} (ht_tail : measurable_set[limsup at_top s] t) :
   μ t = 0 ∨ μ t = 1 :=
 measure_eq_zero_or_one_of_indep_set_self
-  ((limsup_at_top_indep_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)
+  ((indep_limsup_at_top_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)
 
 end at_top
 
 section at_bot
 variables [semilattice_inf ι] [no_min_order ι] [nonempty ι]
 
-lemma limsup_at_bot_indep_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
+lemma indep_limsup_at_bot_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (limsup at_bot s) (limsup at_bot s) μ :=
 begin
   let ns : ι → set ι := set.Ici,
   have hnsp : ∀ i, bdd_below (ns i) := λ i, bdd_below_Ici,
-  refine limsup_indep_self h_le h_indep _ _ hnsp _,
+  refine indep_limsup_self h_le h_indep _ _ hnsp _,
   { simp only [mem_at_bot_sets, ge_iff_le, set.mem_compl_iff, bdd_below, lower_bounds,
       set.nonempty],
     rintros t ⟨a, ha⟩,
@@ -1044,7 +1044,7 @@ theorem measure_zero_or_one_of_measurable_set_limsup_at_bot (h_le : ∀ n, s n �
   (h_indep : Indep s μ) {t : set Ω} (ht_tail : measurable_set[limsup at_bot s] t) :
   μ t = 0 ∨ μ t = 1 :=
 measure_eq_zero_or_one_of_indep_set_self
-  ((limsup_at_bot_indep_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)
+  ((indep_limsup_at_bot_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)
 
 end at_bot
 

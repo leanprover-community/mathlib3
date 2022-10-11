@@ -37,7 +37,7 @@ class slash_action (β G α γ : Type*) [group G] [ring α] [has_smul γ α] :=
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action {β G H α γ : Type*} [group G] [ring α] [has_smul γ α] [group H]
   [slash_action β G α γ] (h : H →* G) : slash_action β H α γ :=
-{ map := λ k g a, slash_action.map γ k (h g) a,
+{ map := λ k g , slash_action.map γ k (h g) ,
   mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
   one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
   right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
@@ -52,7 +52,7 @@ noncomputable theory
 def slash (k : ℤ) (γ : GL(2, ℝ)⁺) (f : ℍ → ℂ) (x : ℍ) : ℂ :=
 f (γ • x) * (((↑ₘ γ).det) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(-k)
 
-variables {Γ : subgroup SL(2,ℤ)} {k: ℤ} (f : ℍ → ℂ)
+variables {Γ : subgroup SL(2, ℤ)} {k: ℤ} (f : ℍ → ℂ)
 
 localized "notation (name := modular_forms.slash) f ` ∣[`:100 k `]`:0 γ :100 :=
   modular_forms.slash k γ f" in modular_forms
@@ -107,11 +107,11 @@ instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
   smul_action := by {apply smul_slash},
   add_action := by {apply slash_add},}
 
-instance subgroup_action (Γ : subgroup SL(2,ℤ)) : slash_action ℤ Γ (ℍ → ℂ) ℂ :=
+instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ (ℍ → ℂ) ℂ :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ)))
 
-instance SL_action : slash_action ℤ SL(2,ℤ) (ℍ → ℂ) ℂ :=
+instance SL_action : slash_action ℤ SL(2, ℤ) (ℍ → ℂ) ℂ :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (matrix.special_linear_group.map (int.cast_ring_hom ℝ)))
 

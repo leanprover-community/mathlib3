@@ -50,7 +50,7 @@ open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 @[derive [
-  ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  strict_ordered_semiring, comm_monoid_with_zero, -- to ensure these instances are computable
   floor_semiring, comm_semiring, semiring,
   semilattice_inf, semilattice_sup,
   distrib_lattice, densely_ordered, order_bot,
@@ -88,6 +88,9 @@ noncomputable def _root_.real.to_nnreal (r : ℝ) : ℝ≥0 := ⟨max r 0, le_ma
 
 lemma _root_.real.coe_to_nnreal (r : ℝ) (hr : 0 ≤ r) : (real.to_nnreal r : ℝ) = r :=
 max_eq_left hr
+
+lemma _root_.real.to_nnreal_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ⟨r, hr⟩ :=
+by simp_rw [real.to_nnreal, max_eq_left hr]
 
 lemma _root_.real.le_coe_to_nnreal (r : ℝ) : r ≤ real.to_nnreal r :=
 le_max_left r 0
@@ -482,6 +485,10 @@ end
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
 (real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [bit1])
 
+lemma to_nnreal_pow {x : ℝ} (hx : 0 ≤ x) (n : ℕ) : (x ^ n).to_nnreal = (x.to_nnreal) ^ n :=
+by rw [← nnreal.coe_eq, nnreal.coe_pow, real.coe_to_nnreal _ (pow_nonneg hx _),
+  real.coe_to_nnreal x hx]
+
 end to_nnreal
 
 end real
@@ -852,7 +859,7 @@ meta def positivity_coe_nnreal_real : expr → tactic strictness
   strictness_a ← core a,
   match strictness_a with
   | positive p := positive <$> mk_app ``nnreal_coe_pos [p]
-  | nonnegative _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
+  | _ := nonnegative <$> mk_app ``nnreal.coe_nonneg [a]
   end
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ℝ)` for `r : ℝ≥0`"

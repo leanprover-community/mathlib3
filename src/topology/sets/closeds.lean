@@ -166,11 +166,10 @@ lemma opens.is_coatom_iff [t1_space α] {s : opens α} :
   is_coatom s ↔ ∃ x, s = (closeds.singleton x).compl :=
 begin
   rw [←s.compl_compl, ←is_atom_dual_iff_is_coatom],
-  change is_atom ((to_dual ∘ closeds.compl) s.compl) ↔ _,
-  rw [← closeds.compl_order_iso_apply α s.compl, (closeds.compl_order_iso α).is_atom_iff],
-  convert @closeds.is_atom_iff _ _ _ s.compl,
-  ext,
-  exact closeds.compl_bijective.injective.eq_iff,
+  change is_atom (closeds.compl_order_iso α s.compl) ↔ _,
+  rw [(closeds.compl_order_iso α).is_atom_iff, closeds.is_atom_iff],
+  congrm ∃ x, _,
+  exact closeds.compl_bijective.injective.eq_iff.symm,
 end
 
 /-! ### Clopen sets -/

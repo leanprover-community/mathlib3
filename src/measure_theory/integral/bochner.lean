@@ -1422,6 +1422,80 @@ begin
     rw abs_of_nonneg (hf_nonneg x), },
 end
 
+/-- Hölder's inequality for the integral of a product of norms. The integral of the product of two
+norms of functions is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are
+conjugate exponents. -/
+theorem integral_mul_norm_le_Lp_mul_Lq {E} [normed_add_comm_group E] {f g : α → E}
+  {p q : ℝ} (hpq : p.is_conjugate_exponent q)
+  (hf : mem_ℒp f (ennreal.of_real p) μ) (hg : mem_ℒp g (ennreal.of_real q) μ) :
+  ∫ a, ∥f a∥ * ∥g a∥ ∂μ ≤ (∫ a, ∥f a∥ ^ p ∂μ) ^ (1/p) * (∫ a, ∥g a∥ ^ q ∂μ) ^ (1/q) :=
+begin
+  -- translate the Bochner integrals into Lebesgue integrals.
+  rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae,
+    integral_eq_lintegral_of_nonneg_ae],
+  rotate 1,
+  { exact eventually_of_forall (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _), },
+  { exact (hg.1.norm.ae_measurable.pow ae_measurable_const).ae_strongly_measurable, },
+  { exact eventually_of_forall (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _),},
+  { exact (hf.1.norm.ae_measurable.pow ae_measurable_const).ae_strongly_measurable, },
+  { exact eventually_of_forall (λ x, mul_nonneg (norm_nonneg _) (norm_nonneg _)), },
+  { exact hf.1.norm.mul hg.1.norm, },
+  rw [ennreal.to_real_rpow, ennreal.to_real_rpow, ← ennreal.to_real_mul],
+  -- replace norms by nnnorm
+  have h_left : ∫⁻ a, ennreal.of_real (∥f a∥ * ∥g a∥) ∂μ
+    = ∫⁻ a, ((λ x, (∥f x∥₊ : ℝ≥0∞)) * (λ x, ∥g x∥₊)) a ∂μ,
+  { simp_rw [pi.mul_apply, ← of_real_norm_eq_coe_nnnorm, ennreal.of_real_mul (norm_nonneg _)], },
+  have h_right_f : ∫⁻ a, ennreal.of_real (∥f a∥ ^ p) ∂μ = ∫⁻ a, ∥f a∥₊ ^ p ∂μ,
+  { refine lintegral_congr (λ x, _),
+    rw [← of_real_norm_eq_coe_nnnorm, ennreal.of_real_rpow_of_nonneg (norm_nonneg _) hpq.nonneg], },
+  have h_right_g : ∫⁻ a, ennreal.of_real (∥g a∥ ^ q) ∂μ = ∫⁻ a, ∥g a∥₊ ^ q ∂μ,
+  { refine lintegral_congr (λ x, _),
+    rw [← of_real_norm_eq_coe_nnnorm,
+      ennreal.of_real_rpow_of_nonneg (norm_nonneg _) hpq.symm.nonneg], },
+  rw [h_left, h_right_f, h_right_g],
+  -- we can now apply `ennreal.lintegral_mul_le_Lp_mul_Lq` (up to the `to_real` application)
+  refine ennreal.to_real_mono _ _,
+  { refine ennreal.mul_ne_top _ _,
+    { convert hf.snorm_ne_top,
+      rw snorm_eq_lintegral_rpow_nnnorm,
+      { rw ennreal.to_real_of_real hpq.nonneg, },
+      { rw [ne.def, ennreal.of_real_eq_zero, not_le],
+        exact hpq.pos, },
+      { exact ennreal.coe_ne_top, }, },
+    { convert hg.snorm_ne_top,
+      rw snorm_eq_lintegral_rpow_nnnorm,
+      { rw ennreal.to_real_of_real hpq.symm.nonneg, },
+      { rw [ne.def, ennreal.of_real_eq_zero, not_le],
+        exact hpq.symm.pos, },
+      { exact ennreal.coe_ne_top, }, }, },
+  { exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.1.nnnorm.ae_measurable.coe_nnreal_ennreal
+      hg.1.nnnorm.ae_measurable.coe_nnreal_ennreal, },
+end
+
+/-- Hölder's inequality for functions `α → ℝ`. The integral of the product of two nonnegative
+functions is bounded by the product of their `ℒp` and `ℒq` seminorms when `p` and `q` are conjugate
+exponents. -/
+theorem integral_mul_le_Lp_mul_Lq_of_nonneg {p q : ℝ}
+  (hpq : p.is_conjugate_exponent q) {f g : α → ℝ} (hf_nonneg : 0 ≤ᵐ[μ] f) (hg_nonneg : 0 ≤ᵐ[μ] g)
+  (hf : mem_ℒp f (ennreal.of_real p) μ) (hg : mem_ℒp g (ennreal.of_real q) μ) :
+  ∫ a, f a * g a ∂μ ≤ (∫ a, (f a) ^ p ∂μ) ^ (1/p) * (∫ a, (g a) ^ q ∂μ) ^ (1/q) :=
+begin
+  have h_left : ∫ a, f a * g a ∂μ = ∫ a, ∥f a∥ * ∥g a∥ ∂μ,
+  { refine integral_congr_ae _,
+    filter_upwards [hf_nonneg, hg_nonneg] with x hxf hxg,
+    rw [real.norm_of_nonneg hxf, real.norm_of_nonneg hxg], },
+  have h_right_f : ∫ a, (f a) ^ p ∂μ = ∫ a, ∥f a∥ ^ p ∂μ,
+  { refine integral_congr_ae _,
+    filter_upwards [hf_nonneg] with x hxf,
+    rw real.norm_of_nonneg hxf, },
+  have h_right_g : ∫ a, (g a) ^ q ∂μ = ∫ a, ∥g a∥ ^ q ∂μ,
+  { refine integral_congr_ae _,
+    filter_upwards [hg_nonneg] with x hxg,
+    rw real.norm_of_nonneg hxg, },
+  rw [h_left, h_right_f, h_right_g],
+  exact integral_mul_norm_le_Lp_mul_Lq hpq hf hg,
+end
+
 end properties
 
 mk_simp_attribute integral_simps "Simp set for integral rules."

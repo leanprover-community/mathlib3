@@ -3168,11 +3168,17 @@ namespace subgroup
 /-- A subgroup `H` of `G` determines a subgroup `H.opposite` of the opposite group `Gᵐᵒᵖ`. -/
 @[to_additive "An additive subgroup `H` of `G` determines an additive subgroup `H.opposite` of the
   opposite additive group `Gᵃᵒᵖ`."]
-def opposite (H : subgroup G) : subgroup Gᵐᵒᵖ :=
-{ carrier := mul_opposite.unop ⁻¹' (H : set G),
-  one_mem' := H.one_mem,
-  mul_mem' := λ a b ha hb, H.mul_mem hb ha,
-  inv_mem' := λ a, H.inv_mem }
+def opposite : subgroup G ≃ subgroup Gᵐᵒᵖ :=
+{ to_fun := λ H, { carrier := mul_opposite.unop ⁻¹' (H : set G),
+                   one_mem' := H.one_mem,
+                   mul_mem' := λ a b ha hb, H.mul_mem hb ha,
+                   inv_mem' := λ a, H.inv_mem },
+  inv_fun := λ H, { carrier := mul_opposite.op ⁻¹' (H : set Gᵐᵒᵖ),
+                   one_mem' := H.one_mem,
+                   mul_mem' := λ a b ha hb, H.mul_mem hb ha,
+                   inv_mem' := λ a, H.inv_mem },
+  left_inv := λ H, set_like.coe_injective rfl,
+  right_inv := λ H, set_like.coe_injective rfl }
 
 /-- Bijection between a subgroup `H` and its opposite. -/
 @[to_additive "Bijection between an additive subgroup `H` and its opposite.", simps]

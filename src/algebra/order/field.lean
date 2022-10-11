@@ -451,6 +451,8 @@ end
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
+lemma two_inv_lt_one : (2⁻¹ : α) < 1 := (one_div _).symm.trans_lt one_half_lt_one
+
 lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mul_two]
 
 lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]

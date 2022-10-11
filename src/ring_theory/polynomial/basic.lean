@@ -127,7 +127,7 @@ def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n 
     intro f, ext i,
     simp only [finset_sum_coeff, submodule.coe_mk],
     rw [finset.sum_eq_single i, coeff_monomial, if_pos rfl],
-    { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← subtype.ext_iff] },
+    { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← fin.ext_iff] },
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
 

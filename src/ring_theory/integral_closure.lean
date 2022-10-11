@@ -145,10 +145,10 @@ let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, hp.map _,
   by rw [← aeval_def, aeval_map_algebra_map, aeval_def, hpx]⟩
 
-lemma is_integral_int_alg_hom_class {C F : Type*} [comm_ring C] [algebra A B] [algebra A C] {b : B}
-  [alg_hom_class F A B C] (f : F) (hb : is_integral ℤ b) :
+lemma is_integral_int_alg_hom_class {B C F : Type*} [ring B] [ring C] {b : B}
+  [ring_hom_class F B C] (f : F) (hb : is_integral ℤ b) :
   is_integral ℤ (f b) :=
-is_integral_alg_hom f hb
+is_integral_alg_hom (f : B →+* C).to_int_alg_hom hb
 
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=

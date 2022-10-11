@@ -77,128 +77,142 @@ def face.to_edge : face → finset edge
 -- -- sorry
 -- by dec_trivial!
 
--- section P
+section
 
--- def P_vert : equiv.perm vert :=
--- fintype.equiv_of_bij (λ ⟨i, u, u'⟩, ⟨i + 1, u, u'⟩) (by dec_trivial!)
+meta def tactic.dec_trivial : tactic unit := `[dec_trivial!]
 
--- example : P_vert ^ 3 = 1 := by dec_trivial
+def mk_edges (p : equiv.perm vert)
+  (h₁ : ∀ e : edge, ∃! e' : edge, e'.to_vert = e.to_vert.image p . tactic.dec_trivial)
+  (h₂ : function.bijective (λ e, fintype.choose _ (h₁ e)) . tactic.dec_trivial) :
+  equiv.perm edge :=
+fintype.equiv_of_bij _ h₂
 
--- def P_edge : equiv.perm edge :=
--- fintype.equiv_of_bij
---   (λ e, fintype.choose (λ e', e'.to_vert = e.to_vert.image P_vert) (by dec_trivial!))
---   (by dec_trivial!)
+lemma mk_edges_apply (p : equiv.perm vert)
+  (h₁ : ∀ e : edge, ∃! e' : edge, e'.to_vert = e.to_vert.image p)
+  (h₂ : function.bijective (λ e, fintype.choose _ (h₁ e)))
+  (e : edge) :
+  (mk_edges p h₁ h₂ e).to_vert = finset.image p e.to_vert :=
+fintype.choose_spec (λ e' : edge, e'.to_vert = e.to_vert.image p) _
 
--- @[simp] lemma P_edge_to_vert (e : edge) :
---   (P_edge e).to_vert = finset.image P_vert e.to_vert :=
--- fintype.choose_spec (λ e' : edge, e'.to_vert = e.to_vert.image P_vert) _
+def mk_faces (p : equiv.perm edge)
+  (h₁ : ∀ f : face, ∃! f' : face, f'.to_edge = f.to_edge.image p . tactic.dec_trivial)
+  (h₂ : function.bijective (λ f, fintype.choose _ (h₁ f)) . tactic.dec_trivial) :
+  equiv.perm face :=
+fintype.equiv_of_bij _ h₂
 
--- def P_face : equiv.perm face :=
--- fintype.equiv_of_bij
---   (λ f, fintype.choose (λ f', f'.to_edge = f.to_edge.image P_edge) (by dec_trivial!))
---   (by dec_trivial!)
+def mk_faces_apply (p : equiv.perm edge)
+  (h₁ : ∀ f : face, ∃! f' : face, f'.to_edge = f.to_edge.image p . tactic.dec_trivial)
+  (h₂ : function.bijective (λ f, fintype.choose _ (h₁ f)) . tactic.dec_trivial)
+  (f : face) :
+  (mk_faces p h₁ h₂ f).to_edge = finset.image p f.to_edge :=
+fintype.choose_spec (λ f' : face, f'.to_edge = f.to_edge.image p) _
 
--- @[simp] lemma P_face_to_edge (f : face) :
---   (P_face f).to_edge = finset.image P_edge f.to_edge :=
--- fintype.choose_spec (λ f' : face, f'.to_edge = f.to_edge.image P_edge) _
+end
 
--- def P : equiv.perm vert × equiv.perm edge × equiv.perm face := ⟨P_vert, P_edge, P_face⟩
+section P
 
--- end P
+def P_vert : equiv.perm vert :=
+fintype.equiv_of_bij (λ ⟨i, u, u'⟩, ⟨i + 1, u, u'⟩) (by dec_trivial!)
 
--- section Q
+example : P_vert ^ 3 = 1 := by dec_trivial
 
--- /-- A period-5 bijection, composed of two disjoint 5-cycles
--- ⟨2, 1, 0⟩ → ⟨0, 0, 1⟩ → ⟨1, 1, 0⟩ → ⟨1, 0, 0⟩ → ⟨0, 0, 0⟩ →
--- ⟨2, 0, 1⟩ → ⟨0, 1, 0⟩ → ⟨1, 0, 1⟩ → ⟨1, 1, 1⟩ → ⟨0, 1, 1⟩ →
--- and fixing ⟨2, 0, 0⟩ and ⟨2, 1, 1⟩.
--- -/
--- def Q_vert_aux : zmod 3 → zmod 2 → zmod 2 → vert :=
--- ![![![⟨2, 1, 0⟩, ⟨1, 1, 0⟩],  -- images of ⟨0, 0, 0⟩, ⟨0, 0, 1⟩
---     ![⟨1, 0, 1⟩, ⟨2, 0, 1⟩]], -- images of ⟨0, 1, 0⟩, ⟨0, 1, 1⟩
---   ![![⟨0, 0, 0⟩, ⟨1, 1, 1⟩],  -- images of ⟨1, 0, 0⟩, ⟨1, 0, 1⟩
---     ![⟨1, 0, 0⟩, ⟨0, 1, 1⟩]], -- images of ⟨1, 1, 0⟩, ⟨1, 1, 1⟩
---   ![![⟨2, 0, 0⟩, ⟨0, 1, 0⟩],  -- images of ⟨2, 0, 0⟩, ⟨2, 0, 1⟩
---     ![⟨0, 0, 1⟩, ⟨2, 1, 1⟩]]] -- images of ⟨2, 1, 0⟩, ⟨2, 1, 1⟩
+def P_edge : equiv.perm edge := mk_edges P_vert
 
--- def Q_vert : equiv.perm vert :=
--- fintype.equiv_of_bij (λ ⟨i, u, u'⟩, Q_vert_aux i u u') (by dec_trivial!)
+@[simp] lemma P_edge_to_vert (e : edge) :
+  (P_edge e).to_vert = finset.image P_vert e.to_vert :=
+mk_edges_apply _ _ _ _
 
--- example : Q_vert ^ 5 = 1 := by dec_trivial!
+def P_face : equiv.perm face := mk_faces P_edge
 
--- def Q_edge : equiv.perm edge :=
--- fintype.equiv_of_bij
---   (λ e, fintype.choose (λ e', e'.to_vert = e.to_vert.image Q_vert) (by dec_trivial!))
---   (by dec_trivial!)
+@[simp] lemma P_face_to_edge (f : face) :
+  (P_face f).to_edge = finset.image P_edge f.to_edge :=
+mk_faces_apply _ _ _ _
 
--- @[simp] lemma Q_edge_to_vert (e : edge) :
---   (Q_edge e).to_vert = finset.image Q_vert e.to_vert :=
--- fintype.choose_spec (λ e' : edge, e'.to_vert = e.to_vert.image Q_vert) _
+def P : equiv.perm vert × equiv.perm edge × equiv.perm face := ⟨P_vert, P_edge, P_face⟩
 
--- def Q_face : equiv.perm face :=
--- fintype.equiv_of_bij
---   (λ f, fintype.choose (λ f', f'.to_edge = f.to_edge.image Q_edge) (by dec_trivial!))
---   (by dec_trivial!)
+end P
 
--- @[simp] lemma Q_face_to_edge (f : face) :
---   (Q_face f).to_edge = finset.image Q_edge f.to_edge :=
--- fintype.choose_spec (λ f' : face, f'.to_edge = f.to_edge.image Q_edge) _
+section Q
 
--- /-- A period-5 automorphism of the icosahedron, acting on the vertex set in two disjoint 5-cycles
--- ⟨2, 1, 0⟩ → ⟨0, 0, 1⟩ → ⟨1, 1, 0⟩ → ⟨1, 0, 0⟩ → ⟨0, 0, 0⟩ →
--- ⟨2, 0, 1⟩ → ⟨0, 1, 0⟩ → ⟨1, 0, 1⟩ → ⟨1, 1, 1⟩ → ⟨0, 1, 1⟩ →
--- and fixing ⟨2, 0, 0⟩ and ⟨2, 1, 1⟩. -/
--- def Q : equiv.perm vert × equiv.perm edge × equiv.perm face := ⟨Q_vert, Q_edge, Q_face⟩
+/-- A period-5 bijection, composed of two disjoint 5-cycles
+⟨2, 1, 0⟩ → ⟨0, 0, 1⟩ → ⟨1, 1, 0⟩ → ⟨1, 0, 0⟩ → ⟨0, 0, 0⟩ →
+⟨2, 0, 1⟩ → ⟨0, 1, 0⟩ → ⟨1, 0, 1⟩ → ⟨1, 1, 1⟩ → ⟨0, 1, 1⟩ →
+and fixing ⟨2, 0, 0⟩ and ⟨2, 1, 1⟩.
+-/
+def Q_vert_aux : zmod 3 → zmod 2 → zmod 2 → vert :=
+![![![⟨2, 1, 0⟩, ⟨1, 1, 0⟩],  -- images of ⟨0, 0, 0⟩, ⟨0, 0, 1⟩
+    ![⟨1, 0, 1⟩, ⟨2, 0, 1⟩]], -- images of ⟨0, 1, 0⟩, ⟨0, 1, 1⟩
+  ![![⟨0, 0, 0⟩, ⟨1, 1, 1⟩],  -- images of ⟨1, 0, 0⟩, ⟨1, 0, 1⟩
+    ![⟨1, 0, 0⟩, ⟨0, 1, 1⟩]], -- images of ⟨1, 1, 0⟩, ⟨1, 1, 1⟩
+  ![![⟨2, 0, 0⟩, ⟨0, 1, 0⟩],  -- images of ⟨2, 0, 0⟩, ⟨2, 0, 1⟩
+    ![⟨0, 0, 1⟩, ⟨2, 1, 1⟩]]] -- images of ⟨2, 1, 0⟩, ⟨2, 1, 1⟩
 
--- end Q
+def Q_vert : equiv.perm vert :=
+fintype.equiv_of_bij (λ ⟨i, u, u'⟩, Q_vert_aux i u u') (by dec_trivial!)
 
--- section R
+example : Q_vert ^ 5 = 1 := by dec_trivial!
 
--- /-- A period-5 bijection, composed of two disjoint 5-cycles
--- ⟨0, 1, 0⟩ → ⟨1, 0, 1⟩ → ⟨2, 1, 0⟩ → ⟨2, 0, 0⟩ → ⟨1, 0, 0⟩ →
--- ⟨0, 0, 1⟩ → ⟨1, 1, 0⟩ → ⟨2, 0, 1⟩ → ⟨2, 1, 1⟩ → ⟨1, 1, 1⟩ →
--- and fixing ⟨0, 0, 0⟩ and ⟨0, 1, 1⟩.
--- -/
--- def R_vert_aux : zmod 3 → zmod 2 → zmod 2 → vert :=
--- ![![![⟨0, 0, 0⟩, ⟨1, 1, 0⟩],  -- images of ⟨0, 0, 0⟩, ⟨0, 0, 1⟩
---     ![⟨1, 0, 1⟩, ⟨0, 1, 1⟩]], -- images of ⟨0, 1, 0⟩, ⟨0, 1, 1⟩
---   ![![⟨0, 1, 0⟩, ⟨2, 1, 0⟩],  -- images of ⟨1, 0, 0⟩, ⟨1, 0, 1⟩
---     ![⟨2, 0, 1⟩, ⟨0, 0, 1⟩]], -- images of ⟨1, 1, 0⟩, ⟨1, 1, 1⟩
---   ![![⟨1, 0, 0⟩, ⟨2, 1, 1⟩],  -- images of ⟨2, 0, 0⟩, ⟨2, 0, 1⟩
---     ![⟨2, 0, 0⟩, ⟨1, 1, 1⟩]]] -- images of ⟨2, 1, 0⟩, ⟨2, 1, 1⟩
+def Q_edge : equiv.perm edge := mk_edges Q_vert
 
--- def R_vert : equiv.perm vert :=
--- fintype.equiv_of_bij (λ ⟨i, u, u'⟩, R_vert_aux i u u') (by dec_trivial!)
+@[simp] lemma Q_edge_to_vert (e : edge) :
+  (Q_edge e).to_vert = finset.image Q_vert e.to_vert :=
+mk_edges_apply _ _ _ _
 
--- example : R_vert ^ 5 = 1 := by dec_trivial!
+def Q_face : equiv.perm face := mk_faces Q_edge
 
--- example : R_vert * Q_vert * P_vert = 1 := by dec_trivial!
+@[simp] lemma Q_face_to_edge (f : face) :
+  (Q_face f).to_edge = finset.image Q_edge f.to_edge :=
+mk_faces_apply _ _ _ _
 
--- def R_edge : equiv.perm edge :=
--- fintype.equiv_of_bij
---   (λ e, fintype.choose (λ e', e'.to_vert = e.to_vert.image R_vert) (by dec_trivial!))
---   (by dec_trivial!)
+/-- A period-5 automorphism of the icosahedron, acting on the vertex set in two disjoint 5-cycles
+⟨2, 1, 0⟩ → ⟨0, 0, 1⟩ → ⟨1, 1, 0⟩ → ⟨1, 0, 0⟩ → ⟨0, 0, 0⟩ →
+⟨2, 0, 1⟩ → ⟨0, 1, 0⟩ → ⟨1, 0, 1⟩ → ⟨1, 1, 1⟩ → ⟨0, 1, 1⟩ →
+and fixing ⟨2, 0, 0⟩ and ⟨2, 1, 1⟩. -/
+def Q : equiv.perm vert × equiv.perm edge × equiv.perm face := ⟨Q_vert, Q_edge, Q_face⟩
 
--- @[simp] lemma R_edge_to_vert (e : edge) :
---   (R_edge e).to_vert = finset.image R_vert e.to_vert :=
--- fintype.choose_spec (λ e' : edge, e'.to_vert = e.to_vert.image R_vert) _
+end Q
 
--- def R_face : equiv.perm face :=
--- fintype.equiv_of_bij
---   (λ f, fintype.choose (λ f', f'.to_edge = f.to_edge.image R_edge) (by dec_trivial!))
---   (by dec_trivial!)
+section R
 
--- @[simp] lemma R_face_to_edge (f : face) :
---   (R_face f).to_edge = finset.image R_edge f.to_edge :=
--- fintype.choose_spec (λ f' : face, f'.to_edge = f.to_edge.image R_edge) _
+/-- A period-5 bijection, composed of two disjoint 5-cycles
+⟨0, 1, 0⟩ → ⟨1, 0, 1⟩ → ⟨2, 1, 0⟩ → ⟨2, 0, 0⟩ → ⟨1, 0, 0⟩ →
+⟨0, 0, 1⟩ → ⟨1, 1, 0⟩ → ⟨2, 0, 1⟩ → ⟨2, 1, 1⟩ → ⟨1, 1, 1⟩ →
+and fixing ⟨0, 0, 0⟩ and ⟨0, 1, 1⟩.
+-/
+def R_vert_aux : zmod 3 → zmod 2 → zmod 2 → vert :=
+![![![⟨0, 0, 0⟩, ⟨1, 1, 0⟩],  -- images of ⟨0, 0, 0⟩, ⟨0, 0, 1⟩
+    ![⟨1, 0, 1⟩, ⟨0, 1, 1⟩]], -- images of ⟨0, 1, 0⟩, ⟨0, 1, 1⟩
+  ![![⟨0, 1, 0⟩, ⟨2, 1, 0⟩],  -- images of ⟨1, 0, 0⟩, ⟨1, 0, 1⟩
+    ![⟨2, 0, 1⟩, ⟨0, 0, 1⟩]], -- images of ⟨1, 1, 0⟩, ⟨1, 1, 1⟩
+  ![![⟨1, 0, 0⟩, ⟨2, 1, 1⟩],  -- images of ⟨2, 0, 0⟩, ⟨2, 0, 1⟩
+    ![⟨2, 0, 0⟩, ⟨1, 1, 1⟩]]] -- images of ⟨2, 1, 0⟩, ⟨2, 1, 1⟩
 
--- /-- A period-5 automorphism of the icosahedron, acting on the vertex set in two disjoint 5-cycles
--- ⟨0, 1, 0⟩ → ⟨1, 0, 1⟩ → ⟨2, 1, 0⟩ → ⟨2, 0, 0⟩ → ⟨1, 0, 0⟩
--- ⟨0, 0, 1⟩ → ⟨1, 1, 0⟩ → ⟨2, 0, 1⟩ → ⟨2, 1, 1⟩ → ⟨1, 1, 1⟩
--- and fixing ⟨0, 0, 0⟩ and ⟨0, 1, 1⟩. -/
--- def R : equiv.perm vert × equiv.perm edge × equiv.perm face := ⟨R_vert, R_edge, R_face⟩
+def R_vert : equiv.perm vert :=
+fintype.equiv_of_bij (λ ⟨i, u, u'⟩, R_vert_aux i u u') (by dec_trivial!)
 
--- end R
+example : R_vert ^ 5 = 1 := by dec_trivial!
+
+example : R_vert * Q_vert * P_vert = 1 := by dec_trivial!
+
+def R_edge : equiv.perm edge := mk_edges R_vert
+
+@[simp] lemma R_edge_to_vert (e : edge) :
+  (R_edge e).to_vert = finset.image R_vert e.to_vert :=
+mk_edges_apply _ _ _ _
+
+def R_face : equiv.perm face := mk_faces R_edge
+
+@[simp] lemma R_face_to_edge (f : face) :
+  (R_face f).to_edge = finset.image R_edge f.to_edge :=
+mk_faces_apply _ _ _ _
+
+/-- A period-5 automorphism of the icosahedron, acting on the vertex set in two disjoint 5-cycles
+⟨0, 1, 0⟩ → ⟨1, 0, 1⟩ → ⟨2, 1, 0⟩ → ⟨2, 0, 0⟩ → ⟨1, 0, 0⟩
+⟨0, 0, 1⟩ → ⟨1, 1, 0⟩ → ⟨2, 0, 1⟩ → ⟨2, 1, 1⟩ → ⟨1, 1, 1⟩
+and fixing ⟨0, 0, 0⟩ and ⟨0, 1, 1⟩. -/
+def R : equiv.perm vert × equiv.perm edge × equiv.perm face := ⟨R_vert, R_edge, R_face⟩
+
+end R
 
 section aut
 

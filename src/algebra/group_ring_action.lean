@@ -65,9 +65,9 @@ def mul_semiring_action.to_ring_equiv [mul_semiring_action G R] (x : G) : R ≃+
 { .. distrib_mul_action.to_add_equiv R x,
   .. mul_semiring_action.to_ring_hom G R x }
 
-/-- A multiplicative action of `N` on `R` and a group homomorphism `K →* N` induce
-a multiplicative action of `K` on `R`. -/
-def mul_semiring_action.comp_hom (g : K →* N) [mul_semiring_action N R] :
+/-- Compose a `mul_semiring_action` with a `monoid_hom`, with action `f r' • m`.
+See note [reducible non-instances]. -/
+@[reducible] def mul_semiring_action.comp_hom (g : K →* N) [mul_semiring_action N R] :
   mul_semiring_action K R :=
 { smul := has_smul.comp.smul g,
   ..distrib_mul_action.comp_hom R g,

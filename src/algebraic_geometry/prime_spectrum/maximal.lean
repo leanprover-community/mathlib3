@@ -64,12 +64,23 @@ end prime_spectrum
 
 namespace maximal_spectrum
 
+open prime_spectrum set
+
 /-- The Zariski topology on the maximal spectrum of a commutative ring is defined as the subspace
 topology induced by the natural inclusion into the prime spectrum. -/
 instance zariski_topology : topological_space $ maximal_spectrum R :=
-prime_spectrum.zariski_topology.induced prime_spectrum.of_maximal_spectrum
+prime_spectrum.zariski_topology.induced of_maximal_spectrum
 
-lemma of_maximal_spectrum_continuous : continuous $ @prime_spectrum.of_maximal_spectrum R _ :=
-continuous_induced_dom
+instance : t1_space $ maximal_spectrum R :=
+⟨λ x, is_closed_induced_iff.mpr
+  ⟨{of_maximal_spectrum x}, (is_closed_singleton_iff_is_maximal _).mpr x.is_maximal,
+    by simpa only [← image_singleton] using preimage_image_eq {x} of_maximal_spectrum_injective⟩⟩
 
 end maximal_spectrum
+
+namespace prime_spectrum
+
+lemma of_maximal_spectrum_continuous : continuous $ @of_maximal_spectrum R _ :=
+continuous_induced_dom
+
+end prime_spectrum

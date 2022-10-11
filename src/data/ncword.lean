@@ -209,11 +209,11 @@ structure group_data (α : Type*) extends monoid_data α :=
 variables {gd : group_data α}
 
 instance (d : group_data α) : has_inv (ncword d.to_data) :=
-⟨λ w, ⟨free_monoid.to_list.symm $ list.reverse $ (free_monoid.map d.inv w.word).to_list,
+⟨λ w, ⟨free_monoid.of_list $ list.reverse $ (free_monoid.map d.inv w.word).to_list,
   list.chain'_reverse.2 (chain'_map_of_chain' _ d.r_inv_inv w.chain)⟩⟩
 
 lemma inv_word (w : ncword gd.to_data) :
-  (w⁻¹).word = to_list.symm (list.map gd.inv w.word.to_list).reverse :=
+  (w⁻¹).word = of_list (list.map gd.inv w.word.to_list).reverse :=
 rfl
 
 instance (d : group_data α) : group (ncword d.to_data) :=

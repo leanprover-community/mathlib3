@@ -452,10 +452,7 @@ by { rintro rfl, simpa [collinear_pair] using h }
 
 /-- If three points are not collinear, the second and third are different. -/
 lemma ne₂₃_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₂ ≠ p₃ :=
-begin
-  rintro rfl,
-  simpa [collinear_pair] using h
-end
+by { rintro rfl, simpa [collinear_pair] using h }
 
 /-- A point in a collinear set of points lies in the affine span of any two distinct points of
 that set. -/

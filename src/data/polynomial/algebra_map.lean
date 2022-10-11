@@ -204,11 +204,6 @@ lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
   aeval x (p.comp q) = (aeval (aeval x q) p) :=
 eval₂_comp (algebra_map R A)
 
-@[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
-  [is_scalar_tower R A B] (b : B) (p : R[X]) :
-  aeval b (p.map (algebra_map R A)) = aeval b p :=
-by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
-
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
 alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
 
@@ -233,7 +228,7 @@ theorem aeval_alg_equiv_apply (f : A ≃ₐ[R] B) (x : A) (p : R[X]) :
   aeval (f x) p = f (aeval x p) :=
 aeval_alg_hom_apply (f : A →ₐ[R] B) x p
 
-lemma aeval_algebra_map_apply (x : R) (p : R[X]) :
+lemma aeval_algebra_map_apply_eq_algebra_map_eval (x : R) (p : R[X]) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p
 

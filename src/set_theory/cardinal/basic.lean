@@ -106,8 +106,8 @@ def mk : Type u → cardinal := quotient.mk
 
 localized "prefix (name := cardinal.mk) `#` := cardinal.mk" in cardinal
 
-instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
-⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
+instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) mk (λ _, true) :=
+⟨λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
 
 @[elab_as_eliminator]
 lemma induction_on {p : cardinal → Prop} (c : cardinal) (h : ∀ α, p (#α)) : p c :=
@@ -297,6 +297,11 @@ lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
  λ ⟨h⟩, ⟨⟨λ a, punit.star, λ a b _, h _ _⟩⟩⟩
+
+@[simp] lemma mk_le_one_iff_set_subsingleton {s : set α} : #s ≤ 1 ↔ s.subsingleton :=
+le_one_iff_subsingleton.trans s.subsingleton_coe
+
+alias mk_le_one_iff_set_subsingleton ↔ _ _root_.set.subsingleton.cardinal_mk_le_one
 
 instance : has_add cardinal.{u} := ⟨map₂ sum $ λ α β γ δ, equiv.sum_congr⟩
 
@@ -1005,8 +1010,8 @@ alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
   #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
 le_aleph_0_iff_set_countable
 
-instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
-⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
+instance can_lift_cardinal_nat : can_lift cardinal ℕ coe (λ x, x < ℵ₀) :=
+⟨λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
 
 theorem add_lt_aleph_0 {a b : cardinal} (ha : a < ℵ₀) (hb : b < ℵ₀) : a + b < ℵ₀ :=
 match a, b, lt_aleph_0.1 ha, lt_aleph_0.1 hb with
@@ -1419,6 +1424,12 @@ lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : #s ≤ #t :=
 
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀ x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
 ⟨embedding_of_subset _ _ h⟩
+
+lemma le_mk_diff_add_mk (S T : set α) : #S ≤ #(S \ T : set α) + #T :=
+(mk_le_mk_of_subset $ subset_diff_union _ _).trans $ mk_union_le _ _
+
+lemma mk_diff_add_mk {S T : set α} (h : T ⊆ S) : #(S \ T : set α) + #T = #S :=
+(mk_union_of_disjoint $ by exact disjoint_sdiff_self_left).symm.trans $ by rw diff_union_of_subset h
 
 lemma mk_union_le_aleph_0 {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ℵ₀ ↔ #P ≤ ℵ₀ ∧ #Q ≤ ℵ₀ :=
 by simp

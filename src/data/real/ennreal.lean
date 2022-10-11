@@ -76,6 +76,7 @@ variables {α : Type*} {β : Type*}
   and is relevant as the codomain of a measure. -/
 @[derive [
   has_zero, add_comm_monoid_with_one,
+  semilattice_sup, distrib_lattice, order_bot, bounded_order,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
   linear_ordered_add_comm_monoid_with_top]]
@@ -104,10 +105,8 @@ instance : inhabited ℝ≥0∞ := ⟨0⟩
 
 instance : has_coe ℝ≥0 ℝ≥0∞ := ⟨ option.some ⟩
 
-instance : can_lift ℝ≥0∞ ℝ≥0 :=
-{ coe := coe,
-  cond := λ r, r ≠ ∞,
-  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
+instance can_lift : can_lift ℝ≥0∞ ℝ≥0 coe (λ r, r ≠ ∞) :=
+{ prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
 
 @[simp] lemma none_eq_top : (none : ℝ≥0∞) = ∞ := rfl
 @[simp] lemma some_eq_coe (a : ℝ≥0) : (some a : ℝ≥0∞) = (↑a : ℝ≥0∞) := rfl
@@ -234,7 +233,7 @@ lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
 lemma coe_two : ((2:ℝ≥0) : ℝ≥0∞) = 2 := by norm_cast
 
 lemma to_nnreal_eq_to_nnreal_iff (x y : ℝ≥0∞) :
-  x.to_nnreal = y.to_nnreal ↔ x = y ∨ (x = 0 ∧ y = ⊤) ∨ (x = ⊤ ∧ y = 0) :=
+  x.to_nnreal = y.to_nnreal ↔ x = y ∨ x = 0 ∧ y = ⊤ ∨ x = ⊤ ∧ y = 0 :=
 begin
   cases x,
   { simp only [@eq_comm ℝ≥0 _ y.to_nnreal, @eq_comm ℝ≥0∞ _ y, to_nnreal_eq_zero_iff,
@@ -255,13 +254,11 @@ lemma to_real_eq_to_real_iff' {x y : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ �
   x.to_real = y.to_real ↔ x = y :=
 by simp only [ennreal.to_real, nnreal.coe_eq, to_nnreal_eq_to_nnreal_iff' hx hy]
 
-
-protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
-  canonically_ordered_comm_semiring.zero_lt_one
+protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) := zero_lt_one
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
-@[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
+@[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans zero_lt_one one_lt_two
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
@@ -756,7 +753,7 @@ section cancel
 lemma add_le_cancellable_iff_ne {a : ℝ≥0∞} : add_le_cancellable a ↔ a ≠ ∞ :=
 begin
   split,
-  { rintro h rfl, refine ennreal.zero_lt_one.not_le (h _), simp, },
+  { rintro h rfl, refine zero_lt_one.not_le (h _), simp, },
   { rintro h b c hbc, apply ennreal.le_of_add_le_add_left h hbc }
 end
 
@@ -1020,11 +1017,9 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, coe_mul, coe_inv hr]
 
 lemma div_zero (h : a ≠ 0) : a / 0 = ∞ := by simp [div_eq_mul_inv, h]
 
-@[simp] lemma inv_one : (1 : ℝ≥0∞)⁻¹ = 1 :=
-by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 inv_one
-
-@[simp] lemma div_one {a : ℝ≥0∞} : a / 1 = a :=
-by rw [div_eq_mul_inv, inv_one, mul_one]
+instance : div_inv_one_monoid ℝ≥0∞ :=
+{ inv_one := by simpa only [coe_inv one_ne_zero, coe_one] using coe_eq_coe.2 inv_one,
+  ..ennreal.div_inv_monoid }
 
 protected lemma inv_pow {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
 begin
@@ -1435,7 +1430,7 @@ lemma exists_mem_Ico_zpow
 begin
   lift x to ℝ≥0 using h'x,
   lift y to ℝ≥0 using h'y,
-  have A : y ≠ 0, { simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne' },
+  have A : y ≠ 0, { simpa only [ne.def, coe_eq_zero] using (zero_lt_one.trans hy).ne' },
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1),
   { refine nnreal.exists_mem_Ico_zpow _ (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
@@ -1450,7 +1445,7 @@ lemma exists_mem_Ioc_zpow
 begin
   lift x to ℝ≥0 using h'x,
   lift y to ℝ≥0 using h'y,
-  have A : y ≠ 0, { simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne' },
+  have A : y ≠ 0, { simpa only [ne.def, coe_eq_zero] using (zero_lt_one.trans hy).ne' },
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1),
   { refine nnreal.exists_mem_Ioc_zpow _ (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
@@ -1470,9 +1465,9 @@ begin
   { rintros ⟨n, hn, h'n⟩,
     split,
     { apply lt_of_lt_of_le _ hn,
-      exact ennreal.zpow_pos (ennreal.zero_lt_one.trans hy).ne' h'y _ },
+      exact ennreal.zpow_pos (zero_lt_one.trans hy).ne' h'y _ },
     { apply lt_trans h'n _,
-      exact ennreal.zpow_lt_top (ennreal.zero_lt_one.trans hy).ne' h'y _ } }
+      exact ennreal.zpow_lt_top (zero_lt_one.trans hy).ne' h'y _ } }
 end
 
 lemma zpow_le_of_le {x : ℝ≥0∞} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : x ^ a ≤ x ^ b :=

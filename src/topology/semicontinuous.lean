@@ -226,16 +226,30 @@ end
 
 /-! #### Relationship with continuity -/
 
-theorem lower_semicontinuous_iff_is_open :
+theorem lower_semicontinuous_iff_is_open_preimage :
   lower_semicontinuous f ↔ ∀ y, is_open (f ⁻¹' (Ioi y)) :=
 ⟨λ H y, is_open_iff_mem_nhds.2 (λ x hx, H x y hx), λ H x y y_lt, is_open.mem_nhds (H y) y_lt⟩
 
 lemma lower_semicontinuous.is_open_preimage (hf : lower_semicontinuous f) (y : β) :
   is_open (f ⁻¹' (Ioi y)) :=
-lower_semicontinuous_iff_is_open.1 hf y
+lower_semicontinuous_iff_is_open_preimage.1 hf y
 
 section
-variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
+variables {γ : Type*} [linear_order γ]
+
+theorem lower_semicontinuous_iff_is_closed_preimage {f : α → γ} :
+  lower_semicontinuous f ↔ ∀ y, is_closed (f ⁻¹' (Iic y)) :=
+begin
+  rw lower_semicontinuous_iff_is_open_preimage,
+  congrm (∀ y, (_ : Prop)),
+  rw [← is_open_compl_iff, ← preimage_compl, compl_Iic]
+end
+
+lemma lower_semicontinuous.is_closed_preimage {f : α → γ} (hf : lower_semicontinuous f) (y : γ) :
+  is_closed (f ⁻¹' (Iic y)) :=
+lower_semicontinuous_iff_is_closed_preimage.1 hf y
+
+variables [topological_space γ] [order_topology γ]
 
 lemma continuous_within_at.lower_semicontinuous_within_at {f : α → γ}
   (h : continuous_within_at f s x) : lower_semicontinuous_within_at f s x :=
@@ -665,16 +679,30 @@ end
 
 /-! #### Relationship with continuity -/
 
-theorem upper_semicontinuous_iff_is_open :
+theorem upper_semicontinuous_iff_is_open_preimage :
   upper_semicontinuous f ↔ ∀ y, is_open (f ⁻¹' (Iio y)) :=
 ⟨λ H y, is_open_iff_mem_nhds.2 (λ x hx, H x y hx), λ H x y y_lt, is_open.mem_nhds (H y) y_lt⟩
 
 lemma upper_semicontinuous.is_open_preimage (hf : upper_semicontinuous f) (y : β) :
   is_open (f ⁻¹' (Iio y)) :=
-upper_semicontinuous_iff_is_open.1 hf y
+upper_semicontinuous_iff_is_open_preimage.1 hf y
 
 section
-variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
+variables {γ : Type*} [linear_order γ]
+
+theorem upper_semicontinuous_iff_is_closed_preimage {f : α → γ} :
+  upper_semicontinuous f ↔ ∀ y, is_closed (f ⁻¹' (Ici y)) :=
+begin
+  rw upper_semicontinuous_iff_is_open_preimage,
+  congrm (∀ y, (_ : Prop)),
+  rw [← is_open_compl_iff, ← preimage_compl, compl_Ici]
+end
+
+lemma upper_semicontinuous.is_closed_preimage {f : α → γ} (hf : upper_semicontinuous f) (y : γ) :
+  is_closed (f ⁻¹' (Ici y)) :=
+upper_semicontinuous_iff_is_closed_preimage.1 hf y
+
+variables [topological_space γ] [order_topology γ]
 
 lemma continuous_within_at.upper_semicontinuous_within_at {f : α → γ}
   (h : continuous_within_at f s x) : upper_semicontinuous_within_at f s x :=

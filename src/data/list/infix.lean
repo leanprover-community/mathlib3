@@ -113,9 +113,9 @@ alias reverse_prefix ↔ _ is_suffix.reverse
 alias reverse_suffix ↔ _ is_prefix.reverse
 alias reverse_infix ↔ _ is_infix.reverse
 
-lemma is_infix.length_le (h : l₁ <:+: l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
-lemma is_prefix.length_le (h : l₁ <+: l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
-lemma is_suffix.length_le (h : l₁ <:+ l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
+lemma is_infix.length_le (h : l₁ <:+: l₂) : l₁.length ≤ l₂.length := h.sublist.length_le
+lemma is_prefix.length_le (h : l₁ <+: l₂) : l₁.length ≤ l₂.length := h.sublist.length_le
+lemma is_suffix.length_le (h : l₁ <:+ l₂) : l₁.length ≤ l₂.length := h.sublist.length_le
 
 lemma eq_nil_of_infix_nil (h : l <:+: []) : l = [] := eq_nil_of_sublist_nil h.sublist
 
@@ -138,13 +138,13 @@ lemma infix_iff_prefix_suffix (l₁ l₂ : list α) : l₁ <:+: l₂ ↔ ∃ t, 
   λ ⟨._, ⟨t, rfl⟩, s, e⟩, ⟨s, t, by rw append_assoc; exact e⟩⟩
 
 lemma eq_of_infix_of_length_eq (h : l₁ <:+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma eq_of_prefix_of_length_eq (h : l₁ <+: l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma eq_of_suffix_of_length_eq (h : l₁ <:+ l₂) : l₁.length = l₂.length → l₁ = l₂ :=
-eq_of_sublist_of_length_eq h.sublist
+h.sublist.eq_of_length
 
 lemma prefix_of_prefix_length_le : ∀ {l₁ l₂ l₃ : list α},
   l₁ <+: l₃ → l₂ <+: l₃ → length l₁ ≤ length l₂ → l₁ <+: l₂
@@ -259,7 +259,7 @@ instance decidable_prefix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
 -- Alternatively, use mem_tails
 instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+ l₂)
 | []        l₂        := is_true ⟨l₂, append_nil _⟩
-| (a :: l₁) []        := is_false $ mt (length_le_of_sublist ∘ is_suffix.sublist) dec_trivial
+| (a :: l₁) []        := is_false $ mt (sublist.length_le ∘ is_suffix.sublist) dec_trivial
 | l₁        (b :: l₂) := decidable_of_decidable_of_iff (@or.decidable _ _
     _ (l₁.decidable_suffix l₂)) suffix_cons_iff.symm
 

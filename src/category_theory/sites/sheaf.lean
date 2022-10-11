@@ -603,6 +603,16 @@ begin
     exact nonempty.map (λ t, is_limit_of_reflects s t) }
 end
 
+def Sheaf_in_Type (s : A ⥤ Type (max v₁ u₁)) [has_limits A]
+  [preserves_limits s] [reflects_isomorphisms s] :
+  Sheaf J A ⥤ Sheaf J (Type (max u₁ v₁)) :=
+{ obj := λ F, ⟨F.1 ⋙ s, (is_sheaf_iff_is_sheaf_forget J F.1 s).mp F.2⟩,
+  map := λ F G f, Sheaf.hom.mk
+  { app := λ c, s.map (f.1.app c),
+    naturality' := λ U V inc, by erw [←s.map_comp, ←s.map_comp, f.1.naturality] },
+  map_id' := λ F, by { ext, dsimp only, simp, },
+  map_comp' := λ F G H f g, by { ext, dsimp only, simp } }
+
 end concrete
 
 end presheaf

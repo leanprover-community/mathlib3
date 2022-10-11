@@ -7,7 +7,7 @@ open category_theory category_theory.limits Top topological_space
 
 universes u v w u'
 
-namespace presheaf
+namespace Top.presheaf
 
 variables {X : Top.{u}} {C : Type v} [category.{w} C]
 variables {ι : Type u'} (f : ι → presheaf C X) [has_products.{u'} C]
@@ -52,4 +52,4 @@ begin
   refl,
 end
 
-end presheaf
+end Top.presheaf

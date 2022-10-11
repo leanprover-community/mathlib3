@@ -319,7 +319,7 @@ end
 precisely two orientations with respect to an empty index type. -/
 lemma eq_or_eq_neg_of_subsingleton [subsingleton M] [is_empty ι] (o : orientation R M ι) :
   o = positive_orientation ∨ o = - positive_orientation :=
-o.eq_or_eq_neg positive_orientation (by  simp [finite_dimensional.finrank_zero_of_subsingleton])
+o.eq_or_eq_neg positive_orientation (by simp [finite_dimensional.finrank_zero_of_subsingleton])
 
 end orientation
 

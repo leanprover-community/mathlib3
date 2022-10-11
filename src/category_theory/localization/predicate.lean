@@ -72,7 +72,8 @@ def strict_universal_property_fixed_target.for_Q :
 
 /-- When `W` consists of isomorphisms, the identity satisfies the universal property
 of the localization. -/
-def strict_universal_property_fixed_target.for_id (hW : W ⊆ morphism_property.isomorphisms C):
+@[simps]
+def strict_universal_property_fixed_target_id (hW : W ⊆ morphism_property.isomorphisms C):
   strict_universal_property_fixed_target (𝟭 C) W E :=
 { inverts := λ X Y f hf, hW f hf,
   lift := λ F hF, F,

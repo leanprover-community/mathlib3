@@ -1845,7 +1845,8 @@ lemma oangle_eq_zero_iff_oangle_rev_eq_zero {p₁ p₂ p₃ : P} : ∡ p₁ p₂
 lemma oangle_eq_pi_iff_oangle_rev_eq_pi {p₁ p₂ p₃ : P} : ∡ p₁ p₂ p₃ = π ↔ ∡ p₃ p₂ p₁ = π :=
 (o).oangle_eq_pi_iff_oangle_rev_eq_pi
 
-/-- An oriented angle is not zero or `π` if and only if the three points are affinely independent. -/
+/-- An oriented angle is not zero or `π` if and only if the three points are affinely
+independent. -/
 lemma oangle_ne_zero_and_ne_pi_iff_affine_independent {p₁ p₂ p₃ : P} :
   (∡ p₁ p₂ p₃ ≠ 0 ∧ ∡ p₁ p₂ p₃ ≠ π) ↔ affine_independent ℝ ![p₁, p₂, p₃] :=
 begin

@@ -81,7 +81,7 @@ begin
     μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, ((1 : G), z.1 * z.2)) ⁻¹' (univ ×ˢ s)))),
   { convert this, ext1 x, congr' 1 with y : 1, simp },
   apply measurable_measure_prod_mk_right,
-  exact measurable_const.prod_mk measurable_mul (measurable_set.univ.prod hE)
+  exact measurable_const.prod_mk measurable_mul (measurable_set.univ.prod hs)
 end
 
 variables [has_measurable_inv G]
@@ -144,7 +144,7 @@ begin
 end
 
 @[to_additive]
-lemma measure_inv_null : μ E⁻¹ = 0 ↔ μ E = 0 :=
+lemma measure_inv_null : μ s⁻¹ = 0 ↔ μ s = 0 :=
 begin
   refine ⟨λ hs, _, (quasi_measure_preserving_inv μ).preimage_null⟩,
   convert (quasi_measure_preserving_inv μ).preimage_null hs,

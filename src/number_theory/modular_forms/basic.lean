@@ -7,7 +7,6 @@ import algebra.module.submodule.basic
 import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import linear_algebra.special_linear_group
-import algebra.direct_sum.ring
 import number_theory.modular
 import geometry.manifold.mfderiv
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
@@ -31,8 +30,8 @@ open_locale topological_space manifold upper_half_plane
 
 noncomputable theory
 
-local notation `ℍ'` := (⟨_,
- upper_half_plane.upper_half_plane_is_open⟩: topological_space.opens ℂ)
+
+local notation `ℍ'`:= (⟨upper_half_space , upper_half_plane_is_open⟩: topological_space.opens ℂ)
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
@@ -179,7 +178,7 @@ structure is_cusp_form_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) (
 
 /-- The zero modular form is a cusp form-/
 lemma zero_cusp_form : is_cusp_form_of_weight_and_level k Γ 0 :=
-{ hol := by {apply mdifferentiable_zero,},
+{ hol := by {intro x, apply mdifferentiable_at_const,},
   transf := (weakly_modular_submodule k Γ).zero_mem',
   infinity := by { intro A,
     rw slash_action.mul_zero,
@@ -203,7 +202,7 @@ def space_of_mod_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) :
   zero_mem':= by { simp only [set.mem_set_of_eq], apply zero_mod_form},
   add_mem' := begin intros a b ha hb,
     split,
-    { exact mdifferentiable_add ha.hol hb.hol },
+    { apply mdifferentiable.add _ ha.hol hb.hol,  },
     { exact (weakly_modular_submodule k Γ).add_mem' ha.transf hb.transf} ,
     { intro A,
       rw slash_action.add_action,
@@ -211,7 +210,7 @@ def space_of_mod_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) :
     end,
   smul_mem' := begin intros c f hf,
     split,
-    { exact mdifferentiable_smul _ hf.hol },
+    { exact mdifferentiable.const_smul _ _ hf.hol },
     { exact (weakly_modular_submodule k Γ).smul_mem' _ hf.transf },
     { intro A,
       rw slash_action.smul_action,
@@ -226,7 +225,7 @@ def space_of_cusp_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) 
   zero_mem' := by apply zero_cusp_form,
   add_mem' := begin intros a b ha hb,
     split,
-    { exact mdifferentiable_add ha.hol hb.hol },
+    { apply mdifferentiable.add _ ha.hol hb.hol },
     { exact (weakly_modular_submodule k Γ).add_mem' ha.transf hb.transf },
     { intro A,
       rw slash_action.add_action,
@@ -234,7 +233,7 @@ def space_of_cusp_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) 
     end,
   smul_mem' :=begin intros c f hf,
     split,
-    { exact mdifferentiable_smul _ hf.hol },
+    { exact mdifferentiable.const_smul _ _ hf.hol },
     { exact (weakly_modular_submodule k Γ).smul_mem' _ hf.transf },
     { intro A,
       rw slash_action.smul_action,
@@ -247,7 +246,7 @@ localized "notation `S`:= space_of_cusp_forms_of_weight_and_level" in modular_fo
 lemma mul_modform (k_1 k_2 : ℤ) (Γ : subgroup SL(2,ℤ)) (f g : ℍ → ℂ)
   (hf : f ∈ M k_1 Γ) (hg : g ∈ M k_2 Γ) : f * g ∈ (M (k_1 + k_2) Γ) :=
 begin
-  refine ⟨mdifferentiable_mul hf.1 hg.1, mul_modular _ _ _ _ _ hf.2 hg.2, λ A, _⟩,
+  refine ⟨mdifferentiable.mul _ hf.1 hg.1, mul_modular _ _ _ _ _ hf.2 hg.2, λ A, _⟩,
   rw [slash_mul_SL2 k_1 k_2 A f g],
   exact prod_of_bounded_is_bounded (hf.infinity A) (hg.infinity A),
 end
@@ -277,7 +276,7 @@ end
 
 /-- The constant function 1 is modular of weight 0. -/
 lemma const_mod_form : const_one_form ∈ M 0 Γ :=
-{ hol := by { simp_rw const_one_form, apply mdifferentiable_one },
+{ hol := by { simp_rw const_one_form, intro x, apply mdifferentiable_at_const, },
   transf := by { intro γ, apply const_one_form_is_invar },
   infinity := by { intro A, rw const_one_form_is_invar A, exact const_one_form_is_bound }}
 

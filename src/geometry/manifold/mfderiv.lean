@@ -1235,64 +1235,63 @@ end const
 section arithmetic
 /-! #### Arithmetic -/
 
-variables {S: topological_space.opens 𝕜}
+variables {S: topological_space.opens 𝕜} { z : M}
+{F' : Type*} [normed_field F'] [normed_algebra 𝕜 F']
+{f g : M → E'} {p q : M → F'}
+{f' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, E') (f z)}
+{g' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, E') (g z)}
+{p' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, F') (p z)}
+{q' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, F') (q z)}
 
-lemma mdifferentiable_add {f g : S → 𝕜} (hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f)
-  (hg : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (f + g) :=
+lemma has_mfderiv_at.add (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
+  (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f + g) z (f' + g') :=
 begin
-  simp_rw mdifferentiable at *,
-  simp only [mdifferentiable_at, differentiable_within_at_univ] at *,
-  intro x,
   split,
-  { apply continuous_at.add (hf x).1 (hg x).1 },
-  { convert (differentiable_within_at.add (hf x).2 (hg x).2) },
+  { apply continuous_at.add (hf).1 (hg).1 },
+  { apply has_fderiv_within_at.add hf.2 hg.2}
 end
 
-lemma mdifferentiable_mul {f g : S → 𝕜} (hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f)
-  (hg : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (f * g) :=
+lemma mdifferentiable_at.add (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
+  (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f + g) z :=
+(has_mfderiv_at.add I hf.has_mfderiv_at hg.has_mfderiv_at).mdifferentiable_at
+
+lemma mdifferentiable.add (hf : mdifferentiable I 𝓘(𝕜, E') f) (hg : mdifferentiable I 𝓘(𝕜, E') g) :
+  mdifferentiable I 𝓘(𝕜, E') (f + g) :=
+λ x, mdifferentiable_at.add I (hf x) (hg x)
+
+lemma has_mfderiv_at.mul (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
+  (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') : has_mfderiv_at I 𝓘(𝕜, F') (p * q) z
+  (((((written_in_ext_chart_at I 𝓘(𝕜, F') z) p ((ext_chart_at I z) z)) • q') : E →L[𝕜] F') +
+  (written_in_ext_chart_at I 𝓘(𝕜, F') z q ((ext_chart_at I z) z) • p' :  E →L[𝕜] F' )) :=
 begin
-  simp_rw mdifferentiable at *,
-  simp only [mdifferentiable_at, differentiable_within_at_univ] at *,
-  intro x,
   split,
-  apply continuous_at.mul (hf x).1 (hg x).1,
-  convert (differentiable_within_at.mul (hf x).2 (hg x).2),
+  apply continuous_at.mul hp.1 hq.1,
+  apply has_fderiv_within_at.mul hp.2 hq.2,
 end
 
-lemma mdifferentiable_smul {f : S → 𝕜} (s : 𝕜) (hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f) :
-  mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (s • f) :=
+lemma mdifferentiable_at.mul (hp : mdifferentiable_at I 𝓘(𝕜, F') p z)
+  (hq : mdifferentiable_at I 𝓘(𝕜, F') q z) : mdifferentiable_at I 𝓘(𝕜, F') (p * q) z :=
+(has_mfderiv_at.mul I hp.has_mfderiv_at hq.has_mfderiv_at).mdifferentiable_at
+
+lemma mdifferentiable.mul {f g : M → F'} (hf : mdifferentiable I 𝓘(𝕜, F') f)
+  (hg : mdifferentiable I 𝓘(𝕜, F') g) : mdifferentiable I 𝓘(𝕜, F') (f * g) :=
+λ x, mdifferentiable_at.mul I (hf x) (hg x)
+
+lemma has_mfderiv_at.const_smul (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') (s : 𝕜) :
+   has_mfderiv_at I 𝓘(𝕜, E') (s • f) z (s • f') :=
 begin
-  simp_rw mdifferentiable at *,
-  simp only [mdifferentiable_at, differentiable_within_at_univ] at *,
-  intro x,
   split,
-  { apply continuous_at.const_smul (hf x).1,
-  exact has_continuous_smul.has_continuous_const_smul },
-  apply differentiable_within_at.congr (differentiable_within_at.const_smul (hf x).2 s),
-  { intro x, simp },
-  { refl },
+  apply continuous_at.const_smul (hf).1 s,
+  apply has_fderiv_within_at.const_smul hf.2 s,
 end
 
-lemma mdifferentiable_zero : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (0 : S → 𝕜) :=
-begin
-  intro x,
-  rw mdifferentiable_at,
-  simp [mdifferentiable_at, differentiable_within_at_univ] at *,
-  split,
-  { apply continuous_zero.continuous_at },
-  { apply differentiable_at_const (0 : 𝕜) },
-end
+lemma mdifferentiable_at.const_smul (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) (s : 𝕜) :
+  mdifferentiable_at I 𝓘(𝕜, E') (s • f) z :=
+(has_mfderiv_at.const_smul I hf.has_mfderiv_at s).mdifferentiable_at
 
-lemma mdifferentiable_one :
-mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (1 : S → 𝕜) :=
-begin
-  intro x,
-  rw mdifferentiable_at,
-  simp [mdifferentiable_at, differentiable_within_at_univ] at *,
-  split,
-  { apply continuous_const.continuous_at },
-  { apply differentiable_at_const (1 : 𝕜) },
-end
+lemma mdifferentiable.const_smul {f : M → E'} (s : 𝕜) (hf : mdifferentiable I 𝓘(𝕜, E') f) :
+  mdifferentiable I 𝓘(𝕜, E') (s • f) :=
+λ x, mdifferentiable_at.const_smul I (hf x) s
 
 end arithmetic
 

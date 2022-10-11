@@ -8,7 +8,7 @@ import linear_algebra.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
 import linear_algebra.general_linear_group
-import geometry.manifold.charted_space
+import topology.sets.opens
 
 /-!
 # The upper half plane and its automorphisms
@@ -273,6 +273,15 @@ section upper_half_plane_manifold
 
 /--The upper half space as a subset of `ℂ` which is convenient sometimes.-/
 def upper_half_space := {z : ℂ | 0 <  z.im}
+
+
+lemma hcoe : upper_half_space = coe '' (set.univ : set upper_half_plane) :=
+begin
+simp, refl,
+end
+instance : has_coe ℍ (topological_space.opens ℂ) :=
+⟨λ _, ⟨(coe : ℍ → ℂ) '' (set.univ : set upper_half_plane) , by { rw ← hcoe,
+apply  is_open.preimage complex.continuous_im is_open_Ioi}⟩⟩
 
 lemma upper_half_plane_is_open: is_open upper_half_space  :=
 is_open.preimage complex.continuous_im is_open_Ioi

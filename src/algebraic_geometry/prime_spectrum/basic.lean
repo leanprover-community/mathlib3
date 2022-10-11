@@ -54,7 +54,7 @@ universes u v
 
 variables (R : Type u) [comm_ring R]
 
-/-- The maximal spectrum of a commutative ring `R` is the type of all prime ideals of `R`. -/
+/-- The maximal spectrum of a commutative ring `R` is the type of all maximal ideals of `R`. -/
 @[nolint has_nonempty_instance] def maximal_spectrum := {I : ideal R // I.is_maximal}
 
 namespace maximal_spectrum

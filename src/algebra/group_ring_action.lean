@@ -68,7 +68,7 @@ def mul_semiring_action.to_ring_equiv [mul_semiring_action G R] (x : G) : R ≃+
 /-- A multiplicative action of `N` on `B` and a group homomorphism `K →* N` induce
 a multiplicative action of `K` on `B`. -/
 def mul_semiring_action.comp_hom (g : K →* N) [mul_semiring_action N B] :
-mul_semiring_action K B :=
+  mul_semiring_action K B :=
 { smul := has_smul.comp.smul g,
   one_smul := λ a, by simp only [has_smul.comp.smul, map_one, one_smul],
   smul_zero:= λ n, by simp only [has_smul.comp.smul, smul_zero],

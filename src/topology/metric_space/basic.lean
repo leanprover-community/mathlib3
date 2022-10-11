@@ -537,6 +537,9 @@ by rw [mem_sphere', mem_sphere]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
+lemma closed_ball_eq_bInter_ball : closed_ball x ε = ⋂ δ > ε, ball x δ :=
+by ext y; rw [mem_closed_ball, ← forall_lt_iff_le', mem_Inter₂]; refl
+
 lemma ball_subset_ball' (h : ε₁ + dist x y ≤ ε₂) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z hz, calc
   dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
@@ -1558,13 +1561,14 @@ end ulift
 section prod
 variables [pseudo_metric_space β]
 
-noncomputable instance prod.pseudo_metric_space_max :
+instance prod.pseudo_metric_space_max :
   pseudo_metric_space (α × β) :=
 (pseudo_emetric_space.to_pseudo_metric_space_of_dist
-  (λ x y : α × β, max (dist x.1 y.1) (dist x.2 y.2))
+  (λ x y : α × β, dist x.1 y.1 ⊔ dist x.2 y.2)
   (λ x y, (max_lt (edist_lt_top _ _) (edist_lt_top _ _)).ne)
-  (λ x y, by simp only [dist_edist, ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _),
-    prod.edist_eq])).replace_bornology $
+  (λ x y, by simp only [sup_eq_max, dist_edist,
+    ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _), prod.edist_eq]))
+    .replace_bornology $
   λ s, by { simp only [← is_bounded_image_fst_and_snd, is_bounded_iff_eventually, ball_image_iff,
     ← eventually_and, ← forall_and_distrib, ← max_le_iff], refl }
 
@@ -1792,7 +1796,7 @@ open finset
 variables {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
 
 /-- A finite product of pseudometric spaces is a pseudometric space, with the sup distance. -/
-noncomputable instance pseudo_metric_space_pi : pseudo_metric_space (Πb, π b) :=
+instance pseudo_metric_space_pi : pseudo_metric_space (Πb, π b) :=
 begin
   /- we construct the instance from the pseudoemetric space instance to avoid checking again that
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
@@ -2491,6 +2495,17 @@ end diam
 
 end metric
 
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: the diameter of a set is always nonnegative. -/
+@[positivity]
+meta def positivity_diam : expr → tactic strictness
+| `(metric.diam %%s) := nonnegative <$> mk_app ``metric.diam_nonneg [s]
+| e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `metric.diam s`"
+
+end tactic
+
 lemma comap_dist_right_at_top_le_cocompact (x : α) : comap (λ y, dist y x) at_top ≤ cocompact α :=
 begin
   refine filter.has_basis_cocompact.ge_iff.2 (λ s hs, mem_comap.2 _),
@@ -2791,7 +2806,7 @@ metric_space.induced ulift.down ulift.down_injective ‹_›
 
 section prod
 
-noncomputable instance prod.metric_space_max [metric_space β] : metric_space (γ × β) :=
+instance prod.metric_space_max [metric_space β] : metric_space (γ × β) :=
 { eq_of_dist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
     exact prod.ext_iff.2 ⟨dist_le_zero.1 h₁, dist_le_zero.1 h₂⟩
@@ -2805,7 +2820,7 @@ open finset
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
 
 /-- A finite product of metric spaces is a metric space, with the sup distance. -/
-noncomputable instance metric_space_pi : metric_space (Πb, π b) :=
+instance metric_space_pi : metric_space (Πb, π b) :=
   /- we construct the instance from the emetric space instance to avoid checking again that the
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/

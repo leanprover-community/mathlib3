@@ -110,6 +110,9 @@ theorem eq_none_iff_forall_not_mem {o : option α} :
 @[simp] theorem bind_some : ∀ x : option α, x >>= some = x :=
 @bind_pure α option _ _
 
+@[simp] theorem bind_some' : ∀ x : option α, x.bind some = x :=
+bind_some
+
 @[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} :
   x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp

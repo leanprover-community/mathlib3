@@ -34,9 +34,9 @@ open category_theory.limits
 universes u v
 
 variables {X : Top.{u}} {C : Type u} [category.{u} C]
-variables [has_limits C] [has_terminal C] [has_colimits C]
+variables [has_limits C] [has_colimits C]
 variables [Π (x : X) (U : opens X), decidable (x ∈ U)]
-variables (𝓕 : presheaf C X)
+variables (𝓕 : presheaf C X) (𝓖 : sheaf C X)
 
 /--
 The `godement_presheaf` for a presheaf `𝓕` is defined as a product presheaf `∏ₓ skyscraper(𝓕ₓ)`
@@ -45,33 +45,17 @@ def godement_presheaf : presheaf C X :=
 ∏ (λ x, skyscraper_presheaf x (𝓕.stalk x) : X → presheaf C X)
 
 /--
-The sections of `godement_presheaf` on opens `U` is isomorphic to `∏ₓ skyscraper(x, 𝓕ₓ)(U)`, i.e.
-the categorical definition and the concrete definition agree.
--/
-@[simps] def godement_presheaf_obj (U : (opens X)ᵒᵖ) :
-  (godement_presheaf 𝓕).obj U ≅ ∏ (λ x, (skyscraper_presheaf x (𝓕.stalk x)).obj U) :=
-limit_obj_iso_limit_comp_evaluation _ _ ≪≫
-{ hom := lim_map { app := λ _, 𝟙 _, naturality' := by { rintros ⟨x⟩ ⟨y⟩ ⟨⟨(rfl : x = y)⟩⟩, refl } },
-  inv := lim_map { app := λ _, 𝟙 _, naturality' := by { rintros ⟨x⟩ ⟨y⟩ ⟨⟨(rfl : x = y)⟩⟩, refl } },
-  hom_inv_id' :=
-  begin
-    ext,
-    erw [category.assoc, lim_map_π, ←category.assoc, lim_map_π, category.id_comp, category.comp_id,
-      category.comp_id],
-  end,
-  inv_hom_id' :=
-  begin
-    dsimp,
-    ext,
-    erw [category.assoc, lim_map_π, ←category.assoc, lim_map_π, category.comp_id, category.id_comp,
-      category.comp_id],
-  end }
-
-/--
 Under the isomorphism `godement_presheaf(𝓕, U) ≅ ∏ₓ skyscraper(x, 𝓕ₓ)(U)`, there is a morphism
 `𝓕 ⟶ ∏ₓ skyscraper(x, 𝓕ₓ) ≅ godement_presheaf(𝓕)`
 -/
 def to_godement_presheaf : 𝓕 ⟶ godement_presheaf 𝓕 :=
 pi.lift $ λ p₀, (skyscraper_presheaf_stalk_adjunction p₀).unit.app 𝓕
+
+lemma godement_presheaf_is_sheaf (h : 𝓕.is_sheaf) : (godement_presheaf 𝓕).is_sheaf :=
+limit_is_sheaf _ $ λ ⟨x⟩, (skyscraper_sheaf x _).2
+
+def godement_sheaf : sheaf C X :=
+⟨godement_presheaf 𝓖.1, godement_presheaf_is_sheaf _ 𝓖.2⟩
+
 
 end presheaf

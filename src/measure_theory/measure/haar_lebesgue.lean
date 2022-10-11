@@ -8,6 +8,7 @@ import measure_theory.measure.haar
 import linear_algebra.finite_dimensional
 import analysis.normed_space.pointwise
 import measure_theory.group.pointwise
+import measure_theory.measure.doubling
 
 /-!
 # Relationship between the Haar and Lebesgue measures
@@ -21,7 +22,7 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 * `add_haar_preimage_linear_map` : when `f` is a linear map with nonzero determinant, the measure
   of `f ⁻¹' s` is the measure of `s` multiplied by the absolute value of the inverse of the
   determinant of `f`.
-* `add_haar_image_linear_map` :  when `f` is a linear map, the measure of `f '' s` is the
+* `add_haar_image_linear_map` : when `f` is a linear map, the measure of `f '' s` is the
   measure of `s` multiplied by the absolute value of the determinant of `f`.
 * `add_haar_submodule` : a strict submodule has measure `0`.
 * `add_haar_smul` : the measure of `r • s` is `|r| ^ dim * μ s`.
@@ -36,7 +37,7 @@ small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
 open topological_space set filter metric
-open_locale ennreal pointwise topological_space
+open_locale ennreal pointwise topological_space nnreal
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
@@ -188,10 +189,11 @@ linear equiv maps Haar measure to Haar measure.
 -/
 
 lemma map_linear_map_add_haar_pi_eq_smul_add_haar
-  {ι : Type*} [fintype ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
+  {ι : Type*} [finite ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
   (μ : measure (ι → ℝ)) [is_add_haar_measure μ] :
   measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
 begin
+  casesI nonempty_fintype ι,
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
   have := add_haar_measure_unique μ (pi_Icc01 ι),
@@ -499,6 +501,15 @@ calc
     { simp only [pow_pos (abs_pos.mpr hr), ennreal.of_real_eq_zero, not_le, ne.def], },
     { simp only [ennreal.of_real_ne_top, ne.def, not_false_iff] }
   end
+
+@[priority 100] instance is_doubling_measure_of_is_add_haar_measure : is_doubling_measure μ :=
+begin
+  refine ⟨⟨(2 : ℝ≥0) ^ (finrank ℝ E), _⟩⟩,
+  filter_upwards [self_mem_nhds_within] with r hr x,
+  rw [add_haar_closed_ball_mul μ x zero_le_two (le_of_lt hr), add_haar_closed_ball_center μ x,
+    ennreal.of_real, real.to_nnreal_pow zero_le_two],
+  simp only [real.to_nnreal_bit0, real.to_nnreal_one, le_refl],
+end
 
 /-!
 ### Density points

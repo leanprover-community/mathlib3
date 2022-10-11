@@ -101,6 +101,17 @@ end
 
 variables {α β}
 
+instance {α} : noetherian_space (cofinite_topology α) :=
+begin
+  simp only [noetherian_space_iff_opens, is_compact_iff_ultrafilter_le_nhds,
+    cofinite_topology.nhds_eq, ultrafilter.le_sup_iff],
+  intros s f hs,
+  rcases f.le_cofinite_or_eq_pure with hf|⟨a, rfl⟩,
+  { rcases filter.nonempty_of_mem (filter.le_principal_iff.1 hs) with ⟨a, ha⟩,
+    exact ⟨a, ha, or.inr hf⟩ },
+  { exact ⟨a, filter.le_principal_iff.mp hs, or.inl le_rfl⟩ }
+end
+
 lemma noetherian_space.is_compact [h : noetherian_space α] (s : set α) : is_compact s :=
 let H := (noetherian_space_tfae α).out 0 2 in H.mp h s
 
@@ -167,11 +178,7 @@ end
 
 @[priority 100]
 instance finite.to_noetherian_space [finite α] : noetherian_space α :=
-begin
-  casesI nonempty_fintype α,
-  classical,
-  exact ⟨@@fintype.well_founded_of_trans_of_irrefl (subtype.fintype _) _ _ _⟩
-end
+⟨finite.well_founded_of_trans_of_irrefl _⟩
 
 lemma noetherian_space.exists_finset_irreducible [noetherian_space α] (s : closeds α) :
   ∃ S : finset (closeds α), (∀ k : S, is_irreducible (k : set α)) ∧ s = S.sup id :=

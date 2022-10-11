@@ -363,7 +363,7 @@ lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : ℚ[X]) :
 begin
   by_cases hp : p = 0,
   { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
-    refine eq.symm (nat.le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
+    refine eq.symm (le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
     simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
     apply_instance },
   have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,

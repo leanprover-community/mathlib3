@@ -203,7 +203,7 @@ localization_algebra_of_submonoid_le _ _ x.prime_compl (non_zero_divisors R)
 lemma is_localization_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T]
   [algebra S T] [is_scalar_tower R S T] :
-  is_localization (N.map (algebra_map R S).to_monoid_hom) T :=
+  is_localization (N.map (algebra_map R S)) T :=
 { map_units := begin
     rintro ⟨_, ⟨y, hy, rfl⟩⟩,
     convert is_localization.map_units T ⟨y, hy⟩,

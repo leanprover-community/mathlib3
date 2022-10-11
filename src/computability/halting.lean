@@ -208,7 +208,7 @@ from λ f, ⟨set.mem_image_of_mem _, λ ⟨g, hg, e⟩, (H _ _ e).1 hg⟩,
     (partrec.nat_iff.1 $ eval_part.comp (const cf) computable.id)
     (partrec.nat_iff.1 $ eval_part.comp (const cg) computable.id)
     ((hC _).1 fC),
-λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_eq];
+λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_iff_false];
   exact ⟨by apply_instance, computable.const _⟩⟩
 
 theorem halting_problem_re (n) : re_pred (λ c, (eval c n).dom) :=

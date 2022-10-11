@@ -87,6 +87,9 @@ def to_non_unital_alg_hom (φ : character_space 𝕜 A) : A →ₙₐ[𝕜] 𝕜
 @[simp]
 lemma coe_to_non_unital_alg_hom (φ : character_space 𝕜 A) : ⇑(to_non_unital_alg_hom φ) = φ := rfl
 
+instance [subsingleton A] : is_empty (character_space 𝕜 A) :=
+⟨λ φ, φ.prop.1 $ continuous_linear_map.ext (λ x, by simp only [subsingleton.elim x 0, map_zero])⟩
+
 variables (𝕜 A)
 
 lemma union_zero :

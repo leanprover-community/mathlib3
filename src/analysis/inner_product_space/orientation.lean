@@ -156,7 +156,7 @@ include _i o
 /-- The volume form on an oriented real inner product space, a nonvanishing top-dimensional
 alternating form uniquely defined by compatibility with the orientation and inner product structure.
 -/
-def volume_form : alternating_map ℝ E ℝ (fin n) :=
+@[irreducible] def volume_form : alternating_map ℝ E ℝ (fin n) :=
 begin
   classical,
   unfreezingI { cases n },
@@ -198,8 +198,6 @@ begin
     rw [same_orientation_iff_det_eq_det, hb],
     exact o.fin_orthonormal_basis_orientation _ _ },
 end
-
-attribute [irreducible] orientation.volume_form
 
 lemma volume_form_robust' (b : orthonormal_basis (fin n) ℝ E) (v : fin n → E) :
   |o.volume_form v| = |b.to_basis.det v| :=

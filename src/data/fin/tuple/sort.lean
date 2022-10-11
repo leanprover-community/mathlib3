@@ -112,7 +112,8 @@ of_fn_injective $ eq_of_perm_of_sorted
 
 variables [linear_order α] {f : fin n → α} {σ : equiv.perm (fin n)}
 
-/- maybe add some docstring -/
+/-- A permutation `σ` equals `sort f` if and only if the map `i ↦ (f (σ i), σ i)` is
+strictly monotone (w.r.t. the lexicographic ordering on the target). -/
 lemma eq_sort_iff' : σ = sort f ↔ strict_mono (σ.trans $ graph_equiv₁ f) :=
 begin
   split; intro h,

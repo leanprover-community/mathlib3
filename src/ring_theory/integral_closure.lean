@@ -114,7 +114,7 @@ variables {R A B S : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S]
 variables [algebra R A] [algebra R B] (f : R →+* S)
 
-lemma is_integral_alg_hom {B C F : Type*} [ring B] [ring C] [algebra R B] [algebra A B]
+lemma map_is_integral {B C F : Type*} [ring B] [ring C] [algebra R B] [algebra A B]
   [algebra R C] [is_scalar_tower R A B] [algebra A C] [is_scalar_tower R A C] {b : B}
   [alg_hom_class F A B C] (f : F) (hb : is_integral R b) : is_integral R (f b) :=
 begin

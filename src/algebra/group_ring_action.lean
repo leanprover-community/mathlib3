@@ -70,12 +70,8 @@ a multiplicative action of `K` on `R`. -/
 def mul_semiring_action.comp_hom (g : K →* N) [mul_semiring_action N R] :
   mul_semiring_action K R :=
 { smul := has_smul.comp.smul g,
-  one_smul := λ a, by simp only [has_smul.comp.smul, map_one, one_smul],
-  smul_zero:= λ n, by simp only [has_smul.comp.smul, smul_zero],
-  smul_one := λ x, by simp [has_smul.comp.smul, smul_one],
-  smul_mul := λ n x y, by simp [has_smul.comp.smul, smul_mul'],
-  smul_add := λ n x y, by simp [has_smul.comp.smul, smul_add],
-  mul_smul := λ x y a, by simp only [has_smul.comp.smul, map_mul,mul_smul (g x) (g y) a] }
+  ..distrib_mul_action.comp_hom R g,
+  ..mul_distrib_mul_action.comp_hom R g }
 
 section
 variables {M G R}

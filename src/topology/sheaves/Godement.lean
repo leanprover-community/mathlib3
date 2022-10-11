@@ -111,7 +111,8 @@ section concrete
 variables [concrete_category.{u} C] [preserves_limits (forget C)]
 variables [reflects_isomorphisms (forget C)]
 
-local notation `sheaf_in_Type` := category_theory.presheaf.Sheaf_in_Type (opens.grothendieck_topology X) (forget C)
+local notation `sheaf_in_Type` := category_theory.presheaf.Sheaf_in_Type
+  (opens.grothendieck_topology X) (forget C)
 
 lemma stalk_bundles_eq0 (U : (opens X)ᵒᵖ) (x y : (sheaf_in_Type .obj 𝓖).1.obj U)
   (eq1 : (sheaf_in_Type .map (to_godement_sheaf 𝓖)).1.app U x =
@@ -156,7 +157,8 @@ begin
   rw [eq1'],
 end
 
-instance mono_to_godement_sheaf [preserves_filtered_colimits (forget C)] : mono $ to_godement_sheaf 𝓖 :=
+instance mono_to_godement_sheaf [preserves_filtered_colimits (forget C)] :
+  mono $ to_godement_sheaf 𝓖 :=
 begin
   rw presheaf.mono_iff_stalk_mono,
   intros x,

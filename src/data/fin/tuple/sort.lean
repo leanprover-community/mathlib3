@@ -112,47 +112,31 @@ of_fn_injective $ eq_of_perm_of_sorted
 
 variables [linear_order α] {f : fin n → α} {σ : equiv.perm (fin n)}
 
-lemma graph_equiv₁_apply (i : fin n) : (graph_equiv₁ f i).val = to_lex (f i, i) := rfl
+lemma graph_equiv₁_apply (i : fin n) : ↑(graph_equiv₁ f i) = to_lex (f i, i) := rfl
 
-lemma graph_equiv₂_apply (i : fin n) : (graph_equiv₂ f i).val = to_lex (f (sort f i), sort f i) :=
+lemma graph_equiv₂_apply' (i : fin n) : graph_equiv₂ f i =
+  ⟨to_lex (f (sort f i), sort f i), finset.mem_image_of_mem _ $ finset.mem_univ _⟩ :=
+((graph_equiv₁ f).apply_symm_apply _).symm
+
+/- maybe add some docstring -/
+lemma eq_sort_iff' : σ = sort f ↔ strict_mono (σ.trans $ graph_equiv₁ f) :=
 begin
-  simp only [sort, graph_equiv₁, to_lex, prod.ext_iff, subtype.val_eq_coe, equiv.coe_trans,
-             equiv.coe_fn_symm_mk, rel_iso.coe_fn_to_equiv, function.comp_app, equiv.coe_refl,
-             id.def, eq_self_iff_true, and_true],
-  have := (graph_equiv₂ f i).prop,
-  simp only [graph, finset.mem_image, finset.mem_univ, exists_true_left] at this,
-  obtain ⟨j, hj⟩ := this,
-  rw ← hj,
+  split; intro h,
+  { rw [h, sort, equiv.trans_assoc, equiv.symm_trans_self], exact (graph_equiv₂ f).strict_mono },
+  { have := subsingleton.elim (graph_equiv₂ f) (h.order_iso_of_surjective _ $ equiv.surjective _),
+    ext1, exact (graph_equiv₁ f).apply_eq_iff_eq_symm_apply.1 (fun_like.congr_fun this x).symm },
 end
-
-lemma graph_equiv₂_apply' (i : fin n) :
-  graph_equiv₂ f i = ⟨to_lex (f (sort f i), sort f i),
-                      (@graph_equiv₂_apply _ _ _ f i) ▸ (graph_equiv₂ f i).prop⟩ :=
-by simp [subtype.ext_iff, ← subtype.val_eq_coe, graph_equiv₂_apply]
 
 /-- A permutation `σ` equals `sort f` if and only if `f ∘ σ` is monotone and whenever `i < j`
 and `f (σ i) = f (σ j)`, then `σ i < σ j`. This means that `sort f` is the lexicographically
 smallest permutation `σ` such that `f ∘ σ` is monotone. -/
 lemma eq_sort_iff : σ = sort f ↔ monotone (f ∘ σ) ∧ ∀ i j, i < j → f (σ i) = f (σ j) → σ i < σ j :=
 begin
-  refine ⟨λ h, ⟨@eq.substr _ (λ (τ : equiv.perm _), monotone (f ∘ τ)) _ _ h (monotone_sort f),
-                λ i j hij hfij, _⟩, λ h₁, _⟩,
-  { have H := (order_iso.lt_iff_lt (graph_equiv₂ f)).mpr hij,
-    rw [graph_equiv₂_apply', graph_equiv₂_apply' j, subtype.mk_lt_mk, prod.lex.lt_iff, ← h] at H,
-    exact H.elim (λ h₁, false.elim $ hfij.not_lt h₁) (λ h₁, h₁.2), },
-  { obtain ⟨hf, h₂⟩ := h₁,
-    let oi : fin n ≃o graph f :=
-    { to_equiv := σ.trans (graph_equiv₁ f),
-      map_rel_iff' := λ a b, begin
-        simp_rw [equiv.coe_trans, ←subtype.coe_le_coe, ←subtype.val_eq_coe, graph_equiv₁_apply,
-                 prod.lex.le_iff],
-        refine ⟨λ h, of_not_not (λ hh, _), λ h, (hf h).lt_or_eq.elim or.inl (λ he, or.inr
-          ⟨he, h.lt_or_eq.elim (λ hl, (h₂ a b hl he).le) (λ he', (congr_arg σ he').le)⟩)⟩,
-        have H := h.resolve_left (hf $ le_of_not_le hh).not_lt,
-        exact H.2.not_lt (h₂ b a (lt_of_not_le hh) H.1.symm),
-      end },
-    simp only [sort, subsingleton.elim (graph_equiv₂ f) oi, equiv.trans_assoc,
-               equiv.self_trans_symm, equiv.trans_refl], }
+  rw eq_sort_iff',
+  refine ⟨λ h, ⟨(monotone_proj f).comp h.monotone, λ i j hij hfij, _⟩, λ h i j hij, _⟩,
+  { exact (((prod.lex.lt_iff _ _).1 $ h hij).resolve_left hfij.not_lt).2 },
+  { obtain he|hl := (h.1 hij.le).eq_or_lt; apply (prod.lex.lt_iff _ _).2,
+    exacts [or.inr ⟨he, h.2 i j hij he⟩, or.inl hl] },
 end
 
 /-- The permutation that sorts `f` is the identity if and only if `f` is monotone. -/

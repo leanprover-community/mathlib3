@@ -101,12 +101,8 @@ variables {n : ℕ} {α : Type*}
 smaller than the original tuple. -/
 lemma lex_desc [preorder α] {f : fin n → α} {i j : fin n} (h₁ : i < j) (h₂ : f j < f i) :
   to_lex (f ∘ equiv.swap i j) < to_lex f :=
-begin
-  simp only [(<), pi.lex, pi.to_lex_apply, function.comp_app],
-  refine ⟨i, λ k (hik : k < i), _, _⟩,
-  { rw [equiv.swap_apply_of_ne_of_ne hik.ne (hik.trans h₁).ne], },
-  { simpa only [equiv.swap_apply_left], }
-end
+⟨i, λ k hik, congr_arg f (equiv.swap_apply_of_ne_of_ne hik.ne (hik.trans h₁).ne),
+  by simpa only [pi.to_lex_apply, function.comp_app, equiv.swap_apply_left] using h₂⟩
 
 /-- If two permutations of a tuple `f` are both monotone, then they are equal. -/
 lemma unique_monotone [partial_order α] {f : fin n → α} {σ τ : equiv.perm (fin n)}

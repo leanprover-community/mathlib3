@@ -1,6 +1,6 @@
 import tactic.print_sorry
 
-axiom my_sorry : false
+axiom my_sorry : false -- we avoid using noisy code in the test folder, so we use an axiom instead
 def foo1 : false := my_sorry
 def foo2 : false ∧ false := ⟨my_sorry, foo1⟩
 def foo3 : false ∧ false := ⟨foo2.1, my_sorry⟩

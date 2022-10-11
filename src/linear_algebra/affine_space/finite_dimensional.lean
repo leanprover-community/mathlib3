@@ -444,10 +444,7 @@ by rw [collinear_iff_finrank_le_one,
 
 /-- If three points are not collinear, the first and second are different. -/
 lemma ne₁₂_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₁ ≠ p₂ :=
-begin
-  rintro rfl,
-  simpa [collinear_pair] using h
-end
+by { rintro rfl, simpa [collinear_pair] using h }
 
 /-- If three points are not collinear, the first and third are different. -/
 lemma ne₁₃_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₁ ≠ p₃ :=

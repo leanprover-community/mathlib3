@@ -38,6 +38,7 @@ variable (n : ℕ)
 
 open_locale pointwise
 
+/-- (Implementation) An auxiliary definition for `nat.divisors`. -/
 private def divisors' : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.Icc 1 n)
 
 lemma mem_divisors' {n m : ℕ} : n ∈ divisors' m ↔ n ∣ m ∧ m ≠ 0 :=

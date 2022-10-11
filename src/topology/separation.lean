@@ -79,13 +79,6 @@ If the space is also compact:
 * `disjoint_nested_nhds`: Given two points `x ≠ y`, we can find neighbourhoods `x ∈ V₁ ⊆ U₁` and
   `y ∈ V₂ ⊆ U₂`, with the `Vₖ` closed and the `Uₖ` open, such that the `Uₖ` are disjoint.
 
-### Discrete spaces
-
-* `discrete_topology_iff_nhds`: Discrete topological spaces are those whose neighbourhood
-  filters are the `pure` filter (which is the principal filter at a singleton).
-* `induced_bot`/`discrete_topology_induced`: The pullback of the discrete topology
-  under an inclusion is the discrete topology.
-
 ## References
 
 https://en.wikipedia.org/wiki/Separation_axiom
@@ -743,20 +736,6 @@ begin
   change tX.induced ((coe : s → X) ∘ (set.inclusion ts)) =
     topological_space.induced (set.inclusion ts) (tX.induced _),
   rw ← induced_compose,
-end
-
-/-- This lemma characterizes discrete topological spaces as those whose singletons are
-neighbourhoods. -/
-lemma discrete_topology_iff_nhds {X : Type*} [topological_space X] :
-  discrete_topology X ↔ (nhds : X → filter X) = pure :=
-begin
-  split,
-  { introI hX,
-    exact nhds_discrete X },
-  { intro h,
-    constructor,
-    apply eq_of_nhds_eq_nhds,
-    simp [h, nhds_bot] }
 end
 
 /-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the

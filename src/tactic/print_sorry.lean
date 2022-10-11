@@ -46,8 +46,8 @@ meta def find_all_exprs_aux (env : environment) (f : expr → bool) (g : name �
   in `nm` that contain a subexpression `e` such that `test e` is true.
   All declarations `n` such that `exclude n` is true (and all their descendants) are ignored. -/
 meta def find_all_exprs (env : environment) (test : expr → bool) (exclude : name → bool)
-  (nm : name) : tactic $ list $ name × bool × list name :=
-do ⟨_, _, l, _, _⟩ ← find_all_exprs_aux env test exclude nm ⟨ff, ff, [], mk_name_map, []⟩,
+  (nm : name) : tactic $ list $ name × bool × list name := do
+  ⟨_, _, l, _, _⟩ ← find_all_exprs_aux env test exclude nm ⟨ff, ff, [], mk_name_map, []⟩,
   pure l
 
 end tactic
@@ -59,9 +59,9 @@ assumed to be `sorry`-free, which greatly reduces the search space. We could als
 but this doesn't speed up the search. -/
 meta def print_sorry_in (nm : name) (ignore_mathlib := tt) : tactic unit := do
   env ← get_env,
-  dir1 ← get_mathlib_dir,
+  dir ← get_mathlib_dir,
   data ← find_all_exprs env (λ e, e.is_sorry.is_some)
-    (if ignore_mathlib then λ nm, env.is_prefix_of_file dir1 nm else λ _, ff) nm,
+    (if ignore_mathlib then env.is_prefix_of_file dir else λ _, ff) nm,
   let to_print : list format := data.map $ λ ⟨nm, contains_sorry, desc⟩,
     let s1 := if contains_sorry then " contains sorry" else "",
         s2 := if contains_sorry && !desc.empty then " and" else "",

@@ -145,7 +145,7 @@ let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, hp.map _,
   by rw [← aeval_def, aeval_map_algebra_map, aeval_def, hpx]⟩
 
-lemma is_integral_int_alg_hom_class {B C F : Type*} [ring B] [ring C] {b : B}
+lemma map_is_integral_int {B C F : Type*} [ring B] [ring C] {b : B}
   [ring_hom_class F B C] (f : F) (hb : is_integral ℤ b) :
   is_integral ℤ (f b) :=
 is_integral_alg_hom (f : B →+* C).to_int_alg_hom hb

@@ -2506,6 +2506,17 @@ end
 
 end metric
 
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: the diameter of a set is always nonnegative. -/
+@[positivity]
+meta def positivity_diam : expr → tactic strictness
+| `(metric.diam %%s) := nonnegative <$> mk_app ``metric.diam_nonneg [s]
+| e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `metric.diam s`"
+
+end tactic
+
 lemma comap_dist_right_at_top_le_cocompact (x : α) : comap (λ y, dist y x) at_top ≤ cocompact α :=
 begin
   refine filter.has_basis_cocompact.ge_iff.2 (λ s hs, mem_comap.2 _),

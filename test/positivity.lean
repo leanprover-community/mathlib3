@@ -215,7 +215,8 @@ example {r : ℝ} : 0 < real.exp r := by positivity
 
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 
-example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
+example [metric_space α] (x y : α) : 0 ≤ dist x y := by positivity
+example [metric_space α] {s : set α} : 0 ≤ metric.diam s := by positivity
 
 example {E : Type*} [add_group E] {p : add_group_seminorm E} {x : E} : 0 ≤ p x := by positivity
 example {E : Type*} [group E] {p : group_seminorm E} {x : E} : 0 ≤ p x := by positivity

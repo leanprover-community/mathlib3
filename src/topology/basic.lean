@@ -1089,14 +1089,14 @@ lemma is_closed.interior_union_left {s t : set α} (h : is_closed s) :
 
 lemma is_closed.interior_union_right {s t : set α} (h : is_closed t) :
   interior (s ∪ t) ⊆ interior s ∪ t :=
-by simpa only [union_comm] using h.interior_union
+by simpa only [union_comm] using h.interior_union_left
 
 lemma is_open.inter_closure {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 compl_subset_compl.mp $
-  by simpa only [← interior_compl, compl_inter] using is_closed.interior_union h.is_closed_compl
+  by simpa only [← interior_compl, compl_inter] using is_closed.interior_union_left h.is_closed_compl
 
 lemma is_open.closure_inter {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
-by simpa only [inter_comm] using h.closure_inter
+by simpa only [inter_comm] using h.inter_closure
 
 lemma dense.open_subset_closure_inter {s t : set α} (hs : dense s) (ht : is_open t) :
   t ⊆ closure (t ∩ s) :=

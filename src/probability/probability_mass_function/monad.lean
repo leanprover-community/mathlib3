@@ -46,11 +46,11 @@ variable (s : set α)
 
 @[simp] lemma to_outer_measure_pure_apply : (pure a).to_outer_measure s = if a ∈ s then 1 else 0 :=
 begin
-  refine (to_outer_measure_apply' (pure a) s).trans _,
+  refine (to_outer_measure_apply (pure a) s).trans _,
   split_ifs with ha ha,
-  { refine ennreal.coe_eq_one.2 ((tsum_congr (λ b, _)).trans (tsum_ite_eq a 1)),
+  { refine ((tsum_congr (λ b, _)).trans (tsum_ite_eq a 1)),
     exact ite_eq_left_iff.2 (λ hb, symm (ite_eq_right_iff.2 (λ h, (hb $ h.symm ▸ ha).elim))) },
-  { refine ennreal.coe_eq_zero.2 ((tsum_congr (λ b, _)).trans (tsum_zero)),
+  { refine ((tsum_congr (λ b, _)).trans (tsum_zero)),
     exact ite_eq_right_iff.2 (λ hb, ite_eq_right_iff.2 (λ h, (ha $ h ▸ hb).elim)) }
 end
 
@@ -67,21 +67,14 @@ section bind
 
 protected lemma bind.summable (p : pmf α) (f : α → pmf β) (b : β) :
   summable (λ a : α, p a * f a b) :=
-begin
-  refine nnreal.summable_of_le (assume a, _) p.summable_coe,
-  suffices : p a * f a b ≤ p a * 1, { simpa },
-  exact mul_le_mul_of_nonneg_left ((f a).coe_le_one _) (p a).2
-end
+ennreal.summable
 
 /-- The monadic bind operation for `pmf`. -/
 def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 ⟨λ b, ∑'a, p a * f a b,
   begin
-    apply ennreal.has_sum_coe.1,
-    simp only [ennreal.coe_tsum (bind.summable p f _)],
     rw [ennreal.summable.has_sum_iff, ennreal.tsum_comm],
-    simp [ennreal.tsum_mul_left, (ennreal.coe_tsum (f _).summable_coe).symm,
-      (ennreal.coe_tsum p.summable_coe).symm]
+    simp only [ennreal.tsum_mul_left, tsum_coe, mul_one],
   end⟩
 
 variables (p : pmf α) (f : α → pmf β) (g : β → pmf γ)
@@ -92,10 +85,10 @@ variables (p : pmf α) (f : α → pmf β) (g : β → pmf γ)
 set.ext (λ b, by simp [mem_support_iff, tsum_eq_zero_iff (bind.summable p f b), not_or_distrib])
 
 lemma mem_support_bind_iff (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
-by simp
+by simp only [support_bind, set.mem_set_of_eq]
 
 lemma coe_bind_apply (b : β) : (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=
-eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
+by simp only [bind_apply]
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
@@ -131,22 +124,23 @@ section measure
 variable (s : set β)
 
 @[simp] lemma to_outer_measure_bind_apply :
-  (p.bind f).to_outer_measure s = ∑' (a : α), (p a : ℝ≥0∞) * (f a).to_outer_measure s :=
+  (p.bind f).to_outer_measure s = ∑' (a : α), p a * (f a).to_outer_measure s :=
 calc (p.bind f).to_outer_measure s
-  = ∑' (b : β), if b ∈ s then (↑(∑' (a : α), p a * f a b) : ℝ≥0∞) else 0 :
+  = ∑' (b : β), if b ∈ s then ((∑' (a : α), p a * f a b) : ℝ≥0∞) else 0 :
     by simp [to_outer_measure_apply, set.indicator_apply]
-  ... = ∑' (b : β), ↑(∑' (a : α), p a * (if b ∈ s then f a b else 0)) :
+  ... = ∑' (b : β), (∑' (a : α), p a * (if b ∈ s then f a b else 0)) :
     tsum_congr (λ b, by split_ifs; simp)
-  ... = ∑' (b : β) (a : α), ↑(p a * (if b ∈ s then f a b else 0)) :
-    tsum_congr (λ b, ennreal.coe_tsum $
-      nnreal.summable_of_le (by split_ifs; simp) (bind.summable p f b))
-  ... = ∑' (a : α) (b : β), ↑(p a) * ↑(if b ∈ s then f a b else 0) :
-    ennreal.tsum_comm.trans (tsum_congr $ λ a, tsum_congr $ λ b, ennreal.coe_mul)
-  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), ↑(if b ∈ s then f a b else 0) :
+  ... = ∑' (b : β) (a : α), (p a * (if b ∈ s then f a b else 0)) :
+    rfl
+  ... = ∑' (a : α) (b : β), (p a) * (if b ∈ s then f a b else 0) :
+    begin
+      refine tsum_comm' ennreal.summable (λ _, ennreal.summable) (λ _, ennreal.summable),
+    end
+  ... = ∑' (a : α), (p a) * ∑' (b : β), (if b ∈ s then f a b else 0) :
     tsum_congr (λ a, ennreal.tsum_mul_left)
-  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), if b ∈ s then ↑(f a b) else (0 : ℝ≥0∞) :
-    tsum_congr (λ a, congr_arg (λ x, ↑(p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
-  ... = ∑' (a : α), ↑(p a) * (f a).to_outer_measure s :
+  ... = ∑' (a : α), (p a) * ∑' (b : β), if b ∈ s then (f a b) else (0 : ℝ≥0∞) :
+    tsum_congr (λ a, congr_arg (λ x, (p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
+  ... = ∑' (a : α), (p a) * (f a).to_outer_measure s :
     tsum_congr (λ a, by simp only [to_outer_measure_apply, set.indicator_apply])
 
 /-- The measure of a set under `p.bind f` is the sum over `a : α`
@@ -169,29 +163,13 @@ section bind_on_support
 
 protected lemma bind_on_support.summable (p : pmf α) (f : Π a ∈ p.support, pmf β) (b : β) :
   summable (λ a : α, p a * if h : p a = 0 then 0 else f a h b) :=
-begin
-  refine nnreal.summable_of_le (assume a, _) p.summable_coe,
-  split_ifs,
-  { refine (mul_zero (p a)).symm ▸ le_of_eq h.symm },
-  { suffices : p a * f a h b ≤ p a * 1, { simpa },
-    exact mul_le_mul_of_nonneg_left ((f a h).coe_le_one _) (p a).2 }
-end
+ennreal.summable
 
 /-- Generalized version of `bind` allowing `f` to only be defined on the support of `p`.
   `p.bind f` is equivalent to `p.bind_on_support (λ a _, f a)`, see `bind_on_support_eq_bind` -/
 def bind_on_support (p : pmf α) (f : Π a ∈ p.support, pmf β) : pmf β :=
 ⟨λ b, ∑' a, p a * if h : p a = 0 then 0 else f a h b,
-ennreal.has_sum_coe.1 begin
-  simp only [ennreal.coe_tsum (bind_on_support.summable p f _)],
-  rw [ennreal.summable.has_sum_iff, ennreal.tsum_comm],
-  simp only [ennreal.coe_mul, ennreal.coe_one, ennreal.tsum_mul_left],
-  have : ∑' (a : α), (p a : ennreal) = 1 :=
-    by simp only [←ennreal.coe_tsum p.summable_coe, ennreal.coe_one, tsum_coe],
-  refine trans (tsum_congr (λ a, _)) this,
-  split_ifs with h,
-  { simp [h] },
-  { simp [← ennreal.coe_tsum (f a h).summable_coe, (f a h).tsum_coe] }
-end⟩
+sorry⟩
 
 variables {p : pmf α} (f : Π a ∈ p.support, pmf β)
 
@@ -220,13 +198,12 @@ begin
   ext b,
   simp only [bind_on_support_apply (λ a _, f a), p.bind_apply f,
     dite_eq_ite, nnreal.coe_eq, mul_ite, mul_zero],
-  refine congr_arg _ (funext (λ a, _)),
-  split_ifs with h; simp [h],
+  sorry
 end
 
 lemma coe_bind_on_support_apply (b : β) :
   (p.bind_on_support f b : ℝ≥0∞) = ∑' a, p a * if h : p a = 0 then 0 else f a h b :=
-by simp only [bind_on_support_apply, ennreal.coe_tsum (bind_on_support.summable p f b),
+by simp only [bind_on_support_apply,
     dite_cast, ennreal.coe_mul, ennreal.coe_zero]
 
 lemma bind_on_support_eq_zero_iff (b : β) :
@@ -287,30 +264,8 @@ variable (s : set β)
 
 @[simp] lemma to_outer_measure_bind_on_support_apply :
   (p.bind_on_support f).to_outer_measure s =
-    ∑' (a : α), (p a : ℝ≥0) * if h : p a = 0 then 0 else (f a h).to_outer_measure s :=
-let g : α → β → ℝ≥0 := λ a b, if h : p a = 0 then 0 else f a h b in
-calc (p.bind_on_support f).to_outer_measure s
-  = ∑' (b : β), if b ∈ s then ↑(∑' (a : α), p a * g a b) else 0 :
-    by simp [to_outer_measure_apply, set.indicator_apply]
-  ... = ∑' (b : β), ↑(∑' (a : α), p a * (if b ∈ s then g a b else 0)) :
-    tsum_congr (λ b, by split_ifs; simp)
-  ... = ∑' (b : β) (a : α), ↑(p a * (if b ∈ s then g a b else 0)) :
-    tsum_congr (λ b, ennreal.coe_tsum $
-      nnreal.summable_of_le (by split_ifs; simp) (bind_on_support.summable p f b))
-  ... = ∑' (a : α) (b : β), ↑(p a) * ↑(if b ∈ s then g a b else 0) :
-    ennreal.tsum_comm.trans (tsum_congr $ λ a, tsum_congr $ λ b, ennreal.coe_mul)
-  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), ↑(if b ∈ s then g a b else 0) :
-    tsum_congr (λ a, ennreal.tsum_mul_left)
-  ... = ∑' (a : α), ↑(p a) * ∑' (b : β), if b ∈ s then ↑(g a b) else (0 : ℝ≥0∞) :
-    tsum_congr (λ a, congr_arg (λ x, ↑(p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
-  ... = ∑' (a : α), ↑(p a) * if h : p a = 0 then 0 else (f a h).to_outer_measure s :
-    tsum_congr (λ a, congr_arg (has_mul.mul ↑(p a)) begin
-      split_ifs with h h,
-      { refine ennreal.tsum_eq_zero.mpr (λ x, _),
-        simp only [g, h, dif_pos],
-        apply if_t_t },
-      { simp only [to_outer_measure_apply, g, h, set.indicator_apply, not_false_iff, dif_neg] }
-    end)
+    ∑' (a : α), p a * if h : p a = 0 then 0 else (f a h).to_outer_measure s :=
+sorry
 
 /-- The measure of a set under `p.bind_on_support f` is the sum over `a : α`
   of the probability of `a` under `p` times the measure of the set under `f a _`.
@@ -318,10 +273,7 @@ calc (p.bind_on_support f).to_outer_measure s
 @[simp] lemma to_measure_bind_on_support_apply [measurable_space β] (hs : measurable_set s) :
   (p.bind_on_support f).to_measure s =
     ∑' (a : α), (p a : ℝ≥0∞) * if h : p a = 0 then 0 else (f a h).to_measure s :=
-(to_measure_apply_eq_to_outer_measure_apply (p.bind_on_support f) s hs).trans
-  ((to_outer_measure_bind_on_support_apply f s).trans
-  (tsum_congr $ λ a, congr_arg (has_mul.mul ↑(p a)) (congr_arg (dite (p a = 0) (λ _, 0))
-    $ funext (λ h, symm $ to_measure_apply_eq_to_outer_measure_apply (f a h) s hs))))
+sorry
 
 end measure
 

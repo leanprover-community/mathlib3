@@ -31,18 +31,17 @@ universes u v
 variables (R : Type u) [comm_ring R]
 
 /-- The maximal spectrum of a commutative ring `R` is the type of all maximal ideals of `R`. -/
-@[nolint has_nonempty_instance] def maximal_spectrum := {I : ideal R // I.is_maximal}
+@[ext, nolint has_nonempty_instance] structure maximal_spectrum :=
+(to_ideal : ideal R) (is_maximal : to_ideal.is_maximal)
+
+attribute [instance] maximal_spectrum.is_maximal
 
 variable {R}
 
 namespace maximal_spectrum
 
 /-- View a point in the maximal spectrum of a commutative ring as an ideal of that ring. -/
-abbreviation as_ideal (x : maximal_spectrum R) : ideal R := x.val
-
-@[ext] lemma ext {x y : maximal_spectrum R} : x = y ↔ x.as_ideal = y.as_ideal := subtype.ext_iff_val
-
-instance is_maximal (x : maximal_spectrum R) : x.as_ideal.is_maximal := x.property
+abbreviation as_ideal (x : maximal_spectrum R) : ideal R := x.to_ideal
 
 instance is_prime (x : maximal_spectrum R) : x.as_ideal.is_prime := x.is_maximal.is_prime
 
@@ -51,17 +50,17 @@ end maximal_spectrum
 namespace prime_spectrum
 
 /-- The natural inclusion from the maximal spectrum to the prime spectrum. -/
-def of_maximal_spectrum (x : maximal_spectrum R) : prime_spectrum R := ⟨x.val, x.is_prime⟩
+def of_maximal_spectrum (x : maximal_spectrum R) : prime_spectrum R := ⟨x.to_ideal, x.is_prime⟩
 
 lemma of_maximal_spectrum_injective : (@of_maximal_spectrum R _).injective :=
-λ ⟨_, _⟩ ⟨_, _⟩, subtype.mk_eq_mk.mpr ∘ subtype.mk.inj
+λ ⟨_, _⟩ ⟨_, _⟩ h, by simpa only [maximal_spectrum.mk.inj_eq] using subtype.mk.inj h
 
 lemma of_maximal_spectrum_range :
   set.range (@of_maximal_spectrum R _) = {x | is_closed ({x} : set $ prime_spectrum R)} :=
 begin
   simp only [is_closed_singleton_iff_is_maximal],
   ext ⟨x, _⟩,
-  exact ⟨λ ⟨y, hy⟩, hy ▸ y.property, λ hx, ⟨⟨x, hx⟩, rfl⟩⟩
+  exact ⟨λ ⟨y, hy⟩, hy ▸ y.is_maximal, λ hx, ⟨⟨x, hx⟩, rfl⟩⟩
 end
 
 end prime_spectrum

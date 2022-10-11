@@ -1,8 +1,22 @@
+/-
+Copyright (c) 2022 Floris van Doorn. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Floris van Doorn
+-/
 import tactic.core
 import data.bool.basic
 
-open tactic
+/-!
+# Print sorry
 
+Adds a command `#print_sorry_in nm` that prints all occurrences of `sorry` in declarations used in
+`nm`, including all intermediate declarations.
+
+Other searches through the environment can be done using `tactic.find_all_exprs`
+-/
+
+
+namespace tactic
 /-- Auxilliary data type for `tactic.find_all_exprs` -/
 meta structure find_all_expr_data :=
 (depends_on_sorry : bool) -- this declaration depends on sorry
@@ -28,13 +42,16 @@ meta def find_all_exprs_aux (env : environment) (f : expr → bool) (g : name �
       if b then n::desc else desc⟩
   end
 
-/-- `find_all_exprs env test exclude nm` searches for all declarations (transively) occuring in `nm`
-  that contain a subexpression `e` such that `test e` is true.
+/-- `tactic.find_all_exprs env test exclude nm` searches for all declarations (transively) occuring
+  in `nm` that contain a subexpression `e` such that `test e` is true.
   All declarations `n` such that `exclude n` is true (and all their descendants) are ignored. -/
 meta def find_all_exprs (env : environment) (test : expr → bool) (exclude : name → bool)
   (nm : name) : tactic $ list $ name × bool × list name :=
 do ⟨_, _, l, _, _⟩ ← find_all_exprs_aux env test exclude nm ⟨ff, ff, [], mk_name_map, []⟩,
   pure l
+
+end tactic
+open tactic
 
 /-- Print all declarations that (transively) occur in the value of declaration `nm` and depend on
 `sorry`. If `ignore_mathlib` is set true, then all declarations in `mathlib` are

@@ -40,10 +40,7 @@ variable {R}
 
 namespace maximal_spectrum
 
-/-- View a point in the maximal spectrum of a commutative ring as an ideal of that ring. -/
-abbreviation as_ideal (x : maximal_spectrum R) : ideal R := x.to_ideal
-
-instance is_prime (x : maximal_spectrum R) : x.as_ideal.is_prime := x.is_maximal.is_prime
+instance is_prime (x : maximal_spectrum R) : x.to_ideal.is_prime := x.is_maximal.is_prime
 
 end maximal_spectrum
 

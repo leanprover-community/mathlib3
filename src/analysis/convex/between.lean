@@ -572,9 +572,9 @@ end linear_ordered_field
 
 namespace affine_subspace
 
-section ordered_comm_ring
+section strict_ordered_comm_ring
 
-variables [ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
+variables [strict_ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
 variables [add_comm_group V'] [module R V'] [add_torsor V' P']
 
 include V
@@ -919,7 +919,7 @@ lemma _root_.wbtw.w_opp_side₃₁ {s : affine_subspace R P} {x y z : P} (h : wb
   (hy : y ∈ s) : s.w_opp_side z x :=
 h.symm.w_opp_side₁₃ hy
 
-end ordered_comm_ring
+end strict_ordered_comm_ring
 
 section linear_ordered_field
 

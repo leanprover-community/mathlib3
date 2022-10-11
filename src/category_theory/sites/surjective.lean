@@ -60,8 +60,8 @@ begin
   exact ⟨F.map i.op s, this s⟩,
 end
 
-/-- A morphism of presheaves `f : F ⟶ G` is locally surjective with respect to a grothendieck topology
-if every section of `G` is locally in the image of `f`. -/
+/-- A morphism of presheaves `f : F ⟶ G` is locally surjective with respect to a grothendieck
+topology if every section of `G` is locally in the image of `f`. -/
 def is_locally_surjective {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G) : Prop :=
 ∀ (U : C) (s : G.obj (op U)), image_sieve f s ∈ J U
 

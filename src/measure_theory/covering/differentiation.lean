@@ -888,7 +888,7 @@ end
 /-- *Lebesgue differentiation theorem*: for almost every point `x`, the
 average of `∥f y - f x∥` on `a` tends to `0` as `a` shrinks to `x` along a Vitali family.-/
 lemma ae_tendsto_average_norm_sub {f : α → E} (hf : integrable f μ) :
-  ∀ᵐ x ∂μ, tendsto (λ a, (⨍ y in a, ∥f y - f x∥ ∂μ)) (v.filter_at x) (𝓝 0) :=
+  ∀ᵐ x ∂μ, tendsto (λ a, ⨍ y in a, ∥f y - f x∥ ∂μ) (v.filter_at x) (𝓝 0) :=
 begin
   filter_upwards [v.ae_tendsto_lintegral_nnnorm_sub_div hf, v.ae_eventually_measure_pos]
     with x hx h'x,
@@ -911,7 +911,7 @@ end
 /-- *Lebesgue differentiation theorem*: for almost every point `x`, the
 average of `f` on `a` tends to `f x` as `a` shrinks to `x` along a Vitali family.-/
 lemma ae_tendsto_average [normed_space ℝ E] [complete_space E] {f : α → E} (hf : integrable f μ) :
-  ∀ᵐ x ∂μ, tendsto (λ a, (⨍ y in a, f y ∂μ)) (v.filter_at x) (𝓝 (f x)) :=
+  ∀ᵐ x ∂μ, tendsto (λ a, ⨍ y in a, f y ∂μ) (v.filter_at x) (𝓝 (f x)) :=
 begin
   filter_upwards [v.ae_tendsto_average_norm_sub hf, v.ae_eventually_measure_pos] with x hx h'x,
   rw tendsto_iff_norm_tendsto_zero,

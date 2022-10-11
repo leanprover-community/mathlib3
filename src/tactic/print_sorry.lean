@@ -106,4 +106,4 @@ add_tactic_doc
 { name                     := "print_sorry_in",
   category                 := doc_category.cmd,
   decl_names               := [`print_sorry_in_cmd],
-  tags                     := ["transport", "environment", "lemma derivation"] }
+  tags                     := ["search", "environment", "debugging"] }

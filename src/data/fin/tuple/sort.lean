@@ -147,8 +147,7 @@ begin
 end
 
 /-- A permutation of a tuple `f` is `f` sorted if and only if it is monotone. -/
-lemma comp_sort_eq_comp_iff_monotone :
-  f ∘ σ = f ∘ sort f ↔ monotone (f ∘ σ) :=
+lemma comp_sort_eq_comp_iff_monotone : f ∘ σ = f ∘ sort f ↔ monotone (f ∘ σ) :=
 ⟨λ h, h.symm ▸ monotone_sort f, λ h, unique_monotone h (monotone_sort f)⟩
 
 /-- The sorted versions of a tuple `f` and of any permutation of `f` agree. -/

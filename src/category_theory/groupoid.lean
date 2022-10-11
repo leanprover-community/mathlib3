@@ -85,6 +85,13 @@ def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=
   left_inv := λ i, iso.ext rfl,
   right_inv := λ f, rfl }
 
+variables (C)
+
+/-- The functor from a groupoid `C` to its opposite sending every morphism to its inverse. -/
+@[simps] noncomputable def groupoid.inv_functor : C ⥤ Cᵒᵖ :=
+{ obj := opposite.op,
+  map := λ {X Y} f, (inv f).op }
+
 end
 
 section

@@ -7,6 +7,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.algebra.basic
 import algebra.category.Ring.basic
 import ring_theory.ideal.operations
+import ring_theory.jacobson_ideal
 
 /-!
 
@@ -165,6 +166,15 @@ begin
   apply (is_unit_or_is_unit_one_sub_self a).imp f.is_unit_map _,
   rw [← f.map_one, ← f.map_sub],
   apply f.is_unit_map,
+end
+
+lemma jacobson_eq_maximal_ideal (I : ideal R) (h : I ≠ ⊤) :
+  I.jacobson = local_ring.maximal_ideal R :=
+begin
+  apply le_antisymm,
+  { exact Inf_le ⟨local_ring.le_maximal_ideal h, local_ring.maximal_ideal.is_maximal R⟩ },
+  { exact le_Inf (λ J (hJ : I ≤ J ∧ J.is_maximal),
+      le_of_eq (local_ring.eq_maximal_ideal hJ.2).symm) }
 end
 
 end local_ring

@@ -1605,14 +1605,14 @@ by by_cases h : P; simp [h]
 lemma ite_and : ite (P ∧ Q) a b = ite P (ite Q a b) b :=
 by by_cases hp : P; by_cases hq : Q; simp [hp, hq]
 
-lemma dite_dite_comm {C : Q → α} {D : ¬Q → α} {E : ¬P → ¬Q → α} (h : P → ¬Q) :
-  (if p : P then A p else if q : Q then C q else E p q) =
-  (if q : Q then C q else if p : P then A p else E p q) :=
+lemma dite_dite_comm {B : Q → α} {C : ¬P → ¬Q → α} (h : P → ¬Q) :
+  (if p : P then A p else if q : Q then B q else C p q) =
+  (if q : Q then B q else if p : P then A p else C p q) :=
 dite_eq_iff'.2 ⟨λ p, by rw [dif_neg (h p), dif_pos p], λ np, by { congr, funext, rw dif_neg np }⟩
 
 lemma ite_ite_comm (h : P → ¬Q) :
   (if P then a else if Q then b else c) =
   (if Q then b else if P then a else c) :=
-@dite_dite_comm α P Q _ _ _ _ (λ _, c) _ h
+dite_dite_comm P Q h
 
 end ite

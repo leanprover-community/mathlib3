@@ -71,7 +71,7 @@ by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
   (orientation.map ι e).symm = orientation.map ι e.symm := rfl
 
 /-- A module is canonically oriented with respect to an empty index type. -/
-instance is_empty.oriented [nontrivial R] [is_empty ι] :
+@[priority 100] instance is_empty.oriented [nontrivial R] [is_empty ι] :
   module.oriented R M ι :=
 { positive_orientation := ray_of_ne_zero R (alternating_map.const_linear_equiv_of_is_empty 1) $
     alternating_map.const_linear_equiv_of_is_empty.injective.ne (by simp) }
@@ -254,10 +254,8 @@ variables {ι : Type*} [decidable_eq ι]
 
 namespace orientation
 
-variables [fintype ι]
-
 section
-variables [finite_dimensional R M]
+variables [fintype ι] [finite_dimensional R M]
 
 open finite_dimensional
 
@@ -321,11 +319,7 @@ end
 precisely two orientations with respect to an empty index type. -/
 lemma eq_or_eq_neg_of_subsingleton [subsingleton M] [is_empty ι] (o : orientation R M ι) :
   o = positive_orientation ∨ o = - positive_orientation :=
-begin
-  apply o.eq_or_eq_neg positive_orientation,
-  convert @fintype.card_of_is_empty ι _,
-  simp [finite_dimensional.finrank_zero_of_subsingleton],
-end
+o.eq_or_eq_neg positive_orientation (by  simp [finite_dimensional.finrank_zero_of_subsingleton])
 
 end orientation
 

@@ -37,7 +37,6 @@ and finally quotienting by the reducibility relation.
 
 -/
 
-
 open set classical function relation
 local attribute [instance] prop_decidable
 

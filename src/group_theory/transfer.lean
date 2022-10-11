@@ -190,7 +190,7 @@ lemma transfer_sylow_eq_pow [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ 
     transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
 by apply transfer_eq_pow
 
-lemma burnside_transfer_ker_disjoint [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))] :
+lemma ker_transfer_sylow_disjoint [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))] :
   disjoint (transfer_sylow P hP).ker ↑P :=
 begin
   intros g hg,
@@ -203,18 +203,18 @@ begin
     relindex_eq_zero_of_le_right le_top,
 end
 
-lemma burnside_transfer_ker_disjoint' [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))]
+lemma ker_transfer_sylow_disjoint' [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))]
   (Q : sylow p G) : disjoint (transfer_sylow P hP).ker ↑Q :=
 begin
   obtain ⟨g, hg⟩ := exists_smul_eq G Q P,
   rw [disjoint_iff, ←smul_left_cancel_iff (mul_aut.conj g), subgroup.smul_bot, subgroup.smul_inf,
     subgroup.smul_normal, ←sylow.coe_subgroup_smul, hg, ←disjoint_iff],
-  exact burnside_transfer_ker_disjoint P hP,
+  exact ker_transfer_sylow_disjoint P hP,
 end
 
-lemma burnside_transfer_ker_disjoint'' [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))]
+lemma ker_transfer_sylow_disjoint'' [fact p.prime] [finite (sylow p G)] [fintype (G ⧸ (P : subgroup G))]
   (Q : subgroup G) (hQ : is_p_group p Q) : disjoint (transfer_sylow P hP).ker Q :=
-let ⟨R, hR⟩ := hQ.exists_le_sylow in (burnside_transfer_ker_disjoint' P hP R).mono_right hR
+let ⟨R, hR⟩ := hQ.exists_le_sylow in (ker_transfer_sylow_disjoint' P hP R).mono_right hR
 
 end burnside_transfer
 

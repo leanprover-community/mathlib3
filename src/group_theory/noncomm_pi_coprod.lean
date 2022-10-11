@@ -68,7 +68,7 @@ namespace monoid_hom
 
 See also `linear_map.lsum` for a linear version without the commutativity assumption."]
 def noncomm_pi_coprod : (Π (i : ι), N i) →* M :=
-{ to_fun := λ f, finset.univ.noncomm_prod (λ i, ϕ i (f i)) $ λ i _ j _ h, hcomm _ _ h _ _ },
+{ to_fun := λ f, finset.univ.noncomm_prod (λ i, ϕ i (f i)) $ λ i _ j _ h, hcomm _ _ h _ _,
   map_one' := by {apply (finset.noncomm_prod_eq_pow_card _ _ _ _ _).trans (one_pow _), simp},
   map_mul' := λ f g,
   begin

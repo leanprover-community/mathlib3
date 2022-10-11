@@ -125,8 +125,8 @@ instance lex.ordered_comm_group [linear_order ι] [∀ a, ordered_comm_group (β
   ..pi.lex.partial_order,
   ..pi.comm_group }
 
-/-- If we swap two strictly decreasing entries in a tuple, then the result is lexicographically
-smaller than the original tuple. -/
+/-- If we swap two strictly decreasing values in a function, then the result is lexicographically
+smaller than the original function. -/
 lemma lex_desc {α} [preorder ι] [decidable_eq ι] [preorder α] {f : ι → α} {i j : ι}
   (h₁ : i < j) (h₂ : f j < f i) :
   to_lex (f ∘ equiv.swap i j) < to_lex f :=

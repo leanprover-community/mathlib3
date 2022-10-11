@@ -614,8 +614,8 @@ contravariant.add_le_cancellable.add_tsub_tsub_cancel h
 lemma tsub_tsub_cancel_of_le (h : a ≤ b) : b - (b - a) = a :=
 contravariant.add_le_cancellable.tsub_tsub_cancel_of_le h
 
-lemma tsub_tsub_tsub_cancel_left (hba : b ≤ a) : a - c - (a - b) = b - c :=
-by rw [tsub_right_comm, tsub_tsub_cancel_of_le hba]
+lemma tsub_tsub_tsub_cancel_left (h : b ≤ a) : a - c - (a - b) = b - c :=
+contravariant.add_le_cancellable.tsub_tsub_tsub_cancel_left h
 
 end contra
 end has_exists_add_of_le

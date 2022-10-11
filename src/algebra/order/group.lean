@@ -46,6 +46,9 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
   covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
 
+example (α : Type u) [ordered_add_comm_group α] : covariant_class α α (swap (+)) (<) :=
+add_right_cancel_semigroup.covariant_swap_add_lt_of_covariant_swap_add_le α
+
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive "The units of an ordered commutative additive monoid form an ordered commutative
 additive group."]

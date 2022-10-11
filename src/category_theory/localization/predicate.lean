@@ -54,7 +54,6 @@ namespace localization
 /-- This universal property states that a functor `L : C ⥤ D` inverts morphisms
 in `W` and the all functors `D ⥤ E` (for a fixed category `E`) uniquely factors
 through `L`. -/
-@[nolint has_nonempty_instance]
 structure strict_universal_property_fixed_target :=
 (inverts : W.is_inverted_by L)
 (lift : Π (F : C ⥤ E) (hF : W.is_inverted_by F), D ⥤ E)
@@ -70,6 +69,9 @@ def strict_universal_property_fixed_target_Q :
   lift := construction.lift,
   fac := construction.fac,
   uniq := construction.uniq, }
+
+instance : inhabited (strict_universal_property_fixed_target W.Q W E) :=
+⟨strict_universal_property_fixed_target_Q _ _⟩
 
 /-- When `W` consists of isomorphisms, the identity satisfies the universal property
 of the localization. -/
@@ -125,8 +127,8 @@ lemma is_localization.mk' :
 lemma is_localization.for_id (hW : W ⊆ morphism_property.isomorphisms C):
   (𝟭 C).is_localization W :=
 is_localization.mk' _ _
-  (localization.strict_universal_property_fixed_target.for_id W _ hW)
-  (localization.strict_universal_property_fixed_target.for_id W _ hW)
+  (localization.strict_universal_property_fixed_target_id W _ hW)
+  (localization.strict_universal_property_fixed_target_id W _ hW)
 
 end functor
 

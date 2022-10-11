@@ -127,7 +127,7 @@ end
 theorem is_integral_alg_hom_iff {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
   (f : A →ₐ[R] B) (hf : function.injective f) {x : A} : is_integral R (f x) ↔ is_integral R x :=
 begin
-  refine ⟨_, is_integral_alg_hom f⟩,
+  refine ⟨_, map_is_integral f⟩,
   rintros ⟨p, hp, hx⟩,
   use [p, hp],
   rwa [← f.comp_algebra_map, ← alg_hom.coe_to_ring_hom, ← polynomial.hom_eval₂,
@@ -137,7 +137,7 @@ end
 @[simp]
 theorem is_integral_alg_equiv {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
   (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) ↔ is_integral R x :=
-⟨λ h, by simpa using is_integral_alg_hom f.symm.to_alg_hom h, is_integral_alg_hom f.to_alg_hom⟩
+⟨λ h, by simpa using map_is_integral f.symm.to_alg_hom h, map_is_integral f.to_alg_hom⟩
 
 theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
   {x : B} (hx : is_integral R x) : is_integral A x :=
@@ -148,7 +148,7 @@ let ⟨p, hp, hpx⟩ := hx in
 lemma map_is_integral_int {B C F : Type*} [ring B] [ring C] {b : B}
   [ring_hom_class F B C] (f : F) (hb : is_integral ℤ b) :
   is_integral ℤ (f b) :=
-is_integral_alg_hom (f : B →+* C).to_int_alg_hom hb
+map_is_integral (f : B →+* C).to_int_alg_hom hb
 
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=
@@ -474,9 +474,9 @@ begin
   rw subalgebra.mem_map,
   split,
   { rintros ⟨x, hx, rfl⟩,
-    exact is_integral_alg_hom f hx },
+    exact map_is_integral f hx },
   { intro hy,
-    use [f.symm y, is_integral_alg_hom (f.symm : B →ₐ[R] A) hy],
+    use [f.symm y, map_is_integral (f.symm : B →ₐ[R] A) hy],
     simp }
 end
 
@@ -823,7 +823,7 @@ begin
   { rw [finset.mem_coe, frange, finset.mem_image] at hx,
     rcases hx with ⟨i, _, rfl⟩,
     rw coeff_map,
-    exact is_integral_alg_hom (is_scalar_tower.to_alg_hom R A B) (A_int _) },
+    exact map_is_integral (is_scalar_tower.to_alg_hom R A B) (A_int _) },
   { apply fg_adjoin_singleton_of_integral,
     exact is_integral_trans_aux _ pmonic hp }
 end

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández
 -/
 import ring_theory.dedekind_domain.adic_valuation
+import topology.algebra.uniform_ring
+
 
 /-!
 # The finite adèle ring of a Dedekind domain
@@ -29,7 +31,7 @@ finite adèle ring, dedekind domain
 -/
 
 noncomputable theory
-open function set is_dedekind_domain
+open function set is_dedekind_domain is_dedekind_domain.height_one_spectrum
 
 variables (R : Type) (K : Type) [comm_ring R] [is_domain R] [is_dedekind_domain R] [field K]
   [algebra R K] [is_fraction_ring R K] (v : height_one_spectrum R)
@@ -57,15 +59,6 @@ instance : topological_ring (K_hat R K) :=
 
 instance prod_completions.inhabited : inhabited (prod_completions R K) := ⟨0⟩
 
-/-- The diagonal inclusion `r ↦ (r)_v` of `R` in `R_hat`. -/
-def diag_inj : R → (R_hat R K) := λ r v, inj_adic_completion_integers R K v r
-
-lemma diag_inj.map_one : diag_inj R K 1 = 1 :=
-by { rw diag_inj, simp_rw ring_hom.map_one, refl }
-
-lemma diag_inj.map_mul (x y : R): diag_inj R K (x*y) = (diag_inj R K x) * (diag_inj R K y) :=
-by { rw diag_inj, ext v, apply congr_arg _ (ring_hom.map_mul _ _ _) }
-
 namespace prod_completions_integers
 
 noncomputable! instance : has_coe (R_hat R K) (K_hat R K) := { coe := λ x v, x v }
@@ -83,14 +76,50 @@ lemma coe.add_monoid_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
 
 /-- The inclusion of `R_hat` in `K_hat` is a ring homomorphism. -/
 noncomputable! def coe.ring_hom : ring_hom (R_hat R K) (K_hat R K)  :=
-{ --to_fun   := λ x v, x v,
+{ to_fun   := coe,
   map_one' := rfl,
-  map_mul' := λ x y, by {ext p, simp only [add_monoid_hom.to_fun_eq_coe, coe.add_monoid_hom_apply,
-    pi.mul_apply, subring.coe_mul] },
+  map_mul' := λ x y, by {ext p, simp only [pi.mul_apply, subring.coe_mul], refl },
   ..coe.add_monoid_hom R K }
 
 lemma coe.ring_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
   (coe.ring_hom R K) x v = x v := rfl
+
+end prod_completions_integers
+
+section algebra_instances
+
+instance : algebra K (K_hat R K) :=
+(by apply_instance : algebra K ((Π (v : height_one_spectrum R), v.adic_completion K)))
+
+instance prod_completions.algebra' : algebra R (K_hat R K) :=
+(by apply_instance : algebra R (Π (v : height_one_spectrum R), v.adic_completion K))
+
+instance : is_scalar_tower R K (K_hat R K) :=
+(by apply_instance : is_scalar_tower R K ((Π (v : height_one_spectrum R), v.adic_completion K)))
+
+instance : algebra R (R_hat R K) :=
+(by apply_instance : algebra R (Π (v : height_one_spectrum R), v.adic_completion_integers K))
+
+instance prod_completions.algebra_completions : algebra (R_hat R K) (K_hat R K) :=
+(prod_completions_integers.coe.ring_hom R K).to_algebra
+
+instance prod_completions.is_scalar_tower_completions :
+  is_scalar_tower R (R_hat R K) (K_hat R K) :=
+(by apply_instance : is_scalar_tower R (Π (v : height_one_spectrum R), v.adic_completion_integers K)
+   (Π (v : height_one_spectrum R), v.adic_completion K))
+
+end algebra_instances
+
+namespace prod_completions_integers
+
+/-- The inclusion of `R_hat` in `K_hat` is a ring homomorphism. -/
+noncomputable! def coe.alg_hom : alg_hom R (R_hat R K) (K_hat R K)  :=
+{ to_fun    := coe,
+  commutes' := λ r, rfl,
+  ..coe.ring_hom R K  }
+
+lemma coe.alg_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
+  (coe.alg_hom R K) x v = x v := rfl
 
 end prod_completions_integers
 

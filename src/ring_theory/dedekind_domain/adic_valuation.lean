@@ -333,8 +333,6 @@ instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
 /-- The ring of integers of `adic_completion`. -/
 def adic_completion_integers : valuation_subring (v.adic_completion K) := valued.v.valuation_subring
 
-end is_dedekind_domain.height_one_spectrum
-
 variables (R K)
 
 lemma adic_completion.is_integer (x : v.adic_completion K) :
@@ -366,3 +364,41 @@ begin
   exact is_fraction_ring.injective R K
     (uniform_space.completion.coe_injective K (subtype.ext_iff.mp hxy)),
 end
+
+section algebra_instances
+
+@[priority 100] instance adic_valued.has_uniform_continuous_const_smul' :
+  @has_uniform_continuous_const_smul R K v.adic_valued.to_uniform_space
+    v.adic_valued.to_uniform_space _ :=
+@has_uniform_continuous_const_smul_of_continuous_const_smul R K _ _ _
+    v.adic_valued.to_uniform_space _ _
+
+instance adic_valued.has_uniform_continuous_const_smul :
+  @has_uniform_continuous_const_smul K K v.adic_valued.to_uniform_space
+    v.adic_valued.to_uniform_space _ :=
+@ring.has_uniform_continuous_const_smul K _ v.adic_valued.to_uniform_space _ _
+
+instance adic_completion.algebra' : algebra R (v.adic_completion K) :=
+@uniform_space.completion.algebra K _ v.adic_valued.to_uniform_space _ _ R _ _ _
+
+instance : algebra K (v.adic_completion K) :=
+@uniform_space.completion.algebra' K _ v.adic_valued.to_uniform_space _ _
+
+instance : is_scalar_tower R K (v.adic_completion K) :=
+@uniform_space.completion.is_scalar_tower R K K v.adic_valued.to_uniform_space _ _ _ _ _ _
+
+instance : algebra R (v.adic_completion_integers K) :=
+(inj_adic_completion_integers R K v).to_algebra
+
+instance adic_completion.is_scalar_tower' :
+  is_scalar_tower R (v.adic_completion_integers K) (v.adic_completion K) :=
+{ smul_assoc := λ x y z,
+  begin
+    simp only [algebra.smul_def],
+    rw [valuation_subring.algebra_map_apply, subring.coe_mul, mul_assoc],
+    refl,
+  end }
+
+end algebra_instances
+
+end is_dedekind_domain.height_one_spectrum

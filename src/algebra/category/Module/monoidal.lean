@@ -269,14 +269,21 @@ end monoidal_category
 open opposite
 
 instance : monoidal_preadditive (Module.{u} R) :=
-{ tensor_zero' := by { intros, ext, simp, },
-  zero_tensor' := by { intros, ext, simp, },
-  tensor_add' := by { intros, ext, simp [tensor_product.tmul_add], },
-  add_tensor' := by { intros, ext, simp [tensor_product.add_tmul], }, }
+{ tensor_zero' := by { intros, ext, simp only [linear_map.compr₂_apply, tensor_product.mk_apply,
+    monoidal_category.hom_apply, linear_map.zero_apply, tensor_product.tmul_zero], },
+  zero_tensor' := by { intros, ext, simp only [linear_map.compr₂_apply, tensor_product.mk_apply,
+    monoidal_category.hom_apply, linear_map.zero_apply, tensor_product.zero_tmul], },
+  tensor_add' := by { intros, ext, simp only [tensor_product.tmul_add, linear_map.compr₂_apply,
+    tensor_product.mk_apply, monoidal_category.hom_apply, linear_map.add_apply], },
+  add_tensor' := by { intros, ext, simp only [tensor_product.add_tmul, linear_map.compr₂_apply,
+    tensor_product.mk_apply, monoidal_category.hom_apply, linear_map.add_apply], }, }
 
 instance : monoidal_linear R (Module.{u} R) :=
-{ tensor_smul' := by { intros, ext, simp, },
-  smul_tensor' := by { intros, ext, simp [tensor_product.smul_tmul], }, }
+{ tensor_smul' := by { intros, ext, simp only [linear_map.compr₂_apply, tensor_product.mk_apply,
+    monoidal_category.hom_apply, linear_map.smul_apply, tensor_product.tmul_smul], },
+  smul_tensor' := by { intros, ext, simp only [tensor_product.smul_tmul, linear_map.compr₂_apply,
+    tensor_product.mk_apply, monoidal_category.hom_apply, linear_map.smul_apply,
+    tensor_product.tmul_smul], }, }
 
 /--
 Auxiliary definition for the `monoidal_closed` instance on `Module R`.

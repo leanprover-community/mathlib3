@@ -2623,6 +2623,78 @@ cons_eq_insert _ _ h ▸ to_list_cons _
 
 end to_list
 
+/-!
+### disj_Union
+
+This section is about the bounded union of a disjoint indexed family `t : α → finset β` of finite
+sets over a finite set `s : finset α`. In most cases `finset.bUnion` should be preferred.
+-/
+section disj_Union
+
+variables {s s₁ s₂ : finset α} {t t₁ t₂ : α → finset β}
+
+/-- `disj_Union s f h` is the set such that `a ∈ disj_Union s f` iff `a ∈ f i` for some `i ∈ s`.
+It is the same as `s.bUnion f`, but it does not require decidable equality on the type. The
+hypothesis ensures that the sets are disjoint. -/
+def disj_Union (s : finset α) (t : α → finset β)
+  (hf : (s : set α).pairwise $ λ a b, ∀ x, x ∈ t a → x ∉ t b) : finset β :=
+⟨(s.val.bind (finset.val ∘ t)), multiset.nodup_bind.mpr
+  ⟨λ a ha, (t a).nodup, s.nodup.pairwise hf⟩⟩
+
+@[simp] theorem disj_Union_val (s : finset α) (t : α → finset β) (h) :
+  (s.disj_Union t h).1 = (s.1.bind (λ a, (t a).1)) := rfl
+
+@[simp] theorem disj_Union_empty (t : α → finset β) : disj_Union ∅ t (by simp) = ∅ := rfl
+
+@[simp] lemma mem_disj_Union {b : β} {h} :
+  b ∈ s.disj_Union t h ↔ ∃ a ∈ s, b ∈ t a :=
+by simp only [mem_def, disj_Union_val, mem_bind, exists_prop]
+
+@[simp, norm_cast] lemma coe_disj_Union {h} : (s.disj_Union t h : set β) = ⋃ x ∈ (s : set α), t x :=
+by simp only [set.ext_iff, mem_disj_Union, set.mem_Union, iff_self, mem_coe, implies_true_iff]
+
+@[simp] theorem disj_Union_cons (a : α) (s : finset α) (ha : a ∉ s) (f : α → finset β) (H) :
+  disj_Union (cons a s ha) f H = (f a).disj_union
+    (s.disj_Union f $
+      λ b hb c hc, H (mem_cons_of_mem hb) (mem_cons_of_mem hc))
+    (λ b hb h, let ⟨c, hc, h⟩ := mem_disj_Union.mp h in
+      H (mem_cons_self a s) (mem_cons_of_mem hc) (ne_of_mem_of_not_mem hc ha).symm b hb h) :=
+eq_of_veq $ multiset.cons_bind _ _ _
+
+@[simp] lemma singleton_disj_Union (a : α) {h} : finset.disj_Union {a} t h = t a :=
+eq_of_veq $ multiset.singleton_bind _ _
+
+theorem map_disj_Union {f : α ↪ β} {s : finset α} {t : β → finset γ} {h} :
+  (s.map f).disj_Union t h = s.disj_Union (λa, t (f a))
+    (λ a ha b hb hab, h (mem_map_of_mem _ ha) (mem_map_of_mem _ hb) (f.injective.ne hab)) :=
+eq_of_veq $ multiset.bind_map _ _ _
+
+theorem disj_Union_map {s : finset α} {t : α → finset β} {f : β ↪ γ} {h} :
+  (s.disj_Union t h).map f = s.disj_Union (λa, (t a).map f)
+    (λ a ha b hb hab x hxa hxb, begin
+      obtain ⟨xa, hfa, rfl⟩ := mem_map.mp hxa,
+      obtain ⟨xb, hfb, hfab⟩ := mem_map.mp hxb,
+      obtain rfl := f.injective hfab,
+      exact h ha hb hab _ hfa hfb,
+    end) :=
+eq_of_veq $ multiset.map_bind _ _ _
+
+lemma disj_Union_disj_Union (s : finset α) (f : α → finset β) (g : β → finset γ) (h1 h2) :
+  (s.disj_Union f h1).disj_Union g h2 =
+    s.attach.disj_Union (λ a, (f a).disj_Union g $
+      λ b hb c hc, h2 (mem_disj_Union.mpr ⟨_, a.prop, hb⟩) (mem_disj_Union.mpr ⟨_, a.prop, hc⟩))
+      (λ a ha b hb hab x hxa hxb, begin
+        obtain ⟨xa, hfa, hga⟩ := mem_disj_Union.mp hxa,
+        obtain ⟨xb, hfb, hgb⟩ := mem_disj_Union.mp hxb,
+        refine h2
+          (mem_disj_Union.mpr ⟨_, a.prop, hfa⟩) (mem_disj_Union.mpr ⟨_, b.prop, hfb⟩) _ _ hga hgb,
+        rintro rfl,
+        exact h1 a.prop b.prop (subtype.coe_injective.ne hab) _ hfa hfb,
+      end) :=
+eq_of_veq $ multiset.bind_assoc.trans (multiset.attach_bind_coe _ _).symm
+
+end disj_Union
+
 section bUnion
 /-!
 ### bUnion
@@ -2656,6 +2728,14 @@ ext $ λ x, by simp only [mem_bUnion, exists_prop, mem_union, mem_insert,
 
 lemma bUnion_congr (hs : s₁ = s₂) (ht : ∀ a ∈ s₁, t₁ a = t₂ a) : s₁.bUnion t₁ = s₂.bUnion t₂ :=
 ext $ λ x, by simp [hs, ht] { contextual := tt }
+
+@[simp] lemma disj_Union_eq_bUnion (s : finset α) (f : α → finset β) (hf) :
+  s.disj_Union f hf = s.bUnion f :=
+begin
+  dsimp [disj_Union, finset.bUnion, function.comp],
+  generalize_proofs h,
+  exact eq_of_veq h.dedup.symm,
+end
 
 theorem bUnion_subset {s' : finset β} : s.bUnion t ⊆ s' ↔ ∀ x ∈ s, t x ⊆ s' :=
 by simp only [subset_iff, mem_bUnion]; exact

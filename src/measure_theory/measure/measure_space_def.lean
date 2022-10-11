@@ -192,6 +192,28 @@ lemma exists_measurable_superset_iff_measure_eq_zero :
   (∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0) ↔ μ s = 0 :=
 ⟨λ ⟨t, hst, _, ht⟩, measure_mono_null hst ht, exists_measurable_superset_of_null⟩
 
+lemma measurable_set_preimage_iterate {f : α → α} (hf : measurable f)
+  (hs : measurable_set s) (n : ℕ) :
+  measurable_set $ (preimage f)^[n] s :=
+begin
+  induction n with n ih, { simp [hs], },
+  simpa only [iterate_succ', comp_app] using hf ih,
+end
+
+lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ at_top.limsup s :=
+begin
+  simp only [limsup_eq_infi_supr_of_nat', supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Inter (λ n, measurable_set.Union $ λ m, hs $ m + n),
+end
+
+lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ at_top.liminf s :=
+begin
+  simp only [liminf_eq_supr_infi_of_nat', supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Union (λ n, measurable_set.Inter $ λ m, hs $ m + n),
+end
+
 theorem measure_Union_le [countable β] (s : β → set α) : μ (⋃ i, s i) ≤ ∑' i, μ (s i) :=
 μ.to_outer_measure.Union _
 
@@ -375,6 +397,14 @@ diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
+
+lemma ae_eq_set_iff_symm_diff {s t : set α} :
+  s =ᵐ[μ] t ↔ μ (s ∆ t) = 0 :=
+by simp [ae_eq_set, symm_diff_eq_sdiff_sup_sdiff]
+
+@[simp] lemma ae_eq_set_compl {s t : set α} :
+  sᶜ =ᵐ[μ] tᶜ ↔ s =ᵐ[μ] t :=
+by simp [ae_eq_set_iff_symm_diff]
 
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=

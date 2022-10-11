@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Johannes Hölzl, Rémy Degenne
 -/
 import order.filter.cofinite
+import order.hom.complete_lattice
 
 /-!
 # liminfs and limsups of functions and filters
@@ -540,7 +541,97 @@ lemma le_limsup_of_frequently_le' {α β} [complete_lattice β]
   x ≤ f.limsup u :=
 @liminf_le_of_frequently_le' _ βᵒᵈ _ _ _ _ h
 
+/-- If `f : α → α` is a morphism of complete lattices, then the limsup of its iterates of any
+`a : α` is a fixed point. -/
+@[simp] lemma complete_lattice_hom.apply_limsup_iterate (f : complete_lattice_hom α α) (a : α) :
+  f (at_top.limsup (λ n, f^[n] a)) = at_top.limsup (λ n, f^[n] a) :=
+begin
+  rw [limsup_eq_infi_supr_of_nat', map_infi],
+  simp_rw [_root_.map_supr, ← function.comp_apply f, ← function.iterate_succ' f, ← nat.add_succ],
+  conv_rhs { rw infi_split _ ((<) (0 : ℕ)), },
+  simp only [not_lt, le_zero_iff, infi_infi_eq_left, add_zero, infi_nat_gt_zero_eq, left_eq_inf],
+  refine (infi_le (λ i, ⨆ j, (f^[j + (i + 1)]) a) 0).trans _,
+  simp only [zero_add, function.comp_app, supr_le_iff],
+  exact λ i, le_supr (λ i, (f^[i] a)) (i + 1),
+end
+
+/-- If `f : α → α` is a morphism of complete lattices, then the liminf of its iterates of any
+`a : α` is a fixed point. -/
+lemma complete_lattice_hom.apply_liminf_iterate (f : complete_lattice_hom α α) (a : α) :
+  f (at_top.liminf (λ n, f^[n] a)) = at_top.liminf (λ n, f^[n] a) :=
+(complete_lattice_hom.dual f).apply_limsup_iterate _
+
 end complete_lattice
+
+section complete_distrib_lattice
+
+variables [complete_distrib_lattice α] (l : filter β) (u : β → α)
+
+lemma filter.sup_limsup [ne_bot l] (a : α) :
+  a ⊔ l.limsup u = l.limsup (λ x, a ⊔ u x) :=
+begin
+  simp only [limsup_eq_infi_supr, supr_sup_eq, sup_binfi_eq],
+  congr, ext s, congr, ext hs, congr,
+  exact (bsupr_const (filter.nonempty_of_mem hs)).symm,
+end
+
+lemma filter.inf_liminf [ne_bot l] (a : α) :
+  a ⊓ l.liminf u = l.liminf (λ x, a ⊓ u x) :=
+@filter.sup_limsup αᵒᵈ β _ l _ _ _
+
+lemma filter.sup_liminf (a : α) :
+  a ⊔ l.liminf u = l.liminf (λ x, a ⊔ u x) :=
+begin
+  simp only [liminf_eq_supr_infi],
+  rw [sup_comm, bsupr_sup (⟨univ, univ_mem⟩ : ∃ (i : set β), i ∈ l)],
+  simp_rw [binfi_sup_eq, @sup_comm _ _ a],
+end
+
+lemma filter.inf_limsup (a : α) :
+  a ⊓ l.limsup u = l.limsup (λ x, a ⊓ u x) :=
+@filter.sup_liminf αᵒᵈ β _ l _ _
+
+end complete_distrib_lattice
+
+section complete_boolean_algebra
+
+variables [complete_boolean_algebra α] (l : filter β) (u : β → α)
+
+lemma filter.limsup_compl :
+  (l.limsup u)ᶜ = l.liminf (compl ∘ u) :=
+by simp only [limsup_eq_infi_supr, liminf_eq_supr_infi, compl_infi, compl_supr]
+
+lemma filter.liminf_compl :
+  (l.liminf u)ᶜ = l.limsup (compl ∘ u) :=
+by simp only [limsup_eq_infi_supr, liminf_eq_supr_infi, compl_infi, compl_supr]
+
+lemma filter.limsup_sdiff (a : α) :
+  (l.limsup u) \ a = l.limsup (λ b, (u b) \ a) :=
+begin
+  simp only [limsup_eq_infi_supr, sdiff_eq],
+  rw binfi_inf (⟨univ, univ_mem⟩ : ∃ (i : set β), i ∈ l),
+  simp_rw [inf_comm, inf_bsupr_eq, inf_comm],
+end
+
+lemma filter.liminf_sdiff [ne_bot l] (a : α) :
+  (l.liminf u) \ a = l.liminf (λ b, (u b) \ a) :=
+by simp only [sdiff_eq, @inf_comm _ _ _ aᶜ, filter.inf_liminf]
+
+lemma filter.sdiff_limsup [ne_bot l] (a : α) :
+  a \ (l.limsup u) = l.liminf (λ b, a \ (u b)) :=
+begin
+  rw ← compl_inj_iff,
+  simp only [sdiff_eq, filter.liminf_compl, (∘), compl_inf, compl_compl, filter.sup_limsup],
+end
+
+lemma filter.sdiff_liminf (a : α) :
+  a \ (l.liminf u) = l.limsup (λ b, a \ (u b)) :=
+begin
+  rw ← compl_inj_iff,
+  simp only [sdiff_eq, filter.limsup_compl, (∘), compl_inf, compl_compl, filter.sup_liminf],
+end
+
+end complete_boolean_algebra
 
 section conditionally_complete_linear_order
 

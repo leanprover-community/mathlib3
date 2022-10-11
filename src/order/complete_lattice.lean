@@ -851,6 +851,10 @@ lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i,
 by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
   rw [infi_subtype', infi_subtype', infi_inf]
 
+lemma bsupr_sup {ι : Sort*} {p : ι → Prop} {f : Π i, p i → α} {a : α} (hp : ∃ i, p i) :
+  (⨆ i (h : p i), f i h) ⊔ a = ⨆ i (h : p i), f i h ⊔ a :=
+@binfi_inf αᵒᵈ ι _ p f _ hp
+
 lemma inf_binfi {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
   a ⊓ (⨅ i (h : p i), f i h) = ⨅ i (h : p i), a ⊓ f i h :=
 by simpa only [inf_comm] using binfi_inf h
@@ -1014,6 +1018,19 @@ end
 lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ j, extend e f ⊤ j) = infi f :=
 @supr_extend_bot αᵒᵈ _ _ _ _ he _
 
+lemma bsupr_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) :
+  (⨆ (i ∈ s), a) = a :=
+begin
+  refine le_antisymm (supr₂_le (λ i hi, le_refl a)) _,
+  obtain ⟨i, hi⟩ := hs,
+  rw supr_split_single _ i,
+  simp [hi],
+end
+
+lemma binfi_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) :
+  (⨅ (i ∈ s), a) = a :=
+@bsupr_const αᵒᵈ _ ι _ s hs
+
 /-!
 ### `supr` and `infi` under `Type`
 -/
@@ -1160,6 +1177,14 @@ end
 
 lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u i :=
 @sup_supr_nat_succ αᵒᵈ _ u
+
+lemma infi_nat_gt_zero_eq (f : ℕ → α) :
+  (⨅ (i > 0), f i) = ⨅ i, f (i + 1) :=
+by simpa only [(by simp : ∀ (i : ℕ), i > 0 ↔ i ∈ range nat.succ)] using infi_range
+
+lemma supr_nat_gt_zero_eq (f : ℕ → α) :
+  (⨆ (i > 0), f i) = ⨆ i, f (i + 1) :=
+@infi_nat_gt_zero_eq αᵒᵈ _ f
 
 end
 

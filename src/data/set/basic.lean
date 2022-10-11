@@ -1342,6 +1342,8 @@ rfl
 
 @[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
 
+@[simp] lemma preimage_id_eq : preimage (id : α → α) = id := rfl
+
 @[simp] theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
   (λ (x : α), b) ⁻¹' s = univ :=
 eq_univ_of_forall $ λ x, h
@@ -1355,6 +1357,8 @@ theorem preimage_const (b : β) (s : set β) [decidable (b ∈ s)] :
 by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_not_mem hb] }
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
+
+lemma preimage_comp' : preimage (g ∘ f) = (preimage f) ∘ (preimage g) := rfl
 
 lemma preimage_preimage {g : β → γ} {f : α → β} {s : set γ} :
   f ⁻¹' (g ⁻¹' s) = (λ x, g (f x)) ⁻¹' s :=

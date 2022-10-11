@@ -71,6 +71,24 @@ calc fb (g x) = g (fa x) : (h.eq x).symm
 protected lemma apply {x : α} (hx : is_fixed_pt f x) : is_fixed_pt f (f x) :=
 by convert hx
 
+@[simp] lemma _root_.set.preimage_iterate_eq {f : α → α} {n : ℕ} :
+  set.preimage (f^[n]) = ((set.preimage f)^[n]) :=
+begin
+  induction n with n ih, { simp, },
+  rw [iterate_succ, iterate_succ', set.preimage_comp', ih],
+end
+
+lemma is_fixed_pt_preimage_iff {s : set α} :
+  is_fixed_pt (set.preimage f) s ↔ f⁻¹' s = s :=
+iff.rfl
+
+lemma preimage_iterate_eq_self {s : set α} (h : f⁻¹' s = s) (n : ℕ) :
+  (f^[n])⁻¹' s = s :=
+begin
+  rw set.preimage_iterate_eq,
+  exact (is_fixed_pt_preimage_iff.mpr h).iterate n,
+end
+
 end is_fixed_pt
 
 @[simp] lemma injective.is_fixed_pt_apply_iff (hf : injective f) {x : α} :

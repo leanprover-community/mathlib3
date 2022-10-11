@@ -431,6 +431,10 @@ lemma bihimp_eq : a ⇔ b = (a ⊔ bᶜ) ⊓ (b ⊔ aᶜ) := by simp only [(⇔)
 lemma symm_diff_eq' : a ∆ b = (a ⊔ b) ⊓ (aᶜ ⊔ bᶜ) :=
 by rw [symm_diff_eq_sup_sdiff_inf, sdiff_eq, compl_inf]
 
+lemma symm_diff_eq_sdiff_sup_sdiff {s t : α} :
+  s ∆ t = (s \ t) ⊔ (t \ s) :=
+by simp only [symm_diff_eq, sdiff_eq]
+
 lemma bihimp_eq' : a ⇔ b = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ) := @symm_diff_eq' αᵒᵈ _ _ _
 
 lemma symm_diff_top : a ∆ ⊤ = aᶜ := symm_diff_top' _

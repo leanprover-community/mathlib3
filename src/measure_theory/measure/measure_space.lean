@@ -527,6 +527,43 @@ begin
   exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, tsub_add_cancel_of_le hnm] using hi⟩
 end
 
+lemma measure_liminf_eq_zero {s : ℕ → set α} (h : ∑' i, μ (s i) ≠ ⊤) : μ (at_top.liminf s) = 0 :=
+begin
+  rw ← le_zero_iff,
+  have : at_top.liminf s ≤ at_top.limsup s,
+  { -- TODO Fix `liminf_le_limsup`: we should not need to discharge boundedness properties manually.
+    refine liminf_le_limsup _ _; simp only [auto_param_eq],
+    { exact ⟨⊤, eventually_of_forall $ λ s, subset_univ _⟩, },
+    { exact ⟨⊥, eventually_of_forall $ λ s, bot_le⟩, }, },
+  exact (μ.mono this).trans (by simp [measure_limsup_eq_zero h]),
+end
+
+lemma limsup_ae_eq_of_forall_ae_eq (s : ℕ → set α) {t : set α} (h : ∀ n, s n =ᵐ[μ] t) :
+  @limsup (set α) ℕ _ at_top s =ᵐ[μ] t := -- Need `@` because of diamond
+begin
+  simp_rw ae_eq_set at h ⊢,
+  split,
+  { rw at_top.limsup_sdiff s t,
+    apply measure_limsup_eq_zero,
+    simp [h], },
+  { rw at_top.sdiff_limsup s t,
+    apply measure_liminf_eq_zero,
+    simp [h], },
+end
+
+lemma liminf_ae_eq_of_forall_ae_eq (s : ℕ → set α) {t : set α} (h : ∀ n, s n =ᵐ[μ] t) :
+  @liminf (set α) ℕ _ at_top s =ᵐ[μ] t := -- Need `@` because of diamond
+begin
+  simp_rw ae_eq_set at h ⊢,
+  split,
+  { rw at_top.liminf_sdiff s t,
+    apply measure_liminf_eq_zero,
+    simp [h], },
+  { rw at_top.sdiff_liminf s t,
+    apply measure_limsup_eq_zero,
+    simp [h], },
+end
+
 lemma measure_if {x : β} {t : set β} {s : set α} :
   μ (if x ∈ t then s else ∅) = indicator t (λ _, μ s) x :=
 by { split_ifs; simp [h] }
@@ -1888,6 +1925,29 @@ lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : 
   μa (f ⁻¹' s) = 0 :=
 preimage_null_of_map_null h.ae_measurable (h.2 hs)
 
+lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
+  (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
+  @limsup (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s := -- Need `@` because of diamond
+begin
+  have : ∀ n, (preimage f)^[n] s =ᵐ[μ] s,
+  { intros n,
+    induction n with n ih, { simp, },
+    simpa only [iterate_succ', comp_app] using ae_eq_trans (hf.ae_eq ih) hs', },
+  exact (limsup_ae_eq_of_forall_ae_eq (λ n, (preimage f)^[n] s) this).trans (ae_eq_refl _),
+end
+
+lemma liminf_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
+  (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
+  @liminf (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s := -- Need `@` because of diamond
+begin
+  rw [← ae_eq_set_compl, @filter.liminf_compl (set α)], -- Need `@` because of diamond
+  rw ← ae_eq_set_compl at hs',
+  convert hf.limsup_preimage_iterate_ae_eq hs.compl hs',
+  ext1 n,
+  simp only [← set.preimage_iterate_eq, comp_app, preimage_compl],
+end
+
+
 end quasi_measure_preserving
 
 /-! ### The `cofinite` filter -/
@@ -2411,6 +2471,20 @@ end
 lemma is_probability_measure_map [is_probability_measure μ] {f : α → β} (hf : ae_measurable f μ) :
   is_probability_measure (map f μ) :=
 ⟨by simp [map_apply_of_ae_measurable, hf]⟩
+
+@[simp] lemma one_le_prob_iff [is_probability_measure μ] : 1 ≤ μ s ↔ μ s = 1 :=
+⟨λ h, le_antisymm prob_le_one h, λ h, h ▸ le_refl _⟩
+
+/-- Note that this is not quite as useful as it looks because the measure takes values in `ℝ≥0∞`.
+Thus the subtraction appearing is the truncated subtraction of `ℝ≥0∞`, rather than the
+better-behaved subtraction of `ℝ`. -/
+lemma prob_compl_eq_one_sub [is_probability_measure μ] (hs : measurable_set s) :
+  μ sᶜ = 1 - μ s :=
+by simpa only [measure_univ] using measure_compl hs (measure_lt_top μ s).ne
+
+@[simp] lemma prob_compl_eq_zero_iff [is_probability_measure μ] (hs : measurable_set s) :
+  μ sᶜ = 0 ↔ μ s = 1 :=
+by simp only [prob_compl_eq_one_sub hs, tsub_eq_zero_iff_le, one_le_prob_iff]
 
 end is_probability_measure
 

@@ -150,6 +150,15 @@ open set
 theorem zero_union_range_succ : {0} ∪ range succ = univ :=
 by { ext n, cases n; simp }
 
+@[simp] protected lemma range_succ : range succ = { i | 0 < i} :=
+begin
+  ext i,
+  simp only [mem_range, mem_set_of_eq, zero_lt_iff],
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨j, rfl⟩, simp, },
+  { obtain ⟨j, rfl⟩ := nat.exists_eq_succ_of_ne_zero h, exact ⟨j, rfl⟩, },
+end
+
 variables {α : Type*}
 
 theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f :=

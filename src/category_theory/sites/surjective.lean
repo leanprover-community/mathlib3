@@ -8,13 +8,13 @@ import category_theory.adjunction.evaluation
 
 /-!
 
-# Image sheaf
+# Locally surjective morphisms
 
 ## Main definitions
 
 - `is_locally_surjective` : A morphism of presheaves valued in a concrete category is locally
-  surjective if every section in the target is locally in the set-theoretic image,
-  i.e. the image sheaf coincides with the target.
+  surjective with respect to a grothendieck topology if every section in the target is locally
+  in the set-theoretic image, i.e. the image sheaf coincides with the target.
 
 ## Main results
 
@@ -60,8 +60,8 @@ begin
   exact ⟨F.map i.op s, this s⟩,
 end
 
-/-- A morphism of presheaves `f : F ⟶ G` is locally surjective if every section of `G` is locally
-  in the image of `f`. -/
+/-- A morphism of presheaves `f : F ⟶ G` is locally surjective with respect to a grothendieck topology
+if every section of `G` is locally in the image of `f`. -/
 def is_locally_surjective {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G) : Prop :=
 ∀ (U : C) (s : G.obj (op U)), image_sieve f s ∈ J U
 
@@ -136,7 +136,7 @@ end
 section
 
 variables (F : Cᵒᵖ ⥤ Type (max u v))
--- grothendieck_topology.sheafify_is_sheaf
+
 /-- The image of `F` in `J.sheafify F` is isomorphic to the sheafification. -/
 noncomputable
 def sheafification_iso_image_presheaf :

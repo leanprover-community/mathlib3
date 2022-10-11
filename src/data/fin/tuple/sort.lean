@@ -112,12 +112,6 @@ of_fn_injective $ eq_of_perm_of_sorted
 
 variables [linear_order α] {f : fin n → α} {σ : equiv.perm (fin n)}
 
-lemma graph_equiv₁_apply (i : fin n) : ↑(graph_equiv₁ f i) = to_lex (f i, i) := rfl
-
-lemma graph_equiv₂_apply' (i : fin n) : graph_equiv₂ f i =
-  ⟨to_lex (f (sort f i), sort f i), finset.mem_image_of_mem _ $ finset.mem_univ _⟩ :=
-((graph_equiv₁ f).apply_symm_apply _).symm
-
 /- maybe add some docstring -/
 lemma eq_sort_iff' : σ = sort f ↔ strict_mono (σ.trans $ graph_equiv₁ f) :=
 begin

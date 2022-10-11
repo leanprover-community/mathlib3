@@ -281,18 +281,4 @@ begin
   exact ⟨a, ⟨av, af⟩, ha⟩,
 end
 
-lemma tendsto_filter_at (v : vitali_family μ) {β : Type*} {l : filter β}
-  {f : β → set α} {x : α}
-  (H : ∀ᶠ i in l, f i ∈ v.sets_at x) (H' : ∀ (ε > (0 : ℝ)), ∀ᶠ i in l, f i ⊆ closed_ball x ε) :
-  tendsto f l (v.filter_at x)  :=
-begin
-  assume s hs,
-  change ∀ᶠ i in l, f i ∈ s,
-  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ (a : set α),
-    a ∈ v.sets_at x → a ⊆ closed_ball x ε → a ∈ s :=
-      (vitali_family.mem_filter_at_iff _).1 hs,
-  filter_upwards [H, H' ε εpos] with i hi h'i using hε _ hi h'i,
-end
-
-
 end vitali_family

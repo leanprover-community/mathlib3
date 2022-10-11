@@ -5,14 +5,15 @@ Authors: Sébastien Gouëzel
 -/
 import measure_theory.measure.lebesgue
 import analysis.calculus.deriv
-import measure_theory.covering.differentiation
-import measure_theory.covering.vitali
+import measure_theory.covering.density_theorem
+import measure_theory.measure.haar_lebesgue
 
 /-!
 # Differentiability of monotone functions
 
 We show that a monotone function `f : ℝ → ℝ` is differentiable almost everywhere, in
-`monotone.ae_differentiable_at`.
+`monotone.ae_differentiable_at`. (We also give a version for a function monotone on a set, in
+`monotone_on.ae_differentiable_within_at`.)
 
 If the function `f` is continuous, this follows directly from general differentiation of measure
 theorems. Let `μ` be the Stieltjes measure associated to `f`. Then, almost everywhere,
@@ -30,37 +31,24 @@ behavior of `μ [x, y]`.
 -/
 
 open set filter function metric measure_theory measure_theory.measure topological_space
+is_doubling_measure
 open_locale nnreal ennreal topological_space
 
 namespace real
 
-/-- A Vitali family over `ℝ`, designed so that at `x` it contains the intervals containing `x`.-/
-protected noncomputable def vitali_family : vitali_family (volume : measure ℝ) :=
-begin
-  refine vitali.vitali_family (volume : measure ℝ) (6 : ℝ≥0)
-    (λ x ε εpos, ⟨ε, ⟨εpos, le_refl _⟩, _⟩),
-  have : (0 : ℝ) ≤ 6, by norm_num,
-  simp [ennreal.of_real_mul, this, ← mul_assoc, mul_comm _ (2 : ℝ≥0∞)],
-end
-
 lemma Icc_mem_vitali_family_at_right {x y : ℝ} (hxy : x < y) :
-  Icc x y ∈ real.vitali_family.sets_at x :=
+  Icc x y ∈ (vitali_family (volume : measure ℝ) 1).sets_at x :=
 begin
-  have H : ennreal.of_real (2 * (3 * metric.diam (Icc x y))) ≤ 6 * ennreal.of_real (y - x),
-  { simp only [ennreal.of_real_mul, zero_le_three, real.diam_Icc hxy.le, ←mul_assoc,
-      zero_le_mul_left, zero_lt_bit0, zero_lt_one, zero_le_bit0, zero_le_one,
-      ennreal.of_real_bit0, ennreal.of_real_one, ennreal.of_real_bit1],
-    apply ennreal.mul_le_mul _ (le_refl _),
-    have : ennreal.of_real (2 * 3) ≤ ennreal.of_real 6,
-      from ennreal.of_real_le_of_real (by norm_num),
-    simpa [ennreal.of_real_mul] using this },
-  simpa [real.vitali_family, vitali.vitali_family, hxy, hxy.le, is_closed_Icc] using H,
+  rw Icc_eq_closed_ball,
+  refine closed_ball_mem_vitali_family_of_dist_le_mul _ _ (by linarith),
+  rw [dist_comm, real.dist_eq, abs_of_nonneg];
+  linarith,
 end
 
 lemma tendsto_Icc_vitali_family_right (x : ℝ) :
-  tendsto (λ y, Icc x y) (𝓝[>] x) (real.vitali_family.filter_at x) :=
+  tendsto (λ y, Icc x y) (𝓝[>] x) ((vitali_family (volume : measure ℝ) 1).filter_at x) :=
 begin
-  apply vitali_family.tendsto_filter_at,
+  refine (vitali_family.tendsto_filter_at_iff _).2 ⟨_, _⟩,
   { filter_upwards [self_mem_nhds_within] with y hy using Icc_mem_vitali_family_at_right hy },
   { assume ε εpos,
     have : x ∈ Ico x (x + ε) := ⟨le_refl _, by linarith⟩,
@@ -70,23 +58,18 @@ begin
 end
 
 lemma Icc_mem_vitali_family_at_left {x y : ℝ} (hxy : x < y) :
-  Icc x y ∈ real.vitali_family.sets_at y :=
+  Icc x y ∈ (vitali_family (volume : measure ℝ) 1).sets_at y :=
 begin
-  have H : ennreal.of_real (2 * (3 * metric.diam (Icc x y))) ≤ 6 * ennreal.of_real (y - x),
-  { simp only [ennreal.of_real_mul, zero_le_three, real.diam_Icc hxy.le, ←mul_assoc,
-      zero_le_mul_left, zero_lt_bit0, zero_lt_one, zero_le_bit0, zero_le_one,
-      ennreal.of_real_bit0, ennreal.of_real_one, ennreal.of_real_bit1],
-    apply ennreal.mul_le_mul _ (le_refl _),
-    have : ennreal.of_real (2 * 3) ≤ ennreal.of_real 6,
-      from ennreal.of_real_le_of_real (by norm_num),
-    simpa [ennreal.of_real_mul] using this },
-  simpa [real.vitali_family, vitali.vitali_family, hxy, hxy.le, is_closed_Icc] using H,
+  rw Icc_eq_closed_ball,
+  refine closed_ball_mem_vitali_family_of_dist_le_mul _ _ (by linarith),
+  rw [real.dist_eq, abs_of_nonneg];
+  linarith,
 end
 
 lemma tendsto_Icc_vitali_family_left (x : ℝ) :
-  tendsto (λ y, Icc y x) (𝓝[<] x) (real.vitali_family.filter_at x) :=
+  tendsto (λ y, Icc y x) (𝓝[<] x) ((vitali_family (volume : measure ℝ) 1).filter_at x) :=
 begin
-  apply vitali_family.tendsto_filter_at,
+  refine (vitali_family.tendsto_filter_at_iff _).2 ⟨_, _⟩,
   { filter_upwards [self_mem_nhds_within] with y hy using Icc_mem_vitali_family_at_left hy },
   { assume ε εpos,
     have : x ∈ Ioc (x - ε) x := ⟨by linarith, le_refl _⟩,
@@ -136,7 +119,8 @@ begin
   On the left, `μ [y, x] / (x - y)` again tends to the Radon-Nikodym derivative.
   As `μ [y, x] = f x - f (y^-)`, this is not exactly the right result, so one uses a sandwiching
   argument to deduce the convergence for `(f x - f y) / (x - y)`. -/
-  filter_upwards [vitali_family.ae_tendsto_rn_deriv real.vitali_family f.measure,
+  filter_upwards [
+    vitali_family.ae_tendsto_rn_deriv (vitali_family (volume : measure ℝ) 1) f.measure,
     rn_deriv_lt_top f.measure volume, f.countable_left_lim_ne.ae_not_mem volume] with x hx h'x h''x,
   -- Limit on the right, following from differentiation of measures
   have L1 : tendsto (λ y, (f y - f x) / (y - x))
@@ -281,3 +265,39 @@ end
 theorem monotone.ae_differentiable_at {f : ℝ → ℝ} (hf : monotone f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 by filter_upwards [hf.ae_has_deriv_at] with x hx using hx.differentiable_at
+
+/-- A real function which is monotone on a set is differentiable Lebesgue-almost everywhere on
+this set. This version does not assume that `s` is measurable. For a formulation with
+`volume.restrict s` assuming that `s` is measurable, see `monotone_on.ae_differentiable_within_at`.
+-/
+theorem monotone_on.ae_differentiable_within_at_of_mem
+  {f : ℝ → ℝ} {s : set ℝ} (hf : monotone_on f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
+begin
+  /- We use a global monotone extension of `f`, and argue that this extension is differentiable
+  almost everywhere. Such an extension need not exist (think of `1/x` on `(0, +∞)`), but it exists
+  if one restricts first the function to a compact interval `[a, b]`. -/
+  apply ae_of_mem_of_ae_of_mem_inter_Ioo,
+  assume a b as bs hab,
+  obtain ⟨g, hg, gf⟩ : ∃ (g : ℝ → ℝ), monotone g ∧ eq_on f g (s ∩ Icc a b) :=
+    monotone_on.exists_monotone_extension (hf.mono (inter_subset_left s (Icc a b)))
+      ⟨⟨as, ⟨le_rfl, hab.le⟩⟩, λ x hx, hx.2.1⟩ ⟨⟨bs, ⟨hab.le, le_rfl⟩⟩, λ x hx, hx.2.2⟩,
+  filter_upwards [hg.ae_differentiable_at] with x hx,
+  assume h'x,
+  apply hx.differentiable_within_at.congr_of_eventually_eq _ (gf ⟨h'x.1, h'x.2.1.le, h'x.2.2.le⟩),
+  have : Ioo a b ∈ 𝓝[s] x, from nhds_within_le_nhds (Ioo_mem_nhds h'x.2.1 h'x.2.2),
+  filter_upwards [self_mem_nhds_within, this] with y hy h'y,
+  exact gf ⟨hy, h'y.1.le, h'y.2.le⟩,
+end
+
+/-- A real function which is monotone on a set is differentiable Lebesgue-almost everywhere on
+this set. This version assumes that `s` is measurable and uses `volume.restrict s`.
+For a formulation without measurability assumption,
+see `monotone_on.ae_differentiable_within_at_of_mem`. -/
+theorem monotone_on.ae_differentiable_within_at
+  {f : ℝ → ℝ} {s : set ℝ} (hf : monotone_on f s) (hs : measurable_set s) :
+  ∀ᵐ x ∂(volume.restrict s), differentiable_within_at ℝ f s x :=
+begin
+  rw ae_restrict_iff' hs,
+  exact hf.ae_differentiable_within_at_of_mem
+end

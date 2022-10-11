@@ -1083,14 +1083,13 @@ quot.induction_on s $ λ l H, congr_arg coe $ pmap_eq_map_attach f l H
 @[simp] lemma attach_map_coe' (s : multiset α) (f : α → β) : s.attach.map (λ i, f i) = s.map f :=
 quot.induction_on s $ λ l, congr_arg coe $ attach_map_coe' l f
 
-@[simp] lemma attach_map_val' (s : multiset α) (f : α → β) :
-  s.attach.map (λ i, f i.val) = s.map f :=
+lemma attach_map_val' (s : multiset α) (f : α → β) : s.attach.map (λ i, f i.val) = s.map f :=
 attach_map_coe' _ _
 
 @[simp] lemma attach_map_coe (s : multiset α) : s.attach.map (coe : _ → α) = s :=
 (attach_map_coe' _ _).trans s.map_id
 
-@[simp] lemma attach_map_val (s : multiset α) : s.attach.map subtype.val = s := attach_map_coe _
+lemma attach_map_val (s : multiset α) : s.attach.map subtype.val = s := attach_map_coe _
 
 @[simp] theorem mem_attach (s : multiset α) : ∀ x, x ∈ s.attach :=
 quot.induction_on s $ λ l, mem_attach _

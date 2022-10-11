@@ -223,13 +223,9 @@ def quotient_infi_embedding' {ι : Type*} (f : ι → subgroup α) : α ⧸ (⨅
   quotient_infi_embedding' f (quotient_group.mk g) i = quotient_group.mk g :=
 rfl
 
-lemma center_eq_infi_zpowers (S : set G) (hS : closure S = ⊤) :
-  center G = ⨅ g : S, centralizer (zpowers g) :=
-by rw [←centralizer_top, ←hS, centralizer_closure, ←infi_subtype'']
-
 noncomputable def quotient_center_embedding_commutators (S : set G) (hS : closure S = ⊤) :
   G ⧸ center G ↪ S → {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
-(quotient_equiv_of_eq (center_eq_infi_zpowers S hS)).to_embedding.trans
+(quotient_equiv_of_eq (center_eq_infi' S hS)).to_embedding.trans
   ((quotient_infi_embedding' _).trans (function.embedding.Pi_congr_right
   (λ g, quotient_centralizer_embedding_commutators g)))
 

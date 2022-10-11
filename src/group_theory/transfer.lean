@@ -165,17 +165,6 @@ section burnside_transfer
 
 open_locale pointwise
 
-lemma _root_.subgroup.smul_inf  {α : Type*} [group α] [mul_distrib_mul_action α G] (a : α)
-  (H K : subgroup G) : a • (H ⊓ K) = a • H ⊓ a • K :=
-by simp [set_like.ext_iff, mem_pointwise_smul_iff_inv_smul_mem]
-
-lemma _root_.subgroup.smul_bot  {α : Type*} [monoid α] [mul_distrib_mul_action α G] (a : α) :
-  a • (⊥ : subgroup G) = ⊥ :=
-by simp [set_like.ext_iff, mem_smul_pointwise_iff_exists, eq_comm]
-
-lemma _root_.subgroup.smul_normal (g : G) (H : subgroup G) [h : normal H] : mul_aut.conj g • H = H :=
-h.conj_act g
-
 variables {p : ℕ} (P : sylow p G) (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer)
 
 include hP

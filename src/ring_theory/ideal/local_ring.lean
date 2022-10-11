@@ -328,7 +328,7 @@ begin
 end
 
 section
-variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
+variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S] [comm_ring T] [local_ring T]
 
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
 def residue_field := R ⧸ maximal_ideal R
@@ -358,6 +358,18 @@ begin
   erw ideal.quotient.eq_zero_iff_mem,
   exact map_nonunit f a ha
 end
+
+/-- Applying `residue_field.map` to the identity ring homomorphism gives the identity
+ring homomorphism. -/
+lemma map_id :
+  local_ring.residue_field.map (ring_hom.id R) = ring_hom.id (local_ring.residue_field R) :=
+ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
+
+/-- The composite of two `residue_field.map`s is the `residue_field.map` of the composite. -/
+lemma map_comp (f : T →+* R) (g : R →+* S) [is_local_ring_hom f] [is_local_ring_hom g] :
+  local_ring.residue_field.map (g.comp f) =
+  (local_ring.residue_field.map g).comp (local_ring.residue_field.map f) :=
+ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
 
 end residue_field
 

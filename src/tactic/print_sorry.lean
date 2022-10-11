@@ -35,7 +35,7 @@ meta def find_all_exprs_aux (env : environment) (f : expr → bool) (g : name �
     d ← env.get n,
     let process (v : expr) : tactic find_all_expr_data := (do
       v.mfold ⟨ff, ff, l, ns, mk_name_set⟩ $ λ e _ p,
-        if f e then trace n >> pure ⟨tt, tt, p.descendants, p.name_map, p.direct_descendants⟩ else
+        if f e then pure ⟨tt, tt, p.descendants, p.name_map, p.direct_descendants⟩ else
         if e.is_constant then find_all_exprs_aux e.const_name p else pure p),
     ⟨b', b, l, ns, desc'⟩ ← process d.value,
     pure ⟨b₀, b₁ || b, if b then (n, b', desc')::l else l, ns.insert n b,

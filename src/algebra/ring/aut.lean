@@ -3,9 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
+import algebra.group_ring_action
 import algebra.hom.aut
 import algebra.ring.equiv
-import algebra.group_ring_action
 
 /-!
 # Ring automorphisms
@@ -61,7 +61,8 @@ by refine_struct { to_fun := ring_equiv.to_mul_equiv }; intros; refl
 def to_perm : ring_aut R →* equiv.perm R :=
 by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
 
-/-- The tautological action by the group of automorphism of a ring `R` on `R`.-/
+/-- The tautological action by the group of automorphism of a ring `R` on `R`.
+This generalizes `function.End.apply_mul_action`. -/
 instance apply_mul_semiring_action {R : Type*} [semiring R] :
 mul_semiring_action (ring_aut R) R :=
 { smul := ($),
@@ -79,10 +80,11 @@ smul_def {R : Type*} [semiring R] (f : ring_aut R) (r : R) : f • r = f r := rf
 instance apply_has_faithful_smul {R : Type*} [semiring R] : has_faithful_smul (ring_aut R) R :=
 ⟨λ _ _, ring_equiv.ext⟩
 
-/--A multiplicative action of a group `G` on `ring_aut R` induces
-a group homomorphism `G →* ring_aut R`.-/
+/-- Each element of the group defines a ring automorphism.
 
-@[simp]
+This is a stronger version of `distrib_mul_action.to_add_aut` and
+ `mul_distrib_mul_action.to_mul_aut`. -/
+@[simps]
 def mul_semiring_action.to_ring_aut {G : Type*} {R : Type*} [group G] [semiring R]
   [mul_semiring_action G R] :
   G →* ring_aut R :=

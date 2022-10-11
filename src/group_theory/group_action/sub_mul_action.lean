@@ -117,6 +117,11 @@ instance has_smul' : has_smul S p :=
 instance : is_scalar_tower S R p :=
 { smul_assoc := λ s r x, subtype.ext $ smul_assoc s r ↑x }
 
+instance is_scalar_tower' {S' : Type*} [has_smul S' R] [has_smul S' S]
+  [has_smul S' M] [is_scalar_tower S' R M] [is_scalar_tower S' S M] :
+  is_scalar_tower S' S p :=
+{ smul_assoc := λ s r x, subtype.ext $ smul_assoc s r ↑x }
+
 @[simp, norm_cast] lemma coe_smul_of_tower (s : S) (x : p) : ((s • x : p) : M) = s • ↑x := rfl
 
 @[simp] lemma smul_mem_iff' {G} [group G] [has_smul G R] [mul_action G M]

@@ -198,16 +198,16 @@ end
 @[simp] lemma nim_add_equiv_zero_iff (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ≈ 0 ↔ o₁ = o₂ :=
 begin
   split,
-  { contrapose,
-    intro h,
-    rw [impartial.not_equiv_zero_iff],
-    wlog h' : o₁ ≤ o₂,
-    { exact (fuzzy_congr_left add_comm_equiv).1 (this _ _ (ne.symm h) (le_of_not_le h')) },
-    have h : o₁ < o₂ := lt_of_le_of_ne h' h,
-    rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₂],
-    refine ⟨to_left_moves_add (sum.inr _), _⟩,
-    { exact (ordinal.principal_seg_out h).top },
-    { simpa using (impartial.add_self (nim o₁)).2 } },
+  { refine not_imp_not.1 (λ (h : _ ≠ _), (impartial.not_equiv_zero_iff _).2 _),
+    obtain h | h := h.lt_or_lt,
+    { rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₂],
+      refine ⟨to_left_moves_add (sum.inr _), _⟩,
+      { exact (ordinal.principal_seg_out h).top },
+      { simpa using (impartial.add_self (nim o₁)).2 } },
+    { rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₁],
+      refine ⟨to_left_moves_add (sum.inl _), _⟩,
+      { exact (ordinal.principal_seg_out h).top },
+      { simpa using (impartial.add_self (nim o₂)).2 } } },
   { rintro rfl,
     exact impartial.add_self (nim o₁) }
 end

@@ -776,6 +776,15 @@ noncompact_space_of_ne_bot $ by simp only [filter.cocompact_eq_cofinite, filter.
 lemma finite_of_compact_of_discrete [compact_space α] [discrete_topology α] : finite α :=
 finite.of_finite_univ $ compact_univ.finite_of_discrete
 
+lemma exists_nhds_ne_ne_bot (α : Type*) [topological_space α] [compact_space α] [infinite α] :
+  ∃ z : α, (𝓝[≠] z).ne_bot :=
+begin
+  by_contra' H,
+  simp_rw not_ne_bot at H,
+  haveI := discrete_topology_iff_nhds_ne.mpr H,
+  exact infinite.not_finite (finite_of_compact_of_discrete : finite α),
+end
+
 lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
 let ⟨t, ht⟩ := compact_univ.elim_finite_subcover (λ x, interior (U x)) (λ x, is_open_interior)
@@ -910,6 +919,17 @@ by rw [compact_iff_compact_in_subtype, image_univ, subtype.range_coe]; refl
 
 lemma is_compact_iff_compact_space {s : set α} : is_compact s ↔ compact_space s :=
 is_compact_iff_is_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
+
+lemma is_compact.finite {s : set α} (hs : is_compact s) (hs' : discrete_topology s) : s.finite :=
+finite_coe_iff.mp (@finite_of_compact_of_discrete _ _ (is_compact_iff_compact_space.mp hs) hs')
+
+lemma exists_nhds_ne_inf_principal_ne_bot {s : set α} (hs : is_compact s) (hs' : s.infinite) :
+  ∃ z ∈ s, (𝓝[≠] z ⊓ 𝓟 s).ne_bot :=
+begin
+  by_contra' H,
+  simp_rw not_ne_bot at H,
+  exact hs' (hs.finite $ discrete_topology_subtype_iff.mpr H),
+end
 
 protected lemma closed_embedding.noncompact_space [noncompact_space α] {f : α → β}
   (hf : closed_embedding f) : noncompact_space β :=

@@ -742,7 +742,8 @@ begin
 end
 
 /-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,
-  The result will be in the interval `(-n/2, n/2]`. -/
+  The result will be in the interval `(-n/2, n/2]`.
+  See also `val_min_abs'` which returns something in the interval `[-n/2, n/2)` -/
 def val_min_abs : Π {n : ℕ}, zmod n → ℤ
 | 0       x := x
 | n@(_+1) x := if x.val ≤ n / 2 then x.val else (x.val : ℤ) - n
@@ -845,6 +846,65 @@ end
 lemma val_eq_ite_val_min_abs {n : ℕ} [ne_zero n] (a : zmod n) :
   (a.val : ℤ) = a.val_min_abs + if a.val ≤ n / 2 then 0 else n :=
 by { rw [zmod.val_min_abs_def_pos], split_ifs; simp only [add_zero, sub_add_cancel] }
+
+
+/-- `val_min_abs' x` returns the integer in the same equivalence class as `x` that is closest to `0`,
+  The result will be in the interval `[-n/2, n/2)`.
+  See also `val_min_abs` which returns something in the interval `(-n/2, n/2]` -/
+def val_min_abs' : Π {n : ℕ}, zmod n → ℤ
+| 0       x := x
+| n@(_+1) x := if 2 * x.val < n then x.val else (x.val : ℤ) - n
+
+@[simp] lemma val_min_abs'_def_zero (x : zmod 0) : val_min_abs' x = x := rfl
+
+lemma val_min_abs'_def_pos {n : ℕ} [ne_zero n] (x : zmod n) :
+  val_min_abs' x = if 2 * x.val < n then x.val else x.val - n :=
+begin
+  casesI n,
+  { cases ne_zero.ne 0 rfl },
+  { refl }
+end
+
+lemma val_min_abs'_eq_neg_val_min_abs_neg {n : ℕ} (x : zmod n) :
+  x.val_min_abs' = -(-x).val_min_abs :=
+begin
+  cases n, { simp },
+  { rw [val_min_abs_def_pos, val_min_abs'_def_pos, neg_val],
+    by_cases hx : x = 0, { simp [hx] },
+    simp only [if_neg hx, nat.le_div_iff_mul_le zero_lt_two, mul_comm,
+      nat.mul_sub_left_distrib],
+    simp only [mul_two, nat_cast_val, coe_coe, nat.cast_succ, tsub_le_iff_right,
+      add_le_add_iff_left, ← not_le, ite_not],
+    split_ifs; simp [int.coe_nat_sub (le_of_lt x.val_lt)] }
+end
+
+@[simp] lemma coe_val_min_abs' {n : ℕ} (x : zmod n) : (x.val_min_abs' : zmod n) = x :=
+by simp [val_min_abs'_eq_neg_val_min_abs_neg]
+
+lemma nat_abs_val_min_abs'_le {n : ℕ} [ne_zero n] (x : zmod n) : x.val_min_abs'.nat_abs ≤ n / 2 :=
+begin
+  rw [val_min_abs'_eq_neg_val_min_abs_neg, int.nat_abs_neg],
+  exact nat_abs_val_min_abs_le _
+end
+
+@[simp] lemma val_min_abs'_zero (n : ℕ) : (0 : zmod n).val_min_abs' = 0 :=
+by simp [val_min_abs'_eq_neg_val_min_abs_neg]
+
+@[simp] lemma val_min_abs'_eq_zero {n : ℕ} (x : zmod n) :
+  x.val_min_abs' = 0 ↔ x = 0 :=
+by simp [val_min_abs'_eq_neg_val_min_abs_neg]
+
+lemma nat_cast_nat_abs_val_min_abs' {n : ℕ} [ne_zero n] (a : zmod n) :
+  (a.val_min_abs'.nat_abs : zmod n) = if a.val ≤ (n : ℕ) / 2 then a else -a :=
+by simp [val_min_abs'_eq_neg_val_min_abs_neg, nat_cast_nat_abs_val_min_abs]
+
+@[simp] lemma nat_abs_val_min_abs'_neg {n : ℕ} (a : zmod n) :
+  (-a).val_min_abs'.nat_abs = a.val_min_abs'.nat_abs :=
+by simp [val_min_abs'_eq_neg_val_min_abs_neg]
+
+lemma val_eq_ite_val_min_abs' {n : ℕ} [ne_zero n] (a : zmod n) :
+  (a.val : ℤ) = a.val_min_abs' + if 2 * a.val < n then 0 else n :=
+by { rw [zmod.val_min_abs'_def_pos], split_ifs; simp only [add_zero, sub_add_cancel] }
 
 lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p ≠ q) :
   (q : zmod p) ≠ 0 :=

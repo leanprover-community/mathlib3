@@ -72,19 +72,20 @@ mul_semiring_action (ring_aut R) R :=
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-@[simp] protected lemma smul_def {R : Type*} [semiring R] (f : ring_aut R) (r : R) :
- f • r = f r := rfl
+@[simp]
+protected lemma
+smul_def {R : Type*} [semiring R] (f : ring_aut R) (r : R) : f • r = f r := rfl
 
-instance apply_has_faithful_smul {R : Type*} [semiring R] :
-has_faithful_smul (ring_aut R) R :=
+instance apply_has_faithful_smul {R : Type*} [semiring R] : has_faithful_smul (ring_aut R) R :=
 ⟨λ _ _, ring_equiv.ext⟩
 
 /--A multiplicative action of a group `G` on `ring_aut R` induces
 a group homomorphism `G →* ring_aut R`.-/
 
-@[simp] def mul_semiring_action.to_ring_aut {G : Type*} {R : Type*} [group G] [semiring R]
-[mul_semiring_action G R] :
-G →* ring_aut R :=
+@[simp]
+def mul_semiring_action.to_ring_aut {G : Type*} {R : Type*} [group G] [semiring R]
+  [mul_semiring_action G R] :
+  G →* ring_aut R :=
 { to_fun := mul_semiring_action.to_ring_equiv G R,
   map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,
   map_one' := ring_equiv.ext $ one_smul _, }

@@ -147,7 +147,7 @@ local attribute [-instance] Pi.topological_space
 by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with
 the topology of `𝔖`-convergence, is a TVS.
 
-For convenience, we don't literaly ask for `H : submodule (α → E)`. Instead, we prove the result
+For convenience, we don't literally ask for `H : submodule (α → E)`. Instead, we prove the result
 for any vector space `H` equipped with a linear inducing to `α → E`, which is often easier to use.
 We also state the `submodule` version as
 `uniform_convergence_on.has_continuous_smul_submodule_of_image_bounded`. -/

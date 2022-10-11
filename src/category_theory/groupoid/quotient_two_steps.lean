@@ -1,7 +1,6 @@
-import category_theory.groupoid.vertex_group
-import category_theory.groupoid.subgroupoid
 import category_theory.groupoid
 import category_theory.groupoid.basic
+import category_theory.groupoid.subgroupoid
 
 
 open set classical function
@@ -16,7 +15,9 @@ namespace groupoid
 
 variables {C : Type u} [groupoid C] (S : subgroupoid C) (Sn : S.is_normal)
 
-namespace subgroupoid
+namespace quotient
+
+open subgroupoid
 
 section isotropy
 /-!
@@ -107,7 +108,7 @@ end
 /-- The image of `S` via the quotient is graph-like (since every loop is killed, essentially) -/
 lemma map_is_graph_like : (map (of S Sn) (of_inj_on_objects S Sn) S).is_graph_like :=
 begin
-  rw is_graph_like_iff,
+  rw subgroupoid.is_graph_like_iff,
   rintro c d,
   constructor,
   rintro ⟨_,hf⟩ ⟨_,hg⟩,
@@ -168,7 +169,7 @@ end isotropy
 end isotropy
 
 
-namespace is_graph_like
+namespace graph_like
 /-!
 Quotient of a groupoid by a normal, graph-like subgroupoid.
 By graph-likeness, the quotient be represented by the full subgroupoid induced by taking any
@@ -298,12 +299,12 @@ end
 
 end ump
 
-end is_graph_like
+end graph_like
 
 section quotient
 
-def quotient :=
-  is_graph_like.quotient
+def _root_.category_theory.groupoid.quotient :=
+  graph_like.quotient
     (map (isotropy.of S Sn) (isotropy.of_inj_on_objects S Sn) S)
     (is_normal_map
       S
@@ -313,7 +314,7 @@ def quotient :=
       Sn)
 
 instance quotient_groupoid : groupoid (quotient S Sn) :=
-  is_graph_like.quotient.category_theory.groupoid
+  graph_like.quotient.category_theory.groupoid
     (map /-(isotropy.of S Sn)-/ _ (isotropy.of_inj_on_objects S Sn) S)
     (is_normal_map
       /-S-/ _
@@ -322,36 +323,36 @@ instance quotient_groupoid : groupoid (quotient S Sn) :=
       (isotropy.of_onto S Sn)
       Sn)
 
-noncomputable def of : C ⥤ quotient S Sn := (isotropy.of _ _) ⋙ (is_graph_like.of _ _)
+noncomputable def of : C ⥤ quotient S Sn := (isotropy.of _ _) ⋙ (graph_like.of _ _)
 
 section ump
 
 variables {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ)
 
 include hφ
-def quotient.lift : quotient S Sn ⥤ D :=
+def lift : quotient S Sn ⥤ D :=
 begin
-  apply is_graph_like.lift,
+  apply graph_like.lift,
   fapply isotropy.lift,
   exact φ,
   rintro c γ γS, exact hφ γS,
 end
 
-lemma quotient.lift_spec : (of S Sn) ⋙ (quotient.lift S Sn φ hφ) = φ :=
+lemma lift_spec : (of S Sn) ⋙ (quotient.lift S Sn φ hφ) = φ :=
 begin
-  change isotropy.of S Sn ⋙ (is_graph_like.of (map (isotropy.of S Sn) _ S) _) ⋙
-    is_graph_like.lift (map (isotropy.of S Sn) _ S) _ (isotropy.lift S Sn φ _) = φ,
-  rw is_graph_like.lift_spec,
+  change isotropy.of S Sn ⋙ (graph_like.of (map (isotropy.of S Sn) _ S) _) ⋙
+    graph_like.lift (map (isotropy.of S Sn) _ S) _ (isotropy.lift S Sn φ _) = φ,
+  rw graph_like.lift_spec,
   apply isotropy.lift_spec,
   { rintros a b f ⟨_,_,g,gS⟩,
     exact hφ gS, },
 end
 
 
-def quotient.lift_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
+def lift_unique (Φ : quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
   Φ = (quotient.lift S Sn φ hφ) :=
 begin
-  apply is_graph_like.lift_unique,
+  apply graph_like.lift_unique,
   { rintros a b f ⟨_,_,g,gS⟩,
     exact hφ gS, },
   apply isotropy.lift_unique,
@@ -362,7 +363,7 @@ end ump
 
 end quotient
 
-end subgroupoid
+end quotient
 
 end groupoid
 

@@ -29,6 +29,13 @@ open  set topological_space
 
 section preorder
 
+@[simp] lemma upper_set.Inter_Ici [preorder α] (s : set α) : (⋃ a ∈ s, set.Ici a) =
+  (upper_closure s : set α) :=
+begin
+  rw [← upper_set.infi_Ici, upper_set.coe_infi₂],
+  simp only [upper_set.coe_Ici],
+end
+
 lemma l1 [preorder α] [preorder β] (a : α) (b : β) :
   Ici (a,b) = (univ ×ˢ (Ici b)) ∩ ((Ici a) ×ˢ univ) :=
 begin
@@ -193,6 +200,14 @@ begin
   fconstructor,
   rw mem_set_of_eq,
   use b,
+end
+
+lemma upper_closure_lower_closed (F : set α) (h : F.finite) : is_closed (upper_closure F : set α) :=
+begin
+  rw ← upper_set.Inter_Ici,
+  apply is_closed_bUnion h,
+  intros a h₁,
+  apply ici_is_closed,
 end
 
 open classical

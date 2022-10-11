@@ -380,18 +380,24 @@ open_locale tensor_product
 
 variables {R S : Type u} [comm_ring R] [comm_ring S] [algebra R S]
 
+instance formally_unramified.kaehler_differential_subsingleton [formally_unramified R S] :
+  subsingleton Ω[S⁄R] :=
+begin
+  rw ← not_nontrivial_iff_subsingleton,
+  introsI h,
+  obtain ⟨f₁, f₂, e⟩ := (kaehler_differential.End_equiv R S).injective.nontrivial,
+  apply e,
+  ext1,
+  apply formally_unramified.lift_unique' _ _ _ _ (f₁.2.trans f₂.2.symm),
+  rw [← alg_hom.to_ring_hom_eq_coe, alg_hom.ker_ker_sqare_lift],
+  exact ⟨_, ideal.cotangent_ideal_square _⟩,
+end
+
 lemma formally_unramified.iff_kaehler_differential_subsingleton :
   formally_unramified R S ↔ subsingleton Ω[S⁄R] :=
 begin
   split,
-  { rw ← not_nontrivial_iff_subsingleton,
-    introsI h₁ h₂,
-    obtain ⟨f₁, f₂, e⟩ := (kaehler_differential.End_equiv R S).injective.nontrivial,
-    apply e,
-    ext1,
-    apply formally_unramified.lift_unique' _ _ _ _ (f₁.2.trans f₂.2.symm),
-    rw [← alg_hom.to_ring_hom_eq_coe, alg_hom.ker_ker_sqare_lift],
-    exact ⟨_, ideal.cotangent_ideal_square _⟩ },
+  { introsI, apply_instance },
   { introI H,
     constructor,
     introsI B _ _ I hI f₁ f₂ e,

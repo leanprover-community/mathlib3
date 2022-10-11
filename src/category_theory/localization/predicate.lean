@@ -63,7 +63,8 @@ structure strict_universal_property_fixed_target :=
 
 /-- The localized category `W.localization` that was constructed satisfies
 the universal property of the localization. -/
-def strict_universal_property_fixed_target.for_Q :
+@[simps]
+def strict_universal_property_fixed_target_Q :
   strict_universal_property_fixed_target W.Q W E :=
 { inverts := W.Q_inverts,
   lift := construction.lift,

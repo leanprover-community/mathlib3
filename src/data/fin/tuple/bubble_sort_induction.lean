@@ -39,7 +39,7 @@ begin
     (@finite.preorder.well_founded_lt (equiv.perm (fin n)) _ _)
     (equiv.refl _) (sort f) P (λ σ, f ∘ σ) (λ σ hσ hfσ, _) hf,
   obtain ⟨i, j, hij₁, hij₂⟩ := antitone_pair_of_not_sorted' hσ,
-  exact ⟨σ * equiv.swap i j, lex_desc hij₁ hij₂, h σ i j hij₁ hij₂ hfσ⟩,
+  exact ⟨σ * equiv.swap i j, pi.lex_desc hij₁ hij₂, h σ i j hij₁ hij₂ hfσ⟩,
 end
 
 /-- *Bubble sort induction*: Prove that the sorted version of `f` has some property `P`

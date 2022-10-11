@@ -76,9 +76,9 @@ def add_equiv.lp_pi_Lp [fact (1 ≤ p)] : lp E p ≃+ pi_Lp p E :=
 { map_add' := λ f g, rfl,
   .. equiv.lp_pi_Lp }
 
-@[simp] lemma coe_add_equiv_lp_pi_Lp [fact (1 ≤ p)] (f : lp E p) :
+lemma coe_add_equiv_lp_pi_Lp [fact (1 ≤ p)] (f : lp E p) :
   add_equiv.lp_pi_Lp f = f := rfl
-@[simp] lemma coe_add_equiv_lp_pi_Lp_symm [fact (1 ≤ p)] (f : pi_Lp p E) :
+lemma coe_add_equiv_lp_pi_Lp_symm [fact (1 ≤ p)] (f : pi_Lp p E) :
   (add_equiv.lp_pi_Lp.symm f : Π i, E i) = f :=  rfl
 
 section equivₗᵢ
@@ -93,9 +93,9 @@ noncomputable def lp_pi_Lpₗᵢ [fact (1 ≤ p)] : lp E p ≃ₗᵢ[𝕜] pi_Lp
 
 variables {𝕜}
 
-@[simp] lemma coe_lp_pi_Lpₗᵢ [fact (1 ≤ p)] (f : lp E p) :
+lemma coe_lp_pi_Lpₗᵢ [fact (1 ≤ p)] (f : lp E p) :
   lp_pi_Lpₗᵢ 𝕜 f = f := rfl
-@[simp] lemma coe_lp_pi_Lpₗᵢ_symm [fact (1 ≤ p)] (f : pi_Lp p E) :
+lemma coe_lp_pi_Lpₗᵢ_symm [fact (1 ≤ p)] (f : pi_Lp p E) :
   ((lp_pi_Lpₗᵢ 𝕜).symm f : Π i, E i) = f :=  rfl
 
 end equivₗᵢ
@@ -124,9 +124,9 @@ noncomputable def add_equiv.lp_bcf :
   right_inv := λ f, ext $ λ x, rfl,
   map_add' := λ f g, ext $ λ x, rfl }
 
-@[simp] lemma coe_add_equiv_lp_bcf (f : lp (λ (_ : α), E) ∞) :
+lemma coe_add_equiv_lp_bcf (f : lp (λ (_ : α), E) ∞) :
   (add_equiv.lp_bcf f : α → E) = f := rfl
-@[simp] lemma coe_add_equiv_lp_bcf_symm (f : α →ᵇ E) : (add_equiv.lp_bcf.symm f : α → E) = f := rfl
+lemma coe_add_equiv_lp_bcf_symm (f : α →ᵇ E) : (add_equiv.lp_bcf.symm f : α → E) = f := rfl
 
 /-- The canonical map between `lp (λ (_ : α), E) ∞` and `α →ᵇ E` as a `linear_isometry_equiv`. -/
 noncomputable def lp_bcfₗᵢ : lp (λ (_ : α), E) ∞ ≃ₗᵢ[𝕜] (α →ᵇ E) :=
@@ -136,8 +136,8 @@ noncomputable def lp_bcfₗᵢ : lp (λ (_ : α), E) ∞ ≃ₗᵢ[𝕜] (α →
 
 variables {𝕜}
 
-@[simp] lemma coe_lp_bcfₗᵢ (f : lp (λ (_ : α), E) ∞) : (lp_bcfₗᵢ 𝕜 f : α → E) = f := rfl
-@[simp] lemma coe_lp_bcfₗᵢ_symm (f : α →ᵇ E) : ((lp_bcfₗᵢ 𝕜).symm f : α → E) = f :=  rfl
+lemma coe_lp_bcfₗᵢ (f : lp (λ (_ : α), E) ∞) : (lp_bcfₗᵢ 𝕜 f : α → E) = f := rfl
+lemma coe_lp_bcfₗᵢ_symm (f : α →ᵇ E) : ((lp_bcfₗᵢ 𝕜).symm f : α → E) = f :=  rfl
 
 end normed_add_comm_group
 
@@ -148,9 +148,9 @@ noncomputable def ring_equiv.lp_bcf : lp (λ (_ : α), R) ∞ ≃+* (α →ᵇ R
 { map_mul' := λ f g, ext $ λ x, rfl, .. @add_equiv.lp_bcf _ R _ _ _ }
 
 variables {R}
-@[simp] lemma coe_ring_equiv_lp_bcf (f : lp (λ (_ : α), R) ∞) :
+lemma coe_ring_equiv_lp_bcf (f : lp (λ (_ : α), R) ∞) :
   (ring_equiv.lp_bcf R f : α → R) = f := rfl
-@[simp] lemma coe_ring_equiv_lp_bcf_symm (f : α →ᵇ R) :
+lemma coe_ring_equiv_lp_bcf_symm (f : α →ᵇ R) :
   ((ring_equiv.lp_bcf R).symm f : α → R) = f := rfl
 
 variables (α) -- even `α` needs to be explicit here for elaboration
@@ -162,9 +162,9 @@ noncomputable def alg_equiv.lp_bcf : lp (λ (_ : α), A) ∞ ≃ₐ[𝕜] (α �
 { commutes' := λ k, rfl, .. ring_equiv.lp_bcf A }
 
 variables {α A 𝕜}
-@[simp] lemma coe_alg_equiv_lp_bcf (f : lp (λ (_ : α), A) ∞) :
+lemma coe_alg_equiv_lp_bcf (f : lp (λ (_ : α), A) ∞) :
   (alg_equiv.lp_bcf α A 𝕜 f : α → A) = f := rfl
-@[simp] lemma coe_alg_equiv_lp_bcf_symm (f : α →ᵇ A) :
+lemma coe_alg_equiv_lp_bcf_symm (f : α →ᵇ A) :
   ((alg_equiv.lp_bcf α A 𝕜).symm f : α → A) = f := rfl
 
 end ring_algebra

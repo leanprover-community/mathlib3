@@ -799,6 +799,10 @@ lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
 lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
 by simp_rw [norm_def, dist_eq_supr, coe_zero, pi.zero_apply, dist_zero_right]
 
+/-- If `∥(1 : β)∥ = 1`, then `∥(1 : α →ᵇ β)∥ = 1` if `α` is nonempty. -/
+instance [nonempty α] [has_one β] [norm_one_class β] : norm_one_class (α →ᵇ β) :=
+{ norm_one := by simp only [norm_eq_supr_norm, coe_one, pi.one_apply, norm_one, csupr_const] }
+
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
 ⟨λf, of_normed_add_comm_group (-f) f.continuous.neg ∥f∥ $ λ x,
@@ -1337,7 +1341,7 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
     rw norm_le (norm_nonneg _),
     exact λ t, (i1 t).trans (norm_coe_le_norm g t),
   end,
-  ..bounded_continuous_function.lattice, }
+  ..bounded_continuous_function.lattice, ..bounded_continuous_function.seminormed_add_comm_group }
 
 end normed_lattice_ordered_group
 

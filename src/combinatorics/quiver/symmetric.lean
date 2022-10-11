@@ -110,6 +110,25 @@ end
 
 end symmetrify
 
+namespace push
+
+variables {W : Type*} (σ : V → W)
+
+
+instance [has_reverse V] : has_reverse (quiver.push σ) :=
+{ reverse' := λ a b F, by { cases F, constructor, apply reverse, exact F_f, } }
+
+instance [h : quiver.has_involutive_reverse V] : quiver.has_involutive_reverse (push σ) :=
+{ reverse' := λ a b F, by { cases F, constructor, apply reverse, exact F_f, },
+  inv' :=  λ a b F, by
+  { cases F, dsimp [reverse], congr, apply h.inv', } }
+
+@[simp] lemma of_reverse [h : has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
+  (reverse $ ((of σ)).map f) = ((of σ)).map (reverse f) := rfl
+
+end push
+
+
 namespace path
 
 def is_reducible {V} [quiver V] [has_involutive_reverse V] {X Y : V} (r : path X Y) :=
@@ -124,15 +143,5 @@ symmetrification of `V`
 -/
 def is_forest (V) [quiver V] [has_involutive_reverse V] :=
   ∀ (X Y : V), subsingleton { p : path X Y | ¬ p.is_reducible }
-
-section reduction
-
-variable [has_involutive_reverse V]
-
-def tail_reduce {X : V} : Π {Y : V}, path X Y → path X Y
-| _ (path.nil) := path.nil
-| _ (path.cons (path.cons p f) g) := if (reverse f) = g then p else path.cons (path.cons p f) g
-
-end reduction
 
 end quiver

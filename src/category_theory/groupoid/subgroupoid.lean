@@ -474,6 +474,12 @@ lemma is_normal_comap {T} (Tn : is_normal T) : is_normal (comap φ T) :=
 /-- The kernel of a functor between subgroupoid is the preimage. -/
 def ker : subgroupoid C := comap φ (discrete)
 
+lemma ker_is_normal : (ker φ).is_normal :=
+begin
+  apply is_normal_comap,
+  exact discrete_is_normal,
+end
+
 lemma mem_ker_iff {c d : C} (f : c ⟶ d) :
   f ∈ (ker φ).arrws c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = eq_to_hom h :=
 mem_discrete_iff (φ.map f)
@@ -607,6 +613,15 @@ def generated_normal : subgroupoid C :=
 
 lemma generated_normal_is_normal : (generated_normal X).is_normal :=
 Inf_is_normal _ (λ S h, h.right)
+
+lemma generated_normal_le_of_containing_normal (Sn : S.is_normal) :
+  (∀ c d, X c d ⊆ S.arrws c d) → (generated_normal X) ≤ S :=
+begin
+  rintro h,
+  apply @Inf_le (subgroupoid C) _,
+  exact ⟨h,Sn⟩,
+end
+
 
 end generated_subgroupoid
 

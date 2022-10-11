@@ -91,7 +91,7 @@ begin
 end
 
 /-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/
-lemma lift_spec_unique (V' : Type*) [quiver V'] [has_reverse V']
+lemma lift_unique (V' : Type*) [quiver V'] [has_reverse V']
   (φ : prefunctor V V')
   (Φ : prefunctor (symmetrify V) V')
   (hΦ : of.comp Φ = φ)

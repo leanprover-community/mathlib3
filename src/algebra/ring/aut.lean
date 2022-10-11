@@ -83,7 +83,8 @@ has_faithful_smul (ring_aut R) R :=
 a group homomorphism `G →* ring_aut R`.-/
 
 @[simp] def mul_semiring_action.to_ring_aut {G : Type*} {R : Type*} [group G] [semiring R]
-[mul_semiring_action G R] : G →* ring_aut R :=
+[mul_semiring_action G R] :
+G →* ring_aut R :=
 { to_fun := mul_semiring_action.to_ring_equiv G R,
   map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,
   map_one' := ring_equiv.ext $ one_smul _, }

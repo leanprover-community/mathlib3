@@ -841,11 +841,22 @@ begin
   simp [hf.eq_iff]
 end
 
+/-- An injective family `v : ι → E` is orthonormal if and only if `coe : (range v) → E` is
+orthonormal. -/
+lemma orthonormal_subtype_range {v : ι → E} (hv : function.injective v) :
+  orthonormal 𝕜 (coe : set.range v → E) ↔ orthonormal 𝕜 v :=
+begin
+  let f : ι ≃ set.range v := equiv.of_injective v hv,
+  refine ⟨λ h, h.comp f f.injective, λ h, _⟩,
+  rw ← equiv.self_comp_of_injective_symm hv,
+  exact h.comp f.symm f.symm.injective,
+end
+
 /-- If `v : ι → E` is an orthonormal family, then `coe : (range v) → E` is an orthonormal
 family. -/
-lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
+lemma orthonormal.to_subtype_range {v : ι → E} (hv : orthonormal 𝕜 v) :
   orthonormal 𝕜 (coe : set.range v → E) :=
-by simpa using hv.comp _ (set.range_splitting_injective v)
+(orthonormal_subtype_range hv.linear_independent.injective).2 hv
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/
@@ -1810,7 +1821,8 @@ end bessels_inequality
 
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
-{ inner := (λ x y, (conj x) * y),
+{ to_normed_add_comm_group := non_unital_normed_ring.to_normed_add_comm_group,
+  inner := λ x y, conj x * y,
   norm_sq_eq_inner := λ x,
     by { unfold inner, rw [mul_comm, mul_conj, of_real_re, norm_sq_eq_def'] },
   conj_sym := λ x y, by simp [mul_comm],
@@ -1823,7 +1835,8 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 
 /-- Induced inner product on a submodule. -/
 instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_space 𝕜 W :=
-{ inner             := λ x y, ⟪(x:E), (y:E)⟫,
+{ to_normed_add_comm_group := submodule.normed_add_comm_group _,
+  inner             := λ x y, ⟪(x:E), (y:E)⟫,
   conj_sym          := λ _ _, inner_conj_sym _ _ ,
   norm_sq_eq_inner  := λ _, norm_sq_eq_inner _,
   add_left          := λ _ _ _ , inner_add_left,
@@ -2077,7 +2090,8 @@ registered as an instance since it creates problems with the case `𝕜 = ℝ`, 
 proof to obtain a real inner product space structure from a given `𝕜`-inner product space
 structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
-{ norm_sq_eq_inner := norm_sq_eq_inner,
+{ to_normed_add_comm_group := inner_product_space.to_normed_add_comm_group 𝕜,
+  norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
   add_left := λ x y z, by
   { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
@@ -2365,7 +2379,8 @@ protected lemma continuous.inner {α : Type*} [topological_space α]
 uniform_space.completion.continuous_inner.comp (hf.prod_mk hg : _)
 
 instance : inner_product_space 𝕜 (completion E) :=
-{ norm_sq_eq_inner := λ x, completion.induction_on x
+{ to_normed_add_comm_group := infer_instance,
+  norm_sq_eq_inner := λ x, completion.induction_on x
     (is_closed_eq
       (continuous_norm.pow 2)
       (continuous_re.comp (continuous.inner continuous_id' continuous_id')))

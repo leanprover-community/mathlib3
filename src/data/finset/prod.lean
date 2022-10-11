@@ -142,7 +142,7 @@ by { ext ⟨x, y⟩, simp only [and_or_distrib_left, mem_union, mem_product] }
 end prod
 
 section diag
-variables (s t : finset α) [decidable_eq α]
+variables [decidable_eq α] (s t : finset α)
 
 /-- Given a finite set `s`, the diagonal, `s.diag` is the set of pairs of the form `(a, a)` for
 `a ∈ s`. -/
@@ -159,6 +159,9 @@ by { simp only [diag, mem_filter, mem_product], split; intros h;
 @[simp] lemma mem_off_diag (x : α × α) : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
 by { simp only [off_diag, mem_filter, mem_product], split; intros h;
      simp only [h, ne.def, not_false_iff, and_self] }
+
+@[simp, norm_cast] lemma coe_off_diag : (s.off_diag : set (α × α)) = (s : set α).off_diag :=
+set.ext $ mem_off_diag _
 
 @[simp] lemma diag_card : (diag s).card = s.card :=
 begin
@@ -177,6 +180,12 @@ begin
   apply filter_card_add_filter_neg_card_eq_card,
 end
 
+@[mono] lemma diag_mono : monotone (diag : finset α → finset (α × α)) :=
+λ s t h x hx, (mem_diag _ _).2 $ and.imp_left (@h _) $ (mem_diag _ _).1 hx
+
+@[mono] lemma off_diag_mono : monotone (off_diag : finset α → finset (α × α)) :=
+λ s t h x hx, (mem_off_diag _ _).2 $ and.imp (@h _) (and.imp_left $ @h _) $ (mem_off_diag _ _).1 hx
+
 @[simp] lemma diag_empty : (∅ : finset α).diag = ∅ := rfl
 
 @[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ := rfl
@@ -193,6 +202,12 @@ by rw [←diag_union_off_diag, union_comm, union_sdiff_self,
 lemma product_sdiff_off_diag : s ×ˢ s \ s.off_diag = s.diag :=
 by rw [←diag_union_off_diag, union_sdiff_self, sdiff_eq_self_of_disjoint (disjoint_diag_off_diag _)]
 
+lemma diag_inter : (s ∩ t).diag = s.diag ∩ t.diag :=
+ext $ λ x, by simpa only [mem_diag, mem_inter] using and_and_distrib_right _ _ _
+
+lemma off_diag_inter : (s ∩ t).off_diag = s.off_diag ∩ t.off_diag :=
+coe_injective $ by { push_cast, exact set.off_diag_inter _ _ }
+
 lemma diag_union : (s ∪ t).diag = s.diag ∪ t.diag :=
 by { ext ⟨i, j⟩, simp only [mem_diag, mem_union, or_and_distrib_right] }
 
@@ -200,15 +215,7 @@ variables {s t}
 
 lemma off_diag_union (h : disjoint s t) :
   (s ∪ t).off_diag = s.off_diag ∪ t.off_diag ∪ s ×ˢ t ∪ t ×ˢ s :=
-begin
-  rw [off_diag, union_product, product_union, product_union, union_comm _ (t ×ˢ t),
-    union_assoc, union_left_comm (s ×ˢ t), ←union_assoc, filter_union, filter_union, ←off_diag,
-    ←off_diag, filter_true_of_mem, ←union_assoc],
-  simp only [mem_union, mem_product, ne.def, prod.forall],
-  rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩),
-  { exact h.forall_ne_finset hi hj },
-  { exact h.symm.forall_ne_finset hi hj },
-end
+coe_injective $ by { push_cast, exact set.off_diag_union (disjoint_coe.2 h) }
 
 variables (a : α)
 

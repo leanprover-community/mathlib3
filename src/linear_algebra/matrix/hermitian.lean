@@ -86,7 +86,7 @@ conj_transpose_zero
   Aᵀ.is_hermitian :=
 by { rw [is_hermitian, conj_transpose, transpose_map], congr, exact h }
 
-lemma is_hermitian_transpose_iff (A : matrix n n α) :
+@[simp] lemma is_hermitian_transpose_iff (A : matrix n n α) :
   Aᵀ.is_hermitian ↔ A.is_hermitian :=
 ⟨by { intro h, rw [← transpose_transpose A], exact is_hermitian.transpose h },
   is_hermitian.transpose⟩
@@ -95,7 +95,7 @@ lemma is_hermitian_transpose_iff (A : matrix n n α) :
   Aᴴ.is_hermitian :=
 h.transpose.map _ $ λ _, rfl
 
-lemma is_hermitian_conj_transpose_iff (A : matrix n n α) :
+@[simp] lemma is_hermitian_conj_transpose_iff (A : matrix n n α) :
   Aᴴ.is_hermitian ↔ A.is_hermitian :=
 ⟨by { intro h, rw [← conj_transpose_conj_transpose A], exact is_hermitian.conj_transpose h },
   is_hermitian.conj_transpose⟩
@@ -173,7 +173,7 @@ lemma is_hermitian.inv [fintype m] [decidable_eq m] {A : matrix m m α}
   (hA : A.is_hermitian) : A⁻¹.is_hermitian :=
 by simp [is_hermitian, conj_transpose_nonsing_inv, hA.eq]
 
-lemma is_hermitian_inv [fintype m] [decidable_eq m] (A : matrix m m α) [invertible A]:
+@[simp] lemma is_hermitian_inv [fintype m] [decidable_eq m] (A : matrix m m α) [invertible A]:
   (A⁻¹).is_hermitian ↔ A.is_hermitian :=
 ⟨λ h, by {rw [← inv_inv_of_invertible A], exact is_hermitian.inv h }, is_hermitian.inv⟩
 

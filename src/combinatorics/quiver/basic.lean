@@ -146,7 +146,6 @@ local postfix ` * ` := of
 
 @[simp] lemma of_obj : ((σ *)).obj = σ := rfl
 
-
 variables {W' : Type*} [quiver W']
   (φ : prefunctor V W') (τ : W → W') (h : ∀ x, φ.obj x = τ (σ x) )
 

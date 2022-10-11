@@ -17,24 +17,7 @@ import category_theory.quotient
 /-!
 # Universal groupoid
 
-This file defines the free groupoid on a quiver, the lifting of a prefunctor to its unique
-extension as a functor from the free groupoid, and proves uniqueness of this extension.
-
-## Main results
-
-Given the type `V` and a quiver instance on `V`:
-
-- `free_groupoid V`: a type synonym for `V`.
-- `free_groupoid_groupoid`: the `groupoid` instance on `free_groupoid V`.
-- `lift`: the lifting of a prefunctor from `V` to `V'` where `V'` is a groupoid, to a functor.
-  `free_groupoid V ⥤ V'`.
-- `lift_spec` and `lift_unique`: the proofs that, respectively, `lift` indeed is a lifting
-  and is the unique one.
-
-## Implementation notes
-
-The free groupoid is first defined by symmetrifying the quiver, taking the induced path category
-and finally quotienting by the reducibility relation.
+This file defines the universal groupoid of a groupoid along a function. to its unique
 
 -/
 
@@ -45,90 +28,13 @@ local attribute [instance] prop_decidable
 
 universes u v u' v' u'' v''
 
-
-namespace quiver
-
-namespace push
-
-section
-
-variables {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')
-
-def _root_.quiver.push {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')  := V'
-
-inductive push_quiver {V : Type u} [quiver.{v} V] {V' : Type u'} (σ : V → V') : V' → V' → Type (max u u' v)
-| arrow {X Y : V} (f : X ⟶ Y) : push_quiver (σ X) (σ Y)
-
-instance : quiver (push σ) := ⟨λ X Y, push_quiver σ X Y⟩
-
-def of  : prefunctor V (push σ) :=
-{ obj := σ,
-  map := λ X Y f, push_quiver.arrow f}
-
-postfix ` * ` := of
-
-@[simp] lemma of_obj : ((σ *)).obj = σ := rfl
-
-end
-
-section reverse
-
-variables {V : Type u} [quiver.{v+1} V] {V' : Type u'} (σ : V → V')
-
-instance [quiver.has_reverse V] : quiver.has_reverse (push σ) :=
-{ reverse' := λ a b F, by { cases F, constructor, apply quiver.reverse, exact F_f, } }
-
-instance [h : quiver.has_involutive_reverse V] : quiver.has_involutive_reverse (push σ) :=
-{ reverse' := λ a b F, by { cases F, constructor, apply quiver.reverse, exact F_f, },
-  inv' :=  λ a b F, by
-  { cases F, dsimp [quiver.reverse], congr, apply h.inv', } }
-
-@[simp] lemma of_reverse [h : has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
-  (quiver.reverse $ ((σ *)).map f) = ((σ *)).map (quiver.reverse f) := rfl
-
-variables {V'' : Type u''} [quiver.{v''+1} V'']
-  (φ : prefunctor V V'') (τ : V' → V'') (h : ∀ x, φ.obj x = τ (σ x) )
-
-end reverse
-
-variables {V : Type u} [quiver V] {V' : Type u'} (σ : V → V')
-variables {V'' : Type u''} [quiver.{v''+1} V'']
-  (φ : prefunctor V V'') (τ : V' → V'') (h : ∀ x, φ.obj x = τ (σ x) )
-
-include φ h
-def lift : prefunctor (push σ) V'' :=
-{ obj := τ,
-  map := by { apply push_quiver.rec, rintros X Y f, rw [←h X, ←h Y], exact φ.map f, } }
-
-lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
-
-lemma lift_spec_comm : (of σ).comp (lift σ φ τ h) = φ :=
-begin
-  dsimp [of,lift],
-  fapply prefunctor.ext,
-  { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },
-  { rintros _ _ f, simp only [prefunctor.comp_map], dsimp [cast], finish, },
-  -- no idea how `finish` worked :(
-end
-
-lemma lift_unique (Φ : prefunctor (push σ) V'') (Φ₀ : Φ.obj = τ) (Φcomm : (of σ).comp Φ = φ) :
-  Φ = (lift σ φ τ h) :=
-begin
-  dsimp [of,lift],
-  fapply prefunctor.ext,
-  { rintros, simp only [←Φ₀], },
-  { rintros _ _ f, induction f, subst_vars, simp only [prefunctor.comp_map, cast_eq], refl, }
-end
-
-end push
-end quiver
-
-
 namespace category_theory
 namespace groupoid
 namespace universal
 
 variables {V : Type u} [groupoid V] {V' : Type u'} (σ : V → V')
+
+local postfix ` * ` := quiver.push.of
 
 /-- Two reduction steps possible: compose composable arrows, or drop identity arrows -/
 inductive red_step : hom_rel (paths (quiver.push σ))
@@ -296,8 +202,8 @@ end
 lemma lift_unique (Φ : universal_groupoid σ ⥤ V'')
   (Φ₀ : Φ.obj = τ₀∘(as σ)) (Φc : extend σ ⋙ Φ = θ) : Φ = (lift σ θ τ₀ hτ₀) :=
 begin
-  apply quotient.lift_spec_unique,
-  apply paths.lift_spec_unique,
+  apply quotient.lift_unique,
+  apply paths.lift_unique,
   apply quiver.push.lift_unique,
   { ext,
     simp only [prefunctor.comp_obj, paths.of_obj, functor.to_prefunctor_obj, functor.comp_obj],

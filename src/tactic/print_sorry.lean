@@ -1,0 +1,92 @@
+import tactic.core
+import data.bool.basic
+
+open tactic
+
+/-- Auxilliary data type for `tactic.find_all_exprs` -/
+meta structure find_all_expr_data :=
+(depends_on_sorry : bool) -- this declaration depends on sorry
+(found_sorry : bool) -- the search has found sorry somewhere
+(descendants : list (name × bool × list name)) -- name, contains sorry directly, direct descendants
+(name_map : name_map bool) -- all data
+(direct_descendants : list name) -- direct descendants of a declaration
+
+/-- Auxilliary declaration for `tactic.find_all_exprs` -/
+meta def find_all_exprs_aux (env : environment) (f : expr → bool) (g : name → bool) : name →
+  find_all_expr_data → tactic find_all_expr_data
+| n ⟨b₀, b₁, l, ns, desc⟩ :=
+  match ns.find n with
+  | some b := pure ⟨b₀, b || b₁, l, ns, if b then n::desc else desc⟩
+  | none := if g n then pure ⟨b₀, b₁, l, ns.insert n ff, desc⟩ else do
+    d ← env.get n,
+    let process (v : expr) : tactic find_all_expr_data := (do
+      v.mfold ⟨ff, ff, l, ns, []⟩ $ λ e _ p,
+        if f e then pure ⟨tt, tt, l, p.name_map, p.direct_descendants⟩ else
+        if e.is_constant then find_all_exprs_aux e.const_name p else pure p),
+    ⟨b', b, l, ns, desc'⟩ ← process d.value,
+    pure ⟨b₀, b₁ || b, if b then (n, b', desc')::l else l, ns.insert n b,
+      if b then n::desc else desc⟩
+  end
+
+/-- `find_all_exprs env test exclude nm` searches for all declarations (transively) occuring in `nm`
+  that contain a subexpression `e` such that `test e` is true.
+  All declarations `n` such that `exclude n` is true (and all their descendants) are ignored. -/
+meta def find_all_exprs (env : environment) (test : expr → bool) (exclude : name → bool)
+  (nm : name) : tactic $ list $ name × bool × list name :=
+do ⟨_, _, l, _, _⟩ ← find_all_exprs_aux env test exclude nm ⟨ff, ff, [], mk_name_map, []⟩,
+  pure l
+
+/-- Print all declarations that (transively) occur in the value of declaration `nm` and depend on
+`sorry`. If `ignore_mathlib` is set true, then all declarations in `mathlib` are
+assumed to be `sorry`-free, which greatly reduces the search space. We could also exclude `core`,
+but this doesn't speed up the search. -/
+meta def print_sorry_in (nm : name) (ignore_mathlib := tt) : tactic unit := do
+  env ← get_env,
+  dir1 ← get_mathlib_dir,
+  data ← find_all_exprs env (λ e, e.is_sorry.is_some)
+    (if ignore_mathlib then λ nm, env.is_prefix_of_file dir1 nm else λ _, ff) nm,
+  let to_print : list format := data.map $ λ ⟨nm, contains_sorry, desc⟩,
+    let s1 := if contains_sorry then " contains sorry" else "",
+        s2 := if contains_sorry && !desc.empty then " and" else "",
+        s3 := string.join $ (desc.map to_string).intersperse ", ",
+        s4 := if !desc.empty then format!" depends on {s3}" else "" in
+    format!"{nm}{s1}{s2}{s4}.",
+  trace $ format.join $ to_print.intersperse format.line
+
+setup_tactic_parser
+
+/-- The command
+```
+#print_sorry_in nm
+```
+prints all declarations that (transively) occur in the value of declaration `nm` and depend on
+`sorry`. This command assumes that no `sorry` occurs in mathlib. To find `sorry` in mathlib, use
+``#eval print_sorry_in `nm ff`` instead.
+Example:
+```
+def foo1 : false := sorry
+def foo2 : false ∧ false := ⟨sorry, foo1⟩
+def foo3 : false := foo2.left
+def foo4 : true := trivial
+def foo5 : true ∧ false := ⟨foo4, foo3⟩
+#print_sorry_in foo5
+```
+prints
+```
+foo5 depends on foo3.
+foo3 depends on foo2.
+foo2 contains sorry and depends on foo1.
+foo1 contains sorry.
+```
+-/
+@[user_command]
+meta def print_sorry_in_cmd (_ : parse $ tk "#print_sorry_in") : parser unit := do
+  nm ← ident,
+  nm ← resolve_name nm,
+  print_sorry_in nm.const_name
+
+add_tactic_doc
+{ name                     := "print_sorry_in",
+  category                 := doc_category.cmd,
+  decl_names               := [`print_sorry_in_cmd],
+  tags                     := ["transport", "environment", "lemma derivation"] }

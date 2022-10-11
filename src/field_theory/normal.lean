@@ -109,7 +109,7 @@ variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
 normal_iff.2 $ λ x, begin
   cases h.out (f.symm x) with hx hhx,
-  have H := is_integral_alg_hom f.to_alg_hom hx,
+  have H := map_is_integral f.to_alg_hom hx,
   rw [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, alg_equiv.apply_symm_apply] at H,
   use H,
   apply polynomial.splits_of_splits_of_dvd (algebra_map F E') (minpoly.ne_zero hx),
@@ -250,7 +250,7 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
     simp only [alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom],
     suffices : is_integral F _,
     { exact is_integral_of_is_scalar_tower this },
-    exact is_integral_alg_hom ϕ (is_integral_alg_hom (to_alg_hom F E K₁) (h.is_integral z)) }⟩,
+    exact map_is_integral ϕ (map_is_integral (to_alg_hom F E K₁) (h.is_integral z)) }⟩,
   map_zero' := subtype.ext ϕ.map_zero,
   map_one' := subtype.ext ϕ.map_one,
   map_add' := λ x y, subtype.ext (ϕ.map_add x y),

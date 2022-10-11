@@ -19,7 +19,7 @@ space of continuous linear maps between two topological vector spaces.
 * `uniform_convergence.uniform_group` : if `G` is a uniform group, then the uniform structure of
   uniform convergence makes `α → G` a uniform group
 * `uniform_convergence_on.uniform_group` : if `G` is a uniform group, then the uniform structure of
-  `𝔖`-convergence, for any `𝔖 : set (set α)`, makes `α → G` an uniform group.
+  `𝔖`-convergence, for any `𝔖 : set (set α)`, makes `α → G` a uniform group.
 * `uniform_convergence_on.has_continuous_smul_of_image_bounded` : let `E` be a TVS,
   `𝔖 : set (set α)` and `H` a submodule of `α → E`. If the image of any `S ∈ 𝔖` by any `u ∈ H` is
   bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with the topology of

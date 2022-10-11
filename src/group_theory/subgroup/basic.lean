@@ -2778,6 +2778,14 @@ le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ su
   $ le_centralizer_iff.1 $ (closure_le _).2
   $ λ g, set_like.mem_coe.2 ∘ zpowers_le.1 ∘ le_centralizer_iff.1 ∘ infi_le_of_le g ∘ infi_le _
 
+@[to_additive] lemma center_eq_infi (S : set G) (hS : closure S = ⊤) :
+  center G = ⨅ g ∈ S, centralizer (zpowers g) :=
+by rw [←centralizer_top, ←hS, centralizer_closure]
+
+@[to_additive] lemma center_eq_infi' (S : set G) (hS : closure S = ⊤) :
+  center G = ⨅ g : S, centralizer (zpowers g) :=
+by rw [center_eq_infi S hS, ←infi_subtype'']
+
 end subgroup
 
 namespace monoid_hom

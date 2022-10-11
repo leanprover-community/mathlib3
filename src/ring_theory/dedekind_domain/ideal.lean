@@ -585,10 +585,8 @@ noncomputable instance fractional_ideal.semifield :
   inv_zero := inv_zero' _,
   div := (/),
   div_eq_mul_inv := fractional_ideal.div_eq_mul_inv,
-  exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective le_rfl).ne
-    (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
-  .. fractional_ideal.comm_semiring }
+  .. fractional_ideal.comm_semiring, ..(coe_to_fractional_ideal_injective le_rfl).nontrivial }
 
 /-- Fractional ideals have cancellative multiplication in a Dedekind domain.
 

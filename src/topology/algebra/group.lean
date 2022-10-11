@@ -1036,6 +1036,52 @@ begin
   exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
 end
 
+/-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the left, if
+it is discrete in the sense that `S ∩ K` is finite for all compact `K`. (See also
+`discrete_topology`.) -/
+@[to_additive "A subgroup `S` of an additive topological group `G` acts on `G` properly
+discontinuously on the left, if it is discrete in the sense that `S ∩ K` is finite for all compact
+`K`. (See also `discrete_topology`."]
+lemma subgroup.properly_discontinuous_smul_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have H : set.finite _ := hS ((hL.prod hK).image continuous_div').compl_mem_cocompact,
+    rw [preimage_compl, compl_compl] at H,
+    convert H,
+    ext x,
+    simpa only [image_smul, mem_image, prod.exists] using set.smul_inter_ne_empty_iff',
+  end }
+
+local attribute [semireducible] mul_opposite
+
+/-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the right, if
+it is discrete in the sense that `S ∩ K` is finite for all compact `K`. (See also
+`discrete_topology`.)
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_smul_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff. -/
+@[to_additive "A subgroup `S` of an additive topological group `G` acts on `G` properly
+discontinuously on the right, if it is discrete in the sense that `S ∩ K` is finite for all compact
+`K`. (See also `discrete_topology`.)
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_vadd_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff."]
+lemma subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S.opposite G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have : continuous (λ p : G × G, (p.1⁻¹, p.2)) := continuous_inv.prod_map continuous_id,
+    have H : set.finite _ :=
+      hS ((hK.prod hL).image (continuous_mul.comp this)).compl_mem_cocompact,
+    rw [preimage_compl, compl_compl] at H,
+    convert H,
+    ext x,
+    simpa only [image_smul, mem_image, prod.exists] using set.op_smul_inter_ne_empty_iff,
+  end }
+
 end
 
 section
@@ -1209,6 +1255,13 @@ instance quotient_group.has_continuous_smul [locally_compact_space G] :
       refine continuous_coinduced_rng.comp continuous_mul },
     exact quotient_map.continuous_lift_prod_right quotient_map_quotient_mk H,
   end }
+
+/-- The quotient of a second countable topological group by a subgroup is second countable. -/
+@[to_additive "The quotient of a second countable additive topological group by a subgroup is second
+countable."]
+instance quotient_group.second_countable_topology [second_countable_topology G] :
+  second_countable_topology (G ⧸ Γ) :=
+has_continuous_const_smul.second_countable_topology
 
 end quotient
 

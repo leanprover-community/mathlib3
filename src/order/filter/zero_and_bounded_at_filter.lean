@@ -25,14 +25,16 @@ variables {α β : Type*}
 
 open_locale topological_space
 
-/-- A function `f : α → β` is `zero_at_filter` if in the limit it is zero. -/
+/-- If `l` is a filter on `α`, then a function `f : α → β` is `zero_at_filter l`
+  if it tends to zero along `l`. -/
 def zero_at_filter [has_zero β] [topological_space β] (l : filter α) (f : α → β) : Prop :=
 filter.tendsto f l (𝓝 0)
 
 lemma zero_is_zero_at_filter [has_zero β] [topological_space β] (l : filter α) : zero_at_filter l
   (0 : α → β) := tendsto_const_nhds
 
-/-- The submodule of funtions that are `zero_at_filter`. -/
+/-- `zero_at_filter_submodule l` is the submodule of `f : α → β` which
+tend to zero along `l`. -/
 def zero_at_filter_submodule [topological_space β] [semiring β]
   [has_continuous_add β] [has_continuous_mul β] (l : filter α) : submodule β (α → β) :=
 { carrier := zero_at_filter l,
@@ -40,14 +42,16 @@ def zero_at_filter_submodule [topological_space β] [semiring β]
   add_mem' := by { intros a b ha hb, simpa using ha.add hb, },
   smul_mem' := by { intros c f hf, simpa using hf.const_mul c }, }
 
-/-- The additive submonoid of funtions that are `zero_at_filter`. -/
+/-- `zero_at_filter_add_submonoid l` is the additive submonoid of `f : α → β`
+which tend to zero along `l`. -/
 def zero_at_filter_add_submonoid [topological_space β]
   [add_zero_class β] [has_continuous_add β] (l : filter α) : add_submonoid (α → β) :=
 { carrier := zero_at_filter l,
   add_mem' := by { intros a b ha hb, simpa using ha.add hb },
   zero_mem' := zero_is_zero_at_filter l, }
 
-/-- A function `f: α → β` is `bounded_at_filter` if `f =O[l] 1`. -/
+/-- If `l` is a filter on `α`, then a function `f: α → β` is `bounded_at_filter l`
+if `f =O[l] 1`. -/
 def bounded_at_filter [has_norm β] [has_one (α → β)] (l : filter α) (f : α → β) : Prop :=
 asymptotics.is_O l f (1 : α → β)
 
@@ -59,14 +63,14 @@ lemma zero_is_bounded_at_filter [normed_field β] (l : filter α) :
   bounded_at_filter l (0 : α → β) :=
 (zero_at_filter_is_bounded_at_filter l _) (zero_is_zero_at_filter l)
 
-/-- The submodule of funtions that are `bounded_at_filter`. -/
+/-- The submodule of functions that are bounded along a filter `l`. -/
 def bounded_filter_submodule [normed_field β] (l : filter α) : submodule β (α → β) :=
 { carrier := bounded_at_filter l,
   zero_mem' := zero_is_bounded_at_filter l,
   add_mem' := by { intros f g hf hg, simpa using hf.add hg, },
   smul_mem' := by { intros c f hf, simpa using hf.const_mul_left c }, }
 
-/-- The subalgebra of funtions that are `bounded_at_filter`. -/
+/-- The subalgebra of functions that are bounded along a filter `l`. -/
 def bounded_filter_subalgebra [normed_field β] (l : filter α) :
   subalgebra β (α → β) :=
 begin

@@ -64,13 +64,9 @@ variable {R}
 
 open principal_ideal_ring
 
-/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
-  maximal ideal of R -/
-theorem irreducible_iff_uniformizer (ϖ : R) :
-  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
-⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm,
+theorem irreducible_of_span_eq_maximal_ideal {R : Type*} [comm_ring R] [local_ring R] [is_domain R]
+  (ϖ : R) (hϖ : ϖ ≠ 0) (h : maximal_ideal R = ideal.span {ϖ}) : irreducible ϖ :=
 begin
-  intro h,
   have h2 : ¬(is_unit ϖ) := show ϖ ∈ maximal_ideal R,
     from h.symm ▸ submodule.mem_span_singleton_self ϖ,
   refine ⟨h2, _⟩,
@@ -81,11 +77,17 @@ begin
   rcases ha with ⟨a, rfl⟩,
   rcases hb with ⟨b, rfl⟩,
   rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
-  have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
-  { apply not_a_field R,
-    simp [h, h3] },
-  { exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩) }
-end⟩
+  apply hϖ,
+  apply eq_zero_of_mul_eq_self_right _ hab.symm,
+  exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩)
+end
+
+/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
+  maximal ideal of R -/
+theorem irreducible_iff_uniformizer (ϖ : R) :
+  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
+⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm, λ h,
+  irreducible_of_span_eq_maximal_ideal ϖ (λ e, not_a_field R $ by rwa [h, span_singleton_eq_bot]) h⟩
 
 lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :
   maximal_ideal R = ideal.span {ϖ} :=

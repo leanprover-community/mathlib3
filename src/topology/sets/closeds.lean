@@ -162,7 +162,7 @@ end
 
 /-- in a `t1_space`, coatoms of `opens α` are precisely complements of singletons:
 `(closeds.singleton x).compl`. -/
-lemma opens.is_coatom_iff' [t1_space α] {s : opens α} :
+lemma opens.is_coatom_iff [t1_space α] {s : opens α} :
   is_coatom s ↔ ∃ x, s = (closeds.singleton x).compl :=
 begin
   rw [←s.compl_compl, ←is_atom_dual_iff_is_coatom],

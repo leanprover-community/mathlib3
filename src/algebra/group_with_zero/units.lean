@@ -98,14 +98,13 @@ lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y)
 by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
 
 lemma inverse_mul_eq_iff_eq_mul (x y z : M₀) (h : is_unit x) :
-  ring.inverse x * y = z ↔ y = x * z :=
-⟨λ h1, by rw [← h1, ring.mul_inverse_cancel_left _ _ h],
-  λ h1, by rw [h1, ring.inverse_mul_cancel_left _ _ h]⟩
+  inverse x * y = z ↔ y = x * z :=
+⟨λ h1, by rw [← h1, mul_inverse_cancel_left _ _ h], λ h1, by rw [h1, inverse_mul_cancel_left _ _ h]⟩
 
 lemma eq_mul_inverse_iff_mul_eq (x y z : M₀) (h : is_unit z) :
-  x = y * ring.inverse z ↔ x * z = y :=
-⟨λ h1, by rw [h1, ring.inverse_mul_cancel_right _ _ h],
-  λ h1, by rw [← h1, ring.mul_inverse_cancel_right _ _ h]⟩
+  x = y * inverse z ↔ x * z = y :=
+⟨λ h1, by rw [h1, inverse_mul_cancel_right _ _ h],
+  λ h1, by rw [← h1, mul_inverse_cancel_right _ _ h]⟩
 
 variables (M₀)
 

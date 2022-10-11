@@ -88,7 +88,7 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
 
 @[simp]
 lemma comp_assoc
-  {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W] {Z : Type*} [quiver Z]
+  {U V W Z : Type*} [quiver U] [quiver V] [quiver W] [quiver Z]
   (F : prefunctor U V) (G : prefunctor V W) (H : prefunctor W Z) :
   (F.comp G).comp H = F.comp (G.comp H) :=
 begin

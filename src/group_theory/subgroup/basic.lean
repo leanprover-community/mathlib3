@@ -2417,7 +2417,7 @@ end
 @[to_additive] lemma closure_preimage_eq_top (s : set G) :
   closure ((closure s).subtype ⁻¹' s) = ⊤ :=
 begin
-  apply map_injective (show function.injective (closure s).subtype, from subtype.coe_injective),
+  apply map_injective (closure s).subtype_injective,
   rwa [monoid_hom.map_closure, ←monoid_hom.range_eq_map, subtype_range,
     set.image_preimage_eq_of_subset],
   rw [coe_subtype, subtype.range_coe_subtype],

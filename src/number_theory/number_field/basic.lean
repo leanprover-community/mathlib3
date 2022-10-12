@@ -104,7 +104,7 @@ x.2
 
 lemma map_mem_ring_of_integers {F L : Type*} [field L] [char_zero K] [char_zero L]
   [alg_hom_class F ℚ K L] (f : F) (x : 𝓞 K) : f x ∈ 𝓞 L :=
-(mem_ring_of_integers _ _).2 $ is_integral_int_alg_hom_class f $ ring_of_integers.is_integral_coe x
+(mem_ring_of_integers _ _).2 $ map_is_integral_int f $ ring_of_integers.is_integral_coe x
 
 /-- The ring of integers of `K` are equivalent to any integral closure of `ℤ` in `K` -/
 protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]

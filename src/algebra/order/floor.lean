@@ -97,8 +97,6 @@ lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast
 
 lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
 
-lemma floor_mono' (ha : 0 ≤ a) (hab : a ≤ b) : ⌊a⌋₊ ≤ ⌊b⌋₊ := le_floor ((floor_le ha).trans hab)
-
 @[simp] lemma floor_coe (n : ℕ) : ⌊(n : α)⌋₊ = n :=
 eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff n.cast_nonneg], exact nat.cast_le }
 
@@ -111,6 +109,49 @@ imp_of_not_imp_not _ _ (λ H, not_not.mpr (floor_semiring.nonneg_of_floor H))
 
 lemma floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
 by { classical, exact dite (0 ≤ a) (λ H, (le_antisymm H ha) ▸ floor_zero ) floor_of_not_nonneg }
+
+lemma floor_mono : monotone (floor : α → ℕ) := λ a b h, begin
+  by_cases ha : 0 ≤ a,
+  { exact le_floor ((floor_le ha).trans h) },
+  { rw floor_of_not_nonneg ha,
+    exact nat.zero_le _ }
+end
+
+lemma le_floor_iff' (hn : n ≠ 0) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a :=
+begin
+  by_cases ha : 0 ≤ a,
+  { exact le_floor_iff ha },
+  { rw floor_of_not_nonneg ha,
+    exact iff_of_false (nat.pos_of_ne_zero hn).not_le (ha.imp (λ H, le_trans (cast_nonneg _) H)) },
+end
+
+@[simp] lemma one_le_floor_iff (x : α) : 1 ≤ ⌊x⌋₊ ↔ 1 ≤ x :=
+by exact_mod_cast (@le_floor_iff' α _ _ x 1 one_ne_zero)
+
+lemma floor_pos : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=
+by { convert le_floor_iff' nat.one_ne_zero, exact cast_one.symm }
+
+lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n :=
+by { convert floor_mono h, exact (floor_coe _).symm }
+
+lemma floor_le_one_of_le_one (h : a ≤ 1) : ⌊a⌋₊ ≤ 1 :=
+floor_le_of_le $ h.trans_eq $ nat.cast_one.symm
+
+lemma floor_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌊a + n⌋₊ = ⌊a⌋₊ + n :=
+eq_of_forall_le_iff $ λ b, begin
+  rw [le_floor_iff (add_nonneg ha n.cast_nonneg)],
+  obtain hb | hb := le_total n b,
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_comm n, add_comm (n : α), add_le_add_iff_right, add_le_add_iff_right,
+      le_floor_iff ha] },
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_left_comm _ b, add_left_comm _ (b : α)],
+    refine iff_of_true _ le_self_add,
+    exact (le_add_of_nonneg_right $ ha.trans $ le_add_of_nonneg_right d.cast_nonneg) }
+end
+
+lemma floor_add_one (ha : 0 ≤ a) : ⌊a + 1⌋₊ = ⌊a⌋₊ + 1 :=
+by { convert floor_add_nat ha 1, exact cast_one.symm }
 
 /-! #### Ceil -/
 
@@ -135,6 +176,14 @@ lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.c
 
 @[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
 ext $ λ x, ceil_eq_zero
+
+lemma floor_le_ceil (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
+begin
+  by_cases ha : 0 ≤ a,
+  { exact cast_le.1 ((floor_le ha).trans $ le_ceil _) },
+  { rw floor_of_not_nonneg ha,
+    exact nat.zero_le _ }
+end
 
 /-! #### Intervals -/
 
@@ -168,40 +217,13 @@ lemma lt_succ_floor (a : α) : a < ⌊a⌋₊.succ := lt_of_floor_lt $ nat.lt_su
 
 lemma lt_floor_add_one (a : α) : a < ⌊a⌋₊ + 1 := by simpa using lt_succ_floor a
 
-lemma floor_mono : monotone (floor : α → ℕ) := λ a b h, begin
-  obtain ha | ha := le_total a 0,
-  { rw floor_of_nonpos ha,
-    exact nat.zero_le _ },
-  { exact floor_mono' ha h }
-end
-
-lemma le_floor_iff' (hn : n ≠ 0) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a :=
-begin
-  obtain ha | ha := le_total a 0,
-  { rw floor_of_nonpos ha,
-    exact iff_of_false (nat.pos_of_ne_zero hn).not_le
-      (not_le_of_lt $ ha.trans_lt $ cast_pos.2 $ nat.pos_of_ne_zero hn) },
-  { exact le_floor_iff ha }
-end
-
-@[simp] lemma one_le_floor_iff (x : α) : 1 ≤ ⌊x⌋₊ ↔ 1 ≤ x :=
-by exact_mod_cast (@le_floor_iff' α _ _ x 1 one_ne_zero)
-
 lemma floor_lt' (hn : n ≠ 0) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff' hn
-
-lemma floor_pos : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=
-by { convert le_floor_iff' nat.one_ne_zero, exact cast_one.symm }
 
 lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
 (le_or_lt a 0).resolve_left (λ ha, lt_irrefl 0 $ by rwa floor_of_nonpos ha at h)
 
 lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 (nat.cast_lt.2 h).trans_le $ floor_le (pos_of_floor_pos $ (nat.zero_le n).trans_lt h).le
-
-lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n := le_imp_le_iff_lt_imp_lt.2 lt_of_lt_floor h
-
-lemma floor_le_one_of_le_one (h : a ≤ 1) : ⌊a⌋₊ ≤ 1 :=
-floor_le_of_le $ h.trans_eq $ nat.cast_one.symm
 
 @[simp] lemma floor_eq_zero : ⌊a⌋₊ = 0 ↔ a < 1 :=
 by { rw [←lt_one_iff, ←@cast_one α], exact floor_lt' nat.one_ne_zero }
@@ -234,14 +256,6 @@ lemma lt_ceil : n < ⌈a⌉₊ ↔ (n : α) < a := lt_iff_lt_of_le_iff_le ceil_l
 
 lemma lt_of_ceil_lt (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
 
-lemma floor_le_ceil (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
-begin
-  obtain ha | ha := le_total a 0,
-  { rw floor_of_nonpos ha,
-    exact nat.zero_le _ },
-  { exact cast_le.1 ((floor_le ha).trans $ le_ceil _) }
-end
-
 lemma floor_lt_ceil_of_lt_of_pos {a b : α} (h : a < b) (h' : 0 < b) : ⌊a⌋₊ < ⌈b⌉₊ :=
 begin
   rcases le_or_lt 0 a with ha|ha,
@@ -256,6 +270,23 @@ by rw [← ceil_le, ← not_le, ← ceil_le, not_le,
 
 lemma preimage_ceil_of_ne_zero (hn : n ≠ 0) : (nat.ceil : α → ℕ) ⁻¹' {n} = Ioc ↑(n - 1) n :=
 ext $ λ x, ceil_eq_iff hn
+
+lemma ceil_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌈a + n⌉₊ = ⌈a⌉₊ + n :=
+eq_of_forall_ge_iff $ λ b, begin
+  rw [←not_lt, ←not_lt, not_iff_not],
+  rw [lt_ceil],
+  obtain hb | hb := le_or_lt n b,
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_comm n, add_comm (n : α), add_lt_add_iff_right, add_lt_add_iff_right,
+      lt_ceil] },
+  { exact iff_of_true (lt_add_of_nonneg_of_lt ha $ cast_lt.2 hb) (lt_add_left _ _ _ hb) }
+end
+
+lemma ceil_add_one (ha : 0 ≤ a) : ⌈a + 1⌉₊ = ⌈a⌉₊ + 1 :=
+by { convert ceil_add_nat ha 1, exact cast_one.symm }
+
+lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
+lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
 /-! #### Intervals -/
 
@@ -276,22 +307,6 @@ by { ext, simp [floor_lt, ha] }
 @[simp] lemma preimage_Iio {a : α} : ((coe : ℕ → α) ⁻¹' (set.Iio a)) = set.Iio ⌈a⌉₊ :=
 by { ext, simp [lt_ceil] }
 
-lemma floor_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌊a + n⌋₊ = ⌊a⌋₊ + n :=
-eq_of_forall_le_iff $ λ b, begin
-  rw [le_floor_iff (add_nonneg ha n.cast_nonneg)],
-  obtain hb | hb := le_total n b,
-  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
-    rw [nat.cast_add, add_comm n, add_comm (n : α), add_le_add_iff_right, add_le_add_iff_right,
-      le_floor_iff ha] },
-  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
-    rw [nat.cast_add, add_left_comm _ b, add_left_comm _ (b : α)],
-    refine iff_of_true _ le_self_add,
-    exact (le_add_of_nonneg_right $ ha.trans $ le_add_of_nonneg_right d.cast_nonneg) }
-end
-
-lemma floor_add_one (ha : 0 ≤ a) : ⌊a + 1⌋₊ = ⌊a⌋₊ + 1 :=
-by { convert floor_add_nat ha 1, exact cast_one.symm }
-
 lemma floor_sub_nat [has_sub α] [has_ordered_sub α] [has_exists_add_of_le α] (a : α) (n : ℕ) :
   ⌊a - n⌋₊ = ⌊a⌋₊ - n :=
 begin
@@ -305,23 +320,6 @@ begin
       tsub_add_cancel_of_le h],
     exact le_tsub_of_add_le_left ((add_zero _).trans_le h), }
 end
-
-lemma ceil_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌈a + n⌉₊ = ⌈a⌉₊ + n :=
-eq_of_forall_ge_iff $ λ b, begin
-  rw [←not_lt, ←not_lt, not_iff_not],
-  rw [lt_ceil],
-  obtain hb | hb := le_or_lt n b,
-  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
-    rw [nat.cast_add, add_comm n, add_comm (n : α), add_lt_add_iff_right, add_lt_add_iff_right,
-      lt_ceil] },
-  { exact iff_of_true (lt_add_of_nonneg_of_lt ha $ cast_lt.2 hb) (lt_add_left _ _ _ hb) }
-end
-
-lemma ceil_add_one (ha : 0 ≤ a) : ⌈a + 1⌉₊ = ⌈a⌉₊ + 1 :=
-by { convert ceil_add_nat ha 1, exact cast_one.symm }
-
-lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
-lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
 end linear_ordered_semiring
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import algebra.algebra.subalgebra.pointwise
+import algebraic_geometry.prime_spectrum.maximal
 import algebraic_geometry.prime_spectrum.noetherian
 import order.hom.basic
 import ring_theory.dedekind_domain.basic
@@ -837,7 +838,8 @@ end is_dedekind_domain
 If `R` is a Dedekind domain of Krull dimension 1, the maximal ideals of `R` are exactly its nonzero
 prime ideals.
 We define `height_one_spectrum` and provide lemmas to recover the facts that prime ideals of height
-one are prime and irreducible. -/
+one are prime and irreducible.
+-/
 
 namespace is_dedekind_domain
 
@@ -845,22 +847,17 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[nolint has_nonempty_instance unused_arguments]
-def height_one_spectrum := {I : ideal R // I.is_prime ∧ I ≠ ⊥}
+@[ext, nolint has_nonempty_instance unused_arguments]
+structure height_one_spectrum :=
+(as_ideal : ideal R)
+(is_prime : as_ideal.is_prime)
+(ne_bot : as_ideal ≠ ⊥)
+
+attribute [instance] height_one_spectrum.is_prime
 
 variables (v : height_one_spectrum R) {R}
 
 namespace height_one_spectrum
-
-/-- View a point in the height one spectrum of a commutative ring as an ideal of that ring. -/
-abbreviation as_ideal (x : height_one_spectrum R) : ideal R := x.val
-
-@[ext] lemma ext {x y : height_one_spectrum R} : x = y ↔ x.as_ideal = y.as_ideal :=
-subtype.ext_iff_val
-
-instance is_prime : v.as_ideal.is_prime := v.property.left
-
-lemma ne_bot : v.as_ideal ≠ ⊥ := v.property.right
 
 instance is_maximal : v.as_ideal.is_maximal := dimension_le_one v.as_ideal v.ne_bot v.is_prime
 
@@ -874,30 +871,11 @@ lemma associates_irreducible : _root_.irreducible $ associates.mk v.as_ideal :=
 
 /-- An equivalence between the height one and maximal spectra for rings of Krull dimension 1. -/
 def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maximal_spectrum R :=
-{ to_fun    := λ v, ⟨v.val, dimension_le_one v.val v.property.right v.property.left⟩,
-  inv_fun   := λ v, ⟨v.val, v.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field v.property hR⟩,
+{ to_fun    := λ v, ⟨v.as_ideal, dimension_le_one v.as_ideal v.ne_bot v.is_prime⟩,
+  inv_fun   := λ v,
+    ⟨v.as_ideal, v.is_maximal.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field v.is_maximal hR⟩,
   left_inv  := λ ⟨_, _, _⟩, rfl,
   right_inv := λ ⟨_, _⟩, rfl }
-
-/-- A Dedekind domain is equal to the intersection of its localizations at all its height one
-non-zero prime ideals viewed as subalgebras of its field of fractions. -/
-theorem localization_infi_eq_bot [algebra R K] [hK : is_fraction_ring R K] :
-  (⨅ v : height_one_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
-    le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
-begin
-  ext x,
-  rw [algebra.mem_infi],
-  split,
-  by_cases hR : is_field R,
-  { rcases function.bijective_iff_has_inverse.mp
-      (is_field.localization_map_bijective (flip non_zero_divisors.ne_zero rfl : 0 ∉ R⁰) hR)
-      with ⟨algebra_map_inv, _, algebra_map_right_inv⟩,
-    exact λ _, algebra.mem_bot.mpr ⟨algebra_map_inv x, algebra_map_right_inv x⟩,
-    exact hK },
-  all_goals { rw [← maximal_spectrum.localization_infi_eq_bot, algebra.mem_infi] },
-  { exact λ hx ⟨v, hv⟩, hx ((equiv_maximal_spectrum hR).symm ⟨v, hv⟩) },
-  { exact λ hx ⟨v, hv, hbot⟩, hx ⟨v, dimension_le_one v hbot hv⟩ }
-end
 
 end height_one_spectrum
 

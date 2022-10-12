@@ -9,6 +9,7 @@ import algebra.group_with_zero.power
 import tactic.ring
 import tactic.ring_exp
 import tactic.field_simp
+import data.int.nat_prime
 import data.zmod.basic
 
 /-!

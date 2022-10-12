@@ -69,19 +69,23 @@ instance : linear_ordered_comm_monoid_with_zero ℕ :=
   ..nat.linear_ordered_comm_semiring,
   ..(infer_instance : comm_monoid_with_zero ℕ)}
 
-/-! Extra instances to short-circuit type class resolution -/
-instance : add_comm_monoid ℕ       := infer_instance
-instance : add_monoid ℕ            := infer_instance
-instance : monoid ℕ                := infer_instance
-instance : comm_monoid ℕ           := infer_instance
-instance : comm_semigroup ℕ        := infer_instance
-instance : semigroup ℕ             := infer_instance
-instance : add_comm_semigroup ℕ    := infer_instance
-instance : add_semigroup ℕ         := infer_instance
-instance : distrib ℕ               := infer_instance
-instance : semiring ℕ              := infer_instance
-instance : ordered_semiring ℕ      := infer_instance
-instance : ordered_comm_semiring ℕ := infer_instance
+/-! Extra instances to short-circuit type class resolution and ensure computability -/
+-- Not using `infer_instance` avoids `classical.choice` in the following two
+instance : linear_ordered_semiring ℕ      := infer_instance
+instance : strict_ordered_semiring ℕ      := infer_instance
+instance : strict_ordered_comm_semiring ℕ := infer_instance
+instance : ordered_semiring ℕ             := strict_ordered_semiring.to_ordered_semiring'
+instance : ordered_comm_semiring ℕ        := strict_ordered_comm_semiring.to_ordered_comm_semiring'
+instance : add_comm_monoid ℕ              := infer_instance
+instance : add_monoid ℕ                   := infer_instance
+instance : monoid ℕ                       := infer_instance
+instance : comm_monoid ℕ                  := infer_instance
+instance : comm_semigroup ℕ               := infer_instance
+instance : semigroup ℕ                    := infer_instance
+instance : add_comm_semigroup ℕ           := infer_instance
+instance : add_semigroup ℕ                := infer_instance
+instance : distrib ℕ                      := infer_instance
+instance : semiring ℕ                     := infer_instance
 instance : linear_ordered_cancel_add_comm_monoid ℕ := infer_instance
 
 instance nat.order_bot : order_bot ℕ :=
@@ -521,11 +525,11 @@ lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=
 mul_pos (succ_pos m) hn
 
 theorem mul_self_le_mul_self {n m : ℕ} (h : n ≤ m) : n * n ≤ m * m :=
-decidable.mul_le_mul h h (zero_le _) (zero_le _)
+mul_le_mul h h (zero_le _) (zero_le _)
 
 theorem mul_self_lt_mul_self : Π {n m : ℕ}, n < m → n * n < m * m
 | 0        m h := mul_pos h h
-| (succ n) m h := decidable.mul_lt_mul h (le_of_lt h) (succ_pos _) (zero_le _)
+| (succ n) m h := mul_lt_mul h (le_of_lt h) (succ_pos _) (zero_le _)
 
 theorem mul_self_le_mul_self_iff {n m : ℕ} : n ≤ m ↔ n * n ≤ m * m :=
 ⟨mul_self_le_mul_self, le_imp_le_of_lt_imp_lt mul_self_lt_mul_self⟩
@@ -540,13 +544,13 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
   conv {to_lhs, rw [← one_mul(m)]},
-  exact decidable.mul_le_mul_of_nonneg_right h.nat_succ_le dec_trivial,
+  exact mul_le_mul_of_nonneg_right h.nat_succ_le dec_trivial,
 end
 
 lemma le_mul_of_pos_right {m n : ℕ} (h : 0 < n) : m ≤ m * n :=
 begin
   conv {to_lhs, rw [← mul_one(m)]},
-  exact decidable.mul_le_mul_of_nonneg_left h.nat_succ_le dec_trivial,
+  exact mul_le_mul_of_nonneg_left h.nat_succ_le dec_trivial,
 end
 
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=

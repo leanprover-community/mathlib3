@@ -693,7 +693,7 @@ lemma to_finset_prod (s : set α) (t : set β) [fintype s] [fintype t] [fintype 
   (s ×ˢ t).to_finset = s.to_finset ×ˢ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_off_diag {s : set α} [decidable_eq α] [fintype s] [fintype (s.off_diag)] :
+lemma to_finset_off_diag {s : set α} [decidable_eq α] [fintype s] [fintype s.off_diag] :
 s.off_diag.to_finset = s.to_finset.off_diag := finset.ext $ by simp
 
 /- TODO Without the coercion arrow (`↥`) there is an elaboration bug;

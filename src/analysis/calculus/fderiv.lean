@@ -199,6 +199,16 @@ lemma fderiv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) :
 have ¬ ∃ f', has_fderiv_at f f' x, from h,
 by simp [fderiv, this]
 
+lemma asymptotics.is_O.has_fderiv_at {x₀ : E} {n : ℕ}
+  (h : f =O[𝓝 x₀] λ x, ∥x - x₀∥^n) (hn : 1 < n) :
+  has_fderiv_at f (0 : E →L[𝕜] F) x₀ :=
+by simp_rw [has_fderiv_at, has_fderiv_at_filter, h.eq_zero_of_norm_pow $ zero_lt_one.trans hn,
+  zero_apply, sub_zero, h.trans_is_o $ is_o_pow_sub_sub x₀ hn]
+
+lemma has_fderiv_at.is_O {f : E → F} {x₀ : E} {f' : E →L[𝕜] F} (h : has_fderiv_at f f' x₀) :
+  (λ x, f x - f x₀) =O[𝓝 x₀] λ x, x - x₀ :=
+by simpa using h.is_O.add (is_O_sub f' (𝓝 x₀) x₀)
+
 section derivative_uniqueness
 /- In this section, we discuss the uniqueness of the derivative.
 We prove that the definitions `unique_diff_within_at` and `unique_diff_on` indeed imply the

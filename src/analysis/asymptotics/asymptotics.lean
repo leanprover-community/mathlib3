@@ -467,6 +467,21 @@ is_o.of_is_O_with $ λ c cpos, (h.forall_is_O_with cpos).sup (h'.forall_is_O_wit
 @[simp] lemma is_o_sup : f =o[l ⊔ l'] g ↔ f =o[l] g ∧ f =o[l'] g :=
 ⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
 
+lemma is_O_with_insert [topological_space α] {x : α} {s : set α} {C : ℝ} {g : α → E} {g' : α → F}
+  (h : ∥g x∥ ≤ C * ∥g' x∥) :
+  is_O_with C (𝓝[insert x s] x) g g' ↔ is_O_with C (𝓝[s] x) g g' :=
+by simp_rw [is_O_with, nhds_within_insert, eventually_sup, eventually_pure, h, true_and]
+
+lemma is_o_insert [topological_space α] {x : α} {s : set α} {g : α → E'} {g' : α → F'}
+  (h : g x = 0) : g =o[𝓝[insert x s] x] g' ↔ g =o[𝓝[s] x] g' :=
+begin
+  simp_rw [is_o],
+  refine forall_congr (λ c, forall_congr (λ hc, _)),
+  rw [is_O_with_insert],
+  rw [h, norm_zero],
+  exact mul_nonneg hc.le (norm_nonneg _)
+end
+
 /-! ### Simplification : norm, abs -/
 
 section norm_abs

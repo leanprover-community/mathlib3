@@ -220,6 +220,48 @@ lemma map_comp_map {I : Type*} [group I] (M : subgroup H) (O : subgroup I)
 monoid_hom.ext (map_map N M O f g hf hg hgf)
 
 omit nN
+
+section congr
+
+variables (G' : subgroup G) (H' : subgroup H) [subgroup.normal G'] [subgroup.normal H']
+
+/-- `quotient_group.congr` lifts the isomorphism `e : G ≃ H` to `G ⧸ G' ≃ H ⧸ H'`,
+given that `e` maps `G` to `H`. -/
+@[to_additive "`quotient_add_group.congr` lifts the isomorphism `e : G ≃ H` to `G ⧸ G' ≃ H ⧸ H'`,
+given that `e` maps `G` to `H`."]
+def congr (e : G ≃* H) (he : G'.map ↑e = H') : G ⧸ G' ≃* H ⧸ H' :=
+{ to_fun := map G' H' ↑e (he ▸ G'.le_comap_map e),
+  inv_fun := map H' G' ↑e.symm (he ▸ (G'.map_equiv_eq_comap_symm e).le),
+  left_inv := λ x, by rw map_map; -- `simp` doesn't like this lemma...
+    simp only [map_map, ← mul_equiv.coe_monoid_hom_trans, mul_equiv.self_trans_symm,
+        mul_equiv.coe_monoid_hom_refl, map_id_apply],
+  right_inv := λ x, by rw map_map; -- `simp` doesn't like this lemma...
+    simp only [← mul_equiv.coe_monoid_hom_trans, mul_equiv.symm_trans_self,
+        mul_equiv.coe_monoid_hom_refl, map_id_apply],
+  .. map G' H' ↑e (he ▸ G'.le_comap_map e) }
+
+@[simp] lemma congr_mk (e : G ≃* H) (he : G'.map ↑e = H')
+  (x) : congr G' H' e he (mk x) = e x :=
+map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+
+lemma congr_mk' (e : G ≃* H) (he : G'.map ↑e = H')
+  (x) : congr G' H' e he (mk' G' x) = mk' H' (e x) :=
+map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+
+@[simp] lemma congr_apply (e : G ≃* H) (he : G'.map ↑e = H')
+  (x : G) : congr G' H' e he x = mk' H' (e x) :=
+map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+
+@[simp] lemma congr_refl (he : G'.map (mul_equiv.refl G : G →* G) = G' := subgroup.map_id G') :
+  congr G' G' (mul_equiv.refl G) he = mul_equiv.refl (G ⧸ G') :=
+by ext x; refine induction_on' x (λ x', _); simp
+
+@[simp] lemma congr_symm (e : G ≃* H) (he : G'.map ↑e = H') :
+  (congr G' H' e he).symm = congr H' G' e.symm ((subgroup.map_symm_eq_iff_map_eq _).mpr he) :=
+rfl
+
+end congr
+
 variables (φ : G →* H)
 
 open function monoid_hom

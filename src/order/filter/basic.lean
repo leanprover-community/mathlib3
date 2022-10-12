@@ -1791,6 +1791,14 @@ lemma le_comap_map : f ≤ comap m (map m f) := (gc_map_comap m).le_u_l _
 @[simp] lemma comap_bot : comap m ⊥ = ⊥ :=
 bot_unique $ λ s _, ⟨∅, mem_bot, by simp only [empty_subset, preimage_empty]⟩
 
+lemma ne_bot_of_comap (h : (comap m g).ne_bot) : g.ne_bot :=
+begin
+  rw ne_bot_iff at *,
+  contrapose! h,
+  rw h,
+  exact comap_bot
+end
+
 lemma comap_inf_principal_range : comap m (g ⊓ 𝓟 (range m)) = comap m g := by simp
 
 lemma disjoint_comap (h : disjoint g₁ g₂) : disjoint (comap m g₁) (comap m g₂) :=
@@ -1912,6 +1920,17 @@ by simp [comap_ne_bot_iff, frequently_iff, ← exists_and_distrib_left, and.comm
 lemma comap_ne_bot_iff_compl_range {f : filter β} {m : α → β} :
   ne_bot (comap m f) ↔ (range m)ᶜ ∉ f :=
 comap_ne_bot_iff_frequently
+
+lemma comap_eq_bot_iff_compl_range {f : filter β} {m : α → β} :
+  comap m f = ⊥ ↔ (range m)ᶜ ∈ f :=
+not_iff_not.mp $ ne_bot_iff.symm.trans comap_ne_bot_iff_compl_range
+
+lemma comap_surjective_eq_bot {f : filter β} {m : α → β} (hm : surjective m) :
+  comap m f = ⊥ ↔ f = ⊥ :=
+by rw [comap_eq_bot_iff_compl_range, hm.range_eq, compl_univ, empty_mem_iff_bot]
+
+lemma disjoint_comap_iff (h : surjective m) : disjoint (comap m g₁) (comap m g₂) ↔ disjoint g₁ g₂ :=
+by rw [disjoint_iff, disjoint_iff, ← comap_inf, comap_surjective_eq_bot h]
 
 lemma ne_bot.comap_of_range_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) (hm : range m ∈ f) : ne_bot (comap m f) :=
@@ -2110,6 +2129,13 @@ end
 protected lemma push_pull' (f : α → β) (F : filter α) (G : filter β) :
   map f (comap f G ⊓ F) = G ⊓ map f F :=
 by simp only [filter.push_pull, inf_comm]
+
+lemma principal_eq_map_coe_top (s : set α) : 𝓟 s = map (coe : s → α) ⊤ :=
+by simp
+
+lemma inf_principal_eq_bot_iff_comap {F : filter α} {s : set α} :
+  F ⊓ 𝓟 s = ⊥ ↔ comap (coe : s → α) F = ⊥ :=
+by rw [principal_eq_map_coe_top s, ← filter.push_pull',inf_top_eq, map_eq_bot_iff]
 
 section applicative
 

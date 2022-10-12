@@ -378,9 +378,10 @@ begin
   simp only [equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
   ext, iterate 6 { rw from_path_trans_to_path },
   simp_rw [if_neg fin.zero_ne_one, if_neg fin.zero_ne_one.symm],
-  split_ifs; { congr, ext1, apply ite_ite_eq_of_ne, norm_num },
+  split_ifs; { congr, ext1, apply ite_ite_comm, sorry },
 end
 
+/- should we add this instance? -/
 instance add_comm_group : add_comm_group (additive $ π_(n+2) X x) := additive.add_comm_group
 
 end

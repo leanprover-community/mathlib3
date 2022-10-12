@@ -439,8 +439,6 @@ noncomputable instance : has_Sup (seminorm 𝕜 E) :=
     end }
   else ⊥ }
 
-#exit
-
 protected lemma coe_Sup_eq' {s : set $ seminorm 𝕜 E} (hs : bdd_above (coe_fn '' s : set (E → ℝ))) :
   coe_fn (Sup s) = ⨆ p : s, p :=
 congr_arg _ (dif_pos hs)

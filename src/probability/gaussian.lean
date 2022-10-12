@@ -39,7 +39,7 @@ import analysis.special_functions.integrals
 #check function.const
 #check measure_theory.measure.map_apply_of_ae_measurable
 #check congr_arg
-
+#check set.preimage_const
 ---#check probability_theory.moment,
 
 /-
@@ -1022,6 +1022,7 @@ begin
 
 end
 
+---The second important result
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
 begin
@@ -2220,20 +2221,288 @@ begin
 
 end
 
+lemma sum_sq_eq_zero_iff_both_zero (x y : ℝ): x^2+y^2 = 0 ↔ x=0 ∧ y = 0:=
+begin
+  split,
+  {
+    intro,
+    split,
+    nlinarith,
+    nlinarith,
+  },
+  {
+    simp,
+    intros h1 h2,
+    rw [h1, h2],
+    simp,
+  },
+
+end
+
+lemma zero_iff_sqrt_zero (x : ℝ) (hx : 0 ≤ x): x = (0:ℝ) ↔ sqrt x = (0:ℝ):=
+begin
+  split,
+  {
+    intro h1,
+    rw h1,
+    simp,
+  },
+  {
+    intro h1,
+    have h0 : (0:ℝ) ≤ (0:ℝ),
+      {simp,},
+    rw sqrt_eq_iff_sq_eq hx h0 at h1,
+    rw ← h1,
+    simp,
+  },
+end
+
+lemma nzero_iff_sqrt_nzero (x : ℝ) (hx : 0 ≤ x): x ≠ (0:ℝ) ↔ sqrt x ≠ (0:ℝ):=
+begin
+  simp [zero_iff_sqrt_zero x hx],
+end
+
+---lemma equi_form_of_gaussian (a:ℝ) :  (gaussian_rv f a s₁) ↔ (gaussian_rv (f + λ x, a) s₁):=
+
 --test --
 -- Hard!
+lemma sum_square_nneg (x y : ℝ): 0 ≤ x^2 +y^2:=
+begin
+  have hx : 0 ≤ x^2 := sq_nonneg x,
+  have hy : 0 ≤ y^2 := sq_nonneg y,
+  exact add_nonneg hx hy,
+end
+
+
+
+lemma sum_one_a_one_then_b_zero_forennreal (a: ℝ≥0∞) (b : ℝ≥0∞) (ha : a ≤ (1:ℝ≥0∞))
+(hb : b ≤ (1:ℝ≥0∞)) (h1 : a+b=(1:ℝ≥0∞)) (h2 : a=(1:ℝ≥0∞)) : b=(0:ℝ≥0∞):=
+begin
+  have h :  (a+b).to_real=(1:ℝ≥0∞).to_real ↔ a+b=(1:ℝ≥0∞),
+    {
+      split,
+      simp[h1],
+      intro hh,
+      simp [hh],
+    },
+  have h_one_l_T : (1:ℝ≥0∞) < ⊤,
+    {
+      simp,
+    },
+
+  have h_a_l_two : a<(2:ℝ≥0∞),
+    {
+      finish,
+    },
+  have ha_notT : a ≠ ⊤ := ne_top_of_lt h_a_l_two,
+
+  have hb_notT : b ≠ ⊤,
+    {
+      by_contra h_eq_T,
+      rw [h2, h_eq_T] at h1,
+      have h_T_plus_eq_T: (1:ℝ≥0∞) + ⊤ = ⊤,
+        {
+          simp,
+        },
+      rw h1 at h_T_plus_eq_T,
+      finish,
+    },
+
+  have hh : (a+b).to_real = a.to_real + b.to_real,
+    {
+      simp [ennreal.to_real_add ha_notT hb_notT],
+    },
+
+  rw [←h, hh] at h1,
+  have ha_eq_one: a.to_real = (1:ℝ≥0∞).to_real,
+    {
+      simp[h2],
+    },
+  simp [ha_eq_one] at h1,
+  rw ennreal.to_real_eq_zero_iff at h1,
+  simp [hb_notT] at h1,
+  exact h1,
+end
+
+
+lemma prob_mea_one (μ : measure Ω) (hμ : is_probability_measure μ):
+μ set.univ = 1 :=
+begin
+  simp,
+end
+
+
+lemma pushmea_of_func_is_dirac_then_ae_const2 (m:ℝ) (func : Ω → ℝ)
+(hmeas : measurable func) (h_func : map func ℙ = dirac m) : func =ᵐ[ℙ] (λ x, m : Ω → ℝ):=
+begin
+  unfold eventually_eq,
+  refine eventually_zero.mpr _,
+  let s : set ℝ := {m},
+  have h_s_mea : measurable_set s,
+    {
+      simp,
+    },
+  have mea_of_s_one : (map func ℙ) s = 1,
+    {
+      rw h_func,
+      simp,
+    },
+  have h_eq_set : func⁻¹' s = {x:Ω | func x = m},
+    {refl,},
+  have h_sum_one : (ℙ {x:Ω | func x = m}) + (ℙ {x:Ω | func x = m}ᶜ) = 1,
+    {
+      have h_disj : disjoint {x:Ω | func x = m} {x:Ω | func x = m}ᶜ,
+        {
+          refine set.disjoint_iff.mpr _,
+          simp,
+        },
+      have h_mea : measurable_set {x:Ω | func x = m},
+        {
+          rw ← h_eq_set,
+          exact measurable_set_preimage hmeas  h_s_mea,
+        },
+      have h_eq_mea_of_union : (ℙ {x:Ω | func x = m}) + (ℙ {x:Ω | func x = m}ᶜ) = ℙ ( {x:Ω | func x = m} ∪ {x:Ω | func x = m}ᶜ),
+        {
+          rw measure_union' h_disj h_mea,
+        },
+      rw [h_eq_mea_of_union],
+      simp,
+    },
+  have h_mea_of_preimg_one : ℙ {x:Ω | func x = m} = 1,
+    {
+      rw ← h_eq_set,
+      have h_map_expand : (map func ℙ) s = ℙ (func⁻¹' s),
+        {
+          simp [h_s_mea, hmeas],
+        },
+      rw h_map_expand at mea_of_s_one,
+    exact mea_of_s_one,
+    },
+
+  have h_subset1: {x:Ω|func x = m} ⊆ set.univ,
+    {
+      exact {x : Ω | func x = m}.subset_univ,
+    },
+  have h_subset2: {x:Ω|func x = m}ᶜ ⊆ set.univ,
+    {
+      exact {x : Ω | func x = m}ᶜ.subset_univ,
+    },
+
+  have h_prob_mea_one : ℙ set.univ = 1,
+    {
+      exact prob_mea_one ℙ _inst_7,
+    },
+  have h_bound1: ℙ {x:Ω|func x = m} ≤ (1:ℝ≥0∞),
+    {
+      rw ← h_prob_mea_one,
+      exact measure_mono h_subset1,
+    },
+  have h_bound2: ℙ {x:Ω|func x = m}ᶜ ≤ (1:ℝ≥0∞),
+    {
+      rw ← h_prob_mea_one,
+      exact measure_mono h_subset2,
+    },
+
+  exact sum_one_a_one_then_b_zero_forennreal (ℙ {x:Ω | func x = m}) (ℙ {x:Ω | func x = m}ᶜ)
+  h_bound1 h_bound2 h_sum_one h_mea_of_preimg_one,
+end
+
+
+
+---if the pushforward of func1 is dirac, then pushforward of sum of func1 and
+---func2 equals the pushforward of the constant function plus func2.
+lemma pushmea_of_func_plus_const_func (func1 func2 : Ω → ℝ) (m:ℝ)
+(hmeas1 : measurable func1) (hmeas2 : measurable func2)
+(h_dirac : map func1 ℙ = dirac m) :
+map (func1+func2) ℙ = map (func2 + λ x, m) ℙ:=
+begin
+
+  have h_func1_eq_const_ae : func1 =ᵐ[ℙ] (λ x, m : Ω → ℝ):=
+  pushmea_of_func_is_dirac_then_ae_const2 m func1 hmeas1 h_dirac,
+
+  have h_ev_eq_self : func2 =ᵐ[ℙ] func2,
+    {
+      unfold eventually_eq,
+      simp,
+    },
+  have h_ae_eq : func1 + func2 =ᵐ[ℙ]  (λ x, m : Ω → ℝ) + func2,
+    {
+      exact eventually_eq.add h_func1_eq_const_ae h_ev_eq_self,
+    },
+
+  simp [measure_theory.measure.map_congr h_ae_eq],
+
+  have h_comm : func2 + (λ (x : Ω), m) = (λ (x : Ω), m) + func2,
+    {
+      ext x,
+      simp,
+      linarith,
+    },
+
+  rw h_comm,
+end
+
+
+
+
+
 lemma gaussian_rv_add (hf : gaussian_rv f m₁ s₁) (hg : gaussian_rv g m₂ s₂)
   (hfmeas : measurable f) (hgmeas : measurable g) (hfg : indep_fun f g) :
   gaussian_rv (f + g) (m₁ + m₂) (sqrt (s₁^2 + s₂^2)) :=
 begin
+  unfold gaussian_rv at *,
+  unfold real_gaussian at *,
+  ---split_ifs,
+  by_cases h1: s₁=0,
+  {by_cases h2: s₂=0,
+  {
+    rw [h1, h2],
+    simp,
+    simp [h1] at hf,
+    simp [h2] at hg,
+    sorry},
+  {
 
-  sorry
+      simp [(sq_pos_iff s₂).mpr h2, sq_nonneg s₁, lt_add_of_le_of_pos, ne_of_gt],
+      simp [h1, h2] at hf hg ⊢,
+      rw pushmea_of_func_plus_const_func f g m₁ hfmeas hgmeas hf,
+      /-let h : ℝ → ℝ := λ x, x + m₁,
+      have h_f_plus_const_eq_comb : (f + g) = h ∘ g,
+      {
+        ext x,
+        simp [h],
+      },
+      -- rw ← measure.map_map h_hmeas hfmeas,-/
+
+
+      ---WE ARE AIMING TO SOLVE THIS BRACKET
+      ---WE ARE AIMING TO SOLVE THIS BRACKET
+      ---WE ARE AIMING TO SOLVE THIS BRACKET
+      ---WE ARE AIMING TO SOLVE THIS BRACKET
+      ---WE ARE AIMING TO SOLVE THIS BRACKET
+
+
+      },
+  },
+  {by_cases h2: s₂=0,
+  {sorry},
+  {sorry},
+
+  },
+
+
+
 end
 
 lemma mgf_gaussian_rv  (hf : gaussian_rv f m s) (hfmeas : measurable f) (t : ℝ) :
   mgf f volume t = exp (m * t + s^2 * t^2 / 2) :=
 begin
-  sorry
+  unfold mgf,
+  unfold gaussian_rv real_gaussian at hf,
+  by_cases hs : s = 0;
+  {simp [hs] at *,
+  },
+  {}
 end
 
 end gaussian_rv

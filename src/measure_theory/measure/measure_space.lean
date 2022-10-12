@@ -1926,23 +1926,23 @@ lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : 
 preimage_null_of_map_null h.ae_measurable (h.2 hs)
 
 lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
-  (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
+  (hs : f⁻¹' s =ᵐ[μ] s) :
   @limsup (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s := -- Need `@` because of diamond
 begin
   have : ∀ n, (preimage f)^[n] s =ᵐ[μ] s,
   { intros n,
     induction n with n ih, { simp, },
-    simpa only [iterate_succ', comp_app] using ae_eq_trans (hf.ae_eq ih) hs', },
+    simpa only [iterate_succ', comp_app] using ae_eq_trans (hf.ae_eq ih) hs, },
   exact (limsup_ae_eq_of_forall_ae_eq (λ n, (preimage f)^[n] s) this).trans (ae_eq_refl _),
 end
 
 lemma liminf_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
-  (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
+  (hs : f⁻¹' s =ᵐ[μ] s) :
   @liminf (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s := -- Need `@` because of diamond
 begin
   rw [← ae_eq_set_compl, @filter.liminf_compl (set α)], -- Need `@` because of diamond
-  rw ← ae_eq_set_compl at hs',
-  convert hf.limsup_preimage_iterate_ae_eq hs.compl hs',
+  rw [← ae_eq_set_compl, ← preimage_compl] at hs,
+  convert hf.limsup_preimage_iterate_ae_eq hs,
   ext1 n,
   simp only [← set.preimage_iterate_eq, comp_app, preimage_compl],
 end

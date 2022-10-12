@@ -567,19 +567,19 @@ section complete_distrib_lattice
 
 variables [complete_distrib_lattice α] (l : filter β) (u : β → α)
 
-lemma filter.sup_limsup [ne_bot l] (a : α) :
+lemma sup_limsup [ne_bot l] (a : α) :
   a ⊔ l.limsup u = l.limsup (λ x, a ⊔ u x) :=
 begin
   simp only [limsup_eq_infi_supr, supr_sup_eq, sup_binfi_eq],
   congr, ext s, congr, ext hs, congr,
-  exact (bsupr_const (filter.nonempty_of_mem hs)).symm,
+  exact (bsupr_const (nonempty_of_mem hs)).symm,
 end
 
-lemma filter.inf_liminf [ne_bot l] (a : α) :
+lemma inf_liminf [ne_bot l] (a : α) :
   a ⊓ l.liminf u = l.liminf (λ x, a ⊓ u x) :=
-@filter.sup_limsup αᵒᵈ β _ l _ _ _
+@sup_limsup αᵒᵈ β _ l _ _ _
 
-lemma filter.sup_liminf (a : α) :
+lemma sup_liminf (a : α) :
   a ⊔ l.liminf u = l.liminf (λ x, a ⊔ u x) :=
 begin
   simp only [liminf_eq_supr_infi],
@@ -587,9 +587,9 @@ begin
   simp_rw [binfi_sup_eq, @sup_comm _ _ a],
 end
 
-lemma filter.inf_limsup (a : α) :
+lemma inf_limsup (a : α) :
   a ⊓ l.limsup u = l.limsup (λ x, a ⊓ u x) :=
-@filter.sup_liminf αᵒᵈ β _ l _ _
+@sup_liminf αᵒᵈ β _ l _ _
 
 end complete_distrib_lattice
 
@@ -597,15 +597,15 @@ section complete_boolean_algebra
 
 variables [complete_boolean_algebra α] (l : filter β) (u : β → α)
 
-lemma filter.limsup_compl :
+lemma limsup_compl :
   (l.limsup u)ᶜ = l.liminf (compl ∘ u) :=
 by simp only [limsup_eq_infi_supr, liminf_eq_supr_infi, compl_infi, compl_supr]
 
-lemma filter.liminf_compl :
+lemma liminf_compl :
   (l.liminf u)ᶜ = l.limsup (compl ∘ u) :=
 by simp only [limsup_eq_infi_supr, liminf_eq_supr_infi, compl_infi, compl_supr]
 
-lemma filter.limsup_sdiff (a : α) :
+lemma limsup_sdiff (a : α) :
   (l.limsup u) \ a = l.limsup (λ b, (u b) \ a) :=
 begin
   simp only [limsup_eq_infi_supr, sdiff_eq],
@@ -613,22 +613,22 @@ begin
   simp_rw [inf_comm, inf_bsupr_eq, inf_comm],
 end
 
-lemma filter.liminf_sdiff [ne_bot l] (a : α) :
+lemma liminf_sdiff [ne_bot l] (a : α) :
   (l.liminf u) \ a = l.liminf (λ b, (u b) \ a) :=
-by simp only [sdiff_eq, @inf_comm _ _ _ aᶜ, filter.inf_liminf]
+by simp only [sdiff_eq, @inf_comm _ _ _ aᶜ, inf_liminf]
 
-lemma filter.sdiff_limsup [ne_bot l] (a : α) :
+lemma sdiff_limsup [ne_bot l] (a : α) :
   a \ (l.limsup u) = l.liminf (λ b, a \ (u b)) :=
 begin
   rw ← compl_inj_iff,
-  simp only [sdiff_eq, filter.liminf_compl, (∘), compl_inf, compl_compl, filter.sup_limsup],
+  simp only [sdiff_eq, liminf_compl, (∘), compl_inf, compl_compl, sup_limsup],
 end
 
-lemma filter.sdiff_liminf (a : α) :
+lemma sdiff_liminf (a : α) :
   a \ (l.liminf u) = l.limsup (λ b, a \ (u b)) :=
 begin
   rw ← compl_inj_iff,
-  simp only [sdiff_eq, filter.limsup_compl, (∘), compl_inf, compl_compl, filter.sup_liminf],
+  simp only [sdiff_eq, limsup_compl, (∘), compl_inf, compl_compl, sup_liminf],
 end
 
 end complete_boolean_algebra

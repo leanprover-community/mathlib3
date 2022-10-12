@@ -407,6 +407,8 @@ by rw [← coe_empty, coe_inj]
 @[simp] lemma is_empty_coe_sort {s : finset α} : is_empty ↥s ↔ s = ∅ :=
 by simpa using @set.is_empty_coe_sort α s
 
+instance : is_empty (∅ : finset α) := is_empty_coe_sort.2 rfl
+
 /-- A `finset` for an empty type is empty. -/
 lemma eq_empty_of_is_empty [is_empty α] (s : finset α) : s = ∅ :=
 finset.eq_empty_of_forall_not_mem is_empty_elim

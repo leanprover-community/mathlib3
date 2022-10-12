@@ -54,16 +54,16 @@ subgroupoid
 -/
 
 open set classical function
-local attribute [instance] prop_decidable
 
 namespace category_theory
 
-namespace groupoid
+open groupoid
+
+local attribute [protected] category_theory.inv
 
 universes u v
 
 variables {C : Type u} [groupoid C]
-
 
 /--
 A sugroupoid of `C` consists of a choice of arrows for each pair of vertices, closed
@@ -72,7 +72,7 @@ under composition and inverses
 @[ext] structure subgroupoid (C : Type u) [groupoid C] :=
 (arrows : ∀ (c d : C), set (c ⟶ d))
 (inv' : ∀ {c d} {p : c ⟶ d} (hp : p ∈ arrows c d),
-          groupoid.inv p ∈ arrows d c)
+          inv p ∈ arrows d c)
 (mul' : ∀ {c d e} {p} (hp : p ∈ arrows c d) {q} (hq : q ∈ arrows d e),
           p ≫ q ∈ arrows c e)
 
@@ -367,7 +367,5 @@ by { convert map.mem_arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, 
 end hom
 
 end subgroupoid
-
-end groupoid
 
 end category_theory

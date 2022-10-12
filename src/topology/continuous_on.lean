@@ -112,10 +112,11 @@ begin
 end
 
 lemma mem_nhds_within_iff_eventually_eq {s t : set α} {x : α} :
-  t ∈ 𝓝[s] x ↔ s =ᶠ[𝓝 x] (s ∩ t : set α) :=
-by simp_rw [mem_nhds_within_iff_eventually, eventually_eq_set, mem_inter_iff, iff_self_and]
+  t ∈ 𝓝[s] x ↔ (∈ s) =ᶠ[𝓝 x] (∈ s ∩ t) :=
+iff.symm $ eventually_eq_set.trans $ by simp [mem_nhds_within_iff_eventually]
 
-lemma nhds_within_eq_iff_eventually_eq {s t : set α} {x : α} : 𝓝[s] x = 𝓝[t] x ↔ s =ᶠ[𝓝 x] t :=
+lemma nhds_within_eq_iff_eventually_eq {s t : set α} {x : α} :
+  𝓝[s] x = 𝓝[t] x ↔ (∈ s) =ᶠ[𝓝 x] (∈ t) :=
 begin
   simp_rw [filter.ext_iff, mem_nhds_within_iff_eventually, eventually_eq_set],
   split,

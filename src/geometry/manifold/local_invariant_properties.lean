@@ -75,7 +75,7 @@ include hG
 
 namespace local_invariant_prop
 
-lemma congr_set {s t : set H} {x : H} {f : H → H'} (hu : s =ᶠ[𝓝 x] t) :
+lemma congr_set {s t : set H} {x : H} {f : H → H'} (hu : (∈ s) =ᶠ[𝓝 x] (∈ t)) :
   P f s x ↔ P f t x :=
 begin
   obtain ⟨o, host, ho, hxo⟩ := mem_nhds_iff.mp hu.mem_iff,

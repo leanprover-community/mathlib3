@@ -1450,23 +1450,23 @@ lemma eventually.lt_top_iff_ne_top [partial_order β] [order_top β] {l : filter
   (∀ᶠ x in l, f x < ⊤) ↔ ∀ᶠ x in l, f x ≠ ⊤ :=
 ⟨eventually.ne_of_lt, eventually.lt_top_of_ne⟩
 
-@[mono] lemma eventually_le.inter {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
-  (h' : s' ≤ᶠ[l] t') :
-  (s ∩ s' : set α) ≤ᶠ[l] (t ∩ t' : set α) :=
+@[mono] lemma eventually_le.inter {s t s' t' : set α} {l : filter α} (h : (∈ s) ≤ᶠ[l] (∈ t))
+  (h' : (∈ s') ≤ᶠ[l] (∈ t')) :
+  (∈ s ∩ s') ≤ᶠ[l] (∈ t ∩ t') :=
 h'.mp $ h.mono $ λ x, and.imp
 
-@[mono] lemma eventually_le.union {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
-  (h' : s' ≤ᶠ[l] t') :
-  (s ∪ s' : set α) ≤ᶠ[l] (t ∪ t' : set α) :=
+@[mono] lemma eventually_le.union {s t s' t' : set α} {l : filter α} (h : (∈ s) ≤ᶠ[l] (∈ t))
+  (h' : (∈ s') ≤ᶠ[l] (∈ t')) :
+  (∈ s ∪ s') ≤ᶠ[l] (∈ t ∪ t') :=
 h'.mp $ h.mono $ λ x, or.imp
 
-@[mono] lemma eventually_le.compl {s t : set α} {l : filter α} (h : s ≤ᶠ[l] t) :
-  (tᶜ : set α) ≤ᶠ[l] (sᶜ : set α) :=
+@[mono] lemma eventually_le.compl {s t : set α} {l : filter α} (h : (∈ s) ≤ᶠ[l] (∈ t)) :
+  (∈ tᶜ) ≤ᶠ[l] (∈ sᶜ) :=
 h.mono $ λ x, mt
 
-@[mono] lemma eventually_le.diff {s t s' t' : set α} {l : filter α} (h : s ≤ᶠ[l] t)
-  (h' : t' ≤ᶠ[l] s') :
-  (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
+@[mono] lemma eventually_le.diff {s t s' t' : set α} {l : filter α} (h : (∈ s) ≤ᶠ[l] (∈ t))
+  (h' : (∈ t') ≤ᶠ[l] (∈ s')) :
+  (∈ s \ s') ≤ᶠ[l] (∈ t \ t') :=
 h.inter h'.compl
 
 lemma eventually_le.mul_le_mul

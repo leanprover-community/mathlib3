@@ -24,7 +24,7 @@ open_locale filter classical
 section has_zero
 variables [has_zero M] {s t : set α} {f g : α → M} {a : α} {l : filter α}
 
-lemma indicator_eventually_eq (hf : f =ᶠ[l ⊓ 𝓟 s] g) (hs : s =ᶠ[l] t) :
+lemma indicator_eventually_eq (hf : f =ᶠ[l ⊓ 𝓟 s] g) (hs : (∈ s) =ᶠ[l] (∈ t)) :
   indicator s f =ᶠ[l] indicator t g :=
 (eventually_inf_principal.1 hf).mp $ hs.mem_iff.mono $ λ x hst hfg,
 by_cases (λ hxs : x ∈ s, by simp only [*, hst.1 hxs, indicator_of_mem])

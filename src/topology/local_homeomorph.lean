@@ -317,7 +317,7 @@ end
 lemma preimage_eventually_eq_target_inter_preimage_inter
   {e : local_homeomorph α β} {s : set α} {t : set γ} {x : α}
   {f : α → γ} (hf : continuous_within_at f s x) (hxe : x ∈ e.source) (ht : t ∈ 𝓝 (f x)) :
-  e.symm ⁻¹' s =ᶠ[𝓝 (e x)] (e.target ∩ e.symm ⁻¹' (s ∩ f ⁻¹' t) : set β) :=
+  (∈ e.symm ⁻¹' s) =ᶠ[𝓝 (e x)] (∈ e.target ∩ e.symm ⁻¹' (s ∩ f ⁻¹' t)) :=
 begin
   rw [eventually_eq_set, e.eventually_nhds _ hxe],
   filter_upwards [(e.open_source.mem_nhds hxe),

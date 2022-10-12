@@ -351,33 +351,33 @@ end
 @[simp] lemma ae_eq_empty : (∈ s) =ᵐ[μ] (∈ (∅ : set α)) ↔ μ s = 0 :=
 eventually_eq_empty.trans $ by simp [ae_iff, not_not, set_of_mem_eq]
 
-@[simp] lemma ae_eq_univ : s =ᵐ[μ] (univ : set α) ↔ μ sᶜ = 0 := eventually_eq_univ
+@[simp] lemma ae_eq_univ : (∈ s) =ᵐ[μ] (∈ (univ : set α)) ↔ μ sᶜ = 0 := eventually_eq_univ
 
-lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
-calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
+lemma ae_le_set : (∈ s) ≤ᵐ[μ] (∈ t) ↔ μ (s \ t) = 0 :=
+calc (∈ s) ≤ᵐ[μ] (∈ t) ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
            ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl
 
-lemma ae_le_set_inter {s' t' : set α} (h : s ≤ᵐ[μ] t) (h' : s' ≤ᵐ[μ] t') :
-  (s ∩ s' : set α) ≤ᵐ[μ] (t ∩ t' : set α) :=
+lemma ae_le_set_inter {s' t' : set α} (h : (∈ s) ≤ᵐ[μ] (∈ t)) (h' : (∈ s') ≤ᵐ[μ] (∈ t')) :
+  (∈ s ∩ s') ≤ᵐ[μ] (∈ t ∩ t') :=
 h.inter h'
 
-@[simp] lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
-  diff_eq_empty.2 (set.subset_union_right _ _)]
+@[simp] lemma union_ae_eq_right : (∈ s ∪ t) =ᵐ[μ] (∈ t) ↔ μ (s \ t) = 0 :=
+by simp only [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
+  diff_eq_empty.2 (set.subset_union_right _ _), measure_empty, eq_self_iff_true, and_true]
 
-lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
-  diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
+lemma diff_ae_eq_self : (∈ s \ t) =ᵐ[μ] (∈ s) ↔ μ (s ∩ t) = 0 :=
+by simp only [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
+  diff_diff, diff_eq_empty.2 (set.subset_union_right _ _),
+  measure_empty, eq_self_iff_true, diff_self, empty_union, true_and]
 
-lemma diff_null_ae_eq_self (ht : μ t = 0) : (s \ t : set α) =ᵐ[μ] s :=
+lemma diff_null_ae_eq_self (ht : μ t = 0) : (∈ s \ t) =ᵐ[μ] (∈ s) :=
 diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
 
-lemma ae_eq_set {s t : set α} :
-  (∈ s) =ᵐ[μ] (∈ t) ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
+lemma ae_eq_set {s t : set α} : (∈ s) =ᵐ[μ] (∈ t) ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
 
-lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
-  (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=
+lemma ae_eq_set_inter {s' t' : set α} (h : (∈ s) =ᵐ[μ] (∈ t)) (h' : (∈ s') =ᵐ[μ] (∈ t')) :
+  (∈ s ∩ s') =ᵐ[μ] (∈ t ∩ t') :=
 h.inter h'
 
 @[to_additive]
@@ -386,7 +386,7 @@ lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} 
 by simpa [filter.eventually_eq, ae_iff] using h
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
-@[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
+@[mono] lemma measure_mono_ae (H : (∈ s) ≤ᵐ[μ] (∈ t)) : μ s ≤ μ t :=
 calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _
@@ -395,12 +395,12 @@ calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
 alias measure_mono_ae ← _root_.filter.eventually_le.measure_le
 
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
-lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
+lemma measure_congr (H : (∈ s) =ᵐ[μ] (∈ t)) : μ s = μ t :=
 le_antisymm H.le.measure_le H.symm.le.measure_le
 
 alias measure_congr ← _root_.filter.eventually_eq.measure_eq
 
-lemma measure_mono_null_ae (H : s ≤ᵐ[μ] t) (ht : μ t = 0) : μ s = 0 :=
+lemma measure_mono_null_ae (H : (∈ s) ≤ᵐ[μ] (∈ t)) (ht : μ t = 0) : μ s = 0 :=
 nonpos_iff_eq_zero.1 $ ht ▸ H.measure_le
 
 /-- A measurable set `t ⊇ s` such that `μ t = μ s`. It even satisfies `μ (t ∩ u) = μ (s ∩ u)` for
@@ -411,7 +411,7 @@ If `s` is a null measurable set, then
 we also have `t =ᵐ[μ] s`, see `null_measurable_set.to_measurable_ae_eq`.
 This notion is sometimes called a "measurable hull" in the literature. -/
 @[irreducible] def to_measurable (μ : measure α) (s : set α) : set α :=
-if h : ∃ t ⊇ s, measurable_set t ∧ t =ᵐ[μ] s then h.some
+if h : ∃ t ⊇ s, measurable_set t ∧ (∈ t) =ᵐ[μ] (∈ s) then h.some
 else if h' : ∃ t ⊇ s, measurable_set t ∧ (∀ u, measurable_set u → μ (t ∩ u) = μ (s ∩ u))
   then h'.some
 else (exists_measurable_superset μ s).some
@@ -422,7 +422,8 @@ begin
   exacts [hs.some_spec.fst, h's.some_spec.fst, (exists_measurable_superset μ s).some_spec.1]
 end
 
-lemma ae_le_to_measurable : s ≤ᵐ[μ] to_measurable μ s := (subset_to_measurable _ _).eventually_le
+lemma ae_le_to_measurable : (∈ s) ≤ᵐ[μ] (∈ to_measurable μ s) :=
+(subset_to_measurable _ _).eventually_le
 
 @[simp] lemma measurable_set_to_measurable (μ : measure α) (s : set α) :
   measurable_set (to_measurable μ s) :=
@@ -474,7 +475,7 @@ open measure_theory
 # Almost everywhere measurable functions
 
 A function is almost everywhere measurable if it coincides almost everywhere with a measurable
-function. We define this property, called `ae_measurable f μ`. It's properties are discussed in
+function. We define this property, called `ae_measurable f μ`. Its properties are discussed in
 `measure_theory.measure_space`.
 -/
 

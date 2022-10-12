@@ -25,6 +25,8 @@ def free_monoid (α) := list α
 
 namespace free_monoid
 
+@[to_additive] instance [decidable_eq α] : decidable_eq (free_monoid α) := list.decidable_eq
+
 /-- The identity equivalence between `free_monoid α` and `list α`. -/
 @[to_additive "The identity equivalence between `free_add_monoid α` and `list α`."]
 def to_list : free_monoid α ≃ list α := equiv.refl _
@@ -41,12 +43,14 @@ def of_list : list α ≃ free_monoid α := equiv.refl _
 @[simp, to_additive] lemma of_list_comp_to_list : @of_list α ∘ to_list = id := rfl
 
 @[to_additive]
-instance : monoid (free_monoid α) :=
+instance : cancel_monoid (free_monoid α) :=
 { one := of_list [],
   mul := λ x y, of_list (x.to_list ++ y.to_list),
   mul_one := list.append_nil,
   one_mul := list.nil_append,
-  mul_assoc := list.append_assoc }
+  mul_assoc := list.append_assoc,
+  mul_left_cancel := λ _ _ _, list.append_left_cancel,
+  mul_right_cancel := λ _ _ _, list.append_right_cancel }
 
 @[to_additive]
 instance : inhabited (free_monoid α) := ⟨1⟩

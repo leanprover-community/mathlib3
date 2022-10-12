@@ -7,6 +7,7 @@ import algebra.free_monoid.count
 import algebra.char_p.two
 import data.zmod.parity
 import logic.equiv.transfer_instance
+import data.ncword
 
 /-!
 -/
@@ -186,8 +187,8 @@ instance : denumerable W :=
 
 instance : has_coe_t generator W := ⟨free_monoid.of⟩
 
-lemma coe_def (x : generator) : (x : W) = [x] := rfl
-@[simp] lemma length_coe (x : generator) : (x : W).length = 1 := rfl
+lemma of_eq_coe : free_monoid.of = (coe : generator → W) := rfl
+lemma length_coe (x : generator) : (x : W).to_list.length = 1 := rfl
 
 @[elab_as_eliminator]
 protected def rec_on {C : W → Sort*} (w : W) (h1 : C 1)
@@ -199,7 +200,18 @@ free_monoid.closure_range_of
 
 lemma cons_eq_mul (x : generator) (y : W) : x :: y = (x * y : W) := rfl
 
+@[simp] lemma to_list_coe (x : generator) : free_monoid.to_list (x : W) = [x] := rfl
+
 end word
+
+def ncword_cancel : generator → generator → W
+| a a := 1
+| a (bcd n) := a * bcd n
+| (bcd n) a := bcd n * a
+| (bcd m) (bcd n) := if m = n then 1 else bcd (-m - n)
+
+@[simp] lemma ncword_cancel_self (x) : ncword_cancel x x = 1 :=
+by { cases x, exacts [rfl, if_pos rfl] }
 
 def ncword_rel (x y : generator) : Prop := xor (x = a) (y = a)
 
@@ -223,219 +235,97 @@ mt ncword_rel_bcd.1 (generator.bcd_ne_a _)
 
 @[simp] lemma not_ncword_rel_same (x : generator) : ¬R x x := by simp [ncword_rel]
 
-lemma ncword_rel_cases (x y : generator) :
-  R x y ∨ x = y ∨ ∃ m n, m ≠ n ∧ x = bcd m ∧ y = bcd n :=
-by cases x; cases y; simp [ncword_rel, em]
-
 lemma ncword_rel.ne {x y : generator} (h : R x y) : x ≠ y :=
 by { rintro rfl, exact not_ncword_rel_same _ h }
 
-@[ext, derive decidable_eq]
-structure ncword : Type :=
-(to_word : W)
-(chain'_rel : chain' R to_word)
+lemma forall_ncword_rel {r : generator → generator → Prop} :
+  (∀ x y, R x y → r x y) ↔ (∀ n, r a (bcd n) ∧ r (bcd n) a) :=
+by simp [generator.forall, ← forall_and_distrib]
+
+lemma forall_not_ncword_rel {r : generator → generator → Prop} :
+  (∀ x y, ¬R x y → r x y) ↔ r a a ∧ ∀ m n, r (bcd m) (bcd n) :=
+begin
+  refine ⟨λ h, ⟨h _ _ (not_ncword_rel_same _), λ m n, h _ _ not_ncword_rel_bcd_bcd⟩, _⟩,
+  rintro ⟨ha, hb⟩ (_|m) (_|n); simp *
+end
+
+lemma forall_not_ncword_rel' {r : generator → generator → Prop} :
+  (∀ x y, ¬R x y → r x y) ↔ (∀ x, r x x) ∧ ∀ m n, m ≠ n → r (bcd m) (bcd n) :=
+forall_not_ncword_rel.trans
+  ⟨λ h, ⟨λ x, generator.cases_on x h.1 $ λ n, h.2 _ _, λ m n _, h.2 m n⟩,
+    λ h, ⟨h.1 _, λ m n, by { rcases eq_or_ne m n with rfl|hne, exacts [h.1 _, h.2 _ _ hne] }⟩⟩
+
+def ncword_data : mul_ncword.group_data generator :=
+{ cancel2 := ncword_cancel,
+  r := R,
+  cancel2_eq_self := forall_ncword_rel.2 $ λ n, ⟨rfl, rfl⟩,
+  chain'_r_cancel2 := forall_not_ncword_rel'.2
+    ⟨λ x, by simp only [ncword_cancel_self, chain'_nil, free_monoid.to_list_one],
+      λ m n hne, by simp only [ncword_cancel, if_neg hne, word.to_list_coe, chain'_singleton]⟩,
+  r_last'_cancel2 := forall_not_ncword_rel'.2 $
+    ⟨λ _ _, by simp only [last', ncword_cancel_self, free_monoid.to_list_one, option.not_mem_none,
+      false_implies_iff],
+      λ m n hne y', by { simp only [ncword_cancel, if_neg hne, last', word.to_list_coe,
+        option.mem_def, ncword_rel_bcd, forall_eq], rintro rfl, exact ncword_rel_bcd_a }⟩,
+  cancel2_smul :=
+    begin
+      refine forall_not_ncword_rel'.2 ⟨λ x y w hyw hxy, _, λ m n hne z w h hz, _⟩,
+      { simp only [ncword_cancel_self, one_smul],
+        revert x y hxy hyw,
+        refine forall_not_ncword_rel'.2 ⟨λ x hxw, _, λ m n hne hyw, _⟩,
+        { simp only [ncword_cancel_self, mul_ncword.of_mul_cons, one_mul, mul_ncword.mk_word],
+          exact mul_ncword.cons_eq_mul _ },
+        { ext1,
+          simp only [mul_ncword.of_mul_cons, ncword_cancel, if_neg hne, mul_ncword.cons_word,
+            mul_ncword.mk_cons, mul_ncword.of_mul_cons, ← word.of_eq_coe],
+          have : m ≠ -m - n,
+          { rwa [← neg_one_mul, show (-1 : fin 3) = 2, from rfl, two_mul, add_sub_assoc, ne.def,
+              eq_comm, add_right_eq_self, sub_eq_zero] },
+          simp only [ncword_cancel, if_neg this, ← sub_add, sub_self, zero_add] } },
+      { cases z with k, { exact (hz ncword_rel_bcd_a).elim },
+        ext1,
+        simp only [ncword_cancel, if_neg hne, mul_ncword.of_mul_cons, mul_ncword.of_smul,
+          ← word.of_eq_coe],
+        rcases eq_or_ne n k with rfl|hnk,
+        { simp only [if_pos rfl, one_mul, mul_ncword.mk_word],
+          rw [← mul_ncword.cons_eq_mul, mul_ncword.cons_word, if_neg, neg_sub, sub_neg_eq_add,
+            add_sub_cancel'],
+          { rwa [sub_eq_iff_eq_add, ← two_mul, show (2 : fin 3) = -1, from rfl, neg_one_mul,
+              neg_inj] },
+          { exact h.imp_head (λ z, ncword_rel_bcd.2 ∘ ncword_rel_bcd.1) } },
+        { simp only [if_neg hnk, mul_ncword.mk_cons, mul_ncword.of_mul_cons, ncword_cancel,
+            ← word.of_eq_coe, sub_eq_iff_eq_add, (@neg_eq_iff_neg_eq _ _ m _).trans eq_comm,
+            neg_add_rev, ← sub_eq_add_neg],
+          rcases eq_or_ne m k with rfl|hmk,
+          { simp only [← sub_add, neg_sub, sub_neg_eq_add, add_sub_cancel, neg_add_cancel_comm] },
+          { have : m = -n - k,
+            { fin_cases m; fin_cases n; try { exact absurd rfl hne }; fin_cases k;
+                try { exact absurd rfl hnk }; try { exact absurd rfl hmk }; refl },
+            rw [if_pos this, if_pos this] } } }
+    end,
+  inv := id,
+  r_inv_inv := λ x y h, h.symm,
+  cancel2_inv := ncword_cancel_self }
+
+@[derive [group, decidable_eq]] def ncword := mul_ncword ncword_data.to_data
 
 local notation `NC` := ncword
 
 namespace ncword
 
-instance : countable NC := injective.countable ext
+instance : mul_action W NC := mul_ncword.mul_action
+instance : countable NC := @injective.countable _ _ list.countable _ mul_ncword.ext
+instance : has_coe_t generator NC := ⟨mul_ncword.of⟩
 
-@[simp] lemma mk_to_word (g : NC) (hg : _ := g.2) : mk g.to_word hg = g := by { cases g, refl }
-
-instance : has_coe_t generator NC := ⟨λ x, ⟨x, chain'_singleton _⟩⟩
-
-@[simp, norm_cast] lemma to_word_coe (g : generator) : (g : NC).to_word = g := rfl
-@[simp] lemma mk_singleton (g : generator) (h) : mk g h = g := rfl
-
-instance : has_one NC := ⟨⟨[], chain'_nil⟩⟩
-
-@[simp] lemma one_to_word : to_word 1 = 1 := rfl
-@[simp] lemma mk_nil (h) : mk [] h = 1 := rfl
-
-def tail (l : NC) : NC := ⟨l.to_word.tail, l.2.tail⟩
-
-instance : has_inv NC :=
-⟨λ l, ⟨l.to_word.reverse, chain'_reverse.2 (l.2.imp $ λ x y h, h.symm)⟩⟩
-
-@[simp] lemma inv_to_word (g : NC) : (g⁻¹).to_word = g.to_word.reverse := rfl
-
-@[simps] def cons (x : generator) (g : NC) (hxg : chain' R (x :: g.to_word)) : NC :=
-⟨x :: g.to_word, hxg⟩
-
-@[simps] def update_bcd (m n : fin 3) (l : W) (h : chain' R (bcd n :: l)) : NC :=
-cons (bcd m) ⟨l, h.tail⟩ $ h.imp_head $ λ z hz, by simpa only [ncword_rel_bcd] using hz
-
-end ncword
-
-namespace generator
-
-def cons_ncword : generator → NC → NC
-| x ⟨[], _⟩ := x
-| a ⟨a :: l, h⟩ := ⟨l, h.tail⟩
-| a ⟨bcd n :: l, h⟩ := ⟨a :: bcd n :: l, h.cons ncword_rel_a_bcd⟩
-| (bcd m) ⟨a :: l, h⟩ := ⟨bcd m :: a :: l, h.cons ncword_rel_bcd_a⟩
-| (bcd m) ⟨bcd n :: l, h⟩ :=
-  if m = n then ⟨l, h.tail⟩ else ncword.update_bcd (-m - n) _ _ h
-
-lemma cons_ncword_one (x : generator) : x.cons_ncword 1 = x :=
-by cases x; refl
-
-lemma length_cons_ncword_le (x : generator) (g : NC) :
-  length (cons_ncword x g).to_word ≤ length g.to_word + 1 :=
-begin
-  cases x with m; rcases g with ⟨_|⟨_|n, l⟩, hl⟩;
-    simp only [cons_ncword, length, word.length_coe, ncword.to_word_coe],
-  { exact ((lt_add_one _).trans (lt_add_one _)).le },
-  { split_ifs,
-    exacts [((lt_add_one _).trans (lt_add_one _)).le, (lt_add_one _).le] }
-end
-
-end generator
-
-namespace ncword
-
-lemma cons_eq_cons {x : generator} {g : NC} (hxg : chain' R (x :: g.to_word)) :
-  cons x g hxg = x.cons_ncword g :=
-by cases g with l hl; cases x; rcases l with (_|⟨(_|_), l⟩);
-  simp only [generator.cons_ncword, cons]; try { refl }; apply absurd hxg.rel_head; simp
-
-lemma mk_cons {x : generator} {l : W} (h : chain' R (x :: l)) :
-  mk (x :: l) h = cons x ⟨l, h.tail⟩ h :=
-rfl
-
-@[simp] lemma cons_one (x : generator) (h : chain' R [x] := chain'_singleton _) :
-  cons x 1 h = x :=
-rfl
-
-@[elab_as_eliminator]
-def rec_on_cons {C : NC → Sort*} (g : NC) (h1 : C 1) (hcons : ∀ x g' h, C g' → C (cons x g' h)) :
-  C g :=
-by { cases g with l hl, induction l with x l ihl, exacts [h1, hcons x ⟨l, hl.tail⟩ _ (ihl _)] }
-
-@[elab_as_eliminator]
-def cases_on_cons {C : NC → Sort*} (g : NC) (h1 : C 1) (hcons : ∀ x g' h, C (cons x g' h)) :
-  C g :=
-rec_on_cons g h1 (λ x g' h _, hcons x g' h)
-
-instance : mul_action W NC := free_monoid.mk_mul_action generator.cons_ncword
-
-lemma cons_smul (x : generator) (l : W) (g : NC) :
-  @has_smul.smul W NC _ (x :: l) g = x.cons_ncword (l • g) := rfl
-
-lemma length_smul_le (w : W) (g : NC) : length (w • g).to_word ≤ length w + length g.to_word :=
-begin
-  induction w with x w ihw, { exact (zero_add _).ge },
-  rw [cons_smul, length_cons, add_right_comm],
-  exact (x.length_cons_ncword_le _).trans (add_le_add_right ihw _)
-end
-
-instance : mul_one_class NC :=
-{ mul := λ g₁ g₂, g₁.to_word • g₂,
-  one_mul := λ a, rfl,
-  mul_one := λ g,
-    begin
-      induction g using grigorchuk_group.ncword.rec_on_cons with x l hxl ihl,
-      { refl },
-      { conv_rhs { erw [cons_eq_cons, ← ihl] }, refl }
-    end,
-  .. ncword.has_one }
-
-lemma to_word_smul (g₁ g₂ : NC) : g₁.to_word • g₂ = g₁ * g₂ := rfl
-
-lemma coe_mul (x : generator) (g : NC) : ↑x * g = x.cons_ncword g := rfl
-@[simp] lemma coe_smul (x : generator) (g : NC) : (x : W) • g = x * g := rfl
-lemma cons_mul {x g g' h} : cons x g h * g' = x * (g * g') := rfl
-
-lemma length_mul_le (g₁ g₂ : NC) :
-  (g₁ * g₂).to_word.length ≤ g₁.to_word.length + g₂.to_word.length :=
-length_smul_le _ _
-
-lemma coe_smul_one (x : generator) : (x : W) • (1 : NC) = x := mul_one (x : NC)
-
-@[simp] lemma coe_mul_cons_self {x : generator} {g : NC} (h) : ↑x * cons x g h = g :=
-by { cases g, cases x, exacts [rfl, if_pos rfl] }
-
-lemma cons_eq_coe_mul {x g} (h) : cons x g h = x * g := cons_eq_cons h
-
-lemma bcd_mul_cons_bcd {m n : fin 3} {g : NC} (hmn : m ≠ n) (h : chain' R (bcd n :: g.to_word)) :
-  ↑(bcd m) * cons (bcd n) g h = update_bcd (-m - n) n g.to_word h :=
-if_neg hmn
-
-lemma coe_mul_coe_cancel_left : ∀ (x : generator) (g : NC), ↑x * (↑x * g) = g
-| x ⟨[], _⟩ :=
-  begin
-    rw [mk_nil, mul_one], conv_lhs { congr, skip, rw [← cons_one] },
-    exact coe_mul_cons_self _
-  end
-| a ⟨a :: l, h⟩ := by rw [mk_cons, coe_mul_cons_self, cons_eq_coe_mul]
-| a ⟨bcd n :: l, h⟩ := rfl
-| (bcd m) ⟨a :: l, h⟩ := if_pos rfl
-| (bcd m) ⟨bcd n :: l, h⟩ :=
-  begin
-    rcases eq_or_ne m n with rfl|hmn,
-    { rw [mk_cons, coe_mul_cons_self, cons_eq_coe_mul] },
-    { rw [mk_cons, bcd_mul_cons_bcd hmn, update_bcd, bcd_mul_cons_bcd, ext_iff],
-      { simp only [update_bcd_to_word, cons_to_word, ← sub_add, sub_self, zero_add] },
-      { rwa [← neg_one_mul, show ((-1 : fin 3) = 2), from rfl, two_mul, add_sub_assoc,
-          ne.def, self_eq_add_right, sub_eq_zero] } },
-  end
-
-lemma bcd_mul_bcd_left {m n : fin 3} (h : m ≠ n) (g : NC) :
-  ↑(bcd m) * (↑(bcd n) * g) = bcd (-m - n) * g :=
-begin
-  induction g using grigorchuk_group.ncword.cases_on_cons with x g hxg,
-  { rw [mul_one, mul_one], exact if_neg h },
-  { cases x with k,
-    { rw [← @cons_eq_coe_mul (bcd n), bcd_mul_cons_bcd h], refl,
-      refine hxg.cons _, simp },
-    { rcases eq_or_ne n k with rfl|hnk,
-      { rw [coe_mul_cons_self, bcd_mul_cons_bcd, neg_sub, sub_sub_cancel_left, neg_neg,
-          update_bcd, cons_eq_coe_mul, mk_to_word],
-        { rwa [sub_eq_add_neg, ← neg_one_mul n, show ((-1 : fin 3) = 2), from rfl, two_mul,
-            ← add_assoc, ne.def, add_left_eq_self, neg_add_eq_zero] } },
-      { rw [bcd_mul_cons_bcd hnk, update_bcd],
-        rcases eq_or_ne m (-n - k) with rfl|hmnk,
-        { rw [coe_mul_cons_self, mk_to_word, neg_sub, sub_neg_eq_add, add_sub_cancel,
-            coe_mul_cons_self] },
-        { rw [bcd_mul_cons_bcd hmnk, bcd_mul_cons_bcd, ext_iff, update_bcd_to_word,
-            update_bcd_to_word], dsimp only,
-          { congr' 2,
-            fin_cases m; fin_cases n; try { exact absurd rfl h }; fin_cases k;
-              try { exact absurd rfl hnk }; try { exact absurd rfl hmnk }; refl },
-          { rintro rfl, apply hmnk,
-            rw [sub_sub_eq_add_sub, neg_add_self, zero_sub, neg_neg] } } } } }
-end
-
-instance : is_scalar_tower W NC NC :=
-begin
-  refine is_scalar_tower.of_mclosure_eq_top word.closure_abcd (forall_range_iff.2 $ λ x g g', _),
-  rw [smul_eq_mul, smul_eq_mul, coe_smul, coe_smul],
-  induction g using grigorchuk_group.ncword.cases_on_cons with y g hyg generalizing x,
-  { rw [one_mul, mul_one] },
-  { rcases ncword_rel_cases x y with (h|rfl|⟨m, n, hmn, rfl, rfl⟩),
-    { rw [← cons_eq_coe_mul, cons_mul], exact hyg.cons h },
-    { rw [coe_mul_cons_self, cons_mul, coe_mul_coe_cancel_left] },
-    { simp only [cons_mul, bcd_mul_cons_bcd hmn, update_bcd, mk_to_word, bcd_mul_bcd_left hmn] } }
-end
-
-instance : group NC :=
-{ mul_assoc := λ x y z, smul_mul_assoc x.to_word y z,
-  mul_left_inv := λ x,
-    begin
-      induction x using grigorchuk_group.ncword.rec_on_cons with x g hxg ihg,
-      { refl },
-      { erw [← to_word_smul, inv_to_word, cons_to_word, reverse_cons, ← free_monoid.mul_def,
-          mul_smul, coe_smul, coe_mul_cons_self],
-        exact ihg }
-    end,
-  .. ncword.mul_one_class, .. ncword.has_inv }
+lemma of_eq_coe : mul_ncword.of = (coe : generator → NC) := rfl
 
 @[simp] lemma coe_mul_self (x : generator) : (x * x : NC) = 1 :=
-by rw [← coe_mul_coe_cancel_left x 1, mul_one]
+mul_ncword.ext _ _ $ by simp only [← of_eq_coe, mul_ncword.word_of_mul_of, ncword_data,
+  ncword_cancel_self, mul_ncword.one_word]
 
 lemma bcd_mul_bcd {m n : fin 3} (h : m ≠ n) : (bcd m * bcd n : NC) = bcd (-m - n) :=
-if_neg h
+mul_ncword.ext _ _ $ by simp only [← of_eq_coe, mul_ncword.word_of_mul_of, ncword_data,
+  ncword_cancel, if_neg h, mul_ncword.of_word, word.of_eq_coe]
 
 @[simp] lemma b_mul_c : (b * c : NC) = d := bcd_mul_bcd dec_trivial
 @[simp] lemma b_mul_d : (b * d : NC) = c := bcd_mul_bcd dec_trivial
@@ -449,14 +339,14 @@ end ncword
 
 namespace word
 
-def cancel : W →* NC := free_monoid.lift coe
+def cancel : W →* NC := mul_ncword.cancel ncword_data.to_monoid_data
 
 @[simp, norm_cast] lemma cancel_coe (x : generator) : cancel x = x := rfl
 
 lemma cancel_eq_smul_one (w : W) : cancel w = w • 1 :=
-by { rw [cancel, free_monoid.lift_apply, list.prod_eq_foldr, foldr_map], refl }
+mul_ncword.cancel_eq_smul_one w
 
-lemma length_cancel_le (w : W) : length (cancel w).to_word ≤ length w :=
+lemma length_cancel_le (w : W) : length (cancel w).word.to_list ≤ length w.to_list :=
 (cancel_eq_smul_one w).symm ▸ (ncword.length_smul_le _ _).trans_eq (add_zero _)
 
 end word

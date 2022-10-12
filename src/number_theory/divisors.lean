@@ -96,8 +96,27 @@ lemma divisors_antidiagonal_apply :
 rfl
 
 @[simp] lemma mem_divisors_antidiagonal {x : ℕ × ℕ} :
-  x ∈ divisors_antidiagonal n ↔ x.fst * x.snd = n ∧ n ≠ 0 :=
+  x ∈ n.divisors_antidiagonal ↔ x.fst * x.snd = n ∧ n ≠ 0 :=
 mem_divisors_antidiagonal' _
+
+lemma divisors_antidiagonal_image_fst :
+  n.divisors_antidiagonal.image prod.fst = n.divisors := rfl
+
+lemma divisors_antidiagonal_eq_image {n : ℕ} :
+  n.divisors_antidiagonal = n.divisors.image (λ i, (i, n / i)) :=
+begin
+  rw [←divisors_antidiagonal_image_fst, image_image, image_congr, image_id],
+  rintro ⟨i, j⟩ hi,
+  simp only [mem_coe, mem_divisors_antidiagonal, ne.def] at hi,
+  cases hi.1,
+  dsimp,
+  rw [nat.mul_div_cancel_left],
+  exact (left_ne_zero_of_mul hi.2).bot_lt,
+end
+
+lemma divisors_antidiagonal_eq_map {n : ℕ} :
+  n.divisors_antidiagonal = n.divisors.map ⟨λ i, (i, n / i), λ _ _, and.left ∘ prod.mk.inj⟩ :=
+by { rw [divisors_antidiagonal_eq_image, map_eq_image], refl }
 
 @[simp] lemma mem_divisors {m : ℕ} : n ∈ divisors m ↔ n ∣ m ∧ m ≠ 0 :=
 by simp [divisors, dvd_iff_exists_eq_mul_left, @eq_comm _ m (_ * _), mul_comm n]
@@ -147,7 +166,6 @@ lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := mem_diviso
 
 lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m := (mem_divisors.1 h).1
 
-
 variable {n}
 
 lemma divisor_le {m : ℕ} : m ∈ divisors n → m ≤ n := by simp [divisors_apply] {contextual := tt}
@@ -164,7 +182,6 @@ begin
     lt_of_le_of_lt (divisor_le hx) (lt_of_le_of_ne (divisor_le (nat.mem_divisors.2
     ⟨h, hzero⟩)) hdiff)⟩)
 end
-
 
 @[simp] lemma proper_divisors_zero : proper_divisors 0 = ∅ := by { ext, simp }
 
@@ -219,8 +236,7 @@ end
 
 @[simp]
 lemma map_swap_divisors_antidiagonal :
-  (divisors_antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩
-  = divisors_antidiagonal n :=
+  (divisors_antidiagonal n).map ⟨prod.swap, prod.swap_injective⟩ = divisors_antidiagonal n :=
 begin
   ext,
   simp only [exists_prop, mem_divisors_antidiagonal, finset.mem_map, function.embedding.coe_fn_mk,
@@ -387,59 +403,24 @@ lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ
 by simp [h, divisors_prime_pow]
 
 @[to_additive]
+lemma prod_divisors_antidiagonal' {M : Type*} [comm_monoid M] (f : ℕ × ℕ → M) {n : ℕ} :
+  ∏ i in n.divisors_antidiagonal, f i = ∏ i in n.divisors, f (i, n / i) :=
+by { rw [divisors_antidiagonal_eq_map, finset.prod_map], refl }
+
+@[to_additive]
+lemma prod_divisors_antidiagonal_swap' {M : Type*} [comm_monoid M] (f : ℕ × ℕ → M) {n : ℕ} :
+  ∏ i in n.divisors_antidiagonal, f i = ∏ i in n.divisors, f (n / i, i) :=
+by { rw [←map_swap_divisors_antidiagonal, finset.prod_map], exact prod_divisors_antidiagonal' _ }
+
+@[to_additive]
 lemma prod_divisors_antidiagonal {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
   ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f i (n / i) :=
-begin
-  refine prod_bij (λ i _, i.1) _ _ _ _,
-  { intro i,
-    apply fst_mem_divisors_of_mem_antidiagonal },
-  { rintro ⟨i, j⟩ hij,
-    simp only [mem_divisors_antidiagonal, ne.def] at hij,
-    rw [←hij.1, nat.mul_div_cancel_left],
-    apply nat.pos_of_ne_zero,
-    rintro rfl,
-    simp only [zero_mul] at hij,
-    apply hij.2 hij.1.symm },
-  { simp only [and_imp, prod.forall, mem_divisors_antidiagonal, ne.def],
-    rintro i₁ j₁ ⟨i₂, j₂⟩ h - (rfl : i₂ * j₂ = _) h₁ (rfl : _ = i₂),
-    simp only [nat.mul_eq_zero, not_or_distrib, ←ne.def] at h₁,
-    rw mul_right_inj' h₁.1 at h,
-    simp [h] },
-  simp only [and_imp, exists_prop, mem_divisors_antidiagonal, exists_and_distrib_right, ne.def,
-    exists_eq_right', mem_divisors, prod.exists],
-  rintro _ ⟨k, rfl⟩ hn,
-  exact ⟨⟨k, rfl⟩, hn⟩,
-end
+prod_divisors_antidiagonal' _
 
 @[to_additive]
 lemma prod_divisors_antidiagonal_swap {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
   ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f (n / i) i :=
-begin
-  rw [←map_swap_divisors_antidiagonal, finset.prod_map],
-  exact prod_divisors_antidiagonal (λ i j, f j i),
-end
-
-@[to_additive]
-lemma prod_divisors_antidiagonal' {M : Type*} [comm_monoid M] (f : ℕ × ℕ → M) {n : ℕ} :
-  ∏ i in n.divisors_antidiagonal, f i = ∏ i in n.divisors, f (i, n / i) :=
-begin
-  convert prod_divisors_antidiagonal (function.curry f),
-  ext ⟨i, j⟩,
-  refl
-end
-
-lemma divisors_antidiagonal_eq {n : ℕ} :
-  n.divisors_antidiagonal = (divisors n).map ⟨λ i, (i, n / i), λ _ _, and.left ∘ prod.mk.inj⟩ :=
-begin
-  ext ⟨i, j⟩,
-  simp only [mem_divisors_antidiagonal, mem_map, mem_divisors, function.embedding.coe_fn_mk,
-    prod.mk.inj_iff, exists_prop],
-  split,
-  { rintro ⟨rfl, h⟩,
-    exact ⟨i, ⟨dvd_mul_right _ _, h⟩, rfl, mul_div_right _ (mul_ne_zero_iff.1 h).1.bot_lt⟩ },
-  rintro ⟨i, ⟨h₁, h₂⟩, rfl, rfl⟩,
-  exact ⟨nat.mul_div_cancel' h₁, h₂⟩,
-end
+prod_divisors_antidiagonal_swap' _
 
 /-- The factors of `n` are the prime divisors -/
 lemma prime_divisors_eq_to_filter_divisors_prime (n : ℕ) :
@@ -454,19 +435,8 @@ end
 @[simp]
 lemma image_div_divisors_eq_divisors (n : ℕ) : image (λ (x : ℕ), n / x) n.divisors = n.divisors :=
 begin
-  by_cases hn : n = 0, { simp [hn] },
-  ext,
-  split,
-  { rw mem_image,
-    rintros ⟨x, hx1, hx2⟩,
-    rw mem_divisors at *,
-    refine ⟨_,hn⟩,
-    rw ←hx2,
-    exact div_dvd_of_dvd hx1.1 },
-  { rw [mem_divisors, mem_image],
-    rintros ⟨h1, -⟩,
-    exact ⟨n/a, mem_divisors.mpr ⟨div_dvd_of_dvd h1, hn⟩,
-           nat.div_div_self h1 (pos_iff_ne_zero.mpr hn)⟩ },
+  conv_rhs { rw [←divisors_antidiagonal_image_fst, ←map_swap_divisors_antidiagonal] },
+  simpa [map_eq_image, image_image, divisors_antidiagonal_eq_image],
 end
 
 @[simp, to_additive sum_div_divisors]

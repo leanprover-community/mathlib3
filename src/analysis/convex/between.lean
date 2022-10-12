@@ -379,9 +379,8 @@ h₁.wbtw.trans_sbtw_right h₂
 
 end ordered_ring
 
-section ordered_comm_ring
-
-variables [ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
+section strict_ordered_comm_ring
+variables [strict_ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
 
 include V
 
@@ -411,7 +410,7 @@ begin
     same_ray_nonneg_smul_right (z -ᵥ x) (sub_nonneg.2 ht1)
 end
 
-end ordered_comm_ring
+end strict_ordered_comm_ring
 
 section linear_ordered_field
 
@@ -519,7 +518,7 @@ end
 lemma collinear.wbtw_or_wbtw_or_wbtw {x y z : P} (h : collinear R ({x, y, z} : set P)) :
   wbtw R x y z ∨ wbtw R y z x ∨ wbtw R z x y :=
 begin
-  rw collinear_iff_of_mem R (set.mem_insert _ _) at h,
+  rw collinear_iff_of_mem (set.mem_insert _ _) at h,
   rcases h with ⟨v, h⟩,
   simp_rw [set.mem_insert_iff, set.mem_singleton_iff] at h,
   have hy := h y (or.inr (or.inl rfl)),

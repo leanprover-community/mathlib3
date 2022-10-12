@@ -1201,6 +1201,17 @@ lemma comap_equiv_eq_map_symm (f : N ≃* G) (K : subgroup G) :
 (map_equiv_eq_comap_symm f.symm K).symm
 
 @[to_additive]
+lemma map_symm_eq_iff_map_eq {H : subgroup N} {e : G ≃* N} :
+  H.map ↑e.symm = K ↔ K.map ↑e = H :=
+begin
+  split; rintro rfl,
+  { rw [map_map, ← mul_equiv.coe_monoid_hom_trans, mul_equiv.symm_trans_self,
+        mul_equiv.coe_monoid_hom_refl, map_id] },
+  { rw [map_map, ← mul_equiv.coe_monoid_hom_trans, mul_equiv.self_trans_symm,
+        mul_equiv.coe_monoid_hom_refl, map_id] },
+end
+
+@[to_additive]
 lemma map_le_iff_le_comap {f : G →* N} {K : subgroup G} {H : subgroup N} :
   K.map f ≤ H ↔ K ≤ H.comap f :=
 image_subset_iff
@@ -2766,6 +2777,14 @@ subgroup.zpowers_eq_bot.mpr rfl
 le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ subset_closure hg)
   $ le_centralizer_iff.1 $ (closure_le _).2
   $ λ g, set_like.mem_coe.2 ∘ zpowers_le.1 ∘ le_centralizer_iff.1 ∘ infi_le_of_le g ∘ infi_le _
+
+@[to_additive] lemma center_eq_infi (S : set G) (hS : closure S = ⊤) :
+  center G = ⨅ g ∈ S, centralizer (zpowers g) :=
+by rw [←centralizer_top, ←hS, centralizer_closure]
+
+@[to_additive] lemma center_eq_infi' (S : set G) (hS : closure S = ⊤) :
+  center G = ⨅ g : S, centralizer (zpowers g) :=
+by rw [center_eq_infi S hS, ←infi_subtype'']
 
 end subgroup
 

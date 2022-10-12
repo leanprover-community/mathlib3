@@ -270,30 +270,24 @@ instance commutator_core_fg [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g
   group.fg (closure_commutator_representatives G) :=
 group.closure_finite_fg _
 
-example {α : Type*} (s : finset α) : fintype.card (s : set α) = s.card :=
-by simp only [finset.coe_sort_coe, fintype.card_coe]
-
 lemma mylem1 [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
-  group.rank (closure_commutator_representatives G) ≤ 2 * group.rank (commutator G) :=
+  group.rank (closure_commutator_representatives G) ≤ 2 * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 begin
   classical,
   haveI := fintype.of_finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
+  rw nat.card_eq_fintype_card,
   let S := finset.image (λ g : {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
     (classical.some g.2, classical.some (classical.some_spec g.2))) finset.univ,
   have hS : commutator_representatives G = S,
-  { sorry },
-  have hS₀ : S.card ≤ group.rank (commutator G) := sorry,
+  { rw [finset.coe_image, finset.coe_univ, set.image_univ, commutator_representatives] },
   refine (rank_closure_finite_le_nat_card _).trans _,
   rw [hS, ←finset.coe_image, ←finset.coe_image, ←finset.coe_union],
   simp only [finset.coe_sort_coe],
   rw [nat.card_eq_fintype_card, fintype.card_coe, two_mul],
-  refine (finset.card_union_le _ _).trans (add_le_add (finset.card_image_le.trans hS₀)
-    (finset.card_image_le.trans hS₀)),
+  refine (finset.card_union_le _ _).trans (add_le_add
+    (finset.card_image_le.trans finset.card_image_le)
+    (finset.card_image_le.trans finset.card_image_le)),
 end
-
-lemma mylem1' [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
-  group.rank (closure_commutator_representatives G) ≤ 2 * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
-(mylem1 G).trans (mul_le_mul_left' (rank_commutator_le_card G) 2)
 
 lemma mylem2 : set.image (closure_commutator_representatives G).subtype
   {g | ∃ g₁ g₂ : closure_commutator_representatives G, ⁅g₁, g₂⁆ = g} =
@@ -337,7 +331,7 @@ begin
   have h1 := index_center_le_pow (closure_commutator_representatives G),
   have h2 := card_commutator_dvd_index_center_pow (closure_commutator_representatives G),
   rw mylem2' at h1 h2,
-  replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ (mylem1' G)),
+  replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ (mylem1 G)),
   replace h2 := h2.trans (pow_dvd_pow _ (add_le_add_right (mul_le_mul_right' h1 _) 1)),
   replace h2 := nat.le_of_dvd (pow_pos (nat.pos_of_ne_zero (index_center_ne_zero _)) _) h2,
   replace h2 := h2.trans (nat.pow_le_pow_of_le_left h1 _),

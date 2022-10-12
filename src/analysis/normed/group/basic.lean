@@ -1153,6 +1153,13 @@ lemma nnnorm_prod_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (
   ∥∏ b in s, f b∥₊ ≤ ∑ b in s, n b :=
 (norm_prod_le_of_le s h).trans_eq nnreal.coe_sum.symm
 
+lemma real.to_nnreal_eq_nnnorm_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
+begin
+  rw real.to_nnreal_of_nonneg hr,
+  congr,
+  rw [real.norm_eq_abs, abs_of_nonneg hr],
+end
+
 namespace lipschitz_with
 variables [pseudo_emetric_space α] {K Kf Kg : ℝ≥0} {f g : α → E}
 

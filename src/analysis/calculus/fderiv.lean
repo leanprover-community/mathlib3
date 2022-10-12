@@ -199,6 +199,16 @@ lemma fderiv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) :
 have ¬ ∃ f', has_fderiv_at f f' x, from h,
 by simp [fderiv, this]
 
+lemma asymptotics.is_O.has_fderiv_at {x₀ : E} {n : ℕ}
+  (h : f =O[𝓝 x₀] λ x, ∥x - x₀∥^n) (hn : 1 < n) :
+  has_fderiv_at f (0 : E →L[𝕜] F) x₀ :=
+by simp_rw [has_fderiv_at, has_fderiv_at_filter, h.eq_zero_of_norm_pow $ zero_lt_one.trans hn,
+  zero_apply, sub_zero, h.trans_is_o $ is_o_pow_sub_sub x₀ hn]
+
+lemma has_fderiv_at.is_O {f : E → F} {x₀ : E} {f' : E →L[𝕜] F} (h : has_fderiv_at f f' x₀) :
+  (λ x, f x - f x₀) =O[𝓝 x₀] λ x, x - x₀ :=
+by simpa using h.is_O.add (is_O_sub f' (𝓝 x₀) x₀)
+
 section derivative_uniqueness
 /- In this section, we discuss the uniqueness of the derivative.
 We prove that the definitions `unique_diff_within_at` and `unique_diff_on` indeed imply the
@@ -345,6 +355,23 @@ lemma has_fderiv_at.differentiable_at (h : has_fderiv_at f f' x) : differentiabl
 @[simp] lemma has_fderiv_within_at_univ :
   has_fderiv_within_at f f' univ x ↔ has_fderiv_at f f' x :=
 by { simp only [has_fderiv_within_at, nhds_within_univ], refl }
+
+lemma has_fderiv_within_at_insert {y : E} {g' : E →L[𝕜] F}  :
+  has_fderiv_within_at g g' (insert y s) x ↔ has_fderiv_within_at g g' s x :=
+begin
+  rcases eq_or_ne x y with rfl|h,
+  { simp_rw [has_fderiv_within_at, has_fderiv_at_filter],
+    apply asymptotics.is_o_insert,
+    simp only [sub_self, g'.map_zero] },
+  refine ⟨λ h, h.mono $ subset_insert y s, λ hg, hg.mono_of_mem _⟩,
+  simp_rw [nhds_within_insert_of_ne h, self_mem_nhds_within]
+end
+
+alias has_fderiv_within_at_insert ↔ has_fderiv_within_at.of_insert has_fderiv_within_at.insert'
+
+lemma has_fderiv_within_at.insert {y : E} {g' : E →L[𝕜] F} (h : has_fderiv_within_at g g' s x) :
+  has_fderiv_within_at g g' (insert x s) x :=
+h.insert'
 
 lemma has_strict_fderiv_at.is_O_sub (hf : has_strict_fderiv_at f f' x) :
   (λ p : E × E, f p.1 - f p.2) =O[𝓝 (x, x)] (λ p : E × E, p.1 - p.2) :=
@@ -1085,6 +1112,12 @@ theorem has_fderiv_at.comp_has_fderiv_within_at {g : F → G} {g' : F →L[𝕜]
   (hg : has_fderiv_at g g' (f x)) (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
 hg.comp x hf hf.continuous_within_at
+
+theorem has_fderiv_within_at.comp_of_mem {g : F → G} {g' : F →L[𝕜] G} {t : set F}
+  (hg : has_fderiv_within_at g g' t (f x)) (hf : has_fderiv_within_at f f' s x)
+  (hst : tendsto f (𝓝[s] x) (𝓝[t] f x)) :
+  has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
+has_fderiv_at_filter.comp x hg hf hst
 
 /-- The chain rule. -/
 theorem has_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}

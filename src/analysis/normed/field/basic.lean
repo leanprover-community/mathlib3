@@ -638,6 +638,8 @@ abs_of_nonneg hx
 lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
 abs_of_nonpos hx
 
+lemma le_norm_self (r : ℝ) : r ≤ ∥r∥ := le_abs_self r
+
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : ∥(n : ℝ)∥₊ = n := nnreal.eq $ by simp

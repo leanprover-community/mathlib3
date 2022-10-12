@@ -138,6 +138,8 @@ variables {R : Type*} [linear_ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {ι : Type*} [decidable_eq ι]
 
+namespace orientation
+
 /-- A module `M` over a linearly ordered commutative ring has precisely two "orientations" with
 respect to an empty index type. (Note that these are only orientations of `M` of in the conventional
 mathematical sense if `M` is zero-dimensional.) -/
@@ -158,6 +160,8 @@ begin
   rw linear_independent_iff' at H,
   simpa using H finset.univ ![1, -a] (by simp [fin.sum_univ_succ]) 0 (by simp),
 end
+
+end orientation
 
 namespace basis
 

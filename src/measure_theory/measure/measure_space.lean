@@ -503,13 +503,13 @@ end
 
 /-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of sets such
 that `∑ μ sᵢ` is finite, then the limit superior of the `sᵢ` is a null set. -/
-lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
+lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup s at_top) = 0 :=
 begin
   -- First we replace the sequence `sₙ` with a sequence of measurable sets `tₙ ⊇ sₙ` of the same
   -- measure.
   set t : ℕ → set α := λ n, to_measurable μ (s n),
   have ht : ∑' i, μ (t i) ≠ ∞, by simpa only [t, measure_to_measurable] using hs,
-  suffices : μ (limsup at_top t) = 0,
+  suffices : μ (limsup t at_top) = 0,
   { have A : s ≤ t := λ n, subset_to_measurable μ (s n),
     -- TODO default args fail
     exact measure_mono_null (limsup_le_limsup (eventually_of_forall (pi.le_def.mp A))

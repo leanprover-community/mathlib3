@@ -1473,11 +1473,11 @@ begin
   have : liminf (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) at_top =
     liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) ^ p.to_real at_top,
   { change liminf (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) at_top =
-      ennreal.order_iso_rpow p.to_real hppos (liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞))),
+      ennreal.order_iso_rpow p.to_real hppos (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top),
     refine (order_iso.liminf_apply (ennreal.order_iso_rpow p.to_real _) _ _ _ _).symm;
     is_bounded_default },
   rw this at hx,
-  rw [← ennreal.rpow_one (liminf at_top (λ n, ∥f n x∥₊)), ← mul_inv_cancel hppos.ne.symm,
+  rw [← ennreal.rpow_one (liminf (λ n, ∥f n x∥₊) at_top), ← mul_inv_cancel hppos.ne.symm,
     ennreal.rpow_mul],
   exact ennreal.rpow_lt_top_of_nonneg (inv_nonneg.2 hppos.le) hx.ne,
 end

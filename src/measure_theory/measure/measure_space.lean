@@ -530,16 +530,14 @@ end
 lemma measure_liminf_eq_zero {s : ℕ → set α} (h : ∑' i, μ (s i) ≠ ⊤) : μ (at_top.liminf s) = 0 :=
 begin
   rw ← le_zero_iff,
-  have : at_top.liminf s ≤ at_top.limsup s,
-  { -- TODO Fix `liminf_le_limsup`: we should not need to discharge boundedness properties manually.
-    refine liminf_le_limsup _ _; simp only [auto_param_eq],
-    { exact ⟨⊤, eventually_of_forall $ λ s, subset_univ _⟩, },
-    { exact ⟨⊥, eventually_of_forall $ λ s, bot_le⟩, }, },
+  have : at_top.liminf s ≤ at_top.limsup s :=
+    liminf_le_limsup (by is_bounded_default) (by is_bounded_default),
   exact (μ.mono this).trans (by simp [measure_limsup_eq_zero h]),
 end
 
 lemma limsup_ae_eq_of_forall_ae_eq (s : ℕ → set α) {t : set α} (h : ∀ n, s n =ᵐ[μ] t) :
-  @limsup (set α) ℕ _ at_top s =ᵐ[μ] t := -- Need `@` because of diamond
+  -- Need `@` below because of diamond; see gh issue #16932
+  @limsup (set α) ℕ _ at_top s =ᵐ[μ] t :=
 begin
   simp_rw ae_eq_set at h ⊢,
   split,
@@ -552,7 +550,8 @@ begin
 end
 
 lemma liminf_ae_eq_of_forall_ae_eq (s : ℕ → set α) {t : set α} (h : ∀ n, s n =ᵐ[μ] t) :
-  @liminf (set α) ℕ _ at_top s =ᵐ[μ] t := -- Need `@` because of diamond
+  -- Need `@` below because of diamond; see gh issue #16932
+  @liminf (set α) ℕ _ at_top s =ᵐ[μ] t :=
 begin
   simp_rw ae_eq_set at h ⊢,
   split,
@@ -1927,7 +1926,8 @@ preimage_null_of_map_null h.ae_measurable (h.2 hs)
 
 lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
   (hs : f⁻¹' s =ᵐ[μ] s) :
-  @limsup (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s := -- Need `@` because of diamond
+  -- Need `@` below because of diamond; see gh issue #16932
+  @limsup (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s :=
 begin
   have : ∀ n, (preimage f)^[n] s =ᵐ[μ] s,
   { intros n,
@@ -1938,9 +1938,11 @@ end
 
 lemma liminf_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
   (hs : f⁻¹' s =ᵐ[μ] s) :
-  @liminf (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s := -- Need `@` because of diamond
+  -- Need `@` below because of diamond; see gh issue #16932
+  @liminf (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s :=
 begin
-  rw [← ae_eq_set_compl, @filter.liminf_compl (set α)], -- Need `@` because of diamond
+  -- Need `@` below because of diamond; see gh issue #16932
+  rw [← ae_eq_set_compl, @filter.liminf_compl (set α)],
   rw [← ae_eq_set_compl, ← preimage_compl] at hs,
   convert hf.limsup_preimage_iterate_ae_eq hs,
   ext1 n,

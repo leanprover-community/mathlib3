@@ -7,12 +7,27 @@ import analysis.analytic.isolated_zeros
 import analysis.complex.cauchy_integral
 import analysis.complex.abs_max
 import topology.algebra.field
-import topology.locally_constant.basic
 
 /-!
 # The open mapping theorem for holomorphic functions
 
-A holomorphic function on a preconnected open set of the complex plane is either constant or open.
+This file proves the open mapping theorem for holomorphic functions, namely that a holomorphic
+function on a preconnected open set of the complex plane is either constant or open. The main step
+is to show a local version of the theorem that states that if `f` is analytic at a point `z₀`, then
+either it is constant in a neighborhood of `z₀` or it maps any neighborhood of `z₀` to a
+neighborhood of `f z₀`.
+
+The proof of the local version goes through two main steps: first, assuming that the function is not
+constant around `z₀`, use the isolated zero principle to show that `∥f z∥` is bounded below on a
+small `sphere z₀ r` around `z₀`, and then use the maximum principle applied to `(λ z, ∥f z - v∥)` to
+show that any point `v` close enough to `f z₀` is in `f '' ball z₀ r`. That second step is
+implemented in `diff_cont_on_cl.ball_subset_image_closed_ball`.
+
+## Main results
+
+* `analytic_at.eventually_constant_or_nhds_le_map_nhds` is the local version of the open mapping
+  theorem around a point;
+* `analytic_on.is_constant_or_is_open` is the open mapping theorem on a connected open set.
 -/
 
 open set filter metric complex
@@ -48,12 +63,7 @@ begin
   exact hz₀ (mem_of_superset (ball_mem_nhds z₀ hr) (h12 ▸ h11))
 end
 
-lemma diff_cont_on_cl.continuous_on_closed_ball (hf : diff_cont_on_cl ℂ f (ball z₀ r)) :
-  continuous_on f (closed_ball z₀ r) :=
-if h : r = 0 then by simp only [h, closed_ball_zero, continuous_on_singleton]
-  else closure_ball z₀ h ▸ hf.continuous_on
-
-lemma analytic_at.locally_constant_or_nhds_le_map_nhds (hf : analytic_at ℂ f z₀) :
+lemma analytic_at.eventually_constant_or_nhds_le_map_nhds (hf : analytic_at ℂ f z₀) :
   (∀ᶠ z in 𝓝 z₀, f z = f z₀) ∨ (𝓝 (f z₀) ≤ filter.map f (𝓝 z₀)) :=
 begin
   refine or_iff_not_imp_left.mpr (λ h, _),
@@ -76,7 +86,7 @@ begin
   have h8 : (sphere z₀ r).nonempty := normed_space.sphere_nonempty.mpr hr.le,
   have h9 : continuous_on (λ x, ∥f x - f z₀∥) (sphere z₀ r),
     from continuous_norm.comp_continuous_on
-      ((h6.sub_const (f z₀)).continuous_on_closed_ball.mono sphere_subset_closed_ball),
+      ((h6.sub_const (f z₀)).continuous_on_ball.mono sphere_subset_closed_ball),
   obtain ⟨x, hx, hfx⟩ := (is_compact_sphere z₀ r).exists_forall_le h8 h9,
   refine ⟨∥f x - f z₀∥ / 2, half_pos (norm_sub_pos_iff.mpr (h7 x hx)), _⟩,
   exact (h6.ball_subset_image_closed_ball hr (λ z hz, hfx z hz) h).trans
@@ -93,6 +103,6 @@ begin
   { push_neg at h,
     refine or.inr (λ s hs1 hs2, is_open_iff_mem_nhds.mpr _),
     rintro z ⟨w, hw1, rfl⟩,
-    have := (hf w (hs1 hw1)).locally_constant_or_nhds_le_map_nhds.resolve_left (h w (hs1 hw1)),
+    have := (hf w (hs1 hw1)).eventually_constant_or_nhds_le_map_nhds.resolve_left (h w (hs1 hw1)),
     exact this (image_mem_map (hs2.mem_nhds hw1)) }
 end

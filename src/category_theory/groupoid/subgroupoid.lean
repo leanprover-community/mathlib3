@@ -100,7 +100,7 @@ def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
 --instance [h : nonempty S.objs] : nonempty S.coe := h
 
 /-- The coercion of a subgroupoid as a groupoid -/
-instance coe_groupoid : groupoid S.objs :=
+instance coe : groupoid S.objs :=
 { hom := λ a b, S.arrows a.val b.val,
   id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩,
   comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul' p.prop q.prop⟩,

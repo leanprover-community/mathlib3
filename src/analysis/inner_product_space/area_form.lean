@@ -36,8 +36,8 @@ product space `E`.
 ## Implementation notes
 
 Notation `ω` for `orientation.area_form` and `J` for `orientation.right_angle_rotation` should be
-defined locally in each file which uses them, since otherwise one needs a more cumbersome notation
-which mentions the orientation explicitly (something like `ω[o]`).  Write
+defined locally in each file which uses them, since otherwise one would need a more cumbersome
+notation which mentions the orientation explicitly (something like `ω[o]`).  Write
 
 ```
 local notation `ω` := o.area_form
@@ -129,29 +129,6 @@ begin
   { simpa using h },
   { simpa [real_inner_comm] using h },
   { simpa }
-end
-
-lemma area_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
-  (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
-  (orientation.map (fin 2) φ.to_linear_equiv o).area_form x y = o.area_form (φ.symm x) (φ.symm y) :=
-begin
-  have : φ.symm ∘ ![x, y] = ![φ.symm x, φ.symm y],
-  { ext i,
-    fin_cases i; refl },
-  simp [area_form_to_volume_form, volume_form_map, this],
-end
-
-/-- The area form is invariant under pullback by a positively-oriented isometric automorphism. -/
-lemma area_form_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
-  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x y : E) :
-  o.area_form (φ x) (φ y) = o.area_form x y :=
-begin
-  convert o.area_form_map φ (φ x) (φ y),
-  { symmetry,
-    rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
-    rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
-  { simp },
-  { simp }
 end
 
 /-- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
@@ -279,45 +256,6 @@ end
 @[simp] lemma right_angle_rotation_trans_neg_orientation :
   (-o).right_angle_rotation = o.right_angle_rotation.trans (linear_isometry_equiv.neg ℝ) :=
 linear_isometry_equiv.ext $ o.right_angle_rotation_neg_orientation
-
-lemma right_angle_rotation_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
-  (φ : E ≃ₗᵢ[ℝ] F) (x : F) :
-  (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation x
-  = φ (o.right_angle_rotation (φ.symm x)) :=
-begin
-  apply ext_inner_right ℝ,
-  intros y,
-  rw inner_right_angle_rotation_left,
-  transitivity ⟪J (φ.symm x), φ.symm y⟫,
-  { simp [o.area_form_map] },
-  transitivity ⟪φ (J (φ.symm x)), φ (φ.symm y)⟫,
-  { rw φ.inner_map_map },
-  { simp },
-end
-
-/-- `J` commutes with any positively-oriented isometric automorphism. -/
-lemma linear_isometry_equiv_comp_right_angle_rotation (φ : E ≃ₗᵢ[ℝ] E)
-  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x : E) :
-  φ (J x) = J (φ x) :=
-begin
-  convert (o.right_angle_rotation_map φ (φ x)).symm,
-  { simp },
-  { symmetry,
-    rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
-    rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
-end
-
-lemma right_angle_rotation_map' {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
-  (φ : E ≃ₗᵢ[ℝ] F) :
-  (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation
-  = (φ.symm.trans o.right_angle_rotation).trans φ :=
-linear_isometry_equiv.ext $ o.right_angle_rotation_map φ
-
-/-- `J` commutes with any positively-oriented isometric automorphism. -/
-lemma linear_isometry_equiv_comp_right_angle_rotation' (φ : E ≃ₗᵢ[ℝ] E)
-  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) :
-  linear_isometry_equiv.trans J φ = φ.trans J :=
-linear_isometry_equiv.ext $ o.linear_isometry_equiv_comp_right_angle_rotation φ hφ
 
 /-- For a nonzero vector `x` in an oriented two-dimensional real inner product space `E`,
 `![x, J x]` forms an (orthogonal) basis for `E`. -/
@@ -521,10 +459,5 @@ begin
   rintros (rfl | rfl);
   simp,
 end
-
-lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
-  (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
-  (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
-by simp [kahler_apply_apply, area_form_map]
 
 end orientation

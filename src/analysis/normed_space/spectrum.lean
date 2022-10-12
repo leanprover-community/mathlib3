@@ -8,6 +8,7 @@ import analysis.special_functions.pow
 import analysis.special_functions.exponential
 import analysis.complex.liouville
 import analysis.analytic.radius_liminf
+import topology.algebra.module.character_space
 /-!
 # The spectrum of elements in a complete normed algebra
 
@@ -57,11 +58,20 @@ namespace spectrum
 
 section spectrum_compact
 
+open filter
+
 variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
+
+@[simp] lemma spectral_radius.of_subsingleton [subsingleton A] (a : A) :
+  spectral_radius 𝕜 a = 0 :=
+by simp [spectral_radius]
+
+@[simp] lemma spectral_radius_zero : spectral_radius 𝕜 (0 : A) = 0 :=
+by { nontriviality A, simp [spectral_radius] }
 
 lemma mem_resolvent_set_of_spectral_radius_lt {a : A} {k : 𝕜} (h : spectral_radius 𝕜 a < ∥k∥₊) :
   k ∈ ρ a :=
@@ -70,34 +80,50 @@ not_not.mp $ λ hn, h.not_le $ le_supr₂ k hn
 variable [complete_space A]
 
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
-units.is_open.preimage ((algebra_map_clm 𝕜 A).continuous.sub continuous_const)
+units.is_open.preimage ((continuous_algebra_map 𝕜 A).sub continuous_const)
 
-lemma is_closed (a : A) : is_closed (σ a) :=
+protected lemma is_closed (a : A) : is_closed (σ a) :=
 (is_open_resolvent_set a).is_closed_compl
 
-lemma mem_resolvent_of_norm_lt [norm_one_class A] {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
+lemma mem_resolvent_set_of_norm_lt_mul {a : A} {k : 𝕜} (h : ∥a∥ * ∥(1 : A)∥ < ∥k∥) :
   k ∈ ρ a :=
 begin
   rw [resolvent_set, set.mem_set_of_eq, algebra.algebra_map_eq_smul_one],
-  have hk : k ≠ 0 := ne_zero_of_norm_ne_zero (by linarith [norm_nonneg a]),
+  nontriviality A,
+  have hk : k ≠ 0,
+    from ne_zero_of_norm_ne_zero ((mul_nonneg (norm_nonneg _) (norm_nonneg _)).trans_lt h).ne',
   let ku := units.map (↑ₐ).to_monoid_hom (units.mk0 k hk),
-  have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, algebra_map_isometry] using h,
+  rw [←inv_inv (∥(1 : A)∥), mul_inv_lt_iff (inv_pos.2 $ norm_pos_iff.2 (one_ne_zero : (1 : A) ≠ 0))]
+    at h,
+  have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, norm_algebra_map] using h,
   simpa [ku, sub_eq_add_neg, algebra.algebra_map_eq_smul_one] using (ku.add (-a) hku).is_unit,
 end
 
+lemma mem_resolvent_set_of_norm_lt [norm_one_class A] {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
+  k ∈ ρ a :=
+mem_resolvent_set_of_norm_lt_mul (by rwa [norm_one, mul_one])
+
+lemma norm_le_norm_mul_of_mem {a : A} {k : 𝕜} (hk : k ∈ σ a) :
+  ∥k∥ ≤ ∥a∥ * ∥(1 : A)∥ :=
+le_of_not_lt $ mt mem_resolvent_set_of_norm_lt_mul hk
+
 lemma norm_le_norm_of_mem [norm_one_class A] {a : A} {k : 𝕜} (hk : k ∈ σ a) :
   ∥k∥ ≤ ∥a∥ :=
-le_of_not_lt $ mt mem_resolvent_of_norm_lt hk
+le_of_not_lt $ mt mem_resolvent_set_of_norm_lt hk
+
+lemma subset_closed_ball_norm_mul (a : A) :
+  σ a ⊆ metric.closed_ball (0 : 𝕜) (∥a∥ * ∥(1 : A)∥) :=
+λ k hk, by simp [norm_le_norm_mul_of_mem hk]
 
 lemma subset_closed_ball_norm [norm_one_class A] (a : A) :
   σ a ⊆ metric.closed_ball (0 : 𝕜) (∥a∥) :=
 λ k hk, by simp [norm_le_norm_of_mem hk]
 
-lemma is_bounded [norm_one_class A] (a : A) : metric.bounded (σ a) :=
-(metric.bounded_iff_subset_ball 0).mpr ⟨∥a∥, subset_closed_ball_norm a⟩
+lemma is_bounded (a : A) : metric.bounded (σ a) :=
+(metric.bounded_iff_subset_ball 0).mpr ⟨∥a∥ * ∥(1 : A)∥, subset_closed_ball_norm_mul a⟩
 
-theorem is_compact [norm_one_class A] [proper_space 𝕜] (a : A) : is_compact (σ a) :=
-metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
+protected theorem is_compact [proper_space 𝕜] (a : A) : is_compact (σ a) :=
+metric.is_compact_of_is_closed_bounded (spectrum.is_closed a) (is_bounded a)
 
 theorem spectral_radius_le_nnnorm [norm_one_class A] (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
@@ -106,8 +132,8 @@ by { refine supr₂_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
 open ennreal polynomial
 
 variable (𝕜)
-theorem spectral_radius_le_pow_nnnorm_pow_one_div [norm_one_class A] (a : A) (n : ℕ) :
-  spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
+theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
+  spectral_radius 𝕜 a ≤ (∥a ^ (n + 1)∥₊) ^ (1 / (n + 1) : ℝ) * (∥(1 : A)∥₊) ^ (1 / (n + 1) : ℝ) :=
 begin
   refine supr₂_le (λ k hk, _),
   /- apply easy direction of the spectral mapping theorem for polynomials -/
@@ -115,13 +141,35 @@ begin
     by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,
       eval_monomial] using subset_polynomial_aeval a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
   /- power of the norm is bounded by norm of the power -/
-  have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ↑∥a ^ (n + 1)∥₊,
-    by simpa only [norm_to_nnreal, nnnorm_pow k (n+1)]
-      using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
+  have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ∥a ^ (n + 1)∥₊ * ∥(1 : A)∥₊,
+    { simpa only [real.to_nnreal_mul (norm_nonneg _), norm_to_nnreal, nnnorm_pow k (n + 1),
+        ennreal.coe_mul] using coe_mono (real.to_nnreal_mono (norm_le_norm_mul_of_mem pow_mem)) },
   /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
   have hn : 0 < ((n + 1 : ℕ) : ℝ), by exact_mod_cast nat.succ_pos',
   convert monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
-  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one], rw nat.cast_succ,
+  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one],
+  rw [nat.cast_succ, ennreal.coe_mul_rpow],
+end
+
+theorem spectral_radius_le_liminf_pow_nnnorm_pow_one_div (a : A) :
+  spectral_radius 𝕜 a ≤ at_top.liminf (λ n : ℕ, (∥a ^ n∥₊ : ℝ≥0∞) ^ (1 / n : ℝ)) :=
+begin
+  refine ennreal.le_of_forall_lt_one_mul_le (λ ε hε, _),
+  by_cases ε = 0,
+  { simp only [h, zero_mul, zero_le'] },
+  have hε' : ε⁻¹ ≠ ∞,
+    from λ h', h (by simpa only [inv_inv, inv_top] using congr_arg (λ (x : ℝ≥0∞), x⁻¹) h'),
+  simp only [ennreal.mul_le_iff_le_inv h (hε.trans_le le_top).ne, mul_comm ε⁻¹,
+    liminf_eq_supr_infi_of_nat', ennreal.supr_mul, ennreal.infi_mul hε'],
+  rw [←ennreal.inv_lt_inv, inv_one] at hε,
+  obtain ⟨N, hN⟩ := eventually_at_top.mp
+    (ennreal.eventually_pow_one_div_le (ennreal.coe_ne_top : ↑∥(1 : A)∥₊ ≠ ∞) hε),
+  refine (le_trans _ (le_supr _ (N + 1))),
+  refine le_infi (λ n, _),
+  simp only [←add_assoc],
+  refine (spectral_radius_le_pow_nnnorm_pow_one_div 𝕜 a (n + N)).trans _,
+  norm_cast,
+  exact mul_le_mul_left' (hN (n + N + 1) (by linarith)) _,
 end
 
 end spectrum_compact
@@ -282,22 +330,16 @@ end
 
 /-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
 `spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
-theorem pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius [norm_one_class A] (a : A) :
+theorem pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
   tendsto (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)) at_top (𝓝 (spectral_radius ℂ a)) :=
-begin
-  refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
-  { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
-    refine le_trans _ (le_supr _ 0),
-    simp only [nat.cast_succ],
-    exact le_infi₂ (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
-  { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
-end
+tendsto_of_le_liminf_of_limsup_le (spectral_radius_le_liminf_pow_nnnorm_pow_one_div ℂ a)
+  (limsup_pow_nnnorm_pow_one_div_le_spectral_radius a)
 
 /- This is the same as `pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius` but for `norm`
 instead of `nnnorm`. -/
 /-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
 `spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
-theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius [norm_one_class A] (a : A) :
+theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
   tendsto (λ n : ℕ,  ennreal.of_real (∥a ^ n∥ ^ (1 / n : ℝ))) at_top (𝓝 (spectral_radius ℂ a)) :=
 begin
   convert pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a,
@@ -422,20 +464,19 @@ section normed_field
 variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
-
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
 automatically bounded). -/
-instance [norm_one_class A] : continuous_linear_map_class (A →ₐ[𝕜] 𝕜) 𝕜 A 𝕜 :=
-{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ 1 $
-    λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (apply_mem_spectrum φ _),
+instance : continuous_linear_map_class (A →ₐ[𝕜] 𝕜) 𝕜 A 𝕜 :=
+{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ ∥(1 : A)∥ $
+    λ a, (mul_comm ∥a∥ ∥(1 : A)∥) ▸ spectrum.norm_le_norm_mul_of_mem (apply_mem_spectrum φ _),
   .. alg_hom_class.linear_map_class }
 
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
 automatically bounded). -/
-def to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
+def to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
 { cont := map_continuous φ, .. φ.to_linear_map }
 
-@[simp] lemma coe_to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
+@[simp] lemma coe_to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) :
   ⇑φ.to_continuous_linear_map = φ := rfl
 
 end normed_field
@@ -453,3 +494,27 @@ continuous_linear_map.op_norm_eq_of_bounds zero_le_one
 end nontrivially_normed_field
 
 end alg_hom
+
+namespace weak_dual
+
+namespace character_space
+
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [complete_space A]
+variables [normed_algebra 𝕜 A]
+
+/-- The equivalence between characters and algebra homomorphisms into the base field. -/
+def equiv_alg_hom : (character_space 𝕜 A) ≃ (A →ₐ[𝕜] 𝕜)  :=
+{ to_fun := to_alg_hom,
+  inv_fun := λ f,
+  { val := f.to_continuous_linear_map,
+    property := by { rw eq_set_map_one_map_mul, exact ⟨map_one f, map_mul f⟩ } },
+  left_inv := λ f, subtype.ext $ continuous_linear_map.ext $ λ x, rfl,
+  right_inv := λ f, alg_hom.ext $ λ x, rfl }
+
+@[simp] lemma equiv_alg_hom_coe (f : character_space 𝕜 A) : ⇑(equiv_alg_hom f) = f := rfl
+
+@[simp] lemma equiv_alg_hom_symm_coe  (f : A →ₐ[𝕜] 𝕜) : ⇑(equiv_alg_hom.symm f) = f := rfl
+
+end character_space
+
+end weak_dual

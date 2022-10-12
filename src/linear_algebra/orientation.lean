@@ -37,7 +37,7 @@ open_locale big_operators
 
 section ordered_comm_semiring
 
-variables (R : Type*) [ordered_comm_semiring R]
+variables (R : Type*) [strict_ordered_comm_semiring R]
 variables (M : Type*) [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
@@ -72,7 +72,7 @@ end ordered_comm_semiring
 
 section ordered_comm_ring
 
-variables {R : Type*} [ordered_comm_ring R]
+variables {R : Type*} [strict_ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 
 namespace basis
@@ -108,7 +108,7 @@ lemma orientation_units_smul [nontrivial R] (e : basis ι R M) (w : ι → units
   (e.units_smul w).orientation = (∏ i, w i)⁻¹ • e.orientation :=
 begin
   rw [basis.orientation, basis.orientation, smul_ray_of_ne_zero, ray_eq_iff,
-      e.det.eq_smul_basis_det (e.units_smul w), det_units_smul, units.smul_def, smul_smul],
+      e.det.eq_smul_basis_det (e.units_smul w), det_units_smul_self, units.smul_def, smul_smul],
   norm_cast,
   simp
 end
@@ -205,6 +205,26 @@ begin
   { simp },
   { by_cases hi : i = classical.arbitrary ι;
       simp [units_smul_apply, hi] }
+end
+
+lemma det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+  (x : orientation R M ι) :
+  (e.adjust_to_orientation x).det = e.det ∨ (e.adjust_to_orientation x).det = - e.det :=
+begin
+  dsimp [basis.adjust_to_orientation],
+  split_ifs,
+  { left,
+    refl },
+  { right,
+    simp [e.det_units_smul, ← units.coe_prod, finset.prod_update_of_mem] }
+end
+
+@[simp] lemma abs_det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+  (x : orientation R M ι) (v : ι → M) :
+  |(e.adjust_to_orientation x).det v| = |e.det v| :=
+begin
+  cases e.det_adjust_to_orientation x with h h;
+  simp [h]
 end
 
 end basis

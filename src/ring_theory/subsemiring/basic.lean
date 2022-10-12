@@ -121,10 +121,24 @@ instance to_ordered_semiring {R} [ordered_semiring R] [set_like S R] [subsemirin
 subtype.coe_injective.ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
+/-- A subsemiring of an `strict_ordered_semiring` is an `strict_ordered_semiring`. -/
+instance to_strict_ordered_semiring {R} [strict_ordered_semiring R] [set_like S R]
+  [subsemiring_class S R] :
+  strict_ordered_semiring s :=
+subtype.coe_injective.strict_ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] [set_like S R]
   [subsemiring_class S R] : ordered_comm_semiring s :=
 subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+/-- A subsemiring of an `strict_ordered_comm_semiring` is an `strict_ordered_comm_semiring`. -/
+instance to_strict_ordered_comm_semiring {R} [strict_ordered_comm_semiring R] [set_like S R]
+  [subsemiring_class S R] :
+  strict_ordered_comm_semiring s :=
+subtype.coe_injective.strict_ordered_comm_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
@@ -133,7 +147,11 @@ instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] [set_like S 
 subtype.coe_injective.linear_ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
-/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
+/-- A subsemiring of a `linear_ordered_comm_semiring` is a `linear_ordered_comm_semiring`. -/
+instance to_linear_ordered_comm_semiring {R} [linear_ordered_comm_semiring R] [set_like S R]
+  [subsemiring_class S R] : linear_ordered_comm_semiring s :=
+subtype.coe_injective.linear_ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end subsemiring_class
 
@@ -339,10 +357,22 @@ instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : orde
 subtype.coe_injective.ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
+/-- A subsemiring of a `strict_ordered_semiring` is a `strict_ordered_semiring`. -/
+instance to_strict_ordered_semiring {R} [strict_ordered_semiring R] (s : subsemiring R) :
+  strict_ordered_semiring s :=
+subtype.coe_injective.strict_ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
   ordered_comm_semiring s :=
 subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+/-- A subsemiring of a `strict_ordered_comm_semiring` is a `strict_ordered_comm_semiring`. -/
+instance to_strict_ordered_comm_semiring {R} [strict_ordered_comm_semiring R] (s : subsemiring R) :
+  strict_ordered_comm_semiring s :=
+subtype.coe_injective.strict_ordered_comm_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
@@ -351,7 +381,11 @@ instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemi
 subtype.coe_injective.linear_ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
-/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
+/-- A subsemiring of a `linear_ordered_comm_semiring` is a `linear_ordered_comm_semiring`. -/
+instance to_linear_ordered_comm_semiring {R} [linear_ordered_comm_semiring R] (s : subsemiring R) :
+  linear_ordered_comm_semiring s :=
+subtype.coe_injective.linear_ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 protected lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
   n • x ∈ s := nsmul_mem hx n
@@ -1069,14 +1103,14 @@ end subsemiring
 end actions
 
 -- While this definition is not about `subsemiring`s, this is the earliest we have
--- both `ordered_semiring` and `submonoid` available.
+-- both `strict_ordered_semiring` and `submonoid` available.
 
 
 /-- Submonoid of positive elements of an ordered semiring. -/
-def pos_submonoid (R : Type*) [ordered_semiring R] [nontrivial R] : submonoid R :=
+def pos_submonoid (R : Type*) [strict_ordered_semiring R] [nontrivial R] : submonoid R :=
 { carrier := {x | 0 < x},
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
-@[simp] lemma mem_pos_monoid {R : Type*} [ordered_semiring R] [nontrivial R] (u : Rˣ) :
+@[simp] lemma mem_pos_monoid {R : Type*} [strict_ordered_semiring R] [nontrivial R] (u : Rˣ) :
   ↑u ∈ pos_submonoid R ↔ (0 : R) < u := iff.rfl

@@ -2128,6 +2128,10 @@ begin
 
 end
 
+
+-- The following lemms are for the seventh important lemma
+
+-- `x^2+y^2 = 0 ↔ x=0 ∧ y = 0`
 lemma sum_sq_eq_zero_iff_both_zero (x y : ℝ): x^2+y^2 = 0 ↔ x=0 ∧ y = 0:=
 begin
   split,
@@ -2146,6 +2150,7 @@ begin
 
 end
 
+-- `x = 0 ↔ sqrt(x) = 0`
 lemma zero_iff_sqrt_zero (x : ℝ) (hx : 0 ≤ x): x = (0:ℝ) ↔ sqrt x = (0:ℝ):=
 begin
   split,
@@ -2164,15 +2169,17 @@ begin
   },
 end
 
+-- `x ≠ (0:ℝ) ↔ sqrt x ≠ (0:ℝ)`
 lemma nzero_iff_sqrt_nzero (x : ℝ) (hx : 0 ≤ x): x ≠ (0:ℝ) ↔ sqrt x ≠ (0:ℝ):=
 begin
   simp [zero_iff_sqrt_zero x hx],
 end
 
----lemma equi_form_of_gaussian (a:ℝ) :  (gaussian_rv f a s₁) ↔ (gaussian_rv (f + λ x, a) s₁):=
 
 --test --
 -- Hard!
+
+-- `0 ≤ x^2 +y^2`
 lemma sum_square_nneg (x y : ℝ): 0 ≤ x^2 +y^2:=
 begin
   have hx : 0 ≤ x^2 := sq_nonneg x,
@@ -2180,8 +2187,7 @@ begin
   exact add_nonneg hx hy,
 end
 
-
-
+-- `a+b = 1 & a = 1 & a,b ≤ 1` → `b = 1`
 lemma sum_one_a_one_then_b_zero_forennreal (a: ℝ≥0∞) (b : ℝ≥0∞) (ha : a ≤ (1:ℝ≥0∞))
 (hb : b ≤ (1:ℝ≥0∞)) (h1 : a+b=(1:ℝ≥0∞)) (h2 : a=(1:ℝ≥0∞)) : b=(0:ℝ≥0∞):=
 begin
@@ -2231,14 +2237,15 @@ begin
   exact h1,
 end
 
-
+-- `μ set.univ = 1`
 lemma prob_mea_one (μ : measure Ω) (hμ : is_probability_measure μ):
 μ set.univ = 1 :=
 begin
   simp,
 end
 
-
+-- if the pushforward measure of a function is a dirac function
+-- then almost everywhere constant
 lemma pushmea_of_func_is_dirac_then_ae_const2 (m:ℝ) (func : Ω → ℝ)
 (hmeas : measurable func) (h_func : map func ℙ = dirac m) : func =ᵐ[ℙ] (λ x, m : Ω → ℝ):=
 begin

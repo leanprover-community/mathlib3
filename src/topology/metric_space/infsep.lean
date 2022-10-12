@@ -16,13 +16,6 @@ section extras
 
 open_locale ennreal
 
--- PR 1
-instance set.off_diag_fintype {s : set α} [decidable_eq α] [fintype s] : fintype (s.off_diag) :=
-fintype.of_finset s.to_finset.off_diag $ by simp
-
-lemma set.finite.off_diag {s : set α} (hs : s.finite) : s.off_diag.finite :=
-by { classical, casesI hs, apply set.to_finite }
-
 -- PR 2
 @[simp] lemma set.to_finset_nonempty {s : set α} [fintype s] : s.to_finset.nonempty ↔ s.nonempty :=
 by simp_rw [finset.nonempty, set.mem_to_finset, set.nonempty]

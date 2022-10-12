@@ -5,6 +5,10 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.abs
 import algebra.order.sub
+import algebra.order.monoid.min_max
+import algebra.order.monoid.prod
+import algebra.order.monoid.type_tags
+import algebra.order.monoid.units
 
 /-!
 # Ordered groups
@@ -41,6 +45,9 @@ attribute [to_additive] ordered_comm_group
 instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_comm_group α] :
   covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
+
+example (α : Type u) [ordered_add_comm_group α] : covariant_class α α (swap (+)) (<) :=
+add_right_cancel_semigroup.covariant_swap_add_lt_of_covariant_swap_add_le α
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive "The units of an ordered commutative additive monoid form an ordered commutative

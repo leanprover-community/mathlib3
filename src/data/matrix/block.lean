@@ -255,7 +255,7 @@ variables [has_zero α] [has_one α]
   from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
 by { ext i j, rcases i; rcases j; simp [one_apply] }
 
-lemma to_block_one_self (p : m → Prop) : matrix.to_block (1 : matrix m m α) p p = 1 :=
+@[simp] lemma to_block_one_self (p : m → Prop) : matrix.to_block (1 : matrix m m α) p p = 1 :=
 to_block_diagonal_self _ p
 
 lemma to_block_one_disjoint {p q : m → Prop} (hpq : disjoint p q) :

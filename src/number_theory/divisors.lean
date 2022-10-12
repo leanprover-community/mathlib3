@@ -36,52 +36,90 @@ open finset
 namespace nat
 variable (n : ℕ)
 
-open_locale pointwise
+/-- (Implementation) An auxiliary definition for `nat.divisors_antidiagonal`. -/
+private def divisors_antidiagonal' : finset (ℕ × ℕ) :=
+(Icc 1 n ×ˢ Icc 1 n).filter (λ x, x.fst * x.snd = n)
 
-/-- (Implementation) An auxiliary definition for `nat.divisors`. -/
-private def divisors' : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.Icc 1 n)
-
-lemma mem_divisors' {n m : ℕ} : n ∈ divisors' m ↔ n ∣ m ∧ m ≠ 0 :=
+lemma mem_divisors_antidiagonal' {x : ℕ × ℕ} :
+  x ∈ divisors_antidiagonal' n ↔ x.fst * x.snd = n ∧ n ≠ 0 :=
 begin
-  rcases m.eq_zero_or_pos with rfl | hm, { simp [divisors'] },
-  simpa [hm.ne', divisors'] using λ h : n ∣ m, and.intro (pos_of_dvd_of_pos h hm) (le_of_dvd hm h)
+  simp only [divisors_antidiagonal', finset.mem_Icc, ne.def, finset.mem_filter, finset.mem_product],
+  rw and_comm,
+  apply and_congr_right,
+  rintro rfl,
+  split; intro h,
+  { contrapose! h, simp [h, succ_le_iff], },
+  { rw [mul_eq_zero, decidable.not_or_iff_and_not] at h,
+    simp only [succ_le_of_lt (nat.pos_of_ne_zero h.1), succ_le_of_lt (nat.pos_of_ne_zero h.2),
+               true_and],
+    exact ⟨le_mul_of_pos_right (nat.pos_of_ne_zero h.2),
+      le_mul_of_pos_left (nat.pos_of_ne_zero h.1)⟩ }
 end
 
-/-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = ∅`. -/
-def divisors : ℕ →* finset ℕ :=
-{ to_fun := divisors',
-  map_one' := by { ext i, simp [divisors'] },
+open_locale pointwise
+
+/-- `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
+  As a special case, `divisors_antidiagonal 0 = ∅`. -/
+def divisors_antidiagonal : ℕ →* finset (ℕ × ℕ) :=
+{ to_fun := divisors_antidiagonal',
+  map_one' := by { ext ⟨i, j⟩, simp [mem_divisors_antidiagonal', mul_eq_one_iff] },
   map_mul' := λ m n,
   begin
     rcases m.eq_zero_or_pos with rfl | hm,
-    { simp [divisors'] },
+    { simp [divisors_antidiagonal', empty_product] },
     rcases n.eq_zero_or_pos with rfl | hn,
-    { simp [divisors'] },
-    ext i,
-    simp only [mem_divisors', mem_mul, hm.ne', hn.ne', mul_eq_zero, ne.def, or_self,
-      not_false_iff, and_true],
+    { simp [divisors_antidiagonal', empty_product] },
+    ext ⟨i, j⟩,
+    simp only [mem_divisors_antidiagonal', mul_eq_zero, hm.ne', hn.ne', not_false_iff, ne.def,
+      and_true, or_self, mem_mul, prod.exists, prod.mk_mul_mk, prod.mk.inj_iff],
     split,
-    { intro h',
-      obtain ⟨⟨⟨i₁, hi₁⟩, i₂, hi₂⟩, rfl⟩ := prod_dvd_and_dvd_of_dvd_prod h',
-      exact ⟨i₁, i₂, hi₁, hi₂, rfl⟩ },
-    rintro ⟨y, x, hy, hx, rfl⟩,
-    exact mul_dvd_mul hy hx,
+    { rintro h,
+      obtain ⟨⟨⟨i₁, hi₁⟩, i₂, hi₂⟩, rfl⟩ := prod_dvd_and_dvd_of_dvd_prod ⟨_, h⟩,
+      refine ⟨i₁, i₂, i / i₁, j / i₂, rfl, _, nat.mul_div_cancel' hi₁, nat.mul_div_cancel' hi₂⟩,
+      rw [div_mul_div_comm hi₁ hi₂, h],
+      exact nat.mul_div_cancel_left _ hm },
+    rintro ⟨_, _, _, _, rfl, rfl, rfl, rfl⟩,
+    exact mul_mul_mul_comm _ _ _ _
   end }
+
+/-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = ∅`. -/
+def divisors : ℕ →* finset ℕ := (monoid_hom.fst ℕ ℕ).image.comp divisors_antidiagonal
 
 /-- `proper_divisors n` is the `finset` of divisors of `n`, other than `n`.
   As a special case, `proper_divisors 0 = ∅`. -/
 def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.Ico 1 n)
 
-/-- `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
-  As a special case, `divisors_antidiagonal 0 = ∅`. -/
-def divisors_antidiagonal : finset (ℕ × ℕ) :=
-(Ico 1 (n + 1) ×ˢ Ico 1 (n + 1)).filter (λ x, x.fst * x.snd = n)
-
 variable {n}
 
-lemma divisors_apply : divisors n = finset.filter (λ x : ℕ, x ∣ n) (finset.Icc 1 n) := rfl
+lemma divisors_antidiagonal_apply :
+  divisors_antidiagonal n = (Icc 1 n ×ˢ Icc 1 n).filter (λ x, x.1 * x.2 = n) :=
+rfl
 
-@[simp] lemma mem_divisors {m : ℕ} : n ∈ divisors m ↔ n ∣ m ∧ m ≠ 0 := mem_divisors'
+@[simp] lemma mem_divisors_antidiagonal {x : ℕ × ℕ} :
+  x ∈ divisors_antidiagonal n ↔ x.fst * x.snd = n ∧ n ≠ 0 :=
+mem_divisors_antidiagonal' _
+
+@[simp] lemma mem_divisors {m : ℕ} : n ∈ divisors m ↔ n ∣ m ∧ m ≠ 0 :=
+by simp [divisors, dvd_iff_exists_eq_mul_left, @eq_comm _ m (_ * _), mul_comm n]
+
+@[simp] lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
+
+lemma divisors_apply : divisors n = finset.filter (λ x : ℕ, x ∣ n) (finset.Icc 1 n) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  ext i,
+  simp only [mem_divisors, hn, ne.def, not_false_iff, and_true, mem_filter, mem_Icc, iff_and_self],
+  -- simp only [divisors, monoid_hom.coe_comp, function.comp_app, monoid_hom.image_apply,
+  --   monoid_hom.coe_fst, divisors_antidiagonal_apply],
+  -- ext i,
+  -- simp only [mem_image, mem_filter, mem_product, mem_Icc, exists_prop, prod.exists,
+  -- exists_and_distrib_right, exists_eq_right],
+  -- rw finset.image_filter,
+
+end
+
+#exit
 
 @[simp] lemma filter_dvd_eq_divisors (h : n ≠ 0) :
   (finset.range (n + 1)).filter (∣ n) = n.divisors :=
@@ -117,23 +155,6 @@ lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := mem_diviso
 
 lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m := (mem_divisors.1 h).1
 
-@[simp]
-lemma mem_divisors_antidiagonal {x : ℕ × ℕ} :
-  x ∈ divisors_antidiagonal n ↔ x.fst * x.snd = n ∧ n ≠ 0 :=
-begin
-  simp only [divisors_antidiagonal, finset.mem_Ico, ne.def, finset.mem_filter, finset.mem_product],
-  rw and_comm,
-  apply and_congr_right,
-  rintro rfl,
-  split; intro h,
-  { contrapose! h, simp [h], },
-  { rw [nat.lt_add_one_iff, nat.lt_add_one_iff],
-    rw [mul_eq_zero, decidable.not_or_iff_and_not] at h,
-    simp only [succ_le_of_lt (nat.pos_of_ne_zero h.1), succ_le_of_lt (nat.pos_of_ne_zero h.2),
-               true_and],
-    exact ⟨le_mul_of_pos_right (nat.pos_of_ne_zero h.2),
-      le_mul_of_pos_left (nat.pos_of_ne_zero h.1)⟩ }
-end
 
 variable {n}
 
@@ -152,7 +173,6 @@ begin
     ⟨h, hzero⟩)) hdiff)⟩)
 end
 
-@[simp] lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 
 @[simp] lemma proper_divisors_zero : proper_divisors 0 = ∅ := by { ext, simp }
 
@@ -401,11 +421,61 @@ begin
 end
 
 @[to_additive]
-lemma prod_divisors_antidiagonal' {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
+lemma prod_divisors_antidiagonal_swap {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
   ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f (n / i) i :=
 begin
   rw [←map_swap_divisors_antidiagonal, finset.prod_map],
   exact prod_divisors_antidiagonal (λ i j, f j i),
+end
+
+@[to_additive]
+lemma prod_divisors_antidiagonal' {M : Type*} [comm_monoid M] (f : ℕ × ℕ → M) {n : ℕ} :
+  ∏ i in n.divisors_antidiagonal, f i = ∏ i in n.divisors, f (i, n / i) :=
+begin
+  convert prod_divisors_antidiagonal (function.curry f),
+  ext ⟨i, j⟩,
+  refl
+end
+
+lemma divisors_antidiagonal_eq {n : ℕ} :
+  n.divisors_antidiagonal = (divisors n).map ⟨λ i, (i, n / i), λ _ _, and.left ∘ prod.mk.inj⟩ :=
+begin
+  ext ⟨i, j⟩,
+  simp only [mem_divisors_antidiagonal, mem_map, mem_divisors, function.embedding.coe_fn_mk,
+    prod.mk.inj_iff, exists_prop],
+  split,
+  { rintro ⟨rfl, h⟩,
+    exact ⟨i, ⟨dvd_mul_right _ _, h⟩, rfl, mul_div_right _ (mul_ne_zero_iff.1 h).1.bot_lt⟩ },
+  rintro ⟨i, ⟨h₁, h₂⟩, rfl, rfl⟩,
+  exact ⟨nat.mul_div_cancel' h₁, h₂⟩,
+end
+
+lemma divisors_antidiagonal_mul {n m : ℕ} :
+  divisors_antidiagonal (n * m) = divisors_antidiagonal n * divisors_antidiagonal m :=
+begin
+  simp only [divisors_antidiagonal_eq, map_mul, map_eq_image, function.embedding.coe_fn_mk],
+
+  -- simp only [mem_image, exists_prop],
+
+  -- refine image_image₂_distrib _,
+  -- intros a b,
+  -- rw [prod.mk_mul_mk],
+  -- rw div_mul_div_comm,
+  -- simp only [prod.mk_mul_mk, prod.mk.inj_iff, eq_self_iff_true, true_and],
+
+  -- have := image_mul,
+  -- have : ∀ x : ℕ, (∑ i in x.divisors_antidiagonal, ({i} : multiset (ℕ × ℕ))).to_finset =
+  --   (divisors_antidiagonal x),
+  -- { intro x,
+  --   ext i,
+  --   simp },
+  -- rw ←this,
+  -- rw ←this n,
+  -- rw ←this m,
+  -- rw sum_divisors_antidiagonal' (λ i, ({i} : multiset (ℕ × ℕ))),
+  -- rw sum_divisors_antidiagonal' (λ i, ({i} : multiset (ℕ × ℕ))),
+  -- rw sum_divisors_antidiagonal' (λ i, ({i} : multiset (ℕ × ℕ))),
+  -- dsimp,
 end
 
 /-- The factors of `n` are the prime divisors -/

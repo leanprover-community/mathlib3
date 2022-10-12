@@ -88,6 +88,13 @@ def singleton_one_hom : one_hom α (finset α) := ⟨singleton, singleton_one⟩
 rfl
 @[simp, to_additive] lemma singleton_one_hom_apply (a : α) : singleton_one_hom a = {a} := rfl
 
+/-- Lift a `one_hom` to `finset` via `image`. -/
+@[to_additive zero_hom.image "Lift a `zero_hom` to `finset` via `image`", simps]
+def one_hom.image [decidable_eq β] [has_one β] [one_hom_class F α β] (m : F) :
+  one_hom (finset α) (finset β) :=
+{ to_fun := finset.image m,
+  map_one' := by rw [image_one, map_one, singleton_one] }
+
 end has_one
 
 /-! ### Finset negation/inversion -/
@@ -217,6 +224,12 @@ def singleton_mul_hom : α →ₙ* finset α := ⟨singleton, λ a b, (singleton
 @[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → finset α) = singleton :=
 rfl
 @[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
+
+/-- Lift a `mul_hom` to `finset` via `image`. -/
+@[to_additive add_hom.image "Lift an `add_hom` to `finset` via `image`", simps]
+def mul_hom.image : finset α →ₙ* finset β :=
+{ to_fun := finset.image m,
+  map_mul' := λ s t, image_mul _ }
 
 end has_mul
 
@@ -359,6 +372,13 @@ def coe_monoid_hom : finset α →* set α :=
 
 @[simp, to_additive] lemma coe_coe_monoid_hom : (coe_monoid_hom : finset α → set α) = coe := rfl
 @[simp, to_additive] lemma coe_monoid_hom_apply (s : finset α) : coe_monoid_hom s = s := rfl
+
+/-- Lift a `monoid_hom` to `finset` via `image`. -/
+@[to_additive add_monoid_hom.image "Lift an `add_monoid_hom` to `finset` via `image`", simps]
+def monoid_hom.image [mul_one_class β] [monoid_hom_class F α β] (m : F) : finset α →* finset β :=
+{ to_fun := finset.image m,
+  map_one' := by rw [image_one, map_one, singleton_one],
+  map_mul' := λ s t, image_mul _ }
 
 end mul_one_class
 

@@ -40,31 +40,29 @@ lemma diff_cont_on_cl.ball_subset_image_closed_ball (h : diff_cont_on_cl ℂ f (
   ball (f z₀) (ε / 2) ⊆ f '' closed_ball z₀ r :=
 begin
   rintro v hv,
-  have h2 : diff_cont_on_cl ℂ (λ z, f z - v) (ball z₀ r) := h.sub_const v,
-  have h3 : continuous_on (λ z, ∥f z - v∥) (closed_ball z₀ r),
-    from continuous_norm.comp_continuous_on (closure_ball z₀ hr.ne.symm ▸ h2.continuous_on),
-  have h4 : analytic_on ℂ f (ball z₀ r) := h.differentiable_on.analytic_on is_open_ball,
-  have h5 : ∀ z ∈ sphere z₀ r, ε / 2 ≤ ∥f z - v∥,
-  { rintro z hz,
-    have := norm_sub_sub_norm_sub_le_norm_sub (f z) v (f z₀),
-    linarith [hf z hz, (show ∥v - f z₀∥ < ε / 2, from mem_ball.mp hv)] },
-  obtain ⟨w, hw, hfw⟩ : ∃ z ∈ ball z₀ r, ∥f z - v∥ < ε / 2,
-    from ⟨z₀, mem_ball_self hr, by simpa [← dist_eq_norm, dist_comm] using mem_ball.mp hv⟩,
+  have h1 : diff_cont_on_cl ℂ (λ z, f z - v) (ball z₀ r) := h.sub_const v,
+  have h2 : continuous_on (λ z, ∥f z - v∥) (closed_ball z₀ r),
+    from continuous_norm.comp_continuous_on (closure_ball z₀ hr.ne.symm ▸ h1.continuous_on),
+  have h3 : analytic_on ℂ f (ball z₀ r) := h.differentiable_on.analytic_on is_open_ball,
+  have h4 : ∀ z ∈ sphere z₀ r, ε / 2 ≤ ∥f z - v∥,
+    from λ z hz, by linarith [hf z hz, (show ∥v - f z₀∥ < ε / 2, from mem_ball.mp hv),
+      norm_sub_sub_norm_sub_le_norm_sub (f z) v (f z₀)],
+  have h5 : ∥f z₀ - v∥ < ε / 2 := by simpa [← dist_eq_norm, dist_comm] using mem_ball.mp hv,
   obtain ⟨z, hz1, hz2⟩ : ∃ z ∈ ball z₀ r, is_local_min (λ z, ∥f z - v∥) z,
-    from exists_local_min_mem_ball h3 h5 hw hfw,
-  have h7 := h2.differentiable_on.eventually_differentiable_at (is_open_ball.mem_nhds hz1),
+    from exists_local_min_mem_ball h2 h4 (mem_ball_self hr) h5,
   refine ⟨z, ball_subset_closed_ball hz1, sub_eq_zero.mp _⟩,
-  refine (eventually_eq_or_eq_zero_of_is_local_min_norm h7 hz2).resolve_left (λ key, _),
-  have h8 : ∀ᶠ w in 𝓝 z, f w = f z := by { filter_upwards [key] with h; field_simp },
-  have h9 : is_preconnected (ball z₀ r) := (convex_ball z₀ r).is_preconnected,
-  have h10 : ∃ᶠ w in 𝓝[≠] z, f w = f z := (h8.filter_mono nhds_within_le_nhds).frequently,
-  have h11 := h4.eq_on_of_preconnected_of_frequently_eq analytic_on_const h9 hz1 h10,
-  have h12 : f z = f z₀ := (h11 (mem_ball_self hr)).symm,
-  exact not_eventually.mpr hz₀ (mem_of_superset (ball_mem_nhds z₀ hr) (h12 ▸ h11))
+  have h6 := h1.differentiable_on.eventually_differentiable_at (is_open_ball.mem_nhds hz1),
+  refine (eventually_eq_or_eq_zero_of_is_local_min_norm h6 hz2).resolve_left (λ key, _),
+  have h7 : ∀ᶠ w in 𝓝 z, f w = f z := by { filter_upwards [key] with h; field_simp },
+  replace h7 : ∃ᶠ w in 𝓝[≠] z, f w = f z := (h7.filter_mono nhds_within_le_nhds).frequently,
+  have h8 : is_preconnected (ball z₀ r) := (convex_ball z₀ r).is_preconnected,
+  have h9 := h3.eq_on_of_preconnected_of_frequently_eq analytic_on_const h8 hz1 h7,
+  have h10 : f z = f z₀ := (h9 (mem_ball_self hr)).symm,
+  exact not_eventually.mpr hz₀ (mem_of_superset (ball_mem_nhds z₀ hr) (h10 ▸ h9))
 end
 
 lemma analytic_at.eventually_constant_or_nhds_le_map_nhds (hf : analytic_at ℂ f z₀) :
-  (∀ᶠ z in 𝓝 z₀, f z = f z₀) ∨ (𝓝 (f z₀) ≤ filter.map f (𝓝 z₀)) :=
+  (∀ᶠ z in 𝓝 z₀, f z = f z₀) ∨ (𝓝 (f z₀) ≤ map f (𝓝 z₀)) :=
 begin
   refine or_iff_not_imp_left.mpr (λ h, _),
   refine (nhds_basis_ball.le_basis_iff (nhds_basis_closed_ball.map f)).mpr (λ R hR, _),

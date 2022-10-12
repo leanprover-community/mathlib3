@@ -558,7 +558,8 @@ lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ := by exact_mod_cast ha.trans (
 
 lemma ceil_nonpos : ⌈a⌉ ≤ 0 ↔ a ≤ 0 := by rw [ceil_le, int.cast_zero]
 
-lemma ceil_neg_iff : ⌈a⌉ < 0 ↔ a ≤ -1 := by rw [←le_sub_one_iff, ceil_le, zero_sub, cast_neg, cast_one]
+lemma ceil_neg_iff : ⌈a⌉ < 0 ↔ a ≤ -1 :=
+by rw [←le_sub_one_iff, ceil_le, zero_sub, cast_neg, cast_one]
 
 lemma ceil_pos' : 0 < ⌈a⌉ ↔ ¬ a ≤ 0 := by rw [← ceil_nonpos, not_le]
 

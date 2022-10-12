@@ -454,6 +454,12 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
+@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M 1 :=
+begin
+  ext v,
+  exact matrix.det_is_empty,
+end
+
 /-- `basis.det` is not the zero map. -/
 lemma basis.det_ne_zero [nontrivial R] : e.det ≠ 0 :=
 λ h, by simpa [h] using e.det_self
@@ -550,11 +556,24 @@ begin
     exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
 end
 
+/-- If a basis is multiplied columnwise by scalars `w : ι → Rˣ`, then the determinant with respect
+to this basis is multiplied by the product of the inverse of these scalars. -/
+lemma basis.det_units_smul (e : basis ι R M) (w : ι → Rˣ) :
+  (e.units_smul w).det = (↑(∏ i, w i)⁻¹ : R) • e.det :=
+begin
+  ext f,
+  change matrix.det (λ i j, (e.units_smul w).repr (f j) i)
+    = (↑(∏ i, w i)⁻¹ : R) • matrix.det (λ i j, e.repr (f j) i),
+  simp only [e.repr_units_smul],
+  convert matrix.det_mul_column (λ i, (↑((w i)⁻¹) : R)) (λ i j, e.repr (f j) i),
+  simp [← finset.prod_inv_distrib]
+end
+
 /-- The determinant of a basis constructed by `units_smul` is the product of the given units. -/
-@[simp] lemma basis.det_units_smul (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
+@[simp] lemma basis.det_units_smul_self (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
 by simp [basis.det_apply]
 
 /-- The determinant of a basis constructed by `is_unit_smul` is the product of the given units. -/
 @[simp] lemma basis.det_is_unit_smul {w : ι → R} (hw : ∀ i, is_unit (w i)) :
   e.det (e.is_unit_smul hw) = ∏ i, w i :=
-e.det_units_smul _
+e.det_units_smul_self _

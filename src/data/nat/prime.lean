@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.prime
 import data.list.sort
-import data.nat.gcd
+import data.nat.gcd.basic
 import data.nat.sqrt_norm_num
 import data.set.finite
 import tactic.wlog
@@ -858,8 +858,6 @@ end nat
 
 /-! ### Primality prover -/
 
-open norm_num
-
 namespace tactic
 namespace norm_num
 
@@ -940,6 +938,8 @@ begin
   rw nat.le_sqrt at this,
   exact not_le_of_lt hd this
 end
+
+open _root_.norm_num
 
 /-- Given `e` a natural numeral and `d : nat` a factor of it, return `⊢ ¬ prime e`. -/
 meta def prove_non_prime (e : expr) (n d₁ : ℕ) : tactic expr :=

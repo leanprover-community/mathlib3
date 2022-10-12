@@ -147,9 +147,9 @@ end
 @[to_additive]
 lemma measure_inv_null : μ s⁻¹ = 0 ↔ μ s = 0 :=
 begin
-  refine ⟨λ hE, _, (quasi_measure_preserving_inv μ).preimage_null⟩,
-  rw [← inv_inv E],
-  exact (quasi_measure_preserving_inv μ).preimage_null hE
+  refine ⟨λ hs, _, (quasi_measure_preserving_inv μ).preimage_null⟩,
+  rw [← inv_inv s],
+  exact (quasi_measure_preserving_inv μ).preimage_null hs
 end
 
 @[to_additive]

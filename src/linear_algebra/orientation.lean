@@ -138,6 +138,27 @@ variables {R : Type*} [linear_ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {ι : Type*} [decidable_eq ι]
 
+/-- A module `M` over a linearly ordered commutative ring has precisely two "orientations" with
+respect to an empty index type. (Note that these are only orientations of `M` of in the conventional
+mathematical sense if `M` is zero-dimensional.) -/
+lemma eq_or_eq_neg_of_is_empty [nontrivial R] [is_empty ι] (o : orientation R M ι) :
+  o = positive_orientation ∨ o = - positive_orientation :=
+begin
+  induction o using module.ray.ind with x hx,
+  dsimp [positive_orientation],
+  simp only [ray_eq_iff, same_ray_neg_swap],
+  rw same_ray_or_same_ray_neg_iff_not_linear_independent,
+  intros h,
+  let a : R := alternating_map.const_linear_equiv_of_is_empty.symm x,
+  have H : linear_independent R ![a, 1],
+  { convert h.map' ↑alternating_map.const_linear_equiv_of_is_empty.symm (linear_equiv.ker _),
+    ext i,
+    fin_cases i;
+    simp [a] },
+  rw linear_independent_iff' at H,
+  simpa using H finset.univ ![1, -a] (by simp [fin.sum_univ_succ]) 0 (by simp),
+end
+
 namespace basis
 
 variables [fintype ι]
@@ -254,7 +275,6 @@ variables {ι : Type*} [decidable_eq ι]
 
 namespace orientation
 
-section
 variables [fintype ι] [finite_dimensional R M]
 
 open finite_dimensional
@@ -312,14 +332,6 @@ def some_basis [nonempty ι] (x : orientation R M ι) (h : fintype.card ι = fin
 @[simp] lemma some_basis_orientation [nonempty ι] (x : orientation R M ι)
   (h : fintype.card ι = finrank R M) : (x.some_basis h).orientation = x :=
 basis.orientation_adjust_to_orientation _ _
-
-end
-
-/-- A zero-dimensional (i.e., `subsingleton`) vector space over a linearly ordered field has
-precisely two orientations with respect to an empty index type. -/
-lemma eq_or_eq_neg_of_subsingleton [subsingleton M] [is_empty ι] (o : orientation R M ι) :
-  o = positive_orientation ∨ o = - positive_orientation :=
-o.eq_or_eq_neg positive_orientation (by simp [finite_dimensional.finrank_zero_of_subsingleton])
 
 end orientation
 

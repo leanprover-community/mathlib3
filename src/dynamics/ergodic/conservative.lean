@@ -133,7 +133,7 @@ begin
 end
 
 lemma inter_frequently_image_mem_ae_eq (hf : conservative f μ) (hs : measurable_set s) :
-  (s ∩ {x | ∃ᶠ n in at_top, f^[n] x ∈ s} : set α) =ᵐ[μ] s :=
+  (∈ (s ∩ {x | ∃ᶠ n in at_top, f^[n] x ∈ s} : set α)) =ᵐ[μ] (∈ s) :=
 inter_eventually_eq_left.2 $ hf.ae_mem_imp_frequently_image_mem hs
 
 lemma measure_inter_frequently_image_mem_eq (hf : conservative f μ) (hs : measurable_set s) :

@@ -435,8 +435,8 @@ lemma ae_le_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i �
   (λ i hi, tendsto_eval_ae_ae.eventually (h i hi))).mono $
     λ x hst hx i hi, hst i hi $ hx i hi
 
-lemma ae_eq_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i =ᵐ[μ i] t i) :
-  (set.pi I s) =ᵐ[measure.pi μ] (set.pi I t) :=
+lemma ae_eq_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, (∈ s i) =ᵐ[μ i] (∈ t i)) :
+  (∈ set.pi I s) =ᵐ[measure.pi μ] (∈ set.pi I t) :=
 (ae_le_set_pi (λ i hi, (h i hi).le)).antisymm (ae_le_set_pi (λ i hi, (h i hi).symm.le))
 
 section intervals
@@ -444,47 +444,47 @@ section intervals
 variables {μ} [Π i, partial_order (α i)] [∀ i, has_no_atoms (μ i)]
 
 lemma pi_Iio_ae_eq_pi_Iic {s : set ι} {f : Π i, α i} :
-  pi s (λ i, Iio (f i)) =ᵐ[measure.pi μ] pi s (λ i, Iic (f i)) :=
+  (∈ pi s (λ i, Iio (f i))) =ᵐ[measure.pi μ] (∈ pi s (λ i, Iic (f i))) :=
 ae_eq_set_pi $ λ i hi, Iio_ae_eq_Iic
 
 lemma pi_Ioi_ae_eq_pi_Ici {s : set ι} {f : Π i, α i} :
-  pi s (λ i, Ioi (f i)) =ᵐ[measure.pi μ] pi s (λ i, Ici (f i)) :=
+  (∈ pi s (λ i, Ioi (f i))) =ᵐ[measure.pi μ] (∈ pi s (λ i, Ici (f i))) :=
 ae_eq_set_pi $ λ i hi, Ioi_ae_eq_Ici
 
 lemma univ_pi_Iio_ae_eq_Iic {f : Π i, α i} :
-  pi univ (λ i, Iio (f i)) =ᵐ[measure.pi μ] Iic f :=
+  (∈ pi univ (λ i, Iio (f i))) =ᵐ[measure.pi μ] (∈ Iic f) :=
 by { rw ← pi_univ_Iic, exact pi_Iio_ae_eq_pi_Iic }
 
 lemma univ_pi_Ioi_ae_eq_Ici {f : Π i, α i} :
-  pi univ (λ i, Ioi (f i)) =ᵐ[measure.pi μ] Ici f :=
+  (∈ pi univ (λ i, Ioi (f i))) =ᵐ[measure.pi μ] (∈ Ici f) :=
 by { rw ← pi_univ_Ici, exact pi_Ioi_ae_eq_pi_Ici }
 
 lemma pi_Ioo_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
-  pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
+  (∈ pi s (λ i, Ioo (f i) (g i))) =ᵐ[measure.pi μ] (∈ pi s (λ i, Icc (f i) (g i))) :=
 ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Icc
 
 lemma pi_Ioo_ae_eq_pi_Ioc {s : set ι} {f g : Π i, α i} :
-  pi s (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Ioc (f i) (g i)) :=
+  (∈ pi s (λ i, Ioo (f i) (g i))) =ᵐ[measure.pi μ] (∈ pi s (λ i, Ioc (f i) (g i))) :=
 ae_eq_set_pi $ λ i hi, Ioo_ae_eq_Ioc
 
 lemma univ_pi_Ioo_ae_eq_Icc {f g : Π i, α i} :
-  pi univ (λ i, Ioo (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
+  (∈ pi univ (λ i, Ioo (f i) (g i))) =ᵐ[measure.pi μ] (∈ Icc f g) :=
 by { rw ← pi_univ_Icc, exact pi_Ioo_ae_eq_pi_Icc }
 
 lemma pi_Ioc_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
-  pi s (λ i, Ioc (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
+  (∈ pi s (λ i, Ioc (f i) (g i))) =ᵐ[measure.pi μ] (∈ pi s (λ i, Icc (f i) (g i))) :=
 ae_eq_set_pi $ λ i hi, Ioc_ae_eq_Icc
 
 lemma univ_pi_Ioc_ae_eq_Icc {f g : Π i, α i} :
-  pi univ (λ i, Ioc (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
+  (∈ pi univ (λ i, Ioc (f i) (g i))) =ᵐ[measure.pi μ] (∈ Icc f g) :=
 by { rw ← pi_univ_Icc, exact pi_Ioc_ae_eq_pi_Icc }
 
 lemma pi_Ico_ae_eq_pi_Icc {s : set ι} {f g : Π i, α i} :
-  pi s (λ i, Ico (f i) (g i)) =ᵐ[measure.pi μ] pi s (λ i, Icc (f i) (g i)) :=
+  (∈ pi s (λ i, Ico (f i) (g i))) =ᵐ[measure.pi μ] (∈ pi s (λ i, Icc (f i) (g i))) :=
 ae_eq_set_pi $ λ i hi, Ico_ae_eq_Icc
 
 lemma univ_pi_Ico_ae_eq_Icc {f g : Π i, α i} :
-  pi univ (λ i, Ico (f i) (g i)) =ᵐ[measure.pi μ] Icc f g :=
+  (∈ pi univ (λ i, Ico (f i) (g i))) =ᵐ[measure.pi μ] (∈ Icc f g) :=
 by { rw ← pi_univ_Icc, exact pi_Ico_ae_eq_pi_Icc }
 
 end intervals

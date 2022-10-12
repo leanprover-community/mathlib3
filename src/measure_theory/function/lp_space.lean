@@ -1882,7 +1882,7 @@ begin
   by_cases hs_null : μ s = 0,
   { rw measure.restrict_zero_set hs_null,
     simp only [ess_sup_measure_zero, ennreal.ess_sup_eq_zero_iff, ennreal.bot_eq_zero],
-    have hs_empty : s =ᵐ[μ] (∅ : set α), by { rw ae_eq_set, simpa using hs_null, },
+    have hs_empty : (∈ s) =ᵐ[μ] (∈ (∅ : set α)), by { rw ae_eq_set, simpa using hs_null, },
     refine (indicator_ae_eq_of_ae_eq_set hs_empty).trans _,
     rw set.indicator_empty,
     refl, },

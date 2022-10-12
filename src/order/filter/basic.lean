@@ -1239,13 +1239,14 @@ lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : 
 hf.congr $ h.mono $ λ x hx, hx ▸ iff.rfl
 
 lemma eventually_eq_set {s t : set α} {l : filter α} :
-   s =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
+   (∈ s) =ᶠ[l] (∈ t) ↔ ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
 eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
 
 alias eventually_eq_set ↔ eventually_eq.mem_iff eventually.set_eq
 
-@[simp] lemma eventually_eq_univ {s : set α} {l : filter α} : s =ᶠ[l] univ ↔ s ∈ l :=
-by simp [eventually_eq_set]
+@[simp] lemma eventually_eq_univ {s : set α} {l : filter α} :
+  (∈ s) =ᶠ[l] (∈ (univ : set α)) ↔ s ∈ l :=
+eventually_eq_set.trans $ by simp
 
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
   ∃ s ∈ l, eq_on f g s :=
@@ -1328,35 +1329,38 @@ lemma eventually_eq.inf [has_inf β] {l : filter α} {f f' g g' : α → β}
 hf.comp₂ (⊓) hg
 
 lemma eventually_eq.preimage {l : filter α} {f g : α → β}
-  (h : f =ᶠ[l] g) (s : set β) : f ⁻¹' s =ᶠ[l] g ⁻¹' s :=
-h.fun_comp s
+  (h : f =ᶠ[l] g) (s : set β) : (∈ f ⁻¹' s) =ᶠ[l] (∈ g ⁻¹' s) :=
+h.fun_comp (∈ s)
 
-lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
-  (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=
+lemma eventually_eq.inter {s t s' t' : set α} {l : filter α}
+  (h : (∈ s) =ᶠ[l] (∈ t)) (h' : (∈ s') =ᶠ[l] (∈ t')) :
+  (∈ s ∩ s') =ᶠ[l] (∈ t ∩ t') :=
 h.comp₂ (∧) h'
 
-lemma eventually_eq.union {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
-  (s ∪ s' : set α) =ᶠ[l] (t ∪ t' : set α) :=
+lemma eventually_eq.union {s t s' t' : set α} {l : filter α}
+  (h : (∈ s) =ᶠ[l] (∈ t)) (h' : (∈ s') =ᶠ[l] (∈ t')) :
+  (∈ s ∪ s') =ᶠ[l] (∈ t ∪ t') :=
 h.comp₂ (∨) h'
 
-lemma eventually_eq.compl {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
-  (sᶜ : set α) =ᶠ[l] (tᶜ : set α) :=
+lemma eventually_eq.compl {s t : set α} {l : filter α} (h : (∈ s) =ᶠ[l] (∈ t)) :
+  (∈ sᶜ) =ᶠ[l] (∈ tᶜ) :=
 h.fun_comp not
 
-lemma eventually_eq.diff {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
-  (s \ s' : set α) =ᶠ[l] (t \ t' : set α) :=
+lemma eventually_eq.diff {s t s' t' : set α} {l : filter α}
+  (h : (∈ s) =ᶠ[l] (∈ t)) (h' : (∈ s') =ᶠ[l] (∈ t')) :
+  (∈ s \ s') =ᶠ[l] (∈ t \ t') :=
 h.inter h'.compl
 
 lemma eventually_eq_empty {s : set α} {l : filter α} :
-  s =ᶠ[l] (∅ : set α) ↔ ∀ᶠ x in l, x ∉ s :=
+  (∈ s) =ᶠ[l] (∈ (∅ : set α)) ↔ ∀ᶠ x in l, x ∉ s :=
 eventually_eq_set.trans $ by simp
 
 lemma inter_eventually_eq_left {s t : set α} {l : filter α} :
-  (s ∩ t : set α) =ᶠ[l] s ↔ ∀ᶠ x in l, x ∈ s → x ∈ t :=
-by simp only [eventually_eq_set, mem_inter_iff, and_iff_left_iff_imp]
+  (∈ s ∩ t) =ᶠ[l] (∈ s) ↔ ∀ᶠ x in l, x ∈ s → x ∈ t :=
+eventually_eq_set.trans $ by simp
 
 lemma inter_eventually_eq_right {s t : set α} {l : filter α} :
-  (s ∩ t : set α) =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ t → x ∈ s :=
+  (∈ s ∩ t) =ᶠ[l] (∈ t) ↔ ∀ᶠ x in l, x ∈ t → x ∈ s :=
 by rw [inter_comm, inter_eventually_eq_left]
 
 @[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :

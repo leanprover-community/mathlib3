@@ -373,7 +373,7 @@ end
 variables {α' : Type*} [topological_space α'] [measurable_space α']
 
 lemma interior_ae_eq_of_null_frontier {μ : measure α'} {s : set α'}
-  (h : μ (frontier s) = 0) : interior s =ᵐ[μ] s :=
+  (h : μ (frontier s) = 0) : (∈ interior s) =ᵐ[μ] (∈ s) :=
 interior_subset.eventually_le.antisymm $
   subset_closure.eventually_le.trans (ae_le_set.2 h)
 
@@ -386,7 +386,7 @@ lemma null_measurable_set_of_null_frontier {s : set α} {μ : measure α}
 ⟨interior s, is_open_interior.measurable_set, (interior_ae_eq_of_null_frontier h).symm⟩
 
 lemma closure_ae_eq_of_null_frontier {μ : measure α'} {s : set α'}
-  (h : μ (frontier s) = 0) : closure s =ᵐ[μ] s :=
+  (h : μ (frontier s) = 0) : (∈ closure s) =ᵐ[μ] (∈ s) :=
 ((ae_le_set.2 h).trans interior_subset.eventually_le).antisymm $ subset_closure.eventually_le
 
 lemma measure_closure_of_null_frontier {μ : measure α'} {s : set α'}

@@ -754,7 +754,7 @@ begin
     { simp only [hxs, hfs_nonneg x hxs, if_true, pi.zero_apply, simple_func.coe_zero], },
     { simp only [hxs, simple_func.const_zero, if_false], }, },
   { rw simple_func.coe_piecewise,
-    have : s =ᵐ[μ] univ,
+    have : (∈ s) =ᵐ[μ] (∈ univ),
     { rw ae_eq_set,
       simp only [true_and, measure_empty, eq_self_iff_true, diff_univ, ← compl_eq_univ_diff],
       exact hs_zero, },

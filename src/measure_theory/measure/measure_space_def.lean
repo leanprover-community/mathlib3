@@ -348,8 +348,8 @@ begin
   exact not_lt.2 (le_of_lt (not_le.1 hx)),
 end
 
-@[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
-eventually_eq_empty.trans $ by simp only [ae_iff, not_not, set_of_mem_eq]
+@[simp] lemma ae_eq_empty : (∈ s) =ᵐ[μ] (∈ (∅ : set α)) ↔ μ s = 0 :=
+eventually_eq_empty.trans $ by simp [ae_iff, not_not, set_of_mem_eq]
 
 @[simp] lemma ae_eq_univ : s =ᵐ[μ] (univ : set α) ↔ μ sᶜ = 0 := eventually_eq_univ
 
@@ -373,7 +373,7 @@ lemma diff_null_ae_eq_self (ht : μ t = 0) : (s \ t : set α) =ᵐ[μ] s :=
 diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
 
 lemma ae_eq_set {s t : set α} :
-  s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
+  (∈ s) =ᵐ[μ] (∈ t) ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
 
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :

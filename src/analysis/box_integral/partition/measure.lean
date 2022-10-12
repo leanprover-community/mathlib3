@@ -56,10 +56,10 @@ end countable
 
 variables [fintype ι]
 
-lemma coe_ae_eq_Icc : (I : set (ι → ℝ)) =ᵐ[volume] I.Icc :=
+lemma coe_ae_eq_Icc : (∈ (I : set (ι → ℝ))) =ᵐ[volume] (∈ I.Icc) :=
 by { rw coe_eq_pi, exact measure.univ_pi_Ioc_ae_eq_Icc }
 
-lemma Ioo_ae_eq_Icc : I.Ioo =ᵐ[volume] I.Icc :=
+lemma Ioo_ae_eq_Icc : (∈ I.Ioo) =ᵐ[volume] (∈ I.Icc) :=
 measure.univ_pi_Ioo_ae_eq_Icc
 
 end box

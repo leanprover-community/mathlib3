@@ -72,6 +72,10 @@ finset.order_iso_of_fin _ (by simp)
 def sort (f : fin n → α) : equiv.perm (fin n) :=
 (graph_equiv₂ f).to_equiv.trans (graph_equiv₁ f).symm
 
+lemma graph_equiv₂_apply (f : fin n → α) (i : fin n) :
+  graph_equiv₂ f i = graph_equiv₁ f (sort f i) :=
+((graph_equiv₁ f).apply_symm_apply _).symm
+
 lemma self_comp_sort (f : fin n → α) : f ∘ sort f = graph.proj ∘ graph_equiv₂ f :=
 show graph.proj ∘ ((graph_equiv₁ f) ∘ (graph_equiv₁ f).symm) ∘ (graph_equiv₂ f).to_equiv = _,
   by simp
@@ -104,10 +108,6 @@ of_fn_injective $ eq_of_perm_of_sorted
   ((σ.of_fn_comp_perm f).trans (τ.of_fn_comp_perm f).symm) hfσ.of_fn_sorted hfτ.of_fn_sorted
 
 variables [linear_order α] {f : fin n → α} {σ : equiv.perm (fin n)}
-
-lemma graph_equiv₂_apply (i : fin n) : graph_equiv₂ f i =
-  ⟨to_lex (f (sort f i), sort f i), finset.mem_image_of_mem _ $ finset.mem_univ _⟩ :=
-((graph_equiv₁ f).apply_symm_apply _).symm
 
 /-- A permutation `σ` equals `sort f` if and only if the map `i ↦ (f (σ i), σ i)` is
 strictly monotone (w.r.t. the lexicographic ordering on the target). -/

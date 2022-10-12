@@ -5,8 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import measure_theory.measure.lebesgue
 import analysis.calculus.deriv
-import measure_theory.covering.density_theorem
-import measure_theory.measure.haar_lebesgue
+import measure_theory.covering.one_dim
 
 /-!
 # Differentiability of monotone functions
@@ -30,58 +29,11 @@ limit of `(f y - f x) / (y - x)` by a lower and upper approximation argument fro
 behavior of `μ [x, y]`.
 -/
 
-open set filter function metric measure_theory measure_theory.measure topological_space
-is_doubling_measure
-open_locale nnreal ennreal topological_space
-
-namespace real
-
-lemma Icc_mem_vitali_family_at_right {x y : ℝ} (hxy : x < y) :
-  Icc x y ∈ (vitali_family (volume : measure ℝ) 1).sets_at x :=
-begin
-  rw Icc_eq_closed_ball,
-  refine closed_ball_mem_vitali_family_of_dist_le_mul _ _ (by linarith),
-  rw [dist_comm, real.dist_eq, abs_of_nonneg];
-  linarith,
-end
-
-lemma tendsto_Icc_vitali_family_right (x : ℝ) :
-  tendsto (λ y, Icc x y) (𝓝[>] x) ((vitali_family (volume : measure ℝ) 1).filter_at x) :=
-begin
-  refine (vitali_family.tendsto_filter_at_iff _).2 ⟨_, _⟩,
-  { filter_upwards [self_mem_nhds_within] with y hy using Icc_mem_vitali_family_at_right hy },
-  { assume ε εpos,
-    have : x ∈ Ico x (x + ε) := ⟨le_refl _, by linarith⟩,
-    filter_upwards [Icc_mem_nhds_within_Ioi this] with y hy,
-    rw closed_ball_eq_Icc,
-    exact Icc_subset_Icc (by linarith) hy.2 }
-end
-
-lemma Icc_mem_vitali_family_at_left {x y : ℝ} (hxy : x < y) :
-  Icc x y ∈ (vitali_family (volume : measure ℝ) 1).sets_at y :=
-begin
-  rw Icc_eq_closed_ball,
-  refine closed_ball_mem_vitali_family_of_dist_le_mul _ _ (by linarith),
-  rw [real.dist_eq, abs_of_nonneg];
-  linarith,
-end
-
-lemma tendsto_Icc_vitali_family_left (x : ℝ) :
-  tendsto (λ y, Icc y x) (𝓝[<] x) ((vitali_family (volume : measure ℝ) 1).filter_at x) :=
-begin
-  refine (vitali_family.tendsto_filter_at_iff _).2 ⟨_, _⟩,
-  { filter_upwards [self_mem_nhds_within] with y hy using Icc_mem_vitali_family_at_left hy },
-  { assume ε εpos,
-    have : x ∈ Ioc (x - ε) x := ⟨by linarith, le_refl _⟩,
-    filter_upwards [Icc_mem_nhds_within_Iio this] with y hy,
-    rw closed_ball_eq_Icc,
-    exact Icc_subset_Icc hy.1 (by linarith) }
-end
-
-end real
+open set filter function metric measure_theory measure_theory.measure is_doubling_measure
+open_locale topological_space
 
 /-- If `(f y - f x) / (y - x)` converges to a limit as `y` tends to `x`, then the same goes if
-`y` is shifted a limit bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.
+`y` is shifted a little bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.
 This lemma contains a slightly more general version of this statement (where one considers
 convergence along some subfilter, typically `𝓝[<] x` or `𝓝[>] x`) tailored to the application
 to almost everywhere differentiability of monotone functions. -/

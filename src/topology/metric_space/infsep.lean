@@ -16,10 +16,6 @@ section extras
 
 open_locale ennreal
 
--- PR 2
-@[simp] lemma set.to_finset_nonempty {s : set α} [fintype s] : s.to_finset.nonempty ↔ s.nonempty :=
-by simp_rw [finset.nonempty, set.mem_to_finset, set.nonempty]
-
 -- PR 3
 lemma finset.off_diag_nonempty_iff [decidable_eq α] {s : finset α} :
   (s : set α).nontrivial ↔ s.off_diag.nonempty :=

@@ -1471,7 +1471,7 @@ begin
   filter_upwards [ae_bdd_liminf_at_top_rpow_of_snorm_bdd hfmeas hbdd] with x hx,
   have hppos : 0 < p.to_real := ennreal.to_real_pos hp hp',
   have : liminf (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) at_top =
-    liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) ^ p.to_real at_top,
+    (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top)^ p.to_real,
   { change liminf (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) at_top =
       ennreal.order_iso_rpow p.to_real hppos (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top),
     refine (order_iso.liminf_apply (ennreal.order_iso_rpow p.to_real _) _ _ _ _).symm;

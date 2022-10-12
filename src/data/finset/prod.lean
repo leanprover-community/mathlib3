@@ -46,20 +46,16 @@ lemma mk_mem_product (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := mem_
   (↑(s ×ˢ t) : set (α × β)) = s ×ˢ t :=
 set.ext $ λ x, finset.mem_product
 
-lemma subset_product_image_fst [decidable_eq α] :
-  (s ×ˢ t).image prod.fst ⊆ s :=
+lemma subset_product_image_fst [decidable_eq α] : (s ×ˢ t).image prod.fst ⊆ s :=
 λ i, by simp [mem_image] {contextual := tt}
 
-lemma subset_product_image_snd [decidable_eq β] :
-  (s ×ˢ t).image prod.snd ⊆ t :=
+lemma subset_product_image_snd [decidable_eq β] : (s ×ˢ t).image prod.snd ⊆ t :=
 λ i, by simp [mem_image] {contextual := tt}
 
-lemma product_image_fst [decidable_eq α] (ht : t.nonempty) :
-  (s ×ˢ t).image prod.fst = s :=
+lemma product_image_fst [decidable_eq α] (ht : t.nonempty) : (s ×ˢ t).image prod.fst = s :=
 by { ext i, simp [mem_image, ht.bex] }
 
-lemma product_image_snd [decidable_eq β] (ht : s.nonempty) :
-  (s ×ˢ t).image prod.snd = t :=
+lemma product_image_snd [decidable_eq β] (ht : s.nonempty) : (s ×ˢ t).image prod.snd = t :=
 by { ext i, simp [mem_image, ht.bex] }
 
 lemma subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :

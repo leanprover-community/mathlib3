@@ -368,6 +368,9 @@
   author : Chris Hughes
 90:
   title  : Stirling’s Formula
+  decls  :
+    - stirling.tendsto_stirling_seq_sqrt_pi
+  author : mathlib (Moritz Firsching, Fabian Kruse, Nikolas Kuhn, Heather Macbeth)
 91:
   title  : The Triangle Inequality
   decl   : norm_add_le
@@ -376,7 +379,6 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
-  decl   : fintype.card_embedding_eq
   links  :
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/93_birthday_problem.lean
   author : Eric Rodriguez

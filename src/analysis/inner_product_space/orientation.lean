@@ -21,42 +21,64 @@ orientation.
 noncomputable theory
 
 variables {E : Type*} [inner_product_space ℝ E]
-variables {ι : Type*} [fintype ι] [decidable_eq ι]
 
 open finite_dimensional
 
-/-- `basis.adjust_to_orientation`, applied to an orthonormal basis, produces an orthonormal
-basis. -/
-lemma orthonormal.orthonormal_adjust_to_orientation [nonempty ι] {e : basis ι ℝ E}
-  (h : orthonormal ℝ e) (x : orientation ℝ E ι) : orthonormal ℝ (e.adjust_to_orientation x) :=
-h.orthonormal_of_forall_eq_or_eq_neg (e.adjust_to_orientation_apply_eq_or_eq_neg x)
+section adjust_to_orientation
+variables {ι : Type*} [fintype ι] [decidable_eq ι] [nonempty ι] (e : orthonormal_basis ι ℝ E)
+  (x : orientation ℝ E ι)
+
+/-- `orthonormal_basis.adjust_to_orientation`, applied to an orthonormal basis, produces an
+orthonormal basis. -/
+lemma orthonormal_basis.orthonormal_adjust_to_orientation :
+  orthonormal ℝ (e.to_basis.adjust_to_orientation x) :=
+begin
+  apply e.orthonormal.orthonormal_of_forall_eq_or_eq_neg,
+  simpa using e.to_basis.adjust_to_orientation_apply_eq_or_eq_neg x
+end
+
+/-- Given an orthonormal basis and an orientation, return an orthonormal basis giving that
+orientation: either the original basis, or one constructed by negating a single (arbitrary) basis
+vector. -/
+def orthonormal_basis.adjust_to_orientation : orthonormal_basis ι ℝ E :=
+(e.to_basis.adjust_to_orientation x).to_orthonormal_basis (e.orthonormal_adjust_to_orientation x)
+
+lemma orthonormal_basis.to_basis_adjust_to_orientation :
+  (e.adjust_to_orientation x).to_basis = e.to_basis.adjust_to_orientation x :=
+(e.to_basis.adjust_to_orientation x).to_basis_to_orthonormal_basis _
+
+/-- `adjust_to_orientation` gives an orthonormal basis with the required orientation. -/
+@[simp] lemma orthonormal_basis.orientation_adjust_to_orientation :
+  (e.adjust_to_orientation x).to_basis.orientation = x :=
+begin
+  rw e.to_basis_adjust_to_orientation,
+  exact e.to_basis.orientation_adjust_to_orientation x,
+end
+
+/-- Every basis vector from `adjust_to_orientation` is either that from the original basis or its
+negation. -/
+lemma orthonormal_basis.adjust_to_orientation_apply_eq_or_eq_neg (i : ι) :
+  e.adjust_to_orientation x i = e i ∨ e.adjust_to_orientation x i = -(e i) :=
+by simpa [← e.to_basis_adjust_to_orientation]
+  using e.to_basis.adjust_to_orientation_apply_eq_or_eq_neg x i
+
+end adjust_to_orientation
 
 /-- An orthonormal basis, indexed by `fin n`, with the given orientation. -/
 protected def orientation.fin_orthonormal_basis {n : ℕ} (hn : 0 < n) (h : finrank ℝ E = n)
-  (x : orientation ℝ E (fin n)) : basis (fin n) ℝ E :=
+  (x : orientation ℝ E (fin n)) : orthonormal_basis (fin n) ℝ E :=
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_std_orthonormal_basis h).to_basis.adjust_to_orientation x
-end
-
-/-- `orientation.fin_orthonormal_basis` is orthonormal. -/
-protected lemma orientation.fin_orthonormal_basis_orthonormal {n : ℕ} (hn : 0 < n)
-  (h : finrank ℝ E = n) (x : orientation ℝ E (fin n)) :
-  orthonormal ℝ (x.fin_orthonormal_basis hn h) :=
-begin
-  haveI := fin.pos_iff_nonempty.1 hn,
-  haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (show orthonormal ℝ (fin_std_orthonormal_basis h).to_basis, -- Note sure how to format this
-    by simp only [orthonormal_basis.coe_to_basis, orthonormal_basis.orthonormal]
-    ).orthonormal_adjust_to_orientation _
+  exact ((std_orthonormal_basis _ _).reindex $ fin_congr h).adjust_to_orientation x
 end
 
 /-- `orientation.fin_orthonormal_basis` gives a basis with the required orientation. -/
 @[simp] lemma orientation.fin_orthonormal_basis_orientation {n : ℕ} (hn : 0 < n)
   (h : finrank ℝ E = n) (x : orientation ℝ E (fin n)) :
-  (x.fin_orthonormal_basis hn h).orientation = x :=
+  (x.fin_orthonormal_basis hn h).to_basis.orientation = x :=
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
-  exact basis.orientation_adjust_to_orientation _ _
+  haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
+  exact ((std_orthonormal_basis _ _).reindex $ fin_congr h).orientation_adjust_to_orientation x
 end

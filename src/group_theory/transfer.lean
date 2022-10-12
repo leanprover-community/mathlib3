@@ -161,6 +161,23 @@ noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* cen
   ↑(transfer_center_pow' h g) = g ^ (center G).index :=
 rfl
 
+open_locale pointwise
+
+lemma is_complement'_of_disjoint_and_mul_eq_univ {G : Type*} [group G] (H K : subgroup G)
+  (h1 : disjoint H K) (h2 : ↑H * ↑K = (set.univ : set G)) : is_complement' H K :=
+begin
+
+  refine ⟨λ x y h, _,
+    λ g, let ⟨h, k, hh, hk, hg⟩ := set.eq_univ_iff_forall.1 h2 g in ⟨⟨⟨h, hh⟩, k, hk⟩, hg⟩⟩,
+  rw [←mul_inv_eq_iff_eq_mul, mul_assoc, ←eq_inv_mul_iff_mul_eq] at h,
+  simp_rw [subtype.val_eq_coe, ←coe_inv, ←coe_mul] at h,
+  have h' : x.1 = y.1,
+  { rw [←inv_mul_eq_one, subtype.ext_iff, coe_one, ←mem_bot, ←h1.eq_bot, mem_inf],
+    exact ⟨(x.1⁻¹ * y.1).2, h ▸ (x.2 * y.2⁻¹).2⟩ },
+  rw [h', inv_mul_self, coe_one, coe_mul, coe_inv, mul_inv_eq_one] at h,
+  exact prod.ext h' (subtype.ext h),
+end
+
 section burnside_transfer
 
 open_locale pointwise
@@ -215,6 +232,13 @@ end
 lemma ker_transfer_sylow_disjoint'' (Q : subgroup G) (hQ : is_p_group p Q) :
   disjoint (transfer_sylow P hP).ker Q :=
 let ⟨R, hR⟩ := hQ.exists_le_sylow in (ker_transfer_sylow_disjoint' P hP R).mono_right hR
+
+
+
+lemma key_transfer_sylow_is_complement : is_complement (transfer_sylow P hP).ker P :=
+begin
+
+end
 
 end burnside_transfer
 

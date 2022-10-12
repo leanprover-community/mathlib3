@@ -46,7 +46,7 @@ variables {C : Type u} [groupoid C]
 
 /-- The inverse in the group is equal to the inverse given by `category_theory.inv`. -/
 lemma vertex_group.inv_eq_inv (c : C) (γ : c ⟶ c) :
-  γ ⁻¹ = category_theory.inv γ := by { apply groupoid.inv_eq_inv, }
+  γ ⁻¹ = category_theory.inv γ := groupoid.inv_eq_inv γ
 
 /--
 An arrow in the groupoid defines, by conjugation, an isomorphism of groups between

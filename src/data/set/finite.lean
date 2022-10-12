@@ -312,6 +312,9 @@ instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] :
   fintype (s ×ˢ t : set (α × β)) :=
 fintype.of_finset (s.to_finset ×ˢ t.to_finset) $ by simp
 
+instance fintype_off_diag [decidable_eq α] (s : set α) [fintype s] : fintype (s.off_diag) :=
+fintype.of_finset s.to_finset.off_diag $ by simp
+
 /-- `image2 f s t` is `fintype` if `s` and `t` are. -/
 instance fintype_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β)
   [hs : fintype s] [ht : fintype t] : fintype (image2 f s t : set γ) :=
@@ -580,6 +583,9 @@ lemma finite.prod {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
   (s ×ˢ t : set (α × β)).finite :=
 by { casesI hs, casesI ht, apply to_finite }
 
+lemma finite.off_diag {s : set α} (hs : s.finite) : s.off_diag.finite :=
+by { classical, casesI hs, apply set.to_finite }
+
 lemma finite.image2 (f : α → β → γ) {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
   (image2 f s t).finite :=
 by { casesI hs, casesI ht, apply to_finite }
@@ -596,6 +602,11 @@ theorem finite_mem_finset (s : finset α) : {a | a ∈ s}.finite := to_finite _
 
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : s.finite :=
 h.induction_on finite_empty finite_singleton
+
+lemma finite_preimage_inl_and_inr {s : set (α ⊕ β)} :
+  (sum.inl ⁻¹' s).finite ∧ (sum.inr ⁻¹' s).finite ↔ s.finite :=
+⟨λ h, image_preimage_inl_union_image_preimage_inr s ▸ (h.1.image _).union (h.2.image _),
+  λ h, ⟨h.preimage (sum.inl_injective.inj_on _), h.preimage (sum.inr_injective.inj_on _)⟩⟩
 
 theorem exists_finite_iff_finset {p : set α → Prop} :
   (∃ s : set α, s.finite ∧ p s) ↔ ∃ s : finset α, p ↑s :=
@@ -662,6 +673,12 @@ finset.ext $ by simp
 lemma finite.to_finset_insert' [decidable_eq α] {a : α} {s : set α} (hs : s.finite) :
   (hs.insert a).to_finset = insert a hs.to_finset :=
 finite.to_finset_insert _
+
+lemma finite.to_finset_prod {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
+(hs.to_finset ×ˢ ht.to_finset) = (hs.prod ht).to_finset := finset.ext $ by simp
+
+lemma finite.to_finset_off_diag {s : set α} [decidable_eq α] (hs : s.finite) :
+hs.off_diag.to_finset = hs.to_finset.off_diag := finset.ext $ by simp
 
 lemma finite.fin_embedding {s : set α} (h : s.finite) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
 ⟨_, (fintype.equiv_fin (h.to_finset : set α)).symm.as_embedding, by simp⟩

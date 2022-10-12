@@ -517,12 +517,12 @@ theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = {a} :=
  λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
-le_induction_on h $ λ l₁ l₂, length_le_of_sublist
+le_induction_on h $ λ l₁ l₂, sublist.length_le
 
 @[mono] theorem card_mono : monotone (@card α) := λ a b, card_le_of_le
 
 theorem eq_of_le_of_card_le {s t : multiset α} (h : s ≤ t) : card t ≤ card s → s = t :=
-le_induction_on h $ λ l₁ l₂ s h₂, congr_arg coe $ eq_of_sublist_of_length_le s h₂
+le_induction_on h $ λ l₁ l₂ s h₂, congr_arg coe $ s.eq_of_length_le h₂
 
 theorem card_lt_of_lt {s t : multiset α} (h : s < t) : card s < card t :=
 lt_of_not_ge $ λ h₂, ne_of_lt h $ eq_of_le_of_card_le (le_of_lt h) h₂
@@ -1077,11 +1077,19 @@ theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
 quot.induction_on s $ λ l H, congr_arg coe $ map_pmap g f l H
 
 theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
-  (s) : ∀ H, pmap f s H = s.attach.map (λ x, f x.1 (H _ x.2)) :=
+  (s) : ∀ H, pmap f s H = s.attach.map (λ x, f x (H _ x.prop)) :=
 quot.induction_on s $ λ l H, congr_arg coe $ pmap_eq_map_attach f l H
 
-theorem attach_map_val (s : multiset α) : s.attach.map subtype.val = s :=
-quot.induction_on s $ λ l, congr_arg coe $ attach_map_val l
+@[simp] lemma attach_map_coe' (s : multiset α) (f : α → β) : s.attach.map (λ i, f i) = s.map f :=
+quot.induction_on s $ λ l, congr_arg coe $ attach_map_coe' l f
+
+lemma attach_map_val' (s : multiset α) (f : α → β) : s.attach.map (λ i, f i.val) = s.map f :=
+attach_map_coe' _ _
+
+@[simp] lemma attach_map_coe (s : multiset α) : s.attach.map (coe : _ → α) = s :=
+(attach_map_coe' _ _).trans s.map_id
+
+lemma attach_map_val (s : multiset α) : s.attach.map subtype.val = s := attach_map_coe _
 
 @[simp] theorem mem_attach (s : multiset α) : ∀ x, x ∈ s.attach :=
 quot.induction_on s $ λ l, mem_attach _
@@ -1102,9 +1110,6 @@ lemma attach_cons (a : α) (m : multiset α) :
   (a ::ₘ m).attach = ⟨a, mem_cons_self a m⟩ ::ₘ (m.attach.map $ λp, ⟨p.1, mem_cons_of_mem p.2⟩) :=
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
   by rw [list.map_pmap]; exact list.pmap_congr _ (λ _ _ _ _, subtype.eq rfl)
-
-@[simp]
-lemma attach_map_coe (m : multiset α) : multiset.map (coe : _ → α) m.attach = m := m.attach_map_val
 
 section decidable_pi_exists
 variables {m : multiset α}
@@ -1413,7 +1418,7 @@ mem_filter.2 ⟨m, h⟩
 
 theorem filter_eq_self {s} : filter p s = s ↔ ∀ a ∈ s, p a :=
 quot.induction_on s $ λ l, iff.trans ⟨λ h,
-  eq_of_sublist_of_length_eq (filter_sublist _) (@congr_arg _ _ _ _ card h),
+  (filter_sublist _).eq_of_length (@congr_arg _ _ _ _ card h),
   congr_arg coe⟩ filter_eq_self
 
 theorem filter_eq_nil {s} : filter p s = 0 ↔ ∀ a ∈ s, ¬p a :=

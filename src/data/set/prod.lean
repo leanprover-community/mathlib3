@@ -192,7 +192,6 @@ lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   s ×ˢ t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
 
-
 lemma image_prod_mk_subset_prod {f : α → β} {g : α → γ} {s : set α} :
   (λ x, (f x, g x)) '' s ⊆ (f '' s) ×ˢ (g '' s) :=
 by { rintros _ ⟨x, hx, rfl⟩, exact mk_mem_prod (mem_image_of_mem f hx) (mem_image_of_mem g hx) }
@@ -335,6 +334,17 @@ subset_compl_comm.trans $ by simp_rw [← range_diag, range_subset_iff,
 @[simp] lemma diag_preimage_prod (s t : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ t) = s ∩ t := rfl
 
 lemma diag_preimage_prod_self (s : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ s) = s := inter_self s
+
+lemma diag_image (s : set α) : (λ x, (x, x)) '' s = diagonal α ∩ (s ×ˢ s) :=
+begin
+  ext x, split,
+  { rintro ⟨x, hx, rfl⟩, exact ⟨rfl, hx, hx⟩ },
+  { obtain ⟨x, y⟩ := x,
+    rintro ⟨h1x, h2x⟩,
+    dsimp [mem_diagonal_iff] at h1x,
+    obtain rfl := h1x,
+    exact mem_image_of_mem _ h2x.1 }
+end
 
 end diagonal
 

@@ -5,11 +5,10 @@ Authors: Johan Commelin
 -/
 import algebra.punit_instances
 import linear_algebra.finsupp
-import ring_theory.ideal.over
-import ring_theory.ideal.prod
-import ring_theory.localization.as_subring
-import ring_theory.localization.away
 import ring_theory.nilpotent
+import ring_theory.localization.away
+import ring_theory.ideal.prod
+import ring_theory.ideal.over
 import topology.sets.opens
 import topology.sober
 
@@ -24,8 +23,6 @@ which is constructed in `algebraic_geometry.structure_sheaf`.)
 
 ## Main definitions
 
-* `maximal_spectrum R`: The maximal spectrum of a commutative ring `R`,
-  i.e., the set of all maximal ideals of `R`.
 * `prime_spectrum R`: The prime spectrum of a commutative ring `R`,
   i.e., the set of all prime ideals of `R`.
 * `zero_locus s`: The zero locus of a subset `s` of `R`
@@ -54,75 +51,29 @@ universes u v
 
 variables (R : Type u) [comm_ring R]
 
-/-- The maximal spectrum of a commutative ring `R` is the type of all maximal ideals of `R`. -/
-@[nolint has_nonempty_instance] def maximal_spectrum := {I : ideal R // I.is_maximal}
-
-namespace maximal_spectrum
-
-variable {R}
-
-/-- View a point in the maximal spectrum of a commutative ring as an ideal of that ring. -/
-abbreviation as_ideal (x : maximal_spectrum R) : ideal R := x.val
-
-@[ext] lemma ext {x y : maximal_spectrum R} : x = y ↔ x.as_ideal = y.as_ideal := subtype.ext_iff_val
-
-instance is_maximal (x : maximal_spectrum R) : x.as_ideal.is_maximal := x.property
-
-instance is_prime (x : maximal_spectrum R) : x.as_ideal.is_prime := x.is_maximal.is_prime
-
-variables [is_domain R] {K : Type v} [field K] [algebra R K] [is_fraction_ring R K]
-
-/-- An integral domain is equal to the intersection of its localizations at all its maximal ideals
-viewed as subalgebras of its field of fractions. -/
-theorem localization_infi_eq_bot :
-  (⨅ v : maximal_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
-    le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
-begin
-  ext x,
-  rw [algebra.mem_bot, algebra.mem_infi],
-  split,
-  { apply imp_of_not_imp_not,
-    intros hrange hlocal,
-    let denom : ideal R := (submodule.span R {1} : submodule R K).colon (submodule.span R {x}),
-    have hdenom : (1 : R) ∉ denom :=
-    begin
-      intro hdenom,
-      rcases submodule.mem_span_singleton.mp
-        (submodule.mem_colon.mp hdenom x $ submodule.mem_span_singleton_self x) with ⟨y, hy⟩,
-      exact hrange ⟨y, by rw [← mul_one $ algebra_map R K y, ← algebra.smul_def, hy, one_smul]⟩
-    end,
-    rcases denom.exists_le_maximal (λ h, (h ▸ hdenom) submodule.mem_top) with ⟨max, hmax, hle⟩,
-    rcases hlocal ⟨max, hmax⟩ with ⟨n, d, hd, rfl⟩,
-    apply hd (hle $ submodule.mem_colon.mpr $ λ _ hy, _),
-    rcases submodule.mem_span_singleton.mp hy with ⟨y, rfl⟩,
-    exact submodule.mem_span_singleton.mpr
-      ⟨y * n, by rw [algebra.smul_def, mul_one, map_mul, smul_comm, algebra.smul_def,
-                     algebra.smul_def, mul_comm $ algebra_map R K d, inv_mul_cancel_right₀ $
-                       (map_ne_zero_iff _ $ no_zero_smul_divisors.algebra_map_injective R K).mpr $
-                       λ h, (h ▸ hd) max.zero_mem]⟩ },
-  { rintro ⟨y, rfl⟩ ⟨v, hv⟩,
-    exact ⟨y, 1, v.ne_top_iff_one.mp hv.ne_top, by rw [map_one, inv_one, mul_one]⟩ }
-end
-
-end maximal_spectrum
-
-/-- The prime spectrum of a commutative ring `R` is the type of all prime ideals of `R`.
+/-- The prime spectrum of a commutative ring `R`
+is the type of all prime ideals of `R`.
 
 It is naturally endowed with a topology (the Zariski topology),
 and a sheaf of commutative rings (see `algebraic_geometry.structure_sheaf`).
 It is a fundamental building block in algebraic geometry. -/
-@[nolint has_nonempty_instance] def prime_spectrum := {I : ideal R // I.is_prime}
-
-namespace prime_spectrum
+@[nolint has_nonempty_instance]
+def prime_spectrum := {I : ideal R // I.is_prime}
 
 variable {R}
 
-/-- View a point in the prime spectrum of a commutative ring as an ideal of that ring. -/
+namespace prime_spectrum
+
+/-- A method to view a point in the prime spectrum of a commutative ring
+as an ideal of that ring. -/
 abbreviation as_ideal (x : prime_spectrum R) : ideal R := x.val
 
-instance is_prime (x : prime_spectrum R) : x.as_ideal.is_prime := x.property
+instance is_prime (x : prime_spectrum R) :
+  x.as_ideal.is_prime := x.2
 
-/-- The prime spectrum of the zero ring is empty. -/
+/--
+The prime spectrum of the zero ring is empty.
+-/
 lemma punit (x : prime_spectrum punit) : false :=
 x.1.ne_top_iff_one.1 x.2.1 $ subsingleton.elim (0 : punit) 1 ▸ x.1.zero_mem
 
@@ -130,7 +81,7 @@ section
 variables (R) (S : Type v) [comm_ring S]
 
 /-- The prime spectrum of `R × S` is in bijection with the disjoint unions of the prime spectrum of
-`R` and the prime spectrum of `S`. -/
+    `R` and the prime spectrum of `S`. -/
 noncomputable def prime_spectrum_prod :
   prime_spectrum (R × S) ≃ prime_spectrum R ⊕ prime_spectrum S :=
 ideal.prime_ideals_equiv R S
@@ -146,7 +97,9 @@ by { cases x, refl }
 
 end
 
-@[ext] lemma ext {x y : prime_spectrum R} : x = y ↔ x.as_ideal = y.as_ideal := subtype.ext_iff_val
+@[ext] lemma ext {x y : prime_spectrum R} :
+  x = y ↔ x.as_ideal = y.as_ideal :=
+subtype.ext_iff_val
 
 /-- The zero locus of a set `s` of elements of a commutative ring `R`
 is the set of all prime ideals of the ring that contain the set `s`.
@@ -521,6 +474,7 @@ end
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
 
+
 lemma preimage_comap_zero_locus_aux (f : R →+* S) (s : set R) :
   (λ y, ⟨ideal.comap f y.as_ideal, infer_instance⟩ :
     prime_spectrum S → prime_spectrum R) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=
@@ -863,29 +817,12 @@ def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
     exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
   end
 
-variables [is_domain R] {K : Type v} [field K] [algebra R K] [is_fraction_ring R K]
-
-/-- An integral domain is equal to the intersection of its localizations at all its prime ideals
-viewed as subalgebras of its field of fractions. -/
-theorem localization_infi_eq_bot :
-  (⨅ v : prime_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
-    le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
-begin
-  ext x,
-  rw [algebra.mem_infi],
-  split,
-  { rw [← maximal_spectrum.localization_infi_eq_bot, algebra.mem_infi],
-    exact λ hx ⟨v, hv⟩, hx ⟨v, hv.is_prime⟩ },
-  { rw [algebra.mem_bot],
-    rintro ⟨y, rfl⟩ ⟨v, hv⟩,
-    exact ⟨y, 1, v.ne_top_iff_one.mp hv.ne_top, by rw [map_one, inv_one, mul_one]⟩ }
-end
-
 end prime_spectrum
+
 
 namespace local_ring
 
-variables [local_ring R]
+variables (R) [local_ring R]
 
 /--
 The closed point in the prime spectrum of a local ring.

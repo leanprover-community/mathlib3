@@ -4,8 +4,6 @@
 # Disabled until we have better coverage by other patterns. Reenable in the future.
 # *        @leanprover-community/mathlib-maintainers
 
-src/tactic/             @leanprover-community/mathlib-meta
-
 src/category_theory/    @leanprover-community/mathlib-CT
 
 src/measure_theory/     @leanprover-community/mathlib-meas
@@ -17,3 +15,5 @@ src/algebraic_geometry/ @leanprover-community/mathlib-AG
 src/combinatorics/      @leanprover-community/mathlib-CO
 
 src/probability/        @leanprover-community/mathlib-PR
+
+src/tactic/             @leanprover-community/mathlib-meta

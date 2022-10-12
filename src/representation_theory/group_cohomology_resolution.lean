@@ -79,7 +79,7 @@ open finsupp (hiding lift) fin (partial_prod) representation
 
 section basis
 variables (k G n) [group G]
-/-
+
 /-- The `k`-linear map from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` sending `(g₀, ..., gₙ)`
 to `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)`. -/
 def to_tensor_aux :
@@ -232,7 +232,7 @@ def of_mul_action_basis  :
 lemma of_mul_action_free :
   module.free (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
 module.free.of_basis (of_mul_action_basis k G n)
--/
+
 end basis
 end group_cohomology.resolution
 variables (G)

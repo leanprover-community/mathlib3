@@ -587,21 +587,43 @@ To view elements as a linear combination of the form `s • D s'`, use
 We also provide the notation `Ω[S⁄R]` for `kaehler_differential R S`.
 Note that the slash is `\textfractionsolidus`.
 -/
-@[derive [add_comm_group, module R, module S, module (S ⊗[R] S)]]
+@[derive [add_comm_group, module (S ⊗[R] S)]]
 def kaehler_differential : Type* := (kaehler_differential.ideal R S).cotangent
 
 notation `Ω[`:100 S `⁄`:0 R `]`:0 := kaehler_differential R S
 
 instance : nonempty Ω[S⁄R] := ⟨0⟩
 
+instance kaehler_differential.module' {R' : Type*} [comm_ring R'] [algebra R' S] :
+  module R' Ω[S⁄R] :=
+(module.comp_hom (kaehler_differential.ideal R S).cotangent (algebra_map R' S) : _)
+
 instance : is_scalar_tower S (S ⊗[R] S) Ω[S⁄R] :=
 ideal.cotangent.is_scalar_tower _
 
-instance kaehler_differential.is_scalar_tower' : is_scalar_tower R S Ω[S⁄R] :=
+instance kaehler_differential.is_scalar_tower_of_tower {R₁ R₂ : Type*} [comm_ring R₁] [comm_ring R₂]
+  [algebra R₁ S] [algebra R₂ S] [algebra R₁ R₂] [is_scalar_tower R₁ R₂ S] :
+  is_scalar_tower R₁ R₂ Ω[S⁄R] :=
 begin
-  haveI : is_scalar_tower R S (kaehler_differential.ideal R S),
-  { constructor, intros x y z, ext1, exact smul_assoc x y z.1 },
-  exact submodule.quotient.is_scalar_tower _ _
+  convert restrict_scalars.is_scalar_tower R₁ R₂ Ω[S⁄R] using 1,
+  ext x m,
+  show algebra_map R₁ S x • m = algebra_map R₂ S (algebra_map R₁ R₂ x) • m,
+  rw ← is_scalar_tower.algebra_map_apply,
+end
+
+instance kaehler_differential.is_scalar_tower' :
+  is_scalar_tower R (S ⊗[R] S) Ω[S⁄R] :=
+begin
+  convert restrict_scalars.is_scalar_tower R (S ⊗[R] S) Ω[S⁄R] using 1,
+  ext x m,
+  show algebra_map R S x • m = algebra_map R (S ⊗[R] S) x • m,
+  simp_rw [is_scalar_tower.algebra_map_apply R S (S ⊗[R] S), is_scalar_tower.algebra_map_smul]
+end
+
+instance : linear_map.compatible_smul
+  (kaehler_differential.ideal R S) (kaehler_differential.ideal R S).cotangent R (S ⊗[R] S) :=
+begin
+  apply linear_map.is_scalar_tower.compatible_smul,
 end
 
 /-- (Implementation) The underlying linear map of the derivation into `Ω[S⁄R]`. -/
@@ -835,6 +857,8 @@ local attribute [irreducible] kaehler_differential
 
 variables (A B : Type*) [comm_ring A] [comm_ring B] [algebra R B] [algebra A B]
 
+/-- If `A` and `B` are `R`-algebras, then `Ω[B⁄A]` is naturally an `R`-module. This is not a
+instance since Lean would get confused otherwise. -/
 def kaehler_differential.module_of_tower : module R Ω[B⁄A] :=
 module.comp_hom Ω[B⁄A] (algebra_map R B)
 
@@ -843,20 +867,28 @@ local attribute [priority 100, instance] kaehler_differential.module_of_tower
 instance kaehler_differential.is_scalar_tower_of_tower : is_scalar_tower R B Ω[B⁄A] :=
 restrict_scalars.is_scalar_tower R B Ω[B⁄A]
 
-variables [algebra R A] [is_scalar_tower R A B]
+variables [algebra R A] [is_scalar_tower R A B] [algebra S B]
+
+instance kaehler_differential.is_scalar_tower_of_tower''' : is_scalar_tower R A Ω[B⁄S] :=
+⟨λ x y z, show algebra_map A B (x • y) • z = algebra_map R B x • (algebra_map A B y • z),
+  by rw [smul_smul, algebra.smul_def, map_mul, ← is_scalar_tower.algebra_map_apply]⟩
 
 instance kaehler_differential.is_scalar_tower_of_tower' :
   is_scalar_tower R A Ω[B⁄A] :=
-⟨λ x y z, show (x • y) • z = algebra_map R B x • y • z, by
-  rw [algebra.smul_def, mul_smul, is_scalar_tower.algebra_map_apply R A B,
-    algebra_map_smul B (algebra_map R A x) (y • z)]⟩
+begin
+  convert kaehler_differential.is_scalar_tower_of_tower''' R A A B,
+end
+-- ⟨λ x y z, show (x • y) • z = algebra_map R B x • y • z, by
+--   rw [algebra.smul_def, mul_smul, is_scalar_tower.algebra_map_apply R A B,
+--     algebra_map_smul B (algebra_map R A x) (y • z)]⟩
 
 instance kaehler_differential.is_scalar_tower_of_tower'' :
-  is_scalar_tower R A Ω[B⁄R] :=
-⟨λ x y z, show (algebra_map A B $ x • y) • z = x • (algebra_map A B y) • z, by
-  rw [← is_scalar_tower.to_alg_hom_apply R A B, alg_hom.map_smul, smul_assoc,
-    is_scalar_tower.to_alg_hom_apply]⟩
+  is_scalar_tower R A Ω[B⁄R] := infer_instance
 
+variables [is_scalar_tower R S B]
+
+/-- The map `Ω[B⁄R] →ₗ[B] Ω[B⁄A]` given a tower `R → A → B`.
+This is the second map in the exact sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0`. -/
 def kaehler_differential.base_change : Ω[B⁄R] →ₗ[B] Ω[B⁄A] :=
 ((kaehler_differential.D A B).restrict_scalars R).lift_kaehler_differential
 
@@ -870,6 +902,7 @@ lemma kaehler_differential.base_change_D (x : B) :
     kaehler_differential.D A B x :=
 derivation.congr_fun (kaehler_differential.base_change_comp_D R A B : _) x
 
+/-- This shows the sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0` is exact at `Ω[B⁄A]`. -/
 lemma kaehler_differential.base_change_surjective :
   function.surjective (kaehler_differential.base_change R A B) :=
 begin
@@ -881,6 +914,8 @@ end
 
 variables {R B}
 
+/-- For a tower `R → A → B` and an `R`-derivation `B → M`, we may compose with `A → B` to obtain an
+`R`-derivation `A → M`. -/
 def derivation.comp_algebra_map [module A M] [module B M] [is_scalar_tower A B M]
   (d : derivation R B M) : derivation R A M :=
 { map_one_eq_zero' := by simp,
@@ -888,9 +923,11 @@ def derivation.comp_algebra_map [module A M] [module B M] [is_scalar_tower A B M
   to_linear_map := d.to_linear_map.comp (is_scalar_tower.to_alg_hom R A B).to_linear_map }
 
 variables (R B)
+variables [algebra S B] [is_scalar_tower R S B]
 
-def kaehler_differential.map_of_algebra : Ω[A⁄R] →ₗ[A] Ω[B⁄R] :=
-((kaehler_differential.D R B).comp_algebra_map A).lift_kaehler_differential
+/-- The map `Ω[A⁄R] →ₗ[A] Ω[B⁄R]` given a tower `R → A → B` -/
+def kaehler_differential.map_of_algebra : Ω[A⁄R] →ₗ[A] Ω[B⁄S] :=
+derivation.lift_kaehler_differential _
 
 local attribute [irreducible] kaehler_differential
 
@@ -906,6 +943,7 @@ derivation.congr_fun (kaehler_differential.map_of_algebra_comp_der R A B) x
 
 variables {R}
 
+/-- An `R`-algebra map `A →ₐ[R] B` induces an `R`-module map `Ω[A⁄R] →ₗ[R] Ω[B⁄R]`. -/
 def kaehler_differential.map {A B : Type*} [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
   (f : A →ₐ[R] B) : Ω[A⁄R] →ₗ[R] Ω[B⁄R] :=
 @@kaehler_differential.map_of_algebra R _ A B _ _ _ f.to_ring_hom.to_algebra _
@@ -923,6 +961,8 @@ end
 
 variables (R)
 
+/-- The lift of the map `Ω[A⁄R] →ₗ[A] Ω[B⁄R]` to the base change along `A → B`.
+This is the first map in the exact sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0`. -/
 noncomputable
 def kaehler_differential.map_base_change : B ⊗[A] Ω[A⁄R] →ₗ[B] Ω[B⁄R] :=
 (tensor_product.is_base_change A Ω[A⁄R] B).lift (kaehler_differential.map_of_algebra R A B)
@@ -936,6 +976,8 @@ begin
   exact is_base_change.lift_eq _ _ _
 end
 
+/-- (Implementation)
+An auxiliary definition to show that `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0` is exact. -/
 noncomputable
 def derivation_map_base_change_range_mkq_comp_D :
   derivation A B (Ω[B⁄R] ⧸ (kaehler_differential.map_base_change R A B).range) :=
@@ -964,6 +1006,7 @@ begin
   refl
 end
 
+/-- This shows the sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0` is exact at `Ω[B⁄R]`. -/
 lemma kaehler_differential.map_base_change_range_eq_ker :
   (kaehler_differential.map_base_change R A B).range =
     (kaehler_differential.base_change R A B).ker :=
@@ -983,6 +1026,34 @@ begin
     exact submodule.comap_mono bot_le }
 end
 .
+
+noncomputable
+def kaehler_differential.from_base_change_ker : B ⊗[A] (algebra_map A B).ker →ₗ[B] B ⊗[A] Ω[A⁄R] :=
+(tensor_product.is_base_change A (algebra_map A B).ker B).lift
+{ to_fun := λ x, 1 ⊗ₜ kaehler_differential.D R A x,
+  map_add' := λ x y, by rw [submodule.coe_add, map_add, tensor_product.tmul_add],
+  map_smul' := λ r x, by rw [submodule.coe_smul_of_tower, algebra.id.smul_eq_mul,
+    derivation.leibniz, ring_hom.id_apply, tensor_product.tmul_add, tensor_product.tmul_smul,
+    tensor_product.tmul_smul, add_right_eq_self,
+    ← is_scalar_tower.algebra_map_smul B (x : A) (_ : B ⊗[A] Ω[A⁄R]),
+    (show algebra_map A B x = 0, from x.prop), zero_smul] }
+
+lemma kaehler_differential.from_base_change_ker_range_eq_ker :
+  (kaehler_differential.from_base_change_ker R A B).range =
+    (kaehler_differential.map_base_change R A B).ker :=
+begin
+  apply le_antisymm,
+  { rw [kaehler_differential.from_base_change_ker, is_base_change.range_lift, submodule.span_le],
+    rintros _ ⟨⟨x, hx : algebra_map A B x = 0⟩, rfl⟩,
+    show kaehler_differential.map_base_change R A B
+      (tensor_product.mk A B _ 1 $ kaehler_differential.D R A x) = 0,
+    rw [kaehler_differential.map_base_change, is_base_change.lift_eq,
+      kaehler_differential.map_of_algebra_D, hx, map_zero] },
+  { rw [← (kaehler_differential.map_base_change R A B).range.ker_mkq,
+      ← derivation_map_base_change_range_mkq_comp_D_lift_comp_base_change,
+      linear_map.ker_comp, ← submodule.comap_bot],
+    exact submodule.comap_mono bot_le }
+end
 end exact_sequence
 
 end kaehler_differential

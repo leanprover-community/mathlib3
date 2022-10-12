@@ -177,10 +177,12 @@ by simp [volume_form, or.by_cases, dif_pos]
   orientation.volume_form (-positive_orientation : orientation ℝ E (fin 0))
   = alternating_map.const_linear_equiv_of_is_empty (-1) :=
 begin
-  dsimp [volume_form, or.by_cases],
+  dsimp [volume_form, or.by_cases, positive_orientation],
   apply if_neg,
-  have : fintype.card (fin 0) = finrank ℝ E := by simp [_i.out],
-  rw [← ne.def, (-positive_orientation).ne_iff_eq_neg positive_orientation this],
+  rw [ray_eq_iff, same_ray_comm],
+  intros h,
+  simpa using
+    congr_arg alternating_map.const_linear_equiv_of_is_empty.symm (eq_zero_of_same_ray_self_neg h),
 end
 
 include _i o
@@ -202,8 +204,7 @@ lemma volume_form_robust' (b : orthonormal_basis (fin n) ℝ E) (v : fin n → E
   |o.volume_form v| = |b.to_basis.det v| :=
 begin
   unfreezingI { cases n },
-  { haveI : subsingleton E := finite_dimensional.finrank_zero_iff.mp _i.out,
-    refine o.eq_or_eq_neg_of_subsingleton.by_cases _ _; rintros rfl; simp },
+  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
   { rw [o.volume_form_robust (b.adjust_to_orientation o) (b.orientation_adjust_to_orientation o),
       b.abs_det_adjust_to_orientation] },
 end
@@ -213,8 +214,11 @@ product space `E`. The output of the volume form of `E` when evaluated on `v` is
 value by the product of the norms of the vectors `v i`. -/
 lemma abs_volume_form_apply_le (v : fin n → E) : |o.volume_form v| ≤ ∏ i : fin n, ∥v i∥ :=
 begin
-  have : finrank ℝ E = fintype.card (fin n) := by simpa using _i.out,
-  let b : orthonormal_basis (fin n) ℝ E := gram_schmidt_orthonormal_basis this v,
+  unfreezingI { cases n },
+  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
+  haveI : finite_dimensional ℝ E := fact_finite_dimensional_of_finrank_eq_succ n,
+  have : finrank ℝ E = fintype.card (fin n.succ) := by simpa using _i.out,
+  let b : orthonormal_basis (fin n.succ) ℝ E := gram_schmidt_orthonormal_basis this v,
   have hb : b.to_basis.det v = ∏ i, ⟪b i, v i⟫ := gram_schmidt_orthonormal_basis_det this v,
   rw [o.volume_form_robust' b, hb, finset.abs_prod],
   apply finset.prod_le_prod,
@@ -235,8 +239,11 @@ lemma abs_volume_form_apply_of_pairwise_orthogonal
   {v : fin n → E} (hv : pairwise (λ i j, ⟪v i, v j⟫ = 0)) :
   |o.volume_form v| = ∏ i : fin n, ∥v i∥ :=
 begin
-  have hdim : finrank ℝ E = fintype.card (fin n) := by simpa using _i.out,
-  let b : orthonormal_basis (fin n) ℝ E := gram_schmidt_orthonormal_basis hdim v,
+  unfreezingI { cases n },
+  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
+  haveI : finite_dimensional ℝ E := fact_finite_dimensional_of_finrank_eq_succ n,
+  have hdim : finrank ℝ E = fintype.card (fin n.succ) := by simpa using _i.out,
+  let b : orthonormal_basis (fin n.succ) ℝ E := gram_schmidt_orthonormal_basis hdim v,
   have hb : b.to_basis.det v = ∏ i, ⟪b i, v i⟫ := gram_schmidt_orthonormal_basis_det hdim v,
   rw [o.volume_form_robust' b, hb, finset.abs_prod],
   by_cases h : ∃ i, v i = 0,

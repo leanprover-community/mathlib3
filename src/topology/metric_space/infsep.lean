@@ -6,22 +6,26 @@ Authors: Wrenna Robson
 import topology.metric_space.basic
 
 /-!
-DOCSTRING TBD
+# Infimum separation
+
+This file defines the extended infimum separation of a set. This is approximately dual to the
+diameter of a set, but where the extended diameter of a set is the supremum of the extended distance
+between elements of the set, the extended infimum separation is the infimum of the (extended)
+distance between *distinct* elements in the set.
+
+We also define the infimum separation as the cast of the extended infimum separation to the reals.
+This is the infimum of the distance between distinct elements of the set when in a pseudometric
+space.
+
+All lemmas and definitions are in the `set` namespace to give access to dot notation.
+
+## Main definitions
+* `set.infesep`: Extended infimum separation of a set.
+* `set.infsep`: Infimum separation of a set (when in a pseudometric space).
+
 !-/
+
 variables {α β : Type*}
-
-section extras
-
--- These lemmas will be separate PRs in final version.
-
-open_locale ennreal
-
--- PR 3
-lemma finset.off_diag_nonempty_iff [decidable_eq α] {s : finset α} :
-  (s : set α).nontrivial ↔ s.off_diag.nonempty :=
-by rw [← finset.coe_nonempty, finset.coe_off_diag, set.off_diag_nonempty]
-
-end extras
 
 namespace set
 
@@ -399,19 +403,24 @@ lemma finite.infsep_of_nontrivial (hsf : s.finite) (hs : s.nontrivial) :
   s.infsep = hsf.off_diag.to_finset.inf' (by simpa) (uncurry dist) :=
   by { classical, simp_rw [hsf.infsep, dif_pos hs] }
 
-lemma finset.coe_infsep [decidable_eq α] {s : finset α}
+lemma _root_.finset.coe_infsep [decidable_eq α] {s : finset α}
   : (s : set α).infsep = if hs : s.off_diag.nonempty then s.off_diag.inf' hs (uncurry dist)
                          else 0 :=
 begin
+  have H : (s : set α).nontrivial ↔ s.off_diag.nonempty,
+  by rwa [← set.off_diag_nonempty, ← finset.coe_off_diag, finset.coe_nonempty],
   split_ifs with hs,
-  { simp_rw [(finset.off_diag_nonempty_iff.mpr hs).infsep_of_fintype,
-            ← finset.coe_off_diag, finset.to_finset_coe] },
-  { exact ((not_nontrivial_iff).mp ((finset.off_diag_nonempty_iff).mp.mt hs)).infsep_zero }
+  { simp_rw [(H.mpr hs).infsep_of_fintype, ← finset.coe_off_diag, finset.to_finset_coe] },
+  { exact ((not_nontrivial_iff).mp (H.mp.mt hs)).infsep_zero }
 end
 
-lemma finset.coe_finset_of_off_diag_nonempty [decidable_eq α] {s : finset α}
+lemma _root_.finset.coe_infsep_of_off_diag_nonempty [decidable_eq α] {s : finset α}
   (hs : s.off_diag.nonempty) : (s : set α).infsep = s.off_diag.inf' hs (uncurry dist) :=
 by rw [finset.coe_infsep, dif_pos hs]
+
+lemma _root_.finset.coe_infsep_of_off_diag_empty [decidable_eq α] {s : finset α}
+  (hs : s.off_diag = ∅) : (s : set α).infsep = 0 :=
+by { rw ← finset.not_nonempty_iff_eq_empty at hs, rw [finset.coe_infsep, dif_neg hs] }
 
 lemma nontrivial.infsep_exists_of_finite [finite s] (hs : s.nontrivial) :
 ∃ (x y ∈ s) (hxy : x ≠ y), s.infsep = dist x y :=

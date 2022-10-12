@@ -1520,16 +1520,9 @@ eq_of_dist_eq_of_dist_eq_of_finrank_eq_two hd ((sphere.center_ne_iff_ne_of_mem h
 
 /-- A set of points is concyclic if it is cospherical and coplanar. (Most results are stated
 directly in terms of `cospherical` instead of using `concyclic`.) -/
-def concyclic (ps : set P) : Prop :=
-cospherical ps ∧ coplanar ℝ ps
-
-/-- A concyclic set is cospherical. -/
-lemma concyclic.cospherical {ps : set P} (h : concyclic ps) : cospherical ps :=
-h.1
-
-/-- A concyclic set is coplanar. -/
-lemma concyclic.coplanar {ps : set P} (h : concyclic ps) : coplanar ℝ ps :=
-h.2
+structure concyclic (ps : set P) : Prop :=
+(cospherical : cospherical ps)
+(coplanar : coplanar ℝ ps)
 
 /-- A subset of a concyclic set is concyclic. -/
 lemma concyclic.subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (h : concyclic ps₂) : concyclic ps₁ :=

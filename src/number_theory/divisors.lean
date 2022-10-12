@@ -441,34 +441,6 @@ begin
   exact ⟨nat.mul_div_cancel' h₁, h₂⟩,
 end
 
-lemma divisors_antidiagonal_mul {n m : ℕ} :
-  divisors_antidiagonal (n * m) = divisors_antidiagonal n * divisors_antidiagonal m :=
-begin
-  simp only [divisors_antidiagonal_eq, map_mul, map_eq_image, function.embedding.coe_fn_mk],
-
-  -- simp only [mem_image, exists_prop],
-
-  -- refine image_image₂_distrib _,
-  -- intros a b,
-  -- rw [prod.mk_mul_mk],
-  -- rw div_mul_div_comm,
-  -- simp only [prod.mk_mul_mk, prod.mk.inj_iff, eq_self_iff_true, true_and],
-
-  -- have := image_mul,
-  -- have : ∀ x : ℕ, (∑ i in x.divisors_antidiagonal, ({i} : multiset (ℕ × ℕ))).to_finset =
-  --   (divisors_antidiagonal x),
-  -- { intro x,
-  --   ext i,
-  --   simp },
-  -- rw ←this,
-  -- rw ←this n,
-  -- rw ←this m,
-  -- rw sum_divisors_antidiagonal' (λ i, ({i} : multiset (ℕ × ℕ))),
-  -- rw sum_divisors_antidiagonal' (λ i, ({i} : multiset (ℕ × ℕ))),
-  -- rw sum_divisors_antidiagonal' (λ i, ({i} : multiset (ℕ × ℕ))),
-  -- dsimp,
-end
-
 /-- The factors of `n` are the prime divisors -/
 lemma prime_divisors_eq_to_filter_divisors_prime (n : ℕ) :
   n.factors.to_finset = (divisors n).filter prime :=

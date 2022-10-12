@@ -462,7 +462,7 @@ lemma floor_nonpos (ha : a ≤ 0) : ⌊a⌋ ≤ 0 := by exact_mod_cast (floor_le
 
 lemma floor_pos : 0 < ⌊a⌋ ↔ 1 ≤ a := by { convert le_floor, exact cast_one.symm }
 
-lemma floor_neg' : ⌊a⌋ < 0 ↔ ¬ 0 ≤ a := by rw [← floor_nonneg, not_le]
+lemma floor_neg_iff' : ⌊a⌋ < 0 ↔ ¬ 0 ≤ a := by rw [← floor_nonneg, not_le]
 
 @[simp] lemma floor_int_cast (z : ℤ) : ⌊(z : α)⌋ = z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
@@ -560,7 +560,7 @@ lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ := by exact_mod_cast ha.trans (
 
 lemma ceil_nonpos : ⌈a⌉ ≤ 0 ↔ a ≤ 0 := by rw [ceil_le, int.cast_zero]
 
-lemma ceil_neg : ⌈a⌉ < 0 ↔ a ≤ -1 := by rw [←le_sub_one_iff, ceil_le, zero_sub, cast_neg, cast_one]
+lemma ceil_neg_iff : ⌈a⌉ < 0 ↔ a ≤ -1 := by rw [←le_sub_one_iff, ceil_le, zero_sub, cast_neg, cast_one]
 
 lemma ceil_pos' : 0 < ⌈a⌉ ↔ ¬ a ≤ 0 := by rw [← ceil_nonpos, not_le]
 
@@ -574,14 +574,14 @@ eq_of_forall_ge_iff $ λ a, by rw [ceil_le, ← cast_coe_nat, cast_le]
 
 @[simp] lemma ceil_one : ⌈(1 : α)⌉ = 1 := by rw [← cast_one, ceil_int_cast]
 
-lemma floor_neg_eq_neg_ceil : ⌊-a⌋ = -⌈a⌉ :=
+lemma floor_neg : ⌊-a⌋ = -⌈a⌉ :=
 eq_of_forall_le_iff (λ z, by rw [le_neg, ceil_le, le_floor, int.cast_neg, le_neg])
 
-lemma ceil_neg_eq_neg_floor : ⌈-a⌉ = -⌊a⌋ :=
+lemma ceil_neg : ⌈-a⌉ = -⌊a⌋ :=
 eq_of_forall_ge_iff (λ z, by rw [neg_le, ceil_le, le_floor, int.cast_neg, neg_le])
 
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
-by rw [←neg_inj, neg_add', ←floor_neg_eq_neg_ceil, ←floor_neg_eq_neg_ceil, neg_add', floor_sub_int]
+by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
 
 @[simp] lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
 by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
@@ -617,7 +617,7 @@ variables [linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
 
 lemma floor_lt : ⌊a⌋ < z ↔ a < z := lt_iff_lt_of_le_iff_le le_floor
 
-@[simp] lemma floor_neg : ⌊a⌋ < 0 ↔ a < 0 := by rw [floor_neg', not_le]
+@[simp] lemma floor_neg_iff : ⌊a⌋ < 0 ↔ a < 0 := by rw [floor_neg_iff', not_le]
 
 @[simp] lemma floor_le_sub_one_iff : ⌊a⌋ ≤ z - 1 ↔ a < z := by rw [← floor_lt, le_sub_one_iff]
 

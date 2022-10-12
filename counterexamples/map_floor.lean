@@ -119,7 +119,7 @@ itself. -/
 lemma lt_forget_epsilons_ceil (n : ℤ) :
   ⌈forget_epsilons (n + ε)⌉ < forget_epsilons ⌈(n + ε : ℤ[ε])⌉ :=
 begin
-  rw [←neg_lt_neg_iff, ←map_neg, ←cast_neg, ←floor_neg_eq_neg_ceil, ←floor_neg_eq_neg_ceil,
+  rw [←neg_lt_neg_iff, ←map_neg, ←cast_neg, ←floor_neg, ←floor_neg,
   ←map_neg, neg_add', ←cast_neg],
   exact forget_epsilons_floor_lt _,
 end

@@ -20,11 +20,8 @@ open_locale ennreal
 instance set.off_diag_fintype {s : set α} [decidable_eq α] [fintype s] : fintype (s.off_diag) :=
 fintype.of_finset s.to_finset.off_diag $ by simp
 
-lemma set.finite.off_diag_finite {s : set α} (hs : s.finite) : s.off_diag.finite :=
+lemma set.finite.off_diag {s : set α} (hs : s.finite) : s.off_diag.finite :=
 by { classical, casesI hs, apply set.to_finite }
-
-lemma set.off_diag_finite_eq {s : set α} [decidable_eq α] [fintype s] :
-s.to_finite.off_diag_finite.to_finset = s.off_diag.to_finset := by ext; simp
 
 -- PR 2
 @[simp] lemma set.to_finset_nonempty {s : set α} [fintype s] : s.to_finset.nonempty ↔ s.nonempty :=
@@ -145,8 +142,12 @@ begin
 end
 
 lemma finite.infesep (hs : s.finite) :
-  s.infesep = hs.off_diag_finite.to_finset.inf (uncurry edist) :=
-by { classical, letI := hs.fintype, simp_rw [infesep_of_fintype, off_diag_finite_eq] }
+  s.infesep = hs.off_diag.to_finset.inf (uncurry edist) :=
+begin
+  refine eq_of_forall_le_iff (λ _, _),
+  simp_rw [le_infesep_iff, imp_forall_iff, finset.le_inf_iff, finite.mem_to_finset, mem_off_diag,
+          prod.forall, uncurry_apply_pair, and_imp]
+end
 
 lemma finset.coe_infesep [decidable_eq α] {s : finset α} :
   (s : set α).infesep = s.off_diag.inf (uncurry edist) :=
@@ -395,13 +396,19 @@ lemma nontrivial.infsep_of_fintype [decidable_eq α] [fintype s] (hs : s.nontriv
 by { classical, rw [infsep_of_fintype, dif_pos hs] }
 
 lemma finite.infsep [decidable s.nontrivial] (hsf : s.finite) :
-  s.infsep = if hs : s.nontrivial then hsf.off_diag_finite.to_finset.inf' (by simpa) (uncurry dist)
+  s.infsep = if hs : s.nontrivial then hsf.off_diag.to_finset.inf' (by simpa) (uncurry dist)
   else 0 :=
-by { classical, letI := hsf.fintype, simp_rw [infsep_of_fintype, off_diag_finite_eq] }
+begin
+  split_ifs with hs,
+  { refine eq_of_forall_le_iff (λ _, _),
+    simp_rw [hs.le_infsep_iff, imp_forall_iff, finset.le_inf'_iff, finite.mem_to_finset,
+            mem_off_diag, prod.forall, uncurry_apply_pair, and_imp] },
+  { rw not_nontrivial_iff at hs, exact hs.infsep_zero }
+end
 
 lemma finite.infsep_of_nontrivial (hsf : s.finite) (hs : s.nontrivial) :
-  s.infsep = hsf.off_diag_finite.to_finset.inf' (by simpa) (uncurry dist) :=
-  by { classical, letI := hsf.fintype, simp_rw [infsep_of_fintype, dif_pos hs, off_diag_finite_eq] }
+  s.infsep = hsf.off_diag.to_finset.inf' (by simpa) (uncurry dist) :=
+  by { classical, simp_rw [hsf.infsep, dif_pos hs] }
 
 lemma finset.coe_infsep [decidable_eq α] {s : finset α}
   : (s : set α).infsep = if hs : s.off_diag.nonempty then s.off_diag.inf' hs (uncurry dist)

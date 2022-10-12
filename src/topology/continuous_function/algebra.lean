@@ -593,7 +593,7 @@ variables (R)
 variables (A)
 
 /--
-Precomposition of functions into a normed ring by continuous map is an algebra homomorphism.
+Precomposition of functions into a normed ring by a continuous map is an algebra homomorphism.
 -/
 @[simps] def continuous_map.comp_right_alg_hom {α β : Type*} [topological_space α]
   [topological_space β] (f : C(α, β)) : C(β, A) →ₐ[R] C(α, A) :=

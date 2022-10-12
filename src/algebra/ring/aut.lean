@@ -30,7 +30,7 @@ ring_aut
 @[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
 
 namespace ring_aut
-variables (R : Type*) [has_mul R] [has_add R]
+variables (R G : Type*) [has_mul R] [has_add R] [group G]
 
 /--
 The group operation on automorphisms of a ring is defined by
@@ -84,7 +84,7 @@ instance apply_has_faithful_smul {R : Type*} [semiring R] : has_faithful_smul (r
 This is a stronger version of `distrib_mul_action.to_add_aut` and
  `mul_distrib_mul_action.to_mul_aut`. -/
 @[simps]
-def mul_semiring_action.to_ring_aut {G : Type*} {R : Type*} [group G] [semiring R]
+def mul_semiring_action.to_ring_aut {R : Type*} [semiring R]
   [mul_semiring_action G R] :
   G →* ring_aut R :=
 { to_fun := mul_semiring_action.to_ring_equiv G R,

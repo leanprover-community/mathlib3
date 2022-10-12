@@ -124,7 +124,7 @@ begin
   haveI : uniform_add_group E := topological_add_comm_group_is_uniform,
   have := (locally_convex_space.convex_open_basis_zero 𝕜 E).comap (λ x : E × E, x.2 - x.1),
   rw ← uniformity_eq_comap_nhds_zero at this,
-  rcases disj.exists_thickenings_uniformity_of_basis this hs₂ ht₂
+  rcases disj.exists_uniform_thickening_of_basis this hs₂ ht₂
     with ⟨V, ⟨hV0, hVopen, hVconvex⟩, hV⟩,
   refine ⟨s + V, t + V, hVopen.add_left, hVopen.add_left, hs₁.add hVconvex, ht₁.add hVconvex,
     subset_add_left _ hV0, subset_add_left _ hV0, _⟩,

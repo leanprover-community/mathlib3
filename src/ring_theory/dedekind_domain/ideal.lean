@@ -847,7 +847,9 @@ variables [is_domain R] [is_dedekind_domain R]
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
 @[ext, nolint has_nonempty_instance unused_arguments]
 structure height_one_spectrum :=
-(to_ideal : ideal R) (is_prime : to_ideal.is_prime) (ne_bot : to_ideal ≠ ⊥)
+(as_ideal : ideal R)
+(is_prime : as_ideal.is_prime)
+(ne_bot : as_ideal ≠ ⊥)
 
 attribute [instance] height_one_spectrum.is_prime
 
@@ -855,21 +857,21 @@ variables (v : height_one_spectrum R) {R}
 
 namespace height_one_spectrum
 
-instance is_maximal : v.to_ideal.is_maximal := dimension_le_one v.to_ideal v.ne_bot v.is_prime
+instance is_maximal : v.as_ideal.is_maximal := dimension_le_one v.as_ideal v.ne_bot v.is_prime
 
-lemma prime : prime v.to_ideal := ideal.prime_of_is_prime v.ne_bot v.is_prime
+lemma prime : prime v.as_ideal := ideal.prime_of_is_prime v.ne_bot v.is_prime
 
-lemma irreducible : irreducible v.to_ideal :=
+lemma irreducible : irreducible v.as_ideal :=
 unique_factorization_monoid.irreducible_iff_prime.mpr v.prime
 
-lemma associates_irreducible : _root_.irreducible $ associates.mk v.to_ideal :=
+lemma associates_irreducible : _root_.irreducible $ associates.mk v.as_ideal :=
 (associates.irreducible_mk _).mpr v.irreducible
 
 /-- An equivalence between the height one and maximal spectra for rings of Krull dimension 1. -/
 def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maximal_spectrum R :=
-{ to_fun    := λ v, ⟨v.to_ideal, dimension_le_one v.to_ideal v.ne_bot v.is_prime⟩,
+{ to_fun    := λ v, ⟨v.as_ideal, dimension_le_one v.as_ideal v.ne_bot v.is_prime⟩,
   inv_fun   := λ v,
-    ⟨v.to_ideal, v.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field v.is_maximal hR⟩,
+    ⟨v.as_ideal, v.is_maximal.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field v.is_maximal hR⟩,
   left_inv  := λ ⟨_, _, _⟩, rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 

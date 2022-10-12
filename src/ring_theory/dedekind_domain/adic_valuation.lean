@@ -70,12 +70,12 @@ ideal `(r)`, if `r` is nonzero, or infinity, if `r = 0`. `int_valuation_def` is 
 multiplicative valuation. -/
 def int_valuation_def (r : R) : ℤₘ₀ :=
 if r = 0 then 0 else multiplicative.of_add
-  (-(associates.mk v.to_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ)
+  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ)
 
 lemma int_valuation_def_if_pos {r : R} (hr : r = 0) : v.int_valuation_def r = 0 := if_pos hr
 
 lemma int_valuation_def_if_neg {r : R} (hr : r ≠ 0) : v.int_valuation_def r = (multiplicative.of_add
-  (-(associates.mk v.to_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ)) :=
+  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ)) :=
 if_neg hr
 
 /-- Nonzero elements have nonzero adic valuation. -/
@@ -109,7 +109,7 @@ end
 
 /-- The `v`-adic valuation of `r ∈ R` is less than 1 if and only if `v` divides the ideal `(r)`. -/
 lemma int_valuation_lt_one_iff_dvd (r : R) :
-  v.int_valuation_def r < 1 ↔ v.to_ideal ∣ ideal.span {r} :=
+  v.int_valuation_def r < 1 ↔ v.as_ideal ∣ ideal.span {r} :=
 begin
   rw int_valuation_def,
   split_ifs with hr,
@@ -125,7 +125,7 @@ end
 /-- The `v`-adic valuation of `r ∈ R` is less than `multiplicative.of_add (-n)` if and only if
 `vⁿ` divides the ideal `(r)`. -/
 lemma int_valuation_le_pow_iff_dvd (r : R) (n : ℕ) :
-  v.int_valuation_def r ≤ multiplicative.of_add (-(n : ℤ)) ↔ v.to_ideal ^ n ∣ ideal.span {r} :=
+  v.int_valuation_def r ≤ multiplicative.of_add (-(n : ℤ)) ↔ v.as_ideal^n ∣ ideal.span {r} :=
 begin
   rw int_valuation_def,
   split_ifs with hr,
@@ -184,21 +184,21 @@ begin
       { rw [v.int_valuation_def_if_neg hxy, v.int_valuation_def_if_neg hx,
           v.int_valuation_def_if_neg hy, with_zero.le_max_iff, int_valuation.le_max_iff_min_le],
       set nmin := min
-        ((associates.mk v.to_ideal).count (associates.mk (ideal.span {x})).factors)
-        ((associates.mk v.to_ideal).count (associates.mk (ideal.span {y})).factors),
-      have h_dvd_x : x ∈ v.to_ideal ^ nmin,
+        ((associates.mk v.as_ideal).count (associates.mk (ideal.span {x})).factors)
+        ((associates.mk v.as_ideal).count (associates.mk (ideal.span {y})).factors),
+      have h_dvd_x : x ∈ v.as_ideal ^ (nmin),
       { rw [← associates.le_singleton_iff x nmin _,
           associates.prime_pow_dvd_iff_le (associates.mk_ne_zero'.mpr hx) _],
         exact min_le_left _ _,
         apply v.associates_irreducible },
-      have h_dvd_y : y ∈ v.to_ideal ^ nmin,
+      have h_dvd_y : y ∈ v.as_ideal ^ nmin,
       { rw [← associates.le_singleton_iff y nmin _,
           associates.prime_pow_dvd_iff_le (associates.mk_ne_zero'.mpr hy) _],
         exact min_le_right _ _,
         apply v.associates_irreducible },
-      have h_dvd_xy : associates.mk v.to_ideal ^ nmin ≤ associates.mk (ideal.span {x + y}),
+      have h_dvd_xy : associates.mk v.as_ideal^nmin ≤ associates.mk (ideal.span {x + y}),
       { rw associates.le_singleton_iff,
-        exact ideal.add_mem (v.to_ideal ^ nmin) h_dvd_x h_dvd_y, },
+        exact ideal.add_mem (v.as_ideal^nmin) h_dvd_x h_dvd_y, },
       rw (associates.prime_pow_dvd_iff_le (associates.mk_ne_zero'.mpr hxy) _) at h_dvd_xy,
       exact h_dvd_xy,
       apply v.associates_irreducible, }}}
@@ -216,23 +216,23 @@ def int_valuation : valuation R ℤₘ₀ :=
 lemma int_valuation_exists_uniformizer :
   ∃ (π : R), v.int_valuation_def π = multiplicative.of_add (-1 : ℤ) :=
 begin
-  have hv : _root_.irreducible (associates.mk v.to_ideal) := v.associates_irreducible,
-  have hlt : v.to_ideal ^ 2 < v.to_ideal,
+  have hv : _root_.irreducible (associates.mk v.as_ideal) := v.associates_irreducible,
+  have hlt : v.as_ideal^2 < v.as_ideal,
   { rw ← ideal.dvd_not_unit_iff_lt,
-    exact ⟨v.ne_bot, v.to_ideal,
-     (not_congr ideal.is_unit_iff).mpr (ideal.is_prime.ne_top v.is_prime), sq v.to_ideal⟩ } ,
+    exact ⟨v.ne_bot, v.as_ideal,
+     (not_congr ideal.is_unit_iff).mpr (ideal.is_prime.ne_top v.is_prime), sq v.as_ideal⟩ } ,
   obtain ⟨π, mem, nmem⟩ := set_like.exists_of_lt hlt,
   have hπ : associates.mk (ideal.span {π}) ≠ 0,
   { rw associates.mk_ne_zero',
     intro h,
     rw h at nmem,
-    exact nmem (submodule.zero_mem (v.to_ideal ^ 2)), },
+    exact nmem (submodule.zero_mem (v.as_ideal^2)), },
   use π,
   rw [int_valuation_def, if_neg (associates.mk_ne_zero'.mp hπ), with_zero.coe_inj],
   apply congr_arg,
   rw [neg_inj, ← int.coe_nat_one, int.coe_nat_inj'],
   rw [← ideal.dvd_span_singleton, ← associates.mk_le_mk_iff_dvd_iff] at mem nmem,
-  rw [← pow_one (associates.mk v.to_ideal), associates.prime_pow_dvd_iff_le hπ hv] at mem,
+  rw [← pow_one (associates.mk v.as_ideal), associates.prime_pow_dvd_iff_le hπ hv] at mem,
   rw [associates.mk_pow, associates.prime_pow_dvd_iff_le hπ hv, not_le] at nmem,
   exact nat.eq_of_le_of_lt_succ mem nmem,
 end
@@ -270,7 +270,7 @@ by { rw valuation_of_algebra_map, exact v.int_valuation_le_one r }
 
 /-- The `v`-adic valuation of `r ∈ R` is less than 1 if and only if `v` divides the ideal `(r)`. -/
 lemma valuation_lt_one_iff_dvd (r : R) :
-  v.valuation (algebra_map R K r) < 1 ↔ v.to_ideal ∣ ideal.span {r} :=
+  v.valuation (algebra_map R K r) < 1 ↔ v.as_ideal ∣ ideal.span {r} :=
 by { rw valuation_of_algebra_map, exact v.int_valuation_lt_one_iff_dvd r }
 
 variable (K)

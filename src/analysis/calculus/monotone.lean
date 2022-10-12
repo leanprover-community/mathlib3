@@ -61,7 +61,7 @@ end
 
 /-- A Stieltjes function is almost everywhere differentiable, with derivative equal to the
 Radon-Nikodym derivative of the associated Stieltjes measure with respect to Lebesgue. -/
-lemma stieltjes_function.has_deriv_at (f : stieltjes_function) :
+lemma stieltjes_function.ae_has_deriv_at (f : stieltjes_function) :
   ∀ᵐ x, has_deriv_at f (rn_deriv f.measure volume x).to_real x :=
 begin
   /- Denote by `μ` the Stieltjes measure associated to `f`.
@@ -140,7 +140,7 @@ begin
   differentiable almost everywhere. We reduce to this statement by sandwiching values of `f` with
   values of `g`, by shifting with `(y - x)^2` (which has no influence on the relevant
   scale `y - x`.)-/
-  filter_upwards [hf.stieltjes_function.has_deriv_at,
+  filter_upwards [hf.stieltjes_function.ae_has_deriv_at,
     hf.countable_not_continuous_at.ae_not_mem volume] with x hx h'x,
   have A : hf.stieltjes_function x = f x,
   { rw [not_not, hf.continuous_at_iff_left_lim_eq_right_lim] at h'x,

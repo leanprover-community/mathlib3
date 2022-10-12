@@ -2131,4 +2131,134 @@ lemma _root_.collinear.two_zsmul_oangle_eq_right {p₁ p₂ p₃ p₃' : P}
   (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₁ p₂ p₃' :=
 by rw [oangle_rev, smul_neg, h.two_zsmul_oangle_eq_left hp₃p₂ hp₃'p₂, ←smul_neg, ←oangle_rev]
 
+open affine_subspace
+
+/-- Given two pairs of distinct points on the same line, such that the vectors between those
+pairs of points are on the same ray (oriented in the same direction on that line), and a fifth
+point, the angles at the fifth point between each of those two pairs of points have the same
+sign. -/
+lemma _root_.collinear.oangle_sign_of_same_ray_vsub {p₁ p₂ p₃ p₄ : P} (p₅ : P) (hp₁p₂ : p₁ ≠ p₂)
+  (hp₃p₄ : p₃ ≠ p₄) (hc : collinear ℝ ({p₁, p₂, p₃, p₄} : set P))
+  (hr : same_ray ℝ (p₂ -ᵥ p₁) (p₄ -ᵥ p₃)) : (∡ p₁ p₅ p₂).sign = (∡ p₃ p₅ p₄).sign :=
+begin
+  by_cases hc₅₁₂ : collinear ℝ ({p₅, p₁, p₂} : set P),
+  { have hc₅₁₂₃₄ : collinear ℝ ({p₅, p₁, p₂, p₃, p₄} : set P) :=
+      (hc.collinear_insert_iff_of_ne (set.mem_insert _ _)
+                                     (set.mem_insert_of_mem _ (set.mem_insert _ _)) hp₁p₂).2 hc₅₁₂,
+    have hc₅₃₄ : collinear ℝ ({p₅, p₃, p₄} : set P) :=
+      (hc.collinear_insert_iff_of_ne
+        (set.mem_insert_of_mem _ (set.mem_insert_of_mem _ (set.mem_insert _ _)))
+        (set.mem_insert_of_mem _ (set.mem_insert_of_mem _ (set.mem_insert_of_mem _
+          (set.mem_singleton _)))) hp₃p₄).1 hc₅₁₂₃₄,
+    rw set.insert_comm at hc₅₁₂ hc₅₃₄,
+    have hs₁₅₂ := oangle_eq_zero_or_eq_pi_iff_collinear.2 hc₅₁₂,
+    have hs₃₅₄ := oangle_eq_zero_or_eq_pi_iff_collinear.2 hc₅₃₄,
+    rw ←real.angle.sign_eq_zero_iff at hs₁₅₂ hs₃₅₄,
+    rw [hs₁₅₂, hs₃₅₄] },
+  { let s : set (P × P × P) :=
+      (λ x : affine_span ℝ ({p₁, p₂} : set P) × V, (x.1, p₅, x.2 +ᵥ x.1)) ''
+        set.univ ×ˢ {v | same_ray ℝ (p₂ -ᵥ p₁) v ∧ v ≠ 0},
+    have hco : is_connected s,
+    { haveI : connected_space (affine_span ℝ ({p₁, p₂} : set P)) := add_torsor.connected_space _ _,
+      exact (is_connected_univ.prod (is_connected_set_of_same_ray_and_ne_zero
+        (vsub_ne_zero.2 hp₁p₂.symm))).image _
+          ((continuous_fst.subtype_coe.prod_mk
+            (continuous_const.prod_mk
+              (continuous_snd.vadd continuous_fst.subtype_coe))).continuous_on) },
+    have hf : continuous_on (λ p : P × P × P, ∡ p.1 p.2.1 p.2.2) s,
+    { refine continuous_at.continuous_on (λ p hp, continuous_at_oangle _ _),
+      all_goals { simp_rw [s, set.mem_image, set.mem_prod, set.mem_univ, true_and,
+                           prod.ext_iff] at hp,
+                  obtain ⟨q₁, q₅, q₂⟩ := p,
+                  dsimp only at ⊢ hp,
+                  obtain ⟨⟨⟨q, hq⟩, v⟩, hv, rfl, rfl, rfl⟩ := hp,
+                  dsimp only [subtype.coe_mk, set.mem_set_of] at ⊢ hv,
+                  obtain ⟨hvr, -⟩ := hv,
+                  rintro rfl,
+                  refine hc₅₁₂ ((collinear_insert_iff_of_mem_affine_span _).2
+                                  (collinear_pair _ _ _)) },
+      { exact hq },
+      { refine vadd_mem_of_mem_direction _ hq,
+        rw ←exists_nonneg_left_iff_same_ray (vsub_ne_zero.2 hp₁p₂.symm) at hvr,
+        obtain ⟨r, -, rfl⟩ := hvr,
+        rw direction_affine_span,
+        exact smul_vsub_rev_mem_vector_span_pair _ _ _ } },
+    have hsp : ∀ p : P × P × P, p ∈ s → ∡ p.1 p.2.1 p.2.2 ≠ 0 ∧ ∡ p.1 p.2.1 p.2.2 ≠ π,
+    { intros p hp,
+      simp_rw [s, set.mem_image, set.mem_prod, set.mem_set_of, set.mem_univ, true_and,
+               prod.ext_iff] at hp,
+      obtain ⟨q₁, q₅, q₂⟩ := p,
+      dsimp only at ⊢ hp,
+      obtain ⟨⟨⟨q, hq⟩, v⟩, hv, rfl, rfl, rfl⟩ := hp,
+      dsimp only [subtype.coe_mk, set.mem_set_of] at ⊢ hv,
+      obtain ⟨hvr, hv0⟩ := hv,
+      rw ←exists_nonneg_left_iff_same_ray (vsub_ne_zero.2 hp₁p₂.symm) at hvr,
+      obtain ⟨r, -, rfl⟩ := hvr,
+      change q ∈ affine_span ℝ ({p₁, p₂} : set P) at hq,
+      rw [oangle_ne_zero_and_ne_pi_iff_affine_independent],
+      refine affine_independent_of_ne_of_mem_of_not_mem_of_mem _ hq
+        (λ h, hc₅₁₂ ((collinear_insert_iff_of_mem_affine_span h).2 (collinear_pair _ _ _))) _,
+      { rwa [←@vsub_ne_zero V, vsub_vadd_eq_vsub_sub, vsub_self, zero_sub, neg_ne_zero] },
+      { refine vadd_mem_of_mem_direction _ hq,
+        rw direction_affine_span,
+        exact smul_vsub_rev_mem_vector_span_pair _ _ _ } },
+    have hp₁p₂s : (p₁, p₅, p₂) ∈ s,
+    { simp_rw [s, set.mem_image, set.mem_prod, set.mem_set_of, set.mem_univ, true_and,
+               prod.ext_iff],
+      refine ⟨⟨⟨p₁, left_mem_affine_span_pair _ _ _⟩, p₂ -ᵥ p₁⟩,
+              ⟨same_ray.rfl, vsub_ne_zero.2 hp₁p₂.symm⟩, _⟩,
+      simp },
+    have hp₃p₄s : (p₃, p₅, p₄) ∈ s,
+    { simp_rw [s, set.mem_image, set.mem_prod, set.mem_set_of, set.mem_univ, true_and,
+               prod.ext_iff],
+      refine ⟨⟨⟨p₃,
+                hc.mem_affine_span_of_mem_of_ne
+                  (set.mem_insert _ _)
+                  (set.mem_insert_of_mem _ (set.mem_insert _ _))
+                  (set.mem_insert_of_mem _ (set.mem_insert_of_mem _ (set.mem_insert _ _)))
+                  hp₁p₂⟩, p₄ -ᵥ p₃⟩, ⟨hr, vsub_ne_zero.2 hp₃p₄.symm⟩, _⟩,
+      simp },
+    convert real.angle.sign_eq_of_continuous_on hco hf hsp hp₃p₄s hp₁p₂s }
+end
+
+/-- Given three points in strict order on the same line, and a fourth point, the angles at the
+fourth point between the first and second or second and third points have the same sign. -/
+lemma _root_.sbtw.oangle_sign_eq {p₁ p₂ p₃ : P} (p₄ : P) (h : sbtw ℝ p₁ p₂ p₃) :
+  (∡ p₁ p₄ p₂).sign = (∡ p₂ p₄ p₃).sign :=
+begin
+  have hc : collinear ℝ ({p₁, p₂, p₂, p₃} : set P), { simpa using h.wbtw.collinear },
+  exact hc.oangle_sign_of_same_ray_vsub _ h.left_ne h.ne_right h.wbtw.same_ray_vsub
+end
+
+/-- Given three points in weak order on the same line, with the first not equal to the second,
+and a fourth point, the angles at the fourth point between the first and second or first and
+third points have the same sign. -/
+lemma _root_.wbtw.oangle_sign_eq_of_ne_left {p₁ p₂ p₃ : P} (p₄ : P) (h : wbtw ℝ p₁ p₂ p₃)
+  (hne : p₁ ≠ p₂) : (∡ p₁ p₄ p₂).sign = (∡ p₁ p₄ p₃).sign :=
+begin
+  have hc : collinear ℝ ({p₁, p₂, p₁, p₃} : set P),
+  { simpa [set.insert_comm p₂] using h.collinear },
+  exact hc.oangle_sign_of_same_ray_vsub _ hne (h.left_ne_right_of_ne_left hne.symm)
+    h.same_ray_vsub_left
+end
+
+/-- Given three points in strict order on the same line, and a fourth point, the angles at the
+fourth point between the first and second or first and third points have the same sign. -/
+lemma _root_.sbtw.oangle_sign_eq_left {p₁ p₂ p₃ : P} (p₄ : P) (h : sbtw ℝ p₁ p₂ p₃) :
+  (∡ p₁ p₄ p₂).sign = (∡ p₁ p₄ p₃).sign :=
+h.wbtw.oangle_sign_eq_of_ne_left _ h.left_ne
+
+/-- Given three points in weak order on the same line, with the second not equal to the third,
+and a fourth point, the angles at the fourth point between the second and third or first and
+third points have the same sign. -/
+lemma _root_.wbtw.oangle_sign_eq_of_ne_right {p₁ p₂ p₃ : P} (p₄ : P) (h : wbtw ℝ p₁ p₂ p₃)
+  (hne : p₂ ≠ p₃) : (∡ p₂ p₄ p₃).sign = (∡ p₁ p₄ p₃).sign :=
+by simp_rw [oangle_rev p₃, real.angle.sign_neg, h.symm.oangle_sign_eq_of_ne_left _ hne.symm]
+
+/-- Given three points in strict order on the same line, and a fourth point, the angles at the
+fourth point between the second and third or first and third points have the same sign. -/
+lemma _root_.sbtw.oangle_sign_eq_right {p₁ p₂ p₃ : P} (p₄ : P) (h : sbtw ℝ p₁ p₂ p₃) :
+  (∡ p₂ p₄ p₃).sign = (∡ p₁ p₄ p₃).sign :=
+h.wbtw.oangle_sign_eq_of_ne_right _ h.ne_right
+
 end euclidean_geometry

@@ -82,7 +82,7 @@ conj_transpose_zero
   (A.map f).is_hermitian :=
 (conj_transpose_map f hf).symm.trans $ h.eq.symm ▸ rfl
 
-@[simp] lemma is_hermitian.transpose {A : matrix n n α} (h : A.is_hermitian) :
+lemma is_hermitian.transpose {A : matrix n n α} (h : A.is_hermitian) :
   Aᵀ.is_hermitian :=
 by { rw [is_hermitian, conj_transpose, transpose_map], congr, exact h }
 
@@ -91,7 +91,7 @@ by { rw [is_hermitian, conj_transpose, transpose_map], congr, exact h }
 ⟨by { intro h, rw [← transpose_transpose A], exact is_hermitian.transpose h },
   is_hermitian.transpose⟩
 
-@[simp] lemma is_hermitian.conj_transpose {A : matrix n n α} (h : A.is_hermitian) :
+lemma is_hermitian.conj_transpose {A : matrix n n α} (h : A.is_hermitian) :
   Aᴴ.is_hermitian :=
 h.transpose.map _ $ λ _, rfl
 

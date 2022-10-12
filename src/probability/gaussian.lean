@@ -38,8 +38,12 @@ import analysis.special_functions.integrals
 #check set.inter_comm
 #check function.const
 #check measure_theory.measure.map_apply_of_ae_measurable
+<<<<<<< HEAD
 #check congr_arg
 #check set.preimage_const
+=======
+
+>>>>>>> 5f7c3f75a61601fef69d9d32e4cef4d5ea532cf2
 ---#check probability_theory.moment,
 
 /-
@@ -1932,96 +1936,6 @@ begin
 
 end
 
-/-
-lemma func_eq_trans (S: set ℝ) (h: ¬s = 0): ∫ (x : ℝ) in S, (sqrt (2 * π * s ^ 2))⁻¹ * exp (-((s ^ 2)⁻¹ * 2⁻¹ * x ^ 2))
-= ∫ (x : ℝ) in S, |s⁻¹| • ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2))) :=
-begin
-  have h₁: ∫ (x : ℝ) in S, |s⁻¹| • ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2)))
-  = ∫ (x : ℝ) in S, |s⁻¹| * ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2))),
-    {
-      simp,
-    },
-  rw h₁,
-  have h₂: ∫ (x : ℝ) in S, |s⁻¹| * ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2)))
-  = ∫ (x : ℝ) in S,|s⁻¹| * (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x / s) ^ 2)),
-    {
-      simp,
-      let b:=(sqrt π)⁻¹ * (sqrt 2)⁻¹,
-      have h₃: ∫ (x : ℝ) in S, |s⁻¹| * (b * exp (-(2⁻¹ * (x ^ 2 / s ^ 2))))
-  = ∫ (x : ℝ) in S, |s⁻¹| * ((sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x ^ 2 / s ^ 2)))),
-        {
-          simp_rw[b],
-        },
-      rw ← h₃,
-      have h₄: ∫ (x : ℝ) in S, |s⁻¹| * (sqrt π)⁻¹ * (sqrt 2)⁻¹ * exp (-(2⁻¹ * (x ^ 2 / s ^ 2)))
-    = ∫ (x : ℝ) in S, |s⁻¹| * b * exp (-(2⁻¹ * (x ^ 2 / s ^ 2))),
-        {
-          simp_rw[b],
-          rw mul_assoc,
-        },
-      rw h₄,
-      simp [mul_assoc],
-    },
-  rw h₂,
-  have const_eq: (sqrt (2 * π * s ^ 2))⁻¹  = |s⁻¹| * (sqrt π)⁻¹ * (sqrt 2)⁻¹,
-    {
-      rw abs_inv,
-      rw ← mul_inv,
-      rw ← mul_inv,
-      rw ← real.sqrt_sq_eq_abs,
-      rw ← real.sqrt_mul,
-      {
-        rw ← real.sqrt_mul,
-        {
-          have h₅: 2 * π * s ^ 2 = s ^ 2 * π * 2,
-            {
-              rw mul_assoc,
-              rw mul_comm,
-              rw mul_comm π (s^2),
-            },
-          rw h₅,
-        },
-        {
-          rw le_iff_lt_or_eq,
-          left,
-          simp [pi_pos],
-          simp [sq_pos_of_ne_zero s h],
-        },
-      },
-      {
-        exact pow_two_nonneg s,
-      },
-    },
-  rw const_eq,
-  sorry,
-end
-
-
-lemma det_const_mul_id_eq_const : | (s⁻¹ • continuous_linear_map.id ℝ ℝ).det| = |s⁻¹| :=
-begin
-  have h_detid_eq_one : |(continuous_linear_map.id ℝ ℝ).det| = 1 := detid_eq_one,
-  have h_deteq : (s⁻¹ • continuous_linear_map.id ℝ ℝ).det = linear_map.det (s⁻¹ • linear_map.id),
-    refl,
-  rw h_deteq,
-  simp [h_detid_eq_one, sqrt_sq_eq_abs],
-end
-
-
-lemma mul_const_eq_mul_det_for_6th (S: set ℝ) (f g : ℝ → ℝ) : ∫ (x : ℝ) in S, |s⁻¹| * g (f x)
- = ∫ (x : ℝ) in S, | (s⁻¹ • continuous_linear_map.id ℝ ℝ).det| * g (f x):=
-begin
-simp_rw [det_const_mul_id_eq_const],
-end
--/
-
-
-lemma test (S K: set ℝ) (hS : measurable_set S) (hK : measurable_set K):
-S = K → volume S = volume K :=
-begin
-intro h,
-exact congr_arg volume h,
-end
-
 
 -- the 6th important theorem
 lemma std_gaussian_rv_const_smul (hf : std_gaussian_rv f) (hfmeas : measurable f) (s : ℝ) :
@@ -2042,7 +1956,6 @@ begin
     set.indicator, set.preimage_const],
     split_ifs;
     simp,
-
   },
   {
     let h1 : ℝ → ℝ := λ x, s • x,
@@ -2480,7 +2393,7 @@ begin
       ---WE ARE AIMING TO SOLVE THIS BRACKET
       ---WE ARE AIMING TO SOLVE THIS BRACKET
       ---WE ARE AIMING TO SOLVE THIS BRACKET
-
+      sorry,
 
       },
   },
@@ -2501,8 +2414,8 @@ begin
   unfold gaussian_rv real_gaussian at hf,
   by_cases hs : s = 0;
   {simp [hs] at *,
+  sorry,
   },
-  {}
 end
 
 end gaussian_rv

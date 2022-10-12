@@ -1322,14 +1322,11 @@ def biprod.unique_up_to_iso (X Y : C) [has_binary_biproduct X Y] {b : binary_bic
   inv_hom_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
     ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.inv_hom_id] }
 
-section
-variables (X Y : C) [has_binary_biproduct X Y]
-
 -- There are three further variations,
 -- about `is_iso biprod.inr`, `is_iso biprod.fst` and `is_iso biprod.snd`,
 -- but any one suffices to prove `indecomposable_of_simple`
 -- and they are likely not separately useful.
-lemma biprod.is_iso_inl_iff_id_eq_fst_comp_inl :
+lemma biprod.is_iso_inl_iff_id_eq_fst_comp_inl (X Y : C) [has_binary_biproduct X Y] :
   is_iso (biprod.inl : X ⟶ X ⊞ Y) ↔ 𝟙 (X ⊞ Y) = biprod.fst ≫ biprod.inl :=
 begin
   split,
@@ -1338,8 +1335,6 @@ begin
     rw [is_iso.inv_hom_id_assoc, category.comp_id] at this,
     rw [this, is_iso.inv_hom_id], },
   { intro h, exact ⟨⟨biprod.fst, biprod.inl_fst, h.symm⟩⟩, },
-end
-
 end
 
 section biprod_kernel

@@ -1921,6 +1921,17 @@ lemma comap_ne_bot_iff_compl_range {f : filter β} {m : α → β} :
   ne_bot (comap m f) ↔ (range m)ᶜ ∉ f :=
 comap_ne_bot_iff_frequently
 
+lemma comap_eq_bot_iff_compl_range {f : filter β} {m : α → β} :
+  comap m f = ⊥ ↔ (range m)ᶜ ∈ f :=
+not_iff_not.mp $ ne_bot_iff.symm.trans comap_ne_bot_iff_compl_range
+
+lemma comap_surjective_eq_bot {f : filter β} {m : α → β} (hm : surjective m) :
+  comap m f = ⊥ ↔ f = ⊥ :=
+by rw [comap_eq_bot_iff_compl_range, hm.range_eq, compl_univ, empty_mem_iff_bot]
+
+lemma disjoint_comap_iff (h : surjective m) : disjoint (comap m g₁) (comap m g₂) ↔ disjoint g₁ g₂ :=
+by rw [disjoint_iff, disjoint_iff, ← comap_inf, comap_surjective_eq_bot h]
+
 lemma ne_bot.comap_of_range_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) (hm : range m ∈ f) : ne_bot (comap m f) :=
 comap_ne_bot_iff_frequently.2 $ eventually.frequently hm

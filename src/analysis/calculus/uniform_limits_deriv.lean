@@ -114,7 +114,7 @@ lemma uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv
   (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
-  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
+  rw seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
     hf' ⊢,
 
   suffices : tendsto_uniformly_on_filter
@@ -180,7 +180,7 @@ lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_fderiv
   (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
-  rw normed_add_comm_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero at hf' ⊢,
+  rw seminormed_add_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero at hf' ⊢,
 
   suffices : tendsto_uniformly_on
     (λ (n : ι × ι) (z : E), f n.1 z - f n.2 z - (f n.1 x - f n.2 x)) 0
@@ -235,12 +235,11 @@ lemma difference_quotients_converge_uniformly
 begin
   refine uniform_cauchy_seq_on_filter.tendsto_uniformly_on_filter_of_tendsto _
     ((hfg.and (eventually_const.mpr hfg.self_of_nhds)).mono (λ y hy, (hy.1.sub hy.2).const_smul _)),
-  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
+  rw seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
   rw metric.tendsto_uniformly_on_filter_iff,
 
   have hfg' := hf'.uniform_cauchy_seq_on_filter,
-  rw normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
-    hfg',
+  rw seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at hfg',
   rw metric.tendsto_uniformly_on_filter_iff at hfg',
   intros ε hε,
   obtain ⟨q, hqpos, hqε⟩ := exists_pos_rat_lt hε,
@@ -431,7 +430,7 @@ begin
   -- metrics are written in terms of `<`. So we need to shrink `ε` utilizing the archimedean
   -- property of `ℝ`
 
-  rw [normed_add_comm_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
+  rw [seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero,
       metric.tendsto_uniformly_on_filter_iff] at hf' ⊢,
   intros ε hε,
   obtain ⟨q, hq, hq'⟩ := exists_between hε.lt,

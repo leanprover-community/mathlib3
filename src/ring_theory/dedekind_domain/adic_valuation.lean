@@ -35,8 +35,6 @@ We define the completion of `K` with respect to the `v`-adic valuation, denoted
   ideal `(r)`.
 - `is_dedekind_domain.height_one_spectrum.int_valuation_exists_uniformizer` : There exists `π ∈ R`
   with `v`-adic valuation `multiplicative.of_add (-1)`.
-- `is_dedekind_domain.height_one_spectrum.int_valuation_div_eq_div` : The valuation of `k ∈ K` is
-  independent on how we express `k` as a fraction.
 - `is_dedekind_domain.height_one_spectrum.valuation_of_mk'` : The `v`-adic valuation of `r/s ∈ K`
   is the valuation of `r` divided by the valuation of `s`.
 - `is_dedekind_domain.height_one_spectrum.valuation_of_algebra_map` : The `v`-adic valuation on `K`

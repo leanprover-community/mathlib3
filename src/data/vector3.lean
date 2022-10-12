@@ -37,8 +37,9 @@ namespace vector3
 /- We do not want to make the following notation global, because then these expressions will be
 overloaded, and only the expected type will be able to disambiguate the meaning. Worse: Lean will
 try to insert a coercion from `vector3 α _` to `list α`, if a list is expected. -/
-localized "notation `[` l:(foldr `, ` (h t, vector3.cons h t) vector3.nil `]`) := l" in vector3
-notation a :: b := cons a b
+localized "notation (name := vector.list)
+  `[` l:(foldr `, ` (h t, vector3.cons h t) vector3.nil `]`) := l" in vector3
+notation (name := vector.cons) a :: b := cons a b
 
 @[simp] lemma cons_fz (a : α) (v : vector3 α n) : (a :: v) fz = a := rfl
 @[simp] lemma cons_fs (a : α) (v : vector3 α n) (i) : (a :: v) (fs i) = v i := rfl

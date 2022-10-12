@@ -33,7 +33,7 @@ and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V
 * When `V` is preadditive, linear, or abelian so is `Action V G`.
 -/
 
-universes u
+universes u v
 
 open category_theory
 open category_theory.limits
@@ -534,6 +534,46 @@ def of_mul_action (G H : Type u) [monoid G] [mul_action G H] : Action (Type u) (
 @[simp] lemma of_mul_action_apply {G H : Type u} [monoid G] [mul_action G H] (g : G) (x : H) :
   (of_mul_action G H).ρ g x = (g • x : H) :=
 rfl
+
+/-- Given a family `F` of types with `G`-actions, this is the limit cone demonstrating that the
+product of `F` as types is a product in the category of `G`-sets. -/
+def of_mul_action_limit_cone {ι : Type v} (G : Type (max v u)) [monoid G]
+  (F : ι → Type (max v u)) [Π i : ι, mul_action G (F i)] :
+  limit_cone (discrete.functor (λ i : ι, Action.of_mul_action G (F i))) :=
+{ cone :=
+  { X := Action.of_mul_action G (Π i : ι, F i),
+    π :=
+    { app := λ i, ⟨λ x, x i.as, λ g, by ext; refl⟩,
+      naturality' := λ i j x,
+      begin
+        ext,
+        discrete_cases,
+        cases x,
+        congr
+      end } },
+  is_limit :=
+  { lift := λ s,
+    { hom := λ x i, (s.π.app ⟨i⟩).hom x,
+      comm' := λ g,
+      begin
+        ext x j,
+        dsimp,
+        exact congr_fun ((s.π.app ⟨j⟩).comm g) x,
+      end },
+    fac' := λ s j,
+    begin
+      ext,
+      dsimp,
+      congr,
+      rw discrete.mk_as,
+    end,
+    uniq' := λ s f h,
+    begin
+      ext x j,
+      dsimp at *,
+      rw ←h ⟨j⟩,
+      congr,
+    end } }
 
 end Action
 

@@ -103,6 +103,8 @@ namespace Well_order
 
 instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order⟩⟩
 
+@[simp] lemma eta (o : Well_order) : mk o.α o.r o.wo = o := by { cases o, refl }
+
 end Well_order
 
 /-- Equivalence relation on well orders on arbitrary types in universe `u`, given by order
@@ -140,6 +142,9 @@ by { cases w, refl }
 
 @[simp] theorem type_def (r) [wo : is_well_order α r] : (⟦⟨α, r, wo⟩⟧ : ordinal) = type r :=
 rfl
+
+@[simp] lemma type_out (o : ordinal) : ordinal.type o.out.r = o :=
+by rw [ordinal.type, Well_order.eta, quotient.out_eq]
 
 theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] : type r = type s ↔ nonempty (r ≃r s) :=
@@ -572,7 +577,7 @@ def lift.initial_seg : @initial_seg ordinal.{u} ordinal.{max u v} (<) (<) :=
 /-- `ω` is the first infinite ordinal, defined as the order type of `ℕ`. -/
 def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
-localized "notation `ω` := ordinal.omega" in ordinal
+localized "notation (name := ordinal.omega) `ω` := ordinal.omega" in ordinal
 
 /-- Note that the presence of this lemma makes `simp [omega]` form a loop. -/
 @[simp] theorem type_nat_lt : @type ℕ (<) _ = ω := (lift_id _).symm

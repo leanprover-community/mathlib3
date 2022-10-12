@@ -7,12 +7,15 @@ import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
 import algebra.star.module
 import analysis.normed_space.star.exponential
+import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras
 In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
 -/
 
 local postfix `⋆`:std.prec.max_plus := star
+
+section
 
 open_locale topological_space ennreal
 open filter ennreal spectrum cstar_ring
@@ -22,11 +25,12 @@ section unitary_spectrum
 variables
 {𝕜 : Type*} [normed_field 𝕜]
 {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E]
-[normed_algebra 𝕜 E] [complete_space E] [nontrivial E]
+[normed_algebra 𝕜 E] [complete_space E]
 
 lemma unitary.spectrum_subset_circle (u : unitary E) :
   spectrum 𝕜 (u : E) ⊆ metric.sphere 0 1 :=
 begin
+  nontriviality E,
   refine λ k hk, mem_sphere_zero_iff_norm.mpr (le_antisymm _ _),
   { simpa only [cstar_ring.norm_coe_unitary u] using norm_le_norm_of_mem hk },
   { rw ←unitary.coe_to_units_apply u at hk,
@@ -51,7 +55,7 @@ variables {A : Type*}
 
 local notation `↑ₐ` := algebra_map ℂ A
 
-lemma is_self_adjoint.spectral_radius_eq_nnnorm [norm_one_class A] {a : A}
+lemma is_self_adjoint.spectral_radius_eq_nnnorm {a : A}
   (ha : is_self_adjoint a) :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
@@ -65,7 +69,7 @@ begin
   simp,
 end
 
-lemma is_star_normal.spectral_radius_eq_nnnorm [norm_one_class A] (a : A) [is_star_normal a] :
+lemma is_star_normal.spectral_radius_eq_nnnorm (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
   refine (ennreal.pow_strict_mono two_ne_zero).injective _,
@@ -83,7 +87,7 @@ begin
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
-theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A] {a : A}
+theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] {a : A}
   (ha : is_self_adjoint a) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
 begin
   let Iu := units.mk0 I I_ne_zero,
@@ -97,20 +101,91 @@ begin
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
-theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A]
+theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A]
   (a : self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ (a : A)) : z = z.re :=
 a.prop.mem_spectrum_eq_re hz
 
 /-- The spectrum of a selfadjoint is real -/
-theorem is_self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
+theorem is_self_adjoint.coe_re_map_spectrum [star_module ℂ A] {a : A}
   (ha : is_self_adjoint a) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
 le_antisymm (λ z hz, ⟨z, hz, (ha.mem_spectrum_eq_re hz).symm⟩) (λ z, by
   { rintros ⟨z, hz, rfl⟩,
     simpa only [(ha.mem_spectrum_eq_re hz).symm, function.comp_app] using hz })
 
 /-- The spectrum of a selfadjoint is real -/
-theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] (a : self_adjoint A) :
+theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] (a : self_adjoint A) :
   spectrum ℂ (a : A) = (coe ∘ re '' (spectrum ℂ (a : A)) : set ℂ) :=
 a.property.coe_re_map_spectrum
 
 end complex_scalars
+
+namespace star_alg_hom
+
+variables {F A B : Type*}
+[normed_ring A] [normed_algebra ℂ A] [complete_space A] [star_ring A] [cstar_ring A]
+[normed_ring B] [normed_algebra ℂ B] [complete_space B] [star_ring B] [cstar_ring B]
+[hF : star_alg_hom_class F ℂ A B] (φ : F)
+include hF
+
+/-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
+lemma nnnorm_apply_le (a : A) : ∥(φ a : B)∥₊ ≤ ∥a∥₊ :=
+begin
+  suffices : ∀ s : A, is_self_adjoint s → ∥φ s∥₊ ≤ ∥s∥₊,
+  { exact nonneg_le_nonneg_of_sq_le_sq zero_le'
+      (by simpa only [nnnorm_star_mul_self, map_star, map_mul]
+      using this _ (is_self_adjoint.star_mul_self a)) },
+  { intros s hs,
+    simpa only [hs.spectral_radius_eq_nnnorm, (hs.star_hom_apply φ).spectral_radius_eq_nnnorm,
+      coe_le_coe] using (show spectral_radius ℂ (φ s) ≤ spectral_radius ℂ s,
+      from supr_le_supr_of_subset (alg_hom.spectrum_apply_subset φ s)) }
+end
+
+/-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
+lemma norm_apply_le (a : A) : ∥(φ a : B)∥ ≤ ∥a∥ := nnnorm_apply_le φ a
+
+/-- Star algebra homomorphisms between C⋆-algebras are continuous linear maps.
+See note [lower instance priority] -/
+@[priority 100]
+noncomputable instance : continuous_linear_map_class F ℂ A B :=
+{ map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ 1
+    (by simpa only [one_mul] using nnnorm_apply_le φ),
+  .. alg_hom_class.linear_map_class }
+
+end star_alg_hom
+
+end
+
+namespace weak_dual
+
+open continuous_map complex
+open_locale complex_star_module
+
+variables {F A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
+  [star_ring A] [cstar_ring A] [star_module ℂ A] [hF : alg_hom_class F ℂ A ℂ]
+
+include hF
+
+/-- This instance is provided instead of `star_alg_hom_class` to avoid type class inference loops.
+See note [lower instance priority] -/
+@[priority 100]
+noncomputable instance : star_hom_class F A ℂ :=
+{ coe := λ φ, φ,
+  coe_injective' := fun_like.coe_injective',
+  map_star := λ φ a,
+  begin
+    suffices hsa : ∀ s : self_adjoint A, (φ s)⋆ = φ s,
+    { rw ←real_part_add_I_smul_imaginary_part a,
+      simp only [map_add, map_smul, star_add, star_smul, hsa, self_adjoint.star_coe_eq] },
+    { intros s,
+      have := alg_hom.apply_mem_spectrum φ (s : A),
+      rw self_adjoint.coe_re_map_spectrum s at this,
+      rcases this with ⟨⟨_, _⟩, _, heq⟩,
+      rw [←heq, is_R_or_C.star_def, is_R_or_C.conj_of_real] }
+  end }
+
+/-- This is not an instance to avoid type class inference loops. See
+`weak_dual.complex.star_hom_class`. -/
+noncomputable def _root_.alg_hom_class.star_alg_hom_class : star_alg_hom_class F ℂ A ℂ :=
+{ .. hF, .. weak_dual.complex.star_hom_class }
+
+end weak_dual

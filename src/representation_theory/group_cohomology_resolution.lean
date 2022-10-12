@@ -250,20 +250,20 @@ def classifying_space_universal_cover [monoid G] :
 namespace classifying_space_universal_cover
 
 open category_theory.limits category_theory.arrow
-variables (G) [monoid G] (m : simplex_categoryᵒᵖ)
 
-variables (ι : Type w) [fintype ι] {C : Type u} [category.{v} C] [has_finite_products C]
-  [has_terminal C] (X : C)
+variables (ι : Type w) {C : Type u} [category.{v} C] [has_terminal C]
 
 /-- The diagram `option ι ⥤ C` sending `none` to the terminal object and `some j` to `X`. -/
-def wide_cospan : wide_pullback_shape ι ⥤ C :=
+def wide_cospan (X : C) : wide_pullback_shape ι ⥤ C :=
 wide_pullback_shape.wide_cospan (terminal C) (λ i : ι, X) (λ i, terminal.from X)
 
-instance unique_to_wide_cospan_none (Y : C) : unique (Y ⟶ (wide_cospan ι X).obj none) :=
+instance unique_to_wide_cospan_none (X Y : C) : unique (Y ⟶ (wide_cospan ι X).obj none) :=
 by unfold wide_cospan; dsimp; apply_instance
 
-/-- The product `Xᶥ` is the vertex of a cone on `wide_cospan X m`. -/
-def wide_cospan.limit_cone : limit_cone (wide_cospan ι X) :=
+variables [has_finite_products C]
+
+/-- The product `Xᶥ` is the vertex of a limit cone on `wide_cospan ι X`. -/
+def wide_cospan.limit_cone [fintype ι] (X : C) : limit_cone (wide_cospan ι X) :=
 { cone :=
   { X := ∏ (λ i : ι, X),
     π :=
@@ -292,42 +292,15 @@ def wide_cospan.limit_cone : limit_cone (wide_cospan ι X) :=
       refl,
     end } }
 
-instance has_wide_pullback : has_wide_pullback (arrow.mk (terminal.from X)).right
-  (λ i : ι, (arrow.mk (terminal.from X)).left)
-  (λ i, (arrow.mk (terminal.from X)).hom) :=
-⟨⟨wide_cospan.limit_cone ι X⟩⟩
+instance has_wide_pullback [finite ι] (X : C) :
+  has_wide_pullback (arrow.mk (terminal.from X)).right
+  (λ i : ι, (arrow.mk (terminal.from X)).left) (λ i, (arrow.mk (terminal.from X)).hom) :=
+begin
+  casesI nonempty_fintype ι,
+  exact ⟨⟨wide_cospan.limit_cone ι X⟩⟩,
+end
 
-/-- I want to say Gⁿ with diagonal action is the product of n copies of G with left regular action
-in Action (Type u) G, not sure this is the best way. -/
-def diagonal_as_limit_cone (ι : Type v) (G : Type (max v u)) [monoid G] :
-  limit_cone (discrete.functor (λ i : ι, Action.of_mul_action G G)) :=
-{ cone :=
-  { X := Action.of_mul_action G (ι → G),
-    π :=
-    { app := λ i, ⟨λ f, f i.as, λ g, by ext; refl⟩,
-      naturality' := λ i j f, by { ext, discrete_cases, cases f, congr } } },
-  is_limit :=
-  { lift := λ s,
-    { hom := λ x i, (s.π.app ⟨i⟩).hom x,
-      comm' := λ g,
-      begin
-        ext,
-        dsimp,
-        exact congr_fun ((s.π.app ⟨j⟩).comm g) i,
-      end },
-    fac' := λ s j,
-    begin
-      ext,
-      dsimp,
-      rw discrete.mk_as,
-    end,
-    uniq' := λ s f h,
-    begin
-      ext x j,
-      dsimp at *,
-      rw ←h ⟨j⟩,
-      congr,
-    end } }
+variables [monoid G] (m : simplex_categoryᵒᵖ)
 
 /-- The `m`th object of the Čech nerve of the `G`-set hom `G ⟶ {pt}` is isomorphic to `Gᵐ⁺¹` with
 the diagonal action. -/
@@ -336,7 +309,7 @@ def cech_nerve_obj_iso :
     ≅ Action.of_mul_action G (fin (m.unop.len + 1) → G) :=
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (wide_cospan.limit_cone
   (fin (m.unop.len + 1)) (Action.of_mul_action G G)).2).trans $
-  limit.iso_limit_cone (diagonal_as_limit_cone _ _)
+  limit.iso_limit_cone (Action.of_mul_action_limit_cone _ _)
 
 /-- The Čech nerve of the `G`-set hom `G ⟶ {pt}` is naturally isomorphic to `EG`, the universal
 cover of the classifying space of `G` as a simplicial `G`-set. -/
@@ -549,12 +522,6 @@ def group_cohomology.resolution := (algebraic_topology.alternating_face_map_comp
   (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
 
 namespace group_cohomology.resolution
-
-/- Leaving this here for now - not sure it should exist or where it should go. Everything I tried
-to avoid this lemma was messy or gave me weird errors. -/
-lemma int_cast_smul {k V : Type*} [comm_ring k] [add_comm_group V] [module k V] (r : ℤ) (x : V) :
-  (r : k) • x = r • x :=
-algebra_map_smul k r x
 
 /-- The `n`th object of the standard resolution of `k` is definitionally isomorphic to `k[Gⁿ⁺¹]`
 equipped with the representation induced by the diagonal action of `G`. -/

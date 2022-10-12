@@ -215,15 +215,13 @@ def ε [limits.has_zero_object C] :
 { app := λ X, begin
     equiv_rw chain_complex.to_single₀_equiv _ _,
     refine ⟨X.hom.app (op [0]), _⟩,
-    erw chain_complex.of_d,
     dsimp,
-    simp only [fin.sum_univ_two, fin.coe_zero,
-      fin.coe_one, pow_zero, pow_one, one_zsmul, preadditive.add_comp,
-      preadditive.neg_comp, neg_smul],
-    erw [X.hom.naturality, X.hom.naturality],
-    simp only [functor.const_obj_map, add_right_neg],
+    simp only [alternating_face_map_complex_obj_d, obj_d, fin.sum_univ_two,
+      fin.coe_zero, pow_zero, one_zsmul, fin.coe_one, pow_one, neg_smul, add_comp,
+      simplicial_object.δ_naturality, neg_comp],
+    apply add_right_neg,
   end,
-  naturality' := λ X Y f, chain_complex.to_single₀_ext _ _ (congr_app f.w (op [0])), }
+  naturality' := λ X Y f, by { ext, exact congr_app f.w _, }, }
 
 end alternating_face_map_complex
 

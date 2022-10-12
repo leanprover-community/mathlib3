@@ -6,7 +6,7 @@ Amelia Livingston, Yury Kudryashov
 -/
 import group_theory.submonoid.operations
 import algebra.big_operators.basic
-import algebra.free_monoid
+import algebra.free_monoid.basic
 import data.finset.noncomm_prod
 
 /-!
@@ -280,10 +280,14 @@ mem_closure_singleton.2 ⟨1, pow_one y⟩
 lemma closure_singleton_one : closure ({1} : set M) = ⊥ :=
 by simp [eq_bot_iff_forall, mem_closure_singleton]
 
+@[to_additive] lemma _root_.free_monoid.mrange_lift {α} (f : α → M) :
+  (free_monoid.lift f).mrange = closure (set.range f) :=
+by rw [mrange_eq_map, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
+  free_monoid.lift_comp_of]
+
 @[to_additive]
 lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s → M)).mrange :=
-by rw [mrange_eq_map, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
-  free_monoid.lift_comp_of, subtype.range_coe]
+by rw [free_monoid.mrange_lift, subtype.range_coe]
 
 @[to_additive] lemma closure_eq_image_prod (s : set M) :
   (closure s : set M) = list.prod '' {l : list M | ∀ x ∈ l, x ∈ s} :=

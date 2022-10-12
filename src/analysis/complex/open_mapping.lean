@@ -36,7 +36,7 @@ open_locale topological_space
 variables {U : set ℂ} {f : ℂ → ℂ} {z₀ w : ℂ} {ε r m : ℝ}
 
 lemma diff_cont_on_cl.ball_subset_image_closed_ball (h : diff_cont_on_cl ℂ f (ball z₀ r))
-  (hr : 0 < r) (hf : ∀ z ∈ sphere z₀ r, ε ≤ ∥f z - f z₀∥) (hz₀ : ¬ ∀ᶠ z in 𝓝 z₀, f z = f z₀) :
+  (hr : 0 < r) (hf : ∀ z ∈ sphere z₀ r, ε ≤ ∥f z - f z₀∥) (hz₀ : ∃ᶠ z in 𝓝 z₀, f z ≠ f z₀) :
   ball (f z₀) (ε / 2) ⊆ f '' closed_ball z₀ r :=
 begin
   rintro v hv,
@@ -60,7 +60,7 @@ begin
   have h10 : ∃ᶠ w in 𝓝[≠] z, f w = f z := (h8.filter_mono nhds_within_le_nhds).frequently,
   have h11 := h4.eq_on_of_preconnected_of_frequently_eq analytic_on_const h9 hz1 h10,
   have h12 : f z = f z₀ := (h11 (mem_ball_self hr)).symm,
-  exact hz₀ (mem_of_superset (ball_mem_nhds z₀ hr) (h12 ▸ h11))
+  exact not_eventually.mpr hz₀ (mem_of_superset (ball_mem_nhds z₀ hr) (h12 ▸ h11))
 end
 
 lemma analytic_at.eventually_constant_or_nhds_le_map_nhds (hf : analytic_at ℂ f z₀) :
@@ -89,7 +89,7 @@ begin
       ((h6.sub_const (f z₀)).continuous_on_ball.mono sphere_subset_closed_ball),
   obtain ⟨x, hx, hfx⟩ := (is_compact_sphere z₀ r).exists_forall_le h8 h9,
   refine ⟨∥f x - f z₀∥ / 2, half_pos (norm_sub_pos_iff.mpr (h7 x hx)), _⟩,
-  exact (h6.ball_subset_image_closed_ball hr (λ z hz, hfx z hz) h).trans
+  exact (h6.ball_subset_image_closed_ball hr (λ z hz, hfx z hz) (not_eventually.mp h)).trans
     (image_subset f (closed_ball_subset_closed_ball inf_le_right))
 end
 

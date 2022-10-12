@@ -7,6 +7,7 @@ Authors: ACL
 import tactic
 import logic.equiv.basic
 import tactic.basic tactic.group
+import data.fintype.basic
 import group_theory.group_action.sub_mul_action
 import group_theory.group_action.embedding
 import group_theory.perm.cycle.type
@@ -21,6 +22,45 @@ import group_theory.abelianization
 -- import .for_mathlib.extensions
 
 open_locale pointwise
+
+
+lemma function.extend_apply_first {α β γ : Type*}
+  (f : α → β) (g : α → γ) (e' : β → γ)
+  (hf : ∀ (a b : α), f a = f b → g a = g b) (a : α) :
+  function.extend f g e' (f a) = g a :=
+begin
+  classical,
+  simp only [function.extend_def, dif_pos, exists_apply_eq_apply],
+  apply hf,
+  exact (classical.some_spec (exists_apply_eq_apply f a)),
+end
+
+
+def subgroup.mul_equiv {α β : Type*} [group α] [group β] (e : mul_equiv α β)
+  {G : subgroup α} {H : subgroup β} (h : ∀ g, g ∈ G ↔ e g ∈ H) :
+  mul_equiv G H :=
+{ to_fun := subtype.map e.to_fun (λ g hg, (h g).mp hg), -- λ ⟨g, hg⟩, ⟨e g, h.mp hg⟩,
+  inv_fun := subtype.map e.inv_fun (λ k hk,
+    by simp only [h, mul_equiv.inv_fun_eq_symm, mul_equiv.apply_symm_apply, hk]),
+  left_inv := λ ⟨g, hg⟩,
+  begin
+    rw ← subtype.coe_inj,
+    simp only [subtype.map_coe],
+    simp only [mul_equiv.to_fun_eq_coe, mul_equiv.inv_fun_eq_symm, mul_equiv.symm_apply_apply],
+  end,
+  right_inv := λ ⟨k, hk⟩,
+  begin
+    rw ← subtype.coe_inj,
+    simp only [subtype.map_coe],
+    simp only [mul_equiv.inv_fun_eq_symm, mul_equiv.to_fun_eq_coe, mul_equiv.apply_symm_apply],
+  end,
+  map_mul' := λ ⟨g, hg⟩ ⟨k, hk⟩,
+  begin
+    simp only [← subtype.coe_inj],
+    rw subgroup.coe_mul,
+    simp only [subtype.map_coe],
+    simp only [mul_mem_class.mk_mul_mk, subgroup.coe_mk, mul_equiv.to_fun_eq_coe, map_mul],
+  end, }
 
 section lists
 
@@ -493,7 +533,7 @@ begin
       simpa using hc' _ ha, }, },
 end
 
-open_locale classical
+-- open_locale classical
 
 lemma equiv.perm.mem_cycle_factors_conj_eq (k : conj_act (equiv.perm α)) (g : equiv.perm α) :
   equiv.perm.cycle_factors_finset (k • g) = k • (equiv.perm.cycle_factors_finset g) :=
@@ -610,33 +650,8 @@ def equiv.perm.cycle_factors_smul' (g : equiv.perm α) :
     end⟩ } } -/
 
 
-open_locale classical
+-- open_locale classical
 
-def subgroup.mul_equiv {α β : Type*} [group α] [group β] (e : mul_equiv α β)
-  {G : subgroup α} {H : subgroup β} (h : ∀ g, g ∈ G ↔ e g ∈ H) :
-  mul_equiv G H :=
-{ to_fun := subtype.map e.to_fun (λ g hg, (h g).mp hg), -- λ ⟨g, hg⟩, ⟨e g, h.mp hg⟩,
-  inv_fun := subtype.map e.inv_fun (λ k hk,
-    by simp only [h, mul_equiv.inv_fun_eq_symm, mul_equiv.apply_symm_apply, hk]),
-  left_inv := λ ⟨g, hg⟩,
-  begin
-    rw ← subtype.coe_inj,
-    simp only [subtype.map_coe],
-    simp only [mul_equiv.to_fun_eq_coe, mul_equiv.inv_fun_eq_symm, mul_equiv.symm_apply_apply],
-  end,
-  right_inv := λ ⟨k, hk⟩,
-  begin
-    rw ← subtype.coe_inj,
-    simp only [subtype.map_coe],
-    simp only [mul_equiv.inv_fun_eq_symm, mul_equiv.to_fun_eq_coe, mul_equiv.apply_symm_apply],
-  end,
-  map_mul' := λ ⟨g, hg⟩ ⟨k, hk⟩,
-  begin
-    simp only [← subtype.coe_inj],
-    rw subgroup.coe_mul,
-    simp only [subtype.map_coe],
-    simp only [mul_mem_class.mk_mul_mk, subgroup.coe_mk, mul_equiv.to_fun_eq_coe, map_mul],
-  end, }
 
 example {G : Type*} [group G] (g k : G) : g ⁻¹ * k = k * g⁻¹ ↔ k * g = g * k :=
 begin
@@ -671,10 +686,11 @@ example (g : equiv.perm α) : mul_action.stabilizer (conj_act (equiv.perm α)) g
     conv_lhs { rw eq_comm, },
   end)
 
-example {α β : Type*} [group α] [mul_action α β] (s : finset β) (g : α) :
-  coe (g • s)  = g • (s : set β) := finset.coe_smul_finset g s
+example {α β : Type*} [decidable_eq α] [decidable_eq β] [group α] [mul_action α β]
+  (s : finset β) (g : α) : coe (g • s)  = g • (s : set β) :=
+finset.coe_smul_finset g s
 
-open_locale classical
+-- open_locale classical
 
 
 lemma equiv.perm.commute_of_mem_cycles_factors_commute (k g : equiv.perm α)
@@ -903,14 +919,6 @@ begin
 end
  -/
 
-lemma function.extend_apply_first {α β γ : Type*} (f : α → β) (g : α → γ) (e' : β → γ)
-  (hf : ∀ (a b : α), f a = f b → g a = g b) (a : α) :
-  function.extend f g e' (f a) = g a :=
-begin
-  simp only [function.extend_def, dif_pos, exists_apply_eq_apply],
-  apply hf,
-  exact (classical.some_spec (exists_apply_eq_apply f a)),
-end
 
 
 lemma equiv.perm.zpow_mod_card_support_cycle_of_self_apply [fintype α] (f : equiv.perm α) (n : ℤ) (x : α) :
@@ -1188,12 +1196,19 @@ simp only [embedding_like.apply_eq_iff_eq],
 exact comm,
 end
 
-noncomputable
+instance dec_mem_fixed_by (g : equiv.perm α): decidable_pred (λ (x : α), x ∈ mul_action.fixed_by (equiv.perm α) α g) :=
+begin
+  intro a,
+  simp only [mul_action.mem_fixed_by, equiv.perm.smul_def],
+  exact _inst_1 (g a) a,
+end
+
 def equiv.perm_conj_stabilizer_fun (g : equiv.perm α) :
 (equiv.perm ((mul_action.fixed_by (equiv.perm α) α g)) × Π (c ∈ g.cycle_factors_finset), subgroup.zpowers (c : equiv.perm α)) → equiv.perm α :=
 λ (uv : equiv.perm (mul_action.fixed_by (equiv.perm α) α g)
       × Π (c ∈ g.cycle_factors_finset), subgroup.zpowers (c : equiv.perm α)),
-  uv.fst.of_subtype
+begin
+  exact uv.fst.of_subtype
     * finset.noncomm_prod (g.cycle_factors_finset)
         (λ c, dite (c ∈ g.cycle_factors_finset) (λ hc, uv.snd c hc) (λ hc, 1))
     (λ c hc d hd,
@@ -1204,25 +1219,27 @@ def equiv.perm_conj_stabilizer_fun (g : equiv.perm α) :
       rw [← hc', ← hd'],
       apply commute.zpow_zpow,
       exact g.cycle_factors_finset_mem_commute c hc d hd,
-    end)
+    end),
+end
 
 example (g : equiv.perm α) (u : equiv.perm (mul_action.fixed_by (equiv.perm α) α g))
   (v : Π (c ∈ g.cycle_factors_finset), subgroup.zpowers (c : equiv.perm α)) :
-  conj_act.to_conj_act (equiv.perm_conj_stabilizer_fun g ⟨u, v⟩) ∈
+conj_act.to_conj_act (equiv.perm_conj_stabilizer_fun g ⟨u, v⟩) ∈
 mul_action.stabilizer (conj_act (equiv.perm α)) g :=
 begin
-  simp only [equiv.perm_conj_stabilizer_fun],
+  simp only [equiv.perm_conj_stabilizer_fun, map_mul],
   apply subgroup.mul_mem,
   { rw mul_action.mem_stabilizer_iff,
     rw conj_act.smul_def,
     rw mul_inv_eq_iff_eq_mul,
     ext x,
-    simp only [equiv.perm.coe_mul, function.comp_app],
-    change u.of_subtype (g x) = g (u.of_subtype x),
+    simp only [equiv.perm.coe_mul, function.comp_app, conj_act.of_conj_act_to_conj_act],
     by_cases hx : x ∈ mul_action.fixed_by _ α g,
     { simp only [mul_action.mem_fixed_by, equiv.perm.smul_def] at hx,
       rw hx,
-      exact ((equiv.perm.mem_iff_of_subtype_apply_mem u x).mp hx).symm, },
+      apply symm,
+      rw [← equiv.perm.smul_def, ← mul_action.mem_fixed_by],
+      exact (equiv.perm.mem_iff_of_subtype_apply_mem u x).mp hx, },
     { rw equiv.perm.of_subtype_apply_of_not_mem u hx,
       apply equiv.perm.of_subtype_apply_of_not_mem u,
       intro hx', apply hx,
@@ -1233,7 +1250,6 @@ begin
     rw mul_inv_eq_iff_eq_mul,
     simp only [conj_act.of_conj_act_to_conj_act],
     change commute _ _ ,
-    rw finset.noncomm_prod_map,
     rw commute.symm_iff,
     apply finset.noncomm_prod_commute,
     intros c hc,
@@ -1246,46 +1262,91 @@ begin
     exact equiv.perm.self_mem_cycle_factors_commute g c hc, },
 end
 
-
-def equiv.perm_conj_stabilizer_equiv (g : equiv.perm α) :
-(mul_action.stabilizer (equiv.perm α) g) ≃
-equiv.perm (mul_action.fixed_by (equiv.perm α) α g) × Π (c ∈ g.cycle_factors_finset),
-    subgroup.zpowers (c : equiv.perm α) := {
-to_fun := λ k,
+example {G : Type*} [group G] (x : G) (hx : x ∈ (⊥ : subgroup G)) : x = 1 :=
 begin
-  sorry,
-end,
-inv_fun := λ uv, ⟨equiv.perm_conj_stabilizer_inv_fun g uv,
+refine subgroup.mem_bot.mp hx,
+end
+
+lemma commute_of_subtype_disjoint {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+  (hpq : ∀ a, ¬ (p a ∧ q a))
+  (x : equiv.perm (subtype p)) (y : equiv.perm (subtype q)) :
+  commute x.of_subtype y.of_subtype :=
+begin
+  apply equiv.perm.disjoint.commute,
+  intro a,
+  by_cases hx : p a,
+  { rw equiv.perm.of_subtype_apply_of_not_mem y,
+    apply or.intro_right, refl,
+    exact not_and.mp (hpq a) hx, },
+  { rw equiv.perm.of_subtype_apply_of_not_mem x hx,
+    apply or.intro_left, refl, }
+end
+
+example {ι : Type*}  [fintype ι] [decidable_eq ι] (p : α → ι) :
+fintype.card ({f : equiv.perm α | p ∘ f = p})
+= finset.prod (⊤ : finset ι) (λ i, (fintype.card { a | p a = i }).factorial) :=
+begin
+  let φ : (Π (i : ι), equiv.perm {a | p a = i}) →* equiv.perm α := {
+  to_fun :=
+    λ f, finset.noncomm_prod (⊤ : finset ι) (λ i, (f i).of_subtype)
+      (begin intros i _ j _,
+        by_cases h : i = j,
+        rw h,
+        -- case h : ¬ (i = j)
+        convert commute_of_subtype_disjoint _ (f i) (f j),
+        intro x,
+        simp only [set.mem_set_of_eq, not_and],
+        intro h', rw h', exact h,
+    end),
+  map_one' :=
   begin
-    apply subgroup.mul_mem,
-    { simp only [mul_action.mem_stabilizer_iff, conj_act.smul_eq_mul_aut_conj, mul_aut.conj_apply ],
-      ext x,
-      simp,
-      -- simp only [equiv.perm.mul_apply ],
-      by_cases hx : x ∈ mul_action.fixed_by (equiv.perm α) α (g),
-      { simp only [mul_action.mem_fixed_by, equiv.perm.smul_def] at hx,
-        simp only [smul_eq_mul, equiv.perm.coe_mul, function.comp_app],
-
-        rw hx,
-        have := equiv.perm.mem_iff_of_subtype_apply_mem (uv.fst)⁻¹ x,
-        dsimp at this,
-        rw this at hx, exact hx,
-        rw [← equiv.perm.smul_def, ← mul_action.mem_fixed_by],
-        simp only [← map_inv],
-
-              },
-      sorry,
-    },
+    rw ← subgroup.mem_bot,
+    apply subgroup.noncomm_prod_mem,
+    intros i _,
+    rw subgroup.mem_bot,
+    simp only [pi.one_apply, map_one],
+  end,
+  map_mul' :=
+  begin
+    intros f g,
+    rw ← finset.noncomm_prod_mul_distrib ,
+    apply finset.noncomm_prod_congr rfl,
+    { intros x _, dsimp, rw map_mul, },
+    { intros x _ y _ h,
+      apply commute_of_subtype_disjoint,
+      simp only [set.mem_set_of_eq, not_and],
+      intros a h' h'', apply h, rw [← h', ← h''], },
+  end },
+  have hφ_ker : φ.ker = ⊥,
   sorry,
-  end⟩,
-left_inv := sorry,
-right_inv := sorry,  }
+  have hφ_range : ∀ f, (f ∈ φ.range ↔ p ∘ f = p),
+  sorry,
+  have L1 : fintype.card (Π (i : ι), equiv.perm {a | p a = i}) =
+    fintype.card ({f : equiv.perm α | p ∘ f = p}),
+  { rw fintype.card_eq,
+    let φ' : (Π (i : ι), equiv.perm {a | p a = i}) → {f : equiv.perm α | p ∘ f = p} := λ u, ⟨φ u,
+      begin
+        simp only [set.mem_set_of_eq],
+        rw ← hφ_range _, use u,
+      end⟩,
+    have hφ' : function.bijective φ',
+    { split,
+      { -- injectivity
+        intros u v,
+        simp only [φ', subtype.mk_eq_mk],
+        apply φ.ker_eq_bot_iff.mp hφ_ker, },
+      { -- surjectivity
+        rintro ⟨f, hf⟩,
+        simp only [φ', subtype.mk_eq_mk, ← monoid_hom.mem_range, hφ_range f],
+        exact hf, }, },
+    use equiv.of_bijective φ' hφ', },
+
+  rw ← L1,
+  rw fintype.card_pi,
+  simp,
 
 
-example  {G H : Type*} [group G] [group H] (f : G →* H) (g : G) :
-   f (g⁻¹) = (f g)⁻¹ :=
-begin
-refine map_inv f g
+  sorry,
 end
 
 
@@ -1450,25 +1511,64 @@ begin
   rw fintype.card_congr (quotient_group.quotient_ker_equiv_range φ).to_equiv,
 
   have : fintype.card φ.ker = fintype.card (subgroup.map K.subtype φ.ker),
-  {
+  { sorry,
+    /-
+    rw fintype.card_congr (equiv.of_injective K.subtype _),
+    /- suffices : set.range K. = ↑(subgroup.map K.subtype L),
+    simp_rw this, refl, -/
+
+    simp only [subgroup.coe_map, monoid_hom.coe_comp] ,
+    simp_rw set.range_comp,
+    apply congr_arg _,
+    simp only [set.range_id', set.image_univ],
+    conv_rhs { rw ← subgroup.subtype_range φ.ker,  },
+  refl,
+  -- φ inj
+  simp only [subgroup.coe_map, monoid_hom.coe_comp, subgroup.coe_subtype],
+  rw function.injective.of_comp_iff ;
+  refine subtype.coe_injective,
 rw subgroup.subgroup_of_map_subtype,
 simp only [top_inf_eq],
-  },
+  -/ },
 
 sorry,
 end
 
 example {G H : Type*} [fintype G] [fintype H] [group G] [group H] (K : subgroup G)
-(f : K →* H):
-fintype.card f.ker = fintype.card (subgroup.map K.subtype f.ker) :=
+(L : subgroup K):
+fintype.card L = fintype.card (subgroup.map K.subtype L) :=
 begin
+  let φ := K.subtype.comp L.subtype,
+  rw fintype.card_congr (equiv.of_injective ⇑φ _),
+  simp only [φ],
+  suffices : set.range φ = ↑(subgroup.map K.subtype L),
+  simp_rw this, refl,
+  simp only [φ, subgroup.coe_map, monoid_hom.coe_comp] ,
+  simp_rw set.range_comp,
+  apply congr_arg _,
+  simp only [set.range_id', set.image_univ],
+  conv_rhs { rw ← subgroup.subtype_range L,  },
+  refl,
+  -- φ inj
+  simp only [φ, subgroup.coe_map, monoid_hom.coe_comp, subgroup.coe_subtype],
+  rw function.injective.of_comp_iff ;
+  refine subtype.coe_injective,
+end
+/-
+-- squeeze_simp,
+  rw subgroup.card_eq_card_quotient_mul_card_subgroup φ.ker,
+rw fintype.card_congr (quotient_group.quotient_ker_equiv_range φ).to_equiv,
+  simp only [φ],
+suffices : φ.ker = ⊥,
+simp only [subgroup.subtype_range, subgroup.ker_subtype],
+have := monoid_hom.of_injective (hφ),
 rw ← subgroup.top_subgroup_of ,
 rw subgroup.subgroup_of_map_subtype,
 simp only [top_inf_eq],
 rw subgroup.card_eq_card_quotient_mul_card_subgroup (K.subtype.ker),
 rw fintype.card_congr (quotient_group.quotient_ker_equiv_range K.subtype).to_equiv,
 simp only [subgroup.subtype_range, subgroup.ker_subtype, subgroup.card_bot, mul_one],
-end
+end -/
 
 
 

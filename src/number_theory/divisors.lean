@@ -106,20 +106,12 @@ by simp [divisors, dvd_iff_exists_eq_mul_left, @eq_comm _ m (_ * _), mul_comm n]
 
 lemma divisors_apply : divisors n = finset.filter (λ x : ℕ, x ∣ n) (finset.Icc 1 n) :=
 begin
-  rcases eq_or_ne n 0 with rfl | hn,
+  rcases n.eq_zero_or_pos with rfl | hn,
   { simp },
   ext i,
-  simp only [mem_divisors, hn, ne.def, not_false_iff, and_true, mem_filter, mem_Icc, iff_and_self],
-  -- simp only [divisors, monoid_hom.coe_comp, function.comp_app, monoid_hom.image_apply,
-  --   monoid_hom.coe_fst, divisors_antidiagonal_apply],
-  -- ext i,
-  -- simp only [mem_image, mem_filter, mem_product, mem_Icc, exists_prop, prod.exists,
-  -- exists_and_distrib_right, exists_eq_right],
-  -- rw finset.image_filter,
-
+  simpa [mem_divisors, hn.ne', succ_le_iff]
+    using λ h : i ∣ n, and.intro (pos_of_dvd_of_pos h hn) (le_of_dvd hn h),
 end
-
-#exit
 
 @[simp] lemma filter_dvd_eq_divisors (h : n ≠ 0) :
   (finset.range (n + 1)).filter (∣ n) = n.divisors :=
@@ -158,7 +150,7 @@ lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m := (mem_div
 
 variable {n}
 
-lemma divisor_le {m : ℕ} : m ∈ divisors n → m ≤ n := λ h, (mem_Icc.1 (mem_of_mem_filter _ h)).2
+lemma divisor_le {m : ℕ} : m ∈ divisors n → m ≤ n := by simp [divisors_apply] {contextual := tt}
 
 lemma divisors_subset_of_dvd {m : ℕ} (hzero : n ≠ 0) (h : m ∣ n) : divisors m ⊆ divisors n :=
 finset.subset_iff.2 $ λ x hx, nat.mem_divisors.mpr (⟨(nat.mem_divisors.mp hx).1.trans h, hzero⟩)
@@ -177,10 +169,9 @@ end
 @[simp] lemma proper_divisors_zero : proper_divisors 0 = ∅ := by { ext, simp }
 
 lemma proper_divisors_subset_divisors : proper_divisors n ⊆ divisors n :=
-filter_subset_filter _ Ico_subset_Icc_self
+by { rw divisors_apply, apply filter_subset_filter _ Ico_subset_Icc_self }
 
-@[simp]
-lemma divisors_one : divisors 1 = {1} := by { ext, simp }
+@[simp] lemma divisors_one : divisors 1 = {1} := by { ext, simp }
 
 @[simp] lemma proper_divisors_one : proper_divisors 1 = ∅ := by simp [proper_divisors]
 

@@ -38,12 +38,7 @@ import analysis.special_functions.integrals
 #check set.inter_comm
 #check function.const
 #check measure_theory.measure.map_apply_of_ae_measurable
-<<<<<<< HEAD
-#check congr_arg
-#check set.preimage_const
-=======
 
->>>>>>> 5f7c3f75a61601fef69d9d32e4cef4d5ea532cf2
 ---#check probability_theory.moment,
 
 /-
@@ -1026,7 +1021,6 @@ begin
 
 end
 
----The second important result
 lemma moment_one_real_gaussian (hs : s ≠ 0) (hμ : μ.real_gaussian m s) :
   μ[id] = m :=
 begin

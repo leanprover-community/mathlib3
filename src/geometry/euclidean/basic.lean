@@ -1518,4 +1518,33 @@ lemma eq_of_mem_sphere_of_mem_sphere_of_finrank_eq_two [finite_dimensional ℝ V
 eq_of_dist_eq_of_dist_eq_of_finrank_eq_two hd ((sphere.center_ne_iff_ne_of_mem hps₁ hps₂).2 hs)
   hp hp₁s₁ hp₂s₁ hps₁ hp₁s₂ hp₂s₂ hps₂
 
+/-- A set of points is concyclic if it is cospherical and coplanar. (Most results are stated
+directly in terms of `cospherical` instead of using `concyclic`.) -/
+def concyclic (ps : set P) : Prop :=
+cospherical ps ∧ coplanar ℝ ps
+
+/-- A concyclic set is cospherical. -/
+lemma concyclic.cospherical {ps : set P} (h : concyclic ps) : cospherical ps :=
+h.1
+
+/-- A concyclic set is coplanar. -/
+lemma concyclic.coplanar {ps : set P} (h : concyclic ps) : coplanar ℝ ps :=
+h.2
+
+/-- A subset of a concyclic set is concyclic. -/
+lemma concyclic.subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (h : concyclic ps₂) : concyclic ps₁ :=
+⟨cospherical_subset hs h.1, h.2.subset hs⟩
+
+/-- The empty set is concyclic. -/
+lemma concyclic_empty : concyclic (∅ : set P) :=
+⟨cospherical_empty, coplanar_empty ℝ P⟩
+
+/-- A single point is concyclic. -/
+lemma concyclic_singleton (p : P) : concyclic ({p} : set P) :=
+⟨cospherical_singleton p, coplanar_singleton ℝ p⟩
+
+/-- Two points are concyclic. -/
+lemma concyclic_pair (p₁ p₂ : P) : concyclic ({p₁, p₂} : set P) :=
+⟨cospherical_pair p₁ p₂, coplanar_pair ℝ p₁ p₂⟩
+
 end euclidean_geometry

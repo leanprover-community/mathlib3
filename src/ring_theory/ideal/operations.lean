@@ -95,7 +95,7 @@ begin
   exact Hb _ hi _ hj,
 end
 
-/-- Dependent version of smul_induction_on -/
+/-- Dependent version of `smul_induction_on` -/
 @[elab_as_eliminator]
 theorem smul_induction_on' {x : M} (hx : x ∈ I • N)
   {p : Π x, x ∈ I • N → Prop}
@@ -107,7 +107,7 @@ begin
   refine exists.elim _ (λ (h : x ∈ I • N) (H : p x h), H),
   exact smul_induction_on hx
     (λ a ha x hx, ⟨_, Hb _ ha _ hx⟩)
-    (λ x y ⟨_, hx⟩ ⟨_, hy⟩,  ⟨_, H1 _ _ _ _ hx hy⟩),
+    (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, H1 _ _ _ _ hx hy⟩),
 end
 
 theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :

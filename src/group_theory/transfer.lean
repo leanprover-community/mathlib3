@@ -214,8 +214,7 @@ begin
   { refine λ g, @fintype.of_finite (zpowers g) (nat.finite_of_card_ne_zero _),
     rw ← order_eq_card_zpowers',
     obtain ⟨k, hk⟩ := h g,
-    refine ne_zero_of_dvd_ne_zero _ (order_of_dvd_of_pow_eq_one hk),
-    refine pow_ne_zero k (λ hp, hn1 _),
+    refine ne_zero_of_dvd_ne_zero (pow_ne_zero k (λ hp, hn1 _)) (order_of_dvd_of_pow_eq_one hk),
     rwa [hp, nat.coprime_zero_left] at hn },
   have : ∀ g : G, (fintype.card (zpowers g)).coprime n,
   { intro g,
@@ -224,15 +223,9 @@ begin
     exact (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk) },
   refine function.bijective_iff_has_inverse.mpr
     ⟨λ g, (pow_coprime (this g)).symm ⟨g, mem_zpowers g⟩, _, _⟩,
-  { intro g,
-    have key := (pow_coprime (this (g ^ n))).left_inv ⟨g, _⟩,
-    rw subtype.ext_iff at key,
-    exact key,
-    refine ⟨_, subtype.ext_iff.mp ((pow_coprime (this g)).left_inv ⟨g, mem_zpowers g⟩)⟩ },
-  { intro g,
-    have key := (pow_coprime (this g)).right_inv ⟨g, mem_zpowers g⟩,
-    rw subtype.ext_iff at key,
-    exact key },
+  { refine λ g, subtype.ext_iff.mp ((pow_coprime (this (g ^ n))).left_inv ⟨g, _⟩),
+    exact ⟨_, subtype.ext_iff.mp ((pow_coprime (this g)).left_inv ⟨g, mem_zpowers g⟩)⟩ },
+  { exact λ g, subtype.ext_iff.mp ((pow_coprime (this g)).right_inv ⟨g, mem_zpowers g⟩) },
 end
 
 lemma _root_.is_p_group.pow_bijective {p : ℕ} [fact p.prime] {G : Type*} [group G] (h : is_p_group p G)

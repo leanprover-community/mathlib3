@@ -30,7 +30,10 @@ ring_aut
 @[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
 
 namespace ring_aut
-variables (R G : Type*) [has_mul R] [has_add R] [group G]
+
+section mul_add
+
+variables (R : Type*) [has_mul R] [has_add R]
 
 /--
 The group operation on automorphisms of a ring is defined by
@@ -61,8 +64,14 @@ by refine_struct { to_fun := ring_equiv.to_mul_equiv }; intros; refl
 def to_perm : ring_aut R →* equiv.perm R :=
 by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
 
+end mul_add
+
+section semiring
+
+variables (R G : Type*) [group G] [semiring R]
+
 /-- The tautological action by the group of automorphism of a ring `R` on `R`.-/
-instance apply_mul_semiring_action {R : Type*} [semiring R] :
+instance apply_mul_semiring_action :
 mul_semiring_action (ring_aut R) R :=
 { smul := ($),
   smul_zero := ring_equiv.map_zero,
@@ -74,21 +83,19 @@ mul_semiring_action (ring_aut R) R :=
 
 @[simp]
 protected lemma
-smul_def {R : Type*} [semiring R] (f : ring_aut R) (r : R) : f • r = f r := rfl
+smul_def (f : ring_aut R) (r : R) : f • r = f r := rfl
 
-instance apply_has_faithful_smul {R : Type*} [semiring R] : has_faithful_smul (ring_aut R) R :=
-⟨λ _ _, ring_equiv.ext⟩
+instance apply_has_faithful_smul : has_faithful_smul (ring_aut R) R := ⟨λ _ _, ring_equiv.ext⟩
 
 /-- Each element of the group defines a ring automorphism.
 
 This is a stronger version of `distrib_mul_action.to_add_aut` and
  `mul_distrib_mul_action.to_mul_aut`. -/
-@[simps]
-def mul_semiring_action.to_ring_aut {R : Type*} [semiring R]
-  [mul_semiring_action G R] :
-  G →* ring_aut R :=
+@[simps] def mul_semiring_action.to_ring_aut [mul_semiring_action G R] : G →* ring_aut R :=
 { to_fun := mul_semiring_action.to_ring_equiv G R,
   map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,
   map_one' := ring_equiv.ext $ one_smul _, }
+
+end semiring
 
 end ring_aut

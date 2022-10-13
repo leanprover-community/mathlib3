@@ -95,7 +95,7 @@ begin
   exact Hb _ hi _ hj,
 end
 
-/-- Dependent version of `smul_induction_on` -/
+/-- Dependent version of `submodule.smul_induction_on`. -/
 @[elab_as_eliminator]
 theorem smul_induction_on' {x : M} (hx : x ∈ I • N)
   {p : Π x, x ∈ I • N → Prop}

@@ -177,12 +177,9 @@ namespace weak_dual
 namespace character_space
 
 variables {A B C : Type*}
-variables [normed_ring A] [normed_algebra ℂ A] [complete_space A]
-variables [star_ring A] [cstar_ring A] [nontrivial A]
-variables [normed_ring B] [normed_algebra ℂ B] [complete_space B]
-variables [star_ring B] [cstar_ring B] [nontrivial B]
-variables [normed_ring C] [normed_algebra ℂ C] [complete_space C]
-variables [star_ring C] [cstar_ring C] [nontrivial C]
+variables [normed_ring A] [normed_algebra ℂ A] [complete_space A] [star_ring A]
+variables [normed_ring B] [normed_algebra ℂ B] [complete_space B] [star_ring B]
+variables [normed_ring C] [normed_algebra ℂ C] [complete_space C] [star_ring C]
 
 /-- The functorial map taking `ψ : A →⋆ₐ[ℂ] B` to a continuous function
 `character_space ℂ B → character_space ℂ A` obtained by pre-composition with `ψ`. -/
@@ -195,7 +192,7 @@ noncomputable def comp_continuous_map (ψ : A →⋆ₐ[ℂ] B) :
 
 variables (A)
 
-/-- `weak_dual.character_space.comp_continuous_map` is sends the identity to the identity. -/
+/-- `weak_dual.character_space.comp_continuous_map` sends the identity to the identity. -/
 @[simp] lemma comp_continuous_map_id :
   comp_continuous_map (star_alg_hom.id ℂ A) = continuous_map.id (character_space ℂ A) :=
 continuous_map.ext $ λ a, ext $ λ x, rfl

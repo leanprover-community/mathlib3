@@ -76,6 +76,11 @@ by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 { positive_orientation := ray_of_ne_zero R (alternating_map.const_linear_equiv_of_is_empty 1) $
     alternating_map.const_linear_equiv_of_is_empty.injective.ne (by simp) }
 
+@[simp] lemma orientation.map_positive_orientation_of_is_empty [nontrivial R] [is_empty ι]
+  (f : M ≃ₗ[R] N) :
+  orientation.map ι f positive_orientation = positive_orientation :=
+rfl
+
 @[simp] lemma orientation.map_of_is_empty [is_empty ι] (x : orientation R M ι) (f : M ≃ₗ[R] M) :
   orientation.map ι f x = x :=
 begin

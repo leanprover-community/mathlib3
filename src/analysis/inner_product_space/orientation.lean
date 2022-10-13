@@ -272,8 +272,10 @@ lemma volume_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ
   (orientation.map (fin n) φ.to_linear_equiv o).volume_form x = o.volume_form (φ.symm ∘ x) :=
 begin
   unfreezingI { cases n },
-  { sorry },
-  -- { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
+  -- { sorry },
+  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp,
+
+   },
   -- sorry
   let e : orthonormal_basis (fin n.succ) ℝ E := o.fin_orthonormal_basis n.succ_pos (fact.out _),
   have he : e.to_basis.orientation = o :=
@@ -291,12 +293,10 @@ lemma volume_form_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
   (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x : fin n → E) :
   o.volume_form (φ ∘ x) = o.volume_form x :=
 begin
-  -- unfreezingI { cases n },
-  -- { sorry },
   convert o.volume_form_map φ (φ ∘ x),
   { symmetry,
     rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
-    rw [fact.out (finrank ℝ E = n + 1), fintype.card_fin] },
+    rw [_i.out, fintype.card_fin] },
   { ext,
     simp }
 end

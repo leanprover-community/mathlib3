@@ -751,7 +751,7 @@ begin
 end
 
 lemma ext_chart_at_continuous_at' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
-  continuous_at ext_chart_at I x x' :=
+  continuous_at (ext_chart_at I x) x' :=
 (ext_chart_at_continuous_on I x).continuous_at $ ext_chart_at_source_mem_nhds' I x h
 
 lemma ext_chart_at_continuous_at : continuous_at (ext_chart_at I x) x :=

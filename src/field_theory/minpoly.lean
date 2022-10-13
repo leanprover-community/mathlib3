@@ -454,7 +454,7 @@ begin
   let L := fraction_ring S,
   rw [← gcd_domain_eq_field_fractions K L hs],
   refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
-    (is_integral_of_is_scalar_tower _ hs) rfl
+    (is_integral_of_is_scalar_tower hs) rfl
 end
 
 variable [no_zero_smul_divisors R S]

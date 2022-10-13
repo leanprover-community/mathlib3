@@ -550,11 +550,12 @@ lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [deci
 by { unfold extend, congr }
 
 lemma extend_apply_of_unique (g : α → γ) (e' : β → γ)
-  (hf : ∀ (a b : α), f a = f b → g a = g b) (a : α) :
+  (hf : ∀ ⦃a b : α⦄, f a = f b → g a = g b) (a : α) :
   extend f g e' (f a) = g a :=
 begin
+  /- simpa only [extend_def, dif_pos, exists_apply_eq_apply] using hf _ a (classical.some_spec (exists_apply_eq_apply f a)), -/
   simp only [extend_def, dif_pos, exists_apply_eq_apply],
-  exact hf _ a (classical.some_spec (exists_apply_eq_apply f a)),
+  exact hf (classical.some_spec (exists_apply_eq_apply f a)),
 end
 
 @[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
@@ -569,13 +570,13 @@ end
 by simp [function.extend_def, hb]
 
 lemma apply_extend_of_unique {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
-  (hf : ∀ (a b : α), f a = f b → g a = g b) (b : β) :
+  (hf : ∀ ⦃a b : α⦄, f a = f b → g a = g b) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
 begin
   by_cases hb : ∃ a, f a = b,
   { cases hb with a ha, subst b,
     rw [extend_apply_of_unique, extend_apply_of_unique],
-    { intros a b h, simp only [comp_apply], apply congr_arg, exact hf _ _ h, },
+    { intros a b h, simp only [comp_apply], apply congr_arg, exact hf h, },
     { exact hf, }, },
   { rw [extend_apply' _ _ _ hb, extend_apply' _ _ _ hb] }
 end
@@ -600,7 +601,7 @@ begin
 end
 
 lemma extend_comp_of_unique (g : α → γ) (e' : β → γ)
-  (hf : ∀ (a b : α), f a = f b → g a = g b) :
+  (hf : ∀ ⦃a b : α⦄, f a = f b → g a = g b) :
   extend f g e' ∘ f = g :=
 begin
   funext a,

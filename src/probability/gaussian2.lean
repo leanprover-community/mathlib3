@@ -48,7 +48,16 @@ begin
     simp,
     simp [h1] at hf,
     simp [h2] at hg,
-    sorry},
+    rw pushmea_of_func_plus_const_func f g m₁ hfmeas hgmeas hf,
+    have h_const_mea : measurable (λ (x : Ω), m₁),
+    {measurability,},
+    {
+      rw pushmea_of_func_plus_const_func g (λ (x : Ω), m₁) m₂ hgmeas h_const_mea hg,
+      simp,
+      sorry
+    },
+
+  },
   {
 
       simp [(sq_pos_iff s₂).mpr h2, sq_nonneg s₁, lt_add_of_le_of_pos, ne_of_gt],

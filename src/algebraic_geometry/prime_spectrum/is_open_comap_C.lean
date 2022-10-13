@@ -48,7 +48,8 @@ morphism `C⁺ : Spec R[x] → Spec R`. -/
 lemma image_of_Df_eq_comap_C_compl_zero_locus :
   image_of_Df f = prime_spectrum.comap (C : R →+* R[X]) '' (zero_locus {f})ᶜ :=
 begin
-  refine ext (λ x, ⟨λ hx, ⟨⟨map C x.as_ideal, (is_prime_map_C_of_is_prime x.is_prime)⟩, ⟨_, _⟩⟩, _⟩),
+  ext x,
+  refine ⟨λ hx, ⟨⟨map C x.as_ideal, (is_prime_map_C_of_is_prime x.is_prime)⟩, ⟨_, _⟩⟩, _⟩,
   { rw [mem_compl_iff, mem_zero_locus, singleton_subset_iff],
     cases hx with i hi,
     exact λ a, hi (mem_map_C_iff.mp a i) },

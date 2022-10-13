@@ -1055,7 +1055,7 @@ end
 
 lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0} {c : ℝ≥0}
   (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
-le_of_tendsto' (has_sum_iff_tendsto_nat.1 (summable_of_sum_range_le h).has_sum) h
+tsum_le_of_sum_range_le (summable_of_sum_range_le h) h
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ≥0} (hf : summable f)
   {i : β → α} (hi : function.injective i) : ∑' x, f (i x) ≤ ∑' x, f x :=
@@ -1145,6 +1145,10 @@ begin
   exact_mod_cast nnreal.tendsto_sum_nat_add f
 end
 
+lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
+tsum_le_of_sum_range_le ennreal.summable h
+
 end ennreal
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ} (hf : summable f) (hn : ∀ a, 0 ≤ f a)
@@ -1209,10 +1213,9 @@ begin
   exact lt_irrefl _ (hn.trans_le (h n)),
 end
 
-lemma tsum_le_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n)
+lemma real.tsum_le_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n)
   (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
-le_of_tendsto' ((has_sum_iff_tendsto_nat_of_nonneg hf _).1
-  (summable_of_sum_range_le hf h).has_sum) h
+tsum_le_of_sum_range_le (summable_of_sum_range_le hf h) h
 
 /-- If a sequence `f` with non-negative terms is dominated by a sequence `g` with summable
 series and at least one term of `f` is strictly smaller than the corresponding term in `g`,

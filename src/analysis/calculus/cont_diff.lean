@@ -2281,15 +2281,23 @@ begin
       (cont_diff_within_at_id.prod hg) hu },
 end
 
+/-- The most general lemma stating that `fderiv_within` is `C^n` at a point within a set.
+To show that `x' ↦ D_yf(x',y)g(x')` (taken within `t`) is `C^m` at `x` within `s`, we require that
+* `f` is `C^n` at `(x, g(x))` within `u` for `n ≥ m+1` and `u ⊇ (s ∪ {x}) × t`. We also need that
+  `u` is a neighborhood of `(x, g(x))` within the image of `s` under `x' ↦ (x', g(x'))`;
+* `g` is `C^m` at `x` within `s`;
+* There is exist unique derivatives at `g(x')` within `t` for `x'` sufficiently close to `x`
+  within `s ∪ {x}`;
+-/
 lemma cont_diff_within_at.fderiv_within'' {f : E → F → G} {g : E → F} {u : set (E × F)}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) u (x, g x))
   (hg : cont_diff_within_at 𝕜 m g s x)
-  (ht : ∀ᶠ y in 𝓝[insert x s] x, unique_diff_within_at 𝕜 t (g y))
+  (ht : ∀ᶠ x' in 𝓝[insert x s] x, unique_diff_within_at 𝕜 t (g x'))
   (hmn : m + 1 ≤ n)
   (hst : insert x s ×ˢ t ⊆ u)
-  (hu : u ∈ 𝓝[(λ x, (x, g x)) '' s] (x, g x)) :
-  cont_diff_within_at 𝕜 m (λ x, fderiv_within 𝕜 (f x) t (g x)) s x :=
+  (hu : u ∈ 𝓝[(λ x', (x', g x')) '' s] (x, g x)) :
+  cont_diff_within_at 𝕜 m (λ x', fderiv_within 𝕜 (f x') t (g x')) s x :=
 begin
   have : ∀ k : ℕ, (k : with_top ℕ) ≤ m →
     cont_diff_within_at 𝕜 k (λ x, fderiv_within 𝕜 (f x) t (g x)) s x,
@@ -2307,6 +2315,8 @@ begin
   exact this m le_rfl
 end
 
+/-- A special case of `cont_diff_within_at.fderiv_within''` where we require that `s ⊆ g⁻¹(t)` and
+  there are unique derivatives everywhere within `t`. -/
 lemma cont_diff_within_at.fderiv_within' {f : E → F → G} {g : E → F} {u : set (E × F)}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) u (x, g x))
@@ -2315,7 +2325,7 @@ lemma cont_diff_within_at.fderiv_within' {f : E → F → G} {g : E → F} {u : 
   (hmn : m + 1 ≤ n)
   (hst : insert x s ×ˢ t ⊆ u)
   (h2st : s ⊆ g ⁻¹' t)
-  (hgx : ∀ᶠ x' in 𝓝[insert x s] x, g x' ∈ t) :
+  (hgx : ∀ᶠ x' in 𝓝[insert x s] x, g x' ∈ t) : todo (remove)
   cont_diff_within_at 𝕜 m (λ x, fderiv_within 𝕜 (f x) t (g x)) s x :=
 begin
   refine hf.fderiv_within'' hg (hgx.mono (λ y hy, ht _ hy)) hmn hst _,
@@ -2325,6 +2335,7 @@ begin
   exact (prod_mono (subset_insert x s) h2st).trans hst
 end
 
+/-- A special case of `cont_diff_within_at.fderiv_within'` where we require that `x ∈ s`. -/
 lemma cont_diff_within_at.fderiv_within {f : E → F → G} {g : E → F} {u : set (E × F)}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) u (x, g x))
@@ -2341,9 +2352,10 @@ begin
   exact eventually_of_mem self_mem_nhds_within h2st
 end
 
+/-- `fderiv_within` is smooth at `x` within `s` (for functions without parameters). -/
 lemma cont_diff_within_at.fderiv_within_right
   (hf : cont_diff_within_at 𝕜 n f s x) (hs : unique_diff_on 𝕜 s)
-  (hmn : (m + 1 : ℕ∞) ≤ n) (hxs : x ∈ s) :
+  (hmn : (m + 1 : ℕ∞) ≤ n) (hxs : x ∈ s do we need this?) :
   cont_diff_within_at 𝕜 m (fderiv_within 𝕜 f s) s x :=
 cont_diff_within_at.fderiv_within
   (cont_diff_within_at.comp (x, x) hf cont_diff_within_at_snd subset_rfl)
@@ -2351,6 +2363,7 @@ cont_diff_within_at.fderiv_within
   (by { rw [← univ_prod], exact prod_mono (subset_univ _) subset_rfl })
   (by rw [preimage_id'])
 
+/-- `fderiv` is smooth at `x` (for functions without parameters). -/
 lemma cont_diff_at.cont_diff_at_fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}
   (hf : cont_diff_at 𝕜 n (function.uncurry f) (x, g x))
   (hg : cont_diff_at 𝕜 m g x)
@@ -2363,11 +2376,13 @@ begin
   rw [preimage_univ]
 end
 
+/-- `fderiv` is smooth. -/
 lemma cont_diff.fderiv {f : E → F → G} {g : E → F} {n m : ℕ∞}
   (hf : cont_diff 𝕜 m $ function.uncurry f) (hg : cont_diff 𝕜 n g) (hnm : n + 1 ≤ m) :
     cont_diff 𝕜 n (λ x, fderiv 𝕜 (f x) (g x)) :=
 cont_diff_iff_cont_diff_at.mpr $ λ x, hf.cont_diff_at.cont_diff_at_fderiv hg.cont_diff_at hnm
 
+/-- `fderiv` is continuous. -/
 lemma continuous.fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}
   (hf : cont_diff 𝕜 n $ function.uncurry f) (hg : continuous g) (hn : 1 ≤ n):
     continuous (λ x, fderiv 𝕜 (f x) (g x)) :=
@@ -2379,6 +2394,7 @@ lemma cont_diff_on.continuous_on_fderiv_within_apply
   (h : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
   continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ univ) :=
 begin
+todo
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
   have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ univ),
   { apply continuous_on.prod _ continuous_snd.continuous_on,

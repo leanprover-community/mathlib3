@@ -107,7 +107,7 @@ begin
 end
 
 lemma polar_coord_source_ae_eq_univ :
-  (∈ polar_coord.source) =ᵐ[volume] (∈ univ) :=
+  (∈ polar_coord.source) =ᵐ[volume] (∈ (univ : set (ℝ × ℝ))) :=
 begin
   have A : polar_coord.sourceᶜ ⊆ (linear_map.snd ℝ ℝ ℝ).ker,
   { assume x hx,

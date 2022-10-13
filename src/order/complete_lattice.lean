@@ -846,18 +846,22 @@ by rw [supr_sup_eq, supr_const]
 lemma inf_infi [nonempty ι] {f : ι → α} {a : α} : a ⊓ (⨅ x, f x) = ⨅ x, a ⊓ f x :=
 by rw [infi_inf_eq, infi_const]
 
-lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
-  (⨅ i (h : p i), f i h) ⊓ a = ⨅ i (h : p i), f i h ⊓ a :=
-by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
-  rw [infi_subtype', infi_subtype', infi_inf]
-
-lemma bsupr_sup {ι : Sort*} {p : ι → Prop} {f : Π i, p i → α} {a : α} (hp : ∃ i, p i) :
+lemma bsupr_sup {p : ι → Prop} {f : Π i, p i → α} {a : α} (h : ∃ i, p i) :
   (⨆ i (h : p i), f i h) ⊔ a = ⨆ i (h : p i), f i h ⊔ a :=
-@binfi_inf αᵒᵈ ι _ p f _ hp
+by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
+  rw [supr_subtype', supr_subtype', supr_sup]
 
-lemma inf_binfi {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
+lemma sup_bsupr {p : ι → Prop} {f : Π i, p i → α} {a : α} (h : ∃ i, p i) :
+  a ⊔ (⨆ i (h : p i), f i h) = ⨆ i (h : p i), a ⊔ f i h :=
+by simpa only [sup_comm] using bsupr_sup h
+
+lemma binfi_inf {p : ι → Prop} {f : Π i, p i → α} {a : α} (h : ∃ i, p i) :
+  (⨅ i (h : p i), f i h) ⊓ a = ⨅ i (h : p i), f i h ⊓ a :=
+@bsupr_sup αᵒᵈ ι _ p f _ h
+
+lemma inf_binfi {p : ι → Prop} {f : Π i, p i → α} {a : α} (h : ∃ i, p i) :
   a ⊓ (⨅ i (h : p i), f i h) = ⨅ i (h : p i), a ⊓ f i h :=
-by simpa only [inf_comm] using binfi_inf h
+@sup_bsupr αᵒᵈ ι _ p f _ h
 
 /-! ### `supr` and `infi` under `Prop` -/
 

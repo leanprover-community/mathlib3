@@ -563,6 +563,30 @@ begin
     simp [h], },
 end
 
+include m
+
+@[measurability] lemma measurable_set_preimage_iterate {f : α → α} (hf : measurable f)
+  (hs : measurable_set s) (n : ℕ) :
+  measurable_set $ (preimage f)^[n] s :=
+begin
+  induction n with n ih, { simp [hs], },
+  simpa only [iterate_succ', comp_app] using hf ih,
+end
+
+@[measurability] lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ limsup at_top s :=
+begin
+  simp only [limsup_eq_infi_supr_of_nat', supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Inter (λ n, measurable_set.Union $ λ m, hs $ m + n),
+end
+
+@[measurability] lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ liminf at_top s :=
+begin
+  simp only [liminf_eq_supr_infi_of_nat', supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Union (λ n, measurable_set.Inter $ λ m, hs $ m + n),
+end
+
 lemma measure_if {x : β} {t : set β} {s : set α} :
   μ (if x ∈ t then s else ∅) = indicator t (λ _, μ s) x :=
 by { split_ifs; simp [h] }

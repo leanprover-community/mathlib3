@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joël Riou
 -/
 
+import algebraic_topology.alternating_face_map_complex
 import algebraic_topology.simplicial_set
 import algebraic_topology.cech_nerve
+import algebra.homology.homotopy
 import tactic.fin_cases
 
 /-!
@@ -31,12 +33,10 @@ functor `C ⥤ D`
 an extra degeneracy
 - `arrow.augmented_cech_nerve.extra_degeneracy`: the Čech nerve of a split
 epimorphism has an extra degeneracy
-
-TODO @joelriou:
-1) when the category `C` is preadditive and has a zero object, and
-`X : simplicial_object.augmented C` has an extra degeneracy, then the augmentation
-on the alternating face map complex of `X` is a homotopy equivalence of chain
-complexes.
+- `extra_degeneracy.homotopy_equiv`: in the case the category `C` is preadditive,
+if we have an extra degeneracy on `X : simplicial_object.augmented C`, then
+the augmentation on the alternating face map complex of `X` is a homotopy
+equivalence.
 
 ## References
 * [Paul G. Goerss, John F. Jardine, *Simplical Homotopy Theory*][goerss-jardine-2009]
@@ -337,3 +337,61 @@ end augmented_cech_nerve
 end arrow
 
 end category_theory
+
+namespace simplicial_object
+
+namespace augmented
+
+namespace extra_degeneracy
+
+open algebraic_topology category_theory category_theory.limits
+
+/-- If `C` is a preadditive category and `X` is an augmented simplicial object
+in `C` that has an extra degeneracy, then the augmentation on the alternating
+face map complex of `X` is an homotopy equivalence. -/
+noncomputable
+def homotopy_equiv {C : Type*} [category C]
+  [preadditive C] [has_zero_object C] {X : simplicial_object.augmented C}
+  (ed : extra_degeneracy X) :
+  homotopy_equiv (algebraic_topology.alternating_face_map_complex.obj (drop.obj X))
+    ((chain_complex.single₀ C).obj (point.obj X)) :=
+{ hom := alternating_face_map_complex.ε.app X,
+  inv := (chain_complex.from_single₀_equiv _ _).inv_fun ed.s',
+  homotopy_inv_hom_id := homotopy.of_eq (by { ext, exact ed.s'_comp_ε, }),
+  homotopy_hom_inv_id :=
+  { hom := λ i j, begin
+      by_cases i+1 = j,
+      { exact (-ed.s i) ≫ eq_to_hom (by congr'), },
+      { exact 0, },
+    end,
+    zero' := λ i j hij, begin
+      split_ifs,
+      { exfalso, exact hij h, },
+      { simp only [eq_self_iff_true], },
+    end,
+    comm := λ i, begin
+      cases i,
+      { rw [homotopy.prev_d_chain_complex, homotopy.d_next_zero_chain_complex, zero_add],
+        dsimp [chain_complex.from_single₀_equiv, chain_complex.to_single₀_equiv],
+        simp only [zero_add, eq_self_iff_true, preadditive.neg_comp, comp_id, if_true,
+          alternating_face_map_complex.obj_d_eq, fin.sum_univ_two, fin.coe_zero, pow_zero,
+          one_zsmul, fin.coe_one, pow_one, neg_smul, preadditive.comp_add, ← s₀_comp_δ₁,
+          s_comp_δ₀, preadditive.comp_neg, neg_add_rev, neg_neg, neg_add_cancel_right,
+          neg_add_cancel_comm], },
+      { rw [homotopy.prev_d_chain_complex, homotopy.d_next_succ_chain_complex],
+        dsimp [chain_complex.to_single₀_equiv, chain_complex.from_single₀_equiv],
+        simp only [zero_comp, alternating_face_map_complex.obj_d_eq, eq_self_iff_true,
+          preadditive.neg_comp, comp_id, if_true, preadditive.comp_neg,
+          @fin.sum_univ_succ _ _ (i+2), preadditive.comp_add, fin.coe_zero, pow_zero, one_zsmul,
+          s_comp_δ₀, fin.coe_succ, pow_add, pow_one, mul_neg, neg_zsmul,
+          preadditive.comp_sum, preadditive.sum_comp, neg_neg, mul_one,
+          preadditive.comp_zsmul, preadditive.zsmul_comp, s_comp_δ, zsmul_neg],
+        rw [add_comm (-𝟙 _), add_assoc, add_assoc, add_left_neg, add_zero,
+          finset.sum_neg_distrib, add_left_neg], },
+    end, }, }
+
+end extra_degeneracy
+
+end augmented
+
+end simplicial_object

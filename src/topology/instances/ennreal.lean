@@ -488,11 +488,11 @@ lemma inv_map_supr {ι : Sort*} {x : ι → ℝ≥0∞} :
 order_iso.inv_ennreal.map_supr x
 
 lemma inv_limsup {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
-  (l.limsup x)⁻¹ = l.liminf (λ i, (x i)⁻¹) :=
+  (limsup x l)⁻¹ = liminf (λ i, (x i)⁻¹) l :=
 by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
 
 lemma inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
-  (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
+  (liminf x l)⁻¹ = limsup (λ i, (x i)⁻¹) l :=
 by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
 
 instance : has_continuous_inv ℝ≥0∞ := ⟨order_iso.inv_ennreal.continuous⟩
@@ -654,7 +654,7 @@ end topological_space
 section liminf
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, x n < R :=
 begin
   by_contra h,
@@ -665,7 +665,7 @@ begin
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, R < x n :=
 begin
   by_contra h,
@@ -677,7 +677,7 @@ end
 
 lemma exists_upcrossings_of_not_bounded_under
   {ι : Type*} {l : filter ι} {x : ι → ℝ}
-  (hf : liminf l (λ i, (∥x i∥₊ : ℝ≥0∞)) ≠ ∞)
+  (hf : liminf (λ i, (∥x i∥₊ : ℝ≥0∞)) l ≠ ∞)
   (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
   ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
 begin
@@ -783,7 +783,7 @@ protected lemma tsum_eq_supr_nat {f : ℕ → ℝ≥0∞} :
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
 
 protected lemma tsum_eq_liminf_sum_nat {f : ℕ → ℝ≥0∞} :
-  ∑' i, f i = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
+  ∑' i, f i = liminf (λ n, ∑ i in finset.range n, f i) at_top :=
 begin
   rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
   congr,

@@ -306,6 +306,20 @@ lemma mem_pi (x : ι → α) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
 
 end pi
 
+lemma Inf_is_prime_of_is_chain {s : set (ideal α)} (hs : s.nonempty) (hs' : is_chain (≤) s)
+  (H : ∀ p ∈ s, ideal.is_prime p) :
+  (Inf s).is_prime :=
+⟨λ e, let ⟨x, hx⟩ := hs in (H x hx).ne_top (eq_top_iff.mpr (e.symm.trans_le (Inf_le hx))),
+  λ x y e, or_iff_not_imp_left.mpr $ λ hx, begin
+    rw ideal.mem_Inf at hx ⊢ e,
+    push_neg at hx,
+    obtain ⟨I, hI, hI'⟩ := hx,
+    intros J hJ,
+    cases hs'.total hI hJ,
+    { exact h (((H I hI).mem_or_mem (e hI)).resolve_left hI') },
+    { exact ((H J hJ).mem_or_mem (e hJ)).resolve_left (λ x, hI' $ h x) },
+  end⟩
+
 end ideal
 
 end semiring
@@ -504,6 +518,10 @@ begin
   by_cases H : r = 0, {simpa},
   simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
+
+/-- Ideals of a `division_ring` are a simple order. Thanks to the way abbreviations work, this
+automatically gives a `is_simple_module K` instance. -/
+instance : is_simple_order (ideal K) := ⟨eq_bot_or_top⟩
 
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1

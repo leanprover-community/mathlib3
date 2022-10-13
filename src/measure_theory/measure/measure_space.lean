@@ -251,9 +251,9 @@ lemma measure_eq_measure_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) h₁ h_fin }
 
-/-- If `s ⊆ t`, `μ t ≤ μ s`, `μ t ≠ ∞`, and `s` is measurable, then `s =ᵐ[μ] t`. -/
+/-- If `s ⊆ t`, `μ t ≤ μ s`, `μ t ≠ ∞`, and `s` is measurable, then `(∈ s) =ᵐ[μ] (∈ t)`. -/
 lemma ae_eq_of_subset_of_measure_ge (h₁ : s ⊆ t) (h₂ : μ t ≤ μ s) (hsm : measurable_set s)
-  (ht : μ t ≠ ∞) : s =ᵐ[μ] t :=
+  (ht : μ t ≠ ∞) : (∈ s) =ᵐ[μ] (∈ t) :=
 have A : μ t = μ s, from h₂.antisymm (measure_mono h₁),
 have B : μ s ≠ ∞, from A ▸ ht,
 h₁.eventually_le.antisymm $ ae_le_set.2 $ by rw [measure_diff h₁ hsm B, A, tsub_self]
@@ -268,7 +268,7 @@ begin
   push_neg at htop,
   refine le_antisymm (measure_mono (Union_mono hsub)) _,
   set M := to_measurable μ,
-  have H : ∀ b, (M (t b) ∩ M (⋃ b, s b) : set α) =ᵐ[μ] M (t b),
+  have H : ∀ b, (∈ M (t b) ∩ M (⋃ b, s b)) =ᵐ[μ] (∈ M (t b)),
   { refine λ b, ae_eq_of_subset_of_measure_ge (inter_subset_left _ _) _ _ _,
     { calc μ (M (t b)) = μ (t b) : measure_to_measurable _
       ... ≤ μ (s b) : h_le b
@@ -1091,13 +1091,13 @@ le_antisymm ((le_comap_apply f μ hfi hf s).trans hs.le) (zero_le _)
 lemma ae_eq_image_of_ae_eq_comap {β} [measurable_space α] {mβ : measurable_space β}
   (f : α → β) (μ : measure β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) {s t : set α}
-  (hst : s =ᵐ[comap f μ] t) :
-  f '' s =ᵐ[μ] f '' t :=
+  (hst : (∈ s) =ᵐ[comap f μ] (∈ t)) :
+  (∈ f '' s) =ᵐ[μ] (∈ f '' t) :=
 begin
   rw [eventually_eq, ae_iff] at hst ⊢,
-  have h_eq_α : {a : α | ¬s a = t a} = s \ t ∪ t \ s,
+  have h_eq_α : {a : α | ¬((a ∈ s) = (a ∈ t))} = s \ t ∪ t \ s,
   { ext1 x, simp only [eq_iff_iff, mem_set_of_eq, mem_union, mem_diff], tauto, },
-  have h_eq_β : {a : β | ¬(f '' s) a = (f '' t) a} = f '' s \ f '' t ∪ f '' t \ f '' s,
+  have h_eq_β : {a : β | ¬((a ∈ f '' s) = (a ∈ f '' t))} = f '' s \ f '' t ∪ f '' t \ f '' s,
   { ext1 x, simp only [eq_iff_iff, mem_set_of_eq, mem_union, mem_diff], tauto, },
   rw [← set.image_diff hfi, ← set.image_diff hfi, ← set.image_union] at h_eq_β,
   rw h_eq_β,
@@ -1115,7 +1115,7 @@ begin
     measurable_set_to_measurable _ _, _⟩,
   refine eventually_eq.trans _ (null_measurable_set.to_measurable_ae_eq _).symm,
   swap, { exact hf _ (measurable_set_to_measurable _ _), },
-  have h : to_measurable (comap f μ) s =ᵐ[comap f μ] s,
+  have h : (∈ to_measurable (comap f μ) s) =ᵐ[comap f μ] (∈ s),
     from @null_measurable_set.to_measurable_ae_eq _ _ (μ.comap f : measure α) s hs,
   exact ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
 end
@@ -1246,10 +1246,10 @@ calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
   μ.restrict s ≤ ν.restrict s' :=
 restrict_mono' (ae_of_all _ hs) hμν
 
-lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
+lemma restrict_mono_ae (h : (∈ s) ≤ᵐ[μ] (∈ t)) : μ.restrict s ≤ μ.restrict t :=
 restrict_mono' h (le_refl μ)
 
-lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
+lemma restrict_congr_set (h : (∈ s) =ᵐ[μ] (∈ t)) : μ.restrict s = μ.restrict t :=
 le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
 
 /-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
@@ -2265,13 +2265,13 @@ by simp only [ae_restrict_eq hs, exists_prop, mem_principal, mem_inf_iff];
 
 /-- If two measurable sets are ae_eq then any proposition that is almost everywhere true on one
 is almost everywhere true on the other -/
-lemma ae_restrict_of_ae_eq_of_ae_restrict {s t} (hst : s =ᵐ[μ] t) {p : α → Prop} :
+lemma ae_restrict_of_ae_eq_of_ae_restrict {s t} (hst : (∈ s) =ᵐ[μ] (∈ t)) {p : α → Prop} :
   (∀ᵐ x ∂μ.restrict s, p x) → (∀ᵐ x ∂μ.restrict t, p x) :=
 by simp [measure.restrict_congr_set hst]
 
 /-- If two measurable sets are ae_eq then any proposition that is almost everywhere true on one
 is almost everywhere true on the other -/
-lemma ae_restrict_congr_set {s t} (hst : s =ᵐ[μ] t) {p : α → Prop} :
+lemma ae_restrict_congr_set {s t} (hst : (∈ s) =ᵐ[μ] (∈ t)) {p : α → Prop} :
   (∀ᵐ x ∂μ.restrict s, p x) ↔ (∀ᵐ x ∂μ.restrict t, p x) :=
 ⟨ae_restrict_of_ae_eq_of_ae_restrict hst, ae_restrict_of_ae_eq_of_ae_restrict hst.symm⟩
 
@@ -2303,27 +2303,28 @@ end
 
 variables [partial_order α] {a b : α}
 
-lemma Iio_ae_eq_Iic' (ha : μ {a} = 0) : Iio a =ᵐ[μ] Iic a :=
+lemma Iio_ae_eq_Iic' (ha : μ {a} = 0) : (∈ Iio a) =ᵐ[μ] (∈ Iic a) :=
 by rw [←Iic_diff_right, diff_ae_eq_self, measure_mono_null (set.inter_subset_right _ _) ha]
 
-lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a := @Iio_ae_eq_Iic' αᵒᵈ ‹_› ‹_› _ _ ha
+lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : (∈ Ioi a) =ᵐ[μ] (∈ Ici a) :=
+@Iio_ae_eq_Iic' αᵒᵈ ‹_› ‹_› _ _ ha
 
-lemma Ioo_ae_eq_Ioc' (hb : μ {b} = 0) : Ioo a b =ᵐ[μ] Ioc a b :=
+lemma Ioo_ae_eq_Ioc' (hb : μ {b} = 0) : (∈ Ioo a b) =ᵐ[μ] (∈ Ioc a b) :=
 (ae_eq_refl _).inter (Iio_ae_eq_Iic' hb)
 
-lemma Ioc_ae_eq_Icc' (ha : μ {a} = 0) : Ioc a b =ᵐ[μ] Icc a b :=
+lemma Ioc_ae_eq_Icc' (ha : μ {a} = 0) : (∈ Ioc a b) =ᵐ[μ] (∈ Icc a b) :=
 (Ioi_ae_eq_Ici' ha).inter (ae_eq_refl _)
 
-lemma Ioo_ae_eq_Ico' (ha : μ {a} = 0) : Ioo a b =ᵐ[μ] Ico a b :=
+lemma Ioo_ae_eq_Ico' (ha : μ {a} = 0) : (∈ Ioo a b) =ᵐ[μ] (∈ Ico a b) :=
 (Ioi_ae_eq_Ici' ha).inter (ae_eq_refl _)
 
-lemma Ioo_ae_eq_Icc' (ha : μ {a} = 0) (hb : μ {b} = 0) : Ioo a b =ᵐ[μ] Icc a b :=
+lemma Ioo_ae_eq_Icc' (ha : μ {a} = 0) (hb : μ {b} = 0) : (∈ Ioo a b) =ᵐ[μ] (∈ Icc a b) :=
 (Ioi_ae_eq_Ici' ha).inter (Iio_ae_eq_Iic' hb)
 
-lemma Ico_ae_eq_Icc' (hb : μ {b} = 0) : Ico a b =ᵐ[μ] Icc a b :=
+lemma Ico_ae_eq_Icc' (hb : μ {b} = 0) : (∈ Ico a b) =ᵐ[μ] (∈ Icc a b) :=
 (ae_eq_refl _).inter (Iio_ae_eq_Iic' hb)
 
-lemma Ico_ae_eq_Ioc' (ha : μ {a} = 0) (hb : μ {b} = 0) : Ico a b =ᵐ[μ] Ioc a b :=
+lemma Ico_ae_eq_Ioc' (ha : μ {a} = 0) (hb : μ {b} = 0) : (∈ Ico a b) =ᵐ[μ] (∈ Ioc a b) :=
 (Ioo_ae_eq_Ico' ha).symm.trans (Ioo_ae_eq_Ioc' hb)
 
 end intervals
@@ -2588,42 +2589,43 @@ lemma _root_.finset.measure_zero {α : Type*} {m : measurable_space α}
 s.finite_to_set.measure_zero μ
 
 lemma insert_ae_eq_self (a : α) (s : set α) :
-  (insert a s : set α) =ᵐ[μ] s :=
+  (∈ insert a s) =ᵐ[μ] (∈ s) :=
 union_ae_eq_right.2 $ measure_mono_null (diff_subset _ _) (measure_singleton _)
 
 section
 
 variables [partial_order α] {a b : α}
 
-lemma Iio_ae_eq_Iic : Iio a =ᵐ[μ] Iic a :=
+lemma Iio_ae_eq_Iic : (∈ Iio a) =ᵐ[μ] (∈ Iic a) :=
 Iio_ae_eq_Iic' (measure_singleton a)
 
-lemma Ioi_ae_eq_Ici : Ioi a =ᵐ[μ] Ici a :=
+lemma Ioi_ae_eq_Ici : (∈ Ioi a) =ᵐ[μ] (∈ Ici a) :=
 Ioi_ae_eq_Ici' (measure_singleton a)
 
-lemma Ioo_ae_eq_Ioc : Ioo a b =ᵐ[μ] Ioc a b :=
+lemma Ioo_ae_eq_Ioc : (∈ Ioo a b) =ᵐ[μ] (∈ Ioc a b) :=
 Ioo_ae_eq_Ioc' (measure_singleton b)
 
-lemma Ioc_ae_eq_Icc : Ioc a b =ᵐ[μ] Icc a b :=
+lemma Ioc_ae_eq_Icc : (∈ Ioc a b) =ᵐ[μ] (∈ Icc a b) :=
 Ioc_ae_eq_Icc' (measure_singleton a)
 
-lemma Ioo_ae_eq_Ico : Ioo a b =ᵐ[μ] Ico a b :=
+lemma Ioo_ae_eq_Ico : (∈ Ioo a b) =ᵐ[μ] (∈ Ico a b) :=
 Ioo_ae_eq_Ico' (measure_singleton a)
 
-lemma Ioo_ae_eq_Icc : Ioo a b =ᵐ[μ] Icc a b :=
+lemma Ioo_ae_eq_Icc : (∈ Ioo a b) =ᵐ[μ] (∈ Icc a b) :=
 Ioo_ae_eq_Icc' (measure_singleton a) (measure_singleton b)
 
-lemma Ico_ae_eq_Icc : Ico a b =ᵐ[μ] Icc a b :=
+lemma Ico_ae_eq_Icc : (∈ Ico a b) =ᵐ[μ] (∈ Icc a b) :=
 Ico_ae_eq_Icc' (measure_singleton b)
 
-lemma Ico_ae_eq_Ioc : Ico a b =ᵐ[μ] Ioc a b :=
+lemma Ico_ae_eq_Ioc : (∈ Ico a b) =ᵐ[μ] (∈ Ioc a b) :=
 Ico_ae_eq_Ioc' (measure_singleton a) (measure_singleton b)
 
 end
 
 open_locale interval
 
-lemma interval_oc_ae_eq_interval [linear_order α] {a b : α} : Ι a b =ᵐ[μ] [a, b] := Ioc_ae_eq_Icc
+lemma interval_oc_ae_eq_interval [linear_order α] {a b : α} : (∈ Ι a b) =ᵐ[μ] (∈ [a, b]) :=
+Ioc_ae_eq_Icc
 
 end no_atoms
 
@@ -3610,7 +3612,8 @@ begin
   exact (piecewise_eq_on_compl s f g).eventually_eq.filter_mono inf_le_right
 end
 
-lemma piecewise_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.piecewise f g =ᵐ[μ] t.piecewise f g :=
+lemma piecewise_ae_eq_of_ae_eq_set (hst : (∈ s) =ᵐ[μ] (∈ t)) :
+  s.piecewise f g =ᵐ[μ] t.piecewise f g :=
 hst.mem_iff.mono $ λ x hx, by simp [piecewise, hx]
 
 end piecewise
@@ -3681,7 +3684,7 @@ begin
   { simp [hx, hxs], },
 end
 
-lemma indicator_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.indicator f =ᵐ[μ] t.indicator f :=
+lemma indicator_ae_eq_of_ae_eq_set (hst : (∈ s) =ᵐ[μ] (∈ t)) : s.indicator f =ᵐ[μ] t.indicator f :=
 piecewise_ae_eq_of_ae_eq_set hst
 
 lemma indicator_meas_zero (hs : μ s = 0) : indicator s f =ᵐ[μ] 0 :=

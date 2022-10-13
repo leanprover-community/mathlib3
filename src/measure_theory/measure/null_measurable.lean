@@ -15,10 +15,10 @@ import measure_theory.measure.ae_disjoint
 A set `s : set α` is called *null measurable* (`measure_theory.null_measurable_set`) if it satisfies
 any of the following equivalent conditions:
 
-* there exists a measurable set `t` such that `s =ᵐ[μ] t` (this is used as a definition);
-* `measure_theory.to_measurable μ s =ᵐ[μ] s`;
-* there exists a measurable subset `t ⊆ s` such that `t =ᵐ[μ] s` (in this case the latter equality
-  means that `μ (s \ t) = 0`);
+* there exists a measurable set `t` such that `(∈ s) =ᵐ[μ] (∈ t)` (this is used as a definition);
+* `(∈ measure_theory.to_measurable μ s) =ᵐ[μ] (∈ s)`;
+* there exists a measurable subset `t ⊆ s` such that `(∈ t) =ᵐ[μ] (∈ s)` (in this case the latter
+equality means that `μ (s \ t) = 0`);
 * `s` can be represented as a union of a measurable set and a set of measure zero;
 * `s` can be represented as a difference of a measurable set and a set of measure zero.
 
@@ -71,7 +71,7 @@ instance [h : inhabited α] : inhabited (null_measurable_space α μ) := h
 instance [h : subsingleton α] : subsingleton (null_measurable_space α μ) := h
 
 instance : measurable_space (null_measurable_space α μ) :=
-{ measurable_set' := λ s, ∃ t, measurable_set t ∧ s =ᵐ[μ] t,
+{ measurable_set' := λ s, ∃ (t : set α), measurable_set t ∧ (∈ s) =ᵐ[μ] (∈ t),
   measurable_set_empty := ⟨∅, measurable_set.empty, ae_eq_refl _⟩,
   measurable_set_compl := λ s ⟨t, htm, hts⟩, ⟨tᶜ, htm.compl, hts.compl⟩,
   measurable_set_Union := λ s hs, by { choose t htm hts using hs,
@@ -105,7 +105,7 @@ measurable_set.compl_iff
 @[nontriviality]
 lemma of_subsingleton [subsingleton α] : null_measurable_set s μ := subsingleton.measurable_set
 
-protected lemma congr (hs : null_measurable_set s μ) (h : s =ᵐ[μ] t) :
+protected lemma congr (hs : null_measurable_set s μ) (h : (∈ s) =ᵐ[μ] (∈ t)) :
   null_measurable_set t μ :=
 let ⟨s', hm, hs'⟩ := hs in ⟨s', hm, h.symm.trans hs'⟩
 
@@ -171,28 +171,29 @@ protected lemma insert [measurable_singleton_class (null_measurable_space α μ)
 hs.insert a
 
 lemma exists_measurable_superset_ae_eq (h : null_measurable_set s μ) :
-  ∃ t ⊇ s, measurable_set t ∧ t =ᵐ[μ] s :=
+  ∃ t ⊇ s, measurable_set t ∧ (∈ t) =ᵐ[μ] (∈ s) :=
 begin
   rcases h with ⟨t, htm, hst⟩,
   refine ⟨t ∪ to_measurable μ (s \ t), _, htm.union (measurable_set_to_measurable _ _), _⟩,
   { exact diff_subset_iff.1 (subset_to_measurable _ _) },
-  { have : to_measurable μ (s \ t) =ᵐ[μ] (∅ : set α), by simp [ae_le_set.1 hst.le],
+  { have : (∈ to_measurable μ (s \ t)) =ᵐ[μ] (∈ (∅ : set α)),
+      by simp only [ae_le_set.1 hst.le, ae_eq_empty, measure_to_measurable],
     simpa only [union_empty] using hst.symm.union this }
 end
 
 lemma to_measurable_ae_eq (h : null_measurable_set s μ) :
-  to_measurable μ s =ᵐ[μ] s :=
+  (∈ to_measurable μ s) =ᵐ[μ] (∈ s) :=
 begin
   rw [to_measurable, dif_pos],
   exact h.exists_measurable_superset_ae_eq.some_spec.snd.2
 end
 
 lemma compl_to_measurable_compl_ae_eq (h : null_measurable_set s μ) :
-  (to_measurable μ sᶜ)ᶜ =ᵐ[μ] s :=
+  (∈ (to_measurable μ sᶜ)ᶜ) =ᵐ[μ] (∈ s) :=
 by simpa only [compl_compl] using h.compl.to_measurable_ae_eq.compl
 
 lemma exists_measurable_subset_ae_eq (h : null_measurable_set s μ) :
-  ∃ t ⊆ s, measurable_set t ∧ t =ᵐ[μ] s :=
+  ∃ t ⊆ s, measurable_set t ∧ (∈ t) =ᵐ[μ] (∈ s) :=
 ⟨(to_measurable μ sᶜ)ᶜ, compl_subset_comm.2 $ subset_to_measurable _ _,
   (measurable_set_to_measurable _ _).compl, h.compl_to_measurable_compl_ae_eq⟩
 
@@ -200,10 +201,10 @@ end null_measurable_set
 
 /-- If `sᵢ` is a countable family of (null) measurable pairwise `μ`-a.e. disjoint sets, then there
 exists a subordinate family `tᵢ ⊆ sᵢ` of measurable pairwise disjoint sets such that
-`tᵢ =ᵐ[μ] sᵢ`. -/
+`(∈ tᵢ) =ᵐ[μ] (∈ sᵢ)`. -/
 lemma exists_subordinate_pairwise_disjoint [countable ι] {s : ι → set α}
   (h : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s)) :
-  ∃ t : ι → set α, (∀ i, t i ⊆ s i) ∧ (∀ i, s i =ᵐ[μ] t i) ∧ (∀ i, measurable_set (t i)) ∧
+  ∃ t : ι → set α, (∀ i, t i ⊆ s i) ∧ (∀ i, (∈ s i) =ᵐ[μ] (∈ t i)) ∧ (∀ i, measurable_set (t i)) ∧
     pairwise (disjoint on t) :=
 begin
   choose t ht_sub htm ht_eq using λ i, (h i).exists_measurable_subset_ae_eq,

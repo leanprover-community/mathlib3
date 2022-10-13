@@ -87,13 +87,13 @@ begin
   exact λ t₁ t₂, bUnion_subset_bUnion_left
 end
 
-lemma filter.eventually_eq.support [has_zero β] {f g : α → β} {l : filter α}
-  (h : f =ᶠ[l] g) :
-  function.support f =ᶠ[l] function.support g :=
+@[to_additive]
+lemma filter.eventually_eq.mul_support [has_one β] {f g : α → β} {l : filter α}
+  (h : f =ᶠ[l] g) : (∈ function.mul_support f) =ᶠ[l] (∈ function.mul_support g) :=
 begin
   filter_upwards [h] with x hx,
   rw eq_iff_iff,
-  change f x ≠ 0 ↔ g x ≠ 0,
+  change f x ≠ 1 ↔ g x ≠ 1,
   rw hx,
 end
 

@@ -72,7 +72,7 @@ lemma mk' (h_meas : null_measurable_set s μ) (h_exists : ∀ x : α, ∃! g : G
     end }
 
 @[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
-  (⋃ g : G, g • s) =ᵐ[μ] univ :=
+  (∈ ⋃ g : G, g • s) =ᵐ[μ] (∈ (univ : set α)) :=
 eventually_eq_univ.2 $ h.ae_covers.mono $ λ x ⟨g, hg⟩, mem_Union.2 ⟨g⁻¹, _, hg, inv_smul_smul _ _⟩
 
 @[to_additive] lemma mono (h : is_fundamental_domain G s μ) {ν : measure α} (hle : ν ≪ μ) :

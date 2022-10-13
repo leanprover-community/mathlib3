@@ -61,7 +61,7 @@ section complex_banach_algebra
 open ideal
 
 variables {A : Type*} [normed_comm_ring A] [normed_algebra ℂ A] [complete_space A]
-  [norm_one_class A] (I : ideal A) [ideal.is_maximal I]
+  (I : ideal A) [ideal.is_maximal I]
 
 /-- Every maximal ideal in a commutative complex Banach algebra gives rise to a character on that
 algebra. In particular, the character, which may be identified as an algebra homomorphism due to
@@ -103,23 +103,20 @@ begin
   exact (continuous_map.spectrum_eq_range (gelfand_transform ℂ A a)).symm ▸ ⟨f, hf.symm⟩,
 end
 
-instance : nonempty (character_space ℂ A) :=
-begin
-  haveI := norm_one_class.nontrivial A,
-  exact ⟨classical.some $
-    weak_dual.character_space.exists_apply_eq_zero (zero_mem_nonunits.mpr zero_ne_one)⟩,
-end
+instance [nontrivial A] : nonempty (character_space ℂ A) :=
+⟨classical.some $ weak_dual.character_space.exists_apply_eq_zero $ zero_mem_nonunits.2 zero_ne_one⟩
 
 end complex_banach_algebra
 
 section complex_cstar_algebra
 
 variables (A : Type*) [normed_comm_ring A] [normed_algebra ℂ A] [complete_space A]
-variables [star_ring A] [cstar_ring A] [star_module ℂ A] [nontrivial A]
+variables [star_ring A] [cstar_ring A] [star_module ℂ A]
 
 /-- The Gelfand transform is an isometry when the algebra is a C⋆-algebra over `ℂ`. -/
 lemma gelfand_transform_isometry : isometry (gelfand_transform ℂ A) :=
 begin
+  nontriviality A,
   refine add_monoid_hom_class.isometry_of_norm (gelfand_transform ℂ A) (λ a, _),
   have gt_map_star : gelfand_transform ℂ A (star a) = star (gelfand_transform ℂ A a),
     from continuous_map.ext (λ φ, map_star φ a),

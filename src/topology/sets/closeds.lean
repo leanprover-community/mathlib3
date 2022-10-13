@@ -108,6 +108,10 @@ instance : coframe (closeds α) :=
     (set_like.coe_injective $ by simp only [coe_sup, coe_infi, coe_Inf, set.union_Inter₂]).le,
   ..closeds.complete_lattice }
 
+/-- The term of `closeds α` corresponding to a singleton. -/
+@[simps] def singleton [t1_space α] (x : α) : closeds α :=
+⟨{x}, is_closed_singleton⟩
+
 end closeds
 
 /-- The complement of a closed set as an open set. -/
@@ -123,6 +127,50 @@ lemma closeds.compl_bijective : function.bijective (@closeds.compl α _) :=
 function.bijective_iff_has_inverse.mpr ⟨opens.compl, closeds.compl_compl, opens.compl_compl⟩
 lemma opens.compl_bijective : function.bijective (@opens.compl α _) :=
 function.bijective_iff_has_inverse.mpr ⟨closeds.compl, opens.compl_compl, closeds.compl_compl⟩
+
+variables (α)
+
+/-- `closeds.compl` as an `order_iso` to the order dual of `opens α`. -/
+@[simps] def closeds.compl_order_iso : closeds α ≃o (opens α)ᵒᵈ :=
+{ to_fun := order_dual.to_dual ∘ closeds.compl,
+  inv_fun := opens.compl ∘ order_dual.of_dual,
+  left_inv := λ s, by simp [closeds.compl_compl],
+  right_inv := λ s, by simp [opens.compl_compl],
+  map_rel_iff' := λ s t, by simpa only [equiv.coe_fn_mk, function.comp_app,
+    order_dual.to_dual_le_to_dual] using compl_subset_compl }
+
+/-- `opens.compl` as an `order_iso` to the order dual of `closeds α`. -/
+@[simps] def opens.compl_order_iso : opens α ≃o (closeds α)ᵒᵈ :=
+{ to_fun := order_dual.to_dual ∘ opens.compl,
+  inv_fun := closeds.compl ∘ order_dual.of_dual,
+  left_inv := λ s, by simp [opens.compl_compl],
+  right_inv := λ s, by simp [closeds.compl_compl],
+  map_rel_iff' := λ s t, by simpa only [equiv.coe_fn_mk, function.comp_app,
+    order_dual.to_dual_le_to_dual] using compl_subset_compl }
+
+variables {α}
+
+/-- in a `t1_space`, atoms of `closeds α` are precisely the `closeds.singleton`s. -/
+lemma closeds.is_atom_iff [t1_space α] {s : closeds α} : is_atom s ↔ ∃ x, s = closeds.singleton x :=
+begin
+  have : is_atom (s : set α) ↔ is_atom s,
+  { refine closeds.gi.is_atom_iff' rfl (λ t ht, _) s,
+    obtain ⟨x, rfl⟩ := t.is_atom_iff.mp ht,
+    exact closure_singleton },
+  simpa only [← this, (s : set α).is_atom_iff, set_like.ext_iff, set.ext_iff]
+end
+
+/-- in a `t1_space`, coatoms of `opens α` are precisely complements of singletons:
+`(closeds.singleton x).compl`. -/
+lemma opens.is_coatom_iff [t1_space α] {s : opens α} :
+  is_coatom s ↔ ∃ x, s = (closeds.singleton x).compl :=
+begin
+  rw [←s.compl_compl, ←is_atom_dual_iff_is_coatom],
+  change is_atom (closeds.compl_order_iso α s.compl) ↔ _,
+  rw [(closeds.compl_order_iso α).is_atom_iff, closeds.is_atom_iff],
+  congrm ∃ x, _,
+  exact closeds.compl_bijective.injective.eq_iff.symm,
+end
 
 /-! ### Clopen sets -/
 

@@ -71,10 +71,13 @@ under composition and inverses
 -/
 @[ext] structure subgroupoid (C : Type u) [groupoid C] :=
 (arrows : ∀ (c d : C), set (c ⟶ d))
-(inv' : ∀ {c d} {p : c ⟶ d} (hp : p ∈ arrows c d),
+(inv : ∀ {c d} {p : c ⟶ d} (hp : p ∈ arrows c d),
           inv p ∈ arrows d c)
-(mul' : ∀ {c d e} {p} (hp : p ∈ arrows c d) {q} (hq : q ∈ arrows d e),
+(mul : ∀ {c d e} {p} (hp : p ∈ arrows c d) {q} (hq : q ∈ arrows d e),
           p ≫ q ∈ arrows c e)
+
+attribute [protected] subgroupoid.inv
+attribute [protected] subgroupoid.mul
 
 namespace subgroupoid
 
@@ -87,7 +90,7 @@ lemma id_mem_of_nonempty_isotropy (c : C) :
   c ∈ objs S → 𝟙 c ∈ S.arrows c c :=
 begin
   rintro ⟨γ,hγ⟩,
-  convert S.mul' hγ (S.inv' hγ),
+  convert S.mul hγ (S.inv hγ),
   simp only [inv_eq_inv, is_iso.hom_inv_id],
 end
 
@@ -98,11 +101,11 @@ def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
 instance coe : groupoid S.objs :=
 { hom := λ a b, S.arrows a.val b.val,
   id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩,
-  comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul' p.prop q.prop⟩,
+  comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul p.prop q.prop⟩,
   id_comp' := λ a b ⟨p,hp⟩, by simp only [category.id_comp],
   comp_id' := λ a b ⟨p,hp⟩, by simp only [category.comp_id],
   assoc' := λ a b c d ⟨p,hp⟩ ⟨q,hq⟩ ⟨r,hr⟩, by simp only [category.assoc],
-  inv := λ a b p, ⟨inv p.val, S.inv' p.prop⟩,
+  inv := λ a b p, ⟨inv p.val, S.inv p.prop⟩,
   inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp],
   comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
 
@@ -123,9 +126,9 @@ by { rintros ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,hf⟩ ⟨g,hg⟩ hfg, simp only [subtype
 /-- The subgroup of the vertex group at `c` given by the subgroupoid -/
 def vertex_subgroup {c : C} (hc : c ∈ S.objs) : subgroup (c ⟶ c) :=
 { carrier  := S.arrows c c,
-  mul_mem' := λ f g hf hg, S.mul' hf hg,
+  mul_mem' := λ f g hf hg, S.mul hf hg,
   one_mem' := id_mem_of_nonempty_isotropy _ _ hc,
-  inv_mem' := λ f hf, S.inv' hf }
+  inv_mem' := λ f hf, S.inv hf }
 
 /-- A subgroupoid seen as a set of arrows
 def coe_set (S : subgroupoid C) : set (Σ (c d : C), c ⟶ d) := {F | F.2.2 ∈ S.arrows F.1 F.2.1} -/
@@ -153,26 +156,26 @@ by { rw [set_like.le_def, sigma.forall], exact forall_congr (λ c, sigma.forall)
 
 instance : has_top (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, set.univ),
-    mul'   := by { rintros, trivial, },
-    inv'   := by { rintros, trivial, } } ⟩
+    mul   := by { rintros, trivial, },
+    inv   := by { rintros, trivial, } } ⟩
 instance : has_bot (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, ∅),
-    mul'   := λ _ _ _ _, false.elim,
-    inv'   := λ _ _ _, false.elim } ⟩
+    mul   := λ _ _ _ _, false.elim,
+    inv   := λ _ _ _, false.elim } ⟩
 
 instance : inhabited (subgroupoid C) := ⟨⊤⟩
 
 instance : has_inf (subgroupoid C) :=
 ⟨ λ S T,
   { arrows := (λ c d, (S.arrows c d) ∩ (T.arrows c d)),
-    inv'   := by { rintros, exact ⟨S.inv' hp.1, T.inv' hp.2⟩, },
-    mul'   := by { rintros, exact ⟨S.mul' hp.1 hq.1, T.mul' hp.2 hq.2⟩, } } ⟩
+    inv   := by { rintros, exact ⟨S.inv hp.1, T.inv hp.2⟩, },
+    mul   := by { rintros, exact ⟨S.mul hp.1 hq.1, T.mul hp.2 hq.2⟩, } } ⟩
 
 instance : has_Inf (subgroupoid C) :=
 ⟨ λ s,
   { arrows := λ c d, ⋂ S ∈ s, (subgroupoid.arrows S c d),
-    inv' := by { intros, rw mem_Inter₂ at hp ⊢, exact λ S hS, S.inv' (hp S hS) },
-    mul' := by { intros, rw mem_Inter₂ at hp hq ⊢,exact λ S hS, S.mul' (hp S hS) (hq S hS) } } ⟩
+    inv := by { intros, rw mem_Inter₂ at hp ⊢, exact λ S hS, S.inv (hp S hS) },
+    mul := by { intros, rw mem_Inter₂ at hp hq ⊢,exact λ S hS, S.mul (hp S hS) (hq S hS) } } ⟩
 
 instance : complete_lattice (subgroupoid C) :=
 { bot          := (⊥),
@@ -223,8 +226,8 @@ inductive discrete.arrows : Π (c d : C), (c ⟶ d) → Prop
 /-- The only arrows of the discrete groupoid are the identity arrows-/
 def discrete : subgroupoid C :=
 { arrows := discrete.arrows,
-  inv' := by { rintros _ _ _ ⟨⟩, simp only [inv_eq_inv, is_iso.inv_id], split, },
-  mul' := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, rw category.comp_id, split, } }
+  inv := by { rintros _ _ _ ⟨⟩, simp only [inv_eq_inv, is_iso.inv_id], split, },
+  mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, rw category.comp_id, split, } }
 
 lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
   (f ∈ (discrete).arrows c d) ↔ (∃ (h : c = d), f = eq_to_hom h) :=
@@ -291,12 +294,12 @@ by taking preimages.
  -/
 def comap (S : subgroupoid D) : subgroupoid C :=
 { arrows := λ c d, {f : c ⟶ d | φ.map f ∈ S.arrows (φ.obj c) (φ.obj d)},
-  inv'   :=
-    λ c d p hp, by { rw [mem_set_of, inv_eq_inv, φ.map_inv p, ← inv_eq_inv], exact S.inv' hp },
-  mul'   := by
+  inv   :=
+    λ c d p hp, by { rw [mem_set_of, inv_eq_inv, φ.map_inv p, ← inv_eq_inv], exact S.inv hp },
+  mul   := by
   { rintros,
     simp only [mem_set_of, functor.map_comp],
-    apply S.mul';
+    apply S.mul;
     assumption, } }
 
 lemma comap_mono (S T : subgroupoid D) :
@@ -334,16 +337,16 @@ end
 /-- The "forward" image of a subgroupoid under a functor injective on objects -/
 def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
 { arrows := map.arrows φ hφ S,
-  inv'   := begin
+  inv   := begin
     rintro _ _ _ ⟨⟩,
     rw [inv_eq_inv, ←functor.map_inv, ←inv_eq_inv],
-    split, apply S.inv', assumption,
+    split, apply S.inv, assumption,
   end,
-  mul'   := begin
+  mul   := begin
     rintro _ _ _ _ ⟨c₁,c₂,f,hf⟩ q hq,
     obtain ⟨c₃,c₄,g,he,rfl,hg,gq⟩ := (map.mem_arrows_iff φ hφ S q).mp hq,
     cases hφ he, rw [gq, ← eq_conj_eq_to_hom, ← φ.map_comp],
-    split, exact S.mul' hf hg,
+    split, exact S.mul hf hg,
   end }
 
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :

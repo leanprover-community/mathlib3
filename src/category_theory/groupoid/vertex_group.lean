@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli
 -/
 import category_theory.groupoid
+import category_theory.path_category
 import algebra.group.defs
 import algebra.hom.group
 import algebra.hom.equiv
@@ -52,7 +53,7 @@ lemma vertex_group.inv_eq_inv (c : C) (γ : c ⟶ c) :
 An arrow in the groupoid defines, by conjugation, an isomorphism of groups between
 its endpoints
 -/
-def vertex_group_isom_of_map {c d : C} (f : c ⟶ d) : (c ⟶ c) ≃* (d ⟶ d) :=
+@[simps] def vertex_group_isom_of_map {c d : C} (f : c ⟶ d) : (c ⟶ c) ≃* (d ⟶ d) :=
 { to_fun  := λ γ, inv f ≫ γ ≫ f,
   inv_fun := λ δ, f ≫ δ ≫ inv f,
   left_inv := λ γ, by simp_rw [category.assoc, comp_inv, category.comp_id,
@@ -65,13 +66,16 @@ def vertex_group_isom_of_map {c d : C} (f : c ⟶ d) : (c ⟶ c) ≃* (d ⟶ d) 
 /--
 A path in the groupoid defines an isomorphism between its endpoints.
 -/
-def vertex_group_isom_of_path {c : C} : Π {d : C} (p : quiver.path c d), (c ⟶ c) ≃* (d ⟶ d)
+def vertex_group_isom_of_path {c d : C} (p : quiver.path c d) : (c ⟶ c) ≃* (d ⟶ d) :=
+vertex_group_isom_of_map (compose_path p)
+
+/-
 | _ quiver.path.nil := by refl
 | _ (quiver.path.cons q f) := (vertex_group_isom_of_path q).trans (vertex_group_isom_of_map f)
-
+-/
 /-- A functor defines a morphism of vertex group. -/
-def vertex_group_hom_of_functor {D : Type v} [groupoid D] (φ : C ⥤ D) (c : C) :
-  (c ⟶ c) →* (φ.obj c ⟶ φ.obj c) :=
+@[simps] def _root_.category_theory.functor.map_vertex_group {D : Type v} [groupoid D]
+  (φ : C ⥤ D) (c : C) : (c ⟶ c) →* (φ.obj c ⟶ φ.obj c) :=
 { to_fun := φ.map,
   map_one' := φ.map_id c,
   map_mul' := φ.map_comp }

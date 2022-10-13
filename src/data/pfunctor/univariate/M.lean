@@ -295,7 +295,9 @@ begin
   { rw [← head_succ' n,h,head'], apply x.consistent },
   revert ch, rw h', intros, congr,
   { ext a, dsimp only [children],
-    h_generalize! hh : a == a'',
+    generalize hh : cast _ a = a'',
+    rw cast_eq_iff_heq at hh,
+    revert a'',
     rw h, intros, cases hh, refl },
 end
 

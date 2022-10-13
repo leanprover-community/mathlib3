@@ -461,6 +461,23 @@ begin
   {intros b hb, use j b hb, use hj b hb, exact (right_inv b hb).symm,},
 end
 
+/-- Reindexing a product over a finset along an equivalence.
+See `equiv.prod_comp` for the version where `s` and `s'` are `univ`. -/
+@[to_additive /-" Reindexing a sum over a finset along an equivalence.
+See `equiv.sum_comp` for the version where `s` and `s'` are `univ`. "-/]
+lemma equiv.prod_comp_finset {ι'} [decidable_eq ι] (e : ι ≃ ι') (f : ι' → β) {s' : finset ι'}
+  {s : finset ι}
+  (h : s = s'.image e.symm) :
+  ∏ i' in s', f i' = ∏ i in s, f (e i) :=
+begin
+  rw [h],
+  refine finset.prod_bij' (λ i' hi', e.symm i') (λ a ha, finset.mem_image_of_mem _ ha)
+    (λ a ha, by simp_rw [e.apply_symm_apply]) (λ i hi, e i) (λ a ha, _)
+    (λ a ha, e.apply_symm_apply a) (λ a ha, e.symm_apply_apply a),
+  rcases finset.mem_image.mp ha with ⟨i', hi', rfl⟩,
+  rwa [e.apply_symm_apply]
+end
+
 @[to_additive] lemma prod_finset_product
   (r : finset (γ × α)) (s : finset γ) (t : γ → finset α)
   (h : ∀ p : γ × α, p ∈ r ↔ p.1 ∈ s ∧ p.2 ∈ t p.1) {f : γ × α → β} :

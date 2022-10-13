@@ -100,12 +100,12 @@ end
 theorem smul_induction_on' {x : M} (hx : x ∈ I • N)
   {p : Π x, x ∈ I • N → Prop}
   (Hb : ∀ (r : R) (hr : r ∈ I) (n : M) (hn : n ∈ N),
-    p (r • n) (submodule.smul_mem_smul hr hn))
+    p (r • n) (smul_mem_smul hr hn))
   (H1 : ∀ x hx y hy, p x hx → p y hy → p (x + y) (submodule.add_mem _ ‹_› ‹_›)) :
   p x hx :=
 begin
   refine exists.elim _ (λ (h : x ∈ I • N) (H : p x h), H),
-  exact submodule.smul_induction_on hx
+  exact smul_induction_on hx
     (λ a ha x hx, ⟨_, Hb _ ha _ hx⟩)
     (λ x y ⟨_, hx⟩ ⟨_, hy⟩,  ⟨_, H1 _ _ _ _ hx hy⟩),
 end

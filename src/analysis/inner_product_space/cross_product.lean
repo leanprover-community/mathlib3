@@ -11,6 +11,15 @@ import analysis.inner_product_space.orientation
 This file gives a construction of the cross-product on an oriented real inner product space `E` of
 dimension three.
 
+## Implementation notes
+
+Notation `×₃` for `orientation.cross_product` should be defined locally in each file which uses it,
+since otherwise one would need a more cumbersome notation which mentions the orientation explicitly
+(something like `×₃[o]`).  Write
+```
+local infixl ` ×₃ `: 74 := o.cross_product
+```
+
 ## TODO
 
 `matrix.cross_product` is a construction in co-ordinates of the cross-product on `R`^3, for `R` a
@@ -27,9 +36,9 @@ open finite_dimensional
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 variables {E : Type*} [inner_product_space ℝ E] [fact (finrank ℝ E = 3)]
-  (ω : orientation ℝ E (fin 3))
+  (o : orientation ℝ E (fin 3))
 
-include ω
+include o
 
 namespace orientation
 
@@ -37,12 +46,12 @@ namespace orientation
 linear map from `E` to `E →ₗ[ℝ] E`, or equivalently a bilinear map from `E × E` to `E`.
 
 The cross-product is constructed here using the volume form, a 3-form on `E` determined uniquely by
-the orientation and inner product structure. The partial evaluation of the volume form Ω on `u` and
-`v` gives an element Ω(u, v, ⬝) of the dual of `E`.  This can then be identified with `E` itself
+the orientation and inner product structure. The partial evaluation of the volume form o on `u` and
+`v` gives an element o(u, v, ⬝) of the dual of `E`.  This can then be identified with `E` itself
 using the canonical isometry (induced by the inner product) between `E` and its dual.
 
 See `matrix.cross_product` for a construction of the cross-product in co-ordinates. -/
-def cross_product : E →ₗ[ℝ] E →ₗ[ℝ] E :=
+@[irreducible] def cross_product : E →ₗ[ℝ] E →ₗ[ℝ] E :=
 begin
   let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
     (inner_product_space.to_dual ℝ E).to_linear_equiv ≪≫ₗ linear_map.to_continuous_linear_map.symm,
@@ -56,14 +65,14 @@ begin
   let u : alternating_map ℝ E ℝ (fin 2) →ₗ[ℝ] E →ₗ[ℝ] E :=
     (linear_map.llcomp ℝ E (alternating_map ℝ E ℝ (fin 1)) _ y') ∘ₗ
       alternating_map.curry_left_linear_map,
-  exact u ∘ₗ (alternating_map.curry_left_linear_map ω.volume_form),
+  exact u ∘ₗ (alternating_map.curry_left_linear_map o.volume_form),
 end
 
-local infixl (name := cross_product) ` ×₃ `: 74 := ω.cross_product
+local infixl ` ×₃ `: 74 := o.cross_product
 
 /-- Defining property of the cross-product: for vectors `u`, `v`, `w`, the inner product of u × v
-with w is equal to ω(u, v, w), where -/
-lemma inner_cross_product_apply (u v w : E) : ⟪u ×₃ v, w⟫ = ω.volume_form ![u, v, w] :=
+with w is equal to o(u, v, w), where -/
+lemma inner_cross_product_apply (u v w : E) : ⟪u ×₃ v, w⟫ = o.volume_form ![u, v, w] :=
 by simp only [cross_product, linear_equiv.trans_symm, linear_equiv.symm_symm,
   linear_isometry_equiv.to_linear_equiv_symm, alternating_map.curry_left_linear_map_apply,
   linear_map.coe_comp, function.comp_app, linear_map.llcomp_apply,
@@ -73,15 +82,13 @@ by simp only [cross_product, linear_equiv.trans_symm, linear_equiv.symm_symm,
   alternating_map.const_linear_equiv_of_is_empty_symm_apply,
   eq_self_iff_true, linear_map.coe_to_continuous_linear_map', matrix.zero_empty]
 
-attribute [irreducible] cross_product
-
 /-- The cross-product is antisymmetric: the cross-product of a vector with itself is 0. -/
 lemma cross_product_apply_self (v : E) : v ×₃ v = 0 :=
 begin
   apply ext_inner_right ℝ,
   intros w,
   rw [inner_cross_product_apply, inner_zero_left],
-  refine ω.volume_form.map_eq_zero_of_eq ![v, v, w] _ (_ : (0 : fin 3) ≠ 1),
+  refine o.volume_form.map_eq_zero_of_eq ![v, v, w] _ (_ : (0 : fin 3) ≠ 1),
   { simp },
   { norm_num }
 end
@@ -89,8 +96,8 @@ end
 /-- The cross-product of `u` and `v` is orthogonal to `u`. -/
 lemma inner_cross_product_apply_self (u v : E) : ⟪u ×₃ v, u⟫ = 0 :=
 begin
-  rw ω.inner_cross_product_apply u v u,
-  refine ω.volume_form.map_eq_zero_of_eq ![u, v, u] _ (_ : (0 : fin 3) ≠ 2),
+  rw o.inner_cross_product_apply u v u,
+  refine o.volume_form.map_eq_zero_of_eq ![u, v, u] _ (_ : (0 : fin 3) ≠ 2),
   { simp },
   { norm_num }
 end
@@ -98,8 +105,8 @@ end
 /-- The cross-product of `u` and `v` is orthogonal to `v`. -/
 lemma inner_cross_product_apply_apply_self (u v : E) : ⟪u ×₃ v, v⟫ = 0 :=
 begin
-  rw ω.inner_cross_product_apply u v v,
-  refine ω.volume_form.map_eq_zero_of_eq ![u, v, v] _ (_ : (1 : fin 3) ≠ 2),
+  rw o.inner_cross_product_apply u v v,
+  refine o.volume_form.map_eq_zero_of_eq ![u, v, v] _ (_ : (1 : fin 3) ≠ 2),
   { simp },
   { norm_num }
 end
@@ -107,10 +114,10 @@ end
 /-- The map `cross_product`, upgraded from linear to continuous-linear; useful for calculus. -/
 def cross_product' : E →L[ℝ] (E →L[ℝ] E) :=
 (↑(linear_map.to_continuous_linear_map : (E →ₗ[ℝ] E) ≃ₗ[ℝ] (E →L[ℝ] E))
-  ∘ₗ (ω.cross_product)).to_continuous_linear_map
+  ∘ₗ (o.cross_product)).to_continuous_linear_map
 
 @[simp] lemma cross_product'_apply (v : E) :
-  ω.cross_product' v = (ω.cross_product v).to_continuous_linear_map :=
+  o.cross_product' v = (o.cross_product v).to_continuous_linear_map :=
 rfl
 
 /-- The norm of the cross-product of `u` and `v` is bounded by the product of the norms of `u` and
@@ -125,7 +132,7 @@ begin
   simpa only [inner_cross_product_apply, fin.mk_zero, fin.prod_univ_succ, finset.card_singleton,
     finset.prod_const, fintype.univ_of_subsingleton, matrix.cons_val_fin_one, matrix.cons_val_succ,
     matrix.cons_val_zero, mul_assoc, nat.nat_zero_eq_zero, pow_one, submodule.coe_norm]
-    using ω.volume_form_apply_le ![u, v, u ×₃ v]
+    using o.volume_form_apply_le ![u, v, u ×₃ v]
 end
 
 /-- For orthogonal vectors `u` and `v`, the norm of the cross-product of `u` and `v` is the product
@@ -133,7 +140,7 @@ of the norms of `u` and `v`. -/
 lemma norm_cross_product (u : E) (v : (ℝ ∙ u)ᗮ) : ∥u ×₃ v∥ = ∥u∥ * ∥v∥ :=
 begin
   classical,
-  refine le_antisymm (ω.norm_cross_product_le u v) _,
+  refine le_antisymm (o.norm_cross_product_le u v) _,
   let K : submodule ℝ E := submodule.span ℝ ({u, v} : set E),
   haveI : nontrivial Kᗮ,
   { apply @finite_dimensional.nontrivial_of_finrank_pos ℝ,
@@ -154,7 +161,7 @@ begin
     fin_cases i; fin_cases j; norm_num at hij; simp [h1, h2, h3]; rw real_inner_comm; assumption },
   refine le_of_mul_le_mul_right _ (by rwa norm_pos_iff : 0 < ∥w∥),
   -- Cauchy-Schwarz inequality for `u ×₃ v` and `w`
-  simpa only [inner_cross_product_apply, ω.abs_volume_form_apply_of_pairwise_orthogonal H,
+  simpa only [inner_cross_product_apply, o.abs_volume_form_apply_of_pairwise_orthogonal H,
     inner_cross_product_apply, fin.mk_zero, fin.prod_univ_succ, finset.card_singleton,
     finset.prod_const, fintype.univ_of_subsingleton, matrix.cons_val_fin_one, matrix.cons_val_succ,
     matrix.cons_val_zero, nat.nat_zero_eq_zero, pow_one, mul_assoc]

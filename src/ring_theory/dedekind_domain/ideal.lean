@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import algebra.algebra.subalgebra.pointwise
+import algebraic_geometry.prime_spectrum.maximal
 import algebraic_geometry.prime_spectrum.noetherian
 import order.hom.basic
 import ring_theory.dedekind_domain.basic
@@ -830,14 +831,13 @@ end
 
 end is_dedekind_domain
 
-section height_one_spectrum
-
 /-!
 ### Height one spectrum of a Dedekind domain
 If `R` is a Dedekind domain of Krull dimension 1, the maximal ideals of `R` are exactly its nonzero
 prime ideals.
 We define `height_one_spectrum` and provide lemmas to recover the facts that prime ideals of height
-one are prime and irreducible. -/
+one are prime and irreducible.
+-/
 
 namespace is_dedekind_domain
 
@@ -849,30 +849,35 @@ variables [is_domain R] [is_dedekind_domain R]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)
-(ne_bot   : as_ideal ≠ ⊥)
+(ne_bot : as_ideal ≠ ⊥)
+
+attribute [instance] height_one_spectrum.is_prime
 
 variables (v : height_one_spectrum R) {R}
 
-lemma height_one_spectrum.prime (v : height_one_spectrum R) : prime v.as_ideal :=
-ideal.prime_of_is_prime v.ne_bot v.is_prime
+namespace height_one_spectrum
 
-lemma height_one_spectrum.irreducible (v : height_one_spectrum R) :
-  irreducible v.as_ideal :=
-begin
-  rw [unique_factorization_monoid.irreducible_iff_prime],
-  apply v.prime,
-end
+instance is_maximal : v.as_ideal.is_maximal := dimension_le_one v.as_ideal v.ne_bot v.is_prime
 
-lemma height_one_spectrum.associates_irreducible (v : height_one_spectrum R) :
-  irreducible (associates.mk v.as_ideal) :=
-begin
-  rw [associates.irreducible_mk _],
-  apply v.irreducible,
-end
+lemma prime : prime v.as_ideal := ideal.prime_of_is_prime v.ne_bot v.is_prime
 
-end is_dedekind_domain
+lemma irreducible : irreducible v.as_ideal :=
+unique_factorization_monoid.irreducible_iff_prime.mpr v.prime
+
+lemma associates_irreducible : _root_.irreducible $ associates.mk v.as_ideal :=
+(associates.irreducible_mk _).mpr v.irreducible
+
+/-- An equivalence between the height one and maximal spectra for rings of Krull dimension 1. -/
+def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maximal_spectrum R :=
+{ to_fun    := λ v, ⟨v.as_ideal, dimension_le_one v.as_ideal v.ne_bot v.is_prime⟩,
+  inv_fun   := λ v,
+    ⟨v.as_ideal, v.is_maximal.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field v.is_maximal hR⟩,
+  left_inv  := λ ⟨_, _, _⟩, rfl,
+  right_inv := λ ⟨_, _⟩, rfl }
 
 end height_one_spectrum
+
+end is_dedekind_domain
 
 section
 

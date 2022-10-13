@@ -116,12 +116,7 @@ end
 
 /-- The cross-product of `u` and `v` is orthogonal to `v`. -/
 lemma inner_cross_product_apply_apply_self (u v : E) : ⟪u ×₃ v, v⟫ = 0 :=
-begin
-  rw o.inner_cross_product_apply u v v,
-  refine o.volume_form.map_eq_zero_of_eq ![u, v, v] _ (_ : (1 : fin 3) ≠ 2),
-  { simp },
-  { norm_num }
-end
+by rw [cross_product_swap, inner_neg_left, inner_cross_product_apply_self, neg_zero]
 
 /-- The map `cross_product`, upgraded from linear to continuous-linear; useful for calculus. -/
 def cross_product' : E →L[ℝ] (E →L[ℝ] E) :=

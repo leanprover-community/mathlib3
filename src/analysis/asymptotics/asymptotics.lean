@@ -389,7 +389,7 @@ lemma _root_.filter.eventually.trans_is_O {f : α → E} {g : α → F'} {k : α
   (hfg : ∀ᶠ x in l, ∥f x∥ ≤ ∥g x∥) (hgk : g =O[l] k) : f =O[l] k :=
 (is_O.of_bound' hfg).trans hgk
 
-lemma _root_.filter.eventually.is_O {f : E → F} {g : E → ℝ} {l : filter E}
+lemma _root_.filter.eventually.is_O {f : α → E} {g : α → ℝ} {l : filter α}
   (hfg : ∀ᶠ x in l, ∥f x∥ ≤ g x) : f =O[l] g :=
 is_O.of_bound' $ hfg.mono $ λ x hx, hx.trans $ real.le_norm_self _
 

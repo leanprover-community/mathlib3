@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2022 Jireh Loreaux. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jireh Loreaux, Jon Bannon
+-/
+
 import analysis.normed_space.star.basic
 import analysis.normed_space.operator_norm
 import data.real.sqrt
@@ -370,8 +376,7 @@ instance : cstar_ring 𝓜(𝕜, A) :=
     have key : ∀ x y, ∥x∥₊ ≤ 1 → ∥y∥₊ ≤ 1 → ∥a.right (star (a.left (star x))) * y∥₊ ≤ ∥a∥₊ * ∥a∥₊,
     { intros x y hx hy,
       rw [a.central],
-      calc ∥star (a.left (star x)) * a.left y∥₊
-          ≤ ∥a.left (star x)∥₊ * ∥a.left y∥₊
+      calc ∥star (a.left (star x)) * a.left y∥₊ ≤ ∥a.left (star x)∥₊ * ∥a.left y∥₊
           : nnnorm_star (a.left (star x)) ▸ nnnorm_mul_le _ _
       ... ≤ (∥a.left∥₊ * 1) * (∥a.left∥₊ * 1)
           : mul_le_mul' (a.left.le_op_norm_of_le ((nnnorm_star x).trans_le hx))

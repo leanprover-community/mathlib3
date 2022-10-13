@@ -1,5 +1,13 @@
+/-
+Copyright (c) 2022 to appease the linter. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: to appease the linter
+-/
+
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
+
+/-! # To appeas the linter -/
 
 -- these are all prerequisites and should moved to the appropriate places
 

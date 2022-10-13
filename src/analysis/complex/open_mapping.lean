@@ -113,7 +113,7 @@ begin
     { have e1 : is_preconnected (ball (0 : ℂ) r) := (convex_ball 0 r).is_preconnected,
       have e2 : w ∈ sphere (0 : E) 1 := by simp [w, norm_smul, h'],
       specialize h1 w e2,
-      refine h1.eq_on_of_preconnected_of_eventually_eq analytic_on_const e1 (mem_ball_self hr) _,
+      apply h1.eq_on_of_preconnected_of_eventually_eq analytic_on_const e1 (mem_ball_self hr),
       simpa [gray, ray] using h w e2 },
     have h4 : ∥z - z₀∥ < r := by simpa [dist_eq_norm] using mem_ball.mp hz,
     replace h4 : ↑∥z - z₀∥ ∈ ball (0 : ℂ) r := by simpa only [mem_ball_zero_iff, norm_eq_abs,

@@ -47,13 +47,13 @@ protected def measurable_equiv.shear_mul_right [has_measurable_inv G] : G × G �
   measurable_inv_fun := measurable_fst.prod_mk $ measurable_fst.inv.mul measurable_snd,
   .. equiv.prod_shear (equiv.refl _) equiv.mul_left }
 
-/-- The map `(x, y) ↦ (x, yx)` as a `measurable_equiv` with as inverse `(x, y) ↦ (x, y / x)` -/
+/-- The map `(x, y) ↦ (x, y / x)` as a `measurable_equiv` with as inverse `(x, y) ↦ (x, yx)` -/
 @[to_additive
-  "The map `(x, y) ↦ (x, y + x)` as a `measurable_equiv` with as inverse `(x, y) ↦ (x, y - x)`."]
-protected def measurable_equiv.shear_mul_left [has_measurable_inv G] : G × G ≃ᵐ G × G :=
-{ measurable_to_fun  := measurable_fst.prod_mk $ measurable_snd.mul measurable_fst,
-  measurable_inv_fun := measurable_fst.prod_mk $ measurable_snd.div measurable_fst,
-  .. equiv.prod_shear (equiv.refl _) (λ x, (equiv.div_right x).symm) }
+  "The map `(x, y) ↦ (x, y - x)` as a `measurable_equiv` with as inverse `(x, y) ↦ (x, y + x)`."]
+protected def measurable_equiv.shear_div_right [has_measurable_inv G] : G × G ≃ᵐ G × G :=
+{ measurable_to_fun  := measurable_fst.prod_mk $ measurable_snd.div measurable_fst,
+  measurable_inv_fun := measurable_fst.prod_mk $ measurable_snd.mul measurable_fst,
+  .. equiv.prod_shear (equiv.refl _) (equiv.div_right) }
 
 variables {G}
 
@@ -356,7 +356,7 @@ variables [has_measurable_inv G]
   "The map `(x, y) ↦ (x, y - x)` is measure-preserving."]
 lemma measure_preserving_prod_div [is_mul_right_invariant ν] :
   measure_preserving (λ z : G × G, (z.1, z.2 / z.1)) (μ.prod ν) (μ.prod ν) :=
-(measure_preserving_prod_mul_right μ ν).symm (measurable_equiv.shear_mul_left G)
+(measure_preserving_prod_mul_right μ ν).symm (measurable_equiv.shear_div_right G).symm
 
 /-- The map `(x, y) ↦ (y, x / y)` sends `μ × ν` to `ν × μ`. -/
 @[to_additive measure_preserving_prod_sub_swap

@@ -7,7 +7,7 @@ import analysis.complex.arg
 import analysis.inner_product_space.orientation
 import analysis.inner_product_space.pi_L2
 import analysis.special_functions.complex.circle
-import geometry.euclidean.basic
+import geometry.euclidean.angle.unoriented.affine
 
 /-!
 # Oriented angles.

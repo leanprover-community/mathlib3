@@ -1086,21 +1086,26 @@ calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
 lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀ x, (∀ U ∈ 𝓝 x, (U ∩ s).nonempty) → x ∈ s :=
 by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 
-lemma is_open.closure_inter {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
-begin
-  rintro a ⟨hs, ht⟩,
-  have : s ∈ 𝓝 a := is_open.mem_nhds h hs,
-  rw mem_closure_iff_nhds_ne_bot at ht ⊢,
-  rwa [← inf_principal, ← inf_assoc, inf_eq_left.2 (le_principal_iff.2 this)],
-end
+lemma is_closed.interior_union_left {s t : set α} (h : is_closed s) :
+  interior (s ∪ t) ⊆ s ∪ interior t :=
+λ a ⟨u, ⟨⟨hu₁, hu₂⟩, ha⟩⟩, (classical.em (a ∈ s)).imp_right $ λ h, mem_interior.mpr
+  ⟨u ∩ sᶜ, λ x hx, (hu₂ hx.1).resolve_left hx.2, is_open.inter hu₁ is_closed.is_open_compl, ⟨ha, h⟩⟩
 
-lemma is_open.closure_inter' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
-by simpa only [inter_comm] using h.closure_inter
+lemma is_closed.interior_union_right {s t : set α} (h : is_closed t) :
+  interior (s ∪ t) ⊆ interior s ∪ t :=
+by simpa only [union_comm] using h.interior_union_left
+
+lemma is_open.inter_closure {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
+compl_subset_compl.mp $ by simpa only [← interior_compl, compl_inter]
+  using is_closed.interior_union_left h.is_closed_compl
+
+lemma is_open.closure_inter {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
+by simpa only [inter_comm] using h.inter_closure
 
 lemma dense.open_subset_closure_inter {s t : set α} (hs : dense s) (ht : is_open t) :
   t ⊆ closure (t ∩ s) :=
 calc t = t ∩ closure s   : by rw [hs.closure_eq, inter_univ]
-   ... ⊆ closure (t ∩ s) : ht.closure_inter
+   ... ⊆ closure (t ∩ s) : ht.inter_closure
 
 lemma mem_closure_of_mem_closure_union {s₁ s₂ : set α} {x : α} (h : x ∈ closure (s₁ ∪ s₂))
   (h₁ : s₁ᶜ ∈ 𝓝 x) : x ∈ closure s₂ :=
@@ -1116,7 +1121,7 @@ end
 /-- The intersection of an open dense set with a dense set is a dense set. -/
 lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
   dense (s ∩ t) :=
-λ x, (closure_minimal hso.closure_inter is_closed_closure) $
+λ x, (closure_minimal hso.inter_closure is_closed_closure) $
   by simp [hs.closure_eq, ht.closure_eq]
 
 /-- The intersection of a dense set with an open dense set is a dense set. -/
@@ -1131,7 +1136,7 @@ let ⟨U, hsub, ho, hx⟩ := mem_nhds_iff.1 ht in
 
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
 calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_eq, inter_comm]
-  ... ⊆ closure ((closure t)ᶜ ∩ s) : (is_open_compl_iff.mpr $ is_closed_closure).closure_inter
+  ... ⊆ closure ((closure t)ᶜ ∩ s) : (is_open_compl_iff.mpr $ is_closed_closure).inter_closure
   ... = closure (s \ closure t) : by simp only [diff_eq, inter_comm]
   ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
 

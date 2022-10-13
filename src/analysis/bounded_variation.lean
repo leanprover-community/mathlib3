@@ -692,7 +692,7 @@ begin
 end
 
 /-- A real function into a finite dimensional real vector space with bounded variation on a set
-is differentiable almost everywhere in this set . -/
+is differentiable almost everywhere in this set. -/
 theorem ae_differentiable_within_at_of_mem
   {f : ℝ → V} {s : set ℝ} (h : has_locally_bounded_variation_on f s) :
   ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
@@ -709,7 +709,7 @@ begin
 end
 
 /-- A real function into a finite dimensional real vector space with bounded variation on a set
-is differentiable almost everywhere in this set . -/
+is differentiable almost everywhere in this set. -/
 theorem ae_differentiable_within_at
   {f : ℝ → V} {s : set ℝ} (h : has_locally_bounded_variation_on f s) (hs : measurable_set s) :
   ∀ᵐ x ∂(volume.restrict s), differentiable_within_at ℝ f s x :=
@@ -718,8 +718,8 @@ begin
   exact h.ae_differentiable_within_at_of_mem
 end
 
-/-- A real function into a finite dimensional real vector space with bounded variation on a set
-is differentiable almost everywhere in this set . -/
+/-- A real function into a finite dimensional real vector space with bounded variation
+is differentiable almost everywhere. -/
 theorem ae_differentiable_at {f : ℝ → V} (h : has_locally_bounded_variation_on f univ) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 begin

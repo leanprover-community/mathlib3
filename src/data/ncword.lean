@@ -161,6 +161,31 @@ instance : mul_one_class (mul_ncword d) :=
     end,
   .. mul_ncword.has_one, .. mul_ncword.has_mul }
 
+@[to_additive] lemma length_of_mul_le (h : ∀ x y, ¬d.r x y → (d.cancel2 x y).to_list.length ≤ 2)
+  (x : α) (w : mul_ncword d) :
+  (of x * w).word.to_list.length ≤ w.word.to_list.length + 1 :=
+begin
+  induction w using mul_ncword.cases_on_cons with y w hyw, { refl },
+  rw [word_of_mul_cons, cons_word, to_list_mul, to_list_of_mul, length_append, length_cons,
+    add_assoc, ← bit0, add_comm],
+  by_cases hr : d.r x y,
+  { rw [d.cancel2_eq_self hr], refl },
+  { exact add_le_add_left (h _ _ hr) _ }
+end
+
+@[to_additive] lemma length_smul_le (h : ∀ x y, ¬d.r x y → (d.cancel2 x y).to_list.length ≤ 2)
+  (w₁ : free_monoid α) (w₂ : mul_ncword d) :
+  (w₁ • w₂).word.to_list.length ≤ w₁.to_list.length + w₂.word.to_list.length :=
+begin
+  induction w₁ using free_monoid.rec_on with x w₁ ihw₁,
+  { simp only [length, one_smul, to_list_one, zero_add] },
+  { calc ((of' x * w₁) • w₂).word.to_list.length = (of x * w₁ • w₂).word.to_list.length : rfl
+    ... ≤ (w₁ • w₂).word.to_list.length + 1 : length_of_mul_le h _ _
+    ... ≤ w₁.to_list.length + w₂.word.to_list.length + 1 : add_le_add_right ihw₁ _
+    ... = (of' x * w₁).to_list.length + w₂.word.to_list.length : _,
+    rw [to_list_of_mul, length_cons, add_right_comm] }
+end
+
 structure _root_.add_ncword.add_monoid_data (α : Type*) extends add_ncword.data α :=
 (cancel2_vadd : ∀ x y, ¬r x y → ∀ {z : α} {w : add_ncword to_data} h, ¬r y z →
   to_data.cancel2 x y +ᵥ w.cons z h = add_ncword.of x + (add_ncword.of y + w.cons z h))
@@ -212,7 +237,12 @@ by { rw [cancel, free_monoid.lift_apply, list.prod_eq_foldr, foldr_map], refl }
 @[simp, to_additive] lemma cancel_word (w : mul_ncword md.to_data) : cancel md w.word = w :=
 by rw [cancel_eq_smul_one, word_smul, mul_one]
 
-@[to_additive] lemma cancel_surjective : surjective (cancel md) := left_inverse.surjective cancel_word
+@[to_additive] lemma cancel_surjective : surjective (cancel md) :=
+left_inverse.surjective cancel_word
+
+@[to_additive] lemma length_cancel_le (h : ∀ x y, ¬md.r x y → (md.cancel2 x y).to_list.length ≤ 2)
+  (w : free_monoid α) : (cancel md w).word.to_list.length ≤ w.to_list.length :=
+by simpa only [cancel_eq_smul_one] using length_smul_le h w 1
 
 @[simp, to_additive] lemma mclosure_range_of (d : monoid_data α) :
   submonoid.closure (range (of : α → mul_ncword d.to_data)) = ⊤ :=
@@ -259,10 +289,10 @@ end
   con.ker (cancel md) = Inf {c | ∀ x y, c (of' x * of' y) (md.cancel2 x y)} :=
 (@is_least_con_ker_cancel α md).is_glb.Inf_eq.symm
 
-@[to_additive] def mk_hom {M : Type*} [monoid M] (f : α → M)
-  (hc : ∀ ⦃x y⦄, ¬md.r x y → f x * f y = free_monoid.lift f (md.cancel2 x y)) :
+@[to_additive] def mk_hom {M : Type*} [monoid M] (f : free_monoid α →* M)
+  (hc : ∀ ⦃x y⦄, ¬md.r x y → f (of' x) * f (of' y) = f (md.cancel2 x y)) :
   mul_ncword md.to_data →* M :=
-monoid_hom.of_mclosure_eq_top_left (free_monoid.lift f ∘ word) (mclosure_range_of _) rfl $
+monoid_hom.of_mclosure_eq_top_left (f ∘ word) (mclosure_range_of _) (map_one f) $
 begin
   refine forall_range_iff.2 (λ x w, _),
   simp only [comp_app, ← map_mul, ← con.ker_rel, of_word],

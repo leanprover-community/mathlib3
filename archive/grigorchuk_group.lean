@@ -17,6 +17,8 @@ open list set function cardinal
 open_locale cardinal
 
 local notation `L` := list bool
+local notation `ℤ₂` := multiplicative (zmod 2)
+local notation `σ` := (multiplicative.of_add 1 : ℤ₂)
 
 namespace grigorchuk_group
 
@@ -202,6 +204,12 @@ lemma cons_eq_mul (x : generator) (y : W) : x :: y = (x * y : W) := rfl
 
 @[simp] lemma to_list_coe (x : generator) : free_monoid.to_list (x : W) = [x] := rfl
 
+def parity (x : generator) : W →* ℤ₂ :=
+(nat.cast_add_monoid_hom (zmod 2)).to_multiplicative.comp (free_monoid.count x)
+
+lemma mem_mker_parity {x : generator} {g : W} : g ∈ (parity x).mker ↔ even (count x g) :=
+zmod.eq_zero_iff_even
+
 end word
 
 def ncword_cancel : generator → generator → W
@@ -212,6 +220,12 @@ def ncword_cancel : generator → generator → W
 
 @[simp] lemma ncword_cancel_self (x) : ncword_cancel x x = 1 :=
 by { cases x, exacts [rfl, if_pos rfl] }
+
+lemma length_ncword_cancel_le : ∀ x y : generator, (ncword_cancel x y).to_list.length ≤ 2
+| a a := zero_le _
+| a (bcd n) := le_rfl
+| (bcd n) a := le_rfl
+| (bcd m) (bcd n) := by rcases eq_or_ne m n with rfl|hmn; simp [ncword_cancel, *]
 
 def ncword_rel (x y : generator) : Prop := xor (x = a) (y = a)
 
@@ -335,6 +349,29 @@ mul_ncword.ext _ _ $ by simp only [← of_eq_coe, mul_ncword.word_of_mul_of, ncw
 @[simp] lemma d_mul_c : (d * c : NC) = b := bcd_mul_bcd dec_trivial
 @[simp] lemma inv_coe (x : generator) : (x : NC)⁻¹ = x := rfl
 
+lemma length_smul_le (w : W) (w' : NC) :
+  (w • w').word.to_list.length ≤ w.to_list.length + w'.word.to_list.length :=
+mul_ncword.length_smul_le (λ x y _, length_ncword_cancel_le x y) _ _
+
+def lift {M : Type*} [monoid M] (f : W →* M) (h : ∀ x : generator, f x * f x = 1)
+  (hbcd : ∀ m n, m ≠ n → f (bcd m) * f (bcd n) = f (bcd (-m - n))) :
+  NC →* M :=
+mul_ncword.mk_hom f $ forall_not_ncword_rel'.2
+  ⟨λ x, by simp only [h, word.of_eq_coe, ncword_data, ncword_cancel_self, map_one],
+    λ m n hne, by simp only [hbcd m n hne, ncword_data, ncword_cancel, if_neg hne, word.of_eq_coe]⟩
+
+@[simp] lemma lift_apply {M : Type*} [monoid M] (f : W →* M)
+  (h : ∀ x : generator, f x * f x = 1)
+  (hbcd : ∀ m n, m ≠ n → f (bcd m) * f (bcd n) = f (bcd (-m - n))) (g : NC) :
+  lift f h hbcd g = f g.word :=
+rfl
+
+def parity_a : NC →* ℤ₂ :=
+lift (word.parity a) (λ x, char_two.add_self_eq_zero (count a [x] : zmod 2)) (λ m n hmn, rfl)
+
+@[simp] lemma mem_ker_parity_a {g : NC} : g ∈ parity_a.ker ↔ even (count a g.word) :=
+zmod.eq_zero_iff_even
+
 end ncword
 
 namespace word
@@ -347,12 +384,11 @@ lemma cancel_eq_smul_one (w : W) : cancel w = w • 1 :=
 mul_ncword.cancel_eq_smul_one w
 
 lemma length_cancel_le (w : W) : length (cancel w).word.to_list ≤ length w.to_list :=
-(cancel_eq_smul_one w).symm ▸ (ncword.length_smul_le _ _).trans_eq (add_zero _)
+mul_ncword.length_cancel_le (λ x y _, length_ncword_cancel_le _ _) _
 
 end word
 
-@[simp] lemma ncword.cancel_to_word (g : NC) : g.to_word.cancel = g :=
-by rw [word.cancel_eq_smul_one, ncword.to_word_smul, mul_one]
+@[simp] lemma ncword.cancel_to_word (g : NC) : word.cancel g.word = g := mul_ncword.cancel_word g
 
 lemma word.cancel_surjective : surjective word.cancel :=
 left_inverse.surjective ncword.cancel_to_word
@@ -453,29 +489,6 @@ end word
 
 namespace ncword
 
-def lift {M : Type*} [monoid M] (f : W →* M) (h : ∀ x : generator, f x * f x = 1)
-  (hbcd : ∀ m n, m ≠ n → f (bcd m) * f (bcd n) = f (bcd (-m - n))) :
-  NC →* M :=
-monoid_hom.of_mclosure_eq_top_left (f ∘ to_word) mclosure_abcd (map_one f) $
-begin
-  simp only [← generator.range_eq, forall_range_iff, (∘)],
-  intros x y,
-  induction y using grigorchuk_group.ncword.cases_on_cons with y g hyg,
-  { simp only [mul_one, one_to_word, map_one] },
-  { simp only [to_word_coe, word.to_grigorchuk_coe, cons_to_word, word.cons_eq_mul, map_mul],
-    rcases ncword_rel_cases x y with (hxy|rfl|⟨m, n, hne, rfl, rfl⟩),
-    { simp only [coe_mul, ← @cons_eq_cons x (cons y g hyg) (hyg.cons hxy), cons_to_word,
-        word.cons_eq_mul, map_mul] },
-    { rw [coe_mul_cons_self, ← mul_assoc, h, one_mul] },
-    { rw [bcd_mul_cons_bcd hne, ← mul_assoc, hbcd _ _ hne, update_bcd_to_word, word.cons_eq_mul,
-        map_mul] } }
-end
-
-@[simp] lemma lift_apply {M : Type*} [monoid M] (f : W →* M) (h : ∀ x : generator, f x * f x = 1)
-  (hbcd : ∀ m n, m ≠ n → f (bcd m) * f (bcd n) = f (bcd (-m - n))) (g : NC) :
-  lift f h hbcd g = f g.to_word :=
-rfl
-
 def to_grigorchuk : NC →* G :=
 lift word.to_grigorchuk grigorchuk_group.coe_mul_self $ λ m n, grigorchuk_group.bcd_mul_of_ne
 
@@ -504,13 +517,6 @@ namespace word
 
 @[simp] lemma to_grigorchuk_cancel (w : W) : w.cancel.to_grigorchuk = w.to_grigorchuk :=
 fun_like.congr_fun ncword.to_grigorchuk_comp_cancel w
-
-def parity (x : generator) : W →* multiplicative (zmod 2) :=
-(nat.cast_add_monoid_hom (zmod 2)).to_multiplicative.comp (free_monoid.count x)
-
-lemma mem_mker_parity_a {x : generator} {g : W} :
-  g ∈ (parity x).mker ↔ even (count x g) :=
-zmod.eq_zero_iff_even
 
 lemma head'_to_grigorchuk_apply (g : W) (l : L) :
   (to_grigorchuk g l).head' = l.head'.map (bnot^[count a g]) :=
@@ -542,12 +548,6 @@ by rw [← comap_to_grigorchuk_head_preserving,
 end word
 
 namespace ncword
-
-def parity_a : NC →* multiplicative (zmod 2) :=
-lift (word.parity a) (λ x, char_two.add_self_eq_zero (count a [x] : zmod 2)) (λ m n hmn, rfl)
-
-@[simp] lemma mem_ker_parity_a {g : NC} : g ∈ parity_a.ker ↔ even (count a g.to_word) :=
-zmod.eq_zero_iff_even
 
 lemma to_grigorchuk_mem_head_preserving {g : NC} : to_grigorchuk g ∈ H ↔ even (count a g.to_word) :=
 word.to_grigorchuk_mem_head_preserving

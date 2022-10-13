@@ -956,17 +956,36 @@ begin
   { simp only [written_in_ext_chart_at, (∘), mem_ext_chart_source, e.left_inv, e'.left_inv] }
 end
 
+/-- The composition of `C^∞` functions within domains at points is `C^∞`. -/
+lemma smooth_within_at.comp {t : set M'} {g : M' → M''} (x : M)
+  (hg : smooth_within_at I' I'' g t (f x))
+  (hf : smooth_within_at I I' f s x)
+  (st : maps_to f s t) : smooth_within_at I I'' (g ∘ f) s x :=
+hg.comp x hf st
+
 /-- The composition of `C^n` functions on domains is `C^n`. -/
 lemma cont_mdiff_on.comp {t : set M'} {g : M' → M''}
   (hg : cont_mdiff_on I' I'' n g t) (hf : cont_mdiff_on I I' n f s)
   (st : s ⊆ f ⁻¹' t) : cont_mdiff_on I I'' n (g ∘ f) s :=
 λ x hx, (hg _ (st hx)).comp x (hf x hx) st
 
+/-- The composition of `C^∞` functions on domains is `C^∞`. -/
+lemma smooth_on.comp {t : set M'} {g : M' → M''}
+  (hg : smooth_on I' I'' g t) (hf : smooth_on I I' f s)
+  (st : s ⊆ f ⁻¹' t) : smooth_on I I'' (g ∘ f) s :=
+hg.cont_mdiff_on.comp hf st
+
 /-- The composition of `C^n` functions on domains is `C^n`. -/
 lemma cont_mdiff_on.comp' {t : set M'} {g : M' → M''}
   (hg : cont_mdiff_on I' I'' n g t) (hf : cont_mdiff_on I I' n f s) :
   cont_mdiff_on I I'' n (g ∘ f) (s ∩ f ⁻¹' t) :=
 hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
+
+/-- The composition of `C^∞` functions is `C^∞`. -/
+lemma smooth_on.comp' {t : set M'} {g : M' → M''}
+  (hg : smooth_on I' I'' g t) (hf : smooth_on I I' f s) :
+  smooth_on I I'' (g ∘ f) (s ∩ f ⁻¹' t) :=
+hg.cont_mdiff_on.comp' hf
 
 /-- The composition of `C^n` functions is `C^n`. -/
 lemma cont_mdiff.comp {g : M' → M''}
@@ -977,12 +996,24 @@ begin
   exact hg.comp hf subset_preimage_univ,
 end
 
+/-- The composition of `C^∞` functions is `C^∞`. -/
+lemma smooth.comp {g : M' → M''} (hg : smooth I' I'' g) (hf : smooth I I' f) :
+  smooth I I'' (g ∘ f) :=
+hg.cont_mdiff.comp hf
+
 /-- The composition of `C^n` functions within domains at points is `C^n`. -/
 lemma cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''} (x : M)
   (hg : cont_mdiff_within_at I' I'' n g t (f x))
   (hf : cont_mdiff_within_at I I' n f s x) :
   cont_mdiff_within_at I I'' n (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp x (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
+
+/-- The composition of `C^∞` functions within domains at points is `C^∞`. -/
+lemma smooth_within_at.comp' {t : set M'} {g : M' → M''} (x : M)
+  (hg : smooth_within_at I' I'' g t (f x))
+  (hf : smooth_within_at I I' f s x) :
+  smooth_within_at I I'' (g ∘ f) (s ∩ f⁻¹' t) x :=
+hg.comp' x hf
 
 /-- `g ∘ f` is `C^n` within `s` at `x` if `g` is `C^n` at `f x` and
 `f` is `C^n` within `s` at `x`. -/
@@ -991,11 +1022,24 @@ lemma cont_mdiff_at.comp_cont_mdiff_within_at {g : M' → M''} (x : M)
   cont_mdiff_within_at I I'' n (g ∘ f) s x :=
 hg.comp x hf (maps_to_univ _ _)
 
+/-- `g ∘ f` is `C^∞` within `s` at `x` if `g` is `C^∞` at `f x` and
+`f` is `C^∞` within `s` at `x`. -/
+lemma smooth_at.comp_smooth_within_at {g : M' → M''} (x : M)
+  (hg : smooth_at I' I'' g (f x)) (hf : smooth_within_at I I' f s x) :
+  smooth_within_at I I'' (g ∘ f) s x :=
+hg.comp_cont_mdiff_within_at x hf
+
 /-- The composition of `C^n` functions at points is `C^n`. -/
 lemma cont_mdiff_at.comp {g : M' → M''} (x : M)
   (hg : cont_mdiff_at I' I'' n g (f x)) (hf : cont_mdiff_at I I' n f x) :
   cont_mdiff_at I I'' n (g ∘ f) x :=
 hg.comp x hf (maps_to_univ _ _)
+
+/-- The composition of `C^∞` functions at points is `C^∞`. -/
+lemma smooth_at.comp {g : M' → M''} (x : M)
+  (hg : smooth_at I' I'' g (f x)) (hf : smooth_at I I' f x) :
+  smooth_at I I'' (g ∘ f) x :=
+hg.comp x hf
 
 lemma cont_mdiff.comp_cont_mdiff_on {f : M → M'} {g : M' → M''} {s : set M}
   (hg : cont_mdiff I' I'' n g) (hf : cont_mdiff_on I I' n f s) :

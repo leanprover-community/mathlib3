@@ -607,7 +607,7 @@ lemma le_limsup_of_frequently_le' {α β} [complete_lattice β]
   x ≤ limsup u f :=
 @liminf_le_of_frequently_le' _ βᵒᵈ _ _ _ _ h
 
-variables {f : filter β} {p q : β → Prop} {u v : β → α}
+variables {f g : filter β} {p q : β → Prop} {u v : β → α}
 
 lemma blimsup_mono (h : ∀ x, p x → q x) :
   blimsup u f p ≤ blimsup u f q :=
@@ -632,6 +632,14 @@ Sup_le_Sup $ λ a ha, (ha.and h).mono $ λ x hx hx', (hx.1 hx').trans hx.2
 lemma mono_bliminf (h : ∀ x, u x ≤ v x) :
   bliminf u f p ≤ bliminf v f p :=
 mono_bliminf' $ eventually_of_forall h
+
+lemma bliminf_antitone_filter (h : f ≤ g) :
+  bliminf u g p ≤ bliminf u f p :=
+Sup_le_Sup $ λ a ha, ha.filter_mono h
+
+lemma blimsup_monotone_filter (h : f ≤ g) :
+  blimsup u f p ≤ blimsup u g p :=
+Inf_le_Inf $ λ a ha, ha.filter_mono h
 
 @[simp] lemma blimsup_and_le_inf :
   blimsup u f (λ x, p x ∧ q x) ≤ blimsup u f p ⊓ blimsup u f q :=

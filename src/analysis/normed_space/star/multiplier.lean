@@ -356,6 +356,8 @@ end
 lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ :=
 by simp only [norm_eq, norm_left_eq_right, max_eq_right, eq_self_iff_true]
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_left, norm_left_eq_right]
+lemma nnnorm_left (a : 𝓜(𝕜, A)) : ∥a∥₊ = ∥a.left∥₊ := subtype.ext (norm_left a)
+lemma nnnorm_right (a : 𝓜(𝕜, A)) : ∥a∥₊ = ∥a.right∥₊ := subtype.ext (norm_right a)
 
 noncomputable instance : normed_algebra 𝕜 𝓜(𝕜, A) :=
 { ..double_centralizer.algebra, ..double_centralizer.normed_space }

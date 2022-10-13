@@ -1227,6 +1227,24 @@ ext $ λ s, subset_empty_iff
 @[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
 eq_univ_of_forall subset_univ
 
+/-! ### Sets defined as an if-then-else -/
+
+@[simp] lemma mem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+  x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
+by split_ifs; simp [h]
+
+@[simp] lemma nmem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+  x ∉ ite p t set.univ ↔ (p ∧ x ∉ t) :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_univ_left {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+  x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
+by split_ifs; simp [h]
+
+@[simp] lemma nmem_ite_univ_left {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+  x ∉ ite p set.univ t ↔ (¬ p ∧ x ∉ t) :=
+by split_ifs; simp [h]
+
 /-! ### If-then-else for sets -/
 
 /-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.

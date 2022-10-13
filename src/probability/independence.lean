@@ -348,16 +348,6 @@ end
 
 variables {m0 : measurable_space Ω} {μ : measure Ω}
 
--- todo move
-@[simp] lemma mem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
-  x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
-by split_ifs; simp [h]
-
--- todo move
-@[simp] lemma mem_ite_univ_left {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
-  x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
-by split_ifs; simp [h]
-
 lemma indep_sets_pi_Union_Inter_of_disjoint [decidable_eq ι] [is_probability_measure μ]
   {s : ι → set (set Ω)} {S T : set (finset ι)}
   (h_indep : Indep_sets s μ) (hST : ∀ u v, u ∈ S → v ∈ T → disjoint u v) :

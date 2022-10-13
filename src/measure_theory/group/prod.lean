@@ -18,7 +18,7 @@ The idea of the proof is to use the translation invariance of measures to prove 
 for two sets `s` and `t`, where `c` is a constant that does not depend on `μ`. Let `e` and `f` be
 the characteristic functions of `s` and `t`.
 Assume that `μ` and `ν` are left-invariant measures. Then the map `(x, y) ↦ (y * x, x⁻¹)`
-preserves the measure `μ.prod ν`, which means that
+preserves the measure `μ × ν`, which means that
 ```
   ∫ x, ∫ y, h x y ∂ν ∂μ = ∫ x, ∫ y, h (y * x) x⁻¹ ∂ν ∂μ
 ```
@@ -40,13 +40,20 @@ variables (G : Type*) [measurable_space G]
 variables [group G] [has_measurable_mul₂ G]
 variables (μ ν : measure G) [sigma_finite ν] [sigma_finite μ] {s : set G}
 
-/-- The map `(x, y) ↦ (x, xy)` as a `measurable_equiv`. This is a shear mapping. -/
-@[to_additive "The map `(x, y) ↦ (x, x + y)` as a `measurable_equiv`.
-This is a shear mapping."]
+/-- The map `(x, y) ↦ (x, xy)` as a `measurable_equiv`. -/
+@[to_additive "The map `(x, y) ↦ (x, x + y)` as a `measurable_equiv`."]
 protected def measurable_equiv.shear_mul_right [has_measurable_inv G] : G × G ≃ᵐ G × G :=
 { measurable_to_fun  := measurable_fst.prod_mk measurable_mul,
   measurable_inv_fun := measurable_fst.prod_mk $ measurable_fst.inv.mul measurable_snd,
   .. equiv.prod_shear (equiv.refl _) equiv.mul_left }
+
+/-- The map `(x, y) ↦ (x, y / x)` as a `measurable_equiv` with as inverse `(x, y) ↦ (x, yx)` -/
+@[to_additive
+  "The map `(x, y) ↦ (x, y - x)` as a `measurable_equiv` with as inverse `(x, y) ↦ (x, y + x)`."]
+protected def measurable_equiv.shear_div_right [has_measurable_inv G] : G × G ≃ᵐ G × G :=
+{ measurable_to_fun  := measurable_fst.prod_mk $ measurable_snd.div measurable_fst,
+  measurable_inv_fun := measurable_fst.prod_mk $ measurable_snd.mul measurable_fst,
+  .. equiv.prod_shear (equiv.refl _) (equiv.div_right) }
 
 variables {G}
 
@@ -54,11 +61,13 @@ namespace measure_theory
 
 open measure
 
+section left_invariant
+
 /-- The multiplicative shear mapping `(x, y) ↦ (x, xy)` preserves the measure `μ × ν`.
 This condition is part of the definition of a measurable group in [Halmos, §59].
 There, the map in this lemma is called `S`. -/
 @[to_additive measure_preserving_prod_add
-  /-" The shear mapping `(x, y) ↦ (x, x + y)` preserves the measure `μ.prod ν`. "-/]
+  /-" The shear mapping `(x, y) ↦ (x, x + y)` preserves the measure `μ × ν`. "-/]
 lemma measure_preserving_prod_mul [is_mul_left_invariant ν] :
   measure_preserving (λ z : G × G, (z.1, z.1 * z.2)) (μ.prod ν) (μ.prod ν) :=
 (measure_preserving.id μ).skew_product measurable_mul $
@@ -66,7 +75,7 @@ lemma measure_preserving_prod_mul [is_mul_left_invariant ν] :
 
 /-- The map `(x, y) ↦ (y, yx)` sends the measure `μ × ν` to `ν × μ`.
 This is the map `SR` in [Halmos, §59].
-`S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+`S` is the map `(x, y) ↦ (x, xy)` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_prod_add_swap
   /-" The map `(x, y) ↦ (y, y + x)` sends the measure `μ × ν` to `ν × μ`. "-/]
 lemma measure_preserving_prod_mul_swap [is_mul_left_invariant μ] :
@@ -88,26 +97,18 @@ variables [has_measurable_inv G]
 
 /-- The map `(x, y) ↦ (x, x⁻¹y)` is measure-preserving.
 This is the function `S⁻¹` in [Halmos, §59],
-where `S` is the map in `measure_preserving_prod_mul`. -/
+where `S` is the map `(x, y) ↦ (x, xy)`. -/
 @[to_additive measure_preserving_prod_neg_add
   "The map `(x, y) ↦ (x, - x + y)` is measure-preserving."]
 lemma measure_preserving_prod_inv_mul [is_mul_left_invariant ν] :
   measure_preserving (λ z : G × G, (z.1, z.1⁻¹ * z.2)) (μ.prod ν) (μ.prod ν) :=
 (measure_preserving_prod_mul μ ν).symm $ measurable_equiv.shear_mul_right G
 
-@[to_additive]
-lemma quasi_measure_preserving_div [is_mul_right_invariant μ] :
-  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod μ) μ :=
-begin
-  refine quasi_measure_preserving.prod_of_left measurable_div (eventually_of_forall $ λ y, _),
-  exact (measure_preserving_div_right μ y).quasi_measure_preserving
-end
-
 variables [is_mul_left_invariant μ]
 
 /-- The map `(x, y) ↦ (y, y⁻¹x)` sends `μ × ν` to `ν × μ`.
 This is the function `S⁻¹R` in [Halmos, §59],
-where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+where `S` is the map `(x, y) ↦ (x, xy)` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_prod_neg_add_swap
   "The map `(x, y) ↦ (y, - y + x)` sends `μ × ν` to `ν × μ`."]
 lemma measure_preserving_prod_inv_mul_swap :
@@ -116,7 +117,7 @@ lemma measure_preserving_prod_inv_mul_swap :
 
 /-- The map `(x, y) ↦ (yx, x⁻¹)` is measure-preserving.
 This is the function `S⁻¹RSR` in [Halmos, §59],
-where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+where `S` is the map `(x, y) ↦ (x, xy)` and `R` is `prod.swap`. -/
 @[to_additive measure_preserving_add_prod_neg
   "The map `(x, y) ↦ (y + x, - x)` is measure-preserving."]
 lemma measure_preserving_mul_prod_inv [is_mul_left_invariant ν] :
@@ -147,15 +148,19 @@ end
 lemma measure_inv_null : μ s⁻¹ = 0 ↔ μ s = 0 :=
 begin
   refine ⟨λ hs, _, (quasi_measure_preserving_inv μ).preimage_null⟩,
-  convert (quasi_measure_preserving_inv μ).preimage_null hs,
-  exact (inv_inv _).symm
+  rw [← inv_inv s],
+  exact (quasi_measure_preserving_inv μ).preimage_null hs
 end
 
 @[to_additive]
-lemma absolutely_continuous_map_inv : μ ≪ map has_inv.inv μ :=
+lemma inv_absolutely_continuous : μ.inv ≪ μ :=
+(quasi_measure_preserving_inv μ).absolutely_continuous
+
+@[to_additive]
+lemma absolutely_continuous_inv : μ ≪ μ.inv :=
 begin
   refine absolutely_continuous.mk (λ s hs, _),
-  simp_rw [map_apply measurable_inv hs, inv_preimage, measure_inv_null, imp_self]
+  simp_rw [inv_apply μ s, measure_inv_null, imp_self]
 end
 
 @[to_additive]
@@ -186,30 +191,11 @@ lemma measure_mul_right_ne_zero
   (h2s : μ s ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' s) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null μ y)).mpr h2s
 
-/-- A *left*-invariant measure is quasi-preserved by *right*-multiplication.
-This should not be confused with `(measure_preserving_mul_right μ g).quasi_measure_preserving`. -/
-@[to_additive /-"A *left*-invariant measure is quasi-preserved by *right*-addition.
-This should not be confused with `(measure_preserving_add_right μ g).quasi_measure_preserving`. "-/]
-lemma quasi_measure_preserving_mul_right (g : G) :
-  quasi_measure_preserving (λ h : G, h * g) μ μ :=
-begin
-  refine ⟨measurable_mul_const g, absolutely_continuous.mk $ λ s hs, _⟩,
-  rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id,
-end
-
 @[to_additive]
 lemma absolutely_continuous_map_mul_right (g : G) : μ ≪ map (* g) μ :=
 begin
   refine absolutely_continuous.mk (λ s hs, _),
   rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id
-end
-
-@[to_additive] lemma quasi_measure_preserving_div_left (g : G) :
-  quasi_measure_preserving (λ h : G, g / h) μ μ :=
-begin
-  simp_rw [div_eq_mul_inv],
-  exact (measure_preserving_mul_left μ g).quasi_measure_preserving.comp
-    (quasi_measure_preserving_inv μ)
 end
 
 @[to_additive]
@@ -218,7 +204,7 @@ begin
   simp_rw [div_eq_mul_inv],
   rw [← map_map (measurable_const_mul g) measurable_inv],
   conv_lhs { rw [← map_mul_left_eq_self μ g] },
-  exact (absolutely_continuous_map_inv μ).map (measurable_const_mul g)
+  exact (absolutely_continuous_inv μ).map (measurable_const_mul g)
 end
 
 /-- This is the computation performed in the proof of [Halmos, §60 Th. A]. -/
@@ -338,5 +324,141 @@ begin
   rw [smul_apply, smul_eq_mul, mul_comm, ← mul_div_assoc, mul_comm,
     measure_mul_measure_eq μ ν hs ht h2s h3s, mul_div_assoc, ennreal.mul_div_cancel' h2s h3s]
 end
+
+end left_invariant
+
+section right_invariant
+
+@[to_additive measure_preserving_prod_add_right]
+lemma measure_preserving_prod_mul_right [is_mul_right_invariant ν] :
+  measure_preserving (λ z : G × G, (z.1, z.2 * z.1)) (μ.prod ν) (μ.prod ν) :=
+(measure_preserving.id μ).skew_product (by exact measurable_snd.mul measurable_fst) $
+  filter.eventually_of_forall $ map_mul_right_eq_self ν
+
+/-- The map `(x, y) ↦ (y, xy)` sends the measure `μ × ν` to `ν × μ`. -/
+@[to_additive measure_preserving_prod_add_swap_right
+  /-" The map `(x, y) ↦ (y, x + y)` sends the measure `μ × ν` to `ν × μ`. "-/]
+lemma measure_preserving_prod_mul_swap_right [is_mul_right_invariant μ] :
+  measure_preserving (λ z : G × G, (z.2, z.1 * z.2)) (μ.prod ν) (ν.prod μ) :=
+(measure_preserving_prod_mul_right ν μ).comp measure_preserving_swap
+
+/-- The map `(x, y) ↦ (xy, y)` preserves the measure `μ × ν`. -/
+@[to_additive measure_preserving_add_prod
+  /-" The map `(x, y) ↦ (x + y, y)` preserves the measure `μ × ν`. "-/]
+lemma measure_preserving_mul_prod [is_mul_right_invariant μ] :
+  measure_preserving (λ z : G × G, (z.1 * z.2, z.2)) (μ.prod ν) (μ.prod ν) :=
+measure_preserving_swap.comp $ by apply measure_preserving_prod_mul_swap_right μ ν
+
+variables [has_measurable_inv G]
+
+/-- The map `(x, y) ↦ (x, y / x)` is measure-preserving. -/
+@[to_additive measure_preserving_prod_sub
+  "The map `(x, y) ↦ (x, y - x)` is measure-preserving."]
+lemma measure_preserving_prod_div [is_mul_right_invariant ν] :
+  measure_preserving (λ z : G × G, (z.1, z.2 / z.1)) (μ.prod ν) (μ.prod ν) :=
+(measure_preserving_prod_mul_right μ ν).symm (measurable_equiv.shear_div_right G).symm
+
+/-- The map `(x, y) ↦ (y, x / y)` sends `μ × ν` to `ν × μ`. -/
+@[to_additive measure_preserving_prod_sub_swap
+  "The map `(x, y) ↦ (y, x - y)` sends `μ × ν` to `ν × μ`."]
+lemma measure_preserving_prod_div_swap [is_mul_right_invariant μ] :
+  measure_preserving (λ z : G × G, (z.2, z.1 / z.2)) (μ.prod ν) (ν.prod μ) :=
+(measure_preserving_prod_div ν μ).comp measure_preserving_swap
+
+/-- The map `(x, y) ↦ (x / y, y)` preserves the measure `μ × ν`. -/
+@[to_additive measure_preserving_sub_prod
+  /-" The map `(x, y) ↦ (x - y, y)` preserves the measure `μ × ν`. "-/]
+lemma measure_preserving_div_prod [is_mul_right_invariant μ] :
+  measure_preserving (λ z : G × G, (z.1 / z.2, z.2)) (μ.prod ν) (μ.prod ν) :=
+measure_preserving_swap.comp $ by apply measure_preserving_prod_div_swap μ ν
+
+/-- The map `(x, y) ↦ (xy, x⁻¹)` is measure-preserving. -/
+@[to_additive measure_preserving_add_prod_neg_right
+  "The map `(x, y) ↦ (x + y, - x)` is measure-preserving."]
+lemma measure_preserving_mul_prod_inv_right [is_mul_right_invariant μ] [is_mul_right_invariant ν] :
+  measure_preserving (λ z : G × G, (z.1 * z.2, z.1⁻¹)) (μ.prod ν) (μ.prod ν) :=
+begin
+  convert (measure_preserving_prod_div_swap ν μ).comp
+    (measure_preserving_prod_mul_swap_right μ ν),
+  ext1 ⟨x, y⟩,
+  simp_rw [function.comp_apply, div_mul_eq_div_div_swap, div_self', one_div]
+end
+
+end right_invariant
+
+section quasi_measure_preserving
+
+variables [has_measurable_inv G]
+
+@[to_additive]
+lemma quasi_measure_preserving_inv_of_right_invariant [is_mul_right_invariant μ] :
+  quasi_measure_preserving (has_inv.inv : G → G) μ μ :=
+begin
+  rw [← μ.inv_inv],
+  exact (quasi_measure_preserving_inv μ.inv).mono
+    (inv_absolutely_continuous μ.inv) (absolutely_continuous_inv μ.inv)
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div_left [is_mul_left_invariant μ] (g : G) :
+  quasi_measure_preserving (λ h : G, g / h) μ μ :=
+begin
+  simp_rw [div_eq_mul_inv],
+  exact (measure_preserving_mul_left μ g).quasi_measure_preserving.comp
+    (quasi_measure_preserving_inv μ)
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div_left_of_right_invariant [is_mul_right_invariant μ] (g : G) :
+  quasi_measure_preserving (λ h : G, g / h) μ μ :=
+begin
+  rw [← μ.inv_inv],
+  exact (quasi_measure_preserving_div_left μ.inv g).mono
+    (inv_absolutely_continuous μ.inv) (absolutely_continuous_inv μ.inv)
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div_of_right_invariant [is_mul_right_invariant μ] :
+  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod ν) μ :=
+begin
+  refine quasi_measure_preserving.prod_of_left measurable_div (eventually_of_forall $ λ y, _),
+  exact (measure_preserving_div_right μ y).quasi_measure_preserving
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div [is_mul_left_invariant μ] :
+  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod ν) μ :=
+(quasi_measure_preserving_div_of_right_invariant μ.inv ν).mono
+  ((absolutely_continuous_inv μ).prod absolutely_continuous.rfl)
+  (inv_absolutely_continuous μ)
+
+/-- A *left*-invariant measure is quasi-preserved by *right*-multiplication.
+This should not be confused with `(measure_preserving_mul_right μ g).quasi_measure_preserving`. -/
+@[to_additive /-"A *left*-invariant measure is quasi-preserved by *right*-addition.
+This should not be confused with `(measure_preserving_add_right μ g).quasi_measure_preserving`. "-/]
+lemma quasi_measure_preserving_mul_right [is_mul_left_invariant μ] (g : G) :
+  quasi_measure_preserving (λ h : G, h * g) μ μ :=
+begin
+  refine ⟨measurable_mul_const g, absolutely_continuous.mk $ λ s hs, _⟩,
+  rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id,
+end
+
+/-- A *right*-invariant measure is quasi-preserved by *left*-multiplication.
+This should not be confused with `(measure_preserving_mul_left μ g).quasi_measure_preserving`. -/
+@[to_additive /-"A *right*-invariant measure is quasi-preserved by *left*-addition.
+This should not be confused with `(measure_preserving_add_left μ g).quasi_measure_preserving`. "-/]
+lemma quasi_measure_preserving_mul_left [is_mul_right_invariant μ] (g : G) :
+  quasi_measure_preserving (λ h : G, g * h) μ μ :=
+begin
+  have := (quasi_measure_preserving_mul_right μ.inv g⁻¹).mono
+    (inv_absolutely_continuous μ.inv) (absolutely_continuous_inv μ.inv),
+  rw [μ.inv_inv] at this,
+  have := (quasi_measure_preserving_inv_of_right_invariant μ).comp
+    (this.comp (quasi_measure_preserving_inv_of_right_invariant μ)),
+  simp_rw [function.comp, mul_inv_rev, inv_inv] at this,
+  exact this
+end
+
+end quasi_measure_preserving
 
 end measure_theory

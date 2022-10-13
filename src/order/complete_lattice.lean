@@ -818,6 +818,17 @@ supr_subtype
 lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) : (⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
 infi_subtype
 
+lemma bsupr_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) :
+  (⨆ (i ∈ s), a) = a :=
+begin
+  haveI : nonempty s := set.nonempty_coe_sort.mpr hs,
+  rw [← supr_subtype'', supr_const],
+end
+
+lemma binfi_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) :
+  (⨅ (i ∈ s), a) = a :=
+@bsupr_const αᵒᵈ _ ι _ s hs
+
 theorem supr_sup_eq : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 le_antisymm
   (supr_le $ λ i, sup_le_sup (le_supr _ _) $ le_supr _ _)
@@ -1021,19 +1032,6 @@ end
 
 lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ j, extend e f ⊤ j) = infi f :=
 @supr_extend_bot αᵒᵈ _ _ _ _ he _
-
-lemma bsupr_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) :
-  (⨆ (i ∈ s), a) = a :=
-begin
-  refine le_antisymm (supr₂_le (λ i hi, le_refl a)) _,
-  obtain ⟨i, hi⟩ := hs,
-  rw supr_split_single _ i,
-  simp [hi],
-end
-
-lemma binfi_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) :
-  (⨅ (i ∈ s), a) = a :=
-@bsupr_const αᵒᵈ _ ι _ s hs
 
 /-!
 ### `supr` and `infi` under `Type`

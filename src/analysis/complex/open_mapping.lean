@@ -49,7 +49,7 @@ begin
       norm_sub_sub_norm_sub_le_norm_sub (f z) v (f z₀)],
   have h5 : ∥f z₀ - v∥ < ε / 2 := by simpa [← dist_eq_norm, dist_comm] using mem_ball.mp hv,
   obtain ⟨z, hz1, hz2⟩ : ∃ z ∈ ball z₀ r, is_local_min (λ z, ∥f z - v∥) z,
-    from exists_local_min_mem_ball h2 h4 (mem_ball_self hr) h5,
+    from exists_local_min_mem_ball h2 (mem_closed_ball_self hr.le) (λ z hz, h5.trans_le (h4 z hz)),
   refine ⟨z, ball_subset_closed_ball hz1, sub_eq_zero.mp _⟩,
   have h6 := h1.differentiable_on.eventually_differentiable_at (is_open_ball.mem_nhds hz1),
   refine (eventually_eq_or_eq_zero_of_is_local_min_norm h6 hz2).resolve_left (λ key, _),

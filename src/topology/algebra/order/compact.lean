@@ -390,28 +390,24 @@ end
 
 end continuous_on
 
-lemma is_compact.exists_local_min_on_mem_subset {f : β → α} {s t : set β} {m : α} {z : β}
-  (ht : is_compact t) (hst : s ⊆ t) (hf : continuous_on f t) (hf1 : ∀ z ∈ t \ s, m ≤ f z)
-  (hz : z ∈ t) (hfz : f z < m) :
+lemma is_compact.exists_local_min_on_mem_subset {f : β → α} {s t : set β} {z : β}
+  (ht : is_compact t) (hst : s ⊆ t) (hf : continuous_on f t) (hz : z ∈ t)
+  (hfz : ∀ z' ∈ t \ s, f z < f z') :
   ∃ x ∈ s, is_local_min_on f t x :=
 begin
   obtain ⟨x, hx, hfx⟩ : ∃ x ∈ t, ∀ y ∈ t, f x ≤ f y := ht.exists_forall_le ⟨z, hz⟩ hf,
-  have key : ∀ ⦃y⦄, y ∈ t → f y < m → y ∈ s := λ y hy hfy,
-    by { by_contra; simpa using ((hf1 y ((mem_diff y).mpr ⟨hy,h⟩)).trans_lt hfy) },
-  have h1 : f x < m := (hfx z hz).trans_lt hfz,
+  have key : ∀ ⦃y⦄, y ∈ t → (∀ z' ∈ t \ s, f y < f z') → y ∈ s := λ y hy hfy,
+    by { by_contra; simpa using ((hfy y ((mem_diff y).mpr ⟨hy,h⟩))) },
+  have h1 : ∀ z' ∈ t \ s, f x < f z' := λ z' hz', (hfx z hz).trans_lt (hfz z' hz'),
   have h2 : x ∈ s := key hx h1,
-  have h3 := tendsto.eventually_lt (hf.continuous_within_at (hst h2)).tendsto tendsto_const_nhds h1,
-  have h4 : ∀ᶠ z in 𝓝[t] x, z ∈ s,
-    { rw eventually_nhds_within_iff at h3 ⊢,
-      filter_upwards [h3] with y hyf hy using key hy (hyf hy) },
-  exact ⟨x, h2, eventually_of_mem h4 (λ y hy, hfx y (hst hy))⟩
+  refine ⟨x, h2, eventually_nhds_within_of_forall hfx⟩
 end
 
-lemma is_compact.exists_local_min_mem_open {f : β → α} {s t : set β} {m : α} (ht : is_compact t)
-  (hst : s ⊆ t) (hf : continuous_on f t) (hf1 : ∀ z ∈ t \ s, m ≤ f z) {z : β} (hz : z ∈ t)
-  (hfz : f z < m) (hs : is_open s) :
+lemma is_compact.exists_local_min_mem_open {f : β → α} {s t : set β} {z : β} (ht : is_compact t)
+  (hst : s ⊆ t) (hf : continuous_on f t) (hz : z ∈ t) (hfz : ∀ z' ∈ t \ s, f z < f z')
+  (hs : is_open s) :
   ∃ x ∈ s, is_local_min f x :=
 begin
-  obtain ⟨x, hx, hfx⟩ := ht.exists_local_min_on_mem_subset hst hf hf1 hz hfz,
+  obtain ⟨x, hx, hfx⟩ := ht.exists_local_min_on_mem_subset hst hf hz hfz,
   exact ⟨x, hx, hfx.is_local_min (filter.mem_of_superset (hs.mem_nhds hx) hst)⟩
 end

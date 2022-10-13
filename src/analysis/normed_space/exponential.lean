@@ -452,9 +452,9 @@ end
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
 commute then `exp 𝕂 (∑ i, f i) = ∏ i, exp 𝕂 (f i)`. -/
 lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → 𝔸)
-  (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
+  (h : (s : set ι).pairwise $ λ i j, commute (f i) (f j)) :
   exp 𝕂 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 (f i))
-    (λ i hi j hj, (h i hi j hj).exp 𝕂) :=
+    (λ i hi j hj _, (h.of_refl hi hj).exp 𝕂) :=
 begin
   classical,
   induction s using finset.induction_on with a s ha ih,

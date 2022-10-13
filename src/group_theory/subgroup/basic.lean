@@ -477,8 +477,7 @@ protected lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multi
   (∀ a ∈ g, a ∈ K) → g.prod ∈ K := multiset_prod_mem g
 
 @[to_additive]
-lemma multiset_noncomm_prod_mem (K : subgroup G) (g : multiset G)
-  (comm : ∀ (x ∈ g) (y ∈ g), commute x y) :
+lemma multiset_noncomm_prod_mem (K : subgroup G) (g : multiset G) (comm) :
   (∀ a ∈ g, a ∈ K) → g.noncomm_prod comm ∈ K :=
 K.to_submonoid.multiset_noncomm_prod_mem g comm
 
@@ -492,8 +491,7 @@ protected lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
 prod_mem h
 
 @[to_additive]
-lemma noncomm_prod_mem (K : subgroup G)
-  {ι : Type*} {t : finset ι} {f : ι → G} (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) :
+lemma noncomm_prod_mem (K : subgroup G) {ι : Type*} {t : finset ι} {f : ι → G} (comm) :
   (∀ c ∈ t, f c ∈ K) → t.noncomm_prod f comm ∈ K :=
 K.to_submonoid.noncomm_prod_mem t f comm
 
@@ -648,11 +646,12 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 
 @[to_additive] instance : unique (⊥ : subgroup G) := ⟨⟨1⟩, λ g, subtype.ext g.2⟩
 
+@[simp, to_additive] lemma top_to_submonoid : (⊤ : subgroup G).to_submonoid = ⊤ := rfl
+
+@[simp, to_additive] lemma bot_to_submonoid : (⊥ : subgroup G).to_submonoid = ⊥ := rfl
+
 @[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
-begin
-  rw set_like.ext'_iff,
-  simp only [coe_bot, set.eq_singleton_iff_unique_mem, set_like.mem_coe, H.one_mem, true_and],
-end
+to_submonoid_injective.eq_iff.symm.trans $ submonoid.eq_bot_iff_forall _
 
 @[to_additive] lemma eq_bot_of_subsingleton [subsingleton H] : H = ⊥ :=
 begin
@@ -2652,6 +2651,9 @@ lemma mem_zpowers_iff {g h : G} :
   h ∈ zpowers g ↔ ∃ (k : ℤ), g ^ k = h :=
 iff.rfl
 
+@[simp] lemma zpow_mem_zpowers (g : G) (k : ℤ) : g^k ∈ zpowers g :=
+mem_zpowers_iff.mpr ⟨k, rfl⟩
+
 @[simp] lemma forall_zpowers {x : G} {p : zpowers x → Prop} :
   (∀ g, p g) ↔ ∀ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
 set.forall_subtype_range_iff
@@ -2684,10 +2686,25 @@ attribute [to_additive add_subgroup.zmultiples_eq_closure] subgroup.zpowers_eq_c
 attribute [to_additive add_subgroup.range_zmultiples_hom] subgroup.range_zpowers_hom
 attribute [to_additive add_subgroup.zmultiples_subset] subgroup.zpowers_subset
 attribute [to_additive add_subgroup.mem_zmultiples_iff] subgroup.mem_zpowers_iff
+attribute [to_additive add_subgroup.zsmul_mem_zmultiples] subgroup.zpow_mem_zpowers
 attribute [to_additive add_subgroup.forall_zmultiples] subgroup.forall_zpowers
 attribute [to_additive add_subgroup.forall_mem_zmultiples] subgroup.forall_mem_zpowers
 attribute [to_additive add_subgroup.exists_zmultiples] subgroup.exists_zpowers
 attribute [to_additive add_subgroup.exists_mem_zmultiples] subgroup.exists_mem_zpowers
+
+section ring
+
+variables {R : Type*} [ring R] (r : R) (k : ℤ)
+
+@[simp] lemma int_cast_mul_mem_zmultiples :
+  ↑(k : ℤ) * r ∈ zmultiples r :=
+by simpa only [← zsmul_eq_mul] using zsmul_mem_zmultiples r k
+
+@[simp] lemma int_cast_mem_zmultiples_one :
+  ↑(k : ℤ) ∈ zmultiples (1 : R) :=
+mem_zmultiples_iff.mp ⟨k, by simp⟩
+
+end ring
 
 end add_subgroup
 
@@ -3078,8 +3095,7 @@ disjoint_def'.trans ⟨λ h x y hx hy hxy,
 generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
 @[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
 This generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
-lemma eq_one_of_noncomm_prod_eq_one_of_independent {ι : Type*}
-  (s : finset ι) (f : ι → G) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+lemma eq_one_of_noncomm_prod_eq_one_of_independent {ι : Type*} (s : finset ι) (f : ι → G) (comm)
   (K : ι → subgroup G) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
   (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
 begin
@@ -3087,9 +3103,9 @@ begin
   revert heq1,
   induction s using finset.induction_on with i s hnmem ih,
   { simp, },
-  { simp only [finset.forall_mem_insert] at comm hmem,
-    specialize ih (λ x hx, (comm.2 x hx).2) hmem.2,
-    have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set ι)), K i,
+  { have hcomm := comm.mono (finset.coe_subset.2 $ finset.subset_insert _ _),
+    simp only [finset.forall_mem_insert] at hmem,
+    have hmem_bsupr: s.noncomm_prod f hcomm ∈ ⨆ (i ∈ (s : set ι)), K i,
     { refine subgroup.noncomm_prod_mem _ _ _,
       intros x hx,
       have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_supr₂ x hx,
@@ -3099,12 +3115,11 @@ begin
     have hnmem' : i ∉ (s : set ι), by simpa,
     obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
       subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
-    specialize ih heq1S,
     intros i h,
     simp only [finset.mem_insert] at h,
     rcases h with ⟨rfl | _⟩,
     { exact heq1i },
-    { exact (ih _ h), } }
+    { exact ih hcomm hmem.2 heq1S _ h } }
 end
 
 end subgroup

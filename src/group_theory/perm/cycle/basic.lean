@@ -916,7 +916,7 @@ begin
     have hn' : l'.nodup := nodup_of_pairwise_disjoint_cycles hc' hd',
     have hperm : l ~ l' := list.perm_of_nodup_nodup_to_finset_eq hn hn' h.symm,
     refine ⟨_, _, _⟩,
-    { exact λ _ h, hc' _ (hperm.subset h)},
+    { exact λ _ h, hc' _ (hperm.subset h) },
     { rwa list.perm.pairwise_iff disjoint.symmetric hperm },
     { rw [←hp', hperm.symm.prod_eq'],
       refine hd'.imp _,
@@ -929,46 +929,30 @@ end
 
 lemma cycle_factors_finset_eq_finset {σ : perm α} {s : finset (perm α)} :
   σ.cycle_factors_finset = s ↔ (∀ f : perm α, f ∈ s → f.is_cycle) ∧
-    (∃ h : (∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b), s.noncomm_prod id
-      (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-        (set.pairwise.mono' (λ _ _, disjoint.commute) h ha hb)) = σ) :=
+    ∃ h : (s : set (perm α)).pairwise disjoint, s.noncomm_prod id
+      (h.mono' $ λ _ _, disjoint.commute) = σ :=
 begin
   obtain ⟨l, hl, rfl⟩ := s.exists_list_nodup_eq,
   rw cycle_factors_finset_eq_list_to_finset hl,
   simp only [noncomm_prod_to_finset, hl, exists_prop, list.mem_to_finset, and.congr_left_iff,
              and.congr_right_iff, list.map_id, ne.def],
-  intros,
-  exact ⟨list.pairwise.forall disjoint.symmetric, hl.pairwise_of_forall_ne⟩
+  exact λ _ _, (list.pairwise_iff_coe_to_finset_pairwise hl disjoint.symmetric).symm,
 end
 
-lemma cycle_factors_finset_pairwise_disjoint (p : perm α) (hp : p ∈ cycle_factors_finset f)
-  (q : perm α) (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
-  disjoint p q :=
-begin
-  have : f.cycle_factors_finset = f.cycle_factors_finset := rfl,
-  obtain ⟨-, hd, -⟩ := cycle_factors_finset_eq_finset.mp this,
-  exact hd p hp q hq h
-end
+lemma cycle_factors_finset_pairwise_disjoint :
+  (cycle_factors_finset f : set (perm α)).pairwise disjoint :=
+(cycle_factors_finset_eq_finset.mp rfl).2.some
 
-lemma cycle_factors_finset_mem_commute (p : perm α) (hp : p ∈ cycle_factors_finset f)
-  (q : perm α) (hq : q ∈ cycle_factors_finset f) :
-  _root_.commute p q :=
-begin
-  by_cases h : p = q,
-  { exact h ▸ commute.refl _ },
-  { exact (cycle_factors_finset_pairwise_disjoint _ _ hp _ hq h).commute }
-end
+lemma cycle_factors_finset_mem_commute :
+  (cycle_factors_finset f : set (perm α)).pairwise commute :=
+(cycle_factors_finset_pairwise_disjoint _).mono' $ λ _ _, disjoint.commute
 
 /-- The product of cycle factors is equal to the original `f : perm α`. -/
 lemma cycle_factors_finset_noncomm_prod
-  (comm : ∀ (g ∈ f.cycle_factors_finset) (h ∈ f.cycle_factors_finset),
-    commute (id g) (id h) := cycle_factors_finset_mem_commute f) :
-  f.cycle_factors_finset.noncomm_prod id (comm) = f :=
-begin
-  have : f.cycle_factors_finset = f.cycle_factors_finset := rfl,
-  obtain ⟨-, hd, hp⟩ := cycle_factors_finset_eq_finset.mp this,
-  exact hp
-end
+  (comm : (cycle_factors_finset f : set (perm α)).pairwise commute :=
+    cycle_factors_finset_mem_commute f) :
+  f.cycle_factors_finset.noncomm_prod id comm = f :=
+(cycle_factors_finset_eq_finset.mp rfl).2.some_spec
 
 lemma mem_cycle_factors_finset_iff {f p : perm α} :
   p ∈ cycle_factors_finset f ↔ p.is_cycle ∧ ∀ (a ∈ p.support), p a = f a :=
@@ -1061,14 +1045,10 @@ begin
     rintro _ (⟨h, -⟩ | ⟨h, -⟩);
     exact h },
   { refine ⟨_, _⟩,
-    { simp_rw mem_union,
-      rintros x (hx | hx) y (hy | hy) hxy,
-      { exact cycle_factors_finset_pairwise_disjoint _ _ hx _ hy hxy },
-      { exact h.mono (mem_cycle_factors_finset_support_le hx)
-          (mem_cycle_factors_finset_support_le hy) },
-      { exact h.symm.mono (mem_cycle_factors_finset_support_le hx)
-          (mem_cycle_factors_finset_support_le hy) },
-      { exact cycle_factors_finset_pairwise_disjoint _ _ hx _ hy hxy } },
+    { rw [coe_union, set.pairwise_union_of_symmetric disjoint.symmetric],
+      iterate 2 { use cycle_factors_finset_pairwise_disjoint _ },
+      exact λ x hx y hy _,
+        h.mono (mem_cycle_factors_finset_support_le hx) (mem_cycle_factors_finset_support_le hy) },
     { rw noncomm_prod_union_of_disjoint h.disjoint_cycle_factors_finset,
       rw [cycle_factors_finset_noncomm_prod, cycle_factors_finset_noncomm_prod] } }
 end

@@ -548,7 +548,7 @@ instance [non_unital_non_assoc_semiring R] : distrib (hahn_series Γ R) :=
       mul_coeff_right' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, mul_add, sum_add_distrib] },
     { intro b,
-      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq, mem_support],
+      simp only [add_coeff, ne.def, set.mem_union, set.mem_set_of_eq, mem_support],
       contrapose!,
       intro h,
       rw [h.1, h.2, add_zero], }
@@ -560,7 +560,7 @@ instance [non_unital_non_assoc_semiring R] : distrib (hahn_series Γ R) :=
       mul_coeff_left' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, add_mul, sum_add_distrib] },
     { intro b,
-      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq, mem_support],
+      simp only [add_coeff, ne.def, set.mem_union, set.mem_set_of_eq, mem_support],
       contrapose!,
       intro h,
       rw [h.1, h.2, add_zero], },
@@ -1012,8 +1012,9 @@ power_series.coeff_mk _ _
 lemma coeff_to_power_series_symm {f : power_series R} {n : ℕ} :
   (hahn_series.to_power_series.symm f).coeff n = power_series.coeff R n f := rfl
 
-variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
-/-- Casts a power series as a Hahn series with coefficients from an `ordered_semiring`. -/
+variables (Γ) (R) [strict_ordered_semiring Γ] [nontrivial Γ]
+
+/-- Casts a power series as a Hahn series with coefficients from an `strict_ordered_semiring`. -/
 def of_power_series : (power_series R) →+* hahn_series Γ R :=
 (hahn_series.emb_domain_ring_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
   (λ _ _, nat.cast_le)).comp
@@ -1130,8 +1131,8 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
   end,
   .. to_power_series }
 
-variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
-/-- Casting a power series as a Hahn series with coefficients from an `ordered_semiring`
+variables (Γ) (R) [strict_ordered_semiring Γ] [nontrivial Γ]
+/-- Casting a power series as a Hahn series with coefficients from an `strict_ordered_semiring`
   is an algebra homomorphism. -/
 @[simps] def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=
 (hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective

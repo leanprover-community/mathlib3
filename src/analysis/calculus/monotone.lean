@@ -5,8 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import measure_theory.measure.lebesgue
 import analysis.calculus.deriv
-import measure_theory.covering.differentiation
-import measure_theory.covering.vitali
+import measure_theory.covering.one_dim
 
 /-!
 # Differentiability of monotone functions
@@ -30,76 +29,11 @@ limit of `(f y - f x) / (y - x)` by a lower and upper approximation argument fro
 behavior of `μ [x, y]`.
 -/
 
-open set filter function metric measure_theory measure_theory.measure topological_space
-open_locale nnreal ennreal topological_space
-
-namespace real
-
-/-- A Vitali family over `ℝ`, designed so that at `x` it contains the intervals containing `x`.-/
-protected noncomputable def vitali_family : vitali_family (volume : measure ℝ) :=
-begin
-  refine vitali.vitali_family (volume : measure ℝ) (6 : ℝ≥0)
-    (λ x ε εpos, ⟨ε, ⟨εpos, le_refl _⟩, _⟩),
-  have : (0 : ℝ) ≤ 6, by norm_num,
-  simp [ennreal.of_real_mul, this, ← mul_assoc, mul_comm _ (2 : ℝ≥0∞)],
-end
-
-lemma Icc_mem_vitali_family_at_right {x y : ℝ} (hxy : x < y) :
-  Icc x y ∈ real.vitali_family.sets_at x :=
-begin
-  have H : ennreal.of_real (2 * (3 * metric.diam (Icc x y))) ≤ 6 * ennreal.of_real (y - x),
-  { simp only [ennreal.of_real_mul, zero_le_three, real.diam_Icc hxy.le, ←mul_assoc,
-      zero_le_mul_left, zero_lt_bit0, zero_lt_one, zero_le_bit0, zero_le_one,
-      ennreal.of_real_bit0, ennreal.of_real_one, ennreal.of_real_bit1],
-    apply ennreal.mul_le_mul _ (le_refl _),
-    have : ennreal.of_real (2 * 3) ≤ ennreal.of_real 6,
-      from ennreal.of_real_le_of_real (by norm_num),
-    simpa [ennreal.of_real_mul] using this },
-  simpa [real.vitali_family, vitali.vitali_family, hxy, hxy.le, is_closed_Icc] using H,
-end
-
-lemma tendsto_Icc_vitali_family_right (x : ℝ) :
-  tendsto (λ y, Icc x y) (𝓝[>] x) (real.vitali_family.filter_at x) :=
-begin
-  apply vitali_family.tendsto_filter_at,
-  { filter_upwards [self_mem_nhds_within] with y hy using Icc_mem_vitali_family_at_right hy },
-  { assume ε εpos,
-    have : x ∈ Ico x (x + ε) := ⟨le_refl _, by linarith⟩,
-    filter_upwards [Icc_mem_nhds_within_Ioi this] with y hy,
-    rw closed_ball_eq_Icc,
-    exact Icc_subset_Icc (by linarith) hy.2 }
-end
-
-lemma Icc_mem_vitali_family_at_left {x y : ℝ} (hxy : x < y) :
-  Icc x y ∈ real.vitali_family.sets_at y :=
-begin
-  have H : ennreal.of_real (2 * (3 * metric.diam (Icc x y))) ≤ 6 * ennreal.of_real (y - x),
-  { simp only [ennreal.of_real_mul, zero_le_three, real.diam_Icc hxy.le, ←mul_assoc,
-      zero_le_mul_left, zero_lt_bit0, zero_lt_one, zero_le_bit0, zero_le_one,
-      ennreal.of_real_bit0, ennreal.of_real_one, ennreal.of_real_bit1],
-    apply ennreal.mul_le_mul _ (le_refl _),
-    have : ennreal.of_real (2 * 3) ≤ ennreal.of_real 6,
-      from ennreal.of_real_le_of_real (by norm_num),
-    simpa [ennreal.of_real_mul] using this },
-  simpa [real.vitali_family, vitali.vitali_family, hxy, hxy.le, is_closed_Icc] using H,
-end
-
-lemma tendsto_Icc_vitali_family_left (x : ℝ) :
-  tendsto (λ y, Icc y x) (𝓝[<] x) (real.vitali_family.filter_at x) :=
-begin
-  apply vitali_family.tendsto_filter_at,
-  { filter_upwards [self_mem_nhds_within] with y hy using Icc_mem_vitali_family_at_left hy },
-  { assume ε εpos,
-    have : x ∈ Ioc (x - ε) x := ⟨by linarith, le_refl _⟩,
-    filter_upwards [Icc_mem_nhds_within_Iio this] with y hy,
-    rw closed_ball_eq_Icc,
-    exact Icc_subset_Icc hy.1 (by linarith) }
-end
-
-end real
+open set filter function metric measure_theory measure_theory.measure is_doubling_measure
+open_locale topological_space
 
 /-- If `(f y - f x) / (y - x)` converges to a limit as `y` tends to `x`, then the same goes if
-`y` is shifted a limit bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.
+`y` is shifted a little bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.
 This lemma contains a slightly more general version of this statement (where one considers
 convergence along some subfilter, typically `𝓝[<] x` or `𝓝[>] x`) tailored to the application
 to almost everywhere differentiability of monotone functions. -/
@@ -127,7 +61,7 @@ end
 
 /-- A Stieltjes function is almost everywhere differentiable, with derivative equal to the
 Radon-Nikodym derivative of the associated Stieltjes measure with respect to Lebesgue. -/
-lemma stieltjes_function.has_deriv_at (f : stieltjes_function) :
+lemma stieltjes_function.ae_has_deriv_at (f : stieltjes_function) :
   ∀ᵐ x, has_deriv_at f (rn_deriv f.measure volume x).to_real x :=
 begin
   /- Denote by `μ` the Stieltjes measure associated to `f`.
@@ -137,7 +71,8 @@ begin
   On the left, `μ [y, x] / (x - y)` again tends to the Radon-Nikodym derivative.
   As `μ [y, x] = f x - f (y^-)`, this is not exactly the right result, so one uses a sandwiching
   argument to deduce the convergence for `(f x - f y) / (x - y)`. -/
-  filter_upwards [vitali_family.ae_tendsto_rn_deriv real.vitali_family f.measure,
+  filter_upwards [
+    vitali_family.ae_tendsto_rn_deriv (vitali_family (volume : measure ℝ) 1) f.measure,
     rn_deriv_lt_top f.measure volume, f.countable_left_lim_ne.ae_not_mem volume] with x hx h'x h''x,
   -- Limit on the right, following from differentiation of measures
   have L1 : tendsto (λ y, (f y - f x) / (y - x))
@@ -205,7 +140,7 @@ begin
   differentiable almost everywhere. We reduce to this statement by sandwiching values of `f` with
   values of `g`, by shifting with `(y - x)^2` (which has no influence on the relevant
   scale `y - x`.)-/
-  filter_upwards [hf.stieltjes_function.has_deriv_at,
+  filter_upwards [hf.stieltjes_function.ae_has_deriv_at,
     hf.countable_not_continuous_at.ae_not_mem volume] with x hx h'x,
   have A : hf.stieltjes_function x = f x,
   { rw [not_not, hf.continuous_at_iff_left_lim_eq_right_lim] at h'x,
@@ -291,11 +226,14 @@ theorem monotone_on.ae_differentiable_within_at_of_mem
   {f : ℝ → ℝ} {s : set ℝ} (hf : monotone_on f s) :
   ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
 begin
+  /- We use a global monotone extension of `f`, and argue that this extension is differentiable
+  almost everywhere. Such an extension need not exist (think of `1/x` on `(0, +∞)`), but it exists
+  if one restricts first the function to a compact interval `[a, b]`. -/
   apply ae_of_mem_of_ae_of_mem_inter_Ioo,
   assume a b as bs hab,
   obtain ⟨g, hg, gf⟩ : ∃ (g : ℝ → ℝ), monotone g ∧ eq_on f g (s ∩ Icc a b) :=
     monotone_on.exists_monotone_extension (hf.mono (inter_subset_left s (Icc a b)))
-      ⟨as, ⟨le_rfl, hab.le⟩⟩ ⟨bs, ⟨hab.le, le_rfl⟩⟩ (inter_subset_right _ _),
+      ⟨⟨as, ⟨le_rfl, hab.le⟩⟩, λ x hx, hx.2.1⟩ ⟨⟨bs, ⟨hab.le, le_rfl⟩⟩, λ x hx, hx.2.2⟩,
   filter_upwards [hg.ae_differentiable_at] with x hx,
   assume h'x,
   apply hx.differentiable_within_at.congr_of_eventually_eq _ (gf ⟨h'x.1, h'x.2.1.le, h'x.2.2.le⟩),

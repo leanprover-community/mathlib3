@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.set.intervals.monotone
-import analysis.calculus.monotone
+import measure_theory.measure.lebesgue
 
 /-!
 # Functions of bounded variation
@@ -456,18 +456,17 @@ end
 
 /-- If a set `s` is to the left of a set `t`, and both contain the boundary point `x`, then
 the variation of `f` along `s ∪ t` is the sum of the variations. -/
-lemma union (f : α → E) {s t : set α} {x : α}
-  (hs : s ⊆ Iic x) (h's : x ∈ s) (ht : t ⊆ Ici x) (h't : x ∈ t) :
+lemma union (f : α → E) {s t : set α} {x : α} (hs : is_greatest s x) (ht : is_least t x) :
   evariation_on f (s ∪ t) = evariation_on f s + evariation_on f t :=
 begin
   classical,
-  apply le_antisymm _ (evariation_on.add_le_union f (λ a ha b hb, le_trans (hs ha) (ht hb))),
+  apply le_antisymm _ (evariation_on.add_le_union f (λ a ha b hb, le_trans (hs.2 ha) (ht.2 hb))),
   apply supr_le _,
   rintros ⟨n, ⟨u, hu, ust⟩⟩,
   obtain ⟨v, m, hv, vst, xv, huv⟩ : ∃ (v : ℕ → α) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s ∪ t) ∧
     x ∈ v '' (Iio m) ∧ ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤
                         ∑ j in finset.range m, edist (f (v (j+1))) (f (v j)),
-    from evariation_on.add_point f (mem_union_left t h's) u hu ust n,
+    from evariation_on.add_point f (mem_union_left t hs.1) u hu ust n,
   obtain ⟨N, hN, Nx⟩ : ∃ N, N < m ∧ v N = x, from xv,
   calc  ∑ j in finset.range n, edist (f (u (j + 1))) (f (u j))
       ≤ ∑ j in finset.range m, edist (f (v (j + 1))) (f (v j)) : huv
@@ -482,17 +481,17 @@ begin
       have : v i = x,
       { apply le_antisymm,
         { rw ← Nx, exact hv hi.2 },
-        { exact ht h } },
+        { exact ht.2 h } },
       rw this,
-      exact h's },
+      exact hs.1 },
     { apply sum_le_of_monotone_on_Icc _ (hv.monotone_on _) (λ i hi, _),
       rcases vst i with h|h, swap, { exact h },
       have : v i = x,
       { apply le_antisymm,
-        { exact hs h },
+        { exact hs.2 h },
         { rw ← Nx, exact hv hi.1 } },
       rw this,
-      exact h't }
+      exact ht.1 }
   end
 end
 
@@ -500,10 +499,11 @@ lemma Icc_add_Icc (f : α → E) {s : set α} {a b c : α}
   (hab : a ≤ b) (hbc : b ≤ c) (hb : b ∈ s) :
   evariation_on f (s ∩ Icc a b) + evariation_on f (s ∩ Icc b c) = evariation_on f (s ∩ Icc a c) :=
 begin
-  have A : s ∩ Icc a b ⊆ Iic b, from (inter_subset_right _ _).trans (Icc_subset_Iic_self),
-  have B : s ∩ Icc b c ⊆ Ici b, from (inter_subset_right _ _).trans (Icc_subset_Ici_self),
-  rw [← evariation_on.union f A ⟨hb, hab, le_rfl⟩ B ⟨hb, le_rfl, hbc⟩, ← inter_union_distrib_left,
-      Icc_union_Icc_eq_Icc hab hbc]
+  have A : is_greatest (s ∩ Icc a b) b :=
+    ⟨⟨hb, hab, le_rfl⟩, (inter_subset_right _ _).trans (Icc_subset_Iic_self)⟩,
+  have B : is_least (s ∩ Icc b c) b :=
+    ⟨⟨hb, le_rfl, hbc⟩, (inter_subset_right _ _).trans (Icc_subset_Ici_self)⟩,
+  rw [← evariation_on.union f A B, ← inter_union_distrib_left, Icc_union_Icc_eq_Icc hab hbc],
 end
 
 end evariation_on

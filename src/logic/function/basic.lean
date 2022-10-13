@@ -540,13 +540,22 @@ along a function `f : α → β` to a function `β → γ`,
 by using the values of `g` on the range of `f`
 and the values of an auxiliary function `e' : β → γ` elsewhere.
 
-Mostly useful when `f` is injective. -/
+Mostly useful when `f` is injective,
+more generally when `f a  f b → g a = g b`. -/
 def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
 λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
 
 lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [decidable (∃ a, f a = b)] :
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
 by { unfold extend, congr }
+
+lemma extend_apply_of_unique (g : α → γ) (e' : β → γ)
+  (hf : ∀ (a b : α), f a = f b → g a = g b) (a : α) :
+  extend f g e' (f a) = g a :=
+begin
+  simp only [extend_def, dif_pos, exists_apply_eq_apply],
+  exact hf _ a (classical.some_spec (exists_apply_eq_apply f a)),
+end
 
 @[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
@@ -558,6 +567,18 @@ end
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
 by simp [function.extend_def, hb]
+
+lemma apply_extend_of_unique {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
+  (hf : ∀ (a b : α), f a = f b → g a = g b) (b : β) :
+  F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
+begin
+  by_cases hb : ∃ a, f a = b,
+  { cases hb with a ha, subst b,
+    rw [extend_apply_of_unique, extend_apply_of_unique],
+    { intros a b h, simp only [comp_apply], apply congr_arg, exact hf _ _ h, },
+    { exact hf, }, },
+  { rw [extend_apply' _ _ _ hb, extend_apply' _ _ _ hb] }
+end
 
 lemma apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
@@ -576,6 +597,14 @@ begin
   have H := congr_fun hg (f x),
   simp only [hf, extend_apply] at H,
   exact H
+end
+
+lemma extend_comp_of_unique (g : α → γ) (e' : β → γ)
+  (hf : ∀ (a b : α), f a = f b → g a = g b) :
+  extend f g e' ∘ f = g :=
+begin
+  funext a,
+  simp only [comp_app], apply extend_apply_of_unique, exact hf,
 end
 
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :

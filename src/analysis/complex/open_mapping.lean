@@ -33,7 +33,7 @@ implemented in `diff_cont_on_cl.ball_subset_image_closed_ball`.
 open set filter metric complex
 open_locale topological_space
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {U : set ℂ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {U : set E}
   {f : ℂ → ℂ} {g : E → ℂ} {z₀ w : ℂ} {ε r m : ℝ}
 
 lemma diff_cont_on_cl.ball_subset_image_closed_ball (h : diff_cont_on_cl ℂ f (ball z₀ r))
@@ -112,7 +112,8 @@ begin
     have h3 : ∀ t ∈ ball (0 : ℂ) r, gray w t = g z₀,
     { have e1 : is_preconnected (ball (0 : ℂ) r) := (convex_ball 0 r).is_preconnected,
       have e2 : w ∈ sphere (0 : E) 1 := by simp [w, norm_smul, h'],
-      apply (h1 w e2).eq_on_of_preconnected_of_eventually_eq analytic_on_const e1 (mem_ball_self hr),
+      specialize h1 w e2,
+      refine h1.eq_on_of_preconnected_of_eventually_eq analytic_on_const e1 (mem_ball_self hr) _,
       simpa [gray, ray] using h w e2 },
     have h4 : ∥z - z₀∥ < r := by simpa [dist_eq_norm] using mem_ball.mp hz,
     replace h4 : ↑∥z - z₀∥ ∈ ball (0 : ℂ) r := by simpa only [mem_ball_zero_iff, norm_eq_abs,
@@ -124,25 +125,22 @@ begin
     obtain ⟨z, hz, hrz⟩ := h,
     specialize h1 z hz 0 (mem_ball_self hr),
     have h7 := h1.eventually_constant_or_nhds_le_map_nhds_aux.resolve_left hrz,
-    rw [show gray z 0 = g z₀, by simp [gray, ray]] at h7,
-    refine h7.trans _,
-    rw [(rfl : gray z = g ∘ (λ t, z₀ + t • z)), ← map_compose],
-    apply map_mono,
+    rw [show gray z 0 = g z₀, by simp [gray, ray], ← map_compose] at h7,
+    refine h7.trans (map_mono _),
     have h10 : continuous (λ (t : ℂ), z₀ + t • z),
       from continuous_const.add (continuous_id'.smul continuous_const),
     simpa using h10.tendsto 0 }
 end
 
-theorem analytic_on.is_constant_or_is_open (hf : analytic_on ℂ f U) (hU : is_preconnected U) :
-  (∃ w, ∀ z ∈ U, f z = w) ∨ (∀ s ⊆ U, is_open s → is_open (f '' s)) :=
+theorem analytic_on.is_constant_or_is_open (hg : analytic_on ℂ g U) (hU : is_preconnected U) :
+  (∃ w, ∀ z ∈ U, g z = w) ∨ (∀ s ⊆ U, is_open s → is_open (g '' s)) :=
 begin
-  by_cases ∃ z₀ ∈ U, ∀ᶠ z in 𝓝 z₀, f z = f z₀,
+  by_cases ∃ z₀ ∈ U, ∀ᶠ z in 𝓝 z₀, g z = g z₀,
   { obtain ⟨z₀, hz₀, h⟩ := h,
-    have h3 : ∃ᶠ z in 𝓝[≠] z₀, f z = f z₀ := (h.filter_mono nhds_within_le_nhds).frequently,
-    exact or.inl ⟨f z₀, hf.eq_on_of_preconnected_of_frequently_eq analytic_on_const hU hz₀ h3⟩ },
+    exact or.inl ⟨g z₀, hg.eq_on_of_preconnected_of_eventually_eq analytic_on_const hU hz₀ h⟩ },
   { push_neg at h,
     refine or.inr (λ s hs1 hs2, is_open_iff_mem_nhds.mpr _),
     rintro z ⟨w, hw1, rfl⟩,
-    have := (hf w (hs1 hw1)).eventually_constant_or_nhds_le_map_nhds.resolve_left (h w (hs1 hw1)),
-    exact this (image_mem_map (hs2.mem_nhds hw1)) }
+    exact (hg w (hs1 hw1)).eventually_constant_or_nhds_le_map_nhds.resolve_left (h w (hs1 hw1))
+      (image_mem_map (hs2.mem_nhds hw1)) }
 end

@@ -150,7 +150,7 @@ open set
 theorem zero_union_range_succ : {0} ∪ range succ = univ :=
 by { ext n, cases n; simp }
 
-@[simp] protected lemma range_succ : range succ = { i | 0 < i} :=
+@[simp] protected lemma range_succ : range succ = {i | 0 < i} :=
 begin
   ext i,
   simp only [mem_range, mem_set_of_eq, zero_lt_iff],

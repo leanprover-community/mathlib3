@@ -253,7 +253,7 @@ end
 
 lemma finite_inter : {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ ∧ ((upper_closure F : set α)ᶜ.nonempty) } =
   ((λ (f : set (set α)), ⋂₀ f) ''
-       {f : set (set α) | f.finite ∧ f ⊆ {s : set α | ∃ (a : α), s = (Ici a)ᶜ} ∧ (⋂₀ f).nonempty}) :=
+       {f : set (set α) | f.finite ∧ f ⊆ {s : set α | ∃ (a : α), (Ici a)ᶜ = s} ∧ (⋂₀ f).nonempty}) :=
 begin
   rw image,
   ext,
@@ -279,14 +279,49 @@ begin
     { split,
       { sorry, },
       { split,
-        { simp only [set_of_subset_set_of, forall_exists_index, forall_apply_eq_imp_iff₂, compl_inj_iff, exists_apply_eq_apply', implies_true_iff],  },
+        { simp only [set_of_subset_set_of, forall_exists_index, forall_apply_eq_imp_iff₂, implies_true_iff, exists_apply_eq_apply], },
         { rw efn, exact h_h.2.2 } },
     },
     { rw [h_h.2.1,  ← upper_set.Inter_Ici, sInter_eq_bInter],
       simp only [mem_set_of_eq, exists_prop, Inter_exists, bInter_and', Inter_Inter_eq_left],
-      sorry, }
+      simp only [Inter_Inter_eq_right], }
    },
-  { sorry, }
+  { intro h,
+    cases h with f,
+    rw mem_set_of_eq at h_h,
+    let F:= { a : α | (Ici a)ᶜ ∈ f },
+    have eF: (⋂₀ f) = (upper_closure F : set α)ᶜ :=
+    begin
+      rw ← upper_set.Inter_Ici,
+      rw ← sInter_image,
+      apply congr_arg,
+      rw image,
+      ext s,
+      split,
+      { rw mem_set_of_eq,
+      intro hs,
+      have es: ∃ (a : α), (Ici a)ᶜ = s := by exact h_h.1.2.1 hs,
+      cases es with a,
+      use a,
+      split,
+      { rw ← es_h at hs, rw mem_set_of_eq, exact hs, },
+      { exact es_h, },
+      },
+      { intros h,
+        rw mem_set_of_eq at h,
+        cases h with a,
+        rw ← h_h_1.2,
+        apply h_h_1.1,
+          }
+    end,
+    use F,
+    split,
+    { sorry, },
+    { split,
+      { rw ← eF, rw h_h.2,  },
+      { rw ← eF, exact h_h.1.2.2, }
+    }
+}
 
 --simp only [coe_upper_closure, exists_prop, nonempty_sInter],
   --sorry,

@@ -166,7 +166,7 @@ begin
   exact finite.subset (finite.union hx hy) h_subset,
 end
 
-/-- Addition on the finite adèle. ring. -/
+/-- Addition on the finite adèle ring. -/
 def add' (x y : finite_adele_ring R K) : finite_adele_ring R K :=
 ⟨x.val + y.val, restr_add R K x y⟩
 

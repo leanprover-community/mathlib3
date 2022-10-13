@@ -6,7 +6,7 @@ Authors: Joseph Myers, Heather Macbeth
 import analysis.complex.arg
 import analysis.inner_product_space.area_form
 import analysis.special_functions.complex.circle
-import geometry.euclidean.basic
+import geometry.euclidean.angle.unoriented.affine
 
 /-!
 # Oriented angles.

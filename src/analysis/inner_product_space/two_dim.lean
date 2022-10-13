@@ -62,7 +62,7 @@ include o
 /-- An antisymmetric bilinear form on an oriented real inner product space of dimension 2 (usual
 notation `ω`).  When evaluated on two vectors, it gives the oriented area of the parallelogram they
 span. -/
-def area_form : E →ₗ[ℝ] E →ₗ[ℝ] ℝ :=
+@[irreducible] def area_form : E →ₗ[ℝ] E →ₗ[ℝ] ℝ :=
 begin
   let z : alternating_map ℝ E ℝ (fin 0) ≃ₗ[ℝ] ℝ :=
     alternating_map.const_linear_equiv_of_is_empty.symm,
@@ -77,8 +77,6 @@ omit o
 local notation `ω` := o.area_form
 
 lemma area_form_to_volume_form (x y : E) : ω x y = o.volume_form ![x, y] := by simp [area_form]
-
-attribute [irreducible] area_form
 
 @[simp] lemma area_form_apply_self (x : E) : ω x x = 0 :=
 begin
@@ -126,7 +124,7 @@ end
 
 /-- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
 oriented real inner product space of dimension 2. -/
-def right_angle_rotation_aux₁ : E →ₗ[ℝ] E :=
+@[irreducible] def right_angle_rotation_aux₁ : E →ₗ[ℝ] E :=
 let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
   (inner_product_space.to_dual ℝ E).to_linear_equiv ≪≫ₗ linear_map.to_continuous_linear_map.symm in
 ↑to_dual.symm ∘ₗ ω
@@ -134,8 +132,6 @@ let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
 @[simp] lemma inner_right_angle_rotation_aux₁_left (x y : E) :
   ⟪o.right_angle_rotation_aux₁ x, y⟫ = ω x y :=
 by simp [right_angle_rotation_aux₁]
-
-attribute [irreducible] right_angle_rotation_aux₁
 
 @[simp] lemma inner_right_angle_rotation_aux₁_right (x y : E) :
   ⟪x, o.right_angle_rotation_aux₁ y⟫ = - ω x y :=
@@ -190,7 +186,7 @@ end
 /-- An isometric automorphism of an oriented real inner product space of dimension 2 (usual notation
 `J`). This automorphism squares to -1.  We will define rotations in such a way that this
 automorphism is equal to rotation by 90 degrees. -/
-def right_angle_rotation : E ≃ₗᵢ[ℝ] E :=
+@[irreducible] def right_angle_rotation : E ≃ₗᵢ[ℝ] E :=
 linear_isometry_equiv.of_linear_isometry
   o.right_angle_rotation_aux₂
   (-o.right_angle_rotation_aux₁)
@@ -200,19 +196,29 @@ linear_isometry_equiv.of_linear_isometry
 local notation `J` := o.right_angle_rotation
 
 @[simp] lemma inner_right_angle_rotation_left (x y : E) : ⟪J x, y⟫ = ω x y :=
-o.inner_right_angle_rotation_aux₁_left x y
+begin
+  rw right_angle_rotation,
+  exact o.inner_right_angle_rotation_aux₁_left x y
+end
 
 @[simp] lemma inner_right_angle_rotation_right (x y : E) : ⟪x, J y⟫ = - ω x y :=
-o.inner_right_angle_rotation_aux₁_right x y
+begin
+  rw right_angle_rotation,
+  exact o.inner_right_angle_rotation_aux₁_right x y
+end
 
 @[simp] lemma right_angle_rotation_right_angle_rotation (x : E) : J (J x) = - x :=
-o.right_angle_rotation_aux₁_right_angle_rotation_aux₁ x
+begin
+  rw right_angle_rotation,
+  exact o.right_angle_rotation_aux₁_right_angle_rotation_aux₁ x
+end
 
 @[simp] lemma right_angle_rotation_symm :
   linear_isometry_equiv.symm J = linear_isometry_equiv.trans J (linear_isometry_equiv.neg ℝ) :=
-linear_isometry_equiv.to_linear_isometry_injective rfl
-
-attribute [irreducible] right_angle_rotation
+begin
+  rw right_angle_rotation,
+  exact linear_isometry_equiv.to_linear_isometry_injective rfl
+end
 
 @[simp] lemma inner_right_angle_rotation_self (x : E) : ⟪J x, x⟫ = 0 := by simp
 
@@ -256,6 +262,8 @@ def basis_right_angle_rotation (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
   ⇑(o.basis_right_angle_rotation x hx) = ![x, J x] :=
 coe_basis_of_linear_independent_of_card_eq_finrank _ _
 
+/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ∥a∥ ^ 2 * ⟪x, y⟫`. (See
+`orientation.inner_mul_inner_add_area_form_mul_area_form` for the "applied" form.)-/
 lemma inner_mul_inner_add_area_form_mul_area_form' (a x : E) :
   ⟪a, x⟫ • @innerₛₗ ℝ _ _ _ a + ω a x • ω a = ∥a∥ ^ 2 • @innerₛₗ ℝ _ _ _ x :=
 begin
@@ -276,6 +284,7 @@ begin
     ring, }
 end
 
+/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ∥a∥ ^ 2 * ⟪x, y⟫`. -/
 lemma inner_mul_inner_add_area_form_mul_area_form (a x y : E) :
   ⟪a, x⟫ * ⟪a, y⟫ + ω a x * ω a y = ∥a∥ ^ 2 * ⟪x, y⟫ :=
 congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_inner_add_area_form_mul_area_form' a x)
@@ -283,6 +292,8 @@ congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_inner_add_area_form_mul_a
 lemma inner_sq_add_area_form_sq (a b : E) : ⟪a, b⟫ ^ 2 + ω a b ^ 2 = ∥a∥ ^ 2 * ∥b∥ ^ 2 :=
 by simpa [sq, real_inner_self_eq_norm_sq] using o.inner_mul_inner_add_area_form_mul_area_form a b b
 
+/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y`. (See
+`orientation.inner_mul_area_form_sub` for the "applied" form.)-/
 lemma inner_mul_area_form_sub' (a x : E) :
   ⟪a, x⟫ • ω a - ω a x • @innerₛₗ ℝ _ _ _ a = ∥a∥ ^ 2 • ω x :=
 begin
@@ -302,6 +313,7 @@ begin
   ring},
 end
 
+/-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y`. -/
 lemma inner_mul_area_form_sub (a x y : E) : ⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y :=
 congr_arg (λ f : E →ₗ[ℝ] ℝ, f y) (o.inner_mul_area_form_sub' a x)
 
@@ -338,7 +350,9 @@ begin
 end
 
 /-- A complex-valued real-bilinear map on an oriented real inner product space of dimension 2. Its
-real part is the inner product and its imaginary part is `orientation.area_form`. -/
+real part is the inner product and its imaginary part is `orientation.area_form`.
+
+TODO On `ℂ` with the standard orientation, `kahler w z = conj w * z`. -/
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=
 (linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ (@innerₛₗ ℝ E _ _)
 + (linear_map.llcomp ℝ E ℝ ℂ ((linear_map.lsmul ℝ ℂ).flip complex.I)) ∘ₗ ω

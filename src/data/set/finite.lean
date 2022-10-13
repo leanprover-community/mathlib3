@@ -312,7 +312,7 @@ instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] :
   fintype (s ×ˢ t : set (α × β)) :=
 fintype.of_finset (s.to_finset ×ˢ t.to_finset) $ by simp
 
-instance fintype_off_diag [decidable_eq α] (s : set α) [fintype s] : fintype (s.off_diag) :=
+instance fintype_off_diag [decidable_eq α] (s : set α) [fintype s] : fintype s.off_diag :=
 fintype.of_finset s.to_finset.off_diag $ by simp
 
 /-- `image2 f s t` is `fintype` if `s` and `t` are. -/
@@ -675,7 +675,7 @@ lemma finite.to_finset_insert' [decidable_eq α] {a : α} {s : set α} (hs : s.f
 finite.to_finset_insert _
 
 lemma finite.to_finset_prod {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
-(hs.to_finset ×ˢ ht.to_finset) = (hs.prod ht).to_finset := finset.ext $ by simp
+hs.to_finset ×ˢ ht.to_finset = (hs.prod ht).to_finset := finset.ext $ by simp
 
 lemma finite.to_finset_off_diag {s : set α} [decidable_eq α] (hs : s.finite) :
 hs.off_diag.to_finset = hs.to_finset.off_diag := finset.ext $ by simp

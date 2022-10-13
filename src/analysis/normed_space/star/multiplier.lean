@@ -41,21 +41,23 @@ open nnreal continuous_linear_map
 
 universes u v
 
-variables (𝕜 : Type u) (A : Type v)
-  [nontrivially_normed_field 𝕜]
-  [non_unital_normed_ring A]
-  [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A]
-
-
 /-- The type of *double centralizers*, also known as the *multiplier algebra* and denoted by
 `𝓜(𝕜, A)`, of a non-unital normed algebra. -/
 @[ext]
-structure double_centralizer : Type v :=
+structure double_centralizer (𝕜 : Type u) (A : Type v) [nontrivially_normed_field 𝕜]
+  [non_unital_normed_ring A] [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A] :=
 (left : A →L[𝕜] A)
 (right : A →L[𝕜] A)
 (central : ∀ x y : A, right x * y = x * left y)
 
 localized "notation `𝓜(` 𝕜 `, ` A `)` := double_centralizer 𝕜 A" in multiplier_algebra
+
+namespace double_centralizer
+
+section nontrivially_normed
+
+variables (𝕜 A : Type*) [nontrivially_normed_field 𝕜] [non_unital_normed_ring A]
+variables [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A]
 
 instance : inhabited 𝓜(𝕜, A) :=
 { default := ⟨1, 1, by simp only [one_apply, eq_self_iff_true, forall_const]⟩ }
@@ -69,8 +71,6 @@ We use this map to pull back the normed space structure from `(A →L[𝕜] A) �
 `𝓜(𝕜, A)`, which provides a definitional isometric embedding. Consequently, completeness of
 `𝓜(𝕜, A)` is obtained by proving that the range of this map is closed.
 -/
-
-namespace double_centralizer
 
 /-- the canonical map of `𝓜(𝕜, A)` into `(A →L[𝕜] A) × (A →L[𝕜] A)`. -/
 @[simp] def prod_mk (a : 𝓜(𝕜, A)) : (A →L[𝕜] A) × (A →L[𝕜] A) := (a.left, a.right)
@@ -355,8 +355,7 @@ lemma nnnorm_right (a : 𝓜(𝕜, A)) : ∥a∥₊ = ∥a.right∥₊ := subtyp
 noncomputable instance : normed_algebra 𝕜 𝓜(𝕜, A) :=
 { ..double_centralizer.algebra, ..double_centralizer.normed_space }
 
-instance [star_ring 𝕜] [star_module 𝕜 A] [normed_star_group A] : cstar_ring 𝓜(𝕜, A) :=
-{ norm_star_mul_self := sorry }
+end nontrivially_normed
 
 end double_centralizer
 

@@ -463,6 +463,67 @@ lipschitz_with_iff_norm_sub_le.2 $ λ f g, ((f - g).le_op_norm x).trans_eq (mul_
 
 end
 
+section Sup
+
+variables [ring_hom_isometric σ₁₂]
+
+lemma exists_mul_lt_apply_of_lt_op_nnnorm (f : E →SL[σ₁₂] F) {r : ℝ≥0} (hr : r < ∥f∥₊) :
+  ∃ x, r * ∥x∥₊ < ∥f x∥₊ :=
+by simpa only [not_forall, not_le, set.mem_set_of] using not_mem_of_lt_cInf
+  (nnnorm_def f ▸ hr : r < Inf {c : ℝ≥0 | ∀ x, ∥f x∥₊ ≤ c * ∥x∥₊}) (order_bot.bdd_below _)
+
+lemma exists_mul_lt_of_lt_op_norm (f : E →SL[σ₁₂] F) {r : ℝ} (hr₀ : 0 ≤ r) (hr : r < ∥f∥) :
+  ∃ x, r * ∥x∥ < ∥f x∥ :=
+by { lift r to ℝ≥0 using hr₀, exact f.exists_mul_lt_apply_of_lt_op_nnnorm hr }
+
+lemma exists_lt_apply_of_lt_op_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+  [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
+  (f : E →SL[σ₁₂] F) {r : ℝ≥0} (hr : r < ∥f∥₊) : ∃ x : E, ∥x∥₊ ≤ 1 ∧ r < ∥f x∥₊ :=
+begin
+  obtain ⟨y, hy⟩ := f.exists_mul_lt_apply_of_lt_op_nnnorm hr,
+  have hy'' : ∥y∥₊ ≠ 0 := nnnorm_ne_zero_iff.2
+    (λ heq, by simpa only [heq, nnnorm_zero, map_zero, not_lt_zero'] using hy),
+  have hfy : ∥f y∥₊ ≠ 0 := (zero_le'.trans_lt hy).ne',
+  rw [←inv_inv (∥f y∥₊), nnreal.lt_inv_iff_mul_lt (inv_ne_zero hfy), mul_assoc, mul_comm (∥y∥₊),
+    ←mul_assoc, ←nnreal.lt_inv_iff_mul_lt hy''] at hy,
+  obtain ⟨k, hk₁, hk₂⟩ := normed_field.exists_lt_nnnorm_lt 𝕜 hy,
+  refine ⟨k • y, (nnnorm_smul k y).symm ▸ (nnreal.le_inv_iff_mul_le hy'').1 hk₂.le, _⟩,
+  have : ∥σ₁₂ k∥₊ = ∥k∥₊ := subtype.ext ring_hom_isometric.is_iso,
+  rwa [map_smulₛₗ f, nnnorm_smul, ←nnreal.div_lt_iff hfy, div_eq_mul_inv, this],
+end
+
+lemma exists_lt_apply_of_lt_op_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+  [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
+  (f : E →SL[σ₁₂] F) {r : ℝ} (hr : r < ∥f∥) : ∃ x : E, ∥x∥ ≤ 1 ∧ r < ∥f x∥ :=
+begin
+  by_cases hr₀ : r < 0,
+  { refine ⟨0, by simpa using hr₀⟩, },
+  { lift r to ℝ≥0 using not_lt.1 hr₀,
+    exact f.exists_lt_apply_of_lt_op_nnnorm hr, }
+end
+
+lemma op_nnnorm_eq_Sup_unit_ball {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+  [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
+  (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥₊) '' {x : E | ∥x∥₊ ≤ 1}) = ∥f∥₊ :=
+begin
+  have hball : {x : E | ∥x∥₊ ≤ 1}.nonempty := ⟨0, nnnorm_zero.trans_le zero_le_one⟩,
+  refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (hball.image _) _ (λ ub hub, _),
+  { rintro - ⟨x, hx, rfl⟩, exact f.unit_le_op_norm x hx },
+  { obtain ⟨x, hx, hxf⟩ := f.exists_lt_apply_of_lt_op_nnnorm hub,
+    exact ⟨_, ⟨x, hx, rfl⟩, hxf⟩, }
+end
+
+lemma op_norm_eq_Sup_unit_ball {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+  [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
+  (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥) '' {x : E | ∥x∥ ≤ 1}) = ∥f∥ :=
+by simpa only [nnreal.coe_Sup, set.image_image] using nnreal.coe_eq.2 f.op_nnnorm_eq_Sup_unit_ball
+
+end Sup
+
 section
 
 lemma op_norm_ext [ring_hom_isometric σ₁₃] (f : E →SL[σ₁₂] F) (g : E →SL[σ₁₃] G)

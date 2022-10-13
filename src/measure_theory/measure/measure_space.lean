@@ -503,13 +503,13 @@ end
 
 /-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of sets such
 that `∑ μ sᵢ` is finite, then the limit superior of the `sᵢ` is a null set. -/
-lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
+lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup s at_top) = 0 :=
 begin
   -- First we replace the sequence `sₙ` with a sequence of measurable sets `tₙ ⊇ sₙ` of the same
   -- measure.
   set t : ℕ → set α := λ n, to_measurable μ (s n),
   have ht : ∑' i, μ (t i) ≠ ∞, by simpa only [t, measure_to_measurable] using hs,
-  suffices : μ (limsup at_top t) = 0,
+  suffices : μ (limsup t at_top) = 0,
   { have A : s ≤ t := λ n, subset_to_measurable μ (s n),
     -- TODO default args fail
     exact measure_mono_null (limsup_le_limsup (eventually_of_forall (pi.le_def.mp A))
@@ -527,17 +527,17 @@ begin
   exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, tsub_add_cancel_of_le hnm] using hi⟩
 end
 
-lemma measure_liminf_eq_zero {s : ℕ → set α} (h : ∑' i, μ (s i) ≠ ⊤) : μ (at_top.liminf s) = 0 :=
+lemma measure_liminf_eq_zero {s : ℕ → set α} (h : ∑' i, μ (s i) ≠ ⊤) : μ (liminf s at_top) = 0 :=
 begin
   rw ← le_zero_iff,
-  have : at_top.liminf s ≤ at_top.limsup s :=
+  have : liminf s at_top ≤ limsup s at_top :=
     liminf_le_limsup (by is_bounded_default) (by is_bounded_default),
   exact (μ.mono this).trans (by simp [measure_limsup_eq_zero h]),
 end
 
 lemma limsup_ae_eq_of_forall_ae_eq (s : ℕ → set α) {t : set α} (h : ∀ n, s n =ᵐ[μ] t) :
   -- Need `@` below because of diamond; see gh issue #16932
-  @limsup (set α) ℕ _ at_top s =ᵐ[μ] t :=
+  @limsup (set α) ℕ _ s at_top =ᵐ[μ] t :=
 begin
   simp_rw ae_eq_set at h ⊢,
   split,
@@ -551,7 +551,7 @@ end
 
 lemma liminf_ae_eq_of_forall_ae_eq (s : ℕ → set α) {t : set α} (h : ∀ n, s n =ᵐ[μ] t) :
   -- Need `@` below because of diamond; see gh issue #16932
-  @liminf (set α) ℕ _ at_top s =ᵐ[μ] t :=
+  @liminf (set α) ℕ _ s at_top =ᵐ[μ] t :=
 begin
   simp_rw ae_eq_set at h ⊢,
   split,
@@ -574,14 +574,14 @@ begin
 end
 
 @[measurability] lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
-  measurable_set $ limsup at_top s :=
+  measurable_set $ limsup s at_top :=
 begin
   simp only [limsup_eq_infi_supr_of_nat', supr_eq_Union, infi_eq_Inter],
   exact measurable_set.Inter (λ n, measurable_set.Union $ λ m, hs $ m + n),
 end
 
 @[measurability] lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
-  measurable_set $ liminf at_top s :=
+  measurable_set $ liminf s at_top :=
 begin
   simp only [liminf_eq_supr_infi_of_nat', supr_eq_Union, infi_eq_Inter],
   exact measurable_set.Union (λ n, measurable_set.Inter $ λ m, hs $ m + n),
@@ -1126,6 +1126,11 @@ begin
   rw [to_measure_apply₀ _ _ hs, outer_measure.comap_apply, coe_to_outer_measure]
 end
 
+lemma le_comap_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (μ : measure β)
+  (hfi : injective f) (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) (s : set α) :
+  μ (f '' s) ≤ comap f μ s :=
+by { rw [comap, dif_pos (and.intro hfi hf)], exact le_to_measure_apply _ _ _, }
+
 lemma comap_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
   comap f μ s = μ (f '' s) :=
@@ -1136,6 +1141,119 @@ lemma comapₗ_eq_comap {β} [measurable_space α] {mβ : measurable_space β} (
   (μ : measure β) (hs : measurable_set s) :
   comapₗ f μ s = comap f μ s :=
 (comapₗ_apply f hfi hf μ hs).trans (comap_apply f hfi hf μ hs).symm
+
+lemma measure_image_eq_zero_of_comap_eq_zero {β} [measurable_space α] {mβ : measurable_space β}
+  (f : α → β) (μ : measure β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) {s : set α} (hs : comap f μ s = 0) :
+  μ (f '' s) = 0 :=
+le_antisymm ((le_comap_apply f μ hfi hf s).trans hs.le) (zero_le _)
+
+lemma ae_eq_image_of_ae_eq_comap {β} [measurable_space α] {mβ : measurable_space β}
+  (f : α → β) (μ : measure β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) {s t : set α}
+  (hst : s =ᵐ[comap f μ] t) :
+  f '' s =ᵐ[μ] f '' t :=
+begin
+  rw [eventually_eq, ae_iff] at hst ⊢,
+  have h_eq_α : {a : α | ¬s a = t a} = s \ t ∪ t \ s,
+  { ext1 x, simp only [eq_iff_iff, mem_set_of_eq, mem_union, mem_diff], tauto, },
+  have h_eq_β : {a : β | ¬(f '' s) a = (f '' t) a} = f '' s \ f '' t ∪ f '' t \ f '' s,
+  { ext1 x, simp only [eq_iff_iff, mem_set_of_eq, mem_union, mem_diff], tauto, },
+  rw [← set.image_diff hfi, ← set.image_diff hfi, ← set.image_union] at h_eq_β,
+  rw h_eq_β,
+  rw h_eq_α at hst,
+  exact measure_image_eq_zero_of_comap_eq_zero f μ hfi hf hst,
+end
+
+lemma null_measurable_set.image {β} [measurable_space α] {mβ : measurable_space β}
+  (f : α → β) (μ : measure β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) {s : set α}
+  (hs : null_measurable_set s (μ.comap f)) :
+  null_measurable_set (f '' s) μ :=
+begin
+  refine ⟨to_measurable μ (f '' (to_measurable (μ.comap f) s)),
+    measurable_set_to_measurable _ _, _⟩,
+  refine eventually_eq.trans _ (null_measurable_set.to_measurable_ae_eq _).symm,
+  swap, { exact hf _ (measurable_set_to_measurable _ _), },
+  have h : to_measurable (comap f μ) s =ᵐ[comap f μ] s,
+    from @null_measurable_set.to_measurable_ae_eq _ _ (μ.comap f : measure α) s hs,
+  exact ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
+end
+
+section subtype
+
+/-! ### Subtype of a measure space -/
+
+section comap_any_measure
+
+lemma measurable_set.null_measurable_set_subtype_coe
+  {t : set s} (hs : null_measurable_set s μ) (ht : measurable_set t) :
+  null_measurable_set ((coe : s → α) '' t) μ :=
+begin
+  rw [subtype.measurable_space, comap_eq_generate_from] at ht,
+  refine generate_from_induction
+    (λ t : set s, null_measurable_set (coe '' t) μ)
+    {t : set s | ∃ (s' : set α), measurable_set s' ∧ coe ⁻¹' s' = t} _ _ _ _ ht,
+  { rintros t' ⟨s', hs', rfl⟩,
+    rw [subtype.image_preimage_coe],
+    exact hs'.null_measurable_set.inter hs, },
+  { simp only [image_empty, null_measurable_set_empty], },
+  { intro t',
+    simp only [←range_diff_image subtype.coe_injective, subtype.range_coe_subtype, set_of_mem_eq],
+    exact hs.diff, },
+  { intro f,
+    rw image_Union,
+    exact null_measurable_set.Union, },
+end
+
+lemma null_measurable_set.subtype_coe {t : set s} (hs : null_measurable_set s μ)
+  (ht : null_measurable_set t (μ.comap subtype.val)) :
+  null_measurable_set ((coe : s → α) '' t) μ :=
+null_measurable_set.image coe μ subtype.coe_injective
+  (λ t, measurable_set.null_measurable_set_subtype_coe hs) ht
+
+lemma measure_subtype_coe_le_comap (hs : null_measurable_set s μ) (t : set s) :
+  μ ((coe : s → α) '' t) ≤ μ.comap subtype.val t :=
+le_comap_apply _ _ subtype.coe_injective (λ t, measurable_set.null_measurable_set_subtype_coe hs) _
+
+lemma measure_subtype_coe_eq_zero_of_comap_eq_zero (hs : null_measurable_set s μ)
+  {t : set s} (ht : μ.comap subtype.val t = 0) :
+  μ ((coe : s → α) '' t) = 0 :=
+eq_bot_iff.mpr $ (measure_subtype_coe_le_comap hs t).trans ht.le
+
+end comap_any_measure
+
+section measure_space
+variables [measure_space α] {p : α → Prop}
+
+instance subtype.measure_space : measure_space (subtype p) :=
+{ volume := measure.comap subtype.val volume,
+  ..subtype.measurable_space }
+
+lemma subtype.volume_def : (volume : measure s) = volume.comap subtype.val := rfl
+
+lemma subtype.volume_univ (hs : null_measurable_set s) :
+  volume (univ : set s) = volume s :=
+begin
+  rw [subtype.volume_def, comap_apply₀ _ _ _ _ measurable_set.univ.null_measurable_set],
+  { congr, simp only [subtype.val_eq_coe, image_univ, subtype.range_coe_subtype, set_of_mem_eq], },
+  { exact subtype.coe_injective, },
+  { exact λ t, measurable_set.null_measurable_set_subtype_coe hs, },
+end
+
+lemma volume_subtype_coe_le_volume (hs : null_measurable_set s) (t : set s) :
+  volume ((coe : s → α) '' t) ≤ volume t :=
+measure_subtype_coe_le_comap hs t
+
+lemma volume_subtype_coe_eq_zero_of_volume_eq_zero (hs : null_measurable_set s)
+  {t : set s} (ht : volume t = 0) :
+  volume ((coe : s → α) '' t) = 0 :=
+measure_subtype_coe_eq_zero_of_comap_eq_zero hs ht
+
+end measure_space
+
+end subtype
+
 
 /-! ### Restricting a measure -/
 
@@ -1951,7 +2069,7 @@ preimage_null_of_map_null h.ae_measurable (h.2 hs)
 lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
   (hs : f⁻¹' s =ᵐ[μ] s) :
   -- Need `@` below because of diamond; see gh issue #16932
-  @limsup (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s :=
+  @limsup (set α) ℕ _ (λ n, (preimage f)^[n] s) at_top =ᵐ[μ] s :=
 begin
   have : ∀ n, (preimage f)^[n] s =ᵐ[μ] s,
   { intros n,
@@ -1963,7 +2081,7 @@ end
 lemma liminf_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
   (hs : f⁻¹' s =ᵐ[μ] s) :
   -- Need `@` below because of diamond; see gh issue #16932
-  @liminf (set α) ℕ _ at_top (λ n, (preimage f)^[n] s) =ᵐ[μ] s :=
+  @liminf (set α) ℕ _ (λ n, (preimage f)^[n] s) at_top =ᵐ[μ] s :=
 begin
   -- Need `@` below because of diamond; see gh issue #16932
   rw [← ae_eq_set_compl, @filter.liminf_compl (set α)],

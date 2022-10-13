@@ -9,7 +9,7 @@ import category_theory.limits.preserves.shapes.biproducts
 import category_theory.preadditive
 
 /-!
-# Basic facts about morphisms biproducts in preadditive categories.
+# Basic facts about biproducts in preadditive categories.
 
 In (or between) preadditive categories,
 

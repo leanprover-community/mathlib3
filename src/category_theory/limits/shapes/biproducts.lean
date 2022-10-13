@@ -18,8 +18,8 @@ These are slightly unusual relative to the other shapes in the library,
 as they are simultaneously limits and colimits.
 (Zero objects are similar; they are "biterminal".)
 
-We treat first the case of a general category with zero morphisms,
-and subsequently the case of a preadditive category.
+For, Results about biproducts in preadditive categories see
+`category_theory.preadditive.biproducts`.
 
 In a category with zero morphisms, we model the (binary) biproduct of `P Q : C`
 using a `binary_bicone`, which has a cone point `X`,
@@ -1574,9 +1574,6 @@ variables {C : Type.{u}} [category.{v} C] [has_zero_morphisms C] [has_binary_bip
 /-- An object is indecomposable if it cannot be written as the biproduct of two nonzero objects. -/
 def indecomposable (X : C) : Prop := ¬ is_zero X ∧ ∀ Y Z, (X ≅ Y ⊞ Z) → is_zero Y ∨ is_zero Z
 
-section
-variables [has_zero_morphisms.{v} C] [has_binary_biproducts.{v} C]
-
 /--
 If
 ```
@@ -1617,8 +1614,6 @@ begin
   { rw [←biprod.braiding_map_braiding],
     apply_instance, },
   exact is_iso_left_of_is_iso_biprod_map g f,
-end
-
 end
 
 end category_theory

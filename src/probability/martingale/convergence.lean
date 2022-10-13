@@ -136,7 +136,7 @@ convergent.
 We use the spelling `< ∞` instead of the standard `≠ ∞` in the assumptions since it is not as easy
 to change `<` to `≠` under binders. -/
 lemma tendsto_of_uncrossing_lt_top
-  (hf₁ : liminf at_top (λ n, (∥f n ω∥₊ : ℝ≥0∞)) < ∞)
+  (hf₁ : liminf (λ n, (∥f n ω∥₊ : ℝ≥0∞)) at_top < ∞)
   (hf₂ : ∀ a b : ℚ, a < b → upcrossings a b f ω < ∞) :
   ∃ c, tendsto (λ n, f n ω) at_top (𝓝 c) :=
 begin

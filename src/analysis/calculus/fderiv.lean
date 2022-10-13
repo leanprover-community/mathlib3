@@ -359,7 +359,7 @@ end
 
 alias has_fderiv_within_at_insert ↔ has_fderiv_within_at.of_insert has_fderiv_within_at.insert'
 
-lemma has_fderiv_within_at.insert {y : E} {g' : E →L[𝕜] F} (h : has_fderiv_within_at g g' s x) :
+lemma has_fderiv_within_at.insert {g' : E →L[𝕜] F} (h : has_fderiv_within_at g g' s x) :
   has_fderiv_within_at g g' (insert x s) x :=
 h.insert'
 

@@ -263,27 +263,16 @@ by simp only [nhds_within, mem_inf_principal, mem_compl_iff, mem_singleton_iff,
 @[simp] theorem nhds_within_compl_singleton_sup_pure (a : α) : 𝓝[≠] a ⊔ pure a = 𝓝 a :=
 by rw [← nhds_within_singleton, ← nhds_within_union, compl_union_self, nhds_within_univ]
 
-lemma nhds_within_prod_eq' [topological_space β]
-  (x : α × β) (s : set α) (t : set β) :
-  𝓝[s ×ˢ t] x = 𝓝[s] x.1 ×ᶠ 𝓝[t] x.2 :=
-by { delta nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
-
-lemma nhds_within_prod_eq [topological_space β]
+lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
   𝓝[s ×ˢ t] (a, b) = 𝓝[s] a ×ᶠ 𝓝[t] b :=
-nhds_within_prod_eq' (a, b) s t
+by { delta nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
 
-lemma nhds_within_prod' [topological_space β]
-  {s u : set α} {t v : set β} {x : α × β}
-  (hu : u ∈ 𝓝[s] x.1) (hv : v ∈ 𝓝[t] x.2) :
-  (u ×ˢ v) ∈ 𝓝[s ×ˢ t] x :=
-by { rw nhds_within_prod_eq', exact prod_mem_prod hu hv }
-
-lemma nhds_within_prod [topological_space β]
+lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   {s u : set α} {t v : set β} {a : α} {b : β}
   (hu : u ∈ 𝓝[s] a) (hv : v ∈ 𝓝[t] b) :
   (u ×ˢ v) ∈ 𝓝[s ×ˢ t] (a, b) :=
-nhds_within_prod' hu hv
+by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 
 lemma nhds_within_pi_eq' {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
   {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :

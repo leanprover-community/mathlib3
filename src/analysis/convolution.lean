@@ -882,10 +882,7 @@ calc    ((f ⋆[L, ν] g) ⋆[L₂, μ] k) x₀
 * all maps are a.e. strongly measurable w.r.t one of the measures
 * `f ⋆[L, ν] g` exists almost everywhere
 * `∥g∥ ⋆[μ] ∥k∥` exists almost everywhere
-* `∥f∥ ⋆[ν] (∥g∥ ⋆[μ] ∥k∥)` exists at `x₀`
-
-todo: can we prove this without assuming that `μ` is not both left and right invariant?
-(preferably only assuming that it is left-invariant). -/
+* `∥f∥ ⋆[ν] (∥g∥ ⋆[μ] ∥k∥)` exists at `x₀` -/
 lemma convolution_assoc (hL : ∀ (x : E) (y : E') (z : E''), L₂ (L x y) z = L₃ x (L₄ y z))
   {x₀ : G}
   (hf : ae_strongly_measurable f ν)

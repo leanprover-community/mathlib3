@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import data.set.intervals.monotone
 import measure_theory.measure.lebesgue
+import analysis.calculus.monotone
 
 /-!
 # Functions of bounded variation

@@ -819,7 +819,7 @@ lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) : (⨅ i : s, f i) = ⨅ 
 infi_subtype
 
 lemma bsupr_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) :
-  (⨆ (i ∈ s), a) = a :=
+  (⨆ i ∈ s, a) = a :=
 begin
   haveI : nonempty s := set.nonempty_coe_sort.mpr hs,
   rw [← supr_subtype'', supr_const],

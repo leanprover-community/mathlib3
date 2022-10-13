@@ -14,7 +14,7 @@ import data.list.zip
 This file shows basic results about `list.iota`, `list.range`, `list.range'` (all defined in
 `data.list.defs`) and defines `list.fin_range`.
 `fin_range n` is the list of elements of `fin n`.
-`iota n = [1, ..., n]` and `range n = [0, ..., n - 1]` are basic list constructions used for
+`iota n = [n, n - 1, ..., 1]` and `range n = [0, ..., n - 1]` are basic list constructions used for
 tactics. `range' a b = [a, ..., a + b - 1]` is there to help prove properties about them.
 Actual maths should use `list.Ico` instead.
 -/
@@ -77,7 +77,7 @@ theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
                by rw [add_right_comm, range'_append]
 
 theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ n :=
-⟨λ h, by simpa only [length_range'] using length_le_of_sublist h,
+⟨λ h, by simpa only [length_range'] using h.length_le,
  λ h, by rw [← tsub_add_cancel_of_le h, ← range'_append]; apply sublist_append_left⟩
 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=

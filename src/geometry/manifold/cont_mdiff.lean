@@ -948,7 +948,7 @@ begin
     (inter_mem _ self_mem_nhds_within)).congr_of_eventually_eq _ _,
   { filter_upwards [A],
     rintro x' ⟨hx', ht, hfx', hgfx'⟩,
-    simp only [*, mem_preimage, written_in_ext_chart_at, (∘), mem_inter_eq, e'.left_inv, true_and],
+    simp only [*, mem_preimage, written_in_ext_chart_at, (∘), mem_inter_iff, e'.left_inv, true_and],
     exact mem_range_self _ },
   { filter_upwards [A],
     rintro x' ⟨hx', ht, hfx', hgfx'⟩,

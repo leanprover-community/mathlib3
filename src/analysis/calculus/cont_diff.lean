@@ -2231,6 +2231,36 @@ hg.comp_cont_diff_on₂ hf₁ $ hf₂.prod hf₃
 
 end n_ary
 
+section specific_bilinear_maps
+
+lemma cont_diff.clm_comp {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
+  (hg : cont_diff 𝕜 n g) (hf : cont_diff 𝕜 n f) :
+  cont_diff 𝕜 n (λ x, (g x).comp (f x)) :=
+is_bounded_bilinear_map_comp.cont_diff.comp₂ hg hf
+
+lemma cont_diff_on.clm_comp {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
+  {s : set X} (hg : cont_diff_on 𝕜 n g s) (hf : cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (λ x, (g x).comp (f x)) s :=
+is_bounded_bilinear_map_comp.cont_diff.comp_cont_diff_on₂ hg hf
+
+lemma cont_diff.clm_apply {f : E → F →L[𝕜] G} {g : E → F} {n : ℕ∞}
+  (hf : cont_diff 𝕜 n f) (hg : cont_diff 𝕜 n g) :
+  cont_diff 𝕜 n (λ x, (f x) (g x)) :=
+is_bounded_bilinear_map_apply.cont_diff.comp₂ hf hg
+
+lemma cont_diff_on.clm_apply {f : E → F →L[𝕜] G} {g : E → F} {n : ℕ∞}
+  (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
+  cont_diff_on 𝕜 n (λ x, (f x) (g x)) s :=
+is_bounded_bilinear_map_apply.cont_diff.comp_cont_diff_on₂ hf hg
+
+lemma cont_diff.smul_right {f : E → F →L[𝕜] 𝕜} {g : E → G} {n : ℕ∞}
+  (hf : cont_diff 𝕜 n f) (hg : cont_diff 𝕜 n g) :
+  cont_diff 𝕜 n (λ x, (f x).smul_right (g x)) :=
+-- giving the following implicit type arguments speeds up elaboration significantly
+(@is_bounded_bilinear_map_smul_right 𝕜 _ F _ _ G _ _).cont_diff.comp₂ hf hg
+
+end specific_bilinear_maps
+
 /--
 The natural equivalence `(E × F) × G ≃ E × (F × G)` is smooth.
 
@@ -2287,8 +2317,7 @@ To show that `x' ↦ D_yf(x',y)g(x')` (taken within `t`) is `C^m` at `x` within 
   `u` is a neighborhood of `(x, g(x))` within the image of `s` under `x' ↦ (x', g(x'))`;
 * `g` is `C^m` at `x` within `s`;
 * There is exist unique derivatives at `g(x')` within `t` for `x'` sufficiently close to `x`
-  within `s ∪ {x}`;
--/
+  within `s ∪ {x}`. -/
 lemma cont_diff_within_at.fderiv_within'' {f : E → F → G} {g : E → F} {u : set (E × F)}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) u (x, g x))
@@ -2315,27 +2344,27 @@ begin
   exact this m le_rfl
 end
 
-/-- A special case of `cont_diff_within_at.fderiv_within''` where we require that `s ⊆ g⁻¹(t)` and
-  there are unique derivatives everywhere within `t`. -/
+/-- A special case of `cont_diff_within_at.fderiv_within''` where we require that
+  `s ∪ {x} ⊆ g⁻¹(t)`. -/
 lemma cont_diff_within_at.fderiv_within' {f : E → F → G} {g : E → F} {u : set (E × F)}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) u (x, g x))
   (hg : cont_diff_within_at 𝕜 m g s x)
-  (ht : unique_diff_on 𝕜 t)
+  (ht : ∀ᶠ x' in 𝓝[insert x s] x, unique_diff_within_at 𝕜 t (g x'))
   (hmn : m + 1 ≤ n)
   (hst : insert x s ×ˢ t ⊆ u)
-  (h2st : s ⊆ g ⁻¹' t)
-  (hgx : ∀ᶠ x' in 𝓝[insert x s] x, g x' ∈ t) : todo (remove)
+  (h2st : s ⊆ g ⁻¹' t) :
   cont_diff_within_at 𝕜 m (λ x, fderiv_within 𝕜 (f x) t (g x)) s x :=
 begin
-  refine hf.fderiv_within'' hg (hgx.mono (λ y hy, ht _ hy)) hmn hst _,
+  refine hf.fderiv_within'' hg ht hmn hst _,
   refine mem_of_superset self_mem_nhds_within _,
-  refine image_prod_mk_subset_prod.trans _, rw [image_id'],
-  rw [← image_subset_iff] at h2st,
+  refine image_prod_mk_subset_prod.trans _,
+  rw [image_id'], rw [← image_subset_iff] at h2st,
   exact (prod_mono (subset_insert x s) h2st).trans hst
 end
 
-/-- A special case of `cont_diff_within_at.fderiv_within'` where we require that `x ∈ s`. -/
+/-- A special case of `cont_diff_within_at.fderiv_within'` where we require that `x ∈ s` and there
+  are unique derivatives everywhere within `t`. -/
 lemma cont_diff_within_at.fderiv_within {f : E → F → G} {g : E → F} {u : set (E × F)}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) u (x, g x))
@@ -2347,15 +2376,15 @@ lemma cont_diff_within_at.fderiv_within {f : E → F → G} {g : E → F} {u : s
   cont_diff_within_at 𝕜 m (λ x, fderiv_within 𝕜 (f x) t (g x)) s x :=
 begin
   rw [← insert_eq_self.mpr hx] at hst,
-  refine hf.fderiv_within' hg ht hmn hst h2st _,
-  rw [insert_eq_of_mem hx],
-  exact eventually_of_mem self_mem_nhds_within h2st
+  refine hf.fderiv_within' hg _ hmn hst h2st,
+  rw [insert_eq_self.mpr hx],
+  exact eventually_of_mem self_mem_nhds_within (λ x hx, ht _ (h2st hx))
 end
 
 /-- `fderiv_within` is smooth at `x` within `s` (for functions without parameters). -/
 lemma cont_diff_within_at.fderiv_within_right
   (hf : cont_diff_within_at 𝕜 n f s x) (hs : unique_diff_on 𝕜 s)
-  (hmn : (m + 1 : ℕ∞) ≤ n) (hxs : x ∈ s do we need this?) :
+  (hmn : (m + 1 : ℕ∞) ≤ n) (hxs : x ∈ s) :
   cont_diff_within_at 𝕜 m (fderiv_within 𝕜 f s) s x :=
 cont_diff_within_at.fderiv_within
   (cont_diff_within_at.comp (x, x) hf cont_diff_within_at_snd subset_rfl)
@@ -2388,26 +2417,20 @@ lemma continuous.fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}
     continuous (λ x, fderiv 𝕜 (f x) (g x)) :=
 (hf.fderiv (cont_diff_zero.mpr hg) hn).continuous
 
-/-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
-continuous. -/
-lemma cont_diff_on.continuous_on_fderiv_within_apply
-  (h : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
-  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ univ) :=
-begin
-todo
-  have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
-  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ univ),
-  { apply continuous_on.prod _ continuous_snd.continuous_on,
-    exact continuous_on.comp (h.continuous_on_fderiv_within hs hn) continuous_fst.continuous_on
-      (prod_subset_preimage_fst _ _) },
-  exact A.comp_continuous_on B
-end
+/-- `fderiv` applied to a (variable) vector is smooth. -/
+lemma cont_diff.fderiv_apply {f : E → F → G} {g s : E → F} {n m : ℕ∞}
+  (hf : cont_diff 𝕜 m $ function.uncurry f) (hg : cont_diff 𝕜 n g) (hs : cont_diff 𝕜 n s)
+  (hnm : n + 1 ≤ m) :
+  cont_diff 𝕜 n (λ x, fderiv 𝕜 (f x) (g x) (s x)) :=
+(hf.fderiv hg hnm).clm_apply hs
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
   {f : E → F} (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
   cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2) (s ×ˢ univ) :=
 begin
+  -- intros x hx, -- todo: simplify proof
+  -- refine cont_diff_within_at.fderiv_within _ _ _ hmn _,
   have A : cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2),
   { apply is_bounded_bilinear_map.cont_diff,
     exact is_bounded_bilinear_map_apply },
@@ -2422,6 +2445,20 @@ begin
     { apply cont_diff.cont_diff_on _ ,
       apply is_bounded_linear_map.snd.cont_diff } },
   exact A.comp_cont_diff_on B
+end
+
+/-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
+continuous. -/
+lemma cont_diff_on.continuous_on_fderiv_within_apply
+  (h : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
+  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ univ) :=
+begin
+  have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
+  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ univ),
+  { apply continuous_on.prod _ continuous_snd.continuous_on,
+    exact continuous_on.comp (h.continuous_on_fderiv_within hs hn) continuous_fst.continuous_on
+      (prod_subset_preimage_fst _ _) },
+  exact A.comp_continuous_on B
 end
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
@@ -2975,16 +3012,6 @@ lemma cont_diff_prod_mk_right (e₀ : E) : cont_diff 𝕜 n (λ f : F, (e₀, f)
 cont_diff_const.prod cont_diff_id
 
 end prod_map
-
-lemma cont_diff.clm_comp {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
-  (hg : cont_diff 𝕜 n g) (hf : cont_diff 𝕜 n f) :
-  cont_diff 𝕜 n (λ x, (g x).comp (f x)) :=
-is_bounded_bilinear_map_comp.cont_diff.comp₂ hg hf
-
-lemma cont_diff_on.clm_comp {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
-  {s : set X} (hg : cont_diff_on 𝕜 n g s) (hf : cont_diff_on 𝕜 n f s) :
-  cont_diff_on 𝕜 n (λ x, (g x).comp (f x)) s :=
-is_bounded_bilinear_map_comp.cont_diff.comp_cont_diff_on₂ hg hf
 
 /-! ### Inversion in a complete normed algebra -/
 

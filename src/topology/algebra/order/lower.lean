@@ -210,14 +210,13 @@ end
 
 #check Inter_exists
 
-#check Inter_sInter
 
 #check sInter
 #check Inter
 
 variable (F : set α)
 
-#check ((a : α) (H: a ∈ F), (Ici a)ᶜ)
+
 
 #check  ⋂ (a : α) (H: a ∈ F), (Ici a)ᶜ
 
@@ -265,31 +264,6 @@ begin
     cases h with F,
     let f := {s : set α | ∃ a ∈ F,  (Ici a)ᶜ = s},
     have ef: ⋂₀f = ⋂₀{s : set α | ∃ a ∈ F, (Ici a)ᶜ = s} := by refl,
-    have ef1: ⋂₀f = ⋂₀ (compl '' (Ici '' F)) :=
-    begin
-      rw ef,
-      rw sInter_image,
-      sorry,
-      --rw ← Inter_image,
-      --rw ← compl_sUnion,
-      --refl,
-    end,
-    --have ef: (⋂₀ f) = ⋂ (a : α) (H: a ∈ F), (Ici a)ᶜ :=
-    --have ef: (⋂₀ f) = ⋂₀ (compl '' (Ici '' F)) :=
-    have ef2: (⋂₀ f) = ⋂ (a : α) (H: a ∈ F), (Ici a)ᶜ :=
-    begin
-      rw ef,
-      rw ← sInter_image,
-      simp,
-      sorry,
-    --rw sUnion_image,
-      --rw ← compl_sUnion,
-      --rw sUnion_image,
-      --simp only [sUnion_image, upper_set.Union_Ici, coe_upper_closure, exists_prop],
-      --rw \l compl_Inter,
-      --rw upper_set.Union_Ici,
-      --library_search!
-    end,
     have efn: (⋂₀ f) = (upper_closure F : set α)ᶜ :=
     begin
       rw ← upper_set.Inter_Ici,
@@ -303,13 +277,14 @@ begin
     rw mem_set_of_eq,
     split,
     { split,
-      { sorry },
+      { sorry, },
       { split,
-        { sorry },
-        { sorry } },
+        { simp only [set_of_subset_set_of, forall_exists_index, forall_apply_eq_imp_iff₂, compl_inj_iff, exists_apply_eq_apply', implies_true_iff],  },
+        { rw efn, exact h_h.2.2 } },
     },
     { rw [h_h.2.1,  ← upper_set.Inter_Ici, sInter_eq_bInter],
-      simp only [mem_set_of_eq, exists_prop, Inter_exists, bInter_and', Inter_Inter_eq_left], }
+      simp only [mem_set_of_eq, exists_prop, Inter_exists, bInter_and', Inter_Inter_eq_left],
+      sorry, }
    },
   { sorry, }
 
@@ -320,13 +295,13 @@ end
 include t
 
 
-
+/-
 lemma ltbasis' : is_topological_basis  {s | ∃(F : set α), F.finite ∧ s = ((upper_closure F) : set α)ᶜ } :=
 begin
   rw finite_inter,
   apply is_topological_basis_of_subbasis t.topology_eq_generate_Ici_comp,
 end
-
+-/
 lemma ltbasis : is_topological_basis  {s | ∃(F : set α), F.finite ∧ s = ((upper_closure F) : set α)ᶜ } :=
 begin
   refine ⟨_, _, _⟩,
@@ -337,8 +312,9 @@ begin
     let t₃ := (upper_closure (F₁∪F₂) : set α)ᶜ,
     use t₃,
     split,
-    { rw mem_set_of_eq, use F₁∪F₂, },
-    { have et : t₃ = t₁ ∩ t₂ := by rw [h₁_h, h₂_h, pair_union],
+    { rw mem_set_of_eq, use F₁∪F₂,
+      sorry, },
+    { have et : t₃ = t₁ ∩ t₂ := by rw [h₁_h.2, h₂_h.2, pair_union],
       rw et,
       split,
       { exact hx,},
@@ -350,7 +326,9 @@ begin
     { refine subset_sUnion_of_mem _,
       rw mem_set_of_eq,
       use ∅,
-      rw univ_empty, } },
+      rw univ_empty,
+      sorry,
+       } },
   { rw t.topology_eq_generate_Ici_comp,
     rw le_antisymm_iff,
     split,
@@ -360,7 +338,9 @@ begin
       intros F h,
       cases h with a,
       use {a},
-      rw [h_h, compl_inj_iff, ← upper_closure_singleton, upper_set.coe_Ici], } }
+      rw [h_h, compl_inj_iff, ← upper_closure_singleton, upper_set.coe_Ici],
+      sorry,
+       } }
 end
 
 
@@ -399,10 +379,11 @@ end
 
 lemma upper_closure_lower_closed (F : set α) (h : F.finite) : is_closed (upper_closure F : set α) :=
 begin
-  rw ← upper_set.Inter_Ici,
+  sorry,
+  /-rw ← upper_set.Inter_Ici,
   apply is_closed_bUnion h,
   intros a h₁,
-  apply ici_is_closed,
+  apply ici_is_closed,-/
 end
 
 open classical

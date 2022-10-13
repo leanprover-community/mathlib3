@@ -460,10 +460,9 @@ begin
   induction s using finset.induction_on with a s ha ih,
   { simp },
   rw [finset.noncomm_prod_insert_of_not_mem _ _ _ _ ha, finset.sum_insert ha,
-      exp_add_of_commute, ih],
-  refine commute.sum_right _ _ _ _,
-  intros i hi,
-  exact h _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi),
+      exp_add_of_commute, ih (h.mono $ finset.subset_insert _ _)],
+  refine commute.sum_right _ _ _ (λ i hi, _),
+  exact h.of_refl (finset.mem_insert_self _ _) (finset.mem_insert_of_mem hi),
 end
 
 lemma exp_nsmul (n : ℕ) (x : 𝔸) :
@@ -591,7 +590,7 @@ lemma exp_sum {ι} (s : finset ι) (f : ι → 𝔸) :
   exp 𝕂 (∑ i in s, f i) = ∏ i in s, exp 𝕂 (f i) :=
 begin
   rw [exp_sum_of_commute, finset.noncomm_prod_eq_prod],
-  exact λ i hi j hj, commute.all _ _,
+  exact λ i hi j hj _, commute.all _ _,
 end
 
 end comm_algebra

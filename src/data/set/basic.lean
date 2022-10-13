@@ -1230,7 +1230,7 @@ eq_univ_of_forall subset_univ
 /-! ### Sets defined as an if-then-else -/
 
 lemma mem_dite_univ_right (p : Prop) [decidable p] (t : p → set α) (x : α) :
-  x ∈ dite p t (λ h, set.univ) ↔ (∀ h : p, x ∈ t h) :=
+  (x ∈ if h : p then t h else univ) ↔ (∀ h : p, x ∈ t h) :=
 by split_ifs; simp [h]
 
 @[simp] lemma mem_ite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
@@ -1238,7 +1238,7 @@ by split_ifs; simp [h]
 mem_dite_univ_right p (λ _, t) x
 
 lemma mem_dite_univ_left (p : Prop) [decidable p] (t : ¬ p → set α) (x : α) :
-  x ∈ dite p (λ h, set.univ) (λ h, t h) ↔ (∀ h : ¬ p, x ∈ t h)  :=
+  (x ∈ if h : p then univ else t h) ↔ (∀ h : ¬ p, x ∈ t h)  :=
 by split_ifs; simp [h]
 
 @[simp] lemma mem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :

@@ -10,8 +10,9 @@ import measure_theory.measure.lebesgue
 # Functions of bounded variation
 
 We study functions of bounded variation. In particular, we show that a bounded variation function
-is differentiable almost everywhere. This implies that Lipschitz functions from the real line
-into finite-dimensional vector space are differentiable almost everywhere.
+is a difference of monotone functions, and differentiable almost everywhere. This implies that
+Lipschitz functions from the real line into finite-dimensional vector space are also differentiable
+almost everywhere.
 
 ## Main definitions and results
 
@@ -31,6 +32,13 @@ into finite-dimensional vector space are differentiable almost everywhere.
 * `lipschitz_on_with.ae_differentiable_within_at` is the same result for Lipschitz functions.
 
 We also give several variations around these results.
+
+## Implementation
+
+We define the variation as an extended nonnegative real, to allow for infinite variation. This makes
+it possible to use the complete linear order structure of `ℝ≥0∞`. The proofs would be much
+more tedious with an `ℝ`-valued or `ℝ≥0`-valued variation, since one would always need to check
+that the sets one uses are nonempty and bounded above as these are only conditionally complete.
 -/
 
 open_locale big_operators nnreal ennreal

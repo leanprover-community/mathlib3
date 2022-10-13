@@ -17,16 +17,6 @@ In this file we prove a few lemmas about left and right continuous functions:
 * `continuous_at_iff_continuous_left_right`, `continuous_at_iff_continuous_left'_right'` :
   a function is continuous at `a` if and only if it is left and right continuous at `a`.
 
-We also define the (strict) left and right limits of a function and prove some properties:
-* `left_lim f x` is the strict left limit of `f` at `x` (using `f x` as a garbage value if `x`
-  is isolated to its left).
-* `right_lim f x` is the strict right limit of `f` at `x` (using `f x` as a garbage value if `x`
-  is isolated to its right).
-* `monotone.left_lim_eq_right_lim_iff_continuous_at` states that a monotone function is continuous
-  at a point if and only if its left and right limits coincide.
-* `monotone.countable_not_continuous_at` asserts that a monotone function taking values in a
-  second-countable space has at most countably many discontinuity points.
-
 ## Tags
 
 left continuous, right continuous

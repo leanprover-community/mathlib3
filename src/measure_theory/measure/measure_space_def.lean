@@ -382,7 +382,7 @@ by simp [ae_eq_set, symm_diff_def]
 
 @[simp] lemma ae_eq_set_compl {s t : set α} :
   sᶜ =ᵐ[μ] tᶜ ↔ s =ᵐ[μ] t :=
-by simp [ae_eq_set_iff_symm_diff]
+by simp only [← measure_symm_diff_eq_zero_iff, compl_symm_diff_compl]
 
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=

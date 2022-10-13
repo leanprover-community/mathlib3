@@ -454,6 +454,12 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
+@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M 1 :=
+begin
+  ext v,
+  exact matrix.det_is_empty,
+end
+
 /-- `basis.det` is not the zero map. -/
 lemma basis.det_ne_zero [nontrivial R] : e.det ≠ 0 :=
 λ h, by simpa [h] using e.det_self

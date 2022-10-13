@@ -89,7 +89,7 @@ instance apply_has_faithful_smul : has_faithful_smul (ring_aut R) R := ⟨λ _ _
 
 This is a stronger version of `distrib_mul_action.to_add_aut` and
  `mul_distrib_mul_action.to_mul_aut`. -/
-@[simps] def mul_semiring_action.to_ring_aut [mul_semiring_action G R] : G →* ring_aut R :=
+@[simps] def _root_.mul_semiring_action.to_ring_aut [mul_semiring_action G R] : G →* ring_aut R :=
 { to_fun := mul_semiring_action.to_ring_equiv G R,
   map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,
   map_one' := ring_equiv.ext $ one_smul _, }

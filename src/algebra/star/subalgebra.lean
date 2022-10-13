@@ -18,22 +18,6 @@ universes u v
 
 set_option old_structure_cmd true
 
-/-- `star_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under negation. -/
-class star_mem_class (S R : Type*) [has_star R] [set_like S R] :=
-(star_mem : ∀ {s : S} {r : R}, r ∈ s → star r ∈ s)
-
-export star_mem_class (star_mem)
-
-namespace star_mem_class
-
-variables {S R : Type u} [has_star R] [set_like S R] [hS : star_mem_class S R] (s : S)
-include hS
-
-instance : has_star s :=
-{ star := λ r, ⟨star (r : R), star_mem r.prop⟩ }
-
-end star_mem_class
-
 /-- A *-subalgebra is a subalgebra of a *-algebra which is closed under *. -/
 structure star_subalgebra (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
   [semiring A] [star_ring A] [algebra R A] [star_module R A] extends subalgebra R A : Type v :=
@@ -181,12 +165,27 @@ def comap (f : A →⋆ₐ[R] B) (S : star_subalgebra R B) : star_subalgebra R A
 { star_mem' := λ a ha, show f (star a) ∈ S, from (map_star f a).symm ▸ star_mem ha,
   .. S.to_subalgebra.comap f.to_alg_hom }
 
-theorem map_le {S : star_subalgebra R A} {f : A →⋆ₐ[R] B} {U : star_subalgebra R B} :
+theorem map_le_iff_le_comap {S : star_subalgebra R A} {f : A →⋆ₐ[R] B} {U : star_subalgebra R B} :
   map f S ≤ U ↔ S ≤ comap f U :=
 set.image_subset_iff
 
 lemma gc_map_comap (f : A →⋆ₐ[R] B) : galois_connection (map f) (comap f) :=
-λ S U, map_le
+λ S U, map_le_iff_le_comap
+
+lemma comap_mono {S₁ S₂ : star_subalgebra R B} {f : A →⋆ₐ[R] B} :
+  S₁ ≤ S₂ → S₁.comap f ≤ S₂.comap f :=
+set.preimage_mono
+
+lemma comap_injective {f : A →⋆ₐ[R] B} (hf : function.surjective f) :
+  function.injective (comap f) :=
+λ S₁ S₂ h, ext $ λ b, let ⟨x, hx⟩ := hf b in let this := set_like.ext_iff.1 h x in hx ▸ this
+
+@[simp] lemma comap_id (S : star_subalgebra R A) : S.comap (star_alg_hom.id R A) = S :=
+set_like.coe_injective $ set.preimage_id
+
+lemma comap_comap (S : star_subalgebra R C) (g : B →⋆ₐ[R] C) (f : A →⋆ₐ[R] B) :
+  (S.comap g).comap f = S.comap (g.comp f) :=
+set_like.coe_injective $ set.preimage_preimage
 
 @[simp] lemma mem_comap (S : star_subalgebra R B) (f : A →⋆ₐ[R] B) (x : A) :
   x ∈ S.comap f ↔ f x ∈ S :=
@@ -195,7 +194,6 @@ iff.rfl
 @[simp, norm_cast] lemma coe_comap (S : star_subalgebra R B) (f : A →⋆ₐ[R] B) :
   (S.comap f : set A) = f ⁻¹' (S : set B) :=
 rfl
-
 
 end map
 

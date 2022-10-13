@@ -369,7 +369,7 @@ begin
     have h_p1_inter_p2 : ((⋂ x ∈ p1, f1 x) ∩ ⋂ x ∈ p2, f2 x)
       = ⋂ i ∈ p1 ∪ p2, (ite (i ∈ p1) (f1 i) set.univ ∩ ite (i ∈ p2) (f2 i) set.univ),
     { ext1 x,
-      simp only [mem_ite_univ_right, set.mem_inter_iff, set.mem_Inter, finset.mem_union],
+      simp only [set.mem_ite_univ_right, set.mem_inter_iff, set.mem_Inter, finset.mem_union],
       exact ⟨λ h i _, ⟨h.1 i, h.2 i⟩,
         λ h, ⟨λ i hi, (h i (or.inl hi)).1 hi, λ i hi, (h i (or.inr hi)).2 hi⟩⟩, },
     rw [ht1_eq, ht2_eq, h_p1_inter_p2, ← h_indep _ hgm], },

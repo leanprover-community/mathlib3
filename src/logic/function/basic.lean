@@ -553,7 +553,6 @@ lemma extend_apply_of_unique (g : α → γ) (e' : β → γ)
   (hf : ∀ ⦃a b : α⦄, f a = f b → g a = g b) (a : α) :
   extend f g e' (f a) = g a :=
 begin
-  /- simpa only [extend_def, dif_pos, exists_apply_eq_apply] using hf _ a (classical.some_spec (exists_apply_eq_apply f a)), -/
   simp only [extend_def, dif_pos, exists_apply_eq_apply],
   exact hf (classical.some_spec (exists_apply_eq_apply f a)),
 end

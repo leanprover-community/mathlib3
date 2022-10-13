@@ -163,10 +163,9 @@ rfl
 
 open_locale pointwise
 
-lemma is_complement'_of_disjoint_and_mul_eq_univ {G : Type*} [group G] (H K : subgroup G)
+lemma is_complement'_of_disjoint_and_mul_eq_univ {G : Type*} [group G] {H K : subgroup G}
   (h1 : disjoint H K) (h2 : ↑H * ↑K = (set.univ : set G)) : is_complement' H K :=
 begin
-
   refine ⟨λ x y h, _,
     λ g, let ⟨h, k, hh, hk, hg⟩ := set.eq_univ_iff_forall.1 h2 g in ⟨⟨⟨h, hh⟩, k, hk⟩, hg⟩⟩,
   rw [←mul_inv_eq_iff_eq_mul, mul_assoc, ←eq_inv_mul_iff_mul_eq] at h,
@@ -174,9 +173,75 @@ begin
   have h' : x.1 = y.1,
   { rw [←inv_mul_eq_one, subtype.ext_iff, coe_one, ←mem_bot, ←h1.eq_bot, mem_inf],
     exact ⟨(x.1⁻¹ * y.1).2, h ▸ (x.2 * y.2⁻¹).2⟩ },
-  rw [h', inv_mul_self, coe_one, coe_mul, coe_inv, mul_inv_eq_one] at h,
-  exact prod.ext h' (subtype.ext h),
+  rw [h', inv_mul_self, coe_one, coe_mul, coe_inv, mul_inv_eq_one, ←subtype.ext_iff] at h,
+  exact prod.ext h' h,
 end
+
+lemma restrict_ker {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
+  (f.restrict H).ker = f.ker.subgroup_of H :=
+rfl
+
+lemma restrict_ker_map {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
+  (f.restrict H).ker.map H.subtype = f.ker ⊓ H :=
+by rw [restrict_ker, subgroup_of_map_subtype]
+
+lemma restrict_range {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
+  (f.restrict H).range = H.map f :=
+begin
+  simp_rw [set_like.ext_iff, mem_range, mem_map, restrict_apply, set_like.exists, subtype.coe_mk,
+    iff_self, forall_const],
+end
+
+lemma restrict_range_comap {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
+  (f.restrict H).range.comap f = f.ker ⊔ H :=
+by rw [restrict_range, comap_map_eq, sup_comm]
+
+lemma surjective_of_restrict_surjective {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K)
+  (h : function.surjective (f.restrict H)) : function.surjective f :=
+begin
+  rw [←range_top_iff_surjective, eq_top_iff] at h ⊢,
+  rw [restrict_range] at h,
+  exact h.trans (map_le_range f H),
+end
+
+lemma _root_.is_p_group.pow_bijective' {p : ℕ} {G : Type*} [group G] (h : is_p_group p G)
+  {n : ℕ} (hn : nat.coprime p n) : function.bijective ((^ n) : G → G) :=
+begin
+  by_cases hn1 : n = 1,
+  { simp_rw [hn1, pow_one],
+    exact function.bijective_id },
+  haveI : Π g : G, fintype (zpowers g),
+  { refine λ g, @fintype.of_finite (zpowers g) (nat.finite_of_card_ne_zero _),
+    rw ← order_eq_card_zpowers',
+    obtain ⟨k, hk⟩ := h g,
+    refine ne_zero_of_dvd_ne_zero _ (order_of_dvd_of_pow_eq_one hk),
+    refine pow_ne_zero k (λ hp, hn1 _),
+    rwa [hp, nat.coprime_zero_left] at hn },
+  have : ∀ g : G, (fintype.card (zpowers g)).coprime n,
+  { intro g,
+    rw [←nat.card_eq_fintype_card, ←order_eq_card_zpowers'],
+    obtain ⟨k, hk⟩ := h g,
+    exact (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk) },
+  refine function.bijective_iff_has_inverse.mpr
+    ⟨λ g, (pow_coprime (this g)).symm ⟨g, mem_zpowers g⟩, _, _⟩,
+  { intro g,
+    have key := (pow_coprime (this (g ^ n))).left_inv ⟨g, _⟩,
+    rw subtype.ext_iff at key,
+    exact key,
+    refine ⟨_, subtype.ext_iff.mp ((pow_coprime (this g)).left_inv ⟨g, mem_zpowers g⟩)⟩ },
+  { intro g,
+    have key := (pow_coprime (this g)).right_inv ⟨g, mem_zpowers g⟩,
+    rw subtype.ext_iff at key,
+    exact key },
+end
+
+lemma _root_.is_p_group.pow_bijective {p : ℕ} [fact p.prime] {G : Type*} [group G] (h : is_p_group p G)
+  {n : ℕ} (hn : ¬ p ∣ n) : function.bijective ((^ n) : G → G) :=
+h.pow_bijective' ((fact.out p.prime).coprime_iff_not_dvd.mpr hn)
+
+lemma index_eq_zero_of_relindex_eq_zero {G : Type*} [group G] {H K : subgroup G}
+  (h : H.relindex K = 0) : H.index = 0 :=
+H.relindex_top_right.symm.trans (relindex_eq_zero_of_le_right le_top h)
 
 section burnside_transfer
 
@@ -209,16 +274,28 @@ lemma transfer_sylow_eq_pow (g : G) (hg : g ∈ P) : transfer_sylow P hP g =
   ⟨g ^ (P : subgroup G).index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
 by apply transfer_eq_pow
 
+/-- Burnside's normal p-complement theorem: If `N(P) ≤ C(P)`, then `P` has a normal complement. -/
+lemma ker_transfer_sylow_is_complement : is_complement' (transfer_sylow P hP).ker P :=
+begin
+  have hf0 : ⇑((transfer_sylow P hP).restrict (P : subgroup G)) = (^ (P : subgroup G).index) :=
+  funext (λ g, transfer_sylow_eq_pow P hP g g.2),
+  have hf1 : function.bijective ((transfer_sylow P hP).restrict (P : subgroup G)),
+  { rw hf0,
+    refine P.2.pow_bijective (not_dvd_index_sylow P _),
+    exact mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite },
+  have hf1' : function.surjective (transfer_sylow P hP) :=
+  surjective_of_restrict_surjective P (transfer_sylow P hP) hf1.2,
+  have hf2 := (ker_eq_bot_iff _).mpr hf1.1,
+  have hf3 := range_top_of_surjective _ hf1.2,
+  rw [←(map_injective (P : subgroup G).subtype_injective).eq_iff, restrict_ker_map, map_bot] at hf2,
+  rw [←(comap_injective hf1').eq_iff, restrict_range_comap, comap_top,
+    set_like.ext'_iff, coe_top, normal_mul] at hf3,
+  exact is_complement'_of_disjoint_and_mul_eq_univ hf2.le hf3,
+end
+
 lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
 begin
-  intros g hg,
-  obtain ⟨j, hj⟩ := P.2 ⟨g, hg.2⟩,
-  have := pow_gcd_eq_one (⟨g, hg.2⟩ : (P : subgroup G))
-    ((transfer_sylow_eq_pow P hP g hg.2).symm.trans hg.1) hj,
-  rwa [((fact.out p.prime).coprime_pow_of_not_dvd (not_dvd_index_sylow P _)).gcd_eq_one,
-    pow_one, subtype.ext_iff] at this,
-  exact index_ne_zero_of_finite ∘ (relindex_top_right (P : subgroup G)).symm.trans ∘
-    relindex_eq_zero_of_le_right le_top,
+  exact (ker_transfer_sylow_is_complement P hP).disjoint,
 end
 
 lemma ker_transfer_sylow_disjoint' (Q : sylow p G) : disjoint (transfer_sylow P hP).ker ↑Q :=
@@ -232,13 +309,6 @@ end
 lemma ker_transfer_sylow_disjoint'' (Q : subgroup G) (hQ : is_p_group p Q) :
   disjoint (transfer_sylow P hP).ker Q :=
 let ⟨R, hR⟩ := hQ.exists_le_sylow in (ker_transfer_sylow_disjoint' P hP R).mono_right hR
-
-
-
-lemma key_transfer_sylow_is_complement : is_complement (transfer_sylow P hP).ker P :=
-begin
-
-end
 
 end burnside_transfer
 

@@ -29,11 +29,18 @@ open  set topological_space
 
 section preorder
 
-@[simp] lemma upper_set.Inter_Ici [preorder α] (s : set α) : (⋃ a ∈ s, set.Ici a) =
+@[simp] lemma upper_set.Union_Ici [preorder α] (s : set α) : (⋃ a ∈ s, set.Ici a) =
   (upper_closure s : set α) :=
 begin
   rw [← upper_set.infi_Ici, upper_set.coe_infi₂],
   simp only [upper_set.coe_Ici],
+end
+
+@[simp] lemma upper_set.Inter_Ici [preorder α] (s : set α) : (⋂ a ∈ s, (set.Ici a)ᶜ) =
+  (upper_closure s : set α)ᶜ :=
+begin
+  rw ← upper_set.Union_Ici,
+  simp only [compl_Union],
 end
 
 lemma l1 [preorder α] [preorder β] (a : α) (b : β) :
@@ -169,7 +176,195 @@ begin
     apply h, }
 end
 
+lemma pair_union (F₁ F₂ : set α) :
+  (upper_closure F₁ : set α)ᶜ ∩ (upper_closure F₂ : set α)ᶜ = (upper_closure (F₁ ∪ F₂) : set α)ᶜ :=
+begin
+  rw [← compl_union, compl_inj_iff, upper_closure_union],
+  simp only [upper_set.coe_inf],
+end
+
+lemma univ_empty : (upper_closure (∅ : set α) : set α)ᶜ = univ :=
+  by rw [upper_closure_empty, upper_set.coe_top, compl_empty]
+
+lemma upper_closure_singleton (a : α) : upper_set.Ici a = upper_closure {a} :=
+begin
+  ext,
+  rw [upper_set.coe_Ici, coe_upper_closure, mem_Ici, mem_set_of_eq],
+  simp only [ mem_singleton_iff, exists_prop, exists_eq_left],
+end
+
+#check {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ}
+
+#check ((λ (f : set (set α)), ⋂₀ f) ''
+       {f : set (set α) | f.finite ∧ f ⊆ {s : set α | ∃ (a : α), s = (Ici a)ᶜ} ∧ (⋂₀ f).nonempty})
+
+#check is_topological_basis_of_subbasis t.topology_eq_generate_Ici_comp
+
+
+#check set.sInter
+
+#check compl_Union
+#check compl_sUnion
+
+#check upper_set.Union_Ici
+
+#check Inter_exists
+
+#check Inter_sInter
+
+#check sInter
+#check Inter
+
+variable (F : set α)
+
+#check ((a : α) (H: a ∈ F), (Ici a)ᶜ)
+
+#check  ⋂ (a : α) (H: a ∈ F), (Ici a)ᶜ
+
+#check  set.Inter (λ (a : α) , Ici a)
+
+variable f:α → set β
+
+#check Inter f
+
+#check f '' F
+
+#check symm
+
+lemma testi : (⋂ (x : α) (H : x ∈ F), f x) = sInter (f '' F) :=
+begin
+  rw sInter_image,
+end
+
+lemma testt (a b : α) : a = b → f a = f b :=
+begin
+  exact congr_arg (λ (a : α), f a),
+end
+
+lemma teste (a b : α) : a = b ↔ b=a :=
+begin
+exact comm
+end
+
+lemma  test4 (F: set α) : (⋃ (a : α) (H : a ∈ F), Ici a)ᶜ = ⋂ (a : α) (H : a ∈ F), (Ici a)ᶜ :=
+begin
+rw upper_set.Union_Ici,
+rw upper_set.Inter_Ici,
+end
+
+lemma finite_inter : {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ ∧ ((upper_closure F : set α)ᶜ.nonempty) } =
+  ((λ (f : set (set α)), ⋂₀ f) ''
+       {f : set (set α) | f.finite ∧ f ⊆ {s : set α | ∃ (a : α), s = (Ici a)ᶜ} ∧ (⋂₀ f).nonempty}) :=
+begin
+  rw image,
+  ext,
+  rw mem_set_of_eq,
+  rw mem_set_of_eq,
+  split,
+  { intro h,
+    cases h with F,
+    let f := {s : set α | ∃ a ∈ F,  (Ici a)ᶜ = s},
+    have ef: ⋂₀f = ⋂₀{s : set α | ∃ a ∈ F, (Ici a)ᶜ = s} := by refl,
+    have ef1: ⋂₀f = ⋂₀ (compl '' (Ici '' F)) :=
+    begin
+      rw ef,
+      rw sInter_image,
+      sorry,
+      --rw ← Inter_image,
+      --rw ← compl_sUnion,
+      --refl,
+    end,
+    --have ef: (⋂₀ f) = ⋂ (a : α) (H: a ∈ F), (Ici a)ᶜ :=
+    --have ef: (⋂₀ f) = ⋂₀ (compl '' (Ici '' F)) :=
+    have ef2: (⋂₀ f) = ⋂ (a : α) (H: a ∈ F), (Ici a)ᶜ :=
+    begin
+      rw ef,
+      rw ← sInter_image,
+      simp,
+      sorry,
+    --rw sUnion_image,
+      --rw ← compl_sUnion,
+      --rw sUnion_image,
+      --simp only [sUnion_image, upper_set.Union_Ici, coe_upper_closure, exists_prop],
+      --rw \l compl_Inter,
+      --rw upper_set.Union_Ici,
+      --library_search!
+    end,
+    have efn: (⋂₀ f) = (upper_closure F : set α)ᶜ :=
+    begin
+      rw ← upper_set.Inter_Ici,
+      rw ← sInter_image,
+      rw ef,
+      apply congr_arg,
+      rw image,
+      simp_rw [exists_prop],
+    end,
+    use f,
+    rw mem_set_of_eq,
+    split,
+    { split,
+      { sorry },
+      { split,
+        { sorry },
+        { sorry } },
+    },
+    { rw [h_h.2.1,  ← upper_set.Inter_Ici, sInter_eq_bInter],
+      simp only [mem_set_of_eq, exists_prop, Inter_exists, bInter_and', Inter_Inter_eq_left], }
+   },
+  { sorry, }
+
+--simp only [coe_upper_closure, exists_prop, nonempty_sInter],
+  --sorry,
+end
+
 include t
+
+
+
+lemma ltbasis' : is_topological_basis  {s | ∃(F : set α), F.finite ∧ s = ((upper_closure F) : set α)ᶜ } :=
+begin
+  rw finite_inter,
+  apply is_topological_basis_of_subbasis t.topology_eq_generate_Ici_comp,
+end
+
+lemma ltbasis : is_topological_basis  {s | ∃(F : set α), F.finite ∧ s = ((upper_closure F) : set α)ᶜ } :=
+begin
+  refine ⟨_, _, _⟩,
+  { intros t₁ h₁ t₂ h₂ x hx,
+    rw mem_set_of_eq at h₁ h₂,
+    cases h₁ with F₁,
+    cases h₂ with F₂,
+    let t₃ := (upper_closure (F₁∪F₂) : set α)ᶜ,
+    use t₃,
+    split,
+    { rw mem_set_of_eq, use F₁∪F₂, },
+    { have et : t₃ = t₁ ∩ t₂ := by rw [h₁_h, h₂_h, pair_union],
+      rw et,
+      split,
+      { exact hx,},
+      { exact rfl.subset, }, },
+     },
+  { rw subset_antisymm_iff,
+    split,
+    { apply subset_univ, },
+    { refine subset_sUnion_of_mem _,
+      rw mem_set_of_eq,
+      use ∅,
+      rw univ_empty, } },
+  { rw t.topology_eq_generate_Ici_comp,
+    rw le_antisymm_iff,
+    split,
+    { sorry, },
+    { apply generate_from_mono,
+      rw set_of_subset_set_of,
+      intros F h,
+      cases h with a,
+      use {a},
+      rw [h_h, compl_inj_iff, ← upper_closure_singleton, upper_set.coe_Ici], } }
+end
+
+
+
 
 lemma is_open_iff_generate_Ici_comp {s : set α} :
   is_open s ↔ generate_open {s | ∃a, s = (Ici a)ᶜ} s :=

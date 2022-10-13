@@ -376,9 +376,9 @@ lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
 
-lemma ae_eq_set_iff_symm_diff {s t : set α} :
-  s =ᵐ[μ] t ↔ μ (s ∆ t) = 0 :=
-by simp [ae_eq_set, symm_diff_eq_sdiff_sup_sdiff]
+@[simp] lemma measure_symm_diff_eq_zero_iff {s t : set α} :
+  μ (s ∆ t) = 0 ↔ s =ᵐ[μ] t :=
+by simp [ae_eq_set, symm_diff_def]
 
 @[simp] lemma ae_eq_set_compl {s t : set α} :
   sᶜ =ᵐ[μ] tᶜ ↔ s =ᵐ[μ] t :=

@@ -1358,7 +1358,7 @@ by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_n
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
 
-lemma preimage_comp' : preimage (g ∘ f) = (preimage f) ∘ (preimage g) := rfl
+lemma preimage_comp' : preimage (g ∘ f) = preimage f ∘ preimage g := rfl
 
 lemma preimage_preimage {g : β → γ} {f : α → β} {s : set γ} :
   f ⁻¹' (g ⁻¹' s) = (λ x, g (f x)) ⁻¹' s :=

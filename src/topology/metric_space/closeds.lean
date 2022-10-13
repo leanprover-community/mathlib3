@@ -377,7 +377,7 @@ begin
       -- we have proved that `d` is a good approximation of `t` as requested
       exact ⟨d, ‹d ∈ v›, Dtc⟩ },
   end,
-  apply uniform_space.second_countable_of_separable,
+  exact uniform_space.second_countable_of_separable (nonempty_compacts α),
 end
 
 end --section

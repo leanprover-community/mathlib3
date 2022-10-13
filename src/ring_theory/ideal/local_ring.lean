@@ -7,6 +7,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.algebra.basic
 import algebra.category.Ring.basic
 import ring_theory.ideal.operations
+import ring_theory.jacobson_ideal
 
 /-!
 
@@ -167,6 +168,15 @@ begin
   apply f.is_unit_map,
 end
 
+lemma jacobson_eq_maximal_ideal (I : ideal R) (h : I ≠ ⊤) :
+  I.jacobson = local_ring.maximal_ideal R :=
+begin
+  apply le_antisymm,
+  { exact Inf_le ⟨local_ring.le_maximal_ideal h, local_ring.maximal_ideal.is_maximal R⟩ },
+  { exact le_Inf (λ J (hJ : I ≤ J ∧ J.is_maximal),
+      le_of_eq (local_ring.eq_maximal_ideal hJ.2).symm) }
+end
+
 end local_ring
 
 end comm_ring
@@ -307,8 +317,18 @@ begin
     f.is_unit_map f.is_unit_map
 end
 
+/-- If `f : R →+* S` is a surjective local ring hom, then the induced units map is surjective. -/
+lemma surjective_units_map_of_local_ring_hom [comm_ring R] [comm_ring S]
+  (f : R →+* S) (hf : function.surjective f) (h : is_local_ring_hom f) :
+  function.surjective (units.map $ f.to_monoid_hom) :=
+begin
+  intro a,
+  obtain ⟨b,hb⟩ := hf (a : S),
+  use (is_unit_of_map_unit f _ (by { rw hb, exact units.is_unit _})).unit, ext, exact hb,
+end
+
 section
-variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
+variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S] [comm_ring T] [local_ring T]
 
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
 def residue_field := R ⧸ maximal_ideal R
@@ -339,11 +359,33 @@ begin
   exact map_nonunit f a ha
 end
 
+/-- Applying `residue_field.map` to the identity ring homomorphism gives the identity
+ring homomorphism. -/
+lemma map_id :
+  local_ring.residue_field.map (ring_hom.id R) = ring_hom.id (local_ring.residue_field R) :=
+ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
+
+/-- The composite of two `residue_field.map`s is the `residue_field.map` of the composite. -/
+lemma map_comp (f : T →+* R) (g : R →+* S) [is_local_ring_hom f] [is_local_ring_hom g] :
+  local_ring.residue_field.map (g.comp f) =
+  (local_ring.residue_field.map g).comp (local_ring.residue_field.map f) :=
+ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
+
 end residue_field
 
 lemma ker_eq_maximal_ideal [field K] (φ : R →+* K) (hφ : function.surjective φ) :
   φ.ker = maximal_ideal R :=
 local_ring.eq_maximal_ideal $ (ring_hom.ker_is_maximal_of_surjective φ) hφ
+
+lemma is_local_ring_hom_residue :
+  is_local_ring_hom (local_ring.residue R) :=
+begin
+  constructor,
+  intros a ha,
+  by_contra,
+  erw ideal.quotient.eq_zero_iff_mem.mpr ((local_ring.mem_maximal_ideal _).mpr h) at ha,
+  exact ha.ne_zero rfl,
+end
 
 end
 

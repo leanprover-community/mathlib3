@@ -56,13 +56,13 @@ lemma prod.inducing_diag : inducing
 
 end defs
 
-variables [nondiscrete_normed_field R] [topological_space B]
+variables [nontrivially_normed_field R] [topological_space B]
 
-variables (F₁ : Type*) [normed_group F₁] [normed_space R F₁]
+variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space R F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]
   [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
 
-variables (F₂ : Type*) [normed_group F₂] [normed_space R F₂]
+variables (F₂ : Type*) [normed_add_comm_group F₂] [normed_space R F₂]
   (E₂ : B → Type*) [topological_space (total_space E₂)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
 
@@ -130,7 +130,7 @@ begin
 end
 
 lemma prod.continuous_inv_fun :
-  continuous_on (prod.inv_fun' e₁ e₂) ((e₁.base_set ∩ e₂.base_set) ×ˢ (univ : set (F₁ × F₂))) :=
+  continuous_on (prod.inv_fun' e₁ e₂) ((e₁.base_set ∩ e₂.base_set) ×ˢ univ) :=
 begin
   rw (prod.inducing_diag E₁ E₂).continuous_on_iff,
   have H₁ : continuous (λ p : B × F₁ × F₂, ((p.1, p.2.1), (p.1, p.2.2))) :=
@@ -151,7 +151,7 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
 { to_fun := prod.to_fun' e₁ e₂,
   inv_fun := prod.inv_fun' e₁ e₂,
   source := (@total_space.proj B (E₁ ×ᵇ E₂)) ⁻¹' (e₁.base_set ∩ e₂.base_set),
-  target := (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ × F₂)),
+  target := (e₁.base_set ∩ e₂.base_set) ×ˢ set.univ,
   map_source' := λ x h, ⟨h, set.mem_univ _⟩,
   map_target' := λ x h, h.1,
   left_inv' := λ x, prod.left_inv,

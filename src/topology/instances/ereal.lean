@@ -3,6 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import data.rat.encodable
 import data.real.ereal
 import topology.algebra.order.monotone_continuity
 import topology.instances.ennreal
@@ -129,7 +130,7 @@ lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤}ᶜ : set e
 /-- The set of finite `ereal` numbers is homeomorphic to `ℝ`. -/
 def ne_bot_top_homeomorph_real : ({⊥, ⊤}ᶜ : set ereal) ≃ₜ ℝ :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_real,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_coe_real_ereal,
+  continuous_inv_fun := continuous_coe_real_ereal.subtype_mk _,
   .. ne_top_bot_equiv_real }
 
 
@@ -258,7 +259,7 @@ begin
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, ((r - (a - 1): ℝ) : ereal) < z, Ioi_mem_nhds (coe_lt_top _),
-          λ z, ((a - 1 : ℝ) : ereal) < z, Ioi_mem_nhds (by simp [zero_lt_one]),
+          λ z, ((a - 1 : ℝ) : ereal) < z, Ioi_mem_nhds (by simp [-ereal.coe_sub]),
           λ x hx y hy, _⟩,
   dsimp,
   convert add_lt_add hx hy,

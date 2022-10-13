@@ -469,6 +469,12 @@ lemma ring_hom_ext ⦃j k : S →+* P⦄
   (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
 ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h
 
+/- This is not an instance because the submonoid `M` would become a metavariable
+  in typeclass search. -/
+lemma alg_hom_subsingleton [algebra R P] : subsingleton (S →ₐ[R] P) :=
+⟨λ f g, alg_hom.coe_ring_hom_injective $ is_localization.ring_hom_ext M $
+  by rw [f.comp_algebra_map, g.comp_algebra_map]⟩
+
 /-- To show `j` and `k` agree on the whole localization, it suffices to show they agree
 on the image of the base ring, if they preserve `1` and `*`. -/
 protected lemma ext (j k : S → P) (hj1 : j 1 = 1) (hk1 : k 1 = 1)
@@ -704,7 +710,7 @@ variables (M S)
 include M
 
 lemma non_zero_divisors_le_comap [is_localization M S] :
-    non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
+  non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
 begin
   rintros a ha b (e : b * algebra_map R S a = 0),
   obtain ⟨x, s, rfl⟩ := mk'_surjective M b,
@@ -717,7 +723,7 @@ begin
 end
 
 lemma map_non_zero_divisors_le [is_localization M S] :
-    (non_zero_divisors R).map (algebra_map R S).to_monoid_hom ≤ non_zero_divisors S  :=
+  (non_zero_divisors R).map (algebra_map R S) ≤ non_zero_divisors S  :=
 submonoid.map_le_iff_le_comap.mpr (non_zero_divisors_le_comap M S)
 
 end is_localization
@@ -1004,6 +1010,22 @@ protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   (hM : M ≤ non_zero_divisors R) {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R S x ≠ 0 :=
 show (algebra_map R S).to_monoid_with_zero_hom x ≠ 0,
 from map_ne_zero_of_mem_non_zero_divisors (algebra_map R S) (is_localization.injective S hM) hx
+
+variables {S}
+
+lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) (x : S) :
+  ((sec M x).snd : R) ≠ 0 :=
+non_zero_divisors.coe_ne_zero ⟨(sec M x).snd.val, hM (sec M x).snd.property⟩
+
+lemma sec_fst_ne_zero [nontrivial R] [no_zero_divisors S] (hM : M ≤ non_zero_divisors R) {x : S}
+  (hx : x ≠ 0) : (sec M x).fst ≠ 0 :=
+begin
+  have hsec := sec_spec M x,
+  intro hfst,
+  rw [hfst, map_zero, mul_eq_zero, _root_.map_eq_zero_iff] at hsec,
+  { exact or.elim hsec hx (sec_snd_ne_zero hM x) },
+  { exact is_localization.injective S hM }
+end
 
 variables (S M) (Q : Type*) [comm_ring Q] {g : R →+* P} [algebra P Q]
 

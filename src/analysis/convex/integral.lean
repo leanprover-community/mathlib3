@@ -38,8 +38,8 @@ open measure_theory measure_theory.measure metric set filter topological_space f
 open_locale topological_space big_operators ennreal convex
 
 variables {α E F : Type*} {m0 : measurable_space α}
-  [normed_group E] [normed_space ℝ E] [complete_space E]
-  [normed_group F] [normed_space ℝ F] [complete_space F]
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
   {μ : measure α} {s : set E} {t : set α} {f : α → E} {g : E → ℝ} {C : ℝ}
 
 /-!
@@ -327,8 +327,8 @@ begin
     simp only [average_congr this, pi.zero_apply, average_zero],
     exact or.inl this },
   by_cases hfi : integrable f μ, swap,
-    by simp [average_def', integral_undef hfi, hC0, ennreal.to_real_pos_iff],
-  cases (le_top : μ univ ≤ ∞).eq_or_lt with hμt hμt, { simp [average_def', hμt, hC0] },
+    by simp [average_eq, integral_undef hfi, hC0, ennreal.to_real_pos_iff],
+  cases (le_top : μ univ ≤ ∞).eq_or_lt with hμt hμt, { simp [average_eq, hμt, hC0] },
   haveI : is_finite_measure μ := ⟨hμt⟩,
   replace h_le : ∀ᵐ x ∂μ, f x ∈ closed_ball (0 : E) C, by simpa only [mem_closed_ball_zero_iff],
   simpa only [interior_closed_ball _ hC0.ne', mem_ball_zero_iff]
@@ -347,7 +347,7 @@ begin
   have hμ : 0 < (μ univ).to_real,
     by simp [ennreal.to_real_pos_iff, pos_iff_ne_zero, h₀, measure_lt_top],
   refine (ae_eq_const_or_norm_average_lt_of_norm_le_const h_le).imp_right (λ H, _),
-  rwa [average_def', norm_smul, norm_inv, real.norm_eq_abs, abs_of_pos hμ,
+  rwa [average_eq, norm_smul, norm_inv, real.norm_eq_abs, abs_of_pos hμ,
     ← div_eq_inv_mul, div_lt_iff' hμ] at H
 end
 

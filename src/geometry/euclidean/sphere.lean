@@ -3,6 +3,7 @@ Copyright (c) 2021 Manuel Candales. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Manuel Candales, Benjamin Davidson
 -/
+import geometry.euclidean.basic
 import geometry.euclidean.triangle
 
 /-!

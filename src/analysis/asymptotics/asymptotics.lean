@@ -54,9 +54,9 @@ variables {α : Type*} {β : Type*} {E : Type*} {F : Type*} {G : Type*}
   {R : Type*} {R' : Type*} {𝕜 : Type*} {𝕜' : Type*}
 
 variables [has_norm E] [has_norm F] [has_norm G]
-variables [semi_normed_group E'] [semi_normed_group F'] [semi_normed_group G']
-variables [normed_group E''] [normed_group F''] [normed_group G'']
-variables [semi_normed_ring R] [semi_normed_ring R']
+variables [seminormed_add_comm_group E'] [seminormed_add_comm_group F']
+  [seminormed_add_comm_group G'] [normed_add_comm_group E''] [normed_add_comm_group F'']
+  [normed_add_comm_group G''] [semi_normed_ring R] [semi_normed_ring R']
 variables [normed_field 𝕜] [normed_field 𝕜']
 variables {c c' c₁ c₂ : ℝ} {f : α → E} {g : α → F} {k : α → G}
 variables {f' : α → E'} {g' : α → F'} {k' : α → G'}
@@ -655,11 +655,8 @@ lemma is_O_with_prod_left :
 lemma is_O.prod_left (hf : f' =O[l] k') (hg : g' =O[l] k') : (λ x, (f' x, g' x)) =O[l] k' :=
 let ⟨c, hf⟩ := hf.is_O_with, ⟨c', hg⟩ := hg.is_O_with in (hf.prod_left hg).is_O
 
-lemma is_O.prod_left_fst (h : (λ x, (f' x, g' x)) =O[l] k') : f' =O[l] k' :=
-is_O_fst_prod.trans h
-
-lemma is_O.prod_left_snd (h : (λ x, (f' x, g' x)) =O[l] k') : g' =O[l] k' :=
-is_O_snd_prod.trans h
+lemma is_O.prod_left_fst : (λ x, (f' x, g' x)) =O[l] k' → f' =O[l] k' := is_O.trans is_O_fst_prod
+lemma is_O.prod_left_snd : (λ x, (f' x, g' x)) =O[l] k' → g' =O[l] k' := is_O.trans is_O_snd_prod
 
 @[simp] lemma is_O_prod_left : (λ x, (f' x, g' x)) =O[l] k' ↔ f' =O[l] k' ∧ g' =O[l] k' :=
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left h.2⟩
@@ -667,11 +664,11 @@ is_O_snd_prod.trans h
 lemma is_o.prod_left (hf : f' =o[l] k') (hg : g' =o[l] k') : (λ x, (f' x, g' x)) =o[l] k' :=
 is_o.of_is_O_with $ λ c hc, (hf.forall_is_O_with hc).prod_left_same (hg.forall_is_O_with hc)
 
-lemma is_o.prod_left_fst (h : (λ x, (f' x, g' x)) =o[l] k') : f' =o[l] k' :=
-is_O_fst_prod.trans_is_o h
+lemma is_o.prod_left_fst : (λ x, (f' x, g' x)) =o[l] k' → f' =o[l] k' :=
+is_O.trans_is_o is_O_fst_prod
 
-lemma is_o.prod_left_snd (h : (λ x, (f' x, g' x)) =o[l] k') : g' =o[l] k' :=
-is_O_snd_prod.trans_is_o h
+lemma is_o.prod_left_snd : (λ x, (f' x, g' x)) =o[l] k' → g' =o[l] k' :=
+is_O.trans_is_o is_O_snd_prod
 
 @[simp] lemma is_o_prod_left : (λ x, (f' x, g' x)) =o[l] k' ↔ f' =o[l] k' ∧ g' =o[l] k' :=
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left h.2⟩
@@ -1145,9 +1142,28 @@ theorem is_O_with.pow [norm_one_class R] {f : α → R} {g : α → 𝕜} (h : i
 | 0 := by simpa using h.pow' 0
 | (n + 1) := h.pow' (n + 1)
 
+theorem is_O_with.of_pow {n : ℕ} {f : α → 𝕜} {g : α → R} (h : is_O_with c l (f ^ n) (g ^ n))
+  (hn : n ≠ 0) (hc : c ≤ c' ^ n) (hc' : 0 ≤ c') : is_O_with c' l f g :=
+is_O_with.of_bound $ (h.weaken hc).bound.mono $ λ x hx,
+  le_of_pow_le_pow n (mul_nonneg hc' $ norm_nonneg _) hn.bot_lt $
+    calc ∥f x∥ ^ n = ∥(f x) ^ n∥ : (norm_pow _ _).symm
+               ... ≤ c' ^ n * ∥(g x) ^ n∥ : hx
+               ... ≤ c' ^ n * ∥g x∥ ^ n :
+      mul_le_mul_of_nonneg_left (norm_pow_le' _ hn.bot_lt) (pow_nonneg hc' _)
+               ... = (c' * ∥g x∥) ^ n : (mul_pow _ _ _).symm
+
 theorem is_O.pow {f : α → R} {g : α → 𝕜} (h : f =O[l] g) (n : ℕ) :
   (λ x, f x ^ n) =O[l] (λ x, g x ^ n) :=
 let ⟨C, hC⟩ := h.is_O_with in is_O_iff_is_O_with.2 ⟨_, hC.pow' n⟩
+
+theorem is_O.of_pow {f : α → 𝕜} {g : α → R} {n : ℕ} (hn : n ≠ 0) (h : (f ^ n) =O[l] (g ^ n)) :
+  f =O[l] g :=
+begin
+  rcases h.exists_pos with ⟨C, hC₀, hC⟩,
+  obtain ⟨c, hc₀, hc⟩ : ∃ c : ℝ, 0 ≤ c ∧ C ≤ c ^ n,
+    from ((eventually_ge_at_top _).and $ (tendsto_pow_at_top hn).eventually_ge_at_top C).exists,
+  exact (hC.of_pow hn hc hc₀).is_O
+end
 
 theorem is_o.pow {f : α → R} {g : α → 𝕜} (h : f =o[l] g) {n : ℕ} (hn : 0 < n) :
   (λ x, f x ^ n) =o[l] (λ x, g x ^ n) :=
@@ -1156,6 +1172,10 @@ begin
   induction n with n ihn, { simpa only [pow_one] },
   convert h.mul ihn; simp [pow_succ]
 end
+
+theorem is_o.of_pow {f : α → 𝕜} {g : α → R} {n : ℕ} (h : (f ^ n) =o[l] (g ^ n)) (hn : n ≠ 0) :
+  f =o[l] g :=
+is_o.of_is_O_with $ λ c hc, (h.def' $ pow_pos hc _).of_pow hn le_rfl hc.le
 
 /-! ### Inverse -/
 
@@ -1434,7 +1454,7 @@ begin
   split,
   { exact λ h, ⟨λ x, u x / v x, h.tendsto_div_nhds_zero, h.eventually_mul_div_cancel.symm⟩ },
   { unfold is_o, rintros ⟨φ, hφ, huvφ⟩ c hpos,
-    rw normed_group.tendsto_nhds_zero at hφ,
+    rw normed_add_comm_group.tendsto_nhds_zero at hφ,
     exact is_O_with_of_eq_mul _ ((hφ c hpos).mono $ λ x, le_of_lt)  huvφ }
 end
 
@@ -1473,8 +1493,8 @@ theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}
   f =O[l] g :=
 (is_O_iff_div_is_bounded_under hgf).2 $ H.norm.is_bounded_under_le
 
-lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
-  {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : u =o[l] v) (hv : tendsto v l (𝓝 y)) :
+lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_add_comm_group E] [normed_field 𝕜]
+  {u : α → E} {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : u =o[l] v) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=
 begin
   suffices h : u =o[l] (λ x, (1 : 𝕜)),
@@ -1559,13 +1579,13 @@ theorem is_O_one_nat_at_top_iff {f : ℕ → E''} :
 iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
   by simp only [norm_one, mul_one]
 
-theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} {C : ℝ} (hC : 0 ≤ C) :
   is_O_with C l f g' ↔ ∀ i, is_O_with C l (λ x, f x i) g' :=
 have ∀ x, 0 ≤ C * ∥g' x∥, from λ x, mul_nonneg hC (norm_nonneg _),
 by simp only [is_O_with_iff, pi_norm_le_iff (this _), eventually_all]
 
-@[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+@[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :
   f =O[l] g' ↔ ∀ i, (λ x, f x i) =O[l] g' :=
 begin
@@ -1573,7 +1593,7 @@ begin
   exact eventually_congr (eventually_at_top.2 ⟨0, λ c, is_O_with_pi⟩)
 end
 
-@[simp] theorem is_o_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+@[simp] theorem is_o_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :
   f =o[l] g' ↔ ∀ i, (λ x, f x i) =o[l] g' :=
 begin
@@ -1585,12 +1605,12 @@ end asymptotics
 
 open asymptotics
 
-lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E} {g : ι → ℝ}
+lemma summable_of_is_O {ι E} [normed_add_comm_group E] [complete_space E] {f : ι → E} {g : ι → ℝ}
   (hg : summable g) (h : f =O[cofinite] g) : summable f :=
 let ⟨C, hC⟩ := h.is_O_with in
 summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) (hg.abs.mul_left _) hC.bound
 
-lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} {g : ℕ → ℝ}
+lemma summable_of_is_O_nat {E} [normed_add_comm_group E] [complete_space E] {f : ℕ → E} {g : ℕ → ℝ}
   (hg : summable g) (h : f =O[at_top] g) : summable f :=
 summable_of_is_O hg $ nat.cofinite_eq_at_top.symm ▸ h
 

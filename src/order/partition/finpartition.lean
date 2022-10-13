@@ -229,7 +229,7 @@ section inf
 variables [decidable_eq α] {a b c : α}
 
 instance : has_inf (finpartition a) :=
-⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
+⟨λ P Q, of_erase ((P.parts ×ˢ Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
   begin
     rw sup_indep_iff_disjoint_erase,
     simp only [mem_image, and_imp, exists_prop, forall_exists_index, id.def, prod.exists,
@@ -250,7 +250,7 @@ instance : has_inf (finpartition a) :=
   end⟩
 
 @[simp] lemma parts_inf (P Q : finpartition a) :
-  (P ⊓ Q).parts = ((P.parts.product Q.parts).image $ λ bc : α × α, bc.1 ⊓ bc.2).erase ⊥ := rfl
+  (P ⊓ Q).parts = ((P.parts ×ˢ Q.parts).image $ λ bc : α × α, bc.1 ⊓ bc.2).erase ⊥ := rfl
 
 instance : semilattice_inf (finpartition a) :=
 { inf_le_left := λ P Q b hb, begin
@@ -475,7 +475,7 @@ of_erase
 
 variables {F : finset (finset α)}
 
-lemma mem_atomise {t : finset α} :
+lemma mem_atomise :
   t ∈ (atomise s F).parts ↔ t.nonempty ∧ ∃ (Q ⊆ F), s.filter (λ i, ∀ u ∈ F, u ∈ Q ↔ i ∈ u) = t :=
 by simp only [atomise, of_erase, bot_eq_empty, mem_erase, mem_image, nonempty_iff_ne_empty,
   mem_singleton, and_comm, mem_powerset, exists_prop]
@@ -490,17 +490,31 @@ end
 lemma card_atomise_le : (atomise s F).parts.card ≤ 2^F.card :=
 (card_le_of_subset $ erase_subset _ _).trans $ finset.card_image_le.trans (card_powerset _).le
 
-lemma bUnion_filter_atomise (t : finset α) (ht : t ∈ F) (hts : t ⊆ s) :
-  ((atomise s F).parts.filter $ λ u, u ⊆ t).bUnion id = t :=
+lemma bUnion_filter_atomise (ht : t ∈ F) (hts : t ⊆ s) :
+  ((atomise s F).parts.filter $ λ u, u ⊆ t ∧ u.nonempty).bUnion id = t :=
 begin
   ext a,
-  rw mem_bUnion,
-  refine ⟨λ ⟨u, hu, ha⟩, (mem_filter.1 hu).2 ha, λ ha, _⟩,
+  refine mem_bUnion.trans ⟨λ ⟨u, hu, ha⟩, (mem_filter.1 hu).2.1 ha, λ ha, _⟩,
   obtain ⟨u, hu, hau⟩ := (atomise s F).exists_mem (hts ha),
-  refine ⟨u, mem_filter.2 ⟨hu, λ b hb, _⟩, hau⟩,
+  refine ⟨u, mem_filter.2 ⟨hu, λ b hb, _, _, hau⟩, hau⟩,
   obtain ⟨Q, hQ, rfl⟩ := (mem_atomise.1 hu).2,
   rw mem_filter at hau hb,
-  rwa [←hb.2 _ ht, hau.2 _ ht]
+  rwa [←hb.2 _ ht, hau.2 _ ht],
+end
+
+lemma card_filter_atomise_le_two_pow (ht : t ∈ F) :
+  ((atomise s F).parts.filter $ λ u, u ⊆ t ∧ u.nonempty).card ≤ 2 ^ (F.card - 1) :=
+begin
+  suffices h : (atomise s F).parts.filter (λ u, u ⊆ t ∧ u.nonempty)
+    ⊆ (F.erase t).powerset.image (λ P, s.filter $ λ i, ∀ x ∈ F, x ∈ insert t P ↔ i ∈ x),
+  { refine (card_le_of_subset h).trans (card_image_le.trans _),
+    rw [card_powerset, card_erase_of_mem ht] },
+  rw subset_iff,
+  simp only [mem_erase, mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
+    finset.nonempty, exists_imp_distrib, and_imp, mem_atomise, forall_apply_eq_imp_iff₂],
+  rintro P' i hi P PQ rfl hy₂ j hj,
+  refine ⟨P.erase t, erase_subset_erase _ PQ, _⟩,
+  simp only [insert_erase (((mem_filter.1 hi).2 _ ht).2 $ hy₂ hi), filter_congr_decidable],
 end
 
 end atomise

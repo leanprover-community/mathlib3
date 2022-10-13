@@ -63,15 +63,11 @@ instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) 
 (impartial_def.1 h).2.2 j
 
 theorem impartial_congr : ∀ {G H : pgame} (e : G ≡r H) [G.impartial], H.impartial
-| G H e := begin
+| G H := λ e, begin
   introI h,
-  rw impartial_def,
-  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
-    λ i, _, λ j, _⟩;
-  cases e with _ _ L R hL hR,
-  { convert impartial_congr (hL (L.symm i)),
-    rw equiv.apply_symm_apply },
-  { exact impartial_congr (hR j) }
+  exact impartial_def.2
+    ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
+      λ i, impartial_congr (e.move_left_symm i), λ j, impartial_congr (e.move_right_symm j)⟩
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -113,14 +109,14 @@ variables (G : pgame) [impartial G]
 lemma nonpos : ¬ 0 < G :=
 λ h, begin
   have h' := neg_lt_neg_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_left (neg_equiv_self G).symm] at h',
+  rw [neg_zero, lt_congr_left (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 
 lemma nonneg : ¬ G < 0 :=
 λ h, begin
   have h' := neg_lt_neg_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_right (neg_equiv_self G).symm] at h',
+  rw [neg_zero, lt_congr_right (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 

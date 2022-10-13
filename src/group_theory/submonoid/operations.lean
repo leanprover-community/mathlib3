@@ -75,11 +75,11 @@ def submonoid.to_add_submonoid : submonoid M ≃o add_submonoid (additive M) :=
 { to_fun := λ S,
   { carrier := additive.to_mul ⁻¹' S,
     zero_mem' := S.one_mem',
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   inv_fun := λ S,
   { carrier := additive.of_mul ⁻¹' S,
     one_mem' := S.zero_mem',
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -115,11 +115,11 @@ def add_submonoid.to_submonoid : add_submonoid A ≃o submonoid (multiplicative 
 { to_fun := λ S,
   { carrier := multiplicative.to_add ⁻¹' S,
     one_mem' := S.zero_mem',
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   inv_fun := λ S,
   { carrier := multiplicative.of_add ⁻¹' S,
     zero_mem' := S.one_mem',
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -388,25 +388,29 @@ end galois_insertion
 
 end submonoid
 
-namespace submonoid_class
+namespace one_mem_class
 
-variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
+variables {A M₁ : Type*} [set_like A M₁] [has_one M₁] [hA : one_mem_class A M₁] (S' : A)
 include hA
 
 /-- A submonoid of a monoid inherits a 1. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
-instance has_one : has_one S' := ⟨⟨_, one_mem S'⟩⟩
+instance has_one : has_one S' := ⟨⟨1, one_mem_class.one_mem S'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M₁) = 1 := rfl
 
 variables {S'}
-@[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M) = 1 ↔ x = 1 :=
-(subtype.ext_iff.symm : (x : M) = (1 : S') ↔ x = 1)
+@[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M₁) = 1 ↔ x = 1 :=
+(subtype.ext_iff.symm : (x : M₁) = (1 : S') ↔ x = 1)
 variables (S')
 
-@[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem S'⟩ := rfl
+@[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem_class.one_mem S'⟩ := rfl
 
-omit hA
+end one_mem_class
+
+namespace submonoid_class
+
+variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
 
 /-- An `add_submonoid` of an `add_monoid` inherits a scalar multiplication. -/
 instance _root_.add_submonoid_class.has_nsmul {M} [add_monoid M] {A : Type*} [set_like A M]
@@ -621,14 +625,12 @@ of `M × N`. -/
 @[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`
 as an `add_submonoid` of `A × B`."]
 def prod (s : submonoid M) (t : submonoid N) : submonoid (M × N) :=
-{ carrier := (s : set M) ×ˢ (t : set N),
+{ carrier := s ×ˢ t,
   one_mem' := ⟨s.one_mem, t.one_mem⟩,
   mul_mem' := λ p q hp hq, ⟨s.mul_mem hp.1 hq.1, t.mul_mem hp.2 hq.2⟩ }
 
 @[to_additive coe_prod]
-lemma coe_prod (s : submonoid M) (t : submonoid N) :
- (s.prod t : set (M × N)) = (s : set M) ×ˢ (t : set N) :=
-rfl
+lemma coe_prod (s : submonoid M) (t : submonoid N) : (s.prod t : set (M × N)) = s ×ˢ t := rfl
 
 @[to_additive mem_prod]
 lemma mem_prod {s : submonoid M} {t : submonoid N} {p : M × N} :

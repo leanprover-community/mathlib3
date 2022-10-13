@@ -84,6 +84,6 @@ instance [has_star R] [topological_space R] [has_continuous_star R] : has_contin
 
 instance [monoid R] [star_semigroup R] [topological_space R] [has_continuous_star R] :
   has_continuous_star Rˣ :=
-⟨continuous_induced_rng units.continuous_embed_product.star⟩
+⟨continuous_induced_rng.2 units.continuous_embed_product.star⟩
 
 end instances

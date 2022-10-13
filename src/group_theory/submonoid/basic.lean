@@ -13,7 +13,7 @@ This file defines bundled multiplicative and additive submonoids. We also define
 a `complete_lattice` structure on `submonoid`s, define the closure of a set as the minimal submonoid
 that includes this set, and prove a few results about extending properties from a dense set (i.e.
 a set with `closure s = ⊤`) to the whole monoid, see `submonoid.dense_induction` and
-`monoid_hom.of_mdense`.
+`monoid_hom.of_mclosure_eq_top_left`/`monoid_hom.of_mclosure_eq_top_right`.
 
 ## Main definitions
 
@@ -30,10 +30,10 @@ definition in the `add_submonoid` namespace.
 * `submonoid.gi` : `closure : set M → submonoid M` and coercion `coe : submonoid M → set M`
   form a `galois_insertion`;
 * `monoid_hom.eq_mlocus`: the submonoid of elements `x : M` such that `f x = g x`;
-* `monoid_hom.of_mdense`:  if a map `f : M → N` between two monoids satisfies `f 1 = 1` and
-  `f (x * y) = f x * f y` for `y` from some dense set `s`, then `f` is a monoid homomorphism.
-  E.g., if `f : ℕ → M` satisfies `f 0 = 0` and `f (x + 1) = f x + f 1`, then `f` is an additive
-  monoid homomorphism.
+* `monoid_hom.of_mclosure_eq_top_right`:  if a map `f : M → N` between two monoids satisfies
+  `f 1 = 1` and `f (x * y) = f x * f y` for `y` from some dense set `s`, then `f` is a monoid
+  homomorphism. E.g., if `f : ℕ → M` satisfies `f 0 = 0` and `f (x + 1) = f x + f 1`, then `f` is
+  an additive monoid homomorphism.
 
 ## Implementation notes
 
@@ -76,6 +76,7 @@ section
 set_option old_structure_cmd true
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
+@[ancestor subsemigroup]
 structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
 
@@ -96,6 +97,7 @@ set_option old_structure_cmd true
 
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
+@[ancestor add_subsemigroup]
 structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
 
@@ -166,7 +168,7 @@ theorem ext {S T : submonoid M}
 protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 { carrier := s,
   one_mem' := hs.symm ▸ S.one_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem' }
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem' }
 
 variable {S : submonoid M}
 
@@ -447,7 +449,8 @@ def eq_mlocus (f g : M →* N) : submonoid M :=
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
-@[to_additive]
+@[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its submonoid
+closure."]
 lemma eq_on_mclosure {f g : M →* N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_mlocus g, from closure_le.2 h
@@ -495,24 +498,40 @@ namespace monoid_hom
 open submonoid
 
 /-- Let `s` be a subset of a monoid `M` such that the closure of `s` is the whole monoid.
-Then `monoid_hom.of_mdense` defines a monoid homomorphism from `M` asking for a proof
-of `f (x * y) = f x * f y` only for `y ∈ s`. -/
-@[to_additive]
-def of_mdense {M N} [monoid M] [monoid N] {s : set M} (f : M → N) (hs : closure s = ⊤)
-  (h1 : f 1 = 1) (hmul : ∀ x (y ∈ s), f (x * y) = f x * f y) :
+Then `monoid_hom.of_mclosure_eq_top_left` defines a monoid homomorphism from `M` asking for
+a proof of `f (x * y) = f x * f y` only for `x ∈ s`. -/
+@[to_additive "/-- Let `s` be a subset of an additive monoid `M` such that the closure of `s` is
+the whole monoid. Then `add_monoid_hom.of_mclosure_eq_top_left` defines an additive monoid
+homomorphism from `M` asking for a proof of `f (x + y) = f x + f y` only for `x ∈ s`. -/"]
+def of_mclosure_eq_top_left {M N} [monoid M] [monoid N] {s : set M} (f : M → N)
+  (hs : closure s = ⊤) (h1 : f 1 = 1) (hmul : ∀ (x ∈ s) y, f (x * y) = f x * f y) :
+  M →* N :=
+{ to_fun := f,
+  map_one' := h1,
+  map_mul' := λ x, dense_induction x hs hmul (λ y, by rw [one_mul, h1, one_mul]) $ λ a b ha hb y,
+    by rw [mul_assoc, ha, ha, hb, mul_assoc] }
+
+@[simp, norm_cast, to_additive] lemma coe_of_mclosure_eq_top_left (f : M → N) (hs : closure s = ⊤)
+  (h1 hmul) : ⇑(of_mclosure_eq_top_left f hs h1 hmul) = f :=
+rfl
+
+/-- Let `s` be a subset of a monoid `M` such that the closure of `s` is the whole monoid.
+Then `monoid_hom.of_mclosure_eq_top_right` defines a monoid homomorphism from `M` asking for
+a proof of `f (x * y) = f x * f y` only for `y ∈ s`. -/
+@[to_additive "/-- Let `s` be a subset of an additive monoid `M` such that the closure of `s` is
+the whole monoid. Then `add_monoid_hom.of_mclosure_eq_top_right` defines an additive monoid
+homomorphism from `M` asking for a proof of `f (x + y) = f x + f y` only for `y ∈ s`. -/"]
+def of_mclosure_eq_top_right {M N} [monoid M] [monoid N] {s : set M} (f : M → N)
+  (hs : closure s = ⊤) (h1 : f 1 = 1) (hmul : ∀ x (y ∈ s), f (x * y) = f x * f y) :
   M →* N :=
 { to_fun := f,
   map_one' := h1,
   map_mul' := λ x y, dense_induction y hs (λ y hy x, hmul x y hy) (by simp [h1])
     (λ y₁ y₂ h₁ h₂ x, by simp only [← mul_assoc, h₁, h₂]) x }
 
-/-- Let `s` be a subset of an additive monoid `M` such that the closure of `s` is the whole monoid.
-Then `add_monoid_hom.of_mdense` defines an additive monoid homomorphism from `M` asking for a proof
-of `f (x + y) = f x + f y` only for `y ∈ s`. -/
-add_decl_doc add_monoid_hom.of_mdense
-
-@[simp, norm_cast, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
-  ⇑(of_mdense f hs h1 hmul) = f := rfl
+@[simp, norm_cast, to_additive] lemma coe_of_mclosure_eq_top_right (f : M → N) (hs : closure s = ⊤)
+  (h1 hmul) : ⇑(of_mclosure_eq_top_right f hs h1 hmul) = f :=
+rfl
 
 end monoid_hom
 

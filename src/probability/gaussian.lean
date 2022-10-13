@@ -1473,7 +1473,7 @@ end
 section gaussian_rv
 
 /- ### Transformation of Gaussian random variables -/
-
+#where
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
 /-- A real-valued random variable is a Gaussian if its push-forward measure is a Gaussian measure
@@ -2360,64 +2360,65 @@ end
 
 
 
-lemma gaussian_rv_add (hf : gaussian_rv f m₁ s₁) (hg : gaussian_rv g m₂ s₂)
-  (hfmeas : measurable f) (hgmeas : measurable g) (hfg : indep_fun f g) :
-  gaussian_rv (f + g) (m₁ + m₂) (sqrt (s₁^2 + s₂^2)) :=
-begin
-  unfold gaussian_rv at *,
-  unfold real_gaussian at *,
-  ---split_ifs,
-  by_cases h1: s₁=0,
-  {by_cases h2: s₂=0,
-  {
-    rw [h1, h2],
-    simp,
-    simp [h1] at hf,
-    simp [h2] at hg,
-    sorry},
-  {
+-- lemma gaussian_rv_add (hf : gaussian_rv f m₁ s₁) (hg : gaussian_rv g m₂ s₂)
+--   (hfmeas : measurable f) (hgmeas : measurable g) (hfg : indep_fun f g) :
+--   gaussian_rv (f + g) (m₁ + m₂) (sqrt (s₁^2 + s₂^2)) :=
+-- begin
+--   unfold gaussian_rv at *,
+--   unfold real_gaussian at *,
+--   ---split_ifs,
+--   by_cases h1: s₁=0,
+--   {by_cases h2: s₂=0,
+--   {
+--     rw [h1, h2],
+--     simp,
+--     simp [h1] at hf,
+--     simp [h2] at hg,
+--     sorry},
+--   {
 
-      simp [(sq_pos_iff s₂).mpr h2, sq_nonneg s₁, lt_add_of_le_of_pos, ne_of_gt],
-      simp [h1, h2] at hf hg ⊢,
-      rw pushmea_of_func_plus_const_func f g m₁ hfmeas hgmeas hf,
-      /-let h : ℝ → ℝ := λ x, x + m₁,
-      have h_f_plus_const_eq_comb : (f + g) = h ∘ g,
-      {
-        ext x,
-        simp [h],
-      },
-      -- rw ← measure.map_map h_hmeas hfmeas,-/
-
-
-      ---WE ARE AIMING TO SOLVE THIS BRACKET
-      ---WE ARE AIMING TO SOLVE THIS BRACKET
-      ---WE ARE AIMING TO SOLVE THIS BRACKET
-      ---WE ARE AIMING TO SOLVE THIS BRACKET
-      ---WE ARE AIMING TO SOLVE THIS BRACKET
-      sorry,
-
-      },
-  },
-  {by_cases h2: s₂=0,
-  {sorry},
-  {sorry},
-
-  },
+--       simp [(sq_pos_iff s₂).mpr h2, sq_nonneg s₁, lt_add_of_le_of_pos, ne_of_gt],
+--       simp [h1, h2] at hf hg ⊢,
+--       rw pushmea_of_func_plus_const_func f g m₁ hfmeas hgmeas hf,
+--       unfold gaussian_density,
+--       /-let h : ℝ → ℝ := λ x, x + m₁,
+--       have h_f_plus_const_eq_comb : (f + g) = h ∘ g,
+--       {
+--         ext x,
+--         simp [h],
+--       },
+--       -- rw ← measure.map_map h_hmeas hfmeas,-/
 
 
+--       ---WE ARE AIMING TO SOLVE THIS BRACKET
+--       ---WE ARE AIMING TO SOLVE THIS BRACKET
+--       ---WE ARE AIMING TO SOLVE THIS BRACKET
+--       ---WE ARE AIMING TO SOLVE THIS BRACKET
+--       ---WE ARE AIMING TO SOLVE THIS BRACKET
+--       sorry,
 
-end
+--       },
+--   },
+--   {by_cases h2: s₂=0,
+--   {sorry},
+--   {sorry},
 
-lemma mgf_gaussian_rv  (hf : gaussian_rv f m s) (hfmeas : measurable f) (t : ℝ) :
-  mgf f volume t = exp (m * t + s^2 * t^2 / 2) :=
-begin
-  unfold mgf,
-  unfold gaussian_rv real_gaussian at hf,
-  by_cases hs : s = 0;
-  {simp [hs] at *,
-  sorry,
-  },
-end
+--   },
+
+
+
+-- end
+
+-- lemma mgf_gaussian_rv  (hf : gaussian_rv f m s) (hfmeas : measurable f) (t : ℝ) :
+--   mgf f volume t = exp (m * t + s^2 * t^2 / 2) :=
+-- begin
+--   unfold mgf,
+--   unfold gaussian_rv real_gaussian at hf,
+--   by_cases hs : s = 0;
+--   {simp [hs] at *,
+--   sorry,
+--   },
+-- end
 
 end gaussian_rv
 

@@ -104,3 +104,38 @@ begin
     have := (hf w (hs1 hw1)).eventually_constant_or_nhds_le_map_nhds.resolve_left (h w (hs1 hw1)),
     exact this (image_mem_map (hs2.mem_nhds hw1)) }
 end
+
+example {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {z₀ : E} {g : E → ℂ}
+  (hg : analytic_at ℂ g z₀) : (∀ᶠ z in 𝓝 z₀, g z = g z₀) ∨ (𝓝 (g z₀) ≤ map g (𝓝 z₀)) :=
+begin
+  let gray : E → ℂ → ℂ := λ z t, g (z₀ + t • z),
+  obtain ⟨r, hr, hgr⟩ : ∃ r > 0, analytic_on ℂ g (ball z₀ r), sorry,
+  have h1 : ∀ z ∈ sphere (0 : E) 1, analytic_on ℂ (gray z) (ball 0 r), sorry,
+  by_cases (∀ z ∈ sphere (0 : E) 1, ∀ᶠ t in 𝓝 0, gray z t = gray z 0),
+  { left, -- If g is eventually constant along every direction, then it is eventually constant
+    have h2 : ∀ z ∈ sphere (0 : E) 1, ∀ t ∈ ball (0 : ℂ) r, gray z t = g z₀, sorry,
+    refine eventually_of_mem (ball_mem_nhds z₀ hr) (λ z hz, _),
+    by_cases h' : z = z₀,
+    { rw h' },
+    { let w : E := ∥z - z₀∥⁻¹ • (z - z₀),
+      have h3 : w ∈ sphere (0 : E) 1, sorry,
+      have h4 : ∥z - z₀∥ < r, sorry,
+      have h5 : ↑∥z - z₀∥ ∈ ball (0 : ℂ) r, sorry,
+      have h6 : ∥z - z₀∥ ≠ 0, sorry,
+      specialize h2 w h3 (∥z - z₀∥) h5,
+      simp only [gray, w] at h2,
+      norm_cast at h2,
+      simpa only [smul_smul, mul_inv_cancel h6, one_smul, add_sub_cancel'_right] using h2 } },
+  { right, -- Otherwise, it is open along at least one direction and that implies the result
+    push_neg at h,
+    obtain ⟨z, hz, hrz⟩ := h,
+    specialize h1 z hz 0 (mem_ball_self hr),
+    have h7 := h1.eventually_constant_or_nhds_le_map_nhds.resolve_left hrz,
+    have h8 : gray z 0 = g z₀, sorry, rw [h8] at h7,
+    refine h7.trans _,
+    have h9 : gray z = g ∘ (λ t, z₀ + t • z) := rfl, rw [h9, ← map_compose],
+    apply map_mono,
+    have h10 : continuous (λ (t : ℂ), z₀ + t • z),
+      from continuous_const.add (continuous_id'.smul continuous_const),
+    simpa using h10.tendsto 0 }
+end

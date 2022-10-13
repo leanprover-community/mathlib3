@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Wrenna Robson
 -/
 
-import algebra.big_operators.basic
 import linear_algebra.vandermonde
 import logic.lemmas
-import ring_theory.polynomial.basic
 
 /-!
 # Lagrange interpolation

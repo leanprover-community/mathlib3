@@ -5,8 +5,6 @@ Authors: Yakov Pechersky
 -/
 import algebra.polynomial.big_operators
 import data.polynomial.degree.lemmas
-import data.polynomial.eval
-import data.polynomial.monic
 import linear_algebra.matrix.determinant
 
 /-!

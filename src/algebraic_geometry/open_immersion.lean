@@ -3,12 +3,7 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebraic_geometry.presheafed_space.has_colimits
-import category_theory.limits.shapes.binary_products
-import category_theory.limits.preserves.shapes.pullbacks
-import topology.sheaves.functors
 import algebraic_geometry.Scheme
-import category_theory.limits.shapes.strict_initial
 import algebra.category.Ring.instances
 
 /-!

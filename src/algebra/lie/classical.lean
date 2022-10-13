@@ -3,11 +3,8 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.invertible
-import data.matrix.basis
 import data.matrix.dmatrix
 import algebra.lie.abelian
-import linear_algebra.matrix.trace
 import algebra.lie.skew_adjoint
 import linear_algebra.symplectic_group
 

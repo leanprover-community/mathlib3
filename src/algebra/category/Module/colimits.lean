@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.concrete_category
 import group_theory.quotient_group
-import category_theory.limits.shapes.kernels
 import algebra.category.Module.basic
 
 /-!

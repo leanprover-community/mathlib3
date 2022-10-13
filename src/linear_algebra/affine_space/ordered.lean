@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import algebra.order.invertible
-import algebra.order.module
 import linear_algebra.affine_space.midpoint
 import linear_algebra.affine_space.slope
-import tactic.field_simp
 
 /-!
 # Ordered modules as affine spaces

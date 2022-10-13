@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.abelian
-import algebra.lie.ideal_operations
-import order.hom.basic
 
 /-!
 # Solvable Lie algebras

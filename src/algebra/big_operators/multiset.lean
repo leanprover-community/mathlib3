@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group_with_zero.power
-import data.list.big_operators
 import data.multiset.basic
 
 /-!

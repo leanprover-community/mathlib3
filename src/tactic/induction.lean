@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
 
-import tactic.clear
-import tactic.dependencies
 import tactic.fresh_names
-import tactic.generalizes
 import tactic.has_variable_names
-import tactic.unify_equations
 
 /-!
 # A better tactic for induction and case analysis

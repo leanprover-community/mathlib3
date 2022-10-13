@@ -6,7 +6,6 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 
 import data.buffer.basic
 import tactic.rewrite_search.discovery
-import tactic.rewrite_search.types
 
 /-!
 # The graph algorithm part of rewrite search

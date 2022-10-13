@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Michael Howes
 -/
 import algebra.group.conj
-import algebra.group.type_tags
-import algebra.group.with_one
-import algebra.hom.units
 
 /-!
 # Various multiplicative and additive structures.

@@ -3,12 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import algebra.big_operators.ring
-import number_theory.divisors
 import data.nat.squarefree
 import data.nat.gcd.big_operators
-import algebra.invertible
-import data.nat.factorization.basic
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution

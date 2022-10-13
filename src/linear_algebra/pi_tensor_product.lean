@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis, Eric Wieser
 -/
 
-import group_theory.congruence
 import linear_algebra.multilinear.tensor_product
 
 /-!

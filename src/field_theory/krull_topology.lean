@@ -5,9 +5,7 @@ Authors: Sebastian Monnet
 -/
 
 import field_theory.galois
-import topology.algebra.filter_basis
 import topology.algebra.open_subgroup
-import tactic.by_contra
 
 /-!
 # Krull topology

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri, Andrew Yang
 -/
 
-import ring_theory.adjoin.basic
 import algebra.lie.of_associative
 import ring_theory.ideal.cotangent
 import ring_theory.tensor_product

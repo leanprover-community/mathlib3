@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Martin Dvorak, Kyle Miller, Eric Wieser
 -/
 
-import data.matrix.notation
-import linear_algebra.bilinear_map
 import linear_algebra.matrix.determinant
 import algebra.lie.basic
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import ring_theory.hahn_series
-import ring_theory.localization.fraction_ring
 
 /-!
 # Laurent Series

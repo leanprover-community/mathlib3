@@ -5,7 +5,6 @@ Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
 import measure_theory.integral.mean_inequalities
 import topology.continuous_function.compact
-import topology.metric_space.metrizable
 
 /-!
 # Density of simple functions

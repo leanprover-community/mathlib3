@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebra.category.Group.equivalence_Group_AddGroup
-import category_theory.epi_mono
 import group_theory.quotient_group
 
 /-!

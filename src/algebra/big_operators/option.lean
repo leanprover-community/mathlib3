@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 
 import algebra.big_operators.basic
-import data.finset.option
 
 /-!
 # Lemmas about products and sums over finite sets in `option α`

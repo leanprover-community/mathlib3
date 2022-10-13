@@ -4,11 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import measure_theory.covering.differentiation
-import measure_theory.covering.vitali_family
-import measure_theory.integral.lebesgue
-import measure_theory.measure.regular
-import set_theory.ordinal.arithmetic
-import topology.metric_space.basic
 
 /-!
 # Besicovitch covering theorems

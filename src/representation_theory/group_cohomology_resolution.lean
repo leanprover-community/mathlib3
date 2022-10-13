@@ -6,7 +6,6 @@ Authors: Amelia Livingston
 
 import algebraic_topology.alternating_face_map_complex
 import algebraic_topology.cech_nerve
-import representation_theory.basic
 import representation_theory.Rep
 
 /-!

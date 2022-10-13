@@ -5,7 +5,6 @@ Authors: Johannes Hölzl
 -/
 import data.matrix.basis
 import linear_algebra.basis
-import linear_algebra.pi
 
 /-!
 # The standard basis

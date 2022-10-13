@@ -6,9 +6,7 @@ Authors: Arthur Paulino, Kyle Miller
 
 import combinatorics.simple_graph.subgraph
 import combinatorics.simple_graph.clique
-import data.nat.lattice
 import data.setoid.partition
-import order.antichain
 
 /-!
 # Graph Coloring

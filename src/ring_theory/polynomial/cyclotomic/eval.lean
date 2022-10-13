@@ -5,9 +5,7 @@ Authors: Eric Rodriguez
 -/
 
 import ring_theory.polynomial.cyclotomic.basic
-import tactic.by_contra
 import topology.algebra.polynomial
-import number_theory.padics.padic_val
 import analysis.complex.arg
 
 /-!

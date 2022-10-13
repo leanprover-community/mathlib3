@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import linear_algebra.finite_dimensional
 import ring_theory.integral_closure
 import data.polynomial.integral_normalization
 

@@ -5,7 +5,6 @@ Authors: Simon Hudon
 -/
 
 import testing.slim_check.testable
-import data.list.sort
 
 /-!
 ## Finding counterexamples automatically using `slim_check`

@@ -5,7 +5,6 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.normed_space.add_torsor
 import linear_algebra.affine_space.ordered
-import topology.continuous_function.basic
 
 /-!
 # Urysohn's lemma

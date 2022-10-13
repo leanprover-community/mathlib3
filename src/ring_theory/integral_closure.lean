@@ -3,13 +3,9 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.polynomial.expand
-import linear_algebra.finite_dimensional
 import linear_algebra.matrix.charpoly.linear_map
-import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
-import ring_theory.tensor_product
 
 /-!
 # Integral closure of a subring.

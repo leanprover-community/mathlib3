@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.limits.has_limits
-import category_theory.discrete_category
 
 /-!
 # Categorical (co)products

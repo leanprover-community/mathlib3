@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import ring_theory.subsemiring.pointwise
 import group_theory.subgroup.pointwise
-import ring_theory.subring.basic
 
 /-! # Pointwise instances on `subring`s
 

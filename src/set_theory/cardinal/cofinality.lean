@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
 
 import set_theory.cardinal.ordinal
-import set_theory.ordinal.fixed_point
 
 /-!
 # Cofinality

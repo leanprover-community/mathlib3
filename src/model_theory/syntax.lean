@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.list.prod_sigma
-import data.set.prod
-import logic.equiv.fin
 import model_theory.language_map
 
 /-!

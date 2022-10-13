@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import field_theory.splitting_field
 import field_theory.perfect_closure
 import field_theory.separable
 

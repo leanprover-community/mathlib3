@@ -6,7 +6,6 @@ Authors: Alexander Bentkamp, François Dupuis
 import analysis.convex.basic
 import tactic.field_simp
 import tactic.linarith
-import tactic.ring
 
 /-!
 # Convex and concave functions

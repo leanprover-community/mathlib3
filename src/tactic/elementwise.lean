@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.concrete_category.basic
 import tactic.fresh_names
-import tactic.reassoc_axiom
-import tactic.slice
 
 /-!
 # Tools to reformulate category-theoretic lemmas in concrete categories

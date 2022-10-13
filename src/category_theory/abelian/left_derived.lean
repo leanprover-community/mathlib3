@@ -7,7 +7,6 @@ Authors: Riccardo Brasca, Adam Topaz
 import category_theory.abelian.homology
 import category_theory.functor.left_derived
 import category_theory.abelian.projective
-import category_theory.limits.constructions.epi_mono
 
 /-!
 # Zeroth left derived functors

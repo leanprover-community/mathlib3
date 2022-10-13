@@ -6,7 +6,6 @@ Authors: Riccardo Brasca
 
 import linear_algebra.free_module.basic
 import linear_algebra.matrix.to_lin
-import ring_theory.finiteness
 
 /-!
 # Finite and free modules

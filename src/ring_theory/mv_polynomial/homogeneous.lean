@@ -5,8 +5,6 @@ Authors: Johan Commelin, Eric Wieser
 -/
 
 import algebra.direct_sum.internal
-import algebra.graded_monoid
-import data.fintype.card
 import data.mv_polynomial.variables
 
 /-!

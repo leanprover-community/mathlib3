@@ -6,7 +6,6 @@ Authors: Anne Baanen, Paul Lezeau
 import algebra.is_prime_pow
 import algebra.squarefree
 import order.hom.bounded
-import algebra.gcd_monoid.basic
 
 /-!
 

@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.filter
 import analysis.box_integral.partition.measure
-import topology.uniform_space.compact
 
 /-!
 # Integrals of Riemann, Henstock-Kurzweil, and McShane

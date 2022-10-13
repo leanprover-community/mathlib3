@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.direct_sum.algebra
 import algebra.monoid_algebra.basic
-import data.finsupp.to_dfinsupp
 
 /-!
 # Conversion between `add_monoid_algebra` and homogenous `direct_sum`

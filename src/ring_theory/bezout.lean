@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.principal_ideal_domain
 import algebra.gcd_monoid.integrally_closed
 
 /-!

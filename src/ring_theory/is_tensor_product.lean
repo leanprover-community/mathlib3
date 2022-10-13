@@ -5,7 +5,6 @@ Authors: Andrew Yang
 -/
 
 import ring_theory.tensor_product
-import algebra.module.ulift
 import logic.equiv.transfer_instance
 
 /-!

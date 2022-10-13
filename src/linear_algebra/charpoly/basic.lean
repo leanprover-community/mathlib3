@@ -5,7 +5,6 @@ Authors: Riccardo Brasca
 -/
 
 import linear_algebra.free_module.finite.basic
-import linear_algebra.matrix.charpoly.coeff
 import field_theory.minpoly
 
 /-!

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
 import algebraic_topology.fundamental_groupoid.induced_maps
-import category_theory.punit
 
 /-!
 # Fundamental groupoid of punit

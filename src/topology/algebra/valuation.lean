@@ -6,7 +6,6 @@ Authors: Patrick Massot
 
 import topology.algebra.nonarchimedean.bases
 import topology.algebra.uniform_filter_basis
-import ring_theory.valuation.basic
 
 /-!
 # The topology on a valued ring

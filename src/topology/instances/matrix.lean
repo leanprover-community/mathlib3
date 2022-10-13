@@ -5,8 +5,6 @@ Authors: Oliver Nash, Eric Wieser
 -/
 import linear_algebra.determinant
 import topology.algebra.infinite_sum
-import topology.algebra.ring
-import topology.algebra.star
 
 /-!
 # Topological properties of matrices

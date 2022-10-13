@@ -5,11 +5,8 @@ Authors: Julian Kuelshammer
 -/
 import data.zmod.quotient
 import group_theory.noncomm_pi_coprod
-import group_theory.order_of_element
 import algebra.gcd_monoid.finset
-import algebra.punit_instances
 import data.nat.factorization.basic
-import tactic.by_contra
 
 /-!
 # Exponent of a group

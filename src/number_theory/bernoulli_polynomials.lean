@@ -3,8 +3,6 @@ Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan, David Loeffler
 -/
-import data.polynomial.algebra_map
-import data.polynomial.derivative
 import data.nat.choose.cast
 import number_theory.bernoulli
 

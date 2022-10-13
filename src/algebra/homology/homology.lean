@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.homology.image_to_kernel
 import algebra.homology.homological_complex
-import category_theory.graded_object
 
 /-!
 # The homology of a complex

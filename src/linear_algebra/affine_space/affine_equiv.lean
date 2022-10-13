@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.affine_map
-import algebra.invertible
 
 /-!
 # Affine equivalences

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import number_theory.zsqrtd.basic
-import data.complex.basic
-import ring_theory.principal_ideal_domain
 import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Gaussian integers

@@ -5,9 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import measure_theory.measure.regular
-import topology.semicontinuous
 import measure_theory.integral.bochner
-import topology.instances.ereal
 
 /-!
 # Vitali-Carathéodory theorem

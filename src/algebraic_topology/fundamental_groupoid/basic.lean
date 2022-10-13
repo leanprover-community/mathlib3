@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
 import category_theory.category.Groupoid
-import category_theory.groupoid
 import topology.category.Top.basic
 import topology.homotopy.path
 

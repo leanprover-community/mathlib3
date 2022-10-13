@@ -5,7 +5,6 @@ Authors: Floris van Doorn
 -/
 import measure_theory.group.integration
 import measure_theory.group.prod
-import measure_theory.function.locally_integrable
 import analysis.calculus.specific_functions
 import analysis.calculus.parametric_integral
 

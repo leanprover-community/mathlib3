@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 import linear_algebra.contraction
-import linear_algebra.finite_dimensional
-import linear_algebra.dual
 
 /-!
 # The coevaluation map on finite dimensional vector spaces

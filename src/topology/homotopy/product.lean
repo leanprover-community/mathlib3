@@ -3,7 +3,6 @@ Copyright (c) 2021 Praneeth Kolichala. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
-import topology.constructions
 import topology.homotopy.path
 
 /-!

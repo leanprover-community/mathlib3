@@ -6,7 +6,6 @@ Authors: Calle Sönne
 import analysis.special_functions.trigonometric.basic
 import analysis.normed.group.add_circle
 import algebra.char_zero.quotient
-import algebra.order.to_interval_mod
 import topology.instances.sign
 
 /-!

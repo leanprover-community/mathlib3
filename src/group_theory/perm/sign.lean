@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.perm.support
-import data.fintype.basic
 import group_theory.order_of_element
 import tactic.norm_swap
-import data.finset.sort
 
 /-!
 # Sign of a permutation

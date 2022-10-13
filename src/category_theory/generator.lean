@@ -3,12 +3,9 @@ Copyright (c) 2022 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import category_theory.balanced
 import category_theory.limits.essentially_small
 import category_theory.limits.opposites
-import category_theory.limits.shapes.zero_morphisms
 import category_theory.subobject.lattice
-import category_theory.subobject.well_powered
 import data.set.opposite
 
 /-!

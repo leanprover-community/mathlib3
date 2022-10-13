@@ -6,7 +6,6 @@ Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 import algebra.category.Group.basic
 import category_theory.concrete_category.reflects_isomorphisms
 import category_theory.elementwise
-import algebra.ring.equiv
 
 /-!
 # Category instances for semiring, ring, comm_semiring, and comm_ring.

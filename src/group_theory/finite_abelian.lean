@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Pierre-Alexandre Bazin
 -/
 import algebra.module.pid
-import data.zmod.quotient
 
 /-!
 # Structure of finite(ly generated) abelian groups

@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import algebra.ring.pi
 import algebra.category.Ring.basic
 import algebra.category.Group.limits
-import ring_theory.subring.basic
 
 /-!
 # The category of (commutative) rings has all limits

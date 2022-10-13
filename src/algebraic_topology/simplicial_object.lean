@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import algebraic_topology.simplex_category
-import category_theory.arrow
 import category_theory.limits.functor_category
-import category_theory.opposites
 
 /-!
 # Simplicial objects in a category.

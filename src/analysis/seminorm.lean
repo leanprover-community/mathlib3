@@ -3,8 +3,6 @@ Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Yaël Dillies, Moritz Doll
 -/
-import data.real.pointwise
-import data.real.sqrt
 import topology.algebra.filter_basis
 import topology.algebra.module.locally_convex
 

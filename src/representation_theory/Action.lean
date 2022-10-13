@@ -5,18 +5,12 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
 import category_theory.single_obj
-import category_theory.limits.functor_category
-import category_theory.limits.preserves.basic
-import category_theory.adjunction.limits
-import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
 import category_theory.monoidal.rigid.of_equivalence
 import category_theory.monoidal.rigid.functor_category
 import category_theory.monoidal.linear
-import category_theory.monoidal.braided
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
-import category_theory.conj
 import category_theory.linear.functor_category
 
 /-!

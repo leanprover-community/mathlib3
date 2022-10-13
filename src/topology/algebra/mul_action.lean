@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.add_torsor
-import topology.algebra.constructions
-import group_theory.group_action.prod
-import group_theory.group_action.basic
 import topology.algebra.const_mul_action
 
 /-!

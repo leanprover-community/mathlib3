@@ -3,10 +3,6 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import algebra.big_operators.fin
-import algebra.geom_sum
-import group_theory.perm.fin
-import linear_algebra.matrix.determinant
 import linear_algebra.matrix.nondegenerate
 
 /-!

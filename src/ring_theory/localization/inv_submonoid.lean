@@ -5,8 +5,6 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baan
 -/
 import group_theory.submonoid.inverses
 import ring_theory.finiteness
-import ring_theory.localization.basic
-import tactic.ring_exp
 
 /-!
 # Submonoid of inverses

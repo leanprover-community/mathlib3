@@ -6,7 +6,6 @@ Authors: Jujian Zhang
 import group_theory.subgroup.pointwise
 import group_theory.group_action.pi
 import group_theory.quotient_group
-import algebra.group.pi
 
 /-!
 # Divisible Group and rootable group

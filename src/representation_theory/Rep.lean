@@ -5,9 +5,7 @@ Authors: Scott Morrison
 -/
 import representation_theory.basic
 import representation_theory.Action
-import algebra.category.Module.abelian
 import algebra.category.Module.colimits
-import algebra.category.Module.monoidal
 import algebra.category.Module.adjunctions
 
 /-!

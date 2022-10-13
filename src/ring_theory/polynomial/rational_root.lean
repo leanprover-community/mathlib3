@@ -6,7 +6,6 @@ Authors: Anne Baanen
 
 import ring_theory.integrally_closed
 import ring_theory.localization.num_denom
-import ring_theory.polynomial.scale_roots
 
 /-!
 # Rational root theorem and integral root theorem

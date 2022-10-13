@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
-import category_theory.adjunction.basic
-import category_theory.functor.epi_mono
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad

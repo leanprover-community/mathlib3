@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 
-import linear_algebra.linear_pmap
 import topology.algebra.module.basic
 
 /-!

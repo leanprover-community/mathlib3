@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.normed_space.hahn_banach.extension
-import analysis.normed_space.is_R_or_C
 import analysis.locally_convex.polar
 
 /-!

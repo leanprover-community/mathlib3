@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Frédéric Dupuis,
   Heather Macbeth
 -/
-import algebra.big_operators.pi
 import algebra.module.hom
 import algebra.module.prod
 import algebra.module.submodule.lattice

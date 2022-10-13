@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
 import ring_theory.localization.at_prime
-import ring_theory.localization.basic
-import ring_theory.localization.fraction_ring
 
 /-!
 # Localizations of localizations

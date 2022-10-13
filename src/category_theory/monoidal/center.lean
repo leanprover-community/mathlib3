@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
 import category_theory.functor.reflects_isomorphisms
-import category_theory.monoidal.coherence
 
 /-!
 # Half braidings and the Drinfeld center of a monoidal category

@@ -5,10 +5,7 @@ Authors: Scott Morrison, Justus Springer
 -/
 import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.structure_sheaf
-import logic.equiv.transfer_instance
 import ring_theory.localization.localization_localization
-import topology.sheaves.sheaf_condition.sites
-import topology.sheaves.functors
 
 /-!
 # $Spec$ as a functor to locally ringed spaces.

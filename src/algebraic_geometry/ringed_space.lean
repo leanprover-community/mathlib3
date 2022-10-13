@@ -6,8 +6,6 @@ Authors: Justus Springer, Andrew Yang
 import algebra.category.Ring.filtered_colimits
 import algebraic_geometry.sheafed_space
 import topology.sheaves.stalks
-import algebra.category.Ring.colimits
-import algebra.category.Ring.limits
 
 /-!
 # Ringed spaces

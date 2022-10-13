@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.noetherian
 import ring_theory.rees_algebra
-import ring_theory.finiteness
 import data.polynomial.module
 import order.hom.complete_lattice
 

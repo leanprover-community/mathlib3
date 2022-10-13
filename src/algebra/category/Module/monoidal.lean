@@ -5,8 +5,6 @@ Authors: Kevin Buzzard, Scott Morrison, Jakob von Raumer
 -/
 import category_theory.monoidal.braided
 import category_theory.closed.monoidal
-import algebra.category.Module.basic
-import linear_algebra.tensor_product
 import category_theory.linear.yoneda
 import category_theory.monoidal.linear
 

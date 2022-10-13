@@ -3,11 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.polynomial.derivative
-import data.nat.choose.sum
 import ring_theory.polynomial.pochhammer
-import data.polynomial.algebra_map
-import linear_algebra.linear_independent
 import data.mv_polynomial.pderiv
 
 /-!

@@ -6,7 +6,6 @@ Authors: Joël Riou, Adam Topaz, Johan Commelin
 
 import algebra.homology.additive
 import algebraic_topology.Moore_complex
-import algebra.big_operators.fin
 import category_theory.preadditive.opposite
 import tactic.equiv_rw
 

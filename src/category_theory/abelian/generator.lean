@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.abelian.subobject
-import category_theory.limits.essentially_small
 import category_theory.preadditive.injective
 import category_theory.preadditive.generator
 

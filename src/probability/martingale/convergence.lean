@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.martingale.upcrossing
-import measure_theory.function.uniform_integrable
 import measure_theory.constructions.polish
 
 /-!

@@ -6,13 +6,8 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 import data.matrix.pequiv
 import data.matrix.block
 import data.matrix.notation
-import data.fintype.card
 import group_theory.perm.fin
-import group_theory.perm.sign
-import algebra.algebra.basic
-import tactic.ring
 import linear_algebra.alternating
-import linear_algebra.pi
 
 /-!
 # Determinant of a matrix

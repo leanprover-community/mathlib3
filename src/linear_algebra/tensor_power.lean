@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 
 import linear_algebra.pi_tensor_product
-import logic.equiv.fin
 import algebra.direct_sum.algebra
 
 /-!

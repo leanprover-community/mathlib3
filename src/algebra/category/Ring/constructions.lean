@@ -3,12 +3,10 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import category_theory.limits.shapes.pullbacks
 import ring_theory.tensor_product
 import algebra.category.Ring.limits
 import algebra.category.Ring.colimits
 import category_theory.limits.shapes.strict_initial
-import ring_theory.subring.basic
 import ring_theory.ideal.local_ring
 import category_theory.limits.preserves.limits
 

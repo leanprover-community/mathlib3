@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang, Yury G. Kudryashov
 -/
 import topology.continuous_on
-import data.setoid.basic
 import tactic.tfae
 
 /-!

@@ -5,7 +5,6 @@ Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.strong_epi
 
 /-!
 # Categorical images

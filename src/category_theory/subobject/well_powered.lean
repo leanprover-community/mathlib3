@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.subobject.basic
-import category_theory.essentially_small
 
 /-!
 # Well-powered categories

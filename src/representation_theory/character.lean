@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
 import representation_theory.fdRep
-import linear_algebra.trace
-import representation_theory.basic
 import representation_theory.invariants
 
 /-!

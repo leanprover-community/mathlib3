@@ -6,7 +6,6 @@ Authors: Yury G. Kudryashov
 import geometry.manifold.algebra.structures
 import geometry.manifold.bump_function
 import topology.metric_space.partition_of_unity
-import topology.shrinking_lemma
 
 /-!
 # Smooth partition of unity

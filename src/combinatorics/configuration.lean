@@ -5,7 +5,6 @@ Authors: Thomas Browning
 -/
 import algebra.big_operators.order
 import combinatorics.hall.basic
-import data.fintype.card
 import set_theory.cardinal.finite
 
 /-!

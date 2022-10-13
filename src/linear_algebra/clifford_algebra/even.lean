@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import linear_algebra.clifford_algebra.fold
-import linear_algebra.clifford_algebra.grading
 
 /-!
 # The universal property of the even subalgebra

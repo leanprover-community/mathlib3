@@ -8,7 +8,6 @@ import algebraic_topology.alternating_face_map_complex
 import algebraic_topology.simplicial_set
 import algebraic_topology.cech_nerve
 import algebra.homology.homotopy
-import tactic.fin_cases
 
 /-!
 

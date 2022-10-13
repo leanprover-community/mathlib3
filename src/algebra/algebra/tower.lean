@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 
 import algebra.algebra.subalgebra.basic
-import algebra.algebra.bilinear
 
 /-!
 # Towers of algebras

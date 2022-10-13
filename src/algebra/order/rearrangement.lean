@@ -7,7 +7,6 @@ import algebra.order.module
 import data.prod.lex
 import group_theory.perm.support
 import order.monovary
-import tactic.abel
 
 /-!
 # Rearrangement inequality

@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import data.int.succ_pred
-import data.nat.succ_pred
 import order.partial_sups
 import order.succ_pred.relation
 import topology.subset_properties
-import tactic.congrm
 
 /-!
 # Connected subsets of topological spaces

@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import group_theory.submonoid.operations
 import group_theory.subsemigroup.center
-import data.fintype.basic
 
 /-!
 # Centers of monoids

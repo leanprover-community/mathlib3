@@ -5,7 +5,6 @@ Authors: Devon Tuma
 -/
 import ring_theory.localization.away
 import ring_theory.ideal.over
-import ring_theory.jacobson_ideal
 
 /-!
 # Jacobson Rings

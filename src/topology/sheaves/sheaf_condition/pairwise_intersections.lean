@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 
 import topology.sheaves.sheaf_condition.sites
-import category_theory.limits.preserves.basic
 import category_theory.category.pairwise
 import category_theory.limits.constructions.binary_products
 import algebra.category.Ring.constructions

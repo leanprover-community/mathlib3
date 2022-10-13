@@ -4,11 +4,8 @@ Reeased under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import analysis.normed_space.star.spectrum
-import analysis.normed.group.quotient
 import analysis.normed_space.algebra
 import topology.continuous_function.units
-import topology.continuous_function.compact
-import topology.algebra.algebra
 import topology.continuous_function.stone_weierstrass
 
 /-!

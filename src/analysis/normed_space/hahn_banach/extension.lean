@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth
 -/
 import analysis.convex.cone.basic
-import analysis.normed_space.is_R_or_C
 import analysis.normed_space.extend
 
 /-!

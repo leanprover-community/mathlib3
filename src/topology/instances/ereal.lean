@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import data.rat.encodable
 import data.real.ereal
-import topology.algebra.order.monotone_continuity
 import topology.instances.ennreal
 
 /-!

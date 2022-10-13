@@ -5,7 +5,6 @@ Authors: Andrew Yang
 -/
 import topology.category.Top
 import category_theory.glue_data
-import category_theory.concrete_category.elementwise
 
 /-!
 # Gluing Topological spaces

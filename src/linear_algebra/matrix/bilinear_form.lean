@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying
 -/
 
-import linear_algebra.matrix.basis
-import linear_algebra.matrix.nondegenerate
-import linear_algebra.matrix.nonsingular_inverse
-import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.bilinear_form
 import linear_algebra.matrix.sesquilinear_form
 

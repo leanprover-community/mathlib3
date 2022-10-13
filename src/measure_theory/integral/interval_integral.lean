@@ -4,11 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
 import analysis.normed_space.dual
-import data.set.intervals.disjoint
 import measure_theory.measure.haar_lebesgue
-import analysis.calculus.extend_deriv
 import measure_theory.function.locally_integrable
-import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
 import analysis.calculus.fderiv_measurable
 

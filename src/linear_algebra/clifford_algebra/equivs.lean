@@ -6,7 +6,6 @@ Authors: Eric Wieser
 import algebra.dual_number
 import algebra.quaternion_basis
 import data.complex.module
-import linear_algebra.clifford_algebra.conjugation
 import linear_algebra.clifford_algebra.star
 import linear_algebra.quadratic_form.prod
 

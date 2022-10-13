@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 -/
 
-import data.bracket
 import group_theory.subgroup.basic
 import tactic.group
 

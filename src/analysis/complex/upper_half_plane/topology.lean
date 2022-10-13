@@ -8,7 +8,6 @@ import analysis.convex.contractible
 import analysis.convex.topology
 import analysis.convex.complex
 import analysis.complex.re_im_topology
-import topology.homotopy.contractible
 
 /-!
 # Topology on the upper half plane

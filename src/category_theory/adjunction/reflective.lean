@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.fully_faithful
 import category_theory.functor.reflects_isomorphisms
-import category_theory.epi_mono
 
 /-!
 # Reflective functors

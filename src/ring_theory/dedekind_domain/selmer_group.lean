@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
 
-import data.zmod.quotient
 import ring_theory.dedekind_domain.adic_valuation
 
 /-!

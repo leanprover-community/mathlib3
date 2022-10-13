@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 import data.nat.prime
-import ring_theory.coprime.basic
 import ring_theory.principal_ideal_domain
 
 /-!

@@ -6,7 +6,6 @@ Authors: Bhavik Mehta
 
 import combinatorics.composition
 import data.nat.parity
-import tactic.apply_fun
 
 /-!
 # Partitions

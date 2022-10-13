@@ -6,7 +6,6 @@ Authors: Chris Hughes
 import data.W.cardinal
 import ring_theory.algebraic_independent
 import field_theory.is_alg_closed.basic
-import field_theory.intermediate_field
 import data.polynomial.cardinal
 import data.mv_polynomial.cardinal
 import data.zmod.algebra

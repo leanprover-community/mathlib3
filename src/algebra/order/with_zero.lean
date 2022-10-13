@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 import algebra.order.group
-import algebra.order.monoid.with_zero
 
 /-!
 # Linearly ordered commutative groups and monoids with a zero element adjoined

@@ -3,11 +3,7 @@ Copyright (c) 2022 Daniel Roca González. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Roca González
 -/
-import analysis.inner_product_space.projection
 import analysis.inner_product_space.dual
-import analysis.normed_space.banach
-import analysis.normed_space.operator_norm
-import topology.metric_space.antilipschitz
 
 /-!
 # The Lax-Milgram Theorem

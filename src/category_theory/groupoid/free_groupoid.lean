@@ -3,15 +3,10 @@ Copyright (c) 2022 Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli
 -/
-import category_theory.category.basic
-import category_theory.functor.basic
 import category_theory.groupoid
-import combinatorics.quiver.basic
-import combinatorics.quiver.connected_component
 import logic.relation
 import tactic.nth_rewrite
 import category_theory.path_category
-import category_theory.quotient
 
 /-!
 # Free groupoid on a quiver

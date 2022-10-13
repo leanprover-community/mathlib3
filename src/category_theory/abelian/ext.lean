@@ -3,11 +3,8 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz
 -/
-import algebra.category.Group.basic
-import algebra.category.Module.abelian
 import category_theory.functor.left_derived
 import category_theory.linear.yoneda
-import category_theory.abelian.opposite
 import category_theory.abelian.projective
 
 /-!

@@ -3,9 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.algebra.basic
 import data.set.Union_lift
-import linear_algebra.finsupp
 import ring_theory.ideal.operations
 
 /-!

@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Ines Wright, Joachim Breitner
 -/
 
-import group_theory.quotient_group
 import group_theory.solvable
-import group_theory.p_group
 import group_theory.sylow
-import data.nat.factorization.basic
-import tactic.tfae
 
 /-!
 

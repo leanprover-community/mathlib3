@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Scott Morrison
 -/
 import category_theory.preadditive.injective_resolution
-import category_theory.abelian.exact
 import algebra.homology.homotopy_category
 
 /-!

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
-import analysis.box_integral.partition.additive
-import analysis.calculus.fderiv
 
 /-!
 # Divergence integral for Henstock-Kurzweil integral

@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 import topology.urysohns_lemma
 import topology.continuous_function.bounded
-import topology.uniform_space.cauchy
 
 /-!
 # Metrizability of a T₃ topological space with second countable topology

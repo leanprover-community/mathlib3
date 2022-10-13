@@ -5,7 +5,6 @@ Authors: Alex Best, Riccardo Brasca, Eric Rodriguez
 -/
 
 import data.pnat.prime
-import algebra.is_prime_pow
 import number_theory.cyclotomic.basic
 import ring_theory.adjoin.power_basis
 import ring_theory.polynomial.cyclotomic.eval

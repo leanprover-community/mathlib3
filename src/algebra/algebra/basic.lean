@@ -3,13 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.module.basic
 import algebra.module.ulift
-import algebra.ne_zero
-import algebra.ring.aut
-import algebra.ring.ulift
 import linear_algebra.span
-import tactic.abel
 
 /-!
 # Algebras over commutative semirings

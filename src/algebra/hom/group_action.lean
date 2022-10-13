@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.group_ring_action
-import group_theory.group_action.defs
 
 /-!
 # Equivariant homomorphisms

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import ring_theory.matrix_algebra
-import data.polynomial.algebra_map
-import data.matrix.basis
 import data.matrix.dmatrix
 
 /-!

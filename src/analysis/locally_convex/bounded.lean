@@ -3,12 +3,7 @@ Copyright (c) 2022 Moritz Doll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
-import analysis.locally_convex.basic
-import analysis.locally_convex.balanced_core_hull
 import analysis.seminorm
-import topology.bornology.basic
-import topology.algebra.uniform_group
-import topology.uniform_space.cauchy
 
 /-!
 # Von Neumann Boundedness

@@ -5,7 +5,6 @@ Authors: Patrick Massot
 -/
 
 import topology.algebra.filter_basis
-import topology.algebra.uniform_group
 
 /-!
 # Uniform properties of neighborhood bases in topological algebra

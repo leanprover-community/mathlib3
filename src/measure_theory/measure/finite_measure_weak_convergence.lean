@@ -3,12 +3,8 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import measure_theory.measure.measure_space
-import measure_theory.integral.set_integral
 import measure_theory.integral.average
-import topology.continuous_function.bounded
 import topology.algebra.module.weak_dual
-import topology.metric_space.thickened_indicator
 
 /-!
 # Weak convergence of (finite) measures

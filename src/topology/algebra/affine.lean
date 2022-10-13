@@ -5,7 +5,6 @@ Authors: Frédéric Dupuis
 -/
 import linear_algebra.affine_space.affine_map
 import topology.algebra.group
-import topology.algebra.mul_action
 
 /-!
 # Topological properties of affine spaces and maps

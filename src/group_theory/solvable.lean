@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 -/
 
-import data.fin.vec_notation
 import group_theory.abelianization
-import set_theory.cardinal.basic
 
 /-!
 # Solvable Groups

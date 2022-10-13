@@ -5,8 +5,6 @@ Authors: Chris Birkbeck
 -/
 import linear_algebra.special_linear_group
 import data.zmod.basic
-import group_theory.subgroup.pointwise
-import group_theory.group_action.conj_act
 /-!
 # Congruence subgroups
 

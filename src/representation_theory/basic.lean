@@ -3,12 +3,7 @@ Copyright (c) 2022 Antoine Labelle. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
-import algebra.module.basic
-import algebra.module.linear_map
-import algebra.monoid_algebra.basic
 import linear_algebra.trace
-import linear_algebra.dual
-import linear_algebra.free_module.basic
 
 /-!
 # Monoid representations

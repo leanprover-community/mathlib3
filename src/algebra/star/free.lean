@@ -3,7 +3,6 @@ Copyright (c) 2020 Eric Weiser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Weiser
 -/
-import algebra.star.basic
 import algebra.free_algebra
 
 /-!

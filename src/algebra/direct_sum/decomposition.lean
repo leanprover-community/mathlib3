@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Jujian Zhang
 -/
 import algebra.direct_sum.module
-import algebra.module.submodule.basic
 
 /-!
 # Decompositions of additive monoids, groups, and modules into direct sums

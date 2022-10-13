@@ -3,7 +3,6 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.complex.circle
 import analysis.inner_product_space.l2_space
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space

@@ -5,7 +5,6 @@ Authors: Joseph Myers
 -/
 import analysis.complex.arg
 import analysis.inner_product_space.orientation
-import analysis.inner_product_space.pi_L2
 import analysis.special_functions.complex.circle
 import geometry.euclidean.basic
 

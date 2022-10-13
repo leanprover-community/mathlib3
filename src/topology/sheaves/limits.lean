@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.sheaf_condition.sites
-import category_theory.sites.limits
 import category_theory.adjunction
-import category_theory.limits.functor_category
 
 /-!
 # Presheaves in `C` have limits and colimits when `C` does.

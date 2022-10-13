@@ -9,7 +9,6 @@ import order.filter.pointwise
 import topology.algebra.monoid
 import topology.compact_open
 import topology.sets.compacts
-import topology.algebra.constructions
 
 /-!
 # Topological groups

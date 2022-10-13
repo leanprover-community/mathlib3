@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebra.category.Ring.constructions
-import category_theory.isomorphism
 import ring_theory.localization.away
 
 /-!

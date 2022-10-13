@@ -5,8 +5,6 @@ Authors: Eric Wieser
 -/
 import group_theory.perm.cycle.type
 import group_theory.perm.option
-import logic.equiv.fin
-import logic.equiv.fintype
 
 /-!
 # Permutations of `fin n`

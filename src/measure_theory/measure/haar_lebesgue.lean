@@ -5,8 +5,6 @@ Authors: Floris van Doorn, Sébastien Gouëzel
 -/
 import measure_theory.measure.lebesgue
 import measure_theory.measure.haar
-import linear_algebra.finite_dimensional
-import analysis.normed_space.pointwise
 import measure_theory.group.pointwise
 import measure_theory.measure.doubling
 

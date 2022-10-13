@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import topology.uniform_space.uniform_convergence
-import topology.uniform_space.pi
 import topology.uniform_space.equiv
 
 /-!

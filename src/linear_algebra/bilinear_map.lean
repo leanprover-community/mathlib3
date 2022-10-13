@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro
 -/
 
-import linear_algebra.basic
 import linear_algebra.basis
 
 /-!

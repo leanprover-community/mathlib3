@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 import order.hom.complete_lattice
-import topology.bases
-import topology.homeomorph
 import topology.continuous_function.basic
 import order.compactly_generated
 

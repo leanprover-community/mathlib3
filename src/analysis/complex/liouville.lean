@@ -5,7 +5,6 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.complex.cauchy_integral
 import analysis.calculus.fderiv_analytic
-import analysis.normed_space.completion
 
 /-!
 # Liouville's theorem

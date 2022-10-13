@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import model_theory.elementary_maps
-import category_theory.concrete_category.bundled
 /-!
 # Bundled First-Order Structures
 This file bundles types together with their first-order structure.

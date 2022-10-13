@@ -5,7 +5,6 @@ Authors: Bryan Gin-ge Chen, Yaël Dillies
 -/
 import algebra.punit_instances
 import order.heyting.hom
-import tactic.abel
 import tactic.ring
 
 /-!

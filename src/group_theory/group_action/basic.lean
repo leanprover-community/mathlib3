@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import algebra.hom.group_action
-import group_theory.group_action.defs
-import group_theory.group_action.group
-import data.setoid.basic
 import data.fintype.card
 
 /-!

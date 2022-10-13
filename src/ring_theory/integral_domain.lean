@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes
 -/
 
-import data.fintype.card
 import data.polynomial.ring_division
 import group_theory.specific_groups.cyclic
-import algebra.geom_sum
 
 /-!
 # Integral domains

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Pim Spelier, Daan van Gent
 -/
 
-import data.fintype.basic
 import data.num.lemmas
 import set_theory.cardinal.ordinal
 import tactic.derive_fintype

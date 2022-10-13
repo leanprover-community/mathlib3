@@ -5,7 +5,6 @@ Authors: Fox Thomson
 -/
 
 import set_theory.game.basic
-import tactic.nth_rewrite.default
 
 /-!
 # Basic definitions about impartial (pre-)games

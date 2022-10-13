@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François Sunatori
 -/
 import analysis.complex.circle
-import linear_algebra.determinant
 import linear_algebra.general_linear_group
 
 /-!

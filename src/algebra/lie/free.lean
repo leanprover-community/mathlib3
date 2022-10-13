@@ -3,7 +3,6 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.of_associative
 import algebra.lie.non_unital_non_assoc_algebra
 import algebra.lie.universal_enveloping
 import algebra.free_non_unital_non_assoc_algebra

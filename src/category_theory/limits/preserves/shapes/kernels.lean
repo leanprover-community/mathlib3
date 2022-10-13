@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.kernels
 import category_theory.limits.preserves.shapes.equalizers
-import category_theory.limits.preserves.shapes.zero
 
 /-!
 # Preserving (co)kernels

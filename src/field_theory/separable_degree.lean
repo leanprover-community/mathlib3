@@ -3,7 +3,6 @@ Copyright (c) 2021 Jakob Scholbach. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob Scholbach
 -/
-import algebra.algebra.basic
 import algebra.char_p.exp_char
 import field_theory.separable
 

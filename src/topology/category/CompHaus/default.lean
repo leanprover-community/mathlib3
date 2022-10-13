@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Bhavik Mehta
 -/
 
-import category_theory.adjunction.reflective
 import topology.category.Top
 import topology.stone_cech
 import category_theory.monad.limits

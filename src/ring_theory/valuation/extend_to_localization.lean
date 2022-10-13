@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import ring_theory.localization.at_prime
-import ring_theory.valuation.basic
 
 /-!
 

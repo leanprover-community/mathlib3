@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import algebra.is_prime_pow
 import number_theory.arithmetic_function
 import analysis.special_functions.log.basic
 

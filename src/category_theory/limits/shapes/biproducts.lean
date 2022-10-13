@@ -5,9 +5,7 @@ Authors: Scott Morrison, Jakob von Raumer
 -/
 import algebra.group.ext
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
-import category_theory.limits.shapes.kernels
 
 /-!
 # Biproducts and binary biproducts

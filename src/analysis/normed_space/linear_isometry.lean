@@ -5,7 +5,6 @@ Authors: Yury Kudryashov, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.normed.group.basic
 import topology.algebra.module.basic
-import linear_algebra.basis
 
 /-!
 # (Semi-)linear isometries

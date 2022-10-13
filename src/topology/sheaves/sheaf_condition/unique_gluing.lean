@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
 import topology.sheaves.forget
-import category_theory.limits.shapes.types
-import topology.sheaves.sheaf
-import category_theory.types
 
 /-!
 # The sheaf condition in terms of unique gluings

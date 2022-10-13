@@ -5,8 +5,6 @@ Authors: Oliver Nash
 -/
 import algebra.direct_sum.module
 import algebra.lie.of_associative
-import algebra.lie.submodule
-import algebra.lie.basic
 
 /-!
 # Direct sums of Lie algebras and Lie modules

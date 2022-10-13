@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import linear_algebra.matrix.to_lin
-import linear_algebra.invariant_basis_number
 
 /-!
 # Invertible matrices over a ring with invariant basis number are square.

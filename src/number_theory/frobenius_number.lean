@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Zhao
 -/
 import data.nat.modeq
-import group_theory.submonoid.basic
 import group_theory.submonoid.membership
 import tactic.ring
 import tactic.zify

@@ -7,7 +7,6 @@ import analysis.convex.between
 import analysis.inner_product_space.projection
 import analysis.special_functions.trigonometric.inverse
 import algebra.quadratic_discriminant
-import linear_algebra.affine_space.finite_dimensional
 import analysis.calculus.conformal.normed_space
 
 /-!

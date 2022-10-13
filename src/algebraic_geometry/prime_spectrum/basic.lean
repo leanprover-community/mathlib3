@@ -3,9 +3,6 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.punit_instances
-import linear_algebra.finsupp
-import ring_theory.nilpotent
 import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.limits.shapes.diagonal
-import category_theory.arrow
-import category_theory.limits.shapes.comm_sq
 
 /-!
 # Properties of morphisms

@@ -5,9 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits.basic
 import measure_theory.pi_system
-import data.countable.basic
-import data.fin.vec_notation
-import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures

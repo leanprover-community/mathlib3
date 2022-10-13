@@ -4,13 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
-import data.zmod.basic
-import group_theory.index
-import group_theory.group_action.conj_act
-import group_theory.group_action.quotient
 import group_theory.perm.cycle.type
 import group_theory.specific_groups.cyclic
-import tactic.interval_cases
 
 /-!
 # p-groups

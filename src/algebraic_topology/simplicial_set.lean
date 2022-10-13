@@ -6,8 +6,6 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 import algebraic_topology.simplicial_object
 import algebraic_topology.topological_simplex
 import category_theory.limits.presheaf
-import category_theory.limits.types
-import category_theory.yoneda
 import topology.category.Top.limits
 
 /-!

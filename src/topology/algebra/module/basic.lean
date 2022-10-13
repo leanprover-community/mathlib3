@@ -5,12 +5,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Fréd
   Heather Macbeth
 -/
 import topology.algebra.ring
-import topology.algebra.mul_action
 import topology.algebra.uniform_group
-import topology.uniform_space.uniform_embedding
-import algebra.algebra.basic
-import linear_algebra.projection
-import linear_algebra.pi
 import linear_algebra.determinant
 
 /-!

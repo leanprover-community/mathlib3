@@ -3,10 +3,8 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import dynamics.ergodic.measure_preserving
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
-import measure_theory.measure.open_pos
 import measure_theory.constructions.prod
 
 /-!

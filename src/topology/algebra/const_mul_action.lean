@@ -5,9 +5,6 @@ Authors: Alex Kontorovich, Heather Macbeth
 -/
 import data.real.nnreal
 import topology.algebra.constructions
-import topology.homeomorph
-import group_theory.group_action.basic
-import topology.bases
 /-!
 # Monoid actions continuous in the second variable
 

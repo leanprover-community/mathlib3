@@ -7,7 +7,6 @@ import algebra.order.invertible
 import algebra.order.smul
 import linear_algebra.affine_space.midpoint
 import linear_algebra.ray
-import tactic.positivity
 
 /-!
 # Segments in vector spaces

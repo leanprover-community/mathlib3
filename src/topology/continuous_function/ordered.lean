@@ -5,7 +5,6 @@ Authors: Scott Morrison, Shing Tak Lam
 -/
 
 import topology.algebra.order.proj_Icc
-import topology.continuous_function.basic
 
 /-!
 # Bundled continuous maps into orders, with order-compatible topology

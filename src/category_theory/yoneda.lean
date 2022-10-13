@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.functor.hom
 import category_theory.functor.currying
-import category_theory.products.basic
 
 /-!
 # The Yoneda embedding

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
 
-import category_theory.sites.spaces
 import topology.sheaves.sheaf
 import category_theory.sites.dense_subsite
 

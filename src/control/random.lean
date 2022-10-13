@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import control.monad.basic
 import control.uliftable
 import data.bitvec.basic
-import data.int.basic
 import data.stream.defs
-import tactic.norm_num
 
 
 /-!

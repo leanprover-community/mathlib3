@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joachim Breitner
 -/
 import group_theory.order_of_element
-import data.finset.noncomm_prod
-import data.fintype.card
 import data.nat.gcd.big_operators
 
 /-!

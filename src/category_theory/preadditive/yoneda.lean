@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.limits.yoneda
-import category_theory.preadditive.opposite
 import algebra.category.Module.abelian
-import algebra.category.Group.preadditive
 
 /-!
 # The Yoneda embedding for preadditive categories

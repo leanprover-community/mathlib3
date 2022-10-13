@@ -5,9 +5,7 @@ Authors: Kenny Lau, Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
-import field_theory.tower
 import group_theory.solvable
-import ring_theory.power_basis
 
 /-!
 # Normal field extensions

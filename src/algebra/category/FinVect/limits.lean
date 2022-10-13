@@ -4,12 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.FinVect
-import algebra.category.Module.limits
 import algebra.category.Module.products
-import algebra.category.Module.epi_mono
-import category_theory.limits.creates
-import category_theory.limits.shapes.finite_limits
-import category_theory.limits.constructions.limits_of_products_and_equalizers
 
 /-!
 # `forget₂ (FinVect K) (Module K)` creates all finite limits.

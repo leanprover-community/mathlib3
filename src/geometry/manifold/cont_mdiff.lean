@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 
 import geometry.manifold.mfderiv
-import geometry.manifold.local_invariant_properties
 
 /-!
 # Smooth functions between smooth manifolds

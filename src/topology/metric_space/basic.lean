@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import data.int.interval
-import tactic.positivity
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
 import topology.bornology.constructions

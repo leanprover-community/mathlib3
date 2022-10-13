@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import algebraic_geometry.prime_spectrum.basic
-import algebra.category.Ring.colimits
-import algebra.category.Ring.limits
 import topology.sheaves.local_predicate
-import ring_theory.localization.at_prime
-import ring_theory.subring.basic
 
 /-!
 # The structure sheaf on `prime_spectrum R`.

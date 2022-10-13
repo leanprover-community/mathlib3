@@ -3,7 +3,6 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.order.floor
 import algebra.order.to_interval_mod
 import topology.instances.real
 

@@ -3,10 +3,6 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import order.well_founded_set
-import algebra.big_operators.finprod
-import ring_theory.valuation.basic
-import algebra.module.pi
 import ring_theory.power_series.basic
 import data.finsupp.pwo
 

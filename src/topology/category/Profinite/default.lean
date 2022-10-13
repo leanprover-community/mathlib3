@@ -5,12 +5,7 @@ Authors: Kevin Buzzard, Calle Sönne
 -/
 
 import topology.category.CompHaus
-import topology.connected
-import topology.subset_properties
 import topology.locally_constant.basic
-import category_theory.adjunction.reflective
-import category_theory.monad.limits
-import category_theory.limits.constructions.epi_mono
 import category_theory.Fintype
 
 /-!

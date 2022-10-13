@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
 import group_theory.finiteness
-import data.multiset.finset_ops
 import algebra.algebra.tower
-import order.order_iso_nat
 import ring_theory.nilpotent
-import order.compactly_generated
-import linear_algebra.linear_independent
 import algebra.ring.idempotents
 
 /-!

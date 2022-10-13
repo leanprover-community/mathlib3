@@ -5,7 +5,6 @@ Authors: Henry Swanson, Patrick Massot
 -/
 import analysis.special_functions.exponential
 import combinatorics.derangements.finite
-import order.filter.basic
 
 /-!
 # Derangement exponential series

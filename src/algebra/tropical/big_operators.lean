@@ -5,7 +5,6 @@ Authors: Yakov Pechersky
 -/
 import algebra.tropical.lattice
 import algebra.big_operators.basic
-import data.list.min_max
 
 /-!
 

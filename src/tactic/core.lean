@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import control.basic
 import data.dlist.basic
-import meta.expr
 import system.io
 import tactic.binder_matching
 import tactic.interactive_expr

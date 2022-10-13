@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 import analysis.complex.basic
 import data.complex.exponential
-import data.polynomial.algebra_map
 import ring_theory.polynomial.chebyshev
 
 /-!

@@ -5,11 +5,8 @@ Authors: Scott Morrison, Nicolò Cavalleri
 -/
 import topology.algebra.module.basic
 import topology.continuous_function.ordered
-import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
 import topology.algebra.star
-import algebra.algebra.subalgebra.basic
-import tactic.field_simp
 
 /-!
 # Algebraic structures over continuous functions

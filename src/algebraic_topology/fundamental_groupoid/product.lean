@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
 
-import category_theory.groupoid
 import algebraic_topology.fundamental_groupoid.basic
 import topology.category.Top.limits
 import topology.homotopy.product

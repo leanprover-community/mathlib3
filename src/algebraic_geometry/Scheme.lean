@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.Spec
-import algebra.category.Ring.constructions
 
 /-!
 # The category of schemes

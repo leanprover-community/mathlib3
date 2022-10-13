@@ -3,12 +3,8 @@ Copyright (c) 2021 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import data.setoid.basic
-import group_theory.subgroup.basic
 import group_theory.coset
 import group_theory.subgroup.pointwise
-import data.set.basic
-import tactic.group
 
 /-!
 # Double cosets

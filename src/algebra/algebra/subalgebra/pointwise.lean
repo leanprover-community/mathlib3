@@ -3,8 +3,6 @@ Copyright (c) 2021 Eric Weiser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.algebra.operations
-import algebra.algebra.subalgebra.basic
 import ring_theory.subring.pointwise
 import ring_theory.adjoin.basic
 

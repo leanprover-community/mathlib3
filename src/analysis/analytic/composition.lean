@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Johan Commelin
 -/
 import analysis.analytic.basic
-import combinatorics.composition
 
 /-!
 # Composition of analytic functions

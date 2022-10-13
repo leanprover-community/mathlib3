@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.hom.group
-import logic.equiv.basic
 import data.finite.defs
 /-!
 # Type tags that turn additive structures into multiplicative, and vice versa

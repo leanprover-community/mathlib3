@@ -5,7 +5,6 @@ Authors: Patrick Massot, Scott Morrison, Mario Carneiro, Andrew Yang
 -/
 import topology.category.Top.epi_mono
 import category_theory.limits.preserves.limits
-import category_theory.category.ulift
 import category_theory.limits.shapes.types
 import category_theory.limits.concrete_category
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 
-import algebra.algebra.basic
 import linear_algebra.prod
 import algebra.hom.non_unital_alg
 

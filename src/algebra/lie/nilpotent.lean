@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.solvable
-import algebra.lie.quotient
 import algebra.lie.centralizer
 import linear_algebra.eigenspace
-import ring_theory.nilpotent
 
 /-!
 # Nilpotent Lie algebras

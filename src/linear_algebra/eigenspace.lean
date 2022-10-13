@@ -5,10 +5,7 @@ Authors: Alexander Bentkamp
 -/
 
 import linear_algebra.charpoly.basic
-import linear_algebra.finsupp
-import linear_algebra.matrix.to_lin
 import algebra.algebra.spectrum
-import order.hom.basic
 
 /-!
 # Eigenvectors and eigenvalues

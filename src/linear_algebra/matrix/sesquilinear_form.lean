@@ -5,9 +5,6 @@ Authors: Anne Baanen, Kexing Ying, Moritz Doll
 -/
 
 import linear_algebra.finsupp_vector_space
-import linear_algebra.matrix.basis
-import linear_algebra.matrix.nondegenerate
-import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.sesquilinear_form
 

@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 import measure_theory.covering.vitali_family
 import measure_theory.measure.regular
 import measure_theory.function.ae_measurable_order
-import measure_theory.integral.lebesgue
 import measure_theory.decomposition.radon_nikodym
 
 /-!

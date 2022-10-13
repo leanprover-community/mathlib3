@@ -3,7 +3,6 @@ Copyright (c) 2018 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
-import logic.function.iterate
 import data.set.intervals.proj_Icc
 import topology.metric_space.basic
 import topology.bornology.hom

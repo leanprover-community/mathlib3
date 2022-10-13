@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import algebra.group.pi
-import algebra.hom.equiv
 import algebra.ring.opposite
-import data.finset.fold
 import data.fintype.basic
-import data.set.pairwise
 
 /-!
 # Big operators

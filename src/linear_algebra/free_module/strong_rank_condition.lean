@@ -5,7 +5,6 @@ Authors: Riccardo Brasca
 -/
 
 import linear_algebra.charpoly.basic
-import linear_algebra.invariant_basis_number
 
 /-!
 

@@ -5,7 +5,6 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.dimension
-import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
 
 /-! # Free modules over PID

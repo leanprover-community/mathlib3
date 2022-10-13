@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import algebra.hom.aut
-import group_theory.group_action.units
 
 /-!
 # Group actions applied to various types of group

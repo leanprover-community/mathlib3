@@ -7,7 +7,6 @@ import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import measure_theory.integral.circle_integral
 import analysis.calculus.dslope
-import analysis.analytic.basic
 import analysis.complex.re_im_topology
 import analysis.calculus.diff_cont_on_cl
 import data.real.cardinality

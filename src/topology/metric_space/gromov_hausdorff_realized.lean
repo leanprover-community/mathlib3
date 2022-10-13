@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.gluing
-import topology.metric_space.hausdorff_distance
 import topology.continuous_function.bounded
 
 /-!

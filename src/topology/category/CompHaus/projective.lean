@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import topology.category.CompHaus
-import topology.stone_cech
 import category_theory.preadditive.projective
 
 /-!

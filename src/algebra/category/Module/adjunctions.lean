@@ -7,7 +7,6 @@ import algebra.category.Module.monoidal
 import category_theory.monoidal.functorial
 import category_theory.monoidal.types
 import linear_algebra.direct_sum.finsupp
-import category_theory.linear.linear_functor
 
 /-!
 The functor of forming finitely supported functions on a type with values in a `[ring R]`

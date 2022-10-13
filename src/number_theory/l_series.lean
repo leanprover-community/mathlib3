@@ -5,7 +5,6 @@ Authors: Aaron Anderson
 -/
 import analysis.p_series
 import number_theory.arithmetic_function
-import topology.algebra.infinite_sum
 
 /-!
 # L-series

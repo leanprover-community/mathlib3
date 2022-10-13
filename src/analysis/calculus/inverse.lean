@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth, Sébastien Gouëzel
 -/
 import analysis.calculus.cont_diff
-import tactic.ring_exp
 import analysis.normed_space.banach
-import topology.local_homeomorph
 
 /-!
 # Inverse function theorem

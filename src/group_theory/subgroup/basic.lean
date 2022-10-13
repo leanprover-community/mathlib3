@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import group_theory.submonoid.pointwise
-import group_theory.submonoid.membership
 import group_theory.submonoid.centralizer
 import algebra.group.conj
-import algebra.module.basic
 import order.atoms
 import order.sup_indep
 

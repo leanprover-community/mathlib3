@@ -5,7 +5,6 @@ Authors: Amelia Livingston
 -/
 import group_theory.congruence
 import group_theory.submonoid.membership
-import algebra.group.units
 
 /-!
 # Localizations of commutative monoids

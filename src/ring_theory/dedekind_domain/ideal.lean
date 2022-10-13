@@ -5,10 +5,8 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import algebra.algebra.subalgebra.pointwise
 import algebraic_geometry.prime_spectrum.noetherian
-import order.hom.basic
 import ring_theory.dedekind_domain.basic
 import ring_theory.fractional_ideal
-import ring_theory.principal_ideal_domain
 import ring_theory.chain_of_divisors
 
 /-!

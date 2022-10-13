@@ -3,9 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.metric_space.basic
 import topology.algebra.order.archimedean
-import topology.instances.int
 import topology.instances.nat
 import topology.instances.real
 /-!

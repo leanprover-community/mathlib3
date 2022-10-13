@@ -5,7 +5,6 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.split
 import analysis.normed_space.operator_norm
-import data.set.intervals.proj_Icc
 
 /-!
 # Box additive functions

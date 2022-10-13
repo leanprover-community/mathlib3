@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
-import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.

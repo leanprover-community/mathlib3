@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Jens Wagemaker
 -/
 
 import algebra.associated
-import algebra.group_power.lemmas
 
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`

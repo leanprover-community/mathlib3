@@ -3,12 +3,8 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Joël Riou
 -/
-import category_theory.comm_sq
 import category_theory.limits.opposites
 import category_theory.limits.shapes.biproducts
-import category_theory.limits.preserves.shapes.pullbacks
-import category_theory.limits.shapes.zero_morphisms
-import category_theory.limits.constructions.binary_products
 import category_theory.limits.constructions.zero_objects
 
 /-!

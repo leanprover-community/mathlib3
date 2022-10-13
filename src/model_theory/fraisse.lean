@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import model_theory.finitely_generated
 import model_theory.direct_limit
 import model_theory.bundled
 

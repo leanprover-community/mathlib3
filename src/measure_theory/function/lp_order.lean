@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.function.lp_space
-import analysis.normed_space.lattice_ordered_group
 
 /-!
 # Order related properties of Lp spaces

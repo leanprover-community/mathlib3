@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
 import measure_theory.function.ess_sup
-import measure_theory.integral.mean_inequalities
-import topology.continuous_function.compact
-import topology.metric_space.metrizable
 import measure_theory.function.simple_func_dense
 
 /-!

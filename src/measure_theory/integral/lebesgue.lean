@@ -5,8 +5,6 @@ Authors: Mario Carneiro, Johannes Hölzl
 -/
 import measure_theory.measure.mutually_singular
 import measure_theory.constructions.borel_space
-import algebra.indicator_function
-import algebra.support
 import dynamics.ergodic.measure_preserving
 
 /-!

@@ -3,12 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen, Antoine Labelle
 -/
-import linear_algebra.matrix.to_lin
-import linear_algebra.matrix.trace
 import linear_algebra.contraction
-import linear_algebra.tensor_product_basis
 import linear_algebra.free_module.strong_rank_condition
-import linear_algebra.projection
 
 /-!
 # Trace of a linear map

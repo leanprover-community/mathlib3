@@ -5,7 +5,6 @@ Authors: Thomas Browning
 -/
 
 import group_theory.abelianization
-import group_theory.exponent
 import group_theory.transfer
 
 /-!

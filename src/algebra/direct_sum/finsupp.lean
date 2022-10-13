@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import algebra.direct_sum.module
-import data.finsupp.to_dfinsupp
 
 /-!
 # Results on direct sums and finitely supported functions.

@@ -3,12 +3,9 @@ Copyright (c) 2022 Vincent Beffara. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Vincent Beffara
 -/
-import analysis.analytic.basic
 import analysis.calculus.dslope
 import analysis.calculus.fderiv_analytic
-import analysis.calculus.formal_multilinear_series
 import analysis.complex.basic
-import topology.algebra.infinite_sum
 import analysis.analytic.uniqueness
 
 /-!

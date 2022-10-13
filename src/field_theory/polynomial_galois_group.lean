@@ -5,7 +5,6 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 import analysis.complex.polynomial
 import field_theory.galois
-import group_theory.perm.cycle.type
 
 /-!
 # Galois Groups of Polynomials

@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import measure_theory.covering.besicovitch_vector_space
-import measure_theory.measure.haar_lebesgue
-import analysis.normed_space.pointwise
-import measure_theory.covering.differentiation
 import measure_theory.constructions.polish
 
 /-!

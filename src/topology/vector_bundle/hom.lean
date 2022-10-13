@@ -5,7 +5,6 @@ Authors: Heather Macbeth, Floris van Doorn
 -/
 
 import topology.vector_bundle.basic
-import analysis.normed_space.operator_norm
 
 /-!
 # The topological vector bundle of continuous (semi)linear maps

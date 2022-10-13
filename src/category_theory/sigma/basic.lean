@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.whiskering
-import category_theory.functor.fully_faithful
-import category_theory.natural_isomorphism
-import data.sigma.basic
 
 /-!
 # Disjoint union of categories

@@ -3,8 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Sébastien Gouëzel, Yury Kudryashov
 -/
-import dynamics.ergodic.measure_preserving
-import linear_algebra.determinant
 import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.transvection
 import measure_theory.constructions.pi

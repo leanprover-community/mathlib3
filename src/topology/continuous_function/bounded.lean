@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 import analysis.normed_space.lattice_ordered_group
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
-import data.real.sqrt
 import topology.continuous_function.algebra
 
 /-!

@@ -5,7 +5,6 @@ Authors: Michael Jendrusch, Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monoidal.category
 import category_theory.adjunction.basic
-import category_theory.products.basic
 
 /-!
 # (Lax) monoidal functors

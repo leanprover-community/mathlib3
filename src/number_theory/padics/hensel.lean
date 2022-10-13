@@ -7,7 +7,6 @@ import analysis.specific_limits.basic
 import data.polynomial.identities
 import number_theory.padics.padic_integers
 import topology.algebra.polynomial
-import topology.metric_space.cau_seq_filter
 
 /-!
 # Hensel's lemma on ℤ_p

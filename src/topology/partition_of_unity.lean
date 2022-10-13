@@ -3,8 +3,6 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import algebra.big_operators.finprod
-import set_theory.ordinal.basic
 import topology.continuous_function.algebra
 import topology.paracompact
 import topology.shrinking_lemma

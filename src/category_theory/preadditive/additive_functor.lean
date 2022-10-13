@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
 import category_theory.limits.exact_functor
-import category_theory.limits.preserves.finite
 import category_theory.limits.preserves.shapes.biproducts
 import category_theory.preadditive.functor_category
 

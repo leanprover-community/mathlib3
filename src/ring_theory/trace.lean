@@ -7,13 +7,10 @@ Authors: Anne Baanen
 import linear_algebra.matrix.bilinear_form
 import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.determinant
-import linear_algebra.finite_dimensional
 import linear_algebra.vandermonde
 import linear_algebra.trace
 import field_theory.is_alg_closed.algebraic_closure
-import field_theory.primitive_element
 import field_theory.galois
-import ring_theory.power_basis
 
 /-!
 # Trace for (finite) ring extensions.

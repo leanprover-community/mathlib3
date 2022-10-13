@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
 import measure_theory.integral.interval_integral
-import data.set.intervals.monotone
 
 /-!
 # Divergence theorem for Bochner integral

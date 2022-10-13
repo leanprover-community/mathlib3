@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import linear_algebra.matrix.determinant
-import data.mv_polynomial.basic
 import data.mv_polynomial.comm_ring
 
 /-!

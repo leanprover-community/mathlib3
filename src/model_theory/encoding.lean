@@ -6,7 +6,6 @@ Authors: Aaron Anderson
 
 import computability.encoding
 import model_theory.syntax
-import set_theory.cardinal.ordinal
 
 /-! # Encodings and Cardinality of First-Order Syntax
 

@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.basic
 import topology.metric_space.pi_nat
-import topology.metric_space.isometry
 import topology.metric_space.gluing
 
 /-!

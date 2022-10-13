@@ -357,5 +357,48 @@ noncomputable instance : normed_algebra 𝕜 𝓜(𝕜, A) :=
 
 end nontrivially_normed
 
-end double_centralizer
+section densely_normed
 
+variables {𝕜 A : Type*} [densely_normed_field 𝕜] [star_ring 𝕜]
+variables [non_unital_normed_ring A] [star_ring A] [cstar_ring A]
+variables [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A] [star_module 𝕜 A]
+
+instance : cstar_ring 𝓜(𝕜, A) :=
+{ norm_star_mul_self := λ a, congr_arg (coe : ℝ≥0 → ℝ) $ show ∥star a * a∥₊ = ∥a∥₊ * ∥a∥₊, from
+  begin
+    have hball : {x : A | ∥x∥₊ ≤ 1}.nonempty := ⟨0, nnnorm_zero.trans_le zero_le_one⟩,
+    have key : ∀ x y, ∥x∥₊ ≤ 1 → ∥y∥₊ ≤ 1 → ∥a.right (star (a.left (star x))) * y∥₊ ≤ ∥a∥₊ * ∥a∥₊,
+    { intros x y hx hy,
+      rw [a.central],
+      calc ∥star (a.left (star x)) * a.left y∥₊
+          ≤ ∥a.left (star x)∥₊ * ∥a.left y∥₊
+          : nnnorm_star (a.left (star x)) ▸ nnnorm_mul_le _ _
+      ... ≤ (∥a.left∥₊ * 1) * (∥a.left∥₊ * 1)
+          : mul_le_mul' (a.left.le_op_norm_of_le ((nnnorm_star x).trans_le hx))
+              (a.left.le_op_norm_of_le hy)
+      ... ≤ ∥a∥₊ * ∥a∥₊ : by simp only [mul_one, nnnorm_left] },
+    rw nnnorm_right,
+    simp only [mul_right, ←op_nnnorm_eq_Sup_unit_ball, star_right, continuous_linear_map.mul_apply],
+      simp only [←@cstar_ring.op_nnnorm_lmul 𝕜 A],
+      simp only [←op_nnnorm_eq_Sup_unit_ball, lmul_apply],
+    refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (hball.image _) _ (λ r hr, _),
+    { rintro - ⟨x, hx, rfl⟩,
+      refine cSup_le (hball.image _) _,
+      rintro - ⟨y, hy, rfl⟩,
+      exact key x y hx hy },
+    { simp only [set.mem_image, set.mem_set_of_eq, exists_prop, exists_exists_and_eq_and],
+      have hr' : r.sqrt < ∥a∥₊ := (∥a∥₊).sqrt_mul_self ▸ nnreal.sqrt_lt_sqrt_iff.2 hr,
+      rw [nnnorm_left, ←op_nnnorm_eq_Sup_unit_ball] at hr',
+      obtain ⟨_, ⟨x, hx, rfl⟩, hxr⟩ := exists_lt_of_lt_cSup (hball.image _) hr',
+      refine ⟨star x, (nnnorm_star x).trans_le hx, _⟩,
+      refine lt_cSup_of_lt _ ⟨x, hx, rfl⟩ _,
+      { refine ⟨∥a∥₊ * ∥a∥₊, _⟩,
+        rintros - ⟨y, hy, rfl⟩,
+        exact key (star x) y ((nnnorm_star x).trans_le hx) hy },
+      { simpa only [a.central, star_star, cstar_ring.nnnorm_star_mul_self, nnreal.sq_sqrt, ←sq]
+          using pow_lt_pow_of_lt_left hxr zero_le' two_pos } }
+  end }
+
+end densely_normed
+
+end double_centralizer

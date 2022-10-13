@@ -11,17 +11,17 @@ import topology.algebra.field
 /-!
 # The open mapping theorem for holomorphic functions
 
-This file proves the open mapping theorem for holomorphic functions, namely that a holomorphic
-function on a preconnected open set of the complex plane is either constant or open. The main step
-is to show a local version of the theorem that states that if `f` is analytic at a point `z₀`, then
-either it is constant in a neighborhood of `z₀` or it maps any neighborhood of `z₀` to a
-neighborhood of `f z₀`.
+This file proves the open mapping theorem for holomorphic functions, namely that an analytic
+function on a preconnected set of the complex plane is either constant or open. The main step is to
+show a local version of the theorem that states that if `f` is analytic at a point `z₀`, then either
+it is constant in a neighborhood of `z₀` or it maps any neighborhood of `z₀` to a neighborhood of
+its image `f z₀`. The results extend in higher dimension to `g : E → ℂ`.
 
-The proof of the local version goes through two main steps: first, assuming that the function is not
-constant around `z₀`, use the isolated zero principle to show that `∥f z∥` is bounded below on a
-small `sphere z₀ r` around `z₀`, and then use the maximum principle applied to `(λ z, ∥f z - v∥)` to
-show that any point `v` close enough to `f z₀` is in `f '' ball z₀ r`. That second step is
-implemented in `diff_cont_on_cl.ball_subset_image_closed_ball`.
+The proof of the local version on `ℂ` goes through two main steps: first, assuming that the function
+is not constant around `z₀`, use the isolated zero principle to show that `∥f z∥` is bounded below
+on a small `sphere z₀ r` around `z₀`, and then use the maximum principle applied to the auxiliary
+function `(λ z, ∥f z - v∥)` to show that any `v` close enough to `f z₀` is in `f '' ball z₀ r`. That
+second step is implemented in `diff_cont_on_cl.ball_subset_image_closed_ball`.
 
 ## Main results
 

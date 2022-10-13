@@ -107,7 +107,7 @@ begin
   refine exists.elim _ (λ (h : x ∈ I • N) (H : p x h), H),
   exact smul_induction_on hx
     (λ a ha x hx, ⟨_, Hb _ ha _ hx⟩)
-    (λ x y ⟨_, hx⟩ ⟨_, hy⟩,  ⟨_, H1 _ _ _ _ hx hy⟩),
+    (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, H1 _ _ _ _ hx hy⟩),
 end
 
 theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :

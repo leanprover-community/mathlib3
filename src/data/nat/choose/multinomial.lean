@@ -182,40 +182,54 @@ end
 
 end multiset
 
+
+
 namespace finset
 
 /-! ### Multinomial theorem -/
 
-variables {α : Type*} (s : finset α)
+variables {α : Type*} [decidable_eq α] (s : finset α) {R : Type*}
 
 /--
   The multinomial theorem
 
   Proof is by induction on the number of summands.
 -/
-theorem sum_pow [decidable_eq α] {R : Type*} [comm_semiring R] (x : α → R) :
-  ∀ n, (s.sum x) ^ n = ∑ k in s.sym n, k.val.multinomial * (k.val.map x).prod :=
+theorem sum_pow_of_commute [semiring R] (x : α → R)
+  (hc : (s : set α).pairwise $ λ i j, commute (x i) (x j)) :
+  ∀ n, (s.sum x) ^ n = ∑ k : s.sym n, k.1.1.multinomial * (k.1.1.map $ x).noncomm_prod
+    (λ r₁ h₁ r₂ h₂ hn, by
+    { obtain ⟨⟨a₁, H₁, rfl⟩, a₂, H₂, rfl⟩ := ⟨multiset.mem_map.1 h₁, multiset.mem_map.1 h₂⟩,
+      exact hc (mem_sym_iff.1 k.2 a₁ H₁) (mem_sym_iff.1 k.2 a₂ H₂) (mt (congr_arg x) hn) }) :=
 begin
   induction s using finset.induction with a s ha ih,
   { rw sum_empty,
     rintro (_ | n),
-    { rw [pow_zero, sum_unique_nonempty],
-      { convert (one_mul _).symm, apply nat.cast_one },
-      { apply univ_nonempty } },
-    { rw [pow_succ, zero_mul, sym_empty, sum_empty] } },
-  intro n,
-  simp_rw [sum_insert ha, add_pow, sum_range, ih, mul_sum, sum_mul, sum_sigma'],
-  refine (sum_bij' (λ m _, sym.filter_ne a m) (λ m hm, mem_sigma.2 ⟨mem_univ _, _⟩)
-    (λ m hm, _) (λ m _, m.2.fill a m.1) _ (λ m _, m.fill_filter_ne a) (λ m hm, _)).symm,
-  { convert sym_filter_ne_mem a hm, rw erase_insert ha },
-  { rw [m.1.multinomial_filter_ne a],
-    dsimp only [sym.filter_ne, fin.coe_mk],
-    conv in (m.1.map _) { rw [← m.1.filter_add_not ((=) a), multiset.map_add] },
-    rw [multiset.prod_add, m.1.filter_eq, multiset.map_repeat, multiset.prod_repeat, m.2],
-    rw [nat.cast_mul, mul_assoc, mul_comm],
-    congr' 1, apply mul_left_comm },
-  { exact λ m hm, sym_fill_mem a (mem_sigma.1 hm).2 },
-  { exact sym.filter_ne_fill a m (mt (mem_sym_iff.1 (mem_sigma.1 hm).2 a) ha) },
+    { rw [pow_zero, fintype.sum_subsingleton],
+      swap, { exact ⟨0, or.inl rfl⟩ },
+      convert (one_mul _).symm, apply nat.cast_one },
+    { rw [pow_succ, zero_mul],
+      apply (fintype.sum_empty _).symm,
+      rw sym_empty, apply_instance } },
+  intro n, specialize ih (hc.mono $ s.subset_insert a),
+  rw [sum_insert ha, (commute.sum_right s _ _ $ λ b hb, _).add_pow, sum_range], swap,
+  { exact hc (mem_insert_self a s) (mem_insert_of_mem hb) (ne_of_mem_of_not_mem hb ha).symm },
+  simp_rw [ih, mul_sum, sum_mul, sum_sigma', univ_sigma_univ],
+  refine (fintype.sum_equiv (sym_insert_equiv ha) _ _ $ λ m, _).symm,
+  rw [m.1.1.multinomial_filter_ne a],
+  conv in (m.1.1.map _) { rw [← m.1.1.filter_add_not ((=) a), multiset.map_add] },
+  simp_rw [multiset.noncomm_prod_add, m.1.1.filter_eq, multiset.map_repeat, m.1.2],
+  rw [multiset.noncomm_prod_eq_pow_card _ _ _ (λ _, multiset.eq_of_mem_repeat)],
+  rw [multiset.card_repeat, nat.cast_mul, mul_assoc, nat.cast_comm],
+  congr' 1, simp_rw [← mul_assoc, nat.cast_comm], refl,
+end
+
+theorem sum_pow [comm_semiring R] (x : α → R) (n : ℕ) :
+  (s.sum x) ^ n = ∑ k in s.sym n, k.val.multinomial * (k.val.map x).prod :=
+begin
+  conv_rhs { rw ← sum_coe_sort },
+  convert sum_pow_of_commute s x (λ _ _ _ _ _, mul_comm _ _) n,
+  ext1, rw multiset.noncomm_prod_eq_prod, refl,
 end
 
 end finset

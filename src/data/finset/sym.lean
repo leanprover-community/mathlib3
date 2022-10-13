@@ -96,7 +96,7 @@ begin
   { refine mem_singleton.trans ⟨_, λ _, sym.eq_nil_of_card_zero _⟩,
     rintro rfl,
     exact λ a ha, ha.elim },
-  refine mem_sup.trans  ⟨_, λ h, _⟩,
+  refine mem_sup.trans ⟨_, λ h, _⟩,
   { rintro ⟨a, ha, he⟩ b hb,
     rw mem_image at he,
     obtain ⟨m, he, rfl⟩ := he,
@@ -162,6 +162,19 @@ mem_sym_iff.2 $ λ b hb, mem_insert.2 $ (sym.mem_fill_iff.1 hb).imp and.right $ 
 lemma sym_filter_ne_mem (a : α) (h : m ∈ s.sym n) :
   (m.filter_ne a).2 ∈ (s.erase a).sym (n - (m.filter_ne a).1) :=
 mem_sym_iff.2 $ λ b H, mem_erase.2 $ (multiset.mem_filter.1 H).symm.imp ne.symm $ mem_sym_iff.1 h b
+
+@[simps] def sym_insert_equiv (h : a ∉ s) : (insert a s).sym n ≃ Σ i : fin (n + 1), s.sym (n - i) :=
+{ to_fun := λ m, ⟨_, (m.1.filter_ne a).2, by convert sym_filter_ne_mem a m.2; rw erase_insert h⟩,
+  inv_fun := λ m, ⟨m.2.1.fill a m.1, sym_fill_mem a m.2.2⟩,
+  left_inv := λ m, subtype.ext $ m.1.fill_filter_ne a,
+  right_inv := λ ⟨i, m, hm⟩, begin
+    refine (_ : id.injective).sigma_map (λ i, _) _,
+    { exact λ i, sym α (n - i) },
+    swap, { exact λ _ _, id },
+    swap, { exact subtype.coe_injective },
+    refine eq.trans _ (sym.filter_ne_fill a _ _),
+    exacts [rfl, h ∘ mem_sym_iff.1 hm a],
+  end }
 
 end sym
 end finset

@@ -82,6 +82,18 @@ by simp only [cross_product, linear_equiv.trans_symm, linear_equiv.symm_symm,
   alternating_map.const_linear_equiv_of_is_empty_symm_apply,
   eq_self_iff_true, linear_map.coe_to_continuous_linear_map', matrix.zero_empty]
 
+/-- The cross-product is antisymmetric: `x ×₃ y = - (y ×₃ x)`. -/
+lemma cross_product_swap (x y : E) : x ×₃ y = - (y ×₃ x) :=
+begin
+  apply ext_inner_right ℝ,
+  intros z,
+  rw [o.inner_cross_product_apply],
+  convert o.volume_form.map_swap ![y, x, z] (_ : (0 : fin 3) ≠ 1),
+  { ext i,
+    fin_cases i; refl },
+  { norm_num }
+end
+
 /-- The cross-product is antisymmetric: the cross-product of a vector with itself is 0. -/
 lemma cross_product_apply_self (v : E) : v ×₃ v = 0 :=
 begin

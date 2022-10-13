@@ -54,7 +54,30 @@ begin
     {
       rw pushmea_of_func_plus_const_func g (λ (x : Ω), m₁) m₂ hgmeas h_const_mea hg,
       simp,
-      sorry
+      change map (λ x, (m₁ + m₂) : Ω → ℝ) ℙ = dirac (m₁ + m₂),
+      ext1 S hS,
+      simp [measure.map_apply measurable_const hS, measure.dirac_apply,
+      set.indicator, set.preimage_const],
+      split_ifs,
+      {
+        have h_eq_set : (λ (b : Ω), m₁ + m₂) ⁻¹' S = set.univ,
+          {
+            simp [h],
+          },
+        rw h_eq_set,
+        simp,
+      },
+      {
+        have h_eq_set : (λ (b : Ω), m₁ + m₂) ⁻¹' S = ∅,
+          {
+            simp [h],
+          },
+        rw h_eq_set,
+        simp,
+      },
+
+
+
     },
 
   },

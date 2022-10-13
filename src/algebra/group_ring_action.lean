@@ -40,7 +40,7 @@ class mul_semiring_action (M : Type u) (R : Type v) [monoid M] [semiring R]
 
 section semiring
 
-variables (M G K : Type*) [monoid M] [monoid K] [group G]
+variables (M G : Type*) [monoid M] [group G]
 variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [division_ring F]
 
 -- note we could not use `extends` since these typeclasses are made with `old_structure_cmd`
@@ -67,11 +67,11 @@ def mul_semiring_action.to_ring_equiv [mul_semiring_action G R] (x : G) : R ≃+
 
 /-- Compose a `mul_semiring_action` with a `monoid_hom`, with action `f r' • m`.
 See note [reducible non-instances]. -/
-@[reducible] def mul_semiring_action.comp_hom (g : K →* M) [mul_semiring_action M R] :
-  mul_semiring_action K R :=
-{ smul := has_smul.comp.smul g,
-  ..distrib_mul_action.comp_hom R g,
-  ..mul_distrib_mul_action.comp_hom R g }
+@[reducible] def mul_semiring_action.comp_hom { M N : Type*} [monoid N] [monoid M] (f : N →* M)
+[mul_semiring_action M R] : mul_semiring_action N R :=
+{ smul := has_smul.comp.smul f,
+  ..distrib_mul_action.comp_hom R f,
+  ..mul_distrib_mul_action.comp_hom R f }
 
 section
 variables {M G R}

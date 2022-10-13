@@ -134,9 +134,6 @@ instance : set_like (subgroupoid C) (Σ (c d : C), c ⟶ d) :=
 { coe := λ S, {F | F.2.2 ∈ S.arrows F.1 F.2.1},
   coe_injective' := λ ⟨S, _, _⟩ ⟨T, _, _⟩ h, by { ext c d f, apply set.ext_iff.1 h ⟨c, d, f⟩ } }
 
-/-@[simp] lemma mem_iff (S : subgroupoid C) {c d : C} (f : c ⟶ d) :
-  (⟨c,d,f⟩ : Σ (c d : C), c ⟶ d) ∈ S ↔ f ∈ S.arrows c d := iff.rfl-/
-
 @[simp] lemma mem_iff (S : subgroupoid C) (F : Σ c d, c ⟶ d) :
   F ∈ S ↔ F.2.2 ∈ S.arrows F.1 F.2.1 := iff.rfl
 
@@ -356,3 +353,4 @@ end hom
 end subgroupoid
 
 end category_theory
+

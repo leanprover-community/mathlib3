@@ -777,8 +777,7 @@ section order
 We endow `prime_spectrum R` with a partial order, where `x ≤ y` if and only if `y ∈ closure {x}`.
 -/
 
-instance : partial_order (prime_spectrum R) :=
-partial_order.lift as_ideal $ λ ⟨_, _⟩ ⟨_, _⟩, mk.inj_eq.mpr
+instance : partial_order (prime_spectrum R) := partial_order.lift as_ideal ext
 
 @[simp] lemma as_ideal_le_as_ideal (x y : prime_spectrum R) : x.as_ideal ≤ y.as_ideal ↔ x ≤ y :=
 iff.rfl

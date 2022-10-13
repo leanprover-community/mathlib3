@@ -1260,7 +1260,7 @@ by split_ifs; simp [h]
 lemma nmem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∉ ite p set.univ t ↔ (¬ p ∧ x ∉ t) :=
 nmem_dite_univ_left p t x
-#lint
+
 /-! ### If-then-else for sets -/
 
 /-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.

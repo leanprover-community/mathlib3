@@ -268,21 +268,18 @@ lemma op_nnnorm_lmul : ∥lmul 𝕜 E a∥₊ = ∥a∥₊ :=
 begin
   rw ←op_nnnorm_eq_Sup_unit_ball,
   refine cSup_eq_of_forall_le_of_forall_lt_exists_gt _ _ (λ r hr, _),
-  { refine set.nonempty.image _ _,
-    exact ⟨0, nnnorm_zero.trans_le zero_le_one⟩, },
+  { exact (show {x : E | ∥x∥₊ ≤ 1}.nonempty, from ⟨0, nnnorm_zero.trans_le zero_le_one⟩).image _ },
   { rintro - ⟨x, hx, rfl⟩,
     exact ((lmul 𝕜 E a).unit_le_op_norm x hx).trans (op_norm_lmul_apply_le 𝕜 E a) },
-  { have ha := nnreal.inv_pos.2 (zero_le'.trans_lt hr),
-    have ha' := (zero_le'.trans_lt hr),
-    rw [←inv_inv (∥a∥₊), nnreal.lt_inv_iff_mul_lt ha.ne'] at hr,
-    have := mul_lt_mul_of_pos_right hr ha,
-    obtain ⟨k, hk₁, hk₂⟩ := normed_field.exists_lt_nnnorm_lt 𝕜 this,
+  { have ha : 0 < ∥a∥₊ := zero_le'.trans_lt hr,
+    rw [←inv_inv (∥a∥₊), nnreal.lt_inv_iff_mul_lt (inv_ne_zero ha.ne')] at hr,
+    obtain ⟨k, hk₁, hk₂⟩ := normed_field.exists_lt_nnnorm_lt 𝕜 (mul_lt_mul_of_pos_right hr $
+      nnreal.inv_pos.2 ha),
     refine ⟨_, ⟨k • star a, _, rfl⟩, _⟩,
-    { simpa only [set.mem_set_of, nnnorm_smul, nnnorm_star, ←nnreal.le_inv_iff_mul_le ha'.ne',
+    { simpa only [set.mem_set_of, nnnorm_smul, nnnorm_star, ←nnreal.le_inv_iff_mul_le ha.ne',
         one_mul] using hk₂.le, },
     { simp only [nnnorm_smul, mul_smul_comm, cstar_ring.nnnorm_self_mul_star, lmul_apply],
-      rwa [←nnreal.div_lt_iff, div_eq_mul_inv, mul_inv, ←mul_assoc],
-      exact (mul_pos ha' ha').ne' } },
+      rwa [←nnreal.div_lt_iff (mul_pos ha ha).ne', div_eq_mul_inv, mul_inv, ←mul_assoc], } },
 end
 
 lemma op_norm_lmul : ∥lmul 𝕜 E a∥ = ∥a∥ := congr_arg coe $ op_nnnorm_lmul a

@@ -130,17 +130,6 @@ def vertex_subgroup {c : C} (hc : c ∈ S.objs) : subgroup (c ⟶ c) :=
   one_mem' := id_mem_of_nonempty_isotropy _ _ hc,
   inv_mem' := λ f hf, S.inv hf }
 
-/-- A subgroupoid seen as a set of arrows
-def coe_set (S : subgroupoid C) : set (Σ (c d : C), c ⟶ d) := {F | F.2.2 ∈ S.arrows F.1 F.2.1} -/
-
-/- private lemma mem_coe_set_iff' (S : subgroupoid C) {c d : C} (f : c ⟶ d) :
-  (⟨c,d,f⟩ : Σ (c d : C), c ⟶ d) ∈ S.coe_set ↔ f ∈ S.arrows c d := by refl -/
-
-/-instance : set_like (subgroupoid C) (Σ c d : C, c ⟶ d) :=
-{ coe := λ S, {p | p.2.2 ∈ S.arrws p.1 p.2.1}, --or set.univ.sigma (λ c, set.univ.sigma $ S.arrws c),
- coe_injective' := λ S T h,
-   by { cases S, cases T, congr, ext c d p, apply set.ext_iff.1 h ⟨c, d, p⟩ } } -/
-
 instance : set_like (subgroupoid C) (Σ (c d : C), c ⟶ d) :=
 { coe := λ S, {F | F.2.2 ∈ S.arrows F.1 F.2.1},
   coe_injective' := λ ⟨S, _, _⟩ ⟨T, _, _⟩ h, by { ext c d f, apply set.ext_iff.1 h ⟨c, d, f⟩ } }
@@ -148,8 +137,8 @@ instance : set_like (subgroupoid C) (Σ (c d : C), c ⟶ d) :=
 /-@[simp] lemma mem_iff (S : subgroupoid C) {c d : C} (f : c ⟶ d) :
   (⟨c,d,f⟩ : Σ (c d : C), c ⟶ d) ∈ S ↔ f ∈ S.arrows c d := iff.rfl-/
 
-@[simp] lemma mem_iff (S : subgroupoid C) (F : Σ c d, c ⟶ d) : F ∈ S ↔ F.2.2 ∈ S.arrows F.1 F.2.1 :=
-iff.rfl
+@[simp] lemma mem_iff (S : subgroupoid C) (F : Σ c d, c ⟶ d) :
+  F ∈ S ↔ F.2.2 ∈ S.arrows F.1 F.2.1 := iff.rfl
 
 @[simp] lemma le_iff (S T : subgroupoid C) : (S ≤ T) ↔ (∀ {c d}, (S.arrows c d) ⊆ (T.arrows c d)) :=
 by { rw [set_like.le_def, sigma.forall], exact forall_congr (λ c, sigma.forall) }

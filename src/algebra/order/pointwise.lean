@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.bounds
+import data.set.pointwise.smul
 
 /-!
 # Pointwise operations on ordered algebraic objects

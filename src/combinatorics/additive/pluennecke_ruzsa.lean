@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, George Shakan
 -/
 import combinatorics.double_counting
-import data.finset.pointwise
+import data.finset.pointwise.basic
 import data.rat.nnrat
 
 /-!

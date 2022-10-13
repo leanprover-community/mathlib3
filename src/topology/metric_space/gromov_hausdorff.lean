@@ -249,7 +249,7 @@ begin
         have : Φ xX ∈ ↑p := Φrange.subst (mem_range_self _),
         exact exists_dist_lt_of_Hausdorff_dist_lt this bound
           (Hausdorff_edist_ne_top_of_nonempty_of_bounded p.nonempty q.nonempty
-            p.compact.bounded q.compact.bounded) },
+            p.is_compact.bounded q.is_compact.bounded) },
       rcases this with ⟨y, hy, dy⟩,
       rcases mem_range.1 hy with ⟨z, hzy⟩,
       rw ← hzy at dy,
@@ -288,7 +288,7 @@ begin
             { apply mem_union_right, apply mem_range_self } },
           refine dist_le_diam_of_mem _ (A _) (A _),
           rw [Φrange, Ψrange],
-          exact (p ⊔ q).compact.bounded,
+          exact (p ⊔ q).is_compact.bounded,
         end
         ... ≤ 2 * diam (univ : set X) + 1 + 2 * diam (univ : set Y) : I } },
     let Fb := candidates_b_of_candidates F Fgood,
@@ -300,7 +300,7 @@ begin
       have : f (inl x) ∈ ↑p := Φrange.subst (mem_range_self _),
       rcases exists_dist_lt_of_Hausdorff_dist_lt this hr
         (Hausdorff_edist_ne_top_of_nonempty_of_bounded p.nonempty q.nonempty
-          p.compact.bounded q.compact.bounded)
+          p.is_compact.bounded q.is_compact.bounded)
         with ⟨z, zq, hz⟩,
       have : z ∈ range Ψ, by rwa [← Ψrange] at zq,
       rcases mem_range.1 this with ⟨y, hy⟩,
@@ -314,7 +314,7 @@ begin
       have : f (inr y) ∈ ↑q := Ψrange.subst (mem_range_self _),
       rcases exists_dist_lt_of_Hausdorff_dist_lt' this hr
         (Hausdorff_edist_ne_top_of_nonempty_of_bounded p.nonempty q.nonempty
-          p.compact.bounded q.compact.bounded)
+          p.is_compact.bounded q.is_compact.bounded)
         with ⟨z, zq, hz⟩,
       have : z ∈ range Φ, by rwa [← Φrange] at zq,
       rcases mem_range.1 this with ⟨x, hx⟩,

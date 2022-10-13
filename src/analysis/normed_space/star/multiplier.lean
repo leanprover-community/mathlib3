@@ -4,6 +4,7 @@ import data.real.sqrt
 import data.real.nnreal
 import analysis.special_functions.pow
 import algebra.star.star_alg_hom
+import analysis.normed_space.star.prerequisites
 
 /-!
 # Multiplier Algebra of a C⋆-algebra
@@ -45,14 +46,6 @@ variables (𝕜 : Type u) (A : Type v)
   [non_unital_normed_ring A]
   [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A]
 
-section prereqs
-
--- this should go in `analysis.normed_space.star_basic`
-lemma _root_.cstar_ring.nnnorm_self_mul_star {E : Type*} [non_unital_normed_ring E] [star_ring E]
-  [cstar_ring E] {x : E} : ∥x * star x∥₊ = ∥x∥₊ * ∥x∥₊ :=
-by simpa using @cstar_ring.nnnorm_star_mul_self _ _ _ _ (star x)
-
-end prereqs
 
 /-- The type of *double centralizers*, also known as the *multiplier algebra* and denoted by
 `𝓜(𝕜, A)`, of a non-unital normed algebra. -/

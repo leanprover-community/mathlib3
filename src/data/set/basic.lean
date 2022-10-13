@@ -1229,19 +1229,19 @@ eq_univ_of_forall subset_univ
 
 /-! ### Sets defined as an if-then-else -/
 
-@[simp] lemma mem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+@[simp] lemma mem_ite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
 by split_ifs; simp [h]
 
-@[simp] lemma nmem_ite_univ_right {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+@[simp] lemma nmem_ite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∉ ite p t set.univ ↔ (p ∧ x ∉ t) :=
 by split_ifs; simp [h]
 
-@[simp] lemma mem_ite_univ_left {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+@[simp] lemma mem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
 by split_ifs; simp [h]
 
-@[simp] lemma nmem_ite_univ_left {ι} (p : Prop) [decidable p] (t : set ι) (x : ι) :
+@[simp] lemma nmem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∉ ite p set.univ t ↔ (¬ p ∧ x ∉ t) :=
 by split_ifs; simp [h]
 

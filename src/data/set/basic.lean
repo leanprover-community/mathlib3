@@ -288,6 +288,8 @@ protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
 @[simp] lemma nonempty_coe_sort {s : set α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
+alias nonempty_coe_sort ↔ _ nonempty.coe_sort
+
 lemma nonempty_def : s.nonempty ↔ ∃ x, x ∈ s := iff.rfl
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
@@ -432,6 +434,9 @@ theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
 univ_subset_iff.symm.trans $ forall_congr $ λ x, imp_iff_right ⟨⟩
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
+
+lemma nonempty.eq_univ [subsingleton α] : s.nonempty → s = univ :=
+by { rintro ⟨x, hx⟩, refine eq_univ_of_forall (λ y, by rwa subsingleton.elim y x) }
 
 lemma eq_univ_of_subset {s t : set α} (h : s ⊆ t) (hs : s = univ) : t = univ :=
 eq_univ_of_univ_subset $ hs ▸ h
@@ -1890,17 +1895,19 @@ lemma nontrivial_of_nontrivial (hs : s.nontrivial) : nontrivial α :=
 let ⟨x, _, y, _, hxy⟩ := hs in ⟨⟨x, y, hxy⟩⟩
 
 /-- `s`, coerced to a type, is a nontrivial type if and only if `s` is a nontrivial set. -/
-@[simp, norm_cast] lemma nontrivial_coe (s : set α) : nontrivial s ↔ s.nontrivial :=
+@[simp, norm_cast] lemma nontrivial_coe_sort {s : set α} : nontrivial s ↔ s.nontrivial :=
 by simp_rw [← nontrivial_univ_iff, set.nontrivial, mem_univ,
             exists_true_left, set_coe.exists, subtype.mk_eq_mk]
+
+alias nontrivial_coe_sort ↔ _ nontrivial.coe_sort
 
 /-- A type with a set `s` whose `coe_sort` is a nontrivial type is nontrivial.
 For the corresponding result for `subtype`, see `subtype.nontrivial_iff_exists_ne`. -/
 lemma nontrivial_of_nontrivial_coe (hs : nontrivial s) : nontrivial α :=
-by { rw [s.nontrivial_coe] at hs, exact nontrivial_of_nontrivial hs }
+nontrivial_of_nontrivial $ nontrivial_coe_sort.1 hs
 
 theorem nontrivial_mono {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : nontrivial s) :
-  nontrivial t := (nontrivial_coe _).2 $ (s.nontrivial_coe.1 hs).mono hst
+  nontrivial t := nontrivial.coe_sort $ (nontrivial_coe_sort.1 hs).mono hst
 
 /-- The preimage of a nontrivial set under a surjective map is nontrivial. -/
 theorem nontrivial.preimage {s : set β} (hs : s.nontrivial) {f : α → β}

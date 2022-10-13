@@ -339,6 +339,7 @@ decidable_of_iff (∃ a ∈ s, true) $ by simp_rw [exists_prop, and_true, finset
 @[simp] lemma nonempty_coe_sort {s : finset α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
 alias coe_nonempty ↔ _ nonempty.to_set
+alias nonempty_coe_sort ↔ _ nonempty.coe_sort
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x : α, x ∈ s := h
 
@@ -918,7 +919,7 @@ lemma _root_.directed_on.exists_mem_subset_of_finset_subset_bUnion {α ι : Type
   {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
 begin
   rw set.bUnion_eq_Union at hs,
-  haveI := set.nonempty_coe_sort.2 hn,
+  haveI := hn.coe_sort,
   obtain ⟨⟨i, hic⟩, hi⟩ :=
     (directed_comp.2 hc.directed_coe).exists_mem_subset_of_finset_subset_bUnion hs,
   exact ⟨i, hic, hi⟩

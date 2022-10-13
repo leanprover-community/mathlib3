@@ -91,10 +91,10 @@ union_left_iff.mpr ⟨hs, ht⟩
 lemma union_right (ht : ae_disjoint μ s t) (hu : ae_disjoint μ s u) : ae_disjoint μ s (t ∪ u) :=
 union_right_iff.2 ⟨ht, hu⟩
 
-lemma diff_ae_eq_left (h : ae_disjoint μ s t) : (s \ t : set α) =ᵐ[μ] s :=
+lemma diff_ae_eq_left (h : ae_disjoint μ s t) : (∈ s \ t) =ᵐ[μ] (∈ s) :=
 @diff_self_inter _ s t ▸ diff_null_ae_eq_self h
 
-lemma diff_ae_eq_right (h : ae_disjoint μ s t) : (t \ s : set α) =ᵐ[μ] t := h.symm.diff_ae_eq_left
+lemma diff_ae_eq_right (h : ae_disjoint μ s t) : (∈ t \ s) =ᵐ[μ] (∈ t) := h.symm.diff_ae_eq_left
 
 lemma measure_diff_left (h : ae_disjoint μ s t) : μ (s \ t) = μ s := measure_congr h.diff_ae_eq_left
 

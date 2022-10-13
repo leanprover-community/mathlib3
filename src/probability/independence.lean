@@ -547,8 +547,8 @@ lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : Ω → β}
   indep_fun f' g' μ :=
 begin
   rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
-  have h1 : f ⁻¹' A =ᵐ[μ] f' ⁻¹' A := hf.fun_comp A,
-  have h2 : g ⁻¹' B =ᵐ[μ] g' ⁻¹' B := hg.fun_comp B,
+  have h1 : (∈ f ⁻¹' A) =ᵐ[μ] (∈ f' ⁻¹' A) := hf.fun_comp A,
+  have h2 : (∈ g ⁻¹' B) =ᵐ[μ] (∈ g' ⁻¹' B) := hg.fun_comp B,
   rw [←measure_congr h1, ←measure_congr h2, ←measure_congr (h1.inter h2)],
   exact hfg _ _ ⟨_, hA, rfl⟩ ⟨_, hB, rfl⟩
 end

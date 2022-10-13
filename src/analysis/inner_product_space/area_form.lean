@@ -36,8 +36,8 @@ product space `E`.
 ## Implementation notes
 
 Notation `ω` for `orientation.area_form` and `J` for `orientation.right_angle_rotation` should be
-defined locally in each file which uses them, since otherwise one needs a more cumbersome notation
-which mentions the orientation explicitly (something like `ω[o]`).  Write
+defined locally in each file which uses them, since otherwise one would need a more cumbersome
+notation which mentions the orientation explicitly (something like `ω[o]`).  Write
 
 ```
 local notation `ω` := o.area_form

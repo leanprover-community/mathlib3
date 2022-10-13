@@ -84,6 +84,14 @@ by cases x; simp only [get_left, is_right, coe_sort_tt, coe_sort_ff, eq_self_iff
 lemma get_right_eq_none_iff : x.get_right = none ↔ x.is_left :=
 by cases x; simp only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
 
+@[simp] lemma bnot_is_left (x : α ⊕ β) : bnot x.is_left = x.is_right := by cases x; refl
+@[simp] lemma not_is_left : ¬x.is_left ↔ x.is_right := by cases x; simp
+@[simp] lemma bnot_is_right (x : α ⊕ β) : bnot x.is_right = x.is_left := by cases x; refl
+@[simp] lemma not_is_right : ¬x.is_right ↔ x.is_left := by cases x; simp
+
+lemma is_left_iff : x.is_left ↔ ∃ y, x = sum.inl y := by cases x; simp
+lemma is_right_iff : x.is_right ↔ ∃ y, x = sum.inr y := by cases x; simp
+
 end get
 
 theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=

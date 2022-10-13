@@ -18,7 +18,7 @@ classes `preserves_biproduct` and `preserves_binary_biproduct`. We then
 * construct the comparison morphisms between the image of a biproduct and the biproduct of the
   images and show that the biproduct is preserved if one of them is an isomorphism,
 * give the canonical isomorphism between the image of a biproduct and the biproduct of the images
-  in case that the biproduct is preserved
+  in case that the biproduct is preserved.
 
 -/
 

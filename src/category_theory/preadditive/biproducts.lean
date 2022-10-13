@@ -22,8 +22,6 @@ In (or between) preadditive categories,
 * In any category (with zero morphisms), if `biprod.map f g` is an isomorphism,
   then both `f` and `g` are isomorphisms.
 
-The remaining lemmas hold in any preadditive category.
-
 * If `f` is a morphism `X₁ ⊞ X₂ ⟶ Y₁ ⊞ Y₂` whose `X₁ ⟶ Y₁` entry is an isomorphism,
   then we can construct isomorphisms `L : X₁ ⊞ X₂ ≅ X₁ ⊞ X₂` and `R : Y₁ ⊞ Y₂ ≅ Y₁ ⊞ Y₂`
   so that `L.hom ≫ g ≫ R.hom` is diagonal (with `X₁ ⟶ Y₁` component still `f`),

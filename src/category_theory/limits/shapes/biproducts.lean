@@ -18,7 +18,7 @@ These are slightly unusual relative to the other shapes in the library,
 as they are simultaneously limits and colimits.
 (Zero objects are similar; they are "biterminal".)
 
-For, Results about biproducts in preadditive categories see
+For results about biproducts in preadditive categories see
 `category_theory.preadditive.biproducts`.
 
 In a category with zero morphisms, we model the (binary) biproduct of `P Q : C`

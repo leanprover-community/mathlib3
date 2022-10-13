@@ -69,7 +69,7 @@ lemma set_integral_congr (hs : measurable_set s) (h : eq_on f g s) :
   ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
 set_integral_congr_ae hs $ eventually_of_forall h
 
-lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
+lemma set_integral_congr_set_ae (hst : (∈ s) =ᵐ[μ] (∈ t)) :
   ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
 by rw measure.restrict_congr_set hst
 

@@ -487,9 +487,11 @@ begin
   have h₂ : (μ.restrict s).prod volume (region_between f g s) =
     (μ.restrict s).prod volume (region_between (ae_measurable.mk f hf) (ae_measurable.mk g hg) s),
   { apply measure_congr,
-    apply eventually_eq.rfl.inter,
-    exact ((quasi_measure_preserving_fst.ae_eq_comp hf.ae_eq_mk).comp₂ _ eventually_eq.rfl).inter
-      (eventually_eq.rfl.comp₂ _ $ quasi_measure_preserving_fst.ae_eq_comp hg.ae_eq_mk) },
+    filter_upwards [(@quasi_measure_preserving_fst _ ℝ _ _ _ volume _).ae_eq_comp hf.ae_eq_mk,
+      (@quasi_measure_preserving_fst _ ℝ _ _ _ volume _).ae_eq_comp hg.ae_eq_mk],
+    rintros ⟨x, t⟩ hfx hgx,
+    dsimp at hfx hgx,
+    simp only [hfx, hgx, mem_set_of_eq, eq_iff_iff, region_between] },
   rw [lintegral_congr_ae h₁,
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,

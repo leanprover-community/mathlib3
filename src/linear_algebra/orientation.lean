@@ -76,6 +76,17 @@ by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 { positive_orientation := ray_of_ne_zero R (alternating_map.const_linear_equiv_of_is_empty 1) $
     alternating_map.const_linear_equiv_of_is_empty.injective.ne (by simp) }
 
+@[simp] lemma orientation.map_of_is_empty [is_empty ι] (x : orientation R M ι) (f : M ≃ₗ[R] M) :
+  orientation.map ι f x = x :=
+begin
+  induction x using module.ray.ind with g hg,
+  rw orientation.map_apply,
+  congr,
+  ext i,
+  rw alternating_map.comp_linear_map_apply,
+  congr,
+end
+
 end ordered_comm_semiring
 
 section ordered_comm_ring
@@ -279,9 +290,11 @@ variables {ι : Type*} [decidable_eq ι]
 
 namespace orientation
 
-variables [fintype ι] [finite_dimensional R M]
+variables [fintype ι] [_i : finite_dimensional R M]
 
 open finite_dimensional
+
+include _i
 
 /-- If the index type has cardinality equal to the finite dimension, any two orientations are
 equal or negations. -/
@@ -310,13 +323,40 @@ begin
   exact e.map_orientation_eq_det_inv_smul x f
 end
 
+omit _i
+
+lemma _root_.linear_map.det_eq_one_of_finrank_eq_zero (h : finrank R M = 0) (f : M →ₗ[R] M) :
+  (f : M →ₗ[R] M).det = 1 :=
+begin
+  classical,
+  refine @linear_map.det_cases M  _ R _ _ _ (λ t, t = 1) f _ rfl,
+  intros s b,
+  haveI : is_empty s,
+  { rw ← fintype.card_eq_zero_iff,
+    exact (finite_dimensional.finrank_eq_card_basis b).symm.trans h },
+  exact matrix.det_is_empty,
+end
+
+
 /-- If the index type has cardinality equal to the finite dimension, composing an alternating
 map with the same linear equiv on each argument gives the same orientation if and only if the
 determinant is positive. -/
 lemma map_eq_iff_det_pos (x : orientation R M ι) (f : M ≃ₗ[R] M)
   (h : fintype.card ι = finrank R M) :
-  orientation.map ι f x = x ↔  0 < (f : M →ₗ[R] M).det :=
-by rw [map_eq_det_inv_smul _ _ h, units_inv_smul, units_smul_eq_self_iff, linear_equiv.coe_det]
+  orientation.map ι f x = x ↔ 0 < (f : M →ₗ[R] M).det :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { have H : finrank R M = 0,
+    { refine h.symm.trans _,
+      convert fintype.card_of_is_empty,
+      apply_instance },
+    simp [linear_map.det_eq_one_of_finrank_eq_zero H] },
+  have H : finrank R M > 0,
+  { rw ← h,
+    exact fintype.card_pos },
+  haveI : finite_dimensional R M := finite_dimensional_of_finrank H,
+  rw [map_eq_det_inv_smul _ _ h, units_inv_smul, units_smul_eq_self_iff, linear_equiv.coe_det]
+end
 
 /-- If the index type has cardinality equal to the finite dimension, composing an alternating
 map with the same linear equiv on each argument gives the negation of that orientation if and
@@ -324,7 +364,21 @@ only if the determinant is negative. -/
 lemma map_eq_neg_iff_det_neg (x : orientation R M ι) (f : M ≃ₗ[R] M)
   (h : fintype.card ι = finrank R M) :
   orientation.map ι f x = -x ↔ (f : M →ₗ[R] M).det < 0 :=
-by rw [map_eq_det_inv_smul _ _ h, units_inv_smul, units_smul_eq_neg_iff, linear_equiv.coe_det]
+begin
+  casesI is_empty_or_nonempty ι,
+  { have H : finrank R M = 0,
+    { refine h.symm.trans _,
+      convert fintype.card_of_is_empty,
+      apply_instance },
+    simp [linear_map.det_eq_one_of_finrank_eq_zero H, module.ray.ne_neg_self x] },
+  have H : finrank R M > 0,
+  { rw ← h,
+    exact fintype.card_pos },
+  haveI : finite_dimensional R M := finite_dimensional_of_finrank H,
+  rw [map_eq_det_inv_smul _ _ h, units_inv_smul, units_smul_eq_neg_iff, linear_equiv.coe_det]
+end
+
+include _i
 
 /-- If the index type has cardinality equal to the finite dimension, a basis with the given
 orientation. -/

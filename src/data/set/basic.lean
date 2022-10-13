@@ -1237,13 +1237,13 @@ by split_ifs; simp [h]
   x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
 mem_dite_univ_right p t x
 
-lemma nmem_dite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
+lemma not_mem_dite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∉ dite p (λ h, t) (λ h, set.univ) ↔ (p ∧ x ∉ t) :=
 by split_ifs; simp [h]
 
-lemma nmem_ite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
+lemma not_mem_ite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∉ ite p t set.univ ↔ (p ∧ x ∉ t) :=
-nmem_dite_univ_right p t x
+not_mem_dite_univ_right p t x
 
 lemma mem_dite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∈ dite p (λ h, set.univ) (λ h, t) ↔ (¬ p → x ∈ t) :=
@@ -1253,13 +1253,13 @@ by split_ifs; simp [h]
   x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
 mem_dite_univ_left p t x
 
-lemma nmem_dite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
+lemma not_mem_dite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∉ dite p (λ h, set.univ) (λ h, t) ↔ (¬ p ∧ x ∉ t) :=
 by split_ifs; simp [h]
 
-lemma nmem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
+lemma not_mem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∉ ite p set.univ t ↔ (¬ p ∧ x ∉ t) :=
-nmem_dite_univ_left p t x
+not_mem_dite_univ_left p t x
 
 /-! ### If-then-else for sets -/
 

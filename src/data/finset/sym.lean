@@ -163,6 +163,9 @@ lemma sym_filter_ne_mem (a : α) (h : m ∈ s.sym n) :
   (m.filter_ne a).2 ∈ (s.erase a).sym (n - (m.filter_ne a).1) :=
 mem_sym_iff.2 $ λ b H, mem_erase.2 $ (multiset.mem_filter.1 H).symm.imp ne.symm $ mem_sym_iff.1 h b
 
+/-- If `a` is an element not in the finset `s`, then the `n`th symmetric power of `s ∪ {a}` is in
+  1-1 correspondence with the disjoint union of the `n - i`th symmetric power of `s`,
+  for `0 ≤ i ≤ n`. -/
 @[simps] def sym_insert_equiv (h : a ∉ s) : (insert a s).sym n ≃ Σ i : fin (n + 1), s.sym (n - i) :=
 { to_fun := λ m, ⟨_, (m.1.filter_ne a).2, by convert sym_filter_ne_mem a m.2; rw erase_insert h⟩,
   inv_fun := λ m, ⟨m.2.1.fill a m.1, sym_fill_mem a m.2.2⟩,

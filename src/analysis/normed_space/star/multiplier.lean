@@ -252,6 +252,8 @@ def non_unital_algebra_hom_coe : A →ₙₐ[𝕜] 𝓜(𝕜, A) :=
   map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, continuous_linear_map.lmul_apply,
     continuous_linear_map.lmul_right_apply, mul_left, mul_right, coe_mul, function.comp_app,
     mul_assoc]} }
+noncomputable instance : algebra 𝕜 𝓜(𝕜, A) :=
+algebra.of_module (λ k a b, by ext; simp) (λ k a b, by ext; simp)
 
 /-!
 ### Star structure
@@ -377,6 +379,8 @@ begin
   { calc (∥b * a∥₊ : ℝ≥0∞) ≤ ∥b∥₊ * ∥a∥₊ : by exact_mod_cast norm_mul_le _ _
     ...                    ≤ ∥a∥₊ : by simpa using (ennreal.coe_mono $ mul_le_mul_right' hb _) }
 end
+noncomputable instance : normed_algebra 𝕜 𝓜(𝕜, A) :=
+{ ..double_centralizer.algebra, ..double_centralizer.normed_space }
 
 instance [star_ring 𝕜] [star_module 𝕜 A] [normed_star_group A] : cstar_ring 𝓜(𝕜, A) :=
 { norm_star_mul_self := sorry }

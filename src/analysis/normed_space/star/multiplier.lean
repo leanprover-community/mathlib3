@@ -3,6 +3,7 @@ import analysis.normed_space.operator_norm
 import data.real.sqrt
 import data.real.nnreal
 import analysis.special_functions.pow
+import algebra.star.star_alg_hom
 
 /-!
 # Multiplier Algebra of a C⋆-algebra
@@ -226,32 +227,6 @@ instance : ring 𝓜(𝕜, A) :=
 @[simp] lemma pow_left (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).left = a.left ^ n := rfl
 @[simp] lemma pow_right (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).right = a.right ^ n := rfl
 
-/-!
-### Coercion from an algebra into its multiplier algebra
--/
-
-noncomputable instance : has_coe_t A 𝓜(𝕜, A) :=
-{ coe := λ a,
-  { left := continuous_linear_map.lmul 𝕜 A a,
-    right := continuous_linear_map.lmul_right 𝕜 A a,
-    central := λ x y, mul_assoc _ _ _ } }
-
-@[simp, norm_cast]
-lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul 𝕜 A a := rfl
-@[simp, norm_cast]
-lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right 𝕜 A a := rfl
-
--- TODO: make this into a `non_unital_star_alg_hom` once we have those
-/-- The coercion of an algebra into its multiplier algebra as a non-unital algebra homomorphism. -/
-def non_unital_algebra_hom_coe : A →ₙₐ[𝕜] 𝓜(𝕜, A) :=
-{ to_fun := λ a, a,
-  map_smul' := λ k a, by {ext1; simp only [coe_left, coe_right, continuous_linear_map.map_smul,
-    smul_left, smul_right]},
-  map_zero' := by {ext1; simp only [coe_left, coe_right, map_zero, zero_left, zero_right]},
-  map_add' := λ a b, by {ext1; simp only [coe_left, coe_right, map_add, add_left, add_right]},
-  map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, continuous_linear_map.lmul_apply,
-    continuous_linear_map.lmul_right_apply, mul_left, mul_right, coe_mul, function.comp_app,
-    mul_assoc]} }
 noncomputable instance : algebra 𝕜 𝓜(𝕜, A) :=
 algebra.of_module (λ k a b, by ext; simp) (λ k a b, by ext; simp)
 
@@ -291,6 +266,37 @@ instance : star_module 𝕜 𝓜(𝕜, A) :=
   .. double_centralizer.star_add_monoid }
 
 end star
+
+/-!
+### Coercion from an algebra into its multiplier algebra
+-/
+
+noncomputable instance : has_coe_t A 𝓜(𝕜, A) :=
+{ coe := λ a,
+  { left := continuous_linear_map.lmul 𝕜 A a,
+    right := continuous_linear_map.lmul_right 𝕜 A a,
+    central := λ x y, mul_assoc _ _ _ } }
+
+@[simp, norm_cast]
+lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul 𝕜 A a := rfl
+@[simp, norm_cast]
+lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right 𝕜 A a := rfl
+
+section
+variables [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A]
+/-- The coercion of an algebra into its multiplier algebra as a non-unital algebra homomorphism. -/
+def non_unital_star_algebra_hom_coe : A →⋆ₙₐ[𝕜] 𝓜(𝕜, A) :=
+{ to_fun := λ a, a,
+  map_smul' := λ k a, by {ext1; simp only [coe_left, coe_right, continuous_linear_map.map_smul,
+    smul_left, smul_right]},
+  map_zero' := by {ext1; simp only [coe_left, coe_right, map_zero, zero_left, zero_right]},
+  map_add' := λ a b, by {ext1; simp only [coe_left, coe_right, map_add, add_left, add_right]},
+  map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, continuous_linear_map.lmul_apply,
+    continuous_linear_map.lmul_right_apply, mul_left, mul_right, coe_mul, function.comp_app,
+    mul_assoc]},
+  map_star' := λ a, by {ext; simp only [coe_left, lmul_apply, star_left, star_right, coe_right,
+    lmul_right_apply, star_mul, star_star]} }
+end
 
 /-!
 ### Norm structures

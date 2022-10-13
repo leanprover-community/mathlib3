@@ -7,6 +7,7 @@ Authors: Frédéric Dupuis
 import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
+import analysis.normed_space.operator_norm
 import algebra.star.self_adjoint
 import algebra.star.unitary
 
@@ -106,6 +107,10 @@ by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 
 lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
+
+lemma nnnorm_self_mul_star {E : Type*} [non_unital_normed_ring E] [star_ring E]
+  [cstar_ring E] {x : E} : ∥x * star x∥₊ = ∥x∥₊ * ∥x∥₊ :=
+subtype.ext norm_self_mul_star
 
 lemma nnnorm_star_mul_self {x : E} : ∥x⋆ * x∥₊ = ∥x∥₊ * ∥x∥₊ :=
 subtype.ext norm_star_mul_self
@@ -251,3 +256,49 @@ variables {𝕜}
 lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ
+
+section lmul
+
+open continuous_linear_map
+
+variables [densely_normed_field 𝕜] [non_unital_normed_ring E] [star_ring E] [cstar_ring E]
+variables [normed_space 𝕜 E] [is_scalar_tower 𝕜 E E] [smul_comm_class 𝕜 E E] (a : E)
+
+lemma op_nnnorm_lmul : ∥lmul 𝕜 E a∥₊ = ∥a∥₊ :=
+begin
+  rw ←op_nnnorm_eq_Sup_unit_ball,
+  refine cSup_eq_of_forall_le_of_forall_lt_exists_gt _ _ (λ r hr, _),
+  { refine set.nonempty.image _ _,
+    exact ⟨0, nnnorm_zero.trans_le zero_le_one⟩, },
+  { rintro - ⟨x, hx, rfl⟩,
+    exact ((lmul 𝕜 E a).unit_le_op_norm x hx).trans (op_norm_lmul_apply_le 𝕜 E a) },
+  { have ha := nnreal.inv_pos.2 (zero_le'.trans_lt hr),
+    have ha' := (zero_le'.trans_lt hr),
+    rw [←inv_inv (∥a∥₊), nnreal.lt_inv_iff_mul_lt ha.ne'] at hr,
+    have := mul_lt_mul_of_pos_right hr ha,
+    obtain ⟨k, hk₁, hk₂⟩ := normed_field.exists_lt_nnnorm_lt 𝕜 this,
+    refine ⟨_, ⟨k • star a, _, rfl⟩, _⟩,
+    { simpa only [set.mem_set_of, nnnorm_smul, nnnorm_star, ←nnreal.le_inv_iff_mul_le ha'.ne',
+        one_mul] using hk₂.le, },
+    { simp only [nnnorm_smul, mul_smul_comm, cstar_ring.nnnorm_self_mul_star, lmul_apply],
+      rwa [←nnreal.div_lt_iff, div_eq_mul_inv, mul_inv, ←mul_assoc],
+      exact (mul_pos ha' ha').ne' } },
+end
+
+lemma op_norm_lmul : ∥lmul 𝕜 E a∥ = ∥a∥ := congr_arg coe $ op_nnnorm_lmul a
+
+lemma op_nnnorm_lmul_flip : ∥(lmul 𝕜 E).flip a∥₊ = ∥a∥₊ :=
+begin
+  rw [←op_nnnorm_eq_Sup_unit_ball, ←nnnorm_star, ←@op_nnnorm_lmul 𝕜 E, ←op_nnnorm_eq_Sup_unit_ball],
+  congr' 1,
+  simp only [lmul_apply, flip_apply],
+  refine set.subset.antisymm _ _;
+  rintro - ⟨b, hb, rfl⟩;
+  refine ⟨star b, (nnnorm_star b).trans_le hb, _⟩,
+  { simp only [←star_mul, nnnorm_star] },
+  { simpa using (nnnorm_star (star b * a)).symm }
+end
+
+lemma op_norm_lmul_flip : ∥(lmul 𝕜 E).flip a∥ = ∥a∥ := congr_arg coe $ op_nnnorm_lmul_flip a
+
+end lmul

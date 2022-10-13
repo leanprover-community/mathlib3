@@ -68,7 +68,7 @@ def submonoid_presheaf.to_localization_presheaf :
   naturality' := λ U V i, (is_localization.map_comp (G.map i)).symm }
 
 instance : epi G.to_localization_presheaf :=
-@@nat_trans.epi_app_of_epi _ _ G.to_localization_presheaf (λ U, localization.epi' (G.obj U))
+@@nat_trans.epi_of_epi_app _ _ G.to_localization_presheaf (λ U, localization.epi' (G.obj U))
 
 variable (F)
 
@@ -100,9 +100,9 @@ def total_quotient_presheaf : X.presheaf CommRing.{w} :=
 def to_total_quotient_presheaf : F ⟶ F.total_quotient_presheaf :=
 submonoid_presheaf.to_localization_presheaf _
 
-instance (F : X.sheaf CommRing.{w}) : mono F.1.to_total_quotient_presheaf :=
+instance (F : X.sheaf CommRing.{w}) : mono F.presheaf.to_total_quotient_presheaf :=
 begin
-  apply_with nat_trans.mono_app_of_mono { instances := ff },
+  apply_with nat_trans.mono_of_mono_app { instances := ff },
   intro U,
   apply concrete_category.mono_of_injective,
   apply is_localization.injective _,

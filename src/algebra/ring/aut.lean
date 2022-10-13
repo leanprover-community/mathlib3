@@ -81,8 +81,7 @@ instance apply_mul_semiring_action : mul_semiring_action (ring_aut R) R :=
   mul_smul := λ _ _ _, rfl }
 
 @[simp]
-protected lemma
-smul_def (f : ring_aut R) (r : R) : f • r = f r := rfl
+protected lemma smul_def (f : ring_aut R) (r : R) : f • r = f r := rfl
 
 instance apply_has_faithful_smul : has_faithful_smul (ring_aut R) R := ⟨λ _ _, ring_equiv.ext⟩
 

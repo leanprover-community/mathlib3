@@ -757,7 +757,7 @@ lemma sphere.cospherical (s : sphere P) : cospherical (s : set P) :=
 cospherical_iff_exists_sphere.2 ⟨s, set.subset.rfl⟩
 
 /-- A subset of a cospherical set is cospherical. -/
-lemma cospherical_subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (hc : cospherical ps₂) :
+lemma cospherical.subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (hc : cospherical ps₂) :
   cospherical ps₁ :=
 begin
   rcases hc with ⟨c, r, hcr⟩,
@@ -878,7 +878,7 @@ structure concyclic (ps : set P) : Prop :=
 
 /-- A subset of a concyclic set is concyclic. -/
 lemma concyclic.subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (h : concyclic ps₂) : concyclic ps₁ :=
-⟨cospherical_subset hs h.1, h.2.subset hs⟩
+⟨h.1.subset hs, h.2.subset hs⟩
 
 /-- The empty set is concyclic. -/
 lemma concyclic_empty : concyclic (∅ : set P) :=

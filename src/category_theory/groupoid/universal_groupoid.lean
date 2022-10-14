@@ -47,9 +47,9 @@ inductive red_step : hom_rel (paths (quiver.push σ))
       (𝟙 $ σ X)
       ((σ *).map $ 𝟙 X).to_path
 
-/-- The underlying vertices of the free groupoid -/
-def universal_groupoid {V : Type u} [groupoid V] {V' : Type u'} (σ : V → V') :=
-  quotient (red_step σ)
+/-- The underlying vertices of the universal groupoid -/
+def _root_.category_theory.groupoid.universal_groupoid
+  {V : Type u} [groupoid V] {V' : Type u'} (σ : V → V') := quotient (red_step σ)
 
 instance : category (universal_groupoid σ) := quotient.category (red_step σ)
 
@@ -97,7 +97,6 @@ begin
   induction p with _ _ q f ih,
   { apply eqv_gen.refl, },
   { rcases f with ⟨x,y,f⟩,
-    --simp only [mem_preimage, mem_singleton_iff] at hx hy, subst_vars,
     simp only [quiver.path.reverse],
     fapply eqv_gen.trans,
     { exact q ≫ (q.reverse),},
@@ -128,7 +127,6 @@ begin
   nth_rewrite 1 ←quiver.path.reverse_reverse p,
   apply congr_comp_reverse,
 end
-
 
 /-- The inverse of an arrow in the universal groupoid -/
 def quot_inv {X Y : universal_groupoid σ} (f : X ⟶ Y) : Y ⟶ X :=
@@ -172,6 +170,10 @@ section ump
 variables {V'' : Type*} [groupoid V'']
   (θ : V ⥤ V'') (τ₀ : V' → V'') (hτ₀ : ∀ x, θ.obj x = τ₀ (σ x))
 
+/--
+Any functor `θ` from `V` to a groupoid `V''` with `θ.obj` factoring through `σ`
+defines a functor from `V'`.
+ -/
 def lift : (universal_groupoid σ) ⥤ V'' :=
 quotient.lift _
   ( paths.lift $ quiver.push.lift σ θ.to_prefunctor τ₀ hτ₀ )
@@ -189,7 +191,7 @@ quotient.lift _
         --sorry
         /-I'm overusing finish… I have no idea how it works-/ }, } )
 
-lemma lift_spec_obj : (lift σ θ τ₀ hτ₀).obj = τ₀∘(as σ) := rfl
+lemma lift_spec_obj : (lift σ θ τ₀ hτ₀).obj = τ₀ ∘ (as σ) := rfl
 
 lemma lift_spec_comp : (extend σ) ⋙ (lift σ θ τ₀ hτ₀) = θ :=
 begin

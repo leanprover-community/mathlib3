@@ -138,7 +138,7 @@ inductive push_quiver {V : Type u} [quiver.{v} V] {W : Type u₂} (σ : V → W)
 
 instance : quiver (push σ) := ⟨λ X Y, push_quiver σ X Y⟩
 
-def of  : prefunctor V (push σ) :=
+def of : prefunctor V (push σ) :=
 { obj := σ,
   map := λ X Y f, push_quiver.arrow f}
 
@@ -154,23 +154,27 @@ def lift : prefunctor (push σ) W' :=
 { obj := τ,
   map := by { apply push_quiver.rec, rintros X Y f, rw [←h X, ←h Y], exact φ.map f, } }
 
+def lift' : prefunctor (push σ) W' :=
+{ obj := τ,
+  map := @push_quiver.rec V _ W σ (λ X Y f, τ X ⟶ τ Y) (λ X Y f, by {rw [←h X,←h Y], exact φ.map f}) }
+
 lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
 
 lemma lift_spec_comm : (of σ).comp (lift σ φ τ h) = φ :=
 begin
-  dsimp [of,lift],
+  dsimp only [of,lift],
   fapply prefunctor.ext,
   { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },
-  { rintros _ _ f, simp only [prefunctor.comp_map], dsimp [cast], finish, },
+  { rintros _ _ f, simp only [prefunctor.comp_map],
+    finish, },
   -- no idea how `finish` worked :(
 end
-
 lemma lift_unique (Φ : prefunctor (push σ) W') (Φ₀ : Φ.obj = τ) (Φcomm : (of σ).comp Φ = φ) :
   Φ = (lift σ φ τ h) :=
 begin
   dsimp [of,lift],
   fapply prefunctor.ext,
-  { rintros, simp only [←Φ₀], },
+  { rintros, simp_rw [←Φ₀], },
   { rintros _ _ f, induction f, subst_vars, simp only [prefunctor.comp_map, cast_eq], refl, }
 end
 

@@ -384,8 +384,9 @@ def _root_.category_theory.groupoid.disconnect (C) [groupoid C] : subgroupoid C 
 lemma disconnect_is_disconnected : groupoid.is_disconnected (disconnect C).objs :=
 begin
   rintro c d ne, by_contradiction,
-  simp only [coe_groupoid_to_category_hom, is_empty_coe_sort] at h,
-  sorry,
+  sorry
+  --simp only [coe_groupoid_to_category_hom, is_empty_coe_sort] at h,
+  --sorry,
 end
 
 lemma disconnect_is_normal_of_normal (Sn : is_normal S) : (disconnect S.objs).is_normal := sorry

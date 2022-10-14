@@ -294,6 +294,7 @@ begin
     obtain ⟨eδ,hδ'⟩ := hδ',
     dsimp only [lift, of, fo, full_on, coe_embedding] at *,
     simp only [inv_eq_inv, functor.comp_map] at *,
+    
     sorry },
 end
 

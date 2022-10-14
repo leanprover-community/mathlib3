@@ -215,6 +215,11 @@ def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
 (Z.to_topological_vector_bundle_core.local_triv ⟨e, he⟩).to_local_homeomorph.trans
   (local_homeomorph.prod e (local_homeomorph.refl F))
 
+lemma chart_apply {x : M} (z : Z.to_topological_vector_bundle_core.total_space) :
+  Z.chart (chart_mem_atlas H x) z = (chart_at H x z.proj,
+    Z.coord_change (achart H z.proj) (achart H x) (achart H z.proj z.proj) z.2) :=
+rfl
+
 @[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
   (Z.chart he).source = Z.to_topological_vector_bundle_core.proj ⁻¹' e.source :=
 by { simp only [chart, mem_prod], mfld_set_tac }

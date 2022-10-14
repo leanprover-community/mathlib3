@@ -181,6 +181,24 @@ lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.c
 @[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
 ext $ λ x, ceil_eq_zero
 
+lemma ceil_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌈a + n⌉₊ = ⌈a⌉₊ + n :=
+eq_of_forall_ge_iff $ λ b, begin
+  rw [ceil_le],
+  obtain hb | hb := le_total n b,
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_comm n, add_comm (n : α), add_le_add_iff_right, add_le_add_iff_right, ceil_le]
+  },
+  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
+    rw [nat.cast_add, add_left_comm _ b, add_left_comm _ (b : α), add_le_iff_nonpos_right,
+    add_le_iff_nonpos_right, le_zero_iff, add_eq_zero_iff, ceil_eq_zero, ← @cast_eq_zero α,
+    ha.le_iff_eq, iff_iff_implies_and_implies, and_imp],
+    exact ⟨λ H, and.intro (eq_zero_of_add_nonpos_left ha (nat.cast_nonneg d) H)
+    (eq_zero_of_add_nonpos_right ha (nat.cast_nonneg d) H), λ H1 H2, add_nonpos H1.le H2.le⟩ }
+end
+
+lemma ceil_add_one (ha : 0 ≤ a) : ⌈a + 1⌉₊ = ⌈a⌉₊ + 1 :=
+by { convert ceil_add_nat ha 1, exact cast_one.symm }
+
 lemma floor_le_ceil (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
 begin
   by_cases ha : 0 ≤ a,
@@ -274,20 +292,6 @@ by rw [← ceil_le, ← not_le, ← ceil_le, not_le,
 
 lemma preimage_ceil_of_ne_zero (hn : n ≠ 0) : (nat.ceil : α → ℕ) ⁻¹' {n} = Ioc ↑(n - 1) n :=
 ext $ λ x, ceil_eq_iff hn
-
-lemma ceil_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌈a + n⌉₊ = ⌈a⌉₊ + n :=
-eq_of_forall_ge_iff $ λ b, begin
-  rw [←not_lt, ←not_lt, not_iff_not],
-  rw [lt_ceil],
-  obtain hb | hb := le_or_lt n b,
-  { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
-    rw [nat.cast_add, add_comm n, add_comm (n : α), add_lt_add_iff_right, add_lt_add_iff_right,
-      lt_ceil] },
-  { exact iff_of_true (lt_add_of_nonneg_of_lt ha $ cast_lt.2 hb) (lt_add_left _ _ _ hb) }
-end
-
-lemma ceil_add_one (ha : 0 ≤ a) : ⌈a + 1⌉₊ = ⌈a⌉₊ + 1 :=
-by { convert ceil_add_nat ha 1, exact cast_one.symm }
 
 lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge

@@ -941,7 +941,7 @@ end
 /-- Conjugating a function to write it in the preferred charts around `x`.
 The manifold derivative of `f` will just be the derivative of this conjugated function. -/
 @[simp, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
-(ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm
+ext_chart_at I' (f x) ∘ f ∘ (ext_chart_at I x).symm
 
 variable (𝕜)
 

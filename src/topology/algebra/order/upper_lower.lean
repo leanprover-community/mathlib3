@@ -5,16 +5,18 @@ Authors: Yaël Dillies
 -/
 import algebra.order.upper_lower
 import analysis.normed.field.basic
--- move `real.norm_of_nonneg`
+
 /-!
 # Topological facts about upper/lower/order-connected sets
 
-This file proves that order-connected sets in `ℝⁿ` under the pointwise order are measurable.
+The topological closure and interior of an upper/lower/order-connected set is an
+upper/lower/order-connected set (with the notable exception of the closure of an order-connected
+set).
 
-## Main declarations
-
-* `is_upper_set.null_frontier`/`is_lower_set.null_frontier`
+We also prove lemmas specific to `ℝⁿ`. Those are helpful to prove that order-connected sets in `ℝⁿ`
+are measurable.
 -/
+-- move `real.norm_of_nonneg`
 
 section
 variables {α : Type*} [topological_space α] [linear_order α]
@@ -95,8 +97,8 @@ end
 end
 
 section
-variables {β : Type*} {π : β → Type*} [nonempty β] [fintype β] [Π b, seminormed_add_comm_group (π b)]
-  {f : Π b, π b} {r : ℝ}
+variables {β : Type*} {π : β → Type*} [nonempty β] [fintype β]
+  [Π b, seminormed_add_comm_group (π b)] {f : Π b, π b} {r : ℝ}
 
 lemma pi_norm_le_iff'' : ∥f∥ ≤ r ↔ ∀ b, ∥f b∥ ≤ r :=
 begin
@@ -116,19 +118,45 @@ lemma pi_norm_const_le (a : E) : ∥(λ _ : ι, a)∥ ≤ ∥a∥ :=
 
 end
 
+section
+variables {α β : Type*}
+
+@[to_additive] instance order_dual.has_smul' [h : has_smul α β] : has_smul αᵒᵈ β := h
+@[to_additive order_dual.has_smul']
+instance order_dual.has_pow' [h : has_pow α β] : has_pow α βᵒᵈ := h
+
+instance [topological_space β] [has_vadd α β] [has_continuous_const_vadd α β] :
+  has_continuous_const_vadd α βᵒᵈ :=
+‹has_continuous_const_vadd α β›
+
+@[to_additive] instance [topological_space β] [has_smul α β] [has_continuous_const_smul α β] :
+  has_continuous_const_smul α βᵒᵈ :=
+‹has_continuous_const_smul α β›
+
+@[to_additive] instance order_dual.has_continuous_const_smul' [topological_space β] [has_smul α β]
+  [has_continuous_const_smul α β] :
+  has_continuous_const_smul αᵒᵈ β :=
+‹has_continuous_const_smul α β›
+
+end
+
 open function  metric set
 open_locale pointwise
 
+variables {α ι : Type*}
+
 section
-variables {ι : Type*} {s : set (ι → ℝ)} {x : ι → ℝ}
+variables [topological_space α] [ordered_comm_group α] [has_continuous_const_smul α α]
+  {s : set α}
 
-protected lemma is_upper_set.closure (h : is_upper_set s) : is_upper_set (closure s) :=
-λ x y hxy hx, closure_mono (h.vadd_subset $ sub_nonneg_of_le hxy) $
-  by { rw closure_vadd, exact ⟨x, hx, sub_add_cancel _ _⟩ }
+@[to_additive is_upper_set.closure]
+protected lemma is_upper_set.closure' (h : is_upper_set s) : is_upper_set (closure s) :=
+λ x y hxy hx, closure_mono (h.smul_subset $ one_le_div'.2 hxy) $
+  by { rw closure_smul, exact ⟨x, hx, div_mul_cancel' _ _⟩ }
 
-protected lemma is_lower_set.closure (h : is_lower_set s) : is_lower_set (closure s) :=
-λ x y hxy hx, closure_mono (h.vadd_subset $ sub_nonpos_of_le hxy) $
-  by { rw closure_vadd, exact ⟨x, hx, sub_add_cancel _ _⟩ }
+@[to_additive is_lower_set.closure]
+protected lemma is_lower_set.closure' (h : is_lower_set s) : is_lower_set (closure s) :=
+h.of_dual.closure'
 
 /-
 Note: ` s.ord_connected` does not imply `(closure s).ord_connected`, as we can see by taking
@@ -145,23 +173,28 @@ oooooxx
 ```
 -/
 
-protected lemma is_upper_set.interior (h : is_upper_set s) : is_upper_set (interior s) :=
-by { rw [←is_lower_set_compl, ←closure_compl], exact h.compl.closure }
+@[to_additive is_upper_set.interior]
+protected lemma is_upper_set.interior' (h : is_upper_set s) : is_upper_set (interior s) :=
+by { rw [←is_lower_set_compl, ←closure_compl], exact h.compl.closure' }
 
-protected lemma is_lower_set.interior (h : is_lower_set s) : is_lower_set (interior s) :=
-by { rw [←is_upper_set_compl, ←closure_compl], exact h.compl.closure }
+@[to_additive is_lower_set.interior]
+protected lemma is_lower_set.interior' (h : is_lower_set s) : is_lower_set (interior s) :=
+h.of_dual.interior'
 
-protected lemma set.ord_connected.interior (h : s.ord_connected) : (interior s).ord_connected :=
+@[to_additive set.ord_connected.interior]
+protected lemma set.ord_connected.interior' (h : s.ord_connected) : (interior s).ord_connected :=
 begin
   rw [←h.upper_closure_inter_lower_closure, interior_inter],
-  exact (upper_closure s).upper.interior.ord_connected.inter
-    (lower_closure s).lower.interior.ord_connected,
+  exact (upper_closure s).upper.interior'.ord_connected.inter
+    (lower_closure s).lower.interior'.ord_connected,
 end
 
 end
+
+/-! ### `ℝⁿ` -/
 
 section finite
-variables {ι : Type*} [finite ι] {s : set (ι → ℝ)} {x y : ι → ℝ} {δ : ℝ}
+variables [finite ι] {s : set (ι → ℝ)} {x y : ι → ℝ} {δ : ℝ}
 
 lemma is_upper_set.mem_interior_of_forall_lt (hs : is_upper_set s) (hx : x ∈ closure s)
   (h : ∀ i, x i < y i) :
@@ -205,7 +238,8 @@ end
 
 end finite
 
-variables {ι : Type*} [fintype ι] {s : set (ι → ℝ)} {x y : ι → ℝ} {δ : ℝ}
+section fintype
+variables [fintype ι] {s : set (ι → ℝ)} {x y : ι → ℝ} {δ : ℝ}
 
 lemma is_upper_set.exists_subset_ball (hs : is_upper_set s) (hx : x ∈ closure s) (hδ : 0 < δ) :
   ∃ y, closed_ball y (δ/4) ⊆ closed_ball x δ ∧ closed_ball y (δ/4) ⊆ interior s :=
@@ -244,3 +278,5 @@ begin
   rw abs_sub_le_iff at hxy hz,
   linarith,
 end
+
+end fintype

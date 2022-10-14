@@ -7,39 +7,16 @@ import algebra.order.group
 import order.upper_lower
 
 /-!
-# Order-connected sets are null-measurable
+# Algebraic operations on upper/lower sets
 
-This file proves that order-connected sets in `ℝⁿ` under the pointwise order are measurable.
-
-## Main declarations
-
-* `is_upper_set.null_frontier`/`is_lower_set.null_frontier`
+Upper/lower sets are preserved under pointwise algebraic operations in ordered groups.
 -/
 
 alias ne_of_eq_of_ne ← eq.trans_ne
 alias ne_of_ne_of_eq ← ne.trans_eq
 
-namespace set
-variables {α : Type*} [subsingleton α] {s : set α}
-
-lemma nonempty.eq_univ : s.nonempty → s = univ :=
-by { rintro ⟨x, hx⟩, refine eq_univ_of_forall (λ y, by rwa subsingleton.elim y x) }
-
-end set
-
 open function set
 open_locale pointwise
-
-section ordered_comm_group
-variables {α : Type*} [ordered_comm_group α] {a b c : α}
-
-@[to_additive] lemma div_le_comm : a / b ≤ c ↔ a / c ≤ b :=
-by rw [div_le_iff_le_mul, ←div_le_iff_le_mul']
-
-@[to_additive] lemma le_div_comm : a ≤ b / c ↔ c ≤ b / a :=
-by rw [le_div_iff_mul_le, ←le_div_iff_mul_le']
-
-end ordered_comm_group
 
 section
 variables {α : Type*} [mul_one_class α] [has_lt α] [contravariant_class α α (*) (<)] {a b : α}
@@ -53,14 +30,14 @@ section
 variables {α : Type*} [mul_one_class α] [preorder α] [contravariant_class α α (*) (<)]
   [has_exists_mul_of_le α] {a b : α}
 
-@[to_additive] lemma exists_one_lt_mul_of_lt' (h : a < b) : ∃ c (hc : 1 < c), a * c = b :=
+@[to_additive] lemma exists_one_lt_mul_of_lt' (h : a < b) : ∃ c, 1 < c ∧ a * c = b :=
 by { obtain ⟨c, rfl⟩ := exists_mul_of_le h.le, exact ⟨c, one_lt_of_lt_mul_right h, rfl⟩ }
 
 end
 
 section finite
-variables {α ι : Type*} [linear_ordered_semifield α] [has_exists_add_of_le α] [nontrivial α]
-  [finite ι] {x y : ι → α}
+variables {α ι : Type*} [linear_ordered_semifield α] [has_exists_add_of_le α] [finite ι]
+  {x y : ι → α}
 
 lemma pi.exists_forall_pos_add_lt (h : ∀ i, x i < y i) : ∃ ε, 0 < ε ∧ ∀ i, x i + ε < y i :=
 begin
@@ -123,7 +100,7 @@ begin
   rw [←image2_div, ←Union_image_left],
   refine is_lower_set_Union₂ (λ x hx, _),
   rintro _ z hyz ⟨y, hy, rfl⟩,
-  exact ⟨x / z, ht (by rwa le_div_comm) hy, div_div_cancel _ _⟩,
+  exact ⟨x / z, ht (by rwa le_div'') hy, div_div_cancel _ _⟩,
 end
 
 @[to_additive] lemma is_upper_set.div_right (hs : is_upper_set s) : is_upper_set (s / t) :=
@@ -150,6 +127,8 @@ namespace upper_set
 lemma coe_smul (a : α) (s : upper_set α) : (↑(a • s) : set α) = a • s := rfl
 @[simp, norm_cast, to_additive]
 lemma coe_mul (s t : upper_set α) : (↑(s * t) : set α) = s * t := rfl
+@[simp, norm_cast, to_additive]
+lemma coe_div (s t : upper_set α) : (↑(s / t) : set α) = s / t := rfl
 
 @[to_additive] instance : mul_action α (upper_set α) := set_like.coe_injective.mul_action _ coe_smul
 
@@ -158,12 +137,15 @@ end upper_set
 namespace lower_set
 
 @[to_additive] instance : has_mul (lower_set α) := ⟨λ s t, ⟨s * t, s.2.mul_right⟩⟩
+@[to_additive] instance : has_div (lower_set α) := ⟨λ s t, ⟨s / t, s.2.div_right⟩⟩
 @[to_additive] instance : has_smul α (lower_set α) := ⟨λ a s, ⟨a • s, s.2.smul⟩⟩
 
 @[simp, norm_cast, to_additive]
 lemma coe_smul (a : α) (s : lower_set α) : (↑(a • s) : set α) = a • s := rfl
 @[simp, norm_cast, to_additive]
 lemma coe_mul (s t : lower_set α) : (↑(s * t) : set α) = s * t := rfl
+@[simp, norm_cast, to_additive]
+lemma coe_div (s t : lower_set α) : (↑(s / t) : set α) = s / t := rfl
 
 @[to_additive] instance : mul_action α (lower_set α) := set_like.coe_injective.mul_action _ coe_smul
 

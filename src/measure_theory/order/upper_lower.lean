@@ -13,7 +13,16 @@ This file proves that order-connected sets in `ℝⁿ` under the pointwise order
 
 ## Main declarations
 
-* `is_upper_set.null_frontier`/`is_lower_set.null_frontier`
+* `set.ord_connected.null_frontier`: The frontier of an order-connected set in `ℝⁿ` has measure `0`.
+
+## Notes
+
+We prove measurability in `ℝⁿ` with the `∞`-metric, but this transfers directly to `ℝⁿ` with the
+Euclidean metric because they have the same measurable sets.
+
+## TODO
+
+Generalize so that it also applies to `ℝ × ℝ`, for example.
 -/
 
 open filter measure_theory metric set

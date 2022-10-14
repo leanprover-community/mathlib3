@@ -1351,11 +1351,11 @@ and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add
 lemma sub_mem_Icc_iff_right : a - b ∈ set.Icc c d ↔ b ∈ set.Icc (a - d) (a - c) :=
 (and_comm _ _).trans $ and_congr sub_le_comm le_sub_comm
 lemma sub_mem_Ico_iff_right : a - b ∈ set.Ico c d ↔ b ∈ set.Ioc (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_lt le_sub_comm
+(and_comm _ _).trans $ and_congr sub_lt_comm le_sub_comm
 lemma sub_mem_Ioc_iff_right : a - b ∈ set.Ioc c d ↔ b ∈ set.Ico (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_le_comm lt_sub
+(and_comm _ _).trans $ and_congr sub_le_comm lt_sub_comm
 lemma sub_mem_Ioo_iff_right : a - b ∈ set.Ioo c d ↔ b ∈ set.Ioo (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_lt lt_sub
+(and_comm _ _).trans $ and_congr sub_lt_comm lt_sub_comm
 
 -- I think that symmetric intervals deserve attention and API: they arise all the time,
 -- for instance when considering metric balls in `ℝ`.

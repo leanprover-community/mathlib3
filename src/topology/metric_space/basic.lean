@@ -1262,7 +1262,7 @@ order_topology_of_nhds_abs $ λ x,
 
 lemma real.ball_eq_Ioo (x r : ℝ) : ball x r = Ioo (x - r) (x + r) :=
 set.ext $ λ y, by rw [mem_ball, dist_comm, real.dist_eq,
-  abs_sub_lt_iff, mem_Ioo, ← sub_lt_iff_lt_add', sub_lt]
+  abs_sub_lt_iff, mem_Ioo, ← sub_lt_iff_lt_add', sub_lt_comm]
 
 lemma real.closed_ball_eq_Icc {x r : ℝ} : closed_ball x r = Icc (x - r) (x + r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,

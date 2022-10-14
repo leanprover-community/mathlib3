@@ -745,13 +745,11 @@ alias sub_lt_iff_lt_add' ↔ lt_add_of_sub_left_lt sub_left_lt_of_lt_add
 lemma inv_lt_div_iff_lt_mul' : b⁻¹ < a / c ↔ c < a * b :=
 lt_div_iff_mul_lt.trans inv_mul_lt_iff_lt_mul'
 
-@[to_additive sub_lt]
-lemma div_lt'' : a / b < c ↔ a / c < b :=
-div_lt_iff_lt_mul'.trans div_lt_iff_lt_mul.symm
+@[to_additive]
+lemma div_lt_comm : a / b < c ↔ a / c < b := div_lt_iff_lt_mul'.trans div_lt_iff_lt_mul.symm
 
-@[to_additive lt_sub]
-lemma lt_div'' : a < b / c ↔ c < b / a :=
-lt_div_iff_mul_lt'.trans lt_div_iff_mul_lt.symm
+@[to_additive]
+lemma lt_div_comm : a < b / c ↔ c < b / a := lt_div_iff_mul_lt'.trans lt_div_iff_mul_lt.symm
 
 end has_lt
 
@@ -1159,7 +1157,7 @@ lemma sub_le_of_abs_sub_le_right (h : |a - b| ≤ c) : a - c ≤ b :=
 sub_le_of_abs_sub_le_left (abs_sub_comm a b ▸ h)
 
 lemma sub_lt_of_abs_sub_lt_left (h : |a - b| < c) : b - c < a :=
-sub_lt.1 $ (abs_sub_lt_iff.1 h).2
+sub_lt_comm.1 $ (abs_sub_lt_iff.1 h).2
 
 lemma sub_lt_of_abs_sub_lt_right (h : |a - b| < c) : a - c < b :=
 sub_lt_of_abs_sub_lt_left (abs_sub_comm a b ▸ h)

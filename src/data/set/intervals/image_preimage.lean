@@ -209,10 +209,10 @@ ext $ λ x, le_sub_comm
 ext $ λ x, sub_le_comm
 
 @[simp] lemma preimage_const_sub_Ioi : (λ x, a - x) ⁻¹' (Ioi b) = Iio (a - b) :=
-ext $ λ x, lt_sub
+ext $ λ x, lt_sub_comm
 
 @[simp] lemma preimage_const_sub_Iio : (λ x, a - x) ⁻¹' (Iio b) = Ioi (a - b) :=
-ext $ λ x, sub_lt
+ext $ λ x, sub_lt_comm
 
 @[simp] lemma preimage_const_sub_Icc : (λ x, a - x) ⁻¹' (Icc b c) = Icc (a - c) (a - b) :=
 by simp [← Ici_inter_Iic, inter_comm]

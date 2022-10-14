@@ -82,7 +82,7 @@ theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
 theorem dvd_add_right (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
 (dvd_add_iff_right h).symm
 
-lemma dvd_iff_dvd_of_dvd_sub {a b c : α} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+lemma dvd_iff_dvd_of_dvd_sub (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
 begin
   split,
   { intro h',
@@ -92,6 +92,22 @@ begin
     convert dvd_add h h',
     exact eq_add_of_sub_eq rfl }
 end
+
+theorem dvd_sub_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b - c :=
+⟨λh₂, dvd_sub h₂ h, λH, by have t := dvd_add H h; rwa sub_add_cancel at t⟩
+
+theorem dvd_sub_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b - c :=
+⟨λh₂, dvd_sub h h₂, λH, by have t := dvd_sub h H; rwa [← sub_add, sub_self, zero_add] at t⟩
+
+/-- If an element a divides another element c in a commutative ring, a divides the difference
+  of another element b with c iff a divides b. -/
+theorem dvd_sub_left (h : a ∣ c) : a ∣ b - c ↔ a ∣ b :=
+(dvd_sub_iff_left h).symm
+
+/-- If an element a divides another element b in a commutative ring, a divides the difference of b
+  and another element c iff a divides c. -/
+theorem dvd_sub_right {a b c : α} (h : a ∣ b) : a ∣ b - c ↔ a ∣ c :=
+(dvd_sub_iff_right h).symm
 
 end non_unital_ring
 
@@ -107,6 +123,14 @@ dvd_add_right (dvd_refl a)
 /-- An element a divides the sum b + a if and only if a divides b.-/
 @[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
 dvd_add_left (dvd_refl a)
+
+/-- An element a divides the difference a - b if and only if a divides b.-/
+@[simp] lemma dvd_sub_self_left {a b : α} : a ∣ a - b ↔ a ∣ b :=
+dvd_sub_right (dvd_refl a)
+
+/-- An element a divides the difference b - a if and only if a divides b.-/
+@[simp] lemma dvd_sub_self_right {a b : α} : a ∣ b - a ↔ a ∣ b :=
+dvd_sub_left (dvd_refl a)
 
 end ring
 

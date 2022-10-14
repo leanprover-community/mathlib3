@@ -139,20 +139,20 @@ by { rw [set_like.le_def, sigma.forall], exact forall_congr (λ c, sigma.forall)
 
 instance : has_top (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, set.univ),
-    mul   := by { rintros, trivial, },
-    inv   := by { rintros, trivial, } } ⟩
+    mul    := by { rintros, trivial, },
+    inv    := by { rintros, trivial, } } ⟩
 instance : has_bot (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, ∅),
-    mul   := λ _ _ _ _, false.elim,
-    inv   := λ _ _ _, false.elim } ⟩
+    mul    := λ _ _ _ _, false.elim,
+    inv    := λ _ _ _, false.elim } ⟩
 
 instance : inhabited (subgroupoid C) := ⟨⊤⟩
 
 instance : has_inf (subgroupoid C) :=
 ⟨ λ S T,
   { arrows := (λ c d, (S.arrows c d) ∩ (T.arrows c d)),
-    inv   := by { rintros, exact ⟨S.inv hp.1, T.inv hp.2⟩, },
-    mul   := by { rintros, exact ⟨S.mul hp.1 hq.1, T.mul hp.2 hq.2⟩, } } ⟩
+    inv    := by { rintros, exact ⟨S.inv hp.1, T.inv hp.2⟩, },
+    mul    := by { rintros, exact ⟨S.mul hp.1 hq.1, T.mul hp.2 hq.2⟩, } } ⟩
 
 instance : has_Inf (subgroupoid C) :=
 ⟨ λ s,
@@ -169,11 +169,12 @@ instance : complete_lattice (subgroupoid C) :=
   le_inf       := λ R S T RS RT _ pR, ⟨RS pR, RT pR⟩,
   inf_le_left  := λ R S _, and.left,
   inf_le_right := λ R S _, and.right,
-  .. complete_lattice_of_Inf (subgroupoid C) $
-      by
-        { refine (λ s, ⟨λ S Ss F, _, λ T Tl F fT, _⟩);
-            simp only [Inf, mem_iff, mem_Inter],
-          exacts [λ hp, hp S Ss, λ S Ss, Tl Ss fT] } }
+  .. complete_lattice_of_Inf (subgroupoid C)
+  begin
+    refine (λ s, ⟨λ S Ss F, _, λ T Tl F fT, _⟩);
+      simp only [Inf, mem_iff, mem_Inter],
+    exacts [λ hp, hp S Ss, λ S Ss, Tl Ss fT],
+  end }
 
 lemma le_objs {S T : subgroupoid C} (h : S ≤ T) : S.objs ⊆ T.objs :=
 λ s ⟨γ, hγ⟩, ⟨γ, @h ⟨s, s, γ⟩ hγ⟩

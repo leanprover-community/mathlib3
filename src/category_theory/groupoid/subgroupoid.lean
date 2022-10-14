@@ -207,7 +207,7 @@ lemma inclusion_comp_embedding {S T : subgroupoid C} (h : S ≤ T) :
 inductive discrete.arrows : Π (c d : C), (c ⟶ d) → Prop
 | id (c : C) : discrete.arrows c c (𝟙 c)
 
-/-- The only arrows of the discrete groupoid are the identity arrows-/
+/-- The only arrows of the discrete groupoid are the identity arrows.-/
 def discrete : subgroupoid C :=
 { arrows := discrete.arrows,
   inv := by { rintros _ _ _ ⟨⟩, simp only [inv_eq_inv, is_iso.inv_id], split, },
@@ -278,23 +278,23 @@ by taking preimages.
  -/
 def comap (S : subgroupoid D) : subgroupoid C :=
 { arrows := λ c d, {f : c ⟶ d | φ.map f ∈ S.arrows (φ.obj c) (φ.obj d)},
-  inv   :=
-    λ c d p hp, by { rw [mem_set_of, inv_eq_inv, φ.map_inv p, ← inv_eq_inv], exact S.inv hp },
-  mul   := by
-  { rintros,
+  inv := λ c d p hp, by { rw [mem_set_of, inv_eq_inv, φ.map_inv p, ← inv_eq_inv], exact S.inv hp },
+  mul := begin
+    rintros,
     simp only [mem_set_of, functor.map_comp],
-    apply S.mul;
-    assumption, } }
+    apply S.mul; assumption,
+  end }
 
 lemma comap_mono (S T : subgroupoid D) :
   S ≤ T → comap φ S ≤ comap φ T := λ ST ⟨c,d,p⟩, @ST ⟨_,_,_⟩
 
 lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap φ S) :=
 { wide := λ c, by { rw [comap, mem_set_of, functor.map_id], apply Sn.wide, },
-  conj := λ c d f γ hγ, by
-  { simp only [comap, mem_set_of, functor.map_comp, functor.map_inv, inv_eq_inv],
+  conj := λ c d f γ hγ, begin
+    simp only [comap, mem_set_of, functor.map_comp, functor.map_inv, inv_eq_inv],
     rw [←inv_eq_inv],
-    exact Sn.conj _ hγ, } }
+    exact Sn.conj _ hγ,
+  end }
 
 /-- The kernel of a functor between subgroupoid is the preimage. -/
 def ker : subgroupoid C := comap φ discrete
@@ -321,12 +321,12 @@ end
 /-- The "forward" image of a subgroupoid under a functor injective on objects -/
 def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
 { arrows := map.arrows φ hφ S,
-  inv   := begin
+  inv := begin
     rintro _ _ _ ⟨⟩,
     rw [inv_eq_inv, ←functor.map_inv, ←inv_eq_inv],
     split, apply S.inv, assumption,
   end,
-  mul   := begin
+  mul := begin
     rintro _ _ _ _ ⟨c₁,c₂,f,hf⟩ q hq,
     obtain ⟨c₃,c₄,g,he,rfl,hg,gq⟩ := (map.mem_arrows_iff φ hφ S q).mp hq,
     cases hφ he, rw [gq, ← eq_conj_eq_to_hom, ← φ.map_comp],

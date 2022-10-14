@@ -36,10 +36,16 @@ open_locale topological_space
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {U : set E}
   {f : ℂ → ℂ} {g : E → ℂ} {z₀ w : ℂ} {ε r m : ℝ}
 
+/-- If the modulus of a holomorphic function `f` is bounded below by `ε` on a circle, then its range
+contains a disk of radius `ε / 2`. -/
 lemma diff_cont_on_cl.ball_subset_image_closed_ball (h : diff_cont_on_cl ℂ f (ball z₀ r))
   (hr : 0 < r) (hf : ∀ z ∈ sphere z₀ r, ε ≤ ∥f z - f z₀∥) (hz₀ : ∃ᶠ z in 𝓝 z₀, f z ≠ f z₀) :
   ball (f z₀) (ε / 2) ⊆ f '' closed_ball z₀ r :=
 begin
+  /- This is a direct application of the maximum principle. Pick `v` close to `f z₀`, and look at
+  the function `λ z, ∥f z - v∥`: it is bounded below on the circle, and takes a small value at `z₀`
+  so it is not constant on the disk, which implies that its infimum is equal to `0` and hence that
+  `v` is in the range of `f`. -/
   rintro v hv,
   have h1 : diff_cont_on_cl ℂ (λ z, f z - v) (ball z₀ r) := h.sub_const v,
   have h2 : continuous_on (λ z, ∥f z - v∥) (closed_ball z₀ r),
@@ -62,9 +68,17 @@ begin
   exact not_eventually.mpr hz₀ (mem_of_superset (ball_mem_nhds z₀ hr) (h10 ▸ h9))
 end
 
+/-- A function `f : ℂ → ℂ` which is analytic at a point `z₀` is either constant in a neighborhood
+of `z₀`, or behaves locally like an open function (in the sense that the image of every neighborhood
+of `z₀` is a neighborhood of `f z₀`, as in `is_open_map_iff_nhds_le`). For a function `f : E → ℂ`
+the same result holds, see `analytic_at.eventually_constant_or_nhds_le_map_nhds`. -/
 lemma analytic_at.eventually_constant_or_nhds_le_map_nhds_aux (hf : analytic_at ℂ f z₀) :
   (∀ᶠ z in 𝓝 z₀, f z = f z₀) ∨ (𝓝 (f z₀) ≤ map f (𝓝 z₀)) :=
 begin
+  /- The function `f` is analytic in a neighborhood of `z₀`; by the isolated zeros principle, if `f`
+  is not constant in a neighborhood of `z₀`, then it is nonzero, and therefore bounded below, on
+  every small enough circle around `z₀` and then `diff_cont_on_cl.ball_subset_image_closed_ball`
+  provides an explicit ball centered at `f z₀` contained in the range of `f`. -/
   refine or_iff_not_imp_left.mpr (λ h, _),
   refine (nhds_basis_ball.le_basis_iff (nhds_basis_closed_ball.map f)).mpr (λ R hR, _),
   have h1 := (hf.eventually_eq_or_eventually_ne analytic_at_const).resolve_left h,
@@ -92,9 +106,19 @@ begin
     (image_subset f (closed_ball_subset_closed_ball inf_le_right))
 end
 
+/-- The *open mapping theorem* for holomorphic functions, local version: is a function `g : E → ℂ`
+is analytic at a point `z₀`, then either it is constant in a neighborhood of `z₀`, or it maps every
+neighborhood of `z₀` to a neighborhood of `z₀`. For the particular case of a holomorphic function on
+`ℂ`, see `analytic_at.eventually_constant_or_nhds_le_map_nhds_aux`. -/
 lemma analytic_at.eventually_constant_or_nhds_le_map_nhds {z₀ : E} (hg : analytic_at ℂ g z₀) :
   (∀ᶠ z in 𝓝 z₀, g z = g z₀) ∨ (𝓝 (g z₀) ≤ map g (𝓝 z₀)) :=
 begin
+  /- The idea of the proof is to use the one-dimensional version applied to the restriction of `g`
+  to lines going through `z₀` (indexed by `sphere (0 : E) 1`). If the restriction is eventually
+  constant along each of these lines, then the identity theorem implies that `g` is constant on any
+  ball centered at `z₀` on which it is analytic, and in particular `g` is eventually constant. If on
+  the other hand there is one line along which `g` is not eventually constant, then the
+  one-dimensional version of the open mapping theorem can be used to conclude. -/
   let ray : E → ℂ → E := λ z t, z₀ + t • z,
   let gray : E → ℂ → ℂ := λ z, (g ∘ ray z),
   obtain ⟨r, hr, hgr⟩ := is_open_iff.mp (is_open_analytic_at ℂ g) z₀ hg,
@@ -132,6 +156,9 @@ begin
     simpa using h10.tendsto 0 }
 end
 
+/-- The *open mapping theorem* for holomorphic functions, global version: if a function `g : E → ℂ`
+is analytic on a connected set `U`, then either it is constant on `U`, or it is open on `U` (in the
+sense that it maps any open set contained in `U` to an open set in `ℂ`). -/
 theorem analytic_on.is_constant_or_is_open (hg : analytic_on ℂ g U) (hU : is_preconnected U) :
   (∃ w, ∀ z ∈ U, g z = w) ∨ (∀ s ⊆ U, is_open s → is_open (g '' s)) :=
 begin

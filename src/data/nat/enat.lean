@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import data.nat.lattice
 import data.nat.succ_pred
+import algebra.order.sub.with_top
 
 /-!
 # Definition and basic properties of extended natural numbers
@@ -17,7 +18,7 @@ about this type.
 @[derive [has_zero, add_comm_monoid_with_one, canonically_ordered_comm_semiring, nontrivial,
   linear_order, order_bot, order_top, has_bot, has_top, canonically_linear_ordered_add_monoid,
   has_sub, has_ordered_sub, complete_linear_order, linear_ordered_add_comm_monoid_with_top,
-  succ_order]]
+  succ_order, well_founded_lt, has_well_founded]]
 def enat : Type := with_top ℕ
 
 notation `ℕ∞` := enat
@@ -25,6 +26,7 @@ notation `ℕ∞` := enat
 namespace enat
 
 instance : inhabited ℕ∞ := ⟨0⟩
+instance : is_well_order ℕ∞ (<) := { }
 
 variables {m n : ℕ∞}
 
@@ -34,7 +36,7 @@ variables {m n : ℕ∞}
 @[simp, norm_cast] lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
 @[simp, norm_cast] lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
 
-instance : can_lift ℕ∞ ℕ := with_top.can_lift
+instance can_lift : can_lift ℕ∞ ℕ coe (λ n, n ≠ ⊤) := with_top.can_lift
 
 /-- Conversion of `ℕ∞` to `ℕ` sending `∞` to `0`. -/
 def to_nat : monoid_with_zero_hom ℕ∞ ℕ :=

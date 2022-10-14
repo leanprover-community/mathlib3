@@ -51,11 +51,6 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 * More versions of Hölder's inequality (for example: the case `p = 1`, `q = ∞`; a version for normed
   rings which has `∥∑' i, f i * g i∥` rather than `∑' i, ∥f i∥ * g i∥` on the RHS; a version for
   three exponents satisfying `1 / r = 1 / p + 1 / q`)
-* Equivalence with `pi_Lp`, for `α` finite
-* Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
-  the counting measure on `α`
-* Equivalence with `bounded_continuous_function`, for `f : α → E` (i.e., functions rather than
-  pi-types) and `p = ∞`, and the discrete topology on `α`
 
 -/
 
@@ -212,7 +207,7 @@ begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     refine (hf.finite_dsupport.union hg.finite_dsupport).subset (λ i, _),
-    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+    simp only [pi.add_apply, ne.def, set.mem_union, set.mem_set_of_eq],
     contrapose!,
     rintros ⟨hf', hg'⟩,
     simp [hf', hg'] },
@@ -413,7 +408,7 @@ begin
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
 end
 
-lemma norm_eq_zero_iff ⦃f : lp E p⦄ : ∥f∥ = 0 ↔ f = 0 :=
+lemma norm_eq_zero_iff {f : lp E p} : ∥f∥ = 0 ↔ f = 0 :=
 begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
@@ -458,9 +453,11 @@ begin
 end
 
 instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
-normed_add_comm_group.of_core _
-{ norm_eq_zero_iff := norm_eq_zero_iff,
-  triangle := λ f g, begin
+add_group_norm.to_normed_add_comm_group
+{ to_fun := norm,
+  map_zero' := norm_zero,
+  neg' := norm_neg,
+  add_le' := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
     { casesI is_empty_or_nonempty α,
       { simp [lp.eq_zero' f] },
@@ -483,7 +480,7 @@ normed_add_comm_group.of_core _
       intros i,
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
-  norm_neg := norm_neg }
+  eq_zero_of_map_eq_zero' := λ f, norm_eq_zero_iff.1 }
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.

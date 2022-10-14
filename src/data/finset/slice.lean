@@ -100,7 +100,7 @@ variables {𝒜 : finset (finset α)} {A A₁ A₂ : finset α} {r r₁ r₂ : �
 /-- The `r`-th slice of a set family is the subset of its elements which have cardinality `r`. -/
 def slice (𝒜 : finset (finset α)) (r : ℕ) : finset (finset α) := 𝒜.filter (λ i, i.card = r)
 
-localized "infix ` # `:90 := finset.slice" in finset_family
+localized "infix (name := finset.slice) ` # `:90 := finset.slice" in finset_family
 
 /-- `A` is in the `r`-th slice of `𝒜` iff it's in `𝒜` and has cardinality `r`. -/
 lemma mem_slice : A ∈ 𝒜 # r ↔ A ∈ 𝒜 ∧ A.card = r := mem_filter

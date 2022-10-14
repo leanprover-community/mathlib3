@@ -130,7 +130,7 @@ def compression (a : α) (𝒜 : finset (finset α)) : finset (finset α) :=
 (𝒜.filter $ λ s, erase s a ∈ 𝒜).disj_union ((𝒜.image $ λ s, erase s a).filter $ λ s, s ∉ 𝒜) $
   λ s h₁ h₂, (mem_filter.1 h₂).2 (mem_filter.1 h₁).1
 
-localized "notation `𝓓 ` := down.compression" in finset_family
+localized "notation (name := down.compression) `𝓓 ` := down.compression" in finset_family
 
 /-- `a` is in the down-compressed family iff it's in the original and its compression is in the
 original, or it's not in the original but it's the compression of something in the original. -/

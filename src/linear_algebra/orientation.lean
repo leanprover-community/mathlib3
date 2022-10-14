@@ -37,7 +37,7 @@ open_locale big_operators
 
 section ordered_comm_semiring
 
-variables (R : Type*) [ordered_comm_semiring R]
+variables (R : Type*) [strict_ordered_comm_semiring R]
 variables (M : Type*) [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
@@ -49,6 +49,8 @@ abbreviation orientation := module.ray R (alternating_map R M R ι)
 /-- A type class fixing an orientation of a module. -/
 class module.oriented :=
 (positive_orientation : orientation R M ι)
+
+export module.oriented (positive_orientation)
 
 variables {R M}
 
@@ -68,16 +70,37 @@ by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 @[simp] lemma orientation.map_symm (e : M ≃ₗ[R] N) :
   (orientation.map ι e).symm = orientation.map ι e.symm := rfl
 
+/-- A module is canonically oriented with respect to an empty index type. -/
+@[priority 100] instance is_empty.oriented [nontrivial R] [is_empty ι] :
+  module.oriented R M ι :=
+{ positive_orientation := ray_of_ne_zero R (alternating_map.const_linear_equiv_of_is_empty 1) $
+    alternating_map.const_linear_equiv_of_is_empty.injective.ne (by simp) }
+
 end ordered_comm_semiring
 
 section ordered_comm_ring
 
-variables {R : Type*} [ordered_comm_ring R]
+variables {R : Type*} [strict_ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 
 namespace basis
 
-variables {ι : Type*} [fintype ι] [decidable_eq ι]
+variables {ι : Type*} [decidable_eq ι]
+
+/-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
+of `f.det`. -/
+lemma map_orientation_eq_det_inv_smul [finite ι] (e : basis ι R M)
+  (x : orientation R M ι) (f : M ≃ₗ[R] M) : orientation.map ι f x = (f.det)⁻¹ • x :=
+begin
+  casesI nonempty_fintype ι,
+  induction x using module.ray.ind with g hg,
+  rw [orientation.map_apply, smul_ray_of_ne_zero, ray_eq_iff, units.smul_def,
+      (g.comp_linear_map ↑f.symm).eq_smul_basis_det e, g.eq_smul_basis_det e,
+      alternating_map.comp_linear_map_apply, alternating_map.smul_apply, basis.det_comp,
+      basis.det_self, mul_one, smul_eq_mul, mul_comm, mul_smul, linear_equiv.coe_inv_det],
+end
+
+variables [fintype ι]
 
 /-- The orientation given by a basis. -/
 protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι :=
@@ -87,27 +110,22 @@ lemma orientation_map [nontrivial R] (e : basis ι R M)
   (f : M ≃ₗ[R] N) : (e.map f).orientation = orientation.map ι f e.orientation :=
 by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
 
-/-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
-of `f.det`. -/
-lemma map_orientation_eq_det_inv_smul (e : basis ι R M)
-  (x : orientation R M ι) (f : M ≃ₗ[R] M) : orientation.map ι f x = (f.det)⁻¹ • x :=
-begin
-  induction x using module.ray.ind with g hg,
-  rw [orientation.map_apply, smul_ray_of_ne_zero, ray_eq_iff, units.smul_def,
-      (g.comp_linear_map ↑f.symm).eq_smul_basis_det e, g.eq_smul_basis_det e,
-      alternating_map.comp_linear_map_apply, alternating_map.smul_apply, basis.det_comp,
-      basis.det_self, mul_one, smul_eq_mul, mul_comm, mul_smul, linear_equiv.coe_inv_det],
-end
-
 /-- The orientation given by a basis derived using `units_smul`, in terms of the product of those
 units. -/
 lemma orientation_units_smul [nontrivial R] (e : basis ι R M) (w : ι → units R) :
   (e.units_smul w).orientation = (∏ i, w i)⁻¹ • e.orientation :=
 begin
   rw [basis.orientation, basis.orientation, smul_ray_of_ne_zero, ray_eq_iff,
-      e.det.eq_smul_basis_det (e.units_smul w), det_units_smul, units.smul_def, smul_smul],
+      e.det.eq_smul_basis_det (e.units_smul w), det_units_smul_self, units.smul_def, smul_smul],
   norm_cast,
   simp
+end
+
+@[simp] lemma orientation_is_empty [nontrivial R] [is_empty ι] (b : basis ι R M) :
+  b.orientation = positive_orientation :=
+begin
+  congrm ray_of_ne_zero _ _ _,
+  convert b.det_is_empty,
 end
 
 end basis
@@ -119,6 +137,31 @@ section linear_ordered_comm_ring
 variables {R : Type*} [linear_ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {ι : Type*} [decidable_eq ι]
+
+namespace orientation
+
+/-- A module `M` over a linearly ordered commutative ring has precisely two "orientations" with
+respect to an empty index type. (Note that these are only orientations of `M` of in the conventional
+mathematical sense if `M` is zero-dimensional.) -/
+lemma eq_or_eq_neg_of_is_empty [nontrivial R] [is_empty ι] (o : orientation R M ι) :
+  o = positive_orientation ∨ o = - positive_orientation :=
+begin
+  induction o using module.ray.ind with x hx,
+  dsimp [positive_orientation],
+  simp only [ray_eq_iff, same_ray_neg_swap],
+  rw same_ray_or_same_ray_neg_iff_not_linear_independent,
+  intros h,
+  let a : R := alternating_map.const_linear_equiv_of_is_empty.symm x,
+  have H : linear_independent R ![a, 1],
+  { convert h.map' ↑alternating_map.const_linear_equiv_of_is_empty.symm (linear_equiv.ker _),
+    ext i,
+    fin_cases i;
+    simp [a] },
+  rw linear_independent_iff' at H,
+  simpa using H finset.univ ![1, -a] (by simp [fin.sum_univ_succ]) 0 (by simp),
+end
+
+end orientation
 
 namespace basis
 
@@ -202,6 +245,26 @@ begin
   { simp },
   { by_cases hi : i = classical.arbitrary ι;
       simp [units_smul_apply, hi] }
+end
+
+lemma det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+  (x : orientation R M ι) :
+  (e.adjust_to_orientation x).det = e.det ∨ (e.adjust_to_orientation x).det = - e.det :=
+begin
+  dsimp [basis.adjust_to_orientation],
+  split_ifs,
+  { left,
+    refl },
+  { right,
+    simp [e.det_units_smul, ← units.coe_prod, finset.prod_update_of_mem] }
+end
+
+@[simp] lemma abs_det_adjust_to_orientation [nontrivial R] [nonempty ι] (e : basis ι R M)
+  (x : orientation R M ι) (v : ι → M) :
+  |(e.adjust_to_orientation x).det v| = |e.det v| :=
+begin
+  cases e.det_adjust_to_orientation x with h h;
+  simp [h]
 end
 
 end basis

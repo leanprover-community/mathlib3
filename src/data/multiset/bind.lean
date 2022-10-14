@@ -139,6 +139,11 @@ begin
   rw count_bind, apply le_sum_of_mem,
   rw mem_map, exact ⟨x, hx, rfl⟩
 end
+
+@[simp] theorem attach_bind_coe (s : multiset α) (f : α → multiset β) :
+  s.attach.bind (λ i, f i) = s.bind f :=
+congr_arg join $ attach_map_coe' _ _
+
 end bind
 
 /-! ### Product of two multisets -/
@@ -151,7 +156,7 @@ variables (a : α) (b : β) (s : multiset α) (t : multiset β)
 def product (s : multiset α) (t : multiset β) : multiset (α × β) := s.bind $ λ a, t.map $ prod.mk a
 
 /- This notation binds more strongly than (pre)images, unions and intersections. -/
-infixr ` ×ˢ `:82 := multiset.product
+infixr (name := multiset.product) ` ×ˢ `:82 := multiset.product
 
 @[simp] lemma coe_product (l₁ : list α) (l₂ : list β) : @product α β l₁ l₂ = l₁.product l₂ :=
 by { rw [product, list.product, ←coe_bind], simp }

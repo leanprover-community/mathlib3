@@ -2315,8 +2315,8 @@ lemma exists_seq_strict_anti_tendsto [densely_ordered α] [no_max_order α]
   ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto αᵒᵈ _ _ _ _ _ _ x
 
-lemma exists_seq_strict_anti_tendsto_nhds_within [order_topology α] [densely_ordered α]
-  [no_max_order α] [first_countable_topology α] (x : α) :
+lemma exists_seq_strict_anti_tendsto_nhds_within [densely_ordered α] [no_max_order α]
+  [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝[>] x) :=
 @exists_seq_strict_mono_tendsto_nhds_within αᵒᵈ _ _ _ _ _ _ _
 

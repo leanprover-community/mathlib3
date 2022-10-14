@@ -68,7 +68,7 @@ end mul_add
 
 section semiring
 
-variables (R G : Type*) [group G] [semiring R]
+variables {G R : Type*} [group G] [semiring R]
 
 /-- The tautological action by the group of automorphism of a ring `R` on `R`.-/
 instance apply_mul_semiring_action : mul_semiring_action (ring_aut R) R :=
@@ -85,10 +85,12 @@ protected lemma smul_def (f : ring_aut R) (r : R) : f • r = f r := rfl
 
 instance apply_has_faithful_smul : has_faithful_smul (ring_aut R) R := ⟨λ _ _, ring_equiv.ext⟩
 
+variables (G R)
+
 /-- Each element of the group defines a ring automorphism.
 
 This is a stronger version of `distrib_mul_action.to_add_aut` and
- `mul_distrib_mul_action.to_mul_aut`. -/
+`mul_distrib_mul_action.to_mul_aut`. -/
 @[simps] def _root_.mul_semiring_action.to_ring_aut [mul_semiring_action G R] : G →* ring_aut R :=
 { to_fun := mul_semiring_action.to_ring_equiv G R,
   map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,

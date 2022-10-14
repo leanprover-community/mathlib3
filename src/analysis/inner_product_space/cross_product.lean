@@ -87,7 +87,7 @@ lemma cross_product_swap (x y : E) : x ×₃ y = - (y ×₃ x) :=
 begin
   apply ext_inner_right ℝ,
   intros z,
-  rw [o.inner_cross_product_apply],
+  rw [inner_neg_left, o.inner_cross_product_apply, o.inner_cross_product_apply],
   convert o.volume_form.map_swap ![y, x, z] (_ : (0 : fin 3) ≠ 1),
   { ext i,
     fin_cases i; refl },

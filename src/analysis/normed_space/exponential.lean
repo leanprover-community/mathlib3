@@ -8,6 +8,7 @@ import analysis.analytic.basic
 import analysis.complex.basic
 import data.nat.choose.cast
 import data.finset.noncomm_prod
+import topology.algebra.algebra
 
 /-!
 # Exponential in a Banach algebra
@@ -289,7 +290,7 @@ end complete_algebra
 lemma algebra_map_exp_comm_of_mem_ball [complete_space 𝕂] (x : 𝕂)
   (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) :
   algebra_map 𝕂 𝔸 (exp 𝕂 x) = exp 𝕂 (algebra_map 𝕂 𝔸 x) :=
-map_exp_of_mem_ball _ (algebra_map_clm _ _).continuous _ hx
+map_exp_of_mem_ball _ (continuous_algebra_map 𝕂 𝔸) _ hx
 
 end any_field_any_algebra
 

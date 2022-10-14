@@ -9,19 +9,13 @@ import algebra.char_p.algebra
 
 /-!
 # Number fields
-This file defines a number field, the ring of integers corresponding to it and includes some
-basic facts about the embeddings into an algebraic closed field.
+This file defines a number field and the ring of integers corresponding to it.
 
 ## Main definitions
  - `number_field` defines a number field as a field which has characteristic zero and is finite
     dimensional over ℚ.
  - `ring_of_integers` defines the ring of integers (or number ring) corresponding to a number field
     as the integral closure of ℤ in the number field.
-
-## Main Result
- - `eq_roots`: let `x ∈ K` with `K` number field and let `A` be an algebraic closed field of
-    char. 0, then the images of `x` by the embeddings of `K` in `A` are exactly the roots in
-    `A` of the minimal polynomial of `x` over `ℚ`.
 
 ## Implementation notes
 The definitions that involve a field of fractions choose a canonical field of fractions,
@@ -108,6 +102,10 @@ integral_closure.is_integrally_closed_of_finite_extension ℚ
 lemma is_integral_coe (x : 𝓞 K) : is_integral ℤ (x : K) :=
 x.2
 
+lemma map_mem {F L : Type*} [field L] [char_zero K] [char_zero L]
+  [alg_hom_class F ℚ K L] (f : F) (x : 𝓞 K) : f x ∈ 𝓞 L :=
+(mem_ring_of_integers _ _).2 $ map_is_integral_int f $ ring_of_integers.is_integral_coe x
+
 /-- The ring of integers of `K` are equivalent to any integral closure of `ℤ` in `K` -/
 protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
   [is_integral_closure R ℤ K] : 𝓞 K ≃+* R :=
@@ -171,82 +169,3 @@ instance {f : ℚ[X]} [hf : fact (irreducible f)] : number_field (adjoin_root f)
 end
 
 end adjoin_root
-
-namespace number_field.embeddings
-
-section fintype
-
-open finite_dimensional
-
-variables (K : Type*) [field K] [number_field K]
-variables (A : Type*) [field A] [char_zero A]
-
-/-- There are finitely many embeddings of a number field. -/
-noncomputable instance : fintype (K →+* A) := fintype.of_equiv (K →ₐ[ℚ] A)
-ring_hom.equiv_rat_alg_hom.symm
-
-variables [is_alg_closed A]
-
-/-- The number of embeddings of a number field is equal to its finrank. -/
-lemma card : fintype.card (K →+* A) = finrank ℚ K :=
-by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom.symm, alg_hom.card]
-
-end fintype
-
-section roots
-
-open set polynomial
-
-/-- Let `A` an algebraically closed field and let `x ∈ K`, with `K` a number field. For `F`,
-subfield of `K`, the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
-the roots in `A` of the minimal polynomial of `x` over `F` -/
-lemma range_eq_roots (F K A : Type*) [field F] [number_field F] [field K] [number_field K]
-  [field A] [is_alg_closed A] [algebra F K] [algebra F A] (x : K) :
-  range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
-begin
-  haveI : finite_dimensional F K := finite_dimensional.right ℚ  _ _ ,
-  have hx : is_integral F x := is_separable.is_integral F x,
-  ext a, split,
-  { rintro ⟨ψ, hψ⟩,
-    rw [mem_root_set_iff, ←hψ],
-    { rw aeval_alg_hom_apply ψ x (minpoly F x),
-      simp only [minpoly.aeval, map_zero], },
-    exact minpoly.ne_zero hx, },
-  { intro ha,
-    let Fx := adjoin_root (minpoly F x),
-    haveI : fact (irreducible $ minpoly F x) := ⟨minpoly.irreducible hx⟩,
-    have hK : (aeval x) (minpoly F x) = 0 := minpoly.aeval _ _,
-    have hA : (aeval a) (minpoly F x) = 0,
-    { rwa [aeval_def, ←eval_map, ←mem_root_set_iff'],
-      exact monic.ne_zero (monic.map (algebra_map F A) (minpoly.monic hx)), },
-    letI : algebra Fx A := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map F A) a hA),
-    letI : algebra Fx K := ring_hom.to_algebra (by convert adjoin_root.lift (algebra_map F K) x hK),
-    haveI : finite_dimensional Fx K := finite_dimensional.right ℚ  _ _ ,
-    let ψ₀ : K →ₐ[Fx] A := is_alg_closed.lift (algebra.is_algebraic_of_finite _ _),
-    haveI : is_scalar_tower F Fx K := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ _ hK),
-    haveI : is_scalar_tower F Fx A := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ _ hA),
-    let ψ : K →ₐ[F] A := alg_hom.restrict_scalars F ψ₀,
-    refine ⟨ψ, _⟩,
-    rw (_ : x = (algebra_map Fx K) (adjoin_root.root (minpoly F x))),
-    rw (_ : a = (algebra_map Fx A) (adjoin_root.root (minpoly F x))),
-    exact alg_hom.commutes _ _,
-    exact (adjoin_root.lift_root hA).symm,
-    exact (adjoin_root.lift_root hK).symm, },
-end
-
-variables (K A : Type*) [field K] [number_field K] [field A] [char_zero A] [is_alg_closed A] (x : K)
-
-/-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K` a number field.
-The images of `x` by the embeddings of `K` in `A` are exactly the roots in `A` of
-the minimal polynomial of `x` over `ℚ` -/
-lemma rat_range_eq_roots :
-range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
-begin
-  convert range_eq_roots ℚ K A x using 1,
-  ext a,
-  exact ⟨λ ⟨φ, hφ⟩, ⟨φ.to_rat_alg_hom, hφ⟩, λ ⟨φ, hφ⟩, ⟨φ.to_ring_hom, hφ⟩⟩,
-end
-
-end roots
-
-end number_field.embeddings

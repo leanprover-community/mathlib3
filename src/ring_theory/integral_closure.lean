@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 import data.polynomial.expand
 import linear_algebra.finite_dimensional
-import linear_algebra.matrix.determinant
+import linear_algebra.matrix.charpoly.linear_map
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
@@ -114,23 +114,45 @@ variables {R A B S : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S]
 variables [algebra R A] [algebra R B] (f : R →+* S)
 
-theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
-let ⟨p, hp, hpx⟩ :=
-hx in ⟨p, hp, by rw [← aeval_def, aeval_alg_hom_apply, aeval_def, hpx, f.map_zero]⟩
+lemma map_is_integral {B C F : Type*} [ring B] [ring C] [algebra R B] [algebra A B]
+  [algebra R C] [is_scalar_tower R A B] [algebra A C] [is_scalar_tower R A C] {b : B}
+  [alg_hom_class F A B C] (f : F) (hb : is_integral R b) : is_integral R (f b) :=
+begin
+  obtain ⟨P, hP⟩ := hb,
+  refine ⟨P, hP.1, _⟩,
+  rw [← aeval_def, show (aeval (f b)) P = (aeval (f b)) (P.map (algebra_map R A)), by simp,
+    aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
+end
+
+theorem is_integral_alg_hom_iff {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
+  (f : A →ₐ[R] B) (hf : function.injective f) {x : A} : is_integral R (f x) ↔ is_integral R x :=
+begin
+  refine ⟨_, map_is_integral f⟩,
+  rintros ⟨p, hp, hx⟩,
+  use [p, hp],
+  rwa [← f.comp_algebra_map, ← alg_hom.coe_to_ring_hom, ← polynomial.hom_eval₂,
+    alg_hom.coe_to_ring_hom, map_eq_zero_iff f hf] at hx
+end
 
 @[simp]
-theorem is_integral_alg_equiv (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) ↔ is_integral R x :=
-⟨λ h, by simpa using is_integral_alg_hom f.symm.to_alg_hom h, is_integral_alg_hom f.to_alg_hom⟩
+theorem is_integral_alg_equiv {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
+  (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) ↔ is_integral R x :=
+⟨λ h, by simpa using map_is_integral f.symm.to_alg_hom h, map_is_integral f.to_alg_hom⟩
 
 theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
-  (x : B) (hx : is_integral R x) : is_integral A x :=
+  {x : B} (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, hp.map _,
-  by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
+  by rw [← aeval_def, aeval_map_algebra_map, aeval_def, hpx]⟩
+
+lemma map_is_integral_int {B C F : Type*} [ring B] [ring C] {b : B}
+  [ring_hom_class F B C] (f : F) (hb : is_integral ℤ b) :
+  is_integral ℤ (f b) :=
+map_is_integral (f : B →+* C).to_int_alg_hom hb
 
 theorem is_integral_of_subring {x : A} (T : subring R)
   (hx : is_integral T x) : is_integral R x :=
-is_integral_of_is_scalar_tower x hx
+is_integral_of_is_scalar_tower hx
 
 lemma is_integral.algebra_map [algebra A B] [is_scalar_tower R A B]
   {x : A} (h : is_integral R x) :
@@ -144,12 +166,7 @@ end
 lemma is_integral_algebra_map_iff [algebra A B] [is_scalar_tower R A B]
   {x : A} (hAB : function.injective (algebra_map A B)) :
   is_integral R (algebra_map A B x) ↔ is_integral R x :=
-begin
-  refine ⟨_, λ h, h.algebra_map⟩,
-  rintros ⟨f, hf, hx⟩,
-  use [f, hf],
-  exact is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B hAB hx,
-end
+is_integral_alg_hom_iff (is_scalar_tower.to_alg_hom R A B) hAB
 
 theorem is_integral_iff_is_integral_closure_finite {r : A} :
   is_integral R r ↔ ∃ s : set R, s.finite ∧ is_integral (subring.closure s) r :=
@@ -157,7 +174,8 @@ begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
     refine ⟨_, finset.finite_to_set _, p.restriction, monic_restriction.2 hmp, _⟩,
-    erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
+    rw [← aeval_def, ← aeval_map_algebra_map R r p.restriction,
+      map_restriction, aeval_def, hpr], },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
 end
@@ -285,6 +303,45 @@ begin
   change (⟨_, this⟩ : S₀) • r ∈ _,
   rw finsupp.mem_supported at hlx1,
   exact subalgebra.smul_mem _ (algebra.subset_adjoin $ hlx1 hr) _
+end
+
+lemma module.End.is_integral {M : Type*} [add_comm_group M] [module R M] [module.finite R M] :
+  algebra.is_integral R (module.End R M) :=
+linear_map.exists_monic_and_aeval_eq_zero R
+
+/-- Suppose `A` is an `R`-algebra, `M` is an `A`-module such that `a • m ≠ 0` for all non-zero `a`
+and `m`. If `x : A` fixes a nontrivial f.g. `R`-submodule `N` of `M`, then `x` is `R`-integral. -/
+lemma is_integral_of_smul_mem_submodule {M : Type*} [add_comm_group M] [module R M]
+  [module A M] [is_scalar_tower R A M] [no_zero_smul_divisors A M]
+  (N : submodule R M) (hN : N ≠ ⊥) (hN' : N.fg) (x : A)
+    (hx : ∀ n ∈ N, x • n ∈ N) : is_integral R x :=
+begin
+  let A' : subalgebra R A :=
+  { carrier := { x | ∀ n ∈ N, x • n ∈ N },
+    mul_mem' := λ a b ha hb n hn, smul_smul a b n ▸ ha _ (hb _ hn),
+    one_mem' := λ n hn, (one_smul A n).symm ▸ hn,
+    add_mem' := λ a b ha hb n hn, (add_smul a b n).symm ▸ N.add_mem (ha _ hn) (hb _ hn),
+    zero_mem' := λ n hn, (zero_smul A n).symm ▸ N.zero_mem,
+    algebra_map_mem' := λ r n hn, (algebra_map_smul A r n).symm ▸ N.smul_mem r hn },
+  let f : A' →ₐ[R] module.End R N := alg_hom.of_linear_map
+    { to_fun := λ x, (distrib_mul_action.to_linear_map R M x).restrict x.prop,
+      map_add' := λ x y, linear_map.ext $ λ n, subtype.ext $ add_smul x y n,
+      map_smul' := λ r s, linear_map.ext $ λ n, subtype.ext $ smul_assoc r s n }
+      (linear_map.ext $ λ n, subtype.ext $ one_smul _ _)
+      (λ x y, linear_map.ext $ λ n, subtype.ext $ mul_smul x y n),
+  obtain ⟨a, ha₁, ha₂⟩ : ∃ a ∈ N, a ≠ (0 : M),
+  { by_contra h', push_neg at h', apply hN, rwa eq_bot_iff },
+  have : function.injective f,
+  { show function.injective f.to_linear_map,
+    rw [← linear_map.ker_eq_bot, eq_bot_iff],
+    intros s hs,
+    have : s.1 • a = 0 := congr_arg subtype.val (linear_map.congr_fun hs ⟨a, ha₁⟩),
+    exact subtype.ext ((eq_zero_or_eq_zero_of_smul_eq_zero this).resolve_right ha₂) },
+  show is_integral R (A'.val ⟨x, hx⟩),
+  rw [is_integral_alg_hom_iff A'.val subtype.val_injective,
+    ← is_integral_alg_hom_iff f this],
+  haveI : module.finite R N := by rwa [module.finite_def, submodule.fg_top],
+  apply module.End.is_integral,
 end
 
 variables {f}
@@ -456,9 +513,9 @@ begin
   rw subalgebra.mem_map,
   split,
   { rintros ⟨x, hx, rfl⟩,
-    exact is_integral_alg_hom f hx },
+    exact map_is_integral f hx },
   { intro hy,
-    use [f.symm y, is_integral_alg_hom (f.symm : B →ₐ[R] A) hy],
+    use [f.symm y, map_is_integral (f.symm : B →ₐ[R] A) hy],
     simp }
 end
 
@@ -805,7 +862,7 @@ begin
   { rw [finset.mem_coe, frange, finset.mem_image] at hx,
     rcases hx with ⟨i, _, rfl⟩,
     rw coeff_map,
-    exact is_integral_alg_hom (is_scalar_tower.to_alg_hom R A B) (A_int _) },
+    exact map_is_integral (is_scalar_tower.to_alg_hom R A B) (A_int _) },
   { apply fg_adjoin_singleton_of_integral,
     exact is_integral_trans_aux _ pmonic hp }
 end

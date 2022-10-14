@@ -181,26 +181,29 @@ begin
   `t` such that when composed with the natural embedding of `ℝ≥0` into `𝕜` lies in the ideal `I`.
   Indeed, then `∥f - f * ↑g∥ ≤ ∥f * (1 - ↑g)∥ ≤ ⨆ ∥f * (1 - ↑g) x∥`. When `x ∉ t`, `∥f x∥ < ε / 2`
   and `∥(1 - ↑g) x∥ ≤ 1`, and when `x ∈ t`, `(1 - ↑g) x = 0`, and clearly `f * ↑g ∈ I`. -/
-  suffices : ∃ g : C(X, ℝ≥0), of_nnreal_cm.comp g ∈ I ∧ (∀ x, g x ≤ 1) ∧ t.eq_on g 1,
+  suffices : ∃ g : C(X, ℝ≥0),
+    (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g ∈ I ∧ (∀ x, g x ≤ 1) ∧ t.eq_on g 1,
   { obtain ⟨g, hgI, hg, hgt⟩ := this,
-    refine ⟨f * of_nnreal_cm.comp g, I.mul_mem_left f hgI, _⟩,
+    refine ⟨f * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g, I.mul_mem_left f hgI, _⟩,
     rw nndist_eq_nnnorm,
     refine (nnnorm_lt_iff _ hε).2 (λ x, _),
     simp only [coe_sub, coe_mul, pi.sub_apply, pi.mul_apply],
     by_cases hx : x ∈ t,
-    { simpa only [hgt hx, pi.one_apply, mul_one, sub_self, nnnorm_zero, comp_apply,
-        of_nnreal_cm_coe, map_one] using hε },
+    { simpa only [hgt hx, comp_apply, pi.one_apply, continuous_map.coe_coe, algebra_map_clm_apply,
+        map_one, mul_one, sub_self, nnnorm_zero] using hε, },
     { refine lt_of_le_of_lt _ (half_lt_self hε),
-      have : ∥((1 - of_nnreal_cm.comp g) x : 𝕜)∥₊ ≤ 1,
-      { simp only [coe_sub, coe_one, pi.sub_apply, pi.one_apply, comp_apply,
-          of_nnreal_cm_coe, ←(map_one of_nnreal_am), of_nnreal_am_coe, coe_coe],
-        rw [←is_R_or_C.of_real_one, ←nnreal.coe_one, ←of_real_sub, ←nnreal.coe_sub (hg x)],
-        rw [nnnorm_of_nnreal (1 - g x)],
-        exact tsub_le_self, },
-      calc ∥f x - f x * of_nnreal_cm.comp g x∥₊
-          = ∥f x * (1 - of_nnreal_cm.comp g) x∥₊
+      have := calc ∥((1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x : 𝕜)∥₊
+            = ∥1 - algebra_map ℝ≥0 𝕜 (g x)∥₊
+            : by simp only [coe_sub, coe_one, coe_comp, continuous_map.coe_coe, pi.sub_apply,
+                pi.one_apply, function.comp_app, algebra_map_clm_apply]
+        ... = ∥algebra_map ℝ≥0 𝕜 (1 - g x)∥₊
+            : by simp only [algebra.algebra_map_eq_smul_one, nnreal.smul_def, nnreal.coe_sub (hg x),
+                sub_smul, nonneg.coe_one, one_smul]
+        ... ≤ 1 : (nnnorm_algebra_map_nnreal 𝕜 (1 - g x)).trans_le tsub_le_self,
+      calc ∥f x - f x * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g x∥₊
+          = ∥f x * (1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x∥₊
           : by simp only [mul_sub, coe_sub, coe_one, pi.sub_apply, pi.one_apply, mul_one]
-      ... ≤ (ε / 2) * ∥(1 - of_nnreal_cm.comp g) x∥₊
+      ... ≤ (ε / 2) * ∥(1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x∥₊
           : (nnnorm_mul_le _ _).trans (mul_le_mul_right'
               (not_le.mp $ show ¬ ε / 2 ≤ ∥f x∥₊, from hx).le _)
       ... ≤ ε / 2 : by simpa only [mul_one] using mul_le_mul_left' this _, } },
@@ -210,20 +213,24 @@ begin
   `fₓ x ≠ 0` for some `fₓ ∈ I` and so `λ y, ∥(star fₓ * fₓ) y∥₊` is strictly posiive in a
   neighborhood of `y`. Moreover, `(∥(star fₓ * fₓ) y∥₊ : 𝕜) = (star fₓ * fₓ) y`, so composition of
   this map with the natural embedding is just `star fₓ * fₓ ∈ I`. -/
-  have : ∃ g' : C(X, ℝ≥0), of_nnreal_cm.comp g' ∈ I ∧ (∀ x ∈ t, 0 < g' x),
-  { refine @is_compact.induction_on _ _ _ ht.is_compact
-      (λ s, ∃ g' : C(X, ℝ≥0), of_nnreal_cm.comp g' ∈ I ∧ (∀ x ∈ s, 0 < g' x)) _ _ _ _,
-    { refine ⟨0, by { convert I.zero_mem, ext, simp only [comp_apply, coe_zero, pi.zero_apply,
-        of_nnreal_cm_coe, map_zero]}, λ x hx, false.elim hx⟩, },
+  have : ∃ g' : C(X, ℝ≥0), (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g' ∈ I ∧ (∀ x ∈ t, 0 < g' x),
+  { refine @is_compact.induction_on _ _ _ ht.is_compact (λ s, ∃ g' : C(X, ℝ≥0),
+      (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g' ∈ I ∧ (∀ x ∈ s, 0 < g' x)) _ _ _ _,
+    { refine ⟨0, _, λ x hx, false.elim hx⟩,
+      convert I.zero_mem,
+      ext,
+      simp only [coe_zero, pi.zero_apply, continuous_map.coe_coe, continuous_map.coe_comp,
+        map_zero, pi.comp_zero] },
     { rintro s₁ s₂ hs ⟨g, hI, hgt⟩, exact ⟨g, hI, λ x hx, hgt x (hs hx)⟩, },
     { rintro s₁ s₂ ⟨g₁, hI₁, hgt₁⟩ ⟨g₂, hI₂, hgt₂⟩,
       refine ⟨g₁ + g₂, _, λ x hx, _⟩,
-      convert I.add_mem hI₁ hI₂,
-      ext y,
-      simp only [coe_add, pi.add_apply, of_nnreal_cm_coe, map_add, coe_comp, function.comp_app],
-      rcases hx with (hx | hx),
-      simpa only [zero_add] using add_lt_add_of_lt_of_le (hgt₁ x hx) zero_le',
-      simpa only [zero_add] using add_lt_add_of_le_of_lt zero_le' (hgt₂ x hx), },
+      { convert I.add_mem hI₁ hI₂,
+        ext y,
+        simp only [coe_add, pi.add_apply, map_add, coe_comp, function.comp_app,
+          continuous_map.coe_coe]},
+      { rcases hx with (hx | hx),
+        simpa only [zero_add] using add_lt_add_of_lt_of_le (hgt₁ x hx) zero_le',
+        simpa only [zero_add] using add_lt_add_of_le_of_lt zero_le' (hgt₂ x hx), } },
     { intros x hx,
       replace hx := htI.subset_compl_right hx,
       rw [compl_compl, mem_set_of_ideal] at hx,
@@ -234,10 +241,9 @@ begin
         λ x hx, pow_pos (norm_pos_iff.mpr hx.1) 2⟩⟩,
       convert I.mul_mem_left (star g) hI,
       ext,
-      simp only [comp_apply, coe_mk, of_nnreal_cm_coe, map_pow, coe_mul, coe_star,
-        pi.mul_apply, pi.star_apply, star_def],
-      simp only [of_nnreal_am_coe, coe_coe, coe_nnnorm, norm_sq_eq_def', conj_mul_eq_norm_sq_left,
-        of_real_pow], }, },
+      simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, coe_mul, coe_star,
+        pi.mul_apply, pi.star_apply, star_def, continuous_map.coe_coe],
+      simpa only [norm_sq_eq_def', conj_mul_eq_norm_sq_left, of_real_pow], }, },
   /- Get the function `g'` which is guaranteed to exist above. By the extreme value theorem and
   compactness of `t`, there is some `0 < c` such that `c ≤ g' x` for all `x ∈ t`. Then by
   `main_lemma_aux` there is some `g` for which `g * g'` is the desired function. -/
@@ -248,9 +254,10 @@ begin
       in ⟨g' x, hgt' x hx, hx'⟩),
   obtain ⟨g, hg, hgc⟩ := exists_mul_le_one_eq_on_ge g' hc,
   refine ⟨g * g', _, hg, hgc.mono hgc'⟩,
-  convert I.mul_mem_left (of_nnreal_cm.comp g) hI',
+  convert I.mul_mem_left ((algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) hI',
   ext,
-  simp only [of_nnreal_cm_coe, comp_apply, coe_mul, pi.mul_apply, map_mul],
+  simp only [algebra_map_clm_coe, continuous_map.coe_coe, comp_apply, coe_mul, pi.mul_apply,
+    map_mul],
 end
 
 lemma ideal_of_set_of_ideal_is_closed [compact_space X] [t2_space X] {I : ideal C(X, 𝕜)}
@@ -296,30 +303,6 @@ variable (X)
     (ideal_of_set_of_ideal_eq_closure I ▸ hI : I.closure ≤ I)).closure_eq) }
 
 end is_R_or_C
-
-end continuous_map
-
-namespace topological_space
-namespace opens
-
-variables {X : Type*} [topological_space X]
-open set
-
-/-- The term of `opens X` corresponding to the complement of a singleton. -/
-@[simps] def singleton_compl [t1_space X] (x : X) : opens X :=
-⟨{x}ᶜ, is_closed_singleton.is_open_compl⟩
-
-lemma is_coatom_iff [t1_space X] (s : opens X) : is_coatom (s : set X) ↔ is_coatom s :=
-begin
-  refine galois_coinsertion.is_coatom_iff' opens.gi rfl (λ s hs, _) s,
-  obtain ⟨x, rfl⟩ := s.is_coatom_iff.mp hs,
-  simp only [interior, interior_compl, closure_singleton, subtype.coe_mk],
-end
-
-end opens
-end topological_space
-
-namespace continuous_map
 
 open is_R_or_C topological_space
 
@@ -372,31 +355,6 @@ open function continuous_map
 
 variables (X : Type*) [topological_space X] [compact_space X] [t2_space X]
 
-section kernel
-
-variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜]
-  [has_continuous_add 𝕜] [has_continuous_const_smul 𝕜 𝕜]
-variables {A : Type*} [ring A] [topological_space A] [algebra 𝕜 A]
-
-example : ring_hom_class (character_space 𝕜 A) A 𝕜 := infer_instance
-
-/-- The `ring_hom.ker` of `φ : character_space 𝕜 A` is maximal. -/
-instance ker_is_maximal (φ : character_space 𝕜 A) : (ring_hom.ker φ).is_maximal :=
-ring_hom.ker_is_maximal_of_surjective φ $ λ z, ⟨algebra_map 𝕜 A z,
-  by simp only [alg_hom_class.commutes, algebra.id.map_eq_id, ring_hom.id_apply]⟩
-
-lemma ext_ker {φ ψ : character_space 𝕜 A} (h : ring_hom.ker φ = ring_hom.ker ψ) : φ = ψ :=
-begin
-  ext,
-  simp only [character_space.coe_coe],
-  have : x - algebra_map 𝕜 A (ψ x) ∈ ring_hom.ker φ,
-  { simpa only [h, ring_hom.mem_ker, map_sub, alg_hom_class.commutes] using sub_self (ψ x) },
-  { rwa [ring_hom.mem_ker, map_sub, alg_hom_class.commutes, sub_eq_zero] at this, }
-end
-
-
-end kernel
-
 section continuous_map_eval
 
 variables (𝕜 : Type*) [comm_ring 𝕜] [topological_space 𝕜] [topological_semiring 𝕜]
@@ -447,21 +405,6 @@ end
 lemma continuous_map_eval_bijective : bijective (continuous_map_eval X ℂ) :=
 ⟨continuous_map_eval_injective X,
  continuous_map_eval_surjective X⟩
-.
-
--- there is a way more general theorem here. It should certainly hold for the weak dual.
--- All I used is function extensionality for `this` and that evaluation is continuous.
-instance : t2_space (character_space ℂ C(X, ℂ)) :=
-begin
-  refine t2_iff_is_closed_diagonal.mpr _,
-  have : set.diagonal (character_space ℂ C(X, ℂ)) = { φ | ∀ f : C(X, ℂ), φ.1 f = φ.2 f },
-  from set.subset.antisymm (λ φ hφ f, fun_like.congr_fun (set.mem_diagonal_iff.mp hφ) f)
-    (λ φ hφ, set.mem_diagonal_iff.mpr $ fun_like.ext φ.fst φ.snd hφ),
-  rw [this, set.set_of_forall],
-  exact is_closed_Inter (λ f, is_closed_eq
-    ((map_continuous $ gelfand_transform ℂ C(X, ℂ) f).comp continuous_fst)
-    ((map_continuous $ gelfand_transform ℂ C(X, ℂ) f).comp continuous_snd)),
-end
 
 /-- This is the natural homeomorphism between a compact Hausdorff space `X` and the
 `character_space ℂ C(X, ℂ)`. -/
@@ -473,24 +416,3 @@ noncomputable def homeo_eval : X ≃ₜ character_space ℂ C(X, ℂ) :=
 
 end character_space
 end weak_dual
-
-
-/-
-
-We claim that the functors `X ↦ C(X, ℂ)` and `A ↦ character_space ℂ A` form a contravariant
-equivalence of categories. In particular, let `ηX` denote the homeomorphism `homeo_eval`
-given above. Given a `f : C(X, Y)` there is a functorially induced map `f* : C(Y, ℂ) → C(Y, ℂ)`
-given by precomposition. Moreover, given unital C⋆-algebras `A` and `B`, and `φ : A →⋆ₐ[ℂ] B`,
-there is a functorially induced map `φ* : character_space ℂ B → character_space ℂ A` also given
-by precomposition.
-
-So, we claim that `ηY ∘ f = f** ∘ ηX` where these are maps from `X → character_space ℂ C(Y, ℂ)`.
-Take any `x : X`, then
-`(f** ∘ ηX) x = f** (ηX x) = (ηX x) ∘ f*` which has type `character_space ℂ C(Y, ℂ)`.
-We want to show this is equal to `ηY (f x)`. So take any `φ : character_space ℂ C(Y, ℂ)`.
-Then
-`ηY (f x) φ = φ (f x) = (φ ∘ f) x = ηX x (φ ∘ f)` and
-`(ηX x ∘ f*) φ = ηX x (f* φ) = ηX x (φ ∘ f)`.
-This shows that `ηX : X → character_space ℂ C(Y, ℂ)` is a natural transformation.
-
--/

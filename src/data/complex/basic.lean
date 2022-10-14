@@ -66,10 +66,8 @@ lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 theorem of_real_injective : function.injective (coe : ℝ → ℂ) :=
 λ z w, congr_arg re
 
-instance : can_lift ℂ ℝ :=
-{ cond := λ z, z.im = 0,
-  coe := coe,
-  prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
+instance can_lift : can_lift ℂ ℝ coe (λ z, z.im = 0) :=
+{ prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
 
 /-- The product of a set on the real axis and a set on the imaginary axis of the complex plane,
 denoted by `s ×ℂ t`. -/
@@ -556,16 +554,10 @@ map_pow abs z n
 map_zpow₀ abs z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
-begin
-  rw [mul_self_le_mul_self_iff (abs_nonneg z.re) (abs.nonneg _),
-       abs_mul_abs_self, mul_self_abs],
-  apply re_sq_le_norm_sq
-end
+real.abs_le_sqrt $ by { rw [norm_sq_apply, ← sq], exact le_add_of_nonneg_right (mul_self_nonneg _) }
 
 lemma abs_im_le_abs (z : ℂ) : |z.im| ≤ abs z :=
-by rw [mul_self_le_mul_self_iff (abs_nonneg z.im) (abs.nonneg _),
-       abs_mul_abs_self, mul_self_abs];
-   apply im_sq_le_norm_sq
+real.abs_le_sqrt $ by { rw [norm_sq_apply, ← sq, ← sq], exact le_add_of_nonneg_left (sq_nonneg _) }
 
 lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 (abs_le.1 (abs_re_le_abs _)).2
@@ -653,9 +645,9 @@ lemma not_le_zero_iff {z : ℂ} : ¬z ≤ 0 ↔ 0 < z.re ∨ z.im ≠ 0 := not_l
 lemma not_lt_zero_iff {z : ℂ} : ¬z < 0 ↔ 0 ≤ z.re ∨ z.im ≠ 0 := not_lt_iff
 
 /--
-With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
+With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a strictly ordered ring.
 -/
-protected def ordered_comm_ring : ordered_comm_ring ℂ :=
+protected def strict_ordered_comm_ring : strict_ordered_comm_ring ℂ :=
 { zero_le_one := ⟨zero_le_one, rfl⟩,
   add_le_add_left := λ w z h y, ⟨add_le_add_left h.1 _, congr_arg2 (+) rfl h.2⟩,
   mul_pos := λ z w hz hw,
@@ -663,7 +655,7 @@ protected def ordered_comm_ring : ordered_comm_ring ℂ :=
   .. complex.partial_order,
   .. complex.comm_ring }
 
-localized "attribute [instance] complex.ordered_comm_ring" in complex_order
+localized "attribute [instance] complex.strict_ordered_comm_ring" in complex_order
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
@@ -681,7 +673,7 @@ protected def star_ordered_ring : star_ordered_ring ℂ :=
                    mul_im, mul_zero, neg_zero] } },
     { obtain ⟨s, rfl⟩ := h,
       simp only [←norm_sq_eq_conj_mul_self, norm_sq_nonneg, zero_le_real, star_def] } },
-  ..complex.ordered_comm_ring }
+  ..complex.strict_ordered_comm_ring }
 
 localized "attribute [instance] complex.star_ordered_ring" in complex_order
 

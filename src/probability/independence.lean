@@ -66,7 +66,7 @@ Part A, Chapter 4.
 -/
 
 open measure_theory measurable_space
-open_locale big_operators measure_theory
+open_locale big_operators measure_theory ennreal
 
 namespace probability_theory
 
@@ -883,13 +883,13 @@ section zero_one_law
 variables {m m0 : measurable_space Ω} {μ : measure Ω}
 
 lemma measure_eq_zero_or_one_or_top_of_indep_set_self {t : set Ω} (h_indep : indep_set t t μ) :
-  μ t = 0 ∨ μ t = 1 ∨ μ t = ⊤ :=
+  μ t = 0 ∨ μ t = 1 ∨ μ t = ∞ :=
 begin
   specialize h_indep t t (measurable_set_generate_from (set.mem_singleton t))
     (measurable_set_generate_from (set.mem_singleton t)),
   by_cases h0 : μ t = 0,
   { exact or.inl h0, },
-  by_cases h_top : μ t = ⊤,
+  by_cases h_top : μ t = ∞,
   { exact or.inr (or.inr h_top), },
   rw [← one_mul (μ (t ∩ t)), set.inter_self, ennreal.mul_eq_mul_right h0 h_top] at h_indep,
   exact or.inr (or.inl h_indep.symm),

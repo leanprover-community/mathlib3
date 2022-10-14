@@ -3,7 +3,7 @@ Copyright (c) 2022 Jake Levinson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jake Levinson
 -/
-import combinatorics.young_tableau.young_diagram
+import combinatorics.young.young_diagram
 
 /-!
 # Semistandard Young tableaux

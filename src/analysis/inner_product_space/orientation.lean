@@ -272,11 +272,7 @@ lemma volume_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ
   (orientation.map (fin n) φ.to_linear_equiv o).volume_form x = o.volume_form (φ.symm ∘ x) :=
 begin
   unfreezingI { cases n },
-  -- { sorry },
-  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp,
-
-   },
-  -- sorry
+  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
   let e : orthonormal_basis (fin n.succ) ℝ E := o.fin_orthonormal_basis n.succ_pos (fact.out _),
   have he : e.to_basis.orientation = o :=
     (o.fin_orthonormal_basis_orientation n.succ_pos (fact.out _)),

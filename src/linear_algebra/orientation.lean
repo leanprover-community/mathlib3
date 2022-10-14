@@ -99,6 +99,11 @@ section ordered_comm_ring
 variables {R : Type*} [strict_ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 
+@[simp] protected lemma orientation.map_neg {ι : Type*} [decidable_eq ι] (f : M ≃ₗ[R] N)
+  (x : orientation R M ι) :
+  orientation.map ι f (-x) = - orientation.map ι f x :=
+module.ray.map_neg _ x
+
 namespace basis
 
 variables {ι : Type*} [decidable_eq ι]
@@ -330,19 +335,6 @@ end
 
 omit _i
 
-lemma _root_.linear_map.det_eq_one_of_finrank_eq_zero (h : finrank R M = 0) (f : M →ₗ[R] M) :
-  (f : M →ₗ[R] M).det = 1 :=
-begin
-  classical,
-  refine @linear_map.det_cases M  _ R _ _ _ (λ t, t = 1) f _ rfl,
-  intros s b,
-  haveI : is_empty s,
-  { rw ← fintype.card_eq_zero_iff,
-    exact (finite_dimensional.finrank_eq_card_basis b).symm.trans h },
-  exact matrix.det_is_empty,
-end
-
-
 /-- If the index type has cardinality equal to the finite dimension, composing an alternating
 map with the same linear equiv on each argument gives the same orientation if and only if the
 determinant is positive. -/
@@ -355,7 +347,8 @@ begin
     { refine h.symm.trans _,
       convert fintype.card_of_is_empty,
       apply_instance },
-    simp [linear_map.det_eq_one_of_finrank_eq_zero H] },
+    rw finite_dimensional.finrank_zero_iff at H,
+    simp [linear_map.det_eq_one_of_subsingleton H] },
   have H : finrank R M > 0,
   { rw ← h,
     exact fintype.card_pos },
@@ -375,7 +368,8 @@ begin
     { refine h.symm.trans _,
       convert fintype.card_of_is_empty,
       apply_instance },
-    simp [linear_map.det_eq_one_of_finrank_eq_zero H, module.ray.ne_neg_self x] },
+    rw finite_dimensional.finrank_zero_iff at H,
+    simp [linear_map.det_eq_one_of_subsingleton H, module.ray.ne_neg_self x] },
   have H : finrank R M > 0,
   { rw ← h,
     exact fintype.card_pos },

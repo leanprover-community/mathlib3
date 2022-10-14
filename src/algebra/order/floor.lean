@@ -585,7 +585,7 @@ fract_eq_self.2 ⟨fract_nonneg _, fract_lt_one _⟩
 lemma fract_add (a b : α) : ∃ z : ℤ, fract (a + b) - fract a - fract b = z :=
 ⟨⌊a⌋ + ⌊b⌋ - ⌊a + b⌋, by { unfold fract, simp [sub_eq_add_neg], abel }⟩
 
-lemma int.fract_neg {x : α} (hx : int.fract x ≠ 0) :  -- TODO generalize ring
+lemma int.fract_neg {x : α} (hx : int.fract x ≠ 0) :
   int.fract (-x) = 1 - int.fract x :=
 begin
   rw int.fract_eq_iff,

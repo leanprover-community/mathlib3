@@ -67,8 +67,6 @@ apply_nolint monoid.mfoldr.of_free_monoid doc_blame
 apply_nolint traversable.fold_map doc_blame
 apply_nolint traversable.foldl doc_blame
 apply_nolint traversable.foldr doc_blame
-apply_nolint traversable.free.map doc_blame
-apply_nolint traversable.free.mk doc_blame
 apply_nolint traversable.length doc_blame
 apply_nolint traversable.map_fold doc_blame
 apply_nolint traversable.mfoldl doc_blame

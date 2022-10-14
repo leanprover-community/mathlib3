@@ -104,6 +104,23 @@ end
 
 end sorted
 
+section monotone
+
+variables {n : ℕ} {α : Type uu} [preorder α] {f : fin n → α}
+
+/-- A tuple is monotone if and only if the list obtained from it is sorted. -/
+lemma monotone_iff_of_fn_sorted : monotone f ↔ (of_fn f).sorted (≤) :=
+begin
+  simp_rw [sorted, pairwise_iff_nth_le, length_of_fn, nth_le_of_fn', monotone_iff_forall_lt],
+  exact ⟨λ h i j hj hij, h $ fin.mk_lt_mk.mpr hij, λ h ⟨i, _⟩ ⟨j, hj⟩ hij, h i j hj hij⟩,
+end
+
+/-- The list obtained from a monotone tuple is sorted. -/
+lemma monotone.of_fn_sorted (h : monotone f) : (of_fn f).sorted (≤) :=
+monotone_iff_of_fn_sorted.1 h
+
+end monotone
+
 section sort
 variables {α : Type uu} (r : α → α → Prop) [decidable_rel r]
 local infix ` ≼ ` : 50 := r

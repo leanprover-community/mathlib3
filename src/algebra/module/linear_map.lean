@@ -183,6 +183,9 @@ directly.
 -/
 instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨λ f, f⟩
 
+@[simp, protected] lemma coe_coe {F : Type*} [semilinear_map_class F σ M M₃] (f : F) :
+  ⇑(f : M →ₛₗ[σ] M₃) = f := rfl
+
 /-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
 { map_zero' := show f 0 = 0, from map_zero f, ..f }

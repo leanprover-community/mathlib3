@@ -875,11 +875,11 @@ def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maxim
   left_inv  := λ ⟨_, _, _⟩, rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 
-variables (R) [algebra R K] [hK : is_fraction_ring R K]
+variable (R)
 
 /-- A Dedekind domain is equal to the intersection of its localizations at all its height one
 non-zero prime ideals viewed as subalgebras of its field of fractions. -/
-theorem localization_infi_eq_bot :
+theorem localization_infi_eq_bot [algebra R K] [hK : is_fraction_ring R K] :
   (⨅ v : height_one_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
     le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
 begin

@@ -397,8 +397,8 @@ theorem mk_near_of_forall_near {f : cau_seq ℚ abs} {x : ℝ} {ε : ℝ}
 abs_sub_le_iff.2
   ⟨sub_le_iff_le_add'.2 $ mk_le_of_forall_le $
     H.imp $ λ i h j ij, sub_le_iff_le_add'.1 (abs_sub_le_iff.1 $ h j ij).1,
-  sub_le.1 $ le_mk_of_forall_le $
-    H.imp $ λ i h j ij, sub_le.1 (abs_sub_le_iff.1 $ h j ij).2⟩
+  sub_le_comm.1 $ le_mk_of_forall_le $
+    H.imp $ λ i h j ij, sub_le_comm.1 (abs_sub_le_iff.1 $ h j ij).2⟩
 
 instance : archimedean ℝ :=
 archimedean_iff_rat_le.2 $ λ x, real.ind_mk x $ λ f,

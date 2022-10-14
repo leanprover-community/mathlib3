@@ -119,7 +119,7 @@ by rw pair_comm; exact einfsep_pair_le_left hxy.symm
 lemma einfsep_pair_eq_inf (hxy : x ≠ y) : ({x, y} : set α).einfsep = (edist x y) ⊓ (edist y x) :=
 le_antisymm (le_inf (einfsep_pair_le_left hxy) (einfsep_pair_le_right hxy)) le_einfsep_pair
 
-lemma einfsep_infi : s.einfsep = ⨅ d : s.off_diag, (uncurry edist) (d : α × α) :=
+lemma einfsep_eq_infi : s.einfsep = ⨅ d : s.off_diag, (uncurry edist) (d : α × α) :=
 begin
   refine eq_of_forall_le_iff (λ _, _),
   simp_rw [le_einfsep_iff, le_infi_iff, imp_forall_iff, set_coe.forall, subtype.coe_mk,
@@ -228,7 +228,7 @@ theorem einfsep_ne_top_iff : s.einfsep ≠ ∞ ↔ s.nontrivial :=
 ⟨nontrivial_of_einfsep_ne_top, nontrivial.einfsep_ne_top⟩
 
 lemma le_einfsep_of_forall_dist_le {d} (h : ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ dist x y) :
-   ennreal.of_real d ≤ s.einfsep :=
+  ennreal.of_real d ≤ s.einfsep :=
 le_einfsep $
 λ x hx y hy hxy, (edist_dist x y).symm ▸ ennreal.of_real_le_of_real (h x hx y hy hxy)
 
@@ -372,7 +372,7 @@ end
 
 lemma nontrivial.infsep_eq_infi (hs : s.nontrivial)
   : s.infsep = ⨅ d : s.off_diag, (uncurry dist) (d : α × α) :=
-by { classical, rw [infsep_infi, if_pos hs] }
+by { classical, rw [infsep_eq_infi, if_pos hs] }
 
 lemma infsep_of_fintype [decidable s.nontrivial] [decidable_eq α] [fintype s] :
   s.infsep = if hs : s.nontrivial then s.off_diag.to_finset.inf' (by simpa) (uncurry dist) else 0 :=
@@ -403,8 +403,8 @@ lemma finite.infsep_of_nontrivial (hsf : s.finite) (hs : s.nontrivial) :
   s.infsep = hsf.off_diag.to_finset.inf' (by simpa) (uncurry dist) :=
   by { classical, simp_rw [hsf.infsep, dif_pos hs] }
 
-lemma _root_.finset.coe_infsep [decidable_eq α] {s : finset α}
-  : (s : set α).infsep = if hs : s.off_diag.nonempty then s.off_diag.inf' hs (uncurry dist)
+lemma _root_.finset.coe_infsep [decidable_eq α] (s : finset α) :
+  (s : set α).infsep = if hs : s.off_diag.nonempty then s.off_diag.inf' hs (uncurry dist)
                          else 0 :=
 begin
   have H : (s : set α).nontrivial ↔ s.off_diag.nonempty,

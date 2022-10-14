@@ -267,6 +267,8 @@ begin
   exact (hf ht).inter h.measurable_set.of_compl,
 end
 
+omit mβ
+
 @[measurability] lemma measurable_set_preimage_iterate {f : α → α} (hf : measurable f)
   (hs : measurable_set s) (n : ℕ) :
   measurable_set $ (preimage f)^[n] s :=

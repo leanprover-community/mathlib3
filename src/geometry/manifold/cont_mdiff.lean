@@ -61,6 +61,10 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M'] [I's : smooth_manifold_with_corners I' M']
+-- declare a manifold `M''` over the pair `(E'', H'')`.
+{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
+{H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
+{M'' : Type*} [topological_space M''] [charted_space H'' M'']
 -- declare a smooth manifold `N` over the pair `(F, G)`.
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {G : Type*} [topological_space G] {J : model_with_corners 𝕜 F G}
@@ -69,10 +73,8 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
 {G' : Type*} [topological_space G'] {J' : model_with_corners 𝕜 F' G'}
 {N' : Type*} [topological_space N'] [charted_space G' N'] [J's : smooth_manifold_with_corners J' N']
--- declare a smooth manifold `M''` over the pair `(E'', H'')`.
-{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
-{H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
-{M'' : Type*} [topological_space M''] [charted_space H'' M'']
+-- F'' is a normed space
+{F'' : Type*} [normed_add_comm_group F''] [normed_space 𝕜 F'']
 -- declare functions, sets, points and smoothness indices
 {f f₁ : M → M'} {s s₁ t : set M} {x : M} {m n : ℕ∞}
 
@@ -672,6 +674,16 @@ lemma cont_mdiff.mdifferentiable (hf : cont_mdiff I I' n f) (hn : 1 ≤ n) :
   mdifferentiable I I' f :=
 λ x, (hf x).mdifferentiable_at hn
 
+lemma smooth_within_at.mdifferentiable_within_at
+  (hf : smooth_within_at I I' f s x) : mdifferentiable_within_at I I' f s x :=
+hf.mdifferentiable_within_at le_top
+
+lemma smooth_at.mdifferentiable_at (hf : smooth_at I I' f x) : mdifferentiable_at I I' f x :=
+hf.mdifferentiable_at le_top
+
+lemma smooth_on.mdifferentiable_on (hf : smooth_on I I' f s) : mdifferentiable_on I I' f s :=
+hf.mdifferentiable_on le_top
+
 lemma smooth.mdifferentiable (hf : smooth I I' f) : mdifferentiable I I' f :=
 cont_mdiff.mdifferentiable hf le_top
 
@@ -1244,10 +1256,10 @@ alias cont_mdiff_iff_cont_diff ↔
   cont_mdiff.cont_diff cont_diff.cont_mdiff
 
 lemma cont_diff_within_at.comp_cont_mdiff_within_at
-  {g : F → F''} {f : M → F} {s : set M} {t : set F} {x : M}
+  {g : F → F'} {f : M → F} {s : set M} {t : set F} {x : M}
   (hg : cont_diff_within_at 𝕜 n g t (f x))
   (hf : cont_mdiff_within_at I 𝓘(𝕜, F) n f s x) (h : s ⊆ f ⁻¹' t) :
-  cont_mdiff_within_at I 𝓘(𝕜, F'') n (g ∘ f) s x :=
+  cont_mdiff_within_at I 𝓘(𝕜, F') n (g ∘ f) s x :=
 begin
   rw cont_mdiff_within_at_iff at *,
   refine ⟨hg.continuous_within_at.comp hf.1 h, _⟩,
@@ -1256,14 +1268,14 @@ begin
   exact (inter_subset_left _ _).trans (preimage_mono h)
 end
 
-lemma cont_diff_at.comp_cont_mdiff_at {g : F → F''} {f : M → F} {x : M}
+lemma cont_diff_at.comp_cont_mdiff_at {g : F → F'} {f : M → F} {x : M}
   (hg : cont_diff_at 𝕜 n g (f x)) (hf : cont_mdiff_at I 𝓘(𝕜, F) n f x) :
-  cont_mdiff_at I 𝓘(𝕜, F'') n (g ∘ f) x :=
+  cont_mdiff_at I 𝓘(𝕜, F') n (g ∘ f) x :=
 hg.comp_cont_mdiff_within_at hf subset.rfl
 
-lemma cont_diff.comp_cont_mdiff {g : F → F''} {f : M → F}
+lemma cont_diff.comp_cont_mdiff {g : F → F'} {f : M → F}
   (hg : cont_diff 𝕜 n g) (hf : cont_mdiff I 𝓘(𝕜, F) n f) :
-  cont_mdiff I 𝓘(𝕜, F'') n (g ∘ f) :=
+  cont_mdiff I 𝓘(𝕜, F') n (g ∘ f) :=
 λ x, hg.cont_diff_at.comp_cont_mdiff_at (hf x)
 
 end module
@@ -1967,6 +1979,22 @@ lemma smooth_fst :
   smooth (I.prod J) I (@prod.fst M N) :=
 cont_mdiff_fst
 
+lemma cont_mdiff_at.fst {f : N → M × M'} {x : N} (hf : cont_mdiff_at J (I.prod I') n f x) :
+  cont_mdiff_at J I n (λ x, (f x).1) x :=
+cont_mdiff_at_fst.comp x hf
+
+lemma cont_mdiff.fst {f : N → M × M'} (hf : cont_mdiff J (I.prod I') n f) :
+  cont_mdiff J I n (λ x, (f x).1) :=
+cont_mdiff_fst.comp hf
+
+lemma smooth_at.fst {f : N → M × M'} {x : N} (hf : smooth_at J (I.prod I') f x) :
+  smooth_at J I (λ x, (f x).1) x :=
+smooth_at_fst.comp x hf
+
+lemma smooth.fst {f : N → M × M'} (hf : smooth J (I.prod I') f) :
+  smooth J I (λ x, (f x).1) :=
+smooth_fst.comp hf
+
 lemma cont_mdiff_within_at_snd {s : set (M × N)} {p : M × N} :
   cont_mdiff_within_at (I.prod J) J n prod.snd s p :=
 begin
@@ -2006,6 +2034,22 @@ lemma smooth_snd :
   smooth (I.prod J) J (@prod.snd M N) :=
 cont_mdiff_snd
 
+lemma cont_mdiff_at.snd {f : N → M × M'} {x : N} (hf : cont_mdiff_at J (I.prod I') n f x) :
+  cont_mdiff_at J I' n (λ x, (f x).2) x :=
+cont_mdiff_at_snd.comp x hf
+
+lemma cont_mdiff.snd {f : N → M × M'} (hf : cont_mdiff J (I.prod I') n f) :
+  cont_mdiff J I' n (λ x, (f x).2) :=
+cont_mdiff_snd.comp hf
+
+lemma smooth_at.snd {f : N → M × M'} {x : N} (hf : smooth_at J (I.prod I') f x) :
+  smooth_at J I' (λ x, (f x).2) x :=
+smooth_at_snd.comp x hf
+
+lemma smooth.snd {f : N → M × M'} (hf : smooth J (I.prod I') f) :
+  smooth J I' (λ x, (f x).2) :=
+smooth_snd.comp hf
+
 lemma smooth_iff_proj_smooth {f : M → M' × N'} :
   (smooth I (I'.prod J') f) ↔ (smooth I I' (prod.fst ∘ f)) ∧ (smooth I J' (prod.snd ∘ f)) :=
 begin
@@ -2013,6 +2057,10 @@ begin
   { intro h, exact ⟨smooth_fst.comp h, smooth_snd.comp h⟩ },
   { rintro ⟨h_fst, h_snd⟩, simpa only [prod.mk.eta] using h_fst.prod_mk h_snd, }
 end
+
+lemma smooth_prod_assoc :
+  smooth ((I.prod I').prod J) (I.prod (I'.prod J)) (λ x : (M × M') × N, (x.1.1, x.1.2, x.2)) :=
+smooth_fst.fst.prod_mk $ smooth_fst.snd.prod_mk smooth_snd
 
 end projections
 
@@ -2147,6 +2195,22 @@ end pi_space
 lemma continuous_linear_map.cont_mdiff (L : E →L[𝕜] F) :
   cont_mdiff 𝓘(𝕜, E) 𝓘(𝕜, F) n L :=
 L.cont_diff.cont_mdiff
+
+-- the following proof takes very long to elaborate in pure term mode
+lemma cont_mdiff_at.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F} {x : M}
+  (hg : cont_mdiff_at I 𝓘(𝕜, F →L[𝕜] F'') n g x) (hf : cont_mdiff_at I 𝓘(𝕜, F' →L[𝕜] F) n f x) :
+  cont_mdiff_at I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) x :=
+@cont_diff_at.comp_cont_mdiff_at 𝕜 _ E _ _ ((F →L[𝕜] F'') × (F' →L[𝕜] F)) _ _ _ _ _ _ _ _
+  _ _ _ _
+  (λ x, x.1.comp x.2) (λ x, (g x, f x)) x
+  (by { apply cont_diff.cont_diff_at, apply is_bounded_bilinear_map.cont_diff,
+    exact is_bounded_bilinear_map_comp }) -- todo: simplify after #16946
+  (hg.prod_mk_space hf)
+
+lemma cont_mdiff.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F}
+  (hg : cont_mdiff I 𝓘(𝕜, F →L[𝕜] F'') n g) (hf : cont_mdiff I 𝓘(𝕜, F' →L[𝕜] F) n f) :
+  cont_mdiff I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) :=
+λ x, (hg x).clm_comp (hf x)
 
 /-! ### Smoothness of standard operations -/
 

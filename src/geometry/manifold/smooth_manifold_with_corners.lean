@@ -689,6 +689,9 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M] [charted_space H M]
+  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
+  {M' : Type*} [topological_space M'] [charted_space H' M']
   (x : M) {s t : set M}
 
 /-!
@@ -956,5 +959,10 @@ by simp only with mfld_simps
 
 lemma ext_chart_model_space_apply {x y : E} : ext_chart_at 𝓘(𝕜, E) x y = y := rfl
 
+variable {𝕜}
+
+lemma ext_chart_at_prod (x : M × M') :
+  ext_chart_at (I.prod I') x = (ext_chart_at I x.1).prod (ext_chart_at I' x.2) :=
+by simp only with mfld_simps
 
 end extended_charts

@@ -147,7 +147,7 @@ lemma finset.coe_einfsep [decidable_eq α] {s : finset α} :
 by simp_rw [einfsep_of_fintype, ← finset.coe_off_diag, finset.to_finset_coe]
 
 lemma nontrivial.einfsep_exists_of_finite [finite s] (hs : s.nontrivial) :
-∃ (x y ∈ s) (hxy : x ≠ y), s.einfsep = edist x y :=
+  ∃ (x y ∈ s) (hxy : x ≠ y), s.einfsep = edist x y :=
 begin
   classical,
   casesI nonempty_fintype s,
@@ -159,7 +159,7 @@ begin
 end
 
 lemma finite.einfsep_exists_of_nontrivial (hsf : s.finite) (hs : s.nontrivial) :
-∃ (x y ∈ s) (hxy : x ≠ y), s.einfsep = edist x y :=
+  ∃ (x y ∈ s) (hxy : x ≠ y), s.einfsep = edist x y :=
 by { letI := hsf.fintype, exact hs.einfsep_exists_of_finite }
 
 end has_edist
@@ -191,7 +191,7 @@ lemma einfsep_triple (hxy : x ≠ y) (hyz : y ≠ z) (hxz : x ≠ z) :
 by simp_rw [einfsep_insert, infi_insert, infi_singleton, einfsep_singleton,
             inf_top_eq, cinfi_pos hxy, cinfi_pos hyz, cinfi_pos hxz]
 
-lemma einfsep_pi_le_of_le {π : β → Type*} [fintype β] [∀ b, pseudo_emetric_space (π b)]
+lemma le_einfsep_pi_of_le {π : β → Type*} [fintype β] [∀ b, pseudo_emetric_space (π b)]
   {s : Π (b : β), set (π b)} {c : ℝ≥0∞} (h : ∀ b, c ≤ einfsep (s b) ) :
   c ≤ einfsep (set.pi univ s) :=
 begin
@@ -292,7 +292,7 @@ subsingleton_empty.infsep_zero
 lemma infsep_singleton : ({x} : set α).infsep = 0 :=
 subsingleton_singleton.infsep_zero
 
-lemma infsep_pair_eq_inf_to_real (hxy : x ≠ y) :
+lemma infsep_pair_le_to_real_inf (hxy : x ≠ y) :
   ({x, y} : set α).infsep ≤ (edist x y ⊓ edist y x).to_real :=
 by simp_rw [infsep, einfsep_pair_eq_inf hxy]
 
@@ -315,12 +315,12 @@ section pseudo_metric_space
 variables [pseudo_metric_space α] {x y z: α} {s t : set α}
 
 lemma nontrivial.le_infsep_iff {d} (hs : s.nontrivial) :
-d ≤ s.infsep ↔ ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ dist x y :=
+  d ≤ s.infsep ↔ ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ dist x y :=
 by simp_rw [infsep, ← ennreal.of_real_le_iff_le_to_real (hs.einfsep_ne_top), le_einfsep_iff,
             edist_dist, ennreal.of_real_le_of_real_iff (dist_nonneg)]
 
 lemma nontrivial.infsep_lt_iff {d} (hs : s.nontrivial) :
-s.infsep < d ↔ ∃ (x y ∈ s) (hxy : x ≠ y), dist x y < d :=
+  s.infsep < d ↔ ∃ (x y ∈ s) (hxy : x ≠ y), dist x y < d :=
 by { rw ← not_iff_not, push_neg, exact hs.le_infsep_iff }
 
 lemma nontrivial.le_infsep {d} (hs : s.nontrivial) (h : ∀ (x y ∈ s) (hxy : x ≠ y), d ≤ dist x y) :
@@ -355,8 +355,8 @@ by simp only [infsep, einfsep_triple hxy hyz hxz, ennreal.to_real_inf, edist_ne_
 lemma nontrivial.infsep_anti (hs : s.nontrivial) (hst : s ⊆ t) : t.infsep ≤ s.infsep :=
 ennreal.to_real_mono hs.einfsep_ne_top (einfsep_anti hst)
 
-lemma infsep_infi [decidable s.nontrivial]
-  : s.infsep = if s.nontrivial then ⨅ d : s.off_diag, (uncurry dist) (d : α × α) else 0 :=
+lemma infsep_eq_infi [decidable s.nontrivial] :
+  s.infsep = if s.nontrivial then ⨅ d : s.off_diag, (uncurry dist) (d : α × α) else 0 :=
 begin
   split_ifs with hs,
   { have hb : bdd_below (uncurry dist '' s.off_diag),
@@ -370,7 +370,7 @@ begin
   { exact ((not_nontrivial_iff).mp hs).infsep_zero }
 end
 
-lemma nontrivial.infsep_infi (hs : s.nontrivial)
+lemma nontrivial.infsep_eq_infi (hs : s.nontrivial)
   : s.infsep = ⨅ d : s.off_diag, (uncurry dist) (d : α × α) :=
 by { classical, rw [infsep_infi, if_pos hs] }
 
@@ -423,7 +423,7 @@ lemma _root_.finset.coe_infsep_of_off_diag_empty [decidable_eq α] {s : finset �
 by { rw ← finset.not_nonempty_iff_eq_empty at hs, rw [finset.coe_infsep, dif_neg hs] }
 
 lemma nontrivial.infsep_exists_of_finite [finite s] (hs : s.nontrivial) :
-∃ (x y ∈ s) (hxy : x ≠ y), s.infsep = dist x y :=
+  ∃ (x y ∈ s) (hxy : x ≠ y), s.infsep = dist x y :=
 begin
   classical,
   casesI nonempty_fintype s,
@@ -435,13 +435,13 @@ begin
 end
 
 lemma finite.infsep_exists_of_nontrivial (hsf : s.finite) (hs : s.nontrivial) :
-∃ (x y ∈ s) (hxy : x ≠ y), s.infsep = dist x y :=
+  ∃ (x y ∈ s) (hxy : x ≠ y), s.infsep = dist x y :=
 by { letI := hsf.fintype, exact hs.infsep_exists_of_finite }
 
 end pseudo_metric_space
 
 section metric_space
-variables [metric_space α] {x y z: α} {s t : set α}
+variables [metric_space α] {s : set α}
 
 lemma infsep_zero_iff_subsingleton_of_finite [finite s] :
   s.infsep = 0 ↔ s.subsingleton :=

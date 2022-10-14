@@ -9,7 +9,9 @@ import topology.algebra.order.upper_lower
 /-!
 # Order-connected sets are null-measurable
 
-This file proves that order-connected sets in `ℝⁿ` under the pointwise order are measurable.
+This file proves that order-connected sets in `ℝⁿ` under the pointwise order are null-measurable.
+Recall that `x ≤ y` iff `∀ i, x i ≤ y i`, and `s` is order-connected iff
+`∀ x y ∈ s, ∀ z, x ≤ z → z ≤ y → z ∈ s`.
 
 ## Main declarations
 
@@ -17,8 +19,11 @@ This file proves that order-connected sets in `ℝⁿ` under the pointwise order
 
 ## Notes
 
-We prove measurability in `ℝⁿ` with the `∞`-metric, but this transfers directly to `ℝⁿ` with the
-Euclidean metric because they have the same measurable sets.
+We prove null-measurability in `ℝⁿ` with the `∞`-metric, but this transfers directly to `ℝⁿ` with
+the Euclidean metric because they have the same measurable sets.
+
+Null-measurability can't be strengthened to measurability because any antichain (and in particular
+any subset of the antidiagonal `{(x, y) | x + y = 0}`) is order-connected.
 
 ## TODO
 
@@ -113,3 +118,7 @@ end
 protected lemma set.ord_connected.null_measurable_set (hs : s.ord_connected) :
   null_measurable_set s :=
 null_measurable_set_of_null_frontier hs.null_frontier
+
+lemma is_antichain.volume_eq_zero [nonempty ι] (hs : is_antichain (≤) s) : volume s = 0 :=
+le_bot_iff.1 $ (volume.mono $ by { rw [←closure_diff_interior, hs.interior_eq_empty, diff_empty],
+  exact subset_closure }).trans_eq hs.ord_connected.null_frontier

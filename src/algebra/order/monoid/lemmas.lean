@@ -1161,3 +1161,14 @@ protected lemma mul_le_iff_le_one_left [comm_monoid α] [covariant_class α α (
 by rw [mul_comm, ha.mul_le_iff_le_one_right]
 
 end mul_le_cancellable
+
+section bit
+variables [has_add α] [preorder α]
+
+lemma bit0_mono [covariant_class α α (+) (≤)] [covariant_class α α (swap (+)) (≤)] :
+  monotone (bit0 : α → α) := λ a b h, add_le_add h h
+
+lemma bit0_strict_mono [covariant_class α α (+) (<)] [covariant_class α α (swap (+)) (<)] :
+  strict_mono (bit0 : α → α) := λ a b h, add_lt_add h h
+
+end bit

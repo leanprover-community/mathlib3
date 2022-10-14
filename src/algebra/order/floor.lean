@@ -185,7 +185,23 @@ lemma gc_ceil_coe : galois_connection (ceil : α → ℕ) coe := floor_semiring.
 
 lemma lt_ceil : n < ⌈a⌉₊ ↔ (n : α) < a := lt_iff_lt_of_le_iff_le ceil_le
 
+@[simp] lemma add_one_le_ceil_iff : n + 1 ≤ ⌈a⌉₊ ↔ (n : α) < a :=
+by rw [← nat.lt_ceil, nat.add_one_le_iff]
+
+@[simp] lemma ne_le_ceil_iff : 1 ≤ ⌈a⌉₊ ↔ 0 < a :=
+by rw [← zero_add 1, nat.add_one_le_ceil_iff, nat.cast_zero]
+
+lemma ceil_le_floor_add_one (a : α) : ⌈a⌉₊ ≤ ⌊a⌋₊ + 1 :=
+by { rw [ceil_le, nat.cast_add, nat.cast_one], exact (lt_floor_add_one a).le }
+
 lemma le_ceil (a : α) : a ≤ ⌈a⌉₊ := ceil_le.1 le_rfl
+
+@[simp] lemma ceil_int_cast {α : Type*} [linear_ordered_ring α]
+  [floor_semiring α] (z : ℤ) : ⌈(z : α)⌉₊ = z.to_nat :=
+eq_of_forall_ge_iff $ λ a, by { simp, norm_cast }
+
+@[simp] lemma ceil_nat_cast (n : ℕ) : ⌈(n : α)⌉₊ = n :=
+eq_of_forall_ge_iff $ λ a, by rw [ceil_le, cast_le]
 
 lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
 
@@ -199,6 +215,9 @@ eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
 @[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := by rw [← le_zero_iff, ceil_le, nat.cast_zero]
 
 @[simp] lemma ceil_pos : 0 < ⌈a⌉₊ ↔ 0 < a := by rw [lt_ceil, cast_zero]
+
+lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉₊ :=
+by exact_mod_cast ha.trans (le_ceil a)
 
 lemma lt_of_ceil_lt (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
 

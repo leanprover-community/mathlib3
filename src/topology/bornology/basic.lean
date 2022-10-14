@@ -176,7 +176,7 @@ bInter_mem hs
   is_cobounded (⋂ i ∈ s, f i) ↔ ∀ i ∈ s, is_cobounded (f i) :=
 bInter_finset_mem s
 
-@[simp] lemma is_cobounded_Inter [fintype ι] {f : ι → set α} :
+@[simp] lemma is_cobounded_Inter [finite ι] {f : ι → set α} :
   is_cobounded (⋂ i, f i) ↔ ∀ i, is_cobounded (f i) :=
 Inter_mem
 
@@ -196,7 +196,7 @@ lemma is_bounded_sUnion {S : set (set α)} (hs : S.finite) :
   is_bounded (⋃₀ S) ↔ (∀ s ∈ S, is_bounded s) :=
 by rw [sUnion_eq_bUnion, is_bounded_bUnion hs]
 
-@[simp] lemma is_bounded_Union [fintype ι] {s : ι → set α} :
+@[simp] lemma is_bounded_Union [finite ι] {s : ι → set α} :
   is_bounded (⋃ i, s i) ↔ ∀ i, is_bounded (s i) :=
 by rw [← sUnion_range, is_bounded_sUnion (finite_range s), forall_range_iff]
 

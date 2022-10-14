@@ -33,7 +33,7 @@ and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V
 * When `V` is preadditive, linear, or abelian so is `Action V G`.
 -/
 
-universes u
+universes u v
 
 open category_theory
 open category_theory.limits
@@ -73,6 +73,8 @@ def ρ_Aut {G : Group.{u}} (A : Action V (Mon.of G)) : G ⟶ Group.of (Aut A.V) 
 variable (G : Mon.{u})
 
 section
+
+instance inhabited' : inhabited (Action (Type u) G) := ⟨⟨punit, 1⟩⟩
 
 /-- The trivial representation of a group. -/
 def trivial : Action AddCommGroup G :=
@@ -288,10 +290,13 @@ instance : preadditive (Action V G) :=
   comp_add' := by { intros, ext, exact preadditive.comp_add _ _ _ _ _ _, }, }
 
 instance : functor.additive (functor_category_equivalence V G).functor := {}
+instance forget_additive : functor.additive (forget V G) := {}
 
 @[simp] lemma zero_hom {X Y : Action V G} : (0 : X ⟶ Y).hom = 0 := rfl
 @[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
 @[simp] lemma add_hom {X Y : Action V G} (f g : X ⟶ Y) : (f + g).hom = f.hom + g.hom := rfl
+@[simp] lemma sum_hom {X Y : Action V G} {ι : Type*} (f : ι → (X ⟶ Y)) (s : finset ι) :
+  (s.sum f).hom = s.sum (λ i, (f i).hom) := (forget V G).map_sum f s
 
 end preadditive
 
@@ -520,6 +525,55 @@ instance res_additive [preadditive V] : (res V f).additive := {}
 variables {R : Type*} [semiring R]
 
 instance res_linear [preadditive V] [linear R V] : (res V f).linear R := {}
+
+/-- Bundles a type `H` with a multiplicative action of `G` as an `Action`. -/
+def of_mul_action (G H : Type u) [monoid G] [mul_action G H] : Action (Type u) (Mon.of G) :=
+{ V := H,
+  ρ := @mul_action.to_End_hom _ _ _ (by assumption) }
+
+@[simp] lemma of_mul_action_apply {G H : Type u} [monoid G] [mul_action G H] (g : G) (x : H) :
+  (of_mul_action G H).ρ g x = (g • x : H) :=
+rfl
+
+/-- Given a family `F` of types with `G`-actions, this is the limit cone demonstrating that the
+product of `F` as types is a product in the category of `G`-sets. -/
+def of_mul_action_limit_cone {ι : Type v} (G : Type (max v u)) [monoid G]
+  (F : ι → Type (max v u)) [Π i : ι, mul_action G (F i)] :
+  limit_cone (discrete.functor (λ i : ι, Action.of_mul_action G (F i))) :=
+{ cone :=
+  { X := Action.of_mul_action G (Π i : ι, F i),
+    π :=
+    { app := λ i, ⟨λ x, x i.as, λ g, by ext; refl⟩,
+      naturality' := λ i j x,
+      begin
+        ext,
+        discrete_cases,
+        cases x,
+        congr
+      end } },
+  is_limit :=
+  { lift := λ s,
+    { hom := λ x i, (s.π.app ⟨i⟩).hom x,
+      comm' := λ g,
+      begin
+        ext x j,
+        dsimp,
+        exact congr_fun ((s.π.app ⟨j⟩).comm g) x,
+      end },
+    fac' := λ s j,
+    begin
+      ext,
+      dsimp,
+      congr,
+      rw discrete.mk_as,
+    end,
+    uniq' := λ s f h,
+    begin
+      ext x j,
+      dsimp at *,
+      rw ←h ⟨j⟩,
+      congr,
+    end } }
 
 end Action
 

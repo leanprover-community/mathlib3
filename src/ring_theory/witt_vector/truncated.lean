@@ -318,7 +318,7 @@ lemma mem_ker_truncate (x : 𝕎 R) :
 begin
   simp only [ring_hom.mem_ker, truncate, truncate_fun, ring_hom.coe_mk,
     truncated_witt_vector.ext_iff, truncated_witt_vector.coeff_mk, coeff_zero],
-  exact subtype.forall
+  exact fin.forall_iff
 end
 
 variables (p)

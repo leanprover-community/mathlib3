@@ -57,7 +57,7 @@ is a set such that the average of any two distinct elements is not in the set."]
 def mul_salem_spencer : Prop := ∀ ⦃a b c⦄, a ∈ s → b ∈ s → c ∈ s → a * b = c * c → a = b
 
 /-- Whether a given finset is Salem-Spencer is decidable. -/
-@[to_additive]
+@[to_additive "Whether a given finset is Salem-Spencer is decidable."]
 instance {α : Type*} [decidable_eq α] [monoid α] {s : finset α} :
   decidable (mul_salem_spencer (s : set α)) :=
 decidable_of_iff (∀ a ∈ s, ∀ b ∈ s, ∀ c ∈ s, a * b = c * c → a = b)
@@ -345,7 +345,7 @@ calc
 
 @[to_additive]
 lemma le_mul_roth_number_product (s : finset α) (t : finset β) :
-  mul_roth_number s * mul_roth_number t ≤ mul_roth_number (s.product t) :=
+  mul_roth_number s * mul_roth_number t ≤ mul_roth_number (s ×ˢ t) :=
 begin
   obtain ⟨u, hus, hucard, hu⟩ := mul_roth_number_spec s,
   obtain ⟨v, hvt, hvcard, hv⟩ := mul_roth_number_spec t,

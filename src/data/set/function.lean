@@ -261,6 +261,21 @@ subtype.map f h
 @[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
   (h.restrict f s t x : β) = f x := rfl
 
+/-- Restricting the domain and then the codomain is the same as `maps_to.restrict`. -/
+@[simp] lemma cod_restrict_restrict (h : ∀ x : s, f x ∈ t) :
+  cod_restrict (s.restrict f) t h = maps_to.restrict f s t (λ x hx, h ⟨x, hx⟩) := rfl
+
+/-- Reverse of `set.cod_restrict_restrict`. -/
+lemma maps_to.restrict_eq_cod_restrict (h : maps_to f s t) :
+  h.restrict f s t = cod_restrict (s.restrict f) t (λ x, h x.2) := rfl
+
+lemma maps_to.coe_restrict (h : set.maps_to f s t) :
+  coe ∘ h.restrict f s t = s.restrict f := rfl
+
+lemma maps_to.range_restrict (f : α → β) (s : set α) (t : set β) (h : maps_to f s t) :
+  range (h.restrict f s t) = coe ⁻¹' (f '' s) :=
+set.range_subtype_map f h
+
 lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x : s, f x = g x :=
 ⟨λ h, ⟨h.restrict f s t, λ _, rfl⟩,
   λ ⟨g, hg⟩ x hx, by { erw [hg ⟨x, hx⟩], apply subtype.coe_prop }⟩
@@ -367,6 +382,26 @@ theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
 theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x ∈ t ↔ x ∈ s :=
 ⟨λ ht, by_contra $ λ hs, hc hs ht, λ hx, h hx⟩
 
+/-! ### Restriction onto preimage -/
+
+section
+
+variables (t f)
+
+/-- The restriction of a function onto the preimage of a set. -/
+@[simps] def restrict_preimage : f ⁻¹' t → t :=
+(set.maps_to_preimage f t).restrict _ _ _
+
+lemma range_restrict_preimage :
+  range (t.restrict_preimage f) = coe ⁻¹' (range f) :=
+begin
+  delta set.restrict_preimage,
+  rw [maps_to.range_restrict, set.image_preimage_eq_inter_range,
+    set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
+end
+
+end
+
 /-! ### Injectivity on a set -/
 
 /-- `f` is injective on `a` if the restriction of `f` to `a` is injective. -/
@@ -385,6 +420,11 @@ subsingleton_singleton.inj_on f
 theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y ↔ x = y :=
 ⟨h hx hy, λ h, h ▸ rfl⟩
+
+lemma inj_on.ne_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) : f x ≠ f y ↔ x ≠ y :=
+(h.eq_iff hx hy).not
+
+alias inj_on.ne_iff ↔ _ inj_on.ne
 
 theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
   inj_on f₂ s :=
@@ -430,6 +470,9 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
 alias inj_on_iff_injective ↔ inj_on.injective _
+
+lemma maps_to.restrict_inj (h : maps_to f s t) : injective (h.restrict f s t) ↔ inj_on f s :=
+by rw [h.restrict_eq_cod_restrict, injective_cod_restrict, inj_on_iff_injective]
 
 lemma exists_inj_on_iff_injective [nonempty β] :
   (∃ f : α → β, inj_on f s) ↔ ∃ f : s → β, injective f :=
@@ -1009,7 +1052,7 @@ end
 lemma injective_piecewise_iff {f g : α → β} :
   injective (s.piecewise f g) ↔ inj_on f s ∧ inj_on g sᶜ ∧ (∀ (x ∈ s) (y ∉ s), f x ≠ g y) :=
 begin
-  rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ s _),
+  rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ _ s),
     (piecewise_eq_on s f g).inj_on_iff, (piecewise_eq_on_compl s f g).inj_on_iff],
   refine and_congr iff.rfl (and_congr iff.rfl $ forall₄_congr $ λ x hx y hy, _),
   rw [piecewise_eq_of_mem s f g hx, piecewise_eq_of_not_mem s f g hy]
@@ -1025,7 +1068,7 @@ by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
   pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
 begin
   ext x,
-  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  simp only [mem_pi, mem_inter_iff, ← forall_and_distrib],
   refine forall_congr (λ i, _),
   by_cases hi : i ∈ s'; simp *
 end

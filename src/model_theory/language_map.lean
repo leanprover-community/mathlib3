@@ -27,7 +27,7 @@ the continuum hypothesis*][flypitch_itp]
 
 -/
 
-universes u v u' v' w
+universes u v u' v' w w'
 
 namespace first_order
 namespace language
@@ -38,8 +38,8 @@ variables (L : language.{u v}) (L' : language.{u' v'}) {M : Type w} [L.Structure
 
 /-- A language homomorphism maps the symbols of one language to symbols of another. -/
 structure Lhom :=
-(on_function : ∀{n}, L.functions n → L'.functions n)
-(on_relation : ∀{n}, L.relations n → L'.relations n)
+(on_function : ∀ ⦃n⦄, L.functions n → L'.functions n)
+(on_relation : ∀ ⦃n⦄, L.relations n → L'.relations n)
 
 infix ` →ᴸ `:10 := Lhom -- \^L
 
@@ -108,7 +108,7 @@ Lhom.funext (funext (λ n, nat.cases_on n (funext h0) (λ n, nat.cases_on n (fun
 @[simps] def comp (g : L' →ᴸ L'') (f : L →ᴸ L') : L →ᴸ L'' :=
 ⟨λ n F, g.1 (f.1 F), λ _ R, g.2 (f.2 R)⟩
 
-local infix ` ∘ `:60 := Lhom.comp
+local infix (name := Lhom.comp) ` ∘ `:60 := Lhom.comp
 
 @[simp] lemma id_comp (F : L →ᴸ L') : (Lhom.id L') ∘ F = F :=
 by {cases F, refl}
@@ -168,8 +168,19 @@ end sum_map
 
 /-- A language homomorphism is injective when all the maps between symbol types are. -/
 protected structure injective : Prop :=
-(on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
-(on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
+(on_function {n} : function.injective (λ f : L.functions n, on_function ϕ f))
+(on_relation {n} : function.injective (λ R : L.relations n, on_relation ϕ R))
+
+/-- Pulls a `L`-structure along a language map `ϕ : L →ᴸ L'`, and then expands it
+  to an `L'`-structure arbitrarily. -/
+noncomputable def default_expansion (ϕ : L →ᴸ L')
+  [∀ n (f : L'.functions n), decidable (f ∈ set.range (λ (f : L.functions n), on_function ϕ f))]
+  [∀ n (r : L'.relations n), decidable (r ∈ set.range (λ (r : L.relations n), on_relation ϕ r))]
+  (M : Type*) [inhabited M] [L.Structure M] : L'.Structure M :=
+{ fun_map := λ n f xs, if h' : f ∈ set.range (λ (f : L.functions n), on_function ϕ f) then
+    fun_map h'.some xs else default,
+  rel_map := λ n r xs, if h' : r ∈ set.range (λ (r : L.relations n), on_relation ϕ r) then
+    rel_map h'.some xs else default }
 
 /-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
 all symbols on that structure. -/
@@ -179,7 +190,17 @@ class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
 (map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
   rel_map (ϕ.on_relation R) x = rel_map R x)
 
-attribute [simp] is_expansion_on.map_on_function is_expansion_on.map_on_relation
+@[simp] lemma map_on_function {M : Type*}
+  [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
+  {n} (f : L.functions n) (x : fin n → M) :
+  fun_map (ϕ.on_function f) x = fun_map f x :=
+is_expansion_on.map_on_function f x
+
+@[simp] lemma map_on_relation {M : Type*}
+  [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
+  {n} (R : L.relations n) (x : fin n → M) :
+  rel_map (ϕ.on_relation R) x = rel_map R x :=
+is_expansion_on.map_on_relation R x
 
 instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
@@ -211,11 +232,45 @@ instance sum_inr_is_expansion_on (M : Type*)
   (Lhom.sum_inr : L' →ᴸ L.sum L').is_expansion_on M :=
 ⟨λ _ f _, rfl, λ _ R _, rfl⟩
 
+@[simp] lemma fun_map_sum_inl [(L.sum L').Structure M]
+  [(Lhom.sum_inl : L →ᴸ L.sum L').is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L.sum L') M _ n (sum.inl f) x = fun_map f x :=
+(Lhom.sum_inl : L →ᴸ L.sum L').map_on_function f x
+
+@[simp] lemma fun_map_sum_inr [(L'.sum L).Structure M]
+  [(Lhom.sum_inr : L →ᴸ L'.sum L).is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L'.sum L) M _ n (sum.inr f) x = fun_map f x :=
+(Lhom.sum_inr : L →ᴸ L'.sum L).map_on_function f x
+
+lemma sum_inl_injective : (Lhom.sum_inl : L →ᴸ L.sum L').injective :=
+⟨λ n, sum.inl_injective, λ n, sum.inl_injective⟩
+
+lemma sum_inr_injective : (Lhom.sum_inr : L' →ᴸ L.sum L').injective :=
+⟨λ n, sum.inr_injective, λ n, sum.inr_injective⟩
+
 @[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
   @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
 begin
   letI := ϕ.reduct M,
   exact ⟨λ _ f _, rfl, λ _ R _, rfl⟩,
+end
+
+lemma injective.is_expansion_on_default {ϕ : L →ᴸ L'}
+  [∀ n (f : L'.functions n), decidable (f ∈ set.range (λ (f : L.functions n), on_function ϕ f))]
+  [∀ n (r : L'.relations n), decidable (r ∈ set.range (λ (r : L.relations n), on_relation ϕ r))]
+  (h : ϕ.injective) (M : Type*) [inhabited M] [L.Structure M] :
+  @is_expansion_on L L' ϕ M _ (ϕ.default_expansion M) :=
+begin
+  letI := ϕ.default_expansion M,
+  refine ⟨λ n f xs, _, λ n r xs, _⟩,
+  { have hf : ϕ.on_function f ∈ set.range (λ (f : L.functions n), ϕ.on_function f) := ⟨f, rfl⟩,
+    refine (dif_pos hf).trans _,
+    rw h.on_function hf.some_spec },
+  { have hr : ϕ.on_relation r ∈ set.range (λ (r : L.relations n), ϕ.on_relation r) := ⟨r, rfl⟩,
+    refine (dif_pos hr).trans _,
+    rw h.on_relation hr.some_spec },
 end
 
 end Lhom
@@ -307,19 +362,23 @@ section with_constants
 variable (L)
 
 section
-variables (α : Type w)
+variables (α : Type w')
 
 /-- Extends a language with a constant for each element of a parameter set in `M`. -/
-def with_constants : language.{(max u w) v} := L.sum (constants_on α)
+def with_constants : language.{(max u w') v} := L.sum (constants_on α)
 
-localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
+localized "notation (name := language.with_constants)
+  L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 
 @[simp] lemma card_with_constants :
-  (L[[α]]).card = cardinal.lift.{w} L.card + cardinal.lift.{max u v} (# α) :=
+  (L[[α]]).card = cardinal.lift.{w'} L.card + cardinal.lift.{max u v} (# α) :=
 by rw [with_constants, card_sum, card_constants_on]
 
 /-- The language map adding constants.  -/
 @[simps] def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
+
+lemma Lhom_with_constants_injective : (L.Lhom_with_constants α).injective :=
+Lhom.sum_inl_injective
 
 variables {α}
 
@@ -345,6 +404,18 @@ variables (L) (α)
     exact trans (congr rfl (subsingleton.elim _ _)) Lhom.sum_elim_inl_inr } }
 
 variables {α} {β : Type*}
+
+@[simp] lemma with_constants_fun_map_sum_inl [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {f : L.functions n} {x : fin n → M} :
+  @fun_map (L[[α]]) M _ n (sum.inl f) x = fun_map f x :=
+(Lhom_with_constants L α).map_on_function f x
+
+@[simp] lemma with_constants_rel_map_sum_inl [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {R : L.relations n} {x : fin n → M} :
+  @rel_map (L[[α]]) M _ n (sum.inl R) x = rel_map R x :=
+(Lhom_with_constants L α).map_on_relation R x
 
 /-- The language map extending the constant set.  -/
 def Lhom_with_constants_map (f : α → β) : L[[α]] →ᴸ L[[β]] :=
@@ -387,6 +458,13 @@ instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ
   [φ.is_expansion_on M] :
   (φ.add_constants α).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
+
+@[simp] lemma with_constants_fun_map_sum_inr {a : α} {x : fin 0 → M} :
+  @fun_map (L[[α]]) M _ 0 (sum.inr a : L[[α]].functions 0) x = L.con a :=
+begin
+  rw unique.eq_default x,
+  exact (Lhom.sum_inr : (constants_on α) →ᴸ L.sum _).map_on_function _ _,
+end
 
 variables {α} (A : set M)
 

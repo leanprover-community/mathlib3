@@ -5,6 +5,7 @@ Authors: Patrick Massot
 -/
 import topology.algebra.uniform_ring
 import topology.algebra.field
+import field_theory.subfield
 
 /-!
 # Completion of topological fields
@@ -143,8 +144,7 @@ begin
     dsimp [c, f],
     rw hat_inv_extends z_ne,
     norm_cast,
-    rw mul_inv_cancel z_ne,
-    norm_cast },
+    rw mul_inv_cancel z_ne, },
   replace fxclo := closure_mono this fxclo,
   rwa [closure_singleton, mem_singleton_iff] at fxclo
 end
@@ -173,3 +173,33 @@ instance : topological_division_ring (hat K) :=
 
 end completion
 end uniform_space
+
+variables (L : Type*) [field L]  [uniform_space L] [completable_top_field L]
+
+instance subfield.completable_top_field (K : subfield L) : completable_top_field K :=
+{ nice := begin
+    intros F F_cau inf_F,
+    let i : K →+* L := K.subtype,
+    have hi : uniform_inducing i, from uniform_embedding_subtype_coe.to_uniform_inducing,
+    rw ← hi.cauchy_map_iff at F_cau ⊢,
+    rw [map_comm (show (i ∘ λ x, x⁻¹) = (λ x, x⁻¹) ∘ i, by {ext, refl})],
+    apply completable_top_field.nice _ F_cau,
+    rw [← filter.push_pull', ← map_zero i, ← hi.inducing.nhds_eq_comap, inf_F, filter.map_bot]
+  end,
+  ..subtype.separated_space (K : set L) }
+
+@[priority 100]
+instance completable_top_field_of_complete (L : Type*) [field L]
+  [uniform_space L] [topological_division_ring L] [separated_space L] [complete_space L] :
+  completable_top_field L :=
+{ nice := λ F cau_F hF, begin
+    haveI : ne_bot F := cau_F.1,
+    rcases complete_space.complete cau_F with ⟨x, hx⟩,
+    have hx' : x ≠ 0,
+    { rintro rfl,
+      rw inf_eq_right.mpr hx at hF,
+      exact cau_F.1.ne hF },
+    exact filter.tendsto.cauchy_map (calc map (λ x, x⁻¹) F ≤ map (λ x, x⁻¹) (𝓝 x) : map_mono hx
+                                                       ... ≤ 𝓝 (x⁻¹) : continuous_at_inv₀ hx')
+  end,
+  ..‹separated_space L›}

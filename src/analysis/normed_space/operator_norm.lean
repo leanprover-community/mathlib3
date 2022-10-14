@@ -499,7 +499,7 @@ lemma exists_lt_apply_of_lt_op_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_
   (f : E →SL[σ₁₂] F) {r : ℝ} (hr : r < ∥f∥) : ∃ x : E, ∥x∥ < 1 ∧ r < ∥f x∥ :=
 begin
   by_cases hr₀ : r < 0,
-  { refine ⟨0, by simpa using hr₀⟩, },
+  { exact ⟨0, by simpa using hr₀⟩, },
   { lift r to ℝ≥0 using not_lt.1 hr₀,
     exact f.exists_lt_apply_of_lt_op_nnnorm hr, }
 end

@@ -918,6 +918,13 @@ lemma card_roots_le_map [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B} (
   p.roots.card ≤ (p.map f).roots.card :=
 by { rw ← p.roots.card_map f, exact multiset.card_le_of_le (map_roots_le h) }
 
+lemma card_roots_le_map_of_injective [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B}
+  (hf : function.injective f) : p.roots.card ≤ (p.map f).roots.card :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, polynomial.map_zero, multiset.card_zero], },
+  exact card_roots_le_map ((polynomial.map_ne_zero_iff hf).mpr hp0),
+end
+
 lemma roots_map_of_injective_of_card_eq_nat_degree [is_domain A] [is_domain B] {p : A[X]}
   {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :
   p.roots.map f = (p.map f).roots :=

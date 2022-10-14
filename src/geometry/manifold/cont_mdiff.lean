@@ -2200,9 +2200,8 @@ L.cont_diff.cont_mdiff
 lemma cont_mdiff_at.clm_comp {g : M → F →L[𝕜] F''} {f : M → F' →L[𝕜] F} {x : M}
   (hg : cont_mdiff_at I 𝓘(𝕜, F →L[𝕜] F'') n g x) (hf : cont_mdiff_at I 𝓘(𝕜, F' →L[𝕜] F) n f x) :
   cont_mdiff_at I 𝓘(𝕜, F' →L[𝕜] F'') n (λ x, (g x).comp (f x)) x :=
-@cont_diff_at.comp_cont_mdiff_at 𝕜 _ E _ _ ((F →L[𝕜] F'') × (F' →L[𝕜] F)) _ _ _ _ _ _ _ _
-  _ _ _ _
-  (λ x, x.1.comp x.2) (λ x, (g x, f x)) x
+@cont_diff_at.comp_cont_mdiff_at _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+  (λ x : (F →L[𝕜] F'') × (F' →L[𝕜] F), x.1.comp x.2) (λ x, (g x, f x)) x
   (by { apply cont_diff.cont_diff_at, apply is_bounded_bilinear_map.cont_diff,
     exact is_bounded_bilinear_map_comp }) -- todo: simplify after #16946
   (hg.prod_mk_space hf)

@@ -283,6 +283,16 @@ end
 
 end seminormed_add_comm_group
 
+/-- A linear map from a `module` to a `normed_space` induces a `normed_space` structure on the
+domain, using the `seminormed_add_comm_group.induced` norm.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_space.induced {F : Type*} (α β γ : Type*) [normed_field α] [add_comm_group β]
+  [module α β] [seminormed_add_comm_group γ] [normed_space α γ] [linear_map_class F α β γ]
+  (f : F) : @normed_space α β _ (seminormed_add_comm_group.induced β γ f) :=
+{ norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
+
 section normed_add_comm_group
 
 variables [normed_field α]

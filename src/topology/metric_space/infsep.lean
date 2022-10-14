@@ -457,6 +457,20 @@ begin
   exact λ _, einfsep_pos_of_finite
 end
 
+lemma finite.infsep_zero_iff_subsingleton (hs : s.finite) :
+  s.infsep = 0 ↔ s.subsingleton :=
+by { letI := hs.fintype, exact infsep_zero_iff_subsingleton_of_finite }
+
+lemma finite.infsep_pos_iff_nontrivial (hs : s.finite) :
+  0 < s.infsep ↔ s.nontrivial :=
+by { letI := hs.fintype, exact infsep_pos_iff_nontrivial_of_finite }
+
+lemma _root_.finset.infsep_zero_iff_subsingleton (s : finset α) :
+  (s : set α).infsep = 0 ↔ (s : set α).subsingleton := infsep_zero_iff_subsingleton_of_finite
+
+lemma _root_.finset.infsep_pos_iff_nontrivial (s : finset α) :
+  0 < (s : set α).infsep ↔ (s : set α).nontrivial := infsep_pos_iff_nontrivial_of_finite
+
 end metric_space
 
 end infsep

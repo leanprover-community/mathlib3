@@ -600,6 +600,7 @@ theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_e
 lemma mem_nhds_within_iff : s ∈ 𝓝[t] x ↔ ∃ ε > 0, ball x ε ∩ t ⊆ s :=
 nhds_within_basis_eball.mem_iff
 
+section
 variables [pseudo_emetric_space β] {f : α → β}
 
 lemma tendsto_nhds_within_nhds_within {t : set β} {a b} :
@@ -617,6 +618,8 @@ by { rw [← nhds_within_univ b, tendsto_nhds_within_nhds_within], simp only [me
 lemma tendsto_nhds_nhds {a b} :
   tendsto f (𝓝 a) (𝓝 b) ↔ ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, edist x a < δ → edist (f x) b < ε :=
 nhds_basis_eball.tendsto_iff nhds_basis_eball
+
+end
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp [is_open_iff_nhds, mem_nhds_iff]

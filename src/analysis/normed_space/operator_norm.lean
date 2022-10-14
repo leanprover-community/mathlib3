@@ -504,7 +504,7 @@ begin
     exact f.exists_lt_apply_of_lt_op_nnnorm hr, }
 end
 
-lemma op_nnnorm_eq_Sup_unit_ball {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_unit_ball_eq_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥₊) '' ball 0 1) = ∥f∥₊ :=
@@ -517,13 +517,13 @@ begin
     exact ⟨_, ⟨x, mem_ball_zero_iff.2 hx, rfl⟩, hxf⟩ },
 end
 
-lemma op_norm_eq_Sup_unit_ball {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_unit_ball_eq_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥) '' ball 0 1) = ∥f∥ :=
-by simpa only [nnreal.coe_Sup, set.image_image] using nnreal.coe_eq.2 f.op_nnnorm_eq_Sup_unit_ball
+by simpa only [nnreal.coe_Sup, set.image_image] using nnreal.coe_eq.2 f.Sup_unit_ball_eq_nnnorm
 
-lemma op_nnnorm_eq_Sup_closed_unit_ball {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_closed_unit_ball_eq_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥₊) '' closed_ball 0 1) = ∥f∥₊ :=
@@ -531,17 +531,17 @@ begin
   have hbdd : ∀ y ∈ (λ x, ∥f x∥₊) '' closed_ball 0 1, y ≤ ∥f∥₊,
   { rintro - ⟨x, hx, rfl⟩, exact f.unit_le_op_norm x (mem_closed_ball_zero_iff.1 hx) },
   refine le_antisymm (cSup_le ((nonempty_closed_ball.mpr zero_le_one).image _) hbdd) _,
-  rw ←op_nnnorm_eq_Sup_unit_ball,
+  rw ←Sup_unit_ball_eq_nnnorm,
   exact cSup_le_cSup ⟨∥f∥₊, hbdd⟩ ((nonempty_ball.2 zero_lt_one).image _)
     (set.image_subset _ ball_subset_closed_ball),
 end
 
-lemma op_norm_eq_Sup_closed_unit_ball {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_closed_unit_ball_eq_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
   (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥) '' closed_ball 0 1) = ∥f∥ :=
 by simpa only [nnreal.coe_Sup, set.image_image] using nnreal.coe_eq.2
-  f.op_nnnorm_eq_Sup_closed_unit_ball
+  f.Sup_closed_unit_ball_eq_nnnorm
 
 end Sup
 

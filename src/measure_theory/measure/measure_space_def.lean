@@ -380,9 +380,13 @@ by simp [eventually_le_antisymm_iff, ae_le_set]
   μ (s ∆ t) = 0 ↔ s =ᵐ[μ] t :=
 by simp [ae_eq_set, symm_diff_def]
 
-@[simp] lemma ae_eq_set_compl {s t : set α} :
+@[simp] lemma ae_eq_set_compl_compl {s t : set α} :
   sᶜ =ᵐ[μ] tᶜ ↔ s =ᵐ[μ] t :=
 by simp only [← measure_symm_diff_eq_zero_iff, compl_symm_diff_compl]
+
+lemma ae_eq_set_compl {s t : set α} :
+  sᶜ =ᵐ[μ] t ↔ s =ᵐ[μ] tᶜ :=
+by { conv_lhs { rw ← compl_compl t, }, exact ae_eq_set_compl_compl, }
 
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=

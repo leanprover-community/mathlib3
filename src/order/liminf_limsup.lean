@@ -749,14 +749,14 @@ lemma liminf_sdiff [ne_bot f] (a : α) :
 by simp only [sdiff_eq, @inf_comm _ _ _ aᶜ, inf_liminf]
 
 lemma sdiff_limsup [ne_bot f] (a : α) :
-  a \ (limsup u f) = liminf (λ b, a \ (u b)) f :=
+  a \ limsup u f = liminf (λ b, a \ u b) f :=
 begin
   rw ← compl_inj_iff,
   simp only [sdiff_eq, liminf_compl, (∘), compl_inf, compl_compl, sup_limsup],
 end
 
 lemma sdiff_liminf (a : α) :
-  a \ (liminf u f) = limsup (λ b, a \ (u b)) f :=
+  a \ liminf u f = limsup (λ b, a \ u b) f :=
 begin
   rw ← compl_inj_iff,
   simp only [sdiff_eq, limsup_compl, (∘), compl_inf, compl_compl, sup_liminf],

@@ -2060,8 +2060,8 @@ lemma liminf_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preservi
   @liminf (set α) ℕ _ (λ n, (preimage f)^[n] s) at_top =ᵐ[μ] s :=
 begin
   -- Need `@` below because of diamond; see gh issue #16932
-  rw [← ae_eq_set_compl, @filter.liminf_compl (set α)],
-  rw [← ae_eq_set_compl, ← preimage_compl] at hs,
+  rw [← ae_eq_set_compl_compl, @filter.liminf_compl (set α)],
+  rw [← ae_eq_set_compl_compl, ← preimage_compl] at hs,
   convert hf.limsup_preimage_iterate_ae_eq hs,
   ext1 n,
   simp only [← set.preimage_iterate_eq, comp_app, preimage_compl],
@@ -2605,6 +2605,10 @@ by simpa only [measure_univ] using measure_compl hs (measure_lt_top μ s).ne
 @[simp] lemma prob_compl_eq_zero_iff [is_probability_measure μ] (hs : measurable_set s) :
   μ sᶜ = 0 ↔ μ s = 1 :=
 by simp only [prob_compl_eq_one_sub hs, tsub_eq_zero_iff_le, one_le_prob_iff]
+
+@[simp] lemma prob_compl_eq_one_iff [is_probability_measure μ] (hs : measurable_set s) :
+  μ sᶜ = 1 ↔ μ s = 0 :=
+by rwa [← prob_compl_eq_zero_iff hs.compl, compl_compl]
 
 end is_probability_measure
 

@@ -78,16 +78,9 @@ begin
   rw [iterate_succ, iterate_succ', set.preimage_comp', ih],
 end
 
-lemma is_fixed_pt_preimage_iff {s : set α} :
-  is_fixed_pt (set.preimage f) s ↔ f⁻¹' s = s :=
-iff.rfl
-
-lemma preimage_iterate_eq_self {s : set α} (h : f⁻¹' s = s) (n : ℕ) :
-  (f^[n])⁻¹' s = s :=
-begin
-  rw set.preimage_iterate_eq,
-  exact (is_fixed_pt_preimage_iff.mpr h).iterate n,
-end
+lemma preimage_iterate {s : set α} (h : is_fixed_pt (set.preimage f) s) (n : ℕ) :
+  is_fixed_pt (set.preimage (f^[n])) s :=
+by { rw set.preimage_iterate_eq, exact h.iterate n, }
 
 end is_fixed_pt
 

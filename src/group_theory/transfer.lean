@@ -197,6 +197,7 @@ begin
     iff_self, forall_const],
 end
 
+-- PRed
 @[simp, to_additive card_nsmul_eq_zero']
 lemma pow_card_eq_one' {G : Type*} [group G] {x : G} : x ^ nat.card G = 1 :=
 begin
@@ -205,6 +206,7 @@ begin
   { rw [nat.card_eq_zero_of_infinite, pow_zero] },
 end
 
+-- PRed
 /-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
 @[to_additive "If `gcd(|G|,n)=1` then the smul by `n` is a bijection", simps]
 noncomputable def pow_coprime' {G : Type*} [group G] {n : ℕ}
@@ -220,15 +222,13 @@ noncomputable def pow_coprime' {G : Type*} [group G] {n : ℕ}
     rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
       h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key } }
 
+-- PR ready
 lemma _root_.is_p_group.pow_bijective' {p : ℕ} {G : Type*} [group G] (h : is_p_group p G)
   {n : ℕ} (hn : nat.coprime p n) : function.bijective ((^ n) : G → G) :=
 begin
-  by_cases hn1 : n = 1,
-  { simp_rw [hn1, pow_one],
-    exact function.bijective_id },
   have : ∀ g : G, (nat.card (zpowers g)).coprime n,
   { intro g,
-    rw [←order_eq_card_zpowers'],
+    rw ← order_eq_card_zpowers',
     obtain ⟨k, hk⟩ := h g,
     exact (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk) },
   refine function.bijective_iff_has_inverse.mpr
@@ -238,10 +238,12 @@ begin
   { exact λ g, subtype.ext_iff.mp ((pow_coprime' (this g)).right_inv ⟨g, mem_zpowers g⟩) },
 end
 
+-- PR ready
 lemma _root_.is_p_group.pow_bijective {p : ℕ} [fact p.prime] {G : Type*} [group G] (h : is_p_group p G)
   {n : ℕ} (hn : ¬ p ∣ n) : function.bijective ((^ n) : G → G) :=
 h.pow_bijective' ((fact.out p.prime).coprime_iff_not_dvd.mpr hn)
 
+-- PRed
 lemma index_eq_zero_of_relindex_eq_zero {G : Type*} [group G] {H K : subgroup G}
   (h : H.relindex K = 0) : H.index = 0 :=
 H.relindex_top_right.symm.trans (relindex_eq_zero_of_le_right le_top h)

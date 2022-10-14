@@ -275,8 +275,7 @@ protected theorem sublist : red L₁ L₂ → L₂ <+ L₁ :=
 refl_trans_gen_of_transitive_reflexive
   (λl, list.sublist.refl l) (λa b c hab hbc, list.sublist.trans hbc hab) (λa b, red.step.sublist)
 
-theorem length_le (h : red L₁ L₂) : L₂.length ≤ L₁.length :=
-list.length_le_of_sublist h.sublist
+theorem length_le (h : red L₁ L₂) : L₂.length ≤ L₁.length := h.sublist.length_le
 
 theorem sizeof_of_step : ∀ {L₁ L₂ : list (α × bool)}, step L₁ L₂ → L₂.sizeof < L₁.sizeof
 | _ _ (@step.bnot _ L1 L2 x b) :=

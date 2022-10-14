@@ -54,20 +54,20 @@ local attribute [ext] functor.ext
 
 /-- Any prefunctor from `V` lifts to a functor from `paths V` -/
 def lift {C} [category C] (φ : prefunctor V C) : (paths V) ⥤ C :=
-{ obj := φ.obj
-, map := λ X Y f, @quiver.path.rec V _ X (λ Y f, φ.obj X ⟶ φ.obj Y) (𝟙 $ φ.obj X)
-                  (λ Y Z p f ihp, ihp ≫ (φ.map f)) Y f
-, map_id' := λ X, by { refl, }
-, map_comp' := λ X Y Z f g, by
+{ obj := φ.obj,
+  map := λ X Y f, @quiver.path.rec V _ X (λ Y f, φ.obj X ⟶ φ.obj Y) (𝟙 $ φ.obj X)
+                  (λ Y Z p f ihp, ihp ≫ (φ.map f)) Y f,
+  map_id' := λ X, by { refl, },
+  map_comp' := λ X Y Z f g, by
   { induction g with _ _ g' p ih _ _ _,
     { rw category.comp_id, refl, },
     { have : f ≫ g'.cons p = (f ≫ g').cons p, by apply quiver.path.comp_cons,
-      rw this, simp only, rw [ih, category.assoc], }} }
+      rw this, simp only, rw [ih, category.assoc], } } }
 
-@[simp] lemma lift_nil  {C} [category C] (φ : prefunctor V C) (X : V) :
+@[simp] lemma lift_nil {C} [category C] (φ : prefunctor V C) (X : V) :
   (lift φ).map (quiver.path.nil) = 𝟙 (φ.obj X) := rfl
 
-@[simp] lemma lift_cons  {C} [category C] (φ : prefunctor V C) {X Y Z: V}
+@[simp] lemma lift_cons {C} [category C] (φ : prefunctor V C) {X Y Z : V}
   (p : quiver.path X Y) (f : Y ⟶ Z) :
   (lift φ).map (p.cons f) = (lift φ).map p ≫ (φ.map f) := rfl
 
@@ -84,7 +84,7 @@ begin
     simp only [category.id_comp], },
 end
 
-lemma lift_spec_unique  {C} [category C] (φ : prefunctor V C) (Φ : paths V ⥤ C)
+lemma lift_unique {C} [category C] (φ : prefunctor V C) (Φ : paths V ⥤ C)
   (hΦ : of.comp Φ.to_prefunctor = φ) : Φ = lift φ :=
 begin
   subst_vars,
@@ -97,7 +97,7 @@ begin
     { simp only [category.comp_id, category.id_comp] at ih ⊢,
       have : Φ.map (p.cons f') = Φ.map p ≫ (Φ.map (f'.to_path)), by
       { convert functor.map_comp Φ p (f'.to_path), },
-      rw [this,ih], }, },
+      rw [this, ih], }, },
 end
 
 /-- Two functors out of a path category are equal when they agree on singleton paths. -/

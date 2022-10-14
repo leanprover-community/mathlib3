@@ -223,7 +223,8 @@ variables [sigma_finite μ] [is_add_right_invariant μ]
 lemma measure_theory.ae_strongly_measurable.convolution_integrand
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (λ p : G × G, L (f p.2) (g (p.1 - p.2))) (μ.prod μ) :=
-hf.convolution_integrand' L $ hg.mono' (quasi_measure_preserving_sub μ).absolutely_continuous
+hf.convolution_integrand' L $ hg.mono'
+  (quasi_measure_preserving_sub_of_right_invariant μ μ).absolutely_continuous
 
 lemma measure_theory.integrable.convolution_integrand (hf : integrable f μ) (hg : integrable g μ) :
   integrable (λ p : G × G, L (f p.2) (g (p.1 - p.2))) (μ.prod μ) :=
@@ -643,7 +644,9 @@ begin
     (eventually_of_forall h2)).trans _,
   rw [integral_mul_right],
   refine mul_le_mul_of_nonneg_right _ hε,
-  have h3 : ∀ t, ∥L (f t)∥ ≤ ∥L∥ * ∥f t∥ := λ t, L.le_op_norm (f t),
+  have h3 : ∀ t, ∥L (f t)∥ ≤ ∥L∥ * ∥f t∥,
+  { intros t,
+    exact L.le_op_norm (f t) },
   refine (integral_mono (L.integrable_comp hif).norm (hif.norm.const_mul _) h3).trans_eq _,
   rw [integral_mul_left]
 end

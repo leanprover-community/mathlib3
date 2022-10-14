@@ -258,6 +258,20 @@ the determinant to be `1`. -/
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
 by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
 
+lemma det_eq_one_of_subsingleton [nontrivial R] [subsingleton M] (f : M →ₗ[R] M) :
+  (f : M →ₗ[R] M).det = 1 :=
+begin
+  refine @linear_map.det_cases M  _ R _ _ _ (λ t, t = 1) f _ rfl,
+  intros s b,
+  haveI : is_empty s,
+  { apply (is_empty_or_nonempty s).resolve_right,
+    intros _i,
+    haveI : subsingleton (s →₀ R) := equiv.subsingleton b.repr.symm.to_equiv,
+    haveI : nontrivial (s →₀ R) := finsupp.nontrivial,
+    exact false_of_nontrivial_of_subsingleton (s →₀ R) },
+  exact matrix.det_is_empty
+end
+
 /-- Conjugating a linear map by a linear equiv does not change its determinant. -/
 @[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]
   (f : M →ₗ[A] M) (e : M ≃ₗ[A] N) :

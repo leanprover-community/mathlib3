@@ -315,30 +315,32 @@ lemma abs_volume_form_apply_of_orthonormal (v : orthonormal_basis (fin n) ℝ E)
   |o.volume_form v| = 1 :=
 by simpa [o.volume_form_robust' v v] using congr_arg abs v.to_basis.det_self
 
-lemma volume_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = n + 1)]
-  (φ : E ≃ₗᵢ[ℝ] F) (x : fin n.succ → F) :
-  (orientation.map (fin n.succ) φ.to_linear_equiv ω).volume_form x = ω.volume_form (φ.symm ∘ x) :=
+lemma volume_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = n)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x : fin n → F) :
+  (orientation.map (fin n) φ.to_linear_equiv o).volume_form x = o.volume_form (φ.symm ∘ x) :=
 begin
-  let e : orthonormal_basis (fin n.succ) ℝ E := ω.fin_orthonormal_basis n.succ_pos (fact.out _),
-  have he : e.to_basis.orientation = ω :=
-    (ω.fin_orthonormal_basis_orientation n.succ_pos (fact.out _)),
-  have heφ : (e.map φ).to_basis.orientation = orientation.map (fin n.succ) φ.to_linear_equiv ω,
+  unfreezingI { cases n },
+  { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
+  let e : orthonormal_basis (fin n.succ) ℝ E := o.fin_orthonormal_basis n.succ_pos (fact.out _),
+  have he : e.to_basis.orientation = o :=
+    (o.fin_orthonormal_basis_orientation n.succ_pos (fact.out _)),
+  have heφ : (e.map φ).to_basis.orientation = orientation.map (fin n.succ) φ.to_linear_equiv o,
   { rw ← he,
     exact (e.to_basis.orientation_map φ.to_linear_equiv) },
-  rw (orientation.map (fin n.succ) φ.to_linear_equiv ω).volume_form_robust (e.map φ) heφ,
-  rw ω.volume_form_robust e he,
+  rw (orientation.map (fin n.succ) φ.to_linear_equiv o).volume_form_robust (e.map φ) heφ,
+  rw o.volume_form_robust e he,
   simp,
 end
 
 /-- The volume form is invariant under pullback by a positively-oriented isometric automorphism. -/
 lemma volume_form_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
-  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x : fin n.succ → E) :
-  ω.volume_form (φ ∘ x) = ω.volume_form x :=
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x : fin n → E) :
+  o.volume_form (φ ∘ x) = o.volume_form x :=
 begin
-  convert ω.volume_form_map φ (φ ∘ x),
+  convert o.volume_form_map φ (φ ∘ x),
   { symmetry,
-    rwa ← ω.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
-    rw [fact.out (finrank ℝ E = n + 1), fintype.card_fin] },
+    rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
+    rw [_i.out, fintype.card_fin] },
   { ext,
     simp }
 end

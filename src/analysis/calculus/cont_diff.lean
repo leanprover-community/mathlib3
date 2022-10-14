@@ -542,7 +542,7 @@ end
 lemma cont_diff_within_at.differentiable_within_at
   (h : cont_diff_within_at 𝕜 n f s x) (hn : 1 ≤ n) :
   differentiable_within_at 𝕜 f s x :=
-(h.differentiable_within_at' hn).mono  (subset_insert x s)
+(h.differentiable_within_at' hn).mono (subset_insert x s)
 
 /-- A function is `C^(n + 1)` on a domain iff locally, it has a derivative which is `C^n`. -/
 theorem cont_diff_within_at_succ_iff_has_fderiv_within_at {n : ℕ} :
@@ -876,7 +876,7 @@ begin
     iterated_fderiv_within_inter_open v_open (hs.inter v_open) ⟨xs, xv⟩,
   rw ← this,
   have : iterated_fderiv_within 𝕜 n f ((s ∩ u) ∩ v) x = iterated_fderiv_within 𝕜 n f (s ∩ u) x,
-  { refine iterated_fderiv_within_inter_open v_open  _ ⟨⟨xs, vu ⟨xv, xs⟩⟩, xv⟩,
+  { refine iterated_fderiv_within_inter_open v_open _ ⟨⟨xs, vu ⟨xv, xs⟩⟩, xv⟩,
     rw A,
     exact hs.inter v_open },
   rw A at this,
@@ -2381,6 +2381,20 @@ begin
   exact eventually_of_mem self_mem_nhds_within (λ x hx, ht _ (h2st hx))
 end
 
+/-- `fderiv` applied to a (variable) vector is smooth at a point within a set. -/
+lemma cont_diff_within_at.fderiv_within_apply {f : E → F → G} {g k : E → F} {u : set (E × F)}
+  {t : set F} {n : ℕ∞}
+  (hf : cont_diff_within_at 𝕜 n (function.uncurry f) u (x, g x))
+  (hg : cont_diff_within_at 𝕜 m g s x)
+  (hk : cont_diff_within_at 𝕜 m k s x)
+  (ht : unique_diff_on 𝕜 t)
+  (hmn : m + 1 ≤ n) (hx : x ∈ s)
+  (hst : s ×ˢ t ⊆ u)
+  (h2st : s ⊆ g ⁻¹' t) :
+  cont_diff_within_at 𝕜 m (λ x, fderiv_within 𝕜 (f x) t (g x) (k x)) s x :=
+(cont_diff_fst.clm_apply cont_diff_snd).cont_diff_at.comp_cont_diff_within_at x
+  ((hf.fderiv_within hg ht hmn hx hst h2st).prod hk)
+
 /-- `fderiv_within` is smooth at `x` within `s` (for functions without parameters). -/
 lemma cont_diff_within_at.fderiv_within_right
   (hf : cont_diff_within_at 𝕜 n f s x) (hs : unique_diff_on 𝕜 s)
@@ -2418,34 +2432,18 @@ lemma continuous.fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}
 (hf.fderiv (cont_diff_zero.mpr hg) hn).continuous
 
 /-- `fderiv` applied to a (variable) vector is smooth. -/
-lemma cont_diff.fderiv_apply {f : E → F → G} {g s : E → F} {n m : ℕ∞}
-  (hf : cont_diff 𝕜 m $ function.uncurry f) (hg : cont_diff 𝕜 n g) (hs : cont_diff 𝕜 n s)
+lemma cont_diff.fderiv_apply {f : E → F → G} {g k : E → F} {n m : ℕ∞}
+  (hf : cont_diff 𝕜 m $ function.uncurry f) (hg : cont_diff 𝕜 n g) (hk : cont_diff 𝕜 n k)
   (hnm : n + 1 ≤ m) :
-  cont_diff 𝕜 n (λ x, fderiv 𝕜 (f x) (g x) (s x)) :=
-(hf.fderiv hg hnm).clm_apply hs
+  cont_diff 𝕜 n (λ x, fderiv 𝕜 (f x) (g x) (k x)) :=
+(hf.fderiv hg hnm).clm_apply hk
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
-lemma cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
+lemma cont_diff_on_fderiv_within_apply {m n : with_top ℕ} {s : set E}
   {f : E → F} (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
   cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2) (s ×ˢ univ) :=
-begin
-  -- intros x hx, -- todo: simplify proof
-  -- refine cont_diff_within_at.fderiv_within _ _ _ hmn _,
-  have A : cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2),
-  { apply is_bounded_bilinear_map.cont_diff,
-    exact is_bounded_bilinear_map_apply },
-  have B : cont_diff_on 𝕜 m
-    (λ (p : E × E), ((fderiv_within 𝕜 f s p.fst), p.snd)) (s ×ˢ univ),
-  { apply cont_diff_on.prod _ _,
-    { have I : cont_diff_on 𝕜 m (λ (x : E), fderiv_within 𝕜 f s x) s :=
-        hf.fderiv_within hs hmn,
-      have J : cont_diff_on 𝕜 m (λ (x : E × E), x.1) (s ×ˢ univ) :=
-        cont_diff_fst.cont_diff_on,
-      exact cont_diff_on.comp I J (prod_subset_preimage_fst _ _) },
-    { apply cont_diff.cont_diff_on _ ,
-      apply is_bounded_linear_map.snd.cont_diff } },
-  exact A.comp_cont_diff_on B
-end
+((hf.fderiv_within hs hmn).comp cont_diff_on_fst (prod_subset_preimage_fst _ _)).clm_apply
+  cont_diff_on_snd
 
 /-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
 continuous. -/
@@ -2455,8 +2453,8 @@ lemma cont_diff_on.continuous_on_fderiv_within_apply
 begin
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
   have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ univ),
-  { apply continuous_on.prod _ continuous_snd.continuous_on,
-    exact continuous_on.comp (h.continuous_on_fderiv_within hs hn) continuous_fst.continuous_on
+  { apply continuous_on.prod _ continuous_on_snd,
+    exact (h.continuous_on_fderiv_within hs hn).comp continuous_on_fst
       (prod_subset_preimage_fst _ _) },
   exact A.comp_continuous_on B
 end
@@ -3247,7 +3245,7 @@ lemma cont_diff_on_clm_apply {n : ℕ∞} {f : E → F →L[𝕜] G}
   {s : set E} [finite_dimensional 𝕜 F] :
   cont_diff_on 𝕜 n f s ↔ ∀ y, cont_diff_on 𝕜 n (λ x, f x y) s :=
 begin
-  refine ⟨λ h y, (continuous_linear_map.apply 𝕜 G y).cont_diff.comp_cont_diff_on h, λ h, _⟩,
+  refine ⟨λ h y, h.clm_apply cont_diff_on_const, λ h, _⟩,
   let d := finrank 𝕜 F,
   have hd : d = finrank 𝕜 (fin d → 𝕜) := (finrank_fin_fun 𝕜).symm,
   let e₁ := continuous_linear_equiv.of_finrank_eq hd,
@@ -3256,7 +3254,7 @@ begin
   exact e₂.symm.cont_diff.comp_cont_diff_on (cont_diff_on_pi.mpr (λ i, h _))
 end
 
-lemma cont_diff_clm_apply {n : ℕ∞} {f : E → F →L[𝕜] G} [finite_dimensional 𝕜 F] :
+lemma cont_diff_clm_apply_iff {n : ℕ∞} {f : E → F →L[𝕜] G} [finite_dimensional 𝕜 F] :
   cont_diff 𝕜 n f ↔ ∀ y, cont_diff 𝕜 n (λ x, f x y) :=
 by simp_rw [← cont_diff_on_univ, cont_diff_on_clm_apply]
 
@@ -3272,7 +3270,7 @@ This lemma avoids these universe issues, but only applies for finite dimensional
 lemma cont_diff_succ_iff_fderiv_apply [finite_dimensional 𝕜 E] {n : ℕ} {f : E → F} :
   cont_diff 𝕜 ((n + 1) : ℕ) f ↔
   differentiable 𝕜 f ∧ ∀ y, cont_diff 𝕜 n (λ x, fderiv 𝕜 f x y) :=
-by rw [cont_diff_succ_iff_fderiv, cont_diff_clm_apply]
+by rw [cont_diff_succ_iff_fderiv, cont_diff_clm_apply_iff]
 
 lemma cont_diff_on_succ_of_fderiv_apply [finite_dimensional 𝕜 E] {n : ℕ} {f : E → F}
   {s : set E} (hf : differentiable_on 𝕜 f s)

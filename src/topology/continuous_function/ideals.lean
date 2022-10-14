@@ -309,8 +309,6 @@ open is_R_or_C topological_space
 
 variables {X 𝕜 : Type*} [is_R_or_C 𝕜] [topological_space X] [compact_space X] [t2_space X]
 
-#check @galois_insertion.is_coatom_iff
-
 lemma ideal_of_set_is_maximal_iff (s : opens X) :
   (ideal_of_set 𝕜 (s : set X)).is_maximal ↔ is_coatom s :=
 begin

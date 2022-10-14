@@ -774,7 +774,8 @@ begin
     have B : ∀ y ∈ ball x R, φ y = φ x, sorry,
     rw convolution_eq_right' _ A B,
     simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply, lsmul_apply,
-      algebra.id.smul_eq_mul],
+      algebra.id.smul_eq_mul, integral_mul_left, integral_mul_right],
+    rw integral_smul
 
   } ,
   refine

@@ -255,6 +255,19 @@ end
 
 #check Fᶜ
 
+lemma Ici_eq (a b : α) : Ici a = Ici b ↔  a = b :=
+begin
+  split,
+  { intro h,
+    rw le_antisymm_iff,
+    rw subset_antisymm_iff at h,
+    split,
+    { rw ← Ici_subset_Ici, exact h.2, },
+    { rw ← Ici_subset_Ici, exact h.1, }
+   },
+  { apply congr_arg, }
+end
+
 lemma finite_inter : {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ ∧ ((upper_closure F : set α)ᶜ.nonempty) } =
   ((λ (f : set (set α)), ⋂₀ f) ''
        {f : set (set α) | f.finite ∧ f ⊆ {s : set α | ∃ (a : α), (Ici a)ᶜ = s} ∧ (⋂₀ f).nonempty}) :=
@@ -263,6 +276,13 @@ begin
   ext,
   rw mem_set_of_eq,
   rw mem_set_of_eq,
+  let g := (⟨λ a, (Ici a)ᶜ,
+  begin
+    intros a b,
+    simp only [compl_inj_iff],
+    rw Ici_eq,
+    exact congr_arg (λ ⦃a : α⦄, a),
+  end⟩ : α ↪ set α),
   split,
   { intro h,
     cases h with F,
@@ -277,11 +297,10 @@ begin
       rw image,
       simp_rw [exists_prop],
     end,
-    let g := λ a, (Ici a)ᶜ,
     have ef2: f = g '' F :=
     begin
       rw [ef, image],
-      simp only [exists_prop],
+      simp only [exists_prop, function.embedding.coe_fn_mk],
     end,
     use f,
     rw mem_set_of_eq,
@@ -305,7 +324,8 @@ begin
   { intro h,
     cases h with f,
     rw mem_set_of_eq at h_h,
-    let F:= { a : α | (Ici a)ᶜ ∈ f },
+    let F := { a : α | (Ici a)ᶜ ∈ f },
+    have eF' : F =  g ⁻¹' f := by refl,
     have eF: (⋂₀ f) = (upper_closure F : set α)ᶜ :=
     begin
       rw ← upper_set.Inter_Ici,
@@ -333,20 +353,11 @@ begin
     use F,
     split,
     {
-     -- have f2:
-      --have f1: {a : α | (Ici a)ᶜ ∈ f}.finite := begin
-    --rw ← finite_coe_iff,
-    --apply finite_mem_finset,
-    --apply finite.set.finite_range,
-    --simp,
-    sorry,
-
-    --apply finite.set.finite_sep,
-    --rw finite.to_finset_inj,
---      rw ← image,
-    --end,
-
-      --apply h_h.1.1, sorry,
+      cases h_h,
+      cases h_h_left with hf,
+      rw eF',
+      apply finite.preimage_embedding,
+      exact hf,
     },
     { split,
       { rw ← eF, rw h_h.2,  },

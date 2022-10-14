@@ -577,11 +577,8 @@ else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero 
 
 @[simp]
 lemma nth_roots_two_eq_zero_iff {r : R} : nth_roots 2 r = 0 ↔ ¬ is_square r :=
-begin
-  simp only [nth_roots, eq_zero_iff_forall_not_mem, is_square, eval_sub, eval_pow, eval_X,
-    mem_roots (X_pow_sub_C_ne_zero two_pos r), sub_eq_zero, is_root.def, eval_C, not_exists],
-  simp [eq_comm, pow_two], -- simps cannot be combined as the order matters
-end
+by simp_rw [is_square_iff_exists_sq, eq_zero_iff_forall_not_mem,
+            mem_nth_roots (by norm_num : 0 < 2), ← not_exists, eq_comm]
 
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
 def nth_roots_finset (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=

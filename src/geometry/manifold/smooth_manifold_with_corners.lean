@@ -680,6 +680,9 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M] [charted_space H M]
+  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
+  {M' : Type*} [topological_space M'] [charted_space H' M']
   (x : M) {s t : set M}
 
 /-!
@@ -947,5 +950,9 @@ by simp only with mfld_simps
 
 lemma ext_chart_model_space_apply {x y : E} : ext_chart_at 𝓘(𝕜, E) x y = y := rfl
 
+/-- Conjugating a function to write it in the preferred charts around `x`.
+The manifold derivative of `f` will just be the derivative of this conjugated function. -/
+@[simp, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
+(ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm
 
 end extended_charts

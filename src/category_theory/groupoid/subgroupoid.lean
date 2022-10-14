@@ -141,6 +141,7 @@ instance : has_top (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, set.univ),
     mul    := by { rintros, trivial, },
     inv    := by { rintros, trivial, } } ⟩
+
 instance : has_bot (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, ∅),
     mul    := λ _ _ _ _, false.elim,

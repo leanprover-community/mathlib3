@@ -67,6 +67,7 @@ begin
   simp [e.to_basis.orientation_eq_iff_det_pos,
     (e.det_to_matrix_orthonormal_basis_real f).resolve_right h],
 end
+
 variables {e f}
 
 /-- Two orthonormal bases with the same orientation determine the same "determinant" top-dimensional
@@ -83,16 +84,17 @@ begin
     simp [e.det_to_matrix_orthonormal_basis_of_same_orientation f h], },
 end
 
+variables (e f)
+
 /-- Two orthonormal bases with opposite orientations determine opposite "determinant"
 top-dimensional forms on `E`. -/
-lemma det_eq_det_of_opposite_orientation
+lemma det_eq_neg_det_of_opposite_orientation
   (h : e.to_basis.orientation ≠ f.to_basis.orientation) :
   e.to_basis.det = -f.to_basis.det :=
 begin
   rw e.to_basis.det.eq_smul_basis_det f.to_basis,
   simp [e.det_to_matrix_orthonormal_basis_of_opposite_orientation f h],
 end
-variables (e)
 
 section adjust_to_orientation
 include ne

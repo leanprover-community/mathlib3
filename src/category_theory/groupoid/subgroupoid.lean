@@ -218,7 +218,7 @@ lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
 ⟨by { rintro ⟨⟩, exact ⟨rfl, rfl⟩ }, by { rintro ⟨rfl, rfl⟩, split }⟩
 
 /-- A subgroupoid is normal if it is “wide” (meaning that its carrier set is all of `C`)
-    and satisfies the expected stability under conjugacy -/
+    and satisfies the expected stability under conjugacy. -/
 structure is_normal : Prop :=
 (wide : ∀ c, (𝟙 c) ∈ (S.arrows c c))
 (conj : ∀ {c d} (p : c ⟶ d) {γ : c ⟶ c} (hs : γ ∈ S.arrows c c),

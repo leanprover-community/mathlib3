@@ -94,7 +94,7 @@ begin
   obtain ⟨l, H, H'⟩ := hz',
   rw finsupp.total_apply at H',
   rw [← H', mul_comm, finsupp.sum_mul],
-  have test2 : ∀ {a : R}, a ∈ I → (l a • (algebra_map R S a) * (algebra_map R S p)) ∈
+  have lem : ∀ {a : R}, a ∈ I → (l a • (algebra_map R S a) * (algebra_map R S p)) ∈
     (algebra_map (R[x]) S) '' (I.map (algebra_map R (R[x]))),
   { intros a ha,
     rw [algebra.id.smul_eq_mul, mul_assoc, mul_comm, mul_assoc, set.mem_image],
@@ -111,12 +111,10 @@ begin
     (λ a b, _) _ _,
   rintro ⟨z, hz, rfl⟩ ⟨y, hy, rfl⟩,
   rw [← ring_hom.map_add],
-  exact exists.intro (z + y)
-    ⟨ideal.add_mem (I.map (algebra_map R (R[x]))) hz hy, rfl⟩,
-  { refine (set.mem_image _ _ _).mpr (exists.intro 0 ⟨ideal.zero_mem (I.map (algebra_map R
-    (adjoin R ({x} : set S)))), (ring_hom.map_zero _)⟩) },
+  exact ⟨z + y, ideal.add_mem _ (set_like.mem_coe.mp hz) hy, rfl⟩,
+  { refine ⟨0, set_like.mem_coe.mpr $ ideal.zero_mem _, ring_hom.map_zero _⟩ },
   { intros y hy,
-    exact test2 ((finsupp.mem_supported _ l).mp H hy) },
+    exact lem ((finsupp.mem_supported _ l).mp H hy) },
 end
 
 /-- A technical result telling us that `(I * S) ∩ R[x] = I * R[x]` for any ideal `I` of `R`. -/

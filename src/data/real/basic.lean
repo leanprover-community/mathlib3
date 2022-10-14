@@ -478,7 +478,7 @@ begin
     replace hK := hK.le.trans (nat.cast_le.2 nK),
     have n0 : 0 < n := nat.cast_pos.1 ((inv_pos.2 xz).trans_le hK),
     refine le_trans _ (hf₂ _ n0 _ xS).le,
-    rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
+    rwa [le_sub_comm, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
   { exact mk_le_of_forall_le ⟨1, λ n n1,
       let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
 end

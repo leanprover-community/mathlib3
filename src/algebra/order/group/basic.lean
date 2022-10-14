@@ -632,13 +632,11 @@ le_div_iff_mul_le.trans inv_mul_le_iff_le_mul'
 lemma inv_le_div_iff_le_mul' : a⁻¹ ≤ b / c ↔ c ≤ a * b :=
 by rw [inv_le_div_iff_le_mul, mul_comm]
 
-@[to_additive sub_le]
-lemma div_le'' : a / b ≤ c ↔ a / c ≤ b :=
-div_le_iff_le_mul'.trans div_le_iff_le_mul.symm
+@[to_additive]
+lemma div_le_comm : a / b ≤ c ↔ a / c ≤ b := div_le_iff_le_mul'.trans div_le_iff_le_mul.symm
 
-@[to_additive le_sub]
-lemma le_div'' : a ≤ b / c ↔ c ≤ b / a :=
-le_div_iff_mul_le'.trans le_div_iff_mul_le.symm
+@[to_additive]
+lemma le_div_comm : a ≤ b / c ↔ c ≤ b / a := le_div_iff_mul_le'.trans le_div_iff_mul_le.symm
 
 end has_le
 
@@ -1155,7 +1153,7 @@ lemma abs_sub_lt_iff : |a - b| < c ↔ a - b < c ∧ b - a < c :=
 by rw [abs_lt, neg_lt_sub_iff_lt_add', sub_lt_iff_lt_add', and_comm, sub_lt_iff_lt_add']
 
 lemma sub_le_of_abs_sub_le_left (h : |a - b| ≤ c) : b - c ≤ a :=
-sub_le.1 $ (abs_sub_le_iff.1 h).2
+sub_le_comm.1 $ (abs_sub_le_iff.1 h).2
 
 lemma sub_le_of_abs_sub_le_right (h : |a - b| ≤ c) : a - c ≤ b :=
 sub_le_of_abs_sub_le_left (abs_sub_comm a b ▸ h)

@@ -1266,7 +1266,7 @@ set.ext $ λ y, by rw [mem_ball, dist_comm, real.dist_eq,
 
 lemma real.closed_ball_eq_Icc {x r : ℝ} : closed_ball x r = Icc (x - r) (x + r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
-  abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
+  abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le_comm]
 
 theorem real.Ioo_eq_ball (x y : ℝ) : Ioo x y = ball ((x + y) / 2) ((y - x) / 2) :=
 by rw [real.ball_eq_Ioo, ← sub_div, add_comm, ← sub_add,

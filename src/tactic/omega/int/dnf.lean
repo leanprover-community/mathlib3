@@ -155,7 +155,7 @@ begin
       rw [list.forall_mem_singleton],
       simp only [val_canonize,
         preterm.val, term.val_sub],
-      rw [le_sub, sub_zero], assumption } },
+      rw [le_sub_comm, sub_zero], assumption } },
   { cases h1 },
   { cases h2 with h2 h2;
     [ {cases (ihp h1.left h2) with c h3},

@@ -203,10 +203,10 @@ by simp [sub_eq_add_neg]
 -/
 
 @[simp] lemma preimage_const_sub_Ici : (λ x, a - x) ⁻¹' (Ici b) = Iic (a - b) :=
-ext $ λ x, le_sub
+ext $ λ x, le_sub_comm
 
 @[simp] lemma preimage_const_sub_Iic : (λ x, a - x) ⁻¹' (Iic b) = Ici (a - b) :=
-ext $ λ x, sub_le
+ext $ λ x, sub_le_comm
 
 @[simp] lemma preimage_const_sub_Ioi : (λ x, a - x) ⁻¹' (Ioi b) = Iio (a - b) :=
 ext $ λ x, lt_sub

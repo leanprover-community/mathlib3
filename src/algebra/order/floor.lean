@@ -188,7 +188,7 @@ lemma lt_ceil : n < ⌈a⌉₊ ↔ (n : α) < a := lt_iff_lt_of_le_iff_le ceil_l
 @[simp] lemma add_one_le_ceil_iff : n + 1 ≤ ⌈a⌉₊ ↔ (n : α) < a :=
 by rw [← nat.lt_ceil, nat.add_one_le_iff]
 
-@[simp] lemma ne_le_ceil_iff : 1 ≤ ⌈a⌉₊ ↔ 0 < a :=
+@[simp] lemma one_le_ceil_iff : 1 ≤ ⌈a⌉₊ ↔ 0 < a :=
 by rw [← zero_add 1, nat.add_one_le_ceil_iff, nat.cast_zero]
 
 lemma ceil_le_floor_add_one (a : α) : ⌈a⌉₊ ≤ ⌊a⌋₊ + 1 :=

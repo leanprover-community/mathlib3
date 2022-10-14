@@ -6,6 +6,7 @@ Authors: Thomas Browning
 
 import group_theory.complement
 import group_theory.sylow
+import topology.algebra.continuous_monoid_hom
 
 /-!
 # The Transfer Homomorphism
@@ -163,45 +164,35 @@ rfl
 
 open_locale pointwise
 
-lemma is_complement'_of_disjoint_and_mul_eq_univ {G : Type*} [group G] {H K : subgroup G}
+-- PRed
+lemma _root_.subgroup.mul_injective_of_disjoint {H₁ H₂ : subgroup G} (h : disjoint H₁ H₂) :
+  function.injective (λ g, g.1 * g.2 : H₁ × H₂ → G) :=
+begin
+  intros x y hxy,
+  rw [←inv_mul_eq_iff_eq_mul, ←mul_assoc, ←mul_inv_eq_one, mul_assoc] at hxy,
+  replace hxy := disjoint_iff_mul_eq_one.mp h (y.1⁻¹ * x.1).prop (x.2 * y.2⁻¹).prop hxy,
+  rwa [coe_mul, coe_mul, coe_inv, coe_inv, inv_mul_eq_one, mul_inv_eq_one,
+    ←subtype.ext_iff, ←subtype.ext_iff, eq_comm, ←prod.ext_iff] at hxy,
+end
+
+-- PRed
+lemma is_complement'_of_disjoint_and_mul_eq_univ {H K : subgroup G}
   (h1 : disjoint H K) (h2 : ↑H * ↑K = (set.univ : set G)) : is_complement' H K :=
 begin
-  refine ⟨λ x y h, _,
-    λ g, let ⟨h, k, hh, hk, hg⟩ := set.eq_univ_iff_forall.1 h2 g in ⟨⟨⟨h, hh⟩, k, hk⟩, hg⟩⟩,
-  rw [←mul_inv_eq_iff_eq_mul, mul_assoc, ←eq_inv_mul_iff_mul_eq] at h,
-  simp_rw [subtype.val_eq_coe, ←coe_inv, ←coe_mul] at h,
-  have h' : x.1 = y.1,
-  { rw [←inv_mul_eq_one, subtype.ext_iff, coe_one, ←mem_bot, ←h1.eq_bot, mem_inf],
-    exact ⟨(x.1⁻¹ * y.1).2, h ▸ (x.2 * y.2⁻¹).2⟩ },
-  rw [h', inv_mul_self, coe_one, coe_mul, coe_inv, mul_inv_eq_one, ←subtype.ext_iff] at h,
-  exact prod.ext h' h,
+  refine ⟨subgroup.mul_injective_of_disjoint h1, λ g, _⟩,
+  obtain ⟨h, k, hh, hk, hg⟩ := set.eq_univ_iff_forall.mp h2 g,
+  exact ⟨(⟨h, hh⟩, ⟨k, hk⟩), hg⟩,
 end
 
 lemma restrict_ker {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
   (f.restrict H).ker = f.ker.subgroup_of H :=
 rfl
 
-lemma restrict_ker_map {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
-  (f.restrict H).ker.map H.subtype = f.ker ⊓ H :=
-by rw [restrict_ker, subgroup_of_map_subtype]
-
 lemma restrict_range {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
   (f.restrict H).range = H.map f :=
 begin
   simp_rw [set_like.ext_iff, mem_range, mem_map, restrict_apply, set_like.exists, subtype.coe_mk,
     iff_self, forall_const],
-end
-
-lemma restrict_range_comap {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
-  (f.restrict H).range.comap f = f.ker ⊔ H :=
-by rw [restrict_range, comap_map_eq, sup_comm]
-
-lemma surjective_of_restrict_surjective {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K)
-  (h : function.surjective (f.restrict H)) : function.surjective f :=
-begin
-  rw [←range_top_iff_surjective, eq_top_iff] at h ⊢,
-  rw [restrict_range] at h,
-  exact h.trans (map_le_range f H),
 end
 
 lemma _root_.is_p_group.pow_bijective' {p : ℕ} {G : Type*} [group G] (h : is_p_group p G)
@@ -272,19 +263,23 @@ lemma ker_transfer_sylow_is_complement : is_complement' (transfer_sylow P hP).ke
 begin
   have hf0 : ⇑((transfer_sylow P hP).restrict (P : subgroup G)) = (^ (P : subgroup G).index) :=
   funext (λ g, transfer_sylow_eq_pow P hP g g.2),
-  have hf1 : function.bijective ((transfer_sylow P hP).restrict (P : subgroup G)),
-  { rw hf0,
-    refine P.2.pow_bijective (not_dvd_index_sylow P _),
-    exact mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite },
-  have hf1' : function.surjective (transfer_sylow P hP) :=
-  surjective_of_restrict_surjective P (transfer_sylow P hP) hf1.2,
-  have hf2 := (ker_eq_bot_iff _).mpr hf1.1,
-  have hf3 := range_top_of_surjective _ hf1.2,
-  rw [←(map_injective (P : subgroup G).subtype_injective).eq_iff, restrict_ker_map, map_bot] at hf2,
-  rw [←(comap_injective hf1').eq_iff, restrict_range_comap, comap_top,
-    set_like.ext'_iff, coe_top, normal_mul] at hf3,
-  exact is_complement'_of_disjoint_and_mul_eq_univ hf2.le hf3,
+  have hf1 : function.bijective ((transfer_sylow P hP).restrict (P : subgroup G)) :=
+  hf0.symm ▸ P.2.pow_bijective (not_dvd_index_sylow P
+    (mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite)),
+  rw [function.bijective, ←range_top_iff_surjective, restrict_range] at hf1,
+  have : function.surjective (transfer_sylow P hP),
+  { rw [←range_top_iff_surjective, eq_top_iff],
+    exact hf1.2.symm.le.trans (map_le_range (transfer_sylow P hP) P) },
+  rw [←(comap_injective this).eq_iff, comap_top, comap_map_eq, sup_comm, set_like.ext'_iff,
+      normal_mul, ←ker_eq_bot_iff, ←(map_injective (P : subgroup G).subtype_injective).eq_iff,
+      restrict_ker, subgroup_of_map_subtype, subgroup.map_bot, coe_top] at hf1,
+  exact is_complement'_of_disjoint_and_mul_eq_univ hf1.1.le hf1.2,
 end
+
+/-
+TODO: Prove that `(transfer_sylow P hP).ker` is finite of order indivisible by `p`
+TODO: Deduce disjointness for free!
+-/
 
 lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
 begin

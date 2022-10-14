@@ -575,6 +575,14 @@ then if h : (X : R[X]) ^ n - C a = 0
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
+@[simp]
+lemma nth_roots_two_eq_zero_iff {r : R} : nth_roots 2 r = 0 ↔ ¬ is_square r :=
+begin
+  simp only [nth_roots, eq_zero_iff_forall_not_mem, is_square, eval_sub, eval_pow, eval_X,
+    mem_roots (X_pow_sub_C_ne_zero two_pos r), sub_eq_zero, is_root.def, eval_C, not_exists],
+  simp [eq_comm, pow_two], -- simps cannot be combined as the order matters
+end
+
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
 def nth_roots_finset (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 multiset.to_finset (nth_roots n (1 : R))

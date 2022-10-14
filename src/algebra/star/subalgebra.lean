@@ -94,6 +94,9 @@ protected def copy (S : star_subalgebra R A) (s : set A) (hs : s = ↑S) : star_
 @[simp] lemma coe_copy (S : star_subalgebra R A) (s : set A) (hs : s = ↑S) :
   (S.copy s hs : set A) = s := rfl
 
+lemma copy_eq (S : star_subalgebra R A) (s : set A) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 variables (S : star_subalgebra R A)
 
 theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=

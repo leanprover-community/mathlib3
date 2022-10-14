@@ -230,6 +230,8 @@ variable f:α → set β
 
 #check symm
 
+#check set.finite
+
 lemma testi : (⋂ (x : α) (H : x ∈ F), f x) = sInter (f '' F) :=
 begin
   rw sInter_image,
@@ -251,6 +253,8 @@ rw upper_set.Union_Ici,
 rw upper_set.Inter_Ici,
 end
 
+#check Fᶜ
+
 lemma finite_inter : {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ ∧ ((upper_closure F : set α)ᶜ.nonempty) } =
   ((λ (f : set (set α)), ⋂₀ f) ''
        {f : set (set α) | f.finite ∧ f ⊆ {s : set α | ∃ (a : α), (Ici a)ᶜ = s} ∧ (⋂₀ f).nonempty}) :=
@@ -263,7 +267,7 @@ begin
   { intro h,
     cases h with F,
     let f := {s : set α | ∃ a ∈ F,  (Ici a)ᶜ = s},
-    have ef: ⋂₀f = ⋂₀{s : set α | ∃ a ∈ F, (Ici a)ᶜ = s} := by refl,
+    have ef: f = {s : set α | ∃ a ∈ F, (Ici a)ᶜ = s} := by refl,
     have efn: (⋂₀ f) = (upper_closure F : set α)ᶜ :=
     begin
       rw ← upper_set.Inter_Ici,
@@ -273,11 +277,23 @@ begin
       rw image,
       simp_rw [exists_prop],
     end,
+    let g := λ a, (Ici a)ᶜ,
+    have ef2: f = g '' F :=
+    begin
+      rw [ef, image],
+      simp only [exists_prop],
+    end,
     use f,
     rw mem_set_of_eq,
     split,
     { split,
-      { sorry, },
+      { rw ef2,
+      rw ← finite_coe_iff,
+      rw ← finite_coe_iff at h_h,
+      cases h_h,
+      casesI nonempty_fintype F,
+      apply_instance,
+       },
       { split,
         { simp only [set_of_subset_set_of, forall_exists_index, forall_apply_eq_imp_iff₂, implies_true_iff, exists_apply_eq_apply], },
         { rw efn, exact h_h.2.2 } },
@@ -316,7 +332,22 @@ begin
     end,
     use F,
     split,
-    { sorry, },
+    {
+     -- have f2:
+      --have f1: {a : α | (Ici a)ᶜ ∈ f}.finite := begin
+    --rw ← finite_coe_iff,
+    --apply finite_mem_finset,
+    --apply finite.set.finite_range,
+    --simp,
+    sorry,
+
+    --apply finite.set.finite_sep,
+    --rw finite.to_finset_inj,
+--      rw ← image,
+    --end,
+
+      --apply h_h.1.1, sorry,
+    },
     { split,
       { rw ← eF, rw h_h.2,  },
       { rw ← eF, exact h_h.1.2.2, }

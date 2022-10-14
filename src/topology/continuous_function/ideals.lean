@@ -352,11 +352,11 @@ namespace character_space
 
 open function continuous_map
 
-variables (X : Type*) [topological_space X] [compact_space X] [t2_space X]
+variables (X 𝕜 : Type*) [topological_space X]
 
 section continuous_map_eval
 
-variables (𝕜 : Type*) [comm_ring 𝕜] [topological_space 𝕜] [topological_semiring 𝕜]
+variables [locally_compact_space X] [comm_ring 𝕜] [topological_space 𝕜] [topological_semiring 𝕜]
 variables [nontrivial 𝕜] [no_zero_divisors 𝕜]
 
 /-- The natural continuous map -/
@@ -372,45 +372,34 @@ def continuous_map_eval :
 
 end continuous_map_eval
 
+variables [compact_space X] [t2_space X] [is_R_or_C 𝕜]
 
--- this works for `ℝ`
-lemma continuous_map_eval_injective : injective (continuous_map_eval X ℂ) :=
+lemma continuous_map_eval_bijective : bijective (continuous_map_eval X 𝕜) :=
 begin
-  intros x y,
-  contrapose!,
-  intros hxy,
-  haveI := @normal_of_compact_t2 X _ _ _,
-  rcases exists_continuous_zero_one_of_closed (is_closed_singleton : _root_.is_closed {x})
-    (is_closed_singleton : _root_.is_closed {y}) (set.disjoint_singleton.mpr hxy)
-    with ⟨f, fx, fy, -⟩,
-  rw [←ne.def, fun_like.ne_iff],
-  use (⟨coe, is_R_or_C.continuous_of_real⟩ : C(ℝ, ℂ)).comp f,
-  simpa only [continuous_map_eval_apply_apply, continuous_map.comp_apply,
-    continuous_map.coe_mk, ne.def, complex.of_real_inj] using
-    ((fx (set.mem_singleton x)).symm ▸ (fy (set.mem_singleton y)).symm ▸ zero_ne_one : f x ≠ f y),
+  refine ⟨λ x y hxy, _, λ φ, _⟩,
+  { contrapose! hxy,
+    haveI := @normal_of_compact_t2 X _ _ _,
+    rcases exists_continuous_zero_one_of_closed (is_closed_singleton : _root_.is_closed {x})
+      (is_closed_singleton : _root_.is_closed {y}) (set.disjoint_singleton.mpr hxy)
+      with ⟨f, fx, fy, -⟩,
+    rw [←ne.def, fun_like.ne_iff],
+    use (⟨coe, is_R_or_C.continuous_of_real⟩ : C(ℝ, 𝕜)).comp f,
+    simpa only [continuous_map_eval_apply_apply, continuous_map.comp_apply, coe_mk, ne.def,
+      is_R_or_C.of_real_inj] using ((fx (set.mem_singleton x)).symm ▸
+      (fy (set.mem_singleton y)).symm ▸ zero_ne_one : f x ≠ f y) },
+  { obtain ⟨x, hx⟩ := (ideal_is_maximal_iff (ring_hom.ker φ)).mp infer_instance,
+    refine ⟨x, ext_ker $ ideal.ext $ λ f, _⟩,
+    simpa only [ring_hom.mem_ker, continuous_map_eval_apply_apply,
+      mem_ideal_of_set_singleton_compl, ring_hom.mem_ker] using set_like.ext_iff.mp hx f }
 end
-
--- this also works for `ℝ`
-lemma continuous_map_eval_surjective : surjective (continuous_map_eval X ℂ) :=
-begin
-  intros φ,
-  obtain ⟨x, hx⟩ := (ideal_is_maximal_iff (ring_hom.ker φ)).mp infer_instance,
-  refine ⟨x, ext_ker $ ideal.ext $ λ f, _⟩,
-  simpa only [ring_hom.mem_ker, continuous_map_eval_apply_apply,
-    mem_ideal_of_set_singleton_compl, ring_hom.mem_ker] using set_like.ext_iff.mp hx f,
-end
-
-lemma continuous_map_eval_bijective : bijective (continuous_map_eval X ℂ) :=
-⟨continuous_map_eval_injective X,
- continuous_map_eval_surjective X⟩
 
 /-- This is the natural homeomorphism between a compact Hausdorff space `X` and the
-`character_space ℂ C(X, ℂ)`. -/
-noncomputable def homeo_eval : X ≃ₜ character_space ℂ C(X, ℂ) :=
+`character_space 𝕜 C(X, 𝕜)`. -/
+noncomputable def homeo_eval : X ≃ₜ character_space 𝕜 C(X, 𝕜) :=
 @continuous.homeo_of_equiv_compact_to_t2 _ _ _ _ _ _
-{ to_fun := (continuous_map_eval X ℂ),
-  .. equiv.of_bijective _ (continuous_map_eval_bijective X) }
-(map_continuous (continuous_map_eval X ℂ))
+  { to_fun := (continuous_map_eval X 𝕜),
+    .. equiv.of_bijective _ (continuous_map_eval_bijective X 𝕜) }
+  (map_continuous (continuous_map_eval X 𝕜))
 
 end character_space
 end weak_dual

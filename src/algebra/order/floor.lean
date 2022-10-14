@@ -100,6 +100,10 @@ lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 l
 @[simp] lemma floor_coe (n : ℕ) : ⌊(n : α)⌋₊ = n :=
 eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff n.cast_nonneg], exact nat.cast_le }
 
+@[priority 100] -- see Note [lower instance priority]
+instance _root_.floor_semiring.to_char_zero :
+  char_zero α := ⟨λ m n hmn, by rw [← @floor_coe α _ _ n, ← @floor_coe α _ _ m, hmn]⟩
+
 @[simp] lemma floor_zero : ⌊(0 : α)⌋₊ = 0 := by rw [← nat.cast_zero, floor_coe]
 
 @[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]

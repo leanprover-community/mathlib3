@@ -30,7 +30,7 @@ import measure_theory.constructions.pi
   measurable space structures they generate are independent.
 * `indep_sets.indep`: variant with two π-systems.
 * `measure_zero_or_one_of_measurable_set_limsup_at_top`: Kolmogorov's 0-1 law. Any set which is
-  measurable with respect to the tail σ-algebra `limsup at_top s` of an independent sequence of
+  measurable with respect to the tail σ-algebra `limsup s at_top` of an independent sequence of
   σ-algebras `s` has probability 0 or 1.
 
 ## Implementation notes
@@ -875,7 +875,7 @@ end indep_fun
 /-! ### Kolmogorov's 0-1 law
 
 Let `s : ι → measurable_space Ω` be an independent sequence of sub-σ-algebras. Then any set which
-is measurable with respect to the tail σ-algebra `limsup at_top s` has probability 0 or 1.
+is measurable with respect to the tail σ-algebra `limsup s at_top` has probability 0 or 1.
 -/
 
 section zero_one_law
@@ -914,7 +914,7 @@ indep_supr_of_disjoint h_le h_indep disjoint_compl_right
 section abstract
 variables {α : Type*} {p : set ι → Prop} {f : filter ι} {ns : α → set ι}
 
-/-! We prove a version of Kolmogorov's 0-1 law for the σ-algebra `limsup f s` where `f` is a filter
+/-! We prove a version of Kolmogorov's 0-1 law for the σ-algebra `limsup s f` where `f` is a filter
 for which we can define the following two functions:
 * `p : set ι → Prop` such that for a set `t`, `p t → tᶜ ∈ f`,
 * `ns : α → set ι` a directed sequence of sets which all verify `p` and such that
@@ -925,7 +925,7 @@ For the example of `f = at_top`, we can take `p = bdd_above` and `ns : ι → se
 
 lemma indep_bsupr_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   (hf : ∀ t, p t → tᶜ ∈ f) {t : set ι} (ht : p t) :
-  indep (⨆ n ∈ t, s n) (limsup f s) μ :=
+  indep (⨆ n ∈ t, s n) (limsup s f) μ :=
 begin
   refine indep_of_indep_of_le_right (indep_bsupr_compl h_le h_indep t) _,
   refine Limsup_le_of_le (by is_bounded_default) _,
@@ -935,7 +935,7 @@ end
 
 lemma indep_supr_directed_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   (hf : ∀ t, p t → tᶜ ∈ f) (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) :
-  indep (⨆ a, ⨆ n ∈ (ns a), s n) (limsup f s) μ :=
+  indep (⨆ a, ⨆ n ∈ (ns a), s n) (limsup s f) μ :=
 begin
   refine indep_supr_of_directed_le _ _ _ _,
   { exact λ a, indep_bsupr_limsup h_le h_indep hf (hnsp a), },
@@ -950,7 +950,7 @@ end
 
 lemma indep_supr_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
   (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) (hns_univ : ∀ n, ∃ a, n ∈ ns a) :
-  indep (⨆ n, s n) (limsup f s) μ :=
+  indep (⨆ n, s n) (limsup s f) μ :=
 begin
   suffices : (⨆ a, ⨆ n ∈ (ns a), s n) = ⨆ n, s n,
   { rw ← this,
@@ -964,12 +964,12 @@ end
 
 lemma indep_limsup_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (hf : ∀ t, p t → tᶜ ∈ f)
   (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a)) (hns_univ : ∀ n, ∃ a, n ∈ ns a) :
-  indep (limsup f s) (limsup f s) μ :=
+  indep (limsup s f) (limsup s f) μ :=
 indep_of_indep_of_le_left (indep_supr_limsup h_le h_indep hf hns hnsp hns_univ) limsup_le_supr
 
 theorem measure_zero_or_one_of_measurable_set_limsup (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ)
   (hf : ∀ t, p t → tᶜ ∈ f) (hns : directed (≤) ns) (hnsp : ∀ a, p (ns a))
-  (hns_univ : ∀ n, ∃ a, n ∈ ns a) {t : set Ω} (ht_tail : measurable_set[limsup f s] t) :
+  (hns_univ : ∀ n, ∃ a, n ∈ ns a) {t : set Ω} (ht_tail : measurable_set[limsup s f] t) :
   μ t = 0 ∨ μ t = 1 :=
 measure_eq_zero_or_one_of_indep_set_self
   ((indep_limsup_self h_le h_indep hf hns hnsp hns_univ).indep_set_of_measurable_set
@@ -981,7 +981,7 @@ section at_top
 variables [semilattice_sup ι] [no_max_order ι] [nonempty ι]
 
 lemma indep_limsup_at_top_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
-  indep (limsup at_top s) (limsup at_top s) μ :=
+  indep (limsup s at_top) (limsup s at_top) μ :=
 begin
   let ns : ι → set ι := set.Iic,
   have hnsp : ∀ i, bdd_above (ns i) := λ i, bdd_above_Iic,
@@ -999,9 +999,9 @@ end
 
 /-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra of an independent sequence of
 sub-σ-algebras has probability 0 or 1.
-The tail σ-algebra `limsup at_top s` is the same as `⋂ n, ⋃ i ≥ n, s i`. -/
+The tail σ-algebra `limsup s at_top` is the same as `⋂ n, ⋃ i ≥ n, s i`. -/
 theorem measure_zero_or_one_of_measurable_set_limsup_at_top (h_le : ∀ n, s n ≤ m0)
-  (h_indep : Indep s μ) {t : set Ω} (ht_tail : measurable_set[limsup at_top s] t) :
+  (h_indep : Indep s μ) {t : set Ω} (ht_tail : measurable_set[limsup s at_top] t) :
   μ t = 0 ∨ μ t = 1 :=
 measure_eq_zero_or_one_of_indep_set_self
   ((indep_limsup_at_top_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)
@@ -1012,7 +1012,7 @@ section at_bot
 variables [semilattice_inf ι] [no_min_order ι] [nonempty ι]
 
 lemma indep_limsup_at_bot_self (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
-  indep (limsup at_bot s) (limsup at_bot s) μ :=
+  indep (limsup s at_bot) (limsup s at_bot) μ :=
 begin
   let ns : ι → set ι := set.Ici,
   have hnsp : ∀ i, bdd_below (ns i) := λ i, bdd_below_Ici,
@@ -1031,7 +1031,7 @@ end
 /-- **Kolmogorov's 0-1 law** : any event in the tail σ-algebra of an independent sequence of
 sub-σ-algebras has probability 0 or 1. -/
 theorem measure_zero_or_one_of_measurable_set_limsup_at_bot (h_le : ∀ n, s n ≤ m0)
-  (h_indep : Indep s μ) {t : set Ω} (ht_tail : measurable_set[limsup at_bot s] t) :
+  (h_indep : Indep s μ) {t : set Ω} (ht_tail : measurable_set[limsup s at_bot] t) :
   μ t = 0 ∨ μ t = 1 :=
 measure_eq_zero_or_one_of_indep_set_self
   ((indep_limsup_at_bot_self h_le h_indep).indep_set_of_measurable_set ht_tail ht_tail)

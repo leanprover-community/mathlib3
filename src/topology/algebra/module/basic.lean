@@ -654,13 +654,6 @@ infixr ` ∘L `:80 := @continuous_linear_map.comp _ _ _ _ _ _
 @[simp, norm_cast] lemma coe_comp (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
   (h.comp f : M₁ →ₛₗ[σ₁₃] M₃) = (h : M₂ →ₛₗ[σ₂₃] M₃).comp (f : M₁ →ₛₗ[σ₁₂] M₂) := rfl
 
-include σ₁₃
-@[simp, norm_cast] lemma coe_comp' (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
-  ⇑(h.comp f) = h ∘ f := rfl
-
-lemma comp_apply (g : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (g.comp f) x = g (f x) := rfl
-omit σ₁₃
-
 @[simp] theorem comp_id (f : M₁ →SL[σ₁₂] M₂) : f.comp (id R₁ M₁) = f :=
 ext $ λ x, rfl
 
@@ -668,6 +661,12 @@ ext $ λ x, rfl
 ext $ λ x, rfl
 
 include σ₁₃
+
+@[simp, norm_cast] lemma coe_comp' (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
+  ⇑(h.comp f) = h ∘ f := rfl
+
+lemma comp_apply (g : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (g.comp f) x = g (f x) := rfl
+
 @[simp] theorem comp_zero (g : M₂ →SL[σ₂₃] M₃) : g.comp (0 : M₁ →SL[σ₁₂] M₂) = 0 :=
 by { ext, simp }
 
@@ -683,6 +682,11 @@ by { ext, simp }
   (g₁ g₂ : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
   (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
 by { ext, simp }
+
+lemma _root_.function.surjective.clm_comp_injective {g : M₁ →SL[σ₁₂] M₂}
+  (hg : function.surjective g) : function.injective (λ f : M₂ →SL[σ₂₃] M₃, f.comp g) :=
+by { intros f f' hff', rw [ext_iff] at hff' ⊢, intros x, obtain ⟨y, rfl⟩ := hg x, exact hff' y }
+
 omit σ₁₃
 
 theorem comp_assoc {R₄ : Type*} [semiring R₄] [module R₄ M₄] {σ₁₄ : R₁ →+* R₄} {σ₂₄ : R₂ →+* R₄}
@@ -884,6 +888,16 @@ ext $ λ x, rfl
   (snd R₁ M₂ M₃).comp (f.prod g) = g :=
 ext $ λ x, rfl
 
+lemma fst_prod_zero_add_zero_prod_snd [module R₁ M₂]
+  [has_continuous_add M₁] [has_continuous_add M₂] :
+  (fst R₁ M₁ M₂).prod 0 + (0 : M₁ × M₂ →L[R₁] M₁).prod (snd R₁ M₁ M₂) = id R₁ (M₁ × M₂) :=
+begin
+  rw [ext_iff],
+  intro x,
+  simp_rw [add_apply, id_apply, prod_apply, coe_fst', coe_snd', zero_apply, prod.mk_add_mk,
+    add_zero, zero_add, prod.mk.eta]
+end
+
 /-- `prod.map` of two continuous linear maps. -/
 def prod_map [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (f₁ : M₁ →L[R₁] M₂) (f₂ : M₃ →L[R₁] M₄) :
   (M₁ × M₃) →L[R₁] (M₂ × M₄) :=
@@ -913,6 +927,11 @@ rfl
 @[simp] lemma coprod_apply [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃]
   (f₁ : M₁ →L[R₁] M₃) (f₂ : M₂ →L[R₁] M₃) (x) :
   f₁.coprod f₂ x = f₁ x.1 + f₂ x.2 := rfl
+
+lemma comp_fst_add_comp_snd [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃]
+  (f : M₁ →L[R₁] M₃) (g : M₂ →L[R₁] M₃) :
+  f.comp (fst R₁ M₁ M₂) + g.comp (snd R₁ M₁ M₂) = f.coprod g :=
+rfl
 
 lemma range_coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃] (f₁ : M₁ →L[R₁] M₃)
   (f₂ : M₂ →L[R₁] M₃) :
@@ -1698,6 +1717,30 @@ rfl
   (equiv_of_inverse f₁ f₂ h₁ h₂).symm = equiv_of_inverse f₂ f₁ h₂ h₁ :=
 rfl
 omit σ₂₁
+
+include σ₂₁ σ₁₃
+theorem cancel_right {f f' : M₂ →SL[σ₂₃] M₃} {e : M₁ ≃SL[σ₁₂] M₂} :
+  f.comp (e : M₁ →SL[σ₁₂] M₂) = f'.comp (e : M₁ →SL[σ₁₂] M₂) ↔ f = f' :=
+begin
+  split,
+  { simp_rw [continuous_linear_map.ext_iff, continuous_linear_map.comp_apply, coe_coe],
+    intros h v, rw [← e.apply_symm_apply v, h] },
+  { rintro rfl, refl }
+end
+
+omit σ₂₁
+include σ₃₂
+
+theorem cancel_left {e : M₂ ≃SL[σ₂₃] M₃} {f f' : M₁ →SL[σ₁₂] M₂} :
+  (e : M₂ →SL[σ₂₃] M₃).comp f = (e : M₂ →SL[σ₂₃] M₃).comp f' ↔ f = f' :=
+begin
+  split,
+  { simp_rw [continuous_linear_map.ext_iff, continuous_linear_map.comp_apply, coe_coe],
+    intros h v, rw [← e.symm_apply_apply (f v), h, e.symm_apply_apply] },
+  { rintro rfl, refl }
+end
+
+omit σ₁₃ σ₃₂
 
 variable (M₁)
 

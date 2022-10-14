@@ -124,7 +124,6 @@ end functor
 namespace localization
 
 variable [L.is_localization W]
-include L W
 
 lemma inverts : W.is_inverted_by L := (infer_instance : L.is_localization W).inverts
 
@@ -199,6 +198,8 @@ the composition with a localization functor `L : C ⥤ D` with respect to
 def functor_equivalence : (D ⥤ E) ≌ (W.functors_inverting E) :=
 (whiskering_left_functor L W E).as_equivalence
 
+include W
+
 /-- The functor `(D ⥤ E) ⥤ (C ⥤ E)` given by the composition with a localization
 functor `L : C ⥤ D` with respect to `W : morphism_property C`. -/
 @[nolint unused_arguments]
@@ -244,7 +245,7 @@ def lift (F : C ⥤ E) (hF : W.is_inverted_by F) (L : C ⥤ D) [hL : L.is_locali
   D ⥤ E :=
 (functor_equivalence L W E).inverse.obj ⟨F, hF⟩
 
-instance lift_is_lifting (F : C ⥤ E) (hF : W.is_inverted_by F) (L : C ⥤ D)
+instance lifting_lift (F : C ⥤ E) (hF : W.is_inverted_by F) (L : C ⥤ D)
   [hL : L.is_localization W] : lifting L W F (lift F hF L) :=
 ⟨(induced_functor _).map_iso ((functor_equivalence L W E).counit_iso.app ⟨F, hF⟩)⟩
 
@@ -254,6 +255,10 @@ which inverts `W`, when `L : C ⥤ D` is a localization functor for `W`. -/
 def fac (F : C ⥤ E) (hF : W.is_inverted_by F) (L : C ⥤ D) [hL : L.is_localization W] :
   L ⋙ lift F hF L ≅ F :=
 lifting.iso _ W _ _
+
+instance lifting_construction_lift (F : C ⥤ D) (hF : W.is_inverted_by F) :
+  lifting W.Q W F (construction.lift F hF) :=
+⟨eq_to_iso (construction.fac F hF)⟩
 
 variable (W)
 
@@ -315,11 +320,6 @@ is isomorphic to `F₁'` also lifts a functor `F₂` that is isomorphic to `F₁
 def of_isos {F₁ F₂ : C ⥤ E} {F₁' F₂' : D ⥤ E} (e : F₁ ≅ F₂) (e' : F₁' ≅ F₂')
   [lifting L W F₁ F₁'] : lifting L W F₂ F₂' :=
 ⟨iso_whisker_left L e'.symm ≪≫ iso L W F₁ F₁' ≪≫ e⟩
-
-omit L
-
-instance (F : C ⥤ D) (hF : W.is_inverted_by F) : lifting W.Q W F (construction.lift F hF) :=
-⟨eq_to_iso (construction.fac F hF)⟩
 
 end lifting
 

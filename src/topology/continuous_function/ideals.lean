@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 
+import topology.algebra.algebra
 import topology.continuous_function.compact
 import topology.urysohns_lemma
+import data.complex.is_R_or_C
 import analysis.normed_space.units
-import topology.algebra.algebra
 import topology.algebra.module.character_space
-import analysis.complex.basic
 
 /-!
 # Ideals of continuous functions

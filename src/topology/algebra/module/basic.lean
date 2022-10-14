@@ -242,6 +242,8 @@ instance {M' : Type*} [add_comm_monoid M'] [module R M'] [uniform_space M']
   complete_space U.topological_closure :=
 is_closed_closure.complete_space_coe
 
+/-- A maximal proper subspace of a topological module (i.e a `submodule` satisfying `is_coatom`)
+is either closed or dense. -/
 lemma submodule.is_closed_or_dense_of_is_coatom (s : submodule R M) (hs : is_coatom s) :
   is_closed (s : set M) ∨ dense (s : set M) :=
 (hs.le_iff.mp s.submodule_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)

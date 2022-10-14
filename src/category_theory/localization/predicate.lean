@@ -19,6 +19,16 @@ states that `L` inverts the morphisms in `W` and that all functors `C ⥤ E` inv
 `W` uniquely factors as a composition of `L ⋙ G` with `G : D ⥤ E`. Such universal
 properties are inputs for the constructor `is_localization.mk'` for `L.is_localization W`.
 
+When `L : C ⥤ D` is a localization functor for `W : morphism_property` (i.e. when
+`[L.is_localization W]` holds), for any category `E`, there is
+an equivalence `functor_equivalence L W E : (D ⥤ E) ≌ (W.functors_inverting E)`
+that is induced by the composition with the functor `L`. When two functors
+`F : C ⥤ E` and `F' : D ⥤ E` correspond via this equivalence, we shall say
+that `F'` lifts `F`, and the associated isomorphism `L ⋙ F' ≅ F` is the
+datum that is part of the class `lifting L W F F'`. The functions
+`lift_nat_trans` and `lift_nat_iso` can be used to lift natural transformations
+and natural isomorphisms between functors.
+
 -/
 
 noncomputable theory

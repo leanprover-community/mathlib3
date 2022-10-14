@@ -30,7 +30,6 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 ## TODO
 
  * Link with periodicity
- * Measure space structure
  * Lie group structure
  * Exponential equivalence to `circle`
 

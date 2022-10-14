@@ -513,11 +513,60 @@ end
       --sorry,
 
 
+/-- belongs in measure_theory.integral.lebesgue -/
+theorem measure_theory.lintegral_supr_directed' {α : Type*} {β : Type*} {m : measurable_space α}
+  {μ : measure_theory.measure α} [countable β] {f : β → α → ennreal}
+  (hf : ∀ (b : β), ae_measurable (f b) μ) (h_directed : directed has_le.le f) :
+∫⁻ (a : α), (⨆ (b : β), f b a) ∂μ = ⨆ (b : β), ∫⁻ (a : α), f b a ∂μ :=
+begin
+  simp_rw ←supr_apply,
+--  have := @ae_seq β α ennreal m _ f μ hf _,
+  let p : α → (β → ennreal) → Prop := λ x f', directed has_le.le f',
+--  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x) := directed has_le.le (ae_seq hf p),
+  have h_ae_seq_directed : directed has_le.le (ae_seq hf p),
+  {
+    intros b₁ b₂, -- STOPPED HERE 10/14/22
+    have := ae_seq.prop_of_mem_ae_seq_set hf _ b₁ b₂,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed b₁ b₂,
+    use z,
+    split,
+    {
+      intros x,
+      by_cases hx : x ∈ ae_seq_set hf p,
+--      convert hz₁ x,
+      have := ae_seq.prop_of_mem_ae_seq_set hf hx b₁ b₂,
+    },
+    by_cases hx : x ∈ ae_seq_set hf p,
+    { exact ae_seq.prop_of_mem_ae_seq_set hf hx hnm, },
+    { simp only [ae_seq, hx, if_false],
+      exact le_rfl, },
+    sorry,
+  },
+  have hp : ∀ᵐ (x : α) ∂μ, p x (λ (n : β), f n x),
+  {
+    dsimp [p],
+    filter_upwards with x hx,
+    intros y,
+--    exact h_directed y,
+    sorry,
+  },
+  convert (lintegral_supr_directed (ae_seq.measurable hf p) h_ae_seq_directed) using 1,
+  { simp_rw ←supr_apply,
+    rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },
+  { congr' 1,
+    ext1 b,
+    rw lintegral_congr_ae,
+    symmetry,
+    refine ae_seq.ae_seq_n_eq_fun_n_ae hf hp _, },
+end
+
+#exit
+
 lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E]
   {f : β → α → E}
-  (hf : ∀ (i : β), measurable (f i)) -- (hf : ∀ (i : β), ae_measurable (f i) μ)
+  (hf : ∀ (i : β), ae_strongly_measurable (f i) μ) -- (hf : ∀ (i : β), ae_measurable (f i) μ)
   (hf' : summable (λ (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ))
   --∑' (i : β), ∫⁻ (a : α), ↑∥f i a∥₊ ∂μ < ∞ )
   -- F : α → ℝ≥0
@@ -814,8 +863,10 @@ begin
     convert (@tsum_smul_const _ Γ.opposite _ _ _ _ _ _ _ (λ γ, f (γ⁻¹ • x)) _ (g x) _).symm using 1,
     exact f_summable x, },
   refine eq.trans _ (integral_congr_ae (filter.eventually_of_forall this)).symm,
+  haveI : encodable Γ.opposite := sorry,
   rw measure_theory.integral_tsum, --- WILL NEED MORE ASSUMPTIONS TO BE SATISFIED HERE
   haveI := h𝓕.smul_invariant_measure_map,
+--  have := h𝓕.set_integral_eq_tsum (λ x, f x * g x) univ _,
   convert h𝓕.set_integral_eq_tsum (λ x, f x * g x) univ _,
   { simp, },
   { ext1 γ,

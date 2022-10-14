@@ -183,6 +183,34 @@ end
   (mul_indicator s f)⁻¹' B = s.ite (f ⁻¹' B) (1 ⁻¹' B) :=
 by letI := classical.dec_pred (∈ s); exact piecewise_preimage s f 1 B
 
+@[to_additive] lemma mul_indicator_one_preimage (s : set M) :
+  t.mul_indicator 1 ⁻¹' s ∈ ({set.univ, ∅} : set (set α)) :=
+begin
+  classical,
+  rw [mul_indicator_one', preimage_one],
+  split_ifs; simp
+end
+
+@[to_additive] lemma mul_indicator_const_preimage_eq_union (U : set α) (s : set M) (a : M)
+  [decidable (a ∈ s)] [decidable ((1 : M) ∈ s)] :
+  U.mul_indicator (λ x, a) ⁻¹' s = (if a ∈ s then U else ∅) ∪ (if (1 : M) ∈ s then Uᶜ else ∅) :=
+begin
+  rw [mul_indicator_preimage, preimage_one, preimage_const],
+  split_ifs; simp [← compl_eq_univ_diff]
+end
+
+@[to_additive] lemma mul_indicator_const_preimage (U : set α) (s : set M) (a : M) :
+  U.mul_indicator (λ x, a) ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
+begin
+  classical,
+  rw [mul_indicator_const_preimage_eq_union],
+  split_ifs; simp
+end
+
+lemma indicator_one_preimage [has_zero M] (U : set α) (s : set M) :
+  U.indicator 1 ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
+indicator_const_preimage _ _ 1
+
 @[to_additive] lemma mul_indicator_preimage_of_not_mem (s : set α) (f : α → M)
   {t : set M} (ht : (1:M) ∉ t) :
   (mul_indicator s f)⁻¹' t = f ⁻¹' t ∩ s :=

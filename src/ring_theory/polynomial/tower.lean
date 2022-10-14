@@ -13,6 +13,9 @@ import data.polynomial.algebra_map
 This file proves some basic results about the algebra tower structure for the type `polynomial R`.
 
 This structure itself is provided elsewhere as `polynomial.is_scalar_tower`
+
+When you update this file, you can also try to make a corresponding update in
+`ring_theory.mv_polynomial.tower`.
 -/
 
 open_locale polynomial

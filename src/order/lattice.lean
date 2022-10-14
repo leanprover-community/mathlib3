@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.monotone
-import order.rel_classes
 import tactic.simps
 import tactic.pi_instances
 
@@ -626,7 +625,7 @@ instance linear_order.to_lattice {α : Type u} [o : linear_order α] :
   ..o }
 
 section linear_order
-variables [linear_order α] {a b c : α}
+variables [linear_order α] {a b c d : α}
 
 lemma sup_eq_max : a ⊔ b = max a b := rfl
 lemma inf_eq_min : a ⊓ b = min a b := rfl
@@ -654,6 +653,14 @@ lemma inf_ind (a b : α) {p : α → Prop} : p a → p b → p (a ⊓ b) := @sup
 @[simp] lemma inf_le_iff : b ⊓ c ≤ a ↔ b ≤ a ∨ c ≤ a := @le_sup_iff αᵒᵈ _ _ _ _
 @[simp] lemma inf_lt_iff : b ⊓ c < a ↔ b < a ∨ c < a := @lt_sup_iff αᵒᵈ _ _ _ _
 @[simp] lemma lt_inf_iff : a < b ⊓ c ↔ a < b ∧ a < c := @sup_lt_iff αᵒᵈ _ _ _ _
+
+variables (a b c d)
+
+lemma max_max_max_comm : max (max a b) (max c d) = max (max a c) (max b d) :=
+sup_sup_sup_comm _ _ _ _
+
+lemma min_min_min_comm : min (min a b) (min c d) = min (min a c) (min b d) :=
+inf_inf_inf_comm _ _ _ _
 
 end linear_order
 

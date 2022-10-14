@@ -192,8 +192,6 @@ instance [semiring R] [module R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
   module R (seminorm 𝕜 E) :=
 (coe_fn_add_monoid_hom_injective 𝕜 E).module R _ coe_smul
 
--- TODO: define `has_Sup` too, from the skeleton at
--- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
 instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
@@ -389,6 +387,22 @@ section classical
 
 open_locale classical
 
+/-- We define the supremum of an arbitrary subset of `seminorm 𝕜 E` as follows:
+* if `s` is `bdd_above` *as a set of functions `E → ℝ`* (that is, if `s` is pointwise bounded
+above), we take the pointwise supremum of all elements of `s`, and we prove that it is indeed a
+seminorm.
+* otherwise, we take the zero seminorm `⊥`.
+
+There are two things worth mentionning here:
+* First, it is not trivial at first that `s` being bounded above *by a function* implies
+being bounded above *as a seminorm*. We show this in `seminorm.bdd_above_iff` by using
+that the `Sup s` as defined here is then a bounding seminorm for `s`. So it is important to make
+the case disjunction on `bdd_above (coe_fn '' s : set (E → ℝ))` and not `bdd_above s`.
+* Since the pointwise `Sup` already gives `0` at points where a family of functions is
+not bounded above, one could hope that just using the pointwise `Sup` would work here, without the
+need for an additional case disjunction. As discussed on Zulip, this doesn't work because this can
+give a function which does *not* satisfy the seminorm axioms (typically sub-additivity).
+-/
 noncomputable instance : has_Sup (seminorm 𝕜 E) :=
 { Sup := λ s, if h : bdd_above (coe_fn '' s : set (E → ℝ)) then
   { to_fun := ⨆ p : s, ((p : seminorm 𝕜 E) : E → ℝ),
@@ -458,6 +472,13 @@ begin
   { exact csupr_le (λ q, hp q.2 x) }
 end
 
+/-- `seminorm 𝕜 E` is a conditionally complete lattice.
+
+Note that, while `inf`, `sup` and `Sup` have good definitional properties (corresponding to
+`seminorm.has_inf`, `seminorm.has_sup` and `seminorm.has_Sup` respectively), `Inf s` is just
+defined as the supremum of the lower bounds of `s`, which is not really useful in practice. If you
+need to use `Inf` on seminorms, then you should probably provide a more workable definition first,
+but this is unlikely to happen so we keep the "bad" definition for now. -/
 noncomputable instance : conditionally_complete_lattice (seminorm 𝕜 E) :=
 conditionally_complete_lattice_of_lattice_of_Sup (seminorm 𝕜 E) seminorm.is_lub_Sup
 
@@ -578,6 +599,14 @@ begin
   exact (map_add_le_add p _ _).trans (add_le_add hy₁ hy₂)
 end
 
+lemma closed_ball_add_closed_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E) :
+  p.closed_ball (x₁ : E) r₁ + p.closed_ball (x₂ : E) r₂ ⊆ p.closed_ball (x₁ + x₂) (r₁ + r₂) :=
+begin
+  rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+  rw [mem_closed_ball, add_sub_add_comm],
+  exact (map_add_le_add p _ _).trans (add_le_add hy₁ hy₂)
+end
+
 end has_smul
 
 section module
@@ -639,6 +668,15 @@ begin
   rw [mem_ball_zero, ←hx, map_smul_eq_mul],
   calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg p _) ha
   ...    < r   : by rwa mem_ball_zero at hy
+end
+
+/-- Closed seminorm-balls at the origin are balanced. -/
+lemma balanced_closed_ball_zero (r : ℝ) : balanced 𝕜 (closed_ball p 0 r) :=
+begin
+  rintro a ha x ⟨y, hy, hx⟩,
+  rw [mem_closed_ball_zero, ←hx, map_smul_eq_mul],
+  calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg p _) ha
+  ...    ≤ r   : by rwa mem_closed_ball_zero at hy
 end
 
 /-- Closed seminorm-balls at the origin are balanced. -/

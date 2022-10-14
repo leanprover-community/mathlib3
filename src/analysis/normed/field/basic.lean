@@ -660,6 +660,14 @@ begin
     exact bot_le }
 end
 
+lemma to_nnreal_mul_nnnorm {x : ℝ} (y : ℝ) (hr : 0 ≤ x) : x.to_nnreal * ∥y∥₊ = ∥x * y∥₊ :=
+begin
+  rw real.to_nnreal_of_nonneg hr,
+  simp only [nnnorm_mul, mul_eq_mul_right_iff],
+  refine or.inl (nnreal.eq _),
+  simp only [subtype.coe_mk, coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hr]
+end
+
 /-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
 This is a particular case of `module.punctured_nhds_ne_bot`. -/
 instance punctured_nhds_module_ne_bot

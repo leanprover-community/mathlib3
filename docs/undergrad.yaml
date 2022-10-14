@@ -263,7 +263,7 @@ Affine and Euclidean Geometry:
     angles between vectors: 'inner_product_geometry.angle'
     angles between planes: ''
     inscribed angle theorem: ''
-    cocyclicity: ''
+    cocyclicity: 'euclidean_geometry.concyclic'
     group of isometries stabilizing a subset of the plane or of space: ''
     regular polygons: ''
     metric relations in the triangle: ''

@@ -79,13 +79,6 @@ If the space is also compact:
 * `disjoint_nested_nhds`: Given two points `x ≠ y`, we can find neighbourhoods `x ∈ V₁ ⊆ U₁` and
   `y ∈ V₂ ⊆ U₂`, with the `Vₖ` closed and the `Uₖ` open, such that the `Uₖ` are disjoint.
 
-### Discrete spaces
-
-* `discrete_topology_iff_nhds`: Discrete topological spaces are those whose neighbourhood
-  filters are the `pure` filter (which is the principal filter at a singleton).
-* `induced_bot`/`discrete_topology_induced`: The pullback of the discrete topology
-  under an inclusion is the discrete topology.
-
 ## References
 
 https://en.wikipedia.org/wiki/Separation_axiom
@@ -739,20 +732,6 @@ begin
   change tX.induced ((coe : s → X) ∘ (set.inclusion ts)) =
     topological_space.induced (set.inclusion ts) (tX.induced _),
   rw ← induced_compose,
-end
-
-/-- This lemma characterizes discrete topological spaces as those whose singletons are
-neighbourhoods. -/
-lemma discrete_topology_iff_nhds {X : Type*} [topological_space X] :
-  discrete_topology X ↔ (nhds : X → filter X) = pure :=
-begin
-  split,
-  { introI hX,
-    exact nhds_discrete X },
-  { intro h,
-    constructor,
-    apply eq_of_nhds_eq_nhds,
-    simp [h, nhds_bot] }
 end
 
 /-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the
@@ -1508,6 +1487,14 @@ begin
     V₁_closed, V₂_closed, U₁_op, U₂_op, h₁, h₂, H⟩
 end
 
+open separation_quotient
+
+/-- The `separation_quotient` of a regular space is a T₃ space. -/
+instance [regular_space α] : t3_space (separation_quotient α) :=
+{ regular := λ s, surjective_mk.forall.2 $ λ a hs ha,
+    by { rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_mk, comap_mk_nhds_set],
+         exact regular_space.regular (hs.preimage continuous_mk) ha } }
+
 end t3
 
 section normality
@@ -1556,6 +1543,24 @@ protected lemma closed_embedding.normal_space [topological_space β] [normal_spa
         (disjoint_image_of_injective hf.inj hst),
     exact (H.preimage hf.continuous).mono (subset_preimage_image _ _) (subset_preimage_image _ _)
   end }
+
+namespace separation_quotient
+
+/-- The `separation_quotient` of a normal space is a T₄ space. We don't have separate typeclasses
+for normal spaces (without T₁ assumption) and T₄ spaces, so we use the same class for assumption
+and for conclusion.
+
+One can prove this using a homeomorphism between `α` and `separation_quotient α`. We give an
+alternative proof that works without assuming that `α` is a T₁ space. -/
+instance [normal_space α] : normal_space (separation_quotient α) :=
+{ normal := λ s t hs ht hd, separated_nhds_iff_disjoint.2 $
+    begin
+      rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_set, comap_mk_nhds_set],
+      exact separated_nhds_iff_disjoint.1 (normal_separation (hs.preimage continuous_mk)
+        (ht.preimage continuous_mk) (hd.preimage mk))
+    end }
+
+end separation_quotient
 
 variable (α)
 
@@ -1642,6 +1647,22 @@ instance [t5_space α] {p : α → Prop} : t5_space {x // p x} := embedding_subt
 instance t5_space.to_normal_space [t5_space α] : normal_space α :=
 ⟨λ s t hs ht hd, separated_nhds_iff_disjoint.2 $
   completely_normal (by rwa [hs.closure_eq]) (by rwa [ht.closure_eq])⟩
+
+open separation_quotient
+
+/-- The `separation_quotient` of a completely normal space is a T₅ space. We don't have separate
+typeclasses for completely normal spaces (without T₁ assumption) and T₅ spaces, so we use the same
+class for assumption and for conclusion.
+
+One can prove this using a homeomorphism between `α` and `separation_quotient α`. We give an
+alternative proof that works without assuming that `α` is a T₁ space. -/
+instance [t5_space α] : t5_space (separation_quotient α) :=
+{ completely_normal := λ s t hd₁ hd₂,
+    begin
+      rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_set, comap_mk_nhds_set],
+      apply t5_space.completely_normal; rw [← preimage_mk_closure],
+      exacts [hd₁.preimage mk, hd₂.preimage mk]
+    end }
 
 end completely_normal
 

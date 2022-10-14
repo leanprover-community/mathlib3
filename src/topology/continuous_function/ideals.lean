@@ -7,6 +7,7 @@ Authors: Jireh Loreaux
 import topology.continuous_function.compact
 import topology.urysohns_lemma
 import analysis.normed_space.units
+import topology.algebra.algebra
 import topology.algebra.module.character_space
 import analysis.complex.basic
 
@@ -308,28 +309,28 @@ open is_R_or_C topological_space
 
 variables {X 𝕜 : Type*} [is_R_or_C 𝕜] [topological_space X] [compact_space X] [t2_space X]
 
+#check @galois_insertion.is_coatom_iff
+
 lemma ideal_of_set_is_maximal_iff (s : opens X) :
   (ideal_of_set 𝕜 (s : set X)).is_maximal ↔ is_coatom s :=
 begin
   rw ideal.is_maximal_def,
-  refine (ideal_opens_gi X 𝕜).is_coatom_iff (subtype.ext
-    (by simp only [opens_of_ideal_coe, set_of_top_eq_univ, opens.coe_top])) (λ I hI, _) s,
+  refine (ideal_opens_gi X 𝕜).is_coatom_iff  (λ I hI, _) s,
   rw ←ideal.is_maximal_def at hI,
   resetI,
   exact ideal_of_set_of_ideal_is_closed infer_instance,
 end
 
-lemma ideal_of_singleton_is_maximal (x : X) : (ideal_of_set 𝕜 ({x}ᶜ : set X)).is_maximal :=
-(ideal_of_set_is_maximal_iff (opens.singleton_compl x)).mpr ((opens.is_coatom_iff _).mp $
-  (set.is_coatom_iff _).mpr ⟨x, rfl⟩)
+lemma ideal_of_compl_singleton_is_maximal (x : X) : (ideal_of_set 𝕜 ({x}ᶜ : set X)).is_maximal :=
+(ideal_of_set_is_maximal_iff (closeds.singleton x).compl).mpr  $ opens.is_coatom_iff.mpr ⟨x, rfl⟩
 
-lemma set_of_ideal_eq_singleton_compl (I : ideal C(X, 𝕜)) [hI : I.is_maximal] :
+lemma set_of_ideal_eq_compl_singleton (I : ideal C(X, 𝕜)) [hI : I.is_maximal] :
   ∃ x : X, set_of_ideal I = {x}ᶜ :=
 begin
   have hI' : (ideal_of_set 𝕜 (set_of_ideal I)).is_maximal, from
     (ideal_of_set_of_ideal_is_closed (infer_instance : is_closed (I : set C(X, 𝕜)))).symm ▸ hI,
-  exact (set_of_ideal I).is_coatom_iff.mp ((opens_of_ideal I).is_coatom_iff.mpr $
-    (ideal_of_set_is_maximal_iff (opens_of_ideal I)).mp hI'),
+  obtain ⟨x, hx⟩ := opens.is_coatom_iff.1 ((ideal_of_set_is_maximal_iff (opens_of_ideal I)).1 hI'),
+  exact ⟨x, congr_arg coe hx⟩,
 end
 
 @[simp] lemma _root_.ideal.closure_eq_of_is_closed {R : Type*} [topological_space R] [ring R]
@@ -339,9 +340,9 @@ ideal.ext $ set.ext_iff.mp hI.closure_eq
 lemma ideal_is_maximal_iff (I : ideal C(X, 𝕜)) [hI : is_closed (I : set C(X, 𝕜))] :
   I.is_maximal ↔ ∃ x : X, ideal_of_set 𝕜 {x}ᶜ = I :=
 begin
-  refine ⟨_, λ h, let ⟨x, hx⟩ := h in hx ▸ ideal_of_singleton_is_maximal x⟩,
+  refine ⟨_, λ h, let ⟨x, hx⟩ := h in hx ▸ ideal_of_compl_singleton_is_maximal x⟩,
   introI hI',
-  obtain ⟨x, hx⟩ := set_of_ideal_eq_singleton_compl I,
+  obtain ⟨x, hx⟩ := set_of_ideal_eq_compl_singleton I,
   refine ⟨x, by simpa only [ideal_of_set_of_ideal_eq_closure, ideal.closure_eq_of_is_closed]
     using congr_arg (ideal_of_set 𝕜) hx.symm⟩,
 end
@@ -396,8 +397,7 @@ lemma continuous_map_eval_surjective : surjective (continuous_map_eval X ℂ) :=
 begin
   intros φ,
   obtain ⟨x, hx⟩ := (ideal_is_maximal_iff (ring_hom.ker φ)).mp infer_instance,
-  refine ⟨x, ext_ker _⟩,
-  ext f,
+  refine ⟨x, ext_ker $ ideal.ext $ λ f, _⟩,
   simpa only [ring_hom.mem_ker, continuous_map_eval_apply_apply,
     mem_ideal_of_set_singleton_compl, ring_hom.mem_ker] using set_like.ext_iff.mp hx f,
 end

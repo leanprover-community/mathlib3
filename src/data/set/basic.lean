@@ -2173,6 +2173,12 @@ by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, ← inter_d
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
 
+lemma _root_.sum.range_eq (f : α ⊕ β → γ) : range f = range (f ∘ sum.inl) ∪ range (f ∘ sum.inr) :=
+ext $ λ x, sum.exists
+
+@[simp] lemma range_sum_elim (f : α → γ) (g : β → γ) : range (sum.elim f g) = range f ∪ range g :=
+sum.range_eq _
+
 instance can_lift (c) (p) [can_lift α β c p] :
   can_lift (set α) (set β) (('') c) (λ s, ∀ x ∈ s, p x) :=
 { prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }

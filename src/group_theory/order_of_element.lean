@@ -654,6 +654,14 @@ lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
+@[simp, to_additive card_nsmul_eq_zero']
+lemma pow_card_eq_one' {G : Type*} [group G] {x : G} : x ^ nat.card G = 1 :=
+begin
+  casesI fintype_or_infinite G with h h,
+  { rw [nat.card_eq_fintype_card, pow_card_eq_one] },
+  { rw [nat.card_eq_zero_of_infinite, pow_zero] },
+end
+
 @[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
   [finite (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
 by { casesI nonempty_fintype (G ⧸ H),
@@ -671,22 +679,22 @@ by rw [zpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_o
 
 /-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
 @[to_additive "If `gcd(|G|,n)=1` then the smul by `n` is a bijection", simps]
-  def pow_coprime (h : nat.coprime (fintype.card G) n) : G ≃ G :=
+noncomputable def pow_coprime {G : Type*} [group G] (h : nat.coprime (nat.card G) n) : G ≃ G :=
 { to_fun := λ g, g ^ n,
-  inv_fun := λ g, g ^ (nat.gcd_b (fintype.card G) n),
+  inv_fun := λ g, g ^ (nat.gcd_b (nat.card G) n),
   left_inv := λ g, by
-  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
+  { have key := congr_arg ((^) g) (nat.gcd_eq_gcd_ab (nat.card G) n),
     rwa [zpow_add, zpow_mul, zpow_mul, zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
-      h.gcd_eq_one, pow_one, pow_card_eq_one, one_zpow, one_mul, eq_comm] at key },
+      h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key },
   right_inv := λ g, by
-  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
+  { have key := congr_arg ((^) g) (nat.gcd_eq_gcd_ab (nat.card G) n),
     rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
-      h.gcd_eq_one, pow_one, pow_card_eq_one, one_zpow, one_mul, eq_comm] at key } }
+      h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key } }
 
-@[simp, to_additive] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) :
+@[simp, to_additive] lemma pow_coprime_one (h : nat.coprime (nat.card G) n) :
   pow_coprime h 1 = 1 := one_pow n
 
-@[simp, to_additive] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) {g : G} :
+@[simp, to_additive] lemma pow_coprime_inv (h : nat.coprime (nat.card G) n) {g : G} :
   pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ := inv_pow g n
 
 @[to_additive add_inf_eq_bot_of_coprime]

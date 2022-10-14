@@ -53,11 +53,9 @@ subgroupoid
 
 -/
 
-open set classical function
-
 namespace category_theory
 
-open groupoid
+open set groupoid
 
 local attribute [protected] category_theory.inv
 
@@ -67,7 +65,7 @@ variables {C : Type u} [groupoid C]
 
 /--
 A sugroupoid of `C` consists of a choice of arrows for each pair of vertices, closed
-under composition and inverses
+under composition and inverses.
 -/
 @[ext] structure subgroupoid (C : Type u) [groupoid C] :=
 (arrows : ∀ (c d : C), set (c ⟶ d))
@@ -76,8 +74,7 @@ under composition and inverses
 (mul : ∀ {c d e} {p} (hp : p ∈ arrows c d) {q} (hq : q ∈ arrows d e),
           p ≫ q ∈ arrows c e)
 
-attribute [protected] subgroupoid.inv
-attribute [protected] subgroupoid.mul
+attribute [protected] subgroupoid.inv subgroupoid.mul
 
 namespace subgroupoid
 
@@ -109,7 +106,7 @@ instance coe : groupoid S.objs :=
   inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp],
   comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
 
-/-- There is an embedding of the coerced subgroupoid to its parent-/
+/-- The embedding of the coerced subgroupoid to its parent-/
 def hom : S.objs ⥤ C :=
 { obj := λ c, c.val,
   map := λ c d f, f.val,

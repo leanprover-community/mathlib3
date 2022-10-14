@@ -106,7 +106,7 @@ theorem dvd_sub_left (h : a ∣ c) : a ∣ b - c ↔ a ∣ b :=
 
 /-- If an element a divides another element b in a commutative ring, a divides the difference of b
   and another element c iff a divides c. -/
-theorem dvd_sub_right {a b c : α} (h : a ∣ b) : a ∣ b - c ↔ a ∣ c :=
+theorem dvd_sub_right (h : a ∣ b) : a ∣ b - c ↔ a ∣ c :=
 (dvd_sub_iff_right h).symm
 
 end non_unital_ring
@@ -117,19 +117,19 @@ variables [ring α] {a b c : α}
 theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
 
 /-- An element a divides the sum a + b if and only if a divides b.-/
-@[simp] lemma dvd_add_self_left {a b : α} : a ∣ a + b ↔ a ∣ b :=
+@[simp] lemma dvd_add_self_left : a ∣ a + b ↔ a ∣ b :=
 dvd_add_right (dvd_refl a)
 
 /-- An element a divides the sum b + a if and only if a divides b.-/
-@[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
+@[simp] lemma dvd_add_self_right : a ∣ b + a ↔ a ∣ b :=
 dvd_add_left (dvd_refl a)
 
 /-- An element a divides the difference a - b if and only if a divides b.-/
-@[simp] lemma dvd_sub_self_left {a b : α} : a ∣ a - b ↔ a ∣ b :=
+@[simp] lemma dvd_sub_self_left : a ∣ a - b ↔ a ∣ b :=
 dvd_sub_right (dvd_refl a)
 
 /-- An element a divides the difference b - a if and only if a divides b.-/
-@[simp] lemma dvd_sub_self_right {a b : α} : a ∣ b - a ↔ a ∣ b :=
+@[simp] lemma dvd_sub_self_right : a ∣ b - a ↔ a ∣ b :=
 dvd_sub_left (dvd_refl a)
 
 end ring

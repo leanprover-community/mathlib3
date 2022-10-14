@@ -9,6 +9,7 @@ import category_theory.over
 import category_theory.limits.concrete_category
 import category_theory.limits.shapes.concrete_category
 import group_theory.subgroup.basic
+import category_theory.elementwise
 
 /-!
 # The category of (commutative) (additive) groups has all limits
@@ -105,6 +106,30 @@ instance has_limits_of_size : has_limits_of_size.{v v} Group.{max v u} :=
 
 @[to_additive]
 instance has_limits : has_limits Group.{u} := Group.has_limits_of_size.{u u}
+
+@[to_additive]
+def limit.from_section {F : J ⥤ Group.{max v u}} (s : sections_subgroup F) :
+  @@limit _ _ F _ :=
+(is_limit.cone_point_unique_up_to_iso
+  (Group.limit_cone_is_limit F) (limit.is_limit _)).hom s
+
+@[to_additive]
+def limit.to_section {F : J ⥤ Group.{max v u}} (x : limit F) :
+  sections_subgroup F :=
+(is_limit.cone_point_unique_up_to_iso
+  (Group.limit_cone_is_limit F) (limit.is_limit _)).inv x
+
+@[to_additive]
+lemma limit.from_section_to_section {F : J ⥤ Group.{max v u}}
+  (x : limit F) : limit.from_section (limit.to_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (Group.limit_cone_is_limit F) (limit.is_limit _)).inv_hom_id_apply x
+
+@[to_additive]
+lemma limit.to_section_from_section {F : J ⥤ Group.{max v u}}
+  (x : sections_subgroup F) : limit.to_section (limit.from_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (Group.limit_cone_is_limit F) (limit.is_limit _)).hom_inv_id_apply x
 
 /-- The forgetful functor from groups to monoids preserves all limits.
 
@@ -203,6 +228,32 @@ instance has_limits_of_size : has_limits_of_size.{v v} CommGroup.{max v u} :=
 
 @[to_additive]
 instance has_limits : has_limits CommGroup.{u} := CommGroup.has_limits_of_size.{u u}
+
+@[to_additive]
+def limit.from_section {F : J ⥤ CommGroup.{max v u}}
+  (s : Group.sections_subgroup (F ⋙ forget₂ CommGroup.{max v u} Group.{max v u})) :
+  @@limit _ _ F _ :=
+(is_limit.cone_point_unique_up_to_iso
+  (CommGroup.limit_cone_is_limit F) (limit.is_limit _)).hom s
+
+@[to_additive]
+def limit.to_section {F : J ⥤ CommGroup.{max v u}} (x : limit F) :
+  Group.sections_subgroup (F ⋙ forget₂ CommGroup.{max v u} Group.{max v u}) :=
+(is_limit.cone_point_unique_up_to_iso
+  (CommGroup.limit_cone_is_limit F) (limit.is_limit _)).inv x
+
+@[to_additive, simp]
+lemma limit.from_section_to_section {F : J ⥤ CommGroup.{max v u}}
+  (x : limit F) : limit.from_section (limit.to_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (CommGroup.limit_cone_is_limit F) (limit.is_limit _)).inv_hom_id_apply x
+
+@[to_additive, simp]
+lemma limit.to_section_from_section {F : J ⥤ CommGroup.{max v u}}
+  (x : Group.sections_subgroup (F ⋙ forget₂ CommGroup.{max v u} Group.{max v u})) :
+  limit.to_section (limit.from_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (CommGroup.limit_cone_is_limit F) (limit.is_limit _)).hom_inv_id_apply x
 
 /--
 The forgetful functor from commutative groups to groups preserves all limits.

@@ -3,7 +3,7 @@ Copyright (c) 2021 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
-import algebra.category.Ring.basic
+import algebra.category.Ring.limits
 import algebra.category.Module.change_of_rings
 
 /-!
@@ -74,6 +74,23 @@ The underlying module homomorphism of a morphism between two ring-module pairs.
 def hom.mod_hom {P Q : RingModPair} (f : P ⟶ Q) :
   P.mod ⟶ (category_theory.Module.restrict_scalars f.ring_hom).obj Q.mod := f.2
 
+@[ext] lemma hom.ext {P Q : RingModPair} (f g : P ⟶ Q) :
+  f = g ↔ (∀ (x : P.ring), f.1 x = g.1 x) ∧ ∀ (x : P.mod), f.2 x = g.2 x :=
+⟨λ h, h ▸ ⟨λ x, rfl, λ x, rfl⟩, λ h, begin
+  rcases f with ⟨f1, f2⟩,
+  rcases g with ⟨g1, g2⟩,
+  have eq1 : f1 = g1 := fun_like.ext _ _ h.1,
+  subst eq1,
+  have eq2 : f2 = g2 := fun_like.ext _ _ h.2,
+  subst eq2,
+end⟩
+
+@[simp] lemma hom.comp_fst {A B C : RingModPair} (f : A ⟶ B) (g : B ⟶ C) :
+  (f ≫ g).1 = f.1 ≫ g.1 := rfl
+
+@[simp] lemma hom.comp_snd_apply {A B C : RingModPair} (f : A ⟶ B) (g : B ⟶ C) (x) :
+  (f ≫ g).2 x = g.2 (f.2 x) := rfl
+
 /--
 The canonical functor sending a ring-module pair to its underlying ring
 -/
@@ -86,7 +103,7 @@ def forget_to_Ring : RingModPair ⥤ Ring :=
 /--
 The canonical functor sending a ring-module pair to its underlying abelian group
 -/
-def forget_to_Ab : RingModPair ⥤ Ab :=
+def forget_to_Ab : RingModPair ⥤ AddCommGroup :=
 { obj := λ P, ⟨P.mod⟩,
   map := λ _ _ f, f.mod_hom.to_add_monoid_hom,
   map_id' := λ _, rfl,

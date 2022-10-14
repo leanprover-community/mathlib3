@@ -102,6 +102,26 @@ instance has_limits_of_size : has_limits_of_size.{v} SemiRing.{max v u} :=
 
 instance has_limits : has_limits SemiRing.{u} := SemiRing.has_limits_of_size.{u u}
 
+def limit.from_section {F : J ⥤ SemiRing.{max v u}} (s : sections_subsemiring F) :
+  @@limit _ _ F _ :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).hom s
+
+def limit.to_section {F : J ⥤ SemiRing.{max v u}} (x : limit F) :
+  sections_subsemiring F :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).inv x
+
+lemma limit.from_section_to_section {F : J ⥤ SemiRing.{max v u}}
+  (x : limit F) : limit.from_section (limit.to_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).inv_hom_id_apply x
+
+lemma limit.to_section_from_section {F : J ⥤ SemiRing.{max v u}}
+  (x : sections_subsemiring F) : limit.to_section (limit.from_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).hom_inv_id_apply x
+
 /--
 An auxiliary declaration to speed up typechecking.
 -/
@@ -234,6 +254,29 @@ instance forget_preserves_limits_of_size :
 instance forget_preserves_limits : preserves_limits (forget CommSemiRing.{u}) :=
 CommSemiRing.forget_preserves_limits_of_size.{u u}
 
+def limit.from_section {F : J ⥤ CommSemiRing.{max v u}}
+  (s : SemiRing.sections_subsemiring (F ⋙ forget₂ CommSemiRing.{max v u} SemiRing.{max v u})) :
+  @@limit _ _ F _ :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).hom s
+
+def limit.to_section {F : J ⥤ CommSemiRing.{max v u}}
+  (x : limit F) :
+  SemiRing.sections_subsemiring (F ⋙ forget₂ CommSemiRing.{max v u} SemiRing.{max v u}) :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).inv x
+
+lemma limit.from_section_to_section {F : J ⥤ CommSemiRing.{max v u}}
+  (x : limit F) : limit.from_section (limit.to_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).inv_hom_id_apply x
+
+lemma limit.to_section_from_section {F : J ⥤ CommSemiRing.{max v u}}
+  (x : SemiRing.sections_subsemiring (F ⋙ forget₂ CommSemiRing.{max v u} SemiRing.{max v u})) :
+  limit.to_section (limit.from_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).hom_inv_id_apply x
+
 end CommSemiRing
 
 namespace Ring
@@ -340,6 +383,29 @@ instance forget_preserves_limits_of_size : preserves_limits_of_size.{v v} (forge
 
 instance forget_preserves_limits : preserves_limits (forget Ring.{u}) :=
 Ring.forget_preserves_limits_of_size.{u u}
+
+def limit.from_section (F : J ⥤ Ring.{max v u})
+  (s : SemiRing.sections_subsemiring (F ⋙ forget₂ Ring.{max v u} SemiRing.{max v u})) :
+  @@limit _ _ F _ :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).hom s
+
+def limit.to_section (F : J ⥤ Ring.{max v u})
+  (x : limit F) :
+  SemiRing.sections_subsemiring (F ⋙ forget₂ Ring.{max v u} SemiRing.{max v u}) :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).inv x
+
+lemma limit.from_section_to_section {F : J ⥤ Ring.{max v u}}
+  (x : limit F) : limit.from_section F (limit.to_section F x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).inv_hom_id_apply x
+
+lemma limit.to_section_from_section {F : J ⥤ Ring.{max v u}}
+  (x : SemiRing.sections_subsemiring (F ⋙ forget₂ Ring.{max v u} SemiRing.{max v u})) :
+  limit.to_section F (limit.from_section F x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).hom_inv_id_apply x
 
 end Ring
 
@@ -452,5 +518,34 @@ instance forget_preserves_limits_of_size :
 
 instance forget_preserves_limits : preserves_limits (forget CommRing.{u}) :=
 CommRing.forget_preserves_limits_of_size.{u u}
+
+def limit.from_section {F : J ⥤ CommRing.{max v u}}
+  (s : SemiRing.sections_subsemiring
+    (F ⋙ forget₂ CommRing.{max v u} Ring.{max v u} ⋙
+      forget₂ Ring.{max v u} SemiRing.{max v u})) :
+  @@limit _ _ F _ :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).hom s
+
+def limit.to_section {F : J ⥤ CommRing.{max v u}}
+  (x : limit F) :
+  SemiRing.sections_subsemiring
+    (F ⋙ forget₂ CommRing.{max v u} Ring.{max v u} ⋙
+      forget₂ Ring.{max v u} SemiRing.{max v u}) :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).inv x
+
+lemma limit.from_section_to_section {F : J ⥤ CommRing.{max v u}}
+  (x : limit F) : limit.from_section (limit.to_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).inv_hom_id_apply x
+
+lemma limit.to_section_from_section {F : J ⥤ CommRing.{max v u}}
+  (x : SemiRing.sections_subsemiring
+    (F ⋙ forget₂ CommRing.{max v u} Ring.{max v u} ⋙
+      forget₂ Ring.{max v u} SemiRing.{max v u})) :
+  limit.to_section (limit.from_section x) = x :=
+(is_limit.cone_point_unique_up_to_iso
+  (limit_cone_is_limit F) (limit.is_limit _)).hom_inv_id_apply x
 
 end CommRing

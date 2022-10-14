@@ -184,10 +184,12 @@ begin
   exact ⟨(⟨h, hh⟩, ⟨k, hk⟩), hg⟩,
 end
 
+-- PRed
 lemma restrict_ker {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
   (f.restrict H).ker = f.ker.subgroup_of H :=
 rfl
 
+-- PRed
 lemma restrict_range {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
   (f.restrict H).range = H.map f :=
 begin
@@ -195,28 +197,45 @@ begin
     iff_self, forall_const],
 end
 
+@[simp, to_additive card_nsmul_eq_zero']
+lemma pow_card_eq_one' {G : Type*} [group G] {x : G} : x ^ nat.card G = 1 :=
+begin
+  casesI fintype_or_infinite G with h h,
+  { rw [nat.card_eq_fintype_card, pow_card_eq_one] },
+  { rw [nat.card_eq_zero_of_infinite, pow_zero] },
+end
+
+/-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
+@[to_additive "If `gcd(|G|,n)=1` then the smul by `n` is a bijection", simps]
+noncomputable def pow_coprime' {G : Type*} [group G] {n : ℕ}
+  (h : nat.coprime (nat.card G) n) : G ≃ G :=
+{ to_fun := λ g, g ^ n,
+  inv_fun := λ g, g ^ (nat.gcd_b (nat.card G) n),
+  left_inv := λ g, by
+  { have key : g ^ _ = g ^ _ := _root_.congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (nat.card G) n),
+    rwa [zpow_add, zpow_mul, zpow_mul, zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key },
+  right_inv := λ g, by
+  { have key : g ^ _ = g ^ _ := _root_.congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (nat.card G) n),
+    rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key } }
+
 lemma _root_.is_p_group.pow_bijective' {p : ℕ} {G : Type*} [group G] (h : is_p_group p G)
   {n : ℕ} (hn : nat.coprime p n) : function.bijective ((^ n) : G → G) :=
 begin
   by_cases hn1 : n = 1,
   { simp_rw [hn1, pow_one],
     exact function.bijective_id },
-  haveI : Π g : G, fintype (zpowers g),
-  { refine λ g, @fintype.of_finite (zpowers g) (nat.finite_of_card_ne_zero _),
-    rw ← order_eq_card_zpowers',
-    obtain ⟨k, hk⟩ := h g,
-    refine ne_zero_of_dvd_ne_zero (pow_ne_zero k (λ hp, hn1 _)) (order_of_dvd_of_pow_eq_one hk),
-    rwa [hp, nat.coprime_zero_left] at hn },
-  have : ∀ g : G, (fintype.card (zpowers g)).coprime n,
+  have : ∀ g : G, (nat.card (zpowers g)).coprime n,
   { intro g,
-    rw [←nat.card_eq_fintype_card, ←order_eq_card_zpowers'],
+    rw [←order_eq_card_zpowers'],
     obtain ⟨k, hk⟩ := h g,
     exact (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk) },
   refine function.bijective_iff_has_inverse.mpr
-    ⟨λ g, (pow_coprime (this g)).symm ⟨g, mem_zpowers g⟩, _, _⟩,
-  { refine λ g, subtype.ext_iff.mp ((pow_coprime (this (g ^ n))).left_inv ⟨g, _⟩),
-    exact ⟨_, subtype.ext_iff.mp ((pow_coprime (this g)).left_inv ⟨g, mem_zpowers g⟩)⟩ },
-  { exact λ g, subtype.ext_iff.mp ((pow_coprime (this g)).right_inv ⟨g, mem_zpowers g⟩) },
+    ⟨λ g, (pow_coprime' (this g)).symm ⟨g, mem_zpowers g⟩, _, _⟩,
+  { refine λ g, subtype.ext_iff.mp ((pow_coprime' (this (g ^ n))).left_inv ⟨g, _⟩),
+    exact ⟨_, subtype.ext_iff.mp ((pow_coprime' (this g)).left_inv ⟨g, mem_zpowers g⟩)⟩ },
+  { exact λ g, subtype.ext_iff.mp ((pow_coprime' (this g)).right_inv ⟨g, mem_zpowers g⟩) },
 end
 
 lemma _root_.is_p_group.pow_bijective {p : ℕ} [fact p.prime] {G : Type*} [group G] (h : is_p_group p G)
@@ -267,9 +286,7 @@ begin
   hf0.symm ▸ P.2.pow_bijective (not_dvd_index_sylow P
     (mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite)),
   rw [function.bijective, ←range_top_iff_surjective, restrict_range] at hf1,
-  have : function.surjective (transfer_sylow P hP),
-  { rw [←range_top_iff_surjective, eq_top_iff],
-    exact hf1.2.symm.le.trans (map_le_range (transfer_sylow P hP) P) },
+  have := range_top_iff_surjective.mp (top_le_iff.mp (hf1.2.ge.trans (map_le_range _ P))),
   rw [←(comap_injective this).eq_iff, comap_top, comap_map_eq, sup_comm, set_like.ext'_iff,
       normal_mul, ←ker_eq_bot_iff, ←(map_injective (P : subgroup G).subtype_injective).eq_iff,
       restrict_ker, subgroup_of_map_subtype, subgroup.map_bot, coe_top] at hf1,

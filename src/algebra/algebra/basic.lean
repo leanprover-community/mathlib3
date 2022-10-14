@@ -641,6 +641,12 @@ instance {F : Type*} [alg_hom_class F R A B] : linear_map_class F R A B :=
 { map_smulₛₗ := λ f r x, by simp only [algebra.smul_def, map_mul, commutes, ring_hom.id_apply],
   ..‹alg_hom_class F R A B› }
 
+instance {F : Type*} [alg_hom_class F R A B] : has_coe_t F (A →ₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    commutes' := alg_hom_class.commutes f,
+    .. (f : A →+* B) } }
+
 end alg_hom_class
 
 namespace alg_hom
@@ -655,6 +661,9 @@ variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
 instance : has_coe_to_fun (A →ₐ[R] B) (λ _, A → B) := ⟨alg_hom.to_fun⟩
 
 initialize_simps_projections alg_hom (to_fun → apply)
+
+@[simp, protected] lemma coe_coe {F : Type*} [alg_hom_class F R A B] (f : F) :
+  ⇑(f : A →ₐ[R] B) = f := rfl
 
 @[simp] lemma to_fun_eq_coe (f : A →ₐ[R] B) : f.to_fun = f := rfl
 

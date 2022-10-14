@@ -131,10 +131,10 @@ instance : set_like (subgroupoid C) (Σ (c d : C), c ⟶ d) :=
 { coe := λ S, {F | F.2.2 ∈ S.arrows F.1 F.2.1},
   coe_injective' := λ ⟨S, _, _⟩ ⟨T, _, _⟩ h, by { ext c d f, apply set.ext_iff.1 h ⟨c, d, f⟩ } }
 
-@[simp] lemma mem_iff (S : subgroupoid C) (F : Σ c d, c ⟶ d) :
+lemma mem_iff (S : subgroupoid C) (F : Σ c d, c ⟶ d) :
   F ∈ S ↔ F.2.2 ∈ S.arrows F.1 F.2.1 := iff.rfl
 
-@[simp] lemma le_iff (S T : subgroupoid C) : (S ≤ T) ↔ (∀ {c d}, (S.arrows c d) ⊆ (T.arrows c d)) :=
+lemma le_iff (S T : subgroupoid C) : (S ≤ T) ↔ (∀ {c d}, (S.arrows c d) ⊆ (T.arrows c d)) :=
 by { rw [set_like.le_def, sigma.forall], exact forall_congr (λ c, sigma.forall) }
 
 instance : has_top (subgroupoid C) :=
@@ -207,7 +207,7 @@ lemma inclusion_comp_embedding {S T : subgroupoid C} (h : S ≤ T) :
 inductive discrete.arrows : Π (c d : C), (c ⟶ d) → Prop
 | id (c : C) : discrete.arrows c c (𝟙 c)
 
-/-- The only arrows of the discrete groupoid are the identity arrows.-/
+/-- The only arrows of the discrete groupoid are the identity arrows. -/
 def discrete : subgroupoid C :=
 { arrows := discrete.arrows,
   inv := by { rintros _ _ _ ⟨⟩, simp only [inv_eq_inv, is_iso.inv_id], split, },
@@ -351,4 +351,3 @@ end hom
 end subgroupoid
 
 end category_theory
-

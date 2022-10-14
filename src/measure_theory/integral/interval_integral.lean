@@ -179,7 +179,7 @@ variables {ι 𝕜 E F : Type*} [normed_add_comm_group E]
 interval `a..b` if it is integrable on both intervals `(a, b]` and `(b, a]`. One of these
 intervals is always empty, so this property is equivalent to `f` being integrable on
 `(min a b, max a b]`. -/
-def interval_integrable (f : ℝ → E) (μ : measure ℝ) (a b : ℝ) :=
+def interval_integrable (f : ℝ → E) (μ : measure ℝ) (a b : ℝ) : Prop :=
 integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ
 
 section

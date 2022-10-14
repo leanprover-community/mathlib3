@@ -345,10 +345,6 @@ begin
   exact ⟨x, congr_arg coe hx⟩,
 end
 
-@[simp] lemma _root_.ideal.closure_eq_of_is_closed {R : Type*} [topological_space R] [ring R]
-  [topological_ring R] (I : ideal R) [hI : is_closed (I : set R)] : I.closure = I :=
-ideal.ext $ set.ext_iff.mp hI.closure_eq
-
 lemma ideal_is_maximal_iff (I : ideal C(X, 𝕜)) [hI : is_closed (I : set C(X, 𝕜))] :
   I.is_maximal ↔ ∃ x : X, ideal_of_set 𝕜 {x}ᶜ = I :=
 begin

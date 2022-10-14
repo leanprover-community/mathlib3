@@ -366,8 +366,8 @@ end linear_ordered_semifield
 
 end nat
 
-/-- There exists at most one `floor_semiring` structure on a linear ordered semiring. -/
-lemma subsingleton_floor_semiring [ordered_semiring α] :
+/-- There exists at most one `floor_semiring` structure on an ordered semiring. -/
+lemma floor_semiring.subsingleton [ordered_semiring α] :
   subsingleton (floor_semiring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,
@@ -387,8 +387,8 @@ end
 /-! ### Floor rings -/
 
 /--
-A `floor_ring` is a linear ordered ring over `α` with a function
-`floor : α → ℤ` satisfying `∀ (z : ℤ) (a : α), z ≤ floor a ↔ (z : α) ≤ a)`.
+A `floor_ring` is an ordered ring over `α` with a function `floor : α → ℤ` satisfying
+`∀ (z : ℤ) (a : α), z ≤ floor a ↔ (z : α) ≤ a)`.
 -/
 class floor_ring (α) [ordered_ring α] :=
 (floor : α → ℤ)
@@ -419,7 +419,7 @@ def floor_ring.of_ceil (α) [ordered_ring α] (ceil : α → ℤ)
   gc_ceil_coe := gc_ceil_coe }
 
 @[priority 100] -- see Note [lower instance priority]
-instance ordered_ring.nontrivial [ordered_ring α] [floor_ring α] : nontrivial α :=
+instance floor_ring.to_nontrivial [ordered_ring α] [floor_ring α] : nontrivial α :=
 begin
   refine (subsingleton_or_nontrivial α).resolve_left (λ h, (int.zero_lt_one).not_le _),
   rw ← add_le_iff_nonpos_right (floor_ring.floor (0 : α)),
@@ -1015,7 +1015,7 @@ by rw [←nat.cast_ceil_eq_int_ceil ha, int.cast_coe_nat]
 end nat
 
 /-- There exists at most one `floor_ring` structure on a given ordered ring. -/
-lemma subsingleton_floor_ring [ordered_ring α] :
+lemma floor_ring.subsingleton [ordered_ring α] :
   subsingleton (floor_ring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,

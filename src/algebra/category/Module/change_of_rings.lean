@@ -173,13 +173,14 @@ section unbundled
 
 variables (M : Type v) [add_comm_monoid M] [module R M]
 
-local notation `Hom` M := (restrict_scalars f).obj ⟨S⟩ →ₗ[R] M
+-- We use `S'` to denote `S` viewed as `R`-module, via the map `f`.
+local notation `S'` := (restrict_scalars f).obj ⟨S⟩
 
 /--
  Given an `R`-module M, consider the Hom(S, M) -- the `R`-linear maps between S (as an `R`-module by
  means of restriction of scalars) and M. `S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)`
  -/
-instance has_smul : has_smul S $ Hom M :=
+instance has_smul : has_smul S $ S' →ₗ[R] M :=
 { smul := λ s g,
   { to_fun := λ (s' : S), g (s' * s : S),
     map_add' := λ (x y : S), by simp [add_mul, map_add],
@@ -187,15 +188,15 @@ instance has_smul : has_smul S $ Hom M :=
       ←linear_map.map_smul, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_eq_mul, smul_eq_mul,
       mul_assoc] } }
 
-@[simp] lemma smul_apply' (s : S) (g : Hom M) (s' : S) :
+@[simp] lemma smul_apply' (s : S) (g :  S' →ₗ[R] M) (s' : S) :
   @has_smul.smul _ _ (coextend_scalars.has_smul f _) s g s' = g (s' * s : S) := rfl
 
-instance mul_action : mul_action S $ Hom M :=
+instance mul_action : mul_action S $ S' →ₗ[R] M :=
 { one_smul := λ g, linear_map.ext $ λ (s : S), by simp,
   mul_smul := λ (s t : S) g, linear_map.ext $ λ (x : S), by simp [mul_assoc],
   ..coextend_scalars.has_smul f _ }
 
-instance distrib_mul_action : distrib_mul_action S $ Hom M :=
+instance distrib_mul_action : distrib_mul_action S $ S' →ₗ[R] M :=
 { smul_add := λ s g h, linear_map.ext $ λ (t : S), by simp,
   smul_zero := λ s, linear_map.ext $ λ (t : S), by simp,
   ..coextend_scalars.mul_action f _ }
@@ -204,7 +205,7 @@ instance distrib_mul_action : distrib_mul_action S $ Hom M :=
 `S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)`, this action defines an `S`-module structure on
 Hom(S, M).
  -/
-instance is_module : module S $ Hom M :=
+instance is_module : module S $ S' →ₗ[R] M :=
 { add_smul := λ s1 s2 g, linear_map.ext $ λ (x : S), by simp [mul_add],
   zero_smul := λ g, linear_map.ext $ λ (x : S), by simp,
   ..coextend_scalars.distrib_mul_action f _ }

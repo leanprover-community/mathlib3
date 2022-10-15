@@ -204,7 +204,8 @@ colimit.iso_colimit_cocone_ι_inv (binary_coproduct_colimit_cocone X Y) ⟨walki
 /--
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
 -/
-def product_limit_cone {J : Type u} (F : J → Type (max u v)) : limits.limit_cone (discrete.functor F) :=
+def product_limit_cone {J : Type u} (F : J → Type (max u v)) :
+  limits.limit_cone (discrete.functor F) :=
 { cone :=
   { X := Π j, F j,
     π := { app := λ j f, f j.as }, },
@@ -216,9 +217,9 @@ def product_limit_cone {J : Type u} (F : J → Type (max u v)) : limits.limit_co
 noncomputable def product_iso {J : Type u} (F : J → Type (max u v)) : ∏ F ≅ Π j, F j :=
 limit.iso_limit_cone (product_limit_cone F)
 
-@[simp, elementwise] lemma product_iso_hom_comp_eval {J : Type u} (F : J → Type (max u v)) (j : J) :
-  (product_iso F).hom ≫ (λ f, f j) = pi.π F j :=
-rfl
+@[simp, elementwise] lemma product_iso_hom_comp_eval
+  {J : Type u} (F : J → Type (max u v)) (j : J) :
+  (product_iso F).hom ≫ (λ f, f j) = pi.π F j := rfl
 
 @[simp, elementwise] lemma product_iso_inv_comp_π {J : Type u} (F : J → Type (max u v)) (j : J) :
   (product_iso F).inv ≫ pi.π F j = (λ f, f j) :=
@@ -250,7 +251,8 @@ colimit.iso_colimit_cocone (coproduct_colimit_cocone F)
   sigma.ι F j ≫ (coproduct_iso F).hom = (λ x : F j, (⟨j, x⟩ : Σ j, F j)) :=
 colimit.iso_colimit_cocone_ι_hom (coproduct_colimit_cocone F) ⟨j⟩
 
-@[simp, elementwise] lemma coproduct_iso_mk_comp_inv {J : Type u} (F : J → Type (max u v)) (j : J) :
+@[simp, elementwise] lemma coproduct_iso_mk_comp_inv
+  {J : Type u} (F : J → Type (max u v)) (j : J) :
   ↾(λ x : F j, (⟨j, x⟩ : Σ j, F j)) ≫ (coproduct_iso F).inv = sigma.ι F j :=
 rfl
 

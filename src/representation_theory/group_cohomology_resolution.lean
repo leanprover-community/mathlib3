@@ -433,8 +433,8 @@ end
 section exactness
 
 /-- The standard resolution of `k` as a trivial representation as a complex of `k`-modules. -/
-def forget₂_to_Module :=
-((forget₂ (Rep k G) (Module.{u} k)).map_homological_complex _).obj (group_cohomology.resolution k G)
+def forget₂_to_Module := ((forget₂ (Rep k G) (Module.{u} k)).map_homological_complex _).obj
+(group_cohomology.resolution k G)
 
 /-- If we apply the free functor `Type u ⥤ Module.{u} k` to the universal cover of the classifying
 space of `G` as a simplicial set, then take the alternating face map complex, the result is
@@ -568,3 +568,4 @@ lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (π k G) :=
 end exactness
 
 end group_cohomology.resolution
+#lint

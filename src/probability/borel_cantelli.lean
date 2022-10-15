@@ -129,11 +129,11 @@ open filter
 `∑ n, μ sₙ = ∞`, `limsup sₙ` has measure 1. -/
 lemma measure_limsup_eq_one
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (hs' : ∑' n, μ (s n) = ∞) :
-  μ (limsup at_top s) = 1 :=
+  μ (limsup s at_top) = 1 :=
 begin
   rw measure_congr (eventually_eq_set.2 (ae_mem_limsup_at_top_iff μ $
     measurable_set_filtration_of_set' hsm) :
-      (limsup at_top s : set Ω) =ᵐ[μ] {ω | tendsto (λ n, ∑ k in finset.range n,
+      (limsup s at_top : set Ω) =ᵐ[μ] {ω | tendsto (λ n, ∑ k in finset.range n,
         μ[(s (k + 1)).indicator (1 : Ω → ℝ) | filtration_of_set hsm k] ω) at_top at_top}),
   suffices : {ω | tendsto (λ n, ∑ k in finset.range n,
     μ[(s (k + 1)).indicator (1 : Ω → ℝ) | filtration_of_set hsm k] ω) at_top at_top} =ᵐ[μ] set.univ,

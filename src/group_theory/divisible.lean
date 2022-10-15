@@ -272,6 +272,8 @@ The rational circle in universe u defined as `ℚ ⧸ ℤ`
 -/
 def rat_circle : Type u := (ulift.{u} (ℚ ⧸ (algebra_map ℤ ℚ).to_add_monoid_hom.range))
 
+instance : inhabited rat_circle := ⟨⟨0⟩⟩
+
 instance : add_comm_group rat_circle := ulift.add_comm_group
 
 noncomputable instance divisible_rat_circle : divisible_by rat_circle ℤ :=

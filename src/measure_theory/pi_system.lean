@@ -113,6 +113,23 @@ begin
   simpa using hst,
 end
 
+lemma is_pi_system_Union_of_directed_le {α ι} (p : ι → set (set α))
+  (hp_pi : ∀ n, is_pi_system (p n)) (hp_directed : directed (≤) p) :
+  is_pi_system (⋃ n, p n) :=
+begin
+  intros t1 ht1 t2 ht2 h,
+  rw set.mem_Union at ht1 ht2 ⊢,
+  cases ht1 with n ht1,
+  cases ht2 with m ht2,
+  obtain ⟨k, hpnk, hpmk⟩ : ∃ k, p n ≤ p k ∧ p m ≤ p k := hp_directed n m,
+  exact ⟨k, hp_pi k t1 (hpnk ht1) t2 (hpmk ht2) h⟩,
+end
+
+lemma is_pi_system_Union_of_monotone {α ι} [semilattice_sup ι] (p : ι → set (set α))
+  (hp_pi : ∀ n, is_pi_system (p n)) (hp_mono : monotone p) :
+  is_pi_system (⋃ n, p n) :=
+is_pi_system_Union_of_directed_le p hp_pi (monotone.directed_le hp_mono)
+
 section order
 
 variables {α : Type*} {ι ι' : Sort*} [linear_order α]
@@ -335,7 +352,7 @@ begin
   { rw [ht1_eq, ht2_eq],
     simp_rw [← set.inf_eq_inter, g],
     ext1 x,
-    simp only [inf_eq_inter, mem_inter_eq, mem_Inter, finset.mem_union],
+    simp only [inf_eq_inter, mem_inter_iff, mem_Inter, finset.mem_union],
     refine ⟨λ h i hi_mem_union, _, λ h, ⟨λ i hi1, _, λ i hi2, _⟩⟩,
     { split_ifs,
       exacts [⟨h.1 i h_1, h.2 i h_2⟩, ⟨h.1 i h_1, set.mem_univ _⟩,
@@ -433,6 +450,26 @@ begin
     rcases hi with ⟨p, hpS, hpi⟩,
     rw ← @generate_from_measurable_set α (m i),
     exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m hpS hpi), },
+end
+
+lemma generate_from_pi_Union_Inter_subsets {α ι} (m : ι → measurable_space α) (S : set ι) :
+  generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) {t : finset ι | ↑t ⊆ S})
+    = ⨆ i ∈ S, m i :=
+begin
+  rw generate_from_pi_Union_Inter_measurable_space,
+  simp only [set.mem_set_of_eq, exists_prop, supr_exists],
+  congr' 1,
+  ext1 i,
+  by_cases hiS : i ∈ S,
+  { simp only [hiS, csupr_pos],
+    refine le_antisymm (supr₂_le (λ t ht, le_rfl)) _,
+    rw le_supr_iff,
+    intros m' hm',
+    specialize hm' {i},
+    simpa only [hiS, finset.coe_singleton, set.singleton_subset_iff, finset.mem_singleton,
+      eq_self_iff_true, and_self, csupr_pos] using hm', },
+  { simp only [hiS, supr_false, supr₂_eq_bot, and_imp],
+    exact λ t htS hit, absurd (htS hit) hiS, },
 end
 
 end Union_Inter

@@ -187,6 +187,12 @@ theorem chain'.iff_mem : ∀ {l : list α}, chain' R l ↔ chain' (λ x y, x ∈
 @[simp] theorem chain'_cons {x y l} : chain' R (x :: y :: l) ↔ R x y ∧ chain' R (y :: l) :=
 chain_cons
 
+theorem chain'_is_infix : ∀ l : list α, chain' (λ x y, [x, y] <:+: l) l
+| [] := chain'_nil
+| [a] := chain'_singleton _
+| (a::b::l) := chain'_cons.2 ⟨⟨[], l, by simp⟩,
+  (chain'_is_infix (b::l)).imp $ λ x y h, h.trans ⟨[a], [], by simp⟩⟩
+
 theorem chain'_split {a : α} : ∀ {l₁ l₂ : list α}, chain' R (l₁ ++ a :: l₂) ↔
   chain' R (l₁ ++ [a]) ∧ chain' R (a :: l₂)
 | []        l₂ := (and_iff_right (chain'_singleton a)).symm

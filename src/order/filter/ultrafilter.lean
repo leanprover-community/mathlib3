@@ -16,7 +16,7 @@ In this file we define
 * `ultrafilter`: subtype of ultrafilters;
 * `ultrafilter.pure`: `pure x` as an `ultrafiler`;
 * `ultrafilter.map`, `ultrafilter.bind`, `ultrafilter.comap` : operations on ultrafilters;
-* `hyperfilter`: the ultrafilter extending the cofinite filter.
+* `free_ultrafilter`: the ultrafilter extending the cofinite filter.
 -/
 
 universes u v
@@ -325,37 +325,37 @@ begin
   exact hp (of_le f) (H _ ((of_le f).trans hfg))
 end
 
-section hyperfilter
+section free_ultrafilter
 
 variables (α) [infinite α]
 
 /-- The ultrafilter extending the cofinite filter. -/
-noncomputable def hyperfilter : ultrafilter α := ultrafilter.of cofinite
+noncomputable def free_ultrafilter : ultrafilter α := ultrafilter.of cofinite
 
 variable {α}
 
-lemma hyperfilter_le_cofinite : ↑(hyperfilter α) ≤ @cofinite α :=
+lemma free_ultrafilter_le_cofinite : ↑(free_ultrafilter α) ≤ @cofinite α :=
 ultrafilter.of_le cofinite
 
-@[simp] lemma bot_ne_hyperfilter : (⊥ : filter α) ≠ hyperfilter α :=
-(by apply_instance : ne_bot ↑(hyperfilter α)).1.symm
+@[simp] lemma bot_ne_free_ultrafilter : (⊥ : filter α) ≠ free_ultrafilter α :=
+(by apply_instance : ne_bot ↑(free_ultrafilter α)).1.symm
 
-theorem nmem_hyperfilter_of_finite {s : set α} (hf : s.finite) : s ∉ hyperfilter α :=
-λ hy, compl_not_mem hy $ hyperfilter_le_cofinite hf.compl_mem_cofinite
+theorem nmem_free_ultrafilter_of_finite {s : set α} (hf : s.finite) : s ∉ free_ultrafilter α :=
+λ hy, compl_not_mem hy $ free_ultrafilter_le_cofinite hf.compl_mem_cofinite
 
-alias nmem_hyperfilter_of_finite ← _root_.set.finite.nmem_hyperfilter
+alias nmem_free_ultrafilter_of_finite ← _root_.set.finite.nmem_free_ultrafilter
 
-theorem compl_mem_hyperfilter_of_finite {s : set α} (hf : set.finite s) :
-  sᶜ ∈ hyperfilter α :=
-compl_mem_iff_not_mem.2 hf.nmem_hyperfilter
+theorem compl_mem_free_ultrafilter_of_finite {s : set α} (hf : set.finite s) :
+  sᶜ ∈ free_ultrafilter α :=
+compl_mem_iff_not_mem.2 hf.nmem_free_ultrafilter
 
-alias compl_mem_hyperfilter_of_finite ← _root_.set.finite.compl_mem_hyperfilter
+alias compl_mem_free_ultrafilter_of_finite ← _root_.set.finite.compl_mem_free_ultrafilter
 
-theorem mem_hyperfilter_of_finite_compl {s : set α} (hf : set.finite sᶜ) :
-  s ∈ hyperfilter α :=
-compl_compl s ▸ hf.compl_mem_hyperfilter
+theorem mem_free_ultrafilter_of_finite_compl {s : set α} (hf : set.finite sᶜ) :
+  s ∈ free_ultrafilter α :=
+compl_compl s ▸ hf.compl_mem_free_ultrafilter
 
-end hyperfilter
+end free_ultrafilter
 
 end filter
 

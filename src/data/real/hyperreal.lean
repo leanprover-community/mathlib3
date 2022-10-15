@@ -15,7 +15,7 @@ open_locale topological_space classical
 
 /-- Hyperreal numbers on the ultrafilter extending the cofinite filter -/
 @[derive [linear_ordered_field, inhabited]]
-def hyperreal : Type := germ (hyperfilter ℕ : filter ℕ) ℝ
+def hyperreal : Type := germ (free_ultrafilter ℕ : filter ℕ) ℝ
 
 namespace hyperreal
 
@@ -51,7 +51,7 @@ lemma coe_ne_coe {x y : ℝ} : (x : ℝ*) ≠ y ↔ x ≠ y := coe_eq_coe.not
 @[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
 
 /-- Construct a hyperreal number from a sequence of real numbers. -/
-noncomputable def of_seq (f : ℕ → ℝ) : ℝ* := (↑f : germ (hyperfilter ℕ : filter ℕ) ℝ)
+noncomputable def of_seq (f : ℕ → ℝ) : ℝ* := (↑f : germ (free_ultrafilter ℕ : filter ℕ) ℝ)
 
 /-- A sample infinitesimal hyperreal-/
 noncomputable def epsilon : ℝ* := of_seq $ λ n, n⁻¹
@@ -65,7 +65,7 @@ localized "notation (name := hyperreal.omega) `ω` := hyperreal.omega" in hyperr
 @[simp] lemma inv_omega : ω⁻¹ = ε := rfl
 @[simp] lemma inv_epsilon : ε⁻¹ = ω := @inv_inv _ _ ω
 
-lemma omega_pos : 0 < ω := germ.coe_pos.2 $ mem_hyperfilter_of_finite_compl $ begin
+lemma omega_pos : 0 < ω := germ.coe_pos.2 $ mem_free_ultrafilter_of_finite_compl $ begin
   convert set.finite_singleton 0,
   simp [set.eq_singleton_iff_unique_mem],
 end
@@ -85,7 +85,7 @@ begin
   have hs : {i : ℕ | f i < r}ᶜ ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
     exact λ hi2, hi1 (lt_of_le_of_lt (le_abs_self _) (hf' i hi2)) : i < N),
-  exact mem_hyperfilter_of_finite_compl
+  exact mem_free_ultrafilter_of_finite_compl
     ((set.finite_le_nat N).subset hs)
 end
 
@@ -431,7 +431,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hS : {a : ℕ | r < f a}ᶜ ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_le_of_lt har (lt_add_one _))),
-  germ.coe_lt.2 $ mem_hyperfilter_of_finite_compl $
+  germ.coe_lt.2 $ mem_free_ultrafilter_of_finite_compl $
   (set.finite_le_nat _).subset hS
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
@@ -443,7 +443,7 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hS : {a : ℕ | f a < r}ᶜ ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
-  germ.coe_lt.2 $ mem_hyperfilter_of_finite_compl $
+  germ.coe_lt.2 $ mem_free_ultrafilter_of_finite_compl $
   (set.finite_le_nat _).subset hS
 
 lemma not_infinite_neg {x : ℝ*} : ¬ infinite x → ¬ infinite (-x) :=

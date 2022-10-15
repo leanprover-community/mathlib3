@@ -216,7 +216,7 @@ begin
   { by_contra,
     have h_eq := iterate_pred_to_Z i hi,
     rw [← h_eq, h] at hi,
-    simpa only [neg_zero', int.to_nat_zero, function.iterate_zero, id.def, lt_self_iff_false]
+    simpa only [neg_zero, int.to_nat_zero, function.iterate_zero, id.def, lt_self_iff_false]
       using hi, },
 end
 
@@ -256,7 +256,7 @@ lemma to_Z_iterate_pred_of_not_is_min (n : ℕ) (hn : ¬ is_min (pred^[n] i0)) :
   to_Z i0 (pred^[n] i0) = -n :=
 begin
   cases n,
-  { simp only [function.iterate_zero, id.def, to_Z_of_eq, nat.cast_zero, neg_zero'], },
+  { simp only [function.iterate_zero, id.def, to_Z_of_eq, nat.cast_zero, neg_zero], },
   have : (pred^[n.succ] i0) < i0,
   { refine lt_of_le_of_ne (pred_iterate_le _ _) (λ h_pred_iterate_eq, hn _),
     have h_pred_eq_pred : (pred^[n.succ] i0) = (pred^[0] i0),

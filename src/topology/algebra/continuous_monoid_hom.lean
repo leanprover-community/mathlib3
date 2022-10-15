@@ -65,6 +65,9 @@ You should also extend this typeclass when you extend `continuous_monoid_hom`. -
 class continuous_monoid_hom_class extends monoid_hom_class F A B :=
 (map_continuous (f : F) : continuous f)
 
+attribute [to_additive continuous_add_monoid_hom_class.to_add_monoid_hom_class]
+  continuous_monoid_hom_class.to_monoid_hom_class
+
 end
 
 /-- Reinterpret a `continuous_monoid_hom` as a `monoid_hom`. -/

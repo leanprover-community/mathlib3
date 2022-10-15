@@ -1174,18 +1174,26 @@ lemma exists_min_image (s : finset β) (f : β → α) (h : s.nonempty) :
 
 end exists_max_min
 
-lemma is_glb_mem [linear_order α] {i : α} (s : finset α)
-  (his : is_glb (s : set α) i) (hs : s.nonempty) : i ∈ s :=
+lemma is_least_of_is_glb [linear_order α] {i : α} (s : finset α)
+  (his : is_glb (s : set α) i) (hs : s.nonempty) : is_least ↑s i :=
 begin
   suffices : i = min' s hs,
-  { rw this, exact min'_mem s hs, },
+  { rw this, exact is_least_min' s hs, },
   rw [is_glb, is_greatest, mem_lower_bounds, mem_upper_bounds] at his,
   exact le_antisymm (his.1 (finset.min' s hs) (finset.min'_mem s hs)) (his.2 _ (finset.min'_le s)),
 end
 
+lemma is_greatest_of_is_lub [linear_order α] {i : α} (s : finset α)
+  (his : is_lub (s : set α) i) (hs : s.nonempty) : is_greatest ↑s i :=
+@is_least_of_is_glb αᵒᵈ _ i s his hs
+
+lemma is_glb_mem [linear_order α] {i : α} (s : finset α)
+  (his : is_glb (s : set α) i) (hs : s.nonempty) : i ∈ s :=
+by { rw ← mem_coe, exact (is_least_of_is_glb s his hs).1, }
+
 lemma is_lub_mem [linear_order α] {i : α} (s : finset α)
   (his : is_lub (s : set α) i) (hs : s.nonempty) : i ∈ s :=
-@finset.is_glb_mem αᵒᵈ _ i s his hs
+@is_glb_mem αᵒᵈ _ i s his hs
 
 end finset
 

@@ -81,6 +81,8 @@ end pi_system
 
 section borel_cantelli
 
+/-- Given a sequence of measurable sets `(sₙ)`, `filtration_of_set` is the smallest filtration
+such that `sₙ` is measurable with respect to the `n`-the sub-σ-algebra in `filtration_of_set`. -/
 def filtration_of_set {s : ℕ → set Ω} (hsm : ∀ n, measurable_set (s n)) : filtration ℕ m0 :=
 { seq := λ n, generate_from {t | ∃ k ≤ n, s k = t},
   mono' := λ n m hnm, generate_from_mono (λ t ⟨k, hk₁, hk₂⟩, ⟨k, hk₁.trans hnm, hk₂⟩),

@@ -950,11 +950,6 @@ begin
   exact tsum_bUnion_le _ _ _
 end
 
-lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
-  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) :
-  ∑' n, f n ≤ c :=
-le_of_tendsto' ((ennreal.has_sum_iff_tendsto_nat _).1 ennreal.summable.has_sum) h
-
 lemma tsum_add_one_eq_top {f : ℕ → ℝ≥0∞} (hf : ∑' n, f n = ∞) (hf0 : f 0 ≠ ∞) :
   ∑' n, f (n + 1) = ∞ :=
 begin

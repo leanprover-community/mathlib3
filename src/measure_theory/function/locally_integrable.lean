@@ -56,6 +56,10 @@ begin
     exact ⟨K, nhds_within_le_nhds hK, h2K⟩ }
 end
 
+lemma locally_integrable_const [is_locally_finite_measure μ] (c : E) :
+  locally_integrable (λ x, c) μ :=
+λ K hK, by simp only [integrable_on_const, hK.measure_lt_top, or_true]
+
 section real
 variables [opens_measurable_space X] {A K : set X} {g g' : X → ℝ}
 

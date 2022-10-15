@@ -741,6 +741,17 @@ lemma support_comp_inv_smul (f : H → ℝ) {R : ℝ} (hR : R ≠ 0) :
   support (λ x, f (R⁻¹ • x)) = R • support f :=
 by { ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hR, mem_support] }
 
+lemma has_compact_mul_support.comp_smul {α : Type*} [has_one α] {f : H → α}
+  (h : has_compact_mul_support f) {R : ℝ} (hR : R ≠ 0) :
+  has_compact_mul_support (λ x, f (R • x)) :=
+h.comp_homeomorph (homeomorph.smul_of_ne_zero R hR)
+
+lemma has_compact_support.comp_smul {α : Type*} [has_zero α] {f : H → α}
+  (h : has_compact_support f) {R : ℝ} (hR : R ≠ 0) :
+  has_compact_support (λ x, f (R • x)) :=
+h.comp_homeomorph (homeomorph.smul_of_ne_zero R hR)
+
+
 variable (H)
 lemma foo : ∃ g : H → ℝ, cont_diff ℝ ⊤ g ∧
   (∀ x, g x ∈ Icc (0 : ℝ) 1) ∧ 0 < g 0 ∧ (∀ x, 1 ≤ ∥x∥ → g x = 0) ∧ (∀ x, g (-x) = g x) :=
@@ -756,14 +767,15 @@ begin
     by_contra',
     simp only [mem_ball_zero_iff, not_lt] at this,
     exact hx (g_zero x this) },
+  have comp_supp_g : has_compact_support g,
+  { apply has_compact_support.intro (is_compact_closed_ball (0 : H) 1) (λ x hx, _),
+    contrapose! hx,
+    exact ball_subset_closed_ball (support_g hx) },
   set φ : H → ℝ := (closed_ball (0 : H) 1).indicator (λ y, 1) with hφ,
   set c := ∫ x, g x ∂μ with hc,
   have cpos : 0 < c,
-  sorry { refine (integral_pos_iff_support_of_nonneg (λ x, (g_mem x).1) _).mpr _,
-    { refine g_smooth.continuous.integrable_of_has_compact_support _,
-      apply has_compact_support.intro (is_compact_closed_ball (0 : H) 1) (λ x hx, _),
-      contrapose! hx,
-      exact ball_subset_closed_ball (support_g hx) },
+  { refine (integral_pos_iff_support_of_nonneg (λ x, (g_mem x).1) _).mpr _,
+    { exact g_smooth.continuous.integrable_of_has_compact_support comp_supp_g },
     { exact g_smooth.continuous.is_open_support.measure_pos _ ⟨0, g_pos.ne'⟩ } },
   set g0 : ℝ → H → ℝ := λ R,
     (λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x)) ⋆[lsmul ℝ ℝ, μ] φ with g0_def,
@@ -801,7 +813,7 @@ begin
     simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply, lsmul_apply,
       algebra.id.smul_eq_mul, integral_mul_left, integral_mul_right],
     rw [integral_comp_inv_smul_of_pos μ _ Rpos, ← hc, Bx, mul_one, smul_eq_mul],
-    field_simp [Rpos.ne', cpos] },-/
+    field_simp [Rpos.ne', cpos.ne'] },-/
   have : ∀ R (x : H), 0 < R → R < 1 → x ∉ closed_ball (0 : H) (1 + R) → g0 R x = 0,
   sorry, /-{ assume R x Rpos Rone hx,
     let F : H → ℝ := λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x),
@@ -829,8 +841,6 @@ begin
     simp only [lsmul_apply, algebra.id.smul_eq_mul, Bx, mul_zero, integral_const] }, -/
   have : ∀ R (x : H), 0 < R → 0 ≤ g0 R x,
   sorry, /-{ assume R x Rpos,
-    let F : H → ℝ := λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x),
-    change 0 ≤ (F ⋆[lsmul ℝ ℝ, μ] φ) x,
     apply integral_nonneg (λ y, _),
     simp only [pi.zero_apply, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
       lsmul_apply, algebra.id.smul_eq_mul],
@@ -838,7 +848,35 @@ begin
     have : 0 ≤ φ (x - y),
       from indicator_nonneg (by simp only [zero_le_one, implies_true_iff]) _,
     positivity },-/
-
+  have : ∀ R (x : H), 0 < R → g0 R x ≤ 1,
+  sorry, /-{ assume R x Rpos,
+    let F : H → ℝ := λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x),
+    have C : (F ⋆[lsmul ℝ ℝ, μ] φ) x ≤ (F ⋆[lsmul ℝ ℝ, μ] 1) x,
+    { apply integral_mono_of_nonneg,
+      { apply eventually_of_forall (λ y, _),
+        simp only [pi.zero_apply, continuous_linear_map.map_smul, mul_inv_rev, coe_smul',
+          pi.smul_apply, lsmul_apply, algebra.id.smul_eq_mul],
+        have : 0 ≤ g (R⁻¹ • y), from (g_mem _).1,
+        have : 0 ≤ φ (x - y),
+          from indicator_nonneg (by simp only [zero_le_one, implies_true_iff]) _,
+        positivity },
+      { refine (has_compact_support.convolution_exists_left _ _ _ _ _).integrable,
+        { exact (comp_supp_g.comp_smul (inv_ne_zero Rpos.ne')).mul_left },
+        { exact continuous_const.mul (g_smooth.continuous.comp (continuous_id.const_smul _)) },
+        { apply locally_integrable_const (1 : ℝ), apply_instance } },
+      { apply eventually_of_forall (λ y, _),
+        simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
+          lsmul_apply, algebra.id.smul_eq_mul, pi.one_apply, mul_one],
+        refine mul_le_mul_of_nonneg_left _ (by positivity),
+        refine mul_le_of_le_one_right (g_mem _).1 _,
+        apply indicator_le_self' (λ x hx, zero_le_one),
+        apply_instance } },
+    have D : (F ⋆[lsmul ℝ ℝ, μ] (λ y, (1 : ℝ))) x = 1,
+    { simp only [convolution, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
+        lsmul_apply, algebra.id.smul_eq_mul, mul_one, integral_mul_left],
+      rw [integral_comp_inv_smul_of_pos μ _ Rpos, ← hc, smul_eq_mul],
+      field_simp [Rpos.ne', cpos.ne'] },
+    exact C.trans (le_of_eq D) },-/
   refine
   { to_fun := g0,
     mem_Icc := _,

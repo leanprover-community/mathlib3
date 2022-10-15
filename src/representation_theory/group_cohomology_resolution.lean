@@ -568,4 +568,3 @@ lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (π k G) :=
 end exactness
 
 end group_cohomology.resolution
-#lint

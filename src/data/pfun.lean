@@ -261,10 +261,9 @@ begin
   replace h := part.mem_assert_iff.1 h,
   have := h.snd, revert this,
   induction h.fst with a ha IH, intro h₂,
-  have fb : b ∈ f.fix a := (part.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩),
-  refine H a fb (λ a'' fa'', _),
-  have ha'' : b ∈ f.fix a'' := fix_fwd fb fa'',
-  have := (part.mem_assert_iff.1 ha'').snd,
+  replace h : b ∈ f.fix a := (part.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩),
+  refine H a h (λ a'' fa'', _),
+  have := (part.mem_assert_iff.1 (fix_fwd h fa'')).snd,
   exact IH _ fa'' ⟨ha _ fa'', this⟩ this,
 end
 

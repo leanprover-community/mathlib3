@@ -389,7 +389,7 @@ filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.lim
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/
 theorem ae_mem_limsup_at_top_iff (μ : measure Ω) [is_finite_measure μ]
   {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
-  ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
+  ∀ᵐ ω ∂μ, ω ∈ limsup s at_top ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
       at_top at_top :=
 (limsup_eq_tendsto_sum_indicator_at_top ℝ s).symm ▸ tendsto_sum_indicator_at_top_iff' hs

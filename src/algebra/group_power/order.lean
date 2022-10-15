@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.order.ring
 import algebra.group_power.ring
+import data.set.intervals.basic
 
 /-!
 # Lemmas about the interaction of power operations with order

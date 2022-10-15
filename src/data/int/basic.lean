@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.nat.pow
-import order.min_max
 import data.nat.cast
+import algebra.ring.regular
 
 /-!
 # Basic operations on the integers

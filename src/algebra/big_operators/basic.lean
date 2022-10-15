@@ -262,6 +262,16 @@ lemma prod_disj_union (h) : ∏ x in s₁.disj_union s₂ h, f x = (∏ x in s�
 by { refine eq.trans _ (fold_disj_union h), rw one_mul, refl }
 
 @[to_additive]
+lemma prod_disj_Union (s : finset ι) (t : ι → finset α) (h) :
+  ∏ x in s.disj_Union t h, f x = ∏ i in s, ∏ x in t i, f x :=
+begin
+  refine eq.trans _ (fold_disj_Union h),
+  dsimp [finset.prod, multiset.prod, multiset.fold, finset.disj_Union, finset.fold],
+  congr',
+  exact prod_const_one.symm,
+end
+
+@[to_additive]
 lemma prod_union_inter [decidable_eq α] :
   (∏ x in (s₁ ∪ s₂), f x) * (∏ x in (s₁ ∩ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 fold_union_inter
@@ -810,6 +820,11 @@ by { simp_rw apply_ite k, exact prod_ite_of_true _ _ h }
 lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
   ∏ i in s, (if i ∈ s then f i else 1) = ∏ i in s, f i :=
 prod_congr rfl $ λ i hi, if_pos hi
+
+@[simp, to_additive]
+lemma prod_ite_mem [decidable_eq α] (s t : finset α) (f : α → β) :
+  ∏ i in s, (if i ∈ t then f i else 1) = ∏ i in (s ∩ t), f i :=
+by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
 
 @[simp, to_additive]
 lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
@@ -1468,6 +1483,10 @@ end comm_group
 @[simp] theorem card_sigma {σ : α → Type*} (s : finset α) (t : Π a, finset (σ a)) :
   card (s.sigma t) = ∑ a in s, card (t a) :=
 multiset.card_sigma _ _
+
+@[simp] lemma card_disj_Union (s : finset α) (t : α → finset β) (h) :
+  (s.disj_Union t h).card = s.sum (λ i, (t i).card) :=
+multiset.card_bind _ _
 
 lemma card_bUnion [decidable_eq β] {s : finset α} {t : α → finset β}
   (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :

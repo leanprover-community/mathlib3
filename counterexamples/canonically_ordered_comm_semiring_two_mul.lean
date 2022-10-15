@@ -5,7 +5,7 @@ Authors: Damiano Testa
 -/
 import data.zmod.basic
 import ring_theory.subsemiring.basic
-import algebra.order.monoid
+import algebra.order.monoid.basic
 /-!
 
 A `canonically_ordered_comm_semiring` with two different elements `a` and `b` such that

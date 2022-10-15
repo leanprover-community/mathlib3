@@ -537,6 +537,9 @@ by rw [mem_sphere', mem_sphere]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
+lemma closed_ball_eq_bInter_ball : closed_ball x ε = ⋂ δ > ε, ball x δ :=
+by ext y; rw [mem_closed_ball, ← forall_lt_iff_le', mem_Inter₂]; refl
+
 lemma ball_subset_ball' (h : ε₁ + dist x y ≤ ε₂) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z hz, calc
   dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
@@ -2490,7 +2493,29 @@ lemma nonempty_Inter_of_nonempty_bInter [complete_space α] {s : ℕ → set α}
 
 end diam
 
+lemma exists_local_min_mem_ball [proper_space α] [topological_space β]
+  [conditionally_complete_linear_order β] [order_topology β]
+  {f : α → β} {a z : α} {r : ℝ} (hf : continuous_on f (closed_ball a r))
+  (hz : z ∈ closed_ball a r) (hf1 : ∀ z' ∈ sphere a r, f z < f z') :
+  ∃ z ∈ ball a r, is_local_min f z :=
+begin
+  simp_rw [← closed_ball_diff_ball] at hf1,
+  exact (is_compact_closed_ball a r).exists_local_min_mem_open ball_subset_closed_ball hf hz hf1
+    is_open_ball,
+end
+
 end metric
+
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: the diameter of a set is always nonnegative. -/
+@[positivity]
+meta def positivity_diam : expr → tactic strictness
+| `(metric.diam %%s) := nonnegative <$> mk_app ``metric.diam_nonneg [s]
+| e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `metric.diam s`"
+
+end tactic
 
 lemma comap_dist_right_at_top_le_cocompact (x : α) : comap (λ y, dist y x) at_top ≤ cocompact α :=
 begin

@@ -217,7 +217,7 @@ variables (L : C ⥤ D) (R : D ⥤ C)
 namespace enough_injectives_of_adjunction_auxs
 
 /--
-Given injective presentation `L(A) → J`, then `injective_object_of_adjunction A` is defined to be
+Given an injective presentation `L(A) → J`, then `injective_object_of_adjunction A` is defined to be
 `R(J)`. It will later be proven to be an injective object in `𝓐`.-/
 def RJ (A : C) : C := R.obj $ injective.under (L.obj A)
 
@@ -229,7 +229,7 @@ variables {L R}
 /--
 If `g : X → R(J)` and `f : X → Y` is mono in `𝓐`, then there is an morphism `L(Y) → J`
 See the diagram below:
-
+```
 𝓐                             𝓑
 
 A ---> R(J)                 L(A) -----> J <--------
@@ -242,7 +242,7 @@ X                              L(X)               |
 |                               |L.map f          |
 v                               v                 |
 Y                              L(Y) ---------------
-
+```
 -/
 def LY_to_J [preserves_finite_limits L] {A X Y : C} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] :
   L.obj Y ⟶ injective.under (L.obj A) :=
@@ -258,7 +258,7 @@ let factors := (injective.injective_under $ L.obj A).factors in
 /--
 If `g : X → R(J)` and `f : X → Y` is mono in `𝓐`, then there is an morphism `Y → R(J)`
 See the diagram below:
-
+```
 𝓐                                                  𝓑
 
 A ---> R(J) <---                                   L(A) -----> J <--------
@@ -271,7 +271,7 @@ X              |                                      L(X)               |
 |              |                                       |                 |
 v              |                                       v                 |
 Y --------------                                      L(Y) ---------------
-
+```
 -/
 def Y_to_RJ [preserves_finite_limits L]
   {A X Y : C} (g : X ⟶ RJ_of A) (f : X ⟶ Y) [mono f] : Y ⟶ RJ_of A :=
@@ -298,7 +298,7 @@ include adj
 lemma injective_RJ [preserves_finite_limits L] (A : C) : injective (RJ_of A) :=
 ⟨λ X Y g f m, ⟨by { resetI, exact Y_to_RJ _ adj g f }, by apply comp_Y_to_RJ⟩⟩
 
-/-- the morphism `A → R(J)` obtained by `L(A) → J` via adjunction, this morphism is mono, so that
+/-- The morphism `A → R(J)` obtained by `L(A) → J` via adjunction. This morphism is mono, so that
 `A → R(J)` is an injective presentation of `A` in `𝓐`.-/
 def to_RJ (A : C) : A ⟶ RJ_of A :=
 adj.hom_equiv A (injective.under $ L.obj A) (injective.ι _)
@@ -324,12 +324,11 @@ by rw [abelian.mono_iff_kernel_ι_eq_zero, eq3]
 
 end enough_injectives_of_adjunction_auxs
 
--- Implementation note: only `abelian C` if `category C` and `category D` have the same morphism
--- universe level, in that case `abelian D` is implied by `abelian_of_adjunction`; but in this
--- implementation, we choose not to ask two categories with the same morphism universe level, so
--- we need an additional assumption `abelian D`.
-/--
-faithful and exact left adjoint functor transfers enough injectiveness.-/
+-- Implementation note: If we require `C` and `D` to have morphisms at the same universe level,
+-- then it suffices to assume only `abelian C`sine  `abelian D` would be implied by `abelian_of_adjunction`;
+-- but in this implementation, we choose not to impose this restriction on the universe levels of morphisms,
+-- so we need an additional assumption `abelian D`.
+/-- A faithful and exact left adjoint functor `L : C ⥤ D` transfers enough injectiveness from `D` to `C`. -/
 lemma enough_injectives.of_adjunction {C : Type u₁} {D : Type u₂}
   [category.{v₁} C] [category.{v₂} D] [abelian C] [abelian D]
   {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) [faithful L] [preserves_finite_limits L]
@@ -344,8 +343,7 @@ lemma enough_injectives.of_adjunction {C : Type u₁} {D : Type u₂}
 -- universe level, in that case `abelian D` is implied by `abelian_of_equivalence`. But in this
 -- implementation, we choose not to ask two categories with the same morphism universe level, so
 -- we need an additional assumption `abelian D`.
-/--
-equivalence of category transfers enough injectiveness.-/
+/-- An equivalence of categories transfers enough injectiveness. -/
 lemma enough_injectives.of_equivalence {C : Type u₁} {D : Type u₂}
   [category.{v₁} C] [category.{v₂} D] [abelian C] [abelian D]
   (e : C ⥤ D) [is_equivalence e] [enough_injectives D] : enough_injectives C :=

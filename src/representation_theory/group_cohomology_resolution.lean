@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
+import algebra.category.Module.projective
 import algebraic_topology.alternating_face_map_complex
 import algebraic_topology.cech_nerve
 import algebraic_topology.extra_degeneracy
@@ -29,8 +30,12 @@ This allows us to define a `k[G]`-basis on `k[Gⁿ⁺¹]`, by mapping the natura
 We then define the standard resolution of `k` as a trivial representation, by
 taking the alternating face map complex associated to an appropriate simplicial `k`-linear
 `G`-representation. This simplicial object is the `linearization` of the simplicial `G`-set given
-by the universal cover of the classifying space of `G`. We prove this `G`-set is isomorphic to the
-Čech nerve of the natural arrow of `G`-sets `G ⟶ {pt}`.
+by the universal cover of the classifying space of `G`, `EG`. We prove this simplicial `G`-set `EG`
+is isomorphic to the Čech nerve of the natural arrow of `G`-sets `G ⟶ {pt}`.
+
+We then use this isomorphism to deduce that as a complex of `k`-modules, the standard resolution
+of `k` as a trivial `G`-represeentation is homotopy equivalent to the complex with `k` at 0 and 0
+elsewhere.
 
 ## Main definitions
 
@@ -40,13 +45,13 @@ by the universal cover of the classifying space of `G`. We prove this `G`-set is
  * `group_cohomology.resolution.equiv_tensor`
  * `group_cohomology.resolution.of_mul_action_basis`
  * `classifying_space_universal_cover`
- * `classifying_space_universal_cover.cech_nerve_iso`
  * `group_cohomology.resolution`
+ * `group_cohomology.resolution.forget₂_to_Module_homotopy_equiv`
 
 ## TODO
 
- * Use the freeness of `k[Gⁿ⁺¹]` to build a projective resolution of the (trivial) `k[G]`-module
-   `k`, and so develop group cohomology.
+ * Put these results together and apply the category equivalence `Rep k G ≅ Module k[G]` to define
+   the standard resolution of `k` as a projective resolution.
 
 ## Implementation notes
 
@@ -351,119 +356,189 @@ nat_iso.of_components (λ n, types.product_iso _) $ λ m n f, matrix.ext $ λ i 
 variables (k G)
 open algebraic_topology simplicial_object.augmented
 
+/-- The universal cover of the classifying space of `G` as a simplicial set, augmented by the map
+from `fin 1 → G` to the terminal object in `Type u`. -/
 def comp_forget_augmented : simplicial_object.augmented (Type u) :=
 simplicial_object.augment (classifying_space_universal_cover G ⋙ forget _) (terminal _)
 (terminal.from _) $ λ i g h, subsingleton.elim _ _
 
-def augmented_cech_nerve_iso :
-  (arrow.mk $ terminal.from G).augmented_cech_nerve ≅ comp_forget_augmented G :=
-comma.iso_mk ((cech_nerve_iso_aux G).trans (aux_iso_comp_forget G)) (iso.refl _) $
-begin
-  ext1, ext1,
-  exact (@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _),
-end
-
+/-- The augmented Čech nerve of the map from `fin 1 → G` to the terminal object in `Type u` has an
+extra degeneracy. -/
 def extra_degeneracy_of_augmented_cech_nerve :
   extra_degeneracy (arrow.mk $ terminal.from G).augmented_cech_nerve :=
 augmented_cech_nerve.extra_degeneracy (arrow.mk $ terminal.from G)
   ⟨λ x, (1 : G), @subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _⟩
 
+/-- The universal cover of the classifying space of `G` as a simplicial set, augmented by the map
+from `fin 1 → G` to the terminal object in `Type u`, has an extra degeneracy. -/
 def extra_degeneracy_of_comp_forget_augmented :
   extra_degeneracy (comp_forget_augmented G) :=
-extra_degeneracy.of_iso (augmented_cech_nerve_iso G) (extra_degeneracy_of_augmented_cech_nerve G)
+@extra_degeneracy.of_iso _ _ (arrow.mk $ terminal.from G).augmented_cech_nerve
+  (comp_forget_augmented G) (comma.iso_mk ((cech_nerve_iso_aux G).trans (aux_iso_comp_forget G))
+  (iso.refl _) $ by ext1; ext1; exact (@subsingleton.elim _ (@unique.subsingleton _
+  (limits.unique_to_terminal _)) _ _))
+(extra_degeneracy_of_augmented_cech_nerve G)
 
+/-- The free functor `Type u ⥤ Module.{u} k` applied to the universal cover of the classifying
+space of `G` as a simplicial set, augmented by the map from `fin 1 → G` to the terminal object
+in `Type u`. -/
 def comp_forget_augmented.to_Module : simplicial_object.augmented (Module.{u} k) :=
 ((simplicial_object.augmented.whiskering _ _).obj (Module.free k)).obj (comp_forget_augmented G)
 
+/-- If we augment the universal cover of the classifying space of `G` as a simplicial set by the
+map from `fin 1 → G` to the terminal object in `Type u`, then apply the free functor
+`Type u ⥤ Module.{u} k`, the resulting augmented simplicial `k`-module has an extra degeneracy. -/
 def extra_degeneracy_of_comp_forget_augmented_to_Module :
   extra_degeneracy (comp_forget_augmented.to_Module k G) :=
-(Module.free k).map_extra_degeneracy (comp_forget_augmented G)
-  (extra_degeneracy_of_comp_forget_augmented G)
+extra_degeneracy.map (extra_degeneracy_of_comp_forget_augmented G) (Module.free k)
 
+
+end classifying_space_universal_cover
+
+variables (k) [monoid G]
+
+/-- The standard resolution of `k` as a trivial representation, defined as the alternating
+face map complex of a simplicial `k`-linear `G`-representation. -/
 def group_cohomology.resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
   (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
 
-def group_cohomology.resolution.forget₂_to_Module :=
+namespace group_cohomology.resolution
+open classifying_space_universal_cover algebraic_topology category_theory category_theory.limits
+
+/-- The standard resolution of `k` as a trivial representation as a complex of `k`-modules. -/
+def forget₂_to_Module :=
 ((forget₂ (Rep k G) (Module.{u} k)).map_homological_complex _).obj (group_cohomology.resolution k G)
 
-def iso_resolution_forget₂_to_Module : (alternating_face_map_complex.obj
+/-- If we apply the free functor `Type u ⥤ Module.{u} k` to the universal cover of the classifying
+space of `G` as a simplicial set, then take the alternating face map complex, the result is
+isomorphic to the standard resolution of the trivial `G`-representation `k` as a complex of
+`k`-modules. -/
+def comp_forget_augmented_iso : (alternating_face_map_complex.obj
   (simplicial_object.augmented.drop.obj (comp_forget_augmented.to_Module k G)))
   ≅ group_cohomology.resolution.forget₂_to_Module k G :=
-eq_to_iso ((functor.congr_obj (map_alternating_face_map_complex (forget₂ (Rep k G)
-  (Module.{u} k))).symm (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)))
+(map_alternating_face_map_complex_iso (forget₂ (Rep k G)
+  (Module.{u} k))).symm.app (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
 
-def homotopy_equiv.of_iso {ι : Type*} {V : Type u} [category.{v} V] [preadditive V]
-  {c : complex_shape ι} {C D : homological_complex V c} (f : C ≅ D) :
-  homotopy_equiv C D :=
-{ hom := f.hom,
-  inv := f.inv,
-  homotopy_hom_inv_id := homotopy.of_eq f.3,
-  homotopy_inv_hom_id := homotopy.of_eq f.4 }
-
-instance : unique (terminal (Type u)) := equiv.unique (types.terminal_iso).to_equiv
-
-instance : unique ((@simplicial_object.augmented.point (Type u) _).obj (comp_forget_augmented G)) :=
-equiv.unique (types.terminal_iso).to_equiv
-
-def single_iso : (chain_complex.single₀ (Module k)).obj
-  (simplicial_object.augmented.point.obj (comp_forget_augmented.to_Module k G)) ≅
-  (chain_complex.single₀ (Module k)).obj (Module.of k k) :=
-homological_complex.hom.iso_of_components (λ i, nat.rec_on i
-  (finsupp.linear_equiv.finsupp_unique k k (terminal (Type u))).to_Module_iso (λ j hj, iso.refl _)) $
-begin
-   rintros i j ⟨rfl⟩,
-   ext,
-   simp only [chain_complex.single₀_obj_X_d, comp_zero, zero_comp],
-end
-
-def forget_resn_homotopy_equiv : homotopy_equiv (group_cohomology.resolution.forget₂_to_Module k G)
-    ((chain_complex.single₀ (Module k)).obj (Module.of k k)) :=
-(homotopy_equiv.of_iso (iso_resolution_forget₂_to_Module k G).symm).trans $
+/-- As a complex of `k`-modules, the standard resolution of the trivial `G`-representation `k` is
+homotopy equivalent to the complex which is `k` at 0 and 0 elsewhere. -/
+def forget₂_to_Module_homotopy_equiv : homotopy_equiv
+  (group_cohomology.resolution.forget₂_to_Module k G)
+  ((chain_complex.single₀ (Module k)).obj
+  ((forget₂ (Rep k G) _).obj $ Rep.of representation.trivial)) :=
+(homotopy_equiv.of_iso (comp_forget_augmented_iso k G).symm).trans $
   (simplicial_object.augmented.extra_degeneracy.homotopy_equiv
   (extra_degeneracy_of_comp_forget_augmented_to_Module k G)).trans
-    (homotopy_equiv.of_iso $ single_iso k G)
+    (homotopy_equiv.of_iso $ (chain_complex.single₀ (Module.{u} k)).map_iso
+(@finsupp.linear_equiv.finsupp_unique k k _ _ _ (⊤_ (Type u))
+  types.terminal_iso.to_equiv.unique).to_Module_iso)
 
-theorem forget_resn_exact (n : ℕ) :
+/-- The hom of `k`-linear `G`-representations `k[G¹] → k` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
+def π : Rep.of_mul_action k G (fin 1 → G) ⟶ Rep.of representation.trivial :=
+{ hom := finsupp.total _ _ _ (λ f, (1 : k)),
+  comm' := λ g,
+  begin
+    ext,
+    show finsupp.total (fin 1 → G) k k (λ f, (1 : k))
+      (finsupp.map_domain _ (finsupp.single _ _)) = finsupp.total _ _ _ _ (finsupp.single _ _),
+    simp only [finsupp.map_domain_single, finsupp.total_single],
+  end }
+
+/-- The homotopy equivalence of complexes of `k`-modules between the standard resolution of `k` as
+a trivial `G`-representation, and the complex which is `k` at 0 and 0 everywhere else, acts as
+`∑ nᵢgᵢ ↦ ∑ nᵢ : k[G¹] → k` at 0. -/
+lemma forget₂_to_Module_homotopy_equiv_f_0_eq :
+  (forget₂_to_Module_homotopy_equiv k G).1.f 0 =
+  (forget₂ (Rep k G) _).map (π k G) :=
+begin
+  show (homotopy_equiv.hom _ ≫ (homotopy_equiv.hom _ ≫ homotopy_equiv.hom _)).f 0 = _,
+  simp only [homological_complex.comp_f],
+  convert category.id_comp _,
+  { dunfold homotopy_equiv.of_iso comp_forget_augmented_iso map_alternating_face_map_complex_iso,
+    simp only [homological_complex.hom.iso_of_components_hom_f, nat_iso.of_components_hom_app],
+    ext,
+    congr' 1 },
+  transitivity ((finsupp.total _ _ _ (λ f, (1 : k))).comp
+    ((Module.free k).map (terminal.from _))),
+  { show _ = linear_map.comp _ (finsupp.lmap_domain _ _ _),
+    rw [@finsupp.lmap_domain_total (fin 1 → G) k k _ _ _ (⊤_ (Type u))
+      k _ _ (λ i, (1 : k)) (λ i, (1 : k)) (terminal.from ((classifying_space_universal_cover G).obj
+      (opposite.op (simplex_category.mk 0))).V) linear_map.id (λ i, rfl), linear_map.id_comp],
+    refl },
+  { congr,
+    { ext,
+      show finsupp.total _ k k _ (finsupp.single _ (1 : k)) = finsupp.single a 1 _,
+      rw [finsupp.total_single, one_smul, @unique.eq_default _
+        types.terminal_iso.to_equiv.unique a, finsupp.single_eq_same] },
+    { exact (@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _) }}
+end
+
+lemma d_comp_π : (group_cohomology.resolution k G).d 1 0 ≫ π k G = 0 :=
+begin
+  ext1,
+  refine linear_map.ext (λ x, _),
+  have : (forget₂_to_Module k G).d 1 0 ≫ (forget₂ (Rep k G) (Module.{u} k)).map (π k G) = 0,
+  by rw [←forget₂_to_Module_homotopy_equiv_f_0_eq,
+    ←(forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl]; exact comp_zero,
+  exact linear_map.ext_iff.1 this _,
+end
+
+theorem forget₂_to_Module_exact_succ (n : ℕ) :
   exact ((group_cohomology.resolution.forget₂_to_Module k G).d (n + 2) (n + 1))
     ((group_cohomology.resolution.forget₂_to_Module k G).d (n + 1) n) :=
 (preadditive.exact_iff_homology_zero _ _).2
   ⟨(group_cohomology.resolution.forget₂_to_Module k G).d_comp_d _ _ _,
-  ⟨(chain_complex.succth _ _).symm.trans ((homology_obj_iso_of_homotopy_equiv
-  (forget_resn_homotopy_equiv k G) _).trans homology_zero_zero)⟩⟩
+  ⟨(chain_complex.homology_succ_iso _ _).symm.trans ((homology_obj_iso_of_homotopy_equiv
+  (forget₂_to_Module_homotopy_equiv k G) _).trans homology_zero_zero)⟩⟩
 
-variables {k G}
-
-lemma ffs2 {k : Type u} [comm_ring k] {C D : chain_complex (Module.{u} k) ℕ}
-  (H : C ≅ D) {i j : ℕ} (hij : (complex_shape.down ℕ).rel i j) :
-  H.2.1 i ≫ C.d i j ≫ H.1.1 j = D.d i j :=
-begin
-  rw [←category.assoc, H.2.2 i j hij, category.assoc, ←homological_complex.comp_f,
-    homological_complex.congr_hom H.4 j, homological_complex.id_f, category.comp_id],
-end
-
-instance ffs1 {k : Type u} [comm_ring k] (C D : chain_complex (Module.{u} k) ℕ)
-  (H : C ≅ D) (i : ℕ) : is_iso (H.1.1 i) :=
-⟨⟨H.2.1 i, homological_complex.congr_hom H.3 i, homological_complex.congr_hom H.4 i⟩⟩
-
-instance ffs4  {k : Type u} [comm_ring k] (C D : chain_complex (Module.{u} k) ℕ)
-  (H : C ≅ D) (i : ℕ) : is_iso (H.2.1 i) :=
-⟨⟨H.1.1 i, homological_complex.congr_hom H.4 i, homological_complex.congr_hom H.3 i⟩⟩
-
-lemma yeugh {k : Type u} [comm_ring k] {C D : chain_complex (Module.{u} k) ℕ}
-  (H : C ≅ D) (i j l : ℕ) (hij : (complex_shape.down ℕ).rel i j) (hjl : (complex_shape.down ℕ).rel j l) :
-  exact (C.d i j) (C.d j l) ↔ exact (D.d i j) (D.d j l) :=
-begin
-  rw [←ffs2 H hij, ←ffs2 H hjl, exact_iso_comp, ←category.assoc, exact_comp_iso],
-  exact (exact_comp_hom_inv_comp_iff (homological_complex.hom.iso_app H j)).symm,
-end
-
-theorem noice (n : ℕ) :
+theorem exact_at_succ (n : ℕ) :
   exact ((group_cohomology.resolution k G).d (n + 2) (n + 1))
     ((group_cohomology.resolution k G).d (n + 1) n) :=
-functor.exact_of_exact_map (forget₂ (Rep k G) (Module.{u} k)) (forget_resn_exact _ _ _)
+(forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map
+  (forget₂_to_Module_exact_succ _ _ _)
 
-end classifying_space_universal_cover
-namespace group_cohomology.resolution
+section homotopy_equiv_single₀
+
+/- Not sure where to put these at the moment; algebra/homology/homotopy doesn't import
+algebra/homology/single and vice versa. -/
+variables {V : Type u} [category.{v} V] [preadditive V]
+  [has_zero_object V] [has_kernels V] [has_images V] [has_cokernels V]
+
+/-- If a chain complex `C` is homotopy equivalent to a complex concentrated at 0 (for some
+object `X`), the cokernel of the differential `d : C₁ → C₀` is isomorphic to `X.` -/
+def chain_complex.cokernel_at_zero_of_homotopy_equiv_single₀
+  {C : chain_complex V ℕ} {X : V}
+  (H : homotopy_equiv C ((chain_complex.single₀ _).obj X)) : cokernel (C.d 1 0) ≅ X :=
+{ hom := cokernel.desc (C.d 1 0) (H.1.f 0) $ by rw ←H.1.2 1 0 rfl; exact comp_zero,
+  inv := H.2.f 0 ≫ cokernel.π _,
+  hom_inv_id' := coequalizer.hom_ext $ by rw [←category.assoc, cokernel.π_desc, ←category.assoc,
+    ←homological_complex.comp_f, H.3.3 0]; simp,
+  inv_hom_id' := by rw [category.assoc, cokernel.π_desc, ←homological_complex.comp_f,
+    H.4.3 0]; simpa, }
+
+/-- If a cochain complex `C` is homotopy equivalent to a complex concentrated at 0 (for some
+object `X`), the kernel of the differential `d : C₀ → C₁` is isomorphic to `X.` -/
+def cochain_complex.kernel_at_zero_of_homotopy_equiv_single₀
+  {C : cochain_complex V ℕ} {X : V}
+  (H : homotopy_equiv C ((cochain_complex.single₀ _).obj X)) : kernel (C.d 0 1) ≅ X :=
+{ hom := kernel.ι _ ≫ H.1.f 0,
+  inv := kernel.lift _ (H.2.f 0) (by rw H.2.2 0 1 rfl; exact zero_comp),
+  hom_inv_id' := equalizer.hom_ext $ by rw [category.assoc, kernel.lift_ι, category.assoc,
+    ←homological_complex.comp_f, H.3.3 0]; simp,
+  inv_hom_id' := by rw [←category.assoc, kernel.lift_ι, ←homological_complex.comp_f,
+    H.4.3 0]; simpa }
+
+end homotopy_equiv_single₀
+
+lemma forget_to_Module_exact₀ :
+  exact ((group_cohomology.resolution.forget₂_to_Module k G).d 1 0)
+  ((forget₂_to_Module_homotopy_equiv k G).1.f 0) :=
+(preadditive.exact_iff_homology_zero _ _).2 ⟨_, ⟨(homology_iso_kernel_desc _ _ _).trans $
+  @kernel.of_mono _ _ _ _ _ _ _ _ $
+ is_iso.mono_of_iso (chain_complex.cokernel_at_zero_of_homotopy_equiv_single₀ _).hom⟩⟩
+
+lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (π k G) :=
+(forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map
+  (by rw ←forget₂_to_Module_homotopy_equiv_f_0_eq; exact forget_to_Module_exact₀ _ _)
 
 section differential
 variables (k G)
@@ -481,15 +556,6 @@ variables {k G}
 by simp [d]
 
 end differential
-end group_cohomology.resolution
-variables (k G) [monoid G]
-
-/-- The standard resolution of `k` as a trivial representation, defined as the alternating
-face map complex of a simplicial `k`-linear `G`-representation. -/
-def group_cohomology.resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
-  (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
-
-namespace group_cohomology.resolution
 
 /-- The `n`th object of the standard resolution of `k` is definitionally isomorphic to `k[Gⁿ⁺¹]`
 equipped with the representation induced by the diagonal action of `G`. -/

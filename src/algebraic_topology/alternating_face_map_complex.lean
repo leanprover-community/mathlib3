@@ -204,6 +204,28 @@ begin
       refl, }, },
 end
 
+lemma map_alternating_face_map_complex_iso {D : Type*} [category D] [preadditive D]
+  (F : C ⥤ D) [F.additive] :
+  alternating_face_map_complex C ⋙ F.map_homological_complex _ ≅
+  (simplicial_object.whiskering C D).obj F ⋙ alternating_face_map_complex D :=
+nat_iso.of_components (λ X,
+homological_complex.hom.iso_of_components (λ n, iso.refl _) $
+begin
+  rintros i j (rfl : j + 1 = i),
+  dsimp only [functor.comp_obj],
+  simpa only [functor.map_homological_complex_obj_d, alternating_face_map_complex_obj_d,
+    alternating_face_map_complex.obj_d, functor.map_sum, functor.map_zsmul,
+    iso.refl_hom, id_comp, comp_id],
+end)
+(begin
+  intros X Y f,
+  ext n,
+  simp only [functor.comp_map, homological_complex.comp_f,
+    alternating_face_map_complex_map_f, functor.map_homological_complex_map_f,
+    homological_complex.hom.iso_of_components_hom_f, iso.refl_hom, comp_id, id_comp,
+    simplicial_object.whiskering_obj_map_app],
+end)
+
 namespace alternating_face_map_complex
 
 /-- The natural transformation which gives the augmentation of the alternating face map

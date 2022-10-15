@@ -123,6 +123,28 @@ end
 
 end homological_complex
 
+/-- The `n + 1`th homology of a chain complex (as kernel of 'the differential from `Cₙ₊₁`' modulo
+the image of 'the differential to `Cₙ₊₁`') is isomorphic to the kernel of `d : Cₙ₊₁ → Cₙ` modulo
+the image of `d : Cₙ₊₂ → Cₙ₊₁`. -/
+def chain_complex.homology_succ_iso [has_kernels V] [has_images V] [has_cokernels V]
+  (C : chain_complex V ℕ) (n : ℕ) :
+  C.homology (n + 1) ≅ homology (C.d (n + 2) (n + 1)) (C.d (n + 1) n) (C.d_comp_d _ _ _) :=
+homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso rfl) (iso.refl _) $ by dsimp;
+  rw [C.d_to_eq rfl, category.comp_id])
+(arrow.iso_mk (iso.refl _) (C.X_next_iso rfl) $ by dsimp; rw [C.d_from_comp_X_next_iso rfl,
+   category.id_comp]) rfl
+
+/-- The `n + 1`th cohomology of a cochain complex (as kernel of 'the differential from `Cₙ₊₁`'
+modulo the image of 'the differential to `Cₙ₊₁`') is isomorphic to the kernel of `d : Cₙ₊₁ → Cₙ₊₂`
+modulo the image of `d : Cₙ → Cₙ₊₁`. -/
+def cochain_complex.homology_succ_iso [has_kernels V] [has_images V] [has_cokernels V]
+  (C : cochain_complex V ℕ) (n : ℕ) :
+  C.homology (n + 1) ≅ homology (C.d n (n + 1)) (C.d (n + 1) (n + 2)) (C.d_comp_d _ _ _) :=
+homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso rfl) (iso.refl _) $ by dsimp;
+  rw [C.d_to_eq rfl, category.comp_id])
+(arrow.iso_mk (iso.refl _) (C.X_next_iso rfl) $ by dsimp; rw [C.d_from_comp_X_next_iso rfl,
+   category.id_comp]) rfl
+
 open homological_complex
 
 /-! Computing the cycles is functorial. -/

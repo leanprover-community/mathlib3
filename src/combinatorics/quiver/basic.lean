@@ -25,7 +25,7 @@ open opposite
 
 -- We use the same universe order as in category theory.
 -- See note [category_theory universes]
-universes v v₂ u u₂
+universes v v₁ v₂ u u₁ u₂
 
 /--
 A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
@@ -38,7 +38,7 @@ For graphs with no repeated edges, one can use `quiver.{0} V`, which ensures
 Because `category` will later extend this class, we call the field `hom`.
 Except when constructing instances, you should rarely see this, and use the `⟶` notation instead.
 -/
-class quiver (V : Type*) :=
+class quiver (V : Type u) :=
 (hom : V → V → Sort v)
 
 infixr ` ⟶ `:10 := quiver.hom -- type as \h
@@ -47,14 +47,14 @@ infixr ` ⟶ `:10 := quiver.hom -- type as \h
 A morphism of quivers. As we will later have categorical functors extend this structure,
 we call it a `prefunctor`.
 -/
-structure prefunctor (V : Type*) [quiver V] (W : Type*) [quiver W] :=
+structure prefunctor (V : Type u₁) [quiver.{v₁} V] (W : Type u₂) [quiver.{v₂} W] :=
 (obj [] : V → W)
 (map : Π {X Y : V}, (X ⟶ Y) → (obj X ⟶ obj Y))
 
 namespace prefunctor
 
 @[ext]
-lemma ext {V : Type*} [quiver V] {W : Type*} [quiver W]
+lemma ext {V : Type u} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W]
   {F G : prefunctor V W}
   (h_obj : ∀ X, F.obj X = G.obj X)
   (h_map : ∀ (X Y : V) (f : X ⟶ Y),
@@ -118,15 +118,15 @@ attribute [irreducible] quiver.opposite
 
 /-- A type synonym for a quiver with no arrows. -/
 @[nolint has_nonempty_instance]
-def empty (V) : Type* := V
+def empty (V) : Type u := V
 
-instance empty_quiver (V : Type*) : quiver (empty V) := ⟨λ a b, pempty⟩
+instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty⟩
 
-@[simp] lemma empty_arrow {V : Type*} (a b : empty V) : (a ⟶ b) = pempty := rfl
+@[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
 
 
 /-- The `quiver` instance obtained by pushing arrows of `V` along `σ` -/
-def push {V : Type*} [quiver V] {W : Type*} (σ : V → W) := W
+def push {V : Type u} [quiver V] {W : Type u₂} (σ : V → W) := W
 
 namespace push
 

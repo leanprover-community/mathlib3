@@ -5,20 +5,18 @@ Authors: David Wärn
 -/
 import data.set.basic
 import combinatorics.quiver.basic
-import combinatorics.quiver.symmetric
 
 
 section subquiver
 
 universes v u
 
-variable (V : Type*)
 
-structure subquiver  (V : Type*) [quiver V] :=
+structure subquiver  (V : Type u) [quiver V] :=
 ( vertices : set V )
 ( arrows : ∀ ⦃X Y : V⦄, (X ∈ vertices) → (Y ∈ vertices) → set (X ⟶ Y) )
 
-def is_subquiver {V : Type*} [quiver V] (S T : subquiver V) : Prop :=
+def is_subquiver {V : Type u} [quiver V] (S T : subquiver V) : Prop :=
 ∃ (h : ∀ ⦃X⦄, X ∈ S.vertices → X ∈ T.vertices),
   ∀ ⦃X Y : V⦄ (hX : X ∈ S.vertices) (hY :Y ∈ S.vertices),
     S.arrows hX hY ⊆ T.arrows (h hX) (h hY)
@@ -45,10 +43,10 @@ def wide_subquiver (V) [quiver V] :=
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from
 some `wide_subquiver`. -/
 @[nolint unused_arguments has_nonempty_instance]
-def wide_subquiver.to_Type (V) [quiver V] (H : wide_subquiver V) : Type* := V
+def wide_subquiver.to_Type (V) [quiver V] (H : wide_subquiver V) : Type u := V
 
 instance wide_subquiver_has_coe_to_sort {V} [quiver V] :
-  has_coe_to_sort (wide_subquiver V) (Type*) :=
+  has_coe_to_sort (wide_subquiver V) (Type u) :=
 { coe := λ H, wide_subquiver.to_Type V H }
 
 /-- A wide subquiver viewed as a quiver on its own. -/
@@ -64,7 +62,7 @@ instance {V} [quiver V] : inhabited (wide_subquiver V) := ⟨⊤⟩
 /-- `total V` is the type of _all_ arrows of `V`. -/
 -- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
 @[ext, nolint has_nonempty_instance]
-structure total (V : Type*) [quiver V] :=
+structure total (V : Type u) [quiver.{v} V] : Sort (max (u+1) v) :=
 (left : V)
 (right : V)
 (hom : left ⟶ right)
@@ -78,9 +76,9 @@ def wide_subquiver_equiv_set_total {V} [quiver V] :
   right_inv := by { intro S, ext, cases x, refl } }
 
 /-- An `L`-labelling of a quiver assigns to every arrow an element of `L`. -/
-def labelling (V : Type*) [quiver V] (L : Sort*) := Π ⦃a b : V⦄, (a ⟶ b) → L
+def labelling (V : Type u) [quiver V] (L : Sort*) := Π ⦃a b : V⦄, (a ⟶ b) → L
 
-instance {V : Type*} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :=
+instance {V : Type u} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :=
 ⟨λ a b e, default⟩
 
 end quiver

@@ -33,7 +33,7 @@ def zigzag_setoid : setoid V :=
 /-- The type of weakly connected components of a directed graph. Two vertices are
     in the same weakly connected component if there is a zigzag of arrows from one
     to the other. -/
-def weakly_connected_component := quotient (zigzag_setoid V)
+def weakly_connected_component : Type* := quotient (zigzag_setoid V)
 
 namespace weakly_connected_component
 variable {V}
@@ -50,10 +50,11 @@ quotient.eq'
 
 end weakly_connected_component
 
+variables {V}
+
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
-def wide_subquiver_symmetrify {V} [quiver V] (H : wide_subquiver (symmetrify V)) :
-  wide_subquiver V :=
+def wide_subquiver_symmetrify (H : wide_subquiver (symmetrify V)) : wide_subquiver V :=
 λ a b, { e | psum.inl e ∈ H a b ∨ psum.inr e ∈ H b a }
 
 end quiver

@@ -53,20 +53,6 @@ end right_cancel_monoid
 attribute [to_additive order_dual.has_vadd] order_dual.has_nsmul
 
 section
-variables {α : Type*} [topological_space α] [linear_order α]
-
-open filter set topological_space
-open_locale topological_space
-
-lemma exists_seq_strict_anti_tendsto_nhds_within [order_topology α] [densely_ordered α]
-  [no_max_order α] [first_countable_topology α] (x : α) :
-  ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝[>] x) :=
-let ⟨u, hu, hx, h⟩ := exists_seq_strict_anti_tendsto x in ⟨u, hu, hx,
-  tendsto_nhds_within_mono_right (range_subset_iff.2 hx) $ tendsto_nhds_within_range.2 h⟩
-
-end
-
-section
 variables {α : Type*} [linear_ordered_semifield α] {a : α}
 
 @[simp] lemma half_lt_self_iff : a / 2 < a ↔ 0 < a :=
@@ -420,11 +406,11 @@ are comparable and both in the closure/frontier.
 
 protected lemma is_closed.upper_closure (hs : is_closed s) :
   is_closed (upper_closure s : set (ι → ℝ)) :=
-sorry
+sorry --suspicious
 
 protected lemma is_closed.lower_closure (hs : is_closed s) :
   is_closed (lower_closure s : set (ι → ℝ)) :=
-sorry
+sorry --suspicious
 
 protected lemma is_clopen.upper_closure (hs : is_clopen s) :
   is_clopen (upper_closure s : set (ι → ℝ)) :=

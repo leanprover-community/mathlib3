@@ -28,11 +28,11 @@ open_locale topological_space manifold
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 -- declare a smooth manifold `M` over the pair `(E, H)`.
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-{H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+{H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [Is : smooth_manifold_with_corners I M]
 -- declare a smooth manifold `M'` over the pair `(E', H')`.
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
-{H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
+{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M'] [I's : smooth_manifold_with_corners I' M']
 -- declare a smooth manifold `N` over the pair `(F, G)`.
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]

@@ -814,7 +814,7 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 rfl
 
 @[simp]
-lemma local_homeomorph.refl_prod_refl {α β : Type*} [topological_space α] [topological_space β] :
+lemma refl_prod_refl {α β : Type*} [topological_space α] [topological_space β] :
   (local_homeomorph.refl α).prod (local_homeomorph.refl β) = local_homeomorph.refl (α × β) :=
 by { ext1 ⟨x, y⟩, { refl }, { rintro ⟨x, y⟩, refl }, exact univ_prod_univ }
 

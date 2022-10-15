@@ -483,7 +483,7 @@ atlas members are just the identity -/
 by simp [atlas, charted_space.atlas]
 
 /-- In the model space, chart_at is always the identity -/
-@[simp, mfld_simps] lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
+lemma chart_at_self_eq {H : Type*} [topological_space H] {x : H} :
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
@@ -651,7 +651,7 @@ variables [topological_space H] [topological_space M] [charted_space H M]
   (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
 
 lemma charted_space_self_prod : prod_charted_space H H H' H' = charted_space_self (H × H') :=
-by { ext1, { simp [prod_charted_space, atlas] }, { ext1, simp, refl } }
+by { ext1, { simp [prod_charted_space, atlas] }, { ext1, simp [chart_at_self_eq], refl } }
 
 end prod_charted_space
 

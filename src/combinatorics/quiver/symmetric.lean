@@ -7,12 +7,12 @@ universes v u
 namespace quiver
 
 @[nolint has_nonempty_instance]
-def symmetrify (V : Type u) : Type u := V
+def symmetrify (V : Type*) : Type* := V
 
-instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
+instance symmetrify_quiver (V : Type*) [quiver V] : quiver (symmetrify V) :=
 ⟨λ a b : V, psum (a ⟶ b) (b ⟶ a)⟩
 
-variables (V : Type u) [quiver V]
+variables (V : Type*) [quiver V]
 
 /-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
     `p.reverse` from `b` to `a`.-/

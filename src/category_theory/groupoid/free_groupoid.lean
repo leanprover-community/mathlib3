@@ -57,7 +57,7 @@ abbreviation quiver.hom.to_pos {X Y : V} (f : X ⟶ Y) :
 /-- Shorthand for the "backward" arrow corresponding to `f` in `symmetrify V` -/
 abbreviation quiver.hom.to_neg {X Y : V} (f : X ⟶ Y) :
   (quiver.symmetrify_quiver V).hom Y X := psum.inr f
-
+set_option pp.universes true
 /-- Shorthand for the "forward" arrow corresponding to `f` in `paths $ symmetrify V` -/
 abbreviation quiver.hom.to_pos_path {X Y : V} (f : X ⟶ Y) :
   ((category_theory.paths.category_paths $ quiver.symmetrify V).hom X Y) := f.to_pos.to_path

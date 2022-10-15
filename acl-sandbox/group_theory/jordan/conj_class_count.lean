@@ -453,22 +453,24 @@ begin
       }, },
 end
 
-lemma equiv.perm_with_cycle_type_nonempty_iff {c : list ℕ} :
-  (c.sum ≤ fintype.card α ∧ (∀ a ∈ c, 2 ≤ a)) ↔ (equiv.perm_with_cycle_type α (c : multiset ℕ)).nonempty :=
+lemma equiv.perm_with_cycle_type_nonempty_iff {m : multiset ℕ} :
+  (m.sum ≤ fintype.card α ∧ (∀ a ∈ m, 2 ≤ a)) ↔ (equiv.perm_with_cycle_type α m).nonempty :=
 begin
   split,
   { rintro ⟨hc, h2c⟩,
-    obtain ⟨p, hp_length, hp_nodup, hp_disj⟩ := list.exists_pw_disjoint_with_card hc,
+    have hc' : m.to_list.sum ≤ fintype.card α, simp only [multiset.sum_to_list], exact hc,
+    obtain ⟨p, hp_length, hp_nodup, hp_disj⟩ := list.exists_pw_disjoint_with_card hc',
     use list.prod (list.map (λ l, list.form_perm l) p),
     simp only [equiv.perm_with_cycle_type, finset.mem_filter, set.to_finset_univ,
       finset.mem_univ, true_and],
     have hp2 : ∀ (x : list α) (hx : x ∈ p), 2 ≤ x.length,
     { intros x hx,
       apply h2c x.length,
-      rw [← hp_length, list.mem_map],
+      rw [← multiset.mem_to_list, ← hp_length, list.mem_map],
       exact ⟨x, hx, rfl⟩, },
     rw equiv.perm.cycle_type_eq _ rfl,
     { -- lengths
+      rw ← multiset.coe_to_list m,
       apply congr_arg,
       rw list.map_map, rw ← hp_length,
       apply list.map_congr,
@@ -503,11 +505,11 @@ begin
     simp only [equiv.perm_with_cycle_type, set.to_finset_univ, finset.mem_filter,
       finset.mem_univ, true_and] at hg,
     split,
-    rw [← multiset.coe_sum, ← hg, equiv.perm.sum_cycle_type ],
+    rw [← hg, equiv.perm.sum_cycle_type ],
     exact (equiv.perm.support g).card_le_univ,
-    intros a ha,
-    rw [← multiset.mem_coe, ← hg] at ha,
-    exact equiv.perm.two_le_of_mem_cycle_type ha, },
+    intro a,
+    rw [← hg],
+    exact equiv.perm.two_le_of_mem_cycle_type, },
 end
 
 lemma equiv.perm.mem_cycle_factors_conj (g k c : equiv.perm α) :
@@ -2210,6 +2212,7 @@ begin
     suffices : conj_act.to_conj_act z ∈ mul_action.stabilizer (conj_act (equiv.perm α)) g,
     use ⟨conj_act.to_conj_act z, this⟩,
     have hK : function.injective ((mul_action.stabilizer (conj_act (equiv.perm α)) g).subtype),
+    apply subgroup.subtype_injective,
     sorry,
     -- exact subgroup.subtype_injective,
     rw ← subgroup.mem_map_iff_mem hK,

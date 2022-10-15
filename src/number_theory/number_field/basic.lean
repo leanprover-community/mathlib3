@@ -102,7 +102,7 @@ integral_closure.is_integrally_closed_of_finite_extension ℚ
 lemma is_integral_coe (x : 𝓞 K) : is_integral ℤ (x : K) :=
 x.2
 
-lemma map_mem_ring_of_integers {F L : Type*} [field L] [char_zero K] [char_zero L]
+lemma map_mem {F L : Type*} [field L] [char_zero K] [char_zero L]
   [alg_hom_class F ℚ K L] (f : F) (x : 𝓞 K) : f x ∈ 𝓞 L :=
 (mem_ring_of_integers _ _).2 $ map_is_integral_int f $ ring_of_integers.is_integral_coe x
 

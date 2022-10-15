@@ -1866,9 +1866,9 @@ lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_anti n.le_succ) h_fin
 
 /-- Known as Fatou's lemma, version with `ae_measurable` functions -/
 lemma lintegral_liminf_le' {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, ae_measurable (f n) μ) :
-  ∫⁻ a, liminf at_top (λ n, f n a) ∂μ ≤ liminf at_top (λ n, ∫⁻ a, f n a ∂μ) :=
+  ∫⁻ a, liminf (λ n, f n a) at_top ∂μ ≤ liminf (λ n, ∫⁻ a, f n a ∂μ) at_top :=
 calc
-  ∫⁻ a, liminf at_top (λ n, f n a) ∂μ = ∫⁻ a, ⨆n:ℕ, ⨅i≥n, f i a ∂μ :
+  ∫⁻ a, liminf (λ n, f n a) at_top ∂μ = ∫⁻ a, ⨆n:ℕ, ⨅i≥n, f i a ∂μ :
      by simp only [liminf_eq_supr_infi_of_nat]
   ... = ⨆n:ℕ, ∫⁻ a, ⨅i≥n, f i a ∂μ :
     lintegral_supr'
@@ -1880,14 +1880,14 @@ calc
 
 /-- Known as Fatou's lemma -/
 lemma lintegral_liminf_le {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n)) :
-  ∫⁻ a, liminf at_top (λ n, f n a) ∂μ ≤ liminf at_top (λ n, ∫⁻ a, f n a ∂μ) :=
+  ∫⁻ a, liminf (λ n, f n a) at_top ∂μ ≤ liminf (λ n, ∫⁻ a, f n a ∂μ) at_top :=
 lintegral_liminf_le' (λ n, (h_meas n).ae_measurable)
 
 lemma limsup_lintegral_le {f : ℕ → α → ℝ≥0∞} {g : α → ℝ≥0∞}
   (hf_meas : ∀ n, measurable (f n)) (h_bound : ∀n, f n ≤ᵐ[μ] g) (h_fin : ∫⁻ a, g a ∂μ ≠ ∞) :
-  limsup at_top (λn, ∫⁻ a, f n a ∂μ) ≤ ∫⁻ a, limsup at_top (λn, f n a) ∂μ :=
+  limsup (λn, ∫⁻ a, f n a ∂μ) at_top ≤ ∫⁻ a, limsup (λn, f n a) at_top ∂μ :=
 calc
-  limsup at_top (λn, ∫⁻ a, f n a ∂μ) = ⨅n:ℕ, ⨆i≥n, ∫⁻ a, f i a ∂μ :
+  limsup (λn, ∫⁻ a, f n a ∂μ) at_top = ⨅n:ℕ, ⨆i≥n, ∫⁻ a, f i a ∂μ :
     limsup_eq_infi_supr_of_nat
   ... ≤ ⨅n:ℕ, ∫⁻ a, ⨆i≥n, f i a ∂μ :
     infi_mono $ assume n, supr₂_lintegral_le _
@@ -1900,7 +1900,7 @@ calc
         refine (ae_all_iff.2 h_bound).mono (λ n hn, _),
         exact supr_le (λ i, supr_le $ λ hi, hn i) }
     end
-  ... = ∫⁻ a, limsup at_top (λn, f n a) ∂μ :
+  ... = ∫⁻ a, limsup (λn, f n a) at_top ∂μ :
     by simp only [limsup_eq_infi_supr_of_nat]
 
 /-- Dominated convergence theorem for nonnegative functions -/
@@ -1911,10 +1911,10 @@ lemma tendsto_lintegral_of_dominated_convergence
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, F n a ∂μ) at_top (𝓝 (∫⁻ a, f a ∂μ)) :=
 tendsto_of_le_liminf_of_limsup_le
-(calc ∫⁻ a, f a ∂μ = ∫⁻ a, liminf at_top (λ (n : ℕ), F n a) ∂μ :
+(calc ∫⁻ a, f a ∂μ = ∫⁻ a, liminf (λ (n : ℕ), F n a) at_top ∂μ :
       lintegral_congr_ae $ h_lim.mono $ assume a h, h.liminf_eq.symm
- ... ≤ liminf at_top (λ n, ∫⁻ a, F n a ∂μ) : lintegral_liminf_le hF_meas)
-(calc limsup at_top (λ (n : ℕ), ∫⁻ a, F n a ∂μ) ≤ ∫⁻ a, limsup at_top (λn, F n a) ∂μ :
+ ... ≤ liminf (λ n, ∫⁻ a, F n a ∂μ) at_top : lintegral_liminf_le hF_meas)
+(calc limsup (λ (n : ℕ), ∫⁻ a, F n a ∂μ) at_top ≤ ∫⁻ a, limsup (λn, F n a) at_top ∂μ :
       limsup_lintegral_le hF_meas h_bound h_fin
  ... = ∫⁻ a, f a ∂μ : lintegral_congr_ae $ h_lim.mono $ λ a h, h.limsup_eq)
 

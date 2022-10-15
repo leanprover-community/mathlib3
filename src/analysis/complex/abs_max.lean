@@ -348,6 +348,18 @@ begin
     (λ x hx, (hr $ ball_subset_closed_ball hx).2)⟩
 end
 
+lemma eventually_eq_or_eq_zero_of_is_local_min_norm {f : E → ℂ} {c : E}
+  (hf : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f z) (hc : is_local_min (norm ∘ f) c) :
+  (∀ᶠ z in 𝓝 c, f z = f c) ∨ (f c = 0) :=
+begin
+  refine or_iff_not_imp_right.mpr (λ h, _),
+  have h1 : ∀ᶠ z in 𝓝 c, f z ≠ 0 := hf.self_of_nhds.continuous_at.eventually_ne h,
+  have h2 : is_local_max (norm ∘ f)⁻¹ c := hc.inv (h1.mono (λ z, norm_pos_iff.mpr)),
+  have h3 : is_local_max (norm ∘ f⁻¹) c := by { refine h2.congr (eventually_of_forall _); simp },
+  have h4 : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f⁻¹ z, by filter_upwards [hf, h1] with z h using h.inv,
+  filter_upwards [eventually_eq_of_is_local_max_norm h4 h3] with z using inv_inj.mp
+end
+
 end strict_convex
 
 /-!

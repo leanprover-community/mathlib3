@@ -148,7 +148,7 @@ end
 by { rcases s, rcases t, simp }
 
 @[protected, to_additive]
-lemma nocomm_prod_map_aux [monoid_hom_class F α β] (s : multiset α)
+lemma noncomm_prod_map_aux [monoid_hom_class F α β] (s : multiset α)
   (comm : {x | x ∈ s}.pairwise commute) (f : F) :
   {x | x ∈ s.map f}.pairwise commute :=
 begin
@@ -158,8 +158,8 @@ begin
 end
 
 @[to_additive]
-lemma noncomm_prod_map (s : multiset α) (comm) {F : Type*} [monoid_hom_class F α β] (f : F) :
-  f (s.noncomm_prod comm) = (s.map f).noncomm_prod (nocomm_prod_map_aux s comm f) :=
+lemma noncomm_prod_map [monoid_hom_class F α β] (s : multiset α) (comm) (f : F) :
+  f (s.noncomm_prod comm) = (s.map f).noncomm_prod (noncomm_prod_map_aux s comm f) :=
 begin
   induction s using quotient.induction_on,
   simpa using map_list_prod f _,
@@ -275,10 +275,9 @@ end
 /-- The non-commutative version of `finset.prod_union` -/
 @[to_additive "The non-commutative version of `finset.sum_union`"]
 lemma noncomm_prod_union_of_disjoint [decidable_eq α] {s t : finset α}
-  (h : disjoint s t) (f : α → β) (comm : {x | x ∈ s ∪ t}.pairwise $ λ a b, commute (f a) (f b))
-  (scomm := comm.mono $ coe_subset.2 $ subset_union_left _ _)
-  (tcomm := comm.mono $ coe_subset.2 $ subset_union_right _ _) :
-  noncomm_prod (s ∪ t) f comm = noncomm_prod s f scomm * noncomm_prod t f tcomm :=
+  (h : disjoint s t) (f : α → β) (comm : {x | x ∈ s ∪ t}.pairwise $ λ a b, commute (f a) (f b)) :
+  noncomm_prod (s ∪ t) f comm = noncomm_prod s f (comm.mono $ coe_subset.2 $ subset_union_left _ _)
+    * noncomm_prod t f (comm.mono $ coe_subset.2 $ subset_union_right _ _) :=
 begin
   obtain ⟨sl, sl', rfl⟩ := exists_list_nodup_eq s,
   obtain ⟨tl, tl', rfl⟩ := exists_list_nodup_eq t,

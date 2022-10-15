@@ -379,13 +379,13 @@ lemma integral_comp_smul_of_pos (f : E → F) (R : ℝ) {hR : 0 < R} :
   ∫ x, f (R • x) ∂μ = (R ^ finrank ℝ E)⁻¹ • ∫ x, f x ∂μ :=
 by rw [integral_comp_smul μ f hR.ne', abs_of_nonneg (inv_nonneg.2 (pow_nonneg hR.le _))]
 
-lemma integral_comp_smul_inv (f : E → F) {R : ℝ} (hR : R ≠ 0) :
+lemma integral_comp_inv_smul (f : E → F) {R : ℝ} (hR : R ≠ 0) :
   ∫ x, f (R⁻¹ • x) ∂μ = |(R ^ finrank ℝ E)| • ∫ x, f x ∂μ :=
 by rw [integral_comp_smul μ f (inv_ne_zero hR), inv_pow, inv_inv]
 
-lemma integral_comp_smul_inv_of_pos (f : E → F) {R : ℝ} (hR : 0 < R) :
+lemma integral_comp_inv_smul_of_pos (f : E → F) {R : ℝ} (hR : 0 < R) :
   ∫ x, f (R⁻¹ • x) ∂μ = R ^ finrank ℝ E • ∫ x, f x ∂μ :=
-by rw [integral_comp_smul_inv μ f hR.ne', abs_of_nonneg ((pow_nonneg hR.le _))]
+by rw [integral_comp_inv_smul μ f hR.ne', abs_of_nonneg ((pow_nonneg hR.le _))]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/

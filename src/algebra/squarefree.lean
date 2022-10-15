@@ -225,8 +225,7 @@ lemma squarefree_iff_dvd_of_pow_dvd {x : R} (h0 : x ≠ 0) :
   obtain ⟨n, hn⟩ := (normalized_factors x).le_smul_dedup,
   have := multiset.prod_dvd_prod_of_le hn,
   rw multiset.prod_nsmul at this,
-  specialize h _ n ((normalized_factors_prod h0).symm.dvd.trans this),
-  apply squarefree_of_dvd_of_squarefree h,
+  apply squarefree_of_dvd_of_squarefree (h _ n $ (normalized_factors_prod h0).symm.dvd.trans this),
   have := λ a ha, irreducible_of_normalized_factor a (multiset.mem_dedup.1 ha),
   rw [squarefree_iff_nodup_normalized_factors, normalized_factors_prod_eq],
   { refine multiset.nodup.map_on (λ x hx y hy he, _) (multiset.nodup_dedup _),
@@ -238,11 +237,7 @@ end⟩
 lemma squarefree_ideal_span_singleton_is_radical {R} [comm_ring R] [is_domain R]
   [unique_factorization_monoid R] {x : R} (h0 : x ≠ 0) :
   squarefree x ↔ (ideal.span {x}).radical ≤ ideal.span ({x} : set R) :=
-begin
-  rw squarefree_iff_dvd_of_pow_dvd h0,
-  refine forall_congr (λ y, _),
-  simp_rw [← exists_imp_distrib, ← ideal.mem_span_singleton],
-  refl,
-end
+(squarefree_iff_dvd_of_pow_dvd h0).trans $ forall_congr $
+  λ y, by { simp_rw [← exists_imp_distrib, ← ideal.mem_span_singleton], refl }
 
 end unique_factorization_monoid

@@ -42,7 +42,7 @@ variable {R}
 namespace maximal_spectrum
 
 instance [nontrivial R] : nonempty $ maximal_spectrum R :=
-⟨⟨(ideal.exists_maximal R).some, (ideal.exists_maximal R).some_spec⟩⟩
+let ⟨I, hI⟩ := ideal.exists_maximal R in ⟨⟨I, hI⟩⟩
 
 /-- The natural inclusion from the maximal spectrum to the prime spectrum. -/
 def to_prime_spectrum (x : maximal_spectrum R) : prime_spectrum R :=

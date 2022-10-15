@@ -7,7 +7,7 @@ noncomputable theory
 namespace RingModPair
 open category_theory category_theory.limits
 
-universes u v
+universe v
 
 section limits
 
@@ -322,7 +322,6 @@ end
     convert (Ring.sections_equiv_limit F).hom.map_add _ _,
     refl,
   end }
--- limit.lift (F ⋙ RingModPair.forget_to_Ring) (cone_to_Ring_cone F C)
 
 @[simp] def limit_cone.lift_mod (C : cone F) :
   C.X.mod ⟶ (Module.restrict_scalars (limit_cone.lift_Ring F C)).obj (limit_cone F).X.mod :=

@@ -149,7 +149,7 @@ instance _root_.prod.cstar_ring : cstar_ring (R₁ × R₂) :=
       rw [sq_le_sq, abs_of_nonneg (norm_nonneg _)],
       exact (le_max_left _ _).trans (le_abs_self _),
       exact (le_max_right _ _).trans (le_abs_self _) },
-    { rw le_max_iff,
+    { rw le_sup_iff,
       rcases le_total (∥x.fst∥) (∥x.snd∥) with (h | h);
       simp [h] }
   end }

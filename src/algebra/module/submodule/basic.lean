@@ -167,6 +167,12 @@ instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] :
 instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
 p.to_sub_mul_action.is_scalar_tower
 
+instance is_scalar_tower' {S' : Type*}
+  [has_smul S R] [has_smul S M] [has_smul S' R] [has_smul S' M] [has_smul S S']
+  [is_scalar_tower S' R M] [is_scalar_tower S S' M] [is_scalar_tower S R M] :
+  is_scalar_tower S S' p :=
+p.to_sub_mul_action.is_scalar_tower'
+
 instance
   [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]

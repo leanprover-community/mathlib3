@@ -575,6 +575,11 @@ then if h : (X : R[X]) ^ n - C a = 0
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
+@[simp]
+lemma nth_roots_two_eq_zero_iff {r : R} : nth_roots 2 r = 0 ↔ ¬ is_square r :=
+by simp_rw [is_square_iff_exists_sq, eq_zero_iff_forall_not_mem,
+            mem_nth_roots (by norm_num : 0 < 2), ← not_exists, eq_comm]
+
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
 def nth_roots_finset (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 multiset.to_finset (nth_roots n (1 : R))
@@ -664,6 +669,22 @@ finset_coe.fintype _
 lemma root_set_finite (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
 set.to_finite _
+
+/-- The set of roots of all polynomials of bounded degree and having coefficients in a finite set
+is finite. -/
+lemma bUnion_roots_finite {R S : Type*} [semiring R] [comm_ring S] [is_domain S]
+  (m : R →+* S) (d : ℕ) {U : set R} (h : U.finite) :
+  (⋃ (f : R[X]) (hf : f.nat_degree ≤ d ∧ ∀ i, (f.coeff i) ∈ U),
+    ((f.map m).roots.to_finset : set S)).finite :=
+set.finite.bUnion begin
+  -- We prove that the set of polynomials under consideration is finite because its
+  -- image by the injective map `π` is finite
+  let π : R[X] → fin (d+1) → R := λ f i, f.coeff i,
+  refine ((set.finite.pi $ λ e, h).subset $ _).of_finite_image (_ : set.inj_on π _),
+  { exact set.image_subset_iff.2 (λ f hf i _, hf.2 i) },
+  { refine λ x hx y hy hxy, (ext_iff_nat_degree_le hx.1 hy.1).2 (λ i hi, _),
+    exact id congr_fun hxy ⟨i, nat.lt_succ_of_le hi⟩ },
+end $ λ i hi, finset.finite_to_set _
 
 theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]
   [algebra T S] (hp : p.map (algebra_map T S) ≠ 0) (a : S) :

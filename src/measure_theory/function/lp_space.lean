@@ -14,7 +14,7 @@ import topology.continuous_function.compact
 # ℒp space and Lp space
 
 This file describes properties of almost everywhere strongly measurable functions with finite
-seminorm, denoted by `snorm f p μ` and defined for `p:ℝ≥0∞` as `0` if `p=0`,
+seminorm, denoted by `snorm f p μ` and defined for `p:ℝ≥0∞` asmm_group (Lp E p μ) := `0` if `p=0`,
 `(∫ ∥f a∥^p ∂μ) ^ (1/p)` for `0 < p < ∞` and `ess_sup ∥f∥ μ` for `p=∞`.
 
 The Prop-valued `mem_ℒp f p μ` states that a function `f : α → E` has finite seminorm.
@@ -1433,7 +1433,7 @@ variables [measurable_space E] [opens_measurable_space E] {R : ℝ≥0}
 
 lemma ae_bdd_liminf_at_top_rpow_of_snorm_bdd {p : ℝ≥0∞}
   {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
+  ∀ᵐ x ∂μ, liminf (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) at_top < ∞ :=
 begin
   by_cases hp0 : p.to_real = 0,
   { simp only [hp0, ennreal.rpow_zero],
@@ -1456,7 +1456,7 @@ end
 
 lemma ae_bdd_liminf_at_top_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0)
   {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞ :=
+  ∀ᵐ x ∂μ, liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top < ∞ :=
 begin
   by_cases hp' : p = ∞,
   { subst hp',
@@ -1470,14 +1470,14 @@ begin
       (ennreal.add_lt_top.2 ⟨ennreal.coe_lt_top, ennreal.one_lt_top⟩) },
   filter_upwards [ae_bdd_liminf_at_top_rpow_of_snorm_bdd hfmeas hbdd] with x hx,
   have hppos : 0 < p.to_real := ennreal.to_real_pos hp hp',
-  have : liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) =
-    liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) ^ p.to_real,
-  { change liminf at_top (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) =
-      ennreal.order_iso_rpow p.to_real hppos (liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞))),
+  have : liminf (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) at_top =
+    (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top)^ p.to_real,
+  { change liminf (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) at_top =
+      ennreal.order_iso_rpow p.to_real hppos (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top),
     refine (order_iso.liminf_apply (ennreal.order_iso_rpow p.to_real _) _ _ _ _).symm;
     is_bounded_default },
   rw this at hx,
-  rw [← ennreal.rpow_one (liminf at_top (λ n, ∥f n x∥₊)), ← mul_inv_cancel hppos.ne.symm,
+  rw [← ennreal.rpow_one (liminf (λ n, ∥f n x∥₊) at_top), ← mul_inv_cancel hppos.ne.symm,
     ennreal.rpow_mul],
   exact ennreal.rpow_lt_top_of_nonneg (inv_nonneg.2 hppos.le) hx.ne,
 end
@@ -1727,10 +1727,11 @@ instance [hp : fact (1 ≤ p)] : normed_add_comm_group (Lp E p μ) :=
   edist_dist := λ f g, by
     rw [edist_def, dist_def, ←snorm_congr_ae (coe_fn_sub _ _),
       ennreal.of_real_to_real (snorm_ne_top (f - g))],
-  .. normed_add_comm_group.of_core (Lp E p μ)
-    { norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
-      triangle := begin
-        assume f g,
+  ..add_group_norm.to_normed_add_comm_group
+    { to_fun := (norm : Lp E p μ → ℝ),
+      map_zero' := norm_zero,
+      neg' := by simp,
+      add_le' := λ f g, begin
         simp only [norm_def],
         rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
         suffices h_snorm : snorm ⇑(f + g) p μ ≤ snorm ⇑f p μ + snorm ⇑g p μ,
@@ -1739,7 +1740,7 @@ instance [hp : fact (1 ≤ p)] : normed_add_comm_group (Lp E p μ) :=
         rw [snorm_congr_ae (coe_fn_add _ _)],
         exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
       end,
-      norm_neg := by simp } }
+      eq_zero_of_map_eq_zero' := λ f, (norm_eq_zero_iff $ ennreal.zero_lt_one.trans_le hp.1).1 } }
 
 -- check no diamond is created
 example [fact (1 ≤ p)] :

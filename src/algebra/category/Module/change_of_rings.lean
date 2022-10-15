@@ -24,6 +24,9 @@ import ring_theory.tensor_product
   then `coextend_scalars : Module R ⥤ Module S` is defined by `M ↦ (S →ₗ[R] M)` where `S` is seen as
   `R-module` by restriction of scalars and `l ↦ l ∘ _`.
 
+* `category_theory.Module.restrict_coextend_scalars_adj`: given rings `R, S` and a ring homomorphism
+  `f : R ⟶ S` then `coextend_scalars f` is the right adjoint of `restrict_scalars f`.
+
 ## List of notations
 Let `R, S` be rings and `f : R →+* S`
 * if `M` is an `R`-module, `s : S` and `m : M`, then `s ⊗ₜ[R, f] m` is the pure tensor

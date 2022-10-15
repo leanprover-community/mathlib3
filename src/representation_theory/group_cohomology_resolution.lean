@@ -66,7 +66,7 @@ over `k`.
 
 noncomputable theory
 
-universes u v
+universes u v w
 
 variables {k G : Type u} [comm_ring k] {n : ℕ}
 
@@ -390,7 +390,6 @@ def extra_degeneracy_of_comp_forget_augmented_to_Module :
   extra_degeneracy (comp_forget_augmented.to_Module k G) :=
 extra_degeneracy.map (extra_degeneracy_of_comp_forget_augmented G) (Module.free k)
 
-
 end classifying_space_universal_cover
 
 variables (k) [monoid G]
@@ -403,6 +402,40 @@ def group_cohomology.resolution := (algebraic_topology.alternating_face_map_comp
 namespace group_cohomology.resolution
 open classifying_space_universal_cover algebraic_topology category_theory category_theory.limits
 
+variables (k G)
+
+/-- The `k`-linear map underlying the differential in the standard resolution of `k` as a trivial
+`k`-linear `G`-representation. It sends `(g₀, ..., gₙ) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ)`. -/
+def d (n : ℕ) : ((fin (n + 1) → G) →₀ k) →ₗ[k] ((fin n → G) →₀ k) :=
+finsupp.lift ((fin n → G) →₀ k) k (fin (n + 1) → G) (λ g, (@finset.univ (fin (n + 1)) _).sum
+  (λ p, finsupp.single (g ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))))
+
+variables {k G}
+
+@[simp] lemma d_of {n : ℕ} (c : fin (n + 1) → G) :
+  d k G n (finsupp.single c 1) = finset.univ.sum (λ p : fin (n + 1), finsupp.single
+    (c ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))) :=
+by simp [d]
+
+variables (k G)
+
+/-- The `n`th object of the standard resolution of `k` is definitionally isomorphic to `k[Gⁿ⁺¹]`
+equipped with the representation induced by the diagonal action of `G`. -/
+def X_iso (n : ℕ) :
+  (group_cohomology.resolution k G).X n ≅ Rep.of_mul_action k G (fin (n + 1) → G) := iso.refl _
+
+/-- Simpler expression for the differential in the standard resolution of `k` as a
+`G`-representation. It sends `(g₀, ..., gₙ₊₁) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ₊₁)`. -/
+theorem d_eq (n : ℕ) :
+  ((group_cohomology.resolution k G).d (n + 1) n).hom = d k G (n + 1) :=
+begin
+  ext x y,
+  dsimp [group_cohomology.resolution],
+  simpa [←@int_cast_smul k, simplicial_object.δ],
+end
+
+section exactness
+
 /-- The standard resolution of `k` as a trivial representation as a complex of `k`-modules. -/
 def forget₂_to_Module :=
 ((forget₂ (Rep k G) (Module.{u} k)).map_homological_complex _).obj (group_cohomology.resolution k G)
@@ -414,8 +447,8 @@ isomorphic to the standard resolution of the trivial `G`-representation `k` as a
 def comp_forget_augmented_iso : (alternating_face_map_complex.obj
   (simplicial_object.augmented.drop.obj (comp_forget_augmented.to_Module k G)))
   ≅ group_cohomology.resolution.forget₂_to_Module k G :=
-(map_alternating_face_map_complex_iso (forget₂ (Rep k G)
-  (Module.{u} k))).symm.app (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
+eq_to_iso (functor.congr_obj (map_alternating_face_map_complex (forget₂ (Rep k G)
+  (Module.{u} k))).symm (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1))
 
 /-- As a complex of `k`-modules, the standard resolution of the trivial `G`-representation `k` is
 homotopy equivalent to the complex which is `k` at 0 and 0 elsewhere. -/
@@ -452,9 +485,7 @@ begin
   simp only [homological_complex.comp_f],
   convert category.id_comp _,
   { dunfold homotopy_equiv.of_iso comp_forget_augmented_iso map_alternating_face_map_complex_iso,
-    simp only [homological_complex.hom.iso_of_components_hom_f, nat_iso.of_components_hom_app],
-    ext,
-    congr' 1 },
+    simp only [iso.symm_hom, eq_to_iso.inv, homological_complex.eq_to_hom_f, eq_to_hom_refl] },
   transitivity ((finsupp.total _ _ _ (λ f, (1 : k))).comp
     ((Module.free k).map (terminal.from _))),
   { show _ = linear_map.comp _ (finsupp.lmap_domain _ _ _),
@@ -538,36 +569,6 @@ lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (π k G) :=
 (forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map
   (by rw ←forget₂_to_Module_homotopy_equiv_f_0_eq; exact forget_to_Module_exact₀ _ _)
 
-section differential
-variables (k G)
-/-- The `k`-linear map underlying the differential in the standard resolution of `k` as a trivial
-`k`-linear `G`-representation. It sends `(g₀, ..., gₙ) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ)`. -/
-def d (n : ℕ) : ((fin (n + 1) → G) →₀ k) →ₗ[k] ((fin n → G) →₀ k) :=
-finsupp.lift ((fin n → G) →₀ k) k (fin (n + 1) → G) (λ g, (@finset.univ (fin (n + 1)) _).sum
-  (λ p, finsupp.single (g ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))))
-
-variables {k G}
-
-@[simp] lemma d_of {n : ℕ} (c : fin (n + 1) → G) :
-  d k G n (finsupp.single c 1) = finset.univ.sum (λ p : fin (n + 1), finsupp.single
-    (c ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))) :=
-by simp [d]
-
-end differential
-
-/-- The `n`th object of the standard resolution of `k` is definitionally isomorphic to `k[Gⁿ⁺¹]`
-equipped with the representation induced by the diagonal action of `G`. -/
-def X_iso (n : ℕ) :
-  (group_cohomology.resolution k G).X n ≅ Rep.of_mul_action k G (fin (n + 1) → G) := iso.refl _
-
-/-- Simpler expression for the differential in the standard resolution of `k` as a
-`G`-representation. It sends `(g₀, ..., gₙ₊₁) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ₊₁)`. -/
-theorem d_eq (n : ℕ) :
-  ((group_cohomology.resolution k G).d (n + 1) n).hom = d k G (n + 1) :=
-begin
-  ext x y,
-  dsimp [group_cohomology.resolution],
-  simpa [←@int_cast_smul k, simplicial_object.δ],
-end
+end exactness
 
 end group_cohomology.resolution

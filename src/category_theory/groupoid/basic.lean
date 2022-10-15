@@ -41,7 +41,7 @@ end graph_like
 section disconnected
 
 /-- A subgroupoid is disconnected if it only has loops -/
-def is_disconnected := ∀ (c d : C), c ≠ d → is_empty (c ⟶ d)
+def is_disconnected := ∀ (c d : C), nonempty (c ⟶ d) → c = d
 
 end disconnected
 

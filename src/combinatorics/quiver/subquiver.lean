@@ -11,15 +11,12 @@ section subquiver
 
 universes v u
 
-variables (V : Type u) [quiver.{v+1} V]
 
-structure subquiver :=
+structure subquiver  (V : Type u) [quiver V] :=
 ( vertices : set V )
 ( arrows : ∀ ⦃X Y : V⦄, (X ∈ vertices) → (Y ∈ vertices) → set (X ⟶ Y) )
 
-variable (V)
-
-def is_subquiver (S T : subquiver V) : Prop :=
+def is_subquiver {V : Type u} [quiver V] (S T : subquiver V) : Prop :=
 ∃ (h : ∀ ⦃X⦄, X ∈ S.vertices → X ∈ T.vertices),
   ∀ ⦃X Y : V⦄ (hX : X ∈ S.vertices) (hY :Y ∈ S.vertices),
     S.arrows hX hY ⊆ T.arrows (h hX) (h hY)
@@ -39,8 +36,8 @@ universes v u
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
     for every pair of vertices `a b`.
 
-    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver.{v+1} V`. -/
-def wide_subquiver (V) [quiver.{v+1} V] :=
+    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver V`. -/
+def wide_subquiver (V) [quiver V] :=
 Π a b : V, set (a ⟶ b)
 
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from

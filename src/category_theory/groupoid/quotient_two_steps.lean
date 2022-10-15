@@ -32,15 +32,15 @@ section congr
 
 variables {c d : C} (f g h : c ⟶ d)
 
-def congr := ∃ (γ ∈ S.arrws c c) (δ ∈ S.arrws d d), g = γ ≫ f ≫ δ
+def congr := ∃ (γ ∈ S.arrows c c) (δ ∈ S.arrows d d), g = γ ≫ f ≫ δ
 def cgr (c) (d) (f) (g) := @congr _ _ S c d f g
 /-
 lemma congr.refl (f : c ⟶ d) : congr S f f :=  ⟨(𝟙 c), Sn.wide c, (𝟙 d), Sn.wide d, by simp ⟩
 lemma congr.symm {f g : c ⟶ d} : congr S f g → congr S g f :=
-λ ⟨γ,hγ,δ,hδ,e⟩, ⟨inv γ, S.inv' hγ, inv δ, S.inv' hδ, by { rw e, simp, } ⟩
+λ ⟨γ,hγ,δ,hδ,e⟩, ⟨inv γ, S.inv hγ, inv δ, S.inv hδ, by { rw e, simp, } ⟩
 lemma congr.tran {f g h : c ⟶ d} : congr S f g → congr S g h → congr S f h :=
 λ ⟨γ,hγ,δ,hδ,e⟩ ⟨δ',hδ',ε,hε,e'⟩,
-⟨δ' ≫ γ, S.mul' hδ' hγ, δ ≫ ε, S.mul' hδ hε, by {rw [e',e], simp, }⟩
+⟨δ' ≫ γ, S.mul hδ' hγ, δ ≫ ε, S.mul hδ hε, by {rw [e',e], simp, }⟩
 -/
 end congr
 
@@ -48,62 +48,47 @@ def isotropy.quotient (S : subgroupoid C) (Sn : S.is_normal) := C
 
 namespace isotropy
 
-@[instance,simps]
-def category_struct_quotient : category_struct (quotient S Sn) :=
+instance : groupoid (isotropy.quotient S Sn) :=
 { hom := λ c d, quot (cgr S c d),
   id := λ c, quot.mk _ (𝟙 c),
   comp := λ a b c f g,
     quot.lift_on₂ f g
       ( λ f g, quot.mk (cgr S a c) (f ≫ g) )
       ( λ f g₁ g₂ ⟨γ,hγ,δ,hδ,e⟩,
-        quot.sound ⟨(f ≫ γ ≫ inv f), Sn.conj' f γ hγ, δ, hδ, by { rw e, simp, } ⟩ )
+        quot.sound ⟨(f ≫ γ ≫ inv f), Sn.conj' f hγ, δ, hδ, by { rw e, simp only [inv_eq_inv, category.assoc, is_iso.inv_hom_id_assoc], } ⟩ )
       ( λ f₁ f₂ g ⟨γ,hγ,δ,hδ,e⟩,
-        quot.sound ⟨γ, hγ, (inv g ≫ δ ≫ g), Sn.conj g δ hδ, by { rw e, simp, } ⟩ ) }
-
-instance groupoid_quotient : groupoid (quotient S Sn) :=
-{ to_category_struct := category_struct_quotient S Sn,
+        quot.sound ⟨γ, hγ, (inv g ≫ δ ≫ g), Sn.conj g hδ, by { rw e, simp only [category.assoc, inv_eq_inv, is_iso.hom_inv_id_assoc], } ⟩ ),
   comp_id' := λ a b, by
     { refine quot.ind (λ f, _),
-      rw [category_struct_quotient_id, category_struct_quotient_comp,
-      quot.lift_on₂_mk, category.comp_id], },
+      simp only [quot.lift_on₂_mk, category.comp_id], },
   id_comp' := λ a b, by
     { refine quot.ind (λ f, _),
-      rw [category_struct_quotient_id, category_struct_quotient_comp,
-      quot.lift_on₂_mk, category.id_comp], },
+      simp only [quot.lift_on₂_mk, category.id_comp], },
   assoc' :=  λ a b c d f g h, by
     { refine quot.induction_on₃ f g h (λ f g h, _),
-      simp [category_struct_quotient_comp, quot.lift_on₂_mk, category.assoc],  },
+      simp only [quot.lift_on₂_mk, category.assoc],  },
   inv := λ a b f,
     quot.lift_on f
       ( λ f, quot.mk (cgr S b a) (inv f) )
-      ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, quot.sound ⟨inv δ, S.inv' hδ, inv γ, S.inv' hγ, by { rw e, simp, } ⟩ ),
+      ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, quot.sound ⟨inv δ, S.inv hδ, inv γ, S.inv hγ, by { rw e, simp, } ⟩ ),
   comp_inv' := λ a b f, by
     { refine quot.induction_on f (λ f, _),
-      simp only [category_struct_quotient_id, category_struct_quotient_comp,
-                 quot.lift_on₂_mk, inv_eq_inv, is_iso.hom_inv_id], },
+      simp only [quot.lift_on₂_mk, inv_eq_inv, is_iso.hom_inv_id], },
   inv_comp' := λ a b f, by
     { refine quot.induction_on f (λ f, _),
-      simp only [category_struct_quotient_id, category_struct_quotient_comp,
-                 quot.lift_on₂_mk, inv_eq_inv, is_iso.inv_hom_id], }, }
+      simp only [quot.lift_on₂_mk, inv_eq_inv, is_iso.inv_hom_id], }, }
 
 def of : C ⥤ (quotient S Sn) :=
 { obj := λ c, c,
   map := λ c d f, quot.mk _ f,
-  map_id' := λ c, by simp,
-  map_comp' := λ a b c f g, by simp }
+  map_id' := λ _, rfl,
+  map_comp' := λ _ _ _ _ _, rfl, }
 
 lemma of_inj_on_objects : function.injective (of S Sn).obj := by { intros a b e, assumption }
 
 lemma of_onto : im (of S Sn) (of_inj_on_objects S Sn) = (⊤ : subgroupoid $ quotient S Sn) :=
-begin
-  apply subgroupoid.le_antisymm,
-  { exact le_top, },
-  { rintro c d f _,
-    apply quot.induction_on f,
-    rintro f,
-    constructor,
-    constructor, },
-end
+le_antisymm (le_top) $ λ ⟨c,d,f⟩ _, quot.induction_on f (λ f, by { constructor, constructor, })
+
 
 /-- The image of `S` via the quotient is graph-like (since every loop is killed, essentially) -/
 lemma map_is_graph_like : (map (of S Sn) (of_inj_on_objects S Sn) S).is_graph_like :=
@@ -116,7 +101,7 @@ begin
   cases hg,
   simp only [subtype.mk_eq_mk],
   apply quot.sound,
-  refine ⟨𝟙 _, Sn.wide _, inv hf_f ≫ hg_f, S.mul' (S.inv' _) _, _⟩,
+  refine ⟨𝟙 _, Sn.wide _, inv hf_f ≫ hg_f, S.mul (S.inv _) _, _⟩,
   assumption,
   assumption,
   simp only [inv_eq_inv, is_iso.hom_inv_id_assoc, category.id_comp],
@@ -178,11 +163,11 @@ set of representatives of the vertices, which makes dealing with quotients easie
 
 variable (Sg : S.is_graph_like)
 
-abbreviation r := λ c d, nonempty (S.arrws c d)
+abbreviation r := λ c d, nonempty (S.arrows c d)
 
 lemma r.refl (c : C) : r S c c := ⟨⟨𝟙 c, Sn.wide c⟩⟩
-lemma r.symm {c d : C} : r S c d → r S d c := λ ⟨⟨f,fS⟩⟩, ⟨⟨inv f, S.inv' fS⟩⟩
-lemma r.tran {c d e : C} : r S c d → r S d e → r S c e := λ ⟨⟨f,fS⟩⟩ ⟨⟨g,gS⟩⟩, ⟨⟨f≫g, S.mul' fS gS⟩⟩
+lemma r.symm {c d : C} : r S c d → r S d c := λ ⟨⟨f,fS⟩⟩, ⟨⟨inv f, S.inv fS⟩⟩
+lemma r.tran {c d e : C} : r S c d → r S d e → r S c e := λ ⟨⟨f,fS⟩⟩ ⟨⟨g,gS⟩⟩, ⟨⟨f≫g, S.mul fS gS⟩⟩
 
  def R : setoid C :=
 { r := r S ,  iseqv := ⟨λ _, r.refl S Sn _, λ _ _, r.symm S, λ _ _ _, r.tran S⟩ }
@@ -294,7 +279,7 @@ begin
     obtain ⟨eδ,hδ'⟩ := hδ',
     dsimp only [lift, of, fo, full_on, coe_embedding] at *,
     simp only [inv_eq_inv, functor.comp_map] at *,
-    
+
     sorry },
 end
 

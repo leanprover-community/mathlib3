@@ -16,12 +16,10 @@ family. We define composition of paths and the action of prefunctors on paths.
 
 open function
 
-universes v v₁ v₂ u u₁ u₂
-
 namespace quiver
 
 /-- `G.path a b` is the type of paths from `a` to `b` through the arrows of `G`. -/
-inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Sort (max (u+1) v)
+inductive path {V :  Type*} [quiver V] (a : V) : V → Sort*
 | nil  : path a
 | cons : Π {b c : V}, path b → (b ⟶ c) → path c
 
@@ -31,7 +29,7 @@ path.nil.cons e
 
 namespace path
 
-variables {V : Type u} [quiver V] {a b c : V}
+variables {V :  Type*} [quiver V] {a b c : V}
 
 /-- The length of a path is the number of arrows it uses. -/
 def length {a : V} : Π {b : V}, path a b → ℕ
@@ -146,7 +144,7 @@ namespace prefunctor
 
 open quiver
 
-variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : prefunctor V W)
+variables {V : Type*} [quiver V] {W : Type*} [quiver W] (F : prefunctor V W)
 
 /-- The image of a path under a prefunctor. -/
 def map_path {a : V} :

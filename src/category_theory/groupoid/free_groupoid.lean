@@ -48,15 +48,15 @@ namespace free
 
 universes u v u' v' u'' v''
 
-variables {V : Type u} [quiver.{v+1} V]
+variables {V : Type u} [quiver V]
 
 /-- Shorthand for the "forward" arrow corresponding to `f` in `symmetrify V` -/
 abbreviation quiver.hom.to_pos {X Y : V} (f : X ⟶ Y) :
-  (quiver.symmetrify_quiver V).hom X Y := sum.inl f
+  (quiver.symmetrify_quiver V).hom X Y := psum.inl f
 
 /-- Shorthand for the "backward" arrow corresponding to `f` in `symmetrify V` -/
 abbreviation quiver.hom.to_neg {X Y : V} (f : X ⟶ Y) :
-  (quiver.symmetrify_quiver V).hom Y X := sum.inr f
+  (quiver.symmetrify_quiver V).hom Y X := psum.inr f
 
 /-- Shorthand for the "forward" arrow corresponding to `f` in `paths $ symmetrify V` -/
 abbreviation quiver.hom.to_pos_path {X Y : V} (f : X ⟶ Y) :
@@ -72,9 +72,9 @@ inductive red_step : hom_rel (paths (quiver.symmetrify V))
     red_step (𝟙 X) (f.to_path ≫ (quiver.reverse f).to_path)
 
 /-- The underlying vertices of the free groupoid -/
-def _root_.category_theory.free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
+def _root_.category_theory.free_groupoid (V) [Q : quiver V] := quotient (@red_step V Q)
 
-instance {V} [Q : quiver.{v+1} V] [h : nonempty V] : nonempty (free_groupoid V) := ⟨⟨h.some⟩⟩
+instance {V} [Q : quiver V] [h : nonempty V] : nonempty (free_groupoid V) := ⟨⟨h.some⟩⟩
 
 lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
@@ -134,7 +134,7 @@ instance : groupoid (free_groupoid V) :=
   comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse pp }
 
 /-- The inclusion of the quiver on `V` to the underlying quiver on `free_groupoid V`-/
-def of (V) [quiver.{v+1} V] : prefunctor V (free_groupoid V) :=
+def of (V) [quiver V] : prefunctor V (free_groupoid V) :=
 { obj := λ X, ⟨X⟩,
   map := λ X Y f, quot.mk _ f.to_pos_path }
 

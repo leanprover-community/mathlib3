@@ -21,16 +21,13 @@ This file defines the universal groupoid of a groupoid along a function. to its 
 
 -/
 
+namespace category_theory
 
-open set classical function relation
-local attribute [instance] prop_decidable
+namespace groupoid
 
+namespace universal
 
 universes u v u' v' u'' v''
-
-namespace category_theory
-namespace groupoid
-namespace universal
 
 variables {V : Type u} [groupoid V] {V' : Type u'} (σ : V → V')
 
@@ -57,8 +54,8 @@ lemma congr_reverse {X Y : paths $ quiver.push σ} (p q : X ⟶ Y) :
   quotient.comp_closure (red_step σ) p q →
   quotient.comp_closure (red_step σ) (p.reverse) (q.reverse)  :=
 begin
-  rintros ⟨U, W, XW, pp, qq, WY, rs⟩,
-  rcases rs with (⟨x, y, z, f, g⟩|⟨x⟩),
+  rintros ⟨U, W, XW, pp, qq, WY, (⟨x, y, z, f, g⟩|(x))⟩,
+  --rcases rs with (⟨x, y, z, f, g⟩|⟨x⟩),
   { have : quotient.comp_closure
       (red_step σ)
       (WY.reverse
@@ -70,9 +67,8 @@ begin
     { apply quotient.comp_closure.intro,
       have := @red_step.comp _ _ _ σ (z) (y) (x) (inv g) (inv f),
       simpa only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp] using this, },
-    dsimp only [category_struct.comp] at this ⊢,
-    simpa only [quiver.path.reverse, quiver.path.reverse_comp, quiver.push.of_reverse,
-                reverse_eq_inv,
+    simpa only [category_struct.comp, quiver.path.reverse, quiver.path.reverse_comp,
+                quiver.push.of_reverse, reverse_eq_inv,
                 inv_eq_inv, is_iso.inv_comp, quiver.path.comp_nil, quiver.path.comp_assoc,
                 quiver.path.reverse_to_path] using this, },
   { have : quotient.comp_closure
@@ -82,8 +78,8 @@ begin
     { apply quotient.comp_closure.intro,
       have := @red_step.id _ _ _ σ  (x),
       simpa only [reverse_eq_inv, inv_eq_inv, is_iso.inv_comp] using this, },
-    dsimp only [category_struct.comp, category_struct.id] at this ⊢,
-    simpa only [quiver.path.reverse, quiver.path.reverse_comp, quiver.push.of_reverse,
+    simpa only [category_struct.comp, category_struct.id, quiver.path.reverse,
+                quiver.path.reverse_comp, quiver.push.of_reverse,
                 reverse_eq_inv, inv_eq_inv, is_iso.inv_id, quiver.path.comp_nil,
                 quiver.path.comp_assoc, quiver.path.nil_comp] using this, },
 
@@ -135,7 +131,7 @@ quot.lift_on f
             (λ pp qq con, quot.sound $ congr_reverse σ pp qq con)
 
 instance : groupoid (universal_groupoid σ) :=
-{ inv := λ (X Y : universal_groupoid σ) (f : X ⟶ Y), quot_inv σ f,
+{ inv       := λ (X Y : universal_groupoid σ) (f : X ⟶ Y), quot_inv σ f,
   inv_comp' := λ X Y p, quot.induction_on p $ λ pp, congr_reverse_comp σ pp,
   comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse σ pp }
 
@@ -143,27 +139,32 @@ instance : groupoid (universal_groupoid σ) :=
 def extend : V ⥤ (universal_groupoid σ) :=
 { obj := λ X, ⟨σ X⟩,
   map := λ X Y f, quot.mk _ (((σ *)).map f).to_path,
-  map_id' := λ X, by
-  { dsimp, symmetry,
-    apply quot.sound,
-    apply quotient.comp_closure.of,
-    constructor, },
-  map_comp' := λ X Y Z f g, by
-  { dsimp,
-    apply quot.sound,
-    apply quotient.comp_closure.of,
-    constructor, } }
+  map_id' := λ X, eq.symm $ quot.sound $ quotient.comp_closure.of _
+    (𝟙 _)
+    (σ * .map $ _).to_path
+    (red_step.id X),
+  map_comp' := λ X Y Z f g, quot.sound $ quotient.comp_closure.of _
+    (σ * .map (f ≫ g)).to_path
+    ((σ * .map f).to_path ≫ (σ * .map g).to_path)
+    (red_step.comp X Y Z f g) }
 
 def as : (universal_groupoid σ) → V' := λ x, x.as
 lemma extend_eq : (extend σ).to_prefunctor =
   ((quiver.push.of σ).comp paths.of).comp (quotient.functor $ red_step σ).to_prefunctor := rfl
 
--- HOW???
 lemma _root_.category_theory.functor.to_prefunctor_ext {C D : Type*} [category C] [category D]
   (F G : C ⥤ D) : F = G ↔ F.to_prefunctor = G.to_prefunctor :=
 begin
-  sorry
+  split, { rintros rfl, refl },
+  intros h,
+  have h1 : F.obj = G.obj,
+  { show F.to_prefunctor.obj = G.to_prefunctor.obj,
+    exact congr_arg prefunctor.obj h },
+  cases F, cases G, cases h1,
+  congr, ext A B f,
+  simpa using congr_arg_heq (λ e : prefunctor C D, e.map f) h,
 end
+
 
 section ump
 
@@ -217,5 +218,7 @@ end
 end ump
 
 end universal
+
 end groupoid
+
 end category_theory

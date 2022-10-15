@@ -325,9 +325,9 @@ by rw [abelian.mono_iff_kernel_ι_eq_zero, eq3]
 end enough_injectives_of_adjunction_auxs
 
 -- Implementation note: If we require `C` and `D` to have morphisms at the same universe level,
--- then it suffices to assume only `abelian C`sine  `abelian D` would be implied by `abelian_of_adjunction`;
--- but in this implementation, we choose not to impose this restriction on the universe levels of morphisms,
--- so we need an additional assumption `abelian D`.
+-- then it suffices to assume only `abelian C`sine  `abelian D` would be implied by
+-- `abelian_of_adjunction`; but in this implementation, we choose not to impose this restriction on
+-- the universe levels of morphisms, so we need an additional assumption `abelian D`.
 /-- A faithful and exact left adjoint functor `L : C ⥤ D` transfers enough injectiveness from `D` to `C`. -/
 lemma enough_injectives.of_adjunction {C : Type u₁} {D : Type u₂}
   [category.{v₁} C] [category.{v₂} D] [abelian C] [abelian D]
@@ -339,10 +339,10 @@ lemma enough_injectives.of_adjunction {C : Type u₁} {D : Type u₂}
     enough_injectives_of_adjunction_auxs.to_RJ adj A,
     enough_injectives_of_adjunction_auxs.mono_to_RJ adj A⟩⟩ }
 
--- Implementation note: only `abelian C` if `category C` and `category D` have the same morphism
--- universe level, in that case `abelian D` is implied by `abelian_of_equivalence`. But in this
--- implementation, we choose not to ask two categories with the same morphism universe level, so
--- we need an additional assumption `abelian D`.
+-- Implementation note: If we require `C` and `D` to have morphisms at the same universe level,
+-- then it suffices to assume only `abelian C`sine  `abelian D` would be implied by
+-- `abelian_of_adjunction`; but in this implementation, we choose not to impose this restriction on
+-- the universe levels of morphisms, so we need an additional assumption `abelian D`.
 /-- An equivalence of categories transfers enough injectiveness. -/
 lemma enough_injectives.of_equivalence {C : Type u₁} {D : Type u₂}
   [category.{v₁} C] [category.{v₂} D] [abelian C] [abelian D]

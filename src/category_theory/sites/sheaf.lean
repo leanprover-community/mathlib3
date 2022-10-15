@@ -603,6 +603,11 @@ begin
     exact nonempty.map (λ t, is_limit_of_reflects s t) }
 end
 
+/--
+For a concrete category `(A, s)` where the forgetful functor `s : A ⥤ Type v` preserves limits and
+reflects isomorphisms, and `A` has limits, then there is a functor from  `A`-sheaves to sheaves of
+types.
+-/
 def Sheaf_in_Type (s : A ⥤ Type (max v₁ u₁)) [has_limits A]
   [preserves_limits s] [reflects_isomorphisms s] :
   Sheaf J A ⥤ Sheaf J (Type (max u₁ v₁)) :=

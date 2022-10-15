@@ -8,11 +8,9 @@ import algebra.category.Module.projective
 import algebraic_topology.alternating_face_map_complex
 import algebraic_topology.cech_nerve
 import algebraic_topology.extra_degeneracy
-import algebraic_topology.thingy
 import category_theory.abelian.exact
 import representation_theory.basic
 import representation_theory.Rep
-import representation_theory.homology_lemmas
 
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`
@@ -68,7 +66,7 @@ over `k`.
 
 noncomputable theory
 
-universes u v u' v' w w' t t'
+universes u v
 
 variables {k G : Type u} [comm_ring k] {n : ℕ}
 

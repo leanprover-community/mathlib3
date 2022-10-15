@@ -467,7 +467,7 @@ begin
     (submodule.fg_iff_finite_dimensional _).1
       (fg_adjoin_of_finite s.finite_to_set H3)).of_subalgebra_to_submodule,
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
-  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
+  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower H1,
   have H6 : (minpoly (algebra.adjoin F (↑s : set K)) a).splits
     (algebra_map (algebra.adjoin F (↑s : set K)) L),
   { refine polynomial.splits_of_splits_of_dvd _

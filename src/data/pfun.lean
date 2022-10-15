@@ -237,11 +237,11 @@ theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
 end⟩
 
 /-- If advancing one step from `a` leads to `b : β`, then `f.fix a = b` -/
-theorem fix_stop {f : α →. β ⊕ α} {b a} (hb : sum.inl b ∈ f a) : b ∈ f.fix a :=
+theorem fix_stop {f : α →. β ⊕ α} {b : β} {a : α} (hb : sum.inl b ∈ f a) : b ∈ f.fix a :=
 by { rw [pfun.mem_fix_iff], exact or.inl hb, }
 
 /-- If advancing one step from `a` on `f` leads to `a' : α`, then `f.fix a = f.fix a'` -/
-theorem fix_fwd_eq {f : α →. β ⊕ α} {a a'} (ha' : sum.inr a' ∈ f a) :
+theorem fix_fwd_eq {f : α →. β ⊕ α} {a a' : α} (ha' : sum.inr a' ∈ f a) :
   f.fix a = f.fix a' :=
 begin
   ext b, split,
@@ -249,7 +249,7 @@ begin
   { intro h, rw pfun.mem_fix_iff, right, use a', exact ⟨ha', h⟩, }
 end
 
-theorem fix_fwd {f : α →. β ⊕ α} {b a a'} (hb : b ∈ f.fix a) (ha' : sum.inr a' ∈ f a) :
+theorem fix_fwd {f : α →. β ⊕ α} {b : β} {a a' : α} (hb : b ∈ f.fix a) (ha' : sum.inr a' ∈ f a) :
   b ∈ f.fix a' :=
 by rwa [← fix_fwd_eq ha']
 

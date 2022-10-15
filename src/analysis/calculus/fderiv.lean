@@ -2371,7 +2371,7 @@ variables {𝔸 𝔸' : Type*} [normed_ring 𝔸] [normed_comm_ring 𝔸'] [norm
 theorem has_strict_fderiv_at.mul' {x : E} (ha : has_strict_fderiv_at a a' x)
   (hb : has_strict_fderiv_at b b' x) :
   has_strict_fderiv_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) x :=
-((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_strict_fderiv_at (a x, b x)).comp x
+((continuous_linear_map.mul 𝕜 𝔸).is_bounded_bilinear_map.has_strict_fderiv_at (a x, b x)).comp x
   (ha.prod hb)
 
 theorem has_strict_fderiv_at.mul
@@ -2382,7 +2382,7 @@ by { convert hc.mul' hd, ext z, apply mul_comm }
 theorem has_fderiv_within_at.mul'
   (ha : has_fderiv_within_at a a' s x) (hb : has_fderiv_within_at b b' s x) :
   has_fderiv_within_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) s x :=
-((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at
+((continuous_linear_map.mul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at
   (a x, b x)).comp_has_fderiv_within_at x (ha.prod hb)
 
 theorem has_fderiv_within_at.mul
@@ -2393,7 +2393,7 @@ by { convert hc.mul' hd, ext z, apply mul_comm }
 theorem has_fderiv_at.mul'
   (ha : has_fderiv_at a a' x) (hb : has_fderiv_at b b' x) :
   has_fderiv_at (λ y, a y * b y) (a x • b' + a'.smul_right (b x)) x :=
-((continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at (a x, b x)).comp x
+((continuous_linear_map.mul 𝕜 𝔸).is_bounded_bilinear_map.has_fderiv_at (a x, b x)).comp x
   (ha.prod hb)
 
 theorem has_fderiv_at.mul (hc : has_fderiv_at c c' x) (hd : has_fderiv_at d d' x) :
@@ -2458,7 +2458,7 @@ lemma fderiv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 
 
 theorem has_strict_fderiv_at.mul_const' (ha : has_strict_fderiv_at a a' x) (b : 𝔸) :
   has_strict_fderiv_at (λ y, a y * b) (a'.smul_right b) x :=
-(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_strict_fderiv_at).comp x ha
+(((continuous_linear_map.mul 𝕜 𝔸).flip b).has_strict_fderiv_at).comp x ha
 
 theorem has_strict_fderiv_at.mul_const (hc : has_strict_fderiv_at c c' x) (d : 𝔸') :
   has_strict_fderiv_at (λ y, c y * d) (d • c') x :=
@@ -2466,7 +2466,7 @@ by { convert hc.mul_const' d, ext z, apply mul_comm }
 
 theorem has_fderiv_within_at.mul_const' (ha : has_fderiv_within_at a a' s x) (b : 𝔸) :
   has_fderiv_within_at (λ y, a y * b) (a'.smul_right b) s x :=
-(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_fderiv_at).comp_has_fderiv_within_at x ha
+(((continuous_linear_map.mul 𝕜 𝔸).flip b).has_fderiv_at).comp_has_fderiv_within_at x ha
 
 theorem has_fderiv_within_at.mul_const (hc : has_fderiv_within_at c c' s x) (d : 𝔸') :
   has_fderiv_within_at (λ y, c y * d) (d • c') s x :=
@@ -2474,7 +2474,7 @@ by { convert hc.mul_const' d, ext z, apply mul_comm }
 
 theorem has_fderiv_at.mul_const' (ha : has_fderiv_at a a' x) (b : 𝔸) :
   has_fderiv_at (λ y, a y * b) (a'.smul_right b) x :=
-(((continuous_linear_map.lmul 𝕜 𝔸).flip b).has_fderiv_at).comp x ha
+(((continuous_linear_map.mul 𝕜 𝔸).flip b).has_fderiv_at).comp x ha
 
 theorem has_fderiv_at.mul_const (hc : has_fderiv_at c c' x) (d : 𝔸') :
   has_fderiv_at (λ y, c y * d) (d • c') x :=
@@ -2517,16 +2517,16 @@ lemma fderiv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝔸') :
 
 theorem has_strict_fderiv_at.const_mul (ha : has_strict_fderiv_at a a' x) (b : 𝔸) :
   has_strict_fderiv_at (λ y, b * a y) (b • a') x :=
-(((continuous_linear_map.lmul 𝕜 𝔸) b).has_strict_fderiv_at).comp x ha
+(((continuous_linear_map.mul 𝕜 𝔸) b).has_strict_fderiv_at).comp x ha
 
 theorem has_fderiv_within_at.const_mul
   (ha : has_fderiv_within_at a a' s x) (b : 𝔸) :
   has_fderiv_within_at (λ y, b * a y) (b • a') s x :=
-(((continuous_linear_map.lmul 𝕜 𝔸) b).has_fderiv_at).comp_has_fderiv_within_at x ha
+(((continuous_linear_map.mul 𝕜 𝔸) b).has_fderiv_at).comp_has_fderiv_within_at x ha
 
 theorem has_fderiv_at.const_mul (ha : has_fderiv_at a a' x) (b : 𝔸) :
   has_fderiv_at (λ y, b * a y) (b • a') x :=
-(((continuous_linear_map.lmul 𝕜 𝔸) b).has_fderiv_at).comp x ha
+(((continuous_linear_map.mul 𝕜 𝔸) b).has_fderiv_at).comp x ha
 
 lemma differentiable_within_at.const_mul
   (ha : differentiable_within_at 𝕜 a s x) (b : 𝔸) :
@@ -2563,7 +2563,7 @@ open normed_ring continuous_linear_map ring
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
 lemma has_fderiv_at_ring_inverse (x : Rˣ) :
-  has_fderiv_at ring.inverse (-lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹) x :=
+  has_fderiv_at ring.inverse (-mul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹) x :=
 begin
   have h_is_o : (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) =o[𝓝 0] (λ (t : R), t),
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
@@ -2577,7 +2577,7 @@ begin
   simp only [has_fderiv_at, has_fderiv_at_filter],
   convert h_is_o.comp_tendsto h_lim,
   ext y,
-  simp only [coe_comp', function.comp_app, lmul_left_right_apply, neg_apply, inverse_unit x,
+  simp only [coe_comp', function.comp_app, mul_left_right_apply, neg_apply, inverse_unit x,
     units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul, sub_neg_eq_add]
 end
 
@@ -2585,7 +2585,7 @@ lemma differentiable_at_inverse (x : Rˣ) : differentiable_at 𝕜 (@ring.invers
 (has_fderiv_at_ring_inverse x).differentiable_at
 
 lemma fderiv_inverse (x : Rˣ) :
-  fderiv 𝕜 (@ring.inverse R _) x = - lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹ :=
+  fderiv 𝕜 (@ring.inverse R _) x = - mul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹ :=
 (has_fderiv_at_ring_inverse x).fderiv
 
 end algebra_inverse

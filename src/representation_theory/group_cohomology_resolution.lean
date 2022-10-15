@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
-import algebra.category.Module.projective
-import algebraic_topology.alternating_face_map_complex
-import algebraic_topology.cech_nerve
 import algebraic_topology.extra_degeneracy
-import category_theory.abelian.exact
-import representation_theory.basic
+import category_theory.abelian.homology
 import representation_theory.Rep
 
 /-!
@@ -484,7 +480,7 @@ begin
   show (homotopy_equiv.hom _ ≫ (homotopy_equiv.hom _ ≫ homotopy_equiv.hom _)).f 0 = _,
   simp only [homological_complex.comp_f],
   convert category.id_comp _,
-  { dunfold homotopy_equiv.of_iso comp_forget_augmented_iso map_alternating_face_map_complex_iso,
+  { dunfold homotopy_equiv.of_iso comp_forget_augmented_iso map_alternating_face_map_complex,
     simp only [iso.symm_hom, eq_to_iso.inv, homological_complex.eq_to_hom_f, eq_to_hom_refl] },
   transitivity ((finsupp.total _ _ _ (λ f, (1 : k))).comp
     ((Module.free k).map (terminal.from _))),

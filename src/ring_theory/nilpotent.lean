@@ -53,7 +53,7 @@ lemma is_nilpotent.map [monoid_with_zero R] [monoid_with_zero S] {r : R}
 by { use hr.some, rw [← map_pow, hr.some_spec, map_zero] }
 
 /-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
-class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
+@[mk_iff] class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
 (eq_zero : ∀ (x : R), is_nilpotent x → x = 0)
 
 @[priority 900]
@@ -82,6 +82,16 @@ begin
   rw map_zero,
   exact (hx.map f).eq_zero,
 end
+
+lemma ring_hom.ker_is_radical_iff_reduced_of_surjective {R S F} [comm_semiring R] [comm_ring S]
+  [ring_hom_class F R S] {f : F} (hf : function.surjective f) :
+  (ring_hom.ker f).radical ≤ ring_hom.ker f ↔ is_reduced S :=
+by simp_rw [is_reduced_iff, hf.forall, is_nilpotent, ← map_pow, ← ring_hom.mem_ker]; refl
+
+lemma ideal.is_radical_iff_quotient_reduced {R} [comm_ring R] (I : ideal R) :
+  I.radical ≤ I ↔ is_reduced (R ⧸ I) :=
+by { conv_lhs { rw ← @ideal.mk_ker R _ I },
+  exact ring_hom.ker_is_radical_iff_reduced_of_surjective (@ideal.quotient.mk_surjective R _ I) }
 
 namespace commute
 

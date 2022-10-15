@@ -164,17 +164,17 @@ end
 end irreducible
 
 namespace unique_factorization_monoid
-variables [cancel_comm_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
-variables [normalization_monoid R]
+variables [cancel_comm_monoid_with_zero R] [unique_factorization_monoid R]
 
-lemma squarefree_iff_nodup_normalized_factors [decidable_eq R] {x : R} (x0 : x ≠ 0) :
-  squarefree x ↔ multiset.nodup (normalized_factors x) :=
+lemma squarefree_iff_nodup_normalized_factors [normalization_monoid R] [decidable_eq R] {x : R}
+  (x0 : x ≠ 0) : squarefree x ↔ multiset.nodup (normalized_factors x) :=
 begin
   have drel : decidable_rel (has_dvd.dvd : R → R → Prop),
   { classical,
     apply_instance, },
   haveI := drel,
   rw [multiplicity.squarefree_iff_multiplicity_le_one, multiset.nodup_iff_count_le_one],
+  haveI := nontrivial_of_ne x 0 x0,
   split; intros h a,
   { by_cases hmem : a ∈ normalized_factors x,
     { have ha := irreducible_of_normalized_factor _ hmem,
@@ -203,10 +203,46 @@ begin
   by_cases hy : y = 0,
   { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
   refine ⟨λ h, _, λ h, h.pow h0⟩,
+  haveI := @unique_factorization_monoid.normalization_monoid R _ (nontrivial_of_ne x 0 hx) _,
   rw [dvd_iff_normalized_factors_le_normalized_factors hx (pow_ne_zero n hy),
     normalized_factors_pow,
     ((squarefree_iff_nodup_normalized_factors hx).1 hsq).le_nsmul_iff_le h0] at h,
   rwa dvd_iff_normalized_factors_le_normalized_factors hx hy,
+end
+
+lemma _root_.squarefree.dvd_of_pow_dvd {x y : R} {n : ℕ}
+  (hsq : squarefree x) (h : x ∣ y ^ n) : x ∣ y :=
+if h0 : n = 0
+  then trans (by rwa [h0, pow_zero] at h) (one_dvd y)
+  else (dvd_pow_iff_dvd_of_squarefree hsq h0).1 h
+
+lemma squarefree_iff_dvd_of_pow_dvd {x : R} (h0 : x ≠ 0) :
+  squarefree x ↔ (∀ y (n : ℕ), x ∣ y ^ n → x ∣ y) :=
+⟨λ hsq y n, hsq.dvd_of_pow_dvd, λ h, begin
+  classical,
+  haveI := @unique_factorization_monoid.normalization_monoid R _ (nontrivial_of_ne x 0 h0) _,
+  obtain ⟨n, hn⟩ := (normalized_factors x).le_smul_dedup,
+  have := multiset.prod_dvd_prod_of_le hn,
+  rw multiset.prod_nsmul at this,
+  specialize h _ n ((normalized_factors_prod h0).symm.dvd.trans this),
+  apply squarefree_of_dvd_of_squarefree h,
+  have := λ a ha, irreducible_of_normalized_factor a (multiset.mem_dedup.1 ha),
+  haveI := nontrivial_of_ne x 0 h0,
+  rw [squarefree_iff_nodup_normalized_factors, normalized_factors_prod_eq],
+  { refine multiset.nodup.map_on (λ x hx y hy he, _) (multiset.nodup_dedup _),
+    rw multiset.mem_dedup at hx hy,
+    rwa [normalize_normalized_factor x hx, normalize_normalized_factor y hy] at he },
+  exacts [this, multiset.prod_ne_zero (λ h, (this 0 h).ne_zero rfl)],
+end⟩
+
+lemma squarefree_ideal_span_singleton_is_radical {R} [comm_ring R] [is_domain R]
+  [unique_factorization_monoid R] {x : R} (h0 : x ≠ 0) :
+  squarefree x ↔ (ideal.span {x}).radical ≤ ideal.span ({x} : set R) :=
+begin
+  rw squarefree_iff_dvd_of_pow_dvd h0,
+  refine forall_congr (λ y, _),
+  simp_rw [← exists_imp_distrib, ← ideal.mem_span_singleton],
+  refl,
 end
 
 end unique_factorization_monoid

@@ -266,8 +266,8 @@ begin
   exact matrix.det_is_empty,
 end
 
-lemma det_eq_one_of_finrank_eq_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M]
-  (h : finite_dimensional.finrank 𝕜 M = 0) (f : M →ₗ[𝕜] M) :
+lemma det_eq_one_of_finrank_eq_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M]
+  [module 𝕜 M] (h : finite_dimensional.finrank 𝕜 M = 0) (f : M →ₗ[𝕜] M) :
   (f : M →ₗ[𝕜] M).det = 1 :=
 begin
   classical,

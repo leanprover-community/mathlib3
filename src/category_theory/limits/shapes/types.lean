@@ -47,13 +47,13 @@ local attribute [tidy] tactic.discrete_cases
 /-- A restatement of `types.lift_π_apply` that uses `pi.π` and `pi.lift`. -/
 @[simp]
 lemma pi_lift_π_apply
-  {β : Type v} (f : β → Type (max v u)) {P : Type (max v u)} (s : Π b, P ⟶ f b) (b : β) (x : P) :
+  {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
   (pi.π f b : (∏ f) → f b) (@pi.lift β _ _ f _ P s x) = s b x :=
 congr_fun (limit.lift_π (fan.mk P s) ⟨b⟩) x
 
 /-- A restatement of `types.map_π_apply` that uses `pi.π` and `pi.map`. -/
 @[simp]
-lemma pi_map_π_apply {β : Type v} {f g : β → Type (max v u)} (α : Π j, f j ⟶ g j) (b : β) (x) :
+lemma pi_map_π_apply {β : Type u} {f g : β → Type u} (α : Π j, f j ⟶ g j) (b : β) (x) :
   (pi.π g b : (∏ g) → g b) (pi.map α x) = α b ((pi.π f b : (∏ f) → f b) x) :=
 limit.map_π_apply _ _ _
 
@@ -217,9 +217,9 @@ def product_limit_cone {J : Type u} (F : J → Type (max u v)) :
 noncomputable def product_iso {J : Type u} (F : J → Type (max u v)) : ∏ F ≅ Π j, F j :=
 limit.iso_limit_cone (product_limit_cone F)
 
-@[simp, elementwise] lemma product_iso_hom_comp_eval
-  {J : Type u} (F : J → Type (max u v)) (j : J) :
-  (product_iso F).hom ≫ (λ f, f j) = pi.π F j := rfl
+@[simp, elementwise] lemma product_iso_hom_comp_eval {J : Type u} (F : J → Type (max u v)) (j : J) :
+  (product_iso F).hom ≫ (λ f, f j) = pi.π F j :=
+rfl
 
 @[simp, elementwise] lemma product_iso_inv_comp_π {J : Type u} (F : J → Type (max u v)) (j : J) :
   (product_iso F).inv ≫ pi.π F j = (λ f, f j) :=
@@ -228,7 +228,7 @@ limit.iso_limit_cone_inv_π (product_limit_cone F) ⟨j⟩
 /--
 The category of types has `Σ j, f j` as the coproduct of a type family `f : J → Type`.
 -/
-def coproduct_colimit_cocone {J : Type u} (F : J → Type (max u v)) :
+def coproduct_colimit_cocone {J : Type u} (F : J → Type u) :
   limits.colimit_cocone (discrete.functor F) :=
 { cocone :=
   { X := Σ j, F j,
@@ -244,15 +244,14 @@ def coproduct_colimit_cocone {J : Type u} (F : J → Type (max u v)) :
     end }, }
 
 /-- The categorical coproduct in `Type u` is the type theoretic coproduct `Σ j, F j`. -/
-noncomputable def coproduct_iso {J : Type u} (F : J → Type (max u v)) : ∐ F ≅ Σ j, F j :=
+noncomputable def coproduct_iso {J : Type u} (F : J → Type u) : ∐ F ≅ Σ j, F j :=
 colimit.iso_colimit_cocone (coproduct_colimit_cocone F)
 
-@[simp, elementwise] lemma coproduct_iso_ι_comp_hom {J : Type u} (F : J → Type (max u v)) (j : J) :
+@[simp, elementwise] lemma coproduct_iso_ι_comp_hom {J : Type u} (F : J → Type u) (j : J) :
   sigma.ι F j ≫ (coproduct_iso F).hom = (λ x : F j, (⟨j, x⟩ : Σ j, F j)) :=
 colimit.iso_colimit_cocone_ι_hom (coproduct_colimit_cocone F) ⟨j⟩
 
-@[simp, elementwise] lemma coproduct_iso_mk_comp_inv
-  {J : Type u} (F : J → Type (max u v)) (j : J) :
+@[simp, elementwise] lemma coproduct_iso_mk_comp_inv {J : Type u} (F : J → Type u) (j : J) :
   ↾(λ x : F j, (⟨j, x⟩ : Σ j, F j)) ≫ (coproduct_iso F).inv = sigma.ι F j :=
 rfl
 

@@ -265,8 +265,6 @@ begin
   exact H a h (λ a'' fa'', IH _ fa'' ((part.mem_assert_iff.1 (fix_fwd h fa'')).snd)),
 end
 
-#check Exists.fst
-
 lemma fix_induction_spec {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a : α} (h : b ∈ f.fix a)
   (H : ∀ a', b ∈ f.fix a' → (∀ a'', sum.inr a'' ∈ f a' → C a'') → C a') :
   @fix_induction _ _ C _ _ _ h H = H a h (λ a' h', fix_induction (fix_fwd h h') H) :=

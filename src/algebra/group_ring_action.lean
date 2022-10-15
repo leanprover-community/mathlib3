@@ -40,7 +40,7 @@ class mul_semiring_action (M : Type u) (R : Type v) [monoid M] [semiring R]
 
 section semiring
 
-variables (M G : Type*) [group G] [monoid M]
+variables (M N G : Type*) [monoid M] [monoid N] [group G]
 variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [division_ring F]
 
 -- note we could not use `extends` since these typeclasses are made with `old_structure_cmd`

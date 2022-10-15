@@ -258,11 +258,10 @@ by rwa [← fix_fwd_eq ha']
 def fix_induction {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a : α} (h : b ∈ f.fix a)
   (H : ∀ a', b ∈ f.fix a' → (∀ a'', sum.inr a'' ∈ f a' → C a'') → C a') : C a :=
 begin
-  have h₂ := (part.mem_assert_iff.1 h).snd,
-  generalize_proofs h₁ at h₂, clear h, revert h₂,
-  induction h₁ with a ha IH, intro h₂,
-  have h : b ∈ f.fix a := part.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩,
-  exact H a h (λ a'' fa'', IH _ fa'' ((part.mem_assert_iff.1 (fix_fwd h fa'')).snd)),
+  have h₂ := (part.mem_assert_iff.1 h).snd, generalize_proofs h₁ at h₂, clear h,
+  induction h₁ with a ha IH,
+  have h : b ∈ f.fix a := part.mem_assert_iff.2 ⟨⟨a, ha⟩, h₂⟩,
+  exact H a h (λ a' fa', IH a' fa' ((part.mem_assert_iff.1 (fix_fwd h fa')).snd)),
 end
 
 lemma fix_induction_spec {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a : α} (h : b ∈ f.fix a)

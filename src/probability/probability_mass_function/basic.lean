@@ -29,6 +29,25 @@ noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
+lemma ennreal.has_sum_lt {f g : α → ℝ≥0∞} {sf sg : ℝ≥0∞} {i : α} (h : ∀ (a : α), f a ≤ g a)
+  (hi : f i < g i) (hsg : sg ≠ ⊤) (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
+begin
+  have hg' : ∀ x, g x ≠ ⊤:= ennreal.ne_top_of_tsum_ne_top (hg.tsum_eq.symm ▸ hsg),
+  have hf' : ∀ x, f x ≠ ⊤ := λ x,  ne_of_lt (lt_of_le_of_lt (h x) $ lt_of_le_of_ne le_top (hg' x)),
+  have hsf : sf ≠ ⊤ := ne_of_lt (lt_of_le_of_lt (has_sum_le h hf hg) (lt_of_le_of_ne le_top hsg)),
+  lift f to α → ℝ≥0 using hf',
+  lift g to α → ℝ≥0 using hg',
+  lift sf to ℝ≥0 using hsf,
+  lift sg to ℝ≥0 using hsg,
+  simp only [ennreal.coe_le_coe, ennreal.coe_lt_coe] at h hi ⊢,
+  rw [ennreal.has_sum_coe] at hf hg,
+  exact nnreal.has_sum_lt h hi hf hg,
+end
+
+lemma ennreal.tsum_lt_tsum {f g : α → ℝ≥0∞} {i : α} (hgi : tsum g ≠ ⊤) (h : ∀ (a : α), f a ≤ g a)
+  (hi : f i < g i) : ∑' x, f x < ∑' x, g x :=
+ennreal.has_sum_lt h hi hgi ennreal.summable.has_sum ennreal.summable.has_sum
+
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0` such that
   the values have (infinite) sum `1`. -/
 def {u} pmf (α : Type u) : Type u := { f : α → ℝ≥0∞ // has_sum f 1 }
@@ -42,9 +61,11 @@ instance : has_coe_to_fun (pmf α) (λ p, α → ℝ≥0∞) := ⟨λ p a, p.1 a
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
-lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
+lemma summable_coe (p : pmf α) : summable p := ennreal.summable
 
 @[simp] lemma tsum_coe (p : pmf α) : ∑' a, p a = 1 := p.has_sum_coe_one.tsum_eq
+
+lemma tsum_coe_ne_top (p : pmf α) : ∑' a, p a ≠ ⊤ := p.tsum_coe.symm ▸ ennreal.one_ne_top
 
 /-- The support of a `pmf` is the set where it is nonzero. -/
 def support (p : pmf α) : set α := function.support p
@@ -54,9 +75,37 @@ def support (p : pmf α) : set α := function.support p
 lemma apply_eq_zero_iff (p : pmf α) (a : α) : p a = 0 ↔ a ∉ p.support :=
 by rw [mem_support_iff, not_not]
 
+lemma apply_pos_iff (p : pmf α) (a : α) : 0 < p a ↔ a ∈ p.support :=
+pos_iff_ne_zero.trans (p.mem_support_iff a).symm
+
+lemma apply_eq_one_iff (p : pmf α) (a : α) : p a = 1 ↔ p.support = {a} :=
+begin
+  refine ⟨λ h, set.subset.antisymm (λ a' ha', by_contra $ λ ha, _) (λ a' ha',
+    ha'.symm ▸ (p.mem_support_iff a).2 (λ ha, zero_ne_one $ ha.symm.trans h)), λ h, trans
+      (symm $ tsum_eq_single a (λ a' ha', (p.apply_eq_zero_iff a').2 (h.symm ▸ ha'))) p.tsum_coe⟩,
+  suffices : 1 < ∑' a, p a,
+  from ne_of_lt this p.tsum_coe.symm,
+  have : p a' ≠ 0 := (p.mem_support_iff a').2 ha',
+  have : 0 < ∑' b, ite (b = a) 0 (p b),
+  from lt_of_le_of_ne' zero_le' ((tsum_ne_zero_iff ennreal.summable).2
+    ⟨a', by simpa only [this, ne.def, ite_eq_left_iff] using ha⟩),
+  calc 1 = 1 + 0 : (add_zero 1).symm ... < p a + ∑' b, ite (b = a) 0 (p b) :
+      ennreal.add_lt_add_of_le_of_lt ennreal.one_ne_top (le_of_eq h.symm) this
+    ... = ite (a = a) (p a) 0 + ∑' b, ite (b = a) 0 (p b) : by rw [eq_self_iff_true, if_true]
+    ... = ∑' b, ite (b = a) (p b) 0 + ∑' b, ite (b = a) 0 (p b) :
+      by { congr, exact symm (tsum_eq_single a $ λ b hb, if_neg hb) }
+    ... = ∑' b, (ite (b = a) (p b) 0 + ite (b = a) 0 (p b)) : ennreal.tsum_add.symm
+    ... = ∑' b, p b : tsum_congr (λ b, by split_ifs; simp only [zero_add, add_zero, le_rfl])
+end
+
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
 has_sum_le (by { intro b, split_ifs; simp only [h, zero_le', le_rfl] })
   (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
+
+lemma apply_ne_top (p : pmf α) (a : α) : p a ≠ ⊤ :=
+ne_of_lt (lt_of_le_of_lt (p.coe_le_one a) ennreal.one_lt_top)
+
+lemma apply_lt_top (p : pmf α) (a : α) : p a < ⊤ := lt_of_le_of_ne le_top (p.apply_ne_top a)
 
 section outer_measure
 
@@ -90,23 +139,17 @@ end
 lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin
   rw [to_outer_measure_apply, tsum_eq_zero_iff ennreal.summable],
-  -- rw [to_outer_measure_apply,
-  --   tsum_eq_zero_iff (nnreal.indicator_summable (summable_coe p) s)],
   exact function.funext_iff.symm.trans set.indicator_eq_zero',
 end
-
-lemma ennreal.tsum_lt_tsum {f g : α → ℝ≥0∞} {i : α} (h : ∀ (a : α), f a ≤ g a) (hi : f i < g i)
-  (hg : summable g) : ∑' n, f n < ∑' n, g n :=
-sorry
 
 lemma to_outer_measure_apply_eq_one_iff : p.to_outer_measure s = 1 ↔ p.support ⊆ s :=
 begin
   rw [to_outer_measure_apply],
-  refine ⟨λ h a ha, _, λ h, _⟩,
-  { have hsp : ∀ x, s.indicator p x ≤ p x := λ _, set.indicator_apply_le (λ _, le_rfl),
-    have := λ hpa, ne_of_lt (ennreal.tsum_lt_tsum hsp hpa p.summable_coe) (h.trans p.tsum_coe.symm),
-    exact not_not.1 (λ has, ha $ set.indicator_apply_eq_self.1 (le_antisymm
-      (set.indicator_apply_le $ λ _, le_rfl) $ le_of_not_lt $ this) has) },
+  refine ⟨λ h a hap, _, λ h, _⟩,
+  { refine by_contra (λ hs, ne_of_lt _ (h.trans p.tsum_coe.symm)),
+    have hs' : s.indicator p a = 0 := set.indicator_apply_eq_zero.2 (λ hs', false.elim $ hs hs'),
+    have hsa : s.indicator p a < p a := hs'.symm ▸ (p.apply_pos_iff a).2 hap,
+    exact ennreal.tsum_lt_tsum p.tsum_coe_ne_top (λ x, set.indicator_apply_le $ λ _, le_rfl) hsa },
   { suffices : ∀ x, x ∉ s → p x = 0,
     from trans (tsum_congr $ λ a, (set.indicator_apply s p a).trans
       (ite_eq_left_iff.2 $ symm ∘ (this a))) p.tsum_coe,
@@ -227,16 +270,5 @@ instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure
   to_outer_measure_apply, ennreal.coe_eq_one] using tsum_coe p⟩
 
 end measure
-
-lemma apply_eq_one_iff (p : pmf α) (a : α) :
-  p a = 1 ↔ p.support = {a} :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have : {a} ⊆ p.support := λ x hx, (p.mem_support_iff x).2 (ne_zero_of_eq_one $ hx.symm ▸ h),
-    refine antisymm ((p.to_outer_measure_apply_eq_one_iff {a}).1 _) this,
-    simpa only [to_outer_measure_apply_singleton, ennreal.coe_eq_one] using h },
-  { simpa only [← ennreal.coe_eq_one, ← to_outer_measure_apply_singleton,
-      to_outer_measure_apply_eq_one_iff] using subset_of_eq h }
-end
 
 end pmf

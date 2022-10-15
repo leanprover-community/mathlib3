@@ -20,10 +20,14 @@ universes u v w u'
 namespace Top.presheaf
 
 variables {X : Top.{u}} {C : Type v} [category.{w} C]
-variables {ι : Type u'} (f : ι → presheaf C X) [has_products.{u'} C]
+variables {ι : Type u'} (f : ι → presheaf C X)
+variables [has_products_of_shape X C] [has_products_of_shape ι C]
 
-instance : has_products.{u'} (presheaf C X) :=
-λ J, category_theory.limits.functor_category_has_limits_of_shape
+instance has_products_of_shape_X : has_products_of_shape X (presheaf C X) :=
+category_theory.limits.functor_category_has_limits_of_shape
+
+instance has_products_of_shape_ι : has_products_of_shape ι (presheaf C X) :=
+category_theory.limits.functor_category_has_limits_of_shape
 
 /--
 sections of product presheaf is product of sections of presheaves.

@@ -285,7 +285,7 @@ begin
   refine fix_induction h (λ a' h ih, _),
   cases e : (f a').get (dom_of_mem_fix h) with b' a''; replace e : _ ∈ f a' := ⟨_, e⟩,
   { apply hbase, convert e, exact part.mem_unique h (fix_stop e), },
-  { refine hind _ _ _ e (ih _ e), exact fix_fwd h e, },
+  { exact hind _ _ (fix_fwd h e) e (ih _ e), },
 end
 
 lemma fix_induction'_stop {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a : α}

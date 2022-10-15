@@ -32,7 +32,7 @@ by the universal cover of the classifying space of `G`, `EG`. We prove this simp
 is isomorphic to the Čech nerve of the natural arrow of `G`-sets `G ⟶ {pt}`.
 
 We then use this isomorphism to deduce that as a complex of `k`-modules, the standard resolution
-of `k` as a trivial `G`-represeentation is homotopy equivalent to the complex with `k` at 0 and 0
+of `k` as a trivial `G`-representation is homotopy equivalent to the complex with `k` at 0 and 0
 elsewhere.
 
 ## Main definitions

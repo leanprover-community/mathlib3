@@ -178,6 +178,8 @@ lemma eq_on.comp_left (h : s.eq_on f₁ f₂) : s.eq_on (g ∘ f₁) (g ∘ f₂
   eq_on g₁ g₂ (range f) ↔ g₁ ∘ f = g₂ ∘ f :=
 forall_range_iff.trans $ funext_iff.symm
 
+alias eq_on_range ↔ eq_on.comp_eq _
+
 /-! ### Congruence lemmas -/
 
 section order
@@ -993,7 +995,7 @@ funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
 @[simp] lemma piecewise_range_comp {ι : Sort*} (f : ι → α) [Π j, decidable (j ∈ range f)]
   (g₁ g₂ : α → β) :
   (range f).piecewise g₁ g₂ ∘ f = g₁ ∘ f :=
-eq_on_range.1 $ piecewise_eq_on _ _ _
+eq_on.comp_eq $ piecewise_eq_on _ _ _
 
 theorem maps_to.piecewise_ite {s s₁ s₂ : set α} {t t₁ t₂ : set β} {f₁ f₂ : α → β}
   [∀ i, decidable (i ∈ s)]

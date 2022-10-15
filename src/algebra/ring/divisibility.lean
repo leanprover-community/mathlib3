@@ -82,7 +82,7 @@ theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
 theorem dvd_add_right (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
 (dvd_add_iff_right h).symm
 
-lemma dvd_iff_dvd_of_dvd_sub (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+lemma dvd_iff_dvd_of_dvd_sub (h : a ∣ b - c) : (a ∣ b ↔ a ∣ c) :=
 begin
   split,
   { intro h',

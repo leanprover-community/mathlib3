@@ -65,7 +65,7 @@ namespace prime_spectrum
 variables {R S}
 
 instance [nontrivial R] : nonempty $ prime_spectrum R :=
-⟨⟨(ideal.exists_maximal R).some, (ideal.exists_maximal R).some_spec.is_prime⟩⟩
+let ⟨I, hI⟩ := ideal.exists_maximal R in ⟨⟨I, hI.is_prime⟩⟩
 
 /-- The prime spectrum of the zero ring is empty. -/
 lemma punit (x : prime_spectrum punit) : false :=

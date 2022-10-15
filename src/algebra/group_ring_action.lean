@@ -70,7 +70,7 @@ variables {M N}
 
 /-- Compose a `mul_semiring_action` with a `monoid_hom`, with action `f r' • m`.
 See note [reducible non-instances]. -/
-@[reducible] def mul_semiring_action.comp_hom (f : N →* M)
+@[reducible] def mul_semiring_action.comp_hom {N M : Type*} [monoid N] [monoid M] (f : N →* M)
 [mul_semiring_action M R] : mul_semiring_action N R :=
 { smul := has_smul.comp.smul f,
   ..distrib_mul_action.comp_hom R f,

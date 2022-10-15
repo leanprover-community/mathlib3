@@ -252,6 +252,99 @@ instance (M : Module R) : has_coe_to_fun ((coextend_scalars f).obj M) (λ g, S �
 lemma smul_apply (M : Module R) (g : (coextend_scalars f).obj M) (s s' : S) :
   (s • g) s' = g (s' * s) := rfl
 
+lemma map_apply {M M' : Module R} (g : M ⟶ M') (x) (s : S) :
+  (coextend_scalars f).map g x s = g (x s) := rfl
+
 end coextend_scalars
+
+namespace restriction_coextension_adj
+
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+
+/--
+Given `R`-module X and `S`-module Y, any `g : (restrict_of_scalars f).obj Y ⟶ X`
+corresponds to `Y ⟶ (coextend_scalars f).obj X` by sending `y ↦ (s ↦ g (s • y))`
+-/
+@[simps] def hom_equiv.from_restriction {X Y} (g : (restrict_scalars f).obj Y ⟶ X) :
+  Y ⟶ (coextend_scalars f).obj X :=
+{ to_fun := λ (y : Y),
+  { to_fun := λ (s : S), g $ (s • y : Y),
+    map_add' := λ (s1 s2 : S), by simp [add_smul],
+    map_smul' := λ r (s : S), by rw [ring_hom.id_apply, ←g.map_smul,
+      @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_eq_mul, mul_smul,
+      @restrict_scalars.smul_def _ _ _ _ f Y] },
+  map_add' := λ (y1 y2 : Y), linear_map.ext $ λ (s : S),
+  by rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk, linear_map.coe_mk,
+      smul_add, map_add],
+  map_smul' := λ s y, linear_map.ext $ λ (t : S), by simp [mul_smul] }
+
+/--
+Given `R`-module X and `S`-module Y, any `g : Y ⟶ (coextend_scalars f).obj X`
+corresponds to `(restrict_scalars f).obj Y ⟶ X` by `y ↦ g y 1`
+-/
+@[simps] def hom_equiv.to_restriction {X Y} (g : Y ⟶ (coextend_scalars f).obj X) :
+  (restrict_scalars f).obj Y ⟶ X :=
+{ to_fun := λ (y : Y), (g y).to_fun (1 : S),
+  map_add' := λ x y, by simp only [g.map_add, linear_map.to_fun_eq_coe, linear_map.add_apply],
+  map_smul' := λ r (y : Y), by rw [linear_map.to_fun_eq_coe, linear_map.to_fun_eq_coe,
+    ring_hom.id_apply, ←linear_map.map_smul, restrict_scalars.smul_def f r y,
+    @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_eq_mul, mul_one, linear_map.map_smul,
+    coextend_scalars.smul_apply, one_mul], }
+
+/--
+The natural transformation from identity functor to the composition of restriction and coextension
+of scalars.
+-/
+@[simps] protected def unit' : 𝟭 (Module S) ⟶ restrict_scalars f ⋙ coextend_scalars f :=
+{ app := λ Y,
+  { to_fun := λ (y : Y),
+    { to_fun := λ (s : S), (s • y : Y),
+      map_add' := λ s s', add_smul _ _ _,
+      map_smul' := λ r (s : S), by rw [ring_hom.id_apply, @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩,
+        smul_eq_mul, mul_smul, restrict_scalars.smul_def f] },
+    map_add' := λ y1 y2, linear_map.ext $ λ (s : S), by rw [linear_map.add_apply, linear_map.coe_mk,
+      linear_map.coe_mk, linear_map.coe_mk, smul_add],
+    map_smul' := λ s (y : Y), linear_map.ext $ λ (t : S), by simp [mul_smul] },
+  naturality' := λ Y Y' g, linear_map.ext $ λ (y : Y), linear_map.ext $ λ (s : S),
+    by simp [coextend_scalars.map_apply] }
+
+/--
+The natural transformation from the composition of coextension and restriction of scalars to
+identity functor.
+-/
+@[simps] protected def counit' : coextend_scalars f ⋙ restrict_scalars f ⟶ 𝟭 (Module R) :=
+{ app := λ X,
+  { to_fun := λ g, g.to_fun (1 : S),
+    map_add' := λ x1 x2, by simp [linear_map.to_fun_eq_coe],
+    map_smul' := λ r (g : (restrict_scalars f).obj ((coextend_scalars f).obj X)),
+    begin
+      simp only [linear_map.to_fun_eq_coe, ring_hom.id_apply],
+      rw [restrict_scalars.smul_def f, coextend_scalars.smul_apply, one_mul, ←linear_map.map_smul,
+        @restrict_scalars.smul_def _ _ _ _ f ⟨S⟩, smul_eq_mul, mul_one],
+    end },
+  naturality' := λ X X' g, linear_map.ext $ λ h, by simp [coextend_scalars.map_apply] }
+
+end restriction_coextension_adj
+
+/--
+restriction of scalars ⊣ coextension of scalars
+-/
+@[simps] def restrict_coextend_scalars_adj {R : Type u₁} {S : Type u₂} [ring R] [ring S]
+  (f : R →+* S) : restrict_scalars f ⊣ coextend_scalars f :=
+{ hom_equiv := λ X Y,
+  { to_fun := restriction_coextension_adj.hom_equiv.from_restriction f,
+    inv_fun := restriction_coextension_adj.hom_equiv.to_restriction f,
+    left_inv := λ g, linear_map.ext $ λ (x : X), by simp,
+    right_inv := λ g, linear_map.ext $ λ x, linear_map.ext $ λ (s : S), by simp },
+  unit := restriction_coextension_adj.unit' f,
+  counit := restriction_coextension_adj.counit' f,
+  hom_equiv_unit' := λ X Y g, linear_map.ext $ λ y, rfl,
+  hom_equiv_counit' := λ Y X g, linear_map.ext $ λ (y : Y), by simp }
+
+instance {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S) :
+  category_theory.is_left_adjoint (restrict_scalars f) := ⟨_, restrict_coextend_scalars_adj f⟩
+
+instance {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S) :
+  category_theory.is_right_adjoint (coextend_scalars f) := ⟨_, restrict_coextend_scalars_adj f⟩
 
 end category_theory.Module

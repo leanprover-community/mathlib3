@@ -87,7 +87,7 @@ begin
     exact is_glb_Ioc_of_is_glb_Ioi hij_lt h, },
   have hi_mem : i ∈ finset.Ioc i j,
   { refine finset.is_glb_mem _ h_glb _,
-    exact finset.nonempty_of_mem (finset.mem_Ioc.mpr ⟨hij_lt, le_rfl⟩), },
+    exact ⟨_, finset.mem_Ioc.mpr ⟨hij_lt, le_rfl⟩⟩, },
   rw finset.mem_Ioc at hi_mem,
   exact lt_irrefl i hi_mem.1,
 end

@@ -141,7 +141,7 @@ begin
 end
 
 lemma image_maximals {α β : Type*} {r : α → α → Prop} {s : β → β → Prop} (f : α → β)
-  (t : set α) (h₁ : ∀ x y ∈ t, r x y ↔ s (f x) (f y)) (h₂ : t.inj_on f) :
+  (t : set α) (h₁ : ∀ x y ∈ t, r x y ↔ s (f x) (f y)) :
     f '' maximals r t = maximals s (f '' t) :=
 begin
   ext,
@@ -157,13 +157,13 @@ begin
 end
 
 lemma image_minimals {α β : Type*} {r : α → α → Prop} {s : β → β → Prop} (f : α → β)
-  (t : set α) (h₁ : ∀ x y ∈ t, r x y ↔ s (f x) (f y)) (h₂ : t.inj_on f) :
+  (t : set α) (h₁ : ∀ x y ∈ t, r x y ↔ s (f x) (f y)) :
     f '' minimals r t = minimals s (f '' t) :=
-image_maximals f t (λ x hx y hy, h₁ y hy x hx) h₂
+image_maximals f t (λ x hx y hy, h₁ y hy x hx)
 
 lemma rel_embedding.image_maximals {α β : Type*} {r : α → α → Prop} {s : β → β → Prop}
   (f : r ↪r s) (t : set α) : f '' maximals r t = maximals s (f '' t) :=
-image_maximals f t (λ _ _ _ _, f.map_rel_iff.symm) (λ x _ y _ e, f.injective e)
+image_maximals f t (λ _ _ _ _, f.map_rel_iff.symm)
 
 lemma rel_embedding.image_minimals {α β : Type*} {r : α → α → Prop} {s : β → β → Prop}
   (f : r ↪r s) (t : set α) : f '' minimals r t = minimals s (f '' t) :=

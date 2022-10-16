@@ -132,7 +132,7 @@ begin
     exact is_affine_open.basic_open_is_affine V.1.prop _ },
   haveI : finite s := hs.to_subtype,
   refine ⟨set.range g, set.finite_range g, _⟩,
-  refine (set.inter_eq_right_iff_subset.mpr (RingedSpace.basic_open_subset _ _)).symm.trans _,
+  refine (set.inter_eq_right_iff_subset.mpr (RingedSpace.basic_open_le _ _)).symm.trans _,
   rw [e, set.Union₂_inter],
   apply le_antisymm; apply set.Union₂_subset,
   { intros i hi,

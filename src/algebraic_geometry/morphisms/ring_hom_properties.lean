@@ -332,7 +332,7 @@ begin
     { refine X.presheaf.map
         (@hom_of_le _ _ ((is_open_map.functor _).obj _) ((is_open_map.functor _).obj _) _).op,
       rw [unop_op, unop_op, opens.open_embedding_obj_top, opens.open_embedding_obj_top],
-      exact X.basic_open_subset _ },
+      exact X.basic_open_le _ },
     { rw [op_comp, op_comp, functor.map_comp, functor.map_comp],
       refine (eq.trans _ (category.assoc _ _ _).symm : _),
       congr' 1,

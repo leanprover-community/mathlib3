@@ -273,7 +273,7 @@ begin
   exact h.trans (commute.inv_mul_cancel (hP hn (g ^ k) hg).symm),
 end
 
-variables [fintype (G ⧸ (P : subgroup G))]
+variables [finite (G ⧸ (P : subgroup G))]
 
 lemma transfer_sylow_eq_pow (g : G) (hg : g ∈ P) : transfer_sylow P hP g =
   ⟨g ^ (P : subgroup G).index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
@@ -293,6 +293,19 @@ begin
       normal_mul, ←ker_eq_bot_iff, ←(map_injective (P : subgroup G).subtype_injective).eq_iff,
       restrict_ker, subgroup_of_map_subtype, subgroup.map_bot, coe_top] at hf1,
   exact is_complement'_of_disjoint_and_mul_eq_univ hf1.1.le hf1.2,
+end
+
+lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).ker :=
+begin
+  -- card eq index, and ¬ p ∣ index
+  sorry,
+end
+
+lemma ker_transfer_sylow_disjoint''' (Q : subgroup G) (hQ : is_p_group p Q) :
+  disjoint (transfer_sylow P hP).ker Q :=
+begin
+  have key : is_p_group p ((transfer_sylow P hP).ker ⊓ Q : subgroup G) := hQ.to_le inf_le_right,
+  sorry,
 end
 
 /-

@@ -211,6 +211,29 @@ lemma integrable.uniform_integrable_condexp_filtration
   uniform_integrable (λ i, μ[g | f i]) 1 μ :=
 hg.uniform_integrable_condexp f.le
 
+section of_set
+
+variables [preorder ι]
+
+/-- Given a sequence of measurable sets `(sₙ)`, `filtration_of_set` is the smallest filtration
+such that `sₙ` is measurable with respect to the `n`-the sub-σ-algebra in `filtration_of_set`. -/
+def filtration_of_set {s : ι → set Ω} (hsm : ∀ i, measurable_set (s i)) : filtration ι m :=
+{ seq := λ i, measurable_space.generate_from {t | ∃ j ≤ i, s j = t},
+  mono' := λ n m hnm, measurable_space.generate_from_mono
+    (λ t ⟨k, hk₁, hk₂⟩, ⟨k, hk₁.trans hnm, hk₂⟩),
+  le' := λ n, measurable_space.generate_from_le (λ t ⟨k, hk₁, hk₂⟩, hk₂ ▸ hsm k) }
+
+lemma measurable_set_filtration_of_set {s : ι → set Ω}
+  (hsm : ∀ i, measurable_set[m] (s i)) (i : ι) {j : ι} (hj : j ≤ i) :
+  measurable_set[filtration_of_set hsm i] (s j) :=
+measurable_space.measurable_set_generate_from ⟨j, hj, rfl⟩
+
+lemma measurable_set_filtration_of_set' {s : ι → set Ω}
+  (hsm : ∀ n, measurable_set[m] (s n)) (i : ι) :
+  measurable_set[filtration_of_set hsm i] (s i) :=
+measurable_set_filtration_of_set hsm i le_rfl
+
+end of_set
 
 namespace filtration
 variables [topological_space β] [metrizable_space β] [mβ : measurable_space β] [borel_space β]

@@ -140,6 +140,27 @@ begin
   rwa of_not_not (λ hab, ht ha (h hb) hab hr),
 end
 
+lemma image_maximals {α β : Type*} {r : α → α → Prop} {s : β → β → Prop} (f : α → β)
+  (t : set α) (h₁ : ∀ x y ∈ t, r x y ↔ s (f x) (f y)) (h₂ : t.inj_on f) :
+    f '' maximals r t = maximals s (f '' t) :=
+begin
+  ext,
+  split,
+  { rintros ⟨x, hx, rfl⟩,
+    refine ⟨⟨_, hx.1, rfl⟩, _⟩,
+    rintros _ ⟨y, hy, rfl⟩ e,
+    exact (h₁ _ hy _ hx.1).mp (hx.2 hy ((h₁ _ hx.1 _ hy).mpr e)) },
+  { rintros ⟨⟨x, hx, rfl⟩, h⟩,
+    refine ⟨x, ⟨hx, _⟩, rfl⟩,
+    rintros y hy e,
+    exact (h₁ _ hy _ hx).mpr (h ⟨y, hy, rfl⟩ ((h₁ _ hx _ hy).mp e)) }
+end
+
+lemma image_minimals {α β : Type*} {r : α → α → Prop} {s : β → β → Prop} (f : α → β)
+  (t : set α) (h₁ : ∀ x y ∈ t, r x y ↔ s (f x) (f y)) (h₂ : t.inj_on f) :
+    f '' minimals r t = minimals s (f '' t) :=
+image_maximals f t (λ x hx y hy, h₁ y hy x hx) h₂
+
 variables [partial_order α]
 
 lemma is_least.mem_minimals (h : is_least s a) : a ∈ minimals (≤) s := ⟨h.1, λ b hb _, h.2 hb⟩

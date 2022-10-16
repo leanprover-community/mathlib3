@@ -7,7 +7,6 @@ Authors: Andrew Yang
 import data.list.chain
 import data.nat.lattice
 import data.nat.enat
-import algebra.order.monoid
 import order.grade
 import tactic.tfae
 
@@ -20,23 +19,27 @@ sequences (chains) in a partially ordered set.
 
 ## Main definition
 
-- `chain_height α`: The maximal length of chains in `α`.
-- `chain_height a`: The maximal length of chains in `α` that start from `a : α`
-  (not including `a` itself).
-
-They are both valued in `enat`, and equal to `⊤` when the lengths are unbounded.
+- `set.subchain`: The set of strictly ascending lists of `α` contained in a `set α`.
+- `set.chain_height`: The maximal length of a strictly ascending sequence in a poset.
+This is defined as the maximum of the lengths of `set.subchain`s, valued in `ℕ∞`.
 
 ## Main results
 
-- `exists_chain_of_le_length`: For each `n : ℕ` such that `n ≤ chain_height a`, there exists a
-  chain of length `n` starting from `a`.
-- `chain_height_eq_one_iff`: An element has height zero iff it is minimal.
-- `chain_height_le_of_lt`: If `a < b`, then `chain_height b + 1 ≤ chain_height a`. This implies that
-  `chain_height` is decreasing (`chain_height_antitone`).
-- `chain_height_eq_sup_chain_height`: `chain_height` is the supremum of all the heights.
-- `chain_height_dual`: The maximal length of a poset and is dual is the same.
-- `chain_height_add_chain_height_dual_le`: The sum of the height of the same element in `α` and
-  `αᵒᵈ` is bounded by `chain_height`.
+- `set.exists_chain_of_le_chain_height`: For each `n : ℕ` such that `n ≤ s.chain_height`, there
+  exists `s.subchain` of length `n`.
+- `set.chain_height_le_of_subset`: If `s ⊆ t` then `s.chain_height ≤ t.chain_height`.
+- `set.chain_height_image`: If `f` is an order embedding, then
+  `(f '' s).chain_height = s.chain_height`.
+- `set.chain_height_insert_of_forall_gt`: If `∀ y ∈ s, x > y`, then
+  `(insert x s).chain_height = s.chain_height + 1`.
+- `set.chain_height_insert_of_forall_lt`: If `∀ y ∈ s, x < y`, then
+  `(insert x s).chain_height = s.chain_height + 1`.
+- `set.chain_height_union_eq`: If `∀ x ∈ s, ∀ y ∈ t, s ≤ t`, then
+  `(s ∪ t).chain_height = s.chain_height + t.chain_height`.
+- `set.well_founded_gt_of_chain_height_ne_top`:
+  If `s` has finite height, then `>` is well-founded on `s`.
+- `set.well_founded_lt_of_chain_height_ne_top`:
+  If `s` has finite height, then `<` is well-founded on `s`.
 
 -/
 
@@ -44,30 +47,38 @@ universes u v
 
 open list
 
-namespace list
-
-theorem chain'.take {α : Type*} {R : α → α → Prop}: ∀ (n) {l} (h : chain' R l), chain' R (take n l)
-| 0       _             h := chain'_nil
-| _       []            _ := by { rw take_nil, exact chain'_nil }
-| 1       (a :: l)      _ := chain'_singleton _
-| (n + 1) [a]           _ := by { unfold take, rw take_nil, exact chain'_singleton _ }
-| (n + 2) (a :: b :: l) h := by { unfold take take, rw chain'_cons at h ⊢,
-                                  exact ⟨h.1, chain'.take (n + 1) h.2⟩ }
-
-end list
-
 namespace set
 
 section
 
 variables {α : Type u} (s : set α) [has_lt α]
 
+/-- The set of strictly ascending lists of `α` contained in a `set α`. -/
 def subchain : set (list α) :=
 { l | list.chain' (<) l ∧ ∀ i ∈ l, i ∈ s }
 
-/-- The maximal length of a strictly descending sequence in a poset. -/
+lemma nil_mem_subchain : [] ∈ s.subchain :=
+⟨trivial, λ x hx, hx.elim⟩
+
+lemma cons_mem_subchain_iff {s : set α} {x : α} {xs : list α} :
+  x :: xs ∈ s.subchain ↔ x ∈ s ∧ xs ∈ s.subchain ∧ (∀ y ∈ xs.head', x < y) :=
+begin
+  split,
+  { intro h,
+    exact ⟨h.2 _ (or.inl rfl), ⟨(chain'_cons'.mp h.1).2, λ i hi, h.2 _ (or.inr hi)⟩,
+      (chain'_cons'.mp h.1).1⟩ },
+  { rintro ⟨h₁, h₂, h₃⟩,
+    split,
+    { rw chain'_cons', exact ⟨h₃, h₂.1⟩ },
+    { rintros i (rfl|hi), exacts [h₁, h₂.2 _ hi] } }
+end
+
+instance : nonempty s.subchain :=
+⟨⟨[], s.nil_mem_subchain⟩⟩
+
+/-- The maximal length of a strictly ascending sequence in a poset. -/
 noncomputable
-def chain_height : enat :=
+def chain_height : ℕ∞ :=
 ⨆ l ∈ s.subchain, list.length l
 
 lemma chain_height_eq_supr_subtype : s.chain_height = ⨆ l : s.subchain, l.1.length :=
@@ -75,19 +86,6 @@ begin
   rw supr_subtype,
   refl,
 end
-
--- variable {α}
-
--- /-- The maximal length of a strictly descending sequence in a poset starting from `a`.
--- Note that `a` itself is not counted in the length. -/
--- noncomputable
--- def chain_height (a : α) : (enat) := supr $ λ l : { l // list.chain (>) a l }, l.1.length
-
-lemma nil_mem_subchain : [] ∈ s.subchain :=
-⟨trivial, λ x hx, hx.elim⟩
-
-instance : nonempty s.subchain :=
-⟨⟨[], s.nil_mem_subchain⟩⟩
 
 lemma exists_chain_of_le_length {l : list α} (hl : chain' (<) l) {n : ℕ}
   (hn : n ≤ l.length) : ∃ l' : list α, chain' (<) l' ∧ l' ⊆ l ∧ l'.length = n  :=
@@ -136,7 +134,7 @@ le_chain_height_iff.mpr ⟨l, H, rfl⟩
 
 
 @[simp]
-lemma chain_height_one_le_iff : 1 ≤ s.chain_height ↔ s.nonempty :=
+lemma one_le_chain_height_iff : 1 ≤ s.chain_height ↔ s.nonempty :=
 begin
   change ((1 : ℕ) : enat) ≤ _ ↔ _,
   rw set.le_chain_height_iff,
@@ -152,7 +150,7 @@ end
 lemma chain_height_eq_zero_iff : s.chain_height = 0 ↔ s = ∅ :=
 begin
   rw [← not_iff_not, ← ne.def, ← bot_eq_zero, ← bot_lt_iff_ne_bot, bot_eq_zero,
-    ← enat.one_le_iff_pos, chain_height_one_le_iff, ← ne_empty_iff_nonempty],
+    ← enat.one_le_iff_pos, one_le_chain_height_iff, ← ne_empty_iff_nonempty],
 end
 
 @[simp]
@@ -162,21 +160,6 @@ chain_height_eq_zero_iff.mpr rfl
 @[simp]
 lemma chain_height_eq_zero_of_empty [is_empty α] : s.chain_height = 0 :=
 chain_height_eq_zero_iff.mpr (subsingleton.elim _ _)
-
-lemma with_top.le_iff_forall_coe_le {α : Type*} [preorder α] [no_max_order α] (x y : with_top α) :
-  x ≤ y ↔ ∀ n : α, ↑n ≤ x → ↑n ≤ y :=
-begin
-  split,
-  { exact λ e n h, h.trans e },
-  { intros H,
-    cases y,
-    { exact le_top },
-    cases x,
-    { obtain ⟨y', hy'⟩ := exists_gt y,
-      refine ((lt_iff_le_not_le.mp hy').2 _).elim,
-      exact with_top.coe_le_coe.mp (H y' le_top) },
-    { exact H _ rfl.le } }
-end
 
 variables {β : Type*} [has_lt β]
 
@@ -252,19 +235,6 @@ begin
   exact ⟨l, ⟨hl.1, λ i hi, e (hl.2 i hi)⟩, rfl⟩
 end
 
-lemma cons_mem_subchain_iff {x : α} {xs : list α} :
-  x :: xs ∈ s.subchain ↔ x ∈ s ∧ xs ∈ s.subchain ∧ (∀ y ∈ xs.head', x < y) :=
-begin
-  split,
-  { intro h,
-    exact ⟨h.2 _ (or.inl rfl), ⟨(chain'_cons'.mp h.1).2, λ i hi, h.2 _ (or.inr hi)⟩,
-      (chain'_cons'.mp h.1).1⟩ },
-  { rintro ⟨h₁, h₂, h₃⟩,
-    split,
-    { rw chain'_cons', exact ⟨h₃, h₂.1⟩ },
-    { rintros i (rfl|hi), exacts [h₁, h₂.2 _ hi] } }
-end
-
 lemma chain_height_image
   (f : α → β) (hf : ∀ {x y}, x < y ↔ f x < f y) (s : set α) :
   (f '' s).chain_height = s.chain_height :=
@@ -279,60 +249,13 @@ begin
       rw cons_mem_subchain_iff at h,
       obtain ⟨⟨x, hx', rfl⟩, h₁, h₂⟩ := h,
       obtain ⟨l', h₃, rfl⟩ := hx h₁,
-      refine ⟨x :: l', cons_mem_subchain_iff.mpr ⟨hx', h₃, _⟩, rfl⟩,
+      refine ⟨x :: l', set.cons_mem_subchain_iff.mpr ⟨hx', h₃, _⟩, rfl⟩,
       cases l', { simp }, { simpa [← hf] using h₂ } } },
   { intros l hl,
     refine ⟨l.map f, ⟨_, _⟩, _⟩,
     { simp_rw [chain'_map, ← hf], exact hl.1 },
     { intros _ e, obtain ⟨a, ha, rfl⟩ := mem_map.mp e, exact set.mem_image_of_mem _ (hl.2 _ ha) },
     { rw length_map } },
-end
-
-lemma exists_subchain_of_not_maximal (l : list α) (hl : l ∈ s.subchain)
-  (hl' : ¬ l.chain' (λ x y, ¬ ∃ z ∈ s, x < z ∧ z < y)) :
-  ∃ l' ∈ s.subchain, list.length l' = l.length + 1 ∧ l <+ l' :=
-begin
-  rw list.chain'_iff_nth_le at hl',
-  push_neg at hl',
-  obtain ⟨i, hi, z, hz, hx, hy⟩ := hl',
-  have hi' : i + 1 ≤ l.length := (nat.lt_pred_iff.mp hi).le,
-  by_cases l = [], { subst h, exfalso, simpa using hi },
-  use l.take (i + 1) ++ z :: l.drop (i + 1),
-  refine ⟨⟨_, _⟩, _, _⟩,
-  { apply (hl.1.take _).append,
-    { rw list.chain'_cons',
-      refine ⟨_, hl.1.drop _⟩,
-      intros y' hy',
-        convert hy,
-        rwa [← list.nth_zero, list.nth_drop, list.nth_le_nth (nat.lt_pred_iff.mp hi),
-          option.mem_some_iff, eq_comm] at hy' },
-    { have H : list.take (i + 1) l ≠ [] := by { rw [ne.def, list.take_eq_nil_iff], simpa },
-      suffices : (list.take (i + 1) l).last H < z,
-      { simpa [list.last'_eq_last_of_ne_nil H] },
-      have : (list.take (i + 1) l).length - 1 = i,
-      { rw [list.length_take, min_eq_left hi', add_tsub_cancel_right] },
-      rw [list.last_eq_nth_le, ← list.nth_le_take],
-      rotate,
-      { rw this, exact hi.trans_le (nat.sub_le _ _) },
-      { rw this, exact lt_add_one _ },
-      { convert hx } } },
-  { simp only [list.mem_append],
-    rintros x (hx|rfl|hx),
-    exacts [hl.2 _ (list.mem_of_mem_take hx), hz, hl.2 _ (list.mem_of_mem_drop hx)] },
-  { simp [min_eq_left hi', ← add_assoc, add_tsub_cancel_of_le hi'] },
-  { conv_lhs { rw ← list.take_append_drop (i + 1) l },
-    rw list.append_sublist_append_left,
-    exact list.sublist_cons _ _ }
-end
-
-lemma maximal_of_length_eq_chain_height (l : list α) (hl : l ∈ s.subchain) (hl' : ↑l.length = s.chain_height) :
-    l.chain' (λ x y, ¬ ∃ z ∈ s, x < z ∧ z < y) :=
-begin
-  by_contra H,
-  obtain ⟨l', h, e, -⟩ := exists_subchain_of_not_maximal _ hl H,
-  have := set.le_chain_height_iff.mpr ⟨_, h, rfl⟩,
-  simp only [with_top.coe_le_coe, e, ← hl'] at this,
-  simpa using this,
 end
 
 end
@@ -377,7 +300,7 @@ begin
   refl,
 end
 
-lemma chain_height_insert_of_forall_le (x : α) (hx : ∀ a ∈ s, x < a) :
+lemma chain_height_insert_of_forall_lt (x : α) (hx : ∀ a ∈ s, x < a) :
   (insert x s).chain_height = s.chain_height + 1 :=
 begin
   rw ← add_zero (insert x s).chain_height,
@@ -398,10 +321,10 @@ begin
     { rintro x (rfl|hx), exacts [or.inl (set.mem_singleton x), or.inr (hl.2 x hx)] } }
 end
 
-lemma chain_height_insert_of_forall_ge (x : α) (hx : ∀ a ∈ s, x > a) :
+lemma chain_height_insert_of_forall_gt (x : α) (hx : ∀ a ∈ s, x > a) :
   (insert x s).chain_height = s.chain_height + 1 :=
 begin
-  rw [chain_height_order_dual s s rfl, ← chain_height_insert_of_forall_le],
+  rw [chain_height_order_dual s s rfl, ← chain_height_insert_of_forall_lt],
   { apply chain_height_order_dual, refl },
   { exact hx },
 end
@@ -466,7 +389,7 @@ begin
       refine le_trans _ (le_supr₂ _ ⟨p, hp, rfl⟩),
       exact (with_top.coe_untop _ _).symm.le },
     { rw [← nat.add_one_le_iff, ← with_top.coe_le_coe, with_top.coe_add, with_top.coe_untop,
-        with_top.coe_untop, with_top.coe_one, ← set.chain_height_insert_of_forall_ge _ q.1],
+        with_top.coe_untop, with_top.coe_one, ← set.chain_height_insert_of_forall_gt _ q.1],
       { apply set.chain_height_le_of_subset, rintros _ (rfl|⟨e' : _ < _, hx⟩),
         exacts [⟨(lt_of_le_of_ne e h : _), q.2⟩, ⟨e'.trans_le e, hx⟩] },
       { exact λ _ h, h.1 } }

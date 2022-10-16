@@ -166,8 +166,8 @@ begin
   apply h₁,
 end
 
-lemma eq_zero_of_basic_open_empty {X : Scheme} [hX : is_reduced X] {U : opens X.carrier}
-  (s : X.presheaf.obj (op U)) (hs : X.basic_open s = ∅) :
+lemma eq_zero_of_basic_open_eq_bot {X : Scheme} [hX : is_reduced X] {U : opens X.carrier}
+  (s : X.presheaf.obj (op U)) (hs : X.basic_open s = ⊥) :
   s = 0 :=
 begin
   apply Top.presheaf.section_ext X.sheaf U,
@@ -209,7 +209,7 @@ lemma basic_open_eq_bot_iff {X : Scheme} [is_reduced X] {U : opens X.carrier}
   (s : X.presheaf.obj $ op U) :
   X.basic_open s = ⊥ ↔ s = 0 :=
 begin
-  refine ⟨eq_zero_of_basic_open_empty s, _⟩,
+  refine ⟨eq_zero_of_basic_open_eq_bot s, _⟩,
   rintro rfl,
   simp,
 end

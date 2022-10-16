@@ -9,3 +9,4 @@ all.lean
 *~
 .DS_Store
 *.lock
+port_status.yaml

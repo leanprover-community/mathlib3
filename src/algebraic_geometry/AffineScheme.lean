@@ -345,7 +345,7 @@ begin
     (X.of_restrict (X.basic_open r).open_embedding) _).mp,
   delta PresheafedSpace.is_open_immersion.open_functor,
   dsimp,
-  rw [opens.functor_obj_map_obj, opens.open_embedding_obj_top, inf_comm, ← opens.inter_eq,
+  rw [opens.functor_obj_map_obj, opens.open_embedding_obj_top, inf_comm,
     ← Scheme.basic_open_res _ _ (hom_of_le le_top).op],
   exact hU.basic_open_is_affine _,
 end

@@ -640,7 +640,7 @@ lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite_presentation) (hf : f.
   end }
 hf hg
 
-lemma of_comp_finite_type {g : B →+* C} {f : A →+* B} (hg : (g.comp f).finite_presentation)
+lemma of_comp_finite_type (f : A →+* B) {g : B →+* C} (hg : (g.comp f).finite_presentation)
   (hf : f.finite_type) : g.finite_presentation :=
 @@algebra.finite_presentation.of_restrict_scalars_finite_presentation _ _ f.to_algebra _
   (g.comp f).to_algebra g.to_algebra
@@ -743,7 +743,7 @@ lemma of_finite_type [is_noetherian_ring A] {f : A →ₐ[R] B} :
   f.finite_type ↔ f.finite_presentation :=
 ring_hom.finite_presentation.of_finite_type
 
-lemma of_comp_finite_type {f : A →ₐ[R] B} {g : B →ₐ[R] C} (h : (g.comp f).finite_presentation)
+lemma of_comp_finite_type (f : A →ₐ[R] B) {g : B →ₐ[R] C} (h : (g.comp f).finite_presentation)
   (h' : f.finite_type) : g.finite_presentation :=
 h.of_comp_finite_type h'
 

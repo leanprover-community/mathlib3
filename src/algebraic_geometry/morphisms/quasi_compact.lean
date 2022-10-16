@@ -123,7 +123,7 @@ begin
   obtain ⟨s, hs, e⟩ := (is_compact_open_iff_eq_finset_affine_union _).mp ⟨hU, U.prop⟩,
   let g : s → X.affine_opens,
   { intro V,
-    use V.1 ∩ X.basic_open f,
+    use V.1 ⊓ X.basic_open f,
     have : V.1.1 ⟶ U,
     { apply hom_of_le, change _ ⊆ (U : set X.carrier), rw e,
       convert @set.subset_Union₂ _ _ _ (λ (U : X.affine_opens) (h : U ∈ s), ↑U) V V.prop using 1,

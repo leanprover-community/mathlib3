@@ -216,8 +216,8 @@ begin
 end
 
 lemma indep_sets.bUnion [measurable_space Ω] {s : ι → set (set Ω)} {s' : set (set Ω)}
-  {μ : measure Ω} {p : ι → Prop} (hyp : ∀ n, p n → indep_sets (s n) s' μ) :
-  indep_sets (⋃ n (hn : p n), s n) s' μ :=
+  {μ : measure Ω} {u : set ι} (hyp : ∀ n ∈ u, indep_sets (s n) s' μ) :
+  indep_sets (⋃ n ∈ u, s n) s' μ :=
 begin
   intros t1 t2 ht1 ht2,
   simp_rw set.mem_Union at ht1,
@@ -236,8 +236,8 @@ lemma indep_sets.Inter [measurable_space Ω] {s : ι → set (set Ω)} {s' : set
 by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 n) ht2 }
 
 lemma indep_sets.bInter [measurable_space Ω] {s : ι → set (set Ω)} {s' : set (set Ω)}
-  {μ : measure Ω} {p : ι → Prop} (h : ∃ n (hn : p n), indep_sets (s n) s' μ) :
-  indep_sets (⋂ n (hn : p n), s n) s' μ :=
+  {μ : measure Ω} {u : set ι} (h : ∃ n ∈ u, indep_sets (s n) s' μ) :
+  indep_sets (⋂ n ∈ u, s n) s' μ :=
 begin
   intros t1 t2 ht1 ht2,
   rcases h with ⟨n, hn, h⟩,

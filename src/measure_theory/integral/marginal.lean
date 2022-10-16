@@ -19,10 +19,11 @@ open finset
 variables {α β γ : Type*}
 lemma equiv.finset_image_univ_eq_univ [fintype α] [fintype β] (f : α ≃ β) :
   univ.image f = univ :=
-by { ext x, simp only [mem_image, mem_univ, iff_true, exists_prop_of_true], use f.symm x, simp }
+finset.image_univ_of_surjective f.surjective
 
 variables [comm_monoid β]
 
+-- very similar to `equiv.prod_comp_finset` in #16948
 lemma prod_comp_equiv {s : finset α} (f : γ → β) (g : α ≃ γ) :
   ∏ a in s, f (g a) = ∏ b in s.image g, f b :=
 begin
@@ -33,7 +34,7 @@ end
 
 lemma prod_univ_comp_equiv [fintype α] [fintype γ] (f : γ → β) (g : α ≃ γ) :
   ∏ a, f (g a) = ∏ b, f b :=
-by rw [prod_comp_equiv f g, g.finset_image_univ_eq_univ]
+g.prod_comp f -- by rw [prod_comp_equiv f g, g.finset_image_univ_eq_univ]
 
 end
 
@@ -60,10 +61,9 @@ open equiv
 lemma Pi_congr_left_symm_preimage_pi (f : ι' ≃ ι) (s : set ι) (t : ∀ i, set (α i)) :
   (f.Pi_congr_left α).symm ⁻¹' (f ⁻¹' s).pi (λ i', t $ f i') = s.pi t :=
 begin
-  ext, simp only [mem_preimage, set.mem_pi, Pi_congr_left_symm_apply],
+  ext, simp_rw [mem_preimage, set.mem_pi, Pi_congr_left_symm_apply],
   convert f.forall_congr_left, refl
 end
-
 
 lemma Pi_congr_left_preimage_univ_pi (f : ι' ≃ ι) (t : ∀ i, set (α i)) :
   f.Pi_congr_left α ⁻¹' pi univ t = pi univ (λ i, t (f i)) :=
@@ -80,7 +80,6 @@ end
 lemma measurable_unique_elim [unique ι] [∀ i, measurable_space (α i)] :
   measurable (unique_elim : α (default : ι) → Π i, α i) :=
 by { simp_rw [measurable_pi_iff, unique.forall_iff, unique_elim_default], exact measurable_id }
-
 
 lemma measurable_set.univ_pi_fintype {δ} {π : δ → Type*} [∀ i, measurable_space (π i)] [fintype δ]
   {t : Π i, set (π i)} (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
@@ -126,32 +125,16 @@ lemma pred_update {α} {β : α → Type*} (P : ∀ ⦃a⦄, β a → Prop)
 by { rw [update], split_ifs, { subst h, simp }, { rw [← ne.def] at h, simp [h] }}
 
 @[simp] lemma imp_and_neg_imp_iff (p q : Prop) [decidable p] : (p → q) ∧ (¬ p → q) ↔ q :=
-by { by_cases p; simp [h] }
-
--- #print Union_unpair_prod
-/- rename Union_prod to Union_prod_const.
-Also prove Union_unpair_prod using this or similar -/
-lemma Union_prod {ι α β} (s : ι → set α) (t : ι → set β) :
-  (⋃ (x : ι × ι), (s x.1).prod (t x.2)) = (⋃ (i : ι), s i).prod (⋃ (i : ι), t i) :=
-by { ext, simp }
+by simp_rw [imp_iff_or_not, not_not, ← or_and_distrib_left, not_and_self, or_false]
 
 -- set_option trace.simps.verbose true
-attribute [simps apply symm_apply] subtype_equiv_right
+ attribute [simps apply symm_apply] subtype_equiv_right
 /-- `s ∪ t` (using finset union) is equivalent to `s ∪ t` (using set union) -/
 -- @[simps apply symm_apply] -- apply symm_apply
 def equiv.finset_union {α} (s t : finset α) : ((s ∪ t : finset α) : set α) ≃ (s ∪ t : set α) :=
-subtype_equiv_right $ by sorry --simp
+subtype_equiv_right $ by simp
 
 open equiv
--- done below
-
-lemma Union_congr {ι ι₂ α : Type*} {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⋃ x, f x) = ⋃ y, g y :=
-(supr_congr h2).symm.trans $ h1.supr_comp _
-
-lemma Inter_congr {ι ι₂ α : Type*} {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⋂ x, f x) = ⋂ y, g y :=
-(infi_congr h2).symm.trans $ h1.infi_comp _
 
 lemma Union_univ_pi {ι ι₂} {α : ι → Type*} (t : ∀ i, ι₂ → set (α i)) :
   (⋃ (x : ι → ι₂), pi univ (λ i, t i (x i))) = pi univ (λ i, ⋃ (j : ι₂), t i j) :=
@@ -240,7 +223,7 @@ lemma pi_sum {π : ι ⊕ ι' → Type*} [∀ i, measurable_space (π i)] (μ : 
   map (equiv.Pi_sum π) ((measure.pi (λ i, μ (sum.inl i))).prod (measure.pi (λ i, μ (sum.inr i)))) =
   measure.pi μ :=
 begin
-  refine (pi_eq _).symm, intros s hs,
+  refine (pi_eq $ λ s hs, _).symm,
   rw [map_apply],
   all_goals {sorry}
 end
@@ -279,13 +262,16 @@ end
 notation `∫⋯∫_` s `, ` f ` ∂` μ:70 := marginal μ s f
 notation `∫⋯∫_` s `, ` f := marginal volume s f
 
+def finset.is_empty_coe_empty {α} : is_empty ((∅ : finset α) : set α) :=
+⟨λ i, i.2.elim⟩
+
+local attribute [instance] finset.is_empty_coe_empty
+
 lemma marginal_empty (f : (Π i, π i) → E) : ∫⋯∫_ ∅, f ∂μ = f :=
 begin
-  haveI : subsingleton (Π (i : ((∅ : finset δ) : set δ)), π i) := ⟨λ x y, funext $ λ i, i.2.elim⟩,
   ext x,
   simp_rw [marginal, measure.pi_empty_left _ (λ i : ((∅ : finset δ) : set δ), i.prop)],
-  sorry
-  -- refine (integral_dirac' _ _ $ subsingleton.strongly_measurable _).trans (by simp)
+  exact (integral_dirac' _ _ $ subsingleton.strongly_measurable' _).trans (by simp)
 end
 
 lemma marginal_eq {s : finset δ} {x y : Π i, π i} (f : (Π i, π i) → E)
@@ -303,7 +289,8 @@ lemma set.union_apply_right' {α} {s t : set α} [decidable_pred (λ x, x ∈ s)
   {a : α} (ha : a ∈ t) : equiv.set.union H ⟨a, set.mem_union_right _ ha⟩ = sum.inr ⟨a, ha⟩ :=
 dif_neg $ λ h, H ⟨h, ha⟩
 
-lemma marginal_union (f : (Π i, π i) → E) (hf : measurable f) (s t : finset δ) (hst : disjoint s t) :
+lemma marginal_union (f : (Π i, π i) → E) (hf : measurable f) {s t : finset δ}
+  (hst : disjoint s t) :
   ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
 begin
   have : (s : set δ) ∩ (t : set δ) ⊆ ∅, { exact_mod_cast hst },
@@ -331,17 +318,20 @@ end
 lemma marginal_singleton (f : (Π i, π i) → E) (hf : measurable f) (i : δ) :
   ∫⋯∫_ {i}, f ∂μ = λ x, ∫ xᵢ, f (function.update x i xᵢ) ∂(μ i) :=
 begin
-  letI : unique (({i} : finset δ) : set δ) :=
-  ⟨⟨⟨i, finset.mem_singleton_self i⟩⟩, λ j, subtype.ext $ finset.mem_singleton.mp j.2⟩,
+  letI : unique (({i} : finset δ) : set δ) := -- maybe remove the double coercion
+  -- by exact_mod_cast set.unique_singleton i,
+    ⟨⟨⟨i, finset.mem_singleton_self i⟩⟩, λ j, subtype.ext $ finset.mem_singleton.mp j.2⟩,
+  -- have hi : ((default : (({i} : finset δ) : set δ)) : δ) = i := rfl,
   ext x,
   simp_rw [marginal, measure.pi_unique_left _],
   rw [integral_map],
-  congr' with y, dsimp only, congr' with j,
+  congr' with y, congr' with j,
   by_cases hj : j = i,
   { cases hj.symm, simp only [dif_pos, finset.mem_singleton, update_same],
     exact @unique_elim_default _ (λ i : (({i} : finset δ) : set δ), π i) _ y },
   { simp [hj] },
-  all_goals {sorry},
+  { exact measurable.ae_measurable measurable_unique_elim },
+  sorry,
 end
 
 lemma marginal_univ [fintype δ] (f : (Π i, π i) → E) :

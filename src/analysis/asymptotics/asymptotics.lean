@@ -487,7 +487,7 @@ begin
   exact mul_nonneg hc.le (norm_nonneg _)
 end
 
-lemma is_o_insert [topological_space α] {x : α} {s : set α} {g : α → E'} {g' : α → F'}
+lemma is_o.insert [topological_space α] {x : α} {s : set α} {g : α → E'} {g' : α → F'}
   (h1 : g =o[𝓝[s] x] g') (h2 : g x = 0) : g =o[𝓝[insert x s] x] g' :=
 (is_o_insert h2).mpr h1
 

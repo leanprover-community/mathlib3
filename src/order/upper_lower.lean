@@ -39,12 +39,12 @@ Lattice structure on antichains. Order equivalence between upper/lower sets and 
 
 open order_dual set
 
-variables {α : Type*} {ι : Sort*} {κ : ι → Sort*}
+variables {α β : Type*} {ι : Sort*} {κ : ι → Sort*}
 
 /-! ### Unbundled upper/lower sets -/
 
 section has_le
-variables [has_le α] {s t : set α}
+variables [has_le α] [has_le β] {s t : set α}
 
 /-- An upper set in an order `α` is a set such that any element greater than one of its members is
 also a member. Also called up-set, upward-closed set. -/
@@ -690,151 +690,63 @@ end
 
 end closure
 
-section prod
+/-! ### Product -/
 
-variables {β : Type*}
+section preorder
+variables [preorder α] [preorder β] {s : set α} {t : set β} {x : α × β}
 
-variables [preorder α] [preorder β]
+lemma is_upper_set.prod (hs : is_upper_set s) (ht : is_upper_set t) : is_upper_set (s ×ˢ t) :=
+λ a b h ha, ⟨hs h.1 ha.1, ht h.2 ha.2⟩
 
-/-- The product of two upper sets is an upper set -/
-def upper_set.prod (s : upper_set α) (t : upper_set β) : upper_set (α × β) :=
-⟨univ ×ˢ t ∩ s ×ˢ univ,
-begin
-  apply is_upper_set.inter,
-  { intros p q hpq hp,
-    rw prod.le_def at hpq,
-    rw mem_prod,
-    rw mem_prod at hp,
-    split,
-    { apply mem_univ, },
-    { apply t.upper' hpq.2,
-      exact hp.2, } },
-  { intros p q hpq hp,
-    rw prod.le_def at hpq,
-    rw mem_prod,
-    rw mem_prod at hp,
-    split,
-    { apply s.upper' hpq.1,
-      exact hp.1, },
-    { apply mem_univ, } }
-end
-⟩
+lemma is_lower_set.prod (hs : is_lower_set s) (ht : is_lower_set t) : is_lower_set (s ×ˢ t) :=
+λ a b h ha, ⟨hs h.1 ha.1, ht h.2 ha.2⟩
 
-@[simp] lemma coe_upper_set_prod (s : upper_set α) (t : upper_set β) :
-  (s.prod t : set (α × β)) = univ ×ˢ t ∩ s ×ˢ univ := rfl
+namespace upper_set
 
-lemma upper_closure_prod_upper_closure (s : set α) (t : set β) :
-  (upper_closure s).prod (upper_closure t) = upper_closure (s ×ˢ t) :=
-upper_set.ext begin
-  simp only [coe_upper_set_prod, coe_upper_closure, exists_prop, mem_prod, prod.exists],
-  rw le_antisymm_iff,
-  split,
-  { intros p hp,
-    rw mem_set_of_eq,
-    rw mem_inter_iff at hp,
-    cases hp,
-    rw [mem_prod,mem_set_of_eq] at hp_right,
-    cases hp_right.1 with a ha,
-    rw [mem_prod,mem_set_of_eq] at hp_left,
-    cases hp_left.2 with b hb,
-    use a,
-    use b,
-    split,
-    { split, exact ha.1, exact hb.1,  },
-    { rw prod.le_def,
-      simp only,
-      split, exact ha.2,exact hb.2, } },
-  { intros p hp,
-    rw mem_set_of_eq at hp,
-    cases hp with a,
-    cases hp_h with b hab,
-    rw mem_inter_iff,
-    split,
-    { rw mem_prod,
-      split,
-      { apply mem_univ, },
-      { rw mem_set_of_eq,
-        use b,
-        split,
-        { exact hab.1.2, },
-        { apply hab.2.2, } } },
-    { rw mem_prod,
-      split,
-      { rw mem_set_of_eq,
-        use a,
-        split,
-        { exact hab.1.1, },
-        { apply hab.2.1, } },
-      { apply mem_univ, }, } }
-end
+/-- The product of two upper sets as an upper set. -/
+def prod (s : upper_set α) (t : upper_set β) : upper_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
 
-/-- The product of two lower sets is a lower set -/
-def lower_set.prod (s : lower_set α) (t : lower_set β) : lower_set (α × β) :=
-⟨(univ ×ˢ t.compl)ᶜ ∩ (s.compl ×ˢ univ)ᶜ,
-begin
-  apply is_lower_set.inter,
-  { rw [is_lower_set_compl, lower_set.coe_compl],
-    intros p q hpq hp,
-    rw prod.le_def at hpq,
-    rw mem_prod,
-    rw mem_prod at hp,
-    split,
-    { apply mem_univ, },
-    { apply t.compl.upper' hpq.2,
-      exact hp.2, }, },
-  { rw [is_lower_set_compl, lower_set.coe_compl],
-    intros p q hpq hp,
-    rw prod.le_def at hpq,
-    rw mem_prod,
-    rw mem_prod at hp,
-    split,
-    { apply s.compl.upper' hpq.1,
-      exact hp.1, },
-    { apply mem_univ, } }
-end
-⟩
+@[simp] lemma coe_prod (s : upper_set α) (t : upper_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
+rfl
 
-@[simp] lemma coe_lower_set_prod (s : lower_set α) (t : lower_set β) :
-  (s.prod t : set (α × β)) = (univ ×ˢ tᶜ)ᶜ ∩ (sᶜ ×ˢ univ)ᶜ := rfl
+@[simp] lemma mem_prod {s : upper_set α} {t : upper_set β} : x ∈ s.prod t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
+iff.rfl
 
-lemma lower_closure_prod_lower_closure (s : set α) (t : set β) :
-  (lower_closure s).prod (lower_closure t) = lower_closure (s ×ˢ t) :=
-lower_set.ext begin
-  simp only [coe_lower_set_prod, coe_lower_closure, exists_prop, mem_prod, prod.exists],
-  rw le_antisymm_iff,
-  split,
-  { intros p hp,
-    rw mem_set_of_eq,
-    rw mem_inter_iff at hp,
-    cases hp,
-    simp only [mem_compl_iff, mem_prod, mem_set_of_eq, not_exists, mem_univ, and_true, not_forall,
-      not_not] at hp_right,
-    cases hp_right with a ha,
-    simp only [mem_compl_iff, mem_prod, mem_univ, mem_set_of_eq, not_exists, true_and,
-      not_forall, not_not] at hp_left,
-    cases hp_left with b hb,
-    use a,
-    use b,
-    split,
-    { split, exact ha.1, exact hb.1, },
-    { rw prod.le_def,
-      split,
-      { exact ha.2, },
-      { exact hb.2, }, } },
-  { intros p hp,
-  rw mem_set_of_eq at hp,
-  cases hp with a,
-  cases hp_h with b hab,
-  rw mem_inter_iff,
-  split,
-  { simp only [mem_compl_iff, mem_prod, mem_univ, mem_set_of_eq, not_exists, true_and, not_forall,
-      not_not],
-    use b,
-    split, { exact hab.1.2, }, { exact hab.2.2, }, },
-  { simp only [mem_compl_iff, mem_prod, mem_set_of_eq, not_exists, mem_univ, and_true, not_forall,
-      not_not],
-    use a,
-    split, { exact hab.1.1, }, { exact hab.2.1, }, }, }
-end
+lemma Ici_prod (x : α × β) : Ici x = (Ici x.1).prod (Ici x.2) := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Ici a).prod (Ici b) = Ici (a, b) := rfl
 
-end prod
+@[simp] lemma bot_prod_bot : (⊥ : upper_set α).prod (⊥ : upper_set β) = ⊥ := ext univ_prod_univ
+@[simp] lemma prod_top (s : upper_set α) : s.prod (⊤ : upper_set β) = ⊤ := ext prod_empty
+@[simp] lemma top_prod (t : upper_set β) : (⊤ : upper_set α).prod t = ⊤ := ext empty_prod
+
+end upper_set
+
+namespace lower_set
+
+/-- The product of two lower sets as a lower set. -/
+def prod (s : lower_set α) (t : lower_set β) : lower_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
+
+@[simp] lemma coe_prod (s : lower_set α) (t : lower_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
+rfl
+
+@[simp] lemma mem_prod {s : lower_set α} {t : lower_set β} : x ∈ s.prod t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
+iff.rfl
+
+lemma Iic_prod (x : α × β) : Iic x = (Iic x.1).prod (Iic x.2) := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Iic a).prod (Iic b) = Iic (a, b) := rfl
+
+@[simp] lemma prod_bot (s : lower_set α) : s.prod (⊥ : lower_set β) = ⊥ := ext prod_empty
+@[simp] lemma bot_prod (t : lower_set β) : (⊥ : lower_set α).prod t = ⊥ := ext empty_prod
+@[simp] lemma top_prod_top : (⊤ : lower_set α).prod (⊤ : lower_set β) = ⊤ := ext univ_prod_univ
+
+end lower_set
+
+@[simp] lemma upper_closure_prod (s : set α) (t : set β) :
+  upper_closure (s ×ˢ t) = (upper_closure s).prod (upper_closure t) :=
+by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
+
+@[simp] lemma lower_closure_prod (s : set α) (t : set β) :
+  lower_closure (s ×ˢ t) = (lower_closure s).prod (lower_closure t) :=
+by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
+
+end preorder

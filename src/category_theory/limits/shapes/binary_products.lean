@@ -423,13 +423,6 @@ lim_map_π _ _
   prod.map (𝟙 X) (𝟙 Y) = 𝟙 _ :=
 by { ext; simp }
 
-@[simp]
-lemma prod.map_comp_comp {X₁ X₂ Y₁ Y₂ Z₁ Z₂ : C}
-  [has_binary_product X₁ X₂] [has_binary_product Y₁ Y₂] [has_binary_product Z₁ Z₂]
-  (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
-  prod.map (f₁ ≫ g₁) (f₂ ≫ g₂) = prod.map f₁ f₂ ≫ prod.map g₁ g₂ :=
-by { ext; simp }
-
 @[simp] lemma prod.lift_fst_snd {X Y : C} [has_binary_product X Y] :
   prod.lift prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
 by { ext; simp }
@@ -506,13 +499,7 @@ by simp
 lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
-begin
-  ext,
-  { rw [category.assoc, prod.map_fst, prod.map_fst, ←category.assoc, prod.lift_fst,
-      category.id_comp] },
-  { rw [category.assoc, prod.map_snd, prod.map_snd, ←category.assoc, prod.lift_snd,
-      category.id_comp] },
-end
+by simp
 
 instance {X : C} [has_binary_product X X] : is_split_mono (diag X) :=
 is_split_mono.mk' { retraction := prod.fst }

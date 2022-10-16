@@ -395,6 +395,16 @@ begin
     { simp only [finset.mem_singleton, set.Inter_Inter_eq_left], }, },
 end
 
+lemma generate_from_pi_Union_Inter_singleton_left_subsets' (s : ι → set α) (S : finset ι) :
+  generate_from (pi_Union_Inter (λ k : ι, {s k}) {T | T ⊆ S}) =
+    generate_from {t | ∃ k ∈ S, s k = t} :=
+begin
+  have : {T | T ⊆ S} = {T | (T : set ι) ⊆ ↑S},
+  { ext1 T, simp only [finset.coe_subset], },
+  rw this,
+  exact generate_from_pi_Union_Inter_singleton_left_subsets s (S : set ι),
+end
+
 /-- If `S` is union-closed and `π` is a family of π-systems, then `pi_Union_Inter π S` is a
 π-system. -/
 lemma is_pi_system_pi_Union_Inter {α ι} (π : ι → set (set α))

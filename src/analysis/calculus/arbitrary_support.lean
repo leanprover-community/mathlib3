@@ -11,7 +11,7 @@ import analysis.calculus.specific_functions
 We show that any open set is the support of a smooth function taking values in `[0, 1]`
 -/
 open set metric topological_space
-open_locale topological_space
+open_locale topological_space nnreal
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 
@@ -62,4 +62,26 @@ begin
     apply exists_smooth_support_subset,
     exact hs.mem_nhds (u n).2 },
   choose g g_supp g_comp_supp g_smooth g_range gu using this,
+  obtain ⟨δ, δpos, c, δc⟩ :
+    ∃ (δ : ℕ → ℝ≥0), (∀ (i : ℕ), 0 < δ i) ∧ ∃ (c : nnreal), has_sum δ c ∧ c < 1,
+    from nnreal.exists_pos_sum_of_countable one_ne_zero ℕ,
+  have : ∀ (n : ℕ), ∃ r, 0 < r ∧ ∀ i ≤ n, ∀ x, ∥iterated_fderiv ℝ i (λ x, r * g n x) x∥ ≤ δ n,
+  { assume n,
+    have : ∃ r, ∀ x, ∥g n x∥ ≤ r,
+    { rcases (g_smooth n).continuous.norm.bdd_above_range_of_has_compact_support
+        ((g_comp_supp n).comp_left norm_zero) with ⟨r, hr⟩,
+      exact ⟨r, λ x, hr (mem_range_self _)⟩ },
+    have : ∀ i, ∃ r, ∀ x, ∥iterated_fderiv ℝ i (λ x, g n x) x∥ ≤ r,
+    { assume i,
+      have A : continuous (iterated_fderiv ℝ i (λ (x : E), g n x)),
+        from (g_smooth n).continuous_iterated_fderiv le_top,
+      have : bdd_above (range (λ x, ∥iterated_fderiv ℝ i (λ (x : E), g n x) x∥)),
+      { apply A.norm.bdd_above_range_of_has_compact_support,
+        apply has_compact_support.comp_left _ norm_zero,
+
+      }
+
+    }
+
+  }
 end

@@ -493,9 +493,6 @@ begin
   apply set.mem_union_right,
   exact set.mem_image_of_mem _ hx
 end
-.
-lemma comp_to_ring_hom {C : Type*} [semiring C] [algebra R C] (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) :
-  (φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
 
 /-- If `f : A →ₐ[R] B` is a sujection between finitely-presented `R`-algebras, then the kernel of
 `f` is finitely generated. -/
@@ -504,7 +501,7 @@ lemma ker_fg_of_surjective (f : A →ₐ[R] B) (hf : function.surjective f)
 begin
   obtain ⟨n, g, hg, hg'⟩ := hRA,
   convert (ker_fg_of_mv_polynomial (f.comp g) (hf.comp hg) hRB).map g.to_ring_hom,
-  simp_rw [ring_hom.ker_eq_comap_bot, alg_hom.to_ring_hom_eq_coe, comp_to_ring_hom],
+  simp_rw [ring_hom.ker_eq_comap_bot, alg_hom.to_ring_hom_eq_coe, alg_hom.comp_to_ring_hom],
   rw [← ideal.comap_comap, ideal.map_comap_of_surjective (g : mv_polynomial (fin n) R →+* A) hg],
 end
 

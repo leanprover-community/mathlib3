@@ -620,15 +620,16 @@ begin
   simp_rw [is_scalar_tower.algebra_map_apply R S (S ⊗[R] S), is_scalar_tower.algebra_map_smul]
 end
 
-instance : linear_map.compatible_smul
-  (kaehler_differential.ideal R S) (kaehler_differential.ideal R S).cotangent R (S ⊗[R] S) :=
-begin
-  apply linear_map.is_scalar_tower.compatible_smul,
-end
+-- instance foobar : linear_map.compatible_smul
+--   (kaehler_differential.ideal R S) Ω[S⁄R] R (S ⊗[R] S) :=
+-- linear_map.is_scalar_tower.compatible_smul
+
+def kaehler_differential.from_ideal : kaehler_differential.ideal R S →ₗ[S ⊗[R] S] Ω[S⁄R] :=
+(kaehler_differential.ideal R S).to_cotangent
 
 /-- (Implementation) The underlying linear map of the derivation into `Ω[S⁄R]`. -/
 def kaehler_differential.D_linear_map : S →ₗ[R] Ω[S⁄R] :=
-((kaehler_differential.ideal R S).to_cotangent.restrict_scalars R).comp
+((kaehler_differential.from_ideal R S).restrict_scalars R).comp
   ((tensor_product.include_right.to_linear_map - tensor_product.include_left.to_linear_map :
     S →ₗ[R] S ⊗[R] S).cod_restrict ((kaehler_differential.ideal R S).restrict_scalars R)
       (kaehler_differential.one_smul_sub_smul_one_mem_ideal R) : _ →ₗ[R] _)
@@ -855,62 +856,13 @@ section exact_sequence
 
 local attribute [irreducible] kaehler_differential
 
-variables (A B : Type*) [comm_ring A] [comm_ring B] [algebra R B] [algebra A B]
-
-/-- If `A` and `B` are `R`-algebras, then `Ω[B⁄A]` is naturally an `R`-module. This is not a
-instance since Lean would get confused otherwise. -/
-def kaehler_differential.module_of_tower : module R Ω[B⁄A] :=
-module.comp_hom Ω[B⁄A] (algebra_map R B)
-
-local attribute [priority 100, instance] kaehler_differential.module_of_tower
-
-instance kaehler_differential.is_scalar_tower_of_tower : is_scalar_tower R B Ω[B⁄A] :=
-restrict_scalars.is_scalar_tower R B Ω[B⁄A]
-
-variables [algebra R A] [is_scalar_tower R A B] [algebra S B]
-
-instance kaehler_differential.is_scalar_tower_of_tower''' : is_scalar_tower R A Ω[B⁄S] :=
-⟨λ x y z, show algebra_map A B (x • y) • z = algebra_map R B x • (algebra_map A B y • z),
-  by rw [smul_smul, algebra.smul_def, map_mul, ← is_scalar_tower.algebra_map_apply]⟩
-
-instance kaehler_differential.is_scalar_tower_of_tower' :
-  is_scalar_tower R A Ω[B⁄A] :=
-begin
-  convert kaehler_differential.is_scalar_tower_of_tower''' R A A B,
-end
--- ⟨λ x y z, show (x • y) • z = algebra_map R B x • y • z, by
---   rw [algebra.smul_def, mul_smul, is_scalar_tower.algebra_map_apply R A B,
---     algebra_map_smul B (algebra_map R A x) (y • z)]⟩
-
-instance kaehler_differential.is_scalar_tower_of_tower'' :
-  is_scalar_tower R A Ω[B⁄R] := infer_instance
-
-variables [is_scalar_tower R S B]
-
-/-- The map `Ω[B⁄R] →ₗ[B] Ω[B⁄A]` given a tower `R → A → B`.
-This is the second map in the exact sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0`. -/
-def kaehler_differential.base_change : Ω[B⁄R] →ₗ[B] Ω[B⁄A] :=
-((kaehler_differential.D A B).restrict_scalars R).lift_kaehler_differential
-
-lemma kaehler_differential.base_change_comp_D :
-  (kaehler_differential.base_change R A B).comp_der (kaehler_differential.D R B) =
-    ((kaehler_differential.D A B).restrict_scalars R) :=
-((kaehler_differential.D A B).restrict_scalars R).lift_kaehler_differential_comp
-
-lemma kaehler_differential.base_change_D (x : B) :
-  kaehler_differential.base_change R A B (kaehler_differential.D R B x) =
-    kaehler_differential.D A B x :=
-derivation.congr_fun (kaehler_differential.base_change_comp_D R A B : _) x
-
-/-- This shows the sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0` is exact at `Ω[B⁄A]`. -/
-lemma kaehler_differential.base_change_surjective :
-  function.surjective (kaehler_differential.base_change R A B) :=
-begin
-  rw [← linear_map.range_eq_top, _root_.eq_top_iff, ← kaehler_differential.span_range_derivation,
-    submodule.span_le],
-  rintros _ ⟨x, rfl⟩,
-  refine ⟨kaehler_differential.D R B x, kaehler_differential.base_change_D R A B x⟩,
-end
+/- We have the commutative diagram
+A --→ B
+↑     ↑
+|     |
+R --→ S -/
+variables (A B : Type*) [comm_ring A] [comm_ring B] [algebra R A] [algebra R B] [algebra A B]
+variables [algebra A B] [algebra S B] [is_scalar_tower R A B] [is_scalar_tower R S B]
 
 variables {R B}
 
@@ -923,110 +875,343 @@ def derivation.comp_algebra_map [module A M] [module B M] [is_scalar_tower A B M
   to_linear_map := d.to_linear_map.comp (is_scalar_tower.to_alg_hom R A B).to_linear_map }
 
 variables (R B)
-variables [algebra S B] [is_scalar_tower R S B]
 
-/-- The map `Ω[A⁄R] →ₗ[A] Ω[B⁄R]` given a tower `R → A → B` -/
-def kaehler_differential.map_of_algebra : Ω[A⁄R] →ₗ[A] Ω[B⁄S] :=
-derivation.lift_kaehler_differential _
+/-- The map `Ω[A⁄R] →ₗ[A] Ω[B⁄R]` given a square
+A --→ B
+↑     ↑
+|     |
+R --→ S -/
+def kaehler_differential.map : Ω[A⁄R] →ₗ[A] Ω[B⁄S] :=
+derivation.lift_kaehler_differential
+  (((kaehler_differential.D S B).restrict_scalars R).comp_algebra_map A)
 
-local attribute [irreducible] kaehler_differential
+lemma kaehler_differential.map_comp_der :
+  (kaehler_differential.map R S A B).comp_der (kaehler_differential.D R A) =
+    (((kaehler_differential.D S B).restrict_scalars R).comp_algebra_map A) :=
+derivation.lift_kaehler_differential_comp _
 
-lemma kaehler_differential.map_of_algebra_comp_der :
-    (kaehler_differential.map_of_algebra R A B).comp_der (kaehler_differential.D R A) =
-      (kaehler_differential.D R B).comp_algebra_map A :=
-derivation.lift_kaehler_differential_comp ((kaehler_differential.D R B).comp_algebra_map A)
+lemma kaehler_differential.map_D (x : A) :
+  kaehler_differential.map R S A B (kaehler_differential.D R A x) =
+    kaehler_differential.D S B (algebra_map A B x) :=
+derivation.congr_fun (kaehler_differential.map_comp_der R S A B) x
 
-lemma kaehler_differential.map_of_algebra_D (x : A) :
-    kaehler_differential.map_of_algebra R A B (kaehler_differential.D R A x) =
-      kaehler_differential.D R B (algebra_map A B x) :=
-derivation.congr_fun (kaehler_differential.map_of_algebra_comp_der R A B) x
+def kaehler_differential.map_semilinear : Ω[A⁄R] →ₛₗ[algebra_map A B] Ω[B⁄S] :=
+{ ..kaehler_differential.map R S A B }
 
-variables {R}
+open is_scalar_tower (to_alg_hom)
 
-/-- An `R`-algebra map `A →ₐ[R] B` induces an `R`-module map `Ω[A⁄R] →ₗ[R] Ω[B⁄R]`. -/
-def kaehler_differential.map {A B : Type*} [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
-  (f : A →ₐ[R] B) : Ω[A⁄R] →ₗ[R] Ω[B⁄R] :=
-@@kaehler_differential.map_of_algebra R _ A B _ _ _ f.to_ring_hom.to_algebra _
-  (@@is_scalar_tower.of_algebra_map_eq' _ _ _ _ f.to_ring_hom.to_algebra _ f.comp_algebra_map.symm)
-
-lemma kaehler_differential.map_comp_der {A B : Type*} [comm_ring A] [comm_ring B] [algebra R A]
-  [algebra R B] (f : A →ₐ[R] B) :
-    (kaehler_differential.map f).comp (kaehler_differential.D R A).to_linear_map =
-      (kaehler_differential.D R B).to_linear_map.comp f.to_linear_map :=
+lemma kaehler_differential.map_surjective_of_surjective
+  (h : function.surjective (algebra_map A B)) :
+  function.surjective (kaehler_differential.map R S A B) :=
 begin
-  letI := f.to_ring_hom.to_algebra,
-  haveI := is_scalar_tower.of_algebra_map_eq' f.comp_algebra_map.symm,
-  exact linear_map.ext (derivation.congr_fun (kaehler_differential.map_of_algebra_comp_der R A B))
+  rw [← linear_map.range_eq_top, _root_.eq_top_iff, ← @submodule.restrict_scalars_top B A,
+    ← kaehler_differential.span_range_derivation, ← submodule.span_eq_restrict_scalars _ _ _ _ h,
+    submodule.span_le],
+  rintros _ ⟨x, rfl⟩,
+  obtain ⟨y, rfl⟩ := h x,
+  rw ← kaehler_differential.map_D R S A B,
+  exact ⟨_, rfl⟩,
 end
 
-variables (R)
+section presentation
+
+open kaehler_differential (D)
+open finsupp (single)
+
+noncomputable
+def kaehler_differential.total_ker : submodule S (S →₀ S) :=
+submodule.span S
+  ((set.range (λ (x : S × S), single x.1 1 + single x.2 1 - single (x.1 + x.2) 1)) ∪
+  (set.range (λ (x : S × S), single x.2 x.1 + single x.1 x.2 - single (x.1 * x.2) 1)) ∪
+  (set.range (λ x : R, single (algebra_map R S x) 1)))
+
+local notation x `𝖣` y := (kaehler_differential.total_ker R S).mkq (single y x)
+
+lemma kaehler_differential.total_ker_mkq_single_add (x y z) :
+  (z 𝖣 (x + y)) = (z 𝖣 x) + (z 𝖣 y) :=
+begin
+  rw [← map_add, eq_comm, ← sub_eq_zero, ← map_sub, submodule.mkq_apply,
+    submodule.quotient.mk_eq_zero],
+  simp_rw [← finsupp.smul_single_one _ z, ← smul_add, ← smul_sub],
+  exact submodule.smul_mem _ _ (submodule.subset_span (or.inl $ or.inl $ ⟨⟨_, _⟩, rfl⟩)),
+end
+
+lemma kaehler_differential.total_ker_mkq_single_mul (x y z) :
+  (z 𝖣 (x * y)) = ((z * x) 𝖣 y) + ((z * y) 𝖣 x) :=
+begin
+  rw [← map_add, eq_comm, ← sub_eq_zero, ← map_sub, submodule.mkq_apply,
+    submodule.quotient.mk_eq_zero],
+  simp_rw [← finsupp.smul_single_one _ z, ← @smul_eq_mul _ _ z,
+    ← finsupp.smul_single, ← smul_add, ← smul_sub],
+  exact submodule.smul_mem _ _ (submodule.subset_span (or.inl $ or.inr $ ⟨⟨_, _⟩, rfl⟩)),
+end
+
+lemma kaehler_differential.total_ker_mkq_single_algebra_map (x y) :
+  (y 𝖣 (algebra_map R S x)) = 0 :=
+begin
+  rw [submodule.mkq_apply, submodule.quotient.mk_eq_zero, ← finsupp.smul_single_one _ y],
+  exact submodule.smul_mem _ _ (submodule.subset_span (or.inr $ ⟨_, rfl⟩)),
+end
+
+lemma kaehler_differential.total_ker_mkq_single_algebra_map_one (x) :
+  (x 𝖣 1) = 0 :=
+begin
+  rw [← (algebra_map R S).map_one, kaehler_differential.total_ker_mkq_single_algebra_map],
+end
+
+lemma kaehler_differential.total_ker_mkq_single_smul (r : R) (x y) :
+  (y 𝖣 (r • x)) = r • (y 𝖣 x) :=
+begin
+  rw [algebra.smul_def, kaehler_differential.total_ker_mkq_single_mul,
+    kaehler_differential.total_ker_mkq_single_algebra_map, add_zero,
+    ← linear_map.map_smul_of_tower, finsupp.smul_single, mul_comm, algebra.smul_def],
+end
+
+noncomputable
+def kaehler_differential.total_ker_derivation :
+  derivation R S ((S →₀ S) ⧸ kaehler_differential.total_ker R S) :=
+{ to_fun := λ x, 1 𝖣 x,
+  map_add' := λ x y, kaehler_differential.total_ker_mkq_single_add _ _ _ _ _,
+  map_smul' := λ r s, kaehler_differential.total_ker_mkq_single_smul _ _ _ _ _,
+  map_one_eq_zero' := kaehler_differential.total_ker_mkq_single_algebra_map_one _ _ _,
+  leibniz' := λ a b, (kaehler_differential.total_ker_mkq_single_mul _ _ _ _ _).trans
+    (by { simp_rw [← finsupp.smul_single_one _ (1 * _ : S)], dsimp, simp }) }
+
+lemma kaehler_differential.total_ker_derivation_apply (x) :
+  kaehler_differential.total_ker_derivation R S x = (1 𝖣 x) := rfl
+
+attribute [simp] derivation.lift_kaehler_differential_comp_D
+
+lemma kaehler_differential.total_ker_derivation_lift_comp_total :
+  (kaehler_differential.total_ker_derivation R S).lift_kaehler_differential.comp
+    (finsupp.total S Ω[S⁄R] S (kaehler_differential.D R S)) = submodule.mkq _ :=
+begin
+  apply finsupp.lhom_ext,
+  intros a b,
+  conv_rhs { rw [← finsupp.smul_single_one a b, linear_map.map_smul] },
+  simp [kaehler_differential.total_ker_derivation_apply],
+end
+
+lemma kaehler_differential.total_ker_eq :
+  (finsupp.total S Ω[S⁄R] S (kaehler_differential.D R S)).ker =
+    kaehler_differential.total_ker R S :=
+begin
+  apply le_antisymm,
+  { conv_rhs { rw ← (kaehler_differential.total_ker R S).ker_mkq },
+    rw ← kaehler_differential.total_ker_derivation_lift_comp_total,
+    exact linear_map.ker_le_ker_comp _ _ },
+  { rw [kaehler_differential.total_ker, submodule.span_le],
+    rintros _ ((⟨⟨x, y⟩, rfl⟩|⟨⟨x, y⟩, rfl⟩)|⟨x, rfl⟩); dsimp; simp [linear_map.mem_ker] },
+end
+
+lemma kaehler_differential.total_surjective :
+  function.surjective (finsupp.total S Ω[S⁄R] S (kaehler_differential.D R S)) :=
+begin
+  rw [← linear_map.range_eq_top, finsupp.range_total, kaehler_differential.span_range_derivation],
+end
+
+-- The map `(A →₀ A) →ₗ[A] (B →₀ B)`
+local notation `finsupp_map` := ((finsupp.map_range.linear_map (algebra.of_id A B).to_linear_map)
+  .comp (finsupp.lmap_domain A A (algebra_map A B)))
+
+lemma kaehler_differential.total_ker_map (h : function.surjective (algebra_map A B)) :
+  (kaehler_differential.total_ker R A).map finsupp_map ⊔
+    submodule.span A (set.range (λ x : S, single (algebra_map S B x) (1 : B))) =
+    (kaehler_differential.total_ker S B).restrict_scalars _  :=
+begin
+  rw [kaehler_differential.total_ker, submodule.map_span, kaehler_differential.total_ker,
+    ← submodule.span_eq_restrict_scalars _ _ _ _ h],
+  simp_rw [set.image_union, submodule.span_union, ← set.image_univ, set.image_image,
+    set.image_univ, map_sub, map_add],
+  simp only [linear_map.comp_apply, finsupp.map_range.linear_map_apply, finsupp.map_range_single,
+    finsupp.lmap_domain_apply, finsupp.map_domain_single, alg_hom.to_linear_map_apply,
+    algebra.of_id_apply, ← is_scalar_tower.algebra_map_apply, map_one, map_add, map_mul],
+  simp_rw [sup_assoc, ← (h.prod_map h).range_comp],
+  congr' 3,
+  rw [sup_eq_right],
+  apply submodule.span_mono,
+  simp_rw is_scalar_tower.algebra_map_apply R S B,
+  exact set.range_comp_subset_range (algebra_map R S) (λ x, single (algebra_map S B x) (1 : B))
+end
+
+end presentation
+
+section ker_map
+
+attribute [simp] kaehler_differential.map_D
+
+lemma finsupp.sum_image_support_filter {α β γ : Type*}
+  [add_comm_monoid β] (f : α → γ) (x : α →₀ β) [decidable_eq γ] :
+  ∑ b in finset.image f x.support, x.filter (λ a, f a = b) = x :=
+begin
+  ext i,
+  simp_rw [finsupp.finset_sum_apply, finsupp.filter_apply, finset.sum_ite, finset.sum_const_zero,
+    add_zero, finset.filter_eq],
+  split_ifs,
+  { simp },
+  { rw [finset.sum_empty, eq_comm, ← finsupp.not_mem_support_iff],
+    exact λ h', h (finset.mem_image_of_mem f h') }
+end
+
+lemma finsupp.sum_support_filter_single {α β : Type*}
+  [add_comm_monoid β] (P : α → Prop) [decidable_pred P] (x : α →₀ β) :
+  ∑ i in x.support.filter P, finsupp.single i (x i) = x.filter P :=
+begin
+  rw [← (x.filter P).sum_single, finsupp.sum, finsupp.support_filter],
+  apply finset.sum_congr rfl,
+  intros i hi,
+  rw finset.mem_filter at hi,
+  rw finsupp.filter_apply_pos P x hi.2
+end
+
+lemma finsupp.map_domain_apply_eq {α β γ : Type*}
+  [add_comm_monoid β] (f : α → γ) (x : α →₀ β) (i : γ) [decidable_eq γ] :
+  x.map_domain f i = ∑ i in x.support.filter (λ j, f j = i), x i :=
+begin
+  rw [finsupp.map_domain, finsupp.sum_apply],
+  simp_rw finsupp.single_apply,
+  rw [finsupp.sum, finset.sum_ite, finset.sum_const_zero, add_zero],
+end
+
+def kaehler_differential.ker_map : submodule A Ω[A⁄R] :=
+submodule.span A (((to_alg_hom R S B).range.to_submodule.comap
+  (to_alg_hom R A B).to_linear_map).map (kaehler_differential.D R A).to_linear_map)
+
+lemma kaehler_differential.mem_ker_map_of_eq_zero {x : A} (hx : algebra_map A B x = 0) :
+   kaehler_differential.D R A x ∈ kaehler_differential.ker_map R S A B :=
+submodule.subset_span (submodule.mem_map_of_mem
+  (show algebra_map A B x ∈ (to_alg_hom R S B).range.to_submodule,
+    from hx.symm ▸ (to_alg_hom R S B).range.to_submodule.zero_mem))
+
+lemma kaehler_differential.smul_mem_ker_map_of_eq_zero {x y : A} (hx : algebra_map A B x = 0) :
+  x • kaehler_differential.D R A y ∈ kaehler_differential.ker_map R S A B :=
+begin
+  have := (kaehler_differential.D R A).leibniz x y,
+  rw ← sub_eq_iff_eq_add at this,
+  rw ← this,
+  refine sub_mem (kaehler_differential.mem_ker_map_of_eq_zero R S A B _)
+    (submodule.smul_mem _ _ $ kaehler_differential.mem_ker_map_of_eq_zero R S A B hx),
+  rw [map_mul, hx, zero_mul]
+end
+
+lemma kaehler_differential.ker_map_le :
+  kaehler_differential.ker_map R S A B ≤ (kaehler_differential.map R S A B).ker :=
+begin
+  rw [kaehler_differential.ker_map, submodule.span_le],
+  rintros _ ⟨x, ⟨y, hy : algebra_map S B y = algebra_map A B x⟩, rfl⟩,
+  simp [linear_map.mem_ker, ← hy]
+end
+
+lemma kaehler_differential.ker_map_eq_of_surjective
+  (h : function.surjective (algebra_map A B)) :
+  (kaehler_differential.map R S A B).ker = kaehler_differential.ker_map R S A B :=
+begin
+  classical,
+  refine le_antisymm _ (kaehler_differential.ker_map_le R S A B),
+  intros x hx,
+  obtain ⟨l, rfl⟩ := kaehler_differential.total_surjective _ _ x,
+  let f := (finsupp.map_range.linear_map $ (algebra.of_id A B).to_linear_map).comp
+    (finsupp.lmap_domain A A (algebra_map A B)),
+  have hf : ((finsupp.total B Ω[B⁄S] B (kaehler_differential.D S B)).restrict_scalars A).comp f =
+    (kaehler_differential.map R S A B).comp
+    (finsupp.total A Ω[A⁄R] A (kaehler_differential.D R A)),
+  { apply finsupp.lhom_ext, dsimp, simp [algebra.of_id_apply] },
+  have : f l ∈ (kaehler_differential.total_ker S B).restrict_scalars A,
+  { rw ← kaehler_differential.total_ker_eq,
+    change (((finsupp.total B Ω[B⁄S] B (kaehler_differential.D S B))
+      .restrict_scalars A).comp f) l = 0,
+    rwa hf },
+  rw [← kaehler_differential.total_ker_map R S A B h, submodule.mem_sup] at this,
+  obtain ⟨_, ⟨a, ha, rfl⟩, b, hb, e : f a + b = f l⟩ := this,
+  have : l - a ∈ (submodule.span A (set.range
+    (λ x, finsupp.single (algebra_map S B x) (1 : B)))).comap f,
+  { change f (l - a) ∈ _, rw ← eq_sub_iff_add_eq' at e, rwa [map_sub, ← e] },
+  rw ← submodule.span_preimage_eq at this,
+  rotate,
+  { exact set.range_nonempty _ },
+  { rintros _ ⟨x, rfl⟩, obtain ⟨y, hy⟩ := h (algebra_map S B x),
+    use finsupp.single y 1, simp [hy] },
+  replace this : finsupp.total A Ω[A⁄R] A (kaehler_differential.D R A) (l - a) ∈ _ :=
+    submodule.mem_map_of_mem this,
+  rw [← kaehler_differential.total_ker_eq, set_like.mem_coe, linear_map.mem_ker] at ha,
+  rw [map_sub, ha, sub_zero, submodule.map_span] at this,
+  refine set_like.le_def.mp _ this,
+  rw submodule.span_le,
+  rintros _ ⟨x, ⟨y, hy⟩, rfl⟩,
+  rw [← finsupp.sum_image_support_filter (algebra_map A B) x, map_sum, set_like.mem_coe],
+  refine sum_mem _,
+  rintros z -,
+  obtain ⟨z, rfl⟩ := h z,
+  let x' : A →₀ A := ∑ i in x.support.filter (λ a, algebra_map A B a = algebra_map A B z),
+    finsupp.single z (x i),
+  rw [← sub_add_cancel (x.filter _) x', map_add],
+  refine add_mem _ _,
+  { rw [← finsupp.sum_support_filter_single,
+      ← finset.sum_sub_distrib, map_sum],
+    refine sum_mem (λ i hi, _),
+    rw finset.mem_filter at hi,
+    rw [map_sub, finsupp.total_single, finsupp.total_single, ← smul_sub, ← map_sub],
+    refine submodule.smul_mem _ _ _,
+    apply kaehler_differential.mem_ker_map_of_eq_zero R S A B,
+    rw [map_sub, hi.2, sub_self] },
+  dsimp only [x'],
+  rw [← finsupp.single_finset_sum, finsupp.total_single],
+  have H := fun_like.congr_fun hy (algebra_map A B z),
+  dsimp at H,
+  rw [finsupp.map_domain_apply_eq, finsupp.single_apply, algebra.of_id_apply] at H,
+  split_ifs at H with h₁,
+  { exact submodule.smul_mem _ _ (submodule.subset_span (submodule.mem_map_of_mem ⟨y, h₁⟩)) },
+  { apply kaehler_differential.smul_mem_ker_map_of_eq_zero, exact H.symm }
+end
+
+end ker_map
 
 /-- The lift of the map `Ω[A⁄R] →ₗ[A] Ω[B⁄R]` to the base change along `A → B`.
 This is the first map in the exact sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0`. -/
 noncomputable
 def kaehler_differential.map_base_change : B ⊗[A] Ω[A⁄R] →ₗ[B] Ω[B⁄R] :=
-(tensor_product.is_base_change A Ω[A⁄R] B).lift (kaehler_differential.map_of_algebra R A B)
+(tensor_product.is_base_change A Ω[A⁄R] B).lift (kaehler_differential.map R R A B)
 
+@[simp]
 lemma kaehler_differential.map_base_change_tmul (x : B) (y : Ω[A⁄R]) :
   kaehler_differential.map_base_change R A B (x ⊗ₜ y) =
-    x • kaehler_differential.map_of_algebra R A B y :=
+    x • kaehler_differential.map R R A B y :=
 begin
   conv_lhs { rw [← mul_one x, ← smul_eq_mul, ← tensor_product.smul_tmul', linear_map.map_smul] },
   congr' 1,
   exact is_base_change.lift_eq _ _ _
 end
 
-/-- (Implementation)
-An auxiliary definition to show that `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0` is exact. -/
-noncomputable
-def derivation_map_base_change_range_mkq_comp_D :
-  derivation A B (Ω[B⁄R] ⧸ (kaehler_differential.map_base_change R A B).range) :=
-{ map_smul' := λ r x, begin
-    dsimp,
-    rw [algebra.smul_def, derivation.leibniz, algebra_map_smul, submodule.quotient.mk_add,
-      submodule.quotient.mk_smul, add_right_eq_self, submodule.quotient.mk_eq_zero],
-    apply submodule.smul_mem,
-    refine ⟨1 ⊗ₜ kaehler_differential.D R A r, _⟩,
-    rw [kaehler_differential.map_base_change_tmul, one_smul,
-      kaehler_differential.map_of_algebra_D],
-  end,
-  map_one_eq_zero' := by { dsimp, simp },
-  leibniz' := λ x y, by { dsimp only, simp },
-  ..((kaehler_differential.map_base_change R A B).range.mkq.restrict_scalars R).comp
-    (kaehler_differential.D R B).to_linear_map }
-
-lemma derivation_map_base_change_range_mkq_comp_D_lift_comp_base_change :
-  (derivation_map_base_change_range_mkq_comp_D R A B).lift_kaehler_differential.comp
-    (kaehler_differential.base_change R A B) =
-    (kaehler_differential.map_base_change R A B).range.mkq :=
-begin
-  ext b,
-  dsimp,
-  rw [kaehler_differential.base_change_D, derivation.lift_kaehler_differential_comp_D],
-  refl
-end
-
 /-- This shows the sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → Ω[B⁄A] → 0` is exact at `Ω[B⁄R]`. -/
 lemma kaehler_differential.map_base_change_range_eq_ker :
   (kaehler_differential.map_base_change R A B).range =
-    (kaehler_differential.base_change R A B).ker :=
+    (kaehler_differential.map R A B B).ker :=
 begin
   apply le_antisymm,
   { rw [kaehler_differential.map_base_change, is_base_change.range_lift, submodule.span_le,
       linear_map.range_eq_map, ← kaehler_differential.span_range_derivation, submodule.map_span],
-    show submodule.span A _ ≤ (kaehler_differential.base_change R A B).ker.restrict_scalars A,
+    show submodule.span A _ ≤ (kaehler_differential.map R A B B).ker.restrict_scalars A,
     rw submodule.span_le,
     rintros _ ⟨_, ⟨x, rfl⟩, rfl⟩,
-    show (kaehler_differential.base_change R A B) _ = 0,
-    rw [kaehler_differential.map_of_algebra_D, kaehler_differential.base_change_D,
+    show (kaehler_differential.map R A B B) _ = 0,
+    rw [kaehler_differential.map_D, kaehler_differential.map_D, ← is_scalar_tower.algebra_map_apply,
       derivation.map_algebra_map] },
-  { rw [← (kaehler_differential.map_base_change R A B).range.ker_mkq,
-      ← derivation_map_base_change_range_mkq_comp_D_lift_comp_base_change,
-      linear_map.ker_comp, ← submodule.comap_bot],
-    exact submodule.comap_mono bot_le }
+  { rw [kaehler_differential.ker_map_eq_of_surjective R A B B function.surjective_id,
+      kaehler_differential.ker_map, submodule.span_le],
+    simp only [alg_hom.to_linear_map, ring_hom.id, kaehler_differential.map_base_change,
+      is_base_change.range_lift, is_scalar_tower.coe_to_alg_hom', id.map_eq_id, ring_hom.coe_mk,
+      derivation.to_linear_map_eq_coe, submodule.map_coe, derivation.coe_fn_coe,
+      set.image_subset_iff, submodule.comap_coe, linear_map.coe_mk, subalgebra.coe_to_submodule,
+      alg_hom.coe_range, set.preimage_id],
+    rintros _ ⟨x, rfl⟩,
+    rw [set.mem_preimage, ← kaehler_differential.map_D R R A B],
+    exact submodule.subset_span ⟨_, rfl⟩ }
 end
-.
 
+/-- Given a ring homomorphism `A → B` with kernel `I`, this is the natural map
+`B ⊗[A] I → B ⊗[A] Ω[A⁄R]` sending `x ⊗ y` to `x ⊗ D y`.
+If `A → B` is surjective, then this is part of the exact sequence
+`B ⊗[A] I → B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → 0`. -/
 noncomputable
 def kaehler_differential.from_base_change_ker : B ⊗[A] (algebra_map A B).ker →ₗ[B] B ⊗[A] Ω[A⁄R] :=
 (tensor_product.is_base_change A (algebra_map A B).ker B).lift
@@ -1038,7 +1223,141 @@ def kaehler_differential.from_base_change_ker : B ⊗[A] (algebra_map A B).ker �
     ← is_scalar_tower.algebra_map_smul B (x : A) (_ : B ⊗[A] Ω[A⁄R]),
     (show algebra_map A B x = 0, from x.prop), zero_smul] }
 
-lemma kaehler_differential.from_base_change_ker_range_eq_ker :
+@[simp]
+lemma kaehler_differential.from_base_change_ker_tmul (x : B) (y : (algebra_map A B).ker) :
+  kaehler_differential.from_base_change_ker R A B (x ⊗ₜ y) = x ⊗ₜ kaehler_differential.D R A y :=
+begin
+  rw [← mul_one x, ← smul_eq_mul, ← tensor_product.smul_tmul', ← tensor_product.smul_tmul',
+    linear_map.map_smul],
+  congr' 1,
+  exact is_base_change.lift_eq _ _ _
+end
+
+universes u v w
+
+noncomputable
+instance module.quotient_of_ring_hom_surjective {R : Type u} {S : Type v} {M : Type w} [comm_ring R] [comm_ring S]
+  [add_comm_group M] [module R M] {f : R →+* S} [h : ring_hom_surjective f] :
+  module S (M ⧸ (f.ker • ⊤ : submodule R M)) :=
+module.comp_hom _ $ ring_hom.lift_of_surjective _ h.1
+  ⟨module.to_module_End R (M ⧸ f.ker • (⊤ : submodule R M)),
+  by { intros x hx, ext m, dsimp,
+    rw [← submodule.quotient.mk_smul, submodule.quotient.mk_eq_zero],
+    exact submodule.smul_mem_smul hx trivial }⟩
+
+lemma module.quotient_of_ring_hom_surjective_smul {R : Type u} {S : Type v} {M : Type w} [comm_ring R] [comm_ring S]
+  [add_comm_group M] [module R M] {f : R →+* S} [h : ring_hom_surjective f]
+  (r : R) (x : M ⧸ (f.ker • ⊤ : submodule R M)) : f r • x = r • x :=
+begin
+  change (ring_hom.lift_of_surjective _ h.1 ⟨_, _⟩ $ f r) • x = _,
+  rw ring_hom.lift_of_right_inverse_comp_apply,
+  refl,
+end
+
+instance {R : Type u} {S : Type v} {M : Type w} [comm_ring R] [comm_ring S]
+  [add_comm_group M] [algebra R S] [module R M] [h : ring_hom_surjective (algebra_map R S)] :
+  is_scalar_tower R S (M ⧸ ((algebra_map R S).ker • ⊤ : submodule R M)) :=
+begin
+  constructor,
+  intros x y z,
+  obtain ⟨y, rfl⟩ := h.1 y,
+  rw [module.quotient_of_ring_hom_surjective_smul, smul_smul,
+    ← module.quotient_of_ring_hom_surjective_smul (x * y) z, map_mul, ← algebra.smul_def],
+end
+
+lemma {v₁ v₂ v₃} is_base_change.of_lift_unique' {R : Type*} {S : Type v₁} {M : Type v₂} {N : Type v₃}
+  [comm_ring R] [comm_ring S]
+  [add_comm_group M] [add_comm_group N] [module R M] [module R N] [module S N] [algebra R S]
+  [is_scalar_tower R S N] {f : M →ₗ[R] N}
+  (h : ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_group Q], by exactI ∀ [module R Q] [module S Q],
+    by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
+      ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g) : is_base_change S f :=
+sorry
+
+lemma is_base_change_of_ring_hom_surjective (R S M : Type*)
+  [comm_ring R] [comm_ring S]
+  [add_comm_group M] [algebra R S] [module R M] [h : ring_hom_surjective (algebra_map R S)] :
+  is_base_change S ((algebra_map R S).ker • ⊤ : submodule R M).mkq :=
+begin
+  apply is_base_change.of_lift_unique',
+  introsI Q h₁ h₂ h₃ h₄ f',
+  let f'' := (ring_hom.ker (algebra_map R S) • ⊤ : submodule R M).liftq f' _,
+  swap,
+  { intros x hx,
+    apply submodule.smul_induction_on hx,
+    { rintros r (hr : algebra_map R S r = 0) n -,
+      rw [linear_map.mem_ker, f'.map_smul, ← algebra_map_smul S r (f' n), hr, zero_smul] },
+    { intros x y hx hy, exact add_mem hx hy } },
+  { refine ⟨{ map_smul' := _, ..f'' }, _, _⟩,
+    { intros r x, obtain ⟨r, rfl⟩ := h.1 r, simp },
+    { ext x, simp },
+    { rintros f''' rfl, apply linear_map.ext (λ x, _),
+      obtain ⟨x, rfl⟩ := submodule.mkq_surjective _ x, simp } },
+end
+
+noncomputable
+def is_base_change.equiv_of_surjective {R S M N : Type*} [comm_ring R] [comm_ring S]
+  [add_comm_group M] [add_comm_group N] [module R M] [module R N] [module S N] [algebra R S]
+  [is_scalar_tower R S N] {f : M →ₗ[R] N} (hf : is_base_change S f)
+  (h : function.surjective (algebra_map R S)) :
+    (M ⧸ (algebra_map R S).ker • (⊤ : submodule R M)) ≃ₗ[R] N :=
+begin
+  haveI : ring_hom_surjective (algebra_map R S) := ⟨h⟩,
+  exact ((is_base_change_of_ring_hom_surjective R S M)
+    .equiv.symm.trans hf.equiv).restrict_scalars R,
+end
+
+lemma is_base_change.equiv_of_surjective_mk {R S M N : Type*} [comm_ring R] [comm_ring S]
+  [add_comm_group M] [add_comm_group N] [module R M] [module R N] [module S N] [algebra R S]
+  [is_scalar_tower R S N] {f : M →ₗ[R] N} (hf : is_base_change S f)
+  (h : function.surjective (algebra_map R S)) (x : M) :
+    is_base_change.equiv_of_surjective hf h (submodule.quotient.mk x) = f x :=
+begin
+  rw [is_base_change.equiv_of_surjective, linear_equiv.restrict_scalars_apply,
+    linear_equiv.trans_apply, ← submodule.mkq_apply, is_base_change.equiv_symm_apply,
+    is_base_change.equiv_tmul, one_smul],
+end
+.
+lemma is_base_change.surjective_of_surjective {R S M N : Type*} [comm_ring R] [comm_ring S]
+  [add_comm_group M] [add_comm_group N] [module R M] [module R N] [module S N] [algebra R S]
+  [is_scalar_tower R S N] {f : M →ₗ[R] N} (hf : is_base_change S f)
+  (h : function.surjective (algebra_map R S)) : function.surjective f :=
+begin
+  intro x,
+  obtain ⟨y, hy⟩ := submodule.quotient.mk_surjective _
+    ((is_base_change.equiv_of_surjective hf h).symm x),
+  use y,
+  rw [← is_base_change.equiv_of_surjective_mk hf h, hy, linear_equiv.apply_symm_apply],
+end
+
+/-- If `A → B` is surjective, then `Ω[B⁄A] = 0`. -/
+lemma kaehler_differential.subsingleton_of_surjective
+  (hf : function.surjective (algebra_map A B)) : subsingleton Ω[B⁄A] :=
+begin
+  suffices : (⊤ : submodule B Ω[B⁄A]) = ⊥,
+  { apply subsingleton_of_forall_eq (0 : Ω[B⁄A]),
+    intros x, show x ∈ (⊥ : submodule B Ω[B⁄A]), rw ← this, trivial },
+  rw [eq_bot_iff, ← kaehler_differential.span_range_derivation, submodule.span_le],
+  rintro _ ⟨x, rfl⟩, obtain ⟨x, rfl⟩ := hf x, simp,
+end
+
+/-- If `A → B` is surjective with kernel `I`,
+then `B ⊗[A] I → B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → 0` is exact at `Ω[B⁄R]` -/
+lemma kaehler_differential.map_base_change_surjective
+  (hf : function.surjective (algebra_map A B)) :
+    function.surjective (kaehler_differential.map_base_change R A B) :=
+begin
+  haveI := kaehler_differential.subsingleton_of_surjective A B hf,
+  rw [← linear_map.range_eq_top, kaehler_differential.map_base_change_range_eq_ker,
+    _root_.eq_top_iff],
+  rintros x -,
+  exact subsingleton.elim _ _
+end
+
+/-- If `A → B` is surjective with kernel `I`,
+then `B ⊗[A] I → B ⊗[A] Ω[A⁄R] → Ω[B⁄R] → 0` is exact at `B ⊗[A] Ω[A⁄R]` -/
+lemma kaehler_differential.from_base_change_ker_range_eq_ker
+  (hf : function.surjective (algebra_map A B)) :
   (kaehler_differential.from_base_change_ker R A B).range =
     (kaehler_differential.map_base_change R A B).ker :=
 begin
@@ -1048,11 +1367,21 @@ begin
     show kaehler_differential.map_base_change R A B
       (tensor_product.mk A B _ 1 $ kaehler_differential.D R A x) = 0,
     rw [kaehler_differential.map_base_change, is_base_change.lift_eq,
-      kaehler_differential.map_of_algebra_D, hx, map_zero] },
-  { rw [← (kaehler_differential.map_base_change R A B).range.ker_mkq,
-      ← derivation_map_base_change_range_mkq_comp_D_lift_comp_base_change,
-      linear_map.ker_comp, ← submodule.comap_bot],
-    exact submodule.comap_mono bot_le }
+      kaehler_differential.map_D, hx, map_zero] },
+  { intros x hx,
+    obtain ⟨x, rfl⟩ := (tensor_product.is_base_change A Ω[A⁄R] B).surjective_of_surjective hf x,
+    rw [tensor_product.mk_apply, linear_map.mem_ker,
+      kaehler_differential.map_base_change_tmul, one_smul, ← linear_map.mem_ker,
+      kaehler_differential.ker_map_eq_of_surjective _ _ _ _ hf] at hx,
+    rw [← submodule.restrict_scalars_mem A (_ : submodule B $ B ⊗[A] Ω[A⁄R]),
+      ← submodule.mem_comap],
+    refine set_like.le_def.mp _ hx,
+    rw [kaehler_differential.ker_map, submodule.span_le],
+    rintros _ ⟨x, ⟨y, hy : algebra_map R B y = algebra_map A B x⟩, rfl⟩,
+    dsimp,
+    refine ⟨1 ⊗ₜ ⟨x - algebra_map R A y, _⟩, _⟩,
+    { simp [ring_hom.mem_ker, ← hy, ← is_scalar_tower.algebra_map_apply] },
+    { simp }  }
 end
 end exact_sequence
 

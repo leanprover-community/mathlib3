@@ -441,6 +441,8 @@ end
 
 variables {R S M}
 
+/-- If `f : M →ₗ[R] N` is the base change along a surjection `R → S` with kernel `I`,
+then `N` is linearly equivalent to `M / IM`. -/
 noncomputable
 def is_base_change.equiv_of_surjective {f : M →ₗ[R] N} (hf : is_base_change S f)
   (h : function.surjective (algebra_map R S)) :

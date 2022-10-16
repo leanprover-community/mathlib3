@@ -324,7 +324,7 @@ end
 lemma chain_height_insert_of_forall_lt (x : α) (hx : ∀ a ∈ s, a < x) :
   (insert x s).chain_height = s.chain_height + 1 :=
 begin
-  rw [chain_height_order_dual s s rfl, ← chain_height_insert_of_forall_lt],
+  rw [chain_height_order_dual s s rfl, ← chain_height_insert_of_lt_forall],
   { apply chain_height_order_dual, refl },
   { exact hx },
 end
@@ -389,7 +389,7 @@ begin
       refine le_trans _ (le_supr₂ _ ⟨p, hp, rfl⟩),
       exact (with_top.coe_untop _ _).symm.le },
     { rw [← nat.add_one_le_iff, ← with_top.coe_le_coe, with_top.coe_add, with_top.coe_untop,
-        with_top.coe_untop, with_top.coe_one, ← set.chain_height_insert_of_forall_gt _ q.1],
+        with_top.coe_untop, with_top.coe_one, ← set.chain_height_insert_of_forall_lt _ q.1],
       { apply set.chain_height_le_of_subset, rintros _ (rfl|⟨e' : _ < _, hx⟩),
         exacts [⟨(lt_of_le_of_ne e h : _), q.2⟩, ⟨e'.trans_le e, hx⟩] },
       { exact λ _ h, h.1 } }

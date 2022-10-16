@@ -222,7 +222,7 @@ end
     Haar measure equal to the lebesgue measure on ℝ^n. -/
 def unit_cube : positive_compacts (ι → ℝ) :=
 { carrier := Icc 0 1,
-  compact' := by { rw ←pi_univ_Icc, exact is_compact_univ_pi (λ i, is_compact_Icc) },
+  is_compact' := by { rw ←pi_univ_Icc, exact is_compact_univ_pi (λ i, is_compact_Icc) },
   interior_nonempty' := begin
     simp_rw [←pi_univ_Icc, pi.zero_apply, pi.one_apply, interior_pi_set finite_univ, interior_Icc,
       univ_pi_nonempty_iff],
@@ -379,54 +379,22 @@ end measure_theory
 --   almost_disjoint := by simp,
 --   covers := λ v, by simp } }
 
--- instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
---   measure_space (subtype p) :=
--- { volume := measure.comap subtype.val volume,
---   ..subtype.measurable_space }
-
--- lemma volume_subtype_univ {V : Type*} [measure_space V] {p : set V} (hmp : measurable_set p) :
---   volume (set.univ : set (subtype p)) = volume p :=
--- begin
---   dsimp only [measure_space.volume],
---   rw [measure.comap_apply _ subtype.val_injective, set.image_univ],
---   { congr,
---     exact subtype.range_val, },
---   { intros x,
---     exact measurable_set.subtype_image hmp, },
---   { exact measurable_set.univ, }
--- end
-
 namespace subtype
-
 
 variables {V : Type*} [measure_space V] {p : V → Prop}
 variables {s t : set V}
 
-lemma volume_def {s : set V} : (volume : measure s) = volume.comap subtype.val := rfl
-
-lemma measurable_set.null_measurable_set_subtype_image {s : set V} {t : set s}
-  (hs : null_measurable_set s) (ht : measurable_set t) :
-  null_measurable_set ((coe : s → V) '' t) :=
-sorry
 
 open function
-lemma comap_apply₀ {α β} {s} [measurable_space α] {mβ : measurable_space β} (f : α → β)
-  (μ : measure β)
-  (hfi : injective f) (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ)
-  (hs : measurable_set s) :
-comap f μ s = μ (f '' s) := sorry
+open measure_theory
+open subtype
 
 @[simp] lemma volume_preimage_coe (hs : null_measurable_set s) (ht : measurable_set t) :
   volume ((coe : s → V) ⁻¹' t) = volume (t ∩ s) :=
-begin
-  dsimp only [measure_space.volume],
-  rw [comap_apply₀ _ _ subtype.coe_injective
-    (λ h, measurable_set.null_measurable_set_subtype_image hs) (measurable_subtype_coe ht),
-    image_preimage_eq_inter_range, subtype.range_coe],
-end
-
-@[simp] lemma volume_univ (hs : null_measurable_set s) : volume (univ : set s) = volume s :=
-(volume_preimage_coe hs measurable_set.univ).trans $ by rw univ_inter
+by rw [volume_set_coe_def, comap_apply₀ _ _
+    subtype.coe_injective (λ h, measurable_set.null_measurable_set_subtype_coe hs)
+    (measurable_subtype_coe ht).null_measurable_set,
+    image_preimage_eq_inter_range, subtype.range_coe]
 
 end subtype
 open measure_theory
@@ -556,7 +524,7 @@ begin
   have : volume ((1/2 : ℝ) • S) * 2 ^ card ι = volume S,
   { suffices : volume ((1/2 : ℝ) • S) = (1 / 2) ^ card ι * volume S,
     { rw [this, mul_comm _ (volume S), mul_assoc, ←mul_pow, one_div,
-        ennreal.inv_mul_cancel two_ne_zero two_ne_top, one_pow, mul_one] },
+        ennreal.inv_mul_cancel ennreal.two_ne_zero two_ne_top, one_pow, mul_one] },
     have := rescale ι (half_pos zero_lt_one),
     simp only [one_div, fintype.card_fin] at this ⊢,
     rw ←ennreal.of_real_inv_of_pos (two_pos : 0 < (2 : ℝ)) at this,
@@ -601,6 +569,42 @@ begin
     subtype.coe_mk, mul_equiv.apply_symm_apply],
 end
 
+lemma measure_theory.is_add_fundamental_domain.map_linear_equiv
+  {E G : Type*} [normed_add_comm_group E] [normed_add_comm_group G] [normed_space ℝ E]
+  [normed_space ℝ G] [measurable_space E] [measurable_space G] [borel_space E] [borel_space G]
+  [finite_dimensional ℝ E] [finite_dimensional ℝ G] (μ : measure E) [is_add_haar_measure μ]
+  {L : add_subgroup E} {F : set E} (fund : is_add_fundamental_domain L F μ) (e : E ≃ₗ[ℝ] G) :
+  is_add_fundamental_domain (L.map (e : E →+ G)) ((e : E → G) '' F) (map e μ) :=
+begin
+  refine is_add_fundamental_domain.image_of_equiv' fund e.to_equiv _ _ _,
+  { refine ⟨_, _⟩, -- TODO lemma
+    convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.symm.measurable,
+    ext,
+    refl,
+    simp only [linear_equiv.coe_to_equiv_symm],
+    rw [map_map],
+    { convert absolutely_continuous.refl _,
+      rw eq_comm,
+      convert map_id,
+      ext,
+      simp, },
+    convert e.symm.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
+    convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
+    ext,
+    refl, },
+  { refine ((L.equiv_map_of_injective _ _).symm.to_equiv : L.map (e : E →+ G) ≃ L),
+    change injective e,
+    exact equiv_like.injective _, },
+  { intros g x,
+    simp only [add_subgroup.vadd_def, add_equiv.to_equiv_symm, add_equiv.to_equiv_eq_coe,
+      vadd_eq_add, linear_equiv.coe_to_equiv, _root_.map_add, _root_.add_left_inj],
+    apply_fun e.symm,
+    simp only [add_equiv.coe_to_equiv, linear_equiv.symm_apply_apply],
+    convert add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
+    change injective e,
+    exact equiv_like.injective _,
+    exact equiv_like.injective _, },
+end
 
 lemma exists_nonzero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
@@ -616,35 +620,8 @@ begin
   have Ce : continuous e := (e : E →ₗ[ℝ] (ι → ℝ)).continuous_of_finite_dimensional,
   have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
-  have hfund : is_add_fundamental_domain (L.map (e : E →+ ι → ℝ)) ((e : E → ι → ℝ) '' F) (map e μ),
-  { refine is_add_fundamental_domain.image_of_equiv' fund e.to_equiv _ _ _,
-    { refine ⟨_, _⟩, -- TODO lemma
-      convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.symm.measurable,
-      ext,
-      refl,
-      simp only [linear_equiv.coe_to_equiv_symm],
-      rw [map_map],
-      convert absolutely_continuous.refl _,
-      rw eq_comm,
-      convert map_id,
-      ext,
-      simp,
-      convert e.symm.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
-      convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
-      ext,
-      refl, },
-    { refine ((L.equiv_map_of_injective _ _).symm.to_equiv : L.map (e : E →+ ι → ℝ) ≃ L),
-      change injective e,
-      exact equiv_like.injective _, },
-    { intros g x,
-      simp only [add_subgroup.vadd_def, add_equiv.to_equiv_symm, add_equiv.to_equiv_eq_coe,
-        vadd_eq_add, linear_equiv.coe_to_equiv, _root_.map_add, _root_.add_left_inj],
-      apply_fun e.symm,
-      simp only [add_equiv.coe_to_equiv, linear_equiv.symm_apply_apply],
-      convert add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
-      change injective e,
-      exact equiv_like.injective _,
-      exact equiv_like.injective _, }, },
+  have hfund : is_add_fundamental_domain (L.map (e : E →+ ι → ℝ)) ((e : E → ι → ℝ) '' F) (map e μ)
+    := by convert fund.map_linear_equiv μ e,
   haveI : encodable (L.map (e : E →+ ι → ℝ)),
   { refine encodable.of_inj (L.equiv_map_of_injective _ _).symm (equiv.injective _),
     exact equiv_like.injective e, },

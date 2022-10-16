@@ -1647,7 +1647,7 @@ lemma image_basic_open {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
 begin
   have e := Scheme.preimage_basic_open f (H.inv_app U r),
   rw [PresheafedSpace.is_open_immersion.inv_app_app_apply, Scheme.basic_open_res,
-    opens.inter_eq, inf_eq_right.mpr _] at e,
+    inf_eq_right.mpr _] at e,
   rw ← e,
   ext1,
   refine set.image_preimage_eq_inter_range.trans _,

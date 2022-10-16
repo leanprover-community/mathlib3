@@ -169,12 +169,12 @@ begin
   split,
   { --the kernel of the map is clearly `(I * S) ∩ R⟮x⟯`. To get injectivity, we need to show that
     --this is contained in `I * R⟮x⟯`, which is the content of the previous lemma.
-    refine ring_hom.lift_injective_of_ker_le_ideal _ _ _ (λ u hu, _),
+    refine ring_hom.lift_injective_of_ker_le_ideal _ _ (λ u hu, _),
     rwa [ring_hom.mem_ker, ring_hom.comp_apply, ideal.quotient.eq_zero_iff_mem,
       ← ideal.mem_comap, comap_map_eq_map_adjoin_of_coprime_conductor hx h_alg] at hu },
   { -- Surjectivity follows from the surjectivity of the canonical map `R⟮x⟯ → S ⧸ (I * S)`,
     -- which in turn follows from the fact that `I * S + (conductor R x) = S`.
-    refine ideal.quotient.lift_surjective_of_surjective _ _ _ (λ y, _),
+    refine ideal.quotient.lift_surjective_of_surjective _ _ (λ y, _),
     obtain ⟨z, hz⟩ := ideal.quotient.mk_surjective y,
     have : z ∈ conductor R x ⊔ (I.map (algebra_map R S)),
     { suffices : conductor R x ⊔ (I.map (algebra_map R S)) = ⊤,

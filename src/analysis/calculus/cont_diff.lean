@@ -1455,6 +1455,18 @@ lemma iterated_fderiv_succ_eq_comp_left {n : ℕ} :
   (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (fderiv 𝕜 (iterated_fderiv 𝕜 n f)) := rfl
 
+lemma has_compact_support.iterated_fderiv (hf : has_compact_support f) (n : ℕ) :
+  has_compact_support (iterated_fderiv 𝕜 n f) :=
+begin
+  induction n with n IH,
+  { rw [iterated_fderiv_zero_eq_comp],
+    apply hf.comp_left,
+    exact linear_isometry_equiv.map_zero _ },
+  { rw iterated_fderiv_succ_eq_comp_left,
+    apply (IH.fderiv 𝕜).comp_left,
+    exact linear_isometry_equiv.map_zero _ }
+end
+
 lemma iterated_fderiv_within_univ {n : ℕ} :
   iterated_fderiv_within 𝕜 n f univ = iterated_fderiv 𝕜 n f :=
 begin

@@ -1534,9 +1534,13 @@ theorem is_o_norm_pow_id {n : ℕ} (h : 1 < n) :
   (λ x : E', ∥x∥^n) =o[𝓝 0] (λ x, x) :=
 by simpa only [pow_one, is_o_norm_right] using @is_o_norm_pow_norm_pow E' _ _ _ h
 
+lemma is_O.eq_zero_of_norm_pow_within {f : E'' → F''} {s : set E''} {x₀ : E''} {n : ℕ}
+  (h : f =O[𝓝[s] x₀] λ x, ∥x - x₀∥ ^ n) (hx₀ : x₀ ∈ s) (hn : 0 < n) : f x₀ = 0 :=
+mem_of_mem_nhds_within hx₀ h.eq_zero_imp $ by simp_rw [sub_self, norm_zero, zero_pow hn]
+
 lemma is_O.eq_zero_of_norm_pow {f : E'' → F''} {x₀ : E''} {n : ℕ}
   (h : f =O[𝓝 x₀] λ x, ∥x - x₀∥ ^ n) (hn : 0 < n) : f x₀ = 0 :=
-mem_of_mem_nhds h.eq_zero_imp $ by simp_rw [sub_self, norm_zero, zero_pow hn]
+by { rw [← nhds_within_univ] at h, exact h.eq_zero_of_norm_pow_within (mem_univ _) hn }
 
 lemma is_o_pow_sub_pow_sub (x₀ : E') {n m : ℕ} (h : n < m) :
     (λ x, ∥x - x₀∥ ^ m) =o[𝓝 x₀] λ x, ∥x - x₀∥^n :=

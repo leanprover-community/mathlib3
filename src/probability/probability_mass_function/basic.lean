@@ -67,6 +67,10 @@ lemma summable_coe (p : pmf α) : summable p := ennreal.summable
 
 lemma tsum_coe_ne_top (p : pmf α) : ∑' a, p a ≠ ⊤ := p.tsum_coe.symm ▸ ennreal.one_ne_top
 
+lemma tsum_coe_indicator_ne_top (p : pmf α) (s : set α) : ∑' a, s.indicator p a ≠ ⊤ :=
+ne_of_lt (lt_of_le_of_lt (tsum_le_tsum (λ a, set.indicator_apply_le (λ _, le_rfl))
+  ennreal.summable ennreal.summable) (lt_of_le_of_ne le_top p.tsum_coe_ne_top))
+
 /-- The support of a `pmf` is the set where it is nonzero. -/
 def support (p : pmf α) : set α := function.support p
 

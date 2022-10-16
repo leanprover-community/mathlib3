@@ -37,10 +37,9 @@ of_finset (λ a, if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0) s (Exists.re
     = ∑ (a : α) in s, (s.card : ℝ≥0∞)⁻¹ : finset.sum_congr rfl (λ x hx, by simp [hx])
     ... = s.card • (s.card : ℝ≥0∞)⁻¹ : finset.sum_const _
     ... = (s.card : ℝ≥0∞) * (s.card : ℝ≥0∞)⁻¹ : by rw nsmul_eq_mul
-    ... = 1 : begin
-      refine ennreal.mul_inv_cancel sorry sorry,
-    end
-  )) (λ x hx, by simp only [hx, if_false])
+    ... = 1 : ennreal.mul_inv_cancel (by simpa only [ne.def, nat.cast_eq_zero, finset.card_eq_zero]
+      using (finset.nonempty_iff_ne_empty.1 hs)) (ennreal.nat_ne_top s.card)))
+        (λ x hx, by simp only [hx, if_false])
 
 variables {s : finset α} (hs : s.nonempty) {a : α}
 
@@ -134,22 +133,36 @@ end uniform_of_fintype
 
 section of_multiset
 
+
+
 /-- Given a non-empty multiset `s` we construct the `pmf` which sends `a` to the fraction of
   elements in `s` that are `a`. -/
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 ⟨λ a, s.count a / s.card,
-  have ∑ a in s.to_finset, (s.count a : ℝ) / s.card = 1,
-  { simp only [div_eq_inv_mul, ← finset.mul_sum, ← nat.cast_sum, multiset.to_finset_sum_count_eq],
-    rw [inv_mul_cancel], simp [hs] },
-  have ∑ a in s.to_finset, (s.count a : ℝ≥0∞) / s.card = 1,
-    begin
-      sorry
-    end,
-  begin
-    rw ← this,
-    apply has_sum_sum_of_ne_finset_zero,
-    simp {contextual := tt},
-  end⟩
+begin
+  rw [ennreal.summable.has_sum_iff],
+  calc ∑' (b : α), (s.count b : ℝ≥0∞) / s.card
+    = s.card⁻¹ * ∑' b, s.count b : begin
+      simp_rw [ennreal.div_eq_inv_mul, ennreal.tsum_mul_left],
+    end
+    ... = s.card⁻¹ * ∑ b in s.to_finset, (s.count b : ℝ≥0∞) : begin
+      refine congr_arg (λ x, s.card⁻¹ * x) _,
+      refine tsum_eq_sum _,
+      intros a ha,
+      refine nat.cast_eq_zero.2 _,
+      rw multiset.count_eq_zero,
+      rw ← multiset.mem_to_finset,
+      exact ha,
+    end
+    ... = 1 : begin
+      rw [← nat.cast_sum],
+      rw [multiset.to_finset_sum_count_eq s],
+      rw [ennreal.inv_mul_cancel _ _],
+      simpa,
+      simp,
+    end
+
+end⟩
 
 variables {s : multiset α} (hs : s ≠ 0)
 
@@ -162,7 +175,8 @@ lemma mem_support_of_multiset_iff (a : α) : a ∈ (of_multiset s hs).support �
 by simp
 
 lemma of_multiset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_multiset s hs a = 0 :=
-sorry --div_eq_zero_iff.2 (or.inl $ nat.cast_eq_zero.2 $ multiset.count_eq_zero_of_not_mem ha)
+by simpa only [of_multiset_apply, ennreal.div_zero_iff, nat.cast_eq_zero,
+  multiset.count_eq_zero, ennreal.nat_ne_top, or_false] using ha
 
 section measure
 

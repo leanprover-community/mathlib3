@@ -181,20 +181,20 @@ end of_fintype
 
 section normalize
 
-/-- Given a `f` with non-zero sum, we get a `pmf` by normalizing `f` by it's `tsum` -/
-def normalize (f : α → ℝ≥0∞) (hf0 : tsum f ≠ 0) : pmf α :=
-⟨λ a, f a * (∑' x, f x)⁻¹, sorry⟩
-  -- (mul_inv_cancel hf0) ▸ has_sum.mul_right (∑' x, f x)⁻¹
-  --   (not_not.mp (mt tsum_eq_zero_of_not_summable hf0 : ¬¬summable f)).has_sum⟩
+/-- Given a `f` with non-zero and non-infinite sum, get a `pmf` by normalizing `f` by its `tsum` -/
+def normalize (f : α → ℝ≥0∞) (hf0 : tsum f ≠ 0) (hf : tsum f ≠ ⊤) : pmf α :=
+⟨λ a, f a * (∑' x, f x)⁻¹, ennreal.summable.has_sum_iff.2
+  (ennreal.tsum_mul_right.trans (ennreal.mul_inv_cancel hf0 hf))⟩
 
-variables {f : α → ℝ≥0∞} (hf0 : tsum f ≠ 0)
+variables {f : α → ℝ≥0∞} (hf0 : tsum f ≠ 0) (hf : tsum f ≠ ⊤)
 
-@[simp] lemma normalize_apply (a : α) : (normalize f hf0) a = f a * (∑' x, f x)⁻¹ := rfl
+@[simp] lemma normalize_apply (a : α) : (normalize f hf0 hf) a = f a * (∑' x, f x)⁻¹ := rfl
 
-@[simp] lemma support_normalize : (normalize f hf0).support = function.support f :=
-sorry -- set.ext (by simp [mem_support_iff, hf0])
+@[simp] lemma support_normalize : (normalize f hf0 hf).support = function.support f :=
+set.ext (λ a, by simp only [hf, mem_support_iff, normalize_apply, ne.def, mul_eq_zero,
+  ennreal.inv_eq_zero, or_false, function.mem_support])
 
-lemma mem_support_normalize_iff (a : α) : a ∈ (normalize f hf0).support ↔ f a ≠ 0 := by simp
+lemma mem_support_normalize_iff (a : α) : a ∈ (normalize f hf0 hf).support ↔ f a ≠ 0 := by simp
 
 end normalize
 
@@ -202,7 +202,9 @@ section filter
 
 /-- Create new `pmf` by filtering on a set with non-zero measure and normalizing -/
 def filter (p : pmf α) (s : set α) (h : ∃ a ∈ s, a ∈ p.support) : pmf α :=
-pmf.normalize (s.indicator p) $ sorry-- ennreal.tsum_indicator_ne_zero p.2.summable h
+pmf.normalize (s.indicator p) (by simpa only [ne.def, tsum_eq_zero_iff ennreal.summable,
+  not_forall, set.indicator_apply_eq_zero, not_imp, apply_eq_zero_iff, not_not,
+    exists_prop] using h) (p.tsum_coe_indicator_ne_top s)
 
 variables {p : pmf α} {s : set α} (h : ∃ a ∈ s, a ∈ p.support)
 
@@ -214,7 +216,7 @@ lemma filter_apply_eq_zero_of_not_mem {a : α} (ha : a ∉ s) : (p.filter s h) a
 by rw [filter_apply, set.indicator_apply_eq_zero.mpr (λ ha', absurd ha' ha), zero_mul]
 
 lemma mem_support_filter_iff {a : α} : a ∈ (p.filter s h).support ↔ a ∈ s ∧ a ∈ p.support :=
-(mem_support_normalize_iff _ _).trans set.indicator_apply_ne_zero
+(mem_support_normalize_iff _ _ _).trans set.indicator_apply_ne_zero
 
 @[simp] lemma support_filter : (p.filter s h).support = s ∩ p.support:=
 set.ext $ λ x, (mem_support_filter_iff _)
@@ -231,9 +233,7 @@ section bernoulli
 
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0∞) (h : p ≤ 1) : pmf bool :=
-of_fintype (λ b, cond b p (1 - p)) begin
-  sorry
-end
+of_fintype (λ b, cond b p (1 - p)) (by simp [h])
 
 variables {p : ℝ≥0∞} (h : p ≤ 1) (b : bool)
 

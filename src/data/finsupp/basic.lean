@@ -890,6 +890,37 @@ by simp_rw [prod_filter_index, support_filter, prod_filter_mul_prod_filter_not, 
   f.prod g / (f.filter p).prod g = (f.filter (λ a, ¬p a)).prod g :=
 div_eq_of_eq_mul' (prod_filter_mul_prod_filter_not _ _ _).symm
 
+lemma sum_image_support_filter [add_comm_monoid β] [decidable_eq γ]
+  (x : α →₀ β) (f : α → γ) :
+  ∑ b in x.support.image f, x.filter (λ a, f a = b) = x :=
+begin
+  ext i,
+  simp_rw [finset_sum_apply, filter_apply, sum_ite, sum_const_zero, add_zero, finset.filter_eq],
+  split_ifs,
+  { simp },
+  { rw [finset.sum_empty, eq_comm, ← finsupp.not_mem_support_iff],
+    exact λ h', h (finset.mem_image_of_mem f h') }
+end
+
+lemma sum_support_filter_single [add_comm_monoid β] (x : α →₀ β)
+  (P : α → Prop) [decidable_pred P] :
+  ∑ i in x.support.filter P, single i (x i) = x.filter P :=
+begin
+  rw [← (x.filter P).sum_single, finsupp.sum, finsupp.support_filter],
+  apply finset.sum_congr rfl,
+  intros i hi,
+  rw finset.mem_filter at hi,
+  rw finsupp.filter_apply_pos P x hi.2
+end
+
+lemma map_domain_apply_eq [add_comm_monoid β] [decidable_eq γ] (x : α →₀ β) (f : α → γ) (i : γ) :
+  x.map_domain f i = ∑ i in x.support.filter (λ j, f j = i), x i :=
+begin
+  rw [finsupp.map_domain, finsupp.sum_apply],
+  simp_rw finsupp.single_apply,
+  rw [finsupp.sum, finset.sum_ite, finset.sum_const_zero, add_zero],
+end
+
 end has_zero
 
 lemma filter_pos_add_filter_neg [add_zero_class M] (f : α →₀ M) (p : α → Prop) :

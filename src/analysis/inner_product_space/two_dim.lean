@@ -128,6 +128,29 @@ begin
   { simpa }
 end
 
+lemma area_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).area_form x y = o.area_form (φ.symm x) (φ.symm y) :=
+begin
+  have : φ.symm ∘ ![x, y] = ![φ.symm x, φ.symm y],
+  { ext i,
+    fin_cases i; refl },
+  simp [area_form_to_volume_form, volume_form_map, this],
+end
+
+/-- The area form is invariant under pullback by a positively-oriented isometric automorphism. -/
+lemma area_form_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x y : E) :
+  o.area_form (φ x) (φ y) = o.area_form x y :=
+begin
+  convert o.area_form_map φ (φ x) (φ y),
+  { symmetry,
+    rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
+    rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
+  { simp },
+  { simp }
+end
+
 /-- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
 oriented real inner product space of dimension 2. -/
 @[irreducible] def right_angle_rotation_aux₁ : E →ₗ[ℝ] E :=
@@ -511,6 +534,11 @@ begin
   rintros (rfl | rfl);
   simp,
 end
+
+lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
+by simp [kahler_apply_apply, area_form_map]
 
 end orientation
 

@@ -20,7 +20,7 @@ universes v u
 
 namespace quiver
 
-variables (V : Type u) [quiver V]
+variables (V : Type u) [quiver.{v+1} V]
 
 /-- Two vertices are related in the zigzag setoid if there is a
     zigzag of arrows from one to the other. -/
@@ -50,11 +50,13 @@ quotient.eq'
 
 end weakly_connected_component
 
-variables {V}
+variable {V}
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
+-- Without the explicit universe level in `quiver.{v+1}` Lean comes up with
+-- `quiver.{max u_2 u_3 + 1}`. This causes problems elsewhere, so we write `quiver.{v+1}`.
 def wide_subquiver_symmetrify (H : wide_subquiver (symmetrify V)) : wide_subquiver V :=
-λ a b, { e | psum.inl e ∈ H a b ∨ psum.inr e ∈ H b a }
+λ a b, { e | sum.inl e ∈ H a b ∨ sum.inr e ∈ H b a }
 
 end quiver

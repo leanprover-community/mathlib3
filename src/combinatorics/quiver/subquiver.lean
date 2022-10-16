@@ -37,7 +37,7 @@ universes v u
     for every pair of vertices `a b`.
 
     NB: this does not work for `Prop`-valued quivers. It requires `G : quiver V`. -/
-def wide_subquiver (V) [quiver V] :=
+def wide_subquiver (V) [quiver.{u+1} V] :=
 Π a b : V, set (a ⟶ b)
 
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from

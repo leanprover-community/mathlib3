@@ -35,11 +35,7 @@ for path in Path('src').glob('**/*.lean'):
                     imported = 'lean_core.' + imported
             graph.add_edge(imported, mk_label(path))
 
-try:
-    data = yaml.safe_load(urlopen('https://raw.githubusercontent.com/wiki/leanprover-community/mathlib/mathlib4-port-status.md'))
-
-except FileNotFoundError:
-    data = dict()
+data = yaml.safe_load(urlopen('https://raw.githubusercontent.com/wiki/leanprover-community/mathlib/mathlib4-port-status.md'))
 
 # First make sure all nodes exists in the data set
 for node in graph.nodes:

@@ -375,7 +375,7 @@ open measure_theory
 /-- **Blichfeldt's Principle** --/
 @[to_additive "**Blichfeldt's Principle**"]
 lemma exists_mul_inv_mem_lattice_of_volume_lt_volume {X Y : Type*} [measurable_space X]
-  [measure_space Y] [group X] [mul_action X Y] [has_measurable_smul X Y] [encodable X] {S : set Y}
+  [measure_space Y] [group X] [mul_action X Y] [has_measurable_smul X Y] [countable X] {S : set Y}
   (hS : measurable_set S) (F : set Y) (fund : is_fundamental_domain X F) (hlt : volume F < volume S)
   [smul_invariant_measure X Y volume]
   (hnostab : ∀ (p₁ p₂ : X) (q : Y) (hq : q ∈ S) (hppq : p₁ • q = p₂ • q), p₁ = p₂) :
@@ -403,7 +403,7 @@ end
 -- measure > m * measure giving some x in m sets
 @[to_additive]
 lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space X] [group X]
-  [has_measurable_mul X] (L : subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
+  [has_measurable_mul X] (L : subgroup X) [countable L] {S : set X} (hS : measurable_set S)
   {F : set X} (fund : is_fundamental_domain L F) (hlt : volume F < volume S)
   -- [smul_invariant_measure X Y (volume : measure Y)]
   [is_mul_left_invariant (volume : measure X)] :
@@ -469,7 +469,7 @@ open ennreal topological_space.positive_compacts
 -- actually the proof shows that there is a point in the interior of T, perhaps we should expose
 -- this
 lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure {L : add_subgroup (ι → ℝ)}
-  [encodable L] {F T : set (ι → ℝ)}
+  [countable L] {F T : set (ι → ℝ)}
   (μ : measure (ι → ℝ)) [is_add_haar_measure μ]
   (fund : is_add_fundamental_domain L F μ)
   (h : μ F * 2 ^ card ι < μ T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
@@ -582,7 +582,7 @@ end
 lemma exists_nonzero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ] {L : add_subgroup E}
-  [encodable L] {F T : set E} (fund : is_add_fundamental_domain L F μ)
+  [countable L] {F T : set E} (fund : is_add_fundamental_domain L F μ)
   (h : μ F * 2 ^ finrank ℝ E < μ T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
   ∃ (x : L) (h : x ≠ 0), (x : E) ∈ T :=
 begin
@@ -595,8 +595,9 @@ begin
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have hfund : is_add_fundamental_domain (L.map (e : E →+ ι → ℝ)) ((e : E → ι → ℝ) '' F) (map e μ)
     := by convert fund.map_linear_equiv μ e,
-  haveI : encodable (L.map (e : E →+ ι → ℝ)),
-  { refine encodable.of_inj (L.equiv_map_of_injective _ _).symm (equiv.injective _),
+  haveI : countable (L.map (e : E →+ ι → ℝ)),
+  { refine function.injective.countable
+      (equiv.injective _ : injective (L.equiv_map_of_injective _ _).symm),
     exact equiv_like.injective e, },
   obtain ⟨x, hx, hxT⟩ :=
     exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure (map e μ) hfund

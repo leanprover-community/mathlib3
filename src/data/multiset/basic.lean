@@ -616,6 +616,13 @@ def repeat (a : α) (n : ℕ) : multiset α := repeat a n
 
 @[simp] lemma repeat_succ (a : α) (n) : repeat a (n+1) = a ::ₘ repeat a n := by simp [repeat]
 
+lemma repeat_add (a : α) (m n : ℕ) : repeat a (m + n) = repeat a m + repeat a n :=
+congr_arg _ $ list.repeat_add _ _ _
+
+/-- `multiset.repeat` as an `add_monoid_hom`. -/
+@[simps] def repeat_add_monoid_hom (a : α) : ℕ →+ multiset α :=
+{ to_fun := repeat a, map_zero' := repeat_zero a, map_add' := repeat_add a }
+
 @[simp] lemma repeat_one (a : α) : repeat a 1 = {a} :=
 by simp only [repeat_succ, ←cons_zero, eq_self_iff_true, repeat_zero, cons_inj_right]
 
@@ -657,12 +664,7 @@ begin
 end
 
 lemma nsmul_repeat {a : α} (n m : ℕ) : n • (repeat a m) = repeat a (n * m) :=
-begin
-  rw eq_repeat,
-  split,
-  { rw [card_nsmul, card_repeat] },
-  { exact λ b hb, eq_of_mem_repeat (mem_of_mem_nsmul hb) },
-end
+((repeat_add_monoid_hom a).map_nsmul _ _).symm
 
 /-! ### Erasing one copy of an element -/
 section erase

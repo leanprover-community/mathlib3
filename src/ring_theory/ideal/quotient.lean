@@ -208,7 +208,7 @@ def lift (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
 @[simp] lemma lift_mk (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
   lift I f H (mk I a) = f a := rfl
 
-lemma lift_surjective_of_surjective (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0)
+lemma lift_surjective_of_surjective (I : ideal R) {f : R →+* S} (H : ∀ (a : R), a ∈ I → f a = 0)
   (hf : function.surjective f) : function.surjective (ideal.quotient.lift I f H) :=
 begin
   intro y,

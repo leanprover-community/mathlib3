@@ -74,13 +74,13 @@ instance : t1_space $ maximal_spectrum R :=
 
 lemma to_prime_spectrum_continuous : continuous $ @to_prime_spectrum R _ := continuous_induced_dom
 
-variables (R) [is_domain R] {K : Type v} [field K] [algebra R K] [is_fraction_ring R K]
+variables (R) [is_domain R] (K : Type v) [field K] [algebra R K] [is_fraction_ring R K]
 
 /-- An integral domain is equal to the intersection of its localizations at all its maximal ideals
 viewed as subalgebras of its field of fractions. -/
-theorem localization_infi_eq_bot :
-  (⨅ v : maximal_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
-    le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
+theorem infi_localization_eq_bot :
+  (⨅ v : maximal_spectrum R,
+    localization.subalgebra.of_field K _ v.as_ideal.prime_compl_le_non_zero_divisors) = ⊥ :=
 begin
   ext x,
   rw [algebra.mem_bot, algebra.mem_infi],
@@ -112,18 +112,18 @@ end maximal_spectrum
 
 namespace prime_spectrum
 
-variables (R) [is_domain R] {K : Type v} [field K] [algebra R K] [is_fraction_ring R K]
+variables (R) [is_domain R] (K : Type v) [field K] [algebra R K] [is_fraction_ring R K]
 
 /-- An integral domain is equal to the intersection of its localizations at all its prime ideals
 viewed as subalgebras of its field of fractions. -/
-theorem localization_infi_eq_bot :
-  (⨅ v : prime_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
-    le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
+theorem infi_localization_eq_bot :
+  (⨅ v : prime_spectrum R,
+    localization.subalgebra.of_field K _ $ v.as_ideal.prime_compl_le_non_zero_divisors) = ⊥ :=
 begin
   ext x,
   rw [algebra.mem_infi],
   split,
-  { rw [← maximal_spectrum.localization_infi_eq_bot, algebra.mem_infi],
+  { rw [← maximal_spectrum.infi_localization_eq_bot, algebra.mem_infi],
     exact λ hx ⟨v, hv⟩, hx ⟨v, hv.is_prime⟩ },
   { rw [algebra.mem_bot],
     rintro ⟨y, rfl⟩ ⟨v, hv⟩,

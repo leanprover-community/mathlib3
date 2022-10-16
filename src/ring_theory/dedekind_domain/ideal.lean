@@ -875,13 +875,13 @@ def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maxim
   left_inv  := λ ⟨_, _, _⟩, rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 
-variable (R)
+variable (R K)
 
 /-- A Dedekind domain is equal to the intersection of its localizations at all its height one
 non-zero prime ideals viewed as subalgebras of its field of fractions. -/
-theorem localization_infi_eq_bot [algebra R K] [hK : is_fraction_ring R K] :
-  (⨅ v : height_one_spectrum R, localization.subalgebra.of_field K v.as_ideal.prime_compl $
-    le_non_zero_divisors_of_no_zero_divisors $ not_not_intro v.as_ideal.zero_mem) = ⊥ :=
+theorem infi_localization_eq_bot [algebra R K] [hK : is_fraction_ring R K] :
+  (⨅ v : height_one_spectrum R,
+    localization.subalgebra.of_field K _ v.as_ideal.prime_compl_le_non_zero_divisors) = ⊥ :=
 begin
   ext x,
   rw [algebra.mem_infi],
@@ -892,7 +892,7 @@ begin
       with ⟨algebra_map_inv, _, algebra_map_right_inv⟩,
     exact λ _, algebra.mem_bot.mpr ⟨algebra_map_inv x, algebra_map_right_inv x⟩,
     exact hK },
-  all_goals { rw [← maximal_spectrum.localization_infi_eq_bot, algebra.mem_infi] },
+  all_goals { rw [← maximal_spectrum.infi_localization_eq_bot, algebra.mem_infi] },
   { exact λ hx ⟨v, hv⟩, hx ((equiv_maximal_spectrum hR).symm ⟨v, hv⟩) },
   { exact λ hx ⟨v, hv, hbot⟩, hx ⟨v, dimension_le_one v hbot hv⟩ }
 end

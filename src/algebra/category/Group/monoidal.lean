@@ -1,28 +1,24 @@
-import category_theory.monoidal.category
+import category_theory.monoidal.of_has_finite_products
+import category_theory.monoidal.Mon_
 import algebra.category.Group.limits
+import algebra.category.Group.biproducts
 
 noncomputable theory
 
-namespace Group
+namespace AddCommGroup
 
 open category_theory category_theory.monoidal_category category_theory.limits
 
-instance : monoidal_category Group :=
-{ tensor_obj := λ X Y, X ⨯ Y,
-  tensor_hom := λ X1 Y1 X2 Y2 f g, limits.prod.map f g,
-  tensor_id' := λ _ _, limits.prod.map_id_id,
-  tensor_comp' := λ _ _ _ _ _ _ f1 f2 g1 g2, begin
-    ext1,
-  end,
-  tensor_unit := _,
-  associator := _,
-  associator_naturality' := _,
-  left_unitor := _,
-  left_unitor_naturality' := _,
-  right_unitor := _,
-  right_unitor_naturality' := _,
-  pentagon' := _,
-  triangle' := _ }
+instance : category_theory.monoidal_category AddCommGroup :=
+category_theory.monoidal_of_has_finite_products _
+
+instance (R : Mon_ AddCommGroup) : ring R.X :=
+{ one := R.one 0,
+  mul := λ x y, R.mul sorry,
+  one_mul := sorry,
+  mul_one := sorry,
+  mul_assoc := sorry,
+  ..(infer_instance : add_comm_group R.X) }
 
 
-end Group
+end AddCommGroup

@@ -511,9 +511,8 @@ end
 
 /-! ### Unions and intersections indexed by `Prop` -/
 
-@[simp] theorem Inter_false {s : false → set α} : Inter s = univ := infi_false
-
-@[simp] theorem Union_false {s : false → set α} : Union s = ∅ := supr_false
+theorem Inter_false {s : false → set α} : Inter s = univ := infi_false
+theorem Union_false {s : false → set α} : Union s = ∅ := supr_false
 
 @[simp] theorem Inter_true {s : true → set α} : Inter s = s trivial := infi_true
 

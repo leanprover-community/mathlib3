@@ -218,33 +218,6 @@ begin
   { exact measurable_set.univ_pi hs, },
 end
 
-/-- The closed unit cube with sides the intervals [0,1] as a positive compact set, for inducing the
-    Haar measure equal to the lebesgue measure on ℝ^n. -/
-def unit_cube : positive_compacts (ι → ℝ) :=
-{ carrier := Icc 0 1,
-  is_compact' := by { rw ←pi_univ_Icc, exact is_compact_univ_pi (λ i, is_compact_Icc) },
-  interior_nonempty' := begin
-    simp_rw [←pi_univ_Icc, pi.zero_apply, pi.one_apply, interior_pi_set finite_univ, interior_Icc,
-      univ_pi_nonempty_iff],
-    exact λ i, nonempty_Ioo.2 zero_lt_one,
-  end }
-
-@[simp] lemma coe_unit_cube : (unit_cube ι : set (ι → ℝ)) = Icc 0 1 := rfl
-
-lemma volume_Icc : volume (Icc 0 1 : set (ι → ℝ)) = 1 :=
-begin
-  simp_rw [←pi_univ_Icc, pi.zero_apply, pi.one_apply],
-  rw [volume_pi_pi, real.volume_Icc, sub_zero, ennreal.of_real_one, finset.prod_const_one],
-end
-
-lemma pi_haar_measure_eq_lebesgue_measure : add_haar_measure (unit_cube ι) = volume :=
-begin
-  convert (add_haar_measure_unique _ (unit_cube ι)).symm,
-  { rw [coe_unit_cube, volume_Icc, one_smul] },
-  { apply_instance },
-  { exact is_add_left_invariant_pi_volume ι }
-end
-
 variable {ι}
 
 -- /-- A fundamental domain for an additive group acting on a measure space. -/

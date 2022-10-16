@@ -80,7 +80,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
   end,
   symm := begin
     refine le_of_eq _,
-    rw map_supr,
+    rw filter.map_supr,
     congr' with x : 1,
     erw [nhds_prod_eq, ← prod_comm],
   end,

@@ -16,7 +16,9 @@ This file extends the theory of `ℕ+` with `gcd`, `lcm` and `prime` functions, 
 namespace nat.primes
 
 instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨(p : ℕ), p.property.pos⟩⟩
-theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = p := rfl
+@[simp] theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = p := rfl
+@[simp] theorem coe_pnat_mk (p : ℕ) (hp : p.prime) :
+  (coe : nat.primes → ℕ+) ⟨p, hp⟩ = ⟨p, hp.pos⟩ := rfl
 
 theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) → p = q := λ h,
 begin

@@ -93,9 +93,10 @@ end
 
 open topological_space
 
-instance [H : is_noetherian_ring R] : noetherian_space (prime_spectrum R) :=
+instance : noetherian_space (prime_spectrum R) :=
 begin
   rw (noetherian_space_tfae $ prime_spectrum R).out 0 1,
+  have H : is_noetherian_ring R := infer_instance,
   rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H,
   have : (closeds (prime_spectrum R))ᵒᵈ ↪o ideal R :=
   { to_fun := λ s, vanishing_ideal ↑(show closeds $ prime_spectrum R, from s),

@@ -902,7 +902,7 @@ begin
     exact λ h', h (finset.mem_image_of_mem f h') }
 end
 
-lemma sum_support_filter_single [add_comm_monoid β] (x : α →₀ β)
+lemma sum_filter_support_single [add_comm_monoid β] (x : α →₀ β)
   (P : α → Prop) [decidable_pred P] :
   ∑ i in x.support.filter P, single i (x i) = x.filter P :=
 begin

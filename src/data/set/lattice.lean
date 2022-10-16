@@ -1824,25 +1824,21 @@ end set
 section sup_closed
 
 /-- A set `s` is sup-closed if for all `x₁, x₂ ∈ s`, `x₁ ⊔ x₂ ∈ s`. -/
-def sup_closed [has_sup α] (s : set α) : Prop := ∀ x1 x2, x1 ∈ s → x2 ∈ s → x1 ⊔ x2 ∈ s
+def sup_closed [has_sup α] (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → a ⊔ b ∈ s
 
 lemma sup_closed_singleton [semilattice_sup α] (x : α) : sup_closed ({x} : set α) :=
-λ _ _ y1_mem y2_mem, by { rw set.mem_singleton_iff at *, rw [y1_mem, y2_mem, sup_idem], }
+λ a ha b hb, by { rw mem_singleton_iff at *, rw [ha, hb, sup_idem] }
 
 lemma sup_closed.inter [semilattice_sup α] {s t : set α} (hs : sup_closed s)
   (ht : sup_closed t) :
   sup_closed (s ∩ t) :=
-begin
-  intros x y hx hy,
-  rw set.mem_inter_iff at hx hy ⊢,
-  exact ⟨hs x y hx.left hy.left, ht x y hx.right hy.right⟩,
-end
+λ x hx y hy, ⟨hs hx.1 hy.1, ht hx.2 hy.2⟩
 
 lemma sup_closed_of_totally_ordered [semilattice_sup α] (s : set α)
   (hs : ∀ x y : α, x ∈ s → y ∈ s → y ≤ x ∨ x ≤ y) :
   sup_closed s :=
 begin
-  intros x y hxs hys,
+  intros x hxs y hys,
   cases hs x y hxs hys,
   { rwa (sup_eq_left.mpr h), },
   { rwa (sup_eq_right.mpr h), },

@@ -347,7 +347,7 @@ begin
   rintros t1 ⟨p1, hp1S, f1, hf1m, ht1_eq⟩ t2 ⟨p2, hp2S, f2, hf2m, ht2_eq⟩ h_nonempty,
   simp_rw [pi_Union_Inter, set.mem_set_of_eq],
   let g := λ n, (ite (n ∈ p1) (f1 n) set.univ) ∩ (ite (n ∈ p2) (f2 n) set.univ),
-  use [p1 ∪ p2, h_sup p1 p2 hp1S hp2S, g],
+  use [p1 ∪ p2, h_sup hp1S hp2S, g],
   have h_inter_eq : t1 ∩ t2 = ⋂ i ∈ p1 ∪ p2, g i,
   { rw [ht1_eq, ht2_eq],
     simp_rw [← set.inf_eq_inter, g],

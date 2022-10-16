@@ -71,7 +71,7 @@ lemma iff_add_group_fg {G : Type*} [add_comm_group G] : module.finite ℤ G ↔ 
 
 variables {R M N}
 
-lemma exists_fin [finite R M] : ∃ (n : ℕ) (s : fin n → M), span R (range s) = ⊤ :=
+lemma exists_fin [finite R M] : ∃ (n : ℕ) (s : fin n → M), span RW (range s) = ⊤ :=
 submodule.fg_iff_exists_fin_generating_family.mp out
 
 lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
@@ -434,6 +434,7 @@ end
 open mv_polynomial
 
 -- We follow the proof of https://stacks.math.columbia.edu/tag/0561
+-- TODO: extract out helper lemmas and tidy proof.
 lemma of_restrict_scalars_finite_presentation [algebra A B] [is_scalar_tower R A B]
   (hRB : finite_presentation R B) [hRA : finite_type R A] : finite_presentation A B :=
 begin

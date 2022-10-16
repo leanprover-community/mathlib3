@@ -423,6 +423,13 @@ lim_map_π _ _
   prod.map (𝟙 X) (𝟙 Y) = 𝟙 _ :=
 by { ext; simp }
 
+@[simp]
+lemma prod.map_comp_comp {X₁ X₂ Y₁ Y₂ Z₁ Z₂ : C}
+  [has_binary_product X₁ X₂] [has_binary_product Y₁ Y₂] [has_binary_product Z₁ Z₂]
+  (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
+  prod.map (f₁ ≫ g₁) (f₂ ≫ g₂) = prod.map f₁ f₂ ≫ prod.map g₁ g₂ :=
+by { ext; simp }
+
 @[simp] lemma prod.lift_fst_snd {X Y : C} [has_binary_product X Y] :
   prod.lift prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
 by { ext; simp }

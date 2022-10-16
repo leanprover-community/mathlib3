@@ -825,7 +825,7 @@ the relations:
 where `db` is the unit in the copy of `S` with index `b`.
 
 This is the kernel of the surjection `finsupp.total S Ω[S⁄R] S (kaehler_differential.D R S)`.
-See `kaehler_differential.ker_total_eq`.
+See `kaehler_differential.ker_total_eq` and `kaehler_differential.total_surjective`.
 -/
 noncomputable
 def kaehler_differential.ker_total : submodule S (S →₀ S) :=

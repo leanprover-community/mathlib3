@@ -178,7 +178,7 @@ begin
     obtain ⟨V, hx, i, H⟩ := hx x,
     unfreezingI { specialize H (X.presheaf.map i.op s) },
     erw Scheme.basic_open_res at H,
-    rw [hs, ← subtype.coe_injective.eq_iff, opens.empty_eq, opens.inter_eq, inf_bot_eq] at H,
+    rw [hs, ← subtype.coe_injective.eq_iff, inf_bot_eq] at H,
     specialize H rfl ⟨x, hx⟩,
     erw Top.presheaf.germ_res_apply at H,
     exact H },

@@ -71,24 +71,22 @@ let ⟨I, hI⟩ := ideal.exists_maximal R in ⟨⟨I, hI.is_prime⟩⟩
 lemma punit (x : prime_spectrum punit) : false :=
 x.1.ne_top_iff_one.1 x.2.1 $ subsingleton.elim (0 : punit) 1 ▸ x.1.zero_mem
 
-@[simp] private def prime_spectrum_prod_impl :
+variables (R S)
+
+@[simp] def prime_spectrum_prod_of_sum :
   prime_spectrum R ⊕ prime_spectrum S → prime_spectrum (R × S)
 | (sum.inl ⟨I, hI⟩) := ⟨ideal.prod I ⊤, by exactI ideal.is_prime_ideal_prod_top⟩
 | (sum.inr ⟨J, hJ⟩) := ⟨ideal.prod ⊤ J, by exactI ideal.is_prime_ideal_prod_top'⟩
-
-section
-
-variables (R S)
 
 /-- The prime spectrum of `R × S` is in bijection with the disjoint unions of the prime spectrum of
 `R` and the prime spectrum of `S`. -/
 noncomputable def prime_spectrum_prod :
   prime_spectrum (R × S) ≃ prime_spectrum R ⊕ prime_spectrum S :=
-equiv.symm $ equiv.of_bijective prime_spectrum_prod_impl
+equiv.symm $ equiv.of_bijective (prime_spectrum_prod_of_sum R S)
 begin
   split,
   { rintro (⟨I, hI⟩|⟨J, hJ⟩) (⟨I', hI'⟩|⟨J', hJ'⟩) h;
-    simp only [ideal.prod.ext_iff, prime_spectrum_prod_impl] at h,
+    simp only [ideal.prod.ext_iff, prime_spectrum_prod_of_sum] at h,
     { simp only [h] },
     { exact false.elim (hI.ne_top h.left) },
     { exact false.elim (hJ.ne_top h.right) },
@@ -108,8 +106,6 @@ by { cases x, refl }
 @[simp] lemma prime_spectrum_prod_symm_inr_as_ideal (x : prime_spectrum S) :
   ((prime_spectrum_prod R S).symm $ sum.inr x).as_ideal = ideal.prod ⊤ x.as_ideal :=
 by { cases x, refl }
-
-end
 
 /-- The zero locus of a set `s` of elements of a commutative ring `R` is the set of all prime ideals
 of the ring that contain the set `s`.

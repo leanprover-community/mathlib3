@@ -160,8 +160,8 @@ end
 lemma sum_totient' (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
 begin
   convert sum_totient _ using 1,
-  simp only [nat.divisors, sum_filter, range_eq_Ico],
-  rw sum_eq_sum_Ico_succ_bot; simp
+  simp only [nat.divisors_apply, range_eq_Ico, ←Ico_succ_right, sum_filter],
+  rw [sum_eq_sum_Ico_succ_bot]; simp,
 end
 
 /-- When `p` is prime, then the totient of `p ^ (n + 1)` is `p ^ n * (p - 1)` -/

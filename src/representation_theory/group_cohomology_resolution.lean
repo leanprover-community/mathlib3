@@ -301,7 +301,7 @@ end
 
 -- as usual I can't think of a good name
 /-- Given an object `X : C`, the natural simplicial object sending `[n]` to `Xⁿ⁺¹`. -/
-def aux (X : C) :
+def aux {C : Type u} [category.{v} C] [has_finite_products C] (X : C) :
   simplicial_object C :=
 { obj := λ n, ∏ (λ i : fin (n.unop.len + 1), X),
   map := λ m n f, limits.pi.lift (λ i, limits.pi.π _ (f.unop.to_order_hom i)),
@@ -402,13 +402,13 @@ variables (k G)
 
 /-- The `k`-linear map underlying the differential in the standard resolution of `k` as a trivial
 `k`-linear `G`-representation. It sends `(g₀, ..., gₙ) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ)`. -/
-def d (n : ℕ) : ((fin (n + 1) → G) →₀ k) →ₗ[k] ((fin n → G) →₀ k) :=
+def d (G : Type u) (n : ℕ) : ((fin (n + 1) → G) →₀ k) →ₗ[k] ((fin n → G) →₀ k) :=
 finsupp.lift ((fin n → G) →₀ k) k (fin (n + 1) → G) (λ g, (@finset.univ (fin (n + 1)) _).sum
   (λ p, finsupp.single (g ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))))
 
 variables {k G}
 
-@[simp] lemma d_of {n : ℕ} (c : fin (n + 1) → G) :
+@[simp] lemma d_of {G : Type u} {n : ℕ} (c : fin (n + 1) → G) :
   d k G n (finsupp.single c 1) = finset.univ.sum (λ p : fin (n + 1), finsupp.single
     (c ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))) :=
 by simp [d]
@@ -526,12 +526,12 @@ section homotopy_equiv_single₀
 /- Not sure where to put these at the moment; algebra/homology/homotopy doesn't import
 algebra/homology/single and vice versa. -/
 variables {V : Type u} [category.{v} V] [preadditive V]
-  [has_zero_object V] [has_kernels V] [has_images V] [has_cokernels V]
+  [has_zero_object V]
 
 /-- If a chain complex `C` is homotopy equivalent to a complex concentrated at 0 (for some
 object `X`), the cokernel of the differential `d : C₁ → C₀` is isomorphic to `X.` -/
 def chain_complex.cokernel_at_zero_of_homotopy_equiv_single₀
-  {C : chain_complex V ℕ} {X : V}
+  [has_cokernels V] {C : chain_complex V ℕ} {X : V}
   (H : homotopy_equiv C ((chain_complex.single₀ _).obj X)) : cokernel (C.d 1 0) ≅ X :=
 { hom := cokernel.desc (C.d 1 0) (H.1.f 0) $ by rw ←H.1.2 1 0 rfl; exact comp_zero,
   inv := H.2.f 0 ≫ cokernel.π _,
@@ -543,7 +543,7 @@ def chain_complex.cokernel_at_zero_of_homotopy_equiv_single₀
 /-- If a cochain complex `C` is homotopy equivalent to a complex concentrated at 0 (for some
 object `X`), the kernel of the differential `d : C₀ → C₁` is isomorphic to `X.` -/
 def cochain_complex.kernel_at_zero_of_homotopy_equiv_single₀
-  {C : cochain_complex V ℕ} {X : V}
+   [has_kernels V] {C : cochain_complex V ℕ} {X : V}
   (H : homotopy_equiv C ((cochain_complex.single₀ _).obj X)) : kernel (C.d 0 1) ≅ X :=
 { hom := kernel.ι _ ≫ H.1.f 0,
   inv := kernel.lift _ (H.2.f 0) (by rw H.2.2 0 1 rfl; exact zero_comp),

@@ -137,11 +137,6 @@ apply_nolint tactic.interactive.traverse_constructor unused_arguments
 apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
 
--- data/finset/noncomm_prod.lean
-apply_nolint add_monoid_hom.pi_ext fintype_finite
-apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
-apply_nolint monoid_hom.pi_ext fintype_finite
-
 -- data/finsupp/pwo.lean
 apply_nolint finsupp.is_pwo fintype_finite
 

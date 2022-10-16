@@ -29,25 +29,6 @@ noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
-lemma ennreal.has_sum_lt {f g : α → ℝ≥0∞} {sf sg : ℝ≥0∞} {i : α} (h : ∀ (a : α), f a ≤ g a)
-  (hi : f i < g i) (hsg : sg ≠ ⊤) (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
-begin
-  have hg' : ∀ x, g x ≠ ⊤:= ennreal.ne_top_of_tsum_ne_top (hg.tsum_eq.symm ▸ hsg),
-  have hf' : ∀ x, f x ≠ ⊤ := λ x,  ne_of_lt (lt_of_le_of_lt (h x) $ lt_of_le_of_ne le_top (hg' x)),
-  have hsf : sf ≠ ⊤ := ne_of_lt (lt_of_le_of_lt (has_sum_le h hf hg) (lt_of_le_of_ne le_top hsg)),
-  lift f to α → ℝ≥0 using hf',
-  lift g to α → ℝ≥0 using hg',
-  lift sf to ℝ≥0 using hsf,
-  lift sg to ℝ≥0 using hsg,
-  simp only [ennreal.coe_le_coe, ennreal.coe_lt_coe] at h hi ⊢,
-  rw [ennreal.has_sum_coe] at hf hg,
-  exact nnreal.has_sum_lt h hi hf hg,
-end
-
-lemma ennreal.tsum_lt_tsum {f g : α → ℝ≥0∞} {i : α} (hgi : tsum g ≠ ⊤) (h : ∀ (a : α), f a ≤ g a)
-  (hi : f i < g i) : ∑' x, f x < ∑' x, g x :=
-ennreal.has_sum_lt h hi hgi ennreal.summable.has_sum ennreal.summable.has_sum
-
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0` such that
   the values have (infinite) sum `1`. -/
 def {u} pmf (α : Type u) : Type u := { f : α → ℝ≥0∞ // has_sum f 1 }

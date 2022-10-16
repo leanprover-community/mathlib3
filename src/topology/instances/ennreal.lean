@@ -1145,6 +1145,24 @@ begin
   exact_mod_cast nnreal.tendsto_sum_nat_add f
 end
 
+lemma has_sum_lt {f g : α → ℝ≥0∞} {sf sg : ℝ≥0∞} {i : α} (h : ∀ (a : α), f a ≤ g a)
+  (hi : f i < g i) (hsg : sg ≠ ⊤) (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
+begin
+  have hg' : ∀ x, g x ≠ ⊤:= ennreal.ne_top_of_tsum_ne_top (hg.tsum_eq.symm ▸ hsg),
+  have hf' : ∀ x, f x ≠ ⊤ := λ x,  ne_of_lt (lt_of_le_of_lt (h x) $ lt_of_le_of_ne le_top (hg' x)),
+  have hsf : sf ≠ ⊤ := ne_of_lt (lt_of_le_of_lt (has_sum_le h hf hg) (lt_of_le_of_ne le_top hsg)),
+  lift f to α → ℝ≥0 using hf',
+  lift g to α → ℝ≥0 using hg',
+  lift sf to ℝ≥0 using hsf,
+  lift sg to ℝ≥0 using hsg,
+  simp only [coe_le_coe, coe_lt_coe] at h hi ⊢,
+  refine nnreal.has_sum_lt h hi (ennreal.has_sum_coe.1 hf) (ennreal.has_sum_coe.1 hg),
+end
+
+lemma tsum_lt_tsum {f g : α → ℝ≥0∞} {i : α} (hgi : tsum g ≠ ⊤) (h : ∀ (a : α), f a ≤ g a)
+  (hi : f i < g i) : ∑' x, f x < ∑' x, g x :=
+has_sum_lt h hi hgi ennreal.summable.has_sum ennreal.summable.has_sum
+
 end ennreal
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ} (hf : summable f) (hn : ∀ a, 0 ≤ f a)

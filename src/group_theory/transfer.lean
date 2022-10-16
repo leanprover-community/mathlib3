@@ -185,19 +185,6 @@ begin
 end
 
 -- PRed
-lemma restrict_ker {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
-  (f.restrict H).ker = f.ker.subgroup_of H :=
-rfl
-
--- PRed
-lemma restrict_range {G K : Type*} [group G] [group K] (H : subgroup G) (f : G →* K) :
-  (f.restrict H).range = H.map f :=
-begin
-  simp_rw [set_like.ext_iff, mem_range, mem_map, restrict_apply, set_like.exists, subtype.coe_mk,
-    iff_self, forall_const],
-end
-
--- PRed
 @[simp, to_additive card_nsmul_eq_zero']
 lemma pow_card_eq_one' {G : Type*} [group G] {x : G} : x ^ nat.card G = 1 :=
 begin

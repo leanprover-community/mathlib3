@@ -1537,7 +1537,8 @@ by simp only [←dist_one_right, dist_pi_lt_iff hr, pi.one_apply]
 lemma pi_nnnorm_lt_iff' {r : ℝ≥0} (hr : 0 < r) : ∥x∥₊ < r ↔ ∀ i, ∥x i∥₊ < r := pi_norm_lt_iff' hr
 
 @[to_additive norm_le_pi_norm]
-lemma norm_le_pi_norm' (i : ι) : ∥f i∥ ≤ ∥f∥ := (pi_norm_le_iff_of_nonneg' $ norm_nonneg' _).1 le_rfl i
+lemma norm_le_pi_norm' (i : ι) : ∥f i∥ ≤ ∥f∥ :=
+(pi_norm_le_iff_of_nonneg' $ norm_nonneg' _).1 le_rfl i
 
 @[to_additive nnnorm_le_pi_nnnorm]
 lemma nnnorm_le_pi_nnnorm' (i : ι) : ∥f i∥₊ ≤ ∥f∥₊ := norm_le_pi_norm' _ i

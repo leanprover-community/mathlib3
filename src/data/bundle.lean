@@ -73,7 +73,7 @@ instance {x : B} : has_coe_t (E x) (total_space E) := ⟨total_space_mk x⟩
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = total_space_mk x v := rfl
 
 -- notation for the direct sum of two bundles over the same base
-notation E₁ `×ᵇ`:100 E₂ := λ x, E₁ x × E₂ x
+notation E₁ ` ×ᵇ `:100 E₂ := λ x, E₁ x × E₂ x
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
 def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
@@ -89,7 +89,7 @@ variable {B' : Type*}
 
 /-- The pullback of a bundle `E` over a base `B` under a map `f : B' → B`, denoted by `pullback f E`
 or `f *ᵖ E`,  is the bundle over `B'` whose fiber over `b'` is `E (f b')`. -/
-@[nolint has_inhabited_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
+@[nolint has_nonempty_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
 
 notation f ` *ᵖ ` E := pullback f E
 

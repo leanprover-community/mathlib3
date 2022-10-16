@@ -388,7 +388,7 @@ variables (f : X ⟶ Z) (g : Y ⟶ Z)
 The usual explicit pullback in the category of types, as a subtype of the product.
 The full `limit_cone` data is bundled as `pullback_limit_cone f g`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 abbreviation pullback_obj : Type u := { p : X × Y // f p.1 = g p.2 }
 
 -- `pullback_obj f g` comes with a coercion to the product type `X × Y`.

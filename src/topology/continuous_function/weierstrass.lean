@@ -58,7 +58,7 @@ begin
   { -- We can pullback continuous functions on `[a,b]` to continuous functions on `[0,1]`,
     -- by precomposing with an affine map.
     let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) :=
-      comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map,
+      comp_right_alg_hom ℝ ℝ (Icc_homeo_I a b h).symm.to_continuous_map,
     -- This operation is itself a homeomorphism
     -- (with respect to the norm topologies on continuous functions).
     let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := comp_right_homeomorph ℝ (Icc_homeo_I a b h).symm,
@@ -78,7 +78,6 @@ begin
     -- so all subalgebras are the same anyway.
     haveI : subsingleton (set.Icc a b) := ⟨λ x y, le_antisymm
       ((x.2.2.trans (not_lt.mp h)).trans y.2.1) ((y.2.2.trans (not_lt.mp h)).trans x.2.1)⟩,
-    haveI := (continuous_map.subsingleton_subalgebra (set.Icc a b) ℝ),
     apply subsingleton.elim, }
 end
 

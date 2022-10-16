@@ -61,7 +61,7 @@ variables {α : Type*} [topological_space α]
 begin
   apply polynomial.induction_on' g,
   { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp [pi.pow_apply f x n], },
+  { intros n a, simp [pi.pow_apply], },
 end
 
 end
@@ -138,7 +138,7 @@ open continuous_map
 is the polynomials on `[a,b]`. -/
 lemma polynomial_functions.comap_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
   (polynomial_functions I).comap
-    (comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
+    (comp_right_alg_hom ℝ ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,

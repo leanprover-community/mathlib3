@@ -244,7 +244,7 @@ begin
                ∩ (⋂x y z, {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)})
                ∩ (⋂x, {f : Cb X Y | f (x, x) = 0})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}),
-  { ext, simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq] },
+  { ext, simp only [candidates_b, candidates, mem_inter_iff, mem_Inter, mem_set_of_eq] },
   rw this,
   repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _
@@ -451,7 +451,7 @@ def premetric_optimal_GH_dist : pseudo_metric_space (X ⊕ Y) :=
 local attribute [instance] premetric_optimal_GH_dist pseudo_metric.dist_setoid
 
 /-- A metric space which realizes the optimal coupling between `X` and `Y` -/
-@[derive metric_space, nolint has_inhabited_instance]
+@[derive metric_space, nolint has_nonempty_instance]
 definition optimal_GH_coupling : Type* :=
 pseudo_metric_quot (X ⊕ Y)
 

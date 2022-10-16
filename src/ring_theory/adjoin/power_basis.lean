@@ -41,8 +41,7 @@ begin
     (adjoin K {x}) (λ i, ⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ)),
   { have := hx'.linear_independent_pow,
     rwa minpoly_eq at this },
-  { rw _root_.eq_top_iff,
-    rintros ⟨y, hy⟩ _,
+  { rintros ⟨y, hy⟩ _,
     have := hx'.mem_span_pow,
     rw minpoly_eq at this,
     apply this,
@@ -50,7 +49,7 @@ begin
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
-      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm } }
+      exact aeval_algebra_map_apply S (⟨x, _⟩ : adjoin K {x}) _, } }
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,

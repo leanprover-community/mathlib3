@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
 import data.nat.modeq
+import data.nat.prime
 import algebra.parity
 
 /-!
@@ -210,6 +211,19 @@ by rw [bit0_eq_two_mul m, ←nat.div_div_eq_div_mul, bit0_div_two]
 @[simp] lemma bit1_div_bit0 : bit1 n / bit0 m = n / m :=
 by rw [bit0_eq_two_mul, ←nat.div_div_eq_div_mul, bit1_div_two]
 
+@[simp] lemma bit0_mod_bit0 : bit0 n % bit0 m = bit0 (n % m) :=
+by rw [bit0_eq_two_mul n, bit0_eq_two_mul m, bit0_eq_two_mul (n % m), nat.mul_mod_mul_left]
+
+@[simp] lemma bit1_mod_bit0 : bit1 n % bit0 m = bit1 (n % m) :=
+begin
+  have h₁ := congr_arg bit1 (nat.div_add_mod n m),
+  -- `∀ m n : ℕ, bit0 m * n = bit0 (m * n)` seems to be missing...
+  rw [bit1_add, bit0_eq_two_mul, ← mul_assoc, ← bit0_eq_two_mul] at h₁,
+  have h₂ := nat.div_add_mod (bit1 n) (bit0 m),
+  rw [bit1_div_bit0] at h₂,
+  exact add_left_cancel (h₂.trans h₁.symm),
+end
+
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
 example (m n : ℕ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=
@@ -222,8 +236,56 @@ end nat
 
 open nat
 
+namespace function
+namespace involutive
+
+variables {α : Type*} {f : α → α} {n : ℕ}
+
+theorem iterate_bit0 (hf : involutive f) (n : ℕ) : f^[bit0 n] = id :=
+by rw [bit0, ← two_mul, iterate_mul, involutive_iff_iter_2_eq_id.1 hf, iterate_id]
+
+theorem iterate_bit1 (hf : involutive f) (n : ℕ) : f^[bit1 n] = f :=
+by rw [bit1, iterate_succ, hf.iterate_bit0, comp.left_id]
+
+theorem iterate_even (hf : involutive f) (hn : even n) : f^[n] = id :=
+let ⟨m, hm⟩ := hn in hm.symm ▸ hf.iterate_bit0 m
+
+theorem iterate_odd (hf : involutive f) (hn : odd n) : f^[n] = f :=
+let ⟨m, hm⟩ := odd_iff_exists_bit1.mp hn in hm.symm ▸ hf.iterate_bit1 m
+
+theorem iterate_eq_self (hf : involutive f) (hne : f ≠ id) : f^[n] = f ↔ odd n :=
+⟨λ H, odd_iff_not_even.2 $ λ hn, hne $ by rwa [hf.iterate_even hn, eq_comm] at H, hf.iterate_odd⟩
+
+theorem iterate_eq_id (hf : involutive f) (hne : f ≠ id) : f^[n] = id ↔ even n :=
+⟨λ H, even_iff_not_odd.2 $ λ hn, hne $ by rwa [hf.iterate_odd hn] at H, hf.iterate_even⟩
+
+end involutive
+end function
+
 variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
 
 lemma neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
 ⟨λ h', of_not_not $ λ hn, h $ (odd.neg_one_pow $ odd_iff_not_even.mpr hn).symm.trans h',
   even.neg_one_pow⟩
+
+/-- If `a` is even, then `n` is odd iff `n % a` is odd. -/
+lemma odd.mod_even_iff {n a : ℕ} (ha : even a) : odd (n % a) ↔ odd n :=
+((even_sub' $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
+   dvd_sub_mod n).symm
+
+/-- If `a` is even, then `n` is even iff `n % a` is even. -/
+lemma even.mod_even_iff {n a : ℕ} (ha : even a) : even (n % a) ↔ even n :=
+((even_sub $ mod_le n a).mp $ even_iff_two_dvd.mpr $ (even_iff_two_dvd.mp ha).trans $
+   dvd_sub_mod n).symm
+
+/-- If `n` is odd and `a` is even, then `n % a` is odd. -/
+lemma odd.mod_even {n a : ℕ} (hn : odd n) (ha : even a) : odd (n % a) :=
+(odd.mod_even_iff ha).mpr hn
+
+/-- If `n` is even and `a` is even, then `n % a` is even. -/
+lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
+(even.mod_even_iff ha).mpr hn
+
+/-- `2` is not a prime factor of an odd natural number. -/
+lemma odd.factors_ne_two {n p : ℕ} (hn : odd n) (hp : p ∈ n.factors) : p ≠ 2 :=
+by { rintro rfl, exact two_dvd_ne_zero.mpr (odd_iff.mp hn) (dvd_of_mem_factors hp) }

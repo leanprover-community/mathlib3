@@ -259,7 +259,7 @@ variables [algebra S A] [module S M] [linear_map.compatible_smul A M R S]
 
 variables (R)
 
-/- If `A` is both an `R`-algebra and an `S`-algebra; `M` is both an `R`-module and an `S`-module,
+/-- If `A` is both an `R`-algebra and an `S`-algebra; `M` is both an `R`-module and an `S`-module,
 then an `S`-derivation `A → M` is also an `R`-derivation if it is also `R`-linear. -/
 protected
 def restrict_scalars (d : derivation S A M) : derivation R A M :=

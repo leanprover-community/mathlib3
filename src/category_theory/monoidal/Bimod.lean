@@ -26,7 +26,7 @@ variables [has_coequalizers C]
 
 section
 
-variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_left X)]
 
 lemma id_tensor_π_preserves_coequalizer_inv_desc
   {W X Y Z : C} (f g : X ⟶ Y)
@@ -49,7 +49,7 @@ end
 
 section
 
-variables [∀ X : C, preserves_colimits (tensor_right X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_right X)]
 
 lemma π_tensor_id_preserves_coequalizer_inv_desc
   {W X Y Z : C} (f g : X ⟶ Y)
@@ -189,7 +189,7 @@ def X : C := coequalizer (P.act_right ⊗ 𝟙 Q.X) ((α_ _ _ _).hom ≫ (𝟙 P
 
 section
 
-variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_left X)]
 
 /-- Left action for the tensor product of two bimodules. -/
 noncomputable
@@ -256,7 +256,7 @@ end
 
 section
 
-variables [∀ X : C, preserves_colimits (tensor_right X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_right X)]
 
 /-- Right action for the tensor product of two bimodules. -/
 noncomputable
@@ -325,8 +325,8 @@ end
 
 section
 
-variables [∀ X : C, preserves_colimits (tensor_left X)]
-variables [∀ X : C, preserves_colimits (tensor_right X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_left X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_right X)]
 
 lemma middle_assoc' :
   (act_left P Q ⊗ 𝟙 T.X) ≫ act_right P Q =
@@ -352,8 +352,8 @@ end tensor_Bimod
 
 section
 
-variables [∀ X : C, preserves_colimits (tensor_left X)]
-variables [∀ X : C, preserves_colimits (tensor_right X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_left X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_right X)]
 
 /-- Tensor product of two bimodule objects as a bimodule object. -/
 @[simps]
@@ -367,13 +367,6 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
   left_assoc' := tensor_Bimod.left_assoc' M N,
   right_assoc' := tensor_Bimod.right_assoc' M N,
   middle_assoc' := tensor_Bimod.middle_assoc' M N, }
-
-end
-
-section
-
-variables [∀ X : C, preserves_colimits (tensor_left X)]
-variables [∀ X : C, preserves_colimits (tensor_right X)]
 
 /-- Tensor product of two morphisms of bimodule objects. -/
 @[simps]
@@ -434,10 +427,10 @@ end
 
 namespace associator_Bimod
 
-variables [∀ X : C, preserves_colimits (tensor_left X)]
-variables [∀ X : C, preserves_colimits (tensor_right X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_left X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_right X)]
 
-variables {R S T U: Mon_ C} (P : Bimod R S) (Q : Bimod S T) (L : Bimod T U)
+variables {R S T U : Mon_ C} (P : Bimod R S) (Q : Bimod S T) (L : Bimod T U)
 
 /-- An auxiliary morphism for the definition of the underlying morphism of the forward component of
 the associator isomorphism. -/
@@ -654,8 +647,8 @@ begin
   rw [one_act_left, iso.inv_hom_id],
 end
 
-variables [∀ X : C, preserves_colimits (tensor_left X)]
-variables [∀ X : C, preserves_colimits (tensor_right X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_left X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_right X)]
 
 lemma hom_left_act_hom' :
   ((regular R).tensor_Bimod P).act_left ≫ hom P = (𝟙 R.X ⊗ hom P) ≫ P.act_left :=
@@ -718,8 +711,8 @@ begin
   rw [act_right_one, iso.inv_hom_id],
 end
 
-variables [∀ X : C, preserves_colimits (tensor_left X)]
-variables [∀ X : C, preserves_colimits (tensor_right X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_left X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_right X)]
 
 lemma hom_left_act_hom' :
   (P.tensor_Bimod (regular S)).act_left ≫ hom P = (𝟙 R.X ⊗ hom P) ≫ P.act_left :=
@@ -747,8 +740,8 @@ end
 
 end right_unitor_Bimod
 
-variables [∀ X : C, preserves_colimits (tensor_left X)]
-variables [∀ X : C, preserves_colimits (tensor_right X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_left X)]
+variables [∀ X : C, preserves_colimits_of_size.{0 0} (tensor_right X)]
 
 /-- The associator as a bimodule isomorphism. -/
 noncomputable

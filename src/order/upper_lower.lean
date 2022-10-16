@@ -689,3 +689,152 @@ begin
 end
 
 end closure
+
+section prod
+
+variables {β : Type*}
+
+variables [preorder α] [preorder β]
+
+/-- The product of two upper sets is an upper set -/
+def upper_set.prod (s : upper_set α) (t : upper_set β) : upper_set (α × β) :=
+⟨univ ×ˢ t ∩ s ×ˢ univ,
+begin
+  apply is_upper_set.inter,
+  { intros p q hpq hp,
+    rw prod.le_def at hpq,
+    rw mem_prod,
+    rw mem_prod at hp,
+    split,
+    { apply mem_univ, },
+    { apply t.upper' hpq.2,
+      exact hp.2, } },
+  { intros p q hpq hp,
+    rw prod.le_def at hpq,
+    rw mem_prod,
+    rw mem_prod at hp,
+    split,
+    { apply s.upper' hpq.1,
+      exact hp.1, },
+    { apply mem_univ, } }
+end
+⟩
+
+@[simp] lemma coe_upper_set_prod (s : upper_set α) (t : upper_set β) :
+  (s.prod t : set (α × β)) = univ ×ˢ t ∩ s ×ˢ univ := rfl
+
+lemma upper_closure_prod_upper_closure (s : set α) (t : set β) :
+  (upper_closure s).prod (upper_closure t) = upper_closure (s ×ˢ t) :=
+upper_set.ext begin
+  simp only [coe_upper_set_prod, coe_upper_closure, exists_prop, mem_prod, prod.exists],
+  rw le_antisymm_iff,
+  split,
+  { intros p hp,
+    rw mem_set_of_eq,
+    rw mem_inter_iff at hp,
+    cases hp,
+    rw [mem_prod,mem_set_of_eq] at hp_right,
+    cases hp_right.1 with a ha,
+    rw [mem_prod,mem_set_of_eq] at hp_left,
+    cases hp_left.2 with b hb,
+    use a,
+    use b,
+    split,
+    { split, exact ha.1, exact hb.1,  },
+    { rw prod.le_def,
+      simp only,
+      split, exact ha.2,exact hb.2, } },
+  { intros p hp,
+    rw mem_set_of_eq at hp,
+    cases hp with a,
+    cases hp_h with b hab,
+    rw mem_inter_iff,
+    split,
+    { rw mem_prod,
+      split,
+      { apply mem_univ, },
+      { rw mem_set_of_eq,
+        use b,
+        split,
+        { exact hab.1.2, },
+        { apply hab.2.2, } } },
+    { rw mem_prod,
+      split,
+      { rw mem_set_of_eq,
+        use a,
+        split,
+        { exact hab.1.1, },
+        { apply hab.2.1, } },
+      { apply mem_univ, }, } }
+end
+
+/-- The product of two lower sets is a lower set -/
+def lower_set.prod (s : lower_set α) (t : lower_set β) : lower_set (α × β) :=
+⟨(univ ×ˢ t.compl)ᶜ ∩ (s.compl ×ˢ univ)ᶜ,
+begin
+  apply is_lower_set.inter,
+  { rw [is_lower_set_compl, lower_set.coe_compl],
+    intros p q hpq hp,
+    rw prod.le_def at hpq,
+    rw mem_prod,
+    rw mem_prod at hp,
+    split,
+    { apply mem_univ, },
+    { apply t.compl.upper' hpq.2,
+      exact hp.2, }, },
+  { rw [is_lower_set_compl, lower_set.coe_compl],
+    intros p q hpq hp,
+    rw prod.le_def at hpq,
+    rw mem_prod,
+    rw mem_prod at hp,
+    split,
+    { apply s.compl.upper' hpq.1,
+      exact hp.1, },
+    { apply mem_univ, } }
+end
+⟩
+
+@[simp] lemma coe_lower_set_prod (s : lower_set α) (t : lower_set β) :
+  (s.prod t : set (α × β)) = (univ ×ˢ tᶜ)ᶜ ∩ (sᶜ ×ˢ univ)ᶜ := rfl
+
+lemma lower_closure_prod_lower_closure (s : set α) (t : set β) :
+  (lower_closure s).prod (lower_closure t) = lower_closure (s ×ˢ t) :=
+lower_set.ext begin
+  simp only [coe_lower_set_prod, coe_lower_closure, exists_prop, mem_prod, prod.exists],
+  rw le_antisymm_iff,
+  split,
+  { intros p hp,
+    rw mem_set_of_eq,
+    rw mem_inter_iff at hp,
+    cases hp,
+    simp only [mem_compl_iff, mem_prod, mem_set_of_eq, not_exists, mem_univ, and_true, not_forall,
+      not_not] at hp_right,
+    cases hp_right with a ha,
+    simp only [mem_compl_iff, mem_prod, mem_univ, mem_set_of_eq, not_exists, true_and,
+      not_forall, not_not] at hp_left,
+    cases hp_left with b hb,
+    use a,
+    use b,
+    split,
+    { split, exact ha.1, exact hb.1, },
+    { rw prod.le_def,
+      split,
+      { exact ha.2, },
+      { exact hb.2, }, } },
+  { intros p hp,
+  rw mem_set_of_eq at hp,
+  cases hp with a,
+  cases hp_h with b hab,
+  rw mem_inter_iff,
+  split,
+  { simp only [mem_compl_iff, mem_prod, mem_univ, mem_set_of_eq, not_exists, true_and, not_forall,
+      not_not],
+    use b,
+    split, { exact hab.1.2, }, { exact hab.2.2, }, },
+  { simp only [mem_compl_iff, mem_prod, mem_set_of_eq, not_exists, mem_univ, and_true, not_forall,
+      not_not],
+    use a,
+    split, { exact hab.1.1, }, { exact hab.2.1, }, }, }
+end
+
+end prod

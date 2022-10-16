@@ -411,8 +411,8 @@ begin
     finset.union_inter_cancel_right, ht1_eq, ← h_indep p1 ht1_m, ht2_eq, ← h_indep p2 ht2_m],
 end
 
-lemma Indep_set.indep_generate_from_of_disjoint [decidable_eq ι] [is_probability_measure μ]
-  (s : ι → set Ω)
+lemma Indep_set.indep_generate_from_of_disjoint [is_probability_measure μ]
+  {s : ι → set Ω}
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (S T : set ι) (hST : disjoint S T) :
   indep (generate_from {t | ∃ n ∈ S, s n = t}) (generate_from {t | ∃ k ∈ T, s k = t}) μ :=
 begin
@@ -430,7 +430,8 @@ begin
   { refine is_pi_system_pi_Union_Inter _ (λ k, is_pi_system.singleton _) _ (λ a b ha hb, _),
     rw set.mem_set_of_eq at ha hb ⊢,
     simp only [ha, hb, finset.sup_eq_union, finset.coe_union, set.union_subset_iff, and_self], },
-  { refine indep_sets_pi_Union_Inter_of_disjoint (Indep.Indep_sets (λ n, rfl) hs) _,
+  { classical,
+    refine indep_sets_pi_Union_Inter_of_disjoint (Indep.Indep_sets (λ n, rfl) hs) _,
     intros u v hu hv,
     have : disjoint (u : set ι) ↑v := set.disjoint_of_subset hu hv hST,
     rw finset.disjoint_iff_inter_eq_empty,

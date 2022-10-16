@@ -6,6 +6,7 @@ import data.set.lattice
 import combinatorics.quiver.connected_component
 import combinatorics.quiver.subquiver
 import group_theory.subgroup.basic
+import category_theory.is_connected
 
 
 open set classical function
@@ -17,7 +18,34 @@ namespace groupoid
 
 universes u v
 
+section of_group
+
+def of_group (G : Type*) [group G] := unit
+
+-- What am I doing wrong?
+/-
+instance (G : Type*) [g : group G] : groupoid (of_group G) :=
+{ hom := @punit.rec (λ _, unit → Type u) (@punit.rec (λ _, Type u) G),
+  id := λ a, by {cases a, exact g.one, },
+  comp := λ a b c x y, @punit.rec (λ _, unit → Type u) (@punit.rec (λ _, Type u) G),
+  --by {cases a, cases b, cases c, apply g.mul x y},
+  id_comp' := λ a b x, by {cases a, cases b, exact one_mul x,},
+  comp_id' := λ a b x, by {cases a, cases b, exact mul_one x,},
+  assoc' := λ a b c d x y z, by {cases a, cases b, cases c, cases d, exact mul_assoc x y z, },
+  inv := λ a b x, by {cases a, cases b, exact g.inv x, }
+  inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp],
+  comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
+-/
+
+end of_group
+
 variables (C : Type u) [groupoid C]
+
+section is_connected
+
+lemma is_connected_iff : is_connected C ↔ (∀ X Y : C, nonempty (X ⟶ Y)) := sorry
+
+end is_connected
 
 section graph_like
 

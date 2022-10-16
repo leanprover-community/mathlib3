@@ -13,6 +13,7 @@ import logic.relation
 import tactic.nth_rewrite
 import category_theory.path_category
 import category_theory.quotient
+import category_theory.groupoid.vertex_group
 
 /-!
 # Universal groupoid
@@ -183,13 +184,13 @@ quotient.lift _
       induction h,
       { dsimp [quiver.push.of, category_struct.comp, category_struct.id, quiver.hom.to_path],
         simp only [functor.map_comp, cast_cast, category.id_comp],
-        finish,
-        --sorry,
+        --finish,
+        sorry,
          },
       { dsimp [quiver.push.of, category_struct.comp, category_struct.id, quiver.hom.to_path],
         simp only [functor.map_id, cast_cast, category.id_comp],
-        finish,
-        --sorry
+        --finish,
+        sorry
         /-I'm overusing finish… I have no idea how it works-/ }, } )
 
 lemma lift_spec_obj : (lift σ θ τ₀ hτ₀).obj = τ₀ ∘ (as σ) := rfl
@@ -216,6 +217,42 @@ begin
 end
 
 end ump
+
+section composite
+/-!
+Given `σ : V → V'` and `τ : V' → V''`, and `[groupoid V]`, taking the universal groupoid along
+`τ∘σ` is equivalent to first taking it along `σ`, and then along `τ`.
+-/
+variables {V'' : Type*} (τ : V' → V'')
+
+end composite
+
+section universal_group
+/-!
+The universal group is the universal groupoid for the constant map to a singleton type.
+-/
+
+def _root_.category_theory.groupoid.universal_group.groupoid (V : Type*) [groupoid V] :=
+@universal_groupoid V _ unit (λ (X : V), unit.star)
+
+instance (V : Type*) [groupoid V] : groupoid (universal_group.groupoid V) :=
+category_theory.groupoid.universal_groupoid.category_theory.groupoid (λ (X : V), unit.star)
+
+def _root_.category_theory.groupoid.universal_group.star  (V : Type*) [groupoid V] :
+  universal_group.groupoid V := ⟨unit.star⟩
+
+def _root_.category_theory.groupoid.universal_group :=
+  (universal_group.star V) ⟶ (universal_group.star V)
+
+namespace group
+
+
+
+def lift :
+
+end group
+
+end universal_group
 
 end universal
 

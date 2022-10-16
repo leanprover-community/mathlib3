@@ -4,7 +4,6 @@ import algebra.category.Group.limits
 
 namespace category_theory
 
-instance (R : Mon_ AddCommGroup) : ring R.X :=
-_
+instance (R : Mon_ AddCommGroup) : ring R.X := sorry
 
 end category_theory

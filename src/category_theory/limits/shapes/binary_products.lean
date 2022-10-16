@@ -506,7 +506,13 @@ by simp
 lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
-by simp
+begin
+  ext,
+  { rw [category.assoc, prod.map_fst, prod.map_fst, ←category.assoc, prod.lift_fst,
+      category.id_comp] },
+  { rw [category.assoc, prod.map_snd, prod.map_snd, ←category.assoc, prod.lift_snd,
+      category.id_comp] },
+end
 
 instance {X : C} [has_binary_product X X] : is_split_mono (diag X) :=
 is_split_mono.mk' { retraction := prod.fst }

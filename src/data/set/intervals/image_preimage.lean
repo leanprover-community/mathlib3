@@ -531,6 +531,12 @@ end
 lemma inv_Ioi {a : k} (ha : 0 < a) : (Ioi a)⁻¹ = Ioo 0 a⁻¹ :=
 by rw [inv_eq_iff_inv_eq, inv_Ioo_0_left (inv_pos.2 ha), inv_inv]
 
+lemma image_const_mul_Ioi_zero {k : Type*} [linear_ordered_field k]
+  {x : k} (hx : 0 < x) :
+  (λ y, x * y) '' Ioi (0 : k) = Ioi 0 :=
+by erw [(units.mk0 x hx.ne').mul_left.image_eq_preimage, preimage_const_mul_Ioi 0 (inv_pos.mpr hx),
+  zero_div]
+
 /-!
 ### Images under `x ↦ a * x + b`
 -/

@@ -47,8 +47,10 @@ open_locale classical manifold topological_space
 
 open set filter
 
-variables {H : Type*} {M : Type*} [topological_space H] [topological_space M] [charted_space H M]
-{H' : Type*} {M' : Type*} [topological_space H'] [topological_space M'] [charted_space H' M']
+variables {H M H' M' X : Type*}
+variables [topological_space H] [topological_space M] [charted_space H M]
+variables [topological_space H'] [topological_space M'] [charted_space H' M']
+variables [topological_space X]
 
 namespace structure_groupoid
 
@@ -60,7 +62,7 @@ variables (G : structure_groupoid H) (G' : structure_groupoid H')
 to charted spaces admitting these groupoids will inherit the good behavior. -/
 structure local_invariant_prop (P : (H → H') → (set H) → H → Prop) : Prop :=
 (is_local : ∀ {s x u} {f : H → H'}, is_open u → x ∈ u → (P f s x ↔ P f (s ∩ u) x))
-(right_invariance : ∀ {s x f} {e : local_homeomorph H H}, e ∈ G → x ∈ e.source → P f s x →
+(right_invariance' : ∀ {s x f} {e : local_homeomorph H H}, e ∈ G → x ∈ e.source → P f s x →
                       P (f ∘ e.symm) (e.symm ⁻¹' s) (e x))
 (congr_of_forall : ∀ {s x} {f g : H → H'}, (∀ y ∈ s, f y = g y) → f x = g x → P f s x → P g s x)
 (left_invariance' : ∀ {s x f} {e' : local_homeomorph H' H'}, e' ∈ G' → s ⊆ f ⁻¹' e'.source →
@@ -85,14 +87,6 @@ lemma is_local_nhds {s u : set H} {x : H} {f : H → H'} (hu : u ∈ 𝓝[s] x) 
   P f s x ↔ P f (s ∩ u) x :=
 hG.congr_set $ mem_nhds_within_iff_eventually_eq.mp hu
 
-lemma left_invariance {s : set H} {x : H} {f : H → H'} {e' : local_homeomorph H' H'}
-  (he' : e' ∈ G') (hfs : continuous_within_at f s x) (hxe' : f x ∈ e'.source) (hP : P f s x) :
-  P (e' ∘ f) s x :=
-begin
-  rw [hG.is_local_nhds (hfs.preimage_mem_nhds_within $ e'.open_source.mem_nhds hxe')] at hP ⊢,
-  exact hG.left_invariance' he' (inter_subset_right _ _) hxe' hP
-end
-
 lemma congr_iff_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g)
   (h2 : f x = g x) : P f s x ↔ P g s x :=
 by { simp_rw [hG.is_local_nhds h1],
@@ -114,6 +108,39 @@ lemma congr {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) (hP : P 
 
 lemma congr' {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) (hP : P g s x) : P f s x :=
 hG.congr h.symm hP
+
+lemma left_invariance {s : set H} {x : H} {f : H → H'} {e' : local_homeomorph H' H'}
+  (he' : e' ∈ G') (hfs : continuous_within_at f s x) (hxe' : f x ∈ e'.source) :
+  P (e' ∘ f) s x ↔ P f s x :=
+begin
+  have h2f := hfs.preimage_mem_nhds_within (e'.open_source.mem_nhds hxe'),
+  have h3f := (((e'.continuous_at hxe').comp_continuous_within_at hfs).preimage_mem_nhds_within $
+    e'.symm.open_source.mem_nhds $ e'.maps_to hxe'),
+  split,
+  { intro h,
+    rw [hG.is_local_nhds h3f] at h,
+    have h2 := hG.left_invariance' (G'.symm he') (inter_subset_right _ _)
+      (by exact e'.maps_to hxe') h,
+    rw [← hG.is_local_nhds h3f] at h2,
+    refine hG.congr_nhds_within _ (e'.left_inv hxe') h2,
+    exact eventually_of_mem h2f (λ x', e'.left_inv) },
+  { simp_rw [hG.is_local_nhds h2f],
+    exact hG.left_invariance' he' (inter_subset_right _ _) hxe' }
+end
+
+lemma right_invariance {s : set H} {x : H} {f : H → H'} {e : local_homeomorph H H}
+  (he : e ∈ G) (hxe : x ∈ e.source) : P (f ∘ e.symm) (e.symm ⁻¹' s) (e x) ↔ P f s x :=
+begin
+  refine ⟨λ h, _, hG.right_invariance' he hxe⟩,
+  have := hG.right_invariance' (G.symm he) (e.maps_to hxe) h,
+  rw [e.symm_symm, e.left_inv hxe] at this,
+  refine hG.congr _ ((hG.congr_set _).mp this),
+  { refine eventually_of_mem (e.open_source.mem_nhds hxe) (λ x' hx', _),
+    simp_rw [function.comp_apply, e.left_inv hx'] },
+  { rw [eventually_eq_set],
+    refine eventually_of_mem (e.open_source.mem_nhds hxe) (λ x' hx', _),
+    simp_rw [mem_preimage, e.left_inv hx'] },
+end
 
 end local_invariant_prop
 end structure_groupoid
@@ -175,6 +202,20 @@ iff.rfl
 lemma lift_prop_on_univ : lift_prop_on P g univ ↔ lift_prop P g :=
 by simp [lift_prop_on, lift_prop, lift_prop_at]
 
+lemma lift_prop_within_at_self {f : H → H'} {s : set H} {x : H} :
+  lift_prop_within_at P f s x ↔ continuous_within_at f s x ∧ P f s x :=
+iff.rfl
+
+lemma lift_prop_within_at_self_source {f : H → M'} {s : set H} {x : H} :
+  lift_prop_within_at P f s x ↔ continuous_within_at f s x ∧ P (chart_at H' (f x) ∘ f) s x :=
+iff.rfl
+
+lemma lift_prop_within_at_self_target {f : M → H'} :
+  lift_prop_within_at P f s x ↔
+    continuous_within_at f s x ∧
+    P (f ∘ (chart_at H x).symm) ((chart_at H x).symm ⁻¹' s) (chart_at H x x) :=
+iff.rfl
+
 namespace local_invariant_prop
 
 variable (hG : G.local_invariant_prop G' P)
@@ -193,6 +234,52 @@ begin
     (mem_chart_source H x) (chart_source_mem_nhds H' (f x))
 end
 
+lemma lift_prop_within_at_indep_chart_source_aux (g : M → H')
+  (he : e ∈ G.maximal_atlas M) (xe : x ∈ e.source)
+  (he' : e' ∈ G.maximal_atlas M) (xe' : x ∈ e'.source) :
+  P (g ∘ e.symm) (e.symm ⁻¹' s) (e x) ↔ P (g ∘ e'.symm) (e'.symm ⁻¹' s) (e' x) :=
+begin
+  rw [← hG.right_invariance (compatible_of_mem_maximal_atlas he he')],
+  swap, { simp only [xe, xe'] with mfld_simps },
+  simp_rw [local_homeomorph.trans_apply, e.left_inv xe],
+  rw [hG.congr_iff],
+  { refine hG.congr_set _,
+    refine (eventually_of_mem _ $ λ y (hy : y ∈ e'.symm ⁻¹' e.source), _).set_eq,
+    { refine (e'.symm.continuous_at $ e'.maps_to xe').preimage_mem_nhds (e.open_source.mem_nhds _),
+      simp_rw [e'.left_inv xe', xe] },
+    simp_rw [mem_preimage, local_homeomorph.coe_trans_symm, local_homeomorph.symm_symm,
+      function.comp_apply, e.left_inv hy] },
+  { refine ((e'.eventually_nhds' _ xe').mpr $ e.eventually_left_inverse xe).mono (λ y hy, _),
+    simp only with mfld_simps,
+    rw [hy] },
+end
+
+lemma lift_prop_within_at_indep_chart_target_aux2 (g : H → M') {x : H} {s : set H}
+  (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source)
+  (hf' : f' ∈ G'.maximal_atlas M') (xf' : g x ∈ f'.source)
+  (hgs : continuous_within_at g s x) :
+  P (f ∘ g) s x ↔ P (f' ∘ g) s x :=
+begin
+  have hcont : continuous_within_at (f ∘ g) s x :=
+    (f.continuous_at xf).comp_continuous_within_at hgs,
+  rw [← hG.left_invariance (compatible_of_mem_maximal_atlas hf hf') hcont
+      (by simp only [xf, xf'] with mfld_simps)],
+  refine hG.congr_iff_nhds_within _ (by simp only [xf] with mfld_simps),
+  exact (hgs.eventually $ f.eventually_left_inverse xf).mono (λ y, congr_arg f')
+end
+
+lemma lift_prop_within_at_indep_chart_target_aux {g : X → M'} {e : local_homeomorph X H} {x : X}
+  {s : set X} (xe : x ∈ e.source)
+  (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source)
+  (hf' : f' ∈ G'.maximal_atlas M') (xf' : g x ∈ f'.source)
+  (hgs : continuous_within_at g s x) :
+  P (f ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x) ↔ P (f' ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x) :=
+begin
+  rw [← e.left_inv xe] at xf xf' hgs,
+  refine hG.lift_prop_within_at_indep_chart_target_aux2 (g ∘ e.symm) hf xf hf' xf' _,
+  exact hgs.comp (e.symm.continuous_at $ e.maps_to xe).continuous_within_at subset.rfl
+end
+
 /-- If a property of a germ of function `g` on a pointed set `(s, x)` is invariant under the
 structure groupoid (by composition in the source space and in the target space), then
 expressing it in charted spaces does not depend on the element of the maximal atlas one uses
@@ -204,53 +291,61 @@ lemma lift_prop_within_at_indep_chart_aux
   (he' : e' ∈ G.maximal_atlas M) (xe' : x ∈ e'.source)
   (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source)
   (hf' : f' ∈ G'.maximal_atlas M') (xf' : g x ∈ f'.source)
-  (hgs : continuous_within_at g s x)
-  (h : P (f ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x)) :
-  P (f' ∘ g ∘ e'.symm) (e'.symm ⁻¹' s) (e' x) :=
-begin
-  have hcont : continuous_within_at (f ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x),
-  { rw [← e.left_inv xe] at hgs xf,
-    refine (f.continuous_at $ by exact xf).comp_continuous_within_at _,
-    exact hgs.comp (e.symm.continuous_at $ e.maps_to xe).continuous_within_at subset.rfl },
-  have A : P ((f.symm ≫ₕ f') ∘ (f ∘ g ∘ e.symm)) (e.symm ⁻¹' s) (e x),
-  { refine hG.left_invariance (compatible_of_mem_maximal_atlas hf hf') hcont
-      (by simp only [xe, xf, xf'] with mfld_simps) h },
-  have B : P (f' ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x),
-  { refine hG.congr_nhds_within _ (by simp only [xe, xf] with mfld_simps) A,
-    simp_rw [local_homeomorph.coe_trans, eventually_eq],
-    have := (e.eventually_nhds_within' _ xe).mpr (hgs.eventually $ f.eventually_left_inverse xf),
-    exact this.mono (λ y, congr_arg f') },
-  let w := e.symm ≫ₕ e',
-  let ow := w.symm ⁻¹' (e.symm ⁻¹' s),
-  have wG : w ∈ G := compatible_of_mem_maximal_atlas he he',
-  have C : P ((f' ∘ g ∘ e.symm) ∘ w.symm) ow (w (e x)) :=
-    hG.right_invariance wG (by simp only [w, xe, xe'] with mfld_simps) B,
-  have : ∀ y ∈ e.source, w (e y) = e' y := λ y hy, by simp only [w, hy] with mfld_simps,
-  rw [this x xe] at C,
-  have D : P (f' ∘ g ∘ e'.symm) ow (e' x),
-  { refine hG.congr _ C,
-    refine ((e'.eventually_nhds' _ xe').mpr $ e.eventually_left_inverse xe).mono (λ y hy, _),
-    simp only [w] with mfld_simps,
-    rw [hy] },
-  refine (hG.congr_set _).2 D,
-  refine (eventually_of_mem _ $ λ y (hy : y ∈ e'.symm ⁻¹' e.source), _).set_eq,
-  { refine (e'.symm.continuous_at $ e'.maps_to xe').preimage_mem_nhds (e.open_source.mem_nhds _),
-    simp_rw [e'.left_inv xe', xe] },
-  simp_rw [ow, mem_preimage, w, local_homeomorph.coe_trans_symm, local_homeomorph.symm_symm,
-    function.comp_apply, e.left_inv hy]
-end
+  (hgs : continuous_within_at g s x) :
+  P (f ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x) ↔ P (f' ∘ g ∘ e'.symm) (e'.symm ⁻¹' s) (e' x) :=
+by rw [hG.lift_prop_within_at_indep_chart_source_aux (f ∘ g) he xe he' xe',
+    hG.lift_prop_within_at_indep_chart_target_aux xe' hf xf hf' xf' hgs]
 
 lemma lift_prop_within_at_indep_chart [has_groupoid M G] [has_groupoid M' G']
   (he : e ∈ G.maximal_atlas M) (xe : x ∈ e.source)
   (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source) :
   lift_prop_within_at P g s x ↔
     continuous_within_at g s x ∧ P (f ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x) :=
-⟨λ H, ⟨H.1,
-  hG.lift_prop_within_at_indep_chart_aux (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) he xe
-  (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) hf xf H.1 H.2⟩,
-λ H, ⟨H.1,
-  hG.lift_prop_within_at_indep_chart_aux he xe (chart_mem_maximal_atlas _ _) (mem_chart_source _ _)
-    hf xf (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) H.1 H.2⟩⟩
+and_congr_right $ hG.lift_prop_within_at_indep_chart_aux (chart_mem_maximal_atlas _ _)
+  (mem_chart_source _ _) he xe (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) hf xf
+
+/-- A version of `lift_prop_within_at_indep_chart`, only for the source. -/
+lemma lift_prop_within_at_indep_chart_source [has_groupoid M G]
+  (he : e ∈ G.maximal_atlas M) (xe : x ∈ e.source) :
+  lift_prop_within_at P g s x ↔ lift_prop_within_at P (g ∘ e.symm) (e.symm ⁻¹' s) (e x) :=
+begin
+  have := e.symm.continuous_within_at_iff_continuous_within_at_comp_right xe,
+  rw [e.symm_symm] at this,
+  rw [lift_prop_within_at_self_source, lift_prop_within_at, ← this],
+  simp_rw [function.comp_app, e.left_inv xe],
+  refine and_congr iff.rfl _,
+  rw hG.lift_prop_within_at_indep_chart_source_aux (chart_at H' (g x) ∘ g)
+    (chart_mem_maximal_atlas G x) (mem_chart_source H x) he xe,
+end
+
+/-- A version of `lift_prop_within_at_indep_chart`, only for the target. -/
+lemma lift_prop_within_at_indep_chart_target [has_groupoid M' G']
+  (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source) :
+  lift_prop_within_at P g s x ↔ continuous_within_at g s x ∧ lift_prop_within_at P (f ∘ g) s x :=
+begin
+  rw [lift_prop_within_at_self_target, lift_prop_within_at, and.congr_right_iff],
+  intro hg,
+  simp_rw [(f.continuous_at xf).comp_continuous_within_at hg, true_and],
+  exact hG.lift_prop_within_at_indep_chart_target_aux (mem_chart_source _ _)
+    (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) hf xf hg
+end
+
+/-- A version of `lift_prop_within_at_indep_chart`, that uses `lift_prop_within_at` on both sides.
+-/
+lemma lift_prop_within_at_indep_chart' [has_groupoid M G] [has_groupoid M' G']
+  (he : e ∈ G.maximal_atlas M) (xe : x ∈ e.source)
+  (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source) :
+  lift_prop_within_at P g s x ↔
+    continuous_within_at g s x ∧ lift_prop_within_at P (f ∘ g ∘ e.symm) (e.symm ⁻¹' s) (e x) :=
+begin
+  rw [hG.lift_prop_within_at_indep_chart he xe hf xf, lift_prop_within_at_self, and.left_comm,
+    iff.comm, and_iff_right_iff_imp],
+  intro h,
+  have h1 := (e.symm.continuous_within_at_iff_continuous_within_at_comp_right xe).mp h.1,
+  have : continuous_at f ((g ∘ e.symm) (e x)),
+  { simp_rw [function.comp, e.left_inv xe, f.continuous_at xf] },
+  exact this.comp_continuous_within_at h1,
+end
 
 lemma lift_prop_on_indep_chart [has_groupoid M G] [has_groupoid M' G']
   (he : e ∈ G.maximal_atlas M) (hf : f ∈ G'.maximal_atlas M') (h : lift_prop_on P g s)
@@ -277,17 +372,11 @@ hG.lift_prop_within_at_inter' (mem_nhds_within_of_mem_nhds ht)
 
 lemma lift_prop_at_of_lift_prop_within_at (h : lift_prop_within_at P g s x) (hs : s ∈ 𝓝 x) :
   lift_prop_at P g x :=
-begin
-  have : s = univ ∩ s, by rw univ_inter,
-  rwa [this, hG.lift_prop_within_at_inter hs] at h,
-end
+by rwa [← univ_inter s, hG.lift_prop_within_at_inter hs] at h
 
 lemma lift_prop_within_at_of_lift_prop_at_of_mem_nhds (h : lift_prop_at P g x) (hs : s ∈ 𝓝 x) :
   lift_prop_within_at P g s x :=
-begin
-  have : s = univ ∩ s, by rw univ_inter,
-  rwa [this, hG.lift_prop_within_at_inter hs],
-end
+by rwa [← univ_inter s, hG.lift_prop_within_at_inter hs]
 
 lemma lift_prop_on_of_locally_lift_prop_on
   (h : ∀ x ∈ s, ∃ u, is_open u ∧ x ∈ u ∧ lift_prop_on P g (s ∩ u)) :
@@ -489,7 +578,7 @@ lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restric
         simpa only [this, interior_interior, hu.interior_eq] with mfld_simps using hef },
       { simp only [*, interior_interior, hu.interior_eq] with mfld_simps } }
   end,
-  right_invariance := begin
+  right_invariance' := begin
     intros s x f e' he'G he'x h hx,
     have hxs : x ∈ s := by simpa only [e'.left_inv he'x] with mfld_simps using hx,
     rcases h hxs with ⟨e, heG, hef, hex⟩,

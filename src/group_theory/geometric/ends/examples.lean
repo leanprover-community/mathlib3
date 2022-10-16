@@ -46,7 +46,7 @@ begin
   exact Ends_equiv_Endsinfty G,
   apply @equiv.equiv_empty _ _,
   apply is_empty.mk,
-  rintros ⟨f,f_comm⟩,
+  rintro ⟨f,f_comm⟩,
   obtain ⟨⟨C,Ccomp⟩,Cinf⟩ := f (set.finite.to_finset Vfin),
   exact Cinf (set.finite.subset Vfin (set.subset_univ C)),
 end
@@ -77,11 +77,11 @@ def gℕ : simple_graph ℕ := simple_graph.from_rel (λ n m, m = n.succ)
 lemma gℕadjs : ∀m n, gℕ.adj m n ↔ (n = m+1 ∨ m = n+1) := by
 { rintro m n, split,
  { rintro ⟨ne,rfl|rfl⟩,
-   { left,refl, },
-   { right,refl, },},
+   { left,refl,
+   { right,refl,},
    rintro (rfl|rfl),
-   { split, exact (nat.succ_ne_self m).symm, left, dsimp only, refl, },
-   { split, exact (nat.succ_ne_self n), right, dsimp only, refl, },}
+   { split, exact (nat.succ_ne_self m).symm, left, dsimp only, refl,
+   { split, exact (nat.succ_ne_self n), right, dsimp only, refl,}
 
 
 lemma gℕlf : locally_finite gℕ :=
@@ -98,9 +98,9 @@ end
 lemma gℕpc : gℕ.preconnected :=
 begin
   suffices : ∀ n : ℕ, gℕ.reachable n 0,
-  { rintro m n, transitivity 0, exact this m, symmetry, exact this n, },
+  { rintro m n, transitivity 0, exact this m, symmetry, exact this n,
   rintro n, induction n,
-  { reflexivity, },
+  { reflexivity,
   transitivity n_n, rotate, exact n_ih,
   constructor, refine walk.cons _ nil,
   rw gℕadjs, right, refl,
@@ -116,13 +116,13 @@ begin
   { rintro x, simp only,
     rw nat.succ_sub,
     simp only [add_tsub_cancel_right, nat.succ_sub_succ_eq_sub, tsub_zero],
-    simp only [le_add_iff_nonneg_left, zero_le'], },
+    simp only [le_add_iff_nonneg_left, zero_le'],
   { rintro ⟨x,xm⟩,
     simp only [subtype.mk_eq_mk],
     rw nat.sub_sub,
     rw add_assoc,
     rw nat.sub_add_cancel,
-    rw nat.succ_le_iff, exact xm, },
+    rw nat.succ_le_iff, exact xm,
   { rintro u v,
     simp only [equiv.coe_fn_mk, comap_adj, embedding.coe_subtype, subtype.coe_mk],
     split,
@@ -159,7 +159,7 @@ begin
     rintro L LL,
     transitivity, rotate, exact this.symm,
     obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,
-    exact inf_comp_out.cofinite_to_equiv_unit gℕlf gℕpc L _ dis conn inf cof, },
+    exact inf_comp_out.cofinite_to_equiv_unit gℕlf gℕpc L _ dis conn inf cof,
 
 
   intro K,
@@ -183,7 +183,7 @@ begin
   { rintro x ⟨xL,xK⟩,
     simp only [mem_set_of_eq, gt_iff_lt] at xL,
     specialize mtop x xK,
-    exact (not_le_of_lt xL) mtop, },
+    exact (not_le_of_lt xL) mtop,
   have Lcof : (L ᶜ).finite, by
   { dsimp only [compl,boolean_algebra.compl,boolean_algebra.core.compl],
     simp only [mem_set_of_eq, not_lt],
@@ -243,7 +243,7 @@ begin
     rintro, use kK',},
 
   -- now connected
-  rintros ⟨⟨x,x'⟩,xinD⟩ ⟨⟨y,y'⟩,yinD⟩,
+  rintro ⟨⟨x,x'⟩,xinD⟩ ⟨⟨y,y'⟩,yinD⟩,
 
   have : (∃ (z z': VV)
           (u : GG.walk ⟨x,x'⟩ z)
@@ -254,7 +254,7 @@ begin
         ∧ (w.support.to_finset : set VV) ⊆ D), by
   { have : ∀ x ∉ K,
             ∀ {y y' : V'} (w : G'.walk y y'), ((walk.box_prod_right G x w).support.to_finset : set VV) ⊆ D, by {
-      rintros x xnotin y y' w,
+      rintro x xnotin y y' w,
       rw [simple_graph.walk.support_box_prod_right,list.map_to_finset],
       rintro p q,
       simp only [coe_image, set.mem_image, mem_coe, list.mem_to_finset] at q,
@@ -264,7 +264,7 @@ begin
 
     have : ∀ x ∉ K',
             ∀ {y y' : V} (w : G.walk y y'), ((walk.box_prod_left G' x w).support.to_finset : set VV) ⊆ D, by
-    { rintros x xnotin y y' w,
+    { rintro x xnotin y y' w,
       rw [simple_graph.walk.support_box_prod_left,list.map_to_finset],
       rintro p q,
       simp only [coe_image, set.mem_image, mem_coe, list.mem_to_finset] at q,
@@ -295,12 +295,12 @@ begin
                true_and],
     split,
     apply subset.trans _ vD, simp only [coe_subset, list.to_finset_tail],
-    apply subset.trans _ wD, simp only [coe_subset, list.to_finset_tail], },
+    apply subset.trans _ wD, simp only [coe_subset, list.to_finset_tail],
   constructor,
   fapply walk.to_induced, exact uvw,
   rintro a as,
   have : a ∈ (uvw.support.to_finset : set VV), by
-  { rw finset.mem_coe, rw list.mem_to_finset, exact as, },
+  { rw finset.mem_coe, rw list.mem_to_finset, exact as,
   apply mem_of_mem_of_subset this uvwD,
 end
 
@@ -345,10 +345,10 @@ begin
     rintro L LL,
     transitivity, rotate, exact this.symm,
     obtain ⟨dis,conn,inf,cof⟩ := (H L).some_spec,
-    exact inf_comp_out.cofinite_to_equiv_unit GGlf' GGpc L _ dis conn inf cof, },
+    exact inf_comp_out.cofinite_to_equiv_unit GGlf' GGpc L _ dis conn inf cof,
 
 
-  rintros K,
+  rintro K,
   let L := finset.product (finset.image prod.fst K) (finset.image prod.snd K),
   have : K ⊆ L, from subset_product,
   let D := (L : set VV) ᶜ,
@@ -356,7 +356,7 @@ begin
   { have : D ᶜ = L, by {simp},
     rw this, exact L.finite_to_set,},
   have Ddis : disjoint D K, from disjoint_compl_left_iff.mpr (‹K⊆L›),
-  have Dinf : D.infinite, by {apply set.infinite_of_finite_compl,exact Dcof, },
+  have Dinf : D.infinite, by {apply set.infinite_of_finite_compl,exact Dcof,
   have Dconn : (GG.induce D).connected,
     from finprod_compl_connected G G' _ _,
 
@@ -403,18 +403,18 @@ begin
   have ψc := coarse.of_coarse_Lipschitz_of_cofinite G' G Gpc ψ m ψl ψcof,
   have φψcl : coarse_close G' G' (φ ∘ ψ) id, by
   { apply coarse_close.of_close_of_coarse_Lipschitz_of_cofinite G' Gpc' G' Gpc' (φ∘ψ) id (m*m),
-    { apply coarse_Lipschitz.comp, exact ψl, exact φl, },
-    { apply coarse_Lipschitz.id G' (m*m) (mge.le.trans mmm), },
+    { apply coarse_Lipschitz.comp, exact ψl, exact φl,
+    { apply coarse_Lipschitz.id G' (m*m) (mge.le.trans mmm),
     { apply cofinite.comp ψcof φcof,},
-    { apply cofinite.id, },
-    { rintro v, apply (ψφ v).trans mmm,}, },
+    { apply cofinite.id,
+    { rintro v, apply (ψφ v).trans mmm,},
   have ψφcl : coarse_close G G (ψ ∘ φ) id := by
   { apply coarse_close.of_close_of_coarse_Lipschitz_of_cofinite G Gpc G Gpc (ψ∘φ) id (m*m),
-    { apply coarse_Lipschitz.comp, exact φl, exact ψl, },
-    { apply coarse_Lipschitz.id G (m*m) (mge.le.trans mmm), },
+    { apply coarse_Lipschitz.comp, exact φl, exact ψl,
+    { apply coarse_Lipschitz.id G (m*m) (mge.le.trans mmm),
     { apply cofinite.comp φcof ψcof,},
-    { apply cofinite.id, },
-    { rintro v, apply (φψ v).trans mmm,}, },
+    { apply cofinite.id,
+    { rintro v, apply (φψ v).trans mmm,},
   fsplit,
   exact coarse.Endsinfty G G' φc,
   exact coarse.Endsinfty G' G ψc,

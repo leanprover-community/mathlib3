@@ -51,7 +51,7 @@ begin
     apply En,
     apply eq_of_not_disjoint E E',
     rw set.not_disjoint_iff, use [v,vE,vE'],},
-  { have KdisE': disjoint K E', by { rw set.disjoint_iff_inter_eq_empty,rw set.not_nonempty_iff_eq_empty at KE', exact KE', },
+  { have KdisE': disjoint K E', by { rw set.disjoint_iff_inter_eq_empty,rw set.not_nonempty_iff_eq_empty at KE', exact KE',
     have : ∃ F' : comp_out G K, (E' : set V) ⊆ F' ∧ F'.inf, by {
       let F' := of_connected_disjoint (E' : set V) (E'.connected) KdisE',
       let sub := of_connected_disjoint_sub (E' : set V) (E'.connected) KdisE',
@@ -69,13 +69,13 @@ begin
       refine ⟨this,_,_,_,a.symm⟩,
       { rintro vF,
         apply Fe,
-        apply eq_of_not_disjoint, rw set.not_disjoint_iff, use [v,sub vE', vF], },
+        apply eq_of_not_disjoint, rw set.not_disjoint_iff, use [v,sub vE', vF],
       { rintro hK,
         have : ¬ disjoint K F, by {rw  set.not_disjoint_iff, use [h,hK,this],},
-        exact this (F.dis_of_inf Finf), },
+        exact this (F.dis_of_inf Finf),
       { rintro vK, rw [set.not_nonempty_iff_eq_empty,←set.subset_empty_iff] at KE',
         apply KE',
-        exact ⟨vK,vE'⟩, },
+        exact ⟨vK,vE'⟩,
     },
   },
 end
@@ -210,7 +210,7 @@ begin
     rw [comp_out.equiv_of_iso.dis φ K' (e.inv_fun (comp_out.of_connected_disjoint ↑K' Kc' _)),
         ←equiv.to_fun_as_coe,
         e.right_inv (comp_out.of_connected_disjoint ↑K' Kc' _)],
-    apply comp_out.of_connected_disjoint_dis, },
+    apply comp_out.of_connected_disjoint_dis,
 
 
   apply inf_comp_out.nicely_arranged_bwd_map_not_inj G Glf Gpc φK' K' (φK'n) (K'n) ⟨⟨F,Fdis⟩,Finf⟩ _ ⟨⟨E,Edis⟩,Einf⟩ Esub Fsub,

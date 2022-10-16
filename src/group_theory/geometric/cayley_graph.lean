@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Georgi Kocharyan
 -/
 import combinatorics.simple_graph.metric
-import group_theory.geometric.marked_group
 import data.finset.basic
+import .marked_group
 
 /-!
 # Cayley graphs
@@ -14,46 +14,36 @@ import data.finset.basic
 namespace geometric_group_theory
 variables {G S : Type*} [group G] (m : marking G S)
 
-def cayley : simple_graph G := simple_graph.from_rel $ λ g h, ∃ s : S, g * m (free_group.of s) = h
-
-theorem cayley.adj_iff : ∀ g h : G, (cayley m).adj g h ↔ g ≠ h ∧ ∃ (s : S) (sgn : bool), g * m (free_group.of_gen s sgn) = h :=
-begin
-  intros g h,
-  rw [cayley, simple_graph.from_rel_adj],
-  simp, intro, split,
-  { intro hyp, cases hyp,
-    { rcases hyp with ⟨s, hs⟩,
-      use s, right, exact hs, },
-    { rcases hyp with ⟨s, hs⟩,
-      use s, left, rw [← hs], group, }
-   },
-  {
-    rintro ⟨s, hs⟩, cases hs,
-    { right, use s, rw [← hs], group, },
-    { left, use s, exact hs, }
-  }
-end
+/-- The Cayley graph of a marked group. -/
+@[simps] def cayley : simple_graph G :=
+{ adj := λ a b, a ≠ b ∧ ∃ s : S × bool, a * m (free_group.mk [s]) = b,
+  symm := λ a b, begin
+    rintro ⟨h, s, rfl⟩,
+    refine ⟨h.symm, s.map id bnot, _⟩,
+    obtain ⟨_, _| _⟩ := s; sorry,
+  end,
+  loopless := λ a h, h.1 rfl }
 
 def cayley.move (g : G) (moves : list (S × bool)) : (cayley m).walk g (g * m (free_group.mk moves)) :=
 begin
-  revert g,
-  induction moves,
-  { intro g, rw [← free_group.one_eq_mk], simp,},
-  { intro g,
-    cases moves_hd,
-    rw [free_group.cons_mk, free_group.of_gen],
-    refine simple_graph.walk.cons _ _,
-    { exact g * m (free_group.of_gen moves_hd_fst moves_hd_snd) },
-    { rw [cayley.adj_iff], split,
-      { sorry },
-      {use moves_hd_fst, use moves_hd_snd, } },
-    { have : g * m (free_group.mk [(moves_hd_fst, moves_hd_snd)] * free_group.mk moves_tl) = (g * m (free_group.mk [(moves_hd_fst, moves_hd_snd)])) * m (free_group.mk moves_tl),
-      { sorry },
-      rw [this], apply moves_ih, } }
+  induction moves generalizing g,
+  { simp [←free_group.one_eq_mk] },
+  rw free_group.mk_cons,
+  refine simple_graph.walk.cons _ _,
+  { exact g * m (free_group.mk [moves_hd]) },
+  { rw [cayley_adj],
+    refine ⟨_, moves_hd, rfl⟩,
+    sorry },
+  { have : g * m (free_group.mk [moves_hd] * free_group.mk moves_tl) =
+      (g * m (free_group.mk [moves_hd])) * m (free_group.mk moves_tl),
+    { sorry },
+    rw [this],
+    apply moves_ih }
 end
 
-lemma cayley_preconnected [decidable_eq S] : (cayley m).preconnected :=
+lemma cayley_preconnected : (cayley m).preconnected :=
 begin
+  classical,
   intros x y,
   let z := x⁻¹ * y,
   rcases (marking.to_fun_surjective m z) with ⟨z_, h_img : m z_ = z⟩,
@@ -64,7 +54,7 @@ begin
   apply nonempty.intro, exact h,
 end
 
-lemma cayley_connected [nonempty G] [decidable_eq S] : (cayley m).connected := ⟨cayley_preconnected _⟩
+lemma cayley_connected [nonempty G] : (cayley m).connected := ⟨cayley_preconnected _⟩
 
 def gens_as_els : set G := set.range (λ s : S, m (free_group.of s))
 def gens_as_els.finite [fintype S] : (gens_as_els m).finite :=
@@ -75,7 +65,7 @@ lemma cayley_neighbor_set_sub (g : G) :
                               ∪ (set.image (λ (x : G), g * x ⁻¹) (gens_as_els m)) :=
 begin
   rintro h hn,
-  simp only [cayley.adj_iff, simple_graph.mem_neighbor_set, ne.def, bool.exists_bool,
+  simp only [cayley_adj, simple_graph.mem_neighbor_set, ne.def, bool.exists_bool,
              free_group.of_gen_false_inv,free_group.of_gen_to_of, map_inv] at hn,
   rcases hn with ⟨ne,⟨s,rfl|rfl⟩⟩,
   { right,
@@ -107,7 +97,7 @@ begin
     { dsimp only [function.right_inverse,function.left_inverse],
       funext x, simp },},
   rintro a b,
-  simp only [cayley.adj_iff, equiv.coe_fn_mk, ne.def, mul_right_inj, bool.exists_bool,
+  simp only [cayley_adj, equiv.coe_fn_mk, ne.def, mul_right_inj, bool.exists_bool,
              free_group.of_gen_false_inv, free_group.of_gen_to_of, map_inv, and.congr_right_iff],
   rintro,
   apply exists_congr,

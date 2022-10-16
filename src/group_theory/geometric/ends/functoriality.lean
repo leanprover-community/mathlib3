@@ -120,7 +120,7 @@ lemma good_finset.down {f : V → V'} {K K': finset V'}
 
 
 def good_finset.id (K : finset V) : good_finset G G (@id V) K K :=
-λ D, ⟨D,by { rw set.image_id ↑D, exact set.subset.refl ↑(D.val), }⟩
+λ D, ⟨D,by { rw set.image_id ↑D, exact set.subset.refl ↑(D.val)⟩
 
 
 def good_finset.comp (f : V → V') (f' : V' → V'')
@@ -159,7 +159,7 @@ def coarse.Endsinfty {f : V → V'} (fc : coarse G G' f) :
 begin
   rintro ⟨s,sec⟩,
   fsplit,
-  { exact λ K, ((fc K).2 (s (fc K).1)).val, },
+  { exact λ K, ((fc K).2 (s (fc K).1)).val,
   { rintro K K' KK',                          -- Ugly proof, not sure how to have less haves and lets…
     have KsubK' : K' ⊆ K, from le_of_hom KK',
     --simp only [subtype.val_eq_coe, set.image_subset_iff],
@@ -218,20 +218,20 @@ def coarse.Endsinfty_comp_apply {f : V → V'} {f' : V' → V''}
   (fc : coarse G G' f ) (fc' : coarse G' G'' f') (e : Endsinfty G) :
   coarse.Endsinfty G G'' (coarse.comp G G' G'' fc fc') e
   = (coarse.Endsinfty G' G'' fc') ( (coarse.Endsinfty G G' fc) e) :=
-by { rcases e with ⟨s,sec⟩, refl, }
+by { rcases e with ⟨s,sec⟩, refl
 
 def coarse.Endsinfty_comp {f : V → V'} {f' : V' → V''}
   (fc : coarse G G' f ) (fc' : coarse G' G'' f') :
   coarse.Endsinfty G G'' (coarse.comp G G' G'' fc fc')
   = (coarse.Endsinfty G' G'' fc') ∘ (coarse.Endsinfty G G' fc) :=
-by { funext, apply coarse.Endsinfty_comp_apply, }
+by { funext, apply coarse.Endsinfty_comp_apply
 
 def coarse.Endsinfty_id_apply [locally_finite G] (e : Endsinfty G) :
   coarse.Endsinfty G G (coarse.id G) e = e :=
-by { rcases e with ⟨s,sec⟩, refl, }
+by { rcases e with ⟨s,sec⟩, refl
 
 def coarse.Endsinfty_id [locally_finite G] : coarse.Endsinfty G G (coarse.id G) = id :=
-by { funext, apply coarse.Endsinfty_id_apply, }
+by { funext, apply coarse.Endsinfty_id_apply
 
 def good_common_finset (f g : V → V') (K : finset V') (L : finset V) :=
   Π D : G.inf_comp_out L, {C : G'.inf_comp_out K | f '' D.val ∪ g '' D.val ⊆ C.val}
@@ -246,13 +246,13 @@ def good_common_finset.right {f g : V → V'} {K : finset V'} {L : finset V} :
 
 def good_common_finset.refl {f : V → V'} {K : finset V'} {L : finset V} :
   (good_finset G G' f K L) → good_common_finset G G' f f K L :=
-λ c D, ⟨(c D).1,by {simp only [subtype.val_eq_coe, set.union_self, mem_set_of_eq], exact (c D).2, }⟩
+λ c D, ⟨(c D).1,by {simp only [subtype.val_eq_coe, set.union_self, mem_set_of_eq], exact (c D).2⟩
 
 
 
 def good_common_finset.symm {f g : V → V'} {K : finset V'} {L : finset V} :
   (good_common_finset G G' f g K L) → good_common_finset G G' g f K L :=
-λ c D, ⟨(c D).1,by {simp only [subtype.val_eq_coe, mem_set_of_eq],rw set.union_comm, exact (c D).2, }⟩
+λ c D, ⟨(c D).1,by {simp only [subtype.val_eq_coe, mem_set_of_eq],rw set.union_comm, exact (c D).2⟩
 
 def good_common_finset.trans {f g h : V → V'} {K : finset V'} {L : finset V} :
   (good_common_finset G G' f g K L) → good_common_finset G G' g h K L → good_common_finset G G' f h K L :=
@@ -275,7 +275,7 @@ def good_common_finset.up {f g : V → V'} {K : finset V'}  {L L' : finset V} (L
   ⟨ (c (D.back LL')).1
   , by
     { refine subset.trans _ (c (D.back LL')).2,
-      apply set.union_subset_union; apply image_subset; apply comp_out.back_sub, }
+      apply set.union_subset_union; apply image_subset; apply comp_out.back_sub
   ⟩
 
 
@@ -381,7 +381,7 @@ def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
   have disDK' : disjoint (f '' D.val) (K' : set V'), by
   { apply disjoint.preimage',
     rw ←cofinite.preimage.coe cof,
-    apply (comp_out.dis_of_inf D.val.val D.prop).symm, },
+    apply (comp_out.dis_of_inf D.val.val D.prop).symm,
 
   have disDK : disjoint (f '' D.val) K := set.disjoint_of_subset_right (thicken_.sub G' K m) disDK',
   have  fDinf: (f '' D.val.val : set V').infinite := cofinite.image_infinite cof D.prop,
@@ -408,7 +408,7 @@ def coarse.of_coarse_Lipschitz_of_cofinite (f : V → V') (m : ℕ)
   have efC' : e' ∉ set.preimage f C, by {simp only [set.mem_preimage],rw hed', exact h},
   clear_value w, -- `obtain` (below) asked me to do that, presumably because `w` is a `let` and not a `have`
   obtain ⟨x,y,_,a,_,rfl,xC,yC⟩ := w.split_along_set (set.preimage f C) efC efC',
-  suffices : y ∈ set.preimage f C, { exact yC this, },
+  suffices : y ∈ set.preimage f C, { exact yC this,
   apply well_separated G' Gpc' K m C (f x) _ (f y) _ (fcl x y a),
   { change x ∈ set.preimage f C, apply mem_of_subset_of_mem xC, simp only [mem_coe, list.mem_to_finset, end_mem_support],  }, -- x is containde in a path containde in f⁻¹ C
   have xD : x ∈ (D : set V), by
@@ -447,11 +447,11 @@ begin
     split,
     { have := (Hf' D).prop,
       simp only [subtype.val_eq_coe, set.image_subset_iff, mem_set_of_eq] at this,
-      exact this, },
+      exact this,
     { have := (Hg' D).prop,
       simp only [subtype.val_eq_coe, set.image_subset_iff, mem_set_of_eq] at this hh,
       rw ←hh at this,
-      exact this, }
+      exact this
   },
 
 
@@ -467,8 +467,8 @@ begin
     { simp only [finset.mem_union],
       left,
       rw [←finset.mem_coe, Lfdef, set.mem_preimage],
-      exact cK', },
-    exact comp_out.dis_of_inf D.val.val D.prop ⟨this,dD⟩, },
+      exact cK',
+    exact comp_out.dis_of_inf D.val.val D.prop ⟨this,dD⟩,
   ext,
   apply comp_out.eq_of_not_disjoint, -- G' K _ _ (Hf' D).val.val.prop (Hg' D).val.val.prop c' _ cC',
   rw set.not_disjoint_iff,

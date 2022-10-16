@@ -36,7 +36,7 @@ lemma to_finset_subset_to_finset {α : Type u} [decidable_eq α] (l₁ l₂ : li
 begin
   revert l₂,
   induction l₁,
-  { intros l₂ h, simp only [list.to_finset_nil, finset.empty_subset], },
+  { intros l₂ h, simp only [list.to_finset_nil, finset.empty_subset],
   { intros l₂ h,
     simp at h, cases h,
     simp only [list.to_finset_cons, finset.insert_subset],
@@ -45,9 +45,9 @@ begin
       revert h_left, generalizes [l₁_hd = a, l₂ = l],
       intro h, cases l,
       {simp at h, contradiction,},
-      {simp at h ⊢, assumption, }
+      {simp at h ⊢, assumption
     },
-    {apply l₁_ih, assumption, } }
+    {apply l₁_ih, assumption }
 end
 
 lemma map_to_finset {α β : Type*}  [decidable_eq α]  [decidable_eq β] (f : α → β) (l : list α) :
@@ -98,21 +98,21 @@ lemma walk.split_along_set {V : Type u} {G : simple_graph V} :
   { obtain ⟨x',y,w',a',w'',weq,wS,ynS⟩ := walk.split_along_set w S h vnS,
     use [x',y,cons a w',a',w''],
     split,
-    { simp only [cons_append,weq], },
+    { simp only [cons_append,weq],
     { simp only [support_cons, list.to_finset_cons, coe_insert,set.insert_subset],
       exact ⟨⟨uS,wS⟩,ynS⟩,}
   },
   { use [u,x,nil,a,w],
     simp only [nil_append, eq_self_iff_true, support_nil, list.to_finset_cons,
       list.to_finset_nil, insert_emptyc_eq, coe_singleton, set.singleton_subset_iff,true_and],
-    exact ⟨uS,h⟩, }
+    exact ⟨uS,h⟩
 }
 
 
 lemma walk.mem_support_to_exists_append  {V : Type u} {G : simple_graph V} {u v w : V} {p : G.walk u v} (h : w ∈ p.support) :
   ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
 match u, v, w, p, h with
-| _, _, _, (nil' x), e            := by { simp at e, induction e, use nil, use nil, simp, }
+| _, _, _, (nil' x), e            := by { simp at e, induction e, use nil, use nil, simp
 | _, _, _, (cons' x y z a p'), e := by {
   simp at e,
   induction e,
@@ -129,7 +129,7 @@ lemma walk.mem_support_iff_exists_append  {V : Type u} {G : simple_graph V} {u v
 begin
   split,
   { exact walk.mem_support_to_exists_append },
-  { rintros ⟨q,r,rfl⟩,simp only [mem_support_append_iff, end_mem_support, start_mem_support, or_self],},
+  { rintro ⟨q,r,rfl⟩,simp only [mem_support_append_iff, end_mem_support, start_mem_support, or_self],},
 end
 
 lemma walk.support_append_subset_left {V : Type u} {G : simple_graph V} {u v w : V} (p : G.walk u v) (q : G.walk v w) :
@@ -181,7 +181,7 @@ lemma is_prefix_of_exists_suffix  {V : Type*} {G : simple_graph V} :
 | _ _ _ nil nil := by {simp,}
 | _ _ _ nil (cons a p) := by {simp,}
 | u v w (cons _ _) nil := by {simp,}
-| u _ _ (cons' x yr v a r') (cons' xp yp w b p') := by { rintros ⟨q,qeq⟩,
+| u _ _ (cons' x yr v a r') (cons' xp yp w b p') := by { rintro ⟨q,qeq⟩,
   induction qeq,
   rcases is_prefix_of_exists_suffix r' (r'.append q) ⟨q,rfl⟩ with le,
   exact ⟨rfl,le⟩,
@@ -236,10 +236,10 @@ psum
   by_cases h : pred x (nil' x) (is_prefix.rfl),
   { left,
     use [x,is_prefix.rfl,h],
-    rintros z q pfx hh,
+    rintro z q pfx hh,
     exact pfx,},
   { right,
-    rintros z q pfx,
+    rintro z q pfx,
     rcases is_prefix.eq_nil_of_nil pfx with ⟨rfl,eq'⟩,
     induction eq',
     exact h,}
@@ -252,22 +252,22 @@ psum
     use ⟨t,cons a r⟩,
     rcases good with ⟨pfxr,predr,maxr⟩, -- Can only split here since otherwise we're not in a Prop yet
     use [⟨rfl,pfxr⟩,predr],
-    rintros z q pfxq predq ,
+    rintro z q pfxq predq ,
     cases q,
-    { simp only, },
+    { simp only,
     { rcases pfxq with ⟨rfl,pfxq'⟩,
       exact ⟨rfl,maxr _ _ pfxq' predq⟩,},
   },
   { by_cases h : pred x nil (is_prefix.nil (cons a p)),
     { left,
       use [⟨x,nil⟩,is_prefix.nil (cons a p),h],
-      rintros z q pfxq predq,
+      rintro z q pfxq predq,
       cases q,
-      { simp only, },
+      { simp only,
       { rcases pfxq with ⟨rfl,pfxq'⟩, exact (bad z q_p pfxq' predq).elim,},},
     { right, rintro z q pfxq,
       cases q,
-      { exact h, },
+      { exact h,
       { rcases pfxq with ⟨rfl,pfxq'⟩, exact bad _ q_p pfxq',},},
   },
 }
@@ -342,7 +342,7 @@ def ball (v : V) (m : ℕ) := {u : V | G.dist v u ≤ m}
 lemma balls_zero (Gc : G.connected) (v : V) :
   G.ball v 0 = {v} := by
 { unfold ball,
-  simp only [le_zero_iff, connected.dist_eq_zero_iff Gc,set_of_eq_eq_singleton'], }
+  simp only [le_zero_iff, connected.dist_eq_zero_iff Gc,set_of_eq_eq_singleton']
 
 -- Not the right approach it feels
 lemma balls_succ (Gc : G.connected) (v : V) (m : ℕ) :
@@ -424,8 +424,8 @@ begin
       { rw this at ts,
         exact ts xs₀,},
       have : mcard s₀ ≤ mcard t, from function.argmin_on_le (mcard) (nat.lt_wf) S ht,
-      exact set.eq_of_subset_of_card_le ts₀ this, },
-    { rintro xI, exact set.mem_sInter.mp xI s₀ hs₀, },},
+      exact set.eq_of_subset_of_card_le ts₀ this,
+    { rintro xI, exact set.mem_sInter.mp xI s₀ hs₀,},
   { rw set.not_nonempty_iff_eq_empty at Snempty,
     simp only [Snempty, set.sInter_empty, set.univ_nonempty],},
 end

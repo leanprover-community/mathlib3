@@ -1,61 +1,68 @@
 /-
 Copyright (c) 2022 Georgi Kocharyan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.txt.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Georgi Kocharyan
 -/
 import .quasi_iso
-import tactic
-import data.real.basic
 import topology.metric_space.isometry
+import topology.unit_interval
 
-variables {X : Type*} [pseudo_metric_space X]
+open_locale unit_interval
 
-def geodesic {X : Type*} [pseudo_metric_space X] (L : ℝ) (Lnonneg : L ≥ 0) (f: ((set.Icc) (0 : ℝ) L) → X) (x : X) (y: X) :=
- f (⟨0, le_rfl, Lnonneg⟩) = x ∧ f (⟨L, Lnonneg, le_rfl⟩) = y ∧ isometry f
+variables {X : Type*} [pseudo_metric_space X] {f : ℝ → X} {b c L L' : ℝ} {x y : X}
 
-def conn_by_geodesic {X : Type*} [pseudo_metric_space X] (x : X) (y: X) : Prop :=
-∃ (L : ℝ) (Lpos : L ≥ 0) (f: ((set.Icc) (0 : ℝ) L) → X), geodesic L Lpos f x y
+def geodesic (L : ℝ) (Lnonneg : 0 ≤ L) (f : ((set.Icc) (0 : ℝ) L) → X) (x y : X) :=
+f (⟨0, le_rfl, Lnonneg⟩) = x ∧ f (⟨L, Lnonneg, le_rfl⟩) = y ∧ isometry f
 
-class geodesic_space (β : Type*)  extends pseudo_metric_space β :=
-(geodesics: ∀ x y : β, conn_by_geodesic x y)
+def conn_by_geodesic (x y : X) : Prop :=
+∃ (L : ℝ) (Lpos : 0 ≤ L) (f : ((set.Icc) (0 : ℝ) L) → X), geodesic L Lpos f x y
 
--- def quasigeodesic {X : Type*} [pseudo_metric_space X] (L : ℝ) (Lnonneg : L ≥ 0) (f: ((set.Icc) (0 : ℝ) L) → X)
---  (x : X) (y: X) (c : ℝ) (b : ℝ) :=
+class geodesic_space (β : Type*) extends pseudo_metric_space β :=
+(geodesics : ∀ x y : β, conn_by_geodesic x y)
+
+-- def quasigeodesic (L : ℝ) (Lnonneg : 0 ≤ L) (f: ((set.Icc) (0 : ℝ) L) → X)
+--  (x y : X) (c b : ℝ) :=
 --  f (⟨0, le_rfl, Lnonneg⟩) = x ∧ f (⟨L, Lnonneg, le_rfl⟩) = y ∧ is_QIE' f c b
 
-def quasigeodesic {X : Type*} [pseudo_metric_space X] (L : ℝ) (Lnonneg : L ≥ 0) (f: ℝ → X)
- (x : X) (y: X) (c : ℝ) (b : ℝ) :=
- f 0 = x ∧ f L = y ∧ (∀ m n  ∈ {x : ℝ| 0 ≤ x ∧ x ≤ L}, (1/c)*(abs (m-n)) - b ≤ dist (f m) (f n) ∧ dist (f m) (f n) ≤ c * (abs (m-n)) + b)
+/-- Quasi-geodesic connecting two points `x` and `y` in a metric space. -/
+@[nolint has_nonempty_instance]
+structure bundled_quasigeodesic (x y : X) (c b : ℝ) :=
+(to_fun : I → X)
+(source' : to_fun 0 = x)
+(target' : to_fun 1 = y)
+(quasi_iso_lower' : ∀ m n, c⁻¹ * dist m n - b ≤ dist (f m) (f n))
+(quasi_iso_upper' : ∀ m n, dist (f m) (f n) ≤ c * dist m n + b)
 
--- any segment of a quasigeodesic is also a quasigeodesic
+def quasigeodesic (L : ℝ) (f : ℝ → X) (x y : X) (c b : ℝ) :=
+f 0 = x ∧ f L = y ∧ ∀ ⦃m⦄, m ∈ set.Icc 0 L → ∀ ⦃n⦄, n ∈ set.Icc 0 L →
+  c⁻¹ * |m - n| - b ≤ dist (f m) (f n) ∧ dist (f m) (f n) ≤ c * |m - n| + b
 
-lemma trunc_quasigeodesic {X : Type*} [pseudo_metric_space X] (L : ℝ) (Lnonneg : L ≥ 0) (f: ℝ → X)
- (x : X) (y: X) (c : ℝ) (b : ℝ) {L' : ℝ} (hL' : L' ≤ L) (L'nonneg : L' ≥ 0) (hf : quasigeodesic L Lnonneg f x y c b)
-  : quasigeodesic L' L'nonneg f x (f L') c b :=
-begin
-split,
-exact hf.1,
-split, refl,
-intros a ha b hb,
-have ha' : a ∈ {x : ℝ| 0 ≤ x ∧ x ≤ L},
-  { exact ⟨ha.1, le_trans ha.2 hL'⟩, },
-have hb' : b ∈ {x : ℝ| 0 ≤ x ∧ x ≤ L},
-  { exact ⟨hb.1, le_trans hb.2 hL'⟩,},
-apply (hf.2).2 a ha' b hb',
-end
+/-- Any segment of a quasigeodesic is also a quasigeodesic. -/
+lemma quasigeodesic.mono (f : ℝ → X) (hL' : L' ≤ L) (hf : quasigeodesic L f x y c b) :
+  quasigeodesic L' f x (f L') c b :=
+⟨hf.1, rfl, λ a ha b hb, hf.2.2 ⟨ha.1, ha.2.trans hL'⟩ ⟨hb.1, hb.2.trans hL'⟩⟩
 
--- if a geodesic has length 0, the endpoints are the same
+lemma quasigeodesic.symm (hf : quasigeodesic L f x y c b) :
+  quasigeodesic L (λ x, f (L - x)) y x c b :=
+⟨by simp_rw [sub_zero, hf.2.1], by simp_rw [sub_self, hf.1], λ m hm n hn,
+  by simpa [and.comm, abs_sub_comm] using hf.2.2 ⟨sub_nonneg.2 hm.2,
+    sub_le_self _ hm.1⟩ ⟨sub_nonneg.2 hn.2, sub_le_self _ hn.1⟩⟩
 
-lemma degenerate_quasigeodesic {X : Type*} [pseudo_metric_space X] (f: ℝ → X)
- (x : X) (y: X) (c : ℝ) (b : ℝ) (hf : quasigeodesic 0 (by linarith) f x y c b) : x = y :=
- eq.trans (hf.1.symm) hf.2.1
+/-- If a geodesic has length `0`, the endpoints are the same. -/
+lemma degenerate_quasigeodesic (f: ℝ → X) (x y : X) (c b : ℝ) (hf : quasigeodesic 0 f x y c b) :
+  x = y :=
+hf.1.symm.trans hf.2.1
 
+def conn_by_quasigeodesic (x y : X) : Prop :=
+∃ (L : ℝ) (hL : 0 ≤ L) (f : ℝ → X) (c b : ℝ), quasigeodesic L f x y c b
 
-def conn_by_quasigeodesic {X : Type*} [pseudo_metric_space X] (x : X) (y: X) : Prop :=
-∃ (L : ℝ) (Lnonneg : L ≥ 0) (f: ℝ → X) (c : ℝ) (b : ℝ), quasigeodesic L Lnonneg f x y c b
+def conn_by_quasigeodesic' (x y : X) (c b : ℝ) : Prop :=
+∃ (L : ℝ) (hL : 0 ≤ L) (f : ℝ → X), quasigeodesic L f x y c b
 
-def conn_by_quasigeodesic' {X : Type*} [pseudo_metric_space X] (x : X) (y: X) (c : ℝ) (b : ℝ) : Prop :=
-∃ (L : ℝ) (Lnonneg : L ≥ 0) (f: ℝ → X) , quasigeodesic L Lnonneg f x y c b
+lemma conn_by_quasigeodesic'.symm : conn_by_quasigeodesic' x y c b → conn_by_quasigeodesic' y x c b :=
+λ ⟨L, hL, f, hf⟩, ⟨L, hL, _, hf.symm⟩
 
-class quasigeodesic_space (β : Type*) (c : ℝ) (b : ℝ) (cpos: c > 0) (bnonneg: b ≥ 0)  extends pseudo_metric_space β :=
-(quasigeodesics: ∀ x y : β, conn_by_quasigeodesic' x y c b)
+class quasigeodesic_space (β : Type*) (c b : out_param ℝ) extends pseudo_metric_space β :=
+(quasigeodesics : ∀ x y : β, conn_by_quasigeodesic' x y c b)
+
+attribute [nolint dangerous_instance] quasigeodesic_space.to_pseudo_metric_space

@@ -1,5 +1,5 @@
 import .mathlib
-import .isom_action
+import .iso_action
 
 /-!
 # Marked groups
@@ -89,8 +89,8 @@ instance [inhabited G] : inhabited (marked m) :=
 
 variables (X : Type*) [pseudo_metric_space X]
 
-instance [isom_action G X] : isom_action (marked m) X :=
-‹isom_action G X›
+instance [iso_mul_action G X] : iso_mul_action (marked m) X :=
+‹iso_mul_action G X›
 
 lemma aux [decidable_eq S] (x : marked m) :
   ∃ n (l : free_group S), m l = x ∧ l.to_word.length ≤ n :=
@@ -104,7 +104,7 @@ group_norm.to_normed_group
     norm_cast,
     obtain ⟨a, rfl, ha⟩ := nat.find_spec (aux x),
     obtain ⟨b, rfl, hb⟩ := nat.find_spec (aux y),
-    refine find_le ⟨a * b, map_mul _ _ _, (a.to_word_mul_sublist _).length.trans _⟩,
+    refine find_le ⟨a * b, map_mul _ _ _, (a.to_word_mul_sublist _).length_le.trans _⟩,
     rw length_append,
     exact add_le_add ha hb,
   end,

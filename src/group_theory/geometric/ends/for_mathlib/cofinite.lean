@@ -18,7 +18,7 @@ lemma cofinite.list_preimage (f : V → V') (cof : cofinite f) : ∀ l : list V'
 begin
   intro l,
   induction l,
-  { simp only [list.to_finset_nil, coe_empty, set.preimage_empty, finite_empty], },
+  { simp only [list.to_finset_nil, coe_empty, set.preimage_empty, finite_empty],
   { simp only [list.to_finset_cons, coe_insert],
     rw [set.insert_eq, set.preimage_union],
     apply set.finite.union,
@@ -34,7 +34,7 @@ begin
   intros S Sfin,
   rcases set.finite.exists_finset_coe Sfin with ⟨fS, hcoefin⟩,
   rcases (list.to_finset_surjective fS) with ⟨l, hcoelst⟩,
-  rw [← hcoefin, ← hcoelst],
+  rw [←hcoefin, ←hcoelst],
   apply cofinite.list_preimage _ cof,
 end
 
@@ -60,7 +60,7 @@ lemma cofinite.of_inj {f : V → V'} (inj : function.injective f) : cofinite f :
 { intro,
   refine subsingleton.finite _,
   refine (function.injective.subsingleton_image_iff inj).mp _,
-  tidy, } -- can we show it constructively?
+  tidy -- can we show it constructively?
 
 /-- `cofinite.preimage` computes the preimage of a finite set under a cofinite map (as a `finset`). -/
 noncomputable def cofinite.preimage {f : V → V'} (cof : cofinite f) (K : finset V') : finset V :=

@@ -61,7 +61,7 @@ lemma trans {ε ε' : ℝ} {r s t : set α}
   (r_in_s : coarsely_dense_with_in ε r s) (s_in_t : coarsely_dense_with_in ε' s t) :
   coarsely_dense_with_in (ε + ε') r t :=
 begin
-  rintros z z_in_t,
+  rintro z z_in_t,
   rcases s_in_t z_in_t with ⟨y,y_in_s,yd⟩,
   rcases r_in_s y_in_s with ⟨x,x_in_r,xd⟩,
   use [x, x_in_r],
@@ -80,7 +80,7 @@ lemma weaken {ε ε' : ℝ} {s s' t t' : set α }
   (s_sub_s' : s ⊆ s') (t'_sub_t : t' ⊆ t) (ε_le_ε' : ε ≤ ε') :
   coarsely_dense_with_in ε' s' t' :=
 begin
-  rintros z z_in_t',
+  rintro z z_in_t',
   have z_in_t : z ∈ t, from t'_sub_t z_in_t',
   rcases s_in_t z_in_t with ⟨x,x_in_s,xd⟩,
   have x_in_s' : x ∈ s', from s_sub_s' x_in_s,
@@ -99,7 +99,7 @@ theorem of_max_coarsely_separated_with_in (δ : ℝ) (δgez : δ ≥ 0) {s S: se
   coarsely_dense_with_in δ s S :=
 begin
   rcases H with ⟨s_sub_S, s_sep, s_max⟩,
-  rintros x xS,
+  rintro x xS,
   let t := insert x s,
   by_contradiction H,
   push_neg at H,
@@ -111,7 +111,7 @@ begin
   have s_ne_t : s ≠ t , from ne_insert_of_not_mem s x_notin_s,
   have t_sub_S : t ⊆ S, from insert_subset.mpr ⟨xS, s_sub_S⟩,
   have : coarsely_separated_with δ t,
-  { rintros z (rfl | zs) y (rfl | ys),
+  { rintro z (rfl | zs) y (rfl | ys),
     { exact λ h, (h rfl).elim },
     { exact λ hzy, H ys },
     { intro hzy,
@@ -134,9 +134,9 @@ lemma of_directed_union {δ : ℝ} {𝒸 : set $ set α}
   coarsely_separated_with δ 𝒸.sUnion :=
 begin
   let 𝒞 := 𝒸.sUnion,
-  rintros x x_in_𝒞,
+  rintro x x_in_𝒞,
   rcases set.mem_sUnion.mp x_in_𝒞 with ⟨t,t_in_𝒸,x_in_t⟩,
-  rintros y y_in_𝒞,
+  rintro y y_in_𝒞,
   rcases set.mem_sUnion.mp y_in_𝒞 with ⟨r,r_in_𝒸,y_in_r⟩,
   intro x_ne_y,
   rcases dir t t_in_𝒸 r r_in_𝒸 with ⟨s,s_in_𝒸,t_sub_s,r_sub_s⟩,
@@ -158,7 +158,7 @@ begin
   suffices : ∃ s ∈ 𝒮, ∀ t ∈ 𝒮, s ⊆ t → t = s,
   { rcases this with ⟨s,⟨s_sub_S,s_sep⟩,s_max⟩, -- This whole block is just shuffling
     use [s,s_sub_S,s_sep],
-    rintros t s_sub_t t_sub_S t_sep,
+    rintro t s_sub_t t_sub_S t_sep,
     have : t ∈ 𝒮, from ⟨t_sub_S,t_sep⟩,
     exact (s_max t ‹t ∈ 𝒮› s_sub_t).symm,},
   apply zorn_subset,
@@ -170,10 +170,10 @@ begin
   split,
   { split,
     { apply set.sUnion_subset ,
-      rintros s s_in_𝒸,
+      rintro s s_in_𝒸,
       exact (set.mem_of_subset_of_mem 𝒸_sub_𝒮 s_in_𝒸).left,},
     {exact 𝒞_sep,},},
-  { rintros s s_in_𝒸,
+  { rintro s s_in_𝒸,
     exact set.subset_sUnion_of_mem s_in_𝒸,},
 end
 
@@ -200,7 +200,7 @@ structure c_path (δ : ℝ) (x y : α) :=
 
 def constant_path (δ : ℝ) (x : α) : c_path δ x x := {
   n := 0,
-  c := λ(i : fin 1), x, 
+  c := λ(i : fin 1), x,
   anchors := ⟨rfl,rfl⟩,
   steps := by dec_trivial
 }

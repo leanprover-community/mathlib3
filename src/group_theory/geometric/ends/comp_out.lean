@@ -39,7 +39,7 @@ taken to exclude them from theorems. This does not prove to be too much of a pro
 
 def out : simple_graph V := {
   adj := λ u v, u ∉ K ∧ v ∉ K ∧ G.adj u v,
-  symm := by {rintro u v a, tauto, },
+  symm := by {rintro u v a, tauto,
   loopless := by {rintro u a, exact G.loopless u a.2.2,}}
 
 -- `out` is a subgraph of the original graph
@@ -89,10 +89,10 @@ begin
       simp only [support_cons, list.mem_cons_iff, eq_self_iff_true, true_or],
       split, apply pdis,
       simp only [support_cons, list.mem_cons_iff, start_mem_support, or_true],
-      exact p_h.2.2, },
+      exact p_h.2.2,
     { apply p_ih,
       rintro x xsup, apply pdis,
-      simp only [xsup, support_cons, list.mem_cons_iff, or_true], }, },
+      simp only [xsup, support_cons, list.mem_cons_iff, or_true],
 end
 
 /-- The components outside a given set of vertices `K` -/
@@ -146,7 +146,7 @@ begin
     transitivity,
     apply of_empty_is_singleton Gpc,
     symmetry,
-    apply of_empty_is_singleton Gpc, },
+    apply of_empty_is_singleton Gpc,
   haveI : fintype (G.comp_out ∅), by {apply fintype.of_subsingleton'},
   apply finite.of_fintype,
 end
@@ -195,14 +195,14 @@ begin
     ext,
     simp only [mem_singleton_iff, set_like.mem_coe, mem_supp_iff, connected_component.eq],
     split,
-    { rintro e, subst_vars, exact kv, },
+    { rintro e, subst_vars, exact kv,
     { rintro xv, obtain ⟨kx⟩ := kv.trans xv.symm,
       cases kx,
-      { refl, },
+      { refl,
       { exfalso, dsimp only [out] at kx_h, exact kx_h.1 kK},
     },
   },
-  {rintro ⟨k,kK,e⟩, simp only [dis,←e,kK, set.disjoint_singleton_right, not_true, not_false_iff], }
+  {rintro ⟨k,kK,e⟩, simp only [dis,←e,kK, set.disjoint_singleton_right, not_true, not_false_iff]
 end
 
 lemma nonadj (C : G.comp_out K) : ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ c ∉ K ∧ d ∉ K ∧ G.adj c d) :=
@@ -250,7 +250,7 @@ lemma connected (C : G.comp_out K) : (G.induce (C : set V)).connected :=
 begin
   apply connected.mono,
   show ((G.out K).induce (C : set V)) ≤ (G.induce (C : set V)), by
-  { rintro x y a, dsimp [out] at a, dsimp, tauto, },
+  { rintro x y a, dsimp [out] at a, dsimp, tauto,
   show ((G.out K).induce (C : set V)).connected, by apply connected_component.connected,
 end
 
@@ -288,7 +288,7 @@ begin
     rintro ⟨s,hs⟩ ⟨t,ht⟩ ⟨r⟩,
     constructor,
     induction r,
-    { exact nil, },
+    { exact nil,
     { apply walk.cons (this r_u r_v r_h) r_ih,},},
   rw connected_iff at conn,
   rintro s sS,
@@ -308,7 +308,7 @@ begin
   { let ck := (@adj V G K Gpc Kn C h).some,
     obtain ⟨cC,kK,ack⟩ := (@adj V G K Gpc Kn C h).some_spec,
     use ck.1, dsimp only [thicken],
-    split, right,use ck.2, use kK, exact ack.symm, exact cC, },
+    split, right,use ck.2, use kK, exact ack.symm, exact cC,
   { simp only [not_dis_iff_singleton_in, exists_prop] at h,
     use h.some, split, left, exact h.some_spec.left,
     rw ←set_like.mem_coe,
@@ -342,7 +342,7 @@ lemma comp_out_finite  (G : simple_graph V) (K : finset V)  (Gpc : G.preconnecte
 begin
     by_cases Kn : K.nonempty,
   -- nonempty case
-  haveI : finite (G.thicken K), by {rw set.finite_coe_iff, apply @thicken.finite _ _ Glf _, },
+  haveI : finite (G.thicken K), by {rw set.finite_coe_iff, apply @thicken.finite _ _ Glf _,
   apply finite.of_injective (to_thickening G K Gpc Glf Kn),
   apply to_thickening_inj,
   -- empty case
@@ -402,7 +402,7 @@ lemma eq_back_iff_sub {K L : set V} (h : K ⊆ L) (C : G.comp_out L) (D : G.comp
   C.back h = D ↔ (C : set V) ⊆ D :=
 begin
   split,
-  { rintro rfl, apply back_sub, },
+  { rintro rfl, apply back_sub,
   { rintro sub,
     apply eq_of_not_disjoint,
     rw set.not_disjoint_iff,
@@ -515,7 +515,7 @@ begin
   let L_ := (K : set V) ∪ C,
   have L_fin : L_.finite := set.finite.union (to_finite K) Cfin,
   let L : finset V := set.finite.to_finset L_fin,
-  have : K ⊆ L := by {rw ← finset.coe_subset, simp only [finite.coe_to_finset, set.subset_union_left],},
+  have : K ⊆ L := by {rw ←finset.coe_subset, simp only [finite.coe_to_finset, set.subset_union_left],},
   obtain ⟨D,dis,e⟩ := mem_ranges ‹K ⊆ L›,
   simp only [eq_back_iff_sub] at e,
   suffices : (D : set V) = ∅, { have : (D : set V).nonempty, by simp only [nempty], finish,},
@@ -594,8 +594,8 @@ begin
     haveI comps_fin : finite {C : G.comp_out k // C.fin} := fin_comp_out_finite G k Gpc Glf,
     haveI fin_comps : ∀ (c : {C : G.comp_out k // C.fin}), finite (↑c : set V) := by {
       rintro ⟨c, cfin⟩, dsimp [comp_out.fin] at *,
-      rw ← set.finite_coe_iff at cfin, exact cfin,},
-    rw ← set.finite_coe_iff,
+      rw ←set.finite_coe_iff at cfin, exact cfin,},
+    rw ←set.finite_coe_iff,
     apply @finite.set.finite_Union _ _ comps_fin coe fin_comps,
   },
   exact k ∪ ‹finite_pieces.finite›.to_finset,
@@ -618,7 +618,7 @@ begin
     sorry, -- every component is non-empty, so the point in the component will do
     sorry
   }, {
-    rintros Cinf v ⟨hvextend, hvC⟩,
+    rintro Cinf v ⟨hvextend, hvC⟩,
     show false, apply Cinf, clear Cinf,
     sorry -- it follows from cases on `hvextend` that `v` is contained in a finite component, and as components are disjoint, that must be `C` itself
   }
@@ -635,7 +635,7 @@ begin
   intro h,
   rw connected_iff,
   split, {
-    rintros vv ww,
+    rintro vv ww,
     have hv := vv.prop, have hw := ww.prop,
     simp at hv hw,
     cases hv, cases hw,
@@ -651,9 +651,9 @@ begin
   },  {
     apply set.nonempty_coe_sort.mpr,
     apply set.nonempty.mono, rotate,
-    rw [← set.nonempty_coe_sort],
+    rw [←set.nonempty_coe_sort],
     exact ((connected_iff _).mp kconn).2,
-    simp, }
+    simp
 end
 
 
@@ -671,7 +671,7 @@ begin
     { right, dsimp,
       simp at h,
       rcases h with ⟨k_, hk_k, hk_C⟩,
-      rw ← hk_C, simp, assumption, } },
+      rw ←hk_C, simp, assumption },
 end
 
 lemma extend_with_fin.components_spec :
@@ -709,13 +709,13 @@ begin
     split,
     { apply back_of_inf,
       rw [extend_with_fin.dis_iff_comp_inf] at Ddis,
-      exact Ddis, },
+      exact Ddis,
     { rw DC,
       apply eq.symm,
       show (back _ D : set V) = ↑D,
       suffices : back _ D = D, from by sorry {rw [comp_out.eq_of_eq_set]},
       rw eq_back_iff_sub,
-      simp only [coe_subset, finset.subset.refl], }}
+      simp only [coe_subset, finset.subset.refl]}
 end
 
 lemma extend_connected_with_fin_bundled  :

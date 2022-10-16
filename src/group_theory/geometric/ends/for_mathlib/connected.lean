@@ -113,11 +113,11 @@ begin
     { refine (Hconn ⟨u, huH⟩ ⟨v, hv⟩).elim (λ p, _),
       have q := p.map (subgraph.inclusion le_sup_left : H.coe →g (H ⊔ K).coe),
       constructor,
-      simpa [subgraph.inclusion] using q, },
+      simpa [subgraph.inclusion] using q,
     { refine (Kconn ⟨u, huK⟩ ⟨v, hv⟩).elim (λ p, _),
       have q := p.map (subgraph.inclusion le_sup_right : K.coe →g (H ⊔ K).coe),
       constructor,
-      simpa [subgraph.inclusion] using q, } },
+      simpa [subgraph.inclusion] using q },
   intros v w,
   exact reachable.trans (key _).symm (key _),
 end
@@ -137,7 +137,7 @@ lemma subgraph.induce_pair_connected {u v : V} (huv : G.adj u v) :
   ((⊤ : G.subgraph).induce {u, v}).connected :=
 begin
   change connected (subgraph.coe _),
-  rw ← induce_eq_coe_induce_top,
+  rw ←induce_eq_coe_induce_top,
   exact induce_pair_connected_of_adj huv,
 end
 
@@ -148,7 +148,7 @@ lemma connected.adj_union {H K : G.subgraph}
 begin
   refine connected.union _ ‹_› _,
   { refine connected.union (subgraph.induce_pair_connected huv) ‹_› _,
-    exact ⟨u, by simp [uH]⟩, },
+    exact ⟨u, by simp [uH]⟩,
   { exact ⟨v, by simp [vK]⟩ },
 end
 
@@ -172,23 +172,23 @@ lemma walk.contained_verts (H : G.subgraph)
 begin
   rintro h,
   induction p,
-  { simp, exact h, },
+  { simp, exact h,
   { simp at h, specialize p_ih h.2,
     intros w wsup,
     rw [walk.support_cons,list.mem_cons_iff] at wsup,
     cases wsup,
-    { rw wsup, exact H.edge_vert h.1, },
-    { exact p_ih w wsup, },}
+    { rw wsup, exact H.edge_vert h.1,
+    { exact p_ih w wsup,}
 end
 
 lemma walk.contained_induced_iff (S : set V) {u v : V} (p : G.walk u v) :
   p.contained ((⊤ : G.subgraph).induce S) ↔ ∀ w ∈ p.support, w ∈ S :=
 begin
   split,
-  { exact walk.contained_verts _ p, },
+  { exact walk.contained_verts _ p,
   { rintro sub,
     induction p,
-    {simp, apply sub, simp, },
+    {simp, apply sub, simp,
     { simp, refine ⟨⟨_,_,p_h⟩,_⟩,
       {apply sub, simp,},
       {apply sub, simp,},
@@ -210,7 +210,7 @@ begin
   rcases w with ⟨ww,hw⟩,
   dsimp at p,
   induction p with u u v w uav vpw ih,
-  { exact walk.nil, },
+  { exact walk.nil,
   { rw walk.contained_cons_iff at pcon,
     have hv : v ∈ H.verts := H.edge_vert (pcon.1).symm,
     refine walk.cons' _ ⟨v,hv⟩ _ _ _,
@@ -227,7 +227,7 @@ begin
   rcases w with ⟨ww,hw⟩,
   dsimp at p,
   induction p with u u v w uav vpw ih,
-  { dsimp [subgraph.hom,walk.contained.to_subgraph], refl, },
+  { dsimp [subgraph.hom,walk.contained.to_subgraph], refl,
   { apply congr_arg2,
     simp only [eq_iff_true_of_subsingleton],
     apply ih,}
@@ -256,11 +256,11 @@ def walk.from_induced_contained [decidable_eq V] {S : set V} :
 | _ _ (walk.nil' _) := by
 { dsimp [walk.from_induced],
   simp only [list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, finset.coe_singleton,
-             set.singleton_subset_iff,subtype.coe_prop], }
+             set.singleton_subset_iff,subtype.coe_prop]
 | _ _ (walk.cons' u v w a q) := by
 { dsimp [walk.from_induced],
   simp only [list.to_finset_cons, finset.coe_insert],
-  rw set.insert_subset, simp, apply walk.from_induced_contained, }
+  rw set.insert_subset, simp, apply walk.from_induced_contained
 
 
 lemma connected.walk_support [decidable_eq V] {u v : V} (p : G.walk u v) :
@@ -279,9 +279,9 @@ begin
     cases wq,
     { simp only [ex, finset.mem_coe, list.mem_to_finset, walk.mem_support_append_iff],
       rw [walk.support_reverse, list.mem_reverse] at wq,
-      exact or.inl wq, },
+      exact or.inl wq,
     { simp only [ey, finset.mem_coe, list.mem_to_finset, walk.mem_support_append_iff],
-      exact or.inl wq, },
+      exact or.inl wq,
   },
   apply nonempty.intro,
   exact walk.to_induced (p.support.to_finset) q this,
@@ -300,8 +300,8 @@ begin
     { obtain ⟨Hv, HvH, u', v',⟨rv⟩⟩ := patches w,
       constructor,
       convert rv.map (subgraph.inclusion HvH);
-      rw [←subtype.coe_inj,simple_graph.subgraph.inclusion_apply_coe]; refl,}, },
-  { use [u.val,u.prop], }
+      rw [←subtype.coe_inj,simple_graph.subgraph.inclusion_apply_coe]; refl,},
+  { use [u.val,u.prop]
 end
 
 --mathlib
@@ -319,12 +319,12 @@ begin
   use walks_supp,
   have hk₀ : k₀ ∈ walks_supp, by
   { simp only [finset.mem_bUnion, list.mem_to_finset, walk.start_mem_support, exists_prop, and_true],
-    use [k₀,Kn.some_spec], },
+    use [k₀,Kn.some_spec],
   split,
   { rintro k kK,
     simp only [finset.mem_bUnion, list.mem_to_finset, exists_prop],
     use [k,kK],
-    simp only [walk.end_mem_support], },
+    simp only [walk.end_mem_support],
   { rw top_induce,
     apply connected.patches, rotate, exact ⟨k₀,hk₀⟩,
     rintro ⟨v,hv⟩,
@@ -338,7 +338,7 @@ begin
                  walk.start_mem_support, exists_true_left],
       use vk,
       rw ←top_induce,
-      apply connected.walk_support _ _ _, }
+      apply connected.walk_support _ _ _
   }
 end
 
@@ -362,7 +362,7 @@ variables  {V} (G)
 @[ext] lemma eq_of_eq_supp (C D : G.connected_component) : C = D ↔ C.supp = D.supp :=
 begin
   split,
-  { intro h, subst h, },
+  { intro h, subst h,
   { refine connected_component.ind₂ _ C D,
     intros v w h,
     simp_rw [set.ext_iff] at h,
@@ -372,7 +372,7 @@ end
 
 instance : set_like G.connected_component V := {
   coe := connected_component.supp,
-  coe_injective' := by {intros C D, apply (eq_of_eq_supp _ _ _).mpr, } }
+  coe_injective' := by {intros C D, apply (eq_of_eq_supp _ _ _).mpr }
 
 -- Some variation of this should surely be included in mathlib ?!
 lemma connected (C : G.connected_component) :
@@ -385,13 +385,13 @@ begin
   rw connected_iff,
   fsplit,
   { suffices : ∀ u : comp, (G.induce comp).reachable u ⟨v, by {dsimp [comp], refl,}⟩,
-    { exact λ u w, (this u).trans (this w).symm, },
+    { exact λ u w, (this u).trans (this w).symm,
 
     rintro ⟨u,uv⟩,
     simp only [set.mem_set_of_eq, connected_component.eq] at uv,
     obtain ⟨uv'⟩ := uv,
     induction uv' with a b c d e f g,
-    { refl, },
+    { refl,
     { --have : c ∈ C, by {simp at uv ⊢, constructor, exact f,},
       simp only [set.mem_set_of_eq, connected_component.eq] at *,
       constructor,
@@ -399,7 +399,7 @@ begin
       exact (g ⟨f⟩).some,
       simp only [comap_adj, function.embedding.coe_subtype, subtype.coe_mk],
       exact e,}},
-  { simp [connected_component.supp], use v, }
+  { simp [connected_component.supp], use v
 end
 
 lemma of_preconnected (Gpc : G.preconnected) (C : G.connected_component)
@@ -426,7 +426,7 @@ begin
   { dsimp only [function.right_inverse,function.left_inverse],
     apply connected_component.ind,
     simp only [connected_component.eq, connected_component.lift_mk, rel_iso.symm_apply_apply],
-    rintro v, simp only [rel_iso.apply_symm_apply], }
+    rintro v, simp only [rel_iso.apply_symm_apply]
 end
 
 end connected_component

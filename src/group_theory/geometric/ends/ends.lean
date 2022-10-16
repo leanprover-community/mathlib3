@@ -69,8 +69,8 @@ instance finset_directed : is_directed (finset V) (≥) := {
 def ComplComp : finset V ⥤ Type u := {
   obj := λ A, dis_comp_out G A,
   map := λ _ _ f, dis_comp_out.back (le_of_hom f),
-  map_id' := by {intro, funext, simp only [types_id_apply],apply dis_comp_out.back_refl_apply, },
-  map_comp' := by {intros, funext, simp only [types_comp_apply], symmetry, apply dis_comp_out.back_trans_apply, },
+  map_id' := by {intro, funext, simp only [types_id_apply],apply dis_comp_out.back_refl_apply,
+  map_comp' := by {intros, funext, simp only [types_comp_apply], symmetry, apply dis_comp_out.back_trans_apply,
 }
 
 /-- The ends of a graph, defined as the sections of the functor. -/
@@ -103,7 +103,7 @@ begin
     exact Ddis,
     have := back_sub KsubL D,
     rw [hback] at this,
-    exact this, },
+    exact this,
   { -- use inf_of_in_all_ranges
     rintro h,
     simp at h,
@@ -131,13 +131,13 @@ instance ComplComp_nonempty [infinite V] :  ∀ (j : (finset V)), nonempty ((Com
   --rotate,
   obtain ⟨C,Cinf⟩ := comp_out.exists_inf G K Gpc Glf,
   constructor,
-  use [C,comp_out.dis_of_inf C Cinf], }
+  use [C,comp_out.dis_of_inf C Cinf]
 
 instance ComplComp_fintype : Π (j : (finset V)), fintype ((ComplComp G).obj j) := by
 { intro,
   dsimp only [ComplComp],
   haveI := @fintype.of_finite (G.comp_out j) (comp_out_finite G j Gpc Glf),
-  apply subtype.fintype, }
+  apply subtype.fintype
 
 instance ComplInfComp_nonempty [infinite V] : Π (j : (finset V)), nonempty ((ComplInfComp G).obj j) := by
 { intro K, dsimp only [ComplComp],
@@ -152,7 +152,7 @@ instance ComplInfComp_fintype : Π (j : (finset V)), fintype ((ComplInfComp G).o
   have dis_fin := subtype.fintype (λ (C : G.comp_out K), C.dis),
   change fintype (G.dis_comp_out K) at dis_fin,
   haveI := dis_fin,
-  apply subtype.fintype, }
+  apply subtype.fintype
 
 
 omit Glf Gpc
@@ -176,11 +176,11 @@ begin
     rintro i j h x,
     let jempty := all_empty  G j,
     rw ComplInfComp_eq_ComplComp_to_surjective at jempty,
-    exact jempty.elim x, },
+    exact jempty.elim x,
   { haveI : infinite V := infinite.of_not_finite hfin,
     haveI := ComplComp_fintype G Glf Gpc,
     haveI := ComplComp_nonempty G Glf Gpc,
-    exact inverse_system.to_surjective.is_surjective (ComplComp G), },
+    exact inverse_system.to_surjective.is_surjective (ComplComp G),
 end
 
 lemma inf_comp_out.back_surjective {K L : finset V} (h : K ⊆ L) :
@@ -221,10 +221,10 @@ begin
     haveI := ComplInfComp_fintype G Glf Gpc,
 
     apply equiv.of_bijective _ (inverse_system.sections_bijective (ComplInfComp G) K _),
-    rintros ⟨L,KL⟩,
+    rintro ⟨L,KL⟩,
     have sur : function.surjective ((ComplInfComp G).map (hom_of_le KL)), by {
       rw (ComplInfComp_eq_ComplComp_to_surjective G),
-      rintros a,
+      rintro a,
       exact (inverse_system.to_surjective.is_surjective (ComplComp G) L K KL a),
     },
     split, rotate,

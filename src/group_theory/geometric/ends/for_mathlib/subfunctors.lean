@@ -14,8 +14,8 @@ def subfunctor {C : Type u} [category C] (F : C ⥤ Type v)
   (map : ∀ (c d : C) (m : c ⟶ d), set.maps_to (F.map m) (obj c) (obj d)) : C ⥤ Type v :=
 { obj := λ c, subtype (obj c),
   map := λ c d m, set.maps_to.restrict _ _ _ (map c d m),
-  map_id' := by {intro, ext, simp only [map_id, set.maps_to.coe_restrict_apply, types_id_apply], },
-  map_comp' := by {intros, ext, simp only [map_comp, set.maps_to.coe_restrict_apply, types_comp_apply], },}
+  map_id' := by {intro, ext, simp only [map_id, set.maps_to.coe_restrict_apply, types_id_apply],
+  map_comp' := by {intros, ext, simp only [map_comp, set.maps_to.coe_restrict_apply, types_comp_apply],}
 
 lemma subfunctor.ext {C : Type u} [category C] (F : C ⥤ Type v)
   (obj₁ : ∀ c, set $ F.obj c)

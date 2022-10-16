@@ -73,6 +73,7 @@ x.1.ne_top_iff_one.1 x.2.1 $ subsingleton.elim (0 : punit) 1 ▸ x.1.zero_mem
 
 variables (R S)
 
+/-- The map from the direct sum of prime spectra to the prime spectrum of a direct product. -/
 @[simp] def prime_spectrum_prod_of_sum :
   prime_spectrum R ⊕ prime_spectrum S → prime_spectrum (R × S)
 | (sum.inl ⟨I, hI⟩) := ⟨ideal.prod I ⊤, by exactI ideal.is_prime_ideal_prod_top⟩

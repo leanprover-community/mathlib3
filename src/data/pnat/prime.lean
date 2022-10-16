@@ -19,12 +19,11 @@ instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨(p : ℕ), p.property
 
 @[norm_cast] theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = p := rfl
 
-@[norm_cast] theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) → p = q := λ h,
-begin
-  replace h : ((p : ℕ+) : ℕ) = ((q : ℕ+) : ℕ) := congr_arg subtype.val h,
-  rw [coe_pnat_nat, coe_pnat_nat] at h,
-  exact subtype.eq h,
-end
+theorem coe_pnat_injective : function.injective (coe : nat.primes → ℕ+) :=
+λ p q h, subtype.ext (congr_arg subtype.val h : _)
+
+@[norm_cast] theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) ↔ p = q :=
+coe_pnat_injective.eq_iff
 
 end nat.primes
 

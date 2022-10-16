@@ -261,14 +261,21 @@ by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, mono
 lemma det_eq_one_of_subsingleton [nontrivial R] [subsingleton M] (f : M →ₗ[R] M) :
   (f : M →ₗ[R] M).det = 1 :=
 begin
-  refine @linear_map.det_cases M  _ R _ _ _ (λ t, t = 1) f _ rfl,
+  have b : basis (fin 0) R M := basis.empty M,
+  rw ← f.det_to_matrix b,
+  exact matrix.det_is_empty,
+end
+
+lemma det_eq_one_of_finrank_eq_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M]
+  [module 𝕜 M] (h : finite_dimensional.finrank 𝕜 M = 0) (f : M →ₗ[𝕜] M) :
+  (f : M →ₗ[𝕜] M).det = 1 :=
+begin
+  classical,
+  refine @linear_map.det_cases M  _ 𝕜 _ _ _ (λ t, t = 1) f _ rfl,
   intros s b,
   haveI : is_empty s,
-  { apply (is_empty_or_nonempty s).resolve_right,
-    intros _i,
-    haveI : subsingleton (s →₀ R) := equiv.subsingleton b.repr.symm.to_equiv,
-    haveI : nontrivial (s →₀ R) := finsupp.nontrivial,
-    exact false_of_nontrivial_of_subsingleton (s →₀ R) },
+  { rw ← fintype.card_eq_zero_iff,
+    exact (finite_dimensional.finrank_eq_card_basis b).symm.trans h },
   exact matrix.det_is_empty
 end
 

@@ -435,7 +435,7 @@ end
 /-- A complex-valued real-bilinear map on an oriented real inner product space of dimension 2. Its
 real part is the inner product and its imaginary part is `orientation.area_form`.
 
-TODO On `ℂ` with the standard orientation, `kahler w z = conj w * z`. -/
+On `ℂ` with the standard orientation, `kahler w z = conj w * z`; see `complex.kahler`. -/
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=
 (linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ (@innerₛₗ ℝ E _ _)
 + (linear_map.llcomp ℝ E ℝ ℂ ((linear_map.lsmul ℝ ℂ).flip complex.I)) ∘ₗ ω
@@ -541,79 +541,6 @@ lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
 by simp [kahler_apply_apply, area_form_map]
-
-end orientation
-
-namespace complex
-
-local attribute [instance] complex.finrank_real_complex_fact
-
-@[simp] protected lemma area_form (w z : ℂ) : complex.orientation.area_form w z = (conj w * z).im :=
-begin
-  let o := complex.orientation,
-  simp only [o.area_form_to_volume_form, o.volume_form_robust complex.orthonormal_basis_one_I rfl,
-    basis.det_apply, matrix.det_fin_two, basis.to_matrix_apply,to_basis_orthonormal_basis_one_I,
-    matrix.cons_val_zero, coe_basis_one_I_repr, matrix.cons_val_one, matrix.head_cons, mul_im,
-    conj_re, conj_im],
-  ring,
-end
-
-@[simp] protected lemma right_angle_rotation (z : ℂ) :
-  complex.orientation.right_angle_rotation z = I * z :=
-begin
-  apply ext_inner_right ℝ,
-  intros w,
-  rw orientation.inner_right_angle_rotation_left,
-  simp only [complex.area_form, complex.inner, mul_re, mul_im, conj_re, conj_im, map_mul, conj_I,
-    neg_re, neg_im, I_re, I_im],
-  ring,
-end
-
-@[simp] protected lemma kahler (w z : ℂ) :
-  complex.orientation.kahler w z = conj w * z :=
-begin
-  rw orientation.kahler_apply_apply,
-  ext1; simp,
-end
-
-end complex
-
-namespace orientation
-
-local notation `ω` := o.area_form
-local notation `J` := o.right_angle_rotation
-
-open complex
-
-/-- The area form on an oriented real inner product space of dimension 2 can be evaluated in terms
-of a complex-number representation of the space. -/
-lemma area_form_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
-  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x y : E) :
-  ω x y = (conj (f x) * f y).im :=
-begin
-  rw [← complex.area_form, ← hf, o.area_form_map],
-  simp,
-end
-
-/-- The rotation by 90 degrees on an oriented real inner product space of dimension 2 can be
-evaluated in terms of a complex-number representation of the space. -/
-lemma right_angle_rotation_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
-  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x : E) :
-  f (J x) = I * f x :=
-begin
-  rw [← complex.right_angle_rotation, ← hf, o.right_angle_rotation_map],
-  simp,
-end
-
-/-- The Kahler form on an oriented real inner product space of dimension 2 can be evaluated in terms
-of a complex-number representation of the space. -/
-lemma kahler_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
-  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x y : E) :
-  o.kahler x y = conj (f x) * f y :=
-begin
-  rw [← complex.kahler, ← hf, o.kahler_map],
-  simp,
-end
 
 end orientation
 

@@ -31,50 +31,14 @@ variables {Ω : Type*} {m0 : measurable_space Ω} {μ : measure Ω} {s : ℕ →
 
 section pi_system
 
-lemma Indep_set.indep_sets_pi_Union_Inter (hs : Indep_set s μ) (n : ℕ) :
-  indep_sets {s n} (pi_Union_Inter (λ k : ℕ, {s k}) {T | T ≤ finset.range n}) μ :=
-begin
-  rintro a b ha ⟨I, hI, f, hf, rfl⟩,
-  simp only [set.mem_singleton_iff] at hf,
-  rw [set.mem_singleton_iff.1 ha, (set.Inter_congr (λ i, set.Inter_congr $ hf i) :
-    (⋂ i ∈ I, f i) = ⋂ i ∈ I, s i), ← finset.set_bInter_insert, hs, finset.prod_insert, ← hs],
-  { exact λ i hi, measurable_set_generate_from (set.mem_singleton _) },
-  { exact λ hn, finset.not_mem_range_self (hI hn) },
-  { exact λ i hi, measurable_set_generate_from (set.mem_singleton _) }
-end
-
-lemma generate_from_pi_Union_Inter_range_eq (n : ℕ) :
-  generate_from (pi_Union_Inter (λ k : ℕ, {s k}) {T | T ≤ finset.range n}) =
-  generate_from {t | ∃ k < n, s k = t} :=
-begin
-  refine le_antisymm (generate_from_le _) (generate_from_mono _),
-  { rintro _ ⟨I, hI, f, hf, rfl⟩,
-    exact finset.measurable_set_bInter _ (λ m hm,
-      measurable_set_generate_from ⟨m, finset.mem_range.1 $ hI hm, (hf m hm).symm⟩) },
-  { rintro _ ⟨k, hk, rfl⟩,
-    exact ⟨{k}, λ m hm, (finset.mem_singleton.1 hm).symm ▸ finset.mem_range.2 hk, s,
-      λ m hm, (finset.mem_singleton.1 hm).symm ▸ rfl, (finset.set_bInter_singleton k s).symm⟩ }
-end
-
-lemma Indep_set.indep_generate_from_lt [is_probability_measure μ]
-  (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ) :
-  indep (generate_from {s n}) (generate_from {t | ∃ k < n, s k = t}) μ :=
-begin
-  rw ← generate_from_pi_Union_Inter_range_eq n,
-  refine indep_sets.indep' (λ t ht, (set.mem_singleton_iff.1 ht).symm ▸ hsm n)
-    (λ t ht, generate_from_pi_Union_Inter_le _ _ _ _ (measurable_set_generate_from ht))
-    (is_pi_system.singleton _) _ (hs.indep_sets_pi_Union_Inter _),
-  { exact (λ k, generate_from_le $ λ t ht, (set.mem_singleton_iff.1 ht).symm ▸ hsm k) },
-  { refine is_pi_system_pi_Union_Inter _ (λ k, is_pi_system.singleton _) _
-      (λ a b ha hb, @finset.union_subset _ (λ x y, classical.prop_decidable (x = y)) _ _ _ ha hb) }
-end
-
 lemma Indep_set.indep_generate_from_le [is_probability_measure μ]
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ) :
   indep (generate_from {s (n + 1)}) (generate_from {t | ∃ k ≤ n, s k = t}) μ :=
 begin
-  convert hs.indep_generate_from_lt hsm (n + 1),
-  simp_rw nat.lt_succ_iff
+  have := hs.indep_generate_from_of_disjoint _ hsm {n + 1} {k | k ≤ n} (λ x ⟨hx₁, hx₂⟩,
+    not_lt.2 (set.mem_set_of.1 hx₂) ((set.mem_singleton_iff.1 hx₁).symm ▸ nat.lt_succ_self n)),
+  convert this,
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
 end
 
 end pi_system

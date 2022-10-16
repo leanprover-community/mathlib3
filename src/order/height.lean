@@ -30,9 +30,9 @@ This is defined as the maximum of the lengths of `set.subchain`s, valued in `ℕ
 - `set.chain_height_le_of_subset`: If `s ⊆ t` then `s.chain_height ≤ t.chain_height`.
 - `set.chain_height_image`: If `f` is an order embedding, then
   `(f '' s).chain_height = s.chain_height`.
-- `set.chain_height_insert_of_forall_gt`: If `∀ y ∈ s, x > y`, then
+- `set.chain_height_insert_of_forall_lt`: If `∀ y ∈ s, y < x`, then
   `(insert x s).chain_height = s.chain_height + 1`.
-- `set.chain_height_insert_of_forall_lt`: If `∀ y ∈ s, x < y`, then
+- `set.chain_height_insert_of_lt_forall`: If `∀ y ∈ s, x < y`, then
   `(insert x s).chain_height = s.chain_height + 1`.
 - `set.chain_height_union_eq`: If `∀ x ∈ s, ∀ y ∈ t, s ≤ t`, then
   `(s ∪ t).chain_height = s.chain_height + t.chain_height`.
@@ -300,7 +300,7 @@ begin
   refl,
 end
 
-lemma chain_height_insert_of_forall_lt (x : α) (hx : ∀ a ∈ s, x < a) :
+lemma chain_height_insert_of_lt_forall (x : α) (hx : ∀ a ∈ s, x < a) :
   (insert x s).chain_height = s.chain_height + 1 :=
 begin
   rw ← add_zero (insert x s).chain_height,
@@ -321,7 +321,7 @@ begin
     { rintro x (rfl|hx), exacts [or.inl (set.mem_singleton x), or.inr (hl.2 x hx)] } }
 end
 
-lemma chain_height_insert_of_forall_gt (x : α) (hx : ∀ a ∈ s, x > a) :
+lemma chain_height_insert_of_forall_lt (x : α) (hx : ∀ a ∈ s, a < x) :
   (insert x s).chain_height = s.chain_height + 1 :=
 begin
   rw [chain_height_order_dual s s rfl, ← chain_height_insert_of_forall_lt],
